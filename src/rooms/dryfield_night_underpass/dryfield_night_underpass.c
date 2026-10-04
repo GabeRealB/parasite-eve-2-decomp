@@ -747,7 +747,7 @@ void func_dryfield_night_underpass_8017D95C(Task* task)
 /// Per-frame effect: draws the glow anchors the current visit lights, one per
 /// offset in `D_...DD20` whose `D_...DD60` bitmask contains the visit's bit
 /// (`gGameSession->location.loc.view`). The whole effect is skipped unless the room flag
-/// (`GameFlag_GetNibble(0x53)`) is clear.
+/// (`gameFlagGetNibble(0x53)`) is clear.
 void func_dryfield_night_underpass_8017DC3C(Task* unused)
 {
     s32      mask;
@@ -756,7 +756,7 @@ void func_dryfield_night_underpass_8017DC3C(Task* unused)
     s16*     flags;
 
     mask = 1 << gGameSession->location.loc.view;
-    if (GameFlag_GetNibble(GAME_FLAG_053) == 0) {
+    if (gameFlagGetNibble(GAME_FLAG_053) == 0) {
         i     = 0;
         vec   = D_dryfield_night_underpass_8017DD20;
         flags = D_dryfield_night_underpass_8017DD60;

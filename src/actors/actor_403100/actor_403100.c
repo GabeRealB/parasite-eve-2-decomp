@@ -4384,7 +4384,7 @@ static void func_actor_403100_80133E88(Task* arg0)
     frame                                = D_actor_403100_80155808->stateFrames + 1;
     D_actor_403100_80155808->stateFrames = frame;
     if (frame == 0xBE) {
-        GameFlag_SetNibble(GAME_FLAG_BURNER_DEFEATED, 1);
+        gameFlagSetNibble(GAME_FLAG_BURNER_DEFEATED, 1);
         D_actor_403100_80155808->state++;
     }
 }

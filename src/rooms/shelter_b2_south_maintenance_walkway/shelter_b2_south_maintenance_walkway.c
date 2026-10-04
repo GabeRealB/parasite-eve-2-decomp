@@ -479,12 +479,12 @@ static void           func_shelter_b2_south_maintenance_walkway_8017DC64(Task* t
 static __inline__ s32 _walkwayStartEvent(RoomEventMsg* dst, RoomLatchedEvent* event)
 {
     D_shelter_b2_south_maintenance_walkway_801838F4[0] = 0;
-    if (GameFlag_GetNibble(event->flagId) == 0 || event->flagId == 0) {
+    if (gameFlagGetNibble(event->flagId) == 0 || event->flagId == 0) {
         if (dst->queryOnly == ROOM_EVENT_EXECUTE) {
             gRoomEventStagedMsg = *dst;
             gRoomEventLatched   = *event;
             if (event->flagId != 0) {
-                GameFlag_SetNibble(event->flagId, 1);
+                gameFlagSetNibble(event->flagId, 1);
             }
             Task_SpawnFromTable(&D_shelter_b2_south_maintenance_walkway_80182544, 0, 0, 0);
             D_shelter_b2_south_maintenance_walkway_801838F4[0] = 1;

@@ -674,7 +674,7 @@ s32 func_shelter_b1_control_room_8017ECD4(Task* arg0, s32 arg1, RoomEventMsg* in
     if (in->areaId != GAME_AREA_SHELTER_B1_ACCESS_TUNNEL) {
         return 1;
     }
-    if (GameFlag_GetNibble(GAME_FLAG_B1_CONTROL_ROOM_TUNNEL_DOOR_UNLOCKED) != 0) {
+    if (gameFlagGetNibble(GAME_FLAG_B1_CONTROL_ROOM_TUNNEL_DOOR_UNLOCKED) != 0) {
         return 1;
     }
     if (in->queryOnly != ROOM_EVENT_EXECUTE) {
@@ -689,28 +689,28 @@ s32 func_shelter_b1_control_room_8017ED68(Task* task, s32 msgId, s32 arg2, s32 a
 {
     switch (arg2) {
         case 3:
-            if (GameFlag_GetNibble(GAME_FLAG_CONTROL_ROOM_RETURN_TAKEN) != 0) {
+            if (gameFlagGetNibble(GAME_FLAG_CONTROL_ROOM_RETURN_TAKEN) != 0) {
                 Gp_RunCapCmd1(6);
             } else {
                 Gp_RunCapCmd1(3);
             }
             break;
         case 4:
-            if (GameFlag_GetNibble(GAME_FLAG_CONTROL_ROOM_RETURN_TAKEN) != 0) {
+            if (gameFlagGetNibble(GAME_FLAG_CONTROL_ROOM_RETURN_TAKEN) != 0) {
                 Gp_RunCapCmd1(7);
             } else {
                 Gp_RunCapCmd1(4);
             }
             break;
         case 5:
-            if (GameFlag_GetNibble(GAME_FLAG_CONTROL_ROOM_RETURN_TAKEN) != 0) {
+            if (gameFlagGetNibble(GAME_FLAG_CONTROL_ROOM_RETURN_TAKEN) != 0) {
                 Gp_RunCapCmd1(8);
             } else {
                 Gp_RunCapCmd1(5);
             }
             break;
         case 9:
-            if (GameFlag_GetNibble(GAME_FLAG_STORY_CHAPTER) == 6) {
+            if (gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) == 6) {
                 Gp_RunCapCmd1(9);
             }
             break;

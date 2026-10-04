@@ -23,16 +23,16 @@ s32 parkingLotEventMsg(Task* task, s32 msgId, RoomEventMsg* msg, RoomEventMsg* o
 
     *out = *msg;
     if ((msg->areaId == 2) && (msg->queryOnly == ROOM_EVENT_EXECUTE)) {
-        n = GameFlag_GetNibble(GAME_FLAG_STORY_CHAPTER);
+        n = gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER);
         if (n >= 4) {
             val = 3;
         } else {
-            val = GameFlag_GetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) + 1;
+            val = gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) + 1;
         }
         out->room = val;
     }
     if ((msg->areaId == 0x1D) && (msg->queryOnly == ROOM_EVENT_EXECUTE)) {
-        n = GameFlag_GetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN);
+        n = gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN);
         if (n == 0) {
             n = 1;
         } else {
@@ -53,8 +53,8 @@ s32 parkingLotEventMsg(Task* task, s32 msgId, RoomEventMsg* msg, RoomEventMsg* o
         }
         if (ROOM_EVENT_ACTIVE != 0) {
             Gp_ApplyAreaRecs(gParkingLotAreaRecs);
-            GameFlag_SetNibble(GAME_FLAG_046, 1);
-            GameFlag_SetNibble(GAME_FLAG_097, 1);
+            gameFlagSetNibble(GAME_FLAG_046, 1);
+            gameFlagSetNibble(GAME_FLAG_097, 1);
         }
     } else if (msg->areaId == 0x12) {
         req.capCmd        = 3;

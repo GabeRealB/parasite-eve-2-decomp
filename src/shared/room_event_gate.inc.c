@@ -24,9 +24,9 @@ s32 roomEventGate(RoomEventReq* req, RoomEventMsg* msg)
     got               = (s16)flag;
     if (neg) {
         flag = -flag;
-        got  = GameFlag_GetNibble(flag) == 0;
+        got  = gameFlagGetNibble(flag) == 0;
     } else {
-        got = GameFlag_GetNibble(got);
+        got = gameFlagGetNibble(got);
     }
     ret = 1;
     if (got == 0) {
@@ -41,7 +41,7 @@ s32 roomEventGate(RoomEventReq* req, RoomEventMsg* msg)
                     id   = -id;
                     mode = 0;
                 }
-                GameFlag_SetNibble(id, mode);
+                gameFlagSetNibble(id, mode);
                 Task_SpawnFromTable(&gRoomEventTaskDesc, 0, 0, 0);
                 ROOM_EVENT_ACTIVE = 1;
                 return 2;

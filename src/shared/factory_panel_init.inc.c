@@ -17,7 +17,7 @@ void factoryPanelInit(Task* task)
     task->spawnArg2.pointer = Task_SpawnFromTable(gFactoryPromptDesc, 0, 1, 0);
     task->work              = work;
     task->msgTable          = gFactoryPanelMsgTable;
-    if (GameFlag_GetNibble(GAME_FLAG_FACTORY_POWER_ON) == 0) {
+    if (gameFlagGetNibble(GAME_FLAG_FACTORY_POWER_ON) == 0) {
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0xC;
     } else {
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 5;

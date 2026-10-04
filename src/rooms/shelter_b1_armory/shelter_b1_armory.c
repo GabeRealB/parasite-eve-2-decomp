@@ -310,17 +310,17 @@ check:
     if (found != 0) {
         if (arg2 == 0x105) {
             gGameSession->eventState = 1;
-            if (GameFlag_GetNibble(GAME_FLAG_SHELTER_B1_ARMORY_UNLOCKED) != 0) {
+            if (gameFlagGetNibble(GAME_FLAG_SHELTER_B1_ARMORY_UNLOCKED) != 0) {
                 Task_SpawnOnDefaultList(D_shelter_b1_armory_801824E8, 0, 0x170003, 0);
             } else {
                 Task_SpawnOnDefaultList(D_shelter_b1_armory_801824E8, 0, 0x180002, 0);
-                GameFlag_SetNibble(GAME_FLAG_SHELTER_B1_ARMORY_UNLOCKED, 1);
+                gameFlagSetNibble(GAME_FLAG_SHELTER_B1_ARMORY_UNLOCKED, 1);
             }
             return 1;
         }
         if (arg2 == 0x121 || arg2 == 0x122) {
             gGameSession->eventState = 1;
-            if (GameFlag_GetNibble(GAME_FLAG_SHELTER_B1_ARMORY_UNLOCKED) != 0) {
+            if (gameFlagGetNibble(GAME_FLAG_SHELTER_B1_ARMORY_UNLOCKED) != 0) {
                 Task_SpawnOnDefaultList(D_shelter_b1_armory_801824E8, 0, 0x170003, 0);
             } else {
                 Task_SpawnOnDefaultList(D_shelter_b1_armory_801824E8, 0, 0x190001, 0);
@@ -349,7 +349,7 @@ s32 func_shelter_b1_armory_801805A8(Task* arg0, s32 arg1, RoomEventMsg* in, Room
     if (in->areaId != GAME_AREA_SHELTER_B1_ARMORY) {
         return 1;
     }
-    if (GameFlag_GetNibble(GAME_FLAG_SHELTER_B1_ARMORY_UNLOCKED) != 0) {
+    if (gameFlagGetNibble(GAME_FLAG_SHELTER_B1_ARMORY_UNLOCKED) != 0) {
         return 1;
     }
     if (in->queryOnly == ROOM_EVENT_EXECUTE) {
@@ -363,10 +363,10 @@ s32 func_shelter_b1_armory_80180698(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     switch (arg2) {
         case 12:
-            Gp_SpawnIfCapIdle(GameFlag_GetNibble(GAME_FLAG_SHELTER_B1_ARMORY_UNLOCKED) == 0 ? 0xC : 0x17, 1);
+            Gp_SpawnIfCapIdle(gameFlagGetNibble(GAME_FLAG_SHELTER_B1_ARMORY_UNLOCKED) == 0 ? 0xC : 0x17, 1);
             break;
         case 10:
-            Gp_SpawnIfCapIdle(GameFlag_GetNibble(GAME_FLAG_CONTROL_ROOM_RETURN_TAKEN) != 0 ? 0x10 : 0xA, 1);
+            Gp_SpawnIfCapIdle(gameFlagGetNibble(GAME_FLAG_CONTROL_ROOM_RETURN_TAKEN) != 0 ? 0x10 : 0xA, 1);
             break;
     }
     return 0;

@@ -64,6 +64,6 @@ void generatorLifeSupportSpawn(Enemy* arg0, Task* arg1)
         func_neo_ark_power_plant_1_8017E524(1);
         flag = 0x148;
     }
-    GameFlag_SetNibble(flag, 0);
+    gameFlagSetNibble(flag, 0);
     arg1->state = 1;
 }

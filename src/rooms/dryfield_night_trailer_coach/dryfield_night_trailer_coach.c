@@ -841,7 +841,7 @@ static void func_dryfield_night_trailer_coach_8018231C(Task* task);
 ///
 /// Request 0xE forces area 8 for the scene, fills the room's cutscene record
 /// the same way the motel lobby fills its own -- save view 8, slot 1, and the
-/// cap file picked by `GameFlag_GetNibble(0x7A)` (file 1 below four, file 2 at
+/// cap file picked by `gameFlagGetNibble(0x7A)` (file 1 below four, file 2 at
 /// four or more) -- then hands it to `gRoomCutsceneTaskDescs`. Request 3
 /// spawns entry 0 of the room's task table at `0x8018797C` and request 0x17
 /// asks the cap system to run command 0x17. Always returns 0.
@@ -912,13 +912,13 @@ void func_dryfield_night_trailer_coach_8018243C(Task* task)
     switch (task->state) {
         case 0:
             Gp_MsgPlayerWeapon(0);
-            if (GameFlag_GetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) == 0) {
+            if (gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) == 0) {
                 func_800E8614(D_dryfield_night_trailer_coach_801880A8, 1);
                 task->state++;
                 break;
             }
-            if (GameFlag_GetNibble(GAME_FLAG_NIGHT_TRAILER_COACH_CHAPTER4_SCENE_SEEN) == 0 && GameFlag_GetNibble(GAME_FLAG_STORY_CHAPTER) >= 4) {
-                GameFlag_SetNibble(GAME_FLAG_NIGHT_TRAILER_COACH_CHAPTER4_SCENE_SEEN, 1);
+            if (gameFlagGetNibble(GAME_FLAG_NIGHT_TRAILER_COACH_CHAPTER4_SCENE_SEEN) == 0 && gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) >= 4) {
+                gameFlagSetNibble(GAME_FLAG_NIGHT_TRAILER_COACH_CHAPTER4_SCENE_SEEN, 1);
                 func_800E8614(D_dryfield_night_trailer_coach_80188510, 0);
             } else {
                 func_800E8614(D_dryfield_night_trailer_coach_80188348, 0);
@@ -931,9 +931,9 @@ void func_dryfield_night_trailer_coach_8018243C(Task* task)
             } else if (Gp_GetCapEventKey() == 0xC) {
                 func_800E8614(D_dryfield_night_trailer_coach_80188708, 1);
             } else if (Gp_GetCapEventKey() == 0xD) {
-                if (GameFlag_GetNibble(GAME_FLAG_NIGHT_TRAILER_COACH_STORY_SCENE_SEEN) == 0) {
-                    GameFlag_SetNibble(GAME_FLAG_NIGHT_TRAILER_COACH_STORY_SCENE_SEEN, 1);
-                    GameFlag_SetNibble(GAME_FLAG_COMPANION_1_SCHEDULE, 0);
+                if (gameFlagGetNibble(GAME_FLAG_NIGHT_TRAILER_COACH_STORY_SCENE_SEEN) == 0) {
+                    gameFlagSetNibble(GAME_FLAG_NIGHT_TRAILER_COACH_STORY_SCENE_SEEN, 1);
+                    gameFlagSetNibble(GAME_FLAG_COMPANION_1_SCHEDULE, 0);
                     Gp_ApplyAreaRecs(D_dryfield_night_trailer_coach_8018C208);
                     func_800E8634(D_dryfield_night_trailer_coach_801889A8, 1,
                                   D_dryfield_night_trailer_coach_80188F00);
@@ -979,7 +979,7 @@ s32 func_dryfield_night_trailer_coach_801826EC(Task* arg0, s32 arg1, s32 arg2, s
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = 1;
         D_dryfield_night_trailer_coach_8018C21C.view               = 8;
         D_dryfield_night_trailer_coach_8018C21C.capSlot            = 1;
-        if (GameFlag_GetNibble(GAME_FLAG_STORY_CHAPTER) < 4) {
+        if (gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) < 4) {
             D_dryfield_night_trailer_coach_8018C21C.capTPageX = 0x380;
             D_dryfield_night_trailer_coach_8018C21C.capFile   = 1;
         } else {
@@ -1022,7 +1022,7 @@ void func_dryfield_night_trailer_coach_8018283C(void)
 
 void func_dryfield_night_trailer_coach_80182864(void)
 {
-    func_800D4D2C((GameFlag_GetNibble(GAME_FLAG_NIGHT_TRAILER_COACH_CHAPTER4_SCENE_SEEN) == 0) ? 0x20 : 0x21);
+    func_800D4D2C((gameFlagGetNibble(GAME_FLAG_NIGHT_TRAILER_COACH_CHAPTER4_SCENE_SEEN) == 0) ? 0x20 : 0x21);
 }
 
 #include "../../shared/trailer_coach_set_depth_shift.inc.c"

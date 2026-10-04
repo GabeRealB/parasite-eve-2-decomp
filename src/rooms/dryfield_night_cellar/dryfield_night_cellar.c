@@ -907,7 +907,7 @@ void func_dryfield_night_cellar_8017DA28(Task* unused)
 {
     u8 visit;
 
-    if (GameFlag_GetNibble(GAME_FLAG_UNDERPASS_SWITCH_2) == 1) {
+    if (gameFlagGetNibble(GAME_FLAG_UNDERPASS_SWITCH_2) == 1) {
         visit = gGameSession->location.loc.view;
         if (visit == 2) {
             glowDrawFlare(&D_dryfield_night_cellar_8017DAD0[0], 1, 0x280);

@@ -1536,22 +1536,22 @@ void func_actor_260500_80149E80(void)
 
 void func_actor_260500_80149EBC(void)
 {
-    switch (GameFlag_GetNibble(GAME_FLAG_HELIPORT_TALK_PROGRESS)) {
+    switch (gameFlagGetNibble(GAME_FLAG_HELIPORT_TALK_PROGRESS)) {
         case 0:
             func_800E8634(D_actor_260500_8014CBF8, 0, D_actor_260500_8014D630);
-            GameFlag_SetNibble(GAME_FLAG_HELIPORT_TALK_PROGRESS, 1);
+            gameFlagSetNibble(GAME_FLAG_HELIPORT_TALK_PROGRESS, 1);
             break;
         case 1:
             func_800E8614(D_actor_260500_8014D7C8, 0);
-            GameFlag_SetNibble(GAME_FLAG_HELIPORT_TALK_PROGRESS, 2);
+            gameFlagSetNibble(GAME_FLAG_HELIPORT_TALK_PROGRESS, 2);
             break;
         case 2:
             func_800E8614(D_actor_260500_8014D948, 0);
-            GameFlag_SetNibble(GAME_FLAG_HELIPORT_TALK_PROGRESS, 3);
+            gameFlagSetNibble(GAME_FLAG_HELIPORT_TALK_PROGRESS, 3);
             break;
         case 3:
             func_800E8614(D_actor_260500_8014DAB0, 0);
-            GameFlag_SetNibble(GAME_FLAG_HELIPORT_TALK_PROGRESS, 4);
+            gameFlagSetNibble(GAME_FLAG_HELIPORT_TALK_PROGRESS, 4);
             break;
         case 4:
             func_800E8614(D_actor_260500_8014DCC0, 0);

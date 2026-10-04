@@ -990,12 +990,12 @@ s32 func_dryfield_main_street_8017E05C(Task* task, s32 msgId, const void* firstA
 {
     const DirectionActionRequest* msg = firstArg;
 
-    if ((msg->actionId == 1) && (GameFlag_GetNibble(GAME_FLAG_MAIN_STREET_CUTSCENE_SEEN) == 0)) {
+    if ((msg->actionId == 1) && (gameFlagGetNibble(GAME_FLAG_MAIN_STREET_CUTSCENE_SEEN) == 0)) {
         func_dryfield_main_street_8017E4A4(0);
         func_800E8634(D_dryfield_main_street_80181624, 0, D_dryfield_main_street_80181A14);
-        GameFlag_SetNibble(GAME_FLAG_MAIN_STREET_CUTSCENE_SEEN, 1);
-        GameFlag_SetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
-        GameFlag_SetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 1);
+        gameFlagSetNibble(GAME_FLAG_MAIN_STREET_CUTSCENE_SEEN, 1);
+        gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
+        gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 1);
     }
     return 0;
 }
@@ -1008,7 +1008,7 @@ static void func_dryfield_main_street_8017E0D8(Task* task)
     task->msgTable = D_dryfield_main_street_80180EA0;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     D_80115598 = 1;
-    if (GameFlag_GetNibble(GAME_FLAG_MAIN_STREET_CUTSCENE_SEEN) == 0) {
+    if (gameFlagGetNibble(GAME_FLAG_MAIN_STREET_CUTSCENE_SEEN) == 0) {
         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &D_dryfield_main_street_80180ED0, ACTOR_COMMAND_MESSAGE_APPLY);
     }
     task->state++;

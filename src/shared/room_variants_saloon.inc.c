@@ -15,7 +15,7 @@ s32 roomVariantSaloonMsg(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* o
     msgId = in->areaId;
     if (msgId == 0xF) {
         if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-            out->room = GameFlag_GetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) + 1;
+            out->room = gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) + 1;
         }
         if (in->areaId == msgId) {
             req.capCmd        = 2;

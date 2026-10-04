@@ -36,7 +36,7 @@ void factoryBarrierCollision(Task* task)
                 geom->vertices[i * 4 + 3].vz = src->vertices[i * 4 + 3].vz;
                 geom->faces[i]               = src->faces[i];
             }
-            if (GameFlag_GetNibble(GAME_FLAG_FACTORY_BARRIER_CLEARED) != 0) {
+            if (gameFlagGetNibble(GAME_FLAG_FACTORY_BARRIER_CLEARED) != 0) {
                 for (i = 0; i < 8; i++) {
                     geom->vertices[i].vx += 2000;
                 }
@@ -46,7 +46,7 @@ void factoryBarrierCollision(Task* task)
             task->state++;
             break;
         case 1:
-            if (GameFlag_GetNibble(GAME_FLAG_FACTORY_BARRIER_CLEARED) > 0) {
+            if (gameFlagGetNibble(GAME_FLAG_FACTORY_BARRIER_CLEARED) > 0) {
                 for (i = 0; i < 8; i++) {
                     geom->vertices[i].vx += 2000;
                 }

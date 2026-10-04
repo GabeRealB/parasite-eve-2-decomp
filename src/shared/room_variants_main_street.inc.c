@@ -11,11 +11,11 @@ s32 roomVariantMainStreetMsg(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMs
 
     *out = *in;
     if (in->areaId == GAME_AREA_DRYFIELD_NIGHT_MAIN_STREET && in->queryOnly == ROOM_EVENT_EXECUTE) {
-        n = GameFlag_GetNibble(GAME_FLAG_STORY_CHAPTER);
+        n = gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER);
         if (n >= 4) {
             val = 3;
         } else {
-            val = GameFlag_GetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) + 1;
+            val = gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) + 1;
         }
         out->room = val;
     }

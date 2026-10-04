@@ -977,19 +977,19 @@ s32 func_mist_parking_801823F8(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
         case 15:
             temp = gGameSession->location.loc.variant;
             if (temp == 2) {
-                if (GameFlag_GetNibble(GAME_FLAG_0F1) == 1) {
+                if (gameFlagGetNibble(GAME_FLAG_0F1) == 1) {
                     Gp_MsgPlayerWeapon(0);
                     func_800E8614(D_mist_parking_8018F0A4, 1);
-                    GameFlag_SetNibble(GAME_FLAG_0F1, 2);
-                } else if (GameFlag_GetNibble(GAME_FLAG_0F1) == temp) {
+                    gameFlagSetNibble(GAME_FLAG_0F1, 2);
+                } else if (gameFlagGetNibble(GAME_FLAG_0F1) == temp) {
                     Gp_MsgPlayerWeapon(0);
                     func_800E8614(D_mist_parking_8018F194, 1);
-                    GameFlag_SetNibble(GAME_FLAG_0F1, 3);
-                } else if (GameFlag_GetNibble(GAME_FLAG_0F1) == 3) {
+                    gameFlagSetNibble(GAME_FLAG_0F1, 3);
+                } else if (gameFlagGetNibble(GAME_FLAG_0F1) == 3) {
                     Gp_MsgPlayerWeapon(0);
                     Task_SpawnFromTable(D_mist_parking_8018D75C, 8, 0, 0);
                 }
-            } else if (GameFlag_GetNibble(GAME_FLAG_0ED) == 1) {
+            } else if (gameFlagGetNibble(GAME_FLAG_0ED) == 1) {
                 Gp_MsgPlayerWeapon(0);
                 Task_SpawnFromTable(D_mist_parking_80190824, 4, 0, 0);
             }
@@ -1056,14 +1056,14 @@ s32 func_mist_parking_801826E8(Task* task, s32 msgId, DirectionActionRequest* re
     }
     if (request->actionId == 2) {
         func_800E8614(D_mist_parking_80186DC4, 1);
-        GameFlag_SetNibble(GAME_FLAG_0ED, 1);
+        gameFlagSetNibble(GAME_FLAG_0ED, 1);
     }
     return 1;
 }
 
 void func_mist_parking_80182750(s32 arg0)
 {
-    if (GameFlag_GetNibble(GAME_FLAG_STORY_CHAPTER) != 0) {
+    if (gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) != 0) {
         arg0 += 2;
     }
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = arg0;
@@ -1080,7 +1080,7 @@ static void func_mist_parking_801827C0(Task* arg0)
 {
     arg0->msgTable = D_mist_parking_80186BB8;
     gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
-    if ((gGameSession->location.loc.variant == 2) && (GameFlag_GetNibble(GAME_FLAG_0F1) == 0)) {
+    if ((gGameSession->location.loc.variant == 2) && (gameFlagGetNibble(GAME_FLAG_0F1) == 0)) {
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp == 3) {
             func_800E3FAC(0xA2, 0x3C);
             func_mist_parking_801837A4(0);

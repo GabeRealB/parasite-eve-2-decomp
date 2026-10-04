@@ -79,7 +79,7 @@ void func_dryfield_water_tower_8017D948(Task* arg0)
 {
     switch (arg0->state) {
         case 0:
-            if (GameFlag_GetNibble(GAME_FLAG_WATER_TOWER_MECHANISM_STATE) < 2) {
+            if (gameFlagGetNibble(GAME_FLAG_WATER_TOWER_MECHANISM_STATE) < 2) {
                 func_dryfield_water_tower_8017DCB4();
                 Gp_MsgPlayer3F3(0);
                 Gp_MsgPlayerWeapon(0);
@@ -104,7 +104,7 @@ void func_dryfield_water_tower_8017D948(Task* arg0)
             return;
         case 2:
             if (Gp_GetCapEventKey() == 0xA) {
-                GameFlag_SetNibble(GAME_FLAG_WATER_TOWER_MECHANISM_STATE, 2);
+                gameFlagSetNibble(GAME_FLAG_WATER_TOWER_MECHANISM_STATE, 2);
                 func_dryfield_water_tower_8017DCB4();
                 gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
                 taskMessageDispatch(D_dryfield_water_tower_801876A0, 0x13EC, 0, 0);
@@ -132,7 +132,7 @@ void func_dryfield_water_tower_8017D948(Task* arg0)
 /// them, 2 and 3 skip them, and any other value leaves them alone.
 static void func_dryfield_water_tower_8017DCB4(void)
 {
-    s32 mode = GameFlag_GetNibble(GAME_FLAG_WATER_TOWER_MECHANISM_STATE);
+    s32 mode = gameFlagGetNibble(GAME_FLAG_WATER_TOWER_MECHANISM_STATE);
 
     if (mode < 0) {
         return;

@@ -7,7 +7,7 @@
 s32 factoryHatchWatch(Task* task)
 {
     FactoryHatchWork* work  = task->work;
-    s32               flag  = GameFlag_GetNibble(GAME_FLAG_FACTORY_HATCH_OPEN);
+    s32               flag  = gameFlagGetNibble(GAME_FLAG_FACTORY_HATCH_OPEN);
     s32               state = flag & 0xFF;
 
     if (state == 1) {

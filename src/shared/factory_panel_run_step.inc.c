@@ -7,7 +7,7 @@ void factoryPanelRunStep(Task* task, s16 step)
     s32 id;
     s32 state;
 
-    if (GameFlag_GetNibble(GAME_FLAG_FACTORY_POWER_ON) != 0) {
+    if (gameFlagGetNibble(GAME_FLAG_FACTORY_POWER_ON) != 0) {
         switch (step) {
             case 0:
                 id = 0x53170000;
@@ -15,9 +15,9 @@ void factoryPanelRunStep(Task* task, s16 step)
                     id = 0x52170000;
                 }
                 SndEvt_EnqueueType6(id | 9, 0, 0);
-                if (!(GameFlag_GetNibble(GAME_FLAG_FACTORY_LIFT_POSITION) & 2)) {
-                    GameFlag_SetNibble(GAME_FLAG_FACTORY_LIFT_POSITION, GameFlag_GetNibble(GAME_FLAG_FACTORY_LIFT_POSITION) | 2);
-                    if (GameFlag_GetNibble(GAME_FLAG_FACTORY_BARRIER_CLEARED) == 0) {
+                if (!(gameFlagGetNibble(GAME_FLAG_FACTORY_LIFT_POSITION) & 2)) {
+                    gameFlagSetNibble(GAME_FLAG_FACTORY_LIFT_POSITION, gameFlagGetNibble(GAME_FLAG_FACTORY_LIFT_POSITION) | 2);
+                    if (gameFlagGetNibble(GAME_FLAG_FACTORY_BARRIER_CLEARED) == 0) {
                         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0x12;
                     } else {
                         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0x13;
@@ -35,9 +35,9 @@ void factoryPanelRunStep(Task* task, s16 step)
                     id = 0x52170000;
                 }
                 SndEvt_EnqueueType6(id | 9, 0, 0);
-                if (GameFlag_GetNibble(GAME_FLAG_FACTORY_LIFT_POSITION) & 2) {
-                    GameFlag_SetNibble(GAME_FLAG_FACTORY_LIFT_POSITION, GameFlag_GetNibble(GAME_FLAG_FACTORY_LIFT_POSITION) & ~2);
-                    if (GameFlag_GetNibble(GAME_FLAG_FACTORY_BARRIER_CLEARED) == 0) {
+                if (gameFlagGetNibble(GAME_FLAG_FACTORY_LIFT_POSITION) & 2) {
+                    gameFlagSetNibble(GAME_FLAG_FACTORY_LIFT_POSITION, gameFlagGetNibble(GAME_FLAG_FACTORY_LIFT_POSITION) & ~2);
+                    if (gameFlagGetNibble(GAME_FLAG_FACTORY_BARRIER_CLEARED) == 0) {
                         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0x12;
                     } else {
                         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0x13;
@@ -55,8 +55,8 @@ void factoryPanelRunStep(Task* task, s16 step)
                     id = 0x52170000;
                 }
                 SndEvt_EnqueueType6(id | 9, 0, 0);
-                GameFlag_SetNibble(GAME_FLAG_FACTORY_LIFT_POSITION, GameFlag_GetNibble(GAME_FLAG_FACTORY_LIFT_POSITION) ^ 1);
-                if (GameFlag_GetNibble(GAME_FLAG_FACTORY_BARRIER_CLEARED) == 0) {
+                gameFlagSetNibble(GAME_FLAG_FACTORY_LIFT_POSITION, gameFlagGetNibble(GAME_FLAG_FACTORY_LIFT_POSITION) ^ 1);
+                if (gameFlagGetNibble(GAME_FLAG_FACTORY_BARRIER_CLEARED) == 0) {
                     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0x12;
                 } else {
                     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0x13;

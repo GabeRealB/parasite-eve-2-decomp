@@ -91,29 +91,29 @@ void roomCutsceneTask(Task* task)
             if (script->skipScene == 0) {
                 SndEvt_EnqueueType6(script->afterSceneSound, 0, 0);
             }
-            flag = GameFlag_GetNibble(GAME_FLAG_STORY_CHAPTER);
+            flag = gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER);
             if (flag > 0) {
                 if (flag >= 5) {
                     if (flag == 5) {
-                        if (GameFlag_GetNibble(GAME_FLAG_ITEM_125_EXAMINED) != 0) {
-                            if (GameFlag_GetNibble(GAME_FLAG_ITEM_125_FOLLOWUP_SEEN) == 0) {
-                                GameFlag_SetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
-                                GameFlag_SetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 9);
-                                GameFlag_SetNibble(GAME_FLAG_ITEM_125_FOLLOWUP_SEEN, 1);
+                        if (gameFlagGetNibble(GAME_FLAG_ITEM_125_EXAMINED) != 0) {
+                            if (gameFlagGetNibble(GAME_FLAG_ITEM_125_FOLLOWUP_SEEN) == 0) {
+                                gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
+                                gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 9);
+                                gameFlagSetNibble(GAME_FLAG_ITEM_125_FOLLOWUP_SEEN, 1);
                             }
                         }
                     }
                 }
             }
             if (script->capSlot == 1) {
-                Gp_RunCapCmd(GameFlag_GetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX) + 0x10, 0);
+                Gp_RunCapCmd(gameFlagGetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX) + 0x10, 0);
             } else {
                 Gp_RunCapCmd(script->capSlot, 0);
             }
-            if (GameFlag_GetNibble(GAME_FLAG_STORY_CHAPTER) == 1) {
-                if (GameFlag_GetNibble(0) == 2) {
-                    GameFlag_SetNibble(0, 3);
-                    GameFlag_SetNibble(GAME_FLAG_00E, 4);
+            if (gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) == 1) {
+                if (gameFlagGetNibble(0) == 2) {
+                    gameFlagSetNibble(0, 3);
+                    gameFlagSetNibble(GAME_FLAG_00E, 4);
                     if ((GAME_LOCATION_WORD(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(1, 1, 0, 0)) {
                         Gp_ApplyAreaRecs(D_acropolis_square_80188888);
                         func_800E3FAC(0xA2, 5);
@@ -124,8 +124,8 @@ void roomCutsceneTask(Task* task)
             break;
         case 8:
             if (Gp_CapBusy() == 0) {
-                if ((GameFlag_GetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX) == 0xE) && (GameFlag_GetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE) == 0)) {
-                    GameFlag_SetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 1);
+                if ((gameFlagGetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX) == 0xE) && (gameFlagGetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE) == 0)) {
+                    gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 1);
                     task->state = 0x14;
                 } else {
                     Gp_RunCapCmd1(task->spawnArg1.value);
@@ -173,7 +173,7 @@ void roomCutsceneTask(Task* task)
         case 19:
             break;
         case 20:
-            Gp_RunCapCmd(GameFlag_GetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX) + 0x10, 0);
+            Gp_RunCapCmd(gameFlagGetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX) + 0x10, 0);
             task->state++;
             break;
         case 21:
@@ -192,7 +192,7 @@ void roomCutsceneTask(Task* task)
                     task->state++;
                     break;
                 default:
-                    GameFlag_SetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 2);
+                    gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 2);
                     task->state = 8;
                     break;
             }

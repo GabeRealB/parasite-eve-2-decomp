@@ -235,7 +235,7 @@ s32 func_dryfield_warehouse_8017D764(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
         }
 
         if (found != 0) {
-            GameFlag_SetNibble(GAME_FLAG_WAREHOUSE_EVENT_SEEN, 1);
+            gameFlagSetNibble(GAME_FLAG_WAREHOUSE_EVENT_SEEN, 1);
             gGameSession->eventState = 1;
             Task_SpawnOnDefaultList(D_dryfield_warehouse_8017F56C, 0, 0, 0);
             return 1;
@@ -252,7 +252,7 @@ s32 func_dryfield_warehouse_8017D824(Task* arg0, s32 arg1, RoomEventMsg* in, Roo
 {
     *out = *in;
     if (in->areaId == GAME_AREA_DRYFIELD_DILAPIDATED_HOUSE) {
-        if (GameFlag_GetNibble(GAME_FLAG_WAREHOUSE_EVENT_SEEN) != 0) {
+        if (gameFlagGetNibble(GAME_FLAG_WAREHOUSE_EVENT_SEEN) != 0) {
             return 1;
         }
         if (in->queryOnly == ROOM_EVENT_EXECUTE) {

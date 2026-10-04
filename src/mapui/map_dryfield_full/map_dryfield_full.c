@@ -98,7 +98,7 @@
 s32 func_map_dryfield_full_80179954(RoomEventMsg* arg0, RoomEventMsg* arg1)
 {
     if ((arg0->areaId == 0x1A) && (arg0->queryOnly == ROOM_EVENT_EXECUTE)) {
-        arg1->room = GameFlag_GetNibble(GAME_FLAG_NIGHT_JUNK_YARD_EVENT_SEEN) + 1;
+        arg1->room = gameFlagGetNibble(GAME_FLAG_NIGHT_JUNK_YARD_EVENT_SEEN) + 1;
     }
     return 1;
 }

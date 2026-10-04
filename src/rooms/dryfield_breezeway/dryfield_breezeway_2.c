@@ -1360,7 +1360,7 @@ void func_dryfield_breezeway_8017FF7C(Task* task)
         return;
     }
     gRoomEffectState->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
-    if (GameFlag_GetNibble(GAME_FLAG_BREEZEWAY_FIRST_EVENT_SEEN) == 0) {
+    if (gameFlagGetNibble(GAME_FLAG_BREEZEWAY_FIRST_EVENT_SEEN) == 0) {
         if (gGameSession->location.loc.view == 2) {
             limit           = (player->coord.t[0] - 5856) >> 7;
             eff->move.vx    = 12000;
@@ -1391,7 +1391,7 @@ void func_dryfield_breezeway_8017FF7C(Task* task)
                 }
             }
         }
-    } else if (GameFlag_GetNibble(GAME_FLAG_BREEZEWAY_FIRST_EVENT_SEEN) == 1) {
+    } else if (gameFlagGetNibble(GAME_FLAG_BREEZEWAY_FIRST_EVENT_SEEN) == 1) {
         if (eff->step != 0) {
             SndEvt_EnqueueType7(SOUND_BREEZEWAY_EFFECT_LOOP, 0);
             eff->step = 0;

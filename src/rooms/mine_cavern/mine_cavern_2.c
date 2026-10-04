@@ -2207,7 +2207,7 @@ void func_mine_cavern_8017E474(Task* arg0)
         arg0->state                      = 1;
     }
 
-    if (GameFlag_GetNibble(GAME_FLAG_0C4) == 1) {
+    if (gameFlagGetNibble(GAME_FLAG_0C4) == 1) {
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         if (((gRandomLcgState >> 16) & 7) == 0) {
             gRandomLcgState           = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
@@ -2332,7 +2332,7 @@ void func_mine_cavern_80181730(Task* arg0)
 /// semi-transparent Gouraud triangles around its projected position, each
 /// followed by a drawing-mode packet, both linked at the point's depth. The
 /// radius is scaled by depth and jittered by the shared LCG, and its base
-/// shrinks as more `GameFlag_GetNibble(0xE2)` bits are set. A point whose
+/// shrinks as more `gameFlagGetNibble(0xE2)` bits are set. A point whose
 /// projection flags an error is skipped.
 static void func_mine_cavern_80181864(void)
 {
@@ -2353,7 +2353,7 @@ static void func_mine_cavern_80181864(void)
     u16       x;
     u16       y;
 
-    flags = GameFlag_GetNibble(GAME_FLAG_MINE_CAVERN_TARGETS_DESTROYED);
+    flags = gameFlagGetNibble(GAME_FLAG_MINE_CAVERN_TARGETS_DESTROYED);
     view  = Gp_GetViewIndex() & 0xFF;
     count = 0;
     for (j = 0; j < 4; j++) {
@@ -2458,7 +2458,7 @@ static void func_mine_cavern_80181CAC(s16 point)
 /// eight semi-transparent Gouraud triangles around the point's projected
 /// position, each followed by a drawing-mode packet, both linked at the point's
 /// depth. The radius is scaled by depth and jittered by the shared LCG, and its
-/// base shrinks as more `GameFlag_GetNibble(0xE2)` bits are set. Nothing is
+/// base shrinks as more `gameFlagGetNibble(0xE2)` bits are set. Nothing is
 /// drawn when the projection flags an error.
 static void func_mine_cavern_80181D80(s16 point)
 {
@@ -2476,7 +2476,7 @@ static void func_mine_cavern_80181D80(s16 point)
     u16       x;
     u16       y;
 
-    flags = GameFlag_GetNibble(GAME_FLAG_MINE_CAVERN_TARGETS_DESTROYED);
+    flags = gameFlagGetNibble(GAME_FLAG_MINE_CAVERN_TARGETS_DESTROYED);
     count = 0;
     for (j = 0; j < 4; j++) {
         if ((flags >> j) & 1) {
@@ -2547,8 +2547,8 @@ static void func_mine_cavern_80181D80(s16 point)
     }
 }
 
-/// Runs the cavern's four emitter points while `GameFlag_GetNibble(0x7A)` is
-/// below 5. Each point whose bit is set in `GameFlag_GetNibble(0xE2)` has its
+/// Runs the cavern's four emitter points while `gameFlagGetNibble(0x7A)` is
+/// below 5. Each point whose bit is set in `gameFlagGetNibble(0xE2)` has its
 /// light refreshed, and its sound restarted when the view has just been set up
 /// or the enabled set changed since the last run. A point listed for the
 /// current view in `D_mine_cavern_8018E3BC` also runs
@@ -2568,8 +2568,8 @@ static void func_mine_cavern_80182184(void)
     s16      k;
 
     view  = Gp_GetViewIndex() & 0xFF;
-    flags = GameFlag_GetNibble(GAME_FLAG_MINE_CAVERN_TARGETS_DESTROYED);
-    for (i = 0; i < 4 && GameFlag_GetNibble(GAME_FLAG_STORY_CHAPTER) < 5; i++) {
+    flags = gameFlagGetNibble(GAME_FLAG_MINE_CAVERN_TARGETS_DESTROYED);
+    for (i = 0; i < 4 && gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) < 5; i++) {
         if (!((flags >> i) & 1)) {
             continue;
         }
@@ -2613,7 +2613,7 @@ static void func_mine_cavern_80182184(void)
 
 /// Queues the cavern's darkness overlay: a semi-transparent flat quad filling
 /// the screen with the tint `D_mine_cavern_8018E3E0` holds for the number of
-/// `GameFlag_GetNibble(0xE2)` bits set, followed by the drawing-mode packet
+/// `gameFlagGetNibble(0xE2)` bits set, followed by the drawing-mode packet
 /// that restores the room's texture page (`0xE100004A`). Both go into the head
 /// of the current OT, and the cavern's own two passes are run afterwards.
 static void func_mine_cavern_80182454(void)
@@ -2624,7 +2624,7 @@ static void func_mine_cavern_80182454(void)
     s16      i;
     s16      count;
 
-    flags = GameFlag_GetNibble(GAME_FLAG_MINE_CAVERN_TARGETS_DESTROYED);
+    flags = gameFlagGetNibble(GAME_FLAG_MINE_CAVERN_TARGETS_DESTROYED);
     count = 0;
 
     poly           = gGpuPrimCursor;
@@ -2886,7 +2886,7 @@ static void func_mine_cavern_80182CEC(Task* arg0)
     s16 i;
     s32 flags;
 
-    flags = GameFlag_GetNibble(GAME_FLAG_MINE_CAVERN_TARGETS_DESTROYED);
+    flags = gameFlagGetNibble(GAME_FLAG_MINE_CAVERN_TARGETS_DESTROYED);
     for (i = 0; i < 4; i++) {
         if (!((flags >> i) & 1)) {
             Gp_SpawnEnemyFromTable(D_mine_cavern_8018EB38, 0, i, NULL);
@@ -3111,10 +3111,10 @@ found:
         arg0->hp           -= blk->damage;
         func_800DA6E8(&arg0->node, blk->damage, 0);
         if (arg0->hp <= 0) {
-            blk->destroyedTargets = GameFlag_GetNibble(GAME_FLAG_MINE_CAVERN_TARGETS_DESTROYED);
+            blk->destroyedTargets = gameFlagGetNibble(GAME_FLAG_MINE_CAVERN_TARGETS_DESTROYED);
             if (!((blk->destroyedTargets >> (u16)arg1->spawnArg1.value) & 1)) {
                 blk->destroyedTargets |= 1 << (u16)arg1->spawnArg1.value;
-                GameFlag_SetNibble(GAME_FLAG_MINE_CAVERN_TARGETS_DESTROYED, blk->destroyedTargets);
+                gameFlagSetNibble(GAME_FLAG_MINE_CAVERN_TARGETS_DESTROYED, blk->destroyedTargets);
                 arg1->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             }
             id  = ((arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x54020014;
@@ -3283,7 +3283,7 @@ void func_mine_cavern_80183A68(Task* arg0)
 /// Third state handler of `D_mine_cavern_8017D7F8` (`func_mine_cavern_80183A68`
 /// dispatches it). It republishes the model's world position through
 /// `func_800D7A9C`, then settles the work block's `centerCoord`: when the
-/// `GameFlag_GetNibble(0xE2)` bit selected by `Task::spawnArg1` is set the
+/// `gameFlagGetNibble(0xE2)` bit selected by `Task::spawnArg1` is set the
 /// coordinate is reset to an identity rotation parked at (0, -0x320, 0) under
 /// the model's own coordinate, `work->frame` ticks, and the model's `field_C` is
 /// cleared; otherwise the model is flagged hidden with `field_C = 0x80`.
@@ -3307,7 +3307,7 @@ static void func_mine_cavern_80183AD4(Enemy* enemy, Task* task)
     vec.vz = task->extra.tmd->coords->workm.t[2];
     func_800D7A9C(task->extra.tmd, &vec, 0, 3);
 
-    if (!((GameFlag_GetNibble(GAME_FLAG_MINE_CAVERN_TARGETS_DESTROYED) >> (u16)task->spawnArg1.value) & 1)) {
+    if (!((gameFlagGetNibble(GAME_FLAG_MINE_CAVERN_TARGETS_DESTROYED) >> (u16)task->spawnArg1.value) & 1)) {
         task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     } else {
         m                                           = &work->centerCoord.coord;

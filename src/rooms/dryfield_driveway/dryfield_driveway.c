@@ -654,7 +654,7 @@ s32 func_dryfield_driveway_8017DCC0(Task* task, s32 msgId, s32 arg2, s32 arg3)
     s32                    found;
 
     if (arg2 == 0x114) {
-        if (GameFlag_GetNibble(GAME_FLAG_DRIVEWAY_PROGRESS) == 1) {
+        if (gameFlagGetNibble(GAME_FLAG_DRIVEWAY_PROGRESS) == 1) {
             node = Gp_PendingObj4C;
             while (node != NULL) {
                 if (node->control == WORLD_COLLISION_TRIGGER_ACTION_ROOM && node->parameter0 == WORLD_COLLISION_TRIGGER_ROOM_EVENT_ID && node->hit != 0) {
@@ -666,7 +666,7 @@ s32 func_dryfield_driveway_8017DCC0(Task* task, s32 msgId, s32 arg2, s32 arg3)
             found = 0;
         check:
             if (found != 0) {
-                GameFlag_SetNibble(GAME_FLAG_DRIVEWAY_PROGRESS, 2);
+                gameFlagSetNibble(GAME_FLAG_DRIVEWAY_PROGRESS, 2);
                 Task_SpawnOnDefaultList(gDrivewayCutsceneTasks, 0, 0, 0);
                 gGameSession->location.loc.room = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 2);
                 gGameSession->hideHud           = 1;

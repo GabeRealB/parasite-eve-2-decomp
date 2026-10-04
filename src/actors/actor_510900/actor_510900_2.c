@@ -3255,7 +3255,7 @@ case2:
 body:
     func_actor_510900_8013A9BC(arg1);
     if (work->lightIndex < 2) {
-        GameFlag_SetNibble(work->lightIndex + 0xB, work->status);
+        gameFlagSetNibble(work->lightIndex + 0xB, work->status);
     } else {
         parent->light2Status = work->status;
     }
@@ -3528,7 +3528,7 @@ case2:
     return;
 body:
     func_actor_510900_8013B0D8(arg1);
-    GameFlag_SetNibble(GAME_FLAG_00D, D_actor_510900_80167CEC[work->state][parent->light2Status]);
+    gameFlagSetNibble(GAME_FLAG_00D, D_actor_510900_80167CEC[work->state][parent->light2Status]);
     random          = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
     gRandomLcgState = random;
     if ((u16)((random >> 16) % 3) == 0) {

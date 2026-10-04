@@ -113,12 +113,12 @@ s32 func_neo_ark_forest_zone_8017D7DC(Task* task, s32 msgId, s32 arg2, s32 arg3)
 static __inline__ s32 NeoArkForestZone_StartEvent(RoomEventMsg* dst, RoomLatchedEvent* event)
 {
     D_neo_ark_forest_zone_80182E40_value = 0;
-    if (GameFlag_GetNibble(event->flagId) == 0 || event->flagId == 0) {
+    if (gameFlagGetNibble(event->flagId) == 0 || event->flagId == 0) {
         if (dst->queryOnly == ROOM_EVENT_EXECUTE) {
             gRoomEventStagedMsg = *dst;
             gRoomEventLatched   = *event;
             if (event->flagId != 0) {
-                GameFlag_SetNibble(event->flagId, 1);
+                gameFlagSetNibble(event->flagId, 1);
             }
             Task_SpawnFromTable(&D_neo_ark_forest_zone_80181DBC, 0, 0, 0);
             D_neo_ark_forest_zone_80182E40_value = 1;
@@ -170,8 +170,8 @@ s32 func_neo_ark_forest_zone_8017D958(Task* arg0, s32 arg1, RoomEventMsg* in, Ro
 
     visit = in->warp;
     if (visit == 1) {
-        if (GameFlag_GetNibble(GAME_FLAG_NEO_ARK_FOREST_ZONE_EVENT_SEEN) == 0 && gGameSession->location.loc.variant == visit) {
-            GameFlag_SetNibble(GAME_FLAG_NEO_ARK_FOREST_ZONE_EVENT_SEEN, 1);
+        if (gameFlagGetNibble(GAME_FLAG_NEO_ARK_FOREST_ZONE_EVENT_SEEN) == 0 && gGameSession->location.loc.variant == visit) {
+            gameFlagSetNibble(GAME_FLAG_NEO_ARK_FOREST_ZONE_EVENT_SEEN, 1);
             func_800E8614(D_neo_ark_forest_zone_80181E6C, 0);
         }
     }
@@ -215,7 +215,7 @@ static void func_neo_ark_forest_zone_8017DA80(Task* arg0)
     gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     SndEvt_EnqueueType6(SOUND_NEO_ARK_FOREST_ZONE_AMBIENCE, 0, 0);
     D_neo_ark_forest_zone_80181E68 = Task_SpawnFromTable(&D_neo_ark_forest_zone_80182E18, 0, 0, 0);
-    if (gGameSession->location.loc.variant == 1 && GameFlag_GetNibble(GAME_FLAG_NEO_ARK_FOREST_ZONE_EVENT_SEEN) == 0) {
+    if (gGameSession->location.loc.variant == 1 && gameFlagGetNibble(GAME_FLAG_NEO_ARK_FOREST_ZONE_EVENT_SEEN) == 0) {
         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &D_neo_ark_forest_zone_80181E30, ACTOR_COMMAND_MESSAGE_APPLY);
     }
     arg0->state = arg0->state + 1;
@@ -227,7 +227,7 @@ static void func_neo_ark_forest_zone_8017DA80(Task* arg0)
 /// advances state.
 static void func_neo_ark_forest_zone_8017DB40(Task* arg0)
 {
-    if (gGameSession->location.loc.variant == 1 && GameFlag_GetNibble(GAME_FLAG_NEO_ARK_FOREST_ZONE_EVENT_SEEN) == 0) {
+    if (gGameSession->location.loc.variant == 1 && gameFlagGetNibble(GAME_FLAG_NEO_ARK_FOREST_ZONE_EVENT_SEEN) == 0) {
         TASK_MESSAGE_DISPATCH_POINTER(D_neo_ark_forest_zone_80181E68, ACTOR_COMMAND_MESSAGE_APPLY, &D_neo_ark_forest_zone_80181E30, 0);
     }
     arg0->state = arg0->state + 1;

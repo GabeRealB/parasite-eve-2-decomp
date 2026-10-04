@@ -178,12 +178,12 @@ Always variant 0. One unconditional line.
 The only opcode that mutates state.
 
 ```c
-val = (flags & CAP_COMMAND_PERSIST) ? GameFlag_GetNibble(flagId) : command->counter;
+val = (flags & CAP_COMMAND_PERSIST) ? gameFlagGetNibble(flagId) : command->counter;
 if ((flags & CAP_COMMAND_BRANCH) && command->counterLimit < val)  goto nextIndex;
 Gp_StartCapSlot(index, mode, val);
 if (val < command->counterLimit || (flags & CAP_COMMAND_BRANCH)) val++;
 else if (flags & CAP_COMMAND_WRAP)                               val = 0;
-(flags & CAP_COMMAND_PERSIST) ? GameFlag_SetNibble(flagId, val) : (command->counter = val);
+(flags & CAP_COMMAND_PERSIST) ? gameFlagSetNibble(flagId, val) : (command->counter = val);
 ```
 
 - `CAP_COMMAND_PERSIST` decides **where the counter lives**: a save-game nibble
@@ -200,7 +200,7 @@ something else".
 ### 2 — flag-indexed
 
 ```c
-Gp_StartCapSlot(index, mode, GameFlag_GetNibble(flagId));
+Gp_StartCapSlot(index, mode, gameFlagGetNibble(flagId));
 ```
 Variant is read straight from a game flag. No mutation — the line follows story
 state that something else owns.

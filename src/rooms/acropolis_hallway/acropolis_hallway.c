@@ -383,25 +383,25 @@ s32 func_acropolis_hallway_8017D5D0(Task* arg0, s32 arg1, RoomEventMsg* in, Room
 
     *out = *in;
     if (in->areaId == GAME_AREA_ACROPOLIS_FOUNTAIN) {
-        if ((GameFlag_GetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED) & 2) && in->queryOnly == ROOM_EVENT_EXECUTE) {
+        if ((gameFlagGetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED) & 2) && in->queryOnly == ROOM_EVENT_EXECUTE) {
             out->room = 2;
         }
     }
-    if (in->areaId == GAME_AREA_ACROPOLIS_CAFETERIA && in->warp == 3 && GameFlag_GetNibble(0) < 3) {
+    if (in->areaId == GAME_AREA_ACROPOLIS_CAFETERIA && in->warp == 3 && gameFlagGetNibble(0) < 3) {
         if (in->queryOnly == ROOM_EVENT_EXECUTE) {
             Gp_RunCapCmd1(1);
         }
         return 0;
     }
-    if (in->areaId == GAME_AREA_ACROPOLIS_FOUNTAIN && GameFlag_GetNibble(0) == 3) {
+    if (in->areaId == GAME_AREA_ACROPOLIS_FOUNTAIN && gameFlagGetNibble(0) == 3) {
         return 1;
     }
     msgId = in->areaId;
     if (msgId == 4 && in->queryOnly == ROOM_EVENT_EXECUTE) {
-        if (GameFlag_GetNibble(0) >= 3) {
+        if (gameFlagGetNibble(0) >= 3) {
             out->room = msgId;
         }
-        if (GameFlag_GetNibble(0) == 2) {
+        if (gameFlagGetNibble(0) == 2) {
             out->room = 3;
         }
     }

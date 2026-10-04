@@ -24,28 +24,28 @@ s32 storeDoorMsg(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
     *out  = *in;
     msgId = in->areaId;
     if (msgId == 1 && in->queryOnly == ROOM_EVENT_EXECUTE) {
-        if (GameFlag_GetNibble(GAME_FLAG_NIGHT_GAS_STATION_PROGRESS) == 0) {
+        if (gameFlagGetNibble(GAME_FLAG_NIGHT_GAS_STATION_PROGRESS) == 0) {
             out->room = msgId;
         } else {
-            if (GameFlag_GetNibble(GAME_FLAG_STORY_CHAPTER) >= 4) {
+            if (gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) >= 4) {
                 v = 4;
             } else {
-                v = GameFlag_GetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) + 2;
+                v = gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) + 2;
             }
             out->room = v;
         }
     }
     if (in->areaId == 0x26 && in->queryOnly == ROOM_EVENT_EXECUTE) {
-        if (GameFlag_GetNibble(GAME_FLAG_UNDERPASS_EVENT_SEEN) != 0) {
-            if (GameFlag_GetNibble(GAME_FLAG_053) == 0) {
+        if (gameFlagGetNibble(GAME_FLAG_UNDERPASS_EVENT_SEEN) != 0) {
+            if (gameFlagGetNibble(GAME_FLAG_053) == 0) {
                 out->room = 1;
             } else {
                 out->room = 2;
             }
-            if (GameFlag_GetNibble(GAME_FLAG_UNDERPASS_SWITCH_1) == 0) {
+            if (gameFlagGetNibble(GAME_FLAG_UNDERPASS_SWITCH_1) == 0) {
                 out->room = out->room + 2;
             }
-        } else if (GameFlag_GetNibble(GAME_FLAG_UNDERPASS_SWITCH_1) == 0) {
+        } else if (gameFlagGetNibble(GAME_FLAG_UNDERPASS_SWITCH_1) == 0) {
             out->room = 6;
         } else {
             out->room = 5;
@@ -66,7 +66,7 @@ s32 storeDoorMsg(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
     if (in->queryOnly != ROOM_EVENT_EXECUTE) {
         return 2;
     }
-    if (GameFlag_GetNibble(GAME_FLAG_GENERAL_STORE_UNDERPASS_BLOCKED) == 0) {
+    if (gameFlagGetNibble(GAME_FLAG_GENERAL_STORE_UNDERPASS_BLOCKED) == 0) {
         Task_SpawnFromTable(gStoreTaskDescs, 1, 0, 0);
         gStoreWarp = in->warp;
         gStoreRoom = in->room;

@@ -90,11 +90,11 @@ void func_neo_ark_altar_8017D668(Task* task)
         case 4:
             switch (Gp_GetCapEventKey()) {
                 case 11:
-                    GameFlag_SetNibble(GAME_FLAG_NEO_ARK_ALTAR_SWITCH_STATE, 0);
+                    gameFlagSetNibble(GAME_FLAG_NEO_ARK_ALTAR_SWITCH_STATE, 0);
                     task->state++;
                     break;
                 case 21:
-                    GameFlag_SetNibble(GAME_FLAG_NEO_ARK_ALTAR_SWITCH_STATE, 1);
+                    gameFlagSetNibble(GAME_FLAG_NEO_ARK_ALTAR_SWITCH_STATE, 1);
                     task->state++;
                     break;
                 case 12:
@@ -103,8 +103,8 @@ void func_neo_ark_altar_8017D668(Task* task)
             }
             break;
         case 5:
-            if ((GameFlag_GetNibble(GAME_FLAG_NEO_ARK_ALTAR_0F9) == 0) && (GameFlag_GetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_2_CLEARED) == 0)) {
-                GameFlag_SetNibble(GAME_FLAG_NEO_ARK_ALTAR_0F9, 1);
+            if ((gameFlagGetNibble(GAME_FLAG_NEO_ARK_ALTAR_0F9) == 0) && (gameFlagGetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_2_CLEARED) == 0)) {
+                gameFlagSetNibble(GAME_FLAG_NEO_ARK_ALTAR_0F9, 1);
                 Gp_ApplyAreaRecs(D_neo_ark_altar_801800A0);
             }
             SndEvt_EnqueueType6(SOUND_NEO_ARK_ALTAR_SWITCH_TOGGLE, 0, 0);
@@ -112,14 +112,14 @@ void func_neo_ark_altar_8017D668(Task* task)
             task->state++;
             break;
         case 6:
-            func_neo_ark_altar_8017DC40(GameFlag_GetNibble(GAME_FLAG_NEO_ARK_ALTAR_SWITCH_STATE) & 0xFF);
+            func_neo_ark_altar_8017DC40(gameFlagGetNibble(GAME_FLAG_NEO_ARK_ALTAR_SWITCH_STATE) & 0xFF);
             task->killCountdown--;
             if (task->killCountdown <= 0) {
                 task->state++;
             }
             break;
         case 7:
-            if (GameFlag_GetNibble(GAME_FLAG_NEO_ARK_ALTAR_SWITCH_STATE) != 0) {
+            if (gameFlagGetNibble(GAME_FLAG_NEO_ARK_ALTAR_SWITCH_STATE) != 0) {
                 Task_SpawnFromTable(D_neo_ark_altar_8017EFC0, 0, 0, 0);
             } else {
                 Task_SpawnFromTable(D_neo_ark_altar_8017EFC0, 0, 1, 0);
@@ -190,7 +190,7 @@ static void func_neo_ark_altar_8017D974(Task* task)
 {
     task->msgTable = D_neo_ark_altar_8017EF98;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    func_neo_ark_altar_8017DC40(GameFlag_GetNibble(GAME_FLAG_NEO_ARK_ALTAR_SWITCH_STATE) & 0xFF);
+    func_neo_ark_altar_8017DC40(gameFlagGetNibble(GAME_FLAG_NEO_ARK_ALTAR_SWITCH_STATE) & 0xFF);
     Task_SpawnFromTable(D_neo_ark_altar_8017F088, 0, 0, 0);
     task->state = (s32)(task->state + 1);
 }

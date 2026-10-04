@@ -643,11 +643,11 @@ static void func_shelter_r47_80182348(Task* task)
     if ((s16)fade >= 0x100) {
         state->fade = 0xFF;
         done        = task->work;
-        GameFlag_SetNibble(GAME_FLAG_B1_TRANSFER_TUNNEL_DOOR_UNLOCKED, done->toggles[0]);
-        GameFlag_SetNibble(GAME_FLAG_SHELTER_R47_CONSOLE_SWITCH_2, done->toggles[1]);
-        GameFlag_SetNibble(GAME_FLAG_B2_CORRIDOR_OBSERVATORY_ACCESS, done->toggles[2]);
-        GameFlag_SetNibble(GAME_FLAG_SHELTER_R47_CONSOLE_SWITCH_4, done->toggles[3]);
-        GameFlag_SetNibble(GAME_FLAG_SHELTER_WATCHERS_DISABLED, done->toggles[4]);
+        gameFlagSetNibble(GAME_FLAG_B1_TRANSFER_TUNNEL_DOOR_UNLOCKED, done->toggles[0]);
+        gameFlagSetNibble(GAME_FLAG_SHELTER_R47_CONSOLE_SWITCH_2, done->toggles[1]);
+        gameFlagSetNibble(GAME_FLAG_B2_CORRIDOR_OBSERVATORY_ACCESS, done->toggles[2]);
+        gameFlagSetNibble(GAME_FLAG_SHELTER_R47_CONSOLE_SWITCH_4, done->toggles[3]);
+        gameFlagSetNibble(GAME_FLAG_SHELTER_WATCHERS_DISABLED, done->toggles[4]);
         Gp_MsgPlayerWeapon(1);
         Gp_MsgPlayer3F3(1);
         Gp_MenuLockDelay = 8;
@@ -706,16 +706,16 @@ void func_shelter_r47_80182AA0(Task* task)
 {
     ShelterR47ConsoleWork* state = task->work;
 
-    state->toggles[0] = GameFlag_GetNibble(GAME_FLAG_B1_TRANSFER_TUNNEL_DOOR_UNLOCKED);
-    state->toggles[1] = GameFlag_GetNibble(GAME_FLAG_SHELTER_R47_CONSOLE_SWITCH_2);
+    state->toggles[0] = gameFlagGetNibble(GAME_FLAG_B1_TRANSFER_TUNNEL_DOOR_UNLOCKED);
+    state->toggles[1] = gameFlagGetNibble(GAME_FLAG_SHELTER_R47_CONSOLE_SWITCH_2);
     if (!(state->toggles[1] & 1)) {
         D_shelter_r47_80186FAC[1] = 0x12;
     } else {
         D_shelter_r47_80186FAC[1] = 0x24;
     }
-    state->toggles[2] = GameFlag_GetNibble(GAME_FLAG_B2_CORRIDOR_OBSERVATORY_ACCESS);
-    state->toggles[3] = GameFlag_GetNibble(GAME_FLAG_SHELTER_R47_CONSOLE_SWITCH_4);
-    state->toggles[4] = GameFlag_GetNibble(GAME_FLAG_SHELTER_WATCHERS_DISABLED);
+    state->toggles[2] = gameFlagGetNibble(GAME_FLAG_B2_CORRIDOR_OBSERVATORY_ACCESS);
+    state->toggles[3] = gameFlagGetNibble(GAME_FLAG_SHELTER_R47_CONSOLE_SWITCH_4);
+    state->toggles[4] = gameFlagGetNibble(GAME_FLAG_SHELTER_WATCHERS_DISABLED);
 }
 
 void func_shelter_r47_80182B18(Task* task)
@@ -799,7 +799,7 @@ static void func_shelter_r47_80182CA4(Task* task)
                 task->state++;
                 return;
         }
-        GameFlag_SetNibble(flag, value);
+        gameFlagSetNibble(flag, value);
         task->state++;
     }
 }
@@ -876,7 +876,7 @@ static void func_shelter_r47_80182F18(Task* task)
                 task->state = 3;
                 return;
         }
-        GameFlag_SetNibble(flag, value);
+        gameFlagSetNibble(flag, value);
         task->state = 3;
     }
 }
@@ -920,16 +920,16 @@ static void func_shelter_r47_801830B8(Task* task)
     func_shelter_r47_80181914(task, 0);
     switch (state->status) {
         case 0:
-            GameFlag_SetNibble(GAME_FLAG_MAP_MARK_SHELTER_R47_1C6, 2);
+            gameFlagSetNibble(GAME_FLAG_MAP_MARK_SHELTER_R47_1C6, 2);
             break;
         case 1:
-            GameFlag_SetNibble(GAME_FLAG_MAP_MARK_SHELTER_R47_1C6, 0);
+            gameFlagSetNibble(GAME_FLAG_MAP_MARK_SHELTER_R47_1C6, 0);
             break;
         case 4:
-            GameFlag_SetNibble(GAME_FLAG_MAP_MARK_B2_MAIN_CORRIDOR, 2);
+            gameFlagSetNibble(GAME_FLAG_MAP_MARK_B2_MAIN_CORRIDOR, 2);
             break;
         case 5:
-            GameFlag_SetNibble(GAME_FLAG_MAP_MARK_B2_MAIN_CORRIDOR, 0);
+            gameFlagSetNibble(GAME_FLAG_MAP_MARK_B2_MAIN_CORRIDOR, 0);
             break;
         case 2:
         case 3:
@@ -1015,11 +1015,11 @@ static void func_shelter_r47_8018337C(Task* task)
     ShelterR47ConsoleWork* state;
 
     state = task->work;
-    GameFlag_SetNibble(GAME_FLAG_B1_TRANSFER_TUNNEL_DOOR_UNLOCKED, state->toggles[0]);
-    GameFlag_SetNibble(GAME_FLAG_SHELTER_R47_CONSOLE_SWITCH_2, state->toggles[1]);
-    GameFlag_SetNibble(GAME_FLAG_B2_CORRIDOR_OBSERVATORY_ACCESS, state->toggles[2]);
-    GameFlag_SetNibble(GAME_FLAG_SHELTER_R47_CONSOLE_SWITCH_4, state->toggles[3]);
-    GameFlag_SetNibble(GAME_FLAG_SHELTER_WATCHERS_DISABLED, state->toggles[4]);
+    gameFlagSetNibble(GAME_FLAG_B1_TRANSFER_TUNNEL_DOOR_UNLOCKED, state->toggles[0]);
+    gameFlagSetNibble(GAME_FLAG_SHELTER_R47_CONSOLE_SWITCH_2, state->toggles[1]);
+    gameFlagSetNibble(GAME_FLAG_B2_CORRIDOR_OBSERVATORY_ACCESS, state->toggles[2]);
+    gameFlagSetNibble(GAME_FLAG_SHELTER_R47_CONSOLE_SWITCH_4, state->toggles[3]);
+    gameFlagSetNibble(GAME_FLAG_SHELTER_WATCHERS_DISABLED, state->toggles[4]);
 }
 
 /// Flips toggle `arg1`. Toggle 1 also publishes the area view
@@ -1112,7 +1112,7 @@ static void func_shelter_r47_80183484(Task* task)
 
     state = (ShelterR47MapTerminalWork*)task->work;
     shade = (u8)state->openFrames * 4;
-    if (GameFlag_GetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_2_CLEARED) == 1) {
+    if (gameFlagGetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_2_CLEARED) == 1) {
         mark = D_shelter_r47_801875D8[state->page];
     } else {
         mark = D_shelter_r47_801875C4[state->page];
@@ -1153,7 +1153,7 @@ static void func_shelter_r47_80183484(Task* task)
             state->openMode = SHELTER_R47_MAP_MODE_TOUR_DONE;
             Gp_StartCapSlot(0x13, 0, 0);
         }
-        if (GameFlag_GetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_2_CLEARED) == 1) {
+        if (gameFlagGetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_2_CLEARED) == 1) {
             while (mark->stage != SHELTER_R47_MAP_MARK_END) {
                 if (_shelterR47IsAreaMarked(mark->stage, mark->area)) {
                     p              = gGpuPrimCursor;

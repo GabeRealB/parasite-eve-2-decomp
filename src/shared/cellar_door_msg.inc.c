@@ -8,17 +8,17 @@ s32 cellarDoorMsg(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
     if (in->areaId == 0x26 && in->queryOnly == ROOM_EVENT_EXECUTE) {
-        if (GameFlag_GetNibble(GAME_FLAG_UNDERPASS_EVENT_SEEN) != 0) {
-            if (GameFlag_GetNibble(GAME_FLAG_053) != 0) {
+        if (gameFlagGetNibble(GAME_FLAG_UNDERPASS_EVENT_SEEN) != 0) {
+            if (gameFlagGetNibble(GAME_FLAG_053) != 0) {
                 out->room = 2;
             } else {
                 out->room = 1;
             }
-            if (GameFlag_GetNibble(GAME_FLAG_UNDERPASS_SWITCH_1) == 0) {
+            if (gameFlagGetNibble(GAME_FLAG_UNDERPASS_SWITCH_1) == 0) {
                 out->room = (u8)out->room + 2;
             }
         } else {
-            if (GameFlag_GetNibble(GAME_FLAG_UNDERPASS_SWITCH_1) != 0) {
+            if (gameFlagGetNibble(GAME_FLAG_UNDERPASS_SWITCH_1) != 0) {
                 out->room = 5;
             } else {
                 out->room = 6;

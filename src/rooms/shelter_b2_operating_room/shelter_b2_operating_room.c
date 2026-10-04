@@ -913,12 +913,12 @@ static void           func_shelter_b2_operating_room_8017DD58(Task* task);
 static __inline__ s32 _operatingRoomStartEvent(RoomEventMsg* dst, RoomLatchedEvent* event)
 {
     D_shelter_b2_operating_room_80184234[0] = 0;
-    if (GameFlag_GetNibble(event->flagId) == 0 || event->flagId == 0) {
+    if (gameFlagGetNibble(event->flagId) == 0 || event->flagId == 0) {
         if (dst->queryOnly == ROOM_EVENT_EXECUTE) {
             gRoomEventStagedMsg = *dst;
             gRoomEventLatched   = *event;
             if (event->flagId != 0) {
-                GameFlag_SetNibble(event->flagId, 1);
+                gameFlagSetNibble(event->flagId, 1);
             }
             Task_SpawnFromTable(&D_shelter_b2_operating_room_80180910, 0, 0, 0);
             D_shelter_b2_operating_room_80184234[0] = 1;
@@ -951,7 +951,7 @@ s32 func_shelter_b2_operating_room_8017DA94(Task* arg0, s32 arg1, RoomEventMsg* 
         req.collectedBit  = 0;
         return roomEventGate(&req, out);
     }
-    if (in->areaId == GAME_AREA_SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY && GameFlag_GetNibble(GAME_FLAG_OPERATING_ROOM_SOUTH_DOOR_UNLOCKED) == 0) {
+    if (in->areaId == GAME_AREA_SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY && gameFlagGetNibble(GAME_FLAG_OPERATING_ROOM_SOUTH_DOOR_UNLOCKED) == 0) {
         if (in->queryOnly == ROOM_EVENT_EXECUTE) {
             Gp_SetNibbleIf(in->flagId, 2);
             Gp_RunCapCmd1(3);
@@ -984,10 +984,10 @@ s32 func_shelter_b2_operating_room_8017DCA4(Task* arg0, s32 arg1, s32 arg2, s32 
 {
     switch (arg2) {
         case 4:
-            Gp_SpawnIfCapIdle(GameFlag_GetNibble(GAME_FLAG_B6_NURSERY_PROGRESS) == 0 ? 4 : 0x10, 0);
+            Gp_SpawnIfCapIdle(gameFlagGetNibble(GAME_FLAG_B6_NURSERY_PROGRESS) == 0 ? 4 : 0x10, 0);
             break;
         case 5:
-            Gp_SpawnIfCapIdle(GameFlag_GetNibble(GAME_FLAG_B6_NURSERY_PROGRESS) != 0 ? 0xF : 5, 0);
+            Gp_SpawnIfCapIdle(gameFlagGetNibble(GAME_FLAG_B6_NURSERY_PROGRESS) != 0 ? 0xF : 5, 0);
             break;
     }
     return 0;

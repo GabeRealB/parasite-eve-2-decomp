@@ -60,8 +60,8 @@ s32 func_dryfield_motel_room_1_8017D61C(Task* task, s32 msgId, s32 arg2, s32 arg
 /// why the function starts two instructions before its frame setup.
 s32 func_dryfield_motel_room_1_8017D624(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
-    if (gGameSession->location.loc.variant == 3 && GameFlag_GetNibble(GAME_FLAG_MOTEL_ROOM_1_EVENT_SEEN) == 0 && in->warp == 1) {
-        GameFlag_SetNibble(GAME_FLAG_MOTEL_ROOM_1_EVENT_SEEN, 1);
+    if (gGameSession->location.loc.variant == 3 && gameFlagGetNibble(GAME_FLAG_MOTEL_ROOM_1_EVENT_SEEN) == 0 && in->warp == 1) {
+        gameFlagSetNibble(GAME_FLAG_MOTEL_ROOM_1_EVENT_SEEN, 1);
         Task_SpawnFromTable(&D_dryfield_motel_room_1_8017E478, 0, 0, 0);
     }
     return 0;
@@ -79,7 +79,7 @@ static void func_dryfield_motel_room_1_8017D69C(Task* arg0)
 
     arg0->msgTable = D_dryfield_motel_room_1_8017E0A8;
     gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
-    if (gGameSession->location.loc.variant == 3 && GameFlag_GetNibble(GAME_FLAG_MOTEL_ROOM_1_EVENT_SEEN) == 0) {
+    if (gGameSession->location.loc.variant == 3 && gameFlagGetNibble(GAME_FLAG_MOTEL_ROOM_1_EVENT_SEEN) == 0) {
         msg.context.loc.stage = gGameSession->location.loc.stage;
         msg.context.loc.area  = gGameSession->location.loc.area;
         msg.command           = 0;

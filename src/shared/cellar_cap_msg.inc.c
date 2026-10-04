@@ -8,7 +8,7 @@ s32 cellarCapMsg(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 != 8) {
         if (arg2 == 0xD) {
-            if (GameFlag_GetNibble(GAME_FLAG_11B) >= 2) {
+            if (gameFlagGetNibble(GAME_FLAG_11B) >= 2) {
                 if (func_800B7420(0x83) == 0) {
                     Gp_RunCapCmd1(0xE);
                 } else {

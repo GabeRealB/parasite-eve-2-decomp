@@ -475,7 +475,7 @@ extern SVECTOR D_actor_403000_80158C48[];
 extern SVECTOR D_actor_403000_80158CE0[];
 
 /// Four trigger points (`vx`/`vz` used) `func_actor_403000_80134E00` measures
-/// the display object against, one per bit of `GameFlag_GetNibble(0xE2)`.
+/// the display object against, one per bit of `gameFlagGetNibble(0xE2)`.
 extern SVECTOR D_actor_403000_80158D64[];
 
 /// Psy-Q `RotMatrixY` (it sits right after `RotMatrixX`).
@@ -4623,7 +4623,7 @@ static void func_actor_403000_801343B8(Enemy* arg0, Task* arg1)
     work->hindSphere.body.pos.vy = 0;
     work->hindSphere.body.pos.vz = -0x100;
     work->playerCaught           = 0;
-    work->seenTargetsDestroyed   = GameFlag_GetNibble(GAME_FLAG_MINE_CAVERN_TARGETS_DESTROYED);
+    work->seenTargetsDestroyed   = gameFlagGetNibble(GAME_FLAG_MINE_CAVERN_TARGETS_DESTROYED);
     gfxReadMatrixZAxis(&arg1->extra.tmd->coords->coord, &dir);
     dir.vy = 0;
     dirp   = &dir;
@@ -4726,7 +4726,7 @@ static s32 func_actor_403000_80134E00(Task* arg0)
     VECTOR           d;
 
     work  = arg0->work;
-    flags = GameFlag_GetNibble(GAME_FLAG_MINE_CAVERN_TARGETS_DESTROYED);
+    flags = gameFlagGetNibble(GAME_FLAG_MINE_CAVERN_TARGETS_DESTROYED);
     if (flags == work->seenTargetsDestroyed) {
         return 0;
     }

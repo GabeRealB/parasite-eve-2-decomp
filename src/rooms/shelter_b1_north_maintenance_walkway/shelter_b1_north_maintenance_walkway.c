@@ -117,12 +117,12 @@ static __inline__ s32 _shelterB1NorthMaintenanceWalkwayStartEvent(
     RoomEventMsg* dst, RoomLatchedEvent* event)
 {
     D_shelter_b1_north_maintenance_walkway_80185B7C_value = 0;
-    if (GameFlag_GetNibble(event->flagId) == 0 || event->flagId == 0) {
+    if (gameFlagGetNibble(event->flagId) == 0 || event->flagId == 0) {
         if (dst->queryOnly == ROOM_EVENT_EXECUTE) {
             gRoomEventStagedMsg = *dst;
             gRoomEventLatched   = *event;
             if (event->flagId != 0) {
-                GameFlag_SetNibble(event->flagId, 1);
+                gameFlagSetNibble(event->flagId, 1);
             }
             Task_SpawnFromTable(&D_shelter_b1_north_maintenance_walkway_80184A78, 0, 0, 0);
             D_shelter_b1_north_maintenance_walkway_80185B7C_value = 1;
@@ -222,12 +222,12 @@ static void func_shelter_b1_north_maintenance_walkway_8017DA4C(Task* arg0)
     gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     if (gGameSession->location.loc.variant == 2) {
         Task_SpawnFromTable(D_shelter_b1_north_maintenance_walkway_80184AAC, 0, 0, 0);
-        if (GameFlag_GetNibble(GAME_FLAG_NORTH_MAINTENANCE_WALKWAY_SCENE) == 0) {
-            GameFlag_SetNibble(GAME_FLAG_NORTH_MAINTENANCE_WALKWAY_SCENE, 1);
+        if (gameFlagGetNibble(GAME_FLAG_NORTH_MAINTENANCE_WALKWAY_SCENE) == 0) {
+            gameFlagSetNibble(GAME_FLAG_NORTH_MAINTENANCE_WALKWAY_SCENE, 1);
             Gp_SpawnIfCapIdle(4, 0);
         }
     }
-    func_shelter_b1_north_maintenance_walkway_8017DB54(GameFlag_GetNibble(GAME_FLAG_B2_NORTH_WALKWAY_SCENE_SEEN));
+    func_shelter_b1_north_maintenance_walkway_8017DB54(gameFlagGetNibble(GAME_FLAG_B2_NORTH_WALKWAY_SCENE_SEEN));
     arg0->state = (s32)(arg0->state + 1);
 }
 

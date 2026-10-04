@@ -1489,7 +1489,7 @@ void func_actor_160700_80131E24(void)
 {
     Task* slot;
 
-    if (GameFlag_GetNibble(GAME_FLAG_ACTOR_160700_MEETING_PROGRESS) != 0) {
+    if (gameFlagGetNibble(GAME_FLAG_ACTOR_160700_MEETING_PROGRESS) != 0) {
         slot = Gp_LookupSlot4(0);
         if (slot != 0) {
             TASK_MESSAGE_DISPATCH_POINTER(slot, 0x7D3, &D_actor_160700_801354CC, 0);
@@ -1499,20 +1499,20 @@ void func_actor_160700_80131E24(void)
 
 void func_actor_160700_80131E70(void)
 {
-    switch (GameFlag_GetNibble(GAME_FLAG_ACTOR_160700_MEETING_PROGRESS)) {
+    switch (gameFlagGetNibble(GAME_FLAG_ACTOR_160700_MEETING_PROGRESS)) {
         case 0:
             func_800E8634(D_actor_160700_80135664, 0, D_actor_160700_80135ACC);
-            GameFlag_SetNibble(GAME_FLAG_ACTOR_160700_MEETING_PROGRESS, 1);
-            GameFlag_SetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
-            GameFlag_SetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 0xC);
+            gameFlagSetNibble(GAME_FLAG_ACTOR_160700_MEETING_PROGRESS, 1);
+            gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
+            gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 0xC);
             break;
         case 1:
             func_800E8634(D_actor_160700_80135BD4, 0, D_actor_160700_80135ACC);
-            GameFlag_SetNibble(GAME_FLAG_ACTOR_160700_MEETING_PROGRESS, 2);
+            gameFlagSetNibble(GAME_FLAG_ACTOR_160700_MEETING_PROGRESS, 2);
             break;
         case 2:
             func_800E8614(D_actor_160700_801362F4, 0);
-            GameFlag_SetNibble(GAME_FLAG_ACTOR_160700_MEETING_PROGRESS, 3);
+            gameFlagSetNibble(GAME_FLAG_ACTOR_160700_MEETING_PROGRESS, 3);
             break;
         case 3:
             func_800E8614(D_actor_160700_80136414, 0);

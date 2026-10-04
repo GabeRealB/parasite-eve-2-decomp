@@ -930,9 +930,9 @@ static void func_actor_548100_80132420(Task* task)
     task->work                                                 = work;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 4;
     task->state                                               += 1;
-    if (GameFlag_GetNibble(GAME_FLAG_MINE_POWER_PANEL_STAGE) == 0) {
-        GameFlag_SetNibble(GAME_FLAG_MINE_POWER_PANEL_STAGE, 1);
-        GameFlag_SetNibble(GAME_FLAG_MINE_POWER_PANEL_SOCKET_4, 1);
+    if (gameFlagGetNibble(GAME_FLAG_MINE_POWER_PANEL_STAGE) == 0) {
+        gameFlagSetNibble(GAME_FLAG_MINE_POWER_PANEL_STAGE, 1);
+        gameFlagSetNibble(GAME_FLAG_MINE_POWER_PANEL_SOCKET_4, 1);
     }
     work->usedItem = 0;
     Display_AcquireRef();
@@ -1001,14 +1001,14 @@ static void func_actor_548100_80132684(Task* task)
             case 2:
             case 3:
             case 4:
-                if (GameFlag_GetNibble(ACTOR_548100_SOCKET_FLAG(work->choice)) == 0) {
+                if (gameFlagGetNibble(ACTOR_548100_SOCKET_FLAG(work->choice)) == 0) {
                     Gp_StartCapSlot(6, 0, 0);
                     state = 2;
-                } else if (GameFlag_GetNibble(GAME_FLAG_MINE_POWER_PANEL_SWITCHED_ON) != 0) {
+                } else if (gameFlagGetNibble(GAME_FLAG_MINE_POWER_PANEL_SWITCHED_ON) != 0) {
                     Gp_StartCapSlot(6, 1, 3);
                     state = 2;
                 } else {
-                    if (GameFlag_GetNibble(ACTOR_548100_SOCKET_FLAG(work->choice)) == 1) {
+                    if (gameFlagGetNibble(ACTOR_548100_SOCKET_FLAG(work->choice)) == 1) {
                         work->pickupObject = 4;
                         kind               = 2;
                     } else {
@@ -1065,13 +1065,13 @@ static void func_actor_548100_80132808(Task* arg0)
 
     if (Gp_CapBusy() == 0) {
         if (Gp_GetCapEventKey() == 0xB) {
-            if (GameFlag_GetNibble(GAME_FLAG_110) != 0) {
+            if (gameFlagGetNibble(GAME_FLAG_110) != 0) {
                 Gp_SetItemSeenBit(0x120, 1);
                 Gp_SetItemSeenBit(0x12C, 1);
             }
             SndEvt_EnqueueType6(SOUND_MINE_REFUGE_CIRCUIT_SWITCH, 0, 0);
             SndEvt_EnqueueType6(SOUND_MINE_REFUGE_CIRCUIT_CURRENT_LOOP, 0, 0);
-            GameFlag_SetNibble(GAME_FLAG_MINE_POWER_PANEL_SWITCHED_ON, 1);
+            gameFlagSetNibble(GAME_FLAG_MINE_POWER_PANEL_SWITCHED_ON, 1);
             arg0->state = 9;
             func_actor_548100_801330EC();
             work->thirdLength = func_actor_548100_80134CB8(D_actor_548100_80135B4C->leg[2].route, D_actor_548100_80135B4C->leg[2].stopNode);
@@ -1099,7 +1099,7 @@ static void func_actor_548100_80132808(Task* arg0)
         }
         if (Gp_GetCapEventKey() == 0x15) {
             SndEvt_EnqueueType6(SOUND_MINE_REFUGE_CIRCUIT_SWITCH, 0, 0);
-            GameFlag_SetNibble(GAME_FLAG_MINE_POWER_PANEL_SWITCHED_ON, 0);
+            gameFlagSetNibble(GAME_FLAG_MINE_POWER_PANEL_SWITCHED_ON, 0);
         }
         arg0->state = 2;
     }
@@ -1119,7 +1119,7 @@ static void func_actor_548100_80132A14(Task* task)
     rect = D_actor_548100_801357C0;
     work = task->work;
     for (; i < 4; i++, rect++) {
-        if (GameFlag_GetNibble(ACTOR_548100_SOCKET_FLAG(i + 1)) != 0) {
+        if (gameFlagGetNibble(ACTOR_548100_SOCKET_FLAG(i + 1)) != 0) {
             func_actor_548100_8013461C(rect);
         }
     }
@@ -1134,10 +1134,10 @@ static void func_actor_548100_80132A14(Task* task)
     func_actor_548100_801349E0(D_actor_548100_80135B50, &D_actor_548100_80135B56, &D_actor_548100_80135B57, &D_actor_548100_80135B58);
     func_actor_548100_80134A60(D_actor_548100_80135B50, &D_actor_548100_80135B59, &D_actor_548100_80135B5A, &D_actor_548100_80135B5B);
     func_actor_548100_80134BF0();
-    GameFlag_SetNibble(GAME_FLAG_MINE_SECRET_PASSAGE_STATE, 0);
-    GameFlag_SetNibble(GAME_FLAG_MINE_GORGE_CAVERN_DOOR_POWERED, 0);
+    gameFlagSetNibble(GAME_FLAG_MINE_SECRET_PASSAGE_STATE, 0);
+    gameFlagSetNibble(GAME_FLAG_MINE_GORGE_CAVERN_DOOR_POWERED, 0);
 
-    if (GameFlag_GetNibble(GAME_FLAG_MINE_POWER_PANEL_SWITCHED_ON) != 0) {
+    if (gameFlagGetNibble(GAME_FLAG_MINE_POWER_PANEL_SWITCHED_ON) != 0) {
         if (task->state != 9) {
             circuit = D_actor_548100_80135B4C;
             if (circuit->leg[0].route != 0) {
@@ -1153,14 +1153,14 @@ static void func_actor_548100_80132A14(Task* task)
             }
             if (D_actor_548100_80135B4C->powersDoor != 0) {
                 func_actor_548100_80133BBC(1);
-                GameFlag_SetNibble(GAME_FLAG_MINE_GORGE_CAVERN_DOOR_POWERED, 1);
+                gameFlagSetNibble(GAME_FLAG_MINE_GORGE_CAVERN_DOOR_POWERED, 1);
             }
             if (D_actor_548100_80135B4C->powersPassage != 0) {
                 func_actor_548100_80133BBC(2);
-                if (GameFlag_GetNibble(GAME_FLAG_MINE_POWER_PANEL_STAGE) == 2) {
-                    GameFlag_SetNibble(GAME_FLAG_MINE_SECRET_PASSAGE_STATE, 3);
+                if (gameFlagGetNibble(GAME_FLAG_MINE_POWER_PANEL_STAGE) == 2) {
+                    gameFlagSetNibble(GAME_FLAG_MINE_SECRET_PASSAGE_STATE, 3);
                 } else {
-                    GameFlag_SetNibble(GAME_FLAG_MINE_SECRET_PASSAGE_STATE, 2);
+                    gameFlagSetNibble(GAME_FLAG_MINE_SECRET_PASSAGE_STATE, 2);
                 }
             }
         } else {
@@ -1199,9 +1199,9 @@ static void func_actor_548100_80132A14(Task* task)
     }
 
     func_actor_548100_80134BA8();
-    if (GameFlag_GetNibble(GAME_FLAG_MINE_POWER_PANEL_SWITCHED_ON) == 0) {
-        GameFlag_SetNibble(GAME_FLAG_MINE_SECRET_PASSAGE_STATE, 0);
-        GameFlag_SetNibble(GAME_FLAG_MINE_GORGE_CAVERN_DOOR_POWERED, 0);
+    if (gameFlagGetNibble(GAME_FLAG_MINE_POWER_PANEL_SWITCHED_ON) == 0) {
+        gameFlagSetNibble(GAME_FLAG_MINE_SECRET_PASSAGE_STATE, 0);
+        gameFlagSetNibble(GAME_FLAG_MINE_GORGE_CAVERN_DOOR_POWERED, 0);
     } else {
         func_actor_548100_8013461C(&D_actor_548100_801357C0[4]);
     }
@@ -1233,7 +1233,7 @@ static void func_actor_548100_801330EC(void)
     s32 have;
     s32 i;
 
-    if (GameFlag_GetNibble(GAME_FLAG_MINE_POWER_PANEL_STAGE) == 1) {
+    if (gameFlagGetNibble(GAME_FLAG_MINE_POWER_PANEL_STAGE) == 1) {
         D_actor_548100_80135B4C = D_actor_548100_801356D8;
     } else {
         D_actor_548100_80135B4C = D_actor_548100_80135750;
@@ -1248,7 +1248,7 @@ static void func_actor_548100_801330EC(void)
         }
         have = 0;
         for (i = 0; i < 4; i++) {
-            if (GameFlag_GetNibble(ACTOR_548100_SOCKET_FLAG(i + 1)) != 0) {
+            if (gameFlagGetNibble(ACTOR_548100_SOCKET_FLAG(i + 1)) != 0) {
                 have |= 1 << i;
             }
         }
@@ -1954,7 +1954,7 @@ static void func_actor_548100_80134400(ActionPromptHotspot* unused)
             edge->coordB   = by;
         }
     }
-    if (GameFlag_GetNibble(GAME_FLAG_MINE_POWER_PANEL_STAGE) == 2) {
+    if (gameFlagGetNibble(GAME_FLAG_MINE_POWER_PANEL_STAGE) == 2) {
         for (cell = D_actor_548100_801351D0; cell->nodeA != 0; cell++) {
             if (cell->layout == ACTOR_548100_EDGE_LAYOUT_FIRST_ONLY) {
                 cell->state = ACTOR_548100_EDGE_STATE_ABSENT;
@@ -2041,7 +2041,7 @@ s32 func_actor_548100_80134778(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 
     if ((arg2 == 0x120 || arg2 == 0x12C) && ((u16)work->choice - 1) < 4U) {
         work->usedItem = arg2;
-        if (GameFlag_GetNibble(ACTOR_548100_SOCKET_FLAG(work->choice)) != 0 || GameFlag_GetNibble(GAME_FLAG_MINE_POWER_PANEL_SWITCHED_ON) != 0) {
+        if (gameFlagGetNibble(ACTOR_548100_SOCKET_FLAG(work->choice)) != 0 || gameFlagGetNibble(GAME_FLAG_MINE_POWER_PANEL_SWITCHED_ON) != 0) {
             return 2;
         }
         return 1;
@@ -2196,7 +2196,7 @@ static void func_actor_548100_80134BF0(void)
 {
     _Actor548100Edge* edge;
 
-    if (GameFlag_GetNibble(GAME_FLAG_MINE_POWER_PANEL_STAGE) == 2) {
+    if (gameFlagGetNibble(GAME_FLAG_MINE_POWER_PANEL_STAGE) == 2) {
         for (edge = D_actor_548100_801351D0; edge->nodeA != 0; edge++) {
             if (edge->layout == ACTOR_548100_EDGE_LAYOUT_FIRST_ONLY) {
                 edge->state = ACTOR_548100_EDGE_STATE_ABSENT;
@@ -2293,8 +2293,8 @@ static void func_actor_548100_80134E94(Task* arg0)
     _Actor548100Work* work = arg0->work;
     s32               value;
 
-    if (GameFlag_GetNibble(ACTOR_548100_SOCKET_FLAG(work->choice)) == 0) {
-        if (GameFlag_GetNibble(GAME_FLAG_MINE_POWER_PANEL_SWITCHED_ON) != 0) {
+    if (gameFlagGetNibble(ACTOR_548100_SOCKET_FLAG(work->choice)) == 0) {
+        if (gameFlagGetNibble(GAME_FLAG_MINE_POWER_PANEL_SWITCHED_ON) != 0) {
             Gp_StartCapSlot(6, 0, 1);
         } else {
             value = 2;
@@ -2302,7 +2302,7 @@ static void func_actor_548100_80134E94(Task* arg0)
                 value = 1;
             }
             SndEvt_EnqueueType6(SOUND_MINE_REFUGE_BATTERY_SOCKET, 0, 0);
-            GameFlag_SetNibble(ACTOR_548100_SOCKET_FLAG(work->choice), value);
+            gameFlagSetNibble(ACTOR_548100_SOCKET_FLAG(work->choice), value);
             Gp_ClearCollectedBit(work->usedItem);
         }
     } else {
@@ -2319,8 +2319,8 @@ static void func_actor_548100_80134F64(Task* arg0)
     if (Gp_CapBusy() == 0) {
         if (Gp_GetCurBit2Flag(work->pickupObject) == 2) {
             // The player took the battery back: empty the socket.
-            GameFlag_SetNibble(ACTOR_548100_SOCKET_FLAG(work->choice), 0);
-            GameFlag_SetNibble(GAME_FLAG_110, 1);
+            gameFlagSetNibble(ACTOR_548100_SOCKET_FLAG(work->choice), 0);
+            gameFlagSetNibble(GAME_FLAG_110, 1);
             SndEvt_EnqueueType6(SOUND_MINE_REFUGE_BATTERY_SOCKET, 0, 0);
         }
         arg0->state = 2;

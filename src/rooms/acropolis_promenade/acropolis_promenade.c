@@ -1861,13 +1861,13 @@ s32 func_acropolis_promenade_8017D70C(Task* arg0, s32 arg1, RoomEventMsg* in, Ro
         if (gDisplayState.debugMode < 0 || D_8006AC30.startSector == 0) {
             out->warp = 1;
         }
-        if (GameFlag_GetNibble(GAME_FLAG_OBSERVATORY_ROUTE_PROGRESS) == 4) {
-            GameFlag_SetNibble(GAME_FLAG_OBSERVATORY_ROUTE_PROGRESS, 5);
+        if (gameFlagGetNibble(GAME_FLAG_OBSERVATORY_ROUTE_PROGRESS) == 4) {
+            gameFlagSetNibble(GAME_FLAG_OBSERVATORY_ROUTE_PROGRESS, 5);
         } else {
             out->warp = 1;
         }
     }
-    if (in->areaId == GAME_AREA_ACROPOLIS_SANCTUARY && GameFlag_GetNibble(GAME_FLAG_ACROPOLIS_BRIDGE_PROGRESS) == 0) {
+    if (in->areaId == GAME_AREA_ACROPOLIS_SANCTUARY && gameFlagGetNibble(GAME_FLAG_ACROPOLIS_BRIDGE_PROGRESS) == 0) {
         if (in->queryOnly == ROOM_EVENT_EXECUTE) {
             out->warp                                           = 3;
             D_acropolis_promenade_801862D0                      = *out;
@@ -1877,7 +1877,7 @@ s32 func_acropolis_promenade_8017D70C(Task* arg0, s32 arg1, RoomEventMsg* in, Ro
     }
     msgId = in->areaId;
     if (msgId == 0xE) {
-        if (GameFlag_GetNibble(GAME_FLAG_ACROPOLIS_BRIDGE_PROGRESS) == 0) {
+        if (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_BRIDGE_PROGRESS) == 0) {
             if (in->queryOnly == ROOM_EVENT_EXECUTE) {
                 Gp_SpawnIfCapIdle(2, 1);
                 Gp_SetNibbleIf(in->flagId, 2);
@@ -1886,7 +1886,7 @@ s32 func_acropolis_promenade_8017D70C(Task* arg0, s32 arg1, RoomEventMsg* in, Ro
         }
         if (in->areaId == msgId) {
             if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-                if (GameFlag_GetNibble(GAME_FLAG_ACROPOLIS_BRIDGE_PROGRESS) == 3) {
+                if (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_BRIDGE_PROGRESS) == 3) {
                     out->room = 2;
                 } else {
                     out->room = 1;

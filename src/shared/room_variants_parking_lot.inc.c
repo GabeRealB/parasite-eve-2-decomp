@@ -7,7 +7,7 @@ s32 roomVariantParkingLotMsg(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMs
 {
     *out = *in;
     if (in->areaId == 0xF && in->queryOnly == ROOM_EVENT_EXECUTE) {
-        out->room = GameFlag_GetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) + 1;
+        out->room = gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) + 1;
     }
     return 1;
 }

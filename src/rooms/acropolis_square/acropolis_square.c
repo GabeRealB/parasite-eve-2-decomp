@@ -1400,11 +1400,11 @@ s32 func_acropolis_square_80181794(Task* task, s32 msgId, RoomEventMsg* arg2, Ro
     *arg3     = *arg2;
     if (arg2->areaId == GAME_AREA_ACROPOLIS_FORKED_ROAD) {
         if ((D_acropolis_square_8018382C != 0) && (arg2->queryOnly == ROOM_EVENT_EXECUTE)) {
-            GameFlag_SetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
-            GameFlag_SetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 2);
+            gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
+            gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 2);
         }
         if (arg2->areaId == GAME_AREA_ACROPOLIS_FORKED_ROAD) {
-            if (GameFlag_GetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED) & 1) {
+            if (gameFlagGetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED) & 1) {
                 arg3->room = 2;
             }
         }
@@ -1412,13 +1412,13 @@ s32 func_acropolis_square_80181794(Task* task, s32 msgId, RoomEventMsg* arg2, Ro
     }
     if (arg2->areaId == GAME_AREA_ACROPOLIS_EAST_ELEVATOR_HALL) {
         if ((D_acropolis_square_8018382C != 0) && (arg2->queryOnly == ROOM_EVENT_EXECUTE)) {
-            GameFlag_SetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
-            GameFlag_SetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 2);
+            gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
+            gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 2);
         }
-        if (GameFlag_GetNibble(0) < 2) {
+        if (gameFlagGetNibble(0) < 2) {
             return 1;
         }
-        if ((GameFlag_GetNibble(0) == 2) || (GameFlag_GetNibble(0) >= 3)) {
+        if ((gameFlagGetNibble(0) == 2) || (gameFlagGetNibble(0) >= 3)) {
             if (arg2->queryOnly == ROOM_EVENT_EXECUTE) {
                 do {
                     Gp_SetNibbleIf(arg2->flagId, 2);
@@ -1429,10 +1429,10 @@ s32 func_acropolis_square_80181794(Task* task, s32 msgId, RoomEventMsg* arg2, Ro
         }
     }
     if (arg2->areaId == GAME_AREA_ACROPOLIS_WEST_ELEVATOR_HALL) {
-        if (GameFlag_GetNibble(0) < 2) {
+        if (gameFlagGetNibble(0) < 2) {
             return 1;
         }
-        if ((GameFlag_GetNibble(0) == 2) || (GameFlag_GetNibble(0) >= 3)) {
+        if ((gameFlagGetNibble(0) == 2) || (gameFlagGetNibble(0) >= 3)) {
             if (arg2->queryOnly == ROOM_EVENT_EXECUTE) {
                 do {
                     Gp_SetNibbleIf(arg2->flagId, 2);
@@ -1445,8 +1445,8 @@ s32 func_acropolis_square_80181794(Task* task, s32 msgId, RoomEventMsg* arg2, Ro
     temp_s1 = arg2->areaId;
     if (temp_s1 == 3) {
         if (arg2->queryOnly == ROOM_EVENT_EXECUTE) {
-            if (GameFlag_GetNibble(0) < 2) {
-                if (GameFlag_GetNibble(GAME_FLAG_ACROPOLIS_OPENING_PROGRESS) < 2) {
+            if (gameFlagGetNibble(0) < 2) {
+                if (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_OPENING_PROGRESS) < 2) {
                     arg3->room = 1;
                 } else {
                     arg3->room = 2;
@@ -1477,12 +1477,12 @@ s32 func_acropolis_square_801819BC(Task* task, s32 msgId, s32 arg2, s32 arg3)
         D_acropolis_square_8018382C                     = 0;
         Task_SpawnFromTable(gRoomCutsceneTaskDescs, 0, 2, &D_acropolis_square_801888AC.rec);
     }
-    if ((arg2 == 0xE) && (GameFlag_GetNibble(GAME_FLAG_ACROPOLIS_SQUARE_TRIGGER_E_SEEN) == 0)) {
-        GameFlag_SetNibble(GAME_FLAG_ACROPOLIS_SQUARE_TRIGGER_E_SEEN, 1);
+    if ((arg2 == 0xE) && (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_SQUARE_TRIGGER_E_SEEN) == 0)) {
+        gameFlagSetNibble(GAME_FLAG_ACROPOLIS_SQUARE_TRIGGER_E_SEEN, 1);
         Gp_SpawnIfCapIdle(0xE, 1);
     }
-    if ((arg2 == 0x10) && (GameFlag_GetNibble(GAME_FLAG_ACROPOLIS_SQUARE_CONTROLS_HINT) == 0)) {
-        GameFlag_SetNibble(GAME_FLAG_ACROPOLIS_SQUARE_CONTROLS_HINT, 1);
+    if ((arg2 == 0x10) && (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_SQUARE_CONTROLS_HINT) == 0)) {
+        gameFlagSetNibble(GAME_FLAG_ACROPOLIS_SQUARE_CONTROLS_HINT, 1);
         var_a0 = 0x11;
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.buttonLayout != 1) {
             var_a0 = 0x10;
@@ -1561,8 +1561,8 @@ void func_acropolis_square_80181AEC(Task* task)
             if (D_acropolis_square_8018382C == 0) {
             handOff:
                 if (D_acropolis_square_8018382C != 0) {
-                    GameFlag_SetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
-                    GameFlag_SetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 2);
+                    gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
+                    gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 2);
                     D_acropolis_square_8018382C = 0;
                 }
                 taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM_EFFECT), 0xC1F, 0, 0);
@@ -1719,7 +1719,7 @@ void func_acropolis_square_80182148(Task* task)
             return;
         case 2:
         case 7:
-            GameFlag_SetNibble(GAME_FLAG_015, 1);
+            gameFlagSetNibble(GAME_FLAG_015, 1);
             taskKill(task);
             return;
     }
@@ -1771,8 +1771,8 @@ s32 func_acropolis_square_80182360(s32 unused)
 {
     GameLocationKey key;
 
-    if (GameFlag_GetNibble(GAME_FLAG_ACROPOLIS_SQUARE_01F) == 0) {
-        GameFlag_SetNibble(GAME_FLAG_ACROPOLIS_SQUARE_01F, 1);
+    if (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_SQUARE_01F) == 0) {
+        gameFlagSetNibble(GAME_FLAG_ACROPOLIS_SQUARE_01F, 1);
         key.stage = GAME_STAGE_ACROPOLIS;
         key.area  = GAME_AREA_ACROPOLIS_SQUARE;
         areaSetPlacementVariant(&key, 2, AREA_VARIANT_RESET_ALWAYS);

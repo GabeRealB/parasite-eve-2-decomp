@@ -2522,7 +2522,7 @@ static u16 func_dryfield_water_tower_8017EB7C(Task* arg0)
             TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg2, ACTOR_COMMAND_MESSAGE_APPLY);
             D_dryfield_water_tower_801876A8 = 0;
             state->mechanismState           = 2;
-            GameFlag_SetNibble(GAME_FLAG_WATER_TOWER_MECHANISM_STATE, 2);
+            gameFlagSetNibble(GAME_FLAG_WATER_TOWER_MECHANISM_STATE, 2);
             state->phase++;
 
         case DRYFIELD_WATER_TOWER_RUN_PHASE_TIMING:
@@ -2571,7 +2571,7 @@ static u16 func_dryfield_water_tower_8017EB7C(Task* arg0)
             Mem_CopyUnaligned(_gDryfieldWaterTowerCollision04648, _gDryfieldWaterTowerCollision06004Verts, 0x40);
             Mem_CopyUnaligned(_gDryfieldWaterTowerCollision045F8, _gDryfieldWaterTowerCollision06004Normals, 0x10);
             Mem_CopyUnaligned(_gDryfieldWaterTowerCollision04688, _gDryfieldWaterTowerCollision06004Faces, sizeof(_gDryfieldWaterTowerCollision04688));
-            GameFlag_SetNibble(GAME_FLAG_WATER_TOWER_MECHANISM_STATE, 1);
+            gameFlagSetNibble(GAME_FLAG_WATER_TOWER_MECHANISM_STATE, 1);
             return state->runResult;
     }
     return DRYFIELD_WATER_TOWER_RUN_UNDER_WAY;
@@ -2630,7 +2630,7 @@ static inline u16 _dryfieldWaterTowerState8Step(Task* arg0)
             if (gGameSession->eventState != 0) {
                 return 0;
             }
-            GameFlag_SetNibble(GAME_FLAG_WATER_TOWER_PROGRESS, 2);
+            gameFlagSetNibble(GAME_FLAG_WATER_TOWER_PROGRESS, 2);
             return 1;
         default:
             return 0;
@@ -2710,12 +2710,12 @@ void func_dryfield_water_tower_8017F128(Task* arg0)
         case 2:
             TASK_MESSAGE_DISPATCH_POINTER(state->slidingPropTask, ACTOR_MESSAGE_PLACE, D_dryfield_water_tower_80181A40, 0);
             TASK_MESSAGE_DISPATCH_POINTER(state->fallingPropTask, ACTOR_MESSAGE_PLACE, D_dryfield_water_tower_80181A70, 0);
-            state->mechanismState = GameFlag_GetNibble(GAME_FLAG_WATER_TOWER_MECHANISM_STATE);
-            if (GameFlag_GetNibble(GAME_FLAG_WATER_TOWER_PROGRESS) == 0) {
+            state->mechanismState = gameFlagGetNibble(GAME_FLAG_WATER_TOWER_MECHANISM_STATE);
+            if (gameFlagGetNibble(GAME_FLAG_WATER_TOWER_PROGRESS) == 0) {
                 arg0->state++;
-            } else if (GameFlag_GetNibble(GAME_FLAG_WATER_TOWER_PROGRESS) == 1) {
+            } else if (gameFlagGetNibble(GAME_FLAG_WATER_TOWER_PROGRESS) == 1) {
                 arg0->state = 5;
-            } else if (GameFlag_GetNibble(GAME_FLAG_WATER_TOWER_PROGRESS) == 2) {
+            } else if (gameFlagGetNibble(GAME_FLAG_WATER_TOWER_PROGRESS) == 2) {
                 mask        = ~WORLD_COLLISION_TRIGGER_ENABLED;
                 p0          = &(D_dryfield_water_tower_80186A84 + 6)[0];
                 p0->flags  &= mask;
@@ -2741,7 +2741,7 @@ void func_dryfield_water_tower_8017F128(Task* arg0)
         case 3:
             if (Gp_TakePendingObj4C(&objId, &objA, &objB) != 0 && (objId & (0xFFFF ^ WORLD_COLLISION_TRIGGER_AUTOMATIC)) == WORLD_COLLISION_TRIGGER_ACTION_ROOM && (s8)objA == 1) {
                 state->actorSceneTask = Task_SpawnFromTable(D_dryfield_water_tower_8018277C, 0, 0, 0);
-                GameFlag_SetNibble(GAME_FLAG_WATER_TOWER_PROGRESS, 1);
+                gameFlagSetNibble(GAME_FLAG_WATER_TOWER_PROGRESS, 1);
                 arg0->state++;
             }
             break;

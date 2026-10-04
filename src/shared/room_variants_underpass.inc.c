@@ -8,17 +8,17 @@ s32 roomVariantUnderpassMsg(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg
 {
     *out = *in;
     if (in->areaId == 0x20 && in->queryOnly == ROOM_EVENT_EXECUTE) {
-        if (GameFlag_GetNibble(GAME_FLAG_UNDERPASS_SWITCH_1) == 0) {
+        if (gameFlagGetNibble(GAME_FLAG_UNDERPASS_SWITCH_1) == 0) {
             out->room = 2;
         } else {
             out->room = 1;
         }
-        if (GameFlag_GetNibble(GAME_FLAG_053) != 0) {
+        if (gameFlagGetNibble(GAME_FLAG_053) != 0) {
             out->room += 2;
         }
     }
     if (in->areaId == 0x22 && in->queryOnly == ROOM_EVENT_EXECUTE) {
-        if (GameFlag_GetNibble(GAME_FLAG_UNDERPASS_SWITCH_2) == 0) {
+        if (gameFlagGetNibble(GAME_FLAG_UNDERPASS_SWITCH_2) == 0) {
             out->room = 2;
         } else {
             out->room = 1;

@@ -13,7 +13,7 @@ s32 motelRoom6CutsceneMsg(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
     if (arg2 == 0x16) {
         gMotelRoom6CutsceneRec.view    = 0xC;
         gMotelRoom6CutsceneRec.capSlot = 1;
-        switch (GameFlag_GetNibble(GAME_FLAG_STORY_CHAPTER)) {
+        switch (gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER)) {
             case 0 ... 3:
                 if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
                     count                            = 4;

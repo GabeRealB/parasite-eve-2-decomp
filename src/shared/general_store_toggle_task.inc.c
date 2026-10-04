@@ -21,7 +21,7 @@ void storeToggleTask(Task* task)
             goto advance;
         case 2:
             if (Gp_GetCapEventKey() >= 0xA) {
-                GameFlag_SetNibble(flag, GameFlag_GetNibble(flag) == 0);
+                gameFlagSetNibble(flag, gameFlagGetNibble(flag) == 0);
             }
         advance:
             task->state = task->state + 1;

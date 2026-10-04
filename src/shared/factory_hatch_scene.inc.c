@@ -8,13 +8,13 @@ void factoryHatchScene(Task* task)
 {
     switch (task->state) {
         case 0:
-            GameFlag_SetNibble(GAME_FLAG_FACTORY_HATCH_OPEN, 1);
+            gameFlagSetNibble(GAME_FLAG_FACTORY_HATCH_OPEN, 1);
             task->killCountdown = 0x3C;
             task->state         = task->state + 1;
             return;
         case 2:
             Gp_RunCapCmd1(task->spawnArg1.value);
-            GameFlag_SetNibble(GAME_FLAG_FACTORY_HATCH_OPEN, 0);
+            gameFlagSetNibble(GAME_FLAG_FACTORY_HATCH_OPEN, 0);
             task->killCountdown = 0x1E;
             task->state         = task->state + 1;
             return;

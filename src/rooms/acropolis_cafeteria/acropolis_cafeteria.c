@@ -994,8 +994,8 @@ static inline s32 _acropolisCafeteriaAnswer(RoomEventMsg* in, RoomEventMsg* out)
     s32 msgId = in->areaId;
 
     if (msgId == 3 && in->queryOnly == ROOM_EVENT_EXECUTE) {
-        if (GameFlag_GetNibble(0) < 2) {
-            if (GameFlag_GetNibble(GAME_FLAG_ACROPOLIS_OPENING_PROGRESS) < 2) {
+        if (gameFlagGetNibble(0) < 2) {
+            if (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_OPENING_PROGRESS) < 2) {
                 out->room = 1;
             } else {
                 out->room = 2;
@@ -1015,7 +1015,7 @@ s32 func_acropolis_cafeteria_8017D700(Task* arg0, s32 arg1, RoomEventMsg* in, Ro
 
     *out = *in;
     if (in->areaId == GAME_AREA_ACROPOLIS_HALLWAY && in->warp == 4) {
-        if (GameFlag_GetNibble(0) >= 3) {
+        if (gameFlagGetNibble(0) >= 3) {
             return 1;
         }
         if (in->queryOnly == ROOM_EVENT_EXECUTE) {
@@ -1026,7 +1026,7 @@ s32 func_acropolis_cafeteria_8017D700(Task* arg0, s32 arg1, RoomEventMsg* in, Ro
     }
     msgId = in->areaId;
     if (msgId == 3) {
-        if (GameFlag_GetNibble(0) < 2) {
+        if (gameFlagGetNibble(0) < 2) {
             if (D_acropolis_cafeteria_80184164 == 0) {
                 return _acropolisCafeteriaAnswer(in, out);
             }
@@ -1037,8 +1037,8 @@ s32 func_acropolis_cafeteria_8017D700(Task* arg0, s32 arg1, RoomEventMsg* in, Ro
             }
             return 0;
         }
-        if (GameFlag_GetNibble(GAME_FLAG_00E) == msgId && in->queryOnly == ROOM_EVENT_EXECUTE) {
-            GameFlag_SetNibble(GAME_FLAG_00E, 2);
+        if (gameFlagGetNibble(GAME_FLAG_00E) == msgId && in->queryOnly == ROOM_EVENT_EXECUTE) {
+            gameFlagSetNibble(GAME_FLAG_00E, 2);
         }
         return _acropolisCafeteriaAnswer(in, out);
     }
@@ -1235,10 +1235,10 @@ void func_acropolis_cafeteria_8017DD1C(Task* task)
             break;
 
         case 8:
-            GameFlag_SetNibble(0, 2);
-            GameFlag_SetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
-            GameFlag_SetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 4);
-            GameFlag_SetNibble(GAME_FLAG_00E, 1);
+            gameFlagSetNibble(0, 2);
+            gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
+            gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 4);
+            gameFlagSetNibble(GAME_FLAG_00E, 1);
             Gp_ApplyAreaRecs(D_acropolis_cafeteria_8018C9D4);
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 4;
             func_800E3FAC(0xA2, 4);
@@ -1302,7 +1302,7 @@ s32 func_acropolis_cafeteria_8017E0D4(Task* task, s32 msgId, s32 arg2, s32 arg3)
 s32 func_acropolis_cafeteria_8017E0DC(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     if (arg2 == 7) {
-        if (GameFlag_GetNibble(0) >= 2 || D_acropolis_cafeteria_80184164 >= 2) {
+        if (gameFlagGetNibble(0) >= 2 || D_acropolis_cafeteria_80184164 >= 2) {
             if (Gp_GetCurBit2Flag(4) == 1 || Gp_GetCurBit2Flag(4) == 0) {
                 Gp_StartCapSlot(7, 1, 0);
             }
@@ -1316,7 +1316,7 @@ s32 func_acropolis_cafeteria_8017E154(Task* task, s32 msgId, const void* firstAr
     const DirectionActionRequest* request = firstArg;
 
     if (request->actionId == 0) {
-        if (D_acropolis_cafeteria_80184164 >= 2 || GameFlag_GetNibble(0) >= 2) {
+        if (D_acropolis_cafeteria_80184164 >= 2 || gameFlagGetNibble(0) >= 2) {
             Task_SpawnFromTable(D_acropolis_cafeteria_80182AD8, 1, 0, 0);
             return 0;
         }
@@ -1324,7 +1324,7 @@ s32 func_acropolis_cafeteria_8017E154(Task* task, s32 msgId, const void* firstAr
     if (request->actionId == 2) {
         Gp_RunCapCmd1(9);
     } else if (request->actionId == 3) {
-        if (D_acropolis_cafeteria_80184164 == 0 && GameFlag_GetNibble(0) == 1) {
+        if (D_acropolis_cafeteria_80184164 == 0 && gameFlagGetNibble(0) == 1) {
             D_acropolis_cafeteria_80184164 = 1;
             Task_SpawnFromTable(D_acropolis_cafeteria_80182AD8, 0, 0, 0);
         }
@@ -1369,10 +1369,10 @@ static void func_acropolis_cafeteria_8017E348(Task* task)
 {
     task->msgTable = D_acropolis_cafeteria_80182AA8;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    if (GameFlag_GetNibble(0) == 1) {
+    if (gameFlagGetNibble(0) == 1) {
         Gp_MsgSlot4Chain(0, 0);
         Gp_MsgSlot4Chain(1, 1);
-    } else if (GameFlag_GetNibble(0) == 2) {
+    } else if (gameFlagGetNibble(0) == 2) {
         Gp_MsgSlot4Chain(0, 1);
         Gp_MsgSlot4Chain(1, 2);
         Gp_MsgSlot4Chain(2, 1);

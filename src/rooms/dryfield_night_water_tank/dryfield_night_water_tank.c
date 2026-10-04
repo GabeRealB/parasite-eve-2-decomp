@@ -634,11 +634,11 @@ void func_dryfield_night_water_tank_8017D5D0(Task* task)
         case 2:
             if (gGameSession->battleResetPending != 0) {
                 Gp_ApplyAreaRecs(D_dryfield_night_water_tank_801808B0);
-                GameFlag_SetNibble(GAME_FLAG_ITEM_119_HANDOVER_PROGRESS, 2);
-                GameFlag_SetNibble(GAME_FLAG_083, 1);
+                gameFlagSetNibble(GAME_FLAG_ITEM_119_HANDOVER_PROGRESS, 2);
+                gameFlagSetNibble(GAME_FLAG_083, 1);
                 func_800E8634(D_actor_146300_80137C28, 0, D_actor_146300_80138570);
-                GameFlag_SetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
-                GameFlag_SetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 0xE);
+                gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
+                gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 0xE);
                 taskKill(task);
                 return;
             }
@@ -674,7 +674,7 @@ s32 func_dryfield_night_water_tank_8017D76C(Task* arg0, s32 arg1, RoomEventMsg* 
 {
     u8 temp_v1;
 
-    if ((gGameSession->location.loc.variant != 0xA) || (GameFlag_GetNibble(GAME_FLAG_ITEM_119_HANDOVER_PROGRESS) >= 2)) {
+    if ((gGameSession->location.loc.variant != 0xA) || (gameFlagGetNibble(GAME_FLAG_ITEM_119_HANDOVER_PROGRESS) >= 2)) {
         if (in->warp == 3) {
             func_800E8614(D_dryfield_night_water_tank_8017DDD8, 0);
         }
@@ -685,7 +685,7 @@ s32 func_dryfield_night_water_tank_8017D76C(Task* arg0, s32 arg1, RoomEventMsg* 
     if (in->warp == 5) {
         temp_v1 = gGameSession->location.loc.variant;
         if ((u32)(temp_v1 - 0xA) < 2U) {
-            if ((temp_v1 != 0xA) || (GameFlag_GetNibble(GAME_FLAG_ITEM_119_HANDOVER_PROGRESS) >= 2)) {
+            if ((temp_v1 != 0xA) || (gameFlagGetNibble(GAME_FLAG_ITEM_119_HANDOVER_PROGRESS) >= 2)) {
                 Gp_MsgPlayerWeapon(0);
                 Task_SpawnFromTable(&D_actor_146300_8013788C, 0, 0, 0);
             } else {

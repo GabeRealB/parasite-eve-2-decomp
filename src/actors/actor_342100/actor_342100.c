@@ -650,7 +650,7 @@ void func_actor_342100_801630A4(Task* arg0)
             }
             break;
         case 1:
-            if (GameFlag_GetNibble(GAME_FLAG_11E) != 0) {
+            if (gameFlagGetNibble(GAME_FLAG_11E) != 0) {
                 if (Gp_TakePendingObj4C(&id, (u8*)&kind, &extra) != 0 && (id & (0xFFFF ^ WORLD_COLLISION_TRIGGER_AUTOMATIC)) == WORLD_COLLISION_TRIGGER_ACTION_ROOM && kind == 1) {
                     work->encounterTask = Task_SpawnFromTable(D_shelter_b3_dumping_hole_8018B83C, 0, 0, 0);
                     arg0->state++;

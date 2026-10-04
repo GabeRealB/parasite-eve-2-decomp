@@ -17,29 +17,29 @@ s32 mainStreetResolveMsg(Task* task, s32 msgId, RoomEventMsg* msg, RoomEventMsg*
     if (msg->areaId == 0x19) {
         if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
             if (msg->queryOnly == ROOM_EVENT_EXECUTE) {
-                if (GameFlag_GetNibble(GAME_FLAG_DRIVEWAY_PROGRESS) >= 2) {
+                if (gameFlagGetNibble(GAME_FLAG_DRIVEWAY_PROGRESS) >= 2) {
                     out->room = 2;
                 } else {
                     out->room = 1;
                 }
             }
         } else if (msg->queryOnly == ROOM_EVENT_EXECUTE) {
-            out->room = GameFlag_GetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) + 1;
+            out->room = gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) + 1;
         }
     }
     if (msg->areaId == 1 && msg->queryOnly == ROOM_EVENT_EXECUTE) {
-        if (GameFlag_GetNibble(GAME_FLAG_NIGHT_GAS_STATION_PROGRESS) == 0) {
+        if (gameFlagGetNibble(GAME_FLAG_NIGHT_GAS_STATION_PROGRESS) == 0) {
             out->room = 1;
-        } else if (GameFlag_GetNibble(GAME_FLAG_STORY_CHAPTER) >= 4) {
+        } else if (gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) >= 4) {
             out->room = 4;
         } else {
-            out->room = GameFlag_GetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) + 2;
+            out->room = gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) + 2;
         }
     }
     if (msg->areaId == 0xF && msg->queryOnly == ROOM_EVENT_EXECUTE) {
-        out->room = GameFlag_GetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) + 1;
+        out->room = gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) + 1;
     }
-    if (msg->areaId == 0x19 && GameFlag_GetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) != 0) {
+    if (msg->areaId == 0x19 && gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) != 0) {
         if (msg->queryOnly == ROOM_EVENT_EXECUTE) {
             Gp_SetNibbleIf(msg->flagId, 2);
             Gp_RunCapCmd1(0x13);
@@ -53,12 +53,12 @@ s32 mainStreetResolveMsg(Task* task, s32 msgId, RoomEventMsg* msg, RoomEventMsg*
         ev.flagId                            = GAME_FLAG_MAIN_STREET_TO_MOTEL_ROOM_1_SCENE;
         ev.fade                              = 0;
         gMainStreetEventSpawned.eventStarted = 0;
-        if (GameFlag_GetNibble(ev.flagId) == 0 || ev.flagId == 0) {
+        if (gameFlagGetNibble(ev.flagId) == 0 || ev.flagId == 0) {
             if (out->queryOnly == ROOM_EVENT_EXECUTE) {
                 gRoomEventStagedMsg = *out;
                 ROOM_EVENT_LATCHED  = ev;
                 if (ev.flagId != 0) {
-                    GameFlag_SetNibble(ev.flagId, 1);
+                    gameFlagSetNibble(ev.flagId, 1);
                 }
                 Task_SpawnFromTable(&gMainStreetEventTaskDesc, 0, 0, 0);
                 gMainStreetEventSpawned.eventStarted = 1;
@@ -73,12 +73,12 @@ s32 mainStreetResolveMsg(Task* task, s32 msgId, RoomEventMsg* msg, RoomEventMsg*
         ev.flagId                            = GAME_FLAG_MAIN_STREET_TO_MOTEL_ROOM_2_SCENE;
         ev.fade                              = 0;
         gMainStreetEventSpawned.eventStarted = 0;
-        if (GameFlag_GetNibble(ev.flagId) == 0 || ev.flagId == 0) {
+        if (gameFlagGetNibble(ev.flagId) == 0 || ev.flagId == 0) {
             if (out->queryOnly == ROOM_EVENT_EXECUTE) {
                 gRoomEventStagedMsg = *out;
                 ROOM_EVENT_LATCHED  = ev;
                 if (ev.flagId != 0) {
-                    GameFlag_SetNibble(ev.flagId, 1);
+                    gameFlagSetNibble(ev.flagId, 1);
                 }
                 Task_SpawnFromTable(&gMainStreetEventTaskDesc, 0, 0, 0);
                 gMainStreetEventSpawned.eventStarted = 1;
@@ -103,7 +103,7 @@ s32 mainStreetResolveMsg(Task* task, s32 msgId, RoomEventMsg* msg, RoomEventMsg*
             Gp_ClearCollectedBit(0x112);
             Gp_SetItemSeenBit(0x113, 1);
         }
-        if (msg->queryOnly == ROOM_EVENT_EXECUTE && GameFlag_GetNibble(GAME_FLAG_093) == 0) {
+        if (msg->queryOnly == ROOM_EVENT_EXECUTE && gameFlagGetNibble(GAME_FLAG_093) == 0) {
             Gp_SetNibbleIf(msg->flagId, 0);
         }
         return ret;
@@ -123,7 +123,7 @@ s32 mainStreetResolveMsg(Task* task, s32 msgId, RoomEventMsg* msg, RoomEventMsg*
             Gp_ClearCollectedBit(0x112);
             Gp_SetItemSeenBit(0x113, 1);
         }
-        if (msg->queryOnly == ROOM_EVENT_EXECUTE && GameFlag_GetNibble(GAME_FLAG_094) == 0) {
+        if (msg->queryOnly == ROOM_EVENT_EXECUTE && gameFlagGetNibble(GAME_FLAG_094) == 0) {
             Gp_SetNibbleIf(msg->flagId, 0);
         }
         return ret;

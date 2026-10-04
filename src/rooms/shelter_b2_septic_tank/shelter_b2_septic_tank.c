@@ -1183,12 +1183,12 @@ static void           func_shelter_b2_septic_tank_8017DA74(Task* task);
 static __inline__ s32 _shelterB2SepticTankStartEvent(RoomEventMsg* dst, RoomLatchedEvent* event)
 {
     D_shelter_b2_septic_tank_80187044 = 0;
-    if (GameFlag_GetNibble(event->flagId) == 0 || event->flagId == 0) {
+    if (gameFlagGetNibble(event->flagId) == 0 || event->flagId == 0) {
         if (dst->queryOnly == ROOM_EVENT_EXECUTE) {
             gRoomEventStagedMsg = *dst;
             gRoomEventLatched   = *event;
             if (event->flagId != 0) {
-                GameFlag_SetNibble(event->flagId, 1);
+                gameFlagSetNibble(event->flagId, 1);
             }
             Task_SpawnFromTable(&D_shelter_b2_septic_tank_80182F40, 0, 0, 0);
             D_shelter_b2_septic_tank_80187044 = 1;
@@ -1236,7 +1236,7 @@ s32 func_shelter_b2_septic_tank_8017D90C(Task* arg0, s32 arg1, RoomEventMsg* arg
 
     kind = arg2->warp;
     if (kind == 2) {
-        flag = GameFlag_GetNibble(GAME_FLAG_0EB);
+        flag = gameFlagGetNibble(GAME_FLAG_0EB);
         if (flag == 1 && D_shelter_b2_septic_tank_80187045 == flag) {
             func_800E8614(D_shelter_b2_septic_tank_8018310C, 0);
             D_shelter_b2_septic_tank_80187045 = kind;
@@ -1247,7 +1247,7 @@ s32 func_shelter_b2_septic_tank_8017D90C(Task* arg0, s32 arg1, RoomEventMsg* arg
 
 void func_shelter_b2_septic_tank_8017D97C(s32 arg0)
 {
-    GameFlag_SetNibble(GAME_FLAG_0EB, arg0);
+    gameFlagSetNibble(GAME_FLAG_0EB, arg0);
 }
 
 void func_shelter_b2_septic_tank_8017D9A0(void)
@@ -1280,7 +1280,7 @@ static void func_shelter_b2_septic_tank_8017DA74(Task* task)
     if (gGameSession->location.loc.view == 4) {
         place = gGameSession->location.loc.variant;
         if (place == 1 && Gp_StateC08.mode != place && gDisplayState.pendingMode == DISPLAY_MODE_NONE && D_shelter_b2_septic_tank_80187045 == 0) {
-            if (GameFlag_GetNibble(GAME_FLAG_0EB) == 0) {
+            if (gameFlagGetNibble(GAME_FLAG_0EB) == 0) {
                 func_800E8614(D_shelter_b2_septic_tank_80183004, 0);
             }
             D_shelter_b2_septic_tank_80187045 = place;

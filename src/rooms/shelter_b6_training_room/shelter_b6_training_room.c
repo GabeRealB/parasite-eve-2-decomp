@@ -369,7 +369,7 @@ s32 func_shelter_b6_training_room_8017D684(Task* arg0, s32 arg1, s32 arg2, s32 a
 {
     switch (arg2) {
         case 5:
-            if (GameFlag_GetNibble(GAME_FLAG_153) != 0) {
+            if (gameFlagGetNibble(GAME_FLAG_153) != 0) {
                 Gp_RunCapCmd1(7);
             } else if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
                 Gp_RunCapCmd1(5);
@@ -378,7 +378,7 @@ s32 func_shelter_b6_training_room_8017D684(Task* arg0, s32 arg1, s32 arg2, s32 a
             }
             break;
         case 6:
-            if (GameFlag_GetNibble(GAME_FLAG_154) != 0) {
+            if (gameFlagGetNibble(GAME_FLAG_154) != 0) {
                 Gp_RunCapCmd1(8);
             } else if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
                 Gp_RunCapCmd1(6);
@@ -387,7 +387,7 @@ s32 func_shelter_b6_training_room_8017D684(Task* arg0, s32 arg1, s32 arg2, s32 a
             }
             break;
         case 4:
-            if (GameFlag_GetNibble(GAME_FLAG_B6_CORRIDOR_EVE_PART_2_DOWN) != 0) {
+            if (gameFlagGetNibble(GAME_FLAG_B6_CORRIDOR_EVE_PART_2_DOWN) != 0) {
                 Gp_RunCapCmd1(7);
             } else if (gSceneCombatState.signals.bytes.battlePhase != SCENE_COMBAT_BATTLE_ENGAGED) {
                 Gp_RunCapCmd1(0xA);
@@ -428,7 +428,7 @@ static void func_shelter_b6_training_room_8017D7D4(Task* arg0)
         i   += 1;
         ptr += 1;
     } while (i <= FILE_SYSTEM_IMAGE_STRIP_COUNT * FILE_SYSTEM_IMAGE_STRIP_WORDS * 2 - 1);
-    GameFlag_SetNibble(GAME_FLAG_COMPANION_3_SCHEDULE, 1);
+    gameFlagSetNibble(GAME_FLAG_COMPANION_3_SCHEDULE, 1);
     gStageSceneMusicEntry = 0xA;
     func_shelter_b6_training_room_8017DBB0(0);
     arg0->state                         = (s32)(arg0->state + 1);

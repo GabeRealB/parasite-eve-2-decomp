@@ -1344,8 +1344,8 @@ void func_acropolis_helicopter_landing_pad_8017DFCC(Task* arg0)
             Gp_ClearCollectedBit(0x101);
             Gp_ClearCollectedBit(0x102);
             Gp_SetItemSeenBit(0x102, 1);
-            GameFlag_SetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
-            GameFlag_SetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 7);
+            gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
+            gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 7);
             Task_SpawnFromTable(D_acropolis_helicopter_landing_pad_80184E68, 0, 0, 0);
             arg0->state = (s32)(arg0->state + 1);
             return;

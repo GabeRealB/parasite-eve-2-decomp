@@ -1294,7 +1294,7 @@ static void Gp_DrawMapMarks(Task* arg0)
                             idx = 0x23;
                         }
                     }
-                    if (GameFlag_GetNibble(flagTbl[Gp_MapRoomId]) == 0) {
+                    if (gameFlagGetNibble(flagTbl[Gp_MapRoomId]) == 0) {
                         if ((bit & flags[which]) == 0) {
                             if (Gp_DrawMapIcons(arg0, (u8)i, 1) != 0) {
                                 func_800D4270(obj, shapes[(u8)idx].model, 1, (u16)color);
@@ -1438,7 +1438,7 @@ static s32 Gp_DrawMapIcons(Task* arg0, u8 arg1, u8 arg2)
                 continue;
             }
         } else if (icons[i].condition != 0) {
-            if (GameFlag_GetNibble(icons[i].condition) == 0) {
+            if (gameFlagGetNibble(icons[i].condition) == 0) {
                 i++;
                 continue;
             }
@@ -1515,12 +1515,12 @@ static void Gp_EnqueueMapRoomCd(void)
 
     Gp_MapRoomOff             = 0;
     gGameSession->loadedSndId = 0;
-    if ((gGameSession->location.loc.stage == GAME_STAGE_MINE_SHELTER) && ((s8)Gp_MapRoomId == 6) && (GameFlag_GetNibble(GAME_FLAG_B4_RESERVOIR_EVENT_DONE) == 0)) {
+    if ((gGameSession->location.loc.stage == GAME_STAGE_MINE_SHELTER) && ((s8)Gp_MapRoomId == 6) && (gameFlagGetNibble(GAME_FLAG_B4_RESERVOIR_EVENT_DONE) == 0)) {
         Gp_MapRoomOff = 1;
     }
     if (gGameSession->location.loc.stage == GAME_STAGE_SHELTER_NEO_ARK) {
         room = (s8)Gp_MapRoomId;
-        if ((room == 1) && (GameFlag_GetNibble(GAME_FLAG_NEO_ARK_ALTAR_SWITCH_STATE) == room)) {
+        if ((room == 1) && (gameFlagGetNibble(GAME_FLAG_NEO_ARK_ALTAR_SWITCH_STATE) == room)) {
             Gp_MapRoomOff = 3;
         }
     }
@@ -1554,7 +1554,7 @@ static s8 func_800D1434(u32 roomId, u8 flagId)
                 return 0;
             }
             which = flagId != 0;
-            if (which && (GameFlag_GetNibble(flagId) != 0)) {
+            if (which && (gameFlagGetNibble(flagId) != 0)) {
                 return 1;
             }
             recs     = Gp_MapRecTables[gGameSession->location.loc.stage - 1];

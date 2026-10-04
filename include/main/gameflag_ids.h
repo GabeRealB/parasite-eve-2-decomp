@@ -1,7 +1,7 @@
 #ifndef MAIN_GAMEFLAG_IDS_H
 #define MAIN_GAMEFLAG_IDS_H
 
-/// Game flag indices for `GameFlag_GetNibble` / `GameFlag_SetNibble`.
+/// Game flag indices for `gameFlagGetNibble` / `gameFlagSetNibble`.
 ///
 /// Each flag is a four-bit value in the live nibble bank. A name says what the
 /// flag records where the code establishes it; `GAME_FLAG_<PLACE>_<HHH>` and
@@ -887,7 +887,7 @@ enum {
     GAME_FLAG_SOLDIER_B_TALK_COUNT_B = 0x104,
     /// Unidentified. Selects between two dialogue scripts of the soldier actor
     /// actor_161500 (0: D_801352A8, non-zero: D_801354B8). No writer found by direct
-    /// GameFlag_SetNibble.
+    /// gameFlagSetNibble.
     GAME_FLAG_105 = 0x105,
     /// Set to 1 the first time directed action 4 in the MIST shooting gallery is used,
     /// which runs its one-shot scene (and sets caption state 0xA2 to 0x3B); later uses

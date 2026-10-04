@@ -48,8 +48,8 @@ s32 factoryLiftJamTurnOut(Task* task)
             }
             work->yaw.word += work->yawVelocity;
             if (work->yaw.word <= 0) {
-                work->position = GameFlag_GetNibble(GAME_FLAG_FACTORY_LIFT_POSITION) & (u8)~FACTORY_LIFT_POSITION_TURNED;
-                GameFlag_SetNibble(GAME_FLAG_FACTORY_LIFT_POSITION, work->position);
+                work->position = gameFlagGetNibble(GAME_FLAG_FACTORY_LIFT_POSITION) & (u8)~FACTORY_LIFT_POSITION_TURNED;
+                gameFlagSetNibble(GAME_FLAG_FACTORY_LIFT_POSITION, work->position);
                 work->yaw.word = 0;
                 factoryLiftNotifyPanel(*(Task**)task->spawnArg2.pointer);
                 if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
@@ -68,8 +68,8 @@ s32 factoryLiftJamTurnOut(Task* task)
     }
 
     if ((u8)(work->yawStep - 1) < 3 && Pad_CheckButtons(0, 1, 0x800) != 0 && work->moveFrames >= FACTORY_LIFT_SKIP_FRAMES) {
-        work->position = GameFlag_GetNibble(GAME_FLAG_FACTORY_LIFT_POSITION) & (u8)~FACTORY_LIFT_POSITION_TURNED;
-        GameFlag_SetNibble(GAME_FLAG_FACTORY_LIFT_POSITION, work->position);
+        work->position = gameFlagGetNibble(GAME_FLAG_FACTORY_LIFT_POSITION) & (u8)~FACTORY_LIFT_POSITION_TURNED;
+        gameFlagSetNibble(GAME_FLAG_FACTORY_LIFT_POSITION, work->position);
         work->yaw.word = 0;
         factoryLiftNotifyPanel(*(Task**)task->spawnArg2.pointer);
         if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {

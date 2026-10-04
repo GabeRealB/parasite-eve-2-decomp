@@ -13,7 +13,7 @@
 extern const DirectionActionTable Gp_DirActionFns;
 
 /// Per-stage flag-nibble lookup. `idx` indexes a u16 table selected by
-/// `gGameSession->location.loc.stage` (1..5). Low 11 bits are the `GameFlag_GetNibble`
+/// `gGameSession->location.loc.stage` (1..5). Low 11 bits are the `gameFlagGetNibble`
 /// index; bit `0x800` is added onto the result. Unknown stage or out-of-range
 /// index returns -1.
 s16 Gp_LookupStageFlag(s16 idx);

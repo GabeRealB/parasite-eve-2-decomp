@@ -797,7 +797,7 @@ s32 func_neo_ark_power_plant_2_8017D61C(Task* arg0, s32 arg1, s32 arg2, s32 arg3
 
     switch (arg2) {
         case 2:
-            if (GameFlag_GetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_2_CLEARED) == 0) {
+            if (gameFlagGetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_2_CLEARED) == 0) {
                 cmd = 2;
             } else {
                 cmd = 5;
@@ -806,7 +806,7 @@ s32 func_neo_ark_power_plant_2_8017D61C(Task* arg0, s32 arg1, s32 arg2, s32 arg3
         case 3:
             cmd = 7;
             if (gSceneCombatState.signals.bytes.battlePhase != SCENE_COMBAT_BATTLE_FINISHED) {
-                cmd = GameFlag_GetNibble(GAME_FLAG_POWER_PLANT_2_GENERATOR_PART_DOWN) != 0 ? 6 : 3;
+                cmd = gameFlagGetNibble(GAME_FLAG_POWER_PLANT_2_GENERATOR_PART_DOWN) != 0 ? 6 : 3;
             }
             break;
         default:
@@ -850,21 +850,21 @@ static void func_neo_ark_power_plant_2_8017D758(Task* task)
 {
     Task* temp_v0;
 
-    if (GameFlag_GetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_2_CLEARED) == 0) {
+    if (gameFlagGetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_2_CLEARED) == 0) {
         temp_v0 = Gp_LookupSlot4(0);
         if ((temp_v0 != 0) && (taskMessageDispatch(temp_v0, ACTOR_MESSAGE_IS_PRESENT, 0, 0) == 0) && (Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL) &&
             (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
-            GameFlag_SetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_2_CLEARED, 1);
-            GameFlag_SetNibble(GAME_FLAG_NEO_ARK_EVE_ELEVATOR_UNLOCKED, 1);
-            GameFlag_SetNibble(GAME_FLAG_MAP_MARK_POWER_PLANT_2, 0);
+            gameFlagSetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_2_CLEARED, 1);
+            gameFlagSetNibble(GAME_FLAG_NEO_ARK_EVE_ELEVATOR_UNLOCKED, 1);
+            gameFlagSetNibble(GAME_FLAG_MAP_MARK_POWER_PLANT_2, 0);
             Gp_ApplyAreaRecs(D_neo_ark_power_plant_2_80182F70);
-            if (GameFlag_GetNibble(GAME_FLAG_0F3) != 0) {
+            if (gameFlagGetNibble(GAME_FLAG_0F3) != 0) {
                 Gp_ApplyAreaRecs(D_neo_ark_power_plant_2_80182F94);
             }
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 0x17;
             func_800E3FAC(0xA2, 0x2E);
-            GameFlag_SetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
-            GameFlag_SetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 7);
+            gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
+            gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 7);
             func_800E8634(D_neo_ark_power_plant_2_801802A8, 0, D_neo_ark_power_plant_2_80180560);
         }
     }
@@ -895,8 +895,8 @@ void func_neo_ark_power_plant_2_8017D8AC(Task* arg0)
     }
     switch ((u8)Gp_GetViewIndex()) {
         case 6:
-            if (GameFlag_GetNibble(GAME_FLAG_POWER_PLANT_2_GENERATOR_PART_DOWN) != 0) {
-                if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING && GameFlag_GetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_2_CLEARED) == 0) {
+            if (gameFlagGetNibble(GAME_FLAG_POWER_PLANT_2_GENERATOR_PART_DOWN) != 0) {
+                if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING && gameFlagGetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_2_CLEARED) == 0) {
                     rnd             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     gRandomLcgState = rnd;
                     if (((rnd >> 16) & 7) == 0) {

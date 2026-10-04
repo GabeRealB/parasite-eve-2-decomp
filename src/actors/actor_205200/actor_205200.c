@@ -337,21 +337,21 @@ static void func_actor_205200_8014A72C(Enemy* enemy, Task* task)
         case ACTOR_205200_SITE_EVE_ACCESS_TUNNEL:
             func_neo_ark_eve_access_tunnel_8017E090(0, 0);
             func_neo_ark_eve_access_tunnel_8017E090(1, 0);
-            GameFlag_SetNibble(GAME_FLAG_EVE_ACCESS_TUNNEL_PART_0_DOWN, 0);
-            GameFlag_SetNibble(GAME_FLAG_EVE_ACCESS_TUNNEL_PART_1_DOWN, 0);
+            gameFlagSetNibble(GAME_FLAG_EVE_ACCESS_TUNNEL_PART_0_DOWN, 0);
+            gameFlagSetNibble(GAME_FLAG_EVE_ACCESS_TUNNEL_PART_1_DOWN, 0);
             break;
         case ACTOR_205200_SITE_B6_CORRIDOR:
             func_shelter_b6_corridor_8017EE08(0, 0);
             func_shelter_b6_corridor_8017EE08(1, 0);
             func_shelter_b6_corridor_8017EE08(2, 0);
-            GameFlag_SetNibble(GAME_FLAG_B6_CORRIDOR_EVE_PART_0_DOWN, 0);
-            GameFlag_SetNibble(GAME_FLAG_B6_CORRIDOR_EVE_PART_1_DOWN, 0);
+            gameFlagSetNibble(GAME_FLAG_B6_CORRIDOR_EVE_PART_0_DOWN, 0);
+            gameFlagSetNibble(GAME_FLAG_B6_CORRIDOR_EVE_PART_1_DOWN, 0);
             break;
         case ACTOR_205200_SITE_B6_TRAINING_ROOM:
             func_shelter_b6_training_room_80182A14(0, 0);
             func_shelter_b6_training_room_80182A14(1, 0);
-            GameFlag_SetNibble(GAME_FLAG_153, 0);
-            GameFlag_SetNibble(GAME_FLAG_154, 0);
+            gameFlagSetNibble(GAME_FLAG_153, 0);
+            gameFlagSetNibble(GAME_FLAG_154, 0);
             break;
         case 0:
             break;
@@ -673,15 +673,15 @@ static void func_actor_205200_8014B484(Enemy* arg0, Task* arg1)
             switch (work->site) {
                 case ACTOR_205200_SITE_EVE_ACCESS_TUNNEL:
                     func_neo_ark_eve_access_tunnel_8017E090((u8)part->slot, 1);
-                    GameFlag_SetNibble(part->slot + GAME_FLAG_EVE_ACCESS_TUNNEL_PART_0_DOWN, 1);
+                    gameFlagSetNibble(part->slot + GAME_FLAG_EVE_ACCESS_TUNNEL_PART_0_DOWN, 1);
                     break;
                 case ACTOR_205200_SITE_B6_CORRIDOR:
                     func_shelter_b6_corridor_8017EE08((u8)part->slot, 1);
-                    GameFlag_SetNibble(part->slot + GAME_FLAG_B6_CORRIDOR_EVE_PART_0_DOWN, 1);
+                    gameFlagSetNibble(part->slot + GAME_FLAG_B6_CORRIDOR_EVE_PART_0_DOWN, 1);
                     break;
                 case ACTOR_205200_SITE_B6_TRAINING_ROOM:
                     func_shelter_b6_training_room_80182A14((u8)part->slot, 1);
-                    GameFlag_SetNibble(part->slot + GAME_FLAG_153, 1);
+                    gameFlagSetNibble(part->slot + GAME_FLAG_153, 1);
                     break;
                 case 0:
                     break;

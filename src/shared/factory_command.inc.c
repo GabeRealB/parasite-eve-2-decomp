@@ -45,7 +45,7 @@ s32 factoryCommand(Task* arg0, s32 arg1, s32 cmd, s32 arg3)
             Task_SpawnFromTable(gFactoryPanelSessionDesc, 0, 0, 0);
             goto end;
         case 12:
-            if (GameFlag_GetNibble(GAME_FLAG_FACTORY_LIFT_POSITION) == 1) {
+            if (gameFlagGetNibble(GAME_FLAG_FACTORY_LIFT_POSITION) == 1) {
                 Gp_MsgPlayerWeapon(0);
                 Gp_MsgAllyWeapon(0);
                 table = gFactorySpawnTable;

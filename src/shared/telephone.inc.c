@@ -234,7 +234,7 @@ static void Telephone_DrawPlayDataRow(UiList* arg0, UiObject* arg1)
             req.drawMode   = TEXT_DRAW_OUTLINED;
             Text_DrawString(&req, Telephone_Data_80181A40);
             cnt   = 326;
-            total = total + (GameFlag_GetNibble(GAME_FLAG_NEO_ARK_ROAMER_KILLS_POOL_B) + GameFlag_GetNibble(GAME_FLAG_NEO_ARK_ROAMER_KILLS_POOL_A));
+            total = total + (gameFlagGetNibble(GAME_FLAG_NEO_ARK_ROAMER_KILLS_POOL_B) + gameFlagGetNibble(GAME_FLAG_NEO_ARK_ROAMER_KILLS_POOL_A));
             if (total == 0) {
                 pct = 0;
             } else {

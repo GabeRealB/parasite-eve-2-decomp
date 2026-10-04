@@ -1469,7 +1469,7 @@ static void Fs_SelectLoadHandlers0(u8* arg0)
             *arg0             = 6;
             break;
         case GAME_AREA_MIST_PARKING:
-            if (GameFlag_GetNibble(GAME_FLAG_STORY_CHAPTER) == 0) {
+            if (gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) == 0) {
                 Fs_BootTimPrimary = &BootCaption_MistArrival;
                 *arg0             = 7;
             } else {
@@ -1557,7 +1557,7 @@ static void Fs_SelectLoadHandlers2(u8* arg0)
     s32 area;
     s32 val;
 
-    temp_v1 = GameFlag_GetNibble(GAME_FLAG_STORY_CHAPTER);
+    temp_v1 = gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER);
     area    = Fs_LoadParams.area;
 
     if (area == GAME_AREA_DRYFIELD_NIGHT_TRAILER_COACH) {
@@ -1647,7 +1647,7 @@ static void Fs_SelectLoadHandlers3(u8* arg0)
     s32 temp_v1;
     s32 val;
 
-    temp_v1 = GameFlag_GetNibble(GAME_FLAG_STORY_CHAPTER);
+    temp_v1 = gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER);
     switch (Fs_LoadParams.area) {
         case GAME_AREA_MINE_MESA:
             Fs_BootTimPrimary   = &BootCaption_DryfieldMesaNight;
@@ -1864,7 +1864,7 @@ void Fs_SetupBootLoad(void)
             break;
         case GAME_STAGE_SHELTER_NEO_ARK:
         default:
-            GameFlag_GetNibble(GAME_FLAG_STORY_CHAPTER);
+            gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER);
             area = Fs_LoadParams.area;
             if (area == GAME_AREA_SHELTER_B6_NURSERY) {
                 goto case_16;

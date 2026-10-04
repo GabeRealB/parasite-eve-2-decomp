@@ -15,12 +15,12 @@ void roamerArmPoolA(Task* task)
         return;
     }
     task->msgTable      = gRoamerMsgTableA;
-    gRoamerReserveCount = GameFlag_GetNibble(GAME_FLAG_NEO_ARK_ROAMER_POOL_A_RESERVE);
-    nib                 = GameFlag_GetNibble(GAME_FLAG_NEO_ARK_ROAMER_POOL_A_VARIANT);
+    gRoamerReserveCount = gameFlagGetNibble(GAME_FLAG_NEO_ARK_ROAMER_POOL_A_RESERVE);
+    nib                 = gameFlagGetNibble(GAME_FLAG_NEO_ARK_ROAMER_POOL_A_VARIANT);
     if (gGameSession->location.loc.variant != nib) {
         gRoamerReserveCount = gRoamerReserveCount + gRoamerArmCountsA[gGameSession->location.loc.variant];
-        GameFlag_SetNibble(GAME_FLAG_NEO_ARK_ROAMER_POOL_A_RESERVE, gRoamerReserveCount);
-        GameFlag_SetNibble(GAME_FLAG_NEO_ARK_ROAMER_POOL_A_VARIANT, gGameSession->location.loc.variant);
+        gameFlagSetNibble(GAME_FLAG_NEO_ARK_ROAMER_POOL_A_RESERVE, gRoamerReserveCount);
+        gameFlagSetNibble(GAME_FLAG_NEO_ARK_ROAMER_POOL_A_VARIANT, gGameSession->location.loc.variant);
     }
     if (gRoamerReserveCount >= 6) {
         gRoamerReserveCount = 5;

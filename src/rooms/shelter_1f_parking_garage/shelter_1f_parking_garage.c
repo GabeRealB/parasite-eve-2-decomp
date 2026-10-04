@@ -365,12 +365,12 @@ static __inline__ s32 _shelter1fParkingGarageStartEvent(RoomEventMsg* dst, RoomL
 static __inline__ s32 _shelter1fParkingGarageStartEvent(RoomEventMsg* dst, RoomLatchedEvent* event)
 {
     D_shelter_1f_parking_garage_80181984_value = 0;
-    if (GameFlag_GetNibble(event->flagId) == 0 || event->flagId == 0) {
+    if (gameFlagGetNibble(event->flagId) == 0 || event->flagId == 0) {
         if (dst->queryOnly == ROOM_EVENT_EXECUTE) {
             gRoomEventStagedMsg = *dst;
             gRoomEventLatched   = *event;
             if (event->flagId != 0) {
-                GameFlag_SetNibble(event->flagId, 1);
+                gameFlagSetNibble(event->flagId, 1);
             }
             Task_SpawnFromTable(&D_shelter_1f_parking_garage_80180BAC, 0, 0, 0);
             D_shelter_1f_parking_garage_80181984_value = 1;
@@ -421,8 +421,8 @@ void func_shelter_1f_parking_garage_8017DAF0(Task* task)
             break;
         case 2:
             if (task->killCountdown == 0) {
-                if (GameFlag_GetNibble(GAME_FLAG_COMPANION_2_SCHEDULE) == 9) {
-                    GameFlag_SetNibble(GAME_FLAG_COMPANION_2_SCHEDULE, 0xA);
+                if (gameFlagGetNibble(GAME_FLAG_COMPANION_2_SCHEDULE) == 9) {
+                    gameFlagSetNibble(GAME_FLAG_COMPANION_2_SCHEDULE, 0xA);
                 }
                 handler      = roomVariantResolveShelter;
                 rec.stage    = GAME_STAGE_MINE_SHELTER;

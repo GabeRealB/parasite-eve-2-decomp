@@ -489,7 +489,7 @@ static const _DirectionFacingPhaseTable D_80093990 = { {
 
 static inline s16 _gpStageFlagNibble(u16* table, s16 idx)
 {
-    return GameFlag_GetNibble(table[idx] & 0x7FF) + (table[idx] & 0x800);
+    return gameFlagGetNibble(table[idx] & 0x7FF) + (table[idx] & 0x800);
 }
 
 s16 Gp_LookupStageFlag(s16 idx)
@@ -510,7 +510,7 @@ s16 Gp_LookupStageFlag(s16 idx)
                 break;
             }
             if (idx == 0x1D) {
-                if (GameFlag_GetNibble(GAME_FLAG_07F) == 0) {
+                if (gameFlagGetNibble(GAME_FLAG_07F) == 0) {
                     return 0;
                 }
                 return 0x802;
@@ -520,8 +520,8 @@ s16 Gp_LookupStageFlag(s16 idx)
             if (idx >= 0x1E) {
                 break;
             }
-            if (idx == 0 && GameFlag_GetNibble(GAME_FLAG_STORY_CHAPTER) == 6) {
-                return GameFlag_GetNibble(D_map_shelter_8017AD88[0] & 0x7FF) + 0x800;
+            if (idx == 0 && gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) == 6) {
+                return gameFlagGetNibble(D_map_shelter_8017AD88[0] & 0x7FF) + 0x800;
             }
             return _gpStageFlagNibble(D_map_shelter_8017AD88, idx);
         case GAME_STAGE_SHELTER_NEO_ARK:

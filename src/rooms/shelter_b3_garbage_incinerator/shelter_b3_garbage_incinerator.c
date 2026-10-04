@@ -127,15 +127,15 @@ s32 func_shelter_b3_garbage_incinerator_8017D840(Task* arg0, s32 arg1, RoomEvent
             Gp_SpawnIfCapIdle(3, 1);
             return 0;
         }
-        if (GameFlag_GetNibble(GAME_FLAG_BURNER_DEFEATED) != 0) {
-            GameFlag_SetNibble(GAME_FLAG_COMPANION_1_SCHEDULE, 10);
+        if (gameFlagGetNibble(GAME_FLAG_BURNER_DEFEATED) != 0) {
+            gameFlagSetNibble(GAME_FLAG_COMPANION_1_SCHEDULE, 10);
         } else {
-            GameFlag_SetNibble(GAME_FLAG_COMPANION_1_SCHEDULE, 5);
+            gameFlagSetNibble(GAME_FLAG_COMPANION_1_SCHEDULE, 5);
         }
         out->warp                                 = 4;
         D_shelter_b3_garbage_incinerator_8018FC2C = *out;
-        GameFlag_SetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
-        GameFlag_SetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 1);
+        gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
+        gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 1);
         Task_SpawnFromTable(&D_shelter_b3_garbage_incinerator_801855CC, 0, 0, 0);
         return 2;
     }

@@ -40,7 +40,7 @@ void factoryHatchInit(Task* task)
     coord->parent     = capCoord;
     coord->coord.t[0] = 0;
     coord->coord.t[2] = -0x5FA;
-    if (GameFlag_GetNibble(GAME_FLAG_FACTORY_HATCH_OPEN) == 1) {
+    if (gameFlagGetNibble(GAME_FLAG_FACTORY_HATCH_OPEN) == 1) {
         // Not a handler slot: the dispatcher has no entry for this value.
         work->state = 0xFF;
         RotMatrixX(-0x300, &coord->coord);

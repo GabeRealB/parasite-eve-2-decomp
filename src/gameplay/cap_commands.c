@@ -95,7 +95,7 @@ void Gp_RunCapCmd(s32 arg0, s16 arg1)
             case CAP_COMMAND_COUNTER:
                 // Persist keeps the counter in a game flag. Otherwise it is this command's byte.
                 if (command->flags & CAP_COMMAND_PERSIST) {
-                    val = GameFlag_GetNibble(flagId);
+                    val = gameFlagGetNibble(flagId);
                 } else {
                     val = command->counter;
                 }
@@ -111,13 +111,13 @@ void Gp_RunCapCmd(s32 arg0, s16 arg1)
                     val = 0;
                 }
                 if (command->flags & CAP_COMMAND_PERSIST) {
-                    GameFlag_SetNibble(flagId, val);
+                    gameFlagSetNibble(flagId, val);
                 } else {
                     command->counter = val;
                 }
                 return;
             case CAP_COMMAND_FLAG:
-                val = GameFlag_GetNibble(flagId);
+                val = gameFlagGetNibble(flagId);
                 Gp_StartCapSlot(arg0, arg1, val);
                 return;
             case CAP_COMMAND_ROOM:
@@ -247,7 +247,7 @@ const TaskFuncTable3 Gp_CapTaskStates = { {
 void Gp_SetNibbleIf(s32 arg0, s32 arg1)
 {
     if (arg0 != 0) {
-        GameFlag_SetNibble(arg0, arg1);
+        gameFlagSetNibble(arg0, arg1);
     }
 }
 
@@ -411,7 +411,7 @@ void Gp_ClearAllFlagNibbles(void)
     s32 i;
 
     for (i = 0; i < GAME_FLAG_NIBBLE_COUNT; i++) {
-        GameFlag_SetNibble(i, 0);
+        gameFlagSetNibble(i, 0);
     }
 }
 

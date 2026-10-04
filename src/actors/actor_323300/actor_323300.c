@@ -450,7 +450,7 @@ static void func_actor_323300_80161E78(Task* arg0)
     TmdObject*             extra;
     WorldCollisionBody*    body;
 
-    if (GameFlag_GetNibble(GAME_FLAG_TOILET_EVENT_SEEN) != 0 || (work = memCalloc(sizeof(_Actor323300WomanWork), 0)) == NULL) {
+    if (gameFlagGetNibble(GAME_FLAG_TOILET_EVENT_SEEN) != 0 || (work = memCalloc(sizeof(_Actor323300WomanWork), 0)) == NULL) {
         enemyTaskExit(arg0);
         return;
     }

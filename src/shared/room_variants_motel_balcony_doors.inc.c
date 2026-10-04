@@ -14,13 +14,13 @@ s32 roomVariantMotelBalconyDoorsMsg(Task* task, s32 msgId, RoomEventMsg* msg, Ro
 
     *out = *msg;
     if (msg->areaId == 0x1C && msg->queryOnly == ROOM_EVENT_EXECUTE) {
-        out->room = GameFlag_GetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) + 1;
+        out->room = gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) + 1;
     }
     if (msg->areaId == 0xF && msg->queryOnly == ROOM_EVENT_EXECUTE) {
-        out->room = GameFlag_GetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) + 1;
+        out->room = gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) + 1;
     }
     if (msg->areaId == 0x1F && msg->queryOnly == ROOM_EVENT_EXECUTE) {
-        flagClear = GameFlag_GetNibble(GAME_FLAG_NIGHT_MOTEL_LOFT_EVENT_SEEN) == 0;
+        flagClear = gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_LOFT_EVENT_SEEN) == 0;
         out->room = flagClear ? 1 : 2;
     }
     if (msg->areaId == 0x1C) {
@@ -58,7 +58,7 @@ s32 roomVariantMotelBalconyDoorsMsg(Task* task, s32 msgId, RoomEventMsg* msg, Ro
         req.collectedBit  = 0xF;
         ret               = roomEventGate(&req, out);
         if (ROOM_EVENT_ACTIVE != 0) {
-            GameFlag_SetNibble(GAME_FLAG_030, 1);
+            gameFlagSetNibble(GAME_FLAG_030, 1);
             gMcSaveData[0].state.sceneEvent = 3;
             func_800E3FAC(0xA2, 0xC);
         }

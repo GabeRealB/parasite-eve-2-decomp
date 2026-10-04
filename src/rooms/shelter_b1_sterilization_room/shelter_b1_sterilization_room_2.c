@@ -935,7 +935,7 @@ void func_shelter_b1_sterilization_room_801813A0(Task* arg0)
         case 2:
             if (Gp_GetCapEventKey() == 1) {
                 func_800E8634(D_shelter_b1_sterilization_room_80188C94, 0, D_shelter_b1_sterilization_room_80188E14);
-                GameFlag_SetNibble(GAME_FLAG_STERILIZATION_ROOM_TRAP_STOPPED, 1);
+                gameFlagSetNibble(GAME_FLAG_STERILIZATION_ROOM_TRAP_STOPPED, 1);
                 gGameSession->restartMode = GAME_SESSION_RESTART_NORMAL;
             } else {
                 gGameSession->eventState = 0;
@@ -1033,19 +1033,19 @@ void func_shelter_b1_sterilization_room_801816E0(Task* task)
             Gp_LoadCapFile(1);
             func_800E6D4C(0x2C0, 0x100);
             if (task->spawnArg1.value != 0) {
-                flag = GameFlag_GetNibble(GAME_FLAG_STERILIZATION_ROOM_TRAP_STOPPED);
+                flag = gameFlagGetNibble(GAME_FLAG_STERILIZATION_ROOM_TRAP_STOPPED);
                 cmd  = 8;
                 if (flag == 0) {
                     cmd = 7;
                 }
                 Gp_RunCapCmd1(cmd);
-                GameFlag_SetNibble(GAME_FLAG_SHELTER_B1_STERILIZATION_ROOM_149, 1);
+                gameFlagSetNibble(GAME_FLAG_SHELTER_B1_STERILIZATION_ROOM_149, 1);
             } else {
-                flag = GameFlag_GetNibble(GAME_FLAG_STERILIZATION_ROOM_TRAP_STOPPED);
+                flag = gameFlagGetNibble(GAME_FLAG_STERILIZATION_ROOM_TRAP_STOPPED);
                 cmd  = 6;
                 if (flag != 0) {
-                    GameFlag_SetNibble(GAME_FLAG_SHELTER_B1_STERILIZATION_ROOM_14A, 1);
-                    GameFlag_SetNibble(GAME_FLAG_STERILIZATION_ROOM_ACTION4_SCENE, 1);
+                    gameFlagSetNibble(GAME_FLAG_SHELTER_B1_STERILIZATION_ROOM_14A, 1);
+                    gameFlagSetNibble(GAME_FLAG_STERILIZATION_ROOM_ACTION4_SCENE, 1);
                     cmd = 9;
                 }
                 Gp_RunCapCmd1(cmd);

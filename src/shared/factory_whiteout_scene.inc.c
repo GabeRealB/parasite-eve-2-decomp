@@ -19,7 +19,7 @@ void factoryWhiteoutScene(Task* task)
 
     switch (task->state) {
         case 0:
-            if (GameFlag_GetNibble(GAME_FLAG_FACTORY_BARRIER_CLEARED) != 0) {
+            if (gameFlagGetNibble(GAME_FLAG_FACTORY_BARRIER_CLEARED) != 0) {
                 goto kill;
             }
             Gp_MsgPlayerWeapon(0);
@@ -44,7 +44,7 @@ void factoryWhiteoutScene(Task* task)
             goto bump;
         case 4:
             gGameSession->viewDirty = 1;
-            GameFlag_SetNibble(GAME_FLAG_FACTORY_BARRIER_CLEARED, 1);
+            gameFlagSetNibble(GAME_FLAG_FACTORY_BARRIER_CLEARED, 1);
             fade = gGameSession->location.loc.stage;
             if (fade == 2) {
                 Gp_EnqueueStageSnd6(SOUND_FACTORY_WHITEOUT, 0, 0);

@@ -2376,7 +2376,7 @@ family's already-matched `Actor00100_Fn0BB2C` uses — leaves the arms as
 separate blocks, merges to one `sh`, and gave 100%.
 ## m2c types a local from its only store, so a byte store puts an `sll` before the compare
 
-`GameFlag_GetNibble` returns `s32`, but its result is used twice: compared
+`gameFlagGetNibble` returns `s32`, but its result is used twice: compared
 `> 0` and stored into the `s8` field at `+0x53E`. m2c infers the narrowest type
 that fits both uses and declares `s8 temp_v0`, which makes the compare a
 *sign-extended* SI compare. This port has no register-form `extendqisi2`, so
@@ -2406,7 +2406,7 @@ own `extern` (take `main/gameflag.h` instead — if the extern still returns
 directly and 100.000% with every penalty zero:
 
 ```c
-s32 flag = GameFlag_GetNibble(0xED);
+s32 flag = gameFlagGetNibble(0xED);
 if (flag > 0 && work->field_53E == 0) { ... }
 work->field_53E = flag;   /* sb: the store truncates, no cast needed */
 ```
@@ -2578,7 +2578,7 @@ branches, retargeted to the epilogue:
 ```
 
 ```c
-if (GameFlag_GetNibble(work->step + 0xBE) != 0 || GameFlag_GetNibble(0xC3) != 0) {
+if (gameFlagGetNibble(work->step + 0xBE) != 0 || gameFlagGetNibble(0xC3) != 0) {
     return 2;
 }
 return 1;
@@ -4808,7 +4808,7 @@ one call. m2c wrote the natural single-call shape
 
 ```c
 s32 *p;
-if (GameFlag_GetNibble(0x105) == 0) p = &A; else p = &B;
+if (gameFlagGetNibble(0x105) == 0) p = &A; else p = &B;
 func_800E8614((s32)p, 0);
 ```
 
@@ -4817,7 +4817,7 @@ has the address materialised *into `$a0`* in each arm, and that falls out of the
 two-call source:
 
 ```c
-if (GameFlag_GetNibble(0x105) == 0) func_800E8614((s32)&A, 0);
+if (gameFlagGetNibble(0x105) == 0) func_800E8614((s32)&A, 0);
 else                                func_800E8614((s32)&B, 0);
 ```
 
@@ -4878,7 +4878,7 @@ delete=5` and *identical* block topology, so the structural diagnostics are
 clean and say nothing. The target instead writes the call out in both arms:
 
 ```c
-if (GameFlag_GetNibble(0x75) == 0) {
+if (gameFlagGetNibble(0x75) == 0) {
     ...fill placement...
     Room_Util18(arg0, 0x7D4, &placement, 0);
 } else {
@@ -7234,7 +7234,7 @@ jal   func_800E8614
 ```
 
 ```c
-if (GameFlag_GetNibble(0xC7) == 1) {
+if (gameFlagGetNibble(0xC7) == 1) {
     func_800E8614((s32)&D_8013A84C, 1);
 } else {
     func_800E8614((s32)&D_8013A8DC, 1);
@@ -10611,7 +10611,7 @@ target, so the middle test's `beqz` lands directly on the epilogue and no
 
 ## Two literal `1`s across calls CSE into `$s0`
 
-`if (cmd == 1)` then later `if (GameFlag_GetNibble(...) != 1)` shares CONST_INT
+`if (cmd == 1)` then later `if (gameFlagGetNibble(...) != 1)` shares CONST_INT
 1 across the jals between them, so the first compare becomes `li s0, 1` and the
 second drops its `li`. Block-scoped `s32 one = 1` locals still merge. Emit one
 of the two as an asm output so CSE cannot see it as CONST_INT 1:
@@ -10621,10 +10621,10 @@ __asm__ volatile("addiu %0, $zero, 1" : "=r"(one));
 if (cmd != one) {
     goto run;
 }
-cmd = GameFlag_GetNibble(0x155) + 0x10;
+cmd = gameFlagGetNibble(0x155) + 0x10;
 run:
 Gp_RunCapCmd(cmd, 0);
-if (GameFlag_GetNibble(0x7A) != 1) {
+if (gameFlagGetNibble(0x7A) != 1) {
 ```
 
 Put the asm on the **first** compare so the second stays `li v1, 1` after the
@@ -17359,7 +17359,7 @@ order is `== 0x1B`, then `< 0x1C`, then `!= 0x11`. Keep the switch key in an
 `s32` (not `u8`) so the load is plain `lbu` without `andi`/`sltiu`.
 
 `Fs_SelectLoadHandlers2` is the pure example (FS load-table select by
-`Fs_LoadParams.area` × `GameFlag_GetNibble(0x7A)`).
+`Fs_LoadParams.area` × `gameFlagGetNibble(0x7A)`).
 
 ## Independent `entry++` + mid-loop `i++`: prefer `goto` over re-index / `do`
 
@@ -27426,7 +27426,7 @@ arg0 <<= 1;
 lookup:
     arg0 += (s32)table; /* addu s0, s0, v0 — not table + arg0 */
     entry = (u16*)arg0;
-    return GameFlag_GetNibble(*entry & 0x7FF) + (*entry & 0x800);
+    return gameFlagGetNibble(*entry & 0x7FF) + (*entry & 0x800);
 ```
 
 `(s16)index << 1` uses `$v0`/`$v1` as the shift temp and lands the table
@@ -30020,9 +30020,9 @@ Index the global directly and only write `flag` on the success goto /
 shared zero tail:
 
 ```c
-bytes = D_80114198[GameFlag_GetNibble(0x4B)].field_0;
+bytes = D_80114198[gameFlagGetNibble(0x4B)].field_0;
 if (bytes != NULL) {
-    if (D_80114198[GameFlag_GetNibble(0x4B)].field_4 == stage) {
+    if (D_80114198[gameFlagGetNibble(0x4B)].field_4 == stage) {
         if (bytes[save->field_6 - 1] != 0) {
             flag = 1;
             goto done;
@@ -42403,7 +42403,7 @@ case 1:
 case 2:
     ...
     if (flag == 0) {
-        GameFlag_SetNibble(...);
+        gameFlagSetNibble(...);
     }
 inc:
     task->state = task->state + 1;
@@ -42511,9 +42511,9 @@ The case-0 "already seen" fork (two scripts, then `taskKill`) wants **direct
 calls**, not an address local:
 
 ```c
-if (GameFlag_GetNibble(0xE0) == 0) {
-    if (GameFlag_GetNibble(0x7A) >= 4) {
-        GameFlag_SetNibble(0xE0, 1);
+if (gameFlagGetNibble(0xE0) == 0) {
+    if (gameFlagGetNibble(0x7A) >= 4) {
+        gameFlagSetNibble(0xE0, 1);
         func_800E8614((s32)&scriptA, 0);
         goto kill;
     }
@@ -42547,7 +42547,7 @@ callee-saved register and grows the frame:
 
 ```
 li    s0, D
-jal   GameFlag_GetNibble
+jal   gameFlagGetNibble
 bnez  v0, L
 li    s0, O
 L:  jal   Gp_RunCapCmd1
@@ -42560,7 +42560,7 @@ live from there to the argument and the allocator hands it `$a0` directly; the
 disappears:
 
 ```c
-flag = GameFlag_GetNibble(0x77);
+flag = gameFlagGetNibble(0x77);
 cmd  = 8;
 if (flag == 0) {
     cmd = 7;
@@ -42569,7 +42569,7 @@ Gp_RunCapCmd1(cmd);
 ```
 
 ```
-jal   GameFlag_GetNibble
+jal   gameFlagGetNibble
 li    a0, 0x77
 bnez  v0, L
 li    a0, 8
@@ -42705,7 +42705,7 @@ jal   Gp_RunCapCmd1
 
 m2c reconstructs the shared `jal` literally, as a local assigned in both arms
 and passed once. That local is live across the earlier `jal`
-(`GameFlag_GetNibble`), so GCC gives it `$s0` and grows the frame by 8:
+(`gameFlagGetNibble`), so GCC gives it `$s0` and grows the frame by 8:
 `move a0,s0` at the call plus `sw/lw s0` in the prologue and epilogue.
 
 Write the two calls out instead — `if (cond) { f(6); } else { f(3); }`. The
@@ -42754,22 +42754,22 @@ above) does **not** cross-jump into that two-block shape. GCC inlines
 spawn arms, leaving extra `li a0` / `bne` instead of `beq` + delay-slot
 `li a0` into a shared cap-only block.
 
-Keep a `cmd` phi and two labels. Hoist each `GameFlag_GetNibble` into a
+Keep a `cmd` phi and two labels. Hoist each `gameFlagGetNibble` into a
 `flag` temp so `cmd = K` is *after* the `jal` (otherwise `cmd` is live
 across the call and goes in `$s0`, as in the previous entry):
 
 ```c
-flag = GameFlag_GetNibble(0xBB);
+flag = gameFlagGetNibble(0xBB);
 if (flag == 1) {
     cmd = 0x11;
     goto cap_only;
 }
-flag = GameFlag_GetNibble(0xBB);
+flag = gameFlagGetNibble(0xBB);
 if (flag == 3) {
     cmd = 0x12;
     goto spawn;
 }
-flag = GameFlag_GetNibble(0xBE);
+flag = gameFlagGetNibble(0xBE);
 cmd = 5;
 if (flag == 2) {
     goto cap_only;
@@ -43131,7 +43131,7 @@ no `li` at all.
 sets `task->state = 2` when it finds one:
 
 ```
-jal   GameFlag_GetNibble
+jal   gameFlagGetNibble
 addiu a0, s0, 0x125
 beq   v0, s1, .L80183F80   # s1 = 2, hoisted out of the loop
 addiu s0, s0, 1
@@ -43140,7 +43140,7 @@ addiu s0, s0, 1
 sw    v0, 0x30(s2)         # stores the *returned* register, not li 2
 ```
 
-m2c cannot see that and writes a phi instead — `var_v0 = GameFlag_GetNibble(…);
+m2c cannot see that and writes a phi instead — `var_v0 = gameFlagGetNibble(…);
 if (var_v0 != 2) { var_v0 = 6; } … arg0->state = var_v0;` — which is
 semantically identical but keeps one pseudo live across the whole loop. That
 pseudo conflicts with `$v0` (the call's return register), so it lands in `$v1`
@@ -43153,7 +43153,7 @@ Write the plain source instead and let CSE and cross-jumping rebuild the phi:
 
 ```c
 for (i = 0; i < 5; i++) {
-    if (GameFlag_GetNibble(i + 0x125) == 2) {
+    if (gameFlagGetNibble(i + 0x125) == 2) {
         task->state = 2;
         return;
     }
@@ -43484,19 +43484,19 @@ m2c renders `f(cond ? B : A)` as a local set before the call:
 
 ```c
 var_a0 = 4;
-if (GameFlag_GetNibble(0x141) != 0) {
+if (gameFlagGetNibble(0x141) != 0) {
     var_a0 = 6;
 }
 Gp_RunCapCmd1(var_a0);
 ```
 
-That local is live across `GameFlag_GetNibble`, so GCC gives it a
+That local is live across `gameFlagGetNibble`, so GCC gives it a
 callee-saved register, adds the save/restore pair and grows the frame:
 
 ```
 sw   s1, 0x14(sp)      # extra callee-saved, frame 0x20 not 0x18
 li   s0, 4
-jal  GameFlag_GetNibble
+jal  gameFlagGetNibble
 beqz v0, .L
  nop
 li   s0, 6
@@ -43509,7 +43509,7 @@ The target picks the constant *after* the call, straight into `$a0`, so the
 branch's delay slot holds the default and `jal` gets a bare `nop`:
 
 ```
-jal  GameFlag_GetNibble
+jal  gameFlagGetNibble
  li  a0, 0x141
 beqz v0, .L
  li  a0, 4
@@ -43522,7 +43522,7 @@ jal  Gp_RunCapCmd1
 Folding the choice into the argument reproduces it exactly:
 
 ```c
-Gp_RunCapCmd1(GameFlag_GetNibble(0x141) != 0 ? 6 : 4);
+Gp_RunCapCmd1(gameFlagGetNibble(0x141) != 0 ? 6 : 4);
 ```
 
 Note this is the mirror of "if/else on the same field keeps the phi in `$v0`;
@@ -43539,8 +43539,8 @@ decides which constant goes where, and the two equivalent spellings are not
 interchangeable:
 
 ```c
-Gp_RunCapCmd1(GameFlag_GetNibble(0x141) != 0 ? 6 : 4);   /* beqz v0, .L; li a0,4; li a0,6  */
-Gp_RunCapCmd1(GameFlag_GetNibble(0x141) == 0 ? 4 : 6);   /* bnez v0, .L; li a0,6; li a0,4  */
+Gp_RunCapCmd1(gameFlagGetNibble(0x141) != 0 ? 6 : 4);   /* beqz v0, .L; li a0,4; li a0,6  */
+Gp_RunCapCmd1(gameFlagGetNibble(0x141) == 0 ? 4 : 6);   /* bnez v0, .L; li a0,6; li a0,4  */
 ```
 
 Both compute the same value. In both, the emitted branch tests the **negation**
@@ -43748,7 +43748,7 @@ Symptom: ~99.9% with `regs=1`, object dump `move a0, zero` vs target `move a1, z
 
 Dehack update (2026-09-27, `func_dryfield_junk_yard_8017D994`): the barrier is
 unnecessary when the two fallback calls share an `else`. Write
-`if (GameFlag_GetNibble(0x73) == 0 && GameFlag_GetNibble(0x7C) != 0)` to run
+`if (gameFlagGetNibble(0x73) == 0 && gameFlagGetNibble(0x7C) != 0)` to run
 command 8, with `Gp_StartCapSlot(arg2, 1, 0)` in the `else`. This preserves
 short-circuit evaluation and matches all 44 instructions without a helper or
 asm. The equivalent OR condition with the slot call in the `then` arm still
@@ -43818,14 +43818,14 @@ call before the then-block. `goto` a label after the StartCapSlot `break`:
 ```c
 switch (arg2) {
 case 6:
-    cmd = GameFlag_GetNibble(0x3A) <= 0 ? 0xC : 6;
+    cmd = gameFlagGetNibble(0x3A) <= 0 ? 0xC : 6;
     goto run_cap;
 case 8:
     if (Gp_GetCurBit2Flag(0x1C) != 1) {
         cmd = 9;
         goto run_cap;
     }
-    if (GameFlag_GetNibble(0x73) == 0 && GameFlag_GetNibble(0x7C) != 0) {
+    if (gameFlagGetNibble(0x73) == 0 && gameFlagGetNibble(0x7C) != 0) {
         cmd = 8;
         goto run_cap;
     }
@@ -44500,7 +44500,7 @@ slot. `actor_102100` / `Actor02100_Fn032E4` is the example.
 
 A vacuum `jlabel` inside a `jr $v0` switch is not a standalone function.
 Match the parent (`Actor02100_Fn032E4` here): case 1 falls through into
-case 0 (`GameFlag_GetNibble(0xD2)`), and an empty `case 4:` is required
+case 0 (`gameFlagGetNibble(0xD2)`), and an empty `case 4:` is required
 so the range check stays `sltiu …, 5`.
 
 ### A table *inside* the shared header needs an overlay-local rodata tail
@@ -44618,7 +44618,7 @@ the whole thing.
 ## Invert the `if`/`else` in the switch case that falls into the cross-jumped tail
 
 `func_shelter_b6_corridor_8017DF48` is `switch (arg2)` over cases 2/3/4, each
-doing `GameFlag_GetNibble(...)` and then one of three `Gp_RunCapCmd1(N)` calls.
+doing `gameFlagGetNibble(...)` and then one of three `Gp_RunCapCmd1(N)` calls.
 Writing it with a `cmd` local and one call after the switch puts `cmd` in `$s0`
 (live across the `jal`) and fills the final `jal`'s delay slot — the ROM instead
 has `li a0, N` scattered into branch delay slots and a bare `nop` after
@@ -44949,7 +44949,7 @@ case 2:
 case 3:
     cmd = 7;
     if (flag != 2) {
-        cmd = GameFlag_GetNibble(…) != 0 ? 6 : 3;
+        cmd = gameFlagGetNibble(…) != 0 ? 6 : 3;
     }
     break;
 default:
@@ -44960,7 +44960,7 @@ done:
 return 0;
 ```
 
-The command must still be assigned *after* `GameFlag_GetNibble` (if/else
+The command must still be assigned *after* `gameFlagGetNibble` (if/else
 or a ternary) so it is not live across that `jal` — otherwise GCC saves
 it in `$s0` and the prologue no longer matches. See "A call argument
 chosen by an `if` must be a ternary, not a pre-set local".
@@ -47565,7 +47565,7 @@ plain `addiu` in the call's delay slot:
 ```c
 s32 cond;
 
-cond = GameFlag_GetNibble(0x28) >= 2;
+cond = gameFlagGetNibble(0x28) >= 2;
 cond += 1;                 /* slti; xori 1; addiu a2,v0,1 */
 Gp_StartCapSlot(3, 0, cond);
 ```
@@ -48738,9 +48738,9 @@ neg = flag < 0;
 got = (s16)flag;                      /* got is reassigned by both calls */
 if (neg) {
     flag = -flag;
-    got  = GameFlag_GetNibble(flag) == 0;
+    got  = gameFlagGetNibble(flag) == 0;
 } else {
-    got = GameFlag_GetNibble(got);
+    got = gameFlagGetNibble(got);
 }
 ```
 
@@ -48930,12 +48930,12 @@ The visible effect is which insn ends up in the next `jal`'s delay slot:
 
 ```
     li   a0,0x168          temp:  hoisted, so the copy is nearest the call
-    jal  GameFlag_GetNibble
+    jal  gameFlagGetNibble
      move s0,v0            <- delay slot
 ```
 ```
     move s0,v0             reg/v: not hoisted, so the arg setup is nearest
-    jal  GameFlag_GetNibble
+    jal  gameFlagGetNibble
      li   a0,0x168         <- delay slot
 ```
 
@@ -51676,12 +51676,12 @@ the `jal` delay slot left as `nop`, means the source called the function twice:
     addiu $a0, $zero, 0x2A      # original, on the fall-through path
     addu  $a1, $zero, $zero
 .Ldone:
-    jal   GameFlag_SetNibble
+    jal   gameFlagSetNibble
      nop
 ```
 
 Writing it once — a search loop that falls out with `i = 0` and then calls
-`GameFlag_SetNibble(0x2A, i)` at the join — is *better* code and scores 95%:
+`gameFlagSetNibble(0x2A, i)` at the join — is *better* code and scores 95%:
 GCC sinks the `li $a0` past the join and it ends up in the `jal` delay slot,
 leaving `nop` in the `beq`'s. Duplicating the call instead lets cross-jumping
 tail-merge just the `jal`, so each predecessor keeps its own argument setup:
@@ -51692,12 +51692,12 @@ loop:
         i += 1;
         p += 1;
         if (i >= 5) {
-            GameFlag_SetNibble(0x2A, 0);   /* not `i = 0; goto join;` */
+            gameFlagSetNibble(0x2A, 0);   /* not `i = 0; goto join;` */
             goto done;
         }
         goto loop;
     }
-    GameFlag_SetNibble(0x2A, i);
+    gameFlagSetNibble(0x2A, i);
 done:
 ```
 
@@ -51802,7 +51802,7 @@ decision inside one basic block.
 
 In `func_acropolis_security_room_8017FA18` the target fills the load-delay slot
 of `lw $v0, 0x30($s1)` (`task->state`) with the `li $a0, 9` argument of the
-following `GameFlag_GetNibble(9)`; GCC instead hoists that `li` ten instructions
+following `gameFlagGetNibble(9)`; GCC instead hoists that `li` ten instructions
 earlier, right behind the previous `jal`, which then costs `$a1` for a `%hi` and
 shows up as `regs=4 reorder=2`. All 24 orderings of the four assignments before
 it produced the same object code.
@@ -51814,7 +51814,7 @@ D_8007216C = 6;
 SOFT_BARRIER();          /* sched1 stops here; the li stays with its call */
 task->state++;
 ...
-func_acropolis_security_room_8017FD64(GameFlag_GetNibble(9) & 0xFF);
+func_acropolis_security_room_8017FD64(gameFlagGetNibble(9) & 0xFF);
 ```
 
 Any boundary works — `SCHED_BARRIER()`, `COMPILER_BARRIER()` and a
@@ -51863,7 +51863,7 @@ s16 stateElse;
 ...
 stateElse = 6;                       /* before the earlier if/else */
 ...
-if (GameFlag_GetNibble(1) < 3) {
+if (gameFlagGetNibble(1) < 3) {
     ...
 } else {
     D_8007216C = 5;
@@ -53459,7 +53459,7 @@ register and the `li` hoists into the delay slot of the *earlier* branch:
 
 ```c
 var = 2;                                /* li s0,2 in the wrong delay slot */
-if (GameFlag_GetNibble(2) == 0) var = 1;
+if (gameFlagGetNibble(2) == 0) var = 1;
 out->field_3 = var;
 ```
 
@@ -53467,7 +53467,7 @@ A ternary on the call keeps the range short but still needs a second pseudo,
 because `$v0` is live at the compare, so the constants land in `$v1`:
 
 ```c
-out->field_3 = (GameFlag_GetNibble(2) == 0) ? 1 : 2;   /* li v1,2 / li v1,1 */
+out->field_3 = (gameFlagGetNibble(2) == 0) ? 1 : 2;   /* li v1,2 / li v1,1 */
 ```
 
 Fix: store the return value in a local and reassign *that same local* in both
@@ -53475,7 +53475,7 @@ arms. One pseudo covers the return and the constants, so it gets `$v0`, and the
 `li v0,2` fills the `bnez v0` delay slot as in the target:
 
 ```c
-nib = GameFlag_GetNibble(2);
+nib = gameFlagGetNibble(2);
 if (nib == 0) { nib = 1; } else { nib = 2; }
 out->field_3 = nib;
 ```
@@ -53574,7 +53574,7 @@ crosses the call:
 
 ```c
 for (i = 0; i < 4; i++) { D_80183568.corners[i].vx = D_801822EC.corners[i].vx; ... }
-if (GameFlag_GetNibble(6) == 0) { ... }
+if (gameFlagGetNibble(6) == 0) { ... }
 for (i = 0; i < 8; i++) { D_80183568.corners[i].vx += shift.vx; }   /* second lui/addiu */
 ```
 
@@ -54578,7 +54578,7 @@ spellings, and only one of them reaches the target when the constant return
 must land in the branch delay slot:
 
 ```
-jal   GameFlag_GetNibble
+jal   gameFlagGetNibble
 bnez  v0, .Lend
  li   v0, 1          /* delay: the "already done" result */
 ... body ...
@@ -54598,8 +54598,8 @@ condition lays out identically. Write the body inside the `if` and leave the
 constant as the function's last statement:
 
 ```c
-if (GameFlag_GetNibble(0x1F) == 0) {
-    GameFlag_SetNibble(0x1F, 1);
+if (gameFlagGetNibble(0x1F) == 0) {
+    gameFlagSetNibble(0x1F, 1);
     ... body ...
     return 0;
 }
@@ -78304,8 +78304,8 @@ which is only possible while those constants live in the arms.
 shared variable and the `goto`:
 
 ```c
-if (GameFlag_GetNibble(work->step + 0xBE) == 0) {
-    if (GameFlag_GetNibble(0xC3) != 0) {
+if (gameFlagGetNibble(work->step + 0xBE) == 0) {
+    if (gameFlagGetNibble(0xC3) != 0) {
         Gp_StartCapSlot(6, 0, 1);
     } else {
         ...
@@ -81770,11 +81770,11 @@ other side. `func_dryfield_toilet_8017D8C8` tests the incoming message's sub-id
 and then compares it against the session's:
 
 ```c
-if (in->field_2 == 1 && GameFlag_GetNibble(0x60) == 0 && gGameSession->location.loc.variant == in->field_2) {
+if (in->field_2 == 1 && gameFlagGetNibble(0x60) == 0 && gGameSession->location.loc.variant == in->field_2) {
 ```
 
 Two loads of `in->field_2` are free to CSE only when nothing between them can
-write memory. Here `GameFlag_GetNibble` sits between them, GCC 2.8.1 assumes any
+write memory. Here `gameFlagGetNibble` sits between them, GCC 2.8.1 assumes any
 call clobbers memory, and the second load survives. That load needs a home live
 across the call, so `in` itself is hoisted into `$s0` (`move s0,a2` / `sw s0,
 0x10(sp)`), the first byte goes to `$v1` instead of `$v0`, and the function
@@ -81787,7 +81787,7 @@ The fix is to make it one read: m2c's seed already did, via its scratch local.
 ```c
 u8 subId = in->field_2;
 
-if (subId == 1 && GameFlag_GetNibble(0x60) == 0 && gGameSession->location.loc.variant == subId) {
+if (subId == 1 && gameFlagGetNibble(0x60) == 0 && gGameSession->location.loc.variant == subId) {
 ```
 
 Generalizing: when two reads of one expression are separated by a call, the
@@ -85324,14 +85324,14 @@ Inputs: `base.i` (m2c shared variable, 91.815%)
 ## A 2D array access distributes the element-size multiply; a flat table with an explicit `* N` does not
 
 `func_actor_161500_80131FBC` indexes an 8-entry pointer table by
-`(gGameSession->location.loc.variant == 1)` (row) and `GameFlag_GetNibble(0x103)` (column),
+`(gGameSession->location.loc.variant == 1)` (row) and `gameFlagGetNibble(0x103)` (column),
 and the target scales the **sum**:
 
 ```
 lbu  s0,0x9(v0)                 row
 xori s0,s0,0x1
 sltiu s0,s0,1
-jal  GameFlag_GetNibble
+jal  gameFlagGetNibble
 sll  s0,s0,0x2                  <- row*4, in the jal delay slot
 addu s0,s1,s0                   <- + column
 sll  s0,s0,0x2                  <- * sizeof(element)
@@ -85360,7 +85360,7 @@ table whose index already carries the inner multiply:
 extern s32 D_actor_161500_80134920[8];
 ...
 temp_s0 = (gGameSession->location.loc.variant == 1) * 4;
-temp_v0 = GameFlag_GetNibble(0x103);
+temp_v0 = gameFlagGetNibble(0x103);
 func_800E8614(D_actor_161500_80134920[temp_v0 + temp_s0], 0);
 ```
 
@@ -87163,7 +87163,7 @@ even when the function looks like a sibling you already matched.
 Room tasks hand a 0/1 flag to a setter and the ROM branches to build it:
 
 ```
-jal   GameFlag_GetNibble
+jal   gameFlagGetNibble
 li    a0, 0xC7
 beqz  v0, .L
 addu  a0, zero, zero
@@ -87172,7 +87172,7 @@ addiu a0, zero, 1
 nop
 ```
 
-Written the obvious way — `var_a0 = 0; if (GameFlag_GetNibble(0xC7) != 0) var_a0 = 1;`
+Written the obvious way — `var_a0 = 0; if (gameFlagGetNibble(0xC7) != 0) var_a0 = 1;`
 then `func(var_a0)` — the branch is gone: the whole if collapses to one
 branch-less `sltu a0,zero,v0`, four instructions short. The pass is jump.c's
 store-flag block (`local/gcc/gcc-2.8.1-psx/jump.c:1145`), which rewrites
@@ -87186,7 +87186,7 @@ shape first, and the store-flag block then fires on the rewritten jump.
 The ROM's form is the same decision with a call in each arm:
 
 ```c
-if (GameFlag_GetNibble(0xC7) != 0) {
+if (gameFlagGetNibble(0xC7) != 0) {
     func_mine_cavern_8017E3A0(1);
 } else {
     func_mine_cavern_8017E3A0(0);
@@ -87238,7 +87238,7 @@ The natural source has no `var_v0` at all:
 s16 i;
 s32 flags;
 
-flags = GameFlag_GetNibble(0xE2);
+flags = gameFlagGetNibble(0xE2);
 for (i = 0; i < 4; i++) {
     if (!((flags >> i) & 1)) {
         Gp_SpawnEnemyFromTable(&D_mine_cavern_8018EB38, 0, i, NULL);
@@ -87762,7 +87762,7 @@ Inputs: `base.i` `c848ce07458f28a0e8ecb67bd03ab17c1f76474253f0273309256651d81b4c
 The handler picks a cap command from a game flag:
 
 ```
-jal   GameFlag_GetNibble
+jal   gameFlagGetNibble
 li    a0,0xde
 bnez  v0, .L8c
 li    a0,0xc          # delay slot: the *else* value
@@ -87777,19 +87777,19 @@ expression whose condition is evaluated first, so the result is materialised
 straight into the call's `$a0`:
 
 ```c
-Gp_RunCapCmd1(GameFlag_GetNibble(0xDE) == 0 ? 5 : 0xC);
+Gp_RunCapCmd1(gameFlagGetNibble(0xDE) == 0 ? 5 : 0xC);
 ```
 
 m2c's `if` spelling instead writes the default and overrides it:
 
 ```c
 s32 v = 0xC;
-if (GameFlag_GetNibble(0xDE) == 0) v = 5;
+if (gameFlagGetNibble(0xDE) == 0) v = 5;
 Gp_RunCapCmd1(v);
 ```
 
 That is semantically identical and scored 89.432% (`regs=1 reorder=1 insert=2
-delete=2`): the RTL defines `v` *before* the `GameFlag_GetNibble` call, so the
+delete=2`): the RTL defines `v` *before* the `gameFlagGetNibble` call, so the
 pseudo is live across a call, local-alloc cannot give it the call-clobbered
 `$a0` and picks `$s0` instead. With a callee-saved home the `li $s0,0xc` is then
 free to hoist into the *previous* branch's delay slot and the call needs a
@@ -87801,7 +87801,7 @@ branch, the source is a `? :`, and which register the value lands in is decided
 by evaluation order: a definition placed before a call in the RTL cannot become
 an argument register. The same shape is already in the matched
 `func_shelter_b6_growth_room_8017D634` -
-`Gp_SpawnIfCapIdle(GameFlag_GetNibble(0xD8) == 0 ? 0x10 : 0x11, 0)` - which is
+`Gp_SpawnIfCapIdle(gameFlagGetNibble(0xD8) == 0 ? 0x10 : 0x11, 0)` - which is
 where the pattern was read off before the first rebuild.
 
 Inputs: `base.i` `79b53b4e9ea881de336c2b7fa0c0dfdca62ee1ec42199a344c482b6fcb8c659b`,
@@ -87849,7 +87849,7 @@ single `var_v0` written on each path and read once at the join:
 s32 var_v0;
 ...
     var_v0 = 1;
-    if (GameFlag_GetNibble(0x3C) == 0) {
+    if (gameFlagGetNibble(0x3C) == 0) {
         var_v0 = 0;
         if (in->field_5 == 0) { Gp_RunCapCmd1(3); ...; return 0; }
     }
@@ -87857,7 +87857,7 @@ s32 var_v0;
 ```
 
 That read is what costs the match. `var_v0` is defined *before* the
-`GameFlag_GetNibble` call and used after it - and again after
+`gameFlagGetNibble` call and used after it - and again after
 `SndEvt_EnqueueType7` in the tail - so its live range crosses a call,
 local-alloc cannot spend a call-clobbered register on it, and it takes `$s0`.
 `$s0` is the register the target keeps `in` (the incoming `$a2`) in, so the
@@ -87879,7 +87879,7 @@ matched family members already do (`func_neo_ark_shrine_8017D6AC`,
 
 ```c
     if (in->msgId == 9) {
-        if (GameFlag_GetNibble(0x3C) != 0) {
+        if (gameFlagGetNibble(0x3C) != 0) {
             return 1;
         }
         if (in->field_5 == 0) {
@@ -88728,11 +88728,11 @@ sibling `func_shelter_b3_dumping_hole_8017D82C` spells out.
 
 ```c
 var_a0 = 0xC;
-if (GameFlag_GetNibble(0x11A) >= 2) var_a0 = 0xD;   /* call in the condition */
+if (gameFlagGetNibble(0x11A) >= 2) var_a0 = 0xD;   /* call in the condition */
 Gp_RunCapCmd1(var_a0);
 ```
 
-makes `var_a0` live across the `GameFlag_GetNibble` call, so global allocation
+makes `var_a0` live across the `gameFlagGetNibble` call, so global allocation
 gives it a callee-saved home and pays a save/restore for it. The target selects
 the constant *after* the call (`li $a0, 0xC` in the `bnez` delay slot, `li
 $a0, 0xD` in the fall-through), which is a ternary argument, not a variable:
@@ -88741,14 +88741,14 @@ $a0, 0xD` in the fall-through), which is a ternary argument, not a variable:
 s32 func_mine_mesa_8017DA7C(s32 arg0, s32 arg1, s32 arg2)
 {
     if (arg2 == 0xD) {
-        Gp_RunCapCmd1(GameFlag_GetNibble(0x11A) >= 2 ? 0xD : 0xC);
+        Gp_RunCapCmd1(gameFlagGetNibble(0x11A) >= 2 ? 0xD : 0xC);
     }
     return 0;
 }
 ```
 
 100%, all penalties zero, first build. In the sibling the same idiom appears as
-`Gp_SpawnIfCapIdle(GameFlag_GetNibble(0x11D) != 0 ? 0x12 : 0x17, 1)` - a
+`Gp_SpawnIfCapIdle(gameFlagGetNibble(0x11D) != 0 ? 0x12 : 0x17, 1)` - a
 condition, two constants and one call is this family's signature, and the
 "chooser" never earns a name. The handlers are reached from a room data table of
 `{ u32 msgId, handler }` pairs, so an unmatched one is cheap to locate: the id
@@ -89483,7 +89483,7 @@ Two marks identify the real source as `stmt.c`'s `emit_case_nodes`:
 The source is the switch:
 
 ```c
-    switch (GameFlag_GetNibble(0x55)) {
+    switch (gameFlagGetNibble(0x55)) {
         case 0:
         case 1:
         case 2:
@@ -89706,7 +89706,7 @@ function's *first* parameter:
 
 ```c
 s32 func_dryfield_breezeway_8017DBD8(void *arg2) {   /* arg2 lands in $a0 */
-    if (GameFlag_GetNibble(0x5D) == 0 && M2C_FIELD(arg2, u8 *, 2) == 1) { ... }
+    if (gameFlagGetNibble(0x5D) == 0 && M2C_FIELD(arg2, u8 *, 2) == 1) { ... }
 ```
 
 The body was otherwise exactly right, so the seed scores 99.800% with the whole
@@ -89735,7 +89735,7 @@ shape:
 ```c
 s32 func_dryfield_breezeway_8017DBD8(Task* task, s32 msgId, RoomEventMsg* in, RoomEventMsg* out)
 {
-    if (GameFlag_GetNibble(0x5D) == 0 && in->warp == 1) { ... }
+    if (gameFlagGetNibble(0x5D) == 0 && in->warp == 1) { ... }
 ```
 
 100.000% on the first build, all penalties zero. The tell to watch for is a
@@ -90068,13 +90068,13 @@ assignment and the use, both spellings compile to the same object.
 target's single `jal` as one local assigned in each arm of the if-chain:
 
 ```c
-temp_v0 = GameFlag_GetNibble(0x55);
+temp_v0 = gameFlagGetNibble(0x55);
 if ((temp_v0 >= 0) && ((var_a0 = 1, ((temp_v0 < 2) != 0)) || (var_a0 = 0, ((temp_v0 < 4) != 0)))) {
     func_dryfield_water_tower_801802D8(var_a0);
 }
 ```
 
-Both of `var_a0`'s definitions sit *after* the `GameFlag_GetNibble` call, so
+Both of `var_a0`'s definitions sit *after* the `gameFlagGetNibble` call, so
 the value never has to survive a call: local-alloc keeps it in `$a0` (`li a0,1`
 in the `bnez` delay slot, `addu a0,zero,zero` in the `beqz` delay slot) and the
 frame stays 0x18. Writing that m2c shape as a plain if-chain that assigns the
@@ -90082,7 +90082,7 @@ variable before one call is 100.000%, and so is the two-call spelling the
 section above recommends:
 
 ```c
-mode = GameFlag_GetNibble(0x55);
+mode = gameFlagGetNibble(0x55);
 if (mode < 0) {
     return;
 }
@@ -90289,7 +90289,7 @@ dereferences it. Grepping the immediate finds the id's one producer - here
 ```c
 s32 func_dryfield_main_street_8017E05C(Task* task, s32 msgId, DirectionActionRequest* msg, s32 arg3)
 {
-    if ((msg->actionId == 1) && (GameFlag_GetNibble(0x5F) == 0)) { ... }
+    if ((msg->actionId == 1) && (gameFlagGetNibble(0x5F) == 0)) { ... }
 ```
 
 This contradicts the type given for the same id in the breezeway entry below,
@@ -90512,7 +90512,7 @@ every other one in the family:
 
 ```c
     if (arg2->field_2 == 0xA) {
-        if (GameFlag_GetNibble(0xF8) != 0) {
+        if (gameFlagGetNibble(0xF8) != 0) {
             Gp_RunCapCmd1(5);
             Task_SpawnFromTable(&D_..., 2, 0x1AF, 0);
         } else {
@@ -90587,7 +90587,7 @@ suppressing the side effects. Written as an if/else chain:
     if (*(u16*)src != 9) {
         return 1;
     }
-    if (GameFlag_GetNibble(0xB9) == 0) {
+    if (gameFlagGetNibble(0xB9) == 0) {
         if (src->field_5 == 0) {
             Gp_SetNibbleIf(src->field_6, 2);
             Gp_RunCapCmd1(1);
@@ -90616,7 +90616,7 @@ Writing the same logic as a `switch` scores 100.000%:
 ```c
     switch (*(u16*)src) {
         case 9:
-            switch (GameFlag_GetNibble(0xB9)) {
+            switch (gameFlagGetNibble(0xB9)) {
                 case 0:
                     if (src->field_5 == 0) { Gp_SetNibbleIf(src->field_6, 2); Gp_RunCapCmd1(1); }
                     break;
@@ -91716,7 +91716,7 @@ bne  $s0, $v0, .LDD64
 lbu  $v0, 0x5($s1)
 bnez $v0, .LDD10            # field_5 != 0: the call is skipped
  nop
-jal  GameFlag_GetNibble
+jal  gameFlagGetNibble
  addiu $a0, $zero, 0x61
 .LDD10:
 lhu  $v0, 0x0($s1)          # reload, reached from *both* arms
@@ -91741,7 +91741,7 @@ constant. So the shape is
 msgId = in->msgId;
 if (msgId == 0xF) {
     if (in->field_5 == 0) {
-        out->field_3 = GameFlag_GetNibble(0x61) + 1;
+        out->field_3 = gameFlagGetNibble(0x61) + 1;
     }
     if (in->msgId == msgId) { ... }
 }
@@ -91908,7 +91908,7 @@ Inputs: `base.c` (90.909%, sha256
 
 ## m2c's `block_N:` shared call is an artefact: the source had the call twice, and cross-jumping is what merged it
 
-**Problem.** Retail reaches one `jal GameFlag_SetNibble` from two branches, so
+**Problem.** Retail reaches one `jal gameFlagSetNibble` from two branches, so
 m2c renders it as a single call statement behind a `block_9:` label with a
 `goto block_9` from the second case. That form scores 86.9%
 (`stack=2 branch=3 regs=10 reorder=2 insert=2 delete=2`): because the call block
@@ -91933,16 +91933,16 @@ the merge point there.
 ```c
 switch (arg2->field_2) {
     case 1:
-        if (GameFlag_GetNibble(0x5E) == 0) {
+        if (gameFlagGetNibble(0x5E) == 0) {
             Task_SpawnFromTable(&D_dryfield_general_store_8017E4C0, 0, 0, 0);
-            GameFlag_SetNibble(0x5E, 1);
+            gameFlagSetNibble(0x5E, 1);
         }
         break;
     case 2:
-        if (gSceneCombatState.signals.bytes.battlePhase != 1 && GameFlag_GetNibble(0x5E) == 1) {
+        if (gSceneCombatState.signals.bytes.battlePhase != 1 && gameFlagGetNibble(0x5E) == 1) {
             func_800E8614((s32)&D_dryfield_general_store_8017E568, 1);
         }
-        GameFlag_SetNibble(0x5E, 2);
+        gameFlagSetNibble(0x5E, 2);
         break;
 }
 ```
@@ -92129,11 +92129,11 @@ sw    v1,0x30(s0)      ...                          (target)
 against a build that put the counter in `$v0`, the symbol's `high` in `$v1` and
 the constant back in `$v0`. Nothing about statement order moved it - and it did
 not need to. Rewriting the seed against the real headers (`Task*`, the real
-`Gp_SpawnIfCapIdle`/`GameFlag_SetNibble`/`gameSetTaskSlot` prototypes, the real
+`Gp_SpawnIfCapIdle`/`gameFlagSetNibble`/`gameSetTaskSlot` prototypes, the real
 `gGameSession->location.loc.variant`) was 100.000% on the first build, with the source order
 unchanged.
 
-The mechanism is visible in two dumps. m2c's `M2C_UNK GameFlag_SetNibble(...)`
+The mechanism is visible in two dumps. m2c's `M2C_UNK gameFlagSetNibble(...)`
 is an int-returning declaration, so every call carries an RTL
 `(set (reg:SI 2 $v0) (call ...))`; `lregwalk.py` prints those CALL insns as
 `set= 2`. The real headers declare them `void`, and the same insns print
@@ -92363,13 +92363,13 @@ s32 func_dryfield_motel_room_6_80181920(s32 arg0, s32 arg1, RoomEventMsg* in, Ro
     if (in->msgId != 0x14) {
         return 1;
     }
-    if (GameFlag_GetNibble(0x54) != 0) {
+    if (gameFlagGetNibble(0x54) != 0) {
         return 1;
     }
     if (in->queryOnly != 0) {
         return 0;
     }
-    GameFlag_SetNibble(0x54, 1);
+    gameFlagSetNibble(0x54, 1);
     Gp_RunCapCmd1(7);
     return 0;
 }
@@ -92378,7 +92378,7 @@ s32 func_dryfield_motel_room_6_80181920(s32 arg0, s32 arg1, RoomEventMsg* in, Ro
 `func_neo_ark_shrine_8017D6AC`, `func_shelter_b3_incinerator_control_room_8017FA8C`
 and this one differ only in `msgId`, the nibble index and the cap command (and, in
 the shrine and incinerator, a `Gp_SetNibbleIf(in->flagId, 2)` where this one has a
-plain `GameFlag_SetNibble`). Two of the three carry the required duplicated
+plain `gameFlagSetNibble`). Two of the three carry the required duplicated
 `return 0;` already - both the `queryOnly` early return and a trailing one - which is
 what the entry above ("A duplicated `return 0;`...") shows the third delay slot
 needs. Transplant the sibling, change the constants, done.
@@ -92890,14 +92890,14 @@ Inputs: `base_1.c` (100%). Compiler SHA256
 
 The room opcode callbacks that pick between two command ids passed to
 `Gp_RunCapCmd1` are a recurring family: `func_dryfield_garage_8017DA18`
-(`GameFlag_GetNibble(0xFD) != 0 ? 0x16 : 0x10`), `func_mine_mesa_8017DA7C`
+(`gameFlagGetNibble(0xFD) != 0 ? 0x16 : 0x10`), `func_mine_mesa_8017DA7C`
 (`>= 2 ? 0xD : 0xC`), `func_shelter_b3_dumping_hole_8017D82C` (`!= 0 ? 0x12 :
 0x17`). Written as the ternary **in the call argument**, GCC 2.8.1 materialises
 the *else* constant into the argument register in the branch delay slot and
 overwrites it with the *then* constant on the fall-through:
 
 ```
-jal  GameFlag_GetNibble
+jal  gameFlagGetNibble
  li  $4,253        # 0xFD
 beqz $2,$L
  li  $4,16         # the else value, in the delay slot
@@ -94954,15 +94954,15 @@ Writing that second half the obvious way --
 
 ```c
 v = 3;
-if (GameFlag_GetNibble(0x7A) < 4) {
-    v = GameFlag_GetNibble(0x61) + 1;
+if (gameFlagGetNibble(0x7A) < 4) {
+    v = gameFlagGetNibble(0x61) + 1;
 }
 arg3->room = v;
 ```
 
 -- scores 93.34% with `regs=32` and one extra saved register (`$s2`, frame
 `0x20` -> three saves). `v` is live from its definition across the
-`GameFlag_GetNibble(0x7A)` call, so local-alloc cannot use a call-clobbered
+`gameFlagGetNibble(0x7A)` call, so local-alloc cannot use a call-clobbered
 register and takes `$s0`. The target instead materialises the constant twice --
 `addiu $v0,$zero,0x3` sits in the delay slot of the `beqz` that guards the call,
 and `$v0` is overwritten immediately after by the call itself. The constant is
@@ -94984,11 +94984,11 @@ with a third form, and that is the one that reproduces the target exactly:
 handler —
 
 ```
-jal GameFlag_GetNibble / li $a0,0x7A
+jal gameFlagGetNibble / li $a0,0x7A
 slti $v0, $v0, 4
 beqz $v0, .Lstore
  li   $v0, 3                     # the else arm lands in the delay slot
-jal GameFlag_GetNibble / li $a0,0x61
+jal gameFlagGetNibble / li $a0,0x61
 addiu $v0, $v0, 1
 .Lstore: sb $v0, 0x3($s1)
 ```
@@ -95002,11 +95002,11 @@ callee-saved register, and `dbr` hoists the whole assignment out of the block.
 `Room_Script02` (`src/rooms/lib/room_script02.c`):
 
 ```c
-n = GameFlag_GetNibble(0x7A);
+n = gameFlagGetNibble(0x7A);
 if (n < 4) {
     v = 3;
     TOUCH_REG(v);
-    v = GameFlag_GetNibble(0x61) + 1;
+    v = gameFlagGetNibble(0x61) + 1;
 } else {
     v = 3;
 }
@@ -95487,7 +95487,7 @@ A room message gate answers msg 0x18 with 2 once nibble 0x7A has reached 4 and 1
 before that, and the ROM keeps the answer in `$v0`:
 
 ```
-jal    GameFlag_GetNibble
+jal    gameFlagGetNibble
 li     a0,0x7A
 slti   v0,v0,4
 bnez   v0,.Lend
@@ -95500,7 +95500,7 @@ Written the natural way, through the local the comparison also reads, the whole
 sequence comes out right but the value lands in `$v1` — 99.8%, `regs` 3:
 
 ```c
-nib = GameFlag_GetNibble(0x7A);
+nib = gameFlagGetNibble(0x7A);
 if (nib >= 4) {
     nib = 2;
 } else {
@@ -95521,7 +95521,7 @@ it takes `$v1`.
 Writing the store directly in both arms fixes both requirements at once:
 
 ```c
-if (GameFlag_GetNibble(0x7A) >= 4) {
+if (gameFlagGetNibble(0x7A) >= 4) {
     out->field_3 = 2;
 } else {
     out->field_3 = 1;
@@ -95542,7 +95542,7 @@ Input `base_5.c`
 `151e4a324aef36393f94993ce58da1a2ee86c58f386181d7511debc956fb10d2` (100.000%).
     val = 3;
     TOUCH_REG(val);
-    val = GameFlag_GetNibble(0x61) + 1;
+    val = gameFlagGetNibble(0x61) + 1;
 } else {
     val = 3;
 }
@@ -96706,7 +96706,7 @@ loop's initial `i < N` test:
 
 ```c
     var_s2 = 0;                        /* m2c: above the guard */
-    if (GameFlag_GetNibble(0x53) == 0) {
+    if (gameFlagGetNibble(0x53) == 0) {
 ```
 
 The original source assigns it inside the guarded block. Both forms compile, but
@@ -97003,7 +97003,7 @@ li    $v0, 2
 ```
 
 with the answer register equal to the comparison's own `$v0` -- the register the
-`GameFlag_GetNibble` call left its result in. Writing the obvious C, with one
+`gameFlagGetNibble` call left its result in. Writing the obvious C, with one
 named temp assigned in each arm and stored once at the join, gets 99.84%
 (`regs=3`) and that same register comes out `$v1` instead.
 
@@ -97017,7 +97017,7 @@ use `$v0` and takes the first free register, `$v1`.
 With both arms storing to the field directly --
 
 ```c
-if (GameFlag_GetNibble(0x7A) >= 4) {
+if (gameFlagGetNibble(0x7A) >= 4) {
     out->field_3 = 2;
 } else {
     out->field_3 = 1;
@@ -99590,7 +99590,7 @@ scored candidate has `regs=0` and `branch=0` but nonzero `reorder`/`insert`/
 the codegen - invert the test and move the arms.
 
 This is the same oracle the matched sibling `func_actor_113100_80132B30` in the
-same TU had already used: its source reads `if (GameFlag_GetNibble(0xF1) == 0)
+same TU had already used: its source reads `if (gameFlagGetNibble(0xF1) == 0)
 { model->field_C &= 0xFF7F; } else { model->field_C |= 0x80; }` for the
 identical `&= 0xFF7F` / `|= 0x80` pair on the same `field_C`. When a truth-table
 mirror shows up, read the already-matched neighbour first.
@@ -101444,8 +101444,8 @@ count by filling the gap, and re-check it against the assert:** `0x334 - 0x14
 the prefix and the work struct, which is the cheap place to find out.
 
 **Prediction, not yet run:** `func_actor_311900_8016228C` (the unit's other
-spawn, still `INCLUDE_ASM`) is this body with `GameFlag_GetNibble(0xA) & 2`
-for `GameFlag_GetNibble(1) >= 3`, `func_actor_311900_8016278C` for
+spawn, still `INCLUDE_ASM`) is this body with `gameFlagGetNibble(0xA) & 2`
+for `gameFlagGetNibble(1) >= 3`, `func_actor_311900_8016278C` for
 `func_actor_311900_8016281C`, `D_actor_311900_8016EBE8` for
 `D_actor_311900_8016EBF4`, plus two extra stores (`advanceFrames` / `advancing`
 to 0) and a view-dependent `obj->field_C` seed before the closing
@@ -101470,7 +101470,7 @@ m2c renders that as two inverted tests whose true edges both jump to one tail
 block -
 
 ```c
-    if (!(GameFlag_GetNibble(0xA) & 2)) {
+    if (!(gameFlagGetNibble(0xA) & 2)) {
         temp_v0 = memCalloc(0x4CC, 0);
         task->work = temp_v0;
         if (temp_v0 == NULL) {
@@ -101495,7 +101495,7 @@ second operand carries the call, the store and the test**, with the teardown as
 the then-arm of one `if`:
 
 ```c
-    if ((GameFlag_GetNibble(0xA) & 2) ||
+    if ((gameFlagGetNibble(0xA) & 2) ||
         (work = memCalloc(sizeof(_Actor311900Work), 0), task->work = work, work == NULL)) {
         enemyDestroy(enemy, task);
         return;
@@ -104314,7 +104314,7 @@ collapses it to one SI sign-extension of the call result, which is what keeps
 the raw value in `$v0` and puts `sll $s1,$v0,24` in the delay slot. One-line
 change from the 92.571% baseline to 100.000%, every penalty zero.
 
-Same family as the `GameFlag_GetNibble` entry above — m2c types a local from the
+Same family as the `gameFlagGetNibble` entry above — m2c types a local from the
 sub-expression it can see rather than from the use that consumes it — but the
 symptom inverts: there an over-narrow local *added* a shift ahead of a compare,
 here it *added a copy* and cost a delay slot. Read a matched sibling in the same
@@ -118878,20 +118878,20 @@ helper, whose by-pointer parameter becomes a pseudo holding the frame address.
 matched sibling says which route it was - its `Bulwark_StartEvent` takes
 `BulwarkEvent*` and its target builds the event address once
 (`addiu s0,sp,0x10`) and reads the fields off it (`lh a0,8(s0)`, `lh v0,8(s0)`
-after the `GameFlag_GetNibble` call, where the address is *not* recomputed).
+after the `gameFlagGetNibble` call, where the address is *not* recomputed).
 
 Writing the same tail inline, with the event a plain local, scored 88.278%
 (`regs=14 insert=3 delete=7`, structure already 11/11 with predicates matching):
 every field read folds to `lh v0,0x18(sp)`, so no address pseudo exists, the
 frame is one callee-saved slot short (`sw ra,0x28(sp)`, no `$s2`), and the
-`lh a0` for `GameFlag_SetNibble` is hoisted above the two struct copies instead
+`lh a0` for `gameFlagSetNibble` is hoisted above the two struct copies instead
 of sitting just before its `beqz`. Moving the tail into
 
 ```c
 static __inline__ s32 MineMesa_StartEvent(RoomEventMsg* dst, MineMesaEvent* event)
 {
     D_mine_mesa_80189B48 = 0;
-    if (GameFlag_GetNibble(event->field_8) == 0 || event->field_8 == 0) {
+    if (gameFlagGetNibble(event->field_8) == 0 || event->field_8 == 0) {
         ...
     }
     return 1;
@@ -118903,7 +118903,7 @@ with every penalty zero on the first build, unpinned, no search. The prediction
 (`addiu s0,sp,0x10` + `lh 8(s0)`, four saved registers, frame 0x30) held exactly.
 
 Two consequences worth reading as a rule: the address pseudo is live across the
-helper's calls (`GameFlag_GetNibble`, `GameFlag_SetNibble`,
+helper's calls (`gameFlagGetNibble`, `gameFlagSetNibble`,
 `Task_SpawnFromTable`), which is what makes `global-alloc` owe it a
 callee-saved register; and because the helper's parameter is an argument, GCC
 does not fold the field reads back to sp-relative, so the memory traffic stays
@@ -119356,7 +119356,7 @@ its own inline `task->state = task->state + 1;` rather than falling through.
 
 ```c
     case 0:
-        if (GameFlag_GetNibble(0x166) == 1) { ... }
+        if (gameFlagGetNibble(0x166) == 1) { ... }
         task->state = task->state + 1;   /* its own copy; merged into case 1/4's */
         return;
     case 2: ...
@@ -120028,7 +120028,7 @@ cannot pick `$v0`, because the branch constant has it over an overlapping range.
 
 ```c
     rec = Gp_SprtTables[sess->field_3 - 1][0].areaViews[sess->field_2 - 1];
-    if (GameFlag_GetNibble(0xD9) == 0) {
+    if (gameFlagGetNibble(0xD9) == 0) {
         cmd            = rec[3].batches;
         cmd[1].hidden = 1;
         cmd            = rec[6].batches;
@@ -120251,8 +120251,8 @@ and ternary writings both land at 99.773%, differing from the target by exactly
 the value's register and nothing else.
 
 ```c
-out->field_3 = GameFlag_GetNibble(0x47) == 0 ? 1 : 2;   /* 99.773%, li $v1 */
-if (GameFlag_GetNibble(0x47) == 0) {
+out->field_3 = gameFlagGetNibble(0x47) == 0 ? 1 : 2;   /* 99.773%, li $v1 */
+if (gameFlagGetNibble(0x47) == 0) {
     out->field_3 = 1;
 } else {
     out->field_3 = 2;
@@ -121146,13 +121146,13 @@ above, the pad being the one the target keeps ahead of
 `nonmatchings/func_dryfield_r08_8017D5F8-vacuum`.
 ## A per-arm memory store is what keeps a conditional's value in `$v0` - if-conversion rewrites the if/else that uses a local (func_dryfield_night_water_hole_8017DADC, 2026-09-17)
 
-The handler picks a command byte from a `GameFlag_GetNibble` result and stores
+The handler picks a command byte from a `gameFlagGetNibble` result and stores
 it into the outgoing record, and retail keeps *every* one of the values in
 `$v0` - the same register the call returned in, written again in the branch's
 delay slot:
 
 ```
-jal    GameFlag_GetNibble
+jal    gameFlagGetNibble
 li     a0,0x53
 bnez   v0,.LDBD4        /* branch on the call result ... */
   li   v0,2             /* ... which the delay slot overwrites */
@@ -121164,11 +121164,11 @@ sb     v0,3(s0)
 Both obvious spellings put the value in `$v1` instead, at 88-94%:
 
 ```c
-out->field_3 = (GameFlag_GetNibble(0x53) == 0) ? 1 : 2;   /* 93.88% */
+out->field_3 = (gameFlagGetNibble(0x53) == 0) ? 1 : 2;   /* 93.88% */
 ```
 
 ```c
-v = (GameFlag_GetNibble(0x53) == 0) ? 1 : 2;   /* or:  */
+v = (gameFlagGetNibble(0x53) == 0) ? 1 : 2;   /* or:  */
 out->field_3 = v;                              /* v = 2; if (...) v = 1; */
 ```
 
@@ -121182,7 +121182,7 @@ Rewriting it as an `if`/`else` that assigns a local does *not* help, because
 if-conversion converts the diamond straight back into that shape:
 
 ```c
-if (GameFlag_GetNibble(0x53) != 0) { v = 2; } else { v = 1; }
+if (gameFlagGetNibble(0x53) != 0) { v = 2; } else { v = 1; }
 out->field_3 = v;                                 /* 84.78% - worse */
 ```
 
@@ -121192,7 +121192,7 @@ Each arm then keeps a short-lived value in its own block, born after the
 branch where `$v0` is already dead:
 
 ```c
-if (GameFlag_GetNibble(0x53) != 0) {
+if (gameFlagGetNibble(0x53) != 0) {
     out->field_3 = 2;
 } else {
     out->field_3 = 1;
@@ -121378,7 +121378,7 @@ in its own block and the *then* arm grows the `j` over it:
         slti   $v0, $v0, 0x4              slti   $v0, $v0, 0x4
         beqz   $v0, .Ljoin                beqz   $v0, .Lelse
         li     $v0, 4        (delay)      nop
-        jal    GameFlag_GetNibble(0x61)   jal    GameFlag_GetNibble(0x61)
+        jal    gameFlagGetNibble(0x61)   jal    gameFlagGetNibble(0x61)
         addiu  $v0, $v0, 2                j      .Ljoin
   .Ljoin: sb    $v0, 0x3($s1)             addiu  $v0, $v0, 2
                                      .Lelse:  li     $v0, 4
@@ -121389,10 +121389,10 @@ The move that fixes it is to give the *then* arm its own assignment of the same
 constant, kept alive across the call so `flow` cannot delete it:
 
 ```c
-if (GameFlag_GetNibble(0x7A) < 4) {
+if (gameFlagGetNibble(0x7A) < 4) {
     v = 4;
     TOUCH_REG(v);
-    v = GameFlag_GetNibble(0x61) + 2;
+    v = gameFlagGetNibble(0x61) + 2;
 } else {
     v = 4;
 }
@@ -121426,10 +121426,10 @@ in the branch delay slot, and none of them do:
 
 ```c
 out->field_3 = 3;                                     /* two sb, no delay slot   */
-if (GameFlag_GetNibble(0x7A) < 4) out->field_3 = ...;
-out->field_3 = (GameFlag_GetNibble(0x7A) < 4) ? GameFlag_GetNibble(0x61) + 1 : 3;
+if (gameFlagGetNibble(0x7A) < 4) out->field_3 = ...;
+out->field_3 = (gameFlagGetNibble(0x7A) < 4) ? gameFlagGetNibble(0x61) + 1 : 3;
 val = 3;                                              /* def live across the call */
-if (GameFlag_GetNibble(0x7A) < 4) val = GameFlag_GetNibble(0x61) + 1;
+if (gameFlagGetNibble(0x7A) < 4) val = gameFlagGetNibble(0x61) + 1;
 out->field_3 = val;
 ```
 
@@ -121444,11 +121444,11 @@ the branch and delete the `goto`; both demand that the moved value be a single
 default has to be its own statement, and it has to be kept alive:
 
 ```c
-n = GameFlag_GetNibble(0x7A);          /* nibble first: the def then follows the call */
+n = gameFlagGetNibble(0x7A);          /* nibble first: the def then follows the call */
 if (n < 4) {
     val = 3;
     TOUCH_REG(val);                    /* the dead store is the delay-slot instruction */
-    val = GameFlag_GetNibble(0x61) + 1;
+    val = gameFlagGetNibble(0x61) + 1;
 } else {
     val = 3;
 }
@@ -121461,7 +121461,7 @@ comment there says the barrier is what keeps the store). Message 0x1D reuses
 is what leaves the value in `$v0` instead of `$v1`:
 
 ```c
-n = GameFlag_GetNibble(0x61);
+n = gameFlagGetNibble(0x61);
 if (n == 0) n = 1; else n = 3;
 out->field_3 = n;
 ```
@@ -122393,7 +122393,7 @@ segment, which is why their `INCLUDE_RODATA` lines had to be deleted.
 ## A tail the *first* arm falls into and the second jumps back to cannot come from `else if`
 
 `func_neo_ark_savanna_zone_8017D77C` dispatches two save-location messages onto
-one tail (fill the event, clear the running flag, call `GameFlag_GetNibble`, and
+one tail (fill the event, clear the running flag, call `gameFlagGetNibble`, and
 so on). Written the way this room family's siblings are —
 
 ```c
@@ -122613,7 +122613,7 @@ Same function, 96.626% to 100%. The tail is
 ```c
 if (msg->msgId == 0x15) {
     ...
-    if (gGameSession->location.loc.stage == 3 || GameFlag_GetNibble(0x32) == 2) {
+    if (gGameSession->location.loc.stage == 3 || gameFlagGetNibble(0x32) == 2) {
         return 1;
     }
     return 0;
@@ -122635,7 +122635,7 @@ Writing the two conditions as their own early returns
         if (gGameSession->location.loc.stage == 3) {
             return 1;
         }
-        if (GameFlag_GetNibble(0x32) != 2) {
+        if (gameFlagGetNibble(0x32) != 2) {
             return 0;
         }
     }
@@ -122654,7 +122654,7 @@ A related trap on the way: `return (a) || (b);` as the trailing statement is
 puts `t = 0` before the call (`grep 'set (reg/i:SI 2 v0)' *.rtl` showed two
 `v0 = 1` from `.rtl` on), which makes the value live across the call and forces
 a callee-saved register again; the value form of the last test alone
-(`return GameFlag_GetNibble(0x32) == 2;`) instead lowers to `xori`/`sltiu`
+(`return gameFlagGetNibble(0x32) == 2;`) instead lowers to `xori`/`sltiu`
 (92.286%). The jump-context `||` is the one that matches.
 
 Inputs: `base_3.i`
@@ -123179,7 +123179,7 @@ lets `cse` unify them: by `.lreg` insn 141 stores `(reg:QI 101)` where `.rtl` ha
 106, and `insn.py --reg 101` reports `used 3 times across 24 insns; crosses 1
 call`. `.greg` opens with `9 regs to allocate: 85 89 81 87 84 80 101 82 83` and
 disposes `101 in 21` (`$s5`), so the merged constant is live from the `-1` store
-through `Tmd_AllocBuffers`, `GameFlag_GetNibble` and `RotMatrixX` to the second
+through `Tmd_AllocBuffers`, `gameFlagGetNibble` and `RotMatrixX` to the second
 one. One more value live across both calls than the target has, and global-alloc
 re-homes every one of them:
 
@@ -123349,7 +123349,7 @@ session variant through the same `fade` variable the tint math uses:
 ```c
 case 4:
     gGameSession->viewDirty = 1;
-    GameFlag_SetNibble(0x47, 1);
+    gameFlagSetNibble(0x47, 1);
     fade = gGameSession->location.loc.stage;   /* the cross-block reference */
     if (fade == 2) {
         Gp_EnqueueStageSnd6(0x5217000B, 0, 0);
@@ -123452,7 +123452,7 @@ whose arms end `task->state = 2`, and whose first statement compares
 `gGameSession->location.loc.stage == 2` for the sound id, has two `(const_int 2)`s in the
 same extended basic block. `cse` unifies them: by `.lreg` the store's source is
 the compare's pseudo (`insn.py --reg 90` shows `used 3 times across 32 insns`),
-so it is live from the compare through `GameFlag_GetNibble`/`Gp_StartCapSlot` to
+so it is live from the compare through `gameFlagGetNibble`/`Gp_StartCapSlot` to
 the store. `global.c:find_reg` keys the allowed class on exactly that:
 
 ```c
@@ -123473,7 +123473,7 @@ tails and the overlay grows 16 bytes.
 store it once at the per-case join:
 
 ```c
-            if (!(GameFlag_GetNibble(0x49) & 2)) { ... state = 6; }
+            if (!(gameFlagGetNibble(0x49) & 2)) { ... state = 6; }
             else                                 { Gp_StartCapSlot(8, 0, 0); state = 2; }
             task->state = state;
 ```
@@ -126022,7 +126022,7 @@ extension the negate is on the copy `ABS()` materialized rather than on a fresh
 pseudo.
 
 This is the *callee-side* twin of "m2c types a local from its only store": there
-the fix is `s32 local = GameFlag_GetNibble(...)`, here it is to take the callee's
+the fix is `s32 local = gameFlagGetNibble(...)`, here it is to take the callee's
 return at its real width. Both read as register problems in an asm-differ pass
 and both are a declared width in the seed. The tell for this one is a
 `sll`/`sra` pair on the *first* arithmetic after a `jal`, with no cast in the
@@ -139429,12 +139429,12 @@ constant as a copy of it rather than a fresh `li`.
 
 ## Early-return guards vs one nested `if`: whether a global's `%hi` is kept in `$sN` across calls (func_dryfield_night_main_street_8017DA6C, 2026-09-23)
 
-**Symptom.** A gate stores a global flag twice with calls in between (`flag = 0; … GameFlag_GetNibble(); … Task_SpawnFromTable(); flag = 1;`). The target does `lui $s0,%hi(flag)` once and uses `%lo(flag)($s0)` for both stores. The seed rebuilt the `lui` into a scratch register before the second store (99.1%, `regs=13`).
+**Symptom.** A gate stores a global flag twice with calls in between (`flag = 0; … gameFlagGetNibble(); … Task_SpawnFromTable(); flag = 1;`). The target does `lui $s0,%hi(flag)` once and uses `%lo(flag)($s0)` for both stores. The seed rebuilt the `lui` into a scratch register before the second store (99.1%, `regs=13`).
 
 **Cause.** The seed wrote the guards as early returns:
 
 ```c
-if (GameFlag_GetNibble(ev.flagId) != 0 && ev.flagId != 0) return 1;
+if (gameFlagGetNibble(ev.flagId) != 0 && ev.flagId != 0) return 1;
 if (out->field_5 != 0) return 2;
 /* latch, spawn */ flag = 1; return 2;
 ```
@@ -139442,7 +139442,7 @@ if (out->field_5 != 0) return 2;
 With the same tests written as **one nested `if`**, cse's path reaches both stores, the `(high sym)` pseudo is reused, and because it now lives across calls it gets `$s0`:
 
 ```c
-if (GameFlag_GetNibble(ev.flagId) == 0 || ev.flagId == 0) {
+if (gameFlagGetNibble(ev.flagId) == 0 || ev.flagId == 0) {
     if (out->field_5 == 0) { /* latch, spawn */ flag = 1; return 2; }
     return 2;
 }
@@ -140197,7 +140197,7 @@ the multiply and the phases and loses (94.7%).
 ## A masked call result's local type decides whether it rides the next call's delay slot; a cast at the compare keeps cse from swapping a paired register (func_mine_cavern_80182184, 2026-09-23)
 
 **Symptom.** `view = Gp_GetViewIndex() & 0xFF;` followed by
-`flags = GameFlag_GetNibble(0xE2);`: retail has `li a0,0xe2; jal; andi s8,v0,0xff`,
+`flags = gameFlagGetNibble(0xE2);`: retail has `li a0,0xe2; jal; andi s8,v0,0xff`,
 an `s16 view` gives `andi; jal; li a0` (`reorder`).
 
 **Observed.** With `s16`, combine leaves `(set (subreg:SI (reg/v:HI)) (and v0 255))`
@@ -141463,7 +141463,7 @@ cse can equate with the constant (100%):
 
 ```c
 if (arg2 == 3) {
-    if (Gp_GetCurBit2Flag(6) == 2 && GameFlag_GetNibble(0x7A) >= 6) {
+    if (Gp_GetCurBit2Flag(6) == 2 && gameFlagGetNibble(0x7A) >= 6) {
         arg2 = 5;
     }
     Gp_SpawnIfCapIdle(arg2, 0);
@@ -145295,7 +145295,7 @@ turns into a comparison tree: folding all of 1-4 with `default` leaves four
 and loses the jump table. At 8 refs (`3*8/162`) the two priorities tie
 exactly and the older pseudo still wins, so compute the ratio, do not guess.
 The two register pins the body held stood for exactly this.
-## A shared tail after an `if`/`else` whose values need pins can be two arms cross-jumped (GameFlag_SetNibble, 2026-09-26)
+## A shared tail after an `if`/`else` whose values need pins can be two arms cross-jumped (gameFlagSetNibble, 2026-09-26)
 
 The target computes a pointer, a masked byte and a nibble in each arm, then
 `or; sb` once after the join. Writing it that way - function-scope `ptr`, `val`
@@ -146206,8 +146206,8 @@ swapped: `lreg` showed `rec` at 44 refs over 77 insns and `val` at 34 over 60,
 a near tie in global-alloc priority (`floor_log2(refs) * refs / length`) that
 `rec` won.
 
-**Fix.** One case read `f(a, b, GameFlag_GetNibble(id))`. Writing it as
-`val = GameFlag_GetNibble(id); f(a, b, val);` gives `val` two more references
+**Fix.** One case read `f(a, b, gameFlagGetNibble(id))`. Writing it as
+`val = gameFlagGetNibble(id); f(a, b, val);` gives `val` two more references
 over a slightly longer life, which is enough to rank it above `rec`; the code
 is otherwise identical, since the call result is only copied into the argument
 register. When a register swap is a near-tie between a pointer and a local

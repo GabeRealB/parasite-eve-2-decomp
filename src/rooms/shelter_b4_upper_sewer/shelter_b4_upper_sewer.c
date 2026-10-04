@@ -832,8 +832,8 @@ void func_shelter_b4_upper_sewer_8017D660(Task* task)
                 break;
             }
             func_800E8614(D_shelter_b4_upper_sewer_80186318, 0);
-            GameFlag_SetNibble(GAME_FLAG_WATER_HOLE_SHELTER_ROUTE_OPEN, 1);
-            GameFlag_SetNibble(GAME_FLAG_MAP_MARK_WATER, 0);
+            gameFlagSetNibble(GAME_FLAG_WATER_HOLE_SHELTER_ROUTE_OPEN, 1);
+            gameFlagSetNibble(GAME_FLAG_MAP_MARK_WATER, 0);
             task->state++;
             break;
         case 4:
@@ -934,7 +934,7 @@ s32 func_shelter_b4_upper_sewer_8017DAB0(Task* task, s32 msgId, s32 arg2, s32 ar
     u8 temp_a1;
 
     if (arg2 == 1) {
-        if (GameFlag_GetNibble(GAME_FLAG_WATER_HOLE_SHELTER_ROUTE_OPEN) == 0) {
+        if (gameFlagGetNibble(GAME_FLAG_WATER_HOLE_SHELTER_ROUTE_OPEN) == 0) {
             Gp_MsgPlayer3F3(0);
             Gp_MsgAlly3F3(0);
             Gp_MsgPlayerWeapon(0);
@@ -974,7 +974,7 @@ static void func_shelter_b4_upper_sewer_8017DBA8(Task* task)
 {
     task->msgTable = D_shelter_b4_upper_sewer_801862D0;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    if (GameFlag_GetNibble(GAME_FLAG_B4_RESERVOIR_EVENT_DONE) != 0) {
+    if (gameFlagGetNibble(GAME_FLAG_B4_RESERVOIR_EVENT_DONE) != 0) {
         D_shelter_b4_upper_sewer_80186438 = -0x708;
         Task_SpawnFromTable(D_shelter_b4_upper_sewer_8018643C, 0, 0, 0);
     } else {
@@ -1185,7 +1185,7 @@ static void func_shelter_b4_upper_sewer_8017E59C(s32 arg0)
 }
 
 /// Publishes the sewer's effect ids on the task's first tick - two extra ids
-/// only while `GameFlag_GetNibble(0xB7)` is 1 - then draws the
+/// only while `gameFlagGetNibble(0xB7)` is 1 - then draws the
 /// `glowDrawCapsule` capsules the current camera view
 /// shows. Views 4 and 13 both end on
 /// `D_shelter_b4_upper_sewer_801864F0[12]`, and writing that address off the
@@ -1194,7 +1194,7 @@ static void func_shelter_b4_upper_sewer_8017E59C(s32 arg0)
 void func_shelter_b4_upper_sewer_8017E5F8(Task* arg0)
 {
     if (arg0->state == 0) {
-        if (GameFlag_GetNibble(GAME_FLAG_B4_RESERVOIR_EVENT_DONE) == 1) {
+        if (gameFlagGetNibble(GAME_FLAG_B4_RESERVOIR_EVENT_DONE) == 1) {
             gRoomEffectWaterRippleId = EFFECT_SHELTER_B4_UPPER_SEWER_WATER_RIPPLE;
             gRoomEffectWaterSprayId  = EFFECT_SHELTER_B4_UPPER_SEWER_WATER_SPRAY;
         }

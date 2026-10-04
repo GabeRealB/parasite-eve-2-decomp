@@ -1723,7 +1723,7 @@ void func_actor_503500_80132778(Task* task)
                         (work->cellPeriod & ACTOR_503500_DRIFT_SPRITE_EMITTER_SPAWN_PERIOD_MASK) | ACTOR_503500_DRIFT_SPRITE_EMITTER_SPAWN_NARROW_UPWARD | (work->spriteSize & ACTOR_503500_DRIFT_SPRITE_EMITTER_SPAWN_SIZE_MASK), NULL);
         }
     }
-    switch (GameFlag_GetNibble(GAME_FLAG_SHELTER_R48_SCENE_STATE)) {
+    switch (gameFlagGetNibble(GAME_FLAG_SHELTER_R48_SCENE_STATE)) {
         case 0:
         case 1:
             if (gGameSession->eventState == 0) {
@@ -1889,7 +1889,7 @@ void func_actor_503500_80132D7C(void)
 
 void func_actor_503500_80132D90(s32 arg0)
 {
-    GameFlag_SetNibble(GAME_FLAG_100, arg0);
+    gameFlagSetNibble(GAME_FLAG_100, arg0);
 }
 
 void func_actor_503500_80132DB4(s32 arg0)

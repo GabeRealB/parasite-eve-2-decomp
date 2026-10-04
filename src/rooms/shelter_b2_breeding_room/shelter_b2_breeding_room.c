@@ -108,10 +108,10 @@ s32 func_shelter_b2_breeding_room_8017D660(Task* arg0, s32 arg1, RoomEventMsg* i
 s32 func_shelter_b2_breeding_room_8017D6A4(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     if (arg2 == 0x16) {
-        if (GameFlag_GetNibble(GAME_FLAG_BREEDING_ROOM_FIRST_SCENE_SEEN) != 0) {
+        if (gameFlagGetNibble(GAME_FLAG_BREEDING_ROOM_FIRST_SCENE_SEEN) != 0) {
             Gp_RunCapCmd1(0x16);
         } else {
-            GameFlag_SetNibble(GAME_FLAG_BREEDING_ROOM_FIRST_SCENE_SEEN, 1);
+            gameFlagSetNibble(GAME_FLAG_BREEDING_ROOM_FIRST_SCENE_SEEN, 1);
             if (func_800E3FCC(0xA2) == 0x1E) {
                 func_800E3FAC(0xA2, 0x1F);
             }

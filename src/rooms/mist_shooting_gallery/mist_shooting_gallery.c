@@ -1280,11 +1280,11 @@ void func_mist_shooting_gallery_8017E234(Task* task)
         if (state == status) {
             if (bonus > 0) {
                 flag = work->course + 0x125;
-                if (GameFlag_GetNibble(flag) == 0) {
+                if (gameFlagGetNibble(flag) == 0) {
                     if (func_mist_shooting_gallery_80184970(bonus) == state) {
-                        GameFlag_SetNibble(flag, 2);
+                        gameFlagSetNibble(flag, 2);
                     } else {
-                        GameFlag_SetNibble(flag, 1);
+                        gameFlagSetNibble(flag, 1);
                     }
                     Ui_SpawnFromDesc(&D_mist_shooting_gallery_8018501C, total, 1, 1, obj);
                     obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
@@ -1862,7 +1862,7 @@ static void func_mist_shooting_gallery_8017FC2C(Task* arg0)
     arg0->msgTable = D_mist_shooting_gallery_801850E8;
     gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     func_actor_215100_8014C5E0(0x340, 0, 2);
-    if (GameFlag_GetNibble(GAME_FLAG_0ED) != 0) {
+    if (gameFlagGetNibble(GAME_FLAG_0ED) != 0) {
         Gp_MsgSlot4Chain(1, 0);
         var_a0 = 1;
     } else {
@@ -1874,7 +1874,7 @@ static void func_mist_shooting_gallery_8017FC2C(Task* arg0)
     } else if (gGameSession->location.loc.warp == 7) {
         Task_SpawnFromTable(D_actor_215100_8014E13C, 0, 0, 0);
     }
-    if ((gGameSession->location.loc.warp == 6) && (GameFlag_GetNibble(GAME_FLAG_0ED) != 0)) {
+    if ((gGameSession->location.loc.warp == 6) && (gameFlagGetNibble(GAME_FLAG_0ED) != 0)) {
         Gp_RunCapCmd1(0x16);
     }
     gGameSession->flowFlags = GAME_SESSION_FLOW_SKIP_AREA_MUSIC;
@@ -1889,7 +1889,7 @@ static void func_mist_shooting_gallery_8017FD40(Task* task)
         temp_v1 = gGameSession->location.loc.view;
         if ((temp_v1 == 3) || (temp_v1 == 9) || (temp_v1 == 0x12)) {
             Gp_MsgSlot4Chain(1, 0);
-        } else if (GameFlag_GetNibble(GAME_FLAG_0ED) == 0) {
+        } else if (gameFlagGetNibble(GAME_FLAG_0ED) == 0) {
             Gp_MsgSlot4Chain(1, 1);
         }
     }
@@ -1949,7 +1949,7 @@ s32 func_mist_shooting_gallery_8017FEB8(Task* task, s32 msgId, RoomEventMsg* src
 {
     *dst = *src;
     if (src->areaId == GAME_AREA_MIST_PARKING && src->queryOnly == ROOM_EVENT_EXECUTE) {
-        if (GameFlag_GetNibble(GAME_FLAG_STORY_CHAPTER) != 0) {
+        if (gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) != 0) {
             dst->room += 2;
         }
     }
@@ -2002,15 +2002,15 @@ s32 func_mist_shooting_gallery_8018008C(Task* task, s32 msgId, const void* first
         Task_SpawnFromTable(D_actor_215100_8014E13C, 1, 1, 0);
         D_80114D08 = 0xA;
     }
-    if ((request->actionId == 2) && (GameFlag_GetNibble(GAME_FLAG_0ED) == 0)) {
+    if ((request->actionId == 2) && (gameFlagGetNibble(GAME_FLAG_0ED) == 0)) {
         func_actor_215100_8014AF0C();
     }
     if (request->actionId == 3) {
         func_actor_215100_8014AB6C();
     }
-    if ((request->actionId == 4) && (GameFlag_GetNibble(GAME_FLAG_SHOOTING_GALLERY_ACTION_4_SEEN) == 0)) {
+    if ((request->actionId == 4) && (gameFlagGetNibble(GAME_FLAG_SHOOTING_GALLERY_ACTION_4_SEEN) == 0)) {
         func_800E3FAC(0xA2, 0x3B);
-        GameFlag_SetNibble(GAME_FLAG_SHOOTING_GALLERY_ACTION_4_SEEN, 1);
+        gameFlagSetNibble(GAME_FLAG_SHOOTING_GALLERY_ACTION_4_SEEN, 1);
         func_800E8634(D_actor_215100_80153274, 0, D_actor_215100_80153D6C);
     }
     return 0;

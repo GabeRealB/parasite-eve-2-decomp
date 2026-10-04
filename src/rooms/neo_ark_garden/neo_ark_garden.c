@@ -141,7 +141,7 @@ s32 func_neo_ark_garden_8017E848(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEve
     if (in->areaId != GAME_AREA_NEO_ARK_SUBSTATION) {
         return 1;
     }
-    if (GameFlag_GetNibble(GAME_FLAG_NEO_ARK_ALTAR_SEQUENCE_1_SOLVED) != 0) {
+    if (gameFlagGetNibble(GAME_FLAG_NEO_ARK_ALTAR_SEQUENCE_1_SOLVED) != 0) {
         return 1;
     }
     if (in->queryOnly != ROOM_EVENT_EXECUTE) {
@@ -155,17 +155,17 @@ s32 func_neo_ark_garden_8017E848(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEve
 s32 func_neo_ark_garden_8017E8DC(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 4) {
-        Gp_RunCapCmd1(GameFlag_GetNibble(GAME_FLAG_141) != 0 ? 6 : 4);
-        if ((GameFlag_GetNibble(GAME_FLAG_NEO_ARK_GARDEN_0FA) == 0) && (GameFlag_GetNibble(GAME_FLAG_NEO_ARK_ALTAR_SEQUENCE_1_SOLVED) == 0)) {
-            GameFlag_SetNibble(GAME_FLAG_NEO_ARK_GARDEN_0FA, 1);
+        Gp_RunCapCmd1(gameFlagGetNibble(GAME_FLAG_141) != 0 ? 6 : 4);
+        if ((gameFlagGetNibble(GAME_FLAG_NEO_ARK_GARDEN_0FA) == 0) && (gameFlagGetNibble(GAME_FLAG_NEO_ARK_ALTAR_SEQUENCE_1_SOLVED) == 0)) {
+            gameFlagSetNibble(GAME_FLAG_NEO_ARK_GARDEN_0FA, 1);
             Gp_ApplyAreaRecs(D_neo_ark_garden_80182BF8);
         }
     }
     if (arg2 == 7) {
-        Gp_SpawnIfCapIdle(GameFlag_GetNibble(GAME_FLAG_B6_NURSERY_PROGRESS) != 0 ? 9 : 7, 0);
+        Gp_SpawnIfCapIdle(gameFlagGetNibble(GAME_FLAG_B6_NURSERY_PROGRESS) != 0 ? 9 : 7, 0);
     }
     if (arg2 == 5) {
-        Gp_SpawnIfCapIdle(GameFlag_GetNibble(GAME_FLAG_B6_NURSERY_PROGRESS) != 0 ? 0xA : 5, 0);
+        Gp_SpawnIfCapIdle(gameFlagGetNibble(GAME_FLAG_B6_NURSERY_PROGRESS) != 0 ? 0xA : 5, 0);
     }
     return 0;
 }

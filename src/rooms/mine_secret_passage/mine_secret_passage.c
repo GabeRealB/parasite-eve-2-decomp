@@ -179,8 +179,8 @@ static void func_mine_secret_passage_8017D8C8(Task* arg0)
 /// either way it advances to the idle state.
 static void func_mine_secret_passage_8017D914(Task* arg0)
 {
-    if (GameFlag_GetNibble(GAME_FLAG_MINE_SECRET_PASSAGE_INTRO_SEEN) == 0) {
-        GameFlag_SetNibble(GAME_FLAG_MINE_SECRET_PASSAGE_INTRO_SEEN, 1);
+    if (gameFlagGetNibble(GAME_FLAG_MINE_SECRET_PASSAGE_INTRO_SEEN) == 0) {
+        gameFlagSetNibble(GAME_FLAG_MINE_SECRET_PASSAGE_INTRO_SEEN, 1);
         Gp_SpawnIfCapIdle(3, 1);
     }
     arg0->state = (s32)(arg0->state + 1);

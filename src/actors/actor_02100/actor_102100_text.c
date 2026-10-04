@@ -1972,7 +1972,7 @@ static void Actor02100_Fn032E4(Task* arg0)
         case ACTOR_02100_MODE_PATROL:
             Actor02100_Fn00ADC(arg0);
         case ACTOR_02100_MODE_WATCH:
-            if (GameFlag_GetNibble(GAME_FLAG_SHELTER_WATCHERS_DISABLED) == 0) {
+            if (gameFlagGetNibble(GAME_FLAG_SHELTER_WATCHERS_DISABLED) == 0) {
                 Actor02100_Fn00DCC(arg0);
             }
             break;

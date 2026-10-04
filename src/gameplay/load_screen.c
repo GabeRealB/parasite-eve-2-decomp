@@ -189,7 +189,7 @@ void func_800AA548(s32 arg0)
             SndEvt_EnqueueType6(warpEntry.arrivalSound, 0, 0);
         }
         if (warpEntry.mapFlagId != DIRECTION_WARP_MAP_FLAG_NONE) {
-            GameFlag_SetNibble(warpEntry.mapFlagId, DIRECTION_WARP_MAP_FLAG_ARRIVED);
+            gameFlagSetNibble(warpEntry.mapFlagId, DIRECTION_WARP_MAP_FLAG_ARRIVED);
         }
     } else {
         gGameSession->areaSetupDone = 1;
@@ -380,7 +380,7 @@ void Gp_LoadState2(Task* task)
         Mem_InitAux();
         Gp_ApplyNpcRoomSnd();
         Snd_InitFromStage(gGameSession->location.loc.stage, gGameSession->location.loc.area);
-        if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD_NIGHT && GameFlag_GetNibble(GAME_FLAG_STORY_CHAPTER) >= 4) {
+        if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD_NIGHT && gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) >= 4) {
             gStageSceneMusicEntry = 1;
         } else {
             gStageSceneMusicEntry = 0;

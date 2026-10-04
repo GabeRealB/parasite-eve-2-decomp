@@ -5,7 +5,7 @@ m2c emits its own guessed prototype for every symbol it references, marked
 `/* extern */`. That was harmless while the seed included only common.h, but the
 bootstrap now carries the host file's includes across so the seed can see the
 types it was decompiled against -- and those headers declare the same symbols
-properly, so GCC rejects the pair ("conflicting types for `GameFlag_SetNibble'").
+properly, so GCC rejects the pair ("conflicting types for `gameFlagSetNibble'").
 
 The header is right and m2c's guess is `M2C_UNK`-shaped noise, so the guess is
 what goes. Which declarations conflict is decided by the compiler rather than by

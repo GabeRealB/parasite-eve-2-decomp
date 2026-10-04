@@ -557,8 +557,8 @@ void func_mine_refuge_8017FA08(Task* task)
 
     switch (task->state) {
         case 0:
-            if (GameFlag_GetNibble(GAME_FLAG_MINE_REFUGE_SCENE_STATE) == 1) {
-                GameFlag_SetNibble(GAME_FLAG_MINE_REFUGE_SCENE_STATE, 2);
+            if (gameFlagGetNibble(GAME_FLAG_MINE_REFUGE_SCENE_STATE) == 1) {
+                gameFlagSetNibble(GAME_FLAG_MINE_REFUGE_SCENE_STATE, 2);
                 Gp_RunCapCmd1(0xF);
             }
             task->state = task->state + 1;
@@ -616,7 +616,7 @@ s32 func_mine_refuge_8017FC2C(Task* task, s32 msgId, s32 arg2, s32 arg3)
     u8 temp_a3;
 
     if (arg2 == 1) {
-        if (GameFlag_GetNibble(GAME_FLAG_MINE_REFUGE_PROMPT_ACCEPTED) != 0) {
+        if (gameFlagGetNibble(GAME_FLAG_MINE_REFUGE_PROMPT_ACCEPTED) != 0) {
             func_mine_refuge_8017FE78(0U);
         } else {
             Gp_MsgPlayerWeapon(0);
@@ -639,8 +639,8 @@ s32 func_mine_refuge_8017FCD0(Task* task, s32 msgId, const void* firstArg, s32 a
     u8 actionId = request->actionId;
 
     if (actionId == 1) {
-        if (GameFlag_GetNibble(GAME_FLAG_MINE_SECRET_PASSAGE_STATE) != actionId) {
-            GameFlag_SetNibble(GAME_FLAG_0C4, 0);
+        if (gameFlagGetNibble(GAME_FLAG_MINE_SECRET_PASSAGE_STATE) != actionId) {
+            gameFlagSetNibble(GAME_FLAG_0C4, 0);
             Gp_MsgPlayerWeapon(0);
             Task_SpawnFromTable(D_mine_refuge_801818B4, 0, 0, 0);
         } else {
@@ -685,7 +685,7 @@ void func_mine_refuge_8017FDBC(Task* arg0)
             Gp_MsgPlayer3F3(1);
             break;
         case 1:
-            GameFlag_SetNibble(GAME_FLAG_MINE_REFUGE_PROMPT_ACCEPTED, 1);
+            gameFlagSetNibble(GAME_FLAG_MINE_REFUGE_PROMPT_ACCEPTED, 1);
             func_mine_refuge_8017FE78(D_mine_refuge_80182ADC[0]);
             break;
         default:
@@ -711,7 +711,7 @@ static void func_mine_refuge_8017FE78(s32 arg0)
         D_mine_refuge_80182AE0.view       = 6;
         D_mine_refuge_80182AE0.startSound = 0x54060003;
     }
-    if (GameFlag_GetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX) == 0xF) {
+    if (gameFlagGetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX) == 0xF) {
         slot                           = 1;
         D_mine_refuge_80182AE0.capSlot = 0xE;
         D_mine_refuge_80182AE0.capFile = 0;
@@ -1077,13 +1077,13 @@ void func_mine_refuge_80181454(Task* unused)
             func_mine_refuge_8018029C(&D_mine_refuge_801818D8[1], 0x60, 0x40);
             break;
         case 3:
-            if (GameFlag_GetNibble(GAME_FLAG_MINE_POWER_PANEL_SWITCHED_ON) == 1) {
+            if (gameFlagGetNibble(GAME_FLAG_MINE_POWER_PANEL_SWITCHED_ON) == 1) {
                 func_mine_refuge_80181094(&D_mine_refuge_801818E8, 0x30, 0xF0);
             }
             break;
         case 4:
         case 5:
-            if (GameFlag_GetNibble(GAME_FLAG_MINE_POWER_PANEL_SWITCHED_ON) == 1) {
+            if (gameFlagGetNibble(GAME_FLAG_MINE_POWER_PANEL_SWITCHED_ON) == 1) {
                 func_mine_refuge_80181094(&D_mine_refuge_801818E8, 0x60, 0xD0);
             }
             break;

@@ -1023,13 +1023,13 @@ void func_actor_461800_8013223C(s32 arg0)
 void func_actor_461800_8013229C(void)
 {
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 9) {
-        if (GameFlag_GetNibble(GAME_FLAG_STERILIZATION_ROOM_EVENT_STATE) == 2) {
+        if (gameFlagGetNibble(GAME_FLAG_STERILIZATION_ROOM_EVENT_STATE) == 2) {
             Gp_SetCollectedBit(0x130);
         }
-        if (GameFlag_GetNibble(GAME_FLAG_ACTOR_160700_MEETING_PROGRESS) != 0) {
+        if (gameFlagGetNibble(GAME_FLAG_ACTOR_160700_MEETING_PROGRESS) != 0) {
             Gp_SetCollectedBit(0x12F);
         }
-        if (GameFlag_GetNibble(GAME_FLAG_ITEM_125_FOLLOWUP_SEEN) == 0 && GameFlag_GetNibble(GAME_FLAG_ACTOR_160700_MEETING_PROGRESS) == 0) {
+        if (gameFlagGetNibble(GAME_FLAG_ITEM_125_FOLLOWUP_SEEN) == 0 && gameFlagGetNibble(GAME_FLAG_ACTOR_160700_MEETING_PROGRESS) == 0) {
             gGameSession->restartMode     = GAME_SESSION_RESTART_ENDING;
             gGameSession->deathFadeFrames = 0xF;
             return;

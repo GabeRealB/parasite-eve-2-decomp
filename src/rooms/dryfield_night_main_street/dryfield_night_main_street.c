@@ -75,7 +75,7 @@
 
 /// Advances the gameplay LCG and yields the high half of the new state.
 
-/// Applies the patch list `table[GameFlag_GetNibble(nibble)]` to the current
+/// Applies the patch list `table[gameFlagGetNibble(nibble)]` to the current
 /// area's view sprite commands. The list is a stream of byte pairs ended by a
 /// 0xFF first byte: `(view, 0xFF)` selects that view's command list, and any
 /// other `(cmd, value)` stores `value` in that batch's `hidden` byte. The list
@@ -89,7 +89,7 @@
         s16              idx;                                                \
         u8**             tbl;                                                \
                                                                              \
-        idx     = GameFlag_GetNibble(nibble);                                \
+        idx     = gameFlagGetNibble(nibble);                                 \
         tbl     = table;                                                     \
         p       = tbl[idx];                                                  \
         sess    = &gGameSession->location.loc;                               \
@@ -1690,7 +1690,7 @@ void func_dryfield_night_main_street_8017E484(Task* task)
         gRoomEffectSparkEmitterId = EFFECT_DRYFIELD_NIGHT_MAIN_STREET_SPARK_EMITTER;
         task->state               = 1;
     }
-    if (GameFlag_GetNibble(GAME_FLAG_07F) != 0) {
+    if (gameFlagGetNibble(GAME_FLAG_07F) != 0) {
         D_dryfield_night_main_street_80182230[3] = 0;
         D_dryfield_night_main_street_80182230[2] = 0;
     }

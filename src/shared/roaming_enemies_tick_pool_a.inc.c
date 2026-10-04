@@ -29,22 +29,22 @@ void roamerTickPoolA(Task* task)
     }
     if (gSceneCombatState.battleRefs == 0 && gRoamerPrevBattleRefs > 0) {
         gRoamerCooldown = 0x96;
-        a               = GameFlag_GetNibble(GAME_FLAG_NEO_ARK_ROAMER_KILLS_POOL_A);
-        b               = GameFlag_GetNibble(GAME_FLAG_NEO_ARK_ROAMER_POOL_A_RESERVE);
+        a               = gameFlagGetNibble(GAME_FLAG_NEO_ARK_ROAMER_KILLS_POOL_A);
+        b               = gameFlagGetNibble(GAME_FLAG_NEO_ARK_ROAMER_POOL_A_RESERVE);
         count           = 0;
         for (k = 0; k < 5; k++) {
             if (((s16*)gRoamerReserveHp)[k] > 0) {
                 count++;
             }
         }
-        GameFlag_SetNibble(GAME_FLAG_NEO_ARK_ROAMER_KILLS_POOL_A, a + (b - count));
+        gameFlagSetNibble(GAME_FLAG_NEO_ARK_ROAMER_KILLS_POOL_A, a + (b - count));
         count = 0;
         for (k = 0; k < 5; k++) {
             if (((s16*)gRoamerReserveHp)[k] > 0) {
                 count++;
             }
         }
-        GameFlag_SetNibble(GAME_FLAG_NEO_ARK_ROAMER_POOL_A_RESERVE, count);
+        gameFlagSetNibble(GAME_FLAG_NEO_ARK_ROAMER_POOL_A_RESERVE, count);
         areaSyncLocationVariant(&gGameSession->location.loc);
     }
     gRoamerPrevBattleRefs = gSceneCombatState.battleRefs;

@@ -447,12 +447,12 @@ static __inline__ s32 _shelterB1SouthMaintenanceWalkwayStartEvent(
     RoomEventMsg* dst, RoomLatchedEvent* event)
 {
     D_shelter_b1_south_maintenance_walkway_80183644_value = 0;
-    if (GameFlag_GetNibble(event->flagId) == 0 || event->flagId == 0) {
+    if (gameFlagGetNibble(event->flagId) == 0 || event->flagId == 0) {
         if (dst->queryOnly == ROOM_EVENT_EXECUTE) {
             gRoomEventStagedMsg = *dst;
             gRoomEventLatched   = *event;
             if (event->flagId != 0) {
-                GameFlag_SetNibble(event->flagId, 1);
+                gameFlagSetNibble(event->flagId, 1);
             }
             Task_SpawnFromTable(&D_shelter_b1_south_maintenance_walkway_801822FC, 0, 0, 0);
             D_shelter_b1_south_maintenance_walkway_80183644_value = 1;

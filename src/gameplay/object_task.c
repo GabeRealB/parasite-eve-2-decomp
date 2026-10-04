@@ -66,7 +66,7 @@ void func_800E31E8(Task* arg0)
     gGameSession->hideHud    = 0;
     D_80115598               = 0;
     gGameSession->flowFlags  = 0;
-    flag                     = GameFlag_GetNibble(GAME_FLAG_SCENE_MUSIC_OVERRIDE);
+    flag                     = gameFlagGetNibble(GAME_FLAG_SCENE_MUSIC_OVERRIDE);
     switch (flag) {
         case 1:
             if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD_NIGHT) {

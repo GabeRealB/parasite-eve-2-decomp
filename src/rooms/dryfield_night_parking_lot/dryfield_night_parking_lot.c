@@ -86,8 +86,8 @@ s32 func_dryfield_night_parking_lot_8017DB34(Task* task, s32 msgId, const void* 
 {
     const DirectionActionRequest* request = firstArg;
 
-    if ((request->actionId == 1) && (gGameSession->location.loc.variant == 3) && (GameFlag_GetNibble(GAME_FLAG_NIGHT_PARKING_LOT_EVENT_SEEN) == 0)) {
-        GameFlag_SetNibble(GAME_FLAG_NIGHT_PARKING_LOT_EVENT_SEEN, 1);
+    if ((request->actionId == 1) && (gGameSession->location.loc.variant == 3) && (gameFlagGetNibble(GAME_FLAG_NIGHT_PARKING_LOT_EVENT_SEEN) == 0)) {
+        gameFlagSetNibble(GAME_FLAG_NIGHT_PARKING_LOT_EVENT_SEEN, 1);
         Gp_MsgPlayerWeapon(0);
         func_800E8614(D_dryfield_night_parking_lot_8017ECB4, 1);
     }
@@ -110,7 +110,7 @@ static void func_dryfield_night_parking_lot_8017DBB0(Task* task)
 {
     task->msgTable = D_dryfield_night_parking_lot_8017EC60;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    if ((gGameSession->location.loc.variant == 3) && (GameFlag_GetNibble(GAME_FLAG_NIGHT_PARKING_LOT_EVENT_SEEN) != 0)) {
+    if ((gGameSession->location.loc.variant == 3) && (gameFlagGetNibble(GAME_FLAG_NIGHT_PARKING_LOT_EVENT_SEEN) != 0)) {
         gSceneCombatState.actor01600Wave = 2;
     }
     task->state = (s32)(task->state + 1);

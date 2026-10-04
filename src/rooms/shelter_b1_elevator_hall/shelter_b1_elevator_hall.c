@@ -39,7 +39,7 @@ s32 func_shelter_b1_elevator_hall_8017D810(Task* task, s32 msgId, RoomEventMsg* 
 {
     *dst = *src;
     func_map_shelter_80179A04(src, dst);
-    if (src->areaId == GAME_AREA_SHELTER_B1_MAIN_CORRIDOR && GameFlag_GetNibble(GAME_FLAG_B1_CORRIDOR_ELEVATOR_HALL_UNLOCKED) == 0) {
+    if (src->areaId == GAME_AREA_SHELTER_B1_MAIN_CORRIDOR && gameFlagGetNibble(GAME_FLAG_B1_CORRIDOR_ELEVATOR_HALL_UNLOCKED) == 0) {
         if (src->queryOnly == ROOM_EVENT_EXECUTE) {
             Gp_SetNibbleIf(src->flagId, 2);
             Gp_RunCapCmd1(2);
@@ -47,7 +47,7 @@ s32 func_shelter_b1_elevator_hall_8017D810(Task* task, s32 msgId, RoomEventMsg* 
         return 0;
     }
     if (src->areaId == GAME_AREA_SHELTER_B2_ELEVATOR) {
-        if (GameFlag_GetNibble(GAME_FLAG_SHELTER_ELEVATOR_ENABLED) == 0) {
+        if (gameFlagGetNibble(GAME_FLAG_SHELTER_ELEVATOR_ENABLED) == 0) {
             if (src->queryOnly == ROOM_EVENT_EXECUTE) {
                 Gp_SetNibbleIf(src->flagId, 2);
                 Gp_RunCapCmd1(1);
@@ -174,8 +174,8 @@ static void func_shelter_b1_elevator_hall_8017DBB8(Task* arg0)
 {
     arg0->msgTable = D_shelter_b1_elevator_hall_80182CB8;
     gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
-    if (GameFlag_GetNibble(GAME_FLAG_SHELTER_B1_ELEVATOR_HALL_VISITED) == 0) {
-        GameFlag_SetNibble(GAME_FLAG_SHELTER_B1_ELEVATOR_HALL_VISITED, 1);
+    if (gameFlagGetNibble(GAME_FLAG_SHELTER_B1_ELEVATOR_HALL_VISITED) == 0) {
+        gameFlagSetNibble(GAME_FLAG_SHELTER_B1_ELEVATOR_HALL_VISITED, 1);
         func_800E3FAC(0xA2, 0x1D);
     }
     arg0->state++;

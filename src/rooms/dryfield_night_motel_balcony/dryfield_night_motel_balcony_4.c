@@ -3224,14 +3224,14 @@ void func_dryfield_night_motel_balcony_8017E554(Task* task)
     if (mask & D_dryfield_night_motel_balcony_80182D40[hi][18]) {
         glowDrawShaft(&D_dryfield_night_motel_balcony_80182CF0, 0x180);
     }
-    if (GameFlag_GetNibble(GAME_FLAG_07F) == 1) {
+    if (gameFlagGetNibble(GAME_FLAG_07F) == 1) {
         D_dryfield_night_motel_balcony_80182D40[0][3] = 0;
         D_dryfield_night_motel_balcony_80182D40[0][2] = 0;
         D_dryfield_night_motel_balcony_80182D40[1][3] = 0;
         D_dryfield_night_motel_balcony_80182D40[1][2] = 0;
         Gp_SpawnEff(EFFECT_NIGHT_MOTEL_BALCONY_LAMP_BURST, coord, 0, &D_dryfield_night_motel_balcony_80182C70);
-        GameFlag_SetNibble(GAME_FLAG_07F, 2);
-    } else if (GameFlag_GetNibble(GAME_FLAG_07F) == 2) {
+        gameFlagSetNibble(GAME_FLAG_07F, 2);
+    } else if (gameFlagGetNibble(GAME_FLAG_07F) == 2) {
         D_dryfield_night_motel_balcony_80182D40[0][3] = 0;
         D_dryfield_night_motel_balcony_80182D40[0][2] = 0;
         D_dryfield_night_motel_balcony_80182D40[1][3] = 0;

@@ -1739,7 +1739,7 @@ s32 func_shelter_b1_underground_parking_80182830(Task* task, s32 msgId, RoomEven
     if (msg->warp == 0xA) {
         if ((u8)msg->room == 1 && gGameSession->location.loc.room < 7) {
             Gp_StartCapSlot(0xA, 1, 0);
-            GameFlag_SetNibble(GAME_FLAG_MAP_MARK_UNDERGROUND_PARKING, 2);
+            gameFlagSetNibble(GAME_FLAG_MAP_MARK_UNDERGROUND_PARKING, 2);
         }
     }
     if (msg->warp == 0xB) {
@@ -1773,7 +1773,7 @@ s32 func_shelter_b1_underground_parking_80182830(Task* task, s32 msgId, RoomEven
             case 7:
                 if (D_shelter_b1_underground_parking_8018D758 != 0) {
                     Gp_RunCapCmd1(0x1E);
-                } else if (GameFlag_GetNibble(GAME_FLAG_STORY_CHAPTER) < 6) {
+                } else if (gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) < 6) {
                     Gp_MsgPlayerWeapon(0);
                     Gp_StartCapSlot(0xB, 1, 1);
                     Task_SpawnFromTable(D_shelter_b1_underground_parking_8018726C, 3, 0, 0);
@@ -1796,10 +1796,10 @@ s32 func_shelter_b1_underground_parking_80182A60(Task* task, s32 msgId, s32 arg2
     switch (arg2) {
         case 1:
             if (gGameSession->location.loc.room < 6) {
-                if (GameFlag_GetNibble(GAME_FLAG_B6_NURSERY_PROGRESS) == 0) {
+                if (gameFlagGetNibble(GAME_FLAG_B6_NURSERY_PROGRESS) == 0) {
                     Gp_RunCapCmd1(1);
-                } else if (GameFlag_GetNibble(GAME_FLAG_SHELTER_B1_UNDERGROUND_PARKING_0E7) == 0) {
-                    if (GameFlag_GetNibble(GAME_FLAG_SHELTER_B1_UNDERGROUND_PARKING_0E8) == 0) {
+                } else if (gameFlagGetNibble(GAME_FLAG_SHELTER_B1_UNDERGROUND_PARKING_0E7) == 0) {
+                    if (gameFlagGetNibble(GAME_FLAG_SHELTER_B1_UNDERGROUND_PARKING_0E8) == 0) {
                         Gp_RunCapCmd1(2);
                     } else {
                         Gp_MsgPlayerWeapon(0);
@@ -1870,9 +1870,9 @@ s32 func_shelter_b1_underground_parking_80182A60(Task* task, s32 msgId, s32 arg2
             st->afterSceneSound = 0x5414000D;
             st->view            = 0x14;
             if (D_shelter_b1_underground_parking_8018D758 == 0) {
-                if (GameFlag_GetNibble(GAME_FLAG_UNDERGROUND_PARKING_FIRST_SCENE) == 0) {
+                if (gameFlagGetNibble(GAME_FLAG_UNDERGROUND_PARKING_FIRST_SCENE) == 0) {
                     Gp_MsgPlayerWeapon(0);
-                    GameFlag_SetNibble(GAME_FLAG_UNDERGROUND_PARKING_FIRST_SCENE, 1);
+                    gameFlagSetNibble(GAME_FLAG_UNDERGROUND_PARKING_FIRST_SCENE, 1);
                     Task_SpawnFromTable(D_shelter_b1_underground_parking_8018726C, 6, 1, 0);
                 } else {
                     st->capSlot   = 1;
@@ -1933,11 +1933,11 @@ void func_shelter_b1_underground_parking_80182DB4(Task* task)
             break;
         case 2:
             if (task->killCountdown == 0) {
-                if (GameFlag_GetNibble(GAME_FLAG_COMPANION_2_SCHEDULE) == 0xA) {
-                    GameFlag_SetNibble(GAME_FLAG_COMPANION_2_SCHEDULE, 9);
+                if (gameFlagGetNibble(GAME_FLAG_COMPANION_2_SCHEDULE) == 0xA) {
+                    gameFlagSetNibble(GAME_FLAG_COMPANION_2_SCHEDULE, 9);
                 }
-                if (GameFlag_GetNibble(GAME_FLAG_SCENE_MUSIC_OVERRIDE) == 1) {
-                    GameFlag_SetNibble(GAME_FLAG_SCENE_MUSIC_OVERRIDE, 2);
+                if (gameFlagGetNibble(GAME_FLAG_SCENE_MUSIC_OVERRIDE) == 1) {
+                    gameFlagSetNibble(GAME_FLAG_SCENE_MUSIC_OVERRIDE, 2);
                     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 0x1B;
                 }
                 handler      = roomVariantResolveNeoArk;
@@ -2122,7 +2122,7 @@ void func_shelter_b1_underground_parking_80183560(Task* arg0)
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 6;
                 gGameSession->roomObjsDirty                                = state;
                 func_800E8614(D_shelter_b1_underground_parking_801872D8, 1);
-                GameFlag_SetNibble(GAME_FLAG_UNDERGROUND_PARKING_STATE, 1);
+                gameFlagSetNibble(GAME_FLAG_UNDERGROUND_PARKING_STATE, 1);
                 Gp_SetItemSeenBit(0x123, 1);
             } else {
                 Gp_MsgPlayerWeapon(1);
@@ -2139,8 +2139,8 @@ void func_shelter_b1_underground_parking_8018363C(Task* arg0)
         D_80115768            = 1;
         gGameSession->hideHud = 1;
         func_800E8634(D_shelter_b1_underground_parking_801873DC, 0, D_shelter_b1_underground_parking_80187544);
-        GameFlag_SetNibble(GAME_FLAG_UNDERGROUND_PARKING_STATE, 2);
-        GameFlag_SetNibble(GAME_FLAG_MAP_MARK_UNDERGROUND_PARKING, 0);
+        gameFlagSetNibble(GAME_FLAG_UNDERGROUND_PARKING_STATE, 2);
+        gameFlagSetNibble(GAME_FLAG_MAP_MARK_UNDERGROUND_PARKING, 0);
         arg0->state += 1;
         return;
     }
@@ -2200,8 +2200,8 @@ static void func_shelter_b1_underground_parking_80183810(Task* arg0)
     if (gGameSession->location.loc.variant == 0x15) {
         Gp_MsgSlot4Chain(0, 1);
     }
-    if ((GameFlag_GetNibble(GAME_FLAG_STORY_CHAPTER) >= 6) && (GameFlag_GetNibble(GAME_FLAG_SHELTER_B1_UNDERGROUND_PARKING_123) == 0)) {
-        GameFlag_SetNibble(GAME_FLAG_SHELTER_B1_UNDERGROUND_PARKING_123, 1);
+    if ((gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) >= 6) && (gameFlagGetNibble(GAME_FLAG_SHELTER_B1_UNDERGROUND_PARKING_123) == 0)) {
+        gameFlagSetNibble(GAME_FLAG_SHELTER_B1_UNDERGROUND_PARKING_123, 1);
         func_shelter_b1_underground_parking_8018390C();
     }
     arg0->state = arg0->state + 1;
@@ -2317,7 +2317,7 @@ static void func_shelter_b1_underground_parking_801843F0(Task* task)
     prompt->mode        = ACTION_PROMPT_MODE_IDLE;
     prompt->screen.xy.x = 0;
     prompt->screen.xy.y = 0;
-    Gp_RunCapCmd(GameFlag_GetNibble(GAME_FLAG_SHELTER_B1_UNDERGROUND_PARKING_0E7) == 0 ? 2 : 3, 0);
+    Gp_RunCapCmd(gameFlagGetNibble(GAME_FLAG_SHELTER_B1_UNDERGROUND_PARKING_0E7) == 0 ? 2 : 3, 0);
     task->state++;
 }
 

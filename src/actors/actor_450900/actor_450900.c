@@ -812,7 +812,7 @@ void func_actor_450900_8013223C(Task* task)
             if (Gp_GetCapEventKey() != 0xB) {
                 goto kill;
             }
-            GameFlag_SetNibble(GAME_FLAG_0D8, 1);
+            gameFlagSetNibble(GAME_FLAG_0D8, 1);
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
             Gp_RunCapCmd(2, 0);
             func_800E8614(D_actor_450900_80136B00, 0);
@@ -856,15 +856,15 @@ void func_actor_450900_8013235C(Task* task)
             }
             break;
         case 4:
-            GameFlag_SetNibble(GAME_FLAG_COMPANION_3_SCHEDULE, 0);
-            GameFlag_SetNibble(GAME_FLAG_0FC, 1);
-            GameFlag_SetNibble(GAME_FLAG_B1_CORRIDOR_ELEVATOR_HALL_UNLOCKED, 0);
-            GameFlag_SetNibble(GAME_FLAG_NEO_ARK_ALTAR_SWITCH_STATE, 0);
-            GameFlag_SetNibble(GAME_FLAG_B2_CORRIDOR_ELEVATOR_HALL_UNLOCKED, 1);
-            GameFlag_SetNibble(GAME_FLAG_MAP_MARK_SHELTER_1C7, 0);
-            GameFlag_SetNibble(GAME_FLAG_SHELTER_WATCHERS_DISABLED, 0);
-            GameFlag_SetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
-            GameFlag_SetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 8);
+            gameFlagSetNibble(GAME_FLAG_COMPANION_3_SCHEDULE, 0);
+            gameFlagSetNibble(GAME_FLAG_0FC, 1);
+            gameFlagSetNibble(GAME_FLAG_B1_CORRIDOR_ELEVATOR_HALL_UNLOCKED, 0);
+            gameFlagSetNibble(GAME_FLAG_NEO_ARK_ALTAR_SWITCH_STATE, 0);
+            gameFlagSetNibble(GAME_FLAG_B2_CORRIDOR_ELEVATOR_HALL_UNLOCKED, 1);
+            gameFlagSetNibble(GAME_FLAG_MAP_MARK_SHELTER_1C7, 0);
+            gameFlagSetNibble(GAME_FLAG_SHELTER_WATCHERS_DISABLED, 0);
+            gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
+            gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 8);
             SndEvt_EnqueueType7(SOUND_BANK_TYPE_ALL_NON_AMBIENT, 0);
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = 0xF;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = 3;
@@ -995,7 +995,7 @@ void func_actor_450900_80132724(void)
 /// because `jump.c` cross-jumps the identical tails.
 void func_actor_450900_801327A8(void)
 {
-    if (GameFlag_GetNibble(GAME_FLAG_0D8) != 0) {
+    if (gameFlagGetNibble(GAME_FLAG_0D8) != 0) {
         if (D_actor_450900_80135E74 == 0) {
             D_actor_450900_80135E74 = 1;
             func_800E8614(D_actor_450900_80136890, 0);

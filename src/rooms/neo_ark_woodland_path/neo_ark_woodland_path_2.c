@@ -401,7 +401,7 @@ static void func_neo_ark_woodland_path_80180DDC(Task* task)
         gRoamerCooldown--;
     }
     if (gSceneCombatState.battleRefs == 0 && gRoamerPrevBattleRefs > 0) {
-        b     = GameFlag_GetNibble(GAME_FLAG_NEO_ARK_ROAMER_POOL_B_RESERVE);
+        b     = gameFlagGetNibble(GAME_FLAG_NEO_ARK_ROAMER_POOL_B_RESERVE);
         count = 0;
         for (k = 0; k < 5; k++) {
             if (((s16*)gRoamerReserveHp)[k] > 0) {
@@ -409,22 +409,22 @@ static void func_neo_ark_woodland_path_80180DDC(Task* task)
             }
         }
         printf("(get_flag(266)-get_total()) = %d\n", b - count);
-        a     = GameFlag_GetNibble(GAME_FLAG_NEO_ARK_ROAMER_KILLS_POOL_B);
-        b     = GameFlag_GetNibble(GAME_FLAG_NEO_ARK_ROAMER_POOL_B_RESERVE);
+        a     = gameFlagGetNibble(GAME_FLAG_NEO_ARK_ROAMER_KILLS_POOL_B);
+        b     = gameFlagGetNibble(GAME_FLAG_NEO_ARK_ROAMER_POOL_B_RESERVE);
         count = 0;
         for (k = 0; k < 5; k++) {
             if (((s16*)gRoamerReserveHp)[k] > 0) {
                 count++;
             }
         }
-        GameFlag_SetNibble(GAME_FLAG_NEO_ARK_ROAMER_KILLS_POOL_B, a + (b - count));
+        gameFlagSetNibble(GAME_FLAG_NEO_ARK_ROAMER_KILLS_POOL_B, a + (b - count));
         count = 0;
         for (k = 0; k < 5; k++) {
             if (((s16*)gRoamerReserveHp)[k] > 0) {
                 count++;
             }
         }
-        GameFlag_SetNibble(GAME_FLAG_NEO_ARK_ROAMER_POOL_B_RESERVE, count);
+        gameFlagSetNibble(GAME_FLAG_NEO_ARK_ROAMER_POOL_B_RESERVE, count);
         areaSyncLocationVariant(&gGameSession->location.loc);
         gRoamerCooldown = 0x96;
     }

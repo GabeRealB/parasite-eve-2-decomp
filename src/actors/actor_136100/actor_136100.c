@@ -2215,13 +2215,13 @@ void func_actor_136100_80133BC8(Task* arg0)
 
     switch (arg0->state) {
         case 0:
-            if (GameFlag_GetNibble(GAME_FLAG_NIGHT_MAIN_STREET_CUTSCENE_SEEN) != 0) {
+            if (gameFlagGetNibble(GAME_FLAG_NIGHT_MAIN_STREET_CUTSCENE_SEEN) != 0) {
                 taskKill(arg0);
                 return;
             }
             func_actor_136100_80133A88(arg0);
             work           = arg0->work;
-            work->scene    = GameFlag_GetNibble(GAME_FLAG_BURNER_DEFEATED) == 0;
+            work->scene    = gameFlagGetNibble(GAME_FLAG_BURNER_DEFEATED) == 0;
             work->headTask = Task_SpawnFromTable(D_actor_136100_80140744, 2, 0,
                                                  arg0->extra.tmd->coords + 4);
             if (work->scene == ACTOR_136100_SCENE_AFTER_BURNER) {
@@ -2278,7 +2278,7 @@ void func_actor_136100_80133BC8(Task* arg0)
                 func_800E8634(D_actor_136100_8013F46C, 0, D_actor_136100_8013F784);
                 Gp_UnlinkObj4A(0, &D_dryfield_night_main_street_8018824C[8]);
                 ACTOR_136100_COPY_PLAYER_ANIMATION_SETS(arg0, message.copy);
-                GameFlag_SetNibble(GAME_FLAG_NIGHT_MAIN_STREET_CUTSCENE_SEEN, 1);
+                gameFlagSetNibble(GAME_FLAG_NIGHT_MAIN_STREET_CUTSCENE_SEEN, 1);
                 arg0->state++;
                 break;
             }
@@ -2293,7 +2293,7 @@ void func_actor_136100_80133BC8(Task* arg0)
                 func_800E8634(D_actor_136100_8013FD84, 0, D_actor_136100_80140114);
                 Gp_UnlinkObj4A(0, &D_dryfield_night_main_street_8018824C[9]);
                 ACTOR_136100_COPY_PLAYER_ANIMATION_SETS(arg0, message.copy);
-                GameFlag_SetNibble(GAME_FLAG_NIGHT_MAIN_STREET_CUTSCENE_SEEN, 1);
+                gameFlagSetNibble(GAME_FLAG_NIGHT_MAIN_STREET_CUTSCENE_SEEN, 1);
                 arg0->state++;
             }
             break;
@@ -2485,13 +2485,13 @@ void func_actor_136100_80134964(void)
 
 void func_actor_136100_801349B4(s32 arg0)
 {
-    GameFlag_SetNibble(GAME_FLAG_046, 0);
-    GameFlag_SetNibble(GAME_FLAG_COMPANION_1_SCHEDULE, 3);
+    gameFlagSetNibble(GAME_FLAG_046, 0);
+    gameFlagSetNibble(GAME_FLAG_COMPANION_1_SCHEDULE, 3);
     if (arg0 == 0) {
-        GameFlag_SetNibble(GAME_FLAG_COMPANION_2_SCHEDULE, 6);
+        gameFlagSetNibble(GAME_FLAG_COMPANION_2_SCHEDULE, 6);
     } else {
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 8;
-        GameFlag_SetNibble(GAME_FLAG_COMPANION_2_SCHEDULE, 0);
+        gameFlagSetNibble(GAME_FLAG_COMPANION_2_SCHEDULE, 0);
     }
 }
 

@@ -183,14 +183,14 @@ s32 func_dryfield_night_motel_lobby_8017FB00(Task* task, s32 messageId, s32 firs
 s32 func_dryfield_night_motel_lobby_8017FB7C(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 3) {
-        if (GameFlag_GetNibble(GAME_FLAG_NIGHT_MOTEL_LOBBY_FIRST_SCENE) == 0) {
-            GameFlag_SetNibble(GAME_FLAG_NIGHT_MOTEL_LOBBY_FIRST_SCENE, 1);
+        if (gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_LOBBY_FIRST_SCENE) == 0) {
+            gameFlagSetNibble(GAME_FLAG_NIGHT_MOTEL_LOBBY_FIRST_SCENE, 1);
             Gp_RunCapCmd1(0xA);
             return 0;
         }
         D_dryfield_night_motel_lobby_801844E0.view    = 5;
         D_dryfield_night_motel_lobby_801844E0.capSlot = 1;
-        if (GameFlag_GetNibble(GAME_FLAG_STORY_CHAPTER) < 4) {
+        if (gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) < 4) {
             D_dryfield_night_motel_lobby_801844E0.capTPageX = 0x380;
             D_dryfield_night_motel_lobby_801844E0.capFile   = 1;
         } else {
@@ -212,7 +212,7 @@ s32 func_dryfield_night_motel_lobby_8017FC6C(Task* task, s32 msgId, const void* 
     const DirectionActionRequest* request = firstArg;
 
     if (request->actionId == 1) {
-        if (GameFlag_GetNibble(GAME_FLAG_NIGHT_MOTEL_LOBBY_EVENT_SEEN) == 0) {
+        if (gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_LOBBY_EVENT_SEEN) == 0) {
             Gp_MsgPlayerWeapon(0);
             Gp_MsgPlayer3F3(0);
             Task_SpawnFromTable(D_dryfield_night_motel_lobby_801827FC, 0, 0, 0);

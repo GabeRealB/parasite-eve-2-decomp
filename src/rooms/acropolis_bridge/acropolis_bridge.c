@@ -2731,11 +2731,11 @@ s32 func_acropolis_bridge_8017D6F4(Task* task, s32 msgId, RoomEventMsg* in, Room
 
     *out = *in;
     if (in->areaId == GAME_AREA_ACROPOLIS_FIRE_ESCAPE) {
-        if (GameFlag_GetNibble(GAME_FLAG_BRIDGE_ARRIVAL_SCENE_SEEN) == 0) {
+        if (gameFlagGetNibble(GAME_FLAG_BRIDGE_ARRIVAL_SCENE_SEEN) == 0) {
             if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-                GameFlag_SetNibble(GAME_FLAG_BRIDGE_ARRIVAL_SCENE_SEEN, 1);
+                gameFlagSetNibble(GAME_FLAG_BRIDGE_ARRIVAL_SCENE_SEEN, 1);
                 func_800E8634(D_acropolis_bridge_80188EBC, 0, D_acropolis_bridge_8018912C);
-                GameFlag_SetNibble(GAME_FLAG_SANCTUARY_BLOCKER_CLEARED, 1);
+                gameFlagSetNibble(GAME_FLAG_SANCTUARY_BLOCKER_CLEARED, 1);
                 key.stage = GAME_STAGE_ACROPOLIS;
                 key.area  = GAME_AREA_ACROPOLIS_SANCTUARY;
                 areaSetPlacementVariant(&key, 3, AREA_VARIANT_RESET_ALWAYS);
@@ -2760,7 +2760,7 @@ s32 func_acropolis_bridge_8017D7F0(Task* task, s32 msgId, s32 arg2, s32 arg3)
 s32 func_acropolis_bridge_8017D7F8(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     if (arg2 == 7) {
-        if (GameFlag_GetNibble(GAME_FLAG_ACROPOLIS_BRIDGE_PROGRESS) == 3) {
+        if (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_BRIDGE_PROGRESS) == 3) {
             Gp_StartCapSlot(7, 1, 2);
             return 0;
         }
@@ -2838,7 +2838,7 @@ static void func_acropolis_bridge_8017D98C(Task* arg0)
     gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     D_acropolis_bridge_80191794 = Task_SpawnFromTable(D_acropolis_bridge_80188E7C, 0, 0, 0);
     arg0->state                 = (s32)(arg0->state + 1);
-    func_acropolis_bridge_8017F2D0(GameFlag_GetNibble(GAME_FLAG_BRIDGE_ARRIVAL_SCENE_SEEN) & 0xFF);
+    func_acropolis_bridge_8017F2D0(gameFlagGetNibble(GAME_FLAG_BRIDGE_ARRIVAL_SCENE_SEEN) & 0xFF);
 }
 
 static void func_acropolis_bridge_8017D9FC(Task* task)
@@ -2956,7 +2956,7 @@ static void func_acropolis_bridge_8017DDEC(Task* arg0)
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 2;
         gGameSession->location.loc.room                            = 2;
         gGameSession->roomObjsDirty                                = 1;
-        GameFlag_SetNibble(GAME_FLAG_ACROPOLIS_BRIDGE_PROGRESS, 3);
+        gameFlagSetNibble(GAME_FLAG_ACROPOLIS_BRIDGE_PROGRESS, 3);
         Gp_MsgPlayerWeapon(1);
         arg0->state = arg0->state + 1;
     }
@@ -2964,7 +2964,7 @@ static void func_acropolis_bridge_8017DDEC(Task* arg0)
 
 static void func_acropolis_bridge_8017DE94(Task* arg0)
 {
-    func_acropolis_bridge_8017F2D0(GameFlag_GetNibble(GAME_FLAG_BRIDGE_ARRIVAL_SCENE_SEEN) & 0xFF);
+    func_acropolis_bridge_8017F2D0(gameFlagGetNibble(GAME_FLAG_BRIDGE_ARRIVAL_SCENE_SEEN) & 0xFF);
     gGameSession->hideHud = 0;
     arg0->state           = (s32)(arg0->state + 1);
 }

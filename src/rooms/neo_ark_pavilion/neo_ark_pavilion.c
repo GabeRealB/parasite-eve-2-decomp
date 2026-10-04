@@ -1095,12 +1095,12 @@ s32 func_neo_ark_pavilion_8017E9EC(Task* task, s32 msgId, s32 arg2, s32 arg3)
 static __inline__ s32 NeoArkPavilion_StartEvent(RoomEventMsg* dst, RoomLatchedEvent* event)
 {
     D_neo_ark_pavilion_80187A1C_value = 0;
-    if (GameFlag_GetNibble(event->flagId) == 0 || event->flagId == 0) {
+    if (gameFlagGetNibble(event->flagId) == 0 || event->flagId == 0) {
         if (dst->queryOnly == ROOM_EVENT_EXECUTE) {
             gRoomEventStagedMsg = *dst;
             gRoomEventLatched   = *event;
             if (event->flagId != 0) {
-                GameFlag_SetNibble(event->flagId, 1);
+                gameFlagSetNibble(event->flagId, 1);
             }
             Task_SpawnFromTable(&D_neo_ark_pavilion_80183864, 0, 0, 0);
             D_neo_ark_pavilion_80187A1C_value = 1;
@@ -1135,7 +1135,7 @@ s32 func_neo_ark_pavilion_8017E9F4(Task* arg0, s32 arg1, RoomEventMsg* in, RoomE
 s32 func_neo_ark_pavilion_8017EB3C(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 1) {
-        Gp_SpawnIfCapIdle(GameFlag_GetNibble(GAME_FLAG_141) != 0 ? 5 : 1, 1);
+        Gp_SpawnIfCapIdle(gameFlagGetNibble(GAME_FLAG_141) != 0 ? 5 : 1, 1);
     }
     return 0;
 }

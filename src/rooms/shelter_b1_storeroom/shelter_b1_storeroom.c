@@ -52,7 +52,7 @@ s32 func_shelter_b1_storeroom_8017D604(Task* arg0, s32 arg1, RoomEventMsg* in, R
 {
     *out = *in;
     func_map_shelter_80179A04(in, out);
-    if (in->areaId == GAME_AREA_SHELTER_B1_ARMORY && GameFlag_GetNibble(GAME_FLAG_B1_ARMORY_STOREROOM_DOOR_UNLOCKED) == 0) {
+    if (in->areaId == GAME_AREA_SHELTER_B1_ARMORY && gameFlagGetNibble(GAME_FLAG_B1_ARMORY_STOREROOM_DOOR_UNLOCKED) == 0) {
         if (in->queryOnly != ROOM_EVENT_EXECUTE) {
             return 0;
         }
@@ -63,7 +63,7 @@ s32 func_shelter_b1_storeroom_8017D604(Task* arg0, s32 arg1, RoomEventMsg* in, R
     if (in->areaId != GAME_AREA_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY && in->areaId != GAME_AREA_SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY) {
         return 1;
     }
-    if (GameFlag_GetNibble(GAME_FLAG_STORY_CHAPTER) < 6) {
+    if (gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) < 6) {
         return 1;
     }
     if (in->queryOnly != ROOM_EVENT_EXECUTE) {

@@ -105,7 +105,7 @@ s32 func_shelter_b1_sleeping_quarters_8017D670(Task* arg0, s32 arg1, RoomEventMs
     if (in->areaId != GAME_AREA_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY) {
         return 1;
     }
-    if (GameFlag_GetNibble(GAME_FLAG_STORY_CHAPTER) < 6) {
+    if (gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) < 6) {
         return 1;
     }
     if (in->queryOnly != ROOM_EVENT_EXECUTE) {
@@ -122,7 +122,7 @@ s32 func_shelter_b1_sleeping_quarters_8017D6FC(Task* arg0, s32 arg1, s32 arg2, s
         Task_SpawnFromTable(&D_shelter_b1_sleeping_quarters_80180540, 0, 8, 0);
     }
     if (arg2 == 3) {
-        Gp_SpawnIfCapIdle(GameFlag_GetNibble(GAME_FLAG_SLEEPING_QUARTERS_16F) == 0 ? 3 : 0xF, 0);
+        Gp_SpawnIfCapIdle(gameFlagGetNibble(GAME_FLAG_SLEEPING_QUARTERS_16F) == 0 ? 3 : 0xF, 0);
     }
     return 0;
 }

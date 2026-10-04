@@ -157,7 +157,7 @@ static void func_dryfield_toilet_8017D5E4(void)
         geom->vertices[i * 4 + 3].vz = src->vertices[i * 4 + 3].vz;
         geom->faces[i]               = src->faces[i];
     }
-    if (GameFlag_GetNibble(GAME_FLAG_TOILET_EVENT_SEEN) != 0) {
+    if (gameFlagGetNibble(GAME_FLAG_TOILET_EVENT_SEEN) != 0) {
         for (i = 0; i < 4; i++) {
             geom->vertices[i].vx -= 2000;
         }
@@ -188,9 +188,9 @@ s32 func_dryfield_toilet_8017D8C8(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEv
 {
     u8 subId = in->warp;
 
-    if (subId == 1 && GameFlag_GetNibble(GAME_FLAG_TOILET_EVENT_SEEN) == 0 && gGameSession->location.loc.variant == subId) {
+    if (subId == 1 && gameFlagGetNibble(GAME_FLAG_TOILET_EVENT_SEEN) == 0 && gGameSession->location.loc.variant == subId) {
         func_800E8634(D_dryfield_toilet_80180C58, 1, D_dryfield_toilet_80180F40);
-        GameFlag_SetNibble(GAME_FLAG_TOILET_EVENT_SEEN, 1);
+        gameFlagSetNibble(GAME_FLAG_TOILET_EVENT_SEEN, 1);
     }
     return 0;
 }
@@ -204,7 +204,7 @@ static void func_dryfield_toilet_8017D940(Task* arg0)
 {
     arg0->msgTable = D_dryfield_toilet_801802A4;
     gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
-    if (GameFlag_GetNibble(GAME_FLAG_TOILET_EVENT_SEEN) == 0 && gGameSession->location.loc.variant == 1) {
+    if (gameFlagGetNibble(GAME_FLAG_TOILET_EVENT_SEEN) == 0 && gGameSession->location.loc.variant == 1) {
         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &D_dryfield_toilet_801802D4, ACTOR_COMMAND_MESSAGE_APPLY);
         func_dryfield_toilet_8017D5E4();
     }

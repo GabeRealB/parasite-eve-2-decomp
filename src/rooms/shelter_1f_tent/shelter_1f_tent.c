@@ -164,36 +164,36 @@ static void func_shelter_1f_tent_8017F9F0(Task* task)
     if (gGameSession->location.loc.variant == 1) {
         func_actor_460200_80132210();
     }
-    if (GameFlag_GetNibble(GAME_FLAG_SHELTER_1F_TENT_ARRIVED) == 0) {
-        GameFlag_SetNibble(GAME_FLAG_SHELTER_1F_TENT_ARRIVED, 1);
-        GameFlag_SetNibble(GAME_FLAG_MAP_MARK_SHELTER_1B3, 2);
-        GameFlag_SetNibble(GAME_FLAG_MAP_MARK_SHELTER_1B0, 2);
-        GameFlag_SetNibble(GAME_FLAG_MAP_MARK_SHELTER_1AE, 2);
-        GameFlag_SetNibble(GAME_FLAG_MAP_MARK_SHELTER_1CD, 2);
-        GameFlag_SetNibble(GAME_FLAG_0FC, 0);
-        GameFlag_SetNibble(GAME_FLAG_MAP_MARK_POD, 0);
-        GameFlag_SetNibble(GAME_FLAG_SHELTER_ELEVATOR_ENABLED, 0);
-        GameFlag_SetNibble(GAME_FLAG_SHELTER_1F_TENT_1BA, 2);
-        GameFlag_SetNibble(GAME_FLAG_MAP_MARK_SHELTER_1BB, 2);
+    if (gameFlagGetNibble(GAME_FLAG_SHELTER_1F_TENT_ARRIVED) == 0) {
+        gameFlagSetNibble(GAME_FLAG_SHELTER_1F_TENT_ARRIVED, 1);
+        gameFlagSetNibble(GAME_FLAG_MAP_MARK_SHELTER_1B3, 2);
+        gameFlagSetNibble(GAME_FLAG_MAP_MARK_SHELTER_1B0, 2);
+        gameFlagSetNibble(GAME_FLAG_MAP_MARK_SHELTER_1AE, 2);
+        gameFlagSetNibble(GAME_FLAG_MAP_MARK_SHELTER_1CD, 2);
+        gameFlagSetNibble(GAME_FLAG_0FC, 0);
+        gameFlagSetNibble(GAME_FLAG_MAP_MARK_POD, 0);
+        gameFlagSetNibble(GAME_FLAG_SHELTER_ELEVATOR_ENABLED, 0);
+        gameFlagSetNibble(GAME_FLAG_SHELTER_1F_TENT_1BA, 2);
+        gameFlagSetNibble(GAME_FLAG_MAP_MARK_SHELTER_1BB, 2);
         func_800E3FAC(0xA2, 0x36);
         Gp_FillPlayerHpMp();
         Gp_ApplyAreaRecs(D_shelter_1f_tent_801842D4);
         func_800E8634(D_actor_460200_801362B8, 0, D_actor_460200_80137890);
-        if (GameFlag_GetNibble(GAME_FLAG_ITEM_125_FOLLOWUP_SEEN) != 0) {
+        if (gameFlagGetNibble(GAME_FLAG_ITEM_125_FOLLOWUP_SEEN) != 0) {
             Gp_ApplyAreaRecs(D_shelter_1f_tent_801843B0);
             Gp_ApplyAreaRecs(D_shelter_1f_tent_801843B8);
-            GameFlag_SetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
+            gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
             idx = 0x155;
             val = 0xB;
         } else {
             Gp_ApplyAreaRecs(D_shelter_1f_tent_801843A8);
-            GameFlag_SetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
+            gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
             idx = 0x155;
             val = 0xA;
         }
-        GameFlag_SetNibble(idx, val);
-        if (GameFlag_GetNibble(GAME_FLAG_BURNER_DEFEATED) != 0) {
-            GameFlag_SetNibble(GAME_FLAG_COMPANION_2_SCHEDULE, 8);
+        gameFlagSetNibble(idx, val);
+        if (gameFlagGetNibble(GAME_FLAG_BURNER_DEFEATED) != 0) {
+            gameFlagSetNibble(GAME_FLAG_COMPANION_2_SCHEDULE, 8);
         }
     } else {
         SndEvt_EnqueueType6(SOUND_SHELTER_1F_TENT_AMBIENCE_1, 0, 0);
@@ -221,8 +221,8 @@ s32 func_shelter_1f_tent_8017FC5C(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEv
 s32 func_shelter_1f_tent_8017FCA0(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 1) {
-        if (GameFlag_GetNibble(GAME_FLAG_TENT_FIRST_SCENE) == 0) {
-            GameFlag_SetNibble(GAME_FLAG_TENT_FIRST_SCENE, 1);
+        if (gameFlagGetNibble(GAME_FLAG_TENT_FIRST_SCENE) == 0) {
+            gameFlagSetNibble(GAME_FLAG_TENT_FIRST_SCENE, 1);
             Gp_RunCapCmd1(0x18);
             return 0;
         }

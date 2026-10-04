@@ -516,7 +516,7 @@ void func_shelter_b4_lower_sewer_8017E400(Task* arg0)
         gRoomEffectFlashId      = EFFECT_SHELTER_B4_LOWER_SEWER_FLASH;
         gRoomEffectTwinTrailId  = EFFECT_SHELTER_B4_LOWER_SEWER_TWIN_TRAIL;
         gRoomEffectSparkBurstId = EFFECT_SHELTER_B4_LOWER_SEWER_SPARK_BURST;
-        if (GameFlag_GetNibble(GAME_FLAG_B4_RESERVOIR_EVENT_DONE) == 1) {
+        if (gameFlagGetNibble(GAME_FLAG_B4_RESERVOIR_EVENT_DONE) == 1) {
             gRoomEffectWaterRippleId = EFFECT_SHELTER_B4_LOWER_SEWER_WATER_RIPPLE;
             gRoomEffectWaterSprayId  = EFFECT_SHELTER_B4_LOWER_SEWER_WATER_SPRAY;
         }

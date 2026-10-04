@@ -613,7 +613,7 @@ void func_shelter_r36_8017D5E8(Task* task)
     state = task->state;
     switch (state) {
         case 0:
-            if (GameFlag_GetNibble(GAME_FLAG_ACTOR_160700_MEETING_PROGRESS) == 0) {
+            if (gameFlagGetNibble(GAME_FLAG_ACTOR_160700_MEETING_PROGRESS) == 0) {
                 slot = 1;
             } else {
                 Gp_CapFile = 0;
@@ -627,7 +627,7 @@ void func_shelter_r36_8017D5E8(Task* task)
             break;
         case 1:
             if (gGameSession->eventState == 0) {
-                if (GameFlag_GetNibble(GAME_FLAG_ACTOR_160700_MEETING_PROGRESS) == 0) {
+                if (gameFlagGetNibble(GAME_FLAG_ACTOR_160700_MEETING_PROGRESS) == 0) {
                     gGameSession->restartMode     = GAME_SESSION_RESTART_ENDING;
                     gGameSession->deathFadeFrames = state;
                     taskKill(task);

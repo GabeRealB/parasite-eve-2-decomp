@@ -1394,30 +1394,30 @@ void func_actor_161500_8013230C(void);
 
 void func_actor_161500_80131E38(void)
 {
-    if ((GameFlag_GetNibble(GAME_FLAG_SOLDIER_B_REMARK_STATE) != 1) && (GameFlag_GetNibble(GAME_FLAG_SOLDIER_B_REMARK_STATE) != 2) && (GameFlag_GetNibble(GAME_FLAG_ACTOR_160700_MEETING_PROGRESS) == 4)) {
-        GameFlag_SetNibble(GAME_FLAG_ACTOR_160700_MEETING_PROGRESS, 5);
-        GameFlag_SetNibble(GAME_FLAG_SOLDIER_B_REMARK_STATE, 4);
+    if ((gameFlagGetNibble(GAME_FLAG_SOLDIER_B_REMARK_STATE) != 1) && (gameFlagGetNibble(GAME_FLAG_SOLDIER_B_REMARK_STATE) != 2) && (gameFlagGetNibble(GAME_FLAG_ACTOR_160700_MEETING_PROGRESS) == 4)) {
+        gameFlagSetNibble(GAME_FLAG_ACTOR_160700_MEETING_PROGRESS, 5);
+        gameFlagSetNibble(GAME_FLAG_SOLDIER_B_REMARK_STATE, 4);
     }
 
-    switch (GameFlag_GetNibble(GAME_FLAG_SOLDIER_B_REMARK_STATE)) {
+    switch (gameFlagGetNibble(GAME_FLAG_SOLDIER_B_REMARK_STATE)) {
         case 0:
             func_800E8614(D_actor_161500_80135668, 0);
             break;
         case 1:
             func_800E8614(D_actor_161500_801357E8, 0);
-            GameFlag_SetNibble(GAME_FLAG_SOLDIER_B_REMARK_STATE, 3);
+            gameFlagSetNibble(GAME_FLAG_SOLDIER_B_REMARK_STATE, 3);
             break;
         case 2:
             func_800E8614(D_actor_161500_80135968, 0);
-            GameFlag_SetNibble(GAME_FLAG_SOLDIER_B_REMARK_STATE, 3);
+            gameFlagSetNibble(GAME_FLAG_SOLDIER_B_REMARK_STATE, 3);
             break;
         case 3:
             func_800E8614(D_actor_161500_80135AE8, 0);
-            GameFlag_SetNibble(GAME_FLAG_SOLDIER_B_REMARK_STATE, 0);
+            gameFlagSetNibble(GAME_FLAG_SOLDIER_B_REMARK_STATE, 0);
             break;
         case 4:
             func_800E8614(D_actor_161500_80135C68, 0);
-            GameFlag_SetNibble(GAME_FLAG_SOLDIER_B_REMARK_STATE, 0);
+            gameFlagSetNibble(GAME_FLAG_SOLDIER_B_REMARK_STATE, 0);
             break;
     }
 }
@@ -1448,10 +1448,10 @@ void func_actor_161500_80131FBC(void)
     s32 temp_v0;
 
     temp_s0 = (gGameSession->location.loc.variant == 1) * 4;
-    temp_v0 = GameFlag_GetNibble(GAME_FLAG_SOLDIER_B_TALK_COUNT_A);
+    temp_v0 = gameFlagGetNibble(GAME_FLAG_SOLDIER_B_TALK_COUNT_A);
     func_800E8614(D_actor_161500_80134920[temp_v0 + temp_s0], 0);
     if (temp_v0 < 3) {
-        GameFlag_SetNibble(GAME_FLAG_SOLDIER_B_TALK_COUNT_A, temp_v0 + 1);
+        gameFlagSetNibble(GAME_FLAG_SOLDIER_B_TALK_COUNT_A, temp_v0 + 1);
     }
 }
 
@@ -1461,10 +1461,10 @@ void func_actor_161500_80132038(void)
     s32 temp_v0;
 
     temp_s0 = (gGameSession->location.loc.variant == 1) * 4;
-    temp_v0 = GameFlag_GetNibble(GAME_FLAG_SOLDIER_B_TALK_COUNT_B);
+    temp_v0 = gameFlagGetNibble(GAME_FLAG_SOLDIER_B_TALK_COUNT_B);
     func_800E8614(D_actor_161500_80135288[temp_v0 + temp_s0], 0);
     if (temp_v0 < 3) {
-        GameFlag_SetNibble(GAME_FLAG_SOLDIER_B_TALK_COUNT_B, temp_v0 + 1);
+        gameFlagSetNibble(GAME_FLAG_SOLDIER_B_TALK_COUNT_B, temp_v0 + 1);
     }
 }
 
@@ -1485,7 +1485,7 @@ void func_actor_161500_801320F0(s32 arg0)
 
 void func_actor_161500_80132110(void)
 {
-    if (GameFlag_GetNibble(GAME_FLAG_105) == 0) {
+    if (gameFlagGetNibble(GAME_FLAG_105) == 0) {
         func_800E8614(D_actor_161500_801352A8, 0);
     } else {
         func_800E8614(D_actor_161500_801354B8, 0);
@@ -1494,10 +1494,10 @@ void func_actor_161500_80132110(void)
 
 void func_actor_161500_80132150(void)
 {
-    if (GameFlag_GetNibble(GAME_FLAG_ITEM_125_FOLLOWUP_SEEN) != 0) {
-        func_800D4D2C((GameFlag_GetNibble(GAME_FLAG_STERILIZATION_ROOM_EVENT_STATE) != 2) ? 0x31 : 0x33);
+    if (gameFlagGetNibble(GAME_FLAG_ITEM_125_FOLLOWUP_SEEN) != 0) {
+        func_800D4D2C((gameFlagGetNibble(GAME_FLAG_STERILIZATION_ROOM_EVENT_STATE) != 2) ? 0x31 : 0x33);
     } else {
-        func_800D4D2C((GameFlag_GetNibble(GAME_FLAG_STERILIZATION_ROOM_EVENT_STATE) == 2) ? 0x32 : 0x30);
+        func_800D4D2C((gameFlagGetNibble(GAME_FLAG_STERILIZATION_ROOM_EVENT_STATE) == 2) ? 0x32 : 0x30);
     }
 }
 
@@ -1505,7 +1505,7 @@ void func_actor_161500_801321B4(Task* arg0)
 {
     D_80115768 = 1;
     Gp_SetItemSeenBit(0x124, 1);
-    GameFlag_SetNibble(GAME_FLAG_HELIPORT_SOLDIER_REQUEST_STATE, 2);
+    gameFlagSetNibble(GAME_FLAG_HELIPORT_SOLDIER_REQUEST_STATE, 2);
     func_800E8614(D_actor_161500_80137AB8, 0);
     taskKill(arg0);
 }
@@ -1533,7 +1533,7 @@ void func_actor_161500_801322A0(void)
     s32 temp_v0;
 
     if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) {
-        temp_v0 = GameFlag_GetNibble(GAME_FLAG_HELIPORT_SOLDIER_REQUEST_STATE);
+        temp_v0 = gameFlagGetNibble(GAME_FLAG_HELIPORT_SOLDIER_REQUEST_STATE);
         if (temp_v0 == 1) {
             if (Gp_GetCurBit2Flag(3) == temp_v0) {
                 func_800E8614(D_actor_161500_801378D8, 0);
@@ -1549,11 +1549,11 @@ void func_actor_161500_8013230C(void)
     s32 temp_v0;
 
     if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) {
-        temp_v0 = GameFlag_GetNibble(GAME_FLAG_HELIPORT_SOLDIER_REQUEST_STATE);
+        temp_v0 = gameFlagGetNibble(GAME_FLAG_HELIPORT_SOLDIER_REQUEST_STATE);
         switch (temp_v0) {
             case 0:
                 func_800E8634(D_actor_161500_80137080, 0, D_actor_161500_80136E88);
-                GameFlag_SetNibble(GAME_FLAG_HELIPORT_SOLDIER_REQUEST_STATE, 1);
+                gameFlagSetNibble(GAME_FLAG_HELIPORT_SOLDIER_REQUEST_STATE, 1);
                 break;
             case 1:
                 func_800E8614(D_actor_161500_80137650, 1);

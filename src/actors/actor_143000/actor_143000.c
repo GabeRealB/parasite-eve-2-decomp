@@ -751,7 +751,7 @@ static void func_actor_143000_801336E8(Task* arg0)
             case 4:
                 work->keypadExamined = 1;
                 Gp_RunCapCmd(0xA, 0);
-                if (GameFlag_GetNibble(GAME_FLAG_SHELTER_B2_LABORATORY_PROGRESS) == 1) {
+                if (gameFlagGetNibble(GAME_FLAG_SHELTER_B2_LABORATORY_PROGRESS) == 1) {
                     arg0->killCountdown = 0xA;
                     arg0->state         = 9;
                 } else {

@@ -1732,7 +1732,7 @@ SVECTOR ActorContact_ScratchPosition = { 0, 0, 0, 0 };
 static void func_acropolis_sanctuary_801802E0(Task* task);
 
 /// The room task's per-frame state. Once the session reaches phase 3
-/// (`GameFlag_GetNibble(2)` still 0), advances that flag and applies the
+/// (`gameFlagGetNibble(2)` still 0), advances that flag and applies the
 /// room's one-shot state, then disables the action triggers while
 /// `Gp_GetCurBit2Flag(0x1C)` is 2. `mask` is
 /// a local because the target CSEs `~0x40` into a register and uses `and`
@@ -1750,16 +1750,16 @@ static void func_acropolis_sanctuary_8017D5E0(Task* task)
     WorldCollisionTrigger* p9;
     WorldCollisionTrigger* p10;
 
-    if (GameFlag_GetNibble(GAME_FLAG_ACROPOLIS_BRIDGE_PROGRESS) == 0 && gGameSession->location.loc.warp == 3) {
-        GameFlag_SetNibble(GAME_FLAG_ACROPOLIS_BRIDGE_PROGRESS, 2);
+    if (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_BRIDGE_PROGRESS) == 0 && gGameSession->location.loc.warp == 3) {
+        gameFlagSetNibble(GAME_FLAG_ACROPOLIS_BRIDGE_PROGRESS, 2);
         func_800E8634(D_acropolis_sanctuary_80180B0C, 0, D_acropolis_sanctuary_80181664);
         Gp_ApplyAreaRecs(D_acropolis_sanctuary_80186418);
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 6;
-        GameFlag_SetNibble(GAME_FLAG_OBSERVATORY_ROUTE_PROGRESS, 5);
-        GameFlag_SetNibble(GAME_FLAG_OBSERVATORY_EXIT_USED, 1);
+        gameFlagSetNibble(GAME_FLAG_OBSERVATORY_ROUTE_PROGRESS, 5);
+        gameFlagSetNibble(GAME_FLAG_OBSERVATORY_EXIT_USED, 1);
         func_800E3FAC(0xA2, 6);
-        GameFlag_SetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
-        GameFlag_SetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 5);
+        gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
+        gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 5);
     }
     if (Gp_GetCurBit2Flag(0x1C) == 2) {
         mask = ~WORLD_COLLISION_TRIGGER_ENABLED;
@@ -1797,13 +1797,13 @@ s32 func_acropolis_sanctuary_8017D73C(Task* arg0, s32 arg1, RoomEventMsg* in, Ro
     *out = *in;
     if (in->areaId == GAME_AREA_ACROPOLIS_PROMENADE) {
         if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-            if (GameFlag_GetNibble(GAME_FLAG_SANCTUARY_EVENT_LATCH) == 0) {
-                GameFlag_SetNibble(GAME_FLAG_SANCTUARY_EVENT_LATCH, 2);
+            if (gameFlagGetNibble(GAME_FLAG_SANCTUARY_EVENT_LATCH) == 0) {
+                gameFlagSetNibble(GAME_FLAG_SANCTUARY_EVENT_LATCH, 2);
                 Gp_SetCurBit2Flag(0x13, 2);
             }
         }
         if (in->areaId == GAME_AREA_ACROPOLIS_PROMENADE && in->queryOnly == ROOM_EVENT_EXECUTE) {
-            nib = GameFlag_GetNibble(GAME_FLAG_ACROPOLIS_BRIDGE_PROGRESS);
+            nib = gameFlagGetNibble(GAME_FLAG_ACROPOLIS_BRIDGE_PROGRESS);
             if (nib == 0) {
                 nib = 1;
             } else {
@@ -1823,7 +1823,7 @@ s32 func_acropolis_sanctuary_8017D808(Task* task, s32 msgId, s32 arg2, s32 arg3)
 
 s32 func_acropolis_sanctuary_8017D810(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
-    if (arg2 == 0 && GameFlag_GetNibble(GAME_FLAG_SANCTUARY_BLOCKER_CLEARED) == 0) {
+    if (arg2 == 0 && gameFlagGetNibble(GAME_FLAG_SANCTUARY_BLOCKER_CLEARED) == 0) {
         func_800E8614(D_acropolis_sanctuary_80181814, 0);
     }
     return 0;
@@ -1835,8 +1835,8 @@ s32 func_acropolis_sanctuary_8017D810(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 /// this handler only ever consumes the message (returns 0).
 s32 func_acropolis_sanctuary_8017D848(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
-    if (in->warp == 1 && GameFlag_GetNibble(GAME_FLAG_SANCTUARY_EVENT_LATCH) == 0) {
-        GameFlag_SetNibble(GAME_FLAG_SANCTUARY_EVENT_LATCH, 1);
+    if (in->warp == 1 && gameFlagGetNibble(GAME_FLAG_SANCTUARY_EVENT_LATCH) == 0) {
+        gameFlagSetNibble(GAME_FLAG_SANCTUARY_EVENT_LATCH, 1);
         Task_SpawnFromTable(&D_acropolis_sanctuary_80182240, 0, 0, 0);
     }
     return 0;
@@ -1873,10 +1873,10 @@ static void func_acropolis_sanctuary_8017D930(Task* arg0)
     arg0->msgTable = D_acropolis_sanctuary_8018081C;
     gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     arg0->state = arg0->state + 1;
-    if (GameFlag_GetNibble(GAME_FLAG_SANCTUARY_BLOCKER_CLEARED) != 1) {
+    if (gameFlagGetNibble(GAME_FLAG_SANCTUARY_BLOCKER_CLEARED) != 1) {
         slot = Gp_LookupSlot4(1);
         Gp_MsgSlot4Chain(1, 1);
-        if (GameFlag_GetNibble(GAME_FLAG_ACROPOLIS_BRIDGE_PROGRESS) != 0 && slot != NULL) {
+        if (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_BRIDGE_PROGRESS) != 0 && slot != NULL) {
             TASK_MESSAGE_DISPATCH_POINTER(slot, 0x7D3, &D_acropolis_sanctuary_80180AE8, 0);
             TASK_MESSAGE_DISPATCH_POINTER(slot, 0x7D4, &D_acropolis_sanctuary_801808BC, 0);
         }
@@ -2078,7 +2078,7 @@ static void func_acropolis_sanctuary_8017DD78(void)
         dst->faces[i].surfaceClass    = 1;
     }
 
-    if (GameFlag_GetNibble(GAME_FLAG_SANCTUARY_BLOCKER_CLEARED) == 0) {
+    if (gameFlagGetNibble(GAME_FLAG_SANCTUARY_BLOCKER_CLEARED) == 0) {
         shift.vx = 200;
         shift.vy = 0;
         shift.vz = 380;

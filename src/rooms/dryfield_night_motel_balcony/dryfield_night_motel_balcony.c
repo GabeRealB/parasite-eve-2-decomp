@@ -98,12 +98,12 @@ static void func_dryfield_night_motel_balcony_8017DC30(Task* task)
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     func_dryfield_night_motel_balcony_8017E3C8();
     field9 = gGameSession->location.loc.variant;
-    if (field9 == 2 && gGameSession->location.loc.room == field9 && GameFlag_GetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) == 0) {
+    if (field9 == 2 && gGameSession->location.loc.room == field9 && gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) == 0) {
         func_800E8634(D_actor_335800_80165060, 0, D_actor_335800_80165798);
-        GameFlag_SetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN, 1);
-        GameFlag_SetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCRIPT_STATE, 1);
-        GameFlag_SetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
-        GameFlag_SetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 1);
+        gameFlagSetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN, 1);
+        gameFlagSetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCRIPT_STATE, 1);
+        gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
+        gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 1);
         gGameSession->flowFlags = (GAME_SESSION_FLOW_SKIP_ENDING_MUSIC | GAME_SESSION_FLOW_LOAD_ENDING_MUSIC_ONLY | GAME_SESSION_FLOW_REEQUIP_WEAPON);
     }
     task->state = task->state + 1;
@@ -113,9 +113,9 @@ static void func_dryfield_night_motel_balcony_8017DC30(Task* task)
 /// flag nibble 0x10E is 1, runs the one-shot script and moves the nibble to 2.
 static void func_dryfield_night_motel_balcony_8017DD0C(Task* task)
 {
-    if (gGameSession->eventState == 0 && Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL && GameFlag_GetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCRIPT_STATE) == 1) {
+    if (gGameSession->eventState == 0 && Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL && gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCRIPT_STATE) == 1) {
         func_800E8614(D_actor_335800_80165720, 0);
-        GameFlag_SetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCRIPT_STATE, 2);
+        gameFlagSetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCRIPT_STATE, 2);
     }
 }
 

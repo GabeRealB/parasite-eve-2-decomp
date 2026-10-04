@@ -2059,9 +2059,9 @@ void func_actor_120300_801337C4(Task* arg0)
             if ((Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
                 func_actor_120300_801335D8(arg0);
                 work = arg0->work;
-                if (GameFlag_GetNibble(GAME_FLAG_GARAGE_GARY_SCENE_SEEN) != 0) {
+                if (gameFlagGetNibble(GAME_FLAG_GARAGE_GARY_SCENE_SEEN) != 0) {
                     func_actor_120300_80133330(1);
-                    if (GameFlag_GetNibble(GAME_FLAG_MOTEL_ROOM_6_DOOR_UNLOCKED) != 0) {
+                    if (gameFlagGetNibble(GAME_FLAG_MOTEL_ROOM_6_DOOR_UNLOCKED) != 0) {
                         work->talkStage = 1;
                     }
                     arg0->state = 4;
@@ -2078,8 +2078,8 @@ void func_actor_120300_801337C4(Task* arg0)
                     scratch.rec.blendFrames          = 0;
                     scratch.rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
                     TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &scratch.rec, 0);
-                    GameFlag_SetNibble(GAME_FLAG_02C, 1);
-                    GameFlag_SetNibble(GAME_FLAG_GARAGE_GARY_SCENE_SEEN, 1);
+                    gameFlagSetNibble(GAME_FLAG_02C, 1);
+                    gameFlagSetNibble(GAME_FLAG_GARAGE_GARY_SCENE_SEEN, 1);
                     func_800E3FAC(0xA2, 0xB);
                     func_800E8634(D_actor_120300_80140B94, 0, D_actor_120300_80141524);
                     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 2;

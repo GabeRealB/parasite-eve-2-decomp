@@ -561,7 +561,7 @@ s32 func_shelter_b6_corridor_8017DF48(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     switch (arg2) {
         case 2:
-            if (GameFlag_GetNibble(GAME_FLAG_B6_CORRIDOR_EVE_PART_0_DOWN) != 0) {
+            if (gameFlagGetNibble(GAME_FLAG_B6_CORRIDOR_EVE_PART_0_DOWN) != 0) {
                 Gp_RunCapCmd1(5);
             } else if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
                 Gp_RunCapCmd1(2);
@@ -570,7 +570,7 @@ s32 func_shelter_b6_corridor_8017DF48(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
             }
             break;
         case 3:
-            if (GameFlag_GetNibble(GAME_FLAG_B6_CORRIDOR_EVE_PART_1_DOWN) != 0) {
+            if (gameFlagGetNibble(GAME_FLAG_B6_CORRIDOR_EVE_PART_1_DOWN) != 0) {
                 Gp_RunCapCmd1(6);
             } else if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
                 Gp_RunCapCmd1(3);
@@ -579,7 +579,7 @@ s32 func_shelter_b6_corridor_8017DF48(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
             }
             break;
         case 4:
-            if (GameFlag_GetNibble(GAME_FLAG_B6_CORRIDOR_EVE_PART_2_DOWN) != 0) {
+            if (gameFlagGetNibble(GAME_FLAG_B6_CORRIDOR_EVE_PART_2_DOWN) != 0) {
                 Gp_RunCapCmd1(7);
             } else if (gSceneCombatState.signals.bytes.battlePhase != SCENE_COMBAT_BATTLE_ENGAGED) {
                 Gp_RunCapCmd1(0xA);

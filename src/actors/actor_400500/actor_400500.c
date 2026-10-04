@@ -5748,7 +5748,7 @@ static void func_actor_400500_8013A8E4(Task* arg0)
     Gp_UnlinkObj(&work->leftArmOuter);
     Gp_UnlinkObj(&work->rightArmInner);
     Gp_UnlinkObj(&work->leftArmInner);
-    GameFlag_SetNibble(GAME_FLAG_GRAY_STALKER_DEFEATED, 1);
+    gameFlagSetNibble(GAME_FLAG_GRAY_STALKER_DEFEATED, 1);
     if (work->lastHitReaction == ACTOR_400500_HIT_REACTION_BLAST) {
         work3           = (_Actor400500GrayStalkerWork*)arg0->work;
         work3->state    = 6;

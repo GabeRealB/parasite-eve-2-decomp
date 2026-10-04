@@ -27,10 +27,23 @@ extern GameFlagNeoArkBank        GameFlag_NeoArkBanks[2];
 /// Live stage headers, indexed by GameLocationKey.stage (1..5; slot 0 is NULL).
 extern GameFlagStageHeader* Gp_FlagBanks[6];
 
-/// Set one of the 504 game flags; index is 0..503 and value is 0..15.
-void GameFlag_SetNibble(s32 index, s32 value);
+/// Writes a four-bit game-flag value in the current session's save bank.
+///
+/// `flagId` counts nibble positions and must be in 0..GAME_FLAG_NIBBLE_COUNT-1;
+/// zero is a valid flag ID, and no bounds check is performed. Only the low
+/// four bits of `value` are stored, preserving the neighboring flag: even IDs
+/// select the high nibble and odd IDs the low nibble. This writes the payload;
+/// the save system maintains its checksum and backup copy. Positions sharing
+/// the play-time mark access the same bytes described by `GameFlagNibbleBank`.
+void gameFlagSetNibble(s32 flagId, s32 value);
 
-/// Read a four-bit game flag, indexed 0..503.
-s32 GameFlag_GetNibble(s32 index);
+/// Reads the current session's four-bit game-flag value as an integer 0..15.
+///
+/// `flagId` counts nibble positions and must be in 0..GAME_FLAG_NIBBLE_COUNT-1;
+/// zero is a valid flag ID, and no bounds check is performed. Even IDs select
+/// the high nibble and odd IDs the low nibble of the live payload byte.
+/// Positions sharing the play-time mark access the same bytes described by
+/// `GameFlagNibbleBank`.
+s32 gameFlagGetNibble(s32 flagId);
 
 #endif // MAIN_GAMEFLAG_H

@@ -32,17 +32,17 @@ s32 waterTowerEventMsg(Task* task, s32 msgId, RoomEventMsg* msg, RoomEventMsg* o
         }
         return ret;
     }
-    if (msg->queryOnly == ROOM_EVENT_EXECUTE && GameFlag_GetNibble(GAME_FLAG_WATER_TOWER_MECHANISM_STATE) == 2) {
-        GameFlag_SetNibble(GAME_FLAG_WATER_TOWER_MECHANISM_STATE, 1);
+    if (msg->queryOnly == ROOM_EVENT_EXECUTE && gameFlagGetNibble(GAME_FLAG_WATER_TOWER_MECHANISM_STATE) == 2) {
+        gameFlagSetNibble(GAME_FLAG_WATER_TOWER_MECHANISM_STATE, 1);
     }
     if (msg->areaId == 0x15) {
-        if (msg->queryOnly == ROOM_EVENT_EXECUTE && GameFlag_GetNibble(GAME_FLAG_COMPANION_2_SCHEDULE) == 7) {
-            GameFlag_SetNibble(GAME_FLAG_COMPANION_2_SCHEDULE, 0);
+        if (msg->queryOnly == ROOM_EVENT_EXECUTE && gameFlagGetNibble(GAME_FLAG_COMPANION_2_SCHEDULE) == 7) {
+            gameFlagSetNibble(GAME_FLAG_COMPANION_2_SCHEDULE, 0);
         }
         if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD_NIGHT) {
             return 1;
         }
-        if (GameFlag_GetNibble(GAME_FLAG_WATER_TOWER_PROGRESS) != 2) {
+        if (gameFlagGetNibble(GAME_FLAG_WATER_TOWER_PROGRESS) != 2) {
             return 0;
         }
     }

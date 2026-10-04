@@ -892,13 +892,13 @@ s32 func_shelter_b6_nursery_8017FA54(Task* task, s32 msgId, s32 arg2, s32 arg3)
         D_shelter_b6_nursery_80187980.rec.endSound        = 0x55160005;
         D_shelter_b6_nursery_80187980.rec.sceneSound      = 0x55160003;
         D_shelter_b6_nursery_80187980.rec.afterSceneSound = 0x55160004;
-        flag                                              = GameFlag_GetNibble(GAME_FLAG_B6_NURSERY_PROGRESS);
+        flag                                              = gameFlagGetNibble(GAME_FLAG_B6_NURSERY_PROGRESS);
         if (flag == 1) {
-            if (GameFlag_GetNibble(GAME_FLAG_083) != 0) {
+            if (gameFlagGetNibble(GAME_FLAG_083) != 0) {
                 Gp_SetBit2Flag(0x22, 1, 4);
             }
             func_800E3FAC(0xA2, 0x31);
-            GameFlag_SetNibble(GAME_FLAG_B6_NURSERY_PROGRESS, 2);
+            gameFlagSetNibble(GAME_FLAG_B6_NURSERY_PROGRESS, 2);
             D_shelter_b6_nursery_80187980.rec.view      = 6;
             D_shelter_b6_nursery_80187980.rec.capSlot   = 0xB;
             D_shelter_b6_nursery_80187980.rec.capFile   = 0;
@@ -909,9 +909,9 @@ s32 func_shelter_b6_nursery_8017FA54(Task* task, s32 msgId, s32 arg2, s32 arg3)
             func_shelter_b6_nursery_80182D14(0, 0);
             return 0;
         }
-        if (GameFlag_GetNibble(GAME_FLAG_NURSERY_SCENE_SEEN) == 0) {
+        if (gameFlagGetNibble(GAME_FLAG_NURSERY_SCENE_SEEN) == 0) {
             Gp_SpawnIfCapIdle(0x17, 0);
-            GameFlag_SetNibble(GAME_FLAG_NURSERY_SCENE_SEEN, 1);
+            gameFlagSetNibble(GAME_FLAG_NURSERY_SCENE_SEEN, 1);
             return 0;
         }
         D_shelter_b6_nursery_80187980.rec.view      = 6;
@@ -995,7 +995,7 @@ s32 func_shelter_b6_nursery_8017FE3C(Task* task, s32 msgId, DirectionActionReque
     if (msg->actionId == 2) {
         func_actor_450800_80132000();
     }
-    if (msg->actionId == 3 && GameFlag_GetNibble(GAME_FLAG_B6_NURSERY_SCENE_COUNT) != 0) {
+    if (msg->actionId == 3 && gameFlagGetNibble(GAME_FLAG_B6_NURSERY_SCENE_COUNT) != 0) {
         func_800E8634(D_actor_450800_8013AF8C, 0, D_actor_450800_8013BA84);
     }
     return 0;
@@ -1006,12 +1006,12 @@ static void func_shelter_b6_nursery_8017FEC4(Task* arg0)
     arg0->msgTable = D_shelter_b6_nursery_8018500C;
     gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     Gp_FillAllyHp();
-    if (GameFlag_GetNibble(GAME_FLAG_B6_NURSERY_PROGRESS) == 0) {
-        GameFlag_SetNibble(GAME_FLAG_B6_NURSERY_PROGRESS, 1);
+    if (gameFlagGetNibble(GAME_FLAG_B6_NURSERY_PROGRESS) == 0) {
+        gameFlagSetNibble(GAME_FLAG_B6_NURSERY_PROGRESS, 1);
         func_800E8634(D_actor_450800_80139964, 0, D_actor_450800_8013A33C);
-        GameFlag_SetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
+        gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
         func_800E3FAC(0xA2, 0x30);
-    } else if (GameFlag_GetNibble(GAME_FLAG_B6_NURSERY_PROGRESS) == 1) {
+    } else if (gameFlagGetNibble(GAME_FLAG_B6_NURSERY_PROGRESS) == 1) {
         func_800E8614(D_actor_450800_8013A84C, 1);
     } else {
         func_800E8614(D_actor_450800_8013A8DC, 1);

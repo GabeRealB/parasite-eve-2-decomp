@@ -1376,18 +1376,18 @@ void func_actor_450200_8013219C(void)
 
 void func_actor_450200_80132220(void)
 {
-    switch (GameFlag_GetNibble(GAME_FLAG_OBSERVATORY_COMPANION_TALK_COUNT)) {
+    switch (gameFlagGetNibble(GAME_FLAG_OBSERVATORY_COMPANION_TALK_COUNT)) {
         case 0:
             func_800E8614(D_actor_450200_80138870, 0);
-            GameFlag_SetNibble(GAME_FLAG_OBSERVATORY_COMPANION_TALK_COUNT, 1);
+            gameFlagSetNibble(GAME_FLAG_OBSERVATORY_COMPANION_TALK_COUNT, 1);
             break;
         case 1:
             func_800E8614(D_actor_450200_80138A68, 0);
-            GameFlag_SetNibble(GAME_FLAG_OBSERVATORY_COMPANION_TALK_COUNT, 2);
+            gameFlagSetNibble(GAME_FLAG_OBSERVATORY_COMPANION_TALK_COUNT, 2);
             break;
         case 2:
             func_800E8614(D_actor_450200_80138C60, 0);
-            GameFlag_SetNibble(GAME_FLAG_OBSERVATORY_COMPANION_TALK_COUNT, 3);
+            gameFlagSetNibble(GAME_FLAG_OBSERVATORY_COMPANION_TALK_COUNT, 3);
             break;
         case 3:
             func_800E8614(D_actor_450200_80138E88, 0);
@@ -1397,7 +1397,7 @@ void func_actor_450200_80132220(void)
 
 void func_actor_450200_801322F8(void)
 {
-    if (GameFlag_GetNibble(GAME_FLAG_0D7) != 0) {
+    if (gameFlagGetNibble(GAME_FLAG_0D7) != 0) {
         func_800E8614(D_actor_450200_80139098, 1);
     } else {
         func_neo_ark_observatory_8017FA98(0);

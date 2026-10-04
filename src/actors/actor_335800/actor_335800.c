@@ -1128,7 +1128,7 @@ void func_actor_335800_801622C0(s32 arg0)
             batches           = rec[38].batches;
             batches[2].hidden = arg0;
             batches[3].hidden = arg0;
-            GameFlag_SetNibble(GAME_FLAG_07F, 1);
+            gameFlagSetNibble(GAME_FLAG_07F, 1);
             break;
     }
 }
@@ -1180,7 +1180,7 @@ void func_actor_335800_80162484(void)
 
 void func_actor_335800_801624B8(s32 arg0)
 {
-    GameFlag_SetNibble(GAME_FLAG_STAGE_AMBIENT_MUTED, arg0);
+    gameFlagSetNibble(GAME_FLAG_STAGE_AMBIENT_MUTED, arg0);
 }
 
 void func_actor_335800_801624DC(Task* arg0)

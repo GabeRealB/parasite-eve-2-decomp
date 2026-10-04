@@ -93,7 +93,7 @@ void maggotCaterpillarSpawn(Enemy* ctx, Task* actor)
         variant            = mode - quotient * 10;
         switch (variant) {
             case 0:
-                if (GameFlag_GetNibble(GAME_FLAG_FORKED_ROAD_EVENT_SEEN) == 1) {
+                if (gameFlagGetNibble(GAME_FLAG_FORKED_ROAD_EVENT_SEEN) == 1) {
                     work->animId    = MAGGOT_CATERPILLAR_ANIM_DORMANT;
                     work->behaviour = MAGGOT_CATERPILLAR_BEHAVIOUR_WAIT;
                     work->fallSpeed = 0x80;
@@ -113,7 +113,7 @@ void maggotCaterpillarSpawn(Enemy* ctx, Task* actor)
                 }
                 break;
             case 1:
-                if (GameFlag_GetNibble(GAME_FLAG_ROOF_GARDEN_PROGRESS) == 2) {
+                if (gameFlagGetNibble(GAME_FLAG_ROOF_GARDEN_PROGRESS) == 2) {
                     work->animId    = MAGGOT_CATERPILLAR_ANIM_DORMANT;
                     work->behaviour = MAGGOT_CATERPILLAR_BEHAVIOUR_WAIT;
                     work->fallSpeed = 0x80;

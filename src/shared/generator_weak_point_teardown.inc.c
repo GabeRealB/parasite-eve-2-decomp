@@ -23,10 +23,10 @@ void generatorLifeSupportTeardown(Enemy* arg0, Task* arg1)
             SndEvt_EnqueueType7(parentWork->runningSoundId, 1);
             if (part->kind == GENERATOR_BETA) {
                 func_neo_ark_power_plant_2_8017FD88(0);
-                GameFlag_SetNibble(GAME_FLAG_POWER_PLANT_2_GENERATOR_PART_DOWN, 1);
+                gameFlagSetNibble(GAME_FLAG_POWER_PLANT_2_GENERATOR_PART_DOWN, 1);
             } else {
                 func_neo_ark_power_plant_1_8017E524(0);
-                GameFlag_SetNibble(GAME_FLAG_POWER_PLANT_1_GENERATOR_PART_DOWN, 1);
+                gameFlagSetNibble(GAME_FLAG_POWER_PLANT_1_GENERATOR_PART_DOWN, 1);
             }
         }
         if (part->teardownFrames >= 0x3D) {

@@ -544,7 +544,7 @@ s32 func_neo_ark_eve_access_tunnel_8017DC6C(Task* task, s32 msgId, RoomEventMsg*
     func_map_neo_ark_80179B14(src, dst);
     switch (src->areaId) {
         case GAME_AREA_NEO_ARK_EVE_ELEVATOR:
-            switch (GameFlag_GetNibble(GAME_FLAG_NEO_ARK_EVE_ELEVATOR_UNLOCKED)) {
+            switch (gameFlagGetNibble(GAME_FLAG_NEO_ARK_EVE_ELEVATOR_UNLOCKED)) {
                 case 0:
                     if (src->queryOnly == ROOM_EVENT_EXECUTE) {
                         Gp_SetNibbleIf(src->flagId, 2);
@@ -572,7 +572,7 @@ s32 func_neo_ark_eve_access_tunnel_8017DD70(Task* arg0, s32 arg1, s32 arg2, s32 
     if (gGameSession->location.loc.variant == 0xB) {
         switch (arg2) {
             case 6:
-                if (GameFlag_GetNibble(GAME_FLAG_EVE_ACCESS_TUNNEL_PART_0_DOWN) == 0) {
+                if (gameFlagGetNibble(GAME_FLAG_EVE_ACCESS_TUNNEL_PART_0_DOWN) == 0) {
                     if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
                         Gp_RunCapCmd1(6);
                     }
@@ -581,7 +581,7 @@ s32 func_neo_ark_eve_access_tunnel_8017DD70(Task* arg0, s32 arg1, s32 arg2, s32 
                 }
                 break;
             case 7:
-                if (GameFlag_GetNibble(GAME_FLAG_EVE_ACCESS_TUNNEL_PART_1_DOWN) == 0) {
+                if (gameFlagGetNibble(GAME_FLAG_EVE_ACCESS_TUNNEL_PART_1_DOWN) == 0) {
                     if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
                         Gp_RunCapCmd1(7);
                     }
@@ -599,7 +599,7 @@ s32 func_neo_ark_eve_access_tunnel_8017DE1C(Task* task, s32 msgId, const void* f
     const DirectionActionRequest* request = firstArg;
 
     if (request->actionId == 0xA) {
-        if (GameFlag_GetNibble(GAME_FLAG_0F8) != 0) {
+        if (gameFlagGetNibble(GAME_FLAG_0F8) != 0) {
             Gp_RunCapCmd1(5);
             Task_SpawnFromTable(D_neo_ark_eve_access_tunnel_8017EAC4, 2, 0x1AF, 0);
         } else {
@@ -627,7 +627,7 @@ void func_neo_ark_eve_access_tunnel_8017DED0(Task* arg0)
 {
     if (Gp_CapBusy() == 0) {
         if (Gp_GetCapEventKey() != 0xC) {
-            GameFlag_SetNibble(arg0->spawnArg1.value, 2);
+            gameFlagSetNibble(arg0->spawnArg1.value, 2);
         }
         taskKill(arg0);
     }

@@ -774,7 +774,7 @@ void func_mist_parking_80182A44(Task* task)
                 return;
             }
             for (i = 0; i < 5; i++) {
-                if (GameFlag_GetNibble(i + 0x125) == 2) {
+                if (gameFlagGetNibble(i + 0x125) == 2) {
                     task->state = 2;
                     return;
                 }
@@ -803,8 +803,8 @@ void func_mist_parking_80182A44(Task* task)
                 case 4:
                     for (i = 0; i < 5; i++) {
                         flag = i + 0x125;
-                        if (GameFlag_GetNibble(flag) == 2) {
-                            GameFlag_SetNibble(flag, 3);
+                        if (gameFlagGetNibble(flag) == 2) {
+                            gameFlagSetNibble(flag, 3);
                         }
                     }
                     func_800E8614(D_mist_parking_8018F9A4, 1);
@@ -814,14 +814,14 @@ void func_mist_parking_80182A44(Task* task)
                 case 3:
                     for (i = 0; i < 4; i++) {
                         flag = i + 0x125;
-                        if (GameFlag_GetNibble(flag) == 2 && Gp_GiveItem(Gp_ScanPtrs[3], D_mist_parking_8018FBFC[i], D_mist_parking_8018FC10[i]) != 0) {
-                            GameFlag_SetNibble(flag, 3);
+                        if (gameFlagGetNibble(flag) == 2 && Gp_GiveItem(Gp_ScanPtrs[3], D_mist_parking_8018FBFC[i], D_mist_parking_8018FC10[i]) != 0) {
+                            gameFlagSetNibble(flag, 3);
                             Gp_SetCurBit2Flag(i + 0x20, 2);
                         }
                     }
-                    if (GameFlag_GetNibble(GAME_FLAG_SHOOTING_GALLERY_PRIZE_4_STATE) == 2 && func_800B7420(0x6C) == 0) {
+                    if (gameFlagGetNibble(GAME_FLAG_SHOOTING_GALLERY_PRIZE_4_STATE) == 2 && func_800B7420(0x6C) == 0) {
                         if (Gp_GiveItem(D_8010D55C, 0x6C, 1) != 0) {
-                            GameFlag_SetNibble(GAME_FLAG_SHOOTING_GALLERY_PRIZE_4_STATE, 3);
+                            gameFlagSetNibble(GAME_FLAG_SHOOTING_GALLERY_PRIZE_4_STATE, 3);
                             Gp_SetCurBit2Flag(0x24, 2);
                         }
                     }
@@ -841,7 +841,7 @@ void func_mist_parking_80182A44(Task* task)
             announcement->prizeTimer--;
             if (announcement->prizeTimer == MIST_PARKING_PRIZE_ANNOUNCEMENT_CAPTION_FRAME) {
                 prize = announcement->prizeIndex;
-                if (GameFlag_GetNibble(prize + 0x125) == 2) {
+                if (gameFlagGetNibble(prize + 0x125) == 2) {
                     Gp_StartCapSlot(5, 0, prize);
                 }
                 return;
@@ -851,7 +851,7 @@ void func_mist_parking_80182A44(Task* task)
             }
             prize = announcement->prizeIndex;
             if (Gp_GetCurBit2Flag(prize + 0x20) != 1) {
-                GameFlag_SetNibble(prize + 0x125, 3);
+                gameFlagSetNibble(prize + 0x125, 3);
             }
             announcement->prizeTimer = MIST_PARKING_PRIZE_ANNOUNCEMENT_FRAMES;
             announcement->prizeIndex++;

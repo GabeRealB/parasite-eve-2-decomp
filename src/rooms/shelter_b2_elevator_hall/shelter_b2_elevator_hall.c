@@ -527,7 +527,7 @@ s32 func_shelter_b2_elevator_hall_8017DAD4(Task* arg0, s32 arg1, RoomEventMsg* i
         return ret;
     }
     if (in->areaId == GAME_AREA_SHELTER_B2_ELEVATOR) {
-        if (GameFlag_GetNibble(GAME_FLAG_SHELTER_ELEVATOR_ENABLED) == 0) {
+        if (gameFlagGetNibble(GAME_FLAG_SHELTER_ELEVATOR_ENABLED) == 0) {
             if (in->queryOnly == ROOM_EVENT_EXECUTE) {
                 Gp_SetNibbleIf(in->flagId, 2);
                 Gp_RunCapCmd1(4);
@@ -641,7 +641,7 @@ void func_shelter_b2_elevator_hall_8017DD60(Task* arg0)
         }
         case 5: {
             SVECTOR* p;
-            if (GameFlag_GetNibble(GAME_FLAG_B2_HALL_SOUTH_WALKWAY_DOOR_UNLOCKED) != 0) {
+            if (gameFlagGetNibble(GAME_FLAG_B2_HALL_SOUTH_WALKWAY_DOOR_UNLOCKED) != 0) {
                 glowDrawTintedDisc(D_shelter_b2_elevator_hall_801838A8, 0x100, 0x504C);
             } else {
                 glowDrawTintedDisc(D_shelter_b2_elevator_hall_801838B0, 0x100, 0x5C40);
@@ -654,7 +654,7 @@ void func_shelter_b2_elevator_hall_8017DD60(Task* arg0)
         }
         case 6: {
             SVECTOR* p;
-            if (GameFlag_GetNibble(GAME_FLAG_B2_HALL_SOUTH_WALKWAY_DOOR_UNLOCKED) != 0) {
+            if (gameFlagGetNibble(GAME_FLAG_B2_HALL_SOUTH_WALKWAY_DOOR_UNLOCKED) != 0) {
                 glowDrawTintedDisc(D_shelter_b2_elevator_hall_801838A8, 0x100, 0x504C);
             } else {
                 glowDrawTintedDisc(D_shelter_b2_elevator_hall_801838B0, 0x100, 0x5C40);

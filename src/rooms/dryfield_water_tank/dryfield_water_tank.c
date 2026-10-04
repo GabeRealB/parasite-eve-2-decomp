@@ -948,7 +948,7 @@ void func_dryfield_water_tank_8017D618(Task* arg0)
     task = arg0;
     switch (task->state) {
         case 0:
-            if (GameFlag_GetNibble(GAME_FLAG_WATER_TOWER_MECHANISM_STATE) == 3) {
+            if (gameFlagGetNibble(GAME_FLAG_WATER_TOWER_MECHANISM_STATE) == 3) {
                 Gp_StartCapSlot(0xE, 1, 1);
                 break;
             }
@@ -968,7 +968,7 @@ void func_dryfield_water_tank_8017D618(Task* arg0)
         case 2:
             if (Gp_GetCapEventKey() == 0xA) {
                 gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
-                GameFlag_SetNibble(GAME_FLAG_WATER_TOWER_MECHANISM_STATE, 3);
+                gameFlagSetNibble(GAME_FLAG_WATER_TOWER_MECHANISM_STATE, 3);
                 SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_WATER_TANK, 4), 0, 0);
                 Task_SpawnFromTable(D_dryfield_water_tank_8017FF88, 0, 0, 0);
                 func_dryfield_water_tank_8017DB48();
@@ -1007,17 +1007,17 @@ s32 func_dryfield_water_tank_8017D7EC(Task* task, s32 msgId, const void* firstAr
     const DirectionActionRequest* request = firstArg;
 
     if (request->actionId == 1) {
-        if (GameFlag_GetNibble(GAME_FLAG_DRYFIELD_WATER_TANK_036) == 0) {
-            GameFlag_SetNibble(GAME_FLAG_DRYFIELD_WATER_TANK_036, 1);
+        if (gameFlagGetNibble(GAME_FLAG_DRYFIELD_WATER_TANK_036) == 0) {
+            gameFlagSetNibble(GAME_FLAG_DRYFIELD_WATER_TANK_036, 1);
             Task_SpawnFromTable(D_dryfield_water_tank_8017F34C, 0, 0, 0);
-            GameFlag_SetNibble(GAME_FLAG_BREEZEWAY_FACTORY_DOOR_PROGRESS, 1);
+            gameFlagSetNibble(GAME_FLAG_BREEZEWAY_FACTORY_DOOR_PROGRESS, 1);
         }
     }
-    if ((request->actionId == 2) && (GameFlag_GetNibble(GAME_FLAG_WATER_TANK_SCENE_SEEN) == 0)) {
-        GameFlag_SetNibble(GAME_FLAG_WATER_TANK_SCENE_SEEN, 1);
+    if ((request->actionId == 2) && (gameFlagGetNibble(GAME_FLAG_WATER_TANK_SCENE_SEEN) == 0)) {
+        gameFlagSetNibble(GAME_FLAG_WATER_TANK_SCENE_SEEN, 1);
         func_800E3FAC(0xA2, 0xE);
-        GameFlag_SetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
-        GameFlag_SetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 3);
+        gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
+        gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 3);
         Gp_ApplyAreaRecs(D_dryfield_water_tank_80188D1C);
         Gp_MsgPlayerWeapon(0);
         func_800E8634(D_dryfield_water_tank_80184E0C, 0, D_dryfield_water_tank_801859DC);
@@ -1117,7 +1117,7 @@ void func_dryfield_water_tank_8017DAF0(Task* task)
 
 static void func_dryfield_water_tank_8017DB48(void)
 {
-    switch (GameFlag_GetNibble(GAME_FLAG_WATER_TOWER_MECHANISM_STATE)) {
+    switch (gameFlagGetNibble(GAME_FLAG_WATER_TOWER_MECHANISM_STATE)) {
         case 0:
         case 1:
         case 2:

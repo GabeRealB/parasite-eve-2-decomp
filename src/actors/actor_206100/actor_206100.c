@@ -3730,7 +3730,7 @@ static void func_actor_206100_8014FBE4(Task* task)
     work->goalY = work->waterLevel;
     worldTargetUnlinkNode(&enemy->node);
     Gp_ReleaseStateF0Add(task, 0);
-    GameFlag_SetNibble(GAME_FLAG_0F3, 1);
+    gameFlagSetNibble(GAME_FLAG_0F3, 1);
     enemy->recs = 0;
     Gp_UnlinkObj(&work->trunkBody);
     Gp_UnlinkObj(&work->headBody);

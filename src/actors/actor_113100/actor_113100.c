@@ -1671,7 +1671,7 @@ static void func_actor_113100_80132B30(Task* task)
     node->parent       = &part[index];
 
     taskReparent(parent, task);
-    if (GameFlag_GetNibble(GAME_FLAG_0F1) == 0) {
+    if (gameFlagGetNibble(GAME_FLAG_0F1) == 0) {
         model->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
     } else {
         model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -1754,7 +1754,7 @@ static void func_actor_113100_80132F40(Task* arg0)
     s32                              flag;
 
     work = arg0->work;
-    flag = GameFlag_GetNibble(GAME_FLAG_0ED);
+    flag = gameFlagGetNibble(GAME_FLAG_0ED);
     if (flag > 0 && work->lastAppearFlag == 0) {
         func_actor_113100_80132790(arg0, 0, 1, 0);
         func_mist_parking_80183BAC(0);

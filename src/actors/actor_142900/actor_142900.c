@@ -789,7 +789,7 @@ void func_actor_142900_80131F5C(void)
 {
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 9) {
         Gp_ApplyAreaRecs(D_shelter_b2_elevator_8017E9F8);
-        GameFlag_SetNibble(GAME_FLAG_COMPANION_1_SCHEDULE, 0);
+        gameFlagSetNibble(GAME_FLAG_COMPANION_1_SCHEDULE, 0);
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = 0x1B;
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = 2;
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 1;

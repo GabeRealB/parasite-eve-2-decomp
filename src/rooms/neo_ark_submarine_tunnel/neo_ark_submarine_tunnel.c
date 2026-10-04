@@ -228,14 +228,14 @@ s32 func_neo_ark_submarine_tunnel_8017F064(Task* arg0, s32 arg1, RoomEventMsg* a
     u8 temp_s0_4;
 
     temp_s0 = arg2->warp;
-    if ((temp_s0 == 1) && (GameFlag_GetNibble(GAME_FLAG_SUBMARINE_TUNNEL_PROGRESS) == temp_s0) && (gGameSession->location.loc.variant == 3)) {
+    if ((temp_s0 == 1) && (gameFlagGetNibble(GAME_FLAG_SUBMARINE_TUNNEL_PROGRESS) == temp_s0) && (gGameSession->location.loc.variant == 3)) {
         func_800E3FAC(0xA2, 0x35);
-        GameFlag_SetNibble(GAME_FLAG_SUBMARINE_TUNNEL_PROGRESS, 2);
-        GameFlag_SetNibble(GAME_FLAG_SCENE_MUSIC_OVERRIDE, 1);
+        gameFlagSetNibble(GAME_FLAG_SUBMARINE_TUNNEL_PROGRESS, 2);
+        gameFlagSetNibble(GAME_FLAG_SCENE_MUSIC_OVERRIDE, 1);
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 0x1A;
         func_800E8634(D_actor_451100_80135220, 0, D_actor_451100_80135FD0);
     }
-    if ((arg2->warp == 2) && (GameFlag_GetNibble(GAME_FLAG_SUBMARINE_TUNNEL_EVENT_SEEN) == 0)) {
+    if ((arg2->warp == 2) && (gameFlagGetNibble(GAME_FLAG_SUBMARINE_TUNNEL_EVENT_SEEN) == 0)) {
         temp_s0_2 = gGameSession->location.loc.variant;
         if (temp_s0_2 == 1) {
             func_800E8614(D_neo_ark_submarine_tunnel_80181AF0, 0);
@@ -243,8 +243,8 @@ s32 func_neo_ark_submarine_tunnel_8017F064(Task* arg0, s32 arg1, RoomEventMsg* a
         }
     }
     temp_s0_3 = arg2->warp;
-    if ((temp_s0_3 == 3) && (D_neo_ark_submarine_tunnel_80181DF0 == 0) && (gGameSession->location.loc.warp == 2) && (GameFlag_GetNibble(GAME_FLAG_SUBMARINE_TUNNEL_PROGRESS) == 0) && (gGameSession->location.loc.variant == temp_s0_3)) {
-        GameFlag_SetNibble(GAME_FLAG_SUBMARINE_TUNNEL_PROGRESS, 1);
+    if ((temp_s0_3 == 3) && (D_neo_ark_submarine_tunnel_80181DF0 == 0) && (gGameSession->location.loc.warp == 2) && (gameFlagGetNibble(GAME_FLAG_SUBMARINE_TUNNEL_PROGRESS) == 0) && (gGameSession->location.loc.variant == temp_s0_3)) {
+        gameFlagSetNibble(GAME_FLAG_SUBMARINE_TUNNEL_PROGRESS, 1);
         func_800E8614(D_actor_451100_80136108, 0);
         D_neo_ark_submarine_tunnel_80181DF0 = 1;
     }
@@ -295,7 +295,7 @@ s32 func_neo_ark_submarine_tunnel_8017F2C8(Task* task, s32 msgId, s32 arg2, s32 
 
 void func_neo_ark_submarine_tunnel_8017F398(s32 arg0)
 {
-    GameFlag_SetNibble(GAME_FLAG_SUBMARINE_TUNNEL_EVENT_SEEN, arg0);
+    gameFlagSetNibble(GAME_FLAG_SUBMARINE_TUNNEL_EVENT_SEEN, arg0);
 }
 
 /// First state of the room task: installs the room's message table, publishes

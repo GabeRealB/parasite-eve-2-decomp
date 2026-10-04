@@ -1697,8 +1697,8 @@ PCinit                      = 0x8004AC4C;
 //--------------------------------------------------------------------
 //--- PA: 0x3B458   VA: 0x8004AC58   subsegment: c, 3B458
 //--------------------------------------------------------------------
-GameFlag_SetNibble               = 0x8004AC58; // type:func
-GameFlag_GetNibble               = 0x8004ACAC; // type:func
+gameFlagSetNibble               = 0x8004AC58; // type:func
+gameFlagGetNibble               = 0x8004ACAC; // type:func
 Pad_CheckFlag800               = 0x8004ACF0; // type:func
 
 //--------------------------------------------------------------------

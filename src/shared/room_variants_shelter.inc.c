@@ -10,23 +10,23 @@ s32 roomVariantResolveShelter(RoomEventMsg* arg0, RoomEventMsg* arg1)
     if (arg0->queryOnly == ROOM_EVENT_EXECUTE) {
         switch (arg0->areaId) {
             case GAME_AREA_MINE_CAVERN:
-                if (GameFlag_GetNibble(GAME_FLAG_MINE_CAVERN_INTRO_SEEN) != 0) {
+                if (gameFlagGetNibble(GAME_FLAG_MINE_CAVERN_INTRO_SEEN) != 0) {
                     arg1->room = 2;
                 }
-                if (GameFlag_GetNibble(GAME_FLAG_MINE_SECRET_PASSAGE_PROGRESS) >= 2) {
+                if (gameFlagGetNibble(GAME_FLAG_MINE_SECRET_PASSAGE_PROGRESS) >= 2) {
                     arg1->room = 3;
                 }
                 break;
             case GAME_AREA_MINE_GORGE:
-                arg1->room = GameFlag_GetNibble(GAME_FLAG_MINE_GORGE_TRIGGER_EVENT_DONE) + 1;
+                arg1->room = gameFlagGetNibble(GAME_FLAG_MINE_GORGE_TRIGGER_EVENT_DONE) + 1;
                 break;
             case GAME_AREA_SHELTER_B1_STERILIZATION_ROOM:
-                if (GameFlag_GetNibble(GAME_FLAG_STORY_CHAPTER) >= 6) {
+                if (gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) >= 6) {
                     arg1->room = 3;
                 }
                 break;
             case GAME_AREA_SHELTER_B1_UNDERGROUND_PARKING:
-                switch (GameFlag_GetNibble(GAME_FLAG_UNDERGROUND_PARKING_STATE)) {
+                switch (gameFlagGetNibble(GAME_FLAG_UNDERGROUND_PARKING_STATE)) {
                     case 0:
                         arg1->room = 1;
                         break;
@@ -45,10 +45,10 @@ s32 roomVariantResolveShelter(RoomEventMsg* arg0, RoomEventMsg* arg1)
                 }
                 break;
             case GAME_AREA_SHELTER_B4_RESERVOIR:
-                arg1->room = GameFlag_GetNibble(GAME_FLAG_B4_RESERVOIR_EVENT_DONE) + 1;
+                arg1->room = gameFlagGetNibble(GAME_FLAG_B4_RESERVOIR_EVENT_DONE) + 1;
                 break;
             case GAME_AREA_SHELTER_B3_INCINERATOR_CONTROL_ROOM:
-                arg1->room = GameFlag_GetNibble(GAME_FLAG_INCINERATOR_CONTROL_ROOM_STATE) + 1;
+                arg1->room = gameFlagGetNibble(GAME_FLAG_INCINERATOR_CONTROL_ROOM_STATE) + 1;
                 break;
             case GAME_AREA_MINE_TUNNEL_ENTRANCE:
             case GAME_AREA_MINE_TUNNEL:

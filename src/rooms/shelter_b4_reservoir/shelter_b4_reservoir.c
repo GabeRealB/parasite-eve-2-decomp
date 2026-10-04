@@ -1025,10 +1025,10 @@ void func_shelter_b4_reservoir_8017DE8C(Task* task)
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 2;
                 gGameSession->location.loc.room                            = 2;
                 gGameSession->roomObjsDirty                                = 1;
-                GameFlag_SetNibble(GAME_FLAG_B4_RESERVOIR_EVENT_DONE, 1);
-                GameFlag_SetNibble(GAME_FLAG_MAP_MARK_RESERVOIR_1BF, 2);
-                GameFlag_SetNibble(GAME_FLAG_INCINERATOR_CONTROL_ROOM_STATE, 1);
-                GameFlag_SetNibble(GAME_FLAG_MAP_MARK_RESERVOIR_1BE, 2);
+                gameFlagSetNibble(GAME_FLAG_B4_RESERVOIR_EVENT_DONE, 1);
+                gameFlagSetNibble(GAME_FLAG_MAP_MARK_RESERVOIR_1BF, 2);
+                gameFlagSetNibble(GAME_FLAG_INCINERATOR_CONTROL_ROOM_STATE, 1);
+                gameFlagSetNibble(GAME_FLAG_MAP_MARK_RESERVOIR_1BE, 2);
                 Gp_ApplyAreaRecs(D_shelter_b4_reservoir_801874A0);
                 D_80114D08 = 0xA;
                 taskKill(task);
@@ -1106,7 +1106,7 @@ s32 func_shelter_b4_reservoir_8017E264(Task* task, s32 msgId, RoomEventMsg* src,
     *dst = *src;
     func_map_shelter_80179A04(src, dst);
     if (src->areaId == GAME_AREA_SHELTER_B4_UPPER_SEWER) {
-        if (GameFlag_GetNibble(GAME_FLAG_B4_RESERVOIR_EVENT_DONE) == 1) {
+        if (gameFlagGetNibble(GAME_FLAG_B4_RESERVOIR_EVENT_DONE) == 1) {
             if (src->queryOnly == ROOM_EVENT_EXECUTE) {
                 Gp_SetNibbleIf(src->flagId, 2);
                 Gp_RunCapCmd1(2);
@@ -1263,7 +1263,7 @@ static void func_shelter_b4_reservoir_8017E7C8(Task* arg0)
     arg0->msgTable = D_shelter_b4_reservoir_801848BC;
     gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     Task_SpawnFromTable(D_shelter_b4_reservoir_80184F84, 0, 0, 0);
-    if (GameFlag_GetNibble(GAME_FLAG_B4_RESERVOIR_EVENT_DONE) != 0) {
+    if (gameFlagGetNibble(GAME_FLAG_B4_RESERVOIR_EVENT_DONE) != 0) {
         D_shelter_b4_reservoir_80184F80 = -0x1F4;
     } else {
         D_shelter_b4_reservoir_80184F80 = -0x7D0;
@@ -1679,7 +1679,7 @@ void func_shelter_b4_reservoir_8017FB84(Task* task)
         }
     }
     if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
-        if (GameFlag_GetNibble(GAME_FLAG_B4_RESERVOIR_EVENT_DONE) != 0) {
+        if (gameFlagGetNibble(GAME_FLAG_B4_RESERVOIR_EVENT_DONE) != 0) {
             // `age` counts the frames run with the event done; the splash pass waits for the second.
             if (gGameSession->waterY < root->coord.t[1] && work->age != 0) {
                 for (i = 0; i < 2; i++) {
@@ -1750,7 +1750,7 @@ void func_shelter_b4_reservoir_8017FB84(Task* task)
             glowDrawCapsule(&D_shelter_b4_reservoir_80185024[0], 0x200, 0x222);
             glowDrawCapsule(&D_shelter_b4_reservoir_80185024[6], 0x200, 0x444);
             glowDrawCapsule(&D_shelter_b4_reservoir_80185024[8], 0x200, 0x333);
-            if (GameFlag_GetNibble(GAME_FLAG_B4_RESERVOIR_EVENT_DONE) != 0) {
+            if (gameFlagGetNibble(GAME_FLAG_B4_RESERVOIR_EVENT_DONE) != 0) {
                 glowDrawTintedDiscNoBias(&D_shelter_b4_reservoir_80185024[12], 0x100, 0x504C);
             } else {
                 glowDrawTintedDiscNoBias(&D_shelter_b4_reservoir_80185024[12], 0x100, 0x5C40);
@@ -1758,14 +1758,14 @@ void func_shelter_b4_reservoir_8017FB84(Task* task)
             break;
         case 5:
             glowDrawCapsule(&D_shelter_b4_reservoir_80185024[0], 0x200, 0x444);
-            if (GameFlag_GetNibble(GAME_FLAG_B4_RESERVOIR_EVENT_DONE) != 0) {
+            if (gameFlagGetNibble(GAME_FLAG_B4_RESERVOIR_EVENT_DONE) != 0) {
                 glowDrawTintedDiscNoBias(&D_shelter_b4_reservoir_80185024[12], 0x100, 0x504C);
             } else {
                 glowDrawTintedDiscNoBias(&D_shelter_b4_reservoir_80185024[12], 0x100, 0x5C40);
             }
             break;
         case 6:
-            if (GameFlag_GetNibble(GAME_FLAG_B4_RESERVOIR_EVENT_DONE) != 0) {
+            if (gameFlagGetNibble(GAME_FLAG_B4_RESERVOIR_EVENT_DONE) != 0) {
                 glowDrawTintedDiscNoBias(&D_shelter_b4_reservoir_80185024[12], 0x100, 0x504C);
             } else {
                 glowDrawTintedDiscNoBias(&D_shelter_b4_reservoir_80185024[12], 0x100, 0x5C40);

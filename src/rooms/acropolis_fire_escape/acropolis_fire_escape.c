@@ -616,8 +616,8 @@ s32 func_acropolis_fire_escape_8017F9F8(Task* task, s32 msgId, s32 event, s32 ar
     s32   result;
 
     if (event == 4) {
-        if (GameFlag_GetNibble(GAME_FLAG_FIRE_ESCAPE_FIRST_SCENE) == 0) {
-            GameFlag_SetNibble(GAME_FLAG_FIRE_ESCAPE_FIRST_SCENE, 1);
+        if (gameFlagGetNibble(GAME_FLAG_FIRE_ESCAPE_FIRST_SCENE) == 0) {
+            gameFlagSetNibble(GAME_FLAG_FIRE_ESCAPE_FIRST_SCENE, 1);
             Gp_RunCapCmd1(0xB);
             return 0;
         }
@@ -632,9 +632,9 @@ s32 func_acropolis_fire_escape_8017F9F8(Task* task, s32 msgId, s32 event, s32 ar
         Task_SpawnFromTable(gRoomCutsceneTaskDescs, 0, 3, &D_acropolis_fire_escape_80183048);
     }
     if (event == 3) {
-        if (GameFlag_GetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX) < 6) {
-            GameFlag_SetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
-            GameFlag_SetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 6);
+        if (gameFlagGetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX) < 6) {
+            gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
+            gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 6);
         }
         Gp_SpawnIfCapIdle(3, 1);
         func_800E3FAC(0xA2, 7);
@@ -726,7 +726,7 @@ s32 func_acropolis_fire_escape_8017FD98(Task* task, s32 msgId, RoomEventMsg* src
         SndEvt_EnqueueType7(SOUND_ACROPOLIS_FIRE_ESCAPE_AMBIENCE, 0xF);
     }
     if (src->areaId == GAME_AREA_ACROPOLIS_BRIDGE && src->queryOnly == ROOM_EVENT_EXECUTE) {
-        if (GameFlag_GetNibble(GAME_FLAG_ACROPOLIS_BRIDGE_PROGRESS) == 3) {
+        if (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_BRIDGE_PROGRESS) == 3) {
             dst->room = 2;
         } else {
             dst->room = 1;

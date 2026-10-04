@@ -1153,46 +1153,46 @@ void func_dryfield_night_motel_balcony_8017E250(s16 arg0, s16 arg1)
     }
     switch (arg0) {
         case 0:
-            GameFlag_SetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_0_STATE, arg1);
+            gameFlagSetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_0_STATE, arg1);
             break;
         case 1:
-            GameFlag_SetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_1_STATE, arg1);
+            gameFlagSetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_1_STATE, arg1);
             break;
         case 2:
-            GameFlag_SetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_2_STATE, arg1);
+            gameFlagSetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_2_STATE, arg1);
             break;
         case 3:
-            GameFlag_SetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_3_STATE, arg1);
+            gameFlagSetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_3_STATE, arg1);
             break;
         case 4:
-            GameFlag_SetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_4_STATE, arg1);
+            gameFlagSetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_4_STATE, arg1);
             break;
         case 5:
-            GameFlag_SetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_5_STATE, arg1);
+            gameFlagSetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_5_STATE, arg1);
             break;
         case 6:
-            GameFlag_SetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_6_STATE, arg1);
+            gameFlagSetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_6_STATE, arg1);
             break;
         case 7:
-            GameFlag_SetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_7_STATE, arg1);
+            gameFlagSetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_7_STATE, arg1);
             break;
         case 8:
-            GameFlag_SetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_8_STATE, arg1);
+            gameFlagSetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_8_STATE, arg1);
             break;
     }
 }
 
 void func_dryfield_night_motel_balcony_8017E3C8(void)
 {
-    func_dryfield_night_motel_balcony_8017E250(0, GameFlag_GetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_0_STATE));
-    func_dryfield_night_motel_balcony_8017E250(1, GameFlag_GetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_1_STATE));
-    func_dryfield_night_motel_balcony_8017E250(2, GameFlag_GetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_2_STATE));
-    func_dryfield_night_motel_balcony_8017E250(3, GameFlag_GetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_3_STATE));
-    func_dryfield_night_motel_balcony_8017E250(4, GameFlag_GetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_4_STATE));
-    func_dryfield_night_motel_balcony_8017E250(5, GameFlag_GetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_5_STATE));
-    func_dryfield_night_motel_balcony_8017E250(6, GameFlag_GetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_6_STATE));
-    func_dryfield_night_motel_balcony_8017E250(7, GameFlag_GetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_7_STATE));
-    func_dryfield_night_motel_balcony_8017E250(8, GameFlag_GetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_8_STATE));
+    func_dryfield_night_motel_balcony_8017E250(0, gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_0_STATE));
+    func_dryfield_night_motel_balcony_8017E250(1, gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_1_STATE));
+    func_dryfield_night_motel_balcony_8017E250(2, gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_2_STATE));
+    func_dryfield_night_motel_balcony_8017E250(3, gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_3_STATE));
+    func_dryfield_night_motel_balcony_8017E250(4, gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_4_STATE));
+    func_dryfield_night_motel_balcony_8017E250(5, gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_5_STATE));
+    func_dryfield_night_motel_balcony_8017E250(6, gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_6_STATE));
+    func_dryfield_night_motel_balcony_8017E250(7, gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_7_STATE));
+    func_dryfield_night_motel_balcony_8017E250(8, gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_8_STATE));
 }
 
 void func_dryfield_night_motel_balcony_8017E4B8(void)

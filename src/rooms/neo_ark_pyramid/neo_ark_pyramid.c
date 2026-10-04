@@ -530,9 +530,9 @@ void func_neo_ark_pyramid_8017D600(Task* task)
             count               = task->killCountdown + 4;
             task->killCountdown = count;
             if ((s16)count >= 0x156) {
-                GameFlag_SetNibble(GAME_FLAG_NEO_ARK_PYRAMID_TURN_COUNT, GameFlag_GetNibble(GAME_FLAG_NEO_ARK_PYRAMID_TURN_COUNT) + 1);
+                gameFlagSetNibble(GAME_FLAG_NEO_ARK_PYRAMID_TURN_COUNT, gameFlagGetNibble(GAME_FLAG_NEO_ARK_PYRAMID_TURN_COUNT) + 1);
                 func_neo_ark_pyramid_8017DAC0(0);
-                if (GameFlag_GetNibble(GAME_FLAG_NEO_ARK_PYRAMID_TURN_COUNT) >= 4) {
+                if (gameFlagGetNibble(GAME_FLAG_NEO_ARK_PYRAMID_TURN_COUNT) >= 4) {
                     SndEvt_EnqueueType6(SOUND_NEO_ARK_PYRAMID_ROTATE_DONE, 0, 0);
                     Gp_RunCapCmd(2, 0);
                     task->state++;
@@ -640,7 +640,7 @@ s32 func_neo_ark_pyramid_8017DA44(Task* task, s32 msgId, const void* firstArg, s
 
     if (request->actionId == 1) {
         func_neo_ark_pyramid_8017DAC0(0);
-        if (GameFlag_GetNibble(GAME_FLAG_NEO_ARK_PYRAMID_TURN_COUNT) == 4) {
+        if (gameFlagGetNibble(GAME_FLAG_NEO_ARK_PYRAMID_TURN_COUNT) == 4) {
             Gp_SpawnIfCapIdle(3, 1);
         } else {
             Gp_MsgPlayerWeapon(0);
@@ -655,7 +655,7 @@ s32 func_neo_ark_pyramid_8017DA44(Task* task, s32 msgId, const void* firstArg, s
 /// 0xEC, less four, plus the in-progress sweep `arg0`.
 static void func_neo_ark_pyramid_8017DAC0(s32 arg0)
 {
-    D_neo_ark_pyramid_801818A4 = (((GameFlag_GetNibble(GAME_FLAG_NEO_ARK_PYRAMID_TURN_COUNT) - 4) << 0xC) / 12) + arg0;
+    D_neo_ark_pyramid_801818A4 = (((gameFlagGetNibble(GAME_FLAG_NEO_ARK_PYRAMID_TURN_COUNT) - 4) << 0xC) / 12) + arg0;
 }
 
 /// State 0 of the room's entry task: parks the room's message table in

@@ -9,15 +9,15 @@ s32 roomVariantResolveNeoArk(RoomEventMsg* arg0, RoomEventMsg* arg1)
     if (arg0->queryOnly == ROOM_EVENT_EXECUTE) {
         switch (arg0->areaId) {
             case GAME_AREA_NEO_ARK_OBSERVATORY:
-                arg1->room = GameFlag_GetNibble(GAME_FLAG_0E1) + 1;
+                arg1->room = gameFlagGetNibble(GAME_FLAG_0E1) + 1;
                 break;
             case GAME_AREA_NEO_ARK_PAVILION:
-                arg1->room = GameFlag_GetNibble(GAME_FLAG_NEO_ARK_ALTAR_SWITCH_STATE) + 1;
+                arg1->room = gameFlagGetNibble(GAME_FLAG_NEO_ARK_ALTAR_SWITCH_STATE) + 1;
                 break;
             case GAME_AREA_NEO_ARK_ALTAR:
                 arg1->room = 1;
-                if (GameFlag_GetNibble(GAME_FLAG_NEO_ARK_ALTAR_SEQUENCE_2_SOLVED) != 0) {
-                    if (GameFlag_GetNibble(GAME_FLAG_NEO_ARK_ALTAR_SEQUENCE_1_SOLVED) != 0) {
+                if (gameFlagGetNibble(GAME_FLAG_NEO_ARK_ALTAR_SEQUENCE_2_SOLVED) != 0) {
+                    if (gameFlagGetNibble(GAME_FLAG_NEO_ARK_ALTAR_SEQUENCE_1_SOLVED) != 0) {
                         arg1->room = 3;
                     } else {
                         arg1->room = 2;
@@ -25,14 +25,14 @@ s32 roomVariantResolveNeoArk(RoomEventMsg* arg0, RoomEventMsg* arg1)
                 }
                 break;
             case GAME_AREA_NEO_ARK_SHRINE:
-                if (GameFlag_GetNibble(GAME_FLAG_0E9) != 0) {
+                if (gameFlagGetNibble(GAME_FLAG_0E9) != 0) {
                     arg1->room = 4;
                 } else {
                     arg1->room = 1;
                 }
                 break;
             case GAME_AREA_NEO_ARK_PYRAMID:
-                arg1->room = GameFlag_GetNibble(GAME_FLAG_NEO_ARK_ALTAR_SEQUENCE_2_SOLVED) + 1;
+                arg1->room = gameFlagGetNibble(GAME_FLAG_NEO_ARK_ALTAR_SEQUENCE_2_SOLVED) + 1;
                 break;
             case GAME_AREA_NEO_ARK_EVE_ACCESS_TUNNEL:
             case GAME_AREA_NEO_ARK_EVE_ELEVATOR:

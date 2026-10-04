@@ -117,7 +117,7 @@ s32 func_mine_tunnel_8017D5EC(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventM
 s32 func_mine_tunnel_8017D630(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 2) {
-        Gp_RunCapCmd1(GameFlag_GetNibble(GAME_FLAG_MINE_SECRET_PASSAGE_PROGRESS) >= 2 ? 3 : 2);
+        Gp_RunCapCmd1(gameFlagGetNibble(GAME_FLAG_MINE_SECRET_PASSAGE_PROGRESS) >= 2 ? 3 : 2);
     }
     return 0;
 }
@@ -127,8 +127,8 @@ s32 func_mine_tunnel_8017D670(Task* arg0, s32 arg1, RoomEventMsg* msg, s32 arg3)
     u8 temp_v1;
 
     temp_v1 = msg->warp;
-    if ((temp_v1 == 1) && (gGameSession->location.loc.variant == temp_v1) && (GameFlag_GetNibble(GAME_FLAG_MINE_TUNNEL_EVENT_SEEN) == 0)) {
-        GameFlag_SetNibble(GAME_FLAG_MINE_TUNNEL_EVENT_SEEN, 1);
+    if ((temp_v1 == 1) && (gGameSession->location.loc.variant == temp_v1) && (gameFlagGetNibble(GAME_FLAG_MINE_TUNNEL_EVENT_SEEN) == 0)) {
+        gameFlagSetNibble(GAME_FLAG_MINE_TUNNEL_EVENT_SEEN, 1);
         Gp_MsgPlayerWeapon(0);
         func_800E8614(D_mine_tunnel_8017E024, 1);
     }
@@ -150,7 +150,7 @@ static void func_mine_tunnel_8017D6EC(Task* arg0)
 {
     arg0->msgTable = D_mine_tunnel_8017DFC4;
     gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
-    if ((gGameSession->location.loc.variant == 1) && (GameFlag_GetNibble(GAME_FLAG_MINE_TUNNEL_EVENT_SEEN) == 1)) {
+    if ((gGameSession->location.loc.variant == 1) && (gameFlagGetNibble(GAME_FLAG_MINE_TUNNEL_EVENT_SEEN) == 1)) {
         func_mine_tunnel_8017D6E0(2);
     }
     arg0->state           = (s32)(arg0->state + 1);

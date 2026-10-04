@@ -10,6 +10,13 @@
 #include "gameplay/captions.h"
 #include "gameplay/evs_scripts.h"
 
+/// Bit layout of the two game flags stored in each payload byte.
+enum {
+    GAME_FLAG_BITS_PER_NIBBLE  = 4,
+    GAME_FLAG_NIBBLE_MASK      = (1 << GAME_FLAG_BITS_PER_NIBBLE) - 1,
+    GAME_FLAG_HIGH_NIBBLE_MASK = GAME_FLAG_NIBBLE_MASK << GAME_FLAG_BITS_PER_NIBBLE
+};
+
 TaskDesc D_80067734[] = {
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
@@ -32,29 +39,33 @@ TaskDesc D_80067734[] = {
     { { { TASK_DESC_END, 0x20 } }, NULL },
 };
 
-void GameFlag_SetNibble(s32 index, s32 value)
+void gameFlagSetNibble(s32 flagId, s32 value)
 {
-    s32 idx;
+    s32 byteIndex = flagId / 2;
 
-    idx = index / 2;
-    if (index & 1) {
-        gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_LIVE].payload.packedFlags[idx] =
-            (gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_LIVE].payload.packedFlags[idx] & 0xF0) | (value & 0xF);
+    // Preserve the neighboring flag in the same saved byte.
+    if (flagId & 1) {
+        GameFlagNibbleBank* liveBank = &gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_LIVE];
+        liveBank->payload.packedFlags[byteIndex] =
+            (liveBank->payload.packedFlags[byteIndex] & GAME_FLAG_HIGH_NIBBLE_MASK) | (value & GAME_FLAG_NIBBLE_MASK);
     } else {
-        gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_LIVE].payload.packedFlags[idx] =
-            (gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_LIVE].payload.packedFlags[idx] & 0xF) | (value << 4);
+        GameFlagNibbleBank* liveBank = &gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_LIVE];
+        liveBank->payload.packedFlags[byteIndex] =
+            (liveBank->payload.packedFlags[byteIndex] & GAME_FLAG_NIBBLE_MASK) | (value << GAME_FLAG_BITS_PER_NIBBLE);
     }
 }
 
-s32 GameFlag_GetNibble(s32 index)
+s32 gameFlagGetNibble(s32 flagId)
 {
-    s32 idx;
+    s32 byteIndex = flagId / 2;
 
-    idx = index / 2;
-    if (index & 1) {
-        return gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_LIVE].payload.packedFlags[idx] & 0xF;
+    if (flagId & 1) {
+        const GameFlagNibbleBank* liveBank = &gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_LIVE];
+        return liveBank->payload.packedFlags[byteIndex] & GAME_FLAG_NIBBLE_MASK;
+    } else {
+        const GameFlagNibbleBank* liveBank = &gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_LIVE];
+        return liveBank->payload.packedFlags[byteIndex] >> GAME_FLAG_BITS_PER_NIBBLE;
     }
-    return gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_LIVE].payload.packedFlags[idx] >> 4;
 }
 
 s32 Pad_CheckFlag800(void)

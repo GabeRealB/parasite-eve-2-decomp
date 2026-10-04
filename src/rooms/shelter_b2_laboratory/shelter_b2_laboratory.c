@@ -1073,14 +1073,14 @@ s32 func_shelter_b2_laboratory_8017FD18(Task* arg0, s32 arg1, s32 arg2, s32 arg3
 {
     if (arg2 == 4) {
         D_shelter_b2_laboratory_801864B8 = 0;
-        if (GameFlag_GetNibble(GAME_FLAG_SHELTER_B2_LABORATORY_PROGRESS) == 2) {
+        if (gameFlagGetNibble(GAME_FLAG_SHELTER_B2_LABORATORY_PROGRESS) == 2) {
             func_shelter_b2_laboratory_801820F4(0);
-            GameFlag_SetNibble(GAME_FLAG_SHELTER_B2_LABORATORY_PROGRESS, 3);
-            GameFlag_SetNibble(GAME_FLAG_B1_POD_TUNNEL_R47_DOOR_UNLOCKED, 1);
-            GameFlag_SetNibble(GAME_FLAG_MAP_MARK_B2_LABORATORY, 0);
-            GameFlag_SetNibble(GAME_FLAG_SHELTER_B2_LABORATORY_017, 1);
-            GameFlag_SetNibble(GAME_FLAG_SHELTER_B2_LABORATORY_018, 1);
-            if (GameFlag_GetNibble(GAME_FLAG_083) != 0) {
+            gameFlagSetNibble(GAME_FLAG_SHELTER_B2_LABORATORY_PROGRESS, 3);
+            gameFlagSetNibble(GAME_FLAG_B1_POD_TUNNEL_R47_DOOR_UNLOCKED, 1);
+            gameFlagSetNibble(GAME_FLAG_MAP_MARK_B2_LABORATORY, 0);
+            gameFlagSetNibble(GAME_FLAG_SHELTER_B2_LABORATORY_017, 1);
+            gameFlagSetNibble(GAME_FLAG_SHELTER_B2_LABORATORY_018, 1);
+            if (gameFlagGetNibble(GAME_FLAG_083) != 0) {
                 func_800E3FAC(0xA2, 0x28);
             } else {
                 func_800E3FAC(0xA2, 0x29);
@@ -1181,7 +1181,7 @@ s32 func_shelter_b2_laboratory_801800FC(Task* arg0, s32 arg1, RoomEventMsg* in, 
 
     *out = *in;
     func_map_shelter_80179A04(in, out);
-    if (GameFlag_GetNibble(GAME_FLAG_SHELTER_B2_LABORATORY_PROGRESS) == 2) {
+    if (gameFlagGetNibble(GAME_FLAG_SHELTER_B2_LABORATORY_PROGRESS) == 2) {
         if (in->queryOnly == ROOM_EVENT_EXECUTE) {
             Gp_RunCapCmd1(5);
         }
@@ -1207,15 +1207,15 @@ s32 func_shelter_b2_laboratory_801801D0(Task* task, s32 msgId, const void* first
     const DirectionActionRequest* request = firstArg;
 
     if (request->actionId == 1) {
-        if (GameFlag_GetNibble(GAME_FLAG_LABORATORY_CONSOLE_FIRST_USE) != 0) {
-            if (GameFlag_GetNibble(GAME_FLAG_SHELTER_B2_LABORATORY_PROGRESS) < 2) {
+        if (gameFlagGetNibble(GAME_FLAG_LABORATORY_CONSOLE_FIRST_USE) != 0) {
+            if (gameFlagGetNibble(GAME_FLAG_SHELTER_B2_LABORATORY_PROGRESS) < 2) {
                 Task_SpawnFromTable(D_shelter_b2_laboratory_80182A6C, 0, 0, 0);
             } else {
                 Gp_RunCapCmd1(6);
             }
         } else {
             Gp_RunCapCmd1(0x1E);
-            GameFlag_SetNibble(GAME_FLAG_LABORATORY_CONSOLE_FIRST_USE, 1);
+            gameFlagSetNibble(GAME_FLAG_LABORATORY_CONSOLE_FIRST_USE, 1);
         }
     }
     return 0;
@@ -1242,7 +1242,7 @@ void func_shelter_b2_laboratory_80180290(Task* task)
             if (Task_PollKill(D_shelter_b2_laboratory_80182A68, &result) != 0) {
                 D_shelter_b2_laboratory_80182A68 = NULL;
                 if (result != 0) {
-                    GameFlag_SetNibble(GAME_FLAG_SHELTER_B2_LABORATORY_PROGRESS, 1);
+                    gameFlagSetNibble(GAME_FLAG_SHELTER_B2_LABORATORY_PROGRESS, 1);
                 } else {
                     Gp_MsgPlayerWeapon(1);
                 }
@@ -1269,7 +1269,7 @@ void func_shelter_b2_laboratory_80180350(Task* task)
             return;
         case 2:
             if (gGameSession->eventState == 0) {
-                Gp_RunCapCmd1(GameFlag_GetNibble(GAME_FLAG_083) != 0 ? 0x24 : 0x23);
+                Gp_RunCapCmd1(gameFlagGetNibble(GAME_FLAG_083) != 0 ? 0x24 : 0x23);
                 taskKill(task);
             }
             return;

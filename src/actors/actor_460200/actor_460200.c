@@ -2221,18 +2221,18 @@ void func_actor_460200_80132210(void)
 
 void func_actor_460200_801322B8(void)
 {
-    switch (GameFlag_GetNibble(GAME_FLAG_SOLDIER_C_TALK_COUNT_A)) {
+    switch (gameFlagGetNibble(GAME_FLAG_SOLDIER_C_TALK_COUNT_A)) {
         case 0:
             func_800E8614(D_actor_460200_80137AA0, 0);
-            GameFlag_SetNibble(GAME_FLAG_SOLDIER_C_TALK_COUNT_A, 1);
+            gameFlagSetNibble(GAME_FLAG_SOLDIER_C_TALK_COUNT_A, 1);
             break;
         case 1:
             func_800E8614(D_actor_460200_80137BA8, 0);
-            GameFlag_SetNibble(GAME_FLAG_SOLDIER_C_TALK_COUNT_A, 2);
+            gameFlagSetNibble(GAME_FLAG_SOLDIER_C_TALK_COUNT_A, 2);
             break;
         case 2:
             func_800E8614(D_actor_460200_80137CB0, 0);
-            GameFlag_SetNibble(GAME_FLAG_SOLDIER_C_TALK_COUNT_A, 3);
+            gameFlagSetNibble(GAME_FLAG_SOLDIER_C_TALK_COUNT_A, 3);
             break;
         case 3:
             func_800E8614(D_actor_460200_80137DA0, 0);
@@ -2242,18 +2242,18 @@ void func_actor_460200_801322B8(void)
 
 void func_actor_460200_80132390(void)
 {
-    switch (GameFlag_GetNibble(GAME_FLAG_SOLDIER_C_TALK_COUNT_B)) {
+    switch (gameFlagGetNibble(GAME_FLAG_SOLDIER_C_TALK_COUNT_B)) {
         case 0:
             func_800E8614(D_actor_460200_80137F98, 0);
-            GameFlag_SetNibble(GAME_FLAG_SOLDIER_C_TALK_COUNT_B, 1);
+            gameFlagSetNibble(GAME_FLAG_SOLDIER_C_TALK_COUNT_B, 1);
             break;
         case 1:
             func_800E8614(D_actor_460200_80137FE0, 0);
-            GameFlag_SetNibble(GAME_FLAG_SOLDIER_C_TALK_COUNT_B, 2);
+            gameFlagSetNibble(GAME_FLAG_SOLDIER_C_TALK_COUNT_B, 2);
             break;
         case 2:
             func_800E8614(D_actor_460200_80138028, 0);
-            GameFlag_SetNibble(GAME_FLAG_SOLDIER_C_TALK_COUNT_B, 3);
+            gameFlagSetNibble(GAME_FLAG_SOLDIER_C_TALK_COUNT_B, 3);
             break;
         case 3:
             func_800E8614(D_actor_460200_80138070, 0);

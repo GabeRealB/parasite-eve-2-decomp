@@ -224,7 +224,7 @@ s32 func_mine_cavern_8017D908(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventM
     func_map_shelter_80179A04(in, out);
 
     if (in->areaId == GAME_AREA_MINE_SECRET_PASSAGE) {
-        if (GameFlag_GetNibble(GAME_FLAG_MINE_SECRET_PASSAGE_STATE) != 1) {
+        if (gameFlagGetNibble(GAME_FLAG_MINE_SECRET_PASSAGE_STATE) != 1) {
             if (in->queryOnly != ROOM_EVENT_EXECUTE) {
                 return 0;
             }
@@ -234,16 +234,16 @@ s32 func_mine_cavern_8017D908(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventM
                 return 0;
             }
             Gp_RunCapCmd1(0xD);
-            if (GameFlag_GetNibble(GAME_FLAG_MINE_SECRET_PASSAGE_PROGRESS) != 0) {
+            if (gameFlagGetNibble(GAME_FLAG_MINE_SECRET_PASSAGE_PROGRESS) != 0) {
                 return 0;
             }
-            GameFlag_SetNibble(GAME_FLAG_MINE_SECRET_PASSAGE_PROGRESS, 1);
+            gameFlagSetNibble(GAME_FLAG_MINE_SECRET_PASSAGE_PROGRESS, 1);
             return 0;
         }
-        if (in->queryOnly == ROOM_EVENT_EXECUTE && GameFlag_GetNibble(GAME_FLAG_MINE_SECRET_PASSAGE_PROGRESS) != 2) {
-            GameFlag_SetNibble(GAME_FLAG_MINE_SECRET_PASSAGE_PROGRESS, 2);
-            GameFlag_SetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
-            GameFlag_SetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 0);
+        if (in->queryOnly == ROOM_EVENT_EXECUTE && gameFlagGetNibble(GAME_FLAG_MINE_SECRET_PASSAGE_PROGRESS) != 2) {
+            gameFlagSetNibble(GAME_FLAG_MINE_SECRET_PASSAGE_PROGRESS, 2);
+            gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
+            gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 0);
         }
     }
 
@@ -267,7 +267,7 @@ s32 func_mine_cavern_8017DAA0(Task* task, s32 msgId, s32 arg2, s32 arg3)
     s32 cmd;
 
     if (arg2 == 1) {
-        if (GameFlag_GetNibble(GAME_FLAG_B6_NURSERY_PROGRESS) != 0) {
+        if (gameFlagGetNibble(GAME_FLAG_B6_NURSERY_PROGRESS) != 0) {
             return 0;
         }
         if (gSceneCombatState.signals.bytes.battlePhase == arg2) {
@@ -277,17 +277,17 @@ s32 func_mine_cavern_8017DAA0(Task* task, s32 msgId, s32 arg2, s32 arg3)
                 goto cap_only;
             }
         }
-        flag = GameFlag_GetNibble(GAME_FLAG_MINE_SECRET_PASSAGE_STATE);
+        flag = gameFlagGetNibble(GAME_FLAG_MINE_SECRET_PASSAGE_STATE);
         if (flag == 1) {
             cmd = 0x11;
             goto cap_only;
         }
-        flag = GameFlag_GetNibble(GAME_FLAG_MINE_SECRET_PASSAGE_STATE);
+        flag = gameFlagGetNibble(GAME_FLAG_MINE_SECRET_PASSAGE_STATE);
         if (flag == 3) {
             cmd = 0x12;
             goto spawn;
         }
-        flag = GameFlag_GetNibble(GAME_FLAG_MINE_POWER_PANEL_STAGE);
+        flag = gameFlagGetNibble(GAME_FLAG_MINE_POWER_PANEL_STAGE);
         cmd  = 5;
         if (flag == 2) {
             goto cap_only;
@@ -304,16 +304,16 @@ rest:
     if (temp == 1 || temp == 4) {
         switch (arg2) {
             case 8:
-                Gp_StartCapSlot(8, 1, GameFlag_GetNibble(GAME_FLAG_MINE_CAVERN_TARGETS_DESTROYED) & 1);
+                Gp_StartCapSlot(8, 1, gameFlagGetNibble(GAME_FLAG_MINE_CAVERN_TARGETS_DESTROYED) & 1);
                 break;
             case 14:
-                Gp_StartCapSlot(0xE, 1, ((u32)GameFlag_GetNibble(GAME_FLAG_MINE_CAVERN_TARGETS_DESTROYED) >> 1) & 1);
+                Gp_StartCapSlot(0xE, 1, ((u32)gameFlagGetNibble(GAME_FLAG_MINE_CAVERN_TARGETS_DESTROYED) >> 1) & 1);
                 break;
             case 15:
-                Gp_StartCapSlot(0xF, 1, ((u32)GameFlag_GetNibble(GAME_FLAG_MINE_CAVERN_TARGETS_DESTROYED) >> 2) & 1);
+                Gp_StartCapSlot(0xF, 1, ((u32)gameFlagGetNibble(GAME_FLAG_MINE_CAVERN_TARGETS_DESTROYED) >> 2) & 1);
                 break;
             case 16:
-                Gp_StartCapSlot(0x10, 1, ((u32)GameFlag_GetNibble(GAME_FLAG_MINE_CAVERN_TARGETS_DESTROYED) >> 3) & 1);
+                Gp_StartCapSlot(0x10, 1, ((u32)gameFlagGetNibble(GAME_FLAG_MINE_CAVERN_TARGETS_DESTROYED) >> 3) & 1);
                 break;
         }
     }
@@ -328,7 +328,7 @@ s32 func_mine_cavern_8017DC50(Task* task, s32 msgId, s32 arg2, s32 arg3)
 
 s32 func_mine_cavern_8017DC58(Task* task, s32 msgId, DirectionActionRequest* request, s32 arg3)
 {
-    if ((request->actionId == 6) && (GameFlag_GetNibble(GAME_FLAG_0C4) == 1)) {
+    if ((request->actionId == 6) && (gameFlagGetNibble(GAME_FLAG_0C4) == 1)) {
         Gp_RunCapCmd1(6);
     }
     return 0;
@@ -339,15 +339,15 @@ s32 func_mine_cavern_8017DC58(Task* task, s32 msgId, DirectionActionRequest* req
 /// pan), each step writing `D_mine_cavern_8018EB50` to the step number.
 s32 func_mine_cavern_8017DC9C(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
-    if (GameFlag_GetNibble(GAME_FLAG_MINE_CAVERN_EVENT_PROGRESS) == 0) {
+    if (gameFlagGetNibble(GAME_FLAG_MINE_CAVERN_EVENT_PROGRESS) == 0) {
         Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
         Gp_PulseState1C();
-        GameFlag_SetNibble(GAME_FLAG_MINE_CAVERN_EVENT_PROGRESS, 1);
+        gameFlagSetNibble(GAME_FLAG_MINE_CAVERN_EVENT_PROGRESS, 1);
         D_mine_cavern_8018EB50 = 1;
-    } else if (GameFlag_GetNibble(GAME_FLAG_MINE_CAVERN_EVENT_PROGRESS) == 1) {
+    } else if (gameFlagGetNibble(GAME_FLAG_MINE_CAVERN_EVENT_PROGRESS) == 1) {
         func_800E3FAC(0xA2, 0x3D);
         func_800E8634(D_mine_cavern_80188A3C, 0, D_mine_cavern_80188D24);
-        GameFlag_SetNibble(GAME_FLAG_MINE_CAVERN_EVENT_PROGRESS, 2);
+        gameFlagSetNibble(GAME_FLAG_MINE_CAVERN_EVENT_PROGRESS, 2);
     }
     return 0;
 }
@@ -364,13 +364,13 @@ void func_mine_cavern_8017DD6C(Task* task)
 {
     if (Gp_CapBusy() == 0) {
         if (Gp_GetCapEventKey() == 0xB) {
-            GameFlag_SetNibble(GAME_FLAG_0C4, 1);
-            GameFlag_SetNibble(GAME_FLAG_MINE_POWER_PANEL_STAGE, 2);
-            GameFlag_SetNibble(GAME_FLAG_MINE_POWER_PANEL_SWITCHED_ON, 0);
+            gameFlagSetNibble(GAME_FLAG_0C4, 1);
+            gameFlagSetNibble(GAME_FLAG_MINE_POWER_PANEL_STAGE, 2);
+            gameFlagSetNibble(GAME_FLAG_MINE_POWER_PANEL_SWITCHED_ON, 0);
         }
         if (Gp_GetCapEventKey() == 0x15) {
-            GameFlag_SetNibble(GAME_FLAG_MINE_SECRET_PASSAGE_STATE, 1);
-            GameFlag_SetNibble(GAME_FLAG_MAP_MARK_MINE_CAVERN, 0);
+            gameFlagSetNibble(GAME_FLAG_MINE_SECRET_PASSAGE_STATE, 1);
+            gameFlagSetNibble(GAME_FLAG_MAP_MARK_MINE_CAVERN, 0);
         }
         taskKill(task);
     }
@@ -380,15 +380,15 @@ static void func_mine_cavern_8017DDFC(Task* arg0)
 {
     arg0->msgTable = D_mine_cavern_80183C6C;
     gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
-    if ((gGameSession->location.loc.variant == 1) && (GameFlag_GetNibble(GAME_FLAG_MINE_CAVERN_INTRO_SEEN) == 0)) {
+    if ((gGameSession->location.loc.variant == 1) && (gameFlagGetNibble(GAME_FLAG_MINE_CAVERN_INTRO_SEEN) == 0)) {
         func_800E8634(D_mine_cavern_80187C74, 0, D_mine_cavern_8018804C);
         func_mine_cavern_8017E394();
-        GameFlag_SetNibble(GAME_FLAG_MINE_CAVERN_INTRO_SEEN, 1);
+        gameFlagSetNibble(GAME_FLAG_MINE_CAVERN_INTRO_SEEN, 1);
     } else {
         gStageSceneMusicEntry = 1;
     }
     Task_SpawnFromTable(&D_mine_cavern_8018E3F4, 0, 0, 0);
-    if (GameFlag_GetNibble(GAME_FLAG_B6_NURSERY_PROGRESS) != 0) {
+    if (gameFlagGetNibble(GAME_FLAG_B6_NURSERY_PROGRESS) != 0) {
         func_mine_cavern_8017E3A0(1);
     } else {
         func_mine_cavern_8017E3A0(0);
@@ -401,7 +401,7 @@ static void func_mine_cavern_8017DEE4(Task* task)
 {
     s32 flag;
 
-    flag = GameFlag_GetNibble(GAME_FLAG_MINE_CAVERN_EVENT_PROGRESS);
+    flag = gameFlagGetNibble(GAME_FLAG_MINE_CAVERN_EVENT_PROGRESS);
     if ((flag == 1) && (D_mine_cavern_8018EB50 == flag) && (Gp_StateC08.mode != D_mine_cavern_8018EB50)) {
         func_800E8634(D_mine_cavern_80188214, 0, D_mine_cavern_801887B4);
         D_mine_cavern_8018EB50 = 2;
@@ -425,8 +425,8 @@ void func_mine_cavern_8017DF54(Task* task)
 
 void func_mine_cavern_8017DFAC(s32 arg0)
 {
-    if ((GameFlag_GetNibble(GAME_FLAG_MINE_CAVERN_EVENT_PROGRESS) == 1 && D_mine_cavern_8018EB54 == 0) ||
-        (GameFlag_GetNibble(GAME_FLAG_MINE_CAVERN_EVENT_PROGRESS) == 2 && D_mine_cavern_8018EB54 == 1)) {
+    if ((gameFlagGetNibble(GAME_FLAG_MINE_CAVERN_EVENT_PROGRESS) == 1 && D_mine_cavern_8018EB54 == 0) ||
+        (gameFlagGetNibble(GAME_FLAG_MINE_CAVERN_EVENT_PROGRESS) == 2 && D_mine_cavern_8018EB54 == 1)) {
         Gp_ReleaseStateF0Add(Gp_LookupSlot4(0), 0x1E);
         gSceneCombatState.signals.bytes.endDelayFrames = arg0;
         gGameSession->flowFlags                       |= GAME_SESSION_FLOW_REEQUIP_WEAPON;

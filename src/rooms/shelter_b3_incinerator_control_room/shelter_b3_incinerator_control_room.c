@@ -166,7 +166,7 @@ s32 func_shelter_b3_incinerator_control_room_8017FA8C(Task* arg0, s32 arg1, Room
     if (in->areaId != GAME_AREA_SHELTER_B3_ELEVATOR_HALL) {
         return 1;
     }
-    if (GameFlag_GetNibble(GAME_FLAG_B3_INCINERATOR_CONTROL_DOOR_UNLOCKED) != 0) {
+    if (gameFlagGetNibble(GAME_FLAG_B3_INCINERATOR_CONTROL_DOOR_UNLOCKED) != 0) {
         return 1;
     }
     if (in->queryOnly != ROOM_EVENT_EXECUTE) {
@@ -180,7 +180,7 @@ s32 func_shelter_b3_incinerator_control_room_8017FA8C(Task* arg0, s32 arg1, Room
 s32 func_shelter_b3_incinerator_control_room_8017FB20(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 1) {
-        if (GameFlag_GetNibble(GAME_FLAG_INCINERATOR_CONTROL_FIRST_USE) != 0) {
+        if (gameFlagGetNibble(GAME_FLAG_INCINERATOR_CONTROL_FIRST_USE) != 0) {
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp     = arg2;
             D_shelter_b3_incinerator_control_room_80182A58.view            = 8;
             D_shelter_b3_incinerator_control_room_80182A58.capSlot         = arg2;
@@ -192,7 +192,7 @@ s32 func_shelter_b3_incinerator_control_room_8017FB20(Task* arg0, s32 arg1, s32 
             D_shelter_b3_incinerator_control_room_80182A58.afterSceneSound = 0x54290003;
             Task_SpawnFromTable(gRoomCutsceneTaskDescs, 0, 7, &D_shelter_b3_incinerator_control_room_80182A58);
         } else {
-            GameFlag_SetNibble(GAME_FLAG_INCINERATOR_CONTROL_FIRST_USE, 1);
+            gameFlagSetNibble(GAME_FLAG_INCINERATOR_CONTROL_FIRST_USE, 1);
             Gp_SpawnIfCapIdle(6, 1);
         }
     }

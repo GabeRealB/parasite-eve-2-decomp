@@ -9,11 +9,11 @@ s32 junkYardCapMsg(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     switch (arg2) {
         case 6:
-            Gp_RunCapCmd1(GameFlag_GetNibble(GAME_FLAG_DRIVEWAY_PROGRESS) <= 0 ? 0xC : 6);
+            Gp_RunCapCmd1(gameFlagGetNibble(GAME_FLAG_DRIVEWAY_PROGRESS) <= 0 ? 0xC : 6);
             break;
         case 8:
             if (Gp_GetCurBit2Flag(0x1C) == 1) {
-                if (GameFlag_GetNibble(GAME_FLAG_BURNER_DEFEATED) == 0 && GameFlag_GetNibble(GAME_FLAG_NIGHT_MAIN_STREET_CUTSCENE_SEEN) != 0) {
+                if (gameFlagGetNibble(GAME_FLAG_BURNER_DEFEATED) == 0 && gameFlagGetNibble(GAME_FLAG_NIGHT_MAIN_STREET_CUTSCENE_SEEN) != 0) {
                     Gp_RunCapCmd1(8);
                 } else {
                     Gp_StartCapSlot(arg2, 1, 0);

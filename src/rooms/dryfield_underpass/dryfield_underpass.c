@@ -810,8 +810,8 @@ s32 func_dryfield_underpass_8017D908(Task* arg0, s32 arg1, RoomEventMsg* in, Roo
     u8 temp_v1;
 
     temp_v1 = in->warp;
-    if ((temp_v1 == 1) && (gGameSession->location.loc.variant == temp_v1) && (GameFlag_GetNibble(GAME_FLAG_UNDERPASS_EVENT_SEEN) == 0)) {
-        GameFlag_SetNibble(GAME_FLAG_UNDERPASS_EVENT_SEEN, 1);
+    if ((temp_v1 == 1) && (gGameSession->location.loc.variant == temp_v1) && (gameFlagGetNibble(GAME_FLAG_UNDERPASS_EVENT_SEEN) == 0)) {
+        gameFlagSetNibble(GAME_FLAG_UNDERPASS_EVENT_SEEN, 1);
         func_800E8614(D_dryfield_underpass_8017E8D8, 0);
     }
     return 0;
@@ -825,7 +825,7 @@ static void func_dryfield_underpass_8017D970(Task* arg0)
 {
     arg0->msgTable = D_dryfield_underpass_8017E830;
     gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
-    if ((gGameSession->location.loc.variant == 1) && (GameFlag_GetNibble(GAME_FLAG_UNDERPASS_EVENT_SEEN) == 0)) {
+    if ((gGameSession->location.loc.variant == 1) && (gameFlagGetNibble(GAME_FLAG_UNDERPASS_EVENT_SEEN) == 0)) {
         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &D_dryfield_underpass_8017E89C, ACTOR_COMMAND_MESSAGE_APPLY);
     }
     arg0->state = arg0->state + 1;
@@ -855,17 +855,17 @@ void func_dryfield_underpass_8017DA08(void)
     src.areaId    = GAME_AREA_DRYFIELD_UNDERPASS;
     src.queryOnly = ROOM_EVENT_EXECUTE;
     if (s->queryOnly == ROOM_EVENT_EXECUTE) {
-        if (GameFlag_GetNibble(GAME_FLAG_UNDERPASS_EVENT_SEEN) != 0) {
-            if (GameFlag_GetNibble(GAME_FLAG_053) != 0) {
+        if (gameFlagGetNibble(GAME_FLAG_UNDERPASS_EVENT_SEEN) != 0) {
+            if (gameFlagGetNibble(GAME_FLAG_053) != 0) {
                 d->room = 2;
             } else {
                 d->room = 1;
             }
-            if (GameFlag_GetNibble(GAME_FLAG_UNDERPASS_SWITCH_1) == 0) {
+            if (gameFlagGetNibble(GAME_FLAG_UNDERPASS_SWITCH_1) == 0) {
                 dst.room = dst.room + 2;
             }
         } else {
-            if (GameFlag_GetNibble(GAME_FLAG_UNDERPASS_SWITCH_1) != 0) {
+            if (gameFlagGetNibble(GAME_FLAG_UNDERPASS_SWITCH_1) != 0) {
                 d->room = 5;
             } else {
                 d->room = 6;
@@ -911,7 +911,7 @@ void func_dryfield_underpass_8017DE30(Task* task)
 
     coord = task->extra.coordBody->coord;
     mask  = 1 << gGameSession->location.loc.view;
-    if (GameFlag_GetNibble(GAME_FLAG_053) == 0) {
+    if (gameFlagGetNibble(GAME_FLAG_053) == 0) {
         i     = 0;
         vec   = D_dryfield_underpass_8017EAD0;
         flags = D_dryfield_underpass_8017EB10;

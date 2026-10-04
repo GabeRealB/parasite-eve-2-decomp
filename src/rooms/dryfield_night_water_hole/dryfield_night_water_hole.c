@@ -1047,20 +1047,20 @@ static void func_dryfield_night_water_hole_8017D958(Task* arg0)
 {
     arg0->msgTable = D_dryfield_night_water_hole_801805F8;
     gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
-    if (GameFlag_GetNibble(GAME_FLAG_WATER_HOLE_SHELTER_ROUTE_OPEN) == 0) {
+    if (gameFlagGetNibble(GAME_FLAG_WATER_HOLE_SHELTER_ROUTE_OPEN) == 0) {
         Task_SpawnFromTable(D_dryfield_night_water_hole_80180964, 0, 0, 0);
     } else {
         func_dryfield_night_water_hole_8017DE88(D_dryfield_night_water_hole_801835D8);
     }
-    if (gGameSession->location.loc.variant == 1 && Gp_LookupSlot4(0) != 0 && GameFlag_GetNibble(GAME_FLAG_NIGHT_WATER_HOLE_ARRIVAL_EVENT) != 0) {
+    if (gGameSession->location.loc.variant == 1 && Gp_LookupSlot4(0) != 0 && gameFlagGetNibble(GAME_FLAG_NIGHT_WATER_HOLE_ARRIVAL_EVENT) != 0) {
         if (gGameSession->location.loc.warp == 2) {
             TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(0), ACTOR_COMMAND_MESSAGE_APPLY, &D_dryfield_night_water_hole_80180660, 0);
         } else {
             TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(0), ACTOR_COMMAND_MESSAGE_APPLY, &D_dryfield_night_water_hole_8018065C, 0);
         }
     }
-    if (gGameSession->location.loc.variant == 0xA && gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != 0 && GameFlag_GetNibble(GAME_FLAG_0CF) == 0) {
-        GameFlag_SetNibble(GAME_FLAG_0CF, 2);
+    if (gGameSession->location.loc.variant == 0xA && gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != 0 && gameFlagGetNibble(GAME_FLAG_0CF) == 0) {
+        gameFlagSetNibble(GAME_FLAG_0CF, 2);
         func_800E3FAC(0xA2, 0x25);
         Task_SpawnFromTable(&D_actor_146000_801351FC, 1, 0, 0);
     }
@@ -1101,7 +1101,7 @@ s32 func_dryfield_night_water_hole_8017DC28(Task* task, s32 msgId, s32 arg2, s32
     RoomEventMsg  msg;
 
     if (arg2 == 2) {
-        if (GameFlag_GetNibble(GAME_FLAG_WATER_HOLE_SHELTER_ROUTE_OPEN) != 0) {
+        if (gameFlagGetNibble(GAME_FLAG_WATER_HOLE_SHELTER_ROUTE_OPEN) != 0) {
             RoomDeparture*      wp;
             RoomVariantResolver resolve = roomVariantResolveShelter;
 
@@ -1126,7 +1126,7 @@ s32 func_dryfield_night_water_hole_8017DC28(Task* task, s32 msgId, s32 arg2, s32
             Task_SpawnFromTable(&D_dryfield_night_water_hole_801805EC, 0, 0, 0);
         } else {
             Gp_RunCapCmd1(2);
-            GameFlag_SetNibble(GAME_FLAG_MAP_MARK_WATER, 2);
+            gameFlagSetNibble(GAME_FLAG_MAP_MARK_WATER, 2);
             SndEvt_EnqueueType6(SOUND_NIGHT_WATER_HOLE_LOCKED, 0, 0);
         }
     }
@@ -1142,13 +1142,13 @@ s32 func_dryfield_night_water_hole_8017DD5C(Task* arg0, s32 arg1, RoomEventMsg* 
 {
     u8 temp_s0;
 
-    if ((in->warp == 2) && (GameFlag_GetNibble(GAME_FLAG_NIGHT_WATER_HOLE_ARRIVAL_EVENT) == 0) && (gGameSession->location.loc.variant == 1)) {
-        GameFlag_SetNibble(GAME_FLAG_NIGHT_WATER_HOLE_ARRIVAL_EVENT, 1);
+    if ((in->warp == 2) && (gameFlagGetNibble(GAME_FLAG_NIGHT_WATER_HOLE_ARRIVAL_EVENT) == 0) && (gGameSession->location.loc.variant == 1)) {
+        gameFlagSetNibble(GAME_FLAG_NIGHT_WATER_HOLE_ARRIVAL_EVENT, 1);
         func_800E8614(D_dryfield_night_water_hole_8018067C, 0);
     }
     temp_s0 = in->warp;
-    if ((temp_s0 == 1) && (GameFlag_GetNibble(GAME_FLAG_NIGHT_WATER_HOLE_ARRIVAL_EVENT) == 0) && (gGameSession->location.loc.variant == temp_s0)) {
-        GameFlag_SetNibble(GAME_FLAG_NIGHT_WATER_HOLE_ARRIVAL_EVENT, 1);
+    if ((temp_s0 == 1) && (gameFlagGetNibble(GAME_FLAG_NIGHT_WATER_HOLE_ARRIVAL_EVENT) == 0) && (gGameSession->location.loc.variant == temp_s0)) {
+        gameFlagSetNibble(GAME_FLAG_NIGHT_WATER_HOLE_ARRIVAL_EVENT, 1);
         func_800E8614(D_dryfield_night_water_hole_801807FC, 0);
     }
     return 0;
@@ -1232,7 +1232,7 @@ void func_dryfield_night_water_hole_8017E6D0(Task* arg0)
     ctlCoords = ctl->extra.tmd->coords;
     switch (arg0->state) {
         case 0:
-            if (GameFlag_GetNibble(GAME_FLAG_WATER_HOLE_SHELTER_ROUTE_OPEN) == 0) {
+            if (gameFlagGetNibble(GAME_FLAG_WATER_HOLE_SHELTER_ROUTE_OPEN) == 0) {
                 gRoomEffectWaterRippleId = EFFECT_DRYFIELD_NIGHT_WATER_HOLE_WATER_RIPPLE;
                 gRoomEffectWaterSprayId  = EFFECT_DRYFIELD_NIGHT_WATER_HOLE_WATER_SPRAY;
             }
@@ -1245,7 +1245,7 @@ void func_dryfield_night_water_hole_8017E6D0(Task* arg0)
             }
             break;
         case 1:
-            if (GameFlag_GetNibble(GAME_FLAG_WATER_HOLE_SHELTER_ROUTE_OPEN) == 0 && gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING &&
+            if (gameFlagGetNibble(GAME_FLAG_WATER_HOLE_SHELTER_ROUTE_OPEN) == 0 && gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING &&
                 gGameSession->waterY < ctlCoords->coord.t[1]) {
                 view = &gGfxViewCoord;
                 for (i = 0; i < 2; i++) {
@@ -1276,7 +1276,7 @@ void func_dryfield_night_water_hole_8017E6D0(Task* arg0)
                     D_dryfield_night_water_hole_801809F4[i].vz = part->workm.t[2];
                 }
             }
-            if (GameFlag_GetNibble(GAME_FLAG_UNDERPASS_SWITCH_1) == 1) {
+            if (gameFlagGetNibble(GAME_FLAG_UNDERPASS_SWITCH_1) == 1) {
                 if (mask & 0x18) {
                     glowDrawShaft(&D_dryfield_night_water_hole_80180994[0], 0x100);
                     glowDrawShaft(&D_dryfield_night_water_hole_80180994[2], 0x100);

@@ -2673,7 +2673,7 @@ static void Actor00400_Fn03920(Task* arg0)
             break;
         case 4:
             work->inWater = 1;
-            nibble        = GameFlag_GetNibble(GAME_FLAG_0EB);
+            nibble        = gameFlagGetNibble(GAME_FLAG_0EB);
             if (nibble != 2) {
                 obj->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
                 w                           = arg0->work;
@@ -2700,7 +2700,7 @@ static void Actor00400_Fn03920(Task* arg0)
             break;
         case 5:
             work->inWater = 1;
-            nibble        = GameFlag_GetNibble(GAME_FLAG_0EB);
+            nibble        = gameFlagGetNibble(GAME_FLAG_0EB);
             if (nibble != 2) {
                 obj->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
                 work->inWater               = 1;
@@ -2728,7 +2728,7 @@ static void Actor00400_Fn03920(Task* arg0)
             break;
         case 1:
             if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 45, 0, 0)) {
-                if (GameFlag_GetNibble(GAME_FLAG_B4_RESERVOIR_EVENT_DONE) == 0) {
+                if (gameFlagGetNibble(GAME_FLAG_B4_RESERVOIR_EVENT_DONE) == 0) {
                     work->inWater  = 1;
                     w              = arg0->work;
                     w->animStep    = ANIMATION_RATE_ONE;
@@ -4521,7 +4521,7 @@ static void Actor00400_Fn07C04(Task* arg0)
     obj      = arg0->spawnArg2.pointer;
     work     = arg0->work;
     handlers = Actor00400_D00168;
-    if (GameFlag_GetNibble(GAME_FLAG_SUBMARINE_TUNNEL_EVENT_SEEN) != 0) {
+    if (gameFlagGetNibble(GAME_FLAG_SUBMARINE_TUNNEL_EVENT_SEEN) != 0) {
         work2           = arg0->work;
         work2->state    = ACTOR_00400_SWIM_STATE_TUNNEL_PATROL;
         work2->subState = 0;
@@ -5557,7 +5557,7 @@ static void Actor00400_Fn09A8C(Task* arg0)
     _Actor00400Work* work;
 
     work = arg0->work;
-    if (work->command == ACTOR_00400_COMMAND_TUNNEL_PATROL || GameFlag_GetNibble(GAME_FLAG_SUBMARINE_TUNNEL_EVENT_SEEN) != 0) {
+    if (work->command == ACTOR_00400_COMMAND_TUNNEL_PATROL || gameFlagGetNibble(GAME_FLAG_SUBMARINE_TUNNEL_EVENT_SEEN) != 0) {
         work->subState = work->subState + 1;
     }
 }
@@ -5667,7 +5667,7 @@ static void Actor00400_Fn09D3C(Task* arg0)
     _Actor00400Work* work;
 
     work = arg0->work;
-    if (GameFlag_GetNibble(GAME_FLAG_0EB) == 1) {
+    if (gameFlagGetNibble(GAME_FLAG_0EB) == 1) {
         work->subState = 3;
     } else if (work->command == ACTOR_00400_COMMAND_INTRO_SWIM) {
         work->subState = work->subState + 1;

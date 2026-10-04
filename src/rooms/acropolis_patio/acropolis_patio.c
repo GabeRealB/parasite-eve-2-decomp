@@ -1703,7 +1703,7 @@ u8 D_acropolis_patio_80187065;
 /// Room entry task tick. Publishes the room's own record at
 /// `Task::msgTable` / pointer slot 7, then re-issues the messages the room's
 /// actors need for the current point in the story: the first visit
-/// (`GameFlag_GetNibble(0) < 2`) arms the two hotspots and spawns the arrival
+/// (`gameFlagGetNibble(0) < 2`) arms the two hotspots and spawns the arrival
 /// cutscene, and the second-visit branches replace them according to
 /// `gGameSession::location.loc.variant`.
 static void func_acropolis_patio_8017D5EC(Task* arg0)
@@ -1713,7 +1713,7 @@ static void func_acropolis_patio_8017D5EC(Task* arg0)
 
     arg0->msgTable = D_acropolis_patio_8018028C;
     gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
-    if (GameFlag_GetNibble(0) < 2) {
+    if (gameFlagGetNibble(0) < 2) {
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room == 1) {
             TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(0), 0x7D4, &D_acropolis_patio_80180428, 0);
             TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(0), ACTOR_COMMAND_MESSAGE_APPLY, &D_acropolis_patio_8018044C, 0);
@@ -1725,13 +1725,13 @@ static void func_acropolis_patio_8017D5EC(Task* arg0)
             TASK_MESSAGE_DISPATCH_POINTER(temp, 0x7D4, &D_acropolis_patio_8018046C, 0);
         }
     }
-    if ((gGameSession->location.loc.variant == 1) && (GameFlag_GetNibble(GAME_FLAG_ACROPOLIS_OPENING_PROGRESS) < 2) && (GameFlag_GetNibble(GAME_FLAG_ACROPOLIS_OPENING_PROGRESS) < 2)) {
+    if ((gGameSession->location.loc.variant == 1) && (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_OPENING_PROGRESS) < 2) && (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_OPENING_PROGRESS) < 2)) {
         temp = Gp_LookupSlot4(1);
         if (temp != 0) {
             TASK_MESSAGE_DISPATCH_POINTER(temp, ACTOR_COMMAND_MESSAGE_APPLY, &D_acropolis_patio_80180440, 0);
         }
     }
-    if ((gGameSession->location.loc.variant == 2) && (GameFlag_GetNibble(GAME_FLAG_ACROPOLIS_PATIO_026) == 0)) {
+    if ((gGameSession->location.loc.variant == 2) && (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_PATIO_026) == 0)) {
         msg.context.loc.stage = 1;
         msg.context.loc.area  = 3;
         msg.command           = 0;
@@ -1748,27 +1748,27 @@ s32 func_acropolis_patio_8017D7D0(Task* arg0, s32 arg1, RoomEventMsg* arg2, Room
 
     *arg3 = *arg2;
     if (arg2->areaId == 8) {
-        if ((GameFlag_GetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED) & 2) && (arg2->queryOnly == 0)) {
+        if ((gameFlagGetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED) & 2) && (arg2->queryOnly == 0)) {
             arg3->room = 2;
         }
     }
     if (arg2->areaId == 4) {
-        if (GameFlag_GetNibble(GAME_FLAG_PATIO_CAFETERIA_DOOR_STATE) < 2) {
+        if (gameFlagGetNibble(GAME_FLAG_PATIO_CAFETERIA_DOOR_STATE) < 2) {
             var_v0 = 0;
             if (arg2->queryOnly == 0) {
                 Gp_RunCapCmd1(3);
-                GameFlag_SetNibble(GAME_FLAG_PATIO_CAFETERIA_DOOR_STATE, 1);
+                gameFlagSetNibble(GAME_FLAG_PATIO_CAFETERIA_DOOR_STATE, 1);
                 Gp_SetNibbleIf(arg2->flagId, 2);
                 return 0;
             }
             return var_v0;
         }
-        if (GameFlag_GetNibble(0) == 2) {
+        if (gameFlagGetNibble(0) == 2) {
             var_v0 = 2;
             if (arg2->queryOnly == 0) {
-                if (GameFlag_GetNibble(GAME_FLAG_PATIO_CAFETERIA_DOOR_SCENE_SEEN) == 0) {
+                if (gameFlagGetNibble(GAME_FLAG_PATIO_CAFETERIA_DOOR_SCENE_SEEN) == 0) {
                     func_800E8634(D_acropolis_patio_80180DEC, 0, D_acropolis_patio_80180EDC);
-                    GameFlag_SetNibble(GAME_FLAG_PATIO_CAFETERIA_DOOR_SCENE_SEEN, 1);
+                    gameFlagSetNibble(GAME_FLAG_PATIO_CAFETERIA_DOOR_SCENE_SEEN, 1);
                     return 2;
                 }
                 Gp_RunCapCmd1(8);
@@ -1776,7 +1776,7 @@ s32 func_acropolis_patio_8017D7D0(Task* arg0, s32 arg1, RoomEventMsg* arg2, Room
             }
             return var_v0;
         }
-        if (GameFlag_GetNibble(GAME_FLAG_PATIO_CAFETERIA_DOOR_STATE) == 2) {
+        if (gameFlagGetNibble(GAME_FLAG_PATIO_CAFETERIA_DOOR_STATE) == 2) {
             var_v0 = 2;
             if (arg2->queryOnly == 0) {
                 Task_SpawnFromTable(D_acropolis_patio_801802BC, 1, 0, 0);
@@ -1790,7 +1790,7 @@ s32 func_acropolis_patio_8017D7D0(Task* arg0, s32 arg1, RoomEventMsg* arg2, Room
         goto block_17;
     }
 block_17:
-    if ((arg2->areaId == 8) && (GameFlag_GetNibble(0) < 5)) {
+    if ((arg2->areaId == 8) && (gameFlagGetNibble(0) < 5)) {
         var_v0 = 0;
         if (arg2->queryOnly == 0) {
             Gp_SetNibbleIf(arg2->flagId, 2);
@@ -1799,19 +1799,19 @@ block_17:
         }
         return var_v0;
     }
-    if ((arg2->queryOnly == 0) && (GameFlag_GetNibble(GAME_FLAG_ACROPOLIS_OPENING_PROGRESS) == 3)) {
-        GameFlag_SetNibble(GAME_FLAG_ACROPOLIS_OPENING_PROGRESS, 4);
+    if ((arg2->queryOnly == 0) && (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_OPENING_PROGRESS) == 3)) {
+        gameFlagSetNibble(GAME_FLAG_ACROPOLIS_OPENING_PROGRESS, 4);
     }
     temp_s1 = arg2->areaId;
     var_v0  = 1;
     if (temp_s1 == 4) {
         var_v0 = 1;
         if (arg2->queryOnly == 0) {
-            if (GameFlag_GetNibble(0) >= 3) {
+            if (gameFlagGetNibble(0) >= 3) {
                 arg3->room = (s8)temp_s1;
             }
             var_v0 = 1;
-            if (GameFlag_GetNibble(0) == 2) {
+            if (gameFlagGetNibble(0) == 2) {
                 arg3->room = 3;
                 var_v0     = 1;
             }
@@ -1835,7 +1835,7 @@ void func_acropolis_patio_8017DA5C(Task* task)
             return;
         case 2:
             if (Gp_GetCapEventKey() == state) {
-                GameFlag_SetNibble(GAME_FLAG_PATIO_CAFETERIA_DOOR_STATE, 3);
+                gameFlagSetNibble(GAME_FLAG_PATIO_CAFETERIA_DOOR_STATE, 3);
                 SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PATIO, 4), 0, 0);
             advance:
                 task->state = task->state + 1;
@@ -1864,20 +1864,20 @@ s32 func_acropolis_patio_8017DBAC(Task* arg0, s32 arg1, const void* arg2, s32 ar
     const DirectionActionRequest* request = arg2;
     u8                            state;
 
-    if ((request->actionId == 0) && (GameFlag_GetNibble(GAME_FLAG_ACROPOLIS_OPENING_PROGRESS) < 2)) {
-        GameFlag_SetNibble(GAME_FLAG_ACROPOLIS_OPENING_PROGRESS, 3);
+    if ((request->actionId == 0) && (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_OPENING_PROGRESS) < 2)) {
+        gameFlagSetNibble(GAME_FLAG_ACROPOLIS_OPENING_PROGRESS, 3);
         func_800E8634(D_acropolis_patio_80180484, 0, D_acropolis_patio_801806AC);
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 3;
         gGameSession->flowFlags                             = (GAME_SESSION_FLOW_SKIP_ENDING_MUSIC | GAME_SESSION_FLOW_HIDE_REEQUIPPED_WEAPON | GAME_SESSION_FLOW_REEQUIP_WEAPON);
     }
-    if ((request->actionId == 1) && (GameFlag_GetNibble(GAME_FLAG_ACROPOLIS_OPENING_PROGRESS) == 3) &&
+    if ((request->actionId == 1) && (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_OPENING_PROGRESS) == 3) &&
         (taskMessageDispatch(Gp_LookupSlot4(1), ACTOR_MESSAGE_IS_PRESENT, 0, 0) == 0)) {
-        GameFlag_SetNibble(GAME_FLAG_ACROPOLIS_OPENING_PROGRESS, 4);
+        gameFlagSetNibble(GAME_FLAG_ACROPOLIS_OPENING_PROGRESS, 4);
         func_800E8634(D_acropolis_patio_8018082C, 0, D_acropolis_patio_80180C64);
     }
     state = request->actionId;
-    if ((state == 2) && (GameFlag_GetNibble(GAME_FLAG_ACROPOLIS_PATIO_026) == 0) && (GameFlag_GetNibble(0) == state)) {
-        GameFlag_SetNibble(GAME_FLAG_ACROPOLIS_PATIO_026, 1);
+    if ((state == 2) && (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_PATIO_026) == 0) && (gameFlagGetNibble(0) == state)) {
+        gameFlagSetNibble(GAME_FLAG_ACROPOLIS_PATIO_026, 1);
         func_800E8634(D_acropolis_patio_8018280C, 0, D_acropolis_patio_80182BE4);
     }
     // No result is set; the sender of a room action ignores it.
@@ -1891,7 +1891,7 @@ s32 func_acropolis_patio_8017DCE4(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
     }
     var_v0 = 2;
     if (arg2 == 2) {
-        var_v0 = GameFlag_GetNibble(0) < 2;
+        var_v0 = gameFlagGetNibble(0) < 2;
         if (var_v0 != 0) {
             Gp_SpawnIfCapIdle(2, 0);
             var_v0 = 0;
@@ -1927,7 +1927,7 @@ void func_acropolis_patio_8017DD80(Task* task)
             return;
         case 2:
             if (Gp_GetCapEventKey() == 1) {
-                GameFlag_SetNibble(GAME_FLAG_015, 1);
+                gameFlagSetNibble(GAME_FLAG_015, 1);
             }
             taskKill(task);
             return;

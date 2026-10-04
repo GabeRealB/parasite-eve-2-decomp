@@ -26,9 +26,9 @@ void factoryRoomInit(Task* arg0)
     Task_SpawnFromTable(gFactorySpawnTable, 4, 0, gFactoryPanelSlot);
     Task_SpawnFromTable(gFactorySpawnTable, 5, 0, 0);
     if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
-        factoryDayShowView9Sprite(GameFlag_GetNibble(GAME_FLAG_FACTORY_POWER_ON) & 0xFF);
+        factoryDayShowView9Sprite(gameFlagGetNibble(GAME_FLAG_FACTORY_POWER_ON) & 0xFF);
     } else {
-        factoryNightShowView9Sprite(GameFlag_GetNibble(GAME_FLAG_FACTORY_POWER_ON) & 0xFF);
+        factoryNightShowView9Sprite(gameFlagGetNibble(GAME_FLAG_FACTORY_POWER_ON) & 0xFF);
     }
     arg0->state++;
 }

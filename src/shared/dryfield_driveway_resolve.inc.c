@@ -14,17 +14,17 @@ s32 drivewayResolveEvent(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* o
 
     *out = *in;
     if (in->areaId == 0x17 && in->queryOnly == ROOM_EVENT_EXECUTE) {
-        fl        = GameFlag_GetNibble(GAME_FLAG_FACTORY_BARRIER_CLEARED) == 0;
+        fl        = gameFlagGetNibble(GAME_FLAG_FACTORY_BARRIER_CLEARED) == 0;
         out->room = fl ? 1 : 2;
     }
     if (in->areaId == 0x20 && in->queryOnly == ROOM_EVENT_EXECUTE) {
-        fl        = GameFlag_GetNibble(GAME_FLAG_UNDERPASS_SWITCH_1) == 0;
+        fl        = gameFlagGetNibble(GAME_FLAG_UNDERPASS_SWITCH_1) == 0;
         out->room = fl ? 2 : 1;
-        if (GameFlag_GetNibble(GAME_FLAG_053) != 0) {
+        if (gameFlagGetNibble(GAME_FLAG_053) != 0) {
             out->room = out->room + 2;
         }
     }
-    if (in->areaId == 2 && GameFlag_GetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) != 0) {
+    if (in->areaId == 2 && gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) != 0) {
         if (in->queryOnly == ROOM_EVENT_EXECUTE) {
             Gp_RunCapCmd1(6);
             Gp_SetNibbleIf(in->flagId, 2);
@@ -32,11 +32,11 @@ s32 drivewayResolveEvent(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* o
         return 2;
     }
     if (in->areaId == 0x20) {
-        if (GameFlag_GetNibble(GAME_FLAG_DRIVEWAY_PROGRESS) != 2) {
+        if (gameFlagGetNibble(GAME_FLAG_DRIVEWAY_PROGRESS) != 2) {
             if (in->queryOnly == ROOM_EVENT_EXECUTE) {
                 if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
                     if (gGameSession->location.loc.variant == 1) {
-                        if (GameFlag_GetNibble(GAME_FLAG_050) == 0) {
+                        if (gameFlagGetNibble(GAME_FLAG_050) == 0) {
                             Task_SpawnFromTable(gDrivewayCutsceneTasks, 1, 0, 0);
                             return 0;
                         }
@@ -50,12 +50,12 @@ s32 drivewayResolveEvent(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* o
             }
             return 0;
         }
-        if (in->queryOnly == ROOM_EVENT_EXECUTE && GameFlag_GetNibble(GAME_FLAG_COMPANION_2_SCHEDULE) == 1) {
-            GameFlag_SetNibble(GAME_FLAG_COMPANION_2_SCHEDULE, 2);
+        if (in->queryOnly == ROOM_EVENT_EXECUTE && gameFlagGetNibble(GAME_FLAG_COMPANION_2_SCHEDULE) == 1) {
+            gameFlagSetNibble(GAME_FLAG_COMPANION_2_SCHEDULE, 2);
         }
     }
     if (in->areaId == 0x17) {
-        if (GameFlag_GetNibble(GAME_FLAG_030) == 1) {
+        if (gameFlagGetNibble(GAME_FLAG_030) == 1) {
             if (in->queryOnly == ROOM_EVENT_EXECUTE) {
                 Gp_SetNibbleIf(in->flagId, 2);
                 Gp_RunCapCmd1(2);
@@ -69,12 +69,12 @@ s32 drivewayResolveEvent(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* o
         req.fade              = 0;
         p                     = &req;
         gDrivewayEventSpawned = 0;
-        if (GameFlag_GetNibble(p->flagId) == 0 || p->flagId == 0) {
+        if (gameFlagGetNibble(p->flagId) == 0 || p->flagId == 0) {
             if (out->queryOnly == ROOM_EVENT_EXECUTE) {
                 gRoomEventStagedMsg = *out;
                 gRoomEventLatched   = req;
                 if (p->flagId != 0) {
-                    GameFlag_SetNibble(p->flagId, 1);
+                    gameFlagSetNibble(p->flagId, 1);
                 }
                 Task_SpawnFromTable(&gRoomEventStagedTaskDesc, 0, 0, 0);
                 gDrivewayEventSpawned = 1;

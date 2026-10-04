@@ -17,7 +17,7 @@ void factoryLiftUpdate(Task* task)
     coord = task->extra.tmd->coords;
     work  = task->work;
     obj   = task->extra.tmd;
-    flag  = GameFlag_GetNibble(GAME_FLAG_FACTORY_LIFT_POSITION);
+    flag  = gameFlagGetNibble(GAME_FLAG_FACTORY_LIFT_POSITION);
     prev  = work->position;
     if (flag != prev) {
         if ((flag ^ prev) & FACTORY_LIFT_POSITION_TURNED) {

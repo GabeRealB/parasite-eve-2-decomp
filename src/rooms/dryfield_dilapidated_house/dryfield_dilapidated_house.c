@@ -2717,17 +2717,17 @@ void func_dryfield_dilapidated_house_8017E2B0(Task* task)
         case 7:
             if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 9) {
                 Gp_ApplyAreaRecs(D_dryfield_dilapidated_house_80189AA0);
-                if (GameFlag_GetNibble(GAME_FLAG_GRAY_STALKER_DEFEATED) != 0) {
+                if (gameFlagGetNibble(GAME_FLAG_GRAY_STALKER_DEFEATED) != 0) {
                     Gp_ApplyAreaRecs(D_dryfield_dilapidated_house_80189B24);
                 }
-                GameFlag_SetNibble(GAME_FLAG_COMPANION_2_SCHEDULE, 6);
-                GameFlag_SetNibble(GAME_FLAG_COMPANION_1_SCHEDULE, 1);
-                GameFlag_SetNibble(GAME_FLAG_GAS_STATION_MAIN_STREET_BLOCKED, 1);
-                GameFlag_SetNibble(GAME_FLAG_GENERAL_STORE_UNDERPASS_BLOCKED, 1);
-                GameFlag_SetNibble(GAME_FLAG_NIGHT_SALOON_CUTSCENE_SEEN, 1);
-                GameFlag_SetNibble(GAME_FLAG_NIGHT_SALOON_TALK_PROGRESS, 2);
-                GameFlag_SetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
-                GameFlag_SetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 0);
+                gameFlagSetNibble(GAME_FLAG_COMPANION_2_SCHEDULE, 6);
+                gameFlagSetNibble(GAME_FLAG_COMPANION_1_SCHEDULE, 1);
+                gameFlagSetNibble(GAME_FLAG_GAS_STATION_MAIN_STREET_BLOCKED, 1);
+                gameFlagSetNibble(GAME_FLAG_GENERAL_STORE_UNDERPASS_BLOCKED, 1);
+                gameFlagSetNibble(GAME_FLAG_NIGHT_SALOON_CUTSCENE_SEEN, 1);
+                gameFlagSetNibble(GAME_FLAG_NIGHT_SALOON_TALK_PROGRESS, 2);
+                gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
+                gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 0);
                 Gp_FillPlayerHpMp();
                 Gp_FillAllyHp();
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent         = 1;
@@ -2769,7 +2769,7 @@ s32 func_dryfield_dilapidated_house_8017E574(Task* arg0, s32 arg1, RoomEventMsg*
     if (s1 == 2) {
         if (in->areaId == GAME_AREA_DRYFIELD_WAREHOUSE) {
             if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-                if (GameFlag_GetNibble(GAME_FLAG_WAREHOUSE_EVENT_SEEN) == 0) {
+                if (gameFlagGetNibble(GAME_FLAG_WAREHOUSE_EVENT_SEEN) == 0) {
                     out->room = 1;
                 } else {
                     out->room = s1;

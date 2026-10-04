@@ -408,7 +408,7 @@ s32 func_neo_ark_north_promenade_8017D5D8(Task* arg0, s32 arg1, RoomEventMsg* in
     if (in->areaId != GAME_AREA_NEO_ARK_FOREST_ZONE) {
         return 1;
     }
-    if (GameFlag_GetNibble(GAME_FLAG_NEO_ARK_FOREST_ZONE_UNLOCKED) != 0) {
+    if (gameFlagGetNibble(GAME_FLAG_NEO_ARK_FOREST_ZONE_UNLOCKED) != 0) {
         return 1;
     }
     if (in->queryOnly != ROOM_EVENT_EXECUTE) {

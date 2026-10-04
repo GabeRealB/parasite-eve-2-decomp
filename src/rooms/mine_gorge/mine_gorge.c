@@ -181,7 +181,7 @@ s32 func_mine_gorge_8017D5F8(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
     s32                    found;
 
     if (arg2 == 0x11F) {
-        if (GameFlag_GetNibble(GAME_FLAG_MINE_GORGE_TRIGGER_EVENT_DONE) == 0) {
+        if (gameFlagGetNibble(GAME_FLAG_MINE_GORGE_TRIGGER_EVENT_DONE) == 0) {
             node = Gp_PendingObj4C;
             while (node != NULL) {
                 if (node->control == WORLD_COLLISION_TRIGGER_ACTION_ROOM && node->parameter0 == WORLD_COLLISION_TRIGGER_ROOM_EVENT_ID && node->hit != 0) {
@@ -193,7 +193,7 @@ s32 func_mine_gorge_8017D5F8(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
             found = 0;
         check:
             if (found != 0) {
-                GameFlag_SetNibble(GAME_FLAG_MINE_GORGE_TRIGGER_EVENT_DONE, 1);
+                gameFlagSetNibble(GAME_FLAG_MINE_GORGE_TRIGGER_EVENT_DONE, 1);
                 Task_SpawnOnDefaultList(D_mine_gorge_8017E2B0, 0, 0, 0);
                 gGameSession->location.loc.room = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 2);
                 gGameSession->hideHud           = (gGameSession->roomObjsDirty = 1);
@@ -217,7 +217,7 @@ s32 func_mine_gorge_8017D6E8(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMs
     if (in->areaId != GAME_AREA_MINE_CAVERN) {
         return 1;
     }
-    if (GameFlag_GetNibble(GAME_FLAG_MINE_GORGE_CAVERN_DOOR_POWERED) != 0) {
+    if (gameFlagGetNibble(GAME_FLAG_MINE_GORGE_CAVERN_DOOR_POWERED) != 0) {
         return 1;
     }
     if (in->queryOnly != ROOM_EVENT_EXECUTE) {
@@ -244,8 +244,8 @@ s32 func_mine_gorge_8017D784(Task* task, s32 msgId, const void* firstArg, s32 ar
 
     u8 actionId = request->actionId;
 
-    if (actionId == 1 && GameFlag_GetNibble(GAME_FLAG_MINE_GORGE_CUTSCENE_SEEN) == 0 && gGameSession->location.loc.variant == actionId) {
-        GameFlag_SetNibble(GAME_FLAG_MINE_GORGE_CUTSCENE_SEEN, 1);
+    if (actionId == 1 && gameFlagGetNibble(GAME_FLAG_MINE_GORGE_CUTSCENE_SEEN) == 0 && gGameSession->location.loc.variant == actionId) {
+        gameFlagSetNibble(GAME_FLAG_MINE_GORGE_CUTSCENE_SEEN, 1);
         func_800E8614(D_mine_gorge_8017E610, 0);
     }
     return 0;
@@ -299,12 +299,12 @@ static void func_mine_gorge_8017D8D4(Task* arg0)
 {
     arg0->msgTable = D_mine_gorge_8017E280;
     gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
-    if ((gGameSession->location.loc.variant == 1) && (GameFlag_GetNibble(GAME_FLAG_MINE_GORGE_CUTSCENE_SEEN) != 0)) {
+    if ((gGameSession->location.loc.variant == 1) && (gameFlagGetNibble(GAME_FLAG_MINE_GORGE_CUTSCENE_SEEN) != 0)) {
         gSceneCombatState.actor03700Wave = 0x15;
     }
-    if ((GameFlag_GetNibble(GAME_FLAG_MINE_POWER_PANEL_STAGE) == 2) && (GameFlag_GetNibble(GAME_FLAG_MINE_REFUGE_SCENE_STATE) == 0)) {
-        GameFlag_SetNibble(GAME_FLAG_MINE_REFUGE_SCENE_STATE, 1);
-        GameFlag_SetNibble(GAME_FLAG_MINE_GORGE_CAVERN_DOOR_POWERED, 0);
+    if ((gameFlagGetNibble(GAME_FLAG_MINE_POWER_PANEL_STAGE) == 2) && (gameFlagGetNibble(GAME_FLAG_MINE_REFUGE_SCENE_STATE) == 0)) {
+        gameFlagSetNibble(GAME_FLAG_MINE_REFUGE_SCENE_STATE, 1);
+        gameFlagSetNibble(GAME_FLAG_MINE_GORGE_CAVERN_DOOR_POWERED, 0);
         Gp_SpawnIfCapIdle(8, 0);
     }
     arg0->state           = arg0->state + 1;

@@ -85,22 +85,22 @@ s32 func_acropolis_forked_road_8017D5EC(Task* arg0, s32 arg1, RoomEventMsg* in, 
 {
     *out = *in;
     if (in->areaId == GAME_AREA_ACROPOLIS_FOUNTAIN) {
-        if ((GameFlag_GetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED) & 2) && (in->queryOnly == ROOM_EVENT_EXECUTE)) {
+        if ((gameFlagGetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED) & 2) && (in->queryOnly == ROOM_EVENT_EXECUTE)) {
             out->room = 2;
         }
         if (in->areaId == GAME_AREA_ACROPOLIS_FOUNTAIN) {
-            if (GameFlag_GetNibble(0) < 3) {
+            if (gameFlagGetNibble(0) < 3) {
                 if (in->queryOnly == ROOM_EVENT_EXECUTE) {
                     Gp_SetNibbleIf(in->flagId, 2);
                     Gp_StartCapSlot(1, 1, 0);
                 }
                 return 0;
             }
-            if (GameFlag_GetNibble(0) >= 3) {
-                if (GameFlag_GetNibble(GAME_FLAG_FOUNTAIN_FORKED_ROAD_PATH_USED) == 0) {
+            if (gameFlagGetNibble(0) >= 3) {
+                if (gameFlagGetNibble(GAME_FLAG_FOUNTAIN_FORKED_ROAD_PATH_USED) == 0) {
                     if (in->queryOnly == ROOM_EVENT_EXECUTE) {
                         Gp_StartCapSlot(1, 1, 3);
-                        GameFlag_SetNibble(GAME_FLAG_FOUNTAIN_FORKED_ROAD_PATH_USED, 1);
+                        gameFlagSetNibble(GAME_FLAG_FOUNTAIN_FORKED_ROAD_PATH_USED, 1);
                     }
                 }
                 return 1;
@@ -108,7 +108,7 @@ s32 func_acropolis_forked_road_8017D5EC(Task* arg0, s32 arg1, RoomEventMsg* in, 
         }
     }
     if (in->areaId == GAME_AREA_ACROPOLIS_OBSERVATORY) {
-        if (GameFlag_GetNibble(GAME_FLAG_OBSERVATORY_ROUTE_PROGRESS) < 2) {
+        if (gameFlagGetNibble(GAME_FLAG_OBSERVATORY_ROUTE_PROGRESS) < 2) {
             if (in->queryOnly == ROOM_EVENT_EXECUTE) {
                 Gp_SetNibbleIf(in->flagId, 2);
                 Gp_RunCapCmd1(2);
@@ -120,12 +120,12 @@ s32 func_acropolis_forked_road_8017D5EC(Task* arg0, s32 arg1, RoomEventMsg* in, 
                 return 1;
             }
             out->warp = 2;
-        } else if (GameFlag_GetNibble(GAME_FLAG_OBSERVATORY_ROUTE_PROGRESS) == 2) {
+        } else if (gameFlagGetNibble(GAME_FLAG_OBSERVATORY_ROUTE_PROGRESS) == 2) {
             if (in->queryOnly == ROOM_EVENT_EXECUTE) {
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 7;
                 Gp_MsgPlayerWeapon(0);
                 Task_SpawnFromTable(D_acropolis_forked_road_80180F44, 0, 0, 0);
-                GameFlag_SetNibble(GAME_FLAG_OBSERVATORY_ROUTE_PROGRESS, 3);
+                gameFlagSetNibble(GAME_FLAG_OBSERVATORY_ROUTE_PROGRESS, 3);
             }
             return 0;
         } else {
@@ -134,10 +134,10 @@ s32 func_acropolis_forked_road_8017D5EC(Task* arg0, s32 arg1, RoomEventMsg* in, 
         if (in->queryOnly != ROOM_EVENT_EXECUTE) {
             return 1;
         }
-        if ((GameFlag_GetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED) & 2) == 0) {
+        if ((gameFlagGetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED) & 2) == 0) {
             return 1;
         }
-        if (GameFlag_GetNibble(GAME_FLAG_ACROPOLIS_OBSERVATORY_EVENT_SEEN) != 0) {
+        if (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_OBSERVATORY_EVENT_SEEN) != 0) {
             return 1;
         }
         out->room = 2;
@@ -173,11 +173,11 @@ s32 func_acropolis_forked_road_8017D8A8(Task* task, s32 msgId, const void* first
 
     u8 temp;
 
-    if (request->actionId == 1 && (GameFlag_GetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED) & 2)) {
+    if (request->actionId == 1 && (gameFlagGetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED) & 2)) {
         temp = gGameSession->location.loc.variant;
-        if (((temp == 4) || (temp == 8)) && (GameFlag_GetNibble(GAME_FLAG_FORKED_ROAD_EVENT_SEEN) == 0)) {
+        if (((temp == 4) || (temp == 8)) && (gameFlagGetNibble(GAME_FLAG_FORKED_ROAD_EVENT_SEEN) == 0)) {
             func_800E8614(D_acropolis_forked_road_801820B8, 1);
-            GameFlag_SetNibble(GAME_FLAG_FORKED_ROAD_EVENT_SEEN, 1);
+            gameFlagSetNibble(GAME_FLAG_FORKED_ROAD_EVENT_SEEN, 1);
         }
     }
     return 1;

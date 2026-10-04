@@ -1890,7 +1890,7 @@ void func_actor_215100_8014A5C0(Task* arg0)
                 break;
             }
             if (arg0->spawnArg1.value != 0) {
-                if (GameFlag_GetNibble(GAME_FLAG_0ED) != 0) {
+                if (gameFlagGetNibble(GAME_FLAG_0ED) != 0) {
                     Gp_RunCapCmd1(0x17);
                 }
                 gGameSession->battleResetPending = 1;
@@ -2030,7 +2030,7 @@ s32 func_actor_215100_8014AA54(RoomEventMsg* arg0)
         Task_SpawnFromTable(D_actor_215100_8014CF6C, 0, 1, 0);
     } else {
         do {
-            if (GameFlag_GetNibble(GAME_FLAG_0ED) == 0) {
+            if (gameFlagGetNibble(GAME_FLAG_0ED) == 0) {
                 return 1;
             }
             if (arg0->queryOnly != ROOM_EVENT_EXECUTE) {
@@ -2059,8 +2059,8 @@ void func_actor_215100_8014ABAC(Task* arg0)
     switch (arg0->state) {
         case 0:
             gGameSession->hideHud = 1;
-            if (GameFlag_GetNibble(GAME_FLAG_SHOOTING_GALLERY_INTRO_SEEN) == 0) {
-                GameFlag_SetNibble(GAME_FLAG_SHOOTING_GALLERY_INTRO_SEEN, 1);
+            if (gameFlagGetNibble(GAME_FLAG_SHOOTING_GALLERY_INTRO_SEEN) == 0) {
+                gameFlagSetNibble(GAME_FLAG_SHOOTING_GALLERY_INTRO_SEEN, 1);
                 func_800E3FAC(0xA2, 0x3A);
                 func_800E8634(D_actor_215100_8014E370, 1, D_actor_215100_8014E8F8);
                 arg0->state++;
@@ -2161,14 +2161,14 @@ void func_actor_215100_8014AEC4(s32 arg0)
 
 void func_actor_215100_8014AF0C(void)
 {
-    switch (GameFlag_GetNibble(GAME_FLAG_PIERCE_TALK_PROGRESS)) {
+    switch (gameFlagGetNibble(GAME_FLAG_PIERCE_TALK_PROGRESS)) {
         case 0:
-            GameFlag_SetNibble(GAME_FLAG_PIERCE_TALK_PROGRESS, 1);
+            gameFlagSetNibble(GAME_FLAG_PIERCE_TALK_PROGRESS, 1);
             func_800E8614(D_actor_215100_80153ED4, 0);
             break;
         case 1:
             func_800E8614(D_actor_215100_80153FDC, 0);
-            GameFlag_SetNibble(GAME_FLAG_PIERCE_TALK_PROGRESS, 2);
+            gameFlagSetNibble(GAME_FLAG_PIERCE_TALK_PROGRESS, 2);
             break;
         case 2:
             func_800E8614(D_actor_215100_801543E4, 0);

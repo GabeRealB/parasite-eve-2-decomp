@@ -441,7 +441,7 @@ static void func_actor_311900_8016228C(Enemy* enemy, Task* task)
 
     obj   = task->extra.tmd;
     coord = obj->coords;
-    if ((GameFlag_GetNibble(GAME_FLAG_SECURITY_MONITOR_SCENES_SEEN) & 2) ||
+    if ((gameFlagGetNibble(GAME_FLAG_SECURITY_MONITOR_SCENES_SEEN) & 2) ||
         (work = memCalloc(sizeof(_Actor311900Work), 0), task->work = work, work == NULL)) {
         enemyDestroy(enemy, task);
         return;
@@ -483,7 +483,7 @@ static void func_actor_311900_801623B0(Enemy* enemy, Task* task)
     coord = obj->coords;
     func_actor_311900_80161E3C(task, 2, 0);
     if ((Gp_GetViewIndex() & 0xFF) == 0xA) {
-        GameFlag_SetNibble(GAME_FLAG_SECURITY_MONITOR_SCENES_SEEN, GameFlag_GetNibble(GAME_FLAG_SECURITY_MONITOR_SCENES_SEEN) | 2);
+        gameFlagSetNibble(GAME_FLAG_SECURITY_MONITOR_SCENES_SEEN, gameFlagGetNibble(GAME_FLAG_SECURITY_MONITOR_SCENES_SEEN) | 2);
         obj->flags      = 0;
         work->advancing = 1;
     } else {
@@ -495,7 +495,7 @@ static void func_actor_311900_801623B0(Enemy* enemy, Task* task)
     }
     func_actor_311900_80162100(task);
     if (work->advanceFrames >= ACTOR_311900_ADVANCE_FRAMES) {
-        GameFlag_SetNibble(GAME_FLAG_SECURITY_MONITOR_CAM_A_SCENE_DONE, 1);
+        gameFlagSetNibble(GAME_FLAG_SECURITY_MONITOR_CAM_A_SCENE_DONE, 1);
         task->state++;
     }
 }
@@ -536,7 +536,7 @@ static void func_actor_311900_801624F8(Enemy* enemy, Task* task)
 
     obj   = task->extra.tmd;
     coord = obj->coords;
-    if (GameFlag_GetNibble(GAME_FLAG_OBSERVATORY_ROUTE_PROGRESS) >= 3 ||
+    if (gameFlagGetNibble(GAME_FLAG_OBSERVATORY_ROUTE_PROGRESS) >= 3 ||
         (work = memCalloc(sizeof(_Actor311900Work), 0), task->work = work, work == NULL)) {
         enemyDestroy(enemy, task);
         return;

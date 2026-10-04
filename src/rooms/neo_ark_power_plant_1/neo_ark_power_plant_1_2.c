@@ -818,8 +818,8 @@ void func_neo_ark_power_plant_1_8017DA18(Task* unused)
             glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[25], 0x200, 0x122);
             break;
         case 6:
-            if (GameFlag_GetNibble(GAME_FLAG_POWER_PLANT_1_GENERATOR_PART_DOWN) != 0) {
-                if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING && GameFlag_GetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_1_CLEARED) == 0) {
+            if (gameFlagGetNibble(GAME_FLAG_POWER_PLANT_1_GENERATOR_PART_DOWN) != 0) {
+                if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING && gameFlagGetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_1_CLEARED) == 0) {
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     if (((gRandomLcgState >> 16) & 7) == 0) {
                         Gp_SpawnEff(EFFECT_FLASH_BURST, NULL, 0x400, &D_neo_ark_power_plant_1_8017F1C0);
@@ -848,8 +848,8 @@ void func_neo_ark_power_plant_1_8017DA18(Task* unused)
             glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[15], 0x200, 0x344);
             break;
         case 7:
-            if (GameFlag_GetNibble(GAME_FLAG_POWER_PLANT_1_GENERATOR_PART_DOWN) != 0) {
-                if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING && GameFlag_GetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_1_CLEARED) == 0) {
+            if (gameFlagGetNibble(GAME_FLAG_POWER_PLANT_1_GENERATOR_PART_DOWN) != 0) {
+                if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING && gameFlagGetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_1_CLEARED) == 0) {
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     if (((gRandomLcgState >> 16) & 7) == 0) {
                         Gp_SpawnEff(EFFECT_FLASH_BURST, NULL, 0x400, &D_neo_ark_power_plant_1_8017F1C0);

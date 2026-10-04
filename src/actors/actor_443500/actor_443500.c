@@ -2423,7 +2423,7 @@ void func_actor_443500_80131E3C(s32 arg0)
 
 void func_actor_443500_80131E84(s32 arg0)
 {
-    if (GameFlag_GetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_2_CLEARED) > 0) {
+    if (gameFlagGetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_2_CLEARED) > 0) {
         if (arg0 != 0) {
             Gp_CapFile = 0;
             Gp_LoadCapFile(1);
@@ -2436,7 +2436,7 @@ void func_actor_443500_80131E84(s32 arg0)
 
 void func_actor_443500_80131EE4(void)
 {
-    Gp_RunCapCmd(GameFlag_GetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_2_CLEARED) == 0 ? 6 : 9, 0);
+    Gp_RunCapCmd(gameFlagGetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_2_CLEARED) == 0 ? 6 : 9, 0);
 }
 
 void func_actor_443500_80131F18(void)
@@ -2568,7 +2568,7 @@ static void func_actor_443500_801321F0(Task* task)
             work->savedModelFlags = extra->flags;
             extra->flags          = extra->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW;
         } else if (view < 6) {
-            if (GameFlag_GetNibble(GAME_FLAG_083) > 0) {
+            if (gameFlagGetNibble(GAME_FLAG_083) > 0) {
                 func_actor_443500_80132A68(0);
                 func_actor_443500_8013297C(task, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
             }

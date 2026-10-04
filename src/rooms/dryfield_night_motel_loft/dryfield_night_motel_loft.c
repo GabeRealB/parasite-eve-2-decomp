@@ -373,7 +373,7 @@ void func_dryfield_night_motel_loft_8017D6F8(Task* arg0)
     switch (arg0->state) {
         case 0:
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
-            Gp_RunCapCmd(GameFlag_GetNibble(GAME_FLAG_NIGHT_MOTEL_LOFT_SCENE_DONE) != 0 ? 0x12 : 3, 0);
+            Gp_RunCapCmd(gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_LOFT_SCENE_DONE) != 0 ? 0x12 : 3, 0);
             D_80115680  = 5;
             arg0->state = arg0->state + 1;
             return;
@@ -385,7 +385,7 @@ void func_dryfield_night_motel_loft_8017D6F8(Task* arg0)
             return;
         case 2:
             if (Gp_GetCapEventKey() == 0x1F) {
-                GameFlag_SetNibble(GAME_FLAG_NIGHT_MOTEL_LOFT_SCENE_DONE, 1);
+                gameFlagSetNibble(GAME_FLAG_NIGHT_MOTEL_LOFT_SCENE_DONE, 1);
             }
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
             Gp_MsgPlayerWeapon(1);
@@ -409,7 +409,7 @@ static void func_dryfield_night_motel_loft_8017D808(Task* arg0)
 {
     arg0->msgTable = D_dryfield_night_motel_loft_8017EB1C;
     gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
-    if (Gp_LookupSlot4(0) != 0 && GameFlag_GetNibble(GAME_FLAG_NIGHT_MOTEL_LOFT_EVENT_SEEN) != 0) {
+    if (Gp_LookupSlot4(0) != 0 && gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_LOFT_EVENT_SEEN) != 0) {
         D_dryfield_night_motel_loft_8018092C.command = 1;
         TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(0), ACTOR_COMMAND_MESSAGE_APPLY, &D_dryfield_night_motel_loft_8018092C, 0);
     }
@@ -430,8 +430,8 @@ static void func_dryfield_night_motel_loft_8017D8B0(Task* arg0)
             object->flags                &= (0xFF ^ WORLD_COLLISION_TRIGGER_ENABLED);
         }
     }
-    if (Gp_HasCollectedBit(0x117) && GameFlag_GetNibble(GAME_FLAG_NIGHT_MOTEL_LOFT_EVENT_SEEN) == 0 && Gp_LookupSlot4(0)) {
-        GameFlag_SetNibble(GAME_FLAG_NIGHT_MOTEL_LOFT_EVENT_SEEN, 1);
+    if (Gp_HasCollectedBit(0x117) && gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_LOFT_EVENT_SEEN) == 0 && Gp_LookupSlot4(0)) {
+        gameFlagSetNibble(GAME_FLAG_NIGHT_MOTEL_LOFT_EVENT_SEEN, 1);
         func_800E8614(D_dryfield_night_motel_loft_8017EB78, 0);
         func_800E3FAC(0xA2, 0x15);
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 3;

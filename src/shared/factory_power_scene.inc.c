@@ -13,7 +13,7 @@ void factoryPowerScene(Task* task)
             Gp_RunCapCmd(task->spawnArg1.value, 0);
             goto advance;
         case 1:
-            if (GameFlag_GetNibble(GAME_FLAG_FACTORY_POWER_ON) <= 0) {
+            if (gameFlagGetNibble(GAME_FLAG_FACTORY_POWER_ON) <= 0) {
                 if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
                     factoryDayShowView11Sprite(0);
                 } else {
@@ -30,8 +30,8 @@ void factoryPowerScene(Task* task)
             /* fallthrough */
         case 3:
             if (Gp_GetCapEventKey() == 3) {
-                GameFlag_SetNibble(GAME_FLAG_FACTORY_POWER_ON, 1);
-                GameFlag_SetNibble(GAME_FLAG_FACTORY_LAMP_PROGRESS, 1);
+                gameFlagSetNibble(GAME_FLAG_FACTORY_POWER_ON, 1);
+                gameFlagSetNibble(GAME_FLAG_FACTORY_LAMP_PROGRESS, 1);
                 if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
                     factoryDayShowView11Sprite(1);
                     factoryDayShowView9Sprite(1);

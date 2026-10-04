@@ -13,7 +13,7 @@ void factoryPanelWaitMove(Task* task)
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
     if (work->moveSettled != 0) {
-        if (GameFlag_GetNibble(GAME_FLAG_FACTORY_POWER_ON) == 0) {
+        if (gameFlagGetNibble(GAME_FLAG_FACTORY_POWER_ON) == 0) {
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0xC;
         } else {
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 5;

@@ -348,7 +348,7 @@ void Stage_RequestSpecialFlag(s32 unused)
     product = g->location.loc.area * Stage_MusicRowLengths[idx];
     base    = Stage_MusicTables[idx];
     if (base[product].sequenceId == STAGE_MUSIC_AMBIENT_AREA) {
-        if (GameFlag_GetNibble(GAME_FLAG_STAGE_AMBIENT_MUTED) == 1) {
+        if (gameFlagGetNibble(GAME_FLAG_STAGE_AMBIENT_MUTED) == 1) {
             one = 1;
             SndEvt_EnqueueType7(0x60010000 | one, 0x1E);
             gStageAmbientOn = 0;

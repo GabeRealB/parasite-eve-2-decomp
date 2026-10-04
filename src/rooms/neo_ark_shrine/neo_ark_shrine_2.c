@@ -1239,7 +1239,7 @@ static void func_neo_ark_shrine_8017EFE4(Task* task)
     work->timer         = work->timer + 1;
     func_neo_ark_shrine_8017EAC0(task);
     if (work->timer >= 0x1E) {
-        if (GameFlag_GetNibble(GAME_FLAG_0E9) == 0) {
+        if (gameFlagGetNibble(GAME_FLAG_0E9) == 0) {
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 2;
             gGameSession->location.loc.room                            = 2;
         } else {
@@ -1293,10 +1293,10 @@ static void func_neo_ark_shrine_8017F178(Task* task)
     work->timer = timer;
     if (timer >= 0x5AU) {
         work->timer = 0;
-        if (GameFlag_GetNibble(GAME_FLAG_0E9) == 0) {
+        if (gameFlagGetNibble(GAME_FLAG_0E9) == 0) {
             Task_SpawnFromTable(D_neo_ark_shrine_80182508, 2, 0, 0);
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0xD;
-            GameFlag_SetNibble(GAME_FLAG_0E9, 1);
+            gameFlagSetNibble(GAME_FLAG_0E9, 1);
             next = task->state + 1;
         } else {
             next = task->state + 2;
@@ -1366,7 +1366,7 @@ static void func_neo_ark_shrine_8017F398(Task* task)
     work->timer         = work->timer + 1;
     func_neo_ark_shrine_8017EAC0(task);
     if (work->timer >= 0x1E) {
-        if (GameFlag_GetNibble(GAME_FLAG_0E9) == 0) {
+        if (gameFlagGetNibble(GAME_FLAG_0E9) == 0) {
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 1;
             gGameSession->location.loc.room                            = 1;
         } else {

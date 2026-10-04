@@ -211,7 +211,7 @@ void func_800C5F70(Task* arg0)
             Gp_SetItemSeenBit(item, 1);
         }
         if (item == 0x125) {
-            GameFlag_SetNibble(GAME_FLAG_ITEM_125_EXAMINED, 1);
+            gameFlagSetNibble(GAME_FLAG_ITEM_125_EXAMINED, 1);
         }
     } else {
         if (arg0->spawnArg1.value & 0x20000) {

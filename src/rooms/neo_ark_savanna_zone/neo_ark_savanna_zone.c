@@ -425,12 +425,12 @@ static void           func_neo_ark_savanna_zone_8017D94C(Task* task);
 static __inline__ s32 NeoArkSavannaZone_StartEvent(RoomEventMsg* dst, RoomLatchedEvent* event)
 {
     D_neo_ark_savanna_zone_80180998 = 0;
-    if (GameFlag_GetNibble(event->flagId) == 0 || event->flagId == 0) {
+    if (gameFlagGetNibble(event->flagId) == 0 || event->flagId == 0) {
         if (dst->queryOnly == ROOM_EVENT_EXECUTE) {
             gRoomEventStagedMsg = *dst;
             gRoomEventLatched   = *event;
             if (event->flagId != 0) {
-                GameFlag_SetNibble(event->flagId, 1);
+                gameFlagSetNibble(event->flagId, 1);
             }
             Task_SpawnFromTable(&D_neo_ark_savanna_zone_8017F9A0, 0, 0, 0);
             D_neo_ark_savanna_zone_80180998 = 1;

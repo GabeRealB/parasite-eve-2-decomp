@@ -985,26 +985,26 @@ static void func_actor_260400_80149FE0(Enemy* enemy, Task* task);
 
 void func_actor_260400_80149E38(void)
 {
-    switch (GameFlag_GetNibble(GAME_FLAG_HELIPORT_TALK_PROGRESS)) {
+    switch (gameFlagGetNibble(GAME_FLAG_HELIPORT_TALK_PROGRESS)) {
         case 0:
             func_800E8634(D_actor_260400_8014C788, 0, D_actor_260400_8014CF38);
-            GameFlag_SetNibble(GAME_FLAG_HELIPORT_TALK_PROGRESS, 1);
+            gameFlagSetNibble(GAME_FLAG_HELIPORT_TALK_PROGRESS, 1);
             break;
         case 1:
             if ((Gp_GetCurBit2Flag(4) == 1) || (Gp_GetCurBit2Flag(5) == 1)) {
                 func_800E8614(D_actor_260400_8014D118, 0);
             } else {
                 func_800E8614(D_actor_260400_8014D208, 0);
-                GameFlag_SetNibble(GAME_FLAG_HELIPORT_TALK_PROGRESS, 2);
+                gameFlagSetNibble(GAME_FLAG_HELIPORT_TALK_PROGRESS, 2);
             }
             break;
         case 2:
             func_800E8614(D_actor_260400_8014D340, 0);
-            GameFlag_SetNibble(GAME_FLAG_HELIPORT_TALK_PROGRESS, 3);
+            gameFlagSetNibble(GAME_FLAG_HELIPORT_TALK_PROGRESS, 3);
             break;
         case 3:
             func_800E8614(D_actor_260400_8014D4A8, 0);
-            GameFlag_SetNibble(GAME_FLAG_HELIPORT_TALK_PROGRESS, 4);
+            gameFlagSetNibble(GAME_FLAG_HELIPORT_TALK_PROGRESS, 4);
             break;
         case 4:
             func_800E8614(D_actor_260400_8014D610, 0);

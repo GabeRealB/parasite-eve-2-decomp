@@ -1591,16 +1591,16 @@ s32 func_dryfield_general_store_8017DDFC(Task* task, s32 msgId, RoomEventMsg* ar
 {
     switch (arg2->warp) {
         case 1:
-            if (GameFlag_GetNibble(GAME_FLAG_GENERAL_STORE_CUTSCENE_STATE) == 0) {
+            if (gameFlagGetNibble(GAME_FLAG_GENERAL_STORE_CUTSCENE_STATE) == 0) {
                 Task_SpawnFromTable(&D_dryfield_general_store_8017E4C0, 0, 0, 0);
-                GameFlag_SetNibble(GAME_FLAG_GENERAL_STORE_CUTSCENE_STATE, 1);
+                gameFlagSetNibble(GAME_FLAG_GENERAL_STORE_CUTSCENE_STATE, 1);
             }
             break;
         case 2:
-            if (gSceneCombatState.signals.bytes.battlePhase != SCENE_COMBAT_BATTLE_ENGAGED && GameFlag_GetNibble(GAME_FLAG_GENERAL_STORE_CUTSCENE_STATE) == 1) {
+            if (gSceneCombatState.signals.bytes.battlePhase != SCENE_COMBAT_BATTLE_ENGAGED && gameFlagGetNibble(GAME_FLAG_GENERAL_STORE_CUTSCENE_STATE) == 1) {
                 func_800E8614(D_dryfield_general_store_8017E568, 1);
             }
-            GameFlag_SetNibble(GAME_FLAG_GENERAL_STORE_CUTSCENE_STATE, 2);
+            gameFlagSetNibble(GAME_FLAG_GENERAL_STORE_CUTSCENE_STATE, 2);
             break;
     }
     return 0;
@@ -1610,10 +1610,10 @@ static void func_dryfield_general_store_8017DEAC(Task* arg0)
 {
     arg0->msgTable = D_dryfield_general_store_8017E188;
     gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
-    if (GameFlag_GetNibble(GAME_FLAG_GENERAL_STORE_CUTSCENE_STATE) == 0) {
+    if (gameFlagGetNibble(GAME_FLAG_GENERAL_STORE_CUTSCENE_STATE) == 0) {
         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &D_dryfield_general_store_8017E1B8, ACTOR_COMMAND_MESSAGE_APPLY);
-    } else if (GameFlag_GetNibble(GAME_FLAG_GENERAL_STORE_CUTSCENE_STATE) == 1) {
-        GameFlag_SetNibble(GAME_FLAG_GENERAL_STORE_CUTSCENE_STATE, 2);
+    } else if (gameFlagGetNibble(GAME_FLAG_GENERAL_STORE_CUTSCENE_STATE) == 1) {
+        gameFlagSetNibble(GAME_FLAG_GENERAL_STORE_CUTSCENE_STATE, 2);
     }
     arg0->state = arg0->state + 1;
     D_80115598  = 1;

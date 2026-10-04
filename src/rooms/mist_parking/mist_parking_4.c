@@ -446,7 +446,7 @@ void func_mist_parking_80183EAC(Task* task)
                 return;
             }
             for (i = 0; i < 5; i++) {
-                if (GameFlag_GetNibble(i + 0x125) == 2) {
+                if (gameFlagGetNibble(i + 0x125) == 2) {
                     task->state = 2;
                     return;
                 }
@@ -486,7 +486,7 @@ void func_mist_parking_80183EAC(Task* task)
             talk->prizeTimer--;
             if (talk->prizeTimer == 5) {
                 prize = talk->prizeIndex;
-                if (GameFlag_GetNibble(prize + 0x125) == 2) {
+                if (gameFlagGetNibble(prize + 0x125) == 2) {
                     Gp_StartCapSlot(5, 0, prize);
                 }
                 return;
@@ -496,7 +496,7 @@ void func_mist_parking_80183EAC(Task* task)
             }
             prize = talk->prizeIndex;
             if (Gp_GetCurBit2Flag(prize + 0x20) != 1) {
-                GameFlag_SetNibble(prize + 0x125, 3);
+                gameFlagSetNibble(prize + 0x125, 3);
             }
             talk->prizeTimer = 10;
             talk->prizeIndex++;

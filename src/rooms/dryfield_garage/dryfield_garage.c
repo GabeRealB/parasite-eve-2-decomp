@@ -645,20 +645,20 @@ s32 func_dryfield_garage_8017D91C(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEv
 
     *out = *in;
     if (in->areaId == GAME_AREA_DRYFIELD_JUNK_YARD) {
-        if (GameFlag_GetNibble(GAME_FLAG_WATER_TANK_SCENE_SEEN) == 0) {
+        if (gameFlagGetNibble(GAME_FLAG_WATER_TANK_SCENE_SEEN) == 0) {
             if (in->queryOnly == ROOM_EVENT_EXECUTE) {
                 Task_SpawnFromTable(D_dryfield_garage_8017DCAC, 0, 0, 0);
             }
             return 2;
         }
-        if (GameFlag_GetNibble(GAME_FLAG_GARAGE_JUNK_YARD_DOOR_PASSED) == 0) {
-            GameFlag_SetNibble(GAME_FLAG_GARAGE_JUNK_YARD_DOOR_PASSED, 1);
-            GameFlag_SetNibble(GAME_FLAG_COMPANION_2_SCHEDULE, 3);
+        if (gameFlagGetNibble(GAME_FLAG_GARAGE_JUNK_YARD_DOOR_PASSED) == 0) {
+            gameFlagSetNibble(GAME_FLAG_GARAGE_JUNK_YARD_DOOR_PASSED, 1);
+            gameFlagSetNibble(GAME_FLAG_COMPANION_2_SCHEDULE, 3);
         }
     }
     if (in->areaId == GAME_AREA_DRYFIELD_FACTORY) {
         if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-            nib = GameFlag_GetNibble(GAME_FLAG_FACTORY_BARRIER_CLEARED);
+            nib = gameFlagGetNibble(GAME_FLAG_FACTORY_BARRIER_CLEARED);
             if (nib == 0) {
                 nib = 1;
             } else {
@@ -675,7 +675,7 @@ s32 func_dryfield_garage_8017D91C(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEv
 s32 func_dryfield_garage_8017DA18(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 0x10) {
-        Gp_RunCapCmd1(GameFlag_GetNibble(GAME_FLAG_0FD) != 0 ? 0x16 : 0x10);
+        Gp_RunCapCmd1(gameFlagGetNibble(GAME_FLAG_0FD) != 0 ? 0x16 : 0x10);
     }
     return 0;
 }
@@ -723,9 +723,9 @@ static void func_dryfield_garage_8017DB18(Task* arg0)
     if ((gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) && (gGameSession->location.loc.warp == 2)) {
         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), 0x3E9, &D_dryfield_garage_8017DCC4, 0);
     }
-    if (GameFlag_GetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX) == 1) {
-        GameFlag_SetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
-        GameFlag_SetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 2);
+    if (gameFlagGetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX) == 1) {
+        gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
+        gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 2);
     }
     if (gGameSession->location.loc.variant != 1) {
         D_dryfield_garage_8017FD1C[0].flags &= (0xFF ^ WORLD_COLLISION_TRIGGER_ENABLED);

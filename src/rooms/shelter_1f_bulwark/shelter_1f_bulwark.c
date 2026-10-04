@@ -312,12 +312,12 @@ static __inline__ s32 Bulwark_StartEvent(RoomEventMsg* dst, RoomLatchedEvent* ev
 static __inline__ s32 Bulwark_StartEvent(RoomEventMsg* dst, RoomLatchedEvent* event)
 {
     D_shelter_1f_bulwark_80180ECC_value = 0;
-    if (GameFlag_GetNibble(event->flagId) == 0 || event->flagId == 0) {
+    if (gameFlagGetNibble(event->flagId) == 0 || event->flagId == 0) {
         if (dst->queryOnly == ROOM_EVENT_EXECUTE) {
             gRoomEventStagedMsg = *dst;
             gRoomEventLatched   = *event;
             if (event->flagId != 0) {
-                GameFlag_SetNibble(event->flagId, 1);
+                gameFlagSetNibble(event->flagId, 1);
             }
             Task_SpawnFromTable(&D_shelter_1f_bulwark_80180320, 0, 0, 0);
             D_shelter_1f_bulwark_80180ECC_value = 1;
@@ -334,13 +334,13 @@ s32 func_shelter_1f_bulwark_8017D7B4(Task* task, s32 msgId, RoomEventMsg* src, R
     *dst = *src;
     func_map_neo_ark_80179B14(src, dst);
     if (src->areaId == GAME_AREA_SHELTER_1F_HELIPORT) {
-        if (GameFlag_GetNibble(GAME_FLAG_BULWARK_HELIPORT_UNBLOCKED) == 0) {
+        if (gameFlagGetNibble(GAME_FLAG_BULWARK_HELIPORT_UNBLOCKED) == 0) {
             Gp_SpawnIfCapIdle(1, 0);
             return 2;
         }
-        if (GameFlag_GetNibble(GAME_FLAG_STORY_CHAPTER) < 6) {
+        if (gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) < 6) {
             if (src->queryOnly == ROOM_EVENT_EXECUTE) {
-                GameFlag_SetNibble(GAME_FLAG_STORY_CHAPTER, 6);
+                gameFlagSetNibble(GAME_FLAG_STORY_CHAPTER, 6);
                 Gp_MsgPlayerWeapon(0);
                 Task_SpawnFromTable(&D_shelter_1f_bulwark_80180354, 0, 0, 0);
             }
@@ -402,7 +402,7 @@ void func_shelter_1f_bulwark_8017DA60(Task* arg0)
             }
             goto advance;
         case 5:
-            GameFlag_SetNibble(GAME_FLAG_STORY_CHAPTER, 6);
+            gameFlagSetNibble(GAME_FLAG_STORY_CHAPTER, 6);
             Task_SpawnFromTable(D_shelter_1f_bulwark_80180360, 0, 0, 0);
         case 4:
         case 6:

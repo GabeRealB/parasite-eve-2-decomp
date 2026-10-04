@@ -703,12 +703,12 @@ static void           func_shelter_b1_main_corridor_8017DD90(Task* task);
 static __inline__ s32 _corridorStartEvent(RoomEventMsg* dst, RoomLatchedEvent* event)
 {
     D_shelter_b1_main_corridor_80185D44[0] = 0;
-    if (GameFlag_GetNibble(event->flagId) == 0 || event->flagId == 0) {
+    if (gameFlagGetNibble(event->flagId) == 0 || event->flagId == 0) {
         if (dst->queryOnly == ROOM_EVENT_EXECUTE) {
             gRoomEventStagedMsg = *dst;
             gRoomEventLatched   = *event;
             if (event->flagId != 0) {
-                GameFlag_SetNibble(event->flagId, 1);
+                gameFlagSetNibble(event->flagId, 1);
             }
             Task_SpawnFromTable(&D_shelter_b1_main_corridor_80183098, 0, 0, 0);
             D_shelter_b1_main_corridor_80185D44[0] = 1;
@@ -753,7 +753,7 @@ s32 func_shelter_b1_main_corridor_8017DA8C(Task* task, s32 msgId, RoomEventMsg* 
         return _corridorStartEvent(out, &event);
     }
     if (in->areaId == GAME_AREA_SHELTER_B1_ELEVATOR_HALL) {
-        if (GameFlag_GetNibble(GAME_FLAG_STORY_CHAPTER) >= 6) {
+        if (gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) >= 6) {
             if (in->queryOnly == ROOM_EVENT_EXECUTE) {
                 Gp_RunCapCmd1(5);
             }
@@ -768,7 +768,7 @@ s32 func_shelter_b1_main_corridor_8017DA8C(Task* task, s32 msgId, RoomEventMsg* 
         return roomEventGate(&req, out);
     }
     if (in->areaId == GAME_AREA_SHELTER_B1_TRANSFER_TUNNEL) {
-        if (GameFlag_GetNibble(GAME_FLAG_B1_TRANSFER_TUNNEL_DOOR_UNLOCKED) == 0) {
+        if (gameFlagGetNibble(GAME_FLAG_B1_TRANSFER_TUNNEL_DOOR_UNLOCKED) == 0) {
             if (in->queryOnly == ROOM_EVENT_EXECUTE) {
                 Gp_SetNibbleIf(in->flagId, 2);
                 Gp_RunCapCmd1(1);

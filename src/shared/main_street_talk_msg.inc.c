@@ -7,7 +7,7 @@
 s32 mainStreetTalkMsg(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 1) {
-        if (GameFlag_GetNibble(GAME_FLAG_ITEM_119_HANDOVER_PROGRESS) >= 2) {
+        if (gameFlagGetNibble(GAME_FLAG_ITEM_119_HANDOVER_PROGRESS) >= 2) {
             Gp_AgeFlag119();
             if (Gp_HasCollectedBit(0x119) == 0) {
                 Gp_SetCurBit2Flag(0x1B, 1);

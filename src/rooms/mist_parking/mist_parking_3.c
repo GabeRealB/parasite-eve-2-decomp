@@ -191,7 +191,7 @@ void func_mist_parking_80183708(s32 arg0)
 
 void func_mist_parking_80183780(s32 arg0)
 {
-    GameFlag_SetNibble(GAME_FLAG_0F1, arg0);
+    gameFlagSetNibble(GAME_FLAG_0F1, arg0);
 }
 
 /// Drops the handles in `D_mist_parking_80195320` and

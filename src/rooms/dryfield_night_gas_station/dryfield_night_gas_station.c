@@ -2531,16 +2531,16 @@ static void func_dryfield_night_gas_station_8017F41C(Task* arg0)
 {
     arg0->msgTable = D_dryfield_night_gas_station_80184034;
     gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
-    if ((GameFlag_GetNibble(GAME_FLAG_NIGHT_GAS_STATION_PROGRESS) >= 2) && (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != 0)) {
+    if ((gameFlagGetNibble(GAME_FLAG_NIGHT_GAS_STATION_PROGRESS) >= 2) && (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != 0)) {
         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), 0x3E9, &D_dryfield_night_gas_station_80188B0C, 0);
         Gp_AllyAnimId(&D_dryfield_night_gas_station_80184098.source.index);
         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), ANIMATION_MESSAGE_PLAY, &D_dryfield_night_gas_station_80184098, 0);
         func_dryfield_night_gas_station_8017FBD4(0);
     }
-    if (GameFlag_GetNibble(GAME_FLAG_NIGHT_GAS_STATION_FIRST_VISIT) == 0) {
-        GameFlag_SetNibble(GAME_FLAG_NIGHT_GAS_STATION_FIRST_VISIT, 1);
+    if (gameFlagGetNibble(GAME_FLAG_NIGHT_GAS_STATION_FIRST_VISIT) == 0) {
+        gameFlagSetNibble(GAME_FLAG_NIGHT_GAS_STATION_FIRST_VISIT, 1);
         func_800E3FAC(0xA2, 0x12);
-        GameFlag_SetNibble(GAME_FLAG_COMPANION_1_SCHEDULE, 2);
+        gameFlagSetNibble(GAME_FLAG_COMPANION_1_SCHEDULE, 2);
         func_dryfield_night_gas_station_80180C20();
         if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != 0) {
             func_800E8634(D_dryfield_night_gas_station_801892E4, 0, D_dryfield_night_gas_station_80189A7C);
@@ -2603,13 +2603,13 @@ s32 func_dryfield_night_gas_station_8017F89C(Task* arg0, s32 arg1, s32 arg2, s32
     }
     if ((arg2 == 0x17) && (gGameSession->location.loc.room == 4)) {
         if (Gp_HasCollectedBit(0x11E) != 0) {
-            if (GameFlag_GetNibble(GAME_FLAG_NIGHT_GAS_STATION_EXAMINE_STATE) == 0) {
-                GameFlag_SetNibble(GAME_FLAG_NIGHT_GAS_STATION_EXAMINE_STATE, 1);
+            if (gameFlagGetNibble(GAME_FLAG_NIGHT_GAS_STATION_EXAMINE_STATE) == 0) {
+                gameFlagSetNibble(GAME_FLAG_NIGHT_GAS_STATION_EXAMINE_STATE, 1);
             } else {
-                GameFlag_SetNibble(GAME_FLAG_NIGHT_GAS_STATION_EXAMINE_STATE, 2);
+                gameFlagSetNibble(GAME_FLAG_NIGHT_GAS_STATION_EXAMINE_STATE, 2);
             }
         }
-        Gp_SpawnIfCapIdle(GameFlag_GetNibble(GAME_FLAG_NIGHT_GAS_STATION_EXAMINE_STATE) != 0 ? (GameFlag_GetNibble(GAME_FLAG_NIGHT_GAS_STATION_EXAMINE_STATE) == 1 ? 0x20 : 0x1F) : arg2, 0);
+        Gp_SpawnIfCapIdle(gameFlagGetNibble(GAME_FLAG_NIGHT_GAS_STATION_EXAMINE_STATE) != 0 ? (gameFlagGetNibble(GAME_FLAG_NIGHT_GAS_STATION_EXAMINE_STATE) == 1 ? 0x20 : 0x1F) : arg2, 0);
     }
     return 0;
 }
@@ -2620,7 +2620,7 @@ s32 func_dryfield_night_gas_station_8017F89C(Task* arg0, s32 arg1, s32 arg2, s32
 /// reached 2 and pointer slot 0xA is live.
 s32 func_dryfield_night_gas_station_8017F990(Task* task, s32 msgId, DirectionActionRequest* msg, s32 arg3)
 {
-    if ((msg->actionId == 0xE) && (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) && (GameFlag_GetNibble(GAME_FLAG_NIGHT_GAS_STATION_PROGRESS) >= 2)) {
+    if ((msg->actionId == 0xE) && (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) && (gameFlagGetNibble(GAME_FLAG_NIGHT_GAS_STATION_PROGRESS) >= 2)) {
         func_800E8614(D_dryfield_night_gas_station_8018920C, 0);
     }
     return 0;
@@ -2633,13 +2633,13 @@ s32 func_dryfield_night_gas_station_8017F990(Task* task, s32 msgId, DirectionAct
 /// queues sound event 0x64.
 s32 func_dryfield_night_gas_station_8017F9E8(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
-    if (GameFlag_GetNibble(GAME_FLAG_NIGHT_GAS_STATION_PROGRESS) == 0) {
-        GameFlag_SetNibble(GAME_FLAG_NIGHT_GAS_STATION_PROGRESS, 1);
+    if (gameFlagGetNibble(GAME_FLAG_NIGHT_GAS_STATION_PROGRESS) == 0) {
+        gameFlagSetNibble(GAME_FLAG_NIGHT_GAS_STATION_PROGRESS, 1);
         func_800E8614(D_dryfield_night_gas_station_80188B64, 1);
         gGameSession->flowFlags |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
         Gp_ApplyAreaRecs(D_dryfield_night_gas_station_801907A0);
-        GameFlag_SetNibble(GAME_FLAG_GENERAL_STORE_UNDERPASS_BLOCKED, 0);
-        GameFlag_SetNibble(GAME_FLAG_GAS_STATION_MAIN_STREET_BLOCKED, 0);
+        gameFlagSetNibble(GAME_FLAG_GENERAL_STORE_UNDERPASS_BLOCKED, 0);
+        gameFlagSetNibble(GAME_FLAG_GAS_STATION_MAIN_STREET_BLOCKED, 0);
         SndEvt_EnqueueType2(0, 0x64);
     }
     return 0;
@@ -2669,9 +2669,9 @@ static void func_dryfield_night_gas_station_8017FAEC(Task* task)
     s32 temp_v0;
 
     if (gGameSession->eventState == 0) {
-        temp_v0 = GameFlag_GetNibble(GAME_FLAG_NIGHT_GAS_STATION_PROGRESS);
+        temp_v0 = gameFlagGetNibble(GAME_FLAG_NIGHT_GAS_STATION_PROGRESS);
         if ((temp_v0 == 1) && (Gp_StateC08.mode != temp_v0)) {
-            GameFlag_SetNibble(GAME_FLAG_NIGHT_GAS_STATION_PROGRESS, 2);
+            gameFlagSetNibble(GAME_FLAG_NIGHT_GAS_STATION_PROGRESS, 2);
             func_800E8634(D_dryfield_night_gas_station_80188BF4, 0, D_dryfield_night_gas_station_80189014);
         }
     }
@@ -3274,7 +3274,7 @@ static void func_dryfield_night_gas_station_80180D1C(void)
 {
     GameLocationKey* sess = &gGameSession->location.loc;
     SpriteView*      view = Gp_SprtTables[sess->stage - 1][0].areaViews[sess->area - 1];
-    s32              flag = GameFlag_GetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_8_STATE);
+    s32              flag = gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_8_STATE);
 
     switch (flag) {
         case 0:
@@ -3372,7 +3372,7 @@ void func_dryfield_night_gas_station_80180E9C(Task* task)
             glowDrawFlare(&D_dryfield_night_gas_station_80189C8C[i], 0, 0x380);
         }
     }
-    if (GameFlag_GetNibble(GAME_FLAG_NIGHT_GAS_STATION_PROGRESS) == 0) {
+    if (gameFlagGetNibble(GAME_FLAG_NIGHT_GAS_STATION_PROGRESS) == 0) {
         work->scale = 1;
         if (gRoomEffectState->battleState != ROOM_EFFECT_BATTLE_ENGAGED && gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
             for (i = 19; i < 21; i++) {
