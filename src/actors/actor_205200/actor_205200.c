@@ -55,31 +55,69 @@
 #include "rooms/shelter_b6_training_room.h"
 #include "../../shared/screen_wave.h"
 
-/// Work block of the controller task, allocated by its setup handler
-/// `func_actor_205200_8014A72C`. It spawns the parts, tracks the live ones
-/// (`field_0`/`field_18`, indexed by the slot each part took) and drives the
-/// looping sound and the screen-wave timer.
-typedef struct Actor205200CtrlWork {
-    /* 0x00 */ GfxCoord* field_0[3];  // coords of the parts, measured by `func_actor_205200_8014ACD4`
-    /* 0x0C */ GfxCoord* field_C;     // nearest of `field_0` to the stage view
-    /* 0x10 */ u32       field_10;    // its distance
-    /* 0x14 */ s32       field_14;    // sound-event id `func_actor_205200_8014A958` plays
-    /* 0x18 */ s16       field_18[3]; // 1 marks the matching `field_0` slot live
-    /* 0x1E */ s16       field_1E;    // kind from the placement; selects the spawn tables
-    /* 0x20 */ s16       field_20;    // live part count, also the next part's slot and the timer reload index
-    /* 0x22 */ u16       field_22;    // countdown `func_actor_205200_8014AB98` ticks in both of its sub-states
-    /* 0x24 */ s16       field_24;    // state of `func_actor_205200_8014A958` (0 wait, 1 run, 2 stop, 3 done)
-    /* 0x26 */ s16       field_26;    // sub-state of `func_actor_205200_8014AB98`
-    /* 0x28 */ s16       field_28;    // set while the screen wave is running
-    /* 0x2A */ s16       field_2A;    // delay before the sound starts
-    /* 0x2C */ s16       field_2C;    // set when a part dies, forcing the nearest part to be re-measured
-    /* 0x2E */ s16       field_2E;    // raised by message 0x7DB; stops the sound and sends the parts to state 2
-} Actor205200CtrlWork;
-STATIC_ASSERT_SIZEOF(Actor205200CtrlWork, 0x30);
+/// Room a controller is placed in, taken from its placement's `mode` and
+/// stored in `_Actor205200CtrlWork.site`.
+///
+/// Each site has its own number of parts, part positions and headings, room
+/// sprite batches and game flags. A placement with any other mode spawns
+/// nothing.
+enum {
+    ACTOR_205200_SITE_EVE_ACCESS_TUNNEL = 1, // Neo Ark Eve access tunnel, two parts
+    ACTOR_205200_SITE_B6_CORRIDOR       = 2, // Shelter B6 corridor, three parts
+    ACTOR_205200_SITE_B6_TRAINING_ROOM  = 3, // Shelter B6 training room, two parts
+};
+
+/// Stage of a controller, stored in `_Actor205200CtrlWork.state`.
+enum {
+    ACTOR_205200_CTRL_STARTING = 0, // Counting `startDelay` down, then starting the sustained sound
+    ACTOR_205200_CTRL_PULSING  = 1, // Parts are live and the pulses repeat
+    ACTOR_205200_CTRL_STOPPING = 2, // The last part is gone: release the wave and stop the sound
+    ACTOR_205200_CTRL_STOPPED  = 3, // Nothing left to run
+};
+
+/// Half of the pulse cycle a controller is in, stored in
+/// `_Actor205200CtrlWork.pulseState`.
+enum {
+    ACTOR_205200_PULSE_WAITING = 0, // Counting down to the next pulse
+    ACTOR_205200_PULSE_RAISED  = 1, // The wave is up; counting down to the MP loss
+};
+
+enum {
+    /// Frames a controller waits after spawning before it starts its sound.
+    ACTOR_205200_START_DELAY = 5,
+    /// Frames between a pulse being raised and the player losing MP to it.
+    ACTOR_205200_PULSE_RAISED_FRAMES = 20,
+};
+
+/// Work block of the controller task, the enemy a placement spawns.
+///
+/// The controller spawns the destructible parts of its site as child enemies.
+/// While any part lives it keeps one sound playing, attenuated by the distance
+/// of the live part nearest the view, and pulses: each pulse raises a screen
+/// wave and takes one MP from the player, and the pulses come faster the more
+/// parts are live. A part takes a slot here when it spawns and gives it up
+/// when it is destroyed.
+typedef struct {
+    GfxCoord* partCoords[3];    // Coordinate frame of each part by slot; NULL once that part is destroyed
+    GfxCoord* nearestCoord;     // Live part nearest the view when last measured; NULL when no part is live
+    u32       nearestDistance;  // Distance of `nearestCoord` from the view; -1 when no part is live
+    s32       sustainedSoundId; // Sound script kept playing while parts live; 0 before it starts and after a requested stop
+    s16       partLive[3];      // By slot (0 not spawned or destroyed, 1 live)
+    s16       site;             // Room the controller is placed in (ACTOR_205200_SITE_*)
+    s16       partCount;        // Live parts; while they spawn, also the slot the next part takes
+    s16       pulseTimer;       // Frames left in the current half of the pulse cycle
+    s16       state;            // Stage of the controller (ACTOR_205200_CTRL_*)
+    s16       pulseState;       // Half of the pulse cycle (ACTOR_205200_PULSE_*)
+    s16       pendingWavePhase; // SCREEN_WAVE_RAMP_FALLING while a raised wave is still owed its fall, otherwise 0
+    s16       startDelay;       // Frames left before the sustained sound starts
+    s16       nearestStale;     // Set to 1 when a part is destroyed, so the nearest part is measured again
+    s16       stopRequested;    // Set to 1 by a nonzero actor command; stops the sound and retires the parts
+} _Actor205200CtrlWork;
+STATIC_ASSERT_SIZEOF(_Actor205200CtrlWork, 0x30);
 
 /// Work block of a part task, allocated by its spawn handler
 /// `func_actor_205200_8014AE0C`. `field_78` is the slot the part took in the
-/// controller's `field_0` / `field_18` arrays.
+/// controller's `partCoords` / `partLive` arrays.
 typedef struct Actor205200Part {
     /* 0x00 */ WorldCollisionBody    obj;
     /* 0x20 */ WorldCollisionContact recs[3];
@@ -240,13 +278,13 @@ static void func_actor_205200_8014B484(Enemy* arg0, Task* arg1);
 
 static void func_actor_205200_8014A72C(Enemy* enemy, Task* task)
 {
-    Actor205200CtrlWork* work;
-    u16                  kind;
-    s32                  i;
-    u16                  timer;
+    _Actor205200CtrlWork* work;
+    u16                   site;
+    s32                   i;
+    u16                   timer;
 
-    kind = enemy->place->mode;
-    if ((u16)(kind - 1) >= 3) {
+    site = enemy->place->mode;
+    if ((u16)(site - 1) >= 3) {
         enemyDestroy(enemy, task);
         return;
     }
@@ -256,31 +294,31 @@ static void func_actor_205200_8014A72C(Enemy* enemy, Task* task)
         return;
     }
     task->work                    = work;
-    work->field_1E                = kind;
+    work->site                    = site;
     D_actor_205200_8015B458.state = SCREEN_WAVE_RAMP_FINISHED;
-    for (i = 0; i < D_actor_205200_8014CA1C[work->field_1E]; i++) {
+    for (i = 0; i < D_actor_205200_8014CA1C[work->site]; i++) {
         Gp_SpawnEnemyFromTable(D_actor_205200_8014CA60, 1, 0, enemy);
     }
-    timer          = D_actor_205200_8014C9CC[D_actor_205200_8014CA1C[work->field_1E]];
-    work->field_2A = 5;
-    work->field_22 = timer;
+    timer            = D_actor_205200_8014C9CC[D_actor_205200_8014CA1C[work->site]];
+    work->startDelay = ACTOR_205200_START_DELAY;
+    work->pulseTimer = timer;
     /* The empty `case 0` is load-bearing: a fourth case node makes GCC root
        the decision tree at 1 (`beq 1; slti <2`) instead of at 2. */
-    switch (work->field_1E) {
-        case 1:
+    switch (work->site) {
+        case ACTOR_205200_SITE_EVE_ACCESS_TUNNEL:
             func_neo_ark_eve_access_tunnel_8017E090(0, 0);
             func_neo_ark_eve_access_tunnel_8017E090(1, 0);
             GameFlag_SetNibble(GAME_FLAG_EVE_ACCESS_TUNNEL_PART_0_DOWN, 0);
             GameFlag_SetNibble(GAME_FLAG_EVE_ACCESS_TUNNEL_PART_1_DOWN, 0);
             break;
-        case 2:
+        case ACTOR_205200_SITE_B6_CORRIDOR:
             func_shelter_b6_corridor_8017EE08(0, 0);
             func_shelter_b6_corridor_8017EE08(1, 0);
             func_shelter_b6_corridor_8017EE08(2, 0);
             GameFlag_SetNibble(GAME_FLAG_B6_CORRIDOR_EVE_PART_0_DOWN, 0);
             GameFlag_SetNibble(GAME_FLAG_B6_CORRIDOR_EVE_PART_1_DOWN, 0);
             break;
-        case 3:
+        case ACTOR_205200_SITE_B6_TRAINING_ROOM:
             func_shelter_b6_training_room_80182A14(0, 0);
             func_shelter_b6_training_room_80182A14(1, 0);
             GameFlag_SetNibble(GAME_FLAG_153, 0);
@@ -295,62 +333,65 @@ static void func_actor_205200_8014A72C(Enemy* enemy, Task* task)
 
 static void func_actor_205200_8014A958(Enemy* enemy, Task* task)
 {
-    Actor205200CtrlWork* work = task->work;
-    s16                  state;
-    s32                  pulse;
+    _Actor205200CtrlWork* work = task->work;
+    s16                   state;
+    s32                   wavePhase;
 
-    if (gGameSession->eventState != 0 || work->field_2E != 0) {
-        pulse = work->field_28;
-        if (pulse == SCREEN_WAVE_RAMP_FALLING) {
-            D_actor_205200_8015B458.state = pulse;
-            work->field_28                = 0;
+    if (gGameSession->eventState != 0 || work->stopRequested != 0) {
+        wavePhase = work->pendingWavePhase;
+        if (wavePhase == SCREEN_WAVE_RAMP_FALLING) {
+            D_actor_205200_8015B458.state = wavePhase;
+            work->pendingWavePhase        = 0;
         }
-        if (work->field_2E != 0) {
-            work->field_24 = 3;
-            if (work->field_2E != 0) {
-                if (work->field_14 != 0) {
-                    SndEvt_EnqueueType7(work->field_14, 1);
-                    work->field_14 = 0;
+        if (work->stopRequested != 0) {
+            work->state = ACTOR_205200_CTRL_STOPPED;
+            if (work->stopRequested != 0) {
+                if (work->sustainedSoundId != 0) {
+                    SndEvt_EnqueueType7(work->sustainedSoundId, 1);
+                    work->sustainedSoundId = 0;
                 }
             }
         }
     } else if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
-        state = work->field_24;
+        state = work->state;
         switch (state) {
-            case 0:
-                if ((u16)--work->field_2A == 0) {
+            case ACTOR_205200_CTRL_STARTING:
+                if (--work->startDelay == 0) {
                     func_actor_205200_8014ACD4(task);
-                    if (work->field_C != NULL) {
-                        work->field_14 = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40340001;
+                    if (work->nearestCoord != NULL) {
+                        work->sustainedSoundId = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40340001;
                         SndEvt_EnqueueType6(
-                            work->field_14, 0, (s8)func_actor_205200_8014B914(work->field_10));
-                        work->field_24 = 1;
+                            work->sustainedSoundId, 0, (s8)func_actor_205200_8014B914(work->nearestDistance));
+                        work->state = ACTOR_205200_CTRL_PULSING;
                     }
                 }
                 break;
-            case 1:
-                if (gGameSession->viewReady == state || work->field_2C == state) {
-                    work->field_2C = 0;
+            case ACTOR_205200_CTRL_PULSING:
+                // `state` is 1 here: the view has just become ready, or a part
+                // was destroyed, so the sound follows the nearest live part.
+                if (gGameSession->viewReady == state || work->nearestStale == state) {
+                    work->nearestStale = 0;
                     func_actor_205200_8014ACD4(task);
-                    if (work->field_C != NULL) {
+                    if (work->nearestCoord != NULL) {
                         SndEvt_EnqueueTypeA(
-                            work->field_14, 0, (s8)func_actor_205200_8014B914(work->field_10));
+                            work->sustainedSoundId, 0, (s8)func_actor_205200_8014B914(work->nearestDistance));
                     }
                 }
                 func_actor_205200_8014AB98(task);
-                if (work->field_20 <= 0) {
-                    work->field_24 = 2;
+                if (work->partCount <= 0) {
+                    work->state = ACTOR_205200_CTRL_STOPPING;
                 }
                 break;
-            case 2:
-                pulse = work->field_28;
-                if (pulse == SCREEN_WAVE_RAMP_FALLING) {
-                    D_actor_205200_8015B458.state = pulse;
-                    work->field_28                = 0;
+            case ACTOR_205200_CTRL_STOPPING:
+                wavePhase = work->pendingWavePhase;
+                if (wavePhase == SCREEN_WAVE_RAMP_FALLING) {
+                    D_actor_205200_8015B458.state = wavePhase;
+                    work->pendingWavePhase        = 0;
                 }
-                SndEvt_EnqueueType7(work->field_14, 1);
-                work->field_24 = 3;
-                if (work->field_1E == state) {
+                SndEvt_EnqueueType7(work->sustainedSoundId, 1);
+                work->state = ACTOR_205200_CTRL_STOPPED;
+                // `state` is 2 here, which is also the B6 corridor's site.
+                if (work->site == state) {
                     SndEvt_EnqueueType2(0, 0x3C);
                 }
                 break;
@@ -361,31 +402,32 @@ static void func_actor_205200_8014A958(Enemy* enemy, Task* task)
 
 static void func_actor_205200_8014AB98(Task* arg0)
 {
-    Actor205200CtrlWork* work  = arg0->work;
-    s32                  state = work->field_26;
+    _Actor205200CtrlWork* work       = arg0->work;
+    s32                   pulseState = work->pulseState;
 
-    switch (state) {
-        case 0:
-            if ((s16)--work->field_22 <= 0) {
+    switch (pulseState) {
+        case ACTOR_205200_PULSE_WAITING:
+            if (--work->pulseTimer <= 0) {
                 if (D_actor_205200_8015B458.state == SCREEN_WAVE_RAMP_FINISHED) {
                     D_actor_205200_8015B458.span  = 0xF;
                     D_actor_205200_8015B458.scale = 0xA0;
                     Task_SpawnFromTable(D_actor_205200_8014CA44, 0, 0, &D_actor_205200_8015B458);
                     Gp_ArmStateF0(1);
-                    work->field_28 = SCREEN_WAVE_RAMP_FALLING;
+                    work->pendingWavePhase = SCREEN_WAVE_RAMP_FALLING;
                     SndEvt_EnqueueType6(((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40340002, 0, 0);
                 }
-                work->field_22 = 20;
-                work->field_26 = 1;
+                work->pulseTimer = ACTOR_205200_PULSE_RAISED_FRAMES;
+                work->pulseState = ACTOR_205200_PULSE_RAISED;
             }
             break;
-        case 1:
-            if ((s16)--work->field_22 <= 0) {
-                D_actor_205200_8015B458.state = state;
-                work->field_22                = D_actor_205200_8014C9CC[work->field_20];
-                work->field_26                = 0;
+        case ACTOR_205200_PULSE_RAISED:
+            if (--work->pulseTimer <= 0) {
+                // `pulseState` is 1 here, which is also SCREEN_WAVE_RAMP_FALLING.
+                D_actor_205200_8015B458.state = pulseState;
+                work->pulseTimer              = D_actor_205200_8014C9CC[work->partCount];
+                work->pulseState              = ACTOR_205200_PULSE_WAITING;
                 Gp_SpendMp(1);
-                work->field_28 = 0;
+                work->pendingWavePhase = 0;
             }
             break;
     }
@@ -393,26 +435,26 @@ static void func_actor_205200_8014AB98(Task* arg0)
 
 static void func_actor_205200_8014ACD4(Task* arg0)
 {
-    Actor205200CtrlWork* work = arg0->work;
-    ViewCamera*          view;
-    VECTOR               d;
-    u32                  dist;
-    s32                  i;
+    _Actor205200CtrlWork* work = arg0->work;
+    ViewCamera*           view;
+    VECTOR                d;
+    u32                   dist;
+    s32                   i;
 
-    work->field_C  = NULL;
-    work->field_10 = -1;
-    view           = Gp_GetStageView(&gGameSession->location.loc);
-    for (i = 0; i < 3; i++) {
-        if (work->field_18[i] == 1) {
-            work->field_0[i]->composeStamp = GRAPHICS_COORD_DIRTY;
-            Gp_UpdateCoord(work->field_0[i]);
-            d.vx = view->transform.t[0] + work->field_0[i]->coord.t[0];
-            d.vy = view->transform.t[1] + work->field_0[i]->coord.t[1];
-            d.vz = view->transform.t[2] + work->field_0[i]->coord.t[2];
+    work->nearestCoord    = NULL;
+    work->nearestDistance = -1;
+    view                  = Gp_GetStageView(&gGameSession->location.loc);
+    for (i = 0; i < ARRAY_SIZE(work->partLive); i++) {
+        if (work->partLive[i] == 1) {
+            work->partCoords[i]->composeStamp = GRAPHICS_COORD_DIRTY;
+            Gp_UpdateCoord(work->partCoords[i]);
+            d.vx = view->transform.t[0] + work->partCoords[i]->coord.t[0];
+            d.vy = view->transform.t[1] + work->partCoords[i]->coord.t[1];
+            d.vz = view->transform.t[2] + work->partCoords[i]->coord.t[2];
             dist = SquareRoot0(d.vx * d.vx + d.vy * d.vy + d.vz * d.vz);
-            if (dist < work->field_10) {
-                work->field_C  = work->field_0[i];
-                work->field_10 = dist;
+            if (dist < work->nearestDistance) {
+                work->nearestCoord    = work->partCoords[i];
+                work->nearestDistance = dist;
             }
         }
     }
@@ -420,33 +462,33 @@ static void func_actor_205200_8014ACD4(Task* arg0)
 
 static void func_actor_205200_8014AE0C(Enemy* arg0, Task* arg1)
 {
-    GfxCoord*            coord;
-    Actor205200CtrlWork* pwork;
-    Actor205200Part*     part;
-    SVECTOR*             pos;
-    SVECTOR              rot;
-    MATRIX*              mat;
-    u16*                 tbl;
+    GfxCoord*             coord;
+    _Actor205200CtrlWork* pwork;
+    Actor205200Part*      part;
+    SVECTOR*              pos;
+    SVECTOR               rot;
+    MATRIX*               mat;
+    u16*                  tbl;
 
     coord = arg1->extra.tmd->coords;
-    pwork = (Actor205200CtrlWork*)arg1->parent->work;
+    pwork = arg1->parent->work;
     part  = memCalloc(0x7CU, false);
     if (part == NULL) {
         enemyDestroy(arg0, arg1);
         return;
     }
     arg1->work     = part;
-    part->field_78 = pwork->field_20;
-    pwork->field_20++;
-    pwork->field_0[part->field_78]  = coord;
-    pwork->field_18[part->field_78] = 1;
-    tbl                             = D_actor_205200_8014CA34[pwork->field_1E];
-    rot.vx                          = 0;
-    mat                             = &coord->coord;
-    rot.vy                          = tbl[part->field_78];
-    rot.vz                          = 0;
+    part->field_78 = pwork->partCount;
+    pwork->partCount++;
+    pwork->partCoords[part->field_78] = coord;
+    pwork->partLive[part->field_78]   = 1;
+    tbl                               = D_actor_205200_8014CA34[pwork->site];
+    rot.vx                            = 0;
+    mat                               = &coord->coord;
+    rot.vy                            = tbl[part->field_78];
+    rot.vz                            = 0;
     RotMatrix(&rot, mat);
-    pos                 = D_actor_205200_8014CA24[pwork->field_1E];
+    pos                 = D_actor_205200_8014CA24[pwork->site];
     coord->coord.t[0]   = pos[part->field_78].vx;
     coord->coord.t[1]   = pos[part->field_78].vy;
     coord->coord.t[2]   = pos[part->field_78].vz;
@@ -487,16 +529,15 @@ static void func_actor_205200_8014AE0C(Enemy* arg0, Task* arg1)
 /// `func_actor_205200_8014B9D4` and unused.
 static void func_actor_205200_8014B048(Task* arg0, s32 arg1)
 {
-    VECTOR*              vec;
-    Actor205200Part*     part;
-    Enemy*               enemy;
-    GfxCoord*            coord;
-    Actor205200CtrlWork* parentWork;
-    s32                  damage;
-    s32                  i;
-    s32                  snd;
-    s32                  hitTime;
-    s32                  clamped;
+    VECTOR*          vec;
+    Actor205200Part* part;
+    Enemy*           enemy;
+    GfxCoord*        coord;
+    s32              damage;
+    s32              i;
+    s32              snd;
+    s32              hitTime;
+    s32              clamped;
 
     vec   = SCRATCH_STACK_RESERVE_BLOCK(VECTOR);
     coord = arg0->extra.tmd->coords;
@@ -531,10 +572,10 @@ static void func_actor_205200_8014B048(Task* arg0, s32 arg1)
             func_800DA6E8(&enemy->node, damage, 0);
             enemy->hp -= damage;
             if (enemy->hp <= 0) {
-                arg0->state                                                          = 2;
-                part->field_72                                                       = 0;
-                ((Actor205200CtrlWork*)arg0->parent->work)->field_18[part->field_78] = 0;
-                ((Actor205200CtrlWork*)arg0->parent->work)->field_0[part->field_78]  = NULL;
+                arg0->state                                                             = 2;
+                part->field_72                                                          = 0;
+                ((_Actor205200CtrlWork*)arg0->parent->work)->partLive[part->field_78]   = 0;
+                ((_Actor205200CtrlWork*)arg0->parent->work)->partCoords[part->field_78] = NULL;
                 Gp_SpawnEff(EFFECT_EXPLOSION, coord, 0x01002600, NULL);
                 Gp_SpawnEff(EFFECT_EXPLOSION, coord, 0x01002600, NULL);
                 Gp_SpawnEff(EFFECT_EXPLOSION, coord, 0x01002600, NULL);
@@ -572,19 +613,19 @@ static void func_actor_205200_8014B048(Task* arg0, s32 arg1)
 
 static void func_actor_205200_8014B484(Enemy* arg0, Task* arg1)
 {
-    Actor205200Part*     part;
-    GfxCoord*            coord;
-    Actor205200CtrlWork* work;
-    ViewCamera*          view;
-    VECTOR               d;
-    s32                  dist;
-    s32                  snd;
-    s32                  pan;
-    s32                  vol;
+    Actor205200Part*      part;
+    GfxCoord*             coord;
+    _Actor205200CtrlWork* work;
+    ViewCamera*           view;
+    VECTOR                d;
+    s32                   dist;
+    s32                   snd;
+    s32                   pan;
+    s32                   vol;
 
     part  = (Actor205200Part*)arg1->work;
     coord = arg1->extra.tmd->coords;
-    work  = (Actor205200CtrlWork*)arg1->parent->work;
+    work  = arg1->parent->work;
     if (gSceneCombatState.actorControl != SCENE_COMBAT_ACTORS_RUNNING) {
         return;
     }
@@ -597,22 +638,22 @@ static void func_actor_205200_8014B484(Enemy* arg0, Task* arg1)
             worldTargetUnlinkNode(&arg0->node);
             Gp_UnlinkObj(&part->obj);
             Gp_ReleaseStateF0Add(arg1, 0x34);
-            arg0->recs     = 0;
-            work->field_2C = 1;
-            work->field_20--;
+            arg0->recs         = 0;
+            work->nearestStale = 1;
+            work->partCount--;
             gSceneCombatState.pairedEnemySignals |= SCENE_COMBAT_PAIRED_CHARGE_REQUEST;
-            switch (work->field_1E) {
-                case 1:
+            switch (work->site) {
+                case ACTOR_205200_SITE_EVE_ACCESS_TUNNEL:
                     func_neo_ark_eve_access_tunnel_8017E090((u8)part->field_78, 1);
-                    GameFlag_SetNibble(part->field_78 + 0x142, 1);
+                    GameFlag_SetNibble(part->field_78 + GAME_FLAG_EVE_ACCESS_TUNNEL_PART_0_DOWN, 1);
                     break;
-                case 2:
+                case ACTOR_205200_SITE_B6_CORRIDOR:
                     func_shelter_b6_corridor_8017EE08((u8)part->field_78, 1);
-                    GameFlag_SetNibble(part->field_78 + 0x144, 1);
+                    GameFlag_SetNibble(part->field_78 + GAME_FLAG_B6_CORRIDOR_EVE_PART_0_DOWN, 1);
                     break;
-                case 3:
+                case ACTOR_205200_SITE_B6_TRAINING_ROOM:
                     func_shelter_b6_training_room_80182A14((u8)part->field_78, 1);
-                    GameFlag_SetNibble(part->field_78 + 0x153, 1);
+                    GameFlag_SetNibble(part->field_78 + GAME_FLAG_153, 1);
                     break;
                 case 0:
                     break;
@@ -689,14 +730,14 @@ static s32 func_actor_205200_8014B914(s32 arg0)
 
 /// Message 0x7DB handler of the controller, listed in
 /// `D_actor_205200_8014CA78`. A non-zero payload halfword raises
-/// `Actor205200CtrlWork.field_2E` unless it is already set.
+/// `_Actor205200CtrlWork.stopRequested` unless it is already set.
 s32 func_actor_205200_8014B94C(Task* arg0, s32 arg1, ActorCommand* request, s32 arg3)
 {
-    Actor205200CtrlWork* work;
+    _Actor205200CtrlWork* work;
 
     work = arg0->work;
-    if (request->command != 0 && work->field_2E == 0) {
-        work->field_2E = 1;
+    if (request->command != 0 && work->stopRequested == 0) {
+        work->stopRequested = 1;
     }
     return 0;
 }
@@ -729,13 +770,13 @@ void func_actor_205200_8014B978(Task* arg0)
 /// default path, so its `break` is a jump into it.
 static void func_actor_205200_8014B9D4(Enemy* arg0, Task* arg1)
 {
-    Actor205200Part*     part;
-    Actor205200CtrlWork* parentWork;
-    s32                  state;
-    s32                  one;
+    Actor205200Part*      part;
+    _Actor205200CtrlWork* parentWork;
+    s32                   state;
+    s32                   one;
 
     part       = (Actor205200Part*)arg1->work;
-    parentWork = (Actor205200CtrlWork*)arg1->parent->work;
+    parentWork = arg1->parent->work;
     state      = gSceneCombatState.actorControl;
     one        = 1;
     if (state == one) {
@@ -764,7 +805,7 @@ default_body:
     if ((s16)part->field_74 != 0) {
         func_actor_205200_8014BA94(arg1);
     }
-    if (parentWork->field_2E == 1) {
+    if (parentWork->stopRequested == 1) {
         arg1->state    = 2;
         part->field_72 = 2;
     }
