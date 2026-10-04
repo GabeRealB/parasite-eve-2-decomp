@@ -38,9 +38,9 @@ D_801445DC = 0x801445DC; // absolute:True
 D_80150C80 = 0x80150C80; // absolute:True
 D_801513C8 = 0x801513C8; // absolute:True
 D_80156500 = 0x80156500; // absolute:True
-D_map_dryfield_full_8017BF08 = 0x8017BF08; // absolute:True
-D_map_dryfield_full_8017BF88 = 0x8017BF88; // absolute:True
-D_map_dryfield_full_8017C038 = 0x8017C038; // absolute:True
+D_map_dryfield_full_8017BF08 = 0x8017BF08; // absolute:True owner=map_dryfield_full
+D_map_dryfield_full_8017BF88 = 0x8017BF88; // absolute:True owner=map_dryfield_full
+D_map_dryfield_full_8017C038 = 0x8017C038; // absolute:True owner=map_dryfield_full
 gRoomEventActive = 0x8017EC2C; // size:0x4 defined:True
 gRoomEventReq = 0x8017EC30; // size:0x14 defined:True
 

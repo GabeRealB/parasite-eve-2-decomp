@@ -11,23 +11,23 @@ gAcropolisPlazaAnimation183B8 = 0x80195978; // absolute:True
 gAcropolisPlazaAnimation18614 = 0x80195BD4; // absolute:True
 gAcropolisPlazaAnimation18904 = 0x80195EC4; // absolute:True
 gAcropolisPlazaAnimation18DE0 = 0x801963A0; // absolute:True
-gAcropolisPlazaAnimation148BC = 0x80191E7C; // absolute:True
-gAcropolisPlazaAnimation156B4 = 0x80192C74; // absolute:True
-gAcropolisPlazaAnimation15864 = 0x80192E24; // absolute:True
-gAcropolisPlazaAnimation15CC8 = 0x80193288; // absolute:True
-gAcropolisPlazaAnimation15F78 = 0x80193538; // absolute:True
-gAcropolisPlazaAnimation1622C = 0x801937EC; // absolute:True
-gAcropolisPlazaAnimation1643C = 0x801939FC; // absolute:True
-gAcropolisPlazaAnimation16610 = 0x80193BD0; // absolute:True
-gAcropolisPlazaAnimation168FC = 0x80193EBC; // absolute:True
-gAcropolisPlazaAnimation16D00 = 0x801942C0; // absolute:True
-gAcropolisPlazaAnimation16EE4 = 0x801944A4; // absolute:True
-gAcropolisPlazaAnimation170C0 = 0x80194680; // absolute:True
-gAcropolisPlazaAnimation17298 = 0x80194858; // absolute:True
-gAcropolisPlazaAnimation1754C = 0x80194B0C; // absolute:True
-gAcropolisPlazaAnimation17818 = 0x80194DD8; // absolute:True
-gAcropolisPlazaAnimation17A00 = 0x80194FC0; // absolute:True
-gAcropolisPlazaAnimation17C68 = 0x80195228; // absolute:True
+gAcropolisPlazaAnimation148BC = 0x80191E7C; // absolute:True owner=acropolis_plaza
+gAcropolisPlazaAnimation156B4 = 0x80192C74; // absolute:True owner=acropolis_plaza
+gAcropolisPlazaAnimation15864 = 0x80192E24; // absolute:True owner=acropolis_plaza
+gAcropolisPlazaAnimation15CC8 = 0x80193288; // absolute:True owner=acropolis_plaza
+gAcropolisPlazaAnimation15F78 = 0x80193538; // absolute:True owner=acropolis_plaza
+gAcropolisPlazaAnimation1622C = 0x801937EC; // absolute:True owner=acropolis_plaza
+gAcropolisPlazaAnimation1643C = 0x801939FC; // absolute:True owner=acropolis_plaza
+gAcropolisPlazaAnimation16610 = 0x80193BD0; // absolute:True owner=acropolis_plaza
+gAcropolisPlazaAnimation168FC = 0x80193EBC; // absolute:True owner=acropolis_plaza
+gAcropolisPlazaAnimation16D00 = 0x801942C0; // absolute:True owner=acropolis_plaza
+gAcropolisPlazaAnimation16EE4 = 0x801944A4; // absolute:True owner=acropolis_plaza
+gAcropolisPlazaAnimation170C0 = 0x80194680; // absolute:True owner=acropolis_plaza
+gAcropolisPlazaAnimation17298 = 0x80194858; // absolute:True owner=acropolis_plaza
+gAcropolisPlazaAnimation1754C = 0x80194B0C; // absolute:True owner=acropolis_plaza
+gAcropolisPlazaAnimation17818 = 0x80194DD8; // absolute:True owner=acropolis_plaza
+gAcropolisPlazaAnimation17A00 = 0x80194FC0; // absolute:True owner=acropolis_plaza
+gAcropolisPlazaAnimation17C68 = 0x80195228; // absolute:True owner=acropolis_plaza
 gAcropolisPlazaAnimation17E54 = 0x80195414; // absolute:True
 gAcropolisPlazaAnimation17FF4 = 0x801955B4; // absolute:True
 gAcropolisPlazaAnimation18F98 = 0x80196558; // absolute:True

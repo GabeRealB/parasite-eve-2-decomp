@@ -34,7 +34,7 @@ gScreenWaveRamp = 0x801648F4; // size:0x4 defined:True
 gBlazeFadeMessages = 0x801648F8; // size:0x8 defined:True
 D_actor_342100_80164900 = 0x80164900; // size:0x10 defined:True
 
-D_shelter_b3_dumping_hole_8018B83C = 0x8018B83C; // absolute:True
+D_shelter_b3_dumping_hole_8018B83C = 0x8018B83C; // absolute:True owner=shelter_b3_dumping_hole
 
 D_shelter_b3_dumping_hole_8018B57C = 0x8018B57C; // absolute:True
 screenWaveGridTask = 0x80161E70; // type:func

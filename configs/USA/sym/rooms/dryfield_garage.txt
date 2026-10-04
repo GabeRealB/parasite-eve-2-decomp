@@ -17,9 +17,9 @@ D_dryfield_garage_801801E4 = 0x801801E4; // size:0x20 defined:True
 D_dryfield_garage_80180204 = 0x80180204; // size:0x18 defined:True
 D_8013BE28 = 0x8013BE28; // absolute:True
 D_8014D8A4 = 0x8014D8A4; // absolute:True
-D_map_dryfield_8017B724 = 0x8017B724; // absolute:True
-D_map_dryfield_8017B744 = 0x8017B744; // absolute:True
-D_map_dryfield_8017B7A4 = 0x8017B7A4; // absolute:True
+D_map_dryfield_8017B724 = 0x8017B724; // absolute:True owner=map_dryfield
+D_map_dryfield_8017B744 = 0x8017B744; // absolute:True owner=map_dryfield
+D_map_dryfield_8017B7A4 = 0x8017B7A4; // absolute:True owner=map_dryfield
 gRoomEventTaskDesc = 0x8017DC70; // size:0xC defined:True
 D_dryfield_garage_8017DC7C = 0x8017DC7C; // size:0x30 defined:True
 D_dryfield_garage_8017DCAC = 0x8017DCAC; // size:0x18 defined:True

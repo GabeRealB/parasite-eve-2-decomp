@@ -54,11 +54,11 @@ D_801602C0 = 0x801602C0; // absolute:True
 D_801611F8 = 0x801611F8; // absolute:True
 D_801679A8 = 0x801679A8; // absolute:True
 D_8016A8D4 = 0x8016A8D4; // absolute:True
-D_map_neo_ark_8017BB70 = 0x8017BB70; // absolute:True
-D_map_neo_ark_8017BBF0 = 0x8017BBF0; // absolute:True
-D_map_neo_ark_8017BC70 = 0x8017BC70; // absolute:True
-D_map_neo_ark_8017BCE0 = 0x8017BCE0; // absolute:True
-D_map_neo_ark_8017BD50 = 0x8017BD50; // absolute:True
+D_map_neo_ark_8017BB70 = 0x8017BB70; // absolute:True owner=map_neo_ark
+D_map_neo_ark_8017BBF0 = 0x8017BBF0; // absolute:True owner=map_neo_ark
+D_map_neo_ark_8017BC70 = 0x8017BC70; // absolute:True owner=map_neo_ark
+D_map_neo_ark_8017BCE0 = 0x8017BCE0; // absolute:True owner=map_neo_ark
+D_map_neo_ark_8017BD50 = 0x8017BD50; // absolute:True owner=map_neo_ark
 D_map_neo_ark_8017BD80 = 0x8017BD80; // absolute:True
 RoomFx_TrailOffsets = 0x8017F9D4; // size:0x10 defined:True
 

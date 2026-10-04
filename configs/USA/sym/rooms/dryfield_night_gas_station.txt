@@ -135,11 +135,11 @@ D_8014D8A4 = 0x8014D8A4; // absolute:True
 D_80151B10 = 0x80151B10; // absolute:True
 D_801611F8 = 0x801611F8; // absolute:True
 D_8016BE28 = 0x8016BE28; // absolute:True
-D_map_dryfield_full_8017AC48 = 0x8017AC48; // absolute:True
-D_map_dryfield_full_8017AD18 = 0x8017AD18; // absolute:True
-D_map_dryfield_full_8017AD48 = 0x8017AD48; // absolute:True
-D_map_dryfield_full_8017AD78 = 0x8017AD78; // absolute:True
-D_map_dryfield_full_8017ADA8 = 0x8017ADA8; // absolute:True
+D_map_dryfield_full_8017AC48 = 0x8017AC48; // absolute:True owner=map_dryfield_full
+D_map_dryfield_full_8017AD18 = 0x8017AD18; // absolute:True owner=map_dryfield_full
+D_map_dryfield_full_8017AD48 = 0x8017AD48; // absolute:True owner=map_dryfield_full
+D_map_dryfield_full_8017AD78 = 0x8017AD78; // absolute:True owner=map_dryfield_full
+D_map_dryfield_full_8017ADA8 = 0x8017ADA8; // absolute:True owner=map_dryfield_full
 D_dryfield_night_gas_station_801840AC = 0x801840AC; // size:0x150 defined:True
 D_dryfield_night_gas_station_801841FC = 0x801841FC; // size:0xD8 defined:True
 _gDryfieldNightGasStationCollision06DB4Normals = 0x801842D4; // size:0x20 defined:True

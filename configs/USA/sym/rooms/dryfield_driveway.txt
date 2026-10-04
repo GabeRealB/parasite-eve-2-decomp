@@ -55,9 +55,9 @@ gRoomEventFade = 0x80180680; // size:0x8 defined:True
 gViewIdentityMap = 0x8010CAF8; // absolute:True
 D_80139DAC = 0x80139DAC; // absolute:True
 D_8014D8A4 = 0x8014D8A4; // absolute:True
-D_map_dryfield_8017B7E4 = 0x8017B7E4; // absolute:True
-D_map_dryfield_8017B984 = 0x8017B984; // absolute:True
-D_map_dryfield_8017B994 = 0x8017B994; // absolute:True
+D_map_dryfield_8017B7E4 = 0x8017B7E4; // absolute:True owner=map_dryfield
+D_map_dryfield_8017B984 = 0x8017B984; // absolute:True owner=map_dryfield
+D_map_dryfield_8017B994 = 0x8017B994; // absolute:True owner=map_dryfield
 D_dryfield_driveway_8017E358 = 0x8017E358; // size:0x14 defined:True
 D_dryfield_driveway_8017E36C = 0x8017E36C; // size:0x18 defined:True
 _gDryfieldDrivewayAnimation00D08Bank1 = 0x8017DE80; // size:0x78 defined:True

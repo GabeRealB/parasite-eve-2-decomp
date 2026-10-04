@@ -97,13 +97,13 @@ D_80147DF0 = 0x80147DF0; // absolute:True
 D_8014F9A8 = 0x8014F9A8; // absolute:True
 D_801540E0 = 0x801540E0; // absolute:True
 D_80154188 = 0x80154188; // absolute:True
-D_map_neo_ark_8017BEB0 = 0x8017BEB0; // absolute:True
-D_map_neo_ark_8017BEF0 = 0x8017BEF0; // absolute:True
-D_map_neo_ark_8017BF40 = 0x8017BF40; // absolute:True
-D_map_neo_ark_8017BF90 = 0x8017BF90; // absolute:True
-D_map_neo_ark_8017C020 = 0x8017C020; // absolute:True
-D_map_neo_ark_8017C050 = 0x8017C050; // absolute:True
-D_map_neo_ark_8017C070 = 0x8017C070; // absolute:True
+D_map_neo_ark_8017BEB0 = 0x8017BEB0; // absolute:True owner=map_neo_ark
+D_map_neo_ark_8017BEF0 = 0x8017BEF0; // absolute:True owner=map_neo_ark
+D_map_neo_ark_8017BF40 = 0x8017BF40; // absolute:True owner=map_neo_ark
+D_map_neo_ark_8017BF90 = 0x8017BF90; // absolute:True owner=map_neo_ark
+D_map_neo_ark_8017C020 = 0x8017C020; // absolute:True owner=map_neo_ark
+D_map_neo_ark_8017C050 = 0x8017C050; // absolute:True owner=map_neo_ark
+D_map_neo_ark_8017C070 = 0x8017C070; // absolute:True owner=map_neo_ark
 D_neo_ark_shrine_8018686C = 0x8018686C; // size:0x20 defined:True
 D_neo_ark_shrine_8018688C = 0x8018688C; // size:0x40 defined:True
 D_neo_ark_shrine_801868CC = 0x801868CC; // size:0x40 defined:True

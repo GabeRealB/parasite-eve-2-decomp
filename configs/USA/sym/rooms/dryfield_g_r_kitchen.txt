@@ -33,8 +33,8 @@ D_dryfield_g_r_kitchen_8017F53C = 0x8017F53C; // size:0x20 defined:True
 gRoomEventMsg = 0x8017F55C; // size:0x8 defined:True
 D_8013BE28 = 0x8013BE28; // absolute:True
 D_80150C80 = 0x80150C80; // absolute:True
-D_map_dryfield_8017B474 = 0x8017B474; // absolute:True
-D_map_dryfield_8017B4B4 = 0x8017B4B4; // absolute:True
+D_map_dryfield_8017B474 = 0x8017B474; // absolute:True owner=map_dryfield
+D_map_dryfield_8017B4B4 = 0x8017B4B4; // absolute:True owner=map_dryfield
 gRoomEventActive = 0x8017F564; // size:0x4 defined:True
 gRoomEventReq = 0x8017F568; // size:0x14 defined:True
 

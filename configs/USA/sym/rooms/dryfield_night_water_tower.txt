@@ -52,10 +52,10 @@ D_801445DC = 0x801445DC; // absolute:True
 D_80151B10 = 0x80151B10; // absolute:True
 D_80165B88 = 0x80165B88; // absolute:True
 D_801679A8 = 0x801679A8; // absolute:True
-D_map_dryfield_full_8017C0B8 = 0x8017C0B8; // absolute:True
-D_map_dryfield_full_8017C158 = 0x8017C158; // absolute:True
-D_map_dryfield_full_8017C198 = 0x8017C198; // absolute:True
-D_map_dryfield_full_8017C1B8 = 0x8017C1B8; // absolute:True
+D_map_dryfield_full_8017C0B8 = 0x8017C0B8; // absolute:True owner=map_dryfield_full
+D_map_dryfield_full_8017C158 = 0x8017C158; // absolute:True owner=map_dryfield_full
+D_map_dryfield_full_8017C198 = 0x8017C198; // absolute:True owner=map_dryfield_full
+D_map_dryfield_full_8017C1B8 = 0x8017C1B8; // absolute:True owner=map_dryfield_full
 D_dryfield_night_water_tower_8017E71C = 0x8017E71C; // size:0x28 defined:True
 gRoomEventActive = 0x80182C58; // size:0x4 defined:True
 gRoomEventReq = 0x80182C5C; // size:0x14 defined:True

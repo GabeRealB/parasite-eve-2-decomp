@@ -37,7 +37,7 @@ D_80147400 = 0x80147400; // absolute:True
 D_8014CA60 = 0x8014CA60; // absolute:True
 D_801567C4 = 0x801567C4; // absolute:True
 D_80168EA4 = 0x80168EA4; // absolute:True
-D_map_neo_ark_8017C0F0 = 0x8017C0F0; // absolute:True
+D_map_neo_ark_8017C0F0 = 0x8017C0F0; // absolute:True owner=map_neo_ark
 D_shelter_b6_corridor_8017F684 = 0x8017F684; // size:0x1B0 defined:True
 D_shelter_b6_corridor_8017F2F4 = 0x8017F2F4; // size:0x18 defined:True
 D_shelter_b6_corridor_8017F30C = 0x8017F30C; // size:0x18 defined:True

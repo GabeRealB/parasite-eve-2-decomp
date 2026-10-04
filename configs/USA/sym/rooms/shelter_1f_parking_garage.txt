@@ -35,7 +35,7 @@ gRoomEventFade = 0x80181974; // size:0x4 defined:True
 D_shelter_1f_parking_garage_80181978 = 0x80181978; // size:0x4 defined:True
 gRoomEventStagedMsg = 0x8018197C; // size:0x8 defined:True
 gViewIdentityMap = 0x8010CAF8; // absolute:True
-D_map_neo_ark_8017AEC0 = 0x8017AEC0; // absolute:True
+D_map_neo_ark_8017AEC0 = 0x8017AEC0; // absolute:True owner=map_neo_ark
 RoomFx_TrailOffsets = 0x80180C54; // size:0x10 defined:True
 D_shelter_1f_parking_garage_80181984 = 0x80181984; // size:0x4 defined:True
 gRoomDeparture = 0x80181988; // size:0xC defined:True

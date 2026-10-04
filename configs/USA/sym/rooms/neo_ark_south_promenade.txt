@@ -40,11 +40,11 @@ D_80137D74 = 0x80137D74; // absolute:True
 D_80147DF0 = 0x80147DF0; // absolute:True
 D_801482C0 = 0x801482C0; // absolute:True
 D_8015FAB8 = 0x8015FAB8; // absolute:True
-D_map_neo_ark_8017BDB0 = 0x8017BDB0; // absolute:True
-D_map_neo_ark_8017BDC0 = 0x8017BDC0; // absolute:True
-D_map_neo_ark_8017BDD0 = 0x8017BDD0; // absolute:True
-D_map_neo_ark_8017BE40 = 0x8017BE40; // absolute:True
-D_map_neo_ark_8017BE70 = 0x8017BE70; // absolute:True
+D_map_neo_ark_8017BDB0 = 0x8017BDB0; // absolute:True owner=map_neo_ark
+D_map_neo_ark_8017BDC0 = 0x8017BDC0; // absolute:True owner=map_neo_ark
+D_map_neo_ark_8017BDD0 = 0x8017BDD0; // absolute:True owner=map_neo_ark
+D_map_neo_ark_8017BE40 = 0x8017BE40; // absolute:True owner=map_neo_ark
+D_map_neo_ark_8017BE70 = 0x8017BE70; // absolute:True owner=map_neo_ark
 RoomFx_TrailOffsets = 0x8017F6DC; // size:0x10 defined:True
 
 func_neo_ark_south_promenade_8017E184 = 0x8017E184; // type:func

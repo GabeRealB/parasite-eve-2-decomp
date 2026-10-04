@@ -41,7 +41,7 @@ D_80147DF0 = 0x80147DF0; // absolute:True
 D_8014D8A4 = 0x8014D8A4; // absolute:True
 D_801602C0 = 0x801602C0; // absolute:True
 D_map_dryfield_8017AEA4 = 0x8017AEA4; // absolute:True
-D_map_dryfield_8017AED4 = 0x8017AED4; // absolute:True
+D_map_dryfield_8017AED4 = 0x8017AED4; // absolute:True owner=map_dryfield
 RoomFx_TrailOffsets = 0x8017F9A4; // size:0x10 defined:True
 
 func_dryfield_back_street_8017D9D0 = 0x8017D9D0; // type:func

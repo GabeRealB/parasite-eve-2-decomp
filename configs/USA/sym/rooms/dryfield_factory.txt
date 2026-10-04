@@ -79,8 +79,8 @@ gFactoryNightPanelDesc = 0x80186EA0; // absolute:True
 gFactoryPromptDesc = 0x80186E88; // size:0xC defined:True
 gFactoryDayPanelDesc = 0x80186E94; // size:0xC defined:True
 gFactoryPanelMsgTable = 0x80186EA0; // rom:0x98E0 size:0x10 defined:True
-gFactoryNightSpawnTable = 0x80186DE0; // absolute:True
-gFactoryNightGrid = 0x80187BF0; // absolute:True
+gFactoryNightSpawnTable = 0x80186DE0; // absolute:True owner=dryfield_night_factory
+gFactoryNightGrid = 0x80187BF0; // absolute:True owner=dryfield_night_factory
 _gDryfieldFactoryCollision0A638Table = 0x80187BD8; // size:0x20 defined:True
 gRoomEventTaskDesc = 0x801826B0; // size:0xC defined:True
 gFactoryPanelSessionDesc = 0x801826BC; // size:0x18 defined:True

@@ -32,7 +32,7 @@ D_dryfield_r08_80180B58 = 0x80180B58; // size:0x18 defined:True
 D_dryfield_r08_80180B70 = 0x80180B70; // size:0x18 defined:True
 D_8013D390 = 0x8013D390; // absolute:True
 D_dryfield_r08_80180B88 = 0x80180B88; // size:0x68 defined:True
-D_map_dryfield_8017AF44 = 0x8017AF44; // absolute:True
+D_map_dryfield_8017AF44 = 0x8017AF44; // absolute:True owner=map_dryfield
 D_dryfield_r08_80180BF0 = 0x80180BF0; // size:0xC defined:True
 D_dryfield_r08_80180BFC = 0x80180BFC; // size:0x8 defined:True
 D_dryfield_r08_80180C04 = 0x80180C04; // size:0x20 defined:True

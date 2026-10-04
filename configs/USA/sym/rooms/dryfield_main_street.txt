@@ -61,8 +61,8 @@ D_80147DF0 = 0x80147DF0; // absolute:True
 D_8014D8A4 = 0x8014D8A4; // absolute:True
 D_8015FAB8 = 0x8015FAB8; // absolute:True
 D_80173A08 = 0x80173A08; // absolute:True
-D_map_dryfield_8017AD44 = 0x8017AD44; // absolute:True
-D_map_dryfield_8017AD74 = 0x8017AD74; // absolute:True
+D_map_dryfield_8017AD44 = 0x8017AD44; // absolute:True owner=map_dryfield
+D_map_dryfield_8017AD74 = 0x8017AD74; // absolute:True owner=map_dryfield
 D_map_dryfield_8017ADE4 = 0x8017ADE4; // absolute:True
 D_map_dryfield_8017AE14 = 0x8017AE14; // absolute:True
 D_dryfield_main_street_80181618 = 0x80181618; // size:0x4 defined:True

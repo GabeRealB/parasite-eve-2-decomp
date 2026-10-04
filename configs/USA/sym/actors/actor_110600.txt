@@ -8,11 +8,11 @@ D_8015D2E8 = 0x8015D2E8; // absolute:True
 D_actor_110600_801485C4 = 0x801485C4; // size:0x60 defined:True
 D_actor_110600_80148624 = 0x80148624; // size:0x38 defined:True
 D_actor_110600_8014865C = 0x8014865C; // size:0x2 defined:True
-gActor210600Animation11F5C = 0x8015BD7C; // absolute:True
-gActor210600Animation12244 = 0x8015C064; // absolute:True
-gActor210600Animation12B30 = 0x8015C950; // absolute:True
-gActor210600Animation134C8 = 0x8015D2E8; // absolute:True
-gActor210600Animation1310C = 0x8015CF2C; // absolute:True
+gActor210600Animation11F5C = 0x8015BD7C; // absolute:True owner=actor_210600
+gActor210600Animation12244 = 0x8015C064; // absolute:True owner=actor_210600
+gActor210600Animation12B30 = 0x8015C950; // absolute:True owner=actor_210600
+gActor210600Animation134C8 = 0x8015D2E8; // absolute:True owner=actor_210600
+gActor210600Animation1310C = 0x8015CF2C; // absolute:True owner=actor_210600
 _gActor110600StrangerBodySkeleton = 0x80138F58; // size:0x2AC defined:True
 _gActor110600StrangerBodyPartVerts = 0x80139204; // size:0x4C defined:True
 _gActor110600StrangerBodyVerts = 0x80139250; // size:0x9B8 defined:True

@@ -86,22 +86,22 @@ D_80155004 = 0x80155004; // absolute:True
 D_80155AC4 = 0x80155AC4; // absolute:True
 D_801693AC = 0x801693AC; // absolute:True
 D_80179120 = 0x80179120; // absolute:True
-D_map_akropolis_8017B1DC = 0x8017B1DC; // absolute:True
-D_map_akropolis_8017B1FC = 0x8017B1FC; // absolute:True
-D_map_akropolis_8017B24C = 0x8017B24C; // absolute:True
-D_map_akropolis_8017B29C = 0x8017B29C; // absolute:True
-D_map_akropolis_8017B2EC = 0x8017B2EC; // absolute:True
-D_map_akropolis_8017B33C = 0x8017B33C; // absolute:True
-D_map_akropolis_8017B35C = 0x8017B35C; // absolute:True
-D_map_akropolis_8017B41C = 0x8017B41C; // absolute:True
-D_map_akropolis_8017B48C = 0x8017B48C; // absolute:True
-D_map_akropolis_8017B4FC = 0x8017B4FC; // absolute:True
+D_map_akropolis_8017B1DC = 0x8017B1DC; // absolute:True owner=map_akropolis
+D_map_akropolis_8017B1FC = 0x8017B1FC; // absolute:True owner=map_akropolis
+D_map_akropolis_8017B24C = 0x8017B24C; // absolute:True owner=map_akropolis
+D_map_akropolis_8017B29C = 0x8017B29C; // absolute:True owner=map_akropolis
+D_map_akropolis_8017B2EC = 0x8017B2EC; // absolute:True owner=map_akropolis
+D_map_akropolis_8017B33C = 0x8017B33C; // absolute:True owner=map_akropolis
+D_map_akropolis_8017B35C = 0x8017B35C; // absolute:True owner=map_akropolis
+D_map_akropolis_8017B41C = 0x8017B41C; // absolute:True owner=map_akropolis
+D_map_akropolis_8017B48C = 0x8017B48C; // absolute:True owner=map_akropolis
+D_map_akropolis_8017B4FC = 0x8017B4FC; // absolute:True owner=map_akropolis
 D_map_akropolis_8017B54C = 0x8017B54C; // absolute:True
-D_map_akropolis_8017B5BC = 0x8017B5BC; // absolute:True
-D_map_akropolis_8017B5EC = 0x8017B5EC; // absolute:True
-D_map_akropolis_8017B65C = 0x8017B65C; // absolute:True
-D_map_akropolis_8017B67C = 0x8017B67C; // absolute:True
-D_map_akropolis_8017B6AC = 0x8017B6AC; // absolute:True
+D_map_akropolis_8017B5BC = 0x8017B5BC; // absolute:True owner=map_akropolis
+D_map_akropolis_8017B5EC = 0x8017B5EC; // absolute:True owner=map_akropolis
+D_map_akropolis_8017B65C = 0x8017B65C; // absolute:True owner=map_akropolis
+D_map_akropolis_8017B67C = 0x8017B67C; // absolute:True owner=map_akropolis
+D_map_akropolis_8017B6AC = 0x8017B6AC; // absolute:True owner=map_akropolis
 D_acropolis_forked_road_80183AD8 = 0x80183AD8; // size:0x10 defined:True
 D_acropolis_forked_road_80183AE8 = 0x80183AE8; // size:0x488 defined:True
 D_acropolis_forked_road_80183F70 = 0x80183F70; // size:0x30 defined:True

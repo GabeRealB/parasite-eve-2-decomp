@@ -51,8 +51,8 @@ D_acropolis_fountain_80183328 = 0x80183328; // size:0xA0 defined:True
 D_acropolis_fountain_801833C8 = 0x801833C8; // size:0x18 defined:True
 D_80147400 = 0x80147400; // absolute:True
 D_80177400 = 0x80177400; // absolute:True
-D_map_akropolis_8017B17C = 0x8017B17C; // absolute:True
-D_map_akropolis_8017B1AC = 0x8017B1AC; // absolute:True
+D_map_akropolis_8017B17C = 0x8017B17C; // absolute:True owner=map_akropolis
+D_map_akropolis_8017B1AC = 0x8017B1AC; // absolute:True owner=map_akropolis
 D_acropolis_fountain_801833E0 = 0x801833E0; // size:0x10 defined:True
 D_acropolis_fountain_801833F0 = 0x801833F0; // size:0x10 defined:True
 D_acropolis_fountain_80183400 = 0x80183400; // size:0x230 defined:True

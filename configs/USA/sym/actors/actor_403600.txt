@@ -2,10 +2,10 @@
 
 // Referenced in another actor load slot, resident beside this one.
 D_80162E98 = 0x80162E98; // absolute:True
-D_actor_303600_8016A408 = 0x8016A408; // absolute:True size:0xAF0
-D_actor_303600_8016AEF8 = 0x8016AEF8; // absolute:True size:0x3570
+D_actor_303600_8016A408 = 0x8016A408; // absolute:True size:0xAF0 owner=actor_303600
+D_actor_303600_8016AEF8 = 0x8016AEF8; // absolute:True size:0x3570 owner=actor_303600
 D_8016E468 = 0x8016E468; // absolute:True
-gActor303600Model02DD0 = 0x801690A4; // absolute:True
+gActor303600Model02DD0 = 0x801690A4; // absolute:True owner=actor_303600
 D_actor_403600_80142120 = 0x80142120; // size:0x80 defined:True
 D_actor_403600_80160700 = 0x80160700; // size:0x24 defined:True
 D_actor_403600_801421A0 = 0x801421A0; // size:0x30 defined:True
@@ -165,10 +165,10 @@ D_actor_403600_801420E8 = 0x801420E8; // size:0x8 defined:True
 D_actor_403600_801420F0 = 0x801420F0; // size:0x4 defined:True
 D_actor_403600_801420F4 = 0x801420F4; // size:0xC defined:True
 D_actor_403600_80142100 = 0x80142100; // size:0x20 defined:True
-gActor303600Animation075A0 = 0x801693C0; // absolute:True
-gActor303600Animation077F0 = 0x80169610; // absolute:True
-gActor303600Animation07C30 = 0x80169A50; // absolute:True
-gActor303600Animation07E5C = 0x80169C7C; // absolute:True
+gActor303600Animation075A0 = 0x801693C0; // absolute:True owner=actor_303600
+gActor303600Animation077F0 = 0x80169610; // absolute:True owner=actor_303600
+gActor303600Animation07C30 = 0x80169A50; // absolute:True owner=actor_303600
+gActor303600Animation07E5C = 0x80169C7C; // absolute:True owner=actor_303600
 D_actor_403600_80160504 = 0x80160504; // size:0x10 defined:True
 D_actor_403600_80160514 = 0x80160514; // size:0x24 defined:True
 D_actor_403600_80160538 = 0x80160538; // size:0x30 defined:True
@@ -205,9 +205,9 @@ func_shelter_b2_pod_bottom_80181940 = 0x80181940; // type:func absolute:True own
 
 gShelterB2PodBottomModel0A2A0 = 0x80187B10; // absolute:True
 
-gShelterB2PodBottomModel0A68C = 0x80187E14; // absolute:True
+gShelterB2PodBottomModel0A68C = 0x80187E14; // absolute:True owner=shelter_b2_pod_bottom
 
-gShelterB2PodBottomModel0AA08 = 0x80188264; // absolute:True
+gShelterB2PodBottomModel0AA08 = 0x80188264; // absolute:True owner=shelter_b2_pod_bottom
 
-gShelterB2PodBottomModel0AE48 = 0x8018864C; // absolute:True
+gShelterB2PodBottomModel0AE48 = 0x8018864C; // absolute:True owner=shelter_b2_pod_bottom
 frameCaptureQueue = 0x801320F8; // type:func

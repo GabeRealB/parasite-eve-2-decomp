@@ -76,8 +76,8 @@ D_acropolis_sanctuary_801863F8 = 0x801863F8; // size:0x20 defined:True
 D_acropolis_sanctuary_80186418 = 0x80186418; // size:0x2C defined:True
 D_8013BF94 = 0x8013BF94; // absolute:True
 D_801585CC = 0x801585CC; // absolute:True
-D_map_akropolis_8017BA5C = 0x8017BA5C; // absolute:True
-D_map_akropolis_8017BA8C = 0x8017BA8C; // absolute:True
+D_map_akropolis_8017BA5C = 0x8017BA5C; // absolute:True owner=map_akropolis
+D_map_akropolis_8017BA8C = 0x8017BA8C; // absolute:True owner=map_akropolis
 _gAcropolisSanctuaryModel090F0Skeleton = 0x80186444; // size:0x6C defined:True
 _gAcropolisSanctuaryModel090F0PartVerts = 0x801864B0; // size:0xC defined:True
 _gAcropolisSanctuaryModel090F0Verts = 0x801864BC; // size:0x1C0 defined:True
@@ -95,9 +95,9 @@ gActor210700Animation027F8 = 0x8014C618; // absolute:True
 gActor210700Animation02B54 = 0x8014C974; // absolute:True
 gActor210700Animation02E0C = 0x8014CC2C; // absolute:True
 gActor210700Animation0318C = 0x8014CFAC; // absolute:True
-gActor210700Animation03424 = 0x8014D244; // absolute:True
-gActor210700Animation03BD0 = 0x8014D9F0; // absolute:True
-gActor210700Animation067E8 = 0x80150608; // absolute:True
+gActor210700Animation03424 = 0x8014D244; // absolute:True owner=actor_210700
+gActor210700Animation03BD0 = 0x8014D9F0; // absolute:True owner=actor_210700
+gActor210700Animation067E8 = 0x80150608; // absolute:True owner=actor_210700
 D_acropolis_sanctuary_80180B0C = 0x80180B0C; // size:0xB58 defined:True
 D_acropolis_sanctuary_80181664 = 0x80181664; // size:0x1B0 defined:True
 D_acropolis_sanctuary_80181814 = 0x80181814; // size:0x108 defined:True

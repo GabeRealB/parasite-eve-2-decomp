@@ -176,7 +176,7 @@ D_mist_parking_80195328 = 0x80195328; // size:0x4 defined:True
 D_mist_parking_8019532C = 0x8019532C; // size:0x8 defined:True
 D_80144308 = 0x80144308; // absolute:True
 D_801521A8 = 0x801521A8; // absolute:True
-D_map_akropolis_8017BDBC = 0x8017BDBC; // absolute:True
+D_map_akropolis_8017BDBC = 0x8017BDBC; // absolute:True owner=map_akropolis
 D_mist_parking_8019088C = 0x8019088C; // size:0x14 defined:True
 D_mist_parking_801908A0 = 0x801908A0; // size:0x14 defined:True
 D_mist_parking_801908B4 = 0x801908B4; // size:0x14 defined:True
@@ -185,7 +185,7 @@ D_mist_parking_8018FC24 = 0x8018FC24; // size:0x18 defined:True
 D_mist_parking_8018F9A4 = 0x8018F9A4; // size:0xA8 defined:True
 D_mist_parking_8018FA4C = 0x8018FA4C; // size:0xF0 defined:True
 D_mist_parking_8018FB3C = 0x8018FB3C; // size:0xC0 defined:True
-D_acropolis_square_80188888 = 0x80188888; // absolute:True
+D_acropolis_square_80188888 = 0x80188888; // absolute:True owner=acropolis_square
 Shop_ItemListDescriptor = 0x8018661C; // size:0x1C defined:True
 Shop_Data_80181BD8 = 0x80186638; // size:0x1C defined:True
 Shop_Data_80181BF4 = 0x80186654; // size:0x1C defined:True

@@ -53,7 +53,7 @@ D_801445DC = 0x801445DC; // absolute:True
 D_80155AC4 = 0x80155AC4; // absolute:True
 D_80156500 = 0x80156500; // absolute:True
 D_8016E500 = 0x8016E500; // absolute:True
-D_map_dryfield_full_8017B938 = 0x8017B938; // absolute:True
+D_map_dryfield_full_8017B938 = 0x8017B938; // absolute:True owner=map_dryfield_full
 D_map_dryfield_full_8017B998 = 0x8017B998; // absolute:True
 
 func_dryfield_night_motel_room_3_8017D9B4 = 0x8017D9B4; // type:func

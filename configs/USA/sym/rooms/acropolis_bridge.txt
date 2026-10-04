@@ -71,9 +71,9 @@ _gAcropolisBridgePointLights = 0x801900AC; // size:0x960 defined:True
 D_acropolis_bridge_80190A0C = 0x80190A0C; // size:0x18 defined:True
 D_acropolis_bridge_80190A24 = 0x80190A24; // size:0x168 defined:True
 D_acropolis_bridge_80190B8C = 0x80190B8C; // size:0x18 defined:True
-D_map_akropolis_8017BC7C = 0x8017BC7C; // absolute:True
-D_map_akropolis_8017BCEC = 0x8017BCEC; // absolute:True
-D_map_akropolis_8017BCFC = 0x8017BCFC; // absolute:True
+D_map_akropolis_8017BC7C = 0x8017BC7C; // absolute:True owner=map_akropolis
+D_map_akropolis_8017BCEC = 0x8017BCEC; // absolute:True owner=map_akropolis
+D_map_akropolis_8017BCFC = 0x8017BCFC; // absolute:True owner=map_akropolis
 _gAcropolisBridgeModel0AD9CSkeleton = 0x80187DDC; // size:0x24 defined:True
 _gAcropolisBridgeModel0AD9CPartVerts = 0x80187E00; // size:0x4 defined:True
 _gAcropolisBridgeModel0AD9CVerts = 0x80187E04; // size:0x558 defined:True

@@ -47,10 +47,10 @@ D_neo_ark_submarine_gallery_801858DC = 0x801858DC; // size:0x8 defined:True
 D_neo_ark_submarine_gallery_801858E4 = 0x801858E4; // size:0x8 defined:True
 D_80147E48 = 0x80147E48; // absolute:True
 D_80158B0C = 0x80158B0C; // absolute:True
-D_map_neo_ark_8017C4A0 = 0x8017C4A0; // absolute:True
-D_map_neo_ark_8017C4D0 = 0x8017C4D0; // absolute:True
-D_map_neo_ark_8017C510 = 0x8017C510; // absolute:True
-D_map_neo_ark_8017C530 = 0x8017C530; // absolute:True
+D_map_neo_ark_8017C4A0 = 0x8017C4A0; // absolute:True owner=map_neo_ark
+D_map_neo_ark_8017C4D0 = 0x8017C4D0; // absolute:True owner=map_neo_ark
+D_map_neo_ark_8017C510 = 0x8017C510; // absolute:True owner=map_neo_ark
+D_map_neo_ark_8017C530 = 0x8017C530; // absolute:True owner=map_neo_ark
 D_neo_ark_submarine_gallery_801858EC = 0x801858EC; // size:0x20 defined:True
 D_neo_ark_submarine_gallery_8018591C = 0x8018591C; // size:0x8 defined:True
 D_neo_ark_submarine_gallery_8018590C = 0x8018590C; // size:0x10 defined:True

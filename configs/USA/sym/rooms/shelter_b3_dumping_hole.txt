@@ -69,9 +69,9 @@ _gShelterB3DumpingHoleAnimation0AAB4Indices = 0x8018804C; // size:0x28 defined:T
 _gShelterB3DumpingHoleAnimation0AAB4 = 0x80188074; // size:0x28 defined:True
 D_shelter_b3_dumping_hole_8018809C = 0x8018809C; // size:0x2 defined:True
 gActor403200Animation2CF64 = 0x8015ED84; // absolute:True
-gActor403200Animation2D1D0 = 0x8015EFF0; // absolute:True
-gActor403200Animation2D928 = 0x8015F748; // absolute:True
-gActor403200Animation2CDE0 = 0x8015EC00; // absolute:True
+gActor403200Animation2D1D0 = 0x8015EFF0; // absolute:True owner=actor_403200
+gActor403200Animation2D928 = 0x8015F748; // absolute:True owner=actor_403200
+gActor403200Animation2CDE0 = 0x8015EC00; // absolute:True owner=actor_403200
 D_shelter_b3_dumping_hole_8018AFC8 = 0x8018AFC8; // size:0x18 defined:True
 D_shelter_b3_dumping_hole_801880A0 = 0x801880A0; // size:0x18 defined:True
 D_shelter_b3_dumping_hole_8018AFE0 = 0x8018AFE0; // size:0x14 defined:True

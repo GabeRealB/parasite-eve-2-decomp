@@ -456,9 +456,9 @@ D_actor_443500_80140E78 = 0x80140E78; // size:0x14 defined:True
 
 D_shelter_r47_80187618 = 0x80187618; // absolute:True
 
-D_shelter_r47_8018828C = 0x8018828C; // absolute:True
+D_shelter_r47_8018828C = 0x8018828C; // absolute:True owner=shelter_r47
 
-D_shelter_r47_8018A638 = 0x8018A638; // absolute:True
+D_shelter_r47_8018A638 = 0x8018A638; // absolute:True owner=shelter_r47
 modelPlacementAttachChild = 0x80132594; // type:func
 actorMsgPlaceEuler = 0x80132900; // type:func
 modelPlacementMirrorParent = 0x801326A0; // type:func

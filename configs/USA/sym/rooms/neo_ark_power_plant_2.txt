@@ -13,9 +13,9 @@ D_neo_ark_power_plant_2_80182F38 = 0x80182F38; // size:0x8 defined:True
 D_neo_ark_power_plant_2_80182F40 = 0x80182F40; // size:0x8 defined:True
 D_neo_ark_power_plant_2_80182F48 = 0x80182F48; // size:0x8 defined:True
 D_neo_ark_power_plant_2_80182F50 = 0x80182F50; // size:0x20 defined:True
-D_map_neo_ark_8017B7D0 = 0x8017B7D0; // absolute:True
-D_map_neo_ark_8017B850 = 0x8017B850; // absolute:True
-D_map_neo_ark_8017B8B0 = 0x8017B8B0; // absolute:True
+D_map_neo_ark_8017B7D0 = 0x8017B7D0; // absolute:True owner=map_neo_ark
+D_map_neo_ark_8017B850 = 0x8017B850; // absolute:True owner=map_neo_ark
+D_map_neo_ark_8017B8B0 = 0x8017B8B0; // absolute:True owner=map_neo_ark
 D_neo_ark_power_plant_2_80180678 = 0x80180678; // size:0x8 defined:True
 D_neo_ark_power_plant_2_80180690 = 0x80180690; // size:0x10 defined:True
 D_neo_ark_power_plant_2_801806A0 = 0x801806A0; // size:0x8 defined:True

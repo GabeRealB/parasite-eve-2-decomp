@@ -49,10 +49,10 @@ D_8013A8DC = 0x8013A8DC; // absolute:True
 D_801513C8 = 0x801513C8; // absolute:True
 D_801528D4 = 0x801528D4; // absolute:True
 D_801528DC = 0x801528DC; // absolute:True
-D_map_akropolis_8017BABC = 0x8017BABC; // absolute:True
-D_map_akropolis_8017BB1C = 0x8017BB1C; // absolute:True
-D_map_akropolis_8017BB9C = 0x8017BB9C; // absolute:True
-D_map_akropolis_8017BBFC = 0x8017BBFC; // absolute:True
+D_map_akropolis_8017BABC = 0x8017BABC; // absolute:True owner=map_akropolis
+D_map_akropolis_8017BB1C = 0x8017BB1C; // absolute:True owner=map_akropolis
+D_map_akropolis_8017BB9C = 0x8017BB9C; // absolute:True owner=map_akropolis
+D_map_akropolis_8017BBFC = 0x8017BBFC; // absolute:True owner=map_akropolis
 D_acropolis_roof_garden_80184B08 = 0x80184B08; // size:0xF0 defined:True
 D_acropolis_roof_garden_80184ACC = 0x80184ACC; // size:0x14 defined:True
 D_acropolis_roof_garden_80184AE0 = 0x80184AE0; // size:0x14 defined:True

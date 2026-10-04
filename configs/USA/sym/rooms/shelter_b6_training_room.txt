@@ -15,7 +15,7 @@ D_shelter_b6_training_room_80185C38 = 0x80185C38; // size:0x20 defined:True
 D_shelter_b6_training_room_80185C60 = 0x80185C60; // size:0x30 defined:True
 D_shelter_b6_training_room_80185C90 = 0x80185C90; // size:0x4 defined:True
 D_shelter_b6_training_room_80185C94 = 0x80185C94; // size:0x4 defined:True
-D_map_neo_ark_8017C140 = 0x8017C140; // absolute:True
+D_map_neo_ark_8017C140 = 0x8017C140; // absolute:True owner=map_neo_ark
 D_shelter_b6_training_room_80184418 = 0x80184418; // size:0x4 defined:True
 D_shelter_b6_training_room_8018441C = 0x8018441C; // size:0x4 defined:True
 D_shelter_b6_training_room_80184420 = 0x80184420; // size:0x70 defined:True

@@ -262,7 +262,7 @@ func_acropolis_helicopter_landing_pad_80180A64 = 0x80180A64; // type:func absolu
 
 D_acropolis_helicopter_landing_pad_80187D34 = 0x80187D34; // absolute:True
 
-D_acropolis_helicopter_landing_pad_80187D3C = 0x80187D3C; // absolute:True
+D_acropolis_helicopter_landing_pad_80187D3C = 0x80187D3C; // absolute:True owner=acropolis_helicopter_landing_pad
 
 func_actor_510900_80131F24 = 0x80131F24; // type:func
 

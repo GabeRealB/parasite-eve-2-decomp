@@ -104,9 +104,9 @@ D_dryfield_water_tower_80187628 = 0x80187628; // size:0x14 defined:True
 D_801379A8 = 0x801379A8; // absolute:True
 D_8014D8A4 = 0x8014D8A4; // absolute:True
 D_80151254 = 0x80151254; // absolute:True
-D_map_dryfield_8017B534 = 0x8017B534; // absolute:True
-D_map_dryfield_8017B564 = 0x8017B564; // absolute:True
-D_map_dryfield_8017B5E4 = 0x8017B5E4; // absolute:True
+D_map_dryfield_8017B534 = 0x8017B534; // absolute:True owner=map_dryfield
+D_map_dryfield_8017B564 = 0x8017B564; // absolute:True owner=map_dryfield
+D_map_dryfield_8017B5E4 = 0x8017B5E4; // absolute:True owner=map_dryfield
 _gDryfieldWaterTowerDryfieldWaterTankModel020D4Skeleton = 0x801803F0; // size:0x24 defined:True
 _gDryfieldWaterTowerDryfieldWaterTankModel020D4PartVerts = 0x80180414; // size:0x4 defined:True
 _gDryfieldWaterTowerDryfieldWaterTankModel020D4Verts = 0x80180418; // size:0x308 defined:True

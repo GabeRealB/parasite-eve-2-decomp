@@ -73,10 +73,10 @@ D_801393C8 = 0x801393C8; // absolute:True
 D_801445DC = 0x801445DC; // absolute:True
 D_8014F9A8 = 0x8014F9A8; // absolute:True
 D_8015C5DC = 0x8015C5DC; // absolute:True
-D_map_dryfield_full_8017AEC8 = 0x8017AEC8; // absolute:True
-D_map_dryfield_full_8017AF18 = 0x8017AF18; // absolute:True
-D_map_dryfield_full_8017AF58 = 0x8017AF58; // absolute:True
-D_map_dryfield_full_8017AFE8 = 0x8017AFE8; // absolute:True
+D_map_dryfield_full_8017AEC8 = 0x8017AEC8; // absolute:True owner=map_dryfield_full
+D_map_dryfield_full_8017AF18 = 0x8017AF18; // absolute:True owner=map_dryfield_full
+D_map_dryfield_full_8017AF58 = 0x8017AF58; // absolute:True owner=map_dryfield_full
+D_map_dryfield_full_8017AFE8 = 0x8017AFE8; // absolute:True owner=map_dryfield_full
 gRoomEventActive = 0x801858C4; // size:0x1 defined:True
 gStoreWarp = 0x801858C5; // size:0x1 defined:True
 gStoreRoom = 0x801858C6; // size:0x1 defined:True

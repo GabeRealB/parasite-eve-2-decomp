@@ -63,8 +63,8 @@ D_80139924 = 0x80139924; // absolute:True
 D_801472E8 = 0x801472E8; // absolute:True
 D_80155070 = 0x80155070; // absolute:True
 D_80167A18 = 0x80167A18; // absolute:True
-D_map_akropolis_8017BD2C = 0x8017BD2C; // absolute:True
-D_map_akropolis_8017BD4C = 0x8017BD4C; // absolute:True
+D_map_akropolis_8017BD2C = 0x8017BD2C; // absolute:True owner=map_akropolis
+D_map_akropolis_8017BD4C = 0x8017BD4C; // absolute:True owner=map_akropolis
 D_acropolis_helicopter_landing_pad_80184E68 = 0x80184E68; // size:0x18 defined:True
 D_acropolis_helicopter_landing_pad_80184F10 = 0x80184F10; // size:0x10 defined:True
 D_acropolis_helicopter_landing_pad_80184F20 = 0x80184F20; // size:0x1C defined:True
@@ -86,8 +86,8 @@ _gAcropolisHelicopterLandingPadModel0547CVerts = 0x801823EC; // size:0x5F8 defin
 _gAcropolisHelicopterLandingPadModel0547CNormals = 0x801829E4; // size:0x58 defined:True
 _gAcropolisHelicopterLandingPadModel0547CStream = 0x80182A3C; // size:0xCB0 defined:True
 gAcropolisHelicopterLandingPadModel0547C = 0x801836EC; // size:0x24 defined:True
-gActor511000Animation04CC8 = 0x80136AE8; // absolute:True
-gActor511000Animation07ADC = 0x801398FC; // absolute:True
+gActor511000Animation04CC8 = 0x80136AE8; // absolute:True owner=actor_511000
+gActor511000Animation07ADC = 0x801398FC; // absolute:True owner=actor_511000
 D_acropolis_helicopter_landing_pad_80184E28 = 0x80184E28; // size:0x14 defined:True
 D_acropolis_helicopter_landing_pad_80184E3C = 0x80184E3C; // size:0x14 defined:True
 D_acropolis_helicopter_landing_pad_80184E50 = 0x80184E50; // size:0x18 defined:True

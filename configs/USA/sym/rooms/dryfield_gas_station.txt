@@ -95,7 +95,7 @@ D_dryfield_gas_station_80184BD8 = 0x80184BD8; // size:0x18 defined:True
 gViewIdentityMap = 0x8010CAF8; // absolute:True
 D_80142604 = 0x80142604; // absolute:True
 D_8014D8A4 = 0x8014D8A4; // absolute:True
-D_map_dryfield_8017AD34 = 0x8017AD34; // absolute:True
+D_map_dryfield_8017AD34 = 0x8017AD34; // absolute:True owner=map_dryfield
 D_acropolis_square_80188888 = 0x80188888; // absolute:True
 gRoomCutsceneTaskDescs = 0x80181E18; // size:0x24 defined:True
 D_dryfield_gas_station_80181E3C = 0x80181E3C; // size:0x18 defined:True

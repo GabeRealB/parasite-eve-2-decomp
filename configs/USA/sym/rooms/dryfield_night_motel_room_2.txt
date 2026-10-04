@@ -51,8 +51,8 @@ D_801445DC = 0x801445DC; // absolute:True
 D_801513C8 = 0x801513C8; // absolute:True
 D_80156500 = 0x80156500; // absolute:True
 D_map_dryfield_full_8017B7D8 = 0x8017B7D8; // absolute:True
-D_map_dryfield_full_8017B858 = 0x8017B858; // absolute:True
-D_map_dryfield_full_8017B8C8 = 0x8017B8C8; // absolute:True
+D_map_dryfield_full_8017B858 = 0x8017B858; // absolute:True owner=map_dryfield_full
+D_map_dryfield_full_8017B8C8 = 0x8017B8C8; // absolute:True owner=map_dryfield_full
 
 func_dryfield_night_motel_room_2_8017D990 = 0x8017D990; // type:func
 glowDrawFlareClipped = 0x8017D714; // type:func

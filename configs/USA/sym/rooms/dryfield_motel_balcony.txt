@@ -74,11 +74,11 @@ D_80148110 = 0x80148110; // absolute:True
 D_801482C0 = 0x801482C0; // absolute:True
 D_80155AC4 = 0x80155AC4; // absolute:True
 D_801611F8 = 0x801611F8; // absolute:True
-D_map_dryfield_8017BA34 = 0x8017BA34; // absolute:True
-D_map_dryfield_8017BA44 = 0x8017BA44; // absolute:True
-D_map_dryfield_8017BA84 = 0x8017BA84; // absolute:True
-D_map_dryfield_8017BAF4 = 0x8017BAF4; // absolute:True
-D_map_dryfield_8017BB24 = 0x8017BB24; // absolute:True
+D_map_dryfield_8017BA34 = 0x8017BA34; // absolute:True owner=map_dryfield
+D_map_dryfield_8017BA44 = 0x8017BA44; // absolute:True owner=map_dryfield
+D_map_dryfield_8017BA84 = 0x8017BA84; // absolute:True owner=map_dryfield
+D_map_dryfield_8017BAF4 = 0x8017BAF4; // absolute:True owner=map_dryfield
+D_map_dryfield_8017BB24 = 0x8017BB24; // absolute:True owner=map_dryfield
 RoomFx_TrailOffsets = 0x801822C0; // size:0x10 defined:True
 gRoomEventTaskDesc = 0x80182270; // size:0xC defined:True
 D_dryfield_motel_balcony_8018227C = 0x8018227C; // size:0x30 defined:True

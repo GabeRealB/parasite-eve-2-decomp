@@ -71,7 +71,7 @@ D_dryfield_underpass_80181154 = 0x80181154; // size:0x8 defined:True
 D_dryfield_underpass_8018115C = 0x8018115C; // size:0x8 defined:True
 D_dryfield_underpass_80181164 = 0x80181164; // size:0x20 defined:True
 D_80153D60 = 0x80153D60; // absolute:True
-D_map_dryfield_8017BCC4 = 0x8017BCC4; // absolute:True
+D_map_dryfield_8017BCC4 = 0x8017BCC4; // absolute:True owner=map_dryfield
 D_dryfield_underpass_8017E8C0 = 0x8017E8C0; // size:0x18 defined:True
 D_dryfield_underpass_8017E8D8 = 0x8017E8D8; // size:0x1F8 defined:True
 D_dryfield_underpass_8017E89C = 0x8017E89C; // size:0x4 defined:True

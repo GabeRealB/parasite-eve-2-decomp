@@ -69,11 +69,11 @@ D_8014D8A4 = 0x8014D8A4; // absolute:True
 D_801540E0 = 0x801540E0; // absolute:True
 D_80165B88 = 0x80165B88; // absolute:True
 D_801679A8 = 0x801679A8; // absolute:True
-D_map_dryfield_full_8017BAB8 = 0x8017BAB8; // absolute:True
+D_map_dryfield_full_8017BAB8 = 0x8017BAB8; // absolute:True owner=map_dryfield_full
 D_map_dryfield_full_8017BB28 = 0x8017BB28; // absolute:True
-D_map_dryfield_full_8017BB78 = 0x8017BB78; // absolute:True
-D_map_dryfield_full_8017BBE8 = 0x8017BBE8; // absolute:True
-D_map_dryfield_full_8017BC08 = 0x8017BC08; // absolute:True
+D_map_dryfield_full_8017BB78 = 0x8017BB78; // absolute:True owner=map_dryfield_full
+D_map_dryfield_full_8017BBE8 = 0x8017BBE8; // absolute:True owner=map_dryfield_full
+D_map_dryfield_full_8017BC08 = 0x8017BC08; // absolute:True owner=map_dryfield_full
 gRoomEventActive = 0x8018156C; // size:0x4 defined:True
 gRoomEventReq = 0x80181570; // size:0x14 defined:True
 _gDryfieldNightParkingLotAnimation0166CBank1 = 0x8017E7E4; // size:0x78 defined:True

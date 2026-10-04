@@ -142,7 +142,7 @@ D_actor_341700_80174D70 = 0x80174D70; // size:0xC defined:True
 
 D_shelter_b3_garbage_incinerator_801874C4 = 0x801874C4; // absolute:True
 
-D_shelter_b3_dumping_hole_8018B74C = 0x8018B74C; // absolute:True
+D_shelter_b3_dumping_hole_8018B74C = 0x8018B74C; // absolute:True owner=shelter_b3_dumping_hole
 
 func_shelter_b3_dumping_hole_8017FCF4 = 0x8017FCF4; // type:func absolute:True owner=shelter_b3_dumping_hole
 ActorContact_TurnJoint = 0x8016AC64; // type:func

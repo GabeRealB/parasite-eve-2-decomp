@@ -92,10 +92,10 @@ D_dryfield_night_garage_801875B0 = 0x801875B0; // size:0x8 defined:True
 D_dryfield_night_garage_801875B8 = 0x801875B8; // size:0x20 defined:True
 Shop_Data_80187628 = 0x80187628; // size:0x4 defined:True
 Shop_Data_8018762C = 0x8018762C; // size:0x4 defined:True
-D_map_dryfield_full_8017C4E8 = 0x8017C4E8; // absolute:True
-D_map_dryfield_full_8017C538 = 0x8017C538; // absolute:True
-D_map_dryfield_full_8017C568 = 0x8017C568; // absolute:True
-D_map_dryfield_full_8017C578 = 0x8017C578; // absolute:True
+D_map_dryfield_full_8017C4E8 = 0x8017C4E8; // absolute:True owner=map_dryfield_full
+D_map_dryfield_full_8017C538 = 0x8017C538; // absolute:True owner=map_dryfield_full
+D_map_dryfield_full_8017C568 = 0x8017C568; // absolute:True owner=map_dryfield_full
+D_map_dryfield_full_8017C578 = 0x8017C578; // absolute:True owner=map_dryfield_full
 Shop_Data_80181ADC = 0x80181ADC; // size:0x4 defined:True
 Shop_Data_80181AE0 = 0x80181AE0; // size:0x24 defined:True
 Shop_Data_80181B04 = 0x80181B04; // size:0x8 defined:True

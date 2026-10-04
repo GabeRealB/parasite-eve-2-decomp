@@ -42,7 +42,7 @@ D_shelter_b6_growth_room_80180798 = 0x80180798; // size:0x8 defined:True
 D_shelter_b6_growth_room_801807A0 = 0x801807A0; // size:0x8 defined:True
 D_shelter_b6_growth_room_801807A8 = 0x801807A8; // size:0x20 defined:True
 D_shelter_b6_growth_room_801807C8 = 0x801807C8; // size:0xE8 defined:True
-D_map_neo_ark_8017C0E0 = 0x8017C0E0; // absolute:True
+D_map_neo_ark_8017C0E0 = 0x8017C0E0; // absolute:True owner=map_neo_ark
 
 func_shelter_b6_growth_room_8017D9D8 = 0x8017D9D8; // type:func
 

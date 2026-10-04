@@ -38,7 +38,7 @@ D_shelter_1f_bulwark_80180EC0 = 0x80180EC0; // size:0x4 defined:True
 gRoomEventStagedMsg = 0x80180EC4; // size:0x8 defined:True
 D_80147AB8 = 0x80147AB8; // absolute:True
 D_801611F8 = 0x801611F8; // absolute:True
-D_map_neo_ark_8017AF00 = 0x8017AF00; // absolute:True
+D_map_neo_ark_8017AF00 = 0x8017AF00; // absolute:True owner=map_neo_ark
 RoomFx_TrailOffsets = 0x801803A0; // size:0x10 defined:True
 D_shelter_1f_bulwark_80180ECC = 0x80180ECC; // size:0x4 defined:True
 gRoomEventLatched = 0x80180ED0; // size:0xC defined:True

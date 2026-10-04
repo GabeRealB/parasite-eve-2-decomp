@@ -12,8 +12,8 @@ D_neo_ark_eve_access_tunnel_80180770 = 0x80180770; // size:0x8 defined:True
 D_neo_ark_eve_access_tunnel_80180778 = 0x80180778; // size:0x8 defined:True
 D_neo_ark_eve_access_tunnel_80180780 = 0x80180780; // size:0x20 defined:True
 gRoomDeparture = 0x801807A8; // size:0xC defined:True
-D_map_neo_ark_8017B030 = 0x8017B030; // absolute:True
-D_map_neo_ark_8017B080 = 0x8017B080; // absolute:True
+D_map_neo_ark_8017B030 = 0x8017B030; // absolute:True owner=map_neo_ark
+D_map_neo_ark_8017B080 = 0x8017B080; // absolute:True owner=map_neo_ark
 D_neo_ark_eve_access_tunnel_8017EB78 = 0x8017EB78; // size:0x10 defined:True
 D_neo_ark_eve_access_tunnel_8017EB88 = 0x8017EB88; // size:0x8 defined:True
 D_neo_ark_eve_access_tunnel_8017EB90 = 0x8017EB90; // size:0x4 defined:True

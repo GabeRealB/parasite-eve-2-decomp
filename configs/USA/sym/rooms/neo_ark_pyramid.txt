@@ -54,11 +54,11 @@ D_801528D4 = 0x801528D4; // absolute:True
 D_80158A18 = 0x80158A18; // absolute:True
 D_801611F8 = 0x801611F8; // absolute:True
 D_80177DF0 = 0x80177DF0; // absolute:True
-D_map_neo_ark_8017C580 = 0x8017C580; // absolute:True
-D_map_neo_ark_8017C620 = 0x8017C620; // absolute:True
-D_map_neo_ark_8017C690 = 0x8017C690; // absolute:True
-D_map_neo_ark_8017C720 = 0x8017C720; // absolute:True
-D_map_neo_ark_8017C760 = 0x8017C760; // absolute:True
+D_map_neo_ark_8017C580 = 0x8017C580; // absolute:True owner=map_neo_ark
+D_map_neo_ark_8017C620 = 0x8017C620; // absolute:True owner=map_neo_ark
+D_map_neo_ark_8017C690 = 0x8017C690; // absolute:True owner=map_neo_ark
+D_map_neo_ark_8017C720 = 0x8017C720; // absolute:True owner=map_neo_ark
+D_map_neo_ark_8017C760 = 0x8017C760; // absolute:True owner=map_neo_ark
 RoomFx_TrailOffsets = 0x8017FC18; // size:0x10 defined:True
 
 func_neo_ark_pyramid_8017DC50 = 0x8017DC50; // type:func

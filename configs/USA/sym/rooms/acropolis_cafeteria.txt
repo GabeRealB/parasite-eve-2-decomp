@@ -31,11 +31,11 @@ D_80156E24 = 0x80156E24; // absolute:True
 D_8015A4EC = 0x8015A4EC; // absolute:True
 D_801796A4 = 0x801796A4; // absolute:True
 D_map_akropolis_8017AE9C = 0x8017AE9C; // absolute:True
-D_map_akropolis_8017AEDC = 0x8017AEDC; // absolute:True
-D_map_akropolis_8017AF1C = 0x8017AF1C; // absolute:True
-D_map_akropolis_8017AF3C = 0x8017AF3C; // absolute:True
-D_map_akropolis_8017AF6C = 0x8017AF6C; // absolute:True
-D_map_akropolis_8017AFCC = 0x8017AFCC; // absolute:True
+D_map_akropolis_8017AEDC = 0x8017AEDC; // absolute:True owner=map_akropolis
+D_map_akropolis_8017AF1C = 0x8017AF1C; // absolute:True owner=map_akropolis
+D_map_akropolis_8017AF3C = 0x8017AF3C; // absolute:True owner=map_akropolis
+D_map_akropolis_8017AF6C = 0x8017AF6C; // absolute:True owner=map_akropolis
+D_map_akropolis_8017AFCC = 0x8017AFCC; // absolute:True owner=map_akropolis
 D_acropolis_cafeteria_801891E4 = 0x801891E4; // size:0x4C0 defined:True
 D_acropolis_cafeteria_8018753C = 0x8018753C; // size:0x40 defined:True
 D_acropolis_cafeteria_8018757C = 0x8018757C; // size:0x18 defined:True
@@ -111,9 +111,9 @@ _gAcropolisCafeteriaModel09A20Verts = 0x80186CF8; // size:0x128 defined:True
 _gAcropolisCafeteriaModel09A20Normals = 0x80186E20; // size:0x1C0 defined:True
 _gAcropolisCafeteriaModel09A20Stream = 0x80186FE0; // size:0x538 defined:True
 gAcropolisCafeteriaModel09A20 = 0x80187518; // size:0x24 defined:True
-gActor202900Animation06098 = 0x8014FEB8; // absolute:True
+gActor202900Animation06098 = 0x8014FEB8; // absolute:True owner=actor_202900
 gActor310600Animation04ADC = 0x801668FC; // absolute:True
-gActor210600Animation07EF4 = 0x80151D14; // absolute:True
+gActor210600Animation07EF4 = 0x80151D14; // absolute:True owner=actor_210600
 gActor210600Animation0A050 = 0x80153E70; // absolute:True
 D_acropolis_cafeteria_8018B394 = 0x8018B394; // size:0x10 defined:True
 D_acropolis_cafeteria_8018B3A4 = 0x8018B3A4; // size:0x14 defined:True

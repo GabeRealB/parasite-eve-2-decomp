@@ -154,8 +154,8 @@ gViewIdentityMap = 0x8010CAF8; // absolute:True
 D_801401B0 = 0x801401B0; // absolute:True
 D_80154C18 = 0x80154C18; // absolute:True
 D_80159DB0 = 0x80159DB0; // absolute:True
-D_map_neo_ark_8017AF30 = 0x8017AF30; // absolute:True
-D_map_neo_ark_8017AF80 = 0x8017AF80; // absolute:True
+D_map_neo_ark_8017AF30 = 0x8017AF30; // absolute:True owner=map_neo_ark
+D_map_neo_ark_8017AF80 = 0x8017AF80; // absolute:True owner=map_neo_ark
 gRoomEventStagedMsg = 0x80182CA8; // size:0x8 defined:True
 D_shelter_1f_heliport_80182CB0 = 0x80182CB0; // size:0x4 defined:True
 gRoomEventLatched = 0x80182CB4; // size:0xC defined:True

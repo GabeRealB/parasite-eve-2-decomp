@@ -7,10 +7,10 @@ D_neo_ark_garden_80182BBC = 0x80182BBC; // size:0xC defined:True
 D_neo_ark_garden_80182BC8 = 0x80182BC8; // size:0x8 defined:True
 D_neo_ark_garden_80182BD0 = 0x80182BD0; // size:0x8 defined:True
 D_neo_ark_garden_80182BD8 = 0x80182BD8; // size:0x20 defined:True
-D_map_neo_ark_8017B630 = 0x8017B630; // absolute:True
-D_map_neo_ark_8017B6E0 = 0x8017B6E0; // absolute:True
-D_map_neo_ark_8017B700 = 0x8017B700; // absolute:True
-D_map_neo_ark_8017B780 = 0x8017B780; // absolute:True
+D_map_neo_ark_8017B630 = 0x8017B630; // absolute:True owner=map_neo_ark
+D_map_neo_ark_8017B6E0 = 0x8017B6E0; // absolute:True owner=map_neo_ark
+D_map_neo_ark_8017B700 = 0x8017B700; // absolute:True owner=map_neo_ark
+D_map_neo_ark_8017B780 = 0x8017B780; // absolute:True owner=map_neo_ark
 RoomFx_DiscShades = 0x80181400; // size:0xC defined:True
 D_neo_ark_garden_8018140C = 0x8018140C; // size:0x10 defined:True
 D_neo_ark_garden_8018141C = 0x8018141C; // size:0x8 defined:True

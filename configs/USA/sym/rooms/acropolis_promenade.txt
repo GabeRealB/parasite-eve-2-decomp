@@ -64,11 +64,11 @@ D_80150C80 = 0x80150C80; // absolute:True
 D_801513C8 = 0x801513C8; // absolute:True
 D_80154188 = 0x80154188; // absolute:True
 D_80177400 = 0x80177400; // absolute:True
-D_map_akropolis_8017B82C = 0x8017B82C; // absolute:True
-D_map_akropolis_8017B85C = 0x8017B85C; // absolute:True
-D_map_akropolis_8017B8DC = 0x8017B8DC; // absolute:True
-D_map_akropolis_8017B98C = 0x8017B98C; // absolute:True
-D_map_akropolis_8017B9AC = 0x8017B9AC; // absolute:True
+D_map_akropolis_8017B82C = 0x8017B82C; // absolute:True owner=map_akropolis
+D_map_akropolis_8017B85C = 0x8017B85C; // absolute:True owner=map_akropolis
+D_map_akropolis_8017B8DC = 0x8017B8DC; // absolute:True owner=map_akropolis
+D_map_akropolis_8017B98C = 0x8017B98C; // absolute:True owner=map_akropolis
+D_map_akropolis_8017B9AC = 0x8017B9AC; // absolute:True owner=map_akropolis
 D_acropolis_promenade_80180F00 = 0x80180F00; // size:0x168 defined:True
 D_acropolis_promenade_80181068 = 0x80181068; // size:0xD8 defined:True
 _gAcropolisPromenadeAcropolisBridgeModel0AD9CSkeleton = 0x8017FE04; // size:0x24 defined:True

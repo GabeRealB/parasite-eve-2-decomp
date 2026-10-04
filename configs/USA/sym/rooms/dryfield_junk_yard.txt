@@ -63,8 +63,8 @@ _gDryfieldJunkYardUnknownData = 0x8018192C; // size:0x288 defined:True
 gViewIdentityMap = 0x8010CAF8; // absolute:True
 D_801379A8 = 0x801379A8; // absolute:True
 D_8014D8A4 = 0x8014D8A4; // absolute:True
-D_map_dryfield_8017B9B4 = 0x8017B9B4; // absolute:True
-D_map_dryfield_8017B9C4 = 0x8017B9C4; // absolute:True
+D_map_dryfield_8017B9B4 = 0x8017B9B4; // absolute:True owner=map_dryfield
+D_map_dryfield_8017B9C4 = 0x8017B9C4; // absolute:True owner=map_dryfield
 D_dryfield_junk_yard_80181BB4 = 0x80181BB4; // size:0x18 defined:True
 D_dryfield_junk_yard_80181BCC = 0x80181BCC; // size:0x40 defined:True
 D_dryfield_junk_yard_80181C0C = 0x80181C0C; // size:0xC defined:True

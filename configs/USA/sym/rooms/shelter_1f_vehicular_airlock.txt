@@ -34,7 +34,7 @@ D_shelter_1f_vehicular_airlock_80182A80 = 0x80182A80; // size:0x20 defined:True
 gRoomEventFade = 0x80182AA0; // size:0x8 defined:True
 D_80147DF0 = 0x80147DF0; // absolute:True
 D_801611F8 = 0x801611F8; // absolute:True
-D_map_neo_ark_8017AED0 = 0x8017AED0; // absolute:True
+D_map_neo_ark_8017AED0 = 0x8017AED0; // absolute:True owner=map_neo_ark
 RoomFx_TrailOffsets = 0x801820EC; // size:0x10 defined:True
 _gShelter1fVehicularAirlockModel03A58Skeleton = 0x80180C50; // size:0x24 defined:True
 _gShelter1fVehicularAirlockModel03A58PartVerts = 0x80180C74; // size:0x4 defined:True

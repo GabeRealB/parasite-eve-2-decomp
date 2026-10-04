@@ -680,4 +680,4 @@ Actor04400_D107FC = 0x8017261C; // size:0xC defined:True
 
 D_shelter_b3_garbage_incinerator_801874C4 = 0x801874C4; // absolute:True
 
-D_shelter_b3_dumping_hole_8018B74C = 0x8018B74C; // absolute:True
+D_shelter_b3_dumping_hole_8018B74C = 0x8018B74C; // absolute:True owner=shelter_b3_dumping_hole

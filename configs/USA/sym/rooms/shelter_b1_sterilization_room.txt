@@ -85,7 +85,7 @@ D_shelter_b1_sterilization_room_8018B18C = 0x8018B18C; // size:0x4A4 defined:Tru
 D_shelter_b1_sterilization_room_8018B630 = 0x8018B630; // size:0x18 defined:True
 D_shelter_b1_sterilization_room_8018B648 = 0x8018B648; // size:0x260 defined:True
 gViewIdentityMap = 0x8010CAF8; // absolute:True
-D_acropolis_square_80188888 = 0x80188888; // absolute:True
+D_acropolis_square_80188888 = 0x80188888; // absolute:True owner=acropolis_square
 D_shelter_b1_sterilization_room_8018B8A8 = 0x8018B8A8; // size:0x850 defined:True
 D_shelter_b1_sterilization_room_8018C0F8 = 0x8018C0F8; // size:0xC defined:True
 D_shelter_b1_sterilization_room_8018C104 = 0x8018C104; // size:0x18 defined:True

@@ -181,10 +181,10 @@ D_actor_136100_8013F334 = 0x8013F334; // size:0x30 defined:True
 
 gDryfieldNightMainStreetCollision06F80Normals = 0x801833F4; // absolute:True
 
-gDryfieldNightMainStreetCollision06F80Verts = 0x801834AC; // absolute:True
+gDryfieldNightMainStreetCollision06F80Verts = 0x801834AC; // absolute:True owner=dryfield_night_main_street
 
-gDryfieldNightMainStreetCollision06F80Faces = 0x80183ACC; // absolute:True
+gDryfieldNightMainStreetCollision06F80Faces = 0x80183ACC; // absolute:True owner=dryfield_night_main_street
 
-D_dryfield_night_main_street_8018824C = 0x8018824C; // absolute:True size:0x390 allow_addend:True
+D_dryfield_night_main_street_8018824C = 0x8018824C; // absolute:True size:0x390 allow_addend:True owner=dryfield_night_main_street
 screenFadeInTask = 0x801344AC; // type:func
 actorMsgPlaceInView = 0x80134720; // type:func

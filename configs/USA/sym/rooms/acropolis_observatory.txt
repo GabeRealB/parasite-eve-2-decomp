@@ -54,11 +54,11 @@ D_80155004 = 0x80155004; // absolute:True
 D_80155AC4 = 0x80155AC4; // absolute:True
 D_80158A18 = 0x80158A18; // absolute:True
 D_80179120 = 0x80179120; // absolute:True
-D_map_akropolis_8017B6DC = 0x8017B6DC; // absolute:True
-D_map_akropolis_8017B70C = 0x8017B70C; // absolute:True
-D_map_akropolis_8017B73C = 0x8017B73C; // absolute:True
-D_map_akropolis_8017B7DC = 0x8017B7DC; // absolute:True
-D_map_akropolis_8017B80C = 0x8017B80C; // absolute:True
+D_map_akropolis_8017B6DC = 0x8017B6DC; // absolute:True owner=map_akropolis
+D_map_akropolis_8017B70C = 0x8017B70C; // absolute:True owner=map_akropolis
+D_map_akropolis_8017B73C = 0x8017B73C; // absolute:True owner=map_akropolis
+D_map_akropolis_8017B7DC = 0x8017B7DC; // absolute:True owner=map_akropolis
+D_map_akropolis_8017B80C = 0x8017B80C; // absolute:True owner=map_akropolis
 D_acropolis_observatory_8017FE68 = 0x8017FE68; // size:0x4 defined:True
 D_acropolis_observatory_8017FE6C = 0x8017FE6C; // size:0xC defined:True
 D_acropolis_observatory_8017E7DC = 0x8017E7DC; // size:0x30 defined:True

@@ -196,7 +196,7 @@ D_actor_421600_80151268 = 0x80151268; // size:0x2 defined:True
 
 D_dryfield_water_tower_801876A8 = 0x801876A8; // absolute:True
 
-D_dryfield_water_tower_801876AA = 0x801876AA; // absolute:True
+D_dryfield_water_tower_801876AA = 0x801876AA; // absolute:True owner=dryfield_water_tower
 limbShadowDrawSegment = 0x80132EC0; // type:func
 actorMsgSetVisibility = 0x8013E42C; // type:func
 actorMsgPlaceYawFirst = 0x8013E52C; // type:func

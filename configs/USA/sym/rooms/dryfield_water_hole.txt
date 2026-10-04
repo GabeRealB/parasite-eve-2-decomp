@@ -71,7 +71,7 @@ D_dryfield_water_hole_801828A4 = 0x801828A4; // size:0x8 defined:True
 D_dryfield_water_hole_801828AC = 0x801828AC; // size:0x20 defined:True
 gWaterHolePrimCursor = 0x801828CC; // size:0x4 defined:True
 D_80139DAC = 0x80139DAC; // absolute:True
-D_map_dryfield_8017BB84 = 0x8017BB84; // absolute:True
+D_map_dryfield_8017BB84 = 0x8017BB84; // absolute:True owner=map_dryfield
 gWaterHoleWaveScroll = 0x801828D0; // size:0x2 defined:True
 
 func_dryfield_water_hole_8017EC90 = 0x8017EC90; // type:func

@@ -41,9 +41,9 @@ D_801379A8 = 0x801379A8; // absolute:True
 D_8013E500 = 0x8013E500; // absolute:True
 D_801445DC = 0x801445DC; // absolute:True
 D_8014F9A8 = 0x8014F9A8; // absolute:True
-D_map_dryfield_full_8017B408 = 0x8017B408; // absolute:True
-D_map_dryfield_full_8017B438 = 0x8017B438; // absolute:True
-D_map_dryfield_full_8017B4A8 = 0x8017B4A8; // absolute:True
+D_map_dryfield_full_8017B408 = 0x8017B408; // absolute:True owner=map_dryfield_full
+D_map_dryfield_full_8017B438 = 0x8017B438; // absolute:True owner=map_dryfield_full
+D_map_dryfield_full_8017B4A8 = 0x8017B4A8; // absolute:True owner=map_dryfield_full
 
 func_dryfield_night_warehouse_8017E778 = 0x8017E778; // type:func
 glowDrawPrism = 0x8017D6B4; // type:func

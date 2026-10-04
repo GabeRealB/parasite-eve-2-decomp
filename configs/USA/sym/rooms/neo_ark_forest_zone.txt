@@ -63,12 +63,12 @@ D_80158A18 = 0x80158A18; // absolute:True
 D_801602C0 = 0x801602C0; // absolute:True
 D_80173294 = 0x80173294; // absolute:True
 D_80177DF0 = 0x80177DF0; // absolute:True
-D_map_neo_ark_8017B190 = 0x8017B190; // absolute:True
-D_map_neo_ark_8017B1C0 = 0x8017B1C0; // absolute:True
-D_map_neo_ark_8017B1F0 = 0x8017B1F0; // absolute:True
-D_map_neo_ark_8017B210 = 0x8017B210; // absolute:True
-D_map_neo_ark_8017B2C0 = 0x8017B2C0; // absolute:True
-D_map_neo_ark_8017B300 = 0x8017B300; // absolute:True
+D_map_neo_ark_8017B190 = 0x8017B190; // absolute:True owner=map_neo_ark
+D_map_neo_ark_8017B1C0 = 0x8017B1C0; // absolute:True owner=map_neo_ark
+D_map_neo_ark_8017B1F0 = 0x8017B1F0; // absolute:True owner=map_neo_ark
+D_map_neo_ark_8017B210 = 0x8017B210; // absolute:True owner=map_neo_ark
+D_map_neo_ark_8017B2C0 = 0x8017B2C0; // absolute:True owner=map_neo_ark
+D_map_neo_ark_8017B300 = 0x8017B300; // absolute:True owner=map_neo_ark
 gRoomEventStagedMsg = 0x80182E38; // size:0x8 defined:True
 D_neo_ark_forest_zone_80182E40 = 0x80182E40; // size:0x4 defined:True
 gRoomEventFade = 0x80182E30; // size:0x8 defined:True

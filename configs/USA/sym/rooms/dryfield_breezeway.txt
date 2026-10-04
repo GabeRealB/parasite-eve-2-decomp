@@ -12,8 +12,8 @@ D_dryfield_breezeway_80184374 = 0x80184374; // size:0x8 defined:True
 D_dryfield_breezeway_8018437C = 0x8018437C; // size:0x20 defined:True
 gRoomEventReq = 0x801843AC; // size:0x14 defined:True
 D_dryfield_breezeway_801843C0 = 0x801843C0; // size:0x4 defined:True
-D_map_dryfield_8017B674 = 0x8017B674; // absolute:True
-D_map_dryfield_8017B6A4 = 0x8017B6A4; // absolute:True
+D_map_dryfield_8017B674 = 0x8017B674; // absolute:True owner=map_dryfield
+D_map_dryfield_8017B6A4 = 0x8017B6A4; // absolute:True owner=map_dryfield
 D_dryfield_breezeway_80183164 = 0x80183164; // size:0x8 defined:True
 D_dryfield_breezeway_8018316C = 0x8018316C; // size:0x10 defined:True
 D_dryfield_breezeway_8018317C = 0x8018317C; // size:0x4 defined:True

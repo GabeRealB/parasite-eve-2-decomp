@@ -207,7 +207,7 @@ D_actor_120300_80141A34 = 0x80141A34; // size:0x138 defined:True
 D_actor_120300_80141B6C = 0x80141B6C; // size:0x3C defined:True
 D_actor_120300_80141BA8 = 0x80141BA8; // size:0x4 defined:True
 
-D_dryfield_garage_80180204 = 0x80180204; // absolute:True
+D_dryfield_garage_80180204 = 0x80180204; // absolute:True owner=dryfield_garage
 
 gDryfieldGarageCollision0108CNormals = 0x8017DD6C; // absolute:True
 

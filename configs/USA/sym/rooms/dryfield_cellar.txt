@@ -50,7 +50,7 @@ D_dryfield_cellar_80180B38 = 0x80180B38; // size:0x8 defined:True
 D_dryfield_cellar_80180B40 = 0x80180B40; // size:0x20 defined:True
 D_80139DAC = 0x80139DAC; // absolute:True
 D_80150C80 = 0x80150C80; // absolute:True
-D_map_dryfield_8017BC14 = 0x8017BC14; // absolute:True
+D_map_dryfield_8017BC14 = 0x8017BC14; // absolute:True owner=map_dryfield
 
 func_dryfield_cellar_8017DAEC = 0x8017DAEC; // type:func
 glowDrawFlareLocal = 0x8017D7DC; // type:func

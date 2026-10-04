@@ -52,9 +52,9 @@ gViewIdentityMap = 0x8010CAF8; // absolute:True
 D_80139DAC = 0x80139DAC; // absolute:True
 D_8013BE28 = 0x8013BE28; // absolute:True
 D_8014F9A8 = 0x8014F9A8; // absolute:True
-D_map_dryfield_full_8017C5B8 = 0x8017C5B8; // absolute:True
-D_map_dryfield_full_8017C698 = 0x8017C698; // absolute:True
-D_map_dryfield_full_8017C768 = 0x8017C768; // absolute:True
+D_map_dryfield_full_8017C5B8 = 0x8017C5B8; // absolute:True owner=map_dryfield_full
+D_map_dryfield_full_8017C698 = 0x8017C698; // absolute:True owner=map_dryfield_full
+D_map_dryfield_full_8017C768 = 0x8017C768; // absolute:True owner=map_dryfield_full
 gDrivewayCutsceneScript = 0x8017F3D4; // size:0x150 defined:True
 D_dryfield_night_driveway_8017F524 = 0x8017F524; // size:0x14 defined:True
 D_dryfield_night_driveway_8017F538 = 0x8017F538; // size:0x14 defined:True

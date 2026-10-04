@@ -35,7 +35,7 @@ D_dryfield_souvenir_shop_8017F638 = 0x8017F638; // size:0x8 defined:True
 D_dryfield_souvenir_shop_8017F640 = 0x8017F640; // size:0x20 defined:True
 D_8013E500 = 0x8013E500; // absolute:True
 D_80153E28 = 0x80153E28; // absolute:True
-D_map_dryfield_8017AF04 = 0x8017AF04; // absolute:True
+D_map_dryfield_8017AF04 = 0x8017AF04; // absolute:True owner=map_dryfield
 
 func_dryfield_souvenir_shop_8017DFD4 = 0x8017DFD4; // type:func
 glowDrawGreyPrism = 0x8017D6B4; // type:func

@@ -74,11 +74,9 @@ Candidates are found by address alone, never by the reference's name, and only
 a symbol's start counts: a reference landing inside an object is offered
 nothing. The `owner` check lists every reference that has neither annotation,
 with its candidates. `--assign-owners` writes owner= where there is one
-candidate, it is a function and the names agree; `--renames FILE` lists those
-whose one candidate spells the name differently, to be renamed first. A lone
-*data* candidate is reported but never written: data is labelled only as far
-as it has been split, so another image may hold an object at that address
-inside a block nobody has cut yet. Ownership does not prove runtime
+candidate and the names agree; `--renames FILE` lists those
+whose one candidate spells the name differently, to be renamed first.
+Ownership does not prove runtime
 reachability: retained alternate-room branches still need their load-state and
 resource bounds reviewed separately.
 """
@@ -481,15 +479,11 @@ def main() -> None:
         names = {n for _, n, _ in u['cands']}
         if len(by_entry) == 1 and len(names) == 1:
             owner, new, code = sorted(u['cands'])[0]
-            # Every function is split, so "no other image starts a function
-            # here" is a fact. Data is labelled only as far as it has been
-            # split: another image may hold an object at this address inside
-            # a block nobody has cut yet, so a lone data candidate is a lead,
-            # not an answer, and is never written automatically.
-            if code:
-                (assign if new == name else renames).append((w, name, new, owner))
-            what = (f'one candidate: {owner}' + ('' if new == name else f', which calls it {new}')
-                    + ('' if code else ' (data: unique only as far as the other images are split)'))
+            # With every image's data defined in C, each object starts a
+            # symbol, so "no other image starts one here" holds for data as it
+            # does for functions.
+            (assign if new == name else renames).append((w, name, new, owner))
+            what = f'one candidate: {owner}' + ('' if new == name else f', which calls it {new}')
         elif not u['cands']:
             what = 'no image defines anything there'
         else:

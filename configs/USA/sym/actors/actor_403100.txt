@@ -184,7 +184,7 @@ func_dryfield_night_motel_balcony_80182730 = 0x80182730; // type:func absolute:T
 
 func_dryfield_night_motel_balcony_8018257C = 0x8018257C; // type:func absolute:True owner=dryfield_night_motel_balcony
 
-D_dryfield_night_motel_balcony_8018F2CC = 0x8018F2CC; // absolute:True
+D_dryfield_night_motel_balcony_8018F2CC = 0x8018F2CC; // absolute:True owner=dryfield_night_motel_balcony
 
 func_dryfield_night_motel_balcony_8017E128 = 0x8017E128; // type:func absolute:True owner=dryfield_night_motel_balcony
 

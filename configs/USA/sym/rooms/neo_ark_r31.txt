@@ -20,6 +20,6 @@ D_neo_ark_r31_8017DC20 = 0x8017DC20; // size:0xC defined:True
 gViewIdentityMap = 0x8010CAF8; // absolute:True
 D_80139F8C = 0x80139F8C; // absolute:True
 D_801437EC = 0x801437EC; // absolute:True
-D_map_neo_ark_8017C550 = 0x8017C550; // absolute:True
+D_map_neo_ark_8017C550 = 0x8017C550; // absolute:True owner=map_neo_ark
 
 func_neo_ark_r31_8017D990 = 0x8017D990; // type:func
