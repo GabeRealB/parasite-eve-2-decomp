@@ -107,7 +107,7 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(_MistShootingGallerySpawn, 0xC);
 
 extern TaskDesc D_mist_shooting_gallery_801856D0;
-extern TaskDesc D_80134F94;
+extern TaskDesc D_actor_107600_80134F94[];
 /// The wave script the round loop walks: a run of records sharing
 /// `frame` is spawned together, `MIST_SHOOTING_GALLERY_SPAWN_WAIT_CLEAR` waits
 /// for the current wave to clear and `MIST_SHOOTING_GALLERY_SPAWN_END` stops
@@ -2138,7 +2138,7 @@ WorldCoordSpotLight D_mist_shooting_gallery_8018D8E4[15] = {
 WorldCoordRoomLights D_mist_shooting_gallery_8018DF38 = { ARRAY_SIZE(D_mist_shooting_gallery_8018D1CC), D_mist_shooting_gallery_8018D1CC, ARRAY_SIZE(D_mist_shooting_gallery_8018D224), D_mist_shooting_gallery_8018D224, ARRAY_SIZE(D_mist_shooting_gallery_8018D8E4), D_mist_shooting_gallery_8018D8E4 };
 
 AreaResource D_mist_shooting_gallery_8018DF50[3] = {
-    { 76, 76, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &D_80134F94 },
+    { 76, 76, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_actor_107600_80134F94 },
     { 143, 151, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_actor_215100_8015E5D0 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
@@ -3379,7 +3379,7 @@ void func_mist_shooting_gallery_801848B4(void)
     TmdObject* obj;
     GfxCoord*  coord;
 
-    enemy = Gp_SpawnEnemyFromTable(&D_80134F94, 0, 0x200D, NULL);
+    enemy = Gp_SpawnEnemyFromTable(D_actor_107600_80134F94, 0, 0x200D, NULL);
     if (enemy != NULL) {
         obj                    = enemy->task->extra.tmd;
         obj->texturePageOffset = 0;
@@ -3523,7 +3523,7 @@ static Enemy* func_mist_shooting_gallery_80184CD0(Task* arg0, _MistShootingGalle
     GfxCoord*                coord;
 
     work  = arg0->work;
-    enemy = Gp_SpawnEnemyFromTable(&D_80134F94, 0, arg1->spawnArgLo | (arg1->spawnArgHi << 16), NULL);
+    enemy = Gp_SpawnEnemyFromTable(D_actor_107600_80134F94, 0, arg1->spawnArgLo | (arg1->spawnArgHi << 16), NULL);
     if (enemy != NULL) {
         enemy->task->parent = arg0;
         taskReparent(arg0, enemy->task);

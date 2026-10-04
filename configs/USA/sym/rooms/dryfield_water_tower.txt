@@ -1,6 +1,5 @@
 // Overlay-local symbols for dryfield_water_tower.
 D_dryfield_water_tower_801876AA = 0x801876AA; // size:0x2 defined:True
-_gActor213000Model072AC = 0x80151254; // absolute:True
 gRoomEventMsg = 0x80187694; // size:0x8 defined:True
 gRoomEventActive = 0x8018769C; // size:0x1 defined:True
 D_dryfield_water_tower_801876A0 = 0x801876A0; // size:0x4 defined:True
@@ -101,8 +100,8 @@ D_dryfield_water_tower_801875F8 = 0x801875F8; // size:0x8 defined:True
 D_dryfield_water_tower_80187600 = 0x80187600; // size:0x8 defined:True
 D_dryfield_water_tower_80187608 = 0x80187608; // size:0x20 defined:True
 D_dryfield_water_tower_80187628 = 0x80187628; // size:0x14 defined:True
-D_801379A8 = 0x801379A8; // absolute:True
-D_8014D8A4 = 0x8014D8A4; // absolute:True
+D_actor_102500_801379A8 = 0x801379A8; // absolute:True owner=actor_102500 shared=actors
+Actor00100_D1BA84 = 0x8014D8A4; // absolute:True owner=actor_400100
 D_actor_421600_80151254 = 0x80151254; // absolute:True owner=actor_421600
 D_map_dryfield_8017B534 = 0x8017B534; // absolute:True owner=map_dryfield
 D_map_dryfield_8017B564 = 0x8017B564; // absolute:True owner=map_dryfield

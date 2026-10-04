@@ -69,7 +69,7 @@ extern WorldCollisionGrid    D_dryfield_breezeway_80183628[1];
 extern WorldCollisionTrigger D_dryfield_breezeway_80183DE4[4];
 extern WorldCollisionTrigger D_dryfield_breezeway_80183F14[5];
 extern WorldCoordRoomLights  D_dryfield_breezeway_80184250[1];
-extern TaskDesc              D_8014D8A4;
+extern TaskDesc              Actor00100_D1BA84;
 
 u_long D_dryfield_breezeway_80182F44[128] = {
     0x430000,
@@ -424,18 +424,18 @@ WorldCoordRoomLights D_dryfield_breezeway_80184250[1] = {
 
 AreaResource D_dryfield_breezeway_80184268[3] = {
     { 101, 234, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, &D_actor_323400_8017120C },
-    { 1, 1, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &D_8014D8A4 },
+    { 1, 1, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &Actor00100_D1BA84 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_dryfield_breezeway_8018428C[2] = {
-    { 25, 25, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_801379A8 },
+    { 25, 25, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_actor_102500_801379A8 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_dryfield_breezeway_801842A4[3] = {
     { 101, 234, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, &D_actor_323400_8017120C },
-    { 1, 1, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &D_8014D8A4 },
+    { 1, 1, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &Actor00100_D1BA84 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

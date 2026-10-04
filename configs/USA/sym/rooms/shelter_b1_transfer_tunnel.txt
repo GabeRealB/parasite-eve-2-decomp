@@ -34,7 +34,7 @@ D_shelter_b1_transfer_tunnel_80183184 = 0x80183184; // size:0x20 defined:True
 gViewIdentityMap = 0x8010CAF8; // absolute:True
 D_actor_102100_80135C30 = 0x80135C30; // absolute:True owner=actor_102100
 D_actor_202300_8015FAB8 = 0x8015FAB8; // absolute:True owner=actor_202300
-D_80160110 = 0x80160110; // absolute:True
+D_actor_200300_80160110 = 0x80160110; // absolute:True owner=actor_200300 shared=actors
 RoomFx_TrailOffsets = 0x80182944; // size:0x10 defined:True
 
 func_shelter_b1_transfer_tunnel_8018092C = 0x8018092C; // type:func

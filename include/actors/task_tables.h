@@ -19,7 +19,7 @@ extern TaskDesc D_actor_142900_80137600[];
 
 extern TaskDesc Actor04600_D05878;
 
-extern TaskDesc D_801379A8[];
+extern TaskDesc D_actor_102500_801379A8[];
 
 extern TaskDesc D_actor_450200_80137A60[];
 
@@ -29,7 +29,7 @@ extern TaskDesc Actor04600_D0649C;
 
 extern TaskDesc Actor00700_D06E60;
 
-extern TaskDesc D_80138E98[];
+extern TaskDesc D_actor_101200_80138E98[];
 
 extern TaskDesc Actor00700_D075A8;
 
@@ -51,7 +51,7 @@ extern TaskDesc D_actor_135400_8013A4AC[];
 
 extern TaskDesc gMaggotCaterpillarBodyTask;
 
-extern TaskDesc D_8013A8DC[];
+extern TaskDesc D_actor_105500_8013A8DC[];
 
 extern TaskDesc D_actor_113000_8013ABB4;
 
@@ -119,7 +119,7 @@ extern TaskDesc D_actor_102300_80147AB8[];
 
 extern TaskDesc Actor02000_D15FD0[];
 
-extern TaskDesc D_80148110[];
+extern TaskDesc D_actor_100300_80148110[];
 
 extern TaskDesc D_80148118[];
 
@@ -157,7 +157,7 @@ extern TaskDesc D_actor_223600_80150B48;
 
 extern TaskDesc D_actor_200700_80150C80;
 
-extern TaskDesc D_80150E98[];
+extern TaskDesc D_actor_201200_80150E98[];
 
 extern TaskDesc D_actor_421600_80151254;
 
@@ -229,7 +229,7 @@ extern TaskDesc D_actor_201100_8015F400[];
 
 extern TaskDesc D_actor_521100_8015F6E4[];
 
-extern TaskDesc D_8015F8D0[];
+extern TaskDesc D_actor_403200_8015F8D0[];
 
 extern TaskDesc D_actor_202300_8015FAB8[];
 
@@ -237,7 +237,7 @@ extern TaskDesc Actor02000_D15FD0[];
 
 extern TaskDesc D_actor_200400_8015FE48[];
 
-extern TaskDesc D_80160110[];
+extern TaskDesc D_actor_200300_80160110[];
 
 extern TaskDesc D_actor_205600_801602C0[];
 
@@ -255,7 +255,7 @@ extern TaskDesc Actor02500_D05B88[];
 
 extern TaskDesc D_80167A18[];
 
-extern TaskDesc D_80168E98[];
+extern TaskDesc D_actor_301200_80168E98[];
 
 extern TaskDesc D_80168EA4[];
 

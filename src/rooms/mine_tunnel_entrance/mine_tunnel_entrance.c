@@ -75,7 +75,7 @@ extern WorldCollisionTrigger      D_mine_tunnel_entrance_8017EF4C[4];
 extern WorldCoordRoomAmbientEntry D_mine_tunnel_entrance_8017F38C[7];
 extern WorldCoordRoomLights       D_mine_tunnel_entrance_8017ECD4[1];
 
-extern TaskDesc D_8014D8A4;
+extern TaskDesc Actor00100_D1BA84;
 
 TaskMessageEntry D_mine_tunnel_entrance_8017DAF0[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_mine_tunnel_entrance_8017D5F0 },
@@ -352,7 +352,7 @@ WorldCollisionTrigger D_mine_tunnel_entrance_8017EF4C[4] = {
 };
 
 AreaResource D_mine_tunnel_entrance_8017F07C[3] = {
-    { 1, 1, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &D_8014D8A4 },
+    { 1, 1, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &Actor00100_D1BA84 },
     { 8, 7, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, &D_actor_300700_80165B88 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
@@ -368,7 +368,7 @@ AreaResource D_mine_tunnel_entrance_8017F0B8[2] = {
 };
 
 AreaResource D_mine_tunnel_entrance_8017F0D0[3] = {
-    { 25, 25, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_801379A8 },
+    { 25, 25, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_actor_102500_801379A8 },
     { 8, 7, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &Actor00700_D075A8 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };

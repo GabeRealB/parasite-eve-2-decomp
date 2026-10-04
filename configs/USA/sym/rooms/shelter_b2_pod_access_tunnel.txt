@@ -56,7 +56,7 @@ gViewIdentityMap = 0x8010CAF8; // absolute:True
 D_actor_102100_80135C30 = 0x80135C30; // absolute:True owner=actor_102100
 gMaggotCaterpillarBodyTask = 0x8013A8D4; // absolute:True owner=actor_102600
 D_actor_102300_80147AB8 = 0x80147AB8; // absolute:True owner=actor_102300
-D_80148110 = 0x80148110; // absolute:True
+D_actor_100300_80148110 = 0x80148110; // absolute:True owner=actor_100300 shared=actors
 D_actor_403900_801540E0 = 0x801540E0; // absolute:True owner=actor_403900
 D_actor_201100_8015F400 = 0x8015F400; // absolute:True owner=actor_201100
 D_actor_202300_8015FAB8 = 0x8015FAB8; // absolute:True owner=actor_202300

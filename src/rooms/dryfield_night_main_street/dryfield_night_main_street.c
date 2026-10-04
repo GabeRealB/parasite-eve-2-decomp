@@ -205,7 +205,7 @@ extern SpriteSource D_dryfield_night_main_street_80186874[11];
 extern SpriteSource D_dryfield_night_main_street_80186988[39];
 extern SpriteSource D_dryfield_night_main_street_80186CCC[53];
 extern SpriteSource D_dryfield_night_main_street_80187128[57];
-extern TaskDesc     D_8014D8A4;
+extern TaskDesc     Actor00100_D1BA84;
 
 TaskDesc gMainStreetEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
 
@@ -1482,7 +1482,7 @@ WorldCoordRoomLights D_dryfield_night_main_street_8018899C[1] = {
 };
 
 AreaResource D_dryfield_night_main_street_801889B4[3] = {
-    { 1, 1, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &D_8014D8A4 },
+    { 1, 1, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &Actor00100_D1BA84 },
     { 8, 7, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, &D_actor_300700_80165B88 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
@@ -1493,7 +1493,7 @@ AreaResource D_dryfield_night_main_street_801889D8[2] = {
 };
 
 AreaResource D_dryfield_night_main_street_801889F0[2] = {
-    { 3, 3, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_80148110 },
+    { 3, 3, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_actor_100300_80148110 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

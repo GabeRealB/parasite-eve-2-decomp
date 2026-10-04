@@ -70,7 +70,7 @@ extern WorldCollisionTrigger D_dryfield_night_breezeway_80180170[4];
 extern WorldCollisionTrigger D_dryfield_night_breezeway_801802A0[3];
 extern WorldCoordRoomLights  D_dryfield_night_breezeway_80180158[1];
 
-extern TaskDesc D_8014D8A4;
+extern TaskDesc Actor00100_D1BA84;
 
 TaskMessageEntry D_dryfield_night_breezeway_8017E67C[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_night_breezeway_8017D5D8 },
@@ -569,13 +569,13 @@ AreaResource D_dryfield_night_breezeway_80180384[2] = {
 };
 
 AreaResource D_dryfield_night_breezeway_8018039C[3] = {
-    { 1, 1, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &D_8014D8A4 },
+    { 1, 1, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &Actor00100_D1BA84 },
     { 8, 7, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, &D_actor_300700_80165B88 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_dryfield_night_breezeway_801803C0[3] = {
-    { 25, 25, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_801379A8 },
+    { 25, 25, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_actor_102500_801379A8 },
     { 15, 15, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &Actor01500_D0A008 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };

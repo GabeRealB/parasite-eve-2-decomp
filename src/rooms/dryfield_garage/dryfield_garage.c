@@ -83,7 +83,7 @@ extern _DryfieldGarageDoorSceneStorage D_dryfield_garage_8018021C;
 static void func_dryfield_garage_8017DB18(Task* arg0);
 static void func_dryfield_garage_8017DC08(Task* task);
 
-extern TaskDesc D_8014D8A4;
+extern TaskDesc Actor00100_D1BA84;
 
 extern WorldCollisionGrid         D_dryfield_garage_8017E64C[1];
 extern WorldCollisionTrigger      D_dryfield_garage_8017F69C[14];
@@ -519,7 +519,7 @@ AreaResource D_dryfield_garage_80180090[2] = {
 };
 
 AreaResource D_dryfield_garage_801800A8[2] = {
-    { 75, 75, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &D_8014D8A4 },
+    { 75, 75, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &Actor00100_D1BA84 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

@@ -246,7 +246,7 @@ extern ActorTransform             D_dryfield_night_gas_station_801889AC;
 extern ActorTransform             D_dryfield_night_gas_station_801889C4;
 extern ActorTransform             D_dryfield_night_gas_station_80188AF4;
 extern ActorTransform             D_dryfield_night_gas_station_80188B0C;
-extern TaskDesc                   D_8014D8A4;
+extern TaskDesc                   Actor00100_D1BA84;
 void                              func_dryfield_night_gas_station_8017FBD4(s32);
 void                              func_dryfield_night_gas_station_80180604(s32);
 void                              func_dryfield_night_gas_station_80180720(void);
@@ -2396,7 +2396,7 @@ AreaResource D_dryfield_night_gas_station_801905AC[2] = {
 };
 
 AreaResource D_dryfield_night_gas_station_801905C4[2] = {
-    { 1, 1, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &D_8014D8A4 },
+    { 1, 1, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &Actor00100_D1BA84 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

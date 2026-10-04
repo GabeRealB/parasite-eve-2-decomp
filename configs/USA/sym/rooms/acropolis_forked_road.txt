@@ -66,7 +66,7 @@ D_acropolis_forked_road_80183AC8 = 0x80183AC8; // size:0x10 defined:True
 gViewIdentityMap = 0x8010CAF8; // absolute:True
 D_actor_102400_8013647C = 0x8013647C; // absolute:True owner=actor_102400
 Actor04600_D05878 = 0x80137698; // absolute:True owner=actor_104600
-D_801379A8 = 0x801379A8; // absolute:True
+D_actor_102500_801379A8 = 0x801379A8; // absolute:True owner=actor_102500 shared=actors
 D_actor_103800_80137D74 = 0x80137D74; // absolute:True owner=actor_103800
 Actor04600_D0649C = 0x801382BC; // absolute:True owner=actor_104600
 Actor00700_D06E60 = 0x80138C80; // absolute:True owner=actor_100700
@@ -74,7 +74,7 @@ Actor00700_D075A8 = 0x801393C8; // absolute:True owner=actor_100700
 D_actor_103700_80139DAC = 0x80139DAC; // absolute:True owner=actor_103700
 D_actor_107000_80139E60 = 0x80139E60; // absolute:True owner=actor_107000
 gMaggotCaterpillarBodyTask = 0x8013A8D4; // absolute:True owner=actor_102600
-D_8013A8DC = 0x8013A8DC; // absolute:True
+D_actor_105500_8013A8DC = 0x8013A8DC; // absolute:True owner=actor_105500 shared=actors
 Actor01500_D0A008 = 0x8013BE28; // absolute:True owner=actor_101500
 D_actor_107000_8013F5F0 = 0x8013F5F0; // absolute:True owner=actor_107000
 D_actor_101600_801445DC = 0x801445DC; // absolute:True owner=actor_101600

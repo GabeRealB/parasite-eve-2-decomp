@@ -1,5 +1,4 @@
 // Overlay-local symbols for shelter_b1_pod_access_tunnel.
-_gActor460200SoldierABody = 0x8013D77C; // absolute:True
 D_shelter_b1_pod_access_tunnel_801811C8 = 0x801811C8; // size:0xC defined:True
 D_shelter_b1_pod_access_tunnel_80181108 = 0x80181108; // size:0x18 defined:True
 D_shelter_b1_pod_access_tunnel_80181120 = 0x80181120; // size:0xA8 defined:True

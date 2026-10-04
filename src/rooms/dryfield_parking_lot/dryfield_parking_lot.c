@@ -70,7 +70,7 @@ extern WorldCollisionOccluder D_dryfield_parking_lot_8017F6E4[2];
 extern WorldCollisionTrigger  D_dryfield_parking_lot_8017F0A8[10];
 extern WorldCollisionTrigger  D_dryfield_parking_lot_8017F3A0[11];
 extern WorldCoordRoomLights   D_dryfield_parking_lot_8017F9FC[1];
-extern TaskDesc               D_8014D8A4;
+extern TaskDesc               Actor00100_D1BA84;
 s32                           func_dryfield_parking_lot_8017DAF0(Task*, s32, s32, s32);
 s32                           func_dryfield_parking_lot_8017DAF8(Task*, s32, s32, s32);
 s32                           func_dryfield_parking_lot_8017DB00(Task*, s32, s32, s32);
@@ -351,12 +351,12 @@ AreaResource D_dryfield_parking_lot_8017FA14[1] = {
 };
 
 AreaResource D_dryfield_parking_lot_8017FA20[2] = {
-    { 1, 1, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &D_8014D8A4 },
+    { 1, 1, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &Actor00100_D1BA84 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_dryfield_parking_lot_8017FA38[3] = {
-    { 1, 1, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &D_8014D8A4 },
+    { 1, 1, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &Actor00100_D1BA84 },
     { 25, 25, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, Actor02500_D05B88 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };

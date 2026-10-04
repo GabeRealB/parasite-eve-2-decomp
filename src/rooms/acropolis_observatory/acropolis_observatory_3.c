@@ -245,7 +245,7 @@ AreaPlacement D_acropolis_observatory_801810A8[2] = {
 };
 
 AreaResource D_acropolis_observatory_801810C8[2] = {
-    { 12, 12, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_80138E98 },
+    { 12, 12, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_actor_101200_80138E98 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

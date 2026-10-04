@@ -131,7 +131,7 @@ typedef struct {
 } _MineMesaWall;
 STATIC_ASSERT_SIZEOF(_MineMesaWall, 0x18);
 
-extern TaskDesc D_8014D8A4;
+extern TaskDesc Actor00100_D1BA84;
 
 extern TaskDesc         D_mine_mesa_801818F8;
 extern TaskMessageEntry D_mine_mesa_80181904[];
@@ -2349,7 +2349,7 @@ WorldCollisionTrigger D_mine_mesa_801890A0[19] = {
 };
 
 AreaResource D_mine_mesa_80189644[2] = {
-    { 1, 1, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &D_8014D8A4 },
+    { 1, 1, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &Actor00100_D1BA84 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -2359,13 +2359,13 @@ AreaResource D_mine_mesa_8018965C[2] = {
 };
 
 AreaResource D_mine_mesa_80189674[3] = {
-    { 25, 25, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_801379A8 },
+    { 25, 25, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_actor_102500_801379A8 },
     { 15, 15, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &Actor01500_D0A008 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_mine_mesa_80189698[3] = {
-    { 25, 25, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_801379A8 },
+    { 25, 25, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_actor_102500_801379A8 },
     { 15, 15, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &Actor01500_D0A008 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
@@ -2377,7 +2377,7 @@ AreaResource D_mine_mesa_801896BC[3] = {
 };
 
 AreaResource D_mine_mesa_801896E0[3] = {
-    { 25, 25, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_801379A8 },
+    { 25, 25, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_actor_102500_801379A8 },
     { 37, 37, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_actor_203700_80151DAC },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
@@ -3416,7 +3416,7 @@ static void func_mine_mesa_80181358(Task* arg0)
         if (D_mine_mesa_80189B74[i] != NULL) {
             continue;
         }
-        enemy                   = Gp_SpawnEnemyFromTable(&D_8014D8A4, 0, 0x30002, NULL);
+        enemy                   = Gp_SpawnEnemyFromTable(&Actor00100_D1BA84, 0, 0x30002, NULL);
         D_mine_mesa_80189B74[i] = enemy;
         if (enemy == NULL) {
             break;

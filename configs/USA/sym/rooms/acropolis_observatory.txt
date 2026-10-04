@@ -45,7 +45,7 @@ D_acropolis_observatory_801817A4 = 0x801817A4; // size:0x3D4 defined:True
 D_acropolis_observatory_80181B78 = 0x80181B78; // size:0x38 defined:True
 D_acropolis_observatory_80181BB0 = 0x80181BB0; // size:0x4C4 defined:True
 D_acropolis_observatory_80182074 = 0x80182074; // size:0xB0 defined:True
-D_80138E98 = 0x80138E98; // absolute:True
+D_actor_101200_80138E98 = 0x80138E98; // absolute:True owner=actor_101200 shared=actors
 D_actor_103700_80139DAC = 0x80139DAC; // absolute:True owner=actor_103700
 Actor04000_D0C6E0 = 0x8013E500; // absolute:True owner=actor_104000
 D_actor_101100_80147400 = 0x80147400; // absolute:True owner=actor_101100

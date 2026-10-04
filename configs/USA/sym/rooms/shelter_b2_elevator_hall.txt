@@ -56,7 +56,7 @@ gRoomEventMsg = 0x80184D7C; // size:0x8 defined:True
 D_actor_102100_80135C30 = 0x80135C30; // absolute:True owner=actor_102100
 gMaggotCaterpillarBodyTask = 0x8013A8D4; // absolute:True owner=actor_102600
 D_actor_101100_80147400 = 0x80147400; // absolute:True owner=actor_101100
-D_80148110 = 0x80148110; // absolute:True
+D_actor_100300_80148110 = 0x80148110; // absolute:True owner=actor_100300 shared=actors
 D_actor_205700_801611F8 = 0x801611F8; // absolute:True owner=actor_205700
 RoomFx_TrailOffsets = 0x801838CC; // size:0x10 defined:True
 gRoomEventActive = 0x80184D84; // size:0x4 defined:True

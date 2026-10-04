@@ -36,7 +36,7 @@ D_neo_ark_north_promenade_801832DC = 0x801832DC; // size:0x8 defined:True
 D_neo_ark_north_promenade_801832E4 = 0x801832E4; // size:0x8 defined:True
 D_neo_ark_north_promenade_801832EC = 0x801832EC; // size:0x20 defined:True
 Actor02000_D15FD0 = 0x80147DF0; // absolute:True owner=actor_102000
-D_80148110 = 0x80148110; // absolute:True
+D_actor_100300_80148110 = 0x80148110; // absolute:True owner=actor_100300 shared=actors
 D_actor_105600_801482C0 = 0x801482C0; // absolute:True owner=actor_105600
 D_map_neo_ark_8017B0F0 = 0x8017B0F0; // absolute:True owner=map_neo_ark
 D_map_neo_ark_8017B120 = 0x8017B120; // absolute:True owner=map_neo_ark

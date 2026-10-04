@@ -59,7 +59,7 @@ D_shelter_b3_elevator_hall_801849E0 = 0x801849E0; // size:0x20 defined:True
 gViewIdentityMap = 0x8010CAF8; // absolute:True
 D_actor_102400_8013647C = 0x8013647C; // absolute:True owner=actor_102400
 Actor04400_D107E4 = 0x80142604; // absolute:True owner=actor_104400
-D_80148110 = 0x80148110; // absolute:True
+D_actor_100300_80148110 = 0x80148110; // absolute:True owner=actor_100300 shared=actors
 D_actor_201100_8015F400 = 0x8015F400; // absolute:True owner=actor_201100
 gRoomEventMsg = 0x80184A00; // size:0x8 defined:True
 gRoomEventActive = 0x80184A08; // size:0x4 defined:True

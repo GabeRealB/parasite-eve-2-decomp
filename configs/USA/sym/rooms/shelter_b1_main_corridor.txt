@@ -61,7 +61,7 @@ D_shelter_b1_main_corridor_80185D04 = 0x80185D04; // size:0x20 defined:True
 gRoomEventFade = 0x80185D24; // size:0x8 defined:True
 gViewIdentityMap = 0x8010CAF8; // absolute:True
 D_actor_102100_80135C30 = 0x80135C30; // absolute:True owner=actor_102100
-D_80148110 = 0x80148110; // absolute:True
+D_actor_100300_80148110 = 0x80148110; // absolute:True owner=actor_100300 shared=actors
 D_actor_105600_801482C0 = 0x801482C0; // absolute:True owner=actor_105600
 D_actor_400600_80151B10 = 0x80151B10; // absolute:True owner=actor_400600
 D_actor_402200_80154188 = 0x80154188; // absolute:True owner=actor_402200

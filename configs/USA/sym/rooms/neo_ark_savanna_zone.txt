@@ -49,7 +49,7 @@ gViewIdentityMap = 0x8010CAF8; // absolute:True
 D_actor_103800_80137D74 = 0x80137D74; // absolute:True owner=actor_103800
 Actor02000_D15FD0 = 0x80147DF0; // absolute:True owner=actor_102000
 D_actor_105600_801482C0 = 0x801482C0; // absolute:True owner=actor_105600
-D_8014D8A4 = 0x8014D8A4; // absolute:True
+Actor00100_D1BA84 = 0x8014D8A4; // absolute:True owner=actor_400100
 D_actor_205600_801602C0 = 0x801602C0; // absolute:True owner=actor_205600
 D_actor_205700_801611F8 = 0x801611F8; // absolute:True owner=actor_205700
 Actor02500_D05B88 = 0x801679A8; // absolute:True owner=actor_302500

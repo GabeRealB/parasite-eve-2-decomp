@@ -447,7 +447,7 @@ s32              func_dryfield_water_tower_8017FBD8(Task*, s32, s32, s32);
 static WorldCollisionGridFace _gDryfieldWaterTowerCollision06004Faces[73];
 static SVECTOR                _gDryfieldWaterTowerCollision06004Normals[29];
 static SVECTOR                _gDryfieldWaterTowerCollision06004Verts[175];
-extern TaskDesc               D_8014D8A4;
+extern TaskDesc               Actor00100_D1BA84;
 static s16*                   _gDryfieldWaterTowerCollision06004Table[16];
 s32                           func_dryfield_water_tower_8017F808(Task* task, s32 msgId, ActorCommand* msg, s32 arg3);
 
@@ -1693,17 +1693,17 @@ AreaResource D_dryfield_water_tower_801874FC[2] = {
 };
 
 AreaResource D_dryfield_water_tower_80187514[2] = {
-    { 25, 25, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_801379A8 },
+    { 25, 25, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_actor_102500_801379A8 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_dryfield_water_tower_8018752C[2] = {
-    { 25, 25, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_801379A8 },
+    { 25, 25, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_actor_102500_801379A8 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_dryfield_water_tower_80187544[2] = {
-    { 1, 1, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &D_8014D8A4 },
+    { 1, 1, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &Actor00100_D1BA84 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

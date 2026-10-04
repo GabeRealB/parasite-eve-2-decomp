@@ -72,7 +72,7 @@ extern WorldCollisionTrigger D_dryfield_back_street_801804C0[6];
 extern WorldCollisionTrigger D_dryfield_back_street_80180688[11];
 extern WorldCoordRoomLights  D_dryfield_back_street_80180FF8[1];
 
-extern TaskDesc D_8014D8A4;
+extern TaskDesc Actor00100_D1BA84;
 
 TaskMessageEntry D_dryfield_back_street_8017F964[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, backStreetEventMsg },
@@ -219,7 +219,7 @@ WorldCollisionTrigger D_dryfield_back_street_80180688[11] = {
 };
 
 AreaResource D_dryfield_back_street_801809CC[2] = {
-    { 1, 1, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &D_8014D8A4 },
+    { 1, 1, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &Actor00100_D1BA84 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

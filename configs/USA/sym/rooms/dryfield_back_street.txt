@@ -38,7 +38,7 @@ D_dryfield_back_street_80181034 = 0x80181034; // size:0x20 defined:True
 D_dryfield_back_street_80181054 = 0x80181054; // size:0x4 defined:True
 Actor01500_D0A008 = 0x8013BE28; // absolute:True owner=actor_101500
 Actor02000_D15FD0 = 0x80147DF0; // absolute:True owner=actor_102000
-D_8014D8A4 = 0x8014D8A4; // absolute:True
+Actor00100_D1BA84 = 0x8014D8A4; // absolute:True owner=actor_400100
 D_actor_205600_801602C0 = 0x801602C0; // absolute:True owner=actor_205600
 D_map_dryfield_8017AEA4 = 0x8017AEA4; // absolute:True owner=map_dryfield
 D_map_dryfield_8017AED4 = 0x8017AED4; // absolute:True owner=map_dryfield

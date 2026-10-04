@@ -86,7 +86,7 @@ D_actor_107000_80139E60 = 0x80139E60; // absolute:True owner=actor_107000
 D_actor_107000_8013F5F0 = 0x8013F5F0; // absolute:True owner=actor_107000
 D_actor_102300_80147AB8 = 0x80147AB8; // absolute:True owner=actor_102300
 D_actor_100400_80147E48 = 0x80147E48; // absolute:True owner=actor_100400
-D_80148110 = 0x80148110; // absolute:True
+D_actor_100300_80148110 = 0x80148110; // absolute:True owner=actor_100300 shared=actors
 D_actor_201100_8015F400 = 0x8015F400; // absolute:True owner=actor_201100
 D_actor_200400_8015FE48 = 0x8015FE48; // absolute:True owner=actor_200400
 D_shelter_b4_upper_sewer_80188D24 = 0x80188D24; // size:0x8 defined:True

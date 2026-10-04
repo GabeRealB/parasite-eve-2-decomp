@@ -402,7 +402,7 @@ AreaResource D_shelter_b1_elevator_hall_80184784[2] = {
 };
 
 AreaResource D_shelter_b1_elevator_hall_8018479C[2] = {
-    { 3, 3, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_80148110 },
+    { 3, 3, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_actor_100300_80148110 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

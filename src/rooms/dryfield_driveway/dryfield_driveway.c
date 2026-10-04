@@ -73,7 +73,7 @@ extern WorldCollisionGrid       D_dryfield_driveway_8017ED74[1];
 extern WorldCollisionTrigger    D_dryfield_driveway_8017FC98[6];
 extern WorldCollisionTrigger    D_dryfield_driveway_801802F8[11];
 extern WorldCoordRoomLights     D_dryfield_driveway_801802E0[1];
-extern TaskDesc                 D_8014D8A4;
+extern TaskDesc                 Actor00100_D1BA84;
 s32                             func_dryfield_driveway_8017DCC0(Task*, s32, s32, s32);
 s32                             func_dryfield_driveway_8017DDB0(Task*, s32, s32, s32);
 s32                             func_dryfield_driveway_8017DDB8(Task*, s32, s32, s32);
@@ -256,7 +256,7 @@ AreaResource D_dryfield_driveway_8017EDB0[1] = {
 };
 
 AreaResource D_dryfield_driveway_8017EDBC[2] = {
-    { 1, 1, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &D_8014D8A4 },
+    { 1, 1, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &Actor00100_D1BA84 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

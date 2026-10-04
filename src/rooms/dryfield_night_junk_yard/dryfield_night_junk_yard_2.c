@@ -52,7 +52,7 @@ extern WorldCollisionTrigger  D_dryfield_night_junk_yard_80183778[10];
 extern WorldCollisionTrigger  D_dryfield_night_junk_yard_80183D28[20];
 extern WorldCoordRoomLights   D_dryfield_night_junk_yard_80183D10[1];
 
-extern TaskDesc D_8014D8A4;
+extern TaskDesc Actor00100_D1BA84;
 
 SVECTOR D_dryfield_night_junk_yard_8018073C[3] = {
     { 4021, -2596, 348, 0 },
@@ -885,7 +885,7 @@ AreaResource D_dryfield_night_junk_yard_80184354[2] = {
 };
 
 AreaResource D_dryfield_night_junk_yard_8018436C[3] = {
-    { 1, 1, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &D_8014D8A4 },
+    { 1, 1, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &Actor00100_D1BA84 },
     { 15, 15, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, &Actor01500_D0A008 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };

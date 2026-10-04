@@ -37,9 +37,9 @@ D_dryfield_night_breezeway_801804A0 = 0x801804A0; // size:0x8 defined:True
 D_dryfield_night_breezeway_801804A8 = 0x801804A8; // size:0x8 defined:True
 D_dryfield_night_breezeway_801804B0 = 0x801804B0; // size:0x8 defined:True
 D_dryfield_night_breezeway_801804B8 = 0x801804B8; // size:0x20 defined:True
-D_801379A8 = 0x801379A8; // absolute:True
+D_actor_102500_801379A8 = 0x801379A8; // absolute:True owner=actor_102500 shared=actors
 D_actor_103700_80139DAC = 0x80139DAC; // absolute:True owner=actor_103700
-D_8014D8A4 = 0x8014D8A4; // absolute:True
+Actor00100_D1BA84 = 0x8014D8A4; // absolute:True owner=actor_400100
 Actor01500_D0A008 = 0x80153E28; // absolute:True owner=actor_201500
 D_actor_300700_80165B88 = 0x80165B88; // absolute:True owner=actor_300700
 D_map_dryfield_full_8017C2A8 = 0x8017C2A8; // absolute:True owner=map_dryfield_full
