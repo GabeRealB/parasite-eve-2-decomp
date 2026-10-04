@@ -1,10 +1,6 @@
 // Overlay-local symbols for actor_110600.
 
 // Referenced in another actor load slot, resident beside this one.
-D_8015BD7C = 0x8015BD7C; // absolute:True
-D_8015C064 = 0x8015C064; // absolute:True
-D_8015C950 = 0x8015C950; // absolute:True
-D_8015D2E8 = 0x8015D2E8; // absolute:True
 D_actor_110600_801485C4 = 0x801485C4; // size:0x60 defined:True
 D_actor_110600_80148624 = 0x80148624; // size:0x38 defined:True
 D_actor_110600_8014865C = 0x8014865C; // size:0x2 defined:True
