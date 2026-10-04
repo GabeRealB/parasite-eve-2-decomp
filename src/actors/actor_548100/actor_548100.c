@@ -81,7 +81,7 @@ STATIC_ASSERT_SIZEOF(Actor548100Work, 0x18);
 
 /// One leg of an `Actor548100Route`: the two node ids `func_actor_548100_80134CB8`
 /// measures a route distance between, in the same node space as
-/// `Actor548100Edge`'s `nodeA` / `nodeB`.
+/// `_Actor548100Edge`'s `nodeA` / `nodeB`.
 typedef struct Actor548100Leg {
     /* 0x0 */ u8 nodeA;
     /* 0x1 */ u8 nodeB;
@@ -94,7 +94,7 @@ STATIC_ASSERT_SIZEOF(Actor548100Leg, 0x2);
 /// in four sockets. `func_actor_548100_801330EC` selects the table by
 /// `GameFlag_GetNibble(0xBE)` and whose chosen record it parks in
 /// `D_actor_548100_80135B4C`. A leg's node ids are read as `u8` -- the `lbu` is
-/// what the target shows, `Actor548100Edge`'s record is keyed the same way --
+/// what the target shows, `_Actor548100Edge`'s record is keyed the same way --
 /// and a `nodeA` of 0 means the leg is unused.
 ///
 /// `bitA` / `bitB` are 1-based ids, or 0: `func_actor_548100_801330EC` turns
@@ -123,49 +123,58 @@ STATIC_ASSERT_SIZEOF(Actor548100Route, 0xA);
 /// `func_actor_548100_801330EC` call.
 extern Actor548100Route* D_actor_548100_80135B4C;
 
-/// One record of the edge table `D_actor_548100_801351D0`: a directed link of
-/// the stage graph this actor patrols and draws. `nodeA` / `nodeB` are node ids
-/// (0-99) indexing the 4-byte point table `D_actor_548100_801358E4`
-/// (`s16 x, y`); `func_actor_548100_80133684` reads both endpoints' points and
-/// draws the segment between them. A node pair also keys the edge-id matrix
-/// `D_actor_548100_80135B5C` as `prev * 100 + cur`, which is how the route walk
-/// in `func_actor_548100_80134AE0` and `func_actor_548100_80134CB8` gets from a
-/// step of the route string back to a record here: the bytes of
-/// `D_actor_548100_80135B24[id]` are successive node ids, 0xFF-terminated.
+/// Values of `_Actor548100Edge::layout`: which of the panel's two wirings carry
+/// the wire.
 ///
-/// The record is 14 bytes -- the stride `func_actor_548100_80134AE0` computes
-/// as `id * 7 * 2` -- and only `nodeA`, `nodeB` and `field_2` are seeded in the
-/// ROM; the rest is runtime state. `state` is the 1-based progress step the
-/// drawing switch in `func_actor_548100_80133684` dispatches on (it subtracts 1
-/// and accepts 0-4 as a case index): `func_actor_548100_80134AE0` writes 2 or 3
-/// into it and `func_actor_548100_80134BF0` 0 or 1, the latter choosing between
-/// them by comparing `field_2` with 2 (records 0-3 carry 2, records 73-78
-/// carry 1). `flag_3` gates the direction branch of the drawing code, `dist` is
-/// a per-segment value summed along a route by `func_actor_548100_80134CB8`,
-/// and `field_C` a signed value that code scales by the segment's horizontal
-/// direction.
-///
-/// `func_actor_548100_80134BA8` walks the table from its head and stops at the
-/// first record whose `nodeA` is 0: an all-zero sentinel record, the 92nd, so 91
-/// real records. The table's extent is 0x508 bytes, ending exactly where
-/// `D_actor_548100_801356D8` begins -- only its leading 0x200 bytes are covered
-/// by this symbol, the splitter having put the stray `D_actor_548100_801353D0`
-/// label inside the array, mid-record.
-typedef struct Actor548100Edge {
-    /* 0x00 */ u8   nodeA;
-    /* 0x01 */ u8   nodeB;
-    /* 0x02 */ u8   field_2;
-    /* 0x03 */ u8   flag_3;
-    /* 0x04 */ s16  field_4;
-    /* 0x06 */ s16  field_6;
-    /* 0x08 */ u8   state;
-    /* 0x09 */ byte pad_9[0x1];
-    /* 0x0A */ s16  dist;
-    /* 0x0C */ s16  field_C;
-} Actor548100Edge;
-STATIC_ASSERT_SIZEOF(Actor548100Edge, 0xE);
+/// The panel is drawn in its first wiring until `GAME_FLAG_MINE_POWER_PANEL_STAGE`
+/// reaches 2 and in its second from then on; a wire the current wiring lacks is
+/// `ACTOR_548100_EDGE_STATE_ABSENT`.
+enum {
+    ACTOR_548100_EDGE_LAYOUT_BOTH        = 0, // part of both wirings
+    ACTOR_548100_EDGE_LAYOUT_SECOND_ONLY = 1, // only in the second wiring
+    ACTOR_548100_EDGE_LAYOUT_FIRST_ONLY  = 2  // only in the first wiring
+};
 
-extern Actor548100Edge D_actor_548100_801351D0[];
+/// Values of `_Actor548100Edge::state`: how the wire is drawn this frame.
+///
+/// `STOP`, `FLOW` and `SHORT` each select one of the panel's three pulsing
+/// colours, named as the actor's retained colour-editor rows caption them.
+enum {
+    ACTOR_548100_EDGE_STATE_ABSENT      = 0, // not part of the current wiring: not drawn
+    ACTOR_548100_EDGE_STATE_STOP        = 1, // no current
+    ACTOR_548100_EDGE_STATE_FLOW        = 2, // carrying current
+    ACTOR_548100_EDGE_STATE_SHORT       = 3, // on a route that stops at a node where it meets another battery's
+    ACTOR_548100_EDGE_STATE_FLOW_FROM_A = 4, // current has entered at `nodeA` and reached `flowLength`: `FLOW` up to there, `STOP` beyond
+    ACTOR_548100_EDGE_STATE_FLOW_FROM_B = 5  // the same, entered at `nodeB`
+};
+
+/// One wire of the mine power panel's circuit diagram: a straight segment
+/// between two of the diagram's nodes.
+///
+/// The diagram is a graph. A node id indexes the node point table, and a route
+/// of current is a string of node ids; each consecutive pair of a route is
+/// looked up in a node-pair matrix that holds the index of the wire joining
+/// them, in either direction. A record whose `nodeA` is 0 ends the wire table.
+///
+/// Only the two nodes and `layout` are authored. The geometry fields are
+/// derived from the node points when the panel opens, and `state` and
+/// `flowLength` are rewritten every frame: each wire is first reset to `STOP`
+/// or `ABSENT` for the current wiring, and the routes the placed batteries
+/// feed are then walked over that.
+typedef struct {
+    u8  nodeA;      // node id of one end; 0 in the record that ends the table
+    u8  nodeB;      // node id of the other end
+    u8  layout;     // `ACTOR_548100_EDGE_LAYOUT_*`
+    u8  vertical;   // axis the wire spans further (0 x, 1 y)
+    s16 coordA;     // `nodeA`'s drawn coordinate on that axis; stored when the panel opens and not read
+    s16 coordB;     // `nodeB`'s coordinate on that axis, likewise
+    u8  state;      // `ACTOR_548100_EDGE_STATE_*`
+    s16 length;     // distance between the two nodes on that axis, less 2; what a route's length is summed from
+    s16 flowLength; // in the `FLOW_FROM_*` states, how far along that axis the current has come from the node it entered at
+} _Actor548100Edge;
+STATIC_ASSERT_SIZEOF(_Actor548100Edge, 0xE);
+
+extern _Actor548100Edge D_actor_548100_801351D0[];
 /// Node points `(x, y)`, indexed by node id.
 extern DVECTOR D_actor_548100_801358E4[];
 /// Route strings, indexed by route id: node ids, 0xFF-escaped, 0-terminated.
@@ -280,99 +289,99 @@ TaskMessageEntry D_actor_548100_801351C0[2] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-Actor548100Edge D_actor_548100_801351D0[92] = {
-    { 68, 1, 2, 0, 0, 0, 0, { 0 }, 0, 0 },
-    { 1, 2, 2, 0, 0, 0, 0, { 0 }, 0, 0 },
-    { 2, 73, 2, 0, 0, 0, 0, { 0 }, 0, 0 },
-    { 73, 74, 2, 0, 0, 0, 0, { 0 }, 0, 0 },
-    { 69, 75, 0, 0, 0, 0, 0, { 0 }, 0, 0 },
-    { 3, 4, 0, 0, 0, 0, 0, { 0 }, 0, 0 },
-    { 4, 5, 0, 0, 0, 0, 0, { 0 }, 0, 0 },
-    { 5, 6, 0, 0, 0, 0, 0, { 0 }, 0, 0 },
-    { 6, 7, 0, 0, 0, 0, 0, { 0 }, 0, 0 },
-    { 7, 26, 0, 0, 0, 0, 0, { 0 }, 0, 0 },
-    { 26, 30, 0, 0, 0, 0, 0, { 0 }, 0, 0 },
-    { 30, 34, 0, 0, 0, 0, 0, { 0 }, 0, 0 },
-    { 34, 54, 0, 0, 0, 0, 0, { 0 }, 0, 0 },
-    { 54, 53, 0, 0, 0, 0, 0, { 0 }, 0, 0 },
-    { 53, 52, 0, 0, 0, 0, 0, { 0 }, 0, 0 },
-    { 52, 51, 0, 0, 0, 0, 0, { 0 }, 0, 0 },
-    { 51, 57, 0, 0, 0, 0, 0, { 0 }, 0, 0 },
-    { 57, 58, 0, 0, 0, 0, 0, { 0 }, 0, 0 },
-    { 70, 76, 0, 0, 0, 0, 0, { 0 }, 0, 0 },
-    { 76, 77, 0, 0, 0, 0, 0, { 0 }, 0, 0 },
-    { 8, 9, 0, 0, 0, 0, 0, { 0 }, 0, 0 },
-    { 9, 10, 0, 0, 0, 0, 0, { 0 }, 0, 0 },
-    { 10, 11, 0, 0, 0, 0, 0, { 0 }, 0, 0 },
-    { 11, 12, 0, 0, 0, 0, 0, { 0 }, 0, 0 },
-    { 12, 13, 0, 0, 0, 0, 0, { 0 }, 0, 0 },
-    { 13, 14, 0, 0, 0, 0, 0, { 0 }, 0, 0 },
-    { 14, 25, 0, 0, 0, 0, 0, { 0 }, 0, 0 },
-    { 25, 29, 0, 0, 0, 0, 0, { 0 }, 0, 0 },
-    { 29, 33, 0, 0, 0, 0, 0, { 0 }, 0, 0 },
-    { 33, 47, 0, 0, 0, 0, 0, { 0 }, 0, 0 },
-    { 47, 46, 0, 0, 0, 0, 0, { 0 }, 0, 0 },
-    { 46, 45, 0, 0, 0, 0, 0, { 0 }, 0, 0 },
-    { 45, 44, 0, 0, 0, 0, 0, { 0 }, 0, 0 },
-    { 44, 43, 0, 0, 0, 0, 0, { 0 }, 0, 0 },
-    { 43, 50, 0, 0, 0, 0, 0, { 0 }, 0, 0 },
-    { 50, 56, 0, 0, 0, 0, 0, { 0 }, 0, 0 },
-    { 56, 59, 0, 0, 0, 0, 0, { 0 }, 0, 0 },
-    { 59, 60, 0, 0, 0, 0, 0, { 0 }, 0, 0 },
-    { 60, 61, 0, 0, 0, 0, 0, { 0 }, 0, 0 },
-    { 61, 62, 0, 0, 0, 0, 0, { 0 }, 0, 0 },
-    { 71, 78, 0, 0, 0, 0, 0, { 0 }, 0, 0 },
-    { 15, 16, 0, 0, 0, 0, 0, { 0 }, 0, 0 },
-    { 16, 17, 0, 0, 0, 0, 0, { 0 }, 0, 0 },
-    { 17, 18, 0, 0, 0, 0, 0, { 0 }, 0, 0 },
-    { 18, 19, 0, 0, 0, 0, 0, { 0 }, 0, 0 },
-    { 19, 20, 0, 0, 0, 0, 0, { 0 }, 0, 0 },
-    { 20, 28, 0, 0, 0, 0, 0, { 0 }, 0, 0 },
-    { 28, 32, 0, 0, 0, 0, 0, { 0 }, 0, 0 },
-    { 32, 42, 0, 0, 0, 0, 0, { 0 }, 0, 0 },
-    { 42, 41, 0, 0, 0, 0, 0, { 0 }, 0, 0 },
-    { 41, 40, 0, 0, 0, 0, 0, { 0 }, 0, 0 },
-    { 40, 39, 0, 0, 0, 0, 0, { 0 }, 0, 0 },
-    { 39, 38, 0, 0, 0, 0, 0, { 0 }, 0, 0 },
-    { 38, 49, 0, 0, 0, 0, 0, { 0 }, 0, 0 },
-    { 49, 55, 0, 0, 0, 0, 0, { 0 }, 0, 0 },
-    { 55, 63, 0, 0, 0, 0, 0, { 0 }, 0, 0 },
-    { 63, 64, 0, 0, 0, 0, 0, { 0 }, 0, 0 },
-    { 64, 66, 0, 0, 0, 0, 0, { 0 }, 0, 0 },
-    { 66, 67, 0, 0, 0, 0, 0, { 0 }, 0, 0 },
-    { 72, 79, 0, 0, 0, 0, 0, { 0 }, 0, 0 },
-    { 79, 80, 0, 0, 0, 0, 0, { 0 }, 0, 0 },
-    { 21, 22, 0, 0, 0, 0, 0, { 0 }, 0, 0 },
-    { 22, 23, 0, 0, 0, 0, 0, { 0 }, 0, 0 },
-    { 23, 24, 0, 0, 0, 0, 0, { 0 }, 0, 0 },
-    { 24, 27, 0, 0, 0, 0, 0, { 0 }, 0, 0 },
-    { 27, 31, 0, 0, 0, 0, 0, { 0 }, 0, 0 },
-    { 31, 37, 0, 0, 0, 0, 0, { 0 }, 0, 0 },
-    { 37, 36, 0, 0, 0, 0, 0, { 0 }, 0, 0 },
-    { 36, 35, 0, 0, 0, 0, 0, { 0 }, 0, 0 },
-    { 35, 48, 0, 0, 0, 0, 0, { 0 }, 0, 0 },
-    { 48, 65, 0, 0, 0, 0, 0, { 0 }, 0, 0 },
-    { 65, 66, 0, 0, 0, 0, 0, { 0 }, 0, 0 },
-    { 4, 9, 0, 0, 0, 0, 0, { 0 }, 0, 0 },
-    { 5, 10, 1, 0, 0, 0, 0, { 0 }, 0, 0 },
-    { 6, 13, 1, 0, 0, 0, 0, { 0 }, 0, 0 },
-    { 25, 26, 1, 0, 0, 0, 0, { 0 }, 0, 0 },
-    { 29, 30, 0, 0, 0, 0, 0, { 0 }, 0, 0 },
-    { 34, 33, 0, 0, 0, 0, 0, { 0 }, 0, 0 },
-    { 44, 53, 1, 0, 0, 0, 0, { 0 }, 0, 0 },
-    { 50, 51, 1, 0, 0, 0, 0, { 0 }, 0, 0 },
-    { 11, 17, 0, 0, 0, 0, 0, { 0 }, 0, 0 },
-    { 12, 19, 0, 0, 0, 0, 0, { 0 }, 0, 0 },
-    { 41, 46, 1, 0, 0, 0, 0, { 0 }, 0, 0 },
-    { 40, 45, 0, 0, 0, 0, 0, { 0 }, 0, 0 },
-    { 55, 56, 1, 0, 0, 0, 0, { 0 }, 0, 0 },
-    { 16, 22, 1, 0, 0, 0, 0, { 0 }, 0, 0 },
-    { 18, 23, 1, 0, 0, 0, 0, { 0 }, 0, 0 },
-    { 27, 28, 0, 0, 0, 0, 0, { 0 }, 0, 0 },
-    { 32, 31, 0, 0, 0, 0, 0, { 0 }, 0, 0 },
-    { 36, 39, 0, 0, 0, 0, 0, { 0 }, 0, 0 },
-    { 48, 49, 0, 0, 0, 0, 0, { 0 }, 0, 0 },
-    { 0, 0, 0, 0, 0, 0, 0, { 0 }, 0, 0 },
+_Actor548100Edge D_actor_548100_801351D0[92] = {
+    { 68, 1, ACTOR_548100_EDGE_LAYOUT_FIRST_ONLY },
+    { 1, 2, ACTOR_548100_EDGE_LAYOUT_FIRST_ONLY },
+    { 2, 73, ACTOR_548100_EDGE_LAYOUT_FIRST_ONLY },
+    { 73, 74, ACTOR_548100_EDGE_LAYOUT_FIRST_ONLY },
+    { 69, 75, ACTOR_548100_EDGE_LAYOUT_BOTH },
+    { 3, 4, ACTOR_548100_EDGE_LAYOUT_BOTH },
+    { 4, 5, ACTOR_548100_EDGE_LAYOUT_BOTH },
+    { 5, 6, ACTOR_548100_EDGE_LAYOUT_BOTH },
+    { 6, 7, ACTOR_548100_EDGE_LAYOUT_BOTH },
+    { 7, 26, ACTOR_548100_EDGE_LAYOUT_BOTH },
+    { 26, 30, ACTOR_548100_EDGE_LAYOUT_BOTH },
+    { 30, 34, ACTOR_548100_EDGE_LAYOUT_BOTH },
+    { 34, 54, ACTOR_548100_EDGE_LAYOUT_BOTH },
+    { 54, 53, ACTOR_548100_EDGE_LAYOUT_BOTH },
+    { 53, 52, ACTOR_548100_EDGE_LAYOUT_BOTH },
+    { 52, 51, ACTOR_548100_EDGE_LAYOUT_BOTH },
+    { 51, 57, ACTOR_548100_EDGE_LAYOUT_BOTH },
+    { 57, 58, ACTOR_548100_EDGE_LAYOUT_BOTH },
+    { 70, 76, ACTOR_548100_EDGE_LAYOUT_BOTH },
+    { 76, 77, ACTOR_548100_EDGE_LAYOUT_BOTH },
+    { 8, 9, ACTOR_548100_EDGE_LAYOUT_BOTH },
+    { 9, 10, ACTOR_548100_EDGE_LAYOUT_BOTH },
+    { 10, 11, ACTOR_548100_EDGE_LAYOUT_BOTH },
+    { 11, 12, ACTOR_548100_EDGE_LAYOUT_BOTH },
+    { 12, 13, ACTOR_548100_EDGE_LAYOUT_BOTH },
+    { 13, 14, ACTOR_548100_EDGE_LAYOUT_BOTH },
+    { 14, 25, ACTOR_548100_EDGE_LAYOUT_BOTH },
+    { 25, 29, ACTOR_548100_EDGE_LAYOUT_BOTH },
+    { 29, 33, ACTOR_548100_EDGE_LAYOUT_BOTH },
+    { 33, 47, ACTOR_548100_EDGE_LAYOUT_BOTH },
+    { 47, 46, ACTOR_548100_EDGE_LAYOUT_BOTH },
+    { 46, 45, ACTOR_548100_EDGE_LAYOUT_BOTH },
+    { 45, 44, ACTOR_548100_EDGE_LAYOUT_BOTH },
+    { 44, 43, ACTOR_548100_EDGE_LAYOUT_BOTH },
+    { 43, 50, ACTOR_548100_EDGE_LAYOUT_BOTH },
+    { 50, 56, ACTOR_548100_EDGE_LAYOUT_BOTH },
+    { 56, 59, ACTOR_548100_EDGE_LAYOUT_BOTH },
+    { 59, 60, ACTOR_548100_EDGE_LAYOUT_BOTH },
+    { 60, 61, ACTOR_548100_EDGE_LAYOUT_BOTH },
+    { 61, 62, ACTOR_548100_EDGE_LAYOUT_BOTH },
+    { 71, 78, ACTOR_548100_EDGE_LAYOUT_BOTH },
+    { 15, 16, ACTOR_548100_EDGE_LAYOUT_BOTH },
+    { 16, 17, ACTOR_548100_EDGE_LAYOUT_BOTH },
+    { 17, 18, ACTOR_548100_EDGE_LAYOUT_BOTH },
+    { 18, 19, ACTOR_548100_EDGE_LAYOUT_BOTH },
+    { 19, 20, ACTOR_548100_EDGE_LAYOUT_BOTH },
+    { 20, 28, ACTOR_548100_EDGE_LAYOUT_BOTH },
+    { 28, 32, ACTOR_548100_EDGE_LAYOUT_BOTH },
+    { 32, 42, ACTOR_548100_EDGE_LAYOUT_BOTH },
+    { 42, 41, ACTOR_548100_EDGE_LAYOUT_BOTH },
+    { 41, 40, ACTOR_548100_EDGE_LAYOUT_BOTH },
+    { 40, 39, ACTOR_548100_EDGE_LAYOUT_BOTH },
+    { 39, 38, ACTOR_548100_EDGE_LAYOUT_BOTH },
+    { 38, 49, ACTOR_548100_EDGE_LAYOUT_BOTH },
+    { 49, 55, ACTOR_548100_EDGE_LAYOUT_BOTH },
+    { 55, 63, ACTOR_548100_EDGE_LAYOUT_BOTH },
+    { 63, 64, ACTOR_548100_EDGE_LAYOUT_BOTH },
+    { 64, 66, ACTOR_548100_EDGE_LAYOUT_BOTH },
+    { 66, 67, ACTOR_548100_EDGE_LAYOUT_BOTH },
+    { 72, 79, ACTOR_548100_EDGE_LAYOUT_BOTH },
+    { 79, 80, ACTOR_548100_EDGE_LAYOUT_BOTH },
+    { 21, 22, ACTOR_548100_EDGE_LAYOUT_BOTH },
+    { 22, 23, ACTOR_548100_EDGE_LAYOUT_BOTH },
+    { 23, 24, ACTOR_548100_EDGE_LAYOUT_BOTH },
+    { 24, 27, ACTOR_548100_EDGE_LAYOUT_BOTH },
+    { 27, 31, ACTOR_548100_EDGE_LAYOUT_BOTH },
+    { 31, 37, ACTOR_548100_EDGE_LAYOUT_BOTH },
+    { 37, 36, ACTOR_548100_EDGE_LAYOUT_BOTH },
+    { 36, 35, ACTOR_548100_EDGE_LAYOUT_BOTH },
+    { 35, 48, ACTOR_548100_EDGE_LAYOUT_BOTH },
+    { 48, 65, ACTOR_548100_EDGE_LAYOUT_BOTH },
+    { 65, 66, ACTOR_548100_EDGE_LAYOUT_BOTH },
+    { 4, 9, ACTOR_548100_EDGE_LAYOUT_BOTH },
+    { 5, 10, ACTOR_548100_EDGE_LAYOUT_SECOND_ONLY },
+    { 6, 13, ACTOR_548100_EDGE_LAYOUT_SECOND_ONLY },
+    { 25, 26, ACTOR_548100_EDGE_LAYOUT_SECOND_ONLY },
+    { 29, 30, ACTOR_548100_EDGE_LAYOUT_BOTH },
+    { 34, 33, ACTOR_548100_EDGE_LAYOUT_BOTH },
+    { 44, 53, ACTOR_548100_EDGE_LAYOUT_SECOND_ONLY },
+    { 50, 51, ACTOR_548100_EDGE_LAYOUT_SECOND_ONLY },
+    { 11, 17, ACTOR_548100_EDGE_LAYOUT_BOTH },
+    { 12, 19, ACTOR_548100_EDGE_LAYOUT_BOTH },
+    { 41, 46, ACTOR_548100_EDGE_LAYOUT_SECOND_ONLY },
+    { 40, 45, ACTOR_548100_EDGE_LAYOUT_BOTH },
+    { 55, 56, ACTOR_548100_EDGE_LAYOUT_SECOND_ONLY },
+    { 16, 22, ACTOR_548100_EDGE_LAYOUT_SECOND_ONLY },
+    { 18, 23, ACTOR_548100_EDGE_LAYOUT_SECOND_ONLY },
+    { 27, 28, ACTOR_548100_EDGE_LAYOUT_BOTH },
+    { 32, 31, ACTOR_548100_EDGE_LAYOUT_BOTH },
+    { 36, 39, ACTOR_548100_EDGE_LAYOUT_BOTH },
+    { 48, 49, ACTOR_548100_EDGE_LAYOUT_BOTH },
+    { 0 },
 };
 
 Actor548100Route D_actor_548100_801356D8[12] = {
@@ -878,7 +887,7 @@ u8 D_actor_548100_80135B5C[10000] = { 0 };
 
 static void func_actor_548100_80132A14(Task* task);
 static void func_actor_548100_80132EA0(Task* task);
-static void func_actor_548100_80133684(Actor548100Edge* edge);
+static void func_actor_548100_80133684(_Actor548100Edge* edge);
 static void func_actor_548100_80133F88(void);
 
 #include "../../shared/action_prompt_move_cursors.inc.c"
@@ -1446,11 +1455,13 @@ static void func_actor_548100_80133200(s32 nodeA, s32 nodeB, u8 r, u8 g, u8 b)
     addPrim(&gGpuCurrentOt[0x3FC], bottom);
 }
 
-/// Draws `edge` between its two nodes in the colour its `state` selects (1-3).
-/// States 4 and 5 (5 swaps the nodes) split the line at `field_C` along x, or
-/// along y when `flag_3` is set, clipping each half with a `DR_AREA` linked into
-/// `gGpuCurrentOt[0x3FC]` and drawing one half per colour.
-static void func_actor_548100_80133684(Actor548100Edge* edge)
+/// Draws `edge` between its two nodes in the colour its `state` selects
+/// (`STOP`, `FLOW` or `SHORT`). The two `FLOW_FROM_*` states (`FLOW_FROM_B`
+/// swaps the nodes) split the line `flowLength` along x from the node the
+/// current entered at, or along y when `vertical` is set, clipping each half
+/// with a `DR_AREA` linked into `gGpuCurrentOt[0x3FC]` and drawing one half
+/// per colour.
+static void func_actor_548100_80133684(_Actor548100Edge* edge)
 {
     RECT     rect;
     DR_AREA* area;
@@ -1466,19 +1477,19 @@ static void func_actor_548100_80133684(Actor548100Edge* edge)
     a = edge->nodeA;
     b = edge->nodeB;
     switch (edge->state) {
-        case 3:
+        case ACTOR_548100_EDGE_STATE_SHORT:
             func_actor_548100_80133200(a, b, D_actor_548100_80135B59, D_actor_548100_80135B5A, D_actor_548100_80135B5B);
             break;
-        case 2:
+        case ACTOR_548100_EDGE_STATE_FLOW:
             func_actor_548100_80133200(a, b, D_actor_548100_80135B53, D_actor_548100_80135B54, D_actor_548100_80135B55);
             break;
-        case 1:
+        case ACTOR_548100_EDGE_STATE_STOP:
             func_actor_548100_80133200(a, b, D_actor_548100_80135B56, D_actor_548100_80135B57, D_actor_548100_80135B58);
             break;
-        case 5:
+        case ACTOR_548100_EDGE_STATE_FLOW_FROM_B:
             a = edge->nodeB;
             b = edge->nodeA;
-        case 4:
+        case ACTOR_548100_EDGE_STATE_FLOW_FROM_A:
             area           = gGpuPrimCursor;
             gGpuPrimCursor = area + 1;
             ax             = D_actor_548100_801358E4[a].vx - 0x9E;
@@ -1489,12 +1500,12 @@ static void func_actor_548100_80133684(Actor548100Edge* edge)
             rect.y += gDisplayState.drawBuffer * 0x110;
             SetDrawArea(area, &rect);
             addPrim(&gGpuCurrentOt[0x3FC], area);
-            if (edge->flag_3 == 0) {
+            if (edge->vertical == 0) {
                 sign = 1;
                 if (bx < ax) {
                     sign = -1;
                 }
-                pos = ax + sign * edge->field_C;
+                pos = ax + sign * edge->flowLength;
                 func_actor_548100_80133200(a, b, D_actor_548100_80135B53, D_actor_548100_80135B54, D_actor_548100_80135B55);
                 area           = gGpuPrimCursor;
                 gGpuPrimCursor = area + 1;
@@ -1519,7 +1530,7 @@ static void func_actor_548100_80133684(Actor548100Edge* edge)
                 if (by < ay) {
                     sign = -1;
                 }
-                pos = ay + sign * edge->field_C;
+                pos = ay + sign * edge->flowLength;
                 func_actor_548100_80133200(a, b, D_actor_548100_80135B53, D_actor_548100_80135B54, D_actor_548100_80135B55);
                 area           = gGpuPrimCursor;
                 gGpuPrimCursor = area + 1;
@@ -1877,18 +1888,18 @@ static void func_actor_548100_801342D8(s32 id, s32 stop, s16 pos)
 
         if (*route != 0xFF) {
             edge   = D_actor_548100_80135B5C[*route + prev * 100];
-            total += D_actor_548100_801351D0[edge].dist;
+            total += D_actor_548100_801351D0[edge].length;
             if (pos >= total) {
-                D_actor_548100_801351D0[edge].state = 2;
+                D_actor_548100_801351D0[edge].state = ACTOR_548100_EDGE_STATE_FLOW;
             } else if (start < pos) {
                 if (D_actor_548100_801351D0[edge].nodeA == prev) {
-                    D_actor_548100_801351D0[edge].state = 4;
+                    D_actor_548100_801351D0[edge].state = ACTOR_548100_EDGE_STATE_FLOW_FROM_A;
                 } else {
-                    D_actor_548100_801351D0[edge].state = 5;
+                    D_actor_548100_801351D0[edge].state = ACTOR_548100_EDGE_STATE_FLOW_FROM_B;
                 }
-                D_actor_548100_801351D0[edge].field_C = pos - start;
+                D_actor_548100_801351D0[edge].flowLength = pos - start;
             } else {
-                D_actor_548100_801351D0[edge].state = 1;
+                D_actor_548100_801351D0[edge].state = ACTOR_548100_EDGE_STATE_STOP;
             }
             start = total;
             prev  = *route;
@@ -1904,23 +1915,23 @@ static void func_actor_548100_801342D8(s32 id, s32 stop, s16 pos)
 }
 
 /// Build the edge graph's derived state: record every edge's id in the
-/// node-pair matrix both ways round, then store its dominant axis in `flag_3`
+/// node-pair matrix both ways round, then store its dominant axis in `vertical`
 /// (0 horizontal, 1 vertical), that axis's two screen-centred endpoint
-/// coordinates in `field_4` / `field_6` and their span less 2 in `dist`.
+/// coordinates in `coordA` / `coordB` and their span less 2 in `length`.
 /// Finally reset each edge's `state` for the current stage, as
 /// `func_actor_548100_80134BF0` does.
 static void func_actor_548100_80134400(ActionPromptHotspot* unused)
 {
-    Actor548100Edge* edge;
-    Actor548100Edge* cell;
-    DVECTOR*         a;
-    DVECTOR*         b;
-    s32              ax;
-    s32              bx;
-    s32              ay;
-    s32              by;
-    s32              dx;
-    u8               i;
+    _Actor548100Edge* edge;
+    _Actor548100Edge* cell;
+    DVECTOR*          a;
+    DVECTOR*          b;
+    s32               ax;
+    s32               bx;
+    s32               ay;
+    s32               by;
+    s32               dx;
+    u8                i;
 
     i = 0;
     for (edge = D_actor_548100_801351D0; edge->nodeA != 0; edge++, i++) {
@@ -1937,31 +1948,31 @@ static void func_actor_548100_80134400(ActionPromptHotspot* unused)
             dx = bx - ax;
         }
         if (ABS(ay - by) < dx) {
-            edge->dist    = ABS(ax - bx) - 2;
-            edge->flag_3  = 0;
-            edge->field_4 = ax;
-            edge->field_6 = bx;
+            edge->length   = ABS(ax - bx) - 2;
+            edge->vertical = 0;
+            edge->coordA   = ax;
+            edge->coordB   = bx;
         } else {
-            edge->dist    = ABS(ay - by) - 2;
-            edge->flag_3  = 1;
-            edge->field_4 = ay;
-            edge->field_6 = by;
+            edge->length   = ABS(ay - by) - 2;
+            edge->vertical = 1;
+            edge->coordA   = ay;
+            edge->coordB   = by;
         }
     }
     if (GameFlag_GetNibble(GAME_FLAG_MINE_POWER_PANEL_STAGE) == 2) {
         for (cell = D_actor_548100_801351D0; cell->nodeA != 0; cell++) {
-            if (cell->field_2 == 2) {
-                cell->state = 0;
+            if (cell->layout == ACTOR_548100_EDGE_LAYOUT_FIRST_ONLY) {
+                cell->state = ACTOR_548100_EDGE_STATE_ABSENT;
             } else {
-                cell->state = 1;
+                cell->state = ACTOR_548100_EDGE_STATE_STOP;
             }
         }
     } else {
         for (cell = D_actor_548100_801351D0; cell->nodeA != 0; cell++) {
-            if (cell->field_2 == 1) {
-                cell->state = 0;
+            if (cell->layout == ACTOR_548100_EDGE_LAYOUT_SECOND_ONLY) {
+                cell->state = ACTOR_548100_EDGE_STATE_ABSENT;
             } else {
-                cell->state = 1;
+                cell->state = ACTOR_548100_EDGE_STATE_STOP;
             }
         }
     }
@@ -2154,9 +2165,9 @@ static void func_actor_548100_80134AE0(s32 id, u8 stop)
     u8  edge;
     u8  state;
 
-    state = 2;
+    state = ACTOR_548100_EDGE_STATE_FLOW;
     if (stop != 0) {
-        state = 3;
+        state = ACTOR_548100_EDGE_STATE_SHORT;
     }
     head  = D_actor_548100_80135B24[id];
     prev  = head[0];
@@ -2179,7 +2190,7 @@ static void func_actor_548100_80134AE0(s32 id, u8 stop)
 
 static void func_actor_548100_80134BA8(void)
 {
-    Actor548100Edge* edge;
+    _Actor548100Edge* edge;
 
     for (edge = D_actor_548100_801351D0; edge->nodeA != 0; edge++) {
         func_actor_548100_80133684(edge);
@@ -2188,22 +2199,22 @@ static void func_actor_548100_80134BA8(void)
 
 static void func_actor_548100_80134BF0(void)
 {
-    Actor548100Edge* edge;
+    _Actor548100Edge* edge;
 
     if (GameFlag_GetNibble(GAME_FLAG_MINE_POWER_PANEL_STAGE) == 2) {
         for (edge = D_actor_548100_801351D0; edge->nodeA != 0; edge++) {
-            if (edge->field_2 == 2) {
-                edge->state = 0;
+            if (edge->layout == ACTOR_548100_EDGE_LAYOUT_FIRST_ONLY) {
+                edge->state = ACTOR_548100_EDGE_STATE_ABSENT;
             } else {
-                edge->state = 1;
+                edge->state = ACTOR_548100_EDGE_STATE_STOP;
             }
         }
     } else {
         for (edge = D_actor_548100_801351D0; edge->nodeA != 0; edge++) {
-            if (edge->field_2 == 1) {
-                edge->state = 0;
+            if (edge->layout == ACTOR_548100_EDGE_LAYOUT_SECOND_ONLY) {
+                edge->state = ACTOR_548100_EDGE_STATE_ABSENT;
             } else {
-                edge->state = 1;
+                edge->state = ACTOR_548100_EDGE_STATE_STOP;
             }
         }
     }
@@ -2225,7 +2236,7 @@ static s32 func_actor_548100_80134CB8(s32 nodeA, u8 nodeB)
     route = head + 1;
     while (*route != 0) {
         if (*route != 0xFF) {
-            dist += D_actor_548100_801351D0[D_actor_548100_80135B5C[*route + prev * 100]].dist;
+            dist += D_actor_548100_801351D0[D_actor_548100_80135B5C[*route + prev * 100]].length;
             prev  = *route;
         } else {
             route++;

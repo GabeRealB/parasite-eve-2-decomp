@@ -78209,7 +78209,7 @@ and ending exactly where the next symbol begins.
 the multiply the code materialises (`id * 7 * 2` reads as three shifts and two
 adds), and the bound from whatever the loop tests — a record whose first byte is
 zero here, a `0xFF` byte in the sibling route strings at `D_actor_548100_80135B24`.
-Declare such a table unsized (`extern Actor548100Edge D_actor_548100_801351D0[]`),
+Declare such a table unsized (`extern _Actor548100Edge D_actor_548100_801351D0[]`),
 as the sibling overlay headers do; a size copied from the symbol is a latent
 mismatch, and the sentinel record is not part of the array's data anyway.
 
@@ -78302,7 +78302,7 @@ identical (97.4%, `regs=2 reorder=2`).
 **Cause.** m2c wrote the step as a byte offset on a *typed* pointer:
 
 ```c
-Actor548100Edge *var_a0;      /* sizeof == 0xE */
+_Actor548100Edge *var_a0;      /* sizeof == 0xE */
 ...
 var_a0 += 0xE;                /* 0xE * 0xE == 0xC4 */
 ```
@@ -78315,10 +78315,10 @@ same shape the already-matched sibling in the TU uses:
 
 ```c
 for (edge = D_actor_548100_801351D0; edge->nodeA != 0; edge++) {
-    if (edge->field_2 == 2) {
-        edge->state = 0;
+    if (edge->layout == ACTOR_548100_EDGE_LAYOUT_FIRST_ONLY) {
+        edge->state = ACTOR_548100_EDGE_STATE_ABSENT;
     } else {
-        edge->state = 1;
+        edge->state = ACTOR_548100_EDGE_STATE_STOP;
 ## m2c's counting pointer errs the other way: `+= 4` on an element-typed pointer advances 4 *elements*, not 4 bytes
 
 **Problem.** A 16-iteration fill loop matched instruction for instruction except
