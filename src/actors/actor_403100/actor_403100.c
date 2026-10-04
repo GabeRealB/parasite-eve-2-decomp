@@ -3210,7 +3210,7 @@ extern TaskMessageEntry D_actor_403100_801556EC[4];
 
 extern AnimationSet* D_actor_403100_8015572C[26];
 
-extern EvsCommand D_80165FC0[];
+extern EvsCommand D_actor_335800_80165FC0[];
 
 static void func_actor_403100_801326DC(Actor403100Work* work);
 
@@ -8208,7 +8208,7 @@ static void func_actor_403100_8013D8F4(Task* arg0)
     Gp_SetLightMode(arg0->spawnArg2.pointer, ENEMY_COLOR_DEFAULT);
     SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 0xA);
     worldTargetUnlinkNode(&D_actor_403100_8015580C->node);
-    func_800E8614(D_80165FC0, 0);
+    func_800E8614(D_actor_335800_80165FC0, 0);
     arg0->state                       = 1;
     D_actor_403100_80155808->state    = 0;
     D_actor_403100_80155808->subState = 0;

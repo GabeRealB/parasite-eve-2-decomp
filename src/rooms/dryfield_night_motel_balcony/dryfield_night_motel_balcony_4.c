@@ -2977,14 +2977,14 @@ WorldCollisionTrigger D_dryfield_night_motel_balcony_8018E854[6] = {
 };
 
 AreaResource D_dryfield_night_motel_balcony_8018EA1C[2] = {
-    { 16, 16, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_801445DC },
+    { 16, 16, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_actor_101600_801445DC },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_dryfield_night_motel_balcony_8018EA34[4] = {
-    { 31, 31, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_8015560C },
+    { 31, 31, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_actor_403100_8015560C },
     { 106, 358, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, D_actor_335800_8016EADC },
-    { 114, 358, AREA_RESOURCE_FILE_GROUP_BASE_60, 0, { 0, 0 }, D_80172E9C },
+    { 114, 358, AREA_RESOURCE_FILE_GROUP_BASE_60, 0, { 0, 0 }, &D_actor_335800_80172E9C },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

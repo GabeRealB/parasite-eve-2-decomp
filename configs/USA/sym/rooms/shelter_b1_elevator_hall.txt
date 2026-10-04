@@ -50,7 +50,7 @@ D_shelter_b1_elevator_hall_801849C8 = 0x801849C8; // size:0x8 defined:True
 D_shelter_b1_elevator_hall_801849D0 = 0x801849D0; // size:0x20 defined:True
 D_shelter_b1_elevator_hall_801849F0 = 0x801849F0; // size:0x8 defined:True
 gViewIdentityMap = 0x8010CAF8; // absolute:True
-D_80135C30 = 0x80135C30; // absolute:True
+D_actor_102100_80135C30 = 0x80135C30; // absolute:True owner=actor_102100
 D_actor_102300_80147AB8 = 0x80147AB8; // absolute:True owner=actor_102300
 D_80148110 = 0x80148110; // absolute:True
 D_actor_400600_80151B10 = 0x80151B10; // absolute:True owner=actor_400600

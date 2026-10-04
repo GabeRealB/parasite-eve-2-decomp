@@ -144,7 +144,7 @@ extern _ShelterB1SterilizationRoomDoorDestination D_shelter_b1_sterilization_roo
 
 extern UiObjectDesc D_800611E4;
 
-extern EvsCommand D_80135AC0[];
+extern EvsCommand D_actor_160600_80135AC0[];
 extern EvsCommand D_actor_160600_80135D78[];
 extern EvsCommand D_actor_160600_80136258[];
 
@@ -519,7 +519,7 @@ static void func_shelter_b1_sterilization_room_8017FABC(Task* task)
         } else {
             GameFlag_SetNibble(GAME_FLAG_SOLDIER_B_REMARK_STATE, 2);
             GameFlag_SetNibble(GAME_FLAG_STERILIZATION_ROOM_EVENT_STATE, 1);
-            func_800E8634(D_80135AC0, 0, D_actor_160600_80136258);
+            func_800E8634(D_actor_160600_80135AC0, 0, D_actor_160600_80136258);
         }
     }
     func_shelter_b1_sterilization_room_80180340(0);

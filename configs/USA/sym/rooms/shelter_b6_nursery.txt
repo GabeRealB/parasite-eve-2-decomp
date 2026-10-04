@@ -98,7 +98,7 @@ D_shelter_b6_nursery_80187958 = 0x80187958; // size:0x20 defined:True
 gRoomCutsceneSoundTask = 0x80187978; // size:0x4 defined:True
 D_shelter_b6_nursery_8018797C = 0x8018797C; // size:0x4 defined:True
 D_shelter_b6_nursery_80187980 = 0x80187980; // size:0x20 defined:True
-D_8014AC88 = 0x8014AC88; // absolute:True
+D_actor_450800_8014AC88 = 0x8014AC88; // absolute:True owner=actor_450800
 gPairWalkTasks = 0x801539DC; // absolute:True owner=actor_450800
 D_map_neo_ark_8017C090 = 0x8017C090; // absolute:True owner=map_neo_ark
 D_nursery_script_8013A8DC = 0x8013A8DC; // absolute:True

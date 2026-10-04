@@ -384,7 +384,7 @@ AreaResource D_neo_ark_forest_zone_801828D0[2] = {
 
 AreaResource D_neo_ark_forest_zone_801828E8[3] = {
     { 13, 13, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &D_actor_401300_80158A18 },
-    { 20, 20, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, D_80177DF0 },
+    { 20, 20, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, D_actor_302000_80177DF0 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

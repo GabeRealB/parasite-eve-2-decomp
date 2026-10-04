@@ -93,7 +93,7 @@ typedef struct {
 } _ShelterB1PodAccessTunnelImageScrollWork;
 STATIC_ASSERT_SIZEOF(_ShelterB1PodAccessTunnelImageScrollWork, 0xC);
 
-extern TaskDesc D_801348D8;
+extern TaskDesc D_actor_141000_801348D8[];
 
 /// Descriptor of the event task the message handler spawns.
 extern TaskDesc D_shelter_b1_pod_access_tunnel_801810CC;
@@ -824,12 +824,12 @@ WorldCollisionTrigger D_shelter_b1_pod_access_tunnel_801848B8[3] = {
 };
 
 AreaResource D_shelter_b1_pod_access_tunnel_8018499C[2] = {
-    { 132, 410, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_8013D77C },
+    { 132, 410, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &D_actor_141000_8013D77C },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_shelter_b1_pod_access_tunnel_801849B4[2] = {
-    { 21, 21, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_80135C30 },
+    { 21, 21, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_actor_102100_80135C30 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -849,13 +849,13 @@ AreaResource D_shelter_b1_pod_access_tunnel_801849FC[2] = {
 };
 
 AreaResource D_shelter_b1_pod_access_tunnel_80184A14[3] = {
-    { 21, 21, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_80135C30 },
+    { 21, 21, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_actor_102100_80135C30 },
     { 23, 23, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_actor_202300_8015FAB8 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_shelter_b1_pod_access_tunnel_80184A38[2] = {
-    { 21, 21, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_80135C30 },
+    { 21, 21, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_actor_102100_80135C30 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -1438,7 +1438,7 @@ static void func_shelter_b1_pod_access_tunnel_8017E66C(s32 tpage, s16 arg1)
 
 void func_shelter_b1_pod_access_tunnel_8017E704(void)
 {
-    Task_SpawnFromTable(&D_801348D8, 0, 0, 0);
+    Task_SpawnFromTable(D_actor_141000_801348D8, 0, 0, 0);
 }
 
 void func_shelter_b1_pod_access_tunnel_8017E734(s32 arg0)

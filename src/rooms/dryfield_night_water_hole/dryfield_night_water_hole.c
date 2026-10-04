@@ -85,7 +85,7 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(_DryfieldNightWaterHoleSurfaceOverride, 0x8);
 
 /// Resident task table the ending task is spawned from, descriptor 1.
-extern TaskDesc D_801351FC[];
+extern TaskDesc D_actor_146000_801351FC;
 
 /// Descriptor the room's event task is spawned from, index 0 of the table
 /// `func_dryfield_night_water_hole_8017DC28` hands `Task_SpawnFromTable`. Its
@@ -887,7 +887,7 @@ AreaResource D_dryfield_night_water_hole_801833D0[2] = {
 };
 
 AreaResource D_dryfield_night_water_hole_801833E8[2] = {
-    { 101, 460, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_801351FC },
+    { 101, 460, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &D_actor_146000_801351FC },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -1062,7 +1062,7 @@ static void func_dryfield_night_water_hole_8017D958(Task* arg0)
     if (gGameSession->location.loc.variant == 0xA && gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != 0 && GameFlag_GetNibble(GAME_FLAG_0CF) == 0) {
         GameFlag_SetNibble(GAME_FLAG_0CF, 2);
         func_800E3FAC(0xA2, 0x25);
-        Task_SpawnFromTable(D_801351FC, 1, 0, 0);
+        Task_SpawnFromTable(&D_actor_146000_801351FC, 1, 0, 0);
     }
     arg0->state = arg0->state + 1;
 }

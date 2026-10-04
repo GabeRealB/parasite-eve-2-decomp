@@ -77,7 +77,7 @@ D_acropolis_east_elevator_hall_80187B64 = 0x80187B64; // size:0x8 defined:True
 D_acropolis_east_elevator_hall_80187B6C = 0x80187B6C; // size:0x8 defined:True
 D_acropolis_east_elevator_hall_80187B74 = 0x80187B74; // size:0x20 defined:True
 gViewIdentityMap = 0x8010CAF8; // absolute:True
-D_8013A06C = 0x8013A06C; // absolute:True
+D_actor_110300_8013A06C = 0x8013A06C; // absolute:True
 D_map_akropolis_8017ACDC = 0x8017ACDC; // absolute:True owner=map_akropolis
 
 func_acropolis_east_elevator_hall_8017F5B4 = 0x8017F5B4; // type:func

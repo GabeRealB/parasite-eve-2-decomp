@@ -48,7 +48,7 @@ D_dryfield_night_water_tower_80182C20 = 0x80182C20; // size:0x8 defined:True
 D_dryfield_night_water_tower_80182C28 = 0x80182C28; // size:0x8 defined:True
 D_dryfield_night_water_tower_80182C30 = 0x80182C30; // size:0x20 defined:True
 Actor04400_D107E4 = 0x80142604; // absolute:True owner=actor_104400
-D_801445DC = 0x801445DC; // absolute:True
+D_actor_101600_801445DC = 0x801445DC; // absolute:True owner=actor_101600
 D_actor_400600_80151B10 = 0x80151B10; // absolute:True owner=actor_400600
 D_actor_300700_80165B88 = 0x80165B88; // absolute:True owner=actor_300700
 Actor02500_D05B88 = 0x801679A8; // absolute:True owner=actor_302500

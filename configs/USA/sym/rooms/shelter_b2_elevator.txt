@@ -40,6 +40,6 @@ D_shelter_b2_elevator_8017E954 = 0x8017E954; // size:0x10 defined:True
 D_shelter_b2_elevator_8017E964 = 0x8017E964; // size:0x58 defined:True
 D_shelter_b2_elevator_8017E9BC = 0x8017E9BC; // size:0xC defined:True
 gViewIdentityMap = 0x8010CAF8; // absolute:True
-D_80137600 = 0x80137600; // absolute:True
+D_actor_142900_80137600 = 0x80137600; // absolute:True owner=actor_142900
 
 func_shelter_b2_elevator_8017DB70 = 0x8017DB70; // type:func

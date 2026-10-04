@@ -53,9 +53,9 @@ D_neo_ark_power_plant_2_80182D80 = 0x80182D80; // size:0x24 defined:True
 D_neo_ark_power_plant_2_80182DA4 = 0x80182DA4; // size:0x24 defined:True
 D_neo_ark_power_plant_2_80182DC8 = 0x80182DC8; // size:0x18 defined:True
 gViewIdentityMap = 0x8010CAF8; // absolute:True
-D_8013D3FC = 0x8013D3FC; // absolute:True
+D_actor_105300_8013D3FC = 0x8013D3FC; // absolute:True
 gGolemPawnRookTasks = 0x801491F8; // absolute:True owner=actor_105700
-D_8014DC30 = 0x8014DC30; // absolute:True
+D_actor_202100_8014DC30 = 0x8014DC30; // absolute:True owner=actor_202100
 D_actor_403900_801540E0 = 0x801540E0; // absolute:True owner=actor_403900
 RoomFx_TrailOffsets = 0x80180680; // size:0x10 defined:True
 _gNeoArkPowerPlant2Animation02A4CBank1 = 0x8017FDF0; // size:0x24 defined:True

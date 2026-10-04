@@ -1688,7 +1688,7 @@ WorldCoordRoomLights D_dryfield_water_tower_801874E4[1] = {
 };
 
 AreaResource D_dryfield_water_tower_801874FC[2] = {
-    { 1, 216, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_80151254 },
+    { 1, 216, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &D_actor_421600_80151254 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

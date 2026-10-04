@@ -36,7 +36,7 @@ D_shelter_b1_control_room_access_tunnel_8018265C = 0x8018265C; // size:0xC defin
 D_shelter_b1_control_room_access_tunnel_80182668 = 0x80182668; // size:0x8 defined:True
 D_shelter_b1_control_room_access_tunnel_80182670 = 0x80182670; // size:0x8 defined:True
 D_shelter_b1_control_room_access_tunnel_80182678 = 0x80182678; // size:0x20 defined:True
-D_80135C30 = 0x80135C30; // absolute:True
+D_actor_102100_80135C30 = 0x80135C30; // absolute:True owner=actor_102100
 D_actor_101100_80147400 = 0x80147400; // absolute:True owner=actor_101100
 D_actor_202400_8014E47C = 0x8014E47C; // absolute:True owner=actor_202400
 D_actor_201100_8015F400 = 0x8015F400; // absolute:True owner=actor_201100

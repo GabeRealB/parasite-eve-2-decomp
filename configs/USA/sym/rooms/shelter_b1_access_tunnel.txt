@@ -44,7 +44,7 @@ D_shelter_b1_access_tunnel_8017FF1C = 0x8017FF1C; // size:0x8 defined:True
 D_shelter_b1_access_tunnel_8017FF24 = 0x8017FF24; // size:0x20 defined:True
 D_shelter_b1_access_tunnel_8017FF44 = 0x8017FF44; // size:0x8 defined:True
 gRoomEventFade = 0x8017FF4C; // size:0x8 defined:True
-D_80135C30 = 0x80135C30; // absolute:True
+D_actor_102100_80135C30 = 0x80135C30; // absolute:True owner=actor_102100
 D_actor_403900_801540E0 = 0x801540E0; // absolute:True owner=actor_403900
 D_actor_402200_80154188 = 0x80154188; // absolute:True owner=actor_402200
 gRoomEventMsg = 0x8017FF54; // size:0x8 defined:True

@@ -101,7 +101,7 @@ D_acropolis_square_801888A0 = 0x801888A0; // size:0x4 defined:True
 D_acropolis_square_801888A4 = 0x801888A4; // size:0x4 defined:True
 gRoomCutsceneSoundTask = 0x801888A8; // size:0x4 defined:True
 D_acropolis_square_801888AC = 0x801888AC; // size:0x20 defined:True
-D_8013A468 = 0x8013A468; // absolute:True
+D_actor_111800_8013A468 = 0x8013A468; // absolute:True owner=actor_111800
 D_map_akropolis_8017ACBC = 0x8017ACBC; // absolute:True owner=map_akropolis
 D_acropolis_square_801888CC = 0x801888CC; // size:0x50 defined:True
 

@@ -64,7 +64,7 @@ D_dryfield_night_parking_lot_8018152C = 0x8018152C; // size:0x8 defined:True
 D_dryfield_night_parking_lot_80181534 = 0x80181534; // size:0x8 defined:True
 D_dryfield_night_parking_lot_8018153C = 0x8018153C; // size:0x20 defined:True
 D_actor_103700_80139DAC = 0x80139DAC; // absolute:True owner=actor_103700
-D_801445DC = 0x801445DC; // absolute:True
+D_actor_101600_801445DC = 0x801445DC; // absolute:True owner=actor_101600
 D_8014D8A4 = 0x8014D8A4; // absolute:True
 D_actor_403900_801540E0 = 0x801540E0; // absolute:True owner=actor_403900
 D_actor_300700_80165B88 = 0x80165B88; // absolute:True owner=actor_300700

@@ -84,7 +84,7 @@ D_neo_ark_observatory_80187A00 = 0x80187A00; // size:0x8 defined:True
 D_neo_ark_observatory_80187A08 = 0x80187A08; // size:0x20 defined:True
 D_neo_ark_observatory_80187A28 = 0x80187A28; // size:0x8 defined:True
 gRoomDeparture = 0x80187A30; // size:0xC defined:True
-D_80137A60 = 0x80137A60; // absolute:True
+D_actor_450200_80137A60 = 0x80137A60; // absolute:True owner=actor_450200
 D_map_neo_ark_8017B010 = 0x8017B010; // absolute:True owner=map_neo_ark
 D_neo_ark_observatory_801812C0 = 0x801812C0; // size:0xA8 defined:True
 Reflection_Data_8017FC8C = 0x80180DB8; // size:0x4 defined:True

@@ -63,7 +63,7 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(_ShelterB1PodServiceGantryWork, 8);
 
 extern TaskDesc D_actor_160900_8013FB50[];
-extern TaskDesc D_8016EA28;
+extern TaskDesc D_actor_560800_8016EA28[];
 extern TaskDesc D_actor_560800_801718F0[];
 
 /// The room's message table, published in `Task::msgTable`.
@@ -1539,7 +1539,7 @@ static void func_shelter_b1_pod_service_gantry_8017D628(Task* task)
             if (Task_PollKill(work->sceneTask, &poll) == 0) {
                 break;
             }
-            work->sceneTask = Task_SpawnFromTable(&D_8016EA28, 0, 0, 0);
+            work->sceneTask = Task_SpawnFromTable(D_actor_560800_8016EA28, 0, 0, 0);
             work->step++;
             break;
         case SHELTER_B1_POD_SERVICE_GANTRY_STEP_LOAD_SECOND_SCENE:

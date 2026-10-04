@@ -280,7 +280,7 @@ D_replay_bonus_8011922C = 0x8011922C; // absolute:True owner=replay_bonus
 D_actor_361100_801637C8 = 0x801637C8; // absolute:True owner=actor_361100
 func_actor_800100_80166E94 = 0x80166E94; // type:func absolute:True owner=actor_800100
 D_actor_800100_80167218 = 0x80167218; // absolute:True owner=actor_800100
-D_80167224 = 0x80167224; // absolute:True
+D_actor_800100_80167224 = 0x80167224; // absolute:True owner=actor_800100
 D_actor_800100_80167230 = 0x80167230; // absolute:True owner=actor_800100
 D_map_dryfield_full_8017A738 = 0x8017A738; // absolute:True owner=map_dryfield_full
 D_map_dryfield_8017A824 = 0x8017A824; // absolute:True owner=map_dryfield
@@ -427,7 +427,7 @@ D_map_shelter_8017A998 = 0x8017A998; // absolute:True owner=map_shelter
 D_map_neo_ark_8017A6EC = 0x8017A6EC; // absolute:True owner=map_neo_ark
 D_p08_8012A85C = 0x8012A85C; // absolute:True owner=p08
 D_m93r_8012ADF8 = 0x8012ADF8; // absolute:True owner=m93r
-D_8012BA78 = 0x8012BA78; // absolute:True
+D_m950_8012BA78 = 0x8012BA78; // absolute:True owner=m950
 D_p229_8012B51C = 0x8012B51C; // absolute:True owner=p229
 D_unused_85_8012A474 = 0x8012A474; // absolute:True owner=unused_85
 D_unused_86_8012A0D8 = 0x8012A0D8; // absolute:True owner=unused_86
@@ -439,7 +439,7 @@ D_sp12_8012BCC8 = 0x8012BCC8; // absolute:True owner=sp12
 D_as12_8012C300 = 0x8012C300; // absolute:True owner=as12
 D_m4a1_8012B9E4 = 0x8012B9E4; // absolute:True owner=m4a1
 D_m249_8012CF58 = 0x8012CF58; // absolute:True owner=m249
-D_8012BAB0 = 0x8012BAB0; // absolute:True
+D_tonfa_baton_8012BAB0 = 0x8012BAB0; // absolute:True owner=tonfa_baton
 D_8012EDD0 = 0x8012EDD0; // absolute:True
 D_gunblade_8012E108 = 0x8012E108; // absolute:True owner=gunblade
 D_m4a1_hammer_8012D4F4 = 0x8012D4F4; // absolute:True owner=m4a1_hammer

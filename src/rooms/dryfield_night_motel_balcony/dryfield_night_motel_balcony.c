@@ -39,7 +39,7 @@ extern RoomEventActiveBytes gRoomEventActive;
 /// by the one-shot event.
 extern EvsCommand D_actor_335800_80165060[];
 extern EvsCommand D_actor_335800_80165798[];
-extern EvsCommand D_80165720[];
+extern EvsCommand D_actor_335800_80165720[];
 
 /// The message and request the event gate latched for the event task.
 extern RoomEventMsg gRoomEventMsg;
@@ -114,7 +114,7 @@ static void func_dryfield_night_motel_balcony_8017DC30(Task* task)
 static void func_dryfield_night_motel_balcony_8017DD0C(Task* task)
 {
     if (gGameSession->eventState == 0 && Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL && GameFlag_GetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCRIPT_STATE) == 1) {
-        func_800E8614(D_80165720, 0);
+        func_800E8614(D_actor_335800_80165720, 0);
         GameFlag_SetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCRIPT_STATE, 2);
     }
 }

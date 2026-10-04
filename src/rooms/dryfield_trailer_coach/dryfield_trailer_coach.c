@@ -852,7 +852,7 @@ WorldCollisionGrid D_dryfield_trailer_coach_801876B4[1] = {
 };
 
 AreaResource D_dryfield_trailer_coach_801876D8[2] = {
-    { 106, 207, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_8013EF68 },
+    { 106, 207, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_actor_420700_8013EF68 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

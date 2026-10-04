@@ -21,9 +21,9 @@ D_dryfield_night_motel_loft_8018081C = 0x8018081C; // size:0x18 defined:True
 D_dryfield_night_motel_loft_80180834 = 0x80180834; // size:0x24 defined:True
 D_dryfield_night_motel_loft_80180858 = 0x80180858; // size:0x18 defined:True
 D_dryfield_night_motel_loft_80180870 = 0x80180870; // size:0x18 defined:True
-D_801445DC = 0x801445DC; // absolute:True
+D_actor_101600_801445DC = 0x801445DC; // absolute:True owner=actor_101600
 D_actor_400600_80151B10 = 0x80151B10; // absolute:True owner=actor_400600
-D_801745DC = 0x801745DC; // absolute:True
+D_actor_301600_801745DC = 0x801745DC; // absolute:True owner=actor_301600
 D_dryfield_night_motel_loft_8017EDC0 = 0x8017EDC0; // size:0x20 defined:True
 D_dryfield_night_motel_loft_8017EDE0 = 0x8017EDE0; // size:0x10 defined:True
 D_dryfield_night_motel_loft_8017EDF0 = 0x8017EDF0; // size:0x8 defined:True

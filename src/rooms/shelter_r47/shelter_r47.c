@@ -64,7 +64,7 @@
 
 extern UiObjectDesc D_800611E4;
 
-extern EvsCommand D_801350BC[];
+extern EvsCommand D_actor_143400_801350BC[];
 extern EvsCommand D_actor_143400_801359D4[];
 extern EvsCommand D_actor_443500_8014152C[];
 extern EvsCommand D_actor_443500_80141C1C[];
@@ -72,7 +72,7 @@ extern EvsCommand D_actor_443500_80141D9C[];
 extern EvsCommand D_actor_443500_80142A74[];
 extern EvsCommand D_actor_443500_80142C24[];
 extern EvsCommand D_actor_443500_801432FC[];
-extern EvsCommand D_80143494[];
+extern EvsCommand D_actor_443500_80143494[];
 
 /// `clutX` value that ends a sprite's piece list. That record is not drawn.
 enum { SHELTER_R47_SPRITE_PART_END = 0xFFFF };
@@ -642,7 +642,7 @@ static s32 func_shelter_r47_8017FE84(Task* arg0, s32 arg1, RoomEventMsg* arg2, s
                 break;
             case 4:
                 if ((GameFlag_GetNibble(GAME_FLAG_083) == 1) && (GameFlag_GetNibble(GAME_FLAG_SHELTER_R47_EVENT_PROGRESS) >= 4)) {
-                    func_800E8614(D_80143494, 0);
+                    func_800E8614(D_actor_443500_80143494, 0);
                 }
                 break;
             case 5:
@@ -672,7 +672,7 @@ static s32 func_shelter_r47_8017FE84(Task* arg0, s32 arg1, RoomEventMsg* arg2, s
             if (kind < 4) {
                 if ((kind == 1) && (GameFlag_GetNibble(GAME_FLAG_083) == 0) && (GameFlag_GetNibble(GAME_FLAG_SHELTER_R47_080) == 0)) {
                     if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != 0) {
-                        func_800E8634(D_801350BC, 0, D_actor_143400_801359D4);
+                        func_800E8634(D_actor_143400_801350BC, 0, D_actor_143400_801359D4);
                     }
                     func_800E3FAC(0xA2, 0x2A);
                     GameFlag_SetNibble(GAME_FLAG_SHELTER_R47_080, 1);

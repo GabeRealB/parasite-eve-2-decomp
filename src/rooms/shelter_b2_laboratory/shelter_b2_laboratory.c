@@ -95,7 +95,7 @@ STATIC_ASSERT_SIZEOF(_ShelterB2LaboratoryGlowDiamondScratch, 0x18);
 
 extern UiObjectDesc D_800611E4;
 
-extern TaskDesc D_80134564;
+extern TaskDesc D_actor_143000_80134564;
 
 /// View saved when the cutscene starts and restored when it ends.
 
@@ -1235,7 +1235,7 @@ void func_shelter_b2_laboratory_80180290(Task* task)
 
     switch (task->state) {
         case 0:
-            D_shelter_b2_laboratory_80182A68 = Task_SpawnFromTable(&D_80134564, 0, 0, 0);
+            D_shelter_b2_laboratory_80182A68 = Task_SpawnFromTable(&D_actor_143000_80134564, 0, 0, 0);
             task->state                     += 1;
             return;
         case 1:

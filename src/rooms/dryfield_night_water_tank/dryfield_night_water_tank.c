@@ -49,8 +49,8 @@ extern AreaApplyRec D_dryfield_night_water_tank_801808B0[];
 
 /// Event scripts handed to `func_800E8634`: the one it starts and its skip
 /// target.
-extern EvsCommand D_80137C28[];
-extern EvsCommand D_80138570[];
+extern EvsCommand D_actor_146300_80137C28[];
+extern EvsCommand D_actor_146300_80138570[];
 
 /// Message table of the night water-tank room, 0x13EE..0x13F1 with the
 /// `TASK_MESSAGE_TABLE_END` terminator: `func_dryfield_night_water_tank_8017D714`,
@@ -518,7 +518,7 @@ AreaResource D_dryfield_night_water_tank_8018071C[1] = {
 
 AreaResource D_dryfield_night_water_tank_80180728[3] = {
     { 143, 463, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_actor_146300_801427C8 },
-    { 15, 15, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_80153E28 },
+    { 15, 15, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &Actor01500_D0A008 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -636,7 +636,7 @@ void func_dryfield_night_water_tank_8017D5D0(Task* task)
                 Gp_ApplyAreaRecs(D_dryfield_night_water_tank_801808B0);
                 GameFlag_SetNibble(GAME_FLAG_ITEM_119_HANDOVER_PROGRESS, 2);
                 GameFlag_SetNibble(GAME_FLAG_083, 1);
-                func_800E8634(D_80137C28, 0, D_80138570);
+                func_800E8634(D_actor_146300_80137C28, 0, D_actor_146300_80138570);
                 GameFlag_SetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
                 GameFlag_SetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 0xE);
                 taskKill(task);

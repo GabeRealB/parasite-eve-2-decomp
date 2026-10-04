@@ -192,10 +192,10 @@ D_mine_mesa_80189B58 = 0x80189B58; // size:0x4 defined:True
 D_mine_mesa_80189B5C = 0x80189B5C; // size:0x4 defined:True
 gRoomEventLatched = 0x80189B60; // size:0xC defined:True
 D_801379A8 = 0x801379A8; // absolute:True
-D_801445DC = 0x801445DC; // absolute:True
+D_actor_101600_801445DC = 0x801445DC; // absolute:True owner=actor_101600
 Actor02000_D15FD0 = 0x80147DF0; // absolute:True owner=actor_102000
 D_actor_203700_80151DAC = 0x80151DAC; // absolute:True owner=actor_203700
-D_80153E28 = 0x80153E28; // absolute:True
+Actor01500_D0A008 = 0x80153E28; // absolute:True owner=actor_201500
 D_actor_205700_801611F8 = 0x801611F8; // absolute:True owner=actor_205700
 D_mine_mesa_801818F8 = 0x801818F8; // size:0xC defined:True
 D_mine_mesa_80181904 = 0x80181904; // size:0x30 defined:True

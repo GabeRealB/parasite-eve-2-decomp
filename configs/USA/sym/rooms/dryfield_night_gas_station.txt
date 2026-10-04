@@ -129,7 +129,7 @@ D_dryfield_night_gas_station_801907A0 = 0x801907A0; // size:0x4 defined:True
 D_dryfield_night_gas_station_801907A4 = 0x801907A4; // size:0x4 defined:True
 D_dryfield_night_gas_station_801907A8 = 0x801907A8; // size:0x4 defined:True
 D_dryfield_night_gas_station_801907AC = 0x801907AC; // size:0x4 defined:True
-D_801445DC = 0x801445DC; // absolute:True
+D_actor_101600_801445DC = 0x801445DC; // absolute:True owner=actor_101600
 D_actor_102300_80147AB8 = 0x80147AB8; // absolute:True owner=actor_102300
 D_8014D8A4 = 0x8014D8A4; // absolute:True
 D_actor_400600_80151B10 = 0x80151B10; // absolute:True owner=actor_400600

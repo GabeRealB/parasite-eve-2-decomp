@@ -53,7 +53,7 @@
 /// executable.
 extern TaskDesc       D_actor_136300_8013B11C;
 extern ActorTransform D_actor_136300_8013B570;
-extern EvsCommand     D_8013B590[];
+extern EvsCommand     D_actor_136300_8013B590[];
 extern EvsCommand     D_actor_136300_8013C388[];
 
 /// The 0xFFFF-terminated item id lists `func_dryfield_night_garage_8017D754`
@@ -378,7 +378,7 @@ static void func_dryfield_night_garage_8017FF2C(Task* task)
         if (GameFlag_GetNibble(GAME_FLAG_NIGHT_GARAGE_COMPANION_SCENE_SEEN) == 0) {
             Gp_FillAllyHp();
             GameFlag_SetNibble(GAME_FLAG_NIGHT_GARAGE_COMPANION_SCENE_SEEN, 1);
-            func_800E8634(D_8013B590, 0, D_actor_136300_8013C388);
+            func_800E8634(D_actor_136300_8013B590, 0, D_actor_136300_8013C388);
         } else {
             func_800E8614(D_dryfield_night_garage_80181C7C, 1);
         }

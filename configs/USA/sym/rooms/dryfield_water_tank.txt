@@ -60,7 +60,7 @@ D_dryfield_water_tank_80188908 = 0x80188908; // size:0x18 defined:True
 D_dryfield_water_tank_80188920 = 0x80188920; // size:0x2AC defined:True
 D_dryfield_water_tank_80188BCC = 0x80188BCC; // size:0x18 defined:True
 gViewIdentityMap = 0x8010CAF8; // absolute:True
-D_8013E748 = 0x8013E748; // absolute:True
+D_actor_120400_8013E748 = 0x8013E748; // absolute:True owner=actor_120400
 D_dryfield_water_tank_80180794 = 0x80180794; // size:0xC defined:True
 _gDryfieldWaterTankAnimation034BCBank1 = 0x801807A0; // size:0x48 defined:True
 _gDryfieldWaterTankAnimation034BCBank4 = 0x801807E8; // size:0xB8 defined:True

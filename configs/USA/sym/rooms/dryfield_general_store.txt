@@ -68,7 +68,7 @@ gStoreSavedView = 0x801856F8; // size:0x1 defined:True
 gStoreFade = 0x801856FC; // size:0x4 defined:True
 gRoomEventMsg = 0x80185700; // size:0x8 defined:True
 gViewIdentityMap = 0x8010CAF8; // absolute:True
-D_8013E500 = 0x8013E500; // absolute:True
+Actor04000_D0C6E0 = 0x8013E500; // absolute:True owner=actor_104000
 D_actor_223600_80150B48 = 0x80150B48; // absolute:True owner=actor_223600
 D_map_dryfield_8017AE44 = 0x8017AE44; // absolute:True owner=map_dryfield
 gRoomEventTaskDesc = 0x8017E158; // size:0xC defined:True

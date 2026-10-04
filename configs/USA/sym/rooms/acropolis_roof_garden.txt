@@ -43,12 +43,12 @@ D_acropolis_roof_garden_80186D98 = 0x80186D98; // size:0x8 defined:True
 D_acropolis_roof_garden_80186DA0 = 0x80186DA0; // size:0x8 defined:True
 D_acropolis_roof_garden_80186DA8 = 0x80186DA8; // size:0x8 defined:True
 D_acropolis_roof_garden_80186DB0 = 0x80186DB0; // size:0x20 defined:True
-D_80139EDC = 0x80139EDC; // absolute:True
+D_actor_110800_80139EDC = 0x80139EDC; // absolute:True
 gMaggotCaterpillarBodyTask = 0x8013A8D4; // absolute:True owner=actor_102600
 D_8013A8DC = 0x8013A8DC; // absolute:True
 Actor00700_D075A8 = 0x801513C8; // absolute:True owner=actor_200700
-D_801528D4 = 0x801528D4; // absolute:True
-D_801528DC = 0x801528DC; // absolute:True
+D_actor_202600_801528D4 = 0x801528D4; // absolute:True owner=actor_202600
+D_actor_205500_801528DC = 0x801528DC; // absolute:True owner=actor_205500
 D_map_akropolis_8017BABC = 0x8017BABC; // absolute:True owner=map_akropolis
 D_map_akropolis_8017BB1C = 0x8017BB1C; // absolute:True owner=map_akropolis
 D_map_akropolis_8017BB9C = 0x8017BB9C; // absolute:True owner=map_akropolis

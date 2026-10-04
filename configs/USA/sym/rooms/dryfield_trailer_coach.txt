@@ -267,7 +267,7 @@ D_dryfield_trailer_coach_80189C50 = 0x80189C50; // size:0x3C defined:True
 Shop_Data_80187628 = 0x80189C8C; // size:0x4 defined:True
 Shop_Data_8018762C = 0x80189C90; // size:0x4 defined:True
 gRoomCutsceneSoundTask = 0x80189C94; // size:0x8 defined:True
-D_8013EF68 = 0x8013EF68; // absolute:True
+D_actor_420700_8013EF68 = 0x8013EF68; // absolute:True owner=actor_420700
 D_map_dryfield_8017BA14 = 0x8017BA14; // absolute:True owner=map_dryfield
 D_dryfield_trailer_coach_80189C9C = 0x80189C9C; // size:0x18 defined:True
 

@@ -498,7 +498,7 @@ TaskDesc D_map_neo_ark_8017A804[] = {
 
 /// Four bytes between the task table and the flag table that nothing
 /// is known to read.
-static s32 D_map_neo_ark_8017A99C = 0;
+s32 D_map_neo_ark_8017A99C = 0;
 
 u16 D_map_neo_ark_8017A9A0[9] = {
     0x1C4,

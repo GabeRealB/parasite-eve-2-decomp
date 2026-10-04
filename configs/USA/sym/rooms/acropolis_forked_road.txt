@@ -77,10 +77,10 @@ gMaggotCaterpillarBodyTask = 0x8013A8D4; // absolute:True owner=actor_102600
 D_8013A8DC = 0x8013A8DC; // absolute:True
 Actor01500_D0A008 = 0x8013BE28; // absolute:True owner=actor_101500
 D_actor_107000_8013F5F0 = 0x8013F5F0; // absolute:True owner=actor_107000
-D_801445DC = 0x801445DC; // absolute:True
+D_actor_101600_801445DC = 0x801445DC; // absolute:True owner=actor_101600
 Actor02000_D15FD0 = 0x80147DF0; // absolute:True owner=actor_102000
 D_actor_207200_8014E7A4 = 0x8014E7A4; // absolute:True owner=actor_207200
-D_80150C80 = 0x80150C80; // absolute:True
+D_actor_200700_80150C80 = 0x80150C80; // absolute:True owner=actor_200700
 D_actor_207200_80153EC8 = 0x80153EC8; // absolute:True owner=actor_207200
 D_actor_401000_80155004 = 0x80155004; // absolute:True owner=actor_401000
 D_actor_401800_80155AC4 = 0x80155AC4; // absolute:True owner=actor_401800

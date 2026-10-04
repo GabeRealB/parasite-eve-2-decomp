@@ -1263,7 +1263,7 @@ Task* Gp_SetupAllyWeapon(void)
         if (task != NULL) {
             companion = actor->companionWork;
             val1      = D_actor_800100_80167218[save->state.companionVariant];
-            val2      = D_80167224[save->state.companionVariant];
+            val2      = D_actor_800100_80167224[save->state.companionVariant];
             Gp_AttachActorObj(work, val1, val2);
             actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].key |= 0x80;
             companion->activity.combat.attacksRemaining         = D_actor_800100_80167230[save->state.companionVariant];

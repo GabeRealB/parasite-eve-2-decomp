@@ -62,7 +62,7 @@ Actor02000_D15FD0 = 0x80147DF0; // absolute:True owner=actor_102000
 D_actor_401300_80158A18 = 0x80158A18; // absolute:True owner=actor_401300
 D_actor_205600_801602C0 = 0x801602C0; // absolute:True owner=actor_205600
 D_actor_356100_80173294 = 0x80173294; // absolute:True owner=actor_356100
-D_80177DF0 = 0x80177DF0; // absolute:True
+D_actor_302000_80177DF0 = 0x80177DF0; // absolute:True owner=actor_302000
 D_map_neo_ark_8017B190 = 0x8017B190; // absolute:True owner=map_neo_ark
 D_map_neo_ark_8017B1C0 = 0x8017B1C0; // absolute:True owner=map_neo_ark
 D_map_neo_ark_8017B1F0 = 0x8017B1F0; // absolute:True owner=map_neo_ark
