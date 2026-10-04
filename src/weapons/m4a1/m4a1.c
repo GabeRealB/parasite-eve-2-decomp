@@ -23,12 +23,15 @@
 #error "WEAPON_ID is a per-package build parameter"
 #endif
 
-/* gameplay's weapon table names each package's attack handler, so each build of
- * this source gives the handler its own package's name. */
+/* gameplay's weapon table names each package's attack handler, and main each
+ * package's model, so each build of this source gives both its own package's
+ * name. */
 #if WEAPON_ID == 0x14
 #define func_m4a1_8011D1C4 func_m4a1_p1_8011D1C4
+#define D_m4a1_8011DEC4    D_m4a1_p1_8011DEC4
 #elif WEAPON_ID == 0x15
 #define func_m4a1_8011D1C4 func_m4a1_p2_8011D1C4
+#define D_m4a1_8011DEC4    D_m4a1_p2_8011DEC4
 #endif
 
 void func_m4a1_8011D1C4(Task* arg0);
@@ -130,8 +133,6 @@ void func_m4a1_8011D1C4(Task* arg0)
     SCRATCH_STACK_RELEASE_BYTES(0x50);
 }
 
-/* Each package carries its own model. */
-#if WEAPON_ID == 0x10
 static TmdBone _gM4a1Model006ACSkeleton[1] = {
 #include "assets/m4a1_model_006AC_skeleton.inc"
 };
@@ -163,68 +164,3 @@ TmdSource D_m4a1_8011DEC4 = {
     _gM4a1Model006ACSkeleton,
     _gM4a1Model006ACStream,
 };
-#elif WEAPON_ID == 0x14
-static TmdBone _gM4a1P1M4a1Model006ACSkeleton[1] = {
-#include "assets/m4a1_model_006AC_skeleton.inc"
-};
-
-static u32 _gM4a1P1M4a1Model006ACPartVerts[1] = {
-#include "assets/m4a1_model_006AC_partVerts.inc"
-};
-
-static SVECTOR _gM4a1P1M4a1Model006ACVerts[58] = {
-#include "assets/m4a1_model_006AC_verts.inc"
-};
-
-static SVECTOR _gM4a1P1M4a1Model006ACNormals[58] = {
-#include "assets/m4a1_model_006AC_normals.inc"
-};
-
-static u32 _gM4a1P1M4a1Model006ACStream[406] = {
-#include "assets/m4a1_model_006AC_stream.inc"
-};
-
-TmdSource D_m4a1_p1_8011DEC4 = {
-    0,
-    2940,
-    0,
-    1,
-    _gM4a1P1M4a1Model006ACPartVerts,
-    _gM4a1P1M4a1Model006ACVerts,
-    _gM4a1P1M4a1Model006ACNormals,
-    _gM4a1P1M4a1Model006ACSkeleton,
-    _gM4a1P1M4a1Model006ACStream,
-};
-#elif WEAPON_ID == 0x15
-static TmdBone _gM4a1P2M4a1Model006ACSkeleton[1] = {
-#include "assets/m4a1_model_006AC_skeleton.inc"
-};
-
-static u32 _gM4a1P2M4a1Model006ACPartVerts[1] = {
-#include "assets/m4a1_model_006AC_partVerts.inc"
-};
-
-static SVECTOR _gM4a1P2M4a1Model006ACVerts[58] = {
-#include "assets/m4a1_model_006AC_verts.inc"
-};
-
-static SVECTOR _gM4a1P2M4a1Model006ACNormals[58] = {
-#include "assets/m4a1_model_006AC_normals.inc"
-};
-
-static u32 _gM4a1P2M4a1Model006ACStream[406] = {
-#include "assets/m4a1_model_006AC_stream.inc"
-};
-
-TmdSource D_m4a1_p2_8011DEC4 = {
-    0,
-    2940,
-    0,
-    1,
-    _gM4a1P2M4a1Model006ACPartVerts,
-    _gM4a1P2M4a1Model006ACVerts,
-    _gM4a1P2M4a1Model006ACNormals,
-    _gM4a1P2M4a1Model006ACSkeleton,
-    _gM4a1P2M4a1Model006ACStream,
-};
-#endif

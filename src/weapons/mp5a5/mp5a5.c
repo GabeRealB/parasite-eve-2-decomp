@@ -50,12 +50,15 @@
 #error "WEAPON_ID is a per-package build parameter"
 #endif
 
-/* gameplay's weapon table names each package's attack handler, so each build of
- * this source gives the handler its own package's name. */
+/* gameplay's weapon table names each package's attack handler, and main each
+ * package's model, so each build of this source gives both its own package's
+ * name. */
 #if WEAPON_ID == 0x1F
 #define func_mp5a5_8011DDA4 func_mp5a5_p1_8011DDA4
+#define D_mp5a5_8011EAFC    D_mp5a5_p1_8011EAFC
 #elif WEAPON_ID == 0x20
 #define func_mp5a5_8011DDA4 func_mp5a5_p2_8011DDA4
+#define D_mp5a5_8011EAFC    D_mp5a5_p2_8011EAFC
 #endif
 
 /// Muzzle offset of the weapon, in the firing hand's coordinate frame.
@@ -197,8 +200,6 @@ void func_mp5a5_8011DDA4(Task* arg0)
     SCRATCH_STACK_RELEASE_BYTES(0x50);
 }
 
-/* Each package carries its own model. */
-#if WEAPON_ID == 0x1E
 static TmdBone _gMp5a5Model01318Skeleton[1] = {
 #include "assets/mp5a5_model_01318_skeleton.inc"
 };
@@ -230,68 +231,3 @@ TmdSource D_mp5a5_8011EAFC = {
     _gMp5a5Model01318Skeleton,
     _gMp5a5Model01318Stream,
 };
-#elif WEAPON_ID == 0x1F
-static TmdBone _gMp5a5P1Mp5a5Model01318Skeleton[1] = {
-#include "assets/mp5a5_model_01318_skeleton.inc"
-};
-
-static u32 _gMp5a5P1Mp5a5Model01318PartVerts[1] = {
-#include "assets/mp5a5_model_01318_partVerts.inc"
-};
-
-static SVECTOR _gMp5a5P1Mp5a5Model01318Verts[54] = {
-#include "assets/mp5a5_model_01318_verts.inc"
-};
-
-static SVECTOR _gMp5a5P1Mp5a5Model01318Normals[58] = {
-#include "assets/mp5a5_model_01318_normals.inc"
-};
-
-static u32 _gMp5a5P1Mp5a5Model01318Stream[393] = {
-#include "assets/mp5a5_model_01318_stream.inc"
-};
-
-TmdSource D_mp5a5_p1_8011EAFC = {
-    0,
-    2824,
-    0,
-    1,
-    _gMp5a5P1Mp5a5Model01318PartVerts,
-    _gMp5a5P1Mp5a5Model01318Verts,
-    _gMp5a5P1Mp5a5Model01318Normals,
-    _gMp5a5P1Mp5a5Model01318Skeleton,
-    _gMp5a5P1Mp5a5Model01318Stream,
-};
-#elif WEAPON_ID == 0x20
-static TmdBone _gMp5a5P2Mp5a5Model01318Skeleton[1] = {
-#include "assets/mp5a5_model_01318_skeleton.inc"
-};
-
-static u32 _gMp5a5P2Mp5a5Model01318PartVerts[1] = {
-#include "assets/mp5a5_model_01318_partVerts.inc"
-};
-
-static SVECTOR _gMp5a5P2Mp5a5Model01318Verts[54] = {
-#include "assets/mp5a5_model_01318_verts.inc"
-};
-
-static SVECTOR _gMp5a5P2Mp5a5Model01318Normals[58] = {
-#include "assets/mp5a5_model_01318_normals.inc"
-};
-
-static u32 _gMp5a5P2Mp5a5Model01318Stream[393] = {
-#include "assets/mp5a5_model_01318_stream.inc"
-};
-
-TmdSource D_mp5a5_p2_8011EAFC = {
-    0,
-    2824,
-    0,
-    1,
-    _gMp5a5P2Mp5a5Model01318PartVerts,
-    _gMp5a5P2Mp5a5Model01318Verts,
-    _gMp5a5P2Mp5a5Model01318Normals,
-    _gMp5a5P2Mp5a5Model01318Skeleton,
-    _gMp5a5P2Mp5a5Model01318Stream,
-};
-#endif
