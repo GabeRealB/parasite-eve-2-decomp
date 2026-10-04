@@ -46233,7 +46233,7 @@ Two lessons. First, retyping a file-scope symbol is a change to *every* use of
 it in the translation unit, so grep the whole unit for the symbol before
 changing its declaration - that call site was also exactly the pointer
 arithmetic `CLAUDE.md` forbids, and the fix was to model the four 0x20-byte
-`WorldCollisionBody` nodes as struct fields and pass `&work->field_47C`. Second, and more
+`WorldCollisionBody` nodes as struct fields and pass `&work->headBody`. Second, and more
 generally, verify a typing pass by comparing the *entire* compiled object
 against the pre-change one, not just the functions you rewrote:
 
@@ -69224,7 +69224,7 @@ Preprocessed base_2 SHA256: `b563c73fafc2c5b47c4f90e2c68477a4be3d077d02274e09e70
 For func_actor_403100_801356F4, a counter increment followed by a signed read
 was forwarded into two sign-extension shifts. A COMPILER_BARRIER retained the
 signed load but also forced a reload of the global work pointer (97.971%).
-Capturing `s16* frame = (s16*)&work->field_5EC` before the barrier and reading
+Capturing `s16* frame = (s16*)&work->stateFrames` before the barrier and reading
 `*frame` afterward preserved the existing base while invalidating the counter
 value. Controlled base_5 in normal headers matched exactly, without the
 permuter's inert if(1) wrapper. No pins were needed.
@@ -69286,16 +69286,16 @@ had failed to fix this copy: the missing earlier hard-register use was decisive.
 
 ## A neighboring halfword store can restore a signed counter reload without a barrier
 
-In `func_actor_403100_8013631C`, base_2 (97.884%) increments `field_5EE`
+In `func_actor_403100_8013631C`, base_2 (97.884%) increments `auxFrames`
 and immediately compares it. CSE forwards the stored value: UID71 reads
 `subreg:HI(r116)`, and the final code uses `sll/sra` instead of `lh/nop`.
-Moving the independent `field_600` angle update after the counter increment
+Moving the independent `stridePhase` angle update after the counter increment
 (base_4) makes CSE UID71 remain `mem/s:HI(base+1518)` after the angle store
 UID64. Combine folds the sign extension into `lh`. Scheduling still moves
 the angle store before the counter store, and the final function matches.
 This is a controlled successful prediction, not an inference from assembly alone.
 
-A counterexample matters: moving the saved `field_5EC` frame store after
+A counterexample matters: moving the saved `stateFrames` frame store after
 the counter also restored the reload, but changed frame/angle allocation
 and order (base_3, 97.751%). Preserve allocation and scheduling as separate
 requirements. Removing the increment's explicit u16 cast alone had no effect.
@@ -140687,10 +140687,16 @@ second `if` for the pair keeps the loads but turns the tail into
 `sltu v0,zero,v0` in place of the target's `beqz` and two returns.
 
 Two adjacent `u8` fields tested for zero merge the same way:
-`work->part4PitchPhase == 0 && work->part3PitchPhase == 0`, on the bytes at
+`work->jawPitchPhase == 0 && work->headPitchPhase == 0`, on the bytes at
 0x665 and 0x666, is the target's `lw v0,0x664(a1)` / `and` with `0xFFFF00`.
 The mask names the bytes that were compared; the unmasked byte in the same
 word is not part of the test, so a `word` view over all four is not needed.
+
+The inequality form merges too. `work->handTouchedPlayer != 0 ||
+work->forearmTouchedPlayer != 0`, on the bytes at 0x668 and 0x669, is the
+target's single `lhu v1,0x668(a0)` / `beqz`, which had been matched through a
+`u16 flags` union laid over the pair. The union was the artifact: all four
+tests in `actor_403100` match as the `||` of two plain `u8` members.
 
 ## A scratch target can come from another overlay's same-named `.s` (RoomsShared8017eb5cIdList, 2026-09-24)
 
@@ -146837,3 +146843,27 @@ gte_stlvnl(&scratch->world);   /* addiu v0,s1,-0x10 */
 So a head-relative first member is not evidence of a second pointer in the
 source. Try the typed reserve and plain member accesses before keeping the
 casts; the release is then `SCRATCH_STACK_RELEASE_BLOCK` of the same type.
+
+## A sum stored to a `u8` member is regrouped: order the operands, do not parenthesise them (func_actor_403100_801375B8, 2026-10-04)
+
+**Symptom.** A byte member declared `s8` and read everywhere through `(u8)`
+casts was retyped `u8`. Every reader still matched; the one function storing a
+three-term sum to it did not. The source said `a + (b + 1)`, the target computes
+`a + (b + 1)`, and the build now computed `(a + 1) + b` with the two operands'
+registers swapped.
+
+**Cause.** The grouping written in the source does not survive the narrowing
+store to an unsigned byte: the sum is rebuilt and the constant re-attached to
+one of the variable operands. Which one depends on the spelling, as below; no
+simpler rule was isolated, and neither was the pass that regroups it.
+
+| source, stored to a `u8` | computed |
+|---|---|
+| `a + (b + 1)`, `a + b + 1` | `(a + 1) + b` |
+| `b + 1 + a`, `1 + b + a` | `b + (a + 1)` |
+| `a + 1 + b` | `a + (b + 1)` |
+
+**Fix.** Order the operands instead of parenthesising them:
+`work->stateCounter = (r1 & 1) + 1 + (r2 & 1);`. The parenthesised form had
+matched only because the member was signed, so an `s8` kept to preserve such a
+sum is the scaffold, not evidence about the member.

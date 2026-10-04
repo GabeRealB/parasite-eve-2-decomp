@@ -117,7 +117,7 @@ STATIC_ASSERT_SIZEOF(Actor403100Entry, 0xF0);
 extern s16              D_actor_403100_80155810;
 extern Actor403100Entry D_actor_403100_80155814[28];
 
-/// Values of `Actor403100Work::part4PitchPhase` and `part3PitchPhase`.
+/// Values of `Actor403100Work::jawPitchPhase` and `headPitchPhase`.
 ///
 /// Each byte runs one kick of a model part's pitch: a quick eased swing away
 /// from the animated pose followed by a slower linear return. The two parts
@@ -130,149 +130,149 @@ enum {
     ACTOR_403100_PITCH_PHASE_RETURN = 3, // Stepping back to zero at a fixed rate
 };
 
-/// Per-actor work block for the `actor_403100` overlay.
+/// Values of `Actor403100Work::animationRequest`.
+enum {
+    ACTOR_403100_ANIMATION_REQUEST_BLEND   = 1, // Blend into `animationId` over `animationBlendFrames` frames; only retimes the slots if it is already applied
+    ACTOR_403100_ANIMATION_REQUEST_RESET   = 2, // Cut straight to the start of `animationId`
+    ACTOR_403100_ANIMATION_REQUEST_PLAYING = 3, // `animationId` has been applied and is playing
+};
+
+/// Values of `Actor403100Work::aimMode`: how the head is turned each frame.
 ///
-/// `func_actor_403100_80136610` allocates it with `memCalloc(0x678, 0)` and
-/// stores the same pointer twice: into the `Task::work` slot (0x1C), which an
-/// enemy actor reuses for its own work block, and into the overlay-wide
-/// `D_actor_403100_80155808`. It also hands `work + 0x20` and `work` to the
-/// `TmdObject` at `Task::extra` (`lightMtx` / `colorMtx`). Most of the overlay
-/// reaches it through the global rather than through the task.
-typedef struct Actor403100Work {
-    /* 0x000 */ union {
-        byte pad_0[0x80];
-        struct {
-            MATRIX color;
-            MATRIX light;
-            MATRIX coord;
-        } matrices;
-    } field_0;
-    /* 0x080 */ s16     field_80;
-    /* 0x082 */ s16     field_82; // facing angle, stepped towards field_B2
-    /* 0x084 */ s16     field_84;
-    /* 0x086 */ byte    pad_86[0x2];
-    /* 0x088 */ SVECTOR savedRotation;
-    /* 0x090 */ s16     field_90;
-    /* 0x092 */ s16     field_92;
-    /* 0x094 */ s16     field_94;
-    /* 0x096 */ byte    pad_96[2];
-    /* 0x098 */ s16     field_98;
-    /* 0x09A */ s16     field_9A;
-    /* 0x09C */ s16     field_9C;
-    /* 0x09E */ byte    pad_9E[2];
-    /* 0x0A0 */ s16     field_A0;
-    /* 0x0A2 */ s16     field_A2;
-    /* 0x0A4 */ s16     field_A4;
-    /* 0x0A6 */ byte    pad_A6[0x2];
-    /* 0x0A8 */ s16     field_A8;
-    /* 0x0AA */ s16     field_AA;
-    /* 0x0AC */ s16     field_AC;
-    /* 0x0AE */ byte    pad_AE[0x2];
-    /* 0x0B0 */ s16     field_B0;
-    /* 0x0B2 */ s16     field_B2; // target angle
-    /* 0x0B4 */ s16     field_B4; // angle offset, decayed towards 0
-    /* 0x0B6 */ byte    pad_B6[2];
-    /* 0x0B8 */ struct {
-        AnimationContext anim;
-        AnimationSlot    slots[15];
+/// The tracking modes step `headAim` toward the direction of `aimTarget` and
+/// turn the root with it, straightening the roll; a target outside the head's
+/// reach lets the pitch drop back and turns the root alone. The others let
+/// the animation have the head back.
+enum {
+    ACTOR_403100_AIM_TRACK         = 0, // Track at 8 a frame
+    ACTOR_403100_AIM_YAW_ONLY      = 1, // Track in yaw at 8 a frame; pitch and roll ease to the head's animated angles
+    ACTOR_403100_AIM_ANIMATED      = 2, // All three angles ease to the animated angles of the head and the two parts under it
+    ACTOR_403100_AIM_TRACK_FAST    = 3, // Track at 16 a frame
+    ACTOR_403100_AIM_YAW_ONLY_FAST = 4, // As `ACTOR_403100_AIM_YAW_ONLY` at 16 a frame
+    ACTOR_403100_AIM_TRACK_STEPPED = 5, // As `ACTOR_403100_AIM_TRACK_FAST`, the yaw stepping by `aimYawStep`
+};
+
+/// Work block of the Burner, the boss fought on the night motel's balcony.
+///
+/// The task allocates it zeroed and keeps it in `Task::work`; the package
+/// reaches it through one global pointer instead, so only one Burner can
+/// exist. `Task::state` selects the scripted scenes, the fight, the defeat
+/// and the teardown; within each, `state` picks a handler and `subState` the
+/// step that handler is on.
+///
+/// The model has fifteen parts. The ones this block poses on top of the
+/// animation are the head (part 3, on the trunk parts 1 and 2) with its jaw
+/// (part 4), and the long arm: upper arm (5), forearm (6), hand (7) and claw
+/// (8). During the fight the head is aimed at a point (`aimMode`), the arm is
+/// swung from the shoulder (`armPitch`, `armYaw`), and while the hand holds
+/// the player the forearm is turned and slid along the arm in strokes.
+///
+/// The bytes named `field_XX` have no access anywhere in the package; whether
+/// they are members at all is unproven.
+typedef struct {
+    MATRIX  color;                                               // Colour matrix lent to the model
+    MATRIX  light;                                               // Light matrix lent to the model
+    MATRIX  savedRootMatrix;                                     // Root coordinate's matrix, kept across the low-health sequence
+    byte    field_60[0x20];
+    SVECTOR rotation;                                            // Rotation of the root (4096 a turn); only `vy`, the heading, is applied, wrapped to 12 bits
+    SVECTOR savedRotation;                                       // `rotation`, kept across the low-health sequence
+    SVECTOR playerPosition;                                      // Translation of the player's root coordinate, sampled each fight frame
+    SVECTOR aimTarget;                                           // Point the head turns toward: `playerPosition` unless the running step replaces it
+    SVECTOR forearmTurn;                                         // Euler angles added to the forearm's animated rotation
+    SVECTOR savedForearmTurn;                                    // `forearmTurn` of the hold pose kept while the pose is run ahead
+    SVECTOR headAim;                                             // Pitch, yaw and roll of the head relative to the body, applied in Z-X-Y order in place of its animated rotation
+    struct {
+        AnimationContext anim;                                   // Context bound to `slots`, `poses` and the model coordinates
+        AnimationSlot    slots[15];                              // Playback slot of the part at the same index; slots 1 to 14 are driven
         u8               poses[15][ANIMATION_POSE_BUFFER_BYTES]; // Encoded transition pose for the slot at the same index
-    } field_B8;
-    /* 0x414 */ WorldCollisionBody    field_414;                 // collision bodies unlinked on death
-    /* 0x434 */ WorldCollisionContact initializedContacts[3];    // Three initialized results; the body binding is unproven
-    /* 0x47C */ WorldCollisionBody    field_47C;
-    /// Contact records the actor's own body collects, under `field_414`:
-    /// `func_actor_403100_8013335C` walks all eight for kind-2 hits and
-    /// `Gp_ClearRec18Occupied` empties the table each frame.
-    /* 0x49C */ WorldCollisionContact pad_49C[8];
-    /* 0x55C */ WorldCollisionBody    field_55C;
-    /// Contact records from the first attached collider (`field_55C`).
-    /* 0x57C */ WorldCollisionContact pad_57C[1];
-    /* 0x594 */ WorldCollisionBody    field_594;
-    /// Contact records from the second attached collider (`field_594`).
-    /* 0x5B4 */ WorldCollisionContact pad_5B4[1];
-    /* 0x5CC */ byte                  pad_5CC[4];
-    /* 0x5D0 */ s32                   field_5D0;
-    /* 0x5D4 */ s32                   field_5D4;
-    /* 0x5D8 */ s16                   field_5D8;
-    /* 0x5DA */ s16                   field_5DA; // animation request kind
-    /* 0x5DC */ u16                   field_5DC;
-    /* 0x5DE */ s16                   field_5DE; // animation id
-    /* 0x5E0 */ u16                   field_5E0;
-    /* 0x5E2 */ s16                   field_5E2;
-    /* 0x5E4 */ s16                   field_5E4; // frames until the next hit is taken
-    /* 0x5E6 */ s16                   field_5E6;
-    /* 0x5E8 */ s16                   field_5E8;
-    /* 0x5EA */ s16                   field_5EA;
-    /* 0x5EC */ u16                   field_5EC; // per-state frame counter
-    /* 0x5EE */ s16                   field_5EE;
-    /* 0x5F0 */ s16                   field_5F0;
-    /* 0x5F2 */ s16                   field_5F2;
-    /* 0x5F4 */ s16                   field_5F4;
-    /* 0x5F6 */ s16                   field_5F6;
-    /* 0x5F8 */ u16                   field_5F8; // state index
-    /* 0x5FA */ u16                   field_5FA; // sub-state index
-    /* 0x5FC */ s16                   field_5FC;
-    /* 0x5FE */ s16                   field_5FE;
-    /* 0x600 */ s16                   field_600;
-    /* 0x602 */ s16                   field_602;
-    /* 0x604 */ s16                   field_604;
-    /* 0x606 */ s16                   field_606;
-    /* 0x608 */ s16                   field_608;
-    /* 0x60A */ s16                   field_60A;
-    /* 0x60C */ s16                   field_60C;
-    /* 0x60E */ s16                   field_60E;
-    /* 0x610 */ s16                   field_610;
-    /* 0x612 */ s16                   field_612[3];
-    /* 0x618 */ s16                   field_618;
-    /* 0x61A */ byte                  pad_61A[0x2];
-    /* 0x61C */ s16                   field_61C;
-    /* 0x61E */ s16                   field_61E;
-    /* 0x620 */ s16                   field_620;
-    /* 0x622 */ s16                   field_622;
-    /* 0x624 */ byte                  pad_624[2];
-    /* 0x626 */ s16                   field_626;
-    /* 0x628 */ s16                   field_628;
-    /* 0x62A */ s16                   field_62A;
-    /* 0x62C */ s16                   field_62C;
-    /* 0x62E */ s16                   field_62E;
-    /* 0x630 */ s16                   field_630;
-    /* 0x632 */ s16                   field_632;
-    /* 0x634 */ u16                   previousAnimationFlags; // Slot 1's ANIMATION_SLOT_* results as the last running update's tick left them
-    /* 0x636 */ s16                   entryLifetime;          // Frames a pooled entry lives (28 or 20); also how many pool slots the update walks
-    /* 0x638 */ s16                   field_638;
-    /* 0x63A */ s16                   field_63A;
-    /* 0x63C */ union {
-        s16 regionFlags[9];
-        struct {
-            s16  field_63C;
-            s16  field_63E;
-            byte pad_640[0xE];
-        } fields;
-    } regions;
-    /* 0x64E */ byte pad_64E[6];
-    /* 0x654 */ s16  field_654;
-    /* 0x656 */ u16  field_656;
-    /* 0x658 */ s16  field_658;
-    /* 0x65A */ s16  field_65A;
-    /* 0x65C */ u8   field_65C;
-    /* 0x65D */ s8   field_65D;
-    /* 0x65E */ byte pad_65E[0x1];
-    /* 0x65F */ s8   field_65F;
-    /* 0x660 */ byte pad_660[0x4];
-    /* 0x664 */ byte pad_664[0x1];
-    /* 0x665 */ u8   part4PitchPhase; // ACTOR_403100_PITCH_PHASE_* of the kick added to model part 4's pitch
-    /* 0x666 */ u8   part3PitchPhase; // ACTOR_403100_PITCH_PHASE_* of the kick added to model part 3's pitch
-    /* 0x667 */ u8   part6StrokeDone; // 1 once model part 6 has slid to the end of its current stroke; 0 from the stroke's start
-    /* 0x668 */ union {
-        u16 flags;
-        struct {
-            s8 field_668;
-            s8 field_669;
-        } b;
-    } field_668;
-    /* 0x66A */ byte pad_66A[0x5];
-    /* 0x66F */ s8   field_66F;
-    /* 0x670 */ byte pad_670[0x8];
+    } rig;                                                       // Playback storage of the fifteen-part model
+    WorldCollisionBody    trunkBody;                             // Sphere of radius 0x800 at part 1 on list 2, receiving attacks into `hitContacts`
+    WorldCollisionContact initializedContacts[3];                // Initialized at setup and bound to no body
+    WorldCollisionBody    headBody;                              // Sphere ahead of the head on list 2, receiving attacks into `hitContacts`; radius 0x400, 0x500 while the player is held
+    WorldCollisionContact hitContacts[8];                        // Contacts of both receiving spheres, also lent to the enemy record; each frame's hits are read from them and cleared
+    WorldCollisionBody    handAttack;                            // Sphere of radius 0x3A0 on list 3 at the hand; a player contact sets `handTouchedPlayer`
+    WorldCollisionContact handContacts[1];                       // Contact of `handAttack`
+    WorldCollisionBody    forearmAttack;                         // Sphere of radius 0x3A0 on list 3 at the forearm; a player contact sets `forearmTouchedPlayer`
+    WorldCollisionContact forearmContacts[1];                    // Contact of `forearmAttack`
+    byte                  field_5CC[4];
+    s32                   fightFramesLeft;                       // Frames of the fight left (5400 at its start), counted down to -1; once negative, low health hands over to an event script instead of the low-health sequence
+    s32                   savedForearmX;                         // Forearm's X translation of the hold pose, kept while the pose is run ahead
+    s16                   defeatScale;                           // Scale of the root in the defeat sequence (4096 = 1.0)
+    s16                   animationRequest;                      // `ACTOR_403100_ANIMATION_REQUEST_*`, 0 before the first request
+    s16                   appliedAnimation;                      // Animation the slots were last started on
+    s16                   animationId;                           // Requested animation: index into the package's animation table
+    u16                   animationFrames;                       // Frames since the request was applied
+    s16                   animationRate;                         // Playback rate of slots 1 to 14; `ANIMATION_RATE_ONE` is normal speed, negative plays backwards
+    s16                   hitCooldown;                           // Frames before another hit is taken; set from the hit's id parameter 2
+    s16                   engageDelay;                           // Frames (30 from the fight's start) until the battle is flagged engaged, if the Burner still lives
+    s16                   jawPitchOffset;                        // Pitch added to the jaw's animated rotation by its kick
+    s16                   headPitchOffset;                       // Pitch added to the head by its kick
+    u16                   stateFrames;                           // Frames spent in the current step
+    s16                   auxFrames;                             // Second counter of the running step: cues played, frames since the walk clip restarted, or frames of forearm strokes
+    s16                   savedAuxFrames;                        // `auxFrames` of the hold pose, kept while the pose is run ahead
+    s16                   playerReactionStage;                   // Player's reaction to an arm hit (0 none, 1 hit clip held, 2 waiting for it to end, 3 waiting for the recovery clip)
+    s16                   playerReactionFrames;                  // Frames left of stage 1, 23 when the hit lands
+    s16                   walkStage;                             // Walk along the balcony (0 closing on the player's region, 1 finishing the stride then closing again, 4 finishing the stride then stopping, 5 stopped; 2 and 3 idle)
+    u16                   state;                                 // Index into the handler table of the current task state
+    u16                   subState;                              // Step of the current `state`, numbered separately by each
+    s16                   animationBlendFrames;                  // Frames a blend request takes; cleared when it is applied
+    s16                   shakeFrames;                           // Frames the screen still shakes vertically, harder above 15
+    s16                   stridePhase;                           // Phase of the walking stride (half a turn, 0..0x7FF, 0x20 a frame); the root bobs on its sine and a footfall sounds as it wraps
+    s16                   previousStridePhase;                   // `stridePhase` as the frame began
+    s16                   armPitch;                              // Rotation about X given the upper arm, in the root's frame
+    s16                   savedArmPitch;                         // `armPitch` of the hold pose, kept while the pose is run ahead
+    s16                   armYaw;                                // Rotation about Y given the upper arm, in the root's frame
+    s16                   savedArmYaw;                           // `armYaw` of the hold pose, kept while the pose is run ahead
+    s16                   hitColorFrames;                        // Frames until the hit tint returns to the default colour; 0 when idle
+    s16                   overlayX;                              // Screen X offset of the two foreground quads drawn while the player is held
+    s16                   overlayY;                              // Screen Y offset of the same quads
+    s16                   recentStates[3];                       // The last three attack states picked; a third of a kind in a row is swapped for another
+    s16                   sceneScale;                            // Scale of the root in the scripted scenes (4096 = 1.0)
+    byte                  field_61A[2];
+    s16                   aimMode;                               // `ACTOR_403100_AIM_*`
+    s16                   jumpAcceleration;                      // Change of `jumpSpeed` per frame, itself stepped by 4
+    s16                   jumpSpeed;                             // Height the root gains per frame of the jump
+    s16                   savedView;                             // Camera view in use when the block was set up or the low-health sequence began; restored after the latter
+    byte                  field_624[2];
+    s16                   armYawTarget;                          // Yaw the arm swings toward: the head's as the swing began, kept within -0x160..0xD0
+    s16                   playerRegion;                          // Region of the balcony the player stands in (1 to 6, 0 outside all)
+    s16                   hitReaction;                           // Reaction the last hit asks for (0 none, 1 flinch, 2 stagger, 3 build-up stun)
+    s16                   walkSpeed;                             // Distance walked per frame
+    s16                   playerDistance;                        // Horizontal distance from the root to the player
+    s16                   hitDistance;                           // Horizontal distance from the player to its own offset from the root read in the head's frame; halved into the damage roll
+    s16                   field_632;                             // Cleared as the grab begins and as the hold ends; never read, role unproven
+    u16                   previousAnimationFlags;                // Slot 1's ANIMATION_SLOT_* results as the last running update's tick left them
+    s16                   entryLifetime;                         // Frames a pooled entry lives (28 or 20); also how many pool slots the update walks
+    s16                   repromptDelay;                         // Frames until the held player is prompted for button presses again; 0 while a prompt runs
+    s16                   squeezeFrames;                         // Frames of the hold since its last damage; 180 deal the next
+    s16                   sectionDamaged[9];                     // Nonzero once the balcony section of that index has been switched to its damaged look
+    byte                  field_64E[6];
+    s16                   playerDeathFrames;                     // Frames since the held player was killed
+    s16                   holdStartHp;                           // Burner's hit points as the hold began
+    s16                   bufferReleaseDelay;                    // Frames until the model's draw buffers are freed in a scripted scene; -1 when idle
+    s16                   aimYawStep;                            // Yaw step of `ACTOR_403100_AIM_TRACK_STEPPED` (8, or 16 at low health)
+    u8                    lowHealth;                             // 1 while hit points are under 35% of the maximum
+    s8                    playerAnimationId;                     // Animation last requested of the player from the package's table; never read
+    u8                    stateCounter;                          // Scratch of the current state: arm swings left, or prompts reissued during the hold
+    u8                    releaseRequested;                      // Set by message 2014: the player finished the prompted button presses or was killed
+    u8                    promptPending;                         // Set when the held player is due a new button prompt
+    u8                    phaseChangeDone;                       // Set once the low-health sequence has played, so that it plays once
+    byte                  field_662[3];
+    u8                    jawPitchPhase;                         // ACTOR_403100_PITCH_PHASE_* of the kick added to the jaw's pitch
+    u8                    headPitchPhase;                        // ACTOR_403100_PITCH_PHASE_* of the kick added to the head's pitch
+    u8                    forearmStrokeDone;                     // 1 once the forearm has slid to the end of its current stroke; 0 from the stroke's start
+    u8                    handTouchedPlayer;                     // Latched when the claw or `handAttack` reaches the player; cleared by the step that acts on it
+    u8                    forearmTouchedPlayer;                  // Latched when the hand or `forearmAttack` reaches the player; cleared the same way
+    byte                  field_66A[2];
+    s8                    hitTaken;                              // 1 when a hit or a status tick dealt damage this frame; lets `hitReaction` be consumed
+    u8                    recentStateCursor;                     // Entry of `recentStates` the next pick overwrites
+    u8                    swingConnected;                        // Set when a swing of the arm combo has hit the player
+    u8                    jawKickSound;                          // Sound the next jaw kick plays as it starts (0 none, 1 the Burner's sound 9, 2 its sound 2 or 5 at random)
+    u8                    playerKilled;                          // Set when an attack of the grab or the hold has killed the player
+    u8                    holdingPlayer;                         // Set from the grab until the player is let go; keeps the low-health sequence from starting
+    byte                  field_672;
+    u8                    vulnerable;                            // Set while the player is held and during the low-health sequence: hits are doubled and defeat is deferred
+    byte                  field_674[4];
 } Actor403100Work;
 STATIC_ASSERT_SIZEOF(Actor403100Work, 0x678);
 
@@ -3493,10 +3493,10 @@ static __inline__ s16 Actor403100_TestFlags(void)
 
 static __inline__ s16 Actor403100_TestFlags104(void)
 {
-    if (D_actor_403100_80155808->field_B8.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
+    if (D_actor_403100_80155808->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
         return 1;
     }
-    if (D_actor_403100_80155808->field_B8.slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED)) {
+    if (D_actor_403100_80155808->rig.slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED)) {
         return 1;
     }
     return 0;
@@ -3504,13 +3504,13 @@ static __inline__ s16 Actor403100_TestFlags104(void)
 
 static __inline__ s16 Actor403100_TestFlags12C(void)
 {
-    if (D_actor_403100_80155808->field_B8.slots[2].status.fields.flags & 0x100) {
+    if (D_actor_403100_80155808->rig.slots[2].status.fields.flags & 0x100) {
         return 1;
     }
     return 0;
 }
 
-/// Per-frame hooks run before the behaviour mode, indexed by `field_5F2`.
+/// Per-frame hooks run before the behaviour mode, indexed by `playerReactionStage`.
 static const Actor403100VoidTable4 D_actor_403100_80131E24 = {
     {
         func_actor_403100_8013E16C,
@@ -3595,50 +3595,50 @@ static void func_actor_403100_80132064(Task* arg0, SVECTOR* arg1, SVECTOR* arg2,
 
 static void func_actor_403100_80132320(Task* arg0)
 {
-    D_actor_403100_80155808->field_47C.coord            = &arg0->extra.tmd->coords[3];
-    D_actor_403100_80155808->field_47C.context.contacts = D_actor_403100_80155808->pad_49C;
-    D_actor_403100_80155808->field_47C.pos.vz           = 0x300;
-    D_actor_403100_80155808->field_47C.pos.vx           = 0;
-    D_actor_403100_80155808->field_47C.pos.vy           = 0;
-    D_actor_403100_80155808->field_47C.key              = 0x3001F;
-    D_actor_403100_80155808->field_47C.radius           = 0x400;
-    D_actor_403100_80155808->field_47C.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(2, &D_actor_403100_80155808->field_47C);
-    Gp_InitRec18Table(D_actor_403100_80155808->pad_49C, 8, 0);
-    D_actor_403100_80155808->field_47C.flags           |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-    D_actor_403100_80155808->field_414.coord            = &arg0->extra.tmd->coords[1];
-    D_actor_403100_80155808->field_414.context.contacts = D_actor_403100_80155808->pad_49C;
-    D_actor_403100_80155808->field_414.pos.vx           = 0;
-    D_actor_403100_80155808->field_414.pos.vy           = 0;
-    D_actor_403100_80155808->field_414.pos.vz           = 0;
-    D_actor_403100_80155808->field_414.key              = 0x3001F;
-    D_actor_403100_80155808->field_414.radius           = 0x800;
-    D_actor_403100_80155808->field_414.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(2, &D_actor_403100_80155808->field_414);
-    Gp_InitRec18Table(D_actor_403100_80155808->initializedContacts, 3, 0);
-    D_actor_403100_80155808->field_55C.key              = 0x3001F;
-    D_actor_403100_80155808->field_414.flags           |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-    D_actor_403100_80155808->field_55C.coord            = &arg0->extra.tmd->coords[7];
-    D_actor_403100_80155808->field_55C.context.contacts = D_actor_403100_80155808->pad_57C;
-    D_actor_403100_80155808->field_55C.pos.vx           = -0x200;
-    D_actor_403100_80155808->field_55C.pos.vy           = 0;
-    D_actor_403100_80155808->field_55C.pos.vz           = 0x200;
-    D_actor_403100_80155808->field_55C.radius           = 0x3A0;
-    D_actor_403100_80155808->field_55C.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(3, &D_actor_403100_80155808->field_55C);
-    Gp_InitRec18Table(D_actor_403100_80155808->pad_57C, 1, 0);
-    D_actor_403100_80155808->field_594.key              = 0x3001F;
-    D_actor_403100_80155808->field_55C.flags           &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-    D_actor_403100_80155808->field_594.coord            = &arg0->extra.tmd->coords[6];
-    D_actor_403100_80155808->field_594.context.contacts = D_actor_403100_80155808->pad_5B4;
-    D_actor_403100_80155808->field_594.pos.vx           = -0x200;
-    D_actor_403100_80155808->field_594.pos.vy           = 0;
-    D_actor_403100_80155808->field_594.pos.vz           = 0x180;
-    D_actor_403100_80155808->field_594.radius           = 0x3A0;
-    D_actor_403100_80155808->field_594.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(3, &D_actor_403100_80155808->field_594);
-    Gp_InitRec18Table(D_actor_403100_80155808->pad_5B4, 1, 0);
-    D_actor_403100_80155808->field_594.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+    D_actor_403100_80155808->headBody.coord            = &arg0->extra.tmd->coords[3];
+    D_actor_403100_80155808->headBody.context.contacts = D_actor_403100_80155808->hitContacts;
+    D_actor_403100_80155808->headBody.pos.vz           = 0x300;
+    D_actor_403100_80155808->headBody.pos.vx           = 0;
+    D_actor_403100_80155808->headBody.pos.vy           = 0;
+    D_actor_403100_80155808->headBody.key              = 0x3001F;
+    D_actor_403100_80155808->headBody.radius           = 0x400;
+    D_actor_403100_80155808->headBody.flags            = WORLD_COLLISION_BODY_SPHERE;
+    Gp_LinkObj(2, &D_actor_403100_80155808->headBody);
+    Gp_InitRec18Table(D_actor_403100_80155808->hitContacts, ARRAY_SIZE(D_actor_403100_80155808->hitContacts), 0);
+    D_actor_403100_80155808->headBody.flags            |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+    D_actor_403100_80155808->trunkBody.coord            = &arg0->extra.tmd->coords[1];
+    D_actor_403100_80155808->trunkBody.context.contacts = D_actor_403100_80155808->hitContacts;
+    D_actor_403100_80155808->trunkBody.pos.vx           = 0;
+    D_actor_403100_80155808->trunkBody.pos.vy           = 0;
+    D_actor_403100_80155808->trunkBody.pos.vz           = 0;
+    D_actor_403100_80155808->trunkBody.key              = 0x3001F;
+    D_actor_403100_80155808->trunkBody.radius           = 0x800;
+    D_actor_403100_80155808->trunkBody.flags            = WORLD_COLLISION_BODY_SPHERE;
+    Gp_LinkObj(2, &D_actor_403100_80155808->trunkBody);
+    Gp_InitRec18Table(D_actor_403100_80155808->initializedContacts, ARRAY_SIZE(D_actor_403100_80155808->initializedContacts), 0);
+    D_actor_403100_80155808->handAttack.key              = 0x3001F;
+    D_actor_403100_80155808->trunkBody.flags            |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+    D_actor_403100_80155808->handAttack.coord            = &arg0->extra.tmd->coords[7];
+    D_actor_403100_80155808->handAttack.context.contacts = D_actor_403100_80155808->handContacts;
+    D_actor_403100_80155808->handAttack.pos.vx           = -0x200;
+    D_actor_403100_80155808->handAttack.pos.vy           = 0;
+    D_actor_403100_80155808->handAttack.pos.vz           = 0x200;
+    D_actor_403100_80155808->handAttack.radius           = 0x3A0;
+    D_actor_403100_80155808->handAttack.flags            = WORLD_COLLISION_BODY_SPHERE;
+    Gp_LinkObj(3, &D_actor_403100_80155808->handAttack);
+    Gp_InitRec18Table(D_actor_403100_80155808->handContacts, ARRAY_SIZE(D_actor_403100_80155808->handContacts), 0);
+    D_actor_403100_80155808->forearmAttack.key              = 0x3001F;
+    D_actor_403100_80155808->handAttack.flags              &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+    D_actor_403100_80155808->forearmAttack.coord            = &arg0->extra.tmd->coords[6];
+    D_actor_403100_80155808->forearmAttack.context.contacts = D_actor_403100_80155808->forearmContacts;
+    D_actor_403100_80155808->forearmAttack.pos.vx           = -0x200;
+    D_actor_403100_80155808->forearmAttack.pos.vy           = 0;
+    D_actor_403100_80155808->forearmAttack.pos.vz           = 0x180;
+    D_actor_403100_80155808->forearmAttack.radius           = 0x3A0;
+    D_actor_403100_80155808->forearmAttack.flags            = WORLD_COLLISION_BODY_SPHERE;
+    Gp_LinkObj(3, &D_actor_403100_80155808->forearmAttack);
+    Gp_InitRec18Table(D_actor_403100_80155808->forearmContacts, ARRAY_SIZE(D_actor_403100_80155808->forearmContacts), 0);
+    D_actor_403100_80155808->forearmAttack.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
 }
 static void func_actor_403100_80132528(Task* arg0)
 {
@@ -3648,19 +3648,19 @@ static void func_actor_403100_80132528(Task* arg0)
     GameActor* player;
     GfxCoord*  joint;
     GfxCoord*  playerCoord;
-    s32        angle;
+    s32        rate;
     s32        anim;
-    u16        savedAngle;
+    u16        savedRate;
     GfxCoord*  coords;
 
-    anim                               = D_actor_403100_80155808->field_5DE;
-    playerCoord                        = (*gPlayerActorTasks)->extra.tmd->coords;
-    coords                             = arg0->extra.tmd->coords;
-    player                             = (*gPlayerActorTasks)->work;
-    angle                              = D_actor_403100_80155808->field_5E2;
-    savedAngle                         = (u16)D_actor_403100_80155808->field_5E2;
-    D_actor_403100_80155808->field_5E2 = angle * 2;
-    func_actor_403100_8013E02C(anim, D_actor_403100_80155808->field_5E2, 0);
+    anim                                   = D_actor_403100_80155808->animationId;
+    playerCoord                            = (*gPlayerActorTasks)->extra.tmd->coords;
+    coords                                 = arg0->extra.tmd->coords;
+    player                                 = (*gPlayerActorTasks)->work;
+    rate                                   = D_actor_403100_80155808->animationRate;
+    savedRate                              = (u16)D_actor_403100_80155808->animationRate;
+    D_actor_403100_80155808->animationRate = rate * 2;
+    func_actor_403100_8013E02C(anim, D_actor_403100_80155808->animationRate, 0);
     func_actor_403100_801327CC(arg0);
     func_actor_403100_801328DC(arg0);
     func_actor_403100_8013D770(arg0);
@@ -3684,49 +3684,49 @@ static void func_actor_403100_80132528(Task* arg0)
     playerCoord->coord.t[2]   = pos.vz;
     playerCoord->composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(playerCoord);
-    D_actor_403100_80155808->field_5E2 = (-angle) << 1;
-    func_actor_403100_8013E02C(D_actor_403100_80155808->field_5DE, D_actor_403100_80155808->field_5E2, 0);
+    D_actor_403100_80155808->animationRate = (-rate) << 1;
+    func_actor_403100_8013E02C(D_actor_403100_80155808->animationId, D_actor_403100_80155808->animationRate, 0);
     func_actor_403100_801327CC(arg0);
-    D_actor_403100_80155808->field_5E2 = (s16)savedAngle;
-    func_actor_403100_8013E02C(D_actor_403100_80155808->field_5DE, angle, 0);
+    D_actor_403100_80155808->animationRate = (s16)savedRate;
+    func_actor_403100_8013E02C(D_actor_403100_80155808->animationId, rate, 0);
 }
 static void func_actor_403100_801326DC(Actor403100Work* work)
 {
     s32 i;
 
-    if ((s16)D_actor_403100_80155808->field_5DC == D_actor_403100_80155808->field_5DE) {
-        for (i = 1; i < 15; i++) {
-            D_actor_403100_80155808->field_B8.slots[i].rate = D_actor_403100_80155808->field_5E2;
+    if (D_actor_403100_80155808->appliedAnimation == D_actor_403100_80155808->animationId) {
+        for (i = 1; i < ARRAY_SIZE(D_actor_403100_80155808->rig.slots); i++) {
+            D_actor_403100_80155808->rig.slots[i].rate = D_actor_403100_80155808->animationRate;
         }
     } else {
-        for (i = 1; i < 15; i++) {
-            D_actor_403100_80155808->field_B8.slots[i].rate = D_actor_403100_80155808->field_5E2;
-            animationSeekSlotWithBlend(&D_actor_403100_80155808->field_B8.anim, i, D_actor_403100_80155808->field_5DE, 0, D_actor_403100_80155808->field_5FC);
+        for (i = 1; i < ARRAY_SIZE(D_actor_403100_80155808->rig.slots); i++) {
+            D_actor_403100_80155808->rig.slots[i].rate = D_actor_403100_80155808->animationRate;
+            animationSeekSlotWithBlend(&D_actor_403100_80155808->rig.anim, i, D_actor_403100_80155808->animationId, 0, D_actor_403100_80155808->animationBlendFrames);
         }
-        D_actor_403100_80155808->field_5FC = 0;
+        D_actor_403100_80155808->animationBlendFrames = 0;
     }
-    D_actor_403100_80155808->field_5DC = D_actor_403100_80155808->field_5DE;
+    D_actor_403100_80155808->appliedAnimation = D_actor_403100_80155808->animationId;
 }
 static void func_actor_403100_801327CC()
 {
     s32 i;
-    if (D_actor_403100_80155808->field_5DA == 1) {
+    if (D_actor_403100_80155808->animationRequest == ACTOR_403100_ANIMATION_REQUEST_BLEND) {
         func_actor_403100_801326DC(D_actor_403100_80155808);
-        D_actor_403100_80155808->field_5DA = 3;
-        D_actor_403100_80155808->field_5E0 = 0;
-    } else if (D_actor_403100_80155808->field_5DA == 2) {
-        for (i = 1; i < 15; i++) {
-            animationResetSlot(&D_actor_403100_80155808->field_B8.anim, i, D_actor_403100_80155808->field_5DE);
-            D_actor_403100_80155808->field_B8.slots[i].rate = D_actor_403100_80155808->field_5E2;
+        D_actor_403100_80155808->animationRequest = ACTOR_403100_ANIMATION_REQUEST_PLAYING;
+        D_actor_403100_80155808->animationFrames  = 0;
+    } else if (D_actor_403100_80155808->animationRequest == ACTOR_403100_ANIMATION_REQUEST_RESET) {
+        for (i = 1; i < ARRAY_SIZE(D_actor_403100_80155808->rig.slots); i++) {
+            animationResetSlot(&D_actor_403100_80155808->rig.anim, i, D_actor_403100_80155808->animationId);
+            D_actor_403100_80155808->rig.slots[i].rate = D_actor_403100_80155808->animationRate;
         }
-        D_actor_403100_80155808->field_5DA = 3;
-        D_actor_403100_80155808->field_5E0 = 0;
-        D_actor_403100_80155808->field_5DC = D_actor_403100_80155808->field_5DE;
-    } else if (D_actor_403100_80155808->field_5DA == 3) {
-        D_actor_403100_80155808->field_5E0 += 1;
+        D_actor_403100_80155808->animationRequest = ACTOR_403100_ANIMATION_REQUEST_PLAYING;
+        D_actor_403100_80155808->animationFrames  = 0;
+        D_actor_403100_80155808->appliedAnimation = D_actor_403100_80155808->animationId;
+    } else if (D_actor_403100_80155808->animationRequest == ACTOR_403100_ANIMATION_REQUEST_PLAYING) {
+        D_actor_403100_80155808->animationFrames += 1;
     }
-    for (i = 1; i < 15; i++) {
-        animationTickSlot(&D_actor_403100_80155808->field_B8.anim, i);
+    for (i = 1; i < ARRAY_SIZE(D_actor_403100_80155808->rig.slots); i++) {
+        animationTickSlot(&D_actor_403100_80155808->rig.anim, i);
     }
 }
 static void func_actor_403100_801328DC(Task* arg0)
@@ -3741,8 +3741,8 @@ static void func_actor_403100_801328DC(Task* arg0)
     rotation                                                                   = *(MATRIX**)PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET);
     joint                                                                      = &root[5];
     Actor403100_AccumulateRotation(joint, rotation, root);
-    RotMatrixX(D_actor_403100_80155808->field_604, rotation);
-    RotMatrixY(D_actor_403100_80155808->field_608, rotation);
+    RotMatrixX(D_actor_403100_80155808->armPitch, rotation);
+    RotMatrixY(D_actor_403100_80155808->armYaw, rotation);
     Actor403100_LocalizeRotation(joint, rotation, root);
     dest                = &joint->coord;
     dest->m[0][0]       = rotation->m[0][0];
@@ -3885,26 +3885,26 @@ static void func_actor_403100_801331D4(Task* arg0)
     coords = arg0->extra.tmd->coords;
     joint  = &coords[3];
     if (*gPlayerActorTasks != NULL) {
-        playerCoord                        = (*gPlayerActorTasks)->extra.tmd->coords;
-        D_actor_403100_80155808->field_90  = (u16)playerCoord->coord.t[0];
-        D_actor_403100_80155808->field_92  = (u16)playerCoord->coord.t[1];
-        D_actor_403100_80155808->field_94  = (u16)playerCoord->coord.t[2];
-        D_actor_403100_80155808->field_98  = (u16)playerCoord->coord.t[0];
-        D_actor_403100_80155808->field_9A  = (u16)playerCoord->coord.t[1];
-        D_actor_403100_80155808->field_9C  = (u16)playerCoord->coord.t[2];
-        dx                                 = (u16)playerCoord->coord.t[0] - (u16)coords->coord.t[0];
-        pos.vx                             = dx;
-        pos.vy                             = (u16)playerCoord->coord.t[1] - (u16)coords->coord.t[1];
-        dz                                 = (u16)playerCoord->coord.t[2] - (u16)coords->coord.t[2];
-        pos.vz                             = dz;
-        D_actor_403100_80155808->field_62E = SquareRoot0((dx * dx) + (dz * dz));
+        playerCoord                                = (*gPlayerActorTasks)->extra.tmd->coords;
+        D_actor_403100_80155808->playerPosition.vx = (u16)playerCoord->coord.t[0];
+        D_actor_403100_80155808->playerPosition.vy = (u16)playerCoord->coord.t[1];
+        D_actor_403100_80155808->playerPosition.vz = (u16)playerCoord->coord.t[2];
+        D_actor_403100_80155808->aimTarget.vx      = (u16)playerCoord->coord.t[0];
+        D_actor_403100_80155808->aimTarget.vy      = (u16)playerCoord->coord.t[1];
+        D_actor_403100_80155808->aimTarget.vz      = (u16)playerCoord->coord.t[2];
+        dx                                         = (u16)playerCoord->coord.t[0] - (u16)coords->coord.t[0];
+        pos.vx                                     = dx;
+        pos.vy                                     = (u16)playerCoord->coord.t[1] - (u16)coords->coord.t[1];
+        dz                                         = (u16)playerCoord->coord.t[2] - (u16)coords->coord.t[2];
+        pos.vz                                     = dz;
+        D_actor_403100_80155808->playerDistance    = SquareRoot0((dx * dx) + (dz * dz));
         coordLocalToWorld(joint, &pos);
-        dx2                                = (u16)playerCoord->coord.t[0] - (u16)pos.vx;
-        pos.vx                             = dx2;
-        pos.vy                             = (u16)playerCoord->coord.t[1] - pos.vy;
-        dz2                                = (u16)playerCoord->coord.t[2] - (u16)pos.vz;
-        pos.vz                             = dz2;
-        D_actor_403100_80155808->field_630 = SquareRoot0((dx2 * dx2) + (dz2 * dz2));
+        dx2                                  = (u16)playerCoord->coord.t[0] - (u16)pos.vx;
+        pos.vx                               = dx2;
+        pos.vy                               = (u16)playerCoord->coord.t[1] - pos.vy;
+        dz2                                  = (u16)playerCoord->coord.t[2] - (u16)pos.vz;
+        pos.vz                               = dz2;
+        D_actor_403100_80155808->hitDistance = SquareRoot0((dx2 * dx2) + (dz2 * dz2));
     }
 }
 static void func_actor_403100_8013335C(Task* arg0)
@@ -3919,22 +3919,22 @@ static void func_actor_403100_8013335C(Task* arg0)
     u32 kind;
     s32 expired;
 
-    effectKind                          = 0;
-    D_actor_403100_80155808->pad_66A[2] = 0;
-    i                                   = 0;
-    for (; i < 8; i++) {
-        hitId = D_actor_403100_80155808->pad_49C[i].key.value;
+    effectKind                        = 0;
+    D_actor_403100_80155808->hitTaken = 0;
+    i                                 = 0;
+    for (; i < ARRAY_SIZE(D_actor_403100_80155808->hitContacts); i++) {
+        hitId = D_actor_403100_80155808->hitContacts[i].key.value;
         if ((hitId & 0xFFFF0000) == 0x20000) {
-            if (D_actor_403100_80155808->field_5E4 == 0) {
-                D_actor_403100_80155808->pad_66A[2] = 1;
-                damage                              = Gp_ComputeDamage(D_actor_403100_80155808->pad_49C[i].key.value, D_actor_403100_80155808->field_630 / 2, 0, 0);
-                scaledDamage                        = damage;
-                D_actor_403100_80155808->field_5E4  = Gp_GetIdParam2(D_actor_403100_80155808->pad_49C[i].key.value);
-                if (Gp_RollEnemyChance(D_actor_403100_8015580C, D_actor_403100_80155808->pad_49C[i].key.value, 0) != 0) {
+            if (D_actor_403100_80155808->hitCooldown == 0) {
+                D_actor_403100_80155808->hitTaken    = 1;
+                damage                               = Gp_ComputeDamage(D_actor_403100_80155808->hitContacts[i].key.value, D_actor_403100_80155808->hitDistance / 2, 0, 0);
+                scaledDamage                         = damage;
+                D_actor_403100_80155808->hitCooldown = Gp_GetIdParam2(D_actor_403100_80155808->hitContacts[i].key.value);
+                if (Gp_RollEnemyChance(D_actor_403100_8015580C, D_actor_403100_80155808->hitContacts[i].key.value, 0) != 0) {
                     scaledDamage = damage * 4;
                     effectKind   = 1;
                 }
-                if ((u8)D_actor_403100_80155808->pad_670[3] != 0) {
+                if (D_actor_403100_80155808->vulnerable != 0) {
                     effectKind   = 2;
                     scaledDamage = scaledDamage * 2;
                 }
@@ -3950,7 +3950,7 @@ static void func_actor_403100_8013335C(Task* arg0)
             effect2:
                 Gp_SpawnEff(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[4], 3, 0);
             effect_end:
-                func_800E2C78(D_actor_403100_8015580C, D_actor_403100_80155808->pad_49C[i].key.value, scaledDamage, 0);
+                func_800E2C78(D_actor_403100_8015580C, D_actor_403100_80155808->hitContacts[i].key.value, scaledDamage, 0);
                 func_800DA6E8(&D_actor_403100_8015580C->node, scaledDamage, 0);
                 do {
                     hp                          = (u16)D_actor_403100_8015580C->hp - scaledDamage;
@@ -3958,9 +3958,9 @@ static void func_actor_403100_8013335C(Task* arg0)
                     if ((s16)hp < 0) {
                         D_actor_403100_8015580C->hp = 0U;
                     }
-                    func_800FDB18(Gp_GetIdParam1(D_actor_403100_80155808->pad_49C[i].key.value) & 0xFFFF, &arg0->extra.tmd->coords[4], 0, &D_actor_403100_80155630);
-                    D_actor_403100_80155808->field_62A = 1;
-                    kind                               = Gp_GetIdParam0(D_actor_403100_80155808->pad_49C[i].key.value) & 0xFFFF;
+                    func_800FDB18(Gp_GetIdParam1(D_actor_403100_80155808->hitContacts[i].key.value) & 0xFFFF, &arg0->extra.tmd->coords[4], 0, &D_actor_403100_80155630);
+                    D_actor_403100_80155808->hitReaction = 1;
+                    kind                                 = Gp_GetIdParam0(D_actor_403100_80155808->hitContacts[i].key.value) & 0xFFFF;
                 } while (0);
                 switch (kind) {
                     case 0:
@@ -3969,50 +3969,50 @@ static void func_actor_403100_8013335C(Task* arg0)
                         Gp_SetObjFlag1(D_actor_403100_8015580C);
                         break;
                     case 2:
-                        Gp_SetObjFlag2(D_actor_403100_8015580C, D_actor_403100_80155808->pad_49C[i].key.value, 0);
+                        Gp_SetObjFlag2(D_actor_403100_8015580C, D_actor_403100_80155808->hitContacts[i].key.value, 0);
                         break;
                     case 3:
-                        Gp_SetObjFlag4(D_actor_403100_8015580C, D_actor_403100_80155808->pad_49C[i].key.value, 0);
+                        Gp_SetObjFlag4(D_actor_403100_8015580C, D_actor_403100_80155808->hitContacts[i].key.value, 0);
                         break;
                     case 4:
-                        D_actor_403100_80155808->field_62A = 1;
+                        D_actor_403100_80155808->hitReaction = 1;
                         break;
                     case 5:
-                        D_actor_403100_80155808->field_62A = 1;
+                        D_actor_403100_80155808->hitReaction = 1;
                         break;
                     case 6:
-                        D_actor_403100_80155808->field_62A = 1;
+                        D_actor_403100_80155808->hitReaction = 1;
                         break;
                     case 7:
-                        D_actor_403100_80155808->field_62A = 1;
+                        D_actor_403100_80155808->hitReaction = 1;
                         break;
                     case 8:
-                        D_actor_403100_80155808->field_62A  = 0;
-                        D_actor_403100_80155808->pad_66A[2] = 0;
+                        D_actor_403100_80155808->hitReaction = 0;
+                        D_actor_403100_80155808->hitTaken    = 0;
                         break;
                     case 9:
-                        D_actor_403100_80155808->field_62A = 2;
+                        D_actor_403100_80155808->hitReaction = 2;
                         break;
                 }
-                if (D_actor_403100_80155808->field_62A != 0) {
-                    D_actor_403100_80155808->field_60C = 0x10;
+                if (D_actor_403100_80155808->hitReaction != 0) {
+                    D_actor_403100_80155808->hitColorFrames = 0x10;
                     Gp_SetLightMode(arg0->spawnArg2.pointer, ENEMY_COLOR_WEIGHTED);
                 }
             } else if ((Gp_GetIdParam1(hitId) & 0xFFFF) == 0xD) {
                 func_800FDB18(0xD, &arg0->extra.tmd->coords[4], 0, &D_actor_403100_80155630);
             }
         }
-        if (D_actor_403100_80155808->pad_66A[2] != 0)
+        if (D_actor_403100_80155808->hitTaken != 0)
             break;
     }
     if (D_actor_403100_8015580C->reactionFlags & ENEMY_REACTION_STAGGER) {
         D_actor_403100_8015580C->reactionFlags &= ~ENEMY_REACTION_STAGGER;
-        D_actor_403100_80155808->field_62A      = 2;
+        D_actor_403100_80155808->hitReaction    = 2;
     }
     if (D_actor_403100_8015580C->reactionFlags & ENEMY_REACTION_BUILDUP) {
         D_actor_403100_8015580C->reactionFlags &= ~ENEMY_REACTION_BUILDUP;
-        D_actor_403100_80155808->field_60C      = 0x5A;
-        D_actor_403100_80155808->field_62A      = 3;
+        D_actor_403100_80155808->hitColorFrames = 0x5A;
+        D_actor_403100_80155808->hitReaction    = 3;
     }
     if (D_actor_403100_8015580C->reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME_BITS) {
         tickDamage = (u32)Gp_TickObjFlag4(D_actor_403100_8015580C) >> 2;
@@ -4022,36 +4022,36 @@ static void func_actor_403100_8013335C(Task* arg0)
             if ((s16)D_actor_403100_8015580C->hp < 0) {
                 D_actor_403100_8015580C->hp = 0U;
             }
-            D_actor_403100_80155808->pad_66A[2] = 1;
-            D_actor_403100_80155808->field_62A  = 2;
+            D_actor_403100_80155808->hitTaken    = 1;
+            D_actor_403100_80155808->hitReaction = 2;
         }
         expired = Gp_ObjFlag4Expired(D_actor_403100_8015580C);
         if (expired != 0) {
             D_actor_403100_8015580C->reactionFlags = (u8)(D_actor_403100_8015580C->reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME_CLEAR);
         }
     }
-    if (Gp_FindRec18(D_actor_403100_80155808->field_55C.context.contacts, 0) != 0) {
-        for (i = 0; i < 1; i++) {
-            if ((D_actor_403100_80155808->pad_57C[i].key.value & 0xFFFF0000) == 0x10000) {
-                D_actor_403100_80155808->field_668.b.field_668 = 1;
+    if (Gp_FindRec18(D_actor_403100_80155808->handAttack.context.contacts, 0) != 0) {
+        for (i = 0; i < ARRAY_SIZE(D_actor_403100_80155808->handContacts); i++) {
+            if ((D_actor_403100_80155808->handContacts[i].key.value & 0xFFFF0000) == 0x10000) {
+                D_actor_403100_80155808->handTouchedPlayer = 1;
             }
         }
     }
-    if (Gp_FindRec18(D_actor_403100_80155808->field_594.context.contacts, 0) != 0) {
-        for (i = 0; i < 1; i++) {
-            if ((D_actor_403100_80155808->pad_5B4[i].key.value & 0xFFFF0000) == 0x10000) {
-                D_actor_403100_80155808->field_668.b.field_669 = 1;
+    if (Gp_FindRec18(D_actor_403100_80155808->forearmAttack.context.contacts, 0) != 0) {
+        for (i = 0; i < ARRAY_SIZE(D_actor_403100_80155808->forearmContacts); i++) {
+            if ((D_actor_403100_80155808->forearmContacts[i].key.value & 0xFFFF0000) == 0x10000) {
+                D_actor_403100_80155808->forearmTouchedPlayer = 1;
             }
         }
     }
-    Gp_ClearRec18Occupied(D_actor_403100_80155808->pad_57C);
-    Gp_ClearRec18Occupied(D_actor_403100_80155808->pad_5B4);
-    Gp_ClearRec18Occupied(D_actor_403100_80155808->pad_49C);
-    if (D_actor_403100_80155808->field_5E4 > 0) {
-        D_actor_403100_80155808->field_5E4 = (s16)((u16)D_actor_403100_80155808->field_5E4 - 1);
+    Gp_ClearRec18Occupied(D_actor_403100_80155808->handContacts);
+    Gp_ClearRec18Occupied(D_actor_403100_80155808->forearmContacts);
+    Gp_ClearRec18Occupied(D_actor_403100_80155808->hitContacts);
+    if (D_actor_403100_80155808->hitCooldown > 0) {
+        D_actor_403100_80155808->hitCooldown = (s16)((u16)D_actor_403100_80155808->hitCooldown - 1);
         return;
     }
-    D_actor_403100_80155808->field_5E4 = 0;
+    D_actor_403100_80155808->hitCooldown = 0;
 }
 
 static s32 func_actor_403100_80133928(void)
@@ -4059,36 +4059,36 @@ static s32 func_actor_403100_80133928(void)
     s16 state;
     s8  mode;
 
-    mode = D_actor_403100_80155808->pad_66A[2];
+    mode = D_actor_403100_80155808->hitTaken;
     if (mode == 1) {
-        state = D_actor_403100_80155808->field_62A;
+        state = D_actor_403100_80155808->hitReaction;
         if (state == mode) {
-            D_actor_403100_80155808->field_62A = 0;
+            D_actor_403100_80155808->hitReaction = 0;
             func_actor_403100_8013D24C();
             return 0;
         }
         if (state == 2) {
             SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 0xA);
             func_actor_403100_8013D24C();
-            D_actor_403100_80155808->field_62A = 0;
-            D_actor_403100_80155808->field_5F8 = 8;
-            D_actor_403100_80155808->field_5FA = 0;
+            D_actor_403100_80155808->hitReaction = 0;
+            D_actor_403100_80155808->state       = 8;
+            D_actor_403100_80155808->subState    = 0;
             return 1;
         }
         if (state == 3) {
             SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 0xA);
             func_actor_403100_8013D24C();
-            D_actor_403100_80155808->field_62A = 0;
-            D_actor_403100_80155808->field_5F8 = 0xA;
-            D_actor_403100_80155808->field_5FA = 0;
+            D_actor_403100_80155808->hitReaction = 0;
+            D_actor_403100_80155808->state       = 0xA;
+            D_actor_403100_80155808->subState    = 0;
             return 1;
         }
-        D_actor_403100_80155808->field_62A = 0;
+        D_actor_403100_80155808->hitReaction = 0;
         return 0;
     }
     return 0;
 }
-/// Wraps the root yaw `field_82` to 12 bits and replaces the rotation of the
+/// Wraps the root yaw `rotation.vy` to 12 bits and replaces the rotation of the
 /// root coordinate with the one `RotMatrixY` builds from it.
 static inline void _actor403100SetRootYaw(Task* task)
 {
@@ -4096,10 +4096,10 @@ static inline void _actor403100SetRootYaw(Task* task)
     MATRIX*   dest;
     GfxCoord* coords;
 
-    coords                            = task->extra.tmd->coords;
-    D_actor_403100_80155808->field_82 = (s32)((u16)D_actor_403100_80155808->field_82 << 20) >> 20;
+    coords                               = task->extra.tmd->coords;
+    D_actor_403100_80155808->rotation.vy = (s32)((u16)D_actor_403100_80155808->rotation.vy << 20) >> 20;
     gfxSetRotIdentity(&rotation);
-    RotMatrixY(D_actor_403100_80155808->field_82, &rotation);
+    RotMatrixY(D_actor_403100_80155808->rotation.vy, &rotation);
     dest                 = &coords->coord;
     dest->m[0][0]        = rotation.m[0][0];
     dest->m[0][1]        = rotation.m[0][1];
@@ -4159,10 +4159,10 @@ static void func_actor_403100_801339EC(Task* arg0)
     s32       flash;
     s32       brightness;
 
-    handlers[(s16)D_actor_403100_80155808->field_5F8](arg0);
+    handlers[(s16)D_actor_403100_80155808->state](arg0);
     func_actor_403100_801327CC(arg0);
     _actor403100SetRootYaw(arg0);
-    _actor403100ScaleRoot(arg0, D_actor_403100_80155808->field_5D8);
+    _actor403100ScaleRoot(arg0, D_actor_403100_80155808->defeatScale);
     func_actor_403100_801328DC(arg0);
     coords                 = arg0->extra.tmd->coords;
     coords[8].composeStamp = GRAPHICS_COORD_DIRTY;
@@ -4179,7 +4179,7 @@ static void func_actor_403100_801339EC(Task* arg0)
     Gp_UpdateCoord(&coords[8]);
     Gp_UpdateCoord(side);
     _actor403100UpdateColor(arg0, center);
-    flash = D_actor_403100_80155808->field_5FE;
+    flash = D_actor_403100_80155808->shakeFrames;
     if (flash != 0) {
         if (flash >= 16) {
             brightness = rsin(gDisplayState.animFrame << 9) << 13;
@@ -4187,7 +4187,7 @@ static void func_actor_403100_801339EC(Task* arg0)
             brightness = rsin(gDisplayState.animFrame << 9) << 12;
         }
         displaySetShakeY((s8)(brightness >> 24));
-        D_actor_403100_80155808->field_5FE = (u16)D_actor_403100_80155808->field_5FE - 1;
+        D_actor_403100_80155808->shakeFrames = (u16)D_actor_403100_80155808->shakeFrames - 1;
     } else {
         displaySetShakeY(0);
     }
@@ -4206,43 +4206,43 @@ static void func_actor_403100_80133C94(Task* task)
         }
     }
     SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 1);
-    D_actor_403100_80155808->field_5FC  = 0x20;
-    D_actor_403100_80155808->field_5E2  = 0x10;
-    D_actor_403100_80155808->field_5DE  = 0x11;
-    D_actor_403100_80155808->field_5DA  = 1;
-    D_actor_403100_80155808->field_5D8  = 0x1400;
-    D_actor_403100_80155808->field_5EC  = 0;
-    D_actor_403100_80155808->field_604  = 0;
-    D_actor_403100_80155808->field_608  = 0;
-    D_actor_403100_80155808->field_5F8 += 1;
+    D_actor_403100_80155808->animationBlendFrames = 0x20;
+    D_actor_403100_80155808->animationRate        = ANIMATION_RATE_ONE;
+    D_actor_403100_80155808->animationId          = 0x11;
+    D_actor_403100_80155808->animationRequest     = ACTOR_403100_ANIMATION_REQUEST_BLEND;
+    D_actor_403100_80155808->defeatScale          = 0x1400;
+    D_actor_403100_80155808->stateFrames          = 0;
+    D_actor_403100_80155808->armPitch             = 0;
+    D_actor_403100_80155808->armYaw               = 0;
+    D_actor_403100_80155808->state               += 1;
 }
 static void func_actor_403100_80133D88(Task* arg0)
 {
     GfxCoord* coord;
     u16       frame;
 
-    coord                              = arg0->extra.tmd->coords;
-    frame                              = D_actor_403100_80155808->field_5EC + 1;
-    D_actor_403100_80155808->field_5EC = frame;
+    coord                                = arg0->extra.tmd->coords;
+    frame                                = D_actor_403100_80155808->stateFrames + 1;
+    D_actor_403100_80155808->stateFrames = frame;
     if ((s16)frame >= 0xA0) {
         coord->coord.t[1] += 0xA;
     }
-    if ((s16)D_actor_403100_80155808->field_5EC >= 0x82) {
+    if ((s16)D_actor_403100_80155808->stateFrames >= 0x82) {
         func_actor_403100_801345E0(arg0, arg0);
     }
-    if ((s16)D_actor_403100_80155808->field_5EC == 0x12C) {
-        D_actor_403100_80155808->field_5D8 = 0x1600;
-        coord->coord.t[0]                  = -0xA28;
-        D_actor_403100_80155808->field_5E2 = 0x10;
-        D_actor_403100_80155808->field_5DE = 0xC;
-        D_actor_403100_80155808->field_5DA = 2;
-        coord->coord.t[1]                  = 0x1390;
-        coord->coord.t[2]                  = 0x1130;
-        D_actor_403100_80155808->field_82  = -0x6B0;
-        D_actor_403100_80155808->field_604 = -0x140;
-        D_actor_403100_80155808->field_608 = -0x100;
-        D_actor_403100_80155808->field_5EC = 0;
-        D_actor_403100_80155808->field_5F8 = D_actor_403100_80155808->field_5F8 + 1;
+    if ((s16)D_actor_403100_80155808->stateFrames == 0x12C) {
+        D_actor_403100_80155808->defeatScale      = 0x1600;
+        coord->coord.t[0]                         = -0xA28;
+        D_actor_403100_80155808->animationRate    = ANIMATION_RATE_ONE;
+        D_actor_403100_80155808->animationId      = 0xC;
+        D_actor_403100_80155808->animationRequest = ACTOR_403100_ANIMATION_REQUEST_RESET;
+        coord->coord.t[1]                         = 0x1390;
+        coord->coord.t[2]                         = 0x1130;
+        D_actor_403100_80155808->rotation.vy      = -0x6B0;
+        D_actor_403100_80155808->armPitch         = -0x140;
+        D_actor_403100_80155808->armYaw           = -0x100;
+        D_actor_403100_80155808->stateFrames      = 0;
+        D_actor_403100_80155808->state            = D_actor_403100_80155808->state + 1;
     }
 }
 
@@ -4263,32 +4263,32 @@ static void func_actor_403100_80133E88(Task* arg0)
     s16       frame;
     GfxCoord* rootCoord;
 
-    rootCoord                           = arg0->extra.tmd->coords;
-    D_actor_403100_80155808->field_604 -= 2;
-    rootCoord->composeStamp             = GRAPHICS_COORD_DIRTY;
-    rootCoord->coord.t[1]              += 0xC;
-    if ((D_actor_403100_80155808->field_5EC & 0x7F) == 0x28) {
+    rootCoord                          = arg0->extra.tmd->coords;
+    D_actor_403100_80155808->armPitch -= 2;
+    rootCoord->composeStamp            = GRAPHICS_COORD_DIRTY;
+    rootCoord->coord.t[1]             += 0xC;
+    if ((D_actor_403100_80155808->stateFrames & 0x7F) == 0x28) {
         task = Task_SpawnFromTable(D_actor_403100_8015560C, 1, 0, 0);
         if (task != NULL) {
             coord = task->extra.tmd->coords;
             _actor403100PlaceSpawned(coord, 0);
         }
     }
-    if ((D_actor_403100_80155808->field_5EC & 0x3F) == 0x20) {
+    if ((D_actor_403100_80155808->stateFrames & 0x3F) == 0x20) {
         task = Task_SpawnFromTable(D_actor_403100_8015560C, 1, 0, 0);
         if (task != NULL) {
             coord = task->extra.tmd->coords;
             _actor403100PlaceSpawned(coord, 1);
         }
     }
-    if ((D_actor_403100_80155808->field_5EC & 0x7F) == 8) {
+    if ((D_actor_403100_80155808->stateFrames & 0x7F) == 8) {
         task = Task_SpawnFromTable(D_actor_403100_8015560C, 1, 0, 0);
         if (task != NULL) {
             coord = task->extra.tmd->coords;
             _actor403100PlaceSpawned(coord, 2);
         }
     }
-    if ((s16)D_actor_403100_80155808->field_5EC == 2) {
+    if ((s16)D_actor_403100_80155808->stateFrames == 2) {
         task = Task_SpawnFromTable(D_actor_403100_8015560C, 1, 0, 0);
         if (task != NULL) {
             coord = task->extra.tmd->coords;
@@ -4301,7 +4301,7 @@ static void func_actor_403100_80133E88(Task* arg0)
             Gp_SpawnEff(EFFECT_CORPSE_BURN, coord, 3, &pos);
         }
     }
-    if ((s16)D_actor_403100_80155808->field_5EC == 0x1E) {
+    if ((s16)D_actor_403100_80155808->stateFrames == 0x1E) {
         task = Task_SpawnFromTable(D_actor_403100_8015560C, 1, 0, 0);
         if (task != NULL) {
             coord = task->extra.tmd->coords;
@@ -4314,7 +4314,7 @@ static void func_actor_403100_80133E88(Task* arg0)
             Gp_SpawnEff(EFFECT_CORPSE_BURN, coord, 4, &pos);
         }
     }
-    if ((s16)D_actor_403100_80155808->field_5EC == 0x3C) {
+    if ((s16)D_actor_403100_80155808->stateFrames == 0x3C) {
         task = Task_SpawnFromTable(D_actor_403100_8015560C, 1, 0, 0);
         if (task != NULL) {
             coord = task->extra.tmd->coords;
@@ -4327,18 +4327,18 @@ static void func_actor_403100_80133E88(Task* arg0)
             Gp_SpawnEff(EFFECT_CORPSE_BURN, coord, 5, &pos);
         }
     }
-    if ((D_actor_403100_80155808->field_5EC & 0x7F) == 0x40) {
+    if ((D_actor_403100_80155808->stateFrames & 0x7F) == 0x40) {
         task = Task_SpawnFromTable(D_actor_403100_8015560C, 1, 0, 0);
         if (task != NULL) {
             coord = task->extra.tmd->coords;
             _actor403100PlaceSpawned(coord, 4);
         }
     }
-    frame                              = D_actor_403100_80155808->field_5EC + 1;
-    D_actor_403100_80155808->field_5EC = frame;
+    frame                                = D_actor_403100_80155808->stateFrames + 1;
+    D_actor_403100_80155808->stateFrames = frame;
     if (frame == 0xBE) {
         GameFlag_SetNibble(GAME_FLAG_BURNER_DEFEATED, 1);
-        D_actor_403100_80155808->field_5F8++;
+        D_actor_403100_80155808->state++;
     }
 }
 static void func_actor_403100_801342B4(Task* arg0)
@@ -4367,10 +4367,10 @@ static void func_actor_403100_801342B4(Task* arg0)
     coordLocalToWorld(coord2, &pos2);
     for (; i < 9; i++) {
         if (Actor403100_FindRegion(pos1.vx, pos1.vz) == i) {
-            if (D_actor_403100_80155808->regions.regionFlags[i] == 0) {
+            if (D_actor_403100_80155808->sectionDamaged[i] == 0) {
                 Gp_SpawnEff(EFFECT_DRYFIELD_NIGHT_MOTEL_BALC_BREAK, coord1, 0, &offset1);
                 func_dryfield_night_motel_balcony_8017E250((s16)i, 1);
-                D_actor_403100_80155808->regions.regionFlags[i] = 1;
+                D_actor_403100_80155808->sectionDamaged[i] = 1;
             } else {
                 Gp_SpawnEff(EFFECT_DRYFIELD_NIGHT_MOTEL_BALC_BREAK, coord1, 1, &offset1);
             }
@@ -4378,10 +4378,10 @@ static void func_actor_403100_801342B4(Task* arg0)
     }
     for (i = 3; i < 9; i++) {
         if (Actor403100_FindRegion(pos2.vx, pos2.vz) == i) {
-            if (D_actor_403100_80155808->regions.regionFlags[i] == 0) {
+            if (D_actor_403100_80155808->sectionDamaged[i] == 0) {
                 Gp_SpawnEff(EFFECT_DRYFIELD_NIGHT_MOTEL_BALC_BREAK, coord2, 0, &offset2);
                 func_dryfield_night_motel_balcony_8017E250((s16)i, 1);
-                D_actor_403100_80155808->regions.regionFlags[i] = 1;
+                D_actor_403100_80155808->sectionDamaged[i] = 1;
             } else {
                 Gp_SpawnEff(EFFECT_DRYFIELD_NIGHT_MOTEL_BALC_BREAK, coord2, 1, &offset2);
             }
@@ -4394,31 +4394,31 @@ static void func_actor_403100_801345E0(Task* arg0, Task* arg1)
     GfxCoord* coord;
 
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    if (!(D_actor_403100_80155808->field_5EC & 0x3F)) {
+    if (!(D_actor_403100_80155808->stateFrames & 0x3F)) {
         task = Task_SpawnFromTable(D_actor_403100_8015560C, 1, 0, 0);
         if (task != NULL) {
             coord = task->extra.tmd->coords;
             _actor403100PlaceSpawned(coord, 0);
         }
-        if (!(D_actor_403100_80155808->field_5EC & 0x3F)) {
+        if (!(D_actor_403100_80155808->stateFrames & 0x3F)) {
             task = Task_SpawnFromTable(D_actor_403100_8015560C, 1, 0, 0);
             if (task != NULL) {
                 coord = task->extra.tmd->coords;
                 _actor403100PlaceSpawned(coord, 1);
             }
-            if (!(D_actor_403100_80155808->field_5EC & 0x3F)) {
+            if (!(D_actor_403100_80155808->stateFrames & 0x3F)) {
                 task = Task_SpawnFromTable(D_actor_403100_8015560C, 1, 0, 0);
                 if (task != NULL) {
                     coord = task->extra.tmd->coords;
                     _actor403100PlaceSpawned(coord, 2);
                 }
-                if (!(D_actor_403100_80155808->field_5EC & 0x3F)) {
+                if (!(D_actor_403100_80155808->stateFrames & 0x3F)) {
                     task = Task_SpawnFromTable(D_actor_403100_8015560C, 1, 0, 0);
                     if (task != NULL) {
                         coord = task->extra.tmd->coords;
                         _actor403100PlaceSpawned(coord, 3);
                     }
-                    if (!(D_actor_403100_80155808->field_5EC & 0x3F)) {
+                    if (!(D_actor_403100_80155808->stateFrames & 0x3F)) {
                         task = Task_SpawnFromTable(D_actor_403100_8015560C, 1, 0, 0);
                         if (task != NULL) {
                             coord = task->extra.tmd->coords;
@@ -4461,10 +4461,10 @@ static void func_actor_403100_8013480C(Task* arg0, s32 arg1)
         if (entry->active == 0) {
             continue;
         }
-        if (D_actor_403100_80155808->regions.regionFlags[2] == 0 &&
+        if (D_actor_403100_80155808->sectionDamaged[2] == 0 &&
             Actor403100_FindEffectRegion(entry->position.vx, entry->position.vz) == 2) {
             func_dryfield_night_motel_balcony_8017E250(2, 1);
-            D_actor_403100_80155808->regions.regionFlags[2] = 1;
+            D_actor_403100_80155808->sectionDamaged[2] = 1;
         }
         pos.vx = entry->position.vx;
         pos.vy = entry->position.vy;
@@ -4474,7 +4474,7 @@ static void func_actor_403100_8013480C(Task* arg0, s32 arg1)
         gte_stsxy(&screen);
         gte_stflg(&flag);
         gte_stszotz(&depth);
-        if ((s16)D_actor_403100_80155808->field_5F8 == 5) {
+        if ((s16)D_actor_403100_80155808->state == 5) {
             growth = entry->age * 0xF0 + 0x90;
             size   = baseSize + growth;
         } else {
@@ -4574,9 +4574,9 @@ static void func_actor_403100_80134D50(Task* arg0)
 
     D_actor_403100_80155808 = arg0->work;
     D_actor_403100_8015580C = arg0->spawnArg2.pointer;
-    handlers[(s16)D_actor_403100_80155808->field_5F8](arg0);
+    handlers[(s16)D_actor_403100_80155808->state](arg0);
     _actor403100SetRootYaw(arg0);
-    _actor403100ScaleRoot(arg0, D_actor_403100_80155808->field_618);
+    _actor403100ScaleRoot(arg0, D_actor_403100_80155808->sceneScale);
     func_actor_403100_8013480C(arg0, 0x96);
     coords                 = arg0->extra.tmd->coords;
     coords[8].composeStamp = GRAPHICS_COORD_DIRTY;
@@ -4593,7 +4593,7 @@ static void func_actor_403100_80134D50(Task* arg0)
     Gp_UpdateCoord(&coords[8]);
     Gp_UpdateCoord(side);
     _actor403100UpdateColor(arg0, center);
-    flash = D_actor_403100_80155808->field_5FE;
+    flash = D_actor_403100_80155808->shakeFrames;
     if (flash != 0) {
         if (flash >= 16) {
             brightness = rsin(gDisplayState.animFrame << 9) << 13;
@@ -4601,16 +4601,16 @@ static void func_actor_403100_80134D50(Task* arg0)
             brightness = rsin(gDisplayState.animFrame << 9) << 12;
         }
         displaySetShakeY((s8)(brightness >> 24));
-        D_actor_403100_80155808->field_5FE = (u16)D_actor_403100_80155808->field_5FE - 1;
+        D_actor_403100_80155808->shakeFrames = (u16)D_actor_403100_80155808->shakeFrames - 1;
     } else {
         displaySetShakeY(0);
     }
-    timer = D_actor_403100_80155808->field_658;
+    timer = D_actor_403100_80155808->bufferReleaseDelay;
     if (timer >= 0) {
         if (timer == 0) {
             Tmd_FreeBuffers(object);
         }
-        D_actor_403100_80155808->field_658 = (u16)D_actor_403100_80155808->field_658 - 1;
+        D_actor_403100_80155808->bufferReleaseDelay = (u16)D_actor_403100_80155808->bufferReleaseDelay - 1;
     }
 }
 static void func_actor_403100_8013506C(Task* arg0)
@@ -4622,15 +4622,15 @@ static void func_actor_403100_8013506C(Task* arg0)
     s32       sound2;
     s32       pan2;
 
-    coord                              = arg0->extra.tmd->coords;
-    frame                              = D_actor_403100_80155808->field_5EC + 1;
-    D_actor_403100_80155808->field_5EC = frame;
-    coord->coord.t[1]                  = (s16)(rcos((s16)frame * 0x20) << 0xD >> 0x10) - 0x300;
-    coord->coord.t[0]                 += 0x40;
-    if ((s16)D_actor_403100_80155808->field_5EC == 0x40) {
-        D_actor_403100_80155808->field_5EC = 0;
+    coord                                = arg0->extra.tmd->coords;
+    frame                                = D_actor_403100_80155808->stateFrames + 1;
+    D_actor_403100_80155808->stateFrames = frame;
+    coord->coord.t[1]                    = (s16)(rcos((s16)frame * 0x20) << 0xD >> 0x10) - 0x300;
+    coord->coord.t[0]                   += 0x40;
+    if ((s16)D_actor_403100_80155808->stateFrames == 0x40) {
+        D_actor_403100_80155808->stateFrames = 0;
         Gp_SpawnPadLerp(0x1E, 0xFF, 8);
-        D_actor_403100_80155808->field_5FE = 0x1E;
+        D_actor_403100_80155808->shakeFrames = 0x1E;
         func_dryfield_night_motel_balcony_8017E128(0);
         sound = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F0001;
         pan   = (s8)worldCoordGetOriginAudioPan(&arg0->extra.tmd->coords[1]);
@@ -4638,7 +4638,7 @@ static void func_actor_403100_8013506C(Task* arg0)
         sound2 = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F0002;
         pan2   = (s8)worldCoordGetOriginAudioPan(&arg0->extra.tmd->coords[4]);
         SndEvt_EnqueueType6(sound2, pan2, (s8)(worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[4]) / 2));
-        D_actor_403100_80155808->field_5FA += 1;
+        D_actor_403100_80155808->subState += 1;
     }
 }
 static void func_actor_403100_801351F8(Task* arg0)
@@ -4649,27 +4649,27 @@ static void func_actor_403100_801351F8(Task* arg0)
     s32 sound2;
     s32 pan2;
 
-    frame                              = D_actor_403100_80155808->field_5EC + 1;
-    D_actor_403100_80155808->field_5EC = frame;
+    frame                                = D_actor_403100_80155808->stateFrames + 1;
+    D_actor_403100_80155808->stateFrames = frame;
     if ((s16)frame == 0x3E) {
         func_dryfield_night_motel_balcony_8017E128(0);
         Gp_SpawnPadLerp(0x1E, 0xFF, 8);
-        D_actor_403100_80155808->field_5FE = 0x1E;
-        sound                              = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F0001;
-        pan                                = (s8)worldCoordGetOriginAudioPan(&arg0->extra.tmd->coords[1]);
+        D_actor_403100_80155808->shakeFrames = 0x1E;
+        sound                                = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F0001;
+        pan                                  = (s8)worldCoordGetOriginAudioPan(&arg0->extra.tmd->coords[1]);
         SndEvt_EnqueueType6(sound, pan, (s8)(worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[1]) / 2));
         sound2 = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F0002;
         pan2   = (s8)worldCoordGetOriginAudioPan(&arg0->extra.tmd->coords[4]);
         SndEvt_EnqueueType6(sound2, pan2, (s8)(worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[4]) / 2));
-        D_actor_403100_80155808->field_5FA += 1;
+        D_actor_403100_80155808->subState += 1;
     }
-    if ((s16)D_actor_403100_80155808->field_5EC == 0x28) {
-        D_actor_403100_80155808->field_61C = 3;
+    if ((s16)D_actor_403100_80155808->stateFrames == 0x28) {
+        D_actor_403100_80155808->aimMode = ACTOR_403100_AIM_TRACK_FAST;
     }
-    if ((s16)D_actor_403100_80155808->field_5EC >= 0x28) {
-        D_actor_403100_80155808->field_98 = -0x3E8;
-        D_actor_403100_80155808->field_9A = 0;
-        D_actor_403100_80155808->field_9C = -0x960;
+    if ((s16)D_actor_403100_80155808->stateFrames >= 0x28) {
+        D_actor_403100_80155808->aimTarget.vx = -0x3E8;
+        D_actor_403100_80155808->aimTarget.vy = 0;
+        D_actor_403100_80155808->aimTarget.vz = -0x960;
     }
 }
 static void func_actor_403100_8013539C(Task* arg0)
@@ -4686,17 +4686,17 @@ static void func_actor_403100_8013539C(Task* arg0)
         }
     }
     SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 1);
-    coord->coord.t[0]                  = -0x74E;
-    coord->coord.t[2]                  = -0x1C51;
-    coord->coord.t[1]                  = 0;
-    D_actor_403100_80155808->field_5E2 = 0x10;
-    D_actor_403100_80155808->field_5DE = 2;
-    D_actor_403100_80155808->field_5DA = 2;
-    D_actor_403100_80155808->field_82  = 0;
-    D_actor_403100_80155808->field_5EC = 0;
-    D_actor_403100_80155808->field_618 = 0x1910;
+    coord->coord.t[0]                         = -0x74E;
+    coord->coord.t[2]                         = -0x1C51;
+    coord->coord.t[1]                         = 0;
+    D_actor_403100_80155808->animationRate    = ANIMATION_RATE_ONE;
+    D_actor_403100_80155808->animationId      = 2;
+    D_actor_403100_80155808->animationRequest = ACTOR_403100_ANIMATION_REQUEST_RESET;
+    D_actor_403100_80155808->rotation.vy      = 0;
+    D_actor_403100_80155808->stateFrames      = 0;
+    D_actor_403100_80155808->sceneScale       = 0x1910;
     func_actor_403100_801327CC(arg0);
-    D_actor_403100_80155808->field_5FA += 1;
+    D_actor_403100_80155808->subState += 1;
 }
 static void func_actor_403100_801354A0(Task* arg0)
 {
@@ -4704,21 +4704,21 @@ static void func_actor_403100_801354A0(Task* arg0)
     s32 pan;
     u16 frame;
 
-    frame                              = D_actor_403100_80155808->field_5EC + 1;
-    D_actor_403100_80155808->field_5EC = frame;
+    frame                                = D_actor_403100_80155808->stateFrames + 1;
+    D_actor_403100_80155808->stateFrames = frame;
     if ((s16)frame == 0xC) {
         sound = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F0001;
         pan   = (s8)worldCoordGetOriginAudioPan(&arg0->extra.tmd->coords[1]);
         SndEvt_EnqueueType6(sound, pan, (s8)(worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[1]) / 2));
         Gp_SpawnPadLerp(0x1E, 0xFFU, 8U);
-        D_actor_403100_80155808->field_5FE = 0x1E;
+        D_actor_403100_80155808->shakeFrames = 0x1E;
         func_dryfield_night_motel_balcony_8017E128(1);
     }
-    if ((s16)D_actor_403100_80155808->field_5EC == 0x18) {
+    if ((s16)D_actor_403100_80155808->stateFrames == 0x18) {
         func_dryfield_night_motel_balcony_8017E128(0);
     }
-    if ((s16)D_actor_403100_80155808->field_5EC == 0x28) {
-        D_actor_403100_80155808->field_5FA += 1;
+    if ((s16)D_actor_403100_80155808->stateFrames == 0x28) {
+        D_actor_403100_80155808->subState += 1;
     }
     func_actor_403100_801327CC(arg0);
 }
@@ -4729,7 +4729,7 @@ static void func_actor_403100_801355D4(Task* arg0)
 
     D_actor_403100_80155810                = 0;
     coord                                  = arg0->extra.tmd->coords;
-    D_actor_403100_80155808->field_61C     = 3;
+    D_actor_403100_80155808->aimMode       = ACTOR_403100_AIM_TRACK_FAST;
     D_actor_403100_80155808->entryLifetime = 0x1C;
     for (i = 0; i < 28; i++) {
         if (D_actor_403100_80155814[i].active != 0) {
@@ -4738,17 +4738,17 @@ static void func_actor_403100_801355D4(Task* arg0)
         }
     }
     SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 1);
-    coord->coord.t[0]                  = -0x74E;
-    coord->coord.t[2]                  = -0x1770;
-    coord->coord.t[1]                  = 0;
-    D_actor_403100_80155808->field_5E2 = 0x10;
-    D_actor_403100_80155808->field_5DE = 7;
-    D_actor_403100_80155808->field_5DA = 2;
-    D_actor_403100_80155808->field_82  = 0;
-    D_actor_403100_80155808->field_5EC = 0;
-    D_actor_403100_80155808->field_618 = 0x1400;
+    coord->coord.t[0]                         = -0x74E;
+    coord->coord.t[2]                         = -0x1770;
+    coord->coord.t[1]                         = 0;
+    D_actor_403100_80155808->animationRate    = ANIMATION_RATE_ONE;
+    D_actor_403100_80155808->animationId      = 7;
+    D_actor_403100_80155808->animationRequest = ACTOR_403100_ANIMATION_REQUEST_RESET;
+    D_actor_403100_80155808->rotation.vy      = 0;
+    D_actor_403100_80155808->stateFrames      = 0;
+    D_actor_403100_80155808->sceneScale       = 0x1400;
     func_actor_403100_801327CC(arg0);
-    D_actor_403100_80155808->field_5FA += 1;
+    D_actor_403100_80155808->subState += 1;
 }
 
 static void func_actor_403100_801356F4(Task* arg0)
@@ -4758,19 +4758,19 @@ static void func_actor_403100_801356F4(Task* arg0)
     s32     sound;
     s32     pan;
 
-    D_actor_403100_80155808->field_5EC += 1;
-    D_actor_403100_80155808->field_98   = -0xFA0;
-    D_actor_403100_80155808->field_9A   = 0;
-    D_actor_403100_80155808->field_9C   = 0x7B2;
-    if ((s16)D_actor_403100_80155808->field_5EC == 1) {
+    D_actor_403100_80155808->stateFrames += 1;
+    D_actor_403100_80155808->aimTarget.vx = -0xFA0;
+    D_actor_403100_80155808->aimTarget.vy = 0;
+    D_actor_403100_80155808->aimTarget.vz = 0x7B2;
+    if ((s16)D_actor_403100_80155808->stateFrames == 1) {
         sound = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F0004;
         pan   = (s8)worldCoordGetOriginAudioPan(&arg0->extra.tmd->coords[4]);
         SndEvt_EnqueueType6(sound, pan, (s8)(worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[4]) / 2));
     }
-    if ((s16)D_actor_403100_80155808->field_5EC == 0x32) {
+    if ((s16)D_actor_403100_80155808->stateFrames == 0x32) {
         SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 0xA);
     }
-    if (D_actor_403100_80155808->field_5EC < 0x33U) {
+    if (D_actor_403100_80155808->stateFrames < 0x33U) {
         first.vy  = -0x1F0;
         first.vz  = 0x620;
         second.vy = -0x20;
@@ -4780,7 +4780,7 @@ static void func_actor_403100_801356F4(Task* arg0)
         func_actor_403100_80132064(arg0, &first, &second, 1);
     }
     if (Actor403100_TestFlags104()) {
-        D_actor_403100_80155808->field_5FA += 1;
+        D_actor_403100_80155808->subState += 1;
     }
 }
 static void func_actor_403100_8013588C(Task* arg0)
@@ -4789,21 +4789,21 @@ static void func_actor_403100_8013588C(Task* arg0)
     s32 pan;
     u16 frame;
 
-    frame                              = D_actor_403100_80155808->field_5EC + 1;
-    D_actor_403100_80155808->field_5EC = frame;
+    frame                                = D_actor_403100_80155808->stateFrames + 1;
+    D_actor_403100_80155808->stateFrames = frame;
     if ((s16)frame == 0xE) {
         sound = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F0001;
         pan   = (s8)worldCoordGetOriginAudioPan(&arg0->extra.tmd->coords[1]);
         SndEvt_EnqueueType6(sound, pan, (s8)(worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[1]) / 2));
         Gp_SpawnPadLerp(0x1E, 0xFFU, 8U);
-        D_actor_403100_80155808->field_5FE = 0x1E;
+        D_actor_403100_80155808->shakeFrames = 0x1E;
     }
-    if ((u32)(D_actor_403100_80155808->field_5EC - 0xE) < 7U) {
-        func_dryfield_night_motel_balcony_8017E128(D_actor_403100_801557A8[D_actor_403100_80155808->field_5EE]);
-        D_actor_403100_80155808->field_5EE += 1;
+    if ((u32)(D_actor_403100_80155808->stateFrames - 0xE) < 7U) {
+        func_dryfield_night_motel_balcony_8017E128(D_actor_403100_801557A8[D_actor_403100_80155808->auxFrames]);
+        D_actor_403100_80155808->auxFrames += 1;
     }
-    if ((s16)D_actor_403100_80155808->field_5EC >= 0x15) {
-        D_actor_403100_80155808->field_5FA += 1;
+    if ((s16)D_actor_403100_80155808->stateFrames >= 0x15) {
+        D_actor_403100_80155808->subState += 1;
     }
 }
 static void func_actor_403100_801359DC(Task* arg0)
@@ -4825,17 +4825,17 @@ static void func_actor_403100_801359DC(Task* arg0)
         }
     }
     SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 1);
-    joint->coord.t[0] = -0x807;
-    coord->coord.t[0] = -0x384;
-    work              = D_actor_403100_80155808;
-    coord->coord.t[2] = 0x1130;
-    coord->coord.t[1] = 0;
-    work->field_5E2   = value;
-    work->field_5DE   = 0x13;
-    work->field_5DA   = 2;
-    work->field_5EC   = 0;
-    work->field_618   = 0x1400;
-    work->field_5FA  += 1;
+    joint->coord.t[0]      = -0x807;
+    coord->coord.t[0]      = -0x384;
+    work                   = D_actor_403100_80155808;
+    coord->coord.t[2]      = 0x1130;
+    coord->coord.t[1]      = 0;
+    work->animationRate    = value;
+    work->animationId      = 0x13;
+    work->animationRequest = ACTOR_403100_ANIMATION_REQUEST_RESET;
+    work->stateFrames      = 0;
+    work->sceneScale       = 0x1400;
+    work->subState        += 1;
     Gp_ApplyAreaRecs(D_dryfield_night_motel_balcony_8018F2CC);
 }
 static void func_actor_403100_80135AE0(Task* arg0)
@@ -4844,19 +4844,19 @@ static void func_actor_403100_80135AE0(Task* arg0)
     s32 pan;
     u16 angle;
 
-    angle                             = (u16)D_actor_403100_80155808->field_82;
-    D_actor_403100_80155808->field_82 = angle + ((s16)(-0x4000 - angle * 0x10) >> 9);
-    if ((s16)D_actor_403100_80155808->field_5EC == 0xBE) {
+    angle                                = (u16)D_actor_403100_80155808->rotation.vy;
+    D_actor_403100_80155808->rotation.vy = angle + ((s16)(-0x4000 - angle * 0x10) >> 9);
+    if ((s16)D_actor_403100_80155808->stateFrames == 0xBE) {
         sound = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F0001;
         pan   = (s8)worldCoordGetOriginAudioPan(&arg0->extra.tmd->coords[1]);
         SndEvt_EnqueueType6(sound, (s32)pan, (s8)(worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[1]) / 2));
         Gp_SpawnPadLerp(0x1E, 0xFFU, 8U);
-        D_actor_403100_80155808->field_5FE = 0x1E;
+        D_actor_403100_80155808->shakeFrames = 0x1E;
     }
-    if ((s16)D_actor_403100_80155808->field_5EC == 0xF0) {
-        D_actor_403100_80155808->field_5FA += 1;
+    if ((s16)D_actor_403100_80155808->stateFrames == 0xF0) {
+        D_actor_403100_80155808->subState += 1;
     }
-    D_actor_403100_80155808->field_5EC += 1;
+    D_actor_403100_80155808->stateFrames += 1;
 }
 
 static void func_actor_403100_80135C00(Task* arg0)
@@ -4875,8 +4875,8 @@ static void func_actor_403100_80135C00(Task* arg0)
     s32 depth_3;
     s32 depth_4;
 
-    frame                              = D_actor_403100_80155808->field_5EC + 1;
-    D_actor_403100_80155808->field_5EC = frame;
+    frame                                = D_actor_403100_80155808->stateFrames + 1;
+    D_actor_403100_80155808->stateFrames = frame;
     if ((s16)frame == 0x1E) {
         func_dryfield_night_motel_balcony_8018257C();
         sound = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F0004;
@@ -4884,45 +4884,45 @@ static void func_actor_403100_80135C00(Task* arg0)
         depth = worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[4]);
         SndEvt_EnqueueType6(sound, (s32)pan, (s8)(depth / 2));
     }
-    if ((s16)D_actor_403100_80155808->field_5EC == 0x22) {
+    if ((s16)D_actor_403100_80155808->stateFrames == 0x22) {
         SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 0xA);
     }
-    if ((s16)D_actor_403100_80155808->field_5EC == 0x28) {
+    if ((s16)D_actor_403100_80155808->stateFrames == 0x28) {
         func_dryfield_night_motel_balcony_8018257C();
         sound_2 = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F0004;
         pan_2   = (s8)worldCoordGetOriginAudioPan(&arg0->extra.tmd->coords[4]);
         depth_2 = worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[4]);
         SndEvt_EnqueueType6(sound_2, (s32)pan_2, (s8)(depth_2 / 2));
     }
-    if ((s16)D_actor_403100_80155808->field_5EC == 0x30) {
+    if ((s16)D_actor_403100_80155808->stateFrames == 0x30) {
         SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 0xA);
     }
-    if ((s16)D_actor_403100_80155808->field_5EC == 0x3C) {
+    if ((s16)D_actor_403100_80155808->stateFrames == 0x3C) {
         func_dryfield_night_motel_balcony_8018257C();
         sound_3 = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F0004;
         pan_3   = (s8)worldCoordGetOriginAudioPan(&arg0->extra.tmd->coords[4]);
         depth_3 = worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[4]);
         SndEvt_EnqueueType6(sound_3, (s32)pan_3, (s8)(depth_3 / 2));
     }
-    if ((s16)D_actor_403100_80155808->field_5EC == 0x3F) {
+    if ((s16)D_actor_403100_80155808->stateFrames == 0x3F) {
         SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 0xA);
     }
-    if ((s16)D_actor_403100_80155808->field_5EC == 0x5A) {
+    if ((s16)D_actor_403100_80155808->stateFrames == 0x5A) {
         func_dryfield_night_motel_balcony_8018257C();
         sound_4 = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F0004;
         pan_4   = (s8)worldCoordGetOriginAudioPan(&arg0->extra.tmd->coords[4]);
         depth_4 = worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[4]);
         SndEvt_EnqueueType6(sound_4, (s32)pan_4, (s8)(depth_4 / 2));
     }
-    if ((s16)D_actor_403100_80155808->field_5EC == 0x5E) {
+    if ((s16)D_actor_403100_80155808->stateFrames == 0x5E) {
         SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 0xA);
     }
     if (Actor403100_TestFlags12C()) {
-        D_actor_403100_80155808->field_5E2  = 0x10;
-        D_actor_403100_80155808->field_5DE  = 0x15;
-        D_actor_403100_80155808->field_5DA  = 2;
-        D_actor_403100_80155808->field_5EC  = 0;
-        D_actor_403100_80155808->field_5FA += 1;
+        D_actor_403100_80155808->animationRate    = ANIMATION_RATE_ONE;
+        D_actor_403100_80155808->animationId      = 0x15;
+        D_actor_403100_80155808->animationRequest = ACTOR_403100_ANIMATION_REQUEST_RESET;
+        D_actor_403100_80155808->stateFrames      = 0;
+        D_actor_403100_80155808->subState        += 1;
     }
 }
 static void func_actor_403100_80135F30(Task* arg0)
@@ -4936,9 +4936,9 @@ static void func_actor_403100_80135F30(Task* arg0)
     s32        depth2;
     TmdObject* obj;
 
-    obj                                = arg0->extra.tmd;
-    frame                              = D_actor_403100_80155808->field_5EC + 1;
-    D_actor_403100_80155808->field_5EC = frame;
+    obj                                  = arg0->extra.tmd;
+    frame                                = D_actor_403100_80155808->stateFrames + 1;
+    D_actor_403100_80155808->stateFrames = frame;
     if ((s16)frame == 0xA) {
         func_dryfield_night_motel_balcony_8018257C();
         sound = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F0004;
@@ -4946,24 +4946,24 @@ static void func_actor_403100_80135F30(Task* arg0)
         depth = worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[4]);
         SndEvt_EnqueueType6(sound, (s32)pan, (s8)(depth / 2));
     }
-    if ((s16)D_actor_403100_80155808->field_5EC == 0xE) {
+    if ((s16)D_actor_403100_80155808->stateFrames == 0xE) {
         SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 0xA);
     }
-    if ((s16)D_actor_403100_80155808->field_5EC == 0x26) {
+    if ((s16)D_actor_403100_80155808->stateFrames == 0x26) {
         sound2 = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F0002;
         pan2   = (s8)worldCoordGetOriginAudioPan(&arg0->extra.tmd->coords[4]);
         depth2 = worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[4]);
         SndEvt_EnqueueType6(sound2, (s32)pan2, (s8)(depth2 / 2));
     }
     if (Actor403100_TestFlags12C()) {
-        D_actor_403100_80155808->field_5FC  = 0x18;
-        D_actor_403100_80155808->field_5E2  = 0x18;
-        D_actor_403100_80155808->field_5DE  = 0x16;
-        D_actor_403100_80155808->field_5DA  = 1;
-        D_actor_403100_80155808->field_5EC  = 0;
-        D_actor_403100_80155808->field_600  = 0;
-        D_actor_403100_80155808->field_5FA += 1;
-        obj->otOffset                       = 0;
+        D_actor_403100_80155808->animationBlendFrames = 0x18;
+        D_actor_403100_80155808->animationRate        = 0x18;
+        D_actor_403100_80155808->animationId          = 0x16;
+        D_actor_403100_80155808->animationRequest     = ACTOR_403100_ANIMATION_REQUEST_BLEND;
+        D_actor_403100_80155808->stateFrames          = 0;
+        D_actor_403100_80155808->stridePhase          = 0;
+        D_actor_403100_80155808->subState            += 1;
+        obj->otOffset                                 = 0;
     }
 }
 static void func_actor_403100_80136100(Task* arg0)
@@ -4977,39 +4977,39 @@ static void func_actor_403100_80136100(Task* arg0)
     s32       depth;
     GfxCoord* coord;
 
-    coord                               = arg0->extra.tmd->coords;
-    angle                               = ((u16)D_actor_403100_80155808->field_600 + 0x20) & 0x7FF;
-    D_actor_403100_80155808->field_5EC += 1;
-    D_actor_403100_80155808->field_600  = angle;
-    y                                   = -((s32)(rsin((s32)angle) << 0xD) >> 0x10);
-    coord->coord.t[1]                   = y;
+    coord                                 = arg0->extra.tmd->coords;
+    angle                                 = ((u16)D_actor_403100_80155808->stridePhase + 0x20) & 0x7FF;
+    D_actor_403100_80155808->stateFrames += 1;
+    D_actor_403100_80155808->stridePhase  = angle;
+    y                                     = -((s32)(rsin((s32)angle) << 0xD) >> 0x10);
+    coord->coord.t[1]                     = y;
     if (y == 0) {
         sound = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F0001;
         pan   = (s8)worldCoordGetOriginAudioPan(&arg0->extra.tmd->coords[1]);
         depth = worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[1]);
         SndEvt_EnqueueType6(sound, (s32)pan, (s8)(depth / 2));
         Gp_SpawnPadLerp(0x1E, 0xFFU, 8U);
-        D_actor_403100_80155808->field_5FE = 0x1E;
+        D_actor_403100_80155808->shakeFrames = 0x1E;
     }
-    if ((s16)D_actor_403100_80155808->field_5EC < 0x11) {
-        D_actor_403100_80155808->field_82 = (u16)D_actor_403100_80155808->field_82 - 0x34;
-        coord->coord.t[2]                 = (s32)(coord->coord.t[2] - 0x10);
-        coord->coord.t[0]                 = (s32)(coord->coord.t[0] - 8);
+    if ((s16)D_actor_403100_80155808->stateFrames < 0x11) {
+        D_actor_403100_80155808->rotation.vy = (u16)D_actor_403100_80155808->rotation.vy - 0x34;
+        coord->coord.t[2]                    = (s32)(coord->coord.t[2] - 0x10);
+        coord->coord.t[0]                    = (s32)(coord->coord.t[0] - 8);
     }
-    frame = D_actor_403100_80155808->field_5EC;
+    frame = D_actor_403100_80155808->stateFrames;
     if ((u32)(frame - 0x11) < 0xAU) {
-        D_actor_403100_80155808->field_82 = (u16)D_actor_403100_80155808->field_82 - 0x10;
-        z                                 = coord->coord.t[2] - 0x14;
+        D_actor_403100_80155808->rotation.vy = (u16)D_actor_403100_80155808->rotation.vy - 0x10;
+        z                                    = coord->coord.t[2] - 0x14;
     } else if ((u16)(frame - 0x1B) < 0xAU) {
-        D_actor_403100_80155808->field_82 = (u16)D_actor_403100_80155808->field_82 - 0x10;
-        z                                 = coord->coord.t[2] - 0x20;
+        D_actor_403100_80155808->rotation.vy = (u16)D_actor_403100_80155808->rotation.vy - 0x10;
+        z                                    = coord->coord.t[2] - 0x20;
     } else {
         if ((u16)(frame - 0x25) < 0xAU) {
-            D_actor_403100_80155808->field_82 -= 0x10;
+            D_actor_403100_80155808->rotation.vy -= 0x10;
         } else if ((u16)(frame - 0x2F) < 0xAU) {
-            D_actor_403100_80155808->field_82 -= 0xC;
+            D_actor_403100_80155808->rotation.vy -= 0xC;
         } else if ((u16)(frame - 0x39) < 0xAU) {
-            D_actor_403100_80155808->field_82 -= 8;
+            D_actor_403100_80155808->rotation.vy -= 8;
         }
         z = coord->coord.t[2] - 0x40;
     }
@@ -5024,63 +5024,63 @@ static void func_actor_403100_8013631C(Task* arg0)
     s32       depth;
     GfxCoord* coord;
 
-    frame                               = D_actor_403100_80155808->field_5EC + 1;
-    coord                               = arg0->extra.tmd->coords;
-    D_actor_403100_80155808->field_5EC  = (u16)frame;
-    D_actor_403100_80155808->field_5EE += 1;
-    D_actor_403100_80155808->field_600  = (u16)((D_actor_403100_80155808->field_600 + 0x20) & 0x7FF);
-    if (D_actor_403100_80155808->field_5EE < 0xA) {
+    frame                                = D_actor_403100_80155808->stateFrames + 1;
+    coord                                = arg0->extra.tmd->coords;
+    D_actor_403100_80155808->stateFrames = (u16)frame;
+    D_actor_403100_80155808->auxFrames  += 1;
+    D_actor_403100_80155808->stridePhase = (u16)((D_actor_403100_80155808->stridePhase + 0x20) & 0x7FF);
+    if (D_actor_403100_80155808->auxFrames < 0xA) {
         coord->coord.t[2] -= 0x6;
-    } else if (D_actor_403100_80155808->field_5EE < 0x14) {
+    } else if (D_actor_403100_80155808->auxFrames < 0x14) {
         coord->coord.t[2] -= 0xA;
-    } else if (D_actor_403100_80155808->field_5EE < 0x1E) {
+    } else if (D_actor_403100_80155808->auxFrames < 0x1E) {
         coord->coord.t[2] -= 0x12;
-    } else if (D_actor_403100_80155808->field_5EE < 0x28) {
+    } else if (D_actor_403100_80155808->auxFrames < 0x28) {
         coord->coord.t[2] -= 0x6;
-    } else if (D_actor_403100_80155808->field_5EE < 0x32) {
+    } else if (D_actor_403100_80155808->auxFrames < 0x32) {
         coord->coord.t[2] -= 0x6;
-    } else if (D_actor_403100_80155808->field_5EE < 0x3C) {
+    } else if (D_actor_403100_80155808->auxFrames < 0x3C) {
         coord->coord.t[2] -= 0xA;
-    } else if (D_actor_403100_80155808->field_5EE < 0x46) {
+    } else if (D_actor_403100_80155808->auxFrames < 0x46) {
         coord->coord.t[2] -= 0x12;
-    } else if (D_actor_403100_80155808->field_5EE < 0x5D) {
+    } else if (D_actor_403100_80155808->auxFrames < 0x5D) {
         coord->coord.t[2] -= 0x4;
-    } else if (D_actor_403100_80155808->field_5EE < 0x69) {
+    } else if (D_actor_403100_80155808->auxFrames < 0x69) {
         coord->coord.t[2] -= 0x8;
-    } else if (D_actor_403100_80155808->field_5EE < 0x75) {
+    } else if (D_actor_403100_80155808->auxFrames < 0x75) {
         coord->coord.t[2] -= 0x10;
-    } else if (D_actor_403100_80155808->field_5EE < 0x81) {
+    } else if (D_actor_403100_80155808->auxFrames < 0x81) {
         coord->coord.t[2] -= 0x28;
-    } else if (D_actor_403100_80155808->field_5EE < 0x92) {
+    } else if (D_actor_403100_80155808->auxFrames < 0x92) {
         coord->coord.t[2] -= 0x18;
-    } else if (D_actor_403100_80155808->field_5EE < 0x9C) {
+    } else if (D_actor_403100_80155808->auxFrames < 0x9C) {
         coord->coord.t[2] -= 0x6;
-    } else if (D_actor_403100_80155808->field_5EE < 0xA6) {
+    } else if (D_actor_403100_80155808->auxFrames < 0xA6) {
         coord->coord.t[2] -= 0xA;
-    } else if (D_actor_403100_80155808->field_5EE < 0xB0) {
+    } else if (D_actor_403100_80155808->auxFrames < 0xB0) {
         coord->coord.t[2] -= 0x12;
-    } else if (D_actor_403100_80155808->field_5EE < 0xBA) {
+    } else if (D_actor_403100_80155808->auxFrames < 0xBA) {
         coord->coord.t[2] -= 0x6;
-    } else if (D_actor_403100_80155808->field_5EE < 0xC4) {
+    } else if (D_actor_403100_80155808->auxFrames < 0xC4) {
         coord->coord.t[2] -= 0x6;
     }
-    step = (s16)D_actor_403100_80155808->field_5EE;
+    step = (s16)D_actor_403100_80155808->auxFrames;
     if ((step == 0x2D) || (step == 0xE6) || (step == 0xB4) || (step == 0x57)) {
         sound = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F0001;
         pan   = (s8)worldCoordGetOriginAudioPan(&arg0->extra.tmd->coords[1]);
         depth = worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[1]);
         SndEvt_EnqueueType6(sound, pan, (s8)(depth / 2));
         Gp_SpawnPadLerp(0x1E, 0xFF, 8);
-        D_actor_403100_80155808->field_5FE = 0x1E;
+        D_actor_403100_80155808->shakeFrames = 0x1E;
     }
     if (Actor403100_TestFlags12C()) {
-        D_actor_403100_80155808->field_5E2 = 0x10;
-        D_actor_403100_80155808->field_5DE = 0x18;
-        D_actor_403100_80155808->field_5DA = 2;
-        D_actor_403100_80155808->field_5EE = 0U;
+        D_actor_403100_80155808->animationRate    = ANIMATION_RATE_ONE;
+        D_actor_403100_80155808->animationId      = 0x18;
+        D_actor_403100_80155808->animationRequest = ACTOR_403100_ANIMATION_REQUEST_RESET;
+        D_actor_403100_80155808->auxFrames        = 0U;
     }
-    if ((s16)D_actor_403100_80155808->field_5EC == 0x118) {
-        D_actor_403100_80155808->field_5FA = (u16)(D_actor_403100_80155808->field_5FA + 1);
+    if ((s16)D_actor_403100_80155808->stateFrames == 0x118) {
+        D_actor_403100_80155808->subState = (u16)(D_actor_403100_80155808->subState + 1);
     }
 }
 static void func_actor_403100_80136610(Task* arg0)
@@ -5096,18 +5096,18 @@ static void func_actor_403100_80136610(Task* arg0)
     obj   = arg0->extra.tmd;
     coord = obj->coords;
     if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_KEY(0xFF, 0xFF, 0xFF, 0)) != GAME_LOCATION_KEY(3, 29, 2, 0) ||
-        (arg0->work = memCalloc(0x678U, false)) == NULL) {
+        (arg0->work = memCalloc(sizeof(Actor403100Work), false)) == NULL) {
         enemyDestroy(D_actor_403100_8015580C, arg0);
         return;
     }
     enemy                               = arg0->spawnArg2.pointer;
     D_actor_403100_8015580C             = enemy;
     work                                = arg0->work;
-    obj->lightMtx                       = &work->field_0.matrices.light;
+    obj->lightMtx                       = &work->light;
     D_actor_403100_80155808             = work;
-    obj->colorMtx                       = &work->field_0.matrices.color;
+    obj->colorMtx                       = &work->color;
     arg0->msgTable                      = D_actor_403100_801556EC;
-    work->field_622                     = (s16)gGameSession->location.loc.view;
+    work->savedView                     = gGameSession->location.loc.view;
     enemy->field_48                     = 0;
     enemy->field_4                      = &coord->coord;
     D_actor_403100_8015580C->bodyPos.vx = 0;
@@ -5119,15 +5119,15 @@ static void func_actor_403100_80136610(Task* arg0)
     TOUCH_REG(kind);
     D_actor_403100_8015580C->node.state.parts.flags = kind;
     D_actor_403100_8015580C->param                  = &D_actor_403100_8014762C;
-    D_actor_403100_8015580C->recs                   = D_actor_403100_80155808->pad_49C;
+    D_actor_403100_8015580C->recs                   = D_actor_403100_80155808->hitContacts;
     D_actor_403100_80155630.coord                   = arg0->extra.tmd->coords;
     flags                                           = &obj->flags;
     *flags                                          = 0;
-    D_actor_403100_80155808->field_658              = -1;
-    animationInitContext(&D_actor_403100_80155808->field_B8.anim, D_actor_403100_8015572C, obj, D_actor_403100_80155808->field_B8.poses, D_actor_403100_80155808->field_B8.slots);
-    D_actor_403100_80155808->field_5E2 = 0x10;
-    D_actor_403100_80155808->field_5DE = 1;
-    D_actor_403100_80155808->field_5DA = 2;
+    D_actor_403100_80155808->bufferReleaseDelay     = -1;
+    animationInitContext(&D_actor_403100_80155808->rig.anim, D_actor_403100_8015572C, obj, D_actor_403100_80155808->rig.poses, D_actor_403100_80155808->rig.slots);
+    D_actor_403100_80155808->animationRate    = ANIMATION_RATE_ONE;
+    D_actor_403100_80155808->animationId      = 1;
+    D_actor_403100_80155808->animationRequest = ACTOR_403100_ANIMATION_REQUEST_RESET;
     func_actor_403100_801327CC(arg0);
     coord->parent = &gGfxViewCoord;
     func_actor_403100_80132320(arg0);
@@ -5143,11 +5143,11 @@ static void func_actor_403100_80136610(Task* arg0)
         activeEnemy->hpMax = hp;
         activeEnemy->hp    = (s16)hp;
     }
-    arg0->state                        = 1;
-    D_actor_403100_80155808->field_5F8 = 0;
-    D_actor_403100_80155808->field_5FA = 0;
+    arg0->state                       = 1;
+    D_actor_403100_80155808->state    = 0;
+    D_actor_403100_80155808->subState = 0;
 }
-/// Steps of the behaviour mode `func_actor_403100_8013E96C`, indexed by `field_5FA`.
+/// Steps of the behaviour mode `func_actor_403100_8013E96C`, indexed by `subState`.
 static const TaskFuncTable3 D_actor_403100_80131EB0 = {
     {
         func_actor_403100_8013ED50,
@@ -5156,7 +5156,7 @@ static const TaskFuncTable3 D_actor_403100_80131EB0 = {
     },
 };
 
-/// Steps of the behaviour mode `func_actor_403100_8013E9D8`, indexed by `field_5FA`.
+/// Steps of the behaviour mode `func_actor_403100_8013E9D8`, indexed by `subState`.
 static const TaskFuncTable3 D_actor_403100_80131EBC = {
     {
         func_actor_403100_8013EE28,
@@ -5165,7 +5165,7 @@ static const TaskFuncTable3 D_actor_403100_80131EBC = {
     },
 };
 
-/// Steps of the behaviour mode `func_actor_403100_8013EA60`, indexed by `field_5FA`.
+/// Steps of the behaviour mode `func_actor_403100_8013EA60`, indexed by `subState`.
 static const TaskFuncTable4 D_actor_403100_80131EC8 = {
     {
         func_actor_403100_8013539C,
@@ -5175,7 +5175,7 @@ static const TaskFuncTable4 D_actor_403100_80131EC8 = {
     },
 };
 
-/// Steps of the behaviour mode `func_actor_403100_8013EAD4`, indexed by `field_5FA`.
+/// Steps of the behaviour mode `func_actor_403100_8013EAD4`, indexed by `subState`.
 static const TaskFuncTable3 D_actor_403100_80131ED8 = {
     {
         func_actor_403100_801355D4,
@@ -5184,7 +5184,7 @@ static const TaskFuncTable3 D_actor_403100_80131ED8 = {
     },
 };
 
-/// Steps of the behaviour mode `func_actor_403100_8013EB68`, indexed by `field_5FA`.
+/// Steps of the behaviour mode `func_actor_403100_8013EB68`, indexed by `subState`.
 static const TaskFuncTable3 D_actor_403100_80131EE4 = {
     {
         func_actor_403100_8013EF34,
@@ -5193,7 +5193,7 @@ static const TaskFuncTable3 D_actor_403100_80131EE4 = {
     },
 };
 
-/// Steps of the behaviour mode `func_actor_403100_8013EBC8`, indexed by `field_5FA`.
+/// Steps of the behaviour mode `func_actor_403100_8013EBC8`, indexed by `subState`.
 static const TaskFuncTable4 D_actor_403100_80131EF0 = {
     {
         func_actor_403100_801359DC,
@@ -5203,7 +5203,7 @@ static const TaskFuncTable4 D_actor_403100_80131EF0 = {
     },
 };
 
-/// Steps of the behaviour mode `func_actor_403100_8013EC4C`, indexed by `field_5FA`.
+/// Steps of the behaviour mode `func_actor_403100_8013EC4C`, indexed by `subState`.
 static const TaskFuncTable4 D_actor_403100_80131F00 = {
     {
         func_actor_403100_8013EFC8,
@@ -5213,7 +5213,7 @@ static const TaskFuncTable4 D_actor_403100_80131F00 = {
     },
 };
 
-/// Steps of the behaviour mode `func_actor_403100_8013ECD0`, indexed by `field_5FA`.
+/// Steps of the behaviour mode `func_actor_403100_8013ECD0`, indexed by `subState`.
 static const TaskFuncTable3 D_actor_403100_80131F10 = {
     {
         func_actor_403100_8013F034,
@@ -5235,8 +5235,8 @@ static const TaskFuncTable6 D_actor_403100_80131F1C = {
     },
 };
 
-/// Behaviour modes of the actor's main state, indexed by `field_5F8`. Each
-/// mode steps through its own table by `field_5FA`.
+/// Behaviour modes of the actor's main state, indexed by `state`. Each
+/// mode steps through its own table by `subState`.
 static const TaskFuncTable11 D_actor_403100_80131F34 = {
     {
         func_actor_403100_8013DA6C,
@@ -5253,15 +5253,15 @@ static const TaskFuncTable11 D_actor_403100_80131F34 = {
     },
 };
 
-/// Runs the per-frame hook `D_actor_403100_80131E24` selects by `field_5F2`.
+/// Runs the per-frame hook `D_actor_403100_80131E24` selects by `playerReactionStage`.
 static inline void _actor403100RunHook(void)
 {
     Actor403100VoidTable4 hooks = D_actor_403100_80131E24;
 
-    hooks.funcs[D_actor_403100_80155808->field_5F2]();
+    hooks.funcs[D_actor_403100_80155808->playerReactionStage]();
 }
 
-/// Adds the angles `field_A0`, `field_A2` and `field_A4` to the rotation of
+/// Adds the angles of `forearmTurn` to the rotation of
 /// model part 6 and updates the part.
 static inline void _actor403100TurnPart6(Task* task)
 {
@@ -5275,9 +5275,9 @@ static inline void _actor403100TurnPart6(Task* task)
     coords->composeStamp = GRAPHICS_COORD_DIRTY;
     gfxSetRotIdentity(&rotation);
     Gp_MtxToEuler(dest, &angles);
-    angles.vz += D_actor_403100_80155808->field_A4;
-    angles.vy += D_actor_403100_80155808->field_A2;
-    angles.vx += D_actor_403100_80155808->field_A0;
+    angles.vz += D_actor_403100_80155808->forearmTurn.vz;
+    angles.vy += D_actor_403100_80155808->forearmTurn.vy;
+    angles.vx += D_actor_403100_80155808->forearmTurn.vx;
     RotMatrix(&angles, &rotation);
     dest->m[0][0] = rotation.m[0][0];
     dest->m[0][1] = rotation.m[0][1];
@@ -5291,7 +5291,7 @@ static inline void _actor403100TurnPart6(Task* task)
     Gp_UpdateCoord(coords);
 }
 
-/// Adds `field_5E8` to the X angle of model part 4 and `field_5EA` to that of
+/// Adds `jawPitchOffset` to the X angle of model part 4 and `headPitchOffset` to that of
 /// part 3, reusing one workspace for both.
 static inline void _actor403100PitchArms(Task* task)
 {
@@ -5304,7 +5304,7 @@ static inline void _actor403100PitchArms(Task* task)
     gfxSetRotIdentity(&rotation);
     dest = &coords[4].coord;
     Gp_MtxToEuler(dest, &angles);
-    angles.vx += D_actor_403100_80155808->field_5E8;
+    angles.vx += D_actor_403100_80155808->jawPitchOffset;
     RotMatrix(&angles, &rotation);
     dest->m[0][0] = rotation.m[0][0];
     dest->m[0][1] = rotation.m[0][1];
@@ -5320,7 +5320,7 @@ static inline void _actor403100PitchArms(Task* task)
     gfxSetRotIdentity(&rotation);
     dest = &coords[3].coord;
     Gp_MtxToEuler(dest, &angles);
-    angles.vx += D_actor_403100_80155808->field_5EA;
+    angles.vx += D_actor_403100_80155808->headPitchOffset;
     RotMatrix(&angles, &rotation);
     dest->m[0][0] = rotation.m[0][0];
     dest->m[0][1] = rotation.m[0][1];
@@ -5353,12 +5353,12 @@ static void func_actor_403100_80136830(Task* arg0)
     obj           = arg0->extra.tmd;
     player        = *gPlayerActorTasks;
     stateHandlers = D_actor_403100_80131F34;
-    armTimer      = D_actor_403100_80155808->field_5E6;
+    armTimer      = D_actor_403100_80155808->engageDelay;
     if (armTimer != 0) {
         if ((armTimer == 1) && (D_actor_403100_8015580C->hp > 0)) {
             Gp_ArmStateF0(1);
         }
-        D_actor_403100_80155808->field_5E6 = (s16)((u16)D_actor_403100_80155808->field_5E6 - 1);
+        D_actor_403100_80155808->engageDelay = (s16)((u16)D_actor_403100_80155808->engageDelay - 1);
     }
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_HIDDEN:
@@ -5366,34 +5366,34 @@ static void func_actor_403100_80136830(Task* arg0)
             return;
         case SCENE_COMBAT_ACTORS_RUNNING:
             if (player == NULL) {
-                D_actor_403100_80155808->field_628 = 0;
+                D_actor_403100_80155808->playerRegion = 0;
             }
             func_actor_403100_801331D4(arg0);
-            countdown = D_actor_403100_80155808->field_5D0;
+            countdown = D_actor_403100_80155808->fightFramesLeft;
             if (countdown >= 0) {
-                D_actor_403100_80155808->field_5D0 = (s32)(countdown - 1);
+                D_actor_403100_80155808->fightFramesLeft = (s32)(countdown - 1);
             }
-            if ((config->hp > 0) && (D_actor_403100_80155808->field_5F2 == 0)) {
+            if ((config->hp > 0) && (D_actor_403100_80155808->playerReactionStage == 0)) {
                 if (D_actor_403100_8015580C->hp < (s16)(((s16)D_actor_403100_8015580C->hpMax * 0x23) / 100)) {
-                    D_actor_403100_80155808->field_65C = 1U;
+                    D_actor_403100_80155808->lowHealth = 1U;
                 } else {
-                    D_actor_403100_80155808->field_65C = 0U;
+                    D_actor_403100_80155808->lowHealth = 0U;
                 }
             }
-            playerCoord                        = player->extra.tmd->coords;
-            D_actor_403100_80155808->field_628 = func_actor_403100_8013D9C4((s16)playerCoord->coord.t[0], (s16)playerCoord->coord.t[2], D_actor_403100_80155638);
+            playerCoord                           = player->extra.tmd->coords;
+            D_actor_403100_80155808->playerRegion = func_actor_403100_8013D9C4((s16)playerCoord->coord.t[0], (s16)playerCoord->coord.t[2], D_actor_403100_80155638);
             _actor403100RunHook();
-            stateHandlers.funcs[(s16)D_actor_403100_80155808->field_5F8](arg0);
-            if ((D_actor_403100_80155808->field_65C != 0) && ((u8)D_actor_403100_80155808->pad_660[1] == 0) && ((u8)D_actor_403100_80155808->pad_670[1] == 0)) {
-                D_actor_403100_80155808->field_5F8 = 9;
-                D_actor_403100_80155808->field_5FA = 0;
+            stateHandlers.funcs[(s16)D_actor_403100_80155808->state](arg0);
+            if ((D_actor_403100_80155808->lowHealth != 0) && (D_actor_403100_80155808->phaseChangeDone == 0) && (D_actor_403100_80155808->holdingPlayer == 0)) {
+                D_actor_403100_80155808->state    = 9;
+                D_actor_403100_80155808->subState = 0;
             }
             func_actor_403100_8013CBE0(arg0);
             func_actor_403100_8013CDC0();
             func_actor_403100_8013BA64(arg0);
             func_actor_403100_801327CC(arg0);
-            flashTimer                                      = D_actor_403100_80155808->field_5FE;
-            D_actor_403100_80155808->previousAnimationFlags = D_actor_403100_80155808->field_B8.slots[1].status.fields.flags;
+            flashTimer                                      = D_actor_403100_80155808->shakeFrames;
+            D_actor_403100_80155808->previousAnimationFlags = D_actor_403100_80155808->rig.slots[1].status.fields.flags;
             if (flashTimer != 0) {
                 if (flashTimer >= 0x10) {
                     flash = rsin(gDisplayState.animFrame << 9) << 0xD;
@@ -5401,11 +5401,11 @@ static void func_actor_403100_80136830(Task* arg0)
                     flash = rsin(gDisplayState.animFrame << 9) << 0xC;
                 }
                 displaySetShakeY(flash >> 0x18);
-                D_actor_403100_80155808->field_5FE = (s16)((u16)D_actor_403100_80155808->field_5FE - 1);
+                D_actor_403100_80155808->shakeFrames = (s16)((u16)D_actor_403100_80155808->shakeFrames - 1);
             } else {
                 displaySetShakeY(0);
             }
-            func_actor_403100_8013B5E0(arg0, D_actor_403100_80155808->field_61C);
+            func_actor_403100_8013B5E0(arg0, D_actor_403100_80155808->aimMode);
             _actor403100SetRootYaw(arg0);
             scale = 0x1400;
             _actor403100ScaleRoot(arg0, scale);
@@ -5413,30 +5413,30 @@ static void func_actor_403100_80136830(Task* arg0)
             _actor403100TurnPart6(arg0);
             _actor403100PitchArms(arg0);
             func_actor_403100_8013335C(arg0);
-            if (D_actor_403100_80155808->field_60C != 0) {
-                lightTimer = --D_actor_403100_80155808->field_60C;
+            if (D_actor_403100_80155808->hitColorFrames != 0) {
+                lightTimer = --D_actor_403100_80155808->hitColorFrames;
                 if ((s16)lightTimer == 0) {
                     Gp_SetLightMode(arg0->spawnArg2.pointer, ENEMY_COLOR_DEFAULT);
                 }
             }
-            if ((D_actor_403100_8015580C->hp <= 0) && ((u8)D_actor_403100_80155808->pad_670[3] == 0) && (D_actor_403100_80155808->field_5F2 == 0)) {
+            if ((D_actor_403100_8015580C->hp <= 0) && (D_actor_403100_80155808->vulnerable == 0) && (D_actor_403100_80155808->playerReactionStage == 0)) {
                 if (config->hp <= 0) {
                     D_actor_403100_8015580C->hp = 0x3E8;
                 } else {
-                    D_actor_403100_80155808->field_658     = -1;
-                    D_actor_403100_80155808->field_618     = 0x1400;
-                    gGameSession->suppressDeathChecks      = 0;
-                    Gp_StateC08.flags                      = (u8)(Gp_StateC08.flags | ATTACHMENT_FLAG_EVENT_LOCK);
-                    gGameSession->suppressViewTriggers     = 0;
-                    D_actor_403100_8015580C->reactionFlags = 0;
+                    D_actor_403100_80155808->bufferReleaseDelay = -1;
+                    D_actor_403100_80155808->sceneScale         = 0x1400;
+                    gGameSession->suppressDeathChecks           = 0;
+                    Gp_StateC08.flags                           = (u8)(Gp_StateC08.flags | ATTACHMENT_FLAG_EVENT_LOCK);
+                    gGameSession->suppressViewTriggers          = 0;
+                    D_actor_403100_8015580C->reactionFlags      = 0;
                     Gp_SetLightMode(arg0->spawnArg2.pointer, ENEMY_COLOR_DEFAULT);
                     D_actor_403100_8015580C->node.state.parts.flags = (WORLD_TARGET_HIDE_HP | WORLD_TARGET_NOT_LOCKABLE);
                     func_800E8614(D_80166098, 0);
-                    arg0->state                        = 1;
-                    D_actor_403100_80155808->field_5F8 = 0;
-                    D_actor_403100_80155808->field_5FA = 0;
-                    D_actor_403100_80155808->field_5F8 = 9;
-                    D_actor_403100_80155808->field_5FA = 0;
+                    arg0->state                       = 1;
+                    D_actor_403100_80155808->state    = 0;
+                    D_actor_403100_80155808->subState = 0;
+                    D_actor_403100_80155808->state    = 9;
+                    D_actor_403100_80155808->subState = 0;
                     case 1:
                 }
             }
@@ -5470,9 +5470,9 @@ static void func_actor_403100_8013712C(Task* arg0)
 
     coord                                           = arg0->extra.tmd->coords;
     D_actor_403100_8015580C->node.state.parts.flags = WORLD_TARGET_HIDE_HP;
-    D_actor_403100_80155808->field_5E6              = 0x1E;
-    D_actor_403100_80155808->field_62C              = 0x20;
-    D_actor_403100_80155808->field_600              = 0;
+    D_actor_403100_80155808->engageDelay            = 0x1E;
+    D_actor_403100_80155808->walkSpeed              = 0x20;
+    D_actor_403100_80155808->stridePhase            = 0;
     (Gp_IncStateF0Ref)(0);
     i                                        = 0;
     entries                                  = D_actor_403100_80155814;
@@ -5482,14 +5482,14 @@ static void func_actor_403100_8013712C(Task* arg0)
     coord->coord.t[2]                        = 0x980;
     *(volatile s16*)&D_actor_403100_80155810 = 0;
     coord->coord.t[1]                        = 0;
-    work->field_82                           = 0xC00;
-    work->field_5D0                          = 0x1518;
-    work->field_5E2                          = 0x10;
-    work->field_5DE                          = 1;
-    work->field_80                           = 0;
-    work->field_84                           = 0;
-    work->field_5DA                          = 2;
-    work->field_5EC                          = 0;
+    work->rotation.vy                        = 0xC00;
+    work->fightFramesLeft                    = 0x1518;
+    work->animationRate                      = ANIMATION_RATE_ONE;
+    work->animationId                        = 1;
+    work->rotation.vx                        = 0;
+    work->rotation.vz                        = 0;
+    work->animationRequest                   = ACTOR_403100_ANIMATION_REQUEST_RESET;
+    work->stateFrames                        = 0;
     for (; i < 0x1C; i++) {
         if (entries[i].active != 0) {
             entries[i].active = 0;
@@ -5501,9 +5501,9 @@ static void func_actor_403100_8013712C(Task* arg0)
         obj = &(PARENT_OF(obj, Actor403100Entry, obj) + 1)->obj;
     }
     SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 1);
-    D_actor_403100_80155808->field_5FA += 1;
+    D_actor_403100_80155808->subState += 1;
 }
-/// Steps of the behaviour mode `func_actor_403100_8013DAC4`, indexed by `field_5FA`.
+/// Steps of the behaviour mode `func_actor_403100_8013DAC4`, indexed by `subState`.
 static const TaskFuncTable3 D_actor_403100_80131F60 = {
     {
         func_actor_403100_8013F18C,
@@ -5516,22 +5516,22 @@ static void func_actor_403100_80137268(Task* task)
 {
     s16 state;
 
-    state = D_actor_403100_80155808->field_628 - 1;
+    state = D_actor_403100_80155808->playerRegion - 1;
     switch (state) {
         case 0:
-            if (D_actor_403100_80155808->field_62E < 0x1F40) {
-                D_actor_403100_80155808->field_5FA += 1;
+            if (D_actor_403100_80155808->playerDistance < 0x1F40) {
+                D_actor_403100_80155808->subState += 1;
             }
             break;
         case 1:
         case 5:
-            D_actor_403100_80155808->field_5FA += 1;
+            D_actor_403100_80155808->subState += 1;
             break;
         case 2:
         case 3:
         case 4:
-            if (D_actor_403100_80155808->field_62E < 0x17D4) {
-                D_actor_403100_80155808->field_5FA += 1;
+            if (D_actor_403100_80155808->playerDistance < 0x17D4) {
+                D_actor_403100_80155808->subState += 1;
             }
             break;
     }
@@ -5546,60 +5546,60 @@ static void func_actor_403100_80137310(Task* task)
     u32 random2;
 
     halfHealth = gPlayerStatus.hpMax / 2;
-    phase      = D_actor_403100_80155808->field_628;
+    phase      = D_actor_403100_80155808->playerRegion;
     if (phase != 2 && phase != 6) {
-        if ((gPlayerStatus.hp < halfHealth) || (D_actor_403100_80155808->field_65C != 0)) {
-            random1                            = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-            gRandomLcgState                    = random1;
-            D_actor_403100_80155808->field_5F8 = D_actor_403100_801557B0.value[1][(random1 >> 16) & 15];
-            D_actor_403100_80155808->field_5FA = 0;
+        if ((gPlayerStatus.hp < halfHealth) || (D_actor_403100_80155808->lowHealth != 0)) {
+            random1                           = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+            gRandomLcgState                   = random1;
+            D_actor_403100_80155808->state    = D_actor_403100_801557B0.value[1][(random1 >> 16) & 15];
+            D_actor_403100_80155808->subState = 0;
         } else {
-            random2                            = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-            gRandomLcgState                    = random2;
-            D_actor_403100_80155808->field_5F8 = D_actor_403100_801557B0.value[0][(random2 >> 16) & 15];
-            D_actor_403100_80155808->field_5FA = 0;
+            random2                           = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+            gRandomLcgState                   = random2;
+            D_actor_403100_80155808->state    = D_actor_403100_801557B0.value[0][(random2 >> 16) & 15];
+            D_actor_403100_80155808->subState = 0;
         }
-        if ((s16)D_actor_403100_80155808->field_5F8 == 4) {
-            if (D_actor_403100_80155808->field_65C != 0) {
-                D_actor_403100_80155808->field_5F8 = 2;
-                D_actor_403100_80155808->field_5FA = 0;
+        if ((s16)D_actor_403100_80155808->state == 4) {
+            if (D_actor_403100_80155808->lowHealth != 0) {
+                D_actor_403100_80155808->state    = 2;
+                D_actor_403100_80155808->subState = 0;
             }
         }
-        if ((s16)D_actor_403100_80155808->field_5F8 == 5) {
-            if (D_actor_403100_80155808->field_628 != 1) {
-                D_actor_403100_80155808->field_5F8 = 7;
-                D_actor_403100_80155808->field_5FA = 0;
+        if ((s16)D_actor_403100_80155808->state == 5) {
+            if (D_actor_403100_80155808->playerRegion != 1) {
+                D_actor_403100_80155808->state    = 7;
+                D_actor_403100_80155808->subState = 0;
             }
         }
-        if (((s16)D_actor_403100_80155808->field_5F8 == 7) && ((u32)((u16)D_actor_403100_80155808->field_628 - 3) >= 2U)) {
-            D_actor_403100_80155808->field_5F8 = 4;
-            D_actor_403100_80155808->field_5FA = 0;
+        if (((s16)D_actor_403100_80155808->state == 7) && ((u32)((u16)D_actor_403100_80155808->playerRegion - 3) >= 2U)) {
+            D_actor_403100_80155808->state    = 4;
+            D_actor_403100_80155808->subState = 0;
         }
-        D_actor_403100_80155808->field_612[(u8)D_actor_403100_80155808->pad_66A[3]] = (u16)D_actor_403100_80155808->field_5F8;
-        previousState                                                               = D_actor_403100_80155808->field_612[0];
-        if ((previousState == D_actor_403100_80155808->field_612[1]) && (previousState == D_actor_403100_80155808->field_612[2])) {
-            state = (s16)D_actor_403100_80155808->field_5F8;
+        D_actor_403100_80155808->recentStates[D_actor_403100_80155808->recentStateCursor] = (u16)D_actor_403100_80155808->state;
+        previousState                                                                     = D_actor_403100_80155808->recentStates[0];
+        if ((previousState == D_actor_403100_80155808->recentStates[1]) && (previousState == D_actor_403100_80155808->recentStates[2])) {
+            state = (s16)D_actor_403100_80155808->state;
             if (state == 2 || state == 4 || state == 7) {
-                D_actor_403100_80155808->field_5F8 = 3;
-                D_actor_403100_80155808->field_5FA = 0;
+                D_actor_403100_80155808->state    = 3;
+                D_actor_403100_80155808->subState = 0;
             } else if (state == 3) {
-                if (D_actor_403100_80155808->field_65C != 0) {
-                    D_actor_403100_80155808->field_5F8 = 2;
-                    D_actor_403100_80155808->field_5FA = 0;
+                if (D_actor_403100_80155808->lowHealth != 0) {
+                    D_actor_403100_80155808->state    = 2;
+                    D_actor_403100_80155808->subState = 0;
                 } else {
-                    D_actor_403100_80155808->field_5F8 = 4;
-                    D_actor_403100_80155808->field_5FA = 0;
+                    D_actor_403100_80155808->state    = 4;
+                    D_actor_403100_80155808->subState = 0;
                 }
             }
-            D_actor_403100_80155808->field_612[(u8)D_actor_403100_80155808->pad_66A[3]] = (u16)D_actor_403100_80155808->field_5F8;
+            D_actor_403100_80155808->recentStates[D_actor_403100_80155808->recentStateCursor] = (u16)D_actor_403100_80155808->state;
         }
-        D_actor_403100_80155808->pad_66A[3] = (u8)D_actor_403100_80155808->pad_66A[3] + 1;
-        if ((u8)D_actor_403100_80155808->pad_66A[3] >= 3U) {
-            D_actor_403100_80155808->pad_66A[3] = 0;
+        D_actor_403100_80155808->recentStateCursor = D_actor_403100_80155808->recentStateCursor + 1;
+        if (D_actor_403100_80155808->recentStateCursor >= ARRAY_SIZE(D_actor_403100_80155808->recentStates)) {
+            D_actor_403100_80155808->recentStateCursor = 0;
         }
     } else {
-        D_actor_403100_80155808->field_5F8 = 6;
-        D_actor_403100_80155808->field_5FA = 0;
+        D_actor_403100_80155808->state    = 6;
+        D_actor_403100_80155808->subState = 0;
     }
 }
 static void func_actor_403100_801375B8(Task* task)
@@ -5608,35 +5608,35 @@ static void func_actor_403100_801375B8(Task* task)
     u32 random2;
     u32 random1;
 
-    random1                             = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-    random2                             = (random1 * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-    gRandomLcgState                     = random2;
-    D_actor_403100_80155808->pad_65E[0] = ((random1 >> 0x10) & 1) + (((random2 >> 0x10) & 1) + 1);
-    D_actor_403100_80155808->field_62C  = 0x20;
-    angle                               = (u16)D_actor_403100_80155808->field_B2;
-    D_actor_403100_80155808->field_5F6  = 0;
-    D_actor_403100_80155808->field_61C  = 4;
-    D_actor_403100_80155808->field_604  = 0;
-    D_actor_403100_80155808->field_608  = 0;
-    D_actor_403100_80155808->field_626  = (s16)angle;
+    random1                               = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+    random2                               = (random1 * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+    gRandomLcgState                       = random2;
+    D_actor_403100_80155808->stateCounter = ((random1 >> 0x10) & 1) + 1 + ((random2 >> 0x10) & 1);
+    D_actor_403100_80155808->walkSpeed    = 0x20;
+    angle                                 = (u16)D_actor_403100_80155808->headAim.vy;
+    D_actor_403100_80155808->walkStage    = 0;
+    D_actor_403100_80155808->aimMode      = ACTOR_403100_AIM_YAW_ONLY_FAST;
+    D_actor_403100_80155808->armPitch     = 0;
+    D_actor_403100_80155808->armYaw       = 0;
+    D_actor_403100_80155808->armYawTarget = (s16)angle;
     if ((s16)angle >= 0xD1) {
-        D_actor_403100_80155808->field_626 = 0xD0;
+        D_actor_403100_80155808->armYawTarget = 0xD0;
     }
-    if (D_actor_403100_80155808->field_626 < -0x160) {
-        D_actor_403100_80155808->field_626 = -0x160;
+    if (D_actor_403100_80155808->armYawTarget < -0x160) {
+        D_actor_403100_80155808->armYawTarget = -0x160;
     }
-    D_actor_403100_80155808->field_5DE             = 4;
-    D_actor_403100_80155808->field_5E2             = 0xC;
-    D_actor_403100_80155808->field_5DA             = 2;
-    D_actor_403100_80155808->field_5EC             = 0;
-    D_actor_403100_80155808->field_55C.flags      &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-    D_actor_403100_80155808->field_594.flags      &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-    D_actor_403100_80155808->field_668.b.field_668 = 0;
-    D_actor_403100_80155808->field_668.b.field_669 = 0;
-    D_actor_403100_80155808->field_5FA            += 1;
-    D_actor_403100_80155808->part4PitchPhase       = ACTOR_403100_PITCH_PHASE_REST;
-    D_actor_403100_80155808->part3PitchPhase       = ACTOR_403100_PITCH_PHASE_REST;
-    D_actor_403100_80155808->pad_66A[4]            = 0;
+    D_actor_403100_80155808->animationId          = 4;
+    D_actor_403100_80155808->animationRate        = 0xC;
+    D_actor_403100_80155808->animationRequest     = ACTOR_403100_ANIMATION_REQUEST_RESET;
+    D_actor_403100_80155808->stateFrames          = 0;
+    D_actor_403100_80155808->handAttack.flags    &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+    D_actor_403100_80155808->forearmAttack.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+    D_actor_403100_80155808->handTouchedPlayer    = 0;
+    D_actor_403100_80155808->forearmTouchedPlayer = 0;
+    D_actor_403100_80155808->subState            += 1;
+    D_actor_403100_80155808->jawPitchPhase        = ACTOR_403100_PITCH_PHASE_REST;
+    D_actor_403100_80155808->headPitchPhase       = ACTOR_403100_PITCH_PHASE_REST;
+    D_actor_403100_80155808->swingConnected       = 0;
 }
 static void func_actor_403100_801376D8(Task* arg0)
 {
@@ -5646,59 +5646,59 @@ static void func_actor_403100_801376D8(Task* arg0)
     u16   counter;
     u16   angle;
 
-    if ((u32)(D_actor_403100_80155808->field_5EC - 0x36) < 4U) {
+    if ((u32)(D_actor_403100_80155808->stateFrames - 0x36) < 4U) {
         func_actor_403100_8013C7B4(arg0);
     }
-    if ((s16)D_actor_403100_80155808->field_5EC == 0x39) {
+    if ((s16)D_actor_403100_80155808->stateFrames == 0x39) {
         func_actor_403100_801342B4(arg0);
         sound = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F0003;
         pan   = (s8)worldCoordGetOriginAudioPan(&arg0->extra.tmd->coords[7]);
         SndEvt_EnqueueType6(sound, pan, (s8)(worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[7]) / 2));
         Gp_SpawnPadLerp(0x12, 0xFFU, 8U);
-        D_actor_403100_80155808->field_5FE = 0x12;
+        D_actor_403100_80155808->shakeFrames = 0x12;
     }
-    D_actor_403100_80155808->field_5EC += 1;
-    if (D_actor_403100_80155808->field_668.flags != 0) {
-        D_actor_403100_80155808->field_5F6 = 4;
-        if (D_actor_403100_80155808->field_5F2 == 0) {
+    D_actor_403100_80155808->stateFrames += 1;
+    if (D_actor_403100_80155808->handTouchedPlayer != 0 || D_actor_403100_80155808->forearmTouchedPlayer != 0) {
+        D_actor_403100_80155808->walkStage = 4;
+        if (D_actor_403100_80155808->playerReactionStage == 0) {
             Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
             func_actor_403100_8013D1B8(5, 0x3F4);
-            D_actor_403100_80155808->field_5F4 = 0x17;
-            D_actor_403100_80155808->field_5F2 = 1;
-            task                               = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+            D_actor_403100_80155808->playerReactionFrames = 0x17;
+            D_actor_403100_80155808->playerReactionStage  = 1;
+            task                                          = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
             if (taskMessageDispatch(task, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, Gp_PackPair(D_actor_403100_80147614, 0), 0) == 1) {
                 ((GameActor*)(*gPlayerActorTasks)->work)->state = 0xA;
             }
         }
-        D_actor_403100_80155808->field_668.b.field_668 = 0;
-        D_actor_403100_80155808->field_668.b.field_669 = 0;
-        D_actor_403100_80155808->pad_66A[4]            = 1;
+        D_actor_403100_80155808->handTouchedPlayer    = 0;
+        D_actor_403100_80155808->forearmTouchedPlayer = 0;
+        D_actor_403100_80155808->swingConnected       = 1;
         func_actor_403100_8013D2A0(1);
     }
-    D_actor_403100_80155808->field_608 += (s16)((D_actor_403100_80155808->field_626 - D_actor_403100_80155808->field_608) << 4) >> 7;
+    D_actor_403100_80155808->armYaw += (s16)((D_actor_403100_80155808->armYawTarget - D_actor_403100_80155808->armYaw) << 4) >> 7;
     if (Actor403100_TestFlags104()) {
-        if ((u8)D_actor_403100_80155808->pad_66A[4] != 0) {
-            D_actor_403100_80155808->field_5E2        = 0x10;
-            D_actor_403100_80155808->field_5DE        = 5;
-            D_actor_403100_80155808->field_5DA        = 2;
-            D_actor_403100_80155808->field_5FA       += 2;
-            D_actor_403100_80155808->field_55C.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-            D_actor_403100_80155808->field_594.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        if (D_actor_403100_80155808->swingConnected != 0) {
+            D_actor_403100_80155808->animationRate        = ANIMATION_RATE_ONE;
+            D_actor_403100_80155808->animationId          = 5;
+            D_actor_403100_80155808->animationRequest     = ACTOR_403100_ANIMATION_REQUEST_RESET;
+            D_actor_403100_80155808->subState            += 2;
+            D_actor_403100_80155808->handAttack.flags    &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+            D_actor_403100_80155808->forearmAttack.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             return;
         }
-        counter                                             = D_actor_403100_80155808->field_5FA;
-        *(volatile s16*)&D_actor_403100_80155808->field_5E2 = 0xA;
-        *(volatile s16*)&D_actor_403100_80155808->field_5DE = 2;
-        *(volatile s16*)&D_actor_403100_80155808->field_5DA = 2;
-        angle                                               = *(volatile u16*)&D_actor_403100_80155808->field_B2;
-        D_actor_403100_80155808->field_5EC                  = 0;
-        D_actor_403100_80155808->field_626                  = (s16)angle;
-        D_actor_403100_80155808->field_5FA                  = counter + 1;
+        counter                                                    = D_actor_403100_80155808->subState;
+        *(volatile s16*)&D_actor_403100_80155808->animationRate    = 0xA;
+        *(volatile s16*)&D_actor_403100_80155808->animationId      = 2;
+        *(volatile s16*)&D_actor_403100_80155808->animationRequest = ACTOR_403100_ANIMATION_REQUEST_RESET;
+        angle                                                      = *(volatile u16*)&D_actor_403100_80155808->headAim.vy;
+        D_actor_403100_80155808->stateFrames                       = 0;
+        D_actor_403100_80155808->armYawTarget                      = (s16)angle;
+        D_actor_403100_80155808->subState                          = counter + 1;
         if ((s16)angle >= 0xD1) {
-            D_actor_403100_80155808->field_626 = 0xD0;
+            D_actor_403100_80155808->armYawTarget = 0xD0;
         }
-        if (D_actor_403100_80155808->field_626 < -0x160) {
-            D_actor_403100_80155808->field_626 = -0x160;
+        if (D_actor_403100_80155808->armYawTarget < -0x160) {
+            D_actor_403100_80155808->armYawTarget = -0x160;
         }
     }
 }
@@ -5710,60 +5710,60 @@ static void func_actor_403100_801379B4(Task* arg0)
     s8    count;
     u16   angle;
 
-    if ((u32)(D_actor_403100_80155808->field_5EC - 0x3C) < 9U) {
+    if ((u32)(D_actor_403100_80155808->stateFrames - 0x3C) < 9U) {
         func_actor_403100_8013C7B4(arg0);
     }
-    if ((s16)D_actor_403100_80155808->field_5EC == 0x44) {
+    if ((s16)D_actor_403100_80155808->stateFrames == 0x44) {
         func_actor_403100_801342B4(arg0);
         sound = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F0003;
         pan   = (s8)worldCoordGetOriginAudioPan(&arg0->extra.tmd->coords[7]);
         SndEvt_EnqueueType6(sound, pan, (s8)(worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[7]) / 2));
         Gp_SpawnPadLerp(0x12, 0xFFU, 8U);
-        D_actor_403100_80155808->field_5FE = 0x12;
+        D_actor_403100_80155808->shakeFrames = 0x12;
     }
-    D_actor_403100_80155808->field_5EC += 1;
-    if (D_actor_403100_80155808->field_668.flags != 0) {
-        D_actor_403100_80155808->field_5F6 = 4;
-        if (D_actor_403100_80155808->field_5F2 == 0) {
+    D_actor_403100_80155808->stateFrames += 1;
+    if (D_actor_403100_80155808->handTouchedPlayer != 0 || D_actor_403100_80155808->forearmTouchedPlayer != 0) {
+        D_actor_403100_80155808->walkStage = 4;
+        if (D_actor_403100_80155808->playerReactionStage == 0) {
             Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
             func_actor_403100_8013D1B8(5, 0x3F4);
-            D_actor_403100_80155808->field_5F4 = 0x17;
-            D_actor_403100_80155808->field_5F2 = 1;
-            task                               = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+            D_actor_403100_80155808->playerReactionFrames = 0x17;
+            D_actor_403100_80155808->playerReactionStage  = 1;
+            task                                          = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
             if (taskMessageDispatch(task, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, Gp_PackPair(D_actor_403100_80147614, 0), 0) == 1) {
                 ((GameActor*)(*gPlayerActorTasks)->work)->state = 0xA;
             }
         }
-        D_actor_403100_80155808->field_668.b.field_668 = 0;
-        D_actor_403100_80155808->field_668.b.field_669 = 0;
+        D_actor_403100_80155808->handTouchedPlayer    = 0;
+        D_actor_403100_80155808->forearmTouchedPlayer = 0;
         func_actor_403100_8013D2A0(1);
-        D_actor_403100_80155808->pad_66A[4] = 1;
-        D_actor_403100_80155808->pad_65E[0] = 1;
+        D_actor_403100_80155808->swingConnected = 1;
+        D_actor_403100_80155808->stateCounter   = 1;
     }
-    D_actor_403100_80155808->field_608 += (s16)((D_actor_403100_80155808->field_626 - D_actor_403100_80155808->field_608) << 4) >> 7;
+    D_actor_403100_80155808->armYaw += (s16)((D_actor_403100_80155808->armYawTarget - D_actor_403100_80155808->armYaw) << 4) >> 7;
     if (Actor403100_TestFlags104()) {
-        count                               = (u8)D_actor_403100_80155808->pad_65E[0] - 1;
-        D_actor_403100_80155808->pad_65E[0] = count;
+        count                                 = D_actor_403100_80155808->stateCounter - 1;
+        D_actor_403100_80155808->stateCounter = count;
         if (!(count & 0xFF)) {
-            D_actor_403100_80155808->field_5E2        = 0x10;
-            D_actor_403100_80155808->field_5DE        = 5;
-            D_actor_403100_80155808->field_5DA        = 2;
-            D_actor_403100_80155808->field_5FA       += 1;
-            D_actor_403100_80155808->field_55C.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-            D_actor_403100_80155808->field_594.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+            D_actor_403100_80155808->animationRate        = ANIMATION_RATE_ONE;
+            D_actor_403100_80155808->animationId          = 5;
+            D_actor_403100_80155808->animationRequest     = ACTOR_403100_ANIMATION_REQUEST_RESET;
+            D_actor_403100_80155808->subState            += 1;
+            D_actor_403100_80155808->handAttack.flags    &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+            D_actor_403100_80155808->forearmAttack.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             return;
         }
-        D_actor_403100_80155808->field_5E2 = 0xA;
-        angle                              = (u16)D_actor_403100_80155808->field_B2;
-        D_actor_403100_80155808->field_5EC = 0;
-        D_actor_403100_80155808->field_5DE = 2;
-        D_actor_403100_80155808->field_5DA = 2;
-        D_actor_403100_80155808->field_626 = (s16)angle;
+        D_actor_403100_80155808->animationRate    = 0xA;
+        angle                                     = (u16)D_actor_403100_80155808->headAim.vy;
+        D_actor_403100_80155808->stateFrames      = 0;
+        D_actor_403100_80155808->animationId      = 2;
+        D_actor_403100_80155808->animationRequest = ACTOR_403100_ANIMATION_REQUEST_RESET;
+        D_actor_403100_80155808->armYawTarget     = (s16)angle;
         if ((s16)angle >= 0xD1) {
-            D_actor_403100_80155808->field_626 = 0xD0;
+            D_actor_403100_80155808->armYawTarget = 0xD0;
         }
-        if (D_actor_403100_80155808->field_626 < -0x140) {
-            D_actor_403100_80155808->field_626 = -0x140;
+        if (D_actor_403100_80155808->armYawTarget < -0x140) {
+            D_actor_403100_80155808->armYawTarget = -0x140;
         }
     }
 }
@@ -5773,32 +5773,32 @@ static void func_actor_403100_80137CA8(Task* task)
     u16 angleX;
     u32 random;
 
-    angleX                             = (u16)D_actor_403100_80155808->field_604;
-    angleY                             = (u16)D_actor_403100_80155808->field_608;
-    D_actor_403100_80155808->field_604 = angleX + ((s32) - (angleX << 0x14) >> 0x17);
-    D_actor_403100_80155808->field_608 = angleY + ((s32) - (angleY << 0x14) >> 0x17);
+    angleX                            = (u16)D_actor_403100_80155808->armPitch;
+    angleY                            = (u16)D_actor_403100_80155808->armYaw;
+    D_actor_403100_80155808->armPitch = angleX + ((s32) - (angleX << 0x14) >> 0x17);
+    D_actor_403100_80155808->armYaw   = angleY + ((s32) - (angleY << 0x14) >> 0x17);
     if (Actor403100_TestFlags104()) {
-        if ((u8)D_actor_403100_80155808->pad_66A[4] != 0) {
-            D_actor_403100_80155808->field_5EC = 0;
-            random                             = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-            gRandomLcgState                    = random;
+        if (D_actor_403100_80155808->swingConnected != 0) {
+            D_actor_403100_80155808->stateFrames = 0;
+            random                               = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+            gRandomLcgState                      = random;
             if (!((random >> 0x10) & 3)) {
-                D_actor_403100_80155808->field_5FC  = 0x14;
-                D_actor_403100_80155808->field_5E2  = 0x1C;
-                D_actor_403100_80155808->field_5DE  = 3;
-                D_actor_403100_80155808->field_5DA  = 1;
-                D_actor_403100_80155808->field_5FA += 1;
+                D_actor_403100_80155808->animationBlendFrames = 0x14;
+                D_actor_403100_80155808->animationRate        = 0x1C;
+                D_actor_403100_80155808->animationId          = 3;
+                D_actor_403100_80155808->animationRequest     = ACTOR_403100_ANIMATION_REQUEST_BLEND;
+                D_actor_403100_80155808->subState            += 1;
                 return;
             }
-            D_actor_403100_80155808->field_5FC  = 8;
-            D_actor_403100_80155808->field_5E2  = 0x20;
-            D_actor_403100_80155808->field_5DE  = 1;
-            D_actor_403100_80155808->field_5DA  = 1;
-            D_actor_403100_80155808->field_5FA += 2;
+            D_actor_403100_80155808->animationBlendFrames = 8;
+            D_actor_403100_80155808->animationRate        = 0x20;
+            D_actor_403100_80155808->animationId          = 1;
+            D_actor_403100_80155808->animationRequest     = ACTOR_403100_ANIMATION_REQUEST_BLEND;
+            D_actor_403100_80155808->subState            += 2;
             return;
         }
-        D_actor_403100_80155808->field_5F8 = 1;
-        D_actor_403100_80155808->field_5FA = 0;
+        D_actor_403100_80155808->state    = 1;
+        D_actor_403100_80155808->subState = 0;
     }
 }
 static void func_actor_403100_80137DC4(Task* arg0)
@@ -5809,8 +5809,8 @@ static void func_actor_403100_80137DC4(Task* arg0)
     s32 pan2;
     u16 frame;
 
-    frame                              = D_actor_403100_80155808->field_5EC + 1;
-    D_actor_403100_80155808->field_5EC = frame;
+    frame                                = D_actor_403100_80155808->stateFrames + 1;
+    D_actor_403100_80155808->stateFrames = frame;
     if ((s16)frame == 0x31) {
         sound = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F0002;
         pan   = (s8)worldCoordGetOriginAudioPan(&arg0->extra.tmd->coords[4]);
@@ -5819,11 +5819,11 @@ static void func_actor_403100_80137DC4(Task* arg0)
         pan2   = (s8)worldCoordGetOriginAudioPan(&arg0->extra.tmd->coords[1]);
         SndEvt_EnqueueType6(sound2, pan2, (s8)(worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[1]) / 2));
         Gp_SpawnPadLerp(0x12, 0xFFU, 8U);
-        D_actor_403100_80155808->field_5FE = 0x12;
+        D_actor_403100_80155808->shakeFrames = 0x12;
     }
     if (Actor403100_TestFlags104()) {
-        D_actor_403100_80155808->field_5F8 = 1;
-        D_actor_403100_80155808->field_5FA = 0;
+        D_actor_403100_80155808->state    = 1;
+        D_actor_403100_80155808->subState = 0;
     }
 }
 static void func_actor_403100_80137F4C(Task* task)
@@ -5833,11 +5833,11 @@ static void func_actor_403100_80137F4C(Task* task)
     Actor403100Entry*   entries;
     s32                 i;
 
-    D_actor_403100_80155808->field_5F6 = 0;
-    if (D_actor_403100_80155808->field_65C == 0) {
-        D_actor_403100_80155808->field_62C = 0x1C;
+    D_actor_403100_80155808->walkStage = 0;
+    if (D_actor_403100_80155808->lowHealth == 0) {
+        D_actor_403100_80155808->walkSpeed = 0x1C;
     } else {
-        D_actor_403100_80155808->field_62C = 0x30;
+        D_actor_403100_80155808->walkSpeed = 0x30;
     }
     i                                      = 0;
     entries                                = D_actor_403100_80155814;
@@ -5854,12 +5854,12 @@ static void func_actor_403100_80137F4C(Task* task)
         entry++;
     }
     SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 1);
-    D_actor_403100_80155808->field_5E2  = 0x10;
-    D_actor_403100_80155808->field_5DE  = 7;
-    D_actor_403100_80155808->field_5DA  = 2;
-    D_actor_403100_80155808->field_61C  = 1;
-    D_actor_403100_80155808->field_5EC  = 0;
-    D_actor_403100_80155808->field_5FA += 1;
+    D_actor_403100_80155808->animationRate    = ANIMATION_RATE_ONE;
+    D_actor_403100_80155808->animationId      = 7;
+    D_actor_403100_80155808->animationRequest = ACTOR_403100_ANIMATION_REQUEST_RESET;
+    D_actor_403100_80155808->aimMode          = ACTOR_403100_AIM_YAW_ONLY;
+    D_actor_403100_80155808->stateFrames      = 0;
+    D_actor_403100_80155808->subState        += 1;
 }
 static void func_actor_403100_80138048(Task* arg0)
 {
@@ -5873,56 +5873,56 @@ static void func_actor_403100_80138048(Task* arg0)
     s32       pan2;
 
     if (D_actor_403100_80155810 == 1) {
-        D_actor_403100_80155808->field_5FA = 3;
+        D_actor_403100_80155808->subState = 3;
         return;
     }
-    state                               = (s8)D_actor_403100_80155808->pad_66A[2];
-    D_actor_403100_80155808->field_5EC += 1;
+    state                                 = D_actor_403100_80155808->hitTaken;
+    D_actor_403100_80155808->stateFrames += 1;
     if (state == 1) {
-        if (D_actor_403100_80155808->part3PitchPhase == ACTOR_403100_PITCH_PHASE_REST) {
-            D_actor_403100_80155808->part3PitchPhase = state;
+        if (D_actor_403100_80155808->headPitchPhase == ACTOR_403100_PITCH_PHASE_REST) {
+            D_actor_403100_80155808->headPitchPhase = state;
         }
     }
-    if ((s16)D_actor_403100_80155808->field_5EC < 0x33) {
-        if (D_actor_403100_80155808->field_628 == 4) {
-            D_actor_403100_80155808->field_98  = -0x1770;
-            D_actor_403100_80155808->field_9A  = -0xC80;
-            D_actor_403100_80155808->field_9C  = -0x1B58;
-            D_actor_403100_80155808->field_61C = 3;
+    if ((s16)D_actor_403100_80155808->stateFrames < 0x33) {
+        if (D_actor_403100_80155808->playerRegion == 4) {
+            D_actor_403100_80155808->aimTarget.vx = -0x1770;
+            D_actor_403100_80155808->aimTarget.vy = -0xC80;
+            D_actor_403100_80155808->aimTarget.vz = -0x1B58;
+            D_actor_403100_80155808->aimMode      = ACTOR_403100_AIM_TRACK_FAST;
         }
-        if (D_actor_403100_80155808->field_628 == 5) {
-            D_actor_403100_80155808->field_98  = 0x500;
-            D_actor_403100_80155808->field_9A  = -0xC80;
-            D_actor_403100_80155808->field_9C  = 0x2710;
-            D_actor_403100_80155808->field_61C = 3;
+        if (D_actor_403100_80155808->playerRegion == 5) {
+            D_actor_403100_80155808->aimTarget.vx = 0x500;
+            D_actor_403100_80155808->aimTarget.vy = -0xC80;
+            D_actor_403100_80155808->aimTarget.vz = 0x2710;
+            D_actor_403100_80155808->aimMode      = ACTOR_403100_AIM_TRACK_FAST;
         }
-        if ((s16)D_actor_403100_80155808->field_5EC < 0x33) {
+        if ((s16)D_actor_403100_80155808->stateFrames < 0x33) {
             func_dryfield_night_motel_balcony_80182730();
         }
     }
-    if ((s16)D_actor_403100_80155808->field_5EC == 0x33) {
-        D_actor_403100_80155808->field_61C = 5;
-        if (D_actor_403100_80155808->field_65C) {
-            D_actor_403100_80155808->field_65A = 0x10;
+    if ((s16)D_actor_403100_80155808->stateFrames == 0x33) {
+        D_actor_403100_80155808->aimMode = ACTOR_403100_AIM_TRACK_STEPPED;
+        if (D_actor_403100_80155808->lowHealth) {
+            D_actor_403100_80155808->aimYawStep = 0x10;
         } else {
-            D_actor_403100_80155808->field_65A = 8;
+            D_actor_403100_80155808->aimYawStep = 8;
         }
     }
-    if (((s16)D_actor_403100_80155808->field_5EC == 0x3D) && (D_actor_403100_80155808->field_65C == 0)) {
-        D_actor_403100_80155808->field_61C = 0;
+    if (((s16)D_actor_403100_80155808->stateFrames == 0x3D) && (D_actor_403100_80155808->lowHealth == 0)) {
+        D_actor_403100_80155808->aimMode = ACTOR_403100_AIM_TRACK;
     }
-    if ((s16)D_actor_403100_80155808->field_5EC == 0x7C) {
-        D_actor_403100_80155808->field_61C = 1;
+    if ((s16)D_actor_403100_80155808->stateFrames == 0x7C) {
+        D_actor_403100_80155808->aimMode = ACTOR_403100_AIM_YAW_ONLY;
     }
-    if ((s16)D_actor_403100_80155808->field_5EC == 0x33) {
+    if ((s16)D_actor_403100_80155808->stateFrames == 0x33) {
         sound = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F0004;
         pan   = (s8)worldCoordGetOriginAudioPan(&arg0->extra.tmd->coords[4]);
         SndEvt_EnqueueType6(sound, (s32)pan, (s8)(worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[4]) / 2));
     }
-    if ((s16)D_actor_403100_80155808->field_5EC == 0x7C) {
+    if ((s16)D_actor_403100_80155808->stateFrames == 0x7C) {
         SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 0xA);
     }
-    if ((u32)(D_actor_403100_80155808->field_5EC - 0x34) < 0x48U) {
+    if ((u32)(D_actor_403100_80155808->stateFrames - 0x34) < 0x48U) {
         offset.vy   = -0x1F0;
         offset.vz   = 0x620;
         velocity.vy = -0x20;
@@ -5932,12 +5932,12 @@ static void func_actor_403100_80138048(Task* arg0)
         func_actor_403100_80132064(arg0, &offset, &velocity, 0);
         func_actor_403100_8013D11C(arg0);
     }
-    if ((s16)D_actor_403100_80155808->field_5EC == 0x7E) {
+    if ((s16)D_actor_403100_80155808->stateFrames == 0x7E) {
         sound2 = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F0002;
         pan2   = (s8)worldCoordGetOriginAudioPan(&arg0->extra.tmd->coords[4]);
         SndEvt_EnqueueType6(sound2, (s32)pan2, (s8)(worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[4]) / 2));
     }
-    if ((u32)(D_actor_403100_80155808->field_5EC - 0x7D) < 0xBU) {
+    if ((u32)(D_actor_403100_80155808->stateFrames - 0x7D) < 0xBU) {
         effectCoord = &arg0->extra.tmd->coords[3];
         offset.vy   = -0x140;
         offset.vx   = 0;
@@ -5945,9 +5945,9 @@ static void func_actor_403100_80138048(Task* arg0)
         Gp_SpawnEff(EFFECT_SMOKE_PUFF, effectCoord, -0x3FFCB400, &offset);
     }
     if (Actor403100_TestFlags104()) {
-        D_actor_403100_80155808->field_61C  = 1;
-        D_actor_403100_80155808->field_5EC  = 0;
-        D_actor_403100_80155808->field_5FA += 1;
+        D_actor_403100_80155808->aimMode     = ACTOR_403100_AIM_YAW_ONLY;
+        D_actor_403100_80155808->stateFrames = 0;
+        D_actor_403100_80155808->subState   += 1;
     }
 }
 static void func_actor_403100_8013842C(Task* arg0)
@@ -5960,8 +5960,8 @@ static void func_actor_403100_8013842C(Task* arg0)
     s32       pan2;
     u16       frame;
 
-    frame                              = D_actor_403100_80155808->field_5EC + 1;
-    D_actor_403100_80155808->field_5EC = frame;
+    frame                                = D_actor_403100_80155808->stateFrames + 1;
+    D_actor_403100_80155808->stateFrames = frame;
     if ((s16)frame == 0x31) {
         sound = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F0002;
         pan   = (s8)worldCoordGetOriginAudioPan(&arg0->extra.tmd->coords[4]);
@@ -5970,10 +5970,10 @@ static void func_actor_403100_8013842C(Task* arg0)
         pan2   = (s8)worldCoordGetOriginAudioPan(&arg0->extra.tmd->coords[1]);
         SndEvt_EnqueueType6(sound2, pan2, (s8)(worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[1]) / 2));
         Gp_SpawnPadLerp(0x12, 0xFFU, 8U);
-        D_actor_403100_80155808->field_5FE       = 0x12;
-        D_actor_403100_80155808->part3PitchPhase = ACTOR_403100_PITCH_PHASE_START;
+        D_actor_403100_80155808->shakeFrames    = 0x12;
+        D_actor_403100_80155808->headPitchPhase = ACTOR_403100_PITCH_PHASE_START;
     }
-    if ((u32)(D_actor_403100_80155808->field_5EC - 0x32) < 0xBU) {
+    if ((u32)(D_actor_403100_80155808->stateFrames - 0x32) < 0xBU) {
         effectCoord = &arg0->extra.tmd->coords[3];
         offset.vy   = -0x140;
         offset.vx   = 0;
@@ -5981,8 +5981,8 @@ static void func_actor_403100_8013842C(Task* arg0)
         Gp_SpawnEff(EFFECT_SMOKE_PUFF, effectCoord, -0x3FFCB400, &offset);
     }
     if (Actor403100_TestFlags104()) {
-        D_actor_403100_80155808->field_5F8 = 1;
-        D_actor_403100_80155808->field_5FA = 0;
+        D_actor_403100_80155808->state    = 1;
+        D_actor_403100_80155808->subState = 0;
     }
 }
 static void func_actor_403100_80138610(Task* arg0)
@@ -5994,23 +5994,23 @@ static void func_actor_403100_80138610(Task* arg0)
 
     coord = arg0->extra.tmd->coords;
     if ((func_actor_403100_80133928() << 0x10) == 0) {
-        coord->coord.t[1]                 += 0x30;
-        timer                              = D_actor_403100_80155808->field_5EC;
-        D_actor_403100_80155808->field_5EC = timer + 1;
+        coord->coord.t[1]                   += 0x30;
+        timer                                = D_actor_403100_80155808->stateFrames;
+        D_actor_403100_80155808->stateFrames = timer + 1;
         if ((s16)timer >= 0x11) {
-            counter                                             = *(volatile u16*)&D_actor_403100_80155808->field_5FA;
-            *(volatile s16*)&D_actor_403100_80155808->field_61E = 0;
-            *(volatile s16*)&D_actor_403100_80155808->field_61E = 2;
-            angle                                               = *(volatile u16*)&D_actor_403100_80155808->field_B2;
-            D_actor_403100_80155808->field_5EC                  = 0;
-            D_actor_403100_80155808->field_620                  = 0;
-            D_actor_403100_80155808->field_626                  = (s16)angle;
-            D_actor_403100_80155808->field_5FA                  = counter + 1;
+            counter                                                    = *(volatile u16*)&D_actor_403100_80155808->subState;
+            *(volatile s16*)&D_actor_403100_80155808->jumpAcceleration = 0;
+            *(volatile s16*)&D_actor_403100_80155808->jumpAcceleration = 2;
+            angle                                                      = *(volatile u16*)&D_actor_403100_80155808->headAim.vy;
+            D_actor_403100_80155808->stateFrames                       = 0;
+            D_actor_403100_80155808->jumpSpeed                         = 0;
+            D_actor_403100_80155808->armYawTarget                      = (s16)angle;
+            D_actor_403100_80155808->subState                          = counter + 1;
             if ((s16)angle >= 0xD1) {
-                D_actor_403100_80155808->field_626 = 0xD0;
+                D_actor_403100_80155808->armYawTarget = 0xD0;
             }
-            if (D_actor_403100_80155808->field_626 < -0x160) {
-                D_actor_403100_80155808->field_626 = -0x160;
+            if (D_actor_403100_80155808->armYawTarget < -0x160) {
+                D_actor_403100_80155808->armYawTarget = -0x160;
             }
         }
     }
@@ -6023,18 +6023,18 @@ static void func_actor_403100_801386DC(Task* arg0)
 
     coord = arg0->extra.tmd->coords;
     func_actor_403100_8013D24C();
-    D_actor_403100_80155808->field_608 =
-        (u16)D_actor_403100_80155808->field_608 +
-        ((s32)(((u16)D_actor_403100_80155808->field_626 - (u16)D_actor_403100_80155808->field_608) << 0x14) >> 0x17);
-    D_actor_403100_80155808->field_5EC += 1;
-    accel                               = D_actor_403100_80155808->field_61E + 4;
-    velocity                            = D_actor_403100_80155808->field_620 + accel;
-    D_actor_403100_80155808->field_620  = velocity;
-    D_actor_403100_80155808->field_61E  = accel;
-    coord->coord.t[1]                  -= (s16)velocity;
-    if ((s16)D_actor_403100_80155808->field_5EC >= 6) {
-        D_actor_403100_80155808->field_5EC  = 0;
-        D_actor_403100_80155808->field_5FA += 1;
+    D_actor_403100_80155808->armYaw =
+        (u16)D_actor_403100_80155808->armYaw +
+        ((s32)(((u16)D_actor_403100_80155808->armYawTarget - (u16)D_actor_403100_80155808->armYaw) << 0x14) >> 0x17);
+    D_actor_403100_80155808->stateFrames     += 1;
+    accel                                     = D_actor_403100_80155808->jumpAcceleration + 4;
+    velocity                                  = D_actor_403100_80155808->jumpSpeed + accel;
+    D_actor_403100_80155808->jumpSpeed        = velocity;
+    D_actor_403100_80155808->jumpAcceleration = accel;
+    coord->coord.t[1]                        -= (s16)velocity;
+    if ((s16)D_actor_403100_80155808->stateFrames >= 6) {
+        D_actor_403100_80155808->stateFrames = 0;
+        D_actor_403100_80155808->subState   += 1;
     }
 }
 static void func_actor_403100_80138790(Task* arg0)
@@ -6045,17 +6045,17 @@ static void func_actor_403100_80138790(Task* arg0)
 
     coord = arg0->extra.tmd->coords;
     func_actor_403100_8013D24C();
-    D_actor_403100_80155808->field_608 =
-        (u16)D_actor_403100_80155808->field_608 +
-        ((s32)(((u16)D_actor_403100_80155808->field_626 - (u16)D_actor_403100_80155808->field_608) << 0x14) >> 0x17);
-    D_actor_403100_80155808->field_5EC += 1;
-    accel                               = D_actor_403100_80155808->field_61E - 4;
-    velocity                            = D_actor_403100_80155808->field_620 + accel;
-    D_actor_403100_80155808->field_620  = velocity;
-    D_actor_403100_80155808->field_61E  = accel;
-    coord->coord.t[1]                  -= (s16)velocity;
-    if ((s16)D_actor_403100_80155808->field_5EC >= 6) {
-        D_actor_403100_80155808->field_5FA += 1;
+    D_actor_403100_80155808->armYaw =
+        (u16)D_actor_403100_80155808->armYaw +
+        ((s32)(((u16)D_actor_403100_80155808->armYawTarget - (u16)D_actor_403100_80155808->armYaw) << 0x14) >> 0x17);
+    D_actor_403100_80155808->stateFrames     += 1;
+    accel                                     = D_actor_403100_80155808->jumpAcceleration - 4;
+    velocity                                  = D_actor_403100_80155808->jumpSpeed + accel;
+    D_actor_403100_80155808->jumpSpeed        = velocity;
+    D_actor_403100_80155808->jumpAcceleration = accel;
+    coord->coord.t[1]                        -= (s16)velocity;
+    if ((s16)D_actor_403100_80155808->stateFrames >= 6) {
+        D_actor_403100_80155808->subState += 1;
     }
 }
 static void func_actor_403100_80138844(Task* arg0)
@@ -6072,42 +6072,42 @@ static void func_actor_403100_80138844(Task* arg0)
 
     coord = arg0->extra.tmd->coords;
     func_actor_403100_8013D24C();
-    if ((D_actor_403100_80155808->field_668.flags != 0) && (D_actor_403100_80155808->field_5F2 == 0)) {
+    if ((D_actor_403100_80155808->handTouchedPlayer != 0 || D_actor_403100_80155808->forearmTouchedPlayer != 0) && (D_actor_403100_80155808->playerReactionStage == 0)) {
         Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
         func_actor_403100_8013D1B8(5, 0x3F4);
-        D_actor_403100_80155808->field_5F4 = 0x17;
-        D_actor_403100_80155808->field_5F2 = 1;
-        player                             = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+        D_actor_403100_80155808->playerReactionFrames = 0x17;
+        D_actor_403100_80155808->playerReactionStage  = 1;
+        player                                        = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
         if (taskMessageDispatch(player, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, Gp_PackPair(D_actor_403100_80147614, 0), 0) == 1) {
             ((GameActor*)(*gPlayerActorTasks)->work)->state = 0xA;
         }
     }
     func_actor_403100_8013C7B4(arg0);
-    D_actor_403100_80155808->field_5EC += 1;
-    D_actor_403100_80155808->field_608 =
-        (u16)D_actor_403100_80155808->field_608 +
-        ((s32)(((u16)D_actor_403100_80155808->field_626 - (u16)D_actor_403100_80155808->field_608) << 0x14) >> 0x17);
-    accel                              = D_actor_403100_80155808->field_61E - 4;
-    velocity                           = D_actor_403100_80155808->field_620 + accel;
-    D_actor_403100_80155808->field_620 = velocity;
-    D_actor_403100_80155808->field_61E = accel;
-    y                                  = coord->coord.t[1] - (s16)velocity;
-    coord->coord.t[1]                  = y;
+    D_actor_403100_80155808->stateFrames += 1;
+    D_actor_403100_80155808->armYaw =
+        (u16)D_actor_403100_80155808->armYaw +
+        ((s32)(((u16)D_actor_403100_80155808->armYawTarget - (u16)D_actor_403100_80155808->armYaw) << 0x14) >> 0x17);
+    accel                                     = D_actor_403100_80155808->jumpAcceleration - 4;
+    velocity                                  = D_actor_403100_80155808->jumpSpeed + accel;
+    D_actor_403100_80155808->jumpSpeed        = velocity;
+    D_actor_403100_80155808->jumpAcceleration = accel;
+    y                                         = coord->coord.t[1] - (s16)velocity;
+    coord->coord.t[1]                         = y;
     if (y >= 0) {
-        D_actor_403100_80155808->field_668.b.field_668 = 0;
-        D_actor_403100_80155808->field_668.b.field_669 = 0;
+        D_actor_403100_80155808->handTouchedPlayer    = 0;
+        D_actor_403100_80155808->forearmTouchedPlayer = 0;
         func_actor_403100_801342B4(arg0);
         Gp_SpawnPadLerp(0x1E, 0xFFU, 8U);
-        D_actor_403100_80155808->field_5FE = 0x1E;
-        sound                              = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F0001;
-        pan                                = (s8)worldCoordGetOriginAudioPan(&arg0->extra.tmd->coords[1]);
+        D_actor_403100_80155808->shakeFrames = 0x1E;
+        sound                                = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F0001;
+        pan                                  = (s8)worldCoordGetOriginAudioPan(&arg0->extra.tmd->coords[1]);
         SndEvt_EnqueueType6(sound, pan, (s8)(worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[1]) / 2));
         sound2 = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F0003;
         pan2   = (s8)worldCoordGetOriginAudioPan(&arg0->extra.tmd->coords[7]);
         SndEvt_EnqueueType6(sound2, pan2, (s8)(worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[7]) / 2));
-        coord->coord.t[1]                   = 0;
-        D_actor_403100_80155808->field_5EC  = 0;
-        D_actor_403100_80155808->field_5FA += 1;
+        coord->coord.t[1]                    = 0;
+        D_actor_403100_80155808->stateFrames = 0;
+        D_actor_403100_80155808->subState   += 1;
     }
 }
 static void func_actor_403100_80138AB4(Task* task)
@@ -6116,24 +6116,24 @@ static void func_actor_403100_80138AB4(Task* task)
     u16   frame;
 
     func_actor_403100_8013D24C();
-    frame                              = D_actor_403100_80155808->field_5EC + 1;
-    D_actor_403100_80155808->field_5EC = frame;
-    if (((s16)frame < 0x20) && ((u8)D_actor_403100_80155808->field_668.b.field_668 != 0) && (D_actor_403100_80155808->field_5F2 == 0)) {
+    frame                                = D_actor_403100_80155808->stateFrames + 1;
+    D_actor_403100_80155808->stateFrames = frame;
+    if (((s16)frame < 0x20) && (D_actor_403100_80155808->handTouchedPlayer != 0) && (D_actor_403100_80155808->playerReactionStage == 0)) {
         Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
         func_actor_403100_8013D1B8(5, 0x3F4);
-        D_actor_403100_80155808->field_5F4 = 0x17;
-        D_actor_403100_80155808->field_5F2 = 1;
-        player                             = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+        D_actor_403100_80155808->playerReactionFrames = 0x17;
+        D_actor_403100_80155808->playerReactionStage  = 1;
+        player                                        = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
         if (taskMessageDispatch(player, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, Gp_PackPair(D_actor_403100_80147614, 0), 0) == 1) {
             ((GameActor*)(*gPlayerActorTasks)->work)->state = 0xA;
         }
     }
     if (Actor403100_TestFlags104()) {
-        D_actor_403100_80155808->field_5E2  = 0x10;
-        D_actor_403100_80155808->field_5DE  = 5;
-        D_actor_403100_80155808->field_5F6  = 0;
-        D_actor_403100_80155808->field_5DA  = 2;
-        D_actor_403100_80155808->field_5FA += 1;
+        D_actor_403100_80155808->animationRate    = ANIMATION_RATE_ONE;
+        D_actor_403100_80155808->animationId      = 5;
+        D_actor_403100_80155808->walkStage        = 0;
+        D_actor_403100_80155808->animationRequest = ACTOR_403100_ANIMATION_REQUEST_RESET;
+        D_actor_403100_80155808->subState        += 1;
     }
 }
 static void func_actor_403100_80138C18(Task* task)
@@ -6143,22 +6143,22 @@ static void func_actor_403100_80138C18(Task* task)
     u32 random;
 
     func_actor_403100_8013D24C();
-    velocityX                          = (u16)D_actor_403100_80155808->field_604;
-    velocityZ                          = (u16)D_actor_403100_80155808->field_608;
-    D_actor_403100_80155808->field_604 = velocityX + ((s32) - (velocityX << 0x14) >> 0x17);
-    D_actor_403100_80155808->field_608 = velocityZ + ((s32) - (velocityZ << 0x14) >> 0x17);
+    velocityX                         = (u16)D_actor_403100_80155808->armPitch;
+    velocityZ                         = (u16)D_actor_403100_80155808->armYaw;
+    D_actor_403100_80155808->armPitch = velocityX + ((s32) - (velocityX << 0x14) >> 0x17);
+    D_actor_403100_80155808->armYaw   = velocityZ + ((s32) - (velocityZ << 0x14) >> 0x17);
     if (Actor403100_TestFlags104()) {
         random          = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
         gRandomLcgState = random;
         if ((random >> 0x10) & 1) {
             func_actor_403100_8013D2A0(1);
         }
-        D_actor_403100_80155808->field_5FC  = 8;
-        D_actor_403100_80155808->field_5E2  = 0x10;
-        D_actor_403100_80155808->field_5EC  = 0;
-        D_actor_403100_80155808->field_5DE  = 1;
-        D_actor_403100_80155808->field_5DA  = 1;
-        D_actor_403100_80155808->field_5FA += 1;
+        D_actor_403100_80155808->animationBlendFrames = 8;
+        D_actor_403100_80155808->animationRate        = ANIMATION_RATE_ONE;
+        D_actor_403100_80155808->stateFrames          = 0;
+        D_actor_403100_80155808->animationId          = 1;
+        D_actor_403100_80155808->animationRequest     = ACTOR_403100_ANIMATION_REQUEST_BLEND;
+        D_actor_403100_80155808->subState            += 1;
     }
 }
 static void func_actor_403100_80138D08(Task* arg0)
@@ -6168,22 +6168,22 @@ static void func_actor_403100_80138D08(Task* arg0)
 
     obj = arg0->extra.tmd;
     if ((func_actor_403100_80133928() << 0x10) == 0) {
-        obj->otOffset                                  = 0;
-        work                                           = D_actor_403100_80155808;
-        D_actor_403100_80155808->field_668.b.field_668 = 0;
-        work->field_62C                                = 0x40;
-        work->field_5E2                                = 0x10;
-        work->field_5DE                                = 9;
-        work->field_5F6                                = 0;
-        work->field_5DA                                = 2;
-        work->field_61C                                = 2;
-        work->field_5EC                                = 0;
-        work->field_604                                = 0;
-        work->field_608                                = 0;
-        work->field_632                                = 0;
-        D_actor_403100_80155808->field_668.b.field_669 = 0;
-        D_actor_403100_80155808->pad_670[3]            = 0;
-        D_actor_403100_80155808->field_5FA            += 1;
+        obj->otOffset                                 = 0;
+        work                                          = D_actor_403100_80155808;
+        D_actor_403100_80155808->handTouchedPlayer    = 0;
+        work->walkSpeed                               = 0x40;
+        work->animationRate                           = ANIMATION_RATE_ONE;
+        work->animationId                             = 9;
+        work->walkStage                               = 0;
+        work->animationRequest                        = ACTOR_403100_ANIMATION_REQUEST_RESET;
+        work->aimMode                                 = ACTOR_403100_AIM_ANIMATED;
+        work->stateFrames                             = 0;
+        work->armPitch                                = 0;
+        work->armYaw                                  = 0;
+        work->field_632                               = 0;
+        D_actor_403100_80155808->forearmTouchedPlayer = 0;
+        D_actor_403100_80155808->vulnerable           = 0;
+        D_actor_403100_80155808->subState            += 1;
     }
 }
 static void func_actor_403100_80138DB0(Task* arg0)
@@ -6194,37 +6194,37 @@ static void func_actor_403100_80138DB0(Task* arg0)
     Task*            player;
     Actor403100Work* work;
 
-    player                             = gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER];
-    D_actor_403100_80155808->field_5EC = (u16)(D_actor_403100_80155808->field_5EC + 1);
+    player                               = gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER];
+    D_actor_403100_80155808->stateFrames = (u16)(D_actor_403100_80155808->stateFrames + 1);
     if ((func_actor_403100_80133928() << 0x10) == 0) {
-        if ((s16)D_actor_403100_80155808->field_5EC < 0x101) {
+        if ((s16)D_actor_403100_80155808->stateFrames < 0x101) {
             func_actor_403100_8013C7B4(arg0);
             work = D_actor_403100_80155808;
-            if ((u8)work->field_668.b.field_668 != 0) {
-                work->pad_670[3]                    = 1;
-                D_actor_403100_80155808->pad_670[1] = 1;
-                Gp_StateC08.flags                   = (u8)(Gp_StateC08.flags | ATTACHMENT_FLAG_EVENT_LOCK);
-                sound                               = (((u16)((Enemy*)player->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 7;
-                pan                                 = (s8)worldCoordGetOriginAudioPan(&player->extra.tmd->coords[1]);
-                depth                               = worldCoordGetOriginAudioDepth(&player->extra.tmd->coords[1]);
+            if (work->handTouchedPlayer != 0) {
+                work->vulnerable                       = 1;
+                D_actor_403100_80155808->holdingPlayer = 1;
+                Gp_StateC08.flags                      = (u8)(Gp_StateC08.flags | ATTACHMENT_FLAG_EVENT_LOCK);
+                sound                                  = (((u16)((Enemy*)player->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 7;
+                pan                                    = (s8)worldCoordGetOriginAudioPan(&player->extra.tmd->coords[1]);
+                depth                                  = worldCoordGetOriginAudioDepth(&player->extra.tmd->coords[1]);
                 SndEvt_EnqueueType6(sound, pan, (s8)(depth / 2));
-                D_actor_403100_80155808->field_65F  = 0;
-                D_actor_403100_80155808->pad_660[0] = 1;
+                D_actor_403100_80155808->releaseRequested = 0;
+                D_actor_403100_80155808->promptPending    = 1;
                 func_actor_403100_8013D1B8(1, 0x3F4);
-                D_actor_403100_80155808->field_5EC  = 0U;
-                D_actor_403100_80155808->pad_65E[0] = 0;
-                D_actor_403100_80155808->field_5FA += 1;
-            } else if ((u8)work->field_668.b.field_669 != 0) {
-                work->field_5E2 = -0x10;
-                work->field_5FA = 0xA;
+                D_actor_403100_80155808->stateFrames  = 0U;
+                D_actor_403100_80155808->stateCounter = 0;
+                D_actor_403100_80155808->subState    += 1;
+            } else if (work->forearmTouchedPlayer != 0) {
+                work->animationRate = -ANIMATION_RATE_ONE;
+                work->subState      = 0xA;
             }
-            D_actor_403100_80155808->field_61C = 0;
+            D_actor_403100_80155808->aimMode = ACTOR_403100_AIM_TRACK;
         } else {
-            D_actor_403100_80155808->field_61C = 2;
+            D_actor_403100_80155808->aimMode = ACTOR_403100_AIM_ANIMATED;
         }
         if (Actor403100_TestFlags104()) {
-            D_actor_403100_80155808->field_5F8 = 1;
-            D_actor_403100_80155808->field_5FA = 0U;
+            D_actor_403100_80155808->state    = 1;
+            D_actor_403100_80155808->subState = 0U;
         }
     }
 }
@@ -6241,13 +6241,13 @@ static void func_actor_403100_80138F88(Task* arg0)
 
     coords = arg0->extra.tmd->coords;
     part   = coords + 6;
-    func_actor_403100_8013C008(D_actor_403100_80155808->field_60E, D_actor_403100_80155808->field_610);
-    D_actor_403100_80155808->field_60E = (u16)D_actor_403100_80155808->field_60E - 1;
-    D_actor_403100_80155808->field_610 = (u16)D_actor_403100_80155808->field_610 + 6;
-    coords->coord.t[1]                += -coords->coord.t[1] >> 6;
-    D_actor_403100_80155808->field_80  = 0;
-    D_actor_403100_80155808->field_82  = 0xA00;
-    D_actor_403100_80155808->field_84  = 0;
+    func_actor_403100_8013C008(D_actor_403100_80155808->overlayX, D_actor_403100_80155808->overlayY);
+    D_actor_403100_80155808->overlayX    = (u16)D_actor_403100_80155808->overlayX - 1;
+    D_actor_403100_80155808->overlayY    = (u16)D_actor_403100_80155808->overlayY + 6;
+    coords->coord.t[1]                  += -coords->coord.t[1] >> 6;
+    D_actor_403100_80155808->rotation.vx = 0;
+    D_actor_403100_80155808->rotation.vy = 0xA00;
+    D_actor_403100_80155808->rotation.vz = 0;
     func_actor_403100_80132528(arg0);
     if (Actor403100_TestFlags104()) {
         sound = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F000C;
@@ -6261,37 +6261,37 @@ static void func_actor_403100_80138F88(Task* arg0)
         SOFT_TOUCH_REG(work);
         *translation++         = 0;
         *translation           = 0x1770;
-        work->field_82         = 0xC00;
-        work->field_5E2        = 0x10;
-        work->field_5DE        = 0xC;
-        work->field_5DA        = 2;
-        work->field_604        = 0xD0;
-        work->field_608        = -0x350;
-        work->field_A0         = -0x110;
-        work->field_A2         = 0x290;
-        work->field_80         = 0;
-        work->field_84         = 0;
-        work->field_5EC        = 0;
-        work->field_A4         = 0x60;
-        work->field_5FA       += 1;
+        work->rotation.vy      = 0xC00;
+        work->animationRate    = ANIMATION_RATE_ONE;
+        work->animationId      = 0xC;
+        work->animationRequest = ACTOR_403100_ANIMATION_REQUEST_RESET;
+        work->armPitch         = 0xD0;
+        work->armYaw           = -0x350;
+        work->forearmTurn.vx   = -0x110;
+        work->forearmTurn.vy   = 0x290;
+        work->rotation.vx      = 0;
+        work->rotation.vz      = 0;
+        work->stateFrames      = 0;
+        work->forearmTurn.vz   = 0x60;
+        work->subState        += 1;
         part->coord.t[0]       = -0xBD0;
-        work->field_604        = 0x30;
-        work->field_608        = -0xD0;
-        work->field_A0         = -0x150;
-        work->field_A2         = 0x270;
-        work->field_A4         = -0xA0;
+        work->armPitch         = 0x30;
+        work->armYaw           = -0xD0;
+        work->forearmTurn.vx   = -0x150;
+        work->forearmTurn.vy   = 0x270;
+        work->forearmTurn.vz   = -0xA0;
         part->coord.t[0]       = -0x1120;
-        work->field_47C.radius = 0x500;
+        work->headBody.radius  = 0x500;
         func_actor_403100_8013D74C(arg0);
-        D_actor_403100_80155808->part6StrokeDone = 0;
-        D_actor_403100_80155808->field_65F       = 0;
-        D_actor_403100_80155808->pad_660[0]      = 0;
-        D_actor_403100_80155808->field_5E8       = 0;
+        D_actor_403100_80155808->forearmStrokeDone = 0;
+        D_actor_403100_80155808->releaseRequested  = 0;
+        D_actor_403100_80155808->promptPending     = 0;
+        D_actor_403100_80155808->jawPitchOffset    = 0;
         taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
         func_actor_403100_8013D1B8(1, 0x3FF);
         message[5] = 0x28;
         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, message, 0);
-        D_actor_403100_80155808->field_656 = (u16)D_actor_403100_8015580C->hp;
+        D_actor_403100_80155808->holdStartHp = D_actor_403100_8015580C->hp;
     }
 }
 static void func_actor_403100_8013922C(Task* arg0)
@@ -6305,93 +6305,93 @@ static void func_actor_403100_8013922C(Task* arg0)
     GfxCoord* coords;
     GfxCoord* part;
 
-    coords                              = arg0->extra.tmd->coords;
-    part                                = coords + 6;
-    D_actor_403100_80155808->field_5EC += 1;
+    coords                                = arg0->extra.tmd->coords;
+    part                                  = coords + 6;
+    D_actor_403100_80155808->stateFrames += 1;
     func_actor_403100_8013D6B4(arg0);
     func_actor_403100_8013C214(arg0);
     func_actor_403100_8013C214(arg0);
-    D_actor_403100_80155808->field_82 = 0xC00;
-    D_actor_403100_80155808->field_80 = 0;
-    D_actor_403100_80155808->field_84 = 0;
-    if ((u8)D_actor_403100_80155808->pad_670[0] == 0) {
-        request = (u8)D_actor_403100_80155808->field_65F;
-        if ((request == 1) && (D_actor_403100_80155808->part6StrokeDone == request)) {
-            random                             = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-            gRandomLcgState                    = random;
-            D_actor_403100_80155808->field_638 = (((random >> 0x10) & 0x1F) + 0x3C) * 3;
+    D_actor_403100_80155808->rotation.vy = 0xC00;
+    D_actor_403100_80155808->rotation.vx = 0;
+    D_actor_403100_80155808->rotation.vz = 0;
+    if (D_actor_403100_80155808->playerKilled == 0) {
+        request = D_actor_403100_80155808->releaseRequested;
+        if ((request == 1) && (D_actor_403100_80155808->forearmStrokeDone == request)) {
+            random                                 = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+            gRandomLcgState                        = random;
+            D_actor_403100_80155808->repromptDelay = (((random >> 0x10) & 0x1F) + 0x3C) * 3;
             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x400, 0, 0);
-            D_actor_403100_80155808->field_65F = 0;
+            D_actor_403100_80155808->releaseRequested = 0;
         }
     } else {
-        frame                              = D_actor_403100_80155808->field_654 + 1;
-        D_actor_403100_80155808->field_654 = frame;
+        frame                                      = D_actor_403100_80155808->playerDeathFrames + 1;
+        D_actor_403100_80155808->playerDeathFrames = frame;
         if ((s16)frame == 0x3C) {
             func_actor_403100_8013D2A0(1);
         }
-        if ((s16)D_actor_403100_80155808->field_654 >= 0x79) {
+        if ((s16)D_actor_403100_80155808->playerDeathFrames >= 0x79) {
             gGameSession->suppressDeathChecks = 0;
         }
     }
     func_actor_403100_80132528(arg0);
     func_actor_403100_8013D700(arg0);
     func_actor_403100_8013C214(arg0);
-    if (D_actor_403100_80155808->pad_66A[2] != 0) {
-        if (D_actor_403100_80155808->field_5DE != 0xD) {
-            D_actor_403100_80155808->field_5DE = 0xD;
-            D_actor_403100_80155808->field_5E2 = 0x10;
-            D_actor_403100_80155808->field_5DA = 2;
-            if (D_actor_403100_80155808->part4PitchPhase == ACTOR_403100_PITCH_PHASE_REST) {
-                D_actor_403100_80155808->field_66F       = 1;
-                D_actor_403100_80155808->part4PitchPhase = ACTOR_403100_PITCH_PHASE_START;
+    if (D_actor_403100_80155808->hitTaken != 0) {
+        if (D_actor_403100_80155808->animationId != 0xD) {
+            D_actor_403100_80155808->animationId      = 0xD;
+            D_actor_403100_80155808->animationRate    = ANIMATION_RATE_ONE;
+            D_actor_403100_80155808->animationRequest = ACTOR_403100_ANIMATION_REQUEST_RESET;
+            if (D_actor_403100_80155808->jawPitchPhase == ACTOR_403100_PITCH_PHASE_REST) {
+                D_actor_403100_80155808->jawKickSound  = 1;
+                D_actor_403100_80155808->jawPitchPhase = ACTOR_403100_PITCH_PHASE_START;
             }
         }
     } else {
         if (Actor403100_TestFlags()) {
-            D_actor_403100_80155808->field_5E2 = 0x10;
-            D_actor_403100_80155808->field_5DE = 0xC;
-            D_actor_403100_80155808->field_5DA = 2;
+            D_actor_403100_80155808->animationRate    = ANIMATION_RATE_ONE;
+            D_actor_403100_80155808->animationId      = 0xC;
+            D_actor_403100_80155808->animationRequest = ACTOR_403100_ANIMATION_REQUEST_RESET;
         }
     }
-    if ((u8)D_actor_403100_80155808->pad_660[0] != 0) {
-        D_actor_403100_80155808->pad_660[0] = 0;
+    if (D_actor_403100_80155808->promptPending != 0) {
+        D_actor_403100_80155808->promptPending = 0;
         func_actor_403100_8013D1B8(1, 0x3FF);
         message[5] = 0x28;
         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, message, 0);
-        D_actor_403100_80155808->pad_65E[0] = (u8)D_actor_403100_80155808->pad_65E[0] + 1;
+        D_actor_403100_80155808->stateCounter = D_actor_403100_80155808->stateCounter + 1;
     }
-    if (((u8)D_actor_403100_80155808->pad_65E[0] != 0) ||
-        ((D_actor_403100_80155808->part6StrokeDone == 1) &&
-         ((s16)D_actor_403100_80155808->field_5EC >= 0x1C2) &&
-         ((u8)D_actor_403100_80155808->pad_670[0] == 0)) ||
+    if ((D_actor_403100_80155808->stateCounter != 0) ||
+        ((D_actor_403100_80155808->forearmStrokeDone == 1) &&
+         ((s16)D_actor_403100_80155808->stateFrames >= 0x1C2) &&
+         (D_actor_403100_80155808->playerKilled == 0)) ||
         (D_actor_403100_8015580C->hp <= 0)) {
-        damage = (s16)D_actor_403100_80155808->field_656 - D_actor_403100_8015580C->hp;
+        damage = D_actor_403100_80155808->holdStartHp - D_actor_403100_8015580C->hp;
         health = D_actor_403100_8015580C->hp;
         if ((damage >= 0x3C) && (health > 0)) {
-            D_actor_403100_80155808->field_5EC  = 0;
-            D_actor_403100_80155808->field_5FA += 1;
+            D_actor_403100_80155808->stateFrames = 0;
+            D_actor_403100_80155808->subState   += 1;
             return;
         }
         func_actor_403100_8013D1B8(1, 0x3F4);
-        D_actor_403100_80155808->field_5EC                         = 0;
-        D_actor_403100_80155808->field_5E2                         = 8;
-        D_actor_403100_80155808->field_5DE                         = 0xE;
-        D_actor_403100_80155808->field_5DA                         = 2;
+        D_actor_403100_80155808->stateFrames                       = 0;
+        D_actor_403100_80155808->animationRate                     = 8;
+        D_actor_403100_80155808->animationId                       = 0xE;
+        D_actor_403100_80155808->animationRequest                  = ACTOR_403100_ANIMATION_REQUEST_RESET;
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0xC;
         coords->coord.t[0]                                         = -0x44C;
         coords->coord.t[2]                                         = 0x1770;
         coords->coord.t[1]                                         = 0;
-        D_actor_403100_80155808->field_82                          = 0xC00;
-        D_actor_403100_80155808->field_80                          = 0;
-        D_actor_403100_80155808->field_84                          = 0;
-        D_actor_403100_80155808->field_604                         = 0;
-        D_actor_403100_80155808->field_608                         = 0;
-        D_actor_403100_80155808->field_A0                          = 0;
-        D_actor_403100_80155808->field_A2                          = 0;
-        D_actor_403100_80155808->field_A4                          = 0;
+        D_actor_403100_80155808->rotation.vy                       = 0xC00;
+        D_actor_403100_80155808->rotation.vx                       = 0;
+        D_actor_403100_80155808->rotation.vz                       = 0;
+        D_actor_403100_80155808->armPitch                          = 0;
+        D_actor_403100_80155808->armYaw                            = 0;
+        D_actor_403100_80155808->forearmTurn.vx                    = 0;
+        D_actor_403100_80155808->forearmTurn.vy                    = 0;
+        D_actor_403100_80155808->forearmTurn.vz                    = 0;
         part->coord.t[0]                                           = -0x877;
-        D_actor_403100_80155808->field_5FA                         = 8;
+        D_actor_403100_80155808->subState                          = 8;
     }
 }
 static void func_actor_403100_801395EC(Task* arg0)
@@ -6406,53 +6406,53 @@ static void func_actor_403100_801395EC(Task* arg0)
     GfxCoord*           part;
     GfxCoord*           coords;
 
-    model                              = arg0->extra.tmd;
-    coords                             = model->coords;
-    part                               = coords + 6;
-    D_actor_403100_80155808->field_604 = (u16)D_actor_403100_80155808->field_604 + ((s32)(-0x2E0 - D_actor_403100_80155808->field_604) >> 3);
-    D_actor_403100_80155808->field_608 = (u16)D_actor_403100_80155808->field_608 + ((s32)(0x10 - D_actor_403100_80155808->field_608) >> 3);
-    D_actor_403100_80155808->field_A0  = (u16)D_actor_403100_80155808->field_A0 + ((s32)(-0x150 - D_actor_403100_80155808->field_A0) >> 3);
-    D_actor_403100_80155808->field_A2  = (u16)D_actor_403100_80155808->field_A2 + ((s32)(0x280 - D_actor_403100_80155808->field_A2) >> 3);
-    D_actor_403100_80155808->field_A4  = (u16)D_actor_403100_80155808->field_A4 + ((s32)(0x140 - D_actor_403100_80155808->field_A4) >> 3);
-    x                                  = part->coord.t[0];
-    part->coord.t[0]                   = (s32)(x + ((s32)(-0xBE0 - x) >> 3));
-    D_actor_403100_80155808->field_80  = 0;
-    D_actor_403100_80155808->field_82  = 0xC00;
-    D_actor_403100_80155808->field_84  = 0;
+    model                                   = arg0->extra.tmd;
+    coords                                  = model->coords;
+    part                                    = coords + 6;
+    D_actor_403100_80155808->armPitch       = (u16)D_actor_403100_80155808->armPitch + ((s32)(-0x2E0 - D_actor_403100_80155808->armPitch) >> 3);
+    D_actor_403100_80155808->armYaw         = (u16)D_actor_403100_80155808->armYaw + ((s32)(0x10 - D_actor_403100_80155808->armYaw) >> 3);
+    D_actor_403100_80155808->forearmTurn.vx = (u16)D_actor_403100_80155808->forearmTurn.vx + ((s32)(-0x150 - D_actor_403100_80155808->forearmTurn.vx) >> 3);
+    D_actor_403100_80155808->forearmTurn.vy = (u16)D_actor_403100_80155808->forearmTurn.vy + ((s32)(0x280 - D_actor_403100_80155808->forearmTurn.vy) >> 3);
+    D_actor_403100_80155808->forearmTurn.vz = (u16)D_actor_403100_80155808->forearmTurn.vz + ((s32)(0x140 - D_actor_403100_80155808->forearmTurn.vz) >> 3);
+    x                                       = part->coord.t[0];
+    part->coord.t[0]                        = (s32)(x + ((s32)(-0xBE0 - x) >> 3));
+    D_actor_403100_80155808->rotation.vx    = 0;
+    D_actor_403100_80155808->rotation.vy    = 0xC00;
+    D_actor_403100_80155808->rotation.vz    = 0;
     func_actor_403100_80132528(arg0);
-    frame                              = D_actor_403100_80155808->field_5EC + 1;
-    D_actor_403100_80155808->field_5EC = frame;
-    i                                  = 0;
+    frame                                = D_actor_403100_80155808->stateFrames + 1;
+    D_actor_403100_80155808->stateFrames = frame;
+    i                                    = 0;
     if (((s32)(frame << 0x10) >> 0x10) >= 0x1F) {
         entries                                                    = D_actor_403100_80155814;
         obj                                                        = &entries->obj;
         entry                                                      = entries;
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0x18;
         coords->coord.t[1]                                         = -0x1388;
-        D_actor_403100_80155808->field_5E8                         = 0;
-        D_actor_403100_80155808->field_604                         = 0;
-        D_actor_403100_80155808->field_608                         = 0;
-        D_actor_403100_80155808->field_A0                          = 0;
-        D_actor_403100_80155808->field_A2                          = 0;
-        D_actor_403100_80155808->field_A4                          = 0;
+        D_actor_403100_80155808->jawPitchOffset                    = 0;
+        D_actor_403100_80155808->armPitch                          = 0;
+        D_actor_403100_80155808->armYaw                            = 0;
+        D_actor_403100_80155808->forearmTurn.vx                    = 0;
+        D_actor_403100_80155808->forearmTurn.vy                    = 0;
+        D_actor_403100_80155808->forearmTurn.vz                    = 0;
         part->coord.t[0]                                           = -0x877;
-        D_actor_403100_80155808->field_5DE                         = 7;
-        D_actor_403100_80155808->field_5DA                         = 2;
+        D_actor_403100_80155808->animationId                       = 7;
+        D_actor_403100_80155808->animationRequest                  = ACTOR_403100_ANIMATION_REQUEST_RESET;
         D_actor_403100_80155808->entryLifetime                     = 0x14;
-        D_actor_403100_80155808->field_B2                          = 0x200;
-        D_actor_403100_80155808->field_5EC                         = 0;
-        D_actor_403100_80155808->field_5E2                         = 0x10;
-        D_actor_403100_80155808->field_61C                         = 0;
-        D_actor_403100_80155808->field_B0                          = 0;
-        D_actor_403100_80155808->field_B4                          = 0;
+        D_actor_403100_80155808->headAim.vy                        = 0x200;
+        D_actor_403100_80155808->stateFrames                       = 0;
+        D_actor_403100_80155808->animationRate                     = ANIMATION_RATE_ONE;
+        D_actor_403100_80155808->aimMode                           = ACTOR_403100_AIM_TRACK;
+        D_actor_403100_80155808->headAim.vx                        = 0;
+        D_actor_403100_80155808->headAim.vz                        = 0;
         D_actor_403100_80155810                                    = 0;
-        D_actor_403100_80155808->field_5FA                        += 1;
+        D_actor_403100_80155808->subState                         += 1;
         coords->coord.t[0]                                         = -0x44C;
         coords->coord.t[2]                                         = 0x2710;
         coords->coord.t[1]                                         = -0x1388;
-        D_actor_403100_80155808->field_80                          = 0;
-        D_actor_403100_80155808->field_82                          = 0xA00;
-        D_actor_403100_80155808->field_84                          = 0;
+        D_actor_403100_80155808->rotation.vx                       = 0;
+        D_actor_403100_80155808->rotation.vy                       = 0xA00;
+        D_actor_403100_80155808->rotation.vz                       = 0;
         do {
             if (entry->active != 0) {
                 entry->active = 0;
@@ -6498,34 +6498,34 @@ static void func_actor_403100_80139818(Task* arg0)
     coords     = arg0->extra.tmd->coords;
     part       = coords + 6;
     config     = &gPlayerStatus;
-    if ((u8)D_actor_403100_80155808->pad_670[0] == 0) {
-        if ((u8)D_actor_403100_80155808->field_65F == 1) {
+    if (D_actor_403100_80155808->playerKilled == 0) {
+        if (D_actor_403100_80155808->releaseRequested == 1) {
             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x400, 0, 0);
-            D_actor_403100_80155808->field_65F = 0;
+            D_actor_403100_80155808->releaseRequested = 0;
         }
     }
-    D_actor_403100_80155808->field_60E = 0;
-    D_actor_403100_80155808->field_610 = 0x3C;
-    func_actor_403100_8013C008(D_actor_403100_80155808->field_60E, 0x3C);
-    frame                              = D_actor_403100_80155808->field_5EC + 1;
-    D_actor_403100_80155808->field_5EC = frame;
+    D_actor_403100_80155808->overlayX = 0;
+    D_actor_403100_80155808->overlayY = 0x3C;
+    func_actor_403100_8013C008(D_actor_403100_80155808->overlayX, 0x3C);
+    frame                                = D_actor_403100_80155808->stateFrames + 1;
+    D_actor_403100_80155808->stateFrames = frame;
     if ((s16)frame == 0x33) {
-        D_actor_403100_80155808->field_61C = 0;
+        D_actor_403100_80155808->aimMode = ACTOR_403100_AIM_TRACK;
     }
-    if ((s16)D_actor_403100_80155808->field_5EC == 0x7C) {
-        D_actor_403100_80155808->field_61C = 1;
+    if ((s16)D_actor_403100_80155808->stateFrames == 0x7C) {
+        D_actor_403100_80155808->aimMode = ACTOR_403100_AIM_YAW_ONLY;
     }
-    if ((s16)D_actor_403100_80155808->field_5EC == 0x33) {
+    if ((s16)D_actor_403100_80155808->stateFrames == 0x33) {
         sound = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F0004;
         pan   = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords + 4);
         depth = worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords + 4);
         SndEvt_EnqueueType6(sound, pan, (s8)(depth / 2));
     }
-    if ((s16)D_actor_403100_80155808->field_5EC == 0x7C) {
+    if ((s16)D_actor_403100_80155808->stateFrames == 0x7C) {
         SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 0xA);
     }
-    if ((u32)(D_actor_403100_80155808->field_5EC - 0x34) < 0x48U) {
+    if ((u32)(D_actor_403100_80155808->stateFrames - 0x34) < 0x48U) {
         position.vy = -0x1F0;
         position.vz = 0x620;
         velocity.vy = -0x20;
@@ -6534,14 +6534,14 @@ static void func_actor_403100_80139818(Task* arg0)
         velocity.vz = 0xE0;
         func_actor_403100_80132064(arg0, &position, &velocity, 0);
     }
-    if ((u32)(D_actor_403100_80155808->field_5EC - 0x7D) < 0xBU) {
+    if ((u32)(D_actor_403100_80155808->stateFrames - 0x7D) < 0xBU) {
         effectCoords = arg0->extra.tmd->coords;
         position.vy  = -0x140;
         position.vx  = 0;
         position.vz  = 0x400;
         Gp_SpawnEff(EFFECT_SMOKE_PUFF, effectCoords + 3, -0x3FFCB400, &position);
     }
-    if ((s16)D_actor_403100_80155808->field_5EC == 0x64) {
+    if ((s16)D_actor_403100_80155808->stateFrames == 0x64) {
         func_8010B2A0(0, 3);
         func_actor_403100_8013D1B8(1, 0x3F4);
         task = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
@@ -6553,8 +6553,8 @@ static void func_actor_403100_80139818(Task* arg0)
             SndEvt_EnqueueType6(sound2, pan2, (s8)(depth2 / 2));
             gGameSession->deathSoundCountdown = GAME_SESSION_DEATH_SOUND_HOLD;
             work                              = D_actor_403100_80155808;
-            work->pad_670[0]                  = 1;
-            work->field_654                   = 0;
+            work->playerKilled                = 1;
+            work->playerDeathFrames           = 0;
             gGameSession->suppressDeathChecks = 1;
             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x400, 0, 0);
@@ -6566,48 +6566,48 @@ static void func_actor_403100_80139818(Task* arg0)
             SndEvt_EnqueueType6(sound3, pan3, (s8)(depth3 / 2));
         }
     }
-    if ((s16)D_actor_403100_80155808->field_5EC == 0x80) {
+    if ((s16)D_actor_403100_80155808->stateFrames == 0x80) {
         sound4 = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F000D;
         pan4   = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords + 4);
         depth4 = worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords + 4);
         SndEvt_EnqueueType6(sound4, pan4, (s8)(depth4 / 2));
     }
-    if ((s16)D_actor_403100_80155808->field_5EC == 0xC9) {
+    if ((s16)D_actor_403100_80155808->stateFrames == 0xC9) {
         sound5 = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F000E;
         pan5   = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords + 1);
         depth5 = worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords + 1);
         SndEvt_EnqueueType6(sound5, pan5, (s8)(depth5 / 2));
         Gp_SpawnPadLerp(0x12, 0xFFU, 8U);
-        D_actor_403100_80155808->field_5FE = 0x12;
+        D_actor_403100_80155808->shakeFrames = 0x12;
     }
-    D_actor_403100_80155808->field_604 = -0x20;
-    D_actor_403100_80155808->field_608 = 0x450;
-    D_actor_403100_80155808->field_A0  = 0x290;
-    D_actor_403100_80155808->field_A2  = 0x210;
-    D_actor_403100_80155808->field_A4  = -0x160;
-    part->coord.t[0]                   = -0xE27;
-    coords->coord.t[0]                 = -0x44C;
-    coords->coord.t[1]                 = -0x1388;
-    coords->coord.t[2]                 = 0x2710;
-    D_actor_403100_80155808->field_80  = 0;
-    D_actor_403100_80155808->field_82  = 0xA00;
-    D_actor_403100_80155808->field_84  = 0;
+    D_actor_403100_80155808->armPitch       = -0x20;
+    D_actor_403100_80155808->armYaw         = 0x450;
+    D_actor_403100_80155808->forearmTurn.vx = 0x290;
+    D_actor_403100_80155808->forearmTurn.vy = 0x210;
+    D_actor_403100_80155808->forearmTurn.vz = -0x160;
+    part->coord.t[0]                        = -0xE27;
+    coords->coord.t[0]                      = -0x44C;
+    coords->coord.t[1]                      = -0x1388;
+    coords->coord.t[2]                      = 0x2710;
+    D_actor_403100_80155808->rotation.vx    = 0;
+    D_actor_403100_80155808->rotation.vy    = 0xA00;
+    D_actor_403100_80155808->rotation.vz    = 0;
     func_actor_403100_80132528(arg0);
-    if ((u8)D_actor_403100_80155808->pad_670[0] == 0) {
+    if (D_actor_403100_80155808->playerKilled == 0) {
         if (Actor403100_TestFlags()) {
             func_actor_403100_8013D1B8(1, 0x3F4);
-            D_actor_403100_80155808->field_5EC  = 0;
-            D_actor_403100_80155808->field_61C  = 0;
-            D_actor_403100_80155808->field_610  = 0x3C;
-            D_actor_403100_80155808->field_5FA += 1;
+            D_actor_403100_80155808->stateFrames = 0;
+            D_actor_403100_80155808->aimMode     = ACTOR_403100_AIM_TRACK;
+            D_actor_403100_80155808->overlayY    = 0x3C;
+            D_actor_403100_80155808->subState   += 1;
         }
     } else {
-        deathFrame                         = (u16)D_actor_403100_80155808->field_654 + 1;
-        D_actor_403100_80155808->field_654 = deathFrame;
+        deathFrame                                 = (u16)D_actor_403100_80155808->playerDeathFrames + 1;
+        D_actor_403100_80155808->playerDeathFrames = deathFrame;
         if (deathFrame == 0x3C) {
             func_actor_403100_8013D2A0(0);
         }
-        if (D_actor_403100_80155808->field_654 >= 0x79) {
+        if (D_actor_403100_80155808->playerDeathFrames >= 0x79) {
             gGameSession->suppressDeathChecks = 0;
         }
     }
@@ -6626,48 +6626,48 @@ static void func_actor_403100_80139E80(Task* arg0)
     GfxCoord* part;
     GfxCoord* coords;
 
-    coords                             = arg0->extra.tmd->coords;
-    D_actor_403100_80155808->field_60E = (u16)D_actor_403100_80155808->field_60E - 1;
-    angle                              = (u16)D_actor_403100_80155808->field_610 + 6;
-    D_actor_403100_80155808->field_610 = angle;
-    func_actor_403100_8013C008(D_actor_403100_80155808->field_60E, angle);
-    part                               = coords + 6;
-    y                                  = coords->coord.t[1];
-    coords->coord.t[1]                 = (s32)(y + ((s32)-y >> 6));
-    velocityX                          = (u16)D_actor_403100_80155808->field_604;
-    velocityZ                          = (u16)D_actor_403100_80155808->field_608;
-    D_actor_403100_80155808->field_604 = velocityX + ((s32)(-0x1100 - (s16)(velocityX * 0x10)) >> 7);
-    rotationX                          = (u16)D_actor_403100_80155808->field_A0;
-    D_actor_403100_80155808->field_608 = velocityZ + ((s32)(0x4E00 - (s16)(velocityZ * 0x10)) >> 7);
-    rotationY                          = (u16)D_actor_403100_80155808->field_A2;
-    D_actor_403100_80155808->field_A0  = rotationX + ((s32)(0x2400 - (s16)(rotationX * 0x10)) >> 7);
-    rotationZ                          = (u16)D_actor_403100_80155808->field_A4;
-    D_actor_403100_80155808->field_A2  = rotationY + ((s32)(-0x1D00 - (s16)(rotationY * 0x10)) >> 7);
-    D_actor_403100_80155808->field_A4  = rotationZ + ((s32)(0x2E00 - (s16)(rotationZ * 0x10)) >> 7);
-    x                                  = part->coord.t[0];
-    part->coord.t[0]                   = (s32)(x + ((s32)(-0x807 - x) >> 3));
+    coords                            = arg0->extra.tmd->coords;
+    D_actor_403100_80155808->overlayX = (u16)D_actor_403100_80155808->overlayX - 1;
+    angle                             = (u16)D_actor_403100_80155808->overlayY + 6;
+    D_actor_403100_80155808->overlayY = angle;
+    func_actor_403100_8013C008(D_actor_403100_80155808->overlayX, angle);
+    part                                    = coords + 6;
+    y                                       = coords->coord.t[1];
+    coords->coord.t[1]                      = (s32)(y + ((s32)-y >> 6));
+    velocityX                               = (u16)D_actor_403100_80155808->armPitch;
+    velocityZ                               = (u16)D_actor_403100_80155808->armYaw;
+    D_actor_403100_80155808->armPitch       = velocityX + ((s32)(-0x1100 - (s16)(velocityX * 0x10)) >> 7);
+    rotationX                               = (u16)D_actor_403100_80155808->forearmTurn.vx;
+    D_actor_403100_80155808->armYaw         = velocityZ + ((s32)(0x4E00 - (s16)(velocityZ * 0x10)) >> 7);
+    rotationY                               = (u16)D_actor_403100_80155808->forearmTurn.vy;
+    D_actor_403100_80155808->forearmTurn.vx = rotationX + ((s32)(0x2400 - (s16)(rotationX * 0x10)) >> 7);
+    rotationZ                               = (u16)D_actor_403100_80155808->forearmTurn.vz;
+    D_actor_403100_80155808->forearmTurn.vy = rotationY + ((s32)(-0x1D00 - (s16)(rotationY * 0x10)) >> 7);
+    D_actor_403100_80155808->forearmTurn.vz = rotationZ + ((s32)(0x2E00 - (s16)(rotationZ * 0x10)) >> 7);
+    x                                       = part->coord.t[0];
+    part->coord.t[0]                        = (s32)(x + ((s32)(-0x807 - x) >> 3));
     func_actor_403100_80132528(arg0);
-    frame                              = D_actor_403100_80155808->field_5EC + 1;
-    D_actor_403100_80155808->field_5EC = frame;
+    frame                                = D_actor_403100_80155808->stateFrames + 1;
+    D_actor_403100_80155808->stateFrames = frame;
     if ((s16)frame >= 0x1F) {
-        D_actor_403100_80155808->field_5E2                         = 8;
-        D_actor_403100_80155808->field_5DE                         = 0xE;
-        D_actor_403100_80155808->field_5DA                         = 2;
-        D_actor_403100_80155808->field_5EC                         = 0;
+        D_actor_403100_80155808->animationRate                     = 8;
+        D_actor_403100_80155808->animationId                       = 0xE;
+        D_actor_403100_80155808->animationRequest                  = ACTOR_403100_ANIMATION_REQUEST_RESET;
+        D_actor_403100_80155808->stateFrames                       = 0;
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0xC;
         coords->coord.t[0]                                         = -0x44C;
         coords->coord.t[2]                                         = 0x1770;
         coords->coord.t[1]                                         = 0;
-        D_actor_403100_80155808->field_82                          = 0xC00;
-        D_actor_403100_80155808->field_80                          = 0;
-        D_actor_403100_80155808->field_84                          = 0;
-        D_actor_403100_80155808->field_604                         = 0;
-        D_actor_403100_80155808->field_608                         = 0;
-        D_actor_403100_80155808->field_A0                          = 0;
-        D_actor_403100_80155808->field_A2                          = 0;
-        D_actor_403100_80155808->field_A4                          = 0;
+        D_actor_403100_80155808->rotation.vy                       = 0xC00;
+        D_actor_403100_80155808->rotation.vx                       = 0;
+        D_actor_403100_80155808->rotation.vz                       = 0;
+        D_actor_403100_80155808->armPitch                          = 0;
+        D_actor_403100_80155808->armYaw                            = 0;
+        D_actor_403100_80155808->forearmTurn.vx                    = 0;
+        D_actor_403100_80155808->forearmTurn.vy                    = 0;
+        D_actor_403100_80155808->forearmTurn.vz                    = 0;
         part->coord.t[0]                                           = -0x877;
-        D_actor_403100_80155808->field_5FA                        += 1;
+        D_actor_403100_80155808->subState                         += 1;
     }
 }
 static void func_actor_403100_8013A064(Task* arg0)
@@ -6681,26 +6681,26 @@ static void func_actor_403100_8013A064(Task* arg0)
     u16        frame;
     s32        depth;
 
-    actor                              = (*gPlayerActorTasks)->work;
-    frame                              = D_actor_403100_80155808->field_5EC + 1;
-    D_actor_403100_80155808->field_5EC = frame;
+    actor                                = (*gPlayerActorTasks)->work;
+    frame                                = D_actor_403100_80155808->stateFrames + 1;
+    D_actor_403100_80155808->stateFrames = frame;
     if ((s16)frame == 0x3C) {
         sound = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F000F;
         pan   = (s8)worldCoordGetOriginAudioPan(&arg0->extra.tmd->coords[8]);
         depth = worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[8]);
         SndEvt_EnqueueType6(sound, (s32)pan, (s8)(depth / 2));
     }
-    D_actor_403100_80155808->field_80 = 0;
-    D_actor_403100_80155808->field_82 = 0xC00;
-    D_actor_403100_80155808->field_84 = 0;
+    D_actor_403100_80155808->rotation.vx = 0;
+    D_actor_403100_80155808->rotation.vy = 0xC00;
+    D_actor_403100_80155808->rotation.vz = 0;
     func_actor_403100_80132528(arg0);
-    if ((s16)D_actor_403100_80155808->field_5EC >= 0x44) {
-        D_actor_403100_80155808->field_5FC                         = 0x14;
-        D_actor_403100_80155808->field_5E2                         = 0x10;
-        D_actor_403100_80155808->field_5DE                         = 5;
-        D_actor_403100_80155808->field_5DA                         = 1;
+    if ((s16)D_actor_403100_80155808->stateFrames >= 0x44) {
+        D_actor_403100_80155808->animationBlendFrames              = 0x14;
+        D_actor_403100_80155808->animationRate                     = ANIMATION_RATE_ONE;
+        D_actor_403100_80155808->animationId                       = 5;
+        D_actor_403100_80155808->animationRequest                  = ACTOR_403100_ANIMATION_REQUEST_BLEND;
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0x17;
-        D_actor_403100_80155808->field_5FA                        += 1;
+        D_actor_403100_80155808->subState                         += 1;
         func_actor_403100_8013D0B8(-0x1BBC, -0xC80, -0x4B0, 0x400);
         task = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
         if (taskMessageDispatch(task, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, Gp_PackPair(D_actor_403100_80147614, 5), 0) != 0) {
@@ -6709,15 +6709,15 @@ static void func_actor_403100_8013A064(Task* arg0)
             if (D_actor_403100_8015580C->hp <= 0) {
                 D_actor_403100_8015580C->hp = 0x3E8;
             }
-            message                             = 0x3FF;
-            D_actor_403100_80155808->pad_670[0] = 1;
-            actor->state                        = 0xA;
+            message                               = 0x3FF;
+            D_actor_403100_80155808->playerKilled = 1;
+            actor->state                          = 0xA;
         } else {
             state   = 2;
             message = 0x3F4;
         }
         func_actor_403100_8013D1B8(state, message);
-        D_actor_403100_80155808->field_5EC = 0;
+        D_actor_403100_80155808->stateFrames = 0;
     }
 }
 static void func_actor_403100_8013A254(Task* task)
@@ -6732,46 +6732,46 @@ static void func_actor_403100_8013A254(Task* task)
     s32              depth;
     s32              depth2;
 
-    actor                              = *gPlayerActorTasks;
-    frame                              = D_actor_403100_80155808->field_5EC + 1;
-    D_actor_403100_80155808->field_5EC = frame;
+    actor                                = *gPlayerActorTasks;
+    frame                                = D_actor_403100_80155808->stateFrames + 1;
+    D_actor_403100_80155808->stateFrames = frame;
     if ((s16)frame == 0xB) {
-        if (D_actor_403100_80155808->regions.fields.field_63E == 0) {
+        if (D_actor_403100_80155808->sectionDamaged[1] == 0) {
             func_dryfield_night_motel_balcony_8017E250(1, 1);
-            D_actor_403100_80155808->regions.fields.field_63E = 1;
+            D_actor_403100_80155808->sectionDamaged[1] = 1;
         } else {
             func_dryfield_night_motel_balcony_8017E250(1, 2);
         }
         Gp_SpawnPadLerp(8, 0xFFU, 8U);
-        D_actor_403100_80155808->field_5FE = 8;
-        sound                              = (((u16)((Enemy*)(actor)->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F0006;
-        pan                                = (s8)worldCoordGetOriginAudioPan(actor->extra.tmd->coords + 1);
-        depth                              = worldCoordGetOriginAudioDepth(actor->extra.tmd->coords + 1);
+        D_actor_403100_80155808->shakeFrames = 8;
+        sound                                = (((u16)((Enemy*)(actor)->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F0006;
+        pan                                  = (s8)worldCoordGetOriginAudioPan(actor->extra.tmd->coords + 1);
+        depth                                = worldCoordGetOriginAudioDepth(actor->extra.tmd->coords + 1);
         SndEvt_EnqueueType6(sound, (s32)pan, (s8)(depth / 2));
     }
-    if ((s16)D_actor_403100_80155808->field_5EC == 0x1C) {
+    if ((s16)D_actor_403100_80155808->stateFrames == 0x1C) {
         sound2 = (((u16)((Enemy*)(actor)->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F0007;
         pan2   = (s8)worldCoordGetOriginAudioPan(actor->extra.tmd->coords + 1);
         depth2 = worldCoordGetOriginAudioDepth(actor->extra.tmd->coords + 1);
         SndEvt_EnqueueType6(sound2, (s32)pan2, (s8)(depth2 / 2));
     }
-    D_actor_403100_80155808->field_65F = 0;
-    if ((u8)D_actor_403100_80155808->pad_670[0] == 0) {
+    D_actor_403100_80155808->releaseRequested = 0;
+    if (D_actor_403100_80155808->playerKilled == 0) {
         if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_IS_PLAYING, 0, 0) == 0) {
             if (D_actor_403100_8015580C->hp > 0) {
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 6;
             }
-            D_actor_403100_80155808->field_632             = 0;
-            D_actor_403100_80155808->field_668.b.field_668 = 0;
+            D_actor_403100_80155808->field_632         = 0;
+            D_actor_403100_80155808->handTouchedPlayer = 0;
             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
-            work                                = D_actor_403100_80155808;
-            work->pad_670[3]                    = 0;
-            work->field_47C.radius              = 0x400;
-            D_actor_403100_80155808->pad_670[1] = 0;
-            D_actor_403100_80155808->field_5F8  = 1;
-            D_actor_403100_80155808->field_5FA  = 0;
+            work                                   = D_actor_403100_80155808;
+            work->vulnerable                       = 0;
+            work->headBody.radius                  = 0x400;
+            D_actor_403100_80155808->holdingPlayer = 0;
+            D_actor_403100_80155808->state         = 1;
+            D_actor_403100_80155808->subState      = 0;
         }
-    } else if ((s16)D_actor_403100_80155808->field_5EC >= 0x1E) {
+    } else if ((s16)D_actor_403100_80155808->stateFrames >= 0x1E) {
         gGameSession->suppressDeathChecks = 0;
     }
 }
@@ -6788,8 +6788,8 @@ static void func_actor_403100_8013A4C8(Task* arg0)
     arg0->extra.tmd->otOffset                  = 0x1F;
     work                                       = *(Actor403100Work* volatile*)&D_actor_403100_80155808;
     (*(volatile s16*)&D_actor_403100_80155810) = 0;
-    work->field_62C                            = 0x30;
-    work->field_5F6                            = 0;
+    work->walkSpeed                            = 0x30;
+    work->walkStage                            = 0;
     work->entryLifetime                        = 0x1C;
     for (; i < 0x1C; i++) {
         if (entries[i].active != 0) {
@@ -6799,11 +6799,11 @@ static void func_actor_403100_8013A4C8(Task* arg0)
         obj = &(PARENT_OF(obj, Actor403100Entry, obj) + 1)->obj;
     }
     SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 1);
-    D_actor_403100_80155808->field_5E2  = 0x10;
-    D_actor_403100_80155808->field_5DE  = 7;
-    D_actor_403100_80155808->field_5DA  = 2;
-    D_actor_403100_80155808->field_5EC  = 0;
-    D_actor_403100_80155808->field_5FA += 1;
+    D_actor_403100_80155808->animationRate    = ANIMATION_RATE_ONE;
+    D_actor_403100_80155808->animationId      = 7;
+    D_actor_403100_80155808->animationRequest = ACTOR_403100_ANIMATION_REQUEST_RESET;
+    D_actor_403100_80155808->stateFrames      = 0;
+    D_actor_403100_80155808->subState        += 1;
 }
 static void func_actor_403100_8013A5AC(Task* arg0)
 {
@@ -6815,29 +6815,29 @@ static void func_actor_403100_8013A5AC(Task* arg0)
     GfxCoord* effectCoord;
 
     if (D_actor_403100_80155810 == 1) {
-        D_actor_403100_80155808->field_5FA = 3;
+        D_actor_403100_80155808->subState = 3;
         return;
     }
-    D_actor_403100_80155808->field_98   = -0x3110;
-    D_actor_403100_80155808->field_5EC += 1;
-    D_actor_403100_80155808->field_9A   = -0xC80;
-    D_actor_403100_80155808->field_9C   = ((s32)(rsin((s16)D_actor_403100_80155808->field_5EC << 5) * 0x10) >> 6) + 0x6DB;
-    if ((s16)D_actor_403100_80155808->field_5EC == 0x33) {
-        D_actor_403100_80155808->field_61C = 0;
+    D_actor_403100_80155808->aimTarget.vx = -0x3110;
+    D_actor_403100_80155808->stateFrames += 1;
+    D_actor_403100_80155808->aimTarget.vy = -0xC80;
+    D_actor_403100_80155808->aimTarget.vz = ((s32)(rsin((s16)D_actor_403100_80155808->stateFrames << 5) * 0x10) >> 6) + 0x6DB;
+    if ((s16)D_actor_403100_80155808->stateFrames == 0x33) {
+        D_actor_403100_80155808->aimMode = ACTOR_403100_AIM_TRACK;
     }
-    if ((s16)D_actor_403100_80155808->field_5EC == 0x7C) {
-        D_actor_403100_80155808->field_61C = 1;
+    if ((s16)D_actor_403100_80155808->stateFrames == 0x7C) {
+        D_actor_403100_80155808->aimMode = ACTOR_403100_AIM_YAW_ONLY;
     }
-    if ((s16)D_actor_403100_80155808->field_5EC == 0x33) {
+    if ((s16)D_actor_403100_80155808->stateFrames == 0x33) {
         sound = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F0004;
         pan   = (s8)worldCoordGetOriginAudioPan(&arg0->extra.tmd->coords[4]);
         depth = worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[4]);
         SndEvt_EnqueueType6(sound, pan, (s8)(depth / 2));
     }
-    if ((s16)D_actor_403100_80155808->field_5EC == 0x7C) {
+    if ((s16)D_actor_403100_80155808->stateFrames == 0x7C) {
         SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 0xA);
     }
-    if ((u32)(D_actor_403100_80155808->field_5EC - 0x34) < 0x48U) {
+    if ((u32)(D_actor_403100_80155808->stateFrames - 0x34) < 0x48U) {
         offset.vy   = -0x1F0;
         offset.vz   = 0x620;
         velocity.vy = -0x20;
@@ -6846,7 +6846,7 @@ static void func_actor_403100_8013A5AC(Task* arg0)
         velocity.vz = 0xE0;
         func_actor_403100_80132064(arg0, &offset, &velocity, 0);
     }
-    if ((u32)(D_actor_403100_80155808->field_5EC - 0x7D) < 0xBU) {
+    if ((u32)(D_actor_403100_80155808->stateFrames - 0x7D) < 0xBU) {
         effectCoord = &arg0->extra.tmd->coords[3];
         offset.vy   = -0x140;
         offset.vx   = 0;
@@ -6854,8 +6854,8 @@ static void func_actor_403100_8013A5AC(Task* arg0)
         Gp_SpawnEff(EFFECT_SMOKE_PUFF, effectCoord, -0x3FFCB400, &offset);
     }
     if (Actor403100_TestFlags104()) {
-        D_actor_403100_80155808->field_5EC  = 0;
-        D_actor_403100_80155808->field_5FA += 1;
+        D_actor_403100_80155808->stateFrames = 0;
+        D_actor_403100_80155808->subState   += 1;
     }
 }
 static void func_actor_403100_8013A81C(Task* arg0)
@@ -6868,8 +6868,8 @@ static void func_actor_403100_8013A81C(Task* arg0)
     s32       pan2;
     u16       frame;
 
-    frame                              = D_actor_403100_80155808->field_5EC + 1;
-    D_actor_403100_80155808->field_5EC = frame;
+    frame                                = D_actor_403100_80155808->stateFrames + 1;
+    D_actor_403100_80155808->stateFrames = frame;
     if ((s16)frame == 0x31) {
         sound = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F0002;
         pan   = (s8)worldCoordGetOriginAudioPan(&arg0->extra.tmd->coords[4]);
@@ -6877,11 +6877,11 @@ static void func_actor_403100_8013A81C(Task* arg0)
         sound2 = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F0001;
         pan2   = (s8)worldCoordGetOriginAudioPan(&arg0->extra.tmd->coords[1]);
         SndEvt_EnqueueType6(sound2, pan2, (s8)(worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[1]) / 2));
-        D_actor_403100_80155808->part3PitchPhase = ACTOR_403100_PITCH_PHASE_START;
+        D_actor_403100_80155808->headPitchPhase = ACTOR_403100_PITCH_PHASE_START;
         Gp_SpawnPadLerp(0x12, 0xFFU, 8U);
-        D_actor_403100_80155808->field_5FE = 0x12;
+        D_actor_403100_80155808->shakeFrames = 0x12;
     }
-    if ((u32)(D_actor_403100_80155808->field_5EC - 0x32) < 0xBU) {
+    if ((u32)(D_actor_403100_80155808->stateFrames - 0x32) < 0xBU) {
         effectCoord = &arg0->extra.tmd->coords[3];
         offset.vy   = -0x140;
         offset.vx   = 0;
@@ -6889,8 +6889,8 @@ static void func_actor_403100_8013A81C(Task* arg0)
         Gp_SpawnEff(EFFECT_SMOKE_PUFF, effectCoord, -0x3FFCB400, &offset);
     }
     if (Actor403100_TestFlags104()) {
-        D_actor_403100_80155808->field_5F8 = 1;
-        D_actor_403100_80155808->field_5FA = 0;
+        D_actor_403100_80155808->state    = 1;
+        D_actor_403100_80155808->subState = 0;
     }
 }
 static void func_actor_403100_8013AA04(Task* arg0)
@@ -6901,37 +6901,37 @@ static void func_actor_403100_8013AA04(Task* arg0)
     u16 frame;
     s32 depth;
 
-    angle                              = (u16)D_actor_403100_80155808->field_82;
-    frame                              = D_actor_403100_80155808->field_5EC;
-    D_actor_403100_80155808->field_82  = angle + ((s32)((-0x4000 - (angle * 0x10)) << 0x10) >> 0x16);
-    D_actor_403100_80155808->field_5EC = frame + 1;
+    angle                                = (u16)D_actor_403100_80155808->rotation.vy;
+    frame                                = D_actor_403100_80155808->stateFrames;
+    D_actor_403100_80155808->rotation.vy = angle + ((s32)((-0x4000 - (angle * 0x10)) << 0x10) >> 0x16);
+    D_actor_403100_80155808->stateFrames = frame + 1;
     if ((u32)((frame - 0x33) & 0xFFFF) < 0x16U) {
         func_actor_403100_8013C7B4(arg0);
     } else if ((func_actor_403100_80133928() << 0x10) != 0) {
         return;
     }
-    if ((s16)D_actor_403100_80155808->field_5EC == 0x44) {
+    if ((s16)D_actor_403100_80155808->stateFrames == 0x44) {
         sound = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F0008;
         pan   = (s8)worldCoordGetOriginAudioPan(&arg0->extra.tmd->coords[7]);
         depth = worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[7]);
         SndEvt_EnqueueType6(sound, (s32)pan, (s8)(depth / 2));
     }
-    if (D_actor_403100_80155808->field_668.flags != 0) {
-        D_actor_403100_80155808->pad_670[3] = 1;
-        D_actor_403100_80155808->pad_670[1] = 1;
-        Gp_StateC08.flags                  |= ATTACHMENT_FLAG_EVENT_LOCK;
+    if (D_actor_403100_80155808->handTouchedPlayer != 0 || D_actor_403100_80155808->forearmTouchedPlayer != 0) {
+        D_actor_403100_80155808->vulnerable    = 1;
+        D_actor_403100_80155808->holdingPlayer = 1;
+        Gp_StateC08.flags                     |= ATTACHMENT_FLAG_EVENT_LOCK;
         func_actor_403100_8013D1B8(3, 0x3F4);
-        func_actor_403100_8013D0B8(D_actor_403100_80155808->field_90, D_actor_403100_80155808->field_92, (s16)((u16)D_actor_403100_80155808->field_94 + 0xBB8), 0x800);
-        D_actor_403100_80155808->field_668.b.field_668 = 0;
-        D_actor_403100_80155808->field_5EC             = 0;
-        gGameSession->suppressViewTriggers             = 1;
-        D_actor_403100_80155808->field_5FA            += 1;
+        func_actor_403100_8013D0B8(D_actor_403100_80155808->playerPosition.vx, D_actor_403100_80155808->playerPosition.vy, (s16)((u16)D_actor_403100_80155808->playerPosition.vz + 0xBB8), 0x800);
+        D_actor_403100_80155808->handTouchedPlayer = 0;
+        D_actor_403100_80155808->stateFrames       = 0;
+        gGameSession->suppressViewTriggers         = 1;
+        D_actor_403100_80155808->subState         += 1;
         return;
     }
     if (Actor403100_TestFlags104()) {
-        D_actor_403100_80155808->field_668.b.field_668 = 0;
-        D_actor_403100_80155808->field_5F8             = 1;
-        D_actor_403100_80155808->field_5FA             = 0;
+        D_actor_403100_80155808->handTouchedPlayer = 0;
+        D_actor_403100_80155808->state             = 1;
+        D_actor_403100_80155808->subState          = 0;
     }
 }
 static void func_actor_403100_8013AC04(Task* task)
@@ -6951,7 +6951,7 @@ static void func_actor_403100_8013AC04(Task* task)
     player   = *gPlayerActorTasks;
     actor    = (GameActor*)player->work;
     finished = 0;
-    if ((s16)D_actor_403100_80155808->field_5EC == 0) {
+    if ((s16)D_actor_403100_80155808->stateFrames == 0) {
         Gp_SpawnPadLerp(0xC, 0xFF, 0x80);
         sound = (((u16)((Enemy*)player->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 7;
         pan   = (s8)worldCoordGetOriginAudioPan(&player->extra.tmd->coords[1]);
@@ -6959,23 +6959,23 @@ static void func_actor_403100_8013AC04(Task* task)
         SndEvt_EnqueueType6(sound, pan, (s8)(depth / 2));
     }
     work = D_actor_403100_80155808;
-    if ((s16)work->field_5EC < 5) {
-        func_actor_403100_8013D0B8(work->field_90, work->field_92, (s16)(work->field_94 + 0x3E8), 0x800);
+    if ((s16)work->stateFrames < 5) {
+        func_actor_403100_8013D0B8(work->playerPosition.vx, work->playerPosition.vy, (s16)(work->playerPosition.vz + 0x3E8), 0x800);
     }
-    if (((s16)D_actor_403100_80155808->field_5EC >= 6) || (D_actor_403100_80155808->field_94 >= 0x1B58)) {
+    if (((s16)D_actor_403100_80155808->stateFrames >= 6) || (D_actor_403100_80155808->playerPosition.vz >= 0x1B58)) {
         finished = 1;
     }
-    D_actor_403100_80155808->field_5EC = (s16)((u16)D_actor_403100_80155808->field_5EC + 1);
+    D_actor_403100_80155808->stateFrames = (s16)((u16)D_actor_403100_80155808->stateFrames + 1);
     if ((completed = finished != 0)) {
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0x14;
         task                                                       = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
         if (taskMessageDispatch(task, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, Gp_PackPair(D_actor_403100_80147614, 2), 0) != 0) {
-            gGameSession->suppressDeathChecks   = 1;
-            gGameSession->deathSoundCountdown   = GAME_SESSION_DEATH_SOUND_HOLD;
-            D_actor_403100_80155808->pad_670[0] = 1U;
+            gGameSession->suppressDeathChecks     = 1;
+            gGameSession->deathSoundCountdown     = GAME_SESSION_DEATH_SOUND_HOLD;
+            D_actor_403100_80155808->playerKilled = 1U;
         }
         func_actor_403100_8013D0B8(-0x1928, -0xC7C, 0x29D6, 0x800);
-        if ((u8)D_actor_403100_80155808->pad_670[0] != 0) {
+        if (D_actor_403100_80155808->playerKilled != 0) {
             actor->state = 0xA;
             state        = 7;
             message      = 0x3FF;
@@ -6984,8 +6984,8 @@ static void func_actor_403100_8013AC04(Task* task)
             message = 0x3F4;
         }
         func_actor_403100_8013D1B8(state, message);
-        D_actor_403100_80155808->field_5EC = 0;
-        D_actor_403100_80155808->field_5FA = (u16)(D_actor_403100_80155808->field_5FA + 1);
+        D_actor_403100_80155808->stateFrames = 0;
+        D_actor_403100_80155808->subState    = (u16)(D_actor_403100_80155808->subState + 1);
     }
 }
 static void func_actor_403100_8013AE28(Task* task)
@@ -7000,53 +7000,53 @@ static void func_actor_403100_8013AE28(Task* task)
     s32   depth;
     u16   frame;
 
-    player                             = *gPlayerActorTasks;
-    frame                              = D_actor_403100_80155808->field_5EC + 1;
-    D_actor_403100_80155808->field_5EC = frame;
+    player                               = *gPlayerActorTasks;
+    frame                                = D_actor_403100_80155808->stateFrames + 1;
+    D_actor_403100_80155808->stateFrames = frame;
     if ((s16)frame == 0xA) {
-        if (D_actor_403100_80155808->regions.fields.field_63C == 0) {
+        if (D_actor_403100_80155808->sectionDamaged[0] == 0) {
             func_dryfield_night_motel_balcony_8017E250(0, 1);
-            D_actor_403100_80155808->regions.fields.field_63C = 1;
+            D_actor_403100_80155808->sectionDamaged[0] = 1;
         } else {
             func_dryfield_night_motel_balcony_8017E250(0, 2);
         }
     }
-    if ((s16)D_actor_403100_80155808->field_5EC == 0xB) {
+    if ((s16)D_actor_403100_80155808->stateFrames == 0xB) {
         sound = (((u16)((Enemy*)player->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F0006;
         pan   = (s8)worldCoordGetOriginAudioPan(&player->extra.tmd->coords[1]);
         depth = worldCoordGetOriginAudioDepth(&player->extra.tmd->coords[1]);
         SndEvt_EnqueueType6(sound, pan, (s8)(depth / 2));
         Gp_SpawnPadLerp(0x12, 0xFFU, 8U);
-        D_actor_403100_80155808->field_5FE = 0x12;
+        D_actor_403100_80155808->shakeFrames = 0x12;
     }
-    if ((s16)D_actor_403100_80155808->field_5EC == 0x1C) {
+    if ((s16)D_actor_403100_80155808->stateFrames == 0x1C) {
         sound2 = (((u16)((Enemy*)player->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F0007;
         pan2   = (s8)worldCoordGetOriginAudioPan(&player->extra.tmd->coords[1]);
         depth  = worldCoordGetOriginAudioDepth(&player->extra.tmd->coords[1]);
         SndEvt_EnqueueType6(sound2, pan2, (s8)(depth / 2));
     }
-    if ((s16)D_actor_403100_80155808->field_5EC == 0x20) {
-        if ((u8)D_actor_403100_80155808->pad_670[0] != 0) {
+    if ((s16)D_actor_403100_80155808->stateFrames == 0x20) {
+        if (D_actor_403100_80155808->playerKilled != 0) {
             sound3 = (((u16)((Enemy*)player->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x531D000B;
             pan3   = (s8)worldCoordGetOriginAudioPan(&player->extra.tmd->coords[1]);
             depth  = worldCoordGetOriginAudioDepth(&player->extra.tmd->coords[1]);
             SndEvt_EnqueueType6(sound3, pan3, (s8)(depth / 2));
         }
     }
-    if ((u8)D_actor_403100_80155808->pad_670[0] == 0) {
+    if (D_actor_403100_80155808->playerKilled == 0) {
         if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_IS_PLAYING, 0, 0) == 0) {
-            D_actor_403100_80155808->field_668.b.field_668 = 0;
+            D_actor_403100_80155808->handTouchedPlayer = 0;
             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
             if (D_actor_403100_8015580C->hp > 0) {
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 4;
             }
-            gGameSession->suppressViewTriggers  = 0;
-            D_actor_403100_80155808->pad_670[3] = 0;
-            D_actor_403100_80155808->pad_670[1] = 0;
-            D_actor_403100_80155808->field_5F8  = 1;
-            D_actor_403100_80155808->field_5FA  = 0;
+            gGameSession->suppressViewTriggers     = 0;
+            D_actor_403100_80155808->vulnerable    = 0;
+            D_actor_403100_80155808->holdingPlayer = 0;
+            D_actor_403100_80155808->state         = 1;
+            D_actor_403100_80155808->subState      = 0;
         }
-    } else if ((s16)D_actor_403100_80155808->field_5EC >= 0x32) {
+    } else if ((s16)D_actor_403100_80155808->stateFrames >= 0x32) {
         gGameSession->suppressDeathChecks = 0;
     }
 }
@@ -7071,10 +7071,10 @@ static void func_actor_403100_8013B128(Task* arg0)
     Gp_SetLightMode(arg0->spawnArg2.pointer, ENEMY_COLOR_DEFAULT);
     D_actor_403100_8015580C->node.state.parts.flags = (WORLD_TARGET_HIDE_HP | WORLD_TARGET_NOT_LOCKABLE);
     i                                               = 0;
-    if (D_actor_403100_80155808->field_5D0 < 0) {
-        arg0->state                        = 4;
-        D_actor_403100_80155808->field_5F8 = 0;
-        D_actor_403100_80155808->field_5FA = 0U;
+    if (D_actor_403100_80155808->fightFramesLeft < 0) {
+        arg0->state                       = 4;
+        D_actor_403100_80155808->state    = 0;
+        D_actor_403100_80155808->subState = 0U;
         return;
     }
     worldTargetUnlinkNode(&D_actor_403100_8015580C->node);
@@ -7089,38 +7089,38 @@ static void func_actor_403100_8013B128(Task* arg0)
         obj = &(PARENT_OF(obj, Actor403100Entry, obj) + 1)->obj;
     }
     SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 1);
-    D_actor_403100_80155808->field_622                         = (s16)gGameSession->location.loc.view;
-    D_actor_403100_80155808->field_0.matrices.coord            = coords->coord;
-    D_actor_403100_80155808->savedRotation                     = *(SVECTOR*)&D_actor_403100_80155808->field_80;
+    D_actor_403100_80155808->savedView                         = gGameSession->location.loc.view;
+    D_actor_403100_80155808->savedRootMatrix                   = coords->coord;
+    D_actor_403100_80155808->savedRotation                     = D_actor_403100_80155808->rotation;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0x18;
     work                                                       = D_actor_403100_80155808;
-    work->pad_660[1]                                           = 1;
-    work->field_5F6                                            = 5;
-    work->field_5E2                                            = 0x10;
-    work->field_5DE                                            = 0x10;
-    work->field_5DA                                            = 2;
-    work->field_61C                                            = 2;
-    D_actor_403100_80155808->field_604                         = 0;
-    D_actor_403100_80155808->field_608                         = 0;
-    D_actor_403100_80155808->field_A0                          = 0;
-    D_actor_403100_80155808->field_A2                          = 0;
-    D_actor_403100_80155808->field_A4                          = 0;
+    work->phaseChangeDone                                      = 1;
+    work->walkStage                                            = 5;
+    work->animationRate                                        = ANIMATION_RATE_ONE;
+    work->animationId                                          = 0x10;
+    work->animationRequest                                     = ACTOR_403100_ANIMATION_REQUEST_RESET;
+    work->aimMode                                              = ACTOR_403100_AIM_ANIMATED;
+    D_actor_403100_80155808->armPitch                          = 0;
+    D_actor_403100_80155808->armYaw                            = 0;
+    D_actor_403100_80155808->forearmTurn.vx                    = 0;
+    D_actor_403100_80155808->forearmTurn.vy                    = 0;
+    D_actor_403100_80155808->forearmTurn.vz                    = 0;
     coords->coord.t[0]                                         = -0x44C;
     coords->coord.t[1]                                         = -0x1388;
     coords->coord.t[2]                                         = 0x2710;
-    D_actor_403100_80155808->field_80                          = 0;
-    D_actor_403100_80155808->field_82                          = 0xA00;
-    D_actor_403100_80155808->field_84                          = 0;
+    D_actor_403100_80155808->rotation.vx                       = 0;
+    D_actor_403100_80155808->rotation.vy                       = 0xA00;
+    D_actor_403100_80155808->rotation.vz                       = 0;
     gGameSession->hideHud                                      = 1;
     Gp_MsgPlayerWeapon(0);
     sound = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F000B;
     pan   = (s8)worldCoordGetOriginAudioPan(&arg0->extra.tmd->coords[4]);
     depth = worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[4]);
     SndEvt_EnqueueType6(sound, pan, (s8)(depth / 2));
-    finalWork             = D_actor_403100_80155808;
-    finalWork->field_5EC  = 0;
-    finalWork->pad_670[3] = 1;
-    finalWork->field_5FA  = (u16)(finalWork->field_5FA + 1);
+    finalWork              = D_actor_403100_80155808;
+    finalWork->stateFrames = 0;
+    finalWork->vulnerable  = 1;
+    finalWork->subState    = (u16)(finalWork->subState + 1);
 }
 static void func_actor_403100_8013B3C4(Task* arg0)
 {
@@ -7130,34 +7130,34 @@ static void func_actor_403100_8013B3C4(Task* arg0)
     GfxCoord* coords;
 
     coords                                                     = arg0->extra.tmd->coords;
-    D_actor_403100_80155808->field_5EC                        += 1;
+    D_actor_403100_80155808->stateFrames                      += 1;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0x18;
-    if ((s16)D_actor_403100_80155808->field_5EC == 0x64) {
+    if ((s16)D_actor_403100_80155808->stateFrames == 0x64) {
         Gp_LoadImages(&D_actor_403100_801555EC[0]);
     }
-    if ((s16)D_actor_403100_80155808->field_5EC == 0x10E) {
+    if ((s16)D_actor_403100_80155808->stateFrames == 0x10E) {
         sound = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F0005;
         pan   = (s8)worldCoordGetOriginAudioPan(&arg0->extra.tmd->coords[4]);
         depth = worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[4]);
         SndEvt_EnqueueType6(sound, pan, (s8)(depth / 2));
     }
-    coords->coord.t[0]                = -0x44C;
-    coords->coord.t[1]                = -0x1388;
-    coords->coord.t[2]                = 0x2710;
-    D_actor_403100_80155808->field_80 = 0;
-    D_actor_403100_80155808->field_82 = 0xA00;
-    D_actor_403100_80155808->field_84 = 0;
+    coords->coord.t[0]                   = -0x44C;
+    coords->coord.t[1]                   = -0x1388;
+    coords->coord.t[2]                   = 0x2710;
+    D_actor_403100_80155808->rotation.vx = 0;
+    D_actor_403100_80155808->rotation.vy = 0xA00;
+    D_actor_403100_80155808->rotation.vz = 0;
     if (Actor403100_TestFlags()) {
-        D_actor_403100_80155808->pad_670[3] = 0;
+        D_actor_403100_80155808->vulnerable = 0;
         Gp_LinkNode(&D_actor_403100_8015580C->node);
         D_actor_403100_8015580C->node.state.parts.flags = WORLD_TARGET_HIDE_HP;
         gGameSession->hideHud                           = 0;
         taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_END_SCRIPTED, 2, 0);
-        coords->coord                                              = D_actor_403100_80155808->field_0.matrices.coord;
-        *(SVECTOR*)&D_actor_403100_80155808->field_80              = D_actor_403100_80155808->savedRotation;
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = (u8)D_actor_403100_80155808->field_622;
-        D_actor_403100_80155808->field_5F8                         = 1;
-        D_actor_403100_80155808->field_5FA                         = 0;
+        coords->coord                                              = D_actor_403100_80155808->savedRootMatrix;
+        D_actor_403100_80155808->rotation                          = D_actor_403100_80155808->savedRotation;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = D_actor_403100_80155808->savedView;
+        D_actor_403100_80155808->state                             = 1;
+        D_actor_403100_80155808->subState                          = 0;
     }
 }
 
@@ -7193,53 +7193,53 @@ static void func_actor_403100_8013B5E0(Task* arg0, s16 arg1)
     gfxSetRotIdentity(matrices);
     root = arg0->extra.tmd->coords;
     gfxMakeRelativeTransform(&gGfxViewCoord.workm, &root[part].workm, &worldMatrix);
-    delta.vx = D_actor_403100_80155808->field_98 - worldMatrix.t[0];
+    delta.vx = D_actor_403100_80155808->aimTarget.vx - worldMatrix.t[0];
     offsetY  = worldMatrix.t[1] + 0x600;
-    delta.vy = D_actor_403100_80155808->field_9A - offsetY;
-    delta.vz = D_actor_403100_80155808->field_9C - worldMatrix.t[2];
+    delta.vy = D_actor_403100_80155808->aimTarget.vy - offsetY;
+    delta.vz = D_actor_403100_80155808->aimTarget.vz - worldMatrix.t[2];
     ApplyTransposeMatrixLV(&root->coord, &delta, &local);
     angles->vx = (ratan2(-local.vy, local.vz) << 20) >> 20;
     angles->vy = (ratan2(local.vx, local.vz) << 20) >> 20;
     angles->vz = 0;
-    if (arg1 == 0) {
+    if (arg1 == ACTOR_403100_AIM_TRACK) {
         func_actor_403100_8013CEAC((u16*)angles, 8, 0x280, -0x2C0);
         func_actor_403100_8013CF60(angles, 8, 2, 1, 4);
         func_actor_403100_8013D06C();
-        RotMatrixZXY((SVECTOR*)&D_actor_403100_80155808->field_B0, matrices);
-    } else if (arg1 == 1) {
+        RotMatrixZXY(&D_actor_403100_80155808->headAim, matrices);
+    } else if (arg1 == ACTOR_403100_AIM_YAW_ONLY) {
         Gp_MtxToEuler(&coords[part].coord, &headRotation);
-        D_actor_403100_80155808->field_B0 += ((s32)(((u16)headRotation.vx - (u16)D_actor_403100_80155808->field_B0) << 20) >> 23);
-        D_actor_403100_80155808->field_B4 += ((s32)(((u16)headRotation.vz - (u16)D_actor_403100_80155808->field_B4) << 20) >> 23);
+        D_actor_403100_80155808->headAim.vx += ((s32)(((u16)headRotation.vx - (u16)D_actor_403100_80155808->headAim.vx) << 20) >> 23);
+        D_actor_403100_80155808->headAim.vz += ((s32)(((u16)headRotation.vz - (u16)D_actor_403100_80155808->headAim.vz) << 20) >> 23);
         func_actor_403100_8013CF60(angles, 8, 4, 1, 4);
-        RotMatrixZXY((SVECTOR*)&D_actor_403100_80155808->field_B0, matrices);
-    } else if (arg1 == 2) {
+        RotMatrixZXY(&D_actor_403100_80155808->headAim, matrices);
+    } else if (arg1 == ACTOR_403100_AIM_ANIMATED) {
         Gp_MtxToEuler(&coords[part].coord, &headRotation);
         Gp_MtxToEuler(&coords[2].coord, &middleRotation);
         Gp_MtxToEuler(&coords[1].coord, &lowerRotation);
-        sum                                = (u16)headRotation.vx + ((u16)middleRotation.vx + (u16)lowerRotation.vx);
-        headRotation.vx                    = sum;
-        headRotation.vy                    = (u16)headRotation.vy + ((u16)middleRotation.vy + (u16)lowerRotation.vy);
-        headRotation.vz                    = (u16)headRotation.vz + ((u16)middleRotation.vz + (u16)lowerRotation.vz);
-        D_actor_403100_80155808->field_B0 += ((s32)((sum - (u16)D_actor_403100_80155808->field_B0) << 20) >> 23);
-        D_actor_403100_80155808->field_B2 += ((s32)(((u16)headRotation.vy - (u16)D_actor_403100_80155808->field_B2) << 20) >> 23);
-        D_actor_403100_80155808->field_B4 += ((s32)(((u16)headRotation.vz - (u16)D_actor_403100_80155808->field_B4) << 20) >> 23);
-        RotMatrixZXY((SVECTOR*)&D_actor_403100_80155808->field_B0, matrices);
-    } else if (arg1 == 3) {
+        sum                                  = (u16)headRotation.vx + ((u16)middleRotation.vx + (u16)lowerRotation.vx);
+        headRotation.vx                      = sum;
+        headRotation.vy                      = (u16)headRotation.vy + ((u16)middleRotation.vy + (u16)lowerRotation.vy);
+        headRotation.vz                      = (u16)headRotation.vz + ((u16)middleRotation.vz + (u16)lowerRotation.vz);
+        D_actor_403100_80155808->headAim.vx += ((s32)((sum - (u16)D_actor_403100_80155808->headAim.vx) << 20) >> 23);
+        D_actor_403100_80155808->headAim.vy += ((s32)(((u16)headRotation.vy - (u16)D_actor_403100_80155808->headAim.vy) << 20) >> 23);
+        D_actor_403100_80155808->headAim.vz += ((s32)(((u16)headRotation.vz - (u16)D_actor_403100_80155808->headAim.vz) << 20) >> 23);
+        RotMatrixZXY(&D_actor_403100_80155808->headAim, matrices);
+    } else if (arg1 == ACTOR_403100_AIM_TRACK_FAST) {
         func_actor_403100_8013CEAC((u16*)angles, 0x10, 0x280, -0x280);
         func_actor_403100_8013CF60(angles, 0x10, 4, 2, 8);
         func_actor_403100_8013D06C();
-        RotMatrixZXY((SVECTOR*)&D_actor_403100_80155808->field_B0, matrices);
-    } else if (arg1 == 4) {
+        RotMatrixZXY(&D_actor_403100_80155808->headAim, matrices);
+    } else if (arg1 == ACTOR_403100_AIM_YAW_ONLY_FAST) {
         Gp_MtxToEuler(&coords[part].coord, &headRotation);
-        D_actor_403100_80155808->field_B0 += ((s32)(((u16)headRotation.vx - (u16)D_actor_403100_80155808->field_B0) << 20) >> 23);
-        D_actor_403100_80155808->field_B4 += ((s32)(((u16)headRotation.vz - (u16)D_actor_403100_80155808->field_B4) << 20) >> 23);
+        D_actor_403100_80155808->headAim.vx += ((s32)(((u16)headRotation.vx - (u16)D_actor_403100_80155808->headAim.vx) << 20) >> 23);
+        D_actor_403100_80155808->headAim.vz += ((s32)(((u16)headRotation.vz - (u16)D_actor_403100_80155808->headAim.vz) << 20) >> 23);
         func_actor_403100_8013CF60(angles, 0x10, 4, 2, 8);
-        RotMatrixZXY((SVECTOR*)&D_actor_403100_80155808->field_B0, matrices);
-    } else if (arg1 == 5) {
+        RotMatrixZXY(&D_actor_403100_80155808->headAim, matrices);
+    } else if (arg1 == ACTOR_403100_AIM_TRACK_STEPPED) {
         func_actor_403100_8013CEAC((u16*)angles, 0x10, 0x280, -0x280);
-        func_actor_403100_8013CF60(angles, D_actor_403100_80155808->field_65A, 4, 2, 8);
+        func_actor_403100_8013CF60(angles, D_actor_403100_80155808->aimYawStep, 4, 2, 8);
         func_actor_403100_8013D06C();
-        RotMatrixZXY((SVECTOR*)&D_actor_403100_80155808->field_B0, matrices);
+        RotMatrixZXY(&D_actor_403100_80155808->headAim, matrices);
     }
     transpose = &matrices[3];
     TransposeMatrix(&middle->coord, transpose);
@@ -7262,7 +7262,7 @@ static void func_actor_403100_8013B5E0(Task* arg0, s16 arg1)
     middle->composeStamp = GRAPHICS_COORD_DIRTY;
     head->composeStamp   = GRAPHICS_COORD_DIRTY;
 }
-/// Steps of the behaviour mode `func_actor_403100_8013DB48`, indexed by `field_5FA`.
+/// Steps of the behaviour mode `func_actor_403100_8013DB48`, indexed by `subState`.
 static const TaskFuncTable6 D_actor_403100_80131F84 = {
     {
         func_actor_403100_801375B8,
@@ -7274,7 +7274,7 @@ static const TaskFuncTable6 D_actor_403100_80131F84 = {
     },
 };
 
-/// Steps of the behaviour mode `func_actor_403100_8013DC18`, indexed by `field_5FA`.
+/// Steps of the behaviour mode `func_actor_403100_8013DC18`, indexed by `subState`.
 static const TaskFuncTable5 D_actor_403100_80131F9C = {
     {
         func_actor_403100_80137F4C,
@@ -7285,7 +7285,7 @@ static const TaskFuncTable5 D_actor_403100_80131F9C = {
     },
 };
 
-/// Steps of the behaviour mode `func_actor_403100_8013DCAC`, indexed by `field_5FA`.
+/// Steps of the behaviour mode `func_actor_403100_8013DCAC`, indexed by `subState`.
 static const TaskFuncTable9 D_actor_403100_80131FB0 = {
     {
         func_actor_403100_8013F2D8,
@@ -7300,7 +7300,7 @@ static const TaskFuncTable9 D_actor_403100_80131FB0 = {
     },
 };
 
-/// Steps of the behaviour mode `func_actor_403100_8013DD78`, indexed by `field_5FA`.
+/// Steps of the behaviour mode `func_actor_403100_8013DD78`, indexed by `subState`.
 static const TaskFuncTable11 D_actor_403100_80131FD4 = {
     {
         func_actor_403100_80138D08,
@@ -7317,7 +7317,7 @@ static const TaskFuncTable11 D_actor_403100_80131FD4 = {
     },
 };
 
-/// Steps of the behaviour mode `func_actor_403100_8013DE0C`, indexed by `field_5FA`.
+/// Steps of the behaviour mode `func_actor_403100_8013DE0C`, indexed by `subState`.
 static const TaskFuncTable5 D_actor_403100_80132000 = {
     {
         func_actor_403100_8013A4C8,
@@ -7328,7 +7328,7 @@ static const TaskFuncTable5 D_actor_403100_80132000 = {
     },
 };
 
-/// Steps of the behaviour mode `func_actor_403100_8013DEA0`, indexed by `field_5FA`.
+/// Steps of the behaviour mode `func_actor_403100_8013DEA0`, indexed by `subState`.
 static const TaskFuncTable4 D_actor_403100_80132014 = {
     {
         func_actor_403100_8013F588,
@@ -7338,7 +7338,7 @@ static const TaskFuncTable4 D_actor_403100_80132014 = {
     },
 };
 
-/// Steps of the behaviour mode `func_actor_403100_8013DFBC`, indexed by `field_5FA`.
+/// Steps of the behaviour mode `func_actor_403100_8013DFBC`, indexed by `subState`.
 static const TaskFuncTable3 D_actor_403100_80132024 = {
     {
         func_actor_403100_8013F6B0,
@@ -7347,7 +7347,7 @@ static const TaskFuncTable3 D_actor_403100_80132024 = {
     },
 };
 
-/// Handlers `func_actor_403100_8013BA64` dispatches on `field_5F6`.
+/// Handlers `func_actor_403100_8013BA64` dispatches on `walkStage`.
 static const TaskFuncTable6 D_actor_403100_80132030 = {
     {
         func_actor_403100_8013BB8C,
@@ -7364,11 +7364,11 @@ static void func_actor_403100_8013BA64(Task* arg0)
     GfxCoord*      coords   = arg0->extra.tmd->coords;
     TaskFuncTable6 handlers = D_actor_403100_80132030;
 
-    D_actor_403100_80155808->field_602 = (u16)D_actor_403100_80155808->field_600;
-    handlers.funcs[D_actor_403100_80155808->field_5F6](arg0);
+    D_actor_403100_80155808->previousStridePhase = (u16)D_actor_403100_80155808->stridePhase;
+    handlers.funcs[D_actor_403100_80155808->walkStage](arg0);
     if (((Gp_GetViewIndex() & 0xFF) == 7) || ((Gp_GetViewIndex() & 0xFF) == 8)) {
-        if ((s16)D_actor_403100_80155808->field_5F8 == 6) {
-            if (D_actor_403100_80155808->field_628 == 2) {
+        if ((s16)D_actor_403100_80155808->state == 6) {
+            if (D_actor_403100_80155808->playerRegion == 2) {
                 coords->coord.t[0] += (-4000 - coords->coord.t[0]) >> 4;
             } else {
                 coords->coord.t[0] += (-2700 - coords->coord.t[0]) >> 4;
@@ -7385,47 +7385,47 @@ static inline void _actor403100StepRoot(TmdObject* obj, GfxCoord* coords)
     s32 delta2;
     s32 delta3;
 
-    mode = D_actor_403100_80155808->field_628 - 1;
+    mode = D_actor_403100_80155808->playerRegion - 1;
     switch (mode) {
         case 0:
         case 4:
             obj->otOffset = 0;
-            delta         = D_actor_403100_80155808->field_94 - coords->coord.t[2];
+            delta         = D_actor_403100_80155808->playerPosition.vz - coords->coord.t[2];
             if (delta > 4864) {
-                coords->coord.t[2]                += D_actor_403100_80155808->field_62C;
-                D_actor_403100_80155808->field_600 = (D_actor_403100_80155808->field_600 + 0x20) & 0x7FF;
+                coords->coord.t[2]                  += D_actor_403100_80155808->walkSpeed;
+                D_actor_403100_80155808->stridePhase = (D_actor_403100_80155808->stridePhase + 0x20) & 0x7FF;
             } else if (delta < -4864) {
-                coords->coord.t[2]                -= D_actor_403100_80155808->field_62C;
-                D_actor_403100_80155808->field_600 = (D_actor_403100_80155808->field_600 + 0x20) & 0x7FF;
+                coords->coord.t[2]                  -= D_actor_403100_80155808->walkSpeed;
+                D_actor_403100_80155808->stridePhase = (D_actor_403100_80155808->stridePhase + 0x20) & 0x7FF;
             } else {
-                D_actor_403100_80155808->field_5F6++;
+                D_actor_403100_80155808->walkStage++;
             }
             break;
         case 1:
         case 5:
             delta2 = 1300 - coords->coord.t[2];
             if (delta2 > 48) {
-                coords->coord.t[2]                += D_actor_403100_80155808->field_62C;
-                D_actor_403100_80155808->field_600 = (D_actor_403100_80155808->field_600 + 0x20) & 0x7FF;
+                coords->coord.t[2]                  += D_actor_403100_80155808->walkSpeed;
+                D_actor_403100_80155808->stridePhase = (D_actor_403100_80155808->stridePhase + 0x20) & 0x7FF;
             } else if (delta2 < -48) {
-                coords->coord.t[2]                -= D_actor_403100_80155808->field_62C;
-                D_actor_403100_80155808->field_600 = (D_actor_403100_80155808->field_600 + 0x20) & 0x7FF;
+                coords->coord.t[2]                  -= D_actor_403100_80155808->walkSpeed;
+                D_actor_403100_80155808->stridePhase = (D_actor_403100_80155808->stridePhase + 0x20) & 0x7FF;
             } else {
-                D_actor_403100_80155808->field_5F6++;
+                D_actor_403100_80155808->walkStage++;
             }
             break;
         case 2:
         case 3:
             obj->otOffset = 0;
-            delta3        = D_actor_403100_80155808->field_94 - coords->coord.t[2];
+            delta3        = D_actor_403100_80155808->playerPosition.vz - coords->coord.t[2];
             if (delta3 > 640) {
-                coords->coord.t[2]                += D_actor_403100_80155808->field_62C;
-                D_actor_403100_80155808->field_600 = (D_actor_403100_80155808->field_600 + 0x20) & 0x7FF;
+                coords->coord.t[2]                  += D_actor_403100_80155808->walkSpeed;
+                D_actor_403100_80155808->stridePhase = (D_actor_403100_80155808->stridePhase + 0x20) & 0x7FF;
             } else if (delta3 < -640) {
-                coords->coord.t[2]                -= D_actor_403100_80155808->field_62C;
-                D_actor_403100_80155808->field_600 = (D_actor_403100_80155808->field_600 + 0x20) & 0x7FF;
+                coords->coord.t[2]                  -= D_actor_403100_80155808->walkSpeed;
+                D_actor_403100_80155808->stridePhase = (D_actor_403100_80155808->stridePhase + 0x20) & 0x7FF;
             } else {
-                D_actor_403100_80155808->field_5F6++;
+                D_actor_403100_80155808->walkStage++;
             }
             break;
     }
@@ -7440,17 +7440,17 @@ static void func_actor_403100_8013BB8C(Task* arg0)
 
     coords = arg0->extra.tmd->coords;
     _actor403100StepRoot(arg0->extra.tmd, coords);
-    if (D_actor_403100_80155808->field_600 == 0) {
-        if (D_actor_403100_80155808->field_602 != 0) {
+    if (D_actor_403100_80155808->stridePhase == 0) {
+        if (D_actor_403100_80155808->previousStridePhase != 0) {
             Gp_SpawnPadLerp(0x1E, 0xFF, 8);
-            D_actor_403100_80155808->field_5FE = 0x1E;
-            sound                              = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F0001;
-            pan                                = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords + 1);
-            depth                              = worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords + 1);
+            D_actor_403100_80155808->shakeFrames = 0x1E;
+            sound                                = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F0001;
+            pan                                  = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords + 1);
+            depth                                = worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords + 1);
             SndEvt_EnqueueType6(sound, pan, (s8)(depth / 2));
         }
     }
-    coords->coord.t[1] = -((rsin(D_actor_403100_80155808->field_600) << 13) >> 16);
+    coords->coord.t[1] = -((rsin(D_actor_403100_80155808->stridePhase) << 13) >> 16);
 }
 static void func_actor_403100_8013BDE4(Task* arg0)
 {
@@ -7461,21 +7461,21 @@ static void func_actor_403100_8013BDE4(Task* arg0)
     GfxCoord* coords;
 
     coords = arg0->extra.tmd->coords;
-    if (D_actor_403100_80155808->field_600 != 0) {
-        angle                              = ((u16)D_actor_403100_80155808->field_600 + 0x20) & 0x7FF;
-        D_actor_403100_80155808->field_600 = angle;
+    if (D_actor_403100_80155808->stridePhase != 0) {
+        angle                                = ((u16)D_actor_403100_80155808->stridePhase + 0x20) & 0x7FF;
+        D_actor_403100_80155808->stridePhase = angle;
         if (angle == 0) {
             Gp_SpawnPadLerp(0x1E, 0xFF, 8);
-            D_actor_403100_80155808->field_5FE = 0x1E;
-            sound                              = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F0001;
-            pan                                = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords + 1);
-            depth                              = worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords + 1);
+            D_actor_403100_80155808->shakeFrames = 0x1E;
+            sound                                = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F0001;
+            pan                                  = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords + 1);
+            depth                                = worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords + 1);
             SndEvt_EnqueueType6(sound, pan, (s8)(depth / 2));
         }
     } else {
-        D_actor_403100_80155808->field_5F6 = 0;
+        D_actor_403100_80155808->walkStage = 0;
     }
-    coords->coord.t[1] = -((rsin(D_actor_403100_80155808->field_600) << 13) >> 16);
+    coords->coord.t[1] = -((rsin(D_actor_403100_80155808->stridePhase) << 13) >> 16);
 }
 static void func_actor_403100_8013BEF0(Task* arg0)
 {
@@ -7486,21 +7486,21 @@ static void func_actor_403100_8013BEF0(Task* arg0)
     GfxCoord* coords;
 
     coords = arg0->extra.tmd->coords;
-    if (D_actor_403100_80155808->field_600 != 0) {
-        angle                              = ((u16)D_actor_403100_80155808->field_600 + 0x20) & 0x7FF;
-        D_actor_403100_80155808->field_600 = angle;
+    if (D_actor_403100_80155808->stridePhase != 0) {
+        angle                                = ((u16)D_actor_403100_80155808->stridePhase + 0x20) & 0x7FF;
+        D_actor_403100_80155808->stridePhase = angle;
         if (angle == 0) {
             Gp_SpawnPadLerp(0x1E, 0xFF, 8);
-            D_actor_403100_80155808->field_5FE = 0x1E;
-            sound                              = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F0001;
-            pan                                = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords + 1);
-            depth                              = worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords + 1);
+            D_actor_403100_80155808->shakeFrames = 0x1E;
+            sound                                = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F0001;
+            pan                                  = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords + 1);
+            depth                                = worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords + 1);
             SndEvt_EnqueueType6(sound, pan, (s8)(depth / 2));
         }
     } else {
-        D_actor_403100_80155808->field_5F6++;
+        D_actor_403100_80155808->walkStage++;
     }
-    coords->coord.t[1] = -((rsin(D_actor_403100_80155808->field_600) << 13) >> 16);
+    coords->coord.t[1] = -((rsin(D_actor_403100_80155808->stridePhase) << 13) >> 16);
 }
 static void func_actor_403100_8013C008(s16 arg0, s16 arg1)
 {
@@ -7568,20 +7568,20 @@ static void func_actor_403100_8013C214(Task* arg0)
 
     playerTask = *gPlayerActorTasks;
     coords     = arg0->extra.tmd->coords + 6;
-    if ((u8)D_actor_403100_80155808->pad_670[0] == 0) {
-        if (D_actor_403100_80155808->field_638 != 0) {
-            next                               = (u16)D_actor_403100_80155808->field_638 - 1;
-            D_actor_403100_80155808->field_638 = next;
+    if (D_actor_403100_80155808->playerKilled == 0) {
+        if (D_actor_403100_80155808->repromptDelay != 0) {
+            next                                   = (u16)D_actor_403100_80155808->repromptDelay - 1;
+            D_actor_403100_80155808->repromptDelay = next;
             if (next == 1) {
-                D_actor_403100_80155808->pad_660[0] = 1;
+                D_actor_403100_80155808->promptPending = 1;
             }
         } else {
-            D_actor_403100_80155808->field_5EE = (u16)D_actor_403100_80155808->field_5EE + 1;
-            next2                              = (u16)D_actor_403100_80155808->field_63A + 1;
-            D_actor_403100_80155808->field_63A = next2;
+            D_actor_403100_80155808->auxFrames     = (u16)D_actor_403100_80155808->auxFrames + 1;
+            next2                                  = (u16)D_actor_403100_80155808->squeezeFrames + 1;
+            D_actor_403100_80155808->squeezeFrames = next2;
             if (next2 >= 0xB4) {
-                D_actor_403100_80155808->field_63A = 0;
-                task                               = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+                D_actor_403100_80155808->squeezeFrames = 0;
+                task                                   = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                 if (taskMessageDispatch(task, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, Gp_PackPair(D_actor_403100_80147614, 3), 0) != 0) {
                     sound = (((u16)((Enemy*)(playerTask)->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x531D000B;
                     pan   = (s8)worldCoordGetOriginAudioPan(playerTask->extra.tmd->coords + 1);
@@ -7589,13 +7589,13 @@ static void func_actor_403100_8013C214(Task* arg0)
                     SndEvt_EnqueueType6(sound, (s32)pan, (s8)(depth / 2));
                     gGameSession->deathSoundCountdown = GAME_SESSION_DEATH_SOUND_HOLD;
                     work                              = D_actor_403100_80155808;
-                    work->pad_670[0]                  = 1;
-                    work->field_654                   = 0;
+                    work->playerKilled                = 1;
+                    work->playerDeathFrames           = 0;
                     gGameSession->suppressDeathChecks = 1;
                     taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x400, 0, 0);
                     func_actor_403100_8013D1B8(6, 0x3FF);
                 }
-                if ((u8)D_actor_403100_80155808->pad_670[0] == 0) {
+                if (D_actor_403100_80155808->playerKilled == 0) {
                     Gp_SpawnPadLerp(0xA, 0xC0U, 0x20U);
                     random          = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
                     gRandomLcgState = random;
@@ -7615,60 +7615,60 @@ static void func_actor_403100_8013C214(Task* arg0)
                     }
                 }
             }
-            phase = ((u16)D_actor_403100_80155808->field_5EE >> 5) & 3;
+            phase = ((u16)D_actor_403100_80155808->auxFrames >> 5) & 3;
             if (phase == 0) {
-                D_actor_403100_80155808->part6StrokeDone = 0;
-                D_actor_403100_80155808->field_604       = (u16)D_actor_403100_80155808->field_604 + ((s32)(0xD0 - D_actor_403100_80155808->field_604) >> 1);
-                D_actor_403100_80155808->field_608       = (u16)D_actor_403100_80155808->field_608 + ((s32)(-0x350 - D_actor_403100_80155808->field_608) >> 1);
-                D_actor_403100_80155808->field_A0        = (u16)D_actor_403100_80155808->field_A0 + ((s32)(-0x110 - D_actor_403100_80155808->field_A0) >> 1);
-                D_actor_403100_80155808->field_A2        = (u16)D_actor_403100_80155808->field_A2 + ((s32)(0x290 - D_actor_403100_80155808->field_A2) >> 1);
-                D_actor_403100_80155808->field_A4        = (u16)D_actor_403100_80155808->field_A4 + ((s32)(0x60 - D_actor_403100_80155808->field_A4) >> 1);
-                x1                                       = coords->coord.t[0];
-                nextX1                                   = x1 + ((s32)(-0xB80 - x1) >> 3);
-                coords->coord.t[0]                       = nextX1;
+                D_actor_403100_80155808->forearmStrokeDone = 0;
+                D_actor_403100_80155808->armPitch          = (u16)D_actor_403100_80155808->armPitch + ((s32)(0xD0 - D_actor_403100_80155808->armPitch) >> 1);
+                D_actor_403100_80155808->armYaw            = (u16)D_actor_403100_80155808->armYaw + ((s32)(-0x350 - D_actor_403100_80155808->armYaw) >> 1);
+                D_actor_403100_80155808->forearmTurn.vx    = (u16)D_actor_403100_80155808->forearmTurn.vx + ((s32)(-0x110 - D_actor_403100_80155808->forearmTurn.vx) >> 1);
+                D_actor_403100_80155808->forearmTurn.vy    = (u16)D_actor_403100_80155808->forearmTurn.vy + ((s32)(0x290 - D_actor_403100_80155808->forearmTurn.vy) >> 1);
+                D_actor_403100_80155808->forearmTurn.vz    = (u16)D_actor_403100_80155808->forearmTurn.vz + ((s32)(0x60 - D_actor_403100_80155808->forearmTurn.vz) >> 1);
+                x1                                         = coords->coord.t[0];
+                nextX1                                     = x1 + ((s32)(-0xB80 - x1) >> 3);
+                coords->coord.t[0]                         = nextX1;
                 if (nextX1 >= -0xBD0) {
-                    D_actor_403100_80155808->part6StrokeDone = 1;
+                    D_actor_403100_80155808->forearmStrokeDone = 1;
                     return;
                 }
             } else if (phase == 1) {
-                D_actor_403100_80155808->part6StrokeDone = 0;
-                D_actor_403100_80155808->field_604       = (u16)D_actor_403100_80155808->field_604 + ((s32)(0x30 - D_actor_403100_80155808->field_604) >> 2);
-                D_actor_403100_80155808->field_608       = (u16)D_actor_403100_80155808->field_608 + ((s32)(-0xD0 - D_actor_403100_80155808->field_608) >> 2);
-                D_actor_403100_80155808->field_A0        = (u16)D_actor_403100_80155808->field_A0 + ((s32)(-0x150 - D_actor_403100_80155808->field_A0) >> 2);
-                D_actor_403100_80155808->field_A2        = (u16)D_actor_403100_80155808->field_A2 + ((s32)(0x270 - D_actor_403100_80155808->field_A2) >> 2);
-                D_actor_403100_80155808->field_A4        = (u16)D_actor_403100_80155808->field_A4 + ((s32)(-0xA0 - D_actor_403100_80155808->field_A4) >> 2);
-                x2                                       = coords->coord.t[0];
-                nextX2                                   = x2 + ((s32)(-0x1180 - x2) >> 2);
-                coords->coord.t[0]                       = nextX2;
+                D_actor_403100_80155808->forearmStrokeDone = 0;
+                D_actor_403100_80155808->armPitch          = (u16)D_actor_403100_80155808->armPitch + ((s32)(0x30 - D_actor_403100_80155808->armPitch) >> 2);
+                D_actor_403100_80155808->armYaw            = (u16)D_actor_403100_80155808->armYaw + ((s32)(-0xD0 - D_actor_403100_80155808->armYaw) >> 2);
+                D_actor_403100_80155808->forearmTurn.vx    = (u16)D_actor_403100_80155808->forearmTurn.vx + ((s32)(-0x150 - D_actor_403100_80155808->forearmTurn.vx) >> 2);
+                D_actor_403100_80155808->forearmTurn.vy    = (u16)D_actor_403100_80155808->forearmTurn.vy + ((s32)(0x270 - D_actor_403100_80155808->forearmTurn.vy) >> 2);
+                D_actor_403100_80155808->forearmTurn.vz    = (u16)D_actor_403100_80155808->forearmTurn.vz + ((s32)(-0xA0 - D_actor_403100_80155808->forearmTurn.vz) >> 2);
+                x2                                         = coords->coord.t[0];
+                nextX2                                     = x2 + ((s32)(-0x1180 - x2) >> 2);
+                coords->coord.t[0]                         = nextX2;
                 if (nextX2 < -0x111F) {
-                    D_actor_403100_80155808->part6StrokeDone = 1;
+                    D_actor_403100_80155808->forearmStrokeDone = 1;
                 }
             } else if (phase == 2) {
-                D_actor_403100_80155808->part6StrokeDone = 0;
-                D_actor_403100_80155808->field_604       = (u16)D_actor_403100_80155808->field_604 + ((s32)(0xD0 - D_actor_403100_80155808->field_604) >> 2);
-                D_actor_403100_80155808->field_608       = (u16)D_actor_403100_80155808->field_608 + ((s32)(-0x350 - D_actor_403100_80155808->field_608) >> 2);
-                D_actor_403100_80155808->field_A0        = (u16)D_actor_403100_80155808->field_A0 + ((s32)(-0x110 - D_actor_403100_80155808->field_A0) >> 2);
-                D_actor_403100_80155808->field_A2        = (u16)D_actor_403100_80155808->field_A2 + ((s32)(0x290 - D_actor_403100_80155808->field_A2) >> 2);
-                D_actor_403100_80155808->field_A4        = (u16)D_actor_403100_80155808->field_A4 + ((s32)(0x60 - D_actor_403100_80155808->field_A4) >> 2);
-                x3                                       = coords->coord.t[0];
-                nextX3                                   = x3 + ((s32)(-0xB80 - x3) >> 2);
-                coords->coord.t[0]                       = nextX3;
+                D_actor_403100_80155808->forearmStrokeDone = 0;
+                D_actor_403100_80155808->armPitch          = (u16)D_actor_403100_80155808->armPitch + ((s32)(0xD0 - D_actor_403100_80155808->armPitch) >> 2);
+                D_actor_403100_80155808->armYaw            = (u16)D_actor_403100_80155808->armYaw + ((s32)(-0x350 - D_actor_403100_80155808->armYaw) >> 2);
+                D_actor_403100_80155808->forearmTurn.vx    = (u16)D_actor_403100_80155808->forearmTurn.vx + ((s32)(-0x110 - D_actor_403100_80155808->forearmTurn.vx) >> 2);
+                D_actor_403100_80155808->forearmTurn.vy    = (u16)D_actor_403100_80155808->forearmTurn.vy + ((s32)(0x290 - D_actor_403100_80155808->forearmTurn.vy) >> 2);
+                D_actor_403100_80155808->forearmTurn.vz    = (u16)D_actor_403100_80155808->forearmTurn.vz + ((s32)(0x60 - D_actor_403100_80155808->forearmTurn.vz) >> 2);
+                x3                                         = coords->coord.t[0];
+                nextX3                                     = x3 + ((s32)(-0xB80 - x3) >> 2);
+                coords->coord.t[0]                         = nextX3;
                 if (nextX3 >= -0xBD0) {
-                    D_actor_403100_80155808->part6StrokeDone = 1;
+                    D_actor_403100_80155808->forearmStrokeDone = 1;
                     return;
                 }
             } else if (phase == 3) {
-                D_actor_403100_80155808->part6StrokeDone = 0;
-                D_actor_403100_80155808->field_604       = (u16)D_actor_403100_80155808->field_604 + ((s32)(0x30 - D_actor_403100_80155808->field_604) >> 1);
-                D_actor_403100_80155808->field_608       = (u16)D_actor_403100_80155808->field_608 + ((s32)(-0xD0 - D_actor_403100_80155808->field_608) >> 1);
-                D_actor_403100_80155808->field_A0        = (u16)D_actor_403100_80155808->field_A0 + ((s32)(-0x150 - D_actor_403100_80155808->field_A0) >> 1);
-                D_actor_403100_80155808->field_A2        = (u16)D_actor_403100_80155808->field_A2 + ((s32)(0x270 - D_actor_403100_80155808->field_A2) >> 1);
-                D_actor_403100_80155808->field_A4        = (u16)D_actor_403100_80155808->field_A4 + ((s32)(-0xA0 - D_actor_403100_80155808->field_A4) >> 1);
-                x4                                       = coords->coord.t[0];
-                nextX4                                   = x4 + ((s32)(-0x1180 - x4) >> 2);
-                coords->coord.t[0]                       = nextX4;
+                D_actor_403100_80155808->forearmStrokeDone = 0;
+                D_actor_403100_80155808->armPitch          = (u16)D_actor_403100_80155808->armPitch + ((s32)(0x30 - D_actor_403100_80155808->armPitch) >> 1);
+                D_actor_403100_80155808->armYaw            = (u16)D_actor_403100_80155808->armYaw + ((s32)(-0xD0 - D_actor_403100_80155808->armYaw) >> 1);
+                D_actor_403100_80155808->forearmTurn.vx    = (u16)D_actor_403100_80155808->forearmTurn.vx + ((s32)(-0x150 - D_actor_403100_80155808->forearmTurn.vx) >> 1);
+                D_actor_403100_80155808->forearmTurn.vy    = (u16)D_actor_403100_80155808->forearmTurn.vy + ((s32)(0x270 - D_actor_403100_80155808->forearmTurn.vy) >> 1);
+                D_actor_403100_80155808->forearmTurn.vz    = (u16)D_actor_403100_80155808->forearmTurn.vz + ((s32)(-0xA0 - D_actor_403100_80155808->forearmTurn.vz) >> 1);
+                x4                                         = coords->coord.t[0];
+                nextX4                                     = x4 + ((s32)(-0x1180 - x4) >> 2);
+                coords->coord.t[0]                         = nextX4;
                 if (nextX4 < -0x111F) {
-                    D_actor_403100_80155808->part6StrokeDone = 1;
+                    D_actor_403100_80155808->forearmStrokeDone = 1;
                 }
             }
         }
@@ -7708,10 +7708,10 @@ static inline s32 Actor403100CoordToViewInline(GfxCoord* coord, SVECTOR* pos)
 
 static inline void Actor403100ResetStateInline(s16 anim, s16 angle, s16 frame)
 {
-    D_actor_403100_80155808->field_5FC = frame;
-    D_actor_403100_80155808->field_5E2 = angle;
-    D_actor_403100_80155808->field_5DE = anim;
-    D_actor_403100_80155808->field_5DA = 1;
+    D_actor_403100_80155808->animationBlendFrames = frame;
+    D_actor_403100_80155808->animationRate        = angle;
+    D_actor_403100_80155808->animationId          = anim;
+    D_actor_403100_80155808->animationRequest     = ACTOR_403100_ANIMATION_REQUEST_BLEND;
 }
 
 static void func_actor_403100_8013C7B4(Task* arg0)
@@ -7723,15 +7723,15 @@ static void func_actor_403100_8013C7B4(Task* arg0)
     s16       dx1;
     s16       dz0;
     s16       dz1;
-    u16       savedAngle;
+    u16       savedRate;
     GfxCoord* coords;
     GfxCoord* second;
 
     playerCoord = (*gPlayerActorTasks)->extra.tmd->coords;
-    savedAngle  = (u16)D_actor_403100_80155808->field_5E2;
+    savedRate   = (u16)D_actor_403100_80155808->animationRate;
     coords      = arg0->extra.tmd->coords;
     second      = coords + 7;
-    Actor403100ResetStateInline(D_actor_403100_80155808->field_5DE, D_actor_403100_80155808->field_5E2, 0);
+    Actor403100ResetStateInline(D_actor_403100_80155808->animationId, D_actor_403100_80155808->animationRate, 0);
     func_actor_403100_801327CC();
     func_actor_403100_801328DC(arg0);
     gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
@@ -7749,7 +7749,7 @@ static void func_actor_403100_8013C7B4(Task* arg0)
     dz0      = (u16)playerCoord->coord.t[2] - (u16)pos0.vz;
     delta.vz = dz0;
     if ((SquareRoot0((dx0 * dx0) + (dz0 * dz0)) < 0x401) && ((u32)(((u16)delta.vy + 0x351) & 0xFFFF) < 0x6A3U)) {
-        D_actor_403100_80155808->field_668.b.field_668 = 1;
+        D_actor_403100_80155808->handTouchedPlayer = 1;
     }
     pos1.vx = 0x160;
     pos1.vy = 0x148;
@@ -7761,13 +7761,13 @@ static void func_actor_403100_8013C7B4(Task* arg0)
     dz1      = (u16)playerCoord->coord.t[2] - (u16)pos1.vz;
     delta.vz = dz1;
     if ((SquareRoot0((dx1 * dx1) + (dz1 * dz1)) < 0x401) && ((u32)(((u16)delta.vy + 0x351) & 0xFFFF) < 0x6A3U)) {
-        D_actor_403100_80155808->field_668.b.field_669 = 1;
+        D_actor_403100_80155808->forearmTouchedPlayer = 1;
     }
-    D_actor_403100_80155808->field_5E2 = -(s16)savedAngle;
-    Actor403100ResetStateInline(D_actor_403100_80155808->field_5DE, D_actor_403100_80155808->field_5E2, 0);
+    D_actor_403100_80155808->animationRate = -(s16)savedRate;
+    Actor403100ResetStateInline(D_actor_403100_80155808->animationId, D_actor_403100_80155808->animationRate, 0);
     func_actor_403100_801327CC(arg0);
-    D_actor_403100_80155808->field_5E2 = (s16)savedAngle;
-    Actor403100ResetStateInline(D_actor_403100_80155808->field_5DE, D_actor_403100_80155808->field_5E2, 0);
+    D_actor_403100_80155808->animationRate = (s16)savedRate;
+    Actor403100ResetStateInline(D_actor_403100_80155808->animationId, D_actor_403100_80155808->animationRate, 0);
 }
 static void func_actor_403100_8013CBE0(Task* task)
 {
@@ -7781,13 +7781,13 @@ static void func_actor_403100_8013CBE0(Task* task)
     u8           request;
     u8           state;
 
-    state = D_actor_403100_80155808->part4PitchPhase;
+    state = D_actor_403100_80155808->jawPitchPhase;
     switch (state) {
         case ACTOR_403100_PITCH_PHASE_REST:
-            D_actor_403100_80155808->field_5E8 = (s16)((u16)D_actor_403100_80155808->field_5E8 + ((s32) - (D_actor_403100_80155808->field_5E8 * 0x10) >> 7));
+            D_actor_403100_80155808->jawPitchOffset = (s16)((u16)D_actor_403100_80155808->jawPitchOffset + ((s32) - (D_actor_403100_80155808->jawPitchOffset * 0x10) >> 7));
             return;
         case ACTOR_403100_PITCH_PHASE_START:
-            request = D_actor_403100_80155808->field_66F;
+            request = D_actor_403100_80155808->jawKickSound;
             if (request == state) {
                 soundId = 0x401F0009;
                 goto play_sound;
@@ -7809,22 +7809,22 @@ static void func_actor_403100_8013CBE0(Task* task)
                 depth = worldCoordGetOriginAudioDepth(task->extra.tmd->coords + 4);
                 SndEvt_EnqueueType6(sound, pan, (s8)(depth / 2));
             }
-            D_actor_403100_80155808->field_66F       = 0U;
-            D_actor_403100_80155808->part4PitchPhase = D_actor_403100_80155808->part4PitchPhase + 1;
+            D_actor_403100_80155808->jawKickSound  = 0U;
+            D_actor_403100_80155808->jawPitchPhase = D_actor_403100_80155808->jawPitchPhase + 1;
             return;
         case ACTOR_403100_PITCH_PHASE_SWING:
-            next                               = (u16)D_actor_403100_80155808->field_5E8 + ((s32)(-0x2200 - (D_actor_403100_80155808->field_5E8 * 0x10)) >> 7);
-            D_actor_403100_80155808->field_5E8 = next;
+            next                                    = (u16)D_actor_403100_80155808->jawPitchOffset + ((s32)(-0x2200 - (D_actor_403100_80155808->jawPitchOffset * 0x10)) >> 7);
+            D_actor_403100_80155808->jawPitchOffset = next;
             if (next < -0x1FF) {
-                D_actor_403100_80155808->part4PitchPhase = D_actor_403100_80155808->part4PitchPhase + 1;
+                D_actor_403100_80155808->jawPitchPhase = D_actor_403100_80155808->jawPitchPhase + 1;
                 return;
             }
             return;
         case ACTOR_403100_PITCH_PHASE_RETURN:
-            next2                              = (u16)D_actor_403100_80155808->field_5E8 + 0xC;
-            D_actor_403100_80155808->field_5E8 = next2;
+            next2                                   = (u16)D_actor_403100_80155808->jawPitchOffset + 0xC;
+            D_actor_403100_80155808->jawPitchOffset = next2;
             if ((next2 << 16) >= 0) {
-                D_actor_403100_80155808->part4PitchPhase = ACTOR_403100_PITCH_PHASE_REST;
+                D_actor_403100_80155808->jawPitchPhase = ACTOR_403100_PITCH_PHASE_REST;
             }
             break;
     }
@@ -7835,31 +7835,31 @@ static void func_actor_403100_8013CDC0(void)
     s16 next2;
     u8  state;
 
-    state = D_actor_403100_80155808->part3PitchPhase;
+    state = D_actor_403100_80155808->headPitchPhase;
     switch (state) { /* irregular */
         case ACTOR_403100_PITCH_PHASE_REST:
-            D_actor_403100_80155808->field_5EA =
-                (u16)D_actor_403100_80155808->field_5EA +
-                ((s32) - (D_actor_403100_80155808->field_5EA * 0x10) >> 7);
+            D_actor_403100_80155808->headPitchOffset =
+                (u16)D_actor_403100_80155808->headPitchOffset +
+                ((s32) - (D_actor_403100_80155808->headPitchOffset * 0x10) >> 7);
             return;
         case ACTOR_403100_PITCH_PHASE_START:
-            D_actor_403100_80155808->part3PitchPhase = ACTOR_403100_PITCH_PHASE_SWING;
+            D_actor_403100_80155808->headPitchPhase = ACTOR_403100_PITCH_PHASE_SWING;
             return;
         case ACTOR_403100_PITCH_PHASE_SWING:
-            next = (u16)D_actor_403100_80155808->field_5EA +
-                   ((s32)(0x1E00 - (D_actor_403100_80155808->field_5EA * 0x10)) >> 7);
-            D_actor_403100_80155808->field_5EA = next;
+            next = (u16)D_actor_403100_80155808->headPitchOffset +
+                   ((s32)(0x1E00 - (D_actor_403100_80155808->headPitchOffset * 0x10)) >> 7);
+            D_actor_403100_80155808->headPitchOffset = next;
             if (next >= 0x1C0) {
-                D_actor_403100_80155808->part3PitchPhase =
-                    D_actor_403100_80155808->part3PitchPhase + 1;
+                D_actor_403100_80155808->headPitchPhase =
+                    D_actor_403100_80155808->headPitchPhase + 1;
                 return;
             }
             return;
         case ACTOR_403100_PITCH_PHASE_RETURN:
-            next2                              = (u16)D_actor_403100_80155808->field_5EA - 0xC;
-            D_actor_403100_80155808->field_5EA = next2;
+            next2                                    = (u16)D_actor_403100_80155808->headPitchOffset - 0xC;
+            D_actor_403100_80155808->headPitchOffset = next2;
             if ((next2 << 0x10) <= 0) {
-                D_actor_403100_80155808->part3PitchPhase = ACTOR_403100_PITCH_PHASE_REST;
+                D_actor_403100_80155808->headPitchPhase = ACTOR_403100_PITCH_PHASE_REST;
             }
             break;
     }
@@ -7876,24 +7876,24 @@ static void func_actor_403100_8013CEAC(u16* arg0, s32 arg1, s32 arg2, s16 arg3)
     angle = *arg0 - 0x140;
     *arg0 = angle;
     if ((angle < (s16)arg2) && (arg3 < (s16)angle)) {
-        target  = D_actor_403100_80155808->field_B0;
-        targetU = (u16)D_actor_403100_80155808->field_B0;
+        target  = D_actor_403100_80155808->headAim.vx;
+        targetU = (u16)D_actor_403100_80155808->headAim.vx;
         if ((u32)(((s16)angle - target) + 0x20) >= 0x41U) {
             if (target < (s16)angle) {
-                D_actor_403100_80155808->field_B0 = (s16)(targetU + arg1);
+                D_actor_403100_80155808->headAim.vx = (s16)(targetU + arg1);
                 return;
             }
-            D_actor_403100_80155808->field_B0 = (s16)(targetU - arg1);
+            D_actor_403100_80155808->headAim.vx = (s16)(targetU - arg1);
         }
     } else {
-        facing  = D_actor_403100_80155808->field_B0;
-        facingU = (u16)D_actor_403100_80155808->field_B0;
+        facing  = D_actor_403100_80155808->headAim.vx;
+        facingU = (u16)D_actor_403100_80155808->headAim.vx;
         if (facing >= 0x21) {
-            D_actor_403100_80155808->field_B0 = (s16)(facingU - 0x18);
+            D_actor_403100_80155808->headAim.vx = (s16)(facingU - 0x18);
             return;
         }
         if (facing < -0x20) {
-            D_actor_403100_80155808->field_B0 = (s16)(facingU + 0x18);
+            D_actor_403100_80155808->headAim.vx = (s16)(facingU + 0x18);
         }
     }
 }
@@ -7907,44 +7907,44 @@ static void func_actor_403100_8013CF60(SVECTOR* arg0, s32 arg1, s32 arg2, s32 ar
 
     yaw = (u16)arg0->vy;
     if ((u32)((yaw + 0x27F) & 0xFFFF) < 0x4FFU) {
-        target  = D_actor_403100_80155808->field_B2;
-        targetU = (u16)D_actor_403100_80155808->field_B2;
+        target  = D_actor_403100_80155808->headAim.vy;
+        targetU = (u16)D_actor_403100_80155808->headAim.vy;
         if ((u32)(((s16)yaw - target) + 0x20) >= 0x41U) {
             if (target < (s16)yaw) {
-                D_actor_403100_80155808->field_B2 = targetU + arg1;
-                D_actor_403100_80155808->field_82 = D_actor_403100_80155808->field_82 + arg2;
+                D_actor_403100_80155808->headAim.vy  = targetU + arg1;
+                D_actor_403100_80155808->rotation.vy = D_actor_403100_80155808->rotation.vy + arg2;
                 return;
             }
-            D_actor_403100_80155808->field_B2 = targetU - arg1;
-            D_actor_403100_80155808->field_82 = D_actor_403100_80155808->field_82 - arg2;
+            D_actor_403100_80155808->headAim.vy  = targetU - arg1;
+            D_actor_403100_80155808->rotation.vy = D_actor_403100_80155808->rotation.vy - arg2;
             return;
         }
-        facing  = (s16)D_actor_403100_80155808->field_82;
-        facingU = D_actor_403100_80155808->field_82;
+        facing  = (s16)D_actor_403100_80155808->rotation.vy;
+        facingU = D_actor_403100_80155808->rotation.vy;
         if (facing < target) {
-            D_actor_403100_80155808->field_82 = facingU + arg3;
+            D_actor_403100_80155808->rotation.vy = facingU + arg3;
             return;
         }
         if (target < facing) {
-            D_actor_403100_80155808->field_82 = facingU - arg3;
+            D_actor_403100_80155808->rotation.vy = facingU - arg3;
         }
     } else {
         if ((s16)yaw >= 0x281) {
-            D_actor_403100_80155808->field_82 = D_actor_403100_80155808->field_82 + arg4;
+            D_actor_403100_80155808->rotation.vy = D_actor_403100_80155808->rotation.vy + arg4;
         }
         if (arg0->vy < -0x280) {
-            D_actor_403100_80155808->field_82 = D_actor_403100_80155808->field_82 - arg4;
+            D_actor_403100_80155808->rotation.vy = D_actor_403100_80155808->rotation.vy - arg4;
         }
     }
 }
 
 static void func_actor_403100_8013D06C(void)
 {
-    if (D_actor_403100_80155808->field_B4 >= 0x11) {
-        D_actor_403100_80155808->field_B4 = (u16)D_actor_403100_80155808->field_B4 - 8;
+    if (D_actor_403100_80155808->headAim.vz >= 0x11) {
+        D_actor_403100_80155808->headAim.vz = (u16)D_actor_403100_80155808->headAim.vz - 8;
     }
-    if (D_actor_403100_80155808->field_B4 < -0x10) {
-        D_actor_403100_80155808->field_B4 = (u16)D_actor_403100_80155808->field_B4 + 8;
+    if (D_actor_403100_80155808->headAim.vz < -0x10) {
+        D_actor_403100_80155808->headAim.vz = (u16)D_actor_403100_80155808->headAim.vz + 8;
     }
 }
 
@@ -7990,12 +7990,12 @@ static void func_actor_403100_8013D1B8(s16 arg0, s16 arg1)
 {
     AnimationPlayRequest msg;
 
-    msg.source.sets                    = _gActor403100PlayerAnimationSets;
-    msg.animationId                    = (s32)arg0;
-    msg.blend                          = ANIMATION_BLEND_RESET;
-    msg.blendFrames                    = 0;
-    msg.enableWorldCollision           = ANIMATION_WORLD_COLLISION_DISABLE;
-    D_actor_403100_80155808->field_65D = (s8)arg0;
+    msg.source.sets                            = _gActor403100PlayerAnimationSets;
+    msg.animationId                            = (s32)arg0;
+    msg.blend                                  = ANIMATION_BLEND_RESET;
+    msg.blendFrames                            = 0;
+    msg.enableWorldCollision                   = ANIMATION_WORLD_COLLISION_DISABLE;
+    D_actor_403100_80155808->playerAnimationId = (s8)arg0;
     if (arg1 == 0x3FF) {
         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &msg, 0);
     } else if (arg1 == 0x3F4) {
@@ -8006,21 +8006,21 @@ static void func_actor_403100_8013D24C(void)
 {
     s32 state;
 
-    state = (s8)D_actor_403100_80155808->pad_66A[2];
-    if ((state == 1) && (D_actor_403100_80155808->part4PitchPhase == ACTOR_403100_PITCH_PHASE_REST) && (D_actor_403100_80155808->part3PitchPhase == ACTOR_403100_PITCH_PHASE_REST)) {
-        D_actor_403100_80155808->part4PitchPhase = state;
-        D_actor_403100_80155808->part3PitchPhase = state;
-        D_actor_403100_80155808->field_66F       = state;
+    state = D_actor_403100_80155808->hitTaken;
+    if ((state == 1) && (D_actor_403100_80155808->jawPitchPhase == ACTOR_403100_PITCH_PHASE_REST) && (D_actor_403100_80155808->headPitchPhase == ACTOR_403100_PITCH_PHASE_REST)) {
+        D_actor_403100_80155808->jawPitchPhase  = state;
+        D_actor_403100_80155808->headPitchPhase = state;
+        D_actor_403100_80155808->jawKickSound   = state;
     }
 }
 static void func_actor_403100_8013D2A0(s16 arg0)
 {
-    if ((D_actor_403100_80155808->part4PitchPhase == ACTOR_403100_PITCH_PHASE_REST) && (D_actor_403100_80155808->part3PitchPhase == ACTOR_403100_PITCH_PHASE_REST)) {
+    if ((D_actor_403100_80155808->jawPitchPhase == ACTOR_403100_PITCH_PHASE_REST) && (D_actor_403100_80155808->headPitchPhase == ACTOR_403100_PITCH_PHASE_REST)) {
         if (arg0 == 1) {
-            D_actor_403100_80155808->field_66F = 2;
+            D_actor_403100_80155808->jawKickSound = 2;
         }
-        D_actor_403100_80155808->part4PitchPhase = ACTOR_403100_PITCH_PHASE_START;
-        D_actor_403100_80155808->part3PitchPhase = ACTOR_403100_PITCH_PHASE_START;
+        D_actor_403100_80155808->jawPitchPhase  = ACTOR_403100_PITCH_PHASE_START;
+        D_actor_403100_80155808->headPitchPhase = ACTOR_403100_PITCH_PHASE_START;
     }
 }
 
@@ -8056,29 +8056,29 @@ s32 func_actor_403100_8013D564(Task* arg0, s32 arg1, u16* arg2, s32 arg3)
 
     switch (arg2[1]) {
         case 10:
-            arg0->state                        = 3;
-            D_actor_403100_80155808->field_5F8 = 0;
-            D_actor_403100_80155808->field_5FA = 0;
+            arg0->state                       = 3;
+            D_actor_403100_80155808->state    = 0;
+            D_actor_403100_80155808->subState = 0;
             break;
         case 0xFFFF:
-            D_actor_403100_80155808->field_5F8 = 0;
-            D_actor_403100_80155808->field_5FA = 0;
-            arg0->state                        = 2;
+            D_actor_403100_80155808->state    = 0;
+            D_actor_403100_80155808->subState = 0;
+            arg0->state                       = 2;
             break;
         default:
             value = arg2[1];
             if (value < 9U) {
-                D_actor_403100_80155808->field_5F8 = value;
-                D_actor_403100_80155808->field_5FA = 0;
-                arg0->state                        = 1;
+                D_actor_403100_80155808->state    = value;
+                D_actor_403100_80155808->subState = 0;
+                arg0->state                       = 1;
             }
             break;
     }
-    D_actor_403100_80155808->field_5FA = 0;
+    D_actor_403100_80155808->subState = 0;
 }
 s32 func_actor_403100_8013D5F4(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
-    D_actor_403100_80155808->field_65F = 1;
+    D_actor_403100_80155808->releaseRequested = 1;
 }
 
 void func_actor_403100_8013D608(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
@@ -8095,10 +8095,10 @@ void func_actor_403100_8013D608(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
             object->flags = object->flags & (u16) ~(TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
             return;
         case 2:
-            object->flags                      = object->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            D_actor_403100_80155808->field_658 = arg2;
-            flags                              = object->flags | TMD_OBJECT_SKIP_AUTO_BUFFER;
-            object->flags                      = flags;
+            object->flags                               = object->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            D_actor_403100_80155808->bufferReleaseDelay = arg2;
+            flags                                       = object->flags | TMD_OBJECT_SKIP_AUTO_BUFFER;
+            object->flags                               = flags;
             return;
         case 3:
             flags         = (object->flags & (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW) | TMD_OBJECT_SKIP_AUTO_BUFFER;
@@ -8110,34 +8110,34 @@ static void func_actor_403100_8013D6B4(Task* arg0)
 {
     GfxCoord* coord;
 
-    coord                              = arg0->extra.tmd->coords;
-    D_actor_403100_80155808->field_606 = D_actor_403100_80155808->field_604;
-    D_actor_403100_80155808->field_60A = D_actor_403100_80155808->field_608;
-    D_actor_403100_80155808->field_A8  = D_actor_403100_80155808->field_A0;
-    D_actor_403100_80155808->field_AA  = D_actor_403100_80155808->field_A2;
-    D_actor_403100_80155808->field_AC  = D_actor_403100_80155808->field_A4;
-    D_actor_403100_80155808->field_5D4 = coord[6].coord.t[0];
-    D_actor_403100_80155808->field_5F0 = D_actor_403100_80155808->field_5EE;
+    coord                                        = arg0->extra.tmd->coords;
+    D_actor_403100_80155808->savedArmPitch       = D_actor_403100_80155808->armPitch;
+    D_actor_403100_80155808->savedArmYaw         = D_actor_403100_80155808->armYaw;
+    D_actor_403100_80155808->savedForearmTurn.vx = D_actor_403100_80155808->forearmTurn.vx;
+    D_actor_403100_80155808->savedForearmTurn.vy = D_actor_403100_80155808->forearmTurn.vy;
+    D_actor_403100_80155808->savedForearmTurn.vz = D_actor_403100_80155808->forearmTurn.vz;
+    D_actor_403100_80155808->savedForearmX       = coord[6].coord.t[0];
+    D_actor_403100_80155808->savedAuxFrames      = D_actor_403100_80155808->auxFrames;
 }
 static void func_actor_403100_8013D700(Task* arg0)
 {
     GfxCoord* coord;
 
-    coord                              = arg0->extra.tmd->coords;
-    D_actor_403100_80155808->field_604 = D_actor_403100_80155808->field_606;
-    D_actor_403100_80155808->field_608 = D_actor_403100_80155808->field_60A;
-    D_actor_403100_80155808->field_A0  = D_actor_403100_80155808->field_A8;
-    D_actor_403100_80155808->field_A2  = D_actor_403100_80155808->field_AA;
-    D_actor_403100_80155808->field_A4  = D_actor_403100_80155808->field_AC;
-    coord[6].coord.t[0]                = D_actor_403100_80155808->field_5D4;
-    D_actor_403100_80155808->field_5EE = D_actor_403100_80155808->field_5F0;
+    coord                                   = arg0->extra.tmd->coords;
+    D_actor_403100_80155808->armPitch       = D_actor_403100_80155808->savedArmPitch;
+    D_actor_403100_80155808->armYaw         = D_actor_403100_80155808->savedArmYaw;
+    D_actor_403100_80155808->forearmTurn.vx = D_actor_403100_80155808->savedForearmTurn.vx;
+    D_actor_403100_80155808->forearmTurn.vy = D_actor_403100_80155808->savedForearmTurn.vy;
+    D_actor_403100_80155808->forearmTurn.vz = D_actor_403100_80155808->savedForearmTurn.vz;
+    coord[6].coord.t[0]                     = D_actor_403100_80155808->savedForearmX;
+    D_actor_403100_80155808->auxFrames      = D_actor_403100_80155808->savedAuxFrames;
 }
 static void func_actor_403100_8013D74C(Task* arg0)
 {
-    D_actor_403100_80155808->field_5EE       = 0;
-    D_actor_403100_80155808->part6StrokeDone = 0;
-    D_actor_403100_80155808->field_638       = 0;
-    D_actor_403100_80155808->field_63A       = 0;
+    D_actor_403100_80155808->auxFrames         = 0;
+    D_actor_403100_80155808->forearmStrokeDone = 0;
+    D_actor_403100_80155808->repromptDelay     = 0;
+    D_actor_403100_80155808->squeezeFrames     = 0;
 }
 static void func_actor_403100_8013D770(Task* arg0)
 {
@@ -8145,29 +8145,29 @@ static void func_actor_403100_8013D770(Task* arg0)
 }
 static void func_actor_403100_8013D88C(Task* arg0)
 {
-    Gp_UnlinkObj(&D_actor_403100_80155808->field_47C);
-    Gp_UnlinkObj(&D_actor_403100_80155808->field_414);
-    Gp_UnlinkObj(&D_actor_403100_80155808->field_55C);
-    Gp_UnlinkObj(&D_actor_403100_80155808->field_594);
+    Gp_UnlinkObj(&D_actor_403100_80155808->headBody);
+    Gp_UnlinkObj(&D_actor_403100_80155808->trunkBody);
+    Gp_UnlinkObj(&D_actor_403100_80155808->handAttack);
+    Gp_UnlinkObj(&D_actor_403100_80155808->forearmAttack);
     enemyDestroy(arg0->spawnArg2.pointer, arg0);
 }
 
 static void func_actor_403100_8013D8F4(Task* arg0)
 {
-    D_actor_403100_80155808->field_658     = -1;
-    D_actor_403100_80155808->field_618     = 0x1400;
-    Gp_StateC08.flags                      = Gp_StateC08.flags | ATTACHMENT_FLAG_EVENT_LOCK;
-    gGameSession->suppressViewTriggers     = 0;
-    D_actor_403100_8015580C->reactionFlags = 0;
+    D_actor_403100_80155808->bufferReleaseDelay = -1;
+    D_actor_403100_80155808->sceneScale         = 0x1400;
+    Gp_StateC08.flags                           = Gp_StateC08.flags | ATTACHMENT_FLAG_EVENT_LOCK;
+    gGameSession->suppressViewTriggers          = 0;
+    D_actor_403100_8015580C->reactionFlags      = 0;
     Gp_SetLightMode(arg0->spawnArg2.pointer, ENEMY_COLOR_DEFAULT);
     SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 0xA);
     worldTargetUnlinkNode(&D_actor_403100_8015580C->node);
     func_800E8614(D_80165FC0, 0);
-    arg0->state                        = 1;
-    D_actor_403100_80155808->field_5F8 = 0;
-    D_actor_403100_80155808->field_5FA = 0;
-    D_actor_403100_80155808->field_5F8 = 9;
-    D_actor_403100_80155808->field_5FA = 0;
+    arg0->state                       = 1;
+    D_actor_403100_80155808->state    = 0;
+    D_actor_403100_80155808->subState = 0;
+    D_actor_403100_80155808->state    = 9;
+    D_actor_403100_80155808->subState = 0;
 }
 static s32 func_actor_403100_8013D9C4(s16 x, s16 y, Actor403100RectEntry* entry)
 {
@@ -8184,7 +8184,7 @@ static void func_actor_403100_8013DA6C(Task* task)
 {
     TaskFunc fns[2] = { func_actor_403100_8013712C, func_actor_403100_8013F12C };
 
-    fns[(s16)D_actor_403100_80155808->field_5FA](task);
+    fns[(s16)D_actor_403100_80155808->subState](task);
 }
 
 static void func_actor_403100_8013DAC4(Task* arg0)
@@ -8193,7 +8193,7 @@ static void func_actor_403100_8013DAC4(Task* arg0)
 
     sp = D_actor_403100_80131F60;
     if ((func_actor_403100_80133928() << 0x10) == 0) {
-        sp.funcs[(s16)D_actor_403100_80155808->field_5FA](arg0);
+        sp.funcs[(s16)D_actor_403100_80155808->subState](arg0);
     }
 }
 static void func_actor_403100_8013DB48(Task* arg0)
@@ -8202,7 +8202,7 @@ static void func_actor_403100_8013DB48(Task* arg0)
 
     sp = D_actor_403100_80131F84;
     if ((func_actor_403100_80133928() << 0x10) == 0) {
-        sp.funcs[(s16)D_actor_403100_80155808->field_5FA](arg0);
+        sp.funcs[(s16)D_actor_403100_80155808->subState](arg0);
         func_actor_403100_80132C3C(arg0, 6, 7, 0x400, -0xC80);
         func_actor_403100_80132C3C(arg0, 7, 8, 0x400, -0xC80);
     }
@@ -8213,7 +8213,7 @@ static void func_actor_403100_8013DC18(Task* arg0)
 
     sp = D_actor_403100_80131F9C;
     if ((func_actor_403100_80133928() << 0x10) == 0) {
-        sp.funcs[(s16)D_actor_403100_80155808->field_5FA](arg0);
+        sp.funcs[(s16)D_actor_403100_80155808->subState](arg0);
     }
 }
 static void func_actor_403100_8013DCAC(Task* arg0)
@@ -8221,7 +8221,7 @@ static void func_actor_403100_8013DCAC(Task* arg0)
     TaskFuncTable9 sp;
 
     sp = D_actor_403100_80131FB0;
-    sp.funcs[(s16)D_actor_403100_80155808->field_5FA](arg0);
+    sp.funcs[(s16)D_actor_403100_80155808->subState](arg0);
     func_actor_403100_80132C3C(arg0, 6, 7, 0x400, -0xC80);
     func_actor_403100_80132C3C(arg0, 7, 8, 0x400, -0xC80);
 }
@@ -8230,7 +8230,7 @@ static void func_actor_403100_8013DD78(Task* arg0)
     TaskFuncTable11 sp;
 
     sp = D_actor_403100_80131FD4;
-    sp.funcs[(s16)D_actor_403100_80155808->field_5FA](arg0);
+    sp.funcs[(s16)D_actor_403100_80155808->subState](arg0);
 }
 static void func_actor_403100_8013DE0C(Task* arg0)
 {
@@ -8238,7 +8238,7 @@ static void func_actor_403100_8013DE0C(Task* arg0)
 
     sp = D_actor_403100_80132000;
     if ((func_actor_403100_80133928() << 0x10) == 0) {
-        sp.funcs[(s16)D_actor_403100_80155808->field_5FA](arg0);
+        sp.funcs[(s16)D_actor_403100_80155808->subState](arg0);
     }
 }
 static void func_actor_403100_8013DEA0(Task* arg0)
@@ -8246,19 +8246,19 @@ static void func_actor_403100_8013DEA0(Task* arg0)
     TaskFuncTable4 handlers;
 
     handlers = D_actor_403100_80132014;
-    handlers.funcs[(s16)D_actor_403100_80155808->field_5FA](arg0);
+    handlers.funcs[(s16)D_actor_403100_80155808->subState](arg0);
 }
 static void func_actor_403100_8013DF0C(Task* task)
 {
     void (*fns[2])(void) = { func_actor_403100_8013F610, func_actor_403100_8013F658 };
 
-    fns[(s16)D_actor_403100_80155808->field_5FA]();
+    fns[(s16)D_actor_403100_80155808->subState]();
 }
 static void func_actor_403100_8013DF64(Task* task)
 {
     TaskFunc fns[2] = { func_actor_403100_8013B128, func_actor_403100_8013B3C4 };
 
-    fns[(s16)D_actor_403100_80155808->field_5FA](task);
+    fns[(s16)D_actor_403100_80155808->subState](task);
 }
 static void func_actor_403100_8013DFBC(Task* arg0)
 {
@@ -8266,14 +8266,14 @@ static void func_actor_403100_8013DFBC(Task* arg0)
 
     sp = D_actor_403100_80132024;
     func_actor_403100_8013D24C();
-    sp.funcs[(s16)D_actor_403100_80155808->field_5FA](arg0);
+    sp.funcs[(s16)D_actor_403100_80155808->subState](arg0);
 }
 static void func_actor_403100_8013E02C(s16 arg0, s16 arg1, s16 arg2)
 {
-    D_actor_403100_80155808->field_5FC = arg2;
-    D_actor_403100_80155808->field_5E2 = arg1;
-    D_actor_403100_80155808->field_5DE = arg0;
-    D_actor_403100_80155808->field_5DA = 1;
+    D_actor_403100_80155808->animationBlendFrames = arg2;
+    D_actor_403100_80155808->animationRate        = arg1;
+    D_actor_403100_80155808->animationId          = arg0;
+    D_actor_403100_80155808->animationRequest     = ACTOR_403100_ANIMATION_REQUEST_BLEND;
 }
 
 void func_actor_403100_8013E04C(Task* task)
@@ -8310,11 +8310,11 @@ static void func_actor_403100_8013E174(void)
     s16 timer;
 
     if (gPlayerStatus.hp > 0) {
-        timer                              = (u16)D_actor_403100_80155808->field_5F4 - 1;
-        D_actor_403100_80155808->field_5F4 = timer;
+        timer                                         = (u16)D_actor_403100_80155808->playerReactionFrames - 1;
+        D_actor_403100_80155808->playerReactionFrames = timer;
         if (timer < 0) {
             func_actor_403100_8013D1B8(5, 0x3F4);
-            D_actor_403100_80155808->field_5F2 = 2;
+            D_actor_403100_80155808->playerReactionStage = 2;
             return;
         }
         func_actor_403100_8013D1B8(5, 0x3F4);
@@ -8332,17 +8332,17 @@ static void func_actor_403100_8013E1E4(void)
         sp.enableWorldCollision             = ANIMATION_WORLD_COLLISION_DISABLE;
         sp.animationId                      = 4;
         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &sp, 0);
-        D_actor_403100_80155808->field_5F2 = 3;
+        D_actor_403100_80155808->playerReactionStage = 3;
     }
 }
 static void func_actor_403100_8013E2BC(void)
 {
     if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_IS_PLAYING, 0, 0) == 0) {
         taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_END_SCRIPTED, 2, 0);
-        D_actor_403100_80155808->field_5F4             = 0;
-        D_actor_403100_80155808->field_65D             = 0;
-        D_actor_403100_80155808->field_668.b.field_668 = 0;
-        D_actor_403100_80155808->field_5F2             = 0;
+        D_actor_403100_80155808->playerReactionFrames = 0;
+        D_actor_403100_80155808->playerAnimationId    = 0;
+        D_actor_403100_80155808->handTouchedPlayer    = 0;
+        D_actor_403100_80155808->playerReactionStage  = 0;
     }
 }
 static s32 func_actor_403100_8013E33C(GfxCoord* arg0, MATRIX* arg1, GfxCoord* arg2)
@@ -8398,23 +8398,23 @@ static s32 func_actor_403100_8013E450(GfxCoord* arg0, MATRIX* arg1, GfxCoord* ar
 }
 static void func_actor_403100_8013E5FC(Task* task)
 {
-    D_actor_403100_8015580C->recs       = 0;
-    D_actor_403100_80155808->field_5EC  = 0;
-    D_actor_403100_80155808->field_5F8 += 1;
+    D_actor_403100_8015580C->recs        = 0;
+    D_actor_403100_80155808->stateFrames = 0;
+    D_actor_403100_80155808->state      += 1;
 }
 static void func_actor_403100_8013E624(Task* arg0)
 {
     u16 timer;
 
-    timer                              = D_actor_403100_80155808->field_5EC + 1;
-    D_actor_403100_80155808->field_5EC = timer;
+    timer                                = D_actor_403100_80155808->stateFrames + 1;
+    D_actor_403100_80155808->stateFrames = timer;
     if ((s16)timer == 0x12) {
         Gp_ReleaseStateF0Add(arg0, 0);
     }
-    if ((s16)D_actor_403100_80155808->field_5EC == 0x168) {
-        arg0->state                        = 5;
-        D_actor_403100_80155808->field_5F8 = 0;
-        D_actor_403100_80155808->field_5FA = 0;
+    if ((s16)D_actor_403100_80155808->stateFrames == 0x168) {
+        arg0->state                       = 5;
+        D_actor_403100_80155808->state    = 0;
+        D_actor_403100_80155808->subState = 0;
     }
 }
 static void func_actor_403100_8013E6A0(Task* arg0)
@@ -8528,7 +8528,7 @@ static void func_actor_403100_8013E96C(Task* arg0)
     TaskFuncTable3 sp;
 
     sp = D_actor_403100_80131EB0;
-    sp.funcs[(s16)D_actor_403100_80155808->field_5FA](arg0);
+    sp.funcs[(s16)D_actor_403100_80155808->subState](arg0);
     func_actor_403100_801327CC(arg0);
 }
 static void func_actor_403100_8013E9D8(Task* arg0)
@@ -8536,9 +8536,9 @@ static void func_actor_403100_8013E9D8(Task* arg0)
     TaskFuncTable3 sp;
 
     sp = D_actor_403100_80131EBC;
-    sp.funcs[(s16)D_actor_403100_80155808->field_5FA](arg0);
+    sp.funcs[(s16)D_actor_403100_80155808->subState](arg0);
     func_actor_403100_801327CC(arg0);
-    func_actor_403100_8013B5E0(arg0, D_actor_403100_80155808->field_61C);
+    func_actor_403100_8013B5E0(arg0, D_actor_403100_80155808->aimMode);
 }
 static void func_actor_403100_8013EA60(Task* arg0)
 {
@@ -8548,7 +8548,7 @@ static void func_actor_403100_8013EA60(Task* arg0)
     obj        = arg0->extra.tmd;
     handlers   = D_actor_403100_80131EC8;
     obj->flags = 0;
-    handlers.funcs[(s16)D_actor_403100_80155808->field_5FA](arg0);
+    handlers.funcs[(s16)D_actor_403100_80155808->subState](arg0);
 }
 static void func_actor_403100_8013EAD4(Task* arg0)
 {
@@ -8558,16 +8558,16 @@ static void func_actor_403100_8013EAD4(Task* arg0)
     obj        = arg0->extra.tmd;
     sp         = D_actor_403100_80131ED8;
     obj->flags = 0;
-    sp.funcs[(s16)D_actor_403100_80155808->field_5FA](arg0);
+    sp.funcs[(s16)D_actor_403100_80155808->subState](arg0);
     func_actor_403100_801327CC(arg0);
-    func_actor_403100_8013B5E0(arg0, D_actor_403100_80155808->field_61C);
+    func_actor_403100_8013B5E0(arg0, D_actor_403100_80155808->aimMode);
 }
 static void func_actor_403100_8013EB68(Task* arg0)
 {
     TaskFuncTable3 sp;
 
     sp = D_actor_403100_80131EE4;
-    sp.funcs[(s16)D_actor_403100_80155808->field_5FA](arg0);
+    sp.funcs[(s16)D_actor_403100_80155808->subState](arg0);
 }
 static void func_actor_403100_8013EBC8(Task* arg0)
 {
@@ -8577,7 +8577,7 @@ static void func_actor_403100_8013EBC8(Task* arg0)
     obj        = arg0->extra.tmd;
     handlers   = D_actor_403100_80131EF0;
     obj->flags = 0;
-    handlers.funcs[(s16)D_actor_403100_80155808->field_5FA](arg0);
+    handlers.funcs[(s16)D_actor_403100_80155808->subState](arg0);
     func_actor_403100_801327CC(arg0);
 }
 static void func_actor_403100_8013EC4C(Task* arg0)
@@ -8588,7 +8588,7 @@ static void func_actor_403100_8013EC4C(Task* arg0)
     obj        = arg0->extra.tmd;
     handlers   = D_actor_403100_80131F00;
     obj->flags = 0;
-    handlers.funcs[(s16)D_actor_403100_80155808->field_5FA](arg0);
+    handlers.funcs[(s16)D_actor_403100_80155808->subState](arg0);
     func_actor_403100_801327CC(arg0);
 }
 static void func_actor_403100_8013ECD0(Task* arg0)
@@ -8599,7 +8599,7 @@ static void func_actor_403100_8013ECD0(Task* arg0)
     obj        = arg0->extra.tmd;
     sp         = D_actor_403100_80131F10;
     obj->flags = 0;
-    sp.funcs[(s16)D_actor_403100_80155808->field_5FA](arg0);
+    sp.funcs[(s16)D_actor_403100_80155808->subState](arg0);
     func_actor_403100_801327CC(arg0);
 }
 static void func_actor_403100_8013ED48(Task* task)
@@ -8610,27 +8610,27 @@ static void func_actor_403100_8013ED50(Task* arg0)
 {
     GfxCoord* coord;
 
-    coord                              = arg0->extra.tmd->coords;
-    D_actor_403100_80155808->field_618 = 0x1400;
-    D_actor_403100_80155808->field_5E2 = 0x10;
-    D_actor_403100_80155808->field_5DE = 3;
-    D_actor_403100_80155808->field_5DA = 2;
+    coord                                     = arg0->extra.tmd->coords;
+    D_actor_403100_80155808->sceneScale       = 0x1400;
+    D_actor_403100_80155808->animationRate    = ANIMATION_RATE_ONE;
+    D_actor_403100_80155808->animationId      = 3;
+    D_actor_403100_80155808->animationRequest = ACTOR_403100_ANIMATION_REQUEST_RESET;
     func_actor_403100_801327CC();
-    D_actor_403100_80155808->field_82  = 0;
-    coord->coord.t[0]                  = -0x2710;
-    coord->coord.t[1]                  = -0x258;
-    coord->coord.t[2]                  = -0x2328;
-    D_actor_403100_80155808->field_600 = 0;
-    D_actor_403100_80155808->field_5EC = 0;
-    D_actor_403100_80155808->field_5FA = D_actor_403100_80155808->field_5FA + 1;
+    D_actor_403100_80155808->rotation.vy = 0;
+    coord->coord.t[0]                    = -0x2710;
+    coord->coord.t[1]                    = -0x258;
+    coord->coord.t[2]                    = -0x2328;
+    D_actor_403100_80155808->stridePhase = 0;
+    D_actor_403100_80155808->stateFrames = 0;
+    D_actor_403100_80155808->subState    = D_actor_403100_80155808->subState + 1;
 }
 
 static void func_actor_403100_8013EDDC(Task* task)
 {
     u16 frame;
 
-    frame                              = D_actor_403100_80155808->field_5EC + 1;
-    D_actor_403100_80155808->field_5EC = frame;
+    frame                                = D_actor_403100_80155808->stateFrames + 1;
+    D_actor_403100_80155808->stateFrames = frame;
     if ((s16)frame == 0x1E) {
         func_dryfield_night_motel_balcony_8017E128(1);
     }
@@ -8640,19 +8640,19 @@ static void func_actor_403100_8013EE28(Task* arg0)
 {
     GfxCoord* coord;
 
-    coord                              = arg0->extra.tmd->coords;
-    D_actor_403100_80155808->field_5E2 = 0x10;
-    D_actor_403100_80155808->field_61C = 2;
-    D_actor_403100_80155808->field_5DE = 3;
-    D_actor_403100_80155808->field_5DA = 2;
+    coord                                     = arg0->extra.tmd->coords;
+    D_actor_403100_80155808->animationRate    = ANIMATION_RATE_ONE;
+    D_actor_403100_80155808->aimMode          = ACTOR_403100_AIM_ANIMATED;
+    D_actor_403100_80155808->animationId      = 3;
+    D_actor_403100_80155808->animationRequest = ACTOR_403100_ANIMATION_REQUEST_RESET;
     func_actor_403100_801327CC(arg0);
-    D_actor_403100_80155808->field_82   = 0;
-    coord->coord.t[0]                   = -0x1710;
-    coord->coord.t[1]                   = 0;
-    coord->coord.t[2]                   = -0x2846;
-    D_actor_403100_80155808->field_618  = 0x1910;
-    D_actor_403100_80155808->field_5EC  = 0;
-    D_actor_403100_80155808->field_5FA += 1;
+    D_actor_403100_80155808->rotation.vy = 0;
+    coord->coord.t[0]                    = -0x1710;
+    coord->coord.t[1]                    = 0;
+    coord->coord.t[2]                    = -0x2846;
+    D_actor_403100_80155808->sceneScale  = 0x1910;
+    D_actor_403100_80155808->stateFrames = 0;
+    D_actor_403100_80155808->subState   += 1;
 }
 static void func_actor_403100_8013EEB0(Task* task)
 {
@@ -8662,12 +8662,12 @@ static void func_actor_403100_8013EEB8(Task* arg0)
 {
     GfxCoord* coord;
 
-    coord                               = arg0->extra.tmd->coords;
-    D_actor_403100_80155808->field_5EC += 1;
-    coord->coord.t[2]                  += 0x64;
-    if ((s16)D_actor_403100_80155808->field_5EC == 0x20) {
-        D_actor_403100_80155808->field_5EC  = 0;
-        D_actor_403100_80155808->field_5FA += 1;
+    coord                                 = arg0->extra.tmd->coords;
+    D_actor_403100_80155808->stateFrames += 1;
+    coord->coord.t[2]                    += 0x64;
+    if ((s16)D_actor_403100_80155808->stateFrames == 0x20) {
+        D_actor_403100_80155808->stateFrames = 0;
+        D_actor_403100_80155808->subState   += 1;
     }
     func_actor_403100_801327CC();
 }
@@ -8681,9 +8681,9 @@ static void func_actor_403100_8013EF2C(Task* task)
 
 static void func_actor_403100_8013EF34(Task* task)
 {
-    D_actor_403100_80155808->field_5EC = 0;
-    D_actor_403100_80155808->field_5EE = 0;
-    D_actor_403100_80155808->field_5FA = D_actor_403100_80155808->field_5FA + 1;
+    D_actor_403100_80155808->stateFrames = 0;
+    D_actor_403100_80155808->auxFrames   = 0;
+    D_actor_403100_80155808->subState    = D_actor_403100_80155808->subState + 1;
 }
 
 static void func_actor_403100_8013EF58(Task* task)
@@ -8693,11 +8693,11 @@ static void func_actor_403100_8013EF58(Task* task)
 static void func_actor_403100_8013EF60(Task* task)
 {
     if (Actor403100_TestFlags12C()) {
-        D_actor_403100_80155808->field_5FC  = 0xB4;
-        D_actor_403100_80155808->field_5E2  = 0x10;
-        D_actor_403100_80155808->field_5DE  = 1;
-        D_actor_403100_80155808->field_5DA  = 1;
-        D_actor_403100_80155808->field_5FA += 1;
+        D_actor_403100_80155808->animationBlendFrames = 0xB4;
+        D_actor_403100_80155808->animationRate        = ANIMATION_RATE_ONE;
+        D_actor_403100_80155808->animationId          = 1;
+        D_actor_403100_80155808->animationRequest     = ACTOR_403100_ANIMATION_REQUEST_BLEND;
+        D_actor_403100_80155808->subState            += 1;
     }
 }
 static void func_actor_403100_8013EFC0(Task* task)
@@ -8716,13 +8716,13 @@ static void func_actor_403100_8013EFC8(Task* arg0)
     coord->coord.t[2] = 0x1130;
     coord->coord.t[1] = 0;
 
-    D_actor_403100_80155808->field_82  = 0xC00;
-    D_actor_403100_80155808->field_5E2 = 0x10;
-    D_actor_403100_80155808->field_5DE = 0x14;
-    D_actor_403100_80155808->field_5DA = 2;
-    D_actor_403100_80155808->field_618 = 0x1400;
-    D_actor_403100_80155808->field_5EC = 0;
-    D_actor_403100_80155808->field_5FA = D_actor_403100_80155808->field_5FA + 1;
+    D_actor_403100_80155808->rotation.vy      = 0xC00;
+    D_actor_403100_80155808->animationRate    = ANIMATION_RATE_ONE;
+    D_actor_403100_80155808->animationId      = 0x14;
+    D_actor_403100_80155808->animationRequest = ACTOR_403100_ANIMATION_REQUEST_RESET;
+    D_actor_403100_80155808->sceneScale       = 0x1400;
+    D_actor_403100_80155808->stateFrames      = 0;
+    D_actor_403100_80155808->subState         = D_actor_403100_80155808->subState + 1;
 }
 
 static void func_actor_403100_8013F034(Task* arg0)
@@ -8734,15 +8734,15 @@ static void func_actor_403100_8013F034(Task* arg0)
     coord->coord.t[1] = 0x300;
     coord->coord.t[2] = -0xE74;
 
-    D_actor_403100_80155808->field_82  = 0x800;
-    D_actor_403100_80155808->field_5E2 = 0x10;
-    D_actor_403100_80155808->field_5DE = 0x18;
-    D_actor_403100_80155808->field_5DA = 2;
-    D_actor_403100_80155808->field_618 = 0x1400;
-    D_actor_403100_80155808->field_600 = 0;
-    D_actor_403100_80155808->field_5EC = 0;
-    D_actor_403100_80155808->field_5EE = 0;
-    D_actor_403100_80155808->field_5FA = D_actor_403100_80155808->field_5FA + 1;
+    D_actor_403100_80155808->rotation.vy      = 0x800;
+    D_actor_403100_80155808->animationRate    = ANIMATION_RATE_ONE;
+    D_actor_403100_80155808->animationId      = 0x18;
+    D_actor_403100_80155808->animationRequest = ACTOR_403100_ANIMATION_REQUEST_RESET;
+    D_actor_403100_80155808->sceneScale       = 0x1400;
+    D_actor_403100_80155808->stridePhase      = 0;
+    D_actor_403100_80155808->stateFrames      = 0;
+    D_actor_403100_80155808->auxFrames        = 0;
+    D_actor_403100_80155808->subState         = D_actor_403100_80155808->subState + 1;
 }
 
 static void func_actor_403100_8013F0A8(Task* arg0)
@@ -8756,89 +8756,89 @@ static void func_actor_403100_8013F0A8(Task* arg0)
     D_actor_403100_8014762C.exp      >>= 1;
     gGameSession->location.loc.variant = 4;
     Gp_ReleaseStateF0Add(arg0, 0);
-    arg0->state                        = 5;
-    D_actor_403100_80155808->field_5F8 = 0;
-    D_actor_403100_80155808->field_5FA = 0;
+    arg0->state                       = 5;
+    D_actor_403100_80155808->state    = 0;
+    D_actor_403100_80155808->subState = 0;
 }
 static void func_actor_403100_8013F12C(Task* task)
 {
     u16 frame;
 
     if ((func_actor_403100_80133928() << 0x10) == 0) {
-        frame                              = D_actor_403100_80155808->field_5EC + 1;
-        D_actor_403100_80155808->field_5EC = frame;
+        frame                                = D_actor_403100_80155808->stateFrames + 1;
+        D_actor_403100_80155808->stateFrames = frame;
         if ((s16)frame >= 0x1F) {
-            D_actor_403100_80155808->field_5F8 = 1;
-            D_actor_403100_80155808->field_5FA = 0;
+            D_actor_403100_80155808->state    = 1;
+            D_actor_403100_80155808->subState = 0;
         }
     }
 }
 
 static void func_actor_403100_8013F18C(Task* task)
 {
-    D_actor_403100_80155808->field_5FC = 4;
-    D_actor_403100_80155808->field_5E2 = 0x10;
-    D_actor_403100_80155808->field_5DE = 1;
-    D_actor_403100_80155808->field_5DA = 1;
-    D_actor_403100_80155808->field_62C = 0x20;
-    D_actor_403100_80155808->field_5F6 = 0;
-    D_actor_403100_80155808->field_61C = 0;
-    D_actor_403100_80155808->field_5EC = 0;
-    D_actor_403100_80155808->field_5FA = D_actor_403100_80155808->field_5FA + 1;
+    D_actor_403100_80155808->animationBlendFrames = 4;
+    D_actor_403100_80155808->animationRate        = ANIMATION_RATE_ONE;
+    D_actor_403100_80155808->animationId          = 1;
+    D_actor_403100_80155808->animationRequest     = ACTOR_403100_ANIMATION_REQUEST_BLEND;
+    D_actor_403100_80155808->walkSpeed            = 0x20;
+    D_actor_403100_80155808->walkStage            = 0;
+    D_actor_403100_80155808->aimMode              = ACTOR_403100_AIM_TRACK;
+    D_actor_403100_80155808->stateFrames          = 0;
+    D_actor_403100_80155808->subState             = D_actor_403100_80155808->subState + 1;
 }
 
 static void func_actor_403100_8013F1D8(Task* task)
 {
     if (Actor403100_TestFlags104()) {
-        D_actor_403100_80155808->field_5F8 = 1;
-        D_actor_403100_80155808->field_5FA = 0;
+        D_actor_403100_80155808->state    = 1;
+        D_actor_403100_80155808->subState = 0;
     }
 }
 static void func_actor_403100_8013F230(Task* task)
 {
     u16 frame;
 
-    frame                              = D_actor_403100_80155808->field_5EC;
-    D_actor_403100_80155808->field_5EC = frame + 1;
+    frame                                = D_actor_403100_80155808->stateFrames;
+    D_actor_403100_80155808->stateFrames = frame + 1;
     if ((s16)frame >= 0xD) {
-        D_actor_403100_80155808->field_5F8 = 1;
-        D_actor_403100_80155808->field_5FA = 0;
+        D_actor_403100_80155808->state    = 1;
+        D_actor_403100_80155808->subState = 0;
     }
 }
 
 static void func_actor_403100_8013F270(Task* task)
 {
-    D_actor_403100_80155808->field_5EC = 0;
+    D_actor_403100_80155808->stateFrames = 0;
     SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 0xA);
-    D_actor_403100_80155808->field_5FC = 0x14;
-    D_actor_403100_80155808->field_5E2 = 0x1C;
-    D_actor_403100_80155808->field_5DE = 3;
-    D_actor_403100_80155808->field_5DA = 1;
-    D_actor_403100_80155808->field_5FA = D_actor_403100_80155808->field_5FA + 1;
+    D_actor_403100_80155808->animationBlendFrames = 0x14;
+    D_actor_403100_80155808->animationRate        = 0x1C;
+    D_actor_403100_80155808->animationId          = 3;
+    D_actor_403100_80155808->animationRequest     = ACTOR_403100_ANIMATION_REQUEST_BLEND;
+    D_actor_403100_80155808->subState             = D_actor_403100_80155808->subState + 1;
 }
 
 static void func_actor_403100_8013F2D8(Task* task)
 {
     if ((func_actor_403100_80133928() << 0x10) == 0) {
-        D_actor_403100_80155808->field_668.b.field_668 = 0;
-        D_actor_403100_80155808->field_668.b.field_669 = 0;
-        D_actor_403100_80155808->field_61C             = 4;
-        D_actor_403100_80155808->field_5F6             = 4;
-        D_actor_403100_80155808->field_604             = 0;
-        D_actor_403100_80155808->field_608             = 0;
-        D_actor_403100_80155808->field_5FA             = D_actor_403100_80155808->field_5FA + 1;
+        D_actor_403100_80155808->handTouchedPlayer    = 0;
+        D_actor_403100_80155808->forearmTouchedPlayer = 0;
+        D_actor_403100_80155808->aimMode              = ACTOR_403100_AIM_YAW_ONLY_FAST;
+        D_actor_403100_80155808->walkStage            = 4;
+        D_actor_403100_80155808->armPitch             = 0;
+        D_actor_403100_80155808->armYaw               = 0;
+        D_actor_403100_80155808->subState             = D_actor_403100_80155808->subState + 1;
     }
 }
 
 static void func_actor_403100_8013F344(Task* task)
 {
     if (((func_actor_403100_80133928() << 0x10) == 0) &&
-        (D_actor_403100_80155808->field_5F6 == 5)) {
-        D_actor_403100_80155808->field_5E2 = 0x10;
-        D_actor_403100_80155808->field_5DE = 4;
-        D_actor_403100_80155808->field_5EC = 0;
-        D_actor_403100_80155808->field_5DA = 2;
-        D_actor_403100_80155808->field_5FA = D_actor_403100_80155808->field_5FA + 1;
+        (D_actor_403100_80155808->walkStage == 5)) {
+        D_actor_403100_80155808->animationRate    = ANIMATION_RATE_ONE;
+        D_actor_403100_80155808->animationId      = 4;
+        D_actor_403100_80155808->stateFrames      = 0;
+        D_actor_403100_80155808->animationRequest = ACTOR_403100_ANIMATION_REQUEST_RESET;
+        D_actor_403100_80155808->subState         = D_actor_403100_80155808->subState + 1;
     }
 }
 
@@ -8846,11 +8846,11 @@ static void func_actor_403100_8013F3AC(Task* task)
 {
     u16 frame;
 
-    frame                              = D_actor_403100_80155808->field_5EC + 1;
-    D_actor_403100_80155808->field_5EC = frame;
+    frame                                = D_actor_403100_80155808->stateFrames + 1;
+    D_actor_403100_80155808->stateFrames = frame;
     if ((s16)frame >= 0x5A) {
-        D_actor_403100_80155808->field_5F8 = 1;
-        D_actor_403100_80155808->field_5FA = 0;
+        D_actor_403100_80155808->state    = 1;
+        D_actor_403100_80155808->subState = 0;
     }
 }
 
@@ -8858,114 +8858,114 @@ static void func_actor_403100_8013F3EC(Task* arg0)
 {
     GfxCoord* coord;
 
-    coord                              = arg0->extra.tmd->coords;
-    D_actor_403100_80155808->field_5F6 = 5;
-    coord->coord.t[0]                  = -0x44C;
-    coord->coord.t[1]                  = -0x1388;
-    coord->coord.t[2]                  = 0x2710;
-    D_actor_403100_80155808->field_82  = 0xA00;
-    D_actor_403100_80155808->field_5E2 = 0x10;
-    D_actor_403100_80155808->field_5DE = 0xB;
-    D_actor_403100_80155808->field_80  = 0;
-    D_actor_403100_80155808->field_84  = 0;
-    D_actor_403100_80155808->field_5DA = 2;
+    coord                                     = arg0->extra.tmd->coords;
+    D_actor_403100_80155808->walkStage        = 5;
+    coord->coord.t[0]                         = -0x44C;
+    coord->coord.t[1]                         = -0x1388;
+    coord->coord.t[2]                         = 0x2710;
+    D_actor_403100_80155808->rotation.vy      = 0xA00;
+    D_actor_403100_80155808->animationRate    = ANIMATION_RATE_ONE;
+    D_actor_403100_80155808->animationId      = 0xB;
+    D_actor_403100_80155808->rotation.vx      = 0;
+    D_actor_403100_80155808->rotation.vz      = 0;
+    D_actor_403100_80155808->animationRequest = ACTOR_403100_ANIMATION_REQUEST_RESET;
     func_actor_403100_80132528(arg0);
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0x18;
-    D_actor_403100_80155808->field_60E                         = 0;
-    D_actor_403100_80155808->field_610                         = 0;
-    D_actor_403100_80155808->field_5FA                        += 1;
+    D_actor_403100_80155808->overlayX                          = 0;
+    D_actor_403100_80155808->overlayY                          = 0;
+    D_actor_403100_80155808->subState                         += 1;
 }
 static void func_actor_403100_8013F488(Task* task)
 {
     if (Actor403100_TestFlags()) {
-        D_actor_403100_80155808->field_5F8 = 1;
-        D_actor_403100_80155808->field_5FA = 0;
+        D_actor_403100_80155808->state    = 1;
+        D_actor_403100_80155808->subState = 0;
     }
 }
 static void func_actor_403100_8013F4E0(Task* task)
 {
     u16 frame;
 
-    frame                              = D_actor_403100_80155808->field_5EC;
-    D_actor_403100_80155808->field_5EC = frame + 1;
+    frame                                = D_actor_403100_80155808->stateFrames;
+    D_actor_403100_80155808->stateFrames = frame + 1;
     if ((s16)frame >= 0xD) {
-        D_actor_403100_80155808->field_5F8 = 1;
-        D_actor_403100_80155808->field_5FA = 0;
+        D_actor_403100_80155808->state    = 1;
+        D_actor_403100_80155808->subState = 0;
     }
 }
 static void func_actor_403100_8013F520(Task* task)
 {
-    D_actor_403100_80155808->field_5EC = 0;
+    D_actor_403100_80155808->stateFrames = 0;
     SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 0xA);
-    D_actor_403100_80155808->field_5FC  = 0x14;
-    D_actor_403100_80155808->field_5E2  = 0x1C;
-    D_actor_403100_80155808->field_5DE  = 3;
-    D_actor_403100_80155808->field_5DA  = 1;
-    D_actor_403100_80155808->field_5FA += 1;
+    D_actor_403100_80155808->animationBlendFrames = 0x14;
+    D_actor_403100_80155808->animationRate        = 0x1C;
+    D_actor_403100_80155808->animationId          = 3;
+    D_actor_403100_80155808->animationRequest     = ACTOR_403100_ANIMATION_REQUEST_BLEND;
+    D_actor_403100_80155808->subState            += 1;
 }
 static void func_actor_403100_8013F588(Task* task)
 {
     if ((func_actor_403100_80133928() << 0x10) == 0) {
-        D_actor_403100_80155808->field_5F6             = 4;
-        D_actor_403100_80155808->field_5E2             = 0xC;
-        D_actor_403100_80155808->field_61C             = 2;
-        D_actor_403100_80155808->field_5DE             = 8;
-        D_actor_403100_80155808->field_5DA             = 2;
-        D_actor_403100_80155808->field_5EC             = 0;
-        D_actor_403100_80155808->field_82              = (u16)D_actor_403100_80155808->field_82 & 0xFFF;
-        D_actor_403100_80155808->field_668.b.field_668 = 0;
-        D_actor_403100_80155808->field_668.b.field_669 = 0;
-        D_actor_403100_80155808->field_5FA            += 1;
+        D_actor_403100_80155808->walkStage            = 4;
+        D_actor_403100_80155808->animationRate        = 0xC;
+        D_actor_403100_80155808->aimMode              = ACTOR_403100_AIM_ANIMATED;
+        D_actor_403100_80155808->animationId          = 8;
+        D_actor_403100_80155808->animationRequest     = ACTOR_403100_ANIMATION_REQUEST_RESET;
+        D_actor_403100_80155808->stateFrames          = 0;
+        D_actor_403100_80155808->rotation.vy          = (u16)D_actor_403100_80155808->rotation.vy & 0xFFF;
+        D_actor_403100_80155808->handTouchedPlayer    = 0;
+        D_actor_403100_80155808->forearmTouchedPlayer = 0;
+        D_actor_403100_80155808->subState            += 1;
     }
 }
 static void func_actor_403100_8013F610(void)
 {
-    D_actor_403100_80155808->field_61C = 2;
-    D_actor_403100_80155808->field_5F6 = 4;
-    D_actor_403100_80155808->field_5FC = 8;
-    D_actor_403100_80155808->field_5E2 = 0x10;
-    D_actor_403100_80155808->field_5DE = 0xA;
-    D_actor_403100_80155808->field_5DA = 1;
-    D_actor_403100_80155808->field_5FA = D_actor_403100_80155808->field_5FA + 1;
+    D_actor_403100_80155808->aimMode              = ACTOR_403100_AIM_ANIMATED;
+    D_actor_403100_80155808->walkStage            = 4;
+    D_actor_403100_80155808->animationBlendFrames = 8;
+    D_actor_403100_80155808->animationRate        = ANIMATION_RATE_ONE;
+    D_actor_403100_80155808->animationId          = 0xA;
+    D_actor_403100_80155808->animationRequest     = ACTOR_403100_ANIMATION_REQUEST_BLEND;
+    D_actor_403100_80155808->subState             = D_actor_403100_80155808->subState + 1;
 }
 
 static void func_actor_403100_8013F658(void)
 {
     if (Actor403100_TestFlags104()) {
-        D_actor_403100_80155808->field_5F8 = 1;
-        D_actor_403100_80155808->field_5FA = 0;
+        D_actor_403100_80155808->state    = 1;
+        D_actor_403100_80155808->subState = 0;
     }
 }
 static void func_actor_403100_8013F6B0(Task* task)
 {
-    D_actor_403100_80155808->field_61C  = 2;
-    D_actor_403100_80155808->field_5F6  = 4;
-    D_actor_403100_80155808->field_5FC  = 0xA;
-    D_actor_403100_80155808->field_5E2  = 8;
-    D_actor_403100_80155808->field_5DE  = 0xA;
-    D_actor_403100_80155808->field_5DA  = 1;
-    D_actor_403100_80155808->field_5FA += 1;
+    D_actor_403100_80155808->aimMode              = ACTOR_403100_AIM_ANIMATED;
+    D_actor_403100_80155808->walkStage            = 4;
+    D_actor_403100_80155808->animationBlendFrames = 0xA;
+    D_actor_403100_80155808->animationRate        = 8;
+    D_actor_403100_80155808->animationId          = 0xA;
+    D_actor_403100_80155808->animationRequest     = ACTOR_403100_ANIMATION_REQUEST_BLEND;
+    D_actor_403100_80155808->subState            += 1;
 }
 static void func_actor_403100_8013F6F4(Task* task)
 {
     if (Actor403100_TestFlags104()) {
-        D_actor_403100_80155808->field_5FC  = 4;
-        D_actor_403100_80155808->field_5E2  = 0x10;
-        D_actor_403100_80155808->field_5EC  = 0;
-        D_actor_403100_80155808->field_5DE  = 1;
-        D_actor_403100_80155808->field_5DA  = 1;
-        D_actor_403100_80155808->field_5FA += 1;
+        D_actor_403100_80155808->animationBlendFrames = 4;
+        D_actor_403100_80155808->animationRate        = ANIMATION_RATE_ONE;
+        D_actor_403100_80155808->stateFrames          = 0;
+        D_actor_403100_80155808->animationId          = 1;
+        D_actor_403100_80155808->animationRequest     = ACTOR_403100_ANIMATION_REQUEST_BLEND;
+        D_actor_403100_80155808->subState            += 1;
     }
 }
 static void func_actor_403100_8013F76C(Task* task)
 {
     u16 frame;
 
-    frame                              = D_actor_403100_80155808->field_5EC;
-    D_actor_403100_80155808->field_5EC = frame + 1;
+    frame                                = D_actor_403100_80155808->stateFrames;
+    D_actor_403100_80155808->stateFrames = frame + 1;
     if ((s16)frame >= 0x3D) {
-        D_actor_403100_80155808->field_5F8 = 1;
-        D_actor_403100_80155808->field_5FA = 0;
+        D_actor_403100_80155808->state    = 1;
+        D_actor_403100_80155808->subState = 0;
     }
 }
 
