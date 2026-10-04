@@ -74,15 +74,24 @@ extern u8 D_shelter_b1_pod_access_tunnel_80184D0C[4];
 // Scalar symbol view preserves the original byte/halfword address formation.
 extern u8 D_shelter_b1_pod_access_tunnel_80184D0C_value __asm__("D_shelter_b1_pod_access_tunnel_80184D0C");
 
+enum {
+    SHELTER_B1_POD_ACCESS_TUNNEL_IMAGE_SCROLL_DELAY_FRAMES = 46,  // Frames the lower image is held still before the scroll starts
+    SHELTER_B1_POD_ACCESS_TUNNEL_IMAGE_SCROLL_LINES        = 240, // Screen lines the seam travels, the height of either image
+};
+
 /// Work block of the task that scrolls one full-screen image vertically into
-/// another. Its first state allocates it zeroed and sets `speed`; the drawing
-/// state advances `offset` and places the seam between the images from it.
+/// another: after a fixed delay the seam between the two moves down the screen
+/// at a constant rate.
+///
+/// The task's set-up state allocates it zeroed and derives `speed` from the
+/// spawn argument, a nonzero frame count the scroll is to take; the default
+/// teardown frees it.
 typedef struct {
-    s32 speed;  ///< 16.16 per-frame step, sized so the scroll completes in the spawn argument's frame count
-    s32 offset; ///< 16.16 scroll distance; its integer part is clamped to 240 lines
-    s16 timer;  ///< Frames drawn so far; scrolling starts once it reaches 46
-} _ShelterB1PodAccessTunnelWork;
-STATIC_ASSERT_SIZEOF(_ShelterB1PodAccessTunnelWork, 0xC);
+    s32 speed;  // Lines the seam moves per frame, 16.16 fixed point
+    s32 offset; // Lines scrolled so far, 16.16 fixed point; the seam is drawn at its integer part, capped at the full distance
+    s16 timer;  // Frames drawn so far, counted up from 0; scrolling starts once the delay has passed
+} _ShelterB1PodAccessTunnelImageScrollWork;
+STATIC_ASSERT_SIZEOF(_ShelterB1PodAccessTunnelImageScrollWork, 0xC);
 
 extern TaskDesc D_801348D8;
 
@@ -1250,9 +1259,9 @@ void func_shelter_b1_pod_access_tunnel_8017DF40(Task* task)
 /// or no event is running.
 static void func_shelter_b1_pod_access_tunnel_8017E048(Task* task)
 {
-    _ShelterB1PodAccessTunnelWork* work;
-    SPRT*                          p;
-    s32                            y;
+    _ShelterB1PodAccessTunnelImageScrollWork* work;
+    SPRT*                                     p;
+    s32                                       y;
 
     work = task->work;
     if (gGameSession->viewReady != 0 || gGameSession->eventState == 0) {
@@ -1260,11 +1269,11 @@ static void func_shelter_b1_pod_access_tunnel_8017E048(Task* task)
         return;
     }
     y = 0;
-    if (work->timer++ >= 0x2E) {
+    if (work->timer++ >= SHELTER_B1_POD_ACCESS_TUNNEL_IMAGE_SCROLL_DELAY_FRAMES) {
         work->offset += work->speed;
         y             = work->offset >> 16;
-        if (y > 0xF0) {
-            y = 0xF0;
+        if (y > SHELTER_B1_POD_ACCESS_TUNNEL_IMAGE_SCROLL_LINES) {
+            y = SHELTER_B1_POD_ACCESS_TUNNEL_IMAGE_SCROLL_LINES;
         }
     }
 
@@ -1306,7 +1315,7 @@ static void func_shelter_b1_pod_access_tunnel_8017E048(Task* task)
     p->v0   = 0;
     p->y0   = y - 0x78;
     p->clut = 0x4000;
-    p->h    = 0xF0 - y;
+    p->h    = SHELTER_B1_POD_ACCESS_TUNNEL_IMAGE_SCROLL_LINES - y;
     addPrim(gGpuCurrentOt + 1023, p);
     func_shelter_b1_pod_access_tunnel_8017E66C(0x240, 0x100);
 
@@ -1320,7 +1329,7 @@ static void func_shelter_b1_pod_access_tunnel_8017E048(Task* task)
     p->v0   = 0;
     p->y0   = y - 0x78;
     p->clut = 0x4000;
-    p->h    = 0xF0 - y;
+    p->h    = SHELTER_B1_POD_ACCESS_TUNNEL_IMAGE_SCROLL_LINES - y;
     addPrim(gGpuCurrentOt + 1023, p);
     func_shelter_b1_pod_access_tunnel_8017E66C(0x2C0, 0x100);
 }
@@ -1397,19 +1406,19 @@ void func_shelter_b1_pod_access_tunnel_8017E55C(Task* task)
 
 static void func_shelter_b1_pod_access_tunnel_8017E5B4(Task* task)
 {
-    _ShelterB1PodAccessTunnelWork* work;
+    _ShelterB1PodAccessTunnelImageScrollWork* work;
 
     if (gGameSession->location.loc.view != 0xB) {
         taskKill(task);
         return;
     }
-    work = memCalloc(sizeof(_ShelterB1PodAccessTunnelWork), 0);
+    work = memCalloc(sizeof(_ShelterB1PodAccessTunnelImageScrollWork), 0);
     if (work == NULL) {
         taskKill(task);
         return;
     }
     task->work   = work;
-    work->speed  = 0xF00000 / task->spawnArg1.value;
+    work->speed  = (SHELTER_B1_POD_ACCESS_TUNNEL_IMAGE_SCROLL_LINES << 16) / task->spawnArg1.value;
     task->state += 1;
 }
 
