@@ -154,28 +154,44 @@ typedef struct Actor503500Work3D8 {
 } Actor503500Work3D8;
 STATIC_ASSERT_SIZEOF(Actor503500Work3D8, 0x3D8);
 
-/// The 0xC0 block `func_actor_503500_80144300` allocates: the display node,
-/// the four-entry `WorldCollisionContact` table its `field_C` points at, the effect task it
-/// reparents itself under, and the payload `func_actor_503500_80144778` steps
-/// every frame. `field_84` is the world position (the coordinate's translation
-/// in 16.16) and `field_94` the copy it restores from; `field_A4` is the
-/// forward offset `ApplyMatrixLV` rotates out of `Task::spawnArg2`.
-typedef struct Actor503500WorkC0 {
-    /* 0x00 */ WorldCollisionBody     obj;
-    /* 0x20 */ WorldCollisionContact  rec[4];
-    /* 0x80 */ Task*                  field_80;
-    /* 0x84 */ Actor503500FixedVector field_84;
-    /* 0x94 */ VECTOR                 field_94;
-    /* 0xA4 */ VECTOR                 field_A4; // per-frame velocity added onto field_84
-    /* 0xB4 */ s32                    field_B4;
-    /* 0xB8 */ s16                    field_B8;
-    /* 0xBA */ u16                    field_BA; // sub-state frame counter
-    /* 0xBC */ s8                     field_BC; // sub-state index, -1 finishes the task
-    /* 0xBD */ byte                   pad_BD[0x1];
-    /* 0xBE */ s8                     field_BE; // set when a record's kind (key high half) is 1
-    /* 0xBF */ s8                     field_BF; // nonzero skips the push-back step
-} Actor503500WorkC0;
-STATIC_ASSERT_SIZEOF(Actor503500WorkC0, 0xC0);
+/// Phase of a ballistic shot, as held in `_Actor503500BallisticShotWork::phase`.
+enum {
+    ACTOR_503500_BALLISTIC_SHOT_CUT_SHORT = -1, // Touched the player, or flew its whole time without landing; the task moves on to its exit
+    ACTOR_503500_BALLISTIC_SHOT_FLYING    = 0,  // Falls along its arc until the room's geometry stops it
+    ACTOR_503500_BALLISTIC_SHOT_BURSTING  = 1,  // Rests where it landed, its attack sphere doubled, for six frames
+    ACTOR_503500_BALLISTIC_SHOT_SPENT     = 2,  // No longer collides; the task moves on to its exit
+};
+
+/// Work block of a ballistic shot, one of the attack tasks the boss's slot
+/// enemies launch.
+///
+/// The launcher places and aims the task's coordinate and passes the launch
+/// speed. The shot leaves along that facing and from then on only gravity
+/// changes its velocity, so it falls in an arc, drawn by an
+/// `EFFECT_BRAHMAN_SMALL_ORB` effect and carrying an attack sphere that is
+/// tested against the room's geometry as well as against other bodies. Where
+/// the geometry stops it, it rests with the sphere doubled for six frames,
+/// then its effect is told to finish and the sphere stops colliding. Touching
+/// the player, or flying 61 frames without landing, ends it at once.
+/// `Task::spawnArg1` picks the attack the sphere delivers.
+///
+/// The block is allocated at launch and is the task's `Task::work`.
+typedef struct {
+    WorldCollisionBody     body;              // Attack sphere on the task's own coordinate, radius 300 in flight and 600 once landed; grid-tested throughout and pair-tested from launch until the burst ends
+    WorldCollisionContact  contacts[4];       // Contact table of `body`, emptied every frame after the shot has reacted to it
+    Task*                  effectTask;        // Effect drawing the shot, kept as a child of this task; told to finish when the shot touches the player or its burst ends
+    Actor503500FixedVector position;          // World position in 16.16; its integer halves are what the coordinate's translation gets
+    Actor503500FixedVector launchPosition;    // `position` as it was at launch, which the shot is put back to when the geometry holding it has opposed faces
+    Actor503500FixedVector velocity;          // Step added onto `position` every frame, in 16.16: the launch speed along the launch facing, gaining 9.8 units of fall a frame, zeroed on landing
+    s32                    gridContactResult; // What resolving the room contacts last reported (0 none, 1 pushed back, 2 opposed faces); any contact lands the shot
+    s16                    field_B8;          // Set to 0x1000 at launch. Nothing reads it back; role unproven
+    s16                    phaseFrames;       // Frames spent in `phase`
+    s8                     phase;             // An `ACTOR_503500_BALLISTIC_SHOT_*` phase
+    byte                   unknown_BD[1];     // No field access established; role unproven
+    s8                     touchedPlayer;     // Set when a contact names the player's body; cuts the shot short on the next step
+    s8                     landed;            // Set on landing; the shot no longer resolves its room contacts
+} _Actor503500BallisticShotWork;
+STATIC_ASSERT_SIZEOF(_Actor503500BallisticShotWork, 0xC0);
 
 /// Phase of a lingering shot, as held in `_Actor503500LingeringShotWork::phase`.
 enum {
@@ -4639,14 +4655,14 @@ static const TaskFuncTable3 D_actor_503500_801321DC = {
 
 static void func_actor_503500_80144300(Task* arg0)
 {
-    Actor503500WorkC0*     work;
-    GfxCoord*              coord;
-    WorldCollisionContact* rec;
-    EffectWork*            eff;
-    Task*                  child;
-    GfxRotationWords*      m;
-    VECTOR                 v;
-    s32                    pan;
+    _Actor503500BallisticShotWork* work;
+    GfxCoord*                      coord;
+    WorldCollisionContact*         contacts;
+    EffectWork*                    eff;
+    Task*                          child;
+    GfxRotationWords*              m;
+    VECTOR                         v;
+    s32                            pan;
 
     coord = arg0->extra.tmd->coords;
     work  = memCalloc(sizeof(*work), false);
@@ -4656,19 +4672,19 @@ static void func_actor_503500_80144300(Task* arg0)
     }
     arg0->work = work;
 
-    work->field_84.fixed.vx.word = coord->coord.t[0] << 16;
-    work->field_84.fixed.vy.word = coord->coord.t[1] << 16;
-    work->field_84.fixed.vz.word = coord->coord.t[2] << 16;
-    work->field_94.vx            = work->field_84.fixed.vx.word;
-    work->field_B8               = 0x1000;
-    work->field_94.vy            = work->field_84.fixed.vy.word;
-    work->field_94.vz            = work->field_84.fixed.vz.word;
+    work->position.fixed.vx.word       = coord->coord.t[0] << 16;
+    work->position.fixed.vy.word       = coord->coord.t[1] << 16;
+    work->position.fixed.vz.word       = coord->coord.t[2] << 16;
+    work->launchPosition.fixed.vx.word = work->position.fixed.vx.word;
+    work->field_B8                     = 0x1000;
+    work->launchPosition.fixed.vy.word = work->position.fixed.vy.word;
+    work->launchPosition.fixed.vz.word = work->position.fixed.vz.word;
 
     if (arg0->spawnArg2.pointer != NULL) {
         v.vx = 0;
         v.vy = 0;
         v.vz = arg0->spawnArg2.value;
-        ApplyMatrixLV(&coord->coord, &v, &work->field_A4);
+        ApplyMatrixLV(&coord->coord, &v, &work->velocity.vector);
     } else {
         m         = (GfxRotationWords*)&coord->coord;
         m->m00M01 = ONE;
@@ -4677,27 +4693,27 @@ static void func_actor_503500_80144300(Task* arg0)
         m->m20M21 = 0;
         m->m22    = ONE;
     }
-    rec = work->rec;
+    contacts = work->contacts;
 
-    work->obj.coord            = coord;
-    work->obj.context.contacts = rec;
-    work->obj.pos.vx           = D_actor_503500_801715AC.vx;
-    work->obj.pos.vy           = D_actor_503500_801715AC.vy;
-    work->obj.pos.vz           = D_actor_503500_801715AC.vz;
-    work->obj.key              = Gp_PackPair(D_actor_503500_8016E7CC[0], arg0->spawnArg1.value);
-    work->obj.radius           = 0x12C;
-    work->obj.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(3, &work->obj);
-    Gp_InitRec18Table(rec, 4, 0);
-    work->obj.flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
+    work->body.coord            = coord;
+    work->body.context.contacts = contacts;
+    work->body.pos.vx           = D_actor_503500_801715AC.vx;
+    work->body.pos.vy           = D_actor_503500_801715AC.vy;
+    work->body.pos.vz           = D_actor_503500_801715AC.vz;
+    work->body.key              = Gp_PackPair(D_actor_503500_8016E7CC[0], arg0->spawnArg1.value);
+    work->body.radius           = 0x12C;
+    work->body.flags            = WORLD_COLLISION_BODY_SPHERE;
+    Gp_LinkObj(3, &work->body);
+    Gp_InitRec18Table(contacts, ARRAY_SIZE(work->contacts), 0);
+    work->body.flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
 
     eff = Gp_SpawnEff(EFFECT_BRAHMAN_SMALL_ORB, coord, 0, NULL);
     if (eff == NULL) {
         func_actor_503500_8014473C(arg0);
         return;
     }
-    child          = eff->task;
-    work->field_80 = child;
+    child            = eff->task;
+    work->effectTask = child;
     taskReparent(arg0, child);
     pan = (s8)worldCoordGetOriginAudioPan(coord);
     SndEvt_EnqueueType6(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, 5), pan, (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
@@ -4708,53 +4724,53 @@ static void func_actor_503500_80144300(Task* arg0)
 
 static void func_actor_503500_80144520(Task* arg0)
 {
-    Actor503500WorkC0* work;
-    GfxCoord*          coord;
+    _Actor503500BallisticShotWork* work;
+    GfxCoord*                      coord;
 
-    work  = (Actor503500WorkC0*)arg0->work;
+    work  = arg0->work;
     coord = arg0->extra.tmd->coords;
-    if (work->field_BE != 0) {
-        work->field_80->spawnArg1.value = 2;
-        work->field_BC                  = -1;
+    if (work->touchedPlayer != 0) {
+        work->effectTask->spawnArg1.value = 2;
+        work->phase                       = ACTOR_503500_BALLISTIC_SHOT_CUT_SHORT;
     }
-    switch (work->field_BC) {
-        case 0:
-            work->field_A4.vy += 9.8 * 0x10000;
-            if (work->field_B4 != 0) {
-                work->obj.radius  = 0x258;
-                work->field_A4.vx = 0;
-                work->field_A4.vy = 0;
-                work->field_A4.vz = 0;
-                work->field_BF    = 1;
-                work->field_B4    = 0;
-                work->field_BA    = 0;
-                work->field_BC++;
+    switch (work->phase) {
+        case ACTOR_503500_BALLISTIC_SHOT_FLYING:
+            work->velocity.fixed.vy.word += 9.8 * 0x10000;
+            if (work->gridContactResult != 0) {
+                work->body.radius            = 0x258;
+                work->velocity.fixed.vx.word = 0;
+                work->velocity.fixed.vy.word = 0;
+                work->velocity.fixed.vz.word = 0;
+                work->landed                 = 1;
+                work->gridContactResult      = 0;
+                work->phaseFrames            = 0;
+                work->phase++;
             } else {
-                work->field_BA++;
-                if ((s16)work->field_BA >= 0x3D) {
-                    work->field_BC = -1;
+                work->phaseFrames++;
+                if (work->phaseFrames >= 0x3D) {
+                    work->phase = ACTOR_503500_BALLISTIC_SHOT_CUT_SHORT;
                 }
             }
             break;
-        case 1:
-            work->field_BA++;
-            if ((s16)work->field_BA >= 6) {
-                work->field_80->spawnArg1.value = 2;
-                work->field_BA                  = 0;
-                work->obj.flags                &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-                work->field_BC++;
+        case ACTOR_503500_BALLISTIC_SHOT_BURSTING:
+            work->phaseFrames++;
+            if (work->phaseFrames >= 6) {
+                work->effectTask->spawnArg1.value = 2;
+                work->phaseFrames                 = 0;
+                work->body.flags                 &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+                work->phase++;
             }
             break;
         default:
             arg0->state++;
             break;
     }
-    work->field_84.fixed.vx.word += work->field_A4.vx;
-    work->field_84.fixed.vy.word += work->field_A4.vy;
-    work->field_84.fixed.vz.word += work->field_A4.vz;
-    coord->coord.t[0]             = work->field_84.fixed.vx.halves.integer;
-    coord->coord.t[1]             = work->field_84.fixed.vy.halves.integer;
-    coord->coord.t[2]             = work->field_84.fixed.vz.halves.integer;
+    work->position.fixed.vx.word += work->velocity.fixed.vx.word;
+    work->position.fixed.vy.word += work->velocity.fixed.vy.word;
+    work->position.fixed.vz.word += work->velocity.fixed.vz.word;
+    coord->coord.t[0]             = work->position.fixed.vx.halves.integer;
+    coord->coord.t[1]             = work->position.fixed.vy.halves.integer;
+    coord->coord.t[2]             = work->position.fixed.vz.halves.integer;
 }
 
 static void func_actor_503500_801446E4(Task* arg0)
@@ -4777,44 +4793,44 @@ static void func_actor_503500_801446E4(Task* arg0)
 static void func_actor_503500_8014473C(Task* arg0)
 {
     func_actor_503500_801372AC(1);
-    Gp_UnlinkObj(&((Actor503500WorkC0*)arg0->work)->obj);
+    Gp_UnlinkObj(&((_Actor503500BallisticShotWork*)arg0->work)->body);
     taskKill(arg0);
 }
 
 static void func_actor_503500_80144778(Task* arg0)
 {
-    WorldCollisionDelta    delta;
-    Actor503500WorkC0*     work;
-    WorldCollisionContact* rec;
-    s32                    result;
-    s32                    i;
+    WorldCollisionDelta            delta;
+    _Actor503500BallisticShotWork* work;
+    WorldCollisionContact*         contacts;
+    s32                            result;
+    s32                            i;
 
-    work = (Actor503500WorkC0*)arg0->work;
-    rec  = work->rec;
-    if (work->field_BF == 0) {
-        result         = func_800E0C10(rec, &delta, 4, NULL);
-        work->field_B4 = result;
+    work     = arg0->work;
+    contacts = work->contacts;
+    if (work->landed == 0) {
+        result                  = func_800E0C10(contacts, &delta, ARRAY_SIZE(work->contacts), NULL);
+        work->gridContactResult = result;
         switch (result) {
             case 0:
                 break;
             case 1:
-                work->field_84.fixed.vx.word += delta.fixed.vx.word;
-                work->field_84.fixed.vy.word += delta.fixed.vy.word;
-                work->field_84.fixed.vz.word += delta.fixed.vz.word;
+                work->position.fixed.vx.word += delta.fixed.vx.word;
+                work->position.fixed.vy.word += delta.fixed.vy.word;
+                work->position.fixed.vz.word += delta.fixed.vz.word;
                 break;
             case 2:
-                work->field_84.fixed.vx.word = work->field_94.vx;
-                work->field_84.fixed.vy.word = work->field_94.vy;
-                work->field_84.fixed.vz.word = work->field_94.vz;
+                work->position.fixed.vx.word = work->launchPosition.fixed.vx.word;
+                work->position.fixed.vy.word = work->launchPosition.fixed.vy.word;
+                work->position.fixed.vz.word = work->launchPosition.fixed.vz.word;
                 break;
         }
     }
-    for (i = 0; i < 4; i++) {
-        if ((rec[i].key.value & 0xFFFF0000) == 0x10000) {
-            work->field_BE = 1;
+    for (i = 0; i < ARRAY_SIZE(work->contacts); i++) {
+        if ((contacts[i].key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == 0x10000) {
+            work->touchedPlayer = 1;
         }
     }
-    Gp_ClearRec18Occupied(work->rec);
+    Gp_ClearRec18Occupied(work->contacts);
 }
 
 void func_actor_503500_80144890(Task* task)
