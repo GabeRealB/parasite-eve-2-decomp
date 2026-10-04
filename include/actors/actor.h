@@ -93,37 +93,33 @@ typedef struct {
 } ActorContactCappedPushScratch;
 STATIC_ASSERT_SIZEOF(ActorContactCappedPushScratch, 0x20);
 
-/// A beam drawn between two parts of an actor's model: both parts' matrices
-/// and positions in view space, the four corners of the quad widened around
-/// them, and the projected corners and depth that become the primitive.
-typedef struct ActorBeamScratch {
-    MATRIX  firstMatrix;
-    MATRIX  secondMatrix;
-    SVECTOR first;
-    SVECTOR second;
-    SVECTOR corner0;
-    SVECTOR corner1;
-    SVECTOR corner2;
-    SVECTOR corner3;
-    long    screen0;
-    long    screen1;
-    long    screen2;
-    long    screen3;
-    long    perspective;
-    long    flags;
-    s32     depth;
-} ActorBeamScratch;
-STATIC_ASSERT_SIZEOF(ActorBeamScratch, 0x8C);
-
-/// The scratch-pad allocation pointer seen as the one member of a struct.
-/// Reaching the pointer through a member rather than a bare word marks the
-/// access as a structure access, which lets the scheduler order it against
-/// the stores around it the way the original code was ordered. The functions
-/// that use it do not compile the same through `SCRATCH_STACK_CURSOR`.
-typedef struct ActorScratchStack {
-    void* head;
-} ActorScratchStack;
-STATIC_ASSERT_SIZEOF(ActorScratchStack, 0x4);
+/// Scratch-stack block of one limb shadow: a subtractive textured quad laid
+/// under the segment between two parts of an actor's model.
+///
+/// Everything up to the projection is in world space, the frame under the
+/// view coordinate. The quad lies in one plane: most drawers put it on the
+/// floor, giving every point the shadow's height as `vy`, while a drawer
+/// whose shadow falls on a wall takes X and Y from the parts and gives every
+/// point the wall's depth as `vz`. `corners` are in GPU quad strip order: 0
+/// and 1 either side of the first part, 2 and 3 either side of the second,
+/// each pair pushed outwards along the segment by half its length, so the
+/// quad is twice as long as the segment. `screenCorners`, `depthCue` and
+/// `flag` are `RotTransPers4`'s outputs for those four corners.
+///
+/// A drawer reserves one block for a segment and releases it once the quad is
+/// queued; nothing in it outlives the call.
+typedef struct {
+    MATRIX  firstMatrix;      // First part's transform relative to the view coordinate; only its translation is read
+    MATRIX  secondMatrix;     // Second part's transform relative to the view coordinate; only its translation is read
+    SVECTOR firstPos;         // First part's position, with the plane's coordinate in place of its own; `pad` is never written
+    SVECTOR secondPos;        // Second part's position, with the plane's coordinate in place of its own; `pad` is never written
+    SVECTOR corners[4];       // The quad's corners; `pad` is never written
+    long    screenCorners[4]; // Projected corners: screen X in bits 0..15, Y in bits 16..31, copied whole into the primitive
+    long    depthCue;         // Depth-cueing interpolation value of the projection; never read
+    long    flag;             // GTE FLAG word of the projection; a set bit 31 drops the quad
+    s32     depth;            // Last corner's screen Z / 4, which picks the ordering-table entry
+} ActorLimbShadowScratch;
+STATIC_ASSERT_SIZEOF(ActorLimbShadowScratch, 0x8C);
 
 /// The scratch-stack block of a model rescale, which multiplies a per-axis
 /// scale into a coordinate's rotation.
@@ -139,11 +135,17 @@ typedef struct {
 } ActorScaleScratch;
 STATIC_ASSERT_SIZEOF(ActorScaleScratch, 0x30);
 
-/// Scaling a matrix uniformly with its translation: the scale vector handed
-/// to `ScaleMatrix`, and the translation scaled on the GTE.
-typedef struct ActorScaleMatrixScratch {
-    VECTOR  scale;
-    SVECTOR trans;
+/// Scratch-stack block of a uniform matrix scale that takes the translation
+/// along: the rotation is scaled by `ScaleMatrix`, the translation on the GTE.
+///
+/// The matrix scaled this way is a model's light-colour matrix, which is
+/// rebuilt every frame: an enemy that is appearing scales it by a factor
+/// that rises from 0 frame by frame, so the model starts black and
+/// brightens. One block serves one scale; the routine releases it before it
+/// returns.
+typedef struct {
+    VECTOR  scale;       // The factor on each axis, 4096 = 1.0, handed to `ScaleMatrix`; `pad` is never written
+    SVECTOR translation; // Low 16 bits of the matrix's translation, multiplied by the factor in place and written back; `pad` is never written
 } ActorScaleMatrixScratch;
 STATIC_ASSERT_SIZEOF(ActorScaleMatrixScratch, 0x18);
 
@@ -240,25 +242,28 @@ typedef struct {
 } ActorChaseScratch;
 STATIC_ASSERT_SIZEOF(ActorChaseScratch, 0x10);
 
-/// Applying a hit the actor took: where it landed and its offset from the
-/// model (later the knockback step), the offset to the player, the hit
-/// record, the damage and distance derived from it, the critical roll and
-/// the effect to spawn.
-typedef struct ActorHitScratch {
-    MATRIX  m;
-    s32     dx;
-    s32     dy;
-    s32     dz;
-    s32     pad_2C;
-    SVECTOR dir;
-    SVECTOR hitPos;
-    s32     id;
-    s32     damage;
-    s32     dist;
-    s16     yaw;
-    s16     crit;
-    s16     effect;
-    s16     pad_52;
+/// Scratch-stack block of an enemy's hit intake, which runs every frame the
+/// enemy has health left.
+///
+/// The intake looks for a damaging contact, kind 0x20000, in the enemy's
+/// contact tables. When it finds one it works out where the hit landed
+/// relative to the facing, spawns the hit effect, knocks the root back from
+/// the hit unless the enemy is already down, and rolls the damage for the
+/// player's range, scaled by a critical roll and by a hit from behind. The
+/// reaction is picked from the attack's kind and `hitYaw`. The
+/// damage-over-time tick that follows reuses `damage` alone. Nothing carries
+/// over from one frame to the next. Angles are 4096ths of a turn.
+typedef struct {
+    MATRIX  towardHit;      // Root's local matrix turned about its own Y by `hitYaw`, whose Z axis the knockback runs along; set only when the hit knocks the enemy back
+    VECTOR  toPlayer;       // Player's position minus the root's; never read back, and `pad` is never written
+    SVECTOR hitOffset;      // `hitPos` minus the root's composed translation; `vx` and `vz` give the hit's bearing. A knockback then replaces it with the step it adds to the root, against `towardHit`'s Z axis; `pad` is never written
+    SVECTOR hitPos;         // Point of the contact found, replaced by the player's position when `hitKey` has bit 15 set; `pad` is never written
+    s32     hitKey;         // Key of the contact found: the kind over the attack's packed id; 0 when no table holds a damaging contact
+    s32     damage;         // Damage of the hit: the roll for the range, quadrupled by a critical roll and doubled by a hit from behind; then the damage of the over-time tick
+    s32     playerDistance; // Length of `toPlayer`, the range the damage is rolled for
+    s16     hitYaw;         // Bearing of `hitOffset` off the enemy's facing, wrapped to [-0x800, 0x800]
+    s16     critical;       // 1 when the critical roll succeeded, else 0; a critical hit staggers the enemy whatever the damage
+    s16     criticalEffect; // Spawn argument of the critical-hit effect (-1 none spawned, 0 a critical roll, 4 a doubled hit that dealt damage)
 } ActorHitScratch;
 STATIC_ASSERT_SIZEOF(ActorHitScratch, 0x54);
 
@@ -473,15 +478,22 @@ typedef struct ActorLitWork {
 } ActorLitWork;
 STATIC_ASSERT_SIZEOF(ActorLitWork, 0x44);
 
-/// One entry of a zone table: a rectangle on the floor from (`x`, `z`)
-/// spanning `w` along X and `h` along Z, and the id a lookup returns for a
-/// point inside it. A table ends at an entry whose `id` is -1.
-typedef struct ActorZone {
-    s16 x;
-    s16 z;
-    s16 w;
-    s16 h;
-    s16 id;
+/// Ends an `ActorZone` table, in the `id` of its last entry.
+enum { ACTOR_ZONE_END = -1 };
+
+/// One entry of a zone table: a rectangle of a room's floor and the id a
+/// lookup returns for a point inside it.
+///
+/// A lookup takes the first entry containing the point, both far edges
+/// included, and answers 0 when none does, so 0 is never a zone's id. An
+/// enemy looks up its own root and the player's to tell which part of the
+/// room each stands in. Coordinates are world units.
+typedef struct {
+    s16 x;     // Near corner along world X
+    s16 z;     // Near corner along world Z
+    s16 width; // Extent along X
+    s16 depth; // Extent along Z
+    s16 id;    // Value returned for a point inside, or `ACTOR_ZONE_END`
 } ActorZone;
 STATIC_ASSERT_SIZEOF(ActorZone, 0xA);
 
@@ -709,20 +721,24 @@ typedef struct {
 } ActorAnimRig4;
 STATIC_ASSERT_SIZEOF(ActorAnimRig4, 0xF4);
 
-/// Caller-owned playback storage for five slots.
+/// Animation playback storage for a model of five parts.
 ///
-/// The context borrows the model's part coordinates and is bound to this
-/// rig's slots and encoded-pose buffer. Both arrays stay live while playback
-/// uses them. Each slot has one pose entry of `ANIMATION_POSE_BUFFER_BYTES`.
-/// The entry holds that slot's encoding at its start: `AnimationPackedPose`
-/// (12 bytes) or `AnimationPackedRotation` (4 bytes). Playback stores no
-/// capacity, so a slot or pose index has to stay within these 5 entries.
-/// Slot 0 keeps its position in both arrays even where an owner drives only
-/// slots 1 to 4.
+/// A work block embeds one for the playback it runs over its model: the
+/// animation context, a slot for every part and an encoded-pose entry for
+/// every slot. Setup binds `anim` to the two arrays and to the model's part
+/// coordinates, so the rig has to stay live, and stay where it is, for as long
+/// as the context is used.
+///
+/// A slot's index is its model part's, and slot `i` uses pose entry `i`. Each
+/// entry reserves `ANIMATION_POSE_BUFFER_BYTES` and holds the slot's encoding
+/// at its start: `AnimationPackedPose` (12 bytes) or `AnimationPackedRotation`
+/// (4 bytes). Playback stores no capacity, so a slot or pose index has to stay
+/// below `ARRAY_SIZE(slots)`. Owners start and tick slots 1 to 4; slot 0, the
+/// root part's, keeps its place in both arrays and is never started.
 typedef struct {
-    AnimationContext anim;                                  // Context bound to `slots`, `poses` and the model coordinates
-    AnimationSlot    slots[5];                              // Playback slot for one driven index
-    u8               poses[5][ANIMATION_POSE_BUFFER_BYTES]; // Encoded transition pose for the slot at the same index
+    AnimationContext anim;                                  // Context bound to `slots`, `poses` and the model's part coordinates
+    AnimationSlot    slots[5];                              // Playback state of the model part at the same index
+    u8               poses[5][ANIMATION_POSE_BUFFER_BYTES]; // Encoded transition pose of the slot at the same index
 } ActorAnimRig5;
 STATIC_ASSERT_SIZEOF(ActorAnimRig5, 0x12C);
 
@@ -872,37 +888,23 @@ typedef struct {
 } ActorWalkState;
 STATIC_ASSERT_SIZEOF(ActorWalkState, 0x44);
 
-/// Work block of the scripted walker whose code both actor_350500 and
-/// actor_350700 carry for a nineteen-part model, allocated zeroed at its full
-/// size and kept at `Task::work`. `field_4C4` is the variant the
-/// two-case message handler latches, and `freeCountdown` the frames until the
-/// model buffers are freed, -1 disabling the countdown.
-typedef struct Actor350500Work {
-    ActorAnimRig19  rig;
-    ActorModelState model;
-    ActorWalkState  walk;
-    s8              field_4C4;
-    s8              freeCountdown;
-    byte            pad_4C6[0x2];
-} Actor350500Work;
-STATIC_ASSERT_SIZEOF(Actor350500Work, 0x4C8);
-
-/// Work block of the scripted walker whose code actor_135600 and the parent
-/// actor of actor_350700 carry, allocated zeroed at its full size and kept at
-/// `Task::work`: a twenty-part rig and the walk state, the three child tasks
-/// the spawn routine starts, whose models the visibility command drives
-/// alongside the walker's, and `freeCountdown`, the frames until the model
-/// buffers are freed, -1 disabling the countdown.
-typedef struct Actor135600Work {
-    ActorAnimRig20  rig;
-    ActorModelState model;
-    ActorWalkState  walk;
-    Task*           child0;
-    Task*           child1;
-    Task*           child2;
-    s32             freeCountdown;
-} Actor135600Work;
-STATIC_ASSERT_SIZEOF(Actor135600Work, 0x50C);
+/// Work block of Kyle Madigan as a room script walks him about, the actor
+/// whose code actor_135600 and the second actor of actor_350700 each carry.
+///
+/// The setup state allocates it zeroed at its full size and keeps it at
+/// `Task::work`. It opens as `ActorMotionWalkWork` does, which the play and
+/// walk handlers of the actor-motion library run on. After that come the
+/// tasks setup spawns for the models attached to the body, each of which the
+/// draw-mode message gives the body's own draw flags.
+typedef struct {
+    ActorAnimRig20  rig;           // Playback storage of the twenty-part body model; slots 1 to 19 are driven
+    ActorModelState model;         // Light matrices lent to the body's model object, and what the rig plays
+    ActorWalkState  walk;          // Destination, per-frame velocity and step of the walk in progress
+    Task*           handTasks[2];  // Tasks drawing the two hand models; which hand each entry holds is the package's choice
+    Task*           heldItemTask;  // Task drawing what the body carries: the gun in actor_350700, a model that also draws a quad ahead of itself in actor_135600
+    s32             freeCountdown; // Ticks left before the body model's buffers are freed, which the tick finding 0 does (-1 no free pending)
+} KyleMadiganWalkerWork;
+STATIC_ASSERT_SIZEOF(KyleMadiganWalkerWork, 0x50C);
 
 /// Work block of the animated actor whose code actor_110300 and actor_110800
 /// both carry, reached through a global the spawn publishes: the rig at the

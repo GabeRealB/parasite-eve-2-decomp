@@ -1470,11 +1470,11 @@ static void Actor01900_Fn02A50(Task* arg0)
     enemy = arg0->spawnArg2.pointer;
     work  = arg0->work;
     if (enemy->hp > 0) {
-        head  = SCRATCH_STACK_CURSOR(ActorHitScratch);
-        s     = (SCRATCH_STACK_CURSOR(ActorHitScratch) = head - 1);
-        s->id = Actor01900_FindHit(work->hitContacts, &head[-1].hitPos);
-        if (s->id != 0) {
-            if (s->id & 0x8000) {
+        head      = SCRATCH_STACK_CURSOR(ActorHitScratch);
+        s         = (SCRATCH_STACK_CURSOR(ActorHitScratch) = head - 1);
+        s->hitKey = Actor01900_FindHit(work->hitContacts, &head[-1].hitPos);
+        if (s->hitKey != 0) {
+            if (s->hitKey & 0x8000) {
                 player       = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                 s->hitPos.vx = player->extra.tmd->coords->workm.t[0];
                 s->hitPos.vy = player->extra.tmd->coords->workm.t[1];
@@ -1484,27 +1484,27 @@ static void Actor01900_Fn02A50(Task* arg0)
             work->sidestepCount                   = 0;
             arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(arg0->extra.tmd->coords);
-            s->dir.vx = arg0->extra.tmd->coords->workm.t[0];
-            s->dir.vy = arg0->extra.tmd->coords->workm.t[1];
-            s->dir.vz = arg0->extra.tmd->coords->workm.t[2];
-            s->dir.vx = s->hitPos.vx - arg0->extra.tmd->coords->workm.t[0];
-            s->dir.vy = s->hitPos.vy - arg0->extra.tmd->coords->workm.t[1];
-            z         = s->hitPos.vz - arg0->extra.tmd->coords->workm.t[2];
-            s->dir.vz = z;
-            yaw       = ratan2(s->dir.vx, z);
-            coord     = arg0->extra.tmd->coords;
-            s->yaw    = yaw - ratan2(-coord->workm.m[2][0], coord->workm.m[2][2]);
-            s->yaw    = actorNormalizeYaw(s->yaw);
-            Actor01900_Fn02664(arg0, s->yaw, s->id);
+            s->hitOffset.vx = arg0->extra.tmd->coords->workm.t[0];
+            s->hitOffset.vy = arg0->extra.tmd->coords->workm.t[1];
+            s->hitOffset.vz = arg0->extra.tmd->coords->workm.t[2];
+            s->hitOffset.vx = s->hitPos.vx - arg0->extra.tmd->coords->workm.t[0];
+            s->hitOffset.vy = s->hitPos.vy - arg0->extra.tmd->coords->workm.t[1];
+            z               = s->hitPos.vz - arg0->extra.tmd->coords->workm.t[2];
+            s->hitOffset.vz = z;
+            yaw             = ratan2(s->hitOffset.vx, z);
+            coord           = arg0->extra.tmd->coords;
+            s->hitYaw       = yaw - ratan2(-coord->workm.m[2][0], coord->workm.m[2][2]);
+            s->hitYaw       = actorNormalizeYaw(s->hitYaw);
+            Actor01900_Fn02664(arg0, s->hitYaw, s->hitKey);
             work->lookYaw       = 0;
             work->lookYawTarget = 0;
-            s->effect           = -1;
+            s->criticalEffect   = -1;
             state               = work->state;
             if (state != ACTOR_01900_STATE_FALL && state != ACTOR_01900_STATE_DOWN && state != ACTOR_01900_STATE_REFALL && state != ACTOR_01900_STATE_RISE && state != ACTOR_01900_STATE_STATUS_HOLD) {
-                s->m = arg0->extra.tmd->coords->coord;
-                gfxRotMatrixY(&s->m, s->yaw, 0);
-                dir = &s->dir;
-                gfxReadMatrixZAxis(&s->m, dir);
+                s->towardHit = arg0->extra.tmd->coords->coord;
+                gfxRotMatrixY(&s->towardHit, s->hitYaw, 0);
+                dir = &s->hitOffset;
+                gfxReadMatrixZAxis(&s->towardHit, dir);
                 VectorNormalSS(dir, dir);
                 if (work->recentHitFrames > 0) {
                     gte_lddp(-0x19);
@@ -1517,27 +1517,27 @@ static void Actor01900_Fn02A50(Task* arg0)
                     gte_gpf12();
                     gte_stsv(dir);
                 }
-                arg0->extra.tmd->coords->coord.t[0]  += s->dir.vx;
-                arg0->extra.tmd->coords->coord.t[1]  += s->dir.vy;
-                arg0->extra.tmd->coords->coord.t[2]  += s->dir.vz;
+                arg0->extra.tmd->coords->coord.t[0]  += s->hitOffset.vx;
+                arg0->extra.tmd->coords->coord.t[1]  += s->hitOffset.vy;
+                arg0->extra.tmd->coords->coord.t[2]  += s->hitOffset.vz;
                 arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
             }
-            dx        = config->coordMtx->t[0] - arg0->extra.tmd->coords->coord.t[0];
-            s->dx     = dx;
-            dy        = config->coordMtx->t[1] - arg0->extra.tmd->coords->coord.t[1];
-            s->dy     = dy;
-            dz        = config->coordMtx->t[2] - arg0->extra.tmd->coords->coord.t[2];
-            s->dz     = dz;
-            s->dist   = SquareRoot0(dx * dx + dy * dy + dz * dz);
-            s->damage = Gp_ComputeDamage(s->id, s->dist, 0, 0);
-            if (Gp_RollEnemyChance(enemy, s->id, 0) != 0) {
-                s->crit    = 1;
-                s->effect  = 0;
-                s->damage *= 4;
+            dx                = config->coordMtx->t[0] - arg0->extra.tmd->coords->coord.t[0];
+            s->toPlayer.vx    = dx;
+            dy                = config->coordMtx->t[1] - arg0->extra.tmd->coords->coord.t[1];
+            s->toPlayer.vy    = dy;
+            dz                = config->coordMtx->t[2] - arg0->extra.tmd->coords->coord.t[2];
+            s->toPlayer.vz    = dz;
+            s->playerDistance = SquareRoot0(dx * dx + dy * dy + dz * dz);
+            s->damage         = Gp_ComputeDamage(s->hitKey, s->playerDistance, 0, 0);
+            if (Gp_RollEnemyChance(enemy, s->hitKey, 0) != 0) {
+                s->critical       = 1;
+                s->criticalEffect = 0;
+                s->damage        *= 4;
             } else {
-                s->crit = 0;
+                s->critical = 0;
             }
-            mag = s->yaw;
+            mag = s->hitYaw;
             if (mag < 0) {
                 mag = -mag;
             }
@@ -1547,15 +1547,15 @@ static void Actor01900_Fn02A50(Task* arg0)
                     damage    = s->damage * 2;
                     s->damage = damage;
                     if (damage != 0) {
-                        s->effect = 4;
+                        s->criticalEffect = 4;
                     }
                 }
             }
-            func_800E2C78(enemy, s->id, s->damage, 0);
+            func_800E2C78(enemy, s->hitKey, s->damage, 0);
             enemy->hp -= s->damage;
             func_800DA6E8(&enemy->node, s->damage, 0);
             work->recentDamage += s->damage;
-            effect              = s->effect;
+            effect              = s->criticalEffect;
             if (effect != -1) {
                 Gp_SpawnEff(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[2], (s32)(effect), NULL);
             }
@@ -1574,8 +1574,8 @@ static void Actor01900_Fn02A50(Task* arg0)
                 hitPan   = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
                 SndEvt_EnqueueType6(hitSound, hitPan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
             }
-            work->hitCooldown = Gp_GetIdParam2(s->id);
-            switch (Gp_GetIdParam0(s->id) & 0xFFFF) {
+            work->hitCooldown = Gp_GetIdParam2(s->hitKey);
+            switch (Gp_GetIdParam0(s->hitKey) & 0xFFFF) {
                 case 4:
                     work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                     state                   = work->state;
@@ -1599,7 +1599,7 @@ static void Actor01900_Fn02A50(Task* arg0)
                         work->blendActive  = 1;
                         work->blendAnimId  = 0xB;
                         work->blendRequest = ACTOR_01900_ANIM_REQUEST_RESET;
-                    } else if (work->recentDamage >= 0x4C || s->crit == 1) {
+                    } else if (work->recentDamage >= 0x4C || s->critical == 1) {
                         work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                         state                   = work->state;
                         if (state != ACTOR_01900_STATE_FALL && state != ACTOR_01900_STATE_REFALL && state != ACTOR_01900_STATE_DOWN) {
@@ -1617,7 +1617,7 @@ static void Actor01900_Fn02A50(Task* arg0)
                     break;
                 case 2:
                     work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-                    Gp_SetObjFlag2(enemy, s->id, 0);
+                    Gp_SetObjFlag2(enemy, s->hitKey, 0);
                     state = work->state;
                     if (state != ACTOR_01900_STATE_DOWN && state != ACTOR_01900_STATE_STATUS_HOLD) {
                         if (state == ACTOR_01900_STATE_RISE && work->stateTimer < 0xC) {
@@ -1634,7 +1634,7 @@ static void Actor01900_Fn02A50(Task* arg0)
                     if (work->state == ACTOR_01900_STATE_DORMANT_SCRIPTED || work->state == ACTOR_01900_STATE_PATROL) {
                         work->state = ACTOR_01900_STATE_ALERT;
                     }
-                    Gp_SetObjFlag4(enemy, s->id, 0);
+                    Gp_SetObjFlag4(enemy, s->hitKey, 0);
                     break;
                 case 1:
                     enemy->reactionFlags   &= ENEMY_REACTION_STAGGER_CLEAR;
@@ -1652,7 +1652,7 @@ static void Actor01900_Fn02A50(Task* arg0)
                     work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                     state                   = work->state;
                     if (state != ACTOR_01900_STATE_FALL && state != ACTOR_01900_STATE_REFALL && state != ACTOR_01900_STATE_STATUS_HOLD && state != ACTOR_01900_STATE_DOWN) {
-                        mag = s->yaw;
+                        mag = s->hitYaw;
                         if (mag < 0) {
                             mag = -mag;
                         }
@@ -1711,8 +1711,8 @@ static void Actor01900_Fn02A50(Task* arg0)
             }
         }
         if (enemy->hp <= 0) {
-            if (s->id != 0) {
-                if ((Gp_GetIdParam0(s->id) & 0xFFFF) == 4 || (Gp_GetIdParam0(s->id) & 0xFFFF) == 6) {
+            if (s->hitKey != 0) {
+                if ((Gp_GetIdParam0(s->hitKey) & 0xFFFF) == 4 || (Gp_GetIdParam0(s->hitKey) & 0xFFFF) == 6) {
                     if (work->animId == 2 || work->animId == 3) {
                         work->state = ACTOR_01900_STATE_DEATH_BURST_WALK;
                     } else {

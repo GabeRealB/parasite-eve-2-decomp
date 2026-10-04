@@ -2,18 +2,18 @@
 
 /// Spawn-placement message handler: seeds the work block's position and
 /// rotation from `place`, picks the start animation from `anim` (or anim 3,
-/// 2 once `field_4C4` is set) and installs it with the body of
+/// 2 once `walksForward` is set) and installs it with the body of
 /// `actorMotionPlayAnim19` written out inline. Returns 0.
 s32 reverseWalkStartMsg(Task* task, s32 arg1, ActorTransform* place, ActorMotionWalkAnim* anim)
 {
-    Actor350500Work*      work;
-    Actor350500Work*      w;
+    ReverseWalkWork*      work;
+    ReverseWalkWork*      w;
     AnimationPlayRequest  preset;
     AnimationPlayRequest* msg;
     s32                   i;
     TmdObject*            ext;
 
-    w                    = (Actor350500Work*)task->work;
+    w                    = task->work;
     w->walk.motion       = ACTOR_WALK_MOTION_WALKING;
     w->walk.motionStep   = 0;
     w->walk.target.vx    = place->pos.vx;
@@ -27,7 +27,7 @@ s32 reverseWalkStartMsg(Task* task, s32 arg1, ActorTransform* place, ActorMotion
         preset.animationId  = anim->animationId;
         w->model.nextAnimId = anim->nextAnimId;
     } else {
-        if (w->field_4C4 != 0) {
+        if (w->walksForward != 0) {
             preset.animationId = 2;
         } else {
             preset.animationId = 3;
@@ -39,7 +39,7 @@ s32 reverseWalkStartMsg(Task* task, s32 arg1, ActorTransform* place, ActorMotion
     preset.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
 
     msg  = &preset;
-    work = (Actor350500Work*)task->work;
+    work = task->work;
     ext  = task->extra.tmd;
     if (msg->source.index != work->model.bank) {
         work->model.bank   = msg->source.index;

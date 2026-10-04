@@ -8,9 +8,9 @@
 /// leaving a half-built actor behind.
 void reverseWalkSpawn(Task* arg0)
 {
-    Actor350500Work* work;
+    ReverseWalkWork* work;
 
-    work = memCalloc(sizeof(Actor350500Work), false);
+    work = memCalloc(sizeof(ReverseWalkWork), false);
     if (work == NULL) {
         enemyTaskExit(arg0);
         return;

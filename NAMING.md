@@ -263,7 +263,9 @@ hardware regions and use the full `PLAYSTATION_` macro prefix. They provide byte
 addresses, not allocation or ownership. The scratch stack in
 `include/main/scratch.h` manages temporary blocks within that region; its cursor
 access, block reservation/release helpers and byte-offset constants use
-`SCRATCH_STACK_`.
+`SCRATCH_STACK_`. `ScratchStackCursor` in the same header is the cursor slot
+seen as the one member of a structure, for the few routines that only match
+when the cursor is read and written as a member.
 
 Source basenames in this table are relative to `src/main/`. Multiple prefixes
 in a row identify different responsibilities in the same source group.
@@ -454,6 +456,20 @@ separate `src/shared/mad_chaser_waves.h`.
 The place a wave's enemy enters the room is an `OverlayEncounterSpot`, declared in
 `include/overlay.h` beside `OverlayEncounterSlot`: the two Shelter B3 rooms define
 the tables, and both the Mad Chaser and the Sucklerceph read them.
+
+`limbShadow` owns the included limb shadow drawer, `src/shared/limb_shadows.h`:
+a subtractive quad under the segment between two model parts. Its scratch block
+is `ActorLimbShadowScratch` in `include/actors/actor.h`, public because
+`actor_00100` and `actor_400600` draw the same quad with drawers of their own,
+the latter on a wall rather than the floor.
+
+`reverseWalk` owns the included nineteen-part scripted walker that can back
+toward its target, shared by `actor_350500` and `actor_350700`. Its
+implementation interface is `src/shared/reversing_walker.h`, which declares the
+task's work block `ReverseWalkWork`. `KyleMadiganWalkerWork` in
+`include/actors/actor.h` is the work block of the twenty-part Kyle Madigan
+walker that `actor_135600` and `actor_350700` each carry as their own
+functions, with the tasks of his hands and of what he holds.
 
 `desertChaser` owns the included Desert Chaser enemy, one source built three
 ways: the cutscene build (`actor_323000`, `actor_323400`), the regular build

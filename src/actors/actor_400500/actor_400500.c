@@ -1498,13 +1498,13 @@ TaskDesc D_actor_400500_80153D48[2] = {
 TaskDesc D_actor_400500_80153D60 = { { { TASK_BODY_TMD, 96 } }, func_actor_400500_8013DE98, { .model = &_gActor400500GrayStalkerBody } };
 
 ActorZone D_actor_400500_80153D6C[7] = {
-    { -1700, -0x27D8, 1700, 3200, 4 },
-    { 0, -0x27D8, 0x3BC4, 3200, 1 },
-    { 0x3A98, -0x27D8, 3000, 3200, 2 },
-    { 0x3A98, -7200, 3000, 5200, 3 },
-    { 4200, -0x2E18, 2200, 1600, 5 },
-    { 0x3A98, -2000, 3000, 1800, 6 },
-    { 0, 0, 0, 0, -1 },
+    { -1700, -10200, 1700, 3200, 4 },
+    { 0, -10200, 15300, 3200, 1 },
+    { 15000, -10200, 3000, 3200, 2 },
+    { 15000, -7200, 3000, 5200, 3 },
+    { 4200, -11800, 2200, 1600, 5 },
+    { 15000, -2000, 3000, 1800, 6 },
+    { 0, 0, 0, 0, ACTOR_ZONE_END },
 };
 
 u16 D_actor_400500_80153DB4[16] = {
@@ -2945,17 +2945,17 @@ static __inline__ s32 lookup_zone(Task* task)
     zone_id = zone->id;
     px_u    = (u16)root->coord.t[0];
     pz_u    = (u16)root->coord.t[2];
-    if (zone_id != -1) {
+    if (zone_id != ACTOR_ZONE_END) {
         px = (s16)px_u;
         pz = (s16)pz_u;
         do {
-            if ((px >= zone->x) && ((zone->x + zone->w) >= px) &&
-                (pz >= zone->z) && ((zone->z + zone->h) >= pz)) {
+            if ((px >= zone->x) && ((zone->x + zone->width) >= px) &&
+                (pz >= zone->z) && ((zone->z + zone->depth) >= pz)) {
                 return (s16)id_u;
             }
             zone++;
             id_u = (u16)zone->id;
-        } while (zone->id != -1);
+        } while (zone->id != ACTOR_ZONE_END);
     }
     return 0;
 }

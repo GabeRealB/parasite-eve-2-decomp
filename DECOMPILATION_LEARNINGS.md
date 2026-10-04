@@ -96241,12 +96241,12 @@ and insn 20's dependence list holds no link to the load at all:
 Giving the scratch head a one-field struct view marks the store `mem/s` too,
 the dependence appears, and the block schedules in source order — 100.00%:
 
-    typedef struct ActorScratchStack { u32 sp; } ActorScratchStack;
+    typedef struct { void* top; } ScratchStackCursor;
 
-    matrix = (MATRIX*)(((ActorScratchStack*)SCRATCH_STACK_CURSOR_SLOT)->sp - 0x20);
-    ((ActorScratchStack*)SCRATCH_STACK_CURSOR_SLOT)->sp = (u32)matrix;
+    matrix = (MATRIX*)((u8*)((ScratchStackCursor*)SCRATCH_STACK_CURSOR_SLOT)->top - 0x20);
+    ((ScratchStackCursor*)SCRATCH_STACK_CURSOR_SLOT)->top = matrix;
 
-`ActorScratchStack` in `include/actors/actor_100300.h` is the same trick,
+`ScratchStackCursor` in `include/main/scratch.h` is that view,
 and `Actor00300ByteView` beside it is the reverse case. So when a store and a
 nearby load disagree about `mem/s` and the scheduler swaps them, the fix is to
 make the *access form* agree, not to reorder the statements: statement order
@@ -100962,7 +100962,7 @@ while the extracted field is `s16` is the part m2c cannot infer.
 
 **Two work blocks in one overlay overlap at 0x4B8, and the shared body reads
 the other one.** This body's `index->work` is the *actor* block (0x4C8,
-`Actor350500Work`), so `field_4BA` there is a plain `u16`. It looks impossible
+`ReverseWalkWork`), so `field_4BA` there is a plain `u16`. It looks impossible
 beside `func_actor_350700_801630C0`, which stores three *words* at
 0x4B8/0x4BC/0x4C0 - but that body runs on the *controller* block, the 0x50C
 allocation `func_actor_350700_80162B30` parks in a different task's `work`
@@ -107713,7 +107713,7 @@ through `index` are **varying struct** ones. 2.8.1's
 to alias, so the scratch store at insn 20 is not a dependence of the later
 struct loads at all: insn 26 keeps only its address producer as a predecessor
 (`priority 1`, `insn_list 4`). Reading it as a component of a struct instead -
-`((ActorScratchStack*)0x1F8003FC)->sp` - sets `MEM_IN_STRUCT_P`
+`((ScratchStackCursor*)0x1F8003FC)->top` - sets `MEM_IN_STRUCT_P`
 (`expr.c`'s COMPONENT_REF path), the exemption no longer applies, the store
 becomes a predecessor, and 26 lands at priority 2:
 
@@ -107726,13 +107726,13 @@ Both spellings assemble to the same `lui`/`ori`/`lw`/`sw`; nothing in the object
 dump distinguishes them. Only the schedule does.
 
 **Fix.** Name the head as the overlay's own one-word struct, as the sibling
-overlays already do (`ActorScratchStack`, `ActorScratchStack`):
+overlays already do (`ScratchStackCursor` in `include/main/scratch.h`):
 
 ```c
-typedef struct { u32 sp; } ActorScratchStack;
+typedef struct { void* top; } ScratchStackCursor;
 
-matrix                                    = (MATRIX*)(((ActorScratchStack*)0x1F8003FC)->sp - 0x20);
-((ActorScratchStack*)0x1F8003FC)->sp = (u32)matrix;
+matrix                                 = (MATRIX*)((u8*)((ScratchStackCursor*)0x1F8003FC)->top - 0x20);
+((ScratchStackCursor*)0x1F8003FC)->top = matrix;
 ```
 
 100.000% on the next build, `reorder=0 regs=0`. The **pop** at the end of the
@@ -128366,7 +128366,7 @@ other temps (`VECTOR`+`SVECTOR` args, then a 5-word anim preset) own sp+0x10 and
 sp+0x28, and the declaration order is what puts them there. So the offsets need
 one declaration order and the address wants no pseudo, and only the second is
 negotiable. `actors_shared_8013231c.h`'s key block and the offset arithmetic are
-in `Actor135600Work`'s header; the fix is the corpus's usual barrier idiom, used
+in `KyleMadiganWalkerWork`'s header; the fix is the corpus's usual barrier idiom, used
 in `actorTintEffect` and `func_actor_450800_80132160` for this same call
 pair:
 
@@ -136221,7 +136221,7 @@ Gp_SpawnEff(effect, &effectCoord[8], kind, offset);
 
 The controlled base_4 prediction required both earlier copy placement and unchanged argument homes/delay-slot fill. `.greg` shows copy UID403 before touch UID71 and null UID74; `.sched2` preserves that order and grouped asm UID76 before addiu UID83; `.dbr` puts UID83 in call UID89's delay slot. All penalties became zero. This is a dependency and reload-placement experiment, not evidence that the original source used empty asm. Output coalescing must be checked for each call; no physical register is pinned here.
 
-The port reuses `ActorScratchStack.sp`. Its fixed member access also matters: base_1's scalar scratch store was absent from the work load's scheduler dependencies; base_2's member store UID21 became a dependency of work-load UID24 and restored the prologue. This confirms the existing MEM_IN_STRUCT rule, without changing it.
+The port reuses `ScratchStackCursor.top`. Its fixed member access also matters: base_1's scalar scratch store was absent from the work load's scheduler dependencies; base_2's member store UID21 became a dependency of work-load UID24 and restored the prologue. This confirms the existing MEM_IN_STRUCT rule, without changing it.
 
 Evidence: `tools/permuter_findings/func_actor_521100_80133104/` retains session sources and compressed inputs; selected dumps are under `PERMUTER_EVIDENCE/4e43c88700eb4b09/analysis/manual/`. The router missed; these gains are manual experiments. Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`; base_3 input `d1a901aab076a90787ad2591cbcb3be5f88c62177db371c99ce14d4fb76731b5`; controlled base_4 input `cbc7dc155ee9d2865608905f5f88a033a26bae75b8ccbcf8b8920c4ab42aee9f`. The readable base_5 port remained exact and passed the full unscoped build.
 

@@ -71,7 +71,7 @@ static const TaskFuncTable3 D_actor_350700_80161E24 = { {
     reverseWalkExit,
 } };
 
-/// Tick handlers of the enemy actor, indexed by `Actor350500Work::walk.motionStep`:
+/// Tick handlers of the enemy actor, indexed by `ReverseWalkWork::walk.motionStep`:
 /// turn to face `target`, start moving, approach until arrival, then turn to
 /// the placement yaw.
 static const TaskFuncTable4 D_actor_350700_80161E30 = { {
@@ -570,10 +570,10 @@ void reverseWalkExit(Task* arg0)
 void reverseWalkBindLighting(Task* arg0)
 {
     TmdObject*       ext;
-    Actor350500Work* work;
+    ReverseWalkWork* work;
 
     ext           = arg0->extra.tmd;
-    work          = (Actor350500Work*)arg0->work;
+    work          = arg0->work;
     ext->lightMtx = &work->model.light;
     ext->colorMtx = &work->model.color;
 }
@@ -588,9 +588,9 @@ void reverseWalkIdle(Task* arg0)
 void reverseWalkRunStep(Task* arg0)
 {
     TaskFuncTable4   handlers;
-    Actor350500Work* work;
+    ReverseWalkWork* work;
 
-    work     = (Actor350500Work*)arg0->work;
+    work     = arg0->work;
     handlers = D_actor_350700_80161E30;
     handlers.funcs[work->walk.motionStep](arg0);
 }
@@ -607,28 +607,28 @@ void reverseWalkRunStep(Task* arg0)
 
 #include "../../shared/reversing_walker_visibility.inc.c"
 
-/// `taskMessageDispatch` handler: latches the variant the message's halfword at
-/// 0x2 selects into `field_4C4` -- 1 clears it, 2 sets it, anything else
-/// leaves it. Always returns 0.
+/// `taskMessageDispatch` handler: latches the walk direction the message's
+/// command selects into `walksForward` -- 1 clears it, so the walker backs
+/// toward its targets, 2 sets it, anything else leaves it. Always returns 0.
 s32 func_actor_350700_80162AF4(Task* task, s32 arg1, ActorCommand* msg, s32 arg3)
 {
-    Actor350500Work* work;
+    ReverseWalkWork* work;
 
-    work = (Actor350500Work*)task->work;
+    work = task->work;
     switch (msg->command) {
         case 1:
-            work->field_4C4 = 0;
+            work->walksForward = 0;
             break;
         case 2:
-            work->field_4C4 = 1;
+            work->walksForward = 1;
             break;
     }
     return 0;
 }
 
-/// The parent's spawn handler. Allocates the 0x50C `Actor135600Work` block, seeds it, and spawns the
+/// The parent's spawn handler. Allocates the 0x50C `KyleMadiganWalkerWork` block, seeds it, and spawns the
 /// three children `D_actor_350700_801708DC` holds -- table entries 1, 2 and 3 --
-/// parking them at `child0` / `child1` / `child2`. The first two are
+/// parking them at `handTasks` and `heldItemTask`. The first two are
 /// models: each has `TmdObject::texturePageOffset` / `clutRowOffset` loaded with the texture
 /// page and CLUT row of the `AreaPlacement` that entry selects, reached through
 /// the area key `&gGameSession->location.loc` and indexed by the model id the child's
@@ -639,13 +639,13 @@ s32 func_actor_350700_80162AF4(Task* task, s32 arg1, ActorCommand* msg, s32 arg3
 /// callback.
 static void func_actor_350700_80162B30(Task* arg0)
 {
-    Actor135600Work* work;
-    GameLocationKey  key;
-    GameLocationKey* sessionKey;
-    GameLocationKey* keyAddr;
-    Task*            spawned;
+    KyleMadiganWalkerWork* work;
+    GameLocationKey        key;
+    GameLocationKey*       sessionKey;
+    GameLocationKey*       keyAddr;
+    Task*                  spawned;
 
-    work = memCalloc(0x50C, false);
+    work = memCalloc(sizeof(KyleMadiganWalkerWork), false);
     if (work == NULL) {
         enemyTaskExit(arg0);
         return;
@@ -664,14 +664,14 @@ static void func_actor_350700_80162B30(Task* arg0)
         AreaPlacement* place;
         s32            idx;
 
-        work->child0 = spawned;
-        model        = spawned->extra.tmd;
-        idx          = ((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
-        sessionKey   = &gGameSession->location.loc;
-        key.stage    = sessionKey->stage;
-        key.area     = sessionKey->area;
-        key.room     = sessionKey->room;
-        key.view     = sessionKey->view;
+        work->handTasks[0] = spawned;
+        model              = spawned->extra.tmd;
+        idx                = ((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
+        sessionKey         = &gGameSession->location.loc;
+        key.stage          = sessionKey->stage;
+        key.area           = sessionKey->area;
+        key.room           = sessionKey->room;
+        key.view           = sessionKey->view;
         areaSyncLocationVariant(&key);
         layout                   = Gp_GetNestedAreaRec(&key);
         place                    = gpAreaPlaceAt(layout->placements, idx);
@@ -689,9 +689,9 @@ static void func_actor_350700_80162B30(Task* arg0)
         AreaPlacement* place;
         s32            idx;
 
-        work->child1 = spawned;
-        model        = spawned->extra.tmd;
-        idx          = ((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
+        work->handTasks[1] = spawned;
+        model              = spawned->extra.tmd;
+        idx                = ((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
         // Keep this block's key address separate across the spawn calls.
         sessionKey = (keyAddr = &gGameSession->location.loc);
         key.stage  = sessionKey->stage;
@@ -710,7 +710,7 @@ static void func_actor_350700_80162B30(Task* arg0)
     }
     spawned = Task_SpawnFromTable(D_actor_350700_801708DC, 3, 8, arg0);
     if (spawned != NULL) {
-        work->child2 = spawned;
+        work->heldItemTask = spawned;
     }
     func_actor_350700_801633DC(arg0);
     arg0->msgTable     = D_actor_350700_8017090C;
@@ -733,12 +733,12 @@ static void func_actor_350700_80162B30(Task* arg0)
 /// init's -1 disables it.
 static void func_actor_350700_80162D5C(Task* arg0)
 {
-    TmdObject*       ext      = arg0->extra.tmd;
-    Actor135600Work* work     = (Actor135600Work*)arg0->work;
-    TaskFunc         funcs[2] = { func_actor_350700_801633F8, func_actor_350700_80163400 };
-    VECTOR3          pos;
-    GfxCoord*        coord;
-    s32              i;
+    TmdObject*             ext      = arg0->extra.tmd;
+    KyleMadiganWalkerWork* work     = arg0->work;
+    TaskFunc               funcs[2] = { func_actor_350700_801633F8, func_actor_350700_80163400 };
+    VECTOR3                pos;
+    GfxCoord*              coord;
+    s32                    i;
 
     funcs[work->walk.motion](arg0);
     coord                     = arg0->extra.tmd->coords;
@@ -823,17 +823,17 @@ static void func_actor_350700_801633BC(Task* arg0)
 /// lighting.
 static void func_actor_350700_801633DC(Task* task)
 {
-    TmdObject*       ext;
-    Actor135600Work* work;
+    TmdObject*             ext;
+    KyleMadiganWalkerWork* work;
 
     ext           = task->extra.tmd;
-    work          = (Actor135600Work*)task->work;
+    work          = task->work;
     ext->lightMtx = &work->model.light;
     ext->colorMtx = &work->model.color;
 }
 
 /// The empty first entry of the parent's two-handler table, selected by
-/// `Actor135600Work::walk.motion` -- the idle half of the pair whose other
+/// `KyleMadiganWalkerWork::walk.motion` -- the idle half of the pair whose other
 /// entry is the step dispatcher `func_actor_350700_80163400`.
 static void func_actor_350700_801633F8(Task* arg0)
 {
@@ -844,10 +844,10 @@ static void func_actor_350700_801633F8(Task* arg0)
 /// selects.
 static void func_actor_350700_80163400(Task* task)
 {
-    Actor135600Work* work;
-    TaskFuncTable4   handlers;
+    KyleMadiganWalkerWork* work;
+    TaskFuncTable4         handlers;
 
-    work     = (Actor135600Work*)task->work;
+    work     = task->work;
     handlers = D_actor_350700_80161E68;
     handlers.funcs[work->walk.motionStep](task);
 }
@@ -860,12 +860,12 @@ static void func_actor_350700_80163400(Task* task)
 /// step.
 static void func_actor_350700_80163528(Task* task)
 {
-    Actor135600Work* work;
-    GfxCoord*        coord;
-    VECTOR           vec;
+    KyleMadiganWalkerWork* work;
+    GfxCoord*              coord;
+    VECTOR                 vec;
 
     coord = task->extra.tmd->coords;
-    work  = (Actor135600Work*)task->work;
+    work  = task->work;
 
     vec = D_actor_350700_80161E78;
     ApplyMatrixLV(&coord->coord, &vec, &work->walk.velocity);
@@ -887,25 +887,25 @@ static void func_actor_350700_80163528(Task* task)
 /// `taskMessageDispatch` handler: the four-way visibility/mode switch on the
 /// message's mode word, run against the `TmdObject` parked in `Task::extra`,
 /// then the resulting flags are republished onto the objects of the three
-/// child tasks the spawn handler parked at `child0` / `child1` /
-/// `child2`. The modes are those of `reverseWalkVisibilityMsg`, the
+/// child tasks the spawn handler parked at `handTasks` and `heldItemTask`.
+/// The modes are those of `reverseWalkVisibilityMsg`, the
 /// countdown mode 2 latches being `freeCountdown`. Anything else returns 1 and
 /// leaves the object alone; the handled modes return 0.
 s32 func_actor_350700_80163840(Task* task, s32 arg1, s32 mode, s32 arg3)
 {
-    Actor135600Work* work;
-    TmdObject*       obj;
-    TmdObject*       objA;
-    TmdObject*       objB;
-    TmdObject*       objC;
-    u16              flags;
-    s32              ret;
+    KyleMadiganWalkerWork* work;
+    TmdObject*             obj;
+    TmdObject*             objA;
+    TmdObject*             objB;
+    TmdObject*             objC;
+    u16                    flags;
+    s32                    ret;
 
-    work = (Actor135600Work*)task->work;
+    work = task->work;
     obj  = task->extra.tmd;
-    objA = work->child0->extra.tmd;
-    objB = work->child1->extra.tmd;
-    objC = work->child2->extra.tmd;
+    objA = work->handTasks[0]->extra.tmd;
+    objB = work->handTasks[1]->extra.tmd;
+    objC = work->heldItemTask->extra.tmd;
     ret  = 0;
     switch (mode) {
         case 0:

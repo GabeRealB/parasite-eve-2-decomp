@@ -28,6 +28,21 @@ enum { SCRATCH_STACK_HEAD_BYTE_OFFSET = 0x3FC };
 /// lifetime checks are provided; released blocks must not remain in use.
 #define SCRATCH_STACK_CURSOR_SLOT ((void**)PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET))
 
+/// The scratch-stack cursor slot seen as the one member of a structure.
+///
+/// Cast `SCRATCH_STACK_CURSOR_SLOT` to a pointer to this type and reach the
+/// cursor as `top`. The slot, the value it holds and every rule of
+/// `SCRATCH_STACK_CURSOR` are unchanged; what differs is how the compiler
+/// classifies the access. It treats a member reference as an access into an
+/// aggregate and a dereference of a constant scalar address as a lone
+/// object, and it orders the loads and stores around the two differently. A
+/// few routines only reproduce the original instruction order with the
+/// cursor read and written as a member; everything else uses the macros.
+typedef struct {
+    void* top; // Address of the current top block, or of the slot itself while the stack is empty
+} ScratchStackCursor;
+STATIC_ASSERT_SIZEOF(ScratchStackCursor, 0x4);
+
 /// Writable `type*` view of the shared downward-growing scratch-stack cursor.
 ///
 /// `type` is a pointee type valid in a `type**` cast; use `void` for an

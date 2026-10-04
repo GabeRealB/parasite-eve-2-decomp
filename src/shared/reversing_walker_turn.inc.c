@@ -10,7 +10,7 @@
 /// `actorRenderComposeCoordChain` picks up once `composeStamp` is cleared.
 void reverseWalkTurnToYaw(Task* arg0)
 {
-    Actor350500Work*     work;
+    ReverseWalkWork*     work;
     GfxRotationWords*    words;
     GfxCoord*            coord;
     SVECTOR              vec;
@@ -19,7 +19,7 @@ void reverseWalkTurnToYaw(Task* arg0)
     s16                  diff;
 
     coord = arg0->extra.tmd->coords;
-    work  = (Actor350500Work*)arg0->work;
+    work  = arg0->work;
 
     gfxExtractSmallestEuler(&vec, &coord->coord);
     diff = (u16)work->walk.targetRot.vy - (u16)vec.vy;

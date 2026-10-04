@@ -2238,7 +2238,7 @@ static void func_actor_521100_80132DE8(Task* arg0)
     SCRATCH_STACK_RELEASE_BYTES(0x10);
 }
 
-/// The scratch head is taken through `ActorScratchStack` rather than as
+/// The scratch head is taken through `ScratchStackCursor` rather than as
 /// `SCRATCH_STACK_CURSOR`, which does not compile the same.
 static void func_actor_521100_80133104(Task* arg0)
 {
@@ -2263,9 +2263,9 @@ static void func_actor_521100_80133104(Task* arg0)
     u32              rng;
     Actor521100Work* work;
 
-    head                                                  = ((ActorScratchStack*)SCRATCH_STACK_CURSOR_SLOT)->head;
+    head                                                  = ((ScratchStackCursor*)SCRATCH_STACK_CURSOR_SLOT)->top;
     vec                                                   = head - 1;
-    ((ActorScratchStack*)SCRATCH_STACK_CURSOR_SLOT)->head = vec;
+    ((ScratchStackCursor*)SCRATCH_STACK_CURSOR_SLOT)->top = vec;
     work                                                  = arg0->work;
     frame                                                 = work->animationFrame;
     clipPtr                                               = &D_actor_521100_8015F894[work->animationId];
@@ -2322,7 +2322,7 @@ static void func_actor_521100_80133104(Task* arg0)
         work->attackLive   = 0;
         work->stateCounter = part;
     }
-    ((ActorScratchStack*)SCRATCH_STACK_CURSOR_SLOT)->head = (SVECTOR*)((ActorScratchStack*)SCRATCH_STACK_CURSOR_SLOT)->head + 1;
+    SCRATCH_POP_AT(&((ScratchStackCursor*)SCRATCH_STACK_CURSOR_SLOT)->top, SVECTOR);
 }
 
 /// Runs one frame of the burn-out sequence timed off the clip the slots are

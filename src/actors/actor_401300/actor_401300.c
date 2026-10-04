@@ -2452,17 +2452,17 @@ static void func_actor_401300_80134F90(Task* arg0)
     enemy = arg0->spawnArg2.pointer;
     work  = arg0->work;
     if (enemy->hp > 0 && (work->state != ACTOR_401300_STATE_WITHDRAW || work->animId != 0x20)) {
-        head  = SCRATCH_STACK_CURSOR(ActorHitScratch);
-        s     = (SCRATCH_STACK_CURSOR(ActorHitScratch) = head - 1);
-        s->id = actorFindHit(&head[-1].hitPos, work->hitContacts);
-        if (s->id == 0) {
-            s->id = actorFindHit(&s->hitPos, work->gridContacts);
+        head      = SCRATCH_STACK_CURSOR(ActorHitScratch);
+        s         = (SCRATCH_STACK_CURSOR(ActorHitScratch) = head - 1);
+        s->hitKey = actorFindHit(&head[-1].hitPos, work->hitContacts);
+        if (s->hitKey == 0) {
+            s->hitKey = actorFindHit(&s->hitPos, work->gridContacts);
         }
-        if (s->id != 0) {
+        if (s->hitKey != 0) {
             work->field_D1C      = 0;
             work->sidestepCount  = 0;
             work->hitBody.radius = 0x280;
-            if (s->id & 0x8000) {
+            if (s->hitKey & 0x8000) {
                 player       = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                 s->hitPos.vx = player->extra.tmd->coords->workm.t[0];
                 s->hitPos.vy = player->extra.tmd->coords->workm.t[1];
@@ -2470,25 +2470,25 @@ static void func_actor_401300_80134F90(Task* arg0)
             }
             arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(arg0->extra.tmd->coords);
-            s->dir.vx = s->hitPos.vx - arg0->extra.tmd->coords->workm.t[0];
-            s->dir.vy = s->hitPos.vy - arg0->extra.tmd->coords->workm.t[1];
-            z         = s->hitPos.vz - arg0->extra.tmd->coords->workm.t[2];
-            s->dir.vz = z;
-            yaw       = ratan2(s->dir.vx, z);
-            coord     = arg0->extra.tmd->coords;
-            s->yaw    = yaw - ratan2(-coord->workm.m[2][0], coord->workm.m[2][2]);
-            s->yaw    = actorNormalizeYaw(s->yaw);
-            func_actor_401300_80134BA4(arg0, s->yaw, s->id);
+            s->hitOffset.vx = s->hitPos.vx - arg0->extra.tmd->coords->workm.t[0];
+            s->hitOffset.vy = s->hitPos.vy - arg0->extra.tmd->coords->workm.t[1];
+            z               = s->hitPos.vz - arg0->extra.tmd->coords->workm.t[2];
+            s->hitOffset.vz = z;
+            yaw             = ratan2(s->hitOffset.vx, z);
+            coord           = arg0->extra.tmd->coords;
+            s->hitYaw       = yaw - ratan2(-coord->workm.m[2][0], coord->workm.m[2][2]);
+            s->hitYaw       = actorNormalizeYaw(s->hitYaw);
+            func_actor_401300_80134BA4(arg0, s->hitYaw, s->hitKey);
             work->lookYaw       = 0;
             work->lookYawTarget = 0;
-            s->effect           = -1;
+            s->criticalEffect   = -1;
             state               = work->state;
             if (state != ACTOR_401300_STATE_FALL_BACK && state != ACTOR_401300_STATE_FALL_FRONT && state != ACTOR_401300_STATE_REFALL_BACK && state != ACTOR_401300_STATE_REFALL_FRONT && state != ACTOR_401300_STATE_DOWN && state != ACTOR_401300_STATE_RISE_BACK && state != ACTOR_401300_STATE_RISE_FRONT &&
                 state != ACTOR_401300_STATE_WOUNDED && state != ACTOR_401300_STATE_STATUS_HOLD) {
-                s->m = arg0->extra.tmd->coords->coord;
-                gfxRotMatrixY(&s->m, s->yaw, 0);
-                dir = &s->dir;
-                gfxReadMatrixZAxis(&s->m, dir);
+                s->towardHit = arg0->extra.tmd->coords->coord;
+                gfxRotMatrixY(&s->towardHit, s->hitYaw, 0);
+                dir = &s->hitOffset;
+                gfxReadMatrixZAxis(&s->towardHit, dir);
                 VectorNormalSS(dir, dir);
                 if (work->blendActive == 1) {
                     gte_lddp(-5);
@@ -2501,27 +2501,27 @@ static void func_actor_401300_80134F90(Task* arg0)
                     gte_gpf12();
                     gte_stsv(dir);
                 }
-                arg0->extra.tmd->coords->coord.t[0]  += s->dir.vx;
-                arg0->extra.tmd->coords->coord.t[1]  += s->dir.vy;
-                arg0->extra.tmd->coords->coord.t[2]  += s->dir.vz;
+                arg0->extra.tmd->coords->coord.t[0]  += s->hitOffset.vx;
+                arg0->extra.tmd->coords->coord.t[1]  += s->hitOffset.vy;
+                arg0->extra.tmd->coords->coord.t[2]  += s->hitOffset.vz;
                 arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
             }
-            dx        = config->coordMtx->t[0] - arg0->extra.tmd->coords->coord.t[0];
-            s->dx     = dx;
-            dy        = config->coordMtx->t[1] - arg0->extra.tmd->coords->coord.t[1];
-            s->dy     = dy;
-            dz        = config->coordMtx->t[2] - arg0->extra.tmd->coords->coord.t[2];
-            s->dz     = dz;
-            s->dist   = SquareRoot0(dx * dx + dy * dy + dz * dz);
-            s->damage = Gp_ComputeDamage(s->id, s->dist, 0, 0);
-            if (Gp_RollEnemyChance(enemy, s->id, 0) != 0) {
-                s->crit    = 1;
-                s->effect  = 0;
-                s->damage *= 4;
+            dx                = config->coordMtx->t[0] - arg0->extra.tmd->coords->coord.t[0];
+            s->toPlayer.vx    = dx;
+            dy                = config->coordMtx->t[1] - arg0->extra.tmd->coords->coord.t[1];
+            s->toPlayer.vy    = dy;
+            dz                = config->coordMtx->t[2] - arg0->extra.tmd->coords->coord.t[2];
+            s->toPlayer.vz    = dz;
+            s->playerDistance = SquareRoot0(dx * dx + dy * dy + dz * dz);
+            s->damage         = Gp_ComputeDamage(s->hitKey, s->playerDistance, 0, 0);
+            if (Gp_RollEnemyChance(enemy, s->hitKey, 0) != 0) {
+                s->critical       = 1;
+                s->criticalEffect = 0;
+                s->damage        *= 4;
             } else {
-                s->crit = 0;
+                s->critical = 0;
             }
-            mag = s->yaw;
+            mag = s->hitYaw;
             if (mag < 0) {
                 mag = -mag;
             }
@@ -2532,13 +2532,13 @@ static void func_actor_401300_80134F90(Task* arg0)
                         damage    = s->damage * 2;
                         s->damage = damage;
                         if (damage != 0) {
-                            s->effect = 4;
+                            s->criticalEffect = 4;
                         }
                     }
                 }
             }
-            func_800E2C78(enemy, s->id, s->damage, 0);
-            effect = s->effect;
+            func_800E2C78(enemy, s->hitKey, s->damage, 0);
+            effect = s->criticalEffect;
             if (effect != -1) {
                 Gp_SpawnEff(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[2], (s32)(effect), NULL);
             }
@@ -2559,12 +2559,12 @@ static void func_actor_401300_80134F90(Task* arg0)
                 hitPan   = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
                 SndEvt_EnqueueType6(hitSound, hitPan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
             }
-            work->hitCooldown = Gp_GetIdParam2(s->id);
-            switch (Gp_GetIdParam0(s->id) & 0xFFFF) {
+            work->hitCooldown = Gp_GetIdParam2(s->hitKey);
+            switch (Gp_GetIdParam0(s->hitKey) & 0xFFFF) {
                 case 4:
                     state = work->state;
                     if (state != ACTOR_401300_STATE_FALL_BACK && state != ACTOR_401300_STATE_FALL_FRONT && state != ACTOR_401300_STATE_REFALL_BACK && state != ACTOR_401300_STATE_REFALL_FRONT && state != ACTOR_401300_STATE_WOUNDED && state != ACTOR_401300_STATE_STATUS_HOLD && state != ACTOR_401300_STATE_DOWN) {
-                        mag = s->yaw;
+                        mag = s->hitYaw;
                         if (mag < 0) {
                             mag = -mag;
                         }
@@ -2593,7 +2593,7 @@ static void func_actor_401300_80134F90(Task* arg0)
                                 work->blendAnimId = 0x22;
                             }
                             work->blendRequest = ACTOR_401300_ANIM_REQUEST_RESET;
-                        } else if (s->crit == 1) {
+                        } else if (s->critical == 1) {
                             if (work->state != ACTOR_401300_STATE_STATUS_HOLD && work->state != ACTOR_401300_STATE_WOUNDED && work->state != ACTOR_401300_STATE_DOWN) {
                                 work->state = ACTOR_401300_STATE_FLINCH;
                             }
@@ -2605,13 +2605,13 @@ static void func_actor_401300_80134F90(Task* arg0)
                     }
                     break;
                 case 2:
-                    Gp_SetObjFlag2(enemy, s->id, 0);
+                    Gp_SetObjFlag2(enemy, s->hitKey, 0);
                     state = work->state;
                     if (state == ACTOR_401300_STATE_DOWN || state == ACTOR_401300_STATE_WOUNDED || state == ACTOR_401300_STATE_STATUS_HOLD) {
                         work->state     = ACTOR_401300_STATE_STATUS_HOLD;
                         work->prevState = -1;
                     } else {
-                        mag = s->yaw;
+                        mag = s->hitYaw;
                         if (mag < 0) {
                             mag = -mag;
                         }
@@ -2627,7 +2627,7 @@ static void func_actor_401300_80134F90(Task* arg0)
                     if (state == ACTOR_401300_STATE_PATROL || state == ACTOR_401300_STATE_DORMANT || state == ACTOR_401300_STATE_DORMANT_SCRIPTED) {
                         work->state = ACTOR_401300_STATE_FLINCH;
                     }
-                    Gp_SetObjFlag4(enemy, s->id, 0);
+                    Gp_SetObjFlag4(enemy, s->hitKey, 0);
                     break;
                 case 1:
                     enemy->reactionFlags &= ENEMY_REACTION_STAGGER_CLEAR;
@@ -2638,7 +2638,7 @@ static void func_actor_401300_80134F90(Task* arg0)
                         } else if (work->state == ACTOR_401300_STATE_RISE_FRONT && work->stateTimer < 0xC) {
                             work->state = ACTOR_401300_STATE_REFALL_FRONT;
                         } else {
-                            mag = s->yaw;
+                            mag = s->hitYaw;
                             if (mag < 0) {
                                 mag = -mag;
                             }
@@ -2685,8 +2685,8 @@ static void func_actor_401300_80134F90(Task* arg0)
             }
         }
         if (enemy->hp <= 0) {
-            if (s->id != 0) {
-                if ((Gp_GetIdParam0(s->id) & 0xFFFF) == 4) {
+            if (s->hitKey != 0) {
+                if ((Gp_GetIdParam0(s->hitKey) & 0xFFFF) == 4) {
                     state = work->animId;
                     if (state == 2 || state == 3 || state == 0x1B || state == 0x1C || state == 0x1D) {
                         work->state = ACTOR_401300_STATE_DEATH_BURST_WALK;
@@ -2703,7 +2703,7 @@ static void func_actor_401300_80134F90(Task* arg0)
                             work->state     = ACTOR_401300_STATE_REFALL_FRONT;
                             work->prevState = -1;
                         } else {
-                            mag = s->yaw;
+                            mag = s->hitYaw;
                             if (mag < 0) {
                                 mag = -mag;
                             }
@@ -5083,17 +5083,17 @@ static __inline__ void Actor401300_ScaleMatrix(MATRIX* m, s16 scale)
     blk->scale.vy                                 = scale;
     head[-1].scale.vx                             = scale;
     ScaleMatrix(m, &blk->scale);
-    blk->trans.vx = m->t[0];
-    blk->trans.vy = m->t[1];
-    blk->trans.vz = m->t[2];
+    blk->translation.vx = m->t[0];
+    blk->translation.vy = m->t[1];
+    blk->translation.vz = m->t[2];
     gte_lddp(scale);
-    gte_ldsv(&blk->trans);
+    gte_ldsv(&blk->translation);
     gte_gpf12();
-    gte_stsv(&blk->trans);
-    m->t[0] = blk->trans.vx;
-    m->t[1] = blk->trans.vy;
+    gte_stsv(&blk->translation);
+    m->t[0] = blk->translation.vx;
+    m->t[1] = blk->translation.vy;
     SCRATCH_STACK_RELEASE_BLOCK(ActorScaleMatrixScratch);
-    m->t[2] = blk->trans.vz;
+    m->t[2] = blk->translation.vz;
 }
 
 static void func_actor_401300_8013F628(Task* arg0)
@@ -5230,7 +5230,7 @@ static void func_actor_401300_8013F628(Task* arg0)
             work->state = ACTOR_401300_STATE_PATROL;
             break;
     }
-    SCRATCH_STACK_RELEASE_BLOCK(ActorScaleMatrixScratch);
+    SCRATCH_STACK_RELEASE_BYTES(3 * sizeof(SVECTOR));
 }
 
 static void func_actor_401300_80140300(Task* arg0)

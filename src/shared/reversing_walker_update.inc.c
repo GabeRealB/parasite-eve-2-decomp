@@ -11,7 +11,7 @@
 void reverseWalkUpdate(Task* arg0)
 {
     TmdObject*       ext      = arg0->extra.tmd;
-    Actor350500Work* work     = (Actor350500Work*)arg0->work;
+    ReverseWalkWork* work     = arg0->work;
     TaskFunc         funcs[2] = { reverseWalkIdle, reverseWalkRunStep };
     VECTOR3          pos;
     GfxCoord*        coord;

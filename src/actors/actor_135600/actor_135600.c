@@ -98,7 +98,7 @@ static const TaskFuncTable3 D_actor_135600_80131E3C = { {
 } };
 
 /// Step handlers of the motion sequence, indexed by
-/// `Actor135600Work::walk.motionStep`: turn to face `target`, start walking forward,
+/// `KyleMadiganWalkerWork::walk.motionStep`: turn to face `target`, start walking forward,
 /// walk until arrival, then turn to the placement yaw.
 static const TaskFuncTable4 D_actor_135600_80131E48 = { {
     actorMotionFaceTarget,
@@ -760,12 +760,12 @@ static s32 func_actor_135600_80131E68(GfxCoord* coord, s32 arg1)
 /// steps to the tick state.
 static void func_actor_135600_80132234(Task* task)
 {
-    Actor135600Work*     work;
-    Task*                spawned;
-    ActorTransform       args;
-    AnimationPlayRequest preset;
+    KyleMadiganWalkerWork* work;
+    Task*                  spawned;
+    ActorTransform         args;
+    AnimationPlayRequest   preset;
 
-    work = memCalloc(0x50C, false);
+    work = memCalloc(sizeof(KyleMadiganWalkerWork), false);
     if (work == NULL) {
         enemyTaskExit(task);
         return;
@@ -780,19 +780,19 @@ static void func_actor_135600_80132234(Task* task)
 
     spawned = Task_SpawnFromTable(D_actor_135600_8013B0C4, 1, 8, task);
     if (spawned != NULL) {
-        work->child1 = spawned;
+        work->handTasks[1] = spawned;
         actorTintModel(spawned->extra.tmd, (Enemy*)task->spawnArg2.pointer);
     }
 
     spawned = Task_SpawnFromTable(D_actor_135600_8013B0C4, 2, 0xC, task);
     if (spawned != NULL) {
-        work->child0 = spawned;
+        work->handTasks[0] = spawned;
         actorTintModel(spawned->extra.tmd, (Enemy*)task->spawnArg2.pointer);
     }
 
     spawned = Task_SpawnFromTable(D_actor_135600_8013B0C4, 3, 8, task);
     if (spawned != NULL) {
-        work->child2 = spawned;
+        work->heldItemTask = spawned;
     }
 
     func_actor_135600_80132DDC(task);
@@ -827,12 +827,12 @@ static void func_actor_135600_80132234(Task* task)
 /// down while non-negative, freeing the model's buffers when it reaches zero.
 static void func_actor_135600_801324D0(Task* arg0)
 {
-    TmdObject*       ext      = arg0->extra.tmd;
-    Actor135600Work* work     = (Actor135600Work*)arg0->work;
-    TaskFunc         funcs[2] = { func_actor_135600_80132DF8, func_actor_135600_80132E00 };
-    VECTOR3          pos;
-    GfxCoord*        coord;
-    s32              i;
+    TmdObject*             ext      = arg0->extra.tmd;
+    KyleMadiganWalkerWork* work     = arg0->work;
+    TaskFunc               funcs[2] = { func_actor_135600_80132DF8, func_actor_135600_80132E00 };
+    VECTOR3                pos;
+    GfxCoord*              coord;
+    s32                    i;
 
     if (!(ext->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
         if (func_800EA1A8(MATRIX_TRANS(&arg0->extra.tmd->coords[1].workm), &pos) != 0) {
@@ -1019,11 +1019,11 @@ static void func_actor_135600_80132DBC(Task* task)
 /// Points the model's light and colour matrices at the work block's own pair.
 static void func_actor_135600_80132DDC(Task* task)
 {
-    TmdObject*       ext;
-    Actor135600Work* work;
+    TmdObject*             ext;
+    KyleMadiganWalkerWork* work;
 
     ext           = task->extra.tmd;
-    work          = (Actor135600Work*)task->work;
+    work          = task->work;
     ext->lightMtx = &work->model.light;
     ext->colorMtx = &work->model.color;
 }
@@ -1038,10 +1038,10 @@ static void func_actor_135600_80132DF8(Task* arg0)
 /// `D_actor_135600_80131E48` that `walk.motionStep` selects.
 static void func_actor_135600_80132E00(Task* task)
 {
-    Actor135600Work* work;
-    TaskFuncTable4   handlers;
+    KyleMadiganWalkerWork* work;
+    TaskFuncTable4         handlers;
 
-    work     = (Actor135600Work*)task->work;
+    work     = task->work;
     handlers = D_actor_135600_80131E48;
     handlers.funcs[work->walk.motionStep](task);
 }
@@ -1053,12 +1053,12 @@ static void func_actor_135600_80132E00(Task* task)
 /// `ACTOR_WALK_DISTANCE_NONE` and advances the step.
 static void func_actor_135600_80132F28(Task* task)
 {
-    Actor135600Work* work;
-    GfxCoord*        coord;
-    VECTOR           vec;
+    KyleMadiganWalkerWork* work;
+    GfxCoord*              coord;
+    VECTOR                 vec;
 
     coord = task->extra.tmd->coords;
-    work  = (Actor135600Work*)task->work;
+    work  = task->work;
 
     vec = D_actor_135600_80131E58;
     ApplyMatrixLV(&coord->coord, &vec, &work->walk.velocity);
@@ -1082,21 +1082,21 @@ static void func_actor_135600_80132F28(Task* task)
 /// `freeCountdown` countdown at 2, and 3 shows it while setting `TMD_OBJECT_SKIP_AUTO_BUFFER`. Anything else
 /// returns 1 and leaves the flags alone; the handled modes return 0. Either
 /// way the resulting flags are copied onto the objects of the three tasks the
-/// setup state parked at `child0` / `child1` / `child2`.
+/// setup state parked at `handTasks` and `heldItemTask`.
 s32 func_actor_135600_80133240(Task* task, s32 msgId, s32 mode, s32 arg3)
 {
-    Actor135600Work* work;
-    TmdObject*       obj;
-    TmdObject*       objA;
-    TmdObject*       objB;
-    TmdObject*       objC;
-    s32              ret;
+    KyleMadiganWalkerWork* work;
+    TmdObject*             obj;
+    TmdObject*             objA;
+    TmdObject*             objB;
+    TmdObject*             objC;
+    s32                    ret;
 
-    work = (Actor135600Work*)task->work;
+    work = task->work;
     obj  = task->extra.tmd;
-    objB = work->child1->extra.tmd;
-    objA = work->child0->extra.tmd;
-    objC = work->child2->extra.tmd;
+    objB = work->handTasks[1]->extra.tmd;
+    objA = work->handTasks[0]->extra.tmd;
+    objC = work->heldItemTask->extra.tmd;
     ret  = 0;
     switch (mode) {
         case 0:

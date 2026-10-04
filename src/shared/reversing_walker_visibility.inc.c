@@ -27,7 +27,7 @@ s32 reverseWalkVisibilityMsg(Task* task, s32 arg1, s32 mode, s32 arg3)
             break;
         case 2:
             obj->flags                                   |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            ((Actor350500Work*)task->work)->freeCountdown = mode;
+            ((ReverseWalkWork*)task->work)->freeCountdown = mode;
             obj->flags                                   |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 3:

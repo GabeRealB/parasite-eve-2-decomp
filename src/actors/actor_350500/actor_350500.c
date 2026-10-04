@@ -46,7 +46,7 @@ static const TaskFuncTable3 D_actor_350500_80161E24 = { {
     reverseWalkExit,
 } };
 
-/// The walk steps, indexed by `Actor350500Work::walk.motionStep`: turn to face
+/// The walk steps, indexed by `ReverseWalkWork::walk.motionStep`: turn to face
 /// `target`, start moving, approach until arrival, then turn to the placement
 /// yaw.
 static const TaskFuncTable4 D_actor_350500_80161E30 = { {
@@ -238,10 +238,10 @@ void reverseWalkExit(Task* arg0)
 void reverseWalkBindLighting(Task* arg0)
 {
     TmdObject*       ext;
-    Actor350500Work* work;
+    ReverseWalkWork* work;
 
     ext           = arg0->extra.tmd;
-    work          = (Actor350500Work*)arg0->work;
+    work          = arg0->work;
     ext->lightMtx = &work->model.light;
     ext->colorMtx = &work->model.color;
 }
@@ -256,9 +256,9 @@ void reverseWalkIdle(Task* arg0)
 void reverseWalkRunStep(Task* arg0)
 {
     TaskFuncTable4   handlers;
-    Actor350500Work* work;
+    ReverseWalkWork* work;
 
-    work     = (Actor350500Work*)arg0->work;
+    work     = arg0->work;
     handlers = D_actor_350500_80161E30;
     handlers.funcs[work->walk.motionStep](arg0);
 }
@@ -275,20 +275,20 @@ void reverseWalkRunStep(Task* arg0)
 
 #include "../../shared/reversing_walker_visibility.inc.c"
 
-/// `taskMessageDispatch` handler: latches the variant the message's halfword at
-/// 0x2 selects into `field_4C4` -- 1 clears it, 2 sets it, anything else
-/// leaves it. Always returns 0.
+/// `taskMessageDispatch` handler: latches the walk direction the message's
+/// command selects into `walksForward` -- 1 clears it, so the walker backs
+/// toward its targets, 2 sets it, anything else leaves it. Always returns 0.
 s32 func_actor_350500_80162ABC(Task* task, s32 arg1, ActorCommand* msg, s32 arg3)
 {
-    Actor350500Work* work;
+    ReverseWalkWork* work;
 
-    work = (Actor350500Work*)task->work;
+    work = task->work;
     switch (msg->command) {
         case 1:
-            work->field_4C4 = 0;
+            work->walksForward = 0;
             break;
         case 2:
-            work->field_4C4 = 1;
+            work->walksForward = 1;
             break;
     }
     return 0;

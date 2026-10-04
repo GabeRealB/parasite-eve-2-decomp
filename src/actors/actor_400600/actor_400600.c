@@ -1579,11 +1579,11 @@ u8 gStalkerZebraIvoryResumeClips[36] = {
 ActorZone D_actor_400600_80151B40[7] = {
     { 3000, -1500, 3000, 3000, 6 },
     { -3000, -3000, 6000, 6000, 1 },
-    { 3000, -6000, 3000, 0x2EE0, 2 },
+    { 3000, -6000, 3000, 12000, 2 },
     { -6000, -6000, 9000, 3000, 3 },
     { -6000, -3000, 3000, 9000, 4 },
     { -3000, 3000, 5400, 3000, 5 },
-    { 0, 0, 0, 0, -1 },
+    { 0, 0, 0, 0, ACTOR_ZONE_END },
 };
 
 s16 D_actor_400600_80151B88[12] = {
@@ -1669,75 +1669,75 @@ static void func_actor_400600_8013203C(Task* arg0)
 
 static void func_actor_400600_80132294(Task* task, s16 firstJoint, s16 secondJoint, s16 width, s16 height, u8 shade)
 {
-    ActorBeamScratch* s;
-    s16               angle;
-    GfxCoord*         secondCoord;
-    GfxCoord*         firstCoord;
-    s32               offset0;
-    s32               offset1;
-    s32               offset2;
-    s32               offset3;
-    s32               halfX;
-    s32               halfY;
-    GfxCoord*         coords;
-    POLY_FT4*         poly;
+    ActorLimbShadowScratch* s;
+    s16                     angle;
+    GfxCoord*               secondCoord;
+    GfxCoord*               firstCoord;
+    s32                     offset0;
+    s32                     offset1;
+    s32                     offset2;
+    s32                     offset3;
+    s32                     halfX;
+    s32                     halfY;
+    GfxCoord*               coords;
+    POLY_FT4*               poly;
 
     coords      = task->extra.tmd->coords;
     firstCoord  = coords + firstJoint;
     secondCoord = coords + secondJoint;
     if (firstJoint != secondJoint) {
-        s = (ActorBeamScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(ActorBeamScratch));
+        s = SCRATCH_STACK_RESERVE_BLOCK(ActorLimbShadowScratch);
         Gp_UpdateCoord(firstCoord);
         Gp_UpdateCoord(secondCoord);
         gfxMakeRelativeTransform(&gGfxViewCoord.workm, &firstCoord->workm, &s->firstMatrix);
         gfxMakeRelativeTransform(&gGfxViewCoord.workm, &secondCoord->workm, &s->secondMatrix);
-        s->first.vx                = s->firstMatrix.t[0];
-        s->first.vy                = s->firstMatrix.t[1];
-        s->second.vx               = s->secondMatrix.t[0];
-        s->second.vy               = s->secondMatrix.t[1];
-        s->first.vz                = height;
-        s->second.vz               = height;
-        angle                      = ratan2(s->second.vx - s->first.vx, s->second.vy - s->first.vy);
-        halfX                      = (s->first.vx - s->second.vx) / 2;
-        halfY                      = (s->first.vy - s->second.vy) / 2;
-        s->corner0.vx              = halfX + (s->first.vx - ((s32)(rcos(angle) * width) >> 0xC));
+        s->firstPos.vx             = s->firstMatrix.t[0];
+        s->firstPos.vy             = s->firstMatrix.t[1];
+        s->secondPos.vx            = s->secondMatrix.t[0];
+        s->secondPos.vy            = s->secondMatrix.t[1];
+        s->firstPos.vz             = height;
+        s->secondPos.vz            = height;
+        angle                      = ratan2(s->secondPos.vx - s->firstPos.vx, s->secondPos.vy - s->firstPos.vy);
+        halfX                      = (s->firstPos.vx - s->secondPos.vx) / 2;
+        halfY                      = (s->firstPos.vy - s->secondPos.vy) / 2;
+        s->corners[0].vx           = halfX + (s->firstPos.vx - ((s32)(rcos(angle) * width) >> 0xC));
         offset0                    = rsin(angle) * width;
-        s->corner0.vz              = height;
-        s->corner0.vy              = halfY + (s->first.vy + (offset0 >> 0xC));
-        s->corner1.vx              = halfX + (s->first.vx + ((s32)(rcos(angle) * width) >> 0xC));
+        s->corners[0].vz           = height;
+        s->corners[0].vy           = halfY + (s->firstPos.vy + (offset0 >> 0xC));
+        s->corners[1].vx           = halfX + (s->firstPos.vx + ((s32)(rcos(angle) * width) >> 0xC));
         offset1                    = rsin(angle) * width;
-        s->corner1.vz              = height;
-        s->corner1.vy              = halfY + (s->first.vy - (offset1 >> 0xC));
-        s->corner2.vx              = (s->second.vx - ((s32)(rcos(angle) * width) >> 0xC)) - halfX;
+        s->corners[1].vz           = height;
+        s->corners[1].vy           = halfY + (s->firstPos.vy - (offset1 >> 0xC));
+        s->corners[2].vx           = (s->secondPos.vx - ((s32)(rcos(angle) * width) >> 0xC)) - halfX;
         offset2                    = rsin(angle) * width;
-        s->corner2.vz              = height;
-        s->corner2.vy              = (s->second.vy + (offset2 >> 0xC)) - halfY;
-        s->corner3.vx              = (s->second.vx + ((s32)(rcos(angle) * width) >> 0xC)) - halfX;
+        s->corners[2].vz           = height;
+        s->corners[2].vy           = (s->secondPos.vy + (offset2 >> 0xC)) - halfY;
+        s->corners[3].vx           = (s->secondPos.vx + ((s32)(rcos(angle) * width) >> 0xC)) - halfX;
         offset3                    = rsin(angle) * width;
-        s->corner3.vz              = height;
-        s->corner3.vy              = (s->second.vy - (offset3 >> 0xC)) - halfY;
+        s->corners[3].vz           = height;
+        s->corners[3].vy           = (s->secondPos.vy - (offset3 >> 0xC)) - halfY;
         gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(&gGfxViewCoord);
         gte_SetRotMatrix(&gGfxViewCoord.workm);
         gte_SetTransMatrix(&gGfxViewCoord.workm);
-        s->depth = RotTransPers4(&s->corner0, &s->corner1, &s->corner2, &s->corner3, &s->screen0, &s->screen1,
-                                 &s->screen2, &s->screen3, &s->perspective, &s->flags);
-        if (s->flags >= 0) {
+        s->depth = RotTransPers4(&s->corners[0], &s->corners[1], &s->corners[2], &s->corners[3], &s->screenCorners[0], &s->screenCorners[1],
+                                 &s->screenCorners[2], &s->screenCorners[3], &s->depthCue, &s->flag);
+        if (s->flag >= 0) {
             poly           = gGpuPrimCursor;
             gGpuPrimCursor = poly + 1;
             setlen(poly, 9);
             poly->code                     = 0x2E;
-            GPU_PRIMITIVE_XY_WORD(poly, 0) = s->screen0;
-            GPU_PRIMITIVE_XY_WORD(poly, 1) = s->screen1;
-            GPU_PRIMITIVE_XY_WORD(poly, 2) = s->screen2;
-            GPU_PRIMITIVE_XY_WORD(poly, 3) = s->screen3;
+            GPU_PRIMITIVE_XY_WORD(poly, 0) = s->screenCorners[0];
+            GPU_PRIMITIVE_XY_WORD(poly, 1) = s->screenCorners[1];
+            GPU_PRIMITIVE_XY_WORD(poly, 2) = s->screenCorners[2];
+            GPU_PRIMITIVE_XY_WORD(poly, 3) = s->screenCorners[3];
             setUV4(poly, 0xC0, 0x98, 0xF7, 0x98, 0xC0, 0xCF, 0xF7, 0xCF);
             poly->tpage = 0x48;
             poly->clut  = 0x4283;
             setRGB0(poly, shade, shade, shade);
             addPrim((&gGpuCurrentOt[((((u32)(s->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*gGpuCurrentOt)]), poly);
         }
-        SCRATCH_STACK_RELEASE_BYTES(sizeof(ActorBeamScratch));
+        SCRATCH_STACK_RELEASE_BLOCK(ActorLimbShadowScratch);
     }
 }
 
@@ -4106,8 +4106,8 @@ static s32 func_actor_400600_8013886C(Task* arg0)
     coord = arg0->extra.tmd->coords;
     x     = (u16)coord->coord.t[0];
     z     = (u16)coord->coord.t[2];
-    for (zone = D_actor_400600_80151B40; zone->id != -1; zone++) {
-        if (zone->x <= x && x <= zone->x + zone->w && zone->z <= z && z <= zone->z + zone->h) {
+    for (zone = D_actor_400600_80151B40; zone->id != ACTOR_ZONE_END; zone++) {
+        if (zone->x <= x && x <= zone->x + zone->width && zone->z <= z && z <= zone->z + zone->depth) {
             return zone->id;
         }
     }

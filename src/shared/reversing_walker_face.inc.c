@@ -3,18 +3,18 @@
 /// State handler at index 0 of `D_actor_350700_80161E30`: turns the root part
 /// toward `work->walk.target`, taking the yaw of the normalised offset from the
 /// part's own translation with `ratan2` -- turned half a revolution away while
-/// `field_4C4` is clear -- and rebuilding the local matrix from that yaw alone.
+/// `walksForward` is clear -- and rebuilding the local matrix from that yaw alone.
 /// Clearing `composeStamp` makes the coordinate tree recompute the world matrix, and
 /// bumping `walk.motionStep` moves on to the next handler.
 void reverseWalkFaceTarget(Task* task)
 {
-    Actor350500Work* work;
+    ReverseWalkWork* work;
     GfxCoord*        coord;
     VECTOR           delta;
     SVECTOR          dir;
     SVECTOR          rot;
 
-    work  = (Actor350500Work*)task->work;
+    work  = task->work;
     coord = task->extra.tmd->coords;
 
     delta.vx = work->walk.target.vx - coord->coord.t[0];
@@ -25,7 +25,7 @@ void reverseWalkFaceTarget(Task* task)
     rot.vx = 0;
     rot.vy = ratan2(dir.vx, dir.vz);
     rot.vz = 0;
-    if (work->field_4C4 == 0) {
+    if (work->walksForward == 0) {
         rot.vy += 0x7FF;
     }
 
