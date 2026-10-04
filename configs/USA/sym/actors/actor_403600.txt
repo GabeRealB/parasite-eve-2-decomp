@@ -2,8 +2,8 @@
 
 // Referenced in another actor load slot, resident beside this one.
 D_80162E98 = 0x80162E98; // absolute:True
-D_actor_303600_8016A408 = 0x8016A408; // absolute:True
-D_actor_303600_8016AEF8 = 0x8016AEF8; // absolute:True
+D_actor_303600_8016A408 = 0x8016A408; // absolute:True size:0xAF0
+D_actor_303600_8016AEF8 = 0x8016AEF8; // absolute:True size:0x3570
 D_8016E468 = 0x8016E468; // absolute:True
 gActor303600Model02DD0 = 0x801690A4; // absolute:True
 D_actor_403600_80142120 = 0x80142120; // size:0x80 defined:True
