@@ -407,17 +407,17 @@ label = "46 bones"
 id = 46
 objects = [
   { kind = "packageId" },
-  { kind = "model", at = "0x4" },
-  { kind = "modelSource", at = "0x420" },
-  { kind = "model", at = "0x444" },
-  { kind = "modelSource", at = "0x860" },
-  { kind = "model", at = "0x884" },
-  { kind = "modelSource", at = "0xD50" },
-  { kind = "model", at = "0xD74" },
-  { kind = "modelSource", at = "0x1190" },
-  { kind = "model", at = "0x11B4" },
-  { kind = "modelSource", at = "0x6AA0" },
-  { unit = "aya_10200/aya_10200", data = "0x6AC4" },
+  { kind = "model", at = "0x4", in_c = true },
+  { kind = "modelSource", at = "0x420", in_c = true },
+  { kind = "model", at = "0x444", in_c = true },
+  { kind = "modelSource", at = "0x860", in_c = true },
+  { kind = "model", at = "0x884", in_c = true },
+  { kind = "modelSource", at = "0xD50", in_c = true },
+  { kind = "model", at = "0xD74", in_c = true },
+  { kind = "modelSource", at = "0x1190", in_c = true },
+  { kind = "model", at = "0x11B4", in_c = true },
+  { kind = "modelSource", at = "0x6AA0", in_c = true },
+  { unit = "aya_10200/aya_10200", data = "0x4" },
 ]
 
 [aya.overlays.aya_10300]
@@ -425,17 +425,17 @@ label = "7 bones - too few for a full costume"
 id = 7
 objects = [
   { kind = "packageId" },
-  { kind = "model", at = "0x4" },
-  { kind = "modelSource", at = "0x5578" },
-  { kind = "model", at = "0x559C" },
-  { kind = "modelSource", at = "0x59B8" },
-  { kind = "model", at = "0x59DC" },
-  { kind = "modelSource", at = "0x5DF8" },
-  { kind = "model", at = "0x5E1C" },
-  { kind = "modelSource", at = "0x62E8" },
-  { kind = "model", at = "0x630C" },
-  { kind = "modelSource", at = "0x6728" },
-  { unit = "aya_10300/aya_10300", data = "0x674C" },
+  { kind = "model", at = "0x4", in_c = true },
+  { kind = "modelSource", at = "0x5578", in_c = true },
+  { kind = "model", at = "0x559C", in_c = true },
+  { kind = "modelSource", at = "0x59B8", in_c = true },
+  { kind = "model", at = "0x59DC", in_c = true },
+  { kind = "modelSource", at = "0x5DF8", in_c = true },
+  { kind = "model", at = "0x5E1C", in_c = true },
+  { kind = "modelSource", at = "0x62E8", in_c = true },
+  { kind = "model", at = "0x630C", in_c = true },
+  { kind = "modelSource", at = "0x6728", in_c = true },
+  { unit = "aya_10300/aya_10300", data = "0x4" },
 ]
 
 [aya.overlays.aya_10400]
@@ -443,15 +443,15 @@ label = "44 bones"
 id = 44
 objects = [
   { kind = "packageId" },
-  { kind = "model", at = "0x4" },
-  { kind = "modelSource", at = "0x5908" },
-  { kind = "model", at = "0x592C" },
-  { kind = "modelSource", at = "0x5D5C" },
-  { kind = "model", at = "0x5D80" },
-  { kind = "modelSource", at = "0x624C" },
-  { kind = "model", at = "0x6270" },
-  { kind = "modelSource", at = "0x66A0" },
-  { unit = "aya_10400/aya_10400", data = "0x66C4" },
+  { kind = "model", at = "0x4", in_c = true },
+  { kind = "modelSource", at = "0x5908", in_c = true },
+  { kind = "model", at = "0x592C", in_c = true },
+  { kind = "modelSource", at = "0x5D5C", in_c = true },
+  { kind = "model", at = "0x5D80", in_c = true },
+  { kind = "modelSource", at = "0x624C", in_c = true },
+  { kind = "model", at = "0x6270", in_c = true },
+  { kind = "modelSource", at = "0x66A0", in_c = true },
+  { unit = "aya_10400/aya_10400", data = "0x4" },
 ]
 
 [aya.overlays.aya_10500]
@@ -459,17 +459,17 @@ label = "41 bones"
 id = 41
 objects = [
   { kind = "packageId" },
-  { kind = "model", at = "0x4" },
-  { kind = "modelSource", at = "0x420" },
-  { kind = "model", at = "0x444" },
-  { kind = "modelSource", at = "0x860" },
-  { kind = "model", at = "0x884" },
-  { kind = "modelSource", at = "0xD50" },
-  { kind = "model", at = "0xD74" },
-  { kind = "modelSource", at = "0x1190" },
-  { kind = "model", at = "0x11B4" },
-  { kind = "modelSource", at = "0x6B74" },
-  { unit = "aya_10500/aya_10500", data = "0x6B98" },
+  { kind = "model", at = "0x4", in_c = true },
+  { kind = "modelSource", at = "0x420", in_c = true },
+  { kind = "model", at = "0x444", in_c = true },
+  { kind = "modelSource", at = "0x860", in_c = true },
+  { kind = "model", at = "0x884", in_c = true },
+  { kind = "modelSource", at = "0xD50", in_c = true },
+  { kind = "model", at = "0xD74", in_c = true },
+  { kind = "modelSource", at = "0x1190", in_c = true },
+  { kind = "model", at = "0x11B4", in_c = true },
+  { kind = "modelSource", at = "0x6B74", in_c = true },
+  { unit = "aya_10500/aya_10500", data = "0x4" },
 ]
 
 [aya.overlays.aya_20900]
@@ -526,19 +526,19 @@ label = "word0 = 0xC0; the only one with code"
 id = 192
 objects = [
   { kind = "packageId" },
-  { unit = "kyle_800102/kyle_800102", rodata = "0x4", text = "0x14" },
-  { kind = "model", at = "0x8A8" },
-  { kind = "modelSource", at = "0x53C8" },
-  { kind = "model", at = "0x53EC" },
-  { kind = "modelSource", at = "0x581C" },
-  { kind = "model", at = "0x5840" },
-  { kind = "modelSource", at = "0x5D0C" },
-  { kind = "model", at = "0x5D30" },
-  { kind = "modelSource", at = "0x6160" },
-  { kind = "model", at = "0x6184" },
-  { kind = "modelSource", at = "0x6650" },
-  { kind = "model", at = "0x6674" },
-  { kind = "modelSource", at = "0x6ECC" },
+  { unit = "kyle_800102/kyle_800102", rodata = "0x4", text = "0x14", data = "0x8A8" },
+  { kind = "model", at = "0x8A8", in_c = true },
+  { kind = "modelSource", at = "0x53C8", in_c = true },
+  { kind = "model", at = "0x53EC", in_c = true },
+  { kind = "modelSource", at = "0x581C", in_c = true },
+  { kind = "model", at = "0x5840", in_c = true },
+  { kind = "modelSource", at = "0x5D0C", in_c = true },
+  { kind = "model", at = "0x5D30", in_c = true },
+  { kind = "modelSource", at = "0x6160", in_c = true },
+  { kind = "model", at = "0x6184", in_c = true },
+  { kind = "modelSource", at = "0x6650", in_c = true },
+  { kind = "model", at = "0x6674", in_c = true },
+  { kind = "modelSource", at = "0x6ECC", in_c = true },
   { kind = "data", at = "0x6EF0" },
 ]
 
