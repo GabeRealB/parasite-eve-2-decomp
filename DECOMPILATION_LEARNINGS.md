@@ -75797,11 +75797,11 @@ call's first argument does not change that: the store still expands first.
 **Fix.** Hoist the pointer load into a named local above the store:
 
 ```c
-Actor560800Work* work = (Actor560800Work*)D_actor_560800_8017578C->work;
-ActorCommand         msg;
+_Actor560800CutsceneWork* work = D_actor_560800_8017578C->work;
+ActorCommand              msg;
 
 msg.command = arg0;
-taskMessageDispatch(work->field_24, 0x7DB, (s32)&msg, 0);
+taskMessageDispatch(work->carrierModel, 0x7DB, (s32)&msg, 0);
 ```
 
 The `sh` now expands *after* the `lw 0x1C` (uid 19 vs 16 in `.sched`), and the
@@ -75864,7 +75864,7 @@ do {
     cfg->field_18 = hp;
 } while (0);
 
-work->field_64 = 1;
+work->shotDamageApplied = 1;
 ```
 
 — which leaves `work` at 2 refs and gives the same flip (predicted from the
@@ -75943,7 +75943,7 @@ took the address `addiu`.
 **Fix.** Declare the pointer inside the branch that uses it:
 
 ```c
-    if ((u16)work->field_64 == 0) {
+    if (work->shotDamageApplied == 0) {
         PlayerStatus* cfg = &gPlayerStatus;
 ```
 
@@ -75974,9 +75974,9 @@ copy into:
 ```c
     u16 anim;
 
-    if (work->field_0 != NULL) {
+    if (work->player != NULL) {
         anim           = arg0;   /* the copy: then-block's first insn */
-        work->field_60 = arg0;   /* sh a0 — still the parameter's pseudo */
+        work->playerAnimId = arg0;   /* sh a0 — still the parameter's pseudo */
         msg.animationId = anim;   /* andi v0,v1,0xffff — on the copy */
 ```
 
@@ -100046,7 +100046,7 @@ propagates `i = 1` into the guard, keeping it in operand 1's position.
 
 Both operand orders appear in the same target: the guard compares the constant
 (`1 < count`) while the loop back-edge compares the variable (`sltu v0,s1,v1`).
-`func_actor_560800_80132C60` -- the handler of the task `field_8` points at, and
+`func_actor_560800_80132C60` -- the handler of the task `kyle` points at, and
 the function that allocates the block this one reseeds -- carries the identical
 guard and loop, so the shape is the original source's, not a local quirk.
 
@@ -105553,7 +105553,7 @@ the target's `$a0`/`$v1`/`$a2` choice for the step, the hold counter and the id.
 
 Symptom (`func_actor_560800_80134258`): a case ends `jal f` / `j epilogue` with
 `sh zero,0x38($s2)` in the delay slot, and every other case falls into that same
-`sh` just before the epilogue. Writing the case as `f(...); work->field_38 = 0;
+`sh` just before the epilogue. Writing the case as `f(...); work->eveCue.id = 0;
 return;` produces the same instructions but schedules the call's memory-loaded
 `a0` after the constant arguments (reorder=1). Writing `f(...); break;` lets
 reorg copy the shared store into the delay slot and restores the target order
