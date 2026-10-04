@@ -7,15 +7,15 @@
 /// once with the plain reseed of clip 10 queued.
 void pacedWalkSpawn(Enemy* enemy, Task* task)
 {
-    VECTOR           vec;
-    Actor160600Work* work;
-    Actor160600Work* mem;
-    GfxCoord*        coord;
-    TmdObject*       obj;
+    VECTOR         vec;
+    PacedWalkWork* work;
+    PacedWalkWork* mem;
+    GfxCoord*      coord;
+    TmdObject*     obj;
 
     obj        = task->extra.tmd;
     coord      = obj->coords;
-    mem        = memCalloc(sizeof(Actor160600Work), false);
+    mem        = memCalloc(sizeof(PacedWalkWork), false);
     work       = mem;
     task->work = mem;
     if (mem == NULL) {

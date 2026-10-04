@@ -7,12 +7,12 @@
 /// own model twice.
 s32 pacedWalkShowPair(Task* task, s32 arg1, s32 flags, s32 arg3)
 {
-    Actor160600Work* work;
-    TmdObject*       self;
-    TmdObject*       other;
+    PacedWalkWork* work;
+    TmdObject*     self;
+    TmdObject*     other;
 
     self = task->extra.tmd;
-    work = (Actor160600Work*)task->work;
+    work = task->work;
     if (task->spawnArg1.value != 0) {
         other = work->pairTask->extra.tmd;
     } else {

@@ -7,14 +7,14 @@
 /// `travel` the step body's walk counts down.
 s32 pacedWalkTo(Task* task, s32 arg1, ActorTransform* target, s32 arg3)
 {
-    GfxCoord*        coord;
-    Actor160600Work* work;
-    s32              dx;
-    s32              dz;
-    u16              yaw;
+    GfxCoord*      coord;
+    PacedWalkWork* work;
+    s32            dx;
+    s32            dz;
+    u16            yaw;
 
     coord        = task->extra.tmd->coords;
-    work         = (Actor160600Work*)task->work;
+    work         = task->work;
     dx           = target->pos.vx - coord->coord.t[0];
     dz           = target->pos.vz - coord->coord.t[2];
     yaw          = ratan2(dx, dz);

@@ -1215,18 +1215,18 @@ void pacedWalkExit(Task* task)
 
 #include "../../shared/paced_walk_place.inc.c"
 
-/// Script opcode: sets the work block's `effects`, which enables the
-/// per-frame effect spawns, when the payload is exactly 1; any other payload
-/// is ignored.
+/// Script opcode: sets the work block's `smoking`, which makes the per-frame
+/// body emit smoke puffs, when the payload is exactly 1; any other payload is
+/// ignored.
 s32 func_actor_160600_8013268C(Task* task, s32 arg1, ActorCommand* args, s32 arg3)
 {
-    Actor160600Work* work;
-    u16              value;
+    PacedWalkWork* work;
+    u16            value;
 
     value = args->command;
-    work  = (Actor160600Work*)task->work;
+    work  = task->work;
     if (value == 1) {
-        work->effects = value;
+        work->smoking = value;
     }
     return 0;
 }

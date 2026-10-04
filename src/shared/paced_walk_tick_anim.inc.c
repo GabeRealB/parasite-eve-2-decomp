@@ -3,10 +3,10 @@
 /// Ticks animation slots 1..0x13 of the actor's animation context.
 void pacedWalkTickAnim(Task* task)
 {
-    Actor160600Work* work;
-    s32              i;
+    PacedWalkAnimWork* work;
+    s32                i;
 
-    work = (Actor160600Work*)task->work;
+    work = task->work;
     i    = 1;
     do {
         animationTickSlot(&work->rig.anim, i);

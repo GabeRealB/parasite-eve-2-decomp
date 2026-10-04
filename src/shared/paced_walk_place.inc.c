@@ -5,12 +5,12 @@
 /// placement translation into the matrix and marks it dirty.
 s32 pacedWalkPlace(Task* task, s32 arg1, ActorTransform* placement, s32 arg3)
 {
-    GfxCoord*        coord;
-    Actor160600Work* work;
-    u16              yaw;
+    GfxCoord*          coord;
+    PacedWalkAnimWork* work;
+    u16                yaw;
 
     coord        = task->extra.tmd->coords;
-    work         = (Actor160600Work*)task->work;
+    work         = task->work;
     yaw          = placement->rot.vy;
     work->st.yaw = yaw;
     gfxRotMatrixY(&coord->coord, (s16)yaw, 1);

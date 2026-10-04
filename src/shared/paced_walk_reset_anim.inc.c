@@ -4,10 +4,10 @@
 /// that id as the one applied.
 void pacedWalkResetAnim(Task* task)
 {
-    Actor160600Work* work;
-    s32              i;
+    PacedWalkAnimWork* work;
+    s32                i;
 
-    work = (Actor160600Work*)task->work;
+    work = task->work;
     i    = 1;
     do {
         work->rig.slots[i].rate = 1;

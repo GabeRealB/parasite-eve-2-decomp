@@ -1515,16 +1515,16 @@ static void func_actor_160700_80131E70(void)
 /// the actor's script opcodes, and starts the animation.
 static void func_actor_160700_80131F70(Enemy* enemy, Task* task)
 {
-    VECTOR           vec;
-    Actor160600Work* work;
-    Actor160600Work* mem;
-    GfxCoord*        coord;
-    TmdObject*       obj;
-    Enemy*           spawned;
+    VECTOR         vec;
+    PacedWalkWork* work;
+    PacedWalkWork* mem;
+    GfxCoord*      coord;
+    TmdObject*     obj;
+    Enemy*         spawned;
 
     obj        = task->extra.tmd;
     coord      = obj->coords;
-    mem        = memCalloc(0x4F8, false);
+    mem        = memCalloc(sizeof(PacedWalkWork), false);
     work       = mem;
     task->work = mem;
     if (mem == NULL) {
@@ -1602,14 +1602,14 @@ static void func_actor_160700_80132414(Task* task)
 /// The blend path carries the requested duration in whole frames.
 s32 func_actor_160700_801325F0(Task* task, s32 arg1, AnimationPlayRequest* args, s32 arg3)
 {
-    Actor160600Work* work;
+    PacedWalkWork* work;
 
-    work = (Actor160600Work*)task->work;
+    work = task->work;
     if (args->animationId < 0x19) {
         work->st.animId = args->animationId;
         if (args->blend != ANIMATION_BLEND_RESET) {
-            work->st.state = ACTOR_ENEMY_ANIM_BLEND;
-            work->animArg  = args->blendFrames;
+            work->st.state    = ACTOR_ENEMY_ANIM_BLEND;
+            work->blendFrames = args->blendFrames;
         } else {
             work->st.state = ACTOR_ENEMY_ANIM_RESET;
         }
@@ -1630,7 +1630,7 @@ s32 func_actor_160700_8013265C(Task* task, s32 arg1, s32 flags, s32 arg3)
     TmdObject* other;
 
     self  = task->extra.tmd;
-    other = ((Actor160600Work*)task->work)->pairTask->extra.tmd;
+    other = ((PacedWalkWork*)task->work)->pairTask->extra.tmd;
 
     if (flags & 1) {
         self->flags  = 0;
@@ -1664,12 +1664,12 @@ s32 func_actor_160700_80132738(Task* task, s32 msgId, s32 arg2, s32 arg3)
 /// `composeStamp` so it is recomputed from that part.
 void func_actor_160700_80132808(Task* task)
 {
-    char             pad[0x10];
-    Task*            parent = task->parent;
-    TmdObject*       obj    = task->extra.tmd;
-    GfxCoord*        coord  = obj->coords;
-    GfxCoord*        sub    = &parent->extra.tmd->coords[4];
-    Actor160600Work* work   = (Actor160600Work*)parent->work;
+    char           pad[0x10];
+    Task*          parent = task->parent;
+    TmdObject*     obj    = task->extra.tmd;
+    GfxCoord*      coord  = obj->coords;
+    GfxCoord*      sub    = &parent->extra.tmd->coords[4];
+    PacedWalkWork* work   = parent->work;
 
     switch (task->state) {
         case 0:

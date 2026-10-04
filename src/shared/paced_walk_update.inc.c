@@ -1,15 +1,15 @@
 /* Part of the paced walk library; see paced_walk.h. */
 
-/// The actor's step body. States 1 and 2 reseed the animation slots (with and
-/// without `animArg`) and advance to 3; state 3 walks the root coordinate 12
+/// The actor's step body. States 1 and 2 reseed the animation slots (blending
+/// over `blendFrames` and from the clip's start) and advance to 3; state 3 walks the root coordinate 12
 /// units per frame while the walk clip has `travel` left, switching to clip 1
 /// with argument 0xA when it runs out, then ticks the slots.
 void pacedWalkUpdate(Task* task)
 {
-    Actor160600Work* work;
-    s16              animId;
+    PacedWalkWork* work;
+    s16            animId;
 
-    work = (Actor160600Work*)task->work;
+    work = task->work;
     if (work->st.state == ACTOR_ENEMY_ANIM_BLEND) {
         pacedWalkBlendAnim(task);
         work->st.state = ACTOR_ENEMY_ANIM_TICK;
@@ -30,8 +30,8 @@ void pacedWalkUpdate(Task* task)
             actorMoveForward(task->extra.tmd->coords, 0xC);
             work->st.travel--;
             if (work->st.travel == 0) {
-                work->animArg   = 0xA;
-                work->st.animId = 1;
+                work->blendFrames = 0xA;
+                work->st.animId   = 1;
             }
         }
         pacedWalkTickAnim(task);

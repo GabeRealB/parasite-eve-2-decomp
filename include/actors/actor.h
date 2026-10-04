@@ -812,33 +812,12 @@ typedef struct Actor135600Work {
 } Actor135600Work;
 STATIC_ASSERT_SIZEOF(Actor135600Work, 0x50C);
 
-/// Work block of the enemy whose code actor_160600, actor_160700,
-/// actor_215100 and the first variant of actor_460200 carry, allocated zeroed
-/// at its full size and kept at `Task::work`: the light and colour matrices
-/// its model draws with, its rig and animation state, and `animArg`, the
-/// argument the blended reseed passes on. `effects` nonzero turns on the
-/// per-frame effect spawns of the actors that have them. `pairTask` is the
-/// task whose model the visibility command drives alongside the actor's own,
-/// which only the actors that spawn a partner store, and `enemy` the enemy
-/// the actor's own task belongs to.
-typedef struct Actor160600Work {
-    MATRIX          light;
-    MATRIX          color;
-    ActorAnimRig20  rig;
-    ActorEnemyState st;
-    s16             animArg;
-    s16             effects;
-    Task*           pairTask;
-    Enemy*          enemy;
-} Actor160600Work;
-STATIC_ASSERT_SIZEOF(Actor160600Work, 0x4F8);
-
 /// Work block of the enemy whose code actor_161500 and the paired variant of
 /// actor_460200 carry, allocated zeroed at its full size and kept at
-/// `Task::work`. It is laid out as `Actor160600Work` up to `animArg`, then
-/// carries a head turn: `turnWeight` is the weight, 0 to 0x1000, of the
-/// per-frame turn toward the player, ramped up while `turnUp` is 1 and down
-/// otherwise. `pairTask` is the task of the partner enemy the spawn routine
+/// `Task::work`. It opens as the paced walk's work block does, through the
+/// blend length kept in `animArg`, then carries a head turn: `turnWeight` is
+/// the weight, 0 to 0x1000, of the per-frame turn toward the player, ramped
+/// up while `turnUp` is 1 and down otherwise. `pairTask` is the task of the partner enemy the spawn routine
 /// may start, which its own task is reparented under, and `enemy` the enemy
 /// the actor's own task belongs to.
 typedef struct Actor161500Work {

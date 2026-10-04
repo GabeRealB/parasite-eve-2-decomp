@@ -2276,18 +2276,18 @@ void pacedWalkExit(Task* task)
 
 #include "../../shared/paced_walk_place.inc.c"
 
-/// Script opcode: raise the work block's `effects`, which lets the per-frame
-/// state spawn its effect, when the payload is exactly 1. Any other payload is
+/// Script opcode: raise the work block's `smoking`, which makes the per-frame
+/// state emit smoke puffs, when the payload is exactly 1. Any other payload is
 /// ignored and leaves the flag as it was.
 s32 func_actor_460200_80132C8C(Task* task, s32 arg1, ActorCommand* args, s32 arg3)
 {
-    Actor160600Work* work;
-    u16              value;
+    PacedWalkWork* work;
+    u16            value;
 
     value = args->command;
-    work  = (Actor160600Work*)task->work;
+    work  = task->work;
     if (value == 1) {
-        work->effects = value;
+        work->smoking = value;
     }
     return 0;
 }
@@ -2381,23 +2381,22 @@ void func_actor_460200_8013386C(Task* task)
 }
 
 /// Spawn routine of the actor whose `func_actor_460200_80133A88` exit path
-/// hands it back to `enemyDestroy`: it allocates the 0x4F8 work block (the
+/// hands it back to `enemyDestroy`: it allocates the `PacedWalkWork` block (the
 /// matrix pair its sub-model reads through `TmdObject::lightMtx`/`colorMtx`
-/// plus the animation state below), parks the enemy in `Actor160600Work::enemy`
+/// plus the animation state below), parks the enemy in `PacedWalkWork::enemy`
 /// and runs the step body `func_actor_460200_801336B4` once in state 2.
 static void func_actor_460200_801338C0(Enemy* enemy, Task* task)
 {
-    Actor160600Work* work;
-    void*            workMem;
-    TmdObject*       obj;
-    GfxCoord*        coord;
-    MATRIX*          mtx;
-    VECTOR           vec;
+    PacedWalkWork* work;
+    void*          workMem;
+    TmdObject*     obj;
+    GfxCoord*      coord;
+    VECTOR         vec;
 
     obj     = task->extra.tmd;
     coord   = obj->coords;
-    workMem = memCalloc(0x4F8, 0);
-    work    = (Actor160600Work*)workMem;
+    workMem = memCalloc(sizeof(PacedWalkWork), 0);
+    work    = workMem;
     if ((task->work = work) == NULL) {
         enemyDestroy(enemy, task);
         return;
@@ -2412,9 +2411,8 @@ static void func_actor_460200_801338C0(Enemy* enemy, Task* task)
     obj->otOffset                    = 1;
     work->enemy                      = enemy;
     work->st.animId                  = 2;
-    mtx                              = &work->light;
-    obj->lightMtx                    = mtx;
-    obj->colorMtx                    = mtx + 1;
+    obj->lightMtx                    = &work->light;
+    obj->colorMtx                    = &work->color;
     vec.vx                           = coord->workm.t[0];
     vec.vy                           = coord->workm.t[1] - 0x320;
     vec.vz                           = coord->workm.t[2];
@@ -2461,14 +2459,14 @@ static void func_actor_460200_80133A88(Task* task)
 
 s32 func_actor_460200_80133C64(Task* task, s32 arg1, AnimationPlayRequest* args, s32 arg3)
 {
-    Actor160600Work* work;
+    PacedWalkWork* work;
 
-    work = (Actor160600Work*)task->work;
+    work = task->work;
     if (args->animationId < 0x12) {
         work->st.animId = args->animationId;
         if (args->blend != ANIMATION_BLEND_RESET) {
-            work->st.state = ACTOR_ENEMY_ANIM_BLEND;
-            work->animArg  = args->blendFrames;
+            work->st.state    = ACTOR_ENEMY_ANIM_BLEND;
+            work->blendFrames = args->blendFrames;
         } else {
             work->st.state = ACTOR_ENEMY_ANIM_RESET;
         }
