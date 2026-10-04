@@ -14,8 +14,6 @@
 
 #include "actors/actor.h"
 
-#include "actors/actors_shared_80131fc8.h"
-
 #include "gameplay/display.h"
 #include "gameplay/actor.h"
 #include "gameplay/actor_render.h"
