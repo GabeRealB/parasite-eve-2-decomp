@@ -791,7 +791,7 @@ static void Gp_StartPadReplay(void)
     ds->vsyncCount           = 0;
     ds->loopTicks            = 0;
     if (ds->demoScene == DISPLAY_DEMO_FIXED_REPLAY) {
-        Gp_ReplayCursor = (u16*)0x80600E4C;
+        Gp_ReplayCursor = (u16*)(FILE_SYSTEM_FIXED_REPLAY_BASE + 0xD4C);
     } else {
         Gp_ReplayCursor = (u16*)((u8*)Fs_ActorLoadBase2 + 0xD4C);
     }

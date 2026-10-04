@@ -376,7 +376,7 @@ void Title_RestoreDemoCard(void)
     saveField23 = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene;
     saveField21 = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.vibration;
     if (gDisplayState.demoScene == DISPLAY_DEMO_FIXED_REPLAY) {
-        src = (u8*)0x80600100;
+        src = FILE_SYSTEM_FIXED_REPLAY_BASE;
     }
     printf(Title_DemoCardRestoreMsg, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area);
 

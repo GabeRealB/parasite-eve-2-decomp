@@ -16,6 +16,10 @@
         }                                                \
     }
 
+/// Address of the primary heap: the fixed RAM between the resident executable
+/// and the gameplay overlay.
+#define MEM_PRIMARY_HEAP_ADDRESS ((void*)0x80083800)
+
 /// Base of the fixed primary heap used by the resident allocation wrappers.
 ///
 /// The writable RAM region [0x80083800, 0x80093780) contains 0xFF80 bytes,

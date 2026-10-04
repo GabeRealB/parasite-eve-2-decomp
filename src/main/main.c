@@ -20,7 +20,7 @@ int main(void);
 static u32 GStackBase = 0x801fff00;
 
 // Keep the heap-base word in main's fixed .data subsegment.
-void* gMemPrimaryHeapBase = (void*)0x80083800;
+void* gMemPrimaryHeapBase = MEM_PRIMARY_HEAP_ADDRESS;
 
 // BSS symbols (GAuxHeap … gCdCmdQueue … Mem_AuxRegionBytes) live in the `main` bss
 // split (asm/USA/main/data/main.bss.s) so layout matches the retail binary.

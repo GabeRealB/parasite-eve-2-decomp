@@ -100,6 +100,10 @@ void*        Fs_ActorLoadBase2       = D_80161E20;
 /// Unreferenced.
 static void* Mem_UnusedDevKitEndPointer = D_80400000;
 
+/// Start of the auxiliary region while no area map is selected: the address the
+/// map overlays load at, since without one their memory is free as well.
+#define MEM_AUX_REGION_DEFAULT_BASE ((u8*)0x80179950)
+
 static GfxImageSlot* Gfx_ImageSlotTables[] = {
     NULL,
     D_map_akropolis_8017A048,
@@ -120,10 +124,10 @@ void Mem_ConfigureAuxHeap(s32 arg0, s32 arg1)
 
     entries = Gfx_ImageSlotTables[arg0];
     if ((gDisplayState.videoMode == DISPLAY_VIDEO_NORMAL) || (arg0 == 0)) {
-        Mem_AuxRegionBase  = (u8*)0x80179950;
+        Mem_AuxRegionBase  = MEM_AUX_REGION_DEFAULT_BASE;
         Mem_AuxRegionBytes = 0x836B0;
-        Gpu_PrimHeapBase   = (u8*)0x80179950;
-        gMemActiveAuxHeap  = (void*)0x80189950;
+        Gpu_PrimHeapBase   = MEM_AUX_REGION_DEFAULT_BASE;
+        gMemActiveAuxHeap  = MEM_AUX_REGION_DEFAULT_BASE + 0x10000;
         GActiveAuxHeapSize = 0x4D6B0;
     } else {
         Mem_AuxRegionBase  = entries[arg1].regionBase;

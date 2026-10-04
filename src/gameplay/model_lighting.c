@@ -2974,7 +2974,7 @@ void Gp_ApplyPadReplay(s32 arg0, u16* arg1)
 
     offset = (u8*)Gp_ReplayCursor - (u8*)Fs_ActorLoadBase2;
     if (gDisplayState.demoScene == DISPLAY_DEMO_FIXED_REPLAY) {
-        offset = (u8*)Gp_ReplayCursor - (u8*)0x80600100;
+        offset = (u8*)Gp_ReplayCursor - FILE_SYSTEM_FIXED_REPLAY_BASE;
     }
     if (offset <= 0x17FDF) {
         if (GameMain_HaltFlags != 0) {
@@ -3039,7 +3039,7 @@ void Gp_InitPlayClock(Task* task)
         ds->vsyncCount           = 0;
         ds->loopTicks            = 0;
         if (ds->demoScene == DISPLAY_DEMO_FIXED_REPLAY) {
-            Gp_ReplayCursor = (u16*)0x80600E4C;
+            Gp_ReplayCursor = (u16*)(FILE_SYSTEM_FIXED_REPLAY_BASE + 0xD4C);
         } else {
             Gp_ReplayCursor = (u16*)((u8*)Fs_ActorLoadBase2 + 0xD4C);
         }
