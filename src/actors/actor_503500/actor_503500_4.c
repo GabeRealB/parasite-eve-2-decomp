@@ -437,22 +437,54 @@ typedef struct {
 } _Actor503500LargeOrbEmitterWork;
 STATIC_ASSERT_SIZEOF(_Actor503500LargeOrbEmitterWork, 0xF0);
 
-/// Work block of the 0xF0 enemy whose state-0 init is
-/// `func_actor_503500_8013DD10` (`D_actor_503500_8017797C`). It is the size of
-/// `_Actor503500LargeOrbEmitterWork` but keeps no side byte: its sub-state
-/// index, the one `func_actor_503500_8013EB60` dispatches on, sits at 0xEC and
-/// the phase follows it.
-typedef struct Actor503500Work7797C {
-    /* 0x00 */ WorldCollisionBody    obj;
-    /* 0x20 */ WorldCollisionContact rec[8];   // Gp_InitRec18Table(rec, 8, 0)
-    /* 0xE0 */ EffectSpawnArg        field_E0; // record the block's effects are spawned with
-    /* 0xE8 */ s16                   field_E8; // per-frame countdown, clamped at 0
-    /* 0xEA */ s16                   field_EA; // sub-state frame counter
-    /* 0xEC */ s8                    field_EC; // sub-state index
-    /* 0xED */ s8                    field_ED; // sub-state phase, cleared with field_EC
-    /* 0xEE */ byte                  pad_EE[0x2];
-} Actor503500Work7797C;
-STATIC_ASSERT_SIZEOF(Actor503500Work7797C, 0xF0);
+/// What the small-orb emitter is doing, as held in `_Actor503500SmallOrbEmitterWork::state`.
+enum {
+    ACTOR_503500_SMALL_ORB_EMITTER_STATE_IDLE   = 0, // A target; waits for the boss to command an attack
+    ACTOR_503500_SMALL_ORB_EMITTER_STATE_ATTACK = 1, // Has the boss play its attack animation and launches a volley of small orbs partway through it
+    ACTOR_503500_SMALL_ORB_EMITTER_STATE_DYING  = 2, // Health exhausted: stops being a target, sheds effects and repaints a block of VRAM
+};
+
+/// Constants of the small-orb emitter.
+enum {
+    ACTOR_503500_SMALL_ORB_EMITTER_ATTACK_LAUNCH_FRAME = 66, // Value of the attack's frame count at which the first orb of the volley is launched
+    ACTOR_503500_SMALL_ORB_EMITTER_VOLLEY_SHOTS        = 6,  // Orbs in a volley, launched one a frame
+    ACTOR_503500_SMALL_ORB_EMITTER_DYING_REPAINT_FRAME = 8,  // Value of the dying frame count at which the VRAM block is copied
+    ACTOR_503500_SMALL_ORB_EMITTER_DYING_FRAMES        = 31, // Value of the dying frame count after which the emitter stops shedding effects
+};
+
+/// Work block of the small-orb emitter, the slot enemy (slot 9) that
+/// launches the boss's volley of small orbs.
+///
+/// The emitter has no model: its task carries only a coordinate, hung with
+/// an identity rotation and no offset from part 1 of the boss's model, and a
+/// target sphere offset along that part's Y and Z. It is a target from
+/// set-up.
+///
+/// Commanded by the boss, the emitter asks for the boss's animation 11 and,
+/// `ACTOR_503500_SMALL_ORB_EMITTER_ATTACK_LAUNCH_FRAME` frames on, launches
+/// `ACTOR_503500_SMALL_ORB_EMITTER_VOLLEY_SHOTS` ballistic shots of kind 1,
+/// one a frame, from one fixed point of its coordinate. Each has its own
+/// launch speed and its own aim off the emitter's facing, and every speed is
+/// raised with the player's height (negative Y). It gives the attack up when
+/// the boss recoils from a lost part, is stunned or is defeated.
+///
+/// A hit that exhausts its health empties the slot and sends the boss into
+/// its part-lost recoil. The emitter then sheds effects until its count
+/// passes `ACTOR_503500_SMALL_ORB_EMITTER_DYING_FRAMES`, copying a block of
+/// VRAM on the way, and ends its task.
+///
+/// One static instance exists; the task's `Task::work` points at it.
+typedef struct {
+    WorldCollisionBody    body;          // Target sphere of radius 1000 on the task's coordinate, 800 units along its Y and 2000 along its Z; pair-tested from set-up until the emitter dies
+    WorldCollisionContact contacts[8];   // Contact table of `body`, also the enemy's hit records
+    EffectSpawnArg        hitEffect;     // Record hit effects on the emitter are spawned with, bound to the task's coordinate
+    s16                   hitCooldown;   // Frames during which further hits are ignored; each hit that lands raises it to that attack's value
+    s16                   stateFrames;   // Frames counted by the current step of the state
+    s8                    state;         // An `ACTOR_503500_SMALL_ORB_EMITTER_STATE_*` state
+    s8                    stateStep;     // Step within the current state, restarted on every state change
+    byte                  unknown_EE[2]; // No access found; role unproven
+} _Actor503500SmallOrbEmitterWork;
+STATIC_ASSERT_SIZEOF(_Actor503500SmallOrbEmitterWork, 0xF0);
 
 extern _Actor503500YellowFlashEmitterWork D_actor_503500_80177A6C;
 
@@ -460,7 +492,7 @@ extern Actor503500Work776A0 D_actor_503500_801776A0;
 
 static void func_actor_503500_80142220(SVECTOR* angles, GfxCoord* nodes);
 
-extern Actor503500Work7797C D_actor_503500_8017797C;
+extern _Actor503500SmallOrbEmitterWork D_actor_503500_8017797C;
 
 extern _Actor503500LargeOrbEmitterWork D_actor_503500_801774C0[2];
 
@@ -599,7 +631,7 @@ Actor503500Work776A0 D_actor_503500_801776A0 = { 0 };
 
 Actor503500Work770E8 D_actor_503500_80177794[2] = { 0 };
 
-Actor503500Work7797C D_actor_503500_8017797C = { 0 };
+_Actor503500SmallOrbEmitterWork D_actor_503500_8017797C = { 0 };
 
 _Actor503500YellowFlashEmitterWork D_actor_503500_80177A6C = { 0 };
 
@@ -1984,11 +2016,12 @@ static const TaskFuncTable3 D_actor_503500_80132098 = {
     },
 };
 
-/// State-0 init of the 0xF0 enemy at `D_actor_503500_8017797C`, the same shape
-/// as `func_actor_503500_8013BEE4`: clears the block, resets the task's own
-/// coordinate to a plain 4096 identity, parents it to part 1 of the parent
-/// task's model, links the enemy node and its display node, and starts the
-/// block in sub-state 0.
+/// State-0 init of the small-orb emitter at `D_actor_503500_8017797C`, the
+/// same shape as `func_actor_503500_8013BEE4`: clears the block, gives the
+/// task's coordinate an identity rotation and hangs it off part 1 of the
+/// boss's model, links the enemy node and the target sphere with its pair
+/// tests on, enters `ACTOR_503500_SMALL_ORB_EMITTER_STATE_IDLE` and hands the
+/// task to its exit callback.
 static void func_actor_503500_8013DD10(Task* arg0)
 {
     Enemy*                 enemy;
@@ -2020,52 +2053,55 @@ static void func_actor_503500_8013DD10(Task* arg0)
     enemy->bodyPos.vx             = D_actor_503500_8016F2D8.vx;
     enemy->bodyPos.vy             = D_actor_503500_8016F2D8.vy;
     enemy->bodyPos.vz             = D_actor_503500_8016F2D8.vz;
-    rec                           = D_actor_503500_8017797C.rec;
+    rec                           = D_actor_503500_8017797C.contacts;
     enemy->param                  = &D_actor_503500_8016E7EC[arg0->spawnArg1.value];
     enemy->recs                   = rec;
     enemy->hp                     = enemy->param->hpMax;
 
-    D_actor_503500_8017797C.obj.coord            = coord;
-    D_actor_503500_8017797C.obj.context.contacts = rec;
-    D_actor_503500_8017797C.obj.key              = 0x30023;
-    D_actor_503500_8017797C.obj.radius           = 0x3E8;
-    D_actor_503500_8017797C.obj.flags            = WORLD_COLLISION_BODY_SPHERE;
-    D_actor_503500_8017797C.obj.pos.vx           = D_actor_503500_8016F2D8.vx;
-    D_actor_503500_8017797C.obj.pos.vy           = D_actor_503500_8016F2D8.vy;
-    D_actor_503500_8017797C.obj.pos.vz           = D_actor_503500_8016F2D8.vz;
-    Gp_LinkObj(2, &D_actor_503500_8017797C.obj);
-    Gp_InitRec18Table(rec, 8, 0);
-    D_actor_503500_8017797C.field_E0.spawnArgLo = 0x600;
-    D_actor_503500_8017797C.field_E0.coord      = coord;
-    D_actor_503500_8017797C.field_E0.spawnArgHi = 3;
-    D_actor_503500_8017797C.obj.flags          |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-    func_actor_503500_8013EC20(arg0, 0);
+    D_actor_503500_8017797C.body.coord            = coord;
+    D_actor_503500_8017797C.body.context.contacts = rec;
+    D_actor_503500_8017797C.body.key              = 0x30023;
+    D_actor_503500_8017797C.body.radius           = 0x3E8;
+    D_actor_503500_8017797C.body.flags            = WORLD_COLLISION_BODY_SPHERE;
+    D_actor_503500_8017797C.body.pos.vx           = D_actor_503500_8016F2D8.vx;
+    D_actor_503500_8017797C.body.pos.vy           = D_actor_503500_8016F2D8.vy;
+    D_actor_503500_8017797C.body.pos.vz           = D_actor_503500_8016F2D8.vz;
+    Gp_LinkObj(2, &D_actor_503500_8017797C.body);
+    Gp_InitRec18Table(rec, ARRAY_SIZE(D_actor_503500_8017797C.contacts), 0);
+    D_actor_503500_8017797C.hitEffect.spawnArgLo = 0x600;
+    D_actor_503500_8017797C.hitEffect.coord      = coord;
+    D_actor_503500_8017797C.hitEffect.spawnArgHi = 3;
+    D_actor_503500_8017797C.body.flags          |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+    func_actor_503500_8013EC20(arg0, ACTOR_503500_SMALL_ORB_EMITTER_STATE_IDLE);
     arg0->exitCallback = func_actor_503500_8013EA2C;
     arg0->state       += 1;
 }
 
-/// Applies this frame's hits from the collision records `arg2[0..arg3)`, the
-/// same pass as `func_actor_503500_80137C90` for this form: each attack id is
-/// taken once, only type-2 ids land while the `field_E8` countdown is clear,
-/// and a hit that empties `field_40` starts state 2. The hit effect is pulled
-/// to 600 units along the contact offset. `arg1` is passed but unused.
+/// Applies this frame's hits from the collision records `arg2[0..arg3)` to
+/// the small-orb emitter, like `func_actor_503500_80137C90`: each attack id
+/// is taken once, only type-2 ids land while `hitCooldown` is clear, and a
+/// hit that empties the enemy's health starts
+/// `ACTOR_503500_SMALL_ORB_EMITTER_STATE_DYING` but still applies the id's
+/// status effect. The hit effect is pulled to 600 units along the contact
+/// offset and placed from the offset of the target sphere. `arg1` is passed
+/// by the caller but unused.
 static void func_actor_503500_8013DEB4(Task* arg0, WorldCollisionBody* arg1, WorldCollisionContact* arg2, s32 arg3)
 {
-    VECTOR                d;
-    SVECTOR               pos;
-    MATRIX                mtx;
-    MATRIX                rot;
-    Actor503500Work7797C* work;
-    Enemy*                enemy;
-    GfxCoord*             coord;
-    GfxCoord*             src;
-    s16                   stun;
-    u32                   id;
-    s32                   dmg;
-    s32                   crit;
-    s32                   scale;
-    s32                   i;
-    s32                   j;
+    VECTOR                           d;
+    SVECTOR                          pos;
+    MATRIX                           mtx;
+    MATRIX                           rot;
+    _Actor503500SmallOrbEmitterWork* work;
+    Enemy*                           enemy;
+    GfxCoord*                        coord;
+    GfxCoord*                        src;
+    s16                              stun;
+    u32                              id;
+    s32                              dmg;
+    s32                              crit;
+    s32                              scale;
+    s32                              i;
+    s32                              j;
 
     enemy = arg0->spawnArg2.pointer;
     work  = arg0->work;
@@ -2083,7 +2119,7 @@ static void func_actor_503500_8013DEB4(Task* arg0, WorldCollisionBody* arg1, Wor
         if ((id & 0xFFFF0000) != 0x20000) {
             continue;
         }
-        if (work->field_E8 != 0) {
+        if (work->hitCooldown != 0) {
             continue;
         }
         src = gPlayerActorTasks[(id >> 7) & 1]->extra.tmd->coords;
@@ -2101,7 +2137,7 @@ static void func_actor_503500_8013DEB4(Task* arg0, WorldCollisionBody* arg1, Wor
         func_800DA6E8(&enemy->node, dmg, 0);
         enemy->hp -= dmg;
         if (enemy->hp <= 0) {
-            func_actor_503500_8013EC20(arg0, 2);
+            func_actor_503500_8013EC20(arg0, ACTOR_503500_SMALL_ORB_EMITTER_STATE_DYING);
         }
         switch (Gp_GetIdParam0(id) & 0xFFFF) {
             case 0:
@@ -2137,56 +2173,63 @@ static void func_actor_503500_8013DEB4(Task* arg0, WorldCollisionBody* arg1, Wor
         pos.vx += D_actor_503500_8016F2D8.vx;
         pos.vy += D_actor_503500_8016F2D8.vy;
         pos.vz += D_actor_503500_8016F2D8.vz;
-        func_800FDB18(Gp_GetIdParam1(id) & 0xFFFF, coord, &pos, &work->field_E0);
+        func_800FDB18(Gp_GetIdParam1(id) & 0xFFFF, coord, &pos, &work->hitEffect);
         if (crit != 0) {
             Gp_SpawnEff(EFFECT_CRITICAL_HIT, coord, 0, &pos);
         }
         stun = Gp_GetIdParam2(id);
-        if (work->field_E8 < stun) {
-            work->field_E8 = stun;
+        if (work->hitCooldown < stun) {
+            work->hitCooldown = stun;
         }
     next:;
     }
 }
 
-/// Sub-state 1 of the third 0xF0 block, stepped by `field_ED`: step 0 applies
-/// the boss's preset 0xB; from frame 0x42 step 1 spawns six children from
-/// `D_actor_503500_8016E9F0`, one a frame, each placed at a fixed offset in the
-/// actor's frame and turned by its row of `D_actor_503500_8016F2EC`; step 3
-/// hands off once `func_actor_503500_80136014` reports preset 0xB flagged.
+/// `ACTOR_503500_SMALL_ORB_EMITTER_STATE_ATTACK` step of the small-orb
+/// emitter, stepped by `stateStep`: step 0 applies the boss's animation
+/// preset 11; step 1 counts `stateFrames` up to
+/// `ACTOR_503500_SMALL_ORB_EMITTER_ATTACK_LAUNCH_FRAME` and from then on
+/// launches one ballistic shot of kind 1 a frame,
+/// `ACTOR_503500_SMALL_ORB_EMITTER_VOLLEY_SHOTS` in all; step 3 idles once
+/// the boss reports preset 11 done. Step 2 is only ever reached by falling
+/// through from step 1. Shot `idx` leaves a fixed offset in the emitter's
+/// frame, turned off the emitter's facing by its row of
+/// `D_actor_503500_8016F2EC`, at its speed from `D_actor_503500_8016F2E0`
+/// raised with the player's height. Idles at once while the boss is
+/// recoiling, stunned or defeated.
 static void func_actor_503500_8013E384(Task* arg0)
 {
-    SVECTOR               pos;
-    SVECTOR               ofs;
-    MATRIX                m;
-    Actor503500Work7797C* work;
-    GfxCoord*             coord;
-    GfxCoord*             dst;
-    Task*                 task;
-    s32*                  src;
-    s32*                  out;
-    s32                   i;
-    s32                   arg;
-    s16                   idx;
+    SVECTOR                          pos;
+    SVECTOR                          ofs;
+    MATRIX                           m;
+    _Actor503500SmallOrbEmitterWork* work;
+    GfxCoord*                        coord;
+    GfxCoord*                        dst;
+    Task*                            task;
+    s32*                             src;
+    s32*                             out;
+    s32                              i;
+    s32                              arg;
+    s16                              idx;
 
     work  = arg0->work;
     coord = arg0->extra.tmd->coords;
     if (func_actor_503500_8013608C(arg0->parent) != 0) {
-        func_actor_503500_8013EC20(arg0, 0);
+        func_actor_503500_8013EC20(arg0, ACTOR_503500_SMALL_ORB_EMITTER_STATE_IDLE);
         func_actor_503500_8013611C(arg0->spawnArg1.value);
         return;
     }
-    switch (work->field_ED) {
+    switch (work->stateStep) {
         case 0:
             func_actor_503500_80135FB4(arg0->parent, 0xB, 0x10);
-            work->field_ED++;
+            work->stateStep++;
             break;
         case 1:
-            if (++work->field_EA < 0x42) {
+            if (++work->stateFrames < ACTOR_503500_SMALL_ORB_EMITTER_ATTACK_LAUNCH_FRAME) {
                 break;
             }
         case 2:
-            idx  = work->field_EA - 0x42;
+            idx  = work->stateFrames - ACTOR_503500_SMALL_ORB_EMITTER_ATTACK_LAUNCH_FRAME;
             arg  = (D_actor_503500_8016F2E0[idx] << 12) + (-gPlayerStatus.coordMtx->t[1] << 24) / 1000;
             task = Task_SpawnFromTable(D_actor_503500_8016E9F0, 0, 1, arg);
             if (task != NULL) {
@@ -2220,64 +2263,67 @@ static void func_actor_503500_8013E384(Task* arg0)
                 gte_rtir();
                 gte_stclmv((char*)&dst->coord + 4);
             }
-            if (idx >= 5) {
-                work->field_ED += 2;
+            if (idx >= ACTOR_503500_SMALL_ORB_EMITTER_VOLLEY_SHOTS - 1) {
+                work->stateStep += 2;
             }
             break;
         case 3:
             if (func_actor_503500_80136014(arg0->parent, 0xB) != 0) {
-                func_actor_503500_8013EC20(arg0, 0);
+                func_actor_503500_8013EC20(arg0, ACTOR_503500_SMALL_ORB_EMITTER_STATE_IDLE);
             }
             break;
     }
 }
 
-/// Sub-state 2 of the third 0xF0 block, stepped by `field_ED`: the same
-/// death sequence as `func_actor_503500_8013F4A4`, except the effects come
-/// from `D_actor_503500_8016F31C` - the odd-frame one at a random row - and
-/// the VRAM rect is restored on frame 8 rather than at the end.
+/// `ACTOR_503500_SMALL_ORB_EMITTER_STATE_DYING` step of the small-orb
+/// emitter, stepped by `stateStep`: step 0 is the death setup shared with
+/// `func_actor_503500_8013F4A4`; step 1 spawns a hit effect per frame at the
+/// row of `D_actor_503500_8016F31C` that `stateFrames` cycles through and, on
+/// odd frames, a drifting sprite at a random row, moves the VRAM rect when
+/// the count is `ACTOR_503500_SMALL_ORB_EMITTER_DYING_REPAINT_FRAME` and
+/// leaves once it has passed `ACTOR_503500_SMALL_ORB_EMITTER_DYING_FRAMES`.
 static void func_actor_503500_8013E740(Task* arg0)
 {
-    Enemy*                enemy;
-    Actor503500Work7797C* work;
-    GfxCoord*             coord;
-    s32                   pan;
+    Enemy*                           enemy;
+    _Actor503500SmallOrbEmitterWork* work;
+    GfxCoord*                        coord;
+    s32                              pan;
 
     enemy = arg0->spawnArg2.pointer;
     work  = arg0->work;
     coord = arg0->extra.tmd->coords;
-    switch (work->field_ED) {
+    switch (work->stateStep) {
         case 0:
-            work->obj.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-            enemy->recs      = 0;
+            work->body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+            enemy->recs       = 0;
             worldTargetUnlinkNode(&enemy->node);
             func_actor_503500_80135CE8(arg0->parent, arg0->spawnArg1.value);
-            work->field_E8 = 0;
+            work->hitCooldown = 0;
             (Gp_IncStateF0Ref)(0);
             Gp_ReleaseStateF0Add(arg0, 0);
             func_actor_503500_80136048(arg0->parent);
             enemy->reactionFlags &= ENEMY_REACTION_LOW_CLEAR;
             pan                   = (s8)worldCoordGetOriginAudioPan(coord);
             SndEvt_EnqueueType6(SOUND_BRAHMAN_DEATH_LOOP, pan, (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
-            work->field_ED++;
+            work->stateStep++;
             break;
         case 1:
             if (func_actor_503500_801360BC(arg0->spawnArg1.value, 3) != 0) {
                 Gp_SpawnEff(EFFECT_HIT_PUFF, coord, 0x01001C00,
-                            &D_actor_503500_8016F31C[(s16)(work->field_EA % 9)]);
-                if (work->field_EA & 1) {
+                            &D_actor_503500_8016F31C[work->stateFrames % 9]);
+                if (work->stateFrames & 1) {
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     Gp_SpawnEff(EFFECT_SHELTER_R48_DRIFT_SPRITE, coord, 0x04404600,
                                 &D_actor_503500_8016F31C[(u16)((gRandomLcgState >> 16) % 9)]);
                 }
             }
-            if (work->field_EA == 8) {
+            if (work->stateFrames == ACTOR_503500_SMALL_ORB_EMITTER_DYING_REPAINT_FRAME) {
                 MoveImage(&D_actor_503500_8016F364, 0x141, 0x12A);
             }
-            if (work->field_EA++ >= 0x1F) {
+            if (work->stateFrames++ >= ACTOR_503500_SMALL_ORB_EMITTER_DYING_FRAMES) {
                 func_actor_503500_8013611C(arg0->spawnArg1.value);
                 SndEvt_EnqueueType7(SOUND_BRAHMAN_DEATH_LOOP, 0x2D);
-                work->field_ED++;
+                work->stateStep++;
             }
             break;
         default:
@@ -2286,7 +2332,7 @@ static void func_actor_503500_8013E740(Task* arg0)
     }
 }
 
-/// The third 0xF0 block's per-frame tick, the same shape as
+/// The small-orb emitter's per-frame tick, the same shape as
 /// `func_actor_503500_8013D7D4`: frozen mode 1 skips the frame entirely,
 /// mode 2 only marks the enemy's link node, and anything else clears the
 /// coordinate flag and runs the normal chain.
@@ -2314,11 +2360,13 @@ static void func_actor_503500_8013E9A4(Task* arg0)
 
 static void func_actor_503500_8013EA2C(Task* arg0)
 {
-    Enemy* enemy;
+    Enemy*                           enemy;
+    _Actor503500SmallOrbEmitterWork* work;
 
     enemy                           = arg0->spawnArg2.pointer;
     arg0->extra.tmd->coords->parent = &gGfxViewCoord;
-    Gp_UnlinkObj(&((Actor503500Work7797C*)arg0->work)->obj);
+    work                            = arg0->work;
+    Gp_UnlinkObj(&work->body);
     enemy->recs = 0;
     arg0->work  = NULL;
     enemyDestroy(enemy, arg0);
@@ -2342,60 +2390,61 @@ static void func_actor_503500_8013EA8C(Task* arg0)
 
 static void func_actor_503500_8013EAE4(Task* arg0)
 {
-    Actor503500Work7797C* work;
-    s16                   timer;
+    _Actor503500SmallOrbEmitterWork* work;
 
     work = arg0->work;
-    if (work->field_E8 != 0) {
-        timer          = (u16)work->field_E8 - 1;
-        work->field_E8 = timer;
-        if (timer < 0) {
-            work->field_E8 = 0;
+    if (work->hitCooldown != 0) {
+        if (--work->hitCooldown < 0) {
+            work->hitCooldown = 0;
         }
     }
     if (func_actor_503500_80136208() == 0) {
-        func_actor_503500_8013DEB4(arg0, &work->obj, work->rec, 8);
+        func_actor_503500_8013DEB4(arg0, &work->body, work->contacts, ARRAY_SIZE(work->contacts));
     }
-    Gp_ClearRec18Occupied(work->rec);
+    Gp_ClearRec18Occupied(work->contacts);
 }
 
 static void func_actor_503500_8013EB60(Task* arg0)
 {
-    switch (((Actor503500Work7797C*)arg0->work)->field_EC) {
-        case 0:
+    _Actor503500SmallOrbEmitterWork* work = arg0->work;
+
+    switch (work->state) {
+        case ACTOR_503500_SMALL_ORB_EMITTER_STATE_IDLE:
             func_actor_503500_8013EBE4(arg0);
             break;
-        case 1:
+        case ACTOR_503500_SMALL_ORB_EMITTER_STATE_ATTACK:
             func_actor_503500_8013E384(arg0);
             break;
-        case 2:
+        case ACTOR_503500_SMALL_ORB_EMITTER_STATE_DYING:
             func_actor_503500_8013E740(arg0);
             break;
     }
 }
 
-/// The third 0xF0 block's counterpart of `func_actor_503500_80138454`: when a
-/// kill is pending, hands the block to sub-state 1 and cancels the countdown.
+/// `ACTOR_503500_SMALL_ORB_EMITTER_STATE_IDLE` step of the small-orb emitter,
+/// the counterpart of `func_actor_503500_80138454`: when the boss has left
+/// command 2 in the task's `killCountdown`, takes it and starts
+/// `ACTOR_503500_SMALL_ORB_EMITTER_STATE_ATTACK`.
 static void func_actor_503500_8013EBE4(Task* arg0)
 {
     if (arg0->killCountdown == 2) {
-        func_actor_503500_8013EC20(arg0, 1);
+        func_actor_503500_8013EC20(arg0, ACTOR_503500_SMALL_ORB_EMITTER_STATE_ATTACK);
         arg0->killCountdown = 0;
     }
 }
 
-/// The third 0xF0 block's counterpart of `func_actor_503500_8013BE48`: puts the
-/// block into sub-state `arg1` (the one `func_actor_503500_8013EB60`
-/// dispatches on), clears the phase and frame counter that go with it, cancels
-/// a pending kill, and reports the slot busy to the boss when the sub-state
-/// is non-zero.
+/// The small-orb emitter's counterpart of `func_actor_503500_8013BE48`:
+/// enters state `arg1` (an `ACTOR_503500_SMALL_ORB_EMITTER_STATE_*`), clears
+/// `stateStep` and `stateFrames`, drops any command still waiting in the
+/// task, and reports the slot busy to the boss in every state but
+/// `ACTOR_503500_SMALL_ORB_EMITTER_STATE_IDLE`.
 static void func_actor_503500_8013EC20(Task* arg0, s32 arg1)
 {
-    Actor503500Work7797C* work = arg0->work;
+    _Actor503500SmallOrbEmitterWork* work = arg0->work;
 
-    work->field_EC      = arg1;
-    work->field_ED      = 0;
-    work->field_EA      = 0;
+    work->state         = arg1;
+    work->stateStep     = 0;
+    work->stateFrames   = 0;
     arg0->killCountdown = 0;
     func_actor_503500_80135F9C(arg0->parent, arg0->spawnArg1.value, arg1 != 0);
 }
