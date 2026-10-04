@@ -288,20 +288,33 @@ typedef struct {
 } _Actor01600Work;
 STATIC_ASSERT_SIZEOF(_Actor01600Work, 0x558);
 
-/// Collision displacement and normalized push vectors in the scratch arena.
-typedef struct Actor01600HitScratch {
-    /* 0x00 */ byte                pad[0x20];
-    /* 0x20 */ WorldCollisionDelta delta;
-    /* 0x30 */ VECTOR              normal;
-    /* 0x40 */ byte                tail[0xC];
-} Actor01600HitScratch;
-STATIC_ASSERT_SIZEOF(Actor01600HitScratch, 0x4C);
-
-typedef struct Actor01600RotScratch {
-    /* 0x00 */ VECTOR  position;
-    /* 0x10 */ SVECTOR rotation;
-} Actor01600RotScratch;
-STATIC_ASSERT_SIZEOF(Actor01600RotScratch, 0x18);
+/// Scratch-stack block of the scavenger's contact pass: the correction that
+/// pushes it out of the room's collision, then the offsets its hits and
+/// overlaps are measured along.
+///
+/// The pass reserves one block and has the push-back of the body sphere's
+/// contact records resolved into `delta`; the whole units of that correction
+/// move the root. It then walks the same records, reusing `delta` for each. A
+/// damaging contact takes the offset from the root to the attacking player,
+/// whose length is the range the damage is worked out for. A contact with
+/// another enemy's body takes the offset from that body's contact point to the
+/// root; `normal` holds its direction, and `delta` then holds that direction
+/// in the frame of the collision grid's coordinate, which the root is pushed
+/// out along. Nothing clears the block when it is reserved and nothing in it
+/// carries over to the next frame. The pass releases the block before it
+/// returns, except where a hit leaves the scavenger without hit points: that
+/// path returns with the block still reserved.
+///
+/// The pass touches neither run of bytes around the vectors, so what else the
+/// block was laid out to hold is unproven.
+typedef struct {
+    byte                field_0[0x20];   // Reserved with the block and never accessed; role unproven
+    WorldCollisionDelta delta;           // Correction resolved from the contact records, in signed 16.16 units; then a whole-unit offset to the attacker or from an overlapped body; last `normal` in the collision grid's frame
+    VECTOR              normal;          // `delta` of an overlapped body, normalised: away from that body, 4096 = 1.0
+    byte                field_40[0x8];   // Reserved with the block and never accessed; role unproven
+    s32                 contributorMask; // Bitmask of the contact records that contributed to the correction, as the resolver reports it; never read
+} _Actor01600ContactScratch;
+STATIC_ASSERT_SIZEOF(_Actor01600ContactScratch, 0x4C);
 
 /// The scratch-stack block the scavenger aims its path probe in: the probe's
 /// length laid along the scavenger's facing, the turn about Y to the probe's
@@ -346,26 +359,38 @@ static s32 Actor01600_Fn04C64(Task* arg0, s32 distance, s32 angle);
 
 static u8 Actor01600_Fn04EB0(Task* arg0);
 
-/// Scratchpad storage for the actor's ground-quad position and rotated offset.
-typedef struct Actor01600GroundScratch {
-    /* 0x00 */ VECTOR3 pos;
-    /* 0x0C */ s32     pad_C;
-    /* 0x10 */ SVECTOR offset;
-} Actor01600GroundScratch;
-STATIC_ASSERT_SIZEOF(Actor01600GroundScratch, 0x18);
+/// Scratch-stack block the scavenger's ground shadow is placed in when it is
+/// drawn under the root.
+///
+/// A scavenger on the ground has its shadow centred on the root's world
+/// position. One in the air has its root above the floor, so the shadow is
+/// centred on the root moved back down its own Y axis by the height of the
+/// jump. One block serves one draw: it is reserved, `centre` is handed to the
+/// ground quad's drawer, and it is released. The shadow of a scavenger that
+/// has hold of its target is placed under the body instead, without a block.
+typedef struct {
+    VECTOR3 centre;     // World position the shadow quad is centred on, world coordinate units; for an airborne scavenger first `drop` along world axes, before the root's position is added
+    byte    field_C[4]; // Reserved with the block and never accessed; role unproven
+    SVECTOR drop;       // Offset from an airborne root down to the floor, in the root's frame: Y alone, the height risen plus 0x80; `pad` is never written
+} _Actor01600GroundShadowScratch;
+STATIC_ASSERT_SIZEOF(_Actor01600GroundShadowScratch, 0x18);
 
-/// 0x3C-byte scratch stack block `Actor01600_Fn06974` steps the attachment
-/// coordinate in: the step vector the coordinate's facing is rotated into, the
-/// `SVECTOR` `gfxReadMatrixZAxis` reads that facing into, the rotation
-/// `RotMatrixY` builds for the yaw and the yaw itself.
-typedef struct Actor01600StepScratch {
-    /* 0x00 */ VECTOR    move;
-    /* 0x10 */ SVECTOR   dir;
-    /* 0x18 */ GfxMatrix mat;
-    /* 0x38 */ s16       yaw;
-    /* 0x3A */ byte      pad_3A[2];
-} Actor01600StepScratch;
-STATIC_ASSERT_SIZEOF(Actor01600StepScratch, 0x3C);
+/// Scratch-stack block of the scavenger's sidestep, which moves the root
+/// across its facing.
+///
+/// The step is laid along X and turned about Y by the yaw of the root's
+/// facing, so it runs level and square to that heading whatever pitch or roll
+/// the root carries, and the result is added to the root's translation. One
+/// block serves one step and nothing carries over to the next: it is
+/// reserved, used and released. The step is written into the block before
+/// the cursor is moved down to cover it.
+typedef struct {
+    VECTOR    step;     // (distance, 0, 0) with the distance cut to 16 bits, then turned by `rotation`: the offset added to the root's translation, world units; `pad` is never written
+    SVECTOR   facing;   // The root's local Z axis, 4096 = 1.0; `vy` is not read and `pad` is never written
+    GfxMatrix rotation; // Identity, written word-wise, then turned about Y by `yaw`; its translation is never set or read
+    s16       yaw;      // Yaw of `facing`, 4096 to the turn
+} _Actor01600SidestepScratch;
+STATIC_ASSERT_SIZEOF(_Actor01600SidestepScratch, 0x3C);
 
 static void Actor01600_Fn03A60(Task* actor);
 
@@ -1717,33 +1742,31 @@ static void Actor01600_Fn00A4C(Task* arg0)
 
 static void Actor01600_Fn00BAC(Task* actor)
 {
-    s32                   distance;
-    Task**                slots;
-    void*                 world;
-    _Actor01600Work*      work;
-    Enemy*                ctx;
-    GfxCoord*             coord;
-    s32                   contactIndex;
-    Actor01600HitScratch* scratch;
-    void*                 old;
-    GfxCoord*             other;
-    s32                   x, y, z;
-    s32                   damage;
-    s32                   amount;
-    s32                   product;
-    s32                   push;
-    s32                   clamped;
-    s32                   cx, cz;
-    s16                   count;
-    s32                   mode;
+    s32                        distance;
+    Task**                     slots;
+    void*                      world;
+    _Actor01600Work*           work;
+    Enemy*                     ctx;
+    GfxCoord*                  coord;
+    s32                        contactIndex;
+    _Actor01600ContactScratch* scratch;
+    GfxCoord*                  other;
+    s32                        x, y, z;
+    s32                        damage;
+    s32                        amount;
+    s32                        product;
+    s32                        push;
+    s32                        clamped;
+    s32                        cx, cz;
+    s16                        count;
+    s32                        mode;
     /* Keep the comparison state local to each reaction branch (GCC 2.8.1). */
     s32 ignoredState;
     work    = actor->work;
-    old     = SCRATCH_STACK_CURSOR(void);
-    scratch = (SCRATCH_STACK_CURSOR(void) = old - 0x4C);
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(_Actor01600ContactScratch);
     ctx     = actor->spawnArg2.pointer;
     coord   = actor->extra.tmd->coords;
-    mode    = func_800E0C10(work->bodySphere.contacts, &((Actor01600HitScratch*)(old - sizeof(Actor01600HitScratch)))->delta, ARRAY_SIZE(work->bodySphere.contacts), old - 4);
+    mode    = func_800E0C10(work->bodySphere.contacts, &scratch->delta, ARRAY_SIZE(work->bodySphere.contacts), &scratch->contributorMask);
     world   = coord + 1;
     if (mode == 1)
         goto mode1;
@@ -1944,7 +1967,7 @@ mode_end:
         }
     }
 release:
-    SCRATCH_STACK_RELEASE_BYTES(0x4C);
+    SCRATCH_STACK_RELEASE_BLOCK(_Actor01600ContactScratch);
     return;
 }
 
@@ -3211,49 +3234,45 @@ static void Actor01600_Fn020F8(Task* actor)
 
 static void Actor01600_Fn03A60(Task* arg0)
 {
-    Task**                slot;
-    Task**                slots;
-    s16                   mode;
-    s16                   diff;
-    s32                   current;
-    s16                   angle;
-    s32                   absoluteDiff;
-    s32                   randomTurn;
-    s16                   turn;
-    s32                   randomStep;
-    s16                   wrap;
-    s32                   amount;
-    s32                   remaining;
-    s32                   remaining2;
-    u16                   wanted;
-    u32                   randomState;
-    u32                   randomState2;
-    u32                   random;
-    GfxCoord*             playerCoord;
-    _Actor01600Work*      work;
-    GfxCoord*             coord;
-    Actor01600RotScratch* allocated;
-    Actor01600RotScratch* scratch;
+    Task**            slot;
+    Task**            slots;
+    s16               mode;
+    s16               diff;
+    s32               current;
+    s16               angle;
+    s32               absoluteDiff;
+    s32               randomTurn;
+    s16               turn;
+    s32               randomStep;
+    s16               wrap;
+    s32               amount;
+    s32               remaining;
+    s32               remaining2;
+    u16               wanted;
+    u32               randomState;
+    u32               randomState2;
+    u32               random;
+    GfxCoord*         playerCoord;
+    _Actor01600Work*  work;
+    GfxCoord*         coord;
+    ActorFaceScratch* scratch;
 
-    work                                       = arg0->work;
-    coord                                      = arg0->extra.tmd->coords;
-    slots                                      = gPlayerActorTasks;
-    slot                                       = &slots[Actor01600_Fn052C4(arg0) & 0xFF];
-    allocated                                  = SCRATCH_STACK_CURSOR(Actor01600RotScratch);
-    allocated                                 -= 1;
-    SCRATCH_STACK_CURSOR(Actor01600RotScratch) = allocated;
-    mode                                       = work->turnMode;
-    playerCoord                                = (*slot)->extra.tmd->coords;
-    scratch                                    = allocated;
+    work        = arg0->work;
+    coord       = arg0->extra.tmd->coords;
+    slots       = gPlayerActorTasks;
+    slot        = &slots[Actor01600_Fn052C4(arg0) & 0xFF];
+    scratch     = SCRATCH_STACK_RESERVE_BLOCK(ActorFaceScratch);
+    mode        = work->turnMode;
+    playerCoord = (*slot)->extra.tmd->coords;
     switch (mode) {
         case ACTOR_01600_TURN_TRACK_TARGET:
-            scratch->position.vx = (s32)(playerCoord->coord.t[0] - coord->coord.t[0]);
-            scratch->position.vy = 0;
-            scratch->position.vz = (s32)(playerCoord->coord.t[2] - coord->coord.t[2]);
-            wanted               = ratan2((s32)(s16)scratch->position.vx, (s32)(s16)scratch->position.vz) & 0xFFF;
-            diff                 = wanted - (work->yaw & 0xFFF);
-            absoluteDiff         = diff >= 0 ? diff : -diff;
-            turn                 = diff;
+            scratch->delta.vx = playerCoord->coord.t[0] - coord->coord.t[0];
+            scratch->delta.vy = 0;
+            scratch->delta.vz = playerCoord->coord.t[2] - coord->coord.t[2];
+            wanted            = ratan2((s16)scratch->delta.vx, (s16)scratch->delta.vz) & 0xFFF;
+            diff              = wanted - (work->yaw & 0xFFF);
+            absoluteDiff      = diff >= 0 ? diff : -diff;
+            turn              = diff;
             if (absoluteDiff < 0x21) {
                 work->yaw = wanted;
             } else {
@@ -3328,11 +3347,11 @@ static void Actor01600_Fn03A60(Task* arg0)
             }
             break;
     }
-    scratch->rotation.vx = 0;
-    scratch->rotation.vy = (u16)work->yaw;
-    scratch->rotation.vz = 0;
-    RotMatrix(&scratch->rotation, &coord->coord);
-    SCRATCH_STACK_RELEASE_BLOCK(Actor01600RotScratch);
+    scratch->rot.vx = 0;
+    scratch->rot.vy = (u16)work->yaw;
+    scratch->rot.vz = 0;
+    RotMatrix(&scratch->rot, &coord->coord);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorFaceScratch);
 }
 
 static void Actor01600_Fn03D48(Task* arg0)
@@ -3375,35 +3394,35 @@ static void Actor01600_Fn03D48(Task* arg0)
 
 static void Actor01600_Fn03EEC(Task* arg0)
 {
-    VECTOR3                  pos;
-    Actor01600GroundScratch* scratch;
-    _Actor01600Work*         work;
-    GfxCoord*                coord;
-    s32                      height;
+    VECTOR3                         pos;
+    _Actor01600GroundShadowScratch* scratch;
+    _Actor01600Work*                work;
+    GfxCoord*                       coord;
+    s32                             height;
 
     work  = arg0->work;
     coord = arg0->extra.tmd->coords;
     if (work->shadowUnderBody == 0) {
-        scratch = SCRATCH_STACK_RESERVE_BLOCK(Actor01600GroundScratch);
+        scratch = SCRATCH_STACK_RESERVE_BLOCK(_Actor01600GroundShadowScratch);
         if (work->airborne != 0) {
             gte_SetRotMatrix(&coord->workm);
-            scratch->offset.vx = 0;
-            height             = work->jumpHeight - 0x80;
-            scratch->offset.vy = -height;
-            scratch->offset.vz = 0;
-            gte_ldv0(&scratch->offset);
+            scratch->drop.vx = 0;
+            height           = work->jumpHeight - 0x80;
+            scratch->drop.vy = -height;
+            scratch->drop.vz = 0;
+            gte_ldv0(&scratch->drop);
             gte_rtv0();
-            gte_stlvnl(&scratch->pos);
-            scratch->pos.vx += coord->workm.t[0];
-            scratch->pos.vy += coord->workm.t[1];
-            scratch->pos.vz += coord->workm.t[2];
+            gte_stlvnl(&scratch->centre);
+            scratch->centre.vx += coord->workm.t[0];
+            scratch->centre.vy += coord->workm.t[1];
+            scratch->centre.vz += coord->workm.t[2];
         } else {
-            scratch->pos.vx = coord->workm.t[0];
-            scratch->pos.vy = coord->workm.t[1];
-            scratch->pos.vz = coord->workm.t[2];
+            scratch->centre.vx = coord->workm.t[0];
+            scratch->centre.vy = coord->workm.t[1];
+            scratch->centre.vz = coord->workm.t[2];
         }
-        Gp_DrawEffGroundQuad(&scratch->pos, 0x1C0, 0);
-        SCRATCH_STACK_RELEASE_BLOCK(Actor01600GroundScratch);
+        Gp_DrawEffGroundQuad(&scratch->centre, 0x1C0, 0);
+        SCRATCH_STACK_RELEASE_BLOCK(_Actor01600GroundShadowScratch);
         return;
     }
     if (func_800EA1A8(MATRIX_TRANS(&coord[1].workm), &pos) != 0) {
@@ -4724,40 +4743,36 @@ static void Actor01600_Fn06880(Task* arg0)
 }
 
 /// Steps the attachment coordinate `distance` units along the model's facing:
-/// `gfxReadMatrixZAxis` reads that coordinate's column into `dir`, `ratan2` turns it
+/// `gfxReadMatrixZAxis` reads that coordinate's column into `facing`, `ratan2` turns it
 /// into a yaw, `RotMatrixY` builds the rotation for the yaw and
 /// `ApplyMatrixLV` rotates the step vector `(distance, 0, 0)` by it before the
 /// result is added to `coord.t`.
 static void Actor01600_Fn06974(Task* actor, s32 distance)
 {
-    GfxMatrix*             mat;
-    Actor01600StepScratch* work;
-    GfxCoord*              coord;
-    Actor01600StepScratch* head;
-    void**                 scratch;
+    GfxMatrix*                  rotation;
+    _Actor01600SidestepScratch* block;
+    GfxCoord*                   coord;
 
-    scratch                        = SCRATCH_HEAD_ADDR;
-    head                           = SCRATCH_HEAD_AT(scratch, Actor01600StepScratch);
-    coord                          = actor->extra.tmd->coords;
-    work                           = head - 1;
-    work->move.vx                  = (s16)distance;
-    work->move.vy                  = 0;
-    work->move.vz                  = 0;
-    SCRATCH_HEAD_AT(scratch, void) = work;
-    gfxReadMatrixZAxis(&actor->extra.tmd->coords->coord, &(head - 1)->dir);
-    mat                       = &(head - 1)->mat;
-    work->yaw                 = ratan2(work->dir.vx, work->dir.vz);
-    mat->rotationWords.m00M01 = ONE;
-    mat->rotationWords.m02M10 = 0;
-    mat->rotationWords.m11M12 = ONE;
-    mat->rotationWords.m20M21 = 0;
-    mat->rotationWords.m22    = ONE;
-    RotMatrixY(work->yaw, &mat->mat);
-    ApplyMatrixLV(&mat->mat, &work->move, &work->move);
-    coord->coord.t[0] += work->move.vx;
-    coord->coord.t[1] += work->move.vy;
-    coord->coord.t[2] += work->move.vz;
-    SCRATCH_POP_AT(scratch, Actor01600StepScratch);
+    coord                                            = actor->extra.tmd->coords;
+    block                                            = SCRATCH_STACK_CURSOR(_Actor01600SidestepScratch) - 1;
+    block->step.vx                                   = (s16)distance;
+    block->step.vy                                   = 0;
+    block->step.vz                                   = 0;
+    SCRATCH_STACK_CURSOR(_Actor01600SidestepScratch) = block;
+    gfxReadMatrixZAxis(&actor->extra.tmd->coords->coord, &block->facing);
+    rotation                       = &block->rotation;
+    block->yaw                     = ratan2(block->facing.vx, block->facing.vz);
+    rotation->rotationWords.m00M01 = ONE;
+    rotation->rotationWords.m02M10 = 0;
+    rotation->rotationWords.m11M12 = ONE;
+    rotation->rotationWords.m20M21 = 0;
+    rotation->rotationWords.m22    = ONE;
+    RotMatrixY(block->yaw, &rotation->mat);
+    ApplyMatrixLV(&rotation->mat, &block->step, &block->step);
+    coord->coord.t[0] += block->step.vx;
+    coord->coord.t[1] += block->step.vy;
+    coord->coord.t[2] += block->step.vz;
+    SCRATCH_STACK_RELEASE_BLOCK(_Actor01600SidestepScratch);
 }
 
 static void Actor01600_Fn06A84(Task* arg0)
