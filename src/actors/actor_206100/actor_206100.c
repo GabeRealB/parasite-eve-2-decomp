@@ -86,23 +86,6 @@ STATIC_ASSERT_SIZEOF(Actor206100VecScratch, 0x20);
 
 extern TaskDesc D_actor_206100_80158B0C[];
 
-/// Animation slot 1's tick results as the Sea Diver's states see them, and the
-/// halfword sharing their word.
-///
-/// Each per-frame handler copies `AnimationSlot.status.fields.flags` here after
-/// it has run the current state, and the states test this copy rather than the
-/// slot to learn that their clip has ended. The two halfwords are unrelated,
-/// but that test reads the jump and settled bits through one word load, which
-/// `word` is for; its mask keeps the counter out of the result.
-typedef union {
-    struct {
-        u16 flags;      // Slot 1's ANIMATION_SLOT_* results from the latest frame's ticks
-        u16 frameCount; // Frames the actor has run, wrapping; only ever incremented, nothing in this package reads it
-    } fields;
-    u32 word;           // Both halfwords, `flags` in the low half
-} Actor206100AnimationStatus;
-STATIC_ASSERT_SIZEOF(Actor206100AnimationStatus, 0x4);
-
 /// The four handlers `func_actor_206100_8014E7D4` picks between as the effect
 /// mode `gSceneCombatState.actorControl` changes -- the retirement `func_actor_206100_8014FBE4`,
 /// the idle tick `func_actor_206100_8014FCD4`, the teleport tick
@@ -204,10 +187,10 @@ STATIC_ASSERT_SIZEOF(Actor206100DistScratch, 0xC);
 /// `func_actor_206100_8014FCD4` ramps -- zeroed when the requested clip is not
 /// the one playing, otherwise advanced by `func_actor_206100_8014F3C8` and
 /// stepped once per frame in sub-state 3.
-/// `flags_514` sits between `animClip` and `animStep` and is
-/// status, not part of the request: `func_actor_206100_8014F970` tests bit 0 of
-/// its halfword or bits 0x102 of its word to decide whether to advance the
-/// actor to state 2.
+/// `animStatus` sits between `animClip` and `animStep` and is
+/// status, not part of the request: `func_actor_206100_8014F970` tests its
+/// boundary, jump and settled bits to decide whether to advance the actor to
+/// state 2.
 /// `anim` is the animation context at offset 0 -- the block is handed to
 /// `animationResetSlot` as its `AnimationContext` -- with the 0x28-byte animation
 /// slots at +0x14, the layout `_Actor400500GrayStalkerWork` uses.
@@ -306,14 +289,16 @@ typedef struct Actor206100Work {
     /// with 0x1000 (1.0 in the 4.12 fixed point the overlay's scales use) on
     /// the same frame it builds the block.  Nothing in this overlay reads
     /// either one back.
-    /* 0x508 */ s16                        field_508;
-    /* 0x50A */ s16                        field_50A;
-    /* 0x50C */ s16                        animRequest; // animation request kind
-    /* 0x50E */ s16                        animPlaying; // clip the request plays, latched from animClip
-    /* 0x510 */ s16                        animClip;    // animation clip id
-    /* 0x512 */ s16                        field_512;
-    /* 0x514 */ Actor206100AnimationStatus flags_514;
-    /// Second half of the per-frame counter pair the state dispatcher
+    /* 0x508 */ s16 field_508;
+    /* 0x50A */ s16 field_50A;
+    /* 0x50C */ s16 animRequest; // animation request kind
+    /* 0x50E */ s16 animPlaying; // clip the request plays, latched from animClip
+    /* 0x510 */ s16 animClip;    // animation clip id
+    /* 0x512 */ s16 field_512;
+    /* 0x514 */ u16 animStatus;  // Slot 1's ANIMATION_SLOT_* results from the latest frame's ticks; the states test this copy to learn their clip ended
+    /* 0x516 */ u16 frameCount;  // Frames the actor has run, wrapping; only ever incremented, nothing in this package reads it
+
+                                 /// Second half of the per-frame counter pair the state dispatcher
     /// `func_actor_206100_8014DA28` and the spawn state `func_actor_206100_8014C458`
     /// both bump: the two advance together, ahead of the sub-state handler.
     /* 0x518 */ u16 field_518;
@@ -2009,8 +1994,8 @@ static void func_actor_206100_8014C458(Task* task)
             obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;
         case SCENE_COMBAT_ACTORS_RUNNING:
-            work->flags_514.fields.frameCount = work->flags_514.fields.frameCount + 1;
-            work->field_518                   = work->field_518 + 1;
+            work->frameCount = work->frameCount + 1;
+            work->field_518  = work->field_518 + 1;
             func_actor_206100_8014B698(task);
             states.funcs[(s16)work->field_520](task);
             sub = (Actor206100Work*)task->work;
@@ -2051,7 +2036,7 @@ static void func_actor_206100_8014C458(Task* task)
             for (i = 1; i < 0xF; i++) {
                 animationTickSlot(&anim->anim, i);
             }
-            work->flags_514.fields.flags = work->slots[1].status.fields.flags;
+            work->animStatus = work->slots[1].status.fields.flags;
             func_actor_206100_8014B0AC(task, work->field_54D);
             func_actor_206100_8014E0C0(task);
             func_actor_206100_8014EC54(task);
@@ -2430,8 +2415,8 @@ static void func_actor_206100_8014CFF4(Task* task)
 /// `field_35C` toward 0x4000 by a quarter of the remaining distance over frames
 /// 0x29..0x4D, fires the overlay's sound events -- 0x551E0002 panned through
 /// `worldCoordGetOriginAudioPan` / `worldCoordGetOriginAudioDepth` at 0x54 and plain at 0x77 -- flags the six
-/// cue frames, hands state 2 to the actor at sub-state 0 when its `flags_514`
-/// say so, and folds the heading onto the vector from the root coordinate to
+/// cue frames, hands state 2 to the actor at sub-state 0 when its `animStatus`
+/// says the clip ended, and folds the heading onto the vector from the root coordinate to
 /// the walk target `field_4D0` / `field_4D4`, exactly as
 /// `func_actor_206100_8014D380` does but with a step of 0xC and a deadband of
 /// 0x18, before handing the actor to `func_actor_206100_8014ED3C` with step
@@ -2491,8 +2476,9 @@ static void func_actor_206100_8014D14C(Task* task)
         sub->field_555 = 1;
     }
     next = (Actor206100Work*)task->work;
-    if ((next->flags_514.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-        (next->flags_514.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
+    if ((next->animStatus & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (next->animStatus & ANIMATION_SLOT_FOLLOWED_JUMP) ||
+        (next->animStatus & ANIMATION_SLOT_SETTLED)) {
         cond = 1;
     } else {
         cond = 0;
@@ -2829,8 +2815,8 @@ static void func_actor_206100_8014DA28(Task* task)
             obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
         case SCENE_COMBAT_ACTORS_RUNNING:
-            work->flags_514.fields.frameCount = work->flags_514.fields.frameCount + 1;
-            work->field_518                   = work->field_518 + 1;
+            work->frameCount = work->frameCount + 1;
+            work->field_518  = work->field_518 + 1;
             funcs[(s16)work->field_520](task);
             next  = (Actor206100Work*)task->work;
             state = next->animRequest;
@@ -2852,7 +2838,7 @@ static void func_actor_206100_8014DA28(Task* task)
             for (i = 1; i < 0xF; i++) {
                 animationTickSlot(&next->anim, i);
             }
-            work->flags_514.fields.flags = work->slots[1].status.fields.flags;
+            work->animStatus = work->slots[1].status.fields.flags;
             func_actor_206100_8014B0AC(task, work->field_54D);
             coord                       = task->extra.tmd->coords;
             sub                         = (Actor206100Work*)task->work;
@@ -3261,7 +3247,7 @@ static void func_actor_206100_8014E228(Task* task)
 /// Effect-mode tick of the `field_520` state table `D_actor_206100_80149EC0`,
 /// keyed on `gSceneCombatState.actorControl`. Mode 2 only excludes the model from active drawing and
 /// leaves; mode 0 runs the handler `field_520` selects, latches the animation
-/// slot's flags into `flags_514` and eases the root coordinate -- x and z to a
+/// slot's flags into `animStatus` and eases the root coordinate -- x and z to a
 /// sixteenth of their distance to zero, y the same fraction of the way to the
 /// height `field_526` -- before falling into the shared tail; mode 1 is that
 /// tail alone.
@@ -3287,9 +3273,9 @@ static void func_actor_206100_8014E7D4(Task* task)
             return;
         case SCENE_COMBAT_ACTORS_RUNNING:
             states.funcs[(s16)work->field_520](task, &states);
-            work->flags_514.fields.flags = work->slots[1].status.fields.flags;
-            coord->coord.t[0]            = coord->coord.t[0] + (-coord->coord.t[0] >> 4);
-            coord->coord.t[2]            = coord->coord.t[2] + (-coord->coord.t[2] >> 4);
+            work->animStatus  = work->slots[1].status.fields.flags;
+            coord->coord.t[0] = coord->coord.t[0] + (-coord->coord.t[0] >> 4);
+            coord->coord.t[2] = coord->coord.t[2] + (-coord->coord.t[2] >> 4);
             coord->coord.t[1] =
                 coord->coord.t[1] + (((s16)work->field_526 - coord->coord.t[1]) >> 4);
             /* fallthrough */
@@ -3776,8 +3762,9 @@ static void func_actor_206100_8014F970(Task* task)
     s32              cond;
 
     work = (Actor206100Work*)task->work;
-    if ((work->flags_514.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-        (work->flags_514.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
+    if ((work->animStatus & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (work->animStatus & ANIMATION_SLOT_FOLLOWED_JUMP) ||
+        (work->animStatus & ANIMATION_SLOT_SETTLED)) {
         cond = 1;
     } else {
         cond = 0;
@@ -3816,8 +3803,9 @@ static void func_actor_206100_8014FA08(Task* task)
         work->field_557 = 1;
     }
     next = (Actor206100Work*)task->work;
-    if ((next->flags_514.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-        (next->flags_514.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
+    if ((next->animStatus & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (next->animStatus & ANIMATION_SLOT_FOLLOWED_JUMP) ||
+        (next->animStatus & ANIMATION_SLOT_SETTLED)) {
         cond = 1;
     } else {
         cond = 0;

@@ -3853,33 +3853,40 @@ overlay's, that overlay's header already answered the question.
 "clip requested" pair, both declared `s16`, and both targets load both halves
 with `lh` - three overlays agreeing beats one ambiguous store.
 
-## Two views of one union field are two loads; CSE will not merge `lhu` with `lw`
+## A flags halfword tested by `lhu` and then `lw` is three single-bit tests; CSE will not merge `lhu` with `lw`
 
-`_Actor00400Work::animStatus` is a union with a `u32 word` and a `u16 fields.flags`
-over the same storage. Naming the narrow view for both tests leaves both reads in
-HImode, and CSE does merge those - one `lhu`, two `andi`s:
+`_Actor00400Work::animStatus` is a `u16` of animation-slot flags. Testing the
+last two bits through one mask leaves both reads in HImode, and CSE does merge
+those - one `lhu`, two `andi`s:
 
-    if ((work->animStatus.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) || (work->animStatus.fields.flags & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) { ... }
+    if ((work->animStatus & ANIMATION_SLOT_REACHED_BOUNDARY) || (work->animStatus & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) { ... }
 
 The target held a *second* load at 0x62C and it was a word load, `andi
-$v0,$v0,0x102` after `lw $v0,0x62C($v1)`, because the second test is on the wide
-view and a `lw` has no common subexpression with the `lhu`:
+$v0,$v0,0x102` after `lw $v0,0x62C($v1)`, because the source tests the two bits
+singly: `fold_truthop` merges the pair into one masked test and loads it in the
+widest mode the word-aligned work block allows (see "A `lw` + `andi` mask test
+on a `u16` flags field is two bit tests joined by `||`"), and a `lw` has no
+common subexpression with the `lhu`:
 
-    if ((work->animStatus.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) || (work->animStatus.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) { ... }
+    if ((work->animStatus & ANIMATION_SLOT_REACHED_BOUNDARY) || (work->animStatus & ANIMATION_SLOT_FOLLOWED_JUMP) || (work->animStatus & ANIMATION_SLOT_SETTLED)) { ... }
 
 The symptom is small - the object is short two instructions (`lw`/`nop`) and the
 block addresses shift, so `branch` is non-zero - and it reads like an allocation
 problem: the m2c seed also puts the work pointer in `$v0` where the target has
-`$v1`, and splitting the members fixes that too, for free.
+`$v1`, and writing the tests singly fixes that too, for free.
 `Actor00400_Fn08908` scored 79.6% with both reads narrow (`base.c`) and 100% on
 the member split (`base_1.c`, preprocessed
-`01e987369b28842bf141cdbadec42d1ac945647af4b36a4c14cdc356d0310c37`).
+`01e987369b28842bf141cdbadec42d1ac945647af4b36a4c14cdc356d0310c37`). That
+split was a union laying a `u32 word` view over the flags and the unrelated
+halfword after them; the three-test form on the plain field has since replaced
+it at all 18 sites of the file, and at the Sea Diver's three.
 
 The idiom is common here: `actors_shared_8013a0b0.c` and
 `actors_shared_8016974c.c` are this same body over their own flag unions, and
 ten more copies of the test sit inline in `src/actors/lib/actor_100400_text.c`.
 Before writing such a test from the assembly, grep the codebase for a matched
-sibling - the union's member names are what decide the load widths.
+sibling - and where the sibling still reaches the word load through a union,
+try the three single-bit tests on the plain field first.
 
 ## A halfword that is incremented before its signed compare still loads `lhu`
 
@@ -104032,7 +104039,7 @@ at all. Two matched siblings in the same TU pin both forms down:
 
 ```c
 /* Actor00400_Fn08908: direct branches, no materialization (matched) */
-if ((work->animStatus.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) || (work->animStatus.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
+if ((work->animStatus & ANIMATION_SLOT_REACHED_BOUNDARY) || (work->animStatus & ANIMATION_SLOT_FOLLOWED_JUMP) || (work->animStatus & ANIMATION_SLOT_SETTLED)) {
     return 1;
 }
 return 0;
@@ -104042,7 +104049,7 @@ return 0;
 /* Actor00400_Fn095D8: the phi form, condition sequence byte-identical
    to the already-matched Actor00400_Fn04414 */
 w2 = arg0->field_1C;
-if ((w2->animStatus.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) || (w2->animStatus.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
+if ((w2->animStatus & ANIMATION_SLOT_REACHED_BOUNDARY) || (w2->animStatus & ANIMATION_SLOT_FOLLOWED_JUMP) || (w2->animStatus & ANIMATION_SLOT_SETTLED)) {
 ## A naming pass makes twins invisible to `overlay_dup_index.py find` — the wildcard is name-shaped
 
 `Actor04400_Fn06C70` (USA/actors/lib) came back as `same body: 1 copies` — itself
@@ -104246,12 +104253,15 @@ target shape is a reliable signal of which form the original used.
 Two further details this shape pins down:
 
 * **Two access widths at one address.** The first read is `lhu` and the second
-  `lw`, both at `0x62C`, because the source goes through the union
-  `Actor100400AnimationStatus`: `.fields.flags` for the `& 1`, `.word` for the
-  `& 0x102`. CSE does not equate a `lhu` with a `lw` of the same address, so the
-  two loads stay separate. Reading `.fields.flags` twice is the natural thing to
-  write and is the wrong answer: CSE merges the loads into one register and the
-  `andi` pair becomes `and` + `sltu` (43.65%, `branch=2 regs=5 insert=3 delete=8`).
+  `lw`, both at `0x62C`, because the source tests three bits of the `u16`
+  `animStatus` singly: the `& 1` keeps its halfword load, and `fold_truthop`
+  merges the other two into one `& 0x102` loaded as a word (matched at the time
+  through a union's `word` view, since replaced by the plain field). CSE does
+  not equate a `lhu` with a `lw` of the same address, so the two loads stay
+  separate. Testing the halfword against the `0x102` mask in one go is the
+  natural thing to write and is the wrong answer: CSE merges the loads into one
+  register and the `andi` pair becomes `and` + `sltu` (43.65%,
+  `branch=2 regs=5 insert=3 delete=8`).
 * **The work pointer is loaded twice on purpose.** `work = arg0->field_1C;
   work->neckRetracted = 1;` invalidates the cached `index->field_1C`, so the
   condition needs its own `work2 = index->field_1C;`. That is what puts the
@@ -117228,12 +117238,15 @@ target's 55.  Because m2c types *both* accesses from the one field it saw, `cse`
 merged the two loads into a single `lhu` and `combine` turned the surviving test
 into `and` + `sltu` + `beqz` - so the target's second load, a *word*-wide
 `lw 0x514($v1)`, and the `li v0,1` shared by both branch delay slots had nowhere
-to come from.  Two widths on one address means two views in the source, and this
-overlay's `Actor206100AnimationStatus` union already carried that (`fields.flags` / `word`):
+to come from.  Two widths on one address here is three single-bit tests of the
+`u16` `animStatus`, the last two merged by `fold_truthop` into the word load (see
+"A `lw` + `andi` mask test on a `u16` flags field is two bit tests joined by
+`||`"); the match was first made through a union's `word` view, which the plain
+field has since replaced:
 
 ```c
 next = (Actor206100Work*)task->work;
-if ((next->flags_514.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) || (next->flags_514.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
+if ((next->animStatus & ANIMATION_SLOT_REACHED_BOUNDARY) || (next->animStatus & ANIMATION_SLOT_FOLLOWED_JUMP) || (next->animStatus & ANIMATION_SLOT_SETTLED)) {
     cond = 1;
 } else {
     cond = 0;
@@ -117560,14 +117573,14 @@ the chain existing, not something to arrange separately.
 
 ## One variable with three definitions homes every use in the same callee-saved register (func_actor_206100_8014D14C, 2026-09-16)
 
-`func_actor_206100_8014D14C` reads `task->work` three times: for the `flags_514`
+`func_actor_206100_8014D14C` reads `task->work` three times: for the `animStatus`
 test, for the state change its `true` arm makes, and for the steering tail that
 folds `field_43E` toward the walk target. Written through one local, as the
 sibling `func_actor_206100_8014FA08` writes its own two reads:
 
 ```c
     work = (Actor206100Work*)task->work;
-    if ((work->flags_514.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) || (work->flags_514.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) { ... }
+    if ((work->animStatus & ANIMATION_SLOT_REACHED_BOUNDARY) || (work->animStatus & ANIMATION_SLOT_FOLLOWED_JUMP) || (work->animStatus & ANIMATION_SLOT_SETTLED)) { ... }
     ...
     work = (Actor206100Work*)task->work;
     work->field_520 = 2;
@@ -140685,6 +140698,12 @@ keeps its halfword load (actor_405800's `previousAnimationFlags`, which
 replaced a three-view union). Splitting it into `if (f & 1) return 1;` and a
 second `if` for the pair keeps the loads but turns the tail into
 `sltu v0,zero,v0` in place of the target's `beqz` and two returns.
+
+The three-test form also holds where the result is materialised first -
+`if (...) cond = 1; else cond = 0;` followed by `if (cond)` - which is how both
+Divers write it: it replaced the `fields.flags` / `word` status unions of
+`_Actor00400Work::animStatus` (18 sites) and `Actor206100Work::animStatus` (3),
+leaving a plain `u16` beside the unrelated halfword that shared its word.
 
 Two adjacent `u8` fields tested for zero merge the same way:
 `work->jawPitchPhase == 0 && work->headPitchPhase == 0`, on the bytes at
