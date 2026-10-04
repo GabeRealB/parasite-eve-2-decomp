@@ -82,6 +82,8 @@ static TaskDesc D_acropolis_east_elevator_hall_8017FC90[];
 /// 0 requires `planar_reflection_rodata.inc.c` before the shared implementation.
 #define PLANAR_REFLECTION_DEFINE_SCALE_WITH_IMPLEMENTATION 0
 #include "../../shared/planar_reflection.h"
+// Exported instance: another image refers to this package's copy by name.
+#define redBeaconTask acropolisEastElevatorHallRedBeaconTask
 #include "../../shared/red_beacon.h"
 
 static void func_acropolis_east_elevator_hall_8017F478(Task* task);

@@ -30,7 +30,7 @@ extern SpriteView D_dryfield_main_street_80184308[];
 
 extern WorldCollisionSurfaceProperties* D_dryfield_main_street_801855EC[];
 
-void func_dryfield_main_street_8017E830(Task* task);
+void dryfieldMainStreetPuffTask(Task* task);
 
 void func_dryfield_main_street_8017EEE8(Task* task);
 

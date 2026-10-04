@@ -27,7 +27,7 @@ extern ViewCamera D_acropolis_west_elevator_hall_801869FC[];
 
 extern WorldCollisionSurfaceProperties* D_acropolis_west_elevator_hall_80186AC4[];
 
-void func_acropolis_west_elevator_hall_8017FAE8(Task* arg0);
+void acropolisWestElevatorHallRedBeaconTask(Task* arg0);
 
 void func_acropolis_west_elevator_hall_8017FE18(Task* task);
 

@@ -63,6 +63,8 @@
 // The latched-event symbol carries four unproven bytes after the event.
 #define ROOM_EVENT_LATCHED gRoomEventLatched.event
 #include "../../shared/room_events.h"
+// Exported instance: another image refers to this package's copy by name.
+#define mainStreetPuffTask dryfieldNightMainStreetPuffTask
 #include "../../shared/main_street.h"
 
 #define DRYFIELD_NIGHT_MAIN_STREET_RAND()     ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16)

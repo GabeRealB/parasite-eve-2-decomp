@@ -44,7 +44,7 @@ extern WorldCollisionSurfaceProperties* D_dryfield_night_main_street_80188B84[];
 
 void func_dryfield_night_main_street_8017E484(Task* task);
 
-void func_dryfield_night_main_street_8017F3B0(Task* task);
+void dryfieldNightMainStreetPuffTask(Task* task);
 
 void func_dryfield_night_main_street_8017FA68(Task* task);
 

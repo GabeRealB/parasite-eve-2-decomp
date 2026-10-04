@@ -40,6 +40,7 @@
 #define WATER_SHARED_U16_DRAWERS
 // Exported instance: another image refers to this package's copy by name.
 #define waterDriftTaskU16FixedCoord neoArkIslandWaterDriftTaskU16FixedCoord
+#define waterRippleTaskFixedCoord   neoArkIslandWaterRippleTaskFixedCoord
 #include "../../shared/water_effects.h"
 
 /// Offsets from the parent coordinate of the two points whose trails

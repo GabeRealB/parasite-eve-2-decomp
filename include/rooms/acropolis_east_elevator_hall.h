@@ -32,7 +32,7 @@ extern WorldCollisionSurfaceProperties* D_acropolis_east_elevator_hall_80187B74[
 
 void func_acropolis_east_elevator_hall_8017F5B4(Task* task);
 
-void func_acropolis_east_elevator_hall_8017F77C(Task* arg0);
+void acropolisEastElevatorHallRedBeaconTask(Task* arg0);
 
 void func_acropolis_east_elevator_hall_8017F2F8(Task* task);
 

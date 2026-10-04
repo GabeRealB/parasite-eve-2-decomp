@@ -82,7 +82,7 @@ D_map_akropolis_8017ACDC = 0x8017ACDC; // absolute:True
 
 func_acropolis_east_elevator_hall_8017F5B4 = 0x8017F5B4; // type:func
 
-redBeaconTask = 0x8017F77C; // type:func
+acropolisEastElevatorHallRedBeaconTask = 0x8017F77C; // type:func
 
 func_acropolis_east_elevator_hall_8017F2F8 = 0x8017F2F8; // type:func
 Reflection_InitPlayer = 0x8017D5F0; // type:func

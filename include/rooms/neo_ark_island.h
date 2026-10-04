@@ -44,7 +44,7 @@ extern WorldCollisionSurfaceProperties* D_neo_ark_island_80183FE8[];
 
 void func_neo_ark_island_8017FB2C(Task* arg0);
 
-void func_neo_ark_island_8017EB68(Task* task);
+void neoArkIslandWaterRippleTaskFixedCoord(Task* task);
 
 void neoArkIslandWaterDriftTaskU16FixedCoord(Task* task);
 

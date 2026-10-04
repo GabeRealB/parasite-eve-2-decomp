@@ -120,7 +120,7 @@ gRoomEventReq = 0x80188BD8; // size:0x14 defined:True
 
 func_dryfield_night_main_street_8017E484 = 0x8017E484; // type:func
 
-mainStreetPuffTask = 0x8017F3B0; // type:func
+dryfieldNightMainStreetPuffTask = 0x8017F3B0; // type:func
 
 func_dryfield_night_main_street_8017FA68 = 0x8017FA68; // type:func
 
