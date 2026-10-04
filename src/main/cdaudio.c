@@ -69,13 +69,16 @@ enum {
     CD_AUDIO_WAVE_LOAD_RESULT_WRONG_SECTOR = 0xFF, // a sector other than the next one arrived; later ones are ignored
 };
 
-/// One slot of the table that follows the track entries in a header sector.
+/// One slot of the table a header sector carries beside its track entries.
 ///
-/// A track's entry names a slot by index, so several tracks can share one.
-/// What a slot describes is unproven.
+/// The header's first word places the table, in 4-byte words from the start of
+/// the sector, and a track's entry names a slot by an 8-bit index, so several
+/// tracks can share one and every slot an entry can name lies inside the
+/// sector. Choosing a track copies its slot's `value` and nothing uses the
+/// copy, so what a slot describes is unproven.
 typedef struct {
-    u16 value;   // kept as `_CdAudioReadState::trackSlotValue` when a track naming the slot is chosen
-    u16 field_2; // nothing reads it; role unproven
+    u16 value;   // copied to `_CdAudioReadState::trackSlotValue` when a track naming the slot is chosen; meaning unproven
+    u16 field_2; // never accessed: the slot's 4-byte size is established, this half's width and role are not
 } _CdAudioHeaderSlot;
 STATIC_ASSERT_SIZEOF(_CdAudioHeaderSlot, 0x4);
 
