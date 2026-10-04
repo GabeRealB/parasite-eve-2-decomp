@@ -5,7 +5,7 @@
 
 #include "main/cdaudio_types.h"
 
-extern volatile CdAudioPhase CdAudio_Phase;
+extern volatile CdAudioProgress CdAudio_Phase;
 
 s32 CdAudio_StartTrack(s32 sector, s32 volumeIndex);
 

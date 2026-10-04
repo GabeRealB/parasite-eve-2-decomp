@@ -762,7 +762,7 @@ static void CdCmd_ProcessPhase1(void)
                         p->cancelStep = p->cancelStep + 1;
                         return;
                     case CD_COMMAND_CANCEL_WAIT:
-                        if (CdAudio_Phase.field_2 == 4) {
+                        if (CdAudio_Phase.stopStep == CD_AUDIO_STOP_STEP_DONE) {
                             sceneStream = p->sceneStream;
                             temp        = sceneStream->data.scene.resumeSectorOffset;
                             if (temp) {
@@ -774,7 +774,7 @@ static void CdCmd_ProcessPhase1(void)
                         }
                         return;
                     case CD_COMMAND_CANCEL_FINISH:
-                        if (CdAudio_Phase.field_4 == 0xA) {
+                        if (CdAudio_Phase.waveLoadStep == CD_AUDIO_WAVE_LOAD_STEP_DONE) {
                             goto case8_cleanup;
                         }
                         return;

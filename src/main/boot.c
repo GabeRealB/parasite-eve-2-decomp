@@ -232,7 +232,7 @@ void Boot_LoadInitialFile(Task* task)
 void Boot_WaitCdAudioReady(void)
 {
     CdAudio_Begin();
-    while (CdAudio_Phase.field_2 != 4) {
+    while (CdAudio_Phase.stopStep != CD_AUDIO_STOP_STEP_DONE) {
     }
 }
 

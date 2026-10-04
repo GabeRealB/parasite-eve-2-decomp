@@ -756,7 +756,7 @@ void Gp_StepCdAudioCmd(void)
         case6: {
             s32 cmd;
 
-            if (CdAudio_Phase.field_0 != 3) {
+            if (CdAudio_Phase.openStep != CD_AUDIO_OPEN_STEP_DONE) {
                 break;
             }
             one                  = 1;
@@ -792,7 +792,7 @@ void Gp_StepCdAudioCmd(void)
             u16           maskbits;
             GpSndMaskRec* entry;
 
-            if (CdAudio_Phase.field_1 != 4) {
+            if (CdAudio_Phase.playStep != CD_AUDIO_PLAY_STEP_DONE) {
                 break;
             }
             if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 0) {
@@ -845,7 +845,7 @@ void Gp_StepCdAudioCmd(void)
             u16           maskbits;
             GpSndMaskRec* entry;
 
-            if (CdAudio_Phase.field_4 != 0xA) {
+            if (CdAudio_Phase.waveLoadStep != CD_AUDIO_WAVE_LOAD_STEP_DONE) {
                 break;
             }
             i        = 0;

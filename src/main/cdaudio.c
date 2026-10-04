@@ -27,6 +27,22 @@ enum {
     CD_AUDIO_DRIVER_LOAD_WAVES  = 6, // upload the wave data starting at `baseSector` to the SPU
 };
 
+/// `CdAudioProgress::headerReadStep` values: reading the header sector at the
+/// player's base sector into the sector buffer.
+///
+/// The step is 0 until the first read is set up; nothing tests for that.
+enum {
+    CD_AUDIO_HEADER_READ_STEP_WAIT_SET_LOCATION = 1,    // wait for the drive to take the location
+    CD_AUDIO_HEADER_READ_STEP_WAIT_READ         = 3,    // wait for the drive to accept the read
+    CD_AUDIO_HEADER_READ_STEP_DONE              = 4,    // the header is in the sector buffer and the drive paused
+    CD_AUDIO_HEADER_READ_STEP_SET_LOCATION      = 5,    // entry step: point the drive at the header sector
+    CD_AUDIO_HEADER_READ_STEP_START_READ        = 6,    // start reading, with the callback that takes the sector
+    CD_AUDIO_HEADER_READ_STEP_WAIT_SECTOR       = 8,    // wait for the callback to deliver the sector
+    CD_AUDIO_HEADER_READ_STEP_PAUSE             = 9,    // pause the drive
+    CD_AUDIO_HEADER_READ_STEP_WAIT_PAUSE        = 10,   // wait for the drive to pause
+    CD_AUDIO_HEADER_READ_STEP_FAILED            = 0x80, // a step timed out or the sector arrived wrong; the read is given up
+};
+
 /// Bits a 0..127 track level is shifted up by to give `_CdAudioPlayback::volume`.
 #define CD_AUDIO_VOLUME_LEVEL_SHIFT 7
 
@@ -128,7 +144,7 @@ static volatile CdAudioCtl CdAudio_Ctl;
 
 static CdAudioTblEntry* CdAudio_TblEntries;
 
-volatile CdAudioPhase CdAudio_Phase;
+volatile CdAudioProgress CdAudio_Phase;
 
 static volatile _CdAudioState _gCdAudioState;
 
@@ -200,29 +216,29 @@ static void CdAudio_SetLocFlag(s32 unused);
 
 s32 CdAudio_Begin(void)
 {
-    volatile CdAudioPhase* p;
+    volatile CdAudioProgress* progress;
 
-    p          = &CdAudio_Phase;
-    p->field_5 = 1;
+    progress                  = &CdAudio_Phase;
+    progress->cancelRequested = 1;
     if (CdAudio_Ctl.field_10 == 1) {
         CdAudio_Ctl.field_10 = 0;
         return -3;
     }
-    if ((p->field_1 == 0) || (p->field_1 == 4)) {
-        p->field_2 = 4;
+    if ((progress->playStep == CD_AUDIO_PLAY_STEP_NONE) || (progress->playStep == CD_AUDIO_PLAY_STEP_DONE)) {
+        progress->stopStep = CD_AUDIO_STOP_STEP_DONE;
         return -2;
     }
-    if (p->field_0 != 3) {
-        p->field_5 = 1;
+    if (progress->openStep != CD_AUDIO_OPEN_STEP_DONE) {
+        progress->cancelRequested = 1;
         return -1;
     }
     if (_gCdAudioState.playback.driver == CD_AUDIO_DRIVER_LOAD_WAVES) {
-        if (p->field_4 != 0) {
-            p->field_4 = 0xB;
+        if (progress->waveLoadStep != CD_AUDIO_WAVE_LOAD_STEP_NONE) {
+            progress->waveLoadStep = CD_AUDIO_WAVE_LOAD_STEP_PAUSE;
             return -2;
         }
     }
-    if (CdAudio_Phase.field_2 != 0) {
+    if (CdAudio_Phase.stopStep != CD_AUDIO_STOP_STEP_NONE) {
         return 1;
     }
     CdAudio_StartVolumeRamp(0x20);
@@ -231,17 +247,17 @@ s32 CdAudio_Begin(void)
 
 static s32 CdAudio_DriveStream(void)
 {
-    volatile CdAudioPhase*  p;
-    volatile _CdAudioState* state;
-    CdStreamParams*         params;
-    CdlLOC*                 loc;
-    s8                      i;
-    s8                      status;
-    s16                     volume;
+    volatile CdAudioProgress* progress;
+    volatile _CdAudioState*   state;
+    CdStreamParams*           params;
+    CdlLOC*                   loc;
+    s8                        i;
+    s8                        status;
+    s16                       volume;
 
     params = (CdStreamParams*)&_gCdAudioState.streamParams;
-    switch (CdAudio_Phase.field_0) {
-        case 4:
+    switch (CdAudio_Phase.openStep) {
+        case CD_AUDIO_OPEN_STEP_SILENCE_VOICES:
             CdAudio_Ctl.field_10 = 0;
             status               = 0;
             for (i = 0x16; i < 0x18; i++) {
@@ -253,13 +269,13 @@ static s32 CdAudio_DriveStream(void)
             if (status != 0) {
                 break;
             }
-            CdAudio_Phase.field_0 = 1;
+            CdAudio_Phase.openStep = CD_AUDIO_OPEN_STEP_START_READ;
             /* fallthrough */
-        case 1:
-            p = &CdAudio_Phase;
-            if (p->field_5 == 1) {
-                p->field_2            = 4;
-                CdAudio_Phase.field_0 = 3;
+        case CD_AUDIO_OPEN_STEP_START_READ:
+            progress = &CdAudio_Phase;
+            if (progress->cancelRequested == 1) {
+                progress->stopStep     = CD_AUDIO_STOP_STEP_DONE;
+                CdAudio_Phase.openStep = CD_AUDIO_OPEN_STEP_DONE;
                 break;
             }
             state = &_gCdAudioState;
@@ -282,20 +298,20 @@ static s32 CdAudio_DriveStream(void)
             params->voiceFreeCb           = NULL;
             state->playback.startReported = 0;
             CdStream_Start(params);
-            CdAudio_Phase.field_0 = 2;
+            CdAudio_Phase.openStep = CD_AUDIO_OPEN_STEP_WAIT_READ;
             break;
-        case 2:
+        case CD_AUDIO_OPEN_STEP_WAIT_READ:
             if (_gCdAudioState.playback.startReported != 0) {
-                p = &CdAudio_Phase;
-                if (p->field_5 == 1) {
-                    p->field_2 = 4;
+                progress = &CdAudio_Phase;
+                if (progress->cancelRequested == 1) {
+                    progress->stopStep = CD_AUDIO_STOP_STEP_DONE;
                 }
-                CdAudio_Phase.field_0                 = 3;
+                CdAudio_Phase.openStep                = CD_AUDIO_OPEN_STEP_DONE;
                 _gCdAudioState.playback.startReported = 0;
             }
             break;
-        case 0:
-        case 3:
+        case CD_AUDIO_OPEN_STEP_NONE:
+        case CD_AUDIO_OPEN_STEP_DONE:
             break;
     }
     return CD_AUDIO_DRIVER_PLAY;
@@ -306,38 +322,38 @@ static s32 CdAudio_DriveStream(void)
 
 static s32 CdAudio_DrivePhase0(void)
 {
-    volatile CdAudioPhase* p;
-    s16                    ret;
-    LinInterp*             ramp;
+    volatile CdAudioProgress* progress;
+    s16                       ret;
+    LinInterp*                ramp;
 
-    p   = &CdAudio_Phase;
-    ret = CD_AUDIO_DRIVER_FADE_OUT;
+    progress = &CdAudio_Phase;
+    ret      = CD_AUDIO_DRIVER_FADE_OUT;
 
-    switch (p->field_2) {
-        case 1:
-            ramp       = (LinInterp*)&_gCdAudioState.ramp;
-            p->field_1 = 4;
+    switch (progress->stopStep) {
+        case CD_AUDIO_STOP_STEP_FADE:
+            ramp               = (LinInterp*)&_gCdAudioState.ramp;
+            progress->playStep = CD_AUDIO_PLAY_STEP_DONE;
             LinInterp_Step(ramp);
             if (ramp->gain == ramp->targetGain) {
                 ramp->enabled = LINEAR_INTERPOLATOR_BYPASS;
                 CdStream_SetVolume(0);
                 CdStream_Stop();
-                p->field_2 = 2;
+                progress->stopStep = CD_AUDIO_STOP_STEP_RELEASE_VOICES;
             } else {
                 CdStream_SetVolume((s16)LinInterp_Apply(ramp, _gCdAudioState.playback.volume));
             }
             break;
-        case 2:
+        case CD_AUDIO_STOP_STEP_RELEASE_VOICES:
             // These are the voices the player asked for, which is none: the
             // pair the stream allocated is recorded in the stream itself.
             Spu_KeyOff(_gCdAudioState.streamParams.voiceL);
             Spu_KeyOff(_gCdAudioState.streamParams.voiceR);
-            p->field_2 = 3;
+            progress->stopStep = CD_AUDIO_STOP_STEP_WAIT_IDLE;
             /* fallthrough */
-        case 3:
+        case CD_AUDIO_STOP_STEP_WAIT_IDLE:
             if (CdStream_IsBusy() == 0) {
-                CdAudio_Phase.field_2 = 4;
-                ret                   = CD_AUDIO_DRIVER_IDLE;
+                CdAudio_Phase.stopStep = CD_AUDIO_STOP_STEP_DONE;
+                ret                    = CD_AUDIO_DRIVER_IDLE;
             }
             break;
     }
@@ -519,33 +535,33 @@ s32        (*CdAudio_DriveFns[])(void) = {
 
 static s32 CdAudio_DriveSeek(void)
 {
-    u8                   phase;
+    u8                   step;
     SectorHdr*           hdr;
     volatile CdAudioCtl* stream;
     s32                  status;
     s32                  tmp;
 
-    phase = CdAudio_Phase.field_3;
-    hdr   = (SectorHdr*)CdAudio_SectorBuffer;
+    step = CdAudio_Phase.headerReadStep;
+    hdr  = (SectorHdr*)CdAudio_SectorBuffer;
 
-    switch (phase) {
-        case 5:
+    switch (step) {
+        case CD_AUDIO_HEADER_READ_STEP_SET_LOCATION:
         do_setloc:
-            CdAudio_Ctl.field_0   = 0;
-            CdAudio_Phase.field_3 = 1;
+            CdAudio_Ctl.field_0          = 0;
+            CdAudio_Phase.headerReadStep = CD_AUDIO_HEADER_READ_STEP_WAIT_SET_LOCATION;
             CdControlF(CdlSetloc, (u8*)&_gCdAudioState.seekLoc);
             break;
-        case 1:
+        case CD_AUDIO_HEADER_READ_STEP_WAIT_SET_LOCATION:
             stream = &CdAudio_Ctl;
             if (stream->field_0 < 0x259) {
                 if (CdSync(1, NULL) == CdlDiskError) {
                     CdFlush();
                     goto do_setloc;
                 }
-                CdAudio_Phase.field_3 = 6;
+                CdAudio_Phase.headerReadStep = CD_AUDIO_HEADER_READ_STEP_START_READ;
                     /* fallthrough */
-                case 6:
-                    CdAudio_Phase.field_3 = 3;
+                case CD_AUDIO_HEADER_READ_STEP_START_READ:
+                    CdAudio_Phase.headerReadStep = CD_AUDIO_HEADER_READ_STEP_WAIT_READ;
                     CdReadyCallback(CdAudio_ReadyCallback);
                     CdAudio_Ctl.field_0 = 0;
                     D_80082770          = 0;
@@ -554,20 +570,20 @@ static s32 CdAudio_DriveSeek(void)
                     break;
             }
             goto timeout;
-        case 3:
+        case CD_AUDIO_HEADER_READ_STEP_WAIT_READ:
             if (CdSync(1, NULL) == CdlDiskError) {
-                CdAudio_Phase.field_3 = 6;
+                CdAudio_Phase.headerReadStep = CD_AUDIO_HEADER_READ_STEP_START_READ;
                 CdFlush();
                 CdReadyCallback(NULL);
             } else {
-                CdAudio_Phase.field_3 = 8;
-                CdAudio_Ctl.field_4   = 0;
+                CdAudio_Phase.headerReadStep = CD_AUDIO_HEADER_READ_STEP_WAIT_SECTOR;
+                CdAudio_Ctl.field_4          = 0;
             }
             break;
-        case 8:
+        case CD_AUDIO_HEADER_READ_STEP_WAIT_SECTOR:
             stream = &CdAudio_Ctl;
             if (stream->field_A != 0) {
-                stream->field_8 = CdAudio_Phase.field_3;
+                stream->field_8 = CdAudio_Phase.headerReadStep;
                 stream->field_9 = 2;
                 goto error;
             }
@@ -576,14 +592,14 @@ static s32 CdAudio_DriveSeek(void)
                     _gCdAudioState.playback.spuBase = D_80068B18[hdr->field_3];
                     CdAudio_Tbl.field_C             = (u16*)(CdAudio_SectorBuffer + hdr->field_2 * 4);
                     CdReadyCallback(NULL);
-                    CdAudio_Phase.field_3 = 9;
+                    CdAudio_Phase.headerReadStep = CD_AUDIO_HEADER_READ_STEP_PAUSE;
                         /* fallthrough */
-                    case 9:
+                    case CD_AUDIO_HEADER_READ_STEP_PAUSE:
                         CdControlF(CdlPause, NULL);
-                        CdAudio_Ctl.field_0   = 0;
-                        CdAudio_Phase.field_3 = 0xA;
+                        CdAudio_Ctl.field_0          = 0;
+                        CdAudio_Phase.headerReadStep = CD_AUDIO_HEADER_READ_STEP_WAIT_PAUSE;
                         /* fallthrough */
-                    case 10:
+                    case CD_AUDIO_HEADER_READ_STEP_WAIT_PAUSE:
                         stream = &CdAudio_Ctl;
                         if (stream->field_0 < 0x259) {
                             goto do_cdsync;
@@ -593,7 +609,7 @@ static s32 CdAudio_DriveSeek(void)
                 }
             }
         timeout:
-            stream->field_8 = CdAudio_Phase.field_3;
+            stream->field_8 = CdAudio_Phase.headerReadStep;
             stream->field_9 = 1;
             goto error;
         do_cdsync:
@@ -609,7 +625,7 @@ static s32 CdAudio_DriveSeek(void)
             }
             CdFlush();
         set_state_4:
-            CdAudio_Phase.field_3 = 4;
+            CdAudio_Phase.headerReadStep = CD_AUDIO_HEADER_READ_STEP_DONE;
             break;
         default:
             tmp                 = CdAudio_Ctl.field_0;
@@ -624,7 +640,7 @@ static s32 CdAudio_DriveSeek(void)
     return CD_AUDIO_DRIVER_READ_HEADER;
 
 error:
-    CdAudio_Phase.field_3 = 0x80;
+    CdAudio_Phase.headerReadStep = CD_AUDIO_HEADER_READ_STEP_FAILED;
     return CD_AUDIO_DRIVER_IDLE;
 }
 
@@ -637,8 +653,8 @@ static s32 CdAudio_DriveRead(void)
     u8                   mode;
     s32                  ret;
 
-    switch (CdAudio_Phase.field_4) {
-        case 1:
+    switch (CdAudio_Phase.waveLoadStep) {
+        case CD_AUDIO_WAVE_LOAD_STEP_RELEASE_STREAM:
             // The voices the player asked for, not the stream's allocated pair.
             Spu_KeyOff(_gCdAudioState.streamParams.voiceL);
             Spu_KeyOff(_gCdAudioState.streamParams.voiceR);
@@ -646,17 +662,17 @@ static s32 CdAudio_DriveRead(void)
                 break;
             }
         do_setmode:
-            CdAudio_Phase.field_4 = 2;
-            CdAudio_Ctl.field_0   = 0;
-            mode                  = CdlModeSpeed | CdlModeSize1;
+            CdAudio_Phase.waveLoadStep = CD_AUDIO_WAVE_LOAD_STEP_WAIT_SET_MODE;
+            CdAudio_Ctl.field_0        = 0;
+            mode                       = CdlModeSpeed | CdlModeSize1;
             CdControlF(CdlSetmode, &mode);
             break;
-        case 2:
+        case CD_AUDIO_WAVE_LOAD_STEP_WAIT_SET_MODE:
             stream = &CdAudio_Ctl;
             if (stream->field_0 < 0x259) {
                 goto case2_sync;
             }
-            stream->field_8 = CdAudio_Phase.field_4;
+            stream->field_8 = CdAudio_Phase.waveLoadStep;
             stream->field_9 = 1;
             goto error;
         case2_sync:
@@ -673,25 +689,25 @@ static s32 CdAudio_DriveRead(void)
             CdFlush();
             goto do_setmode;
         case2_ok:
-            stream->field_C       = 5;
-            CdAudio_Phase.field_4 = 3;
+            stream->field_C            = 5;
+            CdAudio_Phase.waveLoadStep = CD_AUDIO_WAVE_LOAD_STEP_SETTLE;
             break;
-        case 3:
+        case CD_AUDIO_WAVE_LOAD_STEP_SETTLE:
             CdAudio_Ctl.field_C = CdAudio_Ctl.field_C - 1;
             if (CdAudio_Ctl.field_C >= 0) {
                 break;
             }
-            CdAudio_Phase.field_4 = 4;
+            CdAudio_Phase.waveLoadStep = CD_AUDIO_WAVE_LOAD_STEP_SET_LOCATION;
             break;
-        case 4:
+        case CD_AUDIO_WAVE_LOAD_STEP_SET_LOCATION:
         do_setloc:
             CdAudio_Ctl.field_0 = 0;
             CdAudio_Tbl.field_8 = _gCdAudioState.playback.baseSector;
             CdIntToPos(_gCdAudioState.playback.baseSector, (CdlLOC*)&_gCdAudioState.seekLoc);
-            CdAudio_Phase.field_4 = 5;
+            CdAudio_Phase.waveLoadStep = CD_AUDIO_WAVE_LOAD_STEP_WAIT_SET_LOCATION;
             CdControlF(CdlSetloc, (u8*)&_gCdAudioState.seekLoc);
             break;
-        case 5:
+        case CD_AUDIO_WAVE_LOAD_STEP_WAIT_SET_LOCATION:
             p = &CdAudio_Ctl;
             if (p->field_0 < 0x259) {
                 status = CdSync(1, NULL);
@@ -707,33 +723,33 @@ static s32 CdAudio_DriveRead(void)
                 CdFlush();
                 goto do_setloc;
             case5_ok:
-                CdAudio_Phase.field_4 = 6;
+                CdAudio_Phase.waveLoadStep = CD_AUDIO_WAVE_LOAD_STEP_START_READ;
                 break;
             }
             goto timeout;
-        case 6:
-            CdAudio_Phase.field_4 = 7;
-            CdAudio_Tbl.field_1   = 0;
-            CdAudio_Ctl.field_B   = 0;
-            CdAudio_Ctl.field_0   = 0;
+        case CD_AUDIO_WAVE_LOAD_STEP_START_READ:
+            CdAudio_Phase.waveLoadStep = CD_AUDIO_WAVE_LOAD_STEP_WAIT_READ;
+            CdAudio_Tbl.field_1        = 0;
+            CdAudio_Ctl.field_B        = 0;
+            CdAudio_Ctl.field_0        = 0;
             SpuSetTransferStartAddr(CdAudio_Tbl.field_10);
             CdReadyCallback(CdAudio_FeedSector);
             CdControlF(CdlReadN, NULL);
             break;
-        case 7:
+        case CD_AUDIO_WAVE_LOAD_STEP_WAIT_READ:
             if (CdSync(1, NULL) == CdlDiskError) {
-                CdAudio_Phase.field_4 = 6;
+                CdAudio_Phase.waveLoadStep = CD_AUDIO_WAVE_LOAD_STEP_START_READ;
                 CdFlush();
                 CdReadyCallback(NULL);
             } else {
-                CdAudio_Phase.field_4 = 8;
-                CdAudio_Ctl.field_4   = 0;
+                CdAudio_Phase.waveLoadStep = CD_AUDIO_WAVE_LOAD_STEP_WAIT_UPLOAD;
+                CdAudio_Ctl.field_4        = 0;
             }
             break;
-        case 8:
+        case CD_AUDIO_WAVE_LOAD_STEP_WAIT_UPLOAD:
             p = &CdAudio_Ctl;
             if (p->field_B != 0) {
-                p->field_8 = CdAudio_Phase.field_4;
+                p->field_8 = CdAudio_Phase.waveLoadStep;
                 p->field_9 = 2;
                 goto error;
             }
@@ -754,14 +770,14 @@ static s32 CdAudio_DriveRead(void)
                 goto timeout;
             }
             goto timeout;
-        case 11:
+        case CD_AUDIO_WAVE_LOAD_STEP_PAUSE:
         do_pause:
             CdReadyCallback(NULL);
-            CdAudio_Ctl.field_0   = 0;
-            CdAudio_Phase.field_4 = 9;
+            CdAudio_Ctl.field_0        = 0;
+            CdAudio_Phase.waveLoadStep = CD_AUDIO_WAVE_LOAD_STEP_WAIT_PAUSE;
             CdControlF(CdlPause, NULL);
             break;
-        case 9:
+        case CD_AUDIO_WAVE_LOAD_STEP_WAIT_PAUSE:
             status = CdSync(1, NULL);
             if (status == CdlComplete) {
                 goto case9_ok;
@@ -775,9 +791,9 @@ static s32 CdAudio_DriveRead(void)
             CdFlush();
             goto do_pause;
         case9_ok:
-            ret                   = CD_AUDIO_DRIVER_IDLE;
-            CdAudio_Phase.field_4 = 0xA;
-            CdAudio_Phase.field_2 = 4;
+            ret                        = CD_AUDIO_DRIVER_IDLE;
+            CdAudio_Phase.waveLoadStep = CD_AUDIO_WAVE_LOAD_STEP_DONE;
+            CdAudio_Phase.stopStep     = CD_AUDIO_STOP_STEP_DONE;
             return ret;
         case9_check:
             p = &CdAudio_Ctl;
@@ -787,15 +803,15 @@ static s32 CdAudio_DriveRead(void)
                 break;
             }
         timeout:
-            p->field_8 = CdAudio_Phase.field_4;
+            p->field_8 = CdAudio_Phase.waveLoadStep;
             p->field_9 = 1;
         error:
             CdReadyCallback(NULL);
             CdFlush();
             CdControlF(CdlPause, NULL);
-            CdAudio_Phase.field_4 = 1;
+            CdAudio_Phase.waveLoadStep = CD_AUDIO_WAVE_LOAD_STEP_RELEASE_STREAM;
             goto do_setmode;
-        case 10:
+        case CD_AUDIO_WAVE_LOAD_STEP_DONE:
         default:
             break;
     }
@@ -931,7 +947,7 @@ static s32 CdAudio_SetupStream(void)
     u8* mem;
     u8* buf;
 
-    CdAudio_Phase.field_3 = 5;
+    CdAudio_Phase.headerReadStep = CD_AUDIO_HEADER_READ_STEP_SET_LOCATION;
     CdIntToPos(_gCdAudioState.playback.baseSector, (CdlLOC*)&_gCdAudioState.seekLoc);
     buf = CdAudio_SectorBuffer;
     if (buf != 0) {
@@ -967,10 +983,10 @@ static s32 CdAudio_PrepareNextEntry(void)
     CdAudioTblEntry* temp;
     s32              ret;
 
-    if (CdAudio_Phase.field_0 != 3) {
+    if (CdAudio_Phase.openStep != CD_AUDIO_OPEN_STEP_DONE) {
         return -1;
     }
-    if (CdAudio_Phase.field_2 != 0) {
+    if (CdAudio_Phase.stopStep != CD_AUDIO_STOP_STEP_NONE) {
         ret = 1;
     } else {
         temp = CdAudio_TblEntries + CdAudio_Tbl.field_2;
@@ -994,9 +1010,9 @@ s32 CdAudio_StartTrack(s32 sector, s32 volumeIndex)
 
 static s32 CdAudio_ResetKeepBuffer(s32 arg0)
 {
-    volatile CdAudioCtl*   p;
-    volatile CdAudioPhase* q;
-    s32                    baseSector;
+    volatile CdAudioCtl*      p;
+    volatile CdAudioProgress* progress;
+    s32                       baseSector;
 
     D_800827E4 = 0;
     baseSector = _gCdAudioState.playback.baseSector;
@@ -1010,12 +1026,12 @@ static s32 CdAudio_ResetKeepBuffer(s32 arg0)
     p->field_9                      = 0;
     p->field_10                     = 1;
     _gCdAudioState.playback.spuBase = D_80068B1C;
-    q                               = &CdAudio_Phase;
-    q->field_2                      = 0;
-    q->field_0                      = 0;
-    q->field_1                      = 0;
-    q->field_4                      = 0;
-    q->field_5                      = 0;
+    progress                        = &CdAudio_Phase;
+    progress->stopStep              = CD_AUDIO_STOP_STEP_NONE;
+    progress->openStep              = CD_AUDIO_OPEN_STEP_NONE;
+    progress->playStep              = CD_AUDIO_PLAY_STEP_NONE;
+    progress->waveLoadStep          = CD_AUDIO_WAVE_LOAD_STEP_NONE;
+    progress->cancelRequested       = 0;
     return 0;
 }
 
@@ -1089,31 +1105,31 @@ static s32 CdAudio_LoadSectorEntry(s32 arg0)
 
 static s32 CdAudio_SeekAbs(s32 arg0)
 {
-    s32 temp_v0;
+    s32 playStep;
 
-    temp_v0 = CdAudio_Phase.field_1;
-    if ((temp_v0 == 4) || (temp_v0 == 0)) {
+    playStep = CdAudio_Phase.playStep;
+    if ((playStep == CD_AUDIO_PLAY_STEP_DONE) || (playStep == CD_AUDIO_PLAY_STEP_NONE)) {
         _gCdAudioState.playback.startSector = arg0;
         _gCdAudioState.playback.driver      = CD_AUDIO_DRIVER_PLAY;
-        CdAudio_Phase.field_0               = 4;
+        CdAudio_Phase.openStep              = CD_AUDIO_OPEN_STEP_SILENCE_VOICES;
     }
     return 0;
 }
 
 static s32 CdAudio_RequestStop(void)
 {
-    volatile CdAudioPhase* p;
-    s32                    ret;
+    volatile CdAudioProgress* progress;
+    s32                       ret;
 
-    p = &CdAudio_Phase;
-    if (p->field_0 != 3) {
-        ret        = -1;
-        p->field_1 = 4;
-        p->field_2 = 1;
+    progress = &CdAudio_Phase;
+    if (progress->openStep != CD_AUDIO_OPEN_STEP_DONE) {
+        ret                = -1;
+        progress->playStep = CD_AUDIO_PLAY_STEP_DONE;
+        progress->stopStep = CD_AUDIO_STOP_STEP_FADE;
     } else {
         ret                            = 0;
-        p->field_2                     = 0;
-        p->field_1                     = 1;
+        progress->stopStep             = CD_AUDIO_STOP_STEP_NONE;
+        progress->playStep             = CD_AUDIO_PLAY_STEP_START;
         _gCdAudioState.playback.driver = CD_AUDIO_DRIVER_STOP;
     }
     return ret;
@@ -1125,8 +1141,8 @@ static void CdAudio_StartVolumeRamp(s32 arg0)
 
     ramp = (LinInterp*)&_gCdAudioState.ramp;
     LinInterp_Setup(ramp, (_gCdAudioState.playback.volume >> CD_AUDIO_VOLUME_LEVEL_SHIFT) & 0xFF, 0, arg0);
-    CdAudio_Phase.field_1          = 4;
-    CdAudio_Phase.field_2          = 1;
+    CdAudio_Phase.playStep         = CD_AUDIO_PLAY_STEP_DONE;
+    CdAudio_Phase.stopStep         = CD_AUDIO_STOP_STEP_FADE;
     _gCdAudioState.playback.driver = CD_AUDIO_DRIVER_FADE_OUT;
 }
 
@@ -1134,7 +1150,7 @@ static void CdAudio_JumpWithPitch(s32 arg0, s32 arg1)
 {
     _gCdAudioState.playback.baseSector = arg0;
     CdAudio_Tbl.field_10               = arg1;
-    CdAudio_Phase.field_4              = 1;
+    CdAudio_Phase.waveLoadStep         = CD_AUDIO_WAVE_LOAD_STEP_RELEASE_STREAM;
     _gCdAudioState.playback.driver     = CD_AUDIO_DRIVER_LOAD_WAVES;
 }
 
@@ -1148,22 +1164,22 @@ static s32 CdAudio_DrivePhase1(void)
     s16 ret;
 
     ret = CD_AUDIO_DRIVER_STOP;
-    switch (CdAudio_Phase.field_1) {
-        case 0:
+    switch (CdAudio_Phase.playStep) {
+        case CD_AUDIO_PLAY_STEP_NONE:
             break;
-        case 1:
-        case 2:
+        case CD_AUDIO_PLAY_STEP_START:
+        case 2: // nothing stores this step
             CdStream_ArmSpuIrq();
-            CdAudio_Phase.field_1 = 3;
+            CdAudio_Phase.playStep = CD_AUDIO_PLAY_STEP_WAIT_END;
             break;
-        case 3:
+        case CD_AUDIO_PLAY_STEP_WAIT_END:
             if (CdStream_IsBusy() == 0) {
-                ret                   = CD_AUDIO_DRIVER_FADE_OUT;
-                CdAudio_Phase.field_1 = 4;
-                CdAudio_Phase.field_2 = 2;
+                ret                    = CD_AUDIO_DRIVER_FADE_OUT;
+                CdAudio_Phase.playStep = CD_AUDIO_PLAY_STEP_DONE;
+                CdAudio_Phase.stopStep = CD_AUDIO_STOP_STEP_RELEASE_VOICES;
             }
             break;
-        case 4:
+        case CD_AUDIO_PLAY_STEP_DONE:
             break;
     }
     return ret;
