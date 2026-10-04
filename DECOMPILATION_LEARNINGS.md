@@ -14808,6 +14808,25 @@ instead of `move a0,zero`. The `s16` width also keeps the two zeros independent.
 
 ## Force `addu rd, offset, base` with an integer cast
 
+**Try the typed spellings first; the integer form is a last resort (2026-10-05).**
+A survey of the 60 sites that still added an offset to a pointer through an
+integer found a third of them did not need it. Two typed forms matched where
+the cast had been taken for necessary:
+
+- An ordering-table slot written
+  `(u_long*)((((u32)otz << shift) >> 2 & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK) + (uintptr)gGpuCurrentOt)`
+  matched as `&gGpuCurrentOt[((u32)otz << shift) >> 4 & 0x3FF]` at 13 of 19
+  sites. The byte-offset accessor (`GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET`)
+  matched at none of them: dividing a masked byte offset back into an index is
+  not the same tree as indexing by the tag number.
+- An element pointer formed through an integer and read once matched when the
+  first read subscripts the array inline and the pointer is formed after it
+  (`kind = work->surfaceSpots[index].pad; record = &work->surfaceSpots[index];`),
+  or when the pointer is dropped and every access subscripts inline. Forming
+  the pointer first and then reading through it did not.
+
+Each costs one scoped build to try.
+
 Pointer + index usually emits `addu s0, base, offset`. The target sometimes
 wants the operands swapped (`addu s0, offset, base`). Casting the pointer to
 `s32` and adding the pre-scaled byte offset as integers preserves the source
