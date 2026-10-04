@@ -874,7 +874,7 @@ static void Actor01200_Fn01234(Enemy* arg0, Task* arg1)
     GfxCoord*         part;
     TmdObject*        obj;
     ActorTurnScratch* head;
-    ActorTurnScratch* s;
+    ActorTurnScratch* turn;
 
     work = arg1->work;
     if (work->stateEntered != 0) {
@@ -895,31 +895,31 @@ static void Actor01200_Fn01234(Enemy* arg0, Task* arg1)
     }
     head                                   = SCRATCH_STACK_CURSOR(ActorTurnScratch);
     SCRATCH_STACK_CURSOR(ActorTurnScratch) = head - 1;
-    s                                      = head - 1;
+    turn                                   = head - 1;
     animDriverTick(arg1);
     coord             = arg1->extra.tmd->coords;
     head[-1].delta.vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
-    s->delta.vy       = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
-    s->delta.vz       = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
+    turn->delta.vy    = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
+    turn->delta.vz    = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
     facing            = arg1->extra.tmd->coords;
-    s->angle          = actorNormalizeYaw(ratan2(head[-1].delta.vx, s->delta.vz) - ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]));
-    if (s->angle > 0x10) {
-        s->angle = 0x10;
+    turn->angle       = actorNormalizeYaw(ratan2(head[-1].delta.vx, turn->delta.vz) - ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]));
+    if (turn->angle > 0x10) {
+        turn->angle = 0x10;
     }
-    if (s->angle < -0x10) {
-        s->angle = -0x10;
+    if (turn->angle < -0x10) {
+        turn->angle = -0x10;
     }
-    part      = arg1->extra.tmd->coords;
-    s->angle += ratan2(-part->coord.m[2][0], part->coord.m[2][2]);
-    gfxRotMatrixY(&arg1->extra.tmd->coords->coord, s->angle, 1);
+    part         = arg1->extra.tmd->coords;
+    turn->angle += ratan2(-part->coord.m[2][0], part->coord.m[2][2]);
+    gfxRotMatrixY(&arg1->extra.tmd->coords->coord, turn->angle, 1);
     actorStepForward(arg1->extra.tmd->coords, 0x14);
     ActorContact_PushContact(arg1->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts));
-    if (overlayOutOfRange(&s->delta, 1000)) {
+    if (overlayOutOfRange(&turn->delta, 1000)) {
         work->chaseFarFrames++;
     } else {
         work->chaseFarFrames = 0;
     }
-    if (!overlayOutOfRange(&s->delta, 1000)) {
+    if (!overlayOutOfRange(&turn->delta, 1000)) {
         work->chaseNearFrames++;
     } else {
         work->chaseNearFrames = 0;
@@ -927,14 +927,14 @@ static void Actor01200_Fn01234(Enemy* arg0, Task* arg1)
     if (work->chaseNearFrames >= 0x15) {
         work->state = ACTOR_01200_STATE_SELF_BURST;
     }
-    if (ActorContact_Steer(arg1->extra.tmd->coords, work->hitContacts, ARRAY_SIZE(work->hitContacts), &s->delta) == 1) {
+    if (ActorContact_Steer(arg1->extra.tmd->coords, work->hitContacts, ARRAY_SIZE(work->hitContacts), &turn->delta) == 1) {
         work->state = ACTOR_01200_STATE_DEATH_BURST;
     }
     arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    s->delta.vx                           = work->spawnPos.vx - arg1->extra.tmd->coords->coord.t[0];
-    s->delta.vy                           = 0;
-    s->delta.vz                           = work->spawnPos.vz - arg1->extra.tmd->coords->coord.t[2];
-    overlayOutOfRange(&s->delta, 3000);
+    turn->delta.vx                        = work->spawnPos.vx - arg1->extra.tmd->coords->coord.t[0];
+    turn->delta.vy                        = 0;
+    turn->delta.vz                        = work->spawnPos.vz - arg1->extra.tmd->coords->coord.t[2];
+    overlayOutOfRange(&turn->delta, 3000);
     if (work->chaseFarFrames >= 0xF1) {
         work->state = ACTOR_01200_STATE_RETURN;
     }
@@ -1369,7 +1369,7 @@ static void Actor01200_Fn02BE8(Enemy* arg0, Task* arg1)
 {
     _Actor01200Work*  work;
     ActorTurnScratch* head;
-    ActorTurnScratch* sc;
+    ActorTurnScratch* turn;
     GfxCoord*         coord;
     GfxCoord*         target;
     TmdObject*        obj;
@@ -1394,26 +1394,26 @@ static void Actor01200_Fn02BE8(Enemy* arg0, Task* arg1)
     }
     head                                   = SCRATCH_STACK_CURSOR(ActorTurnScratch);
     SCRATCH_STACK_CURSOR(ActorTurnScratch) = head - 1;
-    sc                                     = head - 1;
+    turn                                   = head - 1;
     head[-1].delta.vx                      = work->patrolPoints[work->patrolIndex].vx - arg1->extra.tmd->coords->coord.t[0];
-    sc->delta.vy                           = 0;
-    sc->delta.vz                           = work->patrolPoints[work->patrolIndex].vz - arg1->extra.tmd->coords->coord.t[2];
+    turn->delta.vy                         = 0;
+    turn->delta.vz                         = work->patrolPoints[work->patrolIndex].vz - arg1->extra.tmd->coords->coord.t[2];
     coord                                  = arg1->extra.tmd->coords;
-    angle                                  = ratan2(head[-1].delta.vx, sc->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    sc->angle                              = actorNormalizeYaw(angle);
-    if (sc->angle > 0x20) {
-        sc->angle = 0x20;
+    angle                                  = ratan2(head[-1].delta.vx, turn->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+    turn->angle                            = actorNormalizeYaw(angle);
+    if (turn->angle > 0x20) {
+        turn->angle = 0x20;
     }
-    if (sc->angle < -0x20) {
-        sc->angle = -0x20;
+    if (turn->angle < -0x20) {
+        turn->angle = -0x20;
     }
-    sc->angle += ratan2(-arg1->extra.tmd->coords->coord.m[2][0], arg1->extra.tmd->coords->coord.m[2][2]);
-    gfxRotMatrixY(&arg1->extra.tmd->coords->coord, sc->angle, 1);
+    turn->angle += ratan2(-arg1->extra.tmd->coords->coord.m[2][0], arg1->extra.tmd->coords->coord.m[2][2]);
+    gfxRotMatrixY(&arg1->extra.tmd->coords->coord, turn->angle, 1);
     actorStepForward(arg1->extra.tmd->coords, 5);
     if (ActorContact_PushContact(arg1->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts))) {
         work->stateFrame++;
     }
-    if (!overlayOutOfRange(&sc->delta, 400) || work->stateFrame > 0x60) {
+    if (!overlayOutOfRange(&turn->delta, 400) || work->stateFrame > 0x60) {
         if (work->patrolIndex == 0) {
             work->patrolIndex = 1;
         } else {
@@ -1421,17 +1421,17 @@ static void Actor01200_Fn02BE8(Enemy* arg0, Task* arg1)
         }
         work->stateFrame = 0;
     }
-    if (ActorContact_Steer(arg1->extra.tmd->coords, work->hitContacts, ARRAY_SIZE(work->hitContacts), &sc->delta) == 1) {
+    if (ActorContact_Steer(arg1->extra.tmd->coords, work->hitContacts, ARRAY_SIZE(work->hitContacts), &turn->delta) == 1) {
         work->state = ACTOR_01200_STATE_DEATH_BURST;
     }
-    target       = arg1->extra.tmd->coords;
-    sc->delta.vx = gPlayerStatus.coordMtx->t[0] - target->coord.t[0];
-    sc->delta.vy = gPlayerStatus.coordMtx->t[1] - target->coord.t[1];
-    sc->delta.vz = gPlayerStatus.coordMtx->t[2] - target->coord.t[2];
-    if (!overlayOutOfRange(&sc->delta, 2000)) {
+    target         = arg1->extra.tmd->coords;
+    turn->delta.vx = gPlayerStatus.coordMtx->t[0] - target->coord.t[0];
+    turn->delta.vy = gPlayerStatus.coordMtx->t[1] - target->coord.t[1];
+    turn->delta.vz = gPlayerStatus.coordMtx->t[2] - target->coord.t[2];
+    if (!overlayOutOfRange(&turn->delta, 2000)) {
         coord = arg1->extra.tmd->coords;
-        angle = ratan2(sc->delta.vx, sc->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-        if (actorNormalizeYaw(angle) < 0x400 || !overlayOutOfRange(&sc->delta, 1000)) {
+        angle = ratan2(turn->delta.vx, turn->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+        if (actorNormalizeYaw(angle) < 0x400 || !overlayOutOfRange(&turn->delta, 1000)) {
             work->state = ACTOR_01200_STATE_CHASE;
         }
     }
@@ -1456,7 +1456,7 @@ static void Actor01200_Fn03294(Enemy* arg0, Task* arg1)
     GfxCoord*         facing;
     TmdObject*        obj;
     ActorTurnScratch* head;
-    ActorTurnScratch* s;
+    ActorTurnScratch* turn;
 
     work = arg1->work;
     if (work->stateEntered != 0) {
@@ -1477,30 +1477,30 @@ static void Actor01200_Fn03294(Enemy* arg0, Task* arg1)
     }
     head                                   = SCRATCH_STACK_CURSOR(ActorTurnScratch);
     SCRATCH_STACK_CURSOR(ActorTurnScratch) = head - 1;
-    s                                      = head - 1;
+    turn                                   = head - 1;
     animDriverTick(arg1);
     arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     head[-1].delta.vx                     = work->spawnPos.vx - arg1->extra.tmd->coords->coord.t[0];
-    s->delta.vy                           = 0;
-    s->delta.vz                           = work->spawnPos.vz - arg1->extra.tmd->coords->coord.t[2];
+    turn->delta.vy                        = 0;
+    turn->delta.vz                        = work->spawnPos.vz - arg1->extra.tmd->coords->coord.t[2];
     coord                                 = arg1->extra.tmd->coords;
-    s->angle                              = actorNormalizeYaw(ratan2(head[-1].delta.vx, s->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
-    if (s->angle > 0x10) {
-        s->angle = 0x10;
+    turn->angle                           = actorNormalizeYaw(ratan2(head[-1].delta.vx, turn->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+    if (turn->angle > 0x10) {
+        turn->angle = 0x10;
     }
-    if (s->angle < -0x10) {
-        s->angle = -0x10;
+    if (turn->angle < -0x10) {
+        turn->angle = -0x10;
     }
-    facing    = arg1->extra.tmd->coords;
-    s->angle += ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
-    gfxRotMatrixY(&arg1->extra.tmd->coords->coord, s->angle, 1);
+    facing       = arg1->extra.tmd->coords;
+    turn->angle += ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
+    gfxRotMatrixY(&arg1->extra.tmd->coords->coord, turn->angle, 1);
     actorStepForward(arg1->extra.tmd->coords, 8);
     ActorContact_PushContact(arg1->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts));
     work->stateFrame++;
-    if (!overlayOutOfRange(&s->delta, 0x50) || work->stateFrame >= 0xDD) {
+    if (!overlayOutOfRange(&turn->delta, 0x50) || work->stateFrame >= 0xDD) {
         work->state = ACTOR_01200_STATE_PATROL;
     }
-    if (ActorContact_Steer(arg1->extra.tmd->coords, work->hitContacts, ARRAY_SIZE(work->hitContacts), &s->delta) == 1) {
+    if (ActorContact_Steer(arg1->extra.tmd->coords, work->hitContacts, ARRAY_SIZE(work->hitContacts), &turn->delta) == 1) {
         work->state = ACTOR_01200_STATE_DEATH_BURST;
     }
     SCRATCH_STACK_RELEASE_BLOCK(ActorTurnScratch);

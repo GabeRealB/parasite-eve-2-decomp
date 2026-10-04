@@ -3841,7 +3841,7 @@ static void func_actor_401300_80139AB0(Task* arg0)
     _Actor401300Work* work;
     TmdObject*        obj;
     GfxCoord*         coord;
-    ActorTurnScratch* s;
+    ActorTurnScratch* turn;
     GfxCoord*         facing;
 
     work = arg0->work;
@@ -3870,11 +3870,11 @@ static void func_actor_401300_80139AB0(Task* arg0)
         }
     }
     SCRATCH_STACK_RESERVE_BLOCK(ActorTurnScratch);
-    s           = SCRATCH_STACK_CURSOR(ActorTurnScratch);
-    s->delta.vx = work->patrolPoints[work->patrolTarget].x - arg0->extra.tmd->coords->coord.t[0];
-    s->delta.vy = 0;
-    s->delta.vz = work->patrolPoints[work->patrolTarget].z - arg0->extra.tmd->coords->coord.t[2];
-    if (!overlayOutOfRange(&s->delta, 0xA0)) {
+    turn           = SCRATCH_STACK_CURSOR(ActorTurnScratch);
+    turn->delta.vx = work->patrolPoints[work->patrolTarget].x - arg0->extra.tmd->coords->coord.t[0];
+    turn->delta.vy = 0;
+    turn->delta.vz = work->patrolPoints[work->patrolTarget].z - arg0->extra.tmd->coords->coord.t[2];
+    if (!overlayOutOfRange(&turn->delta, 0xA0)) {
         if (work->patrolTarget == 0) {
             work->patrolTarget = 1;
         } else {
@@ -3883,17 +3883,17 @@ static void func_actor_401300_80139AB0(Task* arg0)
     }
     func_actor_401300_80133A3C(arg0);
     coord               = arg0->extra.tmd->coords;
-    s->angle            = actorNormalizeYaw(ratan2(s->delta.vx, s->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
-    work->lookYawTarget = s->angle;
-    if (s->angle > 0x20) {
-        s->angle = 0x20;
+    turn->angle         = actorNormalizeYaw(ratan2(turn->delta.vx, turn->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+    work->lookYawTarget = turn->angle;
+    if (turn->angle > 0x20) {
+        turn->angle = 0x20;
     }
-    if (s->angle < -0x20) {
-        s->angle = -0x20;
+    if (turn->angle < -0x20) {
+        turn->angle = -0x20;
     }
-    facing    = arg0->extra.tmd->coords;
-    s->angle += ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
-    gfxRotMatrixY(&arg0->extra.tmd->coords->coord, s->angle, 1);
+    facing       = arg0->extra.tmd->coords;
+    turn->angle += ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
+    gfxRotMatrixY(&arg0->extra.tmd->coords->coord, turn->angle, 1);
     actorRescaleYaw(arg0->extra.tmd->coords, 0x1964);
     if (work->blendActive == 0) {
         if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x15E, 0xA) != 0) {
@@ -3904,13 +3904,13 @@ static void func_actor_401300_80139AB0(Task* arg0)
         func_actor_401300_80132910(arg0, work->hitContacts, ARRAY_SIZE(work->hitContacts));
     }
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &s->delta);
-    if (!overlayOutOfRange(&s->delta, 0x7D0)) {
+    actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &turn->delta);
+    if (!overlayOutOfRange(&turn->delta, 0x7D0)) {
         work->state = ACTOR_401300_STATE_ALERT;
-    } else if (!overlayOutOfRange(&s->delta, 0xFA0)) {
-        coord    = arg0->extra.tmd->coords;
-        s->angle = actorNormalizeYaw(ratan2(s->delta.vx, s->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
-        if (ABS(s->angle) < 0x300) {
+    } else if (!overlayOutOfRange(&turn->delta, 0xFA0)) {
+        coord       = arg0->extra.tmd->coords;
+        turn->angle = actorNormalizeYaw(ratan2(turn->delta.vx, turn->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+        if (ABS(turn->angle) < 0x300) {
             work->state = ACTOR_401300_STATE_ALERT;
         }
     }

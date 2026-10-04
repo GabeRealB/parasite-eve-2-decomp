@@ -3232,7 +3232,7 @@ static __inline__ s16 Actor421600_Zone(GfxCoord* coord)
 static void func_actor_421600_80136138(Task* arg0)
 {
     DesertChaserWork* work;
-    ActorTurnScratch *head, *blk;
+    ActorTurnScratch *head, *turn;
     Enemy*            ctx;
     TmdObject*        obj;
     GfxCoord *        coord2, *coord3, *coord4;
@@ -3323,19 +3323,19 @@ static void func_actor_421600_80136138(Task* arg0)
     desertChaserAnimTick(arg0);
     head = SCRATCH_STACK_CURSOR(ActorTurnScratch);
     SCRATCH_STACK_RESERVE_BLOCK(ActorTurnScratch);
-    blk = head - 1;
+    turn = head - 1;
     if (zone > playerZone)
         nextZone = zone - 1;
     else
         nextZone = zone + 1;
     head[-1].delta.vx = D_actor_421600_80151158[nextZone].vx;
-    blk->delta.vy     = D_actor_421600_80151158[nextZone].vy;
-    blk->delta.vz     = D_actor_421600_80151158[nextZone].vz;
-    blk->delta.vx     = blk->delta.vx - (u16)arg0->extra.tmd->coords->coord.t[0];
-    blk->delta.vy     = 0;
-    blk->delta.vz     = blk->delta.vz - (u16)arg0->extra.tmd->coords->coord.t[2];
+    turn->delta.vy    = D_actor_421600_80151158[nextZone].vy;
+    turn->delta.vz    = D_actor_421600_80151158[nextZone].vz;
+    turn->delta.vx    = turn->delta.vx - (u16)arg0->extra.tmd->coords->coord.t[0];
+    turn->delta.vy    = 0;
+    turn->delta.vz    = turn->delta.vz - (u16)arg0->extra.tmd->coords->coord.t[2];
     coord2            = arg0->extra.tmd->coords;
-    angle             = ratan2(blk->delta.vx, blk->delta.vz) - ratan2(-coord2->coord.m[2][0], coord2->coord.m[2][2]);
+    angle             = ratan2(turn->delta.vx, turn->delta.vz) - ratan2(-coord2->coord.m[2][0], coord2->coord.m[2][2]);
     if (angle < 0) {
     loop_neg:
         if (angle < -0x800) {
@@ -3350,21 +3350,21 @@ static void func_actor_421600_80136138(Task* arg0)
         }
     }
     wrapped             = angle;
-    blk->angle          = wrapped;
+    turn->angle         = wrapped;
     work->lookYawTarget = wrapped;
-    if (blk->angle >= 0x21)
-        blk->angle = 0x20;
-    if (blk->angle < -0x20)
-        blk->angle = -0x20;
-    work->waistYawTarget = blk->angle;
+    if (turn->angle >= 0x21)
+        turn->angle = 0x20;
+    if (turn->angle < -0x20)
+        turn->angle = -0x20;
+    work->waistYawTarget = turn->angle;
     coord3               = arg0->extra.tmd->coords;
-    blk->angle           = blk->angle + ratan2(-coord3->coord.m[2][0], coord3->coord.m[2][2]);
-    gfxRotMatrixY(&arg0->extra.tmd->coords->coord, blk->angle, 1);
+    turn->angle          = turn->angle + ratan2(-coord3->coord.m[2][0], coord3->coord.m[2][2]);
+    gfxRotMatrixY(&arg0->extra.tmd->coords->coord, turn->angle, 1);
     if (work->blendActive == 0) {
         coord4 = arg0->extra.tmd->coords;
         actorMoveForward(coord4, 0x14);
     }
-    ActorContact_Steer(arg0->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts), &blk->delta);
+    ActorContact_Steer(arg0->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts), &turn->delta);
     func_actor_421600_80133334(arg0->extra.tmd->coords);
     SCRATCH_STACK_RELEASE_BLOCK(ActorTurnScratch);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -4090,7 +4090,7 @@ static void func_actor_421600_8013B00C(Task* arg0)
 {
     DesertChaserWork* work;
     ActorTurnScratch* head;
-    ActorTurnScratch* blk;
+    ActorTurnScratch* turn;
     Enemy*            ctx;
     TmdObject*        obj;
     GfxCoord*         coord;
@@ -4178,22 +4178,22 @@ static void func_actor_421600_8013B00C(Task* arg0)
     }
     head = SCRATCH_STACK_CURSOR(ActorTurnScratch);
     SCRATCH_STACK_RESERVE_BLOCK(ActorTurnScratch);
-    blk = head - 1;
+    turn = head - 1;
     if ((s16)zone > work->fleeZone) {
         head[-1].delta.vx = D_actor_421600_80151158[zone - 1].vx;
-        blk->delta.vy     = D_actor_421600_80151158[zone - 1].vy;
-        blk->delta.vz     = D_actor_421600_80151158[zone - 1].vz;
+        turn->delta.vy    = D_actor_421600_80151158[zone - 1].vy;
+        turn->delta.vz    = D_actor_421600_80151158[zone - 1].vz;
     } else {
         head[-1].delta.vx = D_actor_421600_80151158[zone + 1].vx;
-        blk->delta.vy     = D_actor_421600_80151158[zone + 1].vy;
-        blk->delta.vz     = D_actor_421600_80151158[zone + 1].vz;
+        turn->delta.vy    = D_actor_421600_80151158[zone + 1].vy;
+        turn->delta.vz    = D_actor_421600_80151158[zone + 1].vz;
     }
-    blk->delta.vx = blk->delta.vx - (u16)arg0->extra.tmd->coords->coord.t[0];
-    blk->delta.vy = 0;
-    blk->delta.vz = blk->delta.vz - (u16)arg0->extra.tmd->coords->coord.t[2];
+    turn->delta.vx = turn->delta.vx - (u16)arg0->extra.tmd->coords->coord.t[0];
+    turn->delta.vy = 0;
+    turn->delta.vz = turn->delta.vz - (u16)arg0->extra.tmd->coords->coord.t[2];
     desertChaserAnimTick(arg0);
     coord2 = arg0->extra.tmd->coords;
-    angle  = ratan2(blk->delta.vx, blk->delta.vz) - ratan2(-coord2->coord.m[2][0], coord2->coord.m[2][2]);
+    angle  = ratan2(turn->delta.vx, turn->delta.vz) - ratan2(-coord2->coord.m[2][0], coord2->coord.m[2][2]);
     if (angle < 0) {
     loop_neg:
         if (angle < -0x800) {
@@ -4208,23 +4208,23 @@ static void func_actor_421600_8013B00C(Task* arg0)
         }
     }
     wrapped             = angle;
-    blk->angle          = wrapped;
+    turn->angle         = wrapped;
     work->lookYawTarget = wrapped;
-    if (blk->angle >= 0x81) {
-        blk->angle = 0x80;
+    if (turn->angle >= 0x81) {
+        turn->angle = 0x80;
     }
-    if (blk->angle < -0x80) {
-        blk->angle = -0x80;
+    if (turn->angle < -0x80) {
+        turn->angle = -0x80;
     }
-    work->waistYawTarget = blk->angle;
+    work->waistYawTarget = turn->angle;
     coord3               = arg0->extra.tmd->coords;
-    blk->angle           = blk->angle + ratan2(-coord3->coord.m[2][0], coord3->coord.m[2][2]);
-    gfxRotMatrixY(&arg0->extra.tmd->coords->coord, blk->angle, 1);
+    turn->angle          = turn->angle + ratan2(-coord3->coord.m[2][0], coord3->coord.m[2][2]);
+    gfxRotMatrixY(&arg0->extra.tmd->coords->coord, turn->angle, 1);
     if (work->blendActive == 0) {
         coord4 = arg0->extra.tmd->coords;
         actorMoveForward(coord4, 0xC8);
     }
-    ActorContact_Steer(arg0->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts), &blk->delta);
+    ActorContact_Steer(arg0->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts), &turn->delta);
     SCRATCH_STACK_RELEASE_BLOCK(ActorTurnScratch);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
 }
@@ -4242,7 +4242,7 @@ static void func_actor_421600_8013B00C(Task* arg0)
 /// which becomes the XZ direction from the actor to that pose.
 ///
 /// `mode` and the `(s8)` casts on `zone` are load-bearing, and so is the
-/// `blk->vec.vy = 0` between the two coordinate subtractions. A plain `5`
+/// `turn->delta.vy = 0` between the two coordinate subtractions. A plain `5`
 /// literal lets expand fold `zone > 5` into `zone < 6`, which drops the two
 /// register copies and the `slt` the ROM has; keeping the limit in a
 /// declaration-initialised `s8` leaves it a register operand so the fold never
@@ -4252,7 +4252,7 @@ static void func_actor_421600_8013B4C4(Task* arg0)
 {
     DesertChaserWork* work;
     ActorTurnScratch* head;
-    ActorTurnScratch* blk;
+    ActorTurnScratch* turn;
     Enemy*            ctx;
     TmdObject*        obj;
     GfxCoord*         coord;
@@ -4310,22 +4310,22 @@ static void func_actor_421600_8013B4C4(Task* arg0)
     }
     head = SCRATCH_STACK_CURSOR(ActorTurnScratch);
     SCRATCH_STACK_RESERVE_BLOCK(ActorTurnScratch);
-    blk = head - 1;
+    turn = head - 1;
     if ((s8)zone > mode) {
         head[-1].delta.vx = D_actor_421600_80151158[zone - 1].vx;
-        blk->delta.vy     = D_actor_421600_80151158[zone - 1].vy;
-        blk->delta.vz     = D_actor_421600_80151158[zone - 1].vz;
+        turn->delta.vy    = D_actor_421600_80151158[zone - 1].vy;
+        turn->delta.vz    = D_actor_421600_80151158[zone - 1].vz;
     } else {
         head[-1].delta.vx = D_actor_421600_80151158[zone + 1].vx;
-        blk->delta.vy     = D_actor_421600_80151158[zone + 1].vy;
-        blk->delta.vz     = D_actor_421600_80151158[zone + 1].vz;
+        turn->delta.vy    = D_actor_421600_80151158[zone + 1].vy;
+        turn->delta.vz    = D_actor_421600_80151158[zone + 1].vz;
     }
-    blk->delta.vx = blk->delta.vx - (u16)arg0->extra.tmd->coords->coord.t[0];
-    blk->delta.vy = 0;
-    blk->delta.vz = blk->delta.vz - (u16)arg0->extra.tmd->coords->coord.t[2];
+    turn->delta.vx = turn->delta.vx - (u16)arg0->extra.tmd->coords->coord.t[0];
+    turn->delta.vy = 0;
+    turn->delta.vz = turn->delta.vz - (u16)arg0->extra.tmd->coords->coord.t[2];
     desertChaserAnimTick(arg0);
     coord2 = arg0->extra.tmd->coords;
-    angle  = ratan2(blk->delta.vx, blk->delta.vz) - ratan2(-coord2->coord.m[2][0], coord2->coord.m[2][2]);
+    angle  = ratan2(turn->delta.vx, turn->delta.vz) - ratan2(-coord2->coord.m[2][0], coord2->coord.m[2][2]);
     if (angle < 0) {
     loop_neg:
         if (angle < -0x800) {
@@ -4340,23 +4340,23 @@ static void func_actor_421600_8013B4C4(Task* arg0)
         }
     }
     wrapped             = angle;
-    blk->angle          = wrapped;
+    turn->angle         = wrapped;
     work->lookYawTarget = wrapped;
-    if (blk->angle >= 0x81) {
-        blk->angle = 0x80;
+    if (turn->angle >= 0x81) {
+        turn->angle = 0x80;
     }
-    if (blk->angle < -0x80) {
-        blk->angle = -0x80;
+    if (turn->angle < -0x80) {
+        turn->angle = -0x80;
     }
-    work->waistYawTarget = blk->angle;
+    work->waistYawTarget = turn->angle;
     coord3               = arg0->extra.tmd->coords;
-    blk->angle           = blk->angle + ratan2(-coord3->coord.m[2][0], coord3->coord.m[2][2]);
-    gfxRotMatrixY(&arg0->extra.tmd->coords->coord, blk->angle, 1);
+    turn->angle          = turn->angle + ratan2(-coord3->coord.m[2][0], coord3->coord.m[2][2]);
+    gfxRotMatrixY(&arg0->extra.tmd->coords->coord, turn->angle, 1);
     if (work->blendActive == 0) {
         coord4 = arg0->extra.tmd->coords;
         actorMoveForward(coord4, 0xC8);
     }
-    ActorContact_Steer(arg0->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts), &blk->delta);
+    ActorContact_Steer(arg0->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts), &turn->delta);
     SCRATCH_STACK_RELEASE_BLOCK(ActorTurnScratch);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
 }

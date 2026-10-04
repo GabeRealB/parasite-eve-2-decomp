@@ -2307,7 +2307,7 @@ static void func_actor_356100_80167A7C(Task* arg0)
     _Actor356100Work* work;
     TmdObject*        obj;
     GfxCoord*         coord;
-    u8*               head;
+    ActorTurnScratch* head;
     ActorTurnScratch* turn;
     s16               angle;
 
@@ -2325,11 +2325,11 @@ static void func_actor_356100_80167A7C(Task* arg0)
         func_actor_356100_80163508(arg0);
         return;
     }
-    head                                        = SCRATCH_STACK_CURSOR(u8);
-    ((ActorTurnScratch*)(head - 0xC))->delta.vx = work->patrolPoints[work->patrolTarget].x - arg0->extra.tmd->coords->coord.t[0];
-    turn                                        = (ActorTurnScratch*)SCRATCH_STACK_RESERVE_BYTES(0xC);
-    turn->delta.vy                              = 0;
-    turn->delta.vz                              = work->patrolPoints[work->patrolTarget].z - arg0->extra.tmd->coords->coord.t[2];
+    head              = SCRATCH_STACK_CURSOR(ActorTurnScratch);
+    head[-1].delta.vx = work->patrolPoints[work->patrolTarget].x - arg0->extra.tmd->coords->coord.t[0];
+    turn              = SCRATCH_STACK_RESERVE_BLOCK(ActorTurnScratch);
+    turn->delta.vy    = 0;
+    turn->delta.vz    = work->patrolPoints[work->patrolTarget].z - arg0->extra.tmd->coords->coord.t[2];
     if (!overlayOutOfRange(&turn->delta, 0xA0)) {
         if (work->patrolTarget == 0) {
             work->patrolTarget = 1;

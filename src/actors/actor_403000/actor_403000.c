@@ -389,15 +389,6 @@ typedef struct Actor403000TurnScratch {
 } Actor403000TurnScratch;
 STATIC_ASSERT_SIZEOF(Actor403000TurnScratch, 0xC);
 
-/// 0xC-byte scratch stack block `func_actor_403000_80133FC0` takes: the
-/// player's position relative to the model, then the wrapped facing error.
-typedef struct Actor403000FacingScratch {
-    /* 0x00 */ SVECTOR target;
-    /* 0x08 */ s16     angle;
-    /* 0x0A */ byte    pad_A[0x2];
-} Actor403000FacingScratch;
-STATIC_ASSERT_SIZEOF(Actor403000FacingScratch, 0xC);
-
 typedef union Actor403000Sxy {
     s32     w;
     DVECTOR v;
@@ -4341,11 +4332,11 @@ static void func_actor_403000_80133AF8(Task* arg0)
 
 static s32 func_actor_403000_80133FC0(Task* arg0, s16 arg1, s16 arg2)
 {
-    GfxCoord*                 coord;
-    Actor403000FacingScratch* scratch;
-    s16                       angle;
-    s32                       mag;
-    GfxCoord*                 coord2;
+    GfxCoord*         coord;
+    ActorTurnScratch* scratch;
+    s16               angle;
+    s32               mag;
+    GfxCoord*         coord2;
 
     if (arg1 == arg2) {
         return 1;
@@ -4400,13 +4391,13 @@ static s32 func_actor_403000_80133FC0(Task* arg0, s16 arg1, s16 arg2)
             break;
     }
 calc:
-    scratch            = SCRATCH_STACK_RESERVE_BLOCK(Actor403000FacingScratch);
-    coord              = arg0->extra.tmd->coords;
-    scratch->target.vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
-    scratch->target.vy = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
-    scratch->target.vz = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
-    coord2             = arg0->extra.tmd->coords;
-    angle              = ratan2(scratch->target.vx, scratch->target.vz) - ratan2(-coord2->coord.m[2][0], coord2->coord.m[2][2]);
+    scratch           = SCRATCH_STACK_RESERVE_BLOCK(ActorTurnScratch);
+    coord             = arg0->extra.tmd->coords;
+    scratch->delta.vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
+    scratch->delta.vy = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
+    scratch->delta.vz = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
+    coord2            = arg0->extra.tmd->coords;
+    angle             = ratan2(scratch->delta.vx, scratch->delta.vz) - ratan2(-coord2->coord.m[2][0], coord2->coord.m[2][2]);
     if (angle < 0) {
     loop_neg:
         if (angle < -0x800) {
@@ -4422,10 +4413,10 @@ calc:
     }
     scratch->angle = mag = angle;
     if ((mag < 0 ? -mag : mag) < 0x200) {
-        SCRATCH_STACK_RELEASE_BLOCK(Actor403000FacingScratch);
+        SCRATCH_STACK_RELEASE_BLOCK(ActorTurnScratch);
         return 1;
     }
-    SCRATCH_STACK_RELEASE_BLOCK(Actor403000FacingScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorTurnScratch);
     return 0;
 }
 

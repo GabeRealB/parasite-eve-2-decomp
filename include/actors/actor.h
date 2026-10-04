@@ -207,12 +207,20 @@ typedef struct ActorTurnStepScratch {
 } ActorTurnStepScratch;
 STATIC_ASSERT_SIZEOF(ActorTurnStepScratch, 0x10);
 
-/// A turn toward the player: the offset to the player, then the clamped turn
-/// applied to the actor's root coordinate.
-typedef struct ActorTurnScratch {
-    SVECTOR delta;
-    s16     angle;
-    s16     pad_A;
+/// The scratch-stack block of a state body that turns an actor a limited step
+/// toward a target each frame: the offset to the target and the yaw worked out
+/// from it.
+///
+/// One block serves one frame of one state, and nothing carries over to the
+/// next. The target is a waypoint, the place the actor spawned or the player.
+/// A body that goes on to watch for the player fills both members again with
+/// the player's offset and its bearing off the actor's heading, and a body may
+/// take the block for that test alone. Yaws are 4096 units per turn, and a
+/// wrapped one lies in [-0x800, 0x800].
+typedef struct {
+    SVECTOR delta;          // Target's position minus the actor's, world units; `vy` is zero unless the target is the player, and only `vx` and `vz` give the bearing and the range. A body that steers round obstacles lends it to the steer, which leaves the displacement it moved the actor by; nothing reads that back
+    s16     angle;          // Wrapped turn from the actor's heading to the target, then that turn limited to the body's step, then the limited turn added to the heading: the yaw the actor's rotation is rebuilt around
+    byte    unknown_A[0x2]; // Reserved with the block and never accessed; role unproven
 } ActorTurnScratch;
 STATIC_ASSERT_SIZEOF(ActorTurnScratch, 0xC);
 

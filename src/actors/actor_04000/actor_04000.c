@@ -1869,7 +1869,7 @@ static void Actor04000_Fn028F0(Enemy* arg0, Task* arg1)
 {
     _Actor04000Work*  work;
     ActorTurnScratch* head;
-    ActorTurnScratch* sc;
+    ActorTurnScratch* turn;
     GfxCoord*         coord;
     GfxCoord*         target;
     GfxCoord*         pos;
@@ -1895,53 +1895,53 @@ static void Actor04000_Fn028F0(Enemy* arg0, Task* arg1)
         return;
     }
     head = SCRATCH_STACK_CURSOR(ActorTurnScratch);
-    sc   = (ActorTurnScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(ActorTurnScratch));
+    turn = SCRATCH_STACK_RESERVE_BLOCK(ActorTurnScratch);
     animDriverTick(arg1);
     pos               = arg1->extra.tmd->coords;
     head[-1].delta.vx = gPlayerStatus.coordMtx->t[0] - pos->coord.t[0];
-    sc->delta.vy      = gPlayerStatus.coordMtx->t[1] - pos->coord.t[1];
-    sc->delta.vz      = gPlayerStatus.coordMtx->t[2] - pos->coord.t[2];
+    turn->delta.vy    = gPlayerStatus.coordMtx->t[1] - pos->coord.t[1];
+    turn->delta.vz    = gPlayerStatus.coordMtx->t[2] - pos->coord.t[2];
     coord             = arg1->extra.tmd->coords;
-    angle             = ratan2(head[-1].delta.vx, sc->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    sc->angle         = actorWrapAngle(angle);
-    if (sc->angle > 0x10) {
-        sc->angle = 0x10;
+    angle             = ratan2(head[-1].delta.vx, turn->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+    turn->angle       = actorWrapAngle(angle);
+    if (turn->angle > 0x10) {
+        turn->angle = 0x10;
     }
-    if (sc->angle < -0x10) {
-        sc->angle = -0x10;
+    if (turn->angle < -0x10) {
+        turn->angle = -0x10;
     }
-    sc->angle += ratan2(-arg1->extra.tmd->coords->coord.m[2][0], arg1->extra.tmd->coords->coord.m[2][2]);
-    gfxRotMatrixY(&arg1->extra.tmd->coords->coord, sc->angle, 1);
+    turn->angle += ratan2(-arg1->extra.tmd->coords->coord.m[2][0], arg1->extra.tmd->coords->coord.m[2][2]);
+    gfxRotMatrixY(&arg1->extra.tmd->coords->coord, turn->angle, 1);
     actorStepForward(arg1->extra.tmd->coords, 0x14);
     ActorContact_PushContact(arg1->extra.tmd->coords, work->gridContacts, 8);
-    if (overlayOutOfRange(&sc->delta, 1000)) {
+    if (overlayOutOfRange(&turn->delta, 1000)) {
         work->chaseFarFrames++;
     } else {
         work->chaseFarFrames = 0;
     }
-    ActorContact_Steer(arg1->extra.tmd->coords, work->hitContacts, 8, &sc->delta);
+    ActorContact_Steer(arg1->extra.tmd->coords, work->hitContacts, 8, &turn->delta);
     arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    sc->delta.vx                          = work->spawnPos.vx - arg1->extra.tmd->coords->coord.t[0];
-    sc->delta.vy                          = 0;
-    sc->delta.vz                          = work->spawnPos.vz - arg1->extra.tmd->coords->coord.t[2];
-    overlayOutOfRange(&sc->delta, 3000);
+    turn->delta.vx                        = work->spawnPos.vx - arg1->extra.tmd->coords->coord.t[0];
+    turn->delta.vy                        = 0;
+    turn->delta.vz                        = work->spawnPos.vz - arg1->extra.tmd->coords->coord.t[2];
+    overlayOutOfRange(&turn->delta, 3000);
     if (work->chaseFarFrames > 0xF0) {
         work->state = ACTOR_04000_STATE_RETURN;
     }
-    target       = arg1->extra.tmd->coords;
-    sc->delta.vx = gPlayerStatus.coordMtx->t[0] - target->coord.t[0];
-    sc->delta.vy = gPlayerStatus.coordMtx->t[1] - target->coord.t[1];
-    sc->delta.vz = gPlayerStatus.coordMtx->t[2] - target->coord.t[2];
-    coord        = arg1->extra.tmd->coords;
-    angle        = ratan2(sc->delta.vx, sc->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    sc->angle    = actorWrapAngle(angle);
-    if (!overlayOutOfRange(&sc->delta, 600)) {
-        mag = (sc->angle >= 0) ? sc->angle : -sc->angle;
+    target         = arg1->extra.tmd->coords;
+    turn->delta.vx = gPlayerStatus.coordMtx->t[0] - target->coord.t[0];
+    turn->delta.vy = gPlayerStatus.coordMtx->t[1] - target->coord.t[1];
+    turn->delta.vz = gPlayerStatus.coordMtx->t[2] - target->coord.t[2];
+    coord          = arg1->extra.tmd->coords;
+    angle          = ratan2(turn->delta.vx, turn->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+    turn->angle    = actorWrapAngle(angle);
+    if (!overlayOutOfRange(&turn->delta, 600)) {
+        mag = (turn->angle >= 0) ? turn->angle : -turn->angle;
         if (mag < 0x200) {
             work->state = ACTOR_04000_STATE_LUNGE;
         }
     }
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(ActorTurnScratch));
+    SCRATCH_STACK_RELEASE_BLOCK(ActorTurnScratch);
 }
 
 /// Frames 0x28 onward of the collapse: steps the effects keyed on `stateFrame`,
@@ -2342,7 +2342,7 @@ static void Actor04000_Fn0432C(Enemy* arg0, Task* arg1)
 {
     _Actor04000Work*  work;
     ActorTurnScratch* head;
-    ActorTurnScratch* sc;
+    ActorTurnScratch* turn;
     GfxCoord*         coord;
     GfxCoord*         target;
     TmdObject*        obj;
@@ -2366,26 +2366,26 @@ static void Actor04000_Fn0432C(Enemy* arg0, Task* arg1)
         return;
     }
     head              = SCRATCH_STACK_CURSOR(ActorTurnScratch);
-    sc                = (ActorTurnScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(ActorTurnScratch));
+    turn              = SCRATCH_STACK_RESERVE_BLOCK(ActorTurnScratch);
     head[-1].delta.vx = work->patrolPoints[work->patrolIndex].vx - arg1->extra.tmd->coords->coord.t[0];
-    sc->delta.vy      = 0;
-    sc->delta.vz      = work->patrolPoints[work->patrolIndex].vz - arg1->extra.tmd->coords->coord.t[2];
+    turn->delta.vy    = 0;
+    turn->delta.vz    = work->patrolPoints[work->patrolIndex].vz - arg1->extra.tmd->coords->coord.t[2];
     coord             = arg1->extra.tmd->coords;
-    angle             = ratan2(head[-1].delta.vx, sc->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    sc->angle         = actorWrapAngle(angle);
-    if (sc->angle > 0x20) {
-        sc->angle = 0x20;
+    angle             = ratan2(head[-1].delta.vx, turn->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+    turn->angle       = actorWrapAngle(angle);
+    if (turn->angle > 0x20) {
+        turn->angle = 0x20;
     }
-    if (sc->angle < -0x20) {
-        sc->angle = -0x20;
+    if (turn->angle < -0x20) {
+        turn->angle = -0x20;
     }
-    sc->angle += ratan2(-arg1->extra.tmd->coords->coord.m[2][0], arg1->extra.tmd->coords->coord.m[2][2]);
-    gfxRotMatrixY(&arg1->extra.tmd->coords->coord, sc->angle, 1);
+    turn->angle += ratan2(-arg1->extra.tmd->coords->coord.m[2][0], arg1->extra.tmd->coords->coord.m[2][2]);
+    gfxRotMatrixY(&arg1->extra.tmd->coords->coord, turn->angle, 1);
     actorStepForward(arg1->extra.tmd->coords, 5);
     if (ActorContact_PushContact(arg1->extra.tmd->coords, work->gridContacts, 8)) {
         work->stateFrame++;
     }
-    if (!overlayOutOfRange(&sc->delta, 400) || work->stateFrame > 0x60) {
+    if (!overlayOutOfRange(&turn->delta, 400) || work->stateFrame > 0x60) {
         if (work->patrolIndex == 0) {
             work->patrolIndex = 1;
         } else {
@@ -2393,15 +2393,15 @@ static void Actor04000_Fn0432C(Enemy* arg0, Task* arg1)
         }
         work->stateFrame = 0;
     }
-    ActorContact_Steer(arg1->extra.tmd->coords, work->hitContacts, 8, &sc->delta);
-    target       = arg1->extra.tmd->coords;
-    sc->delta.vx = gPlayerStatus.coordMtx->t[0] - target->coord.t[0];
-    sc->delta.vy = gPlayerStatus.coordMtx->t[1] - target->coord.t[1];
-    sc->delta.vz = gPlayerStatus.coordMtx->t[2] - target->coord.t[2];
-    if (!overlayOutOfRange(&sc->delta, 2000)) {
+    ActorContact_Steer(arg1->extra.tmd->coords, work->hitContacts, 8, &turn->delta);
+    target         = arg1->extra.tmd->coords;
+    turn->delta.vx = gPlayerStatus.coordMtx->t[0] - target->coord.t[0];
+    turn->delta.vy = gPlayerStatus.coordMtx->t[1] - target->coord.t[1];
+    turn->delta.vz = gPlayerStatus.coordMtx->t[2] - target->coord.t[2];
+    if (!overlayOutOfRange(&turn->delta, 2000)) {
         coord = arg1->extra.tmd->coords;
-        angle = ratan2(sc->delta.vx, sc->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-        if (actorWrapAngle(angle) < 0x400 || !overlayOutOfRange(&sc->delta, 1000)) {
+        angle = ratan2(turn->delta.vx, turn->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+        if (actorWrapAngle(angle) < 0x400 || !overlayOutOfRange(&turn->delta, 1000)) {
             work->state = ACTOR_04000_STATE_CHASE;
         }
     }
@@ -2413,7 +2413,7 @@ static void Actor04000_Fn0432C(Enemy* arg0, Task* arg1)
             work->state = ACTOR_04000_STATE_SETTLE;
         }
     }
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(ActorTurnScratch));
+    SCRATCH_STACK_RELEASE_BLOCK(ActorTurnScratch);
 }
 
 /// Walking state: restarts the actor when `stateEntered` is set; otherwise turns the
@@ -2425,7 +2425,7 @@ static void Actor04000_Fn049C0(Enemy* arg0, Task* arg1)
 {
     _Actor04000Work*  work;
     ActorTurnScratch* head;
-    ActorTurnScratch* sc;
+    ActorTurnScratch* turn;
     GfxCoord*         coord;
     GfxCoord*         target;
     TmdObject*        obj;
@@ -2448,41 +2448,41 @@ static void Actor04000_Fn049C0(Enemy* arg0, Task* arg1)
         return;
     }
     head = SCRATCH_STACK_CURSOR(ActorTurnScratch);
-    sc   = (ActorTurnScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(ActorTurnScratch));
+    turn = SCRATCH_STACK_RESERVE_BLOCK(ActorTurnScratch);
     animDriverTick(arg1);
     arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     head[-1].delta.vx                     = work->spawnPos.vx - arg1->extra.tmd->coords->coord.t[0];
-    sc->delta.vy                          = 0;
-    sc->delta.vz                          = work->spawnPos.vz - arg1->extra.tmd->coords->coord.t[2];
+    turn->delta.vy                        = 0;
+    turn->delta.vz                        = work->spawnPos.vz - arg1->extra.tmd->coords->coord.t[2];
     coord                                 = arg1->extra.tmd->coords;
-    angle                                 = ratan2(head[-1].delta.vx, sc->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    sc->angle                             = actorWrapAngle(angle);
-    if (sc->angle > 0x10) {
-        sc->angle = 0x10;
+    angle                                 = ratan2(head[-1].delta.vx, turn->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+    turn->angle                           = actorWrapAngle(angle);
+    if (turn->angle > 0x10) {
+        turn->angle = 0x10;
     }
-    if (sc->angle < -0x10) {
-        sc->angle = -0x10;
+    if (turn->angle < -0x10) {
+        turn->angle = -0x10;
     }
-    sc->angle += ratan2(-arg1->extra.tmd->coords->coord.m[2][0], arg1->extra.tmd->coords->coord.m[2][2]);
-    gfxRotMatrixY(&arg1->extra.tmd->coords->coord, sc->angle, 1);
+    turn->angle += ratan2(-arg1->extra.tmd->coords->coord.m[2][0], arg1->extra.tmd->coords->coord.m[2][2]);
+    gfxRotMatrixY(&arg1->extra.tmd->coords->coord, turn->angle, 1);
     actorStepForward(arg1->extra.tmd->coords, 8);
     ActorContact_PushContact(arg1->extra.tmd->coords, work->gridContacts, 8);
-    if (!overlayOutOfRange(&sc->delta, 80)) {
+    if (!overlayOutOfRange(&turn->delta, 80)) {
         work->state = ACTOR_04000_STATE_SETTLE;
     }
-    ActorContact_Steer(arg1->extra.tmd->coords, work->hitContacts, 8, &sc->delta);
-    target       = arg1->extra.tmd->coords;
-    sc->delta.vx = gPlayerStatus.coordMtx->t[0] - target->coord.t[0];
-    sc->delta.vy = gPlayerStatus.coordMtx->t[1] - target->coord.t[1];
-    sc->delta.vz = gPlayerStatus.coordMtx->t[2] - target->coord.t[2];
-    if (!overlayOutOfRange(&sc->delta, 2000)) {
+    ActorContact_Steer(arg1->extra.tmd->coords, work->hitContacts, 8, &turn->delta);
+    target         = arg1->extra.tmd->coords;
+    turn->delta.vx = gPlayerStatus.coordMtx->t[0] - target->coord.t[0];
+    turn->delta.vy = gPlayerStatus.coordMtx->t[1] - target->coord.t[1];
+    turn->delta.vz = gPlayerStatus.coordMtx->t[2] - target->coord.t[2];
+    if (!overlayOutOfRange(&turn->delta, 2000)) {
         coord = arg1->extra.tmd->coords;
-        angle = ratan2(sc->delta.vx, sc->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-        if (actorWrapAngle(angle) < 0x400 || !overlayOutOfRange(&sc->delta, 1000)) {
+        angle = ratan2(turn->delta.vx, turn->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+        if (actorWrapAngle(angle) < 0x400 || !overlayOutOfRange(&turn->delta, 1000)) {
             work->state = ACTOR_04000_STATE_CHASE;
         }
     }
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(ActorTurnScratch));
+    SCRATCH_STACK_RELEASE_BLOCK(ActorTurnScratch);
 }
 
 /// Restarts the actor when `stateEntered` is set; otherwise waits 50 frames, then

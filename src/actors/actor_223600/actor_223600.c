@@ -109,8 +109,9 @@ STATIC_ASSERT_SIZEOF(_Actor223600Work, 0x214);
 STATIC_ASSERT(OFFSET_OF(_Actor223600Work, rig) == OFFSET_OF(AnimDriverWork, rig), Actor223600Work_rig);
 STATIC_ASSERT(OFFSET_OF(_Actor223600Work, driver) == OFFSET_OF(AnimDriverWork, state), Actor223600Work_driver);
 
-/// 0xC-byte scratch taken from `0x1F8003FC` by the approach state: the XZ
-/// offset from the model to its target, and the yaw step derived from it.
+/// 0xC-byte scratch taken from `0x1F8003FC` by the drop-in state: `dx`, `dy`
+/// and `dz` take one axis of the root coordinate, normalised and then scaled
+/// into the step added to its translation. That state leaves `yaw` alone.
 typedef struct Actor223600Turn {
     /* 0x0 */ s16  dx;
     /* 0x2 */ s16  dy;
@@ -1050,8 +1051,8 @@ static void func_actor_223600_8014B540(Enemy* enemy, Task* task)
 static void func_actor_223600_8014B840(Enemy* enemy, Task* task)
 {
     _Actor223600Work* work;
-    Actor223600Turn*  head;
-    Actor223600Turn*  turn;
+    ActorTurnScratch* head;
+    ActorTurnScratch* turn;
     GfxCoord*         coord;
     TmdObject*        obj;
     u32               mode;
@@ -1089,28 +1090,28 @@ static void func_actor_223600_8014B840(Enemy* enemy, Task* task)
     }
 
     work->stateFrame++;
-    head                                  = SCRATCH_STACK_CURSOR(Actor223600Turn);
-    head[-1].dx                           = work->walkTarget.vx - task->extra.tmd->coords->coord.t[0];
-    SCRATCH_STACK_CURSOR(Actor223600Turn) = head - 1;
-    turn                                  = head - 1;
-    turn->dy                              = 0;
-    turn->dz                              = work->walkTarget.vz - task->extra.tmd->coords->coord.t[2];
+    head                                   = SCRATCH_STACK_CURSOR(ActorTurnScratch);
+    head[-1].delta.vx                      = work->walkTarget.vx - task->extra.tmd->coords->coord.t[0];
+    SCRATCH_STACK_CURSOR(ActorTurnScratch) = head - 1;
+    turn                                   = head - 1;
+    turn->delta.vy                         = 0;
+    turn->delta.vz                         = work->walkTarget.vz - task->extra.tmd->coords->coord.t[2];
 
-    coord     = task->extra.tmd->coords;
-    turn->yaw = actorNormalizeYaw(ratan2(head[-1].dx, turn->dz) -
-                                  ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
-    if (turn->yaw > 0x10) {
-        turn->yaw = 0x10;
+    coord       = task->extra.tmd->coords;
+    turn->angle = actorNormalizeYaw(ratan2(head[-1].delta.vx, turn->delta.vz) -
+                                    ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+    if (turn->angle > 0x10) {
+        turn->angle = 0x10;
     }
-    if (turn->yaw < -0x10) {
-        turn->yaw = -0x10;
+    if (turn->angle < -0x10) {
+        turn->angle = -0x10;
     }
-    turn->yaw += ratan2(-task->extra.tmd->coords->coord.m[2][0],
-                        task->extra.tmd->coords->coord.m[2][2]);
-    gfxRotMatrixY(&task->extra.tmd->coords->coord, turn->yaw, 1);
+    turn->angle += ratan2(-task->extra.tmd->coords->coord.m[2][0],
+                          task->extra.tmd->coords->coord.m[2][2]);
+    gfxRotMatrixY(&task->extra.tmd->coords->coord, turn->angle, 1);
     Actor223600_MoveForward(task->extra.tmd->coords, 5);
     animDriverTick(task);
-    SCRATCH_STACK_RELEASE_BLOCK(Actor223600Turn);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorTurnScratch);
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
