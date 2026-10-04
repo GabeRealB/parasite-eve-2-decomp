@@ -74,12 +74,17 @@ typedef struct {
 } _SpuReverbConfig;
 STATIC_ASSERT_SIZEOF(_SpuReverbConfig, 0x24);
 
-/// 4-byte entry at Spu_VoiceRanges (see Spu_SetVoiceRange).
-typedef struct _SpuVoiceRange {
-    /* 0x0 */ s16 first;
-    /* 0x2 */ s16 count;
-} SpuVoiceRange;
-STATIC_ASSERT_SIZEOF(SpuVoiceRange, 0x4);
+/// A run of consecutive hardware voices set aside for one kind of sound.
+///
+/// Each client of the voice pool registers the run it plays on under a range
+/// index, and a request for a voice names the ranges it may be served from, in
+/// the order to try them. Ranges may overlap: a voice is free or held whichever
+/// range it is reached through.
+typedef struct {
+    s16 first; // Index of the run's first voice
+    s16 count; // Voices in the run; 0 while the range is unregistered
+} _SpuVoiceRange;
+STATIC_ASSERT_SIZEOF(_SpuVoiceRange, 0x4);
 
 /// Ring buffer of 4 AsyncCbEntry callback slots (AsyncCb_Queue, size 0x54).
 /// field_0 = readIdx; field_1 = writeIdx.
@@ -101,7 +106,7 @@ static u8 D_8007E510[8];
 
 static _SpuVoiceUpdateList Spu_LVoiceTable;
 
-static SpuVoiceRange Spu_VoiceRanges[4];
+static _SpuVoiceRange Spu_VoiceRanges[4];
 
 static u32 Spu_KeyOnMask;
 
@@ -315,7 +320,7 @@ void Spu_InitVoices(void)
 
 s32 Spu_AllocVoice(s16* arg0, s32 arg1, s32 arg2)
 {
-    SpuVoiceRange*   entry;
+    _SpuVoiceRange*  range;
     s32              oldestAge;
     s32              bestPriority;
     s32              i;
@@ -337,10 +342,10 @@ s32 Spu_AllocVoice(s16* arg0, s32 arg1, s32 arg2)
 
     if (arg1 > 0) {
         do {
-            entry = &Spu_VoiceRanges[*arg0];
-            voice = *(u8*)entry;
+            range = &Spu_VoiceRanges[*arg0];
+            voice = range->first;
             j     = 0;
-            if (entry->count > 0) {
+            if (range->count > 0) {
                 do {
                     if (state->allocated[(s8)voice] == false) {
                         keyStatus = state->keyStatus[(s8)voice];
@@ -365,7 +370,7 @@ s32 Spu_AllocVoice(s16* arg0, s32 arg1, s32 arg2)
                     }
                     j++;
                     voice++;
-                } while (j < entry->count);
+                } while (j < range->count);
             }
             i++;
             arg0++;
@@ -545,13 +550,13 @@ void Spu_ClearVoiceCallbacks(u32 voiceIdx)
 
 s32 Spu_SetVoiceRange(s32 idx, s32 arg1, s32 arg2)
 {
-    SpuVoiceRange* p;
-    s16            sIdx;
+    _SpuVoiceRange* range;
+    s16             sIdx;
 
-    sIdx     = idx;
-    p        = &Spu_VoiceRanges[sIdx];
-    p->first = arg1;
-    p->count = arg2;
+    sIdx         = idx;
+    range        = &Spu_VoiceRanges[sIdx];
+    range->first = arg1;
+    range->count = arg2;
     return 0;
 }
 
