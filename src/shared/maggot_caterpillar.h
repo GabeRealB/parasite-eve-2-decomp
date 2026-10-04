@@ -56,9 +56,7 @@
 /// kept at `Task::work`. Animation setup fills the context and eight slots;
 /// the projectile task has its own smaller collision-work allocation.
 typedef struct MaggotCaterpillarWork {
-    AnimationContext      anim;
-    AnimationSlot         slots[8];
-    byte                  field_154[0x80];
+    ActorAnimRig8         rig; // Playback storage of the model's parts; slots 1 to 7 are driven
     MATRIX                field_1D4;
     MATRIX                field_1F4;
     WorldCollisionBody    field_214;

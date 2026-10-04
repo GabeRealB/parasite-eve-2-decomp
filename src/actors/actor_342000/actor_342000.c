@@ -83,34 +83,31 @@
 /// last called with; command 0xA additionally refills `field_264` from the
 /// handler's second payload.
 ///
-/// The block opens with the actor's animation context -- `ctx` and the eight
-/// `AnimationSlot`s `animationInitContext` binds with this overlay's banks -- so the
-/// block pointer is also the `AnimationContext*` the animation helpers take:
-/// `func_actor_342000_80161EA4` ticks it and passes the id bank
+/// The block opens with the actor's playback rig -- `rig`, whose context
+/// `animationInitContext` binds to its eight slots and pose entries with this
+/// overlay's banks: `func_actor_342000_80161EA4` ticks it and passes the id bank
 /// `field_288` indexes. Slot 0 is the child slot that function skips. `light` /
 /// `color` at 0x1D4 / 0x1F4 are the pair `func_actor_342000_80162158`
 /// republishes onto the model's `TmdObject::lightMtx` / `colorMtx`, exactly as
 /// the neighbouring actor overlays lay out theirs.
 typedef struct Actor342000Work {
-    /* 0x000 */ AnimationContext ctx;
-    /* 0x014 */ AnimationSlot    slots[8];
-    /* 0x154 */ byte             pad_154[0x80];
-    /* 0x1D4 */ MATRIX           light;
-    /* 0x1F4 */ MATRIX           color;
-    /* 0x214 */ GfxCoord         coord;
-    /* 0x264 */ VECTOR           field_264;
-    /* 0x274 */ s32              field_274;
-    /* 0x278 */ s32              field_278;
-    /* 0x27C */ s32              field_27C;
-    /* 0x280 */ byte             pad_280[0x8];
-    /* 0x288 */ s32              field_288;
-    /* 0x28C */ byte             pad_28C[0xC];
-    /* 0x298 */ Task*            field_298;
-    /* 0x29C */ Task*            field_29C;
-    /* 0x2A0 */ Task*            field_2A0;
-    /* 0x2A4 */ GfxCoord*        field_2A4;
-    /* 0x2A8 */ byte             pad_2A8[0x2];
-    /* 0x2AA */ u16              field_2AA;
+    /* 0x000 */ ActorAnimRig8 rig;
+    /* 0x1D4 */ MATRIX        light;
+    /* 0x1F4 */ MATRIX        color;
+    /* 0x214 */ GfxCoord      coord;
+    /* 0x264 */ VECTOR        field_264;
+    /* 0x274 */ s32           field_274;
+    /* 0x278 */ s32           field_278;
+    /* 0x27C */ s32           field_27C;
+    /* 0x280 */ byte          pad_280[0x8];
+    /* 0x288 */ s32           field_288;
+    /* 0x28C */ byte          pad_28C[0xC];
+    /* 0x298 */ Task*         field_298;
+    /* 0x29C */ Task*         field_29C;
+    /* 0x2A0 */ Task*         field_2A0;
+    /* 0x2A4 */ GfxCoord*     field_2A4;
+    /* 0x2A8 */ byte          pad_2A8[0x2];
+    /* 0x2AA */ u16           field_2AA;
 } Actor342000Work;
 STATIC_ASSERT_SIZEOF(Actor342000Work, 0x2AC);
 
@@ -455,12 +452,12 @@ static s32 func_actor_342000_80161EA4(Task* arg0, u16 arg1)
     start = anim;
     work  = (Actor342000Work*)arg0->work;
     for (i = start; i < arg1; i++) {
-        animationTickSlot(&work->ctx, i);
+        animationTickSlot(&work->rig.anim, i);
     }
     i    = start;
     done = 1;
     for (; i < arg1; i++) {
-        if (!(work->slots[i].status.fields.flags & ANIMATION_SLOT_SETTLED)) {
+        if (!(work->rig.slots[i].status.fields.flags & ANIMATION_SLOT_SETTLED)) {
             goto fail;
         }
     }
@@ -476,7 +473,7 @@ check:
             goto check;
         loop:
             for (i = first; i < arg1; i++) {
-                animationSeekSlotWithBlend(&ctx->ctx, i, anim, 0, 10);
+                animationSeekSlotWithBlend(&ctx->rig.anim, i, anim, 0, 10);
             }
         }
         return 1;
@@ -591,11 +588,11 @@ static void func_actor_342000_80162158(Task* arg0)
         case 0:
             w->field_2A4 = &gGfxViewCoord;
             Actor342000_InitCoord(arg0, w);
-            animationInitContext(&w->ctx, D_actor_342000_801647F8, extra, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])w->pad_154, w->slots);
+            animationInitContext(&w->rig.anim, D_actor_342000_801647F8, extra, w->rig.poses, w->rig.slots);
             ctx = (Actor342000Work*)arg0->work;
             for (i = 1; i < 8; i++) {
-                ctx->slots[i].rate = ANIMATION_RATE_ONE;
-                animationResetSlot(&ctx->ctx, i, 0);
+                ctx->rig.slots[i].rate = ANIMATION_RATE_ONE;
+                animationResetSlot(&ctx->rig.anim, i, 0);
             }
             break;
             do {
@@ -604,11 +601,11 @@ static void func_actor_342000_80162158(Task* arg0)
             w->field_2A4 = w->field_298->extra.tmd->coords;
             Actor342000_InitCoord(arg0, w);
             ((Actor342000Work*)w->field_298->work)->field_29C = arg0;
-            animationInitContext(&w->ctx, D_actor_342000_80164800, extra, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])w->pad_154, w->slots);
+            animationInitContext(&w->rig.anim, D_actor_342000_80164800, extra, w->rig.poses, w->rig.slots);
             ctx2 = (Actor342000Work*)arg0->work;
             for (i = 0; i < 4; i++) {
-                ctx2->slots[i].rate = ANIMATION_RATE_ONE;
-                animationResetSlot(&ctx2->ctx, i, 0);
+                ctx2->rig.slots[i].rate = ANIMATION_RATE_ONE;
+                animationResetSlot(&ctx2->rig.anim, i, 0);
             }
             break;
             do {
@@ -617,11 +614,11 @@ static void func_actor_342000_80162158(Task* arg0)
             w->field_2A4 = w->field_298->extra.tmd->coords;
             Actor342000_InitCoord(arg0, w);
             ((Actor342000Work*)w->field_298->work)->field_2A0 = arg0;
-            animationInitContext(&w->ctx, D_actor_342000_80164808, extra, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])w->pad_154, w->slots);
+            animationInitContext(&w->rig.anim, D_actor_342000_80164808, extra, w->rig.poses, w->rig.slots);
             ctx3 = (Actor342000Work*)arg0->work;
             for (i = 0; i < 4; i++) {
-                ctx3->slots[i].rate = ANIMATION_RATE_ONE;
-                animationResetSlot(&ctx3->ctx, i, 0);
+                ctx3->rig.slots[i].rate = ANIMATION_RATE_ONE;
+                animationResetSlot(&ctx3->rig.anim, i, 0);
             }
             break;
         default:
@@ -874,12 +871,12 @@ static inline void Actor342000_SetAnim(Task* task, u16 anim, u16 blend, u16 n)
     ctx   = (Actor342000Work*)task->work;
     if (blend == 0) {
         for (i = first; i < n; i++) {
-            ctx->slots[i].rate = ANIMATION_RATE_ONE;
-            animationResetSlot(&ctx->ctx, i, anim);
+            ctx->rig.slots[i].rate = ANIMATION_RATE_ONE;
+            animationResetSlot(&ctx->rig.anim, i, anim);
         }
     } else {
         for (i = first; i < n; i++) {
-            animationSeekSlotWithBlend(&ctx->ctx, i, anim, 0, blend);
+            animationSeekSlotWithBlend(&ctx->rig.anim, i, anim, 0, blend);
         }
     }
 }

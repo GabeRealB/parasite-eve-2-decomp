@@ -142,26 +142,25 @@ typedef struct Actor341900TaskWork {
 STATIC_ASSERT_SIZEOF(Actor341900TaskWork, 0x258);
 
 /// The same 0x258-byte block as `Actor341900TaskWork`, seen from
-/// `func_actor_341900_80162330`, which fills it: an animation context over
-/// eight slots (`animationInitContext` gets `pad_154` as its scratch area) and the
-/// light/colour matrix pair the model draws with.
+/// `func_actor_341900_80162330`, which fills it: the playback rig of the
+/// part's model and the light/colour matrix pair the model draws with. The
+/// body drives slots 1 to 7 of `rig`; each of the two children allocates the
+/// same block and drives slots 0 to 3.
 typedef struct Actor341900AnimWork {
-    /* 0x000 */ AnimationContext ctx;
-    /* 0x014 */ AnimationSlot    slots[8];
-    /* 0x154 */ byte             pad_154[0x80];
-    /* 0x1D4 */ MATRIX           light;
-    /* 0x1F4 */ MATRIX           color;
-    /* 0x214 */ s32              field_214;
-    /* 0x218 */ s32              field_218;
-    /* 0x21C */ s32              field_21C;
-    /* 0x220 */ s32              field_220;
-    /* 0x224 */ s32              field_224;
-    /* 0x228 */ byte             pad_228[0x20];
-    /* 0x248 */ Task*            field_248;
-    /* 0x24C */ Task*            field_24C;
-    /* 0x250 */ Task*            field_250;
-    /* 0x254 */ u16              field_254;
-    /* 0x256 */ byte             pad_256[0x2];
+    /* 0x000 */ ActorAnimRig8 rig;
+    /* 0x1D4 */ MATRIX        light;
+    /* 0x1F4 */ MATRIX        color;
+    /* 0x214 */ s32           field_214;
+    /* 0x218 */ s32           field_218;
+    /* 0x21C */ s32           field_21C;
+    /* 0x220 */ s32           field_220;
+    /* 0x224 */ s32           field_224;
+    /* 0x228 */ byte          pad_228[0x20];
+    /* 0x248 */ Task*         field_248;
+    /* 0x24C */ Task*         field_24C;
+    /* 0x250 */ Task*         field_250;
+    /* 0x254 */ u16           field_254;
+    /* 0x256 */ byte          pad_256[0x2];
 } Actor341900AnimWork;
 STATIC_ASSERT_SIZEOF(Actor341900AnimWork, 0x258);
 
@@ -455,12 +454,12 @@ static s32 func_actor_341900_80161E58(Task* arg0, u16 arg1)
     start = anim;
     work  = (Actor341900AnimWork*)arg0->work;
     for (i = start; i < arg1; i++) {
-        animationTickSlot(&work->ctx, i);
+        animationTickSlot(&work->rig.anim, i);
     }
     i    = start;
     done = 1;
     for (; i < arg1; i++) {
-        if (!(work->slots[i].status.fields.flags & ANIMATION_SLOT_SETTLED)) {
+        if (!(work->rig.slots[i].status.fields.flags & ANIMATION_SLOT_SETTLED)) {
             goto fail;
         }
     }
@@ -476,7 +475,7 @@ check:
             goto check;
         loop:
             for (i = first; i < arg1; i++) {
-                animationSeekSlotWithBlend(&ctx->ctx, i, anim, 0, 10);
+                animationSeekSlotWithBlend(&ctx->rig.anim, i, anim, 0, 10);
             }
         }
         return 1;
@@ -495,12 +494,12 @@ static inline void Actor341900_SetAnim(Task* task, u16 anim, u16 blend, u16 n)
     ctx = (Actor341900AnimWork*)task->work;
     if (blend == 0) {
         for (i = n == 8; i < n; i++) {
-            ctx->slots[i].rate = ANIMATION_RATE_ONE;
-            animationResetSlot(&ctx->ctx, i, anim);
+            ctx->rig.slots[i].rate = ANIMATION_RATE_ONE;
+            animationResetSlot(&ctx->rig.anim, i, anim);
         }
     } else {
         for (i = n == 8; i < n; i++) {
-            animationSeekSlotWithBlend(&ctx->ctx, i, anim, 0, blend);
+            animationSeekSlotWithBlend(&ctx->rig.anim, i, anim, 0, blend);
         }
     }
 }
@@ -594,11 +593,11 @@ static void func_actor_341900_80162330(Task* arg0)
     Gp_SetTmdBytes(extra, rec->texturePageOffset, rec->clutRowOffset);
     switch (arg0->spawnArg1.value) {
         case 0:
-            animationInitContext(&w->ctx, D_actor_341900_801639AC, extra, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])w->pad_154, w->slots);
+            animationInitContext(&w->rig.anim, D_actor_341900_801639AC, extra, w->rig.poses, w->rig.slots);
             ctx = (Actor341900AnimWork*)arg0->work;
             for (i = 1; i < 8; i++) {
-                ctx->slots[i].rate = ANIMATION_RATE_ONE;
-                animationResetSlot(&ctx->ctx, i, 0);
+                ctx->rig.slots[i].rate = ANIMATION_RATE_ONE;
+                animationResetSlot(&ctx->rig.anim, i, 0);
             }
             break;
             /* The empty loop's notes before `case 1:` make reorg predict the
@@ -607,20 +606,20 @@ static void func_actor_341900_80162330(Task* arg0)
             } while (0);
         case 1:
             ((Actor341900AnimWork*)w->field_248->work)->field_24C = arg0;
-            animationInitContext(&w->ctx, D_actor_341900_801639B8, extra, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])w->pad_154, w->slots);
+            animationInitContext(&w->rig.anim, D_actor_341900_801639B8, extra, w->rig.poses, w->rig.slots);
             ctx = (Actor341900AnimWork*)arg0->work;
             for (i = 0; i < 4; i++) {
-                ctx->slots[i].rate = ANIMATION_RATE_ONE;
-                animationResetSlot(&ctx->ctx, i, 0);
+                ctx->rig.slots[i].rate = ANIMATION_RATE_ONE;
+                animationResetSlot(&ctx->rig.anim, i, 0);
             }
             break;
         case 2:
             ((Actor341900AnimWork*)w->field_248->work)->field_250 = arg0;
-            animationInitContext(&w->ctx, D_actor_341900_801639C4, extra, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])w->pad_154, w->slots);
+            animationInitContext(&w->rig.anim, D_actor_341900_801639C4, extra, w->rig.poses, w->rig.slots);
             ctx = (Actor341900AnimWork*)arg0->work;
             for (i = 0; i < 4; i++) {
-                ctx->slots[i].rate = ANIMATION_RATE_ONE;
-                animationResetSlot(&ctx->ctx, i, 0);
+                ctx->rig.slots[i].rate = ANIMATION_RATE_ONE;
+                animationResetSlot(&ctx->rig.anim, i, 0);
             }
             break;
     }

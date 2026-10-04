@@ -130,7 +130,7 @@ void maggotCaterpillarPounceState(Task* arg0)
                     work->field_3C8 = 0;
                 }
                 for (index = 1; index < 8; index++) {
-                    animationSeekSlotWithBlend(&work->anim, index, (s32)work->field_392, 0, 0);
+                    animationSeekSlotWithBlend(&work->rig.anim, index, (s32)work->field_392, 0, 0);
                 }
             }
             break;

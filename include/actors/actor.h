@@ -566,7 +566,8 @@ STATIC_ASSERT_SIZEOF(ActorAnimRig6, 0x164);
 /// (12 bytes) or `AnimationPackedRotation` (4 bytes). Playback stores no
 /// capacity, so a slot or pose index has to stay within these 8 entries.
 /// Slot 0 keeps its position in both arrays even where an owner drives only
-/// slots 1 to 7.
+/// slots 1 to 7, and an owner that drives fewer slots uses the leading
+/// entries and leaves the rest untouched.
 typedef struct {
     AnimationContext anim;                                  // Context bound to `slots`, `poses` and the model coordinates
     AnimationSlot    slots[8];                              // Playback slot for one driven index
