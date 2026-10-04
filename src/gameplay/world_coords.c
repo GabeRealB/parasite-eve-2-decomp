@@ -199,18 +199,30 @@ typedef struct {
 } _WorldCoordLightMatrixScratch;
 STATIC_ASSERT_SIZEOF(_WorldCoordLightMatrixScratch, 0x1C);
 
-/// 0x3C-byte scratch from the scratch stack used by `func_800D759C`.
-/// `in` is the light's negated local position fed to `gfxNormalizeLightDirection`. `dir` is
-/// that output, then the view-rotated copy, then the GPF-scaled color.
-/// `mtx` is `Transpose(gGfxViewCoord.workm) * parent->workm` (rotation only).
-/// `scale` holds the light's attenuation loaded into IR0.
-typedef struct _GpViewLightScratch {
-    /* 0x00 */ VECTOR  in;
-    /* 0x10 */ SVECTOR dir;
-    /* 0x18 */ MATRIX  mtx;
-    /* 0x38 */ s32     scale;
-} GpViewLightScratch;
-STATIC_ASSERT_SIZEOF(GpViewLightScratch, 0x3C);
+/// Temporary workspace for one light-direction row and RGB column of a light
+/// placed in its parent's frame.
+///
+/// Borrowed from the scratch stack until that pair is written. The direction
+/// comes from the light's local translation rather than its composed placement:
+/// it is normalized in the parent's frame, then rotated by the parent's composed
+/// rotation with the view coordinate's rotation undone. Direction and colour
+/// share output storage and are consumed in that order. Normalization needs
+/// another 24 scratch bytes below this block. The SDK vectors' final components
+/// and the matrix translation are unused and left uninitialized.
+typedef struct {
+    VECTOR lightToParentOrigin; // Negated local translation of the light, in the parent's units
+    union {
+        SVECTOR direction;      // Normalized direction, length approximately ONE; first in the parent's frame, then rotated
+        struct {
+            s16 r;              // Attenuated red intensity, 12 fractional bits
+            s16 g;              // Attenuated green intensity, 12 fractional bits
+            s16 b;              // Attenuated blue intensity, 12 fractional bits
+        } color;                // Replaces the direction after its matrix row has been written
+    } result;                   // Shared direction and colour output storage
+    MATRIX parentRotation;      // Transposed view rotation, then its product with the parent's composed rotation
+    s32    attenuation;         // Sign-extended light contribution scale (0 dark, ONE full strength), 12 fractional bits
+} _WorldCoordParentFrameLightMatrixScratch;
+STATIC_ASSERT_SIZEOF(_WorldCoordParentFrameLightMatrixScratch, 0x3C);
 
 /// Per-channel multipliers applied to the model light-colour matrix.
 ///
@@ -577,40 +589,42 @@ static s32 Gp_LightCone(WorldCoordSpotLight* spot, VECTOR3* pos)
 
 static void func_800D759C(s32 arg0, WorldCoordLight* arg1, VECTOR* arg2, TmdObject* arg3)
 {
-    GpViewLightScratch* block;
-    MATRIX*             dirMtx;
-    MATRIX*             colorMtx;
+    _WorldCoordParentFrameLightMatrixScratch* lightScratch;
+    MATRIX*                                   dirMtx;
+    MATRIX*                                   colorMtx;
 
-    block    = SCRATCH_STACK_RESERVE_BLOCK(GpViewLightScratch);
-    dirMtx   = arg3->lightMtx;
-    colorMtx = arg3->colorMtx;
+    lightScratch = SCRATCH_STACK_RESERVE_BLOCK(_WorldCoordParentFrameLightMatrixScratch);
+    dirMtx       = arg3->lightMtx;
+    colorMtx     = arg3->colorMtx;
 
-    block->in.vx = -arg1->transform.lighting.local.t[0];
-    block->in.vy = -arg1->transform.lighting.local.t[1];
-    block->in.vz = -arg1->transform.lighting.local.t[2];
-    gfxNormalizeLightDirection(&block->in, &block->dir);
+    lightScratch->lightToParentOrigin.vx = -arg1->transform.lighting.local.t[0];
+    lightScratch->lightToParentOrigin.vy = -arg1->transform.lighting.local.t[1];
+    lightScratch->lightToParentOrigin.vz = -arg1->transform.lighting.local.t[2];
+    gfxNormalizeLightDirection(&lightScratch->lightToParentOrigin, &lightScratch->result.direction);
 
+    // Undo the view rotation in the parent's composed rotation, then turn the direction by it.
     Gp_UpdateCoord(arg1->transform.lighting.parent);
-    TransposeMatrix(&gGfxViewCoord.workm, &block->mtx);
-    gte_MulMatrix0(&block->mtx, &arg1->transform.lighting.parent->workm, &block->mtx);
+    TransposeMatrix(&gGfxViewCoord.workm, &lightScratch->parentRotation);
+    gte_MulMatrix0(&lightScratch->parentRotation, &arg1->transform.lighting.parent->workm, &lightScratch->parentRotation);
 
-    gfxRotateSv(&block->mtx, &block->dir);
+    gfxRotateSv(&lightScratch->parentRotation, &lightScratch->result.direction);
 
-    dirMtx->m[arg0][0] = -block->dir.vx;
-    dirMtx->m[arg0][1] = -block->dir.vy;
-    dirMtx->m[arg0][2] = -block->dir.vz;
+    dirMtx->m[arg0][0] = -lightScratch->result.direction.vx;
+    dirMtx->m[arg0][1] = -lightScratch->result.direction.vy;
+    dirMtx->m[arg0][2] = -lightScratch->result.direction.vz;
 
-    block->scale = arg1->transform.lighting.attenuation;
-    gte_lddp(block->scale);
+    // Reuse the direction storage for the attenuated RGB column.
+    lightScratch->attenuation = arg1->transform.lighting.attenuation;
+    gte_lddp(lightScratch->attenuation);
     gte_ldsv(&arg1->color);
     gte_gpf12();
-    gte_stsv(&block->dir);
+    gte_stsv(&lightScratch->result.color);
 
-    colorMtx->m[0][arg0] = block->dir.vx;
-    colorMtx->m[1][arg0] = block->dir.vy;
-    colorMtx->m[2][arg0] = block->dir.vz;
+    colorMtx->m[0][arg0] = lightScratch->result.color.r;
+    colorMtx->m[1][arg0] = lightScratch->result.color.g;
+    colorMtx->m[2][arg0] = lightScratch->result.color.b;
 
-    SCRATCH_STACK_RELEASE_BLOCK(GpViewLightScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(_WorldCoordParentFrameLightMatrixScratch);
 }
 
 /// Selects the nearest point or cone light to world position `arg0`, using
