@@ -1505,7 +1505,7 @@ Task* D_actor_260500_80159E50;
 
 s16 gFootstepWalkMode;
 
-static void func_actor_260500_80149E80(void);
+void        func_actor_260500_80149E80(void);
 static void func_actor_260500_80149EBC(void);
 static void func_actor_260500_80149FB0(Enemy* enemy, Task* task);
 
@@ -1524,7 +1524,7 @@ void func_actor_260500_80149E38(s32 arg0)
 
 /// Sends message 0x7D4 (placement) with the record at
 /// `D_actor_260500_8014CAF4.data.actorPlacements[0]` to the task in lookup slot 4, when there is one.
-static void func_actor_260500_80149E80(void)
+void func_actor_260500_80149E80(void)
 {
     Task* slot;
 

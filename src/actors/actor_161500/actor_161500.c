@@ -1385,14 +1385,14 @@ AnimationSet* gStrideWalkAnimParams[12] = {
     &_gActor161500Animation0D544,
 };
 
-static void func_actor_161500_80131E38(void);
-static void func_actor_161500_80131FBC(void);
+void        func_actor_161500_80131E38(void);
+void        func_actor_161500_80131FBC(void);
 static void func_actor_161500_80132038(void);
 static void func_actor_161500_80132110(void);
-static void func_actor_161500_801322A0(void);
-static void func_actor_161500_8013230C(void);
+void        func_actor_161500_801322A0(void);
+void        func_actor_161500_8013230C(void);
 
-static void func_actor_161500_80131E38(void)
+void func_actor_161500_80131E38(void)
 {
     if ((GameFlag_GetNibble(GAME_FLAG_SOLDIER_B_REMARK_STATE) != 1) && (GameFlag_GetNibble(GAME_FLAG_SOLDIER_B_REMARK_STATE) != 2) && (GameFlag_GetNibble(GAME_FLAG_ACTOR_160700_MEETING_PROGRESS) == 4)) {
         GameFlag_SetNibble(GAME_FLAG_ACTOR_160700_MEETING_PROGRESS, 5);
@@ -1442,7 +1442,7 @@ void func_actor_161500_80131F50(s32 arg0)
     Gp_ResetCap();
 }
 
-static void func_actor_161500_80131FBC(void)
+void func_actor_161500_80131FBC(void)
 {
     s32 temp_s0;
     s32 temp_v0;
@@ -1528,7 +1528,7 @@ void func_actor_161500_80132294(u8 arg0)
     D_80115768 = arg0;
 }
 
-static void func_actor_161500_801322A0(void)
+void func_actor_161500_801322A0(void)
 {
     s32 temp_v0;
 
@@ -1544,7 +1544,7 @@ static void func_actor_161500_801322A0(void)
     }
 }
 
-static void func_actor_161500_8013230C(void)
+void func_actor_161500_8013230C(void)
 {
     s32 temp_v0;
 

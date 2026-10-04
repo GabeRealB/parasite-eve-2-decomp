@@ -1481,11 +1481,11 @@ u8 D_actor_160700_801416C0[100] = {
     0,
 };
 
-static void func_actor_160700_80131E24(void);
-static void func_actor_160700_80131E70(void);
+void        func_actor_160700_80131E24(void);
+void        func_actor_160700_80131E70(void);
 static void func_actor_160700_80131F70(Enemy* enemy, Task* task);
 
-static void func_actor_160700_80131E24(void)
+void func_actor_160700_80131E24(void)
 {
     Task* slot;
 
@@ -1497,7 +1497,7 @@ static void func_actor_160700_80131E24(void)
     }
 }
 
-static void func_actor_160700_80131E70(void)
+void func_actor_160700_80131E70(void)
 {
     switch (GameFlag_GetNibble(GAME_FLAG_ACTOR_160700_MEETING_PROGRESS)) {
         case 0:

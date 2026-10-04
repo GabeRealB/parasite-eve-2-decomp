@@ -64,13 +64,13 @@ extern s8 D_shelter_1f_heliport_80182CB0[4];
 // Scalar symbol view preserves the original byte/halfword address formation.
 extern s8 D_shelter_1f_heliport_80182CB0_value __asm__("D_shelter_1f_heliport_80182CB0");
 
-extern void func_80131FBC(void);
+extern void func_actor_161500_80131FBC(void);
 extern void func_actor_161500_80132038(void);
 extern void func_actor_161500_80132110(void);
-extern void func_8013230C(void);
-extern void func_801322A0(void);
-extern void func_80149E38(void);
-extern void func_80149E80(void);
+extern void func_actor_161500_8013230C(void);
+extern void func_actor_161500_801322A0(void);
+extern void func_actor_260400_80149E38(void);
+extern void func_actor_260500_80149E80(void);
 extern void func_actor_260500_80149EBC(void);
 extern void func_actor_260400_80149FA4(void);
 
@@ -744,20 +744,20 @@ s32 func_shelter_1f_heliport_801804BC(Task* arg0, s32 arg1, RoomEventMsg* in, s3
                 func_actor_260500_80149EBC();
             }
             if (gGameSession->location.loc.variant == 2) {
-                func_80149E38();
+                func_actor_260400_80149E38();
             }
             break;
         case 2:
             func_actor_161500_80132038();
             break;
         case 3:
-            func_80131FBC();
+            func_actor_161500_80131FBC();
             break;
         case 4:
             func_actor_161500_80132110();
             break;
         case 5:
-            func_801322A0();
+            func_actor_161500_801322A0();
             break;
     }
     return 0;
@@ -770,13 +770,13 @@ static void func_shelter_1f_heliport_80180658(Task* arg0)
     arg0->msgTable = D_shelter_1f_heliport_801811A0;
     gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     if (gGameSession->location.loc.variant == 1) {
-        func_80149E80();
+        func_actor_260500_80149E80();
     }
     if (gGameSession->location.loc.variant == 2) {
         func_actor_260400_80149FA4();
     }
     if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) {
-        func_8013230C();
+        func_actor_161500_8013230C();
     }
     func_shelter_1f_heliport_801802AC(0);
     func_shelter_1f_heliport_801807C0();

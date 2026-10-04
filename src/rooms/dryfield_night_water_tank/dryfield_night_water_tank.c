@@ -66,7 +66,7 @@ extern TaskDesc D_dryfield_night_water_tank_8017EE28[];
 
 /// Absolute import: 0x8013224C has no name in main or gameplay, so the call is
 /// emitted against bare address, the way the other rooms' `func_8013...` are.
-extern void func_8013224C(void);
+extern void func_actor_146300_8013224C(void);
 
 /// Absolute import: the shared room script descriptor 0x8013788C, spawned by
 /// entry 0 in the handler below.
@@ -705,7 +705,7 @@ s32 func_dryfield_night_water_tank_8017D76C(Task* arg0, s32 arg1, RoomEventMsg* 
 /// Sub-ids 0xA and 0xB -- the two visits that reach this room -- both run the
 /// prop updater `func_dryfield_night_water_tank_8017D9DC` on its zero argument;
 /// 0xA additionally spawns the exit task from `8017E010`, and 0xB, the visit
-/// the room is announced into, hands over to `func_8013224C` instead. The state
+/// the room is announced into, hands over to `func_actor_146300_8013224C` instead. The state
 /// advances on every path.
 static void func_dryfield_night_water_tank_8017D870(Task* task)
 {
@@ -719,7 +719,7 @@ static void func_dryfield_night_water_tank_8017D870(Task* task)
         Task_SpawnFromTable(D_dryfield_night_water_tank_8017E010, 0, 0, 0);
     }
     if (gGameSession->location.loc.variant == 0xB) {
-        func_8013224C();
+        func_actor_146300_8013224C();
     }
     task->state = task->state + 1;
 }

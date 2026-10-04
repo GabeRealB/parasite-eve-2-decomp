@@ -137,7 +137,7 @@ extern _MistShootingGallerySpawn* D_mist_shooting_gallery_80186900[];
 /// Gameplay-side abort request. While it is 1 the bonus course tears itself
 /// down: the state machine remembers where it was in `resumePhase` / `resumeCaptionStep`
 /// and jumps to the state-9 shutdown banner.
-extern void   func_8014A908(void);
+extern void   func_actor_215100_8014A908(void);
 extern void   func_actor_215100_8014A9A0(void);
 extern void   func_8014B0D4(void);
 static void   func_mist_shooting_gallery_80184A80(Task* arg0);
@@ -3213,7 +3213,7 @@ static void func_mist_shooting_gallery_801842D0(Task* arg0)
             actor->pendingCollisionUpdates                      = 7;
             actor->collisionBodies[GAME_ACTOR_BODY_ROOT].flags |= WORLD_COLLISION_BODY_VIEW_TRIGGER_ENABLED;
             Gp_ReleaseStateF0Clear(arg0, 0);
-            func_8014A908();
+            func_actor_215100_8014A908();
             return;
         case 3:
             if (gGameSession->battleResetPending == 0) {

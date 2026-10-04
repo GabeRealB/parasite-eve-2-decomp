@@ -25,7 +25,7 @@ extern EvsCommand D_80136110[];
 extern EvsCommand D_80136308[];
 
 extern void func_actor_450900_801327A8(void);
-extern void func_80132834(void);
+extern void func_actor_450900_80132834(void);
 
 s32 func_shelter_b6_growth_room_8017D5E8(Task*, s32, s32, s32);
 s32 func_shelter_b6_growth_room_8017D5F0(Task*, s32, RoomEventMsg*, RoomEventMsg*);
@@ -80,7 +80,7 @@ s32 func_shelter_b6_growth_room_8017D6C8(Task* arg0, s32 arg1, RoomEventMsg* arg
         func_actor_450900_801327A8();
     }
     if (arg2->warp == 2) {
-        func_80132834();
+        func_actor_450900_80132834();
     }
     return 0;
 }

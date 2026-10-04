@@ -1343,7 +1343,7 @@ Task* gActorSelfTask;
 
 Task* gActorHelperTask;
 
-static void func_actor_146300_8013224C(void);
+void        func_actor_146300_8013224C(void);
 static void func_actor_146300_801324AC(Enemy* enemy, Task* task);
 
 void func_actor_146300_80131ECC(Task* task)
@@ -1452,7 +1452,7 @@ void func_actor_146300_80131ECC(Task* task)
     }
 }
 
-static void func_actor_146300_8013224C(void)
+void func_actor_146300_8013224C(void)
 {
     switch (GameFlag_GetNibble(GAME_FLAG_ITEM_119_HANDOVER_PROGRESS)) {
         case 2:

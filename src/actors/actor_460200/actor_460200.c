@@ -2148,9 +2148,9 @@ AnimationSet* D_actor_460200_8015153C[17] = {
     &_gActor460200Animation1F6B4,
 };
 
-static void func_actor_460200_80132210(void);
+void        func_actor_460200_80132210(void);
 static void func_actor_460200_801322B8(void);
-static void func_actor_460200_80132390(void);
+void        func_actor_460200_80132390(void);
 static void func_actor_460200_801336B4(Task* task);
 
 #include "../../shared/screen_negative_capture.inc.c"
@@ -2198,7 +2198,7 @@ void func_actor_460200_80132204(s8 arg0)
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = arg0;
 }
 
-static void func_actor_460200_80132210(void)
+void func_actor_460200_80132210(void)
 {
     Task* slot;
 
@@ -2238,7 +2238,7 @@ static void func_actor_460200_801322B8(void)
     }
 }
 
-static void func_actor_460200_80132390(void)
+void func_actor_460200_80132390(void)
 {
     switch (GameFlag_GetNibble(GAME_FLAG_SOLDIER_C_TALK_COUNT_B)) {
         case 0:

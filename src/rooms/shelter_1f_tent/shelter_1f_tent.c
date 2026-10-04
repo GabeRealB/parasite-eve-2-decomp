@@ -45,9 +45,9 @@
 #include "rooms/room_common.h"
 #include "../../shared/room_cutscene.h"
 
-extern void func_80132210(void);
+extern void func_actor_460200_80132210(void);
 extern void func_actor_460200_801322B8(void);
-extern void func_80132390(void);
+extern void func_actor_460200_80132390(void);
 
 extern UiObjectDesc D_800611E4;
 
@@ -162,7 +162,7 @@ static void func_shelter_1f_tent_8017F9F0(Task* task)
     task->msgTable = D_shelter_1f_tent_80181CDC;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     if (gGameSession->location.loc.variant == 1) {
-        func_80132210();
+        func_actor_460200_80132210();
     }
     if (GameFlag_GetNibble(GAME_FLAG_SHELTER_1F_TENT_ARRIVED) == 0) {
         GameFlag_SetNibble(GAME_FLAG_SHELTER_1F_TENT_ARRIVED, 1);
@@ -245,7 +245,7 @@ s32 func_shelter_1f_tent_8017FD54(Task* arg0, s32 arg1, RoomEventMsg* arg2, s32 
         func_actor_460200_801322B8();
     }
     if (arg2->warp == 2) {
-        func_80132390();
+        func_actor_460200_80132390();
     }
     return 0;
 }

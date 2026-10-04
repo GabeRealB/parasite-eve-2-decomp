@@ -689,7 +689,7 @@ s32 D_actor_450900_80136C98;
 Task* D_actor_450900_80136C9C;
 
 static void func_actor_450900_801327A8(void);
-static void func_actor_450900_80132834(void);
+void        func_actor_450900_80132834(void);
 
 /// State handler that runs the save-point capture. State 0 spawns the capture
 /// task `func_actor_450900_80132548` into `D_actor_450900_80136C9C`; state 1
@@ -1014,7 +1014,7 @@ static void func_actor_450900_801327A8(void)
 /// below -0x76C, spawns entry 4 of `D_actor_450900_80135E78`
 /// (`func_actor_450900_8013235C`); otherwise it starts capture slot 0xB with
 /// `Gp_StartCapSlot`.
-static void func_actor_450900_80132834(void)
+void func_actor_450900_80132834(void)
 {
     GfxCoord* coord;
 

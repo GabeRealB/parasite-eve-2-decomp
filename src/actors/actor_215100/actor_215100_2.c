@@ -1776,7 +1776,7 @@ s32 D_actor_215100_8015E670;
 RoomEventMsg D_actor_215100_8015E678;
 
 static void func_actor_215100_8014A398(void);
-static void func_actor_215100_8014A908(void);
+void        func_actor_215100_8014A908(void);
 static void func_actor_215100_8014A9A0(void);
 static s32  func_actor_215100_8014AA54(RoomEventMsg* arg0);
 static void func_actor_215100_8014AB6C(void);
@@ -1973,7 +1973,7 @@ void func_actor_215100_8014A7C4(Task* arg0)
     }
 }
 
-static void func_actor_215100_8014A908(void)
+void func_actor_215100_8014A908(void)
 {
     D_actor_215100_8014D038 = 0;
     if (D_actor_215100_8015E670 < 3) {

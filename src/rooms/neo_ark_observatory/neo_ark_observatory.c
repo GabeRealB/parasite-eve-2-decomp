@@ -94,7 +94,7 @@ extern EvsCommand D_8013FC58[];
 extern EvsCommand D_80140078[];
 
 extern void func_actor_450200_80132220(void);
-extern void func_801322F8(void);
+extern void func_actor_450200_801322F8(void);
 
 /// Index of the mirrored player's coordinate part each held-object reflection
 /// is parented to, by `Task::spawnArg1`.
@@ -1753,7 +1753,7 @@ static void func_neo_ark_observatory_8017FCE0(Task* arg0)
     arg0->msgTable = D_neo_ark_observatory_801811B8;
     gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     if ((gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) && (gGameSession->location.loc.variant == 1)) {
-        func_801322F8();
+        func_actor_450200_801322F8();
     } else {
         func_neo_ark_observatory_8017FA98(0);
     }

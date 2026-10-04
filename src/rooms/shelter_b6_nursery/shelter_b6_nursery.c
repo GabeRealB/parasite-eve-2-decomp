@@ -99,8 +99,8 @@ s32 rsin(s32);
 s32 rcos(s32);
 
 extern void func_actor_450800_80131E2C(void);
-extern void func_80132000(void);
-extern void func_80132028(void);
+extern void func_actor_450800_80132000(void);
+extern void func_actor_450800_80132028(void);
 
 extern UiObjectDesc D_800611E4;
 
@@ -905,7 +905,7 @@ s32 func_shelter_b6_nursery_8017FA54(Task* task, s32 msgId, s32 arg2, s32 arg3)
             D_shelter_b6_nursery_80187980.rec.skipScene = flag;
             Task_SpawnFromTable(gRoomCutsceneTaskDescs, 0, 0x19,
                                 &D_shelter_b6_nursery_80187980.rec);
-            func_80132028();
+            func_actor_450800_80132028();
             func_shelter_b6_nursery_80182D14(0, 0);
             return 0;
         }
@@ -993,7 +993,7 @@ s32 func_shelter_b6_nursery_8017FE3C(Task* task, s32 msgId, DirectionActionReque
         func_actor_450800_80131E2C();
     }
     if (msg->actionId == 2) {
-        func_80132000();
+        func_actor_450800_80132000();
     }
     if (msg->actionId == 3 && GameFlag_GetNibble(GAME_FLAG_B6_NURSERY_SCENE_COUNT) != 0) {
         func_800E8634(D_8013AF8C, 0, D_8013BA84);

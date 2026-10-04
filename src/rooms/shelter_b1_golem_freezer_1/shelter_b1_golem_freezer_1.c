@@ -45,8 +45,8 @@
 
 #define GOLEM_RAND() ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16)
 
-extern void func_80131E70(void);
-extern void func_80131E24(void);
+extern void func_actor_160700_80131E70(void);
+extern void func_actor_160700_80131E24(void);
 
 /// The room's message table, installed on the room task.
 extern TaskMessageEntry D_shelter_b1_golem_freezer_1_8017E6A8[];
@@ -369,17 +369,17 @@ s32 func_shelter_b1_golem_freezer_1_8017D61C(Task* task, s32 msgId, s32 arg2, s3
 }
 
 /// Message-table handler for message 0x13EF: when the message's `field_2` is 1
-/// and the session's place is 0x15, calls `func_80131E70`. Always answers 0.
+/// and the session's place is 0x15, calls `func_actor_160700_80131E70`. Always answers 0.
 s32 func_shelter_b1_golem_freezer_1_8017D624(Task* arg0, s32 arg1, RoomEventMsg* msg, s32 arg3)
 {
     if (msg->warp == 1 && gGameSession->location.loc.variant == 0x15) {
-        func_80131E70();
+        func_actor_160700_80131E70();
     }
     return 0;
 }
 
 /// The room task's first state: installs the room's message table, takes game
-/// pointer slot 7, calls `func_80131E24` while the session's place is 0x15,
+/// pointer slot 7, calls `func_actor_160700_80131E24` while the session's place is 0x15,
 /// runs `func_shelter_b1_golem_freezer_1_8017D744` and moves on to the next
 /// state.
 static void func_shelter_b1_golem_freezer_1_8017D66C(Task* arg0)
@@ -387,7 +387,7 @@ static void func_shelter_b1_golem_freezer_1_8017D66C(Task* arg0)
     arg0->msgTable = D_shelter_b1_golem_freezer_1_8017E6A8;
     gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     if (gGameSession->location.loc.variant == 0x15) {
-        func_80131E24();
+        func_actor_160700_80131E24();
     }
     func_shelter_b1_golem_freezer_1_8017D744(0);
     arg0->state = arg0->state + 1;

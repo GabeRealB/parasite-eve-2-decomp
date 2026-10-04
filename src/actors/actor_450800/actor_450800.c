@@ -2654,8 +2654,8 @@ u8 gPairWalkAnimParams[24] = {
 };
 
 static void        func_actor_450800_80131E2C(void);
-static void        func_actor_450800_80132000(void);
-static void        func_actor_450800_80132028(void);
+void               func_actor_450800_80132000(void);
+void               func_actor_450800_80132028(void);
 static inline void _actor450800TintModel(Task* spawned, Task* actor);
 static void        func_actor_450800_80132160(Enemy* enemy, Task* task);
 
@@ -2738,12 +2738,12 @@ void func_actor_450800_80131F98(s32 arg0)
     }
 }
 
-static void func_actor_450800_80132000(void)
+void func_actor_450800_80132000(void)
 {
     func_800E8614(D_actor_450800_8013A564, 0);
 }
 
-static void func_actor_450800_80132028(void)
+void func_actor_450800_80132028(void)
 {
     TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(0), 0x7D3, &D_actor_450800_801397A4, 0);
     TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(0), 0x7D4, &D_actor_450800_801398EC, 0);

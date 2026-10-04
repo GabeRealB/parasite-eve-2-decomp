@@ -979,11 +979,11 @@ Task* D_actor_260400_80154C74;
 
 s16 gScriptedWalkMode;
 
-static void func_actor_260400_80149E38(void);
+void        func_actor_260400_80149E38(void);
 static void func_actor_260400_80149FA4(void);
 static void func_actor_260400_80149FE0(Enemy* enemy, Task* task);
 
-static void func_actor_260400_80149E38(void)
+void func_actor_260400_80149E38(void)
 {
     switch (GameFlag_GetNibble(GAME_FLAG_HELIPORT_TALK_PROGRESS)) {
         case 0:
