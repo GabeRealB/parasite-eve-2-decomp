@@ -706,11 +706,11 @@ addiu  $v1,$v1,0x20
 ```
 
 Neither obvious spelling produces that. A struct pointer, `WorldCollisionBody* obj =
-&work->obj;` with `obj[i].flags`, scores 88.99% with `addiu $v1,$a1,0x480` and
+&work->body;` with `obj[i].flags`, scores 88.99% with `addiu $v1,$a1,0x480` and
 `lhu $v0,0x1E($v1)`: the loop pass takes the invariant part of the address
 (`work + 0x480`) as the giv base and leaves the member offset as the memory
 displacement. Inlining the same access so that no pointer local exists
-(`(&work->obj)[i].flags`) folds nothing either - the address tree is
+(`(&work->body)[i].flags`) folds nothing either - the address tree is
 `(work + 0x480) + i*0x20 + 0x1E`, the two constants are not reassociated across
 the index term, and the loop pass then also builds a spare `addiu $a1,$a1,0x20`
 biv: 68.36%, worse than the pointer form.
@@ -719,7 +719,7 @@ Computing the field's address *first* folds both constants at expand, because a
 pointer plus two constant offsets is one `addsi`:
 
 ```c
-u16* flags = &work->obj.flags;      /* (plus (reg work) (const 0x49E)) */
+u16* flags = &work->body.flags;     /* (plus (reg work) (const 0x49E)) */
 for (i = 0; i < 1; i++) {
     flags[i * (sizeof(WorldCollisionBody) / sizeof(*flags))] &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
 }
@@ -727,7 +727,7 @@ for (i = 0; i < 1; i++) {
 
 The giv base becomes that sum with a 0x20 step - 99.767%. The remainder was the
 entry block's load order rather than the loop: `extra = index->extra;` has to
-precede `work = (Actor323300Work*)index->work;`, the order the sibling handlers
+precede `work = (_Actor323300WomanWork*)index->work;`, the order the sibling handlers
 of the actor family use (`func_actor_511000_801327A0`), for 100.000% with
 all-zero penalties.
 
@@ -82644,7 +82644,7 @@ on the next statement. Assigning the pointer first makes GCC address every store
 off it and the displacement disappears from the encoding.
 
 The same overlay can carry more than one work block: `index->work` is the
-0x504 `Actor323300Work` in most of `actor_323300`, but the 0x6B0 block
+0x504 `_Actor323300WomanWork` in most of `actor_323300`, but the 0x6B0 block
 `func_actor_323300_80162BE4` allocates in this one. Check the `memCalloc`
 argument at the allocation site before assuming a function's `work` is the
 overlay's named work struct.
@@ -82698,13 +82698,13 @@ symbols differ:
 ```c
 void func_actor_323300_801626F4(Task* arg0)
 {
-    Actor323300Work* work                = (Actor323300Work*)arg0->work;
+    _Actor323300WomanWork* work                = (_Actor323300WomanWork*)arg0->work;
     void             (*states[2])(Task*) = {
         func_actor_323300_80162748,
         func_actor_323300_801627B4,
     };
 
-    states[(s16)work->field_4FE](arg0);
+    states[work->walk.motionStep](arg0);
 }
 ```
 
@@ -82724,7 +82724,7 @@ typedef struct {
     /* 0x000 */ AnimationContext  anim;
     /* 0x014 */ AnimationSlot slots[19];
     ...
-} Actor323300Work;
+} _Actor323300WomanWork;
 
 for (i = 1; i < 0x13; i++) {
     work->slots[i].rate = 8;
@@ -82760,11 +82760,11 @@ callee's first `lw` off `$a0` before trusting m2c's argument split; the sibling
 
 ## A load the target hoists above a store is a load written *before* that store
 
-**Problem.** `func_actor_323300_80161E78` seeds the display node at `work->obj`
+**Problem.** `func_actor_323300_80161E78` seeds the display node at `work->body`
 and derives one of its fields from the model:
 
 ```c
-obj->field_C  = &work->rec;                  /* sw v0, 0xc(s0) */
+obj->field_C  = &work->contact;                /* sw v0, 0xc(s0) */
 obj->field_18 = 0x30000;
 ...
 obj->flags    = 1;
@@ -126051,19 +126051,19 @@ Inputs: scratch `nonmatchings/func_actor_323300_8016359C-vacuum`, `base.c` (m2c)
 The shape is the starting preset every actor family writes:
 
 ```c
-if (msg->field_0 != work->field_440) {
-    work->field_440 = msg->field_0;
-    work->field_444 = -1;
-    animationInitContext(&work->anim, D_actor_323300_80174A70[work->field_440], ext, work->pad_30C, work->slots);
+if (msg->field_0 != work->bank) {
+    work->bank = msg->field_0;
+    work->animId = -1;
+    animationInitContext(&work->rig.anim, D_actor_323300_80174A70[work->bank], ext, work->rig.poses, work->rig.slots);
 }
 ```
 
 The target loads `msg->field_0` once into `$v1` and uses that register three
-times - the compare, the store to `field_440` and the `sll $v1,$v1,2` of the
+times - the compare, the store to `bank` and the `sll $v1,$v1,2` of the
 table index. `work` and `msg` are both pointers-to-struct, so a store through
 either may alias the other, and the CSE entry for `msg->field_0` is killed by
 any store that precedes the next read of it. Writing the two stores in the
-order m2c infers from the assembly (`field_444 = -1` first) puts a store
+order m2c infers from the assembly (`animId = -1` first) puts a store
 between the compare and the store's own right-hand side, so that read is a
 second `lw 0(s2)`:
 
@@ -126076,9 +126076,9 @@ lw    v1,0(s2)          ; the store's RHS, re-loaded
 sw    v1,0x440(s1)
 ```
 
-Storing `field_440` first - before any store can intervene - keeps the RHS
+Storing `bank` first - before any store can intervene - keeps the RHS
 read tied to the register already holding the value, and the later index read
-of `work->field_440` is then store-to-load forwarded from it. 92.377% ->
+of `work->bank` is then store-to-load forwarded from it. 92.377% ->
 94.579% (`reorder` 1 -> 0, `regs` 4 -> 1), and the emitted store order came
 out `sw -1,0x444` first anyway: sched reorders the two independent stores, so
 the source order of the stores is free to be the one CSE wants and still match.
@@ -126155,7 +126155,7 @@ What the source wrote is a division by a power of two, which GCC folds at the
 tree level (exact, so no `flag_unsafe_math_optimizations` needed):
 
 ```c
-coord->coord.t[1] = work->field_584 - work->field_584 * 0.8 * blend / 4096.0;
+coord->coord.t[1] = work->partBasePos[4].vy - work->partBasePos[4].vy * 0.8 * blend / 4096.0;
 ```
 
 Three `__muldf3` calls in a row with the constant applied last do not mean the
@@ -126179,7 +126179,7 @@ Inputs: scratch `nonmatchings/func_actor_323300_80162DF0-vacuum`, `base_4.c`
 
 ## A coordinate used on both sides of a call wants one local element pointer (func_actor_323300_80162DF0, 2026-09-17)
 
-Three uses of `extra->coords[k]` in one block - the copy `shadow[i] = ...`, the
+Three uses of `extra->coords[k]` in one block - the copy `unscaledParts[i] = ...`, the
 `ScaleMatrix(&...->coord, ...)` and a `coord.t[1]` store on the far side of that
 same call - do not compile the way the target does when each use spells the whole
 chain. CSE folds the store to `base + 0x10C` and the ScaleMatrix argument to
@@ -126189,11 +126189,11 @@ dies at the call, and every later use re-derives it from a fresh
 
 ```c
 coord           = &((TmdObject*)arg0->extra)->coords[4];   /* addiu s4,v0,0x140 */
-work->shadow[1] = *coord;                                   /* move v1,s4; 5x16B loop */
-coord->parent      = &work->shadow[0];                         /* sw v0,0x4C(s4)       */
+work->unscaledParts[1] = *coord;                            /* move v1,s4; 5x16B loop */
+coord->parent      = &work->unscaledParts[0];                  /* sw v0,0x4C(s4)       */
 vec.vx = 0x1000; vec.vy = 0x333; vec.vz = 0x1000;
 ScaleMatrix(&coord->coord, &vec);                           /* addiu a0,s4,4        */
-coord->coord.t[1] = work->field_584 - work->field_584 * 0.8 * blend / 4096.0;
+coord->coord.t[1] = work->partBasePos[4].vy - work->partBasePos[4].vy * 0.8 * blend / 4096.0;
 ```
 
 The local makes the element address one value used four ways: the copy cursor
@@ -126207,7 +126207,7 @@ The per-block `lw extra->coords` reloads are real and stay: CSE drops the
 `(mem (reg s7) 0x2C)` entry at each call, so a fresh `extra->coords[k]` per block
 is what the source does, and the reload is not a sign that the local is wrong.
 
-Pair the fields by offset before placing the math: `field_584` / `field_594` sit
+Pair the fields by offset before placing the math: `partBasePos[4].vy` / `partBasePos[5].vy` sit
 at `0x540 + 4 * 0x10 + 4` and `+ 5 * 0x10 + 4`, so they belong to parts 4 and 5,
 and each `t[1]` store follows the *second* and *third* ScaleMatrix. Putting the
 first store after the first ScaleMatrix scored 90.739% with the two middle blocks
@@ -144887,11 +144887,11 @@ shortened the constant's range by one insn and was also needed.
 
 A loop saving each part's translation stores the first member off the array
 giv (`sw v1,0x540(a1)`) and the other two off a pointer computed in the body
-(`addiu a0,a1,0x540; sw 4(a0); sw 8(a0)`). Writing `work->partPos[part].vy` for
+(`addiu a0,a1,0x540; sw 4(a0); sw 8(a0)`). Writing `work->partBasePos[part].vy` for
 all three folds every offset into the giv (`0x544(a0)`), and a `VECTOR* p`
 local turns `p` itself into the giv; the seed reproduced the mix by spelling
-`vx` as `[part]` and `vy`/`vz` as `(partPos + part)->`. Psy-Q's
-`setVector(&work->partPos[part], c->coord.t[0], c->coord.t[1], c->coord.t[2])`
+`vx` as `[part]` and `vy`/`vz` as `(partBasePos + part)->`. Psy-Q's
+`setVector(&work->partBasePos[part], c->coord.t[0], c->coord.t[1], c->coord.t[2])`
 gives exactly that shape, with `c = &tmd->coords[part]` as the source.
 
 The same function's `SCHED_BARRIER` before `src->verts` was the shared-`from`

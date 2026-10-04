@@ -44,66 +44,90 @@
 #include "../../shared/actor_messages.h"
 #include "../../shared/model_morph.h"
 
-/// Work block of the overlay's walker, allocated zeroed by its spawn routine
-/// and kept at `Task::work`: a nineteen-part rig and the model state, the
-/// display node `obj` the exit callback hands back to `Gp_UnlinkObj`, the
-/// one-entry contact table `rec` that `obj.context.contacts` addresses, the child
-/// task `field_4B8` spawned from `D_actor_323300_8017255C`, and the walk,
-/// which this actor runs without integrating a velocity or checking arrival.
-/// `field_500` enables the cue the per-frame runner posts, and `field_502` is
-/// the frames until the model buffers are freed, -1 disabling the countdown.
-typedef struct Actor323300Work {
-    ActorAnimRig19        rig;
-    ActorModelState       model;
-    WorldCollisionBody    obj;
-    WorldCollisionContact rec;
-    Task*                 field_4B8;
-    ActorWalkState        walk;
-    s16                   field_500;
-    s16                   field_502;
-} Actor323300Work;
-STATIC_ASSERT_SIZEOF(Actor323300Work, 0x504);
-
-/// The larger of the two work blocks this overlay parks in `Task::work`: the
-/// `memCalloc(0x6B0)` that `func_actor_323300_80162BE4` allocates, as opposed
-/// to the 0x504 `Actor323300Work` `func_actor_323300_80161E78` allocates. The
-/// two are different allocations of different sizes, but both carry a
-/// light/colour `MATRIX` pair republished onto `TmdObject::lightMtx` /
-/// `field_20` by the display path -- here at 0x670/0x690, so the trailing
-/// `color` ends flush with the allocation.
+/// Work block of the woman of the Dryfield toilet event, the package's first
+/// actor.
 ///
-/// The prefix is the same animation shape the 0x504 block opens with: the
-/// `AnimationContext` at 0, the `AnimationSlot` array inline at 0x14 and the
-/// pose buffer at 0x30C -- the three addresses
-/// `func_actor_323300_80163718` hands `animationInitContext`. Its animation state
-/// sits in the four `s32` words past that buffer rather than in the byte fields
-/// `Actor323300Work` uses: `field_440` is the preset bank index, `field_444`
-/// the preset animation id (`func_actor_323300_80162BE4` seeds both to -1) and
-/// `field_43C` the once-only flag its tick path sets. `field_44C` is the 0x3000
-/// that same initialiser stores.
-typedef struct Actor323300MtxWork {
-    /* 0x000 */ ActorAnimRig19 rig;
-    /* 0x43C */ s32            field_43C; // set once the slots have been started
-    /* 0x440 */ s32            field_440; // animation bank index the slots were seeded with
-    /* 0x444 */ s32            field_444; // animation id the slots were seeded with
-    /* 0x448 */ byte           pad_448[0x4];
-    /* 0x44C */ s32            field_44C;
-    /* 0x450 */ GfxCoord       shadow[3];   // unsquashed copies of parts 3..5, re-parented onto 4..6
-    /* 0x540 */ VECTOR         partPos[19]; // original part translations, before the squash
-    /* 0x670 */ GfxMatrix      light;
-    /* 0x690 */ GfxMatrix      color;
-} Actor323300MtxWork;
-STATIC_ASSERT_SIZEOF(Actor323300MtxWork, 0x6B0);
+/// The task's spawn state allocates it zeroed and keeps it at `Task::work`
+/// for the task's life. It opens with the two members the nineteen-part play
+/// handler runs on (`ActorMotion19PlayWork`); the model object borrows
+/// `model.light` and `model.color` for as long as the block lives. The
+/// collision sphere and its contact table come next, ahead of the walk state,
+/// so the block is not laid out as a library walker's and the walk is the
+/// package's own: an actor command latches a placement and the actor turns in
+/// place to the placement's yaw, without moving. `walk.target`,
+/// `walk.lastDistance` and `model.nextAnimId` are written or left zero and
+/// never read.
+///
+/// The tail is the task of the Lesser Stranger an actor command spawns over
+/// this actor, the switch of the sound the clip loops, and the delayed free
+/// of the model's buffers once the model has been hidden.
+typedef struct {
+    ActorAnimRig19        rig;              // Playback storage of the nineteen-part body model; slots 1 to 18 are driven
+    ActorModelState       model;            // Clip and bank the rig plays, and the matrices the model is lit with
+    WorldCollisionBody    body;             // Sphere of radius 0x100 at part 1 on list 2, key category 3; its pair tests follow the model's visibility
+    WorldCollisionContact contact;          // One-entry contact table of `body`, emptied each tick the model is drawn; nothing reads what it records
+    Task*                 strangerTask;     // Task of the package's Lesser Stranger, spawned and killed by actor commands; NULL before the spawn or when it failed, and not cleared by the kill
+    ActorWalkState        walk;             // Turn in progress: `targetRot.vy` is the yaw it steers to, `motionStep` 0 starts the turn clip and 1 turns; `velocity` is only zeroed
+    s16                   loopSoundEnabled; // The tick restarts the room's sound each time the clip loops and updates it in between (1 from spawn, 0 once the stranger has been spawned or killed)
+    s16                   freeCountdown;    // Ticks left before the model's buffers are freed, which the tick finding 0 does (-1 no free pending)
+} _Actor323300WomanWork;
+STATIC_ASSERT_SIZEOF(_Actor323300WomanWork, 0x504);
+
+/// `_Actor323300StrangerWork::transformCountdown`: the stages of the Lesser
+/// Stranger's transformation, which the countdown passes through from
+/// `_START` down to 0.
+enum {
+    ACTOR_323300_TRANSFORM_START = 0x3000, // Seeded by the spawn; down to `_MORPH` the model holds the full morph
+    ACTOR_323300_TRANSFORM_MORPH = 0x2000, // Below this the morph ramp is the countdown less `_TURN`, falling to the rest shape
+    ACTOR_323300_TRANSFORM_TURN  = 0x1000, // Below this the model is at rest and the body turn grows by a quarter of what has elapsed
+    ACTOR_323300_TRANSFORM_STEP  = 0x40,   // Taken off each tick
+};
+
+/// Work block of the Lesser Stranger the woman turns into, the package's
+/// second actor.
+///
+/// The task's spawn state allocates it zeroed and keeps it at `Task::work`
+/// for the task's life. It opens with the nineteen-part rig and what the rig
+/// plays, the values an `ActorModelState` holds but kept as words and in
+/// another order, so the package carries a play handler of its own for it.
+/// The model object borrows `light` and `color` for as long as the block
+/// lives.
+///
+/// The actor exists to transform: its model starts fully morphed by the
+/// Dryfield toilet's `ModelMorph` record and `transformCountdown` carries it
+/// to its rest shape and then through a turn of the body. Throughout, parts 3
+/// and 4 are drawn flattened to a fifth of their height. So that the scale
+/// does not reach the parts below them, each tick copies parts 3 to 5 into
+/// `unscaledParts` before scaling them and parents parts 4 to 6 to the
+/// copies; the exit callback puts those parts back under the model's own
+/// coordinates before the block is freed.
+///
+/// Nothing in the package reads or writes `unknown_448`; the block is
+/// allocated at its full size, so the bytes are its own, but nothing shows
+/// what they hold.
+typedef struct {
+    ActorAnimRig19 rig;                // Playback storage of the nineteen-part body model; slots 1 to 18 are driven
+    s32            ticking;            // Set once a clip has been applied, never cleared: the slots are ticked each frame and a request may blend from their pose
+    s32            bank;               // Index, in the package's animation bank table, of the bank the rig is bound to (`ACTOR_MODEL_STATE_NONE` before the first)
+    s32            animId;             // Clip the slots were last seeded with, within `bank` (`ACTOR_MODEL_STATE_NONE` before the first)
+    byte           unknown_448[0x4];   // Never accessed
+    s32            transformCountdown; // Stage of the transformation, from `ACTOR_323300_TRANSFORM_START` down to 0 by `_STEP` a tick
+    GfxCoord       unscaledParts[3];   // This tick's parts 3, 4 and 5 as they were before the scale; parts 4, 5 and 6 are parented to them in that order
+    VECTOR         partBasePos[19];    // Translation of each part's coordinate as the spawn left it, entries 1 to 18; the tick shortens parts 4 and 5 from their `vy` and reads no other
+    GfxMatrix      light;              // Light-direction matrix lent to the model object, identity
+    GfxMatrix      color;              // Light-colour matrix lent to the model object, identity
+} _Actor323300StrangerWork;
+STATIC_ASSERT_SIZEOF(_Actor323300StrangerWork, 0x6B0);
 
 extern TaskMessageEntry D_actor_323300_80172574[];
 
 /// Animation source table `func_actor_323300_80162360` and
-/// `actorMotionPlayAnim19` index by the 0x504 block's bank byte.
+/// `actorMotionPlayAnim19` index by `_Actor323300WomanWork::model.bank`.
 extern AnimationSet*  D_actor_323300_80172548[4];
 extern AnimationSet** gActorMotionAnimBanks19[1];
 
 /// Descriptor table the 0x7DB handler spawns its child from; index 1 is the
-/// task parked in `Actor323300Work::field_4B8`.
+/// task kept in `_Actor323300WomanWork::strangerTask`.
 extern TaskDesc D_actor_323300_8017255C[];
 
 /// Placement `func_actor_323300_80161E78` hands `actorMsgPlaceEuler`.
@@ -115,17 +139,14 @@ extern AnimationPlayRequest D_actor_323300_801725B4;
 extern AnimationPlayRequest D_actor_323300_801725C8;
 extern AnimationPlayRequest D_actor_323300_801725DC;
 
-/// Animation source table `func_actor_323300_80163718` indexes by the 0x6B0
-/// block's bank index, one `void*` per bank. `func_actor_323300_80162BE4`
+/// Animation source table `func_actor_323300_80163718` indexes by
+/// `_Actor323300StrangerWork::bank`. `func_actor_323300_80162BE4`
 /// applies the preset `D_actor_323300_80174A74` through it and places the
 /// actor at `D_actor_323300_80174AB0`.
 extern AnimationSet*        D_actor_323300_80174A60[4];
 extern AnimationSet**       D_actor_323300_80174A70[1];
 extern AnimationPlayRequest D_actor_323300_80174A74;
 extern ActorTransform       D_actor_323300_80174AB0;
-
-/// Vertex-morph source `func_actor_323300_80162DF0` re-blends every frame off
-/// the 0x6B0 block's squash ramp. Absolute, so it lives outside the overlay.
 
 /// Psy-Q `RotMatrixY` (it sits right after `RotMatrixX`).
 
@@ -145,7 +166,7 @@ static s32  func_actor_323300_8016369C(Task* arg0, s32 arg1, ActorTransform* tra
 static s32  func_actor_323300_80163718(Task* arg0, s32 arg1, AnimationPlayRequest* arg2, s32 arg3);
 
 /// State table `func_actor_323300_80162630` copies onto the stack and indexes
-/// by `Task::state`: spawn, per-frame runner and exit of the 0x504 block.
+/// by `Task::state`: spawn, per-frame runner and exit of the woman.
 static const TaskFuncTable3 D_actor_323300_80161E24 = { {
     func_actor_323300_80161E78,
     func_actor_323300_80161FE8,
@@ -418,40 +439,40 @@ static void func_actor_323300_80162BE4(Task* arg0);
 static void func_actor_323300_80162DF0(Task* arg0);
 static void func_actor_323300_80163188(GfxCoord* coord, s16 angle);
 
-/// Allocates the 0x504 `Actor323300Work` this actor's whole lifetime runs on,
-/// seeds the `WorldCollisionContact` collision table and the display node at +0x480, then
-/// binds the three message handlers and the animation presets the state
-/// functions drive. Bails out through `enemyTaskExit` when the room flag
-/// 0x60 is already set (the actor already spawned) or the allocation fails.
+/// Allocates the `_Actor323300WomanWork` this actor's whole lifetime runs on,
+/// links `body` with its one-entry contact table, then binds the message
+/// handlers and the animation presets the state functions drive. Bails out
+/// through `enemyTaskExit` when the room flag 0x60 is already set (the actor
+/// already spawned) or the allocation fails.
 static void func_actor_323300_80161E78(Task* arg0)
 {
-    Actor323300Work*    work;
-    TmdObject*          extra;
-    WorldCollisionBody* obj;
+    _Actor323300WomanWork* work;
+    TmdObject*             extra;
+    WorldCollisionBody*    body;
 
-    if (GameFlag_GetNibble(GAME_FLAG_TOILET_EVENT_SEEN) != 0 || (work = memCalloc(0x504, 0)) == NULL) {
+    if (GameFlag_GetNibble(GAME_FLAG_TOILET_EVENT_SEEN) != 0 || (work = memCalloc(sizeof(_Actor323300WomanWork), 0)) == NULL) {
         enemyTaskExit(arg0);
         return;
     }
-    arg0->work         = work;
-    work->model.animId = ACTOR_MODEL_STATE_NONE;
-    work->model.bank   = ACTOR_MODEL_STATE_NONE;
-    work->field_500    = 1;
-    work->field_502    = -1;
+    arg0->work             = work;
+    work->model.animId     = ACTOR_MODEL_STATE_NONE;
+    work->model.bank       = ACTOR_MODEL_STATE_NONE;
+    work->loopSoundEnabled = 1;
+    work->freeCountdown    = -1;
     func_actor_323300_801626D0(arg0);
-    extra                 = arg0->extra.tmd;
-    obj                   = &work->obj;
-    obj->coord            = extra->coords + 1;
-    obj->context.contacts = &work->rec;
-    obj->key              = 0x30000;
-    obj->pos.vx           = 0;
-    obj->pos.vy           = 0;
-    obj->pos.vz           = 0;
-    obj->radius           = 0x100;
-    obj->flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(2, obj);
-    obj->flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-    Gp_InitRec18Table(obj->context.contacts, 1, 0);
+    extra                  = arg0->extra.tmd;
+    body                   = &work->body;
+    body->coord            = extra->coords + 1;
+    body->context.contacts = &work->contact;
+    body->key              = 0x30000;
+    body->pos.vx           = 0;
+    body->pos.vy           = 0;
+    body->pos.vz           = 0;
+    body->radius           = 0x100;
+    body->flags            = WORLD_COLLISION_BODY_SPHERE;
+    Gp_LinkObj(2, body);
+    body->flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+    Gp_InitRec18Table(body->context.contacts, 1, 0);
     arg0->msgTable = D_actor_323300_80172574;
     func_actor_323300_80162208(arg0, ACTOR_MESSAGE_SET_MODEL_DRAW, 0, 0);
     actorMsgPlaceEuler(arg0, 0x7D3, &D_actor_323300_8017259C, 0);
@@ -461,20 +482,21 @@ static void func_actor_323300_80161E78(Task* arg0)
     arg0->state       += 1;
 }
 
-/// Per-frame runner for the `Actor323300Work` block: dispatches on
-/// `walk.motion` through the two-entry handler table it builds on the stack,
-/// walks the 18 animation slots and, while `field_500` is set, posts a sound
-/// cue. Slot 1's `ANIMATION_SLOT_FOLLOWED_JUMP` retriggers Type6; otherwise a
-/// ready view gets TypeA. The pan/depth pair `location.loc.view` picks between
-/// is built twice so the two calls cross-jump into a shared `jal`. Then, unless
+/// Per-frame runner of the woman: dispatches on `walk.motion` through the
+/// two-entry handler table it builds on the stack, ticks the 18 animation
+/// slots and, while `loopSoundEnabled` is set, posts the room's sound. Slot
+/// 1's `ANIMATION_SLOT_FOLLOWED_JUMP` retriggers Type6; otherwise a ready view
+/// gets TypeA. The pan/depth pair `location.loc.view` picks between is built
+/// twice so the two calls cross-jump into a shared `jal`. Then, unless
 /// `TmdObject::flags` says the model is hidden, draws the ground shadow under
-/// coordinate 1, refreshes that coordinate's matrix and colour, and ticks the
-/// `field_502` countdown that frees the model's buffers when it reaches zero.
+/// coordinate 1, empties `contact`, refreshes that coordinate's matrix and
+/// colour, and ticks the `freeCountdown` that frees the model's buffers when
+/// it reaches zero.
 static void func_actor_323300_80161FE8(Task* arg0)
 {
-    TmdObject*       extra               = arg0->extra.tmd;
-    Actor323300Work* work                = (Actor323300Work*)arg0->work;
-    void             (*states[2])(Task*) = {
+    TmdObject*             extra               = arg0->extra.tmd;
+    _Actor323300WomanWork* work                = arg0->work;
+    void                   (*states[2])(Task*) = {
         func_actor_323300_801626EC,
         func_actor_323300_801626F4,
     };
@@ -486,7 +508,7 @@ static void func_actor_323300_80161FE8(Task* arg0)
         for (i = 1; i < 0x13; i++) {
             animationTickSlot(&work->rig.anim, i);
         }
-        if (work->field_500 != 0) {
+        if (work->loopSoundEnabled != 0) {
             if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_FOLLOWED_JUMP) {
                 if (gGameSession->location.loc.view == 2) {
                     SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_TOILET, 6), 0, 0x28);
@@ -506,29 +528,28 @@ static void func_actor_323300_80161FE8(Task* arg0)
         if (func_800EA1A8(MATRIX_TRANS(&arg0->extra.tmd->coords[1].workm), (VECTOR3*)&vec) != 0) {
             Gp_DrawEffGroundQuad((VECTOR3*)&vec, 0x200, gRoomEffectState->groundShadowShade);
         }
-        Gp_ClearRec18Occupied(&work->rec);
+        Gp_ClearRec18Occupied(&work->contact);
         arg0->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(&arg0->extra.tmd->coords[1]);
         func_800D7A9C(extra, (VECTOR*)arg0->extra.tmd->coords[1].workm.t, 0, 3);
     }
-    if (work->field_502 >= 0) {
-        if (work->field_502 == 0) {
+    if (work->freeCountdown >= 0) {
+        if (work->freeCountdown == 0) {
             Tmd_FreeBuffers(extra);
         }
-        work->field_502--;
+        work->freeCountdown--;
     }
 }
 
 /// Message-0x7D5 handler: the four-way visibility/mode switch on the message's
-/// mode word, plus the collision toggles the 0x504 work block's own `WorldCollisionBody`
-/// needs.
+/// mode word, plus the pair-test toggles `_Actor323300WomanWork::body` needs.
 ///
 /// Mode 0 hides the model -- `TmdObject::flags` bit 0x80, the bit
 /// `func_actor_323300_80161FE8` tests before drawing the ground shadow -- and
 /// clears `TMD_OBJECT_SKIP_AUTO_BUFFER` without allocating. Mode 1 shows it,
 /// puts the node back in the pair walk, allocates the buffers and clears
-/// `TMD_OBJECT_SKIP_AUTO_BUFFER`. Mode 2 hides it, arms the `field_502`
-/// countdown the per-frame runner frees the buffers with, and sets
+/// `TMD_OBJECT_SKIP_AUTO_BUFFER`. Mode 2 hides it, arms the `freeCountdown`
+/// the the per-frame runner frees the buffers with, and sets
 /// `TMD_OBJECT_SKIP_AUTO_BUFFER` so the missing-buffer sweep does not refill
 /// them. Mode 3 shows it and sets `TMD_OBJECT_SKIP_AUTO_BUFFER`. The countdown
 /// itself does not test that bit. Anything else returns 1 and leaves the
@@ -540,20 +561,20 @@ static void func_actor_323300_80161FE8(Task* arg0)
 /// takes the node in and out of body-pair tests without unlinking it.
 s32 func_actor_323300_80162208(Task* arg0, s32 arg1, s32 mode, s32 arg3)
 {
-    Actor323300Work* work;
-    TmdObject*       extra;
-    u16*             flags;
-    s32              i;
-    s32              ret;
+    _Actor323300WomanWork* work;
+    TmdObject*             extra;
+    u16*                   flags;
+    s32                    i;
+    s32                    ret;
 
     extra = arg0->extra.tmd;
-    work  = (Actor323300Work*)arg0->work;
+    work  = arg0->work;
     ret   = 0;
 
     switch (mode) {
         case 0:
             extra->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            flags         = &work->obj.flags;
+            flags         = &work->body.flags;
             for (i = 0; i < 1; i++) {
                 flags[i * (sizeof(WorldCollisionBody) / sizeof(*flags))] &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             }
@@ -561,7 +582,7 @@ s32 func_actor_323300_80162208(Task* arg0, s32 arg1, s32 mode, s32 arg3)
             break;
         case 1:
             extra->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            flags         = &work->obj.flags;
+            flags         = &work->body.flags;
             for (i = 0; i < 1; i++) {
                 flags[i * (sizeof(WorldCollisionBody) / sizeof(*flags))] |= WORLD_COLLISION_BODY_PAIR_ENABLED;
             }
@@ -570,16 +591,16 @@ s32 func_actor_323300_80162208(Task* arg0, s32 arg1, s32 mode, s32 arg3)
             break;
         case 2:
             extra->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            flags         = &work->obj.flags;
+            flags         = &work->body.flags;
             for (i = 0; i < 1; i++) {
                 flags[i * (sizeof(WorldCollisionBody) / sizeof(*flags))] &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             }
-            work->field_502 = 2;
-            extra->flags   |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+            work->freeCountdown = 2;
+            extra->flags       |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 3:
             extra->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            flags         = &work->obj.flags;
+            flags         = &work->body.flags;
             for (i = 0; i < 1; i++) {
                 flags[i * (sizeof(WorldCollisionBody) / sizeof(*flags))] |= WORLD_COLLISION_BODY_PAIR_ENABLED;
             }
@@ -596,41 +617,42 @@ s32 func_actor_323300_80162208(Task* arg0, s32 arg1, s32 mode, s32 arg3)
 /// Message 0x7DB handler, listed in `D_actor_323300_80172574` after the 0x7D3 /
 /// 0x7D4 / 0x7D5 ones. The payload halfword selects one of five actions: 0
 /// shows the model through the 0x7D5 visibility switch, 10/11 spawn and kill
-/// the child at `field_4B8`, 12 latches a placement and starts preset
+/// the Lesser Stranger at `strangerTask`, 12 latches a placement and starts preset
 /// `D_actor_323300_801725C8` (inlining the 0x7D3 preset body of
 /// `actorMotionPlayAnim19`), 13 posts effect 0x600A2 on part 6.
 s32 func_actor_323300_80162360(Task* arg0, s32 arg1, ActorCommand* msg, ActorTransform* place)
 {
-    Actor323300Work*      w;
-    Actor323300Work*      work;
-    AnimationPlayRequest* preset;
-    TmdObject*            extra;
-    Task*                 spawned;
-    GfxCoord*             src;
-    GfxCoord*             dst;
-    SVECTOR               vec;
-    s32                   i;
+    _Actor323300WomanWork* w;
+    _Actor323300WomanWork* work;
+    AnimationPlayRequest*  preset;
+    TmdObject*             extra;
+    Task*                  spawned;
+    GfxCoord*              src;
+    GfxCoord*              dst;
+    SVECTOR                vec;
+    s32                    i;
 
-    w = (Actor323300Work*)arg0->work;
+    w = arg0->work;
     switch (msg->command) {
         case 0:
             func_actor_323300_80162208(arg0, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
             break;
         case 10:
-            spawned      = Task_SpawnFromTable(D_actor_323300_8017255C, 1, 0, 0);
-            w->field_4B8 = spawned;
+            spawned         = Task_SpawnFromTable(D_actor_323300_8017255C, 1, 0, 0);
+            w->strangerTask = spawned;
             if (spawned != NULL) {
+                // The stranger appears where the woman stands.
                 src        = arg0->extra.tmd->coords;
                 dst        = spawned->extra.tmd->coords;
                 dst->coord = src->coord;
             }
-            w->field_500 = 0;
+            w->loopSoundEnabled = 0;
             break;
         case 11:
-            if (w->field_4B8 != NULL) {
-                taskKill(w->field_4B8);
+            if (w->strangerTask != NULL) {
+                taskKill(w->strangerTask);
             }
-            w->field_500 = 0;
+            w->loopSoundEnabled = 0;
             SndEvt_EnqueueType7(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_TOILET, 6), 1);
             break;
         case 12:
@@ -645,7 +667,7 @@ s32 func_actor_323300_80162360(Task* arg0, s32 arg1, ActorCommand* msg, ActorTra
             w->model.nextAnimId  = 2;
 
             preset = &D_actor_323300_801725C8;
-            work   = (Actor323300Work*)arg0->work;
+            work   = arg0->work;
             extra  = arg0->extra.tmd;
             if (preset->source.index != work->model.bank) {
                 work->model.bank   = preset->source.index;
@@ -680,7 +702,7 @@ s32 func_actor_323300_80162360(Task* arg0, s32 arg1, ActorCommand* msg, ActorTra
     return 0;
 }
 
-/// Per-frame dispatcher of the 0x504-block actor: runs its spawn, tick or exit
+/// Per-frame dispatcher of the woman: runs its spawn, tick or exit
 /// state from `D_actor_323300_80161E24` by `Task::state`, skipping the frame
 /// while the global freeze byte is set.
 void func_actor_323300_80162630(Task* task)
@@ -695,17 +717,17 @@ void func_actor_323300_80162630(Task* task)
 
 static void func_actor_323300_8016269C(Task* arg0)
 {
-    Gp_UnlinkObj(&((Actor323300Work*)arg0->work)->obj);
+    Gp_UnlinkObj(&((_Actor323300WomanWork*)arg0->work)->body);
     enemyTaskExit(arg0);
 }
 
 static void func_actor_323300_801626D0(Task* arg0)
 {
-    TmdObject*       ext;
-    Actor323300Work* work;
+    TmdObject*             ext;
+    _Actor323300WomanWork* work;
 
     ext           = arg0->extra.tmd;
-    work          = (Actor323300Work*)arg0->work;
+    work          = arg0->work;
     ext->lightMtx = &work->model.light;
     ext->colorMtx = &work->model.color;
 }
@@ -720,8 +742,8 @@ static void func_actor_323300_801626EC(Task* arg0)
 /// two-entry table, the preset start and the turn-to-face step.
 static void func_actor_323300_801626F4(Task* arg0)
 {
-    Actor323300Work* work                = (Actor323300Work*)arg0->work;
-    void             (*states[2])(Task*) = {
+    _Actor323300WomanWork* work                = arg0->work;
+    void                   (*states[2])(Task*) = {
         func_actor_323300_80162748,
         func_actor_323300_801627B4,
     };
@@ -731,10 +753,10 @@ static void func_actor_323300_801626F4(Task* arg0)
 
 static void func_actor_323300_80162748(Task* arg0)
 {
-    Actor323300Work* work;
-    s32              i;
+    _Actor323300WomanWork* work;
+    s32                    i;
 
-    work = (Actor323300Work*)arg0->work;
+    work = arg0->work;
     actorMotionPlayAnim19(arg0, ACTOR_MESSAGE_PLAY_ANIMATION, &D_actor_323300_801725C8, 0);
     for (i = 1; i < 0x13; i++) {
         work->rig.slots[i].rate = 8;
@@ -756,16 +778,16 @@ static void func_actor_323300_80162748(Task* arg0)
 /// cleared so the next `Gp_UpdateCoord` recomputes it.
 static void func_actor_323300_801627B4(Task* arg0)
 {
-    Actor323300Work* work;
-    GfxMatrix*       words;
-    GfxCoord*        coord;
-    SVECTOR          vec;
-    s16              diff;
-    s32              vy;
-    s32              i;
+    _Actor323300WomanWork* work;
+    GfxMatrix*             words;
+    GfxCoord*              coord;
+    SVECTOR                vec;
+    s16                    diff;
+    s32                    vy;
+    s32                    i;
 
     coord = arg0->extra.tmd->coords;
-    work  = (Actor323300Work*)arg0->work;
+    work  = arg0->work;
 
     gfxExtractSmallestEuler(&vec, &coord->coord);
     diff = (u16)work->walk.targetRot.vy - (u16)vec.vy;
@@ -804,29 +826,29 @@ static void func_actor_323300_801627B4(Task* arg0)
 
 static void func_actor_323300_80162BE4(Task* arg0)
 {
-    Actor323300MtxWork* work;
-    TmdObject*          extra;
-    TmdSource*          src;
-    GfxCoord*           coord;
-    ModelMorph*         morph;
-    SVECTOR*            dst;
-    SVECTOR*            nrm;
-    SVECTOR*            verts;
-    SVECTOR*            normals;
-    s32                 i;
-    s32                 part;
+    _Actor323300StrangerWork* work;
+    TmdObject*                extra;
+    TmdSource*                src;
+    GfxCoord*                 coord;
+    ModelMorph*               morph;
+    SVECTOR*                  dst;
+    SVECTOR*                  nrm;
+    SVECTOR*                  verts;
+    SVECTOR*                  normals;
+    s32                       i;
+    s32                       part;
 
     extra              = arg0->extra.tmd;
     arg0->exitCallback = func_actor_323300_801634B0;
-    work               = memCalloc(0x6B0, 0);
+    work               = memCalloc(sizeof(_Actor323300StrangerWork), 0);
     if (work == NULL) {
         taskKill(arg0);
         return;
     }
     arg0->work                    = work;
-    work->field_444               = -1;
-    work->field_440               = -1;
-    work->field_44C               = 0x3000;
+    work->animId                  = ACTOR_MODEL_STATE_NONE;
+    work->bank                    = ACTOR_MODEL_STATE_NONE;
+    work->transformCountdown      = ACTOR_323300_TRANSFORM_START;
     extra->clutRowOffset          = 2;
     extra->layerTexturePageOffset = 2;
     extra->layerClutRowOffset     = 4;
@@ -859,55 +881,55 @@ static void func_actor_323300_80162BE4(Task* arg0)
     }
 
     func_actor_323300_80163510(arg0);
+    // Record where the first clip's pose leaves each part, for the tick to shorten parts 4 and 5 from.
     for (part = 1; part < 0x13; part++) {
         coord = &arg0->extra.tmd->coords[part];
-        setVector(&work->partPos[part], coord->coord.t[0], coord->coord.t[1], coord->coord.t[2]);
+        setVector(&work->partBasePos[part], coord->coord.t[0], coord->coord.t[1], coord->coord.t[2]);
     }
     arg0->state += 1;
 }
 
-/// Per-frame squash driver for the 0x6B0 `Actor323300MtxWork` block, and the
-/// runner the model-display path calls once the block's animation has been
-/// started: it ticks the 18 slots like `func_actor_323300_80163718` does, folds
-/// `field_44C` -- the 0x3000 countdown `func_actor_323300_80162BE4` seeds, 0x40
-/// per frame -- into the 0..0xFFF ramp `modelMorphBlend` blends the
-/// model's vertices with, and republishes that ramp onto `TmdObject::shading.colorBlend`,
-/// the colour weight with 12 fractional bits used by the shading handlers. While the countdown is
-/// still above 0x1000 the turn angle handed to `func_actor_323300_8016359C` is
-/// `(0x1000 - field_44C) / 4`, i.e. the ramp read the other way round.
+/// Per-frame runner of the Lesser Stranger, which carries its transformation
+/// one step on: it ticks the 18 slots once a clip has been applied, turns
+/// `_Actor323300StrangerWork::transformCountdown` into the 0..0xFFF ramp
+/// `modelMorphBlend` deforms the model's vertices by, and stores that ramp in
+/// `TmdObject::shading.colorBlend`, the colour weight with 12 fractional bits
+/// used by the shading handlers. Once the countdown is below
+/// `ACTOR_323300_TRANSFORM_TURN` the turn angle handed to
+/// `func_actor_323300_8016359C` is a quarter of what has elapsed since.
 ///
-/// The three coordinate nodes at parts 3..5 are then flattened: each is copied
-/// off into `shadow[0..2]` first, then squashed in place through
-/// `ScaleMatrix` -- parts 3 and 4 to 0.2 on Y, part 5 to identity -- and the
-/// *copies* become the parents of parts 4, 5 and 6, so the squash does not
-/// compound down the part chain. The Y translation the squash removes from
-/// parts 4 and 5 is folded out of their own `coord.t[1]` by the same 0.8 and
-/// the same ramp. Part 6's shading is rebound to the third copy's translation
-/// before the countdown drops, so the whole ramp runs out exactly when it
-/// reaches zero.
+/// The three coordinate nodes at parts 3..5 are then scaled: each is copied
+/// off into `unscaledParts[0..2]` first, then scaled in place through
+/// `ScaleMatrix` -- parts 3 and 4 to 0.2 on Y, part 5 by one -- and the
+/// *copies* become the parents of parts 4, 5 and 6, so the scale does not
+/// compound down the part chain. Parts 4 and 5 are drawn in toward their
+/// parents on Y by the ramp: each keeps its recorded `partBasePos` height at
+/// a zero ramp and a fifth of it at a full one. Part 6's shading is rebound to
+/// its own translation before the countdown drops.
 static void func_actor_323300_80162DF0(Task* arg0)
 {
-    Actor323300MtxWork* work;
-    TmdObject*          extra;
-    GfxCoord*           coord;
-    VECTOR              vec;
-    s32                 blend;
-    s32                 i;
+    _Actor323300StrangerWork* work;
+    TmdObject*                extra;
+    GfxCoord*                 coord;
+    VECTOR                    vec;
+    s32                       blend;
+    s32                       i;
 
-    work  = (Actor323300MtxWork*)arg0->work;
+    work  = arg0->work;
     extra = arg0->extra.tmd;
 
-    if (work->field_43C != 0) {
+    if (work->ticking != 0) {
         for (i = 1; i < 0x13; i++) {
             animationTickSlot(&work->rig.anim, i);
         }
     }
 
-    blend = work->field_44C;
-    if (blend >= TMD_OBJECT_COLOR_BLEND_ONE * 2) {
+    // Morph ramp: full until the countdown reaches the morph stage, zero from the turn stage on.
+    blend = work->transformCountdown;
+    if (blend >= ACTOR_323300_TRANSFORM_MORPH) {
         blend = TMD_OBJECT_COLOR_BLEND_ONE - 1;
-    } else if (blend > TMD_OBJECT_COLOR_BLEND_ONE) {
-        blend -= TMD_OBJECT_COLOR_BLEND_ONE;
+    } else if (blend > ACTOR_323300_TRANSFORM_TURN) {
+        blend -= ACTOR_323300_TRANSFORM_TURN;
     } else {
         blend = 0;
     }
@@ -915,42 +937,44 @@ static void func_actor_323300_80162DF0(Task* arg0)
     modelMorphBlend(arg0, &D_dryfield_toilet_801865D0, blend);
     extra->shading.colorBlend = blend;
 
-    if (work->field_44C < 0x1000) {
-        func_actor_323300_8016359C(arg0, (s16)(((0x1000 - work->field_44C) << 14) >> 16));
+    if (work->transformCountdown < ACTOR_323300_TRANSFORM_TURN) {
+        func_actor_323300_8016359C(arg0, (s16)(((ACTOR_323300_TRANSFORM_TURN - work->transformCountdown) << 14) >> 16));
     }
 
-    coord           = &arg0->extra.tmd->coords[3];
-    work->shadow[0] = *coord;
-    vec.vx          = 0x1000;
-    vec.vy          = 0x333;
-    vec.vz          = 0x1000;
+    // Scale parts 3 to 5 in place, hanging each next part from an unscaled copy.
+
+    coord                  = &arg0->extra.tmd->coords[3];
+    work->unscaledParts[0] = *coord;
+    vec.vx                 = 0x1000;
+    vec.vy                 = 0x333;
+    vec.vz                 = 0x1000;
     ScaleMatrix(&coord->coord, &vec);
 
-    coord           = &arg0->extra.tmd->coords[4];
-    work->shadow[1] = *coord;
-    coord->parent   = &work->shadow[0];
-    vec.vx          = 0x1000;
-    vec.vy          = 0x333;
-    vec.vz          = 0x1000;
+    coord                  = &arg0->extra.tmd->coords[4];
+    work->unscaledParts[1] = *coord;
+    coord->parent          = &work->unscaledParts[0];
+    vec.vx                 = 0x1000;
+    vec.vy                 = 0x333;
+    vec.vz                 = 0x1000;
     ScaleMatrix(&coord->coord, &vec);
-    coord->coord.t[1] = work->partPos[4].vy - work->partPos[4].vy * 0.8 * blend / 4096.0;
+    coord->coord.t[1] = work->partBasePos[4].vy - work->partBasePos[4].vy * 0.8 * blend / 4096.0;
 
-    coord           = &arg0->extra.tmd->coords[5];
-    work->shadow[2] = *coord;
-    coord->parent   = &work->shadow[1];
-    vec.vx          = 0x1000;
-    vec.vy          = 0x1000;
-    vec.vz          = 0x1000;
+    coord                  = &arg0->extra.tmd->coords[5];
+    work->unscaledParts[2] = *coord;
+    coord->parent          = &work->unscaledParts[1];
+    vec.vx                 = 0x1000;
+    vec.vy                 = 0x1000;
+    vec.vz                 = 0x1000;
     ScaleMatrix(&coord->coord, &vec);
-    coord->coord.t[1] = work->partPos[5].vy - work->partPos[5].vy * 0.8 * blend / 4096.0;
+    coord->coord.t[1] = work->partBasePos[5].vy - work->partBasePos[5].vy * 0.8 * blend / 4096.0;
 
     coord         = &arg0->extra.tmd->coords[6];
-    coord->parent = &work->shadow[2];
+    coord->parent = &work->unscaledParts[2];
     func_800D7A9C(extra, (VECTOR*)coord->workm.t, 0, 3);
 
-    work->field_44C -= 0x40;
-    if (work->field_44C < 0) {
-        work->field_44C = 0;
+    work->transformCountdown -= ACTOR_323300_TRANSFORM_STEP;
+    if (work->transformCountdown < 0) {
+        work->transformCountdown = 0;
     }
 }
 
@@ -976,6 +1000,9 @@ static void func_actor_323300_80163188(GfxCoord* coord, s16 angle)
     SCRATCH_STACK_RELEASE_BLOCK(MATRIX);
 }
 
+/// Exit callback of the Lesser Stranger: puts parts 4 to 6 back under the
+/// model's own parts 3 to 5, off the `_Actor323300StrangerWork::unscaledParts`
+/// copies that go away with the work block, and kills the task.
 static void func_actor_323300_801634B0(Task* arg0)
 {
     GfxCoord* base;
@@ -994,21 +1021,20 @@ static void func_actor_323300_801634B0(Task* arg0)
     taskKill(arg0);
 }
 
-/// Splats an identity light/colour pair into the `memCalloc(0x6B0)` work block
-/// `func_actor_323300_80162BE4` parked in `Task::work`, republishes them onto
-/// `TmdObject::lightMtx` / `colorMtx`, then re-derives model part 1's world
+/// Sets `_Actor323300StrangerWork::light` and `color` to identity, lends them
+/// to the model object as `TmdObject::lightMtx` / `colorMtx`, then re-derives model part 1's world
 /// matrix -- clearing its dirty flag, rebuilding it from its parent and
 /// rebinding the actor's shading to the part's translation.
 static void func_actor_323300_80163510(Task* arg0)
 {
-    Actor323300MtxWork* work;
-    GfxMatrix*          light;
-    GfxMatrix*          color;
-    GfxCoord*           coords;
-    TmdObject*          extra;
+    _Actor323300StrangerWork* work;
+    GfxMatrix*                light;
+    GfxMatrix*                color;
+    GfxCoord*                 coords;
+    TmdObject*                extra;
 
     extra  = arg0->extra.tmd;
-    work   = (Actor323300MtxWork*)arg0->work;
+    work   = arg0->work;
     coords = extra->coords;
 
     work->light.rotationWords.m00M01 = ONE;
@@ -1066,45 +1092,44 @@ static void func_actor_323300_8016359C(Task* arg0, s16 arg1)
 #include "../../shared/actor_messages_place_euler.inc.c"
 #undef actorMsgPlaceEuler
 
-/// Start-preset handler for the 0x6B0 `Actor323300MtxWork` block
-/// `func_actor_323300_80162BE4` parks in `Task::work`, and the twin of
-/// `actorMotionPlayAnim19` (which drives the 0x504 block the same way).
-/// A preset bank the block is not already on re-seeds it: the animation id is
-/// reset to -1, the bank is stored and the bank's animation source goes to
-/// `animationInitContext` with the block's context, slots and matrix table. A
-/// different animation id then restarts every slot 1..0x12 -- through
-/// `animationSeekSlotWithBlend` when the preset asks for it and the block has been started
-/// before, through `animationResetSlot` otherwise -- ticks them once and latches
-/// `field_43C` so the next preset takes the first branch.
+/// Play-animation handler of the Lesser Stranger, the twin of
+/// `actorMotionPlayAnim19` for a block that keeps its playback values as the
+/// words of `_Actor323300StrangerWork`. A request for a bank the rig is not
+/// bound to rebinds it: the bank is stored, the clip id is reset to
+/// `ACTOR_MODEL_STATE_NONE` and the bank's sets go to `animationInitContext`
+/// with the rig's context, pose buffer and slots. A different clip id then
+/// restarts every slot 1..0x12 -- through `animationSeekSlotWithBlend` when
+/// the request asks for a blend and a clip has been applied before, through
+/// `animationResetSlot` otherwise -- ticks them once and sets `ticking`.
 static s32 func_actor_323300_80163718(Task* arg0, s32 arg1, AnimationPlayRequest* arg2, s32 arg3)
 {
-    Actor323300MtxWork* work;
-    TmdObject*          ext;
-    s32                 i;
+    _Actor323300StrangerWork* work;
+    TmdObject*                ext;
+    s32                       i;
 
-    work = (Actor323300MtxWork*)arg0->work;
+    work = arg0->work;
     ext  = arg0->extra.tmd;
-    if (arg2->source.index != work->field_440) {
-        work->field_440 = arg2->source.index;
-        work->field_444 = -1;
-        animationInitContext(&work->rig.anim, D_actor_323300_80174A70[work->field_440], ext,
+    if (arg2->source.index != work->bank) {
+        work->bank   = arg2->source.index;
+        work->animId = ACTOR_MODEL_STATE_NONE;
+        animationInitContext(&work->rig.anim, D_actor_323300_80174A70[work->bank], ext,
                              work->rig.poses, work->rig.slots);
     }
-    if (arg2->animationId != work->field_444) {
-        work->field_444 = arg2->animationId;
-        if (arg2->blend != ANIMATION_BLEND_RESET && work->field_43C != 0) {
+    if (arg2->animationId != work->animId) {
+        work->animId = arg2->animationId;
+        if (arg2->blend != ANIMATION_BLEND_RESET && work->ticking != 0) {
             for (i = 1; i < 0x13; i++) {
-                animationSeekSlotWithBlend(&work->rig.anim, i, work->field_444, 0, arg2->blendFrames);
+                animationSeekSlotWithBlend(&work->rig.anim, i, work->animId, 0, arg2->blendFrames);
             }
         } else {
             for (i = 1; i < 0x13; i++) {
-                animationResetSlot(&work->rig.anim, i, work->field_444);
+                animationResetSlot(&work->rig.anim, i, work->animId);
             }
         }
         for (i = 1; i < 0x13; i++) {
             animationTickSlot(&work->rig.anim, i);
         }
-        work->field_43C = 1;
+        work->ticking = 1;
     }
     return 0;
 }
@@ -1115,7 +1140,7 @@ static const TaskFuncTable3 D_actor_323300_80161E6C = { {
     func_actor_323300_801634B0,
 } };
 
-/// Per-frame dispatcher of the 0x6B0-block actor: runs its spawn, tick or exit
+/// Per-frame dispatcher of the Lesser Stranger: runs its spawn, tick or exit
 /// state from `D_actor_323300_80161E6C` by `Task::state`, skipping the frame
 /// while the global freeze byte is set.
 void func_actor_323300_80163840(Task* task)
