@@ -173,7 +173,7 @@ extern u16 D_actor_503500_80176D64[];
 /// Main-executable globals with no module header yet: `gDisplayState.pendingMode` gates the
 /// "everything is dead" message, `gPlayerStatus.hp` is the player's current HP and
 /// `Gp_StateC08.mode` is 1 while the attachment wheel is open.
-/// Main-executable flag byte cleared when the boss enters state 2; also written
+/// Main-executable flag byte cleared when the boss enters `ACTOR_503500_STATE_PART_LOST`; also written
 /// by `mist_r18`, which has no module header for it either. Declared as an
 /// array: `func_actor_503500_801345F4` needs the in-struct store, which keeps
 /// the preceding `scriptedEffectTask` store ordered before it.
@@ -470,7 +470,7 @@ static void func_actor_503500_80133270(Task* arg0)
 }
 
 /// Per-frame upkeep: ticks the `slotCooldown` slot counters down to 0 while the
-/// boss is in state 0, rolls `randomRoll` from `gRandomLcgState`, stores the yaw to
+/// boss is in `ACTOR_503500_STATE_IDLE`, rolls `randomRoll` from `gRandomLcgState`, stores the yaw to
 /// `gPlayerStatus.coordMtx` (offset by `targetYawOffset`, wrapped into [-0x800, 0x800)) in
 /// `targetYaw`, and when `targetableDelay` runs out links or unlinks the
 /// boss's target per `targetablePending`.
@@ -1031,7 +1031,7 @@ static void func_actor_503500_80134408(Task* arg0)
 /// frame count, one from `gRandomLcgState`), plays 0x40230012, and at frame 0x97
 /// spawns the attached effect task into `scriptedEffectTask`. Step 2 waits for
 /// `rootCoordRestored`, kills that task and spawns a fresh one; steps 3..6 walk
-/// presets 6, 7 and 8 and finally return the boss to state 0.
+/// presets 6, 7 and 8 and finally return the boss to `ACTOR_503500_STATE_IDLE`.
 static void func_actor_503500_801345F4(Task* arg0)
 {
     Actor503500Work* work;
@@ -1681,7 +1681,7 @@ s32 func_actor_503500_80135950(Task* arg0, s32 arg1, AnimationPlayRequest* arg2,
 }
 
 /// Enters boss state `state` the way `func_actor_503500_80136048` enters
-/// state 2: clears the per-state counters, asks for sub-state 3 and drops the
+/// `ACTOR_503500_STATE_PART_LOST`: clears the per-state counters, asks for sub-state 3 and drops the
 /// main-executable flag.
 static inline void func_actor_503500_SetBossState(Task* arg0, s16 state)
 {
@@ -1697,9 +1697,10 @@ static inline void func_actor_503500_SetBossState(Task* arg0, s16 state)
     gDisplayState.otDepthShift = DISPLAY_DEPTH_SHIFT_1X;
 }
 
-/// Boss message handler. Modes 0/1/2 enter states 0/5/7, mode 3 advances the
-/// task state, mode 4 saves model part 0's coordinate and `yaw` before
-/// entering state 6, and mode 5 restores both.
+/// Boss message handler. Modes 0/1/2 enter `ACTOR_503500_STATE_IDLE`, `_HELD`
+/// and `_COLLAPSE`, mode 3 advances the task state, mode 4 saves model part
+/// 0's coordinate and `yaw` before entering `ACTOR_503500_STATE_SCRIPTED`, and
+/// mode 5 restores both.
 s32 func_actor_503500_80135B74(Task* arg0, s32 arg1, ActorCommand* msg, s32 arg3)
 {
     Actor503500Work* work;
@@ -1870,7 +1871,7 @@ s32 func_actor_503500_80136014(Task* arg0, s32 arg1)
     return (D_actor_503500_80176574.work.rig.slots[1].status.fields.flags & (ANIMATION_SLOT_SETTLED | ANIMATION_SLOT_FOLLOWED_JUMP)) != 0;
 }
 
-/// Puts the boss into state 2: clears the state's step counters and the two
+/// Puts the boss into `ACTOR_503500_STATE_PART_LOST`: clears the state's step counters and the two
 /// per-state halfwords, asks `func_actor_503500_80137074` for sub-state 3 and
 /// drops the main-executable flag.
 void func_actor_503500_80136048(Task* arg0)
@@ -2375,7 +2376,7 @@ static void func_actor_503500_80136B64(Task* arg0, s32 arg1, s32 arg2)
 /// Per-frame animation tick of the boss block. While the slot array is seeded
 /// (`animationStarted`), every slot 1..0x13 is ticked until the first of them reports
 /// `ANIMATION_SLOT_SETTLED`; once it holds the clip's boundary pose the clip
-/// has finished, and in state 0 the boss resets the slot rates and re-applies
+/// has finished, and in `ACTOR_503500_STATE_IDLE` the boss resets the slot rates and re-applies
 /// preset `D_actor_503500_8016EAD4`.
 static void func_actor_503500_80136D30(Task* arg0)
 {
@@ -2420,7 +2421,7 @@ static void func_actor_503500_80136DDC(Task* arg0)
 
 /// Puts the boss into state `arg1`: clears the state's step counters and the two
 /// per-state halfwords, asks `func_actor_503500_80137074` for sub-state 3 with
-/// its flag set only for state 3, and drops the main-executable flag.
+/// its flag set only for `ACTOR_503500_STATE_STUNNED`, and drops the main-executable flag.
 static void func_actor_503500_80136EFC(Task* arg0, s32 arg1)
 {
     Actor503500Work* work;
@@ -3970,47 +3971,45 @@ static void func_actor_503500_8013A0D0(Task* arg0)
 static void func_actor_503500_8013A470(SVECTOR* pts, GfxCoord* coords, s32 phase)
 {
     Actor503500ChainScratch* s;
-    SVECTOR*                 dir;
     s32                      scale;
     s32                      i;
     s32                      j;
 
-    s        = (Actor503500ChainScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor503500ChainScratch));
+    s        = SCRATCH_STACK_RESERVE_BLOCK(Actor503500ChainScratch);
     s->up.vx = 0;
     s->up.vy = 0x1000;
     s->up.vz = 0;
-    Gp_ComposeParentWorld(coords->parent, &s->world, &s->rot);
+    Gp_ComposeParentWorld(coords->parent, &s->worldRotation, &s->parentTranslation);
     scale = ((rsin(phase) << 6) >> 12) + 0x1000;
     for (i = 0, j = 1; i < 8; i++, j++) {
-        s->diff.vx = pts[j].vx - pts[i].vx;
-        s->diff.vy = pts[j].vy - pts[i].vy;
-        s->diff.vz = pts[j].vz - pts[i].vz;
-        gte_SetRotMatrix(&s->world);
-        dir = &s->dir;
+        s->segment.vx = pts[j].vx - pts[i].vx;
+        s->segment.vy = pts[j].vy - pts[i].vy;
+        s->segment.vz = pts[j].vz - pts[i].vz;
+        gte_SetRotMatrix(&s->worldRotation);
         gte_ldclmv(&coords[i].coord);
         gte_rtir();
-        gte_stclmv(&s->world);
-        gte_ldclmv((char*)&coords[i].coord + 2);
+        gte_stclmv(&s->worldRotation);
+        gte_ldclmv(&coords[i].coord.m[0][1]);
         gte_rtir();
-        gte_stclmv((char*)&s->world + 2);
-        gte_ldclmv((char*)&coords[i].coord + 4);
+        gte_stclmv(&s->worldRotation.m[0][1]);
+        gte_ldclmv(&coords[i].coord.m[0][2]);
         gte_rtir();
-        gte_stclmv((char*)&s->world + 4);
-        gte_TransposeMatrix(&s->world, &s->inv);
-        gte_SetRotMatrix(&s->inv);
-        gte_ldv0(&s->diff);
+        gte_stclmv(&s->worldRotation.m[0][2]);
+        gte_TransposeMatrix(&s->worldRotation, &s->inverseRotation);
+        gte_SetRotMatrix(&s->inverseRotation);
+        gte_ldv0(&s->segment);
         gte_rtv0();
-        gte_stlvnl(&s->pos);
-        VectorNormalS(&s->pos, dir);
-        Gfx_OrthonormalBasis(&s->basis, dir, &s->up);
+        gte_stlvnl(&s->localSegment);
+        VectorNormalS(&s->localSegment, &s->direction);
+        Gfx_OrthonormalBasis(&s->basis, &s->direction, &s->up);
         MatrixNormal(&s->basis, &coords[j].coord);
         if (i != 0) {
-            coords[j].coord.t[0] = (s->pos.vx * scale) >> 12;
-            coords[j].coord.t[1] = (s->pos.vy * scale) >> 12;
-            coords[j].coord.t[2] = (s->pos.vz * scale) >> 12;
+            coords[j].coord.t[0] = (s->localSegment.vx * scale) >> 12;
+            coords[j].coord.t[1] = (s->localSegment.vy * scale) >> 12;
+            coords[j].coord.t[2] = (s->localSegment.vz * scale) >> 12;
         }
     }
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor503500ChainScratch));
+    SCRATCH_STACK_RELEASE_BLOCK(Actor503500ChainScratch);
 }
 
 #include "../../shared/bezier_curve_evaluate.inc.c"

@@ -3742,8 +3742,8 @@ static void func_actor_503500_80141448(Task* arg0)
 }
 
 /// Re-aims a chain of eight child coordinates along the polyline `pts[0..8]`.
-/// `world` starts as the chain root's world rotation and accumulates each
-/// link's local rotation; the segment `pts[i + 1] - pts[i]` is taken into that
+/// `worldRotation` starts as the world rotation of the chain root's parent and
+/// accumulates each link's local rotation; the segment `pts[i + 1] - pts[i]` is taken into that
 /// frame, and the resulting direction becomes the next link's basis
 /// (`Gfx_OrthonormalBasis`, up hint +Y) with the local segment as its
 /// translation. Works in an `Actor503500ChainScratch` on the scratchpad stack.
@@ -3755,39 +3755,39 @@ static void func_actor_503500_8014176C(SVECTOR* pts, GfxCoord* coords)
     s32                      i;
     s32                      j;
 
-    s        = (Actor503500ChainScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor503500ChainScratch));
+    s        = SCRATCH_STACK_RESERVE_BLOCK(Actor503500ChainScratch);
     s->up.vx = 0;
     s->up.vy = 0x1000;
     s->up.vz = 0;
-    Gp_ComposeParentWorld(coords->parent, &s->world, &s->rot);
+    Gp_ComposeParentWorld(coords->parent, &s->worldRotation, &s->parentTranslation);
     for (i = 0, j = 1; i < 8; i++, j++) {
-        s->diff.vx = pts[j].vx - pts[i].vx;
-        s->diff.vy = pts[j].vy - pts[i].vy;
-        s->diff.vz = pts[j].vz - pts[i].vz;
-        gte_SetRotMatrix(&s->world);
-        inv = &s->inv;
-        dir = &s->dir;
+        s->segment.vx = pts[j].vx - pts[i].vx;
+        s->segment.vy = pts[j].vy - pts[i].vy;
+        s->segment.vz = pts[j].vz - pts[i].vz;
+        gte_SetRotMatrix(&s->worldRotation);
+        inv = &s->inverseRotation;
+        dir = &s->direction;
         gte_ldclmv(&coords[i].coord);
         gte_rtir();
-        gte_stclmv(&s->world);
-        gte_ldclmv((char*)&coords[i].coord + 2);
+        gte_stclmv(&s->worldRotation);
+        gte_ldclmv(&coords[i].coord.m[0][1]);
         gte_rtir();
-        gte_stclmv((char*)&s->world + 2);
-        gte_ldclmv((char*)&coords[i].coord + 4);
+        gte_stclmv(&s->worldRotation.m[0][1]);
+        gte_ldclmv(&coords[i].coord.m[0][2]);
         gte_rtir();
-        gte_stclmv((char*)&s->world + 4);
-        gte_TransposeMatrix(&s->world, inv);
+        gte_stclmv(&s->worldRotation.m[0][2]);
+        gte_TransposeMatrix(&s->worldRotation, inv);
         gte_SetRotMatrix(inv);
-        gte_ldv0(&s->diff);
+        gte_ldv0(&s->segment);
         gte_rtv0();
-        gte_stlvnl(&s->pos);
-        VectorNormalS(&s->pos, dir);
+        gte_stlvnl(&s->localSegment);
+        VectorNormalS(&s->localSegment, dir);
         Gfx_OrthonormalBasis(&coords[j].coord, dir, &s->up);
-        coords[j].coord.t[0] = s->pos.vx;
-        coords[j].coord.t[1] = s->pos.vy;
-        coords[j].coord.t[2] = s->pos.vz;
+        coords[j].coord.t[0] = s->localSegment.vx;
+        coords[j].coord.t[1] = s->localSegment.vy;
+        coords[j].coord.t[2] = s->localSegment.vz;
     }
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor503500ChainScratch));
+    SCRATCH_STACK_RELEASE_BLOCK(Actor503500ChainScratch);
 }
 
 #include "../../shared/bezier_curve_evaluate.inc.c"

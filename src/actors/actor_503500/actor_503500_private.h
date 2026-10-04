@@ -177,18 +177,25 @@ typedef struct Actor503500Work {
 } Actor503500Work;
 STATIC_ASSERT_SIZEOF(Actor503500Work, 0x7E8);
 
-/// Scratchpad frame (`0x90` bytes carved off the scratchpad stack) used by
-/// `func_actor_503500_8014176C` and `func_actor_503500_8013A470` while they
-/// re-aim a chain of coordinates.
-typedef struct Actor503500ChainScratch {
-    /* 0x00 */ SVECTOR diff;  // `pts[i + 1] - pts[i]`
-    /* 0x08 */ SVECTOR up;    // (0, 0x1000, 0) hint for `Gfx_OrthonormalBasis`
-    /* 0x10 */ SVECTOR dir;   // normalised `pos`
-    /* 0x18 */ SVECTOR rot;   // `Gp_ComposeParentWorld` output
-    /* 0x20 */ VECTOR  pos;   // `diff` in the link's local frame
-    /* 0x30 */ MATRIX  basis; // `Gfx_OrthonormalBasis` output, before `MatrixNormal`
-    /* 0x50 */ MATRIX  inv;   // transpose of `world`
-    /* 0x70 */ MATRIX  world; // accumulated rotation down the chain
+/// Scratch block of laying a chain's parts along a polyline, on the scratch
+/// stack for one walk from the chain's root to its tip.
+///
+/// Each of the package's two chains samples a curve into world points and
+/// then aims its model parts along them. The walk carries the world rotation
+/// of the part it has reached, takes the step to the next point into that
+/// part's frame, and gives the next part a rotation whose Z axis lies along
+/// the step and a translation at the step's end. Lengths are in model units;
+/// rotations and `direction` use 4096 for 1.0. The block is not cleared when
+/// it is reserved.
+typedef struct {
+    SVECTOR segment;           // Step from the current point to the next, in world axes
+    SVECTOR up;                // Y-axis hint the next part's rotation is built with, (0, 4096, 0) in the current part's frame
+    SVECTOR direction;         // `localSegment` normalised: the next part's Z axis
+    SVECTOR parentTranslation; // World position of the chain root's parent, written while the starting `worldRotation` is composed and never read
+    VECTOR  localSegment;      // `segment` in the current part's frame, which the next part's translation is taken from
+    MATRIX  basis;             // The next part's rotation before it is renormalised; only the walk that pulses the part lengths uses it
+    MATRIX  inverseRotation;   // Transpose of `worldRotation`, taking world axes into the current part's frame
+    MATRIX  worldRotation;     // World rotation of the current part; starts as that of the root's parent and takes in each part's own rotation in turn
 } Actor503500ChainScratch;
 STATIC_ASSERT_SIZEOF(Actor503500ChainScratch, 0x90);
 
