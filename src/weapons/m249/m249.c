@@ -14,28 +14,38 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
-/// 0x68-byte scratch block `func_m249_8011D1DC` takes from the scratch stack.
-/// Only the trailing coordinate is used: `Gp_PickNearestRec18` writes the
-/// chosen impact point into its `workm.t`, and that same coordinate is then
-/// handed to `Gp_PlayObjSfx` as the sound source.
-typedef struct _M249Scratch {
-    /* 0x00 */ byte     pad_0[0x18];
-    /* 0x18 */ GfxCoord coord;
-} M249Scratch;
-STATIC_ASSERT_SIZEOF(M249Scratch, 0x68);
+/// Scratch-stack block for the M249's attack handler.
+///
+/// The handler reserves one block each frame and releases it before
+/// returning; the block is not cleared. It stages the node a fired round's
+/// impact sound is placed at.
+///
+/// Only the translation of `impactCoord`'s composed transform is written, and
+/// only when the impact picker reports a hit, which is the one case the node
+/// is then read in. A sound's pan and depth come from projecting the node's
+/// origin, to which its rotation contributes nothing, so the rest of the node
+/// is whatever the scratch stack last held. The position is a weapon contact
+/// point offset by up to 7 units per axis, in the space the weapon node's
+/// composed transform is expressed in.
+///
+/// The 0x18 bytes ahead of the node are reserved with it and never accessed.
+typedef struct {
+    byte     field_0[0x18]; // No recovered access; role unproven
+    GfxCoord impactCoord;   // Node standing at the round's impact point: the source of the impact sound
+} _M249AttackScratch;
+STATIC_ASSERT_SIZEOF(_M249AttackScratch, 0x68);
 
 static void func_m249_8011D1DC(Task* arg0);
 
 static void func_m249_8011D1DC(Task* arg0)
 {
-    GameActor*   actor;
-    GfxCoord*    coord;
-    GfxCoord*    spot;
-    M249Scratch* scratch;
-    s32          anim;
+    GameActor*          actor;
+    GfxCoord*           coord;
+    GfxCoord*           spot;
+    _M249AttackScratch* scratch;
+    s32                 anim;
 
-    SCRATCH_STACK_RESERVE_BYTES(0x68);
-    scratch = SCRATCH_STACK_CURSOR(M249Scratch);
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(_M249AttackScratch);
     actor   = arg0->work;
     coord   = arg0->extra.tmd->coords;
     switch (actor->statePhase) {
@@ -80,7 +90,7 @@ static void func_m249_8011D1DC(Task* arg0)
             }
             break;
         case 4:
-            spot                = &scratch->coord;
+            spot                = &scratch->impactCoord;
             actor->movementSign = 0;
             actor->statePhase++;
             actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
@@ -98,5 +108,5 @@ static void func_m249_8011D1DC(Task* arg0)
             break;
     }
     Gp_TrackLockTarget(arg0);
-    SCRATCH_STACK_RELEASE_BYTES(0x68);
+    SCRATCH_STACK_RELEASE_BLOCK(_M249AttackScratch);
 }
