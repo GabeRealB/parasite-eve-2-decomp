@@ -1767,7 +1767,7 @@ static u8 CapCaption_Data_8015E66C[4] = {
     0,
 };
 
-Actor215100StorageE670 D_actor_215100_8015E670;
+s32 D_actor_215100_8015E670;
 
 RoomEventMsg D_actor_215100_8015E678;
 
@@ -1807,7 +1807,7 @@ static void func_actor_215100_8014A398(void)
     actor = (GameActor*)task->work;
     coord = task->extra.tmd->coords;
     if (D_actor_215100_8014D038 != 0) {
-        if (D_actor_215100_8015E670.value >= 3) {
+        if (D_actor_215100_8015E670 >= 3) {
             if (gGameSession->location.loc.view == 0x12) {
                 func_mist_shooting_gallery_80180390(0);
                 D_actor_215100_8014D03C = 0;
@@ -1891,7 +1891,7 @@ void func_actor_215100_8014A5C0(Task* arg0)
                 arg0->state                     += 1;
                 break;
             }
-            if (D_actor_215100_8015E670.value == 3) {
+            if (D_actor_215100_8015E670 == 3) {
                 Gp_StateC08.flags &= ATTACHMENT_FLAG_CLEAR_SWAP_LOCK;
             }
             D_actor_215100_8014D038 = 0;
@@ -1972,14 +1972,14 @@ void func_actor_215100_8014A7C4(Task* arg0)
 static void func_actor_215100_8014A908(void)
 {
     D_actor_215100_8014D038 = 0;
-    if (D_actor_215100_8015E670.value < 3) {
+    if (D_actor_215100_8015E670 < 3) {
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 8;
         func_mist_shooting_gallery_801811C0(0);
     } else {
         func_mist_shooting_gallery_80180390(1);
         D_actor_215100_8014D03C = 1;
     }
-    if (D_actor_215100_8015E670.value < 4) {
+    if (D_actor_215100_8015E670 < 4) {
         Gp_StateC08.flags &= ATTACHMENT_FLAG_CLEAR_SWAP_LOCK;
     }
     SndEvt_EnqueueType2(0, 0x1E);
@@ -1987,7 +1987,7 @@ static void func_actor_215100_8014A908(void)
 
 static void func_actor_215100_8014A9A0(void)
 {
-    if (D_actor_215100_8015E670.value == 5) {
+    if (D_actor_215100_8015E670 == 5) {
         D_actor_215100_8014D038 = 0;
         func_mist_shooting_gallery_80180390(1);
         D_actor_215100_8014D03C          = 1;
@@ -1995,7 +1995,7 @@ static void func_actor_215100_8014A9A0(void)
         SndEvt_EnqueueType2(0, 0x1E);
         gGameSession->flowFlags |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
     }
-    if (D_actor_215100_8015E670.value < 3) {
+    if (D_actor_215100_8015E670 < 3) {
         Gp_RunCapCmd(0x1D, 3);
         Task_SpawnFromTable(D_actor_215100_8014CF6C, 1, 0, 0);
     }

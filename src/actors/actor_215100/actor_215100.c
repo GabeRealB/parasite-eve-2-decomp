@@ -313,8 +313,8 @@ void func_actor_215100_80149F2C(Task* task)
             }
             break;
         case 0x20:
-            D_actor_215100_8015E670.value = Gp_GetCapEventKey();
-            func_mist_shooting_gallery_8017DCAC(D_actor_215100_8015E670.value);
+            D_actor_215100_8015E670 = Gp_GetCapEventKey();
+            func_mist_shooting_gallery_8017DCAC(D_actor_215100_8015E670);
             task->state = 0x28;
             break;
         case 0x28:
@@ -328,7 +328,7 @@ void func_actor_215100_80149F2C(Task* task)
         case 0x32:
             D_actor_215100_8014D040++;
             Gp_StateC08.flags |= ATTACHMENT_FLAG_SWAP_LOCK;
-            if (D_actor_215100_8015E670.value < 3) {
+            if (D_actor_215100_8015E670 < 3) {
                 func_800E8614(D_actor_215100_8014EFA0, 1);
             } else {
                 func_800E8614(D_actor_215100_8014F060, 1);
@@ -345,7 +345,7 @@ void func_actor_215100_80149F2C(Task* task)
             break;
         case 0x34:
             gGameSession->flowFlags &= (0xFF ^ GAME_SESSION_FLOW_REEQUIP_WEAPON);
-            Task_SpawnFromTable(D_mist_shooting_gallery_801856B8, 0, D_actor_215100_8015E670.value - 1, 0);
+            Task_SpawnFromTable(D_mist_shooting_gallery_801856B8, 0, D_actor_215100_8015E670 - 1, 0);
             D_actor_215100_8014D03C = 1;
             taskKill(task);
             break;

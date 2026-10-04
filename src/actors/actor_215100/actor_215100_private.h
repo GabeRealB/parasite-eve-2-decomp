@@ -8,14 +8,6 @@
 
 #include "main/task_types.h"
 
-// Retain the zero tail after the accessed value. Whether it was spare
-// fields or alignment storage remains unresolved.
-typedef struct {
-    s32 value;
-    u8  retained[4];
-} Actor215100StorageE670;
-STATIC_ASSERT_SIZEOF(Actor215100StorageE670, 8);
-
 extern TaskDesc D_actor_215100_8014CF6C[2];
 
 extern s32 D_actor_215100_8014D038;
@@ -52,7 +44,7 @@ extern EvsCommand D_actor_215100_8014F060[9];
 
 extern EvsCommand D_actor_215100_8014F138[6];
 
-extern Actor215100StorageE670 D_actor_215100_8015E670;
+extern s32 D_actor_215100_8015E670;
 
 void func_actor_215100_80149F2C(Task* task);
 
