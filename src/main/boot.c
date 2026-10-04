@@ -64,7 +64,6 @@ size_t Mem_AuxRegionBytes;
 /// Fixed addresses no image defines, which main points at: the image-buffer
 /// region, the work area at 0x801FD000, the load addresses of the three actor
 /// slots, and 4MB into the dev kit's memory.
-extern FsImgBuffers D_801D7000;
 
 extern u8 D_801FD000[];
 

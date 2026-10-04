@@ -299,6 +299,10 @@ typedef struct {
     u_long strips[FILE_SYSTEM_IMAGE_STRIP_COUNT][FILE_SYSTEM_IMAGE_STRIP_WORDS]; // 16×240 columns, two pixels per word
 } FsImgBuffers;
 STATIC_ASSERT_SIZEOF(FsImgBuffers, 0x25800);
+
+/// The fixed image buffers at the top of retail memory; no image of the game
+/// holds them.
+extern FsImgBuffers D_801D7000;
 STATIC_ASSERT(sizeof(FsImgBuffers) == FILE_SYSTEM_IMAGE_WIDTH * FILE_SYSTEM_IMAGE_HEIGHT * 2, fs_image_frame_bytes);
 STATIC_ASSERT(FILE_SYSTEM_IMAGE_VLC_OFFSET + STREAM_VLC_TABLE_BYTES <= sizeof(FsImgBuffers), fs_image_vlc_table_fits);
 
