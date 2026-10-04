@@ -33,19 +33,25 @@
 #include "../../shared/actor_motion.h"
 #include "../../shared/actor_messages.h"
 
-/// Work block of the parent task, allocated zeroed by its spawn routine and
-/// kept at `Task::work`: a twenty-part rig, the walk state, and
-/// `freeCountdown`, the frames until the model buffers are freed, -1
-/// disabling the countdown.
-typedef struct Actor120400MainWork {
-    ActorAnimRig20  rig;
-    ActorModelState model;
-    ActorWalkState  walk;
-    byte            pad_4FC[0x4];
-    s16             freeCountdown;
-    byte            pad_502[0x2];
-} Actor120400MainWork;
-STATIC_ASSERT_SIZEOF(Actor120400MainWork, 0x504);
+/// Work block of Kyle Madigan's body, the package's scripted walker.
+///
+/// The task's spawn state allocates it zeroed and keeps it at `Task::work`
+/// for the task's life. It opens as `ActorMotionWalkWork` does - the
+/// twenty-part rig, the model state and the walk a room script sends the
+/// actor on - and the model object borrows `model.light` and `model.color`
+/// for as long as the block lives.
+///
+/// What follows `walk` is the package's own: the delayed free of the model's
+/// buffers once the model has been hidden. The tasks of the two hand models
+/// are not kept here: each finds the body through its own spawn argument.
+typedef struct {
+    ActorAnimRig20  rig;            // Playback storage of the twenty-part body model; slots 1 to 19 are driven
+    ActorModelState model;          // Clip and bank the rig plays, and the matrices the model is lit with
+    ActorWalkState  walk;           // Destination, closing rotation, per-frame velocity and step of the walk in progress
+    byte            field_4FC[0x4]; // Allocated but never accessed; role unproven
+    s16             freeCountdown;  // Ticks left before the model's buffers are freed, which the tick finding 0 does (-1 no free pending)
+} _Actor120400KyleMadiganWork;
+STATIC_ASSERT_SIZEOF(_Actor120400KyleMadiganWork, 0x504);
 
 /// Animation source indexed by the bank id the presets latch:
 /// `gActorMotionAnimBanks[work->model.bank]` is the bank handed to
@@ -870,7 +876,9 @@ TaskMessageEntry D_actor_120400_8013E76C[6] = {
     { ACTOR_MESSAGE_WALK_TO, func_actor_120400_80132398 },
     { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_120400_80132D14 },
     { TASK_MESSAGE_TABLE_END, NULL },
-}; /// The parent's spawn handler. Allocates the 0x504 `Actor120400MainWork` block, seeds it, and spawns the
+};
+
+/// The parent's spawn handler. Allocates the `_Actor120400KyleMadiganWork` block, seeds it, and spawns the
 /// two children `D_actor_120400_8013E748` holds -- table entries 1 and 2. Each
 /// has `TmdObject::texturePageOffset` / `clutRowOffset` loaded with the texture page and CLUT
 /// row of the `AreaPlacement` that entry selects, reached through the area key
@@ -882,13 +890,13 @@ TaskMessageEntry D_actor_120400_8013E76C[6] = {
 /// installing `func_actor_120400_801327B4` as its exit callback.
 static void func_actor_120400_80131E5C(Task* arg0)
 {
-    Actor120400MainWork* work;
-    GameLocationKey      key;
-    GameLocationKey*     sessionKey;
-    GameLocationKey*     keyAddr;
-    Task*                spawned;
+    _Actor120400KyleMadiganWork* work;
+    GameLocationKey              key;
+    GameLocationKey*             sessionKey;
+    GameLocationKey*             keyAddr;
+    Task*                        spawned;
 
-    work = memCalloc(0x504, false);
+    work = memCalloc(sizeof(_Actor120400KyleMadiganWork), false);
     if (work == NULL) {
         enemyTaskExit(arg0);
         return;
@@ -970,12 +978,12 @@ static void func_actor_120400_80131E5C(Task* arg0)
 /// reaches zero.
 static void func_actor_120400_80132050(Task* arg0)
 {
-    TmdObject*           ext      = arg0->extra.tmd;
-    Actor120400MainWork* work     = (Actor120400MainWork*)arg0->work;
-    TaskFunc             funcs[2] = { func_actor_120400_801327F0, func_actor_120400_801327F8 };
-    VECTOR3              pos;
-    GfxCoord*            coord;
-    s32                  i;
+    TmdObject*                   ext      = arg0->extra.tmd;
+    _Actor120400KyleMadiganWork* work     = arg0->work;
+    TaskFunc                     funcs[2] = { func_actor_120400_801327F0, func_actor_120400_801327F8 };
+    VECTOR3                      pos;
+    GfxCoord*                    coord;
+    s32                          i;
 
     funcs[work->walk.motion](arg0);
     coord                     = arg0->extra.tmd->coords;
@@ -990,7 +998,7 @@ static void func_actor_120400_80132050(Task* arg0)
     work->walk.carry[1].word  = work->walk.carry[1].halves.fraction;
     work->walk.carry[2].word  = work->walk.carry[2].halves.fraction;
     if (work->model.ticking != 0) {
-        for (i = 1; i < 0x14; i++) {
+        for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
             animationTickSlot(&work->rig.anim, i);
         }
     }
@@ -1028,14 +1036,14 @@ static void func_actor_120400_80132050(Task* arg0)
 /// same 0x14 slots and `model.ticking` raised. Returns 0 either way.
 s32 func_actor_120400_80132398(Task* task, s32 arg1, ActorTransform* place, ActorMotionWalkAnim* anim)
 {
-    Actor120400MainWork*  work;
-    Actor120400MainWork*  w;
-    AnimationPlayRequest  preset;
-    AnimationPlayRequest* msg;
-    s32                   i;
-    TmdObject*            ext;
+    _Actor120400KyleMadiganWork* work;
+    _Actor120400KyleMadiganWork* w;
+    AnimationPlayRequest         preset;
+    AnimationPlayRequest*        msg;
+    s32                          i;
+    TmdObject*                   ext;
 
-    w                    = (Actor120400MainWork*)task->work;
+    w                    = task->work;
     w->walk.motion       = ACTOR_WALK_MOTION_WALKING;
     w->walk.motionStep   = 0;
     w->walk.target.vx    = place->pos.vx;
@@ -1057,7 +1065,7 @@ s32 func_actor_120400_80132398(Task* task, s32 arg1, ActorTransform* place, Acto
     preset.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
 
     msg  = &preset;
-    work = (Actor120400MainWork*)task->work;
+    work = task->work;
     ext  = task->extra.tmd;
     if (msg->source.index != work->model.bank) {
         work->model.bank = msg->source.index;
@@ -1066,15 +1074,15 @@ s32 func_actor_120400_80132398(Task* task, s32 arg1, ActorTransform* place, Acto
     }
     work->model.animId = msg->animationId;
     if (msg->blend != ANIMATION_BLEND_RESET && work->model.ticking != 0) {
-        for (i = 1; i < 0x14; i++) {
+        for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
             animationSeekSlotWithBlend(&work->rig.anim, i, work->model.animId, 0, msg->blendFrames);
         }
     } else {
-        for (i = 1; i < 0x14; i++) {
+        for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
             animationResetSlot(&work->rig.anim, i, work->model.animId);
         }
     }
-    for (i = 1; i < 0x14; i++) {
+    for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
         animationTickSlot(&work->rig.anim, i);
     }
     work->model.ticking = 1;
@@ -1119,11 +1127,11 @@ static void func_actor_120400_801327B4(Task* task)
 /// work block.
 static void func_actor_120400_801327D4(Task* task)
 {
-    TmdObject*           ext;
-    Actor120400MainWork* work;
+    TmdObject*                   ext;
+    _Actor120400KyleMadiganWork* work;
 
     ext           = task->extra.tmd;
-    work          = (Actor120400MainWork*)task->work;
+    work          = task->work;
     ext->lightMtx = &work->model.light;
     ext->colorMtx = &work->model.color;
 }
@@ -1137,10 +1145,10 @@ static void func_actor_120400_801327F0(Task* arg0)
 /// onto the stack and runs the entry `walk.motionStep` selects.
 static void func_actor_120400_801327F8(Task* task)
 {
-    Actor120400MainWork* work;
-    TaskFuncTable4       handlers;
+    _Actor120400KyleMadiganWork* work;
+    TaskFuncTable4               handlers;
 
-    work     = (Actor120400MainWork*)task->work;
+    work     = task->work;
     handlers = D_actor_120400_80131E3C;
     handlers.funcs[work->walk.motionStep](task);
 }
@@ -1152,12 +1160,12 @@ static void func_actor_120400_801327F8(Task* task)
 /// `ACTOR_WALK_DISTANCE_NONE` and advances the step.
 static void func_actor_120400_80132920(Task* task)
 {
-    Actor120400MainWork* work;
-    GfxCoord*            coord;
-    VECTOR               vec;
+    _Actor120400KyleMadiganWork* work;
+    GfxCoord*                    coord;
+    VECTOR                       vec;
 
     coord = task->extra.tmd->coords;
-    work  = (Actor120400MainWork*)task->work;
+    work  = task->work;
 
     vec = D_actor_120400_80131E4C;
     ApplyMatrixLV(&coord->coord, &vec, &work->walk.velocity);
@@ -1185,12 +1193,12 @@ static void func_actor_120400_80132920(Task* task)
 /// Returns 0 for the four known modes and 1 for any other.
 s32 func_actor_120400_80132C38(Task* task, s32 arg1, s32 mode, s32 arg3)
 {
-    TmdObject*           obj;
-    Actor120400MainWork* work;
-    s32                  ret;
+    TmdObject*                   obj;
+    _Actor120400KyleMadiganWork* work;
+    s32                          ret;
 
     obj  = task->extra.tmd;
-    work = (Actor120400MainWork*)task->work;
+    work = task->work;
     ret  = 0;
     switch (mode) {
         case 0:
