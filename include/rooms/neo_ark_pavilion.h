@@ -6,8 +6,6 @@
 
 #include "types.h"
 
-#include "actors/waypoints.h"
-
 #include "gameplay/area.h"
 #include "gameplay/direction.h"
 #include "gameplay/room.h"
@@ -21,7 +19,7 @@ extern SVECTOR* D_neo_ark_pavilion_80183A64[4];
 
 extern SVECTOR D_neo_ark_pavilion_80183A74[8];
 
-extern ActorWaypointHeight D_neo_ark_pavilion_801839A0;
+extern s16 D_neo_ark_pavilion_801839A0;
 
 extern TaskDesc D_neo_ark_pavilion_8018384C;
 

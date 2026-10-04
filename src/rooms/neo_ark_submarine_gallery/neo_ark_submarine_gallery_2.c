@@ -13,8 +13,6 @@
 
 #include "actors/task_tables.h"
 
-#include "actors/waypoints.h"
-
 #include "gameplay/display.h"
 #include "gameplay/actor_render.h"
 #include "gameplay/area.h"
@@ -140,7 +138,7 @@ DirectionWarpEntry D_neo_ark_submarine_gallery_80181A10[1] = {
 };
 
 // Height override read by the shared waypoint actor.
-ActorWaypointHeight D_neo_ark_submarine_gallery_80181A48 = { .storage = 5000 };
+s16 D_neo_ark_submarine_gallery_80181A48 = 5000;
 
 // Retained data: Eight-point coordinate pool explicitly addressed by the following pointer table; no runtime owner found.
 SVECTOR D_neo_ark_submarine_gallery_80181A4C[8] = {

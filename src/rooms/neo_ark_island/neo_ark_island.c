@@ -13,8 +13,6 @@
 
 #include "actors/task_tables.h"
 
-#include "actors/waypoints.h"
-
 #include "gameplay/area.h"
 #include "gameplay/captions.h"
 #include "gameplay/collision.h"
@@ -68,7 +66,7 @@ extern AreaResource D_neo_ark_island_80183F30[2];
 extern TaskDesc D_80147E48;
 
 // Height override read by the shared waypoint actor.
-ActorWaypointHeight D_neo_ark_island_80181C24 = { .storage = 300 };
+s16 D_neo_ark_island_80181C24 = 300;
 
 // Retained data: Eight-point coordinate pool explicitly addressed by the following pointer table; no runtime owner found.
 SVECTOR D_neo_ark_island_80181C28[8] = {

@@ -13,8 +13,6 @@
 
 #include "actors/task_tables.h"
 
-#include "actors/waypoints.h"
-
 #include "gameplay/display.h"
 #include "gameplay/actor_render.h"
 #include "gameplay/area.h"
@@ -78,7 +76,7 @@ DirectionWarpEntry D_neo_ark_submarine_tunnel_80181E20[2] = {
     { { { .word = 1024 }, -6300, 2330, 0 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -5250, 3000, 0 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 5, DIRECTION_WARP_FLAG_SCRIPTED_PLAYER, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
-ActorWaypointHeight D_neo_ark_submarine_tunnel_80181E90 = { 0 };
+s16 D_neo_ark_submarine_tunnel_80181E90 = 0;
 
 SVECTOR D_neo_ark_submarine_tunnel_80181E94[8] = {
     { 3456, -800, 2112, 0 },

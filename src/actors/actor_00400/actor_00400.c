@@ -11,8 +11,6 @@
 
 #include "actors/actor.h"
 
-#include "actors/waypoints.h"
-
 #include "gameplay/actor.h"
 #include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
@@ -1180,11 +1178,11 @@ Actor100400AreaConfig Actor00400_D15F20[12] = {
     { D_shelter_b4_reservoir_801851D4, D_shelter_b4_reservoir_801851E4, &D_shelter_b4_reservoir_80184F80, 4, 45, 2, { 0, 0 } },
     { D_shelter_b2_septic_tank_801836A4, D_shelter_b2_septic_tank_801836B4, &D_shelter_b2_septic_tank_801832BC, 4, 34, 2, { 0, 0 } },
     { D_shelter_b4_upper_sewer_801866F8, D_shelter_b4_upper_sewer_80186708, &D_shelter_b4_upper_sewer_80186438, 4, 44, 2, { 0, 0 } },
-    { D_neo_ark_bridge_801820BC, D_neo_ark_bridge_801820CC, &D_neo_ark_bridge_80181FF8.height, 5, 27, 0, { 0, 0 } },
-    { D_neo_ark_submarine_gallery_80181B0C, D_neo_ark_submarine_gallery_80181B1C, &D_neo_ark_submarine_gallery_80181A48.height, 5, 30, 2, { 0, 0 } },
-    { D_neo_ark_submarine_tunnel_80181F94, NULL, &D_neo_ark_submarine_tunnel_80181E90.height, 5, 12, 0, { 0, 0 } },
-    { D_neo_ark_pavilion_80183A64, D_neo_ark_pavilion_80183A74, &D_neo_ark_pavilion_801839A0.height, 5, 13, 0, { 0, 0 } },
-    { D_neo_ark_island_80181CE8, D_neo_ark_island_80181CF8, &D_neo_ark_island_80181C24.height, 5, 14, 0, { 0, 0 } },
+    { D_neo_ark_bridge_801820BC, D_neo_ark_bridge_801820CC, &D_neo_ark_bridge_80181FF8, 5, 27, 0, { 0, 0 } },
+    { D_neo_ark_submarine_gallery_80181B0C, D_neo_ark_submarine_gallery_80181B1C, &D_neo_ark_submarine_gallery_80181A48, 5, 30, 2, { 0, 0 } },
+    { D_neo_ark_submarine_tunnel_80181F94, NULL, &D_neo_ark_submarine_tunnel_80181E90, 5, 12, 0, { 0, 0 } },
+    { D_neo_ark_pavilion_80183A64, D_neo_ark_pavilion_80183A74, &D_neo_ark_pavilion_801839A0, 5, 13, 0, { 0, 0 } },
+    { D_neo_ark_island_80181CE8, D_neo_ark_island_80181CF8, &D_neo_ark_island_80181C24, 5, 14, 0, { 0, 0 } },
     { D_shelter_b2_main_corridor_80182EEC, D_shelter_b2_main_corridor_80182EFC, &D_shelter_b2_main_corridor_80182E28, 4, 33, 0, { 0, 0 } },
     { D_shelter_b4_lower_sewer_8018210C, D_shelter_b4_lower_sewer_8018211C, &D_shelter_b4_lower_sewer_80181E6C, 4, 43, 2, { 0, 0 } },
     { NULL, NULL, NULL, 255, 0, 0, { 0, 0 } },

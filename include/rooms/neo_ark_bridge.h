@@ -6,8 +6,6 @@
 
 #include "types.h"
 
-#include "actors/waypoints.h"
-
 #include "gameplay/area.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
@@ -22,7 +20,7 @@ extern SVECTOR* D_neo_ark_bridge_801820BC[4];
 
 extern SVECTOR D_neo_ark_bridge_801820CC[9];
 
-extern ActorWaypointHeight D_neo_ark_bridge_80181FF8;
+extern s16 D_neo_ark_bridge_80181FF8;
 
 extern TaskDesc D_neo_ark_bridge_80181F18;
 

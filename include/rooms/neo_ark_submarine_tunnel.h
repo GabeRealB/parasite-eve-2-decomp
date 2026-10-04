@@ -6,8 +6,6 @@
 
 #include "types.h"
 
-#include "actors/waypoints.h"
-
 #include "gameplay/area.h"
 #include "gameplay/direction.h"
 #include "gameplay/room.h"
@@ -19,7 +17,7 @@
 // Room data exported to the shared waypoint actor.
 extern SVECTOR* D_neo_ark_submarine_tunnel_80181F94[4];
 
-extern ActorWaypointHeight D_neo_ark_submarine_tunnel_80181E90;
+extern s16 D_neo_ark_submarine_tunnel_80181E90;
 
 extern TaskDesc D_neo_ark_submarine_tunnel_801810E4;
 

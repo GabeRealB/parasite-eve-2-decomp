@@ -6,8 +6,6 @@
 
 #include "types.h"
 
-#include "actors/waypoints.h"
-
 #include "gameplay/area.h"
 #include "gameplay/area_flags.h"
 #include "gameplay/collision.h"
@@ -23,7 +21,7 @@ extern SVECTOR* D_neo_ark_submarine_gallery_80181B0C[4];
 
 extern SVECTOR D_neo_ark_submarine_gallery_80181B1C[6];
 
-extern ActorWaypointHeight D_neo_ark_submarine_gallery_80181A48;
+extern s16 D_neo_ark_submarine_gallery_80181A48;
 
 extern s16 D_neo_ark_submarine_gallery_801818B8;
 

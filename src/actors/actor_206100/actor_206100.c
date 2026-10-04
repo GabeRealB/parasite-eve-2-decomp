@@ -11,7 +11,6 @@
 #include "gte.h"
 
 #include "actors/actor.h"
-#include "actors/waypoints.h"
 
 #include "gameplay/actor.h"
 #include "gameplay/actor_render.h"
@@ -1719,7 +1718,7 @@ static void func_actor_206100_8014C274(Task* task)
         return;
     }
     D_neo_ark_submarine_gallery_801818B8 = 1;
-    work->waterLevel                     = D_neo_ark_submarine_gallery_80181A48.height;
+    work->waterLevel                     = D_neo_ark_submarine_gallery_80181A48;
     for (i = 0; i < 2; i++) {
         D_actor_206100_80158CBC[i].enemy = NULL;
         D_actor_206100_80158CBC[i].timer = 0;

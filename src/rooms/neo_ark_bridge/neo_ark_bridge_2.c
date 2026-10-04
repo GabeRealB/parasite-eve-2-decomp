@@ -11,8 +11,6 @@
 
 #include "actors/task_tables.h"
 
-#include "actors/waypoints.h"
-
 #include "gameplay/display.h"
 #include "gameplay/actor_render.h"
 #include "gameplay/area.h"
@@ -75,7 +73,7 @@ DirectionWarpEntry D_neo_ark_bridge_80181F88[2] = {
 };
 
 // Height override read by the shared waypoint actor.
-ActorWaypointHeight D_neo_ark_bridge_80181FF8 = { .storage = 300 };
+s16 D_neo_ark_bridge_80181FF8 = 300;
 
 // Retained data: Eight-point coordinate pool explicitly addressed by the following pointer table; no runtime owner found.
 SVECTOR D_neo_ark_bridge_80181FFC[8] = {

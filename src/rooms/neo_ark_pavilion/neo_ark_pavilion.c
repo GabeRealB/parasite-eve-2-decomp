@@ -12,8 +12,6 @@
 
 #include "actors/task_tables.h"
 
-#include "actors/waypoints.h"
-
 #include "gameplay/actor_render.h"
 #include "gameplay/area.h"
 #include "gameplay/captions.h"
@@ -164,7 +162,7 @@ DirectionWarpEntry D_neo_ark_pavilion_801838F8[3] = {
 };
 
 // Height override read by the shared waypoint actor.
-ActorWaypointHeight D_neo_ark_pavilion_801839A0 = { .storage = 300 };
+s16 D_neo_ark_pavilion_801839A0 = 300;
 
 // Retained data: Eight-point coordinate pool explicitly addressed by the following pointer table; no runtime owner found.
 SVECTOR D_neo_ark_pavilion_801839A4[8] = {
