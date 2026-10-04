@@ -40,38 +40,40 @@
 #include "../../shared/model_placement.h"
 #include "../../shared/actor_messages.h"
 
-/// Work block of the overlay's walker, allocated zeroed by its spawn routine
-/// and kept at `Task::work`: a twenty-part rig and the model state, the
-/// display node `obj` the spawn routine links with the contact record that
-/// follows it, and the walk. The exit callback hands `obj` back to
-/// `Gp_UnlinkObj`. `field_53E` latches the `GameFlag_GetNibble(0xED)` result
-/// the flag check uses, so the setup it triggers runs only on the edge where
-/// the flag turns positive and the latch is still clear. `field_534` is the
-/// task that setup spawns, and `field_53C` the mode byte the 0x7DB handler
-/// writes and the per-frame body switches on. `field_53D` is the frames until
-/// the model buffers are freed, -1 disabling the countdown, which the
-/// visibility handler re-arms to 2 in its hide-and-free mode.
-typedef struct Actor113100Work {
-    ActorAnimRig20        rig;
-    ActorModelState       model;
-    WorldCollisionBody    obj;
-    WorldCollisionContact field_4D8;
-    ActorWalkState        walk;
-    Task*                 field_534;
-    s16                   field_538;
-    s16                   field_53A;
-    u8                    field_53C;
-    s8                    field_53D;
-    s8                    field_53E;
+/// Work block of Pierce Carradine's body, the package's scripted walker.
+///
+/// The task's spawn state allocates it zeroed and keeps it at `Task::work`
+/// for the task's life. It opens with the twenty-part rig and the model
+/// state, and the model object borrows `model.light` and `model.color` for as
+/// long as the block lives.
+///
+/// The actor has a collision sphere of its own, which the spawn state links
+/// and the exit callback unlinks, so `body` and the table it borrows sit
+/// between the model state and the walk a room script sends the actor on.
+/// What follows the walk is the package's own: the model that faces the
+/// camera, the heading the walk opens on, the head turn toward the player and
+/// the delayed free of the model's buffers once the model has been hidden.
+typedef struct {
+    ActorAnimRig20        rig;            // Playback storage of the twenty-part body model; slots 1 to 19 are driven
+    ActorModelState       model;          // Clip and bank the rig plays, and the matrices the model is lit with
+    WorldCollisionBody    body;           // Sphere on part 1, linked for the task's life; the spawn state enables its pair pass and every visibility command disables it
+    WorldCollisionContact contacts[1];    // One-entry table `body` borrows. The entry is marked LAST; an occupied contact is cleared each frame the model is drawn and never read
+    ActorWalkState        walk;           // Destination, closing rotation, per-frame velocity and step of the walk in progress
+    Task*                 billboardTask;  // Task of the camera-facing model carried on part 8, which an actor command shows and hides; started only in placement variant 2, NULL otherwise
+    s16                   turnWeight;     // Weight of the per-frame head turn toward the player, 0 to 0x1000; stepped by 0x100 a frame while the model is drawn
+    s16                   walkYaw;        // Heading from the root to `walk.target` as a walk starts, 4096 to a turn; the opening turn steers the root yaw to it
+    u8                    turnUp;         // Direction `turnWeight` is ramped in (0 down to 0, 1 up to 0x1000); every play request sets it from the clip, and an actor command overrides it
+    s8                    freeCountdown;  // Ticks left before the model's buffers are freed, which the tick finding 0 does (-1 no free pending)
+    s8                    lastAppearFlag; // Game flag 0xED as the idle handler last read it; the actor appears on the tick the flag is positive and this is still 0
     byte                  pad_53F[1];
-} Actor113100Work;
-STATIC_ASSERT_SIZEOF(Actor113100Work, 0x540);
+} _Actor113100PierceCarradineWork;
+STATIC_ASSERT_SIZEOF(_Actor113100PierceCarradineWork, 0x540);
 
 /// Child task table the setup handler `func_actor_113100_80131E58` spawns
 /// from, four `TaskDesc` entries. Index 1 is spawned only when
 /// `gGameSession->location.loc.variant == 2` and its task lands in
-/// `Actor113100Work::field_534`; indices 2 and 3 are the two modelled parts the
-/// handler re-dresses from the area record.
+/// `_Actor113100PierceCarradineWork::billboardTask`; indices 2 and 3 are the two
+/// modelled parts the handler re-dresses from the area record.
 extern TaskDesc D_actor_113100_80144308[];
 
 /// The actor's message table, stored in `Task::msgTable`: 0x7D3
@@ -84,13 +86,14 @@ extern TaskDesc D_actor_113100_80144308[];
 extern TaskMessageEntry D_actor_113100_80144338[];
 
 /// Animation bank table the 0x7D3 handler `func_actor_113100_801331E8` indexes
-/// by the animation id it has latched into `Actor113100Work::model.bank`; the
+/// by the animation id it has latched into `_Actor113100PierceCarradineWork::model.bank`; the
 /// entry is the `AnimationSet**` passed to `animationInitContext`.
 extern AnimationSet*  D_actor_113100_80144250[36];
 extern AnimationSet** D_actor_113100_801442E0[1];
 
 /// Per-animation byte the same handler copies into
-/// `Actor113100Work::field_53C` from `AnimationPlayRequest::animationId`.
+/// `_Actor113100PierceCarradineWork::turnUp` from
+/// `AnimationPlayRequest::animationId`.
 extern u8 D_actor_113100_801442E4[];
 
 /// Main-executable routine the turn handler `func_actor_113100_801324DC` calls
@@ -142,7 +145,7 @@ static const TaskFuncTable3 D_actor_113100_80131E3C = { {
 } };
 
 /// The four main-body handlers, dispatched by `func_actor_113100_80132FB4`
-/// through `Actor113100Work::walk.motionStep`.
+/// through `_Actor113100PierceCarradineWork::walk.motionStep`.
 static const TaskFuncTable4 D_actor_113100_80131E48 = { {
     func_actor_113100_8013301C,
     func_actor_113100_801324DC,
@@ -1157,36 +1160,36 @@ TaskMessageEntry D_actor_113100_80144338[6] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-/// Setup handler (state 0): allocates the 0x540-byte work block, clears the
+/// Setup handler (state 0): allocates the work block, clears the
 /// three "no id yet" sentinels and spawns the actor's children from
 /// `D_actor_113100_80144308` -- index 1 only in arena mode
 /// (`gGameSession->location.loc.variant == 2`), then indices 2 and 3, whose models get the
 /// texture page and CLUT of the area record the actor's own location key
-/// resolves to. It then builds the work block's display node: `field_C` points
-/// at the `WorldCollisionContact` table that follows it, the position triple is zeroed, the
-/// node is linked and its flags raised to 0x8000 with `field_1C` set to 0x100,
-/// and `field_8` is attached to model part 1. Finally it publishes the message
+/// resolves to. It then builds the work block's collision sphere `body`: it
+/// borrows the one-entry `contacts` table that follows it, sits on model part 1
+/// with a zero offset and a radius of 0x100, and is linked with its pair pass
+/// enabled. Finally it publishes the message
 /// table, installs the exit callback and steps to the next state.
 static void func_actor_113100_80131E58(Task* task)
 {
-    Actor113100Work*    work;
-    Task*               child2;
-    Task*               child3;
-    GameLocationKey     key;
-    GameLocationKey*    sessionKey2;
-    GameLocationKey*    sessionKey3;
-    TmdObject*          model2;
-    TmdObject*          model3;
-    AreaPlacement*      entry2;
-    AreaPlacement*      entry3;
-    WorldCollisionBody* obj;
-    u8                  areaByte0;
-    u32                 raw2;
-    u32                 raw3;
-    u32                 index2;
-    u32                 index3;
+    _Actor113100PierceCarradineWork* work;
+    Task*                            child2;
+    Task*                            child3;
+    GameLocationKey                  key;
+    GameLocationKey*                 sessionKey2;
+    GameLocationKey*                 sessionKey3;
+    TmdObject*                       model2;
+    TmdObject*                       model3;
+    AreaPlacement*                   entry2;
+    AreaPlacement*                   entry3;
+    WorldCollisionBody*              obj;
+    u8                               areaByte0;
+    u32                              raw2;
+    u32                              raw3;
+    u32                              index2;
+    u32                              index3;
 
-    work = memCalloc(0x540, 0);
+    work = memCalloc(sizeof(_Actor113100PierceCarradineWork), false);
     if (work == NULL) {
         enemyTaskExit(task);
         return;
@@ -1194,12 +1197,12 @@ static void func_actor_113100_80131E58(Task* task)
     task->work               = work;
     work->model.animId       = ACTOR_MODEL_STATE_NONE;
     work->model.bank         = ACTOR_MODEL_STATE_NONE;
-    work->field_53D          = -1;
+    work->freeCountdown      = -1;
     work->walk.carry[0].word = 0;
     work->walk.carry[1].word = 0;
     work->walk.carry[2].word = 0;
     if (gGameSession->location.loc.variant == 2) {
-        work->field_534 = Task_SpawnFromTable(D_actor_113100_80144308, 1, 8, task);
+        work->billboardTask = Task_SpawnFromTable(D_actor_113100_80144308, 1, 8, task);
     }
 
     child2 = Task_SpawnFromTable(D_actor_113100_80144308, 2, 4, task);
@@ -1246,9 +1249,9 @@ static void func_actor_113100_80131E58(Task* task)
 
     func_actor_113100_80132F24(task);
 
-    obj                   = &work->obj;
+    obj                   = &work->body;
     obj->coord            = &task->extra.tmd->coords[1];
-    obj->context.contacts = &work->field_4D8;
+    obj->context.contacts = work->contacts;
     obj->key              = 0x30000;
     obj->radius           = 0x100;
     obj->pos.vx           = 0;
@@ -1257,7 +1260,7 @@ static void func_actor_113100_80131E58(Task* task)
     obj->flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(2, obj);
     obj->flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-    Gp_InitRec18Table(obj->context.contacts, 1, 0);
+    Gp_InitRec18Table(obj->context.contacts, ARRAY_SIZE(work->contacts), 0);
 
     task->msgTable = D_actor_113100_80144338;
     func_mist_parking_80183BAC(1);
@@ -1275,21 +1278,22 @@ static void func_actor_113100_80131E58(Task* task)
 /// `walk.carry[1].word` / `walk.carry[2].word` and the root translation, ticks slots 1..0x13
 /// once `model.ticking` has latched, and plays ids 0x5113000F / 0x51130013 /
 /// 0x51130010 from the slot-1 cue flags. While the model is visible it clears
-/// the occupancy table, ramps `field_538` toward 0 or 0x1000 according to
-/// `field_53C`, and turns the head toward slot 3. `viewReady` rebuilds part 1's
-/// lighting, and `field_53D` counts the buffer free down to zero.
+/// the occupied entry of `contacts`, ramps `turnWeight` toward 0 or 0x1000
+/// according to `turnUp`, and turns the head toward the player by that weight.
+/// `viewReady` rebuilds part 1's lighting, and `freeCountdown` counts the buffer
+/// free down to zero.
 static void func_actor_113100_80132104(Task* task)
 {
-    TmdObject*             extra    = task->extra.tmd;
-    Actor113100Work*       work     = (Actor113100Work*)task->work;
-    TaskFunc               funcs[2] = { func_actor_113100_80132F40, func_actor_113100_80132FB4 };
-    VECTOR3                pos;
-    GfxCoord*              coord;
-    const AnimationRecord* rec;
-    s32                    i;
-    s32                    snd;
-    s8                     mode;
-    u16                    rate;
+    TmdObject*                       extra    = task->extra.tmd;
+    _Actor113100PierceCarradineWork* work     = task->work;
+    TaskFunc                         funcs[2] = { func_actor_113100_80132F40, func_actor_113100_80132FB4 };
+    VECTOR3                          pos;
+    GfxCoord*                        coord;
+    const AnimationRecord*           rec;
+    s32                              i;
+    s32                              snd;
+    s8                               mode;
+    u16                              rate;
 
     if (!(extra->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
         task->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
@@ -1330,36 +1334,36 @@ static void func_actor_113100_80132104(Task* task)
             }
         }
         if (!(extra->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
-            Gp_ClearRec18Occupied(&work->field_4D8);
-            mode = work->field_53C;
+            Gp_ClearRec18Occupied(work->contacts);
+            mode = work->turnUp;
             switch (mode) {
                 case 0:
-                    rate            = work->field_538 - 0x100;
-                    work->field_538 = rate;
+                    rate             = work->turnWeight - 0x100;
+                    work->turnWeight = rate;
                     if ((s16)rate < 0) {
-                        work->field_538 = 0;
+                        work->turnWeight = 0;
                     }
                     break;
                 case 1:
-                    rate            = work->field_538 + 0x100;
-                    work->field_538 = rate;
+                    rate             = work->turnWeight + 0x100;
+                    work->turnWeight = rate;
                     if ((s16)rate >= 0x1001) {
-                        work->field_538 = 0x1000;
+                        work->turnWeight = 0x1000;
                     }
                     break;
             }
-            func_800B0928(task, gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x200, 0x100, (s16)work->field_538);
+            func_800B0928(task, gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x200, 0x100, work->turnWeight);
         }
         if (gGameSession->viewReady != 0) {
             task->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(&task->extra.tmd->coords[1]);
             func_800D7A9C(extra, (VECTOR*)task->extra.tmd->coords[1].workm.t, 0, 3);
         }
-        if (work->field_53D >= 0) {
-            if (work->field_53D == 0) {
+        if (work->freeCountdown >= 0) {
+            if (work->freeCountdown == 0) {
                 Tmd_FreeBuffers(extra);
             }
-            work->field_53D--;
+            work->freeCountdown--;
         }
     }
 }
@@ -1367,16 +1371,16 @@ static void func_actor_113100_80132104(Task* task)
 /// Per-frame turn handler, one of the four bodies `func_actor_113100_80132FB4`
 /// dispatches through `D_actor_113100_80131E48`. It recovers the root
 /// coordinate's yaw from its 3x3 (`m[0][2]` over `m[2][2]`) and compares it
-/// with the heading the work block latched in `field_53A`: more than 0x41 away
-/// it steps `field_53A` 0x40 toward the model and only re-splats the identity
-/// 3x3, within 0x41 it turns the root coordinate to `field_53A` and then
+/// with the heading the work block latched in `walkYaw`: more than 0x41 away
+/// it turns the root coordinate 0x40 toward `walkYaw` and only re-splats the
+/// identity 3x3, within 0x41 it turns the root coordinate to `walkYaw` and then
 /// rotates the local forward offset (0, 0, 0x200000) into `walk.velocity` with
 /// `ApplyMatrixLV`, raises the three halves at `walk.lastDistance` to 0x7FFF and
 /// publishes preset 0x7D3. Both arms clear `GfxCoord::composeStamp` -- the node's
 /// recompute bit -- and end at the same epilogue.
 ///
 /// `yaw` carries two different values on purpose: it holds the work block's
-/// `field_53A` for the comparison, and the snapped heading on the turn arm.
+/// `walkYaw` for the comparison, and the snapped heading on the turn arm.
 /// One variable for both is what puts the snapped value in `$a0` -- the
 /// pseudo then spans the whole body, so `$v0` (written by both `ratan2` and
 /// the identity constant) is denied it and the `(s16)angle` temporary takes
@@ -1385,21 +1389,21 @@ static void func_actor_113100_80132104(Task* task)
 /// a pseudo, which lengthens its life across the branch and adds a copy.
 static void func_actor_113100_801324DC(Task* task)
 {
-    Actor113100Work*     work;
-    GfxCoord*            coord;
-    GfxRotationWords*    words;
-    GfxRotationWords*    turnWords;
-    VECTOR               delta;
-    AnimationPlayRequest preset;
-    s32                  angle;
-    s32                  angle16;
-    u16                  yaw;
-    s16                  diff;
+    _Actor113100PierceCarradineWork* work;
+    GfxCoord*                        coord;
+    GfxRotationWords*                words;
+    GfxRotationWords*                turnWords;
+    VECTOR                           delta;
+    AnimationPlayRequest             preset;
+    s32                              angle;
+    s32                              angle16;
+    u16                              yaw;
+    s16                              diff;
 
     coord = task->extra.tmd->coords;
-    work  = (Actor113100Work*)task->work;
+    work  = task->work;
     angle = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]);
-    yaw   = (u16)work->field_53A;
+    yaw   = work->walkYaw;
     diff  = yaw - angle;
     if (ABS(diff) >= 0x41) {
         angle16 = (s16)angle;
@@ -1442,7 +1446,7 @@ static void func_actor_113100_801324DC(Task* task)
     }
 }
 
-/// One of the four main-body handlers `Actor113100Work::walk.motionStep` dispatches
+/// One of the four main-body handlers `_Actor113100PierceCarradineWork::walk.motionStep` dispatches
 /// through `D_actor_113100_80131E48`. It measures how far the work block's
 /// `walk.target.vx` / `walk.target.vz` have drifted from the root coordinate's
 /// translation -- each axis as the 16-bit magnitude of the difference, the
@@ -1454,14 +1458,14 @@ static void func_actor_113100_801324DC(Task* task)
 /// `walk.lastDistance`, so the pair tracks the distance at the last check.
 static void func_actor_113100_8013264C(Task* task)
 {
-    Actor113100Work*     work;
-    GfxCoord*            coord;
-    SVECTOR              d;
-    s32                  dx;
-    s32                  dz;
-    AnimationPlayRequest preset;
+    _Actor113100PierceCarradineWork* work;
+    GfxCoord*                        coord;
+    SVECTOR                          d;
+    s32                              dx;
+    s32                              dz;
+    AnimationPlayRequest             preset;
 
-    work  = (Actor113100Work*)task->work;
+    work  = task->work;
     coord = task->extra.tmd->coords;
     if (work->walk.target.vx - coord->coord.t[0] >= 0) {
         dx = (u16)work->walk.target.vx - (u16)coord->coord.t[0];
@@ -1497,34 +1501,34 @@ static void func_actor_113100_8013264C(Task* task)
 /// payload as a mode word rather than a pointer -- both call sites pass a
 /// literal, and a mode outside 0..3 is answered with 1, the "not handled"
 /// return the dispatch expects. All four modes lift the 0x8000 bit the setup
-/// handler raised on the work block's display node and then rewrite the
+/// handler raised on the work block's collision `body` and then rewrite the
 /// actor's own `TmdObject::flags`, whose `TMD_OBJECT_SKIP_ACTIVE_DRAW` bit
 /// excludes active drawing and whose 0x4 is the flag `Tmd_Create` seeds from `flags & 1`:
 /// mode 0 shows the model and clears 0x4; mode 1 hides it, hands the object to
 /// `Tmd_AllocBuffers` and clears 0x4; mode 2 hides it, latches 2 into
-/// `field_53D` -- the countdown `func_actor_113100_80132104` walks down to
+/// `freeCountdown` -- the countdown `func_actor_113100_80132104` walks down to
 /// `Tmd_FreeBuffers` -- and raises 0x4; mode 3 shows it and raises 0x4.
 ///
 /// `work` and `work2` are the same `Task::work` read twice. The second read
 /// becomes a register copy at the entry, which is what leaves the block in
 /// `$v1` for the node base mode 3 folds out of `work` while the hoisted `head`
-/// and the `field_53D` latch run off the copy in `$a1`; one read and one local
+/// and the `freeCountdown` latch run off the copy in `$a1`; one read and one local
 /// for the node instead collapses all four arms onto a single register
 /// (98.517%).
 s32 func_actor_113100_80132790(Task* task, s32 msgId, s32 mode, s32 arg3)
 {
-    Actor113100Work*    work;
-    Actor113100Work*    work2;
-    WorldCollisionBody* head;
-    WorldCollisionBody* node;
-    TmdObject*          obj;
-    s32                 i;
-    s32                 ret;
+    _Actor113100PierceCarradineWork* work;
+    _Actor113100PierceCarradineWork* work2;
+    WorldCollisionBody*              head;
+    WorldCollisionBody*              node;
+    TmdObject*                       obj;
+    s32                              i;
+    s32                              ret;
 
-    work  = (Actor113100Work*)task->work;
+    work  = task->work;
     obj   = task->extra.tmd;
-    work2 = (Actor113100Work*)task->work;
-    head  = &work2->obj;
+    work2 = task->work;
+    head  = &work2->body;
     ret   = 0;
 
     switch (mode) {
@@ -1554,12 +1558,12 @@ s32 func_actor_113100_80132790(Task* task, s32 msgId, s32 mode, s32 arg3)
                 node->flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                 node++;
             }
-            work2->field_53D = 2;
-            obj->flags      |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+            work2->freeCountdown = 2;
+            obj->flags          |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 3:
             obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            node        = &work->obj;
+            node        = &work->body;
             for (i = 0; i <= 0; i++) {
                 node->flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                 node++;
@@ -1581,14 +1585,14 @@ s32 func_actor_113100_80132790(Task* task, s32 msgId, s32 mode, s32 arg3)
 /// this function's own stack from `anim->animationId` and `anim->nextAnimId`.
 s32 func_actor_113100_801328EC(Task* task, s32 msgId, ActorTransform* place, ActorMotionWalkAnim* anim)
 {
-    Actor113100Work*      work;
-    Actor113100Work*      w;
-    AnimationPlayRequest  preset;
-    AnimationPlayRequest* msg;
-    s32                   i;
-    TmdObject*            ext;
+    _Actor113100PierceCarradineWork* work;
+    _Actor113100PierceCarradineWork* w;
+    AnimationPlayRequest             preset;
+    AnimationPlayRequest*            msg;
+    s32                              i;
+    TmdObject*                       ext;
 
-    w                    = (Actor113100Work*)task->work;
+    w                    = task->work;
     w->walk.motion       = ACTOR_WALK_MOTION_WALKING;
     w->walk.motionStep   = 0;
     w->walk.target.vx    = place->pos.vx;
@@ -1610,7 +1614,7 @@ s32 func_actor_113100_801328EC(Task* task, s32 msgId, ActorTransform* place, Act
     preset.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
 
     msg  = &preset;
-    work = (Actor113100Work*)task->work;
+    work = task->work;
     ext  = task->extra.tmd;
     if (msg->source.index != work->model.bank) {
         work->model.bank   = msg->source.index;
@@ -1634,7 +1638,7 @@ s32 func_actor_113100_801328EC(Task* task, s32 msgId, ActorTransform* place, Act
         }
         work->model.ticking = 1;
     }
-    work->field_53C = D_actor_113100_801442E4[msg->animationId];
+    work->turnUp = D_actor_113100_801442E4[msg->animationId];
     return 0;
 }
 
@@ -1723,11 +1727,11 @@ void func_actor_113100_80132E98(Task* task)
     sp.funcs[task->state](task);
 }
 
-/// The task's exit callback: it unlinks the work block's display node and
+/// The task's exit callback: it unlinks the work block's collision `body` and
 /// destroys the task.
 static void func_actor_113100_80132EF0(Task* arg0)
 {
-    Gp_UnlinkObj(&((Actor113100Work*)arg0->work)->obj);
+    Gp_UnlinkObj(&((_Actor113100PierceCarradineWork*)arg0->work)->body);
     enemyTaskExit(arg0);
 }
 
@@ -1735,43 +1739,43 @@ static void func_actor_113100_80132EF0(Task* arg0)
 /// `model.light` / `model.color` pair; the setup handler calls it once.
 static void func_actor_113100_80132F24(Task* task)
 {
-    TmdObject*       ext;
-    Actor113100Work* work;
+    TmdObject*                       ext;
+    _Actor113100PierceCarradineWork* work;
 
     ext           = task->extra.tmd;
-    work          = (Actor113100Work*)task->work;
+    work          = task->work;
     ext->lightMtx = &work->model.light;
     ext->colorMtx = &work->model.color;
 }
 
 static void func_actor_113100_80132F40(Task* arg0)
 {
-    Actor113100Work* work;
-    s32              flag;
+    _Actor113100PierceCarradineWork* work;
+    s32                              flag;
 
-    work = (Actor113100Work*)arg0->work;
+    work = arg0->work;
     flag = GameFlag_GetNibble(GAME_FLAG_0ED);
-    if (flag > 0 && work->field_53E == 0) {
+    if (flag > 0 && work->lastAppearFlag == 0) {
         func_actor_113100_80132790(arg0, 0, 1, 0);
         func_mist_parking_80183BAC(0);
     }
-    work->field_53E = flag;
+    work->lastAppearFlag = flag;
 }
 
 /// Dispatches the actor's four main-body handlers by the animation slot index
 /// `walk.motionStep` counts up in `func_actor_113100_8013301C`.
 static void func_actor_113100_80132FB4(Task* arg0)
 {
-    Actor113100Work* work;
-    TaskFuncTable4   handlers;
+    _Actor113100PierceCarradineWork* work;
+    TaskFuncTable4                   handlers;
 
-    work     = (Actor113100Work*)arg0->work;
+    work     = arg0->work;
     handlers = D_actor_113100_80131E48;
     handlers.funcs[work->walk.motionStep](arg0);
 }
 
-/// Builds the offset from the actor's own translation (work + 0x4F0) to the
-/// root part's coordinate translation and stores its yaw into the work block,
+/// Builds the offset from the root part's coordinate translation to
+/// `walk.target` and stores its yaw into `walkYaw`,
 /// then dispatches animation preset 0x7D3 through `func_actor_113100_801331E8`
 /// and counts the frame. The preset is built on this function's stack: it
 /// carries the slot index, the animation id and the two per-slot arguments.
@@ -1781,20 +1785,20 @@ static void func_actor_113100_80132FB4(Task* arg0)
 /// declaration order, and the 16-byte `VECTOR` is 8-byte aligned).
 static void func_actor_113100_8013301C(Task* arg0)
 {
-    Actor113100Work*     work;
-    GfxCoord*            coord;
-    AnimationPlayRequest preset;
-    VECTOR               delta;
-    SVECTOR              dir;
+    _Actor113100PierceCarradineWork* work;
+    GfxCoord*                        coord;
+    AnimationPlayRequest             preset;
+    VECTOR                           delta;
+    SVECTOR                          dir;
 
-    work  = (Actor113100Work*)arg0->work;
+    work  = arg0->work;
     coord = arg0->extra.tmd->coords;
 
     delta.vx = work->walk.target.vx - coord->coord.t[0];
     delta.vy = work->walk.target.vy - coord->coord.t[1];
     delta.vz = work->walk.target.vz - coord->coord.t[2];
     VectorNormalS(&delta, &dir);
-    work->field_53A = ratan2(dir.vx, dir.vz);
+    work->walkYaw = ratan2(dir.vx, dir.vz);
 
     preset.source.index         = 0;
     preset.animationId          = 0x16;
@@ -1807,16 +1811,16 @@ static void func_actor_113100_8013301C(Task* arg0)
 
 static void func_actor_113100_801330E8(Task* arg0)
 {
-    Actor113100Work*     work;
-    GfxRotationWords*    words;
-    GfxCoord*            coord;
-    SVECTOR              vec;
-    AnimationPlayRequest preset;
-    s32                  vy;
-    s16                  diff;
+    _Actor113100PierceCarradineWork* work;
+    GfxRotationWords*                words;
+    GfxCoord*                        coord;
+    SVECTOR                          vec;
+    AnimationPlayRequest             preset;
+    s32                              vy;
+    s16                              diff;
 
     coord = arg0->extra.tmd->coords;
-    work  = (Actor113100Work*)arg0->work;
+    work  = arg0->work;
 
     gfxExtractSmallestEuler(&vec, &coord->coord);
     diff = (u16)work->walk.targetRot.vy - (u16)vec.vy;
@@ -1855,11 +1859,11 @@ static void func_actor_113100_801330E8(Task* arg0)
 /// when requested and the rig is already ticking; otherwise it resets.
 s32 func_actor_113100_801331E8(Task* task, s32 msgId, AnimationPlayRequest* preset, s32 arg3)
 {
-    Actor113100Work* work;
-    TmdObject*       ext;
-    s32              i;
+    _Actor113100PierceCarradineWork* work;
+    TmdObject*                       ext;
+    s32                              i;
 
-    work = (Actor113100Work*)task->work;
+    work = task->work;
     ext  = task->extra.tmd;
     if (preset->source.index != work->model.bank) {
         work->model.bank   = preset->source.index;
@@ -1883,7 +1887,7 @@ s32 func_actor_113100_801331E8(Task* task, s32 msgId, AnimationPlayRequest* pres
         }
         work->model.ticking = 1;
     }
-    work->field_53C = D_actor_113100_801442E4[preset->animationId];
+    work->turnUp = D_actor_113100_801442E4[preset->animationId];
     return 0;
 }
 
@@ -1893,36 +1897,36 @@ s32 func_actor_113100_801331E8(Task* task, s32 msgId, AnimationPlayRequest* pres
 /// 0x7D5 / 0x7DD ones. The payload halfword selects one of four actions: 0 and
 /// 1 clear and raise `TMD_OBJECT_SKIP_ACTIVE_DRAW` in the child task's
 /// `TmdObject::flags`, enabling and excluding active drawing; 2 and 3 set the
-/// work block's `field_53C` mode byte to 1 and 0. Nothing reads the opcode
+/// work block's `turnUp` to 1 and 0. Nothing reads the opcode
 /// itself, hence `msgId`.
 s32 func_actor_113100_801333B8(Task* task, s32 msgId, ActorCommand* msg, s32 arg3)
 {
-    Actor113100Work* work;
-    TmdObject*       model;
+    _Actor113100PierceCarradineWork* work;
+    TmdObject*                       model;
 
-    work = (Actor113100Work*)task->work;
+    work = task->work;
 
     switch (msg->command) {
         case 0:
-            if (work->field_534 != NULL) {
-                model         = work->field_534->extra.tmd;
+            if (work->billboardTask != NULL) {
+                model         = work->billboardTask->extra.tmd;
                 model->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             }
             break;
 
         case 1:
-            if (work->field_534 != NULL) {
-                model         = work->field_534->extra.tmd;
+            if (work->billboardTask != NULL) {
+                model         = work->billboardTask->extra.tmd;
                 model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             }
             break;
 
         case 2:
-            work->field_53C = 1;
+            work->turnUp = 1;
             break;
 
         case 3:
-            work->field_53C = 0;
+            work->turnUp = 0;
             break;
 
         default:

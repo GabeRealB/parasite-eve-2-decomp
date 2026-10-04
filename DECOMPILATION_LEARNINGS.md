@@ -125629,12 +125629,12 @@ pseudo born exactly where its producer dies therefore cannot be pushed off that
 producer's register by preference alone -- it needs to *conflict* with it.
 
 Carrying the snapped heading in the variable that already holds
-`work->field_53A` does that. That variable is loaded before the branch and read
+`work->walkYaw` does that. That variable is loaded before the branch and read
 again in the other arm, so the one pseudo spans the whole body; it is live
 across every hard `$v0` write in between (the `ratan2` return move, the `li
 $v0,0x1000` of the identity splat), which puts `$v0` in its conflict set, and it
 lands in `$a0` -- where the target has it -- leaving `$v0` to the conversion
-temporary. Concretely, `u16 yaw = work->field_53A;` is reused as
+temporary. Concretely, `u16 yaw = work->walkYaw;` is reused as
 `yaw = angle16 ± 0x40` in the turn arm and as `(s16)yaw` at both
 `RotMatrixY` call sites. This is the conflict-forming counterpart of "Mirror
 the target's register reuse with one variable per hard register": read the
@@ -125726,8 +125726,8 @@ under a different work block", and a starred multi-class hit is worth reading
 before writing any C. Porting it is mechanical: same declarations, same
 statement order, swapped field names. Here it went 65.94% (m2c plus the dropped
 first `if` arm restored) to 100.000% in one attempt, with the only edits being
-the four work-block offsets, the two `SVECTOR` halves `field_520.vx` / `.vz` in
-place of the sibling's `field_4E8` / `field_4EC`, and `work->field_500.vx/vy/vz`
+the four work-block offsets, the two `SVECTOR` halves `walk.lastDistance.vx` / `.vz` in
+place of the sibling's `field_4E8` / `field_4EC`, and `work->walk.velocity.vx/vy/vz`
 for its `field_4C8` / `field_4CC` / `field_4D0`.
 
 Two details worth copying with the body. The magnitude pair is written to an
@@ -125745,13 +125745,13 @@ Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5f
 
 ## A second read of the same pointer is what splits a value across two registers; hoist the loop's base node from the *copy* (func_actor_113100_80132790, 2026-09-17)
 
-The 0x7D5 visibility handler walks the work block's display node once in each of
+The 0x7D5 visibility handler walks the work block's collision `body` once in each of
 its four mode arms. The target keeps the block in `$v1` for the arm that folds
 its node base out of the *load* (`addiu $v1,$v1,0x4d6`) and in a copy of it in
 `$a1` for the other three (`addiu $v1,$a1,0x4d6`), so the entry is
 `lw $v1,0x1C($a0)` followed by `addu $a1,$v1,$zero`.
 
-One local for the block -- `work = (Actor113100Work*)task->work;`, the shape
+One local for the block -- `work = task->work;`, the shape
 the 141000 / 503500 / 511000 siblings use -- scores 98.517%: every arm reads
 `$a1` and there is no copy at all. A second read used directly by the arms
 (`work` for one arm, `work2` for the others) reaches 99.828% and stalls with
@@ -125763,8 +125763,8 @@ promotes the copy's register only when it outlives the load's, and the arm that
 reads the load is the last body emitted.
 
 Hoisting the node base as a local computed from the *second* read fixes it:
-`head = &work2->obj;` before the switch, `node = head;` in the three arms that
-take the copy, `node = &work->obj;` in the arm that takes the load. `head` is a
+`head = &work2->body;` before the switch, `node = head;` in the three arms that
+take the copy, `node = &work->body;` in the arm that takes the load. `head` is a
 distinct value -- a `plus`, not a register copy inside the load's quantity -- so
 `cse` leaves both groups alone: `.lreg` then shows three
 `(plus (reg/v:SI 85) (const_int 1238))` and one `(plus (reg/v:SI 84) ...)`, and
