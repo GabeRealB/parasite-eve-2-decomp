@@ -114,10 +114,23 @@ STATIC_ASSERT_SIZEOF(DesertChaserContactPushStepStorage, 16);
 #define DESERT_CHASER_CLOSE_IN         1500
 #endif
 
-/// Sphere body and the contact table supplied by its owner.
-typedef struct DesertChaserSphereBody {
-    WorldCollisionBody    obj;                              // Linked sphere collision body
-    WorldCollisionContact contacts[DESERT_CHASER_CONTACTS]; // Complete initialized contact table
+/// One of the armed chaser's collision spheres, with the contact table it
+/// records into.
+///
+/// The work block holds three, each riding a model coordinate. The first sits
+/// on part 2, the coordinate the enemy record's body sits at, with radius
+/// 0x19C; the second on part 10, 0x100 behind its origin, with radius 0x100.
+/// Those two take the pair tests, which the task switches off in a few of its
+/// states, so their tables hold the hits the chaser receives and the bodies
+/// it steers around; the first table is also lent to the enemy record as its
+/// contact records. The third rides the model root, 0x11C above it with
+/// radius 0x12C, and takes the room-grid test; its contacts push the root
+/// horizontally back out of the room's geometry. One Water Tower state turns
+/// the grid test on for the first as well and pushes the root with both
+/// tables.
+typedef struct {
+    WorldCollisionBody    body;                             // Sphere linked into the world's body list; `context.contacts` names `contacts`
+    WorldCollisionContact contacts[DESERT_CHASER_CONTACTS]; // Contacts `body` records, initialized whole so the last entry ends the table; occupied entries are reset at the end of every frame
 } DesertChaserSphereBody;
 
 /// The armed chaser's wall probe: a capsule body, the segment it carries and

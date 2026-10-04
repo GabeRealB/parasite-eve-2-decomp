@@ -21,17 +21,17 @@ void desertChaserStrike(Task* arg0)
         ctx->node.state.parts.flags = 0;
         obj->flags                  = 0;
         Tmd_AllocBuffers(obj);
-        work->objs[0].obj.radius = 0x19C;
-        work->field_828          = 1;
-        work->field_82A          = 0;
-        work->field_82E          = 5;
-        work->field_83E          = 0;
+        work->objs[0].body.radius = 0x19C;
+        work->field_828           = 1;
+        work->field_82A           = 0;
+        work->field_82E           = 5;
+        work->field_83E           = 0;
 #if !DESERT_CHASER_RUN_SEQUENCE
         work->field_C28 = 0;
 #endif
-        work->field_6            = 0;
-        work->objs[2].obj.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        work->field_832          = work->field_834;
+        work->field_6             = 0;
+        work->objs[2].body.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
+        work->field_832           = work->field_834;
         actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, vec);
         VectorNormalSS(vec, vec);
         gte_lddp(0x20);
@@ -77,7 +77,7 @@ void desertChaserStrike(Task* arg0)
             } else {
                 actorMoveForward(arg0->extra.tmd->coords, 200);
             }
-            if (ActorContact_PushContact(arg0->extra.tmd->coords, work->objs[2].contacts, DESERT_CHASER_CONTACTS)) {
+            if (ActorContact_PushContact(arg0->extra.tmd->coords, work->objs[2].contacts, ARRAY_SIZE(work->objs[2].contacts))) {
                 work->field_0 = 0x23;
             }
             if (work->field_6 >= 0x15) {

@@ -15,10 +15,10 @@ void desertChaserStunned(Task* arg0)
         ctx->node.state.parts.flags = 0;
         obj->flags                  = 0;
         Tmd_AllocBuffers(obj);
-        work->field_82E          = DESERT_CHASER_CLIP_STUNNED;
-        work->field_828          = 2;
-        work->field_832          = 0x10;
-        work->objs[2].obj.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
+        work->field_82E           = DESERT_CHASER_CLIP_STUNNED;
+        work->field_828           = 2;
+        work->field_832           = 0x10;
+        work->objs[2].body.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
         do {
             desertChaserAnimTick(arg0);
         } while ((work->slots[1].currentPose.indices.recordIndex & 0x3FF) != 0xC);

@@ -36,15 +36,15 @@ void desertChaserApproach(Task* arg0)
         ctx->node.state.parts.flags = 0;
         obj->flags                  = 0;
         Tmd_AllocBuffers(obj);
-        work->objs[0].obj.radius = 0x19C;
-        work->field_828          = 1;
+        work->objs[0].body.radius = 0x19C;
+        work->field_828           = 1;
 #if DESERT_CHASER_RUN_SEQUENCE
         work->field_832 = DESERT_CHASER_SLOT_RATE(work);
 #endif
-        work->field_82A          = 0;
-        work->field_82E          = 0;
-        work->field_83E          = 0;
-        work->objs[2].obj.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
+        work->field_82A           = 0;
+        work->field_82E           = 0;
+        work->field_83E           = 0;
+        work->objs[2].body.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
 #if !DESERT_CHASER_RUN_SEQUENCE
         work->field_832 = DESERT_CHASER_SLOT_RATE(work);
 #endif
@@ -92,8 +92,8 @@ void desertChaserApproach(Task* arg0)
         }
         records = work->objs[0].contacts;
     }
-    ActorContact_Steer(arg0->extra.tmd->coords, records, DESERT_CHASER_CONTACTS, &scratch->delta);
-    if (ActorContact_PushContact(arg0->extra.tmd->coords, work->objs[2].contacts, DESERT_CHASER_CONTACTS) == 1) {
+    ActorContact_Steer(arg0->extra.tmd->coords, records, ARRAY_SIZE(work->objs[0].contacts), &scratch->delta);
+    if (ActorContact_PushContact(arg0->extra.tmd->coords, work->objs[2].contacts, ARRAY_SIZE(work->objs[2].contacts)) == 1) {
         magnitude = abs(work->field_840);
         if (magnitude < 0x80)
             work->field_6 += 1;

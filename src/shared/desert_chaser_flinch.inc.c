@@ -17,8 +17,8 @@ void desertChaserFlinch(Task* arg0)
         work->hitFlag = 0;
 #endif
         obj->flags                  = 0;
-        work->objs[0].obj.radius    = 0x19C;
-        work->objs[2].obj.flags    |= WORLD_COLLISION_BODY_GRID_ENABLED;
+        work->objs[0].body.radius   = 0x19C;
+        work->objs[2].body.flags   |= WORLD_COLLISION_BODY_GRID_ENABLED;
         ctx->node.state.parts.flags = 0;
         work->field_828             = 1;
         work->field_82E             = 0xA;

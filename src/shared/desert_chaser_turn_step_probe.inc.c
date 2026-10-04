@@ -30,8 +30,8 @@ void desertChaserTurnStepProbe(Task* arg0)
         work->hitFlag = 0;
 #endif
         obj->flags                  = 0;
-        work->objs[0].obj.radius    = 0x19C;
-        work->objs[2].obj.flags    |= WORLD_COLLISION_BODY_GRID_ENABLED;
+        work->objs[0].body.radius   = 0x19C;
+        work->objs[2].body.flags   |= WORLD_COLLISION_BODY_GRID_ENABLED;
         ctx->node.state.parts.flags = 0;
         work->field_828             = 1;
         work->field_82E             = DESERT_CHASER_CLIP_TURN_PROBE;
@@ -91,7 +91,7 @@ void desertChaserTurnStepProbe(Task* arg0)
     coord2              = arg0->extra.tmd->coords;
     coord2->coord.t[2] += scratch->vec.vz;
     actorMoveForward(arg0->extra.tmd->coords, -8);
-    ActorContact_PushContact(arg0->extra.tmd->coords, work->objs[2].contacts, DESERT_CHASER_CONTACTS);
+    ActorContact_PushContact(arg0->extra.tmd->coords, work->objs[2].contacts, ARRAY_SIZE(work->objs[2].contacts));
 #if DESERT_CHASER_RUN_SEQUENCE
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
 #endif

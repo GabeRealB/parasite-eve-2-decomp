@@ -17,22 +17,22 @@ void desertChaserSteer(Task* arg0)
         ((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = 0;
         obj->flags                                                = 0;
         Tmd_AllocBuffers(obj);
-        work->objs[0].obj.radius = 0x19C;
-        work->field_828          = 2;
+        work->objs[0].body.radius = 0x19C;
+        work->field_828           = 2;
 #if DESERT_CHASER_RUN_SEQUENCE
         work->field_832 = DESERT_CHASER_SLOT_RATE(work);
 #endif
-        work->field_82A          = 0;
-        work->field_82E          = 7;
-        work->objs[2].obj.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
+        work->field_82A           = 0;
+        work->field_82E           = 7;
+        work->objs[2].body.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
 #if !DESERT_CHASER_RUN_SEQUENCE
         work->field_832 = DESERT_CHASER_SLOT_RATE(work);
 #endif
         desertChaserAnimTick(arg0);
     }
     desertChaserAnimTick(arg0);
-    if (((s16)ActorContact_Steer(arg0->extra.tmd->coords, work->objs[0].contacts, DESERT_CHASER_CONTACTS, &delta) != 0) ||
-        ((s16)ActorContact_Steer(arg0->extra.tmd->coords, work->objs[1].contacts, DESERT_CHASER_CONTACTS, &delta) != 0)) {
+    if (((s16)ActorContact_Steer(arg0->extra.tmd->coords, work->objs[0].contacts, ARRAY_SIZE(work->objs[0].contacts), &delta) != 0) ||
+        ((s16)ActorContact_Steer(arg0->extra.tmd->coords, work->objs[1].contacts, ARRAY_SIZE(work->objs[1].contacts), &delta) != 0)) {
         work->field_0 = 0x22;
     }
     actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &delta);

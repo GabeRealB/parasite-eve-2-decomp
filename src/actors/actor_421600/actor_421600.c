@@ -2723,15 +2723,15 @@ static void func_actor_421600_80134AD4(Enemy* enemy, Task* actor)
     work->field_834 = 0x10;
     work->field_832 = 0x10;
     desertChaserAnimTick(actor);
-    work->objs[2].obj.context.contacts = work->objs[2].contacts;
-    work->objs[2].obj.coord            = root;
-    work->objs[2].obj.pos.vx           = 0;
-    work->objs[2].obj.pos.vy           = -0x11C;
-    work->objs[2].obj.pos.vz           = 0;
-    work->objs[2].obj.key              = 0x30001;
-    work->objs[2].obj.radius           = 0x12C;
-    work->objs[2].obj.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(2, &work->objs[2].obj);
+    work->objs[2].body.context.contacts = work->objs[2].contacts;
+    work->objs[2].body.coord            = root;
+    work->objs[2].body.pos.vx           = 0;
+    work->objs[2].body.pos.vy           = -0x11C;
+    work->objs[2].body.pos.vz           = 0;
+    work->objs[2].body.key              = 0x30001;
+    work->objs[2].body.radius           = 0x12C;
+    work->objs[2].body.flags            = WORLD_COLLISION_BODY_SPHERE;
+    Gp_LinkObj(2, &work->objs[2].body);
     work->capsuleBody.shape.ends[0].vx     = 0;
     work->capsuleBody.shape.ends[0].vy     = -0x180;
     work->capsuleBody.shape.ends[0].vz     = 0;
@@ -2749,12 +2749,12 @@ static void func_actor_421600_80134AD4(Enemy* enemy, Task* actor)
     work->capsuleBody.body.key             = 0x30001;
     work->capsuleBody.body.radius          = 0;
     work->capsuleBody.body.flags           = WORLD_COLLISION_BODY_CAPSULE;
-    work->objs[2].obj.flags               |= WORLD_COLLISION_BODY_GRID_ENABLED;
+    work->objs[2].body.flags              |= WORLD_COLLISION_BODY_GRID_ENABLED;
     Gp_LinkObj(2, &work->capsuleBody.body);
     work->capsuleBody.body.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
     Gp_InitRec18Table(work->capsuleBody.contacts, ARRAY_SIZE(work->capsuleBody.contacts), 0);
-    Gp_InitRec18Table(work->objs[2].obj.context.contacts, 0xC, 0);
-    body                   = &work->objs[0].obj;
+    Gp_InitRec18Table(work->objs[2].body.context.contacts, ARRAY_SIZE(work->objs[2].contacts), 0);
+    body                   = &work->objs[0].body;
     body->coord            = &actor->extra.tmd->coords[2];
     body->context.contacts = work->objs[0].contacts;
     body->pos.vx           = 0;
@@ -2765,8 +2765,8 @@ static void func_actor_421600_80134AD4(Enemy* enemy, Task* actor)
     body->flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(2, body);
     body->flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-    Gp_InitRec18Table(body->context.contacts, 0xC, 0);
-    head                   = &work->objs[1].obj;
+    Gp_InitRec18Table(body->context.contacts, ARRAY_SIZE(work->objs[0].contacts), 0);
+    head                   = &work->objs[1].body;
     head->coord            = &actor->extra.tmd->coords[10];
     head->context.contacts = work->objs[1].contacts;
     head->pos.vx           = 0;
@@ -2777,13 +2777,13 @@ static void func_actor_421600_80134AD4(Enemy* enemy, Task* actor)
     head->flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(2, head);
     head->flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-    Gp_InitRec18Table(head->context.contacts, 0xC, 0);
-    work->objs[1].obj.pos.vx = 0;
-    work->objs[1].obj.pos.vy = 0;
-    work->objs[1].obj.pos.vz = -0x100;
-    work->field_14           = 0;
-    work->field_C[0].x       = actor->extra.tmd->coords->coord.t[0];
-    work->field_C[0].z       = actor->extra.tmd->coords->coord.t[2];
+    Gp_InitRec18Table(head->context.contacts, ARRAY_SIZE(work->objs[1].contacts), 0);
+    work->objs[1].body.pos.vx = 0;
+    work->objs[1].body.pos.vy = 0;
+    work->objs[1].body.pos.vz = -0x100;
+    work->field_14            = 0;
+    work->field_C[0].x        = actor->extra.tmd->coords->coord.t[0];
+    work->field_C[0].z        = actor->extra.tmd->coords->coord.t[2];
     gfxReadMatrixZAxis(&actor->extra.tmd->coords->coord, &dir);
     dir.vy = 0;
     v      = &dir;
@@ -3183,8 +3183,8 @@ static void func_actor_421600_80135F6C(Task* arg0)
         ((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = 0;
         obj->flags                                                = 0;
         Tmd_AllocBuffers(obj);
-        work->field_832          = 0x10;
-        work->objs[2].obj.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
+        work->field_832           = 0x10;
+        work->objs[2].body.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
         if (work->field_82E == 0xD) {
             work->field_828 = 1;
         } else {
@@ -3269,16 +3269,16 @@ static void func_actor_421600_80136138(Task* arg0)
         ctx->node.state.parts.flags = 0;
         obj->flags                  = 0;
         Tmd_AllocBuffers(obj);
-        work->field_832          = 0x10;
-        work->field_82E          = 0;
-        work->field_828          = 1;
-        work->objs[2].obj.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
+        work->field_832           = 0x10;
+        work->field_82E           = 0;
+        work->field_828           = 1;
+        work->objs[2].body.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
         desertChaserAnimTick(arg0);
         return;
     }
     playerZone = Actor421600_Zone(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER]->extra.tmd->coords);
     zone       = Actor421600_Zone(arg0->extra.tmd->coords);
-    ActorContact_PushContact(arg0->extra.tmd->coords, work->objs[2].contacts, 0xC);
+    ActorContact_PushContact(arg0->extra.tmd->coords, work->objs[2].contacts, ARRAY_SIZE(work->objs[2].contacts));
     if (playerZone == zone) {
         work->field_0 = 0x26;
         return;
@@ -3385,7 +3385,7 @@ static void func_actor_421600_80136138(Task* arg0)
         coord4 = arg0->extra.tmd->coords;
         actorMoveForward(coord4, 0x14);
     }
-    ActorContact_Steer(arg0->extra.tmd->coords, work->objs[0].contacts, 0xC, &blk->delta);
+    ActorContact_Steer(arg0->extra.tmd->coords, work->objs[0].contacts, ARRAY_SIZE(work->objs[0].contacts), &blk->delta);
     func_actor_421600_80133334(arg0->extra.tmd->coords);
     SCRATCH_STACK_RELEASE_BLOCK(ActorTurnScratch);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -3448,7 +3448,7 @@ static void func_actor_421600_801366F4(Task* arg0)
     ctx  = arg0->spawnArg2.pointer;
     if (work->field_4 != 0) {
         obj->flags                  = 0;
-        work->objs[2].obj.flags    &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
+        work->objs[2].body.flags   &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
         ctx->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
         work->field_6               = 0;
         work->field_8A0             = 0;
@@ -3601,12 +3601,12 @@ static void func_actor_421600_80138D24(Task* arg0)
         ctx->node.state.parts.flags = 0;
         obj->flags                  = 0;
         Tmd_AllocBuffers(obj);
-        work->objs[0].obj.radius = 0x19C;
-        work->field_828          = 1;
-        work->field_832          = 0x10;
-        work->field_82A          = 0;
-        work->field_82E          = 6;
-        work->objs[2].obj.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
+        work->objs[0].body.radius = 0x19C;
+        work->field_828           = 1;
+        work->field_832           = 0x10;
+        work->field_82A           = 0;
+        work->field_82E           = 6;
+        work->objs[2].body.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
         desertChaserAnimTick(arg0);
         work->field_6                      = 0;
         work->field_8                      = 0;
@@ -3618,7 +3618,7 @@ static void func_actor_421600_80138D24(Task* arg0)
         work->field_0 = 2;
     }
     if (((u32)((u16)work->field_6 - 9) < 0x10) && (work->field_8 < 5)) {
-        if (ActorContact_PushContact(arg0->extra.tmd->coords, work->objs[2].contacts, 0xC) != 0) {
+        if (ActorContact_PushContact(arg0->extra.tmd->coords, work->objs[2].contacts, ARRAY_SIZE(work->objs[2].contacts)) != 0) {
             work->field_8++;
         }
         found = desertChaserCapsuleTouchesGrid(arg0);
@@ -3628,7 +3628,7 @@ static void func_actor_421600_80138D24(Task* arg0)
             actorMoveForward(arg0->extra.tmd->coords, -0xC8);
         }
     } else {
-        ActorContact_PushContact(arg0->extra.tmd->coords, work->objs[2].contacts, 0xC);
+        ActorContact_PushContact(arg0->extra.tmd->coords, work->objs[2].contacts, ARRAY_SIZE(work->objs[2].contacts));
     }
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
 }
@@ -3670,17 +3670,17 @@ static void func_actor_421600_8013903C(Task* arg0)
         ctx->node.state.parts.flags = 0;
         obj->flags                  = 0;
         Tmd_AllocBuffers(obj);
-        work->objs[0].obj.radius = 0x19C;
-        work->field_828          = 1;
-        work->field_832          = 0x10;
-        work->field_82A          = 0;
-        work->field_82E          = 2;
-        work->field_83E          = 0;
-        work->objs[2].obj.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
+        work->objs[0].body.radius = 0x19C;
+        work->field_828           = 1;
+        work->field_832           = 0x10;
+        work->field_82A           = 0;
+        work->field_82E           = 2;
+        work->field_83E           = 0;
+        work->objs[2].body.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
         desertChaserAnimTick(arg0);
         work->field_6 = 0;
     }
-    ActorContact_PushContact(arg0->extra.tmd->coords, work->objs[2].contacts, 0xC);
+    ActorContact_PushContact(arg0->extra.tmd->coords, work->objs[2].contacts, ARRAY_SIZE(work->objs[2].contacts));
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     coord                                 = arg0->extra.tmd->coords;
     head[-2].vx                           = (u16)gPlayerStatus.coordMtx->t[0] - (u16)coord->coord.t[0];
@@ -3746,13 +3746,13 @@ static void func_actor_421600_8013947C(Task* arg0)
         ctx->node.state.parts.flags = 0;
         obj->flags                  = 0;
         Tmd_AllocBuffers(obj);
-        work->objs[0].obj.radius = 0x19C;
-        work->field_832          = 0x10;
-        work->field_82E          = 0xA;
-        work->field_828          = 1;
-        work->field_82A          = 0;
-        work->objs[2].obj.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        work->objs[0].obj.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
+        work->objs[0].body.radius = 0x19C;
+        work->field_832           = 0x10;
+        work->field_82E           = 0xA;
+        work->field_828           = 1;
+        work->field_82A           = 0;
+        work->objs[2].body.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
+        work->objs[0].body.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
         desertChaserAnimTick(arg0);
         sound = (((u16)ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40010009;
         pan   = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
@@ -3767,8 +3767,8 @@ static void func_actor_421600_8013947C(Task* arg0)
         SndEvt_EnqueueType6(eventSound, eventPan,
                             (s32)(s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
     }
-    ActorContact_PushContact(arg0->extra.tmd->coords, work->objs[2].contacts, 0xC);
-    ActorContact_PushContact(arg0->extra.tmd->coords, work->objs[0].contacts, 0xC);
+    ActorContact_PushContact(arg0->extra.tmd->coords, work->objs[2].contacts, ARRAY_SIZE(work->objs[2].contacts));
+    ActorContact_PushContact(arg0->extra.tmd->coords, work->objs[0].contacts, ARRAY_SIZE(work->objs[0].contacts));
     if (work->actorId.fields.command == 2) {
         coord = arg0->extra.tmd->coords;
         x     = coord->coord.t[0];
@@ -3919,13 +3919,13 @@ static void func_actor_421600_8013A554(Task* arg0)
         Gp_ArmStateF0(1);
         obj->flags = 0;
         Tmd_AllocBuffers(obj);
-        work->objs[0].obj.radius = 0x19C;
-        work->field_828          = 1;
-        work->field_832          = 0x10;
-        work->field_82A          = 0;
-        work->field_82E          = 3;
-        work->field_83E          = 0;
-        work->objs[2].obj.flags  = (u16)(work->objs[2].obj.flags | WORLD_COLLISION_BODY_GRID_ENABLED);
+        work->objs[0].body.radius = 0x19C;
+        work->field_828           = 1;
+        work->field_832           = 0x10;
+        work->field_82A           = 0;
+        work->field_82E           = 3;
+        work->field_83E           = 0;
+        work->objs[2].body.flags  = (u16)(work->objs[2].body.flags | WORLD_COLLISION_BODY_GRID_ENABLED);
         desertChaserAnimTick(arg0);
         work->field_6  = 0;
         work->field_8  = 0;
@@ -3939,10 +3939,10 @@ static void func_actor_421600_8013A554(Task* arg0)
     scratch       = (SCRATCH_STACK_CURSOR(Actor421600AttackScratch) = head - 1);
     coord         = arg0->extra.tmd->coords;
     scratch->zone = Actor421600_Zone(coord);
-    if ((ActorContact_PushContact(arg0->extra.tmd->coords, work->objs[2].contacts, 0xC) != 0) && (work->field_6 >= 0xB)) {
+    if ((ActorContact_PushContact(arg0->extra.tmd->coords, work->objs[2].contacts, ARRAY_SIZE(work->objs[2].contacts)) != 0) && (work->field_6 >= 0xB)) {
         work->field_0 = 5;
     }
-    if ((ActorContact_Steer(arg0->extra.tmd->coords, work->objs[0].contacts, 0xC, &scratch->vec) << 0x10) != 0 && work->field_82E == 3) {
+    if ((ActorContact_Steer(arg0->extra.tmd->coords, work->objs[0].contacts, ARRAY_SIZE(work->objs[0].contacts), &scratch->vec) << 0x10) != 0 && work->field_82E == 3) {
         work->queryMode = 8;
         if (TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, work->replyBuf, 0) == 0) {
             playerX            = -gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords->coord.m[2][0];
@@ -4140,10 +4140,10 @@ static void func_actor_421600_8013B00C(Task* arg0)
         ctx->node.state.parts.flags = 0;
         obj->flags                  = 0;
         Tmd_AllocBuffers(obj);
-        work->field_832          = 0x10;
-        work->field_82E          = 3;
-        work->field_828          = 1;
-        work->objs[2].obj.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
+        work->field_832           = 0x10;
+        work->field_82E           = 3;
+        work->field_828           = 1;
+        work->objs[2].body.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
         desertChaserAnimTick(arg0);
         playerCoord = task->extra.tmd->coords;
         x_entry     = playerCoord->coord.t[0];
@@ -4245,7 +4245,7 @@ static void func_actor_421600_8013B00C(Task* arg0)
         coord4 = arg0->extra.tmd->coords;
         actorMoveForward(coord4, 0xC8);
     }
-    ActorContact_Steer(arg0->extra.tmd->coords, work->objs[0].contacts, 0xC, &blk->delta);
+    ActorContact_Steer(arg0->extra.tmd->coords, work->objs[0].contacts, ARRAY_SIZE(work->objs[0].contacts), &blk->delta);
     SCRATCH_STACK_RELEASE_BLOCK(ActorTurnScratch);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
 }
@@ -4297,10 +4297,10 @@ static void func_actor_421600_8013B4C4(Task* arg0)
         ctx->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
         obj->flags                  = 0;
         Tmd_AllocBuffers(obj);
-        work->field_832          = 0x10;
-        work->field_82E          = 3;
-        work->field_828          = 1;
-        work->objs[2].obj.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
+        work->field_832           = 0x10;
+        work->field_82E           = 3;
+        work->field_828           = 1;
+        work->objs[2].body.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
         desertChaserAnimTick(arg0);
         return;
     }
@@ -4377,7 +4377,7 @@ static void func_actor_421600_8013B4C4(Task* arg0)
         coord4 = arg0->extra.tmd->coords;
         actorMoveForward(coord4, 0xC8);
     }
-    ActorContact_Steer(arg0->extra.tmd->coords, work->objs[0].contacts, 0xC, &blk->delta);
+    ActorContact_Steer(arg0->extra.tmd->coords, work->objs[0].contacts, ARRAY_SIZE(work->objs[0].contacts), &blk->delta);
     SCRATCH_STACK_RELEASE_BLOCK(ActorTurnScratch);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
 }
@@ -4396,7 +4396,7 @@ static void func_actor_421600_8013B8E0(Task* arg0)
         temp_s1->field_832                    = 0x10;
         temp_s1->field_82E                    = 0x11;
         temp_s1->field_828                    = 2;
-        temp_s1->objs[2].obj.flags           |= WORLD_COLLISION_BODY_GRID_ENABLED;
+        temp_s1->objs[2].body.flags          |= WORLD_COLLISION_BODY_GRID_ENABLED;
         arg0->extra.tmd->coords->coord.t[0]   = 0;
         arg0->extra.tmd->coords->coord.t[1]   = 0;
         arg0->extra.tmd->coords->coord.t[2]   = 0;
@@ -4490,12 +4490,12 @@ static void func_actor_421600_8013BA70(Task* arg0)
         enemy->node.state.parts.flags = 0;
         obj->flags                    = 0;
         Tmd_AllocBuffers(obj);
-        work->objs[0].obj.radius = 0x19C;
-        work->field_828          = 1;
-        work->field_832          = 0x10;
-        work->field_82A          = 0;
-        work->field_82E          = 0;
-        work->objs[2].obj.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
+        work->objs[0].body.radius = 0x19C;
+        work->field_828           = 1;
+        work->field_832           = 0x10;
+        work->field_82A           = 0;
+        work->field_82E           = 0;
+        work->objs[2].body.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
 
         desertChaserAnimTick(arg0);
         desertChaserAnimTick(arg0);
@@ -4666,8 +4666,8 @@ static void func_actor_421600_8013BA70(Task* arg0)
         }
         record = work->objs[0].contacts;
     }
-    ActorContact_Steer(arg0->extra.tmd->coords, record, 12, &scratch->vec);
-    if (ActorContact_PushContact(arg0->extra.tmd->coords, work->objs[2].contacts, 12) == 1) {
+    ActorContact_Steer(arg0->extra.tmd->coords, record, ARRAY_SIZE(work->objs[0].contacts), &scratch->vec);
+    if (ActorContact_PushContact(arg0->extra.tmd->coords, work->objs[2].contacts, ARRAY_SIZE(work->objs[2].contacts)) == 1) {
         originalMagnitude = abs(scratch->original);
         if (originalMagnitude < 0x20) {
             work->field_6 += 1;
@@ -4787,8 +4787,8 @@ static void func_actor_421600_8013C8E0(Task* arg0)
     obj  = arg0->extra.tmd;
     if (work->field_4 != 0) {
         obj->flags                  = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-        work->objs[0].obj.radius    = 0x19C;
-        work->objs[2].obj.flags    &= ~WORLD_COLLISION_BODY_GRID_ENABLED;
+        work->objs[0].body.radius   = 0x19C;
+        work->objs[2].body.flags   &= ~WORLD_COLLISION_BODY_GRID_ENABLED;
         ctx->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
         work->field_844             = 0;
         work->field_840             = 0;
@@ -5155,11 +5155,11 @@ static void                        func_actor_421600_8013D658(Enemy* enemy, Task
     }
     finalState = work->field_0;
     if ((finalState != 0x15) && (finalState != 0) && (finalState != 5) && (finalState != 0x16) && (finalState != 8)) {
-        work->objs[0].obj.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-        work->objs[1].obj.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+        work->objs[0].body.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+        work->objs[1].body.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     } else {
-        work->objs[0].obj.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->objs[1].obj.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->objs[0].body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->objs[1].body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     }
     Gp_ClearRec18Occupied(work->objs[2].contacts);
     Gp_ClearRec18Occupied(work->objs[0].contacts);
@@ -5237,9 +5237,9 @@ static void func_actor_421600_8013E668(Task* task)
         if (work->field_E98 != NULL) {
             taskKill(work->field_E98);
         }
-        Gp_UnlinkObj(&work->objs[0].obj);
-        Gp_UnlinkObj(&work->objs[1].obj);
-        Gp_UnlinkObj(&work->objs[2].obj);
+        Gp_UnlinkObj(&work->objs[0].body);
+        Gp_UnlinkObj(&work->objs[1].body);
+        Gp_UnlinkObj(&work->objs[2].body);
         enemy->recs = 0;
     }
     enemyDestroy(enemy, task);
@@ -5279,7 +5279,7 @@ static void func_actor_421600_8013E858(Task* arg0)
         enemy                         = arg0->spawnArg2.pointer;
         enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
         obj->flags                   |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-        work->objs[2].obj.flags      &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
+        work->objs[2].body.flags     &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
         enemy->hp                     = 0;
     }
 }
@@ -5302,12 +5302,12 @@ static void func_actor_421600_8013E9D8(Task* arg0)
         ((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = 0;
         obj->flags                                                = 0;
         Tmd_AllocBuffers(obj);
-        work->objs[0].obj.radius = 0x19C;
-        work->field_828          = 1;
-        work->field_832          = 0x10;
-        work->field_82A          = 0;
-        work->field_82E          = 4;
-        work->objs[2].obj.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
+        work->objs[0].body.radius = 0x19C;
+        work->field_828           = 1;
+        work->field_832           = 0x10;
+        work->field_82A           = 0;
+        work->field_82E           = 4;
+        work->objs[2].body.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
         desertChaserAnimTick(arg0);
         return;
     }
@@ -5334,15 +5334,15 @@ static void func_actor_421600_8013EAAC(Task* arg0)
         ((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = 0;
         obj->flags                                                = 0;
         Tmd_AllocBuffers(obj);
-        work->objs[0].obj.radius = 0x19C;
-        work->field_828          = 1;
-        work->field_832          = 0x10;
-        work->field_82A          = 0;
-        work->field_82E          = 8;
-        work->objs[2].obj.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
+        work->objs[0].body.radius = 0x19C;
+        work->field_828           = 1;
+        work->field_832           = 0x10;
+        work->field_82A           = 0;
+        work->field_82E           = 8;
+        work->objs[2].body.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
         desertChaserAnimTick(arg0);
     }
-    ActorContact_PushContact(arg0->extra.tmd->coords, work->objs[2].contacts, 0xC);
+    ActorContact_PushContact(arg0->extra.tmd->coords, work->objs[2].contacts, ARRAY_SIZE(work->objs[2].contacts));
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     desertChaserAnimTick(arg0);
     if (work->slots[1].status.fields.flags & 0x100) {
@@ -5361,12 +5361,12 @@ static void func_actor_421600_8013EB7C(Task* arg0)
         ((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = 0;
         obj->flags                                                = 0;
         Tmd_AllocBuffers(obj);
-        work->objs[0].obj.radius = 0x19C;
-        work->field_828          = 1;
-        work->field_832          = 0x10;
-        work->field_82A          = 0;
-        work->field_82E          = 0xC;
-        work->objs[2].obj.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
+        work->objs[0].body.radius = 0x19C;
+        work->field_828           = 1;
+        work->field_832           = 0x10;
+        work->field_82A           = 0;
+        work->field_82E           = 0xC;
+        work->objs[2].body.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
         desertChaserAnimTick(arg0);
     }
     desertChaserAnimTick(arg0);

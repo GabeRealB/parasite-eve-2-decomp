@@ -63,13 +63,13 @@ void desertChaserPursue(Task* arg0)
         ctx->node.state.parts.flags = 0;
         obj->flags                  = 0;
         Tmd_AllocBuffers(obj);
-        work->objs[0].obj.radius = 0x19C;
-        work->field_82E          = 2;
-        work->field_828          = 1;
-        work->field_82A          = 0;
-        work->field_83E          = 0;
-        work->objs[2].obj.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        work->field_832          = work->field_834;
+        work->objs[0].body.radius = 0x19C;
+        work->field_82E           = 2;
+        work->field_828           = 1;
+        work->field_82A           = 0;
+        work->field_83E           = 0;
+        work->objs[2].body.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
+        work->field_832           = work->field_834;
         desertChaserAnimTick(arg0);
         work->capsuleBody.shape.ends[1].vz = 0x320;
         work->field_6                      = 0;
@@ -86,7 +86,7 @@ void desertChaserPursue(Task* arg0)
     if (work->field_82E == 3) {
         work->field_6 += 1;
     }
-    if ((ActorContact_PushContact(arg0->extra.tmd->coords, work->objs[2].contacts, DESERT_CHASER_CONTACTS) != 0) && (work->field_6 >= 0xB)) {
+    if ((ActorContact_PushContact(arg0->extra.tmd->coords, work->objs[2].contacts, ARRAY_SIZE(work->objs[2].contacts)) != 0) && (work->field_6 >= 0xB)) {
         distanceSquared          = ActorContact_ScratchPosition.vx * ActorContact_ScratchPosition.vx;
         scratch->distanceSquared = distanceSquared;
         scratch->distanceSquared = distanceSquared + ActorContact_ScratchPosition.vz * ActorContact_ScratchPosition.vz;
@@ -106,7 +106,7 @@ void desertChaserPursue(Task* arg0)
             }
         }
     }
-    if (((desertChaserAvoidWalk(arg0->extra.tmd->coords, work->objs[0].contacts, DESERT_CHASER_CONTACTS, (SVECTOR*)scratch) << 0x10) != 0) &&
+    if (((desertChaserAvoidWalk(arg0->extra.tmd->coords, work->objs[0].contacts, ARRAY_SIZE(work->objs[0].contacts), (SVECTOR*)scratch) << 0x10) != 0) &&
         (work->field_82E == 3) && (playerWork->mode != GAME_ACTOR_MODE_SCRIPTED)) {
         work->queryMode     = 0x80;
         coord               = arg0->extra.tmd->coords;
