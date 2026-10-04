@@ -48,15 +48,16 @@ extern AnimationSet* D_actor_503500_8016EA54[20];
 
 extern AnimationSet* D_actor_503500_8016EAA4[5];
 
-/// The 0x44 block `func_actor_503500_801455A4` allocates: the shared head plus
-/// the effect task it reparents itself under.
+/// The 0x44 block `func_actor_503500_801455A4` allocates: an attack sphere and
+/// its one-entry contact table, plus the effect task it reparents itself under.
 typedef struct Actor503500Work44 {
-    /* 0x00 */ Actor503500ObjWork head;
-    /* 0x38 */ Task*              field_38;
-    /* 0x3C */ s16                field_3C; // frame counter within `field_40`'s phase
-    /* 0x3E */ byte               pad_3E[0x2];
-    /* 0x40 */ s8                 field_40; // phase, advanced by `func_actor_503500_80145754`
-    /* 0x41 */ byte               pad_41[0x3];
+    WorldCollisionBody    body;        // Attack sphere placed on the player's coordinate; collides only during the strike phase
+    WorldCollisionContact contacts[1]; // Contact table of `body`, emptied every frame
+    /* 0x38 */ Task*      field_38;
+    /* 0x3C */ s16        field_3C;    // frame counter within `field_40`'s phase
+    /* 0x3E */ byte       pad_3E[0x2];
+    /* 0x40 */ s8         field_40;    // phase, advanced by `func_actor_503500_80145754`
+    /* 0x41 */ byte       pad_41[0x3];
 } Actor503500Work44;
 STATIC_ASSERT_SIZEOF(Actor503500Work44, 0x44);
 
@@ -65,8 +66,8 @@ STATIC_ASSERT_SIZEOF(Actor503500Work44, 0x44);
 /// `func_actor_503500_80145F18`, the same body twice). It follows the gameplay
 /// `CompanionWork` convention: the display node's `context.capsule` points at the
 /// `WorldCollisionCapsule` directly behind it, whose `contacts` in turn points at the
-/// `WorldCollisionContact` table that `Gp_InitRec18Table(_, 4, 0)` zeroes at 0x38. Like
-/// `Actor503500ObjWork` this type stops where the two blocks stop agreeing:
+/// `WorldCollisionContact` table that `Gp_InitRec18Table(_, 4, 0)` zeroes at 0x38. This
+/// type stops where the two blocks stop agreeing:
 /// `func_actor_503500_80144E8C` allocates 0xD0 and `func_actor_503500_80145A2C`
 /// allocates 0xAC, both with `memCalloc(_, 0)`.
 typedef struct Actor503500WorkRec4 {
@@ -110,8 +111,8 @@ STATIC_ASSERT_SIZEOF(Actor503500WorkAC, 0xAC);
 
 /// The 0x4CC effect work block, allocated by `func_actor_503500_8014642C`
 /// (`memCalloc(0x4CC)`) and parked in that task's `Task::work` slot. Unlike the
-/// tasks covered by
-/// `Actor503500ObjWork` this one exits through `func_actor_503500_801464E8`, which
+/// package's other allocated work blocks, whose tasks unlink a collision body
+/// on exit, this one exits through `func_actor_503500_801464E8`, which
 /// only calls `enemyTaskExit`, so the block does not open with a `WorldCollisionBody`.
 /// `func_actor_503500_80146508` republishes the two matrices onto
 /// `TmdObject::lightMtx` / `colorMtx`, the light/colour pair
@@ -1329,7 +1330,7 @@ static void func_actor_503500_80145480(Task* arg0)
     SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, 0x0B), 1);
     ext                   = arg0->extra.tmd;
     (ext->coords)->parent = &gGfxViewCoord;
-    Gp_UnlinkObj(&((Actor503500ObjWork*)arg0->work)->obj);
+    Gp_UnlinkObj(&((Actor503500WorkD0*)arg0->work)->head.obj);
     taskKill(arg0);
 }
 
@@ -1390,17 +1391,17 @@ static void func_actor_503500_801455A4(Task* arg0)
     m->m20M21 = 0;
     m->m22    = ONE;
 
-    work->head.obj.coord            = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
-    work->head.obj.context.contacts = &work->head.rec;
-    work->head.obj.pos.vx           = D_actor_503500_801715D4.vx;
-    work->head.obj.pos.vy           = D_actor_503500_801715D4.vy;
-    work->head.obj.pos.vz           = D_actor_503500_801715D4.vz;
-    work->head.obj.key              = Gp_PackPair(D_actor_503500_8016E7D4[1], 0);
-    work->head.obj.radius           = 0x12C;
-    work->head.obj.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(3, &work->head.obj);
-    Gp_InitRec18Table(&work->head.rec, 1, 0);
-    work->head.obj.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+    work->body.coord            = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
+    work->body.context.contacts = work->contacts;
+    work->body.pos.vx           = D_actor_503500_801715D4.vx;
+    work->body.pos.vy           = D_actor_503500_801715D4.vy;
+    work->body.pos.vz           = D_actor_503500_801715D4.vz;
+    work->body.key              = Gp_PackPair(D_actor_503500_8016E7D4[1], 0);
+    work->body.radius           = 0x12C;
+    work->body.flags            = WORLD_COLLISION_BODY_SPHERE;
+    Gp_LinkObj(3, &work->body);
+    Gp_InitRec18Table(work->contacts, 1, 0);
+    work->body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
 
     eff = Gp_SpawnEff(EFFECT_SHELTER_R48_RING_FLASH_YELLOW, coord, 0, NULL);
     if (eff == NULL) {
@@ -1432,7 +1433,7 @@ static void func_actor_503500_80145754(Task* arg0)
                 work->field_3C++;
                 if (work->field_3C >= 0x5F) {
                     if (gPlayerStatus.coordMtx->t[1] < -1000) {
-                        work->head.obj.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+                        work->body.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
                     }
                     work->field_3C = 0;
                     work->field_40++;
@@ -1449,8 +1450,8 @@ static void func_actor_503500_80145754(Task* arg0)
             case 1:
                 work->field_3C++;
                 if (work->field_3C >= 4) {
-                    work->field_3C        = 0;
-                    work->head.obj.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+                    work->field_3C    = 0;
+                    work->body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                     work->field_40++;
                 }
                 return;
@@ -1484,13 +1485,13 @@ static void func_actor_503500_80145950(Task* arg0)
     func_actor_503500_801372AC(6);
     ext                   = arg0->extra.tmd;
     (ext->coords)->parent = &gGfxViewCoord;
-    Gp_UnlinkObj(&((Actor503500ObjWork*)arg0->work)->obj);
+    Gp_UnlinkObj(&((Actor503500Work44*)arg0->work)->body);
     taskKill(arg0);
 }
 
 static void func_actor_503500_801459B0(Task* arg0)
 {
-    Gp_ClearRec18Occupied(&((Actor503500ObjWork*)arg0->work)->rec);
+    Gp_ClearRec18Occupied(((Actor503500Work44*)arg0->work)->contacts);
 }
 
 void func_actor_503500_801459D4(Task* task)
@@ -1658,7 +1659,7 @@ static void func_actor_503500_80145E98(Task* arg0)
     SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, 0x0F), 1);
     ext                   = arg0->extra.tmd;
     (ext->coords)->parent = &gGfxViewCoord;
-    Gp_UnlinkObj(&((Actor503500ObjWork*)arg0->work)->obj);
+    Gp_UnlinkObj(&((Actor503500WorkAC*)arg0->work)->head.obj);
     taskKill(arg0);
 }
 

@@ -4763,7 +4763,7 @@ static void func_actor_503500_801446E4(Task* arg0)
 static void func_actor_503500_8014473C(Task* arg0)
 {
     func_actor_503500_801372AC(1);
-    Gp_UnlinkObj(&((Actor503500ObjWork*)arg0->work)->obj);
+    Gp_UnlinkObj(&((Actor503500WorkC0*)arg0->work)->obj);
     taskKill(arg0);
 }
 
@@ -4971,13 +4971,13 @@ static void func_actor_503500_80144DA8(Task* arg0)
     } else {
         SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, 7), 1);
     }
-    Gp_UnlinkObj(&((Actor503500ObjWork*)arg0->work)->obj);
+    Gp_UnlinkObj(&((Actor503500WorkB4*)arg0->work)->obj);
     taskKill(arg0);
 }
 
 static void func_actor_503500_80144E10(Task* arg0)
 {
-    Gp_ClearRec18Occupied(&((Actor503500ObjWork*)arg0->work)->rec);
+    Gp_ClearRec18Occupied(((Actor503500WorkB4*)arg0->work)->rec);
 }
 
 void func_actor_503500_80144E34(Task* task)

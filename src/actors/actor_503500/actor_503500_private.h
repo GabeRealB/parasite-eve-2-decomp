@@ -156,23 +156,6 @@ typedef struct Actor503500Work {
 } Actor503500Work;
 STATIC_ASSERT_SIZEOF(Actor503500Work, 0x7E8);
 
-/// Work block shape of the `actor_503500` effect tasks -- the ones whose
-/// state-0 init `memCalloc`s the block instead of pointing `Task::work` at a
-/// static global: `func_actor_503500_80144300` (0xC0),
-/// `func_actor_503500_801448E8` (0xB4), `func_actor_503500_80144E8C` (0xD0),
-/// `func_actor_503500_801455A4` (0x44), `func_actor_503500_80145A2C` (0xAC)
-/// and `func_actor_503500_8014642C` (0x4CC). Each starts with the `WorldCollisionBody`
-/// collision body their exit callback hands to `Gp_UnlinkObj`, and the ones that
-/// place geometry follow it with the `WorldCollisionContact` collision record
-/// (`func_actor_503500_801448E8` derives its `WorldCollisionContact` base as `block + 0x20`).
-/// Only that head is shared; the payload after it differs per task, which is
-/// why this type stops at 0x38.
-typedef struct Actor503500ObjWork {
-    /* 0x00 */ WorldCollisionBody    obj;
-    /* 0x20 */ WorldCollisionContact rec;
-} Actor503500ObjWork;
-STATIC_ASSERT_SIZEOF(Actor503500ObjWork, 0x38);
-
 /// Scratchpad frame (`0x90` bytes carved off the scratchpad stack) used by
 /// `func_actor_503500_8014176C` and `func_actor_503500_8013A470` while they
 /// re-aim a chain of coordinates.
