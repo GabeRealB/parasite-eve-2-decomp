@@ -237,15 +237,28 @@ void GameFlow_StateByField34(Task* task)
     }
 }
 
-/// Prepends the blend command at the foreground tag already containing the tile.
-static inline void _fadeQueueBlendMode(s32 blendMode, s32 foregroundOtIndex)
+/// Queues the fade's draw mode ahead of the packets at the selected ordering-table tag.
+///
+/// The low two bits of `blendMode` select a `GPU_BLEND_*` mode. Dithering is
+/// enabled and drawing into the displayed area is disabled. The untextured
+/// fade tile does not sample the selected 4-bit texture page at VRAM (0, 0).
+/// Queue the tile at the same tag first: insertion prepends this command so
+/// the GPU applies the mode before drawing the tile, until another command
+/// replaces it.
+///
+/// `otTagOffset` counts signed DMA tags from `gGpuCurrentOt`, not bytes or
+/// sorting depth; the selected tag must be writable in the current table.
+/// The frame packet arena must have `sizeof(DR_TPAGE)` word-aligned writable
+/// bytes; the command borrows that storage until GPU drawing completes.
+static inline void _fadeQueueBlendMode(s32 blendMode, s32 otTagOffset)
 {
+    enum { FADE_TEXTURE_DEPTH_4BIT = 0 };
     DR_TPAGE* blendCommand;
 
     blendCommand   = gGpuPrimCursor;
     gGpuPrimCursor = blendCommand + 1;
-    setDrawTPage(blendCommand, false, true, getTPage(0, blendMode, 0, 0));
-    addPrim(gGpuCurrentOt + foregroundOtIndex, blendCommand);
+    setDrawTPage(blendCommand, false, true, getTPage(FADE_TEXTURE_DEPTH_4BIT, blendMode, 0, 0));
+    addPrim(gGpuCurrentOt + otTagOffset, blendCommand);
 }
 
 void fadeDrawOverlay(u8 red, u8 green, u8 blue, s32 blendMode)
