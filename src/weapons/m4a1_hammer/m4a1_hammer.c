@@ -31,6 +31,7 @@
 #include "main/task.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
+#include "gameplay/animation.h"
 /// Signed texture-frame counter for the six-cell sprite's forward declaration.
 #define SPRITE_QUAD_FRAME_T s16
 #include "../../shared/sprite_quad.h"
@@ -345,3 +346,899 @@ TmdSource D_m4a1_hammer_8011F778 = {
     _gM4a1HammerModel01E10Skeleton,
     _gM4a1HammerModel01E10Stream,
 };
+
+static AnimationPackedPose _gM4a1HammerAnimation0276CBank1[2] = {
+#include "assets/m4a1_hammer_animation_0276C_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1HammerAnimation0276CBank4[8] = {
+#include "assets/m4a1_hammer_animation_0276C_bank4.inc"
+};
+
+static AnimationRecord _gM4a1HammerAnimation0276CRecords[76] = {
+#include "assets/m4a1_hammer_animation_0276C_records.inc"
+};
+
+static u16 _gM4a1HammerAnimation0276CIndices[20] = {
+#include "assets/m4a1_hammer_animation_0276C_indices.inc"
+};
+
+static AnimationSet _gM4a1HammerAnimation0276C = {
+    _gM4a1HammerAnimation0276CRecords,
+    _gM4a1HammerAnimation0276CIndices,
+    { NULL, _gM4a1HammerAnimation0276CBank1, NULL, NULL, _gM4a1HammerAnimation0276CBank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1HammerAnimation02E10Bank1[12] = {
+#include "assets/m4a1_hammer_animation_02E10_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1HammerAnimation02E10Bank4[151] = {
+#include "assets/m4a1_hammer_animation_02E10_bank4.inc"
+};
+
+static AnimationRecord _gM4a1HammerAnimation02E10Records[218] = {
+#include "assets/m4a1_hammer_animation_02E10_records.inc"
+};
+
+static u16 _gM4a1HammerAnimation02E10Indices[20] = {
+#include "assets/m4a1_hammer_animation_02E10_indices.inc"
+};
+
+static AnimationSet _gM4a1HammerAnimation02E10 = {
+    _gM4a1HammerAnimation02E10Records,
+    _gM4a1HammerAnimation02E10Indices,
+    { NULL, _gM4a1HammerAnimation02E10Bank1, NULL, NULL, _gM4a1HammerAnimation02E10Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1HammerAnimation03670Bank1[19] = {
+#include "assets/m4a1_hammer_animation_03670_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1HammerAnimation03670Bank4[169] = {
+#include "assets/m4a1_hammer_animation_03670_bank4.inc"
+};
+
+static AnimationRecord _gM4a1HammerAnimation03670Records[290] = {
+#include "assets/m4a1_hammer_animation_03670_records.inc"
+};
+
+static u16 _gM4a1HammerAnimation03670Indices[20] = {
+#include "assets/m4a1_hammer_animation_03670_indices.inc"
+};
+
+static AnimationSet _gM4a1HammerAnimation03670 = {
+    _gM4a1HammerAnimation03670Records,
+    _gM4a1HammerAnimation03670Indices,
+    { NULL, _gM4a1HammerAnimation03670Bank1, NULL, NULL, _gM4a1HammerAnimation03670Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1HammerAnimation03ED4Bank1[19] = {
+#include "assets/m4a1_hammer_animation_03ED4_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1HammerAnimation03ED4Bank4[170] = {
+#include "assets/m4a1_hammer_animation_03ED4_bank4.inc"
+};
+
+static AnimationRecord _gM4a1HammerAnimation03ED4Records[290] = {
+#include "assets/m4a1_hammer_animation_03ED4_records.inc"
+};
+
+static u16 _gM4a1HammerAnimation03ED4Indices[20] = {
+#include "assets/m4a1_hammer_animation_03ED4_indices.inc"
+};
+
+static AnimationSet _gM4a1HammerAnimation03ED4 = {
+    _gM4a1HammerAnimation03ED4Records,
+    _gM4a1HammerAnimation03ED4Indices,
+    { NULL, _gM4a1HammerAnimation03ED4Bank1, NULL, NULL, _gM4a1HammerAnimation03ED4Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1HammerAnimation041E8Bank1[3] = {
+#include "assets/m4a1_hammer_animation_041E8_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1HammerAnimation041E8Bank4[69] = {
+#include "assets/m4a1_hammer_animation_041E8_bank4.inc"
+};
+
+static AnimationRecord _gM4a1HammerAnimation041E8Records[99] = {
+#include "assets/m4a1_hammer_animation_041E8_records.inc"
+};
+
+static u16 _gM4a1HammerAnimation041E8Indices[20] = {
+#include "assets/m4a1_hammer_animation_041E8_indices.inc"
+};
+
+static AnimationSet _gM4a1HammerAnimation041E8 = {
+    _gM4a1HammerAnimation041E8Records,
+    _gM4a1HammerAnimation041E8Indices,
+    { NULL, _gM4a1HammerAnimation041E8Bank1, NULL, NULL, _gM4a1HammerAnimation041E8Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1HammerAnimation04944Bank1[14] = {
+#include "assets/m4a1_hammer_animation_04944_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1HammerAnimation04944Bank4[156] = {
+#include "assets/m4a1_hammer_animation_04944_bank4.inc"
+};
+
+static AnimationRecord _gM4a1HammerAnimation04944Records[253] = {
+#include "assets/m4a1_hammer_animation_04944_records.inc"
+};
+
+static u16 _gM4a1HammerAnimation04944Indices[20] = {
+#include "assets/m4a1_hammer_animation_04944_indices.inc"
+};
+
+static AnimationSet _gM4a1HammerAnimation04944 = {
+    _gM4a1HammerAnimation04944Records,
+    _gM4a1HammerAnimation04944Indices,
+    { NULL, _gM4a1HammerAnimation04944Bank1, NULL, NULL, _gM4a1HammerAnimation04944Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1HammerAnimation050CCBank1[16] = {
+#include "assets/m4a1_hammer_animation_050CC_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1HammerAnimation050CCBank4[167] = {
+#include "assets/m4a1_hammer_animation_050CC_bank4.inc"
+};
+
+static AnimationRecord _gM4a1HammerAnimation050CCRecords[247] = {
+#include "assets/m4a1_hammer_animation_050CC_records.inc"
+};
+
+static u16 _gM4a1HammerAnimation050CCIndices[20] = {
+#include "assets/m4a1_hammer_animation_050CC_indices.inc"
+};
+
+static AnimationSet _gM4a1HammerAnimation050CC = {
+    _gM4a1HammerAnimation050CCRecords,
+    _gM4a1HammerAnimation050CCIndices,
+    { NULL, _gM4a1HammerAnimation050CCBank1, NULL, NULL, _gM4a1HammerAnimation050CCBank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1HammerAnimation053A0Bank1[6] = {
+#include "assets/m4a1_hammer_animation_053A0_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1HammerAnimation053A0Bank4[52] = {
+#include "assets/m4a1_hammer_animation_053A0_bank4.inc"
+};
+
+static AnimationRecord _gM4a1HammerAnimation053A0Records[91] = {
+#include "assets/m4a1_hammer_animation_053A0_records.inc"
+};
+
+static u16 _gM4a1HammerAnimation053A0Indices[20] = {
+#include "assets/m4a1_hammer_animation_053A0_indices.inc"
+};
+
+static AnimationSet _gM4a1HammerAnimation053A0 = {
+    _gM4a1HammerAnimation053A0Records,
+    _gM4a1HammerAnimation053A0Indices,
+    { NULL, _gM4a1HammerAnimation053A0Bank1, NULL, NULL, _gM4a1HammerAnimation053A0Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1HammerAnimation05730Bank1[7] = {
+#include "assets/m4a1_hammer_animation_05730_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1HammerAnimation05730Bank4[73] = {
+#include "assets/m4a1_hammer_animation_05730_bank4.inc"
+};
+
+static AnimationRecord _gM4a1HammerAnimation05730Records[114] = {
+#include "assets/m4a1_hammer_animation_05730_records.inc"
+};
+
+static u16 _gM4a1HammerAnimation05730Indices[20] = {
+#include "assets/m4a1_hammer_animation_05730_indices.inc"
+};
+
+static AnimationSet _gM4a1HammerAnimation05730 = {
+    _gM4a1HammerAnimation05730Records,
+    _gM4a1HammerAnimation05730Indices,
+    { NULL, _gM4a1HammerAnimation05730Bank1, NULL, NULL, _gM4a1HammerAnimation05730Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1HammerAnimation05BB8Bank1[9] = {
+#include "assets/m4a1_hammer_animation_05BB8_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1HammerAnimation05BB8Bank4[104] = {
+#include "assets/m4a1_hammer_animation_05BB8_bank4.inc"
+};
+
+static AnimationRecord _gM4a1HammerAnimation05BB8Records[139] = {
+#include "assets/m4a1_hammer_animation_05BB8_records.inc"
+};
+
+static u16 _gM4a1HammerAnimation05BB8Indices[20] = {
+#include "assets/m4a1_hammer_animation_05BB8_indices.inc"
+};
+
+static AnimationSet _gM4a1HammerAnimation05BB8 = {
+    _gM4a1HammerAnimation05BB8Records,
+    _gM4a1HammerAnimation05BB8Indices,
+    { NULL, _gM4a1HammerAnimation05BB8Bank1, NULL, NULL, _gM4a1HammerAnimation05BB8Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1HammerAnimation05DB4Bank1[3] = {
+#include "assets/m4a1_hammer_animation_05DB4_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1HammerAnimation05DB4Bank4[22] = {
+#include "assets/m4a1_hammer_animation_05DB4_bank4.inc"
+};
+
+static AnimationRecord _gM4a1HammerAnimation05DB4Records[76] = {
+#include "assets/m4a1_hammer_animation_05DB4_records.inc"
+};
+
+static u16 _gM4a1HammerAnimation05DB4Indices[20] = {
+#include "assets/m4a1_hammer_animation_05DB4_indices.inc"
+};
+
+static AnimationSet _gM4a1HammerAnimation05DB4 = {
+    _gM4a1HammerAnimation05DB4Records,
+    _gM4a1HammerAnimation05DB4Indices,
+    { NULL, _gM4a1HammerAnimation05DB4Bank1, NULL, NULL, _gM4a1HammerAnimation05DB4Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1HammerAnimation0608CBank1[6] = {
+#include "assets/m4a1_hammer_animation_0608C_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1HammerAnimation0608CBank4[57] = {
+#include "assets/m4a1_hammer_animation_0608C_bank4.inc"
+};
+
+static AnimationRecord _gM4a1HammerAnimation0608CRecords[87] = {
+#include "assets/m4a1_hammer_animation_0608C_records.inc"
+};
+
+static u16 _gM4a1HammerAnimation0608CIndices[20] = {
+#include "assets/m4a1_hammer_animation_0608C_indices.inc"
+};
+
+static AnimationSet _gM4a1HammerAnimation0608C = {
+    _gM4a1HammerAnimation0608CRecords,
+    _gM4a1HammerAnimation0608CIndices,
+    { NULL, _gM4a1HammerAnimation0608CBank1, NULL, NULL, _gM4a1HammerAnimation0608CBank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1HammerAnimation06330Bank1[4] = {
+#include "assets/m4a1_hammer_animation_06330_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1HammerAnimation06330Bank4[55] = {
+#include "assets/m4a1_hammer_animation_06330_bank4.inc"
+};
+
+static AnimationRecord _gM4a1HammerAnimation06330Records[82] = {
+#include "assets/m4a1_hammer_animation_06330_records.inc"
+};
+
+static u16 _gM4a1HammerAnimation06330Indices[20] = {
+#include "assets/m4a1_hammer_animation_06330_indices.inc"
+};
+
+static AnimationSet _gM4a1HammerAnimation06330 = {
+    _gM4a1HammerAnimation06330Records,
+    _gM4a1HammerAnimation06330Indices,
+    { NULL, _gM4a1HammerAnimation06330Bank1, NULL, NULL, _gM4a1HammerAnimation06330Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1HammerAnimation06530Bank1[3] = {
+#include "assets/m4a1_hammer_animation_06530_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1HammerAnimation06530Bank4[23] = {
+#include "assets/m4a1_hammer_animation_06530_bank4.inc"
+};
+
+static AnimationRecord _gM4a1HammerAnimation06530Records[76] = {
+#include "assets/m4a1_hammer_animation_06530_records.inc"
+};
+
+static u16 _gM4a1HammerAnimation06530Indices[20] = {
+#include "assets/m4a1_hammer_animation_06530_indices.inc"
+};
+
+static AnimationSet _gM4a1HammerAnimation06530 = {
+    _gM4a1HammerAnimation06530Records,
+    _gM4a1HammerAnimation06530Indices,
+    { NULL, _gM4a1HammerAnimation06530Bank1, NULL, NULL, _gM4a1HammerAnimation06530Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1HammerAnimation06884Bank1[8] = {
+#include "assets/m4a1_hammer_animation_06884_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1HammerAnimation06884Bank4[68] = {
+#include "assets/m4a1_hammer_animation_06884_bank4.inc"
+};
+
+static AnimationRecord _gM4a1HammerAnimation06884Records[101] = {
+#include "assets/m4a1_hammer_animation_06884_records.inc"
+};
+
+static u16 _gM4a1HammerAnimation06884Indices[20] = {
+#include "assets/m4a1_hammer_animation_06884_indices.inc"
+};
+
+static AnimationSet _gM4a1HammerAnimation06884 = {
+    _gM4a1HammerAnimation06884Records,
+    _gM4a1HammerAnimation06884Indices,
+    { NULL, _gM4a1HammerAnimation06884Bank1, NULL, NULL, _gM4a1HammerAnimation06884Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1HammerAnimation06B38Bank1[5] = {
+#include "assets/m4a1_hammer_animation_06B38_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1HammerAnimation06B38Bank4[55] = {
+#include "assets/m4a1_hammer_animation_06B38_bank4.inc"
+};
+
+static AnimationRecord _gM4a1HammerAnimation06B38Records[83] = {
+#include "assets/m4a1_hammer_animation_06B38_records.inc"
+};
+
+static u16 _gM4a1HammerAnimation06B38Indices[20] = {
+#include "assets/m4a1_hammer_animation_06B38_indices.inc"
+};
+
+static AnimationSet _gM4a1HammerAnimation06B38 = {
+    _gM4a1HammerAnimation06B38Records,
+    _gM4a1HammerAnimation06B38Indices,
+    { NULL, _gM4a1HammerAnimation06B38Bank1, NULL, NULL, _gM4a1HammerAnimation06B38Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1HammerAnimation06E58Bank1[6] = {
+#include "assets/m4a1_hammer_animation_06E58_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1HammerAnimation06E58Bank4[66] = {
+#include "assets/m4a1_hammer_animation_06E58_bank4.inc"
+};
+
+static AnimationRecord _gM4a1HammerAnimation06E58Records[96] = {
+#include "assets/m4a1_hammer_animation_06E58_records.inc"
+};
+
+static u16 _gM4a1HammerAnimation06E58Indices[20] = {
+#include "assets/m4a1_hammer_animation_06E58_indices.inc"
+};
+
+static AnimationSet _gM4a1HammerAnimation06E58 = {
+    _gM4a1HammerAnimation06E58Records,
+    _gM4a1HammerAnimation06E58Indices,
+    { NULL, _gM4a1HammerAnimation06E58Bank1, NULL, NULL, _gM4a1HammerAnimation06E58Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1HammerAnimation0761CBank1[18] = {
+#include "assets/m4a1_hammer_animation_0761C_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1HammerAnimation0761CBank4[184] = {
+#include "assets/m4a1_hammer_animation_0761C_bank4.inc"
+};
+
+static AnimationRecord _gM4a1HammerAnimation0761CRecords[239] = {
+#include "assets/m4a1_hammer_animation_0761C_records.inc"
+};
+
+static u16 _gM4a1HammerAnimation0761CIndices[20] = {
+#include "assets/m4a1_hammer_animation_0761C_indices.inc"
+};
+
+static AnimationSet _gM4a1HammerAnimation0761C = {
+    _gM4a1HammerAnimation0761CRecords,
+    _gM4a1HammerAnimation0761CIndices,
+    { NULL, _gM4a1HammerAnimation0761CBank1, NULL, NULL, _gM4a1HammerAnimation0761CBank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1HammerAnimation088B4Bank1[29] = {
+#include "assets/m4a1_hammer_animation_088B4_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1HammerAnimation088B4Bank4[450] = {
+#include "assets/m4a1_hammer_animation_088B4_bank4.inc"
+};
+
+static AnimationRecord _gM4a1HammerAnimation088B4Records[633] = {
+#include "assets/m4a1_hammer_animation_088B4_records.inc"
+};
+
+static u16 _gM4a1HammerAnimation088B4Indices[20] = {
+#include "assets/m4a1_hammer_animation_088B4_indices.inc"
+};
+
+static AnimationSet _gM4a1HammerAnimation088B4 = {
+    _gM4a1HammerAnimation088B4Records,
+    _gM4a1HammerAnimation088B4Indices,
+    { NULL, _gM4a1HammerAnimation088B4Bank1, NULL, NULL, _gM4a1HammerAnimation088B4Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1HammerAnimation0942CBank1[12] = {
+#include "assets/m4a1_hammer_animation_0942C_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1HammerAnimation0942CBank4[266] = {
+#include "assets/m4a1_hammer_animation_0942C_bank4.inc"
+};
+
+static AnimationRecord _gM4a1HammerAnimation0942CRecords[412] = {
+#include "assets/m4a1_hammer_animation_0942C_records.inc"
+};
+
+static u16 _gM4a1HammerAnimation0942CIndices[20] = {
+#include "assets/m4a1_hammer_animation_0942C_indices.inc"
+};
+
+static AnimationSet _gM4a1HammerAnimation0942C = {
+    _gM4a1HammerAnimation0942CRecords,
+    _gM4a1HammerAnimation0942CIndices,
+    { NULL, _gM4a1HammerAnimation0942CBank1, NULL, NULL, _gM4a1HammerAnimation0942CBank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1HammerAnimation09B48Bank1[9] = {
+#include "assets/m4a1_hammer_animation_09B48_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1HammerAnimation09B48Bank4[144] = {
+#include "assets/m4a1_hammer_animation_09B48_bank4.inc"
+};
+
+static AnimationRecord _gM4a1HammerAnimation09B48Records[264] = {
+#include "assets/m4a1_hammer_animation_09B48_records.inc"
+};
+
+static u16 _gM4a1HammerAnimation09B48Indices[20] = {
+#include "assets/m4a1_hammer_animation_09B48_indices.inc"
+};
+
+static AnimationSet _gM4a1HammerAnimation09B48 = {
+    _gM4a1HammerAnimation09B48Records,
+    _gM4a1HammerAnimation09B48Indices,
+    { NULL, _gM4a1HammerAnimation09B48Bank1, NULL, NULL, _gM4a1HammerAnimation09B48Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1HammerAnimation09FC8Bank1[6] = {
+#include "assets/m4a1_hammer_animation_09FC8_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1HammerAnimation09FC8Bank4[107] = {
+#include "assets/m4a1_hammer_animation_09FC8_bank4.inc"
+};
+
+static AnimationRecord _gM4a1HammerAnimation09FC8Records[143] = {
+#include "assets/m4a1_hammer_animation_09FC8_records.inc"
+};
+
+static u16 _gM4a1HammerAnimation09FC8Indices[20] = {
+#include "assets/m4a1_hammer_animation_09FC8_indices.inc"
+};
+
+static AnimationSet _gM4a1HammerAnimation09FC8 = {
+    _gM4a1HammerAnimation09FC8Records,
+    _gM4a1HammerAnimation09FC8Indices,
+    { NULL, _gM4a1HammerAnimation09FC8Bank1, NULL, NULL, _gM4a1HammerAnimation09FC8Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1HammerAnimation0A1A0Bank1[3] = {
+#include "assets/m4a1_hammer_animation_0A1A0_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1HammerAnimation0A1A0Bank4[32] = {
+#include "assets/m4a1_hammer_animation_0A1A0_bank4.inc"
+};
+
+static AnimationRecord _gM4a1HammerAnimation0A1A0Records[57] = {
+#include "assets/m4a1_hammer_animation_0A1A0_records.inc"
+};
+
+static u16 _gM4a1HammerAnimation0A1A0Indices[20] = {
+#include "assets/m4a1_hammer_animation_0A1A0_indices.inc"
+};
+
+static AnimationSet _gM4a1HammerAnimation0A1A0 = {
+    _gM4a1HammerAnimation0A1A0Records,
+    _gM4a1HammerAnimation0A1A0Indices,
+    { NULL, _gM4a1HammerAnimation0A1A0Bank1, NULL, NULL, _gM4a1HammerAnimation0A1A0Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1HammerAnimation0A704Bank1[11] = {
+#include "assets/m4a1_hammer_animation_0A704_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1HammerAnimation0A704Bank4[125] = {
+#include "assets/m4a1_hammer_animation_0A704_bank4.inc"
+};
+
+static AnimationRecord _gM4a1HammerAnimation0A704Records[167] = {
+#include "assets/m4a1_hammer_animation_0A704_records.inc"
+};
+
+static u16 _gM4a1HammerAnimation0A704Indices[20] = {
+#include "assets/m4a1_hammer_animation_0A704_indices.inc"
+};
+
+static AnimationSet _gM4a1HammerAnimation0A704 = {
+    _gM4a1HammerAnimation0A704Records,
+    _gM4a1HammerAnimation0A704Indices,
+    { NULL, _gM4a1HammerAnimation0A704Bank1, NULL, NULL, _gM4a1HammerAnimation0A704Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1HammerAnimation0A8F8Bank1[3] = {
+#include "assets/m4a1_hammer_animation_0A8F8_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1HammerAnimation0A8F8Bank4[20] = {
+#include "assets/m4a1_hammer_animation_0A8F8_bank4.inc"
+};
+
+static AnimationRecord _gM4a1HammerAnimation0A8F8Records[76] = {
+#include "assets/m4a1_hammer_animation_0A8F8_records.inc"
+};
+
+static u16 _gM4a1HammerAnimation0A8F8Indices[20] = {
+#include "assets/m4a1_hammer_animation_0A8F8_indices.inc"
+};
+
+static AnimationSet _gM4a1HammerAnimation0A8F8 = {
+    _gM4a1HammerAnimation0A8F8Records,
+    _gM4a1HammerAnimation0A8F8Indices,
+    { NULL, _gM4a1HammerAnimation0A8F8Bank1, NULL, NULL, _gM4a1HammerAnimation0A8F8Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1HammerAnimation0AD78Bank1[8] = {
+#include "assets/m4a1_hammer_animation_0AD78_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1HammerAnimation0AD78Bank4[105] = {
+#include "assets/m4a1_hammer_animation_0AD78_bank4.inc"
+};
+
+static AnimationRecord _gM4a1HammerAnimation0AD78Records[139] = {
+#include "assets/m4a1_hammer_animation_0AD78_records.inc"
+};
+
+static u16 _gM4a1HammerAnimation0AD78Indices[20] = {
+#include "assets/m4a1_hammer_animation_0AD78_indices.inc"
+};
+
+static AnimationSet _gM4a1HammerAnimation0AD78 = {
+    _gM4a1HammerAnimation0AD78Records,
+    _gM4a1HammerAnimation0AD78Indices,
+    { NULL, _gM4a1HammerAnimation0AD78Bank1, NULL, NULL, _gM4a1HammerAnimation0AD78Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1HammerAnimation0AF50Bank1[2] = {
+#include "assets/m4a1_hammer_animation_0AF50_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1HammerAnimation0AF50Bank4[16] = {
+#include "assets/m4a1_hammer_animation_0AF50_bank4.inc"
+};
+
+static AnimationRecord _gM4a1HammerAnimation0AF50Records[76] = {
+#include "assets/m4a1_hammer_animation_0AF50_records.inc"
+};
+
+static u16 _gM4a1HammerAnimation0AF50Indices[20] = {
+#include "assets/m4a1_hammer_animation_0AF50_indices.inc"
+};
+
+static AnimationSet _gM4a1HammerAnimation0AF50 = {
+    _gM4a1HammerAnimation0AF50Records,
+    _gM4a1HammerAnimation0AF50Indices,
+    { NULL, _gM4a1HammerAnimation0AF50Bank1, NULL, NULL, _gM4a1HammerAnimation0AF50Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1HammerAnimation0B790Bank1[14] = {
+#include "assets/m4a1_hammer_animation_0B790_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1HammerAnimation0B790Bank4[194] = {
+#include "assets/m4a1_hammer_animation_0B790_bank4.inc"
+};
+
+static AnimationRecord _gM4a1HammerAnimation0B790Records[272] = {
+#include "assets/m4a1_hammer_animation_0B790_records.inc"
+};
+
+static u16 _gM4a1HammerAnimation0B790Indices[20] = {
+#include "assets/m4a1_hammer_animation_0B790_indices.inc"
+};
+
+static AnimationSet _gM4a1HammerAnimation0B790 = {
+    _gM4a1HammerAnimation0B790Records,
+    _gM4a1HammerAnimation0B790Indices,
+    { NULL, _gM4a1HammerAnimation0B790Bank1, NULL, NULL, _gM4a1HammerAnimation0B790Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1HammerAnimation0C238Bank1[19] = {
+#include "assets/m4a1_hammer_animation_0C238_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1HammerAnimation0C238Bank4[269] = {
+#include "assets/m4a1_hammer_animation_0C238_bank4.inc"
+};
+
+static AnimationRecord _gM4a1HammerAnimation0C238Records[336] = {
+#include "assets/m4a1_hammer_animation_0C238_records.inc"
+};
+
+static u16 _gM4a1HammerAnimation0C238Indices[20] = {
+#include "assets/m4a1_hammer_animation_0C238_indices.inc"
+};
+
+static AnimationSet _gM4a1HammerAnimation0C238 = {
+    _gM4a1HammerAnimation0C238Records,
+    _gM4a1HammerAnimation0C238Indices,
+    { NULL, _gM4a1HammerAnimation0C238Bank1, NULL, NULL, _gM4a1HammerAnimation0C238Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1HammerAnimation0D0D4Bank1[24] = {
+#include "assets/m4a1_hammer_animation_0D0D4_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1HammerAnimation0D0D4Bank4[390] = {
+#include "assets/m4a1_hammer_animation_0D0D4_bank4.inc"
+};
+
+static AnimationRecord _gM4a1HammerAnimation0D0D4Records[453] = {
+#include "assets/m4a1_hammer_animation_0D0D4_records.inc"
+};
+
+static u16 _gM4a1HammerAnimation0D0D4Indices[20] = {
+#include "assets/m4a1_hammer_animation_0D0D4_indices.inc"
+};
+
+static AnimationSet _gM4a1HammerAnimation0D0D4 = {
+    _gM4a1HammerAnimation0D0D4Records,
+    _gM4a1HammerAnimation0D0D4Indices,
+    { NULL, _gM4a1HammerAnimation0D0D4Bank1, NULL, NULL, _gM4a1HammerAnimation0D0D4Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1HammerAnimation0D578Bank1[8] = {
+#include "assets/m4a1_hammer_animation_0D578_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1HammerAnimation0D578Bank4[102] = {
+#include "assets/m4a1_hammer_animation_0D578_bank4.inc"
+};
+
+static AnimationRecord _gM4a1HammerAnimation0D578Records[151] = {
+#include "assets/m4a1_hammer_animation_0D578_records.inc"
+};
+
+static u16 _gM4a1HammerAnimation0D578Indices[20] = {
+#include "assets/m4a1_hammer_animation_0D578_indices.inc"
+};
+
+static AnimationSet _gM4a1HammerAnimation0D578 = {
+    _gM4a1HammerAnimation0D578Records,
+    _gM4a1HammerAnimation0D578Indices,
+    { NULL, _gM4a1HammerAnimation0D578Bank1, NULL, NULL, _gM4a1HammerAnimation0D578Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1HammerAnimation0DC5CBank1[13] = {
+#include "assets/m4a1_hammer_animation_0DC5C_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1HammerAnimation0DC5CBank4[170] = {
+#include "assets/m4a1_hammer_animation_0DC5C_bank4.inc"
+};
+
+static AnimationRecord _gM4a1HammerAnimation0DC5CRecords[212] = {
+#include "assets/m4a1_hammer_animation_0DC5C_records.inc"
+};
+
+static u16 _gM4a1HammerAnimation0DC5CIndices[20] = {
+#include "assets/m4a1_hammer_animation_0DC5C_indices.inc"
+};
+
+static AnimationSet _gM4a1HammerAnimation0DC5C = {
+    _gM4a1HammerAnimation0DC5CRecords,
+    _gM4a1HammerAnimation0DC5CIndices,
+    { NULL, _gM4a1HammerAnimation0DC5CBank1, NULL, NULL, _gM4a1HammerAnimation0DC5CBank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1HammerAnimation0E368Bank1[13] = {
+#include "assets/m4a1_hammer_animation_0E368_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1HammerAnimation0E368Bank4[175] = {
+#include "assets/m4a1_hammer_animation_0E368_bank4.inc"
+};
+
+static AnimationRecord _gM4a1HammerAnimation0E368Records[217] = {
+#include "assets/m4a1_hammer_animation_0E368_records.inc"
+};
+
+static u16 _gM4a1HammerAnimation0E368Indices[20] = {
+#include "assets/m4a1_hammer_animation_0E368_indices.inc"
+};
+
+static AnimationSet _gM4a1HammerAnimation0E368 = {
+    _gM4a1HammerAnimation0E368Records,
+    _gM4a1HammerAnimation0E368Indices,
+    { NULL, _gM4a1HammerAnimation0E368Bank1, NULL, NULL, _gM4a1HammerAnimation0E368Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1HammerAnimation0E8E0Bank1[10] = {
+#include "assets/m4a1_hammer_animation_0E8E0_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1HammerAnimation0E8E0Bank4[131] = {
+#include "assets/m4a1_hammer_animation_0E8E0_bank4.inc"
+};
+
+static AnimationRecord _gM4a1HammerAnimation0E8E0Records[169] = {
+#include "assets/m4a1_hammer_animation_0E8E0_records.inc"
+};
+
+static u16 _gM4a1HammerAnimation0E8E0Indices[20] = {
+#include "assets/m4a1_hammer_animation_0E8E0_indices.inc"
+};
+
+static AnimationSet _gM4a1HammerAnimation0E8E0 = {
+    _gM4a1HammerAnimation0E8E0Records,
+    _gM4a1HammerAnimation0E8E0Indices,
+    { NULL, _gM4a1HammerAnimation0E8E0Bank1, NULL, NULL, _gM4a1HammerAnimation0E8E0Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1HammerAnimation0F198Bank1[18] = {
+#include "assets/m4a1_hammer_animation_0F198_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1HammerAnimation0F198Bank4[201] = {
+#include "assets/m4a1_hammer_animation_0F198_bank4.inc"
+};
+
+static AnimationRecord _gM4a1HammerAnimation0F198Records[283] = {
+#include "assets/m4a1_hammer_animation_0F198_records.inc"
+};
+
+static u16 _gM4a1HammerAnimation0F198Indices[20] = {
+#include "assets/m4a1_hammer_animation_0F198_indices.inc"
+};
+
+static AnimationSet _gM4a1HammerAnimation0F198 = {
+    _gM4a1HammerAnimation0F198Records,
+    _gM4a1HammerAnimation0F198Indices,
+    { NULL, _gM4a1HammerAnimation0F198Bank1, NULL, NULL, _gM4a1HammerAnimation0F198Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1HammerAnimation0F938Bank1[16] = {
+#include "assets/m4a1_hammer_animation_0F938_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1HammerAnimation0F938Bank4[157] = {
+#include "assets/m4a1_hammer_animation_0F938_bank4.inc"
+};
+
+static AnimationRecord _gM4a1HammerAnimation0F938Records[263] = {
+#include "assets/m4a1_hammer_animation_0F938_records.inc"
+};
+
+static u16 _gM4a1HammerAnimation0F938Indices[20] = {
+#include "assets/m4a1_hammer_animation_0F938_indices.inc"
+};
+
+static AnimationSet _gM4a1HammerAnimation0F938 = {
+    _gM4a1HammerAnimation0F938Records,
+    _gM4a1HammerAnimation0F938Indices,
+    { NULL, _gM4a1HammerAnimation0F938Bank1, NULL, NULL, _gM4a1HammerAnimation0F938Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1HammerAnimation1030CBank1[25] = {
+#include "assets/m4a1_hammer_animation_1030C_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1HammerAnimation1030CBank4[223] = {
+#include "assets/m4a1_hammer_animation_1030C_bank4.inc"
+};
+
+static AnimationRecord _gM4a1HammerAnimation1030CRecords[311] = {
+#include "assets/m4a1_hammer_animation_1030C_records.inc"
+};
+
+static u16 _gM4a1HammerAnimation1030CIndices[20] = {
+#include "assets/m4a1_hammer_animation_1030C_indices.inc"
+};
+
+static AnimationSet _gM4a1HammerAnimation1030C = {
+    _gM4a1HammerAnimation1030CRecords,
+    _gM4a1HammerAnimation1030CIndices,
+    { NULL, _gM4a1HammerAnimation1030CBank1, NULL, NULL, _gM4a1HammerAnimation1030CBank4, NULL, NULL, NULL },
+};
+
+AnimationBank D_m4a1_hammer_8012D4F4 = { { {
+    NULL,
+    &_gM4a1HammerAnimation0276C,
+    &_gM4a1HammerAnimation0F198,
+    &_gM4a1HammerAnimation0F938,
+    &_gM4a1HammerAnimation1030C,
+    &_gM4a1HammerAnimation03670,
+    &_gM4a1HammerAnimation03ED4,
+    &_gM4a1HammerAnimation0E368,
+    &_gM4a1HammerAnimation0E8E0,
+    &_gM4a1HammerAnimation0AF50,
+    &_gM4a1HammerAnimation0D578,
+    &_gM4a1HammerAnimation0DC5C,
+    &_gM4a1HammerAnimation0C238,
+    &_gM4a1HammerAnimation0B790,
+    &_gM4a1HammerAnimation0D0D4,
+    &_gM4a1HammerAnimation0D0D4,
+    &_gM4a1HammerAnimation06B38,
+    &_gM4a1HammerAnimation06E58,
+    &_gM4a1HammerAnimation0761C,
+    &_gM4a1HammerAnimation02E10,
+    &_gM4a1HammerAnimation0D0D4,
+    &_gM4a1HammerAnimation0276C,
+    &_gM4a1HammerAnimation0276C,
+    &_gM4a1HammerAnimation088B4,
+    &_gM4a1HammerAnimation09B48,
+    &_gM4a1HammerAnimation0942C,
+    &_gM4a1HammerAnimation05BB8,
+    &_gM4a1HammerAnimation05DB4,
+    &_gM4a1HammerAnimation0608C,
+    &_gM4a1HammerAnimation06330,
+    &_gM4a1HammerAnimation06530,
+    &_gM4a1HammerAnimation06884,
+    &_gM4a1HammerAnimation09FC8,
+    &_gM4a1HammerAnimation0A1A0,
+    &_gM4a1HammerAnimation09FC8,
+    &_gM4a1HammerAnimation0A1A0,
+    &_gM4a1HammerAnimation04944,
+    &_gM4a1HammerAnimation050CC,
+    &_gM4a1HammerAnimation05730,
+    &_gM4a1HammerAnimation053A0,
+    &_gM4a1HammerAnimation041E8,
+    &_gM4a1HammerAnimation0276C,
+    &_gM4a1HammerAnimation0A704,
+    &_gM4a1HammerAnimation0A8F8,
+    &_gM4a1HammerAnimation0AD78,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+} } };

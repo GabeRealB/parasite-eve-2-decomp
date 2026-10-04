@@ -360,3 +360,921 @@ TmdSource D_m4a1_pyke_8011F56C = {
     _gM4a1PykeModel01BCCSkeleton,
     _gM4a1PykeModel01BCCStream,
 };
+
+static AnimationPackedPose _gM4a1PykeAnimation02560Bank1[2] = {
+#include "assets/m4a1_pyke_animation_02560_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1PykeAnimation02560Bank4[8] = {
+#include "assets/m4a1_pyke_animation_02560_bank4.inc"
+};
+
+static AnimationRecord _gM4a1PykeAnimation02560Records[76] = {
+#include "assets/m4a1_pyke_animation_02560_records.inc"
+};
+
+static u16 _gM4a1PykeAnimation02560Indices[20] = {
+#include "assets/m4a1_pyke_animation_02560_indices.inc"
+};
+
+static AnimationSet _gM4a1PykeAnimation02560 = {
+    _gM4a1PykeAnimation02560Records,
+    _gM4a1PykeAnimation02560Indices,
+    { NULL, _gM4a1PykeAnimation02560Bank1, NULL, NULL, _gM4a1PykeAnimation02560Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1PykeAnimation02C04Bank1[12] = {
+#include "assets/m4a1_pyke_animation_02C04_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1PykeAnimation02C04Bank4[151] = {
+#include "assets/m4a1_pyke_animation_02C04_bank4.inc"
+};
+
+static AnimationRecord _gM4a1PykeAnimation02C04Records[218] = {
+#include "assets/m4a1_pyke_animation_02C04_records.inc"
+};
+
+static u16 _gM4a1PykeAnimation02C04Indices[20] = {
+#include "assets/m4a1_pyke_animation_02C04_indices.inc"
+};
+
+static AnimationSet _gM4a1PykeAnimation02C04 = {
+    _gM4a1PykeAnimation02C04Records,
+    _gM4a1PykeAnimation02C04Indices,
+    { NULL, _gM4a1PykeAnimation02C04Bank1, NULL, NULL, _gM4a1PykeAnimation02C04Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1PykeAnimation03464Bank1[19] = {
+#include "assets/m4a1_pyke_animation_03464_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1PykeAnimation03464Bank4[169] = {
+#include "assets/m4a1_pyke_animation_03464_bank4.inc"
+};
+
+static AnimationRecord _gM4a1PykeAnimation03464Records[290] = {
+#include "assets/m4a1_pyke_animation_03464_records.inc"
+};
+
+static u16 _gM4a1PykeAnimation03464Indices[20] = {
+#include "assets/m4a1_pyke_animation_03464_indices.inc"
+};
+
+static AnimationSet _gM4a1PykeAnimation03464 = {
+    _gM4a1PykeAnimation03464Records,
+    _gM4a1PykeAnimation03464Indices,
+    { NULL, _gM4a1PykeAnimation03464Bank1, NULL, NULL, _gM4a1PykeAnimation03464Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1PykeAnimation03CC8Bank1[19] = {
+#include "assets/m4a1_pyke_animation_03CC8_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1PykeAnimation03CC8Bank4[170] = {
+#include "assets/m4a1_pyke_animation_03CC8_bank4.inc"
+};
+
+static AnimationRecord _gM4a1PykeAnimation03CC8Records[290] = {
+#include "assets/m4a1_pyke_animation_03CC8_records.inc"
+};
+
+static u16 _gM4a1PykeAnimation03CC8Indices[20] = {
+#include "assets/m4a1_pyke_animation_03CC8_indices.inc"
+};
+
+static AnimationSet _gM4a1PykeAnimation03CC8 = {
+    _gM4a1PykeAnimation03CC8Records,
+    _gM4a1PykeAnimation03CC8Indices,
+    { NULL, _gM4a1PykeAnimation03CC8Bank1, NULL, NULL, _gM4a1PykeAnimation03CC8Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1PykeAnimation03FDCBank1[3] = {
+#include "assets/m4a1_pyke_animation_03FDC_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1PykeAnimation03FDCBank4[69] = {
+#include "assets/m4a1_pyke_animation_03FDC_bank4.inc"
+};
+
+static AnimationRecord _gM4a1PykeAnimation03FDCRecords[99] = {
+#include "assets/m4a1_pyke_animation_03FDC_records.inc"
+};
+
+static u16 _gM4a1PykeAnimation03FDCIndices[20] = {
+#include "assets/m4a1_pyke_animation_03FDC_indices.inc"
+};
+
+static AnimationSet _gM4a1PykeAnimation03FDC = {
+    _gM4a1PykeAnimation03FDCRecords,
+    _gM4a1PykeAnimation03FDCIndices,
+    { NULL, _gM4a1PykeAnimation03FDCBank1, NULL, NULL, _gM4a1PykeAnimation03FDCBank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1PykeAnimation04738Bank1[14] = {
+#include "assets/m4a1_pyke_animation_04738_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1PykeAnimation04738Bank4[156] = {
+#include "assets/m4a1_pyke_animation_04738_bank4.inc"
+};
+
+static AnimationRecord _gM4a1PykeAnimation04738Records[253] = {
+#include "assets/m4a1_pyke_animation_04738_records.inc"
+};
+
+static u16 _gM4a1PykeAnimation04738Indices[20] = {
+#include "assets/m4a1_pyke_animation_04738_indices.inc"
+};
+
+static AnimationSet _gM4a1PykeAnimation04738 = {
+    _gM4a1PykeAnimation04738Records,
+    _gM4a1PykeAnimation04738Indices,
+    { NULL, _gM4a1PykeAnimation04738Bank1, NULL, NULL, _gM4a1PykeAnimation04738Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1PykeAnimation04EC0Bank1[16] = {
+#include "assets/m4a1_pyke_animation_04EC0_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1PykeAnimation04EC0Bank4[167] = {
+#include "assets/m4a1_pyke_animation_04EC0_bank4.inc"
+};
+
+static AnimationRecord _gM4a1PykeAnimation04EC0Records[247] = {
+#include "assets/m4a1_pyke_animation_04EC0_records.inc"
+};
+
+static u16 _gM4a1PykeAnimation04EC0Indices[20] = {
+#include "assets/m4a1_pyke_animation_04EC0_indices.inc"
+};
+
+static AnimationSet _gM4a1PykeAnimation04EC0 = {
+    _gM4a1PykeAnimation04EC0Records,
+    _gM4a1PykeAnimation04EC0Indices,
+    { NULL, _gM4a1PykeAnimation04EC0Bank1, NULL, NULL, _gM4a1PykeAnimation04EC0Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1PykeAnimation05194Bank1[6] = {
+#include "assets/m4a1_pyke_animation_05194_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1PykeAnimation05194Bank4[52] = {
+#include "assets/m4a1_pyke_animation_05194_bank4.inc"
+};
+
+static AnimationRecord _gM4a1PykeAnimation05194Records[91] = {
+#include "assets/m4a1_pyke_animation_05194_records.inc"
+};
+
+static u16 _gM4a1PykeAnimation05194Indices[20] = {
+#include "assets/m4a1_pyke_animation_05194_indices.inc"
+};
+
+static AnimationSet _gM4a1PykeAnimation05194 = {
+    _gM4a1PykeAnimation05194Records,
+    _gM4a1PykeAnimation05194Indices,
+    { NULL, _gM4a1PykeAnimation05194Bank1, NULL, NULL, _gM4a1PykeAnimation05194Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1PykeAnimation05524Bank1[7] = {
+#include "assets/m4a1_pyke_animation_05524_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1PykeAnimation05524Bank4[73] = {
+#include "assets/m4a1_pyke_animation_05524_bank4.inc"
+};
+
+static AnimationRecord _gM4a1PykeAnimation05524Records[114] = {
+#include "assets/m4a1_pyke_animation_05524_records.inc"
+};
+
+static u16 _gM4a1PykeAnimation05524Indices[20] = {
+#include "assets/m4a1_pyke_animation_05524_indices.inc"
+};
+
+static AnimationSet _gM4a1PykeAnimation05524 = {
+    _gM4a1PykeAnimation05524Records,
+    _gM4a1PykeAnimation05524Indices,
+    { NULL, _gM4a1PykeAnimation05524Bank1, NULL, NULL, _gM4a1PykeAnimation05524Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1PykeAnimation059ACBank1[9] = {
+#include "assets/m4a1_pyke_animation_059AC_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1PykeAnimation059ACBank4[104] = {
+#include "assets/m4a1_pyke_animation_059AC_bank4.inc"
+};
+
+static AnimationRecord _gM4a1PykeAnimation059ACRecords[139] = {
+#include "assets/m4a1_pyke_animation_059AC_records.inc"
+};
+
+static u16 _gM4a1PykeAnimation059ACIndices[20] = {
+#include "assets/m4a1_pyke_animation_059AC_indices.inc"
+};
+
+static AnimationSet _gM4a1PykeAnimation059AC = {
+    _gM4a1PykeAnimation059ACRecords,
+    _gM4a1PykeAnimation059ACIndices,
+    { NULL, _gM4a1PykeAnimation059ACBank1, NULL, NULL, _gM4a1PykeAnimation059ACBank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1PykeAnimation05BA8Bank1[3] = {
+#include "assets/m4a1_pyke_animation_05BA8_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1PykeAnimation05BA8Bank4[22] = {
+#include "assets/m4a1_pyke_animation_05BA8_bank4.inc"
+};
+
+static AnimationRecord _gM4a1PykeAnimation05BA8Records[76] = {
+#include "assets/m4a1_pyke_animation_05BA8_records.inc"
+};
+
+static u16 _gM4a1PykeAnimation05BA8Indices[20] = {
+#include "assets/m4a1_pyke_animation_05BA8_indices.inc"
+};
+
+static AnimationSet _gM4a1PykeAnimation05BA8 = {
+    _gM4a1PykeAnimation05BA8Records,
+    _gM4a1PykeAnimation05BA8Indices,
+    { NULL, _gM4a1PykeAnimation05BA8Bank1, NULL, NULL, _gM4a1PykeAnimation05BA8Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1PykeAnimation05E80Bank1[6] = {
+#include "assets/m4a1_pyke_animation_05E80_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1PykeAnimation05E80Bank4[57] = {
+#include "assets/m4a1_pyke_animation_05E80_bank4.inc"
+};
+
+static AnimationRecord _gM4a1PykeAnimation05E80Records[87] = {
+#include "assets/m4a1_pyke_animation_05E80_records.inc"
+};
+
+static u16 _gM4a1PykeAnimation05E80Indices[20] = {
+#include "assets/m4a1_pyke_animation_05E80_indices.inc"
+};
+
+static AnimationSet _gM4a1PykeAnimation05E80 = {
+    _gM4a1PykeAnimation05E80Records,
+    _gM4a1PykeAnimation05E80Indices,
+    { NULL, _gM4a1PykeAnimation05E80Bank1, NULL, NULL, _gM4a1PykeAnimation05E80Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1PykeAnimation06124Bank1[4] = {
+#include "assets/m4a1_pyke_animation_06124_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1PykeAnimation06124Bank4[55] = {
+#include "assets/m4a1_pyke_animation_06124_bank4.inc"
+};
+
+static AnimationRecord _gM4a1PykeAnimation06124Records[82] = {
+#include "assets/m4a1_pyke_animation_06124_records.inc"
+};
+
+static u16 _gM4a1PykeAnimation06124Indices[20] = {
+#include "assets/m4a1_pyke_animation_06124_indices.inc"
+};
+
+static AnimationSet _gM4a1PykeAnimation06124 = {
+    _gM4a1PykeAnimation06124Records,
+    _gM4a1PykeAnimation06124Indices,
+    { NULL, _gM4a1PykeAnimation06124Bank1, NULL, NULL, _gM4a1PykeAnimation06124Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1PykeAnimation06324Bank1[3] = {
+#include "assets/m4a1_pyke_animation_06324_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1PykeAnimation06324Bank4[23] = {
+#include "assets/m4a1_pyke_animation_06324_bank4.inc"
+};
+
+static AnimationRecord _gM4a1PykeAnimation06324Records[76] = {
+#include "assets/m4a1_pyke_animation_06324_records.inc"
+};
+
+static u16 _gM4a1PykeAnimation06324Indices[20] = {
+#include "assets/m4a1_pyke_animation_06324_indices.inc"
+};
+
+static AnimationSet _gM4a1PykeAnimation06324 = {
+    _gM4a1PykeAnimation06324Records,
+    _gM4a1PykeAnimation06324Indices,
+    { NULL, _gM4a1PykeAnimation06324Bank1, NULL, NULL, _gM4a1PykeAnimation06324Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1PykeAnimation06678Bank1[8] = {
+#include "assets/m4a1_pyke_animation_06678_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1PykeAnimation06678Bank4[68] = {
+#include "assets/m4a1_pyke_animation_06678_bank4.inc"
+};
+
+static AnimationRecord _gM4a1PykeAnimation06678Records[101] = {
+#include "assets/m4a1_pyke_animation_06678_records.inc"
+};
+
+static u16 _gM4a1PykeAnimation06678Indices[20] = {
+#include "assets/m4a1_pyke_animation_06678_indices.inc"
+};
+
+static AnimationSet _gM4a1PykeAnimation06678 = {
+    _gM4a1PykeAnimation06678Records,
+    _gM4a1PykeAnimation06678Indices,
+    { NULL, _gM4a1PykeAnimation06678Bank1, NULL, NULL, _gM4a1PykeAnimation06678Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1PykeAnimation0692CBank1[5] = {
+#include "assets/m4a1_pyke_animation_0692C_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1PykeAnimation0692CBank4[55] = {
+#include "assets/m4a1_pyke_animation_0692C_bank4.inc"
+};
+
+static AnimationRecord _gM4a1PykeAnimation0692CRecords[83] = {
+#include "assets/m4a1_pyke_animation_0692C_records.inc"
+};
+
+static u16 _gM4a1PykeAnimation0692CIndices[20] = {
+#include "assets/m4a1_pyke_animation_0692C_indices.inc"
+};
+
+static AnimationSet _gM4a1PykeAnimation0692C = {
+    _gM4a1PykeAnimation0692CRecords,
+    _gM4a1PykeAnimation0692CIndices,
+    { NULL, _gM4a1PykeAnimation0692CBank1, NULL, NULL, _gM4a1PykeAnimation0692CBank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1PykeAnimation06C4CBank1[6] = {
+#include "assets/m4a1_pyke_animation_06C4C_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1PykeAnimation06C4CBank4[66] = {
+#include "assets/m4a1_pyke_animation_06C4C_bank4.inc"
+};
+
+static AnimationRecord _gM4a1PykeAnimation06C4CRecords[96] = {
+#include "assets/m4a1_pyke_animation_06C4C_records.inc"
+};
+
+static u16 _gM4a1PykeAnimation06C4CIndices[20] = {
+#include "assets/m4a1_pyke_animation_06C4C_indices.inc"
+};
+
+static AnimationSet _gM4a1PykeAnimation06C4C = {
+    _gM4a1PykeAnimation06C4CRecords,
+    _gM4a1PykeAnimation06C4CIndices,
+    { NULL, _gM4a1PykeAnimation06C4CBank1, NULL, NULL, _gM4a1PykeAnimation06C4CBank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1PykeAnimation07410Bank1[18] = {
+#include "assets/m4a1_pyke_animation_07410_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1PykeAnimation07410Bank4[184] = {
+#include "assets/m4a1_pyke_animation_07410_bank4.inc"
+};
+
+static AnimationRecord _gM4a1PykeAnimation07410Records[239] = {
+#include "assets/m4a1_pyke_animation_07410_records.inc"
+};
+
+static u16 _gM4a1PykeAnimation07410Indices[20] = {
+#include "assets/m4a1_pyke_animation_07410_indices.inc"
+};
+
+static AnimationSet _gM4a1PykeAnimation07410 = {
+    _gM4a1PykeAnimation07410Records,
+    _gM4a1PykeAnimation07410Indices,
+    { NULL, _gM4a1PykeAnimation07410Bank1, NULL, NULL, _gM4a1PykeAnimation07410Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1PykeAnimation086A8Bank1[29] = {
+#include "assets/m4a1_pyke_animation_086A8_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1PykeAnimation086A8Bank4[450] = {
+#include "assets/m4a1_pyke_animation_086A8_bank4.inc"
+};
+
+static AnimationRecord _gM4a1PykeAnimation086A8Records[633] = {
+#include "assets/m4a1_pyke_animation_086A8_records.inc"
+};
+
+static u16 _gM4a1PykeAnimation086A8Indices[20] = {
+#include "assets/m4a1_pyke_animation_086A8_indices.inc"
+};
+
+static AnimationSet _gM4a1PykeAnimation086A8 = {
+    _gM4a1PykeAnimation086A8Records,
+    _gM4a1PykeAnimation086A8Indices,
+    { NULL, _gM4a1PykeAnimation086A8Bank1, NULL, NULL, _gM4a1PykeAnimation086A8Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1PykeAnimation09220Bank1[12] = {
+#include "assets/m4a1_pyke_animation_09220_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1PykeAnimation09220Bank4[266] = {
+#include "assets/m4a1_pyke_animation_09220_bank4.inc"
+};
+
+static AnimationRecord _gM4a1PykeAnimation09220Records[412] = {
+#include "assets/m4a1_pyke_animation_09220_records.inc"
+};
+
+static u16 _gM4a1PykeAnimation09220Indices[20] = {
+#include "assets/m4a1_pyke_animation_09220_indices.inc"
+};
+
+static AnimationSet _gM4a1PykeAnimation09220 = {
+    _gM4a1PykeAnimation09220Records,
+    _gM4a1PykeAnimation09220Indices,
+    { NULL, _gM4a1PykeAnimation09220Bank1, NULL, NULL, _gM4a1PykeAnimation09220Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1PykeAnimation0993CBank1[9] = {
+#include "assets/m4a1_pyke_animation_0993C_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1PykeAnimation0993CBank4[144] = {
+#include "assets/m4a1_pyke_animation_0993C_bank4.inc"
+};
+
+static AnimationRecord _gM4a1PykeAnimation0993CRecords[264] = {
+#include "assets/m4a1_pyke_animation_0993C_records.inc"
+};
+
+static u16 _gM4a1PykeAnimation0993CIndices[20] = {
+#include "assets/m4a1_pyke_animation_0993C_indices.inc"
+};
+
+static AnimationSet _gM4a1PykeAnimation0993C = {
+    _gM4a1PykeAnimation0993CRecords,
+    _gM4a1PykeAnimation0993CIndices,
+    { NULL, _gM4a1PykeAnimation0993CBank1, NULL, NULL, _gM4a1PykeAnimation0993CBank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1PykeAnimation09DBCBank1[6] = {
+#include "assets/m4a1_pyke_animation_09DBC_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1PykeAnimation09DBCBank4[107] = {
+#include "assets/m4a1_pyke_animation_09DBC_bank4.inc"
+};
+
+static AnimationRecord _gM4a1PykeAnimation09DBCRecords[143] = {
+#include "assets/m4a1_pyke_animation_09DBC_records.inc"
+};
+
+static u16 _gM4a1PykeAnimation09DBCIndices[20] = {
+#include "assets/m4a1_pyke_animation_09DBC_indices.inc"
+};
+
+static AnimationSet _gM4a1PykeAnimation09DBC = {
+    _gM4a1PykeAnimation09DBCRecords,
+    _gM4a1PykeAnimation09DBCIndices,
+    { NULL, _gM4a1PykeAnimation09DBCBank1, NULL, NULL, _gM4a1PykeAnimation09DBCBank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1PykeAnimation09F94Bank1[3] = {
+#include "assets/m4a1_pyke_animation_09F94_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1PykeAnimation09F94Bank4[32] = {
+#include "assets/m4a1_pyke_animation_09F94_bank4.inc"
+};
+
+static AnimationRecord _gM4a1PykeAnimation09F94Records[57] = {
+#include "assets/m4a1_pyke_animation_09F94_records.inc"
+};
+
+static u16 _gM4a1PykeAnimation09F94Indices[20] = {
+#include "assets/m4a1_pyke_animation_09F94_indices.inc"
+};
+
+static AnimationSet _gM4a1PykeAnimation09F94 = {
+    _gM4a1PykeAnimation09F94Records,
+    _gM4a1PykeAnimation09F94Indices,
+    { NULL, _gM4a1PykeAnimation09F94Bank1, NULL, NULL, _gM4a1PykeAnimation09F94Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1PykeAnimation0A4F8Bank1[11] = {
+#include "assets/m4a1_pyke_animation_0A4F8_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1PykeAnimation0A4F8Bank4[125] = {
+#include "assets/m4a1_pyke_animation_0A4F8_bank4.inc"
+};
+
+static AnimationRecord _gM4a1PykeAnimation0A4F8Records[167] = {
+#include "assets/m4a1_pyke_animation_0A4F8_records.inc"
+};
+
+static u16 _gM4a1PykeAnimation0A4F8Indices[20] = {
+#include "assets/m4a1_pyke_animation_0A4F8_indices.inc"
+};
+
+static AnimationSet _gM4a1PykeAnimation0A4F8 = {
+    _gM4a1PykeAnimation0A4F8Records,
+    _gM4a1PykeAnimation0A4F8Indices,
+    { NULL, _gM4a1PykeAnimation0A4F8Bank1, NULL, NULL, _gM4a1PykeAnimation0A4F8Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1PykeAnimation0A6ECBank1[3] = {
+#include "assets/m4a1_pyke_animation_0A6EC_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1PykeAnimation0A6ECBank4[20] = {
+#include "assets/m4a1_pyke_animation_0A6EC_bank4.inc"
+};
+
+static AnimationRecord _gM4a1PykeAnimation0A6ECRecords[76] = {
+#include "assets/m4a1_pyke_animation_0A6EC_records.inc"
+};
+
+static u16 _gM4a1PykeAnimation0A6ECIndices[20] = {
+#include "assets/m4a1_pyke_animation_0A6EC_indices.inc"
+};
+
+static AnimationSet _gM4a1PykeAnimation0A6EC = {
+    _gM4a1PykeAnimation0A6ECRecords,
+    _gM4a1PykeAnimation0A6ECIndices,
+    { NULL, _gM4a1PykeAnimation0A6ECBank1, NULL, NULL, _gM4a1PykeAnimation0A6ECBank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1PykeAnimation0AB6CBank1[8] = {
+#include "assets/m4a1_pyke_animation_0AB6C_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1PykeAnimation0AB6CBank4[105] = {
+#include "assets/m4a1_pyke_animation_0AB6C_bank4.inc"
+};
+
+static AnimationRecord _gM4a1PykeAnimation0AB6CRecords[139] = {
+#include "assets/m4a1_pyke_animation_0AB6C_records.inc"
+};
+
+static u16 _gM4a1PykeAnimation0AB6CIndices[20] = {
+#include "assets/m4a1_pyke_animation_0AB6C_indices.inc"
+};
+
+static AnimationSet _gM4a1PykeAnimation0AB6C = {
+    _gM4a1PykeAnimation0AB6CRecords,
+    _gM4a1PykeAnimation0AB6CIndices,
+    { NULL, _gM4a1PykeAnimation0AB6CBank1, NULL, NULL, _gM4a1PykeAnimation0AB6CBank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1PykeAnimation0AD44Bank1[2] = {
+#include "assets/m4a1_pyke_animation_0AD44_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1PykeAnimation0AD44Bank4[16] = {
+#include "assets/m4a1_pyke_animation_0AD44_bank4.inc"
+};
+
+static AnimationRecord _gM4a1PykeAnimation0AD44Records[76] = {
+#include "assets/m4a1_pyke_animation_0AD44_records.inc"
+};
+
+static u16 _gM4a1PykeAnimation0AD44Indices[20] = {
+#include "assets/m4a1_pyke_animation_0AD44_indices.inc"
+};
+
+static AnimationSet _gM4a1PykeAnimation0AD44 = {
+    _gM4a1PykeAnimation0AD44Records,
+    _gM4a1PykeAnimation0AD44Indices,
+    { NULL, _gM4a1PykeAnimation0AD44Bank1, NULL, NULL, _gM4a1PykeAnimation0AD44Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1PykeAnimation0B584Bank1[14] = {
+#include "assets/m4a1_pyke_animation_0B584_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1PykeAnimation0B584Bank4[194] = {
+#include "assets/m4a1_pyke_animation_0B584_bank4.inc"
+};
+
+static AnimationRecord _gM4a1PykeAnimation0B584Records[272] = {
+#include "assets/m4a1_pyke_animation_0B584_records.inc"
+};
+
+static u16 _gM4a1PykeAnimation0B584Indices[20] = {
+#include "assets/m4a1_pyke_animation_0B584_indices.inc"
+};
+
+static AnimationSet _gM4a1PykeAnimation0B584 = {
+    _gM4a1PykeAnimation0B584Records,
+    _gM4a1PykeAnimation0B584Indices,
+    { NULL, _gM4a1PykeAnimation0B584Bank1, NULL, NULL, _gM4a1PykeAnimation0B584Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1PykeAnimation0C02CBank1[19] = {
+#include "assets/m4a1_pyke_animation_0C02C_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1PykeAnimation0C02CBank4[269] = {
+#include "assets/m4a1_pyke_animation_0C02C_bank4.inc"
+};
+
+static AnimationRecord _gM4a1PykeAnimation0C02CRecords[336] = {
+#include "assets/m4a1_pyke_animation_0C02C_records.inc"
+};
+
+static u16 _gM4a1PykeAnimation0C02CIndices[20] = {
+#include "assets/m4a1_pyke_animation_0C02C_indices.inc"
+};
+
+static AnimationSet _gM4a1PykeAnimation0C02C = {
+    _gM4a1PykeAnimation0C02CRecords,
+    _gM4a1PykeAnimation0C02CIndices,
+    { NULL, _gM4a1PykeAnimation0C02CBank1, NULL, NULL, _gM4a1PykeAnimation0C02CBank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1PykeAnimation0CEC8Bank1[24] = {
+#include "assets/m4a1_pyke_animation_0CEC8_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1PykeAnimation0CEC8Bank4[390] = {
+#include "assets/m4a1_pyke_animation_0CEC8_bank4.inc"
+};
+
+static AnimationRecord _gM4a1PykeAnimation0CEC8Records[453] = {
+#include "assets/m4a1_pyke_animation_0CEC8_records.inc"
+};
+
+static u16 _gM4a1PykeAnimation0CEC8Indices[20] = {
+#include "assets/m4a1_pyke_animation_0CEC8_indices.inc"
+};
+
+static AnimationSet _gM4a1PykeAnimation0CEC8 = {
+    _gM4a1PykeAnimation0CEC8Records,
+    _gM4a1PykeAnimation0CEC8Indices,
+    { NULL, _gM4a1PykeAnimation0CEC8Bank1, NULL, NULL, _gM4a1PykeAnimation0CEC8Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1PykeAnimation0D36CBank1[8] = {
+#include "assets/m4a1_pyke_animation_0D36C_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1PykeAnimation0D36CBank4[102] = {
+#include "assets/m4a1_pyke_animation_0D36C_bank4.inc"
+};
+
+static AnimationRecord _gM4a1PykeAnimation0D36CRecords[151] = {
+#include "assets/m4a1_pyke_animation_0D36C_records.inc"
+};
+
+static u16 _gM4a1PykeAnimation0D36CIndices[20] = {
+#include "assets/m4a1_pyke_animation_0D36C_indices.inc"
+};
+
+static AnimationSet _gM4a1PykeAnimation0D36C = {
+    _gM4a1PykeAnimation0D36CRecords,
+    _gM4a1PykeAnimation0D36CIndices,
+    { NULL, _gM4a1PykeAnimation0D36CBank1, NULL, NULL, _gM4a1PykeAnimation0D36CBank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1PykeAnimation0D7F4Bank1[7] = {
+#include "assets/m4a1_pyke_animation_0D7F4_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1PykeAnimation0D7F4Bank4[91] = {
+#include "assets/m4a1_pyke_animation_0D7F4_bank4.inc"
+};
+
+static AnimationRecord _gM4a1PykeAnimation0D7F4Records[158] = {
+#include "assets/m4a1_pyke_animation_0D7F4_records.inc"
+};
+
+static u16 _gM4a1PykeAnimation0D7F4Indices[20] = {
+#include "assets/m4a1_pyke_animation_0D7F4_indices.inc"
+};
+
+static AnimationSet _gM4a1PykeAnimation0D7F4 = {
+    _gM4a1PykeAnimation0D7F4Records,
+    _gM4a1PykeAnimation0D7F4Indices,
+    { NULL, _gM4a1PykeAnimation0D7F4Bank1, NULL, NULL, _gM4a1PykeAnimation0D7F4Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1PykeAnimation0DC68Bank1[8] = {
+#include "assets/m4a1_pyke_animation_0DC68_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1PykeAnimation0DC68Bank4[104] = {
+#include "assets/m4a1_pyke_animation_0DC68_bank4.inc"
+};
+
+static AnimationRecord _gM4a1PykeAnimation0DC68Records[137] = {
+#include "assets/m4a1_pyke_animation_0DC68_records.inc"
+};
+
+static u16 _gM4a1PykeAnimation0DC68Indices[20] = {
+#include "assets/m4a1_pyke_animation_0DC68_indices.inc"
+};
+
+static AnimationSet _gM4a1PykeAnimation0DC68 = {
+    _gM4a1PykeAnimation0DC68Records,
+    _gM4a1PykeAnimation0DC68Indices,
+    { NULL, _gM4a1PykeAnimation0DC68Bank1, NULL, NULL, _gM4a1PykeAnimation0DC68Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1PykeAnimation0E374Bank1[13] = {
+#include "assets/m4a1_pyke_animation_0E374_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1PykeAnimation0E374Bank4[175] = {
+#include "assets/m4a1_pyke_animation_0E374_bank4.inc"
+};
+
+static AnimationRecord _gM4a1PykeAnimation0E374Records[217] = {
+#include "assets/m4a1_pyke_animation_0E374_records.inc"
+};
+
+static u16 _gM4a1PykeAnimation0E374Indices[20] = {
+#include "assets/m4a1_pyke_animation_0E374_indices.inc"
+};
+
+static AnimationSet _gM4a1PykeAnimation0E374 = {
+    _gM4a1PykeAnimation0E374Records,
+    _gM4a1PykeAnimation0E374Indices,
+    { NULL, _gM4a1PykeAnimation0E374Bank1, NULL, NULL, _gM4a1PykeAnimation0E374Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1PykeAnimation0E8ECBank1[10] = {
+#include "assets/m4a1_pyke_animation_0E8EC_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1PykeAnimation0E8ECBank4[131] = {
+#include "assets/m4a1_pyke_animation_0E8EC_bank4.inc"
+};
+
+static AnimationRecord _gM4a1PykeAnimation0E8ECRecords[169] = {
+#include "assets/m4a1_pyke_animation_0E8EC_records.inc"
+};
+
+static u16 _gM4a1PykeAnimation0E8ECIndices[20] = {
+#include "assets/m4a1_pyke_animation_0E8EC_indices.inc"
+};
+
+static AnimationSet _gM4a1PykeAnimation0E8EC = {
+    _gM4a1PykeAnimation0E8ECRecords,
+    _gM4a1PykeAnimation0E8ECIndices,
+    { NULL, _gM4a1PykeAnimation0E8ECBank1, NULL, NULL, _gM4a1PykeAnimation0E8ECBank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1PykeAnimation0F1A4Bank1[18] = {
+#include "assets/m4a1_pyke_animation_0F1A4_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1PykeAnimation0F1A4Bank4[201] = {
+#include "assets/m4a1_pyke_animation_0F1A4_bank4.inc"
+};
+
+static AnimationRecord _gM4a1PykeAnimation0F1A4Records[283] = {
+#include "assets/m4a1_pyke_animation_0F1A4_records.inc"
+};
+
+static u16 _gM4a1PykeAnimation0F1A4Indices[20] = {
+#include "assets/m4a1_pyke_animation_0F1A4_indices.inc"
+};
+
+static AnimationSet _gM4a1PykeAnimation0F1A4 = {
+    _gM4a1PykeAnimation0F1A4Records,
+    _gM4a1PykeAnimation0F1A4Indices,
+    { NULL, _gM4a1PykeAnimation0F1A4Bank1, NULL, NULL, _gM4a1PykeAnimation0F1A4Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1PykeAnimation0F944Bank1[16] = {
+#include "assets/m4a1_pyke_animation_0F944_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1PykeAnimation0F944Bank4[157] = {
+#include "assets/m4a1_pyke_animation_0F944_bank4.inc"
+};
+
+static AnimationRecord _gM4a1PykeAnimation0F944Records[263] = {
+#include "assets/m4a1_pyke_animation_0F944_records.inc"
+};
+
+static u16 _gM4a1PykeAnimation0F944Indices[20] = {
+#include "assets/m4a1_pyke_animation_0F944_indices.inc"
+};
+
+static AnimationSet _gM4a1PykeAnimation0F944 = {
+    _gM4a1PykeAnimation0F944Records,
+    _gM4a1PykeAnimation0F944Indices,
+    { NULL, _gM4a1PykeAnimation0F944Bank1, NULL, NULL, _gM4a1PykeAnimation0F944Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1PykeAnimation10318Bank1[25] = {
+#include "assets/m4a1_pyke_animation_10318_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1PykeAnimation10318Bank4[223] = {
+#include "assets/m4a1_pyke_animation_10318_bank4.inc"
+};
+
+static AnimationRecord _gM4a1PykeAnimation10318Records[311] = {
+#include "assets/m4a1_pyke_animation_10318_records.inc"
+};
+
+static u16 _gM4a1PykeAnimation10318Indices[20] = {
+#include "assets/m4a1_pyke_animation_10318_indices.inc"
+};
+
+static AnimationSet _gM4a1PykeAnimation10318 = {
+    _gM4a1PykeAnimation10318Records,
+    _gM4a1PykeAnimation10318Indices,
+    { NULL, _gM4a1PykeAnimation10318Bank1, NULL, NULL, _gM4a1PykeAnimation10318Bank4, NULL, NULL, NULL },
+};
+
+AnimationBank D_m4a1_pyke_8012D500 = { { {
+    NULL,
+    &_gM4a1PykeAnimation02560,
+    &_gM4a1PykeAnimation0F1A4,
+    &_gM4a1PykeAnimation0F944,
+    &_gM4a1PykeAnimation10318,
+    &_gM4a1PykeAnimation03464,
+    &_gM4a1PykeAnimation03CC8,
+    &_gM4a1PykeAnimation0E374,
+    &_gM4a1PykeAnimation0E8EC,
+    &_gM4a1PykeAnimation0AD44,
+    &_gM4a1PykeAnimation0D36C,
+    &_gM4a1PykeAnimation0D7F4,
+    &_gM4a1PykeAnimation0C02C,
+    &_gM4a1PykeAnimation0B584,
+    &_gM4a1PykeAnimation0CEC8,
+    &_gM4a1PykeAnimation0DC68,
+    &_gM4a1PykeAnimation0692C,
+    &_gM4a1PykeAnimation06C4C,
+    &_gM4a1PykeAnimation07410,
+    &_gM4a1PykeAnimation02C04,
+    &_gM4a1PykeAnimation0CEC8,
+    &_gM4a1PykeAnimation02560,
+    &_gM4a1PykeAnimation02560,
+    &_gM4a1PykeAnimation086A8,
+    &_gM4a1PykeAnimation0993C,
+    &_gM4a1PykeAnimation09220,
+    &_gM4a1PykeAnimation059AC,
+    &_gM4a1PykeAnimation05BA8,
+    &_gM4a1PykeAnimation05E80,
+    &_gM4a1PykeAnimation06124,
+    &_gM4a1PykeAnimation06324,
+    &_gM4a1PykeAnimation06678,
+    &_gM4a1PykeAnimation09DBC,
+    &_gM4a1PykeAnimation09F94,
+    &_gM4a1PykeAnimation09DBC,
+    &_gM4a1PykeAnimation09F94,
+    &_gM4a1PykeAnimation04738,
+    &_gM4a1PykeAnimation04EC0,
+    &_gM4a1PykeAnimation05524,
+    &_gM4a1PykeAnimation05194,
+    &_gM4a1PykeAnimation03FDC,
+    &_gM4a1PykeAnimation02560,
+    &_gM4a1PykeAnimation0A4F8,
+    &_gM4a1PykeAnimation0A6EC,
+    &_gM4a1PykeAnimation0AB6C,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+} } };

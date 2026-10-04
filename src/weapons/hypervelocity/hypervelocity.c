@@ -43,6 +43,7 @@
 #include "main/tmd_types.h"
 
 #include "overlay.h"
+#include "gameplay/animation.h"
 /// Signed effect-age argument whose low bit selects one of the two flame cells.
 #define SPRITE_QUAD_FRAME_T s16
 #include "../../shared/sprite_quad.h"
@@ -1092,3 +1093,943 @@ TmdSource D_hypervelocity_80120860 = {
     _gHypervelocityModel03550Skeleton,
     _gHypervelocityModel03550Stream,
 };
+
+static AnimationPackedPose _gHypervelocityAnimation03854Bank1[2] = {
+#include "assets/hypervelocity_animation_03854_bank1.inc"
+};
+
+static AnimationPackedRotation _gHypervelocityAnimation03854Bank4[8] = {
+#include "assets/hypervelocity_animation_03854_bank4.inc"
+};
+
+static AnimationRecord _gHypervelocityAnimation03854Records[76] = {
+#include "assets/hypervelocity_animation_03854_records.inc"
+};
+
+static u16 _gHypervelocityAnimation03854Indices[20] = {
+#include "assets/hypervelocity_animation_03854_indices.inc"
+};
+
+static AnimationSet _gHypervelocityAnimation03854 = {
+    _gHypervelocityAnimation03854Records,
+    _gHypervelocityAnimation03854Indices,
+    { NULL, _gHypervelocityAnimation03854Bank1, NULL, NULL, _gHypervelocityAnimation03854Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gHypervelocityAnimation03EF8Bank1[12] = {
+#include "assets/hypervelocity_animation_03EF8_bank1.inc"
+};
+
+static AnimationPackedRotation _gHypervelocityAnimation03EF8Bank4[151] = {
+#include "assets/hypervelocity_animation_03EF8_bank4.inc"
+};
+
+static AnimationRecord _gHypervelocityAnimation03EF8Records[218] = {
+#include "assets/hypervelocity_animation_03EF8_records.inc"
+};
+
+static u16 _gHypervelocityAnimation03EF8Indices[20] = {
+#include "assets/hypervelocity_animation_03EF8_indices.inc"
+};
+
+static AnimationSet _gHypervelocityAnimation03EF8 = {
+    _gHypervelocityAnimation03EF8Records,
+    _gHypervelocityAnimation03EF8Indices,
+    { NULL, _gHypervelocityAnimation03EF8Bank1, NULL, NULL, _gHypervelocityAnimation03EF8Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gHypervelocityAnimation047D0Bank1[19] = {
+#include "assets/hypervelocity_animation_047D0_bank1.inc"
+};
+
+static AnimationPackedRotation _gHypervelocityAnimation047D0Bank4[193] = {
+#include "assets/hypervelocity_animation_047D0_bank4.inc"
+};
+
+static AnimationRecord _gHypervelocityAnimation047D0Records[296] = {
+#include "assets/hypervelocity_animation_047D0_records.inc"
+};
+
+static u16 _gHypervelocityAnimation047D0Indices[20] = {
+#include "assets/hypervelocity_animation_047D0_indices.inc"
+};
+
+static AnimationSet _gHypervelocityAnimation047D0 = {
+    _gHypervelocityAnimation047D0Records,
+    _gHypervelocityAnimation047D0Indices,
+    { NULL, _gHypervelocityAnimation047D0Bank1, NULL, NULL, _gHypervelocityAnimation047D0Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gHypervelocityAnimation05030Bank1[19] = {
+#include "assets/hypervelocity_animation_05030_bank1.inc"
+};
+
+static AnimationPackedRotation _gHypervelocityAnimation05030Bank4[169] = {
+#include "assets/hypervelocity_animation_05030_bank4.inc"
+};
+
+static AnimationRecord _gHypervelocityAnimation05030Records[290] = {
+#include "assets/hypervelocity_animation_05030_records.inc"
+};
+
+static u16 _gHypervelocityAnimation05030Indices[20] = {
+#include "assets/hypervelocity_animation_05030_indices.inc"
+};
+
+static AnimationSet _gHypervelocityAnimation05030 = {
+    _gHypervelocityAnimation05030Records,
+    _gHypervelocityAnimation05030Indices,
+    { NULL, _gHypervelocityAnimation05030Bank1, NULL, NULL, _gHypervelocityAnimation05030Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gHypervelocityAnimation05894Bank1[19] = {
+#include "assets/hypervelocity_animation_05894_bank1.inc"
+};
+
+static AnimationPackedRotation _gHypervelocityAnimation05894Bank4[170] = {
+#include "assets/hypervelocity_animation_05894_bank4.inc"
+};
+
+static AnimationRecord _gHypervelocityAnimation05894Records[290] = {
+#include "assets/hypervelocity_animation_05894_records.inc"
+};
+
+static u16 _gHypervelocityAnimation05894Indices[20] = {
+#include "assets/hypervelocity_animation_05894_indices.inc"
+};
+
+static AnimationSet _gHypervelocityAnimation05894 = {
+    _gHypervelocityAnimation05894Records,
+    _gHypervelocityAnimation05894Indices,
+    { NULL, _gHypervelocityAnimation05894Bank1, NULL, NULL, _gHypervelocityAnimation05894Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gHypervelocityAnimation05BA8Bank1[3] = {
+#include "assets/hypervelocity_animation_05BA8_bank1.inc"
+};
+
+static AnimationPackedRotation _gHypervelocityAnimation05BA8Bank4[69] = {
+#include "assets/hypervelocity_animation_05BA8_bank4.inc"
+};
+
+static AnimationRecord _gHypervelocityAnimation05BA8Records[99] = {
+#include "assets/hypervelocity_animation_05BA8_records.inc"
+};
+
+static u16 _gHypervelocityAnimation05BA8Indices[20] = {
+#include "assets/hypervelocity_animation_05BA8_indices.inc"
+};
+
+static AnimationSet _gHypervelocityAnimation05BA8 = {
+    _gHypervelocityAnimation05BA8Records,
+    _gHypervelocityAnimation05BA8Indices,
+    { NULL, _gHypervelocityAnimation05BA8Bank1, NULL, NULL, _gHypervelocityAnimation05BA8Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gHypervelocityAnimation06304Bank1[14] = {
+#include "assets/hypervelocity_animation_06304_bank1.inc"
+};
+
+static AnimationPackedRotation _gHypervelocityAnimation06304Bank4[156] = {
+#include "assets/hypervelocity_animation_06304_bank4.inc"
+};
+
+static AnimationRecord _gHypervelocityAnimation06304Records[253] = {
+#include "assets/hypervelocity_animation_06304_records.inc"
+};
+
+static u16 _gHypervelocityAnimation06304Indices[20] = {
+#include "assets/hypervelocity_animation_06304_indices.inc"
+};
+
+static AnimationSet _gHypervelocityAnimation06304 = {
+    _gHypervelocityAnimation06304Records,
+    _gHypervelocityAnimation06304Indices,
+    { NULL, _gHypervelocityAnimation06304Bank1, NULL, NULL, _gHypervelocityAnimation06304Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gHypervelocityAnimation06A8CBank1[16] = {
+#include "assets/hypervelocity_animation_06A8C_bank1.inc"
+};
+
+static AnimationPackedRotation _gHypervelocityAnimation06A8CBank4[167] = {
+#include "assets/hypervelocity_animation_06A8C_bank4.inc"
+};
+
+static AnimationRecord _gHypervelocityAnimation06A8CRecords[247] = {
+#include "assets/hypervelocity_animation_06A8C_records.inc"
+};
+
+static u16 _gHypervelocityAnimation06A8CIndices[20] = {
+#include "assets/hypervelocity_animation_06A8C_indices.inc"
+};
+
+static AnimationSet _gHypervelocityAnimation06A8C = {
+    _gHypervelocityAnimation06A8CRecords,
+    _gHypervelocityAnimation06A8CIndices,
+    { NULL, _gHypervelocityAnimation06A8CBank1, NULL, NULL, _gHypervelocityAnimation06A8CBank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gHypervelocityAnimation06D60Bank1[6] = {
+#include "assets/hypervelocity_animation_06D60_bank1.inc"
+};
+
+static AnimationPackedRotation _gHypervelocityAnimation06D60Bank4[52] = {
+#include "assets/hypervelocity_animation_06D60_bank4.inc"
+};
+
+static AnimationRecord _gHypervelocityAnimation06D60Records[91] = {
+#include "assets/hypervelocity_animation_06D60_records.inc"
+};
+
+static u16 _gHypervelocityAnimation06D60Indices[20] = {
+#include "assets/hypervelocity_animation_06D60_indices.inc"
+};
+
+static AnimationSet _gHypervelocityAnimation06D60 = {
+    _gHypervelocityAnimation06D60Records,
+    _gHypervelocityAnimation06D60Indices,
+    { NULL, _gHypervelocityAnimation06D60Bank1, NULL, NULL, _gHypervelocityAnimation06D60Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gHypervelocityAnimation070F0Bank1[7] = {
+#include "assets/hypervelocity_animation_070F0_bank1.inc"
+};
+
+static AnimationPackedRotation _gHypervelocityAnimation070F0Bank4[73] = {
+#include "assets/hypervelocity_animation_070F0_bank4.inc"
+};
+
+static AnimationRecord _gHypervelocityAnimation070F0Records[114] = {
+#include "assets/hypervelocity_animation_070F0_records.inc"
+};
+
+static u16 _gHypervelocityAnimation070F0Indices[20] = {
+#include "assets/hypervelocity_animation_070F0_indices.inc"
+};
+
+static AnimationSet _gHypervelocityAnimation070F0 = {
+    _gHypervelocityAnimation070F0Records,
+    _gHypervelocityAnimation070F0Indices,
+    { NULL, _gHypervelocityAnimation070F0Bank1, NULL, NULL, _gHypervelocityAnimation070F0Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gHypervelocityAnimation07578Bank1[9] = {
+#include "assets/hypervelocity_animation_07578_bank1.inc"
+};
+
+static AnimationPackedRotation _gHypervelocityAnimation07578Bank4[104] = {
+#include "assets/hypervelocity_animation_07578_bank4.inc"
+};
+
+static AnimationRecord _gHypervelocityAnimation07578Records[139] = {
+#include "assets/hypervelocity_animation_07578_records.inc"
+};
+
+static u16 _gHypervelocityAnimation07578Indices[20] = {
+#include "assets/hypervelocity_animation_07578_indices.inc"
+};
+
+static AnimationSet _gHypervelocityAnimation07578 = {
+    _gHypervelocityAnimation07578Records,
+    _gHypervelocityAnimation07578Indices,
+    { NULL, _gHypervelocityAnimation07578Bank1, NULL, NULL, _gHypervelocityAnimation07578Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gHypervelocityAnimation07774Bank1[3] = {
+#include "assets/hypervelocity_animation_07774_bank1.inc"
+};
+
+static AnimationPackedRotation _gHypervelocityAnimation07774Bank4[22] = {
+#include "assets/hypervelocity_animation_07774_bank4.inc"
+};
+
+static AnimationRecord _gHypervelocityAnimation07774Records[76] = {
+#include "assets/hypervelocity_animation_07774_records.inc"
+};
+
+static u16 _gHypervelocityAnimation07774Indices[20] = {
+#include "assets/hypervelocity_animation_07774_indices.inc"
+};
+
+static AnimationSet _gHypervelocityAnimation07774 = {
+    _gHypervelocityAnimation07774Records,
+    _gHypervelocityAnimation07774Indices,
+    { NULL, _gHypervelocityAnimation07774Bank1, NULL, NULL, _gHypervelocityAnimation07774Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gHypervelocityAnimation07A4CBank1[6] = {
+#include "assets/hypervelocity_animation_07A4C_bank1.inc"
+};
+
+static AnimationPackedRotation _gHypervelocityAnimation07A4CBank4[57] = {
+#include "assets/hypervelocity_animation_07A4C_bank4.inc"
+};
+
+static AnimationRecord _gHypervelocityAnimation07A4CRecords[87] = {
+#include "assets/hypervelocity_animation_07A4C_records.inc"
+};
+
+static u16 _gHypervelocityAnimation07A4CIndices[20] = {
+#include "assets/hypervelocity_animation_07A4C_indices.inc"
+};
+
+static AnimationSet _gHypervelocityAnimation07A4C = {
+    _gHypervelocityAnimation07A4CRecords,
+    _gHypervelocityAnimation07A4CIndices,
+    { NULL, _gHypervelocityAnimation07A4CBank1, NULL, NULL, _gHypervelocityAnimation07A4CBank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gHypervelocityAnimation07CF0Bank1[4] = {
+#include "assets/hypervelocity_animation_07CF0_bank1.inc"
+};
+
+static AnimationPackedRotation _gHypervelocityAnimation07CF0Bank4[55] = {
+#include "assets/hypervelocity_animation_07CF0_bank4.inc"
+};
+
+static AnimationRecord _gHypervelocityAnimation07CF0Records[82] = {
+#include "assets/hypervelocity_animation_07CF0_records.inc"
+};
+
+static u16 _gHypervelocityAnimation07CF0Indices[20] = {
+#include "assets/hypervelocity_animation_07CF0_indices.inc"
+};
+
+static AnimationSet _gHypervelocityAnimation07CF0 = {
+    _gHypervelocityAnimation07CF0Records,
+    _gHypervelocityAnimation07CF0Indices,
+    { NULL, _gHypervelocityAnimation07CF0Bank1, NULL, NULL, _gHypervelocityAnimation07CF0Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gHypervelocityAnimation07EF0Bank1[3] = {
+#include "assets/hypervelocity_animation_07EF0_bank1.inc"
+};
+
+static AnimationPackedRotation _gHypervelocityAnimation07EF0Bank4[23] = {
+#include "assets/hypervelocity_animation_07EF0_bank4.inc"
+};
+
+static AnimationRecord _gHypervelocityAnimation07EF0Records[76] = {
+#include "assets/hypervelocity_animation_07EF0_records.inc"
+};
+
+static u16 _gHypervelocityAnimation07EF0Indices[20] = {
+#include "assets/hypervelocity_animation_07EF0_indices.inc"
+};
+
+static AnimationSet _gHypervelocityAnimation07EF0 = {
+    _gHypervelocityAnimation07EF0Records,
+    _gHypervelocityAnimation07EF0Indices,
+    { NULL, _gHypervelocityAnimation07EF0Bank1, NULL, NULL, _gHypervelocityAnimation07EF0Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gHypervelocityAnimation08244Bank1[8] = {
+#include "assets/hypervelocity_animation_08244_bank1.inc"
+};
+
+static AnimationPackedRotation _gHypervelocityAnimation08244Bank4[68] = {
+#include "assets/hypervelocity_animation_08244_bank4.inc"
+};
+
+static AnimationRecord _gHypervelocityAnimation08244Records[101] = {
+#include "assets/hypervelocity_animation_08244_records.inc"
+};
+
+static u16 _gHypervelocityAnimation08244Indices[20] = {
+#include "assets/hypervelocity_animation_08244_indices.inc"
+};
+
+static AnimationSet _gHypervelocityAnimation08244 = {
+    _gHypervelocityAnimation08244Records,
+    _gHypervelocityAnimation08244Indices,
+    { NULL, _gHypervelocityAnimation08244Bank1, NULL, NULL, _gHypervelocityAnimation08244Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gHypervelocityAnimation084F8Bank1[5] = {
+#include "assets/hypervelocity_animation_084F8_bank1.inc"
+};
+
+static AnimationPackedRotation _gHypervelocityAnimation084F8Bank4[55] = {
+#include "assets/hypervelocity_animation_084F8_bank4.inc"
+};
+
+static AnimationRecord _gHypervelocityAnimation084F8Records[83] = {
+#include "assets/hypervelocity_animation_084F8_records.inc"
+};
+
+static u16 _gHypervelocityAnimation084F8Indices[20] = {
+#include "assets/hypervelocity_animation_084F8_indices.inc"
+};
+
+static AnimationSet _gHypervelocityAnimation084F8 = {
+    _gHypervelocityAnimation084F8Records,
+    _gHypervelocityAnimation084F8Indices,
+    { NULL, _gHypervelocityAnimation084F8Bank1, NULL, NULL, _gHypervelocityAnimation084F8Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gHypervelocityAnimation08818Bank1[6] = {
+#include "assets/hypervelocity_animation_08818_bank1.inc"
+};
+
+static AnimationPackedRotation _gHypervelocityAnimation08818Bank4[66] = {
+#include "assets/hypervelocity_animation_08818_bank4.inc"
+};
+
+static AnimationRecord _gHypervelocityAnimation08818Records[96] = {
+#include "assets/hypervelocity_animation_08818_records.inc"
+};
+
+static u16 _gHypervelocityAnimation08818Indices[20] = {
+#include "assets/hypervelocity_animation_08818_indices.inc"
+};
+
+static AnimationSet _gHypervelocityAnimation08818 = {
+    _gHypervelocityAnimation08818Records,
+    _gHypervelocityAnimation08818Indices,
+    { NULL, _gHypervelocityAnimation08818Bank1, NULL, NULL, _gHypervelocityAnimation08818Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gHypervelocityAnimation08FDCBank1[18] = {
+#include "assets/hypervelocity_animation_08FDC_bank1.inc"
+};
+
+static AnimationPackedRotation _gHypervelocityAnimation08FDCBank4[184] = {
+#include "assets/hypervelocity_animation_08FDC_bank4.inc"
+};
+
+static AnimationRecord _gHypervelocityAnimation08FDCRecords[239] = {
+#include "assets/hypervelocity_animation_08FDC_records.inc"
+};
+
+static u16 _gHypervelocityAnimation08FDCIndices[20] = {
+#include "assets/hypervelocity_animation_08FDC_indices.inc"
+};
+
+static AnimationSet _gHypervelocityAnimation08FDC = {
+    _gHypervelocityAnimation08FDCRecords,
+    _gHypervelocityAnimation08FDCIndices,
+    { NULL, _gHypervelocityAnimation08FDCBank1, NULL, NULL, _gHypervelocityAnimation08FDCBank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gHypervelocityAnimation0A274Bank1[29] = {
+#include "assets/hypervelocity_animation_0A274_bank1.inc"
+};
+
+static AnimationPackedRotation _gHypervelocityAnimation0A274Bank4[450] = {
+#include "assets/hypervelocity_animation_0A274_bank4.inc"
+};
+
+static AnimationRecord _gHypervelocityAnimation0A274Records[633] = {
+#include "assets/hypervelocity_animation_0A274_records.inc"
+};
+
+static u16 _gHypervelocityAnimation0A274Indices[20] = {
+#include "assets/hypervelocity_animation_0A274_indices.inc"
+};
+
+static AnimationSet _gHypervelocityAnimation0A274 = {
+    _gHypervelocityAnimation0A274Records,
+    _gHypervelocityAnimation0A274Indices,
+    { NULL, _gHypervelocityAnimation0A274Bank1, NULL, NULL, _gHypervelocityAnimation0A274Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gHypervelocityAnimation0ADECBank1[12] = {
+#include "assets/hypervelocity_animation_0ADEC_bank1.inc"
+};
+
+static AnimationPackedRotation _gHypervelocityAnimation0ADECBank4[266] = {
+#include "assets/hypervelocity_animation_0ADEC_bank4.inc"
+};
+
+static AnimationRecord _gHypervelocityAnimation0ADECRecords[412] = {
+#include "assets/hypervelocity_animation_0ADEC_records.inc"
+};
+
+static u16 _gHypervelocityAnimation0ADECIndices[20] = {
+#include "assets/hypervelocity_animation_0ADEC_indices.inc"
+};
+
+static AnimationSet _gHypervelocityAnimation0ADEC = {
+    _gHypervelocityAnimation0ADECRecords,
+    _gHypervelocityAnimation0ADECIndices,
+    { NULL, _gHypervelocityAnimation0ADECBank1, NULL, NULL, _gHypervelocityAnimation0ADECBank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gHypervelocityAnimation0B508Bank1[9] = {
+#include "assets/hypervelocity_animation_0B508_bank1.inc"
+};
+
+static AnimationPackedRotation _gHypervelocityAnimation0B508Bank4[144] = {
+#include "assets/hypervelocity_animation_0B508_bank4.inc"
+};
+
+static AnimationRecord _gHypervelocityAnimation0B508Records[264] = {
+#include "assets/hypervelocity_animation_0B508_records.inc"
+};
+
+static u16 _gHypervelocityAnimation0B508Indices[20] = {
+#include "assets/hypervelocity_animation_0B508_indices.inc"
+};
+
+static AnimationSet _gHypervelocityAnimation0B508 = {
+    _gHypervelocityAnimation0B508Records,
+    _gHypervelocityAnimation0B508Indices,
+    { NULL, _gHypervelocityAnimation0B508Bank1, NULL, NULL, _gHypervelocityAnimation0B508Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gHypervelocityAnimation0B988Bank1[6] = {
+#include "assets/hypervelocity_animation_0B988_bank1.inc"
+};
+
+static AnimationPackedRotation _gHypervelocityAnimation0B988Bank4[107] = {
+#include "assets/hypervelocity_animation_0B988_bank4.inc"
+};
+
+static AnimationRecord _gHypervelocityAnimation0B988Records[143] = {
+#include "assets/hypervelocity_animation_0B988_records.inc"
+};
+
+static u16 _gHypervelocityAnimation0B988Indices[20] = {
+#include "assets/hypervelocity_animation_0B988_indices.inc"
+};
+
+static AnimationSet _gHypervelocityAnimation0B988 = {
+    _gHypervelocityAnimation0B988Records,
+    _gHypervelocityAnimation0B988Indices,
+    { NULL, _gHypervelocityAnimation0B988Bank1, NULL, NULL, _gHypervelocityAnimation0B988Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gHypervelocityAnimation0BB60Bank1[3] = {
+#include "assets/hypervelocity_animation_0BB60_bank1.inc"
+};
+
+static AnimationPackedRotation _gHypervelocityAnimation0BB60Bank4[32] = {
+#include "assets/hypervelocity_animation_0BB60_bank4.inc"
+};
+
+static AnimationRecord _gHypervelocityAnimation0BB60Records[57] = {
+#include "assets/hypervelocity_animation_0BB60_records.inc"
+};
+
+static u16 _gHypervelocityAnimation0BB60Indices[20] = {
+#include "assets/hypervelocity_animation_0BB60_indices.inc"
+};
+
+static AnimationSet _gHypervelocityAnimation0BB60 = {
+    _gHypervelocityAnimation0BB60Records,
+    _gHypervelocityAnimation0BB60Indices,
+    { NULL, _gHypervelocityAnimation0BB60Bank1, NULL, NULL, _gHypervelocityAnimation0BB60Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gHypervelocityAnimation0C0C4Bank1[11] = {
+#include "assets/hypervelocity_animation_0C0C4_bank1.inc"
+};
+
+static AnimationPackedRotation _gHypervelocityAnimation0C0C4Bank4[125] = {
+#include "assets/hypervelocity_animation_0C0C4_bank4.inc"
+};
+
+static AnimationRecord _gHypervelocityAnimation0C0C4Records[167] = {
+#include "assets/hypervelocity_animation_0C0C4_records.inc"
+};
+
+static u16 _gHypervelocityAnimation0C0C4Indices[20] = {
+#include "assets/hypervelocity_animation_0C0C4_indices.inc"
+};
+
+static AnimationSet _gHypervelocityAnimation0C0C4 = {
+    _gHypervelocityAnimation0C0C4Records,
+    _gHypervelocityAnimation0C0C4Indices,
+    { NULL, _gHypervelocityAnimation0C0C4Bank1, NULL, NULL, _gHypervelocityAnimation0C0C4Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gHypervelocityAnimation0C2B8Bank1[3] = {
+#include "assets/hypervelocity_animation_0C2B8_bank1.inc"
+};
+
+static AnimationPackedRotation _gHypervelocityAnimation0C2B8Bank4[20] = {
+#include "assets/hypervelocity_animation_0C2B8_bank4.inc"
+};
+
+static AnimationRecord _gHypervelocityAnimation0C2B8Records[76] = {
+#include "assets/hypervelocity_animation_0C2B8_records.inc"
+};
+
+static u16 _gHypervelocityAnimation0C2B8Indices[20] = {
+#include "assets/hypervelocity_animation_0C2B8_indices.inc"
+};
+
+static AnimationSet _gHypervelocityAnimation0C2B8 = {
+    _gHypervelocityAnimation0C2B8Records,
+    _gHypervelocityAnimation0C2B8Indices,
+    { NULL, _gHypervelocityAnimation0C2B8Bank1, NULL, NULL, _gHypervelocityAnimation0C2B8Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gHypervelocityAnimation0C738Bank1[8] = {
+#include "assets/hypervelocity_animation_0C738_bank1.inc"
+};
+
+static AnimationPackedRotation _gHypervelocityAnimation0C738Bank4[105] = {
+#include "assets/hypervelocity_animation_0C738_bank4.inc"
+};
+
+static AnimationRecord _gHypervelocityAnimation0C738Records[139] = {
+#include "assets/hypervelocity_animation_0C738_records.inc"
+};
+
+static u16 _gHypervelocityAnimation0C738Indices[20] = {
+#include "assets/hypervelocity_animation_0C738_indices.inc"
+};
+
+static AnimationSet _gHypervelocityAnimation0C738 = {
+    _gHypervelocityAnimation0C738Records,
+    _gHypervelocityAnimation0C738Indices,
+    { NULL, _gHypervelocityAnimation0C738Bank1, NULL, NULL, _gHypervelocityAnimation0C738Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gHypervelocityAnimation0C914Bank1[2] = {
+#include "assets/hypervelocity_animation_0C914_bank1.inc"
+};
+
+static AnimationPackedRotation _gHypervelocityAnimation0C914Bank4[17] = {
+#include "assets/hypervelocity_animation_0C914_bank4.inc"
+};
+
+static AnimationRecord _gHypervelocityAnimation0C914Records[76] = {
+#include "assets/hypervelocity_animation_0C914_records.inc"
+};
+
+static u16 _gHypervelocityAnimation0C914Indices[20] = {
+#include "assets/hypervelocity_animation_0C914_indices.inc"
+};
+
+static AnimationSet _gHypervelocityAnimation0C914 = {
+    _gHypervelocityAnimation0C914Records,
+    _gHypervelocityAnimation0C914Indices,
+    { NULL, _gHypervelocityAnimation0C914Bank1, NULL, NULL, _gHypervelocityAnimation0C914Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gHypervelocityAnimation0CDB4Bank1[11] = {
+#include "assets/hypervelocity_animation_0CDB4_bank1.inc"
+};
+
+static AnimationPackedRotation _gHypervelocityAnimation0CDB4Bank4[84] = {
+#include "assets/hypervelocity_animation_0CDB4_bank4.inc"
+};
+
+static AnimationRecord _gHypervelocityAnimation0CDB4Records[159] = {
+#include "assets/hypervelocity_animation_0CDB4_records.inc"
+};
+
+static u16 _gHypervelocityAnimation0CDB4Indices[20] = {
+#include "assets/hypervelocity_animation_0CDB4_indices.inc"
+};
+
+static AnimationSet _gHypervelocityAnimation0CDB4 = {
+    _gHypervelocityAnimation0CDB4Records,
+    _gHypervelocityAnimation0CDB4Indices,
+    { NULL, _gHypervelocityAnimation0CDB4Bank1, NULL, NULL, _gHypervelocityAnimation0CDB4Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gHypervelocityAnimation0D5C8Bank1[15] = {
+#include "assets/hypervelocity_animation_0D5C8_bank1.inc"
+};
+
+static AnimationPackedRotation _gHypervelocityAnimation0D5C8Bank4[195] = {
+#include "assets/hypervelocity_animation_0D5C8_bank4.inc"
+};
+
+static AnimationRecord _gHypervelocityAnimation0D5C8Records[257] = {
+#include "assets/hypervelocity_animation_0D5C8_records.inc"
+};
+
+static u16 _gHypervelocityAnimation0D5C8Indices[20] = {
+#include "assets/hypervelocity_animation_0D5C8_indices.inc"
+};
+
+static AnimationSet _gHypervelocityAnimation0D5C8 = {
+    _gHypervelocityAnimation0D5C8Records,
+    _gHypervelocityAnimation0D5C8Indices,
+    { NULL, _gHypervelocityAnimation0D5C8Bank1, NULL, NULL, _gHypervelocityAnimation0D5C8Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gHypervelocityAnimation0DB10Bank1[11] = {
+#include "assets/hypervelocity_animation_0DB10_bank1.inc"
+};
+
+static AnimationPackedRotation _gHypervelocityAnimation0DB10Bank4[124] = {
+#include "assets/hypervelocity_animation_0DB10_bank4.inc"
+};
+
+static AnimationRecord _gHypervelocityAnimation0DB10Records[161] = {
+#include "assets/hypervelocity_animation_0DB10_records.inc"
+};
+
+static u16 _gHypervelocityAnimation0DB10Indices[20] = {
+#include "assets/hypervelocity_animation_0DB10_indices.inc"
+};
+
+static AnimationSet _gHypervelocityAnimation0DB10 = {
+    _gHypervelocityAnimation0DB10Records,
+    _gHypervelocityAnimation0DB10Indices,
+    { NULL, _gHypervelocityAnimation0DB10Bank1, NULL, NULL, _gHypervelocityAnimation0DB10Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gHypervelocityAnimation0E2F0Bank1[17] = {
+#include "assets/hypervelocity_animation_0E2F0_bank1.inc"
+};
+
+static AnimationPackedRotation _gHypervelocityAnimation0E2F0Bank4[192] = {
+#include "assets/hypervelocity_animation_0E2F0_bank4.inc"
+};
+
+static AnimationRecord _gHypervelocityAnimation0E2F0Records[241] = {
+#include "assets/hypervelocity_animation_0E2F0_records.inc"
+};
+
+static u16 _gHypervelocityAnimation0E2F0Indices[20] = {
+#include "assets/hypervelocity_animation_0E2F0_indices.inc"
+};
+
+static AnimationSet _gHypervelocityAnimation0E2F0 = {
+    _gHypervelocityAnimation0E2F0Records,
+    _gHypervelocityAnimation0E2F0Indices,
+    { NULL, _gHypervelocityAnimation0E2F0Bank1, NULL, NULL, _gHypervelocityAnimation0E2F0Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gHypervelocityAnimation0E838Bank1[12] = {
+#include "assets/hypervelocity_animation_0E838_bank1.inc"
+};
+
+static AnimationPackedRotation _gHypervelocityAnimation0E838Bank4[119] = {
+#include "assets/hypervelocity_animation_0E838_bank4.inc"
+};
+
+static AnimationRecord _gHypervelocityAnimation0E838Records[163] = {
+#include "assets/hypervelocity_animation_0E838_records.inc"
+};
+
+static u16 _gHypervelocityAnimation0E838Indices[20] = {
+#include "assets/hypervelocity_animation_0E838_indices.inc"
+};
+
+static AnimationSet _gHypervelocityAnimation0E838 = {
+    _gHypervelocityAnimation0E838Records,
+    _gHypervelocityAnimation0E838Indices,
+    { NULL, _gHypervelocityAnimation0E838Bank1, NULL, NULL, _gHypervelocityAnimation0E838Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gHypervelocityAnimation0ED7CBank1[12] = {
+#include "assets/hypervelocity_animation_0ED7C_bank1.inc"
+};
+
+static AnimationPackedRotation _gHypervelocityAnimation0ED7CBank4[118] = {
+#include "assets/hypervelocity_animation_0ED7C_bank4.inc"
+};
+
+static AnimationRecord _gHypervelocityAnimation0ED7CRecords[163] = {
+#include "assets/hypervelocity_animation_0ED7C_records.inc"
+};
+
+static u16 _gHypervelocityAnimation0ED7CIndices[20] = {
+#include "assets/hypervelocity_animation_0ED7C_indices.inc"
+};
+
+static AnimationSet _gHypervelocityAnimation0ED7C = {
+    _gHypervelocityAnimation0ED7CRecords,
+    _gHypervelocityAnimation0ED7CIndices,
+    { NULL, _gHypervelocityAnimation0ED7CBank1, NULL, NULL, _gHypervelocityAnimation0ED7CBank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gHypervelocityAnimation0F964Bank1[23] = {
+#include "assets/hypervelocity_animation_0F964_bank1.inc"
+};
+
+static AnimationPackedRotation _gHypervelocityAnimation0F964Bank4[305] = {
+#include "assets/hypervelocity_animation_0F964_bank4.inc"
+};
+
+static AnimationRecord _gHypervelocityAnimation0F964Records[368] = {
+#include "assets/hypervelocity_animation_0F964_records.inc"
+};
+
+static u16 _gHypervelocityAnimation0F964Indices[20] = {
+#include "assets/hypervelocity_animation_0F964_indices.inc"
+};
+
+static AnimationSet _gHypervelocityAnimation0F964 = {
+    _gHypervelocityAnimation0F964Records,
+    _gHypervelocityAnimation0F964Indices,
+    { NULL, _gHypervelocityAnimation0F964Bank1, NULL, NULL, _gHypervelocityAnimation0F964Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gHypervelocityAnimation10198Bank1[13] = {
+#include "assets/hypervelocity_animation_10198_bank1.inc"
+};
+
+static AnimationPackedRotation _gHypervelocityAnimation10198Bank4[207] = {
+#include "assets/hypervelocity_animation_10198_bank4.inc"
+};
+
+static AnimationRecord _gHypervelocityAnimation10198Records[259] = {
+#include "assets/hypervelocity_animation_10198_records.inc"
+};
+
+static u16 _gHypervelocityAnimation10198Indices[20] = {
+#include "assets/hypervelocity_animation_10198_indices.inc"
+};
+
+static AnimationSet _gHypervelocityAnimation10198 = {
+    _gHypervelocityAnimation10198Records,
+    _gHypervelocityAnimation10198Indices,
+    { NULL, _gHypervelocityAnimation10198Bank1, NULL, NULL, _gHypervelocityAnimation10198Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gHypervelocityAnimation10A50Bank1[18] = {
+#include "assets/hypervelocity_animation_10A50_bank1.inc"
+};
+
+static AnimationPackedRotation _gHypervelocityAnimation10A50Bank4[201] = {
+#include "assets/hypervelocity_animation_10A50_bank4.inc"
+};
+
+static AnimationRecord _gHypervelocityAnimation10A50Records[283] = {
+#include "assets/hypervelocity_animation_10A50_records.inc"
+};
+
+static u16 _gHypervelocityAnimation10A50Indices[20] = {
+#include "assets/hypervelocity_animation_10A50_indices.inc"
+};
+
+static AnimationSet _gHypervelocityAnimation10A50 = {
+    _gHypervelocityAnimation10A50Records,
+    _gHypervelocityAnimation10A50Indices,
+    { NULL, _gHypervelocityAnimation10A50Bank1, NULL, NULL, _gHypervelocityAnimation10A50Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gHypervelocityAnimation111F0Bank1[16] = {
+#include "assets/hypervelocity_animation_111F0_bank1.inc"
+};
+
+static AnimationPackedRotation _gHypervelocityAnimation111F0Bank4[157] = {
+#include "assets/hypervelocity_animation_111F0_bank4.inc"
+};
+
+static AnimationRecord _gHypervelocityAnimation111F0Records[263] = {
+#include "assets/hypervelocity_animation_111F0_records.inc"
+};
+
+static u16 _gHypervelocityAnimation111F0Indices[20] = {
+#include "assets/hypervelocity_animation_111F0_indices.inc"
+};
+
+static AnimationSet _gHypervelocityAnimation111F0 = {
+    _gHypervelocityAnimation111F0Records,
+    _gHypervelocityAnimation111F0Indices,
+    { NULL, _gHypervelocityAnimation111F0Bank1, NULL, NULL, _gHypervelocityAnimation111F0Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gHypervelocityAnimation11BE8Bank1[19] = {
+#include "assets/hypervelocity_animation_11BE8_bank1.inc"
+};
+
+static AnimationPackedRotation _gHypervelocityAnimation11BE8Bank4[241] = {
+#include "assets/hypervelocity_animation_11BE8_bank4.inc"
+};
+
+static AnimationRecord _gHypervelocityAnimation11BE8Records[320] = {
+#include "assets/hypervelocity_animation_11BE8_records.inc"
+};
+
+static u16 _gHypervelocityAnimation11BE8Indices[20] = {
+#include "assets/hypervelocity_animation_11BE8_indices.inc"
+};
+
+static AnimationSet _gHypervelocityAnimation11BE8 = {
+    _gHypervelocityAnimation11BE8Records,
+    _gHypervelocityAnimation11BE8Indices,
+    { NULL, _gHypervelocityAnimation11BE8Bank1, NULL, NULL, _gHypervelocityAnimation11BE8Bank4, NULL, NULL, NULL },
+};
+
+AnimationBank D_hypervelocity_8012EDD0 = { { {
+    NULL,
+    &_gHypervelocityAnimation03854,
+    &_gHypervelocityAnimation10A50,
+    &_gHypervelocityAnimation111F0,
+    &_gHypervelocityAnimation11BE8,
+    &_gHypervelocityAnimation05030,
+    &_gHypervelocityAnimation05894,
+    &_gHypervelocityAnimation0F964,
+    &_gHypervelocityAnimation10198,
+    &_gHypervelocityAnimation0C914,
+    &_gHypervelocityAnimation0E2F0,
+    &_gHypervelocityAnimation0E2F0,
+    &_gHypervelocityAnimation0D5C8,
+    &_gHypervelocityAnimation0CDB4,
+    &_gHypervelocityAnimation0E838,
+    &_gHypervelocityAnimation0ED7C,
+    &_gHypervelocityAnimation084F8,
+    &_gHypervelocityAnimation08818,
+    &_gHypervelocityAnimation08FDC,
+    &_gHypervelocityAnimation03EF8,
+    &_gHypervelocityAnimation0DB10,
+    &_gHypervelocityAnimation03854,
+    &_gHypervelocityAnimation03854,
+    &_gHypervelocityAnimation0A274,
+    &_gHypervelocityAnimation0B508,
+    &_gHypervelocityAnimation0ADEC,
+    &_gHypervelocityAnimation07578,
+    &_gHypervelocityAnimation07774,
+    &_gHypervelocityAnimation07A4C,
+    &_gHypervelocityAnimation07CF0,
+    &_gHypervelocityAnimation07EF0,
+    &_gHypervelocityAnimation08244,
+    &_gHypervelocityAnimation0B988,
+    &_gHypervelocityAnimation0BB60,
+    &_gHypervelocityAnimation0B988,
+    &_gHypervelocityAnimation0BB60,
+    &_gHypervelocityAnimation06304,
+    &_gHypervelocityAnimation06A8C,
+    &_gHypervelocityAnimation070F0,
+    &_gHypervelocityAnimation06D60,
+    &_gHypervelocityAnimation05BA8,
+    &_gHypervelocityAnimation03854,
+    &_gHypervelocityAnimation0C0C4,
+    &_gHypervelocityAnimation0C2B8,
+    &_gHypervelocityAnimation0C738,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+} } };

@@ -40,6 +40,7 @@
 #include "../../shared/grenade_shell_blast.inc.c"
 
 #include "../../shared/grenade_shell_exit.inc.c"
+#include "gameplay/animation.h"
 void func_kyle_800102_801682B4(Task* task)
 {
     TaskFunc states[4] = {
@@ -243,3 +244,525 @@ TmdSource D_kyle_800102_8016E93C = {
     _gKyle800102Model069CCSkeleton,
     _gKyle800102Model069CCStream,
 };
+
+static AnimationPackedPose _gKyle800102Animation070F8Bank1[2] = {
+#include "assets/kyle_800102_animation_070F8_bank1.inc"
+};
+
+static AnimationPackedRotation _gKyle800102Animation070F8Bank4[24] = {
+#include "assets/kyle_800102_animation_070F8_bank4.inc"
+};
+
+static AnimationRecord _gKyle800102Animation070F8Records[90] = {
+#include "assets/kyle_800102_animation_070F8_records.inc"
+};
+
+static u16 _gKyle800102Animation070F8Indices[20] = {
+#include "assets/kyle_800102_animation_070F8_indices.inc"
+};
+
+static AnimationSet _gKyle800102Animation070F8 = {
+    _gKyle800102Animation070F8Records,
+    _gKyle800102Animation070F8Indices,
+    { NULL, _gKyle800102Animation070F8Bank1, NULL, NULL, _gKyle800102Animation070F8Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gKyle800102Animation07978Bank1[11] = {
+#include "assets/kyle_800102_animation_07978_bank1.inc"
+};
+
+static AnimationPackedRotation _gKyle800102Animation07978Bank4[201] = {
+#include "assets/kyle_800102_animation_07978_bank4.inc"
+};
+
+static AnimationRecord _gKyle800102Animation07978Records[290] = {
+#include "assets/kyle_800102_animation_07978_records.inc"
+};
+
+static u16 _gKyle800102Animation07978Indices[20] = {
+#include "assets/kyle_800102_animation_07978_indices.inc"
+};
+
+static AnimationSet _gKyle800102Animation07978 = {
+    _gKyle800102Animation07978Records,
+    _gKyle800102Animation07978Indices,
+    { NULL, _gKyle800102Animation07978Bank1, NULL, NULL, _gKyle800102Animation07978Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gKyle800102Animation081E4Bank1[15] = {
+#include "assets/kyle_800102_animation_081E4_bank1.inc"
+};
+
+static AnimationPackedRotation _gKyle800102Animation081E4Bank4[171] = {
+#include "assets/kyle_800102_animation_081E4_bank4.inc"
+};
+
+static AnimationRecord _gKyle800102Animation081E4Records[303] = {
+#include "assets/kyle_800102_animation_081E4_records.inc"
+};
+
+static u16 _gKyle800102Animation081E4Indices[20] = {
+#include "assets/kyle_800102_animation_081E4_indices.inc"
+};
+
+static AnimationSet _gKyle800102Animation081E4 = {
+    _gKyle800102Animation081E4Records,
+    _gKyle800102Animation081E4Indices,
+    { NULL, _gKyle800102Animation081E4Bank1, NULL, NULL, _gKyle800102Animation081E4Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gKyle800102Animation08AB8Bank1[16] = {
+#include "assets/kyle_800102_animation_08AB8_bank1.inc"
+};
+
+static AnimationPackedRotation _gKyle800102Animation08AB8Bank4[182] = {
+#include "assets/kyle_800102_animation_08AB8_bank4.inc"
+};
+
+static AnimationRecord _gKyle800102Animation08AB8Records[315] = {
+#include "assets/kyle_800102_animation_08AB8_records.inc"
+};
+
+static u16 _gKyle800102Animation08AB8Indices[20] = {
+#include "assets/kyle_800102_animation_08AB8_indices.inc"
+};
+
+static AnimationSet _gKyle800102Animation08AB8 = {
+    _gKyle800102Animation08AB8Records,
+    _gKyle800102Animation08AB8Indices,
+    { NULL, _gKyle800102Animation08AB8Bank1, NULL, NULL, _gKyle800102Animation08AB8Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gKyle800102Animation08F78Bank1[7] = {
+#include "assets/kyle_800102_animation_08F78_bank1.inc"
+};
+
+static AnimationPackedRotation _gKyle800102Animation08F78Bank4[105] = {
+#include "assets/kyle_800102_animation_08F78_bank4.inc"
+};
+
+static AnimationRecord _gKyle800102Animation08F78Records[158] = {
+#include "assets/kyle_800102_animation_08F78_records.inc"
+};
+
+static u16 _gKyle800102Animation08F78Indices[20] = {
+#include "assets/kyle_800102_animation_08F78_indices.inc"
+};
+
+static AnimationSet _gKyle800102Animation08F78 = {
+    _gKyle800102Animation08F78Records,
+    _gKyle800102Animation08F78Indices,
+    { NULL, _gKyle800102Animation08F78Bank1, NULL, NULL, _gKyle800102Animation08F78Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gKyle800102Animation0951CBank1[10] = {
+#include "assets/kyle_800102_animation_0951C_bank1.inc"
+};
+
+static AnimationPackedRotation _gKyle800102Animation0951CBank4[131] = {
+#include "assets/kyle_800102_animation_0951C_bank4.inc"
+};
+
+static AnimationRecord _gKyle800102Animation0951CRecords[180] = {
+#include "assets/kyle_800102_animation_0951C_records.inc"
+};
+
+static u16 _gKyle800102Animation0951CIndices[20] = {
+#include "assets/kyle_800102_animation_0951C_indices.inc"
+};
+
+static AnimationSet _gKyle800102Animation0951C = {
+    _gKyle800102Animation0951CRecords,
+    _gKyle800102Animation0951CIndices,
+    { NULL, _gKyle800102Animation0951CBank1, NULL, NULL, _gKyle800102Animation0951CBank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gKyle800102Animation09A8CBank1[11] = {
+#include "assets/kyle_800102_animation_09A8C_bank1.inc"
+};
+
+static AnimationPackedRotation _gKyle800102Animation09A8CBank4[127] = {
+#include "assets/kyle_800102_animation_09A8C_bank4.inc"
+};
+
+static AnimationRecord _gKyle800102Animation09A8CRecords[168] = {
+#include "assets/kyle_800102_animation_09A8C_records.inc"
+};
+
+static u16 _gKyle800102Animation09A8CIndices[20] = {
+#include "assets/kyle_800102_animation_09A8C_indices.inc"
+};
+
+static AnimationSet _gKyle800102Animation09A8C = {
+    _gKyle800102Animation09A8CRecords,
+    _gKyle800102Animation09A8CIndices,
+    { NULL, _gKyle800102Animation09A8CBank1, NULL, NULL, _gKyle800102Animation09A8CBank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gKyle800102Animation0A298Bank1[10] = {
+#include "assets/kyle_800102_animation_0A298_bank1.inc"
+};
+
+static AnimationPackedRotation _gKyle800102Animation0A298Bank4[181] = {
+#include "assets/kyle_800102_animation_0A298_bank4.inc"
+};
+
+static AnimationRecord _gKyle800102Animation0A298Records[284] = {
+#include "assets/kyle_800102_animation_0A298_records.inc"
+};
+
+static u16 _gKyle800102Animation0A298Indices[20] = {
+#include "assets/kyle_800102_animation_0A298_indices.inc"
+};
+
+static AnimationSet _gKyle800102Animation0A298 = {
+    _gKyle800102Animation0A298Records,
+    _gKyle800102Animation0A298Indices,
+    { NULL, _gKyle800102Animation0A298Bank1, NULL, NULL, _gKyle800102Animation0A298Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gKyle800102Animation0A768Bank1[9] = {
+#include "assets/kyle_800102_animation_0A768_bank1.inc"
+};
+
+static AnimationPackedRotation _gKyle800102Animation0A768Bank4[113] = {
+#include "assets/kyle_800102_animation_0A768_bank4.inc"
+};
+
+static AnimationRecord _gKyle800102Animation0A768Records[148] = {
+#include "assets/kyle_800102_animation_0A768_records.inc"
+};
+
+static u16 _gKyle800102Animation0A768Indices[20] = {
+#include "assets/kyle_800102_animation_0A768_indices.inc"
+};
+
+static AnimationSet _gKyle800102Animation0A768 = {
+    _gKyle800102Animation0A768Records,
+    _gKyle800102Animation0A768Indices,
+    { NULL, _gKyle800102Animation0A768Bank1, NULL, NULL, _gKyle800102Animation0A768Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gKyle800102Animation0ACC0Bank1[8] = {
+#include "assets/kyle_800102_animation_0ACC0_bank1.inc"
+};
+
+static AnimationPackedRotation _gKyle800102Animation0ACC0Bank4[129] = {
+#include "assets/kyle_800102_animation_0ACC0_bank4.inc"
+};
+
+static AnimationRecord _gKyle800102Animation0ACC0Records[169] = {
+#include "assets/kyle_800102_animation_0ACC0_records.inc"
+};
+
+static u16 _gKyle800102Animation0ACC0Indices[20] = {
+#include "assets/kyle_800102_animation_0ACC0_indices.inc"
+};
+
+static AnimationSet _gKyle800102Animation0ACC0 = {
+    _gKyle800102Animation0ACC0Records,
+    _gKyle800102Animation0ACC0Indices,
+    { NULL, _gKyle800102Animation0ACC0Bank1, NULL, NULL, _gKyle800102Animation0ACC0Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gKyle800102Animation0AEB0Bank1[2] = {
+#include "assets/kyle_800102_animation_0AEB0_bank1.inc"
+};
+
+static AnimationPackedRotation _gKyle800102Animation0AEB0Bank4[18] = {
+#include "assets/kyle_800102_animation_0AEB0_bank4.inc"
+};
+
+static AnimationRecord _gKyle800102Animation0AEB0Records[80] = {
+#include "assets/kyle_800102_animation_0AEB0_records.inc"
+};
+
+static u16 _gKyle800102Animation0AEB0Indices[20] = {
+#include "assets/kyle_800102_animation_0AEB0_indices.inc"
+};
+
+static AnimationSet _gKyle800102Animation0AEB0 = {
+    _gKyle800102Animation0AEB0Records,
+    _gKyle800102Animation0AEB0Indices,
+    { NULL, _gKyle800102Animation0AEB0Bank1, NULL, NULL, _gKyle800102Animation0AEB0Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gKyle800102Animation0B620Bank1[13] = {
+#include "assets/kyle_800102_animation_0B620_bank1.inc"
+};
+
+static AnimationPackedRotation _gKyle800102Animation0B620Bank4[175] = {
+#include "assets/kyle_800102_animation_0B620_bank4.inc"
+};
+
+static AnimationRecord _gKyle800102Animation0B620Records[242] = {
+#include "assets/kyle_800102_animation_0B620_records.inc"
+};
+
+static u16 _gKyle800102Animation0B620Indices[20] = {
+#include "assets/kyle_800102_animation_0B620_indices.inc"
+};
+
+static AnimationSet _gKyle800102Animation0B620 = {
+    _gKyle800102Animation0B620Records,
+    _gKyle800102Animation0B620Indices,
+    { NULL, _gKyle800102Animation0B620Bank1, NULL, NULL, _gKyle800102Animation0B620Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gKyle800102Animation0C030Bank1[16] = {
+#include "assets/kyle_800102_animation_0C030_bank1.inc"
+};
+
+static AnimationPackedRotation _gKyle800102Animation0C030Bank4[250] = {
+#include "assets/kyle_800102_animation_0C030_bank4.inc"
+};
+
+static AnimationRecord _gKyle800102Animation0C030Records[326] = {
+#include "assets/kyle_800102_animation_0C030_records.inc"
+};
+
+static u16 _gKyle800102Animation0C030Indices[20] = {
+#include "assets/kyle_800102_animation_0C030_indices.inc"
+};
+
+static AnimationSet _gKyle800102Animation0C030 = {
+    _gKyle800102Animation0C030Records,
+    _gKyle800102Animation0C030Indices,
+    { NULL, _gKyle800102Animation0C030Bank1, NULL, NULL, _gKyle800102Animation0C030Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gKyle800102Animation0CCD8Bank1[23] = {
+#include "assets/kyle_800102_animation_0CCD8_bank1.inc"
+};
+
+static AnimationPackedRotation _gKyle800102Animation0CCD8Bank4[303] = {
+#include "assets/kyle_800102_animation_0CCD8_bank4.inc"
+};
+
+static AnimationRecord _gKyle800102Animation0CCD8Records[418] = {
+#include "assets/kyle_800102_animation_0CCD8_records.inc"
+};
+
+static u16 _gKyle800102Animation0CCD8Indices[20] = {
+#include "assets/kyle_800102_animation_0CCD8_indices.inc"
+};
+
+static AnimationSet _gKyle800102Animation0CCD8 = {
+    _gKyle800102Animation0CCD8Records,
+    _gKyle800102Animation0CCD8Indices,
+    { NULL, _gKyle800102Animation0CCD8Bank1, NULL, NULL, _gKyle800102Animation0CCD8Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gKyle800102Animation0D084Bank1[5] = {
+#include "assets/kyle_800102_animation_0D084_bank1.inc"
+};
+
+static AnimationPackedRotation _gKyle800102Animation0D084Bank4[82] = {
+#include "assets/kyle_800102_animation_0D084_bank4.inc"
+};
+
+static AnimationRecord _gKyle800102Animation0D084Records[118] = {
+#include "assets/kyle_800102_animation_0D084_records.inc"
+};
+
+static u16 _gKyle800102Animation0D084Indices[20] = {
+#include "assets/kyle_800102_animation_0D084_indices.inc"
+};
+
+static AnimationSet _gKyle800102Animation0D084 = {
+    _gKyle800102Animation0D084Records,
+    _gKyle800102Animation0D084Indices,
+    { NULL, _gKyle800102Animation0D084Bank1, NULL, NULL, _gKyle800102Animation0D084Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gKyle800102Animation0D648Bank1[10] = {
+#include "assets/kyle_800102_animation_0D648_bank1.inc"
+};
+
+static AnimationPackedRotation _gKyle800102Animation0D648Bank4[139] = {
+#include "assets/kyle_800102_animation_0D648_bank4.inc"
+};
+
+static AnimationRecord _gKyle800102Animation0D648Records[180] = {
+#include "assets/kyle_800102_animation_0D648_records.inc"
+};
+
+static u16 _gKyle800102Animation0D648Indices[20] = {
+#include "assets/kyle_800102_animation_0D648_indices.inc"
+};
+
+static AnimationSet _gKyle800102Animation0D648 = {
+    _gKyle800102Animation0D648Records,
+    _gKyle800102Animation0D648Indices,
+    { NULL, _gKyle800102Animation0D648Bank1, NULL, NULL, _gKyle800102Animation0D648Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gKyle800102Animation0DCBCBank1[12] = {
+#include "assets/kyle_800102_animation_0DCBC_bank1.inc"
+};
+
+static AnimationPackedRotation _gKyle800102Animation0DCBCBank4[158] = {
+#include "assets/kyle_800102_animation_0DCBC_bank4.inc"
+};
+
+static AnimationRecord _gKyle800102Animation0DCBCRecords[199] = {
+#include "assets/kyle_800102_animation_0DCBC_records.inc"
+};
+
+static u16 _gKyle800102Animation0DCBCIndices[20] = {
+#include "assets/kyle_800102_animation_0DCBC_indices.inc"
+};
+
+static AnimationSet _gKyle800102Animation0DCBC = {
+    _gKyle800102Animation0DCBCRecords,
+    _gKyle800102Animation0DCBCIndices,
+    { NULL, _gKyle800102Animation0DCBCBank1, NULL, NULL, _gKyle800102Animation0DCBCBank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gKyle800102Animation0E550Bank1[11] = {
+#include "assets/kyle_800102_animation_0E550_bank1.inc"
+};
+
+static AnimationPackedRotation _gKyle800102Animation0E550Bank4[206] = {
+#include "assets/kyle_800102_animation_0E550_bank4.inc"
+};
+
+static AnimationRecord _gKyle800102Animation0E550Records[290] = {
+#include "assets/kyle_800102_animation_0E550_records.inc"
+};
+
+static u16 _gKyle800102Animation0E550Indices[20] = {
+#include "assets/kyle_800102_animation_0E550_indices.inc"
+};
+
+static AnimationSet _gKyle800102Animation0E550 = {
+    _gKyle800102Animation0E550Records,
+    _gKyle800102Animation0E550Indices,
+    { NULL, _gKyle800102Animation0E550Bank1, NULL, NULL, _gKyle800102Animation0E550Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gKyle800102Animation0ECA4Bank1[12] = {
+#include "assets/kyle_800102_animation_0ECA4_bank1.inc"
+};
+
+static AnimationPackedRotation _gKyle800102Animation0ECA4Bank4[165] = {
+#include "assets/kyle_800102_animation_0ECA4_bank4.inc"
+};
+
+static AnimationRecord _gKyle800102Animation0ECA4Records[248] = {
+#include "assets/kyle_800102_animation_0ECA4_records.inc"
+};
+
+static u16 _gKyle800102Animation0ECA4Indices[20] = {
+#include "assets/kyle_800102_animation_0ECA4_indices.inc"
+};
+
+static AnimationSet _gKyle800102Animation0ECA4 = {
+    _gKyle800102Animation0ECA4Records,
+    _gKyle800102Animation0ECA4Indices,
+    { NULL, _gKyle800102Animation0ECA4Bank1, NULL, NULL, _gKyle800102Animation0ECA4Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gKyle800102Animation0F850Bank1[17] = {
+#include "assets/kyle_800102_animation_0F850_bank1.inc"
+};
+
+static AnimationPackedRotation _gKyle800102Animation0F850Bank4[298] = {
+#include "assets/kyle_800102_animation_0F850_bank4.inc"
+};
+
+static AnimationRecord _gKyle800102Animation0F850Records[378] = {
+#include "assets/kyle_800102_animation_0F850_records.inc"
+};
+
+static u16 _gKyle800102Animation0F850Indices[20] = {
+#include "assets/kyle_800102_animation_0F850_indices.inc"
+};
+
+static AnimationSet _gKyle800102Animation0F850 = {
+    _gKyle800102Animation0F850Records,
+    _gKyle800102Animation0F850Indices,
+    { NULL, _gKyle800102Animation0F850Bank1, NULL, NULL, _gKyle800102Animation0F850Bank4, NULL, NULL, NULL },
+};
+
+AnimationBank D_kyle_800102_801772E8 = { { {
+    NULL,
+    &_gKyle800102Animation070F8,
+    &_gKyle800102Animation0E550,
+    &_gKyle800102Animation0ECA4,
+    &_gKyle800102Animation0F850,
+    &_gKyle800102Animation081E4,
+    &_gKyle800102Animation08AB8,
+    &_gKyle800102Animation0D648,
+    &_gKyle800102Animation0DCBC,
+    &_gKyle800102Animation0AEB0,
+    &_gKyle800102Animation0D084,
+    &_gKyle800102Animation070F8,
+    &_gKyle800102Animation0C030,
+    &_gKyle800102Animation0B620,
+    &_gKyle800102Animation0CCD8,
+    &_gKyle800102Animation070F8,
+    &_gKyle800102Animation08F78,
+    &_gKyle800102Animation0951C,
+    &_gKyle800102Animation09A8C,
+    &_gKyle800102Animation07978,
+    &_gKyle800102Animation0CCD8,
+    &_gKyle800102Animation070F8,
+    &_gKyle800102Animation070F8,
+    &_gKyle800102Animation0A298,
+    &_gKyle800102Animation070F8,
+    &_gKyle800102Animation070F8,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    &_gKyle800102Animation0A768,
+    &_gKyle800102Animation0ACC0,
+    &_gKyle800102Animation0D648,
+    &_gKyle800102Animation0DCBC,
+    &_gKyle800102Animation070F8,
+    &_gKyle800102Animation070F8,
+    &_gKyle800102Animation070F8,
+    &_gKyle800102Animation070F8,
+    &_gKyle800102Animation070F8,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+} } };

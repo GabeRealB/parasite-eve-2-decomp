@@ -434,3 +434,921 @@ TmdSource D_m4a1_grenade_8011EA2C = {
     _gM4a1GrenadeModel01134Skeleton,
     _gM4a1GrenadeModel01134Stream,
 };
+
+static AnimationPackedPose _gM4a1GrenadeAnimation01A20Bank1[2] = {
+#include "assets/m4a1_grenade_animation_01A20_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1GrenadeAnimation01A20Bank4[8] = {
+#include "assets/m4a1_grenade_animation_01A20_bank4.inc"
+};
+
+static AnimationRecord _gM4a1GrenadeAnimation01A20Records[76] = {
+#include "assets/m4a1_grenade_animation_01A20_records.inc"
+};
+
+static u16 _gM4a1GrenadeAnimation01A20Indices[20] = {
+#include "assets/m4a1_grenade_animation_01A20_indices.inc"
+};
+
+static AnimationSet _gM4a1GrenadeAnimation01A20 = {
+    _gM4a1GrenadeAnimation01A20Records,
+    _gM4a1GrenadeAnimation01A20Indices,
+    { NULL, _gM4a1GrenadeAnimation01A20Bank1, NULL, NULL, _gM4a1GrenadeAnimation01A20Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1GrenadeAnimation020C4Bank1[12] = {
+#include "assets/m4a1_grenade_animation_020C4_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1GrenadeAnimation020C4Bank4[151] = {
+#include "assets/m4a1_grenade_animation_020C4_bank4.inc"
+};
+
+static AnimationRecord _gM4a1GrenadeAnimation020C4Records[218] = {
+#include "assets/m4a1_grenade_animation_020C4_records.inc"
+};
+
+static u16 _gM4a1GrenadeAnimation020C4Indices[20] = {
+#include "assets/m4a1_grenade_animation_020C4_indices.inc"
+};
+
+static AnimationSet _gM4a1GrenadeAnimation020C4 = {
+    _gM4a1GrenadeAnimation020C4Records,
+    _gM4a1GrenadeAnimation020C4Indices,
+    { NULL, _gM4a1GrenadeAnimation020C4Bank1, NULL, NULL, _gM4a1GrenadeAnimation020C4Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1GrenadeAnimation02924Bank1[19] = {
+#include "assets/m4a1_grenade_animation_02924_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1GrenadeAnimation02924Bank4[169] = {
+#include "assets/m4a1_grenade_animation_02924_bank4.inc"
+};
+
+static AnimationRecord _gM4a1GrenadeAnimation02924Records[290] = {
+#include "assets/m4a1_grenade_animation_02924_records.inc"
+};
+
+static u16 _gM4a1GrenadeAnimation02924Indices[20] = {
+#include "assets/m4a1_grenade_animation_02924_indices.inc"
+};
+
+static AnimationSet _gM4a1GrenadeAnimation02924 = {
+    _gM4a1GrenadeAnimation02924Records,
+    _gM4a1GrenadeAnimation02924Indices,
+    { NULL, _gM4a1GrenadeAnimation02924Bank1, NULL, NULL, _gM4a1GrenadeAnimation02924Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1GrenadeAnimation03188Bank1[19] = {
+#include "assets/m4a1_grenade_animation_03188_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1GrenadeAnimation03188Bank4[170] = {
+#include "assets/m4a1_grenade_animation_03188_bank4.inc"
+};
+
+static AnimationRecord _gM4a1GrenadeAnimation03188Records[290] = {
+#include "assets/m4a1_grenade_animation_03188_records.inc"
+};
+
+static u16 _gM4a1GrenadeAnimation03188Indices[20] = {
+#include "assets/m4a1_grenade_animation_03188_indices.inc"
+};
+
+static AnimationSet _gM4a1GrenadeAnimation03188 = {
+    _gM4a1GrenadeAnimation03188Records,
+    _gM4a1GrenadeAnimation03188Indices,
+    { NULL, _gM4a1GrenadeAnimation03188Bank1, NULL, NULL, _gM4a1GrenadeAnimation03188Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1GrenadeAnimation0349CBank1[3] = {
+#include "assets/m4a1_grenade_animation_0349C_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1GrenadeAnimation0349CBank4[69] = {
+#include "assets/m4a1_grenade_animation_0349C_bank4.inc"
+};
+
+static AnimationRecord _gM4a1GrenadeAnimation0349CRecords[99] = {
+#include "assets/m4a1_grenade_animation_0349C_records.inc"
+};
+
+static u16 _gM4a1GrenadeAnimation0349CIndices[20] = {
+#include "assets/m4a1_grenade_animation_0349C_indices.inc"
+};
+
+static AnimationSet _gM4a1GrenadeAnimation0349C = {
+    _gM4a1GrenadeAnimation0349CRecords,
+    _gM4a1GrenadeAnimation0349CIndices,
+    { NULL, _gM4a1GrenadeAnimation0349CBank1, NULL, NULL, _gM4a1GrenadeAnimation0349CBank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1GrenadeAnimation03BF8Bank1[14] = {
+#include "assets/m4a1_grenade_animation_03BF8_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1GrenadeAnimation03BF8Bank4[156] = {
+#include "assets/m4a1_grenade_animation_03BF8_bank4.inc"
+};
+
+static AnimationRecord _gM4a1GrenadeAnimation03BF8Records[253] = {
+#include "assets/m4a1_grenade_animation_03BF8_records.inc"
+};
+
+static u16 _gM4a1GrenadeAnimation03BF8Indices[20] = {
+#include "assets/m4a1_grenade_animation_03BF8_indices.inc"
+};
+
+static AnimationSet _gM4a1GrenadeAnimation03BF8 = {
+    _gM4a1GrenadeAnimation03BF8Records,
+    _gM4a1GrenadeAnimation03BF8Indices,
+    { NULL, _gM4a1GrenadeAnimation03BF8Bank1, NULL, NULL, _gM4a1GrenadeAnimation03BF8Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1GrenadeAnimation04380Bank1[16] = {
+#include "assets/m4a1_grenade_animation_04380_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1GrenadeAnimation04380Bank4[167] = {
+#include "assets/m4a1_grenade_animation_04380_bank4.inc"
+};
+
+static AnimationRecord _gM4a1GrenadeAnimation04380Records[247] = {
+#include "assets/m4a1_grenade_animation_04380_records.inc"
+};
+
+static u16 _gM4a1GrenadeAnimation04380Indices[20] = {
+#include "assets/m4a1_grenade_animation_04380_indices.inc"
+};
+
+static AnimationSet _gM4a1GrenadeAnimation04380 = {
+    _gM4a1GrenadeAnimation04380Records,
+    _gM4a1GrenadeAnimation04380Indices,
+    { NULL, _gM4a1GrenadeAnimation04380Bank1, NULL, NULL, _gM4a1GrenadeAnimation04380Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1GrenadeAnimation04654Bank1[6] = {
+#include "assets/m4a1_grenade_animation_04654_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1GrenadeAnimation04654Bank4[52] = {
+#include "assets/m4a1_grenade_animation_04654_bank4.inc"
+};
+
+static AnimationRecord _gM4a1GrenadeAnimation04654Records[91] = {
+#include "assets/m4a1_grenade_animation_04654_records.inc"
+};
+
+static u16 _gM4a1GrenadeAnimation04654Indices[20] = {
+#include "assets/m4a1_grenade_animation_04654_indices.inc"
+};
+
+static AnimationSet _gM4a1GrenadeAnimation04654 = {
+    _gM4a1GrenadeAnimation04654Records,
+    _gM4a1GrenadeAnimation04654Indices,
+    { NULL, _gM4a1GrenadeAnimation04654Bank1, NULL, NULL, _gM4a1GrenadeAnimation04654Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1GrenadeAnimation049E4Bank1[7] = {
+#include "assets/m4a1_grenade_animation_049E4_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1GrenadeAnimation049E4Bank4[73] = {
+#include "assets/m4a1_grenade_animation_049E4_bank4.inc"
+};
+
+static AnimationRecord _gM4a1GrenadeAnimation049E4Records[114] = {
+#include "assets/m4a1_grenade_animation_049E4_records.inc"
+};
+
+static u16 _gM4a1GrenadeAnimation049E4Indices[20] = {
+#include "assets/m4a1_grenade_animation_049E4_indices.inc"
+};
+
+static AnimationSet _gM4a1GrenadeAnimation049E4 = {
+    _gM4a1GrenadeAnimation049E4Records,
+    _gM4a1GrenadeAnimation049E4Indices,
+    { NULL, _gM4a1GrenadeAnimation049E4Bank1, NULL, NULL, _gM4a1GrenadeAnimation049E4Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1GrenadeAnimation04E6CBank1[9] = {
+#include "assets/m4a1_grenade_animation_04E6C_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1GrenadeAnimation04E6CBank4[104] = {
+#include "assets/m4a1_grenade_animation_04E6C_bank4.inc"
+};
+
+static AnimationRecord _gM4a1GrenadeAnimation04E6CRecords[139] = {
+#include "assets/m4a1_grenade_animation_04E6C_records.inc"
+};
+
+static u16 _gM4a1GrenadeAnimation04E6CIndices[20] = {
+#include "assets/m4a1_grenade_animation_04E6C_indices.inc"
+};
+
+static AnimationSet _gM4a1GrenadeAnimation04E6C = {
+    _gM4a1GrenadeAnimation04E6CRecords,
+    _gM4a1GrenadeAnimation04E6CIndices,
+    { NULL, _gM4a1GrenadeAnimation04E6CBank1, NULL, NULL, _gM4a1GrenadeAnimation04E6CBank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1GrenadeAnimation05068Bank1[3] = {
+#include "assets/m4a1_grenade_animation_05068_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1GrenadeAnimation05068Bank4[22] = {
+#include "assets/m4a1_grenade_animation_05068_bank4.inc"
+};
+
+static AnimationRecord _gM4a1GrenadeAnimation05068Records[76] = {
+#include "assets/m4a1_grenade_animation_05068_records.inc"
+};
+
+static u16 _gM4a1GrenadeAnimation05068Indices[20] = {
+#include "assets/m4a1_grenade_animation_05068_indices.inc"
+};
+
+static AnimationSet _gM4a1GrenadeAnimation05068 = {
+    _gM4a1GrenadeAnimation05068Records,
+    _gM4a1GrenadeAnimation05068Indices,
+    { NULL, _gM4a1GrenadeAnimation05068Bank1, NULL, NULL, _gM4a1GrenadeAnimation05068Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1GrenadeAnimation05340Bank1[6] = {
+#include "assets/m4a1_grenade_animation_05340_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1GrenadeAnimation05340Bank4[57] = {
+#include "assets/m4a1_grenade_animation_05340_bank4.inc"
+};
+
+static AnimationRecord _gM4a1GrenadeAnimation05340Records[87] = {
+#include "assets/m4a1_grenade_animation_05340_records.inc"
+};
+
+static u16 _gM4a1GrenadeAnimation05340Indices[20] = {
+#include "assets/m4a1_grenade_animation_05340_indices.inc"
+};
+
+static AnimationSet _gM4a1GrenadeAnimation05340 = {
+    _gM4a1GrenadeAnimation05340Records,
+    _gM4a1GrenadeAnimation05340Indices,
+    { NULL, _gM4a1GrenadeAnimation05340Bank1, NULL, NULL, _gM4a1GrenadeAnimation05340Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1GrenadeAnimation055E4Bank1[4] = {
+#include "assets/m4a1_grenade_animation_055E4_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1GrenadeAnimation055E4Bank4[55] = {
+#include "assets/m4a1_grenade_animation_055E4_bank4.inc"
+};
+
+static AnimationRecord _gM4a1GrenadeAnimation055E4Records[82] = {
+#include "assets/m4a1_grenade_animation_055E4_records.inc"
+};
+
+static u16 _gM4a1GrenadeAnimation055E4Indices[20] = {
+#include "assets/m4a1_grenade_animation_055E4_indices.inc"
+};
+
+static AnimationSet _gM4a1GrenadeAnimation055E4 = {
+    _gM4a1GrenadeAnimation055E4Records,
+    _gM4a1GrenadeAnimation055E4Indices,
+    { NULL, _gM4a1GrenadeAnimation055E4Bank1, NULL, NULL, _gM4a1GrenadeAnimation055E4Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1GrenadeAnimation057E4Bank1[3] = {
+#include "assets/m4a1_grenade_animation_057E4_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1GrenadeAnimation057E4Bank4[23] = {
+#include "assets/m4a1_grenade_animation_057E4_bank4.inc"
+};
+
+static AnimationRecord _gM4a1GrenadeAnimation057E4Records[76] = {
+#include "assets/m4a1_grenade_animation_057E4_records.inc"
+};
+
+static u16 _gM4a1GrenadeAnimation057E4Indices[20] = {
+#include "assets/m4a1_grenade_animation_057E4_indices.inc"
+};
+
+static AnimationSet _gM4a1GrenadeAnimation057E4 = {
+    _gM4a1GrenadeAnimation057E4Records,
+    _gM4a1GrenadeAnimation057E4Indices,
+    { NULL, _gM4a1GrenadeAnimation057E4Bank1, NULL, NULL, _gM4a1GrenadeAnimation057E4Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1GrenadeAnimation05B38Bank1[8] = {
+#include "assets/m4a1_grenade_animation_05B38_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1GrenadeAnimation05B38Bank4[68] = {
+#include "assets/m4a1_grenade_animation_05B38_bank4.inc"
+};
+
+static AnimationRecord _gM4a1GrenadeAnimation05B38Records[101] = {
+#include "assets/m4a1_grenade_animation_05B38_records.inc"
+};
+
+static u16 _gM4a1GrenadeAnimation05B38Indices[20] = {
+#include "assets/m4a1_grenade_animation_05B38_indices.inc"
+};
+
+static AnimationSet _gM4a1GrenadeAnimation05B38 = {
+    _gM4a1GrenadeAnimation05B38Records,
+    _gM4a1GrenadeAnimation05B38Indices,
+    { NULL, _gM4a1GrenadeAnimation05B38Bank1, NULL, NULL, _gM4a1GrenadeAnimation05B38Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1GrenadeAnimation05DECBank1[5] = {
+#include "assets/m4a1_grenade_animation_05DEC_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1GrenadeAnimation05DECBank4[55] = {
+#include "assets/m4a1_grenade_animation_05DEC_bank4.inc"
+};
+
+static AnimationRecord _gM4a1GrenadeAnimation05DECRecords[83] = {
+#include "assets/m4a1_grenade_animation_05DEC_records.inc"
+};
+
+static u16 _gM4a1GrenadeAnimation05DECIndices[20] = {
+#include "assets/m4a1_grenade_animation_05DEC_indices.inc"
+};
+
+static AnimationSet _gM4a1GrenadeAnimation05DEC = {
+    _gM4a1GrenadeAnimation05DECRecords,
+    _gM4a1GrenadeAnimation05DECIndices,
+    { NULL, _gM4a1GrenadeAnimation05DECBank1, NULL, NULL, _gM4a1GrenadeAnimation05DECBank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1GrenadeAnimation0610CBank1[6] = {
+#include "assets/m4a1_grenade_animation_0610C_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1GrenadeAnimation0610CBank4[66] = {
+#include "assets/m4a1_grenade_animation_0610C_bank4.inc"
+};
+
+static AnimationRecord _gM4a1GrenadeAnimation0610CRecords[96] = {
+#include "assets/m4a1_grenade_animation_0610C_records.inc"
+};
+
+static u16 _gM4a1GrenadeAnimation0610CIndices[20] = {
+#include "assets/m4a1_grenade_animation_0610C_indices.inc"
+};
+
+static AnimationSet _gM4a1GrenadeAnimation0610C = {
+    _gM4a1GrenadeAnimation0610CRecords,
+    _gM4a1GrenadeAnimation0610CIndices,
+    { NULL, _gM4a1GrenadeAnimation0610CBank1, NULL, NULL, _gM4a1GrenadeAnimation0610CBank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1GrenadeAnimation068D0Bank1[18] = {
+#include "assets/m4a1_grenade_animation_068D0_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1GrenadeAnimation068D0Bank4[184] = {
+#include "assets/m4a1_grenade_animation_068D0_bank4.inc"
+};
+
+static AnimationRecord _gM4a1GrenadeAnimation068D0Records[239] = {
+#include "assets/m4a1_grenade_animation_068D0_records.inc"
+};
+
+static u16 _gM4a1GrenadeAnimation068D0Indices[20] = {
+#include "assets/m4a1_grenade_animation_068D0_indices.inc"
+};
+
+static AnimationSet _gM4a1GrenadeAnimation068D0 = {
+    _gM4a1GrenadeAnimation068D0Records,
+    _gM4a1GrenadeAnimation068D0Indices,
+    { NULL, _gM4a1GrenadeAnimation068D0Bank1, NULL, NULL, _gM4a1GrenadeAnimation068D0Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1GrenadeAnimation07B68Bank1[29] = {
+#include "assets/m4a1_grenade_animation_07B68_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1GrenadeAnimation07B68Bank4[450] = {
+#include "assets/m4a1_grenade_animation_07B68_bank4.inc"
+};
+
+static AnimationRecord _gM4a1GrenadeAnimation07B68Records[633] = {
+#include "assets/m4a1_grenade_animation_07B68_records.inc"
+};
+
+static u16 _gM4a1GrenadeAnimation07B68Indices[20] = {
+#include "assets/m4a1_grenade_animation_07B68_indices.inc"
+};
+
+static AnimationSet _gM4a1GrenadeAnimation07B68 = {
+    _gM4a1GrenadeAnimation07B68Records,
+    _gM4a1GrenadeAnimation07B68Indices,
+    { NULL, _gM4a1GrenadeAnimation07B68Bank1, NULL, NULL, _gM4a1GrenadeAnimation07B68Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1GrenadeAnimation086E0Bank1[12] = {
+#include "assets/m4a1_grenade_animation_086E0_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1GrenadeAnimation086E0Bank4[266] = {
+#include "assets/m4a1_grenade_animation_086E0_bank4.inc"
+};
+
+static AnimationRecord _gM4a1GrenadeAnimation086E0Records[412] = {
+#include "assets/m4a1_grenade_animation_086E0_records.inc"
+};
+
+static u16 _gM4a1GrenadeAnimation086E0Indices[20] = {
+#include "assets/m4a1_grenade_animation_086E0_indices.inc"
+};
+
+static AnimationSet _gM4a1GrenadeAnimation086E0 = {
+    _gM4a1GrenadeAnimation086E0Records,
+    _gM4a1GrenadeAnimation086E0Indices,
+    { NULL, _gM4a1GrenadeAnimation086E0Bank1, NULL, NULL, _gM4a1GrenadeAnimation086E0Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1GrenadeAnimation08DFCBank1[9] = {
+#include "assets/m4a1_grenade_animation_08DFC_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1GrenadeAnimation08DFCBank4[144] = {
+#include "assets/m4a1_grenade_animation_08DFC_bank4.inc"
+};
+
+static AnimationRecord _gM4a1GrenadeAnimation08DFCRecords[264] = {
+#include "assets/m4a1_grenade_animation_08DFC_records.inc"
+};
+
+static u16 _gM4a1GrenadeAnimation08DFCIndices[20] = {
+#include "assets/m4a1_grenade_animation_08DFC_indices.inc"
+};
+
+static AnimationSet _gM4a1GrenadeAnimation08DFC = {
+    _gM4a1GrenadeAnimation08DFCRecords,
+    _gM4a1GrenadeAnimation08DFCIndices,
+    { NULL, _gM4a1GrenadeAnimation08DFCBank1, NULL, NULL, _gM4a1GrenadeAnimation08DFCBank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1GrenadeAnimation0927CBank1[6] = {
+#include "assets/m4a1_grenade_animation_0927C_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1GrenadeAnimation0927CBank4[107] = {
+#include "assets/m4a1_grenade_animation_0927C_bank4.inc"
+};
+
+static AnimationRecord _gM4a1GrenadeAnimation0927CRecords[143] = {
+#include "assets/m4a1_grenade_animation_0927C_records.inc"
+};
+
+static u16 _gM4a1GrenadeAnimation0927CIndices[20] = {
+#include "assets/m4a1_grenade_animation_0927C_indices.inc"
+};
+
+static AnimationSet _gM4a1GrenadeAnimation0927C = {
+    _gM4a1GrenadeAnimation0927CRecords,
+    _gM4a1GrenadeAnimation0927CIndices,
+    { NULL, _gM4a1GrenadeAnimation0927CBank1, NULL, NULL, _gM4a1GrenadeAnimation0927CBank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1GrenadeAnimation09454Bank1[3] = {
+#include "assets/m4a1_grenade_animation_09454_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1GrenadeAnimation09454Bank4[32] = {
+#include "assets/m4a1_grenade_animation_09454_bank4.inc"
+};
+
+static AnimationRecord _gM4a1GrenadeAnimation09454Records[57] = {
+#include "assets/m4a1_grenade_animation_09454_records.inc"
+};
+
+static u16 _gM4a1GrenadeAnimation09454Indices[20] = {
+#include "assets/m4a1_grenade_animation_09454_indices.inc"
+};
+
+static AnimationSet _gM4a1GrenadeAnimation09454 = {
+    _gM4a1GrenadeAnimation09454Records,
+    _gM4a1GrenadeAnimation09454Indices,
+    { NULL, _gM4a1GrenadeAnimation09454Bank1, NULL, NULL, _gM4a1GrenadeAnimation09454Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1GrenadeAnimation099B8Bank1[11] = {
+#include "assets/m4a1_grenade_animation_099B8_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1GrenadeAnimation099B8Bank4[125] = {
+#include "assets/m4a1_grenade_animation_099B8_bank4.inc"
+};
+
+static AnimationRecord _gM4a1GrenadeAnimation099B8Records[167] = {
+#include "assets/m4a1_grenade_animation_099B8_records.inc"
+};
+
+static u16 _gM4a1GrenadeAnimation099B8Indices[20] = {
+#include "assets/m4a1_grenade_animation_099B8_indices.inc"
+};
+
+static AnimationSet _gM4a1GrenadeAnimation099B8 = {
+    _gM4a1GrenadeAnimation099B8Records,
+    _gM4a1GrenadeAnimation099B8Indices,
+    { NULL, _gM4a1GrenadeAnimation099B8Bank1, NULL, NULL, _gM4a1GrenadeAnimation099B8Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1GrenadeAnimation09BACBank1[3] = {
+#include "assets/m4a1_grenade_animation_09BAC_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1GrenadeAnimation09BACBank4[20] = {
+#include "assets/m4a1_grenade_animation_09BAC_bank4.inc"
+};
+
+static AnimationRecord _gM4a1GrenadeAnimation09BACRecords[76] = {
+#include "assets/m4a1_grenade_animation_09BAC_records.inc"
+};
+
+static u16 _gM4a1GrenadeAnimation09BACIndices[20] = {
+#include "assets/m4a1_grenade_animation_09BAC_indices.inc"
+};
+
+static AnimationSet _gM4a1GrenadeAnimation09BAC = {
+    _gM4a1GrenadeAnimation09BACRecords,
+    _gM4a1GrenadeAnimation09BACIndices,
+    { NULL, _gM4a1GrenadeAnimation09BACBank1, NULL, NULL, _gM4a1GrenadeAnimation09BACBank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1GrenadeAnimation0A02CBank1[8] = {
+#include "assets/m4a1_grenade_animation_0A02C_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1GrenadeAnimation0A02CBank4[105] = {
+#include "assets/m4a1_grenade_animation_0A02C_bank4.inc"
+};
+
+static AnimationRecord _gM4a1GrenadeAnimation0A02CRecords[139] = {
+#include "assets/m4a1_grenade_animation_0A02C_records.inc"
+};
+
+static u16 _gM4a1GrenadeAnimation0A02CIndices[20] = {
+#include "assets/m4a1_grenade_animation_0A02C_indices.inc"
+};
+
+static AnimationSet _gM4a1GrenadeAnimation0A02C = {
+    _gM4a1GrenadeAnimation0A02CRecords,
+    _gM4a1GrenadeAnimation0A02CIndices,
+    { NULL, _gM4a1GrenadeAnimation0A02CBank1, NULL, NULL, _gM4a1GrenadeAnimation0A02CBank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1GrenadeAnimation0A204Bank1[2] = {
+#include "assets/m4a1_grenade_animation_0A204_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1GrenadeAnimation0A204Bank4[16] = {
+#include "assets/m4a1_grenade_animation_0A204_bank4.inc"
+};
+
+static AnimationRecord _gM4a1GrenadeAnimation0A204Records[76] = {
+#include "assets/m4a1_grenade_animation_0A204_records.inc"
+};
+
+static u16 _gM4a1GrenadeAnimation0A204Indices[20] = {
+#include "assets/m4a1_grenade_animation_0A204_indices.inc"
+};
+
+static AnimationSet _gM4a1GrenadeAnimation0A204 = {
+    _gM4a1GrenadeAnimation0A204Records,
+    _gM4a1GrenadeAnimation0A204Indices,
+    { NULL, _gM4a1GrenadeAnimation0A204Bank1, NULL, NULL, _gM4a1GrenadeAnimation0A204Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1GrenadeAnimation0AA44Bank1[14] = {
+#include "assets/m4a1_grenade_animation_0AA44_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1GrenadeAnimation0AA44Bank4[194] = {
+#include "assets/m4a1_grenade_animation_0AA44_bank4.inc"
+};
+
+static AnimationRecord _gM4a1GrenadeAnimation0AA44Records[272] = {
+#include "assets/m4a1_grenade_animation_0AA44_records.inc"
+};
+
+static u16 _gM4a1GrenadeAnimation0AA44Indices[20] = {
+#include "assets/m4a1_grenade_animation_0AA44_indices.inc"
+};
+
+static AnimationSet _gM4a1GrenadeAnimation0AA44 = {
+    _gM4a1GrenadeAnimation0AA44Records,
+    _gM4a1GrenadeAnimation0AA44Indices,
+    { NULL, _gM4a1GrenadeAnimation0AA44Bank1, NULL, NULL, _gM4a1GrenadeAnimation0AA44Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1GrenadeAnimation0B4ECBank1[19] = {
+#include "assets/m4a1_grenade_animation_0B4EC_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1GrenadeAnimation0B4ECBank4[269] = {
+#include "assets/m4a1_grenade_animation_0B4EC_bank4.inc"
+};
+
+static AnimationRecord _gM4a1GrenadeAnimation0B4ECRecords[336] = {
+#include "assets/m4a1_grenade_animation_0B4EC_records.inc"
+};
+
+static u16 _gM4a1GrenadeAnimation0B4ECIndices[20] = {
+#include "assets/m4a1_grenade_animation_0B4EC_indices.inc"
+};
+
+static AnimationSet _gM4a1GrenadeAnimation0B4EC = {
+    _gM4a1GrenadeAnimation0B4ECRecords,
+    _gM4a1GrenadeAnimation0B4ECIndices,
+    { NULL, _gM4a1GrenadeAnimation0B4ECBank1, NULL, NULL, _gM4a1GrenadeAnimation0B4ECBank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1GrenadeAnimation0C388Bank1[24] = {
+#include "assets/m4a1_grenade_animation_0C388_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1GrenadeAnimation0C388Bank4[390] = {
+#include "assets/m4a1_grenade_animation_0C388_bank4.inc"
+};
+
+static AnimationRecord _gM4a1GrenadeAnimation0C388Records[453] = {
+#include "assets/m4a1_grenade_animation_0C388_records.inc"
+};
+
+static u16 _gM4a1GrenadeAnimation0C388Indices[20] = {
+#include "assets/m4a1_grenade_animation_0C388_indices.inc"
+};
+
+static AnimationSet _gM4a1GrenadeAnimation0C388 = {
+    _gM4a1GrenadeAnimation0C388Records,
+    _gM4a1GrenadeAnimation0C388Indices,
+    { NULL, _gM4a1GrenadeAnimation0C388Bank1, NULL, NULL, _gM4a1GrenadeAnimation0C388Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1GrenadeAnimation0C82CBank1[8] = {
+#include "assets/m4a1_grenade_animation_0C82C_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1GrenadeAnimation0C82CBank4[102] = {
+#include "assets/m4a1_grenade_animation_0C82C_bank4.inc"
+};
+
+static AnimationRecord _gM4a1GrenadeAnimation0C82CRecords[151] = {
+#include "assets/m4a1_grenade_animation_0C82C_records.inc"
+};
+
+static u16 _gM4a1GrenadeAnimation0C82CIndices[20] = {
+#include "assets/m4a1_grenade_animation_0C82C_indices.inc"
+};
+
+static AnimationSet _gM4a1GrenadeAnimation0C82C = {
+    _gM4a1GrenadeAnimation0C82CRecords,
+    _gM4a1GrenadeAnimation0C82CIndices,
+    { NULL, _gM4a1GrenadeAnimation0C82CBank1, NULL, NULL, _gM4a1GrenadeAnimation0C82CBank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1GrenadeAnimation0CF68Bank1[13] = {
+#include "assets/m4a1_grenade_animation_0CF68_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1GrenadeAnimation0CF68Bank4[171] = {
+#include "assets/m4a1_grenade_animation_0CF68_bank4.inc"
+};
+
+static AnimationRecord _gM4a1GrenadeAnimation0CF68Records[233] = {
+#include "assets/m4a1_grenade_animation_0CF68_records.inc"
+};
+
+static u16 _gM4a1GrenadeAnimation0CF68Indices[20] = {
+#include "assets/m4a1_grenade_animation_0CF68_indices.inc"
+};
+
+static AnimationSet _gM4a1GrenadeAnimation0CF68 = {
+    _gM4a1GrenadeAnimation0CF68Records,
+    _gM4a1GrenadeAnimation0CF68Indices,
+    { NULL, _gM4a1GrenadeAnimation0CF68Bank1, NULL, NULL, _gM4a1GrenadeAnimation0CF68Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1GrenadeAnimation0E6B8Bank1[39] = {
+#include "assets/m4a1_grenade_animation_0E6B8_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1GrenadeAnimation0E6B8Bank4[632] = {
+#include "assets/m4a1_grenade_animation_0E6B8_bank4.inc"
+};
+
+static AnimationRecord _gM4a1GrenadeAnimation0E6B8Records[723] = {
+#include "assets/m4a1_grenade_animation_0E6B8_records.inc"
+};
+
+static u16 _gM4a1GrenadeAnimation0E6B8Indices[20] = {
+#include "assets/m4a1_grenade_animation_0E6B8_indices.inc"
+};
+
+static AnimationSet _gM4a1GrenadeAnimation0E6B8 = {
+    _gM4a1GrenadeAnimation0E6B8Records,
+    _gM4a1GrenadeAnimation0E6B8Indices,
+    { NULL, _gM4a1GrenadeAnimation0E6B8Bank1, NULL, NULL, _gM4a1GrenadeAnimation0E6B8Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1GrenadeAnimation0EDC4Bank1[13] = {
+#include "assets/m4a1_grenade_animation_0EDC4_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1GrenadeAnimation0EDC4Bank4[175] = {
+#include "assets/m4a1_grenade_animation_0EDC4_bank4.inc"
+};
+
+static AnimationRecord _gM4a1GrenadeAnimation0EDC4Records[217] = {
+#include "assets/m4a1_grenade_animation_0EDC4_records.inc"
+};
+
+static u16 _gM4a1GrenadeAnimation0EDC4Indices[20] = {
+#include "assets/m4a1_grenade_animation_0EDC4_indices.inc"
+};
+
+static AnimationSet _gM4a1GrenadeAnimation0EDC4 = {
+    _gM4a1GrenadeAnimation0EDC4Records,
+    _gM4a1GrenadeAnimation0EDC4Indices,
+    { NULL, _gM4a1GrenadeAnimation0EDC4Bank1, NULL, NULL, _gM4a1GrenadeAnimation0EDC4Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1GrenadeAnimation0F33CBank1[10] = {
+#include "assets/m4a1_grenade_animation_0F33C_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1GrenadeAnimation0F33CBank4[131] = {
+#include "assets/m4a1_grenade_animation_0F33C_bank4.inc"
+};
+
+static AnimationRecord _gM4a1GrenadeAnimation0F33CRecords[169] = {
+#include "assets/m4a1_grenade_animation_0F33C_records.inc"
+};
+
+static u16 _gM4a1GrenadeAnimation0F33CIndices[20] = {
+#include "assets/m4a1_grenade_animation_0F33C_indices.inc"
+};
+
+static AnimationSet _gM4a1GrenadeAnimation0F33C = {
+    _gM4a1GrenadeAnimation0F33CRecords,
+    _gM4a1GrenadeAnimation0F33CIndices,
+    { NULL, _gM4a1GrenadeAnimation0F33CBank1, NULL, NULL, _gM4a1GrenadeAnimation0F33CBank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1GrenadeAnimation0FBF4Bank1[18] = {
+#include "assets/m4a1_grenade_animation_0FBF4_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1GrenadeAnimation0FBF4Bank4[201] = {
+#include "assets/m4a1_grenade_animation_0FBF4_bank4.inc"
+};
+
+static AnimationRecord _gM4a1GrenadeAnimation0FBF4Records[283] = {
+#include "assets/m4a1_grenade_animation_0FBF4_records.inc"
+};
+
+static u16 _gM4a1GrenadeAnimation0FBF4Indices[20] = {
+#include "assets/m4a1_grenade_animation_0FBF4_indices.inc"
+};
+
+static AnimationSet _gM4a1GrenadeAnimation0FBF4 = {
+    _gM4a1GrenadeAnimation0FBF4Records,
+    _gM4a1GrenadeAnimation0FBF4Indices,
+    { NULL, _gM4a1GrenadeAnimation0FBF4Bank1, NULL, NULL, _gM4a1GrenadeAnimation0FBF4Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1GrenadeAnimation10394Bank1[16] = {
+#include "assets/m4a1_grenade_animation_10394_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1GrenadeAnimation10394Bank4[157] = {
+#include "assets/m4a1_grenade_animation_10394_bank4.inc"
+};
+
+static AnimationRecord _gM4a1GrenadeAnimation10394Records[263] = {
+#include "assets/m4a1_grenade_animation_10394_records.inc"
+};
+
+static u16 _gM4a1GrenadeAnimation10394Indices[20] = {
+#include "assets/m4a1_grenade_animation_10394_indices.inc"
+};
+
+static AnimationSet _gM4a1GrenadeAnimation10394 = {
+    _gM4a1GrenadeAnimation10394Records,
+    _gM4a1GrenadeAnimation10394Indices,
+    { NULL, _gM4a1GrenadeAnimation10394Bank1, NULL, NULL, _gM4a1GrenadeAnimation10394Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gM4a1GrenadeAnimation10D68Bank1[25] = {
+#include "assets/m4a1_grenade_animation_10D68_bank1.inc"
+};
+
+static AnimationPackedRotation _gM4a1GrenadeAnimation10D68Bank4[223] = {
+#include "assets/m4a1_grenade_animation_10D68_bank4.inc"
+};
+
+static AnimationRecord _gM4a1GrenadeAnimation10D68Records[311] = {
+#include "assets/m4a1_grenade_animation_10D68_records.inc"
+};
+
+static u16 _gM4a1GrenadeAnimation10D68Indices[20] = {
+#include "assets/m4a1_grenade_animation_10D68_indices.inc"
+};
+
+static AnimationSet _gM4a1GrenadeAnimation10D68 = {
+    _gM4a1GrenadeAnimation10D68Records,
+    _gM4a1GrenadeAnimation10D68Indices,
+    { NULL, _gM4a1GrenadeAnimation10D68Bank1, NULL, NULL, _gM4a1GrenadeAnimation10D68Bank4, NULL, NULL, NULL },
+};
+
+AnimationBank D_m4a1_grenade_8012DF50 = { { {
+    NULL,
+    &_gM4a1GrenadeAnimation01A20,
+    &_gM4a1GrenadeAnimation0FBF4,
+    &_gM4a1GrenadeAnimation10394,
+    &_gM4a1GrenadeAnimation10D68,
+    &_gM4a1GrenadeAnimation02924,
+    &_gM4a1GrenadeAnimation03188,
+    &_gM4a1GrenadeAnimation0EDC4,
+    &_gM4a1GrenadeAnimation0F33C,
+    &_gM4a1GrenadeAnimation0A204,
+    &_gM4a1GrenadeAnimation0C82C,
+    &_gM4a1GrenadeAnimation0CF68,
+    &_gM4a1GrenadeAnimation0B4EC,
+    &_gM4a1GrenadeAnimation0AA44,
+    &_gM4a1GrenadeAnimation0C388,
+    &_gM4a1GrenadeAnimation0E6B8,
+    &_gM4a1GrenadeAnimation05DEC,
+    &_gM4a1GrenadeAnimation0610C,
+    &_gM4a1GrenadeAnimation068D0,
+    &_gM4a1GrenadeAnimation020C4,
+    &_gM4a1GrenadeAnimation0C388,
+    &_gM4a1GrenadeAnimation01A20,
+    &_gM4a1GrenadeAnimation01A20,
+    &_gM4a1GrenadeAnimation07B68,
+    &_gM4a1GrenadeAnimation08DFC,
+    &_gM4a1GrenadeAnimation086E0,
+    &_gM4a1GrenadeAnimation04E6C,
+    &_gM4a1GrenadeAnimation05068,
+    &_gM4a1GrenadeAnimation05340,
+    &_gM4a1GrenadeAnimation055E4,
+    &_gM4a1GrenadeAnimation057E4,
+    &_gM4a1GrenadeAnimation05B38,
+    &_gM4a1GrenadeAnimation0927C,
+    &_gM4a1GrenadeAnimation09454,
+    &_gM4a1GrenadeAnimation0927C,
+    &_gM4a1GrenadeAnimation09454,
+    &_gM4a1GrenadeAnimation03BF8,
+    &_gM4a1GrenadeAnimation04380,
+    &_gM4a1GrenadeAnimation049E4,
+    &_gM4a1GrenadeAnimation04654,
+    &_gM4a1GrenadeAnimation0349C,
+    &_gM4a1GrenadeAnimation01A20,
+    &_gM4a1GrenadeAnimation099B8,
+    &_gM4a1GrenadeAnimation09BAC,
+    &_gM4a1GrenadeAnimation0A02C,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+} } };
