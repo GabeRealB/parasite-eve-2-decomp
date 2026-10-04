@@ -25,31 +25,29 @@
 #include "../../shared/model_placement.h"
 #include "../../shared/actor_messages.h"
 
-/// Work block the spawn handler allocates (`memCalloc(0x4C4)`) and parks in
-/// `Task::work`. It opens with the animation context the preset handler hands
-/// `animationInitContext` at the block's own address, the 0x14 0x28-byte slots
-/// immediately above it and the 0x140-byte table at 0x334 that call also
-/// takes; the slot walkers run to 0x14, the slot count. `field_474` latches
-/// once a preset has started the slots and gates the per-frame tick;
-/// `field_476` and `field_475` hold the current bank index and animation id,
-/// seeded to -1 by the spawn handler. `field_477` is the countdown after which
-/// the tick frees the model's buffers, -1 while idle. `light` / `color` are
-/// the matrices published on the model as its light and colour matrices.
-/// `field_4BC` / `field_4C0` hold the two children spawned from table entries
-/// 1 and 2, whose models the 0x7DB handler shows and hides.
-typedef struct Actor213000Work {
-    /* 0x000 */ ActorAnimRig20 rig;
-    /* 0x474 */ s8             field_474;
-    /* 0x475 */ s8             field_475;
-    /* 0x476 */ s8             field_476;
-    /* 0x477 */ s8             field_477;
-    /* 0x478 */ s32            field_478;
-    /* 0x47C */ MATRIX         light;
-    /* 0x49C */ MATRIX         color;
-    /* 0x4BC */ Task*          field_4BC;
-    /* 0x4C0 */ Task*          field_4C0;
-} Actor213000Work;
-STATIC_ASSERT_SIZEOF(Actor213000Work, 0x4C4);
+/// Work block of Eric Baldwin as a room script poses him: what his body model
+/// plays, the matrices it is lit with and the models he holds.
+///
+/// The spawn state allocates it zeroed and keeps it at `Task::work` for the
+/// task's life. It opens with the twenty-part rig and the bytes that say what
+/// the rig is playing; the model object borrows `light` and `color` for as
+/// long as the block lives.
+///
+/// The head is not `ActorModelState`: the byte that type gives a walk's next
+/// clip is the free countdown here, and a word separates the bytes from the
+/// matrices.
+typedef struct {
+    ActorAnimRig20 rig;               // Playback storage of the twenty-part body model; slots 1 to 19 are driven
+    s8             ticking;           // Set once a clip has been applied, never cleared: the slots are ticked each frame
+    s8             animId;            // Clip the slots were last seeded with, within `bank` (`ACTOR_MODEL_STATE_NONE` before the first request)
+    s8             bank;              // Index, in the package's animation bank table, of the bank the rig is bound to (`ACTOR_MODEL_STATE_NONE` before the first request)
+    s8             freeCountdown;     // Ticks left before the body model's buffers are freed, which the tick finding 0 does (-1 no free pending)
+    s32            field_478;         // Cleared by the spawn state and never read; role unproven
+    MATRIX         light;             // Light-direction matrix lent to the model object
+    MATRIX         color;             // Light-colour matrix lent to the model object
+    Task*          heldModelTasks[2]; // Tasks drawing the two models hung on body part 8, a hand; an actor command shows or hides each. `NULL` where the spawn failed
+} _Actor213000EricBaldwinWork;
+STATIC_ASSERT_SIZEOF(_Actor213000EricBaldwinWork, 0x4C4);
 
 /// The actor's spawn table: entry 0 is the actor itself, entries 1 to 4 the
 /// children its spawn handler creates.
@@ -499,8 +497,8 @@ static void func_actor_213000_8014A35C(Task* task);
 static void func_actor_213000_8014A488(Task* task);
 
 /// countdown, hides the model, then spawns the four children of the spawn
-/// table -- entries 1 and 2 attached to part 8 and parked at `field_4BC` /
-/// `field_4C0`, entry 3 attached to part 9 and entry 4 to part 12. Each of the
+/// table -- entries 1 and 2 attached to part 8 and kept in `heldModelTasks`,
+/// entry 3 attached to part 9 and entry 4 to part 12. Each of the
 /// last two has its model's `tpage` / `clut` loaded from the `AreaPlacement` of
 /// the current area selected by the model id the parent's `spawnArg2` carries
 /// at `Enemy::placeKey >> ENEMY_PLACE_INDEX_SHIFT`, and has its texture stream processed twice
@@ -510,28 +508,28 @@ static void func_actor_213000_8014A488(Task* task);
 /// instead.
 static void func_actor_213000_80149E54(Task* task)
 {
-    Actor213000Work* work;
-    TmdObject*       obj;
-    GameLocationKey  key;
-    Task*            spawned1;
-    Task*            spawned2;
+    _Actor213000EricBaldwinWork* work;
+    TmdObject*                   obj;
+    GameLocationKey              key;
+    Task*                        spawned1;
+    Task*                        spawned2;
 
     obj  = task->extra.tmd;
-    work = memCalloc(0x4C4, 0);
+    work = memCalloc(sizeof(_Actor213000EricBaldwinWork), 0);
     if (work == NULL) {
         enemyTaskExit(task);
         return;
     }
-    task->work      = work;
-    work->field_475 = -1;
-    work->field_476 = -1;
-    work->field_478 = 0;
-    work->field_477 = -1;
-    obj->flags     |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    work->field_4BC = Task_SpawnFromTable(D_actor_213000_80157DE0, 1, 8, task);
-    work->field_4C0 = Task_SpawnFromTable(D_actor_213000_80157DE0, 2, 8, task);
-    spawned1        = Task_SpawnFromTable(D_actor_213000_80157DE0, 3, 9, task);
-    spawned2        = Task_SpawnFromTable(D_actor_213000_80157DE0, 4, 0xC, task);
+    task->work              = work;
+    work->animId            = ACTOR_MODEL_STATE_NONE;
+    work->bank              = ACTOR_MODEL_STATE_NONE;
+    work->field_478         = 0;
+    work->freeCountdown     = -1;
+    obj->flags             |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    work->heldModelTasks[0] = Task_SpawnFromTable(D_actor_213000_80157DE0, 1, 8, task);
+    work->heldModelTasks[1] = Task_SpawnFromTable(D_actor_213000_80157DE0, 2, 8, task);
+    spawned1                = Task_SpawnFromTable(D_actor_213000_80157DE0, 3, 9, task);
+    spawned2                = Task_SpawnFromTable(D_actor_213000_80157DE0, 4, 0xC, task);
     if (spawned1 != NULL) {
         TmdObject*       model;
         AreaVariant*     layout;
@@ -731,20 +729,20 @@ void func_actor_213000_8014A578(Task* task)
 
 /// Per-frame tick: ticks the work block's animation slots once a preset has
 /// started them, and once the view is ready rebuilds model part 1's world
-/// matrix and hands its translation to `func_800D7A9C`. The work block's
-/// countdown then frees the model's buffers as it reaches zero.
+/// matrix and hands its translation to `func_800D7A9C`. `freeCountdown` then
+/// frees the model's buffers as it reaches zero.
 static void func_actor_213000_8014A5D0(Task* task)
 {
-    Actor213000Work* work;
-    TmdObject*       extra;
-    GfxCoord*        coords;
-    s32              i;
+    _Actor213000EricBaldwinWork* work;
+    TmdObject*                   extra;
+    GfxCoord*                    coords;
+    s32                          i;
 
     extra  = task->extra.tmd;
-    work   = (Actor213000Work*)task->work;
+    work   = task->work;
     coords = &extra->coords[1];
-    if (work->field_474 != 0) {
-        for (i = 1; i < 0x14; i++) {
+    if (work->ticking != 0) {
+        for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
             animationTickSlot(&work->rig.anim, i);
         }
     }
@@ -753,11 +751,11 @@ static void func_actor_213000_8014A5D0(Task* task)
         Gp_UpdateCoord(coords);
         func_800D7A9C(extra, (VECTOR*)coords->workm.t, 0, 3);
     }
-    if (work->field_477 >= 0) {
-        if (work->field_477 == 0) {
+    if (work->freeCountdown >= 0) {
+        if (work->freeCountdown == 0) {
             Tmd_FreeBuffers(extra);
         }
-        work->field_477--;
+        work->freeCountdown--;
     }
 }
 
@@ -766,11 +764,11 @@ static void func_actor_213000_8014A5D0(Task* task)
 /// `func_800D7A9C`.
 static void func_actor_213000_8014A6AC(Task* task)
 {
-    Actor213000Work* work;
-    GfxCoord*        coords;
-    TmdObject*       extra;
+    _Actor213000EricBaldwinWork* work;
+    GfxCoord*                    coords;
+    TmdObject*                   extra;
 
-    work                   = (Actor213000Work*)task->work;
+    work                   = task->work;
     extra                  = task->extra.tmd;
     coords                 = extra->coords;
     extra->lightMtx        = &work->light;
@@ -786,32 +784,32 @@ static void func_actor_213000_8014A6AC(Task* task)
 /// Requested blending uses 6 frames; otherwise the slots reset.
 s32 func_actor_213000_8014A70C(Task* task, s32 arg1, AnimationPlayRequest* msg, s32 arg3)
 {
-    Actor213000Work* work;
-    TmdObject*       ext;
-    s32              i;
+    _Actor213000EricBaldwinWork* work;
+    TmdObject*                   ext;
+    s32                          i;
 
-    work = (Actor213000Work*)task->work;
+    work = task->work;
     ext  = task->extra.tmd;
-    if (msg->source.index != work->field_476) {
-        work->field_476 = msg->source.index;
-        work->field_475 = -1;
-        animationInitContext(&work->rig.anim, D_actor_213000_80157DDC[work->field_476], ext, work->rig.poses,
+    if (msg->source.index != work->bank) {
+        work->bank   = msg->source.index;
+        work->animId = ACTOR_MODEL_STATE_NONE;
+        animationInitContext(&work->rig.anim, D_actor_213000_80157DDC[work->bank], ext, work->rig.poses,
                              work->rig.slots);
     }
-    work->field_475 = msg->animationId;
+    work->animId = msg->animationId;
     if (msg->blend != ANIMATION_BLEND_RESET) {
-        for (i = 1; i < 0x14; i++) {
-            animationSeekSlotWithBlend(&work->rig.anim, i, work->field_475, 0, 6);
+        for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
+            animationSeekSlotWithBlend(&work->rig.anim, i, work->animId, 0, 6);
         }
     } else {
-        for (i = 1; i < 0x14; i++) {
-            animationResetSlot(&work->rig.anim, i, work->field_475);
+        for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
+            animationResetSlot(&work->rig.anim, i, work->animId);
         }
     }
-    for (i = 1; i < 0x14; i++) {
+    for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
         animationTickSlot(&work->rig.anim, i);
     }
-    work->field_474 = 1;
+    work->ticking = 1;
     return 0;
 }
 
@@ -821,19 +819,19 @@ s32 func_actor_213000_8014A70C(Task* task, s32 arg1, AnimationPlayRequest* msg, 
 /// 0 hides the model and clears `TMD_OBJECT_SKIP_AUTO_BUFFER`; 1 shows it, reallocates its buffers
 /// through `Tmd_AllocBuffers` and clears `TMD_OBJECT_SKIP_AUTO_BUFFER`; 2 hides it, sets
 /// `TMD_OBJECT_SKIP_AUTO_BUFFER` and starts
-/// the work block's countdown at 2, after which the tick frees the buffers; 3
+/// `freeCountdown` at 2, after which the tick frees the buffers; 3
 /// shows it and sets `TMD_OBJECT_SKIP_AUTO_BUFFER`. The handled modes return 0; any other mode changes
 /// nothing and returns 1.
 /// The handler reads `work` before the switch even though mode 2 is its only
 /// use, so retail's `lw $v1,0x1C($a0)` sits in the entry block.
 s32 func_actor_213000_8014A8A4(Task* task, s32 arg1, s32 mode, s32 arg3)
 {
-    TmdObject*       obj;
-    Actor213000Work* work;
-    s32              ret;
+    TmdObject*                   obj;
+    _Actor213000EricBaldwinWork* work;
+    s32                          ret;
 
     obj  = task->extra.tmd;
-    work = (Actor213000Work*)task->work;
+    work = task->work;
     ret  = 0;
 
     switch (mode) {
@@ -847,9 +845,9 @@ s32 func_actor_213000_8014A8A4(Task* task, s32 arg1, s32 mode, s32 arg3)
             obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 2:
-            obj->flags     |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            work->field_477 = mode;
-            obj->flags     |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+            obj->flags         |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            work->freeCountdown = 2;
+            obj->flags         |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 3:
             obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -863,7 +861,7 @@ s32 func_actor_213000_8014A8A4(Task* task, s32 arg1, s32 mode, s32 arg3)
 }
 
 /// Message-0x7DB handler: shows or hides the models of the two children the
-/// work block parks at `field_4BC` / `field_4C0`. Mode 0 shows the first
+/// work block keeps in `heldModelTasks`. Mode 0 shows the first
 /// (clears bit 0x80 of its `TmdObject::flags`) and 1 hides it; 2 and 3 show
 /// and hide the second. A missing child or an unknown mode touches nothing.
 /// Every path returns 0.
@@ -874,34 +872,34 @@ s32 func_actor_213000_8014A8A4(Task* task, s32 arg1, s32 mode, s32 arg3)
 /// target label, not by how alike the bodies are.
 s32 func_actor_213000_8014A980(Task* task, s32 arg1, ActorCommand* msg, s32 arg3)
 {
-    Actor213000Work* work;
-    Task*            child;
-    u16              mode;
+    _Actor213000EricBaldwinWork* work;
+    Task*                        child;
+    u16                          mode;
 
     mode = msg->command;
-    work = (Actor213000Work*)task->work;
+    work = task->work;
 
     switch (mode) {
         case 0:
-            child = work->field_4BC;
+            child = work->heldModelTasks[0];
             if (child != NULL) {
                 child->extra.tmd->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             }
             break;
         case 1:
-            child = work->field_4BC;
+            child = work->heldModelTasks[0];
             if (child != NULL) {
                 child->extra.tmd->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             }
             break;
         case 2:
-            child = work->field_4C0;
+            child = work->heldModelTasks[1];
             if (child != NULL) {
                 child->extra.tmd->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             }
             break;
         case 3:
-            child = work->field_4C0;
+            child = work->heldModelTasks[1];
             if (child != NULL) {
                 child->extra.tmd->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             }
