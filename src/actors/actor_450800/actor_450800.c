@@ -86,7 +86,7 @@ enum {
 ///
 /// Both bodies the package's task table runs through the actor's states use
 /// it: the Kyle Madigan body and the second twenty-part body. The pawn golem
-/// the package also carries keeps an `Actor150400Work` instead.
+/// the package also carries keeps a `PairWalkWork` instead.
 ///
 /// The block opens like the other scripted walkers' - matrices, twenty-slot
 /// rig, animation state - so the paced walk library's slot tick, slot reset

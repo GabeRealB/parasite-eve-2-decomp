@@ -4,10 +4,10 @@
 /// argument, and records the clip as the applied one.
 void pairWalkResetAnim(Task* task)
 {
-    Actor150400Work* work;
-    s32              i;
+    PairWalkWork* work;
+    s32           i;
 
-    work = (Actor150400Work*)task->work;
+    work = task->work;
     for (i = 1; i < 0x13; i++) {
         work->rig.slots[i].rate = 1;
         animationResetSlot(&work->rig.anim, i, work->st.animId);

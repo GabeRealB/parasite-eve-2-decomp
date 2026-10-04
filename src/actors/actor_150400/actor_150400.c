@@ -445,15 +445,15 @@ static void func_actor_150400_80131FB8(void)
 /// state 2 and runs the step body `pairWalkUpdate` once.
 static void func_actor_150400_80132014(Enemy* enemy, Task* task)
 {
-    VECTOR           vec;
-    Actor150400Work* work;
-    GfxCoord*        coord;
-    TmdObject*       obj;
-    Enemy*           spawned;
+    VECTOR        vec;
+    PairWalkWork* work;
+    GfxCoord*     coord;
+    TmdObject*    obj;
+    Enemy*        spawned;
 
     obj        = task->extra.tmd;
     coord      = obj->coords;
-    task->work = (work = memCalloc(sizeof(Actor150400Work), false));
+    task->work = (work = memCalloc(sizeof(PairWalkWork), false));
     if (work == NULL) {
         enemyDestroy(enemy, task);
         return;
@@ -541,14 +541,14 @@ s32 func_actor_150400_801327EC(Task* task, s32 msgId, s32 arg2, s32 arg3)
 /// `travel` to the distance divided by 17, the step body's per-frame stride.
 s32 func_actor_150400_801327F4(Task* task, s32 arg1, ActorTransform* target, s32 arg3)
 {
-    GfxCoord*        coord;
-    Actor150400Work* work;
-    s32              dx;
-    s32              dz;
-    u16              yaw;
+    GfxCoord*     coord;
+    PairWalkWork* work;
+    s32           dx;
+    s32           dz;
+    u16           yaw;
 
     coord        = task->extra.tmd->coords;
-    work         = (Actor150400Work*)task->work;
+    work         = task->work;
     dx           = target->pos.vx - coord->coord.t[0];
     dz           = target->pos.vz - coord->coord.t[2];
     yaw          = ratan2(dx, dz);

@@ -8,10 +8,10 @@
 /// runs out, then ticks the slots.
 void pairWalkUpdate(Task* task)
 {
-    Actor150400Work* work;
-    s16              animId;
+    PairWalkWork* work;
+    s16           animId;
 
-    work = (Actor150400Work*)task->work;
+    work = task->work;
     if (work->st.state == ACTOR_ENEMY_ANIM_BLEND) {
         pairWalkReseedAnim(task);
         work->st.state = ACTOR_ENEMY_ANIM_TICK;
@@ -30,8 +30,8 @@ void pairWalkUpdate(Task* task)
             actorMoveModelForward(task, 0xC);
             work->st.travel--;
             if (work->st.travel == 0) {
-                work->animArg   = 0xA;
-                work->st.animId = 1;
+                work->blendFrames = 0xA;
+                work->st.animId   = 1;
             }
         }
         pairWalkTickAnim(task);

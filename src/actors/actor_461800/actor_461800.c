@@ -58,7 +58,7 @@ extern ScriptedWalkAttachmentsWork* gScriptedWalkWork;
 /// `func_actor_461800_80132390` alongside it.
 extern Task* D_actor_461800_80143898;
 
-extern Actor151000Work* gFootstepWalkWork;
+extern FootstepWalkWork* gFootstepWalkWork;
 
 /// The second variant's task, published by its spawn routine
 /// `footstepWalkSpawn` so the handlers can reach its model.
@@ -875,7 +875,7 @@ s16 gScriptedWalkMode[2] = {
     -0x3658,
 };
 
-Actor151000Work* gFootstepWalkWork;
+FootstepWalkWork* gFootstepWalkWork;
 
 Task* gFootstepWalkTask;
 
@@ -1253,7 +1253,7 @@ void func_actor_461800_80133554(Task* task)
         func_actor_461800_801335B0,
     };
 
-    gFootstepWalkWork = (Actor151000Work*)task->work;
+    gFootstepWalkWork = task->work;
     fns[task->state](task->spawnArg2.pointer, task);
 }
 
@@ -1317,7 +1317,7 @@ s32 func_actor_461800_801339EC(Task* task, s32 arg1, ActorCommand* msg, s32 arg3
             gFootstepWalkWork->turnFrames = 0x14;
             break;
         case 1:
-            gFootstepWalkWork->footsteps = id;
+            gFootstepWalkWork->playFootsteps = id;
             break;
     }
     return 0;

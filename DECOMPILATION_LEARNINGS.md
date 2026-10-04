@@ -64916,7 +64916,7 @@ where it *starts* differs: `actor_143900`, `actor_151000` and `actor_461800`
 put a 0x40-byte state prefix ahead of `AnimationContext anim`, while `actor_110300`
 and `actor_110800` start with `anim` at offset 0. Every field name shifts with
 it rather than changing - the animation-id pair is 0x4B6/0x4B8 in
-`Actor143900Work`/`Actor151000Work` and 0x476/0x478 here, exactly 0x40 lower -
+`Actor143900Work`/`FootstepWalkWork` and 0x476/0x478 here, exactly 0x40 lower -
 so the two blocks are the same object at different bases, not two structures.
 
 Two things follow, and both cost a build if missed:
@@ -86237,7 +86237,7 @@ Read the explicit-offset version as a rewrite of GCC's own strength reduction,
 not as a reconstruction: when the target walks a pointer with a byte offset but
 the callee's first argument is a struct member, write the index form and let
 loop.c produce the walk. The family idiom agrees — `Actor143900Work` and
-`Actor151000Work` both put `AnimationContext` at 0x40 and the slots at 0x54, so
+`FootstepWalkWork` both put `AnimationContext` at 0x40 and the slots at 0x54, so
 `slots[1]` is the 0x7C the target's `addiu $s0,$zero,0x7C` starts at.
 
 The traces that settle it are the `;; ready list initially:` line of the
@@ -108885,7 +108885,7 @@ loop-with-`goto` shape scored 47.1% with `insert=10 delete=9`.
 The neighbouring unmatched `func_actor_401000_80135374` reads the same
 `D_actor_401000_80154FD0` table and is the twins' `HasHeightClamp` helper.
 `ActorHeightClamp` (2 x 0x10 rows, `(1, 3, -0x12C, 0)` and
-`(5, 0x1D, 0, 0x12C)`) now lives in `include/actors/actor_401000.h`.
+`(5, 0x1D, 0, 0x12C)`) now lives in `include/actors/actor.h`.
 
 Inputs: `base_1.i` SHA256
 `9597aa44d1e23a4a69476245709f38d65e3a716124a7da182d4e034a66fcb5cb`; target SHA256

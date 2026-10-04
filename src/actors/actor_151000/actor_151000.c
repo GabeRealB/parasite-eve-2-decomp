@@ -57,7 +57,7 @@ extern s32 D_actor_151000_8013D378;
 
 /// The enemy's work block, published by its spawn handler and by its task
 /// body.
-extern Actor151000Work* gFootstepWalkWork;
+extern FootstepWalkWork* gFootstepWalkWork;
 
 /// The enemy's task, published by its spawn handler so the visibility opcode
 /// can reach its model.
@@ -800,7 +800,7 @@ u8 gFootstepWalkAnims[140] = {
 
 s32 D_actor_151000_8013D378;
 
-Actor151000Work* gFootstepWalkWork;
+FootstepWalkWork* gFootstepWalkWork;
 
 Task* gFootstepWalkTask;
 
@@ -906,7 +906,7 @@ s32 func_actor_151000_801327C8(Task* task, s32 arg1, s32 arg2, s32 arg3)
 #include "../../shared/footstep_walk_place.inc.c"
 
 /// Message handler: message 0 arms the turn countdown `turnFrames` at 0x14
-/// frames, message 1 sets `footsteps`, which turns the footsteps on. Anything else does nothing.
+/// frames, message 1 sets `playFootsteps`, which turns the footsteps on. Anything else does nothing.
 s32 func_actor_151000_8013288C(Task* task, s32 arg1, ActorCommand* msg, s32 arg3)
 {
     s32 kind;
@@ -917,7 +917,7 @@ s32 func_actor_151000_8013288C(Task* task, s32 arg1, ActorCommand* msg, s32 arg3
             gFootstepWalkWork->turnFrames = 0x14;
             break;
         case 1:
-            gFootstepWalkWork->footsteps = kind;
+            gFootstepWalkWork->playFootsteps = kind;
             break;
     }
     return 0;

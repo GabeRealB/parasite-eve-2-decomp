@@ -7,12 +7,12 @@
 /// then on it only marks the coordinate for recomputation each frame.
 void pairWalkSubModelTask(Task* task)
 {
-    char             pad[0x10];
-    Task*            parent = task->parent;
-    TmdObject*       obj    = task->extra.tmd;
-    GfxCoord*        coord  = obj->coords;
-    GfxCoord*        sub    = &parent->extra.tmd->coords[7];
-    Actor150400Work* work   = (Actor150400Work*)parent->work;
+    char          pad[0x10];
+    Task*         parent = task->parent;
+    TmdObject*    obj    = task->extra.tmd;
+    GfxCoord*     coord  = obj->coords;
+    GfxCoord*     sub    = &parent->extra.tmd->coords[7];
+    PairWalkWork* work   = parent->work;
 
     switch (task->state) {
         case 0:

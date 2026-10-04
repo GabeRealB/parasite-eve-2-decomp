@@ -6,14 +6,14 @@
 /// The blend path carries the requested duration in whole frames.
 s32 pairWalkPlay(Task* task, s32 arg1, AnimationPlayRequest* args, s32 arg3)
 {
-    Actor150400Work* work;
+    PairWalkWork* work;
 
-    work = (Actor150400Work*)task->work;
+    work = task->work;
     if (args->animationId < 6) {
         work->st.animId = args->animationId;
         if (args->blend != ANIMATION_BLEND_RESET) {
-            work->st.state = ACTOR_ENEMY_ANIM_BLEND;
-            work->animArg  = args->blendFrames;
+            work->st.state    = ACTOR_ENEMY_ANIM_BLEND;
+            work->blendFrames = args->blendFrames;
         } else {
             work->st.state = ACTOR_ENEMY_ANIM_RESET;
         }

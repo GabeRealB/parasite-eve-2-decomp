@@ -142,7 +142,7 @@ extern TaskDesc D_actor_160900_8013FB50[];
 
 /// Animation script `func_actor_160900_801326EC` walks and the animation-set
 /// table it hands the player task as message 0x3F4's `field_0`.
-extern ActorAnimStep D_actor_160900_8013F1CC[];
+extern ActorAnimChainLink D_actor_160900_8013F1CC[];
 
 extern u8       D_actor_160900_8013F210[];
 extern u8       D_actor_160900_8013F228[];
@@ -649,7 +649,7 @@ u8 D_actor_160900_8013F1C4[8] = {
     128,
 };
 
-ActorAnimStep D_actor_160900_8013F1CC[11] = {
+ActorAnimChainLink D_actor_160900_8013F1CC[11] = {
     { 0, -1 },
     { 0, -1 },
     { 0, 3 },
@@ -986,9 +986,9 @@ static void        func_actor_160900_80133758(SVECTOR* pts);
 static s32 func_actor_160900_801326EC(Task* arg0)
 {
     _Actor160900CutsceneWork* work;
-    ActorAnimStep*            table;
-    ActorAnimStep*            entry;
-    ActorAnimStep*            entry2;
+    ActorAnimChainLink*       table;
+    ActorAnimChainLink*       entry;
+    ActorAnimChainLink*       entry2;
     AnimationPlayRequest      msg;
     u16                       anim;
     u16                       anim2;
@@ -999,12 +999,12 @@ static s32 func_actor_160900_801326EC(Task* arg0)
     }
     table = D_actor_160900_8013F1CC;
     entry = &table[work->playerAnimId];
-    if (entry->hold != 0) {
-        if (work->playerAnimHold >= entry->hold) {
-            if (entry->animId < 0) {
+    if (entry->holdFrames != 0) {
+        if (work->playerAnimHold >= entry->holdFrames) {
+            if (entry->nextAnimId < 0) {
                 return 1;
             }
-            anim                     = entry->animId;
+            anim                     = entry->nextAnimId;
             msg.source.sets          = _gActor160900PlayerAnimationSets;
             work->playerAnimId       = anim;
             msg.animationId          = anim;
@@ -1021,12 +1021,12 @@ static s32 func_actor_160900_801326EC(Task* arg0)
             return 0;
         }
         entry2 = &D_actor_160900_8013F1CC[work->playerAnimId];
-        if (entry2->animId < 0) {
+        if (entry2->nextAnimId < 0) {
             return 1;
         }
         work = arg0->work;
         if (work->player != NULL) {
-            anim2                    = entry2->animId;
+            anim2                    = entry2->nextAnimId;
             msg.source.sets          = _gActor160900PlayerAnimationSets;
             work->playerAnimId       = anim2;
             msg.animationId          = anim2;
@@ -1059,7 +1059,7 @@ static inline void func_actor_160900_Reseed(Task* arg0, u16 anim)
 static s32 func_actor_160900_80132844(Task* arg0)
 {
     Actor160900Child3Work* work;
-    ActorAnimStep*         table;
+    ActorAnimChainLink*    table;
     u16                    i;
     u16                    done;
 
@@ -1078,11 +1078,11 @@ static s32 func_actor_160900_80132844(Task* arg0)
             break;
         }
     }
-    table = (ActorAnimStep*)work->field_4B4;
-    if (table[(u16)work->field_4B8].hold != 0) {
-        if (work->field_4BA >= table[(u16)work->field_4B8].hold) {
-            if (table[(u16)work->field_4B8].animId >= 0) {
-                func_actor_160900_Reseed(arg0, table[(u16)work->field_4B8].animId);
+    table = work->field_4B4;
+    if (table[(u16)work->field_4B8].holdFrames != 0) {
+        if (work->field_4BA >= table[(u16)work->field_4B8].holdFrames) {
+            if (table[(u16)work->field_4B8].nextAnimId >= 0) {
+                func_actor_160900_Reseed(arg0, table[(u16)work->field_4B8].nextAnimId);
             } else {
                 return 1;
             }
@@ -1090,8 +1090,8 @@ static s32 func_actor_160900_80132844(Task* arg0)
             work->field_4BA++;
         }
     } else if (done) {
-        if (table[(u16)work->field_4B8].animId >= 0) {
-            func_actor_160900_Reseed(arg0, table[(u16)work->field_4B8].animId);
+        if (table[(u16)work->field_4B8].nextAnimId >= 0) {
+            func_actor_160900_Reseed(arg0, table[(u16)work->field_4B8].nextAnimId);
         } else {
             return 1;
         }

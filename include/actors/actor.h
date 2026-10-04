@@ -73,27 +73,25 @@ typedef struct {
 } ActorContactPushScratch;
 STATIC_ASSERT_SIZEOF(ActorContactPushScratch, 0x14);
 
-/// A step resolved against the contact records: the 16.16 deltas
-/// `func_800E0C10` resolves, their integer part (its XZ part capped in
-/// length), that part's XZ length, and whether the X or Z delta was nonzero.
-typedef struct ActorStepDelta {
-    WorldCollisionDelta delta;
-    SVECTOR             step;
-    s32                 len;
-    s32                 moved;
-} ActorStepDelta;
-STATIC_ASSERT_SIZEOF(ActorStepDelta, 0x20);
-
-/// Line-of-sight test between the player and an actor: each one's root
-/// translation, raised to eye height, is put through the view rotation into
-/// `out` and `from`, and `hit` is the collision query's answer.
-typedef struct ActorSightScratch {
-    SVECTOR out;
-    SVECTOR from;
-    SVECTOR local;
-    s32     hit;
-} ActorSightScratch;
-STATIC_ASSERT_SIZEOF(ActorSightScratch, 0x1C);
+/// Scratch-stack block of an actor's length-limited push out of its world
+/// contacts.
+///
+/// A push reserves one block, has its contact records resolved into `delta`
+/// and applies the whole units of that correction as `step`: Y first, limited
+/// in size by the package, in some only in a room that has an
+/// `ActorHeightClamp` row, then X and Z, shortened to the package's limit
+/// when their length reaches it. X and Z then take one more unit away from
+/// zero wherever the correction leaves a fraction. The block is released
+/// before the push returns `moved`, which it reads while the bytes are still
+/// intact. Nothing clears the block when it is reserved; `moved` is set
+/// explicitly and `delta` is the resolver's to write.
+typedef struct {
+    WorldCollisionDelta delta;      // Correction resolved from the contact records, in signed 16.16 units
+    SVECTOR             step;       // Whole units of `delta`, then the limited step added to the coordinate; `vy` is zeroed before X and Z are shortened, `pad` is never written
+    s32                 stepLength; // Length of `step` across X and Z, world units
+    s32                 moved;      // 1 when the X or Z correction is nonzero, so the push displaced the actor horizontally; 0 otherwise
+} ActorContactCappedPushScratch;
+STATIC_ASSERT_SIZEOF(ActorContactCappedPushScratch, 0x20);
 
 /// A beam drawn between two parts of an actor's model: both parts' matrices
 /// and positions in view space, the four corners of the quad widened around
@@ -264,21 +262,29 @@ typedef struct ActorHitScratch {
 } ActorHitScratch;
 STATIC_ASSERT_SIZEOF(ActorHitScratch, 0x54);
 
-/// Pushing a coordinate out of the solid records of its contact table, with
-/// the push taken from the record's direction rather than its centre: the
-/// latest push (capped in length), the coordinate's translation, the record
-/// cursor and whether any solid record was met. `dist` receives the end
-/// marker at the terminating record.
-typedef struct ActorPushScratch {
-    SVECTOR offset;
-    SVECTOR pos;
-    s32     kind;
-    s32     len;
-    s16     i;
-    s16     hit;
-    s16     dist[12];
-} ActorPushScratch;
-STATIC_ASSERT_SIZEOF(ActorPushScratch, 0x34);
+/// Value an `ActorBodyPushScratch::marks` slot takes at the record that ends
+/// the walk early.
+enum { ACTOR_BODY_PUSH_MARK_END = 0x7FFE };
+
+/// Scratch-stack block of an actor's push away from the bodies it touches.
+///
+/// A push reserves one block and walks the actor's contact table up to its
+/// capacity or the first record with no key. Each record whose key is of a
+/// player character's kind (0x10000) or an enemy's (0x30000) yields an offset
+/// away from that body, shortened to the package's limit when its XZ length
+/// reaches it, and a fraction of that offset is added to the actor's root.
+/// The block is released before the push returns `hit`, which it reads while
+/// the bytes are still intact. Nothing clears the block when it is reserved.
+typedef struct {
+    SVECTOR offset;       // Offset away from the current record's body, in the view coordinate's frame; `vy` is zeroed before it is shortened
+    SVECTOR position;     // World position of the actor's second coordinate, which the offsets are measured from
+    s32     kind;         // Kind bits of the current record's key
+    s32     offsetLength; // Length of `offset` across X and Z, world units
+    s16     recordIndex;  // Contact record the walk is on
+    s16     hit;          // 1 once a record that counts was met, 0 otherwise; a package decides which kinds count
+    s16     marks[12];    // One slot per contact record. Only the slot of a keyless record is written, with `ACTOR_BODY_PUSH_MARK_END`, and nothing reads any; role otherwise unproven
+} ActorBodyPushScratch;
+STATIC_ASSERT_SIZEOF(ActorBodyPushScratch, 0x34);
 
 /// A model coordinate's translation carried into view space.
 typedef struct ActorViewScratch {
@@ -510,14 +516,20 @@ typedef struct ActorSpawnParamRow {
 } ActorSpawnParamRow;
 STATIC_ASSERT_SIZEOF(ActorSpawnParamRow, 0xC);
 
-/// One row of a per-room height clamp: when `field_0` / `field_2` match the
-/// session's stage and area, the actor's height is clamped to [`lo`, `hi`].
-typedef struct ActorHeightClamp {
-    s16  field_0;
-    s16  field_2;
-    s16  lo;
-    s16  hi;
-    byte pad_8[8];
+/// One room's limits on the height of an actor's root.
+///
+/// A package that keeps a table of these looks the current room up in it
+/// each time it pushes its actor out of the room's collision grid. In a room
+/// with a row, the root coordinate's Y translation is brought into
+/// [`minY`, `maxY`] once the push has been applied, and the package's fixed
+/// offset is then added to it; in any other room the root is left where the
+/// push put it. Y grows downward.
+typedef struct {
+    s16  stage;        // Stage the row applies in, a `GAME_STAGE_` value
+    s16  area;         // Area of that stage the row applies in, a `GAME_AREA_` value
+    s16  minY;         // Least Y translation the root keeps, world units
+    s16  maxY;         // Greatest Y translation the root keeps, world units
+    byte unknown_8[8]; // Zero in every row and never read; role unproven
 } ActorHeightClamp;
 STATIC_ASSERT_SIZEOF(ActorHeightClamp, 0x10);
 
@@ -748,15 +760,21 @@ typedef struct {
 } ActorEnemyState;
 STATIC_ASSERT_SIZEOF(ActorEnemyState, 0x38);
 
-/// One step of an animation script a cutscene controller walks, feeding the
-/// player's animation: `hold` is how many frames to hold the step, 0 waiting
-/// for the player to report the clip done, and `animId` the next animation,
-/// sent to the player as message 0x3F4; a negative `animId` ends the script.
-typedef struct ActorAnimStep {
-    u16 hold;
-    s16 animId;
-} ActorAnimStep;
-STATIC_ASSERT_SIZEOF(ActorAnimStep, 0x4);
+/// What follows one clip in a cutscene actor's chain of animations.
+///
+/// A chain is a table with one link per clip, indexed by the clip that is
+/// playing. Each frame the cutscene looks up the playing clip's link: once the
+/// clip has been held for `holdFrames` frames, or has finished when that is
+/// zero, it starts `nextAnimId` with a blend and looks that clip's link up
+/// from then on. A negative `nextAnimId` ends the chain, which the walk
+/// reports to its caller. Clips are indices into the animation sets of the
+/// model the chain drives: the player's, through a play request, or the
+/// cutscene actor's own rig.
+typedef struct {
+    u16 holdFrames; // Frames the playing clip is held before the next starts; 0 waits for the clip to finish
+    s16 nextAnimId; // Clip that follows; negative when none does
+} ActorAnimChainLink;
+STATIC_ASSERT_SIZEOF(ActorAnimChainLink, 0x4);
 
 /// One pending cue of a cutscene task: what its event script has told one of
 /// the scene's actors, or the scene itself, to do.
@@ -896,64 +914,6 @@ typedef struct Actor110300Work {
     byte            pad_4AC[0xB0];
 } Actor110300Work;
 STATIC_ASSERT_SIZEOF(Actor110300Work, 0x55C);
-
-/// Work block of the animated enemy whose code actor_151000, actor_535700 and
-/// actor_461800's second variant carry, allocated zeroed at its full size and
-/// kept both at `Task::work` and in a global the other handlers reach it
-/// through: the model's light and colour matrices, its nineteen-part rig and
-/// animation state, and the frames of turning left while animation 3 plays.
-/// `stepRec` is the last animation record the footstep check saw, so each
-/// footstep fires once, and `footsteps` is the flag the message handler sets
-/// that makes the per-frame step play them.
-typedef struct Actor151000Work {
-    MATRIX                 light;
-    MATRIX                 color;
-    ActorAnimRig19         rig;
-    ActorEnemyState        st;
-    s16                    turnFrames;
-    byte                   pad_4B6[0x2];
-    const AnimationRecord* stepRec;
-    u8                     footsteps;
-    byte                   pad_4BD[0x3];
-} Actor151000Work;
-STATIC_ASSERT_SIZEOF(Actor151000Work, 0x4C0);
-
-/// Work block of the animated enemy whose code actor_260500 and the first
-/// actor of actor_451100 carry, allocated zeroed at its full size and kept
-/// both at `Task::work` and in a global the message handlers reach it
-/// through: the model's light and colour matrices, its nineteen-part rig and
-/// animation state, and the frames of turning left while animation 3 plays,
-/// which message 0x7DB arms.
-typedef struct Actor260500Work {
-    MATRIX          light;
-    MATRIX          color;
-    ActorAnimRig19  rig;
-    ActorEnemyState st;
-    s16             turnFrames;
-    byte            pad_4B6[0x2];
-} Actor260500Work;
-STATIC_ASSERT_SIZEOF(Actor260500Work, 0x4B8);
-
-/// Work block of the animated enemy whose code actor_150400, actor_535700's
-/// second enemy, actor_450800's spawned enemy and actor_451100's second actor
-/// carry, allocated zeroed at its full size and kept at `Task::work`: the
-/// matrices the enemy's model and its sub-model are lit with, its
-/// nineteen-part rig and animation state, and `animArg`, the argument the
-/// blended reseed passes on. `pairTask` is the task of the partner model the
-/// spawn routine starts and reparents the enemy's own task under, whose model
-/// the visibility command drives alongside the enemy's, and `enemy` the enemy
-/// the block belongs to.
-typedef struct Actor150400Work {
-    MATRIX          light;
-    MATRIX          color;
-    ActorAnimRig19  rig;
-    ActorEnemyState st;
-    s16             animArg;
-    byte            pad_4B6[0x2];
-    Task*           pairTask;
-    Enemy*          enemy;
-} Actor150400Work;
-STATIC_ASSERT_SIZEOF(Actor150400Work, 0x4C0);
 
 /// Bearing of `other` from `self`, measured in `self`'s own frame and folded
 /// into -0x800..0x800. The offset between the two world positions is written

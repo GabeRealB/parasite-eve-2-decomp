@@ -5,11 +5,11 @@
 /// counts down (distance picked by `gFootstepWalkMode`) and, when the
 /// walk ends, queues clip 0xD through state 1; it turns the model while
 /// `turnFrames` counts down in clip 3, then ticks the animation and, once
-/// `footsteps` is set, plays the footsteps.
+/// `playFootsteps` is set, plays the footsteps.
 void footstepWalkUpdate(Task* task)
 {
-    GfxCoord*        coord = task->extra.tmd->coords;
-    Actor151000Work* work  = (Actor151000Work*)task->work;
+    GfxCoord*         coord = task->extra.tmd->coords;
+    FootstepWalkWork* work  = task->work;
 
     if (gFootstepWalkWork->st.state == ACTOR_ENEMY_ANIM_BLEND) {
         footstepWalkBlendAnim();
@@ -45,7 +45,7 @@ void footstepWalkUpdate(Task* task)
             work->turnFrames--;
         }
         footstepWalkTickAnim();
-        if (work->footsteps != 0) {
+        if (work->playFootsteps != 0) {
             footstepWalkPlaySteps(task);
         }
     }

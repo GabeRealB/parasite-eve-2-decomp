@@ -6,16 +6,16 @@
 /// frame count: 0x3C in mode 0, 0xF in mode 1 and 0x19 in mode 2.
 s32 footstepWalkTo(Task* task, s32 arg1, VECTOR* target, s32 mode)
 {
-    GfxCoord*        coord;
-    Actor151000Work* work;
-    s32              dx;
-    s32              dz;
-    s32              steps;
-    s32              dist;
-    s32              angle;
+    GfxCoord*              coord;
+    FootstepWalkQuietWork* work; // The head either walker's block opens with
+    s32                    dx;
+    s32                    dz;
+    s32                    steps;
+    s32                    dist;
+    s32                    angle;
 
     coord             = task->extra.tmd->coords;
-    work              = (Actor151000Work*)task->work;
+    work              = task->work;
     gFootstepWalkMode = mode;
     dx                = target->vx - coord->coord.t[0];
     dz                = target->vz - coord->coord.t[2];

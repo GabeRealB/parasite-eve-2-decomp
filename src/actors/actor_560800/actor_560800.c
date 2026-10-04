@@ -114,20 +114,20 @@ STATIC_ASSERT_SIZEOF(_Actor560800CutsceneWork, 0x68);
 /// `field_4B4` is the animation script `func_actor_560800_80132498` walks by
 /// `field_4B8`, with `field_4BE` as its hold counter.
 typedef struct Actor560800AnimWork {
-    /* 0x000 */ ActorAnimRig20 rig;
-    /* 0x474 */ MATRIX         light;
-    /* 0x494 */ MATRIX         color;
-    /* 0x4B4 */ ActorAnimStep* field_4B4;
-    /* 0x4B8 */ s16            field_4B8;
-    /* 0x4BA */ u16            field_4BA;
-    /* 0x4BC */ u16            field_4BC;
-    /* 0x4BE */ s16            field_4BE;
-    /* 0x4C0 */ s16            field_4C0;
-    /* 0x4C2 */ s16            field_4C2;
-    /* 0x4C4 */ s16            field_4C4;
-    /* 0x4C6 */ s16            field_4C6;
-    /* 0x4C8 */ s16            field_4C8;
-    /* 0x4CA */ s16            field_4CA;
+    /* 0x000 */ ActorAnimRig20      rig;
+    /* 0x474 */ MATRIX              light;
+    /* 0x494 */ MATRIX              color;
+    /* 0x4B4 */ ActorAnimChainLink* field_4B4;
+    /* 0x4B8 */ s16                 field_4B8;
+    /* 0x4BA */ u16                 field_4BA;
+    /* 0x4BC */ u16                 field_4BC;
+    /* 0x4BE */ s16                 field_4BE;
+    /* 0x4C0 */ s16                 field_4C0;
+    /* 0x4C2 */ s16                 field_4C2;
+    /* 0x4C4 */ s16                 field_4C4;
+    /* 0x4C6 */ s16                 field_4C6;
+    /* 0x4C8 */ s16                 field_4C8;
+    /* 0x4CA */ s16                 field_4CA;
 } Actor560800AnimWork;
 STATIC_ASSERT_SIZEOF(Actor560800AnimWork, 0x4CC);
 
@@ -245,8 +245,8 @@ extern Task* D_actor_560800_8017578C;
 /// `D_actor_400600_80151A48` plays in that overlay.
 extern AnimationSet* D_actor_560800_8016EA40[13];
 
-extern ActorAnimStep  D_actor_560800_8016EBE8[];
-extern ActorTransform D_actor_560800_8016F1CC[6];
+extern ActorAnimChainLink D_actor_560800_8016EBE8[];
+extern ActorTransform     D_actor_560800_8016F1CC[6];
 
 /// Animation bank `func_actor_560800_801376E0` hands `animationInitContext` as its
 /// second argument: a null entry then one animation set per slot of
@@ -294,15 +294,15 @@ static void func_actor_560800_80134258(Task* arg0);
 static void func_actor_560800_80134384(Task* arg0);
 static void func_actor_560800_80134BFC(Task* arg0);
 
-extern TaskDesc       D_actor_560800_8016EA28[];
-extern TaskDesc       D_actor_560800_8017575C[];
-extern AnimationSet*  D_actor_560800_8016EA74[];
-extern AnimationSet*  D_actor_560800_8016EB04[];
-extern AnimationSet*  D_actor_560800_8016EB30[];
-extern ActorAnimStep  D_actor_560800_8016EC1C[36];
-extern ActorAnimStep  D_actor_560800_8016ECAC[6];
-extern ActorAnimStep  D_actor_560800_8016ECC4[46];
-extern ActorTransform D_actor_560800_8016F154;
+extern TaskDesc           D_actor_560800_8016EA28[];
+extern TaskDesc           D_actor_560800_8017575C[];
+extern AnimationSet*      D_actor_560800_8016EA74[];
+extern AnimationSet*      D_actor_560800_8016EB04[];
+extern AnimationSet*      D_actor_560800_8016EB30[];
+extern ActorAnimChainLink D_actor_560800_8016EC1C[36];
+extern ActorAnimChainLink D_actor_560800_8016ECAC[6];
+extern ActorAnimChainLink D_actor_560800_8016ECC4[46];
+extern ActorTransform     D_actor_560800_8016F154;
 // Message-table callbacks use the argument views required by this TU.
 
 extern TaskMessageEntry D_actor_560800_8016F34C[2];
@@ -2868,7 +2868,7 @@ AnimationSet* D_actor_560800_8016EB30[46] = {
     &_gActor560800Animation3CBE0,
 };
 
-ActorAnimStep D_actor_560800_8016EBE8[13] = {
+ActorAnimChainLink D_actor_560800_8016EBE8[13] = {
     { 0, -1 },
     { 0, 10 },
     { 0, -1 },
@@ -2884,7 +2884,7 @@ ActorAnimStep D_actor_560800_8016EBE8[13] = {
     { 65535, -1 },
 };
 
-ActorAnimStep D_actor_560800_8016EC1C[36] = {
+ActorAnimChainLink D_actor_560800_8016EC1C[36] = {
     { 65535, -1 },
     { 0, 2 },
     { 0, -1 },
@@ -2923,7 +2923,7 @@ ActorAnimStep D_actor_560800_8016EC1C[36] = {
     { 0, 26 },
 };
 
-ActorAnimStep D_actor_560800_8016ECAC[6] = {
+ActorAnimChainLink D_actor_560800_8016ECAC[6] = {
     { 0, -1 },
     { 0, -1 },
     { 0, -1 },
@@ -2932,7 +2932,7 @@ ActorAnimStep D_actor_560800_8016ECAC[6] = {
     { 0, -1 },
 };
 
-ActorAnimStep D_actor_560800_8016ECC4[46] = {
+ActorAnimChainLink D_actor_560800_8016ECC4[46] = {
     { 65535, -1 },
     { 65535, -1 },
     { 0, 3 },
@@ -4201,9 +4201,9 @@ void func_actor_560800_801321A0(Task* task)
 static s32 func_actor_560800_80132340(Task* arg0)
 {
     _Actor560800CutsceneWork* work;
-    ActorAnimStep*            table;
-    ActorAnimStep*            entry;
-    ActorAnimStep*            entry2;
+    ActorAnimChainLink*       table;
+    ActorAnimChainLink*       entry;
+    ActorAnimChainLink*       entry2;
     AnimationPlayRequest      msg;
     u16                       anim;
     u16                       anim2;
@@ -4214,12 +4214,12 @@ static s32 func_actor_560800_80132340(Task* arg0)
     }
     table = D_actor_560800_8016EBE8;
     entry = &table[work->playerAnimId];
-    if (entry->hold != 0) {
-        if (work->playerAnimHold >= entry->hold) {
-            if (entry->animId < 0) {
+    if (entry->holdFrames != 0) {
+        if (work->playerAnimHold >= entry->holdFrames) {
+            if (entry->nextAnimId < 0) {
                 return 1;
             }
-            anim                     = entry->animId;
+            anim                     = entry->nextAnimId;
             msg.source.sets          = D_actor_560800_8016EA40;
             work->playerAnimId       = anim;
             msg.animationId          = anim;
@@ -4236,12 +4236,12 @@ static s32 func_actor_560800_80132340(Task* arg0)
             return 0;
         }
         entry2 = &D_actor_560800_8016EBE8[work->playerAnimId];
-        if (entry2->animId < 0) {
+        if (entry2->nextAnimId < 0) {
             return 1;
         }
         work = arg0->work;
         if (work->player != NULL) {
-            anim2                    = entry2->animId;
+            anim2                    = entry2->nextAnimId;
             msg.source.sets          = D_actor_560800_8016EA40;
             work->playerAnimId       = anim2;
             msg.animationId          = anim2;
@@ -4299,7 +4299,7 @@ static inline void Actor560800_ReseedAnim(Task* arg0, u16 id, s16 rate)
     } while (0)
 
 /// Ticks every animation slot, then advances the script at `field_4B4`: a step
-/// with a non-zero hold waits `hold` frames in `field_4BE`, a zero hold waits
+/// with a non-zero hold waits `holdFrames` frames in `field_4BE`, a zero hold waits
 /// for every slot to hold its boundary pose (`ANIMATION_SLOT_SETTLED`). Returns 1 when the next
 /// step's id is negative (the script ended), 0 otherwise.
 ///
@@ -4327,10 +4327,10 @@ static s32 func_actor_560800_80132498(Task* arg0)
             break;
         }
     }
-    if (work->field_4B4[(u16)work->field_4B8].hold != 0) {
-        if ((u16)work->field_4BE >= work->field_4B4[(u16)work->field_4B8].hold) {
-            if (work->field_4B4[(u16)work->field_4B8].animId >= 0) {
-                Actor560800_ReseedAnim(arg0, work->field_4B4[(u16)work->field_4B8].animId, work->field_4C8);
+    if (work->field_4B4[(u16)work->field_4B8].holdFrames != 0) {
+        if ((u16)work->field_4BE >= work->field_4B4[(u16)work->field_4B8].holdFrames) {
+            if (work->field_4B4[(u16)work->field_4B8].nextAnimId >= 0) {
+                Actor560800_ReseedAnim(arg0, work->field_4B4[(u16)work->field_4B8].nextAnimId, work->field_4C8);
             } else {
                 return 1;
             }
@@ -4338,8 +4338,8 @@ static s32 func_actor_560800_80132498(Task* arg0)
             work->field_4BE++;
         }
     } else if (done) {
-        if (work->field_4B4[(u16)work->field_4B8].animId >= 0) {
-            Actor560800_ReseedAnim(arg0, work->field_4B4[(u16)work->field_4B8].animId, work->field_4C8);
+        if (work->field_4B4[(u16)work->field_4B8].nextAnimId >= 0) {
+            Actor560800_ReseedAnim(arg0, work->field_4B4[(u16)work->field_4B8].nextAnimId, work->field_4C8);
         } else {
             return 1;
         }

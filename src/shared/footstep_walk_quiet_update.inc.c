@@ -8,8 +8,8 @@
 /// while `turnFrames` counts down. Mode 3 then ticks the animation.
 void footstepWalkQuietUpdate(Task* task)
 {
-    GfxCoord*        coord = task->extra.tmd->coords;
-    Actor260500Work* work  = (Actor260500Work*)task->work;
+    GfxCoord*              coord = task->extra.tmd->coords;
+    FootstepWalkQuietWork* work  = task->work;
 
     if (gFootstepWalkWork->st.state == ACTOR_ENEMY_ANIM_BLEND) {
         footstepWalkQuietBlendAnim();

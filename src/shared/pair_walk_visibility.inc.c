@@ -10,7 +10,7 @@ s32 pairWalkSetVisibility(Task* task, s32 arg1, s32 flags, s32 arg3)
     TmdObject* other;
 
     self  = task->extra.tmd;
-    other = ((Actor150400Work*)task->work)->pairTask->extra.tmd;
+    other = ((PairWalkWork*)task->work)->pairTask->extra.tmd;
 
     if (flags & 1) {
         self->flags  = 0;

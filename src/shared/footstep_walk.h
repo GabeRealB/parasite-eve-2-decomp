@@ -13,7 +13,11 @@
  * position. The walker's state belongs to the package, which defines it at
  * its own positions under these names:
  *
- *   Actor151000Work*  gFootstepWalkWork         the published work block
+ *   FootstepWalkWork* gFootstepWalkWork         the published work block; a
+ *                                               package whose walker plays no
+ *                                               step sounds carries the quiet
+ *                                               update and declares this a
+ *                                               FootstepWalkQuietWork*
  *   Task*             gFootstepWalkTask         the walker's task
  *   s16               gFootstepWalkMode         the mode of the last walk
  *   s16               gFootstepWalkBlendFrames  the blend the next reseed uses
@@ -29,9 +33,47 @@
 
 #include "types.h"
 
+#include "actors/actor.h"
+
+#include "gameplay/animation.h"
 #include "gameplay/enemy.h"
+#include "gameplay/message.h"
 
 #include "main/task_types.h"
+
+/// Work block of a footstep walker that plays no step sounds, allocated
+/// zeroed at its full size by the walker's spawn state and kept both at
+/// `Task::work` and in the walker's `gFootstepWalkWork`.
+///
+/// It is also what `FootstepWalkWork` opens with, which is how the walk-to
+/// handler views the block of either walker. The model object borrows `light`
+/// and `color` for as long as the block lives.
+typedef struct {
+    MATRIX          light;      // Light-direction matrix lent to the model object
+    MATRIX          color;      // Light-colour matrix lent to the model object
+    ActorAnimRig19  rig;        // Playback storage of the nineteen-part model; slots 1 to 18 are driven
+    ActorEnemyState st;         // Animation request, heading last given the root and frames of walk left
+    s16             turnFrames; // Frames the update still turns the model for while the turn clip plays
+} FootstepWalkQuietWork;
+STATIC_ASSERT_SIZEOF(FootstepWalkQuietWork, 0x4B8);
+
+/// Work block of a footstep walker, allocated zeroed at its full size by the
+/// walker's spawn state and kept both at `Task::work` and in the walker's
+/// `gFootstepWalkWork`.
+///
+/// It opens as `FootstepWalkQuietWork` does and adds the step sounds' state.
+/// The model object borrows `light` and `color` for as long as the block
+/// lives.
+typedef struct {
+    MATRIX                 light;         // Light-direction matrix lent to the model object
+    MATRIX                 color;         // Light-colour matrix lent to the model object
+    ActorAnimRig19         rig;           // Playback storage of the nineteen-part model; slots 1 to 18 are driven
+    ActorEnemyState        st;            // Animation request, heading last given the root and frames of walk left
+    s16                    turnFrames;    // Frames the update still turns the model for while the turn clip plays
+    const AnimationRecord* stepRecord;    // Animation record of slot 1 the step check last saw, so a record held for several frames sounds once; NULL after a reseed
+    u8                     playFootsteps; // Nonzero once a script has turned the step sounds on: the update then runs the step check each frame. Never cleared
+} FootstepWalkWork;
+STATIC_ASSERT_SIZEOF(FootstepWalkWork, 0x4C0);
 
 void footstepWalkExit(Task* task);
 void footstepWalkSpawn(Enemy* enemy, Task* task);

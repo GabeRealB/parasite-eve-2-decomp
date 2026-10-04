@@ -46,7 +46,7 @@ extern Actor260500AnimStorageCAF4 D_actor_260500_8014CAF4;
 /// The work block, published by the spawn routine and by the task handler
 /// `func_actor_260500_8014A460` on every frame, so the message handlers and
 /// the animation loops reach it without the task.
-extern Actor260500Work* gFootstepWalkWork;
+extern FootstepWalkQuietWork* gFootstepWalkWork;
 
 /// The actor's own task, published by the spawn routine: the play-animation
 /// handler runs the update on it and the visibility handler reaches its model.
@@ -1486,7 +1486,7 @@ u8 D_actor_260500_80159DBC[144] = {
     0,
 };
 
-Actor260500Work* gFootstepWalkWork = NULL;
+FootstepWalkQuietWork* gFootstepWalkWork = NULL;
 
 Task* D_actor_260500_80159E50;
 
@@ -1562,7 +1562,7 @@ static void func_actor_260500_80149FB0(Enemy* enemy, Task* task)
 
     obj               = task->extra.tmd;
     coord             = obj->coords;
-    work              = memCalloc(sizeof(Actor260500Work), 0);
+    work              = memCalloc(sizeof(FootstepWalkQuietWork), 0);
     gFootstepWalkWork = work;
     task->work        = work;
     if (work == NULL) {
@@ -1691,17 +1691,17 @@ s32 func_actor_260500_8014A818(Task* task, s32 arg1, ActorCommand* msg, s32 arg3
 /// and 25 in mode 2.
 s32 func_actor_260500_8014A83C(Task* task, s32 arg1, VECTOR* target, s32 mode)
 {
-    GfxCoord*        coord;
-    Actor260500Work* work;
-    s32              steps;
-    s32              dx;
-    s32              dz;
-    s32              dist;
-    s32              angle;
+    GfxCoord*              coord;
+    FootstepWalkQuietWork* work;
+    s32                    steps;
+    s32                    dx;
+    s32                    dz;
+    s32                    dist;
+    s32                    angle;
 
     steps             = 0;
     coord             = task->extra.tmd->coords;
-    work              = (Actor260500Work*)task->work;
+    work              = task->work;
     gFootstepWalkMode = mode;
     dx                = target->vx - coord->coord.t[0];
     dz                = target->vz - coord->coord.t[2];

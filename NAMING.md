@@ -516,6 +516,25 @@ modes use `STRIDE_WALK_TURN_`. The walker borrows the paced walk's slot tick,
 reset, blended reseed and placement, so a carrier binds `PACED_WALK_WORK_T` to
 `StrideWalkWork` around those fragments.
 
+`pairWalk` owns the included walk of the nineteen-part NPC that carries a
+second model on one of its parts, carried by `actor_150400`, `actor_450800`,
+`actor_451100` and `actor_535700`. Its implementation interface is
+`src/shared/pair_walk.h`, one fragment per function. `PairWalkWork` is the
+task's work block, kept at `Task::work`.
+
+`footstepWalk` owns the included walk of the nineteen-part NPC that publishes
+its work block in a global and can sound its steps, carried by `actor_151000`,
+`actor_461800` and `actor_535700`; `actor_260500` and `actor_451100` carry the
+quiet update, which plays none. Its implementation interface is
+`src/shared/footstep_walk.h`. `FootstepWalkQuietWork` is the quiet walker's
+whole block and the head `FootstepWalkWork` opens with; a package declares
+`gFootstepWalkWork` with the type its walker allocates.
+
+The player detection tests enemies include - line of sight, reach and the
+segment-versus-wall query - have `src/shared/player_detection.h` as their
+interface. `PlayerDetectionSightScratch` is the scratch block of the
+line-of-sight test, private to that interface.
+
 `jukebox` owns the included SELECT menu that lists music tracks and plays the
 chosen sequence. Its interface is `src/shared/jukebox.h` (`jukeboxDrawRow`,
 `jukeboxHostTask`). Each row is a `JukeboxTrack`: a MIDI sequence id and the

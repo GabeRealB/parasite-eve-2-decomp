@@ -4,44 +4,44 @@
 /// world space and returns `func_800E0308` on the pair.
 s32 detectSightBlocked(Task* arg0)
 {
-    Task*              player;
-    u8*                head;
-    ActorSightScratch* s;
-    SVECTOR*           local;
-    SVECTOR*           v;
-    SVECTOR*           out;
+    Task*                        player;
+    PlayerDetectionSightScratch* head;
+    PlayerDetectionSightScratch* block;
+    SVECTOR*                     localEye;
+    SVECTOR*                     v;
+    SVECTOR*                     actorEye;
 
-    player                   = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    head                     = SCRATCH_STACK_CURSOR(u8);
-    local                    = (SVECTOR*)(head - 0xC);
-    s                        = (ActorSightScratch*)(head - 0x1C);
-    s->local.vx              = player->extra.tmd->coords->coord.t[0];
-    s->local.vy              = player->extra.tmd->coords->coord.t[1] - 1000;
-    SCRATCH_STACK_CURSOR(u8) = (u8*)s;
-    s->local.vz              = player->extra.tmd->coords->coord.t[2];
+    player                                            = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    head                                              = SCRATCH_STACK_CURSOR(PlayerDetectionSightScratch);
+    localEye                                          = &head[-1].localEye;
+    block                                             = head - 1;
+    block->localEye.vx                                = player->extra.tmd->coords->coord.t[0];
+    block->localEye.vy                                = player->extra.tmd->coords->coord.t[1] - 1000;
+    SCRATCH_STACK_CURSOR(PlayerDetectionSightScratch) = block;
+    block->localEye.vz                                = player->extra.tmd->coords->coord.t[2];
     Gp_UpdateCoord(&gGfxViewCoord);
-    v = local;
+    v = localEye;
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_ldv0(v);
     gte_rtv0();
-    gte_stsv(&s->out);
-    s->out.vx += gGfxViewCoord.workm.t[0];
-    s->out.vy += gGfxViewCoord.workm.t[1];
-    s->out.vz += gGfxViewCoord.workm.t[2];
+    gte_stsv(&block->playerEye);
+    block->playerEye.vx += gGfxViewCoord.workm.t[0];
+    block->playerEye.vy += gGfxViewCoord.workm.t[1];
+    block->playerEye.vz += gGfxViewCoord.workm.t[2];
 
-    s->local.vx = arg0->extra.tmd->coords->coord.t[0];
-    s->local.vy = arg0->extra.tmd->coords->coord.t[1] - 1000;
-    s->local.vz = arg0->extra.tmd->coords->coord.t[2];
+    block->localEye.vx = arg0->extra.tmd->coords->coord.t[0];
+    block->localEye.vy = arg0->extra.tmd->coords->coord.t[1] - 1000;
+    block->localEye.vz = arg0->extra.tmd->coords->coord.t[2];
     Gp_UpdateCoord(&gGfxViewCoord);
-    out = (SVECTOR*)(head - 0x14);
+    actorEye = &head[-1].actorEye;
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_ldv0(v);
     gte_rtv0();
-    gte_stsv(out);
-    s->from.vx += gGfxViewCoord.workm.t[0];
-    s->from.vy += gGfxViewCoord.workm.t[1];
-    s->from.vz += gGfxViewCoord.workm.t[2];
-    s->hit      = func_800E0308(&s->out, out);
-    SCRATCH_STACK_RELEASE_BYTES(0x1C);
-    return s->hit;
+    gte_stsv(actorEye);
+    block->actorEye.vx += gGfxViewCoord.workm.t[0];
+    block->actorEye.vy += gGfxViewCoord.workm.t[1];
+    block->actorEye.vz += gGfxViewCoord.workm.t[2];
+    block->blocked      = func_800E0308(&block->playerEye, actorEye);
+    SCRATCH_STACK_RELEASE_BLOCK(PlayerDetectionSightScratch);
+    return block->blocked;
 }

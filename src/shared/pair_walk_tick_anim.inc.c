@@ -3,10 +3,10 @@
 /// Ticks animation slots 1..0x12.
 void pairWalkTickAnim(Task* task)
 {
-    Actor150400Work* work;
-    s32              i;
+    PairWalkWork* work;
+    s32           i;
 
-    work = (Actor150400Work*)task->work;
+    work = task->work;
     i    = 1;
     do {
         animationTickSlot(&work->rig.anim, i);

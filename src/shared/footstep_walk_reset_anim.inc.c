@@ -7,8 +7,8 @@ void footstepWalkResetAnim(void)
 {
     s32 i;
 
-    gFootstepWalkWork->stepRec = NULL;
-    i                          = 1;
+    gFootstepWalkWork->stepRecord = NULL;
+    i                             = 1;
     do {
         gFootstepWalkWork->rig.slots[i].rate = 1;
         animationResetSlot(&gFootstepWalkWork->rig.anim, i, gFootstepWalkWork->st.animId);

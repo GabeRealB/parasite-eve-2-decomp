@@ -48,7 +48,7 @@ extern s16 gFootstepWalkBlendFrames;
 extern s32 D_actor_535700_80146840;
 
 /// The first enemy's work block, published by its spawn handler.
-extern Actor151000Work* gFootstepWalkWork;
+extern FootstepWalkWork* gFootstepWalkWork;
 
 /// The first enemy's task, published by its spawn handler so the message
 /// handlers can reach its model.
@@ -1100,7 +1100,7 @@ u8 gPairWalkAnimParams[24] = {
 
 s32 D_actor_535700_80146840;
 
-Actor151000Work* gFootstepWalkWork;
+FootstepWalkWork* gFootstepWalkWork;
 
 Task* gFootstepWalkTask;
 
@@ -1220,7 +1220,7 @@ s32 func_actor_535700_8013284C(Task* task, s32 arg1, s32 arg2, s32 arg3)
 #include "../../shared/footstep_walk_place.inc.c"
 
 /// Message handler of the first enemy: message 0 arms the turn countdown
-/// `turnFrames` at 0x14 frames, message 1 sets `footsteps`, which turns the
+/// `turnFrames` at 0x14 frames, message 1 sets `playFootsteps`, which turns the
 /// footsteps on. Anything else does nothing.
 s32 func_actor_535700_80132910(Task* task, s32 arg1, ActorCommand* msg, s32 arg3)
 {
@@ -1232,7 +1232,7 @@ s32 func_actor_535700_80132910(Task* task, s32 arg1, ActorCommand* msg, s32 arg3
             gFootstepWalkWork->turnFrames = 0x14;
             break;
         case 1:
-            gFootstepWalkWork->footsteps = kind;
+            gFootstepWalkWork->playFootsteps = kind;
             break;
     }
     return 0;

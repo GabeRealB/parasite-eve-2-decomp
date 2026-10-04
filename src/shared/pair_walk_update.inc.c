@@ -1,16 +1,16 @@
 /* Part of the pair walk library; see pair_walk.h. */
 
 /// Step body of the actor's animation state machine. States 1 and 2 reseed the
-/// animation slots (with and without `animArg`) and advance to state 3; state 3
+/// animation slots (with and without `blendFrames`) and advance to state 3; state 3
 /// walks the root coordinate 0x11 units per frame while clip 4 has `travel`
 /// left, dropping back to clip 1 with argument 0xA when it runs out, then ticks
 /// the slots.
 void pairWalkUpdate(Task* task)
 {
-    Actor150400Work* work;
-    s16              animId;
+    PairWalkWork* work;
+    s16           animId;
 
-    work = (Actor150400Work*)task->work;
+    work = task->work;
     if (work->st.state == ACTOR_ENEMY_ANIM_BLEND) {
         pairWalkReseedAnim(task);
         work->st.state = ACTOR_ENEMY_ANIM_TICK;
@@ -31,8 +31,8 @@ void pairWalkUpdate(Task* task)
             actorMoveForward(task->extra.tmd->coords, 0x11);
             work->st.travel--;
             if (work->st.travel == 0) {
-                work->animArg   = 0xA;
-                work->st.animId = 1;
+                work->blendFrames = 0xA;
+                work->st.animId   = 1;
             }
         }
         pairWalkTickAnim(task);

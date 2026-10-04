@@ -11,14 +11,14 @@
 /// each use.
 void footstepWalkSpawn(Enemy* enemy, Task* task)
 {
-    VECTOR           vec;
-    Actor151000Work* work;
-    TmdObject*       obj;
-    GfxCoord*        coord;
+    VECTOR            vec;
+    FootstepWalkWork* work;
+    TmdObject*        obj;
+    GfxCoord*         coord;
 
     obj               = task->extra.tmd;
     coord             = obj->coords;
-    work              = memCalloc(0x4C0, 0);
+    work              = memCalloc(sizeof(FootstepWalkWork), 0);
     gFootstepWalkWork = work;
     task->work        = work;
     if (work == NULL) {
@@ -41,13 +41,13 @@ void footstepWalkSpawn(Enemy* enemy, Task* task)
     func_800D7A9C(obj, &vec, 0, 3);
     animationInitContext(&gFootstepWalkWork->rig.anim, (AnimationSet**)gFootstepWalkAnims, obj,
                          gFootstepWalkWork->rig.poses, gFootstepWalkWork->rig.slots);
-    gFootstepWalkWork->st.animId  = 1;
-    gFootstepWalkWork->st.state   = ACTOR_ENEMY_ANIM_RESET;
-    gFootstepWalkWork->st.travel  = 0;
-    gFootstepWalkWork->turnFrames = 0;
-    gFootstepWalkWork->stepRec    = 0;
-    gFootstepWalkWork->footsteps  = 0;
-    task->msgTable                = gFootstepWalkMsgTable;
+    gFootstepWalkWork->st.animId     = 1;
+    gFootstepWalkWork->st.state      = ACTOR_ENEMY_ANIM_RESET;
+    gFootstepWalkWork->st.travel     = 0;
+    gFootstepWalkWork->turnFrames    = 0;
+    gFootstepWalkWork->stepRecord    = NULL;
+    gFootstepWalkWork->playFootsteps = 0;
+    task->msgTable                   = gFootstepWalkMsgTable;
     footstepWalkUpdate(task);
     task->state += 1;
 }

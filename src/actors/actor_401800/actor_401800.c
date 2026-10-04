@@ -1327,35 +1327,35 @@ static void func_actor_401800_8013423C(Enemy* enemy, Task* actor)
 /// coordinate update written out in both arms of the length test.
 s32 oddStrangerPushContacts(Task* arg0, WorldCollisionContact* recs, s16 count)
 {
-    ActorPushScratch* head;
-    ActorPushScratch* s;
-    ActorPushScratch* blk;
+    ActorBodyPushScratch* head;
+    ActorBodyPushScratch* s;
+    ActorBodyPushScratch* blk;
 
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen == 1 || gGameSession->viewReady == 1) {
         return 0;
     }
-    arg0->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
-    head                                    = SCRATCH_STACK_CURSOR(ActorPushScratch);
-    blk                                     = head - 1;
-    SCRATCH_STACK_CURSOR(ActorPushScratch)  = blk;
-    s                                       = blk;
+    arg0->extra.tmd->coords[1].composeStamp    = GRAPHICS_COORD_DIRTY;
+    head                                       = SCRATCH_STACK_CURSOR(ActorBodyPushScratch);
+    blk                                        = head - 1;
+    SCRATCH_STACK_CURSOR(ActorBodyPushScratch) = blk;
+    s                                          = blk;
     Gp_UpdateCoord(&arg0->extra.tmd->coords[1]);
-    s->pos.vx = arg0->extra.tmd->coords[1].workm.t[0];
-    s->pos.vy = arg0->extra.tmd->coords[1].workm.t[1];
-    s->pos.vz = arg0->extra.tmd->coords[1].workm.t[2];
-    s->hit    = 0;
-    for (s->i = 0; s->i < count; s->i++) {
-        if (recs[s->i].key.value == 0) {
-            s->dist[s->i] = 0x7FFE;
+    s->position.vx = arg0->extra.tmd->coords[1].workm.t[0];
+    s->position.vy = arg0->extra.tmd->coords[1].workm.t[1];
+    s->position.vz = arg0->extra.tmd->coords[1].workm.t[2];
+    s->hit         = 0;
+    for (s->recordIndex = 0; s->recordIndex < count; s->recordIndex++) {
+        if (recs[s->recordIndex].key.value == 0) {
+            s->marks[s->recordIndex] = ACTOR_BODY_PUSH_MARK_END;
             break;
         }
-        s->kind = recs[s->i].key.value & 0xFFFF0000;
+        s->kind = recs[s->recordIndex].key.value & WORLD_COLLISION_CONTACT_KIND_MASK;
         if (s->kind == 0x10000 || s->kind == 0x30000) {
             s->hit = 1;
-            worldCollisionCalcContactViewOffset(&s->pos, &recs[s->i], &s->offset);
-            s->len = s->offset.vx * s->offset.vx + s->offset.vz * s->offset.vz;
-            s->len = SquareRoot0(s->len);
-            if (s->len >= 0x96) {
+            worldCollisionCalcContactViewOffset(&s->position, &recs[s->recordIndex], &s->offset);
+            s->offsetLength = s->offset.vx * s->offset.vx + s->offset.vz * s->offset.vz;
+            s->offsetLength = SquareRoot0(s->offsetLength);
+            if (s->offsetLength >= 0x96) {
                 s->offset.vy = 0;
                 VectorNormalSS(&s->offset, &s->offset);
                 gte_lddp(0x96);
@@ -1371,7 +1371,7 @@ s32 oddStrangerPushContacts(Task* arg0, WorldCollisionContact* recs, s16 count)
             arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
         }
     }
-    SCRATCH_STACK_RELEASE_BLOCK(ActorPushScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorBodyPushScratch);
     return s->hit;
 }
 

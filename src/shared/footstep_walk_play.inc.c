@@ -1,8 +1,8 @@
 /* Part of the footstep walk library; see footstep_walk.h. */
 
-/// "Start animation" opcode: `withArg` selects between the two start paths the
-/// runner `footstepWalkUpdate` dispatches on, and only the first carries
-/// `animArg`, which it leaves in `gFootstepWalkBlendFrames`. The runner is then
+/// "Start animation" opcode: the request's blend selects between the two start
+/// paths the runner `footstepWalkUpdate` dispatches on, and only the blended one
+/// carries a frame count, which it leaves in `gFootstepWalkBlendFrames`. The runner is then
 /// run once on the task published in `gFootstepWalkTask`. Returns -1,
 /// without touching the work block, when the clip id is 0x23 or more.
 s32 footstepWalkPlay(Task* task, s32 arg1, AnimationPlayRequest* args, s32 arg3)

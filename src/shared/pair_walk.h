@@ -17,11 +17,34 @@
 #ifndef SRC_SHARED_PAIR_WALK_H
 #define SRC_SHARED_PAIR_WALK_H
 
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+
 #include "types.h"
 
+#include "actors/actor.h"
+
+#include "gameplay/enemy.h"
 #include "gameplay/message.h"
 
 #include "main/task_types.h"
+
+/// Work block of a pair walker, allocated zeroed at its full size by the
+/// walker's spawn state and kept at `Task::work`.
+///
+/// The model object borrows `light` and `color` for as long as the block
+/// lives, and the second model the walker carries is lit through the same
+/// two.
+typedef struct {
+    MATRIX          light;       // Light-direction matrix lent to the model object
+    MATRIX          color;       // Light-colour matrix lent to the model object
+    ActorAnimRig19  rig;         // Playback storage of the nineteen-part model; slots 1 to 18 are driven
+    ActorEnemyState st;          // Animation request, heading last given the root and frames of walk left
+    s16             blendFrames; // Whole frames the next blended reseed takes to reach the requested clip
+    Task*           pairTask;    // Task of the second model the walker carries, shown and hidden with it
+    Enemy*          enemy;       // Enemy the walker's task belongs to; recorded at spawn, never read
+} PairWalkWork;
+STATIC_ASSERT_SIZEOF(PairWalkWork, 0x4C0);
 
 void pairWalkUpdate(Task* task);
 void pairWalkTickAnim(Task* task);

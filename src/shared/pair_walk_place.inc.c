@@ -5,12 +5,12 @@
 /// translation into the matrix and marks it for recomputation.
 s32 pairWalkPlace(Task* task, s32 arg1, ActorTransform* placement, s32 arg3)
 {
-    GfxCoord*        coord;
-    Actor150400Work* work;
-    u16              yaw;
+    GfxCoord*     coord;
+    PairWalkWork* work;
+    u16           yaw;
 
     coord        = task->extra.tmd->coords;
-    work         = (Actor150400Work*)task->work;
+    work         = task->work;
     yaw          = placement->rot.vy;
     work->st.yaw = yaw;
     gfxRotMatrixY(&coord->coord, (s16)yaw, 1);

@@ -47,7 +47,7 @@ extern Actor451100AnimStorage510C D_actor_451100_8013510C;
 /// Work block of the actor `func_actor_451100_801322D4` dispatches, published
 /// by its spawn handler so the actor's message handlers and animation helpers
 /// reach it without the task.
-extern Actor260500Work* gFootstepWalkWork;
+extern FootstepWalkQuietWork* gFootstepWalkWork;
 
 /// That same actor's task, stored by its spawn handler for the handlers that
 /// need the task but are not given it.
@@ -1432,7 +1432,7 @@ u8 D_actor_451100_8014E6FC[72] = {
     0,
 };
 
-Actor260500Work* gFootstepWalkWork = NULL;
+FootstepWalkQuietWork* gFootstepWalkWork = NULL;
 
 Task* D_actor_451100_8014E748;
 
@@ -1451,14 +1451,14 @@ static void func_actor_451100_801328A8(Enemy* enemy, Task* task);
 /// the pointer is reloaded at each use.
 static void func_actor_451100_80131E24(Enemy* enemy, Task* task)
 {
-    VECTOR           vec;
-    Actor260500Work* work;
-    TmdObject*       obj;
-    GfxCoord*        coord;
+    VECTOR                 vec;
+    FootstepWalkQuietWork* work;
+    TmdObject*             obj;
+    GfxCoord*              coord;
 
     obj               = task->extra.tmd;
     coord             = obj->coords;
-    work              = memCalloc(0x4B8, 0);
+    work              = memCalloc(sizeof(FootstepWalkQuietWork), 0);
     gFootstepWalkWork = work;
     task->work        = work;
     if (work == NULL) {
@@ -1504,7 +1504,7 @@ void func_actor_451100_801322D4(Task* task)
         func_actor_451100_80132330,
     };
 
-    gFootstepWalkWork = (Actor260500Work*)task->work;
+    gFootstepWalkWork = task->work;
     fns[task->state](task->spawnArg2.pointer, task);
 }
 
@@ -1588,7 +1588,7 @@ s32 func_actor_451100_8013268C(Task* task, s32 arg1, ActorCommand* msg, s32 arg3
 #include "../../shared/walker_shadow_shaded.inc.c"
 
 /// State 0 of the `func_actor_451100_80132BD4` dispatcher: allocates the
-/// actor's 0x4C0-byte `Actor150400Work` block and hangs it off the task, spawns
+/// actor's 0x4C0-byte `PairWalkWork` block and hangs it off the task, spawns
 /// entry 1 of `D_actor_451100_8014E6E4` (the sub-model task
 /// `func_actor_451100_801330B0`), hands it to `taskReparent` with this task
 /// and keeps it in `pairTask`, then seeds the animation and runs the step
@@ -1602,17 +1602,17 @@ s32 func_actor_451100_8013268C(Task* task, s32 arg1, ActorCommand* msg, s32 arg3
 /// three places.
 static void func_actor_451100_801328A8(Enemy* enemy, Task* task)
 {
-    VECTOR           vec;
-    Actor150400Work* work;
-    GfxCoord*        coord;
-    TmdObject*       obj;
-    Enemy*           spawned;
-    void*            block;
+    VECTOR        vec;
+    PairWalkWork* work;
+    GfxCoord*     coord;
+    TmdObject*    obj;
+    Enemy*        spawned;
+    void*         block;
 
     obj        = task->extra.tmd;
     coord      = obj->coords;
-    block      = memCalloc(0x4C0, false);
-    work       = (Actor150400Work*)block;
+    block      = memCalloc(sizeof(PairWalkWork), false);
+    work       = block;
     task->work = block;
     if (block == NULL) {
         enemyDestroy(enemy, task);
@@ -1692,14 +1692,14 @@ static void func_actor_451100_80132CAC(Task* task)
 /// The blend path carries the requested duration in whole frames.
 s32 func_actor_451100_80132E98(Task* task, s32 arg1, AnimationPlayRequest* args, s32 arg3)
 {
-    Actor150400Work* work;
+    PairWalkWork* work;
 
-    work = (Actor150400Work*)task->work;
+    work = task->work;
     if (args->animationId < 0x12) {
         work->st.animId = args->animationId;
         if (args->blend != ANIMATION_BLEND_RESET) {
-            work->st.state = ACTOR_ENEMY_ANIM_BLEND;
-            work->animArg  = args->blendFrames;
+            work->st.state    = ACTOR_ENEMY_ANIM_BLEND;
+            work->blendFrames = args->blendFrames;
         } else {
             work->st.state = ACTOR_ENEMY_ANIM_RESET;
         }
@@ -1727,14 +1727,14 @@ s32 func_actor_451100_80132FE0(Task* task, s32 msgId, s32 arg2, s32 arg3)
 /// `travel` for the step routine to count down.
 s32 func_actor_451100_80132FE8(Task* task, s32 arg1, VECTOR* target, s32 arg3)
 {
-    GfxCoord*        coord;
-    Actor150400Work* work;
-    s32              dx;
-    s32              dz;
-    u16              yaw;
+    GfxCoord*     coord;
+    PairWalkWork* work;
+    s32           dx;
+    s32           dz;
+    u16           yaw;
 
     coord        = task->extra.tmd->coords;
-    work         = (Actor150400Work*)task->work;
+    work         = task->work;
     dx           = target->vx - coord->coord.t[0];
     dz           = target->vz - coord->coord.t[2];
     yaw          = ratan2(dx, dz);

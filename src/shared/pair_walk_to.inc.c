@@ -2,18 +2,18 @@
 
 /// Message handler 0x7DD of `gPairWalkMessages`, the enemy's "walk to"
 /// opcode: turns its root coordinate to face `target`, caching the yaw in
-/// `Actor150400Work::yaw`, and leaves the horizontal distance to it, in
+/// `PairWalkWork::st`, and leaves the horizontal distance to it, in
 /// twelfths, in `travel` for the walk state to count down.
 s32 pairWalkTo(Task* task, s32 arg1, VECTOR* target, s32 arg3)
 {
-    GfxCoord*        coord;
-    Actor150400Work* work;
-    s32              dx;
-    s32              dz;
-    u16              yaw;
+    GfxCoord*     coord;
+    PairWalkWork* work;
+    s32           dx;
+    s32           dz;
+    u16           yaw;
 
     coord        = task->extra.tmd->coords;
-    work         = (Actor150400Work*)task->work;
+    work         = task->work;
     dx           = target->vx - coord->coord.t[0];
     dz           = target->vz - coord->coord.t[2];
     yaw          = ratan2(dx, dz);

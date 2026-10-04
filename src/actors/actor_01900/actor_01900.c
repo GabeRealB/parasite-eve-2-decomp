@@ -31,6 +31,7 @@
 #include "gameplay/world_coords.h"
 #include "gameplay/world_targets.h"
 
+#include "main/areas.h"
 #include "main/coord.h"
 #include "main/random.h"
 #include "main/gfx.h"
@@ -715,8 +716,8 @@ TaskMessageEntry Actor01900_D1728C[8] = {
 };
 
 ActorHeightClamp Actor01900_D172CC[3] = {
-    { 1, 3, -300, 0, { 0, 0, 0, 0, 0, 0, 0, 0 } },
-    { 5, 29, 0, 300, { 0, 0, 0, 0, 0, 0, 0, 0 } },
+    { GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PATIO, -300, 0, { 0, 0, 0, 0, 0, 0, 0, 0 } },
+    { GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_WOODLAND_PATH, 0, 300, { 0, 0, 0, 0, 0, 0, 0, 0 } },
     { 0, 0, 0, 0, { 0, 0, 0, 0, 0, 0, 0, 0 } },
 };
 
@@ -1855,13 +1856,13 @@ static void Actor01900_Fn03C04(GameLocationKey* session, GfxCoord* coord)
 
     for (i = 0; i < 2; i++) {
         row = &Actor01900_D172CC[i];
-        if (session->stage == row->field_0 && session->area == row->field_2) {
-            lo     = row->lo;
+        if (session->stage == row->stage && session->area == row->area) {
+            lo     = row->minY;
             offset = coord->coord.t[1];
             if (offset < lo) {
                 coord->coord.t[1] = lo;
-            } else if (row->hi < offset) {
-                coord->coord.t[1] = row->hi;
+            } else if (row->maxY < offset) {
+                coord->coord.t[1] = row->maxY;
             }
             return;
         }
@@ -1877,7 +1878,7 @@ static __inline__ s32 Actor01900_HasHeightClamp(GameLocationKey* session)
 
     for (i = 0; i < 2; i++) {
         row = &Actor01900_D172CC[i];
-        if (session->stage == row->field_0 && session->area == row->field_2) {
+        if (session->stage == row->stage && session->area == row->area) {
             return 1;
         }
     }
@@ -1886,20 +1887,20 @@ static __inline__ s32 Actor01900_HasHeightClamp(GameLocationKey* session)
 
 static s32 Actor01900_Fn03C98(GfxCoord* coord, WorldCollisionContact* rec, s16 arg2, s16 arg3)
 {
-    ActorStepDelta* head;
-    ActorStepDelta* s;
-    ActorStepDelta* blk;
-    s16             vy;
-    SVECTOR*        step;
+    ActorContactCappedPushScratch* head;
+    ActorContactCappedPushScratch* s;
+    ActorContactCappedPushScratch* blk;
+    s16                            vy;
+    SVECTOR*                       step;
 
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen == 1) {
         return 0;
     }
-    head                                 = SCRATCH_STACK_CURSOR(ActorStepDelta);
-    blk                                  = head - 1;
-    SCRATCH_STACK_CURSOR(ActorStepDelta) = blk;
-    s                                    = blk;
-    s->moved                             = 0;
+    head                                                = SCRATCH_STACK_CURSOR(ActorContactCappedPushScratch);
+    blk                                                 = head - 1;
+    SCRATCH_STACK_CURSOR(ActorContactCappedPushScratch) = blk;
+    s                                                   = blk;
+    s->moved                                            = 0;
     if (func_800E0C10(rec, &s->delta, arg2, NULL) != 0) {
         s->step.vx = head[-1].delta.fixed.vx.word >> 16;
         s->step.vy = s->delta.fixed.vy.word >> 16;
@@ -1911,10 +1912,10 @@ static s32 Actor01900_Fn03C98(GfxCoord* coord, WorldCollisionContact* rec, s16 a
             }
         }
         coord->coord.t[1] += s->step.vy;
-        s->len             = s->step.vx * s->step.vx + s->step.vz * s->step.vz;
-        s->len             = SquareRoot0(s->len);
+        s->stepLength      = s->step.vx * s->step.vx + s->step.vz * s->step.vz;
+        s->stepLength      = SquareRoot0(s->stepLength);
         step               = &s->step;
-        if (s->len >= 0xC0) {
+        if (s->stepLength >= 0xC0) {
             s->step.vy = 0;
             VectorNormalSS(step, step);
             gte_lddp(0xC0);
@@ -1949,7 +1950,7 @@ static s32 Actor01900_Fn03C98(GfxCoord* coord, WorldCollisionContact* rec, s16 a
     if (s->delta.fixed.vx.word != 0 || s->delta.fixed.vz.word != 0) {
         s->moved = 1;
     }
-    SCRATCH_STACK_RELEASE_BLOCK(ActorStepDelta);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorContactCappedPushScratch);
     return s->moved;
 }
 
@@ -1959,35 +1960,35 @@ static s32 Actor01900_Fn03C98(GfxCoord* coord, WorldCollisionContact* rec, s16 a
 /// before cross-jumping merges them, which keeps `count`'s sign extension in the loop.
 static s32 Actor01900_Fn03FF8(Task* arg0, WorldCollisionContact* recs, s16 count)
 {
-    ActorPushScratch* head;
-    ActorPushScratch* s;
-    ActorPushScratch* blk;
+    ActorBodyPushScratch* head;
+    ActorBodyPushScratch* s;
+    ActorBodyPushScratch* blk;
 
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen == 1 || gGameSession->viewReady == 1) {
         return 0;
     }
-    arg0->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
-    head                                    = SCRATCH_STACK_CURSOR(ActorPushScratch);
-    blk                                     = head - 1;
-    SCRATCH_STACK_CURSOR(ActorPushScratch)  = blk;
-    s                                       = blk;
+    arg0->extra.tmd->coords[1].composeStamp    = GRAPHICS_COORD_DIRTY;
+    head                                       = SCRATCH_STACK_CURSOR(ActorBodyPushScratch);
+    blk                                        = head - 1;
+    SCRATCH_STACK_CURSOR(ActorBodyPushScratch) = blk;
+    s                                          = blk;
     Gp_UpdateCoord(&arg0->extra.tmd->coords[1]);
-    s->pos.vx = arg0->extra.tmd->coords[1].workm.t[0];
-    s->pos.vy = arg0->extra.tmd->coords[1].workm.t[1];
-    s->pos.vz = arg0->extra.tmd->coords[1].workm.t[2];
-    s->hit    = 0;
-    for (s->i = 0; s->i < count; s->i++) {
-        if (recs[s->i].key.value == 0) {
-            s->dist[s->i] = 0x7FFE;
+    s->position.vx = arg0->extra.tmd->coords[1].workm.t[0];
+    s->position.vy = arg0->extra.tmd->coords[1].workm.t[1];
+    s->position.vz = arg0->extra.tmd->coords[1].workm.t[2];
+    s->hit         = 0;
+    for (s->recordIndex = 0; s->recordIndex < count; s->recordIndex++) {
+        if (recs[s->recordIndex].key.value == 0) {
+            s->marks[s->recordIndex] = ACTOR_BODY_PUSH_MARK_END;
             break;
         }
-        s->kind = recs[s->i].key.value & 0xFFFF0000;
+        s->kind = recs[s->recordIndex].key.value & WORLD_COLLISION_CONTACT_KIND_MASK;
         if (s->kind == 0x10000 || s->kind == 0x30000) {
             s->hit = 1;
-            worldCollisionCalcContactViewOffset(&s->pos, &recs[s->i], &s->offset);
-            s->len = s->offset.vx * s->offset.vx + s->offset.vz * s->offset.vz;
-            s->len = SquareRoot0(s->len);
-            if (s->len >= 0xC0) {
+            worldCollisionCalcContactViewOffset(&s->position, &recs[s->recordIndex], &s->offset);
+            s->offsetLength = s->offset.vx * s->offset.vx + s->offset.vz * s->offset.vz;
+            s->offsetLength = SquareRoot0(s->offsetLength);
+            if (s->offsetLength >= 0xC0) {
                 s->offset.vy = 0;
                 VectorNormalSS(&s->offset, &s->offset);
                 gte_lddp(0xC0);
@@ -2003,7 +2004,7 @@ static s32 Actor01900_Fn03FF8(Task* arg0, WorldCollisionContact* recs, s16 count
             arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
         }
     }
-    SCRATCH_STACK_RELEASE_BLOCK(ActorPushScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorBodyPushScratch);
     return s->hit;
 }
 
