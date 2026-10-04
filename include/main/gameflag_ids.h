@@ -1095,7 +1095,7 @@ enum {
     /// Set to 1 when part 1 of the Eve encounter in the Shelter B6 corridor is
     /// destroyed, cleared on encounter spawn; set selects CAP 6 instead of 3.
     GAME_FLAG_B6_CORRIDOR_EVE_PART_1_DOWN = 0x145,
-    /// Apparently set by the Eve encounter for corridor part 2 (field_78 + 0x144 with
+    /// Apparently set by the Eve encounter for corridor part 2 (`slot` + 0x144 with
     /// slot 2), but not cleared on spawn; set selects CAP 7 for trigger 4 in the B6
     /// corridor and training room.
     GAME_FLAG_B6_CORRIDOR_EVE_PART_2_DOWN = 0x146,

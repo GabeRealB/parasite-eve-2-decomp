@@ -115,21 +115,50 @@ typedef struct {
 } _Actor205200CtrlWork;
 STATIC_ASSERT_SIZEOF(_Actor205200CtrlWork, 0x30);
 
-/// Work block of a part task, allocated by its spawn handler
-/// `func_actor_205200_8014AE0C`. `field_78` is the slot the part took in the
-/// controller's `partCoords` / `partLive` arrays.
-typedef struct Actor205200Part {
-    /* 0x00 */ WorldCollisionBody    obj;
-    /* 0x20 */ WorldCollisionContact recs[3];
-    /* 0x68 */ EffectSpawnArg        field_68; // record the part's effects are spawned with
-    /* 0x70 */ s16                   field_70; // hit-stun countdown; hits are ignored while non-zero
-    /* 0x72 */ s16                   field_72; // state of the teardown handler `func_actor_205200_8014B484`
-    /* 0x74 */ u16                   field_74; // effect timer
-    /* 0x76 */ s16                   field_76; // spark cooldown
-    /* 0x78 */ s16                   field_78;
-    /* 0x7A */ byte                  pad_7A[2];
-} Actor205200Part;
-STATIC_ASSERT_SIZEOF(Actor205200Part, 0x7C);
+/// Task state of a part, stored in its `Task::state`.
+enum {
+    ACTOR_205200_PART_TASK_SPAWNING = 0, // Allocating the work block and taking a controller slot
+    ACTOR_205200_PART_TASK_LIVE     = 1, // A target that takes hits
+    ACTOR_205200_PART_TASK_DOWN     = 2, // Out of the fight; `_Actor205200Part.downState` says how
+};
+
+/// Stage of a part that is down, stored in `_Actor205200Part.downState`.
+///
+/// A part goes down either because its HP ran out, which enters at DESTROYED,
+/// or because the controller was told to stop, which enters at RETIRING.
+enum {
+    ACTOR_205200_PART_DOWN_DESTROYED   = 0, // Leave the fight, tell the controller and the room, start smouldering
+    ACTOR_205200_PART_DOWN_SMOULDERING = 1, // A wreck throwing sparks and smoke at random intervals; never left
+    ACTOR_205200_PART_DOWN_RETIRING    = 2, // Leave the fight without effects
+    ACTOR_205200_PART_DOWN_RETIRED     = 3, // Nothing left to run
+};
+
+enum {
+    /// Frames after a hit's sparks before another hit may raise them.
+    ACTOR_205200_PART_HIT_EFFECT_COOLDOWN = 10,
+    /// Damage at and above which a hit leaves the part sparking for the longest time.
+    ACTOR_205200_PART_SPARK_DAMAGE_CAP = 200,
+};
+
+/// Work block of a part task: one destructible target of a controller's site.
+///
+/// A live part is a sphere that weapons hit and an enemy the player can lock
+/// on to. Each hit that deals damage leaves it sparking for a while, longer
+/// the harder the hit. A destroyed part stays in place as a wreck. `slot` is fixed
+/// at spawn and selects the part's position and heading within the site, its
+/// entries in the controller's `partCoords` and `partLive`, and the game flag
+/// and room sprites that record its destruction.
+typedef struct {
+    WorldCollisionBody    body;           // Sphere that receives weapon hits
+    WorldCollisionContact contacts[3];    // Contact table of `body`, also the enemy's hit records
+    EffectSpawnArg        effectArg;      // Record the part's sparks and blasts are spawned with, placed on its coordinate
+    s16                   hitCooldown;    // Frames left in which hits are ignored; set from the hitting attack's cooldown
+    s16                   downState;      // Stage of a part that is down (ACTOR_205200_PART_DOWN_*)
+    s16                   sparkTimer;     // Live: frames of sparking left after a hit; smouldering: frames to the next spark burst
+    s16                   effectCooldown; // Live: frames before a hit may raise sparks again; smouldering: frames to the next smoke puffs
+    s16                   slot;           // Index of the part within its site, 0 to 2
+} _Actor205200Part;
+STATIC_ASSERT_SIZEOF(_Actor205200Part, 0x7C);
 
 extern s32 gScreenWaveRamp;
 
@@ -464,7 +493,7 @@ static void func_actor_205200_8014AE0C(Enemy* arg0, Task* arg1)
 {
     GfxCoord*             coord;
     _Actor205200CtrlWork* pwork;
-    Actor205200Part*      part;
+    _Actor205200Part*     part;
     SVECTOR*              pos;
     SVECTOR               rot;
     MATRIX*               mat;
@@ -472,26 +501,26 @@ static void func_actor_205200_8014AE0C(Enemy* arg0, Task* arg1)
 
     coord = arg1->extra.tmd->coords;
     pwork = arg1->parent->work;
-    part  = memCalloc(0x7CU, false);
+    part  = memCalloc(sizeof(*part), false);
     if (part == NULL) {
         enemyDestroy(arg0, arg1);
         return;
     }
-    arg1->work     = part;
-    part->field_78 = pwork->partCount;
+    arg1->work = part;
+    part->slot = pwork->partCount;
     pwork->partCount++;
-    pwork->partCoords[part->field_78] = coord;
-    pwork->partLive[part->field_78]   = 1;
-    tbl                               = D_actor_205200_8014CA34[pwork->site];
-    rot.vx                            = 0;
-    mat                               = &coord->coord;
-    rot.vy                            = tbl[part->field_78];
-    rot.vz                            = 0;
+    pwork->partCoords[part->slot] = coord;
+    pwork->partLive[part->slot]   = 1;
+    tbl                           = D_actor_205200_8014CA34[pwork->site];
+    rot.vx                        = 0;
+    mat                           = &coord->coord;
+    rot.vy                        = tbl[part->slot];
+    rot.vz                        = 0;
     RotMatrix(&rot, mat);
     pos                 = D_actor_205200_8014CA24[pwork->site];
-    coord->coord.t[0]   = pos[part->field_78].vx;
-    coord->coord.t[1]   = pos[part->field_78].vy;
-    coord->coord.t[2]   = pos[part->field_78].vz;
+    coord->coord.t[0]   = pos[part->slot].vx;
+    coord->coord.t[1]   = pos[part->slot].vy;
+    coord->coord.t[2]   = pos[part->slot].vz;
     coord->parent       = &gGfxViewCoord;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     arg0->field_4       = mat;
@@ -502,80 +531,79 @@ static void func_actor_205200_8014AE0C(Enemy* arg0, Task* arg1)
     arg0->bodyPos.vy = 0;
     arg0->bodyPos.vz = 0;
     arg0->param      = &D_actor_205200_8014C9BC;
-    arg0->recs       = part->recs;
+    arg0->recs       = part->contacts;
     arg0->hp         = D_actor_205200_8014C9BC.hpMax;
     (Gp_IncStateF0Ref)(0);
-    part->field_68.spawnArgLo  = 0x400;
-    part->field_68.spawnArgHi  = 3;
-    part->field_68.coord       = coord;
-    part->obj.coord            = coord;
-    part->obj.context.contacts = part->recs;
-    part->obj.pos.vx           = 0;
-    part->obj.pos.vy           = 0;
-    part->obj.pos.vz           = 0;
-    part->obj.key              = 0x30034;
-    part->obj.radius           = 0x1C2;
-    part->obj.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(2, &part->obj);
-    Gp_InitRec18Table(part->recs, 3, 0);
-    part->obj.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-    arg1->state      = 1;
+    part->effectArg.spawnArgLo  = 0x400;
+    part->effectArg.spawnArgHi  = 3;
+    part->effectArg.coord       = coord;
+    part->body.coord            = coord;
+    part->body.context.contacts = part->contacts;
+    part->body.pos.vx           = 0;
+    part->body.pos.vy           = 0;
+    part->body.pos.vz           = 0;
+    part->body.key              = 0x30034;
+    part->body.radius           = 0x1C2;
+    part->body.flags            = WORLD_COLLISION_BODY_SPHERE;
+    Gp_LinkObj(2, &part->body);
+    Gp_InitRec18Table(part->contacts, ARRAY_SIZE(part->contacts), 0);
+    part->body.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+    arg1->state       = ACTOR_205200_PART_TASK_LIVE;
 }
 
 /// Hit handling of a live part: applies the part's damage-kind hits (records
 /// of kind 2) to the owning enemy's HP, killing the part at zero, and otherwise
-/// arms the hit-stun timer `field_70`, the effect timer `field_74` and the
-/// spark cooldown `field_76`. `arg1` is passed as 1 by
+/// arms `hitCooldown`, `sparkTimer` and `effectCooldown`. `arg1` is passed as 1 by
 /// `func_actor_205200_8014B9D4` and unused.
 static void func_actor_205200_8014B048(Task* arg0, s32 arg1)
 {
-    VECTOR*          vec;
-    Actor205200Part* part;
-    Enemy*           enemy;
-    GfxCoord*        coord;
-    s32              damage;
-    s32              i;
-    s32              snd;
-    s32              hitTime;
-    s32              clamped;
+    VECTOR*           vec;
+    _Actor205200Part* part;
+    Enemy*            enemy;
+    GfxCoord*         coord;
+    s32               damage;
+    s32               i;
+    s32               snd;
+    s32               hitTime;
+    s32               clamped;
 
     vec   = SCRATCH_STACK_RESERVE_BLOCK(VECTOR);
     coord = arg0->extra.tmd->coords;
-    part  = (Actor205200Part*)arg0->work;
+    part  = arg0->work;
     enemy = arg0->spawnArg2.pointer;
-    if (part->field_70 != 0) {
-        part->field_70--;
-        if (part->field_70 <= 0) {
-            part->field_70 = 0;
+    if (part->hitCooldown != 0) {
+        part->hitCooldown--;
+        if (part->hitCooldown <= 0) {
+            part->hitCooldown = 0;
         }
     }
-    if (part->field_76 != 0) {
-        part->field_76--;
+    if (part->effectCooldown != 0) {
+        part->effectCooldown--;
     }
-    if (part->field_70 == 0) {
-        for (i = 0; i < 3; i++) {
-            if ((part->recs[i].key.value & 0xFFFF0000) != 0x20000) {
+    if (part->hitCooldown == 0) {
+        for (i = 0; i < ARRAY_SIZE(part->contacts); i++) {
+            if ((part->contacts[i].key.value & WORLD_COLLISION_CONTACT_KIND_MASK) != 0x20000) {
                 continue;
             }
-            if (part->recs[i].key.value & 0x8000) {
+            if (part->contacts[i].key.value & 0x8000) {
                 func_800DA6E8(&enemy->node, 0, 0);
                 break;
             }
             vec->vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
             vec->vy = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
             vec->vz = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
-            damage  = Gp_ComputeDamage(part->recs[i].key.value, SquareRoot0(vec->vx * vec->vx + vec->vy * vec->vy + vec->vz * vec->vz), 0, 0);
-            if (Gp_RollEnemyChance(enemy, part->recs[i].key.value, 0) != 0) {
+            damage  = Gp_ComputeDamage(part->contacts[i].key.value, SquareRoot0(vec->vx * vec->vx + vec->vy * vec->vy + vec->vz * vec->vz), 0, 0);
+            if (Gp_RollEnemyChance(enemy, part->contacts[i].key.value, 0) != 0) {
                 damage *= 4;
                 Gp_SpawnEff(EFFECT_CRITICAL_HIT, coord, 0, NULL);
             }
             func_800DA6E8(&enemy->node, damage, 0);
             enemy->hp -= damage;
             if (enemy->hp <= 0) {
-                arg0->state                                                             = 2;
-                part->field_72                                                          = 0;
-                ((_Actor205200CtrlWork*)arg0->parent->work)->partLive[part->field_78]   = 0;
-                ((_Actor205200CtrlWork*)arg0->parent->work)->partCoords[part->field_78] = NULL;
+                arg0->state                                                         = ACTOR_205200_PART_TASK_DOWN;
+                part->downState                                                     = ACTOR_205200_PART_DOWN_DESTROYED;
+                ((_Actor205200CtrlWork*)arg0->parent->work)->partLive[part->slot]   = 0;
+                ((_Actor205200CtrlWork*)arg0->parent->work)->partCoords[part->slot] = NULL;
                 Gp_SpawnEff(EFFECT_EXPLOSION, coord, 0x01002600, NULL);
                 Gp_SpawnEff(EFFECT_EXPLOSION, coord, 0x01002600, NULL);
                 Gp_SpawnEff(EFFECT_EXPLOSION, coord, 0x01002600, NULL);
@@ -585,35 +613,35 @@ static void func_actor_205200_8014B048(Task* arg0, s32 arg1)
                 SndEvt_EnqueueType6(snd, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
                 Gp_SpawnPadLerp(10, 0xFF, 0x80);
             } else if (damage > 0) {
-                if (part->field_76 == 0) {
-                    if ((Gp_GetIdParam0(part->recs[i].key.value) & 0xFFFF) == 7) {
-                        func_800FDB18(3, coord, NULL, &part->field_68);
+                if (part->effectCooldown == 0) {
+                    if ((Gp_GetIdParam0(part->contacts[i].key.value) & 0xFFFF) == 7) {
+                        func_800FDB18(3, coord, NULL, &part->effectArg);
                     }
-                    func_800FDB18(7, coord, NULL, &part->field_68);
-                    part->field_76 = 10;
+                    func_800FDB18(7, coord, NULL, &part->effectArg);
+                    part->effectCooldown = ACTOR_205200_PART_HIT_EFFECT_COOLDOWN;
                 }
-                if (damage < 201) {
+                if (damage <= ACTOR_205200_PART_SPARK_DAMAGE_CAP) {
                     clamped = damage;
                 } else {
-                    clamped = 200;
+                    clamped = ACTOR_205200_PART_SPARK_DAMAGE_CAP;
                 }
-                part->field_74 = (clamped * 120) / 200 + 30;
-                hitTime        = Gp_GetIdParam2(part->recs[i].key.value);
+                part->sparkTimer = (clamped * 120) / ACTOR_205200_PART_SPARK_DAMAGE_CAP + 30;
+                hitTime          = Gp_GetIdParam2(part->contacts[i].key.value);
                 if (hitTime > 0) {
-                    part->field_70 = hitTime;
+                    part->hitCooldown = hitTime;
                 }
                 snd = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40340003;
                 SndEvt_EnqueueType6(snd, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
             }
         }
     }
-    Gp_ClearRec18Occupied(part->recs);
+    Gp_ClearRec18Occupied(part->contacts);
     SCRATCH_STACK_RELEASE_BLOCK(VECTOR);
 }
 
 static void func_actor_205200_8014B484(Enemy* arg0, Task* arg1)
 {
-    Actor205200Part*      part;
+    _Actor205200Part*     part;
     GfxCoord*             coord;
     _Actor205200CtrlWork* work;
     ViewCamera*           view;
@@ -623,20 +651,20 @@ static void func_actor_205200_8014B484(Enemy* arg0, Task* arg1)
     s32                   pan;
     s32                   vol;
 
-    part  = (Actor205200Part*)arg1->work;
+    part  = arg1->work;
     coord = arg1->extra.tmd->coords;
     work  = arg1->parent->work;
     if (gSceneCombatState.actorControl != SCENE_COMBAT_ACTORS_RUNNING) {
         return;
     }
-    switch (part->field_72) {
-        case 0:
+    switch (part->downState) {
+        case ACTOR_205200_PART_DOWN_DESTROYED:
             Gp_SpawnEff(EFFECT_SMOKE_PUFF, coord, 0x32001400, NULL);
             Gp_SpawnEff(EFFECT_SMOKE_PUFF, coord, 0x32001400, NULL);
             Gp_SpawnEff(EFFECT_SMOKE_PUFF, coord, 0xF2001400, NULL);
             Gp_SpawnEff(EFFECT_SMOKE_PUFF, coord, 0xF2001400, NULL);
             worldTargetUnlinkNode(&arg0->node);
-            Gp_UnlinkObj(&part->obj);
+            Gp_UnlinkObj(&part->body);
             Gp_ReleaseStateF0Add(arg1, 0x34);
             arg0->recs         = 0;
             work->nearestStale = 1;
@@ -644,29 +672,29 @@ static void func_actor_205200_8014B484(Enemy* arg0, Task* arg1)
             gSceneCombatState.pairedEnemySignals |= SCENE_COMBAT_PAIRED_CHARGE_REQUEST;
             switch (work->site) {
                 case ACTOR_205200_SITE_EVE_ACCESS_TUNNEL:
-                    func_neo_ark_eve_access_tunnel_8017E090((u8)part->field_78, 1);
-                    GameFlag_SetNibble(part->field_78 + GAME_FLAG_EVE_ACCESS_TUNNEL_PART_0_DOWN, 1);
+                    func_neo_ark_eve_access_tunnel_8017E090((u8)part->slot, 1);
+                    GameFlag_SetNibble(part->slot + GAME_FLAG_EVE_ACCESS_TUNNEL_PART_0_DOWN, 1);
                     break;
                 case ACTOR_205200_SITE_B6_CORRIDOR:
-                    func_shelter_b6_corridor_8017EE08((u8)part->field_78, 1);
-                    GameFlag_SetNibble(part->field_78 + GAME_FLAG_B6_CORRIDOR_EVE_PART_0_DOWN, 1);
+                    func_shelter_b6_corridor_8017EE08((u8)part->slot, 1);
+                    GameFlag_SetNibble(part->slot + GAME_FLAG_B6_CORRIDOR_EVE_PART_0_DOWN, 1);
                     break;
                 case ACTOR_205200_SITE_B6_TRAINING_ROOM:
-                    func_shelter_b6_training_room_80182A14((u8)part->field_78, 1);
-                    GameFlag_SetNibble(part->field_78 + GAME_FLAG_153, 1);
+                    func_shelter_b6_training_room_80182A14((u8)part->slot, 1);
+                    GameFlag_SetNibble(part->slot + GAME_FLAG_153, 1);
                     break;
                 case 0:
                     break;
             }
-            part->field_72 = 1;
-            part->field_74 = (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0x3F) + 0x1E;
-            part->field_76 = (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0x1F) + 0x1E;
+            part->downState      = ACTOR_205200_PART_DOWN_SMOULDERING;
+            part->sparkTimer     = (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0x3F) + 0x1E;
+            part->effectCooldown = (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0x1F) + 0x1E;
             break;
-        case 1:
-            if ((s16)--part->field_74 <= 0) {
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                part->field_74  = ((gRandomLcgState >> 16) & 0x3F) + 0x1E;
-                func_800FDB18(7, coord, NULL, &part->field_68);
+        case ACTOR_205200_PART_DOWN_SMOULDERING:
+            if (--part->sparkTimer <= 0) {
+                gRandomLcgState  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                part->sparkTimer = ((gRandomLcgState >> 16) & 0x3F) + 0x1E;
+                func_800FDB18(7, coord, NULL, &part->effectArg);
                 Gp_SpawnEff(EFFECT_SMOKE_PUFF, coord, 0xF2001400, NULL);
                 view = Gp_GetStageView(&gGameSession->location.loc);
                 d.vx = view->transform.t[0] + coord->coord.t[0];
@@ -684,18 +712,18 @@ static void func_actor_205200_8014B484(Enemy* arg0, Task* arg1)
                 }
                 SndEvt_EnqueueType6(snd, pan, (s16)vol >> 8);
             }
-            if ((s16)--part->field_76 <= 0) {
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                part->field_76  = ((gRandomLcgState >> 16) & 0x1F) + 0x1E;
+            if (--part->effectCooldown <= 0) {
+                gRandomLcgState      = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                part->effectCooldown = ((gRandomLcgState >> 16) & 0x1F) + 0x1E;
                 Gp_SpawnEff(EFFECT_SMOKE_PUFF, coord, 0xF2001400, NULL);
                 Gp_SpawnEff(EFFECT_SMOKE_PUFF, coord, 0xF2001400, NULL);
             }
             break;
-        case 2:
+        case ACTOR_205200_PART_DOWN_RETIRING:
             (Gp_ReleaseStateF0)(arg1, 0x34);
             worldTargetUnlinkNode(&arg0->node);
-            Gp_UnlinkObj(&part->obj);
-            part->field_72 = 3;
+            Gp_UnlinkObj(&part->body);
+            part->downState = ACTOR_205200_PART_DOWN_RETIRED;
             break;
     }
 }
@@ -763,19 +791,20 @@ void func_actor_205200_8014B978(Task* arg0)
 /// Per-frame tick of a live part. `gSceneCombatState.actorControl` gates the body: mode 1 runs
 /// none of it, mode 2 marks the node not lockable and returns, mode 0 hides its
 /// HP before falling in, and any other mode enters it directly. The body
-/// applies the part's hits, ticks its effect timer and, once the controller's
-/// 0x7DB flag is up, pushes this task to state 2 and the part to its state 2.
+/// applies the part's hits, runs `sparkTimer` down while it is nonzero and,
+/// once the controller's `stopRequested` is up, takes the part down at
+/// ACTOR_205200_PART_DOWN_RETIRING.
 /// The dispatch is written as gotos because that is the shape the switch's
 /// binary decision tree leaves behind - mode 0 shares the body with the
 /// default path, so its `break` is a jump into it.
 static void func_actor_205200_8014B9D4(Enemy* arg0, Task* arg1)
 {
-    Actor205200Part*      part;
+    _Actor205200Part*     part;
     _Actor205200CtrlWork* parentWork;
     s32                   state;
     s32                   one;
 
-    part       = (Actor205200Part*)arg1->work;
+    part       = arg1->work;
     parentWork = arg1->parent->work;
     state      = gSceneCombatState.actorControl;
     one        = 1;
@@ -802,27 +831,24 @@ case2:
     return;
 default_body:
     func_actor_205200_8014B048(arg1, one);
-    if ((s16)part->field_74 != 0) {
+    if (part->sparkTimer != 0) {
         func_actor_205200_8014BA94(arg1);
     }
     if (parentWork->stopRequested == 1) {
-        arg1->state    = 2;
-        part->field_72 = 2;
+        arg1->state     = ACTOR_205200_PART_TASK_DOWN;
+        part->downState = ACTOR_205200_PART_DOWN_RETIRING;
     }
 case1:
     return;
 }
 
-/// Counts a part's effect timer down and queues effect 7 every 0x40 ticks.
+/// Counts a live part's `sparkTimer` down, raising a spark burst each time
+/// the count reaches a multiple of 0x40.
 static void func_actor_205200_8014BA94(Task* arg0)
 {
-    Actor205200Part* part;
-    u16              timer;
+    _Actor205200Part* part = arg0->work;
 
-    part           = (Actor205200Part*)arg0->work;
-    timer          = part->field_74 - 1;
-    part->field_74 = timer;
-    if (!(timer & 0x3F)) {
-        func_800FDB18(7, arg0->extra.tmd->coords, NULL, &part->field_68);
+    if (!(--part->sparkTimer & 0x3F)) {
+        func_800FDB18(7, arg0->extra.tmd->coords, NULL, &part->effectArg);
     }
 }
