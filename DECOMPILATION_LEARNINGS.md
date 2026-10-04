@@ -89788,7 +89788,7 @@ Inputs: `base_2.i` (99.773%)
 
 A two-armed state select over one local,
 
-    if (work->field_40 == 1) { state = 6; } else { state = 2; }
+    if (work->keyItemAccepted == 1) { state = 6; } else { state = 2; }
 
 comes out with the *else* value hoisted above the test:
 
@@ -89798,7 +89798,7 @@ and the target wants the same instruction sequence with everything in `$v0`
 (the else arm's `li v0,2` in the branch delay slot, then `li v0,6`). 99.412%,
 `regs=4`, every other penalty zero. It is not a ranking or tie problem: the arm
 value *conflicts* with `$v0`, and `.greg` says so - `;; 84 conflicts: 80 83 84
-2 3 29`, the `2`/`3` being the hard registers the `field_40` load and its
+2 3 29`, the `2`/`3` being the hard registers the `keyItemAccepted` load and its
 comparand took, so `find_reg` skips both and lands on `$a0`.
 
 The first jump pass rewrites `if (c) x = a; else x = b;` into `x = b; if (c) x =
@@ -120194,20 +120194,35 @@ push the addressable scalars after them.
 "A pointer local is what makes a *local* struct's stores register-relative"
 has the mechanism; this is the constraint on the other end of it. The record
 fill in `func_dryfield_breezeway_8017DEC0`'s state 2 has the split
-(`0x18(sp)` and `0x28(sp)` for `field_0`/`field_10`, `4/8/0xc($a1)` for the
-middle three, `addiu $a1,$sp,0x18` in the case's first delay slot), and adding
-`rec = &buf.rec;` for the middle three is what produces it.
+(`0x18(sp)` and `0x28(sp)` for `source.index`/`enableWorldCollision`,
+`4/8/0xc($a1)` for the middle three, `addiu $a1,$sp,0x18` in the case's first
+delay slot). With the record as a plain local of the function, a pointer local
+set to the record's address and used for the middle three stores is what
+produces it.
 
 Where the pointer's *last use* sits decides the register. The message call
-passes `&buf`, which reload rematerialises from the frame pointer - so the
-pointer is dead before `gameGetTaskSlot` and local-alloc keeps it in `$a1`.
-Passing the pointer itself there (`(s32)rec` for `(s32)&buf`) keeps it live
+passes the record's address, which reload rematerialises from the frame
+pointer - so the pointer is dead before `gameGetTaskSlot` and local-alloc keeps
+it in `$a1`. Passing the pointer itself there keeps it live
 across that call, and the base becomes callee-saved instead of `$a1`: 97.1%.
 Same for moving the assignment after the first store it serves - CSE has no
 register yet when it folds that store, and the base ends up in `$s0`: 93.7%.
 Both differences are one line of source each, and both are invisible in the
 object diff beyond the register column, so check the pointer's live range
 before suspecting reload.
+
+The function no longer needs the pointer local (2026-10-04). The same split
+falls out of a `static inline` helper that owns the record and takes the three
+middle values as parameters (`_dryfieldBreezewayPlayPlayerAnimation(9,
+ANIMATION_BLEND_INTERPOLATE, 10)`): the two stores the helper writes itself are
+frame-relative and the three parameter stores are the register-relative ones.
+So a fill split exactly along "values that differ between call sites" is a
+helper's signature, and the pointer local is its hand expansion. The sibling
+call with `(9, 0, 0)` in `func_dryfield_breezeway_8017E390` is frame-relative
+throughout, so the split is not there to see at every call site - try the
+helper before the pointer whenever the same fill recurs with other values. The
+helper also explained the union the two payloads used to share there: two
+helpers inlined one after the other reuse one frame slot.
 
 ## `lhu` + `slti` in a dispatch means a `u16` field compared through an `s32` local (func_dryfield_breezeway_8017DEC0, 2026-09-17)
 
@@ -120337,11 +120352,11 @@ statements, and swapping which statement is written first swapped both halves
 at once:
 
 ```c
-work  = (DbwEventWork*)task->work;                            /* 97.947% */
+work  = (_DryfieldBreezewayKeyItemEventWork*)task->work;                            /* 97.947% */
 coord = (GfxCoord*)((TmdObject*)task->extra)->coords;
 
 coord = (GfxCoord*)((TmdObject*)task->extra)->coords;    /* 100.000% */
-work  = (DbwEventWork*)task->work;
+work  = (_DryfieldBreezewayKeyItemEventWork*)task->work;
 ```
 
 112 instructions, nothing else moved. Two things to take from it:
@@ -139303,7 +139318,7 @@ of the `lhu` (99.07%), as the scratch-push entries above predict.
 **Symptom.** The entry block computed `(arg2 + 0x50)` into `$a1` in the target
 (`addiu a1,s2,0x50; mult a1,a1`), while the C put it in `$v0`, and a mult
 result went to `$t4`. The tail block of the same target computed
-`(cursorY + 0x50)` into `$a1` as well.
+`(lineEndY + 0x50)` into `$a1` as well.
 
 **Cause.** With a separate temporary for each value, each has one set and one
 death, so local-alloc takes it and gives it the first free register (`$v0`). If
@@ -140600,11 +140615,11 @@ to the host file.
 
 ### A local reused for an early load that combine folds away keeps its references, and that reorders global-alloc (func_dryfield_breezeway_8017EB8C, 2026-09-23)
 
-**Symptom.** 99.890%, `regs=9` only: three callee-saved values in the function's tail, `y` (`lh cursorY`) and `sx`/`sy` (`lhu cursorX/Y`, HImode `s16` locals), permuted over `$s6`/`$s7`/`$fp`. The target has `sx=$s6, sy=$s7, y=$fp`. Two sessions and the permuter did not find it. `.greg` listed `y` before `sx`/`sy` in `regs to allocate`: `y` had 3 refs over 55 insns (priority 545), `sx`/`sy` 3 refs over 128/130 (234/230). The schedule already matched the target, so the live lengths were the target's too. The only thing left to change was the reference count.
+**Symptom.** 99.890%, `regs=9` only: three callee-saved values in the function's tail, `y` (`lh lineEndY`) and `sx`/`sy` (`lhu lineEndX/Y`, HImode `s16` locals), permuted over `$s6`/`$s7`/`$fp`. The target has `sx=$s6, sy=$s7, y=$fp`. Two sessions and the permuter did not find it. `.greg` listed `y` before `sx`/`sy` in `regs to allocate`: `y` had 3 refs over 55 insns (priority 545), `sx`/`sy` 3 refs over 128/130 (234/230). The schedule already matched the target, so the live lengths were the target's too. The only thing left to change was the reference count.
 
 **Cause.** `allocno_compare` ranks by `floor_log2(refs) * refs / live_length`, with `REG_N_REFS` taken from `flow`, which runs before combine. Combine never lowers `REG_N_REFS` unless it deletes the pseudo's *last* set (combine.c: `REG_N_SETS--`, refs zeroed only at 0), and sched1 recomputes only the live length. So if a variable has one extra set that combine folds away, its early refs still count and its live length does not grow.
 
-**Fix.** Load the early `dx`/`dy` terms through the same locals: `sx = work->cursorX; dx = sx - prompt->x; sy = work->cursorY; dy = sy - ...`. The HImode load plus sign-extension folds into `lh`, so the early code is unchanged, and `sx`/`sy` reach 5 refs (priority about 780, above `y`). That gave the target's allocation at 100%. Reusing the *parameters* instead did nothing: cse bypasses a parameter's HImode copy at entry, flow then deletes it as dead, and deleted insns add no refs. When a `regs`-only permutation of callee-saved registers comes from global priority and the lengths already match, look for a variable that can also carry an earlier value which combine will absorb.
+**Fix.** Load the early `dx`/`dy` terms through the same locals: `sx = work->lineEndX; dx = sx - prompt->x; sy = work->lineEndY; dy = sy - ...`. The HImode load plus sign-extension folds into `lh`, so the early code is unchanged, and `sx`/`sy` reach 5 refs (priority about 780, above `y`). That gave the target's allocation at 100%. Reusing the *parameters* instead did nothing: cse bypasses a parameter's HImode copy at entry, flow then deletes it as dead, and deleted insns add no refs. When a `regs`-only permutation of callee-saved registers comes from global priority and the lengths already match, look for a variable that can also carry an earlier value which combine will absorb.
 
 ### A store placed between an arm's argument setup and its `jal` needs a second memory insn in that block, not a load (func_neo_ark_shrine_8017EE44, 2026-09-23)
 
