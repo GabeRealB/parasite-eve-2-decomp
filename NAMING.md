@@ -918,9 +918,20 @@ deadlock — the items in it have to be understood together. The real ones here
 are small: a task and its list node, a TMD object and its list head, a sound
 voice and its owner, and several actor structs paired with their work structs.
 
+One kind of cycle is broken instead of collapsed: a dispatch table and its
+callbacks. The table uses the functions it points at, the spawner uses the
+table, and a callback that spawns reaches the spawner, so through gameplay's
+task descriptor table 1373 functions, most of them room code, were a single
+step. Where a table's wait for a function closes a cycle, that wait is dropped
+(`break_table_cycles`): the table is described without waiting for every
+entry, and each callback still has everything it calls in front of it. A
+table in no cycle keeps waiting for its handlers.
+
 Pending types declared in the same file are joined into one step too, up to
 eight at a time (`dep_graph.py worklist --batch N`, or `name_pass.sh --batch
-N`). Two steps that declare items in one file never run in the same round, so
+N`), and pending functions up to sixteen (`--batch-funcs N`), where the unit is
+a source file or all the fragments of one shared library and a step may hold a
+function with the callers that were waiting for it. Two steps that declare items in one file never run in the same round, so
 without this a header's types are worked one per round whatever the number of
 workers. Unlike a cycle, such a step is several independent reviews: each type
 is judged on its own evidence and gets its own entry in the report. A type

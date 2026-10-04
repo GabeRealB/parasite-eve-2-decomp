@@ -223,6 +223,8 @@ def _out_of_scope(name: str, meta: dict, vendor: set) -> bool:
         return True
     if name.startswith("__maspsx_") or name.startswith("static_assertion_"):
         return True
+    if name.startswith("__builtin_"):
+        return True  # The compiler's own; there is no declaration to name.
     if "(unnamed at " in name or "(anonymous at " in name:
         # An inline struct or union with no tag: there is nothing to name, and
         # the driver could never select it - it looks for an item by its name
@@ -425,6 +427,43 @@ def asset_groups(root, nodes, edges):
         if len(keys) == 1:
             groups[keys.pop()].add(usr)
     return list(groups.values())
+
+
+def break_table_cycles(nodes, edges):
+    """Drop a table's wait for its functions where that wait closes a cycle.
+
+    A dispatch table uses the functions it points at, and the code that spawns
+    or dispatches through the table uses the table. When one of those functions
+    in turn reaches the dispatcher - an effect callback that spawns another
+    effect - the three form a cycle, and through a table of several hundred
+    callbacks the cycle swallows everything they touch: gameplay's task
+    descriptor table alone tied 1373 functions, most of them room code, into a
+    single step no one could review.
+
+    The edge to give up is the table's. Describing a table does not need the
+    meaning of every entry, a rename of an entry rewrites the table anyway, and
+    each callback is still reviewed with everything it calls in front of it.
+    Only edges inside a cycle go: a state table that is in no cycle still waits
+    for its handlers, where naming them first is what makes the table readable.
+    """
+    kind = {u: _node_kind(u) for u in nodes}
+    out = {u: list(ds) for u, ds in edges.items()}
+    for _ in range(8):
+        comp = components(nodes, out)
+        cut = 0
+        for u, ds in out.items():
+            if kind.get(u) != "data":
+                continue
+            g = comp.get(u, (u,))
+            if len(g) < 2:
+                continue
+            members = set(g)
+            keep = [d for d in ds if not (kind.get(d) == "func" and d in members)]
+            cut += len(ds) - len(keep)
+            out[u] = keep
+        if not cut:
+            break
+    return out
 
 
 def merge_groups(comp, sets):
@@ -937,6 +976,7 @@ def main() -> int:
         return 0
 
     done = processed_set(root, nodes)
+    edges = break_table_cycles(nodes, edges)
     comp = components(nodes, edges)
     merge_groups(comp, asset_groups(root, nodes, edges))
 
