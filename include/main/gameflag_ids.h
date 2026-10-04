@@ -587,7 +587,7 @@ enum {
     /// reports locked.
     GAME_FLAG_B2_POD_TUNNEL_R48_DOOR_UNLOCKED = 0x0B4,
     /// Output 1 of the mine power panel (actor_548100): set to 1 while the panel is
-    /// switched on (0xC3) and the chosen route powers output 1, else 0; while 0 the
+    /// switched on (0xC3) and the matched circuit powers output 1, else 0; while 0 the
     /// gorge's door to the cavern refuses (CAP 3). mine_gorge clears it when panel
     /// stage 0xBE reaches 2.
     GAME_FLAG_MINE_GORGE_CAVERN_DOOR_POWERED = 0x0B5,
@@ -625,8 +625,8 @@ enum {
     /// that scene to the actors.
     GAME_FLAG_NEO_ARK_FOREST_ZONE_EVENT_SEEN = 0x0BD,
     /// Stage of the mine power panel puzzle (actor_548100): 0 never opened, 1 set on
-    /// first opening (first route table), 2 after the cavern CAP event 0xB (second
-    /// route table; output 2 then yields 0xBB=3).
+    /// first opening (first circuit table), 2 after the cavern CAP event 0xB (second
+    /// circuit table; output 2 then yields 0xBB=3).
     GAME_FLAG_MINE_POWER_PANEL_STAGE = 0x0BE,
     /// Highest of the panel's four socket nibbles 0xBF-0xC2 (socket + 0xBE, sockets
     /// counted from 1) that record which sockets are filled; preset to 1 when the

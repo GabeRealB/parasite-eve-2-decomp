@@ -78461,10 +78461,10 @@ receive are computed above and the byte reads are "closer" to the loads:
 if (distB < distA) {
     work->longLength    = distA;   /* these two first: */
     work->shortLength   = distB;   /* no pending read -> priority 1 */
-    work->longRoute     = route->leg[0].nodeA;
-    work->shortRoute    = route->leg[1].nodeA;
-    work->longStopNode  = route->leg[0].nodeB;
-    work->shortStopNode = route->leg[1].nodeB;
+    work->longLeg.route     = circuit->leg[0].route;
+    work->shortLeg.route    = circuit->leg[1].route;
+    work->longLeg.stopNode  = circuit->leg[0].stopNode;
+    work->shortLeg.stopNode = circuit->leg[1].stopNode;
 } else { ... }
 ```
 

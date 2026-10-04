@@ -417,8 +417,8 @@ enum {
     /// Played when a battery is placed into (item consumed, step flag set) or taken out
     /// of a circuit panel socket.
     SOUND_MINE_REFUGE_BATTERY_SOCKET = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_REFUGE, 0x0B),
-    /// Played when the panel's current ramp finishes on a route whose flag_8 is set,
-    /// before CAP command 0xC runs.
+    /// Played when the panel's current ramp finishes on a circuit that powers the
+    /// panel's first output, before CAP command 0xC runs.
     SOUND_MINE_REFUGE_CIRCUIT_COMPLETE = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_REFUGE, 0x0E),
     /// Sustained sound of the tunnel-switch event script while the path-walking object
     /// moves; restarted by a callback and faded out over 60 frames at the end or on

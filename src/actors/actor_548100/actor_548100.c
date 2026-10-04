@@ -44,6 +44,20 @@
 /// 0x120, 2 for item 0x12C.
 #define ACTOR_548100_SOCKET_FLAG(socket) (GAME_FLAG_MINE_POWER_PANEL_SOCKET_4 - 4 + (socket))
 
+/// One stretch of current in an `_Actor548100Circuit`: the route it runs along
+/// and how far along it the current gets.
+///
+/// A route is a string of the diagram's node ids, picked from the panel's
+/// routes by its id. Current that nothing obstructs runs the whole route.
+/// Where two batteries' routes cross, both legs name the crossing as their
+/// stop: the current runs only that far, and once it has arrived the wires up
+/// to there are drawn as a short circuit instead of as carrying current.
+typedef struct {
+    u8 route;    // route id; 0 when the leg is unused
+    u8 stopNode; // node id the current stops at, where the route crosses another battery's; 0 when it runs the whole route
+} _Actor548100Leg;
+STATIC_ASSERT_SIZEOF(_Actor548100Leg, 0x2);
+
 /// Work block of the task that runs the mine power panel screen, allocated by
 /// its first state and kept at `Task::work`.
 ///
@@ -57,76 +71,54 @@
 /// latched leaves the item in `usedItem` instead, and the socket takes it once
 /// the menu has closed.
 ///
-/// Throwing the switch plays current flowing out along the legs of the route
-/// record that matches the filled sockets. Each leg's route is measured once,
-/// and the three `...Progress` distances then grow by
+/// Throwing the switch plays current flowing out along the legs of the
+/// `_Actor548100Circuit` that matches the filled sockets. Each leg's route is
+/// measured once, and the three `...Progress` distances then grow by
 /// `ACTOR_548100_FLOW_SPEED` a frame until every leg has run its length. The
 /// two battery legs are kept ordered by length rather than by socket, and the
 /// shorter one's distance is scaled from the longer one's, so both arrive on
 /// the same frame. An unused leg measures 1, which keeps that scaling defined
 /// and finishes the leg on the first frame.
 typedef struct {
-    u8  unknown_0[2];  // Never read or written by the actor; role unproven
-    s16 choice;        // `ActionPromptHotspot::id` of the confirmed hotspot (0 none, 1-4 the battery sockets, 5 the switch, 6-9 the caption-only parts of the panel)
-    s16 usedItem;      // Battery key item (0x120 or 0x12C) used from the item menu on the socket in `choice` and not yet placed; 0 none
-    s8  promptKind;    // `ActionPromptHotspot::promptKind` of that hotspot, forwarded when its command prompt opens
-    s8  pickupObject;  // Id, in the stage's two-bit object states, of the pickup that hands back the chosen socket's battery (4 for the battery a socket flag records as 1, 5 for 2)
-    s16 longLength;    // Length of the longer battery leg's route, in `_Actor548100Edge::length` units; 1 when that leg is unused
-    s16 longProgress;  // Distance the current has run along that route, 0..`longLength`
-    s16 shortLength;   // Length of the shorter battery leg's route; 1 when that leg is unused
-    s16 shortProgress; // Distance the current has run along that route: `longProgress` scaled by `shortLength / longLength`
-    s16 thirdLength;   // Length of the route record's third leg, the same in every record of a table; 1 when it is unused
-    s16 thirdProgress; // Distance the current has run along that leg, 0..`thirdLength`
-    u8  longRoute;     // Route id of the longer battery leg; 0 when that leg is unused
-    u8  longStopNode;  // Node that leg's current stops at, short of its route's end; 0 when it runs the whole route
-    u8  shortRoute;    // Route id of the shorter battery leg; 0 when that leg is unused
-    u8  shortStopNode; // Node that leg's current stops at; 0 when it runs the whole route
+    u8              unknown_0[2];  // Never read or written by the actor; role unproven
+    s16             choice;        // `ActionPromptHotspot::id` of the confirmed hotspot (0 none, 1-4 the battery sockets, 5 the switch, 6-9 the caption-only parts of the panel)
+    s16             usedItem;      // Battery key item (0x120 or 0x12C) used from the item menu on the socket in `choice` and not yet placed; 0 none
+    s8              promptKind;    // `ActionPromptHotspot::promptKind` of that hotspot, forwarded when its command prompt opens
+    s8              pickupObject;  // Id, in the stage's two-bit object states, of the pickup that hands back the chosen socket's battery (4 for the battery a socket flag records as 1, 5 for 2)
+    s16             longLength;    // Length of the longer battery leg's route, in `_Actor548100Edge::length` units; 1 when that leg is unused
+    s16             longProgress;  // Distance the current has run along that route, 0..`longLength`
+    s16             shortLength;   // Length of the shorter battery leg's route; 1 when that leg is unused
+    s16             shortProgress; // Distance the current has run along that route: `longProgress` scaled by `shortLength / longLength`
+    s16             thirdLength;   // Length of the circuit's third leg, the same in every circuit of a wiring; 1 when it is unused
+    s16             thirdProgress; // Distance the current has run along that leg, 0..`thirdLength`
+    _Actor548100Leg longLeg;       // The circuit's longer battery leg
+    _Actor548100Leg shortLeg;      // The circuit's shorter battery leg
 } _Actor548100Work;
 STATIC_ASSERT_SIZEOF(_Actor548100Work, 0x18);
 
-/// One leg of an `Actor548100Route`: the two node ids `func_actor_548100_80134CB8`
-/// measures a route distance between, in the same node space as
-/// `_Actor548100Edge`'s `nodeA` / `nodeB`.
-typedef struct Actor548100Leg {
-    /* 0x0 */ u8 nodeA;
-    /* 0x1 */ u8 nodeB;
-} Actor548100Leg;
-STATIC_ASSERT_SIZEOF(Actor548100Leg, 0x2);
-
-/// One record of the route-progress tables `D_actor_548100_801356D8` and
-/// `D_actor_548100_80135750` -- 10-byte records. The first table has a 0xFF
-/// sentinel; the second contains the eleven placements of up to two batteries
-/// in four sockets. `func_actor_548100_801330EC` selects the table by
-/// `GameFlag_GetNibble(0xBE)` and whose chosen record it parks in
-/// `D_actor_548100_80135B4C`. A leg's node ids are read as `u8` -- the `lbu` is
-/// what the target shows, `_Actor548100Edge`'s record is keyed the same way --
-/// and a `nodeA` of 0 means the leg is unused.
+/// What one arrangement of batteries in the panel's four sockets does once the
+/// switch is thrown: the legs the current runs along and the outputs it
+/// powers.
 ///
-/// `bitA` / `bitB` are 1-based ids, or 0: `func_actor_548100_801330EC` turns
-/// each into `1 << (id - 1)` and compares the pair against the four nibbles
-/// 0xBF-0xC2 -- the socket flags this actor sets -- stepping a record at a
-/// time until they agree, so a record describes one player state (the two
-/// tables are that state's two routes).
-///
-/// `func_actor_548100_80132808` measures `leg[0]` and `leg[1]` with
-/// `func_actor_548100_80134CB8` and keeps the longer and the shorter of the two
-/// in the work block, with `leg[2]`'s length beside them; the record's
-/// `nodeA`s must be set for `func_actor_548100_80132A14` to walk each leg with
-/// `func_actor_548100_80134AE0`. Its `flag_8` / `flag_9` gate that same body's
-/// two `func_actor_548100_80133BBC` calls.
-typedef struct Actor548100Route {
-    /* 0x0 */ s8             bitA;
-    /* 0x1 */ s8             bitB;
-    /* 0x2 */ Actor548100Leg leg[3];
-    /* 0x8 */ u8             flag_8;
-    /* 0x9 */ u8             flag_9;
-} Actor548100Route;
-STATIC_ASSERT_SIZEOF(Actor548100Route, 0xA);
+/// Each of the panel's two wirings has a table of these, one record for every
+/// arrangement of at most two batteries, and the record whose sockets are
+/// exactly the filled ones is the panel's circuit. `leg[0]` and `leg[1]` carry
+/// the current of the batteries in `socketA` and `socketB`, and `leg[2]` is a
+/// feed no battery supplies, the same in every record of a wiring. An
+/// arrangement whose two routes cross is a short circuit: both battery legs
+/// stop at the crossing, and a leg that stops short lights neither output.
+typedef struct {
+    s8              socketA;       // socket (1-4) of the first battery; 0 when no socket is filled; -1 in the record that ends the first wiring's table
+    s8              socketB;       // socket of the second battery; 0 when fewer than two are filled
+    _Actor548100Leg leg[3];        // 0 and 1: current of the batteries in `socketA` and `socketB`; 2: the feed no battery supplies
+    u8              powersDoor;    // nonzero when the circuit powers the panel's first output, the gorge's door to the cavern
+    u8              powersPassage; // nonzero when it powers the second output, the cavern's secret passage
+} _Actor548100Circuit;
+STATIC_ASSERT_SIZEOF(_Actor548100Circuit, 0xA);
 
-/// The route record `func_actor_548100_801330EC` last resolved: where the
-/// player is along the route the stage is on. Zero until the first
-/// `func_actor_548100_801330EC` call.
-extern Actor548100Route* D_actor_548100_80135B4C;
+/// The circuit of the current wiring that matches the filled sockets, looked
+/// up again every frame; `NULL` until the first lookup.
+extern _Actor548100Circuit* D_actor_548100_80135B4C;
 
 /// Values of `_Actor548100Edge::layout`: which of the panel's two wirings carry
 /// the wire.
@@ -187,43 +179,41 @@ extern u8* D_actor_548100_80135B24[];
 /// Edge-id matrix keyed `prev * 100 + cur`.
 extern u8 D_actor_548100_80135B5C[10000];
 
-/// One cell of the sprite table `D_actor_548100_801357C0` (four records, the
-/// actor's four frames, each drawn only while its `GameFlag_GetNibble(i + 0xBF)`
-/// is set) plus the fifth record `D_actor_548100_801357C0[4]` -- `{0, 0, 75, 239}`,
-/// the 76-column full-height panel `func_actor_548100_8013461C` links when flag
-/// 0xC3 is set. A record is an 8-byte `s16` quadruple, the stride the loop in
-/// `func_actor_548100_80132A14` walks as `s1 += 8` and the one that makes
-/// `D_actor_548100_801357C0[4]` element 4 of the same table.
+/// One piece of the panel's picture that changes with its state: the battery
+/// in a filled socket, or the side of the panel that holds the thrown switch.
 ///
-/// The same four numbers are both the quad's texture window and its screen
-/// rectangle: `func_actor_548100_8013461C` writes them straight into `u`/`v`
-/// and writes `u - 160` / `v - 120` into `x`/`y`. That difference is the screen
-/// centre, so the table is authored in 320x240 screen space with the origin at
-/// the middle, and the texture page is laid over the screen 1:1 -- the four
-/// frames tile the strip at x 76-103, y 33-83 and the fifth covers everything
-/// to its left.
-typedef struct Actor548100TexRect {
-    /* 0x0 */ s16 u0;
-    /* 0x2 */ s16 v0;
-    /* 0x4 */ s16 u1;
-    /* 0x6 */ s16 v1;
-} Actor548100TexRect;
-STATIC_ASSERT_SIZEOF(Actor548100TexRect, 0x8);
+/// The changed picture is a texture page laid over the screen pixel for pixel,
+/// so a single rectangle says both which texels to take and where to draw
+/// them. Its corners are in 320x240 screen pixels from the top-left corner,
+/// which are the texture coordinates as they stand and, less the screen centre
+/// (160, 120), the quad's position.
+typedef struct {
+    s16 left;
+    s16 top;
+    s16 right;
+    s16 bottom;
+} _Actor548100TexRect;
+STATIC_ASSERT_SIZEOF(_Actor548100TexRect, 0x8);
 
 // Eleven socket masks: empty, four singles, and six pairs. Items 0x120/0x12C
 // move between inventory and sockets; pickup slot 6 supplies the second battery
 // once, while slots 4/5 return installed batteries. Thus normal puzzle actions
 // match a record before the end of this table, which has no sentinel.
-extern Actor548100Route   D_actor_548100_80135750[11];
-extern Actor548100TexRect D_actor_548100_801357C0[5];
+extern _Actor548100Circuit D_actor_548100_80135750[11];
+extern _Actor548100TexRect D_actor_548100_801357C0[5];
 
-// Retained coefficient editor rows identify the three values and caption.
+/// Label of one of the three wire colours beside pointers to its components.
+///
+/// A wire colour is three separately stored bytes: its red, green and blue at
+/// the peak of the panel's pulse. Nothing in the actor reads a row. A label
+/// paired with pointers to bytes the drawing code rereads every frame is the
+/// shape of a tuning menu's rows, but that role is unproven.
 typedef struct {
-    u8*         values[3];
-    const char* caption;
-} Actor548100CoefficientRow;
-STATIC_ASSERT_SIZEOF(Actor548100CoefficientRow, 16);
-extern Actor548100CoefficientRow D_actor_548100_801358A8[3];
+    u8*         rgb[3]; // the colour's red, green and blue bytes, in that order
+    const char* label;  // the colour's name
+} _Actor548100ColorRow;
+STATIC_ASSERT_SIZEOF(_Actor548100ColorRow, 16);
+extern _Actor548100ColorRow D_actor_548100_801358A8[3];
 
 static void func_actor_548100_80132420(Task* task);
 static void func_actor_548100_80132550(Task* task);
@@ -240,7 +230,7 @@ static void func_actor_548100_80134E94(Task* arg0);
 static void func_actor_548100_80134F64(Task* arg0);
 static void func_actor_548100_80134FEC(Task* arg0);
 static void func_actor_548100_80135124(Task* arg0);
-static void func_actor_548100_8013461C(Actor548100TexRect* rect);
+static void func_actor_548100_8013461C(_Actor548100TexRect* rect);
 static void func_actor_548100_80133BBC(s32 arg0);
 static void func_actor_548100_80133200(s32 nodeA, s32 nodeB, u8 r, u8 g, u8 b);
 static void func_actor_548100_801342D8(s32 id, s32 stop, s16 pos);
@@ -257,7 +247,7 @@ extern TaskDesc D_actor_548100_801351B4;
 
 extern TaskMessageEntry    D_actor_548100_801351C0[];
 extern ActionPromptHotspot D_actor_548100_801357E8[];
-extern Actor548100Route    D_actor_548100_801356D8[12];
+extern _Actor548100Circuit D_actor_548100_801356D8[12];
 extern s16                 D_actor_548100_80135B50;
 extern u8                  D_actor_548100_80135B52;
 extern s8                  D_actor_548100_80135B53;
@@ -389,7 +379,7 @@ _Actor548100Edge D_actor_548100_801351D0[92] = {
     { 0 },
 };
 
-Actor548100Route D_actor_548100_801356D8[12] = {
+_Actor548100Circuit D_actor_548100_801356D8[12] = {
     { 0, 0, { { 0, 0 }, { 0, 0 }, { 9, 0 } }, 0, 1 },
     { 1, 0, { { 1, 0 }, { 0, 0 }, { 9, 0 } }, 0, 1 },
     { 2, 0, { { 2, 0 }, { 0, 0 }, { 9, 0 } }, 1, 1 },
@@ -404,7 +394,7 @@ Actor548100Route D_actor_548100_801356D8[12] = {
     { -1, -1, { { 0, 0 }, { 0, 0 }, { 0, 0 } }, 0, 0 },
 };
 
-Actor548100Route D_actor_548100_80135750[11] = {
+_Actor548100Circuit D_actor_548100_80135750[11] = {
     { 0, 0, { { 0, 0 }, { 0, 0 }, { 0, 0 } }, 0, 0 },
     { 1, 0, { { 5, 0 }, { 0, 0 }, { 0, 0 } }, 1, 0 },
     { 2, 0, { { 6, 0 }, { 0, 0 }, { 0, 0 } }, 0, 0 },
@@ -418,7 +408,7 @@ Actor548100Route D_actor_548100_80135750[11] = {
     { 3, 4, { { 7, 22 }, { 8, 22 }, { 0, 0 } }, 0, 0 },
 };
 
-Actor548100TexRect D_actor_548100_801357C0[5] = {
+_Actor548100TexRect D_actor_548100_801357C0[5] = {
     { 76, 33, 89, 47 },
     { 89, 45, 103, 59 },
     { 76, 57, 89, 71 },
@@ -489,7 +479,7 @@ u8 D_actor_548100_8013588C[28] = {
     0,
 };
 
-Actor548100CoefficientRow D_actor_548100_801358A8[3] = {
+_Actor548100ColorRow D_actor_548100_801358A8[3] = {
     { { &D_actor_548100_80135884, &D_actor_548100_80135885, &D_actor_548100_80135886 }, D_actor_548100_80131E64 },
     { { &D_actor_548100_80135887, &D_actor_548100_80135888, &D_actor_548100_80135889 }, D_actor_548100_80131E5C },
     { { &D_actor_548100_8013588A, &D_actor_548100_8013588B, D_actor_548100_8013588C }, D_actor_548100_80131E54 },
@@ -870,7 +860,7 @@ u8* D_actor_548100_80135B24[10] = {
     D_actor_548100_80135B1C,
 };
 
-Actor548100Route* D_actor_548100_80135B4C = NULL;
+_Actor548100Circuit* D_actor_548100_80135B4C = NULL;
 
 s16 D_actor_548100_80135B50 = 0;
 
@@ -1084,23 +1074,23 @@ static void func_actor_548100_80132808(Task* arg0)
             GameFlag_SetNibble(GAME_FLAG_MINE_POWER_PANEL_SWITCHED_ON, 1);
             arg0->state = 9;
             func_actor_548100_801330EC();
-            work->thirdLength = func_actor_548100_80134CB8(D_actor_548100_80135B4C->leg[2].nodeA, D_actor_548100_80135B4C->leg[2].nodeB);
-            distA             = func_actor_548100_80134CB8(D_actor_548100_80135B4C->leg[0].nodeA, D_actor_548100_80135B4C->leg[0].nodeB);
-            distB             = func_actor_548100_80134CB8(D_actor_548100_80135B4C->leg[1].nodeA, D_actor_548100_80135B4C->leg[1].nodeB);
+            work->thirdLength = func_actor_548100_80134CB8(D_actor_548100_80135B4C->leg[2].route, D_actor_548100_80135B4C->leg[2].stopNode);
+            distA             = func_actor_548100_80134CB8(D_actor_548100_80135B4C->leg[0].route, D_actor_548100_80135B4C->leg[0].stopNode);
+            distB             = func_actor_548100_80134CB8(D_actor_548100_80135B4C->leg[1].route, D_actor_548100_80135B4C->leg[1].stopNode);
             if (distB < distA) {
-                work->longLength    = distA;
-                work->shortLength   = distB;
-                work->longRoute     = D_actor_548100_80135B4C->leg[0].nodeA;
-                work->shortRoute    = D_actor_548100_80135B4C->leg[1].nodeA;
-                work->longStopNode  = D_actor_548100_80135B4C->leg[0].nodeB;
-                work->shortStopNode = D_actor_548100_80135B4C->leg[1].nodeB;
+                work->longLength        = distA;
+                work->shortLength       = distB;
+                work->longLeg.route     = D_actor_548100_80135B4C->leg[0].route;
+                work->shortLeg.route    = D_actor_548100_80135B4C->leg[1].route;
+                work->longLeg.stopNode  = D_actor_548100_80135B4C->leg[0].stopNode;
+                work->shortLeg.stopNode = D_actor_548100_80135B4C->leg[1].stopNode;
             } else {
-                work->longLength    = distB;
-                work->shortLength   = distA;
-                work->longRoute     = D_actor_548100_80135B4C->leg[1].nodeA;
-                work->shortRoute    = D_actor_548100_80135B4C->leg[0].nodeA;
-                work->longStopNode  = D_actor_548100_80135B4C->leg[1].nodeB;
-                work->shortStopNode = D_actor_548100_80135B4C->leg[0].nodeB;
+                work->longLength        = distB;
+                work->shortLength       = distA;
+                work->longLeg.route     = D_actor_548100_80135B4C->leg[1].route;
+                work->shortLeg.route    = D_actor_548100_80135B4C->leg[0].route;
+                work->longLeg.stopNode  = D_actor_548100_80135B4C->leg[1].stopNode;
+                work->shortLeg.stopNode = D_actor_548100_80135B4C->leg[0].stopNode;
             }
             work->longProgress  = 0;
             work->shortProgress = 0;
@@ -1117,13 +1107,13 @@ static void func_actor_548100_80132808(Task* arg0)
 
 static void func_actor_548100_80132A14(Task* task)
 {
-    _Actor548100Work*   work;
-    Actor548100TexRect* rect;
-    DR_MODE*            prim;
-    Actor548100Route*   route;
-    s32                 i;
-    s32                 flagA;
-    s32                 flagB;
+    _Actor548100Work*    work;
+    _Actor548100TexRect* rect;
+    DR_MODE*             prim;
+    _Actor548100Circuit* circuit;
+    s32                  i;
+    s32                  doorLit;
+    s32                  passageLit;
 
     i    = 0;
     rect = D_actor_548100_801357C0;
@@ -1149,23 +1139,23 @@ static void func_actor_548100_80132A14(Task* task)
 
     if (GameFlag_GetNibble(GAME_FLAG_MINE_POWER_PANEL_SWITCHED_ON) != 0) {
         if (task->state != 9) {
-            route = D_actor_548100_80135B4C;
-            if (route->leg[0].nodeA != 0) {
-                func_actor_548100_80134AE0(route->leg[0].nodeA, route->leg[0].nodeB);
-                route = D_actor_548100_80135B4C;
+            circuit = D_actor_548100_80135B4C;
+            if (circuit->leg[0].route != 0) {
+                func_actor_548100_80134AE0(circuit->leg[0].route, circuit->leg[0].stopNode);
+                circuit = D_actor_548100_80135B4C;
             }
-            if (route->leg[1].nodeA != 0) {
-                func_actor_548100_80134AE0(route->leg[1].nodeA, route->leg[1].nodeB);
+            if (circuit->leg[1].route != 0) {
+                func_actor_548100_80134AE0(circuit->leg[1].route, circuit->leg[1].stopNode);
             }
-            route = D_actor_548100_80135B4C;
-            if (route->leg[2].nodeA != 0) {
-                func_actor_548100_80134AE0(route->leg[2].nodeA, route->leg[2].nodeB);
+            circuit = D_actor_548100_80135B4C;
+            if (circuit->leg[2].route != 0) {
+                func_actor_548100_80134AE0(circuit->leg[2].route, circuit->leg[2].stopNode);
             }
-            if (D_actor_548100_80135B4C->flag_8 != 0) {
+            if (D_actor_548100_80135B4C->powersDoor != 0) {
                 func_actor_548100_80133BBC(1);
                 GameFlag_SetNibble(GAME_FLAG_MINE_GORGE_CAVERN_DOOR_POWERED, 1);
             }
-            if (D_actor_548100_80135B4C->flag_9 != 0) {
+            if (D_actor_548100_80135B4C->powersPassage != 0) {
                 func_actor_548100_80133BBC(2);
                 if (GameFlag_GetNibble(GAME_FLAG_MINE_POWER_PANEL_STAGE) == 2) {
                     GameFlag_SetNibble(GAME_FLAG_MINE_SECRET_PASSAGE_STATE, 3);
@@ -1174,35 +1164,35 @@ static void func_actor_548100_80132A14(Task* task)
                 }
             }
         } else {
-            route = D_actor_548100_80135B4C;
-            flagA = 0;
-            flagB = 0;
-            if (route->leg[2].nodeA != 0) {
-                func_actor_548100_801342D8(route->leg[2].nodeA, route->leg[2].nodeB, work->thirdProgress);
-                flagB = work->thirdProgress == work->thirdLength;
+            circuit    = D_actor_548100_80135B4C;
+            doorLit    = 0;
+            passageLit = 0;
+            if (circuit->leg[2].route != 0) {
+                func_actor_548100_801342D8(circuit->leg[2].route, circuit->leg[2].stopNode, work->thirdProgress);
+                passageLit = work->thirdProgress == work->thirdLength;
             }
-            if (work->longRoute != 0) {
+            if (work->longLeg.route != 0) {
                 if (work->longProgress != work->longLength) {
-                    func_actor_548100_801342D8(work->longRoute, work->longStopNode, work->longProgress);
+                    func_actor_548100_801342D8(work->longLeg.route, work->longLeg.stopNode, work->longProgress);
                 } else {
-                    func_actor_548100_80134AE0(work->longRoute, work->longStopNode);
+                    func_actor_548100_80134AE0(work->longLeg.route, work->longLeg.stopNode);
                 }
             }
-            if (work->shortRoute != 0) {
+            if (work->shortLeg.route != 0) {
                 if (work->shortProgress != work->shortLength) {
-                    func_actor_548100_801342D8(work->shortRoute, work->shortStopNode, work->shortProgress);
+                    func_actor_548100_801342D8(work->shortLeg.route, work->shortLeg.stopNode, work->shortProgress);
                 } else {
-                    func_actor_548100_80134AE0(work->shortRoute, work->shortStopNode);
+                    func_actor_548100_80134AE0(work->shortLeg.route, work->shortLeg.stopNode);
                 }
             }
-            if (work->longProgress == work->longLength && work->longStopNode == 0 && work->longRoute != 0) {
-                flagA = D_actor_548100_80135B4C->flag_8;
-                flagB = flagB || D_actor_548100_80135B4C->flag_9;
+            if (work->longProgress == work->longLength && work->longLeg.stopNode == 0 && work->longLeg.route != 0) {
+                doorLit    = D_actor_548100_80135B4C->powersDoor;
+                passageLit = passageLit || D_actor_548100_80135B4C->powersPassage;
             }
-            if (flagA != 0) {
+            if (doorLit != 0) {
                 func_actor_548100_80133BBC(1);
             }
-            if (flagB != 0) {
+            if (passageLit != 0) {
                 func_actor_548100_80133BBC(2);
             }
         }
@@ -1248,13 +1238,13 @@ static void func_actor_548100_801330EC(void)
     } else {
         D_actor_548100_80135B4C = D_actor_548100_80135750;
     }
-    while (D_actor_548100_80135B4C->bitA != -1) {
+    while (D_actor_548100_80135B4C->socketA != -1) {
         want = 0;
-        if (D_actor_548100_80135B4C->bitA != 0) {
-            want = 1 << (D_actor_548100_80135B4C->bitA - 1);
+        if (D_actor_548100_80135B4C->socketA != 0) {
+            want = 1 << (D_actor_548100_80135B4C->socketA - 1);
         }
-        if (D_actor_548100_80135B4C->bitB != 0) {
-            want |= 1 << (D_actor_548100_80135B4C->bitB - 1);
+        if (D_actor_548100_80135B4C->socketB != 0) {
+            want |= 1 << (D_actor_548100_80135B4C->socketB - 1);
         }
         have = 0;
         for (i = 0; i < 4; i++) {
@@ -1988,14 +1978,14 @@ static void func_actor_548100_80134400(ActionPromptHotspot* unused)
 /// the texture window and, shifted by the screen centre, the quad's screen
 /// rectangle -- `u`/`v` are the table's own values and `x`/`y` those values
 /// minus 160 and 120, so a record drawn from the origin-centred screen space
-/// `Actor548100TexRect` is authored in lands on the matching part of the
+/// `_Actor548100TexRect` is authored in lands on the matching part of the
 /// texture page. Corner 0 and 2 share the left edge, 1 and 3 the right; the
 /// upper corners share the top, the lower pair the bottom.
 ///
 /// `x1`/`x3` are read before `v0`/`v1` -- that order is what puts the four
 /// loads in the register file the target uses, and reordering them changes
 /// the code without changing the meaning.
-static void func_actor_548100_8013461C(Actor548100TexRect* rect)
+static void func_actor_548100_8013461C(_Actor548100TexRect* rect)
 {
     POLY_FT4* prim;
     s32       u0;
@@ -2003,10 +1993,10 @@ static void func_actor_548100_8013461C(Actor548100TexRect* rect)
     s32       u1;
     s32       v1;
 
-    u0             = rect->u0;
-    u1             = rect->u1;
-    v0             = rect->v0;
-    v1             = rect->v1;
+    u0             = rect->left;
+    u1             = rect->right;
+    v0             = rect->top;
+    v1             = rect->bottom;
     prim           = gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
     SetPolyFT4(prim);
@@ -2350,7 +2340,7 @@ static void func_actor_548100_80134FEC(Task* arg0)
         work->longProgress = work->longLength;
         if (work->thirdProgress == work->thirdLength) {
             SndEvt_EnqueueType7(SOUND_MINE_REFUGE_CIRCUIT_CURRENT_LOOP, 1);
-            if (D_actor_548100_80135B4C->flag_8 != 0) {
+            if (D_actor_548100_80135B4C->powersDoor != 0) {
                 SndEvt_EnqueueType6(SOUND_MINE_REFUGE_CIRCUIT_COMPLETE, 0, 0);
                 Gp_RunCapCmd(0xC, 0);
                 arg0->state = 0xA;
