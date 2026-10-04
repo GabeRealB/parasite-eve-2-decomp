@@ -373,7 +373,7 @@ func_mist_shooting_gallery_80184954 = 0x80184954; // type:func absolute:True own
 
 D_mist_shooting_gallery_80185384 = 0x80185384; // absolute:True owner=mist_shooting_gallery
 
-D_mist_shooting_gallery_801856B8 = 0x801856B8; // absolute:True
+D_mist_shooting_gallery_801856B8 = 0x801856B8; // absolute:True owner=mist_shooting_gallery shared=rooms
 
 D_mist_shooting_gallery_8018E0C4 = 0x8018E0C4; // absolute:True owner=mist_shooting_gallery
 

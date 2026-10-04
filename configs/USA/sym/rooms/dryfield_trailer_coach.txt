@@ -202,14 +202,14 @@ gActor420700Animation01C5C = 0x80133A7C; // absolute:True owner=actor_420700
 gActor420700Animation01EBC = 0x80133CDC; // absolute:True owner=actor_420700
 gActor420700Animation02328 = 0x80134148; // absolute:True owner=actor_420700
 gActor420700Animation02F18 = 0x80134D38; // absolute:True owner=actor_420700
-gActor420700Animation0316C = 0x80134F8C; // absolute:True
-gActor420700Animation03404 = 0x80135224; // absolute:True
+gActor420700Animation0316C = 0x80134F8C; // absolute:True owner=actor_420700 shared=actors
+gActor420700Animation03404 = 0x80135224; // absolute:True owner=actor_420700 shared=actors
 gActor420700Animation035D4 = 0x801353F4; // absolute:True owner=actor_420700
-gActor420700Animation03DD8 = 0x80135BF8; // absolute:True
+gActor420700Animation03DD8 = 0x80135BF8; // absolute:True owner=actor_420700 shared=actors
 gActor420700Animation00DE0 = 0x80132C00; // absolute:True owner=actor_420700
 gActor420700Animation013A8 = 0x801331C8; // absolute:True owner=actor_420700
-gActor420700Animation0164C = 0x8013346C; // absolute:True
-gActor420700Animation01878 = 0x80133698; // absolute:True
+gActor420700Animation0164C = 0x8013346C; // absolute:True owner=actor_420700 shared=actors
+gActor420700Animation01878 = 0x80133698; // absolute:True owner=actor_420700 shared=actors
 D_dryfield_trailer_coach_80185368 = 0x80185368; // size:0x8C defined:True
 D_dryfield_trailer_coach_801853F4 = 0x801853F4; // size:0x570 defined:True
 D_dryfield_trailer_coach_80185964 = 0x80185964; // size:0x198 defined:True

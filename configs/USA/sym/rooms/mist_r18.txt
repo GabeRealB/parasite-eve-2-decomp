@@ -10,7 +10,7 @@ D_mist_r18_80186E44 = 0x80186E44; // size:0x18 defined:True
 D_mist_r18_80186E5C = 0x80186E5C; // size:0xC defined:True
 D_mist_r18_80186E68 = 0x80186E68; // size:0x8 defined:True
 D_mist_r18_80186E70 = 0x80186E70; // size:0x20 defined:True
-D_map_akropolis_8017BD8C = 0x8017BD8C; // absolute:True
+D_map_akropolis_8017BD8C = 0x8017BD8C; // absolute:True owner=map_akropolis shared=mapui
 D_mist_r18_8018660C = 0x8018660C; // size:0x10 defined:True
 D_mist_r18_8018661C = 0x8018661C; // size:0x4 defined:True
 D_mist_r18_80186620 = 0x80186620; // size:0x4 defined:True

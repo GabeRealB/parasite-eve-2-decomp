@@ -194,7 +194,7 @@ D_actor_421600_80151254 = 0x80151254; // size:0xC defined:True
 ActorContact_ScratchPosition = 0x80151260; // size:0x8 defined:True
 D_actor_421600_80151268 = 0x80151268; // size:0x2 defined:True
 
-D_dryfield_water_tower_801876A8 = 0x801876A8; // absolute:True
+D_dryfield_water_tower_801876A8 = 0x801876A8; // absolute:True owner=dryfield_water_tower shared=rooms
 
 D_dryfield_water_tower_801876AA = 0x801876AA; // absolute:True owner=dryfield_water_tower
 limbShadowDrawSegment = 0x80132EC0; // type:func

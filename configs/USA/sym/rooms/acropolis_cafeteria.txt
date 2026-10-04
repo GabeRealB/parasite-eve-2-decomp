@@ -114,7 +114,7 @@ gAcropolisCafeteriaModel09A20 = 0x80187518; // size:0x24 defined:True
 gActor202900Animation06098 = 0x8014FEB8; // absolute:True owner=actor_202900
 gActor310600Animation04ADC = 0x801668FC; // absolute:True owner=actor_310600
 gActor210600Animation07EF4 = 0x80151D14; // absolute:True owner=actor_210600
-gActor210600Animation0A050 = 0x80153E70; // absolute:True
+gActor210600Animation0A050 = 0x80153E70; // absolute:True owner=actor_210600 shared=actors
 D_acropolis_cafeteria_8018B394 = 0x8018B394; // size:0x10 defined:True
 D_acropolis_cafeteria_8018B3A4 = 0x8018B3A4; // size:0x14 defined:True
 D_acropolis_cafeteria_8018B3B8 = 0x8018B3B8; // size:0x30C defined:True

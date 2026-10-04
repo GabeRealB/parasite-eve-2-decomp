@@ -228,7 +228,7 @@ D_dryfield_junk_yard_8017F5C0 = 0x8017F5C0; // absolute:True owner=dryfield_junk
 D_dryfield_junk_yard_80180C28 = 0x80180C28; // absolute:True owner=dryfield_junk_yard shared=rooms
 D_dryfield_junk_yard_80181C28 = 0x80181C28; // absolute:True owner=dryfield_junk_yard shared=rooms
 func_dryfield_trailer_coach_80182950 = 0x80182950; // type:func absolute:True owner=dryfield_trailer_coach
-gDryfieldTrailerCoachAcropolisSanctuaryModel090F0 = 0x80184554; // absolute:True
+gDryfieldTrailerCoachAcropolisSanctuaryModel090F0 = 0x80184554; // absolute:True owner=dryfield_trailer_coach shared=rooms
 D_dryfield_trailer_coach_801871CC = 0x801871CC; // absolute:True owner=dryfield_trailer_coach shared=rooms
 D_dryfield_trailer_coach_801871DC = 0x801871DC; // absolute:True owner=dryfield_trailer_coach
 D_dryfield_trailer_coach_801871E4 = 0x801871E4; // absolute:True owner=dryfield_trailer_coach

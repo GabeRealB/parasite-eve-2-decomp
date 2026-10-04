@@ -6,15 +6,15 @@ gMistShootingGalleryModel099CC = 0x801870B0; // absolute:True owner=mist_shootin
 gMistShootingGalleryModel09BBC = 0x801872A0; // absolute:True owner=mist_shooting_gallery
 gMistShootingGalleryModel09DAC = 0x80187490; // absolute:True owner=mist_shooting_gallery
 gMistShootingGalleryModel09F9C = 0x80187680; // absolute:True owner=mist_shooting_gallery
-gMistShootingGalleryModel0A18C = 0x80187870; // absolute:True
+gMistShootingGalleryModel0A18C = 0x80187870; // absolute:True owner=mist_shooting_gallery shared=rooms
 gMistShootingGalleryModel0A37C = 0x80187A60; // absolute:True owner=mist_shooting_gallery
-gMistShootingGalleryModel0A56C = 0x80187C50; // absolute:True
+gMistShootingGalleryModel0A56C = 0x80187C50; // absolute:True owner=mist_shooting_gallery shared=rooms
 gMistShootingGalleryModel0A81C = 0x80188034; // absolute:True owner=mist_shooting_gallery
 gMistShootingGalleryModel0AB30 = 0x80188198; // absolute:True owner=mist_shooting_gallery
 gMistShootingGalleryModel0AC94 = 0x801882FC; // absolute:True owner=mist_shooting_gallery
 gMistShootingGalleryModel0ADF8 = 0x80188460; // absolute:True owner=mist_shooting_gallery
 gMistShootingGalleryModel0AF5C = 0x801885C4; // absolute:True owner=mist_shooting_gallery
-gMistShootingGalleryModel0B0D0 = 0x801887B4; // absolute:True
+gMistShootingGalleryModel0B0D0 = 0x801887B4; // absolute:True owner=mist_shooting_gallery shared=rooms
 gMistShootingGalleryModel0B2C0 = 0x801889A4; // absolute:True owner=mist_shooting_gallery
 gMistShootingGalleryModel0B4B0 = 0x80188B94; // absolute:True owner=mist_shooting_gallery
 gMistShootingGalleryModel0B6A0 = 0x80188D84; // absolute:True owner=mist_shooting_gallery

@@ -508,10 +508,10 @@ func_actor_503500_80132F58 = 0x80132F58; // type:func absolute:True owner=actor_
 D_actor_150400_80133088 = 0x80133088; // absolute:True owner=actor_150400
 D_actor_151000_801334EC = 0x801334EC; // absolute:True owner=actor_151000
 D_actor_143900_80133560 = 0x80133560; // absolute:True owner=actor_143900
-D_80133860 = 0x80133860; // absolute:True
+D_actor_143900_80133860 = 0x80133860; // absolute:True owner=actor_143900 shared=actors
 D_actor_535700_80133898 = 0x80133898; // absolute:True owner=actor_535700
 D_actor_151000_80133954 = 0x80133954; // absolute:True owner=actor_151000
-D_80133F90 = 0x80133F90; // absolute:True
+D_actor_461800_80133F90 = 0x80133F90; // absolute:True owner=actor_461800 shared=actors
 D_actor_535700_801341E0 = 0x801341E0; // absolute:True owner=actor_535700
 D_actor_461800_80134470 = 0x80134470; // absolute:True owner=actor_461800
 D_actor_143000_80134564 = 0x80134564; // absolute:True owner=actor_143000
@@ -519,7 +519,7 @@ D_actor_141000_801348D8 = 0x801348D8; // absolute:True owner=actor_141000
 D_actor_107600_80134F94 = 0x80134F94; // absolute:True owner=actor_107600 shared=actors
 D_actor_143400_801350BC = 0x801350BC; // absolute:True owner=actor_143400
 D_actor_146000_801351FC = 0x801351FC; // absolute:True owner=actor_146000
-D_80135220 = 0x80135220; // absolute:True
+D_actor_451100_80135220 = 0x80135220; // absolute:True owner=actor_451100 shared=actors
 D_actor_548100_801358D8 = 0x801358D8; // absolute:True owner=actor_548100
 D_actor_143400_801359D4 = 0x801359D4; // absolute:True owner=actor_143400
 D_actor_160600_80135AC0 = 0x80135AC0; // absolute:True owner=actor_160600
@@ -527,7 +527,7 @@ D_actor_160600_80135D78 = 0x80135D78; // absolute:True owner=actor_160600
 D_actor_450900_80135E78 = 0x80135E78; // absolute:True owner=actor_450900
 D_actor_451100_80135FD0 = 0x80135FD0; // absolute:True owner=actor_451100
 D_actor_142600_801360E4 = 0x801360E4; // absolute:True owner=actor_142600
-D_80136108 = 0x80136108; // absolute:True
+D_actor_451100_80136108 = 0x80136108; // absolute:True owner=actor_451100 shared=actors
 D_actor_450900_80136110 = 0x80136110; // absolute:True owner=actor_450900
 D_actor_160600_80136258 = 0x80136258; // absolute:True owner=actor_160600
 D_actor_460200_801362B8 = 0x801362B8; // absolute:True owner=actor_460200
@@ -535,7 +535,7 @@ D_actor_450900_80136308 = 0x80136308; // absolute:True owner=actor_450900
 D_actor_142600_80136804 = 0x80136804; // absolute:True owner=actor_142600
 D_actor_161500_80136CDC = 0x80136CDC; // absolute:True owner=actor_161500
 D_actor_146300_8013788C = 0x8013788C; // absolute:True owner=actor_146300
-D_80137890 = 0x80137890; // absolute:True
+D_actor_460200_80137890 = 0x80137890; // absolute:True owner=actor_460200 shared=actors
 D_actor_142900_801378D0 = 0x801378D0; // absolute:True owner=actor_142900
 D_actor_146300_80137C28 = 0x80137C28; // absolute:True owner=actor_146300
 D_actor_450200_80137EE4 = 0x80137EE4; // absolute:True owner=actor_450200
@@ -546,7 +546,7 @@ D_actor_450200_80138694 = 0x80138694; // absolute:True owner=actor_450200
 D_actor_450800_80139964 = 0x80139964; // absolute:True owner=actor_450800
 D_actor_450800_8013A33C = 0x8013A33C; // absolute:True owner=actor_450800
 D_actor_450800_8013A84C = 0x8013A84C; // absolute:True owner=actor_450800
-D_actor_105500_8013A8DC = 0x8013A8DC; // absolute:True
+D_actor_105500_8013A8DC = 0x8013A8DC; // absolute:True owner=actor_105500 shared=actors
 D_actor_450800_8013AF8C = 0x8013AF8C; // absolute:True owner=actor_450800
 D_actor_136300_8013B11C = 0x8013B11C; // absolute:True owner=actor_136300
 D_actor_136300_8013B570 = 0x8013B570; // absolute:True owner=actor_136300
@@ -594,7 +594,7 @@ Actor00100_D1BA84 = 0x8014D8A4; // absolute:True owner=actor_400100
 D_actor_215100_8014E13C = 0x8014E13C; // absolute:True owner=actor_215100
 D_actor_207000_80151E60 = 0x80151E60; // absolute:True owner=actor_207000
 D_actor_215100_80153274 = 0x80153274; // absolute:True owner=actor_215100
-D_80153D6C = 0x80153D6C; // absolute:True
+D_actor_215100_80153D6C = 0x80153D6C; // absolute:True owner=actor_215100 shared=actors
 D_actor_207000_801575F0 = 0x801575F0; // absolute:True owner=actor_207000
 func_actor_341300_8016268C = 0x8016268C; // type:func absolute:True owner=actor_341300
 func_actor_361100_80162B0C = 0x80162B0C; // type:func absolute:True owner=actor_361100

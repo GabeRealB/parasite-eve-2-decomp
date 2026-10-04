@@ -209,10 +209,10 @@ D_actor_120300_80141BA8 = 0x80141BA8; // size:0x4 defined:True
 
 D_dryfield_garage_80180204 = 0x80180204; // absolute:True owner=dryfield_garage
 
-gDryfieldGarageCollision0108CNormals = 0x8017DD6C; // absolute:True
+gDryfieldGarageCollision0108CNormals = 0x8017DD6C; // absolute:True owner=dryfield_garage shared=rooms
 
-gDryfieldGarageCollision0108CVerts = 0x8017DEA4; // absolute:True
+gDryfieldGarageCollision0108CVerts = 0x8017DEA4; // absolute:True owner=dryfield_garage shared=rooms
 
-gDryfieldGarageCollision0108CFaces = 0x8017E1F4; // absolute:True
+gDryfieldGarageCollision0108CFaces = 0x8017E1F4; // absolute:True owner=dryfield_garage shared=rooms
 screenFadeOutTask = 0x80133B5C; // type:func
 actorMsgPlaceInView = 0x80133C6C; // type:func

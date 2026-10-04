@@ -203,7 +203,7 @@ func_shelter_b2_pod_bottom_80181A48 = 0x80181A48; // type:func absolute:True own
 
 func_shelter_b2_pod_bottom_80181940 = 0x80181940; // type:func absolute:True owner=shelter_b2_pod_bottom shared=rooms
 
-gShelterB2PodBottomModel0A2A0 = 0x80187B10; // absolute:True
+gShelterB2PodBottomModel0A2A0 = 0x80187B10; // absolute:True owner=shelter_b2_pod_bottom shared=rooms
 
 gShelterB2PodBottomModel0A68C = 0x80187E14; // absolute:True owner=shelter_b2_pod_bottom
 

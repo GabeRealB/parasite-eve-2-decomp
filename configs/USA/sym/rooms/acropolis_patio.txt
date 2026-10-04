@@ -55,7 +55,7 @@ D_map_akropolis_8017ACFC = 0x8017ACFC; // absolute:True owner=map_akropolis
 D_map_akropolis_8017AD2C = 0x8017AD2C; // absolute:True owner=map_akropolis
 D_map_akropolis_8017AD7C = 0x8017AD7C; // absolute:True owner=map_akropolis
 D_map_akropolis_8017ADEC = 0x8017ADEC; // absolute:True owner=map_akropolis
-D_map_akropolis_8017AE3C = 0x8017AE3C; // absolute:True
+D_map_akropolis_8017AE3C = 0x8017AE3C; // absolute:True owner=map_akropolis shared=mapui
 D_map_akropolis_8017AE6C = 0x8017AE6C; // absolute:True owner=map_akropolis
 D_acropolis_patio_80182BE4 = 0x80182BE4; // size:0x1F8 defined:True
 D_acropolis_patio_8018275C = 0x8018275C; // size:0x18 defined:True

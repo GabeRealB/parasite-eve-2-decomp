@@ -63,7 +63,7 @@ D_acropolis_security_room_801839F0 = 0x801839F0; // absolute:True owner=acropoli
 D_acropolis_security_room_80184C50 = 0x80184C50; // absolute:True owner=acropolis_security_room
 D_acropolis_security_room_80184D10 = 0x80184D10; // absolute:True owner=acropolis_security_room shared=rooms
 D_acropolis_security_room_80184FA0 = 0x80184FA0; // absolute:True owner=acropolis_security_room shared=rooms
-gAcropolisSecurityRoomAcropolisSanctuaryModel090F0 = 0x80185584; // absolute:True
+gAcropolisSecurityRoomAcropolisSanctuaryModel090F0 = 0x80185584; // absolute:True owner=acropolis_security_room shared=rooms
 func_acropolis_hallway_8017D7D0 = 0x8017D7D0; // type:func absolute:True owner=acropolis_hallway shared=rooms
 func_acropolis_hallway_8017E120 = 0x8017E120; // type:func absolute:True owner=acropolis_hallway
 D_acropolis_hallway_8017E258 = 0x8017E258; // absolute:True owner=acropolis_hallway

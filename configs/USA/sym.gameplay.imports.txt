@@ -366,9 +366,9 @@ D_map_dryfield_full_8017D0B8 = 0x8017D0B8; // absolute:True
 D_map_shelter_8017BB58 = 0x8017BB58; // absolute:True owner=map_shelter
 D_map_neo_ark_8017C9B0 = 0x8017C9B0; // absolute:True owner=map_neo_ark
 D_map_akropolis_8017C16C = 0x8017C16C; // absolute:True owner=map_akropolis
-D_map_dryfield_8017BD80 = 0x8017BD80; // absolute:True
+D_map_dryfield_8017BD80 = 0x8017BD80; // absolute:True owner=map_dryfield shared=mapui
 D_map_dryfield_full_8017D1CC = 0x8017D1CC; // absolute:True
-D_map_shelter_8017BD8C = 0x8017BD8C; // absolute:True
+D_map_shelter_8017BD8C = 0x8017BD8C; // absolute:True owner=map_shelter shared=mapui
 D_map_neo_ark_8017CB0C = 0x8017CB0C; // absolute:True owner=map_neo_ark
 func_acropolis_east_elevator_hall_8017FAAC = 0x8017FAAC; // type:func absolute:True owner=acropolis_east_elevator_hall shared=rooms
 func_8011D1E0 = 0x8011D1E0; // type:func absolute:True shared=weapons
@@ -395,7 +395,7 @@ D_map_neo_ark_8017ADB0 = 0x8017ADB0; // absolute:True owner=map_neo_ark
 D_map_akropolis_8017AB1C = 0x8017AB1C; // absolute:True owner=map_akropolis
 D_map_dryfield_8017AC98 = 0x8017AC98; // absolute:True owner=map_dryfield
 D_map_dryfield_full_8017ABAC = 0x8017ABAC; // absolute:True owner=map_dryfield_full
-D_map_shelter_8017B610 = 0x8017B610; // absolute:True
+D_map_shelter_8017B610 = 0x8017B610; // absolute:True owner=map_shelter shared=mapui
 D_map_neo_ark_8017AE38 = 0x8017AE38; // absolute:True owner=map_neo_ark
 D_map_akropolis_8017AAC8 = 0x8017AAC8; // absolute:True owner=map_akropolis
 D_map_dryfield_8017AAC4 = 0x8017AAC4; // absolute:True owner=map_dryfield
@@ -416,7 +416,7 @@ D_map_akropolis_8017AC6C = 0x8017AC6C; // absolute:True owner=map_akropolis
 D_map_dryfield_8017AC9C = 0x8017AC9C; // absolute:True owner=map_dryfield
 D_map_dryfield_full_8017ABB0 = 0x8017ABB0; // absolute:True owner=map_dryfield_full
 D_map_shelter_8017B614 = 0x8017B614; // absolute:True owner=map_shelter
-D_map_neo_ark_8017AE3C = 0x8017AE3C; // absolute:True
+D_map_neo_ark_8017AE3C = 0x8017AE3C; // absolute:True owner=map_neo_ark shared=mapui
 D_acropolis_bridge_8019004C = 0x8019004C; // absolute:True owner=acropolis_bridge
 D_mist_parking_801951B4 = 0x801951B4; // absolute:True owner=mist_parking
 D_dryfield_night_gas_station_80190624 = 0x80190624; // absolute:True owner=dryfield_night_gas_station
@@ -500,29 +500,29 @@ D_acropolis_plaza_80199390 = 0x80199390; // absolute:True
 
 D_dryfield_motel_room_6_80182D0C = 0x80182D0C; // absolute:True owner=dryfield_motel_room_6
 
-D_dryfield_night_motel_room_6_80182E74 = 0x80182E74; // absolute:True
+D_dryfield_night_motel_room_6_80182E74 = 0x80182E74; // absolute:True owner=dryfield_night_motel_room_6 shared=rooms
 
 D_neo_ark_bridge_80181F18 = 0x80181F18; // absolute:True owner=neo_ark_bridge
 
 D_neo_ark_garden_80181398 = 0x80181398; // absolute:True owner=neo_ark_garden
 
-D_neo_ark_island_80181B30 = 0x80181B30; // absolute:True
+D_neo_ark_island_80181B30 = 0x80181B30; // absolute:True owner=neo_ark_island shared=rooms
 
-D_neo_ark_observatory_80180DBC = 0x80180DBC; // absolute:True
+D_neo_ark_observatory_80180DBC = 0x80180DBC; // absolute:True owner=neo_ark_observatory shared=rooms
 
-D_neo_ark_pavilion_8018384C = 0x8018384C; // absolute:True
+D_neo_ark_pavilion_8018384C = 0x8018384C; // absolute:True owner=neo_ark_pavilion shared=rooms
 
 D_neo_ark_r31_8017D9E8 = 0x8017D9E8; // absolute:True owner=neo_ark_r31
 
-D_neo_ark_submarine_gallery_8018186C = 0x8018186C; // absolute:True
+D_neo_ark_submarine_gallery_8018186C = 0x8018186C; // absolute:True owner=neo_ark_submarine_gallery shared=rooms
 
 D_neo_ark_submarine_tunnel_801810E4 = 0x801810E4; // absolute:True owner=neo_ark_submarine_tunnel
 
-D_neo_ark_woodland_path_80181638 = 0x80181638; // absolute:True
+D_neo_ark_woodland_path_80181638 = 0x80181638; // absolute:True owner=neo_ark_woodland_path shared=rooms
 
 D_shelter_b1_control_room_80181B88 = 0x80181B88; // absolute:True owner=shelter_b1_control_room
 
-D_shelter_r48_80182FAC = 0x80182FAC; // absolute:True
+D_shelter_r48_80182FAC = 0x80182FAC; // absolute:True owner=shelter_r48 shared=rooms
 
 
 func_acropolis_bridge_8017F868 = 0x8017F868; // type:func absolute:True owner=acropolis_bridge
@@ -1375,9 +1375,9 @@ func_shelter_r48_8018147C = 0x8018147C; // type:func absolute:True owner=shelter
 
 func_shelter_r48_80181704 = 0x80181704; // type:func absolute:True owner=shelter_r48
 
-D_acropolis_bridge_80189A9C = 0x80189A9C; // absolute:True
+D_acropolis_bridge_80189A9C = 0x80189A9C; // absolute:True owner=acropolis_bridge shared=rooms
 
-D_shelter_b4_water_supply_801826FC = 0x801826FC; // absolute:True
+D_shelter_b4_water_supply_801826FC = 0x801826FC; // absolute:True owner=shelter_b4_water_supply shared=rooms
 
 D_acropolis_plaza_80183824 = 0x80183824; // absolute:True owner=acropolis_plaza
 
@@ -1385,11 +1385,11 @@ D_dryfield_night_garage_80181C2C = 0x80181C2C; // absolute:True owner=dryfield_n
 
 D_dryfield_night_trailer_coach_801846D0 = 0x801846D0; // absolute:True owner=dryfield_night_trailer_coach
 
-D_dryfield_trailer_coach_80183F84 = 0x80183F84; // absolute:True
+D_dryfield_trailer_coach_80183F84 = 0x80183F84; // absolute:True owner=dryfield_trailer_coach shared=rooms
 
 D_mist_parking_8018668C = 0x8018668C; // absolute:True owner=mist_parking
 
-D_shelter_1f_heliport_80181188 = 0x80181188; // absolute:True
+D_shelter_1f_heliport_80181188 = 0x80181188; // absolute:True owner=shelter_1f_heliport shared=rooms
 
 D_shelter_b1_armory_801824D0 = 0x801824D0; // absolute:True owner=shelter_b1_armory
 
@@ -1685,7 +1685,7 @@ D_shelter_r48_8018BC10 = 0x8018BC10; // absolute:True owner=shelter_r48 shared=r
 
 D_shelter_r49_8017DD74 = 0x8017DD74; // absolute:True owner=shelter_r49 shared=rooms
 
-D_mist_shooting_gallery_80185000 = 0x80185000; // absolute:True
+D_mist_shooting_gallery_80185000 = 0x80185000; // absolute:True owner=mist_shooting_gallery shared=rooms
 
 func_acropolis_square_80180804 = 0x80180804; // type:func absolute:True owner=acropolis_square
 
@@ -1747,7 +1747,7 @@ D_dryfield_night_r08_801818D8 = 0x801818D8; // absolute:True owner=dryfield_nigh
 
 D_shelter_1f_parking_garage_801818D8 = 0x801818D8; // absolute:True owner=shelter_1f_parking_garage shared=rooms
 
-D_shelter_b1_underground_parking_801871F0 = 0x801871F0; // absolute:True
+D_shelter_b1_underground_parking_801871F0 = 0x801871F0; // absolute:True owner=shelter_b1_underground_parking shared=rooms
 
 func_acropolis_west_elevator_hall_8017F7D4 = 0x8017F7D4; // type:func absolute:True owner=acropolis_west_elevator_hall shared=rooms
 

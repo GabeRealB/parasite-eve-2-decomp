@@ -59,7 +59,7 @@ D_map_neo_ark_8017BBF0 = 0x8017BBF0; // absolute:True owner=map_neo_ark
 D_map_neo_ark_8017BC70 = 0x8017BC70; // absolute:True owner=map_neo_ark
 D_map_neo_ark_8017BCE0 = 0x8017BCE0; // absolute:True owner=map_neo_ark
 D_map_neo_ark_8017BD50 = 0x8017BD50; // absolute:True owner=map_neo_ark
-D_map_neo_ark_8017BD80 = 0x8017BD80; // absolute:True
+D_map_neo_ark_8017BD80 = 0x8017BD80; // absolute:True owner=map_neo_ark shared=mapui
 RoomFx_TrailOffsets = 0x8017F9D4; // size:0x10 defined:True
 
 func_neo_ark_savanna_zone_8017D9AC = 0x8017D9AC; // type:func

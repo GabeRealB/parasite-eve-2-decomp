@@ -91,10 +91,10 @@ _gAcropolisSanctuaryModel09584Normals = 0x80186AEC; // size:0x58 defined:True
 _gAcropolisSanctuaryModel09584Stream = 0x80186B44; // size:0x124 defined:True
 gAcropolisSanctuaryModel09584 = 0x80186C68; // size:0x24 defined:True
 gActor210700Animation01E2C = 0x8014BC4C; // absolute:True owner=actor_210700
-gActor210700Animation027F8 = 0x8014C618; // absolute:True
+gActor210700Animation027F8 = 0x8014C618; // absolute:True owner=actor_210700 shared=actors
 gActor210700Animation02B54 = 0x8014C974; // absolute:True owner=actor_210700
 gActor210700Animation02E0C = 0x8014CC2C; // absolute:True owner=actor_210700
-gActor210700Animation0318C = 0x8014CFAC; // absolute:True
+gActor210700Animation0318C = 0x8014CFAC; // absolute:True owner=actor_210700 shared=actors
 gActor210700Animation03424 = 0x8014D244; // absolute:True owner=actor_210700
 gActor210700Animation03BD0 = 0x8014D9F0; // absolute:True owner=actor_210700
 gActor210700Animation067E8 = 0x80150608; // absolute:True owner=actor_210700
