@@ -19057,8 +19057,8 @@ one in-place store per bit instead so the load is a temporary in `$v0`. Where
 the bits are named, as in `AsyncCbFlags`, that is one bitfield assignment each:
 
 ```c
-entry->field_0.active    = 0;
-entry->field_0.cancelled = 0;
+entry->status.active    = 0;
+entry->status.cancelled = 0;
 ```
 
 On a plain word it is one `&=` statement per mask. Do **not** fold those to
@@ -19070,7 +19070,7 @@ bit gives it with no temporary at all, and the assignment's value is the
 `andi v0, v0, 1` the following branch tests:
 
 ```c
-if ((entry->field_0.cancelPending = entry->field_10(entry))) {
+if ((entry->status.cancelPending = entry->cancelFn(entry))) {
     return;
 }
 ```
@@ -65440,7 +65440,7 @@ pointer and rescore.
 
 The callback enqueue matched without pins using the existing `AsyncCbEntry` and
 `AsyncCbQueue` layouts. One statement per status bit, in the order
-`entry->field_0.active = 1`, `cancelled = 0`, `cancelPending = 0`,
+`entry->status.active = 1`, `cancelled = 0`, `cancelPending = 0`,
 `pollState = 0`, and `firstPoll = 1`, retains the individual masks (`| 1`,
 `& ~4`, `& ~8`, `& ~0xFF0`, `| 2`); one nested word expression folds the three
 AND masks before RTL optimization.
@@ -145050,8 +145050,8 @@ only then `sb v0,g` - with the `andi 0xff` kept even though a byte store
 truncates anyway. The seed built it with two `*(volatile u32*)` reads pinned to
 `v0`/`v1`. The kept `andi` is the tell: combine never folds into an insn that
 touches a `volatile` object, so `g` is `volatile`. The word is a bitfield
-(`(x & ~0xFF0) | 0x20` stores are `entry->field_0.pollState = 2`), and
-`g = entry->field_0.pollState; switch (entry->field_0.pollState)` then gives both loads and lets
+(`(x & ~0xFF0) | 0x20` stores are `entry->status.pollState = 2`), and
+`g = entry->status.pollState; switch (entry->status.pollState)` then gives both loads and lets
 sched1 hoist the second above the store, since a struct member through a
 pointer does not conflict with a fixed-address scalar. With a plain `u32`
 member instead of a bitfield, CSE merged the two loads even across the

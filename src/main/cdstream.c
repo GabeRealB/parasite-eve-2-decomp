@@ -1842,9 +1842,9 @@ static s32 CdStream_PollMtsRead(_CdReadyEntry* entry)
             if (CdStream_Runtime.state.reinitSlot != 0) {
                 AsyncCb_Cancel((s16)CdStream_Runtime.state.reinitSlot);
             }
-            sp.entry.field_8                  = CdStream_InitDisc;
-            sp.entry.field_C                  = CdStream_MarkEnding;
-            sp.entry.field_10                 = CdStream_Flush;
+            sp.entry.pollFn                   = CdStream_InitDisc;
+            sp.entry.doneFn                   = CdStream_MarkEnding;
+            sp.entry.cancelFn                 = CdStream_Flush;
             CdStream_Runtime.state.reinitSlot = AsyncCb_Enqueue(&sp.entry);
         }
     }
@@ -2372,13 +2372,13 @@ static s32 CdStream_InitDisc(AsyncCbEntry* entry)
     } sp;
     s32 sync;
 
-    if (entry->field_0.firstPoll) {
-        entry->field_0.firstPoll = 0;
-        entry->field_0.pollState = 1;
+    if (entry->status.firstPoll) {
+        entry->status.firstPoll = 0;
+        entry->status.pollState = 1;
     }
 
-    D_80068B66 = entry->field_0.pollState;
-    switch (entry->field_0.pollState) {
+    D_80068B66 = entry->status.pollState;
+    switch (entry->status.pollState) {
         case 1:
             if (CdControlB(CdlNop, NULL, sp.result) == 0) {
                 return 0;
@@ -2387,31 +2387,31 @@ static s32 CdStream_InitDisc(AsyncCbEntry* entry)
                 return 0;
             }
             if (sp.result[0] & CdlStatStandby) {
-                entry->field_0.pollState = 2;
+                entry->status.pollState = 2;
                 case 2:
                     if (CdControl(CdlGetTN, NULL, sp.result) != 0) {
-                        entry->field_0.pollState = 4;
+                        entry->status.pollState = 4;
                         case 3:
                             sync = CdSync(1, sp.result);
                             if (sync == CdlDiskError) {
-                                entry->field_0.pollState = 2;
+                                entry->status.pollState = 2;
                             } else if (sync == CdlComplete) {
-                                entry->field_0.pollState = 4;
+                                entry->status.pollState = 4;
                                 case 4:
                                     CdIntToPos(0, &sp.loc);
                                     if (CdControl(CdlSeekL, (u8*)&sp.loc, sp.result) != 0) {
-                                        entry->field_0.pollState = 5;
+                                        entry->status.pollState = 5;
                                         case 5:
                                             sync = CdSync(1, sp.result);
                                             if ((sync == CdlDiskError) && (sp.result[0] & CdlStatError) &&
                                                 (sp.result[1] & 0x40)) {
-                                                entry->field_0.pollState = 1;
+                                                entry->status.pollState = 1;
                                             } else if (sync == CdlComplete) {
-                                                entry->field_0.pollState = 6;
+                                                entry->status.pollState = 6;
                                                 case 6:
                                                     sp.mode = -0x60;
                                                     if (CdControl(CdlSetmode, (u8*)&sp.mode, NULL) != 0) {
-                                                        entry->field_0.pollState             = 7;
+                                                        entry->status.pollState              = 7;
                                                         CdStream_Runtime.state.settleCounter = 0;
                                                     }
                                             }

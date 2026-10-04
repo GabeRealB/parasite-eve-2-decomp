@@ -496,13 +496,27 @@ typedef struct {
 } AsyncCbFlags;
 STATIC_ASSERT_SIZEOF(AsyncCbFlags, 0x4);
 
-/// Callback-queue slot used by AsyncCb_Queue.entries (stride 0x14).
-typedef struct _AsyncCbEntry {
-    /* 0x00 */ AsyncCbFlags field_0;                            // flags
-    /* 0x04 */ s32          field_4;                            // data
-    /* 0x08 */ s32          (*field_8)(struct _AsyncCbEntry*);  // pollFn
-    /* 0x0C */ void         (*field_C)(struct _AsyncCbEntry*);  // doneFn
-    /* 0x10 */ s32          (*field_10)(struct _AsyncCbEntry*); // errorFn
+/// One queued job of the asynchronous callback queue: an operation polled to
+/// completion.
+///
+/// Each poll of the queue polls the entry at its head once. `pollFn` advances
+/// the job and returns nonzero once it has finished, successfully or not; the
+/// queue then calls `doneFn` and moves on. Cancelling an active entry
+/// clears `status.active` and sets `status.cancelled`: one that was never
+/// polled is dropped, one already under way gets `cancelFn`, again on every
+/// later poll for as long as that returns an odd value. `doneFn` and
+/// `cancelFn` may be null; `pollFn` may not.
+///
+/// A caller fills only the three handlers of an entry of its own and queues
+/// it. Queueing copies them and keeps no reference to the caller's entry;
+/// `status` belongs to the queue and to `pollFn`, and each handler is passed
+/// the queue's slot, never the caller's entry.
+typedef struct AsyncCbEntry {
+    AsyncCbFlags status;                            // the job's place in its life cycle, and `pollFn`'s own step
+    s32          field_4;                           // Not copied on queueing and never read or written; role unproven
+    s32          (*pollFn)(struct AsyncCbEntry*);   // advances the job; nonzero once it has finished
+    void         (*doneFn)(struct AsyncCbEntry*);   // called when `pollFn` reports the job finished
+    s32          (*cancelFn)(struct AsyncCbEntry*); // winds down a cancelled job that had started; bit 0 set asks to be called again
 } AsyncCbEntry;
 STATIC_ASSERT_SIZEOF(AsyncCbEntry, 0x14);
 

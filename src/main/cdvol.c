@@ -97,12 +97,12 @@ static s32 Cd_InitStateMachine(AsyncCbEntry* entry)
     s32 sync;
     s16 counter;
 
-    if (entry->field_0.firstPoll) {
-        entry->field_0.firstPoll = 0;
-        entry->field_0.pollState = 1;
+    if (entry->status.firstPoll) {
+        entry->status.firstPoll = 0;
+        entry->status.pollState = 1;
     }
 
-    switch (entry->field_0.pollState) {
+    switch (entry->status.pollState) {
         case 1:
             if (CdControlB(CdlNop, NULL, sp.result) == 0) {
                 return 0;
@@ -111,32 +111,32 @@ static s32 Cd_InitStateMachine(AsyncCbEntry* entry)
                 return 0;
             }
             if (sp.result[0] & CdlStatStandby) {
-                entry->field_0.pollState = 2;
+                entry->status.pollState = 2;
                 case 2:
                     if (CdControlB(CdlGetTN, NULL, sp.result) != 0) {
-                        entry->field_0.pollState = 4;
+                        entry->status.pollState = 4;
                         case 3:
                             sync = CdSync(1, sp.result);
                             if (sync == CdlDiskError) {
-                                entry->field_0.pollState = 2;
+                                entry->status.pollState = 2;
                             } else if (sync == CdlComplete) {
-                                entry->field_0.pollState = 4;
+                                entry->status.pollState = 4;
                                 case 4:
                                     CdIntToPos(0, &sp.loc);
                                     if (CdControl(CdlSeekL, (u8*)&sp.loc, sp.result) != 0) {
-                                        entry->field_0.pollState = 5;
+                                        entry->status.pollState = 5;
                                         case 5:
                                             sync = CdSync(1, sp.result);
                                             if ((sync == CdlDiskError) && (sp.result[0] & CdlStatError) &&
                                                 (sp.result[1] & 0x40)) {
-                                                entry->field_0.pollState = 1;
+                                                entry->status.pollState = 1;
                                             } else if (sync != CdlComplete) {
-                                                entry->field_0.pollState = 6;
+                                                entry->status.pollState = 6;
                                                 case 6:
                                                     sp.mode = -0x60;
                                                     if (CdControl(CdlSetmode, (u8*)&sp.mode, NULL) != 0) {
-                                                        D_8006EBB8               = 0;
-                                                        entry->field_0.pollState = 7;
+                                                        D_8006EBB8              = 0;
+                                                        entry->status.pollState = 7;
                                                     }
                                             }
                                     }
@@ -224,9 +224,9 @@ static void CdVol_RegisterCallbacks(void)
     s16*         ptr;
 
     ptr         = &D_8006EBF2;
-    sp.field_8  = Cd_InitStateMachine;
-    sp.field_C  = CdVol_ClearCallbackSlot;
-    sp.field_10 = Cd_Flush;
+    sp.pollFn   = Cd_InitStateMachine;
+    sp.doneFn   = CdVol_ClearCallbackSlot;
+    sp.cancelFn = Cd_Flush;
     *ptr        = AsyncCb_Enqueue(&sp);
 }
 

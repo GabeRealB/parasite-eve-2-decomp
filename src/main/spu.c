@@ -129,15 +129,15 @@ void AsyncCb_Poll(void)
     current = AsyncCb_Queue.field_0;
     if (AsyncCb_Queue.field_1 != current) {
         entry = &AsyncCb_Queue.entries[current];
-        if (entry->field_0.active) {
-            if (entry->field_8(entry) != 0) {
-                if (entry->field_C != NULL) {
-                    entry->field_C(entry);
+        if (entry->status.active) {
+            if (entry->pollFn(entry) != 0) {
+                if (entry->doneFn != NULL) {
+                    entry->doneFn(entry);
                 }
-                entry->field_0.active    = 0;
-                entry->field_0.cancelled = 0;
-                idx                      = (u8)AsyncCb_Queue.field_0 + 1;
-                AsyncCb_Queue.field_0    = idx;
+                entry->status.active    = 0;
+                entry->status.cancelled = 0;
+                idx                     = (u8)AsyncCb_Queue.field_0 + 1;
+                AsyncCb_Queue.field_0   = idx;
                 if (idx >= 4) {
                     AsyncCb_Queue.field_0 = 0;
                 }
@@ -147,18 +147,18 @@ void AsyncCb_Poll(void)
             // poll for as long as that returns an odd value; one that never ran is
             // dropped. The two tests stay nested: joined by `&&` they compile to a single
             // masked compare.
-            if (entry->field_0.cancelled) {
-                if (!entry->field_0.firstPoll) {
-                    if (entry->field_10 != NULL) {
-                        if ((entry->field_0.cancelPending = entry->field_10(entry))) {
+            if (entry->status.cancelled) {
+                if (!entry->status.firstPoll) {
+                    if (entry->cancelFn != NULL) {
+                        if ((entry->status.cancelPending = entry->cancelFn(entry))) {
                             return;
                         }
                     }
                 }
             }
-            entry->field_0.cancelled = 0;
-            idx                      = (u8)AsyncCb_Queue.field_0 + 1;
-            AsyncCb_Queue.field_0    = idx;
+            entry->status.cancelled = 0;
+            idx                     = (u8)AsyncCb_Queue.field_0 + 1;
+            AsyncCb_Queue.field_0   = idx;
             if (idx >= 4) {
                 AsyncCb_Queue.field_0 = 0;
             }
@@ -198,17 +198,17 @@ s16 AsyncCb_Enqueue(AsyncCbEntry* callbacks)
         return 0;
     } else {
         entry           = &AsyncCb_Queue.entries[writeIdx];
-        entry->field_8  = callbacks->field_8;
-        entry->field_C  = callbacks->field_C;
-        entry->field_10 = callbacks->field_10;
+        entry->pollFn   = callbacks->pollFn;
+        entry->doneFn   = callbacks->doneFn;
+        entry->cancelFn = callbacks->cancelFn;
         // The status bits are the queue's own: the caller supplies only the callbacks.
-        entry->field_0.active        = 1;
-        entry->field_0.cancelled     = 0;
-        entry->field_0.cancelPending = 0;
-        entry->field_0.pollState     = 0;
-        entry->field_0.firstPoll     = 1;
-        current                      = AsyncCb_Queue.field_1;
-        AsyncCb_Queue.field_1        = next;
+        entry->status.active        = 1;
+        entry->status.cancelled     = 0;
+        entry->status.cancelPending = 0;
+        entry->status.pollState     = 0;
+        entry->status.firstPoll     = 1;
+        current                     = AsyncCb_Queue.field_1;
+        AsyncCb_Queue.field_1       = next;
         return current + 1;
     }
 }
@@ -219,9 +219,9 @@ void AsyncCb_Cancel(s32 arg0)
 
     if ((arg0 << 0x10) != 0) {
         entry = &AsyncCb_Queue.entries[(s16)(arg0 - 1)];
-        if (entry->field_0.active) {
-            entry->field_0.active    = 0;
-            entry->field_0.cancelled = 1;
+        if (entry->status.active) {
+            entry->status.active    = 0;
+            entry->status.cancelled = 1;
         }
     }
 }
