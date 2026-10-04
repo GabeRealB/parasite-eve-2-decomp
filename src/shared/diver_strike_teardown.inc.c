@@ -5,17 +5,17 @@
 /// unlinks the beam's collision object and kills the task.
 void diverStrikeTeardown(Task* task)
 {
-    DiverChildWork* child;
-    TmdObject*      tmd;
-    u16             countdown;
+    DiverStrikeWork* strike;
+    TmdObject*       tmd;
+    u16              countdown;
 
-    child                     = (DiverChildWork*)task->work;
+    strike                    = task->work;
     tmd                       = task->extra.tmd;
     tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     countdown                 = task->killCountdown + 1;
     task->killCountdown       = countdown;
     if ((s16)countdown >= 0xC) {
-        Gp_UnlinkObj(&child->obj);
+        Gp_UnlinkObj(&strike->attackBody);
         taskKill(task);
     }
 }

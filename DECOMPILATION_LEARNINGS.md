@@ -103307,7 +103307,7 @@ allocation follows from them:
 
 Phase 1 (suggested-only) fails for all four: the only suggestions are `$a0`
 (from the arrival copy and the call argument setups) and `$a1` (from
-`&work->child.obj`), all call-used, so every call-crossing quantity falls to phase 2,
+`&work->child.attackBody`), all call-used, so every call-crossing quantity falls to phase 2,
 which is pure descending priority. The coordinate's 1470 beats the task
 pointer's 1458 by twelve units and takes `$s1`; swap those two numbers and the
 `$s0`-`$s3` assignment is the target's.

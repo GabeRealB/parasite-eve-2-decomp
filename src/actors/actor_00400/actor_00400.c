@@ -126,7 +126,7 @@ STATIC_ASSERT_SIZEOF(_Actor00400GroundStainWork, 0x28);
 /// to hide, or when it has flown `ACTOR_00400_SHOT_LIFETIME` frames, and the Diver
 /// library's teardown then unlinks the sphere and ends the task.
 typedef struct {
-    DiverChildWork        child;       // head the Diver library's teardown reads: the sphere carrying the attack, linked while the shot flies
+    DiverStrikeWork       child;       // head the Diver library's teardown reads: the sphere carrying the attack, linked while the shot flies
     WorldCollisionContact contacts[2]; // contacts of the sphere: what the shot touched this frame
     SVECTOR               velocity;    // movement a frame in the view coordinate's space: the head's forward axis times the speed of the enemy's placement row, with `vy` relaunched at `ACTOR_00400_SHOT_LAUNCH_SPEED_Y`; `pad` is never accessed
     s32                   frames;      // frames the shot has flown; the phase of its sparks and spray
@@ -2342,10 +2342,10 @@ static void Actor00400_Fn02D48(Task* arg0)
             }
             Gp_ClearRec18Occupied(work->contacts);
             if ((++arg0->killCountdown >= ACTOR_00400_SHOT_LIFETIME) || (gSceneCombatState.actor00400HideRequested != 0) || (hidden != 0)) {
-                arg0->killCountdown    = 0;
-                work->child.obj.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-                kind                   = 2;
-                arg0->state           += 1;
+                arg0->killCountdown           = 0;
+                work->child.attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
+                kind                          = 2;
+                arg0->state                  += 1;
             }
             diverImpactBurst(coord, work->frames, kind, 0x1300);
             break;
@@ -5795,7 +5795,7 @@ static void Actor00400_Fn0A034(Task* arg0)
 /// touches. The sphere's radius is 0x100, and the vertical speed the spawner
 /// stored is replaced by `ACTOR_00400_SHOT_LAUNCH_SPEED_Y`.
 ///
-/// The `task->extra` walk is repeated for `work->child.obj.coord` rather than reusing
+/// The `task->extra` walk is repeated for `work->child.attackBody.coord` rather than reusing
 /// `coord`: the original re-reads it, which is what the second `lw` chain in
 /// the target shows.
 ///
@@ -5812,23 +5812,23 @@ static void Actor00400_Fn0A190(Task* task)
     _Actor00400ShotWork* work;
     GfxCoord*            coord;
 
-    coord                            = task->extra.tmd->coords;
-    work                             = task->work;
-    task->killCountdown              = 0;
-    work->frames                     = 0;
-    coord->parent                    = &gGfxViewCoord;
-    coord->composeStamp              = GRAPHICS_COORD_DIRTY;
-    work->child.obj.key              = Gp_PackPair(Actor00400_D0FDC0, 1);
-    work->child.obj.coord            = task->extra.tmd->coords;
-    work->child.obj.context.contacts = work->contacts;
-    work->child.obj.pos.vx           = 0;
-    work->child.obj.pos.vy           = 0;
-    work->child.obj.pos.vz           = 0;
-    work->child.obj.radius           = 0x100;
-    work->child.obj.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(3, &work->child.obj);
+    coord                                   = task->extra.tmd->coords;
+    work                                    = task->work;
+    task->killCountdown                     = 0;
+    work->frames                            = 0;
+    coord->parent                           = &gGfxViewCoord;
+    coord->composeStamp                     = GRAPHICS_COORD_DIRTY;
+    work->child.attackBody.key              = Gp_PackPair(Actor00400_D0FDC0, 1);
+    work->child.attackBody.coord            = task->extra.tmd->coords;
+    work->child.attackBody.context.contacts = work->contacts;
+    work->child.attackBody.pos.vx           = 0;
+    work->child.attackBody.pos.vy           = 0;
+    work->child.attackBody.pos.vz           = 0;
+    work->child.attackBody.radius           = 0x100;
+    work->child.attackBody.flags            = WORLD_COLLISION_BODY_SPHERE;
+    Gp_LinkObj(3, &work->child.attackBody);
     Gp_InitRec18Table(work->contacts, 2, 0);
-    work->child.obj.flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
+    work->child.attackBody.flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
     Gp_UpdateCoord(coord);
     work->velocity.vy = ACTOR_00400_SHOT_LAUNCH_SPEED_Y;
     diverImpactBurst(coord, (u16)work->frames, 0, 0x1300);

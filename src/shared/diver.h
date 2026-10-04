@@ -49,12 +49,20 @@ enum {
     DIVER_ANIM_REQUEST_PLAYING = 3  // the request has been applied
 };
 
-/// The head of a Diver's strike or marker child work block, which each package
-/// extends: the collision body the spawn state links and the teardown unlinks.
-typedef struct DiverChildWork {
-    /* 0x00 */ byte               pad_0[0x8];
-    /* 0x08 */ WorldCollisionBody obj;
-} DiverChildWork;
+/// What the Diver library reaches of a strike's work block.
+///
+/// A strike is the short-lived task a Diver attacks with: the Bog Diver's shot
+/// and the Sea Diver's beam. Each package keeps its own block at the strike's
+/// `Task::work`, of its own size, and opens it with this head so the shared
+/// teardown can retire either one. The package's spawn state links
+/// `attackBody` and its flight state disables it on the frame the strike
+/// bursts; the teardown unlinks it before the task ends and the block is
+/// freed.
+typedef struct {
+    byte               field_0[0x8]; // never accessed by either package; role unproven
+    WorldCollisionBody attackBody;   // sphere on the strike's root coordinate whose key carries the Diver's attack; linked for the strike's whole life
+} DiverStrikeWork;
+STATIC_ASSERT_SIZEOF(DiverStrikeWork, 0x28);
 
 void diverImpactBurst(GfxCoord* coord, u16 arg1, u16 arg2, u32 arg3);
 void diverDrawSpark(GfxCoord* arg0, u16 arg1, u16 arg2, s32 arg3);
