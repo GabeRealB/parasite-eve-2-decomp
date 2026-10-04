@@ -66,7 +66,7 @@ Three weighted direction updates needed no barriers when their final results
 used one `s32` temporary, assigned and stored separately for each axis:
 
 ```c
-direction       = (scratch->dir.vx + work->velocity.vx * 7) >> 4;
+direction       = (scratch->dir.vx + work->direction.vx * 7) >> 4;
 scratch->dir.vx = direction;
 ```
 

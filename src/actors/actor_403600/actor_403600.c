@@ -164,7 +164,7 @@ static const SVECTOR D_actor_403600_80131E2C;
 static const CVECTOR D_actor_403600_80131E34;
 
 static void func_actor_403600_801353D0(ActorEffectState* arg0, GfxCoord* arg1);
-static void func_actor_403600_80132A18(Task* arg0, Actor403600Work* work, Actor403600FxWork* arg2);
+static void func_actor_403600_80132A18(Task* arg0, Actor403600Work* work, Actor403600FxWork* fx);
 
 void func_actor_403600_80134288(Task*);
 
@@ -1072,7 +1072,7 @@ static void func_actor_403600_8013289C(s32 x, s32 corner, SVECTOR* arg2, s32 fad
     vtx->v = y;
 }
 
-static void func_actor_403600_80132A18(Task* arg0, Actor403600Work* work, Actor403600FxWork* arg2)
+static void func_actor_403600_80132A18(Task* arg0, Actor403600Work* work, Actor403600FxWork* fx)
 {
     s32                                  fade;
     s32                                  x;
@@ -1093,9 +1093,9 @@ static void func_actor_403600_80132A18(Task* arg0, Actor403600Work* work, Actor4
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         seed                    = rand();
         D_actor_403600_80160698 = seed;
-        arg2->gridSeed          = seed;
+        fx->gridSeed            = seed;
     } else {
-        D_actor_403600_80160698 = arg2->gridSeed;
+        D_actor_403600_80160698 = fx->gridSeed;
     }
     scratch->field_14.vx = 0;
     scratch->field_14.vy = 0;
@@ -1191,7 +1191,7 @@ static inline void _actor403600ApplyMatrixSv(MATRIX* m, SVECTOR* in, SVECTOR* ou
     gte_stsv(out);
 }
 
-void func_actor_403600_80132E40(Task* arg0, Actor403600Work* work, Actor403600FxWork* arg2)
+void func_actor_403600_80132E40(Task* arg0, Actor403600Work* work, Actor403600FxWork* fx)
 {
     Task*                     actor;
     GfxCoord*                 center;
@@ -1205,7 +1205,7 @@ void func_actor_403600_80132E40(Task* arg0, Actor403600Work* work, Actor403600Fx
         head    = SCRATCH_STACK_CURSOR(u8);
         scratch = (_Actor403600ChainScratch*)(SCRATCH_STACK_CURSOR(u8) = head - sizeof(_Actor403600ChainScratch));
         Gp_UpdateCoord(&actor->extra.tmd->coords[11]);
-        if (arg2->chainsSet == 0) {
+        if (fx->chainsPlaced == 0) {
             TransposeMatrix(&gGfxViewCoord.workm, &scratch->basis);
             scratch->aux.vx = center->workm.t[0] - gGfxViewCoord.workm.t[0];
             scratch->aux.vy = center->workm.t[1] - gGfxViewCoord.workm.t[1];
@@ -1222,10 +1222,10 @@ void func_actor_403600_80132E40(Task* arg0, Actor403600Work* work, Actor403600Fx
 
             i = 0;
             do {
-                arg2->chain[i]     = scratch->aux;
-                arg2->chain[i].vx += scratch->segment.vx * i;
-                arg2->chain[i].vy += scratch->segment.vy * i;
-                arg2->chain[i].vz += scratch->segment.vz * i;
+                fx->chain[i]     = scratch->aux;
+                fx->chain[i].vx += scratch->segment.vx * i;
+                fx->chain[i].vy += scratch->segment.vy * i;
+                fx->chain[i].vz += scratch->segment.vz * i;
                 i++;
             } while (i < 4);
 
@@ -1244,12 +1244,12 @@ void func_actor_403600_80132E40(Task* arg0, Actor403600Work* work, Actor403600Fx
                 gfxRotateSv(&center->workm, &scratch->segment);
 
                 gfxRotateSv(&scratch->basis, &scratch->segment);
-                arg2->limbTips[i].vx = scratch->aux.vx + scratch->segment.vx;
-                arg2->limbTips[i].vy = scratch->aux.vy + scratch->segment.vy;
-                arg2->limbTips[i].vz = scratch->aux.vz + scratch->segment.vz;
+                fx->limbTips[i].vx = scratch->aux.vx + scratch->segment.vx;
+                fx->limbTips[i].vy = scratch->aux.vy + scratch->segment.vy;
+                fx->limbTips[i].vz = scratch->aux.vz + scratch->segment.vz;
                 i++;
             } while (i < 2);
-            arg2->chainsSet += 1;
+            fx->chainsPlaced += 1;
         } else {
             TransposeMatrix(&gGfxViewCoord.workm, &scratch->basis);
             scratch->aux.vx = center->workm.t[0] - gGfxViewCoord.workm.t[0];
@@ -1257,7 +1257,7 @@ void func_actor_403600_80132E40(Task* arg0, Actor403600Work* work, Actor403600Fx
             scratch->aux.vz = center->workm.t[2] - gGfxViewCoord.workm.t[2];
 
             gfxRotateSv(&scratch->basis, &scratch->aux);
-            arg2->chain[0] = scratch->aux;
+            fx->chain[0] = scratch->aux;
 
             scratch->aux.vx = 0;
             scratch->aux.vy = 0;
@@ -1274,9 +1274,9 @@ void func_actor_403600_80132E40(Task* arg0, Actor403600Work* work, Actor403600Fx
 
             i = 0;
             do {
-                scratch->segment.vx  = arg2->chain[i + 1].vx - arg2->chain[i].vx;
-                scratch->segment.vy  = arg2->chain[i + 1].vy - arg2->chain[i].vy;
-                scratch->segment.vz  = arg2->chain[i + 1].vz - arg2->chain[i].vz;
+                scratch->segment.vx  = fx->chain[i + 1].vx - fx->chain[i].vx;
+                scratch->segment.vy  = fx->chain[i + 1].vy - fx->chain[i].vy;
+                scratch->segment.vz  = fx->chain[i + 1].vz - fx->chain[i].vz;
                 scratch->segment.vx += scratch->aux.vx;
                 scratch->segment.vy += scratch->aux.vy;
                 scratch->segment.vz += scratch->aux.vz;
@@ -1289,9 +1289,9 @@ void func_actor_403600_80132E40(Task* arg0, Actor403600Work* work, Actor403600Fx
                 gte_ldsv(&scratch->segment);
                 gte_gpf12();
                 gte_stsv(&scratch->segment);
-                arg2->chain[i + 1].vx = arg2->chain[i].vx + scratch->segment.vx;
-                arg2->chain[i + 1].vy = arg2->chain[i].vy + scratch->segment.vy;
-                arg2->chain[i + 1].vz = arg2->chain[i].vz + scratch->segment.vz;
+                fx->chain[i + 1].vx = fx->chain[i].vx + scratch->segment.vx;
+                fx->chain[i + 1].vy = fx->chain[i].vy + scratch->segment.vy;
+                fx->chain[i + 1].vz = fx->chain[i].vz + scratch->segment.vz;
                 i++;
             } while (i < 3);
 
@@ -1334,9 +1334,9 @@ void func_actor_403600_80132E40(Task* arg0, Actor403600Work* work, Actor403600Fx
                 gfxRotateSv(&limb->workm, &scratch->segment);
                 gfxRotateSv(&scratch->basis, &scratch->segment);
 
-                scratch->segment.vx += arg2->limbTips[i].vx - scratch->aux.vx;
-                scratch->segment.vy += arg2->limbTips[i].vy - scratch->aux.vy;
-                scratch->segment.vz += arg2->limbTips[i].vz - scratch->aux.vz;
+                scratch->segment.vx += fx->limbTips[i].vx - scratch->aux.vx;
+                scratch->segment.vy += fx->limbTips[i].vy - scratch->aux.vy;
+                scratch->segment.vz += fx->limbTips[i].vz - scratch->aux.vz;
                 if (work->chainSweep != 0) {
                     scratch->segment.vx += scratch->sweepPull.vx;
                     scratch->segment.vy += scratch->sweepPull.vy;
@@ -1348,9 +1348,9 @@ void func_actor_403600_80132E40(Task* arg0, Actor403600Work* work, Actor403600Fx
                 gte_ldsv(&scratch->segment);
                 gte_gpf12();
                 gte_stsv(&scratch->segment);
-                arg2->limbTips[i].vx = scratch->aux.vx + scratch->segment.vx;
-                arg2->limbTips[i].vy = scratch->aux.vy + scratch->segment.vy;
-                arg2->limbTips[i].vz = scratch->aux.vz + scratch->segment.vz;
+                fx->limbTips[i].vx = scratch->aux.vx + scratch->segment.vx;
+                fx->limbTips[i].vy = scratch->aux.vy + scratch->segment.vy;
+                fx->limbTips[i].vz = scratch->aux.vz + scratch->segment.vz;
 
                 _actor403600ApplyMatrixSv(&gGfxViewCoord.workm, &scratch->dirs[i], &scratch->segment);
                 TransposeMatrix(&limb->workm, &scratch->rot);
@@ -1389,7 +1389,7 @@ void func_actor_403600_80134288(Task* arg0)
 
     work = arg0->parent->work;
     if (arg0->state == 0) {
-        fx = memCalloc(0x11C, false);
+        fx = memCalloc(sizeof(Actor403600FxWork), false);
         if (fx == NULL) {
             Task_CallExit(arg0);
             return;
@@ -1490,7 +1490,7 @@ void func_actor_403600_80134398(Task* arg0)
     SCRATCH_STACK_RESERVE_BLOCK(_Actor403600ProjectileScratch);
     scratch = SCRATCH_STACK_CURSOR(_Actor403600ProjectileScratch);
     if (arg0->state == 0) {
-        newWork = memCalloc(0x15C, 0);
+        newWork = memCalloc(sizeof(Actor403600ProjectileWork), 0);
         if (newWork == NULL) {
             Task_CallExit(arg0);
             SCRATCH_STACK_RELEASE_BLOCK(_Actor403600ProjectileScratch);
@@ -1507,31 +1507,31 @@ void func_actor_403600_80134398(Task* arg0)
         arg0->status           = 1;
         arg0->extraState.value = 0;
         if (owner == NULL) {
-            newWork->velocity.vx = 0;
-            newWork->velocity.vy = -0x1000;
-            newWork->velocity.vz = 0;
+            newWork->direction.vx = 0;
+            newWork->direction.vy = -0x1000;
+            newWork->direction.vz = 0;
         } else {
-            shared               = owner->work;
-            newWork->velocity.vy = -0x1B8;
-            firstVector          = &sp18;
-            temp_s1              = &newWork->velocity;
+            shared                = owner->work;
+            newWork->direction.vy = -0x1B8;
+            firstVector           = &sp18;
+            temp_s1               = &newWork->direction;
 
-            newWork->velocity.vx = 0;
-            newWork->velocity.vz = 0x4B0;
-            sp18                 = newWork->velocity;
-            ownerCoord           = &((Actor403600Work*)shared)->worldCoord;
-            shared               = &((Actor403600Work*)shared)->worldCoord.coord;
+            newWork->direction.vx = 0;
+            newWork->direction.vz = 0x4B0;
+            sp18                  = newWork->direction;
+            ownerCoord            = &((Actor403600Work*)shared)->worldCoord;
+            shared                = &((Actor403600Work*)shared)->worldCoord.coord;
             gte_SetRotMatrix(shared);
             gte_ldv0(firstVector);
             gte_rtv0();
             gte_stsv(temp_s1);
-            coord->coord.t[0]    = ownerCoord->coord.t[0] + newWork->velocity.vx;
-            coord->coord.t[1]    = ownerCoord->coord.t[1] + newWork->velocity.vy;
-            coord->coord.t[2]    = ownerCoord->coord.t[2] + newWork->velocity.vz;
-            newWork->velocity.vx = (s16)((rand() & 0x1FF) - 0x100);
-            newWork->velocity.vy = (s16)((rand() & 0x1FF) - 0x100);
-            newWork->velocity.vz = 0x1000;
-            sp18                 = newWork->velocity;
+            coord->coord.t[0]     = ownerCoord->coord.t[0] + newWork->direction.vx;
+            coord->coord.t[1]     = ownerCoord->coord.t[1] + newWork->direction.vy;
+            coord->coord.t[2]     = ownerCoord->coord.t[2] + newWork->direction.vz;
+            newWork->direction.vx = (s16)((rand() & 0x1FF) - 0x100);
+            newWork->direction.vy = (s16)((rand() & 0x1FF) - 0x100);
+            newWork->direction.vz = 0x1000;
+            sp18                  = newWork->direction;
             gte_SetRotMatrix(shared);
             gte_ldv0(firstVector);
             gte_rtv0();
@@ -1557,29 +1557,29 @@ void func_actor_403600_80134398(Task* arg0)
             newWork->trail[var_s4].vy = (u16)coord->coord.t[1];
             newWork->trail[var_s4].vz = (u16)coord->coord.t[2];
             var_s4                   += 1;
-        } while (var_s4 < 0x20);
-        newShape = &newWork->shape;
+        } while (var_s4 < ARRAY_SIZE(newWork->trail));
+        newShape = &newWork->attackCapsule;
         if (arg0->spawnArg1.value < 0x1000) {
-            obj                       = &newWork->obj;
-            obj->coord                = coord;
-            obj->context.capsule      = newShape;
-            obj->pos.vx               = 0;
-            obj->pos.vy               = 0;
-            obj->pos.vz               = 0;
-            obj->radius               = 0;
-            recs                      = newWork->recs;
-            obj->key                  = Gp_PackPair(&D_actor_403600_801420F0, arg0->spawnArg1.value & 0xF);
-            obj->flags                = WORLD_COLLISION_BODY_CAPSULE;
-            newShape->contacts        = recs;
-            newShape->ends[1].vx      = 0;
-            newShape->ends[1].vy      = 0;
-            newShape->ends[1].vz      = 0;
-            newWork->shape.ends[0].vx = 0;
-            newShape->ends[0].vy      = 0;
-            newShape->ends[0].vz      = 0;
-            newShape->end0Radius      = 0xC8;
-            newShape->end1Radius      = 0xC8;
-            Gp_InitRec18Table(recs, 1, 0);
+            obj                               = &newWork->attackBody;
+            obj->coord                        = coord;
+            obj->context.capsule              = newShape;
+            obj->pos.vx                       = 0;
+            obj->pos.vy                       = 0;
+            obj->pos.vz                       = 0;
+            obj->radius                       = 0;
+            recs                              = newWork->attackContacts;
+            obj->key                          = Gp_PackPair(&D_actor_403600_801420F0, arg0->spawnArg1.value & 0xF);
+            obj->flags                        = WORLD_COLLISION_BODY_CAPSULE;
+            newShape->contacts                = recs;
+            newShape->ends[1].vx              = 0;
+            newShape->ends[1].vy              = 0;
+            newShape->ends[1].vz              = 0;
+            newWork->attackCapsule.ends[0].vx = 0;
+            newShape->ends[0].vy              = 0;
+            newShape->ends[0].vz              = 0;
+            newShape->end0Radius              = 0xC8;
+            newShape->end1Radius              = 0xC8;
+            Gp_InitRec18Table(recs, ARRAY_SIZE(newWork->attackContacts), 0);
             Gp_LinkObj(3, obj);
             obj->flags         = obj->flags | (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
             arg0->exitCallback = func_actor_403600_80138C68;
@@ -1598,7 +1598,7 @@ block_22:
     scratch->dir.vx = (s16)var_s4;
     var_s4          = target->workm.t[1] - view->workm.t[1];
     scratch->dir.vy = (s16)var_s4;
-    newShape        = &work->shape;
+    newShape        = &work->attackCapsule;
     cameraVector    = &sp18;
     temp_v1         = &scratch->dir;
     var_s4          = target->workm.t[2] - view->workm.t[2];
@@ -1620,9 +1620,9 @@ block_22:
         }
         var_s4 = 0;
         do {
-            work->trail[31 - var_s4] = work->trail[30 - var_s4];
-            var_s4                  += 1;
-        } while (var_s4 < 0x1F);
+            work->trail[ARRAY_SIZE(work->trail) - 1 - var_s4] = work->trail[ARRAY_SIZE(work->trail) - 2 - var_s4];
+            var_s4                                           += 1;
+        } while (var_s4 < ARRAY_SIZE(work->trail) - 1);
         arg0->extraState.value ^= 1;
         temp_v1_3               = (u16)arg0->killCountdown - 1;
         arg0->killCountdown     = temp_v1_3;
@@ -1659,21 +1659,21 @@ block_22:
                         scratch->dir.vy = (s16)((s32)(scratch->target.vy - coord->coord.t[1]) >> 2);
                         scratch->dir.vz = (s16)((s32)(scratch->target.vz - coord->coord.t[2]) >> 2);
                         VectorNormalSS(temp_s0_4, temp_s0_4);
-                        direction       = (scratch->dir.vx + work->velocity.vx * 7) >> 4;
+                        direction       = (scratch->dir.vx + work->direction.vx * 7) >> 4;
                         scratch->dir.vx = direction;
-                        direction       = (scratch->dir.vy + work->velocity.vy * 7) >> 4;
+                        direction       = (scratch->dir.vy + work->direction.vy * 7) >> 4;
                         scratch->dir.vy = direction;
-                        direction       = (scratch->dir.vz + work->velocity.vz * 7) >> 4;
+                        direction       = (scratch->dir.vz + work->direction.vz * 7) >> 4;
                         scratch->dir.vz = direction;
                         VectorNormalSS(temp_s0_4, temp_s0_4);
-                        work->velocity.vx = (s16)(u16)scratch->dir.vx;
-                        work->velocity.vy = (s16)(u16)scratch->dir.vy;
-                        work->velocity.vz = (s16)(u16)scratch->dir.vz;
+                        work->direction.vx = (s16)(u16)scratch->dir.vx;
+                        work->direction.vy = (s16)(u16)scratch->dir.vy;
+                        work->direction.vz = (s16)(u16)scratch->dir.vz;
                     }
                     temp_v1_5 = arg0->status;
                     if (temp_v1_5 < 3U) {
                         gte_lddp(100);
-                        gteValue2 = &work->velocity;
+                        gteValue2 = &work->direction;
                         gte_ldsv(gteValue2);
                         gte_gpf12();
                         gte_stsv(temp_s0_4);
@@ -1696,7 +1696,7 @@ block_22:
                                 work->trail[var_s4].vy = (u16)coord->coord.t[1];
                                 work->trail[var_s4].vz = (u16)coord->coord.t[2];
                                 var_s4                += 1;
-                            } while (var_s4 < 0x20);
+                            } while (var_s4 < ARRAY_SIZE(work->trail));
                             steeringPass += 1;
                         } else {
                             goto block_51;
@@ -1723,15 +1723,15 @@ block_22:
         }
     } else {
     block_54:
-        if ((arg0->spawnArg1.value < 0x1000) && (Gp_FindRec18(work->recs, 0) != 0)) {
+        if ((arg0->spawnArg1.value < 0x1000) && (Gp_FindRec18(work->attackContacts, 0) != 0)) {
             temp_s0_5 = (s8)worldCoordGetOriginAudioPan(coord);
             SndEvt_EnqueueType6(SOUND_SHELTER_B2_POD_BTM_PROJECTILE_HIT, temp_s0_5, (s8)worldCoordGetOriginAudioDepth(coord));
             work->life = -1;
         }
         if (work->life < 0) {
             if (arg0->spawnArg1.value < 0x1000) {
-                Gp_ClearRec18Occupied(work->recs);
-                work->obj.flags = work->obj.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
+                Gp_ClearRec18Occupied(work->attackContacts);
+                work->attackBody.flags = work->attackBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
             }
             work->life          = 0x7FFFFFFF;
             arg0->status        = 2;
@@ -1763,7 +1763,7 @@ block_22:
             sp28 = 4;
         }
         var_s4 = var_fp;
-        if (var_s4 < 0x20) {
+        if (var_s4 < ARRAY_SIZE(work->trail)) {
             ds = &gDisplayState;
             do {
                 shared                  = D_actor_403600_8016069C;
@@ -1878,7 +1878,7 @@ block_22:
                     }
                 }
                 var_s4 += sp28;
-            } while (var_s4 < 0x20);
+            } while (var_s4 < ARRAY_SIZE(work->trail));
         }
     }
     SCRATCH_STACK_RELEASE_BLOCK(_Actor403600ProjectileScratch);

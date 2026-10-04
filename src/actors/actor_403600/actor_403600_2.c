@@ -414,7 +414,7 @@ void func_actor_403600_80138C34(Task* arg0)
 
 void func_actor_403600_80138C68(Task* arg0)
 {
-    Gp_UnlinkObj(&((Actor403600ProjectileWork*)arg0->work)->obj);
+    Gp_UnlinkObj(&((Actor403600ProjectileWork*)arg0->work)->attackBody);
     taskKill(arg0);
 }
 

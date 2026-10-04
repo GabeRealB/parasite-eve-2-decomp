@@ -185,29 +185,45 @@ typedef struct {
 } Actor403600Work;
 STATIC_ASSERT_SIZEOF(Actor403600Work, 0x7B8);
 
-/// Work block of the task `func_actor_403600_80134288` runs under the actor:
-/// the seed its screen distortion grid is drawn from, and the joints of the
-/// two chains `func_actor_403600_80132E40` hangs the actor's model parts on.
-typedef struct Actor403600FxWork {
+/// Work block of the boss's effect task, a child of the boss task that
+/// `Actor403600Work::fxTask` points back to.
+///
+/// It keeps the two things that task carries from one frame to the next: the
+/// seed of the screen distortion grid, and the points the loose parts of the
+/// boss's model swing after. Those parts are the chain of model parts 9 to 11,
+/// which hangs from part 8, and parts 15 and 19, each turning about its own
+/// origin. A point is a room position cut to 16 bits; it is pulled along at a
+/// fixed distance by the part it hangs from, so it lags while the model moves
+/// and the part is turned to face it. Nothing in this package reads or writes
+/// the `pad` runs, whose role is unproven.
+typedef struct {
     byte    pad_0[4];
-    s32     gridSeed;    // random state the grid's jitter starts from, kept so a paused frame redraws the same grid
-    SVECTOR chain[4];    // joints of the three-segment chain hanging from the actor's body, world-oriented and relative to the view
+    s32     gridSeed;     // Random state the grid's jitter was drawn from on the last running frame; a held frame restarts from it and redraws the same grid
+    SVECTOR chain[4];     // Joints of the chain, root first: element 0 is model part 8's position and each later one trails its predecessor at 0x485
     byte    pad_28[0xE0];
-    SVECTOR limbTips[2]; // free ends of the two single segments hanging from the actor's limbs, in the same frame
-    s32     chainsSet;   // zero until the first frame has laid the chains out
+    SVECTOR limbTips[2];  // Point model parts 15 and 19 each face, trailing 0x898 from the part's origin
+    s32     chainsPlaced; // 0 until the first running frame has laid the joints out straight from the model's pose, 1 from then on
 } Actor403600FxWork;
 STATIC_ASSERT_SIZEOF(Actor403600FxWork, 0x11C);
 
-/// Work block of the projectile task `func_actor_403600_80134398` runs. The
-/// projectile leaves from one of its owner's model parts and is drawn as a
-/// trail of glowing quads, one per remembered position.
-typedef struct Actor403600ProjectileWork {
-    SVECTOR               trail[32]; // positions over the last 32 frames, newest first; each `pad` is a random angle its quad is turned by
-    SVECTOR               velocity;  // step added to the position each frame
-    WorldCollisionBody    obj;       // collision body, linked only for the kinds that can hit
-    WorldCollisionCapsule shape;     // the capsule `obj` carries
-    WorldCollisionContact recs[1];   // contact table of `shape`
-    s32                   life;      // frames left before the projectile fades out; forced negative when it hits
+/// Work block of one projectile of the boss's volley.
+///
+/// The projectile gathers on one of its owner's model parts, is released
+/// along the owner's facing with a random spread, flies straight, steers
+/// towards the player for a while and then flies straight again until it hits
+/// or its flight runs out, when it fades from the head of its trail back. It
+/// is drawn as a glow at its position and a trail of quads behind it, one per
+/// remembered position, and carries an attack capsule that covers each step
+/// it takes. The spawn argument is its kind: the low four bits pick the glow's
+/// tint and the attack. Kinds from 0x1000 up stay on the owner's part, link no
+/// body and do not time out; nothing in this package spawns one.
+typedef struct {
+    SVECTOR               trail[32];         // Room positions, cut to 16 bits, of the last 32 running frames, newest first; `pad` is a random draw giving the angle the point's quad is turned by and, in bit 5, which of two textures it shows
+    SVECTOR               direction;         // Direction of flight, 0x1000 = 1; a step is 100 units along it, taken twice a frame
+    WorldCollisionBody    attackBody;        // Capsule body riding the projectile's coordinate and carrying the attack of its kind; set up and linked only for kinds below 0x1000
+    WorldCollisionCapsule attackCapsule;     // Its shape: radius 200, from the projectile back over the step it last took
+    WorldCollisionContact attackContacts[1]; // The one contact of `attackBody`; a contact there ends the flight
+    s32                   life;              // Frames of flight left, counted down from 300; a contact forces it negative, which starts the fade-out and parks it at 0x7FFFFFFF
 } Actor403600ProjectileWork;
 STATIC_ASSERT_SIZEOF(Actor403600ProjectileWork, 0x15C);
 
@@ -287,7 +303,7 @@ extern GfxCoord* D_actor_403600_801606A0;
 
 void func_actor_403600_80138C68(Task* arg0);
 
-void func_actor_403600_80132E40(Task* arg0, Actor403600Work* work, Actor403600FxWork* arg2);
+void func_actor_403600_80132E40(Task* arg0, Actor403600Work* work, Actor403600FxWork* fx);
 
 void func_actor_403600_80138C34(Task* task);
 
