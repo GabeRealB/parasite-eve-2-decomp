@@ -13803,7 +13803,7 @@ shared between the `%lo(sym)` field_0 access and the array base:
 temp = CdReady_Queue.field_0; /* lui/addiu + %lo lbu */
 if (arg0 != 0) {
     idx = arg0 - 1;
-    entry = (CdReadyEntry*)&CdReady_Queue.entries[idx];
+    entry = (_CdReadyEntry*)&CdReady_Queue.entries[idx];
     ...
     CdReady_Queue.field_0 = temp;
 }
@@ -17803,41 +17803,42 @@ When the target interleaves a field store with a multi-step flag update:
 
 ```
 lw  flags, 0(entry)
-lw  temp,  field_C(arg)
+lw  temp,  12(arg)
 ori flags, 1
-sw  temp,  field_C(entry)   /* store between ori and first and */
+sw  temp,  12(entry)        /* store between ori and first and */
 li  temp, -5
 and flags, temp
 li  temp, -9
 and ...
-lw  temp,  field_10(arg)
+lw  temp,  16(arg)
 ori flags, 2
 sw  flags, 0(entry)
-sw  temp,  field_10(entry)
+sw  temp,  16(entry)
 ```
 
-writing `flags &= ~4` (or a single combined mask) lets CSE schedule the
-`li -5` early and delay the field_C store until after all the ands. Force the
-interleaving by routing the first mask through the same temp used for the
-field_C value:
+read the one-constant-per-step chain first: one load, one `ori`/`and` per
+field, one store is what consecutive **bitfield** stores through a
+non-volatile pointer compile to, and the interleaving is only the scheduler
+moving the neighbouring copies around them. Declare the word as bitfields and
+write the copies first, the bit stores after:
 
 ```c
-temp = arg0->field_C;
-flags = entry->field_0;
-flags = flags | 1;
-entry->field_C = temp;
-temp = ~4;                 /* reuses temp; emits li + and, not a combined mask */
-flags = flags & temp;
-flags = flags & ~8;
-flags = flags & ~0x1FE0;
-temp = arg0->field_10;
-flags = flags | 2;
-entry->field_0 = flags;
-entry->field_10 = temp;
+entry->doneFn        = arg0->doneFn;
+entry->cancelFn      = arg0->cancelFn;
+entry->active        = 1;
+entry->cancelled     = 0;
+entry->cancelPending = 0;
+entry->phase         = 0;
+entry->firstPoll     = 1;
 ```
 
-`temp = ~4` (or `temp = -5`) is required for the first mask only — later
-`& ~8` / `& ~0x1FE0` can be written directly once temp is free for field_10.
+Putting a copy between the bit stores splits the word into two load/store
+pairs, since a load through the other pointer may alias it. Where the word has
+to stay a plain integer, `flags &= ~4` (or a single combined mask) lets CSE
+schedule the `li -5` early and delay the first copy's store until after all the
+ands; force the interleaving by routing the first mask through the temp that
+carried the copied value (`temp = arg0->doneFn; ... temp = ~4; flags &= temp;`),
+which is needed for the first mask only.
 
 Also index the ring buffer via the global name, not a local pointer, when the
 target builds `idx*stride` first then `addiu base, p, offsetof(entries)`:
@@ -19996,15 +19997,15 @@ callback ring. Two matching details that look like style nits but are required:
 
 1. **Non-volatile entry pointer.** The queue object itself is `volatile`
    (`CdReady_Queue`), but the current slot must be taken as a plain
-   `CdReadyEntry*`:
+   `_CdReadyEntry*`:
 
 ```c
-entry = (CdReadyEntry*)&CdReady_Queue.entries[(s8)p->field_2];
-entry->field_0 &= ~1;
-entry->field_0 &= ~4;
+entry = (_CdReadyEntry*)&CdReady_Queue.entries[(s8)p->field_2];
+entry->active    = 0;
+entry->cancelled = 0;
 ```
 
-   With a `volatile CdReadyEntry*`, each `&=` becomes its own load/store (or
+   With a `volatile _CdReadyEntry*`, each bit store becomes its own load/store (or
    a temp lands in the wrong register). Non-volatile gives the target's
    `lw` / `li -2` / `and` / `li -5` / `and` / `sw` chain in `$v0`/`$v1`.
 
@@ -20016,7 +20017,7 @@ entry->field_0 &= ~4;
    literally, once via `p` and once via the global name.
 
 `AsyncCb_Poll` is the pure template for control flow; `CdReady_Poll` adds the
-`field_0` lock check and the no-arg `field_C` callback.
+`field_0` lock check and the no-arg `doneFn` callback.
 
 ## Sign-extend loop counter via `next` in `$v0` + empty asm barrier
 
@@ -22389,7 +22390,7 @@ another purpose, then reused after the block):
 ```c
 a3 = (volatile CdStreamState*)&CdReady_Queue; /* may be needed for reg color */
 …
-e = (CdReadyEntry*)&CdReady_Queue.entries[idx]; /* global → addiu v0, base, 8 */
+e = (_CdReadyEntry*)&CdReady_Queue.entries[idx]; /* global → addiu v0, base, 8 */
 ```
 
 `CdStream_Start` is the pure example — 99.9% until this one form difference.
@@ -66334,7 +66335,7 @@ uses no register pins or empty asm.
 ## func_80058ED4: volatile reload placement and reusing the quotient local
 
 Matched using the adjacent `func_8005896C` stop-voice and ready-queue paths.
-A `CdReadyEntry` local preserves the callback stores that m2c's separate stack
+A `_CdReadyEntry` local preserves the callback stores that m2c's separate stack
 locals lose. Save `CdReady_Queue.locked` before the inner slot check and restore
 that saved byte after cancellation; self-assignment reads it too late.
 
@@ -146942,3 +146943,25 @@ simpler rule was isolated, and neither was the pass that regroups it.
 `work->stateCounter = (r1 & 1) + 1 + (r2 & 1);`. The parenthesised form had
 matched only because the member was signed, so an `s8` kept to preserve such a
 sum is the scaffold, not evidence about the member.
+
+## A bitfield shifted into an `|`: the store's own type as a cast keeps the three shifts (CdStream_PollMtsRead, 2026-10-04)
+
+**Symptom.** A status word held as `(flags >> 5) & 0xFF` and
+`(flags & ~0x1FE0) | n` was redeclared as bitfields (`phase : 8` at bit 5).
+Every read and store matched as written except one, an error code built from
+the phase: the target is `srl 5; andi 0xff; sll 4; ori 0xa`, and
+`(entry->phase * 0x10) | 0xA` gave `srl 1; andi 0xff0; ori 0xa`.
+
+**Cause.** The extract and the scaling shift are folded into one shift and a
+wider mask. Which pass does it, and why the word form escaped it, was not
+isolated. A temp for the phase, `<< 4` on that temp and the `s32`
+switch variable are all folded the same way; `+ 0xA` keeps the three shifts
+but emits `addiu`.
+
+**Fix.** A narrowing cast on the way: `CdStream_ErrorCode = (u16)(entry->phase
+<< 4) | 0xA;`, the type the code is stored as. `(u8)` or `(s16)` on the phase
+itself matches as well. No word view of the bitfield is needed.
+
+The same conversion needs `&&` over two bits of the word written as nested
+`if`s (the `fold_truthop` entries above): `CdReady_Poll`'s
+`cancelled && !firstPoll` otherwise becomes `(word & 6) == 4`.

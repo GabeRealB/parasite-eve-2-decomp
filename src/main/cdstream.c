@@ -235,32 +235,61 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(CdStreamRuntime, 0xD8);
 STATIC_ASSERT(OFFSET_OF(CdStreamRuntime, channels) == 0x58, cd_stream_channels_offset);
 
-/// One slot in CdReady_Queue.entries (stride 0x14).
-/// flags: bit0 active, bit1 armed, bit2 cancel/pending, bit3 result.
-/// Callback words are copied alongside the queue flags; dispatch uses their typed view.
+/// `_CdReadyEntry::phase` while a chunk read owns the entry, in the order a
+/// read passes through them.
+///
+/// Zero is an entry that has not been polled. The two cancel steps are entered
+/// only when a read is cancelled with the drive or the SPU still busy.
+#define CD_STREAM_STEP_SETMODE         1  // issue the streaming drive mode
+#define CD_STREAM_STEP_SETMODE_SYNC    2  // wait for the mode command
+#define CD_STREAM_STEP_SPEED_SETTLE    3  // count down the polls after a speed change
+#define CD_STREAM_STEP_SETLOC          4  // target the entry's sector
+#define CD_STREAM_STEP_SETLOC_SYNC     5  // wait for the setloc
+#define CD_STREAM_STEP_READ            6  // install the data callback and start the read
+#define CD_STREAM_STEP_READ_SYNC       7  // wait for the read command
+#define CD_STREAM_STEP_SECTORS         8  // wait for the chunk's sectors
+#define CD_STREAM_STEP_PAUSE           9  // pause the drive
+#define CD_STREAM_STEP_PAUSE_SYNC      11 // wait for the pause
+#define CD_STREAM_STEP_TRANSFER        12 // wait for the SPU transfer
+#define CD_STREAM_STEP_IDLE_SYNC       10 // wait for the drive to go idle, which finishes the read
+#define CD_STREAM_STEP_CANCEL_TRANSFER 13 // cancelled: wait for the SPU transfer
+#define CD_STREAM_STEP_CANCEL_PAUSE    14 // cancelled among the sectors: the pause is issued, the flush is not
+
+/// One queued job of the CD-ready queue: a disc operation polled to completion.
+///
+/// The queue polls the entry at its head each time the stream is driven.
+/// `pollFn` advances the job and returns nonzero once it has finished,
+/// successfully or not; the queue then calls `doneFn` and moves on.
+/// Cancelling an active entry clears `active` and sets `cancelled`: one that
+/// was never polled is dropped, one already under way gets `cancelFn`, again
+/// on every later poll for as long as that leaves `cancelPending` set. Either
+/// handler may be null.
+///
+/// Queueing copies the caller's handlers and `sector` and keeps no reference
+/// to the caller's entry; the status bits belong to the queue and to `pollFn`.
+/// The 19 bits above `phase` are written only by the queue's reset.
 typedef struct _CdReadyEntry {
-    /* 0x00 */ u32 flags;
-    /* 0x04 */ s32 sectorPos;
-    /* 0x08 */ s32 (*pollFn)(struct _CdReadyEntry*);
-    /* 0x0C */ union {
-        void (*callback)(void);
-        u32  word;
-    } doneFn;
-    /* 0x10 */ union {
-        void (*callback)(struct _CdReadyEntry*);
-        u32  word;
-    } errorFn;
-} CdReadyEntry;
-STATIC_ASSERT_SIZEOF(CdReadyEntry, 0x14);
+    u32  active        : 1;                  // queued and still to be polled
+    u32  firstPoll     : 1;                  // set on queueing, cleared by `pollFn` on its first call
+    u32  cancelled     : 1;                  // cancelled; cleared when the queue moves past the entry
+    u32  cancelPending : 1;                  // `cancelFn` has not finished and is to be called again
+    u32  speedChange   : 1;                  // the drive was not at double speed: let it settle after the mode command
+    u32  phase         : 8;                  // step of `pollFn`'s state machine, zeroed on queueing
+    s32  sector;                             // absolute disc sector the read starts at
+    s32  (*pollFn)(struct _CdReadyEntry*);   // advances the job; nonzero once it has finished
+    void (*doneFn)(void);                    // called when `pollFn` reports the job finished
+    void (*cancelFn)(struct _CdReadyEntry*); // winds down a cancelled job that had started
+} _CdReadyEntry;
+STATIC_ASSERT_SIZEOF(_CdReadyEntry, 0x14);
 
 /// BSS object CdReady_Queue (size 0x58). Ring of CD ready work items + callback state.
 typedef struct _CdReadyQueue {
-    /* 0x00 */ u8           locked;            // re-entrancy guard
-    /* 0x01 */ u8           callbackInstalled; // CdReadyCallback currently ours
-    /* 0x02 */ u8           readIdx;
-    /* 0x03 */ u8           writeIdx;
-    /* 0x04 */ CdlCB        prevCallback; // previous CdReadyCallback
-    /* 0x08 */ CdReadyEntry entries[4];
+    /* 0x00 */ u8            locked;            // re-entrancy guard
+    /* 0x01 */ u8            callbackInstalled; // CdReadyCallback currently ours
+    /* 0x02 */ u8            readIdx;
+    /* 0x03 */ u8            writeIdx;
+    /* 0x04 */ CdlCB         prevCallback; // previous CdReadyCallback
+    /* 0x08 */ _CdReadyEntry entries[4];
 } CdReadyQueue;
 STATIC_ASSERT_SIZEOF(CdReadyQueue, 0x58);
 
@@ -343,7 +372,7 @@ static u16 D_80068B78;
 
 void func_80725BB8(Task* arg0);
 
-static s32 CdReady_Enqueue(CdReadyEntry* arg0);
+static s32 CdReady_Enqueue(_CdReadyEntry* arg0);
 
 static void CdReady_Poll(void);
 
@@ -363,7 +392,7 @@ static void CdStream_TickPlayback(void);
 static void CdStream_CompleteChunkRead(void);
 
 /// Advances the queued MTS read through mode, seek, read, pause and completion.
-static s32 CdStream_PollMtsRead(CdReadyEntry* entry);
+static s32 CdStream_PollMtsRead(_CdReadyEntry* entry);
 
 static void CdStream_ReadyMts(u8 interrupt, u8* result);
 
@@ -377,9 +406,9 @@ static void CdStream_SpuIrqHandler(void);
 
 static void CdStream_SetFlag14(s32 playhead);
 
-static void CdStream_AbortPhase(CdReadyEntry* entry);
+static void CdStream_AbortPhase(_CdReadyEntry* entry);
 
-static void CdStream_FinishQueueEntry(CdReadyEntry* entry);
+static void CdStream_FinishQueueEntry(_CdReadyEntry* entry);
 
 static void CdReady_Cancel(s16 arg0);
 
@@ -920,14 +949,12 @@ u16 Snd_VelocityGainTable[] = {
     0x3FFF,
 };
 
-static s32 CdReady_Enqueue(CdReadyEntry* arg0)
+static s32 CdReady_Enqueue(_CdReadyEntry* arg0)
 {
     u8                     saved;
     s32                    field2;
     s32                    next;
-    u32                    flags;
-    s32                    temp;
-    volatile CdReadyEntry* entry;
+    _CdReadyEntry*         entry;
     volatile CdReadyQueue* p;
 
     p                    = &CdReady_Queue;
@@ -946,21 +973,17 @@ static s32 CdReady_Enqueue(CdReadyEntry* arg0)
         return 0;
     }
 
-    entry                = &CdReady_Queue.entries[(s8)p->writeIdx];
-    entry->pollFn        = arg0->pollFn;
-    entry->sectorPos     = arg0->sectorPos;
-    temp                 = arg0->doneFn.word;
-    flags                = entry->flags;
-    flags                = flags | 1;
-    entry->doneFn.word   = temp;
-    temp                 = ~4;
-    flags                = flags & temp;
-    flags                = flags & ~8;
-    flags                = flags & ~0x1FE0;
-    temp                 = arg0->errorFn.word;
-    flags                = flags | 2;
-    entry->flags         = flags;
-    entry->errorFn.word  = temp;
+    entry           = (_CdReadyEntry*)&CdReady_Queue.entries[(s8)p->writeIdx];
+    entry->pollFn   = arg0->pollFn;
+    entry->sector   = arg0->sector;
+    entry->doneFn   = arg0->doneFn;
+    entry->cancelFn = arg0->cancelFn;
+    // The status bits are the queue's own: the caller supplies only the handlers and the sector.
+    entry->active        = 1;
+    entry->cancelled     = 0;
+    entry->cancelPending = 0;
+    entry->phase         = 0;
+    entry->firstPoll     = 1;
     field2               = (s8)p->writeIdx;
     p->writeIdx          = next;
     CdReady_Queue.locked = saved;
@@ -970,35 +993,38 @@ static s32 CdReady_Enqueue(CdReadyEntry* arg0)
 static void CdReady_Poll(void)
 {
     volatile CdReadyQueue* p;
-    CdReadyEntry*          entry;
-    u32                    flags;
+    _CdReadyEntry*         entry;
 
     p = &CdReady_Queue;
     if (p->locked == 0 && p->writeIdx != p->readIdx) {
-        entry = (CdReadyEntry*)&CdReady_Queue.entries[(s8)p->readIdx];
-        flags = entry->flags;
-        if (flags & 1) {
+        entry = (_CdReadyEntry*)&CdReady_Queue.entries[(s8)p->readIdx];
+        if (entry->active) {
             if (entry->pollFn(entry) != 0) {
-                if (entry->doneFn.callback != 0) {
-                    entry->doneFn.callback();
+                if (entry->doneFn != NULL) {
+                    entry->doneFn();
                 }
-                entry->flags &= ~1;
-                entry->flags &= ~4;
-                p->readIdx    = p->readIdx + 1;
+                entry->active    = 0;
+                entry->cancelled = 0;
+                p->readIdx       = p->readIdx + 1;
                 if ((s8)p->readIdx >= 4) {
                     p->readIdx = 0;
                 }
             }
-        } else if (((flags >> 2) & 1) && !((flags >> 1) & 1)) {
-            if (entry->errorFn.callback != 0) {
-                entry->errorFn.callback(entry);
-            }
-            if (!((entry->flags >> 3) & 1)) {
-                goto advance;
-            }
         } else {
-        advance:
-            entry->flags         &= ~4;
+            // A cancelled job that had started is wound down before the queue moves on; one
+            // that never ran is dropped. The two tests stay nested: joined by `&&` they
+            // compile to a single masked compare.
+            if (entry->cancelled) {
+                if (!entry->firstPoll) {
+                    if (entry->cancelFn != NULL) {
+                        entry->cancelFn(entry);
+                    }
+                    if (entry->cancelPending) {
+                        return;
+                    }
+                }
+            }
+            entry->cancelled      = 0;
             CdReady_Queue.readIdx = CdReady_Queue.readIdx + 1;
             if ((s8)CdReady_Queue.readIdx >= 4) {
                 CdReady_Queue.readIdx = 0;
@@ -1009,7 +1035,7 @@ static void CdReady_Poll(void)
 
 void CdStream_Start(CdStreamParams* params)
 {
-    CdReadyEntry            entry;
+    _CdReadyEntry           entry;
     volatile CdStreamState* p;
     s32                     flag;
     volatile CdStreamState* ap;
@@ -1017,25 +1043,24 @@ void CdStream_Start(CdStreamParams* params)
         volatile CdStreamState* state;
         volatile CdReadyQueue*  queue;
     } a3;
-    SpuVoiceAttr* t0;
-    SpuVoiceAttr* ch1;
-    s32           sectors;
-    s16           volume;
-    u8            saved;
-    s16           f6;
-    s16           idx;
-    u32           flags;
-    CdReadyEntry* e;
-    s32           one;
-    s32           cflags;
-    s16           vff;
-    s16           v1fc3;
-    s16           v1000;
-    s32           temp;
-    s8            channelCount;
-    s32           spuBase;
-    CdReadyEntry* rem_tmp;
-    s32           startSector;
+    SpuVoiceAttr*  t0;
+    SpuVoiceAttr*  ch1;
+    s32            sectors;
+    s16            volume;
+    u8             saved;
+    s16            f6;
+    s16            idx;
+    _CdReadyEntry* e;
+    s32            one;
+    s32            cflags;
+    s16            vff;
+    s16            v1fc3;
+    s16            v1000;
+    s32            temp;
+    s8             channelCount;
+    s32            spuBase;
+    _CdReadyEntry* rem_tmp;
+    s32            startSector;
 
     p         = &CdStream_Runtime.state;
     p->voiceL = params->voiceL;
@@ -1061,11 +1086,11 @@ void CdStream_Start(CdStreamParams* params)
         f6       = ap->readySlot;
         saved    = CdReady_Queue.locked;
         if (f6 != 0) {
-            idx   = f6 - 1;
-            e     = (CdReadyEntry*)&CdReady_Queue.entries[idx];
-            flags = e->flags;
-            if (flags & 1) {
-                e->flags = (flags & ~1) | 4;
+            idx = f6 - 1;
+            e   = (_CdReadyEntry*)&CdReady_Queue.entries[idx];
+            if (e->active) {
+                e->active    = 0;
+                e->cancelled = 1;
             }
             CdReady_Queue.locked = saved;
         }
@@ -1161,9 +1186,9 @@ void CdStream_Start(CdStreamParams* params)
     rem_tmp                          = &entry;
     entry.pollFn                     = CdStream_PollMtsRead;
     startSector                      = params->startSector;
-    entry.doneFn.callback            = CdStream_Continue;
-    entry.errorFn.callback           = CdStream_FinishQueueEntry;
-    entry.sectorPos                  = startSector;
+    entry.doneFn                     = CdStream_Continue;
+    entry.cancelFn                   = CdStream_FinishQueueEntry;
+    entry.sector                     = startSector;
     CdStream_Runtime.state.readySlot = CdReady_Enqueue(rem_tmp);
     CdStream_Runtime.state.phase     = CD_STREAM_PHASE_READING;
     D_80068B74                       = -1;
@@ -1171,7 +1196,7 @@ void CdStream_Start(CdStreamParams* params)
 
 static void CdStream_Continue(void)
 {
-    CdReadyEntry            entry;
+    _CdReadyEntry           entry;
     volatile CdStreamState* p;
 
     CdStream_Runtime.state.readySlot = 0;
@@ -1189,14 +1214,14 @@ static void CdStream_Continue(void)
         }
     }
 
-    p                      = &CdStream_Runtime.state;
-    entry.pollFn           = CdStream_PollMtsRead;
-    entry.doneFn.callback  = CdStream_Continue;
-    p->flags2              = p->flags2 & CD_STREAM_CLEAR_FAULT;
-    entry.errorFn.callback = CdStream_FinishQueueEntry;
-    entry.sectorPos        = p->startSector;
-    D_80068B63             = D_80068B63 + 1;
-    p->readySlot           = CdReady_Enqueue(&entry);
+    p              = &CdStream_Runtime.state;
+    entry.pollFn   = CdStream_PollMtsRead;
+    entry.doneFn   = CdStream_Continue;
+    p->flags2      = p->flags2 & CD_STREAM_CLEAR_FAULT;
+    entry.cancelFn = CdStream_FinishQueueEntry;
+    entry.sector   = p->startSector;
+    D_80068B63     = D_80068B63 + 1;
+    p->readySlot   = CdReady_Enqueue(&entry);
 }
 
 void CdStream_Stop(void)
@@ -1205,8 +1230,7 @@ void CdStream_Stop(void)
     u8                      temp;
     s16                     arg0;
     s16                     idx;
-    u32                     flags;
-    CdReadyEntry*           entry;
+    _CdReadyEntry*          entry;
     volatile CdStreamState* p;
 
     saved                = CdReady_Queue.locked;
@@ -1222,10 +1246,10 @@ void CdStream_Stop(void)
             temp = CdReady_Queue.locked;
             if (arg0 != 0) {
                 idx   = arg0 - 1;
-                entry = (CdReadyEntry*)&CdReady_Queue.entries[idx];
-                flags = entry->flags;
-                if (flags & 1) {
-                    entry->flags = (flags & ~1) | 4;
+                entry = (_CdReadyEntry*)&CdReady_Queue.entries[idx];
+                if (entry->active) {
+                    entry->active    = 0;
+                    entry->cancelled = 1;
                 }
                 CdReady_Queue.locked = temp;
             }
@@ -1244,12 +1268,11 @@ void CdStream_Stop(void)
 
 static void CdStream_TeardownVoices(void)
 {
-    CdReadyEntry  entry;
-    s32           flag;
-    s16           slot;
-    u32           flags;
-    CdReadyEntry* e;
-    u8            saved;
+    _CdReadyEntry  entry;
+    s32            flag;
+    s16            slot;
+    _CdReadyEntry* e;
+    u8             saved;
 
     if (CdStream_Runtime.state.flags2 & CD_STREAM_REQUEUE) {
         CdStream_Runtime.state.queuedChunk;
@@ -1272,20 +1295,20 @@ static void CdStream_TeardownVoices(void)
             slot  = CdStream_Runtime.state.readySlot;
             saved = CdReady_Queue.locked;
             if (slot != 0) {
-                e     = &CdReady_Queue.entries[(s16)(slot - 1)];
-                flags = e->flags;
-                if (flags & 1) {
-                    e->flags = (flags & ~1) | 4;
+                e = (_CdReadyEntry*)&CdReady_Queue.entries[(s16)(slot - 1)];
+                if (e->active) {
+                    e->active    = 0;
+                    e->cancelled = 1;
                 }
                 CdReady_Queue.locked = saved;
             }
             CdStream_Runtime.state.readySlot = 0;
         }
         entry.pollFn                     = CdStream_PollMtsRead;
-        entry.doneFn.callback            = CdStream_CompleteInitialRead;
-        entry.sectorPos                  = CdStream_Runtime.state.readSector;
+        entry.doneFn                     = CdStream_CompleteInitialRead;
+        entry.sector                     = CdStream_Runtime.state.readSector;
         CdStream_Runtime.state.flags0   &= CD_STREAM_CLEAR_CHUNK_READY;
-        entry.errorFn.callback           = CdStream_FinishQueueEntry;
+        entry.cancelFn                   = CdStream_FinishQueueEntry;
         CdStream_Runtime.state.readySlot = CdReady_Enqueue(&entry);
         CdStream_Runtime.state.phase     = CD_STREAM_PHASE_READING;
     }
@@ -1293,7 +1316,7 @@ static void CdStream_TeardownVoices(void)
 
 static void CdStream_CompleteInitialRead(void)
 {
-    CdReadyEntry            entry;
+    _CdReadyEntry           entry;
     volatile CdStreamState* p;
     s32                     pos;
     s32                     chunk;
@@ -1315,14 +1338,14 @@ static void CdStream_CompleteInitialRead(void)
         }
         CdStream_CleanupIrq();
     } else {
-        p->flags2              = p->flags2 & CD_STREAM_CLEAR_FAULT;
-        D_80068B63             = D_80068B63 + 1;
-        entry.pollFn           = CdStream_PollMtsRead;
-        entry.doneFn.callback  = CdStream_CompleteInitialRead;
-        entry.errorFn.callback = CdStream_FinishQueueEntry;
-        entry.sectorPos        = p->readSector;
-        p->queuedChunk         = chunk;
-        p->readySlot           = CdReady_Enqueue(&entry);
+        p->flags2      = p->flags2 & CD_STREAM_CLEAR_FAULT;
+        D_80068B63     = D_80068B63 + 1;
+        entry.pollFn   = CdStream_PollMtsRead;
+        entry.doneFn   = CdStream_CompleteInitialRead;
+        entry.cancelFn = CdStream_FinishQueueEntry;
+        entry.sector   = p->readSector;
+        p->queuedChunk = chunk;
+        p->readySlot   = CdReady_Enqueue(&entry);
     }
 }
 
@@ -1348,17 +1371,16 @@ static void CdStream_CleanupIrq(void)
 
 static void CdStream_TickPlayback(void)
 {
-    CdReadyEntry entry;
+    _CdReadyEntry entry;
     union {
         volatile CdStreamState* state;
         s32                     position;
     } stateOrPosition;
-    s16           slot;
-    u8            saved;
-    CdReadyEntry* queued;
-    SpuVoiceAttr* channels;
-    s32           nextChunk;
-    u32           flags;
+    s16            slot;
+    u8             saved;
+    _CdReadyEntry* queued;
+    SpuVoiceAttr*  channels;
+    s32            nextChunk;
 
     stateOrPosition.position = CdStream_Runtime.state.playhead;
     if (!(((u8)CdStream_Runtime.state.flags0 >> CD_STREAM_VOICES_ON_BIT) & 1) && (((u8)CdStream_Runtime.state.flags0 >> CD_STREAM_KEY_ON_BIT) & 1)) {
@@ -1436,17 +1458,17 @@ static void CdStream_TickPlayback(void)
             goto stopVoices;
         }
         if (nextChunk < CdStream_Runtime.state.chunkCount) {
-            entry.pollFn           = CdStream_PollMtsRead;
-            entry.doneFn.callback  = CdStream_ClearReadySlot;
-            entry.errorFn.callback = CdStream_AbortPhase;
+            entry.pollFn   = CdStream_PollMtsRead;
+            entry.doneFn   = CdStream_ClearReadySlot;
+            entry.cancelFn = CdStream_AbortPhase;
             if ((u16)CdStream_Runtime.state.readySlot != 0) {
                 slot  = CdStream_Runtime.state.readySlot;
                 saved = CdReady_Queue.locked;
                 if (slot != 0) {
-                    queued = (CdReadyEntry*)&CdReady_Queue.entries[(s16)(slot - 1)];
-                    flags  = queued->flags;
-                    if (flags & 1) {
-                        queued->flags = (flags & ~1) | 4;
+                    queued = (_CdReadyEntry*)&CdReady_Queue.entries[(s16)(slot - 1)];
+                    if (queued->active) {
+                        queued->active    = 0;
+                        queued->cancelled = 1;
                     }
                     CdReady_Queue.locked = saved;
                 }
@@ -1456,7 +1478,7 @@ static void CdStream_TickPlayback(void)
             if (((u8)CdStream_Runtime.state.flags1 >> CD_STREAM_APPLY_GAP_BIT) & 1) {
                 CdStream_Runtime.state.readSector += (s8)CdStream_Runtime.state.gapSectors;
             }
-            entry.sectorPos                    = CdStream_Runtime.state.readSector;
+            entry.sector                       = CdStream_Runtime.state.readSector;
             CdStream_Runtime.state.queuedChunk = nextChunk;
             CdStream_Runtime.state.flags0     &= CD_STREAM_CLEAR_CHUNK_READY;
             CdStream_Runtime.state.readySlot   = CdReady_Enqueue(&entry);
@@ -1468,12 +1490,11 @@ static void CdStream_TickPlayback(void)
 
 static void CdStream_CompleteChunkRead(void)
 {
-    CdReadyEntry  entry;
-    s32           position;
-    u16           slot;
-    u8            saved;
-    CdReadyEntry* queued;
-    u32           flags;
+    _CdReadyEntry  entry;
+    s32            position;
+    u16            slot;
+    u8             saved;
+    _CdReadyEntry* queued;
 
     position = CdStream_Runtime.state.playhead;
     if ((CdStream_Runtime.state.queuedChunk + 1) < CdStream_Runtime.state.chunkCount) {
@@ -1530,17 +1551,17 @@ static void CdStream_CompleteChunkRead(void)
                 goto stopVoices;
             }
             if (position < CdStream_Runtime.state.chunkCount) {
-                entry.pollFn           = CdStream_PollMtsRead;
-                entry.doneFn.callback  = CdStream_ClearReadySlot;
-                entry.errorFn.callback = CdStream_AbortPhase;
+                entry.pollFn   = CdStream_PollMtsRead;
+                entry.doneFn   = CdStream_ClearReadySlot;
+                entry.cancelFn = CdStream_AbortPhase;
                 if ((u16)CdStream_Runtime.state.readySlot != 0) {
                     slot  = (u16)CdStream_Runtime.state.readySlot;
                     saved = CdReady_Queue.locked;
                     if (slot != 0) {
-                        queued = (CdReadyEntry*)&CdReady_Queue.entries[(s16)(slot - 1)];
-                        flags  = queued->flags;
-                        if (flags & 1) {
-                            queued->flags = (flags & ~1) | 4;
+                        queued = (_CdReadyEntry*)&CdReady_Queue.entries[(s16)(slot - 1)];
+                        if (queued->active) {
+                            queued->active    = 0;
+                            queued->cancelled = 1;
                         }
                         CdReady_Queue.locked = saved;
                     }
@@ -1550,7 +1571,7 @@ static void CdStream_CompleteChunkRead(void)
                 if (((u8)CdStream_Runtime.state.flags1 >> CD_STREAM_APPLY_GAP_BIT) & 1) {
                     CdStream_Runtime.state.readSector += (s8)CdStream_Runtime.state.gapSectors;
                 }
-                entry.sectorPos                    = CdStream_Runtime.state.readSector;
+                entry.sector                       = CdStream_Runtime.state.readSector;
                 CdStream_Runtime.state.queuedChunk = position;
                 CdStream_Runtime.state.flags0     &= CD_STREAM_CLEAR_CHUNK_READY;
                 CdStream_Runtime.state.readySlot   = CdReady_Enqueue(&entry);
@@ -1563,17 +1584,14 @@ static void CdStream_CompleteChunkRead(void)
 
 void CdStream_Drive(void)
 {
-    CdReadyEntry* restartEntry;
-    CdReadyEntry* stopEntry;
-    CdReadyEntry* endEntry;
-    s32           position;
-    u16           restartSlot, stopSlot, endSlot;
-    u8            restartLock, stopLock, endLock;
-    s32           phase;
-    SpuVoiceAttr* channels;
-    u32           restartFlags;
-    u32           stopFlags;
-    u32           endFlags;
+    _CdReadyEntry* restartEntry;
+    _CdReadyEntry* stopEntry;
+    _CdReadyEntry* endEntry;
+    s32            position;
+    u16            restartSlot, stopSlot, endSlot;
+    u8             restartLock, stopLock, endLock;
+    s32            phase;
+    SpuVoiceAttr*  channels;
 
     if (D_80068B58 == 0) {
         D_80068B58 = 1;
@@ -1599,10 +1617,10 @@ void CdStream_Drive(void)
                         restartSlot = (u16)CdStream_Runtime.state.readySlot;
                         restartLock = CdReady_Queue.locked;
                         if (restartSlot != 0) {
-                            restartEntry = (CdReadyEntry*)&CdReady_Queue.entries[(s16)(restartSlot - 1)];
-                            restartFlags = restartEntry->flags;
-                            if (restartFlags & 1) {
-                                restartEntry->flags = (restartFlags & ~1) | 4;
+                            restartEntry = (_CdReadyEntry*)&CdReady_Queue.entries[(s16)(restartSlot - 1)];
+                            if (restartEntry->active) {
+                                restartEntry->active    = 0;
+                                restartEntry->cancelled = 1;
                             }
                             CdReady_Queue.locked = restartLock;
                         }
@@ -1631,10 +1649,10 @@ void CdStream_Drive(void)
                         stopSlot = (u16)CdStream_Runtime.state.readySlot;
                         stopLock = CdReady_Queue.locked;
                         if (stopSlot != 0) {
-                            stopEntry = (CdReadyEntry*)&CdReady_Queue.entries[(s16)(stopSlot - 1)];
-                            stopFlags = stopEntry->flags;
-                            if (stopFlags & 1) {
-                                stopEntry->flags = (stopFlags & ~1) | 4;
+                            stopEntry = (_CdReadyEntry*)&CdReady_Queue.entries[(s16)(stopSlot - 1)];
+                            if (stopEntry->active) {
+                                stopEntry->active    = 0;
+                                stopEntry->cancelled = 1;
                             }
                             CdReady_Queue.locked = stopLock;
                         }
@@ -1694,10 +1712,10 @@ void CdStream_Drive(void)
                             endSlot = (u16)CdStream_Runtime.state.readySlot;
                             endLock = CdReady_Queue.locked;
                             if (endSlot != 0) {
-                                endEntry = (CdReadyEntry*)&CdReady_Queue.entries[(s16)(endSlot - 1)];
-                                endFlags = endEntry->flags;
-                                if (endFlags & 1) {
-                                    endEntry->flags = (endFlags & ~1) | 4;
+                                endEntry = (_CdReadyEntry*)&CdReady_Queue.entries[(s16)(endSlot - 1)];
+                                if (endEntry->active) {
+                                    endEntry->active    = 0;
+                                    endEntry->cancelled = 1;
                                 }
                                 CdReady_Queue.locked = endLock;
                             }
@@ -1776,7 +1794,7 @@ void CdStream_Drive(void)
     }
 }
 
-static s32 CdStream_PollMtsRead(CdReadyEntry* entry)
+static s32 CdStream_PollMtsRead(_CdReadyEntry* entry)
 {
     struct {
         CdlLOC       loc;
@@ -1790,33 +1808,27 @@ static s32 CdStream_PollMtsRead(CdReadyEntry* entry)
     s32 locationSync;
     s32 readSync;
     s32 pauseSync;
-    u32 flags;
-    u32 modeFlags;
     u32 irqAddr1;
     u32 irqAddr2;
     u32 irqOffset;
-    u32 initFlags;
-    u32 errorCode;
 
-    flags = entry->flags;
-    if ((flags >> 1) & 1) {
-        entry->flags          = flags & ~2;
+    if (entry->firstPoll) {
+        entry->firstPoll      = 0;
         CdStream_PhaseTimeout = 0;
         if (!(CdStream_Runtime.state.flags & CD_STREAM_DISC_FAULT) && CdStream_Runtime.state.reinitSlot == 0) {
             if ((CdStream_Runtime.state.flags1 >> CD_STREAM_MODE_SET_BIT) & 1) {
-                initFlags    = entry->flags & ~0x10;
-                initFlags   &= ~0x1FE0;
-                entry->flags = initFlags | 0x80;
+                entry->speedChange = 0;
+                entry->phase       = CD_STREAM_STEP_SETLOC;
             } else {
-                if (!(CdMode() & 0x80)) {
-                    entry->flags |= 0x10;
+                if (!(CdMode() & CdlModeSpeed)) {
+                    entry->speedChange = 1;
                 } else {
-                    entry->flags &= ~0x10;
+                    entry->speedChange = 0;
                 }
-                entry->flags = (entry->flags & ~0x1FE0) | 0x20;
+                entry->phase = CD_STREAM_STEP_SETMODE;
             }
         } else {
-            entry->flags = (entry->flags & ~0x1FE0) | 0x80;
+            entry->phase = CD_STREAM_STEP_SETLOC;
             if (CdStream_Runtime.state.reinitSlot != 0) {
                 AsyncCb_Cancel((s16)CdStream_Runtime.state.reinitSlot);
             }
@@ -1826,19 +1838,19 @@ static s32 CdStream_PollMtsRead(CdReadyEntry* entry)
             CdStream_Runtime.state.reinitSlot = AsyncCb_Enqueue(&sp.entry);
         }
     }
-    CdStream_CurrentPhase = (entry->flags >> 5) & 0xFF;
+    CdStream_CurrentPhase = entry->phase;
     if (CdStream_Runtime.state.reinitSlot != 0) {
         return 0;
     }
-    phase = (entry->flags >> 5) & 0xFF;
+    phase = entry->phase;
     switch (phase) {
-        case 1:
+        case CD_STREAM_STEP_SETMODE:
             sp.mode[0] = -0x60;
         retry_mode:
             CdControlF(CdlSetmode, (u8*)&sp.mode[0]);
-            entry->flags = (entry->flags & ~0x1FE0) | 0x40;
+            entry->phase = CD_STREAM_STEP_SETMODE_SYNC;
             goto phase_advanced;
-        case 2:
+        case CD_STREAM_STEP_SETMODE_SYNC:
             modeSync = CdSync(1, &sp.result[0]);
             if (modeSync == CdlDiskError) {
                 D_80068B64 += 1;
@@ -1866,29 +1878,28 @@ static s32 CdStream_PollMtsRead(CdReadyEntry* entry)
                 goto stream_error;
             }
             CdStream_Runtime.state.flags1 |= CD_STREAM_MODE_SET;
-            modeFlags                      = entry->flags;
-            if (!((modeFlags >> 4) & 1)) {
-                entry->flags = (modeFlags & ~0x1FE0) | 0x80;
+            if (!entry->speedChange) {
+                entry->phase = CD_STREAM_STEP_SETLOC;
             } else {
-                entry->flags          = (modeFlags & ~0x1FE0) | 0x60;
+                entry->phase          = CD_STREAM_STEP_SPEED_SETTLE;
                 CdStream_PhaseTimeout = 3;
-                case 3:
+                case CD_STREAM_STEP_SPEED_SETTLE:
                     if (--CdStream_PhaseTimeout != 0) {
                         goto phase_advanced;
                     }
-                    entry->flags = (entry->flags & ~0x1FE0) | 0x80;
+                    entry->phase = CD_STREAM_STEP_SETLOC;
             }
             CdStream_PhaseTimeout = 0;
-        case 4:
+        case CD_STREAM_STEP_SETLOC:
             D_80068B54                            = 0;
             CdStream_Runtime.state.readPhase      = CD_STREAM_READ_SETLOC;
-            CdStream_Runtime.state.expectedSector = entry->sectorPos;
+            CdStream_Runtime.state.expectedSector = entry->sector;
         set_location:
-            CdIntToPos(entry->sectorPos, &sp.loc);
+            CdIntToPos(entry->sector, &sp.loc);
             CdControlF(CdlSetloc, &sp.loc.minute);
             CdStream_PhaseTimeout = 0;
-            entry->flags          = (entry->flags & ~0x1FE0) | 0xA0;
-        case 5:
+            entry->phase          = CD_STREAM_STEP_SETLOC_SYNC;
+        case CD_STREAM_STEP_SETLOC_SYNC:
             locationSync = CdSync(1, &sp.result[0]);
             if (locationSync == CdlDiskError) {
                 D_80068B64 += 1;
@@ -1918,22 +1929,22 @@ static s32 CdStream_PollMtsRead(CdReadyEntry* entry)
             if (locationSync != CdlComplete) {
                 goto wait_for_progress;
             }
-            entry->flags = (entry->flags & ~0x1FE0) | 0xC0;
-        case 6:
+            entry->phase = CD_STREAM_STEP_READ;
+        case CD_STREAM_STEP_READ:
             CdStream_PhaseTimeout = 0;
         start_read:
             CdReady_InstallCallback(CdStream_ReadyMts);
             CdStream_Runtime.state.sectorsLeft = 0;
             CdStream_Runtime.state.readPhase   = CD_STREAM_READ_AUDIO;
             CdControlF(CdlReadN, NULL);
-            entry->flags = (entry->flags & ~0x1FE0) | 0xE0;
+            entry->phase = CD_STREAM_STEP_READ_SYNC;
             goto phase_advanced;
-        case 7:
+        case CD_STREAM_STEP_READ_SYNC:
             D_80068B54 = 0;
             readSync   = CdSync(1, &sp.result[0]);
             if (readSync == CdlDiskError) {
                 CdReady_ClearCallback();
-                entry->flags = (entry->flags & ~0x1FE0) | 0xC0;
+                entry->phase = CD_STREAM_STEP_READ;
                 if (sp.result[0] & CdlStatShellOpen) {
                     if (CdStream_ErrorCode == 0) {
                         CdStream_ErrorCode = (u16)readSync;
@@ -1957,8 +1968,8 @@ static s32 CdStream_PollMtsRead(CdReadyEntry* entry)
                 }
                 goto stream_error;
             }
-            entry->flags = (entry->flags & ~0x1FE0) | 0x100;
-        case 8:
+            entry->phase = CD_STREAM_STEP_SECTORS;
+        case CD_STREAM_STEP_SECTORS:
             if (CdStream_Runtime.state.readPhase == CD_STREAM_READ_AUDIO) {
                 goto wait_for_progress;
             }
@@ -2013,14 +2024,14 @@ static s32 CdStream_PollMtsRead(CdReadyEntry* entry)
             CdStream_PhaseTimeout            = 0;
             CdStream_Runtime.state.readPhase = CD_STREAM_READ_IDLE;
             CdReady_ClearCallback();
-            entry->flags = (entry->flags & ~0x1FE0) | 0x120;
-        case 9:
+            entry->phase = CD_STREAM_STEP_PAUSE;
+        case CD_STREAM_STEP_PAUSE:
             CdStream_PhaseTimeout = 0;
         pause_read:
             CdControlF(CdlPause, NULL);
-            entry->flags = (entry->flags & ~0x1FE0) | 0x160;
+            entry->phase = CD_STREAM_STEP_PAUSE_SYNC;
             goto phase_advanced;
-        case 11:
+        case CD_STREAM_STEP_PAUSE_SYNC:
             D_80068B54 = 0;
             pauseSync  = CdSync(1, &sp.result[0]);
             if (pauseSync == CdlDiskError) {
@@ -2034,20 +2045,20 @@ static s32 CdStream_PollMtsRead(CdReadyEntry* entry)
                     CdStream_LastErrorCode = CdStream_ErrorCode;
                     goto stream_error;
                 }
-                entry->flags = (entry->flags & ~0x1FE0) | 0x120;
+                entry->phase = CD_STREAM_STEP_PAUSE;
                 if (CdStream_PhaseTimeout >= 0x258) {
                     goto stream_error;
                 }
                 CdStream_PhaseTimeout += 1;
                 goto pause_read;
             }
-            entry->flags = (entry->flags & ~0x1FE0) | 0x180;
-        case 12:
+            entry->phase = CD_STREAM_STEP_TRANSFER;
+        case CD_STREAM_STEP_TRANSFER:
             if (SpuIsTransferCompleted(0) == 0) {
                 goto wait_for_progress;
             }
-            entry->flags = (entry->flags & ~0x1FE0) | 0x140;
-        case 10:
+            entry->phase = CD_STREAM_STEP_IDLE_SYNC;
+        case CD_STREAM_STEP_IDLE_SYNC:
             if (CdSync(1, &sp.result[0]) == 0) {
                 goto wait_for_progress;
             }
@@ -2055,20 +2066,17 @@ static s32 CdStream_PollMtsRead(CdReadyEntry* entry)
             return 1;
     }
 phase_advanced:
-    CdStream_LastPhase = (entry->flags >> 5) & 0xFF;
+    CdStream_LastPhase = entry->phase;
     return 0;
 wait_for_progress:
-    CdStream_LastPhase = (entry->flags >> 5) & 0xFF;
+    CdStream_LastPhase = entry->phase;
     if (++CdStream_PhaseTimeout < 0x259) {
         return 0;
     }
 stream_error:
     CdStream_Runtime.state.flags2 |= CD_STREAM_FAULT;
     if (CdStream_ErrorCode == 0) {
-        errorCode          = entry->flags;
-        errorCode          = (errorCode >> 5) & 0xFF;
-        errorCode         *= 0x10;
-        CdStream_ErrorCode = errorCode | 0xA;
+        CdStream_ErrorCode = (u16)(entry->phase << 4) | 0xA;
     }
     CdStream_Runtime.state.readPhase = CD_STREAM_READ_IDLE;
     CdReady_ClearCallback();
@@ -2531,74 +2539,71 @@ static void CdStream_SetFlag14(s32 playhead)
     }
 }
 
-static void CdStream_AbortPhase(CdReadyEntry* entry)
+static void CdStream_AbortPhase(_CdReadyEntry* entry)
 {
-    u32 temp_v1;
-
-    temp_v1 = entry->flags;
-    if ((temp_v1 >> 1) & 1) {
-        entry->flags = temp_v1 & ~8;
+    if (entry->firstPoll) {
+        entry->cancelPending = 0;
         return;
     }
-    entry->flags                     = temp_v1 & ~8;
+    entry->cancelPending             = 0;
     CdStream_Runtime.state.readPhase = CD_STREAM_READ_IDLE;
-    switch ((entry->flags >> 5) & 0xFF) {
-        case 6:
-        case 7:
+    switch (entry->phase) {
+        case CD_STREAM_STEP_READ:
+        case CD_STREAM_STEP_READ_SYNC:
             CdReady_ClearCallback();
             goto shared_flush;
-        case 8:
+        case CD_STREAM_STEP_SECTORS:
             CdReady_ClearCallback();
             CdFlush();
             CdControlF(CdlPause, NULL);
-            entry->flags = ((entry->flags | 8) & ~0x1FE0) | 0x1C0;
+            entry->cancelPending = 1;
+            entry->phase         = CD_STREAM_STEP_CANCEL_PAUSE;
             break;
-        case 9:
-        case 11:
-        case 12:
-        case 14:
+        case CD_STREAM_STEP_PAUSE:
+        case CD_STREAM_STEP_PAUSE_SYNC:
+        case CD_STREAM_STEP_TRANSFER:
+        case CD_STREAM_STEP_CANCEL_PAUSE:
             CdFlush();
-            entry->flags = (entry->flags & ~0x1FE0) | 0x1A0;
+            entry->phase = CD_STREAM_STEP_CANCEL_TRANSFER;
             /* fallthrough */
-        case 13:
+        case CD_STREAM_STEP_CANCEL_TRANSFER:
             if (SpuIsTransferCompleted(0) == 0) {
-                entry->flags |= 8;
+                entry->cancelPending = 1;
             }
             break;
-        case 1:
-        case 2:
-        case 3:
-        case 4:
-        case 5:
-        case 10:
+        case CD_STREAM_STEP_SETMODE:
+        case CD_STREAM_STEP_SETMODE_SYNC:
+        case CD_STREAM_STEP_SPEED_SETTLE:
+        case CD_STREAM_STEP_SETLOC:
+        case CD_STREAM_STEP_SETLOC_SYNC:
+        case CD_STREAM_STEP_IDLE_SYNC:
         shared_flush:
             CdFlush();
             break;
     }
 }
 
-static void CdStream_FinishQueueEntry(CdReadyEntry* entry)
+static void CdStream_FinishQueueEntry(_CdReadyEntry* entry)
 {
     CdStream_AbortPhase(entry);
-    if (!((entry->flags >> 3) & 1) && (CdStream_Runtime.state.doneCb != NULL)) {
+    if (!entry->cancelPending && (CdStream_Runtime.state.doneCb != NULL)) {
         CdStream_Runtime.state.doneCb(0);
     }
 }
 
 static void CdReady_Cancel(s16 arg0)
 {
-    u8            temp;
-    s16           idx;
-    u32           flags;
-    CdReadyEntry* entry;
+    u8             temp;
+    s16            idx;
+    _CdReadyEntry* entry;
 
     temp = CdReady_Queue.locked;
     if (arg0 != 0) {
         idx   = arg0 - 1;
-        entry = (CdReadyEntry*)&CdReady_Queue.entries[idx];
-        flags = entry->flags;
-        if (flags & 1) {
-            entry->flags = (flags & ~1) | 4;
+        entry = (_CdReadyEntry*)&CdReady_Queue.entries[idx];
+        if (entry->active) {
+            entry->active    = 0;
+            entry->cancelled = 1;
         }
         CdReady_Queue.locked = temp;
     }
