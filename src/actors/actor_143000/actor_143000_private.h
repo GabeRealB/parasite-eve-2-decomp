@@ -8,19 +8,16 @@
 #include "common.h"
 
 #include "gameplay/animation.h"
+#include "gameplay/display.h"
 
 #include "main/task_types.h"
 
-/// Spawn argument the actor hands to the task it starts once the code is
-/// entered (`D_actor_143000_80135C08`); that task sets `field_1` when it starts.
-typedef struct Actor143000Spawn {
-    /* 0x0 */ u8  field_0;
-    /* 0x1 */ u8  field_1;
-    /* 0x2 */ s16 field_2;
-} Actor143000Spawn;
-STATIC_ASSERT_SIZEOF(Actor143000Spawn, 4);
-
-extern Actor143000Spawn D_actor_143000_80135C08;
+/// Control record of the screen fade that follows an accepted code.
+///
+/// The keypad task starts a fade to black with it and, once the screen is
+/// dark, hands the same record to the event task it spawns; that task requests
+/// the fade's return as it starts, so the scene it sets up fades in.
+extern ScreenFade D_actor_143000_80135C08;
 
 /// A band of the background image for the overlay's strip-capture task, and
 /// that task's progress through it.

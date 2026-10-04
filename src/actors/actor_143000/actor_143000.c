@@ -13,6 +13,7 @@
 #include "gameplay/animation.h"
 #include "gameplay/captions.h"
 #include "gameplay/direction_input.h"
+#include "gameplay/display.h"
 #include "gameplay/item_menu.h"
 #include "gameplay/scene_combat.h"
 
@@ -479,11 +480,12 @@ static void func_actor_143000_80132A04(Task* arg0)
                 work->statusLine = 5;
                 break;
             case 0x14A:
-                arg0->state                     = 0xA;
-                D_actor_143000_80135C08.field_0 = 0;
-                D_actor_143000_80135C08.field_1 = 0;
-                D_actor_143000_80135C08.field_2 = 0xF;
-                arg0->killCountdown             = 0xF;
+                arg0->state = 0xA;
+                // Fade to black, and stay in the closing state for as long as the ramp takes.
+                D_actor_143000_80135C08.blend      = SCREEN_FADE_SUBTRACT;
+                D_actor_143000_80135C08.phase      = SCREEN_FADE_RUNNING;
+                D_actor_143000_80135C08.rampFrames = 0xF;
+                arg0->killCountdown                = 0xF;
                 Task_Spawn(1, 0x31, 0, &D_actor_143000_80135C08);
                 break;
         }

@@ -21,6 +21,7 @@ s32 D_actor_143000_80135C1C;
 #include "gameplay/animation.h"
 #include "gameplay/area_transitions.h"
 #include "gameplay/captions.h"
+#include "gameplay/display.h"
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/items.h"
@@ -227,7 +228,7 @@ s32 D_actor_143000_80135C00 = 0;
 
 s32 D_actor_143000_80135C04 = 0;
 
-Actor143000Spawn D_actor_143000_80135C08 = { 0 };
+ScreenFade D_actor_143000_80135C08 = { 0 };
 
 u8 D_actor_143000_80135C0C[4] = {
     0,
@@ -242,15 +243,16 @@ u8 D_actor_143000_80135C38[8];
 
 void func_actor_143000_80133EE4(Task* arg0)
 {
-    Actor143000Spawn* spawn;
-    s32               i;
-    u8*               p;
-    u8*               slot;
+    ScreenFade* fade;
+    s32         i;
+    u8*         p;
+    u8*         slot;
 
-    spawn = arg0->spawnArg2.pointer;
+    fade = arg0->spawnArg2.pointer;
     switch (arg0->state) {
         case 0:
-            spawn->field_1 = 1;
+            // The keypad left the screen faded out; fade back in on the scene set up below.
+            fade->phase = SCREEN_FADE_RETURN;
             srand(gDisplayState.gameTick);
             Gp_MsgPlayerWeapon(0);
             Gp_CapFile = 0;
