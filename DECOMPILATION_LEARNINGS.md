@@ -98209,7 +98209,7 @@ the promoted name, include nothing extra (the signature is already
 `ActorShared801342a4*`), and delete the `_Fn<VRAM>` line from each carrier's sym
 map before the split.
 
-`ActorShared801342a4` was the whole type story - `field_1C` carries `field_35A`
+`ActorShared801342a4` was the whole type story - `field_1C` carries the work block's `action`
 and `field_2C->field_8` is the `GfxCoord*` whose `workm.t` is at 0x38, so
 the three `lw`/`sw` pairs are `workm.t[0..2]` and the m2c seed's `lh` on a
 `0x35A` byte offset was the only thing wrong with its frame. `Gp_DrawEffGroundQuad`
@@ -118405,7 +118405,7 @@ stores, the object had `lui/ori 0x400F0002` ahead of `lui/ori 0x71357911`; the
 ROM loads the LCG multiplier constant first. Computing `rnd = gRandomLcgState * 5 +
 0x71357911;` *before* the field stores (and assigning `gRandomLcgState = rnd`
 after them) moved that load to the front while the stores kept their order:
-99.59% -> 100%. The two `gRandomLcgState` stores also needed the `field_362` store
+99.59% -> 100%. The two `gRandomLcgState` stores also needed the `timer` store
 between them, or flow deletes the first one (see "Back-to-back writes to the
 same global").
 
@@ -118425,7 +118425,7 @@ normal register.
 
 **Fix.** A `do/while` over the same walking pointer then strength-reduced a
 second giv (`s1 = work + 0x1FE`). The shape that matches is an *index* loop,
-`for (i = 0; i < 3; i++) switch (work->field_1FC[i].key.value >> 16) {...}`:
+`for (i = 0; i < 3; i++) switch (work->contacts[i].key.value >> 16) {...}`:
 the giv `work + i*0x18` becomes `move s1,s2`, loads keep the `0x200(s1)`
 displacement, and biv elimination rewrites the exit test to
 `addiu v0,s2,0x48` / `slt v0,s1,v0` - the signature to read as an index loop.
@@ -137587,8 +137587,8 @@ A preplanned experiment changed only the live anchor to the already
 multiply-defined pose local:
 
 ```c
-__asm__("" : "+r"(pose2), "=r"(val));
-work->field_352 = pose2;
+__asm__("" : "+r"(takeOffAnim), "=r"(val));
+work->anim = takeOffAnim;
 ```
 
 The entry load regained launch priority, val retained two deaths and global
@@ -137606,11 +137606,11 @@ predicted follow-up, distinct from the router's retained alternate improvement.
 
 ## A later constant store can free a load-hazard slot for an unrelated ori (func_actor_101500_80132FD0, 2026-09-20)
 
-The archived seed had perfect registers and structure, but two case-2 scheduling differences (99.551%). The table-address low instruction filled the gRandomLcgState load delay; target used the flag constant's ori there and placed the table address earlier. The permuter's exact change was moving `work->field_380 = 15` after the flag store, preserving all values and independent stores. A preplanned normal-style port reproduced 100% without pins or asm.
+The archived seed had perfect registers and structure, but two case-2 scheduling differences (99.551%). The table-address low instruction filled the gRandomLcgState load delay; target used the flag constant's ori there and placed the table address earlier. The permuter's exact change was moving `work->loopSoundTimer = 15` after the flag store, preserving all values and independent stores. A preplanned normal-style port reproduced 100% without pins or asm.
 
 The important movement is in reverse scheduling time. Baseline sched1 cycle 7 blocks table load UID 356 for one memory-unit cycle and selects newly ready li15 UID 359; load 356 wins cycle 8, and ori701 does not win until cycle 21. In the port, the moved store causes li15 UID369 to issue at cycle 5. At cycle 7, blocked load356 loses to Gp store361. That store blocks the load again at cycle 8, letting ori701 issue; the load follows at cycle 9. The table low's launch priority is unchanged.
 
-Sched2 now prefers ori701 over table-low327 by original RTL order at cycle 15. At cycle 16 table-low327 wins the comparator but Gp load337 wins potential hazard (1892352 vs 0); the field_352 store332 wins cycle 17 (1921024), then table-low327 wins cycle 18. Reversing these cycles yields the target address/store/load/ori sequence. This is a concrete instance of why ready-list priority alone is insufficient and why adjacent independent store order can affect far earlier instructions.
+Sched2 now prefers ori701 over table-low327 by original RTL order at cycle 15. At cycle 16 table-low327 wins the comparator but Gp load337 wins potential hazard (1892352 vs 0); the `anim` store332 wins cycle 17 (1921024), then table-low327 wins cycle 18. Reversing these cycles yields the target address/store/load/ori sequence. This is a concrete instance of why ready-list priority alone is insufficient and why adjacent independent store order can affect far earlier instructions.
 
 Allocation survived independently: table quantity {88,196}, refs=4/span=18/priority=4444, stayed a0; flag quantity went refs=2/span=36/priority=555 -> refs=2/span=32/priority=625 and stayed a3. Both observed compiles produced byte-identical assembly with and without tracing. Controlled input SHA-256 `2818be190798cb18077a32e830e1c54b203e025c49361b2b17ccb7d1e784ac55`; baseline `451fe0defe54602bb991559800b89fc203474d96030f0169a83448bd8d52768f`. Selected direct observations and compiler fingerprints: `tools/compiler_evidence/2026-09-20-actor101500-32fd0.json`. Full trace/input evidence and the pre-build prediction are archived under `tools/permuter_findings/func_actor_101500_80132FD0/`.
 
