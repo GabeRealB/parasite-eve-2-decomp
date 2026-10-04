@@ -2,11 +2,11 @@
 
 /// Dying-state tick of the second enemy, under the `gSceneCombatState.actorControl` mode byte: 1
 /// does nothing and 2 hides the model. Otherwise the root's matrix is saved
-/// into `field_264` and refolded with the decaying Y scale. Once `field_288` is
-/// set the enemy is destroyed after 0x3D frames; before that, the kill
-/// countdown running out releases state 0xF0, sets `field_288` and unlinks the
-/// enemy's node and its three bodies, and the two animation slots are rebound
-/// or advanced.
+/// into `savedRootMtx` and refolded with the decaying Y scale. In the linger
+/// phase the enemy is destroyed after 0x3D frames; before that, the kill
+/// countdown running out releases state 0xF0, enters the linger phase and
+/// unlinks the enemy's node and its three bodies, and the two animation slots
+/// are rebound or advanced.
 void skullStalkerDeathState(Enemy* arg0, Task* arg1)
 {
     SkullStalkerWork* work;
@@ -26,27 +26,27 @@ void skullStalkerDeathState(Enemy* arg0, Task* arg1)
             arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
             return;
     }
-    if (work->field_288 != 0) {
-        work->field_264 = coord->coord;
+    if (work->deathPhase != SKULL_STALKER_DEATH_PHASE_COUNTDOWN) {
+        work->savedRootMtx = coord->coord;
         skullStalkerFlatten(arg1);
-        work->field_28A++;
-        if (work->field_28A >= 0x3D) {
+        work->phaseFrames++;
+        if (work->phaseFrames >= 0x3D) {
             enemyDestroy(arg0, arg1);
         }
         return;
     }
-    work->field_264 = coord->coord;
+    work->savedRootMtx = coord->coord;
     skullStalkerFlatten(arg1);
     arg1->killCountdown--;
     if (arg1->killCountdown <= 0) {
         Gp_ReleaseStateF0Add(arg1, 0x2F);
-        work->field_288 = 1;
-        work->field_28A = 0;
-        arg0->recs      = 0;
+        work->deathPhase  = SKULL_STALKER_DEATH_PHASE_LINGER;
+        work->phaseFrames = 0;
+        arg0->recs        = 0;
         worldTargetUnlinkNode(&arg0->node);
-        Gp_UnlinkObj(&work->field_14C);
-        Gp_UnlinkObj(&work->field_FC);
-        Gp_UnlinkObj(&work->field_184);
+        Gp_UnlinkObj(&work->senseBody);
+        Gp_UnlinkObj(&work->frontSenseBody);
+        Gp_UnlinkObj(&work->body);
     }
     skullStalkerTickAnim(arg1);
 }

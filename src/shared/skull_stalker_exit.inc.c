@@ -9,12 +9,12 @@ void skullStalkerExit(Task* task)
     Enemy*            enemy;
 
     enemy = task->spawnArg2.pointer;
-    work  = (SkullStalkerWork*)task->work;
+    work  = task->work;
 
     enemy->recs = 0;
     worldTargetUnlinkNode(&enemy->node);
-    Gp_UnlinkObj(&work->field_14C);
-    Gp_UnlinkObj(&work->field_FC);
-    Gp_UnlinkObj(&work->field_184);
+    Gp_UnlinkObj(&work->senseBody);
+    Gp_UnlinkObj(&work->frontSenseBody);
+    Gp_UnlinkObj(&work->body);
     enemyTaskExit(task);
 }

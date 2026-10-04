@@ -215,8 +215,8 @@ typedef struct ActorShared801511c8Work {
 
 /// Animation work reached through `Task::work`. `field_2B8`/`field_2BA`/
 /// `field_2BC` are the same (id, id the three helper slots last saw, frames
-/// spent on it) triple as `SkullStalkerWork`'s `field_28C`/`field_28E`/
-/// `field_290`; a non-zero `field_2D2` suppresses the per-frame rebind.
+/// spent on it) triple as `SkullStalkerWork`'s `animId`/`appliedAnim`/
+/// `animFrames`; a non-zero `field_2D2` suppresses the per-frame rebind.
 ///
 /// The second triple, `field_370`/`field_372`/`field_374`, is the same thing
 /// over the work's *six* helper slots, mirroring the `animId`/`appliedAnim`/
@@ -228,7 +228,7 @@ typedef struct ActorShared801511c8Work {
 /// alongside it.
 ///
 /// `field_28C`/`field_2CA` are the same pair as `SkullStalkerWork`'s
-/// `field_264`/`field_2A0`: the transform `sucklercephFlatten` folds onto the
+/// `savedRootMtx`/`flattenScaleY`: the transform `sucklercephFlatten` folds onto the
 /// model, and the angle it is scaled by.
 typedef struct Actor107000Work {
     /* 0x000 */ byte                  pad_0[0x11A];

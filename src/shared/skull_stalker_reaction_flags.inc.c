@@ -1,7 +1,7 @@
 /* Part of the Skull Stalker library; see skull_stalker.h. */
 
 /// Consumes the pending bits of the second enemy's `reactionFlags`: bit 0x1 is
-/// dropped on its own, bit 0x2 puts the work into reaction state 3 with its
+/// dropped on its own, bit 0x2 puts the work into the status hold with its
 /// frame count cleared, and bits 0xC are dropped last, after re-reading the
 /// byte.
 void skullStalkerReactionFlags(Task* arg0)
@@ -19,8 +19,8 @@ void skullStalkerReactionFlags(Task* arg0)
         }
         if (enemy->reactionFlags & ENEMY_REACTION_BUILDUP) {
             enemy->reactionFlags = enemy->reactionFlags & ENEMY_REACTION_BUILDUP_CLEAR;
-            work->field_286      = 3;
-            work->field_28A      = 0;
+            work->state          = SKULL_STALKER_STATE_STATUS_HOLD;
+            work->phaseFrames    = 0;
         }
         flags = enemy->reactionFlags;
         if (flags & ENEMY_REACTION_DAMAGE_OVER_TIME_BITS) {

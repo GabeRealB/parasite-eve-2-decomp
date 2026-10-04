@@ -1,14 +1,15 @@
-/* The Skull Stalker (actor_104600's second enemy, actor_207200): 1 HP, no
- * attack, and a pulsing light: a
- * light blend ramps 0..0x12 and back, and at the top it switches the model to
- * lit mode 2 and becomes targetable. It idles on animation 1 and rolls random
- * waits between pulses. When the player touches it (a 0x10000 contact) it sets
- * a global alarm byte, switches to its agitated animation with a repeating
- * cry, and arms the battle state. Any damaging hit kills it with sparks and a
- * hit sound; a zero-damage hit only applies the id's side effect. Dying, it is
- * pressed flat into the floor by a decaying Y scale and destroyed after 0x3D
- * frames. A placement mode picks one of two sound sets and an alternate
- * texture page/CLUT.
+/* The Skull Stalker (actor_104600's second enemy, actor_207200): an enemy with
+ * no attack that lurks out of sight. It spawns hidden and untargetable, fades
+ * in after a random wait, stays for a shorter one and fades out again, each
+ * fade taking 18 frames. When the player's body enters either of its two
+ * sensing bodies (a 0x10000 contact) it raises the scene's enemy alert, shows
+ * itself, switches to its alert animation with a repeating cry and starts the
+ * battle. Any damaging hit (a 0x20000 contact) or the player's own touch on
+ * its body kills it with sparks and a hit sound; a zero-damage hit only
+ * applies the id's side effect. A kill takes the model out of the draw at
+ * once; the death state still presses the root flat with a decaying Y scale
+ * and destroys the enemy 61 frames after its bodies are unlinked. A placement
+ * mode picks one of two sound sets and an alternate texture page/CLUT.
  *
  * Include this header in the prologue and each fragment at its function's
  * position.
@@ -25,48 +26,79 @@
 #include "gameplay/actor.h"
 #include "gameplay/animation.h"
 
-/// The Skull Stalker's 0x2B0-byte work block, allocated by its
-/// spawn state and parked in `Task::work`. It carries three `WorldCollisionBody` bodies:
-/// the first points its `context.capsule` at the `WorldCollisionCapsule` after it, the other
-/// two point at their own `WorldCollisionContact` tables.
-typedef struct SkullStalkerWork {
-    /* 0x000 */ AnimationContext      context;
-    /* 0x014 */ AnimationSlot         slots[3];
-    /* 0x08C */ byte                  field_8C[0x30]; // pose buffer handed to animationInitContext
-    /* 0x0BC */ MATRIX                field_BC;       // colour matrix, TmdObject::colorMtx
-    /* 0x0DC */ MATRIX                field_DC;       // light matrix, TmdObject::lightMtx
-    /* 0x0FC */ WorldCollisionBody    field_FC;
-    /* 0x11C */ WorldCollisionCapsule field_11C;
-    /* 0x134 */ WorldCollisionContact field_134[1];
-    /* 0x14C */ WorldCollisionBody    field_14C;
-    /* 0x16C */ WorldCollisionContact field_16C[1];
-    /* 0x184 */ WorldCollisionBody    field_184;
-    /* 0x1A4 */ WorldCollisionContact field_1A4[4]; // the enemy's `recs`
-    /* 0x204 */ byte                  pad_204[0x50];
-    /* 0x254 */ s32                   field_254;    // position restored when the push-back conflicts
-    /* 0x258 */ s32                   field_258;
-    /* 0x25C */ s32                   field_25C;
-    /* 0x260 */ byte                  pad_260[4];
-    /* 0x264 */ MATRIX                field_264; // root transform the dying enemy refolds
-    /* 0x284 */ byte                  pad_284[2];
-    /* 0x286 */ s16                   field_286; // reaction state
-    /* 0x288 */ s16                   field_288; // non-zero once the death has unlinked the bodies
-    /* 0x28A */ s16                   field_28A; // frames spent in the current state
-    /* 0x28C */ s16                   field_28C; // animation id the work is playing
-    /* 0x28E */ s16                   field_28E; // id the two helper slots last saw
-    /* 0x290 */ s16                   field_290; // frames spent on the current id
-    /* 0x292 */ s16                   field_292;
-    /* 0x294 */ byte                  pad_294[6];
-    /* 0x29A */ s16                   field_29A;
-    /* 0x29C */ byte                  pad_29C[4];
-    /* 0x2A0 */ s16                   field_2A0; // Y scale folded onto the saved transform
-    /* 0x2A2 */ byte                  pad_2A2[2];
-    /* 0x2A4 */ s16                   field_2A4; // light blend, 0..0x12
-    /* 0x2A6 */ s16                   field_2A6; // non-zero: the blend is rising
-    /* 0x2A8 */ s16                   field_2A8; // frames until the next blend turn
-    /* 0x2AA */ s16                   field_2AA; // latched by a hit
-    /* 0x2AC */ s16                   field_2AC; // placement mode; picks the sound set
-    /* 0x2AE */ byte                  pad_2AE[2];
+/// Values of `SkullStalkerWork::state`, the behaviour the per-frame dispatch runs.
+enum {
+    SKULL_STALKER_STATE_IDLE        = 0, // fades in and out until the player is sensed, then cries
+    SKULL_STALKER_STATE_INERT       = 2, // runs nothing; nothing selects it
+    SKULL_STALKER_STATE_STATUS_HOLD = 3  // kept in sight until the enemy's status buildup runs out, then idle again
+};
+
+/// Values of `SkullStalkerWork::deathPhase`.
+enum {
+    SKULL_STALKER_DEATH_PHASE_COUNTDOWN = 0, // `Task::killCountdown` runs out; the bodies are still linked
+    SKULL_STALKER_DEATH_PHASE_LINGER    = 1  // bodies unlinked; waits until `phaseFrames` reaches 61, then destroys the enemy
+};
+
+/// Values of `SkullStalkerWork::animId`: indices into the package's table of
+/// animation sets, whose entry 0 is empty.
+enum {
+    SKULL_STALKER_ANIM_IDLE  = 1, // lurking; also left playing through the death
+    SKULL_STALKER_ANIM_ALERT = 2  // the player has been sensed
+};
+
+/// Value of `SkullStalkerWork::fadeFrames` at which the enemy is out of sight.
+enum { SKULL_STALKER_FADE_FRAMES = 18 };
+
+/// Work block of a Skull Stalker task.
+///
+/// The spawn handler allocates it zeroed and keeps it at `Task::work`. It holds
+/// the animation context and its storage for the model's three parts, the
+/// matrices the model is lit through, three collision bodies hung off the
+/// root, each followed by its own contact table, and the state machine:
+/// `state` picks the behaviour and `deathPhase` the step of the task's death
+/// state.
+///
+/// The enemy is visible only part of the time. `hiding` says which way the
+/// fade runs and `fadeFrames` how far it has got; at the hidden end the model
+/// leaves the draw pass and the enemy cannot be locked on to.
+///
+/// Scales are 0x1000 for 1.0.
+typedef struct {
+    AnimationContext      anim;                                  // animation playback of the model
+    AnimationSlot         slots[3];                              // one per model part; 1 and 2 play `animId`, 0 is never started
+    u8                    poses[3][ANIMATION_POSE_BUFFER_BYTES]; // blend pose of each slot
+    MATRIX                colorMtx;                              // storage for the model's `TmdObject::colorMtx`
+    MATRIX                lightMtx;                              // storage for the model's `TmdObject::lightMtx`
+    WorldCollisionBody    frontSenseBody;                        // capsule shaped by `frontSenseCapsule`, with no key of its own; a player-body contact alerts the enemy, which then disables it
+    WorldCollisionCapsule frontSenseCapsule;                     // shape of `frontSenseBody`: radius 2000 at the root, widening to 4000 at 5000 ahead of it
+    WorldCollisionContact frontSenseContacts[1];                 // contact of `frontSenseBody`
+    WorldCollisionBody    senseBody;                             // radius-2000 sphere on the root with no key of its own; a player-body contact alerts the enemy, which then disables it
+    WorldCollisionContact senseContacts[1];                      // contact of `senseBody`
+    WorldCollisionBody    body;                                  // radius-200 sphere 200 above the root, tested against the room grid, the floor and other bodies
+    WorldCollisionContact bodyContacts[4];                       // contacts of `body`: wall push-back, the player's touch and hits; also the enemy's hit records
+    byte                  field_204[0x50];                       // never accessed
+    VECTOR3               prevRootPos;                           // root position restored when the collision step reports a conflict; never written, so it stays the zero the allocation left
+    byte                  field_260[4];                          // never accessed
+    MATRIX                savedRootMtx;                          // root matrix saved by each death frame; the flatten writes it back scaled along Y
+    byte                  field_284[2];                          // never accessed
+    s16                   state;                                 // `SKULL_STALKER_STATE_*`
+    s16                   deathPhase;                            // `SKULL_STALKER_DEATH_PHASE_*`
+    s16                   phaseFrames;                           // frames of the status hold, wrapped every four, or frames of the death linger
+    s16                   animId;                                // requested animation, `SKULL_STALKER_ANIM_*`
+    s16                   appliedAnim;                           // animation last applied to slots 1 and 2
+    s16                   animFrames;                            // frames since `animId` was applied; the idle loop restarts it to time the fades and the cries
+    s16                   field_292;                             // set to 0 by the idle animation's frames and the status hold and never read; role unproven
+    byte                  field_294[6];                          // never accessed
+    s16                   field_29A;                             // set to 1 by the idle animation's frames and never read; role unproven
+    byte                  field_29C[4];                          // never accessed
+    s16                   flattenScaleY;                         // Y scale of the death flatten; falls 0x50 a frame until it is 0x200 or less. A hit starts it at 0x1000, the player's touch at 0x500
+    byte                  field_2A2[2];                          // never accessed
+    s16                   fadeFrames;                            // progress of the fade: 0 fully in sight, `SKULL_STALKER_FADE_FRAMES` hidden
+    s16                   hiding;                                // 1 fades the enemy out and keeps it hidden, 0 fades it in and keeps it in sight
+    s16                   fadeWaitFrames;                        // `animFrames` the idle animation passes before the fade turns round: 100..163 hidden, 18..49 in sight
+    s16                   alertRequested;                        // set by a player-body contact on either sensing body; the same frame cries, disables both and starts the battle
+    s16                   variant;                               // placement mode: non-zero selects the second of the two sound sets, and 1 also moves the model one texture page and CLUT row on
+    byte                  field_2AE[2];                          // never accessed
 } SkullStalkerWork;
 STATIC_ASSERT_SIZEOF(SkullStalkerWork, 0x2B0);
 
