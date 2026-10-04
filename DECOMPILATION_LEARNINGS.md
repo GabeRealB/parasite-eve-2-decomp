@@ -83709,7 +83709,7 @@ call, so global-alloc hands it a callee-saved register and the NULL test reads
 that. Naming the result twice splits the range:
 
 ```c
-alloc       = (Actor160900ChildWork*)memCalloc(0x20, 0);
+alloc      = memCalloc(sizeof(*alloc), false);
 task->work = alloc;
 if (alloc == NULL) {
     taskKill(task);

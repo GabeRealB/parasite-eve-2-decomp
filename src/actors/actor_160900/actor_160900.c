@@ -48,25 +48,24 @@
 #include "../../shared/screen_wave.h"
 #include "../../shared/actor_messages.h"
 
-/// 0x20-byte block `func_actor_160900_80133F90` allocates with
-/// `memCalloc(0x20, 0)` for each of the two child tasks it spawns from index 7
-/// of `D_actor_160900_8013FB50`, and parks in that child's `Task::work` slot
-/// (0x1C) -- a third work block in this overlay. The size
-/// below is the allocation: the function zeroes all 0x20 bytes with `memFillBytes`.
+/// Work block of one light quad, a gradient quad the cutscene blends
+/// additively over the scene.
 ///
-/// The four vectors are the corners of an axis-aligned rectangle in the Y/Z
-/// plane, written as differences from the child's own origin. Child 0 (spawn
-/// arg 1) takes the `+Z` side -- `(0,-0x5DC,0x3E8)`, `(0,-0x5DC,0)`,
-/// `(0,0,0x3E8)`, `(0,0,0)` -- and child 1 the `-Z` side, the same rectangle
-/// reflected through Z. No vector's `pad` halfword is touched, and `vx` is
-/// zero in every one of them.
-typedef struct Actor160900ChildWork {
-    /* 0x00 */ SVECTOR field_0;
-    /* 0x08 */ SVECTOR field_8;
-    /* 0x10 */ SVECTOR field_10;
-    /* 0x18 */ SVECTOR field_18;
-} Actor160900ChildWork;
-STATIC_ASSERT_SIZEOF(Actor160900ChildWork, 0x20);
+/// The spawner allocates the block zeroed for the quad's task, keeps it at
+/// `Task::work` and fills in the corners; the task's teardown frees it. The
+/// quad's task projects the corners through its own coordinate each frame and
+/// shades each corner black or white, in one of six patterns its first spawn
+/// argument selects (0 corner 3 white, 1 corner 2, 2 corners 1 and 3,
+/// 3 corners 0 and 2, 4 corners 2 and 3, 5 all four).
+///
+/// Every quad the package spawns is an upright rectangle in the Y/Z plane:
+/// `vx` is zero in every corner, corners 0 and 1 share the upper edge and
+/// corners 2 and 3 the lower, with the greater Z first on each. No corner's
+/// `pad` is written or read.
+typedef struct {
+    SVECTOR corners[4]; // The quad's corners as offsets from its task's coordinate, in the order the primitive takes its vertices
+} _Actor160900LightQuadWork;
+STATIC_ASSERT_SIZEOF(_Actor160900LightQuadWork, 0x20);
 
 /// Cues of `_Actor160900CutsceneWork::playerCue`. The clips are those of
 /// `_gActor160900PlayerAnimationSets`.
@@ -122,18 +121,24 @@ typedef struct {
 } _Actor160900CutsceneWork;
 STATIC_ASSERT_SIZEOF(_Actor160900CutsceneWork, 0x68);
 
-/// Work block of the `D_actor_160900_8013FB50[3]` child (`_Actor160900CutsceneWork::kyle`), as far
-/// as `func_actor_160900_8013358C` reaches into it: the model's rig, the
-/// matrices it is lit with, and the animation script it walks.
-typedef struct Actor160900Child3Work {
-    /* 0x000 */ ActorAnimRig20 rig;
-    /* 0x474 */ MATRIX         light; // `TmdObject::lightMtx`
-    /* 0x494 */ MATRIX         color; // `TmdObject::colorMtx`
-    /* 0x4B4 */ void*          field_4B4;
-    /* 0x4B8 */ s16            field_4B8;
-    /* 0x4BA */ s16            field_4BA;
-} Actor160900Child3Work;
-STATIC_ASSERT_SIZEOF(Actor160900Child3Work, 0x4BC);
+/// Work block of one of Kyle Madigan's models: his body, and a hand or handgun
+/// that rides on a part of the body.
+///
+/// Each of those tasks allocates the block zeroed at its full size and keeps
+/// it at `Task::work`; the model object borrows `light` and `color` for as
+/// long as the block lives. The body binds `rig` to its model and plays one
+/// clip at a time over slots 1 to 19, following `animChain` from clip to clip,
+/// and the cutscene's cue handler changes the clip from outside. An attachment
+/// uses the two matrices and leaves the rest zero.
+typedef struct {
+    ActorAnimRig20      rig;       // Playback storage of the twenty-part body model; slots 1 to 19 are driven
+    MATRIX              light;     // Light-direction matrix lent to the model object
+    MATRIX              color;     // Light-colour matrix lent to the model object
+    ActorAnimChainLink* animChain; // The body's chain of clips: one link per clip, indexed by `animId`
+    u16                 animId;    // Clip the slots were last seeded with, an index into the body's animation sets
+    s16                 animHold;  // Frames `animId` has been held, for a link that lasts a fixed time
+} _Actor160900KyleModelWork;
+STATIC_ASSERT_SIZEOF(_Actor160900KyleModelWork, 0x4BC);
 
 /// The overlay's task table. Entry 0 is `func_actor_160900_8013418C`, which
 /// spawns entries 3, 5 and 6 into `_Actor160900CutsceneWork`; entries 1 and 2 are
@@ -663,15 +668,9 @@ ActorAnimChainLink D_actor_160900_8013F1CC[11] = {
     { 0, -1 },
 };
 
-u8 D_actor_160900_8013F1F8[8] = {
-    0,
-    0,
-    255,
-    255,
-    0,
-    0,
-    255,
-    255,
+ActorAnimChainLink D_actor_160900_8013F1F8[2] = {
+    { 0, -1 },
+    { 0, -1 },
 };
 
 // Message-table callbacks use the argument views required by this TU.
@@ -963,11 +962,11 @@ ScreenWaveOscillator gScreenWaveRows[30];
 extern u8 D_actor_160900_8013F240[];
 
 /// Animation-set table `animationInitContext` binds to the child's context, the table
-/// published as `Actor160900Child3Work::field_4B4`, and the message table
+/// published as `_Actor160900KyleModelWork::animChain`, and the message table
 /// published as `Task::msgTable`.
 extern u8 D_actor_160900_8013F1C4[];
 
-extern u8 D_actor_160900_8013F1F8[];
+extern ActorAnimChainLink D_actor_160900_8013F1F8[];
 
 extern TaskMessageEntry D_actor_160900_8013F200[2];
 
@@ -1041,57 +1040,57 @@ static s32 func_actor_160900_801326EC(Task* arg0)
 }
 static inline void func_actor_160900_Reseed(Task* arg0, u16 anim)
 {
-    Actor160900Child3Work* work;
-    u16                    i;
-    u16                    id;
+    _Actor160900KyleModelWork* work;
+    u16                        i;
+    u16                        id;
 
-    i               = 1;
-    work            = (Actor160900Child3Work*)arg0->work;
-    work->field_4B8 = anim;
-    work->field_4BA = 0;
-    id              = anim;
+    i              = 1;
+    work           = arg0->work;
+    work->animId   = anim;
+    work->animHold = 0;
+    id             = anim;
     TOUCH_REG_USE2(id, work, work);
-    for (; i < 0x14; i++) {
+    for (; i < ARRAY_SIZE(work->rig.slots); i++) {
         animationSeekSlotWithBlend(&work->rig.anim, i, id, 0, 0xA);
     }
 }
 
 static s32 func_actor_160900_80132844(Task* arg0)
 {
-    Actor160900Child3Work* work;
-    ActorAnimChainLink*    table;
-    u16                    i;
-    u16                    done;
+    _Actor160900KyleModelWork* work;
+    ActorAnimChainLink*        table;
+    u16                        i;
+    u16                        done;
 
-    work = (Actor160900Child3Work*)arg0->work;
+    work = arg0->work;
     if (arg0->extra.tmd->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) {
         return 0;
     }
-    for (i = 1; i < 0x14; i++) {
+    for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
         animationTickSlot(&work->rig.anim, i);
     }
     i    = 1;
     done = 1;
-    for (; i < 0x14; i++) {
+    for (; i < ARRAY_SIZE(work->rig.slots); i++) {
         if (!(work->rig.slots[i].status.fields.flags & ANIMATION_SLOT_SETTLED)) {
             done = 0;
             break;
         }
     }
-    table = work->field_4B4;
-    if (table[(u16)work->field_4B8].holdFrames != 0) {
-        if (work->field_4BA >= table[(u16)work->field_4B8].holdFrames) {
-            if (table[(u16)work->field_4B8].nextAnimId >= 0) {
-                func_actor_160900_Reseed(arg0, table[(u16)work->field_4B8].nextAnimId);
+    table = work->animChain;
+    if (table[work->animId].holdFrames != 0) {
+        if (work->animHold >= table[work->animId].holdFrames) {
+            if (table[work->animId].nextAnimId >= 0) {
+                func_actor_160900_Reseed(arg0, table[work->animId].nextAnimId);
             } else {
                 return 1;
             }
         } else {
-            work->field_4BA++;
+            work->animHold++;
         }
     } else if (done) {
-        if (table[(u16)work->field_4B8].nextAnimId >= 0) {
-            func_actor_160900_Reseed(arg0, table[(u16)work->field_4B8].nextAnimId);
+        if (table[work->animId].nextAnimId >= 0) {
+            func_actor_160900_Reseed(arg0, table[work->animId].nextAnimId);
         } else {
             return 1;
         }
@@ -1104,13 +1103,13 @@ void func_actor_160900_80132A14(Task* arg0)
     VECTOR pos;
 
     if (arg0->state == 0) {
-        TmdObject*             tmd    = arg0->extra.tmd;
-        Task*                  parent = arg0->spawnArg2.pointer;
-        GfxCoord*              coord  = tmd->coords;
-        Actor160900Child3Work* work;
-        Actor160900Child3Work* block;
-        AreaPlacement*         place;
-        u8                     id;
+        TmdObject*                 tmd    = arg0->extra.tmd;
+        Task*                      parent = arg0->spawnArg2.pointer;
+        GfxCoord*                  coord  = tmd->coords;
+        _Actor160900KyleModelWork* work;
+        _Actor160900KyleModelWork* block;
+        AreaPlacement*             place;
+        u8                         id;
 
         block      = memMalloc(sizeof(*block), false);
         arg0->work = block;
@@ -1163,32 +1162,32 @@ void func_actor_160900_80132A14(Task* arg0)
 /// as a parameter is what schedules its load after the work-block load.
 static inline void func_actor_160900_InitAnim(Task* task, TmdObject* obj)
 {
-    Actor160900Child3Work* work;
-    s32                    i;
+    _Actor160900KyleModelWork* work;
+    s32                        i;
 
-    work = (Actor160900Child3Work*)task->work;
+    work = task->work;
     animationInitContext(&work->rig.anim, (AnimationSet**)D_actor_160900_8013F1C4, obj, work->rig.poses, work->rig.slots);
-    work->field_4B4 = D_actor_160900_8013F1F8;
-    work            = (Actor160900Child3Work*)task->work;
+    work->animChain = D_actor_160900_8013F1F8;
+    work            = task->work;
     i               = 1;
-    work->field_4B8 = 0;
-    work->field_4BA = 0;
+    work->animId    = 0;
+    work->animHold  = 0;
     do {
         work->rig.slots[(u16)i].rate = ANIMATION_RATE_ONE;
         animationResetSlot(&work->rig.anim, (u16)i, 0);
         i++;
-    } while ((u16)i < 0x14U);
+    } while ((u16)i < ARRAY_SIZE(work->rig.slots));
 }
 
 void func_actor_160900_80132C08(Task* task)
 {
-    TmdObject*             obj;
-    TmdObject*             obj2;
-    GfxCoord*              coord;
-    Actor160900Child3Work* work;
-    AreaPlacement*         place;
-    VECTOR                 pos;
-    s32                    failed;
+    TmdObject*                 obj;
+    TmdObject*                 obj2;
+    GfxCoord*                  coord;
+    _Actor160900KyleModelWork* work;
+    AreaPlacement*             place;
+    VECTOR                     pos;
+    s32                        failed;
 
     if (task->state == 0) {
         obj        = task->extra.tmd;
@@ -1234,19 +1233,19 @@ void func_actor_160900_80132C08(Task* task)
 
 void func_actor_160900_80132E80(Task* task)
 {
-    s16       xs[4];
-    s16       ys[4];
-    SVECTOR   origin;
-    s32       sxy;
-    s32       otz;
-    GfxCoord* coord;
-    SVECTOR*  verts;
-    POLY_G4*  poly;
-    DR_TPAGE* tp;
-    s16       i;
+    s16                        xs[4];
+    s16                        ys[4];
+    SVECTOR                    origin;
+    s32                        sxy;
+    s32                        otz;
+    GfxCoord*                  coord;
+    _Actor160900LightQuadWork* work;
+    POLY_G4*                   poly;
+    DR_TPAGE*                  tp;
+    s16                        i;
 
     coord = task->extra.coordBody->coord;
-    verts = &((Actor160900ChildWork*)task->work)->field_0;
+    work  = task->work;
     Gp_UpdateCoord(coord);
     gte_SetTransMatrix(&coord->workm);
     gte_SetRotMatrix(&coord->workm);
@@ -1257,8 +1256,8 @@ void func_actor_160900_80132E80(Task* task)
     gte_rtps();
     gte_stsxy(&sxy);
     gte_stszotz(&otz);
-    for (i = 0; i < 4; i++) {
-        gte_ldv0(&verts[i]);
+    for (i = 0; i < ARRAY_SIZE(work->corners); i++) {
+        gte_ldv0(&work->corners[i]);
         gte_rtps();
         gte_stsxy(&sxy);
         xs[i] = sxy;
@@ -1516,11 +1515,11 @@ static void func_actor_160900_80133238(Task* arg0)
 
 static void func_actor_160900_8013358C(Task* arg0)
 {
-    _Actor160900CutsceneWork* work;
-    Actor160900Child3Work*    child;
-    SVECTOR                   ofs;
-    SVECTOR                   ofs2;
-    s32                       i;
+    _Actor160900CutsceneWork*  work;
+    _Actor160900KyleModelWork* child;
+    SVECTOR                    ofs;
+    SVECTOR                    ofs2;
+    s32                        i;
 
     work = arg0->work;
     switch (work->kyleCue.id) {
@@ -1543,12 +1542,12 @@ static void func_actor_160900_8013358C(Task* arg0)
             Gp_SpawnEff(EFFECT_GROUND_DECAL, work->kyle->extra.tmd->coords, 0x20000100, &ofs);
             break;
         case ACTOR_160900_KYLE_CUE_CLIP_1:
-            child            = (Actor160900Child3Work*)work->kyle->work;
-            child->field_4B8 = 1;
-            child->field_4BA = 0;
+            child           = work->kyle->work;
+            child->animId   = 1;
+            child->animHold = 0;
             do {
             } while (0);
-            for (i = 1; (u16)i < 20; i++) {
+            for (i = 1; (u16)i < ARRAY_SIZE(child->rig.slots); i++) {
                 animationSeekSlotWithBlend(&child->rig.anim, (u16)i, 1, 0, 10);
             }
             break;
@@ -1590,10 +1589,10 @@ static void func_actor_160900_80133758(SVECTOR* pts)
 
 void func_actor_160900_80133880(void)
 {
-    _Actor160900CutsceneWork* data;
-    Actor160900ChildWork*     alloc;
-    Actor160900ChildWork*     work;
-    Task*                     task;
+    _Actor160900CutsceneWork*  data;
+    _Actor160900LightQuadWork* alloc;
+    _Actor160900LightQuadWork* work;
+    Task*                      task;
 
     data                = D_actor_160900_8013FBB4->work;
     task                = Task_SpawnFromTable(D_actor_160900_8013FB50, 7, 0, 0);
@@ -1601,7 +1600,7 @@ void func_actor_160900_80133880(void)
     if (task == NULL) {
         return;
     }
-    alloc      = memCalloc(0x20, 0);
+    alloc      = memCalloc(sizeof(*alloc), false);
     task->work = alloc;
     if (alloc == NULL) {
         taskKill(task);
@@ -1613,24 +1612,24 @@ void func_actor_160900_80133880(void)
     task->extra.tmd->coords->coord.t[0] = 0x1770;
     task->extra.tmd->coords->coord.t[1] = 0x3E8;
     task->extra.tmd->coords->coord.t[2] = 0xBB8;
-    work->field_0.vx                    = 0;
-    work->field_0.vy                    = -0x5DC;
-    work->field_0.vz                    = 0x3E8;
-    work->field_8.vx                    = 0;
-    work->field_8.vy                    = -0x5DC;
-    work->field_8.vz                    = 0;
-    work->field_10.vx                   = 0;
-    work->field_10.vy                   = 0;
-    work->field_10.vz                   = 0x3E8;
-    work->field_18.vx                   = 0;
-    work->field_18.vy                   = 0;
-    work->field_18.vz                   = 0;
+    work->corners[0].vx                 = 0;
+    work->corners[0].vy                 = -0x5DC;
+    work->corners[0].vz                 = 0x3E8;
+    work->corners[1].vx                 = 0;
+    work->corners[1].vy                 = -0x5DC;
+    work->corners[1].vz                 = 0;
+    work->corners[2].vx                 = 0;
+    work->corners[2].vy                 = 0;
+    work->corners[2].vz                 = 0x3E8;
+    work->corners[3].vx                 = 0;
+    work->corners[3].vy                 = 0;
+    work->corners[3].vz                 = 0;
     task                                = Task_SpawnFromTable(D_actor_160900_8013FB50, 7, 1, 0);
     data->lightQuads[1]                 = task;
     if (task == NULL) {
         return;
     }
-    alloc      = memCalloc(0x20, 0);
+    alloc      = memCalloc(sizeof(*alloc), false);
     task->work = alloc;
     if (alloc == NULL) {
         taskKill(task);
@@ -1642,25 +1641,25 @@ void func_actor_160900_80133880(void)
     task->extra.tmd->coords->coord.t[0] = 0x1770;
     task->extra.tmd->coords->coord.t[1] = 0x3E8;
     task->extra.tmd->coords->coord.t[2] = 0xBB8;
-    work->field_0.vx                    = 0;
-    work->field_0.vy                    = -0x5DC;
-    work->field_0.vz                    = 0;
-    work->field_8.vx                    = 0;
-    work->field_8.vy                    = -0x5DC;
-    work->field_8.vz                    = -0x3E8;
-    work->field_10.vx                   = 0;
-    work->field_10.vy                   = 0;
-    work->field_10.vz                   = 0;
-    work->field_18.vx                   = 0;
-    work->field_18.vy                   = 0;
-    work->field_18.vz                   = -0x3E8;
+    work->corners[0].vx                 = 0;
+    work->corners[0].vy                 = -0x5DC;
+    work->corners[0].vz                 = 0;
+    work->corners[1].vx                 = 0;
+    work->corners[1].vy                 = -0x5DC;
+    work->corners[1].vz                 = -0x3E8;
+    work->corners[2].vx                 = 0;
+    work->corners[2].vy                 = 0;
+    work->corners[2].vz                 = 0;
+    work->corners[3].vx                 = 0;
+    work->corners[3].vy                 = 0;
+    work->corners[3].vz                 = -0x3E8;
 }
 void func_actor_160900_80133A84(void)
 {
-    _Actor160900CutsceneWork* data;
-    Actor160900ChildWork*     alloc;
-    Actor160900ChildWork*     work;
-    Task*                     task;
+    _Actor160900CutsceneWork*  data;
+    _Actor160900LightQuadWork* alloc;
+    _Actor160900LightQuadWork* work;
+    Task*                      task;
 
     data                = D_actor_160900_8013FBB4->work;
     task                = Task_SpawnFromTable(D_actor_160900_8013FB50, 7, 5, 0);
@@ -1668,7 +1667,7 @@ void func_actor_160900_80133A84(void)
     if (task == NULL) {
         return;
     }
-    alloc      = memCalloc(0x20, 0);
+    alloc      = memCalloc(sizeof(*alloc), false);
     task->work = alloc;
     if (alloc == NULL) {
         taskKill(task);
@@ -1680,24 +1679,24 @@ void func_actor_160900_80133A84(void)
     task->extra.tmd->coords->coord.t[0] = 0x1770;
     task->extra.tmd->coords->coord.t[1] = 0x1F4;
     task->extra.tmd->coords->coord.t[2] = 0xA8C;
-    work->field_0.vx                    = 0;
-    work->field_0.vy                    = -0x3E8;
-    work->field_0.vz                    = 0x1F4;
-    work->field_8.vx                    = 0;
-    work->field_8.vy                    = -0x3E8;
-    work->field_8.vz                    = -0x1F4;
-    work->field_10.vx                   = 0;
-    work->field_10.vy                   = 0;
-    work->field_10.vz                   = 0x1F4;
-    work->field_18.vx                   = 0;
-    work->field_18.vy                   = 0;
-    work->field_18.vz                   = -0x1F4;
+    work->corners[0].vx                 = 0;
+    work->corners[0].vy                 = -0x3E8;
+    work->corners[0].vz                 = 0x1F4;
+    work->corners[1].vx                 = 0;
+    work->corners[1].vy                 = -0x3E8;
+    work->corners[1].vz                 = -0x1F4;
+    work->corners[2].vx                 = 0;
+    work->corners[2].vy                 = 0;
+    work->corners[2].vz                 = 0x1F4;
+    work->corners[3].vx                 = 0;
+    work->corners[3].vy                 = 0;
+    work->corners[3].vz                 = -0x1F4;
     task                                = Task_SpawnFromTable(D_actor_160900_8013FB50, 7, 2, 0);
     data->lightQuads[1]                 = task;
     if (task == NULL) {
         return;
     }
-    alloc      = memCalloc(0x20, 0);
+    alloc      = memCalloc(sizeof(*alloc), false);
     task->work = alloc;
     if (alloc == NULL) {
         taskKill(task);
@@ -1709,24 +1708,24 @@ void func_actor_160900_80133A84(void)
     task->extra.tmd->coords->coord.t[0] = 0x1770;
     task->extra.tmd->coords->coord.t[1] = 0x1F4;
     task->extra.tmd->coords->coord.t[2] = 0xA8C;
-    work->field_0.vx                    = 0;
-    work->field_0.vy                    = -0x3E8;
-    work->field_0.vz                    = 0x3E8;
-    work->field_8.vx                    = 0;
-    work->field_8.vy                    = -0x3E8;
-    work->field_8.vz                    = 0x1F4;
-    work->field_10.vx                   = 0;
-    work->field_10.vy                   = 0;
-    work->field_10.vz                   = 0x3E8;
-    work->field_18.vx                   = 0;
-    work->field_18.vy                   = 0;
-    work->field_18.vz                   = 0x1F4;
+    work->corners[0].vx                 = 0;
+    work->corners[0].vy                 = -0x3E8;
+    work->corners[0].vz                 = 0x3E8;
+    work->corners[1].vx                 = 0;
+    work->corners[1].vy                 = -0x3E8;
+    work->corners[1].vz                 = 0x1F4;
+    work->corners[2].vx                 = 0;
+    work->corners[2].vy                 = 0;
+    work->corners[2].vz                 = 0x3E8;
+    work->corners[3].vx                 = 0;
+    work->corners[3].vy                 = 0;
+    work->corners[3].vz                 = 0x1F4;
     task                                = Task_SpawnFromTable(D_actor_160900_8013FB50, 7, 3, 0);
     data->lightQuads[2]                 = task;
     if (task == NULL) {
         return;
     }
-    alloc      = memCalloc(0x20, 0);
+    alloc      = memCalloc(sizeof(*alloc), false);
     task->work = alloc;
     if (alloc == NULL) {
         taskKill(task);
@@ -1738,24 +1737,24 @@ void func_actor_160900_80133A84(void)
     task->extra.tmd->coords->coord.t[0] = 0x1770;
     task->extra.tmd->coords->coord.t[1] = 0x1F4;
     task->extra.tmd->coords->coord.t[2] = 0xA8C;
-    work->field_0.vx                    = 0;
-    work->field_0.vy                    = -0x3E8;
-    work->field_0.vz                    = -0x1F4;
-    work->field_8.vx                    = 0;
-    work->field_8.vy                    = -0x3E8;
-    work->field_8.vz                    = -0x3E8;
-    work->field_10.vx                   = 0;
-    work->field_10.vy                   = 0;
-    work->field_10.vz                   = -0x1F4;
-    work->field_18.vx                   = 0;
-    work->field_18.vy                   = 0;
-    work->field_18.vz                   = -0x3E8;
+    work->corners[0].vx                 = 0;
+    work->corners[0].vy                 = -0x3E8;
+    work->corners[0].vz                 = -0x1F4;
+    work->corners[1].vx                 = 0;
+    work->corners[1].vy                 = -0x3E8;
+    work->corners[1].vz                 = -0x3E8;
+    work->corners[2].vx                 = 0;
+    work->corners[2].vy                 = 0;
+    work->corners[2].vz                 = -0x1F4;
+    work->corners[3].vx                 = 0;
+    work->corners[3].vy                 = 0;
+    work->corners[3].vz                 = -0x3E8;
     task                                = Task_SpawnFromTable(D_actor_160900_8013FB50, 7, 4, 0);
     data->lightQuads[3]                 = task;
     if (task == NULL) {
         return;
     }
-    alloc      = memCalloc(0x20, 0);
+    alloc      = memCalloc(sizeof(*alloc), false);
     task->work = alloc;
     if (alloc == NULL) {
         taskKill(task);
@@ -1767,24 +1766,24 @@ void func_actor_160900_80133A84(void)
     task->extra.tmd->coords->coord.t[0] = 0x1770;
     task->extra.tmd->coords->coord.t[1] = -0x1F4;
     task->extra.tmd->coords->coord.t[2] = 0xA8C;
-    work->field_0.vx                    = 0;
-    work->field_0.vy                    = -0x3E8;
-    work->field_0.vz                    = 0x1F4;
-    work->field_8.vx                    = 0;
-    work->field_8.vy                    = -0x3E8;
-    work->field_8.vz                    = -0x1F4;
-    work->field_10.vx                   = 0;
-    work->field_10.vy                   = 0;
-    work->field_10.vz                   = 0x1F4;
-    work->field_18.vx                   = 0;
-    work->field_18.vy                   = 0;
-    work->field_18.vz                   = -0x1F4;
+    work->corners[0].vx                 = 0;
+    work->corners[0].vy                 = -0x3E8;
+    work->corners[0].vz                 = 0x1F4;
+    work->corners[1].vx                 = 0;
+    work->corners[1].vy                 = -0x3E8;
+    work->corners[1].vz                 = -0x1F4;
+    work->corners[2].vx                 = 0;
+    work->corners[2].vy                 = 0;
+    work->corners[2].vz                 = 0x1F4;
+    work->corners[3].vx                 = 0;
+    work->corners[3].vy                 = 0;
+    work->corners[3].vz                 = -0x1F4;
     task                                = Task_SpawnFromTable(D_actor_160900_8013FB50, 7, 0, 0);
     data->lightQuads[4]                 = task;
     if (task == NULL) {
         return;
     }
-    alloc      = memCalloc(0x20, 0);
+    alloc      = memCalloc(sizeof(*alloc), false);
     task->work = alloc;
     if (alloc == NULL) {
         taskKill(task);
@@ -1796,24 +1795,24 @@ void func_actor_160900_80133A84(void)
     task->extra.tmd->coords->coord.t[0] = 0x1770;
     task->extra.tmd->coords->coord.t[1] = -0x1F4;
     task->extra.tmd->coords->coord.t[2] = 0xA8C;
-    work->field_0.vx                    = 0;
-    work->field_0.vy                    = -0x3E8;
-    work->field_0.vz                    = 0x3E8;
-    work->field_8.vx                    = 0;
-    work->field_8.vy                    = -0x3E8;
-    work->field_8.vz                    = 0x1F4;
-    work->field_10.vx                   = 0;
-    work->field_10.vy                   = 0;
-    work->field_10.vz                   = 0x3E8;
-    work->field_18.vx                   = 0;
-    work->field_18.vy                   = 0;
-    work->field_18.vz                   = 0x1F4;
+    work->corners[0].vx                 = 0;
+    work->corners[0].vy                 = -0x3E8;
+    work->corners[0].vz                 = 0x3E8;
+    work->corners[1].vx                 = 0;
+    work->corners[1].vy                 = -0x3E8;
+    work->corners[1].vz                 = 0x1F4;
+    work->corners[2].vx                 = 0;
+    work->corners[2].vy                 = 0;
+    work->corners[2].vz                 = 0x3E8;
+    work->corners[3].vx                 = 0;
+    work->corners[3].vy                 = 0;
+    work->corners[3].vz                 = 0x1F4;
     task                                = Task_SpawnFromTable(D_actor_160900_8013FB50, 7, 1, 0);
     data->lightQuads[5]                 = task;
     if (task == NULL) {
         return;
     }
-    alloc      = memCalloc(0x20, 0);
+    alloc      = memCalloc(sizeof(*alloc), false);
     task->work = alloc;
     if (alloc == NULL) {
         taskKill(task);
@@ -1825,25 +1824,25 @@ void func_actor_160900_80133A84(void)
     task->extra.tmd->coords->coord.t[0] = 0x1770;
     task->extra.tmd->coords->coord.t[1] = -0x1F4;
     task->extra.tmd->coords->coord.t[2] = 0xA8C;
-    work->field_0.vx                    = 0;
-    work->field_0.vy                    = -0x3E8;
-    work->field_0.vz                    = -0x1F4;
-    work->field_8.vx                    = 0;
-    work->field_8.vy                    = -0x3E8;
-    work->field_8.vz                    = -0x3E8;
-    work->field_10.vx                   = 0;
-    work->field_10.vy                   = 0;
-    work->field_10.vz                   = -0x1F4;
-    work->field_18.vx                   = 0;
-    work->field_18.vy                   = 0;
-    work->field_18.vz                   = -0x3E8;
+    work->corners[0].vx                 = 0;
+    work->corners[0].vy                 = -0x3E8;
+    work->corners[0].vz                 = -0x1F4;
+    work->corners[1].vx                 = 0;
+    work->corners[1].vy                 = -0x3E8;
+    work->corners[1].vz                 = -0x3E8;
+    work->corners[2].vx                 = 0;
+    work->corners[2].vy                 = 0;
+    work->corners[2].vz                 = -0x1F4;
+    work->corners[3].vx                 = 0;
+    work->corners[3].vy                 = 0;
+    work->corners[3].vz                 = -0x3E8;
 }
 void func_actor_160900_80133F90(void)
 {
-    _Actor160900CutsceneWork* data;
-    Actor160900ChildWork*     alloc;
-    Actor160900ChildWork*     work;
-    Task*                     task;
+    _Actor160900CutsceneWork*  data;
+    _Actor160900LightQuadWork* alloc;
+    _Actor160900LightQuadWork* work;
+    Task*                      task;
 
     data                = D_actor_160900_8013FBB4->work;
     task                = Task_SpawnFromTable(D_actor_160900_8013FB50, 7, 0, 0);
@@ -1851,7 +1850,7 @@ void func_actor_160900_80133F90(void)
     if (task == NULL) {
         return;
     }
-    alloc      = memCalloc(0x20, 0);
+    alloc      = memCalloc(sizeof(*alloc), false);
     task->work = alloc;
     if (alloc == NULL) {
         taskKill(task);
@@ -1863,24 +1862,24 @@ void func_actor_160900_80133F90(void)
     task->extra.tmd->coords->coord.t[0] = 0x1770;
     task->extra.tmd->coords->coord.t[1] = 0;
     task->extra.tmd->coords->coord.t[2] = 0xBB8;
-    work->field_0.vx                    = 0;
-    work->field_0.vy                    = -0x5DC;
-    work->field_0.vz                    = 0x3E8;
-    work->field_8.vx                    = 0;
-    work->field_8.vy                    = -0x5DC;
-    work->field_8.vz                    = 0;
-    work->field_10.vx                   = 0;
-    work->field_10.vy                   = 0;
-    work->field_10.vz                   = 0x3E8;
-    work->field_18.vx                   = 0;
-    work->field_18.vy                   = 0;
-    work->field_18.vz                   = 0;
+    work->corners[0].vx                 = 0;
+    work->corners[0].vy                 = -0x5DC;
+    work->corners[0].vz                 = 0x3E8;
+    work->corners[1].vx                 = 0;
+    work->corners[1].vy                 = -0x5DC;
+    work->corners[1].vz                 = 0;
+    work->corners[2].vx                 = 0;
+    work->corners[2].vy                 = 0;
+    work->corners[2].vz                 = 0x3E8;
+    work->corners[3].vx                 = 0;
+    work->corners[3].vy                 = 0;
+    work->corners[3].vz                 = 0;
     task                                = Task_SpawnFromTable(D_actor_160900_8013FB50, 7, 1, 0);
     data->lightQuads[1]                 = task;
     if (task == NULL) {
         return;
     }
-    alloc      = memCalloc(0x20, 0);
+    alloc      = memCalloc(sizeof(*alloc), false);
     task->work = alloc;
     if (alloc == NULL) {
         taskKill(task);
@@ -1892,18 +1891,18 @@ void func_actor_160900_80133F90(void)
     task->extra.tmd->coords->coord.t[0] = 0x1770;
     task->extra.tmd->coords->coord.t[1] = 0;
     task->extra.tmd->coords->coord.t[2] = 0xBB8;
-    work->field_0.vx                    = 0;
-    work->field_0.vy                    = -0x5DC;
-    work->field_0.vz                    = 0;
-    work->field_8.vx                    = 0;
-    work->field_8.vy                    = -0x5DC;
-    work->field_8.vz                    = -0x3E8;
-    work->field_10.vx                   = 0;
-    work->field_10.vy                   = 0;
-    work->field_10.vz                   = 0;
-    work->field_18.vx                   = 0;
-    work->field_18.vy                   = 0;
-    work->field_18.vz                   = -0x3E8;
+    work->corners[0].vx                 = 0;
+    work->corners[0].vy                 = -0x5DC;
+    work->corners[0].vz                 = 0;
+    work->corners[1].vx                 = 0;
+    work->corners[1].vy                 = -0x5DC;
+    work->corners[1].vz                 = -0x3E8;
+    work->corners[2].vx                 = 0;
+    work->corners[2].vy                 = 0;
+    work->corners[2].vz                 = 0;
+    work->corners[3].vx                 = 0;
+    work->corners[3].vy                 = 0;
+    work->corners[3].vz                 = -0x3E8;
 }
 void func_actor_160900_8013418C(Task* arg0)
 {
