@@ -77121,22 +77121,22 @@ the scratch).
 ## Reordering two equal-priority stores in the C moves a pointer's local-alloc birth, and the register with it
 
 `func_actor_206100_8014EEC0` builds a child collision object and was stuck at
-98.94% on one hunk: the task pointer and the `&work->rec` pointer had `$s1` and
+98.94% on one hunk: the task pointer and the `&shot->contacts` pointer had `$s1` and
 `$s2` swapped, everything else identical (`reorder=0 insert=0 delete=0
 branch=0 stack=0`).
 
 `local-alloc`'s `QTY_CMP_PRI` scales as `1 / (death - birth)`, so for two
 quantities with the same reference count the *shorter* live range loses.
-Measured on this function, `&rec` (3 refs, span 18) scored 1666 against the
+Measured on this function, `&contacts` (3 refs, span 18) scored 1666 against the
 task pointer's 1372 (7 refs, span 102) — an inversion of under 300, so the
-required relation `pri81 in (1282, 1372)` pinned `&rec`'s span at exactly 22.
+required relation `pri81 in (1282, 1372)` pinned `&contacts`'s span at exactly 22.
 `death` is fixed (the last use is the `a0` move before the `Gp_InitRec18Table`
 call), so `birth` had to move two scheduled positions earlier.
 
 `birth` is `2 x` the add's position in the *sched1* order, and sched1 is a
 backward list scheduler whose ready list ranks by descending `INSN_PRIORITY`
 then descending LUID — ties prefer the instruction written **later** in the C.
-The add became ready only when its last successor, the `context.contacts = &rec` store,
+The add became ready only when its last successor, the `context.contacts = &contacts` store,
 was placed; that store and the `li/sh` pair for the neighbouring `radius =
 0x140` were both priority 4, so the store won the tie on its larger LUID and
 the add landed one position after it. Writing the two statements the other way
@@ -77144,14 +77144,14 @@ round in the C gave the `0x140` pair the larger LUID, the store was placed
 first, and the add reached position 22:
 
 ```c
-work->obj.radius   = 0x140;      /* base_1: 1666 -> $s1 (wrong) */
-work->obj.context.contacts = rec;        /* add scheduled second, birth +2 */
+shot->strike.attackBody.radius           = 0x140;      /* base_1: 1666 -> $s1 (wrong) */
+shot->strike.attackBody.context.contacts = contacts;        /* add scheduled second, birth +2 */
 
-work->obj.context.contacts = rec;        /* base_2: 1363 -> $s2 (match)  */
-work->obj.radius   = 0x140;      /* add scheduled first, birth -2 */
+shot->strike.attackBody.context.contacts = contacts;        /* base_2: 1363 -> $s2 (match)  */
+shot->strike.attackBody.radius           = 0x140;      /* add scheduled first, birth -2 */
 ```
 
-1666 -> 1363 drops `&rec` below the task pointer's 1372 and the allocation
+1666 -> 1363 drops `&contacts` below the task pointer's 1372 and the allocation
 falls out as `$s0/$s1/$s2/$s3` for the four locals. The emitted instruction
 order was unchanged: sched2 and dbr put the stores back, so this is a
 register-allocation lever reached through the source store order, not an
@@ -117392,12 +117392,12 @@ Inputs: `base.c` 76.036%, `base_1.c` 100.000%, `base_3.c` (no `cond`) 90.764%,
 A loop that walks an array of records by pointer and touches *two* of the
 record's fields gives the second field an induction variable of its own, and the
 register it takes displaces every value allocated after it.  `func_actor_206100_8014DD3C`
-walks two 8-byte companion slots, `{ Enemy* enemy; s32 timer; }`, and only the
+walks two 8-byte Bog Diver slots, `{ Enemy* enemy; s32 summonCooldown; }`, and only the
 indexed spelling reproduces the target.
 
 **Mechanism.**  `loop.c` records a `DEST_ADDR` giv for every memory reference
 whose address is a giv with `mult != 1 || add != 0` (`find_mem_givs`), so with a
-walked pointer the timer's read *and* write are two givs with the same
+walked pointer the cooldown's read *and* write are two givs with the same
 `mult 1, add 4`.  `combine_givs` merges givs whose `mult_val` and `add_val` are
 `rtx_equal_p` -- two uses of one field always qualify -- and sums the pair's
 `lifetime` and `benefit`:
@@ -117430,14 +117430,14 @@ is allocated for them and the field stays `4($s0)`:
 ```c
     do {
         if (work->bogDiversSpawned < 5 && D_actor_206100_80158CBC[i].enemy == NULL) {
-            if (D_actor_206100_80158CBC[i].timer == 0) {
+            if (D_actor_206100_80158CBC[i].summonCooldown == 0) {
                 ...
             } else {
-                D_actor_206100_80158CBC[i].timer = D_actor_206100_80158CBC[i].timer - 1;
+                D_actor_206100_80158CBC[i].summonCooldown = D_actor_206100_80158CBC[i].summonCooldown - 1;
             }
         }
         i++;
-    } while (i < 2);
+    } while (i < ARRAY_SIZE(D_actor_206100_80158CBC));
 ```
 
 The indexed form's preheader order follows too: the address init is created by
@@ -117540,8 +117540,8 @@ in the predecessor), 100.000% `16d0c22ccd3db5de` (touch in the taken block).
 ## A write-only walked pointer still needs the indexed spelling -- for the LUID order
 
 "D_actor_206100_80158CBC": the spawn state `func_actor_206100_8014C274` zeroes
-the same two 8-byte companion slots the tick above walks, `enemy` at 0 and
-`timer` at 4.  Both accesses are *writes*, so no `DEST_ADDR` giv pair merges and
+the same two 8-byte Bog Diver slots the tick above walks, `enemy` at 0 and
+`summonCooldown` at 4.  Both accesses are *writes*, so no `DEST_ADDR` giv pair merges and
 no second induction variable appears -- the pointer form does produce the
 target's single `addiu a1,a1,8`.  It still does not match: `reorder=1`, with
 `addiu a2,a2,1` scheduled ahead of the two stores where the target has it after
@@ -117557,9 +117557,9 @@ INSN_LUID with the *higher* LUID first, so which of the two increments is picked
 when changes the emitted order.  Index the array:
 
 ```c
-    for (i = 0; i < 2; i++) {
+    for (i = 0; i < ARRAY_SIZE(D_actor_206100_80158CBC); i++) {
         D_actor_206100_80158CBC[i].enemy = NULL;
-        D_actor_206100_80158CBC[i].timer = 0;
+        D_actor_206100_80158CBC[i].summonCooldown = 0;
     }
 ```
 
@@ -117837,14 +117837,14 @@ Computing the value into a local and storing it once after the join scores
 96.83% — one instruction short:
 
 ```c
-v = child->field_64;
+v = shot->burstSize;
 if (v < 0x600) {
     v += 0x100;
 } else {
     v = 0x600;
 }
-child->field_64 = v;
-func_actor_206100_8014A70C(coord, child->field_60, mode, child->field_64 + 0x10002000);
+shot->burstSize = v;
+func_actor_206100_8014A70C(coord, shot->burstPhase, mode, shot->burstSize + 0x10002000);
 ```
 
 Here `cse` forwards the store to the read-back: processing a store whose
@@ -117857,13 +117857,13 @@ then has to stay live to the `jal`, and the store sinks into its delay slot.
 Writing the store in each arm instead keeps it:
 
 ```c
-v = child->field_64;
+v = shot->burstSize;
 if (v < 0x600) {
-    child->field_64 = v + 0x100;
+    shot->burstSize = v + 0x100;
 } else {
-    child->field_64 = 0x600;
+    shot->burstSize = 0x600;
 }
-func_actor_206100_8014A70C(coord, child->field_60, mode, child->field_64 + 0x10002000);
+func_actor_206100_8014A70C(coord, shot->burstPhase, mode, shot->burstSize + 0x10002000);
 ```
 
 The RTL then holds load / store / store / load — the two arms' stores are no
@@ -147294,3 +147294,44 @@ declare each in its own block" reports the opposite of the first row for
 `func_actor_120500_8013241C`; a probe of that shape (a 0x14 record inside a
 `case`'s `if`, a 0x10 one in a trailing bare block) gave two slots here. That
 function was not re-examined.
+
+## A constant stored `sp`-relative above offset 0 of a shared frame slot is a *nested* helper's local (func_actor_206100_8014C458, 2026-10-04)
+
+**Symptom.** The fight tick's frame held a rotation matrix at `0x38`, a
+`VECTOR` at `0x58` and a second matrix at `0x68`, and later reused `0x38..0x58`
+for three `SVECTOR`s and then for an `SVECTOR` pair plus a `VECTOR`. It had been
+matched with a function-scope union over `0x38`. Splitting it into `static
+inline` helpers reproduced the sharing at once, but one helper holding both the
+`VECTOR` and the scaling matrix stored the matrix's first identity word as
+`sw s1,16(a1)` - through the helper's frame base - where the target has
+`sw s1,0x68(sp)`.
+
+**Mechanism.** This is "A constant stored into an inlined helper's local keeps
+the helper's frame base alive": a nonzero constant stored to a helper local is
+left on the frame-base pseudo, and CSE only turns the bare `(mem base)` - frame
+offset 0 - back into `N(sp)`. So an `sp`-relative constant store says the object
+is at offset 0 of *some* inline frame. Here the matrix follows the `VECTOR`, so
+it cannot be at offset 0 of the frame that holds both; it is the only local of a
+helper called from the one that owns the `VECTOR`. The inner frame is a temp
+inside the outer helper's frame, its base is a pseudo of its own (`outer + 0x10`),
+and CSE folds that back to `0x68(sp)`.
+
+**Fix.** Two levels: `_actor206100ScaleCoordUniform(coord, scale)` owns the
+`VECTOR` and calls `_actor206100ScaleCoord(coord, &factors)`, which owns the
+matrix. Their combined frame is 0x30, larger than the freed 0x20 slot of the
+rotation helper before them, so it takes a new slot at `0x58` rather than
+reusing `0x38` - which is also why the two could not be one block-scoped pair.
+
+Two side observations from the same function:
+
+- The scale passed as a helper argument must be read at the call (`work->modelScale`
+  as the argument of the scale helper, after the rotation helper returned).
+  Folding rotation and scale into one helper with the scale as its parameter
+  evaluates it before the two `RotMatrix` calls, the value lives across them,
+  and one more saved register re-colours the whole function.
+- `addiu a1,sp,0x10` ahead of a `jalr` through a stack copy of a handler table
+  is not a second argument. `func_actor_206100_8014E7D4` had been matched with
+  handlers typed `void (*)(Task*, void*)` and the call passing `&states`; with
+  plain `TaskFunc` handlers and `states.funcs[work->state](task)` it compiles to
+  the same bytes. `$v0`, `$v1` and `$a0` were busy, and `$a1` was simply the
+  next free register for the table's address.

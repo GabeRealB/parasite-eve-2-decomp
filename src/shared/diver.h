@@ -51,8 +51,8 @@ enum {
 
 /// What the Diver library reaches of a strike's work block.
 ///
-/// A strike is the short-lived task a Diver attacks with: the Bog Diver's shot
-/// and the Sea Diver's beam. Each package keeps its own block at the strike's
+/// A strike is the short-lived task a Diver attacks with: a shot, for both the
+/// Bog Diver and the Sea Diver. Each package keeps its own block at the strike's
 /// `Task::work`, of its own size, and opens it with this head so the shared
 /// teardown can retire either one. The package's spawn state links
 /// `attackBody` and its flight state disables it on the frame the strike

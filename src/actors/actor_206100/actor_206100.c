@@ -66,44 +66,12 @@
 #include "../../shared/coord_math.h"
 #include "../../shared/diver.h"
 
-/// Shared stack storage for posing the actor, spawning its beam, and walking
-/// the parent coordinates to determine whether the actor can be locked onto.
-typedef struct Actor206100GteView {
-    SVECTOR out;
-    SVECTOR vec;
-    union {
-        VECTOR  mac;
-        SVECTOR alt;
-    } m;
-} Actor206100GteView;
-
-typedef union Actor206100VecScratch {
-    GfxMatrix          matrix;
-    Actor206100GteView gte;
-} Actor206100VecScratch;
-
-STATIC_ASSERT_SIZEOF(Actor206100VecScratch, 0x20);
-
 extern TaskDesc D_actor_206100_80158B0C[];
-
-/// The four handlers `func_actor_206100_8014E7D4` picks between as the effect
-/// mode `gSceneCombatState.actorControl` changes -- the retirement `func_actor_206100_8014FBE4`,
-/// the idle tick `func_actor_206100_8014FCD4`, the teleport tick
-/// `func_actor_206100_8014E964` and `func_actor_206100_8014FDE8`.  Its copy
-/// onto the stack is the same three-word block move the two tables above get,
-/// but its call is the only one in this overlay that passes a second argument,
-/// the local table itself; the element type carries that argument even though
-/// none of the four reads it.
-typedef void (*Actor206100StateFunc)(Task*, void*);
-
-typedef struct {
-    Actor206100StateFunc funcs[4];
-} Actor206100StateTable4;
 
 /// The `Gp_LinkObj` record `func_actor_206100_8014FBE4` unlinks when it
 /// retires the actor, plus the area-record list that handler applies.
 
-/// The attack the beam's collision object carries at `WorldCollisionBody.key`.
+/// The attack a shot's sphere carries at `WorldCollisionBody.key`.
 /// `power` is 0x1A and `reaction` is 5.
 extern DamageAttack D_actor_206100_80155194;
 
@@ -130,41 +98,38 @@ extern AreaPlacement D_actor_206100_80155134[];
 /// the XZ plane, one 45-degree step per entry, at a constant height of 3000.
 extern SVECTOR D_actor_206100_80158B68[8];
 
-/// One of the actor's two companion slots: the enemy the spawner
-/// `func_actor_206100_8014EE2C` returned for it, and the cooldown that keeps
-/// the slot empty for a while after that enemy retires.  The two fill in
-/// `_Actor206100Work::bogDiversSpawned` order, and the tick
-/// `func_actor_206100_8014DD3C` releases a slot when its enemy's health counter
-/// `field_40` runs out -- emptying the pointer and arming the timer with 0xB4
-/// frames, counted down one a frame while the slot stays empty.
+/// Frames a Bog Diver slot stays empty after the diver in it has died.
+#define ACTOR_206100_BOG_DIVER_SUMMON_COOLDOWN 0xB4
+
+/// One of the two Bog Divers the Sea Diver keeps summoned while it circles.
 ///
-/// The tick reaches both fields by *index* (`D_actor_206100_80158CBC[i].enemy`)
-/// rather than through a walking pointer, and that is load-bearing: with a
-/// pointer the timer's read and write are two identical `DEST_ADDR` givs on the
-/// same biv, which `combine_givs` merges into one that passes
-/// `strength_reduce`'s "worth while" test -- so the second field gets an
-/// induction variable of its own and every later value shifts up a register.
-/// See `DECOMPILATION_LEARNINGS.md`, "A walked pointer's second field becomes a
-/// second induction variable".
-typedef struct Actor206100Slot {
-    /* 0x0 */ Enemy* enemy;
-    /* 0x4 */ s32    timer;
-} Actor206100Slot;
-STATIC_ASSERT_SIZEOF(Actor206100Slot, 0x8);
+/// A slot holds one summoned diver at a time. While it is empty, and fewer
+/// than five divers have been summoned in all, it summons the next one as soon
+/// as its cooldown has run out. When the diver in it dies the slot empties
+/// and waits `ACTOR_206100_BOG_DIVER_SUMMON_COOLDOWN` frames.
+typedef struct {
+    Enemy* enemy;          // the summoned Bog Diver's enemy record; NULL while the slot is empty
+    s32    summonCooldown; // frames before the empty slot summons again, counted down a frame while it is empty
+} _Actor206100BogDiverSlot;
+STATIC_ASSERT_SIZEOF(_Actor206100BogDiverSlot, 0x8);
 
-/// The two companion slots, zeroed as an 8-byte-stride pair by the spawn state
+/// The two Bog Diver slots, emptied by the spawn state
 /// `func_actor_206100_8014C274`.
-extern Actor206100Slot D_actor_206100_80158CBC[2];
+extern _Actor206100BogDiverSlot D_actor_206100_80158CBC[2];
 
-/// 0xC-byte scratch `func_actor_206100_8014ED3C` takes off the scratch stack to
-/// hold the actor's position mirrored through the origin and its distance from
-/// it: `delta` is the negated root coordinate (`vy` is left unwritten, the walk
-/// is planar) and `dist` the `SquareRoot0` of the two written squares.
-typedef struct Actor206100DistScratch {
-    /* 0x0 */ SVECTOR delta;
-    /* 0x8 */ s32     dist;
-} Actor206100DistScratch;
-STATIC_ASSERT_SIZEOF(Actor206100DistScratch, 0xC);
+/// Farthest from the origin, in the XZ plane, that a step of the fight may
+/// leave the root.
+#define ACTOR_206100_FIGHT_AREA_RADIUS 0x190
+
+/// Scratch-stack block of the fight's bounded step: where the root stands
+/// from the origin once the step has been taken.
+///
+/// The step reserves one block and releases it before it returns.
+typedef struct {
+    SVECTOR toOrigin; // from the root to the origin in the XZ plane; `vy` and `pad` are never written
+    s32     distance; // length of `toOrigin`; past `ACTOR_206100_FIGHT_AREA_RADIUS` the step's XZ is undone
+} _Actor206100OriginDistanceScratch;
+STATIC_ASSERT_SIZEOF(_Actor206100OriginDistanceScratch, 0xC);
 
 /// Values of `_Actor206100Work::hitReaction`.
 enum {
@@ -289,32 +254,47 @@ STATIC_ASSERT_SIZEOF(_Actor206100Work, 0x558);
 /// The Diver library's name for this package's work block (see diver.h).
 typedef _Actor206100Work DiverWork;
 
-/// Work block of the beam task `func_actor_206100_8014C458` spawns off
-/// `D_actor_206100_80158B0C` when `_Actor206100Work::shotRequested` is set: it
-/// `memCalloc(0x68, 0)`s one and parks it in the child's `Task::work`, the
-/// same reuse `_Actor206100Work` makes of the parent's slot.
+/// Distance ahead of the head, along its forward axis, at which a shot appears.
+#define ACTOR_206100_SHOT_MUZZLE_DISTANCE 0x15E
+
+/// Distance a shot moves along the head's forward axis every frame.
+#define ACTOR_206100_SHOT_SPEED 0x5A
+
+/// Added to a shot's vertical speed every frame.
+#define ACTOR_206100_SHOT_GRAVITY 2
+
+/// Frame count at which a shot still flying bursts by itself.
+#define ACTOR_206100_SHOT_LIFETIME 0x5B
+
+/// `_Actor206100ShotWork::burstSize` at launch, and what it grows by a frame.
+#define ACTOR_206100_SHOT_BURST_SIZE_STEP 0x100
+
+/// Value `_Actor206100ShotWork::burstSize` stops growing at.
+#define ACTOR_206100_SHOT_BURST_SIZE_MAX 0x600
+
+/// Added to `_Actor206100ShotWork::burstSize` to make the size word handed to
+/// `diverImpactBurst`: effect variant 2 in bits 12..15. Bit 28 is set as well,
+/// and the burst does not read it.
+#define ACTOR_206100_SHOT_BURST_VARIANT 0x10002000
+
+/// Work block of a shot of the Sea Diver's attack.
 ///
-/// `obj` is the kind-1 `WorldCollisionBody` the spawn state `func_actor_206100_8014EEC0`
-/// links into the collision list and `func_actor_206100_8014FBE4` unlinks
-/// again on retirement, so the 0x8 before it is not the node's own header and
-/// stays zero.  `rec` is the two-entry `WorldCollisionContact` table `obj.context.contacts` points at.
-/// `field_58` / `field_5A` / `field_5C` are the view-space deltas the spawner
-/// stores from the actor's coordinate, `field_60` the pair index the setup
-/// hands to `diverImpactBurst`, and `field_64` the scale word it
-/// biases by 0x10002000.  The tick handler `func_actor_206100_8014B8B4`
-/// advances `field_5A` and adds `field_58` into the coordinate's `t[1]`.
-typedef struct Actor206100ChildWork {
-    /* 0x00 */ byte                  pad_0[0x8];
-    /* 0x08 */ WorldCollisionBody    obj;
-    /* 0x28 */ WorldCollisionContact rec[2];
-    /* 0x58 */ s16                   field_58;
-    /* 0x5A */ s16                   field_5A;
-    /* 0x5C */ s16                   field_5C;
-    /* 0x5E */ byte                  pad_5E[0x2];
-    /* 0x60 */ s32                   field_60;
-    /* 0x64 */ s32                   field_64;
-} Actor206100ChildWork;
-STATIC_ASSERT_SIZEOF(Actor206100ChildWork, 0x68);
+/// A shot is a task of its own with a coordinate for a body, parented to the
+/// view coordinate. The fight spawns one on each of an attack's six cue
+/// frames, `ACTOR_206100_SHOT_MUZZLE_DISTANCE` ahead of the head and aimed
+/// along it; from then on the shot moves by `velocity` every frame, falling
+/// under `ACTOR_206100_SHOT_GRAVITY`, and throws sparks and spray that grow
+/// with `burstSize`. It bursts when its sphere touches a body or the room, or
+/// when it has flown `ACTOR_206100_SHOT_LIFETIME` frames, and the Diver
+/// library's teardown then unlinks the sphere and ends the task.
+typedef struct {
+    DiverStrikeWork       strike;      // head the Diver library's teardown reads: the sphere carrying the attack, linked while the shot flies
+    WorldCollisionContact contacts[2]; // contacts of the sphere: what the shot touched this frame
+    SVECTOR               velocity;    // movement a frame in the view coordinate's space: the head's forward axis times `ACTOR_206100_SHOT_SPEED`; `pad` is never accessed
+    s32                   burstPhase;  // phase handed to the burst, picking the spark's frame and pacing its puffs; cleared at launch and never advanced, where the Bog Diver's shot counts its frames here
+    s32                   burstSize;   // size of the burst's spark and spray: `ACTOR_206100_SHOT_BURST_SIZE_STEP` at launch, growing by as much a frame up to `ACTOR_206100_SHOT_BURST_SIZE_MAX`
+} _Actor206100ShotWork;
+STATIC_ASSERT_SIZEOF(_Actor206100ShotWork, 0x68);
 
 /// The wave `func_actor_206100_8014CB68` arms: pale cyan modulation with a
 /// one-frame ramp.
@@ -354,19 +334,10 @@ static void func_actor_206100_8014AF74(Task* task);
 /// tail shape `func_actor_403100_80132320` has (`|= 0x8000` there).
 static void func_actor_206100_8014F18C(Task* task);
 
-/// Builds the child beam's collision state: links its `WorldCollisionBody` and initializes
-/// the coordinate the beam is drawn at. `task` is the child spawned by
-/// `func_actor_206100_8014C458`, so its `Task::work` is the
-/// `Actor206100ChildWork` above.
+/// First state of a shot's task: parents its coordinate to the view, links
+/// the sphere that carries the attack and throws the launch burst. `task` is
+/// the shot the fight spawned, so its `Task::work` is a `_Actor206100ShotWork`.
 static void func_actor_206100_8014EEC0(Task* task);
-
-/// Spawns the beam's impact effect burst at `coord`. `arg1` is
-/// `Actor206100ChildWork::field_60` (the `DamageAttack` index): `(arg1 >> 1) % 6`
-/// picks the spark frame `diverDrawSpark` plays, bit 0 gates the
-/// puff and the low three bits the directional tail. `arg2` selects the burst
-/// - 0 a lone spark, 1 the spark plus those two extras, 2 a four-shot ring -
-/// and `arg3` is the biased `field_64` scale word, whose low 12 bits are the
-/// effect parameter and bits 12..15 a variant index.
 
 /// Steps the actor's model coordinate `arg1` along the heading `arg2`, in the
 /// XZ plane, and marks it dirty.
@@ -444,7 +415,7 @@ static void func_actor_206100_8014D8E8(Task* task);
 /// Sub-state 1 of the state-2 dispatcher `func_actor_206100_8014DA28`'s
 /// two-entry local table, which picks it with `funcs[state]` and is
 /// entered from that dispatcher's `gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING` arm -- entry 0 is the ring
-/// stepper `func_actor_206100_8014FAE4`.  It maintains the actor's companions.
+/// stepper `func_actor_206100_8014FAE4`.  It keeps the Bog Divers summoned.
 ///
 /// `stateFrames` is held at 0x1E -- the frame `func_actor_206100_8014D574` fires
 /// the explosion on -- by arming the global `gSceneCombatState` flag again through
@@ -453,20 +424,18 @@ static void func_actor_206100_8014D8E8(Task* task);
 /// `func_actor_206100_8014DEAC` then runs, and the two slots
 /// `D_actor_206100_80158CBC` are walked by index, each handled on its own:
 ///
-/// - an empty slot whose timer has run out spawns a companion with
+/// - an empty slot whose `summonCooldown` has run out summons a Bog Diver with
 ///   `func_actor_206100_8014EE2C`, stores it, arms its `hp`
 ///   and advances `bogDiversSpawned` -- but only while `bogDiversSpawned` is still
-///   below 5, because that index picks the variant's place record;
-/// - an empty slot whose timer is still running counts it down by one;
-/// - a filled slot whose enemy has lost its `hp` is emptied and
-///   armed with a 0xB4-frame cooldown, and the fifth such release moves the
-///   actor to state 2 with the state and sub-state indices cleared.
+///   below 5, because that index picks the diver's place record;
+/// - an empty slot whose `summonCooldown` is still running counts it down by one;
+/// - a filled slot whose diver has lost its `hp` is emptied and armed with
+///   `ACTOR_206100_BOG_DIVER_SUMMON_COOLDOWN`, and the fifth such release moves
+///   the actor to state 2 with the state and sub-state indices cleared.
 ///
 /// The state change reads `task->work` again rather than reusing `work`, the
 /// same fresh load `set_state` makes.
 static void func_actor_206100_8014DD3C(Task* task);
-
-/// Teardown state of the beam child, run until its countdown kills it.
 
 /// Transforms `pos` from `coord`'s space up the parent chain into the view
 /// coordinate's space.  Returns 1 with `pos` rewritten once the walk reaches
@@ -499,10 +468,10 @@ static void func_actor_206100_8014F738(Task* task);
 static void func_actor_206100_8014F770(Task* task);
 static void func_actor_206100_8014F7B4(Task* task);
 static void func_actor_206100_8014F878(Task* task);
-static void func_actor_206100_8014E964(Task* task, void* unusedTable);
-static void func_actor_206100_8014FBE4(Task* task, void* unusedTable);
-static void func_actor_206100_8014FCD4(Task* task, void* unusedTable);
-static void func_actor_206100_8014FDE8(Task* task, void* unusedTable);
+static void func_actor_206100_8014E964(Task* task);
+static void func_actor_206100_8014FBE4(Task* task);
+static void func_actor_206100_8014FCD4(Task* task);
+static void func_actor_206100_8014FDE8(Task* task);
 static void func_actor_206100_8014E228(Task* task);
 
 /// Distortion amplitude of the screen wave: `frame * scale / span` of the
@@ -1053,7 +1022,7 @@ ScreenWaveOscillator gScreenWaveColumns[13] = { 0 };
 
 ScreenWaveOscillator gScreenWaveRows[32] = { 0 };
 
-Actor206100Slot D_actor_206100_80158CBC[2] = { 0 };
+_Actor206100BogDiverSlot D_actor_206100_80158CBC[2] = { 0 };
 
 ScreenWaveCtx D_actor_206100_80158CCC = { 0 };
 
@@ -1419,19 +1388,20 @@ static void func_actor_206100_8014B698(Task* task)
         work->playerBearing = (ratan2(d0.vx, d0.vz) - work->rotation.vy) & 0xFFF;
     }
 }
-/// Tick handler of the beam child `func_actor_206100_8014EEC0` starts, the
-/// same shape the marker `Actor00400_Fn02D48` has: while the effect mode
-/// `gSceneCombatState.actorControl` is 0 it advances the child's `field_5A` and folds `field_58` /
-/// `field_5A` / `field_5C` into the root coordinate, raises `hit` when
-/// either collision slot reports one of the three kinds 1/3/5 or when
-/// `func_800E0C10`'s push-back says the beam is crowded, and retires the child
-/// - clearing the object's draw flags, bumping the task state and switching
-/// the effect kind to 2 - once `killCountdown` reaches 0x5B or the flag is up.
-/// `field_64` is the scale the setup hands to `diverImpactBurst`
-/// biased by 0x10002000; it ramps 0x100 a frame to 0x600 and then holds.
+/// Flight state of a shot, entered once `func_actor_206100_8014EEC0` has
+/// launched it. While the actors run it adds `ACTOR_206100_SHOT_GRAVITY` to the
+/// shot's vertical speed, moves the coordinate by
+/// `_Actor206100ShotWork::velocity`, then decides whether the shot bursts.
+///
+/// `hit` is raised when either of the shot's two contacts reports one of the
+/// three kinds 1/3/5, or when `func_800E0C10` finds the sphere against the
+/// room's grid without bit 8 in its mask. Once it is raised - or at
+/// `ACTOR_206100_SHOT_LIFETIME` frames - the sphere's grid and pair tests are
+/// switched off, the task's state is bumped and the burst is thrown with kind
+/// 2 instead of 1. `burstSize` grows before every burst.
 static void func_actor_206100_8014B8B4(Task* task)
 {
-    Actor206100ChildWork* child;
+    _Actor206100ShotWork* shot;
     GfxCoord*             coord;
     WorldCollisionDelta   delta;
     s32                   mask;
@@ -1442,18 +1412,18 @@ static void func_actor_206100_8014B8B4(Task* task)
     s32                   v;
 
     hit   = 0;
-    child = (Actor206100ChildWork*)task->work;
+    shot  = task->work;
     coord = task->extra.tmd->coords;
     mode  = 1;
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
-        child->field_5A      += 2;
+        shot->velocity.vy    += ACTOR_206100_SHOT_GRAVITY;
         *&coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        coord->coord.t[0]    += child->field_58;
-        coord->coord.t[1]    += child->field_5A;
-        coord->coord.t[2]    += child->field_5C;
-        if (Gp_FindRec18(child->rec, 0) != 0) {
-            for (i = 0; i < 2; i++) {
-                switch (child->rec[i].key.value & 0xFFFF0000) {
+        coord->coord.t[0]    += shot->velocity.vx;
+        coord->coord.t[1]    += shot->velocity.vy;
+        coord->coord.t[2]    += shot->velocity.vz;
+        if (Gp_FindRec18(shot->contacts, 0) != 0) {
+            for (i = 0; i < ARRAY_SIZE(shot->contacts); i++) {
+                switch (shot->contacts[i].key.value & 0xFFFF0000) {
                     case 0x10000:
                     case 0x30000:
                     case 0x50000:
@@ -1462,7 +1432,7 @@ static void func_actor_206100_8014B8B4(Task* task)
                 }
             }
         }
-        n = func_800E0C10(child->rec, &delta, 2, &mask);
+        n = func_800E0C10(shot->contacts, &delta, ARRAY_SIZE(shot->contacts), &mask);
         if (n < 3) {
             if (n > 0) {
                 if ((mask & 8) == 0) {
@@ -1470,20 +1440,20 @@ static void func_actor_206100_8014B8B4(Task* task)
                 }
             }
         }
-        Gp_ClearRec18Occupied(child->rec);
-        if ((++task->killCountdown >= 0x5B) || (hit != 0)) {
-            task->killCountdown = 0;
-            child->obj.flags   &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-            mode                = 2;
-            task->state        += 1;
+        Gp_ClearRec18Occupied(shot->contacts);
+        if ((++task->killCountdown >= ACTOR_206100_SHOT_LIFETIME) || (hit != 0)) {
+            task->killCountdown            = 0;
+            shot->strike.attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
+            mode                           = 2;
+            task->state                   += 1;
         }
-        v = child->field_64;
-        if (v < 0x600) {
-            child->field_64 = v + 0x100;
+        v = shot->burstSize;
+        if (v < ACTOR_206100_SHOT_BURST_SIZE_MAX) {
+            shot->burstSize = v + ACTOR_206100_SHOT_BURST_SIZE_STEP;
         } else {
-            child->field_64 = 0x600;
+            shot->burstSize = ACTOR_206100_SHOT_BURST_SIZE_MAX;
         }
-        diverImpactBurst(coord, child->field_60, mode, child->field_64 + 0x10002000);
+        diverImpactBurst(coord, shot->burstPhase, mode, shot->burstSize + ACTOR_206100_SHOT_BURST_VARIANT);
     }
 }
 /// Damage / knock-back tick: walks the six contact records of the actor's
@@ -1685,8 +1655,8 @@ static inline void _actor206100AnimUpdate(Task* task)
 
 /// Spawn state of `D_actor_206100_80149E94`: builds the actor's work block --
 /// a zeroed `_Actor206100Work` parked straight in `Task::work`, the actor destroyed
-/// if that fails -- empties both companion slots of `D_actor_206100_80158CBC`
-/// through their index (the walked-pointer form gives the timer field an
+/// if that fails -- empties both Bog Diver slots of `D_actor_206100_80158CBC`
+/// through their index (the walked-pointer form gives the cooldown field an
 /// induction variable of its own) and calls the setup `func_actor_206100_8014AF74`
 /// with the block in place.
 ///
@@ -1719,9 +1689,9 @@ static void func_actor_206100_8014C274(Task* task)
     }
     D_neo_ark_submarine_gallery_801818B8 = 1;
     work->waterLevel                     = D_neo_ark_submarine_gallery_80181A48;
-    for (i = 0; i < 2; i++) {
-        D_actor_206100_80158CBC[i].enemy = NULL;
-        D_actor_206100_80158CBC[i].timer = 0;
+    for (i = 0; i < ARRAY_SIZE(D_actor_206100_80158CBC); i++) {
+        D_actor_206100_80158CBC[i].enemy          = NULL;
+        D_actor_206100_80158CBC[i].summonCooldown = 0;
     }
     func_actor_206100_8014AF74(task);
     req              = task->work;
@@ -1804,43 +1774,196 @@ static __inline__ void Actor206100_UpdateColor(Task* task)
     SCRATCH_POP_BYTES_AT(scratch, 0x10);
 }
 
-/// Updates the active enemy, emits its beam, and gates lock-on by its height
-/// after transforming the selected model part through the parent chain.
+/// Multiplies `coord`'s rotation by the scale `factors` holds for each axis,
+/// `ONE` = 1.0.
+static inline void _actor206100ScaleCoord(GfxCoord* coord, VECTOR* factors)
+{
+    GfxMatrix scaling;
+    MATRIX*   mtx;
+
+    mtx                          = &scaling.mat;
+    scaling.rotationWords.m00M01 = ONE;
+    scaling.rotationWords.m02M10 = 0;
+    MATRIX_PAIR(mtx, 1, 1)       = ONE;
+    scaling.rotationWords.m20M21 = 0;
+    mtx->m[2][2]                 = ONE;
+    ScaleMatrix(&scaling.mat, factors);
+    MulMatrix(&coord->coord, &scaling.mat);
+}
+
+/// Multiplies `coord`'s rotation by the uniform `scale`, `ONE` = 1.0.
+static inline void _actor206100ScaleCoordUniform(GfxCoord* coord, s16 scale)
+{
+    VECTOR factors;
+
+    // The matrix has to be the callee's local: as a second local here its
+    // identity words would be stored through this helper's frame base.
+    factors.vx = scale;
+    factors.vy = factors.vx;
+    factors.vz = factors.vx;
+    _actor206100ScaleCoord(coord, &factors);
+}
+
+/// Rebuilds the root coordinate's rotation from `_Actor206100Work::rotation`:
+/// the roll about Z, then the heading about Y.
+static inline void _actor206100ApplyRootRotation(Task* task)
+{
+    _Actor206100Work* work;
+    GfxCoord*         coord;
+    GfxMatrix         m;
+    GfxMatrix*        mtx;
+    MATRIX*           dest;
+
+    coord                        = task->extra.tmd->coords;
+    work                         = task->work;
+    mtx                          = &m;
+    m.rotationWords.m00M01       = ONE;
+    m.rotationWords.m02M10       = 0;
+    MATRIX_PAIR(&mtx->mat, 1, 1) = ONE;
+    m.rotationWords.m20M21       = 0;
+    mtx->mat.m[2][2]             = ONE;
+    RotMatrixZ(work->rotation.vz, &mtx->mat);
+    RotMatrixY(work->rotation.vy, &mtx->mat);
+    dest                = &coord->coord;
+    dest->m[0][0]       = m.mat.m[0][0];
+    dest->m[0][1]       = m.mat.m[0][1];
+    dest->m[0][2]       = m.mat.m[0][2];
+    dest->m[1][0]       = m.mat.m[1][0];
+    dest->m[1][1]       = m.mat.m[1][1];
+    dest->m[1][2]       = m.mat.m[1][2];
+    dest->m[2][0]       = m.mat.m[2][0];
+    dest->m[2][1]       = m.mat.m[2][1];
+    dest->m[2][2]       = m.mat.m[2][2];
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+}
+
+/// Spawns a shot's task and hands it a zeroed `_Actor206100ShotWork`: the
+/// shot starts `ACTOR_206100_SHOT_MUZZLE_DISTANCE` along the head's Z axis,
+/// and the span from the head's origin to the point
+/// `ACTOR_206100_SHOT_SPEED` along that axis becomes its `velocity`. A shot
+/// whose task or block cannot be had is dropped.
+static inline void _actor206100SpawnShot(Task* task)
+{
+    _Actor206100ShotWork* shot;
+    GfxCoord*             head;
+    GfxCoord*             shotCoord;
+    Task*                 shotTask;
+    SVECTOR               pos;
+    SVECTOR               base;
+    SVECTOR               tip;
+
+    head     = &task->extra.tmd->coords[4];
+    shotTask = Task_SpawnFromTable(D_actor_206100_80158B0C, 1, 0, 0);
+    if (shotTask != NULL) {
+        shot = memCalloc(sizeof(_Actor206100ShotWork), 0);
+        if (shot == NULL) {
+            taskKill(shotTask);
+        } else {
+            base.vx = 0;
+            base.vy = 0;
+            base.vz = 0;
+            tip.vx  = 0;
+            tip.vy  = 0;
+            tip.vz  = ACTOR_206100_SHOT_SPEED;
+            coordLocalToWorld(head, &base);
+            coordLocalToWorld(head, &tip);
+            shotTask->work = shot;
+            shotCoord      = shotTask->extra.tmd->coords;
+            pos.vx         = 0;
+            pos.vy         = 0;
+            pos.vz         = ACTOR_206100_SHOT_MUZZLE_DISTANCE;
+            coordLocalToWorld(head, &pos);
+            shotCoord->coord.t[0] = pos.vx;
+            shotCoord->coord.t[1] = pos.vy;
+            shotCoord->coord.t[2] = pos.vz;
+            shot->velocity.vx     = tip.vx - base.vx;
+            shot->velocity.vy     = tip.vy - base.vy;
+            shot->velocity.vz     = tip.vz - base.vz;
+        }
+    }
+}
+
+/// Depth under the water surface past which the Sea Diver cannot be locked
+/// onto.
+#define ACTOR_206100_LOCKABLE_DEPTH 0x190
+
+/// Takes the enemy off the lock-on list while model part `part` is more than
+/// `ACTOR_206100_LOCKABLE_DEPTH` below `_Actor206100Work::waterLevel`, and
+/// puts it back above that.
+///
+/// The part's origin is carried up the parent chain to the view coordinate as
+/// `coordLocalToWorld` does it. A chain that ends before the view leaves the
+/// position at zero, which counts as above the water.
+static inline void _actor206100UpdateLockable(Task* task, u8 part)
+{
+    _Actor206100Work* work;
+    Enemy*            enemy;
+    GfxCoord*         coord;
+    SVECTOR           pos;
+    SVECTOR           local;
+    VECTOR            result;
+    s32               flag;
+    SVECTOR*          in;
+    SVECTOR*          out;
+
+    in       = &local;
+    out      = &pos;
+    work     = task->work;
+    coord    = &task->extra.tmd->coords[part];
+    enemy    = task->spawnArg2.pointer;
+    pos.vx   = 0;
+    pos.vy   = 0;
+    pos.vz   = 0;
+    local.vx = 0;
+    local.vy = 0;
+    local.vz = 0;
+    while (1) {
+        if (coord->parent == NULL) {
+            break;
+        }
+        if (coord != &gGfxViewCoord) {
+            gte_SetTransMatrix(&coord->coord);
+            gte_SetRotMatrix(&coord->coord);
+            gte_ldv0(in);
+            gte_rtv0tr();
+            gte_stlvnl(&result);
+            gte_stflg(&flag);
+            local.vx = result.vx;
+            local.vy = result.vy;
+            local.vz = result.vz;
+            coord    = coord->parent;
+            continue;
+        }
+        out->vx = local.vx;
+        out->vy = local.vy;
+        out->vz = local.vz;
+        break;
+    }
+    if (work->waterLevel + ACTOR_206100_LOCKABLE_DEPTH < pos.vy) {
+        enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+    } else {
+        enemy->node.state.parts.flags = 0;
+    }
+}
+
+/// Fight tick: runs the current fight state, drives the animation, re-poses
+/// the root, spawns a requested shot, and gates lock-on by the height of the
+/// target part.
 static void func_actor_206100_8014C458(Task* task)
 {
-    _Actor206100Work*      work   = task->work;
-    GfxCoord*              coord  = task->extra.tmd->coords;
-    TmdObject*             obj    = task->extra.tmd;
-    Enemy*                 enemy  = (Enemy*)task->spawnArg2.pointer;
-    TaskFuncTable9         states = D_actor_206100_80149E70;
-    Actor206100VecScratch  scratch;
-    VECTOR                 scale;
-    GfxMatrix              scaling;
-    _Actor206100Work*      next;
-    _Actor206100Work*      dying;
-    _Actor206100Work*      sub;
-    _Actor206100Work*      pose;
-    _Actor206100Work*      last;
-    _Actor206100Work*      anim;
-    MATRIX*                dest;
-    GfxCoord*              scaled;
-    GfxCoord*              destcoord;
-    GfxCoord*              child;
-    GfxCoord*              walk;
-    GfxCoord*              root;
-    Enemy*                 end;
-    Task*                  spawn;
-    Actor206100ChildWork*  beam;
-    Actor206100VecScratch* mtx;
-    MATRIX*                mtx2;
-    s32                    i;
-    s32                    sound;
-    s32                    pan;
-    s32                    flag;
-    s16                    state;
-    SVECTOR*               launch;
-    SVECTOR*               svp;
-    SVECTOR*               out;
+    _Actor206100Work* work   = task->work;
+    GfxCoord*         coord  = task->extra.tmd->coords;
+    TmdObject*        obj    = task->extra.tmd;
+    Enemy*            enemy  = (Enemy*)task->spawnArg2.pointer;
+    TaskFuncTable9    states = D_actor_206100_80149E70;
+    _Actor206100Work* next;
+    _Actor206100Work* dying;
+    _Actor206100Work* sub;
+    _Actor206100Work* anim;
+    s32               i;
+    s32               sound;
+    s32               pan;
+    s16               state;
 
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_HIDDEN:
@@ -1894,71 +2017,11 @@ static void func_actor_206100_8014C458(Task* task)
             func_actor_206100_8014E0C0(task);
             func_actor_206100_8014EC54(task);
             func_actor_206100_8014EB60(task);
-            destcoord                           = task->extra.tmd->coords;
-            pose                                = task->work;
-            mtx                                 = &scratch;
-            scratch.matrix.rotationWords.m00M01 = ONE;
-            scratch.matrix.rotationWords.m02M10 = 0;
-            MATRIX_PAIR(&mtx->matrix.mat, 1, 1) = 0x1000;
-            scratch.matrix.rotationWords.m20M21 = 0;
-            mtx->matrix.mat.m[2][2]             = 0x1000;
-            RotMatrixZ(pose->rotation.vz, &mtx->matrix.mat);
-            RotMatrixY(pose->rotation.vy, &mtx->matrix.mat);
-            dest                         = &destcoord->coord;
-            dest->m[0][0]                = scratch.matrix.mat.m[0][0];
-            dest->m[0][1]                = scratch.matrix.mat.m[0][1];
-            dest->m[0][2]                = scratch.matrix.mat.m[0][2];
-            dest->m[1][0]                = scratch.matrix.mat.m[1][0];
-            dest->m[1][1]                = scratch.matrix.mat.m[1][1];
-            dest->m[1][2]                = scratch.matrix.mat.m[1][2];
-            dest->m[2][0]                = scratch.matrix.mat.m[2][0];
-            dest->m[2][1]                = scratch.matrix.mat.m[2][1];
-            dest->m[2][2]                = scratch.matrix.mat.m[2][2];
-            destcoord->composeStamp      = GRAPHICS_COORD_DIRTY;
-            scaled                       = task->extra.tmd->coords;
-            scale.vx                     = work->modelScale;
-            scale.vy                     = scale.vx;
-            scale.vz                     = scale.vx;
-            mtx2                         = &scaling.mat;
-            scaling.rotationWords.m00M01 = ONE;
-            scaling.rotationWords.m02M10 = 0;
-            MATRIX_PAIR(mtx2, 1, 1)      = 0x1000;
-            scaling.rotationWords.m20M21 = 0;
-            mtx2->m[2][2]                = 0x1000;
-            ScaleMatrix(&scaling.mat, &scale);
-            MulMatrix(&scaled->coord, &scaling.mat);
+            _actor206100ApplyRootRotation(task);
+            _actor206100ScaleCoordUniform(task->extra.tmd->coords, work->modelScale);
             func_actor_206100_8014BAA8(task);
             if (work->shotRequested != 0) {
-                root  = &task->extra.tmd->coords[4];
-                spawn = Task_SpawnFromTable(D_actor_206100_80158B0C, 1, 0, 0);
-                if (spawn != NULL) {
-                    beam = memCalloc(0x68, 0);
-                    if (beam == NULL) {
-                        taskKill(spawn);
-                    } else {
-                        scratch.gte.vec.vx   = 0;
-                        scratch.gte.vec.vy   = 0;
-                        scratch.gte.vec.vz   = 0;
-                        scratch.gte.m.alt.vx = 0;
-                        scratch.gte.m.alt.vy = 0;
-                        mtx->gte.m.alt.vz    = 0x5A;
-                        coordLocalToWorld(root, &scratch.gte.vec);
-                        coordLocalToWorld(root, &scratch.gte.m.alt);
-                        spawn->work        = beam;
-                        child              = spawn->extra.tmd->coords;
-                        launch             = &scratch.gte.out;
-                        scratch.gte.out.vx = 0;
-                        scratch.gte.out.vy = 0;
-                        launch->vz         = 0x15E;
-                        coordLocalToWorld(root, launch);
-                        child->coord.t[0] = scratch.gte.out.vx;
-                        child->coord.t[1] = scratch.gte.out.vy;
-                        child->coord.t[2] = scratch.gte.out.vz;
-                        beam->field_58    = scratch.gte.m.alt.vx - scratch.gte.vec.vx;
-                        beam->field_5A    = scratch.gte.m.alt.vy - scratch.gte.vec.vy;
-                        beam->field_5C    = scratch.gte.m.alt.vz - scratch.gte.vec.vz;
-                    }
-                }
+                _actor206100SpawnShot(task);
                 work->shotRequested = 0;
             }
             if (enemy->hp <= 0) {
@@ -1975,43 +2038,7 @@ static void func_actor_206100_8014C458(Task* task)
             obj->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;
     }
-    svp                = &scratch.gte.vec;
-    out                = &scratch.gte.out;
-    last               = task->work;
-    walk               = &task->extra.tmd->coords[work->targetPart];
-    end                = (Enemy*)task->spawnArg2.pointer;
-    scratch.gte.out.vx = 0;
-    scratch.gte.out.vy = 0;
-    scratch.gte.out.vz = 0;
-    scratch.gte.vec.vx = 0;
-    scratch.gte.vec.vy = 0;
-    scratch.gte.vec.vz = 0;
-    while (1) {
-        if (walk->parent == NULL)
-            break;
-        if (walk != &gGfxViewCoord) {
-            gte_SetTransMatrix(&walk->coord);
-            gte_SetRotMatrix(&walk->coord);
-            gte_ldv0(svp);
-            gte_rtv0tr();
-            gte_stlvnl(&scratch.gte.m.mac);
-            gte_stflg(&flag);
-            scratch.gte.vec.vx = scratch.gte.m.mac.vx;
-            scratch.gte.vec.vy = scratch.gte.m.mac.vy;
-            scratch.gte.vec.vz = scratch.gte.m.mac.vz;
-            walk               = walk->parent;
-            continue;
-        }
-        out->vx = scratch.gte.vec.vx;
-        out->vy = scratch.gte.vec.vy;
-        out->vz = scratch.gte.vec.vz;
-        break;
-    }
-    if (last->waterLevel + 0x190 < scratch.gte.out.vy) {
-        end->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-    } else {
-        end->node.state.parts.flags = 0;
-    }
+    _actor206100UpdateLockable(task, work->targetPart);
 }
 
 /// Teleport: ramps the white-out `func_actor_206100_8014DEAC` fades with, and
@@ -2390,9 +2417,9 @@ static const TaskFuncTable3 D_actor_206100_80149EB4 = {
 
 /// The last object in this unit's `.rodata`, one object after
 /// `D_actor_206100_80149EB4` and flush against the unit's first code address:
-/// the four handlers `func_actor_206100_8014E7D4` dispatches between. They
-/// ignore the table pointer supplied as their second argument.
-static const Actor206100StateTable4 D_actor_206100_80149EC0 = {
+/// the four steps of the death `func_actor_206100_8014E7D4` dispatches on
+/// `_Actor206100Work::state`.
+static const TaskFuncTable4 D_actor_206100_80149EC0 = {
     {
         func_actor_206100_8014FBE4,
         func_actor_206100_8014FCD4,
@@ -2601,7 +2628,7 @@ static void func_actor_206100_8014D8E8(Task* task)
 /// two-entry local table, then drives the animation request and re-poses the
 /// actor; mode 1 is that tail alone and mode 2 excludes the model from active
 /// drawing. The table's entries are the ring stepper
-/// `func_actor_206100_8014FAE4` and the companion tick
+/// `func_actor_206100_8014FAE4` and the summon tick
 /// `func_actor_206100_8014DD3C`, which is the `state` index the spawn state
 /// `func_actor_206100_8014C274` leaves at 0.
 ///
@@ -2724,8 +2751,8 @@ static void func_actor_206100_8014DA28(Task* task)
             return;
     }
 }
-/// Companion tick: holds the per-state counter at the explosion frame and then
-/// fills and retires the actor's two companion slots (see the header for the
+/// Summon tick: holds the per-state counter at the explosion frame and then
+/// fills and retires the actor's two Bog Diver slots (see the header for the
 /// full walk -- each slot is handled on its own, and the fifth release moves
 /// the actor to state 2).
 ///
@@ -2763,7 +2790,7 @@ static void func_actor_206100_8014DD3C(Task* task)
     i = 0;
     do {
         if (work->bogDiversSpawned < 5 && D_actor_206100_80158CBC[i].enemy == NULL) {
-            if (D_actor_206100_80158CBC[i].timer == 0) {
+            if (D_actor_206100_80158CBC[i].summonCooldown == 0) {
                 enemy = func_actor_206100_8014EE2C(work->bogDiversSpawned);
                 if (enemy != NULL) {
                     D_actor_206100_80158CBC[i].enemy = enemy;
@@ -2771,19 +2798,19 @@ static void func_actor_206100_8014DD3C(Task* task)
                     work->bogDiversSpawned           = work->bogDiversSpawned + 1;
                 }
             } else {
-                D_actor_206100_80158CBC[i].timer = D_actor_206100_80158CBC[i].timer - 1;
+                D_actor_206100_80158CBC[i].summonCooldown = D_actor_206100_80158CBC[i].summonCooldown - 1;
             }
         }
         i++;
-    } while (i < 2);
+    } while (i < ARRAY_SIZE(D_actor_206100_80158CBC));
     j = 0;
     do {
         if (D_actor_206100_80158CBC[j].enemy != NULL &&
             D_actor_206100_80158CBC[j].enemy->hp <= 0) {
-            D_actor_206100_80158CBC[j].enemy = NULL;
-            D_actor_206100_80158CBC[j].timer = 0xB4;
-            count                            = work->bogDiversKilled + 1;
-            work->bogDiversKilled            = count;
+            D_actor_206100_80158CBC[j].enemy          = NULL;
+            D_actor_206100_80158CBC[j].summonCooldown = ACTOR_206100_BOG_DIVER_SUMMON_COOLDOWN;
+            count                                     = work->bogDiversKilled + 1;
+            work->bogDiversKilled                     = count;
             if (count >= 5) {
                 next           = task->work;
                 task->state    = 2;
@@ -2792,7 +2819,7 @@ static void func_actor_206100_8014DD3C(Task* task)
             }
         }
         j++;
-    } while (j < 2);
+    } while (j < ARRAY_SIZE(D_actor_206100_80158CBC));
 }
 /// Companion tick every state runs: while the flag `rolling` is up it ramps
 /// the roll `rotation.vz` by 0x20 a frame and clears the flag once the ramp lands
@@ -3102,10 +3129,10 @@ static void func_actor_206100_8014E228(Task* task)
 /// there for why it stays inline.
 static void func_actor_206100_8014E7D4(Task* task)
 {
-    _Actor206100Work*      work;
-    TmdObject*             obj;
-    GfxCoord*              coord;
-    Actor206100StateTable4 states;
+    _Actor206100Work* work;
+    TmdObject*        obj;
+    GfxCoord*         coord;
+    TaskFuncTable4    states;
 
     work   = task->work;
     obj    = task->extra.tmd;
@@ -3116,7 +3143,7 @@ static void func_actor_206100_8014E7D4(Task* task)
             obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
         case SCENE_COMBAT_ACTORS_RUNNING:
-            states.funcs[work->state](task, &states);
+            states.funcs[work->state](task);
             work->animStatus  = work->rig.slots[1].status.fields.flags;
             coord->coord.t[0] = coord->coord.t[0] + (-coord->coord.t[0] >> 4);
             coord->coord.t[2] = coord->coord.t[2] + (-coord->coord.t[2] >> 4);
@@ -3143,7 +3170,7 @@ static void func_actor_206100_8014E7D4(Task* task)
 /// materialises `i` shares a block with the case-3 increment, post-reload CSE
 /// folds that increment's `+ 1` into `+ $s0`, and the phase is written with
 /// `addu`.  Here the branch targets the initialiser instead.
-static void func_actor_206100_8014E964(Task* task, void* unusedTable)
+static void func_actor_206100_8014E964(Task* task)
 {
     _Actor206100Work* work;
     _Actor206100Work* next;
@@ -3257,26 +3284,23 @@ static void func_actor_206100_8014EC54(Task* task)
 }
 static void func_actor_206100_8014ED3C(Task* task, s16 arg1)
 {
-    _Actor206100Work*       work;
-    GfxCoord*               coord;
-    Actor206100DistScratch* head;
-    Actor206100DistScratch* scratch;
+    _Actor206100Work*                  work;
+    GfxCoord*                          coord;
+    _Actor206100OriginDistanceScratch* scratch;
 
-    head                                         = SCRATCH_STACK_CURSOR(Actor206100DistScratch);
-    scratch                                      = head - 1;
-    SCRATCH_STACK_CURSOR(Actor206100DistScratch) = scratch;
-    work                                         = task->work;
-    coord                                        = task->extra.tmd->coords;
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(_Actor206100OriginDistanceScratch);
+    work    = task->work;
+    coord   = task->extra.tmd->coords;
     diverStepForward(task, arg1, work->rotation.vy);
-    scratch->delta.vx = -(u16)coord->coord.t[0];
-    scratch->delta.vz = -(u16)coord->coord.t[2];
-    scratch->dist     = SquareRoot0(scratch->delta.vx * scratch->delta.vx +
-                                    scratch->delta.vz * scratch->delta.vz);
-    if (scratch->dist >= 0x191) {
+    scratch->toOrigin.vx = -(u16)coord->coord.t[0];
+    scratch->toOrigin.vz = -(u16)coord->coord.t[2];
+    scratch->distance    = SquareRoot0(scratch->toOrigin.vx * scratch->toOrigin.vx +
+                                       scratch->toOrigin.vz * scratch->toOrigin.vz);
+    if (scratch->distance > ACTOR_206100_FIGHT_AREA_RADIUS) {
         coord->coord.t[0] = work->prevRootPos.vx;
         coord->coord.t[2] = work->prevRootPos.vz;
     }
-    SCRATCH_STACK_RELEASE_BLOCK(Actor206100DistScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(_Actor206100OriginDistanceScratch);
 }
 
 static Enemy* func_actor_206100_8014EE2C(s32 arg0)
@@ -3300,31 +3324,31 @@ static Enemy* func_actor_206100_8014EE2C(s32 arg0)
 
 static void func_actor_206100_8014EEC0(Task* task)
 {
-    Actor206100ChildWork*  child;
-    WorldCollisionContact* rec;
+    _Actor206100ShotWork*  shot;
+    WorldCollisionContact* contacts;
     GfxCoord*              coord;
 
-    child                       = (Actor206100ChildWork*)task->work;
-    coord                       = task->extra.tmd->coords;
-    task->killCountdown         = 0;
-    child->field_64             = 0x100;
-    child->field_60             = 0;
-    coord->parent               = &gGfxViewCoord;
-    coord->composeStamp         = GRAPHICS_COORD_DIRTY;
-    child->obj.key              = Gp_PackPair(&D_actor_206100_80155194, 0);
-    child->obj.coord            = task->extra.tmd->coords;
-    rec                         = child->rec;
-    child->obj.context.contacts = rec;
-    child->obj.pos.vx           = 0;
-    child->obj.pos.vy           = 0;
-    child->obj.pos.vz           = 0;
-    child->obj.radius           = 0x140;
-    child->obj.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(3, &child->obj);
-    Gp_InitRec18Table(rec, 2, 0);
-    child->obj.flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
+    shot                                     = task->work;
+    coord                                    = task->extra.tmd->coords;
+    task->killCountdown                      = 0;
+    shot->burstSize                          = ACTOR_206100_SHOT_BURST_SIZE_STEP;
+    shot->burstPhase                         = 0;
+    coord->parent                            = &gGfxViewCoord;
+    coord->composeStamp                      = GRAPHICS_COORD_DIRTY;
+    shot->strike.attackBody.key              = Gp_PackPair(&D_actor_206100_80155194, 0);
+    shot->strike.attackBody.coord            = task->extra.tmd->coords;
+    contacts                                 = shot->contacts;
+    shot->strike.attackBody.context.contacts = contacts;
+    shot->strike.attackBody.pos.vx           = 0;
+    shot->strike.attackBody.pos.vy           = 0;
+    shot->strike.attackBody.pos.vz           = 0;
+    shot->strike.attackBody.radius           = 0x140;
+    shot->strike.attackBody.flags            = WORLD_COLLISION_BODY_SPHERE;
+    Gp_LinkObj(3, &shot->strike.attackBody);
+    Gp_InitRec18Table(contacts, ARRAY_SIZE(shot->contacts), 0);
+    shot->strike.attackBody.flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
     Gp_UpdateCoord(coord);
-    diverImpactBurst(coord, (u16)child->field_60, 0, child->field_64 + 0x10002000);
+    diverImpactBurst(coord, (u16)shot->burstPhase, 0, shot->burstSize + ACTOR_206100_SHOT_BURST_VARIANT);
     task->state++;
 }
 
@@ -3332,7 +3356,7 @@ static void func_actor_206100_8014EEC0(Task* task)
 
 #include "../../shared/coord_math_local_to_world.inc.c"
 
-/// The beam child's callback: runs its current state handler out of
+/// A shot's task callback: runs its current state handler out of
 /// `D_actor_206100_80149E24`, copying the table onto the stack first.
 void func_actor_206100_8014F134(Task* task)
 {
@@ -3692,7 +3716,7 @@ static void func_actor_206100_8014FAE4(Task* task)
     last->subState    = 0;
 }
 
-static void func_actor_206100_8014FBE4(Task* task, void* unusedTable)
+static void func_actor_206100_8014FBE4(Task* task)
 {
     _Actor206100Work* work;
     Enemy*            enemy;
@@ -3736,7 +3760,7 @@ static void func_actor_206100_8014FBE4(Task* task, void* unusedTable)
 /// and threads the branch past it.  See `DECOMPILATION_LEARNINGS.md`, "A
 /// constant store in a delay slot decides whether post-reload CSE folds it into
 /// a later increment".
-static void func_actor_206100_8014FCD4(Task* task, void* unusedTable)
+static void func_actor_206100_8014FCD4(Task* task)
 {
     _Actor206100Work* work;
     _Actor206100Work* next;
@@ -3782,7 +3806,7 @@ static void func_actor_206100_8014FCD4(Task* task, void* unusedTable)
 /// loads to be scheduled first, which is the target's order; see
 /// `DECOMPILATION_LEARNINGS.md`, "A dereference-store's address load is ranked
 /// with its store".
-static void func_actor_206100_8014FDE8(Task* task, void* unusedTable)
+static void func_actor_206100_8014FDE8(Task* task)
 {
     _Actor206100Work* work;
     _Actor206100Work* next;
