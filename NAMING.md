@@ -495,7 +495,8 @@ bearings in each build, `DesertChaserDamageScratch` the block of their
 damage step and `DesertChaserTurnStepScratch` the block of their two turn-step
 states. `DesertChaserRoamScratch` and `DesertChaserPursueScratch` are the
 blocks of their roam and their pursuit. `DesertChaserFrameScratch` is the block
-of the cutscene build's per-frame driver. `DesertChaserTaskStates` is a
+of the per-frame driver in the cutscene and Water Tower builds; the regular
+build's driver reserves a bare `SVECTOR`. `DesertChaserTaskStates` is a
 package's table of enemy task handlers, indexed by `Task::state`: three in the
 cutscene and Water Tower builds, four in the regular build.
 `DesertChaserStateTable` holds an armed package's

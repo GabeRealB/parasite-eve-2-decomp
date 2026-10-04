@@ -528,19 +528,22 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(DesertChaserPursueScratch, 0x18);
 #endif
 
-#if DESERT_CHASER_BUILD == DESERT_CHASER_CUTSCENE
-/// Scratch-stack block of the cutscene chaser's per-frame driver, held across
-/// the state handler the driver runs.
+#if DESERT_CHASER_BUILD != DESERT_CHASER_REGULAR
+/// Scratch-stack block of the chaser's per-frame driver in the cutscene and
+/// Water Tower builds, held across the state handler the driver runs.
 ///
-/// The driver relights the enemy at the model root's world position before it
-/// runs the frame's state, and afterwards refreshes the enemy's body position:
-/// the origin of the third model part, carried up its parent chain into view
-/// space. Both points are built here. The armed builds have per-frame drivers
-/// of their own and do not use this block.
+/// Once the frame's state has run, the driver refreshes the enemy's body
+/// position: the origin of the third model part, carried up its parent chain
+/// into view space. That point is built here in both builds. Each build
+/// leaves alone one member the other uses: the cutscene driver also builds
+/// here the root position it relights the enemy at, which the Water Tower
+/// driver keeps on its stack instead, and only the Water Tower driver notes
+/// the arena zone. The regular build's driver reserves a bare `SVECTOR` for
+/// the body position and does not use this block.
 typedef struct {
-    VECTOR  rootPos;         // Model root's world position, world units: the translation of its composed matrix, and the point the enemy is lit for
-    SVECTOR bodyPos;         // Zeroed as the third model part's own origin, then that point in view space, which becomes `Enemy::bodyPos`; left zero if the part's chain never reaches the view. `pad` is never written
-    byte    unknown_18[0x4]; // Reserved with the block and never accessed; role unproven
+    VECTOR  rootPos; // Cutscene build: the model root's world position, world units - the translation of its composed matrix, and the point the enemy is lit for. Never accessed in the Water Tower build
+    SVECTOR bodyPos; // Zeroed as the third model part's own origin, then that point in view space, which becomes `Enemy::bodyPos`; left zero if the part's chain never reaches the view. `pad` is never written
+    s16     zone;    // Water Tower build: arena zone the model root stands in as the frame's state is about to run, from the package's 4x4 zone table; never read back. Never accessed in the cutscene build
 } DesertChaserFrameScratch;
 STATIC_ASSERT_SIZEOF(DesertChaserFrameScratch, 0x1C);
 #endif
