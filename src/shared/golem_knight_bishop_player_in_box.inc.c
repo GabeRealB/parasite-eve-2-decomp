@@ -1,10 +1,10 @@
 /* Part of the Knight and Bishop GOLEM library; see golem_knight_bishop.h. */
 
-/// Reports whether the player stands inside one of the actor's kind-1 boxes:
-/// walks the `field_6FA` entries at `field_6B4` and, on the first kind-1 entry
-/// whose box holds the player's world position (x between `field_8` and
-/// `field_C`, z between `field_E` and `field_A`), parks its index in
-/// `field_708` and answers 1. Otherwise it answers 0.
+/// Reports whether the player stands inside one of the actor's box regions:
+/// walks the `field_6FA` entries at `field_6B4` and, on the first
+/// `GOLEM_KNIGHT_BISHOP_REGION_BOX` entry whose area holds the player's world
+/// position (x between `minX` and `maxX`, z between `minZ` and `maxZ`), parks
+/// its index in `field_708` and answers 1. Otherwise it answers 0.
 s32 golemKnightBishopPlayerInBox(Task* arg0)
 {
     GolemKnightBishopWork* work;
@@ -14,11 +14,11 @@ s32 golemKnightBishopPlayerInBox(Task* arg0)
     work  = arg0->work;
     count = work->field_6FA;
     for (i = 0; i < count; i++) {
-        if (work->field_6B4[i].field_0 == 1) {
-            if ((work->field_6B4[i].field_8 < gPlayerStatus.coordMtx->t[0]) &&
-                (gPlayerStatus.coordMtx->t[0] < work->field_6B4[i].field_C)) {
-                if ((gPlayerStatus.coordMtx->t[2] < work->field_6B4[i].field_A) &&
-                    (work->field_6B4[i].field_E < gPlayerStatus.coordMtx->t[2])) {
+        if (work->field_6B4[i].kind == GOLEM_KNIGHT_BISHOP_REGION_BOX) {
+            if ((work->field_6B4[i].minX < gPlayerStatus.coordMtx->t[0]) &&
+                (gPlayerStatus.coordMtx->t[0] < work->field_6B4[i].maxX)) {
+                if ((gPlayerStatus.coordMtx->t[2] < work->field_6B4[i].maxZ) &&
+                    (work->field_6B4[i].minZ < gPlayerStatus.coordMtx->t[2])) {
                     work->field_708 = i;
                     return 1;
                 }

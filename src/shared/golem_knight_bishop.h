@@ -58,19 +58,34 @@
 #include "main/coord.h"
 #include "main/task_types.h"
 
-/// One 0x10-byte entry of the box table `GolemKnightBishopWork::field_6B4`: the
-/// entry's kind at `field_0` (0 a circle of radius `field_2` round
-/// `field_4`, `field_6`; 1 a box, x from `field_8` to `field_C` and z from
-/// `field_E` to `field_A`).
-typedef struct GolemKnightBishopRegion {
-    s16 field_0;
-    s16 field_2;
-    s16 field_4;
-    s16 field_6;
-    s16 field_8;
-    s16 field_A;
-    s16 field_C;
-    s16 field_E;
+/// What a `GolemKnightBishopRegion` covers, and how the golem answers the
+/// player standing inside it.
+enum {
+    GOLEM_KNIGHT_BISHOP_REGION_CIRCLE = 0, // A circle: the golem takes the spot behind the player and grabs them
+    GOLEM_KNIGHT_BISHOP_REGION_BOX    = 1, // A box: the golem appears at the entry's post and attacks from there
+};
+
+/// One region of a room that draws the golem onto the player.
+///
+/// A room's regions form one table, chosen at spawn by stage and room. The
+/// golem tests the player's world x / z against each entry in order and acts
+/// on the first one that holds them. A circle uses only its centre and radius
+/// and leaves the box edges zero. A box names the area watched and the post,
+/// outside that area, the golem attacks from: it faces `param.heading` there
+/// and breaks off once the player's bearing leaves that heading by more than
+/// 0x180.
+typedef struct {
+    s16 kind;        // shape and response (`GOLEM_KNIGHT_BISHOP_REGION_CIRCLE`, `GOLEM_KNIGHT_BISHOP_REGION_BOX`)
+    union {
+        s16 radius;  // circle: planar distance from the centre the player has to be inside
+        s16 heading; // box: y rotation the golem takes at its post, 0x1000 to the turn
+    } param;
+    s16 x;           // world x of the circle's centre, or of a box's post
+    s16 z;           // world z of the same point
+    s16 minX;        // box: edges of the watched area, all four exclusive
+    s16 maxZ;
+    s16 maxX;
+    s16 minZ;
 } GolemKnightBishopRegion;
 STATIC_ASSERT_SIZEOF(GolemKnightBishopRegion, 0x10);
 

@@ -71,7 +71,7 @@ extern GolemKnightBishopFrameStep gGolemKnightBishopFrameSteps[];
 
 /// Parks the actor's target position off the player; see its definition.
 
-/// Reports whether the player stands in one of the kind-1 boxes; see its
+/// Reports whether the player stands in one of the box regions; see its
 /// definition.
 
 /// Draws the red trail between the two projected points; see its definition.
@@ -926,76 +926,76 @@ GolemKnightBishopSpot gGolemKnightBishopSpots[10] = {
 };
 
 GolemKnightBishopRegion D_actor_402200_80153CC8[8] = {
-    { 0, 2000, 1600, -1400, 0, 0, 0, 0 },
-    { 0, 1000, 0x2710, 4200, 0, 0, 0, 0 },
-    { 1, 3072, 0x2A94, 4200, 1000, 5000, 5000, 3500 },
-    { 1, 3072, 5500, 2500, 1000, 3500, 3500, 1500 },
-    { 1, 0, 8950, 1600, 8000, 5800, 9500, 3000 },
-    { 1, 1024, 5500, 4000, 0x2AF8, 4500, 0x3070, 3000 },
-    { 1, 2048, 1700, 4700, 1000, 0, 2400, -2900 },
-    { 1, 1800, 1400, 4700, 2400, 1200, 3500, 0 },
+    { GOLEM_KNIGHT_BISHOP_REGION_CIRCLE, { .radius = 2000 }, 1600, -1400, 0, 0, 0, 0 },
+    { GOLEM_KNIGHT_BISHOP_REGION_CIRCLE, { .radius = 1000 }, 10000, 4200, 0, 0, 0, 0 },
+    { GOLEM_KNIGHT_BISHOP_REGION_BOX, { .heading = 3072 }, 10900, 4200, 1000, 5000, 5000, 3500 },
+    { GOLEM_KNIGHT_BISHOP_REGION_BOX, { .heading = 3072 }, 5500, 2500, 1000, 3500, 3500, 1500 },
+    { GOLEM_KNIGHT_BISHOP_REGION_BOX, { .heading = 0 }, 8950, 1600, 8000, 5800, 9500, 3000 },
+    { GOLEM_KNIGHT_BISHOP_REGION_BOX, { .heading = 1024 }, 5500, 4000, 11000, 4500, 12400, 3000 },
+    { GOLEM_KNIGHT_BISHOP_REGION_BOX, { .heading = 2048 }, 1700, 4700, 1000, 0, 2400, -2900 },
+    { GOLEM_KNIGHT_BISHOP_REGION_BOX, { .heading = 1800 }, 1400, 4700, 2400, 1200, 3500, 0 },
 };
 
 GolemKnightBishopRegion D_actor_402200_80153D48[5] = {
-    { 0, 800, 0x2710, 5300, 0, 0, 0, 0 },
-    { 0, 800, 7500, 8000, 0, 0, 0, 0 },
-    { 0, 800, 4000, 8000, 0, 0, 0, 0 },
-    { 1, 1024, 1200, 8000, 6000, 9000, 7500, 7000 },
-    { 1, 3072, 0x283C, 8000, 4000, 9000, 6000, 7000 },
+    { GOLEM_KNIGHT_BISHOP_REGION_CIRCLE, { .radius = 800 }, 10000, 5300, 0, 0, 0, 0 },
+    { GOLEM_KNIGHT_BISHOP_REGION_CIRCLE, { .radius = 800 }, 7500, 8000, 0, 0, 0, 0 },
+    { GOLEM_KNIGHT_BISHOP_REGION_CIRCLE, { .radius = 800 }, 4000, 8000, 0, 0, 0, 0 },
+    { GOLEM_KNIGHT_BISHOP_REGION_BOX, { .heading = 1024 }, 1200, 8000, 6000, 9000, 7500, 7000 },
+    { GOLEM_KNIGHT_BISHOP_REGION_BOX, { .heading = 3072 }, 10300, 8000, 4000, 9000, 6000, 7000 },
 };
 
 GolemKnightBishopRegion D_actor_402200_80153D98[2] = {
-    { 0, 600, -1900, 4800, 0, 0, 0, 0 },
-    { 1, 3072, 2000, 4800, -5500, 5500, -1900, 4000 },
+    { GOLEM_KNIGHT_BISHOP_REGION_CIRCLE, { .radius = 600 }, -1900, 4800, 0, 0, 0, 0 },
+    { GOLEM_KNIGHT_BISHOP_REGION_BOX, { .heading = 3072 }, 2000, 4800, -5500, 5500, -1900, 4000 },
 };
 
 GolemKnightBishopRegion D_actor_402200_80153DB8[5] = {
-    { 0, 2000, -3000, -2000, 0, 0, 0, 0 },
-    { 0, 1000, -1500, -7500, 0, 0, 0, 0 },
-    { 0, 2000, -100, 2600, 0, 0, 0, 0 },
-    { 1, 0, -1000, -7500, -2500, 4500, 500, 2000 },
-    { 1, 2048, -300, 9500, -500, 6500, 500, 5000 },
+    { GOLEM_KNIGHT_BISHOP_REGION_CIRCLE, { .radius = 2000 }, -3000, -2000, 0, 0, 0, 0 },
+    { GOLEM_KNIGHT_BISHOP_REGION_CIRCLE, { .radius = 1000 }, -1500, -7500, 0, 0, 0, 0 },
+    { GOLEM_KNIGHT_BISHOP_REGION_CIRCLE, { .radius = 2000 }, -100, 2600, 0, 0, 0, 0 },
+    { GOLEM_KNIGHT_BISHOP_REGION_BOX, { .heading = 0 }, -1000, -7500, -2500, 4500, 500, 2000 },
+    { GOLEM_KNIGHT_BISHOP_REGION_BOX, { .heading = 2048 }, -300, 9500, -500, 6500, 500, 5000 },
 };
 
 GolemKnightBishopRegion D_actor_402200_80153E08[3] = {
-    { 0, 2000, 7000, 3000, 0, 0, 0, 0 },
-    { 1, 1024, -1000, 2750, 1500, 3500, 3500, 2000 },
-    { 1, 3072, 2500, 500, -3500, 1000, -2000, 0 },
+    { GOLEM_KNIGHT_BISHOP_REGION_CIRCLE, { .radius = 2000 }, 7000, 3000, 0, 0, 0, 0 },
+    { GOLEM_KNIGHT_BISHOP_REGION_BOX, { .heading = 1024 }, -1000, 2750, 1500, 3500, 3500, 2000 },
+    { GOLEM_KNIGHT_BISHOP_REGION_BOX, { .heading = 3072 }, 2500, 500, -3500, 1000, -2000, 0 },
 };
 
 GolemKnightBishopRegion D_actor_402200_80153E38[8] = {
-    { 0, 3000, 5500, -8500, 0, 0, 0, 0 },
-    { 0, 2000, 0x4074, -7000, 0, 0, 0, 0 },
-    { 1, 0, 0x4074, -7000, 0x3A98, -500, 0x4650, -2500 },
-    { 1, 1024, 7500, -8500, 0x32C8, -7000, 0x3C8C, -9800 },
-    { 1, 2048, 0x4074, -4000, 0x3C8C, -6600, 0x4650, -9800 },
-    { 1, 3072, 0x2904, -8500, 4000, -7000, 6500, -9800 },
-    { 1, 3072, 0x4268, -8500, 9200, -7000, 0x2EE0, -9800 },
-    { 1, 3072, 0x2AF8, -8500, 6500, -7000, 8500, -9800 },
+    { GOLEM_KNIGHT_BISHOP_REGION_CIRCLE, { .radius = 3000 }, 5500, -8500, 0, 0, 0, 0 },
+    { GOLEM_KNIGHT_BISHOP_REGION_CIRCLE, { .radius = 2000 }, 16500, -7000, 0, 0, 0, 0 },
+    { GOLEM_KNIGHT_BISHOP_REGION_BOX, { .heading = 0 }, 16500, -7000, 15000, -500, 18000, -2500 },
+    { GOLEM_KNIGHT_BISHOP_REGION_BOX, { .heading = 1024 }, 7500, -8500, 13000, -7000, 15500, -9800 },
+    { GOLEM_KNIGHT_BISHOP_REGION_BOX, { .heading = 2048 }, 16500, -4000, 15500, -6600, 18000, -9800 },
+    { GOLEM_KNIGHT_BISHOP_REGION_BOX, { .heading = 3072 }, 10500, -8500, 4000, -7000, 6500, -9800 },
+    { GOLEM_KNIGHT_BISHOP_REGION_BOX, { .heading = 3072 }, 17000, -8500, 9200, -7000, 12000, -9800 },
+    { GOLEM_KNIGHT_BISHOP_REGION_BOX, { .heading = 3072 }, 11000, -8500, 6500, -7000, 8500, -9800 },
 };
 
 GolemKnightBishopRegion D_actor_402200_80153EB8[4] = {
-    { 0, 2000, 0, -3000, 0, 0, 0, 0 },
-    { 1, 2048, 0, -2000, -500, -7000, 500, -0x2AF8 },
-    { 1, 0, 0, -0x4650, -500, -0x2AF8, 500, -0x32C8 },
-    { 1, 0, 0, -0x2710, -500, -5000, 500, -7000 },
+    { GOLEM_KNIGHT_BISHOP_REGION_CIRCLE, { .radius = 2000 }, 0, -3000, 0, 0, 0, 0 },
+    { GOLEM_KNIGHT_BISHOP_REGION_BOX, { .heading = 2048 }, 0, -2000, -500, -7000, 500, -11000 },
+    { GOLEM_KNIGHT_BISHOP_REGION_BOX, { .heading = 0 }, 0, -18000, -500, -11000, 500, -13000 },
+    { GOLEM_KNIGHT_BISHOP_REGION_BOX, { .heading = 0 }, 0, -10000, -500, -5000, 500, -7000 },
 };
 
 GolemKnightBishopRegion D_actor_402200_80153EF8[5] = {
-    { 0, 1000, 2500, 4000, 0, 0, 0, 0 },
-    { 1, 1024, 2500, 4300, 0x28A0, 5200, 0x32C8, 3400 },
-    { 1, 2048, 0x2904, 5700, 0x2710, 1500, 0x2AF8, 0 },
-    { 1, 0, 6450, 1300, 5900, 5400, 7000, 4000 },
-    { 1, 0, 1700, -500, 1000, 5800, 2400, 3200 },
+    { GOLEM_KNIGHT_BISHOP_REGION_CIRCLE, { .radius = 1000 }, 2500, 4000, 0, 0, 0, 0 },
+    { GOLEM_KNIGHT_BISHOP_REGION_BOX, { .heading = 1024 }, 2500, 4300, 10400, 5200, 13000, 3400 },
+    { GOLEM_KNIGHT_BISHOP_REGION_BOX, { .heading = 2048 }, 10500, 5700, 10000, 1500, 11000, 0 },
+    { GOLEM_KNIGHT_BISHOP_REGION_BOX, { .heading = 0 }, 6450, 1300, 5900, 5400, 7000, 4000 },
+    { GOLEM_KNIGHT_BISHOP_REGION_BOX, { .heading = 0 }, 1700, -500, 1000, 5800, 2400, 3200 },
 };
 
 GolemKnightBishopRegion D_actor_402200_80153F48[6] = {
-    { 0, 1000, 7000, -3500, 0, 0, 0, 0 },
-    { 0, 2000, 7000, 6000, 0, 0, 0, 0 },
-    { 1, 0, 800, 1000, 0, 6000, 1550, 3000 },
-    { 1, 3072, 7500, 4500, 1550, 6000, 4000, 4000 },
-    { 1, 2048, 7000, 5000, 5000, -4000, 9000, -5000 },
-    { 1, 1024, 500, 4500, 6000, 6000, 8000, 4000 },
+    { GOLEM_KNIGHT_BISHOP_REGION_CIRCLE, { .radius = 1000 }, 7000, -3500, 0, 0, 0, 0 },
+    { GOLEM_KNIGHT_BISHOP_REGION_CIRCLE, { .radius = 2000 }, 7000, 6000, 0, 0, 0, 0 },
+    { GOLEM_KNIGHT_BISHOP_REGION_BOX, { .heading = 0 }, 800, 1000, 0, 6000, 1550, 3000 },
+    { GOLEM_KNIGHT_BISHOP_REGION_BOX, { .heading = 3072 }, 7500, 4500, 1550, 6000, 4000, 4000 },
+    { GOLEM_KNIGHT_BISHOP_REGION_BOX, { .heading = 2048 }, 7000, 5000, 5000, -4000, 9000, -5000 },
+    { GOLEM_KNIGHT_BISHOP_REGION_BOX, { .heading = 1024 }, 500, 4500, 6000, 6000, 8000, 4000 },
 };
 
 GolemKnightBishopRegion* gGolemKnightBishopRegions[10] = {

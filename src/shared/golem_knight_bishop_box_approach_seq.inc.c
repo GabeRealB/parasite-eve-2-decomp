@@ -1,9 +1,9 @@
 /* Part of the Knight/Bishop GOLEM library; see golem_knight_bishop.h. */
 
-/// Runs the actor's approach sequence off the box it last hit. State 0 plants
-/// the display object on that box, faces it along the box heading and queues
-/// the cue `field_6B8`, parking the state at 1 when the player is within 0xDAC
-/// and at 2 otherwise. States 1 and 2 re-aim for `field_6D6` frames; state 2
+/// Runs the actor's approach sequence off the box region it last hit. State 0
+/// plants the display object on that region's post (`x`, `z`), faces it along
+/// `param.heading` and queues the cue `field_6B8`, parking the state at 1 when
+/// the player is within 0xDAC and at 2 otherwise. States 1 and 2 re-aim for `field_6D6` frames; state 2
 /// closes in until the player is within 0xA8C (state 3) or turns away by more
 /// than 0x180 (state 4). State 3 steps `field_6C8` through the frame table
 /// `gGolemKnightBishopFrameSteps` and fires its per-frame events; state 4 counts
@@ -32,11 +32,11 @@ void golemKnightBishopBoxApproachSeq(Task* arg0)
     coord                    = arg0->extra.tmd->coords;
     switch (state) {
         case 0:
-            coord->coord.t[0] = work->field_6B4[work->field_708].field_4;
+            coord->coord.t[0] = work->field_6B4[work->field_708].x;
             coord->coord.t[1] = gPlayerStatus.coordMtx->t[1];
-            coord->coord.t[2] = work->field_6B4[work->field_708].field_6;
+            coord->coord.t[2] = work->field_6B4[work->field_708].z;
             sc->in.vx         = 0;
-            sc->in.vy         = work->field_6B4[work->field_708].field_2;
+            sc->in.vy         = work->field_6B4[work->field_708].param.heading;
             sc->in.vz         = 0;
             RotMatrix(&sc->in, &coord->coord);
             sc->out.vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
@@ -99,7 +99,7 @@ void golemKnightBishopBoxApproachSeq(Task* arg0)
                 work->field_6CE  = 3;
                 work->field_62A &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
             } else {
-                diff = (ratan2((s16)sc->out.vx, (s16)sc->out.vz) & 0xFFF) - work->field_6B4[work->field_708].field_2;
+                diff = (ratan2((s16)sc->out.vx, (s16)sc->out.vz) & 0xFFF) - work->field_6B4[work->field_708].param.heading;
                 dist = (abs(diff) >= 0x800) ? ((diff > 0) ? 0x1000 - diff : diff + 0x1000) : abs(diff);
                 if (dist > 0x180) {
                     work->field_6C0  = 4;
