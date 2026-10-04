@@ -91,7 +91,8 @@ enum {
     ACTOR_01900_STATE_SCRIPTED_WATCH   = 0x1C, // holds a pose where a room command placed it, `lookYawTarget` following the player
     ACTOR_01900_STATE_DEATH_BURST      = 0x1D, // bursts into body parts where it stands
     ACTOR_01900_STATE_DEATH_BURST_WALK = 0x1E, // walks a few steps, bursts and burns away
-    ACTOR_01900_STATE_REFALL           = 0x1F  // drops back down: knocked down while in `RISE`, or killed in `STATUS_HOLD`
+    ACTOR_01900_STATE_REFALL           = 0x1F, // drops back down: knocked down while in `RISE`, or killed in `STATUS_HOLD`
+    ACTOR_01900_STATE_COUNT                    // number of states, and of the handlers in `_Actor01900StateTable`
 };
 
 /// Values of `_Actor01900Work::animRequest` and `_Actor01900Work::blendRequest`.
@@ -184,11 +185,16 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(_Actor01900Work, 0xC9C);
 
 /// The actor's state handlers, indexed by `_Actor01900Work::state`.
-/// `Actor01900_Fn09D3C` copies the table to its frame before dispatching.
-typedef struct Actor01900StateTable {
-    TaskFunc fn[32];
-} Actor01900StateTable;
-STATIC_ASSERT_SIZEOF(Actor01900StateTable, 0x80);
+///
+/// The package defines one table. The per-frame tick copies it to the stack
+/// by assignment, which is why the array is wrapped in a struct, and then
+/// calls the entry of the current state. The call is unconditional, so the
+/// `NULL` entries of the five `ACTOR_01900_STATE_UNUSED_*` values mark states
+/// the actor must not be in when the tick dispatches.
+typedef struct {
+    TaskFunc handlers[ACTOR_01900_STATE_COUNT]; // Handler of each `ACTOR_01900_STATE_*`, taking the actor's task
+} _Actor01900StateTable;
+STATIC_ASSERT_SIZEOF(_Actor01900StateTable, ACTOR_01900_STATE_COUNT * sizeof(TaskFunc));
 
 extern EnemyParams          Actor01900_D0AC54;
 extern ActorStrangerVariant Actor01900_D0AC64[];
@@ -738,7 +744,7 @@ extern s8 Actor01900_D16988[][0x2D];
 
 static SVECTOR ActorContact_ScratchPosition;
 
-static const Actor01900StateTable Actor01900_D001BC;
+static const _Actor01900StateTable Actor01900_D001BC;
 
 static void Actor01900_Fn03710(Task* arg0);
 
@@ -3274,7 +3280,7 @@ static void Actor01900_Fn09BE8(Task* arg0)
 static void Actor01900_Fn09D3C(Enemy* enemy, Task* actor)
 {
     VECTOR                    pos;
-    Actor01900StateTable      states;
+    _Actor01900StateTable     states;
     _Actor01900Work*          work;
     ActorPartPositionScratch* scratch;
     ActorPartPositionScratch* head;
@@ -3346,7 +3352,7 @@ static void Actor01900_Fn09D3C(Enemy* enemy, Task* actor)
     } else {
         work->hitBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     }
-    states.fn[work->state](actor);
+    states.handlers[work->state](actor);
     Gp_ClearRec18Occupied(work->gridContacts);
     Gp_ClearRec18Occupied(work->hitContacts);
     Gp_ClearRec18Occupied(work->attackContacts);
@@ -3387,7 +3393,7 @@ s32 Actor01900_Fn0A314(Task* task, s32 msgId, s32 arg2, s32 arg3)
 /// The actor's state handlers, indexed by `_Actor01900Work::state`; empty
 /// slots are states the actor never enters. `Actor01900_Fn09D3C` copies the
 /// table to its frame before dispatching.
-static const Actor01900StateTable Actor01900_D001BC = { {
+static const _Actor01900StateTable Actor01900_D001BC = { {
     Actor01900_Fn0A764,
     Actor01900_Fn0A7C0,
     Actor01900_Fn0A868,
