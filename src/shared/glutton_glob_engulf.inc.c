@@ -56,8 +56,8 @@ void gluttonGlobEngulf(Enemy* enemy, Task* task)
 
         if (actorOutOfReach(&gap) == 0 && actor->mode != GAME_ACTOR_MODE_SCRIPTED &&
             cfg->hp > 0) {
-            gGluttonGrabQuery.value.pressCount = 0x28;
-            if (TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &gGluttonGrabQuery.value, 0) == 0) {
+            gGluttonGrabQuery.hold.pressCount = 0x28;
+            if (TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &gGluttonGrabQuery.hold, 0) == 0) {
                 gGluttonGrabActive           = 1;
                 work->playerAnim.source.sets = gGluttonCaughtAnimSets;
                 work->playerAnim.animationId = 1;

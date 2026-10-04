@@ -269,17 +269,9 @@ extern SVECTOR gGluttonRainLaunchOffsets[];
 extern SVECTOR gGluttonRainPoints[];
 /// `[group][spawnArg1]` index into `gGluttonRainPoints`.
 extern u8 gGluttonRainPointIndex[][8];
-/// Reply buffer the hold state hands message 0x3F8.
-// Only the leading value has established accesses. Preserve the following
-// zero bytes in this allocation; trailing fields versus TU padding remains
-// unresolved (see the local actors/rooms data review).
-typedef struct {
-    GameActorButtonPressHold value;
-    u8                       retained[8];
-} Actor444000Storage1898;
-STATIC_ASSERT_SIZEOF(Actor444000Storage1898, 32);
-
-extern Actor444000Storage1898 gGluttonGrabQuery;
+/// Button-press hold the glob's engulf state sends the player, asking for 40
+/// presses.
+extern GluttonButtonPressHoldStorage gGluttonGrabQuery;
 
 /// World point the spinner chases: written by `func_actor_444000_8013E058`,
 /// read by the spinner's tick as the target of its step.
@@ -335,17 +327,9 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(Actor444000Storage1908, 32);
 
 extern Actor444000Storage1908 D_actor_444000_80161908;
-/// Reply buffer the fight hands message 0x3F8 before asking for the hold.
-// Only the leading value has established accesses. Preserve the following
-// zero bytes in this allocation; trailing fields versus TU padding remains
-// unresolved (see the local actors/rooms data review).
-typedef struct {
-    GameActorButtonPressHold value;
-    u8                       retained[8];
-} Actor444000Storage1928;
-STATIC_ASSERT_SIZEOF(Actor444000Storage1928, 32);
-
-extern Actor444000Storage1928 D_actor_444000_80161928;
+/// Button-press hold the host sends the player before its grab and its swipe
+/// take effect. Its press count is never written and stays zero.
+extern GluttonButtonPressHoldStorage D_actor_444000_80161928;
 
 /// Global game-mode byte; sits inside a small flag block, so it is declared as
 /// an array -- the load has to keep aliasing the scratch stores beside it (see
@@ -2658,13 +2642,13 @@ Actor444000Storage1888 D_actor_444000_80161888 = { { { .loc = { 0, 0 } }, 0 }, {
 
 SVECTOR gGluttonSpinnerTarget = { 0, 0, 0, 0 };
 
-Actor444000Storage1898 gGluttonGrabQuery = { { { 0 }, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0, 0, 0 } };
+GluttonButtonPressHoldStorage gGluttonGrabQuery = { { { 0 }, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0, 0, 0 } };
 
 GluttonCoord D_actor_444000_801618B8 = { .node = { 0, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } };
 
 Actor444000Storage1908 D_actor_444000_80161908 = { { { 0, 0, 0, 0 }, { 0, 0, 0, 0 } }, { 0, 0, 0, 0, 0, 0, 0, 0 } };
 
-Actor444000Storage1928 D_actor_444000_80161928 = { { { 0 }, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0, 0, 0 } };
+GluttonButtonPressHoldStorage D_actor_444000_80161928 = { { { 0 }, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0, 0, 0 } };
 
 Actor444000Storage1948 D_actor_444000_80161948 = { { { 0, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL }, { 0, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL }, { 0, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL }, { 0, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL }, { 0, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL }, { 0, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } };
 
@@ -5057,7 +5041,7 @@ static void func_actor_444000_8013E058(Task* task)
     }
 
     if (((u32)((work->hostRig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) - 0xB) < 5U) && (sc->dist < 0x4B0) && (work->phase < 6)) {
-        if (TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &D_actor_444000_80161928.value, 0) == 0) {
+        if (TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &D_actor_444000_80161928.hold, 0) == 0) {
             work->state        = 0xD;
             work->playerCaught = 1;
         }
@@ -5591,7 +5575,7 @@ static void func_actor_444000_8013FB74(Task* arg0)
 missed:
     found = 0;
 scanned:
-    if (found != 0 && TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &D_actor_444000_80161928.value, 0) == 0) {
+    if (found != 0 && TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &D_actor_444000_80161928.hold, 0) == 0) {
         target                 = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
         work->swipeDamageReply = taskMessageDispatch(target, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, Gp_PackObjPair(enemy, 4), 0);
         if (work->swipeDamageReply == 1) {

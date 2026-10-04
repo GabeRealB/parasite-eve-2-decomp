@@ -78,6 +78,8 @@
 
 #include "actors/actor.h"
 
+#include "gameplay/message.h"
+
 #include "main/coord.h"
 #include "main/gfx_types.h"
 #include "main/task_types.h"
@@ -102,6 +104,25 @@ typedef union {
     } packed;
 } GluttonCoord;
 STATIC_ASSERT_SIZEOF(GluttonCoord, 0x50);
+
+/// Allocation holding a button-press hold the Glutton sends the player, and
+/// the eight bytes after it.
+///
+/// `hold` is the payload of `GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES`, kept in
+/// static storage and lent to the player for the length of the dispatch. The
+/// glob's engulf state fills in the presses it asks for; a record whose count
+/// is never written asks for none, and its hold completes on the first tick.
+///
+/// Wherever one of these records is followed by other data, eight zero bytes
+/// separate the two. No access to them is recovered, so whether they are
+/// trailing fields of the record or a separate unreferenced variable is
+/// unproven; they stay in this allocation only to keep the data after it at
+/// its address.
+typedef struct {
+    GameActorButtonPressHold hold;          // Record the player borrows; only `pressCount` is ever written
+    u8                       unknown_18[8]; // Zero in the image; no access established and role unproven
+} GluttonButtonPressHoldStorage;
+STATIC_ASSERT_SIZEOF(GluttonButtonPressHoldStorage, 0x20);
 
 /// One hit sphere of the Glutton: a collision body and the contact table it
 /// records into.

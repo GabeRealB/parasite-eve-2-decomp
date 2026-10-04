@@ -238,18 +238,9 @@ extern ActorCommand D_actor_403200_8015F8F4;
 /// model part on a state change; the spinner enemies home on it.
 extern SVECTOR gGluttonSpinnerTarget;
 
-/// Reply buffers the rise state and the stand-up tick pass with their message
-/// 0x3F8.
-// Only the leading value has established accesses. Preserve the following
-// zero bytes in this allocation; trailing fields versus TU padding remains
-// unresolved (see the local actors/rooms data review).
-typedef struct {
-    GameActorButtonPressHold value;
-    u8                       retained[8];
-} Actor403200StorageF900;
-STATIC_ASSERT_SIZEOF(Actor403200StorageF900, 32);
-
-extern Actor403200StorageF900 gGluttonGrabQuery;
+/// Button-press hold the glob's engulf state sends the player, asking for 40
+/// presses.
+extern GluttonButtonPressHoldStorage gGluttonGrabQuery;
 
 /// The scratch coordinate the debris effect of `func_actor_403200_8013DC3C` is
 /// built on: `F920` is the whole `GfxCoord` and `F924` its `coord` matrix,
@@ -2850,7 +2841,7 @@ ActorCommand D_actor_403200_8015F8F4 = { { .loc = { 0, 0 } }, 0 };
 
 SVECTOR gGluttonSpinnerTarget = { 0, 0, 0, 0 };
 
-Actor403200StorageF900 gGluttonGrabQuery = { { { 0 }, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0, 0, 0 } };
+GluttonButtonPressHoldStorage gGluttonGrabQuery = { { { 0 }, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0, 0, 0 } };
 
 GfxCoord D_actor_403200_8015F920 = { 0, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL };
 
