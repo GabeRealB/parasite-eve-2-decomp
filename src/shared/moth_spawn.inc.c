@@ -45,10 +45,9 @@ void mothSpawn(Enemy* arg0, Task* arg1)
     work->field_224.spawnArgLo   = 0x100;
     work->field_224.spawnArgHi   = 1;
     work->field_224.coord        = coord;
-    animationInitContext(&work->anim, gMothAnimSets, obj,
-                         (u8(*)[ANIMATION_POSE_BUFFER_BYTES])work->field_B4, work->slots);
+    animationInitContext(&work->rig.anim, gMothAnimSets, obj, work->rig.poses, work->rig.slots);
     for (i = 1; i < 4; i++) {
-        animationResetSlot(&work->anim, i, 1);
+        animationResetSlot(&work->rig.anim, i, 1);
     }
     (Gp_IncStateF0Ref)(0);
     work->field_2D6               = 1;

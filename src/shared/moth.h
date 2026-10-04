@@ -17,6 +17,8 @@
 
 #include "types.h"
 
+#include "actors/actor.h"
+
 #include "main/task_types.h"
 
 #include "gameplay/actor.h"
@@ -44,11 +46,9 @@ typedef union MothContactStorage {
 /// (object-list indices 2/2/3) with their `WorldCollisionContact` tables.
 /// The tick handlers' state follows from 0x224.
 typedef struct MothWork {
-    /* 0x000 */ AnimationContext      anim;
-    /* 0x014 */ AnimationSlot         slots[4];
-    /* 0x0B4 */ byte                  field_B4[0x40]; // pose buffer, `animationInitContext` poseBuffer
-    /* 0x0F4 */ MATRIX                field_F4;       // color matrix handed to the stream
-    /* 0x114 */ MATRIX                field_114;      // light matrix handed to the stream
+    /* 0x000 */ ActorAnimRig4         rig;       // playback storage of the model's parts; slots 1 to 3 are seeded
+    /* 0x0F4 */ MATRIX                field_F4;  // color matrix handed to the stream
+    /* 0x114 */ MATRIX                field_114; // light matrix handed to the stream
     /* 0x134 */ WorldCollisionBody    obj134;
     /* 0x154 */ WorldCollisionContact field_154;
     /* 0x16C */ WorldCollisionBody    obj16C;

@@ -12,6 +12,8 @@
 #include "common.h"
 #include "gte.h"
 
+#include "actors/actor.h"
+
 #include "gameplay/display.h"
 #include "gameplay/action_prompt.h"
 #include "gameplay/actor.h"
@@ -300,35 +302,33 @@ static void func_acropolis_bridge_80187850(Enemy* enemy, Task* task);
 /// it lands on) and `attack` is the box that strikes the player while it
 /// chases; the handlers toggle `WORLD_COLLISION_BODY_PAIR_ENABLED` on each.
 typedef struct {
-    s16                   state;                                 // handler index (0 inactive, 1 sunk patrolling, 2 risen and chasing, 3 sinking after a strike, 4/8 falling, 5 out of HP and bobbing, 6 out of HP mid-fall, 7 landed from a fall)
-    s16                   prevState;                             // `state` as of the previous tick; -1 before the first
-    s16                   stateEntered;                          // 1 on the first tick of a state, else 0
-    byte                  unknown_6[0x2];                        // No direct accesses; role unproven
-    s16                   yaw;                                   // model root yaw while falling, in 1/4096 turns
-    byte                  unknown_A[0x2];                        // No direct accesses; role unproven
-    AnimationContext      anim;                                  // part animation bound to the model
-    AnimationSlot         slots[4];                              // playback slots; 1..3 are driven
-    u8                    poses[4][ANIMATION_POSE_BUFFER_BYTES]; // encoded transition pose for the slot at the same index
-    s16                   animRequest;                           // (1 restart `animId` blended from `prevAnimId`, 2 restart without blend, 3 playing)
-    s16                   prevAnimId;                            // animation last started; row of the blend-length table
-    s16                   animId;                                // animation requested or playing
-    s16                   animFrame;                             // ticks since `animId` started
-    s16                   animRate;                              // playback rate copied into each driven slot (`ANIMATION_RATE_ONE` is normal speed)
-    byte                  unknown_10A[0x2];                      // No direct accesses; role unproven
-    s16                   hp;                                    // hit points; mirrored into `Enemy::hp` after each hit
-    s16                   field_10E;                             // set to 1 beside `hp` at setup and never read; role unproven
-    WorldCollisionBody    body;                                  // sphere on list 2 receiving attacks and surface contacts
-    WorldCollisionContact bodyContacts[3];                       // `body`'s contacts, also the walker's avoidance contacts
-    WorldCollisionBody    attack;                                // sphere on list 3 that strikes the player, enabled while chasing
-    WorldCollisionContact attackContacts[1];                     // `attack`'s contact; occupied once it has struck
-    MATRIX                lightMtx;                              // the model's light matrix
-    MATRIX                colorMtx;                              // the model's colour matrix; loaded with a fixed blend while falling
-    EffectSpawnArg        effectArg;                             // placement of the hit and death effects
-    s16                   sinkDepth;                             // distance the model root sits below `baseHeight` (0 fully risen)
-    s16                   baseHeight;                            // model root height at spawn
-    BossStrangerWalker    walker;                                // patrol/chase movement
-    u16                   deathFrame;                            // ticks into the collapse or death sequence, stops at 101
-    u16                   syncedView;                            // camera view index the mesh visibility was last synced to
+    s16                   state;             // handler index (0 inactive, 1 sunk patrolling, 2 risen and chasing, 3 sinking after a strike, 4/8 falling, 5 out of HP and bobbing, 6 out of HP mid-fall, 7 landed from a fall)
+    s16                   prevState;         // `state` as of the previous tick; -1 before the first
+    s16                   stateEntered;      // 1 on the first tick of a state, else 0
+    byte                  unknown_6[0x2];    // No direct accesses; role unproven
+    s16                   yaw;               // model root yaw while falling, in 1/4096 turns
+    byte                  unknown_A[0x2];    // No direct accesses; role unproven
+    ActorAnimRig4         rig;               // playback storage of the model's parts; slots 1..3 are driven
+    s16                   animRequest;       // (1 restart `animId` blended from `prevAnimId`, 2 restart without blend, 3 playing)
+    s16                   prevAnimId;        // animation last started; row of the blend-length table
+    s16                   animId;            // animation requested or playing
+    s16                   animFrame;         // ticks since `animId` started
+    s16                   animRate;          // playback rate copied into each driven slot (`ANIMATION_RATE_ONE` is normal speed)
+    byte                  unknown_10A[0x2];  // No direct accesses; role unproven
+    s16                   hp;                // hit points; mirrored into `Enemy::hp` after each hit
+    s16                   field_10E;         // set to 1 beside `hp` at setup and never read; role unproven
+    WorldCollisionBody    body;              // sphere on list 2 receiving attacks and surface contacts
+    WorldCollisionContact bodyContacts[3];   // `body`'s contacts, also the walker's avoidance contacts
+    WorldCollisionBody    attack;            // sphere on list 3 that strikes the player, enabled while chasing
+    WorldCollisionContact attackContacts[1]; // `attack`'s contact; occupied once it has struck
+    MATRIX                lightMtx;          // the model's light matrix
+    MATRIX                colorMtx;          // the model's colour matrix; loaded with a fixed blend while falling
+    EffectSpawnArg        effectArg;         // placement of the hit and death effects
+    s16                   sinkDepth;         // distance the model root sits below `baseHeight` (0 fully risen)
+    s16                   baseHeight;        // model root height at spawn
+    BossStrangerWalker    walker;            // patrol/chase movement
+    u16                   deathFrame;        // ticks into the collapse or death sequence, stops at 101
+    u16                   syncedView;        // camera view index the mesh visibility was last synced to
 } _AcropolisBridgeEnemyWork;
 STATIC_ASSERT_SIZEOF(_AcropolisBridgeEnemyWork, 0x294);
 
@@ -4882,8 +4882,8 @@ static void func_acropolis_bridge_8018581C(Task* task)
     if (work->animRequest == 1) {
         start = (_AcropolisBridgeEnemyWork*)task->work;
         for (i = 1; i < 4; i++) {
-            start->slots[i].rate = start->animRate;
-            animationSeekSlotWithBlend(&start->anim, i, start->animId, 0,
+            start->rig.slots[i].rate = start->animRate;
+            animationSeekSlotWithBlend(&start->rig.anim, i, start->animId, 0,
                                        D_acropolis_bridge_801915E4[start->prevAnimId][start->animId]);
         }
         start->prevAnimId = start->animId;
@@ -4892,8 +4892,8 @@ static void func_acropolis_bridge_8018581C(Task* task)
     if (work->animRequest == 2) {
         reset = (_AcropolisBridgeEnemyWork*)task->work;
         for (j = 1; j < 4; j++) {
-            reset->slots[j].rate = reset->animRate;
-            animationResetSlot(&reset->anim, j, reset->animId);
+            reset->rig.slots[j].rate = reset->animRate;
+            animationResetSlot(&reset->rig.anim, j, reset->animId);
         }
         reset->prevAnimId = reset->animId;
     advance:
@@ -4905,8 +4905,8 @@ static void func_acropolis_bridge_8018581C(Task* task)
         work->animFrame++;
         tick = (_AcropolisBridgeEnemyWork*)task->work;
         for (k = 1; k < 4; k++) {
-            tick->slots[k].rate = tick->animRate;
-            animationTickSlot(&tick->anim, k);
+            tick->rig.slots[k].rate = tick->animRate;
+            animationTickSlot(&tick->rig.anim, k);
         }
     }
 }
@@ -5019,8 +5019,8 @@ static void func_acropolis_bridge_80185988(Enemy* enemy, Task* task)
     work->field_10E = 1;
     enemy->hpMax    = work->hp;
     enemy->hp       = enemy->hpMax;
-    animationInitContext(&work->anim, D_acropolis_bridge_801915C8, obj, work->poses,
-                         work->slots);
+    animationInitContext(&work->rig.anim, D_acropolis_bridge_801915C8, obj, work->rig.poses,
+                         work->rig.slots);
     work->animRate         = ANIMATION_RATE_ONE;
     link                   = &work->body;
     link->coord            = &task->extra.tmd->coords[3];
@@ -5558,7 +5558,7 @@ void func_acropolis_bridge_80186618(Task* task)
     }
     if (task->extra.tmd->coords->coord.t[1] < 0x320) {
         anim = (_AcropolisBridgeEnemyWork*)task->work;
-        if (anim->slots[1].currentPose.indices.recordIndex == anim->slots[1].nextPose.indices.recordIndex) {
+        if (anim->rig.slots[1].currentPose.indices.recordIndex == anim->rig.slots[1].nextPose.indices.recordIndex) {
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             if (((gRandomLcgState >> 16) & 0x1F) == 0) {
                 work->animRate    = ANIMATION_RATE_ONE;
@@ -5651,7 +5651,7 @@ void func_acropolis_bridge_80186BBC(Task* task)
     }
     if (task->extra.tmd->coords->coord.t[1] < 0x320) {
         anim = (_AcropolisBridgeEnemyWork*)task->work;
-        if (anim->slots[1].currentPose.indices.recordIndex == anim->slots[1].nextPose.indices.recordIndex) {
+        if (anim->rig.slots[1].currentPose.indices.recordIndex == anim->rig.slots[1].nextPose.indices.recordIndex) {
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             if (((gRandomLcgState >> 16) & 0x1F) == 0) {
                 work->animRate    = ANIMATION_RATE_ONE;
