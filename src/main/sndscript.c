@@ -1064,19 +1064,22 @@ void SndEvt_EnqueueType9(s32 arg0)
     }
 }
 
-void SndEvt_EnqueueTypeA(s32 arg0, s32 arg1, s32 arg2)
+void sndEvtRequestScriptMix(s32 soundId, s32 panOffset, s32 attenuation)
 {
+    /// Shift from a packed script id to its 0..15 bank-type gate index.
+    enum { SOUND_SCRIPT_REQUEST_TYPE_SHIFT = 28 };
     SndEvt*           event;
     SndEvtScriptArgs* args;
 
-    if (D_80082138[(u32)arg0 >> 28] != 0) {
+    // Check the requested type before reserving an event or remapping the bank.
+    if (D_80082138[(u32)soundId >> SOUND_SCRIPT_REQUEST_TYPE_SHIFT] != 0) {
         event = sndEvtAlloc();
         if (event != NULL) {
             event->command          = SOUND_EVENT_SCRIPT_SET_PAN_ATTENUATION;
             args                    = &event->args.script;
-            args->soundId           = _sndScriptRemapType1Id(arg0);
-            args->panOffset         = arg1;
-            args->level.attenuation = arg2;
+            args->soundId           = _sndScriptRemapType1Id(soundId);
+            args->panOffset         = panOffset;
+            args->level.attenuation = attenuation;
             sndEvtEnqueue(event);
         }
     }
@@ -2055,17 +2058,21 @@ s32 SndVoice_FindById(s32 arg0)
     return -1;
 }
 
-/// Recomputes the master/entry/base gain of every voice owned by one instance.
+/// Recomputes the stored gain index of every voice attached to one script instance.
 ///
-/// Its voice list and loaded entry controls must remain valid during the walk.
+/// `masterVolume` is normally 0..127 (0 silent, 127 full). Each index is
+/// master * entry gain * base gain / 127^2, truncated toward zero and narrowed
+/// to a signed byte. Negative requests are applied without clamping.
+/// The voice chain and, for a nonempty chain, its loaded entry controls must
+/// remain valid throughout the walk. A nonempty chain clears `mixDirty`;
+/// an empty chain leaves it intact. No SPU state is written: the caller must
+/// mark the instance for remixing to apply these gains on the next voice visit.
 static inline void _sndScriptRescaleVoices(_SndScript* script, s8 masterVolume)
 {
     _SndVoice* voice;
-    _SndVoice* firstVoice;
 
-    firstVoice = script->voices;
-    if (firstVoice != NULL) {
-        voice = firstVoice;
+    if (script->voices != NULL) {
+        voice = script->voices;
         do {
             voice->scaledVolume = (masterVolume * script->entryControls->volumeScale * voice->baseVolume) / (SOUND_SCRIPT_VOLUME_UNITY * SOUND_SCRIPT_VOLUME_UNITY);
             voice               = voice->next;

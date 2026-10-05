@@ -1007,8 +1007,8 @@ void func_shelter_b1_sterilization_room_80181634(Task* arg0)
 
 void func_shelter_b1_sterilization_room_80181658(void)
 {
-    SndEvt_EnqueueTypeA(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_STERILIZATION_ROOM, 6), 0, 0x24);
-    SndEvt_EnqueueTypeA(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_STERILIZATION_ROOM, 7), 0, 0x24);
+    sndEvtRequestScriptMix(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_STERILIZATION_ROOM, 6), 0, 0x24);
+    sndEvtRequestScriptMix(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_STERILIZATION_ROOM, 7), 0, 0x24);
 }
 
 void func_shelter_b1_sterilization_room_80181698(s32 arg0)

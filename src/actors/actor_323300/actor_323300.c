@@ -68,7 +68,7 @@ typedef struct {
     WorldCollisionContact contact;          // One-entry contact table of `body`, emptied each tick the model is drawn; nothing reads what it records
     Task*                 strangerTask;     // Task of the package's Lesser Stranger, spawned and killed by actor commands; NULL before the spawn or when it failed, and not cleared by the kill
     ActorWalkState        walk;             // Turn in progress: `targetRot.vy` is the yaw it steers to, `motionStep` 0 starts the turn clip and 1 turns; `velocity` is only zeroed
-    s16                   loopSoundEnabled; // The tick restarts the room's sound each time the clip loops and updates it in between (1 from spawn, 0 once the stranger has been spawned or killed)
+    s16                   loopSoundEnabled; // 1 to retrigger sound on clip loops and update its mix between loops (pan 0; attenuation 40 in view 2, 0 elsewhere); 0 after stranger spawn or death
     s16                   freeCountdown;    // Ticks left before the model's buffers are freed, which the tick finding 0 does (-1 no free pending)
 } _Actor323300WomanWork;
 STATIC_ASSERT_SIZEOF(_Actor323300WomanWork, 0x504);
@@ -485,8 +485,10 @@ static void func_actor_323300_80161E78(Task* arg0)
 /// Per-frame runner of the woman: dispatches on `walk.motion` through the
 /// two-entry handler table it builds on the stack, ticks the 18 animation
 /// slots and, while `loopSoundEnabled` is set, posts the room's sound. Slot
-/// 1's `ANIMATION_SLOT_FOLLOWED_JUMP` retriggers Type6; otherwise a ready view
-/// gets TypeA. The pan/depth pair `location.loc.view` picks between is built
+/// 1's `ANIMATION_SLOT_FOLLOWED_JUMP` retriggers the script; otherwise a ready
+/// view queues `sndEvtRequestScriptMix` for its first matching instance.
+/// Both requests use pan 0 and attenuation 40 in view 2, 0 elsewhere.
+/// The pan/attenuation pair `location.loc.view` picks between is built
 /// twice so the two calls cross-jump into a shared `jal`. Then, unless
 /// `TmdObject::flags` says the model is hidden, draws the ground shadow under
 /// coordinate 1, empties `contact`, refreshes that coordinate's matrix and
@@ -517,9 +519,9 @@ static void func_actor_323300_80161FE8(Task* arg0)
                 }
             } else if (gGameSession->viewReady != 0) {
                 if (gGameSession->location.loc.view == 2) {
-                    SndEvt_EnqueueTypeA(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_TOILET, 6), 0, 0x28);
+                    sndEvtRequestScriptMix(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_TOILET, 6), 0, 0x28);
                 } else {
-                    SndEvt_EnqueueTypeA(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_TOILET, 6), 0, 0);
+                    sndEvtRequestScriptMix(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_TOILET, 6), 0, 0);
                 }
             }
         }

@@ -963,7 +963,7 @@ void func_shelter_b6_nursery_8017FBC0(Task* arg0)
             if (viewDepth != -1) {
                 depth = viewDepth;
             }
-            SndEvt_EnqueueTypeA(SOUND_SHELTER_B6_NURSERY_AMBIENCE, (s8)pan, (s8)depth);
+            sndEvtRequestScriptMix(SOUND_SHELTER_B6_NURSERY_AMBIENCE, (s8)pan, (s8)depth);
             arg0->state = 1;
             break;
     }

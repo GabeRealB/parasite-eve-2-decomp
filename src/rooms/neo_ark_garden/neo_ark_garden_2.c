@@ -427,8 +427,8 @@ void func_neo_ark_garden_8017EA9C(Task* task)
                     sndEvtRequestScriptStart(SOUND_NEO_ARK_GARDEN_AMBIENCE_1, -8, 0x32);
                     sndEvtRequestScriptStart(SOUND_NEO_ARK_GARDEN_AMBIENCE_2, 0, 0x32);
                 }
-                SndEvt_EnqueueTypeA(SOUND_NEO_ARK_GARDEN_AMBIENCE_1, -8, 0x32);
-                SndEvt_EnqueueTypeA(SOUND_NEO_ARK_GARDEN_AMBIENCE_2, 0, 0x32);
+                sndEvtRequestScriptMix(SOUND_NEO_ARK_GARDEN_AMBIENCE_1, -8, 0x32);
+                sndEvtRequestScriptMix(SOUND_NEO_ARK_GARDEN_AMBIENCE_2, 0, 0x32);
             } else {
                 work->scale--;
             }
@@ -451,8 +451,8 @@ void func_neo_ark_garden_8017EA9C(Task* task)
             break;
         case 3:
             if (work->scale == 0) {
-                SndEvt_EnqueueTypeA(SOUND_NEO_ARK_GARDEN_AMBIENCE_1, -0xF, 0x4C);
-                SndEvt_EnqueueTypeA(SOUND_NEO_ARK_GARDEN_AMBIENCE_2, -0xE, 0x4C);
+                sndEvtRequestScriptMix(SOUND_NEO_ARK_GARDEN_AMBIENCE_1, -0xF, 0x4C);
+                sndEvtRequestScriptMix(SOUND_NEO_ARK_GARDEN_AMBIENCE_2, -0xE, 0x4C);
             } else {
                 work->scale--;
             }
@@ -465,8 +465,8 @@ void func_neo_ark_garden_8017EA9C(Task* task)
                     sndEvtRequestScriptStart(SOUND_NEO_ARK_GARDEN_AMBIENCE_1, -0xC, 0);
                     sndEvtRequestScriptStart(SOUND_NEO_ARK_GARDEN_AMBIENCE_2, 0xC, 0);
                 }
-                SndEvt_EnqueueTypeA(SOUND_NEO_ARK_GARDEN_AMBIENCE_1, -0xC, 0);
-                SndEvt_EnqueueTypeA(SOUND_NEO_ARK_GARDEN_AMBIENCE_2, 0xC, 0);
+                sndEvtRequestScriptMix(SOUND_NEO_ARK_GARDEN_AMBIENCE_1, -0xC, 0);
+                sndEvtRequestScriptMix(SOUND_NEO_ARK_GARDEN_AMBIENCE_2, 0xC, 0);
             } else {
                 work->scale--;
             }
@@ -496,24 +496,24 @@ void func_neo_ark_garden_8017EA9C(Task* task)
                     sndEvtRequestScriptStart(SOUND_NEO_ARK_GARDEN_AMBIENCE_1, -0xE, 0x40);
                     sndEvtRequestScriptStart(SOUND_NEO_ARK_GARDEN_AMBIENCE_2, -0xD, 0x40);
                 }
-                SndEvt_EnqueueTypeA(SOUND_NEO_ARK_GARDEN_AMBIENCE_1, -0xE, 0x40);
-                SndEvt_EnqueueTypeA(SOUND_NEO_ARK_GARDEN_AMBIENCE_2, -0xD, 0x40);
+                sndEvtRequestScriptMix(SOUND_NEO_ARK_GARDEN_AMBIENCE_1, -0xE, 0x40);
+                sndEvtRequestScriptMix(SOUND_NEO_ARK_GARDEN_AMBIENCE_2, -0xD, 0x40);
             } else {
                 work->scale--;
             }
             break;
         case 6:
             if (work->scale == 0) {
-                SndEvt_EnqueueTypeA(SOUND_NEO_ARK_GARDEN_AMBIENCE_1, 0xD, 0x4C);
-                SndEvt_EnqueueTypeA(SOUND_NEO_ARK_GARDEN_AMBIENCE_2, 0xF, 0x4C);
+                sndEvtRequestScriptMix(SOUND_NEO_ARK_GARDEN_AMBIENCE_1, 0xD, 0x4C);
+                sndEvtRequestScriptMix(SOUND_NEO_ARK_GARDEN_AMBIENCE_2, 0xF, 0x4C);
             } else {
                 work->scale--;
             }
             break;
         case 7:
             if (work->scale == 0) {
-                SndEvt_EnqueueTypeA(SOUND_NEO_ARK_GARDEN_AMBIENCE_1, -0xC, 0);
-                SndEvt_EnqueueTypeA(SOUND_NEO_ARK_GARDEN_AMBIENCE_2, -0xC, 0);
+                sndEvtRequestScriptMix(SOUND_NEO_ARK_GARDEN_AMBIENCE_1, -0xC, 0);
+                sndEvtRequestScriptMix(SOUND_NEO_ARK_GARDEN_AMBIENCE_2, -0xC, 0);
             } else {
                 work->scale--;
             }

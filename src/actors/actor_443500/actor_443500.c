@@ -2547,7 +2547,8 @@ static void func_actor_443500_80132078(Task* task)
 /// Ticks animation slots 1..0x13 once `model.ticking` is latched, restarting 0x7D3
 /// when slot 1 reports the clip ended. The `model.animId == 0x1C` path is the
 /// default clip's sound: `loopTicks` counts to 0xF for a Type6 (views 4/5) or
-/// Type7 (view 3) cue, TypeA otherwise while the view is ready, and resets when
+/// Type7 (view 3) cue, queues `sndEvtRequestScriptMix` in views 4/5 between cues
+/// while the view is ready, and resets when
 /// slot 1 reports `ANIMATION_SLOT_FOLLOWED_JUMP`. A visible model gets a ground
 /// shadow and a rebuilt child-part matrix; `freeCountdown` then counts down to free
 /// the buffers.
@@ -2600,10 +2601,10 @@ static void func_actor_443500_801321F0(Task* task)
         } else if (gGameSession->viewReady != 0) {
             switch (gGameSession->location.loc.view) {
                 case 5:
-                    SndEvt_EnqueueTypeA(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_R47, 1), 9, 0);
+                    sndEvtRequestScriptMix(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_R47, 1), 9, 0);
                     break;
                 case 4:
-                    SndEvt_EnqueueTypeA(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_R47, 1), -0xA, 0x40);
+                    sndEvtRequestScriptMix(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_R47, 1), -0xA, 0x40);
                     break;
                 case 3:
                     sndEvtRequestScriptStop(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_R47, 1), 0x1E);

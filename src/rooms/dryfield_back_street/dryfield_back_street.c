@@ -591,7 +591,7 @@ void func_dryfield_back_street_8017D5D0(Task* task)
     } else if (vol == 0) {
         sndEvtRequestScriptStop(SOUND_BACK_STREET_AMBIENCE, 0x1E);
     } else {
-        SndEvt_EnqueueTypeA(SOUND_BACK_STREET_AMBIENCE, pan, (s8)(((0x64 - vol) * 0x7F) / 100));
+        sndEvtRequestScriptMix(SOUND_BACK_STREET_AMBIENCE, pan, (s8)(((0x64 - vol) * 0x7F) / 100));
     }
     D_dryfield_back_street_80181054 = vol;
 }

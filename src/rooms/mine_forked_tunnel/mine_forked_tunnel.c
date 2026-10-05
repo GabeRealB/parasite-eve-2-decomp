@@ -1864,7 +1864,7 @@ void func_mine_forked_tunnel_8017E25C(Task* task)
 
 void func_mine_forked_tunnel_8017E2B4(void)
 {
-    SndEvt_EnqueueTypeA(SOUND_MINE_FORKED_TUNNEL_OBJECT_MOVE, 0, 0);
+    sndEvtRequestScriptMix(SOUND_MINE_FORKED_TUNNEL_OBJECT_MOVE, 0, 0);
 }
 
 void func_mine_forked_tunnel_8017E2E0(Task* arg0)

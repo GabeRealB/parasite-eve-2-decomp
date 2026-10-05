@@ -1626,42 +1626,42 @@ static void func_acropolis_fountain_8017E15C(Task* task, s32 view)
                 case 2:
                 case 3:
                     if (D_acropolis_fountain_8017E7F8 != 0) {
-                        SndEvt_EnqueueTypeA(SOUND_ACROPOLIS_FOUNTAIN_WATER_LOOP, 7, 2);
+                        sndEvtRequestScriptMix(SOUND_ACROPOLIS_FOUNTAIN_WATER_LOOP, 7, 2);
                     } else {
                         sndEvtRequestScriptStart(SOUND_ACROPOLIS_FOUNTAIN_WATER_LOOP, 7, 2);
                     }
                     break;
                 case 4:
                     if (D_acropolis_fountain_8017E7F8 != 0) {
-                        SndEvt_EnqueueTypeA(SOUND_ACROPOLIS_FOUNTAIN_WATER_LOOP, 0, 0);
+                        sndEvtRequestScriptMix(SOUND_ACROPOLIS_FOUNTAIN_WATER_LOOP, 0, 0);
                     } else {
                         sndEvtRequestScriptStart(SOUND_ACROPOLIS_FOUNTAIN_WATER_LOOP, 0, 0);
                     }
                     break;
                 case 5:
                     if (D_acropolis_fountain_8017E7F8 != 0) {
-                        SndEvt_EnqueueTypeA(SOUND_ACROPOLIS_FOUNTAIN_WATER_LOOP, -7, 2);
+                        sndEvtRequestScriptMix(SOUND_ACROPOLIS_FOUNTAIN_WATER_LOOP, -7, 2);
                     } else {
                         sndEvtRequestScriptStart(SOUND_ACROPOLIS_FOUNTAIN_WATER_LOOP, -7, 2);
                     }
                     break;
                 case 6:
                     if (D_acropolis_fountain_8017E7F8 != 0) {
-                        SndEvt_EnqueueTypeA(SOUND_ACROPOLIS_FOUNTAIN_WATER_LOOP, -7, 0);
+                        sndEvtRequestScriptMix(SOUND_ACROPOLIS_FOUNTAIN_WATER_LOOP, -7, 0);
                     } else {
                         sndEvtRequestScriptStart(SOUND_ACROPOLIS_FOUNTAIN_WATER_LOOP, -7, 0);
                     }
                     break;
                 case 7:
                     if (D_acropolis_fountain_8017E7F8 != 0) {
-                        SndEvt_EnqueueTypeA(SOUND_ACROPOLIS_FOUNTAIN_WATER_LOOP, 0, 2);
+                        sndEvtRequestScriptMix(SOUND_ACROPOLIS_FOUNTAIN_WATER_LOOP, 0, 2);
                     } else {
                         sndEvtRequestScriptStart(SOUND_ACROPOLIS_FOUNTAIN_WATER_LOOP, 0, 2);
                     }
                     break;
                 case 8:
                     if (D_acropolis_fountain_8017E7F8 != 0) {
-                        SndEvt_EnqueueTypeA(SOUND_ACROPOLIS_FOUNTAIN_WATER_LOOP, 7, 3);
+                        sndEvtRequestScriptMix(SOUND_ACROPOLIS_FOUNTAIN_WATER_LOOP, 7, 3);
                     } else {
                         sndEvtRequestScriptStart(SOUND_ACROPOLIS_FOUNTAIN_WATER_LOOP, 7, 3);
                     }

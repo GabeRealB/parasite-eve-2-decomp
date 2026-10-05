@@ -680,7 +680,7 @@ void Gp_SndFadeTask(Task* arg0)
     switch (arg0->state) {
         case 0:
             if (fade->durationFrames == 0) {
-                SndEvt_EnqueueTypeA(fade->soundId, 0, (s8)fade->targetAttenuation);
+                sndEvtRequestScriptMix(fade->soundId, 0, (s8)fade->targetAttenuation);
                 fade->attenuation = fade->targetAttenuation;
                 taskKill(arg0);
                 D_8010FBE8 = 0;
@@ -693,7 +693,7 @@ void Gp_SndFadeTask(Task* arg0)
         case 1:
             D_801156C6++;
             volume = (D_801156C4 * (fade->durationFrames - D_801156C6) + fade->targetAttenuation * D_801156C6) / fade->durationFrames;
-            SndEvt_EnqueueTypeA(fade->soundId, 0, (s8)volume);
+            sndEvtRequestScriptMix(fade->soundId, 0, (s8)volume);
             fade->attenuation = volume;
             if (D_801156C6 == fade->durationFrames) {
                 taskKill(arg0);

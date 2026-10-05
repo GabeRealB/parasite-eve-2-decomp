@@ -708,7 +708,7 @@ void func_acropolis_fire_escape_8017FB40(Task* task)
     } else if (vol == 0) {
         sndEvtRequestScriptStop(SOUND_ACROPOLIS_FIRE_ESCAPE_AMBIENCE, 0x1E);
     } else {
-        SndEvt_EnqueueTypeA(SOUND_ACROPOLIS_FIRE_ESCAPE_AMBIENCE, 0, (s8)(((0x64 - vol) * 127) / 100));
+        sndEvtRequestScriptMix(SOUND_ACROPOLIS_FIRE_ESCAPE_AMBIENCE, 0, (s8)(((0x64 - vol) * 127) / 100));
     }
     D_acropolis_fire_escape_80183040 = vol;
 }

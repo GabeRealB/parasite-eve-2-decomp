@@ -514,8 +514,9 @@ WorldCollisionSurfaceProperties* D_neo_ark_substation_80180328[8] = {
 /// entries, and state 0 starts that loop with `sndEvtRequestScriptStart`. States 1
 /// through 4 then watch for the session's index to stop matching the area
 /// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view` publishes - state 1 tests the pair and 2, 3 and 4 walk the task
-/// along - and state 5 retunes the playing loop to the new entry with
-/// `SndEvt_EnqueueTypeA` and returns to state 1 to keep watching.
+/// along - and state 5 updates the playing loop's pan and attenuation from
+/// the new view's table entry with `sndEvtRequestScriptMix`, then returns
+/// to state 1 to keep watching.
 void func_neo_ark_substation_8017D608(Task* task)
 {
     s32 pan;
@@ -547,7 +548,7 @@ void func_neo_ark_substation_8017D608(Task* task)
             task->state = task->state + 1;
             break;
         case 5:
-            SndEvt_EnqueueTypeA(SOUND_NEO_ARK_SUBSTATION_AMBIENCE, (s8)pan, (s8)attenuation);
+            sndEvtRequestScriptMix(SOUND_NEO_ARK_SUBSTATION_AMBIENCE, (s8)pan, (s8)attenuation);
             task->state = 1;
             break;
     }

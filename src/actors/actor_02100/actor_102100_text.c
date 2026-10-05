@@ -882,7 +882,7 @@ static void Actor02100_Fn00ADC(Task* arg0)
 
                 pan   = (s8)worldCoordGetOriginAudioPan(coord);
                 depth = (s8)worldCoordGetOriginAudioDepth(coord);
-                SndEvt_EnqueueTypeA(work->loopSound, pan, depth);
+                sndEvtRequestScriptMix(work->loopSound, pan, depth);
             }
             if (work->patrolFrames < (work->patrolRange * 40)) {
                 break;
@@ -926,7 +926,7 @@ static void Actor02100_Fn00ADC(Task* arg0)
 
                 pan   = (s8)worldCoordGetOriginAudioPan(coord);
                 depth = (s8)worldCoordGetOriginAudioDepth(coord);
-                SndEvt_EnqueueTypeA(work->loopSound, pan, depth);
+                sndEvtRequestScriptMix(work->loopSound, pan, depth);
             }
             if (work->patrolFrames < (work->patrolRange * 40)) {
                 break;

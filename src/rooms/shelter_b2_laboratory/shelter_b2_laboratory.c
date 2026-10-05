@@ -1162,7 +1162,7 @@ void func_shelter_b2_laboratory_8017FEB8(Task* arg0)
             if (vol >= 0x80) {
                 vol = 0x7F;
             }
-            SndEvt_EnqueueTypeA(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_LABORATORY, 0x0E), pan, (s8)vol);
+            sndEvtRequestScriptMix(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_LABORATORY, 0x0E), pan, (s8)vol);
             arg0->state = 1;
             break;
     }

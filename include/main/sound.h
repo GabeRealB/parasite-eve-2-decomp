@@ -67,7 +67,26 @@ enum {
 /// loaded until the queued start and resulting script have finished using them.
 s32 sndEvtRequestScriptStart(s32 soundId, s32 panOffset, s32 attenuation);
 
-void SndEvt_EnqueueTypeA(s32 arg0, s32 arg1, s32 arg2);
+/// Queues a deferred pan and attenuation change for one existing sound-script instance.
+///
+/// `soundId` uses the bank, instance and entry encoding of
+/// `sndEvtRequestScriptStart`. The requested bank type must be enabled;
+/// disabled types and a full event pool silently drop the request. Type-1 ids
+/// select the loaded type-1 bank at queue time, requiring a completed image in
+/// any matching bank slot during this call. Dispatch changes only the first
+/// starting, running, releasing or fading-out slot with that exact resolved id;
+/// a request with no match is ignored. Muting and unmuting slots are excluded
+/// from that lookup.
+///
+/// Only the low signed bytes of `panOffset` and `attenuation` are stored.
+/// Pan adds three SPU pan steps per unit to each voice's base pan. Its delta
+/// wraps to a signed byte: magnitudes through 8 snap, larger changes ramp by
+/// 2 offset units per voice visit. Attenuation requests a gain-index scale of
+/// (127 - magnitude) / 127 for magnitudes 0..127; -128 requests the unattenuated
+/// level, unlike a start request. Attenuation differences through 32 snap,
+/// larger changes ramp by 8 units per voice visit. Hardware mixing and both
+/// ramps advance during audio updates, including extra PAL updates.
+void sndEvtRequestScriptMix(s32 soundId, s32 panOffset, s32 attenuation);
 
 void SndEvt_EnqueueTypeB(s32 arg0, s32 arg1);
 

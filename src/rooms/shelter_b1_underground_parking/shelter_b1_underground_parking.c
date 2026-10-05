@@ -1971,8 +1971,9 @@ void func_shelter_b1_underground_parking_80182DB4(Task* task)
 /// state 0 starts the loop with `sndEvtRequestScriptStart`. Once
 /// `D_shelter_b1_underground_parking_8018D758` is clear, state 1 queues a stop
 /// for the loop that keeps its ADSR release settings and ends the task; otherwise it waits for the session's view to stop matching `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view`,
-/// states 2 to 4 walk the task along, and state 5 retunes the loop to the new
-/// entry with `SndEvt_EnqueueTypeA` and returns to state 1.
+/// states 2 to 4 walk the task along, and state 5 updates the loop's pan and
+/// attenuation from the new view's table entry with `sndEvtRequestScriptMix`,
+/// then returns to state 1.
 void func_shelter_b1_underground_parking_80182FC8(Task* task)
 {
     s32 pan;
@@ -2010,7 +2011,7 @@ void func_shelter_b1_underground_parking_80182FC8(Task* task)
             task->state = task->state + 1;
             break;
         case 5:
-            SndEvt_EnqueueTypeA(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_UNDERGROUND_PARKING, 0x0F), (s8)pan, (s8)attenuation);
+            sndEvtRequestScriptMix(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_UNDERGROUND_PARKING, 0x0F), (s8)pan, (s8)attenuation);
             task->state = 1;
             break;
     }

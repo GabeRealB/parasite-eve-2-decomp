@@ -402,7 +402,7 @@ static void func_actor_205200_8014A958(Enemy* enemy, Task* task)
                     work->nearestStale = 0;
                     func_actor_205200_8014ACD4(task);
                     if (work->nearestCoord != NULL) {
-                        SndEvt_EnqueueTypeA(
+                        sndEvtRequestScriptMix(
                             work->sustainedSoundId, 0, (s8)func_actor_205200_8014B914(work->nearestDistance));
                     }
                 }

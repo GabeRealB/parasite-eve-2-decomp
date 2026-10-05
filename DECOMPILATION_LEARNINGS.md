@@ -1612,7 +1612,7 @@ if (gGameSession->location.loc.view == 2) {
 } else {
     depth = 0;
 }
-SndEvt_EnqueueTypeA(0x52100006, 0, depth);
+sndEvtRequestScriptMix(0x52100006, 0, depth);
 ```
 
 93.3%, and its signature is a store in a *branch delay slot*: the else value
@@ -1626,9 +1626,9 @@ this time the arms differ only in the literal third argument:
 
 ```c
 if (gGameSession->location.loc.view == 2) {
-    SndEvt_EnqueueTypeA(0x52100006, 0, 0x28);
+    sndEvtRequestScriptMix(0x52100006, 0, 0x28);
 } else {
-    SndEvt_EnqueueTypeA(0x52100006, 0, 0);
+    sndEvtRequestScriptMix(0x52100006, 0, 0);
 }
 ```
 

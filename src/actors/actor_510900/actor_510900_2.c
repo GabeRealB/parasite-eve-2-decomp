@@ -2066,7 +2066,7 @@ static void func_actor_510900_80137FBC(Task* arg0)
             work->stateCounter++;
             if (work->stateCounter >= 3) {
                 loopPan = (s8)worldCoordGetOriginAudioPan(coord);
-                SndEvt_EnqueueTypeA(work->sparkSound, loopPan, (s8)worldCoordGetOriginAudioDepth(coord));
+                sndEvtRequestScriptMix(work->sparkSound, loopPan, (s8)worldCoordGetOriginAudioDepth(coord));
                 work->stateCounter = 0;
             }
             if ((work->sideTravelled < 0xC8) || (work->playerSide != work->lapSide)) {
@@ -2139,7 +2139,7 @@ static void func_actor_510900_80138250(Task* arg0)
             work->stateCounter++;
             if (work->stateCounter >= 3) {
                 loopPan = (s8)worldCoordGetOriginAudioPan(coord);
-                SndEvt_EnqueueTypeA(work->sparkSound, loopPan, (s8)worldCoordGetOriginAudioDepth(coord));
+                sndEvtRequestScriptMix(work->sparkSound, loopPan, (s8)worldCoordGetOriginAudioDepth(coord));
                 work->stateCounter = 0;
             }
             if (work->animationFrame >= 0x1E) {

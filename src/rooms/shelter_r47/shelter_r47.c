@@ -813,11 +813,11 @@ static void func_shelter_r47_80180324(Task* task)
                     switch (gGameSession->location.loc.view) {
                         case 2:
                         case 3:
-                            SndEvt_EnqueueTypeA(SOUND_SHELTER_R47_AMBIENCE, 0, 0);
+                            sndEvtRequestScriptMix(SOUND_SHELTER_R47_AMBIENCE, 0, 0);
                             break;
                         case 4:
                             if (task->spawnArg1.value == 3) {
-                                SndEvt_EnqueueTypeA(SOUND_SHELTER_R47_AMBIENCE, 0xC, 0x58);
+                                sndEvtRequestScriptMix(SOUND_SHELTER_R47_AMBIENCE, 0xC, 0x58);
                             } else {
                                 sndEvtRequestScriptStart(SOUND_SHELTER_R47_AMBIENCE, 0xC, 0x58);
                             }

@@ -66,7 +66,7 @@ void generatorPulse(Task* arg0)
     }
     modelPlacementSetScaled(arg0, &work->unscaledMtx, scale, 1);
     if (gGameSession->viewReady == 1) {
-        SndEvt_EnqueueTypeA(work->runningSoundId, (s8)gGeneratorViewSound[gGameSession->location.loc.view].panOffset,
-                            (s8)gGeneratorViewSound[gGameSession->location.loc.view].attenuation);
+        sndEvtRequestScriptMix(work->runningSoundId, (s8)gGeneratorViewSound[gGameSession->location.loc.view].panOffset,
+                               (s8)gGeneratorViewSound[gGameSession->location.loc.view].attenuation);
     }
 }
