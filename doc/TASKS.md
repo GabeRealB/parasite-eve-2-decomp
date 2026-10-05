@@ -76,7 +76,7 @@ Task* Task_SpawnFromDesc(TaskDesc* desc, s32 spawnArg1, s32 spawnArg2, TaskNode*
 | 0x0 | `header.fields.flags` | Low byte = body kind (0/1/2); `TASK_DESC_SKIP_AUTO_MODEL_BUFFER` disables automatic TMD primitive-buffer allocation and missing-buffer recovery |
 | 0x2 | `header.fields.priority` | Low byte copied to `Task::priority`; equal priorities retain spawn order |
 | 0x4 | `callback` | Per-frame entry (`Task::callback`) |
-| 0x8 | `data.model` / `data.value` | Type-1 only, the `TmdSource*` for `Gp_AttachTmdFlags`; metadata ignored by ordinary spawning for other body kinds |
+| 0x8 | `data.model` / `data.value` | Type-1 only, the `TmdSource*` for `modelObjectAttachTmdWithBufferFlags`; metadata ignored by ordinary spawning for other body kinds |
 
 `header.word` reads both complete halfwords as one little-endian word, with
 flags in the low half and priority in the high half. Location-table selection
@@ -99,8 +99,8 @@ Spawn type (low byte of `header.fields.flags`, stored as `Task::bodyKind`) is th
 | Type | Attach (`Task::extra`) | Kill teardown |
 |------|------------------------|---------------|
 | 0 (`TASK_BODY_NONE`) | no body allocation; `extra.allocation = NULL` | no body to release; normal teardown marks the task for collection, immediate teardown frees it |
-| 1 (`TASK_BODY_TMD`) | `Gp_AttachTmdFlags(task, data.model, flags)` — `extra.tmd` | unlink + free TMD (normal teardown waits two countdown-callback dispatches) |
-| 2 | `gpAttachDisp2d(task)` — `extra.coordBody` | unlink + free coordinate body immediately |
+| 1 (`TASK_BODY_TMD`) | `modelObjectAttachTmdWithBufferFlags(task, data.model, flags)` — `extra.tmd` | unlink + free TMD (normal teardown waits two countdown-callback dispatches) |
+| 2 | `modelObjectAttachCoordBody(task)` — `extra.coordBody` | unlink + free coordinate body immediately |
 
 `TaskBody` holds one allocation pointer. Select its typed member using
 `bodyKind`: a model owns `partCount` coordinates, while a coordinate body owns

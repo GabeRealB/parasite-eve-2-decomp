@@ -87,7 +87,7 @@ static void Reflection_InitPlayer(Task* task)
     s32             i;
 
     owner = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    if (Gp_AttachTmd(task, owner->extra.tmd->source) == NULL) {
+    if (modelObjectAttachTmd(task, owner->extra.tmd->source) == NULL) {
         taskKill(task);
         return;
     }
@@ -770,7 +770,7 @@ static void Reflection_HeldObjectTask(Task* task)
     if (task->state == 0) {
         src      = task->parent->extra.tmd;
         srcParts = src->coords;
-        if (Gp_AttachTmd(task, src->source) == NULL) {
+        if (modelObjectAttachTmd(task, src->source) == NULL) {
             Task_CallExit(task);
             return;
         }

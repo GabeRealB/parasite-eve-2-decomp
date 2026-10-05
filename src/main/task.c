@@ -139,10 +139,10 @@ static Task* Task_SpawnFromDesc(TaskDesc* desc, TaskSpawnArg arg1, TaskSpawnArg 
             if (gTaskDeferModelBufferAllocation) {
                 attachFlags |= TASK_SPAWN_DEFER_MODEL_BUFFER;
             }
-            extra.tmd = Gp_AttachTmdFlags(task, desc->data.model, attachFlags);
+            extra.tmd = modelObjectAttachTmdWithBufferFlags(task, desc->data.model, attachFlags);
             break;
         case TASK_BODY_COORD:
-            extra.coordBody = gpAttachDisp2d(task);
+            extra.coordBody = modelObjectAttachCoordBody(task);
             break;
         case TASK_BODY_NONE:
         default:

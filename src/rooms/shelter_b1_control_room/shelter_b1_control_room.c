@@ -346,7 +346,7 @@ void func_shelter_b1_control_room_8017D7B8(Task* task)
             goto exit;
         }
         body = cfg->subject->extra.tmd;
-        if (Gp_AttachTmd(task, body->source) == NULL) {
+        if (modelObjectAttachTmd(task, body->source) == NULL) {
         exit:
             Task_CallExit(task);
             return;

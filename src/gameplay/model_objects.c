@@ -36,15 +36,53 @@ static TmdListNode _gModelObjectSavedDisp2dList = { NULL, NULL };
 /// Temporary draw task active while the previous body lists are stashed.
 static Task* _gModelObjectTemporaryDrawTask = NULL;
 
-static inline u32* _gpPreXformEnvMapLit(TmdStreamWorkspace* ws, u32* arg2);
+/// Geometry references encode byte offsets into complete eight-byte SVECTOR entries.
+/// Low reference bits are discarded for loads; their meaning is unproven.
+enum {
+    TMD_ENV_MAP_GEOMETRY_BYTE_OFFSET_MASK = 0xFFF8,
+    TMD_ENV_MAP_VERTEX_INDEX_SHIFT        = 3,
+    TMD_ENV_MAP_NO_PREVIOUS_VERTEX        = -1,
+    TMD_ENV_MAP_REDUCED_SCREEN_SHIFT      = 4,
+    TMD_ENV_MAP_REDUCED_NORMAL_SHIFT      = 8,
+    TMD_ENV_MAP_REDUCED_CENTER            = 32
+};
+
+/// Four-halfword prefix of an environment-mapped corner element.
+///
+/// Destinations are independent byte offsets from `preXformWrite`, not
+/// indices of complete packets. The stream's word stride determines the
+/// full element extent; this type describes only the fields read here.
+typedef struct {
+    u16 vertexByteRef; // Vertex byte reference; shifted by three to index the depth cache
+    u16 normalByteRef; // Normal byte reference; low three bits masked before loading
+    u16 xyByteOffset;  // Destination of packed screen XY, followed by two texture bytes
+    u16 rgbByteOffset; // Destination of the lit RGB/code word
+} _TmdEnvMapCornerRefs;
+STATIC_ASSERT_SIZEOF(_TmdEnvMapCornerRefs, 2 * sizeof(u32));
+
+/// Four-halfword prefix of a corner shared by two environment-layer packets.
+///
+/// Each destination selects a colour group; screen XY follows four bytes
+/// later and the layer's U/V follow eight bytes later. Geometry references
+/// encode SVECTOR byte offsets. Any words beyond this prefix remain outside
+/// this type; `elemStride` supplies the full stream stride.
+typedef struct {
+    u16 vertexByteRef;        // Vertex reference; shifted by three to index the depth cache
+    u16 normalByteRef;        // Normal reference; low three bits masked before loading
+    u16 layerColorByteOffset; // Layer colour-group byte offset from preXformWrite
+    u16 baseColorByteOffset;  // Base colour-group byte offset from preXformWrite
+} _TmdEnvLayerCornerRefs;
+STATIC_ASSERT_SIZEOF(_TmdEnvLayerCornerRefs, 2 * sizeof(u32));
+
+static inline u32* _tmdXformStreamVertsEnvMapLitReduced(TmdStreamWorkspace* workspace, u32* elements);
 
 static __inline__ void _actorRenderRefreshCoord(GfxCoord* coord, s32 stamp, s32 parity, GfxCoord* root);
 
-static u32* func_8009A804(TmdStreamWorkspace* ws, s32 arg1, u32* arg2);
+static u32* _tmdXformStreamVertsGreyEnvLayerReduced(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements);
 
 static u32* func_8009AA5C(TmdStreamWorkspace* ws, s32 arg1, u32* arg2);
 
-static u32* func_8009AC58(TmdStreamWorkspace* ws, s32 arg1, u32* arg2);
+static u32* _tmdXformStreamVertsEnvMapLit(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements);
 
 /// Rotates a signed 32-bit vector and adds the translation already loaded into the GTE.
 ///
@@ -291,55 +329,75 @@ static inline void _tmdStoreTexturedQuadFirstTriangleFacing(const POLY_GT4* pack
     gte_stopz(facingArea);
 }
 
-static inline u32* _gpPreXformEnvMapLit(TmdStreamWorkspace* ws, u32* arg2)
+/// Projects and lights corners with reduced-scale screen/normal environment mapping.
+///
+/// `elements` starts at a readable four-halfword prefix per element; stride is
+/// in u32 words. Initial `elemCount` is 0..65535. Masked geometry references
+/// must select complete SVECTORs and vertexRef >> 3 must be below 1024 in the
+/// writable depth cache. XY and RGB destinations are word-aligned byte offsets
+/// in the first packet region, covering respectively six and four bytes.
+///
+/// Requires GTE projection, rotation, light and colour matrices and material
+/// RGB/code already loaded. Adjacent equal vertex references retain SXY and Z;
+/// new projections publish FLAG and mark invalid cached depth, while still
+/// writing XY and colour. U/V are (screen >> 4) + 32 + (rotated normal >> 8),
+/// with signed halfword scratch stores between operations and byte truncation
+/// at the final stores. No texture clipping or ordering-table linking occurs.
+///
+/// Returns the advanced word cursor. Zero count leaves the count unchanged;
+/// positive count is consumed to -1. Leaves packet cursors unchanged, overwrites
+/// GTE/workspace projection and normal scratch, and retains no borrowed storage.
+static inline u32* _tmdXformStreamVertsEnvMapLitReduced(TmdStreamWorkspace* workspace, u32* elements)
 {
-    s32  prev;
-    s32  count;
-    u32  idx;
-    u16* rec;
-    u8*  dest;
+    s32                         previousVertexRef;
+    s32                         initialElementCount;
+    u32                         vertexRef;
+    const _TmdEnvMapCornerRefs* cornerRefs;
+    u8*                         packetDestination;
 
-    count = ws->elemCount;
-    if (count == 0) {
-        return arg2;
+    initialElementCount = workspace->elemCount;
+    if (initialElementCount == 0) {
+        return elements;
     }
-    prev          = -1;
-    ws->elemCount = count + prev;
-    if (count > 0) {
+    previousVertexRef    = TMD_ENV_MAP_NO_PREVIOUS_VERTEX;
+    workspace->elemCount = initialElementCount + previousVertexRef;
+    if (initialElementCount > 0) {
         do {
-            rec = (u16*)arg2;
-            idx = rec[0];
-            if (idx != prev) {
-                gte_ldv0((u8*)ws->verts + (idx & 0xFFF8));
+            cornerRefs = (const _TmdEnvMapCornerRefs*)elements;
+            vertexRef  = cornerRefs->vertexByteRef;
+            // Reuse projection only for adjacent identical vertex references.
+            if (vertexRef != previousVertexRef) {
+                gte_ldv0((const u8*)workspace->verts + (vertexRef & TMD_ENV_MAP_GEOMETRY_BYTE_OFFSET_MASK));
                 gte_rtps();
-                gte_stsz(&ws->gteResult);
-                gte_stflg(&ws->gteFlag);
-                if (ws->gteFlag & TMD_GTE_ERROR_FLAG) {
-                    ws->gteResult |= TMD_VERTEX_DEPTH_INVALID;
+                gte_stsz(&workspace->gteResult);
+                gte_stflg(&workspace->gteFlag);
+                if (workspace->gteFlag & TMD_GTE_ERROR_FLAG) {
+                    workspace->gteResult |= TMD_VERTEX_DEPTH_INVALID;
                 }
-                ws->szTable[*(u16*)arg2 >> 3] = ws->gteResult;
+                workspace->szTable[cornerRefs->vertexByteRef >> TMD_ENV_MAP_VERTEX_INDEX_SHIFT] = workspace->gteResult;
             }
-            prev = rec[0];
-            dest = ws->preXformWrite + rec[2];
-            gte_stsxy(dest);
-            gte_stsxy(&ws->texCoord);
-            gte_ldv0((u8*)ws->normals + (rec[1] & 0xFFF8));
+            previousVertexRef = cornerRefs->vertexByteRef;
+            packetDestination = workspace->preXformWrite + cornerRefs->xyByteOffset;
+            gte_stsxy(packetDestination);
+            gte_stsxy(&workspace->texCoord);
+            gte_ldv0((const u8*)workspace->normals + (cornerRefs->normalByteRef & TMD_ENV_MAP_GEOMETRY_BYTE_OFFSET_MASK));
             gte_nccs();
             gte_rtv0();
-            ws->texCoord.vx = (ws->texCoord.vx >> 4) + 0x20;
-            ws->texCoord.vy = (ws->texCoord.vy >> 4) + 0x20;
-            gte_stsv(&ws->elemNormal);
-            ws->texCoord.vx += ws->elemNormal.vx >> 8;
-            ws->texCoord.vy += ws->elemNormal.vy >> 8;
-            dest             = ws->preXformWrite + rec[2];
-            dest[4]          = (u8)ws->texCoord.vx;
-            dest             = ws->preXformWrite + rec[2];
-            dest[5]          = (u8)ws->texCoord.vy;
-            arg2            += ws->elemStride;
-            gte_strgb(ws->preXformWrite + rec[3]);
-        } while (ws->elemCount-- > 0);
+            // Preserve the signed halfword intermediates before truncating U/V to bytes.
+            workspace->texCoord.vx = (workspace->texCoord.vx >> TMD_ENV_MAP_REDUCED_SCREEN_SHIFT) + TMD_ENV_MAP_REDUCED_CENTER;
+            workspace->texCoord.vy = (workspace->texCoord.vy >> TMD_ENV_MAP_REDUCED_SCREEN_SHIFT) + TMD_ENV_MAP_REDUCED_CENTER;
+            gte_stsv(&workspace->elemNormal);
+            workspace->texCoord.vx                                              += workspace->elemNormal.vx >> TMD_ENV_MAP_REDUCED_NORMAL_SHIFT;
+            workspace->texCoord.vy                                              += workspace->elemNormal.vy >> TMD_ENV_MAP_REDUCED_NORMAL_SHIFT;
+            packetDestination                                                    = workspace->preXformWrite + cornerRefs->xyByteOffset;
+            packetDestination[OFFSET_OF(POLY_GT3, u0) - OFFSET_OF(POLY_GT3, x0)] = (u8)workspace->texCoord.vx;
+            packetDestination                                                    = workspace->preXformWrite + cornerRefs->xyByteOffset;
+            packetDestination[OFFSET_OF(POLY_GT3, v0) - OFFSET_OF(POLY_GT3, x0)] = (u8)workspace->texCoord.vy;
+            elements                                                            += workspace->elemStride;
+            gte_strgb(workspace->preXformWrite + cornerRefs->rgbByteOffset);
+        } while (workspace->elemCount-- > 0);
     }
-    return arg2;
+    return elements;
 }
 
 /// Rebuilds one coordinate after the ancestors that `root` does not exclude.
@@ -393,79 +451,82 @@ static __inline__ void _actorRenderRefreshCoord(GfxCoord* coord, s32 stamp, s32 
     }
 }
 
-TmdObject* Gp_AttachTmd(Task* task, TmdSource* src)
+TmdObject* modelObjectAttachTmd(Task* task, TmdSource* source)
 {
-    TmdObject*   node;
-    TmdListNode* last;
-    TmdListNode* list;
+    TmdObject*   model;
+    TmdListNode* tail;
+    TmdListNode* sentinel;
 
-    node = tmdCreateModel(src, 0);
-    if (node != NULL) {
-        list            = &gTmdList;
-        last            = list->prev;
-        node->link.next = last->next;
-        last->next      = &node->link;
-        node->link.prev = last;
-        list->prev      = &node->link;
-        task->extra.tmd = node;
-        task->bodyKind  = TASK_BODY_TMD;
+    model = tmdCreateModel(source, 0);
+    if (model != NULL) {
+        // Append only after allocation succeeds; task ownership starts below.
+        sentinel         = &gTmdList;
+        tail             = sentinel->prev;
+        model->link.next = tail->next;
+        tail->next       = &model->link;
+        model->link.prev = tail;
+        sentinel->prev   = &model->link;
+        task->extra.tmd  = model;
+        task->bodyKind   = TASK_BODY_TMD;
     }
-    return node;
+    return model;
 }
 
-ModelObjectCoordBody* gpAttachDisp2d(Task* task)
+ModelObjectCoordBody* modelObjectAttachCoordBody(Task* task)
 {
-    ModelObjectCoordBody* node;
-    TmdListNode*          last;
-    TmdListNode*          list;
+    ModelObjectCoordBody* body;
+    TmdListNode*          tail;
+    TmdListNode*          sentinel;
     GfxCoord*             coord;
 
-    node = memCalloc(sizeof(*node), 0);
-    if (node != NULL) {
-        coord         = &node->ownedCoord;
-        node->coord   = coord;
-        node->field_C = 1;
+    body = memCalloc(sizeof(*body), false);
+    if (body != NULL) {
+        coord         = &body->ownedCoord;
+        body->coord   = coord;
+        body->field_C = 1;
         coord->parent = &gGfxViewCoord;
         gfxSetRotIdentity(&coord->coord);
-        coord->coord.t[2]     = 0;
-        coord->coord.t[1]     = 0;
-        coord->coord.t[0]     = 0;
-        coord->param.rot.vz   = 0;
-        coord->param.rot.vy   = 0;
-        coord->param.rot.vx   = 0;
-        coord->composeStamp   = GRAPHICS_COORD_DIRTY;
-        list                  = &gModelObjectCoordBodyList;
-        last                  = list->prev;
-        node->link.next       = last->next;
-        last->next            = &node->link;
-        node->link.prev       = last;
-        list->prev            = &node->link;
-        task->extra.coordBody = node;
+        coord->coord.t[2]   = 0;
+        coord->coord.t[1]   = 0;
+        coord->coord.t[0]   = 0;
+        coord->param.rot.vz = 0;
+        coord->param.rot.vy = 0;
+        coord->param.rot.vx = 0;
+        coord->composeStamp = GRAPHICS_COORD_DIRTY;
+        // Append the initialized coordinate; task ownership starts below.
+        sentinel              = &gModelObjectCoordBodyList;
+        tail                  = sentinel->prev;
+        body->link.next       = tail->next;
+        tail->next            = &body->link;
+        body->link.prev       = tail;
+        sentinel->prev        = &body->link;
+        task->extra.coordBody = body;
         task->bodyKind        = TASK_BODY_COORD;
     } else {
         printf("new_disp_2d ----> NULL\n");
     }
-    return node;
+    return body;
 }
 
-TmdObject* Gp_AttachTmdFlags(Task* task, TmdSource* src, s32 flags)
+TmdObject* modelObjectAttachTmdWithBufferFlags(Task* task, TmdSource* source, s32 bufferFlags)
 {
-    TmdObject*   node;
-    TmdListNode* last;
-    TmdListNode* list;
+    TmdObject*   model;
+    TmdListNode* tail;
+    TmdListNode* sentinel;
 
-    node = tmdCreateModel(src, flags);
-    if (node != NULL) {
-        list            = &gTmdList;
-        last            = list->prev;
-        node->link.next = last->next;
-        last->next      = &node->link;
-        node->link.prev = last;
-        list->prev      = &node->link;
-        task->extra.tmd = node;
-        task->bodyKind  = TASK_BODY_TMD;
+    model = tmdCreateModel(source, bufferFlags);
+    if (model != NULL) {
+        // Append only after allocation succeeds; task ownership starts below.
+        sentinel         = &gTmdList;
+        tail             = sentinel->prev;
+        model->link.next = tail->next;
+        tail->next       = &model->link;
+        model->link.prev = tail;
+        sentinel->prev   = &model->link;
+        task->extra.tmd  = model;
+        task->bodyKind   = TASK_BODY_TMD;
     }
-    return node;
+    return model;
 }
 
 void modelObjectUnlinkTmd(TmdListNode* node)
@@ -1349,65 +1410,87 @@ const CVECTOR gGpColorGrey   = { 0x80, 0x80, 0x80, 0 };
 const CVECTOR Gp_ColorOrange = { 0xFF, 0xA0, 0x60, 0 };
 const CVECTOR gGpColorWhite  = { 0xFF, 0xFF, 0xFF, 0 };
 
-static u32* func_8009A804(TmdStreamWorkspace* ws, s32 arg1, u32* arg2)
+/// Projects and lights paired grey corners with reduced environment UVs on the layer.
+///
+/// Reads a four-halfword prefix per element at `elemStride` u32-word intervals;
+/// initial `elemCount` is 0..65535. `objectFlags` is ignored. Geometry references
+/// mask low three bits and must address complete SVECTORs; vertexRef >> 3 must
+/// fit the 1024-entry depth cache. Layer/base destinations are word-aligned
+/// colour-group byte offsets in the first packet region, requiring respectively
+/// ten and eight bytes. No full-packet or full-element extent is implied.
+///
+/// GTE projection, light, colour and rotation state must be set. Each corner
+/// receives the same XY and independently lit neutral-grey material RGB/code.
+/// Only the layer receives U/V: (screen >> 4) + 32 + (rotated normal >> 8),
+/// preserving signed halfword intermediates and truncating the final bytes.
+/// Adjacent equal vertex references reuse projection; failures publish FLAG
+/// and invalid cached depth but still write both destinations. No OT linking.
+///
+/// Returns the advanced word cursor and consumes positive counts to -1; zero
+/// leaves the count unchanged. Packet cursors stay fixed. Workspace scratch and
+/// GTE state change; storage is borrowed for the call and no pointer is retained.
+/// No current stream resolver selects this retained private routine.
+static u32* _tmdXformStreamVertsGreyEnvLayerReduced(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements)
 {
-    s32     prev;
-    s32     count;
-    u32     idx;
-    u16*    rec;
-    CVECTOR col;
-    CVECTOR col2;
-    u8*     dest;
+    s32                           previousVertexRef;
+    s32                           initialElementCount;
+    u32                           vertexRef;
+    const _TmdEnvLayerCornerRefs* cornerRefs;
+    CVECTOR                       baseMaterial;
+    CVECTOR                       layerMaterial;
+    u8*                           packetDestination;
 
-    col   = gGpColorGrey;
-    col2  = gGpColorGrey;
-    count = ws->elemCount;
-    if (count == 0) {
-        return arg2;
+    baseMaterial        = gGpColorGrey;
+    layerMaterial       = gGpColorGrey;
+    initialElementCount = workspace->elemCount;
+    if (initialElementCount == 0) {
+        return elements;
     }
-    prev          = -1;
-    ws->elemCount = count + prev;
-    if (count > 0) {
+    previousVertexRef    = TMD_ENV_MAP_NO_PREVIOUS_VERTEX;
+    workspace->elemCount = initialElementCount + previousVertexRef;
+    if (initialElementCount > 0) {
         do {
-            rec = (u16*)arg2;
-            idx = rec[0];
-            if (idx != prev) {
-                gte_ldv0((u8*)ws->verts + (idx & 0xFFF8));
+            cornerRefs = (const _TmdEnvLayerCornerRefs*)elements;
+            vertexRef  = cornerRefs->vertexByteRef;
+            // Reuse projection only for adjacent identical vertex references.
+            if (vertexRef != previousVertexRef) {
+                gte_ldv0((const u8*)workspace->verts + (vertexRef & TMD_ENV_MAP_GEOMETRY_BYTE_OFFSET_MASK));
                 gte_rtps();
-                gte_stsz(&ws->gteResult);
-                gte_stflg(&ws->gteFlag);
-                if (ws->gteFlag & TMD_GTE_ERROR_FLAG) {
-                    ws->gteResult |= TMD_VERTEX_DEPTH_INVALID;
+                gte_stsz(&workspace->gteResult);
+                gte_stflg(&workspace->gteFlag);
+                if (workspace->gteFlag & TMD_GTE_ERROR_FLAG) {
+                    workspace->gteResult |= TMD_VERTEX_DEPTH_INVALID;
                 }
-                ws->szTable[*(u16*)arg2 >> 3] = ws->gteResult;
+                workspace->szTable[cornerRefs->vertexByteRef >> TMD_ENV_MAP_VERTEX_INDEX_SHIFT] = workspace->gteResult;
             }
-            prev = rec[0];
-            dest = ws->preXformWrite + rec[2] + 4;
-            gte_stsxy(dest);
-            dest = ws->preXformWrite + rec[3] + 4;
-            gte_stsxy(dest);
-            gte_stsxy(&ws->texCoord);
-            gte_ldv0((u8*)ws->normals + (rec[1] & 0xFFF8));
-            gte_ldrgb(&col2);
+            previousVertexRef = cornerRefs->vertexByteRef;
+            packetDestination = workspace->preXformWrite + cornerRefs->layerColorByteOffset + (OFFSET_OF(POLY_GT3, x0) - OFFSET_OF(POLY_GT3, r0));
+            gte_stsxy(packetDestination);
+            packetDestination = workspace->preXformWrite + cornerRefs->baseColorByteOffset + (OFFSET_OF(POLY_GT3, x0) - OFFSET_OF(POLY_GT3, r0));
+            gte_stsxy(packetDestination);
+            gte_stsxy(&workspace->texCoord);
+            gte_ldv0((const u8*)workspace->normals + (cornerRefs->normalByteRef & TMD_ENV_MAP_GEOMETRY_BYTE_OFFSET_MASK));
+            gte_ldrgb(&layerMaterial);
             gte_nccs();
-            gte_strgb(ws->preXformWrite + rec[2]);
-            gte_ldrgb(&col);
+            gte_strgb(workspace->preXformWrite + cornerRefs->layerColorByteOffset);
+            gte_ldrgb(&baseMaterial);
             gte_nccs();
-            gte_strgb(ws->preXformWrite + rec[3]);
+            gte_strgb(workspace->preXformWrite + cornerRefs->baseColorByteOffset);
             gte_rtv0();
-            ws->texCoord.vx = (ws->texCoord.vx >> 4) + 0x20;
-            ws->texCoord.vy = (ws->texCoord.vy >> 4) + 0x20;
-            gte_stsv(&ws->elemNormal);
-            ws->texCoord.vx += ws->elemNormal.vx >> 8;
-            ws->texCoord.vy += ws->elemNormal.vy >> 8;
-            dest             = ws->preXformWrite + rec[2];
-            dest[8]          = (u8)ws->texCoord.vx;
-            dest             = ws->preXformWrite + rec[2];
-            dest[9]          = (u8)ws->texCoord.vy;
-            arg2            += ws->elemStride;
-        } while (ws->elemCount-- > 0);
+            // Preserve the signed halfword intermediates before truncating layer U/V.
+            workspace->texCoord.vx = (workspace->texCoord.vx >> TMD_ENV_MAP_REDUCED_SCREEN_SHIFT) + TMD_ENV_MAP_REDUCED_CENTER;
+            workspace->texCoord.vy = (workspace->texCoord.vy >> TMD_ENV_MAP_REDUCED_SCREEN_SHIFT) + TMD_ENV_MAP_REDUCED_CENTER;
+            gte_stsv(&workspace->elemNormal);
+            workspace->texCoord.vx                                              += workspace->elemNormal.vx >> TMD_ENV_MAP_REDUCED_NORMAL_SHIFT;
+            workspace->texCoord.vy                                              += workspace->elemNormal.vy >> TMD_ENV_MAP_REDUCED_NORMAL_SHIFT;
+            packetDestination                                                    = workspace->preXformWrite + cornerRefs->layerColorByteOffset;
+            packetDestination[OFFSET_OF(POLY_GT3, u0) - OFFSET_OF(POLY_GT3, r0)] = (u8)workspace->texCoord.vx;
+            packetDestination                                                    = workspace->preXformWrite + cornerRefs->layerColorByteOffset;
+            packetDestination[OFFSET_OF(POLY_GT3, v0) - OFFSET_OF(POLY_GT3, r0)] = (u8)workspace->texCoord.vy;
+            elements                                                            += workspace->elemStride;
+        } while (workspace->elemCount-- > 0);
     }
-    return arg2;
+    return elements;
 }
 
 static u32* func_8009AA5C(TmdStreamWorkspace* ws, s32 arg1, u32* arg2)
@@ -1416,97 +1499,146 @@ static u32* func_8009AA5C(TmdStreamWorkspace* ws, s32 arg1, u32* arg2)
 
     col = Gp_ColorOrange;
     gte_ldrgb(&col);
-    return _gpPreXformEnvMapLit(ws, arg2);
+    return _tmdXformStreamVertsEnvMapLitReduced(ws, arg2);
 }
 
-static u32* func_8009AC58(TmdStreamWorkspace* ws, s32 arg1, u32* arg2)
+/// Projects and lights corners with a blend-scaled, full-screen environment map.
+///
+/// The four-halfword prefix and word-stride/count, geometry, depth-cache and
+/// borrowed-storage requirements are `_tmdXformStreamVertsEnvMapLitReduced`'s.
+/// `objectFlags` is ignored. XY and RGB offsets remain independent; this path
+/// also writes the byte immediately preceding XY as a temporary 0/1 page marker.
+/// Require that byte plus XY/U/V to fit the first packet region. GTE projection,
+/// light, colour and rotation state must be initialized; material is white.
+///
+/// Below 4096, lit RGB blends toward neutral grey with the object's
+/// 12-fraction-bit colorBlend. Scales the rotated normal with GPF12 using
+/// colorBlend >> 9, then subtracts it from signed screen XY + (160,120).
+/// Negative U/V clamp to zero; U >= 256 rebases by 128 and clamps to 191,
+/// setting the second-page marker, while V clamps to 239. Does not link an OT.
+///
+/// Adjacent equal references reuse projection; new failures publish FLAG and
+/// invalid cached depth but still write XY/RGB/UV. Returns the advanced word
+/// cursor, consumes positive counts to -1, and leaves packet cursors fixed.
+/// Zero count is unchanged but material is loaded first. Workspace scratch and
+/// GTE state change; no borrowed pointer is retained. No current stream resolver
+/// selects this retained private routine.
+static u32* _tmdXformStreamVertsEnvMapLit(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements)
 {
-    s32      prev;
-    s32      count;
-    u32      idx;
-    u16*     rec;
-    CVECTOR  col;
-    CVECTOR  col2;
-    u8*      dest;
-    u8*      cptr;
-    s16*     xy;
-    SVECTOR* sv;
-    s32      page;
-    s32      uv;
+    enum {
+        TMD_ENV_MAP_SCREEN_CENTER_X        = 160,
+        TMD_ENV_MAP_SCREEN_CENTER_Y        = 120,
+        TMD_ENV_MAP_NORMAL_BLEND_SHIFT     = 9,
+        TMD_ENV_MAP_FIRST_PAGE_U_LIMIT     = 256,
+        TMD_ENV_MAP_PAGE_U_DISPLACEMENT    = 128,
+        TMD_ENV_MAP_SECOND_PAGE_U_LIMIT    = 192,
+        TMD_ENV_MAP_V_LIMIT                = 240,
+        TMD_ENV_MAP_FIRST_PAGE_MARKER      = 0,
+        TMD_ENV_MAP_SECOND_PAGE_MARKER     = 1,
+        TMD_ENV_MAP_XY_TO_U_BYTES          = OFFSET_OF(POLY_GT3, u0) - OFFSET_OF(POLY_GT3, x0),
+        TMD_ENV_MAP_V_TO_PAGE_MARKER_BYTES = OFFSET_OF(POLY_GT3, v0) - OFFSET_OF(POLY_GT3, code)
+    };
+    /// Blends one aligned RGB group toward neutral grey; caller gates blend < 4096.
+    ///
+    /// Arguments must be side-effect-free workspace/record/reference pointers and
+    /// a writable cursor lvalue. The cursor is assigned after the first blend
+    /// load; the object's 12-fraction-bit weight is read separately for each
+    /// term. Evaluates workspace, refs and cursor repeatedly, captures no locals,
+    /// clobbers GTE interpolation state and writes RGB. This multi-statement
+    /// expansion requires an enclosing compound block.
+#define TMD_BLEND_ENV_MAP_COLOR_TO_GREY(workspace, refs, cursor, reference)      \
+    gte_lddp((workspace)->obj->shading.colorBlend);                              \
+    (cursor) = (workspace)->preXformWrite + (refs)->rgbByteOffset;               \
+    gte_ldcv(cursor);                                                            \
+    gte_gpf12();                                                                 \
+    gte_lddp(TMD_OBJECT_COLOR_BLEND_ONE - (workspace)->obj->shading.colorBlend); \
+    gte_ldcv(reference);                                                         \
+    gte_gpl12();                                                                 \
+    gte_stcv(cursor)
 
-    col  = gGpColorWhite;
-    col2 = gGpColorGrey;
-    gte_ldrgb(&col);
-    count = ws->elemCount;
-    if (count == 0) {
-        return arg2;
+    s32                         previousVertexRef;
+    s32                         initialElementCount;
+    u32                         vertexRef;
+    const _TmdEnvMapCornerRefs* cornerRefs;
+    CVECTOR                     materialColor;
+    CVECTOR                     referenceColor;
+    u8*                         packetDestination;
+    u8*                         colorDestination;
+    s16*                        screenComponent;
+    SVECTOR*                    rotatedNormal;
+    s32                         secondPage;
+    s32                         textureComponent;
+
+    materialColor  = gGpColorWhite;
+    referenceColor = gGpColorGrey;
+    gte_ldrgb(&materialColor);
+    initialElementCount = workspace->elemCount;
+    if (initialElementCount == 0) {
+        return elements;
     }
-    prev          = -1;
-    ws->elemCount = count + prev;
-    if (count > 0) {
+    previousVertexRef    = TMD_ENV_MAP_NO_PREVIOUS_VERTEX;
+    workspace->elemCount = initialElementCount + previousVertexRef;
+    if (initialElementCount > 0) {
         do {
-            rec = (u16*)arg2;
-            idx = rec[0];
-            if (idx != prev) {
-                gte_ldv0((u8*)ws->verts + (idx & 0xFFF8));
+            cornerRefs = (const _TmdEnvMapCornerRefs*)elements;
+            vertexRef  = cornerRefs->vertexByteRef;
+            // Reuse projection only for adjacent identical vertex references.
+            if (vertexRef != previousVertexRef) {
+                gte_ldv0((const u8*)workspace->verts + (vertexRef & TMD_ENV_MAP_GEOMETRY_BYTE_OFFSET_MASK));
                 gte_rtps();
-                gte_stsz(&ws->gteResult);
-                gte_stflg(&ws->gteFlag);
-                if (ws->gteFlag & TMD_GTE_ERROR_FLAG) {
-                    ws->gteResult |= TMD_VERTEX_DEPTH_INVALID;
+                gte_stsz(&workspace->gteResult);
+                gte_stflg(&workspace->gteFlag);
+                if (workspace->gteFlag & TMD_GTE_ERROR_FLAG) {
+                    workspace->gteResult |= TMD_VERTEX_DEPTH_INVALID;
                 }
-                ws->szTable[*(u16*)arg2 >> 3] = ws->gteResult;
+                workspace->szTable[cornerRefs->vertexByteRef >> TMD_ENV_MAP_VERTEX_INDEX_SHIFT] = workspace->gteResult;
             }
-            prev = rec[0];
-            gte_stsxy(ws->preXformWrite + rec[2]);
-            gte_stsxy(&ws->texCoord);
-            gte_ldv0((u8*)ws->normals + (rec[1] & 0xFFF8));
+            previousVertexRef = cornerRefs->vertexByteRef;
+            gte_stsxy(workspace->preXformWrite + cornerRefs->xyByteOffset);
+            gte_stsxy(&workspace->texCoord);
+            gte_ldv0((const u8*)workspace->normals + (cornerRefs->normalByteRef & TMD_ENV_MAP_GEOMETRY_BYTE_OFFSET_MASK));
             gte_nccs();
             gte_rtv0();
-            gte_stsv(&ws->elemNormal);
-            arg2 += ws->elemStride;
-            gte_strgb(ws->preXformWrite + rec[3]);
-            if (ws->obj->shading.colorBlend < TMD_OBJECT_COLOR_BLEND_ONE) {
-                gte_lddp(ws->obj->shading.colorBlend);
-                cptr = ws->preXformWrite + rec[3];
-                gte_ldcv(cptr);
-                gte_gpf12();
-                gte_lddp(TMD_OBJECT_COLOR_BLEND_ONE - ws->obj->shading.colorBlend);
-                gte_ldcv(&col2);
-                gte_gpl12();
-                gte_stcv(cptr);
+            gte_stsv(&workspace->elemNormal);
+            elements += workspace->elemStride;
+            gte_strgb(workspace->preXformWrite + cornerRefs->rgbByteOffset);
+            // Fade lit colour toward the grey reference before deriving texture displacement.
+            if (workspace->obj->shading.colorBlend < TMD_OBJECT_COLOR_BLEND_ONE) {
+                TMD_BLEND_ENV_MAP_COLOR_TO_GREY(workspace, cornerRefs, colorDestination, &referenceColor);
             }
-            xy   = &ws->texCoord.vx;
-            page = 0;
-            dest = ws->preXformWrite + rec[2] + 4;
-            sv   = &ws->elemNormal;
-            gte_lddp(ws->obj->shading.colorBlend >> 9);
-            gte_ldsv(sv);
+            // Store U/V and the page marker separately; keep the cursor increments in order.
+            screenComponent   = &workspace->texCoord.vx;
+            secondPage        = TMD_ENV_MAP_FIRST_PAGE_MARKER;
+            packetDestination = workspace->preXformWrite + cornerRefs->xyByteOffset + TMD_ENV_MAP_XY_TO_U_BYTES;
+            rotatedNormal     = &workspace->elemNormal;
+            gte_lddp(workspace->obj->shading.colorBlend >> TMD_ENV_MAP_NORMAL_BLEND_SHIFT);
+            gte_ldsv(rotatedNormal);
             gte_gpf12();
-            gte_stsv(sv);
-            uv  = *xy + 0xA0;
-            uv -= sv->vx;
-            if (uv < 0) {
-                uv = page;
-            } else if (uv >= 0x100) {
-                uv  -= 0x80;
-                page = 1;
-                if (uv >= 0xC0) {
-                    uv = 0xBF;
+            gte_stsv(rotatedNormal);
+            textureComponent  = *screenComponent + TMD_ENV_MAP_SCREEN_CENTER_X;
+            textureComponent -= rotatedNormal->vx;
+            if (textureComponent < 0) {
+                textureComponent = secondPage;
+            } else if (textureComponent >= TMD_ENV_MAP_FIRST_PAGE_U_LIMIT) {
+                textureComponent -= TMD_ENV_MAP_PAGE_U_DISPLACEMENT;
+                secondPage        = TMD_ENV_MAP_SECOND_PAGE_MARKER;
+                if (textureComponent >= TMD_ENV_MAP_SECOND_PAGE_U_LIMIT) {
+                    textureComponent = TMD_ENV_MAP_SECOND_PAGE_U_LIMIT - 1;
                 }
             }
-            *dest = uv;
-            uv    = *++xy + 0x78;
-            uv   -= sv->vy;
-            dest++;
-            if (uv < 0) {
-                uv = 0;
-            } else if (uv >= 0xF0) {
-                uv = 0xEF;
+            *packetDestination = textureComponent;
+            textureComponent   = *++screenComponent + TMD_ENV_MAP_SCREEN_CENTER_Y;
+            textureComponent  -= rotatedNormal->vy;
+            packetDestination++;
+            if (textureComponent < 0) {
+                textureComponent = 0;
+            } else if (textureComponent >= TMD_ENV_MAP_V_LIMIT) {
+                textureComponent = TMD_ENV_MAP_V_LIMIT - 1;
             }
-            *dest    = uv;
-            dest[-6] = page;
-        } while (ws->elemCount-- > 0);
+            *packetDestination                                     = textureComponent;
+            packetDestination[-TMD_ENV_MAP_V_TO_PAGE_MARKER_BYTES] = secondPage;
+        } while (workspace->elemCount-- > 0);
     }
-    return arg2;
+    return elements;
+#undef TMD_BLEND_ENV_MAP_COLOR_TO_GREY
 }

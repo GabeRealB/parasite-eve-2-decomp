@@ -28285,9 +28285,9 @@ if ((inner->padHeld & 0x40) && (temp != -1)) {
 `func_801066DC` is the example. Two literal `= 1` stores stuck at 81%
 with `$v0` for both the constant and the `gMcSaveData` address.
 
-## Pin `&node->field` in `$v1` so `$a0` can hold `ONE` then a global
+## Pin `&body->field` in `$v1` so `$a0` can hold `ONE` then a global
 
-A calloc'd node with an embedded coord at +0x10 needs `&node->ownedCoord` live
+A calloc'd body with an embedded coord at +0x10 needs `&body->ownedCoord` live
 in `$v1` across the identity-matrix stores. Without that pin GCC gives the
 pointer `$a0`, `ONE` lands in `$v1`, and `&Global` is delayed until after
 the zero stores (the pointer still occupies `$a0`).
@@ -28299,19 +28299,19 @@ the zero stores (the pointer still occupies `$a0`).
 ```c
 register GfxCoord* coord asm("v1");
 
-node  = memCalloc(0x60, 0);
-coord = &node->ownedCoord;
-if (node != NULL) {
-    node->field_C = 1;
-    node->coord   = coord;
+body  = memCalloc(0x60, 0);
+coord = &body->ownedCoord;
+if (body != NULL) {
+    body->field_C = 1;
+    body->coord   = coord;
     coord->parent    = &gGfxViewCoord;
     one           = ONE;
     ...
-    list = &gModelObjectCoordBodyList;
+    sentinel = &gModelObjectCoordBodyList;
 }
 ```
 
-`gpAttachDisp2d` is the example. The same body without the register pin
+`modelObjectAttachCoordBody` is the example. The same body without the register pin
 stuck at 92.6% with only those registers (and the late `&gModelObjectCoordBodyList`)
 different.
 
@@ -37801,7 +37801,7 @@ and turns `addiu`/`subu` into `addiu -C`/`subu`:
 
 ```c
 /* Wrong: lh a, 0x74; lh b, 0x7c; addiu a,a,-0xA0; subu b,b,a  */
-uv = ws->texCoord.vx + 0xA0 - ws->elemNormal.vx;
+uv = workspace->texCoord.vx + 0xA0 - workspace->elemNormal.vx;
 ```
 
 Writing it as two statements defeats the reassociation (GCC 2.8.1 has no SSA,
@@ -37810,11 +37810,11 @@ load order:
 
 ```c
 /* Matches: lh a, 0x7c; lh b, 0x74; addiu v0,a,0xA0; subu v0,v0,b */
-uv  = ws->texCoord.vx + 0xA0;
-uv -= ws->elemNormal.vx;
+uv  = workspace->texCoord.vx + 0xA0;
+uv -= workspace->elemNormal.vx;
 ```
 
-Seen while matching `func_8009AC58` (gameplay): 92.9% → 96.1% from this alone.
+Seen while matching `_tmdXformStreamVertsEnvMapLit` (gameplay): 92.9% → 96.1% from this alone.
 
 Use a *fresh* local for the split, not the one holding `a`. Reusing the input
 variable makes both halves one pseudo, so the final `subu` has to write a new
@@ -47160,7 +47160,7 @@ tmdCreateModel:  memCalloc(partCount * 0x50 + 0x34, 0)
 
 That single `memCalloc` says the object is 0x34 bytes followed by
 `partCount` × `GfxCoord` (0x50), and that `model->coords` points at its own tail.
-`Gp_AttachTmd` stores that pointer into `Task::extra` and sets
+`modelObjectAttachTmd` stores that pointer into `Task::extra` and sets
 `Task::bodyKind = TASK_BODY_TMD`, and `taskKill`'s type-1 branch pokes `field_C` on the
 same pointer — so "`Task::extra`" and "TMD model node" were never two things.
 The 0x24 model was simply truncated: `func_actor_400600_80137240` reading
@@ -146473,23 +146473,23 @@ statements (`off = col*sizeof(u16); off += row*sizeof(T);`) already gives
 v1 and the entry move once the pin is dropped. The last operand order needs the
 base written first, `(u8*)base + off`; `(s32)base + off` or `off + base` put
 the offset first.
-## A pointer walked with `*++p` is multiply-set at no cost: the natural form of a `TOUCH_REG` on a pointer copy (func_8009AC58)
+## A pointer walked with `*++p` is multiply-set at no cost: the natural form of a `TOUCH_REG` on a pointer copy (_tmdXformStreamVertsEnvMapLit)
 
 **Symptom.** A loop-invariant address is copied into a local (`move t1,t8`)
 that the target emits first in its block, while an unpinned
-`xy = &ws->texCoord;` drifts into a load-delay slot further down and shifts
-the allocation of its neighbours. A `TOUCH_REG(xy)` held it in place.
+`screenComponent = &workspace->texCoord;` drifts into a load-delay slot further down and shifts
+the allocation of its neighbours. A `TOUCH_REG(screenComponent)` held it in place.
 
 **Mechanism.** The copy is single-set, so `birthing_insn_p` gives it
 `LAUNCH_PRIORITY` (see "sched1 starves an insn whose destination pseudo is
 assigned more than once"). The pin's `"+r"` operand was a second set, which
 starved it back to the front of the block.
 
-**Fix.** Walk the fields instead of naming them: `s16* xy = &ws->texCoord.vx;`,
-read `*xy`, then `*++xy`. The increment is a second set when flow counts
+**Fix.** Walk the fields instead of naming them: `s16* screenComponent = &workspace->texCoord.vx;`,
+read `*screenComponent`, then `*++screenComponent`. The increment is a second set when flow counts
 `REG_N_SETS`, and combine then folds it into the load's offset (`lh v0,2(t1)`)
 and deletes it, so it emits nothing. The increment has to sit in the same block
-as the load it feeds: `*xy++` on the first read leaves a separate `addiu`
+as the load it feeds: `*screenComponent++` on the first read leaves a separate `addiu`
 behind.
 
 ## A label right after a call ends its block and changes how sched1 orders the argument setup (Boot_LoadInitialFile, 2026-09-27)

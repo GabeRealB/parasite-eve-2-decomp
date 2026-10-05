@@ -28,20 +28,41 @@ struct Task;
 /// and alive until the endpoints are restored. Only one stash may be outstanding.
 extern TmdListNode gModelObjectCoordBodyList;
 
-TmdObject* Gp_AttachTmd(Task* task, TmdSource* src);
-
-/// Gives a task a coordinate body and returns it, or `NULL` when there is no
-/// memory for one, in which case the task is left without a body.
+/// Creates a model with primitive buffers and attaches it to a task.
 ///
-/// The body carries a coordinate of its own instead of a model. That coordinate
-/// is parented to the view, so what the task places in it comes back relative to
-/// the camera rather than to the world, and it joins the end of
-/// `gModelObjectCoordBodyList`, where the frame's draw passes compose it.
-/// Recording it as the task's body (`bodyKind` `TASK_BODY_COORD`) is what later
-/// releases it; `Gp_AttachTmd` is the model-side counterpart.
-ModelObjectCoordBody* gpAttachDisp2d(Task* task);
+/// `task` must have no existing body; success appends the model to `gTmdList`
+/// and stores it in `extra.tmd` with `bodyKind` `TASK_BODY_TMD`. The task owns
+/// the allocation and coordinates; source geometry remains borrowed. Source
+/// requirements and buffer-allocation behavior follow `tmdCreateModel` with
+/// zero buffer flags: auxiliary allocation failure can leave a live model
+/// with a NULL primitive buffer. The model starts excluded from active drawing.
+/// Returns NULL on primary allocation failure, leaving task body fields
+/// unchanged. Unlink the model before releasing it with `modelObjectFreeTmd`.
+TmdObject* modelObjectAttachTmd(Task* task, TmdSource* source);
 
-TmdObject* Gp_AttachTmdFlags(Task* task, TmdSource* src, s32 flags);
+/// Creates and attaches one task-owned coordinate body with an identity transform.
+///
+/// `task` must have no existing body. Success appends the allocation to
+/// `gModelObjectCoordBodyList` and stores it in `extra.coordBody` with
+/// `bodyKind` `TASK_BODY_COORD`. Its embedded coordinate initially has zero
+/// translation and rotation angles, a dirty composition cache, and
+/// `gGfxViewCoord` as its borrowed parent. Model draw passes refresh this
+/// coordinate but emit no primitives for the body.
+///
+/// Returns NULL on allocation failure, leaving task body fields unchanged.
+/// Keep the body at its allocated address and its parent alive while composed.
+/// Unlink it before releasing it with `modelObjectFreeCoordBody`.
+ModelObjectCoordBody* modelObjectAttachCoordBody(Task* task);
+
+/// Creates and attaches a task-owned model with primitive-buffer creation options.
+///
+/// The attachment, source and lifetime contract is `modelObjectAttachTmd`'s.
+/// `bufferFlags` is the signed s32 creation word passed to `tmdCreateModel`,
+/// separate from `TmdObject.flags`: zero allocates and builds both buffer
+/// halves; every nonzero value defers them, and bit 0 also suppresses
+/// automatic missing-buffer recovery. Returns NULL only when primary
+/// allocation fails, leaving the task's body fields unchanged.
+TmdObject* modelObjectAttachTmdWithBufferFlags(Task* task, TmdSource* source, s32 bufferFlags);
 
 /// Unlinks an attached model from the live model list (`gTmdList`).
 ///
@@ -58,7 +79,7 @@ void modelObjectUnlinkTmd(TmdListNode* node);
 /// Releases a detached task-owned model and any primitive buffer it owns.
 ///
 /// `model` is the live object `tmdCreateModel` returned, including one attached by
-/// `Gp_AttachTmd` or `Gp_AttachTmdFlags`. It is not `NULL`. That address is the
+/// `modelObjectAttachTmd` or `modelObjectAttachTmdWithBufferFlags`. It is not `NULL`. That address is the
 /// primary-heap allocation, so releasing it also ends the owned coordinate
 /// tail. Borrowed source geometry and the light and colour matrices stay with
 /// their owners.
@@ -88,7 +109,7 @@ void modelObjectUnlinkCoordBody(TmdListNode* node);
 
 /// Releases a detached task-owned coordinate body to the primary heap.
 ///
-/// `body` must be `NULL` or the original live allocation from `gpAttachDisp2d`.
+/// `body` must be `NULL` or the original live allocation from `modelObjectAttachCoordBody`.
 /// Before releasing a non-null body, unlink it from `gModelObjectCoordBodyList`
 /// and ensure no stashed list still contains it. This also ends the embedded
 /// coordinate's lifetime; borrowed parent coordinates are not released.

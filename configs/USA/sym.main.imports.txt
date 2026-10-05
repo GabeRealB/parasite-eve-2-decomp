@@ -8,8 +8,8 @@ Title_TaskDescs = 0x80094C8C; // absolute:True owner=title
 
 Gp_DrawActorTmdFlagged = 0x80097AC0; // type:func absolute:True
 Gp_DrawActorTmdActive = 0x8009850C; // type:func absolute:True
-gpAttachDisp2d = 0x80099098; // type:func absolute:True
-Gp_AttachTmdFlags = 0x80099170; // type:func absolute:True
+modelObjectAttachCoordBody = 0x80099098; // type:func absolute:True
+modelObjectAttachTmdWithBufferFlags = 0x80099170; // type:func absolute:True
 modelObjectUnlinkTmd = 0x800991DC; // type:func absolute:True
 modelObjectFreeTmd = 0x80099214; // type:func absolute:True
 modelObjectUnlinkCoordBody = 0x80099258; // type:func absolute:True

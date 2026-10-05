@@ -18,7 +18,7 @@ and animation sit together.
 | Stream walk + opcode switches | `src/main/tmd.c` (`_tmdResolveSourceDrawHandlers`, `tmdBuildBufferHalf`) |
 | Early-image handlers | `src/main/hasm/Tmd_StreamHandlers_Ops.s` |
 | Container types | `include/main/tmd_types.h` (`TmdSource`, `TmdObject`) |
-| Attach path | `src/gameplay/model_objects.c` (`Gp_AttachTmd`), `src/main/task.c` |
+| Attach path | `src/gameplay/model_objects.c` (`modelObjectAttachTmd`), `src/main/task.c` |
 | Locate / carve streams | `tools/peassets/pkg_model.py` |
 
 **Status.** The format is understood well enough to write an exporter. An
@@ -35,8 +35,9 @@ inverse direction for import. See §6.
 ## 1. A model's source data
 
 The face stream alone is not a model: the vertices live outside it. A
-`TmdSource` record ties the pieces together, and `Gp_AttachTmd` reaches one
-through `TaskDesc.data.model`:
+`TmdSource` record ties the pieces together. Descriptor-based spawning passes
+`TaskDesc.data.model` to `modelObjectAttachTmdWithBufferFlags`;
+`modelObjectAttachTmd` also attaches borrowed sources for reflected models:
 
 ```text
 TmdSource (0x24 bytes; handlersResolved is 0 on disc, set to 1 after first use)
