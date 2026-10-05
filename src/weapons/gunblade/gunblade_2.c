@@ -74,7 +74,7 @@ void func_gunblade_8011E040(Task* arg0);
 /// 3-5 count `field_934` down: at 0 state 3 hands over to state 4 and spawns
 /// the beam effect (parented to the weapon task so `func_gunblade_8011E008`
 /// can reach it), and any later state falls out to 7. State 4 asks
-/// `func_801060E0` where the blade landed; a connecting swing (2) advances to
+/// `playerActorReadAttackButton` for held fire input; secondary input (2) advances to
 /// state 5 and, if there is still a round to spend, charges the beam and
 /// re-grades the shot from the attachment id. Every frame in this group plays
 /// the hit sound once the swing has collided and, while the recoil counter
@@ -192,7 +192,7 @@ void func_gunblade_8011E040(Task* arg0)
                     actor->statePhase = 7;
                 }
             }
-            if (actor->statePhase == 4 && (s8)func_801060E0(arg0) == 2) {
+            if (actor->statePhase == 4 && playerActorReadAttackButton(arg0) == PLAYER_ACTOR_ATTACK_BUTTON_SECONDARY) {
                 actor->statePhase = 5;
                 if (func_80106264(1) != 0) {
                     if (gPlayerStatus.weaponSlotItem < 0xF) {

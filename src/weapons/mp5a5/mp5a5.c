@@ -163,7 +163,7 @@ void func_mp5a5_8011DDA4(Task* arg0)
             actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
             /* fallthrough */
         case 6:
-            if ((s8)func_801060E0(arg0) == 1 && func_80106264(1) > 0 && actor->attackControl.cooldownTicks == 0) {
+            if (playerActorReadAttackButton(arg0) == PLAYER_ACTOR_ATTACK_BUTTON_PRIMARY && func_80106264(1) > 0 && actor->attackControl.cooldownTicks == 0) {
                 goto fire;
             }
             if (playerActorIsSlotAdvancingLinearly(arg0, D_80112E04[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId][1], 0, 0) == 0) {

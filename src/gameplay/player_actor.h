@@ -48,7 +48,16 @@ void Gp_EffCtlTaskF3(Task* arg0);
 
 void Gp_EffCtlTaskAC(Task* arg0);
 
-void Gp_EffCtlTask0E(Task* arg0);
+/// Runs the Berserker shot-burst controller, gameplay effect bank 6 slot 0x0E.
+///
+/// Uses the task's owned `EffectWork` spawn argument and coordinate body. First
+/// running tick parents an identity transform at the live player's part 8 and
+/// enables the PE-status burst flag. Running ticks consume `burstRequest` by
+/// drawing the radial burst and two discs. The task persists while Berserker,
+/// the PE flag and engaged battle state all hold; otherwise it clears the screen
+/// burst guard and releases its work/task. Effect control can pause it or cancel
+/// it directly; direct cancellation does not clear that guard.
+void effectControlTask0E(Task* task);
 
 void Gp_EffCtlTaskA5(Task* arg0);
 

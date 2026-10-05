@@ -232,8 +232,8 @@ enum {
     ANIMATION_MESSAGE_IS_PLAYING          = 0x3ED,
     ANIMATION_MESSAGE_INSTALL_AND_PLAY    = 0x3F4,
     ANIMATION_MESSAGE_COPY_BANK_EXTENSION = 0x3F7,
-    /// Sets the playback rate of every animation slot from the first argument,
-    /// clamped to 1..0x7F. Returns 0.
+    /// Sets child-slot and future actor playback rates from the first argument,
+    /// in sixteenths of a normal frame per tick, clamped to 1..0x7F. Returns 0.
     ANIMATION_MESSAGE_SET_RATE         = 0x3FD,
     ANIMATION_MESSAGE_REPLACE_AND_PLAY = 0x3FF,
 };
@@ -441,6 +441,9 @@ enum {
     ACTOR_MESSAGE_IS_PRESENT = 0x7D6,
     /// Walks the receiver to a borrowed target position.
     ACTOR_MESSAGE_WALK_TO = 0x7DD,
+    /// Requests release of a player hold, after struggle completion or death.
+    /// Takes no payload; each receiver decides whether its current hold responds.
+    ACTOR_MESSAGE_RELEASE_HOLD = 0x7DE,
 };
 
 /// A borrowed command interpreted in an actor's stage/area command namespace.

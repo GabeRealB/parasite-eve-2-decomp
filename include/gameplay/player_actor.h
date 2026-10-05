@@ -179,7 +179,20 @@ s32 Gp_KillPlayerEffs(void);
 
 void Gp_TurnPlayer(Task* arg0);
 
-s32 func_801060E0(Task* arg0);
+/// Selected held fire input, with primary taking precedence when both are held.
+enum {
+    PLAYER_ACTOR_ATTACK_BUTTON_NONE      = 0,
+    PLAYER_ACTOR_ATTACK_BUTTON_PRIMARY   = 1,
+    PLAYER_ACTOR_ATTACK_BUTTON_SECONDARY = 2,
+};
+
+/// Updates and returns the actor's held fire-input selector (0 none, 1 primary, 2 secondary).
+///
+/// Uses the actor's remapped held buttons outside scripted mode. Scripted mode
+/// reads controller port 0 directly: layout 2 uses square/triangle, other layouts
+/// use R1/R2. Primary wins when both are held. The live `GameActor` work is
+/// updated on every call; this reports input, independent of collision results.
+s8 playerActorReadAttackButton(Task* task);
 
 /// Writes a point's displacement from a coordinate's local translation.
 ///
@@ -221,7 +234,12 @@ void func_80106518(s32 arg0);
 
 Task* func_80104364(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
 
-s32 func_801041B4(Task* arg0);
+/// Returns 1 for any non-floor grid contact in the actor's complete contact array.
+///
+/// Scans all 18 stored contacts, including entries after a contact end marker;
+/// it does not query or update collision. The live `GameActor` work must have
+/// its contact array initialized. Floor and non-grid contacts return 0 alone.
+s32 playerActorHasWallContact(Task* task);
 
 void Gp_PlayerMode2State4(Task* arg0);
 
@@ -250,15 +268,81 @@ void Gp_PlayerMode2State1(Task* arg0);
 
 void Gp_PlayerMode2State2(Task* arg0);
 
-void Gp_PlayerMode2State6(Task* arg0);
+/// Counts newly pressed direction/face-button ticks until a scripted hold completes.
+///
+/// `actionValue` counts ticks with any matching press, against `stateTimer`;
+/// multiple simultaneous presses count once. Completion is checked before the
+/// tick's press and broadcasts `ACTOR_MESSAGE_RELEASE_HOLD` once. While complete,
+/// recovery is reset to 18 ticks on each call. Child animation slots keep ticking.
+/// Requires live actor work and animation resources for `playerActorTickChildSlots`.
+void playerActorMode2State6(Task* task);
 
-s32 func_80104684(Task* arg0, s32 arg1, s32 arg2, s32 unusedSecondArg);
-s32 func_80104D68(Task* arg0, s32 arg1, ActorTransform* transform, s32 unusedSecondArg);
+/// Model draw modes accepted by `playerActorSetModelDraw`.
+enum {
+    PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE = 0,
+    PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO     = 1,
+    PLAYER_ACTOR_MODEL_DRAW_HIDE_RELEASE  = 2,
+    PLAYER_ACTOR_MODEL_DRAW_HIDE_KEEP     = 3,
+    PLAYER_ACTOR_MODEL_DRAW_SHOW_ALLOCATE = 4,
+};
+
+/// Sets actor-model draw/buffer flags and propagates the complete flags to attachments.
+///
+/// Modes 0/4 allocate the parent buffer, 2 releases it, and 1/3 leave it alone.
+/// Modes 0/2/3 skip active drawing; 2/3 also skip automatic buffer allocation.
+/// Other modes retain the parent's flags and still propagate them. Returns 0,
+/// discarding allocation status. Each attachment and equipped-model child repeats
+/// the selected operation on the parent model; the equipped model itself only
+/// receives flags. All present tasks/models and the circular child list must be
+/// live. Buffer heap, stream and GPU-lifetime requirements follow the TMD APIs.
+s32 playerActorSetModelDraw(Task* task, s32 unusedMessageId, s32 drawMode, s32 unusedSecondArg);
+
+/// Places an actor's model root from a borrowed position and XYZ Euler rotation.
+///
+/// Copies XYZ position in the root's parent frame, in game-coordinate units,
+/// and angles in 4096 units per turn. Builds and normalizes the local rotation,
+/// invalidates the root cache and composes it through its existing parent chain.
+/// Task, `GameActor` work and model coordinates must be live; composition follows
+/// `actorRenderComposeCoord` requirements. Reads no vector fourth components,
+/// retains no transform pointer and returns 0. Stored previous position is untouched.
+s32 playerActorPlace(Task* task, s32 unusedMessageId, const ActorTransform* transform, s32 unusedSecondArg);
 s32 func_801052B8(Task* arg0, s32 arg1, GameActorWalkSteps* walkSteps, s32 unusedSecondArg);
-s32 func_80105828(Task* arg0, s32 unusedMessageId, s32 unusedFirstArg, s32 unusedSecondArg);
-s32 func_8010583C(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
-s32 func_801058BC(Task* arg0, s32 arg1, s32 arg2, s32 unusedSecondArg);
-s32 func_80105A60(Task* arg0, s32 arg1, GfxCoord* arg2, s32 unusedSecondArg);
-s32 func_80105AB0(Task* arg0, s32 arg1, s32 arg2, s32 unusedSecondArg);
+/// Returns the live actor's signed scripted-motion latch (0 complete, 1 pending).
+///
+/// No payload is used and no state is changed; the task must have `GameActor` work.
+s32 playerActorIsScriptedMotionPending(Task* task, s32 unusedMessageId, s32 unusedFirstArg, s32 unusedSecondArg);
+
+/// Returns 1 while any child animation slot has not settled, otherwise 0.
+///
+/// Reads slots `animationSlotCount - 1` down to 1; slot 0 is excluded and a count
+/// at most 1 returns 0. The task's live actor must have an initialized active
+/// prefix within `animationSlots`. No payload is used and playback is unchanged.
+s32 playerActorIsAnimationPlaying(Task* task, s32 unusedMessageId, s32 unusedFirstArg, s32 unusedSecondArg);
+
+/// Sets child-slot playback and future actor playback to a positive clamped rate.
+///
+/// `rate` is animation time in sixteenths of a normal frame per tick (16 normal),
+/// clamped to 1..127 before byte storage. Updates slots 1 through
+/// `animationSlotCount - 1` and `animationRate`, leaving slot 0 intact. The live
+/// actor's active slot prefix must be in bounds. Returns 0; the second payload is unused.
+s32 playerActorSetAnimationRate(Task* task, s32 unusedMessageId, s32 rate, s32 unusedSecondArg);
+
+/// Reparents the actor's model root while preserving its composed transform.
+///
+/// `parent` and the task's model root must be live with acyclic parent chains.
+/// The borrowed parent must remain live while attached and must not be the root
+/// or its descendant. An unchanged parent is a no-op. Otherwise composes both
+/// nodes, rewrites the root's local matrix in the new parent frame and marks it
+/// dirty for later composition. Allocates nothing and returns 0.
+s32 playerActorAttachToCoord(Task* task, s32 unusedMessageId, GfxCoord* parent, s32 unusedSecondArg);
+
+/// Restarts one or both of the actor's texture-upload sequences.
+///
+/// Requests 0..5 cover the loaded player/companion tables: 0 selects A=1/B=2,
+/// 1..3 select A=2..4, and 4..5 select B=1..2. Selected delay/frame bytes are
+/// cleared; the other sequence is retained. The live actor's texture resources
+/// must remain loaded for subsequent updates. No validation is performed;
+/// selector stores keep their low byte, later read as signed. Returns 0.
+s32 playerActorSetTextureSequence(Task* task, s32 unusedMessageId, s32 sequence, s32 unusedSecondArg);
 
 #endif // GAMEPLAY_PLAYER_ACTOR_H

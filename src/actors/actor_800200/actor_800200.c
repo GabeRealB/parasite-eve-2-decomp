@@ -161,16 +161,16 @@ TaskMessageEntry D_actor_800200_80169EF0[20] = {
     { 1002, func_8010C4F0 },
     { 1003, func_8010C4F0 },
     { 1004, func_8010C4F0 },
-    { GAME_ACTOR_MESSAGE_PLACE, func_80104D68 },
-    { ANIMATION_MESSAGE_IS_PLAYING, func_8010583C },
+    { GAME_ACTOR_MESSAGE_PLACE, playerActorPlace },
+    { ANIMATION_MESSAGE_IS_PLAYING, playerActorIsAnimationPlaying },
     { GAME_ACTOR_MESSAGE_TURN_TO_YAW, func_8010C688 },
     { GAME_ACTOR_MESSAGE_CLIMB_STAIRS, func_8010C4F0 },
-    { GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, func_80105828 },
+    { GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, playerActorIsScriptedMotionPending },
     { GAME_ACTOR_MESSAGE_END_SCRIPTED, func_8010C30C },
     { GAME_ACTOR_MESSAGE_MOVE_TO, func_8010C6C8 },
-    { GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, func_80104684 },
+    { GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, playerActorSetModelDraw },
     { ANIMATION_MESSAGE_INSTALL_AND_PLAY, func_8010C648 },
-    { GAME_ACTOR_MESSAGE_ATTACH_TO_COORD, func_80105A60 },
+    { GAME_ACTOR_MESSAGE_ATTACH_TO_COORD, playerActorAttachToCoord },
     { GAME_ACTOR_MESSAGE_WALK_STEPS, func_801052B8 },
     { ANIMATION_MESSAGE_COPY_BANK_EXTENSION, Gp_CopyAllyAnim },
     { GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, func_8010C4F0 },
@@ -2174,7 +2174,7 @@ static void func_actor_800200_80164598(Task* arg0)
             break;
         case 2:
             if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < 0xC1 ||
-                func_801041B4(arg0) != 0) {
+                playerActorHasWallContact(arg0) != 0) {
                 Gp_ResetActorMove(arg0, 0);
             } else {
                 actor->movementSign = 1;

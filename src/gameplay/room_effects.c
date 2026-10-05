@@ -550,7 +550,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_hypervelocity_8011F270, { NULL } },                               // 0x00B
     { { { TASK_BODY_COORD, 0x70 } }, func_hypervelocity_8011D830, { NULL } },                               // 0x00C
     { { { TASK_BODY_COORD, 0x70 } }, func_hypervelocity_8011F168, { NULL } },                               // 0x00D
-    { { { TASK_BODY_COORD, 0x70 } }, Gp_EffCtlTask0E, { NULL } },                                           // 0x00E
+    { { { TASK_BODY_COORD, 0x70 } }, effectControlTask0E, { NULL } },                                       // 0x00E
     { { { TASK_BODY_COORD, 0x70 } }, Gp_FadeWaveTask, { NULL } },                                           // 0x00F
     { { { TASK_BODY_COORD, 0x70 } }, func_pyrokinesis_8012EF48, { NULL } },                                 // 0x010
     { { { TASK_BODY_COORD, 0x70 } }, func_pyrokinesis_80131CE4, { NULL } },                                 // 0x011

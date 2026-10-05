@@ -195,8 +195,8 @@ void func_m4a1_pyke_8011D7D4(Task* task)
 /// down to each round, spending one magazine round, playing `0x201C0004` and
 /// spawning the muzzle flash, and picks the lock-on target on the frame after.
 /// State 4 picks that target once and hands over to state 6. State 5 waits out
-/// `field_93E` and then asks `func_801060E0` where the dart went: a hit
-/// (`2`) with rounds still to spend rearms for another `0x14` frames, anything
+/// `field_93E` and then asks `playerActorReadAttackButton` for held fire input: secondary
+/// input (`2`) with rounds still to spend rearms for another `0x14` frames, anything
 /// else ends the burst, parks the beam task at sub-state 3 or 4 and plays the
 /// `0x201C0005` tail. State 6 counts `field_979` down and drops out of the
 /// firing pose once the aim check fails or the trigger has been released.
@@ -299,7 +299,7 @@ void func_m4a1_pyke_8011E4F8(Task* arg0)
         case 5:
             if (actor->actionValue == 0) {
                 spent = func_80106264(2);
-                if ((s8)func_801060E0(arg0) == 2 && spent != 0) {
+                if (playerActorReadAttackButton(arg0) == PLAYER_ACTOR_ATTACK_BUTTON_SECONDARY && spent != 0) {
                     actor->actionValue = 0x14;
                     Gp_ConsumeSlotQty(0x9B, 0x101);
                 } else {

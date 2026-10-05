@@ -24840,7 +24840,7 @@ still assigns `saved` to `$s1` and `actor` to `$s2`.
 
 `GameActor` helpers walk the actor's animation slots (`GameActor.animationSlots`),
 each `sizeof(AnimationSlot)` past the one before, and then store through the
-slot's own field (`playerActorIsSlotAdvancingLinearly` / `func_801058BC`).
+slot's own field (`playerActorIsSlotAdvancingLinearly` / `playerActorSetAnimationRate`).
 A 1-based walk that the target implements as
 
 ```
@@ -24858,16 +24858,16 @@ Keep the multiply in the store so GCC strength-reduces it *after* `i = 1`
 has filled the `lh count` delay:
 
 ```c
-i = 1;
-if (i < actor->animationSlotCount) {
+slotIndex = 1;
+if (slotIndex < actor->animationSlotCount) {
     do {
-        actor->animationSlots[i].rate = arg2;
-        i++;
-    } while (i < actor->animationSlotCount);
+        actor->animationSlots[slotIndex].rate = rate;
+        slotIndex++;
+    } while (slotIndex < actor->animationSlotCount);
 }
 ```
 
-`func_801058BC` is the example.
+`playerActorSetAnimationRate` is the example.
 
 ## An index-`sizeof` sum must be the address's left operand
 
@@ -25474,7 +25474,7 @@ if (mode != 2) {
 }
 ```
 
-`func_801060E0` is the example. `s32` for the later button word also
+`playerActorReadAttackButton` is the example. `s32` for the later button word also
 avoids a redundant `andi flags, 0xFFFF` before the mask `and`.
 
 ## Write the `== 0` arm so a 0-vs-K assign emits `bnez` + `move zero`
@@ -26956,7 +26956,7 @@ poll rematerializes `addiu field, 1` and gives `$s0 = index`.
 Assign the other loop-invariant `s32`s first, then `i`, all after the poll:
 
 ```c
-if (func_8010583C(arg0, 0, 0, 0) != 0) {
+if (playerActorIsAnimationPlaying(arg0, 0, 0, 0) != 0) {
     break;
 }
 anim  = 9;
@@ -33696,7 +33696,7 @@ asm("addiu %0, %1, %%lo(tmdAllocPrimitiveBuffer)" : "=r"(func) : "r"(hi));
 extra->flags = (flags | 0x80) & 0xFFFB;
 ```
 
-`func_80104684` is the example.
+`playerActorSetModelDraw` is the example.
 
 ## Copy into `$v0` before `<< 16` so the shift is `move` / `sll`, not `sll` from `$a2`
 
@@ -44759,7 +44759,7 @@ Neither `volatile` on the pointed-to type nor a
 
 The reverse holds too: the same source compiles to two different shapes
 depending on whether it is inlined. `func_80103E7C` is an out-of-line copy of
-the `_gpShortestTurn` helper, and its target holds the head address in a
+the `_playerActorShortestTurn` helper, and its target holds the head address in a
 register (`lui/ori v1` shared by the push's load and store, then a fresh
 `lui/ori` for the pop). Inlining the helper there gives the per-access form
 instead (79%), and so does changing the helper. The standalone body matches
@@ -84932,7 +84932,7 @@ the load (see the `do { } while (0)` entry above).
 
 Worth trying before anything else on this codebase's many pose setters: the
 original sources put `coord->composeStamp = 0` last anyway, which the matched siblings
-`func_80104D68` (gameplay) and `func_actor_361100_80162F58` both show.
+`playerActorPlace` (gameplay) and `func_actor_361100_80162F58` both show.
 
 Inputs: `base_3.i` (clear before the last store, 92.000%)
 `9e6011d969a8e6d447b9d70019987803a34c2625a18aaa84eb3f9dccee7b17d8`,
@@ -116370,10 +116370,10 @@ the pin does double duty: it also marks `$v0` live over the value's range, so
 tracer shows the post-pin block down to two quantities (`q0 [91] -> $v1`,
 `q1 [107] -> $v0`), which also sidesteps the broken sort.
 
-### Leaving three quantities without a pin: route a chained load's intermediate through the user variable (func_80104684, 2026-09-26)
+### Leaving three quantities without a pin: route a chained load's intermediate through the user variable (playerActorSetModelDraw, 2026-09-26)
 
 A pin is not the only way out of the broken sort; taking one quantity out of the
-block works as well. `func_80104684` stores through `p->extra.tmd`, then reloads
+block works as well. `playerActorSetModelDraw` stores through `p->extra.tmd`, then reloads
 `p` and loads `p->firstChild` into a variable tested at the end of the block.
 With `first = actor->equipmentTasks[1]->firstChild;` the block has three quantities
 (the tmd pointer, the flags value and the reloaded `equipmentTasks[1]` temp), so they
