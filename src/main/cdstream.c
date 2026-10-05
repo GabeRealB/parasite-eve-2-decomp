@@ -1378,18 +1378,16 @@ static void CdStream_CleanupIrq(void)
 
 static void CdStream_TickPlayback(void)
 {
-    _CdReadyEntry entry;
-    union {
-        volatile CdStreamState* state;
-        s32                     position;
-    } stateOrPosition;
-    s16            slot;
-    u8             saved;
-    _CdReadyEntry* queued;
-    SpuVoiceAttr*  channels;
-    s32            nextChunk;
+    _CdReadyEntry           entry;
+    volatile CdStreamState* state;
+    s32                     position;
+    s16                     slot;
+    u8                      saved;
+    _CdReadyEntry*          queued;
+    SpuVoiceAttr*           channels;
+    s32                     nextChunk;
 
-    stateOrPosition.position = CdStream_Runtime.state.playhead;
+    position = CdStream_Runtime.state.playhead;
     if (!(((u8)CdStream_Runtime.state.flags0 >> CD_STREAM_VOICES_ON_BIT) & 1) && (((u8)CdStream_Runtime.state.flags0 >> CD_STREAM_KEY_ON_BIT) & 1)) {
         CdAudio_AllocVoices((s8*)&CdStream_Runtime.state.voiceL, (s8*)&CdStream_Runtime.state.voiceR);
         channels          = PARENT_OF(&CdStream_Runtime.state, CdStreamRuntime, state)->channels.voiceAttr;
@@ -1414,13 +1412,13 @@ static void CdStream_TickPlayback(void)
         CdStream_Runtime.state.flags0 |= CD_STREAM_VOICES_ON;
         CdStream_Runtime.state.flags0 &= CD_STREAM_CLEAR_KEY_ON;
     }
-    stateOrPosition.state = &CdStream_Runtime.state;
-    if ((stateOrPosition.state->queuedChunk + 1) < stateOrPosition.state->chunkCount) {
-        if (((u8)stateOrPosition.state->flags0 >> CD_STREAM_SPU_IRQ_BIT) & 1) {
-            stateOrPosition.state->playhead = stateOrPosition.state->chunkIndex * (s16)(u16)stateOrPosition.state->chunkVsyncs;
-            stateOrPosition.position        = stateOrPosition.state->playhead;
+    state = &CdStream_Runtime.state;
+    if ((state->queuedChunk + 1) < state->chunkCount) {
+        if (((u8)state->flags0 >> CD_STREAM_SPU_IRQ_BIT) & 1) {
+            state->playhead = state->chunkIndex * (s16)(u16)state->chunkVsyncs;
+            position        = state->playhead;
         } else {
-            stateOrPosition.position = stateOrPosition.state->playhead;
+            position = state->playhead;
         }
         if (!(((u8)CdStream_Runtime.state.flags0 >> CD_STREAM_CHUNK_READY_BIT) & 1)) {
             D_80068B5E = (u8)(D_80068B5E + 1);
@@ -1450,7 +1448,7 @@ static void CdStream_TickPlayback(void)
             CdStream_Runtime.state.flags0 &= CD_STREAM_CLEAR_SPU_IRQ;
             return;
         }
-        nextChunk                             = stateOrPosition.position / CdStream_Runtime.state.chunkVsyncs;
+        nextChunk                             = position / CdStream_Runtime.state.chunkVsyncs;
         CdStream_Runtime.state.expectedChunk += 1;
         nextChunk                            += 1;
         if (nextChunk != CdStream_Runtime.state.expectedChunk) {
