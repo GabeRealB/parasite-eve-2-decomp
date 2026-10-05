@@ -1263,12 +1263,21 @@ void func_shelter_b6_nursery_80181314(Task* task)
     }
 }
 
-/// Moves an active particle before applying its next frame's vertical acceleration.
-static inline void _shelterB6NurseryAdvanceParticle(Task* task, EffectWork* work, GfxCoord* coord, s32 negativeYAcceleration)
+/// Advances a moving particle in its parent's coordinate frame and updates its Y velocity.
+///
+/// A zero `work->step` disables both motion and acceleration. `work->move`
+/// holds signed coordinate units per frame; movement precedes the velocity
+/// update and invalidates the composed matrix. Motion mode 7 adds signed
+/// `work->age / 10` to Y velocity; other modes subtract
+/// `negativeYAcceleration` (2 for the ten-frame strip, 1 for the eight-frame
+/// strip), in coordinate units per frame squared. Velocity updates narrow to
+/// s16. All pointers borrow live objects for this call; the task is read-only.
+static inline void _shelterB6NurseryAdvanceParticle(const Task* task, EffectWork* work, GfxCoord* coord, s32 negativeYAcceleration)
 {
-    enum { PARTICLE_MOTION_PARENT_JET = 7,
-           PARTICLE_MOTION_SHIFT      = 24,
-           PARTICLE_MOTION_MASK       = 0xF };
+    enum { PARTICLE_MOTION_PARENT_JET      = 7,
+           PARTICLE_MOTION_SHIFT           = 24,
+           PARTICLE_MOTION_MASK            = 0xF,
+           PARTICLE_PARENT_JET_AGE_DIVISOR = 10 };
 
     if (work->step != 0) {
         coord->coord.t[0]  += work->move.vx;
@@ -1276,7 +1285,7 @@ static inline void _shelterB6NurseryAdvanceParticle(Task* task, EffectWork* work
         coord->coord.t[2]  += work->move.vz;
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
         if (((task->spawnArg1.value >> PARTICLE_MOTION_SHIFT) & PARTICLE_MOTION_MASK) == PARTICLE_MOTION_PARENT_JET) {
-            work->move.vy += work->age / 10;
+            work->move.vy += work->age / PARTICLE_PARENT_JET_AGE_DIVISOR;
         } else {
             work->move.vy -= negativeYAcceleration;
         }
@@ -1425,14 +1434,30 @@ void shelterB6NurseryAnimatedParticleTask(Task* task)
     }
 }
 
-/// Computes one rotated corner offset in pixels using the ten-frame strip's perspective scale.
-static inline void _shelterB6NurserySetParticleCornerOffset(EffectShapeScratch* projection, s16 halfDiagonal, s32 cornerAngle)
+/// Writes one rotated pixel offset from the ten-frame particle's projected centre.
+///
+/// `projection` borrows a live scratch block with `depth` initialized to SZ3 / 4;
+/// its caller admits depths of at least 65. Only `extent.corner` is replaced.
+/// The signed `sizeFactor * 47 / depth` is the screen-space half-diagonal in
+/// pixels, truncated toward zero before rotation; 47 is the cell's UV span.
+/// `cornerAngle` uses 4096 units per turn, with zero pointing up and a quarter
+/// turn pointing right. Signed Q12 products shift to pixels, rounding negative
+/// values down. The caller applies the Y offset with the opposite sign for
+/// screen coordinates. No scratch pointer is retained.
+static inline void _shelterB6NurserySetParticleCornerOffset(EffectShapeScratch* projection, s16 sizeFactor, s32 cornerAngle)
 {
     enum { PARTICLE_PROJECTION_SCALE   = 47,
            PARTICLE_TRIG_FRACTION_BITS = 12 };
 
-    projection->extent.corner.x = (((halfDiagonal * PARTICLE_PROJECTION_SCALE) / projection->depth) * rsin(cornerAngle)) >> PARTICLE_TRIG_FRACTION_BITS;
-    projection->extent.corner.y = (((halfDiagonal * PARTICLE_PROJECTION_SCALE) / projection->depth) * rcos(cornerAngle)) >> PARTICLE_TRIG_FRACTION_BITS;
+    s32 halfDiagonalPixels;
+    s32 trigSample;
+
+    trigSample                  = rsin(cornerAngle);
+    halfDiagonalPixels          = (sizeFactor * PARTICLE_PROJECTION_SCALE) / projection->depth;
+    projection->extent.corner.x = (halfDiagonalPixels * trigSample) >> PARTICLE_TRIG_FRACTION_BITS;
+    trigSample                  = rcos(cornerAngle);
+    halfDiagonalPixels          = (sizeFactor * PARTICLE_PROJECTION_SCALE) / projection->depth;
+    projection->extent.corner.y = (halfDiagonalPixels * trigSample) >> PARTICLE_TRIG_FRACTION_BITS;
 }
 
 /// Draws one raw additive frame of the nursery's ten-cell particle animation.
@@ -1598,20 +1623,33 @@ void shelterB6NurserySparkShowerShardTask(Task* task)
 
 #undef SHELTER_B6_NURSERY_ADVANCE_SHARD
 
-/// Scales one local corner and narrows its transformed position to the GTE's s16 input.
-static inline void _shelterB6NurseryTransformShardCorner(SVECTOR* corner, const GfxCoord* coord, s16 radius)
+/// Scales a shard's Q12 local corner and transforms it in place for projection.
+///
+/// `corner` is a word-aligned SVECTOR; its XYZ components start as a Q12 unit
+/// direction and finish as signed coordinate units in `composedCoord->workm`'s
+/// destination frame (view space for the shard task). `radius` is a signed
+/// local-coordinate distance (0..4095 in that task). The coordinate is borrowed
+/// read-only; its cached Q12 rotation and integer translation are used as
+/// supplied, without recomposition. The corner must not overlap it.
+/// GTE scaling and rotation each saturate through signed IR
+/// results before the translation is added modulo 65536; the vector's fourth
+/// halfword is untouched. GTE rotation and result registers change, while its
+/// translation registers are preserved. Neither pointer is retained.
+static inline void _shelterB6NurseryTransformShardCorner(SVECTOR* corner, const GfxCoord* composedCoord, s16 radius)
 {
+    // Keep scaling and rotation as separate GTE operations with s16 results.
     gte_lddp(radius);
     gte_ldsv(corner);
     gte_gpf12();
     gte_stsv(corner);
-    gte_SetRotMatrix(&coord->workm);
+    gte_SetRotMatrix(&composedCoord->workm);
     gte_ldv0(corner);
     gte_rtv0();
     gte_stsv(corner);
-    corner->vx = (u16)corner->vx + (u16)coord->workm.t[0];
-    corner->vy = (u16)corner->vy + (u16)coord->workm.t[1];
-    corner->vz = (u16)corner->vz + (u16)coord->workm.t[2];
+    // The final translation preserves only the low 16 bits for the next RTPT.
+    corner->vx = (u16)corner->vx + (u16)composedCoord->workm.t[0];
+    corner->vy = (u16)corner->vy + (u16)composedCoord->workm.t[1];
+    corner->vz = (u16)corner->vz + (u16)composedCoord->workm.t[2];
 }
 
 /// Draws a rotating spark-shower shard as a grey triangle in the coordinate's YZ plane.
