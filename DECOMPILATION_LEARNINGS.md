@@ -148787,3 +148787,63 @@ the source's second set was is not known. Not it: a `switch` (five cases over
   while the `kind == 1` class survives, so the break is between the two
   compares. A label there that only jump2 removes would do it; no source form
   with a second jump to that point was found.
+
+## Goto leftovers and the structured form each stands for (sample of 15 functions, 2026-10-05)
+
+A sample of 15 functions with 59 `goto`s was rewritten without them; 55 went,
+none needed a hack. The forms, by what the `goto` was standing for:
+
+- **Angle-wrap loop `L: if (c) { x += K; goto L; }`.** `while (c) x += K;` and
+  `for (;;) { if (!c) break; x += K; }` both fail the same way: jump.c
+  duplicates the exit test in front of the loop and loop.c then rewrites the
+  body (`addiu v0,v1,4096; move v1,v0`, 4 insns longer). The form that keeps
+  the test once, at the top, with a `j` back is
+
+  ```c
+  while (1) {
+      if (angle < -0x800) {
+          angle += 0x1000;
+          continue;
+      }
+      break;
+  }
+  ```
+
+  The exit is then not the loop's first jump, so the test is not duplicated.
+  18 of 18 such loops converted this way (`func_actor_421600_8013903C`,
+  `_8013BA70`, `func_actor_444000_8013E058`, `func_actor_403000_8013C2D4`), and
+  the same shape with a larger body in `Actor00400_Fn031A4`
+  (`if (kind != -1) { ...; index++; continue; } break;`).
+- **`goto advance` into another case's `task->state++; break;`.** Write the
+  increment in each case; jump2's cross-jumping merges them
+  (`factoryPowerScene`, `storeToggleTask`, `func_shelter_r47_80180650`, first
+  try each). The known limit applies: cross-jumping runs after allocation, so
+  a duplicated tail that mentions a pseudo in a close priority race swaps
+  registers. `func_actor_107600_80132514` took two of its three `goto stop`
+  as duplicates and swapped `$t0/$t1` on the third; `Fs_BootImageMachine`
+  swapped `$s1/$s3` when the shared draw tail was duplicated or made an inline.
+- **A hand-written dispatch tree (`if (s == 1) goto case1; if (s >= 2) goto
+  ge2; ...`) is a `switch`.** When one case jumps into the code after the
+  switch, write that tail in the case with a `return` and again after the
+  switch (`func_actor_205200_8014C59C`). The order of the blocks in the image
+  is the order of the cases in the source.
+- **`temp = K; goto join; ... join: status = temp; switch (status)`, twice in
+  one function, was a `static inline` returning `s16`** (`CdCmd_PausePoll`, 21
+  gotos). The narrow return type is what matters: the inlined body sets the
+  promoted return pseudo and the caller's `switch` index is a second pseudo, so
+  every `return K` is `li v0,K` followed by `move v1,v0`. With an `s32` return
+  the two are one pseudo (`li v1,K`, no move). The constant local `one = 1`
+  with `if (status == one) ... if (status < 2) ...` was a four-node switch:
+  `case 0: return 0;` next to cases 1..3 makes case 1 the root, tested first,
+  with `slti 2` for the left subtree, and cse keeps the 1 in a register for the
+  later stores. The other four functions of `src/main/cdsync.c` carry the same
+  hand-expanded poll.
+- **`if (x < 5) { if (x < 3) { if (x != 1) goto body; } } else { body: ... }`**
+  is `if (x >= 5 || (x < 3 && x != 1))` (`Display_TaskLoadStep`); a `switch`
+  with cases 1, 3, 4 tests 1 first and does not match.
+- **A jump over an `else` arm into the code after it** (`block_10` of
+  `func_actor_421600_8013BA70`) was an inline with early `return`s: clamp X and
+  return, else clamp Z.
+- **A jump into the middle of a nested `if`** from a two-way state test
+  (`func_actor_800100_80164710`) was `switch (phase) { case 0: ...; phase++;
+  /* fallthrough */ case 1: ... }` with `break` for the early exits.
