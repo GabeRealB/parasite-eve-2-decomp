@@ -2035,7 +2035,7 @@ void func_shelter_b2_main_corridor_8017EF24(Task* task)
 
 void func_shelter_b2_main_corridor_8018094C(Task* arg0)
 {
-    RoomFx_FlashTask(arg0);
+    _roomVisualEffectsFlashTask(arg0);
 }
 
 #include "../../shared/room_visual_effects_trails.inc.c"

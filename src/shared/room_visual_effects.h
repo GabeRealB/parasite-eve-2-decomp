@@ -39,23 +39,63 @@
 
 #include "rooms/room.h"
 
+/// Projection numerators: multiply a world-unit radius, then divide by SZ3 / 4.
+///
+/// Radial drawers add one to the depth before dividing. The star shoulders use
+/// one eighth of its disc numerator; the layered glow follows its 55-texel cell.
+enum {
+    ROOM_VISUAL_EFFECTS_RADIAL_PROJECTION_SCALE        = 64,
+    ROOM_VISUAL_EFFECTS_GLOW_PROJECTION_SCALE          = 55,
+    ROOM_VISUAL_EFFECTS_STAR_SHOULDER_PROJECTION_SCALE = 8,
+    ROOM_VISUAL_EFFECTS_TRIG_FRACTION_BITS             = 12,
+    ROOM_VISUAL_EFFECTS_FULL_TURN                      = 0x1000 // Angle units per turn; rsin/rcos return Q12 values
+};
+
+/// Two eight-slot histories form seven quads, fading by nine levels per older edge.
+enum {
+    ROOM_VISUAL_EFFECTS_TRAIL_SLOT_COUNT    = 8,
+    ROOM_VISUAL_EFFECTS_TRAIL_INITIAL_LEVEL = 64,
+    ROOM_VISUAL_EFFECTS_TRAIL_LEVEL_STEP    = 9
+};
+
+/// GPU command bytes for shaded/raw semi-transparent textured quads and Gouraud quads.
+enum {
+    ROOM_VISUAL_EFFECTS_TEXTURED_QUAD_BLEND     = 0x2E,
+    ROOM_VISUAL_EFFECTS_TEXTURED_QUAD_RAW_BLEND = 0x2F,
+    ROOM_VISUAL_EFFECTS_GOURAUD_QUAD            = 0x38,
+    ROOM_VISUAL_EFFECTS_RAW_TEXTURE_FLAG        = 1
+};
+
+/// The layered burst refreshes transient light slot 2 for two frames on every draw.
+///
+/// Inner and outer falloff radii are world-unit distances; channel intensity is
+/// Q12. Random bits choose an intensity from 0x800 to 0xF00 in 0x100 steps.
+enum {
+    ROOM_VISUAL_EFFECTS_BURST_LIGHT_SLOT                  = 2,
+    ROOM_VISUAL_EFFECTS_BURST_LIGHT_LIFETIME_FRAMES       = 2,
+    ROOM_VISUAL_EFFECTS_BURST_LIGHT_INNER_RADIUS          = 0x300,
+    ROOM_VISUAL_EFFECTS_BURST_LIGHT_OUTER_RADIUS          = 0x3000,
+    ROOM_VISUAL_EFFECTS_BURST_LIGHT_BASE_INTENSITY        = 0x800,
+    ROOM_VISUAL_EFFECTS_BURST_LIGHT_RANDOM_INTENSITY_MASK = 0x700
+};
+
 /* Interface for the including source. */
 
 static void RoomFx_DrawMote(GfxCoord* arg0, u16 arg1, u16 arg2, u16 arg3);
-static void RoomFx_DrawHaloRing(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
-static void RoomFx_DrawHaloDisc(GfxCoord* arg0, s16 arg1, u8* rgb);
-static void RoomFx_DrawBurstGlow(GfxCoord* coord, s16 size);
-static void RoomFx_DrawGroundQuad(GfxCoord* arg0, s32 arg1);
+static void _roomVisualEffectsDrawHaloRing(const GfxCoord* coord, s32 blackRadius, s32 tintRadiusDelta, const u8 rgb[3]);
+static void _roomVisualEffectsDrawHaloDisc(const GfxCoord* coord, s16 radius, const u8 rgb[3]);
+static void _roomVisualEffectsDrawHaloBurstGlow(const GfxCoord* coord, s16 halfExtent);
+static void _roomVisualEffectsDrawHaloBurstGroundQuad(const GfxCoord* coord, s32 halfExtent);
 static void RoomFx_DrawFlashStar(GfxCoord* arg0, s16 arg1, u8* arg2);
-static void RoomFx_DrawFlashRing(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
-static void RoomFx_DrawFlashDisc(GfxCoord* arg0, s16 arg1, u8* rgb);
-static void RoomFx_DrawTwinTrail(GfxCoord* arg0, GfxCoord* arg1, s16 arg2, s16 arg3);
-static void RoomFx_DrawBurstStar(GfxCoord* arg0, s16 arg1, u8* arg2);
-static void RoomFx_DrawFlyingSpark(GfxCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
-static void RoomFx_DrawFlyingRing(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
-static void RoomFx_DrawFlyingDisc(GfxCoord* arg0, s32 arg1, u8* rgb);
-static void RoomFx_DrawBurst2Glow(GfxCoord* coord, s16 size);
-static void RoomFx_DrawGround2Quad(GfxCoord* arg0, s32 arg1);
+static void _roomVisualEffectsDrawFlashRing(const GfxCoord* coord, s32 blackRadius, s32 tintRadiusDelta, const u8 rgb[3]);
+static void _roomVisualEffectsDrawFlashDisc(const GfxCoord* coord, s16 radius, const u8 rgb[3]);
+static void _roomVisualEffectsDrawTwinTrail(const GfxCoord firstTrail[ROOM_VISUAL_EFFECTS_TRAIL_SLOT_COUNT], const GfxCoord secondTrail[ROOM_VISUAL_EFFECTS_TRAIL_SLOT_COUNT], s16 newestSlot, s16 packedColorMultipliers);
+static void _roomVisualEffectsDrawBurstStar(const GfxCoord* coord, s16 radius, const u8 rgb[3]);
+static void _roomVisualEffectsDrawFlyingSpark(const GfxCoord* coord, s32 animationFrame, s32 halfExtent, s32 brightness);
+static void _roomVisualEffectsDrawFlyingRing(const GfxCoord* coord, s32 blackRadius, s32 tintRadiusDelta, const u8 rgb[3]);
+static void _roomVisualEffectsDrawFlyingDisc(const GfxCoord* coord, s32 radius, const u8 rgb[3]);
+static void _roomVisualEffectsDrawFlyingBurstGlow(const GfxCoord* coord, s16 halfExtent);
+static void _roomVisualEffectsDrawFlyingBurstGroundQuad(const GfxCoord* coord, s32 halfExtent);
 
 static inline void RoomFx_MoteTask(Task* task);
 
@@ -65,15 +105,15 @@ static inline void RoomFx_OrangeBurstTask(Task* arg0);
 
 static inline void RoomFx_SparkEmitterTask(Task* arg0);
 
-static inline void RoomFx_FlashTask(Task* arg0);
+static inline void _roomVisualEffectsFlashTask(Task* task);
 
 static inline void RoomFx_SparkBurstTask(Task* task);
 
 static inline void RoomFx_GlowDiscTask(Task* arg0);
 
-static inline void RoomFx_FlyingSparkTask(Task* task);
+static inline void _roomVisualEffectsFlyingSparkTask(Task* task);
 
-static inline void RoomFx_OrangeBurst2Task(Task* arg0);
+static inline void _roomVisualEffectsFlyingOrangeBurstTask(Task* task);
 
 /// A tint given as a right shift per colour channel of an effect's brightness
 /// level: channel = level >> shift, so 0 keeps the channel at full level and

@@ -63,7 +63,7 @@ static inline void RoomFx_GlowDiscTask(Task* arg0)
             col[0] = mem->scale >> RoomFx_DiscShades[arg0->spawnArg1.value].rShift;
             col[1] = mem->scale >> RoomFx_DiscShades[arg0->spawnArg1.value].gShift;
             col[2] = mem->scale >> RoomFx_DiscShades[arg0->spawnArg1.value].bShift;
-            RoomFx_DrawFlyingDisc(coord, mem->angle, col);
+            _roomVisualEffectsDrawFlyingDisc(coord, mem->angle, col);
             break;
         case 2:
             actorRenderComposeCoord(coord);
@@ -76,12 +76,12 @@ static inline void RoomFx_GlowDiscTask(Task* arg0)
             col[0] = mem->scale >> RoomFx_DiscShades[arg0->spawnArg1.value].rShift;
             col[1] = mem->scale >> RoomFx_DiscShades[arg0->spawnArg1.value].gShift;
             col[2] = mem->scale >> RoomFx_DiscShades[arg0->spawnArg1.value].bShift;
-            RoomFx_DrawFlyingDisc(coord, mem->angle, col);
+            _roomVisualEffectsDrawFlyingDisc(coord, mem->angle, col);
             col[0] >>= 1;
             col[1] >>= 1;
             col[2] >>= 1;
             if (mem->age & 1) {
-                RoomFx_DrawFlyingDisc(coord, (s16)(mem->angle + 0x100), col);
+                _roomVisualEffectsDrawFlyingDisc(coord, (s16)(mem->angle + 0x100), col);
             }
             break;
         case 3:
@@ -89,7 +89,7 @@ static inline void RoomFx_GlowDiscTask(Task* arg0)
             col[0] = mem->scale >> RoomFx_DiscShades[arg0->spawnArg1.value].rShift;
             col[1] = mem->scale >> RoomFx_DiscShades[arg0->spawnArg1.value].gShift;
             col[2] = mem->scale >> RoomFx_DiscShades[arg0->spawnArg1.value].bShift;
-            RoomFx_DrawFlyingDisc(coord, mem->angle, col);
+            _roomVisualEffectsDrawFlyingDisc(coord, mem->angle, col);
             col[0] = mem->scale;
             col[1] = mem->scale >> 1;
             col[2] = mem->scale >> 2;
@@ -106,7 +106,7 @@ static inline void RoomFx_GlowDiscTask(Task* arg0)
             coord->workm.t[0] += mem->move.vx;
             coord->workm.t[1] += mem->move.vy;
             coord->workm.t[2] += mem->move.vz;
-            RoomFx_DrawFlyingRing(coord, (s16)(mem->period + 0x80), 0x100, col);
+            _roomVisualEffectsDrawFlyingRing(coord, (s16)(mem->period + 0x80), 0x100, col);
             mem->angle -= 0x10;
             if (mem->scale > 0x10) {
                 mem->scale -= 0x10;
@@ -120,54 +120,62 @@ static inline void RoomFx_GlowDiscTask(Task* arg0)
     }
 }
 
-/// A spark that flies to another frame. The first tick takes the offset from
-/// its own frame to the target frame the spawn argument names, in its own
-/// axes, and keeps 0xCC/0x1000 of it as its step. Each later tick moves it by
-/// that step and, every other tick, draws it as a textured square at the next
-/// animation frame; it releases its work block after 20 ticks. It pauses while
-/// the room's event state is set and releases the block when that state
-/// reaches 4.
-static inline void RoomFx_FlyingSparkTask(Task* task)
+/// Runs an animated spark along a fixed step derived from an initial target offset.
+///
+/// `spawnArg1.pointer` is a live target `GfxCoord` with a composed world matrix
+/// for the first active tick. The task's own world matrix must also be composed.
+/// That tick converts the initial displacement into parent axes, narrows it to
+/// 16-bit components, and stores 204/4096 of it as the per-tick step in `pos`.
+/// The target is not sampled again. Subsequent active ticks move by that step
+/// and draw on odd ages. At age 20 the task releases its owned `EffectWork` in
+/// `spawnArg2`. Room effect control pauses at nonzero and cancels at four or above.
+static inline void _roomVisualEffectsFlyingSparkTask(Task* task)
 {
-    EffectWork* work;
-    GfxCoord*   coord;
-    GfxCoord*   target;
-    VECTOR      delta;
+    enum { SPARK_INITIALIZE,
+           SPARK_FLY,
+           SPARK_STEP_Q12       = 0xCC,
+           SPARK_LIFETIME_TICKS = 20 };
 
-    work   = task->spawnArg2.pointer;
-    coord  = task->extra.coordBody->coord;
-    target = task->spawnArg1.pointer;
+    EffectWork*     work;
+    GfxCoord*       coord;
+    const GfxCoord* targetCoord;
+    VECTOR          targetOffset;
+
+    work        = task->spawnArg2.pointer;
+    coord       = task->extra.coordBody->coord;
+    targetCoord = task->spawnArg1.pointer;
     if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
         work->age++;
         switch (task->state) {
-            case 0:
-                delta.vx = target->workm.t[0] - coord->workm.t[0];
-                delta.vy = target->workm.t[1] - coord->workm.t[1];
-                delta.vz = target->workm.t[2] - coord->workm.t[2];
-                ApplyTransposeMatrixLV(&coord->workm, &delta, &delta);
-                work->pos.vx = delta.vx;
-                work->pos.vy = delta.vy;
-                work->pos.vz = delta.vz;
+            case SPARK_INITIALIZE:
+                // Fix the flight step in parent axes from the initial world-space separation.
+                targetOffset.vx = targetCoord->workm.t[0] - coord->workm.t[0];
+                targetOffset.vy = targetCoord->workm.t[1] - coord->workm.t[1];
+                targetOffset.vz = targetCoord->workm.t[2] - coord->workm.t[2];
+                ApplyTransposeMatrixLV(&coord->workm, &targetOffset, &targetOffset);
+                work->pos.vx = targetOffset.vx;
+                work->pos.vy = targetOffset.vy;
+                work->pos.vz = targetOffset.vz;
                 gte_SetRotMatrix(&coord->coord);
                 gte_ldv0(&work->pos);
                 gte_rtv0();
                 gte_stsv(&work->pos);
-                gte_lddp(0xCC);
+                gte_lddp(SPARK_STEP_Q12);
                 gte_ldsv(&work->pos);
                 gte_gpf12();
                 gte_stsv(&work->pos);
-                task->state = 1;
+                task->state = SPARK_FLY;
                 break;
-            case 1:
+            case SPARK_FLY:
                 coord->coord.t[0]  += work->pos.vx;
                 coord->coord.t[1]  += work->pos.vy;
                 coord->coord.t[2]  += work->pos.vz;
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 actorRenderComposeCoord(coord);
                 if (work->age & 1) {
-                    RoomFx_DrawFlyingSpark(coord, ++work->index, 0x200, 0x80);
+                    _roomVisualEffectsDrawFlyingSpark(coord, ++work->index, 0x200, 0x80);
                 }
-                if (work->age >= 20) {
+                if (work->age >= SPARK_LIFETIME_TICKS) {
                     effectKillTask(work, task);
                 }
                 break;

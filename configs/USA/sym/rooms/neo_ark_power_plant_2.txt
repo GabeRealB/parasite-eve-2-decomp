@@ -93,8 +93,8 @@ func_neo_ark_power_plant_2_8017E858 = 0x8017E858; // type:func
 func_neo_ark_power_plant_2_8017F140 = 0x8017F140; // type:func
 
 func_neo_ark_power_plant_2_8017D8AC = 0x8017D8AC; // type:func
-RoomFx_DrawFlashRing = 0x8017E098; // type:func
-RoomFx_DrawFlashDisc = 0x8017E4C4; // type:func
-RoomFx_DrawTwinTrail = 0x8017ED48; // type:func
-RoomFx_DrawBurstStar = 0x8017F3C8; // type:func
+_roomVisualEffectsDrawFlashRing = 0x8017E098; // type:func
+_roomVisualEffectsDrawFlashDisc = 0x8017E4C4; // type:func
+_roomVisualEffectsDrawTwinTrail = 0x8017ED48; // type:func
+_roomVisualEffectsDrawBurstStar = 0x8017F3C8; // type:func
 glowDrawDisc = 0x8017DA54; // type:func

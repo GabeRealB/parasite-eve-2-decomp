@@ -62,11 +62,11 @@ func_shelter_b1_control_room_8017FF80 = 0x8017FF80; // type:func
 func_shelter_b1_control_room_801804D8 = 0x801804D8; // type:func
 
 func_shelter_b1_control_room_80181138 = 0x80181138; // type:func
-RoomFx_DrawFlyingSpark = 0x801806FC; // type:func
-RoomFx_DrawFlyingRing = 0x80180980; // type:func
-RoomFx_DrawFlyingDisc = 0x80180DA4; // type:func
-RoomFx_DrawBurst2Glow = 0x801812E4; // type:func
-RoomFx_DrawGround2Quad = 0x80181810; // type:func
+_roomVisualEffectsDrawFlyingSpark = 0x801806FC; // type:func
+_roomVisualEffectsDrawFlyingRing = 0x80180980; // type:func
+_roomVisualEffectsDrawFlyingDisc = 0x80180DA4; // type:func
+_roomVisualEffectsDrawFlyingBurstGlow = 0x801812E4; // type:func
+_roomVisualEffectsDrawFlyingBurstGroundQuad = 0x80181810; // type:func
 glowDrawCapsule = 0x8017F39C; // type:func
 glowDrawDisc = 0x8017FBE0; // type:func
 streamedScenePlayThenHold = 0x8017EF24; // type:func

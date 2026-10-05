@@ -1350,7 +1350,7 @@ s32 func_acropolis_cafeteria_8017F908(Task* task, s32 msgId, s32 arg2, s32 arg3)
 
 void func_acropolis_cafeteria_8017F948(Task* arg0)
 {
-    RoomFx_FlashTask(arg0);
+    _roomVisualEffectsFlashTask(arg0);
 }
 
 #include "../../shared/room_visual_effects_trails.inc.c"

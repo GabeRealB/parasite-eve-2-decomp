@@ -82,10 +82,10 @@ func_shelter_b4_lower_sewer_8017EEE4 = 0x8017EEE4; // type:func
 func_shelter_b4_lower_sewer_8017F36C = 0x8017F36C; // type:func
 
 func_shelter_b4_lower_sewer_8017E400 = 0x8017E400; // type:func
-RoomFx_DrawFlashRing = 0x80180154; // type:func
-RoomFx_DrawFlashDisc = 0x80180580; // type:func
-RoomFx_DrawTwinTrail = 0x80180E04; // type:func
-RoomFx_DrawBurstStar = 0x80181484; // type:func
+_roomVisualEffectsDrawFlashRing = 0x80180154; // type:func
+_roomVisualEffectsDrawFlashDisc = 0x80180580; // type:func
+_roomVisualEffectsDrawTwinTrail = 0x80180E04; // type:func
+_roomVisualEffectsDrawBurstStar = 0x80181484; // type:func
 glowDrawCapsule = 0x8017E6A0; // type:func
 waterDrawSplash = 0x8017F038; // type:func
 waterDrawSpinU16 = 0x8017F828; // type:func

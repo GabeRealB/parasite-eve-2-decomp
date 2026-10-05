@@ -242,14 +242,14 @@ void func_shelter_b1_control_room_access_tunnel_8018026C(Task* arg0)
 
 void func_shelter_b1_control_room_access_tunnel_801807C4(Task* task)
 {
-    RoomFx_FlyingSparkTask(task);
+    _roomVisualEffectsFlyingSparkTask(task);
 }
 
 #include "../../shared/room_visual_effects_burst.inc.c"
 
 void func_shelter_b1_control_room_access_tunnel_80181424(Task* arg0)
 {
-    RoomFx_OrangeBurst2Task(arg0);
+    _roomVisualEffectsFlyingOrangeBurstTask(arg0);
 }
 
 #include "../../shared/room_visual_effects_burst_draw.inc.c"

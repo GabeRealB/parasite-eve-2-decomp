@@ -218,10 +218,10 @@ func_mine_mesa_8018057C = 0x8018057C; // type:func
 func_mine_mesa_8017ED08 = 0x8017ED08; // type:func
 
 func_mine_mesa_8017E15C = 0x8017E15C; // type:func
-RoomFx_DrawFlashRing = 0x8017F4D4; // type:func
-RoomFx_DrawFlashDisc = 0x8017F900; // type:func
-RoomFx_DrawTwinTrail = 0x80180184; // type:func
-RoomFx_DrawBurstStar = 0x80180804; // type:func
+_roomVisualEffectsDrawFlashRing = 0x8017F4D4; // type:func
+_roomVisualEffectsDrawFlashDisc = 0x8017F900; // type:func
+_roomVisualEffectsDrawTwinTrail = 0x80180184; // type:func
+_roomVisualEffectsDrawBurstStar = 0x80180804; // type:func
 roomEventStagedTask = 0x8017D670; // type:func
 glowDrawFlare = 0x8017EFA8; // type:func
 streamedScenePlay = 0x8017DE38; // type:func

@@ -620,7 +620,7 @@ void func_shelter_b4_lower_sewer_8017F36C(Task* task)
 
 void func_shelter_b4_lower_sewer_8017FEB0(Task* arg0)
 {
-    RoomFx_FlashTask(arg0);
+    _roomVisualEffectsFlashTask(arg0);
 }
 
 #include "../../shared/room_visual_effects_trails.inc.c"

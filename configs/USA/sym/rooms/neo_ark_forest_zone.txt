@@ -110,10 +110,10 @@ func_neo_ark_forest_zone_8017EE84 = 0x8017EE84; // type:func
 func_neo_ark_forest_zone_8017F76C = 0x8017F76C; // type:func
 
 func_neo_ark_forest_zone_8017DC20 = 0x8017DC20; // type:func
-RoomFx_DrawFlashRing = 0x8017E6C4; // type:func
-RoomFx_DrawFlashDisc = 0x8017EAF0; // type:func
-RoomFx_DrawTwinTrail = 0x8017F374; // type:func
-RoomFx_DrawBurstStar = 0x8017F9F4; // type:func
+_roomVisualEffectsDrawFlashRing = 0x8017E6C4; // type:func
+_roomVisualEffectsDrawFlashDisc = 0x8017EAF0; // type:func
+_roomVisualEffectsDrawTwinTrail = 0x8017F374; // type:func
+_roomVisualEffectsDrawBurstStar = 0x8017F9F4; // type:func
 roomEventStagedTask = 0x8017D644; // type:func
 leafDraw = 0x8017E074; // type:func
 roamerBankRetreat = 0x801803B4; // type:func

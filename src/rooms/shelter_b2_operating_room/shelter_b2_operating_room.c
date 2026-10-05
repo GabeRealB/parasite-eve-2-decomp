@@ -1120,14 +1120,14 @@ void func_shelter_b2_operating_room_8017ECFC(Task* arg0)
 
 void func_shelter_b2_operating_room_8017F254(Task* task)
 {
-    RoomFx_FlyingSparkTask(task);
+    _roomVisualEffectsFlyingSparkTask(task);
 }
 
 #include "../../shared/room_visual_effects_burst.inc.c"
 
 void func_shelter_b2_operating_room_8017FEB4(Task* arg0)
 {
-    RoomFx_OrangeBurst2Task(arg0);
+    _roomVisualEffectsFlyingOrangeBurstTask(arg0);
 }
 
 #include "../../shared/room_visual_effects_burst_draw.inc.c"

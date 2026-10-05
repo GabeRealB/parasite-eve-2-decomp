@@ -3420,7 +3420,7 @@ void func_dryfield_night_gas_station_80180E9C(Task* task)
 
 void func_dryfield_night_gas_station_80181D80(Task* arg0)
 {
-    RoomFx_FlashTask(arg0);
+    _roomVisualEffectsFlashTask(arg0);
 }
 
 #include "../../shared/room_visual_effects_trails.inc.c"

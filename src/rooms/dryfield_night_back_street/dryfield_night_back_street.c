@@ -530,7 +530,7 @@ void func_dryfield_night_back_street_8017D7E0(Task* arg0)
 
 void func_dryfield_night_back_street_8017E390(Task* arg0)
 {
-    RoomFx_FlashTask(arg0);
+    _roomVisualEffectsFlashTask(arg0);
 }
 
 #include "../../shared/room_visual_effects_trails.inc.c"

@@ -498,7 +498,7 @@ void func_neo_ark_north_promenade_8017FCA0(Task* arg0)
 
 void func_neo_ark_north_promenade_8017FDD4(Task* arg0)
 {
-    RoomFx_FlashTask(arg0);
+    _roomVisualEffectsFlashTask(arg0);
 }
 
 #include "../../shared/room_visual_effects_trails.inc.c"

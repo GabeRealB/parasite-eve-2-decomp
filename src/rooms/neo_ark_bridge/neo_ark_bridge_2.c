@@ -876,7 +876,7 @@ void func_neo_ark_bridge_8017F3F8(Task* task)
 
 void func_neo_ark_bridge_8017FF84(Task* arg0)
 {
-    RoomFx_FlashTask(arg0);
+    _roomVisualEffectsFlashTask(arg0);
 }
 
 #include "../../shared/room_visual_effects_trails.inc.c"

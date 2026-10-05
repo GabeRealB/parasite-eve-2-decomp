@@ -584,7 +584,7 @@ void func_shelter_b1_south_maintenance_walkway_8017DA8C(Task* task)
 
 void func_shelter_b1_south_maintenance_walkway_8017E760(Task* arg0)
 {
-    RoomFx_FlashTask(arg0);
+    _roomVisualEffectsFlashTask(arg0);
 }
 
 #include "../../shared/room_visual_effects_trails.inc.c"
@@ -612,14 +612,14 @@ void func_shelter_b1_south_maintenance_walkway_801806F4(Task* arg0)
 
 void func_shelter_b1_south_maintenance_walkway_80180C4C(Task* task)
 {
-    RoomFx_FlyingSparkTask(task);
+    _roomVisualEffectsFlyingSparkTask(task);
 }
 
 #include "../../shared/room_visual_effects_burst.inc.c"
 
 void func_shelter_b1_south_maintenance_walkway_801818AC(Task* arg0)
 {
-    RoomFx_OrangeBurst2Task(arg0);
+    _roomVisualEffectsFlyingOrangeBurstTask(arg0);
 }
 
 #include "../../shared/room_visual_effects_burst_draw.inc.c"

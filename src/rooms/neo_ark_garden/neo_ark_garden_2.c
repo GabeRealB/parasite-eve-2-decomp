@@ -601,14 +601,14 @@ void func_neo_ark_garden_8017F790(Task* arg0)
 
 void func_neo_ark_garden_8017FCE8(Task* task)
 {
-    RoomFx_FlyingSparkTask(task);
+    _roomVisualEffectsFlyingSparkTask(task);
 }
 
 #include "../../shared/room_visual_effects_burst.inc.c"
 
 void func_neo_ark_garden_80180948(Task* arg0)
 {
-    RoomFx_OrangeBurst2Task(arg0);
+    _roomVisualEffectsFlyingOrangeBurstTask(arg0);
 }
 
 #include "../../shared/room_visual_effects_burst_draw.inc.c"

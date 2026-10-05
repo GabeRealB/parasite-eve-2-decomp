@@ -1208,7 +1208,7 @@ void func_dryfield_main_street_8017E4B0(Task* task)
 
 void func_dryfield_main_street_8017EEE8(Task* arg0)
 {
-    RoomFx_FlashTask(arg0);
+    _roomVisualEffectsFlashTask(arg0);
 }
 
 #include "../../shared/room_visual_effects_trails.inc.c"

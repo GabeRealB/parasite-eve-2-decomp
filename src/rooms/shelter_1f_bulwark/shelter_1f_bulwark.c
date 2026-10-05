@@ -587,7 +587,7 @@ void func_shelter_1f_bulwark_8017E2A4(Task* arg0)
 
 void func_shelter_1f_bulwark_8017E38C(Task* arg0)
 {
-    RoomFx_FlashTask(arg0);
+    _roomVisualEffectsFlashTask(arg0);
 }
 
 #include "../../shared/room_visual_effects_trails.inc.c"

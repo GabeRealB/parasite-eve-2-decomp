@@ -2,107 +2,110 @@
 
 /* Continue room_visual_effects.inc.c after the preceding overlay wrappers. */
 
-/// Draws the beam between two rings of eight coordinate frames as seven
-/// gouraud quads, walking back from slot `arg2`, each quad joining two adjacent
-/// slots of both rings and dimmer the older it is. `arg3` packs the colour as
-/// three multipliers, at bits 8, 4 and 0. A quad whose projection overflows is
-/// skipped.
-static void RoomFx_DrawTwinTrail(GfxCoord* arg0, GfxCoord* arg1, s16 arg2, s16 arg3)
+/// Draws seven fading additive quads between two eight-frame trail histories.
+///
+/// Each array contains eight composed `GfxCoord` frames. `newestSlot` is 0..7;
+/// the drawer walks backwards with modulo-eight indexing. The three packed
+/// colour multipliers are red at bits 8..15 (signed shift), green at bits 4..5,
+/// and blue at bits 0..1; callers use 0x123 for multipliers 1, 2 and 3. Levels
+/// descend by nine from 64 on the newest edge. A negative GTE flag from the
+/// last three corners skips that quad; corner zero's flags are not tested.
+static void _roomVisualEffectsDrawTwinTrail(const GfxCoord firstTrail[ROOM_VISUAL_EFFECTS_TRAIL_SLOT_COUNT], const GfxCoord secondTrail[ROOM_VISUAL_EFFECTS_TRAIL_SLOT_COUNT], s16 newestSlot, s16 packedColorMultipliers)
 {
-    RoomFxTwinTrailScratch* block;
-    GfxCoord*               a;
-    GfxCoord*               b;
-    POLY_G4*                prim;
-    s32                     i;
-    s32                     j;
-    s32                     i0;
-    s32                     i1;
-    s32                     hi;
-    s32                     lo;
-    s32                     fade;
-    s32                     r;
-    s32                     g;
-    s32                     bl;
-    s32                     r2;
-    s32                     g2;
-    s32                     b2;
+    RoomFxTwinTrailScratch* projection;
+    const GfxCoord*         firstCoord;
+    const GfxCoord*         secondCoord;
+    POLY_G4*                quad;
+    s32                     segmentAge;
+    s32                     historySlot;
+    s32                     newerSlot;
+    s32                     olderSlot;
+    s32                     newerLevel;
+    s32                     olderLevel;
+    s32                     unwrappedLevel;
+    s32                     newerRed;
+    s32                     newerGreen;
+    s32                     newerBlue;
+    s32                     olderRed;
+    s32                     olderGreen;
+    s32                     olderBlue;
 
-    block = SCRATCH_STACK_RESERVE_BLOCK(RoomFxTwinTrailScratch);
+    projection = SCRATCH_STACK_RESERVE_BLOCK(RoomFxTwinTrailScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     // Seven quads, newest edge first. Each joins the two trails at one slot and the slot before it.
-    i = 0;
+    segmentAge = 0;
     do {
-        j                         = arg2 - i;
-        i0                        = j & 7;
-        a                         = &arg0[i0];
-        block->worldCorners[0].vx = (u16)a->workm.t[0];
-        j                         = j - 1;
-        block->worldCorners[0].vy = (u16)a->workm.t[1];
-        i1                        = j & 7;
-        block->worldCorners[0].vz = (u16)a->workm.t[2];
-        b                         = &arg1[i0];
-        block->worldCorners[1].vx = (u16)b->workm.t[0];
-        block->worldCorners[1].vy = (u16)b->workm.t[1];
-        block->worldCorners[1].vz = (u16)b->workm.t[2];
-        a                         = &arg0[i1];
-        block->worldCorners[2].vx = (u16)a->workm.t[0];
-        block->worldCorners[2].vy = (u16)a->workm.t[1];
-        block->worldCorners[2].vz = (u16)a->workm.t[2];
-        b                         = &arg1[i1];
-        block->worldCorners[3].vx = (u16)b->workm.t[0];
-        block->worldCorners[3].vy = (u16)b->workm.t[1];
-        block->worldCorners[3].vz = (u16)b->workm.t[2];
+        historySlot                    = newestSlot - segmentAge;
+        newerSlot                      = historySlot & (ROOM_VISUAL_EFFECTS_TRAIL_SLOT_COUNT - 1);
+        firstCoord                     = &firstTrail[newerSlot];
+        projection->worldCorners[0].vx = (u16)firstCoord->workm.t[0];
+        historySlot                    = historySlot - 1;
+        projection->worldCorners[0].vy = (u16)firstCoord->workm.t[1];
+        olderSlot                      = historySlot & (ROOM_VISUAL_EFFECTS_TRAIL_SLOT_COUNT - 1);
+        projection->worldCorners[0].vz = (u16)firstCoord->workm.t[2];
+        secondCoord                    = &secondTrail[newerSlot];
+        projection->worldCorners[1].vx = (u16)secondCoord->workm.t[0];
+        projection->worldCorners[1].vy = (u16)secondCoord->workm.t[1];
+        projection->worldCorners[1].vz = (u16)secondCoord->workm.t[2];
+        firstCoord                     = &firstTrail[olderSlot];
+        projection->worldCorners[2].vx = (u16)firstCoord->workm.t[0];
+        projection->worldCorners[2].vy = (u16)firstCoord->workm.t[1];
+        projection->worldCorners[2].vz = (u16)firstCoord->workm.t[2];
+        secondCoord                    = &secondTrail[olderSlot];
+        projection->worldCorners[3].vx = (u16)secondCoord->workm.t[0];
+        projection->worldCorners[3].vy = (u16)secondCoord->workm.t[1];
+        projection->worldCorners[3].vz = (u16)secondCoord->workm.t[2];
         // Corner 0 is projected alone. The flag word belongs to the transform of the other three.
-        gte_ldv0(&block->worldCorners[0]);
+        gte_ldv0(&projection->worldCorners[0]);
         gte_rtps();
-        gte_stsxy(&block->screenX0);
-        gte_ldv3(&block->worldCorners[1], &block->worldCorners[2], &block->worldCorners[3]);
+        gte_stsxy(&projection->screenX0);
+        gte_ldv3(&projection->worldCorners[1], &projection->worldCorners[2], &projection->worldCorners[3]);
         gte_rtpt();
-        gte_stsxy3(&block->screenX1, &block->screenX2, &block->screenX3);
-        gte_stflg(&block->projectionFlags);
-        if (block->projectionFlags >= 0) {
-            gte_stszotz(&block->depth);
-            fade           = 0x40 - i * 9;
-            hi             = fade & 0xFF;
-            r              = hi * (arg3 >> 8);
-            g              = hi * ((arg3 >> 4) & 3);
-            bl             = hi * (arg3 & 3);
-            lo             = (fade - 9) & 0xFF;
-            r2             = lo * (arg3 >> 8);
-            g2             = lo * ((arg3 >> 4) & 3);
-            prim           = gGpuPrimCursor;
-            block->depth   = block->depth + 1;
-            gGpuPrimCursor = prim + 1;
-            setlen(prim, 8);
-            b2 = lo * (arg3 & 3);
-            setcode(prim, 0x38);
-            prim->r0 = r;
-            prim->r1 = r;
-            prim->g0 = g;
-            prim->g1 = g;
-            prim->b0 = bl;
-            prim->b1 = bl;
-            prim->r2 = r2;
-            prim->r3 = r2;
-            prim->g2 = g2;
-            prim->g3 = g2;
-            prim->b2 = b2;
-            prim->b3 = b2;
-            prim->x0 = block->screenX0;
-            prim->y0 = block->screenY0;
-            prim->x1 = block->screenX1;
-            prim->y1 = block->screenY1;
-            prim->x2 = block->screenX2;
-            prim->y2 = block->screenY2;
-            prim->x3 = block->screenX3;
-            prim->y3 = block->screenY3;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->depth);
+        gte_stsxy3(&projection->screenX1, &projection->screenX2, &projection->screenX3);
+        gte_stflg(&projection->projectionFlags);
+        if (projection->projectionFlags >= 0) {
+            gte_stszotz(&projection->depth);
+            unwrappedLevel    = 0x40 - segmentAge * ROOM_VISUAL_EFFECTS_TRAIL_LEVEL_STEP;
+            newerLevel        = unwrappedLevel & 0xFF;
+            newerRed          = newerLevel * (packedColorMultipliers >> 8);
+            newerGreen        = newerLevel * ((packedColorMultipliers >> 4) & 3);
+            newerBlue         = newerLevel * (packedColorMultipliers & 3);
+            olderLevel        = (unwrappedLevel - ROOM_VISUAL_EFFECTS_TRAIL_LEVEL_STEP) & 0xFF;
+            olderRed          = olderLevel * (packedColorMultipliers >> 8);
+            olderGreen        = olderLevel * ((packedColorMultipliers >> 4) & 3);
+            quad              = gGpuPrimCursor;
+            projection->depth = projection->depth + 1;
+            gGpuPrimCursor    = quad + 1;
+            setlen(quad, sizeof(*quad) / sizeof(u32) - 1);
+            olderBlue = olderLevel * (packedColorMultipliers & 3);
+            setcode(quad, ROOM_VISUAL_EFFECTS_GOURAUD_QUAD);
+            quad->r0 = newerRed;
+            quad->r1 = newerRed;
+            quad->g0 = newerGreen;
+            quad->g1 = newerGreen;
+            quad->b0 = newerBlue;
+            quad->b1 = newerBlue;
+            quad->r2 = olderRed;
+            quad->r3 = olderRed;
+            quad->g2 = olderGreen;
+            quad->g3 = olderGreen;
+            quad->b2 = olderBlue;
+            quad->b3 = olderBlue;
+            quad->x0 = projection->screenX0;
+            quad->y0 = projection->screenY0;
+            quad->x1 = projection->screenX1;
+            quad->y1 = projection->screenY1;
+            quad->x2 = projection->screenX2;
+            quad->y2 = projection->screenY2;
+            quad->x3 = projection->screenX3;
+            quad->y3 = projection->screenY3;
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)projection->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                    quad);
+            gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, projection->depth);
         }
-        i += 1;
-    } while (i < 7);
+        segmentAge += 1;
+    } while (segmentAge < ROOM_VISUAL_EFFECTS_TRAIL_SLOT_COUNT - 1);
     SCRATCH_STACK_RELEASE_BLOCK(RoomFxTwinTrailScratch);
 }
 
@@ -167,8 +170,8 @@ static inline void RoomFx_SparkBurstTask(Task* task)
             rgb[0]       = work->angle;
             rgb[1]       = work->angle >> 1;
             rgb[2]       = work->angle >> 2;
-            RoomFx_DrawFlashRing(objCoord, 0x100, 0x100, rgb);
-            RoomFx_DrawFlashRing(objCoord, work->scale, work->scale, rgb);
+            _roomVisualEffectsDrawFlashRing(objCoord, 0x100, 0x100, rgb);
+            _roomVisualEffectsDrawFlashRing(objCoord, work->scale, work->scale, rgb);
             if (work->age >= 7) {
                 task->state = 3;
             }

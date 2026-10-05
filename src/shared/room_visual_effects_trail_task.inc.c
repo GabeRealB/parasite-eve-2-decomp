@@ -96,7 +96,7 @@ if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_HIDDEN) {
                 dst->composeStamp = GRAPHICS_COORD_DIRTY;
                 actorRenderComposeCoord(dst);
             }
-            RoomFx_DrawTwinTrail(coords, &coords[8], work->age & 7, 0x123);
+            _roomVisualEffectsDrawTwinTrail(coords, &coords[8], work->age & 7, 0x123);
             if (work->age == task->spawnArg1.value && work->age != 0) {
                 effectKillTask(work, task);
             }

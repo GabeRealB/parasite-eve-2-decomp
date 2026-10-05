@@ -567,7 +567,7 @@ void func_shelter_1f_parking_garage_8017DF6C(Task* arg0)
 
 void func_shelter_1f_parking_garage_8017EC0C(Task* arg0)
 {
-    RoomFx_FlashTask(arg0);
+    _roomVisualEffectsFlashTask(arg0);
 }
 
 #include "../../shared/room_visual_effects_trails.inc.c"

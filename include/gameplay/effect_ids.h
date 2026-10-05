@@ -31,7 +31,7 @@ enum {
     /// husk).
     EFFECT_BURST_BODY_PART_BANK4 = EFFECT_ID(4, 0x007),
     /// The dryfield_motel_balcony instance of the room-effect library's
-    /// RoomFx_FlashTask: a flash: two fans and an inward-shrinking ring ramping up over
+    /// _roomVisualEffectsFlashTask: a flash: two fans and an inward-shrinking ring ramping up over
     /// spawnArg1 ticks, peaking with a coloured fade quad, then fading through a star;
     /// the room stores it in slot gRoomEffectFlashId, read by the Pawn/Rook GOLEM silence-
     /// scream state (golem_pawn_rook_silence_scream.inc.c, part 4).
@@ -51,7 +51,7 @@ enum {
     /// (spark-burst slot, spawned by golemPawnRookBulletFly when a golem bullet ends
     /// its flight).
     EFFECT_DRYFIELD_NIGHT_GAS_STATION_SPARK_BURST = EFFECT_ID(EFFECT_TASK_BANK, 0x009),
-    /// dryfield_night_back_street's copy of RoomFx_FlashTask (fans and a shrinking ring
+    /// dryfield_night_back_street's copy of _roomVisualEffectsFlashTask (fans and a shrinking ring
     /// ramping to a coloured screen fade), stored in gRoomEffectFlashId, which the Pawn/Rook
     /// GOLEM's silence-scream state spawns on its part 4.
     EFFECT_DRYFIELD_NIGHT_BACK_STREET_FLASH = EFFECT_ID(EFFECT_TASK_BANK, 0x00A),
@@ -597,7 +597,7 @@ enum {
     /// stores it in slot gRoomEffectSparkBurstId, which the grenade-launcher Pawn/Rook golems spawn
     /// where a grenade lands (golemPawnRookBulletFly).
     EFFECT_DRYFIELD_NIGHT_BACK_STREET_SPARK_BURST = EFFECT_ID(EFFECT_TASK_BANK, 0x0E4),
-    /// Flash (RoomFx_FlashTask): fans and an inward ring ramping up, a fade quad at the
+    /// Flash (_roomVisualEffectsFlashTask): fans and an inward ring ramping up, a fade quad at the
     /// peak, then a star fade-out; stored in gRoomEffectFlashId, which golems
     /// (actor_02300/05700) spawn at part 4 in their scream sequence.
     EFFECT_DRYFIELD_NIGHT_JUNK_YARD_FLASH = EFFECT_ID(EFFECT_TASK_BANK, 0x0E5),
@@ -632,7 +632,7 @@ enum {
     /// GOLEM's bullet spawns where it hits.
     EFFECT_MINE_MESA_SPARK_BURST = EFFECT_ID(EFFECT_TASK_BANK, 0x0EC),
     /// The shelter_b4_lower_sewer instance of the room-effect library's
-    /// RoomFx_FlashTask: a flash: two fans and an inward-shrinking ring ramping up over
+    /// _roomVisualEffectsFlashTask: a flash: two fans and an inward-shrinking ring ramping up over
     /// spawnArg1 ticks, peaking with a coloured fade quad, then fading through a star;
     /// the room stores it in slot gRoomEffectFlashId, read by the Pawn/Rook GOLEM silence-
     /// scream state (golem_pawn_rook_silence_scream.inc.c, part 4).
@@ -646,7 +646,7 @@ enum {
     /// two widening rings, over seven ticks; stored in gRoomEffectSparkBurstId, which the grenade
     /// golems (actor_05600/05700) spawn when a shot ends.
     EFFECT_SHELTER_B4_LOWER_SEWER_SPARK_BURST = EFFECT_ID(EFFECT_TASK_BANK, 0x0EF),
-    /// shelter_b4_upper_sewer's copy of the shared flash task (RoomFx_FlashTask): ramps
+    /// shelter_b4_upper_sewer's copy of the shared flash task (_roomVisualEffectsFlashTask): ramps
     /// up two fans and a shrinking ring, queues a full-screen fade quad at its peak,
     /// then fades out; the room stores it in gRoomEffectFlashId (flash slot, spawned by
     /// golemPawnRookSilenceScreamState).
@@ -1014,7 +1014,7 @@ enum {
     /// Falling leaf (leafFallTask, woodland path copy) spawned at Stranger
     /// (actor_401300) joints in area 0x1D.
     EFFECT_NEO_ARK_WOODLAND_FALLING_LEAF = EFFECT_ID(EFFECT_TASK_BANK, 0x1C1),
-    /// shelter_1f_bulwark's copy of RoomFx_FlashTask (fans and a shrinking ring ramping
+    /// shelter_1f_bulwark's copy of _roomVisualEffectsFlashTask (fans and a shrinking ring ramping
     /// to a coloured screen fade), stored in gRoomEffectFlashId, which the Pawn/Rook GOLEM's
     /// silence-scream state spawns on its part 4.
     EFFECT_SHELTER_1F_BULWARK_FLASH = EFFECT_ID(EFFECT_TASK_BANK, 0x1C2),
@@ -1034,16 +1034,16 @@ enum {
     /// (effectSpriteRiseTask); spawned every 128 ticks from part 2 of actor_560800's
     /// animated model part in the B1 pod service gantry.
     EFFECT_SHELTER_B1_GANTRY_RISING_SPRITE = EFFECT_ID(EFFECT_TASK_BANK, 0x1C6),
-    /// dryfield_night_r08's copy of the shared flash task (RoomFx_FlashTask): ramps up
+    /// dryfield_night_r08's copy of the shared flash task (_roomVisualEffectsFlashTask): ramps up
     /// two fans and a shrinking ring, queues a full-screen fade quad at its peak, then
     /// fades out; the room stores it in gRoomEffectFlashId (flash slot, spawned by
     /// golemPawnRookSilenceScreamState).
     EFFECT_DRYFIELD_NIGHT_R08_FLASH = EFFECT_ID(EFFECT_TASK_BANK, 0x1C7),
-    /// shelter_b1_elevator_hall's copy of RoomFx_FlashTask (fans and a shrinking ring
+    /// shelter_b1_elevator_hall's copy of _roomVisualEffectsFlashTask (fans and a shrinking ring
     /// ramping to a coloured screen fade), stored in gRoomEffectFlashId, which the Pawn/Rook
     /// GOLEM's silence-scream state spawns on its part 4.
     EFFECT_SHELTER_B1_ELEVATOR_HALL_FLASH = EFFECT_ID(EFFECT_TASK_BANK, 0x1C8),
-    /// The shelter_b1_s_walkway instance of the room-effect library's RoomFx_FlashTask:
+    /// The shelter_b1_s_walkway instance of the room-effect library's _roomVisualEffectsFlashTask:
     /// a flash: two fans and an inward-shrinking ring ramping up over spawnArg1 ticks,
     /// peaking with a coloured fade quad, then fading through a star; the room stores
     /// it in slot gRoomEffectFlashId, read by the Pawn/Rook GOLEM silence-scream state
@@ -1054,21 +1054,21 @@ enum {
     /// room stores it in slot gRoomEffectFlashId, which the Pawn/Rook golem library spawns at
     /// body part 4 for its scream (golemPawnRookSilenceScream).
     EFFECT_SHELTER_B1_STOREROOM_FLASH = EFFECT_ID(EFFECT_TASK_BANK, 0x1CA),
-    /// Flash (RoomFx_FlashTask): fans and an inward ring ramping up, a fade quad at the
+    /// Flash (_roomVisualEffectsFlashTask): fans and an inward ring ramping up, a fade quad at the
     /// peak, then a star fade-out; stored in gRoomEffectFlashId, which golems
     /// (actor_02300/05700) spawn at part 4 in their scream sequence.
     EFFECT_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_FLASH = EFFECT_ID(EFFECT_TASK_BANK, 0x1CB),
-    /// shelter_b1_main_corridor's copy of the shared flash task (RoomFx_FlashTask):
+    /// shelter_b1_main_corridor's copy of the shared flash task (_roomVisualEffectsFlashTask):
     /// ramps up two fans and a shrinking ring, queues a full-screen fade quad at its
     /// peak, then fades out; the room stores it in gRoomEffectFlashId (flash slot, spawned by
     /// golemPawnRookSilenceScreamState).
     EFFECT_SHELTER_B1_MAIN_CORRIDOR_FLASH = EFFECT_ID(EFFECT_TASK_BANK, 0x1CC),
-    /// shelter_b1_pod_access_tunnel's copy of RoomFx_FlashTask (fans and a shrinking
+    /// shelter_b1_pod_access_tunnel's copy of _roomVisualEffectsFlashTask (fans and a shrinking
     /// ring ramping to a coloured screen fade), stored in gRoomEffectFlashId, which the
     /// Pawn/Rook GOLEM's silence-scream state spawns on its part 4.
     EFFECT_SHELTER_B1_POD_ACCESS_TUNNEL_FLASH = EFFECT_ID(EFFECT_TASK_BANK, 0x1CD),
     /// The shelter_b1_transfer_tunnel instance of the room-effect library's
-    /// RoomFx_FlashTask: a flash: two fans and an inward-shrinking ring ramping up over
+    /// _roomVisualEffectsFlashTask: a flash: two fans and an inward-shrinking ring ramping up over
     /// spawnArg1 ticks, peaking with a coloured fade quad, then fading through a star;
     /// the room stores it in slot gRoomEffectFlashId, read by the Pawn/Rook GOLEM silence-
     /// scream state (golem_pawn_rook_silence_scream.inc.c, part 4).
@@ -1078,21 +1078,21 @@ enum {
     /// star; the room stores it in slot gRoomEffectFlashId, which the Pawn/Rook golem library
     /// spawns at body part 4 for its scream (golemPawnRookSilenceScream).
     EFFECT_SHELTER_B1_CONTROL_ROOM_ACCESS_TUNNEL_FLASH = EFFECT_ID(EFFECT_TASK_BANK, 0x1CF),
-    /// Flash (RoomFx_FlashTask): fans and an inward ring ramping up, a fade quad at the
+    /// Flash (_roomVisualEffectsFlashTask): fans and an inward ring ramping up, a fade quad at the
     /// peak, then a star fade-out; stored in gRoomEffectFlashId, which golems
     /// (actor_02300/05700) spawn at part 4 in their scream sequence.
     EFFECT_SHELTER_B2_ELEVATOR_HALL_FLASH = EFFECT_ID(EFFECT_TASK_BANK, 0x1D0),
     /// shelter_b2_south_maintenance_walkway's copy of the shared flash task
-    /// (RoomFx_FlashTask): ramps up two fans and a shrinking ring, queues a full-screen
+    /// (_roomVisualEffectsFlashTask): ramps up two fans and a shrinking ring, queues a full-screen
     /// fade quad at its peak, then fades out; the room stores it in gRoomEffectFlashId (flash
     /// slot, spawned by golemPawnRookSilenceScreamState).
     EFFECT_SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_FLASH = EFFECT_ID(EFFECT_TASK_BANK, 0x1D1),
-    /// shelter_b2_north_maintenance_walkway's copy of RoomFx_FlashTask (fans and a
+    /// shelter_b2_north_maintenance_walkway's copy of _roomVisualEffectsFlashTask (fans and a
     /// shrinking ring ramping to a coloured screen fade), stored in gRoomEffectFlashId, which
     /// the Pawn/Rook GOLEM's silence-scream state spawns on its part 4.
     EFFECT_SHELTER_B2_NORTH_MAINTENANCE_WALKWAY_FLASH = EFFECT_ID(EFFECT_TASK_BANK, 0x1D2),
     /// The shelter_b2_main_corridor instance of the room-effect library's
-    /// RoomFx_FlashTask: a flash: two fans and an inward-shrinking ring ramping up over
+    /// _roomVisualEffectsFlashTask: a flash: two fans and an inward-shrinking ring ramping up over
     /// spawnArg1 ticks, peaking with a coloured fade quad, then fading through a star;
     /// the room stores it in slot gRoomEffectFlashId, read by the Pawn/Rook GOLEM silence-
     /// scream state (golem_pawn_rook_silence_scream.inc.c, part 4).
@@ -1102,20 +1102,20 @@ enum {
     /// room stores it in slot gRoomEffectFlashId, which the Pawn/Rook golem library spawns at
     /// body part 4 for its scream (golemPawnRookSilenceScream).
     EFFECT_SHELTER_B2_SEPTIC_TANK_FLASH = EFFECT_ID(EFFECT_TASK_BANK, 0x1D4),
-    /// Flash (RoomFx_FlashTask): fans and an inward ring ramping up, a fade quad at the
+    /// Flash (_roomVisualEffectsFlashTask): fans and an inward ring ramping up, a fade quad at the
     /// peak, then a star fade-out; stored in gRoomEffectFlashId, which golems
     /// (actor_02300/05700) spawn at part 4 in their scream sequence.
     EFFECT_SHELTER_B2_POD_ACCESS_TUNNEL_FLASH = EFFECT_ID(EFFECT_TASK_BANK, 0x1D5),
-    /// shelter_1f_parking_garage's copy of the shared flash task (RoomFx_FlashTask):
+    /// shelter_1f_parking_garage's copy of the shared flash task (_roomVisualEffectsFlashTask):
     /// ramps up two fans and a shrinking ring, queues a full-screen fade quad at its
     /// peak, then fades out; the room stores it in gRoomEffectFlashId (flash slot, spawned by
     /// golemPawnRookSilenceScreamState).
     EFFECT_SHELTER_1F_PARKING_GARAGE_FLASH = EFFECT_ID(EFFECT_TASK_BANK, 0x1D6),
-    /// shelter_1f_vehicular_airlock's copy of RoomFx_FlashTask (fans and a shrinking
+    /// shelter_1f_vehicular_airlock's copy of _roomVisualEffectsFlashTask (fans and a shrinking
     /// ring ramping to a coloured screen fade), stored in gRoomEffectFlashId, which the
     /// Pawn/Rook GOLEM's silence-scream state spawns on its part 4.
     EFFECT_SHELTER_1F_VEHICULAR_AIRLOCK_FLASH = EFFECT_ID(EFFECT_TASK_BANK, 0x1D7),
-    /// The neo_ark_n_promenade instance of the room-effect library's RoomFx_FlashTask:
+    /// The neo_ark_n_promenade instance of the room-effect library's _roomVisualEffectsFlashTask:
     /// a flash: two fans and an inward-shrinking ring ramping up over spawnArg1 ticks,
     /// peaking with a coloured fade quad, then fading through a star; the room stores
     /// it in slot gRoomEffectFlashId, read by the Pawn/Rook GOLEM silence-scream state
@@ -1126,20 +1126,20 @@ enum {
     /// room stores it in slot gRoomEffectFlashId, which the Pawn/Rook golem library spawns at
     /// body part 4 for its scream (golemPawnRookSilenceScream).
     EFFECT_NEO_ARK_FOREST_ZONE_FLASH = EFFECT_ID(EFFECT_TASK_BANK, 0x1D9),
-    /// Flash (RoomFx_FlashTask): fans and an inward ring ramping up, a fade quad at the
+    /// Flash (_roomVisualEffectsFlashTask): fans and an inward ring ramping up, a fade quad at the
     /// peak, then a star fade-out; stored in gRoomEffectFlashId, which golems
     /// (actor_02300/05700) spawn at part 4 in their scream sequence.
     EFFECT_NEO_ARK_PAVILION_FLASH = EFFECT_ID(EFFECT_TASK_BANK, 0x1DA),
-    /// neo_ark_island's copy of the shared flash task (RoomFx_FlashTask): ramps up two
+    /// neo_ark_island's copy of the shared flash task (_roomVisualEffectsFlashTask): ramps up two
     /// fans and a shrinking ring, queues a full-screen fade quad at its peak, then
     /// fades out; the room stores it in gRoomEffectFlashId (flash slot, spawned by
     /// golemPawnRookSilenceScreamState).
     EFFECT_NEO_ARK_ISLAND_FLASH = EFFECT_ID(EFFECT_TASK_BANK, 0x1DB),
-    /// neo_ark_power_plant_2's copy of RoomFx_FlashTask (fans and a shrinking ring
+    /// neo_ark_power_plant_2's copy of _roomVisualEffectsFlashTask (fans and a shrinking ring
     /// ramping to a coloured screen fade), stored in gRoomEffectFlashId, which the Pawn/Rook
     /// GOLEM's silence-scream state spawns on its part 4.
     EFFECT_NEO_ARK_POWER_PLANT_2_FLASH = EFFECT_ID(EFFECT_TASK_BANK, 0x1DC),
-    /// The neo_ark_savanna instance of the room-effect library's RoomFx_FlashTask: a
+    /// The neo_ark_savanna instance of the room-effect library's _roomVisualEffectsFlashTask: a
     /// flash: two fans and an inward-shrinking ring ramping up over spawnArg1 ticks,
     /// peaking with a coloured fade quad, then fading through a star; the room stores
     /// it in slot gRoomEffectFlashId, read by the Pawn/Rook GOLEM silence-scream state
@@ -1150,20 +1150,20 @@ enum {
     /// room stores it in slot gRoomEffectFlashId, which the Pawn/Rook golem library spawns at
     /// body part 4 for its scream (golemPawnRookSilenceScream).
     EFFECT_NEO_ARK_SOUTH_PROMENADE_FLASH = EFFECT_ID(EFFECT_TASK_BANK, 0x1DE),
-    /// Flash (RoomFx_FlashTask): fans and an inward ring ramping up, a fade quad at the
+    /// Flash (_roomVisualEffectsFlashTask): fans and an inward ring ramping up, a fade quad at the
     /// peak, then a star fade-out; stored in gRoomEffectFlashId, which golems
     /// (actor_02300/05700) spawn at part 4 in their scream sequence.
     EFFECT_NEO_ARK_SHRINE_FLASH = EFFECT_ID(EFFECT_TASK_BANK, 0x1DF),
-    /// shelter_b6_nursery's copy of the shared flash task (RoomFx_FlashTask): ramps up
+    /// shelter_b6_nursery's copy of the shared flash task (_roomVisualEffectsFlashTask): ramps up
     /// two fans and a shrinking ring, queues a full-screen fade quad at its peak, then
     /// fades out; the room stores it in gRoomEffectFlashId (flash slot, spawned by
     /// golemPawnRookSilenceScreamState).
     EFFECT_SHELTER_B6_NURSERY_FLASH = EFFECT_ID(EFFECT_TASK_BANK, 0x1E0),
-    /// neo_ark_bridge's copy of RoomFx_FlashTask (fans and a shrinking ring ramping to
+    /// neo_ark_bridge's copy of _roomVisualEffectsFlashTask (fans and a shrinking ring ramping to
     /// a coloured screen fade), stored in gRoomEffectFlashId, which the Pawn/Rook GOLEM's
     /// silence-scream state spawns on its part 4.
     EFFECT_NEO_ARK_BRIDGE_FLASH = EFFECT_ID(EFFECT_TASK_BANK, 0x1E1),
-    /// The neo_ark_pyramid instance of the room-effect library's RoomFx_FlashTask: a
+    /// The neo_ark_pyramid instance of the room-effect library's _roomVisualEffectsFlashTask: a
     /// flash: two fans and an inward-shrinking ring ramping up over spawnArg1 ticks,
     /// peaking with a coloured fade quad, then fading through a star; the room stores
     /// it in slot gRoomEffectFlashId, read by the Pawn/Rook GOLEM silence-scream state
@@ -1446,16 +1446,16 @@ enum {
     /// slot gRoomEffectSparkBurstId, which the grenade-launcher Pawn/Rook golems spawn where a
     /// grenade lands (golemPawnRookBulletFly).
     EFFECT_NEO_ARK_PYRAMID_SPARK_BURST = EFFECT_ID(EFFECT_TASK_BANK, 0x21A),
-    /// Flying spark (RoomFx_FlyingSparkTask): a textured square that flies 0xCC/0x1000
-    /// of the way per tick toward a target frame for 20 ticks; stored in gRoomEffectFlyingSparkId,
-    /// which the room's glow disc spawns at random player joints.
+    /// Flying spark (_roomVisualEffectsFlyingSparkTask): a textured square that moves each tick
+    /// by 0xCC/0x1000 of its initial target displacement, with a 20-tick lifetime; stored in
+    /// gRoomEffectFlyingSparkId, which the room's glow disc spawns at random player joints.
     EFFECT_SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_FLYING_SPARK = EFFECT_ID(EFFECT_TASK_BANK, 0x21B),
     /// shelter_b1_south_maintenance_walkway's copy of the shared glowing disc
     /// (RoomFx_GlowDiscTask) that grows, spawns the gRoomEffectFlyingSparkId flying sparks at the
     /// player, then drifts away inside an expanding ring; the room stores it in
     /// gRoomEffectGlowDiscId (glow-disc slot, spawned by actor_02400).
     EFFECT_SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_GLOW_DISC = EFFECT_ID(EFFECT_TASK_BANK, 0x21C),
-    /// shelter_b1_south_maintenance_walkway's copy of RoomFx_OrangeBurst2Task (an
+    /// shelter_b1_south_maintenance_walkway's copy of _roomVisualEffectsFlyingOrangeBurstTask (an
     /// orange disc/glow with an expanding ring), stored in gRoomEffectOrangeBurst2Id, which the
     /// Amoeba's projectile spawns when it expires or hits.
     EFFECT_SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_ORANGE_BURST_2 = EFFECT_ID(EFFECT_TASK_BANK, 0x21D),
@@ -1513,70 +1513,74 @@ enum {
     /// room stores it in slot gRoomEffectGlowDiscId, read by actor_02400 (fireball library), which
     /// keeps hold of the spawned task.
     EFFECT_NEO_ARK_GARDEN_GLOW_DISC = EFFECT_ID(EFFECT_TASK_BANK, 0x228),
-    /// shelter_b1_storeroom's copy of the RoomFx flying spark: an animated textured
-    /// square that travels to a target frame over 20 ticks; the room stores it in slot
-    /// gRoomEffectFlyingSparkId, spawned by the room glow-disc effect at random player joints.
+    /// shelter_b1_storeroom's copy of the RoomFx flying spark: an animated textured square that
+    /// takes a fixed step toward its initial target position during a 20-tick lifetime; the room
+    /// stores it in slot gRoomEffectFlyingSparkId, spawned by the room glow-disc effect at
+    /// random player joints.
     EFFECT_SHELTER_B1_STOREROOM_FLYING_SPARK = EFFECT_ID(EFFECT_TASK_BANK, 0x229),
-    /// Flying spark (RoomFx_FlyingSparkTask): a textured square that flies 0xCC/0x1000
-    /// of the way per tick toward a target frame for 20 ticks; stored in gRoomEffectFlyingSparkId,
-    /// which the room's glow disc spawns at random player joints.
+    /// Flying spark (_roomVisualEffectsFlyingSparkTask): a textured square that moves each tick
+    /// by 0xCC/0x1000 of its initial target displacement, with a 20-tick lifetime; stored in
+    /// gRoomEffectFlyingSparkId, which the room's glow disc spawns at random player joints.
     EFFECT_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_FLYING_SPARK = EFFECT_ID(EFFECT_TASK_BANK, 0x22A),
-    /// shelter_b1_sleeping_quarters's copy of the shared spark (RoomFx_FlyingSparkTask)
-    /// that flies from its frame toward a target frame as an animated textured square
-    /// for 20 ticks; the room stores it in gRoomEffectFlyingSparkId (flying-spark slot, spawned by
-    /// RoomFx glow discs at random player joints).
+    /// shelter_b1_sleeping_quarters's copy of the shared spark
+    /// (_roomVisualEffectsFlyingSparkTask) that flies from its frame toward a target frame as an
+    /// animated textured square for 20 ticks; the room stores it in gRoomEffectFlyingSparkId
+    /// (flying-spark slot, spawned by RoomFx glow discs at random player joints).
     EFFECT_SHELTER_B1_SLEEPING_QUARTERS_FLYING_SPARK = EFFECT_ID(EFFECT_TASK_BANK, 0x22B),
-    /// shelter_b2_south_maintenance_walkway's copy of RoomFx_FlyingSparkTask (a
-    /// textured spark flying from a player joint to the target frame over 20 ticks),
-    /// stored in gRoomEffectFlyingSparkId and spawned by the Amoeba's glow disc.
+    /// shelter_b2_south_maintenance_walkway's copy of _roomVisualEffectsFlyingSparkTask (a
+    /// textured spark taking a fixed step from a player joint toward its initial target position
+    /// for a 20-tick lifetime), stored in gRoomEffectFlyingSparkId and spawned by the Amoeba's
+    /// glow disc.
     EFFECT_SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_FLYING_SPARK = EFFECT_ID(EFFECT_TASK_BANK, 0x22C),
     /// The shelter_b2_operating_room instance of the room-effect library's
-    /// RoomFx_FlyingSparkTask: a spark that flies from its frame toward a target frame
-    /// named by the spawn argument, drawn as an animated textured square for 20 ticks;
-    /// the room stores it in slot gRoomEffectFlyingSparkId, spawned by the room GLOW_DISC task
-    /// (gRoomEffectGlowDiscId) at random player joints.
+    /// _roomVisualEffectsFlyingSparkTask: a spark that flies along the initial displacement
+    /// toward a target frame named by the spawn argument, drawn as an animated textured square
+    /// for 20 ticks; the room stores it in slot gRoomEffectFlyingSparkId, spawned by the room
+    /// GLOW_DISC task (gRoomEffectGlowDiscId) at random player joints.
     EFFECT_SHELTER_B2_OPERATING_ROOM_FLYING_SPARK = EFFECT_ID(EFFECT_TASK_BANK, 0x22D),
-    /// shelter_b3_elevator_hall's copy of the RoomFx flying spark: an animated textured
-    /// square that travels to a target frame over 20 ticks; the room stores it in slot
-    /// gRoomEffectFlyingSparkId, spawned by the room glow-disc effect at random player joints.
+    /// shelter_b3_elevator_hall's copy of the RoomFx flying spark: an animated textured square
+    /// that takes a fixed step toward its initial target position during a 20-tick lifetime; the
+    /// room stores it in slot gRoomEffectFlyingSparkId, spawned by the room glow-disc effect at
+    /// random player joints.
     EFFECT_SHELTER_B3_ELEVATOR_HALL_FLYING_SPARK = EFFECT_ID(EFFECT_TASK_BANK, 0x22E),
-    /// Flying spark (RoomFx_FlyingSparkTask): a textured square that flies 0xCC/0x1000
-    /// of the way per tick toward a target frame for 20 ticks; stored in gRoomEffectFlyingSparkId,
-    /// which the room's glow disc spawns at random player joints.
+    /// Flying spark (_roomVisualEffectsFlyingSparkTask): a textured square that moves each tick
+    /// by 0xCC/0x1000 of its initial target displacement, with a 20-tick lifetime; stored in
+    /// gRoomEffectFlyingSparkId, which the room's glow disc spawns at random player joints.
     EFFECT_SHELTER_B4_UPPER_SEWER_FLYING_SPARK = EFFECT_ID(EFFECT_TASK_BANK, 0x22F),
-    /// shelter_b4_reservoir's copy of the shared spark (RoomFx_FlyingSparkTask) that
-    /// flies from its frame toward a target frame as an animated textured square for 20
-    /// ticks; the room stores it in gRoomEffectFlyingSparkId (flying-spark slot, spawned by RoomFx
-    /// glow discs at random player joints).
+    /// shelter_b4_reservoir's copy of the shared spark (_roomVisualEffectsFlyingSparkTask) that
+    /// flies from its frame toward a target frame as an animated textured square for 20 ticks;
+    /// the room stores it in gRoomEffectFlyingSparkId (flying-spark slot, spawned by RoomFx glow
+    /// discs at random player joints).
     EFFECT_SHELTER_B4_RESERVOIR_FLYING_SPARK = EFFECT_ID(EFFECT_TASK_BANK, 0x230),
-    /// shelter_b4_water_supply's copy of RoomFx_FlyingSparkTask (a textured spark
-    /// flying from a player joint to the target frame over 20 ticks), stored in
-    /// gRoomEffectFlyingSparkId and spawned by the Amoeba's glow disc.
+    /// shelter_b4_water_supply's copy of _roomVisualEffectsFlyingSparkTask (a textured spark
+    /// taking a fixed step from a player joint toward its initial target position for a 20-tick
+    /// lifetime), stored in gRoomEffectFlyingSparkId and spawned by the Amoeba's glow disc.
     EFFECT_SHELTER_B4_WATER_SUPPLY_FLYING_SPARK = EFFECT_ID(EFFECT_TASK_BANK, 0x231),
     /// The neo_ark_pavilion instance of the room-effect library's
-    /// RoomFx_FlyingSparkTask: a spark that flies from its frame toward a target frame
-    /// named by the spawn argument, drawn as an animated textured square for 20 ticks;
-    /// the room stores it in slot gRoomEffectFlyingSparkId, spawned by the room GLOW_DISC task
-    /// (gRoomEffectGlowDiscId) at random player joints.
+    /// _roomVisualEffectsFlyingSparkTask: a spark that flies along the initial displacement
+    /// toward a target frame named by the spawn argument, drawn as an animated textured square
+    /// for 20 ticks; the room stores it in slot gRoomEffectFlyingSparkId, spawned by the room
+    /// GLOW_DISC task (gRoomEffectGlowDiscId) at random player joints.
     EFFECT_NEO_ARK_PAVILION_FLYING_SPARK = EFFECT_ID(EFFECT_TASK_BANK, 0x232),
-    /// neo_ark_garden's copy of the RoomFx flying spark: an animated textured square
-    /// that travels to a target frame over 20 ticks; the room stores it in slot
-    /// gRoomEffectFlyingSparkId, spawned by the room glow-disc effect at random player joints.
+    /// neo_ark_garden's copy of the RoomFx flying spark: an animated textured square that takes
+    /// a fixed step toward its initial target position during a 20-tick lifetime; the room
+    /// stores it in slot gRoomEffectFlyingSparkId, spawned by the room glow-disc effect at
+    /// random player joints.
     EFFECT_NEO_ARK_GARDEN_FLYING_SPARK = EFFECT_ID(EFFECT_TASK_BANK, 0x233),
-    /// Orange burst (RoomFx_OrangeBurst2Task, this unit's copy of the orange burst);
+    /// Orange burst (_roomVisualEffectsFlyingOrangeBurstTask, this unit's copy of the orange burst);
     /// stored in gRoomEffectOrangeBurst2Id, which actor_02400 spawns.
     EFFECT_SHELTER_B1_STOREROOM_ORANGE_BURST_2 = EFFECT_ID(EFFECT_TASK_BANK, 0x234),
     /// shelter_b1_north_maintenance_walkway's copy of the shared orange burst
-    /// (RoomFx_OrangeBurst2Task, the flying-section copy of the orange burst): growing
+    /// (_roomVisualEffectsFlyingOrangeBurstTask, the flying-section copy of the orange burst): growing
     /// disc and glow with an expanding ring, then fades; the room stores it in
     /// gRoomEffectOrangeBurst2Id (orange-burst-2 slot, spawned by actor_02400).
     EFFECT_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_ORANGE_BURST_2 = EFFECT_ID(EFFECT_TASK_BANK, 0x235),
-    /// shelter_b1_sleeping_quarters's copy of RoomFx_OrangeBurst2Task (an orange
+    /// shelter_b1_sleeping_quarters's copy of _roomVisualEffectsFlyingOrangeBurstTask (an orange
     /// disc/glow with an expanding ring), stored in gRoomEffectOrangeBurst2Id, which the Amoeba's
     /// projectile spawns when it expires or hits.
     EFFECT_SHELTER_B1_SLEEPING_QUARTERS_ORANGE_BURST_2 = EFFECT_ID(EFFECT_TASK_BANK, 0x236),
     /// The shelter_b2_s_walkway instance of the room-effect library's
-    /// RoomFx_OrangeBurst2Task: an orange burst (second copy of the helpers): a growing
+    /// _roomVisualEffectsFlyingOrangeBurstTask: an orange burst (second copy of the helpers): a growing
     /// disc and glow with a wider fading ring behind them; the room stores it in slot
     /// gRoomEffectOrangeBurst2Id, read by actor_02400 (fireball library) when its projectile times out
     /// or hits.
@@ -1585,20 +1589,20 @@ enum {
     /// growing disc and glow with an expanding, fading ring; the room stores it in slot
     /// gRoomEffectOrangeBurst2Id, which actor_02400 spawns where its fireball ends.
     EFFECT_SHELTER_B2_OPERATING_ROOM_ORANGE_BURST_2 = EFFECT_ID(EFFECT_TASK_BANK, 0x238),
-    /// Orange burst (RoomFx_OrangeBurst2Task, this unit's copy of the orange burst);
+    /// Orange burst (_roomVisualEffectsFlyingOrangeBurstTask, this unit's copy of the orange burst);
     /// stored in gRoomEffectOrangeBurst2Id, which actor_02400 spawns.
     EFFECT_SHELTER_B3_ELEVATOR_HALL_ORANGE_BURST_2 = EFFECT_ID(EFFECT_TASK_BANK, 0x239),
     /// shelter_b4_upper_sewer's copy of the shared orange burst
-    /// (RoomFx_OrangeBurst2Task, the flying-section copy of the orange burst): growing
+    /// (_roomVisualEffectsFlyingOrangeBurstTask, the flying-section copy of the orange burst): growing
     /// disc and glow with an expanding ring, then fades; the room stores it in
     /// gRoomEffectOrangeBurst2Id (orange-burst-2 slot, spawned by actor_02400).
     EFFECT_SHELTER_B4_UPPER_SEWER_ORANGE_BURST_2 = EFFECT_ID(EFFECT_TASK_BANK, 0x23A),
-    /// shelter_b4_reservoir's copy of RoomFx_OrangeBurst2Task (an orange disc/glow with
+    /// shelter_b4_reservoir's copy of _roomVisualEffectsFlyingOrangeBurstTask (an orange disc/glow with
     /// an expanding ring), stored in gRoomEffectOrangeBurst2Id, which the Amoeba's projectile spawns
     /// when it expires or hits.
     EFFECT_SHELTER_B4_RESERVOIR_ORANGE_BURST_2 = EFFECT_ID(EFFECT_TASK_BANK, 0x23B),
     /// The shelter_b4_water_supply instance of the room-effect library's
-    /// RoomFx_OrangeBurst2Task: an orange burst (second copy of the helpers): a growing
+    /// _roomVisualEffectsFlyingOrangeBurstTask: an orange burst (second copy of the helpers): a growing
     /// disc and glow with a wider fading ring behind them; the room stores it in slot
     /// gRoomEffectOrangeBurst2Id, read by actor_02400 (fireball library) when its projectile times out
     /// or hits.
@@ -1607,7 +1611,7 @@ enum {
     /// disc and glow with an expanding, fading ring; the room stores it in slot
     /// gRoomEffectOrangeBurst2Id, which actor_02400 spawns where its fireball ends.
     EFFECT_NEO_ARK_PAVILION_ORANGE_BURST_2 = EFFECT_ID(EFFECT_TASK_BANK, 0x23D),
-    /// Orange burst (RoomFx_OrangeBurst2Task, this unit's copy of the orange burst);
+    /// Orange burst (_roomVisualEffectsFlyingOrangeBurstTask, this unit's copy of the orange burst);
     /// stored in gRoomEffectOrangeBurst2Id, which actor_02400 spawns.
     EFFECT_NEO_ARK_GARDEN_ORANGE_BURST_2 = EFFECT_ID(EFFECT_TASK_BANK, 0x23E),
     /// mine_cavern's copy of the shared orange burst (RoomFx_OrangeBurstTask): growing
@@ -1867,12 +1871,12 @@ enum {
     /// inside an expanding ring; the room stores it in gRoomEffectGlowDiscId (glow-disc slot,
     /// spawned by actor_02400).
     EFFECT_SHELTER_B1_CONTROL_ROOM_GLOW_DISC = EFFECT_ID(EFFECT_TASK_BANK, 0x276),
-    /// shelter_b1_control_room's copy of RoomFx_FlyingSparkTask (a textured spark
-    /// flying from a player joint to the target frame over 20 ticks), stored in
-    /// gRoomEffectFlyingSparkId and spawned by the Amoeba's glow disc.
+    /// shelter_b1_control_room's copy of _roomVisualEffectsFlyingSparkTask (a textured spark
+    /// taking a fixed step from a player joint toward its initial target position for a 20-tick
+    /// lifetime), stored in gRoomEffectFlyingSparkId and spawned by the Amoeba's glow disc.
     EFFECT_SHELTER_B1_CONTROL_ROOM_FLYING_SPARK = EFFECT_ID(EFFECT_TASK_BANK, 0x277),
     /// The shelter_b1_control_room instance of the room-effect library's
-    /// RoomFx_OrangeBurst2Task: an orange burst (second copy of the helpers): a growing
+    /// _roomVisualEffectsFlyingOrangeBurstTask: an orange burst (second copy of the helpers): a growing
     /// disc and glow with a wider fading ring behind them; the room stores it in slot
     /// gRoomEffectOrangeBurst2Id, read by actor_02400 (fireball library) when its projectile times out
     /// or hits.
@@ -1882,12 +1886,12 @@ enum {
     /// drifts away inside an expanding ring; the room stores it in slot gRoomEffectGlowDiscId,
     /// which actor_02400 spawns and holds when its second body is hit.
     EFFECT_SHELTER_B1_CONTROL_ROOM_ACCESS_TUNNEL_GLOW_DISC = EFFECT_ID(EFFECT_TASK_BANK, 0x279),
-    /// Flying spark (RoomFx_FlyingSparkTask): a textured square that flies 0xCC/0x1000
-    /// of the way per tick toward a target frame for 20 ticks; stored in gRoomEffectFlyingSparkId,
-    /// which the room's glow disc spawns at random player joints.
+    /// Flying spark (_roomVisualEffectsFlyingSparkTask): a textured square that moves each tick
+    /// by 0xCC/0x1000 of its initial target displacement, with a 20-tick lifetime; stored in
+    /// gRoomEffectFlyingSparkId, which the room's glow disc spawns at random player joints.
     EFFECT_SHELTER_B1_CONTROL_ROOM_ACCESS_TUNNEL_FLYING_SPARK = EFFECT_ID(EFFECT_TASK_BANK, 0x27A),
     /// shelter_b1_control_room_access_tunnel's copy of the shared orange burst
-    /// (RoomFx_OrangeBurst2Task, the flying-section copy of the orange burst): growing
+    /// (_roomVisualEffectsFlyingOrangeBurstTask, the flying-section copy of the orange burst): growing
     /// disc and glow with an expanding ring, then fades; the room stores it in
     /// gRoomEffectOrangeBurst2Id (orange-burst-2 slot, spawned by actor_02400).
     EFFECT_SHELTER_B1_CONTROL_ROOM_ACCESS_TUNNEL_ORANGE_BURST_2 = EFFECT_ID(EFFECT_TASK_BANK, 0x27B),
@@ -1896,10 +1900,10 @@ enum {
     /// which the Amoeba holds while it grows.
     EFFECT_SHELTER_B2_BREEDING_ROOM_GLOW_DISC = EFFECT_ID(EFFECT_TASK_BANK, 0x27C),
     /// The shelter_b2_breeding_room instance of the room-effect library's
-    /// RoomFx_FlyingSparkTask: a spark that flies from its frame toward a target frame
-    /// named by the spawn argument, drawn as an animated textured square for 20 ticks;
-    /// the room stores it in slot gRoomEffectFlyingSparkId, spawned by the room GLOW_DISC task
-    /// (gRoomEffectGlowDiscId) at random player joints.
+    /// _roomVisualEffectsFlyingSparkTask: a spark that flies along the initial displacement
+    /// toward a target frame named by the spawn argument, drawn as an animated textured square
+    /// for 20 ticks; the room stores it in slot gRoomEffectFlyingSparkId, spawned by the room
+    /// GLOW_DISC task (gRoomEffectGlowDiscId) at random player joints.
     EFFECT_SHELTER_B2_BREEDING_ROOM_FLYING_SPARK = EFFECT_ID(EFFECT_TASK_BANK, 0x27D),
     /// shelter_b2_breeding_room's copy of the RoomFx orange burst (flying section): a
     /// growing disc and glow with an expanding, fading ring; the room stores it in slot
@@ -1909,12 +1913,12 @@ enum {
     /// the player, flickers and drifts away inside a ring; stored in gRoomEffectGlowDiscId, which
     /// actor_02400 spawns.
     EFFECT_NEO_ARK_SUBMARINE_TUNNEL_GLOW_DISC = EFFECT_ID(EFFECT_TASK_BANK, 0x27F),
-    /// neo_ark_submarine_tunnel's copy of the shared spark (RoomFx_FlyingSparkTask)
-    /// that flies from its frame toward a target frame as an animated textured square
-    /// for 20 ticks; the room stores it in gRoomEffectFlyingSparkId (flying-spark slot, spawned by
+    /// neo_ark_submarine_tunnel's copy of the shared spark (_roomVisualEffectsFlyingSparkTask)
+    /// that flies from its frame toward a target frame as an animated textured square for 20
+    /// ticks; the room stores it in gRoomEffectFlyingSparkId (flying-spark slot, spawned by
     /// RoomFx glow discs at random player joints).
     EFFECT_NEO_ARK_SUBMARINE_TUNNEL_FLYING_SPARK = EFFECT_ID(EFFECT_TASK_BANK, 0x280),
-    /// neo_ark_submarine_tunnel's copy of RoomFx_OrangeBurst2Task (an orange disc/glow
+    /// neo_ark_submarine_tunnel's copy of _roomVisualEffectsFlyingOrangeBurstTask (an orange disc/glow
     /// with an expanding ring), stored in gRoomEffectOrangeBurst2Id, which the Amoeba's projectile
     /// spawns when it expires or hits.
     EFFECT_NEO_ARK_SUBMARINE_TUNNEL_ORANGE_BURST_2 = EFFECT_ID(EFFECT_TASK_BANK, 0x281),
@@ -1961,12 +1965,12 @@ enum {
     /// inside an expanding ring; the room stores it in gRoomEffectGlowDiscId (glow-disc slot,
     /// spawned by actor_02400).
     EFFECT_DRYFIELD_TOILET_GLOW_DISC = EFFECT_ID(EFFECT_TASK_BANK, 0x28A),
-    /// dryfield_toilet's copy of RoomFx_FlyingSparkTask (a textured spark flying from a
-    /// player joint to the target frame over 20 ticks), stored in gRoomEffectFlyingSparkId and
+    /// dryfield_toilet's copy of _roomVisualEffectsFlyingSparkTask (a textured spark flying from
+    /// a player joint to the target frame over 20 ticks), stored in gRoomEffectFlyingSparkId and
     /// spawned by the Amoeba's glow disc.
     EFFECT_DRYFIELD_TOILET_FLYING_SPARK = EFFECT_ID(EFFECT_TASK_BANK, 0x28B),
     /// The dryfield_toilet instance of the room-effect library's
-    /// RoomFx_OrangeBurst2Task: an orange burst (second copy of the helpers): a growing
+    /// _roomVisualEffectsFlyingOrangeBurstTask: an orange burst (second copy of the helpers): a growing
     /// disc and glow with a wider fading ring behind them; the room stores it in slot
     /// gRoomEffectOrangeBurst2Id, read by actor_02400 (fireball library) when its projectile times out
     /// or hits.
@@ -1985,7 +1989,7 @@ enum {
     /// for seven ticks; the room stores it in gRoomEffectSparkBurstId (spark-burst slot, spawned by
     /// golemPawnRookBulletFly when a golem bullet ends its flight).
     EFFECT_ACROPOLIS_CAFETERIA_SPARK_BURST = EFFECT_ID(EFFECT_TASK_BANK, 0x28F),
-    /// acropolis_forked_road's copy of RoomFx_FlashTask (fans and a shrinking ring
+    /// acropolis_forked_road's copy of _roomVisualEffectsFlashTask (fans and a shrinking ring
     /// ramping to a coloured screen fade), stored in gRoomEffectFlashId, which the Pawn/Rook
     /// GOLEM's silence-scream state spawns on its part 4.
     EFFECT_ACROPOLIS_FORKED_ROAD_FLASH = EFFECT_ID(EFFECT_TASK_BANK, 0x290),
@@ -2001,7 +2005,7 @@ enum {
     /// it in slot gRoomEffectSparkBurstId, which the grenade-launcher Pawn/Rook golems spawn where a
     /// grenade lands (golemPawnRookBulletFly).
     EFFECT_ACROPOLIS_FORKED_ROAD_SPARK_BURST = EFFECT_ID(EFFECT_TASK_BANK, 0x292),
-    /// Flash (RoomFx_FlashTask): fans and an inward ring ramping up, a fade quad at the
+    /// Flash (_roomVisualEffectsFlashTask): fans and an inward ring ramping up, a fade quad at the
     /// peak, then a star fade-out; stored in gRoomEffectFlashId, which golems
     /// (actor_02300/05700) spawn at part 4 in their scream sequence.
     EFFECT_DRYFIELD_MAIN_STREET_FLASH = EFFECT_ID(EFFECT_TASK_BANK, 0x293),
@@ -2014,7 +2018,7 @@ enum {
     /// sparks or a widening ring for seven ticks), stored in gRoomEffectSparkBurstId, which the
     /// grenade-launcher GOLEM's bullet spawns where it hits.
     EFFECT_DRYFIELD_MAIN_STREET_SPARK_BURST = EFFECT_ID(EFFECT_TASK_BANK, 0x295),
-    /// The dryfield_back_street instance of the room-effect library's RoomFx_FlashTask:
+    /// The dryfield_back_street instance of the room-effect library's _roomVisualEffectsFlashTask:
     /// a flash: two fans and an inward-shrinking ring ramping up over spawnArg1 ticks,
     /// peaking with a coloured fade quad, then fading through a star; the room stores
     /// it in slot gRoomEffectFlashId, read by the Pawn/Rook GOLEM silence-scream state

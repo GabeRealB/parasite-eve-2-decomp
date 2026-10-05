@@ -523,7 +523,7 @@ void func_shelter_b6_training_room_8017EE70(Task* arg0)
         step       = mem->angle + 0x10;
         mem->angle = step;
         effectDrawGouraudDisc(coord, (s16)(step * 2), rgb);
-        RoomFx_DrawBurstGlow(coord, mem->angle);
+        _roomVisualEffectsDrawHaloBurstGlow(coord, mem->angle);
         if (mem->period >= 0x19) {
             rgb[0] = mem->period;
             rgb[1] = mem->period >> 1;

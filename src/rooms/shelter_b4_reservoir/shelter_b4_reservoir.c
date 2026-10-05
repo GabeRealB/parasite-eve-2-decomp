@@ -1961,14 +1961,14 @@ void func_shelter_b4_reservoir_80182B1C(Task* arg0)
 
 void func_shelter_b4_reservoir_80183074(Task* task)
 {
-    RoomFx_FlyingSparkTask(task);
+    _roomVisualEffectsFlyingSparkTask(task);
 }
 
 #include "../../shared/room_visual_effects_burst.inc.c"
 
 void func_shelter_b4_reservoir_80183CD4(Task* arg0)
 {
-    RoomFx_OrangeBurst2Task(arg0);
+    _roomVisualEffectsFlyingOrangeBurstTask(arg0);
 }
 
 #include "../../shared/room_visual_effects_burst_draw.inc.c"

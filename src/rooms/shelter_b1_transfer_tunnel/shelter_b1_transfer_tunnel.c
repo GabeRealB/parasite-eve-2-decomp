@@ -417,7 +417,7 @@ void func_shelter_b1_transfer_tunnel_801807F8(Task* arg0)
 
 void func_shelter_b1_transfer_tunnel_8018092C(Task* arg0)
 {
-    RoomFx_FlashTask(arg0);
+    _roomVisualEffectsFlashTask(arg0);
 }
 
 #include "../../shared/room_visual_effects_trails.inc.c"

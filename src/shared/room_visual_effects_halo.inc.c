@@ -68,105 +68,112 @@ static void RoomFx_DrawMote(GfxCoord* arg0, u16 arg1, u16 arg2, u16 arg3)
     SCRATCH_STACK_RELEASE_BLOCK(EffectCentreScratch);
 }
 
-/// Queues a gouraud ring of sixteen quads around the projected world position
-/// of `arg0`: black at radius `arg1` and shaded `rgb` at radius `arg1 + arg2`,
-/// both scaled by depth. Nothing is drawn when the projection overflows.
-static void RoomFx_DrawHaloRing(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
+/// Draws an additive sixteen-segment ring around a composed coordinate's world position.
+///
+/// `blackRadius` and `blackRadius + tintRadiusDelta` are narrowed separately to
+/// signed 16-bit world units, then scaled by 64 / (SZ3 / 4 + 1). The first edge
+/// is black and the second has the three-byte `rgb` tint; a negative delta can
+/// reverse their radial order. A negative GTE projection flag suppresses drawing.
+static void _roomVisualEffectsDrawHaloRing(const GfxCoord* coord, s32 blackRadius, s32 tintRadiusDelta, const u8 rgb[3])
 {
-    RoomFxRadialScratch* block;
-    POLY_G4*             prim;
-    s32                  ang;
-    s32                  next;
-    s32                  outer;
+    RoomFxRadialScratch* projection;
+    POLY_G4*             quad;
+    s32                  angle;
+    s32                  nextAngle;
+    s32                  tintRadius;
 
-    block                = SCRATCH_STACK_RESERVE_BLOCK(RoomFxRadialScratch);
-    block->worldPoint.vx = arg0->workm.t[0];
-    block->worldPoint.vy = arg0->workm.t[1];
-    block->worldPoint.vz = arg0->workm.t[2];
-    outer                = arg1 + arg2;
+    projection                = SCRATCH_STACK_RESERVE_BLOCK(RoomFxRadialScratch);
+    projection->worldPoint.vx = coord->workm.t[0];
+    projection->worldPoint.vy = coord->workm.t[1];
+    projection->worldPoint.vz = coord->workm.t[2];
+    tintRadius                = blackRadius + tintRadiusDelta;
 
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&block->worldPoint);
+    gte_ldv0(&projection->worldPoint);
     gte_rtps();
-    gte_stsxy(&block->screenX);
-    gte_stflg(&block->projectionFlags);
-    if (block->projectionFlags >= 0) {
-        gte_stszotz(&block->depth);
-        block->depth++;
-        block->radii.ring.black = ((s16)arg1 * 64) / block->depth;
-        block->radii.ring.tint  = ((s16)outer * 64) / block->depth;
-        for (ang = 0; ang < 0x1000; ang = next) {
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, rgb[0], rgb[1], rgb[2]);
-            setRGB3(prim, rgb[0], rgb[1], rgb[2]);
-            prim->x0 = block->screenX + ((block->radii.ring.black * rsin(ang)) >> 12);
-            prim->y0 = block->screenY + ((block->radii.ring.black * rcos(ang)) >> 12);
-            next     = ang + 0x100;
-            prim->x1 = block->screenX + ((block->radii.ring.black * rsin(next)) >> 12);
-            prim->y1 = block->screenY + ((block->radii.ring.black * rcos(next)) >> 12);
-            prim->x2 = block->screenX + ((block->radii.ring.tint * rsin(ang)) >> 12);
-            prim->y2 = block->screenY + ((block->radii.ring.tint * rcos(ang)) >> 12);
-            prim->x3 = block->screenX + ((block->radii.ring.tint * rsin(next)) >> 12);
-            prim->y3 = block->screenY + ((block->radii.ring.tint * rcos(next)) >> 12);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->depth);
+    gte_stsxy(&projection->screenX);
+    gte_stflg(&projection->projectionFlags);
+    if (projection->projectionFlags >= 0) {
+        gte_stszotz(&projection->depth);
+        projection->depth++;
+        projection->radii.ring.black = ((s16)blackRadius * ROOM_VISUAL_EFFECTS_RADIAL_PROJECTION_SCALE) / projection->depth;
+        projection->radii.ring.tint  = ((s16)tintRadius * ROOM_VISUAL_EFFECTS_RADIAL_PROJECTION_SCALE) / projection->depth;
+        // Join the black and tinted edges in sixteenth-turn segments.
+        for (angle = 0; angle < ROOM_VISUAL_EFFECTS_FULL_TURN; angle = nextAngle) {
+            quad           = gGpuPrimCursor;
+            gGpuPrimCursor = quad + 1;
+            setPolyG4(quad);
+            setRGB0(quad, 0, 0, 0);
+            setRGB1(quad, 0, 0, 0);
+            setRGB2(quad, rgb[0], rgb[1], rgb[2]);
+            setRGB3(quad, rgb[0], rgb[1], rgb[2]);
+            quad->x0  = projection->screenX + ((projection->radii.ring.black * rsin(angle)) >> ROOM_VISUAL_EFFECTS_TRIG_FRACTION_BITS);
+            quad->y0  = projection->screenY + ((projection->radii.ring.black * rcos(angle)) >> ROOM_VISUAL_EFFECTS_TRIG_FRACTION_BITS);
+            nextAngle = angle + 0x100;
+            quad->x1  = projection->screenX + ((projection->radii.ring.black * rsin(nextAngle)) >> ROOM_VISUAL_EFFECTS_TRIG_FRACTION_BITS);
+            quad->y1  = projection->screenY + ((projection->radii.ring.black * rcos(nextAngle)) >> ROOM_VISUAL_EFFECTS_TRIG_FRACTION_BITS);
+            quad->x2  = projection->screenX + ((projection->radii.ring.tint * rsin(angle)) >> ROOM_VISUAL_EFFECTS_TRIG_FRACTION_BITS);
+            quad->y2  = projection->screenY + ((projection->radii.ring.tint * rcos(angle)) >> ROOM_VISUAL_EFFECTS_TRIG_FRACTION_BITS);
+            quad->x3  = projection->screenX + ((projection->radii.ring.tint * rsin(nextAngle)) >> ROOM_VISUAL_EFFECTS_TRIG_FRACTION_BITS);
+            quad->y3  = projection->screenY + ((projection->radii.ring.tint * rcos(nextAngle)) >> ROOM_VISUAL_EFFECTS_TRIG_FRACTION_BITS);
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)projection->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                    quad);
+            gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, projection->depth);
         }
     }
     SCRATCH_STACK_RELEASE_BLOCK(RoomFxRadialScratch);
 }
 
-/// Queues a gouraud disc of eight wedges around the projected world position
-/// of `arg0`, shaded `rgb` at the centre and black at the rim, of radius
-/// `arg1` scaled by depth. Nothing is drawn when the projection overflows.
-static void RoomFx_DrawHaloDisc(GfxCoord* arg0, s16 arg1, u8* rgb)
+/// Draws an additive eight-wedge disc with a tinted centre and black rim.
+///
+/// `coord` must have a composed world matrix; `rgb` supplies three colour bytes.
+/// The signed 16-bit radius in world units is scaled by 64 / (SZ3 / 4 + 1).
+/// A negative GTE projection flag suppresses drawing.
+static void _roomVisualEffectsDrawHaloDisc(const GfxCoord* coord, s16 radius, const u8 rgb[3])
 {
-    RoomFxFanScratch* block;
-    POLY_G4*          prim;
-    s32               ang;
+    RoomFxFanScratch* projection;
+    POLY_G4*          quad;
+    s32               angle;
     s32               depth;
 
-    block                = SCRATCH_STACK_RESERVE_BLOCK(RoomFxFanScratch);
-    block->worldPoint.vx = arg0->workm.t[0];
-    block->worldPoint.vy = arg0->workm.t[1];
-    block->worldPoint.vz = arg0->workm.t[2];
+    projection                = SCRATCH_STACK_RESERVE_BLOCK(RoomFxFanScratch);
+    projection->worldPoint.vx = coord->workm.t[0];
+    projection->worldPoint.vy = coord->workm.t[1];
+    projection->worldPoint.vz = coord->workm.t[2];
 
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&block->worldPoint);
+    gte_ldv0(&projection->worldPoint);
     gte_rtps();
-    gte_stsxy(&block->screenX);
-    gte_stflg(&block->projectionFlags);
-    if (block->projectionFlags >= 0) {
-        gte_stszotz(&block->depth);
-        depth         = block->depth + 1;
-        block->depth  = depth;
-        block->radius = (arg1 * 64) / depth;
+    gte_stsxy(&projection->screenX);
+    gte_stflg(&projection->projectionFlags);
+    if (projection->projectionFlags >= 0) {
+        gte_stszotz(&projection->depth);
+        depth              = projection->depth + 1;
+        projection->depth  = depth;
+        projection->radius = (radius * ROOM_VISUAL_EFFECTS_RADIAL_PROJECTION_SCALE) / depth;
 
-        for (ang = 0; ang < 0x1000; ang += 0x200) {
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, rgb[0], rgb[1], rgb[2]);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->screenX + ((block->radius * rsin(ang)) >> 12);
-            prim->y0 = block->screenY + ((block->radius * rcos(ang)) >> 12);
-            prim->x1 = block->screenX + ((block->radius * rsin(ang + 0x100)) >> 12);
-            prim->y1 = block->screenY + ((block->radius * rcos(ang + 0x100)) >> 12);
-            prim->x2 = block->screenX;
-            prim->y2 = block->screenY;
-            prim->x3 = block->screenX + ((block->radius * rsin(ang + 0x200)) >> 12);
-            prim->y3 = block->screenY + ((block->radius * rcos(ang + 0x200)) >> 12);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->depth);
+        // Each four-corner wedge shares the tinted centre and three black rim points.
+        for (angle = 0; angle < ROOM_VISUAL_EFFECTS_FULL_TURN; angle += 0x200) {
+            quad           = gGpuPrimCursor;
+            gGpuPrimCursor = quad + 1;
+            setPolyG4(quad);
+            setRGB0(quad, 0, 0, 0);
+            setRGB1(quad, 0, 0, 0);
+            setRGB2(quad, rgb[0], rgb[1], rgb[2]);
+            setRGB3(quad, 0, 0, 0);
+            quad->x0 = projection->screenX + ((projection->radius * rsin(angle)) >> ROOM_VISUAL_EFFECTS_TRIG_FRACTION_BITS);
+            quad->y0 = projection->screenY + ((projection->radius * rcos(angle)) >> ROOM_VISUAL_EFFECTS_TRIG_FRACTION_BITS);
+            quad->x1 = projection->screenX + ((projection->radius * rsin(angle + 0x100)) >> ROOM_VISUAL_EFFECTS_TRIG_FRACTION_BITS);
+            quad->y1 = projection->screenY + ((projection->radius * rcos(angle + 0x100)) >> ROOM_VISUAL_EFFECTS_TRIG_FRACTION_BITS);
+            quad->x2 = projection->screenX;
+            quad->y2 = projection->screenY;
+            quad->x3 = projection->screenX + ((projection->radius * rsin(angle + 0x200)) >> ROOM_VISUAL_EFFECTS_TRIG_FRACTION_BITS);
+            quad->y3 = projection->screenY + ((projection->radius * rcos(angle + 0x200)) >> ROOM_VISUAL_EFFECTS_TRIG_FRACTION_BITS);
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)projection->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                    quad);
+            gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, projection->depth);
         }
     }
     SCRATCH_STACK_RELEASE_BLOCK(RoomFxFanScratch);
@@ -227,14 +234,14 @@ static inline void RoomFx_HaloTask(Task* arg0)
                 rgb[0]                 = mem->scale >> RoomFx_GetHaloShades()[mem->index].rShift;
                 rgb[1]                 = mem->scale >> RoomFx_GetHaloShades()[mem->index].gShift;
                 rgb[2]                 = mem->scale >> RoomFx_GetHaloShades()[mem->index].bShift;
-                RoomFx_DrawHaloDisc(coord, mem->angle, rgb);
+                _roomVisualEffectsDrawHaloDisc(coord, mem->angle, rgb);
                 rgb[0] = rgb[0] >> 1;
                 rgb[1] = rgb[1] >> 1;
                 rgb[2] = rgb[2] >> 1;
                 if (mem->age & 1) {
-                    RoomFx_DrawHaloDisc(coord, (s16)(mem->angle + 0x100), rgb);
+                    _roomVisualEffectsDrawHaloDisc(coord, (s16)(mem->angle + 0x100), rgb);
                 }
-                RoomFx_DrawHaloRing(coord, (s16)(0x300 - (u16)mem->angle * 2), 0x80, rgb);
+                _roomVisualEffectsDrawHaloRing(coord, (s16)(0x300 - (u16)mem->angle * 2), 0x80, rgb);
                 if (arg0->spawnArg1.value == 0) {
                     mem->scale  = 0xFF;
                     arg0->state = 2;
@@ -300,13 +307,13 @@ static inline void RoomFx_OrangeBurstTask(Task* arg0)
         rgb[2]     = mem->scale >> 2;
         step       = mem->angle + 0x10;
         mem->angle = step;
-        RoomFx_DrawHaloDisc(coord, (s16)(step * 2), rgb);
-        RoomFx_DrawBurstGlow(coord, mem->angle);
+        _roomVisualEffectsDrawHaloDisc(coord, (s16)(step * 2), rgb);
+        _roomVisualEffectsDrawHaloBurstGlow(coord, mem->angle);
         if (mem->period >= 0x19) {
             rgb[0] = mem->period;
             rgb[1] = mem->period >> 1;
             rgb[2] = mem->period >> 2;
-            RoomFx_DrawHaloRing(coord, (s16)(mem->step * 3 / 2), 0x60, rgb);
+            _roomVisualEffectsDrawHaloRing(coord, (s16)(mem->step * 3 / 2), 0x60, rgb);
             mem->period -= 0x18;
             mem->step   += 0x30;
             return;

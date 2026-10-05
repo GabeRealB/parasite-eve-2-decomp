@@ -702,7 +702,7 @@ void func_shelter_b2_elevator_hall_801816C8(Task* arg0)
 
 void func_shelter_b2_elevator_hall_801817FC(Task* arg0)
 {
-    RoomFx_FlashTask(arg0);
+    _roomVisualEffectsFlashTask(arg0);
 }
 
 #include "../../shared/room_visual_effects_trails.inc.c"

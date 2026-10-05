@@ -1591,7 +1591,7 @@ void func_acropolis_forked_road_8017E81C(Task* task)
 
 void func_acropolis_forked_road_8017EF80(Task* arg0)
 {
-    RoomFx_FlashTask(arg0);
+    _roomVisualEffectsFlashTask(arg0);
 }
 
 #include "../../shared/room_visual_effects_trails.inc.c"

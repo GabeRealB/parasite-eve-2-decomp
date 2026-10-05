@@ -101,10 +101,10 @@ func_dryfield_toilet_8017EBF4 = 0x8017EBF4; // type:func
 func_dryfield_toilet_8017F854 = 0x8017F854; // type:func
 
 func_dryfield_toilet_8017DCF0 = 0x8017DCF0; // type:func
-RoomFx_DrawFlyingSpark = 0x8017EE18; // type:func
-RoomFx_DrawFlyingRing = 0x8017F09C; // type:func
-RoomFx_DrawFlyingDisc = 0x8017F4C0; // type:func
-RoomFx_DrawBurst2Glow = 0x8017FA00; // type:func
-RoomFx_DrawGround2Quad = 0x8017FF2C; // type:func
+_roomVisualEffectsDrawFlyingSpark = 0x8017EE18; // type:func
+_roomVisualEffectsDrawFlyingRing = 0x8017F09C; // type:func
+_roomVisualEffectsDrawFlyingDisc = 0x8017F4C0; // type:func
+_roomVisualEffectsDrawFlyingBurstGlow = 0x8017FA00; // type:func
+_roomVisualEffectsDrawFlyingBurstGroundQuad = 0x8017FF2C; // type:func
 roomVariantParkingLotMsg = 0x8017D810; // type:func
 toiletSoundMsg = 0x8017D884; // type:func

@@ -58,11 +58,11 @@ func_neo_ark_garden_8017FCE8 = 0x8017FCE8; // type:func
 func_neo_ark_garden_8017F790 = 0x8017F790; // type:func
 
 func_neo_ark_garden_80180948 = 0x80180948; // type:func
-RoomFx_DrawFlyingSpark = 0x8017FF0C; // type:func
-RoomFx_DrawFlyingRing = 0x80180190; // type:func
-RoomFx_DrawFlyingDisc = 0x801805B4; // type:func
-RoomFx_DrawBurst2Glow = 0x80180AF4; // type:func
-RoomFx_DrawGround2Quad = 0x80181020; // type:func
+_roomVisualEffectsDrawFlyingSpark = 0x8017FF0C; // type:func
+_roomVisualEffectsDrawFlyingRing = 0x80180190; // type:func
+_roomVisualEffectsDrawFlyingDisc = 0x801805B4; // type:func
+_roomVisualEffectsDrawFlyingBurstGlow = 0x80180AF4; // type:func
+_roomVisualEffectsDrawFlyingBurstGroundQuad = 0x80181020; // type:func
 waterDistortBandTask = 0x8017E2A0; // type:func
 waterRefractionTask = 0x8017D64C; // type:func
 glowDrawPulsingStar = 0x8017EFB8; // type:func

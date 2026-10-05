@@ -51,10 +51,10 @@ func_shelter_1f_vehicular_airlock_8017F720 = 0x8017F720; // type:func
 func_shelter_1f_vehicular_airlock_80180008 = 0x80180008; // type:func
 
 func_shelter_1f_vehicular_airlock_8017DAA0 = 0x8017DAA0; // type:func
-RoomFx_DrawFlashRing = 0x8017EF60; // type:func
-RoomFx_DrawFlashDisc = 0x8017F38C; // type:func
-RoomFx_DrawTwinTrail = 0x8017FC10; // type:func
-RoomFx_DrawBurstStar = 0x80180290; // type:func
+_roomVisualEffectsDrawFlashRing = 0x8017EF60; // type:func
+_roomVisualEffectsDrawFlashDisc = 0x8017F38C; // type:func
+_roomVisualEffectsDrawTwinTrail = 0x8017FC10; // type:func
+_roomVisualEffectsDrawBurstStar = 0x80180290; // type:func
 roomEventStagedTask = 0x8017D644; // type:func
 glowDrawFactorDisc = 0x8017E468; // type:func
 glowDrawAngledCapsule = 0x8017DC80; // type:func

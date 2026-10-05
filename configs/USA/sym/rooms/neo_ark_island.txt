@@ -69,10 +69,10 @@ func_neo_ark_island_8017FB9C = 0x8017FB9C; // type:func
 func_neo_ark_island_80180600 = 0x80180600; // type:func
 
 func_neo_ark_island_80180EE8 = 0x80180EE8; // type:func
-RoomFx_DrawFlashRing = 0x8017FE40; // type:func
-RoomFx_DrawFlashDisc = 0x8018026C; // type:func
-RoomFx_DrawTwinTrail = 0x80180AF0; // type:func
-RoomFx_DrawBurstStar = 0x80181170; // type:func
+_roomVisualEffectsDrawFlashRing = 0x8017FE40; // type:func
+_roomVisualEffectsDrawFlashDisc = 0x8018026C; // type:func
+_roomVisualEffectsDrawTwinTrail = 0x80180AF0; // type:func
+_roomVisualEffectsDrawBurstStar = 0x80181170; // type:func
 waterDrawSplash = 0x8017ECB4; // type:func
 waterDistortBandTask = 0x8017E2A4; // type:func
 waterRefractionTask = 0x8017D650; // type:func

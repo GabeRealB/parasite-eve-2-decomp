@@ -935,7 +935,7 @@ void func_neo_ark_power_plant_2_8017D8AC(Task* arg0)
 
 void func_neo_ark_power_plant_2_8017DDF4(Task* arg0)
 {
-    RoomFx_FlashTask(arg0);
+    _roomVisualEffectsFlashTask(arg0);
 }
 
 #include "../../shared/room_visual_effects_trails.inc.c"

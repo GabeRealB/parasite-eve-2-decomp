@@ -705,7 +705,7 @@ void func_neo_ark_pyramid_8017DBF0(Task* arg0)
 
 void func_neo_ark_pyramid_8017DC50(Task* arg0)
 {
-    RoomFx_FlashTask(arg0);
+    _roomVisualEffectsFlashTask(arg0);
 }
 
 #include "../../shared/room_visual_effects_trails.inc.c"

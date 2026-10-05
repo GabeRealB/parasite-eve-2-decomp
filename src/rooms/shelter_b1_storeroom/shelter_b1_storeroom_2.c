@@ -731,7 +731,7 @@ void func_shelter_b1_storeroom_80180C98(Task* arg0)
 
 void func_shelter_b1_storeroom_80180DCC(Task* arg0)
 {
-    RoomFx_FlashTask(arg0);
+    _roomVisualEffectsFlashTask(arg0);
 }
 
 #include "../../shared/room_visual_effects_trails.inc.c"
@@ -758,14 +758,14 @@ void func_shelter_b1_storeroom_80182D60(Task* arg0)
 
 void func_shelter_b1_storeroom_801832B8(Task* task)
 {
-    RoomFx_FlyingSparkTask(task);
+    _roomVisualEffectsFlyingSparkTask(task);
 }
 
 #include "../../shared/room_visual_effects_burst.inc.c"
 
 void func_shelter_b1_storeroom_80183F18(Task* arg0)
 {
-    RoomFx_OrangeBurst2Task(arg0);
+    _roomVisualEffectsFlyingOrangeBurstTask(arg0);
 }
 
 #include "../../shared/room_visual_effects_burst_draw.inc.c"

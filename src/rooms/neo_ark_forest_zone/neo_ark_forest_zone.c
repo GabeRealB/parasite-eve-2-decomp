@@ -288,7 +288,7 @@ void func_neo_ark_forest_zone_8017E3C0(Task* arg0)
 
 void func_neo_ark_forest_zone_8017E420(Task* arg0)
 {
-    RoomFx_FlashTask(arg0);
+    _roomVisualEffectsFlashTask(arg0);
 }
 
 #include "../../shared/room_visual_effects_trails.inc.c"

@@ -1208,7 +1208,7 @@ void func_neo_ark_pavilion_8017FC10(Task* arg0)
 
 void func_neo_ark_pavilion_8017FCB0(Task* arg0)
 {
-    RoomFx_FlashTask(arg0);
+    _roomVisualEffectsFlashTask(arg0);
 }
 
 #include "../../shared/room_visual_effects_trails.inc.c"
@@ -1236,14 +1236,14 @@ void func_neo_ark_pavilion_80181C44(Task* arg0)
 
 void func_neo_ark_pavilion_8018219C(Task* task)
 {
-    RoomFx_FlyingSparkTask(task);
+    _roomVisualEffectsFlyingSparkTask(task);
 }
 
 #include "../../shared/room_visual_effects_burst.inc.c"
 
 void func_neo_ark_pavilion_80182DFC(Task* arg0)
 {
-    RoomFx_OrangeBurst2Task(arg0);
+    _roomVisualEffectsFlyingOrangeBurstTask(arg0);
 }
 
 #include "../../shared/room_visual_effects_burst_draw.inc.c"

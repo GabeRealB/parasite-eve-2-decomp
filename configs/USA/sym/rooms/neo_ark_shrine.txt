@@ -133,10 +133,10 @@ func_neo_ark_shrine_8017FEA0 = 0x8017FEA0; // type:func
 func_neo_ark_shrine_80180904 = 0x80180904; // type:func
 
 func_neo_ark_shrine_801811EC = 0x801811EC; // type:func
-RoomFx_DrawFlashRing = 0x80180144; // type:func
-RoomFx_DrawFlashDisc = 0x80180570; // type:func
-RoomFx_DrawTwinTrail = 0x80180DF4; // type:func
-RoomFx_DrawBurstStar = 0x80181474; // type:func
+_roomVisualEffectsDrawFlashRing = 0x80180144; // type:func
+_roomVisualEffectsDrawFlashDisc = 0x80180570; // type:func
+_roomVisualEffectsDrawTwinTrail = 0x80180DF4; // type:func
+_roomVisualEffectsDrawBurstStar = 0x80181474; // type:func
 actionPromptOutlineRect = 0x8017DD38; // type:func
 actionPromptMoveCursors = 0x8017E528; // type:func
 actionPromptDrawCursor = 0x8017E988; // type:func

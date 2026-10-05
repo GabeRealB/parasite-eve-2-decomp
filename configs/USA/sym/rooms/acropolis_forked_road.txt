@@ -136,8 +136,8 @@ func_acropolis_forked_road_8017F9E4 = 0x8017F9E4; // type:func
 func_acropolis_forked_road_801802CC = 0x801802CC; // type:func
 
 func_acropolis_forked_road_8017E81C = 0x8017E81C; // type:func
-RoomFx_DrawFlashRing = 0x8017F224; // type:func
-RoomFx_DrawFlashDisc = 0x8017F650; // type:func
-RoomFx_DrawTwinTrail = 0x8017FED4; // type:func
-RoomFx_DrawBurstStar = 0x80180554; // type:func
+_roomVisualEffectsDrawFlashRing = 0x8017F224; // type:func
+_roomVisualEffectsDrawFlashDisc = 0x8017F650; // type:func
+_roomVisualEffectsDrawTwinTrail = 0x8017FED4; // type:func
+_roomVisualEffectsDrawBurstStar = 0x80180554; // type:func
 leafDraw = 0x8017EC70; // type:func

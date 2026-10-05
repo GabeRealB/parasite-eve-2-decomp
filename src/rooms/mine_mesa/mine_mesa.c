@@ -3320,7 +3320,7 @@ void func_mine_mesa_8017ED08(Task* arg0)
 
 void func_mine_mesa_8017F230(Task* arg0)
 {
-    RoomFx_FlashTask(arg0);
+    _roomVisualEffectsFlashTask(arg0);
 }
 
 #include "../../shared/room_visual_effects_trails.inc.c"

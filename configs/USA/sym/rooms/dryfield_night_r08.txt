@@ -47,9 +47,9 @@ func_dryfield_night_r08_8017E5B0 = 0x8017E5B0; // type:func
 func_dryfield_night_r08_8017F014 = 0x8017F014; // type:func
 
 func_dryfield_night_r08_8017F8FC = 0x8017F8FC; // type:func
-RoomFx_DrawFlashRing = 0x8017E854; // type:func
-RoomFx_DrawFlashDisc = 0x8017EC80; // type:func
-RoomFx_DrawTwinTrail = 0x8017F504; // type:func
-RoomFx_DrawBurstStar = 0x8017FB84; // type:func
+_roomVisualEffectsDrawFlashRing = 0x8017E854; // type:func
+_roomVisualEffectsDrawFlashDisc = 0x8017EC80; // type:func
+_roomVisualEffectsDrawTwinTrail = 0x8017F504; // type:func
+_roomVisualEffectsDrawBurstStar = 0x8017FB84; // type:func
 glowDrawBeam = 0x8017DB4C; // type:func
 glowDrawFlareClipped = 0x8017E334; // type:func

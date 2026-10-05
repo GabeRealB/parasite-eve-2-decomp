@@ -543,7 +543,7 @@ void func_neo_ark_savanna_zone_8017D9AC(Task* arg0)
 
 void func_neo_ark_savanna_zone_8017DA0C(Task* arg0)
 {
-    RoomFx_FlashTask(arg0);
+    _roomVisualEffectsFlashTask(arg0);
 }
 
 #include "../../shared/room_visual_effects_trails.inc.c"

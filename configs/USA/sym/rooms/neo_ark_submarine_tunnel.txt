@@ -99,11 +99,11 @@ func_neo_ark_submarine_tunnel_8017FA34 = 0x8017FA34; // type:func
 func_neo_ark_submarine_tunnel_80180694 = 0x80180694; // type:func
 
 func_neo_ark_submarine_tunnel_8017F48C = 0x8017F48C; // type:func
-RoomFx_DrawFlyingSpark = 0x8017FC58; // type:func
-RoomFx_DrawFlyingRing = 0x8017FEDC; // type:func
-RoomFx_DrawFlyingDisc = 0x80180300; // type:func
-RoomFx_DrawBurst2Glow = 0x80180840; // type:func
-RoomFx_DrawGround2Quad = 0x80180D6C; // type:func
+_roomVisualEffectsDrawFlyingSpark = 0x8017FC58; // type:func
+_roomVisualEffectsDrawFlyingRing = 0x8017FEDC; // type:func
+_roomVisualEffectsDrawFlyingDisc = 0x80180300; // type:func
+_roomVisualEffectsDrawFlyingBurstGlow = 0x80180840; // type:func
+_roomVisualEffectsDrawFlyingBurstGroundQuad = 0x80180D6C; // type:func
 screenWaveTask = 0x8017E828; // type:func
 waterDistortBandTask = 0x8017E288; // type:func
 waterRefractionTask = 0x8017D634; // type:func

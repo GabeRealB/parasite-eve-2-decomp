@@ -603,7 +603,7 @@ static void func_shelter_1f_vehicular_airlock_8017E80C(SVECTOR* arg0, s32 arg1, 
 
 void func_shelter_1f_vehicular_airlock_8017ECBC(Task* arg0)
 {
-    RoomFx_FlashTask(arg0);
+    _roomVisualEffectsFlashTask(arg0);
 }
 
 #include "../../shared/room_visual_effects_trails.inc.c"

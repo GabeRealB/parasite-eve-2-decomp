@@ -690,7 +690,7 @@ void func_shelter_b2_pod_access_tunnel_80181AF8(Task* arg0)
 
 void func_shelter_b2_pod_access_tunnel_80181C2C(Task* arg0)
 {
-    RoomFx_FlashTask(arg0);
+    _roomVisualEffectsFlashTask(arg0);
 }
 
 #include "../../shared/room_visual_effects_trails.inc.c"

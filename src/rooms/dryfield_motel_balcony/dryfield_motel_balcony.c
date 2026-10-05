@@ -1229,7 +1229,7 @@ void func_dryfield_motel_balcony_801801A8(Task* arg0)
 
 void func_dryfield_motel_balcony_801802DC(Task* arg0)
 {
-    RoomFx_FlashTask(arg0);
+    _roomVisualEffectsFlashTask(arg0);
 }
 
 #include "../../shared/room_visual_effects_trails.inc.c"

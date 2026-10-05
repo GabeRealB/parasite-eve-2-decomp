@@ -111,7 +111,7 @@ void func_neo_ark_island_8017FB2C(Task* arg0)
 
 void func_neo_ark_island_8017FB9C(Task* arg0)
 {
-    RoomFx_FlashTask(arg0);
+    _roomVisualEffectsFlashTask(arg0);
 }
 
 #include "../../shared/room_visual_effects_trails.inc.c"

@@ -1,110 +1,114 @@
 /* Continue room_visual_effects.inc.c after the preceding overlay wrappers. */
 
-/// Queues a gouraud ring of sixteen quads around the projected world position
-/// of `arg0`: black at radius `arg1` and shaded `rgb` at radius `arg1 + arg2`,
-/// both scaled by depth. Nothing is drawn when the projection overflows. The
-/// same drawing as `RoomFx_DrawHaloRing`, with
-/// its scratch block laid out differently.
-static void RoomFx_DrawFlashRing(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
+/// Draws an additive sixteen-segment ring around a composed coordinate's world position.
+///
+/// `blackRadius` and `blackRadius + tintRadiusDelta` are narrowed separately to
+/// signed 16-bit world units, then scaled by 64 / (SZ3 / 4 + 1). The first edge
+/// is black and the second has the three-byte `rgb` tint; a negative delta can
+/// reverse their radial order. A negative GTE projection flag suppresses drawing.
+static void _roomVisualEffectsDrawFlashRing(const GfxCoord* coord, s32 blackRadius, s32 tintRadiusDelta, const u8 rgb[3])
 {
-    RoomFxFlashRingScratch* block;
-    POLY_G4*                prim;
-    s32                     ang;
-    s32                     t;
-    s16                     blackRadius = arg1;
-    s16                     tintRadius  = arg1 + arg2;
+    RoomFxFlashRingScratch* projection;
+    POLY_G4*                quad;
+    s32                     angle;
+    s32                     nextAngle;
+    s16                     blackRadius16 = blackRadius;
+    s16                     tintRadius16  = blackRadius + tintRadiusDelta;
 
-    block                = SCRATCH_STACK_RESERVE_BLOCK(RoomFxFlashRingScratch);
-    block->worldPoint.vx = arg0->workm.t[0];
-    block->worldPoint.vy = arg0->workm.t[1];
-    block->worldPoint.vz = arg0->workm.t[2];
+    projection                = SCRATCH_STACK_RESERVE_BLOCK(RoomFxFlashRingScratch);
+    projection->worldPoint.vx = coord->workm.t[0];
+    projection->worldPoint.vy = coord->workm.t[1];
+    projection->worldPoint.vz = coord->workm.t[2];
 
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&block->worldPoint);
+    gte_ldv0(&projection->worldPoint);
     gte_rtps();
-    gte_stsxy(&block->screenX);
-    gte_stflg(&block->projectionFlags);
-    if (block->projectionFlags >= 0) {
-        gte_stszotz(&block->depth);
-        block->depth++;
-        block->radii.black = (blackRadius * 64) / block->depth;
-        block->radii.tint  = (tintRadius * 64) / block->depth;
+    gte_stsxy(&projection->screenX);
+    gte_stflg(&projection->projectionFlags);
+    if (projection->projectionFlags >= 0) {
+        gte_stszotz(&projection->depth);
+        projection->depth++;
+        projection->radii.black = (blackRadius16 * ROOM_VISUAL_EFFECTS_RADIAL_PROJECTION_SCALE) / projection->depth;
+        projection->radii.tint  = (tintRadius16 * ROOM_VISUAL_EFFECTS_RADIAL_PROJECTION_SCALE) / projection->depth;
 
         // One quad per sixteenth of a turn, joining the black edge to the tinted edge.
-        ang = 0;
+        angle = 0;
         do {
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, rgb[0], rgb[1], rgb[2]);
-            setRGB3(prim, rgb[0], rgb[1], rgb[2]);
-            prim->x0 = block->screenX + ((block->radii.black * rsin(ang)) >> 12);
-            prim->y0 = block->screenY + ((block->radii.black * rcos(ang)) >> 12);
-            t        = ang + 0x100;
-            prim->x1 = block->screenX + ((block->radii.black * rsin(t)) >> 12);
-            prim->y1 = block->screenY + ((block->radii.black * rcos(t)) >> 12);
-            prim->x2 = block->screenX + ((block->radii.tint * rsin(ang)) >> 12);
-            prim->y2 = block->screenY + ((block->radii.tint * rcos(ang)) >> 12);
-            prim->x3 = block->screenX + ((block->radii.tint * rsin(t)) >> 12);
-            prim->y3 = block->screenY + ((block->radii.tint * rcos(t)) >> 12);
-            ang      = t;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->depth);
-        } while (ang < 0x1000);
+            quad           = gGpuPrimCursor;
+            gGpuPrimCursor = quad + 1;
+            setPolyG4(quad);
+            setRGB0(quad, 0, 0, 0);
+            setRGB1(quad, 0, 0, 0);
+            setRGB2(quad, rgb[0], rgb[1], rgb[2]);
+            setRGB3(quad, rgb[0], rgb[1], rgb[2]);
+            quad->x0  = projection->screenX + ((projection->radii.black * rsin(angle)) >> ROOM_VISUAL_EFFECTS_TRIG_FRACTION_BITS);
+            quad->y0  = projection->screenY + ((projection->radii.black * rcos(angle)) >> ROOM_VISUAL_EFFECTS_TRIG_FRACTION_BITS);
+            nextAngle = angle + 0x100;
+            quad->x1  = projection->screenX + ((projection->radii.black * rsin(nextAngle)) >> ROOM_VISUAL_EFFECTS_TRIG_FRACTION_BITS);
+            quad->y1  = projection->screenY + ((projection->radii.black * rcos(nextAngle)) >> ROOM_VISUAL_EFFECTS_TRIG_FRACTION_BITS);
+            quad->x2  = projection->screenX + ((projection->radii.tint * rsin(angle)) >> ROOM_VISUAL_EFFECTS_TRIG_FRACTION_BITS);
+            quad->y2  = projection->screenY + ((projection->radii.tint * rcos(angle)) >> ROOM_VISUAL_EFFECTS_TRIG_FRACTION_BITS);
+            quad->x3  = projection->screenX + ((projection->radii.tint * rsin(nextAngle)) >> ROOM_VISUAL_EFFECTS_TRIG_FRACTION_BITS);
+            quad->y3  = projection->screenY + ((projection->radii.tint * rcos(nextAngle)) >> ROOM_VISUAL_EFFECTS_TRIG_FRACTION_BITS);
+            angle     = nextAngle;
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)projection->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                    quad);
+            gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, projection->depth);
+        } while (angle < ROOM_VISUAL_EFFECTS_FULL_TURN);
     }
     SCRATCH_STACK_RELEASE_BLOCK(RoomFxFlashRingScratch);
 }
 
-/// Queues a gouraud disc of eight wedges around the projected world position
-/// of `arg0`, shaded `rgb` at the centre and black at the rim, of radius
-/// `arg1` scaled by depth. Nothing is drawn when the projection overflows.
-static void RoomFx_DrawFlashDisc(GfxCoord* arg0, s16 arg1, u8* rgb)
+/// Draws an additive eight-wedge disc with a tinted centre and black rim.
+///
+/// `coord` must have a composed world matrix; `rgb` supplies three colour bytes.
+/// The signed 16-bit radius in world units is scaled by 64 / (SZ3 / 4 + 1).
+/// A negative GTE projection flag suppresses drawing.
+static void _roomVisualEffectsDrawFlashDisc(const GfxCoord* coord, s16 radius, const u8 rgb[3])
 {
-    RoomFxFanScratch* block;
-    POLY_G4*          prim;
-    s32               ang;
+    RoomFxFanScratch* projection;
+    POLY_G4*          quad;
+    s32               angle;
     s32               depth;
 
-    block                = SCRATCH_STACK_RESERVE_BLOCK(RoomFxFanScratch);
-    block->worldPoint.vx = arg0->workm.t[0];
-    block->worldPoint.vy = arg0->workm.t[1];
-    block->worldPoint.vz = arg0->workm.t[2];
+    projection                = SCRATCH_STACK_RESERVE_BLOCK(RoomFxFanScratch);
+    projection->worldPoint.vx = coord->workm.t[0];
+    projection->worldPoint.vy = coord->workm.t[1];
+    projection->worldPoint.vz = coord->workm.t[2];
 
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&block->worldPoint);
+    gte_ldv0(&projection->worldPoint);
     gte_rtps();
-    gte_stsxy(&block->screenX);
-    gte_stflg(&block->projectionFlags);
-    if (block->projectionFlags >= 0) {
-        gte_stszotz(&block->depth);
-        depth         = block->depth + 1;
-        block->depth  = depth;
-        block->radius = (arg1 * 64) / depth;
+    gte_stsxy(&projection->screenX);
+    gte_stflg(&projection->projectionFlags);
+    if (projection->projectionFlags >= 0) {
+        gte_stszotz(&projection->depth);
+        depth              = projection->depth + 1;
+        projection->depth  = depth;
+        projection->radius = (radius * ROOM_VISUAL_EFFECTS_RADIAL_PROJECTION_SCALE) / depth;
 
-        for (ang = 0; ang < 0x1000; ang += 0x200) {
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, rgb[0], rgb[1], rgb[2]);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->screenX + ((block->radius * rsin(ang)) >> 12);
-            prim->y0 = block->screenY + ((block->radius * rcos(ang)) >> 12);
-            prim->x1 = block->screenX + ((block->radius * rsin(ang + 0x100)) >> 12);
-            prim->y1 = block->screenY + ((block->radius * rcos(ang + 0x100)) >> 12);
-            prim->x2 = block->screenX;
-            prim->y2 = block->screenY;
-            prim->x3 = block->screenX + ((block->radius * rsin(ang + 0x200)) >> 12);
-            prim->y3 = block->screenY + ((block->radius * rcos(ang + 0x200)) >> 12);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->depth);
+        // Each four-corner wedge shares the tinted centre and three black rim points.
+        for (angle = 0; angle < ROOM_VISUAL_EFFECTS_FULL_TURN; angle += 0x200) {
+            quad           = gGpuPrimCursor;
+            gGpuPrimCursor = quad + 1;
+            setPolyG4(quad);
+            setRGB0(quad, 0, 0, 0);
+            setRGB1(quad, 0, 0, 0);
+            setRGB2(quad, rgb[0], rgb[1], rgb[2]);
+            setRGB3(quad, 0, 0, 0);
+            quad->x0 = projection->screenX + ((projection->radius * rsin(angle)) >> ROOM_VISUAL_EFFECTS_TRIG_FRACTION_BITS);
+            quad->y0 = projection->screenY + ((projection->radius * rcos(angle)) >> ROOM_VISUAL_EFFECTS_TRIG_FRACTION_BITS);
+            quad->x1 = projection->screenX + ((projection->radius * rsin(angle + 0x100)) >> ROOM_VISUAL_EFFECTS_TRIG_FRACTION_BITS);
+            quad->y1 = projection->screenY + ((projection->radius * rcos(angle + 0x100)) >> ROOM_VISUAL_EFFECTS_TRIG_FRACTION_BITS);
+            quad->x2 = projection->screenX;
+            quad->y2 = projection->screenY;
+            quad->x3 = projection->screenX + ((projection->radius * rsin(angle + 0x200)) >> ROOM_VISUAL_EFFECTS_TRIG_FRACTION_BITS);
+            quad->y3 = projection->screenY + ((projection->radius * rcos(angle + 0x200)) >> ROOM_VISUAL_EFFECTS_TRIG_FRACTION_BITS);
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)projection->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                    quad);
+            gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, projection->depth);
         }
     }
     SCRATCH_STACK_RELEASE_BYTES(sizeof(RoomFxFanScratch));

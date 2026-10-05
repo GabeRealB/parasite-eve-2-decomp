@@ -76,10 +76,10 @@ func_neo_ark_bridge_8017FF84 = 0x8017FF84; // type:func
 func_neo_ark_bridge_801809E8 = 0x801809E8; // type:func
 
 func_neo_ark_bridge_801812D0 = 0x801812D0; // type:func
-RoomFx_DrawFlashRing = 0x80180228; // type:func
-RoomFx_DrawFlashDisc = 0x80180654; // type:func
-RoomFx_DrawTwinTrail = 0x80180ED8; // type:func
-RoomFx_DrawBurstStar = 0x80181558; // type:func
+_roomVisualEffectsDrawFlashRing = 0x80180228; // type:func
+_roomVisualEffectsDrawFlashDisc = 0x80180654; // type:func
+_roomVisualEffectsDrawTwinTrail = 0x80180ED8; // type:func
+_roomVisualEffectsDrawBurstStar = 0x80181558; // type:func
 waterDrawSplash = 0x8017F0C4; // type:func
 waterDistortBandTask = 0x8017E28C; // type:func
 waterRefractionTask = 0x8017D638; // type:func

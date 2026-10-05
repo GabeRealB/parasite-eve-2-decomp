@@ -1595,7 +1595,7 @@ void func_shelter_b6_nursery_80182D14(s32 arg0, s32 arg1)
 
 void func_shelter_b6_nursery_80182D28(Task* arg0)
 {
-    RoomFx_FlashTask(arg0);
+    _roomVisualEffectsFlashTask(arg0);
 }
 
 #include "../../shared/room_visual_effects_trails.inc.c"

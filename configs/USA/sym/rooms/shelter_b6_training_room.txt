@@ -132,8 +132,8 @@ func_shelter_b6_training_room_801826E0 = 0x801826E0; // type:func
 func_shelter_b6_training_room_80182804 = 0x80182804; // type:func
 
 func_shelter_b6_training_room_8017DDE8 = 0x8017DDE8; // type:func
-RoomFx_DrawBurstGlow = 0x8017F014; // type:func
-RoomFx_DrawGroundQuad = 0x8017F540; // type:func
+_roomVisualEffectsDrawHaloBurstGlow = 0x8017F014; // type:func
+_roomVisualEffectsDrawHaloBurstGroundQuad = 0x8017F540; // type:func
 glowDrawCapsule = 0x8017E28C; // type:func
 glowDrawDisc = 0x8017EAD0; // type:func
 streamedScenePlayThenHold = 0x8017DBBC; // type:func
