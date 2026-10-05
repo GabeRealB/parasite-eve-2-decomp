@@ -286,7 +286,7 @@ void Snd_ApplyVolumeTable(s32 arg0)
         temp       = sp10.volumes[(u8)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.musicVolume];
         D_8007A396 = temp;
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.musicVolume == 3) {
-            SndEvt_EnqueueType5Pending();
+            midiMuteMusic();
         } else {
             SndEvt_FlushType5Pending();
         }

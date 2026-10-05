@@ -178,7 +178,15 @@ void sndEvtEnqueue(SndEvt* event);
 /// on the next volume update; this also refreshes mix-mode dependent pan.
 void midiSetMasterVolume(s32 volume);
 
-void SndEvt_EnqueueType5Pending(void);
+/// Enables MIDI music muting and requests zero gain for all sequences.
+///
+/// The output gate takes effect on the next voice-volume refresh and remains
+/// enabled even if the event pool is full. A queued request refreshes every
+/// channel and replaces the last-requested gain with zero; the previous gain
+/// is not saved. Sequence 0x5A ignores both the gate and the requested gain.
+/// The resident sequence must have a loaded id in 0..99 when the queued volume
+/// request is processed. `SndEvt_FlushType5Pending` clears the gate.
+void midiMuteMusic(void);
 
 void SndEvt_FlushType5Pending(void);
 

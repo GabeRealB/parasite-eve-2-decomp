@@ -1232,20 +1232,22 @@ static void Midi_ClearVoiceEntry(void* context)
     slot->voice   = MIDI_NOTE_SLOT_FREE;
 }
 
-void SndEvt_EnqueueType5Pending(void)
+void midiMuteMusic(void)
 {
+    enum { MIDI_MUSIC_MUTE_ENABLED = 1 };
     SndEvt*         event;
-    SndEvtMidiArgs* args;
+    SndEvtMidiArgs* midiArgs;
 
-    D_800820E9 = 1;
+    // Keep the output gate enabled even when no command slot is available.
+    D_800820E9 = MIDI_MUSIC_MUTE_ENABLED;
     event      = sndEvtAlloc();
     if (event != NULL) {
-        args              = &event->args.midi;
-        event->command    = SOUND_EVENT_MIDI_SET_VOLUME;
-        args->sequenceId  = SOUND_EVENT_MIDI_ALL_SEQUENCES;
-        args->volumeScale = SOUND_EVENT_MIDI_VOLUME_SILENT;
+        midiArgs              = &event->args.midi;
+        event->command        = SOUND_EVENT_MIDI_SET_VOLUME;
+        midiArgs->sequenceId  = SOUND_EVENT_MIDI_ALL_SEQUENCES;
+        midiArgs->volumeScale = SOUND_EVENT_MIDI_VOLUME_SILENT;
         sndEvtEnqueue(event);
-        D_800820E8 = args->volumeScale;
+        D_800820E8 = midiArgs->volumeScale;
     }
 }
 
