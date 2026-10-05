@@ -1923,11 +1923,9 @@ static void _worldCoordInsertRankedLight(_WorldCoordRankedLight* rankedLights, s
         return;
     }
 
-    // Keep the scaled index first to preserve the target addition operands.
-    slot = (_WorldCoordRankedLight*)(slotIndex * sizeof(*rankedLights) + (s32)rankedLights);
-    if (slot->rank < contributionScore) {
+    if (rankedLights[slotIndex].rank < contributionScore) {
         if (slotIndex < WORLD_COORDINATE_RANKED_LIGHT_COUNT - 1) {
-            slot[1] = *slot;
+            rankedLights[slotIndex + 1] = rankedLights[slotIndex];
         }
         if (slotIndex > 0) {
             _worldCoordInsertRankedLight(rankedLights, contributionScore, sourceKind, light, slotIndex - 1);
@@ -1937,6 +1935,7 @@ static void _worldCoordInsertRankedLight(_WorldCoordRankedLight* rankedLights, s
             rankedLights->light = light;
         }
     } else if (slotIndex < WORLD_COORDINATE_RANKED_LIGHT_COUNT - 1) {
+        slot            = &rankedLights[slotIndex];
         nextSlot        = slot + 1;
         nextSlot->rank  = contributionScore;
         slot[1].kind    = sourceKind;
