@@ -536,7 +536,7 @@ static void _worldTargetDrawReadouts(void)
     s32                 displayAmount;
     s32                 rightEdgeX;
     s32                 otIndex;
-    u32                 bindingWord;
+    WorldTargetNode*    bindingNode;
     WorldTargetNode*    listedNode;
     s32                 targetListed;
 
@@ -577,8 +577,8 @@ static void _worldTargetDrawReadouts(void)
     numberRequest = &request;
     otIndex       = WORLD_TARGET_READOUT_OT_INDEX;
     do {
-        bindingWord = readout->binding.word;
-        if (bindingWord == 0) {
+        bindingNode = readout->binding.node;
+        if (bindingNode == NULL) {
             goto emptyReadout;
         }
         // Validate the binding against live entries before interpreting it as a node.
@@ -586,7 +586,7 @@ static void _worldTargetDrawReadouts(void)
         targetListed = 0;
         if (listedNode != NULL) {
             do {
-                if (bindingWord == (u32)listedNode) {
+                if (bindingNode == listedNode) {
                     targetListed = 1;
                     goto bindingChecked;
                 }
