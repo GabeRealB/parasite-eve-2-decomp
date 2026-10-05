@@ -4,7 +4,7 @@
 ///
 /// `projection` must point to one live, word-aligned `EffectShapeScratch` with
 /// positive `depth` in SZ3/4 units, including any caller bias. `radiusScale`
-/// is a signed 16-bit size parameter, even when a drawer receives it as s32.
+/// is a signed 16-bit size parameter, as the drawers receive it.
 /// Its projected half-diagonal is `radiusScale * 31 / depth` integer pixels,
 /// truncated toward zero before multiplying by the Q12 sine and cosine.
 /// Each product must fit s32; shifting to integer pixels rounds down.

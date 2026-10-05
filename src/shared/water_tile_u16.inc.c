@@ -7,11 +7,11 @@
 /// `coord` is borrowed with `workm` already composed in the input space of
 /// `GsWSMATRIX`; drift tasks normally supply view-space translations. Each
 /// translation keeps its low 16 bits as a signed GTE coordinate. `textureCell`
-/// keeps its low 16 bits. Its low three bits choose a 56-texel square from four
+/// is unsigned. Its low three bits choose a 56-texel square from four
 /// columns and two rows, starting at V=112. The 4-bit texture page is at VRAM
 /// (704, 0), with its 16-colour palette at (288, 271).
 ///
-/// `(s16)radiusScale * 55 / depth` gives the signed horizontal half-width `r`
+/// `radiusScale * 55 / depth` gives the signed horizontal half-width `r`
 /// in pixels. Drift tasks supply scale 0..4095. Signed division truncates
 /// toward zero. The top edge is centre Y - r - (r >> 1), the bottom centre Y +
 /// (r >> 1), placing the centre about a quarter of the height above the bottom
@@ -23,7 +23,7 @@
 /// One word-aligned `EffectCentreScratch` is reserved on the initialized
 /// scratch stack and released on every path. No pointer is retained; GTE state
 /// changes.
-static void _waterDrawTileU16(const GfxCoord* coord, s32 textureCell, s32 radiusScale)
+static void _waterDrawTileU16(const GfxCoord* coord, u16 textureCell, s16 radiusScale)
 {
     enum {
         WATER_TILE_U16_COLUMNS           = 4,
@@ -73,7 +73,7 @@ static void _waterDrawTileU16(const GfxCoord* coord, s32 textureCell, s32 radius
         lastV          = rowTexelOffset + WATER_TILE_U16_FIRST_TEXEL_ROW + WATER_TILE_U16_UV_SPAN_TEXELS;
         lastU          = firstU + WATER_TILE_U16_UV_SPAN_TEXELS;
         setUV4(quad, firstU, firstV, lastU, firstV, firstU, lastV, lastU, lastV);
-        projection->screenExtent = ((s16)radiusScale * WATER_TILE_U16_PERSPECTIVE_SCALE) / projection->depth;
+        projection->screenExtent = (radiusScale * WATER_TILE_U16_PERSPECTIVE_SCALE) / projection->depth;
         _waterSetUprightSpriteCorners(quad, projection);
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)projection->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 quad);

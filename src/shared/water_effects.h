@@ -28,15 +28,15 @@ static void _waterDrawSplash(const GfxCoord* coord, s32 halfSize, s32 brightness
  * defines it, with no replacement list, before this header. defined() is the
  * only test. With WATER_OWN_U16_DRAWERS unset, the flag declares the shared
  * drawers below. The signatures match water_spin_u16.inc.c and
- * water_tile_u16.inc.c: s32 parameters, and each body keeps the low 16 bits
- * of the sprite index. The including file includes those two bodies.
+ * water_tile_u16.inc.c: a u16 sprite index, an s16 scale and, for the spin
+ * drawer, an s16 angle. The including file includes those two bodies.
  * WATER_OWN_U16_DRAWERS selects the room-local drawers, and that file supplies
  * its own prototypes and bodies. Defining neither flag leaves these two
  * prototypes out of this header.
  */
 #if defined(WATER_SHARED_U16_DRAWERS) && !defined(WATER_OWN_U16_DRAWERS)
-static void _waterDrawSpinU16(const GfxCoord* coord, s32 textureColumn, s32 radiusScale, s32 spinAngle);
-static void _waterDrawTileU16(const GfxCoord* coord, s32 textureCell, s32 radiusScale);
+static void _waterDrawSpinU16(const GfxCoord* coord, u16 textureColumn, s16 radiusScale, s16 spinAngle);
+static void _waterDrawTileU16(const GfxCoord* coord, u16 textureCell, s16 radiusScale);
 #endif
 void waterDistortBandTask(Task* task);
 void waterRefractionTask(Task* task);

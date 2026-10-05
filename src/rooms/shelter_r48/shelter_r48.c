@@ -60,8 +60,8 @@
 /// `_waterDrawTileU16`.
 ///
 /// Defined, with no replacement list, immediately before `water_effects.h`.
-/// `defined()` is the only test. That header prototypes the shared drawers,
-/// whose parameters are `s32`, only when `WATER_SHARED_U16_DRAWERS` is set
+/// `defined()` is the only test. That header prototypes the shared drawers
+/// only when `WATER_SHARED_U16_DRAWERS` is set
 /// and this flag is not. This file prototypes and defines both drawers and
 /// includes `water_drift_task_u16.inc.c` instead of the shared bodies. The
 /// spin drawer takes a `u16` index and an `s16` scale and angle. The tile
