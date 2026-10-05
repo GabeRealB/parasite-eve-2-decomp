@@ -263,20 +263,30 @@ static void _viewResetTransform(void);
 
 static void func_800A8D5C(void);
 
-/// Copies one camera into the split view nodes and updates projection state.
+/// Installs a camera record in the active view chain and resets projection.
+///
+/// Copies the ONE-scaled world-to-camera rotation and negated world origin
+/// into their separate nodes, clears the outer XYZ offset, and invalidates
+/// all three composition caches. Parent links and the remaining matrix
+/// components stay intact. Projection uses the low 16 bits of
+/// `camera->screenDistance` in pixels, with a screen offset of (0, 0).
+///
+/// Requires an initialized view chain and a readable, word-aligned camera
+/// disjoint from its nodes. Borrows the record only for the call, retains no
+/// pointer, and changes GTE projection state without composing the view.
 static __inline__ void _viewWriteCameraState(const ViewCamera* camera)
 {
-    GfxCoord* viewOffset;
-    MATRIX*   viewRotation;
-    VECTOR3*  viewTranslation;
+    GfxCoord*      viewOffset;
+    _ViewRotation* viewRotation;
+    VECTOR3*       viewTranslation;
 
-    viewRotation    = &gGfxViewRotCoord.coord;
+    viewRotation    = (_ViewRotation*)gGfxViewRotCoord.coord.m;
     viewTranslation = MATRIX_TRANS(&gGfxViewCoord.coord);
     viewOffset      = &Gfx_ViewOffsetCoord;
 
-    // Keep rotation and translation in their separate camera coordinate nodes.
-    *(_ViewRotation*)viewRotation->m = *(const _ViewRotation*)camera->transform.m;
-    *viewTranslation                 = *(const VECTOR3*)camera->transform.t;
+    // Copy only coefficients and XYZ into separate nodes; leave matrix alignment bytes intact.
+    *viewRotation    = *(const _ViewRotation*)camera->transform.m;
+    *viewTranslation = *(const VECTOR3*)camera->transform.t;
 
     viewOffset->coord.t[0] = 0;
     viewOffset->coord.t[1] = 0;
@@ -286,8 +296,8 @@ static __inline__ void _viewWriteCameraState(const ViewCamera* camera)
     gte_SetGeomScreen(camera->screenDistance);
     gte_SetGeomOffset(0, 0);
 
-    Gfx_ViewOffsetCoord.composeStamp                            = GRAPHICS_COORD_DIRTY;
-    PARENT_OF(viewRotation, GfxCoord, coord)->composeStamp      = GRAPHICS_COORD_DIRTY;
+    viewOffset->composeStamp                                    = GRAPHICS_COORD_DIRTY;
+    PARENT_OF(viewRotation, GfxCoord, coord.m)->composeStamp    = GRAPHICS_COORD_DIRTY;
     PARENT_OF(viewTranslation, GfxCoord, coord.t)->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
