@@ -3029,16 +3029,20 @@ static void func_actor_421600_8013903C(Task* arg0)
     coord2                                = arg0->extra.tmd->coords;
     angle                                 = ratan2(head[-2].vx, vec->vz) - ratan2(-coord2->coord.m[2][0], coord2->coord.m[2][2]);
     if (angle < 0) {
-    loop_neg:
-        if (angle < -0x800) {
-            angle += 0x1000;
-            goto loop_neg;
+        while (1) {
+            if (angle < -0x800) {
+                angle += 0x1000;
+                continue;
+            }
+            break;
         }
     } else {
-    loop_pos:
-        if (angle > 0x800) {
-            angle -= 0x1000;
-            goto loop_pos;
+        while (1) {
+            if (angle > 0x800) {
+                angle -= 0x1000;
+                continue;
+            }
+            break;
         }
     }
     work->lookYawTarget = angle;
