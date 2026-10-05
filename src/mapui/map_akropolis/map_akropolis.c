@@ -248,7 +248,7 @@ static void func_map_akropolis_80179D78(Task* task)
         result = child->result;
         switch (result) {
             case USER_INTERFACE_RESULT_CONFIRM:
-                Ui_TeardownTree(child, child->owner);
+                uiStartTreeClosing(child, child->owner);
                 obj->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
                 break;
             case USER_INTERFACE_RESULT_CANCEL:
@@ -283,7 +283,7 @@ static void func_map_akropolis_80179E8C(Task* task)
         obj    = task->spawnArg2.pointer;
         result = obj->result;
         if ((result == USER_INTERFACE_RESULT_CANCEL) || (result == USER_INTERFACE_RESULT_CONFIRM)) {
-            Ui_TeardownTree(obj, obj->owner);
+            uiStartTreeClosing(obj, obj->owner);
             task->killCountdown = 0xA;
             task->state         = 2;
         }

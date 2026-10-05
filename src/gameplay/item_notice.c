@@ -128,7 +128,7 @@ void func_800B65B0(Task* task)
                         request->accepted = 0;
                         break;
                 }
-                Ui_TeardownTree(ui, ui->owner);
+                uiStartTreeClosing(ui, ui->owner);
                 task->state = 0x10;
             }
         }

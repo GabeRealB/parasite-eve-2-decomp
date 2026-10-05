@@ -244,8 +244,7 @@ void func_80714A48(Task* arg0);
 
 extern void func_801D4B64(Task* arg0);
 
-/// Reserved UI task callback with no runtime work.
-static void Ui_NoOpTask(Task* unused);
+static void _taskNoOpCallback(Task* unusedTask);
 
 static inline u32 _uiGrey(s32 level);
 
@@ -258,7 +257,7 @@ static void Ui_DrawPanel(UiPanel* panel, RECT* arg1, RECT* arg2, s32 arg3);
 
 static void Ui_SetupClip(UiPanel* panel);
 
-static void Ui_ScaleRect(UiPanel* panel, RECT* rect, s32 arg2, s32 unused4);
+static void _uiComputeScaledPanelRect(const UiPanel* panel, RECT* rect, s32 scaleEighths, s32 unusedClosing);
 
 static void Ui_LayoutAndClip(UiPanel* panel);
 
@@ -266,7 +265,7 @@ static void Ui_LayoutAndDraw(UiPanel* panel);
 
 static void Ui_LayoutAndDrawAlt(UiPanel* panel);
 
-static void Ui_SetListClip(UiList* list, UiPanel* panel, s32 arg2);
+static void _uiQueueListDrawArea(const UiList* list, const UiPanel* panel, s32 fullScreen);
 
 static void Ui_DrawCursor(UiPanel* panel, s32 arg1, s32 arg2);
 
@@ -274,7 +273,7 @@ static void Ui_DrawCaret(UiList* list, UiPanel* panel, s32 arg2);
 
 static inline void _uiFillRectInterior(const UiPanel* panel, s32 left, s32 top, s32 width, s32 height, u32 colorWord);
 
-static void Ui_DrawListHighlight(UiList* list, UiPanel* panel, s32 arg2, s32 unused4);
+static void _uiDrawListHighlight(const UiList* list, UiPanel* panel, s32 rowBottom, s32 unused);
 
 /// Eases the list cursor a quarter of the way toward (x, y) once per elapsed
 /// tick, in 24.8 fixed point, and draws it at the result.
@@ -283,7 +282,7 @@ static inline void _uiListMoveCursor(UiPanel* panel, s32 x, s32 y);
 /// Updates list navigation, scroll position, row drawing and the cursor.
 static void Ui_UpdateListRows(UiList* list, UiPanel* panel, s32 animate);
 
-static void Ui_DrawTextUnderline(UiPanel* panel, s32 x, s32 y, char* arg3, s32 arg4);
+static void _uiDrawUnderlinedLabel(const UiPanel* panel, s32 x, s32 y, const char* text, u32 colorRgb);
 
 /// Allocates a UI object and its task, optionally under the given parent.
 ///
@@ -402,7 +401,7 @@ TaskDesc D_800670D0[] = {
     { { { TASK_BODY_NONE, 0xC0 } }, Tmd_DispatchTask },
     { { { TASK_BODY_NONE, 0xC0 } }, tmdRestoreAttachedBuffersTask },
     { { { TASK_BODY_NONE, 0x60 } }, func_800B5DB8 },
-    { { { TASK_BODY_NONE, 0xC0 } }, Ui_NoOpTask },
+    { { { TASK_BODY_NONE, 0xC0 } }, _taskNoOpCallback },
     { { { TASK_BODY_NONE, 0x70 } }, func_800CFD78 },
     { { { TASK_BODY_NONE, 0xC0 } }, func_800CE22C },
     { { { TASK_BODY_NONE, 0xC2 } }, Gp_FadeTileTask },
@@ -537,7 +536,10 @@ static const _UiPanelLifecycleFuncTable6 Ui_ObjectStates = { {
     Ui_ClipAndCallback,
 } };
 
-static void Ui_NoOpTask(Task* unused)
+/// Idle callback for task bank 1, slot 36; leaves the live task and all its state unchanged.
+///
+/// The dispatcher supplies `unusedTask`; no work, countdown or teardown occurs.
+static void _taskNoOpCallback(Task* unusedTask)
 {
 }
 
@@ -963,26 +965,34 @@ static void Ui_SetupClip(UiPanel* panel)
     addPrim(gGpuCurrentOt + panel->otIndex.signedValue, p);
 }
 
-static void Ui_ScaleRect(UiPanel* panel, RECT* rect, s32 arg2, s32 unused4)
+/// Builds a bottom-anchored animation rectangle using a scale in eighths.
+///
+/// Style high nibble 1 scales the whole height; other modes keep a twelve-pixel
+/// minimum and scale only the excess. Both paths finish at full panel width.
+/// Output stores narrow to signed 16-bit pixels, including the intermediate
+/// width and height writes. `unusedClosing` is ignored; callers clamp the scale.
+static void _uiComputeScaledPanelRect(const UiPanel* panel, RECT* rect, s32 scaleEighths, s32 unusedClosing)
 {
-    s16 temp;
+    enum { USER_INTERFACE_PANEL_MIN_ANIMATED_HEIGHT = 12 };
+    s16 height;
 
     if (((u8)panel->style >> 4) == USER_INTERFACE_PANEL_HEIGHT_MODE) {
         rect->w = panel->bounds.rect.w;
-        rect->h = (panel->bounds.rect.h * arg2) >> USER_INTERFACE_PANEL_SCALE_FRACTION_BITS;
+        rect->h = (panel->bounds.rect.h * scaleEighths) >> USER_INTERFACE_PANEL_SCALE_FRACTION_BITS;
         rect->x = panel->bounds.rect.x;
         rect->y = (panel->bounds.rect.y + panel->bounds.rect.h) - rect->h;
     } else {
-        rect->w = (panel->bounds.rect.w * arg2) >> USER_INTERFACE_PANEL_SCALE_FRACTION_BITS;
-        temp    = panel->bounds.rect.h;
-        if (temp >= 0xC) {
-            temp = (((temp - 0xC) * arg2) >> USER_INTERFACE_PANEL_SCALE_FRACTION_BITS) + 0xC;
+        rect->w = (panel->bounds.rect.w * scaleEighths) >> USER_INTERFACE_PANEL_SCALE_FRACTION_BITS;
+        height  = panel->bounds.rect.h;
+        if (height >= USER_INTERFACE_PANEL_MIN_ANIMATED_HEIGHT) {
+            height = (((height - USER_INTERFACE_PANEL_MIN_ANIMATED_HEIGHT) * scaleEighths) >> USER_INTERFACE_PANEL_SCALE_FRACTION_BITS) + USER_INTERFACE_PANEL_MIN_ANIMATED_HEIGHT;
         } else {
-            temp = 0xC;
+            height = USER_INTERFACE_PANEL_MIN_ANIMATED_HEIGHT;
         }
-        rect->h = temp;
+        rect->h = height;
         rect->x = panel->bounds.rect.x;
         rect->y = (panel->bounds.rect.y + panel->bounds.rect.h) - rect->h;
+        // Restore full width after the intermediate scaled-width write.
         rect->x = panel->bounds.rect.x;
         rect->w = panel->bounds.rect.w;
     }
@@ -1005,7 +1015,7 @@ static void Ui_LayoutAndClip(UiPanel* panel)
                 if (var_a2 <= 0) {
                     var_a2 = 1;
                 }
-                Ui_ScaleRect(panel, arg1, var_a2, 0);
+                _uiComputeScaledPanelRect(panel, arg1, var_a2, 0);
                 goto after_fill;
             case USER_INTERFACE_PANEL_OPEN:
                 break;
@@ -1015,7 +1025,7 @@ static void Ui_LayoutAndClip(UiPanel* panel)
                 if ((u32)(var_a2 - 1) >= (u32)USER_INTERFACE_PANEL_SCALE_ONE) {
                     var_a2 = 1;
                 }
-                Ui_ScaleRect(panel, arg1, var_a2, 1);
+                _uiComputeScaledPanelRect(panel, arg1, var_a2, 1);
                 goto after_fill;
         }
         arg1->x = panel->bounds.rect.x;
@@ -1069,7 +1079,7 @@ static void Ui_LayoutAndDraw(UiPanel* panel)
                 if (var_a2 <= 0) {
                     var_a2 = 1;
                 }
-                Ui_ScaleRect(panel, arg1, var_a2, 0);
+                _uiComputeScaledPanelRect(panel, arg1, var_a2, 0);
                 goto after_fill;
             case USER_INTERFACE_PANEL_OPEN:
                 break;
@@ -1079,7 +1089,7 @@ static void Ui_LayoutAndDraw(UiPanel* panel)
                 if ((u32)(var_a2 - 1) >= (u32)USER_INTERFACE_PANEL_SCALE_ONE) {
                     var_a2 = 1;
                 }
-                Ui_ScaleRect(panel, arg1, var_a2, 1);
+                _uiComputeScaledPanelRect(panel, arg1, var_a2, 1);
                 goto after_fill;
         }
         arg1->x = panel->bounds.rect.x;
@@ -1133,7 +1143,7 @@ static void Ui_LayoutAndDrawAlt(UiPanel* panel)
                 if (var_a2 <= 0) {
                     var_a2 = 1;
                 }
-                Ui_ScaleRect(panel, arg1, var_a2, 0);
+                _uiComputeScaledPanelRect(panel, arg1, var_a2, 0);
                 goto after_fill;
             case USER_INTERFACE_PANEL_OPEN:
                 break;
@@ -1143,7 +1153,7 @@ static void Ui_LayoutAndDrawAlt(UiPanel* panel)
                 if ((u32)(var_a2 - 1) >= (u32)USER_INTERFACE_PANEL_SCALE_ONE) {
                     var_a2 = 1;
                 }
-                Ui_ScaleRect(panel, arg1, var_a2, 1);
+                _uiComputeScaledPanelRect(panel, arg1, var_a2, 1);
                 goto after_fill;
         }
         arg1->x = panel->bounds.rect.x;
@@ -1180,38 +1190,56 @@ after_fill: {
 }
 }
 
-static void Ui_SetListClip(UiList* list, UiPanel* panel, s32 arg2)
+/// Queues list or full-screen draw areas on the two row-drawing OT layers.
+///
+/// Zero `fullScreen` clips below `topInset` to an integral number of rows;
+/// nonzero restores the 320 by 240 view. Coordinates become VRAM pixels in the
+/// active draw buffer, whose rows are 272 apart. `rowHeight` must be positive.
+/// The temporary row count narrows to s16 before multiplication by row height.
+/// Requires space for two `DR_AREA` packets and writable panel OT base+1/+2
+/// tags. Packets remain live until GPU completion; neither input is modified.
+static void _uiQueueListDrawArea(const UiList* list, const UiPanel* panel, s32 fullScreen)
 {
-    RECT     sp10;
-    DR_AREA* p;
-    s32      i;
-    s16      temp;
+    enum {
+        USER_INTERFACE_LIST_DRAW_AREA_LAYERS    = 2,
+        USER_INTERFACE_LIST_DRAW_AREA_OT_OFFSET = 1,
+        USER_INTERFACE_LIST_VIEW_WIDTH          = 320,
+        USER_INTERFACE_LIST_VIEW_HEIGHT         = 240,
+        USER_INTERFACE_LIST_VIEW_CENTER_X       = 160,
+        USER_INTERFACE_LIST_VIEW_CENTER_Y       = 120,
+        USER_INTERFACE_LIST_DRAW_BUFFER_STRIDE  = 272
+    };
+    RECT     drawArea;
+    DR_AREA* areaCommand;
+    s32      layer;
+    s16      screenTop;
+    s16      wholeRows;
 
-    if (arg2 == 0) {
-        for (i = 0; i < 2; i++) {
-            p              = gGpuPrimCursor;
-            gGpuPrimCursor = p + 1;
-            sp10.x         = panel->contentOriginX.unsignedValue + (panel->contentLeft.unsignedValue + 0xA0);
-            temp           = panel->contentOriginY.unsignedValue + (panel->contentTop.unsignedValue + 0x78) + (gDisplayState.drawBuffer * 0x110);
-            sp10.y         = temp;
-            sp10.y         = temp + list->topInset;
-            sp10.w         = panel->contentRight.unsignedValue - panel->contentLeft.unsignedValue;
-            temp           = (panel->contentBottom.signedValue - panel->contentTop.signedValue - list->topInset) / list->rowHeight;
-            sp10.h         = temp;
-            sp10.h         = temp * list->rowHeight;
-            SetDrawArea(p, &sp10);
-            addPrim(gGpuCurrentOt + (i + panel->otIndex.signedValue) + 1, p);
+    if (fullScreen == 0) {
+        for (layer = 0; layer < USER_INTERFACE_LIST_DRAW_AREA_LAYERS; layer++) {
+            areaCommand    = gGpuPrimCursor;
+            gGpuPrimCursor = areaCommand + 1;
+            drawArea.x     = panel->contentOriginX.unsignedValue + (panel->contentLeft.unsignedValue + USER_INTERFACE_LIST_VIEW_CENTER_X);
+            screenTop      = panel->contentOriginY.unsignedValue + (panel->contentTop.unsignedValue + USER_INTERFACE_LIST_VIEW_CENTER_Y) + (gDisplayState.drawBuffer * USER_INTERFACE_LIST_DRAW_BUFFER_STRIDE);
+            drawArea.y     = screenTop;
+            drawArea.y     = screenTop + list->topInset;
+            drawArea.w     = panel->contentRight.unsignedValue - panel->contentLeft.unsignedValue;
+            wholeRows      = (panel->contentBottom.signedValue - panel->contentTop.signedValue - list->topInset) / list->rowHeight;
+            drawArea.h     = wholeRows;
+            drawArea.h     = wholeRows * list->rowHeight;
+            SetDrawArea(areaCommand, &drawArea);
+            addPrim(gGpuCurrentOt + (layer + panel->otIndex.signedValue) + USER_INTERFACE_LIST_DRAW_AREA_OT_OFFSET, areaCommand);
         }
     } else {
-        for (i = 0; i < 2; i++) {
-            p              = gGpuPrimCursor;
-            gGpuPrimCursor = p + 1;
-            sp10.w         = 0x140;
-            sp10.x         = 0;
-            sp10.h         = 0xF0;
-            sp10.y         = gDisplayState.drawBuffer * 0x110;
-            SetDrawArea(p, &sp10);
-            addPrim(gGpuCurrentOt + (i + panel->otIndex.signedValue) + 1, p);
+        for (layer = 0; layer < USER_INTERFACE_LIST_DRAW_AREA_LAYERS; layer++) {
+            areaCommand    = gGpuPrimCursor;
+            gGpuPrimCursor = areaCommand + 1;
+            drawArea.w     = USER_INTERFACE_LIST_VIEW_WIDTH;
+            drawArea.x     = 0;
+            drawArea.h     = USER_INTERFACE_LIST_VIEW_HEIGHT;
+            drawArea.y     = gDisplayState.drawBuffer * USER_INTERFACE_LIST_DRAW_BUFFER_STRIDE;
+            SetDrawArea(areaCommand, &drawArea);
+            addPrim(gGpuCurrentOt + (layer + panel->otIndex.signedValue) + USER_INTERFACE_LIST_DRAW_AREA_OT_OFFSET, areaCommand);
         }
     }
 }
@@ -1462,54 +1490,71 @@ static inline void _uiFillRectInterior(const UiPanel* panel, s32 left, s32 top, 
     }
 }
 
-void Ui_DrawBeveledRect(UiPanel* panel, s32 x, s32 y, s32 width, s32 height, u32 color, s32 inset)
+/// Queues the two three-vertex polylines forming a rectangle's bevel.
+static inline void _uiQueueRectBevelEdges(const UiPanel* panel, s32 left, s32 top, s32 width, s32 height, s32 raisedBevel)
 {
-    LINE_F3* l;
-    u16      t;
+    enum {
+        USER_INTERFACE_RECT_BEVEL_DARK_COLOR  = GPU_PACK_COLOR_WORD(0x10, 0x18, 0x10, 0),
+        USER_INTERFACE_RECT_BEVEL_LIGHT_COLOR = GPU_PACK_COLOR_WORD(0x58, 0x60, 0x50, 0),
+        USER_INTERFACE_RECT_BEVEL_OT_OFFSET   = 1
+    };
+    LINE_F3* edge;
+    u16      endpoint;
 
-    _uiFillRectInterior(panel, x, y, width, height, color);
+    edge                              = gGpuPrimCursor;
+    edge->x2                          = panel->contentOriginX.unsignedValue + left + 1;
+    endpoint                          = panel->contentOriginX.unsignedValue + (left + width);
+    edge->x1                          = endpoint;
+    edge->x0                          = endpoint;
+    gGpuPrimCursor                    = edge + 1;
+    edge->y0                          = panel->contentOriginY.unsignedValue + top;
+    endpoint                          = panel->contentOriginY.unsignedValue + (top + height);
+    edge->y2                          = endpoint;
+    edge->y1                          = endpoint;
+    GPU_PRIMITIVE_COLOR_WORD(edge, 0) = ((raisedBevel & USER_INTERFACE_RECT_RAISED_BEVEL) == USER_INTERFACE_RECT_RECESSED_BEVEL) ? USER_INTERFACE_RECT_BEVEL_LIGHT_COLOR : USER_INTERFACE_RECT_BEVEL_DARK_COLOR;
+    setLineF3(edge);
+    addPrim(gGpuCurrentOt + panel->otIndex.signedValue + USER_INTERFACE_RECT_BEVEL_OT_OFFSET, edge);
 
-    l                              = gGpuPrimCursor;
-    l->x2                          = panel->contentOriginX.unsignedValue + x + 1;
-    t                              = panel->contentOriginX.unsignedValue + (x + width);
-    l->x1                          = t;
-    l->x0                          = t;
-    gGpuPrimCursor                 = l + 1;
-    l->y0                          = panel->contentOriginY.unsignedValue + y;
-    t                              = panel->contentOriginY.unsignedValue + (y + height);
-    l->y2                          = t;
-    l->y1                          = t;
-    GPU_PRIMITIVE_COLOR_WORD(l, 0) = ((inset & 1) == 0) ? GPU_PACK_COLOR_WORD(0x58, 0x60, 0x50, 0) : GPU_PACK_COLOR_WORD(0x10, 0x18, 0x10, 0);
-    setLineF3(l);
-    addPrim(gGpuCurrentOt + panel->otIndex.signedValue + 1, l);
-
-    l                              = gGpuPrimCursor;
-    t                              = panel->contentOriginX.unsignedValue + x;
-    l->x1                          = t;
-    l->x2                          = t;
-    l->x0                          = panel->contentOriginX.unsignedValue + (x + width) - 1;
-    gGpuPrimCursor                 = l + 1;
-    t                              = panel->contentOriginY.unsignedValue + y;
-    l->y1                          = t;
-    l->y0                          = t;
-    l->y2                          = panel->contentOriginY.unsignedValue + (y + height);
-    GPU_PRIMITIVE_COLOR_WORD(l, 0) = ((inset & 1) == 0) ? GPU_PACK_COLOR_WORD(0x10, 0x18, 0x10, 0) : GPU_PACK_COLOR_WORD(0x58, 0x60, 0x50, 0);
-    setLineF3(l);
-    addPrim(gGpuCurrentOt + panel->otIndex.signedValue + 1, l);
+    edge                              = gGpuPrimCursor;
+    endpoint                          = panel->contentOriginX.unsignedValue + left;
+    edge->x1                          = endpoint;
+    edge->x2                          = endpoint;
+    edge->x0                          = panel->contentOriginX.unsignedValue + (left + width) - 1;
+    gGpuPrimCursor                    = edge + 1;
+    endpoint                          = panel->contentOriginY.unsignedValue + top;
+    edge->y1                          = endpoint;
+    edge->y0                          = endpoint;
+    edge->y2                          = panel->contentOriginY.unsignedValue + (top + height);
+    GPU_PRIMITIVE_COLOR_WORD(edge, 0) = ((raisedBevel & USER_INTERFACE_RECT_RAISED_BEVEL) == USER_INTERFACE_RECT_RECESSED_BEVEL) ? USER_INTERFACE_RECT_BEVEL_DARK_COLOR : USER_INTERFACE_RECT_BEVEL_LIGHT_COLOR;
+    setLineF3(edge);
+    addPrim(gGpuCurrentOt + panel->otIndex.signedValue + USER_INTERFACE_RECT_BEVEL_OT_OFFSET, edge);
 }
 
-static void Ui_DrawListHighlight(UiList* list, UiPanel* panel, s32 arg2, s32 unused4)
+void uiDrawBeveledRect(const UiPanel* panel, s32 left, s32 top, s32 width, s32 height, u32 colorWord, s32 raisedBevel)
 {
-    UiPanel* a1;
-    s32      h;
-    s32      x1;
+    _uiFillRectInterior(panel, left, top, width, height, colorWord);
+    _uiQueueRectBevelEdges(panel, left, top, width, height, raisedBevel);
+}
 
-    a1 = panel;
-    h  = list->rowHeight;
-    x1 = a1->contentLeft.signedValue;
-    a1->otIndex.unsignedValue++;
-    _uiFillRectInterior(panel, x1, arg2 - h, a1->contentRight.signedValue - x1 - 1, h, GPU_PACK_COLOR_WORD(0x1F, 0x74, 0x01, 0));
-    a1->otIndex.unsignedValue--;
+/// Fills the selected row behind its text, using a content-relative bottom edge.
+///
+/// Temporarily advances the panel's 16-bit OT base so the fill is at base+2,
+/// then restores it. The interior starts one pixel inside the row rectangle.
+/// Borrows the list and requires one TILE's arena space when its width permits.
+/// `unused` is ignored; no clipping or capacity checks occur here.
+static void _uiDrawListHighlight(const UiList* list, UiPanel* panel, s32 rowBottom, s32 unused)
+{
+    enum { USER_INTERFACE_LIST_HIGHLIGHT_COLOR = GPU_PACK_COLOR_WORD(0x1F, 0x74, 0x01, 0) };
+    UiPanel* highlightPanel;
+    s32      rowHeight;
+    s32      left;
+
+    highlightPanel = panel;
+    rowHeight      = list->rowHeight;
+    left           = highlightPanel->contentLeft.signedValue;
+    highlightPanel->otIndex.unsignedValue++;
+    _uiFillRectInterior(panel, left, rowBottom - rowHeight, highlightPanel->contentRight.signedValue - left - 1, rowHeight, USER_INTERFACE_LIST_HIGHLIGHT_COLOR);
+    highlightPanel->otIndex.unsignedValue--;
 }
 
 /// Eases the list cursor a quarter of the way toward (x, y) once per elapsed
@@ -1639,7 +1684,7 @@ static void Ui_UpdateListRows(UiList* list, UiPanel* panel, s32 animate)
         return;
     }
     if (list->scrollPixelsRemaining != 0) {
-        Ui_SetListClip(list, panel, 1);
+        _uiQueueListDrawArea(list, panel, 1);
     }
     item = list->firstVisibleItemIndex.signedValue;
     for (i = 0; i < rows; i++) {
@@ -1692,11 +1737,11 @@ static void Ui_UpdateListRows(UiList* list, UiPanel* panel, s32 animate)
         }
     }
     if (highlight == 1 && list->rowHeight != USER_INTERFACE_LIST_PREVIEW_ROW_HEIGHT) {
-        Ui_DrawListHighlight(list, panel, highlightY, 0);
+        _uiDrawListHighlight(list, panel, highlightY, 0);
     }
     cursorX = list->rowTextX.signedValue - 2;
     if (list->scrollPixelsRemaining != 0) {
-        Ui_SetListClip(list, panel, 0);
+        _uiQueueListDrawArea(list, panel, 0);
     } else if (panel->control.word == USER_INTERFACE_PANEL_ACTIVE) {
         if (list->actionResult == USER_INTERFACE_RESULT_NONE && padCheckButtons(animate, PAD_BUTTON_QUERY_HELD_ANY, PAD_BUTTON_RIGHT | PAD_BUTTON_LEFT) == 0) {
             if (padCheckButtons(animate, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_UP) != 0) {
@@ -1887,61 +1932,102 @@ void uiDrawHorizontalSeparator(const UiPanel* panel, s32 left, s32 right, s32 ce
     }
 }
 
-void Ui_DrawVBar(UiPanel* panel, s32 arg1, s32 arg2, s32 arg3)
+/// Initializes the vertical separator's eight-texel UI atlas cell and raw texture mode.
+static inline void _uiInitVerticalSeparatorPacket(POLY_FT4* separator)
 {
-    POLY_FT4* p;
-    s32       x;
+    enum {
+        USER_INTERFACE_VERTICAL_SEPARATOR_U              = 0x70,
+        USER_INTERFACE_VERTICAL_SEPARATOR_V              = 0x50,
+        USER_INTERFACE_VERTICAL_SEPARATOR_ENDPOINT_DELTA = 7,
+        USER_INTERFACE_VERTICAL_SEPARATOR_TEXTURE_PAGE   = getTPage(0, 0, 896, 256),
+        USER_INTERFACE_VERTICAL_SEPARATOR_CLUT           = getClut(48, 240),
+        USER_INTERFACE_VERTICAL_SEPARATOR_RAW_TEXTURE    = 1
+    };
+    setUV4(separator,
+           USER_INTERFACE_VERTICAL_SEPARATOR_U, USER_INTERFACE_VERTICAL_SEPARATOR_V,
+           USER_INTERFACE_VERTICAL_SEPARATOR_U + USER_INTERFACE_VERTICAL_SEPARATOR_ENDPOINT_DELTA, USER_INTERFACE_VERTICAL_SEPARATOR_V,
+           USER_INTERFACE_VERTICAL_SEPARATOR_U, USER_INTERFACE_VERTICAL_SEPARATOR_V + USER_INTERFACE_VERTICAL_SEPARATOR_ENDPOINT_DELTA,
+           USER_INTERFACE_VERTICAL_SEPARATOR_U + USER_INTERFACE_VERTICAL_SEPARATOR_ENDPOINT_DELTA, USER_INTERFACE_VERTICAL_SEPARATOR_V + USER_INTERFACE_VERTICAL_SEPARATOR_ENDPOINT_DELTA);
+    separator->tpage = USER_INTERFACE_VERTICAL_SEPARATOR_TEXTURE_PAGE;
+    separator->clut  = USER_INTERFACE_VERTICAL_SEPARATOR_CLUT;
+    setPolyFT4(separator);
+    setShadeTex(separator, USER_INTERFACE_VERTICAL_SEPARATOR_RAW_TEXTURE);
+}
 
-    if (arg1 < arg2) {
-        p     = gGpuPrimCursor;
-        x     = panel->contentOriginX.unsignedValue + arg3;
-        p->x0 = p->x2 = x - 3;
-        p->x1 = p->x3  = x + 5;
-        gGpuPrimCursor = p + 1;
-        p->y0 = p->y1 = panel->contentOriginY.unsignedValue + arg1;
-        p->y2 = p->y3 = panel->contentOriginY.unsignedValue + arg2;
-        setUV4(p, 0x70, 0x50, 0x77, 0x50, 0x70, 0x57, 0x77, 0x57);
-        p->tpage = 0x1E;
-        p->clut  = 0x3C03;
-        setPolyFT4(p);
-        setShadeTex(p, 1);
-        addPrim(gGpuCurrentOt + panel->otIndex.signedValue + 2, p);
+void uiDrawVerticalSeparator(const UiPanel* panel, s32 top, s32 bottom, s32 centerX)
+{
+    enum { USER_INTERFACE_VERTICAL_SEPARATOR_OT_OFFSET = 2 };
+    POLY_FT4* separator;
+    s32       screenX;
+
+    if (top < bottom) {
+        separator     = gGpuPrimCursor;
+        screenX       = panel->contentOriginX.unsignedValue + centerX;
+        separator->x0 = separator->x2 = screenX - 3;
+        separator->x1 = separator->x3 = screenX + 5;
+        gGpuPrimCursor                = separator + 1;
+        separator->y0 = separator->y1 = panel->contentOriginY.unsignedValue + top;
+        separator->y2 = separator->y3 = panel->contentOriginY.unsignedValue + bottom;
+        _uiInitVerticalSeparatorPacket(separator);
+        addPrim(gGpuCurrentOt + panel->otIndex.signedValue + USER_INTERFACE_VERTICAL_SEPARATOR_OT_OFFSET, separator);
     }
 }
 
-static void Ui_DrawTextUnderline(UiPanel* panel, s32 x, s32 y, char* arg3, s32 arg4)
+/// Queues the sloped seven-pixel backing plate behind a label's final text pen.
+///
+/// Coordinates are screen-centered pixels. The flat packet retains a
+/// POLY_FT4-sized reservation; the request supplies only the final pen X.
+static inline void _uiQueueLabelBacking(s32 left, s32 top, const TextDrawReq* request, s32 otIndex)
 {
-    TextDrawReq req;
-    POLY_F4*    p;
-    s16         textX;
-    s32         otIdx;
+    enum { USER_INTERFACE_LABEL_BACKING_COLOR = GPU_PACK_COLOR_WORD(0x02, 0x10, 0x02, 0) };
+    POLY_F4* backing;
+    s16      textEndX;
 
-    otIdx          = panel->otIndex.signedValue + 1;
-    x             += panel->contentOriginX.signedValue;
-    y             += panel->contentOriginY.signedValue;
-    req.x          = x + 2;
-    req.y          = y + 5;
-    req.otIndex    = otIdx;
-    req.colorRgb   = arg4;
-    req.glyphTable = TEXT_GLYPH_TABLE_SMALL;
-    req.alignment  = TEXT_ALIGNMENT_LEFT;
-    req.drawMode   = TEXT_DRAW_FILL_ONLY;
-    textDrawString(&req, (const u8*)arg3);
-
-    p     = gGpuPrimCursor;
-    p->x0 = p->x2 = x;
-    textX         = req.x;
+    backing     = gGpuPrimCursor;
+    backing->x0 = backing->x2 = left;
+    textEndX                  = request->x;
     // The original reservation is larger than the flat packet written here.
-    gGpuPrimCursor                 = (u8*)p + sizeof(POLY_FT4);
-    GPU_PRIMITIVE_COLOR_WORD(p, 0) = GPU_PACK_COLOR_WORD(0x02, 0x10, 0x02, 0);
-    p->y2 = p->y3 = y + 7;
-    setPolyF4(p);
-    p->y0 = p->y1 = y;
-    p->x3         = textX;
-    p->x1         = textX + 3;
-    addPrim(gGpuCurrentOt + otIdx, p);
+    gGpuPrimCursor                       = (u8*)backing + sizeof(POLY_FT4);
+    GPU_PRIMITIVE_COLOR_WORD(backing, 0) = USER_INTERFACE_LABEL_BACKING_COLOR;
+    backing->y2 = backing->y3 = top + 7;
+    setPolyF4(backing);
+    backing->y0 = backing->y1 = top;
+    backing->x3               = textEndX;
+    backing->x1               = textEndX + 3;
+    addPrim(gGpuCurrentOt + otIndex, backing);
+}
 
-    uiDrawHorizontalSeparator(panel, x - panel->contentOriginX.signedValue, req.x - panel->contentOriginX.signedValue, y + 7 - panel->contentOriginY.signedValue);
+/// Queues a small-font label, its sloped backing plate and a textured underline.
+///
+/// `x` and `y` locate the plate in content-relative pixels; the text pen starts
+/// two pixels right and five down. The final text pen determines the plate's
+/// right edge and underline length. Text obeys `textDrawString`'s encoded-line
+/// contract, starting in the small face (printable bytes 0x20..0x7A).
+/// Borrows the panel and text for the call. Requires resident font/UI textures,
+/// glyph storage, a POLY_FT4-sized reservation for the flat backing, a separator
+/// packet when its span is positive, and writable panel OT base+1/+2 tags.
+/// The unused tail of the backing reservation is retained for packet spacing.
+static void _uiDrawUnderlinedLabel(const UiPanel* panel, s32 x, s32 y, const char* text, u32 colorRgb)
+{
+    enum { USER_INTERFACE_LABEL_OT_OFFSET = 1 };
+    TextDrawReq request;
+    s32         otIndex;
+
+    otIndex            = panel->otIndex.signedValue + USER_INTERFACE_LABEL_OT_OFFSET;
+    x                 += panel->contentOriginX.signedValue;
+    y                 += panel->contentOriginY.signedValue;
+    request.x          = x + 2;
+    request.y          = y + 5;
+    request.otIndex    = otIndex;
+    request.colorRgb   = colorRgb;
+    request.glyphTable = TEXT_GLYPH_TABLE_SMALL;
+    request.alignment  = TEXT_ALIGNMENT_LEFT;
+    request.drawMode   = TEXT_DRAW_FILL_ONLY;
+    textDrawString(&request, (const u8*)text);
+
+    _uiQueueLabelBacking(x, y, &request, otIndex);
+
+    uiDrawHorizontalSeparator(panel, x - panel->contentOriginX.signedValue, request.x - panel->contentOriginX.signedValue, y + 7 - panel->contentOriginY.signedValue);
 }
 
 void Ui_DrawTextColored(UiPanel* panel, char* arg1)
@@ -1975,7 +2061,7 @@ void Ui_DrawTextColored(UiPanel* panel, char* arg1)
             if (var_a2 <= 0) {
                 var_a2 = 1;
             }
-            Ui_ScaleRect(panel, r, var_a2, 0);
+            _uiComputeScaledPanelRect(panel, r, var_a2, 0);
             break;
         case USER_INTERFACE_PANEL_OPEN:
             goto block_default;
@@ -1985,7 +2071,7 @@ void Ui_DrawTextColored(UiPanel* panel, char* arg1)
             if ((u32)(var_a2 - 1) >= (u32)USER_INTERFACE_PANEL_SCALE_ONE) {
                 var_a2 = 1;
             }
-            Ui_ScaleRect(panel, r, var_a2, 1);
+            _uiComputeScaledPanelRect(panel, r, var_a2, 1);
             break;
         default:
         block_default:
@@ -2000,7 +2086,7 @@ void Ui_DrawTextColored(UiPanel* panel, char* arg1)
     x                             = x + 1;
     y                             = y + 1;
     panel->otIndex.unsignedValue -= 1;
-    Ui_DrawTextUnderline(panel, x - panel->contentOriginX.signedValue, y - panel->contentOriginY.signedValue, arg1, color);
+    _uiDrawUnderlinedLabel(panel, x - panel->contentOriginX.signedValue, y - panel->contentOriginY.signedValue, arg1, color);
     panel->otIndex.unsignedValue += 1;
 }
 
@@ -2024,7 +2110,7 @@ void Ui_DrawText(UiPanel* panel, char* arg1)
             if (var_a2 <= 0) {
                 var_a2 = 1;
             }
-            Ui_ScaleRect(panel, r, var_a2, 0);
+            _uiComputeScaledPanelRect(panel, r, var_a2, 0);
             break;
         case USER_INTERFACE_PANEL_OPEN:
             goto block_default;
@@ -2034,7 +2120,7 @@ void Ui_DrawText(UiPanel* panel, char* arg1)
             if ((u32)(var_a2 - 1) >= (u32)USER_INTERFACE_PANEL_SCALE_ONE) {
                 var_a2 = 1;
             }
-            Ui_ScaleRect(panel, r, var_a2, 1);
+            _uiComputeScaledPanelRect(panel, r, var_a2, 1);
             break;
         default:
         block_default:
@@ -2049,7 +2135,7 @@ void Ui_DrawText(UiPanel* panel, char* arg1)
     x                             = x + 1;
     y                             = y + 1;
     panel->otIndex.unsignedValue -= 1;
-    Ui_DrawTextUnderline(panel, x - panel->contentOriginX.signedValue, y - panel->contentOriginY.signedValue, arg1, color);
+    _uiDrawUnderlinedLabel(panel, x - panel->contentOriginX.signedValue, y - panel->contentOriginY.signedValue, arg1, color);
     panel->otIndex.unsignedValue += 1;
 }
 
@@ -2152,7 +2238,7 @@ void Ui_DrawTextInRect(RECT* rect, s32 arg1, s32 arg2, char* arg3)
                 if (var_a2 <= 0) {
                     var_a2 = 1;
                 }
-                Ui_ScaleRect(self, r, var_a2, 0);
+                _uiComputeScaledPanelRect(self, r, var_a2, 0);
                 break;
             case USER_INTERFACE_PANEL_OPEN:
                 goto block_default;
@@ -2162,7 +2248,7 @@ void Ui_DrawTextInRect(RECT* rect, s32 arg1, s32 arg2, char* arg3)
                 if ((u32)(var_a2 - 1) >= (u32)USER_INTERFACE_PANEL_SCALE_ONE) {
                     var_a2 = 1;
                 }
-                Ui_ScaleRect(self, r, var_a2, 1);
+                _uiComputeScaledPanelRect(self, r, var_a2, 1);
                 break;
             default:
             block_default:
@@ -2177,7 +2263,7 @@ void Ui_DrawTextInRect(RECT* rect, s32 arg1, s32 arg2, char* arg3)
         x                            = x + 1;
         y                            = y + 1;
         self->otIndex.unsignedValue -= 1;
-        Ui_DrawTextUnderline(self, x - self->contentOriginX.signedValue, y - self->contentOriginY.signedValue, arg3, color);
+        _uiDrawUnderlinedLabel(self, x - self->contentOriginX.signedValue, y - self->contentOriginY.signedValue, arg3, color);
         self->otIndex.unsignedValue += 1;
     }
 }
@@ -2229,21 +2315,28 @@ UiObject* Ui_SpawnFromDesc(UiObjectDesc* descriptor, TaskSpawnArg spawnArg1, s32
     return USER_INTERFACE_SPAWN_OBJECT(descriptor, spawnArg1, controlMode, animationTicks, parent);
 }
 
-void Ui_TeardownTree(UiObject* object, Task* unused2)
+/// Starts closing each child UI object, re-reading the ring head after detachment.
+static inline void _uiStartChildObjectsClosing(Task* owner)
 {
-    Task* temp_s0;
     Task* child;
 
-    temp_s0 = object->owner;
-    child   = temp_s0->firstChild;
+    child = owner->firstChild;
     if (child != NULL) {
         do {
-            Ui_TeardownTree(child->spawnArg2.pointer, child);
-            child = temp_s0->firstChild;
+            uiStartTreeClosing(child->spawnArg2.pointer, child);
+            child = owner->firstChild;
         } while (child != NULL);
     }
+}
+
+void uiStartTreeClosing(UiObject* object, Task* unusedOwningTask)
+{
+    Task* owner;
+
+    owner = object->owner;
+    _uiStartChildObjectsClosing(owner);
     if (object->panel.state != USER_INTERFACE_PANEL_CLOSING) {
-        taskDetachFromParent(temp_s0);
+        taskDetachFromParent(owner);
         object->panel.state = USER_INTERFACE_PANEL_CLOSING;
     }
 }
@@ -2257,7 +2350,7 @@ void uiObjectTaskExit(Task* task)
     taskKill(task);
 }
 
-void Ui_SetState4(UiObject* object, Task* unused2)
+void uiStartPanelHiding(UiObject* object, Task* unusedOwningTask)
 {
     object->panel.state = USER_INTERFACE_PANEL_HIDING;
 }
@@ -2442,54 +2535,56 @@ s32 Ui_LookupTable(void* unused1, s32 arg1)
     return D_8006763C[arg1];
 }
 
-s32 Ui_Scale15(s32 arg0)
+s32 uiGetTextRowsHeight(s32 rowCount)
 {
-    return (arg0 << 4) - arg0;
+    return (rowCount << 4) - rowCount;
 }
 
-void Ui_DrawTitle(UiPanel* panel, char* arg1)
+void uiDrawTitle(UiPanel* panel, const char* title)
 {
-    RECT  sp18;
-    RECT* r;
-    s32   var_a2;
-    s32   color;
+    enum { USER_INTERFACE_TITLE_COLOR = GPU_PACK_COLOR_WORD(0x60, 0x70, 0x70, 0) };
+    RECT  animatedRect;
+    RECT* rect;
+    s32   scaleEighths;
+    s32   colorRgb;
     s32   x;
     s32   y;
 
-    color = 0x707060;
-    r     = &sp18;
+    colorRgb = USER_INTERFACE_TITLE_COLOR;
+    rect     = &animatedRect;
+    // Follow the animated outer edge while keeping content coordinates stable.
     switch (panel->state) {
         case USER_INTERFACE_PANEL_OPENING:
-            var_a2 = USER_INTERFACE_PANEL_ANIMATION_TICKS - panel->animationTicks;
-            if (var_a2 <= 0) {
-                var_a2 = 1;
+            scaleEighths = USER_INTERFACE_PANEL_ANIMATION_TICKS - panel->animationTicks;
+            if (scaleEighths <= 0) {
+                scaleEighths = 1;
             }
-            Ui_ScaleRect(panel, r, var_a2, 0);
+            _uiComputeScaledPanelRect(panel, rect, scaleEighths, 0);
             break;
         case USER_INTERFACE_PANEL_OPEN:
             goto block_default;
         case USER_INTERFACE_PANEL_CLOSING:
         case USER_INTERFACE_PANEL_HIDING:
-            var_a2 = USER_INTERFACE_PANEL_ANIMATION_TICKS - panel->animationTicks;
-            if ((u32)(var_a2 - 1) >= (u32)USER_INTERFACE_PANEL_SCALE_ONE) {
-                var_a2 = 1;
+            scaleEighths = USER_INTERFACE_PANEL_ANIMATION_TICKS - panel->animationTicks;
+            if ((u32)(scaleEighths - 1) >= (u32)USER_INTERFACE_PANEL_SCALE_ONE) {
+                scaleEighths = 1;
             }
-            Ui_ScaleRect(panel, r, var_a2, 1);
+            _uiComputeScaledPanelRect(panel, rect, scaleEighths, 1);
             break;
         default:
         block_default:
-            r->x = panel->bounds.rect.x;
-            r->y = panel->bounds.rect.y;
-            r->w = panel->bounds.rect.w;
-            r->h = panel->bounds.rect.h;
+            rect->x = panel->bounds.rect.x;
+            rect->y = panel->bounds.rect.y;
+            rect->w = panel->bounds.rect.w;
+            rect->h = panel->bounds.rect.h;
             break;
     }
-    x                             = sp18.x;
-    y                             = sp18.y;
+    x                             = animatedRect.x;
+    y                             = animatedRect.y;
     x                             = x + 1;
     y                             = y + 1;
     panel->otIndex.unsignedValue -= 1;
-    Ui_DrawTextUnderline(panel, x - panel->contentOriginX.signedValue, y - panel->contentOriginY.signedValue, arg1, color);
+    _uiDrawUnderlinedLabel(panel, x - panel->contentOriginX.signedValue, y - panel->contentOriginY.signedValue, title, colorRgb);
     panel->otIndex.unsignedValue += 1;
 }
 
@@ -2513,23 +2608,27 @@ static void Ui_DrawTextAtLayout(UiPanel* panel, s32 arg1, s32 arg2, u8* arg3, s3
     }
 }
 
-void Ui_ClampDialogRect(UiPanel* arg0, UiList* list, UiPanel* arg2)
+void uiPositionRowDialog(UiPanel* dialogPanel, const UiList* list, const UiPanel* listPanel)
 {
-    s32 temp;
-    s32 limit;
-    s16 new_var;
+    enum {
+        USER_INTERFACE_ROW_DIALOG_RIGHT_LIMIT  = 150,
+        USER_INTERFACE_ROW_DIALOG_BOTTOM_LIMIT = 90
+    };
+    s32 overflow;
+    s32 rightLimit;
+    s16 storedLeft;
 
-    limit               = 0x96;
-    arg0->bounds.rect.x = (list->rowTextX.unsignedValue + arg2->contentOriginX.unsignedValue) + 8;
-    arg0->bounds.rect.y = (list->rowTextY.unsignedValue + arg2->contentOriginY.unsignedValue) - 2;
-    new_var             = arg0->bounds.rect.x;
-    temp                = limit - (new_var + arg0->bounds.rect.w);
-    if (temp < 0) {
-        arg0->bounds.rect.x = ((u16)new_var) + temp;
+    rightLimit                 = USER_INTERFACE_ROW_DIALOG_RIGHT_LIMIT;
+    dialogPanel->bounds.rect.x = (list->rowTextX.unsignedValue + listPanel->contentOriginX.unsignedValue) + 8;
+    dialogPanel->bounds.rect.y = (list->rowTextY.unsignedValue + listPanel->contentOriginY.unsignedValue) - 2;
+    storedLeft                 = dialogPanel->bounds.rect.x;
+    overflow                   = rightLimit - (storedLeft + dialogPanel->bounds.rect.w);
+    if (overflow < 0) {
+        dialogPanel->bounds.rect.x = ((u16)storedLeft) + overflow;
     }
-    temp = 0x5A - (arg0->bounds.rect.y + arg0->bounds.rect.h);
-    if (temp < 0) {
-        arg0->bounds.rect.y = ((u16)arg0->bounds.rect.y) + temp;
+    overflow = USER_INTERFACE_ROW_DIALOG_BOTTOM_LIMIT - (dialogPanel->bounds.rect.y + dialogPanel->bounds.rect.h);
+    if (overflow < 0) {
+        dialogPanel->bounds.rect.y = ((u16)dialogPanel->bounds.rect.y) + overflow;
     }
 }
 
@@ -2548,14 +2647,23 @@ s32 Ui_IsStateDone(UiObject* object)
     return object->panel.state >= USER_INTERFACE_PANEL_HIDING;
 }
 
-void Ui_InsertDrawTPage(s32 arg0, s32 arg1)
+void uiQueueTexturePage(s32 otIndex, s32 blendMode)
 {
-    DR_TPAGE* p;
+    enum {
+        USER_INTERFACE_TEXTURE_PAGE_BASE            = getTPage(0, 0, 896, 256),
+        USER_INTERFACE_TEXTURE_PAGE_BLEND_MASK      = 3,
+        USER_INTERFACE_TEXTURE_PAGE_BLEND_SHIFT     = 5,
+        USER_INTERFACE_TEXTURE_PAGE_DRAW_TO_DISPLAY = 0,
+        USER_INTERFACE_TEXTURE_PAGE_DITHER          = 1
+    };
+    DR_TPAGE* pageCommand;
 
-    p              = gGpuPrimCursor;
-    gGpuPrimCursor = p + 1;
-    setDrawTPage(p, 0, 1, 0x1E | ((arg1 & 3) << 5));
-    addPrim(gGpuCurrentOt + arg0, p);
+    pageCommand    = gGpuPrimCursor;
+    gGpuPrimCursor = pageCommand + 1;
+    setDrawTPage(pageCommand, USER_INTERFACE_TEXTURE_PAGE_DRAW_TO_DISPLAY,
+                 USER_INTERFACE_TEXTURE_PAGE_DITHER,
+                 USER_INTERFACE_TEXTURE_PAGE_BASE | ((blendMode & USER_INTERFACE_TEXTURE_PAGE_BLEND_MASK) << USER_INTERFACE_TEXTURE_PAGE_BLEND_SHIFT));
+    addPrim(gGpuCurrentOt + otIndex, pageCommand);
 }
 
 void Ui_SetListScrollFlag(UiList* list, s32 arg1)
@@ -2567,37 +2675,19 @@ void Ui_SetListScrollFlag(UiList* list, s32 arg1)
     list->flags |= USER_INTERFACE_LIST_SYSTEM_CURSOR_SOUND;
 }
 
-void Ui_AllocTile(UiPanel* panel, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5)
+void uiFillRectInterior(const UiPanel* panel, s32 left, s32 top, s32 width, s32 height, u32 colorWord)
 {
-    TILE* p;
-    s32   y;
-    u32   color;
-
-    color = arg5;
-
-    if ((color != 0) && (arg3 >= 2)) {
-        p                              = gGpuPrimCursor;
-        gGpuPrimCursor                 = p + 1;
-        p->x0                          = panel->contentOriginX.unsignedValue + arg1 + 1;
-        y                              = panel->contentOriginY.unsignedValue;
-        p->w                           = arg3 - 1;
-        p->h                           = arg4 - 1;
-        GPU_PRIMITIVE_COLOR_WORD(p, 0) = color;
-        setlen(p, 3);
-        p->y0 = y + arg2 + 1;
-        setcode(p, 0x60);
-        addPrim(gGpuCurrentOt + panel->otIndex.signedValue + 1, p);
-    }
+    _uiFillRectInterior(panel, left, top, width, height, colorWord);
 }
 
-void Ui_LayoutWithMode0(void* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5)
+void uiDrawRecessedRect(const UiPanel* panel, s32 left, s32 top, s32 width, s32 height, u32 colorWord)
 {
-    Ui_DrawBeveledRect(arg0, arg1, arg2, arg3, arg4, arg5, 0);
+    uiDrawBeveledRect(panel, left, top, width, height, colorWord, USER_INTERFACE_RECT_RECESSED_BEVEL);
 }
 
-void Ui_LayoutWithMode1(void* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5)
+void uiDrawRaisedRect(const UiPanel* panel, s32 left, s32 top, s32 width, s32 height, u32 colorWord)
 {
-    Ui_DrawBeveledRect(arg0, arg1, arg2, arg3, arg4, arg5, 1);
+    uiDrawBeveledRect(panel, left, top, width, height, colorWord, USER_INTERFACE_RECT_RAISED_BEVEL);
 }
 
 /// Computes the inner panel rectangle used for drawing, clipping and content layout.
@@ -2660,7 +2750,7 @@ static void Ui_ComputeAnimRect(UiPanel* panel, RECT* rect)
             if (var_a2 <= 0) {
                 var_a2 = 1;
             }
-            Ui_ScaleRect(panel, rect, var_a2, 0);
+            _uiComputeScaledPanelRect(panel, rect, var_a2, 0);
             return;
         case USER_INTERFACE_PANEL_OPEN:
             break;
@@ -2670,7 +2760,7 @@ static void Ui_ComputeAnimRect(UiPanel* panel, RECT* rect)
             if ((u32)(var_a2 - 1) >= (u32)USER_INTERFACE_PANEL_SCALE_ONE) {
                 var_a2 = 1;
             }
-            Ui_ScaleRect(panel, rect, var_a2, 1);
+            _uiComputeScaledPanelRect(panel, rect, var_a2, 1);
             return;
     }
     rect->x = panel->bounds.rect.x;
@@ -2930,7 +3020,7 @@ static void Ui_ListTaskCallback(Task* task)
             child           = parent->firstChild;
             if (child != NULL) {
                 do {
-                    Ui_TeardownTree((UiObject*)child->spawnArg2.pointer, child);
+                    uiStartTreeClosing((UiObject*)child->spawnArg2.pointer, child);
                     child = parent->firstChild;
                 } while (child != NULL);
             }

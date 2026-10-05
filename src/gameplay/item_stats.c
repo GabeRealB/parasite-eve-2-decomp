@@ -387,7 +387,7 @@ void func_800C5F70(Task* arg0)
                         spriteI++;
                     } while (spriteI < spriteCount);
                 }
-                Ui_InsertDrawTPage(obj->panel.otIndex.signedValue + 1, 0);
+                uiQueueTexturePage(obj->panel.otIndex.signedValue + 1, 0);
                 x                = obj->panel.contentLeft.signedValue + 2;
                 req30.x          = obj->panel.contentOriginX.unsignedValue + x;
                 req30.y          = obj->panel.contentOriginY.unsignedValue + 0x40;
@@ -656,11 +656,11 @@ void Gp_UseKeyItemRow(Task* arg0)
             if (width < other) {
                 width = other;
             }
-            Ui_UpdateLayoutSize(&(obj)->panel, width + 5, Ui_Scale15(2) + 1);
+            Ui_UpdateLayoutSize(&(obj)->panel, width + 5, uiGetTextRowsHeight(2) + 1);
             (&(obj)->panel)->bounds.rect.x = (-(&(obj)->panel)->bounds.rect.w) >> 1;
             obj->panel.style              &= (s32)~USER_INTERFACE_PANEL_NO_FRAME;
         } else if (ret == 2) {
-            Ui_SetState4(obj, arg0);
+            uiStartPanelHiding(obj, arg0);
             obj->result               = USER_INTERFACE_RESULT_CANCEL;
             obj->panel.animationTicks = 0x64;
             arg0->state               = arg0->state + 1;
@@ -740,7 +740,7 @@ void Gp_KeyItemSubMenuTask(Task* arg0)
                 obj->result = flag;
                 break;
             case USER_INTERFACE_RESULT_CONFIRM:
-                Ui_TeardownTree(child, child->owner);
+                uiStartTreeClosing(child, child->owner);
                 obj->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
                 break;
             case USER_INTERFACE_RESULT_DISMISS:
@@ -821,7 +821,7 @@ void Gp_DrawCollectedRow(UiList* arg0, UiObject* arg1)
             } else {
                 obj = Ui_SpawnFromDesc(&D_8010EF68, item, 1, 1, arg1);
                 if (obj != NULL) {
-                    Ui_ClampDialogRect(&(obj)->panel, arg0, &(arg1)->panel);
+                    uiPositionRowDialog(&(obj)->panel, arg0, &(arg1)->panel);
                     arg1->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
                 }
             }
@@ -855,7 +855,7 @@ void Gp_KeyItemMenuTask(Task* arg0)
         Ui_InitList(menu, &(obj)->panel);
         menu->flags = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
         if (arg0->spawnArg1.value == 0) {
-            Ui_UpdateLayoutSize(&(obj)->panel, 0, Ui_Scale15(0xA) + 1);
+            Ui_UpdateLayoutSize(&(obj)->panel, 0, uiGetTextRowsHeight(0xA) + 1);
             Ui_SpawnFromDesc(&D_8010F868, 0, 0, 1, obj);
         }
         menu->selectedItemIndex                   = 0;
@@ -905,7 +905,7 @@ void Gp_KeyItemMenuTask(Task* arg0)
                     obj->result = flag;
                     break;
                 case USER_INTERFACE_RESULT_CONFIRM:
-                    Ui_TeardownTree(childObj, childObj->owner);
+                    uiStartTreeClosing(childObj, childObj->owner);
                     obj->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
                     break;
             }
@@ -1010,7 +1010,7 @@ void func_800C7AE8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3)
         }
         addPrim(gGpuCurrentOt + arg0->panel.otIndex.signedValue + 1, p);
     }
-    Ui_LayoutWithMode0(arg0, (arg1 - 1), (arg2 - 1), ((s16)size.width + 1),
+    uiDrawRecessedRect(&arg0->panel, (arg1 - 1), (arg2 - 1), ((s16)size.width + 1),
                        ((s16)size.height + 1), 0x81008);
 }
 

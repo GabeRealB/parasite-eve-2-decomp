@@ -34,7 +34,16 @@ void Ui_SizeFromTextWide(UiPanel* panel, u8* arg1);
 
 void Ui_UpdateLayoutSize(UiPanel* panel, s32 arg1, s32 arg2);
 
-void Ui_TeardownTree(UiObject* object, Task* unused2);
+/// Detaches a UI subtree and requests closing animations before task release.
+///
+/// Recursively closes children before their parent, re-reading the task's child
+/// head after each detach. Every child must own a live UiObject in spawnArg2,
+/// and an already-closing child must have been detached. Nodes newly entering
+/// closing detach from their parent; already-closing nodes keep their links.
+/// Animation counters are preserved. No object or task is freed here: owning
+/// task updates finish closing and dispatch exit callbacks later. `object`
+/// and its owner must be live; `unusedOwningTask` is ignored.
+void uiStartTreeClosing(UiObject* object, Task* unusedOwningTask);
 
 /// Frees a task's UI object and begins default task teardown.
 ///
@@ -51,7 +60,13 @@ void Ui_TeardownTree(UiObject* object, Task* unused2);
 /// task or the object afterwards.
 void uiObjectTaskExit(Task* task);
 
-void Ui_SetState4(UiObject* object, Task* unused2);
+/// Starts shrinking a panel into the retained hidden state.
+///
+/// Preserves animation ticks, input control, task links and children. The owning
+/// task continues running; active control can reopen the panel once hidden.
+/// To keep it hidden, its controller must leave input inactive. `object` must
+/// remain live for its task updates; `unusedOwningTask` is not read.
+void uiStartPanelHiding(UiObject* object, Task* unusedOwningTask);
 
 s32 Ui_IsStateDone(UiObject* object);
 
@@ -61,7 +76,14 @@ void Ui_DrawText(UiPanel* panel, char* arg1);
 
 void Ui_InsetLayout(UiPanel* panel, RECT* arg1, RECT* arg2, s32 unused4);
 
-void Ui_ClampDialogRect(UiPanel* arg0, UiList* list, UiPanel* arg2);
+/// Places a dialog beside the list's current row and limits its right/bottom edges.
+///
+/// Uses the row text position plus the list panel's content origin, offset by
+/// (+8,-2) pixels. Moves the dialog left/up if its right edge exceeds 150 or
+/// bottom exceeds 90, in screen-centered pixels. No left/top limit is applied.
+/// The dialog's existing dimensions are preserved. All three records must be
+/// live; only dialog bounds are written, with 16-bit coordinate truncation.
+void uiPositionRowDialog(UiPanel* dialogPanel, const UiList* list, const UiPanel* listPanel);
 
 /// Set the prompt text; the owner task stores it in its mixed spawn payload.
 void Ui_SetHolderParam(u8* arg0, s32 unused2, s32 unused3);
@@ -97,7 +119,11 @@ s32 Ui_GetCursorFixed(void);
 
 s32 Ui_LookupTable(void* unused1, s32 arg1);
 
-s32 Ui_Scale15(s32 arg0);
+/// Returns the pixel height of `rowCount` text rows at fifteen pixels per row.
+///
+/// Excludes border and title padding. Callers supply nonnegative counts whose
+/// shift by four and resulting height fit s32; the function does not clamp.
+s32 uiGetTextRowsHeight(s32 rowCount);
 
 /// Queues a textured horizontal separator across a panel's content.
 ///
@@ -112,24 +138,80 @@ s32 Ui_Scale15(s32 arg0);
 /// The packet remains in that arena until the GPU finishes drawing the frame.
 void uiDrawHorizontalSeparator(const UiPanel* panel, s32 left, s32 right, s32 centerY);
 
-void Ui_DrawVBar(UiPanel* panel, s32 arg1, s32 arg2, s32 arg3);
+/// Queues a textured vertical separator across a panel's content.
+///
+/// `top`, `bottom` and `centerX` are signed content-relative pixels. Vertices
+/// span top..bottom and centerX-3..centerX+5, retaining their low 16 bits.
+/// A top >= bottom span does nothing. The panel is borrowed without changes.
+/// Requires the UI atlas/palette, one POLY_FT4's aligned arena space and a
+/// writable signed panel OT base+2 tag. Retain the packet until GPU completion.
+void uiDrawVerticalSeparator(const UiPanel* panel, s32 top, s32 bottom, s32 centerX);
 
 void Ui_DrawTextInRect(RECT* rect, s32 arg1, s32 arg2, char* arg3);
 
-void Ui_DrawTitle(UiPanel* panel, char* arg1);
+/// Queues an underlined title at the panel's animated upper-left edge.
+///
+/// Uses the small font and muted RGB (96,112,112), with a backing plate and
+/// separator sized from the final text pen. Opening/closing/hiding follow the
+/// bottom-anchored animation rectangle; other states use full bounds.
+/// `title` is borrowed encoded text obeying `textDrawString`'s contract,
+/// initially in the small face (printable bytes 0x20..0x7A). Requires resident
+/// UI/font textures, glyph storage, the backing's POLY_FT4-sized reservation,
+/// any separator POLY_FT4, and writable signed panel OT base/base+1 tags.
+/// The panel's OT halfword is temporarily decremented and restored modulo 65536;
+/// packets remain in the arena until GPU completion.
+void uiDrawTitle(UiPanel* panel, const char* title);
 
 void Ui_SetListScrollFlag(UiList* list, s32 arg1);
 
-void Ui_AllocTile(UiPanel* panel, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5);
+/// Queues an opaque fill one pixel inside a content-relative rectangle.
+///
+/// `left`/`top` and `width`/`height` are pixel edge spans. The TILE starts at
+/// (left+1, top+1), measuring (width-1) by (height-1). Zero `colorWord` or width
+/// below two skips drawing; height is unchecked. RGB bytes run low to high;
+/// the high byte participates in the zero test, then becomes the TILE command.
+/// Coordinates and dimensions retain their low 16 bits without clamping.
+/// Borrows the panel and needs one TILE's aligned arena space and a writable
+/// signed panel OT base+1 tag. Retain the packet until GPU completion.
+void uiFillRectInterior(const UiPanel* panel, s32 left, s32 top, s32 width, s32 height, u32 colorWord);
 
-void Ui_InsertDrawTPage(s32 arg0, s32 arg1);
+/// Queues the UI texture-page and blend-mode selection at a signed OT index.
+///
+/// Selects the 4-bit page at VRAM (896,256), enables dithering and disables
+/// drawing to the displayed buffer. Low two bits of `blendMode` select the
+/// GPU blend equation (0 average, 1 add, 2 subtract, 3 add quarter foreground).
+/// Does not load textures or select a palette. Requires one DR_TPAGE's aligned
+/// arena space and a writable `otIndex` tag; retain the packet through GPU use.
+void uiQueueTexturePage(s32 otIndex, s32 blendMode);
 
-/// Fills a rectangle and draws its light and dark bevel edges.
-void Ui_DrawBeveledRect(UiPanel* panel, s32 x, s32 y, s32 width, s32 height, u32 color, s32 inset);
+/// Bevel orientation in bit zero; other selector bits are ignored.
+enum {
+    USER_INTERFACE_RECT_RECESSED_BEVEL = 0,
+    USER_INTERFACE_RECT_RAISED_BEVEL   = 1
+};
 
-void Ui_LayoutWithMode0(void* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5);
+/// Queues an optional interior fill and the light/dark edges of a beveled rectangle.
+///
+/// Pixel coordinates and edge spans are relative to the borrowed panel's
+/// content origin. Bit zero of `raisedBevel` selects the edge orientation:
+/// zero is recessed (dark top/left), one raised (light top/left).
+/// The fill has `uiFillRectInterior`'s zero-color and width guards; both bevel
+/// polylines are always drawn, even with zero or negative spans. Coordinates
+/// narrow to 16 bits. Requires arena space for two LINE_F3s and any fill TILE,
+/// and a writable signed panel OT base+1 tag; retain packets through GPU use.
+void uiDrawBeveledRect(const UiPanel* panel, s32 left, s32 top, s32 width, s32 height, u32 colorWord, s32 raisedBevel);
 
-void Ui_LayoutWithMode1(void* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5);
+/// Queues a recessed rectangle with dark top/left and light bottom/right edges.
+///
+/// Borrows `panel`; all coordinates/spans, fill guards and packet lifetime
+/// requirements are those of `uiDrawBeveledRect`.
+void uiDrawRecessedRect(const UiPanel* panel, s32 left, s32 top, s32 width, s32 height, u32 colorWord);
+
+/// Queues a raised rectangle with light top/left and dark bottom/right edges.
+///
+/// Borrows `panel`; all coordinates/spans, fill guards and packet lifetime
+/// requirements are those of `uiDrawBeveledRect`.
+void uiDrawRaisedRect(const UiPanel* panel, s32 left, s32 top, s32 width, s32 height, u32 colorWord);
 
 void Ui_WaitCdThenOverlay(Task* task);
 

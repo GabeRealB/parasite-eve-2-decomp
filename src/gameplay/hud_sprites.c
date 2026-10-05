@@ -394,7 +394,7 @@ void Gp_DrawHudSprites(HudState* hud)
         setlen(sp2, 4);
         setcode(sp2, 0x67);
         addPrim(gGpuCurrentOt - 3, sp2);
-        Ui_InsertDrawTPage(-3, 1);
+        uiQueueTexturePage(-3, 1);
         n = range;
         if (n > 0x1300) {
             n = 0x1300;
@@ -914,7 +914,7 @@ void Gp_DrawItemTitle(Task* arg0)
 
     obj         = arg0->spawnArg2.pointer;
     obj->result = USER_INTERFACE_RESULT_NONE;
-    Ui_DrawTitle(&(obj)->panel, Gp_StrItem);
+    uiDrawTitle(&(obj)->panel, Gp_StrItem);
     if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm | Pad_MaskCancel) != 0) {
             obj->result = USER_INTERFACE_RESULT_CONFIRM;

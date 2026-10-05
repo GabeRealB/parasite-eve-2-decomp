@@ -509,7 +509,7 @@ static void func_options_801D4B64(Task* task)
         result = child->result;
         switch (result) {
             case USER_INTERFACE_RESULT_CONFIRM:
-                Ui_TeardownTree(child, child->owner);
+                uiStartTreeClosing(child, child->owner);
                 obj->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
                 break;
             case USER_INTERFACE_RESULT_CANCEL:
@@ -577,7 +577,7 @@ static void func_options_801D4D0C(Task* task)
     obj->result = USER_INTERFACE_RESULT_NONE;
     Ui_DrawText(&(obj)->panel, "Key Configuration");
     if (task->state == 0) {
-        Ui_UpdateLayoutSize(&(obj)->panel, 0, Ui_Scale15(9) + 6);
+        Ui_UpdateLayoutSize(&(obj)->panel, 0, uiGetTextRowsHeight(9) + 6);
         task->spawnArg1.value = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.buttonLayout;
         task->state          += 1;
     }
@@ -596,14 +596,14 @@ static void func_options_801D4D0C(Task* task)
         Ui_SmoothCursor(&(obj)->panel, xRight, x + 7);
         if (obj->panel.control.word == one) {
             obj->panel.otIndex.signedValue = obj->panel.otIndex.signedValue + 1;
-            Ui_AllocTile(&(obj)->panel, edge - 0x40, y1, 0x3A, 0xE, 0x1741FU);
+            uiFillRectInterior(&(obj)->panel, edge - 0x40, y1, 0x3A, 0xE, 0x1741FU);
             obj->panel.otIndex.signedValue = obj->panel.otIndex.signedValue - 1;
         }
     }
     barY = y + 2;
     uiDrawHorizontalSeparator(&(obj)->panel, obj->panel.contentLeft.signedValue, obj->panel.contentRight.signedValue, barY);
     color = 0x606060;
-    Ui_DrawVBar(&(obj)->panel, y + 5, obj->panel.contentBottom.signedValue, obj->panel.contentLeft.signedValue + 0x5F);
+    uiDrawVerticalSeparator(&(obj)->panel, y + 5, obj->panel.contentBottom.signedValue, obj->panel.contentLeft.signedValue + 0x5F);
     y   += 0x13;
     base = obj->panel.contentLeft.signedValue;
     one2 = 1;
@@ -896,7 +896,7 @@ static void func_options_801D4D0C(Task* task)
                 break;
         }
     }
-    Ui_InsertDrawTPage(obj->panel.otIndex.signedValue + 1, 0);
+    uiQueueTexturePage(obj->panel.otIndex.signedValue + 1, 0);
     if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_RIGHT | PAD_BUTTON_DOWN) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CURSOR, 0, 0);

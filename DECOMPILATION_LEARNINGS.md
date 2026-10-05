@@ -14690,7 +14690,7 @@ addPrim(gGpuCurrentOt + otz, p);
 
 `setDrawTPage` → `setlen` + `_get_mode`; `addPrim` → `setaddr`/`getaddr` on
 `P_TAG`. Same pattern as `Prim_DrawTPage` (which uses `AddPrim` the function
-instead of the macro — that one is a real call). `Ui_InsertDrawTPage` is the pure
+instead of the macro — that one is a real call). `uiQueueTexturePage` is the pure
 inline-macro example.
 
 ## Array index vs intermediate pointer for `addu` operand order
@@ -14777,7 +14777,7 @@ if (temp < 0) {
 
 The early `y` store is free to schedule around the clamp setup; the compiler
 then emits target order (`lh` of `x`/`w`, compute `temp`, store `y`, `lhu` +
-`bgez` with `addu` in the delay slot). `Ui_ClampDialogRect` is the pure example
+`bgez` with `addu` in the delay slot). `uiPositionRowDialog` is the pure example
 (dialog RECT clamp to 0x96 × 0x5A).
 
 ## `s16` accumulator forces `lbu`+sign-extend (not `lb`) in checksum loops
@@ -17251,7 +17251,7 @@ func(x - (s16)arg0->field_20, y - (s16)arg0->field_22);
 
 Changing the struct field to `s16` would break other matches that expect `lhu`
 (e.g. `Ui_DrawTextAtLayout` on `UiPanel::contentOriginX.unsignedValue`).
-`UiPanel` now expresses both promotions through `UiHalf`, so `Ui_DrawTitle`
+`UiPanel` now expresses both promotions through `UiHalf`, so `uiDrawTitle`
 uses `contentOriginX.signedValue` and `contentOriginY.signedValue` directly.
 
 ## `(u16)` cast on an `s16` field forces `lhu` without changing the struct
@@ -17277,35 +17277,35 @@ epilogue. `CdCmd_ActivatePhase1` (`gCdCmdQueue.sceneAudioMode`).
 ## Short-lived stack `RECT*` stays in `$a1` for switch stores + callee arg
 
 When a function takes a string in `$a1` (saved to `$s2`), then builds a stack
-`RECT` used both as `Ui_ScaleRect(..., r, ...)` and for field stores in the
-default arm, a local `RECT *r = &sp18` that dies before the post-switch draw
+`RECT` used both as `_uiComputeScaledPanelRect(..., rect, ...)` and for field stores in the
+default arm, a local `RECT *rect = &animatedRect` that dies before the post-switch draw
 call is allocated to `$a1`. GCC then:
 
 - fills the first switch `beq` delay slot with `addiu a1, sp, 0x18`;
 - stores via `sh v0, off(a1)` instead of `sh v0, off(sp)`;
 - reuses `$a1` as the callee's RECT arg without a second materialization.
 
-If the same pointer is also read after a later `jal` (draw uses `r->x`), it
+If the same pointer is also read after a later `jal` (draw uses `rect->x`), it
 spills to a callee-saved and the frame grows. Keep draw coords as
-`sp18.x` / `sp18.y` so `r` is switch-only. `Ui_DrawTitle`.
+`animatedRect.x` / `animatedRect.y` so `rect` is switch-only. `uiDrawTitle`.
 
 ## Split `x = x + 1` to stop `(x+1)-base` reassociating to `x-(base-1)`
 
-`(sp18.x + 1) - field_20` is algebraically equal to `sp18.x - (field_20 - 1)`,
+`(animatedRect.x + 1) - field_20` is algebraically equal to `animatedRect.x - (field_20 - 1)`,
 and GCC often emits the latter (`addiu a1, field, -1` then `subu`). The target
 wants the former (`lh` both operands, `addiu ..., 1`, then `subu`). Force it
 with temps and a separate increment:
 
 ```c
-x = sp18.x;
-y = sp18.y;
+x = animatedRect.x;
+y = animatedRect.y;
 x = x + 1;
 y = y + 1;
 func(..., x - base_x, y - base_y, ...);
 ```
 
 Inlining the `+ 1` into the call expression is enough to invite the rewrite.
-`Ui_DrawTitle`.
+`uiDrawTitle`.
 
 ## Materialize long-lived pointers before early-return guards
 
@@ -17507,7 +17507,7 @@ p->h = arg4 - 1;           /* forces lw of stack arg early */
 setlen(p, 3);
 ```
 
-`Ui_AllocTile` also needs `register u32 color asm("t3")` so the 6th arg
+`uiFillRectInterior` also needs `register u32 color asm("t3")` so the 6th arg
 lands in `$t3` (without the pin, `$t2`/`$t3` for arg1/arg5 swap). Pair with
 Psy-Q `addPrim` / `setlen` / `setcode` (see above) and
 `addPrim(gGpuCurrentOt + (s16)obj->field_14 + 1, p)` when the target uses `lh`
@@ -17788,7 +17788,7 @@ arg1->h = temp;
 ```
 
 Also cast `byte` (signed char) through `(u8)` before `>>` so the nibble test
-is `srl`, not `sll`/`sra`. `Ui_ScaleRect`.
+is `srl`, not `sll`/`sra`. `_uiComputeScaledPanelRect`.
 
 ## Irregular status switch: if/goto + pinned s-regs + `while (++j < limit)`
 
@@ -18413,7 +18413,7 @@ if (childTask == NULL) {
 }
 childObject = childTask->spawnArg2.pointer;
 if (childObject->result == USER_INTERFACE_RESULT_CONFIRM) {
-    /* ...; Ui_TeardownTree(childObject, childObject->owner) keeps it in $a0 */
+    /* ...; uiStartTreeClosing(childObject, childObject->owner) keeps it in $a0 */
 }
 return obj->resultValue;
 ```
@@ -18545,7 +18545,7 @@ When the target completes a multi-instruction constant (`lui tN,hi` /
 branch delay-slot filler (and puts a later body instruction after the branch),
 the constant is too free to schedule. Pin it and emit an empty asm that takes
 it as an I/O operand so the full materialization finishes before subsequent
-loads (`Ui_DrawListHighlight`):
+loads (`_uiDrawListHighlight`):
 
 ```c
 register u32 color asm("t4");
@@ -18591,7 +18591,7 @@ x1 = a1->contentLeft.signedValue; /* lh */
 
 For a TILE whose `y0 = base_y + arg2 - h + 1`, the target often does
 `subu a2,a2,t3` in the early-out branch delay slot, then later
-`addu v1,v1,a2; addiu v1,v1,1`. Mirror `Ui_AllocTile`'s `y = contentOriginY.unsignedValue` preload
+`addu v1,v1,a2; addiu v1,v1,1`. Mirror `uiFillRectInterior`'s `y = contentOriginY.unsignedValue` preload
 and write the adjust as an assignment on `arg2` inside the body:
 
 ```c
@@ -18601,7 +18601,7 @@ arg2  = arg2 - h;       /* fills bnez delay slot */
 p->y0 = y + arg2 + 1;   /* addu + addiu, no separate subu of h */
 ```
 
-`Ui_DrawListHighlight` is the pure example (together with the color-pin / memory-clobber
+`_uiDrawListHighlight` is the pure example (together with the color-pin / memory-clobber
 tips above).
 
 ## Force halfword reload after a live register holds the same value
@@ -19154,23 +19154,23 @@ Without the `f20`/`next` pins, GCC advances the cursor in `$v0` first and
 hoists `li v0,0x50`, losing the `lhu`/`addiu` interleave. Without `right = 0x68`,
 `$a2` is rematerialized at the U stores. `uiDrawHorizontalSeparator` is the pure example.
 
-`Ui_DrawVBar` is the vertical sibling (Y from arg1..arg2, X from
-`field_20+arg3±offsets`) and cannot reassign `arg2` — both arg1 and arg2 are
+`uiDrawVerticalSeparator` is the vertical sibling (Y from top..bottom, X from
+`contentOriginX.unsignedValue+centerX±offsets`) and cannot reassign `bottom` — both top and bottom are
 still live for the Y edges, so the compiler saves them to `$t1`/`$t2` and the
 U constant must land in the now-free `$a2` via an explicit pin. Also pin the
 X offset through `$v1` so `$a1` stays free for the `gGpuPrimCursor` hi/lo pair
-(natural allocation otherwise puts arg3 in `$a1` and the cursor hi in `$a2`,
+(natural allocation otherwise puts centerX in `$a1` and the cursor hi in `$a2`,
 pushing `0x70` to a late `li v0`):
 
 ```c
-if (arg1 < arg2) {
+if (top < bottom) {
     register s32 xoff asm("v1");
     register s32 left asm("v1");
     s32          base;   /* s32 avoids sll/sra sign-extend on left = base-3 */
 
-    xoff = arg3;         /* delay-slot move v1,a3 */
+    xoff = centerX;         /* delay-slot move v1,a3 */
     p    = gGpuPrimCursor;
-    base = arg0->field_20 + xoff;
+    base = panel->contentOriginX.unsignedValue + xoff;
     left = base - 3;
     temp = base + 5;
     /* … */
@@ -19180,14 +19180,14 @@ if (arg1 < arg2) {
         register s32 ur asm("v1");
         register s32 ul asm("a2");
 
-        f22 = arg0->field_22;
+        f22 = panel->contentOriginY.unsignedValue;
         next = (s32)(p + 1);
         gGpuPrimCursor = next;
         ur = 0x77;
         ul = 0x70;       /* early li a2,0x70 (reg free after t2 save) */
         /* … p->u0 = ul; p->u2 = ul; … */
     }
-    y = y + arg2;        /* original arg2 still in $t2 */
+    y = y + bottom;        /* original bottom still in $t2 */
 }
 ```
 
@@ -19551,7 +19551,7 @@ worse than the real project match.
 ## POLY color-before-y and `fourth = f22 - 7` for call args
 
 UI text-draw helpers that emit a `POLY_F4` then call a bar/underline routine
-(e.g. `Ui_DrawTextUnderline` → `uiDrawHorizontalSeparator`) need two scheduling tricks:
+(e.g. `_uiDrawUnderlinedLabel` → `uiDrawHorizontalSeparator`) need two scheduling tricks:
 
 **1. Store the solid color before the y-coords.** Target after the text call:
 
@@ -27713,7 +27713,7 @@ and the case-6 call emits `move a0, v0` (plus `slti` out of the `beq`
 delay slot).
 
 The target wants the child in `$a0` from the first load (it is the first
-arg of `Ui_TeardownTree`), the compare-constant `6` in `$a1` (also stored
+arg of `uiStartTreeClosing`), the compare-constant `6` in `$a1` (also stored
 in case 9), and the switch value in `$v1`.
 
 Use a *new* temp for the first compare so the switch variable is free:
@@ -27727,7 +27727,7 @@ child = arg0->firstChild; /* lw a0 */
 flag  = child->result;  /* lh v1 */
 switch (flag) {
 case 6:
-    Ui_TeardownTree(child, child->owner); /* a0 already child */
+    uiStartTreeClosing(child, child->owner); /* a0 already child */
     ...
 case 9:
     obj->result = 6; /* sh a1 */
@@ -30564,7 +30564,7 @@ beq   v0, s4, case_6
 assigns `-1` / `6` / `1` in that order only when those locals are *used*
 in the compares, in that order. `switch (flag) { case -1: ... case 6: }`
 still emits the `beq` chain, but rematerializes the cases as `s5=1`,
-`s4=-1`, `s3=6` because the store of `1` after `Ui_TeardownTree` wins
+`s4=-1`, `s3=6` because the store of `1` after `uiStartTreeClosing` wins
 allocation. Write the dispatch as gotos so the named temps are the
 compare operands:
 
@@ -30587,7 +30587,7 @@ case_m1:
     obj->result = flag;
     goto loop_cont;
 case_6:
-    Ui_TeardownTree(childObj, childObj->owner);
+    uiStartTreeClosing(childObj, childObj->owner);
     obj->status = one;
 loop_cont:
     ...
@@ -30876,7 +30876,7 @@ mem->field_28 = D_80112C6C[idx & 3];
 
 ## Two tail calls that differ by one constant: write both, do not phi the arg
 
-A pair of `Ui_LayoutWithMode0(...)` (or any 6-arg helper) that share every
+A pair of `uiDrawRecessedRect(...)` (or any 6-arg helper) that share every
 argument except a late color wants a *single* `jal` with the call setup
 duplicated in each arm:
 
@@ -30892,7 +30892,7 @@ j     jal
  sw    v1, 0x14(sp)
 ...
 sw    zero, 0x14(sp)
-jal   Ui_LayoutWithMode0
+jal   uiDrawRecessedRect
  nop
 ```
 
@@ -30903,13 +30903,13 @@ keeps `s0`..`s3 = a0`..`a3` and leaves only the `jal` shared:
 
 ```c
 if (arg3 == 0) {
-    Ui_LayoutWithMode0(arg0, (void*)arg1, (void*)(arg2 - 0xE),
-                       (void*)0xE, (void*)0xE, (void*)0x102010);
+    uiDrawRecessedRect(&arg0->panel, arg1, arg2 - 0xE,
+                       0xE, 0xE, 0x102010);
     return;
 }
 /* ... work ... */
-Ui_LayoutWithMode0(arg0, (void*)arg1, (void*)(arg2 - 0xE),
-                   (void*)0xE, (void*)0xE, (void*)0);
+uiDrawRecessedRect(&arg0->panel, arg1, arg2 - 0xE,
+                   0xE, 0xE, 0);
 ```
 
 `Gp_DrawItemNameRow` is the example.
@@ -32230,7 +32230,7 @@ if ((val & 0xFFFF) != 0) {
 ## List identical switch cases separately, unique case last, so stores cross-jump
 
 A child-flag switch whose `-1` and `9` arms both do `obj->result = flag`,
-with a different `6` arm (`Ui_TeardownTree` / `status = 1`), wants one
+with a different `6` arm (`uiStartTreeClosing` / `status = 1`), wants one
 shared `j cont / sh flag` and only `6` hoisted into a callee-saved
 register (`li s2, 6`).
 
@@ -32243,7 +32243,7 @@ switch (flag) {
         obj->result = flag;
         break;
     case 6:
-        Ui_TeardownTree(childObj, childObj->owner);
+        uiStartTreeClosing(childObj, childObj->owner);
         obj->status = 1;
         break;
 }
@@ -32265,7 +32265,7 @@ switch (flag) {
         obj->result = flag;
         break;
     case 6:
-        Ui_TeardownTree(childObj, childObj->owner);
+        uiStartTreeClosing(childObj, childObj->owner);
         obj->status = 1;
         break;
 }
@@ -32504,7 +32504,7 @@ NULL) goto success`. `Gp_SpawnWeaponEff` is the example.
 
 ## Split SPRT `y` from text `y`; copy stack color so it takes `$s2`
 
-A SPRT-then-number drawer that lives all five args across `Ui_InsertDrawTPage`
+A SPRT-then-number drawer that lives all five args across `uiQueueTexturePage`
 wants `$s1 = value`, `$s2 = color`, `$s3 = arg2`. Two temps that look harmless
 break that coloring:
 
@@ -33744,7 +33744,7 @@ A later straight-line `&gMcSaveData` (no incoming `bne` to fill) still
 needs the split `lui $v0` / `addiu $a0` pair from the Gp_Bit2Banks note,
 so `flags = 0` can sit between `addiu` and `lhu`. Pinning one `UiObject*`
 across two states also merges them into `$s0`; the state-3 path wants
-the pointer already in `$a0` for `Ui_TeardownTree`. `Gp_AreaEnterTask` is
+the pointer already in `$a0` for `uiStartTreeClosing`. `Gp_AreaEnterTask` is
 the example.
 
 ## Finish `idx * sizeof` before loading the array base so the last `sll` sits above `lw` / `nop`
@@ -51124,7 +51124,7 @@ temporary has to take `$v1`. With `u16 t` the sum lands in an anonymous
 named pseudo is now the HI copy, the SI add is allocated in insn order, and
 the `lhu` result keeps `$v0` as in the target. No extra instructions come
 out of the truncation because the consumers are `sh`. `s16 t` matches too.
-Ui_AllocTile / Ui_DrawListHighlight in the same TU already use `u16 x, y,
+uiFillRectInterior / _uiDrawListHighlight in the same TU already use `u16 x, y,
 t` for the same reason - copy the sibling's local types, not m2c's `s32`.
 ## The odd constant in a run of byte stores goes first in the source
 
@@ -51315,7 +51315,7 @@ target                                   if (code == -1) { X } else if (code == 
 ```c
 if (code != -1) {
     if (code == 6) {          /* Y */
-        Ui_TeardownTree(childObj, childObj->owner);
+        uiStartTreeClosing(childObj, childObj->owner);
         obj->status = 1;
     }
 } else {
@@ -143912,7 +143912,7 @@ registers, and sched2 is then free to hoist their `li`s and sink their stores.
 `setPolyFT4(p); setShadeTex(p, 1);` compiles to the single `sb 0x2D` the pins
 had spelled as `setcode(p, 0x2D)`. When a sibling in the same file builds its
 prims with these macros, write the new one the same way before reaching for
-anything else (`Ui_DrawVBar`).
+anything else (`uiDrawVerticalSeparator`).
 
 ## `lhu` then `sll 17; sra 16` is `(s16)(field << 1)`, not a `(u16)` cast (ofudaEffectTask, 2026-09-26)
 
@@ -145485,15 +145485,15 @@ For `t = K - (s->x + s->w); if (t < 0) s->x += t;`, cse reuses the HImode `x` lo
 
 Target: `move a3,a0; ... bne kind,2,L; move a2,a3`, then the `(s16)x >> 1` shifts read `a2` while one `srl` reads `a3`. For an `s16` parameter GCC makes an SI pseudo for the incoming register and an HI pseudo that is its subreg. Written as `if (kind == 2) { rng...; if (roll) A; else B; } else B;`, the outer else is a single-predecessor block on cse's follow-jumps path, so cse rewrites `(subreg:SI hi)` in its sign-extend to the SI pseudo and the second register disappears. The seed kept it with a `u16 level` copy and `SOFT_TOUCH_REG`. The source was one condition, `if (kind == 2 && ((gRandomLcgState = gRandomLcgState * 5 + K) >> 16 & 3) == 0) A; else B;`: `B` is then a join block cse cannot reach with the equivalence, and the parameter keeps both registers without any cast.
 
-## A memory barrier holding a load below a store can stand for an inline helper's argument evaluation (Ui_DrawListHighlight, 2026-09-26)
+## A memory barrier holding a load below a store can stand for an inline helper's argument evaluation (_uiDrawListHighlight, 2026-09-26)
 
 The target stored `panel->otIndex.unsignedValue + 1` and only then loaded `contentRight.signedValue`, one
 `nop` behind its use. Both go through the same base register at different
 offsets, so there is no alias edge and sched1 hoisted the load above the store;
 the seed held it with `SOFT_COMPILER_BARRIER()` and a register pin on the tile
-colour. `Ui_DrawBeveledRect` in the same file builds the identical TILE (`x0 =
+colour. `uiDrawBeveledRect` in the same file builds the identical TILE (`x0 =
 contentOriginX.unsignedValue + left + 1`, `width - 1`, `height - 1`, `if (width >= 2)`), and calling one
-`static inline` fill helper, `_uiFillRectInterior`, from both - with `contentRight.signedValue - x1 - 1` and `arg2 - h`
+`static inline` fill helper, `_uiFillRectInterior`, from both - with `contentRight.signedValue - left - 1` and `rowBottom - rowHeight`
 as its arguments - matched with neither hack. The helper's parameters are
 separate pseudos (`width` and `width >= 2` rather than `(width - 1) >= 2`), which
 changes the block's insn list enough that sched1 picks the target's order with
@@ -145514,7 +145514,7 @@ for (i = 0; i < 4; i++) { quadScratch->vertices[i].vx = (u16)D_80111E38[i].axis0
 and copy with no hack. The same body sits in energyball, hypervelocity and
 m4a1_pyke with pins or barriers.
 
-## Pins holding a panel pointer above its coordinates: convert the coordinate parameters in place (Ui_DrawTextUnderline, 2026-09-26)
+## Pins holding a panel pointer above its coordinates: convert the coordinate parameters in place (_uiDrawUnderlinedLabel, 2026-09-26)
 
 The seed pinned the panel parameter to `$s3` and the OT index to `$s0`, and
 computed `x = value + panel->baseX` into new locals. Unpinned, the pointer and `x`

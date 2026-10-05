@@ -1485,7 +1485,7 @@ static void Text_UiTaskCallback(Task* task)
         if (obj->result == USER_INTERFACE_RESULT_CANCEL || obj->result == USER_INTERFACE_RESULT_CONFIRM) {
             task->killCountdown = 0xA;
             task->state         = task->state + 1;
-            Ui_TeardownTree(obj, obj->owner);
+            uiStartTreeClosing(obj, obj->owner);
         }
     } else {
         temp                = task->killCountdown - gDisplayState.frameTicks;

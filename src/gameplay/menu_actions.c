@@ -407,7 +407,7 @@ void Gp_WeaponSummaryTask(Task* arg0)
     }
     obj->result = USER_INTERFACE_RESULT_NONE;
     Gp_DrawEquipSummary(&(obj)->panel, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, 0);
-    Ui_DrawTitle(&(obj)->panel, Gp_StrWeaponTitle);
+    uiDrawTitle(&(obj)->panel, Gp_StrWeaponTitle);
 }
 
 void Gp_SetHolderItemText(s32 arg0)
@@ -474,7 +474,7 @@ static UiObject* Gp_OpenItemCmdMenu(UiList* arg0, UiObject* arg1, InventoryItemR
         one = 1;
         obj = Ui_SpawnFromDesc(&D_8010EE6C, arg3, one, one, arg1);
         if (obj != NULL) {
-            Ui_ClampDialogRect(&(obj)->panel, arg0, &(arg1)->panel);
+            uiPositionRowDialog(&(obj)->panel, arg0, &(arg1)->panel);
             arg1->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
         }
     } else {
@@ -509,12 +509,12 @@ static void func_800CEE5C(UiObject* arg0)
                     arg0->result = flag;
                     break;
                 case USER_INTERFACE_RESULT_CONFIRM:
-                    Ui_TeardownTree(obj, obj->owner);
+                    uiStartTreeClosing(obj, obj->owner);
                     arg0->panel.control.word = one;
                     arg0->panel.style       &= mask;
                     break;
                 case 0x23:
-                    Ui_TeardownTree(obj, obj->owner);
+                    uiStartTreeClosing(obj, obj->owner);
                     arg0->panel.control.word = one;
                     Gp_ItemOrderMode         = one;
                     arg0->panel.style       &= mask;
@@ -606,7 +606,7 @@ void func_800CF148(UiObject* arg0, Task* arg1)
                     arg0->result = flag;
                     break;
                 case USER_INTERFACE_RESULT_CONFIRM:
-                    Ui_TeardownTree(childObj, childObj->owner);
+                    uiStartTreeClosing(childObj, childObj->owner);
                     arg0->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
                     break;
             }
@@ -776,7 +776,7 @@ void Gp_SizeEquippedPanel(UiPanel* arg0, s32 arg1)
     if (width < temp) {
         width = temp;
     }
-    Ui_UpdateLayoutSize(arg0, width + 5, Ui_Scale15(2) + 1);
+    Ui_UpdateLayoutSize(arg0, width + 5, uiGetTextRowsHeight(2) + 1);
     arg0->bounds.rect.x = (-arg0->bounds.rect.w) >> 1;
 }
 
@@ -1077,7 +1077,7 @@ void Gp_MapTaskState2(Task* arg0)
         child = arg0->firstChild->spawnArg2.pointer;
         if (child->result == USER_INTERFACE_RESULT_CONFIRM) {
             obj->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
-            Ui_TeardownTree(child, child->owner);
+            uiStartTreeClosing(child, child->owner);
         }
         if (child->result == USER_INTERFACE_RESULT_CANCEL) {
             func_800D1F90(arg0);
@@ -1749,7 +1749,7 @@ void Gp_DrawMapName(Task* arg0)
             req.drawMode   = TEXT_DRAW_FILL_ONLY;
             textAlignLine(&req, text);
             width = -req.x + 4;
-            Ui_UpdateLayoutSize(&(obj)->panel, width, Ui_Scale15(1));
+            Ui_UpdateLayoutSize(&(obj)->panel, width, uiGetTextRowsHeight(1));
             arg0->state = arg0->state + 1;
         }
         req2.x          = obj->panel.contentLeft.unsignedValue + (obj->panel.contentOriginX.unsignedValue + 2);
@@ -1936,7 +1936,7 @@ void Gp_PeMenuListTask(Task* arg0)
             switch (flag) {
                 case USER_INTERFACE_RESULT_CONFIRM:
                     obj->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
-                    Ui_TeardownTree(childObj, childObj->owner);
+                    uiStartTreeClosing(childObj, childObj->owner);
                     break;
                 case USER_INTERFACE_RESULT_DISMISS:
                     obj->result = USER_INTERFACE_RESULT_CONFIRM;
@@ -2045,7 +2045,7 @@ void Gp_PeCommandMenuTask(Task* arg0)
             switch (flag) {
                 case USER_INTERFACE_RESULT_CONFIRM:
                     obj->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
-                    Ui_TeardownTree(childObj, childObj->owner);
+                    uiStartTreeClosing(childObj, childObj->owner);
                     break;
                 case USER_INTERFACE_RESULT_DISMISS:
                     obj->result = USER_INTERFACE_RESULT_CONFIRM;
@@ -2190,7 +2190,7 @@ void Gp_DrawPeSlotRow(UiList* arg0, UiObject* arg1)
             obj = Ui_SpawnFromDesc(&D_8010F670, item, one, one, arg1);
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
             if (obj != NULL) {
-                Ui_ClampDialogRect(&(obj)->panel, arg0, &(arg1)->panel);
+                uiPositionRowDialog(&(obj)->panel, arg0, &(arg1)->panel);
                 arg1->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
             }
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_TRIANGLE) != 0) {
@@ -2313,7 +2313,7 @@ void func_800D29B0(Task* arg0)
         childObj = child->spawnArg2.pointer;
         flag     = childObj->result;
         if (flag == USER_INTERFACE_RESULT_CONFIRM) {
-            Ui_TeardownTree(childObj, childObj->owner);
+            uiStartTreeClosing(childObj, childObj->owner);
             obj->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
         } else if (flag == USER_INTERFACE_RESULT_CANCEL) {
             obj->result = flag;
@@ -2345,7 +2345,7 @@ void Gp_DrawCastCostLines(UiObject* arg0, s32 arg1)
     textDrawUiLine(arg0, arg0->panel.contentLeft.signedValue + 2, y + 0x1E, text, color, one, TEXT_ALIGNMENT_LEFT);
     y     = arg0->panel.contentTop.unsignedValue;
     lineY = y + 0xF;
-    Ui_DrawVBar(&(arg0)->panel, y, arg0->panel.contentBottom.signedValue, 0x2F);
+    uiDrawVerticalSeparator(&(arg0)->panel, y, arg0->panel.contentBottom.signedValue, 0x2F);
     if (mask) {
         req.x          = arg0->panel.contentOriginX.unsignedValue + 0x34;
         req.y          = (s16)(arg0->panel.contentOriginY.unsignedValue - 6) + lineY;
@@ -2433,7 +2433,7 @@ void Gp_PeUpgradePanelTask(Task* arg0)
     obj->result = USER_INTERFACE_RESULT_NONE;
 
     if (arg0->state == 0) {
-        Ui_UpdateLayoutSize(&(obj)->panel, 0, Ui_Scale15(2) + 1);
+        Ui_UpdateLayoutSize(&(obj)->panel, 0, uiGetTextRowsHeight(2) + 1);
         frame = func_800CD814(obj);
         if (frame != NULL) {
             frame->panel.animationTicks         = obj->panel.animationTicks - 8;
@@ -2521,7 +2521,7 @@ void Gp_PeUpgradePanelTask(Task* arg0)
                     }
                     if (cfg->exp < (price & 0xFFFF)) {
                         Ui_SpawnFromDesc(&D_8010F788, 0xC, 1, 1, obj);
-                        Ui_TeardownTree(childObj, childObj->owner);
+                        uiStartTreeClosing(childObj, childObj->owner);
                     } else {
                         price = Gp_IdParamHi.rows[(row3 * 3 + col3) * 3 + lvl3].column.expCost;
                         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode > 0) {
@@ -2647,9 +2647,9 @@ static void func_800D3660(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4
             s32 y;
 
             y = arg4 - 3;
-            Ui_AllocTile(&(arg0)->panel, x, y, (span * prev) / max, 3, 0x1741FU);
+            uiFillRectInterior(&(arg0)->panel, x, y, (span * prev) / max, 3, 0x1741FU);
             color = 0xD287F;
-            Ui_LayoutWithMode1(arg0, x, y, ((span * val) / max), 3, 0x1A50FE);
+            uiDrawRaisedRect(&arg0->panel, x, y, ((span * val) / max), 3, 0x1A50FE);
             p->u0                          = 0xA0;
             GPU_PRIMITIVE_COLOR_WORD(p, 0) = color;
             p->y0                          = p->y0 - 1;
@@ -2658,14 +2658,14 @@ static void func_800D3660(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4
                 s32 y;
 
                 y = arg4 - 3;
-                Ui_AllocTile(&(arg0)->panel, x, y, (span * val) / max, 3, 0x1741FU);
+                uiFillRectInterior(&(arg0)->panel, x, y, (span * val) / max, 3, 0x1741FU);
                 color = 0x1741F;
-                Ui_LayoutWithMode1(arg0, x, y, ((span * prev) / max), 3, 1);
+                uiDrawRaisedRect(&arg0->panel, x, y, ((span * prev) / max), 3, 1);
                 p->u0                          = 0x30;
                 GPU_PRIMITIVE_COLOR_WORD(p, 0) = color;
             } else {
                 if (val > 0) {
-                    Ui_LayoutWithMode1(arg0, x, (arg4 - 3), ((span * val) / max), 3, 0x1741F);
+                    uiDrawRaisedRect(&arg0->panel, x, (arg4 - 3), ((span * val) / max), 3, 0x1741F);
                 }
                 p->u0                          = 0x78;
                 GPU_PRIMITIVE_COLOR_WORD(p, 0) = color;
@@ -2679,7 +2679,7 @@ static void func_800D3660(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4
         setSprt(p);
         p->x0 = spriteX + 0x14;
         addPrim(gGpuCurrentOt + arg0->panel.otIndex.signedValue + 1, p);
-        Ui_InsertDrawTPage((arg0->panel.otIndex.signedValue) + 1, 0);
+        uiQueueTexturePage((arg0->panel.otIndex.signedValue) + 1, 0);
         loc.req2.x          = (arg0->panel.contentOriginX.unsignedValue + 0x1E) + x;
         textY               = arg0->panel.contentOriginY.unsignedValue - 6;
         loc.req2.y          = textY + arg4;
@@ -2713,7 +2713,7 @@ static void func_800D3660(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4
         }
         textDrawString(&loc.req2, text);
         if (val > 0) {
-            Ui_LayoutWithMode1(arg0, x, (arg4 - 3), ((span * val) / max), 3, 0x1741F);
+            uiDrawRaisedRect(&arg0->panel, x, (arg4 - 3), ((span * val) / max), 3, 0x1741F);
         }
     }
 }
@@ -2859,7 +2859,7 @@ void Gp_MapScreenTask(Task* arg0)
         arg0->state          = arg0->state + 1;
     } else if (arg0->state == 1) {
         if ((obj->result == USER_INTERFACE_RESULT_CANCEL) || (obj->result == USER_INTERFACE_RESULT_CONFIRM)) {
-            Ui_TeardownTree(obj, obj->owner);
+            uiStartTreeClosing(obj, obj->owner);
             arg0->killCountdown = 0xA;
             arg0->state         = 2;
         }
@@ -3494,7 +3494,7 @@ void Gp_DrawItemCmd(UiList* arg0, UiObject* arg1)
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
             Ui_SpawnFromDesc(&D_8010EFBC, 0, 1, 1, arg1);
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-            Ui_SetState4(arg1, arg1->owner);
+            uiStartPanelHiding(arg1, arg1->owner);
             arg1->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
         }
     }

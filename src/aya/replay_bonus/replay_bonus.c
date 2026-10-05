@@ -651,11 +651,11 @@ void func_replay_bonus_80116964(Task* arg0)
 
     obj         = arg0->spawnArg2.pointer;
     obj->result = USER_INTERFACE_RESULT_NONE;
-    Ui_DrawTitle(&(obj)->panel, "WARNING");
+    uiDrawTitle(&(obj)->panel, "WARNING");
     if (arg0->state == 0) {
         obj->resultValue = 0x34;
         Ui_SizeFromText(&(obj)->panel, D_replay_bonus_8011906C, 0, 0);
-        Ui_UpdateLayoutSize(&(obj)->panel, 0, Ui_Scale15(3) + 4);
+        Ui_UpdateLayoutSize(&(obj)->panel, 0, uiGetTextRowsHeight(3) + 4);
         arg0->state = arg0->state + 1;
     } else if (arg0->state == 1) {
         spawned = func_800CD89C(obj);

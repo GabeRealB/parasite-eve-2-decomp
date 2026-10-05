@@ -197,7 +197,7 @@ void Gp_ItemMenuInit(UiObject* arg0, Task* arg1)
             Ui_SpawnFromDesc(&D_8010EAD0, 0, 1, 8, arg0);
             scale = 1;
         }
-        Ui_UpdateLayoutSize(&(arg0)->panel, 0, Ui_Scale15(scale) + 1);
+        Ui_UpdateLayoutSize(&(arg0)->panel, 0, uiGetTextRowsHeight(scale) + 1);
         arg0->panel.bounds.unsignedRect.y = 0x68 - arg0->panel.bounds.unsignedRect.h;
         arg1->state                       = arg1->state + 1;
     }

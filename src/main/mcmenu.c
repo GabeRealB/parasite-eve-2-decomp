@@ -169,7 +169,7 @@ void McMenu_FileInformation(Task* task)
         task->spawnArg1.pointer = work;
     }
     work = task->spawnArg1.pointer;
-    Ui_DrawTitle(obj, "File Information");
+    uiDrawTitle(obj, "File Information");
     if (task->killCountdown == 1) {
         menu = &Mc_LoadSlotList;
     } else {

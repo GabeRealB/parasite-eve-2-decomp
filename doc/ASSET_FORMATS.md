@@ -502,7 +502,7 @@ Glyph metrics are **not** a CDF chunk. They live in `SLUS_010.42`:
 | `_gFontGlyphsLarge` | `0x8005FA30` | 224 (`0x20`…`0xFF`) | any value other than `TEXT_GLYPH_TABLE_MEDIUM` (0) and `TEXT_GLYPH_TABLE_SMALL` (5) | `-128` (byte `0x80`) |
 | `_gFontGlyphsSmall` | `0x800604B0` | 91 (`0x20`…`0x7A`) | 5 (`TEXT_GLYPH_TABLE_SMALL`) | 0 (`TEXT_GLYPH_V_BIAS_SMALL`) |
 
-`Ui_DrawTextUnderline` sets `glyphTable` to `TEXT_GLYPH_TABLE_SMALL`.
+`_uiDrawUnderlinedLabel` sets `glyphTable` to `TEXT_GLYPH_TABLE_SMALL`.
 Medium-face drawing adds `TEXT_GLYPH_V_BIAS_MEDIUM` (38 texels) to each glyph's
 V coordinate before storing it in the unsigned sprite byte. Its metric V
 origins 0..112 become page-local rows 38..150. Inline `\sM` commands (either

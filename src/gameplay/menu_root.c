@@ -494,7 +494,7 @@ void Gp_MenuRootTask(Task* arg0)
             if ((obj->result != USER_INTERFACE_RESULT_CONFIRM) && (obj->result != USER_INTERFACE_RESULT_CANCEL)) {
                 return;
             }
-            Ui_TeardownTree(obj, obj->owner);
+            uiStartTreeClosing(obj, obj->owner);
             if ((arg0->spawnArg1.value != 0x44) && (arg0->spawnArg1.value != 0x42)) {
                 sndEvtRequestScriptStart(SOUND_MENU_CLOSE, 0, 0);
             }
@@ -651,8 +651,8 @@ static void Gp_UiPromptUpdate(UiObject* arg0, Task* arg1)
             Wip_UiHolder = NULL;
         } else if (flag == USER_INTERFACE_RESULT_CONFIRM) {
             arg0->resultValue = child->resultValue;
-            Ui_TeardownTree(child, child->owner);
-            Ui_SetState4(arg0, arg0->owner);
+            uiStartTreeClosing(child, child->owner);
+            uiStartPanelHiding(arg0, arg0->owner);
             arg1->killCountdown = 0x10;
             *map                = 0;
             GameMain_SetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);

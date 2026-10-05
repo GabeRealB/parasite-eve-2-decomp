@@ -346,7 +346,7 @@ static void GameFlow_WaitMenuDone(Task* task)
 
     obj = task->spawnArg2.pointer;
     if (obj->result == USER_INTERFACE_RESULT_CANCEL) {
-        Ui_TeardownTree(obj, obj->owner);
+        uiStartTreeClosing(obj, obj->owner);
         gDisplayState.gameMode = DISPLAY_GAME_ACTIVE;
         gGameSession->uiOpen   = 0;
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.soundMode == 1) {

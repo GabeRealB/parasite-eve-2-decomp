@@ -337,7 +337,7 @@ static void Shop_ItemRow(UiList* prompt, UiObject* obj)
             sndEvtRequestScriptStart(SOUND_SYSTEM_CONFIRM, 0, 0);
             child = Ui_SpawnFromDesc(&Shop_Data_80181B84, itemId, 1, 1, obj);
             if (child != NULL) {
-                Ui_ClampDialogRect(&(child)->panel, prompt, &(obj)->panel);
+                uiPositionRowDialog(&(child)->panel, prompt, &(obj)->panel);
                 obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
             }
         }
@@ -363,7 +363,7 @@ static void Shop_ItemRow(UiList* prompt, UiObject* obj)
             child2 = Ui_SpawnFromDesc(&Shop_Data_80181B84, itemId, 1, 1, obj);
             if (child2 != NULL) {
                 sndEvtRequestScriptStart(SOUND_SYSTEM_CONFIRM, 0, 0);
-                Ui_ClampDialogRect(&(child2)->panel, prompt, &(obj)->panel);
+                uiPositionRowDialog(&(child2)->panel, prompt, &(obj)->panel);
                 obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
             }
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_TRIANGLE) != 0) {
@@ -628,7 +628,7 @@ static void Shop_ItemListTask(Task* task)
             next     = child->nextSibling;
             if (code != USER_INTERFACE_RESULT_CANCEL) {
                 if (code == USER_INTERFACE_RESULT_CONFIRM) {
-                    Ui_TeardownTree(childObj, childObj->owner);
+                    uiStartTreeClosing(childObj, childObj->owner);
                     obj->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
                 }
             } else {
@@ -745,7 +745,7 @@ static void Shop_CategoryListTask(Task* task)
             next     = child->nextSibling;
             if (code != USER_INTERFACE_RESULT_CANCEL) {
                 if (code == USER_INTERFACE_RESULT_CONFIRM) {
-                    Ui_TeardownTree(childObj, childObj->owner);
+                    uiStartTreeClosing(childObj, childObj->owner);
                     obj->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
                 }
             } else {
@@ -860,7 +860,7 @@ static void Shop_BuyRow(UiList* prompt, UiObject* obj)
             } else if ((obj->owner->parent->spawnArg1.value >> 16) == mode) {
                 child = Ui_SpawnFromDesc(&Shop_Data_80181C10, itemId, 1, 1, obj);
                 if (child != NULL) {
-                    Ui_ClampDialogRect(&(child)->panel, prompt, &(obj)->panel);
+                    uiPositionRowDialog(&(child)->panel, prompt, &(obj)->panel);
                     obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
                 }
             } else {
@@ -1097,7 +1097,7 @@ static void Shop_QuantityTask(Task* task)
 
     if (task->state == 0) {
         task->extraState.value = 1;
-        Ui_UpdateLayoutSize(&(obj)->panel, 0, Ui_Scale15(3) - 3);
+        Ui_UpdateLayoutSize(&(obj)->panel, 0, uiGetTextRowsHeight(3) - 3);
         task->state = task->state + 1;
     }
 
@@ -1232,7 +1232,7 @@ static void Shop_BuyPromptTask(Task* task)
         code     = childObj->result;
         if (code != USER_INTERFACE_RESULT_CANCEL) {
             if (code == USER_INTERFACE_RESULT_CONFIRM) {
-                Ui_TeardownTree(childObj, childObj->owner);
+                uiStartTreeClosing(childObj, childObj->owner);
                 obj->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
             }
         } else {
@@ -1265,7 +1265,7 @@ static void Shop_SessionTask(Task* task)
     if (task->state == 1) {
         obj = task->spawnArg2.pointer;
         if (obj->result == USER_INTERFACE_RESULT_CANCEL || obj->result == USER_INTERFACE_RESULT_CONFIRM) {
-            Ui_TeardownTree(obj, obj->owner);
+            uiStartTreeClosing(obj, obj->owner);
             task->killCountdown = 10;
             task->state         = 2;
         }

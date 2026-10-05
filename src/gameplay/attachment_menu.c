@@ -147,7 +147,7 @@ static inline void _gpApplyChildResults(UiObject* obj, Task* task)
                     obj->result = flag;
                     break;
                 case USER_INTERFACE_RESULT_CONFIRM:
-                    Ui_TeardownTree(childObj, childObj->owner);
+                    uiStartTreeClosing(childObj, childObj->owner);
                     obj->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
                     break;
             }
@@ -280,7 +280,7 @@ void Gp_AttachListTask(Task* task)
                         obj->result = flag;
                         break;
                     case USER_INTERFACE_RESULT_CONFIRM:
-                        Ui_TeardownTree(childObj, childObj->owner);
+                        uiStartTreeClosing(childObj, childObj->owner);
                         obj->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
                         break;
                 }
@@ -350,7 +350,7 @@ void Gp_SelectAmmoMenuTask(Task* arg0)
             obj->panel.bounds.unsignedRect.h += 0x4C;
             parent                            = arg0->parent;
             D_80114DD8                        = -1;
-            Ui_SetState4(parent->spawnArg2.pointer, parent);
+            uiStartPanelHiding(parent->spawnArg2.pointer, parent);
             Ui_SpawnFromDesc(&D_8010EC3C, 1, 0, 0x10, obj);
         }
         uiDrawHorizontalSeparator(&(obj)->panel, obj->panel.contentLeft.signedValue, obj->panel.contentRight.signedValue, obj->panel.contentTop.signedValue + 0x4A);
@@ -474,7 +474,7 @@ void Gp_SelectArmorMenuTask(Task* arg0)
         menu->selectedItemIndex                   = 0;
         menu->firstVisibleItemIndex.unsignedValue = 0;
         parent                                    = arg0->parent;
-        Ui_SetState4(parent->spawnArg2.pointer, parent);
+        uiStartPanelHiding(parent->spawnArg2.pointer, parent);
         Ui_SpawnFromDesc(&D_8010EC3C, 2, 0, 0x10, obj);
         arg0->state++;
     }
@@ -577,7 +577,7 @@ void Gp_ReloadPromptTask(Task* arg0)
             width = textMeasureLineWidth(text);
             rows  = 1;
         }
-        Ui_UpdateLayoutSize(&(obj)->panel, width + 5, Ui_Scale15(rows) + 1);
+        Ui_UpdateLayoutSize(&(obj)->panel, width + 5, uiGetTextRowsHeight(rows) + 1);
         (&(obj)->panel)->bounds.rect.x = (-(&(obj)->panel)->bounds.rect.w) >> 1;
         if (arg0->state < 0x20) {
             if (arg0->state < 0x10) {
@@ -627,7 +627,7 @@ void Gp_AttachPromptTask(Task* arg0)
     text        = Gp_GetItemText(arg0->spawnArg1.value, 0, 0);
     if (arg0->state == 0) {
         width = textMeasureLineWidth(text) + 0x40;
-        Ui_UpdateLayoutSize(&(obj)->panel, width, Ui_Scale15(2) + 8);
+        Ui_UpdateLayoutSize(&(obj)->panel, width, uiGetTextRowsHeight(2) + 8);
         (&(obj)->panel)->bounds.rect.x = (-(&(obj)->panel)->bounds.rect.w) >> 1;
         arg0->killCountdown            = 0xBC;
         arg0->state                    = arg0->state + 1;
@@ -697,7 +697,7 @@ void Gp_EquipPromptTask(Task* arg0)
         if (width < other) {
             width = other;
         }
-        Ui_UpdateLayoutSize(&(obj)->panel, width + 5, Ui_Scale15(2) + 1);
+        Ui_UpdateLayoutSize(&(obj)->panel, width + 5, uiGetTextRowsHeight(2) + 1);
         (&(obj)->panel)->bounds.rect.x = (-(&(obj)->panel)->bounds.rect.w) >> 1;
         arg0->killCountdown            = 0xBC;
         arg0->state                    = arg0->state + 1;
@@ -759,7 +759,7 @@ void Gp_DrawLoadCmd(UiList* arg0, UiObject* arg1)
                 return;
             }
             if (obj != NULL) {
-                Ui_ClampDialogRect(&(obj)->panel, arg0, &(arg1)->panel);
+                uiPositionRowDialog(&(obj)->panel, arg0, &(arg1)->panel);
             }
             arg1->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
             arg0->actionResult       = USER_INTERFACE_LIST_ACTION_INPUT_CONSUMED;

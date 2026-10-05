@@ -303,7 +303,7 @@ void func_800A087C(Task* arg0)
         arg0->state++;
     }
 
-    Ui_DrawTitle(&(obj)->panel, (char*)Gp_StrBattleResult);
+    uiDrawTitle(&(obj)->panel, Gp_StrBattleResult);
     if (arg0->killCountdown < 500) {
         arg0->killCountdown++;
     }
@@ -324,7 +324,7 @@ void func_800A087C(Task* arg0)
     textDrawString(&req1, Gp_StrTotal);
 
     uiDrawHorizontalSeparator(&(obj)->panel, obj->panel.contentLeft.signedValue, obj->panel.contentRight.signedValue, top + 9);
-    Ui_DrawVBar(&(obj)->panel, top + 0xC, obj->panel.contentBottom.signedValue, 0x1C);
+    uiDrawVerticalSeparator(&(obj)->panel, top + 0xC, obj->panel.contentBottom.signedValue, 0x1C);
 
     h = obj->panel.contentBottom.signedValue;
     y = h - 2;

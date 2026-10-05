@@ -94,7 +94,7 @@ static void func_replay_bonus_80117194(Task* arg0)
     if ((flag == USER_INTERFACE_RESULT_CANCEL) || (flag == USER_INTERFACE_RESULT_CONFIRM)) {
         owner  = obj->owner;
         copied = obj->resultValue;
-        Ui_TeardownTree(obj, owner);
+        uiStartTreeClosing(obj, owner);
         switch (arg0->state) {
             case 2:
                 arg0->spawnArg2.pointer = Ui_SpawnFromDesc(&D_replay_bonus_8011918C, 0, 1, 1, NULL);

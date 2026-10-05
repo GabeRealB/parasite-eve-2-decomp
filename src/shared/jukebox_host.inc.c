@@ -22,7 +22,7 @@ void jukeboxHostTask(Task* task)
     if (task->state == 1) {
         obj = task->spawnArg2.pointer;
         if (obj->result == USER_INTERFACE_RESULT_CANCEL || obj->result == USER_INTERFACE_RESULT_CONFIRM) {
-            Ui_TeardownTree(obj, obj->owner);
+            uiStartTreeClosing(obj, obj->owner);
             task->killCountdown = 10;
             task->state         = 2;
         }

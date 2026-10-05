@@ -757,7 +757,7 @@ void func_800A57B0(HudState* hud)
                 }
             }
         }
-        Ui_InsertDrawTPage(-2, 0);
+        uiQueueTexturePage(-2, 0);
     }
 
     if (gPlayerActorTasks[PLAYER_ACTOR_TASK_COMPANION] != NULL) {

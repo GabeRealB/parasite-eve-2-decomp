@@ -2143,7 +2143,7 @@ void func_dryfield_night_saloon_g_r_8017E28C(Task* task)
                 if (task->status == 0xFF) {
                     obj->result = USER_INTERFACE_RESULT_CONFIRM;
                 } else {
-                    Ui_SetState4(obj, obj->owner);
+                    uiStartPanelHiding(obj, obj->owner);
                     obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
                 }
             }

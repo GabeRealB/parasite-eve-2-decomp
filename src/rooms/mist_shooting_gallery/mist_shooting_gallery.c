@@ -1105,7 +1105,7 @@ void func_mist_shooting_gallery_8017E090(Task* task)
     if (child != NULL) {
         childObj = child->spawnArg2.pointer;
         if (childObj->result == USER_INTERFACE_RESULT_CANCEL || childObj->result == USER_INTERFACE_RESULT_CONFIRM) {
-            Ui_TeardownTree(childObj, childObj->owner);
+            uiStartTreeClosing(childObj, childObj->owner);
             obj->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
         }
     }
@@ -1262,7 +1262,7 @@ void func_mist_shooting_gallery_8017E234(Task* task)
 
     if (task->state == 0) {
         if (gGameSession->battleResetPending == 1) {
-            Ui_SetState4(obj, obj->owner);
+            uiStartPanelHiding(obj, obj->owner);
             obj->result = USER_INTERFACE_RESULT_CONFIRM;
             task->state = 0x100;
             return;
@@ -1456,10 +1456,10 @@ void func_mist_shooting_gallery_8017EC58(Task* task)
     s32         y;
 
     obj = task->spawnArg2.pointer;
-    Ui_DrawTitle(&(obj)->panel, "STATUS");
+    uiDrawTitle(&(obj)->panel, "STATUS");
     obj->result = USER_INTERFACE_RESULT_NONE;
     if (task->state == 0) {
-        Ui_UpdateLayoutSize(&(obj)->panel, 0, Ui_Scale15(4));
+        Ui_UpdateLayoutSize(&(obj)->panel, 0, uiGetTextRowsHeight(4));
         task->state = task->state + 1;
     }
 
@@ -1617,7 +1617,7 @@ void func_mist_shooting_gallery_8017F128(Task* task)
     s32                         x;
     s32                         y;
 
-    Ui_DrawTitle(&(obj)->panel, D_mist_shooting_gallery_8017D820);
+    uiDrawTitle(&(obj)->panel, D_mist_shooting_gallery_8017D820);
 
     col               = obj->panel.contentLeft.signedValue;
     obj->result       = USER_INTERFACE_RESULT_NONE;
@@ -1737,7 +1737,7 @@ void func_mist_shooting_gallery_8017F6C8(Task* task)
         obj = task->spawnArg2.pointer;
         if (obj->result == USER_INTERFACE_RESULT_CONFIRM) {
             task->killCountdown = 0xA;
-            Ui_TeardownTree(obj, obj->owner);
+            uiStartTreeClosing(obj, obj->owner);
             Gp_RecalcMaxHp();
             Gp_RecalcMaxMp();
 
@@ -1843,7 +1843,7 @@ void func_mist_shooting_gallery_8017FAE8(Task* task)
 
     obj->result = USER_INTERFACE_RESULT_NONE;
     if (task->state == 0) {
-        Ui_UpdateLayoutSize(&(obj)->panel, 0, Ui_Scale15(3) + 1);
+        Ui_UpdateLayoutSize(&(obj)->panel, 0, uiGetTextRowsHeight(3) + 1);
         obj->panel.bounds.unsignedRect.y = 0x68 - obj->panel.bounds.unsignedRect.h;
         task->state                      = task->state + 1;
     }
@@ -2269,7 +2269,7 @@ void func_mist_shooting_gallery_80180728(Task* task)
                 if (task->status == 0xFF) {
                     obj->result = USER_INTERFACE_RESULT_CONFIRM;
                 } else {
-                    Ui_SetState4(obj, obj->owner);
+                    uiStartPanelHiding(obj, obj->owner);
                     obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
                 }
             }

@@ -339,7 +339,7 @@ void func_800C7DA8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3)
                 i += 1;
             } while (i < count);
         }
-        Ui_InsertDrawTPage(arg0->panel.otIndex.signedValue + 1, 0);
+        uiQueueTexturePage(arg0->panel.otIndex.signedValue + 1, 0);
     }
 }
 
@@ -531,7 +531,7 @@ void Gp_DrawAmmoRow(UiList* arg0, UiObject* obj)
                 Gp_ReloadMode = 0;
                 spawned       = Ui_SpawnFromDesc(&D_8010EF14, item | 0x10000, 1, 1, obj);
                 if (spawned != NULL) {
-                    Ui_ClampDialogRect(&(spawned)->panel, prompt, &(obj)->panel);
+                    uiPositionRowDialog(&(spawned)->panel, prompt, &(obj)->panel);
                 }
                 obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
             } else {
@@ -623,7 +623,7 @@ void Gp_AmmoListTask(Task* arg0)
                         obj->result = flag;
                         break;
                     case USER_INTERFACE_RESULT_CONFIRM:
-                        Ui_TeardownTree(childObj, childObj->owner);
+                        uiStartTreeClosing(childObj, childObj->owner);
                         obj->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
                         break;
                 }
@@ -678,7 +678,7 @@ void Gp_SelectWeaponMenuTask(Task* arg0)
     if (arg0->state == 0) {
         parent     = arg0->parent;
         D_80114DD8 = -1;
-        Ui_SetState4(parent->spawnArg2.pointer, parent);
+        uiStartPanelHiding(parent->spawnArg2.pointer, parent);
         Ui_SpawnFromDesc(&D_8010EC3C, 0, 0, 0x10, obj);
     }
     val = Gp_NthRelatedId(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, menu->selectedItemIndex, 0);
@@ -768,7 +768,7 @@ void Gp_DrawRemoveAmmoRow(UiList* prompt, UiObject* obj)
             draw.count.req.alignment  = TEXT_ALIGNMENT_RIGHT;
             draw.count.req.drawMode   = TEXT_DRAW_FILL_ONLY;
             textDrawString(&draw.count.req, Text_ItoaSigned(draw.count.buf, qty));
-            Ui_LayoutWithMode0(obj, (x + 0x69), (y - 8), 0x1B, 7,
+            uiDrawRecessedRect(&obj->panel, (x + 0x69), (y - 8), 0x1B, 7,
                                0x102010);
         }
         {

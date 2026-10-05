@@ -512,7 +512,7 @@ static void Gp_DrawItemPrompt(s32 arg0, s32 arg1)
     } else {
         flag = 1;
     }
-    Ui_LayoutWithMode0(&obj, 0x79, (y + 4), 0x1B, 7, 0x102010);
+    uiDrawRecessedRect(&obj.panel, 0x79, (y + 4), 0x1B, 7, 0x102010);
     if (slot->secondaryItemId != EQUIPMENT_WEAPON_SECONDARY_UNAVAILABLE) {
         flag = 0;
         y   += 0xA;
@@ -526,7 +526,7 @@ static void Gp_DrawItemPrompt(s32 arg0, s32 arg1)
         } else {
             flag = 1;
         }
-        Ui_LayoutWithMode0(&obj, 0x79, (y + 4), 0x1B, 7, 0x102010);
+        uiDrawRecessedRect(&obj.panel, 0x79, (y + 4), 0x1B, 7, 0x102010);
         y -= 0xA;
     }
     rect.w = 0x39;

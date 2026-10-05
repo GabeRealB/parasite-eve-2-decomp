@@ -308,7 +308,7 @@ static void Gp_ItemMoveChild(UiObject* arg0, Task* arg1)
             obj->result          = USER_INTERFACE_RESULT_CANCEL;
             break;
         case USER_INTERFACE_RESULT_CONFIRM:
-            Ui_TeardownTree(arg0, arg1);
+            uiStartTreeClosing(arg0, arg1);
             work->panes[work->focusedPane]->owner->state       = 1;
             work->panes[work->focusedPane ^ 1]->owner->state   = 1;
             work->focusedPane                                  = work->focusedPane ^ 1;
@@ -944,7 +944,7 @@ void Gp_ItemActionListTask(Task* arg0)
                 break;
             case USER_INTERFACE_RESULT_CONFIRM:
                 obj->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
-                Ui_TeardownTree(child, child->owner);
+                uiStartTreeClosing(child, child->owner);
                 break;
         }
     }
@@ -1194,10 +1194,10 @@ void func_800BDF6C(Task* task)
     if (qty > 0) {
         equippedWidth = ((s32)(qty * widthM2) / (s32)(split->containerQty + split->carriedQty)) + 2;
         if (equippedWidth > 0) {
-            Ui_AllocTile(&(obj)->panel, (half + width) - equippedWidth, caretY, equippedWidth, 8, 0x37A78U);
+            uiFillRectInterior(&(obj)->panel, (half + width) - equippedWidth, caretY, equippedWidth, 8, 0x37A78U);
         }
     }
-    Ui_LayoutWithMode0(obj, (s32)-width / 2, textY - 0xA, width, 8, 0x102010);
+    uiDrawRecessedRect(&obj->panel, (s32)-width / 2, textY - 0xA, width, 8, 0x102010);
     message = task->status;
     if (message == 1) {
         task->killCountdown = 0xBC;
@@ -1568,19 +1568,19 @@ static void Gp_CloseItemPane(UiObject* arg0, Task* arg1)
         case USER_INTERFACE_RESULT_CANCEL:
             if (parent->owner->status) {
                 parent->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
-                Ui_TeardownTree(arg0, arg0->owner);
+                uiStartTreeClosing(arg0, arg0->owner);
             } else {
-                Ui_TeardownTree(arg0, arg0->owner);
+                uiStartTreeClosing(arg0, arg0->owner);
                 parent->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
                 parent->result             = USER_INTERFACE_RESULT_CANCEL;
             }
             break;
         case USER_INTERFACE_RESULT_CONFIRM:
             parent->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
-            Ui_TeardownTree(arg0, arg0->owner);
+            uiStartTreeClosing(arg0, arg0->owner);
             break;
         case 0x23:
-            Ui_TeardownTree(arg0, arg0->owner);
+            uiStartTreeClosing(arg0, arg0->owner);
             parent->result = 0x23;
             break;
         case 38:

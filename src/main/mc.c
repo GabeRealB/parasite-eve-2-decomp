@@ -860,7 +860,7 @@ static s32 Mc_PromptDialog(Task* task, s32 arg1, s32 unused3)
     obj         = task->spawnArg2.pointer;
     ret         = Ui_LookupTable(obj, 1);
     obj->result = USER_INTERFACE_RESULT_NONE;
-    Ui_DrawTitle(&(obj)->panel, Mc_StrMemoryCard);
+    uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     one   = 1;
     base  = Mc_PromptTable;
     entry = &base[arg1];
@@ -882,7 +882,7 @@ static s32 Mc_PromptDialog(Task* task, s32 arg1, s32 unused3)
     childObject = childTask->spawnArg2.pointer;
     if (childObject->result == USER_INTERFACE_RESULT_CONFIRM) {
         obj->resultValue = childObject->resultValue;
-        Ui_TeardownTree(childObject, childObject->owner);
+        uiStartTreeClosing(childObject, childObject->owner);
         obj->panel.control.word = one;
     }
     return obj->resultValue;
@@ -901,7 +901,7 @@ static s32 Mc_PromptDialogChoice(Task* task, s32 arg1, s32 unused3)
     obj         = task->spawnArg2.pointer;
     ret         = Ui_LookupTable(obj, 1);
     obj->result = USER_INTERFACE_RESULT_NONE;
-    Ui_DrawTitle(&(obj)->panel, Mc_StrMemoryCard);
+    uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     one   = 1;
     base  = Mc_PromptTable;
     entry = &base[arg1];
@@ -923,7 +923,7 @@ static s32 Mc_PromptDialogChoice(Task* task, s32 arg1, s32 unused3)
     childObject = childTask->spawnArg2.pointer;
     if (childObject->result == USER_INTERFACE_RESULT_CONFIRM) {
         obj->resultValue = childObject->resultValue;
-        Ui_TeardownTree(childObject, childObject->owner);
+        uiStartTreeClosing(childObject, childObject->owner);
         obj->panel.control.word = one;
     }
     return obj->resultValue;
@@ -942,7 +942,7 @@ static s32 Mc_PromptDialogSpawn(Task* task, s32 arg1, s32 unused3)
     obj         = task->spawnArg2.pointer;
     ret         = Ui_LookupTable(obj, 1);
     obj->result = USER_INTERFACE_RESULT_NONE;
-    Ui_DrawTitle(&(obj)->panel, Mc_StrMemoryCard);
+    uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     one   = 1;
     base  = Mc_PromptTable;
     entry = &base[arg1];
@@ -964,7 +964,7 @@ static s32 Mc_PromptDialogSpawn(Task* task, s32 arg1, s32 unused3)
     childObject = childTask->spawnArg2.pointer;
     if (childObject->result == USER_INTERFACE_RESULT_CONFIRM) {
         obj->resultValue = childObject->resultValue;
-        Ui_TeardownTree(childObject, childObject->owner);
+        uiStartTreeClosing(childObject, childObject->owner);
         obj->panel.control.word = one;
     }
     return obj->resultValue;
@@ -983,7 +983,7 @@ static s32 Mc_PromptDialogFile(Task* task, s32 arg1, s32 unused3)
     obj         = task->spawnArg2.pointer;
     ret         = Ui_LookupTable(obj, 1);
     obj->result = USER_INTERFACE_RESULT_NONE;
-    Ui_DrawTitle(&(obj)->panel, Mc_StrMemoryCard);
+    uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     one   = 1;
     base  = Mc_PromptTable;
     entry = &base[arg1];
@@ -1006,7 +1006,7 @@ static s32 Mc_PromptDialogFile(Task* task, s32 arg1, s32 unused3)
     childObject = childTask->spawnArg2.pointer;
     if (childObject->result == USER_INTERFACE_RESULT_CONFIRM) {
         obj->resultValue = childObject->resultValue;
-        Ui_TeardownTree(childObject, childObject->owner);
+        uiStartTreeClosing(childObject, childObject->owner);
         obj->panel.control.word = one;
     }
     return obj->resultValue;
@@ -1279,7 +1279,7 @@ static void Mc_StateScanDirFlags(Task* task, McWork* work)
     idx         = work->promptId;
     ret         = Ui_LookupTable(obj, 1);
     obj->result = USER_INTERFACE_RESULT_NONE;
-    Ui_DrawTitle(&(obj)->panel, Mc_StrMemoryCard);
+    uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, Mc_PromptTable[idx].upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, Mc_PromptTable[idx].lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
 }
@@ -1351,7 +1351,7 @@ static void Mc_StateListDirectory(Task* task, McWork* work)
     idx         = work->promptId;
     ret         = Ui_LookupTable(obj, 1);
     obj->result = USER_INTERFACE_RESULT_NONE;
-    Ui_DrawTitle(&(obj)->panel, Mc_StrMemoryCard);
+    uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     one   = 1;
     base  = Mc_PromptTable;
     entry = &base[idx];
@@ -1370,7 +1370,7 @@ static inline void _mcDrawPrompt(Task* task, s32 mode)
     obj         = task->spawnArg2.pointer;
     ret         = Ui_LookupTable(obj, 1);
     obj->result = USER_INTERFACE_RESULT_NONE;
-    Ui_DrawTitle(&(obj)->panel, Mc_StrMemoryCard);
+    uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[mode];
     textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
@@ -1389,7 +1389,7 @@ static inline void _mcCloseChild(Task* task, s32 status)
         obj                     = child->spawnArg2.pointer;
         flag                    = task->spawnArg2.pointer;
         obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
-        Ui_TeardownTree(obj, obj->owner);
+        uiStartTreeClosing(obj, obj->owner);
         flag->panel.control.word = status;
     }
 }
@@ -1442,7 +1442,7 @@ static void Mc_StateFileSelect(Task* task, McWork* work)
         if (childObj->result == USER_INTERFACE_RESULT_CONFIRM) {
             obj->resultValue             = childObj->resultValue;
             childObj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
-            Ui_TeardownTree(childObj, childObj->owner);
+            uiStartTreeClosing(childObj, childObj->owner);
             obj->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
             if (obj->resultValue >= 0) {
                 if (obj->resultValue < work->entryCount) {
@@ -1590,7 +1590,7 @@ static void Mc_StateCompareBuffers(Task* task, McWork* work)
     idx         = work->promptId;
     ret         = Ui_LookupTable(obj, 1);
     obj->result = USER_INTERFACE_RESULT_NONE;
-    Ui_DrawTitle(&(obj)->panel, Mc_StrMemoryCard);
+    uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     one   = 1;
     base  = Mc_PromptTable;
     entry = &base[idx];
@@ -1641,7 +1641,7 @@ static void Mc_StateOpenRead(Task* task, McWork* work)
     idx         = work->promptId;
     ret         = Ui_LookupTable(obj, 1);
     obj->result = USER_INTERFACE_RESULT_NONE;
-    Ui_DrawTitle(&(obj)->panel, Mc_StrMemoryCard);
+    uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[idx];
     textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
@@ -1688,7 +1688,7 @@ static void Mc_StateCreateFile(Task* task, McWork* work)
     idx         = work->promptId;
     ret         = Ui_LookupTable(obj, 1);
     obj->result = USER_INTERFACE_RESULT_NONE;
-    Ui_DrawTitle(&(obj)->panel, Mc_StrMemoryCard);
+    uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[idx];
     textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
@@ -1744,7 +1744,7 @@ static void Mc_StatePadFileName(Task* task, McWork* work)
     idx         = work->promptId;
     ret         = Ui_LookupTable(obj, 1);
     obj->result = USER_INTERFACE_RESULT_NONE;
-    Ui_DrawTitle(&(obj)->panel, Mc_StrMemoryCard);
+    uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[idx];
     textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
@@ -1950,7 +1950,7 @@ static void Mc_StateFreeBuffer(Task* task, McWork* work)
     idx         = work->promptId;
     ret         = Ui_LookupTable(obj, 1);
     obj->result = USER_INTERFACE_RESULT_NONE;
-    Ui_DrawTitle(&(obj)->panel, Mc_StrMemoryCard);
+    uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[idx];
     textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
@@ -1989,7 +1989,7 @@ static void Mc_StateFormat(Task* task, McWork* work)
     idx         = work->promptId;
     ret         = Ui_LookupTable(obj, 1);
     obj->result = USER_INTERFACE_RESULT_NONE;
-    Ui_DrawTitle(&(obj)->panel, Mc_StrMemoryCard);
+    uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[idx];
     textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
@@ -2030,7 +2030,7 @@ static void Mc_StateSyncFileSelect(Task* task, McWork* work)
         if (childObj->result == USER_INTERFACE_RESULT_CONFIRM) {
             obj->resultValue             = childObj->resultValue;
             childObj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
-            Ui_TeardownTree(childObj, childObj->owner);
+            uiStartTreeClosing(childObj, childObj->owner);
             obj->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
             if (obj->resultValue >= 0) {
                 src = (u8*)work->directory[obj->resultValue].name;
@@ -2127,7 +2127,7 @@ static void Mc_StateBlankFileName(Task* task, McWork* work)
     idx         = work->promptId;
     ret         = Ui_LookupTable(obj, 1);
     obj->result = USER_INTERFACE_RESULT_NONE;
-    Ui_DrawTitle(&(obj)->panel, Mc_StrMemoryCard);
+    uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[idx];
     textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
@@ -2876,7 +2876,7 @@ static void Mc_HideChildUi(Task* task)
         obj                     = child->spawnArg2.pointer;
         flag                    = task->spawnArg2.pointer;
         obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
-        Ui_TeardownTree(obj, obj->owner);
+        uiStartTreeClosing(obj, obj->owner);
         flag->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
     }
 }
@@ -2968,7 +2968,7 @@ static void Mc_StateAcceptMode1(Task* task, McWork* work)
     obj             = task->spawnArg2.pointer;
     ret             = Ui_LookupTable(obj, 1);
     obj->result     = USER_INTERFACE_RESULT_NONE;
-    Ui_DrawTitle(&(obj)->panel, Mc_StrMemoryCard);
+    uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[idx];
     textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
@@ -2999,7 +2999,7 @@ static void Mc_StateSyncAdvance(Task* task, McWork* work)
     obj         = task->spawnArg2.pointer;
     ret         = Ui_LookupTable(obj, 1);
     obj->result = USER_INTERFACE_RESULT_NONE;
-    Ui_DrawTitle(&(obj)->panel, Mc_StrMemoryCard);
+    uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[idx];
     textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
@@ -3025,7 +3025,7 @@ static void Mc_StateDrawPromptAdvance(Task* task, McWork* work)
     idx             = work->promptId;
     ret             = Ui_LookupTable(obj, 1);
     obj->result     = USER_INTERFACE_RESULT_NONE;
-    Ui_DrawTitle(&(obj)->panel, Mc_StrMemoryCard);
+    uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[idx];
     textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
@@ -3069,7 +3069,7 @@ static void Mc_StatePromptChoiceB(Task* task, McWork* work)
                     obj                     = child->spawnArg2.pointer;
                     flag                    = task->spawnArg2.pointer;
                     obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
-                    Ui_TeardownTree(obj, obj->owner);
+                    uiStartTreeClosing(obj, obj->owner);
                     flag->panel.control.word = syncResult;
                 }
             }
@@ -3091,7 +3091,7 @@ static void Mc_StateDrawPrompt4(Task* task, McWork* work)
     obj             = task->spawnArg2.pointer;
     ret             = Ui_LookupTable(obj, 1);
     obj->result     = USER_INTERFACE_RESULT_NONE;
-    Ui_DrawTitle(&(obj)->panel, Mc_StrMemoryCard);
+    uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[MEMORY_CARD_PROMPT_SAVING];
     textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
@@ -3112,7 +3112,7 @@ static void Mc_StateEnterDialog4(Task* task, McWork* work)
     obj            = task->spawnArg2.pointer;
     ret            = Ui_LookupTable(obj, 1);
     obj->result    = USER_INTERFACE_RESULT_NONE;
-    Ui_DrawTitle(&(obj)->panel, Mc_StrMemoryCard);
+    uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[MEMORY_CARD_PROMPT_SAVING];
     textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
@@ -3138,7 +3138,7 @@ static void Mc_StateWriteFile(Task* task, McWork* work)
     obj         = task->spawnArg2.pointer;
     ret         = Ui_LookupTable(obj, 1);
     obj->result = USER_INTERFACE_RESULT_NONE;
-    Ui_DrawTitle(&(obj)->panel, Mc_StrMemoryCard);
+    uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[idx];
     textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
@@ -3188,7 +3188,7 @@ static void Mc_StateWriteData(Task* task, McWork* work)
     obj         = task->spawnArg2.pointer;
     ret         = Ui_LookupTable(obj, 1);
     obj->result = USER_INTERFACE_RESULT_NONE;
-    Ui_DrawTitle(&(obj)->panel, Mc_StrMemoryCard);
+    uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[idx];
     textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
@@ -3210,7 +3210,7 @@ static void Mc_StateClosePrompt(Task* task, McWork* work)
     obj         = task->spawnArg2.pointer;
     ret         = Ui_LookupTable(obj, 1);
     obj->result = USER_INTERFACE_RESULT_NONE;
-    Ui_DrawTitle(&(obj)->panel, Mc_StrMemoryCard);
+    uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[idx];
     textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
@@ -3255,7 +3255,7 @@ static void Mc_StateSyncPromptFile3(Task* task, McWork* work)
                     obj                     = child->spawnArg2.pointer;
                     flag                    = task->spawnArg2.pointer;
                     obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
-                    Ui_TeardownTree(obj, obj->owner);
+                    uiStartTreeClosing(obj, obj->owner);
                     flag->panel.control.word = syncResult;
                 }
                 task->state = 2;
@@ -3297,7 +3297,7 @@ static void Mc_StatePromptChoice9(Task* task, McWork* work)
                     obj                     = child->spawnArg2.pointer;
                     flag                    = task->spawnArg2.pointer;
                     obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
-                    Ui_TeardownTree(obj, obj->owner);
+                    uiStartTreeClosing(obj, obj->owner);
                     flag->panel.control.word = syncResult;
                 }
             }
@@ -3318,7 +3318,7 @@ static void Mc_StateColdBoot(Task* task, McWork* work)
     obj            = task->spawnArg2.pointer;
     ret            = Ui_LookupTable(obj, 1);
     obj->result    = USER_INTERFACE_RESULT_NONE;
-    Ui_DrawTitle(&(obj)->panel, Mc_StrMemoryCard);
+    uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[MEMORY_CARD_PROMPT_FORMATTING];
     textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
@@ -3353,7 +3353,7 @@ static void Mc_StateSyncPrompt13(Task* task, McWork* work)
                     obj                     = child->spawnArg2.pointer;
                     flag                    = task->spawnArg2.pointer;
                     obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
-                    Ui_TeardownTree(obj, obj->owner);
+                    uiStartTreeClosing(obj, obj->owner);
                     flag->panel.control.word = rslt;
                 }
                 task->state = 0x14;
@@ -3406,7 +3406,7 @@ static void Mc_StatePromptCountdown(Task* task, McWork* work)
     idx                = work->promptId;
     ret                = Ui_LookupTable(obj, 1);
     obj->result        = USER_INTERFACE_RESULT_NONE;
-    Ui_DrawTitle(&(obj)->panel, Mc_StrMemoryCard);
+    uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[idx];
     textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
@@ -3429,7 +3429,7 @@ static void Mc_StateDrawPromptTo1F(Task* task, McWork* work)
     obj         = task->spawnArg2.pointer;
     ret         = Ui_LookupTable(obj, 1);
     obj->result = USER_INTERFACE_RESULT_NONE;
-    Ui_DrawTitle(&(obj)->panel, Mc_StrMemoryCard);
+    uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[idx];
     textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
@@ -3448,7 +3448,7 @@ static void Mc_StateCountdownPrompt4(Task* task, McWork* work)
     obj            = task->spawnArg2.pointer;
     ret            = Ui_LookupTable(obj, 1);
     obj->result    = USER_INTERFACE_RESULT_NONE;
-    Ui_DrawTitle(&(obj)->panel, Mc_StrMemoryCard);
+    uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[MEMORY_CARD_PROMPT_SAVING];
     textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
@@ -3471,7 +3471,7 @@ static void Mc_StateDrawPrompt1Advance(Task* task, McWork* work)
     obj             = task->spawnArg2.pointer;
     ret             = Ui_LookupTable(obj, 1);
     obj->result     = USER_INTERFACE_RESULT_NONE;
-    Ui_DrawTitle(&(obj)->panel, Mc_StrMemoryCard);
+    uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[MEMORY_CARD_PROMPT_CHECKING];
     textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
@@ -3516,7 +3516,7 @@ static void Mc_StateReadHeader(Task* task, McWork* work)
     idx         = work->promptId;
     ret         = Ui_LookupTable(obj, 1);
     obj->result = USER_INTERFACE_RESULT_NONE;
-    Ui_DrawTitle(&(obj)->panel, Mc_StrMemoryCard);
+    uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[idx];
     textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
@@ -3552,7 +3552,7 @@ static void Mc_StateOpenNext(Task* task, McWork* work)
     modeIdx     = a1->promptId;
     ret         = Ui_LookupTable(obj, 1);
     obj->result = USER_INTERFACE_RESULT_NONE;
-    Ui_DrawTitle(&(obj)->panel, Mc_StrMemoryCard);
+    uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[modeIdx];
     textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
@@ -3575,7 +3575,7 @@ static void Mc_StateUiCountdown2(Task* task, McWork* work)
     idx         = work->promptId;
     ret         = Ui_LookupTable(obj, 1);
     obj->result = USER_INTERFACE_RESULT_NONE;
-    Ui_DrawTitle(&(obj)->panel, Mc_StrMemoryCard);
+    uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[idx];
     textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
@@ -3598,7 +3598,7 @@ static void Mc_StateUiCountdownE(Task* task, McWork* work)
     idx         = work->promptId;
     ret         = Ui_LookupTable(obj, 1);
     obj->result = USER_INTERFACE_RESULT_NONE;
-    Ui_DrawTitle(&(obj)->panel, Mc_StrMemoryCard);
+    uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[idx];
     textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
@@ -3620,7 +3620,7 @@ static void Mc_StateUiCountdownF(Task* task, McWork* work)
     obj            = task->spawnArg2.pointer;
     ret            = Ui_LookupTable(obj, 1);
     obj->result    = USER_INTERFACE_RESULT_NONE;
-    Ui_DrawTitle(&(obj)->panel, Mc_StrMemoryCard);
+    uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[MEMORY_CARD_PROMPT_SAVING];
     textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
@@ -3718,7 +3718,7 @@ static void Mc_StateCountdownPrompt(Task* task, McWork* work)
         idx         = work->promptId;
         ret         = Ui_LookupTable(obj, 1);
         obj->result = USER_INTERFACE_RESULT_NONE;
-        Ui_DrawTitle(&(obj)->panel, Mc_StrMemoryCard);
+        uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
         base  = Mc_PromptTable;
         entry = &base[idx];
         textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
@@ -3739,7 +3739,7 @@ static void Mc_StateCloseReturn(Task* task, McWork* work)
     obj         = task->spawnArg2.pointer;
     ret         = Ui_LookupTable(obj, 1);
     obj->result = USER_INTERFACE_RESULT_NONE;
-    Ui_DrawTitle(&(obj)->panel, Mc_StrMemoryCard);
+    uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[idx];
     textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
@@ -3763,7 +3763,7 @@ static void Mc_StatePromptTimeout(Task* task, McWork* work)
     idx                = work->promptId;
     ret                = Ui_LookupTable(obj, 1);
     obj->result        = USER_INTERFACE_RESULT_NONE;
-    Ui_DrawTitle(&(obj)->panel, Mc_StrMemoryCard);
+    uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[idx];
     textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
@@ -3846,7 +3846,7 @@ static void Mc_StateSyncPrompt3(Task* task, McWork* work)
                     obj                     = child->spawnArg2.pointer;
                     flag                    = task->spawnArg2.pointer;
                     obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
-                    Ui_TeardownTree(obj, obj->owner);
+                    uiStartTreeClosing(obj, obj->owner);
                     flag->panel.control.word = syncResult;
                 }
                 task->state = 7;
@@ -3883,7 +3883,7 @@ static void Mc_StateSyncPromptA(Task* task, McWork* work)
                     obj                     = child->spawnArg2.pointer;
                     flag                    = task->spawnArg2.pointer;
                     obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
-                    Ui_TeardownTree(obj, obj->owner);
+                    uiStartTreeClosing(obj, obj->owner);
                     flag->panel.control.word = rslt;
                 }
                 task->state = 0xA;
@@ -3907,7 +3907,7 @@ static void Mc_StateDrawCurrentPrompt(Task* task, McWork* work)
     idx             = work->promptId;
     ret             = Ui_LookupTable(obj, 1);
     obj->result     = USER_INTERFACE_RESULT_NONE;
-    Ui_DrawTitle(&(obj)->panel, Mc_StrMemoryCard);
+    uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[idx];
     textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
@@ -3933,7 +3933,7 @@ static void Mc_StateReadData(Task* task, McWork* work)
     idx         = work->promptId;
     ret         = Ui_LookupTable(obj, 1);
     obj->result = USER_INTERFACE_RESULT_NONE;
-    Ui_DrawTitle(&(obj)->panel, Mc_StrMemoryCard);
+    uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[idx];
     textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
@@ -3952,7 +3952,7 @@ static void Mc_StateDrawPrompt1(Task* task, McWork* work)
     obj             = task->spawnArg2.pointer;
     ret             = Ui_LookupTable(obj, 1);
     obj->result     = USER_INTERFACE_RESULT_NONE;
-    Ui_DrawTitle(&(obj)->panel, Mc_StrMemoryCard);
+    uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[MEMORY_CARD_PROMPT_CHECKING];
     textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
@@ -3987,7 +3987,7 @@ static void Mc_StateGetDirentry(Task* task, McWork* work)
     idx         = work->promptId;
     ret         = Ui_LookupTable(obj, 1);
     obj->result = USER_INTERFACE_RESULT_NONE;
-    Ui_DrawTitle(&(obj)->panel, Mc_StrMemoryCard);
+    uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[idx];
     textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
@@ -4031,7 +4031,7 @@ static void Mc_StateReadSlot(Task* task, McWork* work)
     idx         = work->promptId;
     ret         = Ui_LookupTable(obj, 1);
     obj->result = USER_INTERFACE_RESULT_NONE;
-    Ui_DrawTitle(&(obj)->panel, Mc_StrMemoryCard);
+    uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[idx];
     textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
@@ -4067,7 +4067,7 @@ static void Mc_StateWalkDirectory(Task* task, McWork* work)
     modeIdx     = a1->promptId;
     ret         = Ui_LookupTable(obj, 1);
     obj->result = USER_INTERFACE_RESULT_NONE;
-    Ui_DrawTitle(&(obj)->panel, Mc_StrMemoryCard);
+    uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[modeIdx];
     textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);

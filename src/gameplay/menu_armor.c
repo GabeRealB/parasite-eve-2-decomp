@@ -217,7 +217,7 @@ void Gp_DrawRemoveArmorRow(UiList* prompt, UiObject* obj)
                 req.alignment  = TEXT_ALIGNMENT_RIGHT;
                 req.drawMode   = TEXT_DRAW_FILL_ONLY;
                 textDrawString(&req, Text_ItoaSigned(buf, qty));
-                Ui_LayoutWithMode0(obj, x + 0x69, y - 8, 0x1B, 7, 0x102010);
+                uiDrawRecessedRect(&obj->panel, x + 0x69, y - 8, 0x1B, 7, 0x102010);
             }
         }
 
@@ -348,7 +348,7 @@ void Gp_EquipSelectMenuTask(Task* arg0)
         menu->selectedItemIndex                   = 0;
         menu->firstVisibleItemIndex.unsignedValue = 0;
         parent                                    = arg0->parent;
-        Ui_SetState4(parent->spawnArg2.pointer, parent);
+        uiStartPanelHiding(parent->spawnArg2.pointer, parent);
         Ui_SpawnFromDesc(&D_8010EC3C, 3, val, 0x10, obj);
         arg0->state = arg0->state + 1;
     }

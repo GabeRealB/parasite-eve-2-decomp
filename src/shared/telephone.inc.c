@@ -444,7 +444,7 @@ static void Telephone_DrawUsageRow(UiList* arg0, UiObject* arg1)
         addPrim(gGpuCurrentOt + arg1->panel.otIndex.signedValue + 1, prim);
     }
     one = 1;
-    Ui_DrawBeveledRect(&(arg1)->panel, barX, arg0->rowTextY.signedValue - 0xC, barW, 9, 0, one);
+    uiDrawBeveledRect(&(arg1)->panel, barX, arg0->rowTextY.signedValue - 0xC, barW, 9, 0, one);
     if (((arg1->panel.control.word >> 16) == one) || (arg1->panel.control.word == one)) {
         if (arg0->selectedItemIndex == arg0->currentItemIndex) {
             Gp_SetPreviewItem(item, 0);
@@ -696,7 +696,7 @@ static void Telephone_UsageTask(Task* task)
             childObj = child->spawnArg2.pointer;
             next     = child->nextSibling;
             if (childObj->result == USER_INTERFACE_RESULT_CANCEL || childObj->result == USER_INTERFACE_RESULT_CONFIRM) {
-                Ui_TeardownTree(childObj, childObj->owner);
+                uiStartTreeClosing(childObj, childObj->owner);
                 obj->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
             }
             child = next;
@@ -753,7 +753,7 @@ static inline void Telephone_MenuTask(Task* task)
     }
     if (obj->result == USER_INTERFACE_RESULT_CONFIRM) {
         obj->result = USER_INTERFACE_RESULT_NONE;
-        Ui_SetState4(obj, task);
+        uiStartPanelHiding(obj, task);
         obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
     }
     if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {
@@ -772,7 +772,7 @@ static inline void Telephone_MenuTask(Task* task)
             case USER_INTERFACE_RESULT_CONFIRM:
                 if (task->state == 1) {
                     kind = childObj->resultValue;
-                    Ui_TeardownTree(childObj, childObj->owner);
+                    uiStartTreeClosing(childObj, childObj->owner);
                     mode = 0xF;
                     if (kind == 0x33) {
                         mode = 0x11;
@@ -787,7 +787,7 @@ static inline void Telephone_MenuTask(Task* task)
                     obj->result      = USER_INTERFACE_RESULT_CANCEL;
                     obj->resultValue = 0x34;
                 } else {
-                    Ui_TeardownTree(childObj, childObj->owner);
+                    uiStartTreeClosing(childObj, childObj->owner);
                     sndEvtRequestScriptStart(SOUND_SYSTEM_CANCEL, 0, 0);
                     uiStartPanelOpening(&(obj)->panel, task);
                     obj->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
@@ -796,7 +796,7 @@ static inline void Telephone_MenuTask(Task* task)
             case USER_INTERFACE_RESULT_CANCEL:
                 if (task->state == 1) {
                     kind = childObj->resultValue;
-                    Ui_TeardownTree(childObj, childObj->owner);
+                    uiStartTreeClosing(childObj, childObj->owner);
                     mode = 0xF;
                     if (kind == 0x33) {
                         mode = 0x11;
