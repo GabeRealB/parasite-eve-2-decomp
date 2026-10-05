@@ -1057,11 +1057,20 @@ static s32 SndEvt_EnqueueType4(s32 arg0)
     return 0;
 }
 
-/// Fills and queues a reserved MIDI volume event, then caches its requested gain.
+/// Queues a reserved MIDI sequence-gain request and records its normalized gain.
 ///
-/// `event` must be a reserved pool slot. Selector zero addresses all sequences;
-/// gain bytes above 127 become 127. Read the cache value from the slot after
-/// enqueueing to retain the ordering with audio-interrupt processing.
+/// `event` must be a non-NULL, unqueued slot reserved by `sndEvtAlloc`; the FIFO
+/// owns it through dispatch and release. `sequenceSelector` is a byte: zero
+/// selects all sequences, and 1..254 selects a matching loaded id. The caller
+/// must exclude 255. `volumeScale` is a byte: 0..127 requests that gain
+/// (0 silent, 127 full), and 128..255 requests full gain.
+///
+/// Dispatch multiplies the matching sequence's mix-table level by the gain and
+/// marks every channel for refresh; master gain and the fade apply separately.
+/// A matching loaded id must be in 0..99 when dispatched. Sequence 0x5A uses
+/// its fixed gain instead. The shared cache keeps the latest queued gain,
+/// including silence, for music unmuting even if no sequence matches. The music
+/// output gate is independent of this request.
 static inline void _sndEvtQueueMidiVolume(SndEvt* event, u8 sequenceSelector, u8 volumeScale)
 {
     SndEvtMidiArgs* midiArgs;
@@ -1075,6 +1084,7 @@ static inline void _sndEvtQueueMidiVolume(SndEvt* event, u8 sequenceSelector, u8
         midiArgs->volumeScale = SOUND_EVENT_MIDI_VOLUME_FULL;
     }
     sndEvtEnqueue(event);
+    // Read after reopening audio dispatch; releasing a slot retains its payload.
     D_800820E8 = midiArgs->volumeScale;
 }
 
