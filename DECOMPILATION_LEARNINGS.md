@@ -148761,7 +148761,9 @@ the source's second set was is not known. Not it: a `switch` (five cases over
   lose `$v0` to the loaded limit, which a local with a copy suggestion from
   `$v0` does not. Tried: the count in the local that later holds the BP
   quotient (also `$v1` in the image; combine still substitutes), the
-  subtraction written twice, `held >= maxHeld`, a guarded form.
+  subtraction written twice, `held >= maxHeld`, a guarded form. The permuter
+  (540 s, 5100 iterations) went from 170 to 165 with `unsigned long long held`
+  and no further.
 - `_waterDrawSpinU16` of `shelter_b1_pod_service_gantry` (`asm("s0")`). The
   depth is the first member of that room's scratch block, so
   `gte_stszotz(&(scratchEnd - 1)->depth)` is the block pointer itself and the
