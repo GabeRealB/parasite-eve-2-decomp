@@ -335,7 +335,7 @@ if (Wip_SysFlags.discNumber == GAME_MAIN_DISC_2)
 else
     key.loc.view = 0x64;  // 100
 slotParam[0] = streamFindMovieSlot(&key.loc, 0, 0);
-CdCmd_Enqueue(CD_COMMAND_PLAY_STREAM, 0, slotParam);
+cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, 0, slotParam);
 ```
 
 Both title rows share `source.interSectorOffset = 0` (same video). Disc → id is still how

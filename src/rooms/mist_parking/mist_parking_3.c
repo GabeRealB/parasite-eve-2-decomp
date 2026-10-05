@@ -227,7 +227,7 @@ void func_mist_parking_801837B8(Task* task)
             }
             slot         = streamFindMovieSlot(&key.loc, 0, 0);
             slotParam[0] = slot;
-            CdCmd_Enqueue(CD_COMMAND_PLAY_STREAM, 0, slotParam);
+            cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, 0, slotParam);
             task->state = task->state + 1;
             return;
         case 2:

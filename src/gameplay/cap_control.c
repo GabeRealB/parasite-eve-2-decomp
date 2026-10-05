@@ -184,7 +184,7 @@ s32 func_800E74EC(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (gGameSession->evtSkipped == 0) {
         if (D_801156B1 != 0) {
-            CdCmd_UnusedStub0();
+            cdCmdSceneControlNoOp();
             D_801156B0 = 1;
             D_801156BC = 0;
         } else {

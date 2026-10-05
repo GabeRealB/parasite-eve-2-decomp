@@ -345,7 +345,7 @@ u16 Stream_RestoreAfterLoad(s32 arg0, s32 arg1)
         }
         Tmd_AllocMissingBuffers();
         if (gDisplayState.videoMode == DISPLAY_VIDEO_STREAMING) {
-            CdCmd_BuildVlcIfStream();
+            cdCmdPrepareViewMovie();
             CdCmd_SelectMdecBuffer();
         }
         D_8006AC28 = D_8006AC28 + 1;
@@ -361,7 +361,7 @@ u16 Stream_RestoreAfterLoad(s32 arg0, s32 arg1)
             param2[2] = 0;
             param2[3] = 0;
             param2[0] = f74;
-            CdCmd_Enqueue(CD_COMMAND_LOAD_FILE, param1, param2);
+            cdCmdEnqueue(CD_COMMAND_LOAD_FILE, param1, param2);
             goto ret_zero;
         }
         goto ret_one;

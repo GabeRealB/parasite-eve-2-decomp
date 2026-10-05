@@ -375,7 +375,7 @@ DsDataCallback              = 0x8001BB58;
 //--------------------------------------------------------------------
 //--- PA: 0x0C37C   VA: 0x8001BB7C   subsegment: c, cdcmd
 //--------------------------------------------------------------------
-CdCmd_SetupMdecBuffers               = 0x8001BB7C; // type:func
+cdCmdReservePlaybackBuffers               = 0x8001BB7C; // type:func
 CdCmd_HandleStreamDecode               = 0x8001BE60; // type:func
 CdCmd_HandleFileLoad               = 0x8001C0D4; // type:func
 CdCmd_HandleMount               = 0x8001C620; // type:func
@@ -384,26 +384,26 @@ CdCmd_ProcessPhase1               = 0x8001CA70; // type:func
 CdCmd_ActivatePhase2               = 0x8001CDF0; // type:func
 CdCmd_ProcessPhase2               = 0x8001CEFC; // type:func
 CdCmd_EnqueueFollowUp               = 0x8001D0E8; // type:func
-CdCmd_Enqueue               = 0x8001D2B0; // type:func
+cdCmdEnqueue               = 0x8001D2B0; // type:func
 CdCmd_IsIdle               = 0x8001D344; // type:func
 CdCmd_IsSlotEmpty               = 0x8001D37C; // type:func
-CdCmd_BuildVlcIfStream               = 0x8001D39C; // type:func
-CdCmd_ClearQueue            = 0x8001D3F8; // type:func
+cdCmdPrepareViewMovie               = 0x8001D39C; // type:func
+cdCmdResetState            = 0x8001D3F8; // type:func
 CdCmd_DropPending               = 0x8001D424; // type:func
 CdCmd_SelectMdecBuffer               = 0x8001D498; // type:func
 CdCmd_GetOverlayStatus               = 0x8001D4F0; // type:func
-CdCmd_GetStreamMode               = 0x8001D524; // type:func
+_cdCmdGetSceneAudioMode               = 0x8001D524; // type:func
 CdCmd_StartOverlay               = 0x8001D534; // type:func
-CdCmd_UnusedStub0               = 0x8001D580; // type:func
+cdCmdSceneControlNoOp               = 0x8001D580; // type:func
 CdCmd_CancelReplaceAndActivate               = 0x8001D588; // type:func
 CdCmd_UnusedStub1               = 0x8001D5B4; // type:func
 CdCmd_UnusedStub2               = 0x8001D5BC; // type:func
-CdCmd_UnusedStub3               = 0x8001D5C4; // type:func
+cdCmdSceneViewChangeNoOp               = 0x8001D5C4; // type:func
 CdCmd_EnqueueOverlay81               = 0x8001D5CC; // type:func
 CdCmd_EnqueueReplaceOverlay81               = 0x8001D628; // type:func
 CdCmd_EnqueueOverlay82               = 0x8001D66C; // type:func
 CdCmd_EnqueueReplaceOverlay82               = 0x8001D6B8; // type:func
-CdCmd_EnqueueReplace        = 0x8001D6FC; // type:func
+cdCmdStageReplacement        = 0x8001D6FC; // type:func
 CdCmd_CommitReplace               = 0x8001D760; // type:func
 CdCmd_IsIdleOrOverlayPending               = 0x8001D82C; // type:func
 CdCmd_NextEntry               = 0x8001D898; // type:func
@@ -411,9 +411,9 @@ CdCmd_SetBusy               = 0x8001D8DC; // type:func
 CdCmd_ClearBusy               = 0x8001D90C; // type:func
 CdCmd_ResetRing               = 0x8001D934; // type:func
 CdCmd_ResetEntryIter               = 0x8001D97C; // type:func
-CdCmd_EnqueueUnlessStream               = 0x8001D990; // type:func
+cdCmdEnqueueUnlessSceneAudioPending               = 0x8001D990; // type:func
 CdCmd_AdvanceRead               = 0x8001DA48; // type:func
-CdCmd_LoadActiveEntry               = 0x8001DAB8; // type:func
+cdCmdSaveHeadRequest               = 0x8001DAB8; // type:func
 CdCmd_Dispatch               = 0x8001DB84; // type:func
 
 //--------------------------------------------------------------------

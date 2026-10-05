@@ -92,7 +92,7 @@ u16 Gp_PollAreaCdLoads(void)
                 fileParams[1] = 0;
                 fileParams[2] = Gp_CdRecCur->texturePageOffset;
                 fileParams[3] = Gp_CdRecCur->clutRowOffset;
-                CdCmd_Enqueue(LOADING_AREA_FILE_COMMAND, fileKey, fileParams);
+                cdCmdEnqueue(LOADING_AREA_FILE_COMMAND, fileKey, fileParams);
                 Gp_AreaCdPhase++;
                 break;
             }
@@ -168,7 +168,7 @@ u16 func_800AA120(void)
                         fileParams[1] = 0;
                         fileParams[2] = texturePageOffset;
                         fileParams[3] = clutRowOffset;
-                        CdCmd_Enqueue(LOADING_AREA_FILE_COMMAND, fileKey, fileParams);
+                        cdCmdEnqueue(LOADING_AREA_FILE_COMMAND, fileKey, fileParams);
                         goto queued;
                     } else {
                         texturePageOffset = 0;
@@ -186,7 +186,7 @@ u16 func_800AA120(void)
                         fileParams[1] = 0;
                         fileParams[2] = texturePageOffset;
                         fileParams[3] = clutRowOffset;
-                        CdCmd_Enqueue(LOADING_AREA_FILE_COMMAND, fileKey, fileParams);
+                        cdCmdEnqueue(LOADING_AREA_FILE_COMMAND, fileKey, fileParams);
                         goto queued;
                     }
                 } else if (D_80114C72 != 0) {
@@ -205,7 +205,7 @@ u16 func_800AA120(void)
                     fileParams[1] = 0;
                     fileParams[2] = texturePageOffset;
                     fileParams[3] = clutRowOffset;
-                    CdCmd_Enqueue(LOADING_AREA_FILE_COMMAND, fileKey, fileParams);
+                    cdCmdEnqueue(LOADING_AREA_FILE_COMMAND, fileKey, fileParams);
                 queued:
                     D_80114C70++;
                     break;

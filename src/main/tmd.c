@@ -946,7 +946,7 @@ void Tmd_AllocMissingBuffers(void)
 
     node = PARENT_OF(gTmdList.next, TmdObject, link);
     memInitAuxHeap();
-    CdCmd_SetupMdecBuffers();
+    cdCmdReservePlaybackBuffers();
     while (node != NULL) {
         if (node->buffer == NULL) {
             if (!(node->flags & TMD_OBJECT_SKIP_AUTO_BUFFER)) {

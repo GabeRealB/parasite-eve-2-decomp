@@ -522,7 +522,7 @@ void func_neo_ark_altar_8017DA40(Task* task)
                 key.loc.view = 0x66;
             }
             slotParam[0] = streamFindMovieSlot(&key.loc, 0, 0);
-            CdCmd_Enqueue(CD_COMMAND_PLAY_STREAM, 0, slotParam);
+            cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, 0, slotParam);
             task->state++;
             break;
         case 2:

@@ -756,7 +756,7 @@ void Gp_StepCdAudioCmd(void)
             p->sceneAudioStarted = one;
             cmd                  = p->entries[p->readIdx].cmd;
             if (cmd == CD_COMMAND_START_SCENE_AUDIO) {
-                CdCmd_LoadActiveEntry();
+                cdCmdSaveHeadRequest();
                 CdCmd_AdvanceRead();
                 break;
             }
@@ -1103,7 +1103,7 @@ static s32 Gp_TryEnqueueSndCd(s32 arg0)
         param2[1] = 1;
         param2[3] = 0;
         param2[2] = 0;
-        CdCmd_Enqueue(CD_COMMAND_LOAD_FILE, param1, param2);
+        cdCmdEnqueue(CD_COMMAND_LOAD_FILE, param1, param2);
         D_800626E8 = 1;
         return 0;
     }
@@ -1126,7 +1126,7 @@ void Gp_EnqueueSndCd(u8 arg0)
         param2[3] = 0;
         param2[2] = 0;
         param2[1] = 0;
-        CdCmd_Enqueue(CD_COMMAND_LOAD_FILE, param1, param2);
+        cdCmdEnqueue(CD_COMMAND_LOAD_FILE, param1, param2);
         D_800626E8                = flag;
         gGameSession->loadedSndId = arg0;
     }
@@ -1166,7 +1166,7 @@ static void Gp_StartStageLoad(Task* task)
             param2[3] = 0;
             param2[2] = 0;
             param2[1] = 0;
-            CdCmd_Enqueue(CD_COMMAND_LOAD_FILE, param1, param2);
+            cdCmdEnqueue(CD_COMMAND_LOAD_FILE, param1, param2);
             fileId = 9;
         }
         CdCmd_EnqueueLoadFile(fileId, 0, 3);

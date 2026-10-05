@@ -5202,7 +5202,7 @@ static void func_actor_400600_8013B640(void)
             param2[3] = 0;
             param2[2] = 0;
             param2[1] = 0;
-            CdCmd_Enqueue(CD_COMMAND_LOAD_FILE, param1, param2);
+            cdCmdEnqueue(CD_COMMAND_LOAD_FILE, param1, param2);
         } else {
             param1[2] = 0x28;
             param1[0] = 1;
@@ -5211,7 +5211,7 @@ static void func_actor_400600_8013B640(void)
             param2[3] = 0;
             param2[2] = 0;
             param2[1] = 0;
-            CdCmd_Enqueue(CD_COMMAND_LOAD_FILE, param1, param2);
+            cdCmdEnqueue(CD_COMMAND_LOAD_FILE, param1, param2);
         }
         gSceneCombatState.enemySoundBankQueued = 1;
     }

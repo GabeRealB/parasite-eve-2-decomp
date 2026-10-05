@@ -20,7 +20,7 @@ void madChaserLoadSoundBank(void)
             param2[3] = 0;
             param2[2] = 0;
             param2[1] = 0;
-            CdCmd_Enqueue(CD_COMMAND_LOAD_FILE, param1, param2);
+            cdCmdEnqueue(CD_COMMAND_LOAD_FILE, param1, param2);
         } else if (gGameSession->location.loc.stage == GAME_STAGE_MINE_SHELTER && (u32)(gGameSession->location.loc.area - 0x27) < 2 && gGameSession->location.loc.variant == 2) {
             param1[2] = 0xA;
             param1[0] = 3;
@@ -29,7 +29,7 @@ void madChaserLoadSoundBank(void)
             param2[3] = 0;
             param2[2] = 0;
             param2[1] = 0;
-            CdCmd_Enqueue(CD_COMMAND_LOAD_FILE, param1, param2);
+            cdCmdEnqueue(CD_COMMAND_LOAD_FILE, param1, param2);
         } else {
             param1[2] = 0xA;
             param1[0] = 1;
@@ -38,7 +38,7 @@ void madChaserLoadSoundBank(void)
             param2[3] = 0;
             param2[2] = 0;
             param2[1] = 0;
-            CdCmd_Enqueue(CD_COMMAND_LOAD_FILE, param1, param2);
+            cdCmdEnqueue(CD_COMMAND_LOAD_FILE, param1, param2);
         }
         gSceneCombatState.enemySoundBankQueued = 1;
     }

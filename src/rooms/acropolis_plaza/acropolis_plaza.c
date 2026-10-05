@@ -3428,7 +3428,7 @@ void func_acropolis_plaza_8017DBFC(Task* task)
             key          = gGameSession->location;
             key.loc.view = 0x64;
             slotParam[0] = streamFindMovieSlot(&key.loc, 0, 0);
-            CdCmd_Enqueue(CD_COMMAND_PLAY_STREAM, 0, slotParam);
+            cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, 0, slotParam);
             task->state++;
             break;
         case 2:
@@ -3703,7 +3703,7 @@ L_case0:
         openFrame = frameOfs & 0xFFFF;
         slot[1]   = openFrame >> 8;
         slot[2]   = openFrame & loMask;
-        CdCmd_Enqueue(CD_COMMAND_RESET_STREAM_AT_OFFSET, 0, slot);
+        cdCmdEnqueue(CD_COMMAND_RESET_STREAM_AT_OFFSET, 0, slot);
     } else {
         q->movieAtEnd = 0;
     }
@@ -3799,7 +3799,7 @@ L_enqueue:
     seekFrame = frameOfs & 0xFFFF;
     slot[1]   = seekFrame >> 8;
     slot[2]   = seekFrame;
-    CdCmd_Enqueue(CD_COMMAND_PLAY_STREAM_AT_OFFSET, 0, slot);
+    cdCmdEnqueue(CD_COMMAND_PLAY_STREAM_AT_OFFSET, 0, slot);
     q->movieReady = 0;
     task->state   = task->state + 1;
     goto L_tail;
@@ -3936,7 +3936,7 @@ static inline void _acropolisPlazaRestartStream(u8 subId)
     streamAt[0] = streamFindMovieSlot(&gGameSession->location.loc, subId, 0);
     streamAt[1] = 0;
     streamAt[2] = 0;
-    CdCmd_Enqueue(CD_COMMAND_RESET_STREAM_AT_OFFSET, 0, streamAt);
+    cdCmdEnqueue(CD_COMMAND_RESET_STREAM_AT_OFFSET, 0, streamAt);
 }
 
 /// Queues the plaza movie `subId` of the current room to play from its first
@@ -3951,7 +3951,7 @@ static inline void _acropolisPlazaPlayStream(u8 subId)
     streamAt[0] = streamFindMovieSlot(&gGameSession->location.loc, subId, 0);
     streamAt[1] = 0;
     streamAt[2] = 0;
-    CdCmd_Enqueue(CD_COMMAND_PLAY_STREAM_AT_OFFSET, 0, streamAt);
+    cdCmdEnqueue(CD_COMMAND_PLAY_STREAM_AT_OFFSET, 0, streamAt);
 }
 
 /// Finds the live enemy spawned from the current area's placement of resource
@@ -4041,7 +4041,7 @@ static inline void _acropolisPlazaPlacePlayerAtModelRoot(Task* task, s32 yaw)
 /// (msg 0x3F0), following up with the 0xD55 warp (msg 0x3EE) and then the
 /// `D_actor_310100_801797FC` script (msg 0x3F4). State 3 waits for the CD queue, latches
 /// `gCdCmdQueue.sceneFrame` into the sequence work block's `resumeFrame`, kills
-/// its `sceneTask` and starts the scene's stream (`CdCmd_Enqueue(CD_COMMAND_RESET_STREAM_AT_OFFSET, ...)`); state 4
+/// its `sceneTask` and starts the scene's stream (`cdCmdEnqueue(CD_COMMAND_RESET_STREAM_AT_OFFSET, ...)`); state 4
 /// waits for the stream to report in and runs `D_acropolis_plaza_80182B24`.
 /// State 5 waits out 0x60 frames, republishes the player's weapon to slot 3
 /// (msg 0x3E8) and warps the player onto the slot-3 model's own coordinate
@@ -4210,7 +4210,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
             slot[0]             = streamFindMovieSlot(&gGameSession->location.loc, 4, 0);
             slot[1]             = 0;
             slot[2]             = 0;
-            CdCmd_Enqueue(CD_COMMAND_RESET_STREAM_AT_OFFSET, 0, slot);
+            cdCmdEnqueue(CD_COMMAND_RESET_STREAM_AT_OFFSET, 0, slot);
             q->continueMovie = 1;
             task->state      = task->state + 1;
             return;
@@ -4237,7 +4237,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
             slot[0]             = streamFindMovieSlot(&gGameSession->location.loc, 5, 0);
             slot[1]             = 0;
             slot[2]             = 0;
-            CdCmd_Enqueue(CD_COMMAND_RESET_STREAM_AT_OFFSET, 0, slot);
+            cdCmdEnqueue(CD_COMMAND_RESET_STREAM_AT_OFFSET, 0, slot);
             q->continueMovie = 1;
             task->state      = task->state + 1;
             return;
@@ -4292,7 +4292,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
             slot[0]             = streamFindMovieSlot(&gGameSession->location.loc, 3, 0);
             slot[1]             = 0;
             slot[2]             = 0;
-            CdCmd_Enqueue(CD_COMMAND_RESET_STREAM_AT_OFFSET, 0, slot);
+            cdCmdEnqueue(CD_COMMAND_RESET_STREAM_AT_OFFSET, 0, slot);
             q->continueMovie = 0;
             task->state      = task->state + 1;
             /* fallthrough */

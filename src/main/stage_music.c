@@ -223,7 +223,7 @@ static void Stage_LoadOrCountdownTask(Task* task)
         param2[3] = 0;
         param2[2] = 0;
         param2[1] = 0;
-        CdCmd_Enqueue(CD_COMMAND_LOAD_FILE, param1, param2);
+        cdCmdEnqueue(CD_COMMAND_LOAD_FILE, param1, param2);
         field34 = task->spawnArg1.value;
         if (field34 == 3) {
             task->state = task->state + 2;

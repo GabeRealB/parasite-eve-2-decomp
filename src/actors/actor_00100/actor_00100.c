@@ -2141,7 +2141,7 @@ variantEnd:
             cmd30[3] = 0;
             cmd30[2] = 0;
             cmd30[1] = 0;
-            CdCmd_Enqueue(CD_COMMAND_LOAD_FILE, cmd38, cmd30);
+            cdCmdEnqueue(CD_COMMAND_LOAD_FILE, cmd38, cmd30);
         }
     }
     if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 1, 0, 0)) {

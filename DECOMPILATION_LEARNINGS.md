@@ -12503,7 +12503,7 @@ in `$v0`). Callers that ignore the result do not prove the prototype is
 `void`.
 
 ```c
-s32 CdCmd_Enqueue(...)  /* not void */
+s32 cdCmdEnqueue(...)  /* not void */
 {
     u16 writeIdx;
     u16 next;
@@ -12518,7 +12518,7 @@ s32 CdCmd_Enqueue(...)  /* not void */
 ```
 
 Without the `return`, GCC reuses `$v0` for the increment and the extra `andi`
-never appears. `CdCmd_Enqueue` is the pure example — stuck at ~97% with a
+never appears. `cdCmdEnqueue` is the pure example — stuck at ~97% with a
 `void` signature until the return type was corrected.
 
 ## `x % 8` (not `x & 7`) for u16 queue indices
@@ -17233,7 +17233,7 @@ ret_zero:
 `li v0, 1` before the epilogue instead of reusing a delay-slot instruction as a
 branch target. `Stream_RestoreAfterLoad`.
 
-When setting several `u8` stack slots from one struct (e.g. `CdCmd_Enqueue`
+When setting several `u8` stack slots from one struct (e.g. `cdCmdEnqueue`
 params), load each field into a local before the corresponding `sb` so the
 compiler emits `lbu` → `sb` → `lbu` → … rather than reordering independent
 zero-stores ahead of dependent field stores.
@@ -18864,13 +18864,13 @@ not overlap. For the `or v1, v0, v1` form, load hi then lo then
 
 Under `-funsigned-char`, `u8 param2[4]; param2[i] = -8` emits `li v0, 0xf8`.
 The target often wants `addiu v0, zero, -8` / `sb`. Declare the stack array
-as `s8` (and cast to `u8*` at the `CdCmd_Enqueue` call):
+as `s8`; `cdCmdEnqueue` reads its raw bytes through a `const void*` input:
 
 ```c
 s8 param2[4];
 param2[2] = -8; /* li v0, -8 */
 param2[3] = -3;
-CdCmd_Enqueue(0x21, param1, (u8*)param2);
+cdCmdEnqueue(0x21, param1, param2);
 ```
 
 ## Jump-table slot with trailing zero pad
@@ -20829,7 +20829,7 @@ return D_xxx;
 GCC 2.8.1 merges the two call sites into one `jal` (the fixed-size arm jumps
 with `a0` already set). A single shared site via `goto do_malloc` or a flag
 keeps the control flow but reloads `%hi` into `$v0`/`$v1` after the call
-instead of pinning it in `$s0` from the zeroing store. `CdCmd_SetupMdecBuffers` /
+instead of pinning it in `$s0` from the zeroing store. `cdCmdReservePlaybackBuffers` /
 `D_8006AC00` is the pure example.
 
 ## An argument setup written twice around one shared `jal` means two call sites
@@ -23358,7 +23358,7 @@ That restores `lui`/`li`/`sb` then `lw`/`nop`/`addiu`/`jr`/`sw` (delay slot).
 
 ## Early `a2` for CdCmd param block, stores via stack slots
 
-When the target sets `addiu a2, sp, 0x10` early (third arg of `CdCmd_Enqueue`)
+When the target sets `addiu a2, sp, 0x10` early (third arg of `cdCmdEnqueue`)
 but still writes the 4-byte param block with `sb …, 0x1N(sp)` (not `sb …, N(a2)`):
 
 ```c
@@ -23374,7 +23374,7 @@ param2[0] = arg0;    /* sb a0, 0x10(sp) — write through the array */
 param2[3] = 0;
 param2[2] = 0;
 param2[1] = 0;
-CdCmd_Enqueue(0x21, param1, p2);  /* use p2 only at the call */
+cdCmdEnqueue(0x21, param1, p2);  /* use p2 only at the call */
 ```
 
 Writing through `p2[i]` forces `sb …, N(a2)` and breaks the match. Keep `p2`
@@ -23454,7 +23454,7 @@ L7: /* kill path; no advance */;
 ## Force arg regs with `asm("aN")` + empty asm so stores fill jal/branch delays
 
 When the target has `move a0, zero` in a `beqz` delay and `sh/sb` in a following
-`jal` delay (or `sb v0` of a prior call's return in a `jal CdCmd_Enqueue` delay),
+`jal` delay (or `sb v0` of a prior call's return in a `jal cdCmdEnqueue` delay),
 plain C often schedules the address `lui` / stack `addiu` into those slots instead.
 
 Pin the call arguments in hard registers and barrier them so setup wins the
@@ -23475,17 +23475,17 @@ register u8* p asm("a2");
 cmd = 0x61; zero = 0; p = slotParam;
 asm("" : "+r"(cmd), "+r"(zero), "+r"(p), "+r"(slot));
 slotParam[0] = slot;  /* sb v0 fills Enqueue delay */
-CdCmd_Enqueue(cmd, zero, p);
+cdCmdEnqueue(cmd, zero, p);
 ```
 
 Keep the slot temp as `s16` (FindSlot's return type) so the barrier does not
-insert `sll`/`sra` sign-extend. Same pattern for case-4 `CdCmd_Enqueue(0x21, …)`
+insert `sll`/`sra` sign-extend. Same pattern for case-4 `cdCmdEnqueue(0x21, …)`
 arg setup before `D_800691DE = 1` (absolute alias of `gCdCmdQueue.preserveDisplayAfterDecode`).
 `Title_DemoStreamTask` is the pure example.
 
 The trigger is a basic-block split, not the call itself. The identical
 `slot = streamFindMovieSlot(&key.loc, 0, 0); slotParam[0] = slot;
-CdCmd_Enqueue(0x61, 0, slotParam);` sequence matches with no pins when the
+cdCmdEnqueue(0x61, 0, slotParam);` sequence matches with no pins when the
 preceding `key.loc.view = 0x64;` is unconditional, because the whole case body
 is one block and `sched2` sinks the `sb` past the arg setup. Add an `if/else`
 ahead of it - `key.loc.view = task->spawnArg1 != 0 ? 0x65 : 0x64` written as two
@@ -29089,7 +29089,7 @@ li    a0, cmd
 sb    zero, 0x19(sp)
 sb    zero, 0x1b(sp)
 sb    zero, 0x1a(sp)
-jal   CdCmd_Enqueue
+jal   cdCmdEnqueue
 sb    v0, 0x18(sp)
 ```
 
@@ -29104,7 +29104,7 @@ param2[1] = 0;
 param2[3] = 0;
 param2[2] = 0;
 param2[0] = stage;
-CdCmd_Enqueue(0x21, param1, param2);
+cdCmdEnqueue(0x21, param1, param2);
 ```
 
 `Gp_EnqueueMapRoomCd` is the example. The fused
@@ -33905,7 +33905,7 @@ if (done & 0xFFFF) {
 
 `Gp_LoadWaitAreaCd` is the example.
 
-## Fill CdCmd_Enqueue arg `addiu`s between session-field `lbu`s
+## Fill cdCmdEnqueue arg `addiu`s between session-field `lbu`s
 
 A 0x21 enqueue that copies `GameSession.location.loc.stage/6/5` into a stack
 payload wants `&param1` / `&param2` in `$a1` / `$a2` *between* each
@@ -33923,7 +33923,7 @@ sb     v0, 0x12(sp)
 lbu    v1, 5(v1)
 li     v0, 1
 ...
-jal    CdCmd_Enqueue
+jal    cdCmdEnqueue
  sb    v1, 0x11(sp)
 ```
 
@@ -38209,10 +38209,10 @@ left alone, while a block that falls into a label is merged with everything that
 jumps to it.
 
 `func_800AA120` walks a list and, for three different conditions, runs the same
-`CdCmd_Enqueue` preamble. The ROM has **three verbatim copies** of the
+`cdCmdEnqueue` preamble. The ROM has **three verbatim copies** of the
 `param1[3]=0; param1[0]=0; val=rec->fileNumber; if (val >= 100) {...}` head,
 but only **one** copy of the `< 100` else-branch and of the `param1[2]=…; jal
-CdCmd_Enqueue` tail. Factoring the shared part after the `if`/`else` (or using
+cdCmdEnqueue` tail. Factoring the shared part after the `if`/`else` (or using
 `a || b` plus one inner `if`) scores ~65%: GCC keeps one copy of everything and
 threads the third condition into the second arm.
 
@@ -42754,7 +42754,7 @@ equivalent C spellings, and they cross-jump differently.
 `func_dryfield_night_motel_balcony_8017DDD0` is a 9-case `switch (task->state)`
 in which cases 2 and 5 are byte-identical (`lhu 0x1FA(a0)` / `SetDispMask(1)`),
 as are the `SetDispMask(0)` heads of cases 3 and 6 and the
-`streamFindMovieSlot` / `CdCmd_Enqueue` tails of cases 1 and 4. The ROM keeps
+`streamFindMovieSlot` / `cdCmdEnqueue` tails of cases 1 and 4. The ROM keeps
 every one of those duplicate blocks and shares only the trailing
 `lw 0x30(s0); addiu 1; sw 0x30(s0)`, which each case reaches with a `j`.
 
@@ -66275,7 +66275,7 @@ The output was previously declared as a direction vector, but the stores are
 The seed's three duplicated enqueue arms are necessary for the division blocks
 and cross-jumped tails, but their three phase increments are not. In `.loop`,
 the phase-address `high` had savings 3 and lifetime 9, so `move_movables` hoisted
-it into the outer preheader and retained it in `$s0` across `CdCmd_Enqueue`.
+it into the outer preheader and retained it in `$s0` across `cdCmdEnqueue`.
 Routing the first two arms to a label immediately before the third arm's phase
 increment leaves one update inside the loop. Its savings 1 and lifetime 3 are
 "not desirable" to hoist, restoring the post-call `lui $v1` and eliminating
@@ -147532,7 +147532,7 @@ static const Pattern D_x = { { 1, 12, 13, 14, 15, 16, 17, 18, 19 } };
 sp20 = D_x;                      /* twice */
 ...
 sp20.values[2] = 0x1E;           /* an unrelated use of the slot */
-CdCmd_Enqueue(CD_COMMAND_LOAD_FILE, sp20.values, sp30);
+cdCmdEnqueue(CD_COMMAND_LOAD_FILE, sp20.values, sp30);
 ```
 
 None of it is needed. Each arm declares its own initialized array, and the

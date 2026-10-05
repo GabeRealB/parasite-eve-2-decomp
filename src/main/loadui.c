@@ -107,14 +107,14 @@ void CdCmd_EnqueueLoadFile(s32 arg0, s32 arg1, s32 arg2)
                 param2[1] = 1;
                 param2[3] = 0;
                 param2[2] = 0;
-                CdCmd_EnqueueUnlessStream(0x21, param1, (u8*)param2);
+                cdCmdEnqueueUnlessSceneAudioPending(CD_COMMAND_LOAD_FILE, param1, param2);
                 D_800626E8 = 0;
             }
             SCRATCH_STACK_RELEASE_BYTES(8);
             return;
     }
 
-    CdCmd_Enqueue(CD_COMMAND_LOAD_FILE, param1, (u8*)param2);
+    cdCmdEnqueue(CD_COMMAND_LOAD_FILE, param1, param2);
     D_800626E8 = 1;
     SCRATCH_STACK_RELEASE_BYTES(8);
 }

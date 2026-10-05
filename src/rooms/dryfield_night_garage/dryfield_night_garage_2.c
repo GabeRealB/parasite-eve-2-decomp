@@ -1187,7 +1187,7 @@ void func_dryfield_night_garage_80180B20(Task* arg0)
             }
             slot         = streamFindMovieSlot(&key.loc, 0, 0);
             slotParam[0] = slot;
-            CdCmd_Enqueue(CD_COMMAND_PLAY_STREAM, 0, slotParam);
+            cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, 0, slotParam);
             task->state++;
             return;
         case 2:

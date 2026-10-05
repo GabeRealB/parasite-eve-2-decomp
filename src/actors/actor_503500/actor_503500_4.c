@@ -4341,7 +4341,7 @@ static void func_actor_503500_80142980(Task* arg0)
                     param2[2] = -1;
                     param2[3] = 2;
                 }
-                work->loadCommandSlot = CdCmd_Enqueue(CD_COMMAND_LOAD_FILE, (u8*)param1, (u8*)param2);
+                work->loadCommandSlot = cdCmdEnqueue(CD_COMMAND_LOAD_FILE, param1, param2);
                 Gp_ComposeParentWorld(coord, &m.mat, &rot);
                 // Copy the nine coefficients as four words and a halfword; preserve the alignment halfword.
                 in  = (s32*)&m;

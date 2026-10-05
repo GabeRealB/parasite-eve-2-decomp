@@ -215,7 +215,7 @@ void Boot_LoadInitialFile(Task* task)
             SetDispMask(0);
             Fs_ScanIsoDirectory(1);
             gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_STRIPS;
-            CdCmd_Enqueue(CD_COMMAND_READ_STAGE_HEADER, NULL, NULL);
+            cdCmdEnqueue(CD_COMMAND_READ_STAGE_HEADER, NULL, NULL);
             memConfigureImageMemory(GAME_STAGE_NONE, 0);
             while (queue->imageLoadStatus != CD_COMMAND_IMAGE_COMPLETE) {
                 CdCmd_StepVlcRebuild();
@@ -227,7 +227,7 @@ void Boot_LoadInitialFile(Task* task)
             param2[1] = 0;
             param2[2] = 0;
             param2[3] = 0;
-            CdCmd_Enqueue(CD_COMMAND_LOAD_FILE, param1, param2);
+            cdCmdEnqueue(CD_COMMAND_LOAD_FILE, param1, param2);
             task->killCountdown = 0xFF;
             fade                = task->killCountdown;
             fadeDrawOverlay(fade, fade, fade, GPU_BLEND_SUBTRACT);
@@ -337,7 +337,7 @@ void Boot_InitCd(void)
     param[0] = CdlModeSpeed;
     CdControlB(CdlSetmode, param, NULL);
     CdAudio_Init();
-    CdCmd_ClearQueue();
+    cdCmdResetState();
 }
 
 void Boot_ResetCd(s32 mode)
@@ -356,7 +356,7 @@ void Boot_ResetCd(s32 mode)
     CdReset(mode);
     ctrlParam[0] = CdlModeSpeed;
     CdControlB(CdlSetmode, ctrlParam, NULL);
-    CdCmd_ClearQueue();
+    cdCmdResetState();
 }
 
 void Boot_LoadTask(Task* task)
@@ -379,7 +379,7 @@ void Boot_LoadTask(Task* task)
             param2[1] = 0;
             param2[2] = 0;
             param2[3] = 0;
-            CdCmd_Enqueue(CD_COMMAND_LOAD_FILE, param1, param2);
+            cdCmdEnqueue(CD_COMMAND_LOAD_FILE, param1, param2);
             task->state = task->state + 1;
             return;
         case 1:

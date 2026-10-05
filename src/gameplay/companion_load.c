@@ -369,7 +369,7 @@ void Gp_LoadFinishTask(Task* task)
         Task_Spawn(0, 0x21, 0, 0);
         if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(1, 5, 0, 0)) {
             taskSpawnFromTable(D_acropolis_plaza_80183824, 0, 0, 0);
-            CdCmd_SetupMdecBuffers();
+            cdCmdReservePlaybackBuffers();
             CdCmd_SelectMdecBuffer();
         }
     }

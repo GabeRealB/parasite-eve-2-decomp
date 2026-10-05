@@ -2106,7 +2106,7 @@ void func_dryfield_night_saloon_g_r_8017E28C(Task* task)
                 param2[3] = 0;
                 param2[2] = 0;
                 param2[1] = 0;
-                CdCmd_Enqueue(CD_COMMAND_LOAD_FILE, param1, param2);
+                cdCmdEnqueue(CD_COMMAND_LOAD_FILE, param1, param2);
                 sent = 1;
             } else {
                 sent = 0;

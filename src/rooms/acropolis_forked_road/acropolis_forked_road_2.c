@@ -1256,7 +1256,7 @@ void func_acropolis_forked_road_8017DA24(Task* task)
         case 2:
             if (taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, 0, 0) == 0) {
                 slot = streamFindMovieSlot(&gGameSession->location.loc, 0, 0);
-                CdCmd_Enqueue(CD_COMMAND_PLAY_STREAM, 0, &slot);
+                cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, 0, &slot);
                 task->state = task->state + 1;
             }
             break;

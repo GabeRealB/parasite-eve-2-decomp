@@ -2,7 +2,7 @@
 // splat 0.50: these are not in the title binary, so they must be absolute.
 
 CdCmd_ActivatePhase1 = 0x8001C970; // type:func absolute:True
-CdCmd_Enqueue = 0x8001D2B0; // type:func absolute:True
+cdCmdEnqueue = 0x8001D2B0; // type:func absolute:True
 CdCmd_EnqueueLoadFile = 0x80042364; // type:func absolute:True
 CdCmd_IsIdle = 0x8001D344; // type:func absolute:True
 gCdCmdQueue = 0x80068FA0; // absolute:True size:0x254

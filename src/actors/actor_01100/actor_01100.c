@@ -1102,7 +1102,7 @@ static void Actor01100_Fn0097C(Enemy* enemy, Task* task, _Actor01100Work* unused
 
     combat = &gSceneCombatState;
     if (combat->enemySoundBankQueued == 0) {
-        CdCmd_Enqueue(CD_COMMAND_LOAD_FILE, param1, param2);
+        cdCmdEnqueue(CD_COMMAND_LOAD_FILE, param1, param2);
         combat->enemySoundBankQueued = 1;
     }
 

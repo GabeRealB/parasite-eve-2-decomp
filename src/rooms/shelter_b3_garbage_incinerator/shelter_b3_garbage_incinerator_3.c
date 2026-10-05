@@ -2434,7 +2434,7 @@ void func_shelter_b3_garbage_incinerator_80184D84(Task* arg0)
             buf.cd.param2[1] = 0;
             buf.cd.param2[2] = 0;
             buf.cd.param2[3] = 0;
-            CdCmd_Enqueue(CD_COMMAND_LOAD_FILE, buf.cd.param1, buf.cd.param2);
+            cdCmdEnqueue(CD_COMMAND_LOAD_FILE, buf.cd.param1, buf.cd.param2);
             taskKill(arg0);
             break;
     }

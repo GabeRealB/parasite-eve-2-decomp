@@ -243,7 +243,7 @@ resumeView:
                             viewPhase  = D_801155BB;
                             D_801155BB = viewPhase + 1;
                             if (D_801156F4.sceneKey != NULL) {
-                                CdCmd_UnusedStub3();
+                                cdCmdSceneViewChangeNoOp();
                             }
                         } else if (!(eventFlags & CAP_SEQUENCE_SCENE_PHASE)) {
                             D_8011566A = 1;

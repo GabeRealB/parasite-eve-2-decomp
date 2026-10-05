@@ -83,7 +83,7 @@ void golemKnightBishopSpawn(Enemy* arg0, Task* arg1)
                 param2[3] = 0;
                 param2[2] = 0;
                 param2[1] = 0;
-                CdCmd_Enqueue(CD_COMMAND_LOAD_FILE, param1, param2);
+                cdCmdEnqueue(CD_COMMAND_LOAD_FILE, param1, param2);
             }
             work->hurtBody.coord            = &arg1->extra.tmd->coords[3];
             records1                        = work->hurtContacts;

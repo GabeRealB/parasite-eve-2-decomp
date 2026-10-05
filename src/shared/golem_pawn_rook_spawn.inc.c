@@ -92,7 +92,7 @@ void golemPawnRookSpawn(Enemy* ctx, Task* actor)
                 param2[3] = 0;
                 param2[2] = 0;
                 param2[1] = 0;
-                CdCmd_Enqueue(CD_COMMAND_LOAD_FILE, param1, param2);
+                cdCmdEnqueue(CD_COMMAND_LOAD_FILE, param1, param2);
             }
 
 #if GOLEM_PAWN_ROOK_TYPE == GOLEM_ROOK

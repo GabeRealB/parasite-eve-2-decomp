@@ -237,7 +237,7 @@ L_case2:
     key          = gGameSession->location;
     key.loc.view = 0x64;
     slotParam[0] = streamFindMovieSlot(&key.loc, 0, 0);
-    CdCmd_Enqueue(CD_COMMAND_PLAY_STREAM, 0, slotParam);
+    cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, 0, slotParam);
     goto advance;
 
 L_case3:

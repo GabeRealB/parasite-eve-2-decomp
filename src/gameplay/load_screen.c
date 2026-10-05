@@ -440,7 +440,7 @@ void Gp_LoadWaitCompanion(Task* task)
         param2[1] = 0;
         param2[2] = 0;
         param2[3] = 0;
-        CdCmd_Enqueue(CD_COMMAND_LOAD_FILE, param1, param2);
+        cdCmdEnqueue(CD_COMMAND_LOAD_FILE, param1, param2);
         flag = Gp_PickCompanion();
         if (flag != 0) {
             gGameSession->companionType = flag;
@@ -500,7 +500,7 @@ void Gp_LoadWaitSave(Task* task)
                 param2[1] = 0;
                 param2[2] = 0;
                 param2[3] = 0;
-                CdCmd_Enqueue(CD_COMMAND_LOAD_FILE, param1, param2);
+                cdCmdEnqueue(CD_COMMAND_LOAD_FILE, param1, param2);
             }
         }
         sess = gGameSession;
@@ -512,7 +512,7 @@ void Gp_LoadWaitSave(Task* task)
         Gp_MarkAreaVisited(saveKey);
         areaSyncLocationVariant(saveKey);
         gGameSession->location.loc.variant = saveKey->variant;
-        CdCmd_BuildVlcIfStream();
+        cdCmdPrepareViewMovie();
         D_80114C74 = 0;
         task->state++;
     }

@@ -326,7 +326,7 @@ case0:
     goto end;
 case1:
     if (CdCmd_IsIdle() & 0xFFFF) {
-        CdCmd_Enqueue(CD_COMMAND_LOAD_FILE, Stage_Ctx->loadFileKey, Stage_Ctx->loadFileArgs);
+        cdCmdEnqueue(CD_COMMAND_LOAD_FILE, Stage_Ctx->loadFileKey, Stage_Ctx->loadFileArgs);
         Stage_Ctx->transitionStep = Stage_Ctx->transitionStep + 1;
     }
     goto end;

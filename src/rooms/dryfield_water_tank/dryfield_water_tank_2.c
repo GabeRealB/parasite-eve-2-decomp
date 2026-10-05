@@ -970,7 +970,7 @@ void func_dryfield_water_tank_8017E568(Task* task)
             key.loc.view = 0x64;
             slot         = streamFindMovieSlot(&key.loc, 0, 0);
             slotParam[0] = slot;
-            CdCmd_Enqueue(CD_COMMAND_PLAY_STREAM, 0, slotParam);
+            cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, 0, slotParam);
             task->state = task->state + 1;
             return;
         case 2:

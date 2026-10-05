@@ -42,12 +42,29 @@ extern void* Fs_ActorLoadBase2;
 /// input record a demo otherwise reads from `Fs_ActorLoadBase2`.
 #define FILE_SYSTEM_FIXED_REPLAY_BASE ((u8*)0x80600100)
 
-/// Starts STR playback; `paramB[0]` is a stream-slot index (0..14).
+/// Starts STR playback; the first command-argument byte is a stream slot (0..14).
 enum { CD_COMMAND_PLAY_STREAM = 0x61 };
 
-s32 CdCmd_Enqueue(s32 cmd, u8* paramA, u8* paramB);
+/// Copies a request into the CD ring and returns its slot index (0..7).
+///
+/// Only the low byte of `command` is stored. `fileKey` supplies bytes 3
+/// (CDF stage), 2 (file group) and 0 (file index); byte 1 is ignored.
+/// `commandArgs` supplies four bytes interpreted by the opcode, as in
+/// `CdCmdEntry.args`. Both sources are read immediately and are not retained.
+/// They are raw byte addresses: signed-byte arrays and serialized keys are
+/// accepted without changing their representation or requiring alignment.
+/// A zero address still supplies bytes from low RAM; it does not omit a block.
+/// All seven source-byte reads occur even if the opcode ignores those fields.
+/// Producers must keep the next write index from overtaking the read index;
+/// the ring has eight slots and this routine does not test whether it is full.
+s32 cdCmdEnqueue(s32 command, const void* fileKey, const void* commandArgs);
 
-void CdCmd_EnqueueReplace(s32 cmd, u8* paramA, u8* paramB);
+/// Saves a deferred replacement request without advancing the CD ring.
+///
+/// Uses the byte-source contract of `cdCmdEnqueue`, overwrites the previous
+/// replacement, and retains no source pointers. `CdCmd_CommitReplace` later
+/// appends it to the ring; a zero command marks the replacement empty.
+void cdCmdStageReplacement(s32 command, const void* fileKey, const void* commandArgs);
 
 s32 CdCmd_CommitReplace(void);
 
@@ -63,7 +80,11 @@ void CdCmd_ResetEntryIter(void);
 
 CdCmdEntry* CdCmd_NextEntry(void);
 
-void CdCmd_LoadActiveEntry(void);
+/// Saves all eight bytes of the ring head in the active-request snapshot.
+///
+/// Does not advance the ring or alter the saved resume sector or dispatch
+/// phase. The saved bytes survive retirement or reuse of the ring slot.
+void cdCmdSaveHeadRequest(void);
 
 void CdCmd_AdvanceRead(void);
 
@@ -77,14 +98,34 @@ void CdCmd_EnqueueOverlay82(void);
 
 void CdCmd_EnqueueReplaceOverlay82(void);
 
-/// Unused command-module entry point; retained for the original image layout.
-void CdCmd_UnusedStub0(void);
+/// Empty entry point in the caption/scene-control handshake; its intended role is unproven.
+void cdCmdSceneControlNoOp(void);
 
 void CdCmd_CancelReplaceAndActivate(void);
 
-void* CdCmd_SetupMdecBuffers(void);
+/// Reserves scene VLC/timing/decode storage and the current movie workspace.
+///
+/// A selected scene borrows actor storage or allocates from the initialized
+/// auxiliary heap according to its descriptor. Matching actor VLC/timing
+/// selectors put timing words after a `STREAM_VLC_TABLE_BYTES` prefix, including
+/// when the VLC mode selects image storage. Borrowed actor contents must be
+/// expendable, and timing/decode payloads must fit their buffers.
+/// The movie workspace is allocated after scene storage, before model buffers:
+/// stage zero reserves a fixed title workspace; other stages require a matching
+/// movie and a nonzero live-save stage/area size-table entry. Returns that raw
+/// workspace, or `NULL` when none is reserved or its allocation fails. Scene
+/// reservations may already have occurred when the movie workspace is `NULL`.
+/// Previous playback storage must have been retired before reserving again;
+/// auxiliary allocations last until that heap is released or reinitialized.
+void* cdCmdReservePlaybackBuffers(void);
 
-void CdCmd_BuildVlcIfStream(void);
+/// Resets the movie frame to 1 and prepares actor buffer 0 for loaded view movies.
+///
+/// Builds its VLC table when any loaded movie has a view ID below 100; the
+/// current view does not constrain that test. It also clears the session field
+/// associated with actor buffer 0, whose nonzero meaning remains unproven.
+/// The actor buffer must be available for overwrite; no storage is allocated.
+void cdCmdPrepareViewMovie(void);
 
 void CdCmd_SelectMdecBuffer(void);
 
@@ -95,7 +136,7 @@ void CdCmd_EnqueueLoadFile(s32 arg0, s32 arg1, s32 arg2);
 void CdCmd_StepVlcRebuild(void);
 
 /// Enqueues `entry`'s command again, rebuilding from its fields the two
-/// parameter blocks `CdCmd_Enqueue` unpacks into a slot.
+/// parameter blocks `cdCmdEnqueue` unpacks into a slot.
 static inline s32 cdCmdEnqueueEntry(CdCmdEntry* entry)
 {
     u8 paramA[8];
@@ -108,7 +149,7 @@ static inline s32 cdCmdEnqueueEntry(CdCmdEntry* entry)
     paramB[1] = entry->args.bytes[1];
     paramB[2] = entry->args.bytes[2];
     paramB[3] = entry->args.bytes[3];
-    return CdCmd_Enqueue(entry->cmd, paramA, paramB);
+    return cdCmdEnqueue(entry->cmd, paramA, paramB);
 }
 
 void Fs_ReadSectorEx(s32 sector, s32 endSector, u8* dest, u8 mode);
@@ -125,7 +166,7 @@ u8* Fs_GetChunkPayload(void);
 
 void CdVol_SetMixMode(s32 stereo);
 
-/// Unused command-module entry point; retained for the original image layout.
-void CdCmd_UnusedStub3(void);
+/// Empty entry point called on scripted scene view changes; its intended role is unproven.
+void cdCmdSceneViewChangeNoOp(void);
 
 #endif // MAIN_FS_H

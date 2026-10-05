@@ -1550,7 +1550,7 @@ static void func_shelter_b1_pod_service_gantry_8017D628(Task* task)
             param2[1] = 0;
             param2[2] = 0;
             param2[3] = 0;
-            CdCmd_Enqueue(CD_COMMAND_LOAD_FILE, param1, param2);
+            cdCmdEnqueue(CD_COMMAND_LOAD_FILE, param1, param2);
             goto next;
         case SHELTER_B1_POD_SERVICE_GANTRY_STEP_START_SECOND_SCENE:
             if (CdCmd_IsIdle() == 0) {

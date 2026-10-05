@@ -3195,7 +3195,7 @@ void Gp_RestartSessionTask(Task* arg0)
     Mem_Init();
     memInitAuxHeap();
     if (gGameSession->restartMode != flag) {
-        CdCmd_SetupMdecBuffers();
+        cdCmdReservePlaybackBuffers();
     }
     taskSpawnFromTable(&D_8010D1FC, 0, 0, 0);
 }

@@ -1899,7 +1899,7 @@ void Fs_SetupBootLoad(void)
     sp18[1]         = 0;
     sp18[2]         = 0;
     sp18[3]         = 0;
-    Fs_BootLoadSlot = CdCmd_Enqueue(CD_COMMAND_LOAD_FILE, sp10, sp18);
+    Fs_BootLoadSlot = cdCmdEnqueue(CD_COMMAND_LOAD_FILE, sp10, sp18);
 }
 
 /* Alignment pad after the 5-entry Fs_SetupBootLoad jump table. */

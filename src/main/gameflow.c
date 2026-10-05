@@ -414,7 +414,7 @@ static void GameFlow_EnqueueDefaultLoad(Task* task)
         param2[1] = 0;
         param2[2] = 0;
         param2[3] = 0;
-        CdCmd_Enqueue(CD_COMMAND_LOAD_FILE, param1, param2);
+        cdCmdEnqueue(CD_COMMAND_LOAD_FILE, param1, param2);
         task->state = task->state + 1;
     }
 }

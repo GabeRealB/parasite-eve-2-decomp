@@ -1065,7 +1065,7 @@ in general documentation.
 
 ## FS file-id encoding
 
-When loading via `Fs_LoadFile` / `CdCmd_Enqueue` (cmd `0x21`):
+When loading via `Fs_LoadFile` / `cdCmdEnqueue` (cmd `0x21`):
 
 ```text
 fileId = entry->fileGroup * 10000 + entry->args.file.fileIdHundreds * 100 + entry->fileIndex

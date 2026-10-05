@@ -1262,7 +1262,7 @@ void func_acropolis_helicopter_landing_pad_8017DA9C(Task* task)
                 param1[0] = 0;
                 param2[1] = 0;
                 param2[3] = 5;
-                CdCmd_Enqueue(CD_COMMAND_LOAD_FILE, param1, param2);
+                cdCmdEnqueue(CD_COMMAND_LOAD_FILE, param1, param2);
                 func_800ABFF8();
                 func_800AC000();
             }

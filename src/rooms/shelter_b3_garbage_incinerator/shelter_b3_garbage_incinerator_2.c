@@ -673,7 +673,7 @@ void func_shelter_b3_garbage_incinerator_8017DCD4(Task* arg0)
             param2[1]             = 0;
             param2[2]             = 0;
             param2[3]             = 0;
-            arg0->spawnArg1.value = (u16)CdCmd_Enqueue(CD_COMMAND_LOAD_FILE, param1, param2);
+            arg0->spawnArg1.value = (u16)cdCmdEnqueue(CD_COMMAND_LOAD_FILE, param1, param2);
             if (gGameSession->skipEventIntro == 0) {
                 if (gPlayerStatus.weapon == 0x17) {
                     p = msg;

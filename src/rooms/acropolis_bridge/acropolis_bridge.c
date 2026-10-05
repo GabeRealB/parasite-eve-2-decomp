@@ -2993,7 +2993,7 @@ void func_acropolis_bridge_8017DEE4(Task* arg0)
 L_case0:
     queue->movieFrame = 1;
     slotParam[0]      = streamFindMovieSlot(&gGameSession->location.loc, 0, 0);
-    CdCmd_Enqueue(CD_COMMAND_PLAY_STREAM, 0, slotParam);
+    cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, 0, slotParam);
     goto advance;
 
 L_case1:

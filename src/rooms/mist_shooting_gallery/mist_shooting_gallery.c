@@ -2232,7 +2232,7 @@ void func_mist_shooting_gallery_80180728(Task* task)
                 param2[3] = 0;
                 param2[2] = 0;
                 param2[1] = 0;
-                CdCmd_Enqueue(CD_COMMAND_LOAD_FILE, param1, param2);
+                cdCmdEnqueue(CD_COMMAND_LOAD_FILE, param1, param2);
                 sent = 1;
             } else {
                 sent = 0;
@@ -2311,7 +2311,7 @@ void func_mist_shooting_gallery_80180B64(Task* arg0)
                     param1[0] = 0x2C;
                     break;
             }
-            CdCmd_Enqueue(CD_COMMAND_LOAD_FILE, param1, param2);
+            cdCmdEnqueue(CD_COMMAND_LOAD_FILE, param1, param2);
             arg0->state++;
             return;
 
@@ -2452,7 +2452,7 @@ L_case1:
     key.loc.view = 0x64;
     slot         = streamFindMovieSlot(&key.loc, 0, 0);
     slotParam[0] = slot;
-    CdCmd_Enqueue(CD_COMMAND_PLAY_STREAM, 0, slotParam);
+    cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, 0, slotParam);
     goto advance;
 
 L_case2:

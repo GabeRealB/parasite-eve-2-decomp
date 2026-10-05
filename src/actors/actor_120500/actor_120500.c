@@ -371,7 +371,7 @@ void func_actor_120500_80131E58(Task* arg0)
             key.loc.view = 0x64;
             slot         = streamFindMovieSlot(&key.loc, 0, 0);
             slotParam[0] = slot;
-            CdCmd_Enqueue(CD_COMMAND_PLAY_STREAM, 0, slotParam);
+            cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, 0, slotParam);
             goto advance;
         case 2:
             if (queue->movieReady == 0) {

@@ -36,11 +36,20 @@ extern s16 D5B498_8006ACC0;
 
 extern s8 D5B498_8006C233;
 
-void CdCmd_ClearQueue(void);
+/// Zeroes the entire resident CD state, including requests and buffer pointers.
+///
+/// Used after drive initialization/reset. Transfers and buffer use must have
+/// ended first; this neither stops the drive nor frees playback allocations.
+void cdCmdResetState(void);
 
 void CdCmd_ClearBusy(void);
 
-void CdCmd_EnqueueUnlessStream(s32 cmd, u8* paramA, u8* paramB);
+/// Appends a request only when the ring head is outside the scene-audio family.
+///
+/// Tests the head opcode's high nibble (0x8_), rather than scene playback mode
+/// or movie commands. Uses `cdCmdEnqueue`'s byte-source and ring-capacity
+/// contract. A blocked request performs no source reads and reports no result.
+void cdCmdEnqueueUnlessSceneAudioPending(s32 command, const void* fileKey, const void* commandArgs);
 
 void CdCmd_Dispatch(void);
 

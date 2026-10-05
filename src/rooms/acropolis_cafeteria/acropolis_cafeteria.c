@@ -1098,7 +1098,7 @@ void func_acropolis_cafeteria_8017D8F8(Task* task)
             param2[1] = 0;
             param2[2] = 4;
             param2[3] = 6;
-            CdCmd_Enqueue(CD_COMMAND_LOAD_FILE, param1, param2);
+            cdCmdEnqueue(CD_COMMAND_LOAD_FILE, param1, param2);
             task->state += 1;
             break;
         case 7:
