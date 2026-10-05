@@ -938,7 +938,7 @@ static void Actor01500_Fn00094(Enemy* arg0, Task* arg1)
     work->body.key              = 0x3000F;
     work->body.radius           = 300;
     work->body.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(2, &work->body);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->body);
     worldCollisionInitContacts(work->contacts, ARRAY_SIZE(work->contacts), 0);
     work->roomBody.context.contacts = work->roomContacts;
     work->roomBody.coord            = coord;
@@ -954,7 +954,7 @@ static void Actor01500_Fn00094(Enemy* arg0, Task* arg1)
     work->roomBody.key    = 0x3000F;
     work->roomBody.radius = 300;
     work->roomBody.flags  = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(2, &work->roomBody);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->roomBody);
     worldCollisionInitContacts(work->roomContacts, ARRAY_SIZE(work->roomContacts), 0);
     records                           = work->attackContacts;
     work->attackBody.coord            = coord;
@@ -966,7 +966,7 @@ static void Actor01500_Fn00094(Enemy* arg0, Task* arg1)
     work->attackBody.key              = Gp_PackPair(&Actor01500_D09FB4, 0);
     work->attackBody.radius           = 300;
     work->attackBody.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(3, &work->attackBody);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->attackBody);
     worldCollisionInitContacts(records, ARRAY_SIZE(work->attackContacts), 0);
     work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     arg1->state             = 1;
@@ -1050,7 +1050,7 @@ static void Actor01500_Fn004EC(Task* actor)
                 break;
         }
     }
-    Gp_ClearRec18Occupied(work->roomContacts);
+    worldCollisionClearContacts(work->roomContacts);
     if (work->hitCooldown != 0) {
         if (--work->hitCooldown <= 0) {
             work->hitCooldown = 0;
@@ -1139,11 +1139,11 @@ static void Actor01500_Fn004EC(Task* actor)
         coord->coord.t[0] += (s32)(push * frame->pushDirection.vx) >> 0xC;
         coord->coord.t[2] += (s32)(push * frame->pushDirection.vz) >> 0xC;
     }
-    Gp_ClearRec18Occupied(work->contacts);
+    worldCollisionClearContacts(work->contacts);
     effectRec = work->attackContacts;
-    if (Gp_FindRec18(effectRec, 0) != 0) {
+    if (worldCollisionFindContactIndex(effectRec, WORLD_COLLISION_FIND_ANY_KEY) != 0) {
         work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        Gp_ClearRec18Occupied(effectRec);
+        worldCollisionClearContacts(effectRec);
         work->attackLanded = 1;
     }
     SCRATCH_STACK_RELEASE_BLOCK(ActorContactOverlapPushScratch);

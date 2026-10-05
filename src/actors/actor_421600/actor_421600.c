@@ -2073,7 +2073,7 @@ static void func_actor_421600_80134AD4(Enemy* enemy, Task* actor)
     work->spheres[DESERT_CHASER_SPHERE_ROOT].body.key              = 0x30001;
     work->spheres[DESERT_CHASER_SPHERE_ROOT].body.radius           = 0x12C;
     work->spheres[DESERT_CHASER_SPHERE_ROOT].body.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(2, &work->spheres[DESERT_CHASER_SPHERE_ROOT].body);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->spheres[DESERT_CHASER_SPHERE_ROOT].body);
     work->wallProbe.shape.ends[0].vx                     = 0;
     work->wallProbe.shape.ends[0].vy                     = -0x180;
     work->wallProbe.shape.ends[0].vz                     = 0;
@@ -2092,7 +2092,7 @@ static void func_actor_421600_80134AD4(Enemy* enemy, Task* actor)
     work->wallProbe.body.radius                          = 0;
     work->wallProbe.body.flags                           = WORLD_COLLISION_BODY_CAPSULE;
     work->spheres[DESERT_CHASER_SPHERE_ROOT].body.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
-    Gp_LinkObj(2, &work->wallProbe.body);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->wallProbe.body);
     work->wallProbe.body.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
     worldCollisionInitContacts(work->wallProbe.contacts, ARRAY_SIZE(work->wallProbe.contacts), 0);
     worldCollisionInitContacts(work->spheres[DESERT_CHASER_SPHERE_ROOT].body.context.contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts), 0);
@@ -2105,7 +2105,7 @@ static void func_actor_421600_80134AD4(Enemy* enemy, Task* actor)
     body->key              = 0x30001;
     body->radius           = 0x19C;
     body->flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(2, body);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, body);
     body->flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     worldCollisionInitContacts(body->context.contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts), 0);
     head                   = &work->spheres[DESERT_CHASER_SPHERE_REAR].body;
@@ -2117,7 +2117,7 @@ static void func_actor_421600_80134AD4(Enemy* enemy, Task* actor)
     head->key              = 0x30001;
     head->radius           = 0x100;
     head->flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(2, head);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, head);
     head->flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     worldCollisionInitContacts(head->context.contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_REAR].contacts), 0);
     work->spheres[DESERT_CHASER_SPHERE_REAR].body.pos.vx = 0;
@@ -4286,17 +4286,17 @@ static void                         func_actor_421600_8013D658(Enemy* enemy, Tas
                     actor->extra.tmd->flags = 0;
                 }
             }
-            Gp_ClearRec18Occupied(work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts);
-            Gp_ClearRec18Occupied(work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts);
-            Gp_ClearRec18Occupied(work->spheres[DESERT_CHASER_SPHERE_REAR].contacts);
-            Gp_ClearRec18Occupied(work->wallProbe.contacts);
+            worldCollisionClearContacts(work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts);
+            worldCollisionClearContacts(work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts);
+            worldCollisionClearContacts(work->spheres[DESERT_CHASER_SPHERE_REAR].contacts);
+            worldCollisionClearContacts(work->wallProbe.contacts);
             return;
         case SCENE_COMBAT_ACTORS_HIDDEN:
             actor->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            Gp_ClearRec18Occupied(work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts);
-            Gp_ClearRec18Occupied(work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts);
-            Gp_ClearRec18Occupied(work->spheres[DESERT_CHASER_SPHERE_REAR].contacts);
-            Gp_ClearRec18Occupied(work->wallProbe.contacts);
+            worldCollisionClearContacts(work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts);
+            worldCollisionClearContacts(work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts);
+            worldCollisionClearContacts(work->spheres[DESERT_CHASER_SPHERE_REAR].contacts);
+            worldCollisionClearContacts(work->wallProbe.contacts);
             return;
     }
     scratch = SCRATCH_STACK_RESERVE_BLOCK(DesertChaserFrameScratch);
@@ -4497,10 +4497,10 @@ static void                         func_actor_421600_8013D658(Enemy* enemy, Tas
         work->spheres[DESERT_CHASER_SPHERE_FRONT].body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->spheres[DESERT_CHASER_SPHERE_REAR].body.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     }
-    Gp_ClearRec18Occupied(work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts);
-    Gp_ClearRec18Occupied(work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts);
-    Gp_ClearRec18Occupied(work->spheres[DESERT_CHASER_SPHERE_REAR].contacts);
-    Gp_ClearRec18Occupied(work->wallProbe.contacts);
+    worldCollisionClearContacts(work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts);
+    worldCollisionClearContacts(work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts);
+    worldCollisionClearContacts(work->spheres[DESERT_CHASER_SPHERE_REAR].contacts);
+    worldCollisionClearContacts(work->wallProbe.contacts);
     scratch->bodyPos.vx = 0U;
     scratch->bodyPos.vy = 0;
     scratch->bodyPos.vz = 0;

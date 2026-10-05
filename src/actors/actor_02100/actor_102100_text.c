@@ -631,7 +631,7 @@ static void Actor02100_Fn00048(Enemy* arg0, Task* arg1)
     work->hitBody.key              = 0x30015;
     work->hitBody.radius           = 0x190;
     work->hitBody.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(2, &work->hitBody);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->hitBody);
     worldCollisionInitContacts(table, 1, 0);
     contacts                               = work->strikeContacts;
     work->playerStrikeShape.ends[0].vx     = 0;
@@ -652,7 +652,7 @@ static void Actor02100_Fn00048(Enemy* arg0, Task* arg1)
     work->playerStrikeBody.radius          = 0;
     work->playerStrikeBody.flags           = (u32)WORLD_COLLISION_BODY_CAPSULE;
     work->hitBody.flags                    = (u16)(work->hitBody.flags | WORLD_COLLISION_BODY_PAIR_ENABLED);
-    Gp_LinkObj(3, &work->playerStrikeBody);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->playerStrikeBody);
     worldCollisionInitContacts(contacts, 1, 0);
     work->enemyStrikeShape.ends[0].vx     = 0;
     work->enemyStrikeShape.ends[0].vy     = 0;
@@ -672,7 +672,7 @@ static void Actor02100_Fn00048(Enemy* arg0, Task* arg1)
     work->enemyStrikeBody.radius          = 0;
     work->enemyStrikeBody.flags           = (u32)WORLD_COLLISION_BODY_CAPSULE;
     work->playerStrikeBody.flags          = (u16)((work->playerStrikeBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED))) | (WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_SINGLE_CONTACT));
-    Gp_LinkObj(1, &work->enemyStrikeBody);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_PLAYER_ATTACKS, &work->enemyStrikeBody);
     work->enemyStrikeBody.flags                 = (u16)((work->enemyStrikeBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED))) | WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT);
     arg1->state                                 = 1;
     SCRATCH_STACK_CURSOR(ActorEulerTurnScratch) = SCRATCH_STACK_CURSOR(ActorEulerTurnScratch) + 1;
@@ -770,7 +770,7 @@ static void Actor02100_Fn004C4(Task* arg0)
         }
     }
 
-    Gp_ClearRec18Occupied(work->hitContacts);
+    worldCollisionClearContacts(work->hitContacts);
     work->beamBlocked = 0;
     if (Gp_CountRec18Hi(work->strikeContacts, WORLD_COLLISION_CONTACT_GRID) != 0) {
         index   = worldCollisionSurfaceClassFromKey(work->strikeContacts[0].key.value);
@@ -814,7 +814,7 @@ static void Actor02100_Fn004C4(Task* arg0)
         }
     }
 
-    Gp_ClearRec18Occupied(work->strikeContacts);
+    worldCollisionClearContacts(work->strikeContacts);
     SCRATCH_STACK_RELEASE_BLOCK(_Actor02100VectorScratch);
 }
 

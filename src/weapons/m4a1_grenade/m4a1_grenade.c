@@ -261,7 +261,7 @@ static void func_m4a1_grenade_8011D654(Task* arg0)
     work->sphereBody.key              = (u16)arg0->spawnArg1.value | 0x20000;
     work->sphereBody.radius           = 0x94;
     work->sphereBody.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(1, &work->sphereBody);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_PLAYER_ATTACKS, &work->sphereBody);
     worldCollisionInitContacts(work->sphereBody.context.contacts, 1, 0);
     work->capsuleBody.context.capsule = &work->capsule;
     work->capsuleBody.flags           = WORLD_COLLISION_BODY_CAPSULE;
@@ -281,7 +281,7 @@ static void func_m4a1_grenade_8011D654(Task* arg0)
     work->capsule.end1Radius          = 1;
     work->sphereBody.flags           |= (WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
     work->capsule.ends[1].vy          = -(work->flightTimer.word >> 10);
-    Gp_LinkObj(1, &work->capsuleBody);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_PLAYER_ATTACKS, &work->capsuleBody);
     worldCollisionInitContacts(work->capsule.contacts, 1, 0);
     work->capsuleBody.flags |= (WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_GRID_ENABLED);
     SCRATCH_STACK_RELEASE_BYTES(0x28);
@@ -383,8 +383,8 @@ move:
     if (work->flightFrame % work->smokeInterval == 0) {
         Gp_SpawnEff(EFFECT_SMOKE_PUFF, coord, 0, NULL);
     }
-    Gp_ClearRec18Occupied(work->sphereContacts);
-    Gp_ClearRec18Occupied(work->capsuleContacts);
+    worldCollisionClearContacts(work->sphereContacts);
+    worldCollisionClearContacts(work->capsuleContacts);
     SCRATCH_STACK_RELEASE_BLOCK(_M4a1GrenadeFlightScratch);
 }
 

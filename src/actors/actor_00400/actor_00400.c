@@ -1635,7 +1635,7 @@ static void Actor00400_Fn019B4(Task* arg0)
     work->trunkBody.key              = 0x30004;
     work->trunkBody.radius           = 0x300;
     work->trunkBody.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(2, &work->trunkBody);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->trunkBody);
     worldCollisionInitContacts(work->hitContacts, ARRAY_SIZE(work->hitContacts), 0);
     work->trunkBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
 
@@ -1647,7 +1647,7 @@ static void Actor00400_Fn019B4(Task* arg0)
     work->headBody.key              = 0x30004;
     work->headBody.radius           = 0xC0;
     work->headBody.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(2, &work->headBody);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->headBody);
     work->headBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
 
     work->attackBody.coord            = &arg0->extra.tmd->coords[1];
@@ -1658,7 +1658,7 @@ static void Actor00400_Fn019B4(Task* arg0)
     work->attackBody.key              = Gp_PackObjPair(arg0->spawnArg2.pointer, 0);
     work->attackBody.radius           = 0x480;
     work->attackBody.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(3, &work->attackBody);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->attackBody);
     worldCollisionInitContacts(work->attackContacts, ARRAY_SIZE(work->attackContacts), 0);
     work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
 
@@ -1670,7 +1670,7 @@ static void Actor00400_Fn019B4(Task* arg0)
     work->gridBody.key              = 0x30004;
     work->gridBody.radius           = 0x380;
     work->gridBody.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(2, &work->gridBody);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->gridBody);
     worldCollisionInitContacts(work->gridContacts, ARRAY_SIZE(work->gridContacts), 0);
     if (work->gridCollision != 0) {
         work->gridBody.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
@@ -1853,8 +1853,8 @@ static void Actor00400_Fn01B90(Task* arg0)
             break;
     }
 
-    Gp_ClearRec18Occupied(work->hitContacts);
-    Gp_ClearRec18Occupied(work->gridContacts);
+    worldCollisionClearContacts(work->hitContacts);
+    worldCollisionClearContacts(work->gridContacts);
     if (work->hitCooldown > 0) {
         work->hitCooldown--;
     } else {
@@ -2300,7 +2300,7 @@ static void Actor00400_Fn02D48(Task* arg0)
             coord->coord.t[0] += work->velocity.vx;
             coord->coord.t[1] += work->velocity.vy;
             coord->coord.t[2] += work->velocity.vz;
-            if (Gp_FindRec18(work->contacts, 0) != 0) {
+            if (worldCollisionFindContactIndex(work->contacts, WORLD_COLLISION_FIND_ANY_KEY) != 0) {
                 for (i = 0; i < 2; i++) {
                     switch (work->contacts[i].key.value & 0xFFFF0000) {
                         case 0x10000:
@@ -2340,7 +2340,7 @@ static void Actor00400_Fn02D48(Task* arg0)
                     }
                 }
             }
-            Gp_ClearRec18Occupied(work->contacts);
+            worldCollisionClearContacts(work->contacts);
             if ((++arg0->killCountdown >= ACTOR_00400_SHOT_LIFETIME) || (gSceneCombatState.actor00400HideRequested != 0) || (hidden != 0)) {
                 arg0->killCountdown           = 0;
                 work->child.attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
@@ -5826,7 +5826,7 @@ static void Actor00400_Fn0A190(Task* task)
     work->child.attackBody.pos.vz           = 0;
     work->child.attackBody.radius           = 0x100;
     work->child.attackBody.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(3, &work->child.attackBody);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->child.attackBody);
     worldCollisionInitContacts(work->contacts, ARRAY_SIZE(work->contacts), 0);
     work->child.attackBody.flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
     actorRenderComposeCoord(coord);

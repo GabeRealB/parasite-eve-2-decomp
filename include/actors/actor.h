@@ -1655,7 +1655,7 @@ static __inline__ void actorLinkWorkObj(GfxCoord* coord, WorldCollisionBody* obj
     obj->pos.vz           = pos->vz;
     obj->radius           = field1C;
     obj->flags            = 1;
-    Gp_LinkObj(prio, obj);
+    worldCollisionLinkBody(prio, obj);
     worldCollisionInitContacts(obj->context.contacts, kind, 0);
 }
 

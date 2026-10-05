@@ -4,7 +4,7 @@
 /// binds the animation set and reseeds the nineteen slots, then starts the
 /// companion enemy whose model takes its texture page and CLUT row from the
 /// current room's area record. `Enemy::spawnState` picks how much of that is
-/// kept: 0 also links the list node, the five `Gp_LinkObj` collision nodes with
+/// kept: 0 also links the list node, the five `worldCollisionLinkBody` collision nodes with
 /// their `WorldCollisionContact` tables and the room's streaming cue, while 1 and 2 only
 /// prime the animation state. Entry 0 of `Actor05600_D00098`.
 void golemPawnRookSpawn(Enemy* ctx, Task* actor)
@@ -121,7 +121,7 @@ void golemPawnRookSpawn(Enemy* ctx, Task* actor)
             work->sightBody.radius          = 0;
             work->sightBody.flags           = WORLD_COLLISION_BODY_CAPSULE;
             work->sightBody.coord           = &partsA[4];
-            Gp_LinkObj(3, &work->sightBody);
+            worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->sightBody);
             worldCollisionInitContacts(work->sightContacts, ARRAY_SIZE(work->sightContacts), 0);
             work->sightBody.flags |= (WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_SINGLE_CONTACT | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
 
@@ -134,7 +134,7 @@ void golemPawnRookSpawn(Enemy* ctx, Task* actor)
             work->hurtBody.radius           = 0x190;
             work->hurtBody.flags            = WORLD_COLLISION_BODY_SPHERE;
             work->hurtBody.coord            = &partsB[3];
-            Gp_LinkObj(2, &work->hurtBody);
+            worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->hurtBody);
             worldCollisionInitContacts(work->hurtContacts, ARRAY_SIZE(work->hurtContacts), 0);
             work->hurtBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
 
@@ -147,7 +147,7 @@ void golemPawnRookSpawn(Enemy* ctx, Task* actor)
             work->groundBody.radius           = 0x226;
             work->groundBody.flags            = WORLD_COLLISION_BODY_SPHERE;
             work->groundBody.coord            = partsC;
-            Gp_LinkObj(2, &work->groundBody);
+            worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->groundBody);
             worldCollisionInitContacts(work->groundContacts, ARRAY_SIZE(work->groundContacts), 0);
             work->groundBody.flags |= (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED);
 
@@ -160,7 +160,7 @@ void golemPawnRookSpawn(Enemy* ctx, Task* actor)
             work->strikeBody.radius           = 0x1F4;
             work->strikeBody.flags            = WORLD_COLLISION_BODY_SPHERE;
             work->strikeBody.coord            = effParts;
-            Gp_LinkObj(3, &work->strikeBody);
+            worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->strikeBody);
             worldCollisionInitContacts(work->strikeContacts, ARRAY_SIZE(work->strikeContacts), 0);
             work->strikeBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
 
@@ -182,7 +182,7 @@ void golemPawnRookSpawn(Enemy* ctx, Task* actor)
             work->laserBody.radius          = 0;
             work->laserBody.flags           = WORLD_COLLISION_BODY_CAPSULE;
             work->laserBody.coord           = partsD;
-            Gp_LinkObj(3, &work->laserBody);
+            worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->laserBody);
             worldCollisionInitContacts(work->laserContacts, ARRAY_SIZE(work->laserContacts), 0);
             work->laserBody.flags = (work->laserBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED))) | (WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_SINGLE_CONTACT);
             actor->state          = 1;

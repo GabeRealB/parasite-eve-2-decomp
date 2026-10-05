@@ -941,7 +941,7 @@ static void func_actor_800200_80162088(Task* arg0)
         obj->flags  = WORLD_COLLISION_BODY_MOTION_SPHERE;
         packed      = 0x10000;
         obj->key    = temp | packed;
-        Gp_LinkObj(0, obj);
+        worldCollisionLinkBody(WORLD_COLLISION_LIST_PLAYER_BODIES, obj);
     }
     worldCollisionInitContacts(actor->collisionMotionContexts[0].contacts, ARRAY_SIZE(actor->collisionContacts), 0);
     obj->flags                                |= (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
@@ -960,7 +960,7 @@ static void func_actor_800200_80162088(Task* arg0)
         obj->radius = 0xC8;
         obj->flags  = WORLD_COLLISION_BODY_MOTION_SPHERE;
         obj->key    = temp | packed;
-        Gp_LinkObj(0, obj);
+        worldCollisionLinkBody(WORLD_COLLISION_LIST_PLAYER_BODIES, obj);
     }
     obj->flags                 |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     actor->collisionEnableMask  = GAME_ACTOR_COLLISION_REQUEST_MASK;
@@ -1034,8 +1034,8 @@ static void func_actor_800200_801622B0(Task* arg0)
     if (D_80115768 == 0 && gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         func_actor_800200_801652EC(arg0);
     }
-    Gp_ClearRec18Occupied(actor->collisionContacts);
-    Gp_ClearRec18Occupied(actor->companionWork->probe.contacts);
+    worldCollisionClearContacts(actor->collisionContacts);
+    worldCollisionClearContacts(actor->companionWork->probe.contacts);
     if (actor->collisionEnableMask & 1) {
         coord->coord.t[1] = actor->previousPosition.vy + 8;
     }

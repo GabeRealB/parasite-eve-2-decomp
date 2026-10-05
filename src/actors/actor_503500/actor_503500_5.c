@@ -1268,7 +1268,7 @@ static void func_actor_503500_80144E8C(Task* arg0)
     capsule->end1Radius = 0x3E8;
     capsule->end0Radius = 0x7D0;
 
-    Gp_LinkObj(3, &work->body);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->body);
     worldCollisionInitContacts(contacts, ARRAY_SIZE(work->contacts), 0);
     work->body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
 
@@ -1446,7 +1446,7 @@ static void func_actor_503500_801454E0(Task* arg0)
             work->body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         }
     }
-    Gp_ClearRec18Occupied(contacts);
+    worldCollisionClearContacts(contacts);
 }
 
 void func_actor_503500_8014554C(Task* task)
@@ -1498,7 +1498,7 @@ static void func_actor_503500_801455A4(Task* arg0)
     work->body.key              = Gp_PackPair(D_actor_503500_8016E7D4[1], 0);
     work->body.radius           = 0x12C;
     work->body.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(3, &work->body);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->body);
     worldCollisionInitContacts(work->contacts, ARRAY_SIZE(work->contacts), 0);
     work->body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
 
@@ -1596,7 +1596,7 @@ static void func_actor_503500_801459B0(Task* arg0)
     _Actor503500YellowFlashAttackWork* work;
 
     work = arg0->work;
-    Gp_ClearRec18Occupied(work->contacts);
+    worldCollisionClearContacts(work->contacts);
 }
 
 void func_actor_503500_801459D4(Task* task)
@@ -1665,7 +1665,7 @@ static void func_actor_503500_80145A2C(Task* arg0)
     capsule->end1Radius = 0x7D0;
     capsule->end0Radius = 0xBB8;
 
-    Gp_LinkObj(3, &work->body);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->body);
     worldCollisionInitContacts(contacts, ARRAY_SIZE(work->contacts), 0);
     work->body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
 
@@ -1783,7 +1783,7 @@ static void func_actor_503500_80145F18(Task* arg0)
             work->body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         }
     }
-    Gp_ClearRec18Occupied(contacts);
+    worldCollisionClearContacts(contacts);
 }
 
 void func_actor_503500_80145F84(Task* task)

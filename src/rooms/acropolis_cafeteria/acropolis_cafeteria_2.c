@@ -1404,7 +1404,7 @@ static void func_acropolis_cafeteria_801818DC(Task* task)
     work->body.pos.vy           = 0;
     work->body.pos.vz           = 0;
     work->body.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(4, &work->body);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_PROPS, &work->body);
     worldCollisionInitContacts(work->body.context.contacts, ARRAY_SIZE(work->contacts), 0);
     work->body.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
 }
@@ -1427,7 +1427,7 @@ static void func_acropolis_cafeteria_80181A3C(Task* task)
     actorRenderComposeCoord(coord);
     switch (work->phase) {
         case ACROPOLIS_CAFETERIA_LOOSE_PROP_RESTING:
-            if (Gp_FindRec18(work->body.context.contacts, 0)) {
+            if (worldCollisionFindContactIndex(work->body.context.contacts, WORLD_COLLISION_FIND_ANY_KEY)) {
                 work->phase++;
                 head[-1]  = coord->coord;
                 direction = &work->kickDirection;
@@ -1483,7 +1483,7 @@ static void func_acropolis_cafeteria_80181A3C(Task* task)
             break;
     }
     RotMatrix(&work->rotation, &coord->coord);
-    Gp_ClearRec18Occupied(work->contacts);
+    worldCollisionClearContacts(work->contacts);
     SCRATCH_STACK_RELEASE_BLOCK(MATRIX);
 }
 

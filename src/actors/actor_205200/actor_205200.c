@@ -545,7 +545,7 @@ static void func_actor_205200_8014AE0C(Enemy* arg0, Task* arg1)
     part->body.key              = 0x30034;
     part->body.radius           = 0x1C2;
     part->body.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(2, &part->body);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &part->body);
     worldCollisionInitContacts(part->contacts, ARRAY_SIZE(part->contacts), 0);
     part->body.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     arg1->state       = ACTOR_205200_PART_TASK_LIVE;
@@ -635,7 +635,7 @@ static void func_actor_205200_8014B048(Task* arg0, s32 arg1)
             }
         }
     }
-    Gp_ClearRec18Occupied(part->contacts);
+    worldCollisionClearContacts(part->contacts);
     SCRATCH_STACK_RELEASE_BLOCK(VECTOR);
 }
 

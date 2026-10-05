@@ -134,7 +134,7 @@ void gluttonRainSpawn(Enemy* enemy, Task* task)
     mtx->rotationWords.m22      = ONE;
     gfxRotMatrixY(&mtx->mat, 0, 1);
 
-    actorLinkWorkObj(&work->bodyCoord.node, &work->attackBody, work->attackContacts, &vec, 0x100, 3,
+    actorLinkWorkObj(&work->bodyCoord.node, &work->attackBody, work->attackContacts, &vec, 0x100, WORLD_COLLISION_LIST_ENEMY_ATTACKS,
                      ARRAY_SIZE(work->attackContacts));
     work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
 

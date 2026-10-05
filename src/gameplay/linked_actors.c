@@ -17,7 +17,6 @@
 #include "hud.h"
 #include "hud_sprites.h"
 #include "gameplay/scene.h"
-#include "world_collision.h"
 #include "world_targets.h"
 
 /// Draws one of the prompt's button labels on line `line`, `dx` pixels right of
@@ -122,7 +121,7 @@ void func_800A4904(s32 arg0)
                 idx += ((val % 100U) / 10U - 1) * 3;
                 idx += val % 10U;
                 idx += 0x28000;
-                Gp_ClaimSlot18(claim, idx);
+                attachmentAddTargetContact(claim, idx);
             }
         }
     }
@@ -320,7 +319,7 @@ void Gp_InitSlot18(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
                             idx += ((val % 100U) / 10U - 1) * 3;
                             idx += val % 10U;
                             idx += 0x28000;
-                            Gp_ClaimSlot18(enemy, idx);
+                            attachmentAddTargetContact(enemy, idx);
                         }
                     }
                 }
@@ -380,7 +379,7 @@ void func_800A5574(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
                             idx += ((val % 100U) / 10U - 1) * 3;
                             idx += val % 10U;
                             idx += 0x28000;
-                            Gp_ClaimSlot18(claim, idx);
+                            attachmentAddTargetContact(claim, idx);
                         }
                     }
                 }

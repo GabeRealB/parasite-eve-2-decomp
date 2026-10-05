@@ -446,7 +446,7 @@ static void Actor02400_Fn0095C(Enemy* enemy, Task* task)
     work->body.pos.vz           = 0;
     work->body.radius           = 0xC8;
     work->body.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(2, &work->body);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->body);
     worldCollisionInitContacts(work->bodyContacts, ARRAY_SIZE(work->bodyContacts), 0);
     work->body.flags                 |= (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
     work->attackBody.coord            = &task->extra.tmd->coords[3];
@@ -457,7 +457,7 @@ static void Actor02400_Fn0095C(Enemy* enemy, Task* task)
     work->attackBody.key              = Gp_PackPair(Actor02400_BodyPairs, work->variant * 2);
     work->attackBody.radius           = 0x64;
     work->attackBody.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(3, &work->attackBody);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->attackBody);
     worldCollisionInitContacts(work->attackContacts, ARRAY_SIZE(work->attackContacts), 0);
     work->attackBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     task->state             = 1;
@@ -664,11 +664,11 @@ move_done:
         coord->coord.t[0] += (push * scratch->pushDirection.vx) >> 12;
         coord->coord.t[2] += (push * scratch->pushDirection.vz) >> 12;
     }
-    Gp_ClearRec18Occupied(work->bodyContacts);
+    worldCollisionClearContacts(work->bodyContacts);
     // The attack body touched the player: disable it until the body crawls again and take the MP.
-    if (Gp_FindRec18(work->attackContacts, 0) != 0) {
+    if (worldCollisionFindContactIndex(work->attackContacts, WORLD_COLLISION_FIND_ANY_KEY) != 0) {
         work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        Gp_ClearRec18Occupied(work->attackContacts);
+        worldCollisionClearContacts(work->attackContacts);
         work->attackLanded = 1;
         Gp_SpendMp(Actor02400_D045D8[work->variant]);
     }
@@ -1367,7 +1367,7 @@ static void Actor02400_Fn02790(Enemy* arg0, Task* arg1)
     work->playerStrikeBody.key              = Gp_PackPair(Actor02400_BodyPairs, (parentWork->variant * 2) | 1);
     work->playerStrikeBody.radius           = 0xC8;
     work->playerStrikeBody.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(3, &work->playerStrikeBody);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->playerStrikeBody);
     worldCollisionInitContacts(work->strikeContacts, ARRAY_SIZE(work->strikeContacts), 0);
     work->playerStrikeBody.flags          |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     objCoord2                              = arg1->extra.tmd->coords;
@@ -1383,7 +1383,7 @@ static void Actor02400_Fn02790(Enemy* arg0, Task* arg1)
     }
     work->enemyStrikeBody.radius = 0xC8;
     work->enemyStrikeBody.flags  = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(1, &work->enemyStrikeBody);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_PLAYER_ATTACKS, &work->enemyStrikeBody);
 
     work->wallCapsule.ends[1].vz   = -0xD2;
     work->wallCapsule.end0Radius   = 1;
@@ -1404,7 +1404,7 @@ static void Actor02400_Fn02790(Enemy* arg0, Task* arg1)
     work->wallBody.radius          = 0;
     work->wallBody.flags           = WORLD_COLLISION_BODY_CAPSULE;
     work->wallBody.coord           = objCoord3;
-    Gp_LinkObj(3, &work->wallBody);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->wallBody);
     worldCollisionInitContacts(work->wallContacts, ARRAY_SIZE(work->wallContacts), 0);
     work->timer           = 90;
     work->wallBody.flags |= (WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_GRID_ENABLED);
@@ -1447,7 +1447,7 @@ static void Actor02400_Fn02AF0(Enemy* arg0, Task* arg1)
                                        ->probePassThrough == WORLD_COLLISION_SURFACE_BLOCK_PROBES)) {
                 spawn = 1;
             }
-            Gp_ClearRec18Occupied(work->wallContacts);
+            worldCollisionClearContacts(work->wallContacts);
             work->timer--;
             if ((work->timer <= 0) || (work->strikeContacts[0].flags & WORLD_COLLISION_CONTACT_OCCUPIED) || (spawn != 0)) {
                 Gp_SpawnEff(gRoomEffectOrangeBurst2Id, coord, 0, NULL);

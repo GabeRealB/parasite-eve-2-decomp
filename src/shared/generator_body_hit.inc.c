@@ -99,6 +99,6 @@ void generatorBodyHit(Task* arg0)
         sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
     }
 end:
-    Gp_ClearRec18Occupied(work->contacts);
+    worldCollisionClearContacts(work->contacts);
     SCRATCH_STACK_RELEASE_BLOCK(_GeneratorBodyHitScratch);
 }

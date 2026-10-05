@@ -55,13 +55,13 @@ void oddStrangerTick(Enemy* enemy, Task* actor)
             if ((state == ODD_STRANGER_STATE_DEATH_BURST_WALK) && (work->animId == 2)) {
                 effectDrawGroundShadow(MATRIX_TRANS(&actor->extra.tmd->coords->workm), 0x180, gRoomEffectState->groundShadowShade);
             }
-            Gp_ClearRec18Occupied(work->gridContacts);
-            Gp_ClearRec18Occupied(work->hitContacts);
+            worldCollisionClearContacts(work->gridContacts);
+            worldCollisionClearContacts(work->hitContacts);
             return;
         case SCENE_COMBAT_ACTORS_HIDDEN:
             actor->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            Gp_ClearRec18Occupied(work->gridContacts);
-            Gp_ClearRec18Occupied(work->hitContacts);
+            worldCollisionClearContacts(work->gridContacts);
+            worldCollisionClearContacts(work->hitContacts);
             return;
     }
 
@@ -110,8 +110,8 @@ void oddStrangerTick(Enemy* enemy, Task* actor)
         work->gridBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     }
 #endif
-    Gp_ClearRec18Occupied(work->gridContacts);
-    Gp_ClearRec18Occupied(work->hitContacts);
+    worldCollisionClearContacts(work->gridContacts);
+    worldCollisionClearContacts(work->hitContacts);
 
     if ((gSceneCombatState.signals.bytes.enemyAlert == 1) && (work->state == ODD_STRANGER_STATE_PATROL)) {
         work->state = ODD_STRANGER_STATE_ALERT;

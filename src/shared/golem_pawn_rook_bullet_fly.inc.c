@@ -62,7 +62,7 @@ void golemPawnRookBulletFly(Enemy* arg0, Task* arg1)
         if (Gp_RoomParamTables[gGameSession->location.loc.stage - 1][gGameSession->location.loc.area - 1][idx]->probePassThrough == WORLD_COLLISION_SURFACE_BLOCK_PROBES) {
             found = 1;
         }
-        Gp_ClearRec18Occupied(work->wallContacts);
+        worldCollisionClearContacts(work->wallContacts);
     }
     if (work->strikeContacts[0].key.value != 0 || found || ++work->flightFrames >= 0x5A) {
         Gp_SpawnEff(gRoomEffectSparkBurstId, coord, (s32)(work->burstStyle), NULL);

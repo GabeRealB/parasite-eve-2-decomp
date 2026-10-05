@@ -68,7 +68,7 @@
 
 extern TaskDesc D_actor_206100_80158B0C[];
 
-/// The `Gp_LinkObj` record `func_actor_206100_8014FBE4` unlinks when it
+/// The `worldCollisionLinkBody` record `func_actor_206100_8014FBE4` unlinks when it
 /// retires the actor, plus the area-record list that handler applies.
 
 /// The attack a shot's sphere carries at `WorldCollisionBody.key`.
@@ -330,7 +330,7 @@ static void func_actor_206100_8014AF74(Task* task);
 /// `field_1C` 0x400, `headBody` to `field_8[4]` with 0x200 -- and both point
 /// their `field_C` at the shared `WorldCollisionContact` pair table zeroed at `hitContacts`,
 /// which is why there is a single `worldCollisionInitContacts` for the pair.  Each
-/// block ends by clearing `flags` bit 0x8000 after its `Gp_LinkObj`, the same
+/// block ends by clearing `flags` bit 0x8000 after its `worldCollisionLinkBody`, the same
 /// tail shape `func_actor_403100_80132320` has (`|= 0x8000` there).
 static void func_actor_206100_8014F18C(Task* task);
 
@@ -1421,7 +1421,7 @@ static void func_actor_206100_8014B8B4(Task* task)
         coord->coord.t[0]    += shot->velocity.vx;
         coord->coord.t[1]    += shot->velocity.vy;
         coord->coord.t[2]    += shot->velocity.vz;
-        if (Gp_FindRec18(shot->contacts, 0) != 0) {
+        if (worldCollisionFindContactIndex(shot->contacts, WORLD_COLLISION_FIND_ANY_KEY) != 0) {
             for (i = 0; i < ARRAY_SIZE(shot->contacts); i++) {
                 switch (shot->contacts[i].key.value & 0xFFFF0000) {
                     case 0x10000:
@@ -1440,7 +1440,7 @@ static void func_actor_206100_8014B8B4(Task* task)
                 }
             }
         }
-        Gp_ClearRec18Occupied(shot->contacts);
+        worldCollisionClearContacts(shot->contacts);
         if ((++task->killCountdown >= ACTOR_206100_SHOT_LIFETIME) || (hit != 0)) {
             task->killCountdown            = 0;
             shot->strike.attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
@@ -1607,7 +1607,7 @@ static void func_actor_206100_8014BAA8(Task* task)
             enemy->reactionFlags &= ENEMY_REACTION_DAMAGE_OVER_TIME_CLEAR;
         }
     }
-    Gp_ClearRec18Occupied(work->hitContacts);
+    worldCollisionClearContacts(work->hitContacts);
     if (work->hitCooldown > 0) {
         work->hitCooldown--;
     } else {
@@ -3344,7 +3344,7 @@ static void func_actor_206100_8014EEC0(Task* task)
     shot->strike.attackBody.pos.vz           = 0;
     shot->strike.attackBody.radius           = 0x140;
     shot->strike.attackBody.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(3, &shot->strike.attackBody);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &shot->strike.attackBody);
     worldCollisionInitContacts(contacts, ARRAY_SIZE(shot->contacts), 0);
     shot->strike.attackBody.flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
     actorRenderComposeCoord(coord);
@@ -3380,7 +3380,7 @@ static void func_actor_206100_8014F18C(Task* task)
     work->trunkBody.key              = 0x3003D;
     work->trunkBody.radius           = 0x400;
     work->trunkBody.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(2, &work->trunkBody);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->trunkBody);
     worldCollisionInitContacts(work->hitContacts, ARRAY_SIZE(work->hitContacts), 0);
     work->trunkBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
 
@@ -3392,7 +3392,7 @@ static void func_actor_206100_8014F18C(Task* task)
     work->headBody.key              = 0x3003D;
     work->headBody.radius           = 0x200;
     work->headBody.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(2, &work->headBody);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->headBody);
     work->headBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
 }
 

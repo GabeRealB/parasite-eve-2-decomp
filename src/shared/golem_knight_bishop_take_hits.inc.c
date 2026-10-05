@@ -60,7 +60,7 @@ void golemKnightBishopTakeHits(Task* arg0)
             coord->coord.t[2] = work->prevRootPos.vz;
             break;
     }
-    Gp_ClearRec18Occupied(work->groundContacts);
+    worldCollisionClearContacts(work->groundContacts);
 
     if (work->hurtBody.flags & WORLD_COLLISION_BODY_GRID_ENABLED) {
         switch (func_800E0C10(work->hurtContacts, &sc->delta, ARRAY_SIZE(work->hurtContacts), NULL)) {
@@ -179,10 +179,10 @@ void golemKnightBishopTakeHits(Task* arg0)
                 break;
         }
     }
-    Gp_ClearRec18Occupied(work->hurtContacts);
+    worldCollisionClearContacts(work->hurtContacts);
     if (work->strikeContacts[0].flags & WORLD_COLLISION_CONTACT_OCCUPIED) {
         work->strikeBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        Gp_ClearRec18Occupied(work->strikeContacts);
+        worldCollisionClearContacts(work->strikeContacts);
     }
     SCRATCH_STACK_RELEASE_BLOCK(_GolemKnightBishopHitScratch);
 }

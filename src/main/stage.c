@@ -397,7 +397,7 @@ static Task* Display_SpawnFromMode(void)
         if (flag) {
             func_801011D0(ptr, obj->collisionMotionContexts[0].contacts, 6, &obj->surfaceClass);
         }
-        Gp_ClearRec18Occupied(obj->collisionContacts);
+        worldCollisionClearContacts(obj->collisionContacts);
         ptr->composeStamp = GRAPHICS_COORD_DIRTY;
     block_case13:
         Stage_Ctx->otFlipArmed = 1;
@@ -430,7 +430,7 @@ block_default:
     if (flag) {
         func_801011D0(ptr, obj->collisionMotionContexts[0].contacts, 6, &obj->surfaceClass);
     }
-    Gp_ClearRec18Occupied(obj->collisionContacts);
+    worldCollisionClearContacts(obj->collisionContacts);
     ptr->composeStamp = GRAPHICS_COORD_DIRTY;
 
 block_end:

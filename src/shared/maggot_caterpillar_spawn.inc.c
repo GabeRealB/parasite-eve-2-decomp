@@ -149,7 +149,7 @@ void maggotCaterpillarSpawn(Enemy* ctx, Task* actor)
     work->gridBody.key              = 0x30000 | MAGGOT_CATERPILLAR_ID;
     work->gridBody.radius           = 0x12C;
     work->gridBody.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(2, &work->gridBody);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->gridBody);
     worldCollisionInitContacts(rec0, 4, 0);
     work->gridBody.flags       |= (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED);
     work->body.coord            = actor->extra.tmd->coords + 1;
@@ -161,7 +161,7 @@ void maggotCaterpillarSpawn(Enemy* ctx, Task* actor)
     work->body.key              = 0x30000 | MAGGOT_CATERPILLAR_ID;
     work->body.radius           = 0x12C;
     work->body.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(2, &work->body);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->body);
     worldCollisionInitContacts(rec1, 2, 0);
     work->body.flags                 |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     work->attackBody.coord            = actor->extra.tmd->coords + 4;
@@ -173,7 +173,7 @@ void maggotCaterpillarSpawn(Enemy* ctx, Task* actor)
     work->attackBody.key              = 0;
     work->attackBody.radius           = 0xC8;
     work->attackBody.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(3, &work->attackBody);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->attackBody);
     worldCollisionInitContacts(rec2, 1, 0);
     work->attackBody.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     work->flameBody.coord            = actor->extra.tmd->coords + 4;
@@ -185,7 +185,7 @@ void maggotCaterpillarSpawn(Enemy* ctx, Task* actor)
     work->flameBody.key              = 0x22424;
     work->flameBody.radius           = 0x1F4;
     work->flameBody.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(1, &work->flameBody);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_PLAYER_ATTACKS, &work->flameBody);
     worldCollisionInitContacts(rec3, 1, 0);
     work->flameBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     actor->state           = 1;

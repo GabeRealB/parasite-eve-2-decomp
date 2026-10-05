@@ -186,9 +186,10 @@ WorldCollisionBody* Gp_ObjList7;
 WorldCollisionBody* Gp_ObjList8;
 
 #include "world_collision.h"
+#include "attachments.h"
 
 /// Nine-entry table of `WorldCollisionBody` list heads (`Gp_ObjList0` .. `Gp_ObjList8`).
-/// `Gp_LinkObj` appends to `Gp_ObjLists[index]`; `worldCollisionUnlinkBody` unlinks.
+/// `worldCollisionLinkBody` appends to `Gp_ObjLists[index]`; `worldCollisionUnlinkBody` unlinks.
 extern WorldCollisionBody** Gp_ObjLists[9];
 
 /// Two-entry table of `WorldCollisionTrigger` list heads. `Gp_LinkObj4A` appends to
@@ -728,31 +729,38 @@ static s32 Gp_FindNearestSlot(WorldCollisionBody* arg0, s32 arg1)
     return best;
 }
 
-void Gp_LinkObj(s32 arg0, WorldCollisionBody* arg1)
+/// Appends an unlinked body and installs the link that its predecessor owns.
+static __inline__ void _worldCollisionAppendBody(WorldCollisionBody** head, WorldCollisionBody* body)
+{
+    WorldCollisionBody* tail;
+    WorldCollisionBody* first;
+
+    first = *head;
+    if (first != NULL) {
+        tail = first;
+        while (tail->next != NULL) {
+            tail = tail->next;
+        }
+        tail->next = body;
+        body->prev = &tail->next;
+    } else {
+        *head      = body;
+        body->prev = head;
+    }
+    body->next = NULL;
+}
+
+void worldCollisionLinkBody(s32 listIndex, WorldCollisionBody* body)
 {
     u16                  flags;
     WorldCollisionBody** head;
-    WorldCollisionBody*  node;
-    WorldCollisionBody*  temp;
 
-    head  = Gp_ObjLists[arg0];
-    flags = arg1->flags;
+    head  = Gp_ObjLists[listIndex];
+    flags = body->flags;
     if (!(flags & WORLD_COLLISION_BODY_LINKED)) {
         if ((flags & WORLD_COLLISION_BODY_KIND_MASK) <= WORLD_COLLISION_BODY_MOTION_SPHERE) {
-            arg1->flags = flags | WORLD_COLLISION_BODY_LINKED;
-            temp        = *head;
-            if (temp != NULL) {
-                node = temp;
-                while (node->next != NULL) {
-                    node = node->next;
-                }
-                node->next = arg1;
-                arg1->prev = &node->next;
-            } else {
-                *head      = arg1;
-                arg1->prev = head;
-            }
-            arg1->next = NULL;
+            body->flags = flags | WORLD_COLLISION_BODY_LINKED;
+            _worldCollisionAppendBody(head, body);
         }
     }
 }
@@ -958,26 +966,26 @@ void Gp_LoadRoomParams(void)
     }
 }
 
-s32 Gp_FindRec18(WorldCollisionContact* contacts, s32 key)
+s32 worldCollisionFindContactIndex(const WorldCollisionContact* contacts, s32 searchKey)
 {
-    s32 result;
-    s32 index;
+    s32 matchedIndex;
+    s32 contactIndex;
 
-    result = 0;
-    for (index = 1;; index++) {
+    matchedIndex = 0;
+    for (contactIndex = 1;; contactIndex++) {
         if (contacts->flags & WORLD_COLLISION_CONTACT_OCCUPIED) {
-            if (key == 0) {
+            if (searchKey == WORLD_COLLISION_FIND_ANY_KEY) {
                 return 1;
             }
-            if (contacts->key.value == key) {
-                result = index;
+            if (contacts->key.value == searchKey) {
+                matchedIndex = contactIndex;
             }
         }
         if ((contacts++)->flags & WORLD_COLLISION_CONTACT_LAST) {
             break;
         }
     }
-    return result;
+    return matchedIndex;
 }
 
 s32 Gp_CountRec18Hi(WorldCollisionContact* contacts, s32 kind)
@@ -993,7 +1001,7 @@ s32 Gp_CountRec18Hi(WorldCollisionContact* contacts, s32 kind)
     return count;
 }
 
-void Gp_ClearRec18Occupied(WorldCollisionContact* contacts)
+void worldCollisionClearContacts(WorldCollisionContact* contacts)
 {
     for (;;) {
         if (contacts->flags & WORLD_COLLISION_CONTACT_OCCUPIED) {
@@ -1078,45 +1086,59 @@ s32 Gp_TakePendingObj4C(u16* arg0, u8* arg1, u8* arg2)
     return 0;
 }
 
-void Gp_ClaimSlot18(Enemy* arg0, s32 arg1)
+/// Writes a synthetic attack with no geometric response, preserving flags and vector padding.
+static __inline__ void _attachmentWriteTargetContact(WorldCollisionContact* contact, s32 attackKey)
 {
-    WorldCollisionContact* slot;
-    WorldCollisionContact* temp;
-    s32                    one;
+    contact->key.value             = attackKey;
+    contact->distance              = 0;
+    contact->point.vx              = 0;
+    contact->point.vy              = 0;
+    contact->point.vz              = 0;
+    contact->response.direction.vx = 0;
+    contact->response.direction.vy = 0;
+    contact->response.direction.vz = 0;
+    contact->flags                |= WORLD_COLLISION_CONTACT_OCCUPIED;
+}
+
+void attachmentAddTargetContact(const Enemy* enemy, s32 attackKey)
+{
+    WorldCollisionContact* contact;
+    WorldCollisionContact* contacts;
+    s32                    occupied;
     SceneCombatState*      combat;
 
-    temp = arg0->recs;
-    if (temp != NULL) {
-        slot = temp;
-        one  = WORLD_COLLISION_CONTACT_OCCUPIED;
-        // A full table replaces its last element; the word read retains the original access width.
+    contacts = enemy->recs;
+    if (contacts != NULL) {
+        contact  = contacts;
+        occupied = WORLD_COLLISION_CONTACT_OCCUPIED;
+        // A full table replaces its final entry, so every selected target receives the attack.
         while (1) {
-            if ((*(s32*)&slot->flags & (WORLD_COLLISION_CONTACT_OCCUPIED | WORLD_COLLISION_CONTACT_LAST)) != one) {
+            // Read the aligned flags/distance word; only the low flag bits participate.
+            if ((*(const s32*)&contact->flags & (WORLD_COLLISION_CONTACT_OCCUPIED | WORLD_COLLISION_CONTACT_LAST)) != occupied) {
                 break;
             }
-            slot++;
+            contact++;
         }
-        slot->key.value             = arg1;
-        slot->distance              = 0;
-        slot->point.vx              = 0;
-        slot->point.vy              = 0;
-        slot->point.vz              = 0;
-        slot->response.direction.vx = 0;
-        slot->response.direction.vy = 0;
-        slot->response.direction.vz = 0;
-        slot->flags                |= WORLD_COLLISION_CONTACT_OCCUPIED;
-        combat                      = &gSceneCombatState;
+        _attachmentWriteTargetContact(contact, attackKey);
+        combat = &gSceneCombatState;
         combat->peTargetCount++;
     }
 }
 
-/// Multiplies the direction-facing rotation factors, writing only the nine rotation elements.
+/// Multiplies direction-facing rotations with the GTE, leaving translation and padding untouched.
+///
+/// Inputs use ONE (4096) for 1.0. Each column product is shifted by twelve bits
+/// and saturated to signed halfwords by the GTE. Matrices must be word-aligned;
+/// `out` may equal either input, otherwise it must be disjoint from both.
+/// Loading the complete left rotation before writing any column makes that
+/// in-place composition safe. Changes GTE rotation and arithmetic state and
+/// retains no pointers.
 static __inline__ void _gfxMultiplyDirectionRotations(const MATRIX* left, const MATRIX* right, MATRIX* out)
 {
     gte_SetRotMatrix(left);
-    gte_ldclmv(right);
+    gte_ldclmv(&right->m[0][0]);
     gte_rtir();
-    gte_stclmv(out);
+    gte_stclmv(&out->m[0][0]);
     gte_ldclmv(&right->m[0][1]);
     gte_rtir();
     gte_stclmv(&out->m[0][1]);

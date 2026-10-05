@@ -1597,7 +1597,7 @@ static void func_actor_400500_80132000(Task* arg0)
     work->body.key              = 0x30005;
     work->body.radius           = 0x260;
     work->body.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(2, &work->body);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->body);
     worldCollisionInitContacts(work->bodyContacts, ARRAY_SIZE(work->bodyContacts), 0);
     work->body.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
 
@@ -1609,7 +1609,7 @@ static void func_actor_400500_80132000(Task* arg0)
     work->rightArmOuter.pos.vz           = 0;
     work->rightArmOuter.radius           = 0x290;
     work->rightArmOuter.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(3, &work->rightArmOuter);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->rightArmOuter);
     worldCollisionInitContacts(work->rightArmContacts, ARRAY_SIZE(work->rightArmContacts), 0);
     work->rightArmOuter.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
 
@@ -1621,7 +1621,7 @@ static void func_actor_400500_80132000(Task* arg0)
     work->rightArmInner.pos.vz           = 0;
     work->rightArmInner.radius           = 0x250;
     work->rightArmInner.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(3, &work->rightArmInner);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->rightArmInner);
     worldCollisionInitContacts(work->rightArmContacts, ARRAY_SIZE(work->rightArmContacts), 0);
     work->rightArmInner.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
 
@@ -1633,7 +1633,7 @@ static void func_actor_400500_80132000(Task* arg0)
     work->leftArmOuter.pos.vz           = 0;
     work->leftArmOuter.radius           = 0x290;
     work->leftArmOuter.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(3, &work->leftArmOuter);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->leftArmOuter);
     worldCollisionInitContacts(work->leftArmContacts, ARRAY_SIZE(work->leftArmContacts), 0);
     work->leftArmOuter.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
 
@@ -1645,7 +1645,7 @@ static void func_actor_400500_80132000(Task* arg0)
     work->leftArmInner.pos.vz           = 0;
     work->leftArmInner.radius           = 0x250;
     work->leftArmInner.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(3, &work->leftArmInner);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->leftArmInner);
     worldCollisionInitContacts(work->leftArmContacts, ARRAY_SIZE(work->leftArmContacts), 0);
     work->leftArmInner.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
 }
@@ -2706,7 +2706,7 @@ static void func_actor_400500_8013456C(Task* arg0)
             enemy->reactionFlags &= ENEMY_REACTION_DAMAGE_OVER_TIME_CLEAR;
         }
     }
-    Gp_ClearRec18Occupied(work->bodyContacts);
+    worldCollisionClearContacts(work->bodyContacts);
     if (work->hitCooldown > 0) {
         work->hitCooldown = (u16)work->hitCooldown - 1;
         return;

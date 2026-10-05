@@ -77,7 +77,7 @@ void skullStalkerSpawnState(Enemy* arg0, Task* arg1)
     work->frontSenseBody.key             = 0;
     work->frontSenseBody.radius          = 0;
     work->frontSenseBody.flags           = WORLD_COLLISION_BODY_CAPSULE;
-    Gp_LinkObj(3, &work->frontSenseBody);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->frontSenseBody);
     worldCollisionInitContacts(frontSenseContacts, ARRAY_SIZE(work->frontSenseContacts), 0);
     work->senseBody.coord            = coord;
     senseContacts                    = work->senseContacts;
@@ -89,7 +89,7 @@ void skullStalkerSpawnState(Enemy* arg0, Task* arg1)
     work->senseBody.radius           = 0x7D0;
     work->senseBody.flags            = WORLD_COLLISION_BODY_SPHERE;
     work->frontSenseBody.flags       = work->frontSenseBody.flags | WORLD_COLLISION_BODY_PAIR_ENABLED;
-    Gp_LinkObj(3, &work->senseBody);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->senseBody);
     worldCollisionInitContacts(senseContacts, ARRAY_SIZE(work->senseContacts), 0);
     bodyContacts                = work->bodyContacts;
     work->body.coord            = coord;
@@ -101,7 +101,7 @@ void skullStalkerSpawnState(Enemy* arg0, Task* arg1)
     work->body.radius           = 0xC8;
     work->body.flags            = WORLD_COLLISION_BODY_SPHERE;
     work->senseBody.flags       = work->senseBody.flags | WORLD_COLLISION_BODY_PAIR_ENABLED;
-    Gp_LinkObj(2, &work->body);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->body);
     worldCollisionInitContacts(bodyContacts, ARRAY_SIZE(work->bodyContacts), 0);
     work->body.flags = work->body.flags | (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
     work->variant    = arg0->place->mode;

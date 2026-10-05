@@ -1118,8 +1118,8 @@ static __inline__ void Actor401000_InitPose(GfxCoord* coord, OddStrangerWork* wo
 {
     actorRescaleYaw(coord, 0x1194);
     work->bodyPosCursor = 0;
-    Gp_ClearRec18Occupied(work->gridContacts);
-    Gp_ClearRec18Occupied(work->hitContacts);
+    worldCollisionClearContacts(work->gridContacts);
+    worldCollisionClearContacts(work->hitContacts);
 }
 
 /// Enemy init: allocates the 0xC80-byte work block, binds the model's light
@@ -1202,7 +1202,7 @@ static void func_actor_401000_80133274(Enemy* enemy, Task* actor)
     work->gridBody.key              = 0x30000;
     work->gridBody.radius           = 0x12C;
     work->gridBody.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(2, &work->gridBody);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->gridBody);
     work->hitCooldown     = 0;
     work->gridBody.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
     worldCollisionInitContacts(work->gridBody.context.contacts, ARRAY_SIZE(work->gridContacts), 0);
@@ -1216,7 +1216,7 @@ static void func_actor_401000_80133274(Enemy* enemy, Task* actor)
     body->key              = 0x3000A;
     body->radius           = 0x1AE;
     body->flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(2, body);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, body);
     body->flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     worldCollisionInitContacts(body->context.contacts, ARRAY_SIZE(work->hitContacts), 0);
     work->hitBody.key = 0x30000;
@@ -1233,7 +1233,7 @@ static void func_actor_401000_80133274(Enemy* enemy, Task* actor)
     head->pos.vz           = v->vz;
     head->radius           = 0x180;
     head->flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(3, head);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, head);
     worldCollisionInitContacts(head->context.contacts, ARRAY_SIZE(work->attackContacts), 0);
 
     work->patrolTarget      = 0;
@@ -1611,7 +1611,7 @@ static void func_actor_401000_80135AA4(Task* arg0)
     }
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(arg0->extra.tmd->coords);
-    Gp_ClearRec18Occupied(work->hitContacts);
+    worldCollisionClearContacts(work->hitContacts);
     if (work->grabCooldown != 0) {
         work->grabCooldown--;
     }

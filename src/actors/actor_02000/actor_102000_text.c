@@ -1155,7 +1155,7 @@ TaskFunc gGolemPawnRookStates[15] = {
 /// nineteen slots, and spawns the companion enemy from `Actor02000_D15FD0`,
 /// copying that model's texture page and CLUT row out of the current area
 /// record. `Enemy.spawnState` then selects the variant: 0 builds the
-/// full object set (list node, the four `Gp_LinkObj` nodes and their
+/// full object set (list node, the four `worldCollisionLinkBody` nodes and their
 /// `WorldCollisionContact` tables, and the optional CD prefetch of `soundSet`),
 /// while 1 and 2 only prime the animation state and hand the task to state 2.
 static void Actor02000_Fn0251C(Enemy* ctx, Task* actor)
@@ -1276,7 +1276,7 @@ case0:
     work->sightBody.radius          = 0;
     work->sightBody.flags           = WORLD_COLLISION_BODY_CAPSULE;
     work->sightBody.coord           = &partsA[4];
-    Gp_LinkObj(3, &work->sightBody);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->sightBody);
     worldCollisionInitContacts(work->sightContacts, ARRAY_SIZE(work->sightContacts), 0);
     work->sightBody.flags |= (WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_SINGLE_CONTACT | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
 
@@ -1289,7 +1289,7 @@ case0:
     work->hurtBody.radius           = 0x190;
     work->hurtBody.flags            = WORLD_COLLISION_BODY_SPHERE;
     work->hurtBody.coord            = &partsB[3];
-    Gp_LinkObj(2, &work->hurtBody);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->hurtBody);
     worldCollisionInitContacts(work->hurtContacts, ARRAY_SIZE(work->hurtContacts), 0);
     work->hurtBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
 
@@ -1302,7 +1302,7 @@ case0:
     work->groundBody.radius           = 0x226;
     work->groundBody.flags            = WORLD_COLLISION_BODY_SPHERE;
     work->groundBody.coord            = partsC;
-    Gp_LinkObj(2, &work->groundBody);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->groundBody);
     worldCollisionInitContacts(work->groundContacts, ARRAY_SIZE(work->groundContacts), 0);
     work->groundBody.flags |= (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED);
 
@@ -1315,7 +1315,7 @@ case0:
     work->strikeBody.radius           = 0x1F4;
     work->strikeBody.flags            = WORLD_COLLISION_BODY_SPHERE;
     work->strikeBody.coord            = effParts;
-    Gp_LinkObj(3, &work->strikeBody);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->strikeBody);
     worldCollisionInitContacts(work->strikeContacts, ARRAY_SIZE(work->strikeContacts), 0);
     work->strikeBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     actor->state            = 1;

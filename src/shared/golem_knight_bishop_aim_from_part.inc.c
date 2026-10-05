@@ -71,7 +71,7 @@ void golemKnightBishopAimFromPart(Task* arg0)
         sc->ends[1].vz = part->workm.t[2] + sc->offset.vz;
         sc->ends[0].vx = 0;
         sc->ends[0].vy = -0x514;
-        if (Gp_FindRec18(work->aimBeamContacts, 0) != 0) {
+        if (worldCollisionFindContactIndex(work->aimBeamContacts, WORLD_COLLISION_FIND_ANY_KEY) != 0) {
             sc->offset.vx  = work->aimBeamContacts[0].point.vx - sc->ends[1].vx;
             sc->offset.vy  = work->aimBeamContacts[0].point.vy - sc->ends[1].vy;
             sc->offset.vz  = work->aimBeamContacts[0].point.vz - sc->ends[1].vz;
@@ -80,7 +80,7 @@ void golemKnightBishopAimFromPart(Task* arg0)
             if ((work->aimBeamContacts[0].key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == 0x10000) {
                 sc->ends[0].vz = dist + 0x12C;
             }
-            Gp_ClearRec18Occupied(work->aimBeamContacts);
+            worldCollisionClearContacts(work->aimBeamContacts);
         } else {
             sc->ends[0].vz = 10000;
         }

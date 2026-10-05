@@ -11,7 +11,22 @@
 #include "main/task_types.h"
 #include "main/ui_types.h"
 
+struct Enemy;
+
 // Attachment parameters, combination state and menu support.
+
+/// Records a Parasite Energy attack in an enemy's borrowed contact table.
+///
+/// `enemy` must be non-NULL; a NULL contact table leaves it and the cast's
+/// target count unchanged. Otherwise the writable table must end in
+/// WORLD_COLLISION_CONTACT_LAST. The first empty entry is used, or the final
+/// entry is replaced when all are occupied. `attackKey` is the complete packed
+/// attack identity supplied by the targeting scan. Distance, point and
+/// response components are zeroed, pad halfwords and existing flags are
+/// preserved, and OCCUPIED is set. Each write increments the current PE cast's
+/// byte-sized target count, including replacements, with byte wraparound.
+/// No enemy or contact pointer is retained.
+void attachmentAddTargetContact(const struct Enemy* enemy, s32 attackKey);
 
 extern InventoryItemRow Gp_ItemTable2[];
 

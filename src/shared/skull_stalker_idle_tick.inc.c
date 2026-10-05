@@ -62,7 +62,7 @@ void skullStalkerIdleTick(Task* arg0)
         work->frontSenseBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         Gp_ArmStateF0(1);
     }
-    Gp_ClearRec18Occupied(work->senseContacts);
+    worldCollisionClearContacts(work->senseContacts);
     animId = work->animId;
     if (animId == SKULL_STALKER_ANIM_IDLE) {
         work->field_29A = 1;

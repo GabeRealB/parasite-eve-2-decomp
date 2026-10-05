@@ -29,7 +29,7 @@ void sucklercephDormantTick(Task* arg0)
         work->senseBody.flags = (u16)(work->senseBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
         Gp_ArmStateF0(1);
     }
-    Gp_ClearRec18Occupied(&work->senseContact);
+    worldCollisionClearContacts(&work->senseContact);
     if (work->animId == SUCKLERCEPH_ANIM_IDLE) {
         work->idleSoundFrames--;
         if (work->idleSoundFrames <= 0) {

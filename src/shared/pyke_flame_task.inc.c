@@ -85,7 +85,7 @@ static inline void pykeFlameTask(Task* task)
             flame->body.radius           = work->scale >> 1;
             gRandomLcgState              = ang1;
             flame->body.flags            = WORLD_COLLISION_BODY_SPHERE;
-            Gp_LinkObj(1, &flame->body);
+            worldCollisionLinkBody(WORLD_COLLISION_LIST_PLAYER_ATTACKS, &flame->body);
             // The allocation already zeroed the entry; LAST terminates the table.
             flame->contacts[0].flags = WORLD_COLLISION_CONTACT_LAST;
             flame->body.flags       |= WORLD_COLLISION_BODY_PAIR_ENABLED;
@@ -133,7 +133,7 @@ static inline void pykeFlameTask(Task* task)
                 effectKillTask(work, task);
                 return;
             }
-            Gp_ClearRec18Occupied(flame->contacts);
+            worldCollisionClearContacts(flame->contacts);
             return;
         case 2:
             work->scale         = work->scale + 0x40;

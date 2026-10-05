@@ -73,7 +73,7 @@ void sucklercephSpawnState(Enemy* arg0, Task* arg1)
     work->senseBody.key              = 0;
     work->senseBody.radius           = 0xBB8;
     work->senseBody.flags            = (u32)WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(3, &work->senseBody);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->senseBody);
     worldCollisionInitContacts(&work->senseContact, 1, 0);
     work->body.coord            = coord;
     work->body.context.contacts = work->contacts;
@@ -84,7 +84,7 @@ void sucklercephSpawnState(Enemy* arg0, Task* arg1)
     work->body.radius           = 0xC8;
     work->body.flags            = (u32)WORLD_COLLISION_BODY_SPHERE;
     work->senseBody.flags       = (u16)(work->senseBody.flags | WORLD_COLLISION_BODY_PAIR_ENABLED);
-    Gp_LinkObj(2, &work->body);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->body);
     worldCollisionInitContacts(work->contacts, ARRAY_SIZE(work->contacts), 0);
     work->attackBody.coord            = coord;
     work->attackBody.context.contacts = &work->attackContact;
@@ -95,7 +95,7 @@ void sucklercephSpawnState(Enemy* arg0, Task* arg1)
     work->attackBody.key              = Gp_PackPair(&gSucklercephAttack, 0);
     work->attackBody.radius           = 0x3E8;
     work->attackBody.flags            = (u32)WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(3, &work->attackBody);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->attackBody);
     worldCollisionInitContacts(&work->attackContact, 1, 0);
     work->blastBody.coord            = coord;
     work->blastBody.context.contacts = &work->blastContact;
@@ -106,7 +106,7 @@ void sucklercephSpawnState(Enemy* arg0, Task* arg1)
     work->blastBody.radius           = 0x3E8;
     work->blastBody.flags            = (u32)WORLD_COLLISION_BODY_SPHERE;
     work->attackBody.flags           = (u16)(work->attackBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
-    Gp_LinkObj(8, &work->blastBody);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_BLASTS, &work->blastBody);
     worldCollisionInitContacts(&work->blastContact, 1, 0);
     work->blastBody.flags = (u16)(work->blastBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
     work->field_2DC       = arg1->spawnArg1.value >> 16;

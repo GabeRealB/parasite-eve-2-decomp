@@ -140,7 +140,7 @@ move:
     if (work->flightFrame % work->smokeInterval == 0) {
         Gp_SpawnEff(EFFECT_SMOKE_PUFF, coord, 0, NULL);
     }
-    Gp_ClearRec18Occupied(work->sphereContacts);
-    Gp_ClearRec18Occupied(work->capsuleContacts);
+    worldCollisionClearContacts(work->sphereContacts);
+    worldCollisionClearContacts(work->capsuleContacts);
     SCRATCH_STACK_RELEASE_BLOCK(_GrenadeShellFlightScratch);
 }

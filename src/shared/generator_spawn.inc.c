@@ -58,7 +58,7 @@ void generatorSpawn(Enemy* arg0, Task* arg1)
     work->rootBody.key              = GENERATOR_COLLISION_KEY;
     work->rootBody.radius           = 0x5DC;
     work->rootBody.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(2, &work->rootBody);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->rootBody);
     worldCollisionInitContacts(work->contacts, ARRAY_SIZE(work->contacts), 0);
     work->rootBody.flags             |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     work->targetBody.coord            = coord;
@@ -69,7 +69,7 @@ void generatorSpawn(Enemy* arg0, Task* arg1)
     work->targetBody.key              = GENERATOR_COLLISION_KEY;
     work->targetBody.radius           = 0x12C;
     work->targetBody.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(2, &work->targetBody);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->targetBody);
     work->targetBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     spawned                 = Gp_SpawnEnemyFromTable(gGeneratorTasks, 1, 0, arg0);
     model                   = spawned->task->extra.tmd;

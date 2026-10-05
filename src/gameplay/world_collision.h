@@ -9,7 +9,6 @@
 #include "gameplay/actor.h"
 #include "gameplay/collision.h"
 #include "collision.h"
-#include "gameplay/enemy.h"
 
 // Collision lists, contact records, room grids and collision updates.
 
@@ -43,8 +42,6 @@ void func_800DEC80(WorldCollisionBody* arg0, VECTOR* arg1, SVECTOR* arg2, s32 ar
 void func_800DEF80(WorldCollisionBody* node, WorldCollisionTrigger* other);
 
 void func_800DF6AC(WorldCollisionBody* node, WorldCollisionTrigger* other, VECTOR3* from);
-
-struct Enemy;
 
 /// The nine list heads `Gp_ObjLists` points at. Each is a bare `WorldCollisionBody*`
 /// whose address is the first link. A node's `prev` points to the link that
@@ -84,8 +81,6 @@ void Gp_ClearObj3AList(s32 arg0);
 void Gp_LoadRoomParams(void);
 
 void Gp_CommitObj4CSave(void);
-
-void Gp_ClaimSlot18(struct Enemy* arg0, s32 arg1);
 
 void Gp_CollideLists(WorldCollisionBody* a, WorldCollisionBody* b);
 

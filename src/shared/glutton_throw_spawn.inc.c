@@ -51,7 +51,7 @@ void gluttonThrowSpawn(Enemy* enemy, Task* task)
     actorRenderComposeCoord(task->extra.tmd->coords);
 
     pos.vx = pos.vy = pos.vz = 0;
-    actorLinkWorkObj(task->extra.tmd->coords, &work->attackBody, work->attackContacts, &pos, 0x394, 3,
+    actorLinkWorkObj(task->extra.tmd->coords, &work->attackBody, work->attackContacts, &pos, 0x394, WORLD_COLLISION_LIST_ENEMY_ATTACKS,
                      ARRAY_SIZE(work->attackContacts));
 
     work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);

@@ -325,7 +325,7 @@ static void func_actor_311500_801629D8(Task* arg0)
     work2->hitBody.key              = 0x3000A;
     work2->hitBody.radius           = 0x190;
     work2->hitBody.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(2, &work2->hitBody);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work2->hitBody);
     work2->hitBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     worldCollisionInitContacts(&work2->hitContacts[0], 1, 0);
     enemy->recs    = &work2->hitContacts[0];
@@ -449,7 +449,7 @@ done:
             Gp_SpawnEff(EFFECT_CRITICAL_HIT, arg0->extra.tmd->coords, 0, 0);
         }
         enemy->hp -= damage;
-        Gp_ClearRec18Occupied(work->hitContacts);
+        worldCollisionClearContacts(work->hitContacts);
         func_800DA6E8(&enemy->node, damage, 0);
     }
     return work->hitKey;
@@ -666,7 +666,7 @@ case0:
                 work->step    = 0;
                 actor->state += 1;
             }
-            Gp_ClearRec18Occupied(work->hitContacts);
+            worldCollisionClearContacts(work->hitContacts);
             goto case1;
 
         case 2:

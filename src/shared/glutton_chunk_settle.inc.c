@@ -70,8 +70,8 @@ void gluttonChunkSettle(Enemy* enemy, Task* task)
     }
 
     if (work->stateTicks < 0x51) {
-        Gp_ClearRec18Occupied(work->gridContacts);
-        Gp_ClearRec18Occupied(work->attackContacts);
+        worldCollisionClearContacts(work->gridContacts);
+        worldCollisionClearContacts(work->attackContacts);
     }
 
     pos.vx = task->extra.tmd->coords->workm.t[0];

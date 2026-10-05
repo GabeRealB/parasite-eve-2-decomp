@@ -36,6 +36,6 @@ void sucklercephDropCollide(Task* arg0)
             coord->coord.t[2] = work->prevRootPos.vz;
             break;
     }
-    Gp_ClearRec18Occupied(work->contacts);
+    worldCollisionClearContacts(work->contacts);
     SCRATCH_STACK_RELEASE_BLOCK(ActorContactDeltaWideScratch);
 }

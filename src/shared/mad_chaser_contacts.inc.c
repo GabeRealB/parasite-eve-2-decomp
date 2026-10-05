@@ -166,7 +166,7 @@ void madChaserApplyContacts(Task* arg0, s16 arg1)
             break;
     }
 
-    Gp_ClearRec18Occupied(work->contacts);
+    worldCollisionClearContacts(work->contacts);
     if (work->field_43E != 0) {
         work->field_43E--;
     }

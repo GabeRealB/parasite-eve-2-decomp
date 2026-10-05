@@ -853,7 +853,7 @@ static void Actor03700_Fn000A4(Enemy* arg0, Task* task)
     work->body.pos.vz           = 0;
     work->body.key              = 0x30025;
     work->body.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(2, &work->body);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->body);
     worldCollisionInitContacts(work->contacts, ARRAY_SIZE(work->contacts), 0);
     work->body.flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
     task->state       = 1;
@@ -983,7 +983,7 @@ move_done:
         coord->coord.t[0] += (push * scratch->pushDirection.vx) >> 12;
         coord->coord.t[2] += (push * scratch->pushDirection.vz) >> 12;
     }
-    Gp_ClearRec18Occupied(work->contacts);
+    worldCollisionClearContacts(work->contacts);
     SCRATCH_STACK_RELEASE_BLOCK(ActorContactOverlapPushScratch);
 }
 
@@ -1094,7 +1094,7 @@ static s32 Actor03700_Fn008D0(Task* task)
             ret              = 1;
             break;
         case ACTOR_03700_ACTION_WAVE_WAIT:
-            Gp_ClearRec18Occupied(work->contacts);
+            worldCollisionClearContacts(work->contacts);
             if (work->waveDirector != 0) {
                 Actor03700_Fn0355C(task);
             }

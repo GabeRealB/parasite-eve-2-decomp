@@ -1677,7 +1677,7 @@ static void func_actor_521100_80131E8C(Enemy* enemy, Task* task)
     work->groundBody.key              = 0x30022;
     work->groundBody.radius           = 0x190;
     work->groundBody.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(2, &work->groundBody);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->groundBody);
     worldCollisionInitContacts(work->groundContacts, ARRAY_SIZE(work->groundContacts), 0);
     work->groundBody.flags |= (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED);
 
@@ -1689,7 +1689,7 @@ static void func_actor_521100_80131E8C(Enemy* enemy, Task* task)
     work->body.key              = 0x30022;
     work->body.radius           = 0x190;
     work->body.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(2, &work->body);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->body);
     worldCollisionInitContacts(work->bodyContacts, ARRAY_SIZE(work->bodyContacts), 0);
     work->body.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
 
@@ -1722,7 +1722,7 @@ static void func_actor_521100_80131E8C(Enemy* enemy, Task* task)
     work->weaponAttack.key              = 0;
     work->weaponAttack.radius           = 0x1C2;
     work->weaponAttack.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(3, &work->weaponAttack);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->weaponAttack);
     worldCollisionInitContacts(work->attackContacts, ARRAY_SIZE(work->attackContacts), 0);
     work->weaponAttack.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
 
@@ -1734,7 +1734,7 @@ static void func_actor_521100_80131E8C(Enemy* enemy, Task* task)
     work->forearmAttack.key              = 0;
     work->forearmAttack.radius           = 0x1C2;
     work->forearmAttack.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(3, &work->forearmAttack);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->forearmAttack);
 
     work->grabPathCapsule.ends[0].vz = 0x5DC;
     work->grabPathCapsule.ends[0].vx = 0;
@@ -1755,7 +1755,7 @@ static void func_actor_521100_80131E8C(Enemy* enemy, Task* task)
     work->grabPathProbe.key             = 0;
     work->grabPathProbe.radius          = 0;
     work->grabPathProbe.flags           = WORLD_COLLISION_BODY_CAPSULE;
-    Gp_LinkObj(3, &work->grabPathProbe);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->grabPathProbe);
     worldCollisionInitContacts(work->grabProbeContacts, ARRAY_SIZE(work->grabProbeContacts), 0);
     work->grabPathProbe.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
 
@@ -1767,7 +1767,7 @@ static void func_actor_521100_80131E8C(Enemy* enemy, Task* task)
     work->grabSpotProbe.key              = 0;
     work->grabSpotProbe.radius           = 0x1C2;
     work->grabSpotProbe.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(3, &work->grabSpotProbe);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->grabSpotProbe);
     work->grabSpotProbe.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
 
     task->msgTable = D_actor_521100_8015F6FC;
@@ -1834,7 +1834,7 @@ static void func_actor_521100_801322F8(Task* arg0, TmdObject* arg1, s32 arg2)
             coord->coord.t[2] = work->prevRootPos.vz;
             break;
     }
-    Gp_ClearRec18Occupied(work->groundContacts);
+    worldCollisionClearContacts(work->groundContacts);
     if (work->hitCooldown != 0) {
         cooldown          = (u16)work->hitCooldown - 1;
         work->hitCooldown = cooldown;
@@ -1962,17 +1962,17 @@ static void func_actor_521100_801322F8(Task* arg0, TmdObject* arg1, s32 arg2)
             work->hitCooldown = wait;
         }
     }
-    Gp_ClearRec18Occupied(work->bodyContacts);
+    worldCollisionClearContacts(work->bodyContacts);
     if (work->attackContacts[0].flags & 1) {
         work->weaponAttack.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->forearmAttack.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        Gp_ClearRec18Occupied(work->attackContacts);
+        worldCollisionClearContacts(work->attackContacts);
         work->attackLanded = 1;
     }
     work->grabBlocked = 0;
     if (work->grabProbeContacts[0].flags & 1) {
         work->grabBlocked = 1;
-        Gp_ClearRec18Occupied(work->grabProbeContacts);
+        worldCollisionClearContacts(work->grabProbeContacts);
     }
     if (enemy->hp <= 0) {
         if (gPlayerStatus.hp > 0) {

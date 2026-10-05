@@ -5624,14 +5624,14 @@ this hoist.
 
 ## Independent `flags = 1` is hoisted into a long mul; put it after the jal-delay store
 
-`Gp_LinkObj` wants `sh flags, 0x1E` immediately before the `jal` and the
+`worldCollisionLinkBody` wants `sh flags, 0x1E` immediately before the `jal` and the
 `field_1C` store in the delay. Written as
 
 ```c
 obj->field_18 = long_div_expr;
 obj->flags    = 1;
 obj->field_1C = table[i].field_0;
-Gp_LinkObj(1, obj);
+worldCollisionLinkBody(1, obj);
 ```
 
 the constant `flags = 1` is independent of the `% 100` / `% 10` muls, so
@@ -5647,7 +5647,7 @@ delay:
 obj->field_18 = long_div_expr;
 obj->field_1C = table[i].field_0;
 obj->flags    = 1;
-Gp_LinkObj(1, obj);
+worldCollisionLinkBody(1, obj);
 ```
 
 `field_1C` still lands in the `jal` delay; `flags` stays next to the call.
@@ -6617,7 +6617,7 @@ Give each `| packed` its own block-scope temp so it dies at the store:
     obj->field_1C = size;
     obj->flags    = 4;
     obj->field_18 = temp | packed;
-    Gp_LinkObj(0, obj);
+    worldCollisionLinkBody(0, obj);
 }
 ```
 
@@ -6663,7 +6663,7 @@ zero = 0;
 asm volatile("" : "+r"(zero));
 link = &actor->collisionMotionContexts[1];
 obj->flags |= 0xF200;
-Gp_LinkObj(zero, obj);
+worldCollisionLinkBody(zero, obj);
 ```
 
 `Gp_InitPlayerWork` is the example.
@@ -25800,7 +25800,7 @@ for (;;) {
 }
 ```
 
-`Gp_ClearRec18Occupied` is the example. The sibling `Gp_CountRec18Hi` *does* match
+`worldCollisionClearContacts` is the example. The sibling `Gp_CountRec18Hi` *does* match
 as `do … while (!((index++)->flags & 2))` because it never stores
 `flags` and the target uses the post-increment form.
 
@@ -26639,7 +26639,7 @@ while (1) {
 ```
 
 A `for (; cond; slot++)` or `while (cond) slot++;` stuck at ~79% with only
-that loop inverted. `Gp_ClaimSlot18` is the example.
+that loop inverted. `attachmentAddTargetContact` is the example.
 
 ## Reload the stored field for later `~` / `& 1`, not the source temp
 
@@ -26666,7 +26666,7 @@ at 84% with only that register move missing. `Gp_CaptureActorPad` is the example
 
 ## Hoist the list-head load before the already-linked early-out
 
-`Gp_LinkObj4A` (and the same-shape `Gp_LinkObj3A` / `Gp_LinkObj`)
+`Gp_LinkObj4A` (and the same-shape `Gp_LinkObj3A` / `worldCollisionLinkBody`)
 computes `&table[index]` first, then interleaves `lbu flags` with `lw head`.
 Loading the head *inside* the `!(flags & 0x20)` arm delays that work until
 after `bnez` and also inverts the empty-list `beqz`.
@@ -30776,7 +30776,7 @@ obj54 = (GpObj54*)enemy;
 if (arg0 == 0) {
     enemy->colorMode |= 0x80;
 } else {
-    Gp_ClaimSlot18(obj54, payload);
+    attachmentAddTargetContact(obj54, payload);
 }
 ```
 
@@ -47990,7 +47990,7 @@ and without the barrier the `addiu` floats up into an earlier load delay and
 the function comes out one insn short. `Actor02000_Fn0251C` is the example
 (99.19% / 99.62% / 99.82% for the three near misses).
 
-## One `GfxCoord*` base local per `Gp_LinkObj` block
+## One `GfxCoord*` base local per `worldCollisionLinkBody` block
 
 Repeated `obj.coord = &actor->field_2C->field_8[N]` blocks want the two loads
 hoisted to the top of the block and the `+N*0x50` left next to the store
@@ -48004,7 +48004,7 @@ partsA                  = actor->field_2C->field_8;
 work->sightBody.field_C = &work->sightCapsule;
 /* … */
 work->sightBody.field_8 = &partsA[4];
-Gp_LinkObj(3, &work->sightBody);
+worldCollisionLinkBody(3, &work->sightBody);
 ```
 
 `Actor02000_Fn0251C` links four objects this way; sharing one local across all
@@ -65244,7 +65244,7 @@ sw    $s4, 0x2B8($s0)       # field_C  = rec table
 sh    $zero, 0x2BC($s0)     # ...the constant stores
 ...
 addiu $v0, $v0, 0x50
-jal   Gp_LinkObj
+jal   worldCollisionLinkBody
  sw   $v0, 0x2B4($s0)       # field_8            <- bottom of block
 ```
 
@@ -65812,7 +65812,7 @@ took `$a0`. The target wanted `$a0`, `$v0`, `$v1`, respectively. Inlining the
 scratch address did not change the allocation.
 
 A `void* work` first holding `SCRATCH_STACK_CURSOR_SLOT`, then reassigned to the enemy
-base before the `Gp_ClaimSlot18` call, matched without pins or empty asm.
+base before the `attachmentAddTargetContact` call, matched without pins or empty asm.
 The `.lreg` dump changed the scratch pointer from a block-local pseudo
 (3 uses / 7 insns) to a reused pseudo (11 uses / 30 insns, three deaths).
 The `.greg` dump gave it `preferences: 4` and allocated `$a0`; the other two
@@ -68678,7 +68678,7 @@ their own work block in the `Task::work` slot, and that block is not a
 
 **Fix:** read the immediate ratio as an element size and retype the pointer.
 Here the init that installs the exit callback (`func_actor_503500_801372C8`)
-does `addiu $a1, $s0, 0x40` before `Gp_LinkObj`, which names the field
+does `addiu $a1, $s0, 0x40` before `worldCollisionLinkBody`, which names the field
 directly: a `WorldCollisionBody` at byte 0x40 of the work block. Declaring it and writing
 `worldCollisionUnlinkBody(&index->field_1C->obj40)` matched on the next build.
 
@@ -69060,13 +69060,13 @@ overlay used (`func_actor_503500_8013ECBC` here).
 
 **Problem.** `func_actor_503500_80145F18` walks the four-entry `WorldCollisionContact` table
 that sits at offset 0x38 of the enemy's work block, then hands the same table to
-`Gp_ClearRec18Occupied`. Written with the member named directly,
+`worldCollisionClearContacts`. Written with the member named directly,
 
 ```c
 for (i = 0; i < 4; i++) {
     if ((work->rec[i].key.value & 0xFFFF0000) == 0x10000) { ... }
 }
-Gp_ClearRec18Occupied(work->rec);
+worldCollisionClearContacts(work->rec);
 ```
 
 the loop loads `lw v0, 0x3c(v1)` with `v1` walking the *work block* base, and
@@ -69087,7 +69087,7 @@ rec = work->rec;
 for (i = 0; i < 4; i++) {
     if ((rec[i].key.value & 0xFFFF0000) == 0x10000) { ... }
 }
-Gp_ClearRec18Occupied(rec);
+worldCollisionClearContacts(rec);
 ```
 
 100%, all penalties zero.
@@ -72343,7 +72343,7 @@ twice the stride (here 0x88C → 0x9BC, i.e. a skipped element).
 
 **Fix.** Grep the *rest of the overlay* for the intermediate offsets before
 inventing a layout. `func_actor_444000_801423C4` calls
-`Gp_ClearRec18Occupied(work + 0x814)` and `(work + 0x8AC)` — 0x20 past two
+`worldCollisionClearContacts(work + 0x814)` and `(work + 0x8AC)` — 0x20 past two
 consecutive `WorldCollisionBody`s, and 0x98 apart themselves. `WorldCollisionContact` is 0x18, and
 0x88C - 0x814 = 0x78 = 5 × 0x18, so the stride is `WorldCollisionBody` followed by the
 five-entry `WorldCollisionContact` table its `field_C` points at:
@@ -77246,7 +77246,7 @@ the rest of the overlay stores it with.
 `func_actor_206100_8014F18C` initializes two `WorldCollisionBody` collision records and m2c
 recovered the statement order from the final asm, so each record's
 `field_8 = &((TmdObject*)task->extra)->coords[n]` was written last, right
-before `Gp_LinkObj(2, &work->obj_n)`. The seed scored 74.44% with
+before `worldCollisionLinkBody(2, &work->obj_n)`. The seed scored 74.44% with
 `regs=17 reorder=5 insert=6 delete=6` and *identical* opcode counts
 (62/62 instructions, same histogram, `topology: match`) — with equal counts the
 `insert`/`delete` are positional drift, not extra work.
@@ -77269,7 +77269,7 @@ work->trunkBody.field_8  = &((TmdObject*)task->extra)->coords[1];  /* base_1: 87
 work->trunkBody.field_C  = (WorldCollisionContact*)work->hitContacts;
 ...
 work->trunkBody.flags    = 1;
-Gp_LinkObj(2, &work->trunkBody);
+worldCollisionLinkBody(2, &work->trunkBody);
 ```
 
 So when the target hoists a load but leaves its store in the delay slot, the
@@ -78056,7 +78056,7 @@ every one of those offsets *is* a `WorldCollisionBody` field:
 
 `WorldCollisionBody` is 0x20, so `hitBody` at 0x134 ends exactly at `hitContacts` at 0x154, and the
 whole thing satisfies `STATIC_ASSERT_SIZEOF(..., 0x2F4)` unchanged. Declaring
-the three nodes as `WorldCollisionBody` removes every cast in the body — `Gp_LinkObj(2,
+the three nodes as `WorldCollisionBody` removes every cast in the body — `worldCollisionLinkBody(2,
 &work->hitBody)` and `worldCollisionInitContacts(work->hitContacts, 1, 0)` take the real
 types — and the flag edits read as the sibling's
 `work->hitBody.flags |= 0x8000` / `gridBody.flags |= 0x4000` / `attackBody.flags &=
@@ -78086,11 +78086,11 @@ downstream of the addressing, not independent of it.
 ## A WorldCollisionBody node's `flags |= mask` belongs at the head of the *next* node's block
 
 Actor spawns initialise a run of `WorldCollisionBody` collision bodies, each followed by
-`Gp_LinkObj` and `worldCollisionInitContacts`, and the target for
+`worldCollisionLinkBody` and `worldCollisionInitContacts`, and the target for
 `func_actor_300700_80163510` reads as if each node's flag edit were one
 statement *later* than its own data: `work->obj1.flags |= 0x8000;` is emitted at
 the top of the obj2 block — after `worldCollisionInitContacts(work->rec1, 1, 0)` and
-before obj2's first field store — not just before `Gp_LinkObj(2, &work->obj2)`.
+before obj2's first field store — not just before `worldCollisionLinkBody(2, &work->obj2)`.
 Writing the edit at the end of its own node, adjacent to the next link call, is
 the natural thing to do and it loses 8 points. The two placements isolate
 cleanly on the same body:
@@ -82818,7 +82818,7 @@ obj->field_18 = 0x30000;
 obj->flags    = 1;
 extra         = arg0->extra;                 /* lw v0, 0x2c(s3) */
 obj->field_8  = extra->coords + 1;          /* lw v1, 8(v0) */
-Gp_LinkObj(2, obj);
+worldCollisionLinkBody(2, obj);
 ```
 
 with the loads written last (the natural place, since `field_8` is the last
@@ -82866,7 +82866,7 @@ obj->field_C  = &work->rec;
 obj->field_18 = 0x30000;
 ...
 obj->flags    = 1;
-Gp_LinkObj(2, obj);
+worldCollisionLinkBody(2, obj);
 ```
 
 `base_2.c` 95.707% → `base_3.c` 100.000% on the fifth build, all six penalties
@@ -85954,7 +85954,7 @@ The four `worldCollisionUnlinkBody` arguments came the same way. The installer w
 `0x1E($s0)` and then `worldCollisionInitContacts(field_C, 5, 0)` on `0x20($s0)`, under
 `addiu $s0, $s6, 0xB50` — a `WorldCollisionBody` node plus a five-entry `WorldCollisionContact` table
 (`WorldCollisionBody`, then `WorldCollisionContact rec[5]`, 0x98 total). The four nodes at 0xB50 / 0xBE8 /
-0xC80 / 0xD18 are exactly 0x98 apart, and `Gp_LinkObj` / `worldCollisionUnlinkBody` bracket
+0xC80 / 0xD18 are exactly 0x98 apart, and `worldCollisionLinkBody` / `worldCollisionUnlinkBody` bracket
 the lifetime. The same `WorldCollisionBody + WorldCollisionContact rec[5]` node is already
 `ActorsShared801433b8Node` in `include/actors/actors_shared_801433b8.h`; the
 0x98 stride is the giveaway.
@@ -93833,7 +93833,7 @@ as `= 0` (1) + the loop's `= 1` (2, `REG_N_REFS += loop_depth`) + four
 `= 1` sites in the `else if` chain (4) + the final test (1).
 
 Two obvious repairs do not work. **Passing the flag where a `0` is wanted adds
-nothing** - `Gp_FindRec18(work->recs, hidden)` left the count at 8, because cse
+nothing** - `worldCollisionFindContactIndex(work->recs, hidden)` left the count at 8, because cse
 folds a read of a known-zero variable back to `const_int 0` long before `flow`
 counts anything. And the `move a1,s1` in the target that looks like such a use
 is not one: it is `reload_cse` substituting a register that already holds 0.
@@ -97519,11 +97519,11 @@ here would place the scan's own word at 0xDEC and call it `field_0` of a record
 based at 0xDEC. The overlay's other callers say it is not:
 
 ```
-func_actor_403000_8013C864:  jal Gp_ClearRec18Occupied ; a0 = work + 0xDE8
+func_actor_403000_8013C864:  jal worldCollisionClearContacts ; a0 = work + 0xDE8
 func_actor_403000_801343B8:  sw  $v0, 0xDE4($s6)       ; v0 = work + 0xDE8
 ```
 
-`Gp_ClearRec18Occupied` takes a table *start* and walks to the last-element bit,
+`worldCollisionClearContacts` takes a table *start* and walks to the last-element bit,
 so 0xDE8 is the base — and 0xDEC is then 0xDE8 + 4, i.e. `WorldCollisionContact.key.value`, which
 is also the field the 0x100000 test belongs to: the record's declaration
 documents `key`'s high
@@ -97534,7 +97534,7 @@ Both spellings compile to the identical `lw 0xDEC($v0)` — GCC folds the `+4` i
 the displacement — so the match cannot choose between them and a 100% score is
 not evidence that the struct is right. When a body is shared across overlays,
 take the *shape* from the twin and the *field* from this overlay's own
-`worldCollisionInitContacts` / `Gp_ClearRec18Occupied` call site, which hands the table
+`worldCollisionInitContacts` / `worldCollisionClearContacts` call site, which hands the table
 base over as a bare `addiu` the compiler cannot fold away.
 
 `func_actor_403000_8013D48C` matched at 100% (26 insns, 2 builds; `base_1.i`
@@ -101600,7 +101600,7 @@ Inputs: `base_1.i`
 (100.000%), `base_3.i`
 `6717e4dc5dc85d74c9db2e0dcde214d265bee02bd70603ebd94324d9010dc611` (100.000%,
 callee return type varied).
-## A lone masked halfword in an actor work block is a `WorldCollisionBody::flags`; the node base comes from the overlay's own `Gp_LinkObj` site (func_actor_312200_80163778, 2026-09-16)
+## A lone masked halfword in an actor work block is a `WorldCollisionBody::flags`; the node base comes from the overlay's own `worldCollisionLinkBody` site (func_actor_312200_80163778, 2026-09-16)
 
 An actor show/hide opcode is a four-store body whose m2c seed retypes cleanly
 except for one line: a halfword read, masked and written back at an offset that
@@ -101621,7 +101621,7 @@ sh    $zero, 0x10($s0)     ; node->field_10 / 0x12 / 0x14
 sw    $a2, 0x18($s0)
 sh    $v0, 0x1C($s0)
 sh    $s1, 0x1E($s0)       ; node->flags
-jal   Gp_LinkObj
+jal   worldCollisionLinkBody
 lhu   $v0, 0x1E($s0) / ori 0x8000 / sh
 ```
 
@@ -104019,11 +104019,11 @@ Inputs: `base_1.i`
 
 ## A callee with no prototype is a `call_value`, and the `$v0` it defines re-homes the epilogue (Actor01600_Fn04C64, 2026-09-16)
 
-`Actor01600_Fn04C64` ends with `Gp_ClearRec18Occupied(work->pathProbe.contacts)` and the
+`Actor01600_Fn04C64` ends with `worldCollisionClearContacts(work->pathProbe.contacts)` and the
 target's tail reads:
 
 ```
-jal Gp_ClearRec18Occupied        addu a1,s0 / addu v0,s4,zero   (return value)
+jal worldCollisionClearContacts        addu a1,s0 / addu v0,s4,zero   (return value)
 lui a0,0x1f80                    addiu v1,v1,0x30
 ori a0,a0,0x3fc                  sw v1,0(a0)
 lw v1,0(a0)                      lw ra,0x24(sp)
@@ -109536,10 +109536,10 @@ into a named local before the release:
     __asm__ volatile("sw %0, 0x1F8003FC" ::"r"(tail) : "memory");
     coord->coord.m[2][2] = m22;
     work->bodyPosCursor      = 0;
-    Gp_ClearRec18Occupied(rec);      /* rec set above the asm */
+    worldCollisionClearContacts(rec);      /* rec set above the asm */
 ```
 
-Only the first of the two `Gp_ClearRec18Occupied` arguments is hoisted that way;
+Only the first of the two `worldCollisionClearContacts` arguments is hoisted that way;
 the second stays an expression and lands in the second call's delay slot, as the
 target shows.
 
@@ -115633,7 +115633,7 @@ Inputs: `base_3.i`
 
 **Symptom:** `func_actor_107000_80133690`'s block 6 (a straight run of ~50
 instructions after a spawn) came out with the right instructions and the wrong
-slots: the two `Gp_LinkObj` argument materializations and the chain that feeds
+slots: the two `worldCollisionLinkBody` argument materializations and the chain that feeds
 `field_284` all fired at their uses while the target fires them near the block
 head, and the chain's three instructions were tied into one register (`$v0`)
 where the target splits them (`$v0` load, `$v1` result). `regs=9 reorder=2`.
@@ -125688,8 +125688,8 @@ precede it, and the candidate ran the chain after all of them:
     lw    v1,8(v0)             li    a0,2
     ...stores...               lw    v0,8(v0)     <- same $v0 as the stores
     addiu v1,v1,0x50           move  a1,s0
-    jal   Gp_LinkObj           addiu v0,v0,0x50
-    sw    v1,8(s0)             jal   Gp_LinkObj
+    jal   worldCollisionLinkBody           addiu v0,v0,0x50
+    sw    v1,8(s0)             jal   worldCollisionLinkBody
                                sw    v0,8(s0)
 ```
 
@@ -130804,7 +130804,7 @@ Inputs: base_1.c (ternary, 93.786%) vs base_3.c (100%),
 ## When porting a sibling body, do not feed its `one` local to statements the sibling did not have
 
 `func_actor_105600_80135744` is `Actor02000_Fn0251C` of `actor_102000` with one
-extra `Gp_LinkObj` block. That sibling opens its switch with the familiar
+extra `worldCollisionLinkBody` block. That sibling opens its switch with the familiar
 `one = 1; kind = ctx->field_4B; if (kind == one) …` idiom, which puts 1 in a
 callee-saved register so the compare and the two `anim` / `behavior`
 stores share it. Porting the body and writing the *new* block's two `= 1`
@@ -135678,7 +135678,7 @@ sum. Both offsets remain; this is a valid value-preserving transformation.
 
 The paired scratch build improved distance 362 to 352. A controlled prediction
 moved that local's initialization from before actorRenderComposeCoord to immediately
-before Gp_ClearRec18Occupied, preserving the same assembly. In base_1.i.rtl,
+before worldCollisionClearContacts, preserving the same assembly. In base_1.i.rtl,
 UID584 adds objects and the local; UID586 adds offset to that temporary.
 In base_1.i.cse, UID584 becomes objects + CONST_INT 32 while UID586 retains its
 original operands. Thus the constant need not cross the earlier call: its

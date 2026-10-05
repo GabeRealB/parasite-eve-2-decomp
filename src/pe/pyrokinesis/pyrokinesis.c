@@ -191,7 +191,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
                                    (u16)(Gp_StateC08.attachId % 10) + 0x28000;
             work->damageBody.radius = mem->angle;
             work->damageBody.flags  = WORLD_COLLISION_BODY_SPHERE;
-            Gp_LinkObj(1, &work->damageBody);
+            worldCollisionLinkBody(WORLD_COLLISION_LIST_PLAYER_ATTACKS, &work->damageBody);
             work->contacts[0].flags         = WORLD_COLLISION_CONTACT_LAST;
             work->gridBody.coord            = coord;
             work->gridBody.context.contacts = work->contacts;
@@ -199,7 +199,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
             work->damageBody.flags         |= WORLD_COLLISION_BODY_PAIR_ENABLED;
             work->gridBody.radius           = (s16)((u16)mem->angle << 16 >> 19);
             work->gridBody.flags            = WORLD_COLLISION_BODY_SPHERE;
-            Gp_LinkObj(7, &work->gridBody);
+            worldCollisionLinkBody(WORLD_COLLISION_LIST_GRID_ONLY, &work->gridBody);
             work->gridBody.flags = (work->gridBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED)) | (WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_GRID_ENABLED);
             Gp_SpawnEff(EFFECT_PYROKINESIS_LAUNCH_CONE, coord, 0, NULL);
             rgb[0] = 0xFF;
@@ -226,12 +226,12 @@ void func_pyrokinesis_8012EF48(Task* arg0)
                 arg0->state = next;
                 return;
             }
-            if (Gp_FindRec18(work->gridBody.context.contacts, WORLD_COLLISION_CONTACT_GRID) != 0) {
+            if (worldCollisionFindContactIndex(work->gridBody.context.contacts, WORLD_COLLISION_CONTACT_GRID) != 0) {
                 worldCollisionUnlinkBody(&work->gridBody);
                 arg0->state = 2;
                 return;
             }
-            Gp_ClearRec18Occupied(work->contacts);
+            worldCollisionClearContacts(work->contacts);
             return;
         case 1:
             if ((Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) || ((peEffectControl = gRoomEffectState->peEffectControl), peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
@@ -296,7 +296,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
                 arg0->state = next;
                 return;
             }
-            if (Gp_FindRec18(work->gridBody.context.contacts, WORLD_COLLISION_CONTACT_GRID) != 0) {
+            if (worldCollisionFindContactIndex(work->gridBody.context.contacts, WORLD_COLLISION_CONTACT_GRID) != 0) {
                 worldCollisionUnlinkBody(&work->gridBody);
                 arg0->state = 2;
                 return;
@@ -309,7 +309,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
                 return;
             }
             if (tick < 0x1F) {
-                Gp_ClearRec18Occupied(work->contacts);
+                worldCollisionClearContacts(work->contacts);
                 return;
             }
             worldCollisionUnlinkBody(&work->damageBody);
@@ -358,7 +358,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
                 effectKillTask(mem, arg0);
                 return;
             }
-            Gp_ClearRec18Occupied(work->contacts);
+            worldCollisionClearContacts(work->contacts);
             return;
         case 3:
             if ((Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) || ((peEffectControl = gRoomEffectState->peEffectControl), peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {

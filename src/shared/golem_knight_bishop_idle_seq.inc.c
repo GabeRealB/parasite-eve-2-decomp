@@ -89,7 +89,7 @@ void golemKnightBishopIdleSeq(Task* arg0)
             }
             work->pathProbeBody.flags &= ~WORLD_COLLISION_BODY_GRID_ENABLED;
             work->spotProbeBody.flags &= ~WORLD_COLLISION_BODY_GRID_ENABLED;
-            Gp_ClearRec18Occupied(work->probeContacts);
+            worldCollisionClearContacts(work->probeContacts);
             break;
         case 4:
             if (work->probeContacts[0].key.value == 0) {
@@ -106,13 +106,13 @@ void golemKnightBishopIdleSeq(Task* arg0)
                 }
             }
             work->pathProbeBody.flags &= ~WORLD_COLLISION_BODY_GRID_ENABLED;
-            Gp_ClearRec18Occupied(work->probeContacts);
+            worldCollisionClearContacts(work->probeContacts);
             break;
         case 5:
             work->sequence   = GOLEM_KNIGHT_BISHOP_SEQUENCE_BOX_APPROACH;
             work->step       = 0;
             work->lastAttack = GOLEM_KNIGHT_BISHOP_SEQUENCE_BOX_APPROACH;
-            Gp_ClearRec18Occupied(work->aimBeamContacts);
+            worldCollisionClearContacts(work->aimBeamContacts);
             if (work->attackCount < GOLEM_KNIGHT_BISHOP_IDLE_LIMIT) {
                 work->attackCount++;
             }

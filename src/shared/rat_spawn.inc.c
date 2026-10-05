@@ -53,7 +53,7 @@ void ratSpawn(Enemy* ctx, Task* actor)
     work->sensorBody.key              = 0;
     work->sensorBody.radius           = 0x12C;
     work->sensorBody.flags            = (u32)WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(3, &work->sensorBody);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->sensorBody);
     worldCollisionInitContacts(work->sensorContacts, ARRAY_SIZE(work->sensorContacts), 0);
     work->sensorBody.flags         = (u16)(work->sensorBody.flags | WORLD_COLLISION_BODY_PAIR_ENABLED);
     work->hitBody.coord            = &actor->extra.tmd->coords[4];
@@ -64,7 +64,7 @@ void ratSpawn(Enemy* ctx, Task* actor)
     work->hitBody.key              = 0x30007;
     work->hitBody.radius           = 0x96;
     work->hitBody.flags            = (u32)WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(2, &work->hitBody);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->hitBody);
     worldCollisionInitContacts(work->hitContacts, ARRAY_SIZE(work->hitContacts), 0);
     work->gridBody.coord            = coord;
     work->gridBody.context.contacts = work->gridContacts;
@@ -75,7 +75,7 @@ void ratSpawn(Enemy* ctx, Task* actor)
     work->gridBody.key              = 0x30007;
     work->gridBody.radius           = 0xFA;
     work->gridBody.flags            = (u32)WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(2, &work->gridBody);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->gridBody);
     worldCollisionInitContacts(work->gridContacts, ARRAY_SIZE(work->gridContacts), 0);
     work->attackBody.coord            = coord;
     work->attackBody.context.contacts = work->attackContacts;
@@ -86,7 +86,7 @@ void ratSpawn(Enemy* ctx, Task* actor)
     work->attackBody.key              = Gp_PackPair(&gRatAttack, 0);
     work->attackBody.radius           = 0xC8;
     work->attackBody.flags            = (u32)WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(3, &work->attackBody);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->attackBody);
     worldCollisionInitContacts(work->attackContacts, ARRAY_SIZE(work->attackContacts), 0);
     work->attackBody.flags = (u16)(work->attackBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
     actor->state           = 1;

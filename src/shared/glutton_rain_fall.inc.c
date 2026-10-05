@@ -61,7 +61,7 @@ void gluttonRainFall(Enemy* enemy, Task* task)
     }
 
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_ClearRec18Occupied(work->attackContacts);
+    worldCollisionClearContacts(work->attackContacts);
     // Carry the attack body along with the blob.
     work->bodyCoord.node.coord.t[0]   = task->extra.tmd->coords->coord.t[0];
     work->bodyCoord.node.coord.t[1]   = task->extra.tmd->coords->coord.t[1];

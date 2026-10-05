@@ -5033,7 +5033,7 @@ static void func_acropolis_bridge_80185988(Enemy* enemy, Task* task)
     link->key              = 0x30029;
     link->radius           = 0x100;
     link->flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(2, link);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, link);
     link->flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     worldCollisionInitContacts(link->context.contacts, 3, 0);
     pos.vx                  = 0;
@@ -5045,7 +5045,7 @@ static void func_acropolis_bridge_80185988(Enemy* enemy, Task* task)
     bridge_set_obj_pos(link2, &pos);
     link2->radius = 0x100;
     link2->flags  = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(3, link2);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, link2);
     worldCollisionInitContacts(link2->context.contacts, 1, 0);
     work->attack.key  = Gp_PackObjPair(enemy, 0);
     coord->parent     = &gGfxViewCoord;
@@ -5990,15 +5990,15 @@ running:
 paused:
     state = (u16)work->state;
     if ((u32)(state - 6) >= 2U && state != 0) {
-        Gp_ClearRec18Occupied(&work->bodyContacts[0]);
-        Gp_ClearRec18Occupied(&work->attackContacts[0]);
+        worldCollisionClearContacts(&work->bodyContacts[0]);
+        worldCollisionClearContacts(&work->attackContacts[0]);
     }
     return;
 
 hidden:
     task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    Gp_ClearRec18Occupied(&work->bodyContacts[0]);
-    Gp_ClearRec18Occupied(&work->attackContacts[0]);
+    worldCollisionClearContacts(&work->bodyContacts[0]);
+    worldCollisionClearContacts(&work->attackContacts[0]);
     return;
 
 body:
@@ -6034,8 +6034,8 @@ hitTaken:
     }
     cur->prevState = cur->state;
     D_acropolis_bridge_8019175C[work->state](task);
-    Gp_ClearRec18Occupied(&work->bodyContacts[0]);
-    Gp_ClearRec18Occupied(&work->attackContacts[0]);
+    worldCollisionClearContacts(&work->bodyContacts[0]);
+    worldCollisionClearContacts(&work->attackContacts[0]);
     if (gSceneCombatState.battleRefs == 0) {
         if ((u32)((u16)work->state - 5) >= 2U) {
             work->state = 0;

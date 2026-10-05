@@ -384,7 +384,7 @@ static void func_actor_503500_80132F64(Task* arg0)
     work->body.pos.vx           = D_actor_503500_8016EC50.vx;
     work->body.pos.vy           = D_actor_503500_8016EC50.vy;
     work->body.pos.vz           = D_actor_503500_8016EC50.vz;
-    Gp_LinkObj(2, &work->body);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->body);
     worldCollisionInitContacts(recs, ARRAY_SIZE(work->contacts), 0);
     work->hitEffect.spawnArgLo = 0x600;
     work->hitEffect.coord      = part;
@@ -2352,7 +2352,7 @@ static void func_actor_503500_80136A88(Task* arg0)
 
     rec = work->contacts;
     func_actor_503500_80134EAC(arg0, &work->body, rec, ARRAY_SIZE(work->contacts));
-    Gp_ClearRec18Occupied(rec);
+    worldCollisionClearContacts(rec);
 }
 
 /// Copies the actor's attach-coordinate world position into a stack `VECTOR`
@@ -2701,7 +2701,7 @@ static void func_actor_503500_801372C8(Task* arg0)
     D_actor_503500_80176D88.body.pos.vx           = D_actor_503500_8016F068.vx;
     D_actor_503500_80176D88.body.pos.vy           = D_actor_503500_8016F068.vy;
     D_actor_503500_80176D88.body.pos.vz           = D_actor_503500_8016F068.vz;
-    Gp_LinkObj(2, &D_actor_503500_80176D88.body);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &D_actor_503500_80176D88.body);
     worldCollisionInitContacts(rec, ARRAY_SIZE(D_actor_503500_80176D88.contacts), 0);
     D_actor_503500_80176D88.hitEffect.spawnArgLo = 0x400;
     D_actor_503500_80176D88.hitEffect.coord      = coord;
@@ -3108,7 +3108,7 @@ static void func_actor_503500_801382FC(Task* arg0)
     if (func_actor_503500_80136208() == 0) {
         func_actor_503500_80137C90(arg0, &work->body, work->contacts, ARRAY_SIZE(work->contacts));
     }
-    Gp_ClearRec18Occupied(work->contacts);
+    worldCollisionClearContacts(work->contacts);
 }
 
 static void func_actor_503500_80138378(Task* arg0)
@@ -3265,7 +3265,7 @@ static void func_actor_503500_8013852C(Task* arg0)
     work->body.key              = 0x30023;
     work->body.radius           = 0x320;
     work->body.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(2, &work->body);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->body);
     worldCollisionInitContacts(rec, ARRAY_SIZE(work->contacts), 0);
     work->hitEffect.spawnArgLo = 0x600;
     work->hitEffect.coord      = part;
@@ -4121,7 +4121,7 @@ static void func_actor_503500_8013AA44(Task* arg0)
     if (func_actor_503500_80136208() == 0) {
         func_actor_503500_80139A20(arg0, &work->body, work->contacts, ARRAY_SIZE(work->contacts));
     }
-    Gp_ClearRec18Occupied(work->contacts);
+    worldCollisionClearContacts(work->contacts);
 }
 
 static void func_actor_503500_8013AAC0(Task* arg0)

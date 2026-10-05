@@ -73,7 +73,7 @@ void gluttonThrowFly(Enemy* enemy, Task* task)
         task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
 
         work->shadowGrowth += 0x60;
-        Gp_ClearRec18Occupied(work->attackContacts);
+        worldCollisionClearContacts(work->attackContacts);
 
         work->shadowCoord.parent = &gGfxViewCoord;
         gfxRotMatrixY(&work->shadowCoord.coord, 0, 1);

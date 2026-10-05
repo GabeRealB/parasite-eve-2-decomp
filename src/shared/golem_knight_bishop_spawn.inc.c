@@ -94,7 +94,7 @@ void golemKnightBishopSpawn(Enemy* arg0, Task* arg1)
             work->hurtBody.key              = 0x30000 | GOLEM_KNIGHT_BISHOP_ID;
             work->hurtBody.radius           = 0x15E;
             work->hurtBody.flags            = WORLD_COLLISION_BODY_SPHERE;
-            Gp_LinkObj(2, &work->hurtBody);
+            worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->hurtBody);
             worldCollisionInitContacts(records1, ARRAY_SIZE(work->hurtContacts), 0);
             work->hurtBody.flags             |= WORLD_COLLISION_BODY_PAIR_ENABLED;
             work->groundBody.coord            = arg1->extra.tmd->coords;
@@ -106,7 +106,7 @@ void golemKnightBishopSpawn(Enemy* arg0, Task* arg1)
             work->groundBody.key              = 0x30000 | GOLEM_KNIGHT_BISHOP_ID;
             work->groundBody.radius           = 0x1F4;
             work->groundBody.flags            = WORLD_COLLISION_BODY_SPHERE;
-            Gp_LinkObj(2, &work->groundBody);
+            worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->groundBody);
             worldCollisionInitContacts(records2, ARRAY_SIZE(work->groundContacts), 0);
             work->groundBody.flags           |= (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED);
             work->strikeBody.coord            = &arg1->extra.tmd->coords[8];
@@ -118,7 +118,7 @@ void golemKnightBishopSpawn(Enemy* arg0, Task* arg1)
             work->strikeBody.key              = Gp_PackPair(gGolemKnightBishopAttacks, 1);
             work->strikeBody.radius           = 0x12C;
             work->strikeBody.flags            = WORLD_COLLISION_BODY_SPHERE;
-            Gp_LinkObj(3, &work->strikeBody);
+            worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->strikeBody);
             worldCollisionInitContacts(records3, ARRAY_SIZE(work->strikeContacts), 0);
             work->strikeBody.flags             &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             work->pathProbeCapsule.ends[0].vx   = 0;
@@ -139,7 +139,7 @@ void golemKnightBishopSpawn(Enemy* arg0, Task* arg1)
             work->pathProbeBody.key             = 0;
             work->pathProbeBody.radius          = 0;
             work->pathProbeBody.flags           = WORLD_COLLISION_BODY_CAPSULE;
-            Gp_LinkObj(3, &work->pathProbeBody);
+            worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->pathProbeBody);
             worldCollisionInitContacts(records4, ARRAY_SIZE(work->probeContacts), 0);
             work->pathProbeBody.flags           &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
             work->spotProbeBody.coord            = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords;
@@ -150,7 +150,7 @@ void golemKnightBishopSpawn(Enemy* arg0, Task* arg1)
             work->spotProbeBody.key              = 0;
             work->spotProbeBody.radius           = 0x1F4;
             work->spotProbeBody.flags            = WORLD_COLLISION_BODY_SPHERE;
-            Gp_LinkObj(3, &work->spotProbeBody);
+            worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->spotProbeBody);
             work->aimBeamCapsule.ends[0].vx   = 0;
             work->aimBeamCapsule.ends[0].vy   = -0x514;
             work->aimBeamCapsule.ends[0].vz   = 0x2710;
@@ -170,7 +170,7 @@ void golemKnightBishopSpawn(Enemy* arg0, Task* arg1)
             work->aimBeamBody.radius          = 0;
             work->aimBeamBody.flags           = WORLD_COLLISION_BODY_CAPSULE;
             work->spotProbeBody.flags        &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
-            Gp_LinkObj(3, &work->aimBeamBody);
+            worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->aimBeamBody);
             worldCollisionInitContacts(records5, ARRAY_SIZE(work->aimBeamContacts), 0);
             work->aimBeamBody.flags = (work->aimBeamBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED))) | (WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_SINGLE_CONTACT);
             arg1->msgTable          = gGolemKnightBishopMessages;

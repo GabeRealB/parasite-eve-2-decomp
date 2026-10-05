@@ -1258,7 +1258,7 @@ static void func_actor_113100_80131E58(Task* task)
     obj->pos.vy           = 0;
     obj->pos.vz           = 0;
     obj->flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(2, obj);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, obj);
     obj->flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     worldCollisionInitContacts(obj->context.contacts, ARRAY_SIZE(work->contacts), 0);
 
@@ -1334,7 +1334,7 @@ static void func_actor_113100_80132104(Task* task)
             }
         }
         if (!(extra->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
-            Gp_ClearRec18Occupied(work->contacts);
+            worldCollisionClearContacts(work->contacts);
             mode = work->turnUp;
             switch (mode) {
                 case 0:

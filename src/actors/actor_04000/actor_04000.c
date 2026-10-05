@@ -1432,7 +1432,7 @@ static void Actor04000_Fn010B8(Enemy* arg0, Task* arg1)
     o1->key              = 0x3000C;
     o1->radius           = 0x190;
     o1->flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(2, o1);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, o1);
     o1->flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
     worldCollisionInitContacts(o1->context.contacts, 8, 0);
 
@@ -1450,7 +1450,7 @@ static void Actor04000_Fn010B8(Enemy* arg0, Task* arg1)
     o2->key              = 0x3000C;
     o2->radius           = 0x168;
     o2->flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(2, o2);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, o2);
     o2->flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     worldCollisionInitContacts(o2->context.contacts, 8, 0);
 
@@ -1465,7 +1465,7 @@ static void Actor04000_Fn010B8(Enemy* arg0, Task* arg1)
     o3->pos.vz           = p->vz;
     o3->radius           = 0x500;
     o3->flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(3, o3);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, o3);
     worldCollisionInitContacts(o3->context.contacts, 1, 0);
 
     o4                   = &work->burstWaveBody;
@@ -1476,7 +1476,7 @@ static void Actor04000_Fn010B8(Enemy* arg0, Task* arg1)
     o4->pos.vz           = p->vz;
     o4->radius           = 0x80;
     o4->flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(8, o4);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_BLASTS, o4);
     worldCollisionInitContacts(o4->context.contacts, 1, 0);
 
     arg0->field_4    = &coord->coord;
@@ -2854,15 +2854,15 @@ static void Actor04000_Fn05F0C(Enemy* arg0, Task* arg1)
                 arg1->extra.tmd->flags = 0;
                 effectDrawGroundShadow(MATRIX_TRANS(&arg1->extra.tmd->coords->workm), 0x180, gRoomEffectState->groundShadowShade);
             }
-            Gp_ClearRec18Occupied(work->gridContacts);
-            Gp_ClearRec18Occupied(work->hitContacts);
-            Gp_ClearRec18Occupied(work->burstAttackContacts);
+            worldCollisionClearContacts(work->gridContacts);
+            worldCollisionClearContacts(work->hitContacts);
+            worldCollisionClearContacts(work->burstAttackContacts);
             return;
         case SCENE_COMBAT_ACTORS_HIDDEN:
             arg1->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            Gp_ClearRec18Occupied(work->gridContacts);
-            Gp_ClearRec18Occupied(work->hitContacts);
-            Gp_ClearRec18Occupied(work->burstAttackContacts);
+            worldCollisionClearContacts(work->gridContacts);
+            worldCollisionClearContacts(work->hitContacts);
+            worldCollisionClearContacts(work->burstAttackContacts);
             return;
     }
     if (work->prevState != work->state) {
@@ -2886,9 +2886,9 @@ static void Actor04000_Fn05F0C(Enemy* arg0, Task* arg1)
             work->state = ACTOR_04000_STATE_DEATH_BURST;
         }
     }
-    Gp_ClearRec18Occupied(work->gridContacts);
-    Gp_ClearRec18Occupied(work->hitContacts);
-    Gp_ClearRec18Occupied(work->burstAttackContacts);
+    worldCollisionClearContacts(work->gridContacts);
+    worldCollisionClearContacts(work->hitContacts);
+    worldCollisionClearContacts(work->burstAttackContacts);
     id = Actor04000_Fn00FDC(work);
     if (id != 0) {
         snd = id | ((arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);

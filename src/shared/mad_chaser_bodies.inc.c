@@ -14,7 +14,7 @@ void madChaserLinkBodies(Task* arg0)
     work->pairBody.key              = 0x3002C;
     work->pairBody.radius           = 0x170;
     work->pairBody.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(2, &work->pairBody);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->pairBody);
     worldCollisionInitContacts(work->contacts, ARRAY_SIZE(work->contacts), 0);
     work->pairBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
 
@@ -26,7 +26,7 @@ void madChaserLinkBodies(Task* arg0)
     work->attackBody.key              = Gp_PackObjPair(arg0->spawnArg2.pointer, 0);
     work->attackBody.radius           = 0x170;
     work->attackBody.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(2, &work->attackBody);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->attackBody);
     worldCollisionInitContacts(work->attackContacts, ARRAY_SIZE(work->attackContacts), 0);
     work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
 
@@ -38,6 +38,6 @@ void madChaserLinkBodies(Task* arg0)
     work->gridBody.key              = 0x3002C;
     work->gridBody.radius           = 0x224;
     work->gridBody.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(2, &work->gridBody);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->gridBody);
     work->gridBody.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
 }

@@ -40,6 +40,6 @@ s32 stalkerZebraIvoryWallDistance(Task* arg0)
             break;
         }
     }
-    Gp_ClearRec18Occupied(work->capsuleContacts);
+    worldCollisionClearContacts(work->capsuleContacts);
     return dist;
 }

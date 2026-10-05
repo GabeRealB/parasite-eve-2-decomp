@@ -51,8 +51,8 @@ void gluttonChunkFall(Enemy* enemy, Task* task)
         work->aim.travel.vx = 0;
     }
 
-    Gp_ClearRec18Occupied(work->gridContacts);
-    Gp_ClearRec18Occupied(work->attackContacts);
+    worldCollisionClearContacts(work->gridContacts);
+    worldCollisionClearContacts(work->attackContacts);
 
     task->extra.tmd->coords->coord.t[0]  += work->aim.travel.vx / 9;
     task->extra.tmd->coords->coord.t[2]  += work->aim.travel.vz / 9;

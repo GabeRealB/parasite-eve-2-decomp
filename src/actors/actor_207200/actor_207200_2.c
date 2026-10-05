@@ -733,7 +733,7 @@ static void func_actor_207200_8014B278(Enemy* arg0, Task* arg1)
     work->senseBody.key              = 0;
     work->senseBody.radius           = 0x7D0;
     work->senseBody.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(3, &work->senseBody);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->senseBody);
     worldCollisionInitContacts(work->senseContacts, ARRAY_SIZE(work->senseContacts), 0);
 
     work->body.pos.vy           = -0x12C;
@@ -745,7 +745,7 @@ static void func_actor_207200_8014B278(Enemy* arg0, Task* arg1)
     work->body.radius           = 0x12C;
     work->body.flags            = WORLD_COLLISION_BODY_SPHERE;
     work->senseBody.flags      |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-    Gp_LinkObj(2, &work->body);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->body);
     worldCollisionInitContacts(work->bodyContacts, ARRAY_SIZE(work->bodyContacts), 0);
 
     work->headBody.coord            = part3;
@@ -757,7 +757,7 @@ static void func_actor_207200_8014B278(Enemy* arg0, Task* arg1)
     work->headBody.radius           = 0x96;
     work->headBody.flags            = WORLD_COLLISION_BODY_SPHERE;
     work->body.flags               |= (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
-    Gp_LinkObj(2, &work->headBody);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->headBody);
     worldCollisionInitContacts(work->headContacts, ARRAY_SIZE(work->headContacts), 0);
 
     work->frontAttackBody.coord            = part3;
@@ -769,7 +769,7 @@ static void func_actor_207200_8014B278(Enemy* arg0, Task* arg1)
     work->frontAttackBody.key              = Gp_PackPair(D_actor_207200_8014E7CC, 0);
     work->frontAttackBody.radius           = 0x12C;
     work->frontAttackBody.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(3, &work->frontAttackBody);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->frontAttackBody);
     worldCollisionInitContacts(work->frontAttackContacts, ARRAY_SIZE(work->frontAttackContacts), 0);
 
     work->sideAttackBody.coord            = part6;
@@ -781,7 +781,7 @@ static void func_actor_207200_8014B278(Enemy* arg0, Task* arg1)
     work->sideAttackBody.key              = Gp_PackPair(D_actor_207200_8014E7CC, 1);
     work->sideAttackBody.radius           = 0x12C;
     work->sideAttackBody.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(3, &work->sideAttackBody);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->sideAttackBody);
     worldCollisionInitContacts(work->sideAttackContacts, ARRAY_SIZE(work->sideAttackContacts), 0);
     work->sideAttackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
 
@@ -834,7 +834,7 @@ static void func_actor_207200_8014B628(Task* arg0)
             work->wakeDelay        = hi % 90;
             Gp_ArmStateF0(1);
         }
-        Gp_ClearRec18Occupied(work->senseContacts);
+        worldCollisionClearContacts(work->senseContacts);
     }
     switch (work->animId) {
         case ACTOR_207200_ANIM_IDLE:
@@ -1274,17 +1274,17 @@ static void func_actor_207200_8014BEF4(Task* arg0)
         work->frontAttackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->sideAttackBody.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     }
-    Gp_ClearRec18Occupied(work->bodyContacts);
-    Gp_ClearRec18Occupied(work->headContacts);
+    worldCollisionClearContacts(work->bodyContacts);
+    worldCollisionClearContacts(work->headContacts);
     if (work->activeStage != ACTOR_207200_ACTIVE_STAGE_DELAY) {
-        if (Gp_FindRec18(work->frontAttackContacts, 0) != 0) {
+        if (worldCollisionFindContactIndex(work->frontAttackContacts, WORLD_COLLISION_FIND_ANY_KEY) != 0) {
             work->frontAttackLanded      = 1;
             work->frontAttackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-            Gp_ClearRec18Occupied(work->frontAttackContacts);
+            worldCollisionClearContacts(work->frontAttackContacts);
         }
-        if (Gp_FindRec18(work->sideAttackContacts, 0) != 0) {
+        if (worldCollisionFindContactIndex(work->sideAttackContacts, WORLD_COLLISION_FIND_ANY_KEY) != 0) {
             work->sideAttackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-            Gp_ClearRec18Occupied(work->sideAttackContacts);
+            worldCollisionClearContacts(work->sideAttackContacts);
         }
     }
     SCRATCH_STACK_RELEASE_BLOCK(_Actor207200ContactScratch);

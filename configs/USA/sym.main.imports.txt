@@ -25,7 +25,7 @@ Gp_StepCdAudioCmd = 0x800AFA44; // type:func absolute:True
 Gp_ApplySndBankMasks = 0x800B0034; // type:func absolute:True
 Gp_RestoreStreamRng = 0x800B00C4; // type:func absolute:True
 func_800B0118 = 0x800B0118; // type:func absolute:True
-Gp_ClearRec18Occupied = 0x800E1A6C; // type:func absolute:True
+worldCollisionClearContacts = 0x800E1A6C; // type:func absolute:True
 func_801011D0 = 0x801011D0; // type:func absolute:True
 
 // TMD model stream handlers: main's _tmdResolveSourceDrawHandlers / tmdBuildBufferHalf

@@ -77,7 +77,7 @@ void golemPawnRookBulletSpawn(Enemy* arg0, Task* arg1)
     work->playerStrikeBody.key              = Gp_PackPair(gGolemPawnRookAttacks, 3);
     work->playerStrikeBody.radius           = 0x64;
     work->playerStrikeBody.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(3, &work->playerStrikeBody);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->playerStrikeBody);
     worldCollisionInitContacts(work->strikeContacts, ARRAY_SIZE(work->strikeContacts), 0);
     work->playerStrikeBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
 
@@ -89,7 +89,7 @@ void golemPawnRookBulletSpawn(Enemy* arg0, Task* arg1)
     work->enemyStrikeBody.key              = 0x22B2B;
     work->enemyStrikeBody.radius           = 0x64;
     work->enemyStrikeBody.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(1, &work->enemyStrikeBody);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_PLAYER_ATTACKS, &work->enemyStrikeBody);
     work->enemyStrikeBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
 
     work->wallCapsule.ends[0].vx   = 0;
@@ -109,7 +109,7 @@ void golemPawnRookBulletSpawn(Enemy* arg0, Task* arg1)
     work->wallBody.key             = 0;
     work->wallBody.radius          = 0;
     work->wallBody.flags           = WORLD_COLLISION_BODY_CAPSULE;
-    Gp_LinkObj(3, &work->wallBody);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->wallBody);
     worldCollisionInitContacts(work->wallContacts, ARRAY_SIZE(work->wallContacts), 0);
     work->wallBody.flags |= (WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_GRID_ENABLED);
 

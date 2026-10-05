@@ -59,7 +59,7 @@ void golemPawnRookTakeHits(Task* arg0)
             self->coord.t[2] = work->prevRootPos.vz;
             break;
     }
-    Gp_ClearRec18Occupied(work->groundContacts);
+    worldCollisionClearContacts(work->groundContacts);
 
     if (work->hurtBody.flags & WORLD_COLLISION_BODY_GRID_ENABLED) {
         switch (func_800E0C10(work->hurtContacts, &scratch->delta, ARRAY_SIZE(work->hurtContacts), NULL)) {
@@ -290,10 +290,10 @@ void golemPawnRookTakeHits(Task* arg0)
         self->coord.t[0] += (maxPush * scratch->pushDirection.vx) >> 12;
         self->coord.t[2] += (maxPush * scratch->pushDirection.vz) >> 12;
     }
-    Gp_ClearRec18Occupied(work->hurtContacts);
+    worldCollisionClearContacts(work->hurtContacts);
     if (work->strikeContacts[0].flags & 1) {
         work->strikeBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        Gp_ClearRec18Occupied(work->strikeContacts);
+        worldCollisionClearContacts(work->strikeContacts);
     }
     work->playerSpotted = 0;
     if (Gp_CountRec18Hi(work->sightContacts, 0x10000) != 0) {
@@ -308,6 +308,6 @@ void golemPawnRookTakeHits(Task* arg0)
             work->playerSpotted = 1;
         }
     }
-    Gp_ClearRec18Occupied(work->sightContacts);
+    worldCollisionClearContacts(work->sightContacts);
     SCRATCH_STACK_RELEASE_BLOCK(GolemPawnRookHitScratch);
 }

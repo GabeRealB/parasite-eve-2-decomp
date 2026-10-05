@@ -1629,7 +1629,7 @@ static void func_actor_400600_8013203C(Task* arg0)
         work->body.radius = 0x200;
     }
     work->body.flags = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(2, &work->body);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->body);
     worldCollisionInitContacts(work->bodyContacts, ARRAY_SIZE(work->bodyContacts), 0);
     work->capsule.ends[0].vz          = 0xBB8;
     work->capsule.end0Radius          = 0xA;
@@ -1647,7 +1647,7 @@ static void func_actor_400600_8013203C(Task* arg0)
     work->capsuleBody.key             = 0x30006;
     work->capsuleBody.radius          = 0;
     work->capsuleBody.flags           = WORLD_COLLISION_BODY_CAPSULE;
-    Gp_LinkObj(2, &work->capsuleBody);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->capsuleBody);
     worldCollisionInitContacts(work->capsuleContacts, ARRAY_SIZE(work->capsuleContacts), 0);
     work->capsuleBody.flags            &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
     work->rightArmBody.key              = Gp_PackPair(D_actor_400600_80144EA8, 0);
@@ -1658,7 +1658,7 @@ static void func_actor_400600_8013203C(Task* arg0)
     work->rightArmBody.pos.vz           = 0;
     work->rightArmBody.radius           = 0x190;
     work->rightArmBody.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(3, &work->rightArmBody);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->rightArmBody);
     worldCollisionInitContacts(work->rightArmContacts, ARRAY_SIZE(work->rightArmContacts), 0);
     work->rightArmBody.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     work->leftArmBody.key              = Gp_PackPair(D_actor_400600_80144EA8, 0);
@@ -1669,7 +1669,7 @@ static void func_actor_400600_8013203C(Task* arg0)
     work->leftArmBody.pos.vz           = 0;
     work->leftArmBody.radius           = 0x190;
     work->leftArmBody.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(3, &work->leftArmBody);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->leftArmBody);
     worldCollisionInitContacts(work->leftArmContacts, ARRAY_SIZE(work->leftArmContacts), 0);
     work->leftArmBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
 }
@@ -2292,8 +2292,8 @@ static void func_actor_400600_801337A8(Task* arg0)
                 w->subState                     = 0;
             }
         case SCENE_COMBAT_ACTORS_PAUSED:
-            Gp_ClearRec18Occupied(work->bodyContacts);
-            Gp_ClearRec18Occupied(work->capsuleContacts);
+            worldCollisionClearContacts(work->bodyContacts);
+            worldCollisionClearContacts(work->capsuleContacts);
             actorUpdateModelColor(arg0);
             func_actor_400600_80138224(arg0, work->shadowHeight, work->shadowShade);
             if (work->cloaked == 0) {
@@ -3501,7 +3501,7 @@ static void func_actor_400600_80136968(Task* arg0)
             break;
     }
 
-    Gp_ClearRec18Occupied(work->bodyContacts);
+    worldCollisionClearContacts(work->bodyContacts);
     if (work->hitCooldown > 0) {
         work->hitCooldown--;
     } else {
@@ -3743,7 +3743,7 @@ static void func_actor_400600_80137498(Task* arg0, s16 arg1)
     work->capsule.ends[1].vx = 0;
     work->capsule.ends[1].vy = 0x64;
     work->capsule.ends[1].vz = 0;
-    Gp_ClearRec18Occupied(work->capsuleContacts);
+    worldCollisionClearContacts(work->capsuleContacts);
     work->capsuleBody.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
 }
 
@@ -3980,8 +3980,8 @@ static void func_actor_400600_80137EF0(Task* arg0)
             func_actor_400600_80136558(arg0);
             stalkerZebraIvoryApplyRotationInline(arg0);
         case SCENE_COMBAT_ACTORS_PAUSED:
-            Gp_ClearRec18Occupied(work->bodyContacts);
-            Gp_ClearRec18Occupied(work->capsuleContacts);
+            worldCollisionClearContacts(work->bodyContacts);
+            worldCollisionClearContacts(work->capsuleContacts);
             actorUpdateModelColor(arg0);
             func_actor_400600_80138224(arg0, 0, work->shadowShade);
             break;
@@ -4235,8 +4235,8 @@ static void func_actor_400600_80138C34(Task* arg0)
             func_actor_400600_80136558(arg0);
             stalkerZebraIvoryApplyRotation(arg0);
         case SCENE_COMBAT_ACTORS_PAUSED:
-            Gp_ClearRec18Occupied(work->bodyContacts);
-            Gp_ClearRec18Occupied(work->capsuleContacts);
+            worldCollisionClearContacts(work->bodyContacts);
+            worldCollisionClearContacts(work->capsuleContacts);
             stalkerZebraIvoryUpdateColor(arg0);
             func_actor_400600_80132704(arg0, work->shadowWallZ, work->shadowShade);
             break;
@@ -4261,8 +4261,8 @@ static void func_actor_400600_80138D78(Task* arg0)
             func_actor_400600_80136558(arg0);
             stalkerZebraIvoryApplyRotation(arg0);
         case SCENE_COMBAT_ACTORS_PAUSED:
-            Gp_ClearRec18Occupied(work->bodyContacts);
-            Gp_ClearRec18Occupied(work->capsuleContacts);
+            worldCollisionClearContacts(work->bodyContacts);
+            worldCollisionClearContacts(work->capsuleContacts);
             stalkerZebraIvoryUpdateColor(arg0);
             func_actor_400600_80138224(arg0, 0, work->shadowShade);
             break;
@@ -4287,8 +4287,8 @@ static void func_actor_400600_80138EA0(Task* arg0)
             func_actor_400600_80136558(arg0);
             stalkerZebraIvoryApplyRotation(arg0);
         case SCENE_COMBAT_ACTORS_PAUSED:
-            Gp_ClearRec18Occupied(work->bodyContacts);
-            Gp_ClearRec18Occupied(work->capsuleContacts);
+            worldCollisionClearContacts(work->bodyContacts);
+            worldCollisionClearContacts(work->capsuleContacts);
             stalkerZebraIvoryUpdateColor(arg0);
             func_actor_400600_80138224(arg0, 0, work->shadowShade);
             break;
@@ -4313,8 +4313,8 @@ static void func_actor_400600_80138FD4(Task* arg0)
             func_actor_400600_80136558(arg0);
             stalkerZebraIvoryApplyRotation(arg0);
         case SCENE_COMBAT_ACTORS_PAUSED:
-            Gp_ClearRec18Occupied(work->bodyContacts);
-            Gp_ClearRec18Occupied(work->capsuleContacts);
+            worldCollisionClearContacts(work->bodyContacts);
+            worldCollisionClearContacts(work->capsuleContacts);
             stalkerZebraIvoryUpdateColor(arg0);
             func_actor_400600_80138224(arg0, 0, work->shadowShade);
             break;

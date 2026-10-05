@@ -80,7 +80,7 @@ void golemKnightBishopBoxScanSeq(Task* arg0)
             work->step                 = 0;
             work->pathProbeBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
             work->spotProbeBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
-            Gp_ClearRec18Occupied(work->probeContacts);
+            worldCollisionClearContacts(work->probeContacts);
             break;
     }
     SCRATCH_STACK_RELEASE_BYTES(sizeof(_GolemKnightBishopRegionScanScratch));

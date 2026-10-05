@@ -1190,7 +1190,7 @@ static void func_actor_800100_80163214(Task* arg0)
         obj->radius = 0x12C;
         obj->flags  = WORLD_COLLISION_BODY_MOTION_SPHERE;
         obj->key    = temp | packed | 0x80;
-        Gp_LinkObj(0, obj);
+        worldCollisionLinkBody(WORLD_COLLISION_LIST_PLAYER_BODIES, obj);
     }
     worldCollisionInitContacts(actor->collisionMotionContexts[0].contacts, ARRAY_SIZE(actor->collisionContacts), 0);
     obj->flags                                |= (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
@@ -1210,7 +1210,7 @@ static void func_actor_800100_80163214(Task* arg0)
         obj->radius = 0xDC;
         obj->flags  = f;
         obj->key    = temp | packed | 0x80;
-        Gp_LinkObj(0, obj);
+        worldCollisionLinkBody(WORLD_COLLISION_LIST_PLAYER_BODIES, obj);
     }
     obj->flags                                |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     obj                                        = &actor->collisionBodies[GAME_ACTOR_BODY_PART1];
@@ -1228,7 +1228,7 @@ static void func_actor_800100_80163214(Task* arg0)
         obj->radius = 0xDC;
         obj->flags  = WORLD_COLLISION_BODY_MOTION_SPHERE;
         obj->key    = temp | packed | 0x80;
-        Gp_LinkObj(0, obj);
+        worldCollisionLinkBody(WORLD_COLLISION_LIST_PLAYER_BODIES, obj);
     }
     obj->flags                   |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
     actor->collisionEnableMask    = GAME_ACTOR_COLLISION_REQUEST_MASK;
@@ -1335,10 +1335,10 @@ static void func_actor_800100_801635F4(Task* arg0)
     }
     func_actor_800100_80163A58(arg0);
 
-    Gp_ClearRec18Occupied(actor->collisionContacts);
-    Gp_ClearRec18Occupied(actor->companionWork->probe.contacts);
+    worldCollisionClearContacts(actor->collisionContacts);
+    worldCollisionClearContacts(actor->companionWork->probe.contacts);
     if (actor->equipmentTasks[1] != NULL) {
-        Gp_ClearRec18Occupied(actor->weaponContacts);
+        worldCollisionClearContacts(actor->weaponContacts);
     }
     if (actor->collisionEnableMask & 1) {
         coord->coord.t[1] += 8;
@@ -3025,7 +3025,7 @@ static void func_actor_800100_80166514(Task* arg0)
     scratch = SCRATCH_HEAD_ADDR;
     blk     = SCRATCH_PUSH_AT(scratch, _Actor800100AimBeamScratch);
 
-    Gp_FindRec18(obj->context.capsule->contacts, 0);
+    worldCollisionFindContactIndex(obj->context.capsule->contacts, WORLD_COLLISION_FIND_ANY_KEY);
     gfxRotMatrixX(&sp10.workm, 0x400, GRAPHICS_ROTATION_COMPOSE);
     blk->offset.vx = 0;
     blk->offset.vy = 0x120;
@@ -3039,7 +3039,7 @@ static void func_actor_800100_80166514(Task* arg0)
     blk->offset.vy = blk->contactDistance + 0x38;
     Gp_PlaceCoordOffset(&blk->coord, &blk->coord, &blk->offset);
     func_actor_800100_801668C0(&blk->coord);
-    Gp_ClearRec18Occupied(actor->aimContacts);
+    worldCollisionClearContacts(actor->aimContacts);
     SCRATCH_POP_AT(scratch, _Actor800100AimBeamScratch);
 }
 
@@ -3344,7 +3344,7 @@ static void func_actor_800100_80166F50(Task* arg0)
         rec->end1Radius      = 1;
         rec->end0Radius      = 1;
         rec->contacts        = actor->aimContacts;
-        Gp_LinkObj(1, obj);
+        worldCollisionLinkBody(WORLD_COLLISION_LIST_PLAYER_ATTACKS, obj);
         worldCollisionInitContacts(rec->contacts, 1, 0);
         obj->flags |= WORLD_COLLISION_BODY_SINGLE_CONTACT;
     }

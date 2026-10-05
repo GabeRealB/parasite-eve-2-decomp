@@ -114,6 +114,6 @@ void skullStalkerHits(Task* arg0)
         }
         i++;
     } while (i < ARRAY_SIZE(work->bodyContacts));
-    Gp_ClearRec18Occupied(work->bodyContacts);
+    worldCollisionClearContacts(work->bodyContacts);
     SCRATCH_STACK_CURSOR(ActorContactDeltaScratch) = SCRATCH_STACK_CURSOR(ActorContactDeltaScratch) + 1;
 }

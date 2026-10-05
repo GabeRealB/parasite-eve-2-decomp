@@ -962,7 +962,7 @@ static void func_actor_105100_801327B4(Enemy* arg0, Task* arg1)
     work->hitBody.key              = 0x30033;
     work->hitBody.radius           = 0x320;
     work->hitBody.flags            = (u32)WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(2, &work->hitBody);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->hitBody);
     worldCollisionInitContacts(records1, 3, 0);
     work->hitBody.flags              = (u16)(work->hitBody.flags | WORLD_COLLISION_BODY_PAIR_ENABLED);
     work->touchBody.coord            = arg1->extra.tmd->coords;
@@ -974,7 +974,7 @@ static void func_actor_105100_801327B4(Enemy* arg0, Task* arg1)
     work->touchBody.key              = 0;
     work->touchBody.radius           = 0x4B0;
     work->touchBody.flags            = (u32)WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(2, &work->touchBody);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->touchBody);
     worldCollisionInitContacts(records2, 1, 0);
     work->touchBody.flags             = (u16)(work->touchBody.flags | WORLD_COLLISION_BODY_PAIR_ENABLED);
     work->strikeBody.coord            = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
@@ -986,7 +986,7 @@ static void func_actor_105100_801327B4(Enemy* arg0, Task* arg1)
     work->strikeBody.key              = Gp_PackPair(D_actor_105100_80141380, 5);
     work->strikeBody.radius           = 0x1F4;
     work->strikeBody.flags            = (u32)WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(3, &work->strikeBody);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->strikeBody);
     worldCollisionInitContacts(records3, 1, 0);
     work->strikeBody.flags = work->strikeBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     arg1->state            = 1;
@@ -1186,7 +1186,7 @@ static void func_actor_105100_80132C2C(Task* arg0)
             }
         }
     }
-    Gp_ClearRec18Occupied(work->hitContacts);
+    worldCollisionClearContacts(work->hitContacts);
     work->staggerTimer--;
     if (work->staggerTimer <= 0) {
         work->staggerDamage = 0;
@@ -1196,7 +1196,7 @@ static void func_actor_105100_80132C2C(Task* arg0)
             work->knockbackActive = 1;
             Gp_StateC08.flags    |= ATTACHMENT_FLAG_EVENT_LOCK;
         }
-        Gp_ClearRec18Occupied(work->touchContacts);
+        worldCollisionClearContacts(work->touchContacts);
     }
     SCRATCH_STACK_RELEASE_BLOCK(_Actor105100HitScratch);
 }
@@ -1985,7 +1985,7 @@ static void func_actor_105100_801347D4(Enemy* arg0, Task* arg1)
     work->body.key              = Gp_PackPair(D_actor_105100_80141380, 0);
     work->body.radius           = 0xC8;
     work->body.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(3, &work->body);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->body);
     work->sweepCapsule.ends[0].vx   = 0;
     work->sweepCapsule.ends[0].vy   = 0;
     work->sweepCapsule.ends[0].vz   = 0;
@@ -2007,7 +2007,7 @@ static void func_actor_105100_801347D4(Enemy* arg0, Task* arg1)
     work->sweepBody.radius          = 0;
     work->sweepBody.flags           = WORLD_COLLISION_BODY_CAPSULE;
     work->sweepBody.coord           = temp;
-    Gp_LinkObj(3, &work->sweepBody);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->sweepBody);
     work->sweepBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
     worldCollisionInitContacts(work->contacts, ARRAY_SIZE(work->contacts), 0);
     work->glowSize  = 0x190;
@@ -2189,7 +2189,7 @@ body:
             if (work->contacts[0].key.value != 0 || work->timer >= 0x1A) {
                 // Become the burst: stop sweeping the room and carry the burst's attack.
                 work->sweepBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
-                Gp_ClearRec18Occupied(work->contacts);
+                worldCollisionClearContacts(work->contacts);
                 work->body.key    = Gp_PackPair(D_actor_105100_80141380, 1);
                 work->body.radius = 0x1F4;
                 work->timer       = 0x1E;
@@ -2256,7 +2256,7 @@ static void func_actor_105100_80135278(Enemy* arg0, Task* arg1)
     beam->body.key              = Gp_PackPair(D_actor_105100_80141380, beam->pattern + 2);
     beam->body.radius           = 0xC8;
     beam->body.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(3, &beam->body);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &beam->body);
     worldCollisionInitContacts(beam->contacts, ARRAY_SIZE(beam->contacts), 0);
     beam->body.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     arg1->state       = 1;

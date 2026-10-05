@@ -1033,14 +1033,14 @@ static void func_actor_510900_80135744(Task* arg0)
                 break;
         }
     }
-    Gp_ClearRec18Occupied(work->bodyContacts);
+    worldCollisionClearContacts(work->bodyContacts);
     if (work->attackContacts[0].flags & 1) {
         if ((work->attackContacts[0].key.value & 0xFFFF0000) == 0x10000) {
             work->attackLanded         = 1;
             work->weaponAttack.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             work->forearmAttack.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         }
-        Gp_ClearRec18Occupied(work->attackContacts);
+        worldCollisionClearContacts(work->attackContacts);
     }
     SCRATCH_STACK_RELEASE_BYTES(0x10);
 }
@@ -2832,7 +2832,7 @@ static void func_actor_510900_801397F0(Enemy* arg0, Task* arg1)
     work->attack.key              = 0;
     work->attack.radius           = 0xC8;
     work->attack.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(3, &work->attack);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->attack);
     worldCollisionInitContacts(work->attackContacts, ARRAY_SIZE(work->attackContacts), 0);
 
     work->gridProbeCapsule.ends[0].vx = 0;
@@ -2853,7 +2853,7 @@ static void func_actor_510900_801397F0(Enemy* arg0, Task* arg1)
     work->gridProbe.radius            = 0;
     work->gridProbe.flags             = WORLD_COLLISION_BODY_CAPSULE;
     work->attack.flags               |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-    Gp_LinkObj(3, &work->gridProbe);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->gridProbe);
     worldCollisionInitContacts(work->gridProbeContacts, ARRAY_SIZE(work->gridProbeContacts), 0);
     work->gridProbe.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
 
@@ -2954,7 +2954,7 @@ static void func_actor_510900_80139C10(Enemy* enemy, Task* task)
             work->phase = ACTOR_510900_GRENADE_BURST_SPREADING;
         }
         work->attack.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        Gp_ClearRec18Occupied(work->attackContacts);
+        worldCollisionClearContacts(work->attackContacts);
         worldCollisionUnlinkBody(&work->gridProbe);
         work->frames           = 0;
         task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -2962,7 +2962,7 @@ static void func_actor_510900_80139C10(Enemy* enemy, Task* task)
         sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
         task->state = 2;
     }
-    Gp_ClearRec18Occupied(work->attackContacts);
+    worldCollisionClearContacts(work->attackContacts);
     if (parent->present == 0) {
         work->attack.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         worldCollisionUnlinkBody(&work->gridProbe);
@@ -3028,7 +3028,7 @@ static void func_actor_510900_8013A100(Enemy* enemy, Task* task)
                         work->phase            = ACTOR_510900_GRENADE_BURST_ENDING;
                     }
                 }
-                Gp_ClearRec18Occupied(work->attackContacts);
+                worldCollisionClearContacts(work->attackContacts);
                 return;
             case ACTOR_510900_GRENADE_BURST_HOLDING:
                 func_actor_510900_8013A310(task);
@@ -3182,7 +3182,7 @@ static void func_actor_510900_8013A5B8(Enemy* enemy, Task* task)
     work->body.key              = 0;
     work->body.radius           = 0xC8;
     work->body.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(2, &work->body);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->body);
     worldCollisionInitContacts(work->bodyContacts, ARRAY_SIZE(work->bodyContacts), 0);
     work->blast.key              = 0x50002;
     work->blast.coord            = coord;
@@ -3193,7 +3193,7 @@ static void func_actor_510900_8013A5B8(Enemy* enemy, Task* task)
     work->blast.radius           = 0x15E;
     work->blast.flags            = WORLD_COLLISION_BODY_SPHERE;
     work->body.flags            &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-    Gp_LinkObj(8, &work->blast);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_BLASTS, &work->blast);
     worldCollisionInitContacts(work->blastContacts, ARRAY_SIZE(work->blastContacts), 0);
     work->blast.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     task->exitCallback = func_actor_510900_8013C380;
@@ -3365,13 +3365,13 @@ case0:
         pan                = (s8)worldCoordGetOriginAudioPan(coord);
         sndEvtRequestScriptStart(snd, pan, (s8)worldCoordGetOriginAudioDepth(coord));
     }
-    Gp_ClearRec18Occupied(work->bodyContacts);
+    worldCollisionClearContacts(work->bodyContacts);
     goto end;
 case1:
-    if (Gp_FindRec18(work->blastContacts, 0) != 0) {
+    if (worldCollisionFindContactIndex(work->blastContacts, WORLD_COLLISION_FIND_ANY_KEY) != 0) {
         work->blast.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     }
-    Gp_ClearRec18Occupied(work->blastContacts);
+    worldCollisionClearContacts(work->blastContacts);
     func_acropolis_helicopter_landing_pad_80180A64(&task->extra.tmd->coords[9]);
     func_acropolis_helicopter_landing_pad_80180A64(&task->extra.tmd->coords[8]);
     func_acropolis_helicopter_landing_pad_80180A64(&task->extra.tmd->coords[7]);
@@ -3460,7 +3460,7 @@ static void func_actor_510900_8013AD90(Enemy* enemy, Task* task)
     work->body.key                = 0;
     work->body.radius             = 0x12C;
     work->body.flags              = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(2, &work->body);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->body);
     worldCollisionInitContacts(work->bodyContacts, ARRAY_SIZE(work->bodyContacts), 0);
     work->blast.pos.vy           = -0x200;
     work->blast.coord            = coord;
@@ -3471,7 +3471,7 @@ static void func_actor_510900_8013AD90(Enemy* enemy, Task* task)
     work->blast.radius           = 0x200;
     work->blast.flags            = WORLD_COLLISION_BODY_SPHERE;
     work->body.flags            &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-    Gp_LinkObj(8, &work->blast);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_BLASTS, &work->blast);
     worldCollisionInitContacts(work->blastContacts, ARRAY_SIZE(work->blastContacts), 0);
     work->blast.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     task->exitCallback = func_actor_510900_8013C430;
@@ -3607,7 +3607,7 @@ static void func_actor_510900_8013B0D8(Task* arg0)
                     sndEvtRequestScriptStart(snd, pan, (s8)worldCoordGetOriginAudioDepth(coord));
                 }
             }
-            Gp_ClearRec18Occupied(work->bodyContacts);
+            worldCollisionClearContacts(work->bodyContacts);
             break;
         case ACTOR_510900_BLAST_SOURCE_SHOT:
             held        = work->flareTask;
@@ -3615,16 +3615,16 @@ static void func_actor_510900_8013B0D8(Task* arg0)
             if (held != NULL) {
                 held->state = work->flareTaskState;
             }
-            if (Gp_FindRec18(work->blastContacts, 0) != 0) {
+            if (worldCollisionFindContactIndex(work->blastContacts, WORLD_COLLISION_FIND_ANY_KEY) != 0) {
                 work->blast.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             }
-            Gp_ClearRec18Occupied(work->blastContacts);
+            worldCollisionClearContacts(work->blastContacts);
             break;
         case ACTOR_510900_BLAST_SOURCE_FLARING:
-            if (Gp_FindRec18(work->blastContacts, 0) != 0) {
+            if (worldCollisionFindContactIndex(work->blastContacts, WORLD_COLLISION_FIND_ANY_KEY) != 0) {
                 work->blast.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             }
-            Gp_ClearRec18Occupied(work->blastContacts);
+            worldCollisionClearContacts(work->blastContacts);
             left              = work->flareFrames - 1;
             work->flareFrames = left;
             if ((s16)left <= 0) {

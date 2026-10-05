@@ -1743,7 +1743,7 @@ void func_actor_403600_80134398(Task* arg0)
             newShape->end0Radius              = 0xC8;
             newShape->end1Radius              = 0xC8;
             worldCollisionInitContacts(recs, ARRAY_SIZE(newWork->attackContacts), 0);
-            Gp_LinkObj(3, obj);
+            worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, obj);
             obj->flags         = obj->flags | (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
             arg0->exitCallback = func_actor_403600_80138C68;
         }
@@ -1886,14 +1886,14 @@ block_22:
         }
     } else {
     block_54:
-        if ((arg0->spawnArg1.value < 0x1000) && (Gp_FindRec18(work->attackContacts, 0) != 0)) {
+        if ((arg0->spawnArg1.value < 0x1000) && (worldCollisionFindContactIndex(work->attackContacts, WORLD_COLLISION_FIND_ANY_KEY) != 0)) {
             temp_s0_5 = (s8)worldCoordGetOriginAudioPan(coord);
             sndEvtRequestScriptStart(SOUND_SHELTER_B2_POD_BTM_PROJECTILE_HIT, temp_s0_5, (s8)worldCoordGetOriginAudioDepth(coord));
             work->life = -1;
         }
         if (work->life < 0) {
             if (arg0->spawnArg1.value < 0x1000) {
-                Gp_ClearRec18Occupied(work->attackContacts);
+                worldCollisionClearContacts(work->attackContacts);
                 work->attackBody.flags = work->attackBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
             }
             work->life          = 0x7FFFFFFF;

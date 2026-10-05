@@ -450,7 +450,7 @@ static void func_actor_205200_8014BAE8(Enemy* enemy, Task* task)
     work->hitBody.key              = 0x3003C;
     work->hitBody.radius           = 300;
     work->hitBody.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(2, &work->hitBody);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->hitBody);
     worldCollisionInitContacts(work->hitContacts, ARRAY_SIZE(work->hitContacts), 0);
     work->hitBody.flags             |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     work->touchBody.coord            = coords;
@@ -461,7 +461,7 @@ static void func_actor_205200_8014BAE8(Enemy* enemy, Task* task)
     work->touchBody.key              = 0;
     work->touchBody.radius           = D_actor_205200_801567B0[work->room];
     work->touchBody.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(2, &work->touchBody);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->touchBody);
     worldCollisionInitContacts(work->touchContacts, ARRAY_SIZE(work->touchContacts), 0);
     work->touchBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     task->msgTable         = D_actor_205200_801567D0;
@@ -514,13 +514,13 @@ static void func_actor_205200_8014BD4C(Task* arg0)
         }
     }
 end:
-    Gp_ClearRec18Occupied(work->hitContacts);
+    worldCollisionClearContacts(work->hitContacts);
     if (work->touchContacts[0].flags & WORLD_COLLISION_CONTACT_OCCUPIED) {
         if ((work->touchContacts[0].key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == 0x10000 && gPlayerStatus.hp > 0) {
             work->knockbackActive = 1;
             Gp_StateC08.flags    |= ATTACHMENT_FLAG_EVENT_LOCK;
         }
-        Gp_ClearRec18Occupied(work->touchContacts);
+        worldCollisionClearContacts(work->touchContacts);
     }
     SCRATCH_STACK_RELEASE_BYTES(0x10);
 }

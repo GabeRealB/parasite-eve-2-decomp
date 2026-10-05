@@ -2267,7 +2267,7 @@ static void func_actor_401300_80134454(Enemy* enemy, Task* actor)
     work->gridBody.key              = 0x3000D;
     work->gridBody.radius           = 0x15E;
     work->gridBody.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(2, &work->gridBody);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->gridBody);
     work->hitCooldown     = 0;
     work->gridBody.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
     worldCollisionInitContacts(work->gridBody.context.contacts, ARRAY_SIZE(work->gridContacts), 0);
@@ -2281,7 +2281,7 @@ static void func_actor_401300_80134454(Enemy* enemy, Task* actor)
     body->pos.vz           = 0;
     body->radius           = 0x280;
     body->flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(2, body);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, body);
     body->flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     worldCollisionInitContacts(body->context.contacts, ARRAY_SIZE(work->hitContacts), 0);
 
@@ -2297,7 +2297,7 @@ static void func_actor_401300_80134454(Enemy* enemy, Task* actor)
     head->pos.vz           = v->vz;
     head->radius           = 0x200;
     head->flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(3, head);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, head);
     worldCollisionInitContacts(head->context.contacts, ARRAY_SIZE(work->attackContacts), 0);
 
     work->patrolTarget      = 0;
@@ -5512,15 +5512,15 @@ static void func_actor_401300_801405DC(Enemy* enemy, Task* actor)
             if ((state == ACTOR_401300_STATE_DEATH_BURST_WALK) && (work->animId == 2)) {
                 effectDrawGroundShadow(MATRIX_TRANS(&actor->extra.tmd->coords->workm), 0x280, gRoomEffectState->groundShadowShade);
             }
-            Gp_ClearRec18Occupied(work->gridContacts);
-            Gp_ClearRec18Occupied(work->hitContacts);
-            Gp_ClearRec18Occupied(work->attackContacts);
+            worldCollisionClearContacts(work->gridContacts);
+            worldCollisionClearContacts(work->hitContacts);
+            worldCollisionClearContacts(work->attackContacts);
             return;
         case SCENE_COMBAT_ACTORS_HIDDEN:
             actor->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            Gp_ClearRec18Occupied(work->gridContacts);
-            Gp_ClearRec18Occupied(work->hitContacts);
-            Gp_ClearRec18Occupied(work->attackContacts);
+            worldCollisionClearContacts(work->gridContacts);
+            worldCollisionClearContacts(work->hitContacts);
+            worldCollisionClearContacts(work->attackContacts);
             return;
     }
 
@@ -5573,9 +5573,9 @@ static void func_actor_401300_801405DC(Enemy* enemy, Task* actor)
     if ((Actor401300_HasRec10000(work->attackContacts) == 1) || (enemy->hp <= 0)) {
         work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     }
-    Gp_ClearRec18Occupied(work->gridContacts);
-    Gp_ClearRec18Occupied(work->hitContacts);
-    Gp_ClearRec18Occupied(work->attackContacts);
+    worldCollisionClearContacts(work->gridContacts);
+    worldCollisionClearContacts(work->hitContacts);
+    worldCollisionClearContacts(work->attackContacts);
 
     if (work->playerHeld == 1) {
         state = work->state;

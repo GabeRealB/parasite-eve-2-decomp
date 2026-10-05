@@ -75,7 +75,7 @@ void golemPawnRookAimLaserSight(Task* arg0)
     scratch->muzzle.vz = scratch->offset.vz + self->workm.t[2];
     scratch->aim.vx    = work->laserCapsule.ends[0].vx;
     scratch->aim.vy    = work->laserCapsule.ends[0].vy;
-    if (Gp_FindRec18(work->laserContacts, 0) != 0) {
+    if (worldCollisionFindContactIndex(work->laserContacts, WORLD_COLLISION_FIND_ANY_KEY) != 0) {
         scratch->offset.vx = work->laserContacts[0].point.vx - scratch->muzzle.vx;
         scratch->offset.vy = work->laserContacts[0].point.vy - scratch->muzzle.vy;
         scratch->offset.vz = work->laserContacts[0].point.vz - scratch->muzzle.vz;
@@ -87,7 +87,7 @@ void golemPawnRookAimLaserSight(Task* arg0)
     } else {
         scratch->aim.vz = 10000;
     }
-    Gp_ClearRec18Occupied(work->laserContacts);
+    worldCollisionClearContacts(work->laserContacts);
     gte_SetRotMatrix(&scratch->matrix);
     gte_ldv0(&scratch->aim);
     gte_rtv0();

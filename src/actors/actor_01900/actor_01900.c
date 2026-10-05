@@ -1260,7 +1260,7 @@ static void Actor01900_Fn02018(Enemy* enemy, Task* actor)
     work->gridBody.key              = 0x30013;
     work->gridBody.radius           = 0x180;
     work->gridBody.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(2, &work->gridBody);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->gridBody);
     work->hitCooldown    = 0;
     work->gridBody.flags = (work->gridBody.flags | WORLD_COLLISION_BODY_GRID_ENABLED) & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     worldCollisionInitContacts(work->gridBody.context.contacts, ARRAY_SIZE(work->gridContacts), 0);
@@ -1274,7 +1274,7 @@ static void Actor01900_Fn02018(Enemy* enemy, Task* actor)
     body->key              = 0x30000;
     body->radius           = 0x180;
     body->flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(2, body);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, body);
     body->flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     worldCollisionInitContacts(body->context.contacts, ARRAY_SIZE(work->hitContacts), 0);
 
@@ -1290,7 +1290,7 @@ static void Actor01900_Fn02018(Enemy* enemy, Task* actor)
     head->pos.vz           = v->vz;
     head->radius           = 0x180;
     head->flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(3, head);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, head);
     worldCollisionInitContacts(head->context.contacts, 1, 0);
     work->attackBody.key = Gp_PackObjPair(enemy, 0);
 
@@ -3318,15 +3318,15 @@ static void Actor01900_Fn09D3C(Enemy* enemy, Task* actor)
             if ((state == ACTOR_01900_STATE_DEATH_BURST_WALK) && (work->animId == 2)) {
                 effectDrawGroundShadow(MATRIX_TRANS(&actor->extra.tmd->coords->workm), 0x180, gRoomEffectState->groundShadowShade);
             }
-            Gp_ClearRec18Occupied(work->gridContacts);
-            Gp_ClearRec18Occupied(work->hitContacts);
-            Gp_ClearRec18Occupied(work->attackContacts);
+            worldCollisionClearContacts(work->gridContacts);
+            worldCollisionClearContacts(work->hitContacts);
+            worldCollisionClearContacts(work->attackContacts);
             return;
         case SCENE_COMBAT_ACTORS_HIDDEN:
             actor->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            Gp_ClearRec18Occupied(work->gridContacts);
-            Gp_ClearRec18Occupied(work->hitContacts);
-            Gp_ClearRec18Occupied(work->attackContacts);
+            worldCollisionClearContacts(work->gridContacts);
+            worldCollisionClearContacts(work->hitContacts);
+            worldCollisionClearContacts(work->attackContacts);
             return;
     }
 
@@ -3353,9 +3353,9 @@ static void Actor01900_Fn09D3C(Enemy* enemy, Task* actor)
         work->hitBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     }
     states.handlers[work->state](actor);
-    Gp_ClearRec18Occupied(work->gridContacts);
-    Gp_ClearRec18Occupied(work->hitContacts);
-    Gp_ClearRec18Occupied(work->attackContacts);
+    worldCollisionClearContacts(work->gridContacts);
+    worldCollisionClearContacts(work->hitContacts);
+    worldCollisionClearContacts(work->attackContacts);
     if ((gSceneCombatState.signals.bytes.enemyAlert == 1) && (work->state == ACTOR_01900_STATE_PATROL)) {
         work->state = ACTOR_01900_STATE_ALERT;
     }

@@ -435,7 +435,7 @@ void func_hypervelocity_8011D830(Task* task)
             roundBody->body.coord            = coord;
             roundBody->body.key              = HYPERVELOCITY_ROUND_COLLISION_KEY;
             roundBody->body.flags            = WORLD_COLLISION_BODY_SPHERE;
-            Gp_LinkObj(1, &roundBody->body);
+            worldCollisionLinkBody(WORLD_COLLISION_LIST_PLAYER_ATTACKS, &roundBody->body);
             // The allocation already zeroed the entry; LAST terminates the table.
             roundBody->contacts[0].flags = WORLD_COLLISION_CONTACT_LAST;
             roundBody->body.flags       |= WORLD_COLLISION_BODY_PAIR_ENABLED;
@@ -512,7 +512,7 @@ void func_hypervelocity_8011D830(Task* task)
                 effectKillTask(work, task);
                 return;
             }
-            Gp_ClearRec18Occupied(roundBody->contacts);
+            worldCollisionClearContacts(roundBody->contacts);
             return;
         case 2:
             actorRenderComposeCoord(coord);

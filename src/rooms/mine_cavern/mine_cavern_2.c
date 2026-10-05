@@ -2918,7 +2918,7 @@ void func_mine_cavern_80182DC8(Task* arg0)
 /// or destroys the enemy when the allocation fails. The model is hung under the
 /// view coordinate, given the block's two matrices and seated on the spawn spot
 /// `Task::spawnArg1` names. Two collision bodies are then linked through
-/// `Gp_LinkObj`: a small one (kind 2) with four contact records and flag 0x8000
+/// `worldCollisionLinkBody`: a small one (kind 2) with four contact records and flag 0x8000
 /// set, and a wide one (kind 1) with a single record and flag 0x8000 cleared.
 /// The enemy takes its hit points and parameters from `D_mine_cavern_8018EAE4`,
 /// `worldCoordSetModelLighting` lights the model at that position, and the enemy's node is
@@ -2962,7 +2962,7 @@ static void func_mine_cavern_80182E34(Enemy* arg0, Task* arg1)
     body->key                             = 0x50000;
     body->radius                          = 0x100;
     body->flags                           = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(2, body);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, body);
     body->flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     worldCollisionInitContacts(body->context.contacts, ARRAY_SIZE(work->bodyContacts), 0);
     work->body.flags       |= WORLD_COLLISION_BODY_PAIR_ENABLED;
@@ -2975,7 +2975,7 @@ static void func_mine_cavern_80182E34(Enemy* arg0, Task* arg1)
     blast->flags            = WORLD_COLLISION_BODY_SPHERE;
     blast->pos.vy           = temp;
     blast->pos.vx           = temp;
-    Gp_LinkObj(1, blast);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_PLAYER_ATTACKS, blast);
     worldCollisionInitContacts(blast->context.contacts, ARRAY_SIZE(work->blastContacts), 0);
     work->blast.key    = 0x22121;
     work->blast.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
@@ -3123,8 +3123,8 @@ found:
             arg1->state++;
         }
     }
-    Gp_ClearRec18Occupied(work->bodyContacts);
-    Gp_ClearRec18Occupied(work->blastContacts);
+    worldCollisionClearContacts(work->bodyContacts);
+    worldCollisionClearContacts(work->blastContacts);
     SCRATCH_STACK_RELEASE_BLOCK(_MineCavernTargetHitScratch);
 }
 

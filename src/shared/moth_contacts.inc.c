@@ -42,7 +42,7 @@ void mothContacts(Task* arg0)
             coord->coord.t[2] = work->prevPos.vz;
             break;
     }
-    Gp_ClearRec18Occupied(work->gridContacts);
+    worldCollisionClearContacts(work->gridContacts);
     state = (u16)work->hitContacts[0].key.parts.kind;
     switch ((u32)state) {
         case 0:
@@ -75,6 +75,6 @@ void mothContacts(Task* arg0)
                           &work->hitEffectArg);
             break;
     }
-    Gp_ClearRec18Occupied(work->hitContacts);
+    worldCollisionClearContacts(work->hitContacts);
     SCRATCH_STACK_RELEASE_BLOCK(WorldCollisionDelta);
 }

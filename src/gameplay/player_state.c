@@ -1619,7 +1619,7 @@ void Gp_BindActorD4(Task* arg0, SVECTOR3* arg1, s32 arg2)
     rec->contacts          = companion->probe.contacts;
     rec->ends[1].vz        = vz;
     rec->ends[0].vy        = rec->ends[1].vy;
-    Gp_LinkObj(1, obj);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_PLAYER_ATTACKS, obj);
     worldCollisionInitContacts(rec->contacts, ARRAY_SIZE(companion->probe.contacts), 0);
     obj->flags |= (WORLD_COLLISION_BODY_SINGLE_CONTACT | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
 }
@@ -1870,7 +1870,7 @@ void func_8010C980(void* arg0, WorldCollisionBody* arg1, WorldCollisionContact* 
     arg1->flags            = WORLD_COLLISION_BODY_SPHERE;
     arg1->key              = arg4 | 0x30000;
     arg1->radius           = arg5;
-    Gp_LinkObj(2, arg1);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, arg1);
     arg1->flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     worldCollisionInitContacts(arg1->context.contacts, (s16)arg3, 0);
 }

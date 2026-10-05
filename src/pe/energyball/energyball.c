@@ -253,7 +253,7 @@ void func_energyball_8012F180(Task* arg0)
                                  (u16)(Gp_StateC08.attachId % 10) + 0x28000;
                 work->body.radius = mem->angle >> 1;
                 work->body.flags  = WORLD_COLLISION_BODY_SPHERE;
-                Gp_LinkObj(1, &work->body);
+                worldCollisionLinkBody(WORLD_COLLISION_LIST_PLAYER_ATTACKS, &work->body);
                 dir                     = &mem->move;
                 work->contacts[0].flags = WORLD_COLLISION_CONTACT_LAST;
                 work->body.flags       |= WORLD_COLLISION_BODY_PAIR_ENABLED;
@@ -397,7 +397,7 @@ void func_energyball_8012F180(Task* arg0)
                 arg0->state = 4;
                 return;
             }
-            Gp_ClearRec18Occupied(work->contacts);
+            worldCollisionClearContacts(work->contacts);
             return;
         case 3:
             actorRenderComposeCoord(coord);

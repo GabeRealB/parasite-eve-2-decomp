@@ -2550,7 +2550,7 @@ static void func_actor_403000_801343B8(Enemy* arg0, Task* arg1)
     work->rootSphere.body.key              = 0x30001;
     work->rootSphere.body.radius           = 0x12C;
     work->rootSphere.body.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(2, &work->rootSphere.body);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->rootSphere.body);
     work->rootCapsule.shape.ends[0].vy     = -0x180;
     work->rootCapsule.shape.ends[1].vy     = -0x180;
     work->rootCapsule.shape.ends[1].vz     = 0x2BC;
@@ -2569,7 +2569,7 @@ static void func_actor_403000_801343B8(Enemy* arg0, Task* arg1)
     work->rootCapsule.body.radius                   = 0;
     work->rootCapsule.body.flags                    = WORLD_COLLISION_BODY_CAPSULE;
     work->rootSphere.body.flags                    |= WORLD_COLLISION_BODY_GRID_ENABLED;
-    Gp_LinkObj(2, &work->rootCapsule.body);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->rootCapsule.body);
     work->headCapsule.shape.ends[0].vz = -0x3E8;
     work->headCapsule.shape.ends[1].vz = 0x190;
     work->headCapsule.shape.end0Radius = 0x200;
@@ -2588,7 +2588,7 @@ static void func_actor_403000_801343B8(Enemy* arg0, Task* arg1)
     work->headCapsule.body.key                      = 0x3001E;
     work->headCapsule.body.radius                   = 0;
     work->headCapsule.body.flags                    = WORLD_COLLISION_BODY_CAPSULE;
-    Gp_LinkObj(2, &work->headCapsule.body);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->headCapsule.body);
     work->headCapsule.body.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     worldCollisionInitContacts(rootContacts, ARRAY_SIZE(work->rootCapsule.contacts), 0);
     worldCollisionInitContacts(headContacts, ARRAY_SIZE(work->headCapsule.contacts), 0);
@@ -2602,7 +2602,7 @@ static void func_actor_403000_801343B8(Enemy* arg0, Task* arg1)
     torsoBody->key              = 0x3001E;
     torsoBody->radius           = 0x3E8;
     torsoBody->flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(2, &work->torsoSphere.body);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->torsoSphere.body);
     torsoBody->flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     worldCollisionInitContacts(torsoBody->context.contacts, ARRAY_SIZE(work->torsoSphere.contacts), 0);
     hindBody                   = &work->hindSphere.body;
@@ -2614,7 +2614,7 @@ static void func_actor_403000_801343B8(Enemy* arg0, Task* arg1)
     hindBody->key              = 0x3001E;
     hindBody->radius           = 0x320;
     hindBody->flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(2, &work->hindSphere.body);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->hindSphere.body);
     hindBody->flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     worldCollisionInitContacts(hindBody->context.contacts, ARRAY_SIZE(work->hindSphere.contacts), 0);
     neckBody                   = &work->neckSphere.body;
@@ -2626,7 +2626,7 @@ static void func_actor_403000_801343B8(Enemy* arg0, Task* arg1)
     neckBody->key              = 0x3001E;
     neckBody->radius           = 0x320;
     neckBody->flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(2, &work->neckSphere.body);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->neckSphere.body);
     neckBody->flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     worldCollisionInitContacts(neckBody->context.contacts, ARRAY_SIZE(work->neckSphere.contacts), 0);
     work->hindSphere.body.pos.vx = 0;
@@ -5383,21 +5383,21 @@ static void func_actor_403000_8013C864(Enemy* arg0, Task* arg1)
                 arg1->extra.tmd->flags = 0;
                 effectDrawGroundShadow(MATRIX_TRANS(&arg1->extra.tmd->coords->workm), 0x180, gRoomEffectState->groundShadowShade);
             }
-            Gp_ClearRec18Occupied(work->rootSphere.contacts);
-            Gp_ClearRec18Occupied(work->torsoSphere.contacts);
-            Gp_ClearRec18Occupied(work->hindSphere.contacts);
-            Gp_ClearRec18Occupied(work->neckSphere.contacts);
-            Gp_ClearRec18Occupied(work->rootCapsule.contacts);
-            Gp_ClearRec18Occupied(work->headCapsule.contacts);
+            worldCollisionClearContacts(work->rootSphere.contacts);
+            worldCollisionClearContacts(work->torsoSphere.contacts);
+            worldCollisionClearContacts(work->hindSphere.contacts);
+            worldCollisionClearContacts(work->neckSphere.contacts);
+            worldCollisionClearContacts(work->rootCapsule.contacts);
+            worldCollisionClearContacts(work->headCapsule.contacts);
             return;
         case SCENE_COMBAT_ACTORS_HIDDEN:
             arg1->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            Gp_ClearRec18Occupied(work->rootSphere.contacts);
-            Gp_ClearRec18Occupied(work->torsoSphere.contacts);
-            Gp_ClearRec18Occupied(work->hindSphere.contacts);
-            Gp_ClearRec18Occupied(work->neckSphere.contacts);
-            Gp_ClearRec18Occupied(work->rootCapsule.contacts);
-            Gp_ClearRec18Occupied(work->headCapsule.contacts);
+            worldCollisionClearContacts(work->rootSphere.contacts);
+            worldCollisionClearContacts(work->torsoSphere.contacts);
+            worldCollisionClearContacts(work->hindSphere.contacts);
+            worldCollisionClearContacts(work->neckSphere.contacts);
+            worldCollisionClearContacts(work->rootCapsule.contacts);
+            worldCollisionClearContacts(work->headCapsule.contacts);
             return;
     }
     scratch = SCRATCH_STACK_RESERVE_BLOCK(_Actor403000UpdateScratch);
@@ -5556,12 +5556,12 @@ static void func_actor_403000_8013C864(Enemy* arg0, Task* arg1)
     } else {
         func_actor_403000_801330D4(&arg1->extra.tmd->coords[4]);
     }
-    Gp_ClearRec18Occupied(work->rootSphere.contacts);
-    Gp_ClearRec18Occupied(work->torsoSphere.contacts);
-    Gp_ClearRec18Occupied(work->hindSphere.contacts);
-    Gp_ClearRec18Occupied(work->neckSphere.contacts);
-    Gp_ClearRec18Occupied(work->rootCapsule.contacts);
-    Gp_ClearRec18Occupied(work->headCapsule.contacts);
+    worldCollisionClearContacts(work->rootSphere.contacts);
+    worldCollisionClearContacts(work->torsoSphere.contacts);
+    worldCollisionClearContacts(work->hindSphere.contacts);
+    worldCollisionClearContacts(work->neckSphere.contacts);
+    worldCollisionClearContacts(work->rootCapsule.contacts);
+    worldCollisionClearContacts(work->headCapsule.contacts);
     if (player->extra.tmd->coords->coord.t[1] > 3) {
         player->extra.tmd->coords->coord.t[1] = 3;
     }

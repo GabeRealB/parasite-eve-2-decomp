@@ -47,11 +47,36 @@ s32 func_800E0C10(WorldCollisionContact* arg0, WorldCollisionDelta* delta, s32 a
 /// records push in opposing directions, and 1 otherwise.
 s32 func_800E0FEC(WorldCollisionContact* arg0, WorldCollisionDelta* delta, s32 arg2, s32* arg3);
 
-void Gp_LinkObj(s32 arg0, WorldCollisionBody* arg1);
+/// Collision groups selected when linking a body; group membership determines pair-test partners.
+///
+/// Enemy-body lists also carry shootable scenery and movement probes; enemy
+/// attack lists also carry sight probes. Player bodies include companions.
+/// Slots 5 and 6 have no current link callers: 5 has no passes and 6 is tested
+/// only against player attacks. GRID_ONLY receives no pair tests. BLASTS are
+/// tested against player bodies, enemy bodies and props.
+enum {
+    WORLD_COLLISION_LIST_PLAYER_BODIES  = 0,
+    WORLD_COLLISION_LIST_PLAYER_ATTACKS = 1,
+    WORLD_COLLISION_LIST_ENEMY_BODIES   = 2,
+    WORLD_COLLISION_LIST_ENEMY_ATTACKS  = 3,
+    WORLD_COLLISION_LIST_PROPS          = 4,
+    WORLD_COLLISION_LIST_GRID_ONLY      = 7,
+    WORLD_COLLISION_LIST_BLASTS         = 8
+};
+
+/// Appends a borrowed body to a collision group, preserving insertion order.
+///
+/// `listIndex` is a group index in 0..8, not a priority. `body` must be non-NULL;
+/// already-linked bodies and shape kinds 5..7 are left unchanged. Kinds 0..4
+/// are accepted, including the no-shape kind. Linking sets LINKED and installs
+/// the forward and predecessor links without changing any other flags or
+/// initializing the shape or contacts. Owners keep the body, its transform,
+/// context and initialized contact storage alive until unlinking.
+void worldCollisionLinkBody(s32 listIndex, WorldCollisionBody* body);
 
 /// Removes a borrowed body from its collision list, retaining only its shape kind.
 ///
-/// A linked body must have the valid links installed by `Gp_LinkObj`; its
+/// A linked body must have the valid links installed by `worldCollisionLinkBody`; its
 /// predecessor link and any successor's back-link are repaired before its own
 /// links are cleared. Pass enables and body-index flags are cleared. Unlinked
 /// bodies are left unchanged. Neither the body nor its context/contact storage
@@ -71,11 +96,17 @@ void Gp_UnlinkObj4A(s32 arg0, WorldCollisionTrigger* arg1);
 /// is ignored and retained for the exported interface; callers pass 0.
 void worldCollisionInitContacts(WorldCollisionContact* contacts, s32 count, s32 unused);
 
-/// Last occupied contact matching `key`, as a 1-based index, or 0.
+/// Search key selecting any occupied contact instead of an exact packed identity.
+enum { WORLD_COLLISION_FIND_ANY_KEY = 0 };
+
+/// Returns the last occupied contact matching `searchKey`, as a one-based index, or 0.
 ///
-/// A zero search key returns 1 if any entry is occupied. The initialized table
-/// must retain its final-element marker; holes are allowed.
-s32 Gp_FindRec18(WorldCollisionContact* contacts, s32 key);
+/// `WORLD_COLLISION_FIND_ANY_KEY` returns 1 as soon as any entry is occupied,
+/// regardless of its index or key. Other keys match the entire packed word.
+/// Supply a non-NULL readable table ending in WORLD_COLLISION_CONTACT_LAST;
+/// that final entry is included and holes are allowed. The table is unchanged,
+/// and no pointer is retained.
+s32 worldCollisionFindContactIndex(const WorldCollisionContact* contacts, s32 searchKey);
 
 /// Number of occupied contacts whose packed high halfword equals `kind`.
 ///
@@ -83,11 +114,14 @@ s32 Gp_FindRec18(WorldCollisionContact* contacts, s32 key);
 /// Traversal ends at the initialized table's final-element marker.
 s32 Gp_CountRec18Hi(WorldCollisionContact* contacts, s32 kind);
 
-/// Resets occupied entries while retaining the final-element marker.
+/// Empties occupied contacts while preserving the table's final-entry marker.
 ///
-/// Key, distance and vector components are cleared; the SDK vector pad
-/// halfwords are retained. Empty entries are left as they were.
-void Gp_ClearRec18Occupied(WorldCollisionContact* contacts);
+/// Supply a non-NULL writable table ending in WORLD_COLLISION_CONTACT_LAST;
+/// the final entry is included. Occupied entries lose every other flag and
+/// their key, distance, point and response components, including any encoded
+/// body address. The two SDK vector pad halfwords and all empty entries are
+/// untouched. The owner retains the storage; no pointer is retained or freed.
+void worldCollisionClearContacts(WorldCollisionContact* contacts);
 
 /// Returns the highest surface-class bit present in one mask byte, or 0 for zero.
 ///

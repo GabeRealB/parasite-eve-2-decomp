@@ -134,11 +134,11 @@ void sucklercephContacts(Task* arg0)
                 break;
         }
     }
-    Gp_ClearRec18Occupied(work->contacts);
+    worldCollisionClearContacts(work->contacts);
     effectRec = &work->attackContact;
-    if ((work->awakeStage != SUCKLERCEPH_AWAKE_STAGE_NONE) && (Gp_FindRec18(effectRec, 0) != 0)) {
+    if ((work->awakeStage != SUCKLERCEPH_AWAKE_STAGE_NONE) && (worldCollisionFindContactIndex(effectRec, WORLD_COLLISION_FIND_ANY_KEY) != 0)) {
         work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        Gp_ClearRec18Occupied(effectRec);
+        worldCollisionClearContacts(effectRec);
     }
     SCRATCH_STACK_RELEASE_BLOCK(SucklercephContactsScratch);
 }

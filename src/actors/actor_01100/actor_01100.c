@@ -1204,7 +1204,7 @@ static void Actor01100_Fn00CF0(Enemy* enemy, Task* task, _Actor01100Work* work, 
         obj->key              = 0x30000;
         obj->radius           = 0x258;
         obj->flags            = WORLD_COLLISION_BODY_SPHERE;
-        Gp_LinkObj(2, obj);
+        worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, obj);
         obj->flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
         worldCollisionInitContacts(obj->context.contacts, 3, 0);
 
@@ -1217,7 +1217,7 @@ static void Actor01100_Fn00CF0(Enemy* enemy, Task* task, _Actor01100Work* work, 
         obj->key              = 0x3000B;
         obj->radius           = 0x1C2;
         obj->flags            = WORLD_COLLISION_BODY_SPHERE;
-        Gp_LinkObj(2, obj);
+        worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, obj);
         obj->flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
         worldCollisionInitContacts(obj->context.contacts, 3, 0);
         obj->pos.vx = 0;
@@ -1246,7 +1246,7 @@ static void Actor01100_Fn00CF0(Enemy* enemy, Task* task, _Actor01100Work* work, 
                 obj->radius = reach;
                 obj->key    = Gp_PackObjPair(enemy, 1);
                 obj->flags  = WORLD_COLLISION_BODY_SPHERE;
-                Gp_LinkObj(3, obj);
+                worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, obj);
                 obj->flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
                 worldCollisionInitContacts(obj->context.contacts, 3, 0);
                 recOff += sizeof(work->contacts[0]);
@@ -1703,10 +1703,10 @@ static s32 Actor01100_Fn00F58(Enemy* enemy, Task* task, _Actor01100Work* work, _
         work->blockedFrames = 0;
     }
     coord->coord.t[1] = savedY;
-    Gp_ClearRec18Occupied(work->contacts[ACTOR_01100_BODY_ROOT]);
-    Gp_ClearRec18Occupied(work->contacts[ACTOR_01100_BODY_LEFT_HAND]);
-    Gp_ClearRec18Occupied(work->contacts[ACTOR_01100_BODY_RIGHT_HAND]);
-    Gp_ClearRec18Occupied(work->contacts[ACTOR_01100_BODY_CHEST]);
+    worldCollisionClearContacts(work->contacts[ACTOR_01100_BODY_ROOT]);
+    worldCollisionClearContacts(work->contacts[ACTOR_01100_BODY_LEFT_HAND]);
+    worldCollisionClearContacts(work->contacts[ACTOR_01100_BODY_RIGHT_HAND]);
+    worldCollisionClearContacts(work->contacts[ACTOR_01100_BODY_CHEST]);
     if ((enemy->reactionFlags & ENEMY_REACTION_BUILDUP) && (Gp_TickObjFlag2(enemy) != 0)) {
         enemy->reactionFlags &= ENEMY_REACTION_BUILDUP_CLEAR;
     }
@@ -2196,7 +2196,7 @@ static void Actor01100_Fn02960(Enemy* enemy, Task* task, _Actor01100Work* work, 
             root->composeStamp = GRAPHICS_COORD_DIRTY;
         }
         root->coord.t[1] = savedY;
-        Gp_ClearRec18Occupied(work->contacts[ACTOR_01100_BODY_ROOT]);
+        worldCollisionClearContacts(work->contacts[ACTOR_01100_BODY_ROOT]);
     }
     root = task->extra.tmd->coords;
     actorRenderComposeCoord(root);
@@ -2240,7 +2240,7 @@ static void Actor01100_Fn035E4(Enemy* enemy, Task* task, _Actor01100Work* work, 
         obj->flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
     }
     if ((u32)((u16)work->stateCounter - 0x1B) < 0x1C) {
-        if ((work->stateStep == 1) && (Gp_FindRec18(work->contacts[ACTOR_01100_BODY_LEFT_HAND], 0) != 0)) {
+        if ((work->stateStep == 1) && (worldCollisionFindContactIndex(work->contacts[ACTOR_01100_BODY_LEFT_HAND], WORLD_COLLISION_FIND_ANY_KEY) != 0)) {
             _actor01100ClearObjPair(work);
             work->stateStep = (u8)work->stateStep + 1;
         }
@@ -2283,7 +2283,7 @@ static void Actor01100_Fn03740(Enemy* enemy, Task* task, _Actor01100Work* work, 
         obj->flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
     }
     if ((u32)((u16)work->stateCounter - 0x1B) < 0x1C) {
-        if ((work->stateStep == 1) && (Gp_FindRec18(work->contacts[ACTOR_01100_BODY_RIGHT_HAND], 0) != 0)) {
+        if ((work->stateStep == 1) && (worldCollisionFindContactIndex(work->contacts[ACTOR_01100_BODY_RIGHT_HAND], WORLD_COLLISION_FIND_ANY_KEY) != 0)) {
             _actor01100ClearObjPair(work);
             work->stateStep = (u8)work->stateStep + 1;
         }
@@ -3368,7 +3368,7 @@ static void Actor01100_Fn05CFC(Enemy* enemy, Task* task, _Actor01100Work* work, 
 /// The collision body is linked as kind 3 pointing at the coordinate and at the
 /// 0x28 record, which takes 0x96 for `end0Radius` / `end1Radius` and points
 /// `contacts` at the one-entry collision table `worldCollisionInitContacts` zeroes, and
-/// its `0xC000` flag pair is ORed in on top of `Gp_LinkObj`'s `flags = 3`. The
+/// its `0xC000` flag pair is ORed in on top of `worldCollisionLinkBody`'s `flags = 3`. The
 /// actor takes `Actor01100_Fn073A8` as its exit callback and steps on to the
 /// next state, which it also runs immediately.
 ///
@@ -3445,7 +3445,7 @@ static void Actor01100_Fn05E68(Task* task)
     rec->end0Radius = 0x96;
     rec->end1Radius = 0x96;
     worldCollisionInitContacts(work->contacts, ARRAY_SIZE(work->contacts), 0);
-    Gp_LinkObj(3, obj);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, obj);
     obj->flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
 
     task->exitCallback = Actor01100_Fn073A8;
@@ -3491,7 +3491,7 @@ static void Actor01100_Fn06198(Task* task)
             }
             goto fire;
         }
-        if (Gp_FindRec18(rec, 0) != 0) {
+        if (worldCollisionFindContactIndex(rec, WORLD_COLLISION_FIND_ANY_KEY) != 0) {
             child = task->firstChild;
             if (child != NULL) {
                 if (rec->response.direction.vy >= -0xC00) {
@@ -3507,7 +3507,7 @@ static void Actor01100_Fn06198(Task* task)
             task->killCountdown = 0x1E;
             task->state        += 1;
         }
-        Gp_ClearRec18Occupied(work->contacts);
+        worldCollisionClearContacts(work->contacts);
         countdown           = task->killCountdown - 1;
         task->killCountdown = countdown;
         if ((countdown << 0x10) <= 0) {
@@ -3567,7 +3567,7 @@ static void Actor01100_Fn0638C(Task* task)
     obj->key              = Gp_PackPair(Actor01100_D074F8, 5);
     obj->flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionInitContacts(rec, 1, 0);
-    Gp_LinkObj(3, obj);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, obj);
     obj->flags        |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
     task->exitCallback = Actor01100_Fn073A8;
     task->state++;

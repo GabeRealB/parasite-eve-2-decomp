@@ -22,7 +22,7 @@ void gluttonRainSplat(Enemy* enemy, Task* task)
         work->attackBody.radius = 0x380;
     }
 
-    Gp_ClearRec18Occupied(work->attackContacts);
+    worldCollisionClearContacts(work->attackContacts);
     if (work->stateTicks >= 0xC) {
         worldCollisionUnlinkBody(&work->attackBody);
         task->state++;

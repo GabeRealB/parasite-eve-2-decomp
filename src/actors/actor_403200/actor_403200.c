@@ -4238,7 +4238,7 @@ static void func_actor_403200_80138AFC(Enemy* enemy, Task* task)
     work->swipeBody.key             = 0x30000 | 0x20;
     work->swipeBody.radius          = 0;
     work->swipeBody.flags           = WORLD_COLLISION_BODY_CAPSULE;
-    Gp_LinkObj(2, &work->swipeBody);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->swipeBody);
     worldCollisionInitContacts(recs2, ARRAY_SIZE(work->swipeContacts), 0);
     work->swipeBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
 
@@ -6489,16 +6489,16 @@ static void func_actor_403200_8013FB54(Enemy* arg0, Task* arg1)
         goto after_mode;
     }
 clear_and_return:
-    Gp_ClearRec18Occupied(work->hits[0].contacts);
-    Gp_ClearRec18Occupied(work->hits[1].contacts);
-    Gp_ClearRec18Occupied(work->hits[2].contacts);
-    Gp_ClearRec18Occupied(work->hits[3].contacts);
-    Gp_ClearRec18Occupied(work->hits[4].contacts);
-    Gp_ClearRec18Occupied(work->hits[5].contacts);
-    Gp_ClearRec18Occupied(work->hits[6].contacts);
-    Gp_ClearRec18Occupied(work->hits[7].contacts);
-    Gp_ClearRec18Occupied(work->hits[8].contacts);
-    Gp_ClearRec18Occupied(work->swipeContacts);
+    worldCollisionClearContacts(work->hits[0].contacts);
+    worldCollisionClearContacts(work->hits[1].contacts);
+    worldCollisionClearContacts(work->hits[2].contacts);
+    worldCollisionClearContacts(work->hits[3].contacts);
+    worldCollisionClearContacts(work->hits[4].contacts);
+    worldCollisionClearContacts(work->hits[5].contacts);
+    worldCollisionClearContacts(work->hits[6].contacts);
+    worldCollisionClearContacts(work->hits[7].contacts);
+    worldCollisionClearContacts(work->hits[8].contacts);
+    worldCollisionClearContacts(work->swipeContacts);
     return;
 after_mode:
 
@@ -6661,16 +6661,16 @@ after_mode:
         work->hits[8].body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     }
 
-    Gp_ClearRec18Occupied(work->hits[0].contacts);
-    Gp_ClearRec18Occupied(work->hits[1].contacts);
-    Gp_ClearRec18Occupied(work->hits[2].contacts);
-    Gp_ClearRec18Occupied(work->hits[3].contacts);
-    Gp_ClearRec18Occupied(work->hits[4].contacts);
-    Gp_ClearRec18Occupied(work->hits[5].contacts);
-    Gp_ClearRec18Occupied(work->hits[6].contacts);
-    Gp_ClearRec18Occupied(work->hits[7].contacts);
-    Gp_ClearRec18Occupied(work->hits[8].contacts);
-    Gp_ClearRec18Occupied(work->swipeContacts);
+    worldCollisionClearContacts(work->hits[0].contacts);
+    worldCollisionClearContacts(work->hits[1].contacts);
+    worldCollisionClearContacts(work->hits[2].contacts);
+    worldCollisionClearContacts(work->hits[3].contacts);
+    worldCollisionClearContacts(work->hits[4].contacts);
+    worldCollisionClearContacts(work->hits[5].contacts);
+    worldCollisionClearContacts(work->hits[6].contacts);
+    worldCollisionClearContacts(work->hits[7].contacts);
+    worldCollisionClearContacts(work->hits[8].contacts);
+    worldCollisionClearContacts(work->swipeContacts);
     gluttonShakeTick(arg1);
 
     if (work->viewLocked == 0 && work->state != 0) {

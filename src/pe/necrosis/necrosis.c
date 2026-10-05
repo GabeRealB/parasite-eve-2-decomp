@@ -163,7 +163,7 @@ void func_necrosis_8012EF34(Task* arg0)
                 ((u16)(Gp_StateC08.attachId / 100) - 1) * 9 + ((u16)((u16)(Gp_StateC08.attachId % 100) / 10) - 1) * 3 + (u16)(Gp_StateC08.attachId % 10) + 0x28000;
             work->damageBody.radius = D_necrosis_801306BC[mem->index].startRadius;
             work->damageBody.flags  = WORLD_COLLISION_BODY_SPHERE;
-            Gp_LinkObj(1, &work->damageBody);
+            worldCollisionLinkBody(WORLD_COLLISION_LIST_PLAYER_ATTACKS, &work->damageBody);
             contacts->flags                 = WORLD_COLLISION_CONTACT_LAST;
             work->gridBody.coord            = coord;
             work->gridBody.context.contacts = contacts;
@@ -171,7 +171,7 @@ void func_necrosis_8012EF34(Task* arg0)
             work->gridBody.radius           = 0x80;
             work->gridBody.flags            = WORLD_COLLISION_BODY_SPHERE;
             work->damageBody.flags         |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-            Gp_LinkObj(7, &work->gridBody);
+            worldCollisionLinkBody(WORLD_COLLISION_LIST_GRID_ONLY, &work->gridBody);
             work->gridBody.flags = (work->gridBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED)) | (WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_GRID_ENABLED);
             pan                  = (s8)worldCoordGetOriginAudioPan(coord);
             sndEvtRequestScriptStart(D_necrosis_801306C8[(u16)(Gp_StateC08.attachId % 10) - 1], pan,
@@ -211,13 +211,13 @@ void func_necrosis_8012EF34(Task* arg0)
                 arg0->state = 2;
                 return;
             }
-            if (Gp_FindRec18(work->gridBody.context.contacts, WORLD_COLLISION_CONTACT_GRID) != 0) {
+            if (worldCollisionFindContactIndex(work->gridBody.context.contacts, WORLD_COLLISION_CONTACT_GRID) != 0) {
                 mem->move.vx = 0;
                 mem->move.vy = 0;
                 mem->move.vz = 0;
                 worldCollisionUnlinkBody(&work->gridBody);
             }
-            Gp_ClearRec18Occupied(work->contacts);
+            worldCollisionClearContacts(work->contacts);
             return;
         case 2:
             if (Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) {

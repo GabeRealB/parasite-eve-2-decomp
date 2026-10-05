@@ -52,7 +52,7 @@ void generatorLifeSupportSpawn(Enemy* arg0, Task* arg1)
     part->body.key              = ((GeneratorWork*)arg1->parent->work)->rootBody.key;
     part->body.radius           = 0xC8;
     part->body.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(2, &part->body);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &part->body);
     worldCollisionInitContacts(contacts, ARRAY_SIZE(part->contacts), 0);
     part->body.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     type              = work->kind;

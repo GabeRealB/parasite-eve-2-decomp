@@ -53,7 +53,7 @@ void maggotCaterpillarResolveContacts(Task* arg0)
                 break;
         }
     }
-    Gp_ClearRec18Occupied(work->gridContacts);
+    worldCollisionClearContacts(work->gridContacts);
     if (work->hitCooldown != 0) {
         if (--work->hitCooldown <= 0) {
             work->hitCooldown = 0;
@@ -183,12 +183,12 @@ void maggotCaterpillarResolveContacts(Task* arg0)
         coord->coord.t[0] += (best * scratch->pushDirection.vx) >> 12;
         coord->coord.t[2] += (best * scratch->pushDirection.vz) >> 12;
     }
-    Gp_ClearRec18Occupied(work->bodyContacts);
+    worldCollisionClearContacts(work->bodyContacts);
     work->blocked = 0;
     if (work->attackContacts[0].flags & 1) {
         MAGGOT_CATERPILLAR_NOTE_BLOCKING_CONTACT(work, work->attackContacts[0]);
         work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-        Gp_ClearRec18Occupied(work->attackContacts);
+        worldCollisionClearContacts(work->attackContacts);
     }
     SCRATCH_STACK_RELEASE_BLOCK(MaggotCaterpillarContactsScratch);
 }

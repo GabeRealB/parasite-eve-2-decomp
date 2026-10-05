@@ -50,7 +50,7 @@ void ratContacts(Task* actor)
             coord->coord.t[2] = work->prevPos.vz;
             break;
     }
-    Gp_ClearRec18Occupied(work->gridContacts);
+    worldCollisionClearContacts(work->gridContacts);
     if (work->hitCooldown != 0) {
         if (--work->hitCooldown <= 0) {
             work->hitCooldown = 0;
@@ -159,11 +159,11 @@ void ratContacts(Task* actor)
         coord->coord.t[0] += (push * frame->pushDirection.vx) >> 0xC;
         coord->coord.t[2] += (push * frame->pushDirection.vz) >> 0xC;
     }
-    Gp_ClearRec18Occupied(work->hitContacts);
+    worldCollisionClearContacts(work->hitContacts);
     effectRec = work->attackContacts;
-    if (Gp_FindRec18(effectRec, 0) != 0) {
+    if (worldCollisionFindContactIndex(effectRec, WORLD_COLLISION_FIND_ANY_KEY) != 0) {
         work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        Gp_ClearRec18Occupied(effectRec);
+        worldCollisionClearContacts(effectRec);
     }
     contactRec = work->sensorContacts;
     if (Gp_CountRec18Hi(contactRec, 0x10000) != 0) {
@@ -172,6 +172,6 @@ void ratContacts(Task* actor)
         work->sensorBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->targetCoord       = sourceCoord;
     }
-    Gp_ClearRec18Occupied(contactRec);
+    worldCollisionClearContacts(contactRec);
     SCRATCH_STACK_RELEASE_BLOCK(ActorOverlapPushScratch);
 }

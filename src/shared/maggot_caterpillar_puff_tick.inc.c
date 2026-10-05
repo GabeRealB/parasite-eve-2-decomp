@@ -31,7 +31,7 @@ void maggotCaterpillarPuffTick(Enemy* arg0, Task* arg1)
             if (contact != 0) {
                 if ((contact & WORLD_COLLISION_CONTACT_KIND_MASK) != WORLD_COLLISION_CONTACT_GRID) {
                     work->body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-                    Gp_ClearRec18Occupied(work->contacts);
+                    worldCollisionClearContacts(work->contacts);
                     goto block_7;
                 }
                 goto block_11;

@@ -2292,7 +2292,7 @@ void func_actor_510900_801350F8(Enemy* arg0, Task* arg1)
     work->body.key              = 0x3001B;
     work->body.radius           = 0x1C2;
     work->body.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(2, &work->body);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->body);
     worldCollisionInitContacts(records1, ARRAY_SIZE(work->bodyContacts), 0);
     records2                            = work->attackContacts;
     work->body.flags                   |= WORLD_COLLISION_BODY_PAIR_ENABLED;
@@ -2304,7 +2304,7 @@ void func_actor_510900_801350F8(Enemy* arg0, Task* arg1)
     work->weaponAttack.key              = 0;
     work->weaponAttack.radius           = 0x190;
     work->weaponAttack.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(3, &work->weaponAttack);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->weaponAttack);
     worldCollisionInitContacts(records2, ARRAY_SIZE(work->attackContacts), 0);
     work->weaponAttack.flags            &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     work->forearmAttack.coord            = &arg1->extra.tmd->coords[7];
@@ -2315,7 +2315,7 @@ void func_actor_510900_801350F8(Enemy* arg0, Task* arg1)
     work->forearmAttack.key              = 0;
     work->forearmAttack.radius           = 0x190;
     work->forearmAttack.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(3, &work->forearmAttack);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->forearmAttack);
     work->forearmAttack.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     arg1->msgTable             = D_actor_510900_80167A6C;
     arg1->exitCallback         = func_actor_510900_8013B608;

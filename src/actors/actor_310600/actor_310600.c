@@ -442,7 +442,7 @@ static void func_actor_310600_80161E64(Task* task)
     obj->pos.vy           = 0;
     obj->pos.vz           = 0;
     obj->flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(2, obj);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, obj);
     obj->flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     worldCollisionInitContacts(obj->context.contacts, ARRAY_SIZE(work->contacts), 0);
     task->msgTable = D_actor_310600_801796BC;
@@ -534,7 +534,7 @@ static void func_actor_310600_80161FA0(Task* task)
         if (func_800EA1A8(MATRIX_TRANS(&task->extra.tmd->coords[1].workm), &pos) != 0) {
             effectDrawGroundShadow(&pos, 0x300, gRoomEffectState->groundShadowShade);
         }
-        Gp_ClearRec18Occupied(work->contacts);
+        worldCollisionClearContacts(work->contacts);
     }
     if (gGameSession->viewReady != 0) {
         task->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;

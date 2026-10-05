@@ -424,7 +424,7 @@ static void func_actor_312200_80163178(Enemy* enemy, Task* task)
     node->key              = 0x3000A;
     node->radius           = 0x180;
     node->flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(2, node);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, node);
     node->flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     worldCollisionInitContacts(node->context.contacts, ARRAY_SIZE(work->contacts), 0);
     task->msgTable       = D_actor_312200_80169F5C;
@@ -476,7 +476,7 @@ static void func_actor_312200_80163370(Enemy* enemy, Task* task)
         work->prevState = work->state;
         states[work->state](task);
         if (work->contacts[0].key.value != 0) {
-            Gp_ClearRec18Occupied(work->contacts);
+            worldCollisionClearContacts(work->contacts);
         }
         if (work->relightPending != 0) {
             obj = task->extra.tmd;

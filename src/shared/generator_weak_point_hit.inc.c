@@ -75,6 +75,6 @@ void generatorLifeSupportHit(Enemy* arg0, Task* arg1)
             }
         }
     }
-    Gp_ClearRec18Occupied(part->contacts);
+    worldCollisionClearContacts(part->contacts);
     SCRATCH_STACK_RELEASE_BLOCK(VECTOR);
 }

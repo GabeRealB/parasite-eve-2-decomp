@@ -416,11 +416,6 @@ extern DamageAttack Actor01600_D09F04[2];
 extern SVECTOR Actor01600_D09F1C[];
 extern SVECTOR Actor01600_D09F3C[];
 
-/// Calls `Gp_ClearRec18Occupied` as a function with a result, although the
-/// gameplay definition returns nothing: this actor was compiled against a
-/// declaration with one. Called as `void`, the code after the call that ends
-/// `Actor01600_Fn04C64` takes different registers and the overlay no longer
-/// matches.
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
 
@@ -1565,7 +1560,7 @@ static void Actor01600_Fn00480(Task* actor)
     work->sight.body.radius          = 0;
     work->sight.body.flags           = WORLD_COLLISION_BODY_CAPSULE;
     work->sight.body.coord           = coord;
-    Gp_LinkObj(3, &work->sight.body);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->sight.body);
     worldCollisionInitContacts(table1, ARRAY_SIZE(work->sight.contacts), 0);
     table2                                 = work->bodySphere.contacts;
     work->bodySphere.body.coord            = coord;
@@ -1577,7 +1572,7 @@ static void Actor01600_Fn00480(Task* actor)
     work->bodySphere.body.pos.vz           = 0;
     work->bodySphere.body.flags            = WORLD_COLLISION_BODY_SPHERE;
     work->sight.body.flags                |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
-    Gp_LinkObj(2, &work->bodySphere.body);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->bodySphere.body);
     worldCollisionInitContacts(table2, ARRAY_SIZE(work->bodySphere.contacts), 0);
     table3                               = work->pathProbe.contacts;
     work->pathProbe.shape.ends[0].vz     = 0x1F4;
@@ -1594,7 +1589,7 @@ static void Actor01600_Fn00480(Task* actor)
     work->pathProbe.body.radius          = 0;
     work->pathProbe.body.flags           = WORLD_COLLISION_BODY_CAPSULE;
     work->bodySphere.body.flags         |= (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
-    Gp_LinkObj(2, &work->pathProbe.body);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->pathProbe.body);
     worldCollisionInitContacts(table3, ARRAY_SIZE(work->pathProbe.contacts), 0);
     table4                           = work->bite.contacts;
     work->bite.body.coord            = coord;
@@ -1606,7 +1601,7 @@ static void Actor01600_Fn00480(Task* actor)
     work->bite.body.key              = Gp_PackPair(Actor01600_D09F04, 1);
     work->bite.body.radius           = 0x12C;
     work->bite.body.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(3, &work->bite.body);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->bite.body);
     worldCollisionInitContacts(table4, ARRAY_SIZE(work->bite.contacts), 0);
     work->bite.body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
 }
@@ -1873,7 +1868,7 @@ mode_end:
                     }
                     if (work->behavior != ACTOR_01600_BEHAVIOR_ROAM && work->airborne != 0) {
                         work->bite.body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-                        Gp_ClearRec18Occupied(work->bite.contacts);
+                        worldCollisionClearContacts(work->bite.contacts);
                         work->animBlendFrames = 0;
                         work->verticalSpeed  += 20;
                         amount                = Actor01600_Fn045A8(actor, &distance);
@@ -1936,13 +1931,13 @@ mode_end:
                 break;
         }
     }
-    Gp_ClearRec18Occupied(work->bodySphere.contacts);
-    if (work->attackAction && Gp_FindRec18(work->bite.contacts, 0)) {
+    worldCollisionClearContacts(work->bodySphere.contacts);
+    if (work->attackAction && worldCollisionFindContactIndex(work->bite.contacts, WORLD_COLLISION_FIND_ANY_KEY)) {
         work->bodySphere.body.pos.vy = -400;
         work->bodySphere.body.radius = 400;
         work->biteLanded             = 1;
         work->bite.body.flags       &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        Gp_ClearRec18Occupied(work->bite.contacts);
+        worldCollisionClearContacts(work->bite.contacts);
         if (work->animFrame < 15) {
             work->attackAction    = ACTOR_01600_ACTION_KNOCKBACK;
             work->animBlendFrames = 0;
@@ -2187,7 +2182,7 @@ static void Actor01600_Fn017BC(Task* actor)
         work->pathProbe.body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
         Gp_ArmStateF0(1);
     }
-    Gp_ClearRec18Occupied(rec);
+    worldCollisionClearContacts(rec);
     if (work->noiseHeard == 1) {
         count               = (u16)work->reactionDelay - 1;
         work->reactionDelay = count;
@@ -3878,7 +3873,7 @@ static s32 Actor01600_Fn04C64(Task* arg0, s32 distance, s32 angle)
             }
         }
     }
-    Gp_ClearRec18Occupied(work->pathProbe.contacts);
+    worldCollisionClearContacts(work->pathProbe.contacts);
     SCRATCH_STACK_RELEASE_BLOCK(_Actor01600PathProbeAimScratch);
     return var_s4;
 }

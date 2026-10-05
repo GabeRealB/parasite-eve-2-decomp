@@ -4499,7 +4499,7 @@ static inline void _gpLinkPlayerObj(GameActor* actor, s32 i, WorldCollisionBody*
     obj->key                                   = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId | 0x10000;
     obj->radius                                = radius;
     obj->flags                                 = flags;
-    Gp_LinkObj(0, obj);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_PLAYER_BODIES, obj);
 }
 
 static void Gp_InitPlayerWork(Task* arg0)
@@ -4661,7 +4661,7 @@ void Gp_AttachActorObj(Task* arg0, s32 id, s32 kind)
             rec->end0Radius = 0x900;
         }
         rec->contacts = actor->weaponContacts;
-        Gp_LinkObj(1, obj);
+        worldCollisionLinkBody(WORLD_COLLISION_LIST_PLAYER_ATTACKS, obj);
         worldCollisionInitContacts(rec->contacts, ARRAY_SIZE(actor->weaponContacts), 0);
     }
     SCRATCH_STACK_RELEASE_BLOCK(VECTOR);
@@ -4824,9 +4824,9 @@ void Gp_UpdatePlayerMove(void)
     actor->pendingDisplacement.vx = 0;
     actor->pendingDisplacement.vy = 0;
     actor->pendingDisplacement.vz = 0;
-    Gp_ClearRec18Occupied(actor->collisionContacts);
+    worldCollisionClearContacts(actor->collisionContacts);
     if (actor->equipmentTasks[1] != NULL) {
-        Gp_ClearRec18Occupied(actor->weaponContacts);
+        worldCollisionClearContacts(actor->weaponContacts);
     }
     if (actor->collisionEnableMask & 1) {
         coord->coord.t[1] += 0x80;

@@ -1432,7 +1432,7 @@ static void func_actor_107600_80133024(Task* arg0)
                 } else {
                     work->hitCooldown--;
                 }
-                Gp_ClearRec18Occupied(work->contacts);
+                worldCollisionClearContacts(work->contacts);
                 if (enemy->hp <= 0) {
                     func_actor_107600_80134B98(arg0, ACTOR_107600_TARGET_STATE_DESTROYED);
                 }
@@ -1824,7 +1824,7 @@ static void func_actor_107600_80133DC4(Task* arg0)
     enemy = arg0->spawnArg2.pointer;
     SCRATCH_STACK_RESERVE_BYTES(8);
     work->hitTaken = 0;
-    if (Gp_FindRec18(work->body.context.contacts, 0) != 0) {
+    if (worldCollisionFindContactIndex(work->body.context.contacts, WORLD_COLLISION_FIND_ANY_KEY) != 0) {
         for (i = 0; i < ARRAY_SIZE(work->contacts); i++) {
             if ((work->contacts[i].key.value & 0xFFFF0000) == 0x20000) {
                 work->hitTaken     = 1;
@@ -1858,7 +1858,7 @@ static void func_actor_107600_80133DC4(Task* arg0)
             }
         }
     }
-    Gp_ClearRec18Occupied(work->contacts);
+    worldCollisionClearContacts(work->contacts);
     SCRATCH_STACK_RELEASE_BYTES(8);
 }
 
@@ -2108,7 +2108,7 @@ static void func_actor_107600_80134958(Task* arg0)
     work->body.key              = 0x3004C;
     work->body.radius           = (work->mountBehaviour == ACTOR_107600_MOUNT_HANGING) ? 0x220 : 0x190;
     work->body.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(2, &work->body);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->body);
     worldCollisionInitContacts(rec, ARRAY_SIZE(work->contacts), 0);
 }
 
