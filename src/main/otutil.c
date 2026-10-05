@@ -225,7 +225,7 @@ static void Display_FlipOt(void)
     temp->otBuffer = buf;
     gpuBeginOt(buf);
     spriteLinkViewCachedPackets();
-    Gp_DrawActorTmdActive(&Gpu_OtBuffers[temp->otBuffer]);
+    actorRenderComposeAndDrawActiveModels(&Gpu_OtBuffers[temp->otBuffer]);
     gGpuCurrentOt                = saved;
     temp->control.flags.flipMode = DISPLAY_FLIP_FULL;
 }

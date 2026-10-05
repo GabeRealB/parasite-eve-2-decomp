@@ -47,7 +47,29 @@ void actorRenderComposeCoord(GfxCoord* coord);
 /// flagged pass draws.
 void Gp_DrawActorTmdFlagged(GsOT* arg0);
 
-/// Refreshes every coordinate for this frame, then draws the active models.
-void Gp_DrawActorTmdActive(GsOT* arg0);
+/// Composes attached coordinates, then draws buffered models enabled for the active pass.
+///
+/// Refreshes every body in `gModelObjectCoordBodyList` and every model's
+/// `partCount` coordinates in `gTmdList`, including models excluded from
+/// drawing or without primitive buffers. Composition includes the full parent
+/// chains. Both lists share one rebuild stamp and visit parity; the composition
+/// counter advances once before drawing, even when both lists are empty.
+///
+/// `unusedOt` is ignored: the caller must select `gGpuCurrentOt` and establish
+/// the depth shift and GTE projection/depth-average settings before this call.
+/// Drawing follows `tmdDrawActiveModels`: a NULL buffer or
+/// `TMD_OBJECT_SKIP_ACTIVE_DRAW` skips a model, while `TMD_OBJECT_FLAGGED_PASS`
+/// does not affect selection. Drawn models toggle their primitive-buffer half.
+///
+/// List topology and resource bindings must stay fixed during the pass, and
+/// bodies, borrowed parents and model resources must remain live. Parent
+/// chains must be acyclic, and each model must own
+/// its nonnegative `partCount` coordinates. Clear `composeStamp` after local
+/// matrix or parent changes; caches composed with an excluded ancestor must
+/// be invalidated before this full-chain pass. Model roots must supply the
+/// intended view transform. Buffer capacities, stream bounds and scratch-stack
+/// requirements follow `tmdDrawActiveModels`. Packet and OT storage must remain
+/// valid until GPU use ends. GTE working registers are left changed.
+void actorRenderComposeAndDrawActiveModels(GsOT* unusedOt);
 
 #endif // GAMEPLAY_ACTOR_RENDER_H

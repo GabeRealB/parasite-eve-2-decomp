@@ -656,7 +656,7 @@ static Task* _modelObjectFindTaskByCoord(GfxCoord* targetCoord)
 
 void Gp_DrawDisp2dOt(Task* unused)
 {
-    Gp_DrawActorTmdActive(&Gpu_OtBuffers[gDisplayState.drawBuffer]);
+    actorRenderComposeAndDrawActiveModels(&Gpu_OtBuffers[gDisplayState.drawBuffer]);
 }
 
 u32* tmdDrawStreamPrimF4PreXform(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements)

@@ -15,7 +15,7 @@
 // Code (src/gameplay/actor_render.c) — 0x42C0 / first addiu $sp after header/rodata
 // ---------------------------------------------------------------------------
 Gp_DrawActorTmdFlagged = 0x80097AC0; // type:func
-Gp_DrawActorTmdActive = 0x8009850C; // type:func
+actorRenderComposeAndDrawActiveModels = 0x8009850C; // type:func
 actorRenderComposeCoord = 0x80098F58; // type:func
 actorRenderComposeCoordRelative = 0x80098F98; // type:func
 modelObjectAttachTmd = 0x8009902C; // type:func

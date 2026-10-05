@@ -41073,7 +41073,9 @@ register s32 flag asm("s4");
 ```
 
 The inner pins die at the closing brace, so later GTE code can reuse `$a0` /
-`$v0`. `Gp_DrawActorTmdActive` is the example.
+`$v0`. These pins were used when matching `actorRenderComposeAndDrawActiveModels`;
+its current `_actorRenderComposeListedCoords` helper produces the same sequence
+with unpinned locals.
 
 ## `i = 0` before `if (n != 0)` fills the `beqz` delay; `++i` in `while` fills the limit load
 
@@ -41090,7 +41092,9 @@ branch delay.
 
 A second pointer typed as a 0x50-byte overlay of `GfxCoord` starting at
 `workm.t` (`sub` at +0x14) makes the inner copy use negative offsets off `$s2`
-instead of `$s1+0x4C`. `Gp_DrawActorTmdActive` is the example.
+instead of `$s1+0x4C`. The current `actorRenderComposeAndDrawActiveModels` uses
+`GfxCoord` directly through `_actorRenderRefreshCoord`; that auxiliary overlay
+pointer is no longer needed.
 
 ## Inline helpers: reassigning the parameter vs. a separate result local
 

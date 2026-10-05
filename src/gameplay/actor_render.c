@@ -224,9 +224,9 @@ void Gp_DrawActorTmdFlagged(GsOT* arg0)
     Tmd_DrawFlaggedNodes(PARENT_OF(gTmdList.next, TmdObject, link));
 }
 
-/// Refreshes every coordinate for this frame, then draws the active models.
-void Gp_DrawActorTmdActive(GsOT* arg0)
+void actorRenderComposeAndDrawActiveModels(GsOT* unusedOt)
 {
+    // Compose both lists before drawing, including hidden and unbuffered models.
     _actorRenderComposeListedCoords();
     tmdDrawActiveModels(PARENT_OF(gTmdList.next, TmdObject, link));
 }

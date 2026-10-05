@@ -7,7 +7,7 @@ Title_EnqueueDemoScene = 0x80094B90; // type:func absolute:True owner=title
 Title_TaskDescs = 0x80094C8C; // absolute:True owner=title
 
 Gp_DrawActorTmdFlagged = 0x80097AC0; // type:func absolute:True
-Gp_DrawActorTmdActive = 0x8009850C; // type:func absolute:True
+actorRenderComposeAndDrawActiveModels = 0x8009850C; // type:func absolute:True
 modelObjectAttachCoordBody = 0x80099098; // type:func absolute:True
 modelObjectAttachTmdWithBufferFlags = 0x80099170; // type:func absolute:True
 modelObjectUnlinkTmd = 0x800991DC; // type:func absolute:True

@@ -571,7 +571,7 @@ static void Display_FlipOtAndDispatch(s32 unused)
             break;
         case STAGE_TRANSITION_ACTORS:
             spriteLinkViewCachedPackets();
-            Gp_DrawActorTmdActive(&Gpu_OtBuffers[temp->otBuffer]);
+            actorRenderComposeAndDrawActiveModels(&Gpu_OtBuffers[temp->otBuffer]);
             break;
         case STAGE_TRANSITION_FILTERED:
             taskExecListForPriority(&gTaskDefaultList, 0x62);

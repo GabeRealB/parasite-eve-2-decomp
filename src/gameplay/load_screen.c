@@ -556,7 +556,7 @@ void Gp_LoadWaitAreaCd(Task* task)
         Gp_ClearObjHeads();
         Tmd_InitLists();
         ds2 = &gDisplayState;
-        Gp_DrawActorTmdActive(&Gpu_OtBuffers[ds2->drawBuffer]);
+        actorRenderComposeAndDrawActiveModels(&Gpu_OtBuffers[ds2->drawBuffer]);
         task->state++;
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.interlace != 0) {
             ds2->dispEnv[1].isinter = 1;
