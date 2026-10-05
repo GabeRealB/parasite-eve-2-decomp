@@ -57496,7 +57496,7 @@ pointer — it has no way to prove they do not alias — so the *source* order o
 store and an unrelated pointer chase is what decides which one fills the load
 delay slot.
 
-`func_acropolis_bridge_80187D04` is the minimal case. m2c emits the second
+`_acropolisBridgeEnemyInactive` is the minimal case. m2c emits the second
 pointer inline in the assignment that uses it, after the store:
 
 ```c

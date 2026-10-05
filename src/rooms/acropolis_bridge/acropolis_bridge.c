@@ -129,6 +129,35 @@
 /// Wrong codes after which the keypad closes instead of taking another entry.
 #define ACROPOLIS_BRIDGE_KEYPAD_REJECTED_LIMIT 3
 
+/// Key-item-use message answered by this room; the first payload is an item ID.
+enum { ACROPOLIS_BRIDGE_MESSAGE_USE_KEY_ITEM = 0x13F1 };
+
+/// Arrival-scene sprite selection, applied to the argument's low byte.
+/// Each frame selects one three-source batch in the tenth view.
+enum {
+    ACROPOLIS_BRIDGE_ARRIVAL_FRAME_FIRST  = 0,
+    ACROPOLIS_BRIDGE_ARRIVAL_FRAME_SECOND = 1,
+    ACROPOLIS_BRIDGE_ARRIVAL_FRAME_THIRD  = 2,
+    ACROPOLIS_BRIDGE_ARRIVAL_FRAME_HIDDEN = 3,
+    ACROPOLIS_BRIDGE_ARRIVAL_VIEW_INDEX   = 9,
+    ACROPOLIS_BRIDGE_ARRIVAL_BATCH_FIRST  = 1,
+    ACROPOLIS_BRIDGE_ARRIVAL_BATCH_SECOND = 2,
+    ACROPOLIS_BRIDGE_ARRIVAL_BATCH_THIRD  = 3
+};
+
+/// Batch indices in the eighth view's three-digit keypad display.
+enum {
+    ACROPOLIS_BRIDGE_KEYPAD_VIEW_INDEX           = 7,
+    ACROPOLIS_BRIDGE_KEYPAD_DIGIT_BATCH_COUNT    = 10,
+    ACROPOLIS_BRIDGE_KEYPAD_ONES_FIRST_BATCH     = 1,
+    ACROPOLIS_BRIDGE_KEYPAD_TENS_FIRST_BATCH     = 11,
+    ACROPOLIS_BRIDGE_KEYPAD_HUNDREDS_FIRST_BATCH = 21,
+    ACROPOLIS_BRIDGE_KEYPAD_ONES_BLANK_BATCH     = 31,
+    ACROPOLIS_BRIDGE_KEYPAD_TENS_BLANK_BATCH     = 32,
+    ACROPOLIS_BRIDGE_KEYPAD_HUNDREDS_BLANK_BATCH = 33,
+    ACROPOLIS_BRIDGE_KEYPAD_ERROR_BATCH          = 34
+};
+
 /// Work block of the task that runs the bridge's code keypad screen, allocated
 /// by its first state and kept at `Task::work`.
 ///
@@ -268,13 +297,13 @@ extern Task* D_acropolis_bridge_8019179C;
 extern s32   D_acropolis_bridge_801917A0;
 
 static void func_acropolis_bridge_8017D98C(Task* task);
-static void func_acropolis_bridge_8017D9FC(Task* task);
+static void _acropolisBridgeRoomIdle(Task* task);
 static void _acropolisBridgeUpdateModelVisibility(Task* task);
 static void func_acropolis_bridge_8017DB60(Task* task);
 static void func_acropolis_bridge_8017DBA0(Task* task);
 static void func_acropolis_bridge_8017DC1C(Task* task);
 static void func_acropolis_bridge_8017DD24(Task* task);
-static void func_acropolis_bridge_8017DD88(Task* task);
+static void _acropolisBridgeAdvanceCutsceneState(Task* task);
 static void func_acropolis_bridge_8017DD9C(Task* task);
 static void func_acropolis_bridge_8017DDEC(Task* task);
 static void func_acropolis_bridge_8017DE94(Task* task);
@@ -283,7 +312,7 @@ static void func_acropolis_bridge_8017E04C(Task* task);
 static void func_acropolis_bridge_8017E1D0(Task* task);
 static void func_acropolis_bridge_8017E3A0(Task* task);
 static void func_acropolis_bridge_8017E4FC(Task* task);
-static void func_acropolis_bridge_8017E81C(void);
+static void _acropolisBridgeShowKeypadError(void);
 static void _acropolisBridgeSetArrivalSpritesHidden(s32 arrivalSceneSeen);
 static void func_acropolis_bridge_8017F404(Task* task);
 static void func_acropolis_bridge_8017F460(Task* task);
@@ -369,17 +398,17 @@ extern WorldCoordRoomLights      D_acropolis_bridge_80190A0C[1];
 extern PadScriptCmd              D_acropolis_bridge_80190BBC[6];
 extern PadScriptVibrationSegment D_acropolis_bridge_80190BD4[5];
 void                             func_acropolis_bridge_8017D954(void);
-void                             func_acropolis_bridge_8017F358(s32);
+static void                      _acropolisBridgeSelectArrivalSpriteFrame(s32 frame);
 
 static SVECTOR _gAcropolisBridgeModel0AD9CVerts[171];
 static TmdBone _gAcropolisBridgeModel0AD9CSkeleton[1];
 static u32     _gAcropolisBridgeModel0AD9CPartVerts[1];
 static u32     _gAcropolisBridgeModel0AD9CStream[691];
 s32            func_acropolis_bridge_8017D6F4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32            func_acropolis_bridge_8017D7F0(Task*, s32, s32, s32);
+static s32     _acropolisBridgeRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
 s32            func_acropolis_bridge_8017D7F8(Task*, s32, s32, s32);
-s32            func_acropolis_bridge_8017D868(Task*, s32, s32, s32);
-s32            func_acropolis_bridge_8017D870(Task*, s32, s32, s32);
+static s32     _acropolisBridgeIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg);
+static s32     _acropolisBridgeIgnoreSoundCommand(Task* task, s32 messageId, s32 soundId, s32 unusedArg);
 void           func_acropolis_bridge_8017D878(Task*);
 void           func_acropolis_bridge_8017D8D0(Task*);
 
@@ -404,7 +433,7 @@ extern _AcropolisBridgeEnemyTaskDescStorage D_acropolis_bridge_80191780;
 extern WorldCollisionFootstepSounds D_acropolis_bridge_80190BE8;
 extern WorldCollisionFootstepSounds D_acropolis_bridge_80190BF4;
 s32                                 func_acropolis_bridge_801856E0(Task* task, s32 msgId, ActorCommand* msg, s32 arg3);
-s32                                 func_acropolis_bridge_80187BD0(Task*, s32, s32, s32);
+static s32                          _acropolisBridgeEnemySetModelDraw(Task* task, s32 messageId, s32 drawRequest, s32 unusedArg);
 void                                func_acropolis_bridge_80185F28(Task*);
 void                                func_acropolis_bridge_801861A0(Task*);
 void                                func_acropolis_bridge_801863A8(Task*);
@@ -413,7 +442,7 @@ void                                func_acropolis_bridge_80186BBC(Task*);
 void                                func_acropolis_bridge_80187078(Task*);
 void                                func_acropolis_bridge_80187310(Task*);
 void                                func_acropolis_bridge_801874DC(Task*);
-void                                func_acropolis_bridge_80187D04(Task*);
+static void                         _acropolisBridgeEnemyInactive(Task* task);
 void                                func_acropolis_bridge_80187D80(Task*);
 
 static TmdBone _gAcropolisBridgeModel0AD9CSkeleton[1] = {
@@ -439,9 +468,9 @@ TmdSource D_acropolis_bridge_80188E28[1] = {
 TaskMessageEntry D_acropolis_bridge_80188E4C[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_acropolis_bridge_8017D6F4 },
     { ROOM_MESSAGE_COMMAND, func_acropolis_bridge_8017D7F8 },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_acropolis_bridge_8017D868 },
-    { 5105, func_acropolis_bridge_8017D7F0 },
-    { ROOM_MESSAGE_SOUND, func_acropolis_bridge_8017D870 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _acropolisBridgeIgnoreRoomAction },
+    { ACROPOLIS_BRIDGE_MESSAGE_USE_KEY_ITEM, _acropolisBridgeRejectKeyItemUse },
+    { ROOM_MESSAGE_SOUND, _acropolisBridgeIgnoreSoundCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -457,7 +486,7 @@ EvsSceneKey D_acropolis_bridge_80188EB4 = { 1, 11, 11 };
 
 EvsCommand D_acropolis_bridge_80188EBC[26] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_acropolis_bridge_8017D954 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_acropolis_bridge_8017F358 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _acropolisBridgeSelectArrivalSpriteFrame }, { .value = ACROPOLIS_BRIDGE_ARRIVAL_FRAME_FIRST }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_bridge_80188EA0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 0 }, { .value = 0 } },
@@ -470,9 +499,9 @@ EvsCommand D_acropolis_bridge_80188EBC[26] = {
     { EVENT_SCRIPT_OPCODE_SHAKE_SCREEN, { .value = 4 }, { .value = 7 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_VIBRATION, { .padCommands = D_acropolis_bridge_80190BBC }, { .vibrationSegments = D_acropolis_bridge_80190BD4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_ROOM_EFFECT }, { .value = 0 }, { .value = 3104 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_acropolis_bridge_8017F358 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _acropolisBridgeSelectArrivalSpriteFrame }, { .value = ACROPOLIS_BRIDGE_ARRIVAL_FRAME_SECOND }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_acropolis_bridge_8017F358 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _acropolisBridgeSelectArrivalSpriteFrame }, { .value = ACROPOLIS_BRIDGE_ARRIVAL_FRAME_THIRD }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
@@ -489,7 +518,7 @@ EvsCommand D_acropolis_bridge_8018912C[11] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RESTORE_VIEW, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_acropolis_bridge_8017F358 }, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _acropolisBridgeSelectArrivalSpriteFrame }, { .value = ACROPOLIS_BRIDGE_ARRIVAL_FRAME_HIDDEN }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _acropolisBridgeSetArrivalSpritesHidden }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -2663,12 +2692,12 @@ u8* D_acropolis_bridge_80191720[9] = {
 
 TaskMessageEntry D_acropolis_bridge_80191744[3] = {
     { ACTOR_COMMAND_MESSAGE_APPLY, func_acropolis_bridge_801856E0 },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_acropolis_bridge_80187BD0 },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, _acropolisBridgeEnemySetModelDraw },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 void (*D_acropolis_bridge_8019175C[9])(Task*) = {
-    func_acropolis_bridge_80187D04,
+    _acropolisBridgeEnemyInactive,
     func_acropolis_bridge_80185F28,
     func_acropolis_bridge_801861A0,
     func_acropolis_bridge_801863A8,
@@ -2706,16 +2735,16 @@ extern u8 D_acropolis_bridge_801916CC[];
 
 extern u8* D_acropolis_bridge_80191720[];
 
-static void            func_acropolis_bridge_8017EB4C(s32 state, s8 dx, s8 dy);
+static void            _acropolisBridgeOffsetArrivalSpriteFrame(s32 frame, s8 offsetX, s8 offsetY);
 static __inline__ void walkerStep(BossStrangerWalker* walker, BossStrangerTickScratch* head,
                                   BossStrangerTickScratch* block);
-static __inline__ void bridge_set_obj_pos(WorldCollisionBody* obj, SVECTOR3* pos);
+static __inline__ void _acropolisBridgeSetCollisionBodyPosition(WorldCollisionBody* body, const SVECTOR3* position);
 static __inline__ void _acropolisBridgeInitWalkerScale(BossStrangerWalker* walker);
-static __inline__ void _acropolisBridgeLightModel(Task* task, GfxCoord* coord);
+static __inline__ void _acropolisBridgeLightModel(Task* task);
 static __inline__ void _acropolisBridgeResetEnemyScaleOnEntry(_AcropolisBridgeEnemyWork* work);
 static __inline__ void _acropolisBridgeResetEnemyScaleDuringShrink(_AcropolisBridgeEnemyWork* work);
-static __inline__ void bridge_scale_up(_AcropolisBridgeEnemyWork* work);
-static __inline__ s16  _acropolisBridgeWasHit(Task* task);
+static __inline__ void _acropolisBridgeGrowEnemyScale(_AcropolisBridgeEnemyWork* work);
+static __inline__ s16  _acropolisBridgeAttackLanded(const Task* task);
 static __inline__ s32  _acropolisBridgeEnemyHasPlayerContact(const WorldCollisionContact* contacts);
 /// Base requests for the bridge enemy's fall animation and player-body contact.
 /// The positional helper adds the placement index in the sound instance byte.
@@ -2755,7 +2784,10 @@ s32 func_acropolis_bridge_8017D6F4(Task* task, s32 msgId, RoomEventMsg* in, Room
     return 1;
 }
 
-s32 func_acropolis_bridge_8017D7F0(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Refuses every key-item-use request with result 0, leaving the room untouched.
+///
+/// The item ID and the other message arguments are ignored; no payload is retained.
+static s32 _acropolisBridgeRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedArg)
 {
     return 0;
 }
@@ -2776,19 +2808,21 @@ s32 func_acropolis_bridge_8017D7F8(Task* task, s32 msgId, s32 arg2, s32 arg3)
     return 0;
 }
 
-s32 func_acropolis_bridge_8017D868(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores room-action requests and returns 0 without reading the borrowed request.
+static s32 _acropolisBridgeIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg)
 {
     return 0;
 }
 
-s32 func_acropolis_bridge_8017D870(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores room sound commands and returns 0 without changing sound state.
+static s32 _acropolisBridgeIgnoreSoundCommand(Task* task, s32 messageId, s32 soundId, s32 unusedArg)
 {
     return 0;
 }
 
 /// State handlers of the room's own task.
 static const TaskFuncTable3 D_acropolis_bridge_8017D5C4 = {
-    { func_acropolis_bridge_8017D98C, func_acropolis_bridge_8017D9FC, taskKill }
+    { func_acropolis_bridge_8017D98C, _acropolisBridgeRoomIdle, taskKill }
 };
 
 /// State handlers of the bridge model task.
@@ -2808,10 +2842,10 @@ void func_acropolis_bridge_8017D878(Task* task)
 
 /// State handlers of the room's cutscene task.
 static const TaskFuncTable14 D_acropolis_bridge_8017D5DC = {
-    { func_acropolis_bridge_8017DB60, func_acropolis_bridge_8017DBA0, func_acropolis_bridge_8017DD88,
+    { func_acropolis_bridge_8017DB60, func_acropolis_bridge_8017DBA0, _acropolisBridgeAdvanceCutsceneState,
       func_acropolis_bridge_8017DC1C, func_acropolis_bridge_8017DC68, func_acropolis_bridge_8017DD24,
-      func_acropolis_bridge_8017DD88, func_acropolis_bridge_8017DD88, func_acropolis_bridge_8017DD88,
-      func_acropolis_bridge_8017DD88, func_acropolis_bridge_8017DD9C, func_acropolis_bridge_8017DDEC,
+      _acropolisBridgeAdvanceCutsceneState, _acropolisBridgeAdvanceCutsceneState, _acropolisBridgeAdvanceCutsceneState,
+      _acropolisBridgeAdvanceCutsceneState, func_acropolis_bridge_8017DD9C, func_acropolis_bridge_8017DDEC,
       func_acropolis_bridge_8017DE94, taskKill }
 };
 
@@ -2847,9 +2881,10 @@ static void func_acropolis_bridge_8017D98C(Task* arg0)
     _acropolisBridgeSetArrivalSpritesHidden(gameFlagGetNibble(GAME_FLAG_BRIDGE_ARRIVAL_SCENE_SEEN) & 0xFF);
 }
 
-static void func_acropolis_bridge_8017D9FC(Task* task)
+/// Keeps the room task alive to receive messages after its setup state.
+static void _acropolisBridgeRoomIdle(Task* task)
 {
-    char pad[0x10];
+    char stackReservation[0x10]; // Preserves the target's otherwise unused 16-byte stack frame.
 }
 
 /// Three-state dispatcher of the room's own task: setup, an empty idle state,
@@ -2940,9 +2975,12 @@ static void func_acropolis_bridge_8017DD24(Task* arg0)
     arg0->state += 1;
 }
 
-static void func_acropolis_bridge_8017DD88(Task* arg0)
+/// Advances the linear bridge cutscene by one state without other effects.
+///
+/// Used for the single-update steps at slots 2 and 6..9 of the cutscene table.
+static void _acropolisBridgeAdvanceCutsceneState(Task* task)
 {
-    arg0->state = arg0->state + 1;
+    task->state = task->state + 1;
 }
 
 static void func_acropolis_bridge_8017DD9C(Task* arg0)
@@ -3191,7 +3229,7 @@ after:
 }
 
 /// Idles the bridge prompt for twenty frames per pass: the first ten frames
-/// keep the prompt task ticking through `func_acropolis_bridge_8017E81C`, the
+/// show the keypad error through `_acropolisBridgeShowKeypadError`, the
 /// next ten blank the code display, and the frame after them counts one blink
 /// in `blinkCount`. Either way the cursor is re-hit-tested against the room's
 /// hotspot table so `mode` reports whether it sits over one. After three
@@ -3208,7 +3246,7 @@ static void func_acropolis_bridge_8017E4FC(Task* task)
     viewGetMappedIndex();
     tick = work->timer;
     if (tick < ACROPOLIS_BRIDGE_KEYPAD_BLINK_PHASE_FRAMES) {
-        func_acropolis_bridge_8017E81C();
+        _acropolisBridgeShowKeypadError();
         work->timer++;
     } else if (tick < 2 * ACROPOLIS_BRIDGE_KEYPAD_BLINK_PHASE_FRAMES) {
         func_acropolis_bridge_8017E60C(ACROPOLIS_BRIDGE_KEYPAD_CODE_BLANK, 0);
@@ -3317,92 +3355,110 @@ static void func_acropolis_bridge_8017E60C(s32 digits, s32 hidePrompt)
     batches[34].hidden = 1;
 }
 
-/// Shows one frame of the bridge prompt: in the current room's eighth SPRT
-/// record, every command from 1 to 33 gets its skip-OT-link flag set and only
-/// command 34 is left drawing. `func_acropolis_bridge_8017E4FC` calls this on
-/// each of the first ten frames of a pass.
-static void func_acropolis_bridge_8017E81C(void)
+/// Hides the three ten-digit bands of the keypad's sprite display.
+///
+/// `batches` borrows the eighth view's live batch array, including indices 1..30.
+static __inline__ void _acropolisBridgeHideKeypadDigitBatches(SpriteBatch* batches)
 {
-    GameLocationKey* sess = &gGameSession->location.loc;
+    s32 batchIndex;
+
+    for (batchIndex = ACROPOLIS_BRIDGE_KEYPAD_HUNDREDS_FIRST_BATCH;
+         batchIndex < ACROPOLIS_BRIDGE_KEYPAD_HUNDREDS_FIRST_BATCH + ACROPOLIS_BRIDGE_KEYPAD_DIGIT_BATCH_COUNT;
+         batchIndex++) {
+        batches[batchIndex].hidden = 1;
+    }
+    for (batchIndex = ACROPOLIS_BRIDGE_KEYPAD_TENS_FIRST_BATCH;
+         batchIndex < ACROPOLIS_BRIDGE_KEYPAD_TENS_FIRST_BATCH + ACROPOLIS_BRIDGE_KEYPAD_DIGIT_BATCH_COUNT;
+         batchIndex++) {
+        batches[batchIndex].hidden = 1;
+    }
+    for (batchIndex = ACROPOLIS_BRIDGE_KEYPAD_ONES_FIRST_BATCH;
+         batchIndex < ACROPOLIS_BRIDGE_KEYPAD_ONES_FIRST_BATCH + ACROPOLIS_BRIDGE_KEYPAD_DIGIT_BATCH_COUNT;
+         batchIndex++) {
+        batches[batchIndex].hidden = 1;
+    }
+}
+
+/// Shows the bridge keypad's error display, hiding its digits and blank indicators.
+///
+/// Requires the active session's loaded eighth sprite view, with batch elements
+/// through 34. Changes visibility only; the remaining batches keep their flags.
+static void _acropolisBridgeShowKeypadError(void)
+{
+    GameLocationKey* location = &gGameSession->location.loc;
     SpriteBatch*     batches;
-    s32              i;
 
     viewGetMappedIndex();
-    batches = Gp_SprtTables[sess->stage - 1][gGameSession->spriteVariant - 1].areaViews[sess->area - 1][7].batches;
+    batches = Gp_SprtTables[location->stage - 1][gGameSession->spriteVariant - 1].areaViews[location->area - 1][ACROPOLIS_BRIDGE_KEYPAD_VIEW_INDEX].batches;
 
-    for (i = 0x15; i < 0x1F; i++) {
-        batches[i].hidden = 1;
-    }
-    for (i = 0xB; i < 0x15; i++) {
-        batches[i].hidden = 1;
-    }
-    for (i = 1; i < 0xB; i++) {
-        batches[i].hidden = 1;
-    }
-    batches[34].hidden = 0;
-    batches[33].hidden = 1;
-    batches[32].hidden = 1;
-    batches[31].hidden = 1;
+    _acropolisBridgeHideKeypadDigitBatches(batches);
+    batches[ACROPOLIS_BRIDGE_KEYPAD_ERROR_BATCH].hidden          = 0;
+    batches[ACROPOLIS_BRIDGE_KEYPAD_HUNDREDS_BLANK_BATCH].hidden = 1;
+    batches[ACROPOLIS_BRIDGE_KEYPAD_TENS_BLANK_BATCH].hidden     = 1;
+    batches[ACROPOLIS_BRIDGE_KEYPAD_ONES_BLANK_BATCH].hidden     = 1;
 }
 
 #include "../../shared/action_prompt_outline_rect.inc.c"
 
-/// Slides one of three mutually exclusive bridge sprites in view 9 by
-/// `(dx, dy)` and makes it the visible one. Each state owns three consecutive
-/// `SpriteSource` entries, which move together, and one of the three
-/// `SpriteBatch` slots; `spriteLinkViewCachedPackets` treats a nonzero `hidden` as "skip
-/// OT-linking", so the selected command gets 0 and the other two get 1. A
-/// state outside 0..2 moves nothing and hides all three.
-static void func_acropolis_bridge_8017EB4C(s32 state, s8 dx, s8 dy)
+/// Translates one arrival frame's three source rectangles by signed pixel offsets.
+///
+/// Defined only for the function below. Arguments must be side-effect-free:
+/// each is evaluated repeatedly in source order (X then Y per rectangle).
+/// `sourceArray` borrows three writable SpriteSource elements starting at the
+/// constant `firstSource`; each sum narrows back to the destination's s16.
+/// Captures no identifiers, retains no pointer and yields void. Commas preserve
+/// the update order without introducing a new local scope.
+#define ACROPOLIS_BRIDGE_OFFSET_ARRIVAL_SPRITE_SOURCES(sourceArray, firstSource, xOffset, yOffset) \
+    ((void)((sourceArray)[(firstSource)].x0     += (xOffset),                                      \
+            (sourceArray)[(firstSource)].y0     += (yOffset),                                      \
+            (sourceArray)[(firstSource) + 1].x0 += (xOffset),                                      \
+            (sourceArray)[(firstSource) + 1].y0 += (yOffset),                                      \
+            (sourceArray)[(firstSource) + 2].x0 += (xOffset),                                      \
+            (sourceArray)[(firstSource) + 2].y0 += (yOffset)))
+
+/// Moves and selects one arrival-scene sprite frame in the tenth view.
+///
+/// The low byte of `frame` selects frame 0..2; other values hide all three and
+/// move nothing. Offsets are signed pixels added to each of that frame's three
+/// source rectangles, narrowed back to s16. Requires the active session's loaded
+/// tenth view with nine sources and batch elements 1..3. Retains no pointer.
+static void _acropolisBridgeOffsetArrivalSpriteFrame(s32 frame, s8 offsetX, s8 offsetY)
 {
-    GameSession*     g    = gGameSession;
-    GameLocationKey* sess = &g->location.loc;
-    SpriteView*      rec;
+    GameSession*     session  = gGameSession;
+    GameLocationKey* location = &session->location.loc;
+    SpriteView*      views;
     SpriteSource*    sources;
     SpriteBatch*     batches;
-    s32              mode;
+    s32              selectedFrame;
 
-    rec     = Gp_SprtTables[sess->stage - 1][g->spriteVariant - 1].areaViews[sess->area - 1];
-    batches = rec[9].batches;
-    sources = rec[9].sources.elements;
-    mode    = state & 0xFF;
+    views         = Gp_SprtTables[location->stage - 1][session->spriteVariant - 1].areaViews[location->area - 1];
+    batches       = views[ACROPOLIS_BRIDGE_ARRIVAL_VIEW_INDEX].batches;
+    sources       = views[ACROPOLIS_BRIDGE_ARRIVAL_VIEW_INDEX].sources.elements;
+    selectedFrame = frame & 0xFF;
 
-    if (mode == 0) {
-        sources[0].x0    += dx;
-        sources[0].y0    += dy;
-        sources[1].x0    += dx;
-        sources[1].y0    += dy;
-        sources[2].x0    += dx;
-        sources[2].y0    += dy;
-        batches[1].hidden = 0;
-        batches[2].hidden = 1;
-        batches[3].hidden = 1;
-    } else if (mode == 1) {
-        sources[3].x0    += dx;
-        sources[3].y0    += dy;
-        sources[4].x0    += dx;
-        sources[4].y0    += dy;
-        sources[5].x0    += dx;
-        sources[5].y0    += dy;
-        batches[1].hidden = 1;
-        batches[2].hidden = 0;
-        batches[3].hidden = 1;
-    } else if (mode == 2) {
-        sources[6].x0    += dx;
-        sources[6].y0    += dy;
-        sources[7].x0    += dx;
-        sources[7].y0    += dy;
-        sources[8].x0    += dx;
-        sources[8].y0    += dy;
-        batches[1].hidden = 1;
-        batches[2].hidden = 1;
-        batches[3].hidden = 0;
+    if (selectedFrame == ACROPOLIS_BRIDGE_ARRIVAL_FRAME_FIRST) {
+        ACROPOLIS_BRIDGE_OFFSET_ARRIVAL_SPRITE_SOURCES(sources, 0, offsetX, offsetY);
+        batches[ACROPOLIS_BRIDGE_ARRIVAL_BATCH_FIRST].hidden  = 0;
+        batches[ACROPOLIS_BRIDGE_ARRIVAL_BATCH_SECOND].hidden = 1;
+        batches[ACROPOLIS_BRIDGE_ARRIVAL_BATCH_THIRD].hidden  = 1;
+    } else if (selectedFrame == ACROPOLIS_BRIDGE_ARRIVAL_FRAME_SECOND) {
+        ACROPOLIS_BRIDGE_OFFSET_ARRIVAL_SPRITE_SOURCES(sources, 3, offsetX, offsetY);
+        batches[ACROPOLIS_BRIDGE_ARRIVAL_BATCH_FIRST].hidden  = 1;
+        batches[ACROPOLIS_BRIDGE_ARRIVAL_BATCH_SECOND].hidden = 0;
+        batches[ACROPOLIS_BRIDGE_ARRIVAL_BATCH_THIRD].hidden  = 1;
+    } else if (selectedFrame == ACROPOLIS_BRIDGE_ARRIVAL_FRAME_THIRD) {
+        ACROPOLIS_BRIDGE_OFFSET_ARRIVAL_SPRITE_SOURCES(sources, 6, offsetX, offsetY);
+        batches[ACROPOLIS_BRIDGE_ARRIVAL_BATCH_FIRST].hidden  = 1;
+        batches[ACROPOLIS_BRIDGE_ARRIVAL_BATCH_SECOND].hidden = 1;
+        batches[ACROPOLIS_BRIDGE_ARRIVAL_BATCH_THIRD].hidden  = 0;
     } else {
-        batches[1].hidden = 1;
-        batches[2].hidden = 1;
-        batches[3].hidden = 1;
+        batches[ACROPOLIS_BRIDGE_ARRIVAL_BATCH_FIRST].hidden  = 1;
+        batches[ACROPOLIS_BRIDGE_ARRIVAL_BATCH_SECOND].hidden = 1;
+        batches[ACROPOLIS_BRIDGE_ARRIVAL_BATCH_THIRD].hidden  = 1;
     }
 }
+
+#undef ACROPOLIS_BRIDGE_OFFSET_ARRIVAL_SPRITE_SOURCES
 
 #include "../../shared/action_prompt_move_cursors.inc.c"
 
@@ -3446,38 +3502,39 @@ static void _acropolisBridgeSetArrivalSpritesHidden(s32 arrivalSceneSeen)
     }
 }
 
-/// Picks which of three mutually exclusive bridge sprites view 9 of this room
-/// draws. `spriteLinkViewCachedPackets` treats a nonzero `field_4` as "skip OT-linking",
-/// so the selected command gets 0 and the other two get 1; a state outside
-/// 0..2 hides all three.
-void func_acropolis_bridge_8017F358(s32 state)
+/// Selects one arrival-scene sprite frame in the tenth view.
+///
+/// The argument's low byte selects frame 0..2; other values hide all three.
+/// Requires the active session's loaded tenth view with batch elements 1..3.
+/// Changes only `SpriteBatch::hidden`; the event script passes a complete word.
+static void _acropolisBridgeSelectArrivalSpriteFrame(s32 frame)
 {
-    GameSession*     g    = gGameSession;
-    GameLocationKey* sess = &g->location.loc;
-    SpriteView*      rec;
+    GameSession*     session  = gGameSession;
+    GameLocationKey* location = &session->location.loc;
+    SpriteView*      views;
     SpriteBatch*     batches;
-    s32              mode;
+    s32              selectedFrame;
 
-    rec     = Gp_SprtTables[sess->stage - 1][g->spriteVariant - 1].areaViews[sess->area - 1];
-    batches = rec[9].batches;
-    mode    = state & 0xFF;
+    views         = Gp_SprtTables[location->stage - 1][session->spriteVariant - 1].areaViews[location->area - 1];
+    batches       = views[ACROPOLIS_BRIDGE_ARRIVAL_VIEW_INDEX].batches;
+    selectedFrame = frame & 0xFF;
 
-    if (mode == 0) {
-        batches[1].hidden = 0;
-        batches[2].hidden = 1;
-        batches[3].hidden = 1;
-    } else if (mode == 1) {
-        batches[1].hidden = 1;
-        batches[2].hidden = 0;
-        batches[3].hidden = 1;
-    } else if (mode == 2) {
-        batches[1].hidden = 1;
-        batches[2].hidden = 1;
-        batches[3].hidden = 0;
+    if (selectedFrame == ACROPOLIS_BRIDGE_ARRIVAL_FRAME_FIRST) {
+        batches[ACROPOLIS_BRIDGE_ARRIVAL_BATCH_FIRST].hidden  = 0;
+        batches[ACROPOLIS_BRIDGE_ARRIVAL_BATCH_SECOND].hidden = 1;
+        batches[ACROPOLIS_BRIDGE_ARRIVAL_BATCH_THIRD].hidden  = 1;
+    } else if (selectedFrame == ACROPOLIS_BRIDGE_ARRIVAL_FRAME_SECOND) {
+        batches[ACROPOLIS_BRIDGE_ARRIVAL_BATCH_FIRST].hidden  = 1;
+        batches[ACROPOLIS_BRIDGE_ARRIVAL_BATCH_SECOND].hidden = 0;
+        batches[ACROPOLIS_BRIDGE_ARRIVAL_BATCH_THIRD].hidden  = 1;
+    } else if (selectedFrame == ACROPOLIS_BRIDGE_ARRIVAL_FRAME_THIRD) {
+        batches[ACROPOLIS_BRIDGE_ARRIVAL_BATCH_FIRST].hidden  = 1;
+        batches[ACROPOLIS_BRIDGE_ARRIVAL_BATCH_SECOND].hidden = 1;
+        batches[ACROPOLIS_BRIDGE_ARRIVAL_BATCH_THIRD].hidden  = 0;
     } else {
-        batches[1].hidden = 1;
-        batches[2].hidden = 1;
-        batches[3].hidden = 1;
+        batches[ACROPOLIS_BRIDGE_ARRIVAL_BATCH_FIRST].hidden  = 1;
+        batches[ACROPOLIS_BRIDGE_ARRIVAL_BATCH_SECOND].hidden = 1;
+        batches[ACROPOLIS_BRIDGE_ARRIVAL_BATCH_THIRD].hidden  = 1;
     }
 }
 
@@ -3852,10 +3909,11 @@ void func_acropolis_bridge_8017F868(Task* task)
     work->scale = view;
 }
 
-/// Seeds a strip's lifetime, pixel width and frames per row, then advances its state.
+/// Seeds a streak's lifetime, pixel width and frames per row, then advances its task state.
 ///
-/// `task` and `work` borrow live writable objects. Consumes three shared LCG draws
-/// and retains u16-to-u32 widening for the lifetime roll; no pointer is retained.
+/// `task` and `work` borrow live writable objects. Sets `scale` to 30..119
+/// frames, `angle` to 16..79 pixels and `period` to 1..4 frames per row. Consumes
+/// three shared LCG draws, retaining the u16-to-u32 lifetime roll; keeps no pointer.
 static __inline__ void _acropolisBridgeInitializeStreakLifetime(Task* task, EffectWork* work)
 {
     enum { ACROPOLIS_BRIDGE_STREAK_MIN_LIFETIME_FRAMES   = 30,
@@ -4908,61 +4966,67 @@ static void func_acropolis_bridge_8018581C(Task* task)
     }
 }
 
-/// Copies a scratch `SVECTOR3` onto a `WorldCollisionBody`'s three position halfwords.
-static __inline__ void bridge_set_obj_pos(WorldCollisionBody* obj, SVECTOR3* pos)
+/// Copies a local collision-body position in whole coordinate units.
+///
+/// Borrows three readable position halfwords and the writable body; copies only
+/// XYZ without retaining either pointer or changing the body's coordinate owner.
+static __inline__ void _acropolisBridgeSetCollisionBodyPosition(WorldCollisionBody* body, const SVECTOR3* position)
 {
-    obj->pos.vx = pos->vx;
-    obj->pos.vy = pos->vy;
-    obj->pos.vz = pos->vz;
+    body->pos.vx = position->vx;
+    body->pos.vy = position->vy;
+    body->pos.vz = position->vz;
 }
 
-/// Rebuilds the walker's scale matrix: resets it to identity and, unless
-/// `scale` is 0 or unity, scales it by `scale` on all three axes. The `VECTOR`
-/// handed to `ScaleMatrix` is taken from the scratch stack and left there for
-/// `_acropolisBridgeLightModel` to reuse and release.
+/// Initializes the bridge walker's uniform Q12 scale matrix and reserves its scratch vector.
+///
+/// Clears translation and off-diagonal entries; zero and `ONE` both leave
+/// identity. Requires an initialized scratch stack with room for one `VECTOR`.
+/// Leaves that block live for `_acropolisBridgeLightModel` to reuse and release.
 static __inline__ void _acropolisBridgeInitWalkerScale(BossStrangerWalker* walker)
 {
-    VECTOR* head;
-    VECTOR* scale;
-    s32     amount;
+    VECTOR* scratchEnd;
+    VECTOR* scaleVector;
+    s32     scaleAmount;
 
-    head                         = SCRATCH_STACK_CURSOR(VECTOR);
-    amount                       = walker->scale;
+    scratchEnd                   = SCRATCH_STACK_CURSOR(VECTOR);
+    scaleAmount                  = walker->scale;
     walker->scaleMtx.m[2][1]     = 0;
     walker->scaleMtx.m[2][0]     = 0;
     walker->scaleMtx.m[1][2]     = 0;
     walker->scaleMtx.m[1][0]     = 0;
     walker->scaleMtx.m[0][2]     = 0;
     walker->scaleMtx.m[0][1]     = 0;
-    walker->scaleMtx.m[2][2]     = 0x1000;
-    walker->scaleMtx.m[1][1]     = 0x1000;
-    walker->scaleMtx.m[0][0]     = 0x1000;
+    walker->scaleMtx.m[2][2]     = ONE;
+    walker->scaleMtx.m[1][1]     = ONE;
+    walker->scaleMtx.m[0][0]     = ONE;
     walker->scaleMtx.t[2]        = 0;
     walker->scaleMtx.t[1]        = 0;
     walker->scaleMtx.t[0]        = 0;
-    scale                        = head - 1;
-    SCRATCH_STACK_CURSOR(VECTOR) = scale;
-    if (amount != 0 && amount != 0x1000) {
-        scale->vz = amount;
-        scale->vy = amount;
-        scale->vx = amount;
-        ScaleMatrix(&walker->scaleMtx, scale);
+    scaleVector                  = scratchEnd - 1;
+    SCRATCH_STACK_CURSOR(VECTOR) = scaleVector;
+    if (scaleAmount != 0 && scaleAmount != ONE) {
+        scaleVector->vz = scaleAmount;
+        scaleVector->vy = scaleAmount;
+        scaleVector->vx = scaleAmount;
+        ScaleMatrix(&walker->scaleMtx, scaleVector);
     }
 }
 
-/// Recomputes `coord`'s world matrix and hands the model's root translation to
-/// `worldCoordSetModelLighting`, staged in the scratch `VECTOR` on top of the stack, which
-/// it then releases.
-static __inline__ void _acropolisBridgeLightModel(Task* task, GfxCoord* coord)
+/// Composes and lights the bridge enemy model at its root's world position.
+///
+/// Requires a live model and the one-`VECTOR` scratch block reserved by
+/// `_acropolisBridgeInitWalkerScale`. Reuses that block for the root translation,
+/// queries all three lights, then releases it. Lighting may use nested scratch.
+static __inline__ void _acropolisBridgeLightModel(Task* task)
 {
-    VECTOR* vec;
+    VECTOR* worldPosition;
 
-    vec = SCRATCH_STACK_CURSOR(VECTOR);
-    actorRenderComposeCoord(coord);
-    vec->vx = task->extra.tmd->coords->workm.t[0];
-    vec->vy = task->extra.tmd->coords->workm.t[1];
-    vec->vz = task->extra.tmd->coords->workm.t[2];
-    worldCoordSetModelLighting(task->extra.tmd, vec, 0, 3);
+    worldPosition = SCRATCH_STACK_CURSOR(VECTOR);
+    actorRenderComposeCoord(task->extra.tmd->coords);
+    worldPosition->vx = task->extra.tmd->coords->workm.t[0];
+    worldPosition->vy = task->extra.tmd->coords->workm.t[1];
+    worldPosition->vz = task->extra.tmd->coords->workm.t[2];
+    worldCoordSetModelLighting(task->extra.tmd, worldPosition, 0, 3);
     SCRATCH_STACK_RELEASE_BLOCK(VECTOR);
 }
 
@@ -5037,7 +5101,7 @@ static void func_acropolis_bridge_80185988(Enemy* enemy, Task* task)
     link2                   = &work->attack;
     link2->coord            = &task->extra.tmd->coords[1];
     link2->context.contacts = work->attackContacts;
-    bridge_set_obj_pos(link2, &pos);
+    _acropolisBridgeSetCollisionBodyPosition(link2, &pos);
     link2->radius = 0x100;
     link2->flags  = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, link2);
@@ -5089,7 +5153,7 @@ static void func_acropolis_bridge_80185988(Enemy* enemy, Task* task)
 
     _acropolisBridgeInitWalkerScale(walker);
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    _acropolisBridgeLightModel(task, task->extra.tmd->coords);
+    _acropolisBridgeLightModel(task);
     axisY = 1;
     if (gSceneCombatState.battleRefs < 3) {
         sceneAcquireBattleRef(0);
@@ -5264,24 +5328,26 @@ void func_acropolis_bridge_80185F28(Task* task)
     }
 }
 
-/// Rebuilds the bridge enemy's model matrix for the spawn scale-up. `scale`
-/// ramps 0x88 per frame until it reaches 0x1000, and until then the matrix is
-/// reset to identity and scaled uniformly by it through a `VECTOR` taken from
-/// the scratch stack.
-static __inline__ void bridge_scale_up(_AcropolisBridgeEnemyWork* work)
+/// Grows the bridge enemy's Q12 scale by 136 and rebuilds its uniform scale matrix.
+///
+/// The caller stops invoking this at full scale (`ONE`); the final addition can
+/// overshoot and is not clamped. Zero and `ONE` leave identity. Borrows one
+/// `VECTOR` from the initialized scratch stack and releases it before returning.
+static __inline__ void _acropolisBridgeGrowEnemyScale(_AcropolisBridgeEnemyWork* work)
 {
+    enum { ACROPOLIS_BRIDGE_ENEMY_SCALE_GROWTH_PER_UPDATE = 136 };
     BossStrangerWalker* walker;
-    u8*                 head;
-    VECTOR*             scale;
-    s32                 amount;
+    VECTOR*             scratchEnd;
+    VECTOR*             scaleVector;
+    s32                 scaleAmount;
 
-    work->walker.scale      += 0x88;
+    work->walker.scale      += ACROPOLIS_BRIDGE_ENEMY_SCALE_GROWTH_PER_UPDATE;
     walker                   = &work->walker;
-    head                     = SCRATCH_STACK_CURSOR(u8);
-    walker->scaleMtx.m[2][2] = 0x1000;
-    walker->scaleMtx.m[1][1] = 0x1000;
-    walker->scaleMtx.m[0][0] = 0x1000;
-    amount                   = walker->scale;
+    scratchEnd               = SCRATCH_STACK_CURSOR(VECTOR);
+    walker->scaleMtx.m[2][2] = ONE;
+    walker->scaleMtx.m[1][1] = ONE;
+    walker->scaleMtx.m[0][0] = ONE;
+    scaleAmount              = walker->scale;
     walker->scaleMtx.m[2][1] = 0;
     walker->scaleMtx.m[2][0] = 0;
     walker->scaleMtx.m[1][2] = 0;
@@ -5291,23 +5357,26 @@ static __inline__ void bridge_scale_up(_AcropolisBridgeEnemyWork* work)
     walker->scaleMtx.t[2]    = 0;
     walker->scaleMtx.t[1]    = 0;
     walker->scaleMtx.t[0]    = 0;
-    scale                    = (VECTOR*)(head - 0x10);
+    scaleVector              = scratchEnd - 1;
 
-    SCRATCH_STACK_CURSOR(VECTOR) = scale;
-    if (amount != 0 && amount != 0x1000) {
-        scale->vz                    = amount;
-        scale->vy                    = amount;
-        ((VECTOR*)(head - 0x10))->vx = amount;
-        ScaleMatrix(&work->walker.scaleMtx, scale);
+    SCRATCH_STACK_CURSOR(VECTOR) = scaleVector;
+    if (scaleAmount != 0 && scaleAmount != ONE) {
+        scaleVector->vz      = scaleAmount;
+        scaleVector->vy      = scaleAmount;
+        (scratchEnd - 1)->vx = scaleAmount;
+        ScaleMatrix(&work->walker.scaleMtx, scaleVector);
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x10);
+    SCRATCH_STACK_RELEASE_BLOCK(VECTOR);
 }
 
-/// Reports whether the bridge enemy's hit box has recorded a contact: its
-/// one-entry contact table is occupied once something has struck it.
-static __inline__ s16 _acropolisBridgeWasHit(Task* task)
+/// Returns 1 when the bridge enemy's attack sphere has struck something, else 0.
+///
+/// Reads the live enemy work's one-entry attack contact table without clearing it.
+static __inline__ s16 _acropolisBridgeAttackLanded(const Task* task)
 {
-    if (((_AcropolisBridgeEnemyWork*)task->work)->attackContacts[0].key.value == 0) {
+    const _AcropolisBridgeEnemyWork* work = task->work;
+
+    if (work->attackContacts[0].key.value == 0) {
         return 0;
     }
     return 1;
@@ -5358,11 +5427,11 @@ void func_acropolis_bridge_801861A0(Task* task)
         task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     }
     if (work->walker.scale < 0x1000) {
-        bridge_scale_up(work);
+        _acropolisBridgeGrowEnemyScale(work);
     }
     bossStrangerTick(&work->walker);
     func_acropolis_bridge_8018581C(task);
-    if (_acropolisBridgeWasHit(task)) {
+    if (_acropolisBridgeAttackLanded(task)) {
         work->state = 3;
     }
     if (cfg->coordMtx->t[1] < 0x321) {
@@ -6046,21 +6115,28 @@ hitTaken:
     SCRATCH_STACK_RELEASE_BLOCK(_AcropolisBridgeHitScratch);
 }
 
-/// Applies a visibility request to the bridge task's model flags: no request
-/// restores the default flag set, bit 0 hides the mesh outright and bit 1 adds
-/// the "skip drawing" bit to whatever flags are already set. Always reports
-/// success.
-s32 func_acropolis_bridge_80187BD0(Task* task, s32 arg1, s32 flags, s32 arg3)
+/// Applies the bridge enemy's model-draw request and returns 1.
+///
+/// Zero replaces the flags with `TMD_OBJECT_SKIP_ACTIVE_DRAW`. Bit 0 takes
+/// precedence and clears all flags; otherwise bit 1 adds
+/// `TMD_OBJECT_SKIP_AUTO_BUFFER`. Other nonzero requests leave the flags alone.
+/// Requires the live model; does not allocate or release its primitive buffer.
+static s32 _acropolisBridgeEnemySetModelDraw(Task* task, s32 messageId, s32 drawRequest, s32 unusedArg)
 {
-    TmdObject* extra;
+    enum {
+        ACROPOLIS_BRIDGE_ENEMY_DRAW_HIDE             = 0,
+        ACROPOLIS_BRIDGE_ENEMY_DRAW_SHOW             = 1,
+        ACROPOLIS_BRIDGE_ENEMY_DRAW_SKIP_AUTO_BUFFER = 2
+    };
+    TmdObject* model;
 
-    extra = task->extra.tmd;
-    if (flags == 0) {
-        extra->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    } else if (flags & 1) {
-        extra->flags = 0;
-    } else if (flags & 2) {
-        extra->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+    model = task->extra.tmd;
+    if (drawRequest == ACROPOLIS_BRIDGE_ENEMY_DRAW_HIDE) {
+        model->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    } else if (drawRequest & ACROPOLIS_BRIDGE_ENEMY_DRAW_SHOW) {
+        model->flags = 0;
+    } else if (drawRequest & ACROPOLIS_BRIDGE_ENEMY_DRAW_SKIP_AUTO_BUFFER) {
+        model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
     }
     return 1;
 }
@@ -6090,28 +6166,29 @@ static void func_acropolis_bridge_80187C10(Task* task, s16 arg1)
     SCRATCH_POP_BYTES_AT(scratch, 0x10);
 }
 
-/// Shuts the bridge enemy's animation down. While the work block is still live
-/// it hides the mesh behind the default flag set, tags the enemy's link node
-/// and clears bit 15 of both behaviour flag words; once the work block has been
-/// cleared it instead adds the "skip drawing" bit and releases the TMD's aux
-/// buffers.
-void func_acropolis_bridge_80187D04(Task* task)
+/// Hides and disarms the bridge enemy in its inactive state.
+///
+/// Requires live enemy work, spawn argument and model. On state entry, hides
+/// active drawing, disables both collision pairs and prevents target locking.
+/// Later updates disable automatic buffer allocation and release an existing
+/// primitive buffer. The work block, model and enemy remain live.
+static void _acropolisBridgeEnemyInactive(Task* task)
 {
-    _AcropolisBridgeEnemyWork* work  = (_AcropolisBridgeEnemyWork*)task->work;
-    TmdObject*                 extra = task->extra.tmd;
+    _AcropolisBridgeEnemyWork* work  = task->work;
+    TmdObject*                 model = task->extra.tmd;
 
     if (work->stateEntered != 0) {
-        Enemy* enemy = (Enemy*)task->spawnArg2.pointer;
+        Enemy* enemy = task->spawnArg2.pointer;
 
-        extra->flags                  = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        model->flags                  = TMD_OBJECT_SKIP_ACTIVE_DRAW;
         enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
         work->body.flags             &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->attack.flags           &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         return;
     }
-    extra->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-    if (extra->buffer != NULL) {
-        tmdFreePrimitiveBuffer(extra);
+    model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+    if (model->buffer != NULL) {
+        tmdFreePrimitiveBuffer(model);
     }
 }
 
