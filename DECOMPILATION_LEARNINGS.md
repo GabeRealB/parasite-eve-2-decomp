@@ -148790,7 +148790,7 @@ the source's second set was is not known. Not it: a `switch` (five cases over
 
 ## Goto leftovers and the structured form each stands for (sample of 15 functions, 2026-10-05)
 
-A sample of 15 functions with 59 `goto`s was rewritten without them; 55 went,
+A sample of 15 functions with 62 `goto`s was rewritten without them; 60 went,
 none needed a hack. The forms, by what the `goto` was standing for:
 
 - **Angle-wrap loop `L: if (c) { x += K; goto L; }`.** `while (c) x += K;` and
