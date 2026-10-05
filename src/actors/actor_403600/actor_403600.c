@@ -2077,7 +2077,7 @@ void func_actor_403600_801353D0(Actor403600Ripple* arg0, GfxCoord* arg1)
     s32*                           height;
     MATRIX*                        matrix;
     s32*                           heightBase;
-    s32*                           scan;
+    s32*                           nextHeight;
     u16                            oldY;
     u8*                            head;
     u8*                            newHead;
@@ -2204,9 +2204,10 @@ void func_actor_403600_801353D0(Actor403600Ripple* arg0, GfxCoord* arg1)
             }
             poly->vertex0.v = screenY;
             poly->vertex0.u = screenX - poly->page0;
-            /* The next height is read at a byte offset scaled apart from the
-             * base: indexing `heightBase[i + 1]` folds the +1 into the load. */
-            if (scratch->flag >= 0 && i != 15 && (*height != 0 || (index = i + 1, index *= 4, *(s32*)((s32)heightBase + index) != 0))) {
+            /* The next height is reached through its own index and pointer:
+             * `heightBase[i + 1]` folds the +1 into the load's displacement,
+             * and an inline `heightBase[index]` adds the base second. */
+            if (scratch->flag >= 0 && i != 15 && (*height != 0 || (index = i + 1, nextHeight = &heightBase[index], *nextHeight != 0))) {
                 setlen(poly, 9);
                 poly->code   = 0x2D;
                 scratch->otz = (scratch->otz << gDisplayState.otDepthShift & 0x3FFF) >> 4;
