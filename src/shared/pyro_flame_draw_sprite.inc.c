@@ -1,14 +1,23 @@
 /* Part of the pyro flame library; see pyro_flame.h. */
 
-/// Writes one rotated half-diagonal's pixel offsets, with X rightward and Y upward.
+/// Stores the signed pixel offset from a flame billboard's centre to one corner.
 ///
-/// Borrows live scratch storage with positive depth. The signed divide truncates
-/// before the Q12 rotation; only `extent.corner` is written. Signed products must
-/// fit in 32 bits, and the arithmetic shift rounds negative products down.
+/// `scratch` borrows a live, word-aligned block with positive `depth`, measured
+/// as SZ3 / 4 plus the drawer's bias. `sizeFactor * 31 / depth` is the signed
+/// half-diagonal in integer pixels, truncated toward zero before Q12 rotation.
+/// Rotation products must fit s32; the arithmetic shift rounds down. No depth
+/// or overflow check occurs here.
+///
+/// `cornerAngle` uses 4096 units per turn and remains s32 across the caller's
+/// quarter-turn addition. For a positive half-diagonal, zero points up and a
+/// quarter turn points right. X is rightward and Y upward; the drawer subtracts
+/// Y from screen Y and negates both offsets for the opposite corner.
+/// Only the two s32 components of `extent.corner` change. No storage is
+/// allocated or released, and no pointer is retained.
 static inline void _pyroFlameComputeCornerOffset(EffectShapeScratch* scratch, s16 sizeFactor, s32 cornerAngle)
 {
-    s32 halfDiagonalPixels;
-    s32 trigSample;
+    s32    halfDiagonalPixels;
+    q19_12 trigSample;
 
     trigSample               = rsin(cornerAngle);
     halfDiagonalPixels       = (sizeFactor * PYRO_FLAME_UV_SPAN) / scratch->depth;
