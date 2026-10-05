@@ -401,25 +401,32 @@ static inline void _worldCoordComposeTransientPointLights(void)
     }
 }
 
-/// Aligns a cone light's local Z column with its authored axis.
+/// Builds a cone light's local rotation around its authored aim direction.
 ///
-/// axisHint is a full writable SVECTOR in the caller's scratch reservation;
-/// its xyz become a perpendicular Y hint, while its pad remains unspecified.
-/// The borrowed light and output coordinate must stay live and be disjoint
-/// from scratch. Preserves the local translation; changes GTE state through
-/// the basis builder. A degenerate axis retains the builder's behavior.
-static inline void _worldCoordBuildConeLightRotation(const WorldCoordSpotLight* coneLight, GfxCoord* coord, SVECTOR* axisHint)
+/// `coneLight->axis` is in the local translation's frame, conventionally Q12.
+/// Writes the light's local rotation, preserving translation, cached transform
+/// and composition stamp; the caller must mark the coordinate dirty afterwards.
+/// `yHintScratch` supplies a disjoint, halfword-aligned writable SVECTOR. Its
+/// xyz become a perpendicular Y hint; its ignored pad is read but not written.
+/// Requires another sizeof(MATRIX) bytes on the scratch stack for the basis
+/// builder and changes GTE state. Zero axes have no fallback; cross products
+/// must survive Q12 shifting and signed-halfword saturation for a useful basis.
+static inline void _worldCoordBuildConeLightRotation(WorldCoordSpotLight* coneLight, SVECTOR* yHintScratch)
 {
+    GfxCoord* localCoord;
+
+    localCoord = &coneLight->head.transform.coord;
+    // Choose a perpendicular Y hint even when the aim lies along X.
     if (coneLight->axis.vy != 0 || coneLight->axis.vz != 0) {
-        axisHint->vx = 0;
-        axisHint->vy = -coneLight->axis.vz;
-        axisHint->vz = coneLight->axis.vy;
+        yHintScratch->vx = 0;
+        yHintScratch->vy = -coneLight->axis.vz;
+        yHintScratch->vz = coneLight->axis.vy;
     } else {
-        axisHint->vx = coneLight->axis.vy;
-        axisHint->vy = -coneLight->axis.vx;
-        axisHint->vz = 0;
+        yHintScratch->vx = coneLight->axis.vy;
+        yHintScratch->vy = -coneLight->axis.vx;
+        yHintScratch->vz = 0;
     }
-    gfxBuildOrthonormalBasis(&coord->coord, &coneLight->axis, axisHint);
+    gfxBuildOrthonormalBasis(&localCoord->coord, &coneLight->axis, yHintScratch);
 }
 
 void worldCoordUpdateRoomLightsTask(Task* task)
@@ -456,7 +463,7 @@ void worldCoordUpdateRoomLightsTask(Task* task)
         for (lightIndex = 0; lightIndex < roomLights->coneLightCount; lightIndex++, coneLight++) {
             coord         = &coneLight->head.transform.coord;
             coord->parent = &gGfxViewCoord;
-            _worldCoordBuildConeLightRotation(coneLight, coord, axisHint);
+            _worldCoordBuildConeLightRotation(coneLight, axisHint);
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
         }
 
@@ -702,17 +709,26 @@ static void _worldCoordWriteParentFrameLightMatrix(s32 lightIndex, const WorldCo
     SCRATCH_STACK_RELEASE_BLOCK(_WorldCoordParentFrameLightMatrixScratch);
 }
 
-/// Measures a cached light offset with the nearest-light query's half-unit scale.
+/// Measures squared distance to a cached light after halving each coordinate difference.
 ///
-/// samplePosition and the light's composed translation must share a frame.
-/// Writes halfOffset xyz with arithmetic shifts, then returns the signed-word
-/// sum of squares as u32. Inputs and scratch must be disjoint; the VECTOR's
-/// fourth word is untouched. No composition or GTE operation is performed.
-static inline u32 _worldCoordGetLightDistanceSquared(const WorldCoordLight* lightHeader, const VECTOR* samplePosition, VECTOR* halfOffset)
+/// Reads signed xyz from `samplePosition` and the composed light translation.
+/// A geometric distance requires both to share a game-coordinate frame; no
+/// composition or frame conversion is performed. Writes light minus sample
+/// into `halfOffset`, arithmetically halved with negative odd values rounded
+/// down. Each offset unit spans two game-coordinate units; each squared-sum
+/// unit spans four squared game-coordinate units, with rounding before squaring.
+///
+/// Retains signed 32-bit subtraction, products and sums, returning their target
+/// word as u32 without overflow checks. Inputs and writable word-aligned scratch
+/// must be disjoint. Only xyz are accessed; both VECTOR pads are untouched.
+/// Allocates no scratch, retains no pointer and changes no GTE state.
+static inline u32 _worldCoordGetHalfScaleLightDistanceSquared(const WorldCoordLight* lightHeader, const VECTOR* samplePosition, VECTOR* halfOffset)
 {
-    halfOffset->vx = (lightHeader->transform.coord.workm.t[0] - samplePosition->vx) >> 1;
-    halfOffset->vy = (lightHeader->transform.coord.workm.t[1] - samplePosition->vy) >> 1;
-    halfOffset->vz = (lightHeader->transform.coord.workm.t[2] - samplePosition->vz) >> 1;
+    enum { WORLD_COORDINATE_LIGHT_DISTANCE_COMPONENT_SHIFT = 1 };
+
+    halfOffset->vx = (lightHeader->transform.lighting.composed.t[0] - samplePosition->vx) >> WORLD_COORDINATE_LIGHT_DISTANCE_COMPONENT_SHIFT;
+    halfOffset->vy = (lightHeader->transform.lighting.composed.t[1] - samplePosition->vy) >> WORLD_COORDINATE_LIGHT_DISTANCE_COMPONENT_SHIFT;
+    halfOffset->vz = (lightHeader->transform.lighting.composed.t[2] - samplePosition->vz) >> WORLD_COORDINATE_LIGHT_DISTANCE_COMPONENT_SHIFT;
     return halfOffset->vx * halfOffset->vx + halfOffset->vy * halfOffset->vy + halfOffset->vz * halfOffset->vz;
 }
 
@@ -753,7 +769,7 @@ static void _worldCoordFindNearestRoomLight(const VECTOR* samplePosition, _World
             pointLight = roomLights->pointLights;
             for (lightIndex = 0; lightIndex < roomLights->pointLightCount; lightIndex++, pointLight++) {
                 lightHeader     = &pointLight->head;
-                distanceSquared = _worldCoordGetLightDistanceSquared(lightHeader, samplePosition, halfOffset);
+                distanceSquared = _worldCoordGetHalfScaleLightDistanceSquared(lightHeader, samplePosition, halfOffset);
                 if (distanceSquared < nearestDistanceSquared) {
                     nearestDistanceSquared = distanceSquared;
                     nearestLight->kind     = WORLD_COORDINATE_RANKED_LIGHT_ROOM_POINT;
@@ -765,7 +781,7 @@ static void _worldCoordFindNearestRoomLight(const VECTOR* samplePosition, _World
             coneLight = roomLights->coneLights;
             for (lightIndex = 0; lightIndex < roomLights->coneLightCount; lightIndex++, coneLight++) {
                 lightHeader     = &coneLight->head;
-                distanceSquared = _worldCoordGetLightDistanceSquared(lightHeader, samplePosition, halfOffset);
+                distanceSquared = _worldCoordGetHalfScaleLightDistanceSquared(lightHeader, samplePosition, halfOffset);
                 if (distanceSquared < nearestDistanceSquared) {
                     nearestDistanceSquared = distanceSquared;
                     nearestLight->kind     = WORLD_COORDINATE_RANKED_LIGHT_CONE;
