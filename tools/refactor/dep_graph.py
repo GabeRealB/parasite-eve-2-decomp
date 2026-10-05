@@ -934,7 +934,26 @@ def batch_ready(root: str, order, nodes, edges, comp, done, limits: dict):
     return [g for g in order if g not in pset] + steps
 
 
-def _step_numbers(order, nodes, edges, comp, done):
+RUN_KINDS = os.path.join("local", "name_pass_kinds")
+
+
+def run_kinds(root):
+    """The kinds the running pass is restricted to, or None for all of them.
+
+    local/name_pass_kinds holds one line, `<comma-separated kinds> <driver pid>`,
+    written by name_pass.sh when it is given --kinds. The pid is what keeps a
+    file left by a run that died from loosening the waits of the next,
+    unrestricted one: a restriction counts only while its driver is alive.
+    """
+    try:
+        kinds, pid = open(os.path.join(root, RUN_KINDS)).read().split()
+        os.kill(int(pid), 0)
+    except (OSError, ValueError):
+        return None
+    return {k for k in kinds.split(",") if k} or None
+
+
+def _step_numbers(order, nodes, edges, comp, done, kinds=None):
     """Step number per component, and the last step each one waits on.
 
     The worklist is a total order, but most of it is free: a step is only
@@ -954,6 +973,12 @@ def _step_numbers(order, nodes, edges, comp, done):
         if any(u not in done for u in g):
             idx += 1
             step_of[g] = idx
+    # A run restricted to some kinds never works the others, so a pending item
+    # of another kind imposes no wait of its own: it passes on the waits it has.
+    # Without this every function behind a pending enum or data item waits for
+    # something the run will not do, and the round is one step wide.
+    def waited(h):
+        return kinds is None or any(_node_kind(u) in kinds for u in h if u not in done)
     after = {}
     for g in step_of:
         last = 0
@@ -962,9 +987,9 @@ def _step_numbers(order, nodes, edges, comp, done):
                 if d not in nodes:
                     continue
                 h = comp.get(d, (d,))
-                if h is g:
+                if h is g or h not in step_of:
                     continue
-                last = max(last, step_of.get(h, 0))
+                last = max(last, step_of[h] if waited(h) else after.get(h, 0))
         after[g] = last
     return step_of, after
 
@@ -995,7 +1020,7 @@ def worklist(root: str, version: str, nodes, edges, comp, done, out_path: str, l
                   if u not in done and nodes[u].get("file") and _node_kind(u) != "macro"}
     used_in_asm = asm_used(root, version, todo_names)
 
-    step_of, after = _step_numbers(order, nodes, edges, comp, done)
+    step_of, after = _step_numbers(order, nodes, edges, comp, done, run_kinds(root))
 
     rows, idx = [], 0
     for g in order:

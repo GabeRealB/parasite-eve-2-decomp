@@ -228,8 +228,10 @@ next_batch() {
     if [[ -n "$first" ]]; then
       # Looking further costs a tree-wide grep per candidate, and the answer
       # stops improving quickly once the front narrows.
+      # Counted in steps: a batched step is several rows, and counting those
+      # spent the whole window on the first few dozen steps.
       (( ++scanned > 40 * WORKERS )) && break
-      (( after < first )) || continue
+      (( after < first )) || { last="$order"; continue; }
     fi
     if [[ "$state" == "generated" ]]; then
       # Reported by the caller, which stops the pass: nothing behind a barrier
@@ -454,6 +456,14 @@ refresh_worklist() {
 }
 
 LOG="$(vacuum_log_dir)/name_pass-$$.log"
+
+# Tell the worklist which kinds this run works, so a pending item of another
+# kind does not hold back the steps that use it (dep_graph.run_kinds).
+if [[ -n "$KINDS" ]]; then
+  echo "$KINDS $$" > local/name_pass_kinds
+else
+  rm -f local/name_pass_kinds
+fi
 # What this run started from, so the closing audit runs only when it landed work.
 RUN_START="$(git rev-parse HEAD)"
 RUN_ID="$(date -u '+%Y%m%dT%H%M%SZ')-$$"
