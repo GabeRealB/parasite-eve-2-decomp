@@ -69,13 +69,48 @@ extern s32 gRoomEffectFlashId;
 
 extern TaskDesc D_8010FC2C[];
 
-s32 Gp_TraceGroundCoord(GfxCoord* arg0, GfxCoord* arg1);
+/// Projects a composed coordinate's view-space position onto room geometry along world +Y.
+///
+/// Probes a 4096-game-unit segment using the current composed view rotation.
+/// Input XYZ and the rotated endpoint narrow to signed 16-bit game units.
+/// Returns 1 on a hit, otherwise 0 with `hitCoord` unchanged. On success, replaces
+/// its cached translation, derives its local matrix using its existing cached
+/// rotation, reparents it to `gGfxViewCoord` and composes it. Source and output
+/// may alias. The output's cached rotation is read and must already be initialized.
+/// Inputs must remain clear of the initialized scratch stack and the nested
+/// collision query's storage. Changes GTE state and retains no pointers.
+s32 worldCollisionProjectGroundCoord(const GfxCoord* sourceCoord, GfxCoord* hitCoord);
 
-s32 func_800EA1A8(VECTOR3* arg0, VECTOR3* arg1);
+/// Projects a view-space point onto room geometry along world +Y.
+///
+/// Reads only the source's three signed 32-bit game-unit components and probes
+/// 4096 units using the current composed view rotation. Source XYZ and the
+/// endpoint narrow to signed 16 bits. On a hit, writes only XYZ to `hitPoint`,
+/// promoting the signed intersection to 32 bits, and returns hit Y minus source
+/// Y in view space; a zero displacement returns 1. A miss returns 0 and leaves
+/// the output unchanged. Thus every nonzero result is a hit, including negative
+/// displacements. Source and output may alias. Both must remain clear of the
+/// initialized scratch stack and nested query storage. Changes GTE state;
+/// retains no pointers and does not read or write an SDK VECTOR pad word.
+s32 worldCollisionProjectGroundPoint(const VECTOR3* sourcePoint, VECTOR3* hitPoint);
 
-s32 func_800EA318(s16 arg0, s16 arg1, s16 arg2);
+/// Attenuates a ground shadow's shade by the signed view-Y probe displacement.
+///
+/// `halfSize` is the shadow's half-size in game units; `baseShade` is its
+/// grayscale intensity. Computes baseShade * (2 * halfSize) / viewYDisplacement
+/// with signed word arithmetic. A zero displacement returns 0 (unmodulated);
+/// values above 255 saturate to 255, and a nonzero displacement that rounds to
+/// zero returns -1 (disabled). Negative results otherwise remain unchanged.
+/// Pass the ground-point probe result narrowed to s16; this is view Y, not a
+/// camera-independent world height.
+s32 effectGetGroundShadowShade(s16 halfSize, s16 baseShade, s16 viewYDisplacement);
 
-void func_800EA3A0(s32 arg0);
+/// Records the player's most recently played animation sound cue.
+///
+/// `cueIndex` is 0 for animation cue 2 or 1 for cue 1. Stores cueIndex + 1,
+/// narrowed to the controller's signed halfword; zero is reserved for no cue.
+/// Requires a live `gRoomEffectState`; records the cue without playing sound.
+void roomEffectRecordAnimationSoundCue(s32 cueIndex);
 
 /// Spawns a counted effect task and its `EffectWork`.
 /// `arg0` packs the `Task_Spawn` bank in bits 16..30 and the type in the low
@@ -89,18 +124,38 @@ void func_800EA3A0(s32 arg0);
 /// Returns the work object, or `NULL`.
 EffectWork* Gp_SpawnEff(s32 arg0, GfxCoord* arg1, TaskSpawnArg arg2, SVECTOR* arg3);
 
-/// Full-screen semi-trans POLY_F4. `arg0` is RGB; `arg1` is ABR (low 2 bits).
-void Gp_DrawFadeQuad(u8* arg0, s32 arg1);
+/// Draws a semitransparent full-screen colour tint over the current frame.
+///
+/// `rgb` supplies three readable bytes; `blendMode`'s low two bits select
+/// `GPU_BLEND_*`. Covers the centred 320 by 240 pixel viewport, compensating
+/// for `vramYOffset`, at sorting depth 16 scaled by `otDepthShift`. Prepends a
+/// dithered blend command ahead of the quad. Consumes one `POLY_F4` and one
+/// `DR_TPAGE` from the word-aligned frame arena without a capacity check;
+/// packets borrow it until GPU drawing completes, and draw mode persists.
+void effectDrawScreenTint(const u8* rgb, s32 blendMode);
 
-/// Handwritten GTE routine. Draws a textured sprite at `arg0`; `arg1` is a
-/// signed half-extent, `arg2` a scale, and `arg3` the RGB triple.
-void Gp_DrawArc(GfxCoord* arg0, s32 arg1, s32 arg2, u8* arg3);
+/// Draws an additive camera-facing Gouraud band, black inside and coloured outside.
+///
+/// `centreCoord` must have a composed view-space cached translation; its rotation
+/// is unused. `rgb` supplies three readable bytes. `innerRadius` and `width` each
+/// narrow independently to s16; screen radii are innerRadius * 64 / (OTZ + 1)
+/// and (innerRadius + width) * 64 / (OTZ + 1), with signed word arithmetic.
+/// The complete band uses sixteen untextured quads.
+/// Rejects a negative GTE projection flag. Reserves/relinquishes scratch storage
+/// and appends sixteen `POLY_G4`/`DR_TPAGE` pairs to the unchecked frame arena;
+/// packets live through GPU drawing. Inputs must stay clear of that storage.
+void effectDrawOuterGlowBand(const GfxCoord* centreCoord, s32 innerRadius, s32 width, const u8* rgb);
 
-/// Handwritten GTE routine. Draws an eight-segment gouraud ring centred on
-/// `arg0`'s world position: `arg1` is the radius in world units (scaled by
-/// 64 and divided by the projected OTZ) and `arg2` the RGB triple, which
-/// only lights the ring's inner vertex so each `POLY_G4` fades to black.
-void Gp_DrawRing(GfxCoord* arg0, s32 arg1, u8* arg2);
+/// Draws an additive camera-facing Gouraud disc, coloured at its centre and black at its rim.
+///
+/// `centreCoord` supplies a composed view-space cached translation; rotation is
+/// unused. `radius` narrows to s16, then scales to radius * 64 / (OTZ + 1) pixels.
+/// `rgb` supplies three readable bytes. Eight untextured quads cover sixteen fan
+/// triangles. Rejects a negative GTE projection flag.
+/// Reserves/relinquishes scratch storage and appends eight `POLY_G4`/`DR_TPAGE`
+/// pairs to the unchecked frame arena; packets live through GPU drawing. Inputs
+/// must stay clear of that storage. Leaves additive draw mode active.
+void effectDrawGouraudDisc(const GfxCoord* centreCoord, s32 radius, const u8* rgb);
 
 /// Draws one textured, additive `POLY_FT4` billboard at `arg0`'s projected
 /// position. `arg1` is the animation frame (U origin `arg1 * 32`, the sprite

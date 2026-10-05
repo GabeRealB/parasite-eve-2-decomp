@@ -110,7 +110,7 @@ static inline void pykeFlameTask(Task* task)
             ang2            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             gRandomLcgState = ang2;
             if ((u16)((ang2 >> 16) % 3) == 0 && gRoomEffectState->groundTraceEnabled != 0 &&
-                Gp_TraceGroundCoord(coord, &ground) == 1) {
+                worldCollisionProjectGroundCoord(coord, &ground) == 1) {
                 pykeFlameDrawSplash(MATRIX_TRANS(&ground.workm), (s16)((work->scale * 2) / 3));
             }
             if (worldCollisionCountContactsByKind(flame->body.context.contacts, WORLD_COLLISION_CONTACT_ENEMY_BODY) != 0) {

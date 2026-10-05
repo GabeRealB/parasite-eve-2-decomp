@@ -463,6 +463,45 @@ static const TaskFuncTable3 D_80097678;
 
 enum { ROOM_EFFECT_NORMAL_SPAWN_LIMIT = 0x81 };
 
+/// Fixed texture-page fields shared by the untextured effect blend commands.
+enum {
+    GPU_EFFECT_TEXTURE_DEPTH_4BIT = 0,
+    GPU_EFFECT_TEXTURE_PAGE_X     = 640,
+    GPU_EFFECT_FIXED_DEPTH_SHIFT  = 4,
+};
+
+/// Camera-facing radial geometry: sixteen spokes and Q12 trigonometric values.
+enum {
+    EFFECT_RADIAL_ANGLE_TURN         = 0x1000,
+    EFFECT_RADIAL_ANGLE_STEP         = 0x100,
+    EFFECT_RADIAL_TRIG_FRACTION_BITS = 12,
+    EFFECT_RADIAL_PERSPECTIVE_SCALE  = 64,
+};
+
+/// Builds and queries a world +Y ground segment in an already reserved scratch block.
+///
+/// `savedCursor` points immediately above `probe`, whose origin X/Y are filled.
+/// `sourceZBits` supplies the low 16 source-Z bits; `segmentEnd` and `hitResult`
+/// are writable pointer/status locals. Arguments must be side-effect-free local
+/// identifiers: pointer and output arguments occur repeatedly. Captures the
+/// current view rotation and room grid, changes GTE state and the endpoint,
+/// retains the saved-cursor X reload, and leaves the caller's block reserved.
+/// Expands to several statements; invoke only as a phase inside a braced block.
+#define WORLD_COLLISION_QUERY_GROUND_PROJECTION(savedCursor, probe, sourceZBits, segmentEnd, hitResult) \
+    (probe)->endpoint.vx = 0;                                                                           \
+    (probe)->endpoint.vy = WORLD_COLLISION_GROUND_PROBE_LENGTH;                                         \
+    (probe)->endpoint.vz = 0;                                                                           \
+    (probe)->origin.vz   = (sourceZBits);                                                               \
+    gte_SetRotMatrix(&gGfxViewCoord.workm);                                                             \
+    (segmentEnd) = &(savedCursor)[-1].endpoint;                                                         \
+    gte_ldv0(segmentEnd);                                                                               \
+    gte_rtv0();                                                                                         \
+    gte_stsv(segmentEnd);                                                                               \
+    (probe)->endpoint.vx += (savedCursor)[-1].origin.vx;                                                \
+    (probe)->endpoint.vy += (probe)->origin.vy;                                                         \
+    (probe)->endpoint.vz += (probe)->origin.vz;                                                         \
+    (hitResult)           = worldCollisionProbeGridSegment((segmentEnd), &(probe)->origin, (segmentEnd), NULL);
+
 /// Grayscale fade task controlled by `gPlayerStatus.statusFlags` bit 0.
 /// Alternates LCG-selected brightness targets, then fades out and releases
 /// its `EffectWork` when the flag stays clear.
@@ -472,17 +511,17 @@ static void Gp_InitState1C(Task* arg0);
 
 static void Gp_TickState1C(Task* unused);
 
-static void Gp_DecRoomCoordRefs(void);
+static void _worldCoordTickTransientPointLights(void);
 
-static void Gp_InitRoomCoords(void);
+static void _worldCoordInitTransientPointLights(void);
 
 void func_800EA420(Task* arg0);
 
 void Gp_FadeWaveTask(Task* arg0);
 
-static void Gp_KillState1CTask(Task* arg0);
+static void _effectExitTask(Task* task);
 
-static void Gp_AddTpage(P_TAG* arg0, s32 arg1, s32 arg2);
+static void _gpuSetPrimitiveBlendModeFixedDepth(void* primitive, s32 blendMode, s32 depth);
 
 // Retained effect slots without a proven owning room. See the local type audit.
 void func_mist_parking_8018345C(Task* task);
@@ -1402,7 +1441,7 @@ static void Gp_InitState1C(Task* arg0)
     gRoomEffectWaterSprayId            = 0;
     gEnergyBallInFlightCount           = 0;
     arg0->state++;
-    Gp_InitRoomCoords();
+    _worldCoordInitTransientPointLights();
 
     switch (gGameSession->location.loc.stage) {
         case GAME_STAGE_ACROPOLIS:
@@ -1454,7 +1493,7 @@ static void Gp_TickState1C(Task* unused)
     effectState->peEffectControl    = combat->actorControl | (effectState->pendingCancelFlags & (ROOM_EFFECT_CANCEL_PE | ROOM_EFFECT_CANCEL_ALL));
     effectState->pendingCancelFlags = 0;
     if (!(effectState->effectControl & ROOM_EFFECT_CONTROL_PAUSED)) {
-        Gp_DecRoomCoordRefs();
+        _worldCoordTickTransientPointLights();
     }
     if (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
         attachment                  = &Gp_StateC08;
@@ -1470,121 +1509,97 @@ static void Gp_TickState1C(Task* unused)
     }
 }
 
-s32 Gp_TraceGroundCoord(GfxCoord* arg0, GfxCoord* arg1)
+s32 worldCollisionProjectGroundCoord(const GfxCoord* sourceCoord, GfxCoord* hitCoord)
 {
     _WorldCollisionGroundProbeScratch* scratchEnd;
     _WorldCollisionGroundProbeScratch* scratch;
     SVECTOR*                           endpoint;
-    MATRIX*                            world;
-    s32                                ret;
+    MATRIX*                            viewMatrix;
+    s32                                hitResult;
     u16                                originZBits;
 
     scratchEnd                                              = SCRATCH_STACK_CURSOR(_WorldCollisionGroundProbeScratch);
     scratch                                                 = scratchEnd - 1;
-    scratchEnd[-1].origin.vx                                = (u16)arg0->workm.t[0];
-    scratch->origin.vy                                      = (u16)arg0->workm.t[1];
-    originZBits                                             = (u16)arg0->workm.t[2];
+    scratchEnd[-1].origin.vx                                = (u16)sourceCoord->workm.t[0];
+    scratch->origin.vy                                      = (u16)sourceCoord->workm.t[1];
+    originZBits                                             = (u16)sourceCoord->workm.t[2];
     SCRATCH_STACK_CURSOR(_WorldCollisionGroundProbeScratch) = scratch;
-    // Build the world +Y probe offset in view space before adding the origin.
-    scratch->endpoint.vx = 0;
-    scratch->endpoint.vy = WORLD_COLLISION_GROUND_PROBE_LENGTH;
-    scratch->endpoint.vz = 0;
-    scratch->origin.vz   = originZBits;
-    gte_SetRotMatrix(&gGfxViewCoord.workm);
-    endpoint = &scratchEnd[-1].endpoint;
-    gte_ldv0(endpoint);
-    gte_rtv0();
-    gte_stsv(endpoint);
-    scratch->endpoint.vx += scratchEnd[-1].origin.vx;
-    scratch->endpoint.vy += scratch->origin.vy;
-    scratch->endpoint.vz += scratch->origin.vz;
-    // The collision query replaces the endpoint with its accepted intersection.
-    ret = worldCollisionProbeGridSegment(endpoint, &scratch->origin, endpoint, NULL);
-    if (ret == 1) {
-        world            = &gGfxViewCoord.workm;
-        arg1->workm.t[0] = scratch->endpoint.vx;
-        arg1->workm.t[1] = scratch->endpoint.vy;
-        arg1->workm.t[2] = scratch->endpoint.vz;
-        gfxMakeRelativeTransform(world, &arg1->workm, &arg1->coord);
-        arg1->parent       = PARENT_OF(world, GfxCoord, workm);
-        arg1->composeStamp = GRAPHICS_COORD_DIRTY;
-        actorRenderComposeCoord(arg1);
+    WORLD_COLLISION_QUERY_GROUND_PROJECTION(scratchEnd, scratch, originZBits, endpoint, hitResult);
+    if (hitResult == 1) {
+        viewMatrix           = &gGfxViewCoord.workm;
+        hitCoord->workm.t[0] = scratch->endpoint.vx;
+        hitCoord->workm.t[1] = scratch->endpoint.vy;
+        hitCoord->workm.t[2] = scratch->endpoint.vz;
+        gfxMakeRelativeTransform(viewMatrix, &hitCoord->workm, &hitCoord->coord);
+        hitCoord->parent       = PARENT_OF(viewMatrix, GfxCoord, workm);
+        hitCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+        actorRenderComposeCoord(hitCoord);
     }
     SCRATCH_STACK_RELEASE_BLOCK(_WorldCollisionGroundProbeScratch);
-    return ret;
+    return hitResult;
 }
 
-s32 func_800EA1A8(VECTOR3* arg0, VECTOR3* arg1)
+s32 worldCollisionProjectGroundPoint(const VECTOR3* sourcePoint, VECTOR3* hitPoint)
 {
     _WorldCollisionGroundProbeScratch* scratchEnd;
     _WorldCollisionGroundProbeScratch* scratch;
     SVECTOR*                           endpoint;
-    s32                                ret;
+    s32                                hitResult;
     u16                                originZBits;
 
     scratchEnd                                              = SCRATCH_STACK_CURSOR(_WorldCollisionGroundProbeScratch);
     scratch                                                 = scratchEnd - 1;
-    scratchEnd[-1].origin.vx                                = (u16)arg0->vx;
-    scratch->origin.vy                                      = (u16)arg0->vy;
-    originZBits                                             = (u16)arg0->vz;
+    scratchEnd[-1].origin.vx                                = (u16)sourcePoint->vx;
+    scratch->origin.vy                                      = (u16)sourcePoint->vy;
+    originZBits                                             = (u16)sourcePoint->vz;
     SCRATCH_STACK_CURSOR(_WorldCollisionGroundProbeScratch) = scratch;
-    // Build the world +Y probe offset in view space before adding the origin.
-    scratch->endpoint.vx = 0;
-    scratch->endpoint.vy = WORLD_COLLISION_GROUND_PROBE_LENGTH;
-    scratch->endpoint.vz = 0;
-    scratch->origin.vz   = originZBits;
-    gte_SetRotMatrix(&gGfxViewCoord.workm);
-    endpoint = &scratchEnd[-1].endpoint;
-    gte_ldv0(endpoint);
-    gte_rtv0();
-    gte_stsv(endpoint);
-    scratch->endpoint.vx += scratchEnd[-1].origin.vx;
-    scratch->endpoint.vy += scratch->origin.vy;
-    scratch->endpoint.vz += scratch->origin.vz;
-    // The collision query replaces the endpoint with its accepted intersection.
-    ret = worldCollisionProbeGridSegment(endpoint, &scratch->origin, endpoint, NULL);
-    if (ret == 1) {
-        arg1->vx = scratch->endpoint.vx;
-        arg1->vy = scratch->endpoint.vy;
-        arg1->vz = scratch->endpoint.vz;
-        ret      = scratch->endpoint.vy - scratch->origin.vy;
-        if (ret == 0) {
-            ret = 1;
+    WORLD_COLLISION_QUERY_GROUND_PROJECTION(scratchEnd, scratch, originZBits, endpoint, hitResult);
+    if (hitResult == 1) {
+        hitPoint->vx = scratch->endpoint.vx;
+        hitPoint->vy = scratch->endpoint.vy;
+        hitPoint->vz = scratch->endpoint.vz;
+        hitResult    = scratch->endpoint.vy - scratch->origin.vy;
+        if (hitResult == 0) {
+            hitResult = 1;
         }
     }
     SCRATCH_STACK_RELEASE_BLOCK(_WorldCollisionGroundProbeScratch);
-    return ret;
+    return hitResult;
 }
 
-s32 func_800EA318(s16 arg0, s16 arg1, s16 arg2)
+s32 effectGetGroundShadowShade(s16 halfSize, s16 baseShade, s16 viewYDisplacement)
 {
-    s32 result;
+    s32 shade;
 
-    result = 0;
-    if (arg2 != 0) {
-        result = (arg1 * (arg0 << 1)) / arg2;
-        if (result >= 0x100) {
-            result = 0xFF;
-        } else if (result == 0) {
-            result = -1;
+    shade = 0;
+    if (viewYDisplacement != 0) {
+        shade = (baseShade * (halfSize << 1)) / viewYDisplacement;
+        if (shade >= ROOM_EFFECT_GROUND_SHADOW_MAX_SHADE + 1) {
+            shade = ROOM_EFFECT_GROUND_SHADOW_MAX_SHADE;
+        } else if (shade == 0) {
+            shade = ROOM_EFFECT_GROUND_SHADOW_DISABLED;
         }
     }
-    return result;
+    return shade;
 }
 
-void func_800EA3A0(s32 arg0)
+void roomEffectRecordAnimationSoundCue(s32 cueIndex)
 {
-    gRoomEffectState->lastAnimationSoundCue = arg0 + 1;
+    gRoomEffectState->lastAnimationSoundCue = cueIndex + 1;
 }
 
-static void Gp_DecRoomCoordRefs(void)
+/// Ages every nonzero transient point-light lifetime by one gameplay frame.
+///
+/// The room-effect controller calls this only when effect updates are unpaused.
+/// Zero disables a slot; expiry retains its placement and light data for reuse.
+static void _worldCoordTickTransientPointLights(void)
 {
-    s32                            i;
+    s32                            slotIndex;
     WorldCoordTransientPointLight* lightSlot;
 
     // Expire contributions in place, retaining their light records for reuse.
     lightSlot = gWorldCoordTransientPointLights;
-    for (i = 0; i < ARRAY_SIZE(gWorldCoordTransientPointLights); i++) {
+    for (slotIndex = 0; slotIndex < ARRAY_SIZE(gWorldCoordTransientPointLights); slotIndex++) {
         if (lightSlot->framesLeft != WORLD_COORDINATE_TRANSIENT_LIGHT_INACTIVE) {
             lightSlot->framesLeft--;
         }
@@ -1592,13 +1607,17 @@ static void Gp_DecRoomCoordRefs(void)
     }
 }
 
-static void Gp_InitRoomCoords(void)
+/// Disables all transient point lights and borrows the persistent view as their parent.
+///
+/// Retains each light's other transform, intensity and falloff fields. Writers
+/// must initialize them and dirty the transform before activating a slot.
+static void _worldCoordInitTransientPointLights(void)
 {
-    s32                            i;
+    s32                            slotIndex;
     WorldCoordTransientPointLight* lightSlot;
 
     lightSlot = gWorldCoordTransientPointLights;
-    for (i = 0; i < ARRAY_SIZE(gWorldCoordTransientPointLights); i++) {
+    for (slotIndex = 0; slotIndex < ARRAY_SIZE(gWorldCoordTransientPointLights); slotIndex++) {
         lightSlot->light.head.transform.coord.parent = &gGfxViewCoord;
         lightSlot->framesLeft                        = WORLD_COORDINATE_TRANSIENT_LIGHT_INACTIVE;
         lightSlot++;
@@ -1697,7 +1716,7 @@ EffectWork* Gp_SpawnEff(s32 arg0, GfxCoord* arg1, TaskSpawnArg arg2, SVECTOR* ar
     }
 
     task->spawnArg2.pointer = mem;
-    task->exitCallback      = Gp_KillState1CTask;
+    task->exitCallback      = _effectExitTask;
     mem->task               = task;
     mem->index              = 0;
     mem->age                = 0;
@@ -1712,142 +1731,152 @@ EffectWork* Gp_SpawnEff(s32 arg0, GfxCoord* arg1, TaskSpawnArg arg2, SVECTOR* ar
     return mem;
 }
 
-void Gp_DrawFadeQuad(u8* arg0, s32 arg1)
+/// Enables primitive blending and prepends a dithered effect draw-mode command.
+///
+/// The initialized primitive is already linked at the same display-scaled depth.
+/// Consumes one unchecked frame-arena DR_TPAGE and leaves draw mode active;
+/// the low blend bits select GPU_BLEND_* and the unused 4-bit page is (640, 0).
+static inline void _gpuSetEffectPrimitiveBlendMode(void* primitive, s32 blendMode, s32 sortingDepth)
 {
-    POLY_F4*  p;
-    DR_TPAGE* dr;
-    s32       x0;
-    s32       x1;
-    s32       yTop;
-    s32       yBot;
+    DR_TPAGE* blendCommand;
 
-    arg1 &= 3;
-    x0    = -0xA0;
-    x1    = 0xA0;
-    yTop  = -0x78;
-    yBot  = 0x78;
-
-    p              = gGpuPrimCursor;
-    gGpuPrimCursor = p + 1;
-    setPolyF4(p);
-    setRGB0(p, arg0[0], arg0[1], arg0[2]);
-    p->x0 = x0;
-    p->y0 = yTop - gDisplayState.vramYOffset;
-    p->x1 = x1;
-    p->y1 = yTop - gDisplayState.vramYOffset;
-    p->x2 = x0;
-    p->y2 = yBot - gDisplayState.vramYOffset;
-    p->x3 = x1;
-    p->y3 = yBot - gDisplayState.vramYOffset;
-    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)0x10 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), p);
-
-    setSemiTrans(p, 1);
-    dr             = gGpuPrimCursor;
-    gGpuPrimCursor = dr + 1;
-    setDrawTPage(dr, 0, 1, 0xA | (arg1 << 5));
-    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)0x10 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), dr);
+    setSemiTrans(primitive, 1);
+    blendCommand   = gGpuPrimCursor;
+    gGpuPrimCursor = blendCommand + 1;
+    setDrawTPage(blendCommand, false, true,
+                 getTPage(GPU_EFFECT_TEXTURE_DEPTH_4BIT, blendMode, GPU_EFFECT_TEXTURE_PAGE_X, 0));
+    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(
+                ((((u32)sortingDepth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            blendCommand);
 }
 
-void Gp_DrawArc(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
+void effectDrawScreenTint(const u8* rgb, s32 blendMode)
 {
-    EffectShapeScratch* block;
-    POLY_G4*            prim;
-    DR_TPAGE*           dr;
-    s32                 ang;
-    s32                 otz;
+    enum {
+        EFFECT_SCREEN_HALF_WIDTH      = 160,
+        EFFECT_SCREEN_HALF_HEIGHT     = 120,
+        EFFECT_SCREEN_SORTING_DEPTH   = 16,
+        EFFECT_SCREEN_BLEND_MODE_MASK = 3,
+    };
+    POLY_F4* quad;
+    s32      leftX;
+    s32      rightX;
+    s32      topY;
+    s32      bottomY;
 
-    block                = SCRATCH_STACK_RESERVE_BLOCK(EffectShapeScratch);
-    block->worldPoint.vx = arg0->workm.t[0];
-    block->worldPoint.vy = arg0->workm.t[1];
-    block->worldPoint.vz = arg0->workm.t[2];
+    blendMode &= EFFECT_SCREEN_BLEND_MODE_MASK;
+    leftX      = -EFFECT_SCREEN_HALF_WIDTH;
+    rightX     = EFFECT_SCREEN_HALF_WIDTH;
+    topY       = -EFFECT_SCREEN_HALF_HEIGHT;
+    bottomY    = EFFECT_SCREEN_HALF_HEIGHT;
+
+    quad           = gGpuPrimCursor;
+    gGpuPrimCursor = quad + 1;
+    setPolyF4(quad);
+    setRGB0(quad, rgb[0], rgb[1], rgb[2]);
+    quad->x0 = leftX;
+    quad->y0 = topY - gDisplayState.vramYOffset;
+    quad->x1 = rightX;
+    quad->y1 = topY - gDisplayState.vramYOffset;
+    quad->x2 = leftX;
+    quad->y2 = bottomY - gDisplayState.vramYOffset;
+    quad->x3 = rightX;
+    quad->y3 = bottomY - gDisplayState.vramYOffset;
+    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)EFFECT_SCREEN_SORTING_DEPTH << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), quad);
+
+    _gpuSetEffectPrimitiveBlendMode(quad, blendMode, EFFECT_SCREEN_SORTING_DEPTH);
+}
+
+void effectDrawOuterGlowBand(const GfxCoord* centreCoord, s32 innerRadius, s32 width, const u8* rgb)
+{
+    EffectShapeScratch* scratch;
+    POLY_G4*            quad;
+    s32                 angle;
+    s32                 sortingDepth;
+
+    scratch                = SCRATCH_STACK_RESERVE_BLOCK(EffectShapeScratch);
+    scratch->worldPoint.vx = centreCoord->workm.t[0];
+    scratch->worldPoint.vy = centreCoord->workm.t[1];
+    scratch->worldPoint.vz = centreCoord->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&block->worldPoint);
+    gte_ldv0(&scratch->worldPoint);
     gte_rtps();
-    gte_stsxy(&block->screenX);
-    gte_stflg(&block->projectionFlags);
-    if (block->projectionFlags >= 0) {
-        gte_stszotz(&block->depth);
-        block->depth++;
-        block->extent.ring.inner = ((s16)arg1 * 64) / block->depth;
-        block->extent.ring.outer = (((s16)arg1 + (s16)arg2) * 64) / block->depth;
-        for (ang = 0; ang < 0x1000; ang += 0x100) {
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, rgb[0], rgb[1], rgb[2]);
-            setRGB3(prim, rgb[0], rgb[1], rgb[2]);
-            prim->x0 = block->screenX + ((block->extent.ring.inner * rsin(ang)) >> 12);
-            prim->y0 = block->screenY + ((block->extent.ring.inner * rcos(ang)) >> 12);
-            prim->x1 = block->screenX + ((block->extent.ring.inner * rsin(ang + 0x100)) >> 12);
-            prim->y1 = block->screenY + ((block->extent.ring.inner * rcos(ang + 0x100)) >> 12);
-            prim->x2 = block->screenX + ((block->extent.ring.outer * rsin(ang)) >> 12);
-            prim->y2 = block->screenY + ((block->extent.ring.outer * rcos(ang)) >> 12);
-            prim->x3 = block->screenX + ((block->extent.ring.outer * rsin(ang + 0x100)) >> 12);
-            prim->y3 = block->screenY + ((block->extent.ring.outer * rcos(ang + 0x100)) >> 12);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            otz = block->depth;
-            setSemiTrans(prim, 1);
-            dr             = gGpuPrimCursor;
-            gGpuPrimCursor = dr + 1;
-            setDrawTPage(dr, 0, 1, 0x2A);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    dr);
+    gte_stsxy(&scratch->screenX);
+    gte_stflg(&scratch->projectionFlags);
+    if (scratch->projectionFlags >= 0) {
+        gte_stszotz(&scratch->depth);
+        scratch->depth++;
+        scratch->extent.ring.inner = ((s16)innerRadius * EFFECT_RADIAL_PERSPECTIVE_SCALE) / scratch->depth;
+        scratch->extent.ring.outer = (((s16)innerRadius + (s16)width) * EFFECT_RADIAL_PERSPECTIVE_SCALE) / scratch->depth;
+        // Fade from a black inner edge to the coloured outer edge around a full turn.
+        for (angle = 0; angle < EFFECT_RADIAL_ANGLE_TURN; angle += EFFECT_RADIAL_ANGLE_STEP) {
+            quad           = gGpuPrimCursor;
+            gGpuPrimCursor = quad + 1;
+            setPolyG4(quad);
+            setRGB0(quad, 0, 0, 0);
+            setRGB1(quad, 0, 0, 0);
+            setRGB2(quad, rgb[0], rgb[1], rgb[2]);
+            setRGB3(quad, rgb[0], rgb[1], rgb[2]);
+            quad->x0 = scratch->screenX + ((scratch->extent.ring.inner * rsin(angle)) >> EFFECT_RADIAL_TRIG_FRACTION_BITS);
+            quad->y0 = scratch->screenY + ((scratch->extent.ring.inner * rcos(angle)) >> EFFECT_RADIAL_TRIG_FRACTION_BITS);
+            quad->x1 = scratch->screenX + ((scratch->extent.ring.inner * rsin(angle + EFFECT_RADIAL_ANGLE_STEP)) >> EFFECT_RADIAL_TRIG_FRACTION_BITS);
+            quad->y1 = scratch->screenY + ((scratch->extent.ring.inner * rcos(angle + EFFECT_RADIAL_ANGLE_STEP)) >> EFFECT_RADIAL_TRIG_FRACTION_BITS);
+            quad->x2 = scratch->screenX + ((scratch->extent.ring.outer * rsin(angle)) >> EFFECT_RADIAL_TRIG_FRACTION_BITS);
+            quad->y2 = scratch->screenY + ((scratch->extent.ring.outer * rcos(angle)) >> EFFECT_RADIAL_TRIG_FRACTION_BITS);
+            quad->x3 = scratch->screenX + ((scratch->extent.ring.outer * rsin(angle + EFFECT_RADIAL_ANGLE_STEP)) >> EFFECT_RADIAL_TRIG_FRACTION_BITS);
+            quad->y3 = scratch->screenY + ((scratch->extent.ring.outer * rcos(angle + EFFECT_RADIAL_ANGLE_STEP)) >> EFFECT_RADIAL_TRIG_FRACTION_BITS);
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                    quad);
+            sortingDepth = scratch->depth;
+            _gpuSetEffectPrimitiveBlendMode(quad, GPU_BLEND_ADD, sortingDepth);
         }
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);
 }
 
-void Gp_DrawRing(GfxCoord* arg0, s32 arg1, u8* rgb)
+void effectDrawGouraudDisc(const GfxCoord* centreCoord, s32 radius, const u8* rgb)
 {
-    EffectCentreScratch* block;
-    POLY_G4*             prim;
-    DR_TPAGE*            dr;
-    s32                  ang;
-    s32                  otz;
+    EffectCentreScratch* scratch;
+    POLY_G4*             quad;
+    s32                  angle;
+    s32                  sortingDepth;
 
-    block                = SCRATCH_STACK_RESERVE_BLOCK(EffectCentreScratch);
-    block->worldPoint.vx = arg0->workm.t[0];
-    block->worldPoint.vy = arg0->workm.t[1];
-    block->worldPoint.vz = arg0->workm.t[2];
+    scratch                = SCRATCH_STACK_RESERVE_BLOCK(EffectCentreScratch);
+    scratch->worldPoint.vx = centreCoord->workm.t[0];
+    scratch->worldPoint.vy = centreCoord->workm.t[1];
+    scratch->worldPoint.vz = centreCoord->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&block->worldPoint);
+    gte_ldv0(&scratch->worldPoint);
     gte_rtps();
-    gte_stsxy(&block->screenX);
-    gte_stflg(&block->projectionFlags);
-    if (block->projectionFlags >= 0) {
-        gte_stszotz(&block->depth);
-        block->depth++;
-        block->screenExtent = ((s16)arg1 * 64) / block->depth;
-        for (ang = 0; ang < 0x1000; ang += 0x200) {
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, rgb[0], rgb[1], rgb[2]);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->screenX + ((block->screenExtent * rsin(ang)) >> 12);
-            prim->y0 = block->screenY + ((block->screenExtent * rcos(ang)) >> 12);
-            prim->x1 = block->screenX + ((block->screenExtent * rsin(ang + 0x100)) >> 12);
-            prim->y1 = block->screenY + ((block->screenExtent * rcos(ang + 0x100)) >> 12);
-            prim->x2 = block->screenX;
-            prim->y2 = block->screenY;
-            prim->x3 = block->screenX + ((block->screenExtent * rsin(ang + 0x200)) >> 12);
-            prim->y3 = block->screenY + ((block->screenExtent * rcos(ang + 0x200)) >> 12);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            otz = block->depth;
-            setSemiTrans(prim, 1);
-            dr             = gGpuPrimCursor;
-            gGpuPrimCursor = dr + 1;
-            setDrawTPage(dr, 0, 1, 0x2A);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    dr);
+    gte_stsxy(&scratch->screenX);
+    gte_stflg(&scratch->projectionFlags);
+    if (scratch->projectionFlags >= 0) {
+        gte_stszotz(&scratch->depth);
+        scratch->depth++;
+        scratch->screenExtent = ((s16)radius * EFFECT_RADIAL_PERSPECTIVE_SCALE) / scratch->depth;
+        // Each quad covers two fan triangles, fading from the centre to a black rim.
+        for (angle = 0; angle < EFFECT_RADIAL_ANGLE_TURN; angle += (2 * EFFECT_RADIAL_ANGLE_STEP)) {
+            quad           = gGpuPrimCursor;
+            gGpuPrimCursor = quad + 1;
+            setPolyG4(quad);
+            setRGB0(quad, 0, 0, 0);
+            setRGB1(quad, 0, 0, 0);
+            setRGB2(quad, rgb[0], rgb[1], rgb[2]);
+            setRGB3(quad, 0, 0, 0);
+            quad->x0 = scratch->screenX + ((scratch->screenExtent * rsin(angle)) >> EFFECT_RADIAL_TRIG_FRACTION_BITS);
+            quad->y0 = scratch->screenY + ((scratch->screenExtent * rcos(angle)) >> EFFECT_RADIAL_TRIG_FRACTION_BITS);
+            quad->x1 = scratch->screenX + ((scratch->screenExtent * rsin(angle + EFFECT_RADIAL_ANGLE_STEP)) >> EFFECT_RADIAL_TRIG_FRACTION_BITS);
+            quad->y1 = scratch->screenY + ((scratch->screenExtent * rcos(angle + EFFECT_RADIAL_ANGLE_STEP)) >> EFFECT_RADIAL_TRIG_FRACTION_BITS);
+            quad->x2 = scratch->screenX;
+            quad->y2 = scratch->screenY;
+            quad->x3 = scratch->screenX + ((scratch->screenExtent * rsin(angle + (2 * EFFECT_RADIAL_ANGLE_STEP))) >> EFFECT_RADIAL_TRIG_FRACTION_BITS);
+            quad->y3 = scratch->screenY + ((scratch->screenExtent * rcos(angle + (2 * EFFECT_RADIAL_ANGLE_STEP))) >> EFFECT_RADIAL_TRIG_FRACTION_BITS);
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                    quad);
+            sortingDepth = scratch->depth;
+            _gpuSetEffectPrimitiveBlendMode(quad, GPU_BLEND_ADD, sortingDepth);
         }
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectCentreScratch);
@@ -2144,7 +2173,7 @@ void func_800EC47C(Task* arg0)
                 arg0->state = 3;
             }
             rgb[0] = rgb[1] = rgb[2] = mem->scale;
-            Gp_DrawFadeQuad(rgb, 2);
+            effectDrawScreenTint(rgb, GPU_BLEND_SUBTRACT);
             break;
         case 2:
             current = mem->scale;
@@ -2166,17 +2195,17 @@ void func_800EC47C(Task* arg0)
                 arg0->state = 3;
             }
             rgb[0] = rgb[1] = rgb[2] = mem->scale;
-            Gp_DrawFadeQuad(rgb, 2);
+            effectDrawScreenTint(rgb, GPU_BLEND_SUBTRACT);
             break;
         case 3:
             if (gPlayerStatus.statusFlags & PLAYER_STATUS_DARKNESS) {
                 arg0->state = 0;
                 rgb[0] = rgb[1] = rgb[2] = mem->scale;
-                Gp_DrawFadeQuad(rgb, 2);
+                effectDrawScreenTint(rgb, GPU_BLEND_SUBTRACT);
             } else if (mem->scale >= 9) {
                 mem->scale -= 8;
                 rgb[0] = rgb[1] = rgb[2] = mem->scale;
-                Gp_DrawFadeQuad(rgb, 2);
+                effectDrawScreenTint(rgb, GPU_BLEND_SUBTRACT);
             } else {
                 gRoomEffectState->screenFxFlags &= (u16)~ROOM_EFFECT_SCREEN_FADE_QUAD;
                 gRoomEffectState->effectCount--;
@@ -2210,7 +2239,7 @@ void Gp_FadeWaveTask(Task* arg0)
         rgb[0] = (mem->angle * ((color >> 8) & 0xF)) >> 3;
         rgb[1] = (mem->angle * ((color >> 4) & 0xF)) >> 3;
         rgb[2] = (mem->angle * (color & 0xF)) >> 3;
-        Gp_DrawFadeQuad(rgb, color >> 12);
+        effectDrawScreenTint(rgb, color >> 12);
     }
     if (mem->scale >= 0x700) {
         gRoomEffectState->effectCount--;
@@ -2227,14 +2256,20 @@ void effectKillTask(void* effectWork, Task* task)
     taskKill(task);
 }
 
-static void Gp_KillState1CTask(Task* arg0)
+/// Exit callback releasing one counted effect's spawn-argument work before task teardown.
+///
+/// The live task must be counted in `gRoomEffectState`; `spawnArg2.pointer` must
+/// be NULL or its owned primary-heap work allocation. Nested resources must
+/// already be released, and `Task::work` must not own the same allocation.
+/// The count and work retire before teardown runs child exit handlers.
+static void _effectExitTask(Task* task)
 {
-    void* mem;
+    void* effectWork;
 
-    mem = arg0->spawnArg2.pointer;
+    effectWork = task->spawnArg2.pointer;
     gRoomEffectState->effectCount--;
-    memFree(mem);
-    taskKill(arg0);
+    memFree(effectWork);
+    taskKill(task);
 }
 
 void Gp_PulseState1C(void)
@@ -2242,16 +2277,25 @@ void Gp_PulseState1C(void)
     gRoomEffectState->pendingCancelFlags |= ROOM_EFFECT_CANCEL_ALL;
 }
 
-static void Gp_AddTpage(P_TAG* arg0, s32 arg1, s32 arg2)
+/// Enables primitive blending and prepends its draw mode at a fixed-quantized depth.
+///
+/// `primitive` is a writable initialized polygon, line or rectangle packet
+/// already linked at `depth >> 4`. That signed index must be in the current
+/// ordering table; it is neither display-scaled nor wrapped. The low two bits
+/// of `blendMode` select `GPU_BLEND_*`. The draw mode enables dithering,
+/// excludes the displayed area and selects a 4-bit page at VRAM (640, 0).
+/// Consumes one word-aligned `DR_TPAGE` in the frame arena without checking
+/// capacity; both packets must live until GPU drawing completes.
+static void _gpuSetPrimitiveBlendModeFixedDepth(void* primitive, s32 blendMode, s32 depth)
 {
-    DR_TPAGE* p;
+    DR_TPAGE* blendCommand;
 
-    setSemiTrans(arg0, 1);
-    p              = gGpuPrimCursor;
-    gGpuPrimCursor = p + 1;
-    setlen(p, 1);
-    p->code[0] = 0xE100020A | ((arg1 & 3) << 5);
-    addPrim(gGpuCurrentOt + (arg2 >> 4), p);
+    setSemiTrans(primitive, 1);
+    blendCommand   = gGpuPrimCursor;
+    gGpuPrimCursor = blendCommand + 1;
+    setDrawTPage(blendCommand, false, true,
+                 getTPage(GPU_EFFECT_TEXTURE_DEPTH_4BIT, blendMode, GPU_EFFECT_TEXTURE_PAGE_X, 0));
+    addPrim(gGpuCurrentOt + (depth >> GPU_EFFECT_FIXED_DEPTH_SHIFT), blendCommand);
 }
 
 /// Prepends a GPU draw-mode command for blending untextured primitives.

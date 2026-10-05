@@ -710,8 +710,8 @@ void func_shelter_b6_corridor_8017EBA4(Task* task)
         rgb[0] = shade;
         rgb[1] = shade;
         rgb[2] = shade >> 1;
-        Gp_DrawRing(coord, 0x200, rgb);
-        Gp_DrawRing(coord, 0x400, rgb);
+        effectDrawGouraudDisc(coord, 0x200, rgb);
+        effectDrawGouraudDisc(coord, 0x400, rgb);
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         if (((gRandomLcgState >> 16) & 3) == 0) {
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
@@ -751,8 +751,8 @@ void func_shelter_b6_corridor_8017ECA8(Task* task)
     rgb[1]      = mem->scale;
     rgb[2]      = mem->scale >> 1;
     mem->angle += 0x18;
-    Gp_DrawArc(coord, (s16)(mem->angle * 2), 0, rgb);
-    Gp_DrawRing(coord, (s16)((u16)mem->angle * 4), rgb);
+    effectDrawOuterGlowBand(coord, (s16)(mem->angle * 2), 0, rgb);
+    effectDrawGouraudDisc(coord, (s16)((u16)mem->angle * 4), rgb);
     if (mem->age < 9) {
         return;
     }

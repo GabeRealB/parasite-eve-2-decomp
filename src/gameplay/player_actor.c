@@ -2604,8 +2604,8 @@ void Gp_EffCtlTaskAE(Task* arg0)
             rgb[0] = mem->scale;
             rgb[1] = mem->scale >> 1;
             rgb[2] = mem->scale >> 2;
-            Gp_DrawRing(coord, mem->angle, rgb);
-            Gp_DrawRing(coord, (s16)(mem->angle << 1), rgb);
+            effectDrawGouraudDisc(coord, mem->angle, rgb);
+            effectDrawGouraudDisc(coord, (s16)(mem->angle << 1), rgb);
             if (mem->scale >= 0x81) {
                 temp        = (mem->step << 1) + mem->period;
                 mem->period = temp;
@@ -2615,7 +2615,7 @@ void Gp_EffCtlTaskAE(Task* arg0)
                 rgb[0] = mem->period;
                 rgb[1] = mem->period >> 1;
                 rgb[2] = mem->period >> 2;
-                Gp_DrawArc(coord, ((u8)Gp_StateC08.duration << 24) >> 17, 0x60, rgb);
+                effectDrawOuterGlowBand(coord, ((u8)Gp_StateC08.duration << 24) >> 17, 0x60, rgb);
             }
             if (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
                 goto snd7;
@@ -2641,8 +2641,8 @@ void Gp_EffCtlTaskAE(Task* arg0)
             rgb[0] = mem->scale;
             rgb[1] = mem->scale >> 1;
             rgb[2] = mem->scale >> 2;
-            Gp_DrawRing(coord, mem->angle, rgb);
-            Gp_DrawRing(coord, (s16)(mem->angle << 1), rgb);
+            effectDrawGouraudDisc(coord, mem->angle, rgb);
+            effectDrawGouraudDisc(coord, (s16)(mem->angle << 1), rgb);
             if (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
                 goto snd7;
             }
@@ -2668,8 +2668,8 @@ void Gp_EffCtlTaskAE(Task* arg0)
             rgb[0] = mem->scale;
             rgb[1] = mem->scale >> 1;
             rgb[2] = mem->scale >> 2;
-            Gp_DrawRing(coord, mem->angle, rgb);
-            Gp_DrawRing(coord, (s16)(mem->angle << 1), rgb);
+            effectDrawGouraudDisc(coord, mem->angle, rgb);
+            effectDrawGouraudDisc(coord, (s16)(mem->angle << 1), rgb);
             mem->scale = mem->scale - 0x10;
             return;
     }
@@ -2766,8 +2766,8 @@ void Gp_EffCtlTaskF3(Task* arg0)
         rgb[0] = 0xC0;
         rgb[1] = 0x60;
         Gp_DrawEffTri(coord, (s16)(mem->period + 0x80), (s16)(mem->index + 6), rgb);
-        Gp_DrawRing(coord, mem->period, rgb);
-        Gp_DrawRing(coord, (s16)(mem->period << 1), rgb);
+        effectDrawGouraudDisc(coord, mem->period, rgb);
+        effectDrawGouraudDisc(coord, (s16)(mem->period << 1), rgb);
         gRoomEffectState->burstRequest = false;
     }
 
@@ -2946,8 +2946,8 @@ void Gp_EffCtlTaskAC(Task* arg0)
     rgb[1]     = col;
     rgb[0]     = col;
     rgb[2]     = mem->scale >> 1;
-    Gp_DrawRing(coord, mem->period, rgb);
-    Gp_DrawRing(coord, (s16)(mem->period << 1), rgb);
+    effectDrawGouraudDisc(coord, mem->period, rgb);
+    effectDrawGouraudDisc(coord, (s16)(mem->period << 1), rgb);
 
     if (Gp_StateC08.antibodyTicks == 0) {
         goto kill;
@@ -3055,8 +3055,8 @@ void Gp_EffCtlTask0E(Task* arg0)
         rgb[1] = 0x30;
         rgb[2] = 0x60;
         Gp_DrawEffTri(coord, 0x200, 4, rgb);
-        Gp_DrawRing(coord, 0x180, rgb);
-        Gp_DrawRing(coord, 0x300, rgb);
+        effectDrawGouraudDisc(coord, 0x180, rgb);
+        effectDrawGouraudDisc(coord, 0x300, rgb);
         gRoomEffectState->burstRequest = false;
     }
 

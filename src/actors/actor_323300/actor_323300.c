@@ -502,8 +502,8 @@ static void func_actor_323300_80161FE8(Task* arg0)
         func_actor_323300_801626EC,
         func_actor_323300_801626F4,
     };
-    VECTOR vec;
-    s32    i;
+    VECTOR3 groundPoint;
+    s32     i;
 
     states[work->walk.motion](arg0);
     if (work->model.ticking != 0) {
@@ -527,8 +527,8 @@ static void func_actor_323300_80161FE8(Task* arg0)
         }
     }
     if (!(extra->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
-        if (func_800EA1A8(MATRIX_TRANS(&arg0->extra.tmd->coords[1].workm), (VECTOR3*)&vec) != 0) {
-            effectDrawGroundShadow((VECTOR3*)&vec, 0x200, gRoomEffectState->groundShadowShade);
+        if (worldCollisionProjectGroundPoint(MATRIX_TRANS(&arg0->extra.tmd->coords[1].workm), &groundPoint) != 0) {
+            effectDrawGroundShadow(&groundPoint, 0x200, gRoomEffectState->groundShadowShade);
         }
         worldCollisionClearContacts(&work->contact);
         arg0->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;

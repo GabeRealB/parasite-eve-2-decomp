@@ -610,7 +610,7 @@ enum {
     /// sparks or a widening ring for seven ticks), stored in gRoomEffectSparkBurstId, which the
     /// grenade-launcher GOLEM's bullet spawns where it hits.
     EFFECT_DRYFIELD_NIGHT_JUNK_YARD_SPARK_BURST = EFFECT_ID(EFFECT_TASK_BANK, 0x0E7),
-    /// Darkness status screen dim: a flickering full-screen fade quad (Gp_DrawFadeQuad)
+    /// Darkness status screen dim: a flickering full-screen fade quad (effectDrawScreenTint)
     /// held while the player has PLAYER_STATUS_DARKNESS, faded out when it clears.
     EFFECT_DARKNESS_SCREEN_DIM = EFFECT_ID(EFFECT_TASK_BANK, 0x0E8),
     /// mine_mesa's copy of the RoomFx flash: ramps up two fans and a shrinking ring
@@ -931,7 +931,7 @@ enum {
     /// Orange burst: expanding ring, glow and arc that fade out; spawned by
     /// actor_105100 together with a sound when it attacks.
     EFFECT_SHELTER_B6_TRAINING_ROOM_ORANGE_BURST = EFFECT_ID(EFFECT_TASK_BANK, 0x1A7),
-    /// Violet growing rings and arc (Gp_DrawRing/Gp_DrawArc) that build up over the
+    /// Violet growing discs and an outer-lit band (`effectDrawGouraudDisc`/`effectDrawOuterGlowBand`) that build up over the
     /// spawn-arg frames, hold, then fade; spawned by actor_105100 at the start of its
     /// split/summon step before it emits child enemies.
     EFFECT_SHELTER_B6_TRAINING_SUMMON_RING = EFFECT_ID(EFFECT_TASK_BANK, 0x1A8),

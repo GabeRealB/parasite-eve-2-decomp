@@ -163,20 +163,20 @@ void func_healing_8012EF34(Task* arg0)
             rgb[0] = mem->scale >> 2;
             rgb[1] = mem->scale >> 1;
             rgb[2] = (u8)mem->scale;
-            Gp_DrawRing(coord, (s32)((u16)mem->angle << 16) >> 17, rgb);
-            Gp_DrawRing(coord, (s32)((u16)mem->angle << 16) >> 17, rgb);
+            effectDrawGouraudDisc(coord, (s32)((u16)mem->angle << 16) >> 17, rgb);
+            effectDrawGouraudDisc(coord, (s32)((u16)mem->angle << 16) >> 17, rgb);
             rgb[0] >>= 1;
             rgb[1] >>= 1;
             rgb[2] >>= 1;
-            Gp_DrawArc(coord, mem->angle, 0x80, rgb);
+            effectDrawOuterGlowBand(coord, mem->angle, 0x80, rgb);
             if (mem->age & 1) {
-                Gp_DrawArc(coord, 0x80, mem->angle, rgb);
+                effectDrawOuterGlowBand(coord, 0x80, mem->angle, rgb);
             }
             if (mem->index != 0) {
                 rgb[0] >>= 1;
                 rgb[1] >>= 1;
                 rgb[2] >>= 1;
-                Gp_DrawArc(coord, (s16)(mem->angle + 0x200), 0x80, rgb);
+                effectDrawOuterGlowBand(coord, (s16)(mem->angle + 0x200), 0x80, rgb);
             }
             return;
         case 3:

@@ -395,7 +395,7 @@ static void func_actor_213100_80149E3C(Task* task);
 
 /// Per-frame tick: ticks the work block's animation slots once they have been
 /// started, and while the model is shown samples the child part's
-/// translation through `func_800EA1A8` and draws the ground shadow where it
+/// translation through `worldCollisionProjectGroundPoint` and draws the ground shadow where it
 /// hits. Once the view is ready, rebuilds that part's world matrix, hands its
 /// translation to `worldCoordSetModelLighting`, and shows or hides this model and the
 /// child's together from the per-view table. `freeCountdown` then frees the
@@ -416,7 +416,7 @@ static void func_actor_213100_80149E3C(Task* task)
         }
     }
     if (!(extra->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
-        if (func_800EA1A8(MATRIX_TRANS(&task->extra.tmd->coords[1].workm), &pos) != 0) {
+        if (worldCollisionProjectGroundPoint(MATRIX_TRANS(&task->extra.tmd->coords[1].workm), &pos) != 0) {
             effectDrawGroundShadow(&pos, 0x300, gRoomEffectState->groundShadowShade);
         }
     }

@@ -971,7 +971,7 @@ static void func_actor_120400_80131E5C(Task* arg0)
 /// the fraction is dropped, and `composeStamp` is cleared so the tree rebuilds. With
 /// `model.ticking` set every animation slot is ticked. Unless the model is hidden
 /// (bit 0x80 of `TmdObject::flags`), the second coordinate's work matrix
-/// feeds `func_800EA1A8` and a non-zero result draws the ground-effect quad;
+/// feeds `worldCollisionProjectGroundPoint` and a non-zero result draws the ground-effect quad;
 /// when `gGameSession->viewReady` is set the same coordinate is flagged stale,
 /// updated and re-ranked through `worldCoordSetModelLighting`. The body ends decrementing
 /// the `freeCountdown` teardown timer, freeing the model's buffers on the frame it
@@ -1003,7 +1003,7 @@ static void func_actor_120400_80132050(Task* arg0)
         }
     }
     if (!(ext->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
-        if (func_800EA1A8(MATRIX_TRANS(&arg0->extra.tmd->coords[1].workm), &pos) != 0) {
+        if (worldCollisionProjectGroundPoint(MATRIX_TRANS(&arg0->extra.tmd->coords[1].workm), &pos) != 0) {
             effectDrawGroundShadow(&pos, 0x300, gRoomEffectState->groundShadowShade);
         }
     }

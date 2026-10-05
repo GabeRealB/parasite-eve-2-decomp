@@ -77,7 +77,7 @@ static inline void muzzleFlashTask(Task* task)
        order. Three separate assignments reload the field each time, because the
        stores into `rgb` may alias it. */
     rgb[0] = rgb[1] = rgb[2] = work->period;
-    Gp_DrawFadeQuad(rgb, 1);
+    effectDrawScreenTint(rgb, GPU_BLEND_ADD);
     for (i = 0; i < 4; i++) {
         muzzleFlashDrawStreak(coord, gMuzzleFlashAngles[i], work->period);
     }

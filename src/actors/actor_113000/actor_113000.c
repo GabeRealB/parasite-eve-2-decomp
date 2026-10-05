@@ -1221,7 +1221,7 @@ static void func_actor_113000_80131F90(Task* task)
     flags               = extra->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW;
     extra->flags        = flags;
     if (!(flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
-        if (func_800EA1A8(MATRIX_TRANS(&task->extra.tmd->coords[1].workm), &pos) != 0) {
+        if (worldCollisionProjectGroundPoint(MATRIX_TRANS(&task->extra.tmd->coords[1].workm), &pos) != 0) {
             effectDrawGroundShadow(&pos, 0x200, gRoomEffectState->groundShadowShade);
         }
     }
@@ -1252,7 +1252,7 @@ static void func_actor_113000_80132070(Task* task)
         }
     }
     if (!(extra->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
-        if (func_800EA1A8(MATRIX_TRANS(&task->extra.tmd->coords[1].workm), &pos) != 0) {
+        if (worldCollisionProjectGroundPoint(MATRIX_TRANS(&task->extra.tmd->coords[1].workm), &pos) != 0) {
             effectDrawGroundShadow(&pos, 0x300, gRoomEffectState->groundShadowShade);
         }
     }

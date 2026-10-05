@@ -279,8 +279,8 @@ void func_hypervelocity_8011D1E8(Task* task)
             rgb[0] = work->scale >> 1;
             rgb[1] = work->scale >> 1;
             rgb[2] = work->scale;
-            Gp_DrawRing(coord, work->angle, rgb);
-            Gp_DrawRing(coord, (s16)((u16)work->angle * 2), rgb);
+            effectDrawGouraudDisc(coord, work->angle, rgb);
+            effectDrawGouraudDisc(coord, (s16)((u16)work->angle * 2), rgb);
             if (work->scale >= 0x81) {
                 if (work->period == 0) {
                     pan = (s8)worldCoordGetOriginAudioPan(coord);
@@ -293,7 +293,7 @@ void func_hypervelocity_8011D1E8(Task* task)
                 rgb[0] = work->period >> 1;
                 rgb[1] = work->period >> 1;
                 rgb[2] = work->period;
-                Gp_DrawArc(coord, (s16)((u16)task->spawnArg1.value * 128), 0x60, rgb);
+                effectDrawOuterGlowBand(coord, (s16)((u16)task->spawnArg1.value * 128), 0x60, rgb);
             }
             if (task->spawnArg1.value < 0) {
                 sndEvtRequestScriptStop(SOUND_HYPERVELOCITY_DISCHARGE, SOUND_SCRIPT_STOP_KEEP_RELEASE);
@@ -319,9 +319,9 @@ void func_hypervelocity_8011D1E8(Task* task)
                 rgb[0] = work->scale >> 1;
                 rgb[1] = work->scale >> 1;
                 rgb[2] = work->scale;
-                Gp_DrawRing(coord, work->angle, rgb);
-                Gp_DrawRing(coord, (s16)((u16)work->angle * 2), rgb);
-                Gp_DrawFadeQuad(rgb, 1);
+                effectDrawGouraudDisc(coord, work->angle, rgb);
+                effectDrawGouraudDisc(coord, (s16)((u16)work->angle * 2), rgb);
+                effectDrawScreenTint(rgb, GPU_BLEND_ADD);
                 work->scale = work->scale - 0x20;
                 work->angle = work->angle - 0x20;
             }
@@ -460,7 +460,7 @@ void func_hypervelocity_8011D830(Task* task)
             rgb[2]                = work->scale >> 1;
             gRandomLcgState       = ang;
             spriteQuadDraw(coord, work->age, work->angle, work->period);
-            Gp_DrawRing(coord, work->angle, rgb);
+            effectDrawGouraudDisc(coord, work->angle, rgb);
             return;
         case 1:
             actorRenderComposeCoord(coord);
@@ -480,10 +480,10 @@ void func_hypervelocity_8011D830(Task* task)
             rgb[1]   = work->scale >> 2;
             rgb[2]   = work->scale >> 1;
             spriteQuadDraw(coord, work->age, work->angle, work->period);
-            Gp_DrawRing(coord, work->angle, rgb);
+            effectDrawGouraudDisc(coord, work->angle, rgb);
             jetConeDraw(coord, work->age, work->angle, 0);
             jetConeDraw(coord, work->age, work->angle, 1);
-            if (gRoomEffectState->groundTraceEnabled != 0 && Gp_TraceGroundCoord(coord, &ground) == 1) {
+            if (gRoomEffectState->groundTraceEnabled != 0 && worldCollisionProjectGroundCoord(coord, &ground) == 1) {
                 groundGlowDraw(&ground, work->angle);
             }
             if (work->age < 0x15) {
@@ -521,7 +521,7 @@ void func_hypervelocity_8011D830(Task* task)
             rgb[1]      = work->scale >> 2;
             rgb[2]      = work->scale >> 1;
             spriteQuadDraw(coord, work->age, work->angle, work->period);
-            Gp_DrawRing(coord, work->angle, rgb);
+            effectDrawGouraudDisc(coord, work->angle, rgb);
             if (work->angle < 0x80) {
                 effectKillTask(work, task);
                 return;

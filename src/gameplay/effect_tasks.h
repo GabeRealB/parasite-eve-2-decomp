@@ -14,7 +14,7 @@ extern u16 Gp_QuadClutX[];
 extern u16 D_80111EB4[];
 
 /// 8 packed RGB-nibble colors. Index is `cln(spawnArg1 << 12) / 2839 & 7`.
-/// High nibble is the `Gp_DrawFadeQuad` blend; low three nibbles are R, G, B.
+/// High nibble is the `effectDrawScreenTint` blend; low three nibbles are R, G, B.
 extern u16 Gp_FadeQuadColors[];
 
 extern TmdSource D_80111FC8;

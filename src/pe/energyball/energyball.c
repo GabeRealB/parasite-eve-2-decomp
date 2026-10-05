@@ -208,7 +208,7 @@ void func_energyball_8012F180(Task* arg0)
         spriteQuadDrawFlicker(coord, mem->age, mem->angle, mem->period);
         func_energyball_8012FFD0(coord, mem->angle, mem->scale >> 2);
         if ((arg0->state < 3) && (gRoomEffectState->groundTraceEnabled != 0) &&
-            (Gp_TraceGroundCoord(coord, &ground) == 1)) {
+            (worldCollisionProjectGroundCoord(coord, &ground) == 1)) {
             groundGlowDraw(&ground, mem->angle);
         }
         return;
@@ -287,7 +287,7 @@ void func_energyball_8012F180(Task* arg0)
             lightCoord->composeStamp = GRAPHICS_COORD_DIRTY;
             spriteQuadDrawFlicker(coord, mem->age, mem->angle, mem->period);
             func_energyball_8012FFD0(coord, mem->angle, mem->scale >> 2);
-            if ((gRoomEffectState->groundTraceEnabled != 0) && (Gp_TraceGroundCoord(coord, &ground) == 1)) {
+            if ((gRoomEffectState->groundTraceEnabled != 0) && (worldCollisionProjectGroundCoord(coord, &ground) == 1)) {
                 groundGlowDraw(&ground, mem->angle);
             }
             coord->workm.t[1] += D_energyball_80131194[mem->index].sizeStep * mem->age;
@@ -355,7 +355,7 @@ void func_energyball_8012F180(Task* arg0)
             spriteQuadDrawFlicker(coord, mem->age, mem->angle, mem->period);
             func_energyball_8012FFD0(coord, mem->angle, mem->scale >> 2);
             if (gRoomEffectState->groundTraceEnabled != 0) {
-                if (Gp_TraceGroundCoord(coord, &ground) == 1) {
+                if (worldCollisionProjectGroundCoord(coord, &ground) == 1) {
                     groundGlowDraw(&ground, mem->angle);
                 }
             }
@@ -462,7 +462,7 @@ release:
     effectKillTask(mem, arg0);
 }
 
-/// Overlay copy of `Gp_DrawRing` with a flat tint: draws an eight-segment
+/// Overlay copy of `effectDrawGouraudDisc` with a flat tint: draws an eight-segment
 /// gouraud ring centred on `arg0`'s world position. The position is projected
 /// through `GsWSMATRIX` by one `RTPS` and the ring is dropped when that sets a
 /// negative `gte_stflg`. `arg1` is the radius in world units (scaled by 64 and

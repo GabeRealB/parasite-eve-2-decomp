@@ -2621,7 +2621,7 @@ static s32 func_actor_800200_80165104(Task* arg0)
                     if (sound != WORLD_COLLISION_FOOTSTEP_SILENT) {
                         pan = (s8)worldCoordGetOriginAudioPan(obj);
                         sndEvtRequestScriptStart(sound, pan, (s8)worldCoordGetOriginAudioDepth(obj));
-                        func_800EA3A0(cueBits != ANIMATION_RECORD_CUE_2);
+                        roomEffectRecordAnimationSoundCue(cueBits != ANIMATION_RECORD_CUE_2);
                     }
                 }
                 ret = 1;

@@ -67,13 +67,13 @@ void ofudaEffectTask(Task* arg0)
             rgb[0] = mem->scale;
             rgb[1] = mem->scale >> 2;
             rgb[2] = mem->scale >> 1;
-            Gp_DrawRing(coord, mem->angle, rgb);
-            Gp_DrawRing(coord, (s16)(mem->angle << 1), rgb);
-            Gp_DrawArc(coord, (s16)((arg0->spawnArg1.value << 4) + 0x800), 0x100, rgb);
+            effectDrawGouraudDisc(coord, mem->angle, rgb);
+            effectDrawGouraudDisc(coord, (s16)(mem->angle << 1), rgb);
+            effectDrawOuterGlowBand(coord, (s16)((arg0->spawnArg1.value << 4) + 0x800), 0x100, rgb);
             rgb[0] >>= 1;
             rgb[1] >>= 1;
             rgb[2] >>= 1;
-            Gp_DrawArc(coord, (s16)((arg0->spawnArg1.value << 5) + 0xC00), 0xC0, rgb);
+            effectDrawOuterGlowBand(coord, (s16)((arg0->spawnArg1.value << 5) + 0xC00), 0xC0, rgb);
             if (arg0->spawnArg1.value == 0) {
                 mem->scale    = 0xFF;
                 arg0->state   = 2;
@@ -89,12 +89,12 @@ void ofudaEffectTask(Task* arg0)
             rgb[0] = mem->scale;
             rgb[1] = mem->scale >> 2;
             rgb[2] = mem->scale >> 1;
-            Gp_DrawRing(coord, mem->angle, rgb);
-            Gp_DrawRing(coord, (s16)(mem->angle << 1), rgb);
+            effectDrawGouraudDisc(coord, mem->angle, rgb);
+            effectDrawGouraudDisc(coord, (s16)(mem->angle << 1), rgb);
             mem->scale -= 8;
             mem->angle -= 0x30;
-            Gp_DrawFadeQuad(rgb, 1);
-            Gp_DrawFadeQuad(rgb, 1);
+            effectDrawScreenTint(rgb, GPU_BLEND_ADD);
+            effectDrawScreenTint(rgb, GPU_BLEND_ADD);
             return;
     }
     return;

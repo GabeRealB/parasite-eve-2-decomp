@@ -205,7 +205,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
             rgb[0] = 0xFF;
             rgb[1] = 0x7F;
             rgb[2] = 0x3F;
-            Gp_DrawFadeQuad(rgb, 1);
+            effectDrawScreenTint(rgb, GPU_BLEND_ADD);
             arg0->state = 1;
             spriteQuadDraw(coord, mem->age, mem->angle, mem->period);
             glowDrawFlameDisc(coord, mem->angle, (s16)((u16)mem->scale << 16 >> 17));
@@ -265,7 +265,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
                 }
             }
             if (gRoomEffectState->groundTraceEnabled != 0) {
-                if (Gp_TraceGroundCoord(coord, &ground) == 1) {
+                if (worldCollisionProjectGroundCoord(coord, &ground) == 1) {
                     func_pyrokinesis_801304C4(&ground, mem->angle);
                 }
             }

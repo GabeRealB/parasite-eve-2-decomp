@@ -4172,7 +4172,7 @@ void func_dryfield_dilapidated_house_80182744(Task* task)
             rgb[0] = 0xFF;
             rgb[1] = 0x7F;
             rgb[2] = 0x3F;
-            Gp_DrawFadeQuad(rgb, 1);
+            effectDrawScreenTint(rgb, GPU_BLEND_ADD);
             gWorldCoordTransientPointLights[0].framesLeft      = 4;
             pointLight->inner                                  = 0x200;
             pointLight->outer                                  = 0x2000;

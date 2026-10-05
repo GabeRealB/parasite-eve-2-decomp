@@ -45,7 +45,7 @@ static inline void RoomFx_FlashTask(Task* arg0)
                     rgb[0]      = mem->scale;
                     rgb[1]      = mem->scale >> 2;
                     rgb[2]      = mem->scale >> 1;
-                    Gp_DrawFadeQuad(rgb, 1);
+                    effectDrawScreenTint(rgb, GPU_BLEND_ADD);
                 }
                 break;
             case 2:

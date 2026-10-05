@@ -113,7 +113,7 @@ static void RoomFx_DrawBurstGlow(GfxCoord* coord, s16 size)
         addPrim(
             GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)block->depth << gDisplayState.otDepthShift) >> 2 & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
             prim);
-        if (Gp_TraceGroundCoord(coord, &ground) == 1) {
+        if (worldCollisionProjectGroundCoord(coord, &ground) == 1) {
             RoomFx_DrawGroundQuad(&ground, outerSize);
         }
     }

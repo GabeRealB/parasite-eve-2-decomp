@@ -1725,7 +1725,7 @@ static void func_actor_800300_80162064(Task* arg0)
     actor->collisionMotionContexts[2].motionDirection.vy = frame->motionDirection.vy;
     actor->collisionMotionContexts[2].motionDirection.vz = frame->motionDirection.vz;
     if (!(extra->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
-        if (func_800EA1A8(MATRIX_TRANS(&coord->workm), &frame->shadowCentre) != 0) {
+        if (worldCollisionProjectGroundPoint(MATRIX_TRANS(&coord->workm), &frame->shadowCentre) != 0) {
             effectDrawGroundShadow(&frame->shadowCentre, 0x200, gRoomEffectState->groundShadowShade);
         }
     }

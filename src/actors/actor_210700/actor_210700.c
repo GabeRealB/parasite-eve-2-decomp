@@ -1173,7 +1173,7 @@ static void func_actor_210700_80149F90(Task* task)
     anim.animationId  = 1;
     anim.blend        = ANIMATION_BLEND_RESET;
     func_actor_210700_8014A224(task, ACTOR_MESSAGE_PLAY_ANIMATION, &anim, 0);
-    if (func_800EA1A8(MATRIX_TRANS(&task->extra.tmd->coords[1].workm), &pos) != 0) {
+    if (worldCollisionProjectGroundPoint(MATRIX_TRANS(&task->extra.tmd->coords[1].workm), &pos) != 0) {
         effectDrawGroundShadow(&pos, 0x400, gRoomEffectState->groundShadowShade);
     }
     func_actor_210700_8014A208(task);
@@ -1201,7 +1201,7 @@ static void func_actor_210700_8014A0AC(Task* task)
             animationTickSlot(&work->rig.anim, i);
         }
     }
-    if (func_800EA1A8(MATRIX_TRANS(&task->extra.tmd->coords[1].workm), &pos) != 0) {
+    if (worldCollisionProjectGroundPoint(MATRIX_TRANS(&task->extra.tmd->coords[1].workm), &pos) != 0) {
         effectDrawGroundShadow(&pos, 0x400, gRoomEffectState->groundShadowShade);
     }
     if (gGameSession->viewReady != 0) {

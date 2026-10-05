@@ -2413,7 +2413,7 @@ void Gp_EffSprTask7C(Task* arg0)
         effectKillTask(mem, arg0);
         return;
     }
-    if (Gp_TraceGroundCoord(coord, &hit) == 1) {
+    if (worldCollisionProjectGroundCoord(coord, &hit) == 1) {
         effectDrawGroundGlow(&hit, mem->scale >> 1, param);
     }
     if (coord->coord.t[1] > hit.coord.t[1]) {
@@ -2577,7 +2577,7 @@ void func_800F4308(Task* arg0)
                 rgb[1]  = (rgb[0] * 3) >> 2;
                 rgb[2]  = (rgb[0] * 2) / 3;
                 scale11 = (mem->scale << 6) + 0x40;
-                Gp_DrawArc(coord, (s16)scale11, (s16)scale11, rgb);
+                effectDrawOuterGlowBand(coord, (s16)scale11, (s16)scale11, rgb);
             }
             if (mem->age < 4) {
                 i = 0;
@@ -2641,12 +2641,12 @@ void func_800F4308(Task* arg0)
                 rgb[1]  = (rgb[2] & 0xE0) >> 2;
                 rgb[0]  = rgb[1];
                 scale12 = (mem->scale << 6) + 0x40;
-                Gp_DrawArc(coord, (s16)scale12, (s16)scale12, rgb);
+                effectDrawOuterGlowBand(coord, (s16)scale12, (s16)scale12, rgb);
                 if (gDisplayState.animFrame & 1) {
                     rgb[2] = ~(mem->scale * 0x1F);
                     rgb[1] = rgb[2] >> 2;
                     rgb[0] = rgb[1];
-                    Gp_DrawFadeQuad(rgb, 1);
+                    effectDrawScreenTint(rgb, GPU_BLEND_ADD);
                 }
             }
             lightSlot->framesLeft    = 0x10;
@@ -3248,7 +3248,7 @@ void Gp_EffSprTask53(Task* arg0)
         } else if (gRoomEffectState->groundShadowShade >= 0) {
             if (!(slot->extra.tmd->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
                 actorRenderComposeCoord(coord);
-                if ((s16)func_800EA1A8(MATRIX_TRANS(&coord->workm), &vec) != 0) {
+                if ((s16)worldCollisionProjectGroundPoint(MATRIX_TRANS(&coord->workm), &vec) != 0) {
                     effectDrawGroundShadow(&vec, 0x1C0, gRoomEffectState->groundShadowShade);
                 }
             }

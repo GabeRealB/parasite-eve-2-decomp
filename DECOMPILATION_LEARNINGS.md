@@ -6925,7 +6925,7 @@ asm volatile("" ::"r"(head)); /* lw head stays ahead of the field load */
 }
 ```
 
-`Gp_DrawRing` is the example (98.98% → 100% from the two barriers alone).
+`effectDrawGouraudDisc` is the example (98.98% → 100% from the two barriers alone).
 
 When that barrier fixes the *order* but shifts the registers (`lw v1, 0(a1)`
 where the target has `lw a0, 0(a1)`, dragging the `head - N` displacements
@@ -23901,7 +23901,7 @@ taskKill(arg0);
 ```
 
 Inlining `memFree(index->spawnArg2.pointer)` after the decrement is the 83% form.
-`Gp_KillState1CTask` is the example.
+`_effectExitTask` is the example.
 
 ## `s32 val = func(); byte_global = val` rematerialises same-`%hi` store
 
@@ -26175,10 +26175,10 @@ fuses with that operand's sign-extend:
 
 ```c
 /* target: sll v1,a1,16; sra 16; sll v0,a0,16; sra 15; mult v1,v0 */
-result = (arg1 * (arg0 << 1)) / arg2;
+shade = (baseShade * (halfSize << 1)) / viewYDisplacement;
 ```
 
-`func_800EA318` is the example. `value * (index * 2)` swapped the operands
+`effectGetGroundShadowShade` is the example. `value * (index * 2)` swapped the operands
 and stuck at 99.7%.
 
 ## …and the constant can migrate to the *other* operand: `(rsin(a) * 0x10) * n`
@@ -32392,7 +32392,7 @@ ret = worldCollisionProbeGridSegment(endpoint, &scratch->origin, endpoint, NULL)
 `origin.vx` must be reloaded via `scratchEnd[-1]` (one
 `_WorldCollisionGroundProbeScratch` below the saved cursor) so the add is
 `-0x10(v1)` (the original scratch head, still live after GTE). `scratch->origin.vx` is
-`0(s1)` and reshapes the whole add. `Gp_TraceGroundCoord` is the example.
+`0(s1)` and reshapes the whole add. `worldCollisionProjectGroundCoord` is the example.
 
 ## Invert `if (field == 0)` so the else reloads into `$a1`
 
@@ -32813,7 +32813,7 @@ Write the free through the symbol:
 *SCRATCH_STACK_CURSOR_SLOT = (u8*)*SCRATCH_STACK_CURSOR_SLOT + 0x10;
 ```
 
-`func_800EA1A8` is the example. The longer sibling `Gp_TraceGroundCoord` keeps
+`worldCollisionProjectGroundPoint` is the example. The longer sibling `worldCollisionProjectGroundCoord` keeps
 `*scratch += 0x10` because extra calls already force more `$s` regs, so
 the saved pointer is cheaper than a reload.
 
@@ -34508,34 +34508,34 @@ A leaf overlay that allocates a `POLY_F4` then a `DR_TPAGE` from `gGpuPrimCursor
 wants the screen extents and ABR mask live before the prim cursor load:
 
 ```c
-arg1 &= 3;
-x0   = -0xA0;
-x1   = 0xA0;
-yTop = -0x78;
-yBot = 0x78;
+blendMode &= 3;
+leftX   = -0xA0;
+rightX   = 0xA0;
+topY = -0x78;
+bottomY = 0x78;
 
-p          = gGpuPrimCursor;
-gGpuPrimCursor = p + 1;
-setPolyF4(p);
-setRGB0(p, arg0[0], arg0[1], arg0[2]);
-p->x0 = x0;
-p->y0 = yTop - gDisplayState.vramYOffset;
+quad          = gGpuPrimCursor;
+gGpuPrimCursor = quad + 1;
+setPolyF4(quad);
+setRGB0(quad, rgb[0], rgb[1], rgb[2]);
+quad->x0 = leftX;
+quad->y0 = topY - gDisplayState.vramYOffset;
 ```
 
 `value &= 3` at the top is `andi a1, a1, 3` during the y1 stores; the later
 `value << 5` is `sll a1, a1, 5` inside the first `addPrim`. Folding
 `(value & 3) << 5` at the `setDrawTPage` site delays the `andi`.
 
-`setSemiTrans(p, 1)` **after** the POLY `addPrim` (not before, as in
-`Gp_AddTpage` / `gpuSetPrimitiveBlendMode`) lets `lbu code / ori 2 / sb` fill the
+`setSemiTrans(quad, 1)` **after** the POLY `addPrim` (not before, as in
+`_gpuSetPrimitiveBlendModeFixedDepth` / `gpuSetPrimitiveBlendMode`) lets `lbu code / ori 2 / sb` fill the
 `lui`/`ori 0xE100020A` window. Then:
 
 ```c
-setDrawTPage(dr, 0, 1, 0xA | (arg1 << 5));
+setDrawTPage(blendCommand, 0, 1, 0xA | (blendMode << 5));
 ```
 
 which is `0xE100020A | (abr << 5)`. Same OT slot as `gpuSetPrimitiveBlendMode` with
-`z = 0x10`. `Gp_DrawFadeQuad` is the example.
+`z = 0x10`. `effectDrawScreenTint` is the example.
 
 ## Keep `+ K` on a sign-extended `s8` with `* -1 + u16`, not `u16 - (s8 + K)`
 
@@ -37725,7 +37725,7 @@ double cast never survives to RTL. Spell the sign-extension out as shifts on
 the zero-extended load instead:
 
 ```c
-Gp_DrawArc(coord, ((u8)Gp_StateC08.duration << 24) >> 17, 0x60, rgb);
+effectDrawOuterGlowBand(coord, ((u8)Gp_StateC08.duration << 24) >> 17, 0x60, rgb);
 ```
 
 That emits `lbu; sll 24; sra 17` (i.e. `(s8)field << 7`) while a plain
@@ -52447,7 +52447,7 @@ same register in a disjoint scope:
 
 The two live ranges do not overlap, GCC 2.8.1 accepts both, and `$v0` is used
 for the load and then for the temp exactly as the ROM does. Same shape as the
-two `$v0` scopes in `Gp_DrawRing`, but here the second scope exists to *give a
+two `$v0` scopes in `effectDrawGouraudDisc`, but here the second scope exists to *give a
 register back*, not to create a copy. That was the last instruction of the
 match (99.5% → 100%).
 
@@ -62308,7 +62308,7 @@ assignments rather than reaching for `SCHED_BARRIER()`.
 ## Two loads that tie at the top of a block: `volatile` both, because a fence also pins the `lui`
 
 The scratch-ring prologue (`func_apobiosis_8012F9D0`, the same idiom as
-`Gp_DrawArc` / `func_plasma_8012FB10`) sat at 99.779% with `reorder=1` on one
+`effectDrawOuterGlowBand` / `func_plasma_8012FB10`) sat at 99.779% with `reorder=1` on one
 adjacent pair - the scratch-head load and the first `workm.t[]` halfword:
 
 ```
@@ -63624,7 +63624,7 @@ from being CSE'd or the stores from floating.
 
 Neither was needed. `vramYOffset` is an `s8` field whose reloads survive on
 their own — every `sh` through `p` may alias it, so CSE cannot merge them —
-and the matched `Gp_DrawFadeQuad` in `gameplay/3CD8_9CC8.c` writes the same
+and the matched `effectDrawScreenTint` in `gameplay/3CD8_9CC8.c` writes the same
 quad with plain loads. Written that way the function is one block, `lui` is
 ready at entry and list scheduling puts it there; 100% on the first attempt.
 
@@ -63674,7 +63674,7 @@ deletes the second `lh` as a self-copy. Give the second read its own local
 
 ## An `s16` copy of an `s16` parameter survives cse; an `s32` one needs a dead store
 
-`func_energyball_8012FFD0` (an overlay copy of `Gp_DrawRing` with a flat tint)
+`func_energyball_8012FFD0` (an overlay copy of `effectDrawGouraudDisc` with a flat tint)
 keeps a copy of its third argument in `$fp` for the loop's `sb` while the
 `(s16)arg2 >> 1` before the loop still reads `$a2`:
 
@@ -67443,9 +67443,9 @@ written as:
 
 ```c
 if (work->field_39A == 2) {
-    hit = func_800EA1A8((VECTOR3*)coord->workm.t, &vec);
+    hit = worldCollisionProjectGroundPoint((VECTOR3*)coord->workm.t, &vec);
     if (hit != 0) {
-        effectDrawGroundShadow(&vec, 0x200, func_800EA318(0x200, 0x80, hit));
+        effectDrawGroundShadow(&vec, 0x200, effectGetGroundShadowShade(0x200, 0x80, hit));
     }
 } else {
     vec.vx = coord->workm.t[0]; /* … */
@@ -98324,7 +98324,7 @@ and `field_2C->field_8` is the `GfxCoord*` whose `workm.t` is at 0x38, so
 the three `lw`/`sw` pairs are `workm.t[0..2]` and the m2c seed's `lh` on a
 `0x35A` byte offset was the only thing wrong with its frame. `effectDrawGroundShadow`
 is declared file-locally in the sibling `actor_102600_6.c` and nowhere in a
-header, so `func_800EA1A8`/`func_800EA318` come from `gameplay/3CD8.h` and the
+header, so `worldCollisionProjectGroundPoint`/`effectGetGroundShadowShade` come from `gameplay/3CD8.h` and the
 quad keeps a local prototype.
 
 `func_actor_101500_80134990` matched at 100% on the first attempt (49 insns, 2
@@ -98863,7 +98863,7 @@ register that holds it, materialised once per use --
     (insn 93 (set (reg:SI 98) (addressof:SI (reg:SI 92) 81)))
 
 `.cse` merges the two (from then on the second use reads `reg:SI 96`), so one
-pseudo is live across `func_800EA1A8`'s call and global alloc hands it `$s0`
+pseudo is live across `worldCollisionProjectGroundPoint`'s call and global alloc hands it `$s0`
 (`;; 4 regs to allocate: 82 96 80 84`, `96 in 16`); the body reads
 `addiu $s0,$sp,0x10` with `move $a1,$s0` / `move $a0,$s0` at the two uses. The
 spawn table's address wants `$s0` too, so reload rematerialises *that* at the
@@ -101994,7 +101994,7 @@ between the two is the parameter list: `(void* arg2)` in the m2c seed versus
 `func_actor_511000_80132480`. The m2c seed scored 93.912% with the two callee-
 saved homes swapped (`s0` = `task`, `s1` = `task->extra` in the target; ours had
 `s1` = `task`, `s0` = the extra pointer) and the pointer held across the
-`func_800EA1A8` call, where the target reloads it:
+`worldCollisionProjectGroundPoint` call, where the target reloads it:
 
 ```
 lw     v0,0x2c(s0)      # target: fresh task->extra
@@ -102007,7 +102007,7 @@ The seed kept the extra pointer in a local `extra` and passed `&pos` from it:
 ```c
 extra = (TmdObject*)task->extra;
 ...
-if (func_800EA1A8((VECTOR3*)extra->coords[1].workm.t, &pos) != 0) {
+if (worldCollisionProjectGroundPoint((VECTOR3*)extra->coords[1].workm.t, &pos) != 0) {
 ```
 
 Writing the same access the way the target reads it — a fresh load of
@@ -102015,7 +102015,7 @@ Writing the same access the way the target reads it — a fresh load of
 clobbered memory:
 
 ```c
-if (func_800EA1A8((VECTOR3*)((TmdObject*)task->extra)->coords[1].workm.t, &pos) != 0) {
+if (worldCollisionProjectGroundPoint((VECTOR3*)((TmdObject*)task->extra)->coords[1].workm.t, &pos) != 0) {
 ```
 
 is the whole fix, 93.912% -> 100.000%.
@@ -143230,11 +143230,11 @@ function-scope initialisers, `setlen(&poly[0], len)` in the body.
 ## Halving a stack `u8 rgb[3]` in place is three `rgb[i] >>= 1`, not a helper taking `rgb` (func_metabolism_8012EF34, 2026-09-26)
 
 The pe arcs (`metabolism`, `healing`, `ofuda`) dim their colour between
-`Gp_DrawArc` calls with `lbu 0x10(sp)`/`lbu 0x12(sp)`/`sb 0x10`/`lbu 0x11`/
+`effectDrawOuterGlowBand` calls with `lbu 0x10(sp)`/`lbu 0x12(sp)`/`sb 0x10`/`lbu 0x11`/
 `sb 0x12`/`sb 0x11`. Loading channels into `unsigned int` locals and
 separating them with `COPY_REG_EC`/`TOUCH_REG`/`SOFT_COMPILER_BARRIER` was
 steering; plain `rgb[0] >>= 1; rgb[1] >>= 1; rgb[2] >>= 1;` in index order
-matches, with the call's arguments written directly (`Gp_DrawArc(coord,
+matches, with the call's arguments written directly (`effectDrawOuterGlowBand(coord,
 mem->angle, 0x80, rgb)`). Other orders land 40-60 differences off. An
 `static inline` helper taking `u8* rgb` does *not* match (95%): the parameter
 is a pseudo holding `sp+0x10`, CSE keeps it in `$s0` and every channel is
@@ -143772,7 +143772,7 @@ lives beyond the path) and `gte_ldv0` gets a stray `move v0,t1`; the tree pinned
 `block` to `t1` and the temp to `v0`. `setSemiTrans(prim, mem->angle)` expands
 to both arms; cse deletes the else-arm store (`0x2D & ~2` is the value already
 there) but its label splits the path, `block` outlives it, and becomes the head.
-Same shape as the `Gp_DrawRing` push, where a loop does the splitting.
+Same shape as the `effectDrawGouraudDisc` push, where a loop does the splitting.
 ## `addiu v0,a1,-0x1C; move s0,v0` scratch carve: read the first pointer in the `gte_ldv0` after the copy; a near-tie priority settled by one shared release call (Gp_EffSprTask7C, 2026-09-26)
 
 **Carve.** Target carves the block into `v0` and copies it to a callee-saved

@@ -183,9 +183,9 @@ void func_energyshot_8012EF34(Task* arg0)
                 coord->coord.t[1]   = -(s16)table[mem->index].ringHeight;
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 actorRenderComposeCoord(coord);
-                Gp_DrawRing(coord, (s16)(mem->scale * 4), rgb);
-                Gp_DrawRing(coord, (s16)(mem->scale * 8), rgb);
-                Gp_DrawRing(coord, (s16)(mem->scale * 0xC), rgb);
+                effectDrawGouraudDisc(coord, (s16)(mem->scale * 4), rgb);
+                effectDrawGouraudDisc(coord, (s16)(mem->scale * 8), rgb);
+                effectDrawGouraudDisc(coord, (s16)(mem->scale * 0xC), rgb);
                 i     = 0;
                 count = table[mem->index].wedgeCount;
                 if (count > 0) {
@@ -245,9 +245,9 @@ void func_energyshot_8012EF34(Task* arg0)
                 coord->coord.t[1]   = -(s16)table[mem->index].ringHeight;
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 actorRenderComposeCoord(coord);
-                Gp_DrawRing(coord, (s16)(table[mem->index].scaleLimit * 4), rgb);
-                Gp_DrawRing(coord, (s16)(table[mem->index].scaleLimit * 8), rgb);
-                Gp_DrawRing(coord, (s16)(table[mem->index].scaleLimit * 0xC), rgb);
+                effectDrawGouraudDisc(coord, (s16)(table[mem->index].scaleLimit * 4), rgb);
+                effectDrawGouraudDisc(coord, (s16)(table[mem->index].scaleLimit * 8), rgb);
+                effectDrawGouraudDisc(coord, (s16)(table[mem->index].scaleLimit * 0xC), rgb);
                 i     = 0;
                 count = table[mem->index].wedgeCount;
                 if (count > 0) {

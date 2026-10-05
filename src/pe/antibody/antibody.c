@@ -169,14 +169,14 @@ void func_antibody_8012EF34(Task* arg0)
                 coord->coord.t[1]   = -0x400;
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 actorRenderComposeCoord(coord);
-                Gp_DrawRing(coord, (s16)(mem->scale * 4), rgb);
-                Gp_DrawRing(coord, (s16)(mem->scale * 8), rgb);
-                Gp_DrawRing(coord, (s16)(mem->scale * 0xC), rgb);
+                effectDrawGouraudDisc(coord, (s16)(mem->scale * 4), rgb);
+                effectDrawGouraudDisc(coord, (s16)(mem->scale * 8), rgb);
+                effectDrawGouraudDisc(coord, (s16)(mem->scale * 0xC), rgb);
                 if (mem->index != 0) {
                     rgb[0] >>= 1;
                     rgb[1] >>= 1;
                     rgb[2] >>= 1;
-                    Gp_DrawArc(coord, (s16)(mem->scale * 8), 0x80, rgb);
+                    effectDrawOuterGlowBand(coord, (s16)(mem->scale * 8), 0x80, rgb);
                 }
                 i     = 0;
                 count = table[mem->index].wedgeCount;
@@ -236,9 +236,9 @@ void func_antibody_8012EF34(Task* arg0)
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 actorRenderComposeCoord(coord);
                 table = D_antibody_80130BD4;
-                Gp_DrawRing(coord, (s16)(table[mem->index].scaleLimit * 4), rgb);
-                Gp_DrawRing(coord, (s16)(table[mem->index].scaleLimit * 8), rgb);
-                Gp_DrawRing(coord, (s16)(table[mem->index].scaleLimit * 0xC), rgb);
+                effectDrawGouraudDisc(coord, (s16)(table[mem->index].scaleLimit * 4), rgb);
+                effectDrawGouraudDisc(coord, (s16)(table[mem->index].scaleLimit * 8), rgb);
+                effectDrawGouraudDisc(coord, (s16)(table[mem->index].scaleLimit * 0xC), rgb);
                 if (mem->index != 0) {
                     if (mem->index == 2) {
                         mem->period = mem->period + table[mem->index].scaleStep;
@@ -246,7 +246,7 @@ void func_antibody_8012EF34(Task* arg0)
                     rgb[0] >>= 1;
                     rgb[1] >>= 1;
                     rgb[2] >>= 1;
-                    Gp_DrawArc(coord, (s16)(mem->period * 8), 0x80, rgb);
+                    effectDrawOuterGlowBand(coord, (s16)(mem->period * 8), 0x80, rgb);
                 }
                 i     = 0;
                 count = D_antibody_80130BD4[mem->index].wedgeCount;

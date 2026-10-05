@@ -119,7 +119,7 @@ void func_combustion_8012EF34(Task* arg0)
             rgb[0] = 0xFF;
             rgb[1] = 0x7F;
             rgb[2] = 0x3F;
-            Gp_DrawFadeQuad(rgb, 1);
+            effectDrawScreenTint(rgb, GPU_BLEND_ADD);
             arg0->state = 1;
             mem->index  = Gp_StateC08.attachId % 10 - 1;
             Gp_SpawnPadLerp(D_combustion_80130980[mem->index].emitterFrames, 0xFF, 8);

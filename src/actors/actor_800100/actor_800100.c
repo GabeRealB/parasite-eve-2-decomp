@@ -1369,7 +1369,7 @@ static void func_actor_800100_801635F4(Task* arg0)
         ground               = arg0->extra.tmd->coords + 1;
         ground->composeStamp = GRAPHICS_COORD_DIRTY;
         actorRenderComposeCoord(ground);
-        if (func_800EA1A8(MATRIX_TRANS(&ground->workm), &scratch->shadowCentre) != 0) {
+        if (worldCollisionProjectGroundPoint(MATRIX_TRANS(&ground->workm), &scratch->shadowCentre) != 0) {
             effectDrawGroundShadow(&scratch->shadowCentre, 0x200, gRoomEffectState->groundShadowShade);
         }
     }

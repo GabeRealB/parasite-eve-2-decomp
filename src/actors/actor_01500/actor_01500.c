@@ -2249,9 +2249,9 @@ static void Actor01500_Fn02B14(Task* arg0)
 
 /// Ground shadow for the actor: carves a `VECTOR3` off the scratchpad and fills
 /// it from the root coordinate's world translation - straight out of `workm.t`
-/// while grounded, otherwise from the hit point `func_800EA1A8` finds casting a
+/// while grounded, otherwise from the hit point `worldCollisionProjectGroundPoint` finds casting a
 /// ray down. The shade passed to `effectDrawGroundShadow` is `0x80` while
-/// grounded, otherwise `func_800EA318`'s reading of the ray's drop.
+/// grounded, otherwise `effectGetGroundShadowShade`'s reading of the ray's drop.
 static void Actor01500_Fn02B70(Task* arg0)
 {
     _Actor01500Work* work;
@@ -2266,9 +2266,9 @@ static void Actor01500_Fn02B70(Task* arg0)
     SCRATCH_STACK_CURSOR(VECTOR) = head - 1;
     vec                          = (VECTOR3*)(head - 1);
     if (work->action != ACTOR_01500_ACTION_GROUNDED) {
-        hit = func_800EA1A8(MATRIX_TRANS(&coord->workm), vec);
+        hit = worldCollisionProjectGroundPoint(MATRIX_TRANS(&coord->workm), vec);
         if (hit != 0) {
-            effectDrawGroundShadow(vec, 0x200, func_800EA318(0x200, 0x80, hit));
+            effectDrawGroundShadow(vec, 0x200, effectGetGroundShadowShade(0x200, 0x80, hit));
         }
     } else {
         vec->vx = coord->workm.t[0];

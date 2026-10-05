@@ -2124,7 +2124,7 @@ static void func_actor_511000_80131E78(Task* arg0)
     TmdObject*                       extra;
     GfxCoord*                        coord;
     GfxCoord*                        obj;
-    VECTOR                           pos;
+    VECTOR3                          groundPoint;
     s32                              i;
     s32                              pan;
 
@@ -2145,8 +2145,8 @@ static void func_actor_511000_80131E78(Task* arg0)
         }
     }
     if (!(extra->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
-        if (func_800EA1A8((VECTOR3*)(arg0->extra.tmd)->coords[1].workm.t, (VECTOR3*)&pos) != 0) {
-            effectDrawGroundShadow((VECTOR3*)&pos, 0x300, gRoomEffectState->groundShadowShade);
+        if (worldCollisionProjectGroundPoint((VECTOR3*)(arg0->extra.tmd)->coords[1].workm.t, &groundPoint) != 0) {
+            effectDrawGroundShadow(&groundPoint, 0x300, gRoomEffectState->groundShadowShade);
         }
     }
     if (gGameSession->viewReady != 0) {
@@ -2270,7 +2270,7 @@ static void func_actor_511000_80132480(Task* task)
     flags               = extra->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW;
     extra->flags        = flags;
     if (!(flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
-        if (func_800EA1A8(MATRIX_TRANS(&task->extra.tmd->coords[1].workm), &pos) != 0) {
+        if (worldCollisionProjectGroundPoint(MATRIX_TRANS(&task->extra.tmd->coords[1].workm), &pos) != 0) {
             effectDrawGroundShadow(&pos, 0x200, gRoomEffectState->groundShadowShade);
         }
     }
@@ -3140,7 +3140,7 @@ static void func_actor_511000_80133B80(Enemy* enemy, Task* task)
         pos->vy = coord->workm.t[1];
         pos->vz = coord->workm.t[2];
         out     = pos + 1;
-        if (func_800EA1A8((VECTOR3*)pos, (VECTOR3*)out) != 0) {
+        if (worldCollisionProjectGroundPoint((VECTOR3*)pos, (VECTOR3*)out) != 0) {
             effectDrawGroundShadow((VECTOR3*)out, 0x400, gRoomEffectState->groundShadowShade);
         }
     } else {

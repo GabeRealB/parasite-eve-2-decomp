@@ -109,7 +109,7 @@ void func_pepper_spray_8012EF34(Task* arg0)
     }
     func_pepper_spray_8012F21C(coord, mem->scale, mem->angle);
     rgb[0] = rgb[1] = rgb[2] = mem->period;
-    Gp_DrawFadeQuad(rgb, 1);
+    effectDrawScreenTint(rgb, GPU_BLEND_ADD);
     for (i = 0; i < 6; i++) {
         func_pepper_spray_8012F634(coord, D_pepper_spray_8012FB9C[i], mem->period);
     }

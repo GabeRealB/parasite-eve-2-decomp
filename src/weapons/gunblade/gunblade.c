@@ -194,15 +194,15 @@ void func_gunblade_8011DAA4(Task* task)
             rgb[0] = rgb[1] = work->scale;
             rgb[2]          = work->scale >> 2;
             work->angle    += 0x10;
-            Gp_DrawRing(coord, (s16)(work->angle * 2), rgb);
+            effectDrawGouraudDisc(coord, (s16)(work->angle * 2), rgb);
             if (work->period >= 0x11) {
                 rgb[0] = rgb[1] = work->period;
                 rgb[2]          = work->period >> 2;
-                Gp_DrawArc(coord, (s16)(work->step * 3 / 2), 0x60, rgb);
+                effectDrawOuterGlowBand(coord, (s16)(work->step * 3 / 2), 0x60, rgb);
                 if (work->age & 1) {
-                    Gp_DrawArc(coord, 0x60, (s16)(work->step * 3 / 2), rgb);
+                    effectDrawOuterGlowBand(coord, 0x60, (s16)(work->step * 3 / 2), rgb);
                 }
-                Gp_DrawFadeQuad(rgb, 1);
+                effectDrawScreenTint(rgb, GPU_BLEND_ADD);
                 work->period -= 0x10;
                 work->step   += 0x40;
                 return;
@@ -230,16 +230,16 @@ void func_gunblade_8011DAA4(Task* task)
             rgb[1]       = work->scale >> 1;
             rgb[2]       = work->scale >> 2;
             work->angle += 0x10;
-            Gp_DrawRing(coord, (s16)(work->angle * 2), rgb);
+            effectDrawGouraudDisc(coord, (s16)(work->angle * 2), rgb);
             if (work->period >= 0x11) {
                 rgb[0] = work->period;
                 rgb[1] = work->period >> 1;
                 rgb[2] = work->period >> 2;
-                Gp_DrawArc(coord, (s16)(work->step * 3 / 2), 0x60, rgb);
+                effectDrawOuterGlowBand(coord, (s16)(work->step * 3 / 2), 0x60, rgb);
                 if (work->age & 1) {
-                    Gp_DrawArc(coord, 0x60, (s16)(work->step * 3 / 2), rgb);
+                    effectDrawOuterGlowBand(coord, 0x60, (s16)(work->step * 3 / 2), rgb);
                 }
-                Gp_DrawFadeQuad(rgb, 1);
+                effectDrawScreenTint(rgb, GPU_BLEND_ADD);
                 work->period -= 0x10;
                 work->step   += 0x40;
                 return;
@@ -266,16 +266,16 @@ void func_gunblade_8011DAA4(Task* task)
             rgb[1]       = work->scale >> 1;
             rgb[2]       = work->scale;
             work->angle += 0x10;
-            Gp_DrawRing(coord, (s16)(work->angle * 2), rgb);
+            effectDrawGouraudDisc(coord, (s16)(work->angle * 2), rgb);
             if (work->period >= 0x11) {
                 rgb[0] = work->period >> 2;
                 rgb[1] = work->period >> 1;
                 rgb[2] = work->period;
-                Gp_DrawArc(coord, (s16)(work->step * 3 / 2), 0x60, rgb);
+                effectDrawOuterGlowBand(coord, (s16)(work->step * 3 / 2), 0x60, rgb);
                 if (work->age & 1) {
-                    Gp_DrawArc(coord, 0x60, (s16)(work->step * 3 / 2), rgb);
+                    effectDrawOuterGlowBand(coord, 0x60, (s16)(work->step * 3 / 2), rgb);
                 }
-                Gp_DrawFadeQuad(rgb, 1);
+                effectDrawScreenTint(rgb, GPU_BLEND_ADD);
                 work->period -= 0x10;
                 work->step   += 0x40;
                 return;

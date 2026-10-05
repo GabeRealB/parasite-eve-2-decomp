@@ -2489,13 +2489,13 @@ void func_shelter_r48_8017EC18(Task* task)
                     rgb[0] = work->scale;
                     rgb[1] = work->scale;
                     rgb[2] = work->scale >> 2;
-                    Gp_DrawRing(coord, work->angle, rgb);
-                    Gp_DrawRing(coord, (s16)((u16)work->angle * 2), rgb);
+                    effectDrawGouraudDisc(coord, work->angle, rgb);
+                    effectDrawGouraudDisc(coord, (s16)((u16)work->angle * 2), rgb);
                     if (work->scale >= 0x61) {
                         rgb[0] = work->period;
                         rgb[1] = work->period;
                         rgb[2] = work->period >> 2;
-                        Gp_DrawArc(coord, (s16)(task->spawnArg1.value << 8), 0x200, rgb);
+                        effectDrawOuterGlowBand(coord, (s16)(task->spawnArg1.value << 8), 0x200, rgb);
                     }
                     return;
                 }
@@ -2505,14 +2505,14 @@ void func_shelter_r48_8017EC18(Task* task)
                 rgb[0] = work->scale;
                 rgb[1] = work->scale;
                 rgb[2] = work->scale >> 2;
-                Gp_DrawRing(coord, work->angle, rgb);
-                Gp_DrawRing(coord, (s16)((u16)work->angle * 2), rgb);
+                effectDrawGouraudDisc(coord, work->angle, rgb);
+                effectDrawGouraudDisc(coord, (s16)((u16)work->angle * 2), rgb);
                 if (work->scale >= 0x61) {
                     work->period += (u16)work->step * 2;
                     rgb[0]        = work->period;
                     rgb[1]        = work->period;
                     rgb[2]        = work->period >> 2;
-                    Gp_DrawArc(coord, (s16)(task->spawnArg1.value << 8), 0x200, rgb);
+                    effectDrawOuterGlowBand(coord, (s16)(task->spawnArg1.value << 8), 0x200, rgb);
                 }
                 if (task->spawnArg1.value == 0) {
                     work->scale = 0xFF;
@@ -2525,13 +2525,13 @@ void func_shelter_r48_8017EC18(Task* task)
                     rgb[0] = work->scale;
                     rgb[1] = work->scale;
                     rgb[2] = work->scale >> 2;
-                    Gp_DrawRing(coord, work->angle, rgb);
-                    Gp_DrawRing(coord, (s16)((u16)work->angle * 2), rgb);
+                    effectDrawGouraudDisc(coord, work->angle, rgb);
+                    effectDrawGouraudDisc(coord, (s16)((u16)work->angle * 2), rgb);
                     if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                         work->scale -= 0x10;
                         work->angle -= 0x60;
                     }
-                    Gp_DrawFadeQuad(rgb, 1);
+                    effectDrawScreenTint(rgb, GPU_BLEND_ADD);
                     return;
                 }
                 break;
@@ -3082,9 +3082,9 @@ void func_shelter_r48_801810B0(Task* task)
                     rgb[0] = work->scale;
                     rgb[1] = work->scale >> 1;
                     rgb[2] = work->scale >> 2;
-                    Gp_DrawRing(coord, work->angle, rgb);
-                    Gp_DrawRing(coord, (s16)((u16)work->angle * 2), rgb);
-                    Gp_DrawArc(coord, (s16)((task->spawnArg1.value % 10) * (work->scale << 2)), 0x100, rgb);
+                    effectDrawGouraudDisc(coord, work->angle, rgb);
+                    effectDrawGouraudDisc(coord, (s16)((u16)work->angle * 2), rgb);
+                    effectDrawOuterGlowBand(coord, (s16)((task->spawnArg1.value % 10) * (work->scale << 2)), 0x100, rgb);
                     return;
                 }
                 scale        = work->scale;
@@ -3095,9 +3095,9 @@ void func_shelter_r48_801810B0(Task* task)
                 rgb[0] = work->scale;
                 rgb[1] = work->scale >> 1;
                 rgb[2] = work->scale >> 2;
-                Gp_DrawRing(coord, work->angle, rgb);
-                Gp_DrawRing(coord, (s16)((u16)work->angle * 2), rgb);
-                Gp_DrawArc(coord, (s16)((task->spawnArg1.value % 10) * (work->scale << 2)), 0x100, rgb);
+                effectDrawGouraudDisc(coord, work->angle, rgb);
+                effectDrawGouraudDisc(coord, (s16)((u16)work->angle * 2), rgb);
+                effectDrawOuterGlowBand(coord, (s16)((task->spawnArg1.value % 10) * (work->scale << 2)), 0x100, rgb);
                 if (task->spawnArg1.value == 0) {
                     work->scale = 0xFF;
                     task->state = 2;
@@ -3112,12 +3112,12 @@ void func_shelter_r48_801810B0(Task* task)
                     rgb[0] = work->scale;
                     rgb[1] = work->scale >> 1;
                     rgb[2] = work->scale >> 2;
-                    Gp_DrawRing(coord, work->angle, rgb);
-                    Gp_DrawRing(coord, (s16)((u16)work->angle * 2), rgb);
+                    effectDrawGouraudDisc(coord, work->angle, rgb);
+                    effectDrawGouraudDisc(coord, (s16)((u16)work->angle * 2), rgb);
                     if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                         work->scale -= 4;
                     }
-                    Gp_DrawFadeQuad(rgb, 1);
+                    effectDrawScreenTint(rgb, GPU_BLEND_ADD);
                     return;
                 }
                 break;
@@ -3174,7 +3174,7 @@ void func_shelter_r48_8018147C(Task* task)
                 rgb[0]        = work->scale;
                 rgb[1]        = work->scale >> 1;
                 rgb[2]        = work->scale >> 2;
-                Gp_DrawFadeQuad(rgb, 1);
+                effectDrawScreenTint(rgb, GPU_BLEND_ADD);
                 if (work->age >= 0x31) {
                     task->state = 2;
                 }
@@ -3191,7 +3191,7 @@ void func_shelter_r48_8018147C(Task* task)
                     rgb[0] = work->scale;
                     rgb[1] = work->scale >> 1;
                     rgb[2] = work->scale >> 2;
-                    Gp_DrawFadeQuad(rgb, 1);
+                    effectDrawScreenTint(rgb, GPU_BLEND_ADD);
                     return;
                 }
                 break;
@@ -3239,13 +3239,13 @@ void func_shelter_r48_80181704(Task* task)
                     rgb[0] = work->scale;
                     rgb[1] = work->scale >> 2;
                     rgb[2] = work->scale >> 1;
-                    Gp_DrawRing(coord, work->angle, rgb);
-                    Gp_DrawRing(coord, (s16)((u16)work->angle * 2), rgb);
-                    Gp_DrawArc(coord, (s16)((u16)task->spawnArg1.value * 16 + 0x800), 0x100, rgb);
+                    effectDrawGouraudDisc(coord, work->angle, rgb);
+                    effectDrawGouraudDisc(coord, (s16)((u16)work->angle * 2), rgb);
+                    effectDrawOuterGlowBand(coord, (s16)((u16)task->spawnArg1.value * 16 + 0x800), 0x100, rgb);
                     rgb[0] >>= 1;
                     rgb[1] >>= 1;
                     rgb[2] >>= 1;
-                    Gp_DrawArc(coord, (s16)((u16)task->spawnArg1.value * 32 + 0xC00), 0xC0, rgb);
+                    effectDrawOuterGlowBand(coord, (s16)((u16)task->spawnArg1.value * 32 + 0xC00), 0xC0, rgb);
                     return;
                 }
                 scale        = work->scale;
@@ -3256,13 +3256,13 @@ void func_shelter_r48_80181704(Task* task)
                 rgb[0] = work->scale;
                 rgb[1] = work->scale >> 2;
                 rgb[2] = work->scale >> 1;
-                Gp_DrawRing(coord, work->angle, rgb);
-                Gp_DrawRing(coord, (s16)((u16)work->angle * 2), rgb);
-                Gp_DrawArc(coord, (s16)((u16)task->spawnArg1.value * 16 + 0x800), 0x100, rgb);
+                effectDrawGouraudDisc(coord, work->angle, rgb);
+                effectDrawGouraudDisc(coord, (s16)((u16)work->angle * 2), rgb);
+                effectDrawOuterGlowBand(coord, (s16)((u16)task->spawnArg1.value * 16 + 0x800), 0x100, rgb);
                 rgb[0] >>= 1;
                 rgb[1] >>= 1;
                 rgb[2] >>= 1;
-                Gp_DrawArc(coord, (s16)((u16)task->spawnArg1.value * 32 + 0xC00), 0xC0, rgb);
+                effectDrawOuterGlowBand(coord, (s16)((u16)task->spawnArg1.value * 32 + 0xC00), 0xC0, rgb);
                 if (task->spawnArg1.value == 0) {
                     work->scale  = 0xFF;
                     task->state  = 2;
@@ -3275,13 +3275,13 @@ void func_shelter_r48_80181704(Task* task)
                     rgb[0] = work->scale;
                     rgb[1] = work->scale >> 2;
                     rgb[2] = work->scale >> 1;
-                    Gp_DrawRing(coord, work->angle, rgb);
-                    Gp_DrawRing(coord, (s16)((u16)work->angle * 2), rgb);
+                    effectDrawGouraudDisc(coord, work->angle, rgb);
+                    effectDrawGouraudDisc(coord, (s16)((u16)work->angle * 2), rgb);
                     if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                         work->scale -= 0x10;
                         work->angle -= 0x60;
                     }
-                    Gp_DrawFadeQuad(rgb, 1);
+                    effectDrawScreenTint(rgb, GPU_BLEND_ADD);
                 } else {
                     task->state = 3;
                 }

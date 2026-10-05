@@ -178,7 +178,7 @@ void func_lifedrain_8012EF48(Task* arg0)
                 rgb[0]     = mem->scale >> 1;
                 rgb[1]     = mem->scale >> 1;
                 rgb[2]     = (u8)mem->scale;
-                Gp_DrawFadeQuad(rgb, 1);
+                effectDrawScreenTint(rgb, GPU_BLEND_ADD);
             }
             if (mem->age == 0x1E) {
                 if (arg0->spawnArg1.value != 0) {
@@ -218,7 +218,7 @@ void func_lifedrain_8012EF48(Task* arg0)
                 rgb[0]      = mem->period >> 1;
                 rgb[1]      = mem->period >> 1;
                 rgb[2]      = (u8)mem->period;
-                Gp_DrawFadeQuad(rgb, 1);
+                effectDrawScreenTint(rgb, GPU_BLEND_ADD);
             }
             val = mem->scale;
             if (val < D_lifedrain_80130AB4[mem->index].brightness) {
@@ -238,27 +238,27 @@ void func_lifedrain_8012EF48(Task* arg0)
                     p += 1;
                 } while (++i < tuning[mem->index].wedgeCount);
             }
-            Gp_DrawRing(coord, mem->angle >> 1, rgb);
-            Gp_DrawRing(coord, mem->angle >> 1, rgb);
+            effectDrawGouraudDisc(coord, mem->angle >> 1, rgb);
+            effectDrawGouraudDisc(coord, mem->angle >> 1, rgb);
             rgb[0] >>= 1;
             rgb[1] >>= 1;
             rgb[2] >>= 1;
-            Gp_DrawArc(coord, mem->angle, 0x80, rgb);
+            effectDrawOuterGlowBand(coord, mem->angle, 0x80, rgb);
             if (mem->age & 1) {
-                Gp_DrawArc(coord, 0x80, mem->angle, rgb);
+                effectDrawOuterGlowBand(coord, 0x80, mem->angle, rgb);
             }
             if (mem->index != 0) {
                 rgb[0] >>= 1;
                 rgb[1] >>= 1;
                 rgb[2] >>= 1;
-                Gp_DrawArc(coord,
-                           (s16)(mem->angle + D_lifedrain_80130AB4[mem->index].outerOffset),
-                           0x80, rgb);
+                effectDrawOuterGlowBand(coord,
+                                        (s16)(mem->angle + D_lifedrain_80130AB4[mem->index].outerOffset),
+                                        0x80, rgb);
                 if (mem->index == 2) {
                     if (mem->age & 1) {
-                        Gp_DrawArc(coord, 0x80,
-                                   (s16)(mem->angle + D_lifedrain_80130AB4[2].outerOffset),
-                                   rgb);
+                        effectDrawOuterGlowBand(coord, 0x80,
+                                                (s16)(mem->angle + D_lifedrain_80130AB4[2].outerOffset),
+                                                rgb);
                     }
                 }
             }
@@ -305,27 +305,27 @@ void func_lifedrain_8012EF48(Task* arg0)
                     p += 1;
                 } while (++i < tuning[mem->index].wedgeCount);
             }
-            Gp_DrawRing(coord, mem->angle >> 1, rgb);
-            Gp_DrawRing(coord, mem->angle >> 1, rgb);
+            effectDrawGouraudDisc(coord, mem->angle >> 1, rgb);
+            effectDrawGouraudDisc(coord, mem->angle >> 1, rgb);
             rgb[0] >>= 1;
             rgb[1] >>= 1;
             rgb[2] >>= 1;
-            Gp_DrawArc(coord, mem->angle, 0x80, rgb);
+            effectDrawOuterGlowBand(coord, mem->angle, 0x80, rgb);
             if (mem->age & 1) {
-                Gp_DrawArc(coord, 0x80, mem->angle, rgb);
+                effectDrawOuterGlowBand(coord, 0x80, mem->angle, rgb);
             }
             if (mem->index != 0) {
                 rgb[0] >>= 1;
                 rgb[1] >>= 1;
                 rgb[2] >>= 1;
-                Gp_DrawArc(coord,
-                           (s16)(mem->angle + D_lifedrain_80130AB4[mem->index].outerOffset),
-                           0x80, rgb);
+                effectDrawOuterGlowBand(coord,
+                                        (s16)(mem->angle + D_lifedrain_80130AB4[mem->index].outerOffset),
+                                        0x80, rgb);
                 if (mem->index == 2) {
                     if (mem->age & 1) {
-                        Gp_DrawArc(coord, 0x80,
-                                   (s16)(mem->angle + D_lifedrain_80130AB4[2].outerOffset),
-                                   rgb);
+                        effectDrawOuterGlowBand(coord, 0x80,
+                                                (s16)(mem->angle + D_lifedrain_80130AB4[2].outerOffset),
+                                                rgb);
                     }
                 }
             }

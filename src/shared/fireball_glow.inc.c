@@ -114,7 +114,7 @@ void fireballDrawGlow(GfxCoord* coord, s16 size)
             GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)sc->depth << gDisplayState.otDepthShift) >> 2 & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
             prim);
         if (gRoomEffectState->groundTraceEnabled != 0) {
-            if (Gp_TraceGroundCoord(coord, &ground) == 1) {
+            if (worldCollisionProjectGroundCoord(coord, &ground) == 1) {
                 fireballDrawGroundGlow(&ground, (s32)(s16)(outerSize * 2));
             }
         }

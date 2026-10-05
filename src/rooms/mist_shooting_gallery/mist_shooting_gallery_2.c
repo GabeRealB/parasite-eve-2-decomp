@@ -2247,7 +2247,7 @@ void func_mist_shooting_gallery_80182064(Task* task)
         rgb[0] = work->scale >> 1;
         rgb[1] = work->scale >> 1;
         rgb[2] = work->scale;
-        Gp_DrawFadeQuad(rgb, 1);
+        effectDrawScreenTint(rgb, GPU_BLEND_ADD);
         return;
     }
 
@@ -2280,7 +2280,7 @@ void func_mist_shooting_gallery_80182064(Task* task)
             rgb[0] = work->scale >> 1;
             rgb[1] = work->scale >> 1;
             rgb[2] = work->scale;
-            Gp_DrawFadeQuad(rgb, 1);
+            effectDrawScreenTint(rgb, GPU_BLEND_ADD);
             work->scale -= 8;
             if (work->scale < 8) {
                 effectKillTask(work, task);
