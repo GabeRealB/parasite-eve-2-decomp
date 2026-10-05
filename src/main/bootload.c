@@ -1949,29 +1949,21 @@ void Fs_BootImageMachine(void* arg0, void* arg1)
                 }
                 if (D_8006ACA8 >= 0) {
                     D_8006ACA8 = ret;
-                } else {
-                    goto check_done;
                 }
             } else {
                 D_8006ACA0++;
             }
-            if (D_8006ACA8 >= 0) {
-                break;
+            if (D_8006ACA8 < 0 && D_8006ACA6 < 0) {
+                D_8006ACA0 = 0;
+                D5B498_8006AC9C++;
             }
-        check_done:
-            if (D_8006ACA6 >= 0) {
-                break;
-            }
-            D_8006ACA0 = 0;
-            D5B498_8006AC9C++;
             break;
         case 3:
             if (D_8006ACA0 >= 0x3C) {
-                if (queue->holdBootImage != 0) {
-                    goto draw;
+                if (queue->holdBootImage == 0) {
+                    D_8006ACB4 = 0;
+                    D5B498_8006AC9C++;
                 }
-                D_8006ACB4 = 0;
-                D5B498_8006AC9C++;
             } else {
                 D_8006ACA0++;
             }
