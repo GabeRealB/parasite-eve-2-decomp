@@ -2279,7 +2279,6 @@ static void func_actor_800200_801649D8(Task* arg0)
     s32            idleAnim;
     s32            delta;
     s32            value;
-    s32            tick;
     s32            heading;
     u32            random;
     u16            target;
@@ -2350,18 +2349,12 @@ static void func_actor_800200_801649D8(Task* arg0)
             return;
 
         case 2:
-            if ((distance >= 0x341) || (distance == 0)) {
-                tick              = actor->stateTimer - 1;
-                actor->stateTimer = tick;
-                if (tick <= 0) {
-                reset:
-                    Gp_ResetActorMove(arg0, 0);
-                    break;
-                }
+            if (((distance < 0x341) && (distance != 0)) || (--actor->stateTimer <= 0)) {
+                Gp_ResetActorMove(arg0, 0);
+            } else {
                 actor->movementSign = 1;
-                break;
             }
-            goto reset;
+            break;
     }
 }
 
