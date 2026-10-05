@@ -1754,9 +1754,20 @@ TmdBone D_shelter_r48_8018BE30[1] = { 0 };
 
 u8 D_shelter_r48_8018BE54[6][16] = { 0 };
 
-/// Prepares scanline back-projection onto the water plane, overwriting GTE rotation.
+/// Prepares the screen-row rays and depth dividend for a horizontal water plane.
+///
+/// Borrows a writable scratch block and the current display state. `planeY` is
+/// the plane's world Y in game coordinate units; `display->screenDistance` is
+/// in pixels and narrows to a signed halfword in `screenRow.vz`.
+/// View translation first narrows to signed halfwords, then rotates through the
+/// transposed Q12 view rotation with GTE saturation. The resulting Y plus
+/// `planeY`, multiplied by screen distance, is the ray-intersection dividend.
+/// The caller must set `screenRow.vy` to a centred pixel row before rotating it
+/// and dividing by its positive world-space Y component. No scratch allocation
+/// occurs here; GTE rotation and arithmetic state are overwritten.
 static inline void _shelterR48PrepareWaterProjection(WaterRefractionScratch* scratch, const DisplayState* display, s32 planeY)
 {
+    // Express the view translation and screen rays in the same world-space basis.
     TransposeMatrix(&gGfxViewCoord.workm, &scratch->transposedView);
     scratch->viewTranslation.vx = gGfxViewCoord.workm.t[0];
     scratch->viewTranslation.vy = gGfxViewCoord.workm.t[1];
@@ -2628,15 +2639,26 @@ void shelterR48RingWallTask(Task* task)
 
 /// Projects one of sixteen ring segments and selects its animated texture cell.
 ///
-/// Requires initialized rings, bandIndex 0..5 and segmentIndex 0..15, with
-/// GsWSMATRIX already loaded. Writes four screen positions and final flags;
-/// keeps the final depth in the GTE. The unsigned return preserves frame
-/// narrowing before the caller uses it as a texture-cell index.
+/// Borrows a writable scratch block containing two initialized sixteen-vertex
+/// rings of signed-halfword world positions. `bandIndex` is 0..5 in the room's
+/// initialized phase table and `segmentIndex` is 0..15, wrapping at the seam.
+/// Requires the current projection parameters and `GsWSMATRIX` rotation and
+/// translation already loaded. Writes `sxy0`..`sxy3` in centred screen pixels.
+/// `projectionFlags` contains only the final three-vertex projection's FLAG;
+/// the first vertex's flags are not combined with it. Leaves that final vertex's
+/// SZ3 in the GTE for the caller to read as SZ3/4, without writing `otz`.
+///
+/// Adds the phase byte to signed frame age, takes signed remainder modulo six,
+/// then narrows to `u16`. Nonnegative ages select cells 0..5; negative remainders
+/// wrap on narrowing. The lookup remains between RTPT and the FIFO reads.
+/// Retains neither pointer and overwrites GTE vector, projection and flag state.
 static inline u16 _shelterR48ProjectRingSegment(EffectBandScratch* scratch, const EffectWork* work, s32 bandIndex, s32 segmentIndex)
 {
     enum { SHELTER_R48_RING_FRAME_COUNT = 6 };
     s32 nextSegmentIndex;
     u16 textureFrame;
+
+    // Save the first corner before RTPT replaces the screen-coordinate FIFO.
     gte_ldv0(&scratch->topRing[segmentIndex]);
     gte_rtps();
     gte_stsxy(&scratch->sxy0);
@@ -3270,21 +3292,23 @@ void func_shelter_r48_801810B0(Task* task)
     effectKillTask(work, task);
 }
 
-/// Attaches the effect's identity local transform to its borrowed parent and composes it.
-static inline void _shelterR48AttachShockwaveCoord(GfxCoord* coord, const EffectWork* work)
+/// Places an effect at its parent's origin and refreshes its composed transform.
+///
+/// `coord` must be a live writable node, disjoint from its borrowed `parent`.
+/// A non-NULL parent and all ancestors must remain live in an acyclic chain
+/// until the effect detaches; NULL makes a root node. Replaces the nine Q12
+/// rotation coefficients and all three translation words, preserving matrix
+/// alignment bytes and `param` storage.
+/// Clears the composition stamp before composing the full chain, which may
+/// refresh ancestors and overwrite GTE state. Allocates and releases nothing.
+static inline void _shelterR48AttachEffectCoord(GfxCoord* coord, GfxCoord* parent)
 {
-    MATRIX* localMatrix;
-    localMatrix                      = &coord->coord;
-    coord->parent                    = work->parent;
-    MATRIX_PAIR(&coord->coord, 0, 0) = ONE;
-    MATRIX_PAIR(localMatrix, 0, 2)   = 0;
-    MATRIX_PAIR(localMatrix, 1, 1)   = ONE;
-    MATRIX_PAIR(localMatrix, 2, 0)   = 0;
-    localMatrix->m[2][2]             = ONE;
-    coord->coord.t[2]                = 0;
-    coord->coord.t[1]                = 0;
-    coord->coord.t[0]                = 0;
-    coord->composeStamp              = GRAPHICS_COORD_DIRTY;
+    coord->parent = parent;
+    gfxSetRotIdentity(&coord->coord);
+    coord->coord.t[2]   = 0;
+    coord->coord.t[1]   = 0;
+    coord->coord.t[0]   = 0;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(coord);
 }
 
@@ -3317,7 +3341,7 @@ void shelterR48ShockwaveRingsTask(Task* task)
         // Attach the effect to its parent before starting the expansion.
         switch (task->state) {
             case SHELTER_R48_SHOCKWAVE_STATE_NEW:
-                _shelterR48AttachShockwaveCoord(coord, work);
+                _shelterR48AttachEffectCoord(coord, work->parent);
                 work->age   = 1;
                 work->scale = SHELTER_R48_SHOCKWAVE_INITIAL_BRIGHTNESS;
                 task->state = SHELTER_R48_SHOCKWAVE_STATE_EXPANDING;
@@ -3358,24 +3382,6 @@ void shelterR48ShockwaveRingsTask(Task* task)
         }
     }
     effectKillTask(work, task);
-}
-
-/// Attaches the effect's identity local transform to its borrowed parent and composes it.
-static inline void _shelterR48AttachPinkFlashCoord(GfxCoord* coord, const EffectWork* work)
-{
-    MATRIX* localMatrix;
-    localMatrix                      = &coord->coord;
-    coord->parent                    = work->parent;
-    MATRIX_PAIR(&coord->coord, 0, 0) = ONE;
-    MATRIX_PAIR(localMatrix, 0, 2)   = 0;
-    MATRIX_PAIR(localMatrix, 1, 1)   = ONE;
-    MATRIX_PAIR(localMatrix, 2, 0)   = 0;
-    localMatrix->m[2][2]             = ONE;
-    coord->coord.t[2]                = 0;
-    coord->coord.t[1]                = 0;
-    coord->coord.t[0]                = 0;
-    coord->composeStamp              = GRAPHICS_COORD_DIRTY;
-    actorRenderComposeCoord(coord);
 }
 
 void shelterR48PinkRingFlashTask(Task* task)
@@ -3436,7 +3442,7 @@ void shelterR48PinkRingFlashTask(Task* task)
         work->age++;
         switch (task->state) {
             case SHELTER_R48_PINK_FLASH_STATE_NEW:
-                _shelterR48AttachPinkFlashCoord(coord, work);
+                _shelterR48AttachEffectCoord(coord, work->parent);
                 task->state           = SHELTER_R48_PINK_FLASH_STATE_CHARGING;
                 task->spawnArg1.value = SHELTER_R48_PINK_FLASH_CHARGE_UPDATES;
                 work->scale           = 0;
@@ -3509,11 +3515,17 @@ void shelterR48PinkRingFlashTask(Task* task)
 #undef SHELTER_R48_DRAW_PINK_CHARGE
 }
 
-/// Initializes a black-rim Gouraud wedge with the supplied centre colour bytes.
+/// Initializes a Gouraud quad with one coloured centre vertex and a black rim.
 ///
-/// Borrows one writable packet, setting its length, command and four colours.
-/// Coordinates, ordering-table linkage and blend mode remain the caller's work.
-static inline void _shelterR48InitBeamCap(POLY_G4* quad, u8 red, u8 green, u8 blue)
+/// Borrows one writable `POLY_G4` packet. Sets the eight-word packet length,
+/// opaque Gouraud-quad command and all four RGB triples; vertex 2 receives the
+/// supplied colour bytes, and vertices 0, 1 and 3 are black. Wider caller values
+/// narrow to their low bytes on entry.
+///
+/// The caller supplies geometry with vertex 2 at the centre and the others on
+/// the rim, then sets blend mode and ordering-table linkage. Coordinates and
+/// the tag's link bits are preserved; no primitive is allocated or queued here.
+static inline void _shelterR48InitGlowWedge(POLY_G4* quad, u8 red, u8 green, u8 blue)
 {
     setPolyG4(quad);
     setRGB0(quad, 0, 0, 0);
@@ -3615,7 +3627,7 @@ static void _shelterR48DrawGlowBeam(const GfxCoord* coord, s16 radiusScale, s32 
                     do {
                         quad           = gGpuPrimCursor;
                         gGpuPrimCursor = quad + 1;
-                        _shelterR48InitBeamCap(quad, red, green, blue);
+                        _shelterR48InitGlowWedge(quad, red, green, blue);
                         quad->x0 = scratch->pair.sx1 + ((scratch->pair.radius1 * rsin(sweepAngle + SHELTER_R48_GLOW_HALF_TURN)) >> SHELTER_R48_GLOW_TRIG_SHIFT);
                         quad->y0 = scratch->pair.sy1 + ((scratch->pair.radius1 * rcos(sweepAngle + SHELTER_R48_GLOW_HALF_TURN)) >> SHELTER_R48_GLOW_TRIG_SHIFT);
                         quad->x1 = scratch->pair.sx1 + ((scratch->pair.radius1 * rsin(sweepAngle + SHELTER_R48_GLOW_HALF_TURN + SHELTER_R48_GLOW_EIGHTH_TURN)) >> SHELTER_R48_GLOW_TRIG_SHIFT);
@@ -3630,7 +3642,7 @@ static void _shelterR48DrawGlowBeam(const GfxCoord* coord, s16 radiusScale, s32 
 
                         quad           = gGpuPrimCursor;
                         gGpuPrimCursor = quad + 1;
-                        _shelterR48InitBeamCap(quad, red, green, blue);
+                        _shelterR48InitGlowWedge(quad, red, green, blue);
                         quad->x0       = scratch->pair.sx0 + ((scratch->pair.radius0 * rsin(sweepAngle)) >> SHELTER_R48_GLOW_TRIG_SHIFT);
                         quad->y0       = scratch->pair.sy0 + ((scratch->pair.radius0 * rcos(sweepAngle)) >> SHELTER_R48_GLOW_TRIG_SHIFT);
                         quad->x1       = scratch->pair.sx0 + ((scratch->pair.radius0 * rsin(sweepAngle + SHELTER_R48_GLOW_EIGHTH_TURN)) >> SHELTER_R48_GLOW_TRIG_SHIFT);
@@ -3670,19 +3682,6 @@ static void _shelterR48DrawGlowBeam(const GfxCoord* coord, s16 radiusScale, s32 
         }
     }
     SCRATCH_STACK_RELEASE_BLOCK(RoomBeamScratch);
-}
-
-/// Initializes a black-rim Gouraud wedge with the supplied centre colour bytes.
-///
-/// Borrows one writable packet, setting its length, command and four colours.
-/// Coordinates, ordering-table linkage and blend mode remain the caller's work.
-static inline void _shelterR48InitRoomGlowWedge(POLY_G4* quad, s32 red, s32 green, s32 blue)
-{
-    setPolyG4(quad);
-    setRGB0(quad, 0, 0, 0);
-    setRGB1(quad, 0, 0, 0);
-    setRGB2(quad, red, green, blue);
-    setRGB3(quad, 0, 0, 0);
 }
 
 /// Draws a tinted disc and four glow blades around a fixed room point.
@@ -3786,7 +3785,7 @@ static void _shelterR48DrawRoomGlow(const SVECTOR* worldPoint, s32 radiusScale, 
 
             quad           = gGpuPrimCursor;
             gGpuPrimCursor = quad + 1;
-            _shelterR48InitRoomGlowWedge(quad, red, green, blue);
+            _shelterR48InitGlowWedge(quad, red, green, blue);
             quad->x0 = scratch->sx + ((scratch->outerRadius * rsin(angle)) >> (SHELTER_R48_GLOW_TRIG_SHIFT + 1));
             quad->y0 = scratch->sy + ((scratch->outerRadius * rcos(angle)) >> (SHELTER_R48_GLOW_TRIG_SHIFT + 1));
             quad->x1 = scratch->sx + ((scratch->outerRadius * rsin(halfStepAngle)) >> (SHELTER_R48_GLOW_TRIG_SHIFT + 1));
@@ -3810,7 +3809,7 @@ static void _shelterR48DrawRoomGlow(const SVECTOR* worldPoint, s32 radiusScale, 
             previousShoulderAngle = angle - SHELTER_R48_GLOW_QUARTER_TURN;
             quad                  = gGpuPrimCursor;
             gGpuPrimCursor        = quad + 1;
-            _shelterR48InitRoomGlowWedge(quad, red, green, blue);
+            _shelterR48InitGlowWedge(quad, red, green, blue);
             quad->x0          = scratch->sx + ((scratch->innerRadius * rsin(previousShoulderAngle)) >> (SHELTER_R48_GLOW_TRIG_SHIFT + 1));
             quad->y0          = scratch->sy + ((scratch->innerRadius * rcos(previousShoulderAngle)) >> (SHELTER_R48_GLOW_TRIG_SHIFT + 1));
             quad->x1          = scratch->sx + ((scratch->outerRadius * rsin(angle)) >> SHELTER_R48_GLOW_TRIG_SHIFT);
@@ -3826,7 +3825,7 @@ static void _shelterR48DrawRoomGlow(const SVECTOR* worldPoint, s32 radiusScale, 
 
             quad           = gGpuPrimCursor;
             gGpuPrimCursor = quad + 1;
-            _shelterR48InitRoomGlowWedge(quad, red, green, blue);
+            _shelterR48InitGlowWedge(quad, red, green, blue);
             quad->x0      = scratch->sx + ((scratch->innerRadius * rsin(angle)) >> SHELTER_R48_GLOW_TRIG_SHIFT);
             quad->y0      = scratch->sy + ((scratch->innerRadius * rcos(angle)) >> SHELTER_R48_GLOW_TRIG_SHIFT);
             quad->x1      = scratch->sx + ((scratch->outerRadius * rsin(nextShoulderAngle)) >> (SHELTER_R48_GLOW_TRIG_SHIFT - 1));
