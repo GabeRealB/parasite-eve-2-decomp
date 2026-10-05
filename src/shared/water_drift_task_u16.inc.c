@@ -3,9 +3,9 @@
 /* Part of the water effects library; see water_effects.h. */
 
 /// Per-frame driver of a particle effect, drawn as the spinning sprite of
-/// `waterDrawSpinU16` (state 1) or, when the spawn
+/// `_waterDrawSpinU16` (state 1) or, when the spawn
 /// argument's top nibble is set, the upright sprite of
-/// `waterDrawTileU16` (state 2). The first frame takes
+/// `_waterDrawTileU16` (state 2). The first frame takes
 /// the size from the argument's low 12 bits, a random spin angle, and the ticks
 /// per animation frame from bits 12-15. Unless the work block already carries a
 /// velocity it picks one by the kind in bits 24-27 - none, a random upward
@@ -29,9 +29,9 @@ static inline void waterDriftTaskU16(Task* task)
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             if (task->state < 2) {
-                waterDrawSpinU16(coord, (u16)work->index, work->scale, work->angle);
+                _waterDrawSpinU16(coord, (u16)work->index, work->scale, work->angle);
             } else {
-                waterDrawTileU16(coord, (u16)work->index, work->scale);
+                _waterDrawTileU16(coord, (u16)work->index, work->scale);
             }
             return;
         }
@@ -110,10 +110,10 @@ static inline void waterDriftTaskU16(Task* task)
             }
             return;
         case 1:
-            waterDrawSpinU16(coord, (u16)work->index, work->scale, work->angle);
+            _waterDrawSpinU16(coord, (u16)work->index, work->scale, work->angle);
             break;
         case 2:
-            waterDrawTileU16(coord, (u16)work->index, work->scale);
+            _waterDrawTileU16(coord, (u16)work->index, work->scale);
             break;
         default:
             return;

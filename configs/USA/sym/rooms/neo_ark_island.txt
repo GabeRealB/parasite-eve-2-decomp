@@ -76,5 +76,5 @@ _roomVisualEffectsDrawBurstStar = 0x80181170; // type:func
 _waterDrawSplash = 0x8017ECB4; // type:func
 waterDistortBandTask = 0x8017E2A4; // type:func
 waterRefractionTask = 0x8017D650; // type:func
-waterDrawSpinU16 = 0x8017F4A4; // type:func
-waterDrawTileU16 = 0x8017F890; // type:func
+_waterDrawSpinU16 = 0x8017F4A4; // type:func
+_waterDrawTileU16 = 0x8017F890; // type:func

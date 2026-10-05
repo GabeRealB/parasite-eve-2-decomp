@@ -5,7 +5,7 @@
 /// waterDriftTaskU16 without the per-frame actorRenderComposeCoord. The first frame
 /// reads size, frame period, draw style and launch kind (none, upward burst,
 /// spray, narrow jet or stored direction) from the spawn argument. Later frames
-/// draw with waterDrawSpinU16/waterDrawTileU16, move under gravity (+6 vy) and
+/// draw with _waterDrawSpinU16/_waterDrawTileU16, move under gravity (+6 vy) and
 /// release after animation frame 7.
 void waterDriftTaskNoUpdate(Task* task)
 {
@@ -22,9 +22,9 @@ void waterDriftTaskNoUpdate(Task* task)
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             if (task->state < 2) {
-                waterDrawSpinU16(coord, (u16)work->index, work->scale, work->angle);
+                _waterDrawSpinU16(coord, (u16)work->index, work->scale, work->angle);
             } else {
-                waterDrawTileU16(coord, (u16)work->index, work->scale);
+                _waterDrawTileU16(coord, (u16)work->index, work->scale);
             }
             return;
         }
@@ -102,10 +102,10 @@ void waterDriftTaskNoUpdate(Task* task)
             }
             return;
         case 1:
-            waterDrawSpinU16(coord, (u16)work->index, work->scale, work->angle);
+            _waterDrawSpinU16(coord, (u16)work->index, work->scale, work->angle);
             break;
         case 2:
-            waterDrawTileU16(coord, (u16)work->index, work->scale);
+            _waterDrawTileU16(coord, (u16)work->index, work->scale);
             break;
         default:
             return;

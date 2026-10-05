@@ -27,8 +27,8 @@
 #include "main/scratch.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
-/// Empty presence flag: this room supplies `waterDrawSpinU16` and
-/// `waterDrawTileU16`.
+/// Empty presence flag: this room supplies `_waterDrawSpinU16` and
+/// `_waterDrawTileU16`.
 ///
 /// Defined, with no replacement list, immediately before `water_effects.h`.
 /// `defined()` is the only test. That header prototypes the shared drawers,
@@ -44,8 +44,8 @@
 #define effectSpriteRiseTask shelterB1PodServiceGantryEffectSpriteRiseTask
 #include "../../shared/effect_sprite.h"
 
-void waterDrawSpinU16(GfxCoord* coord, u16 textureColumn, s16 radiusScale, s16 spinAngle);
-void waterDrawTileU16(GfxCoord* arg0, u16 arg1, s16 arg2);
+static void _waterDrawSpinU16(const GfxCoord* coord, u16 textureColumn, s16 radiusScale, s16 spinAngle);
+static void _waterDrawTileU16(const GfxCoord* coord, u16 textureCell, s16 radiusScale);
 
 /// Scratch-stack workspace for the room's spinning water sprite.
 ///
@@ -362,136 +362,203 @@ void func_shelter_b1_pod_service_gantry_8017E880(Task* task)
     waterDriftTaskU16(task);
 }
 
-/// Draws a spinning, semi-transparent raw-texture quad around the projected coordinate.
+/// Writes the signed pixel offset to a rotated water-sprite corner.
 ///
-/// `coord->workm` must already be current in the space `GsWSMATRIX` projects.
-/// `textureColumn` selects a 32-texel column on texture row 0xE0..0xFF;
-/// UV stores retain only their low byte. The projected radius is
-/// `radiusScale * 31 / depth`, with a nonzero depth required. `spinAngle` uses
-/// 0x1000 units per turn. The scratch block lives only during this draw.
-void waterDrawSpinU16(GfxCoord* coord, u16 textureColumn, s16 radiusScale, s16 spinAngle)
+/// `projection` borrows a live scratch block with positive `depth` in SZ3/4
+/// units. `scratchEnd` is one past that same block. Only the corner offsets
+/// change; no pointer is retained. `radiusScale * 31 / depth` is the signed half-diagonal
+/// in pixels, truncated toward zero. Q12 products must fit s32 and round down.
+/// `angle` is a corner bearing in 4096 units per turn, with X right and Y up;
+/// it stays 32-bit so a quarter-turn addition is not narrowed again.
+static inline void _shelterB1PodServiceGantryComputeWaterCornerOffset(_ShelterB1PodServiceGantrySpinScratch* projection, const _ShelterB1PodServiceGantrySpinScratch* scratchEnd, s16 radiusScale, s32 angle)
 {
-    void**                                          scratch;
-    _ShelterB1PodServiceGantrySpinScratch*          head;
-    _ShelterB1PodServiceGantrySpinScratch*          block;
-    register _ShelterB1PodServiceGantrySpinScratch* depthBlock asm("s0");
-    POLY_FT4*                                       prim;
-    s32                                             u0;
-    s32                                             u1;
-    s32                                             v;
-    s32                                             angle;
-    s32                                             quarterTurnAngle;
+    enum {
+        WATER_SPIN_U16_PERSPECTIVE_SCALE  = 31,
+        WATER_SPIN_U16_TRIG_FRACTION_BITS = 12
+    };
+    s32 halfDiagonalPixels;
+    s32 trigSample;
 
-    scratch  = SCRATCH_STACK_CURSOR_SLOT;
-    head     = *scratch;
-    block    = head - 1;
-    *scratch = block;
-    memFillBytes(block, 0, sizeof(*block));
-    block->worldPoint.vx = (u16)coord->workm.t[0];
-    block->worldPoint.vy = (u16)coord->workm.t[1];
-    block->worldPoint.vz = (u16)coord->workm.t[2];
-    // Reuse the saved coordinate register after capturing the position.
-    depthBlock = block;
-    gte_SetTransMatrix(&GsWSMATRIX);
-    gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&(head - 1)->worldPoint);
-    gte_rtps();
-    gte_stsxy(&(head - 1)->screenX);
-    gte_stflg(&(head - 1)->projectionFlags);
-    if (block->projectionFlags >= 0) {
-        gte_stszotz(&depthBlock->depth);
-        prim           = gGpuPrimCursor;
-        angle          = spinAngle;
-        gGpuPrimCursor = prim + 1;
-        setPolyFT4(prim);
-        setShadeTex(prim, 1);
-        setSemiTrans(prim, 1);
-        prim->tpage = 0x2C;
-        prim->clut  = 0x43D3;
-        u0          = textureColumn << 5;
-        v           = 0xE0;
-        u1          = u0 + 0x1F;
-        setUV4(prim, u0, v, u1, v, u0, 0xFF, u1, 0xFF);
-        block->cornerOffsetX = (((radiusScale * 31) / (head - 1)->depth) * rsin(angle)) >> 12;
-        block->cornerOffsetY = (((radiusScale * 31) / (head - 1)->depth) * rcos(angle)) >> 12;
-        prim->x0             = block->screenX + (u16)block->cornerOffsetX;
-        prim->x3             = block->screenX - (u16)block->cornerOffsetX;
-        prim->y0             = block->screenY - (u16)block->cornerOffsetY;
-        quarterTurnAngle     = angle + 0x400;
-        prim->y3             = block->screenY + (u16)block->cornerOffsetY;
-        block->cornerOffsetX = (((radiusScale * 31) / (head - 1)->depth) * rsin(quarterTurnAngle)) >> 12;
-        block->cornerOffsetY = (((radiusScale * 31) / (head - 1)->depth) * rcos(quarterTurnAngle)) >> 12;
-        prim->x1             = block->screenX + (u16)block->cornerOffsetX;
-        prim->x2             = block->screenX - (u16)block->cornerOffsetX;
-        prim->y1             = block->screenY - (u16)block->cornerOffsetY;
-        prim->y2             = block->screenY + (u16)block->cornerOffsetY;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)(head - 1)->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
-    }
-    SCRATCH_POP_AT(scratch, _ShelterB1PodServiceGantrySpinScratch);
+    trigSample                = rsin(angle);
+    halfDiagonalPixels        = (radiusScale * WATER_SPIN_U16_PERSPECTIVE_SCALE) / (scratchEnd - 1)->depth;
+    projection->cornerOffsetX = (halfDiagonalPixels * trigSample) >> WATER_SPIN_U16_TRIG_FRACTION_BITS;
+    trigSample                = rcos(angle);
+    halfDiagonalPixels        = (radiusScale * WATER_SPIN_U16_PERSPECTIVE_SCALE) / (scratchEnd - 1)->depth;
+    projection->cornerOffsetY = (halfDiagonalPixels * trigSample) >> WATER_SPIN_U16_TRIG_FRACTION_BITS;
 }
 
-/// Projects the coordinate's world position through `GsWSMATRIX` into a
-/// 0x18-byte scratch block zeroed with `memFillBytes` and, when the GTE flag is
-/// non-negative, queues one shade-tex `POLY_FT4` (tpage 0x2B, clut 0x4393)
-/// with a 56-texel UV tile picked by `arg1` and an on-screen radius of
-/// `arg2 * 55 / depth`.
-void waterDrawTileU16(GfxCoord* arg0, u16 arg1, s16 arg2)
+/// Draws one rotated, camera-facing cell of the eight-frame water-drift strip.
+///
+/// `coord` is borrowed with `workm` already composed in the input space of
+/// `GsWSMATRIX`; drift tasks normally supply view-space translations. Each
+/// translation keeps its low 16 bits as a signed GTE coordinate.
+/// `textureColumn` is unsigned. Frame 0..7 selects a 32-texel square at
+/// V=224..255; UVs wrap to bytes without a bounds check. The 4-bit texture page
+/// is at VRAM (768, 0), with its 16-colour palette at (304, 271).
+///
+/// `radiusScale * 31 / depth` gives the signed half-diagonal in pixels before
+/// rotation. Drift tasks supply scale 0..4095. `spinAngle` uses 4096 units per
+/// turn. With positive scale, zero puts the first corner above the centre,
+/// a quarter turn to its right. Signed division truncates toward zero; the Q12 products round down
+/// and must fit s32. Accepted projections require positive SZ3/4 depth; there
+/// is no extra check.
+///
+/// A nonnegative GTE FLAG queues one raw-texture, additive semi-transparent
+/// `POLY_FT4`; the primitive cursor must have space for the complete packet.
+/// One word-aligned `_ShelterB1PodServiceGantrySpinScratch` is reserved on the
+/// initialized scratch stack and released on every path. No pointer is
+/// retained; GTE state changes.
+static void _waterDrawSpinU16(const GfxCoord* coord, u16 textureColumn, s16 radiusScale, s16 spinAngle)
 {
-    void**               scratch;
-    u8*                  head;
-    EffectCentreScratch* block;
-    POLY_FT4*            prim;
-    SVECTOR*             vec;
-    u32                  cell;
-    s32                  tex;
-    s32                  v0;
-    s32                  u1;
-    s32                  v1;
-    s16                  xy;
+    enum {
+        WATER_SPIN_U16_CELL_SHIFT      = 5,
+        WATER_SPIN_U16_UV_SPAN_TEXELS  = 31,
+        WATER_SPIN_U16_FIRST_TEXEL_ROW = 224,
+        WATER_SPIN_U16_LAST_TEXEL_ROW  = 255,
+        WATER_SPIN_U16_QUARTER_TURN    = 0x400
+    };
+    void**                                          scratchCursor;
+    _ShelterB1PodServiceGantrySpinScratch*          scratchEnd;
+    _ShelterB1PodServiceGantrySpinScratch*          projection;
+    register _ShelterB1PodServiceGantrySpinScratch* depthProjection asm("s0");
+    POLY_FT4*                                       quad;
+    s32                                             cellU;
+    s32                                             lastU;
+    s32                                             firstV;
+    s32                                             cornerAngle;
+    s32                                             perpendicularAngle;
 
-    scratch  = SCRATCH_STACK_CURSOR_SLOT;
-    head     = *scratch;
-    block    = (EffectCentreScratch*)(head - sizeof(EffectCentreScratch));
-    *scratch = block;
-    memFillBytes(block, 0, sizeof(*block));
-    block->worldPoint.vx = arg0->workm.t[0];
-    block->worldPoint.vy = arg0->workm.t[1];
-    block->worldPoint.vz = arg0->workm.t[2];
-    vec                  = &block->worldPoint;
+    // Project the composed centre before constructing the screen-space quad.
+    scratchCursor  = SCRATCH_STACK_CURSOR_SLOT;
+    scratchEnd     = *scratchCursor;
+    projection     = scratchEnd - 1;
+    *scratchCursor = projection;
+    memFillBytes(projection, 0, sizeof(*projection));
+    projection->worldPoint.vx = (u16)coord->workm.t[0];
+    projection->worldPoint.vy = (u16)coord->workm.t[1];
+    projection->worldPoint.vz = (u16)coord->workm.t[2];
+    // Reuse the saved coordinate register after capturing the position.
+    depthProjection = projection;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(vec);
+    gte_ldv0(&(scratchEnd - 1)->worldPoint);
     gte_rtps();
-    gte_stsxy(&block->screenX);
-    gte_stflg(&block->projectionFlags);
-    if (block->projectionFlags >= 0) {
-        gte_stszotz(&block->depth);
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setlen(prim, 9);
-        setcode(prim, 0x2F);
-        prim->tpage = 0x2B;
-        prim->clut  = 0x4393;
-        cell        = arg1;
-        tex         = (cell & 3) * 0x38;
-        v0          = ((cell & 7) >> 2) * 0x38;
-        u1          = tex + 0x37;
-        v1          = v0 + 0x37;
-        setUV4(prim, tex, v0, u1, v0, tex, v1, u1, v1);
-        block->screenExtent = (arg2 * 55) / block->depth;
-        xy                  = block->screenX - block->screenExtent;
-        prim->x0 = prim->x2 = xy;
-        xy                  = block->screenX + block->screenExtent;
-        prim->x1 = prim->x3 = xy;
-        xy                  = block->screenY - block->screenExtent - (block->screenExtent >> 1);
-        prim->y0 = prim->y1 = xy;
-        xy                  = block->screenY + (block->screenExtent >> 1);
-        prim->y2 = prim->y3 = xy;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
+    gte_stsxy(&(scratchEnd - 1)->screenX);
+    gte_stflg(&(scratchEnd - 1)->projectionFlags);
+    if (projection->projectionFlags >= 0) {
+        gte_stszotz(&depthProjection->depth);
+        quad           = gGpuPrimCursor;
+        cornerAngle    = spinAngle;
+        gGpuPrimCursor = quad + 1;
+        setPolyFT4(quad);
+        setShadeTex(quad, 1);
+        setSemiTrans(quad, 1);
+        quad->tpage = getTPage(0, GPU_BLEND_ADD, 768, 0);
+        quad->clut  = getClut(304, 271);
+        cellU       = textureColumn << WATER_SPIN_U16_CELL_SHIFT;
+        firstV      = WATER_SPIN_U16_FIRST_TEXEL_ROW;
+        lastU       = cellU + WATER_SPIN_U16_UV_SPAN_TEXELS;
+        setUV4(quad, cellU, firstV, lastU, firstV, cellU, WATER_SPIN_U16_LAST_TEXEL_ROW, lastU, WATER_SPIN_U16_LAST_TEXEL_ROW);
+        // Opposite corners share an offset; the second pair is a quarter turn away.
+        _shelterB1PodServiceGantryComputeWaterCornerOffset(projection, scratchEnd, radiusScale, cornerAngle);
+        quad->x0           = projection->screenX + (u16)projection->cornerOffsetX;
+        quad->x3           = projection->screenX - (u16)projection->cornerOffsetX;
+        quad->y0           = projection->screenY - (u16)projection->cornerOffsetY;
+        perpendicularAngle = cornerAngle + WATER_SPIN_U16_QUARTER_TURN;
+        quad->y3           = projection->screenY + (u16)projection->cornerOffsetY;
+        _shelterB1PodServiceGantryComputeWaterCornerOffset(projection, scratchEnd, radiusScale, perpendicularAngle);
+        quad->x1 = projection->screenX + (u16)projection->cornerOffsetX;
+        quad->x2 = projection->screenX - (u16)projection->cornerOffsetX;
+        quad->y1 = projection->screenY - (u16)projection->cornerOffsetY;
+        quad->y2 = projection->screenY + (u16)projection->cornerOffsetY;
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)(scratchEnd - 1)->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                quad);
     }
-    SCRATCH_POP_BYTES_AT(scratch, sizeof(EffectCentreScratch));
+    SCRATCH_POP_AT(scratchCursor, _ShelterB1PodServiceGantrySpinScratch);
+}
+
+#include "../../shared/water_tile_u16_corners.inc.c"
+
+/// Draws one upright, camera-facing cell of the eight-frame water-spray grid.
+///
+/// `coord` is borrowed with `workm` already composed in the input space of
+/// `GsWSMATRIX`; drift tasks normally supply view-space translations. Each
+/// translation keeps its low 16 bits as a signed GTE coordinate. `textureCell`
+/// is unsigned. Its low three bits choose a 56-texel square from four columns
+/// and two rows, starting at V=0. The 4-bit texture page is at VRAM (704, 0),
+/// with its 16-colour palette at (304, 270).
+///
+/// `radiusScale * 55 / depth` gives the signed horizontal half-width `r` in
+/// pixels. Drift tasks supply scale 0..4095. Signed division truncates toward
+/// zero. The top edge is centre Y - r - (r >> 1), the bottom centre Y + (r >>
+/// 1), placing the centre about a quarter of the height above the bottom edge.
+/// Accepted projections require positive SZ3/4 depth; there is no extra check.
+///
+/// A nonnegative GTE FLAG queues one raw-texture, additive semi-transparent
+/// `POLY_FT4`; the primitive cursor must have space for the complete packet.
+/// One word-aligned `EffectCentreScratch` is reserved on the initialized
+/// scratch stack and released on every path. No pointer is retained; GTE state
+/// changes.
+static void _waterDrawTileU16(const GfxCoord* coord, u16 textureCell, s16 radiusScale)
+{
+    enum {
+        WATER_TILE_U16_COLUMNS           = 4,
+        WATER_TILE_U16_CELLS             = 8,
+        WATER_TILE_U16_ROW_SHIFT         = 2,
+        WATER_TILE_U16_CELL_TEXELS       = 56,
+        WATER_TILE_U16_UV_SPAN_TEXELS    = WATER_TILE_U16_CELL_TEXELS - 1,
+        WATER_TILE_U16_FIRST_TEXEL_ROW   = 0,
+        WATER_TILE_U16_PERSPECTIVE_SCALE = 55,
+        WATER_TILE_U16_PACKET_CODE       = 0x2F
+    };
+    void**               scratchCursor;
+    EffectCentreScratch* scratchEnd;
+    EffectCentreScratch* projection;
+    POLY_FT4*            quad;
+    SVECTOR*             projectionPoint;
+    u32                  cellIndex;
+    s32                  firstU;
+    s32                  firstV;
+    s32                  lastU;
+    s32                  lastV;
+
+    // Project the composed centre before constructing the screen-space quad.
+    scratchCursor  = SCRATCH_STACK_CURSOR_SLOT;
+    scratchEnd     = *scratchCursor;
+    projection     = scratchEnd - 1;
+    *scratchCursor = projection;
+    memFillBytes(projection, 0, sizeof(*projection));
+    projection->worldPoint.vx = coord->workm.t[0];
+    projection->worldPoint.vy = coord->workm.t[1];
+    projection->worldPoint.vz = coord->workm.t[2];
+    projectionPoint           = &projection->worldPoint;
+    gte_SetTransMatrix(&GsWSMATRIX);
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_ldv0(projectionPoint);
+    gte_rtps();
+    gte_stsxy(&projection->screenX);
+    gte_stflg(&projection->projectionFlags);
+    if (projection->projectionFlags >= 0) {
+        gte_stszotz(&projection->depth);
+        quad           = gGpuPrimCursor;
+        gGpuPrimCursor = quad + 1;
+        setlen(quad, sizeof(*quad) / sizeof(u32) - 1);
+        setcode(quad, WATER_TILE_U16_PACKET_CODE);
+        quad->tpage = getTPage(0, GPU_BLEND_ADD, 704, 0);
+        quad->clut  = getClut(304, 270);
+        // Wrap the animation frame over the eight-cell texture grid.
+        cellIndex = textureCell;
+        firstU    = (cellIndex & (WATER_TILE_U16_COLUMNS - 1)) * WATER_TILE_U16_CELL_TEXELS;
+        firstV    = ((cellIndex & (WATER_TILE_U16_CELLS - 1)) >> WATER_TILE_U16_ROW_SHIFT) * WATER_TILE_U16_CELL_TEXELS + WATER_TILE_U16_FIRST_TEXEL_ROW;
+        lastU     = firstU + WATER_TILE_U16_UV_SPAN_TEXELS;
+        lastV     = firstV + WATER_TILE_U16_UV_SPAN_TEXELS;
+        setUV4(quad, firstU, firstV, lastU, firstV, firstU, lastV, lastU, lastV);
+        projection->screenExtent = (radiusScale * WATER_TILE_U16_PERSPECTIVE_SCALE) / projection->depth;
+        _waterSetUprightSpriteCorners(quad, projection);
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)projection->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                quad);
+    }
+    SCRATCH_POP_AT(scratchCursor, EffectCentreScratch);
 }
 
 /// Draws a glowing disc at the point (0, -0xC4, 0) in `arg0`'s local frame:

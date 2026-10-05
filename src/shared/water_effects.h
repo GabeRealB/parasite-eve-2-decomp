@@ -12,7 +12,7 @@
  * keeps its own entry point, which calls the task.
  *
  * waterDriftTaskU16 feeds its drawers an unsigned 16-bit sprite index.
- * waterDrawSpinU16 and waterDrawTileU16 are those drawers. The flags below
+ * _waterDrawSpinU16 and _waterDrawTileU16 are those drawers. The flags below
  * choose whether this header declares the shared drawers or the room supplies
  * its own prototypes. The bodies stay in their own includes.
  */
@@ -36,8 +36,8 @@ void        waterDrawTile(GfxCoord* arg0, s16 arg1, s16 arg2);
  * prototypes out of this header.
  */
 #if defined(WATER_SHARED_U16_DRAWERS) && !defined(WATER_OWN_U16_DRAWERS)
-void waterDrawSpinU16(GfxCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
-void waterDrawTileU16(GfxCoord* arg0, s32 arg1, s32 arg2);
+static void _waterDrawSpinU16(const GfxCoord* coord, s32 textureColumn, s32 radiusScale, s32 spinAngle);
+static void _waterDrawTileU16(const GfxCoord* coord, s32 textureCell, s32 radiusScale);
 #endif
 void waterDistortBandTask(Task* task);
 void waterRefractionTask(Task* task);

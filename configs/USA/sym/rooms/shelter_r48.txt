@@ -95,7 +95,7 @@ func_shelter_r48_801810B0 = 0x801810B0; // type:func
 func_shelter_r48_8018147C = 0x8018147C; // type:func
 
 func_shelter_r48_80181704 = 0x80181704; // type:func
-waterDrawSpinU16 = 0x8017FB7C; // type:func
-waterDrawTileU16 = 0x8017FF74; // type:func
+_waterDrawSpinU16 = 0x8017FB7C; // type:func
+_waterDrawTileU16 = 0x8017FF74; // type:func
 _shelterR48DrawBankedDriftSprite = 0x80180804; // type:func
 _shelterR48DrawAlternateDriftSprite = 0x80180c5c; // type:func

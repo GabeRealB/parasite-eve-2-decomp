@@ -88,5 +88,5 @@ _roomVisualEffectsDrawTwinTrail = 0x80180E04; // type:func
 _roomVisualEffectsDrawBurstStar = 0x80181484; // type:func
 _glowDrawCapsule = 0x8017E6A0; // type:func
 _waterDrawSplash = 0x8017F038; // type:func
-waterDrawSpinU16 = 0x8017F828; // type:func
-waterDrawTileU16 = 0x8017FC14; // type:func
+_waterDrawSpinU16 = 0x8017F828; // type:func
+_waterDrawTileU16 = 0x8017FC14; // type:func

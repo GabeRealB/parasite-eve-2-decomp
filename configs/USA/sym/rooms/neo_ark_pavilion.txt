@@ -101,5 +101,5 @@ _waterDrawSplash = 0x8017ED98; // type:func
 waterDistortBandTask = 0x8017E2B4; // type:func
 waterRefractionTask = 0x8017D660; // type:func
 roomEventStagedTask = 0x8017E854; // type:func
-waterDrawSpinU16 = 0x8017F588; // type:func
-waterDrawTileU16 = 0x8017F974; // type:func
+_waterDrawSpinU16 = 0x8017F588; // type:func
+_waterDrawTileU16 = 0x8017F974; // type:func

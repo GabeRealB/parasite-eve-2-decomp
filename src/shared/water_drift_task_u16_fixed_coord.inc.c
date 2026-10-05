@@ -26,9 +26,9 @@ void waterDriftTaskU16FixedCoord(Task* task)
     coord = task->extra.coordBody->coord;
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         if (task->state < 2) {
-            waterDrawSpinU16(coord, (u16)work->index, work->scale, work->angle);
+            _waterDrawSpinU16(coord, (u16)work->index, work->scale, work->angle);
         } else {
-            waterDrawTileU16(coord, (u16)work->index, work->scale);
+            _waterDrawTileU16(coord, (u16)work->index, work->scale);
         }
         if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             effectKillTask(work, task);
@@ -106,10 +106,10 @@ void waterDriftTaskU16FixedCoord(Task* task)
             }
             return;
         case 1:
-            waterDrawSpinU16(coord, (u16)work->index, work->scale, work->angle);
+            _waterDrawSpinU16(coord, (u16)work->index, work->scale, work->angle);
             break;
         case 2:
-            waterDrawTileU16(coord, (u16)work->index, work->scale);
+            _waterDrawTileU16(coord, (u16)work->index, work->scale);
             break;
         default:
             return;

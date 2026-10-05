@@ -836,7 +836,7 @@ func_neo_ark_bridge_8017EF70 = 0x8017EF70; // type:func absolute:True owner=neo_
 
 func_neo_ark_bridge_8017F3F8 = 0x8017F3F8; // type:func absolute:True owner=neo_ark_bridge
 
-func_neo_ark_bridge_8017FF84 = 0x8017FF84; // type:func absolute:True owner=neo_ark_bridge shared=rooms
+func_neo_ark_bridge_8017FF84 = 0x8017FF84; // type:func absolute:True owner=neo_ark_bridge
 
 func_neo_ark_bridge_801809E8 = 0x801809E8; // type:func absolute:True owner=neo_ark_bridge
 
@@ -986,7 +986,7 @@ func_shelter_b1_control_room_access_tunnel_8017E1BC = 0x8017E1BC; // type:func a
 
 func_shelter_b1_control_room_access_tunnel_8017E2D8 = 0x8017E2D8; // type:func absolute:True owner=shelter_b1_control_room_access_tunnel shared=rooms
 
-func_shelter_b1_control_room_access_tunnel_8017ED3C = 0x8017ED3C; // type:func absolute:True owner=shelter_b1_control_room_access_tunnel shared=rooms
+func_shelter_b1_control_room_access_tunnel_8017ED3C = 0x8017ED3C; // type:func absolute:True owner=shelter_b1_control_room_access_tunnel
 
 func_shelter_b1_control_room_access_tunnel_8017F624 = 0x8017F624; // type:func absolute:True owner=shelter_b1_control_room_access_tunnel
 
