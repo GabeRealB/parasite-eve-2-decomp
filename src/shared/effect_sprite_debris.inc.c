@@ -1,25 +1,82 @@
 #include "main/random.h"
 
-/* Part of the effect sprite library; see effect_sprite.h. */
+/* Included debris task; each carrier's public header declares its export and
+ * task contract. Bind its function identifier before effect_sprite.h. */
 
-/// Room-effect task for one tumbling debris piece. The first frame unpacks
-/// size, frames per cell (bits 12..15) and drawer (chip, or billboard when bits
-/// 28..31 are set), and rolls a velocity of kind 0..5 scaled to a speed. Each
-/// frame it draws the cell, moves the coordinate, adds 6 of gravity and frees
-/// itself after cell 8. While effects are paused it only draws.
-void effectSpriteDebrisTask(Task* task)
+#ifndef EFFECT_SPRITE_DEBRIS_TASK
+#error "Bind EFFECT_SPRITE_DEBRIS_TASK to the carrier's void (Task*) callback before inclusion"
+#endif
+
+/// Converts the debris's signed direction into an integer per-update velocity.
+///
+/// Borrows the task's work; Q12 normalization precedes reading `step` for speed
+/// scaling. Updates `move` in place and clobbers GTE data/result registers.
+static __inline__ void _effectSpriteDebrisInitializeVelocity(EffectWork* work)
 {
+    SVECTOR* velocity;
+
+    velocity = &work->move;
+    VectorNormalSS(velocity, velocity);
+    gte_lddp(work->step);
+    gte_ldsv(velocity);
+    gte_gpf12();
+    gte_stsv(velocity);
+}
+
+/// Moves the debris in its coordinate's parent space, then accelerates downward.
+///
+/// Borrows live task work and coordinate. Signed halfword velocity components
+/// displace the 32-bit translation; Y acceleration narrows back to a halfword.
+/// The caller gates movement with `step`; the changed transform is marked stale.
+static __inline__ void _effectSpriteDebrisMove(EffectWork* work, GfxCoord* coord)
+{
+    enum { EFFECT_SPRITE_DEBRIS_GRAVITY = 6 }; // Coordinate units per running update squared
+
+    coord->coord.t[0]  += work->move.vx;
+    coord->coord.t[1]  += work->move.vy;
+    coord->coord.t[2]  += work->move.vz;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    work->move.vy      += EFFECT_SPRITE_DEBRIS_GRAVITY;
+}
+
+void EFFECT_SPRITE_DEBRIS_TASK(Task* task)
+{
+    enum {
+        EFFECT_SPRITE_DEBRIS_INITIALIZE           = 0,
+        EFFECT_SPRITE_DEBRIS_CHIP                 = 1,
+        EFFECT_SPRITE_DEBRIS_BILLBOARD            = 2,
+        EFFECT_SPRITE_DEBRIS_SIZE_MASK            = 0xFFF,
+        EFFECT_SPRITE_DEBRIS_ANGLE_MASK           = 0xFFF,
+        EFFECT_SPRITE_DEBRIS_PERIOD_NIBBLE_MASK   = 0xF000,
+        EFFECT_SPRITE_DEBRIS_PERIOD_SHIFT         = 12,
+        EFFECT_SPRITE_DEBRIS_PERIOD_MASK          = 0xF,
+        EFFECT_SPRITE_DEBRIS_SPEED_BYTE_MASK      = 0xFF0000,
+        EFFECT_SPRITE_DEBRIS_SPEED_SHIFT          = 16,
+        EFFECT_SPRITE_DEBRIS_SPEED_MASK           = 0xFF,
+        EFFECT_SPRITE_DEBRIS_DEFAULT_SPEED        = 0x40,
+        EFFECT_SPRITE_DEBRIS_DRAWER_NIBBLE_MASK   = 0xF0000000,
+        EFFECT_SPRITE_DEBRIS_MOVEMENT_BYTE        = 3,
+        EFFECT_SPRITE_DEBRIS_MOVEMENT_MASK        = 0xF,
+        EFFECT_SPRITE_DEBRIS_STILL                = 0,
+        EFFECT_SPRITE_DEBRIS_RANDOM_UPWARD        = 1,
+        EFFECT_SPRITE_DEBRIS_RANDOM_ALL_AXES      = 2,
+        EFFECT_SPRITE_DEBRIS_RANDOM_NARROW_UPWARD = 3,
+        EFFECT_SPRITE_DEBRIS_OFFSET_DIRECTION     = 5,
+        // Signed-halfword encoding of -64 before the random upward Y offset.
+        EFFECT_SPRITE_DEBRIS_UPWARD_Y_BIAS = 0xFFC0,
+        EFFECT_SPRITE_DEBRIS_FRAME_COUNT   = 8
+    };
     EffectWork* work;
     GfxCoord*   coord;
-    SVECTOR*    vec;
-    s32         kind;
-    s32         step;
-    s32         state;
-    s32         level;
+    s32         movementKind;
+    s32         framesPerCell;
+    s32         drawState;
+    s32         speed;
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+        // Suspension and cancellation both redraw as a chip, regardless of state.
         _effectSpriteDrawChip(coord, work->index, work->scale, work->angle);
         if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             effectKillTask(work, task);
@@ -28,43 +85,45 @@ void effectSpriteDebrisTask(Task* task)
     }
     work->age++;
     switch (task->state) {
-        case 0:
-            work->scale     = task->spawnArg1.halves.low & 0xFFF;
+        case EFFECT_SPRITE_DEBRIS_INITIALIZE:
+            // Initialization consumes a running update without drawing or moving.
+            work->scale     = task->spawnArg1.halves.low & EFFECT_SPRITE_DEBRIS_SIZE_MASK;
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->angle     = (gRandomLcgState >> 16) & 0xFFF;
-            if (task->spawnArg1.value & 0xF000) {
-                step = (task->spawnArg1.value >> 12) & 0xF;
+            work->angle     = (gRandomLcgState >> 16) & EFFECT_SPRITE_DEBRIS_ANGLE_MASK;
+            if (task->spawnArg1.value & EFFECT_SPRITE_DEBRIS_PERIOD_NIBBLE_MASK) {
+                framesPerCell = (task->spawnArg1.value >> EFFECT_SPRITE_DEBRIS_PERIOD_SHIFT) & EFFECT_SPRITE_DEBRIS_PERIOD_MASK;
             } else {
-                step = 1;
+                framesPerCell = 1;
             }
-            work->period = step;
+            work->period = framesPerCell;
             work->age    = 0;
-            state        = 1;
-            if (task->spawnArg1.value & 0xF0000000) {
-                state = 2;
+            drawState    = EFFECT_SPRITE_DEBRIS_CHIP;
+            if (task->spawnArg1.value & EFFECT_SPRITE_DEBRIS_DRAWER_NIBBLE_MASK) {
+                drawState = EFFECT_SPRITE_DEBRIS_BILLBOARD;
             }
-            task->state = state;
+            task->state = drawState;
             if (((u16)work->move.vx | (u16)work->move.vy | (u16)work->move.vz) == 0) {
-                if (task->spawnArg1.value & 0xFF0000) {
-                    level = (task->spawnArg1.value >> 16) & 0xFF;
+                // A caller-supplied nonzero velocity bypasses direction generation.
+                if (task->spawnArg1.value & EFFECT_SPRITE_DEBRIS_SPEED_BYTE_MASK) {
+                    speed = (task->spawnArg1.value >> EFFECT_SPRITE_DEBRIS_SPEED_SHIFT) & EFFECT_SPRITE_DEBRIS_SPEED_MASK;
                 } else {
-                    level = 0x40;
+                    speed = EFFECT_SPRITE_DEBRIS_DEFAULT_SPEED;
                 }
-                work->step = level;
-                kind       = task->spawnArg1.signedBytes[3];
-                switch (kind & 0xF) {
-                    case 0:
+                work->step   = speed;
+                movementKind = task->spawnArg1.signedBytes[EFFECT_SPRITE_DEBRIS_MOVEMENT_BYTE];
+                switch (movementKind & EFFECT_SPRITE_DEBRIS_MOVEMENT_MASK) {
+                    case EFFECT_SPRITE_DEBRIS_STILL:
                         work->step = 0;
                         break;
-                    case 1:
+                    case EFFECT_SPRITE_DEBRIS_RANDOM_UPWARD:
                         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                         work->move.vx   = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
                         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        work->move.vy   = 0xFFC0 - ((gRandomLcgState >> 16) & 0x7F);
+                        work->move.vy   = EFFECT_SPRITE_DEBRIS_UPWARD_Y_BIAS - ((gRandomLcgState >> 16) & 0x7F);
                         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                         work->move.vz   = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
                         break;
-                    case 2:
+                    case EFFECT_SPRITE_DEBRIS_RANDOM_ALL_AXES:
                         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                         work->move.vx   = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
                         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
@@ -72,7 +131,7 @@ void effectSpriteDebrisTask(Task* task)
                         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                         work->move.vz   = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
                         break;
-                    case 3:
+                    case EFFECT_SPRITE_DEBRIS_RANDOM_NARROW_UPWARD:
                         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                         work->move.vx   = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
                         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
@@ -80,42 +139,36 @@ void effectSpriteDebrisTask(Task* task)
                         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                         work->move.vz   = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
                         break;
-                    case 5:
+                    case EFFECT_SPRITE_DEBRIS_OFFSET_DIRECTION:
                         work->move.vx = work->pos.vx;
                         work->move.vy = work->pos.vy;
                         work->move.vz = work->pos.vz;
                         break;
                 }
-                vec = &work->move;
-                VectorNormalSS(vec, vec);
-                gte_lddp(work->step);
-                gte_ldsv(vec);
-                gte_gpf12();
-                gte_stsv(vec);
+                _effectSpriteDebrisInitializeVelocity(work);
             } else {
-                work->step = 0x40;
+                work->step = EFFECT_SPRITE_DEBRIS_DEFAULT_SPEED;
             }
             return;
-        case 1:
+        case EFFECT_SPRITE_DEBRIS_CHIP:
             _effectSpriteDrawChip(coord, work->index, work->scale, work->angle);
             break;
-        case 2:
+        case EFFECT_SPRITE_DEBRIS_BILLBOARD:
             _effectSpriteDrawBillboard(coord, (u16)work->index, work->scale);
             break;
         default:
             return;
     }
+    // Draw at the current location; movement precedes acceleration and cell advance.
     if (work->step != 0) {
-        coord->coord.t[0]  += work->move.vx;
-        coord->coord.t[1]  += work->move.vy;
-        coord->coord.t[2]  += work->move.vz;
-        coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        work->move.vy      += 6;
+        _effectSpriteDebrisMove(work, coord);
     }
     if ((work->age % work->period) == 0) {
         work->index++;
-        if (work->index >= 8) {
+        if (work->index >= EFFECT_SPRITE_DEBRIS_FRAME_COUNT) {
             effectKillTask(work, task);
         }
     }
 }
+
+#undef EFFECT_SPRITE_DEBRIS_TASK

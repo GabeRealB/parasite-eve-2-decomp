@@ -25,7 +25,10 @@ static void _effectSpriteDrawBillboard(const GfxCoord* coord, s32 frame, s32 siz
 #endif
 
 void effectSpriteDriftTaskAimed(Task* task);
-void effectSpriteDebrisTask(Task* task);
+#ifdef EFFECT_SPRITE_DEBRIS_TASK
+// Carrier-bound export; its task contract is in that package's public header.
+void EFFECT_SPRITE_DEBRIS_TASK(Task* task);
+#endif
 
 void effectSpriteRiseTask(Task* task);
 

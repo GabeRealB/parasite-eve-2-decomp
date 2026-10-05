@@ -565,7 +565,7 @@ enum {
     /// `_waterDrawSplash`; the room stores it in gRoomEffectWaterRippleId (water-
     /// ripple slot, spawned at the water surface by wading actors).
     EFFECT_ACROPOLIS_BRIDGE_WATER_RIPPLE = EFFECT_ID(EFFECT_TASK_BANK, 0x0B9),
-    /// Akropolis bridge tumbling debris piece (effectSpriteDebrisTask, gravity, eight
+    /// Akropolis bridge tumbling debris piece (acropolisBridgeEffectSpriteDebrisTask, gravity, eight
     /// cells); stored in gRoomEffectWaterSprayId and trailed off the two moving joints by the bridge
     /// task.
     EFFECT_ACROPOLIS_BRIDGE_WATER_SPRAY = EFFECT_ID(EFFECT_TASK_BANK, 0x0BA),

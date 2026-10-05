@@ -92,8 +92,11 @@
 /// The shared debris task calls this room's billboard implementation; the
 /// chip drawer retains the common signature. Undefine after the header include.
 #define EFFECT_SPRITE_BILLBOARD_HALFWORD_ARGUMENTS
-// Exported instance: another image refers to this package's copy by name.
-#define effectSpriteDebrisTask acropolisBridgeEffectSpriteDebrisTask
+/// Binds the shared debris task to the bridge's exported `void (Task*)` callback.
+///
+/// Supply this function identifier before `effect_sprite.h` and keep it defined
+/// through the debris fragment, which clears it. No arguments or tokens are built.
+#define EFFECT_SPRITE_DEBRIS_TASK acropolisBridgeEffectSpriteDebrisTask
 #include "../../shared/effect_sprite.h"
 #undef EFFECT_SPRITE_BILLBOARD_HALFWORD_ARGUMENTS
 
