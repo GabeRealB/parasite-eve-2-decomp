@@ -194,11 +194,17 @@ void McMenu_FileInformation(Task* task)
     Mc_DrawSlotDetails(obj, work, slot, 0, 0);
 }
 
-/// Plays a prompt's selection sound and publishes its answer for the parent.
+/// Requests a memory-card prompt's selection sound and publishes its answer.
 ///
-/// Borrows a live UI object; `answer` narrows to its signed halfword result.
-/// Publishing does not close the child: the parent owns that transition.
-static inline void _mcMenuPublishAnswer(UiObject* object, s32 answer, s32 soundScriptId)
+/// Borrows a live prompt object. `answer` is `MEMORY_CARD_MENU_ANSWER_SELECTED`
+/// (1) for Yes, OK or the single Cancel action, or `MEMORY_CARD_MENU_ANSWER_NO`
+/// (-1) for No. Both answers publish `USER_INTERFACE_RESULT_CONFIRM`; the
+/// parent reads the signed answer and starts closing the child.
+///
+/// `soundScriptId` uses `sndEvtRequestScriptStart`'s packed request-id format.
+/// Zero pan offset and attenuation preserve the sound's base pan and gain.
+/// The answer is published even if the sound request fails.
+static inline void _mcMenuPublishAnswer(UiObject* object, s16 answer, s32 soundScriptId)
 {
     sndEvtRequestScriptStart(soundScriptId, 0, 0);
     object->result      = USER_INTERFACE_RESULT_CONFIRM;
