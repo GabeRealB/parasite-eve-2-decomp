@@ -381,11 +381,11 @@ void Gp_StatusPanelTask(Task* arg0)
     obj  = arg0->spawnArg2.pointer;
     if (arg0->state == 0) {
         Ui_SpawnFromDesc(&D_8010EB08, 0, 0, 4, obj);
-        Ui_LayoutListPanel(menu, &(obj)->panel);
+        uiFitPanelToList(menu, &(obj)->panel);
         arg0->state = arg0->state + 1;
     } else {
         obj->result = USER_INTERFACE_RESULT_NONE;
-        Ui_UpdateListNoAnim(menu, obj);
+        uiUpdateList(menu, &obj->panel);
         if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
             if (obj->result == USER_INTERFACE_RESULT_NONE) {
                 if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {
@@ -1448,7 +1448,7 @@ static void Gp_ItemListTask(Task* arg0)
         countItemRows(menu);
         menu->visibleRowCount.unsignedValue = 9;
         menu->itemCount                     = 9;
-        Ui_LayoutListPanel(menu, &(obj)->panel);
+        uiFitPanelToList(menu, &(obj)->panel);
         countItemRows(menu);
         menu->flags                               = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
         menu->selectedItemIndex                   = 0;
@@ -1461,7 +1461,7 @@ static void Gp_ItemListTask(Task* arg0)
     }
     uiDrawPanelLabel(&(obj)->panel, Gp_StrItemHdr);
     countItemRows(menu);
-    Ui_ComputeVisibleRows(menu, &(obj)->panel);
+    uiRefreshListViewport(menu, &(obj)->panel);
     menu->flags = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
     if (menu->selectedItemIndex >= menu->itemCount) {
         menu->selectedItemIndex = menu->itemCount - 1;
@@ -1469,7 +1469,7 @@ static void Gp_ItemListTask(Task* arg0)
     if ((menu->itemCount - menu->visibleRowCount.signedValue) < menu->firstVisibleItemIndex.signedValue) {
         menu->firstVisibleItemIndex.unsignedValue = menu->itemCount - menu->visibleRowCount.unsignedValue;
     }
-    Ui_UpdateListNoAnim(menu, obj);
+    uiUpdateList(menu, &obj->panel);
     status = obj->panel.control.word;
     if (status == 1) {
         if (obj->result == USER_INTERFACE_RESULT_NONE) {
@@ -1891,12 +1891,12 @@ void Gp_WeaponMenuTask(Task* arg0)
     if (arg0->state == 0) {
         _gpWeaponMenuSetRows(menu);
         menu->selectedItemIndex = 0;
-        Ui_InitList(menu, &(obj)->panel);
+        uiInitList(menu, &(obj)->panel);
         arg0->state = arg0->state + 1;
     }
     _gpWeaponMenuSetRows(menu);
-    Ui_ComputeVisibleRows(menu, &(obj)->panel);
-    Ui_UpdateListNoAnim(menu, obj);
+    uiRefreshListViewport(menu, &(obj)->panel);
+    uiUpdateList(menu, &obj->panel);
     if ((Gp_ItemCountShow == 1) && (uiIsPanelHidingOrHidden(obj) == 0)) {
         uiStartPanelHiding(obj, obj->owner);
     } else if ((Gp_ItemCountShow == 0) && (uiIsPanelHidingOrHidden(obj) == 1)) {
@@ -2244,7 +2244,7 @@ void Gp_ArmorMenuTask(Task* arg0)
                 menu->selectedItemIndex = temp - 1;
             }
         }
-        Ui_InitList(menu, &(obj)->panel);
+        uiInitList(menu, &(obj)->panel);
         menu->topInset = 0x1A;
         menu->flags    = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
         arg0->state    = arg0->state + 2;
@@ -2279,7 +2279,7 @@ void Gp_ArmorMenuTask(Task* arg0)
                 menu->selectedItemIndex = temp - 1;
             }
         }
-        Ui_ComputeVisibleRows(menu, &(obj)->panel);
+        uiRefreshListViewport(menu, &(obj)->panel);
         menu->topInset = 0x1A;
         menu->flags    = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
     }
@@ -2313,7 +2313,7 @@ void Gp_ArmorMenuTask(Task* arg0)
         }
         status                  = obj->panel.control.word;
         obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
-        Ui_UpdateListNoAnim(menu, obj);
+        uiUpdateList(menu, &obj->panel);
         obj->panel.control.word = status;
         if (status == 1) {
             uiEaseAndDrawCursor(&(obj)->panel, obj->panel.contentLeft.signedValue, obj->panel.contentTop.signedValue + 7);
@@ -2390,7 +2390,7 @@ void Gp_ArmorMenuTask(Task* arg0)
         }
     } else {
         s32 val;
-        Ui_UpdateListNoAnim(menu, obj);
+        uiUpdateList(menu, &obj->panel);
         val = menu->actionResult;
         if (val == USER_INTERFACE_LIST_ACTION_AT_START) {
             sndEvtRequestScriptStart(SOUND_MENU_CURSOR, 0, 0);

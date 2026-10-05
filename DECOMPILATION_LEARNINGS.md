@@ -15296,7 +15296,7 @@ if (p->field_0 == (temp << 0x10)) {
 ```
 
 Contrast with `_uiPanelOpening`, where the target *does* keep the shifted value in
-an s-reg — there `p->field_0 = temp << 0x10` is correct. `Ui_AnimCloseStep` is the
+an s-reg — there `p->field_0 = temp << 0x10` is correct. `_uiPanelHiding` is the
 reload form; pick based on whether the target reuses a shifted s-reg after the
 call or re-shifts from the original.
 
@@ -18688,7 +18688,7 @@ void func(UiList* arg0, UiPanel* arg1)
 }
 ```
 
-The earlier integer parameter and cast were unnecessary: `Ui_ComputeVisibleRows`
+The earlier integer parameter and cast were unnecessary: `uiRefreshListViewport`
 matches with a typed panel parameter and this signed narrowing before using height.
 
 ## Dead stack `RECT` kept with an `"m"` constraint
@@ -18708,7 +18708,7 @@ asm("" : : "m"(sp));
 
 `volatile RECT` also keeps the stores but can reorder the final `sh` ahead of
 the sign-extend of `h`. The trailing `"m"` constraint matches the target
-schedule. `Ui_ComputeVisibleRows`.
+schedule. `uiRefreshListViewport`.
 
 ## A reload that only one arm carries can be reorg skipping a redundant join load
 
@@ -18737,7 +18737,7 @@ on the taken path (`redundant_insn`); since it cannot delete it from a shared
 thread, it retargets the branch past it. The load is then left executing only
 on the fall-through, which is the target's shape. Written
 `visibleRowCount.signedValue >= itemCount`, the join's first insn is the `lb` and nothing is
-skipped. (`Ui_ComputeVisibleRowsEx`.)
+skipped. (`_uiRefreshListViewportWithInset`.)
 
 ## `--expand-div` for TUs with signed division traps
 
@@ -19670,7 +19670,7 @@ if (D_flag != 0) {
 
 Volatile stores cannot move past the subsequent non-volatile load, so order
 matches, while the `lui %hi(D_flag)` still fills the earlier branch delay.
-`Ui_InitList` is the pure example (UiList tail zero-init + `D_80072313`).
+`uiInitList` is the pure example (UiList tail zero-init + `D_80072313`).
 
 Same idea when the target wants `lui %hi(flag)` *between* two groups of
 struct stores (not just in a branch delay):
@@ -22384,7 +22384,7 @@ The early `lhu` can fill the slot after `sh h`, and `addu` fills the `bgez`
 delay. Use `*(u16*)&` (or a `u16`/`u32` temp from an unsigned load) when the
 target wants `lhu` but the field type is signed `short`.
 
-`Ui_LayoutListPanel` is the pure example. Pair with signed field overlays when the
+`uiFitPanelToList` is the pure example. Pair with signed field overlays when the
 same function also needs `lb`/`lh` on counts/layout halfwords stored as `u8`/`u16`
 in the shared struct.
 
@@ -31639,7 +31639,7 @@ in `Gp_TickPlayerNormal`.
 
 ## Duplicate the 1/0 call so the flag stays a branch, not `sltu`
 
-`Ui_SetListScrollFlag(menu, (flags & 0x10) != 0)` and a `flag` temp:
+`uiSetListSystemCursorSound(menu, (flags & 0x10) != 0)` and a `flag` temp:
 
 ```c
 if (flags & 0x10) {
@@ -31647,7 +31647,7 @@ if (flags & 0x10) {
 } else {
     flag = 0;
 }
-Ui_SetListScrollFlag(menu, flag);
+uiSetListSystemCursorSound(menu, flag);
 ```
 
 both emit `andi` / `sltu` / one `jal`. The target wants the delay-slot
@@ -31662,7 +31662,7 @@ j     call
 zero:
 move  a1, zero
 call:
-jal   Ui_SetListScrollFlag
+jal   uiSetListSystemCursorSound
 ```
 
 Write the call in both arms. GCC merges them into one `jal` and keeps
@@ -31670,9 +31670,9 @@ the `li a1, 1` / `move a1, zero` phi.
 
 ```c
 if (arg0->spawnArg1 & 0x10) {
-    Ui_SetListScrollFlag(menu, 1);
+    uiSetListSystemCursorSound(menu, 1);
 } else {
-    Ui_SetListScrollFlag(menu, 0);
+    uiSetListSystemCursorSound(menu, 0);
 }
 ```
 
@@ -35305,10 +35305,10 @@ menu->itemCount = n;
 because `$v0` is reserved for `n`. Skipping the `+r` barrier lets `slti`
 sink above `move v1, v0` into the `jal` delay.
 
-A later copy of the same chain whose next call is `Ui_ComputeVisibleRows`
+A later copy of the same chain whose next call is `uiRefreshListViewport`
 (no extra store after `sb`) inverts `bnez` to `beqz` and fills the delay
 with `li v0, 0x92`. An empty `asm("")` between the `if (n) goto` and
-`n = 0x92` keeps `bnez` / `li v0, 1`. The `Ui_InitList` copy did not need
+`n = 0x92` keeps `bnez` / `li v0, 1`. The `uiInitList` copy did not need
 it because `menu->selectedItemIndex = 0` already sat after the store.
 
 `Gp_WeaponMenuTask` is the example.
@@ -51569,7 +51569,7 @@ soft use.
 The same shop-panel body can avoid that soft use entirely: in
 `func_dryfield_night_garage_8017E768`, assign `work = mem` **inside** the
 successful arm, then reuse `work` for the existing per-frame update:
-`work = task->work; Ui_UpdateListNoAnim(&work->list, obj);`.
+`work = task->work; uiUpdateList(&work->list, &obj->panel);`.
 This later real assignment/use makes `work` the CSE canonical pointer after
 the copy, while the earlier null test still reads `mem`. It does not extend
 the allocation's live range through the later reassignment.
@@ -145487,11 +145487,11 @@ branch's load, took `LAUNCH_PRIORITY` and landed in the delay slot. Loading the
 halfword into a `u16 height` local first, then `size = height * 12`, adds one
 more birthing insn that takes that slot instead, so the `addu` precedes the
 condition's load, that load reuses `$v0`, and the store fills the delay slot.
-### A reload after a store that a barrier forced is reorg deleting the join block's redundant load; load that field first in the join (Ui_LayoutListPanel, 2026-09-26)
+### A reload after a store that a barrier forced is reorg deleting the join block's redundant load; load that field first in the join (uiFitPanelToList, 2026-09-26)
 
 Target: `lbu v1,4(s1); lw v0,0x10(s1); slt; bnez L; addiu v0,v1,-1; sw v0,0x10(s1); lbu v1,4(s1)` and at `L` only `lb v0,5(s1)`, then `slt v0,v0,v1`. The seed wrote `n = f4; if (f10 >= n) { f10 = n - 1; SOFT_COMPILER_BARRIER(); n = f4; }` to put the reload inside the if. Without the barrier cse drops that reload (the store to `f10` provably misses `f4`), so the reload is not a store-alias effect. It is reorg: when the join block loads `f4` before `f5`, the taken branch already holds that value, so dbr redirects it past the redundant `lbu` and the load appears to sit at the end of the if body. Writing the second test with `f4` first, `if (f4 <= f5)`, makes sched1 put that load first. `if (f5 >= f4)` loads `f5` first and keeps both loads at the join.
 
-### `if (t < 0) x += t;` reads `x` before the branch only when no store sits between computing `t` and the if (Ui_LayoutListPanel, 2026-09-26)
+### `if (t < 0) x += t;` reads `x` before the branch only when no store sits between computing `t` and the if (uiFitPanelToList, 2026-09-26)
 
 For `t = K - (s->x + s->w); if (t < 0) s->x += t;`, cse reuses the HImode `x` loaded for `t` inside the if, and combine splits it into an `lhu` that sched puts before the branch, with the `addu` in the delay slot. A store to another field of `s` between the two statements (`s->h += growth;`) makes cse reload `x` in the if body, which puts the store in the delay slot instead. The seed used a register pin and a `(u16)` pre-read to get the same shape. The fix was statement order: do the `h` update first, then compute `t`. sched still hoists the `x`/`w` loads above the `h` store.
 
@@ -146658,7 +146658,7 @@ imitated. The prefix's sense mattered too: `*p = x >= 0 ? '+' : '-'` gives the
 target's `bltz; li 0x2d` / `li 0x2b`, while `x < 0 ? '-' : '+'` and an
 if/else both invert the branch.
 
-## A forward branch landing one insn past a reload at the join: put the reloaded field first in the comparison (Ui_InitList, 2026-09-27)
+## A forward branch landing one insn past a reload at the join: put the reloaded field first in the comparison (uiInitList, 2026-09-27)
 
 **Shape.** `if (l->selectedItemIndex >= l->itemCount) l->selectedItemIndex = l->itemCount - 1;` followed by a
 second test against `l->itemCount`. The target's guard branch skips the join's

@@ -258,7 +258,7 @@ void func_800C5F70(Task* arg0)
             menu->firstVisibleItemIndex.unsignedValue = 0;
             menu->visibleRowCount.unsignedValue       = lines;
             menu->itemCount                           = lines;
-            Ui_InitList(menu, &(obj)->panel);
+            uiInitList(menu, &(obj)->panel);
             if (menu->visibleRowCount.signedValue >= 7) {
                 menu->visibleRowCount.unsignedValue = 6;
             }
@@ -301,7 +301,7 @@ void func_800C5F70(Task* arg0)
             } else {
                 saved                   = obj->panel.control.word;
                 obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
-                Ui_UpdateListNoAnim(menu, obj);
+                uiUpdateList(menu, &obj->panel);
                 obj->panel.control.word = saved;
                 if ((saved == 1) && (menu->itemCount > menu->visibleRowCount.signedValue)) {
                     if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_UP) != 0) {
@@ -718,10 +718,10 @@ void Gp_KeyItemSubMenuTask(Task* arg0)
     menu        = &D_8010E938;
     if (arg0->state == 0) {
         obj->panel.bounds.unsignedRect.w = 0x60;
-        Ui_LayoutListPanel(menu, &(obj)->panel);
+        uiFitPanelToList(menu, &(obj)->panel);
         arg0->state = arg0->state + 1;
     }
-    Ui_UpdateListNoAnim(menu, obj);
+    uiUpdateList(menu, &obj->panel);
     if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
             obj->result = USER_INTERFACE_RESULT_CANCEL;
@@ -851,7 +851,7 @@ void Gp_KeyItemMenuTask(Task* arg0)
         if (menu->itemCount < menu->selectedItemIndex) {
             menu->selectedItemIndex = menu->itemCount;
         }
-        Ui_InitList(menu, &(obj)->panel);
+        uiInitList(menu, &(obj)->panel);
         menu->flags = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
         if (arg0->spawnArg1.value == 0) {
             uiSetPanelContentSize(&(obj)->panel, 0, uiGetTextRowsHeight(0xA) + 1);
@@ -865,12 +865,12 @@ void Gp_KeyItemMenuTask(Task* arg0)
         if (menu->itemCount < menu->selectedItemIndex) {
             menu->selectedItemIndex = menu->itemCount;
         }
-        Ui_ComputeVisibleRows(menu, &(obj)->panel);
+        uiRefreshListViewport(menu, &(obj)->panel);
         menu->flags = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
         if (menu->selectedItemIndex >= menu->itemCount) {
             menu->selectedItemIndex = menu->itemCount - 1;
         }
-        Ui_UpdateListNoAnim(menu, obj);
+        uiUpdateList(menu, &obj->panel);
         if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
             if (obj->result == USER_INTERFACE_RESULT_NONE) {
                 if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {

@@ -359,8 +359,7 @@ static void _uiDrawListHighlight(const UiList* list, UiPanel* panel, s32 rowBott
 
 static inline void _uiListMoveCursor(const UiPanel* panel, s32 contentX, s32 contentY);
 
-/// Updates list navigation, scroll position, row drawing and the cursor.
-static void Ui_UpdateListRows(UiList* list, UiPanel* panel, s32 animate);
+static void _uiUpdateListRows(UiList* list, UiPanel* panel, s32 inputPort);
 
 static void _uiDrawUnderlinedLabel(const UiPanel* panel, s32 x, s32 y, const char* text, u32 colorRgb);
 
@@ -418,7 +417,7 @@ static void _uiDrawUnderlinedLabel(const UiPanel* panel, s32 x, s32 y, const cha
         _uiSpawnResult;                                                                                                             \
     })
 
-static void Ui_ComputeVisibleRowsEx(UiList* list, UiPanel* panel, s32 arg2);
+static void _uiRefreshListViewportWithInset(UiList* list, const UiPanel* panel, s32 topInsetPixels);
 
 static void _uiDrawOpenPanelText(UiPanel* panel, s32 x, s32 y, const u8* text, u32 colorRgb, s32 drawMode, s32 alignment);
 
@@ -453,6 +452,61 @@ static void _uiComputeAnimatedPanelRect(const UiPanel* panel, RECT* rect);
     (panelValue)->contentOriginX.unsignedValue = (contentRectValue).x - (panelValue)->contentLeft.unsignedValue; \
     (panelValue)->contentOriginY.unsignedValue = (contentRectValue).y - (panelValue)->contentTop.unsignedValue;
 
+/// Applies list padding and centers signed content edges from a frame-inset rectangle.
+///
+/// Arguments must be a stable UiPanel pointer and writable RECT lvalue without
+/// side effects; both are used repeatedly. Captures no caller identifiers.
+/// Stores narrow to halfwords; signed edge reads preserve the translation.
+/// Use as a standalone statement; the caller retains the rectangle's lifetime.
+#define USER_INTERFACE_CENTER_LIST_PANEL_CONTENT(panelValue, contentRectValue)                                     \
+    do {                                                                                                           \
+        if (((panelValue)->style & USER_INTERFACE_PANEL_STYLE_MASK) == USER_INTERFACE_PANEL_TITLE_STYLE) {         \
+            (contentRectValue).y += 9;                                                                             \
+            (contentRectValue).h -= 0xB;                                                                           \
+            (contentRectValue).x += 2;                                                                             \
+            (contentRectValue).w -= 4;                                                                             \
+        } else {                                                                                                   \
+            (contentRectValue).y += 2;                                                                             \
+            (contentRectValue).h -= 4;                                                                             \
+            (contentRectValue).x += 2;                                                                             \
+            (contentRectValue).w -= 4;                                                                             \
+        }                                                                                                          \
+        (panelValue)->contentLeft.signedValue      = -((contentRectValue).w >> 1);                                 \
+        (panelValue)->contentRight.signedValue     = (panelValue)->contentLeft.signedValue + (contentRectValue).w; \
+        (panelValue)->contentTop.signedValue       = -((contentRectValue).h >> 1);                                 \
+        (panelValue)->contentBottom.signedValue    = (panelValue)->contentTop.signedValue + (contentRectValue).h;  \
+        (panelValue)->contentOriginX.unsignedValue = (contentRectValue).x - (panelValue)->contentLeft.signedValue; \
+        (panelValue)->contentOriginY.unsignedValue = (contentRectValue).y - (panelValue)->contentTop.signedValue;  \
+    } while (0)
+
+/// Publishes one row's index/baseline and invokes its required drawing/input callback.
+///
+/// listValue/panelValue are stable pointers; the panel belongs to the UiObject
+/// passed to the callback. Index and row bottom are stable s32 values in items
+/// and content-relative pixels. textInsetValue/rowHeightValue are distinct s32
+/// lvalues overwritten here; the inset remains live for the caller to restore
+/// callback-adjusted rowTextY after inspecting actionResult. All arguments must
+/// be side-effect-free and are used repeatedly; captures no caller identifiers.
+/// The callback table obeys UiList's bounds. Use only as a standalone statement
+/// within a compound block, never as an unbraced conditional or loop body.
+#define USER_INTERFACE_DISPATCH_LIST_ROW(listValue, panelValue, itemIndexValue, rowBottomValue, textInsetValue, rowHeightValue) \
+    (textInsetValue)              = 0;                                                                                          \
+    (rowHeightValue)              = (listValue)->rowHeight;                                                                     \
+    (listValue)->currentItemIndex = (itemIndexValue);                                                                           \
+    if ((rowHeightValue) == USER_INTERFACE_LIST_DEFAULT_ROW_HEIGHT) {                                                           \
+        (textInsetValue) = 3;                                                                                                   \
+    } else if ((rowHeightValue) < USER_INTERFACE_LIST_DEFAULT_ROW_HEIGHT) {                                                     \
+        (textInsetValue) = 2;                                                                                                   \
+    } else if ((rowHeightValue) >= 16) {                                                                                        \
+        (textInsetValue) = (rowHeightValue) - 15;                                                                               \
+    }                                                                                                                           \
+    (listValue)->rowTextY.signedValue = (rowBottomValue) - (textInsetValue);                                                    \
+    if ((listValue)->flags & USER_INTERFACE_LIST_SHARED_ROW_CALLBACK) {                                                         \
+        (listValue)->rowCallbacks[0]((listValue), PARENT_OF((panelValue), UiObject, panel));                                    \
+    } else {                                                                                                                    \
+        (listValue)->rowCallbacks[(itemIndexValue)]((listValue), PARENT_OF((panelValue), UiObject, panel));                     \
+    }
+
 static void _uiPanelInitial(UiPanel* panel, Task* owningTask);
 
 static void _uiPanelOpening(UiPanel* panel, Task* owningTask);
@@ -461,7 +515,7 @@ static void _uiPanelOpen(UiPanel* panel, Task* owningTask);
 
 static void _uiPanelClosing(UiPanel* panel, Task* owningTask);
 
-static void Ui_AnimCloseStep(UiPanel* panel, Task* task);
+static void _uiPanelHiding(UiPanel* panel, Task* owningTask);
 
 static void _uiPanelHidden(UiPanel* panel, Task* task);
 
@@ -639,7 +693,7 @@ static const _UiPanelLifecycleFuncTable6 Ui_ObjectStates = { {
     [USER_INTERFACE_PANEL_OPENING] = _uiPanelOpening,
     [USER_INTERFACE_PANEL_OPEN]    = _uiPanelOpen,
     [USER_INTERFACE_PANEL_CLOSING] = _uiPanelClosing,
-    [USER_INTERFACE_PANEL_HIDING]  = Ui_AnimCloseStep,
+    [USER_INTERFACE_PANEL_HIDING]  = _uiPanelHiding,
     _uiPanelHidden,
 } };
 
@@ -1461,86 +1515,71 @@ void uiSetPanelContentSize(UiPanel* panel, s32 contentWidth, s32 contentHeight)
     USER_INTERFACE_CENTER_PANEL_CONTENT(panel, contentRect);
 }
 
-void Ui_LayoutListPanel(UiList* arg0_, UiPanel* arg1_)
+void uiFitPanelToList(UiList* list, UiPanel* panel)
 {
-    UiList*  arg0;
-    UiPanel* arg1;
-    RECT     sp10;
-    s32      height;
-    s32      overflow;
-    s32      growth;
+    // Screen-centered pixel limits, retaining eight pixels of right/bottom margin.
+    enum {
+        USER_INTERFACE_LIST_PANEL_RIGHT_LIMIT  = 152,
+        USER_INTERFACE_LIST_PANEL_BOTTOM_LIMIT = 112
+    };
+    RECT contentRect;
+    s32  availableHeight;
+    s32  edgeOverflowPixels;
+    s32  heightGrowthPixels;
 
-    arg0 = arg0_;
-    arg1 = arg1_;
-
-    if (arg0->visibleRowCount.signedValue == 0) {
-        arg0->visibleRowCount.signedValue = arg0->itemCount;
-    } else if (arg0->itemCount < arg0->visibleRowCount.signedValue) {
-        arg0->visibleRowCount.signedValue = arg0->itemCount;
+    if (list->visibleRowCount.signedValue == 0) {
+        list->visibleRowCount.signedValue = list->itemCount;
+    } else if (list->itemCount < list->visibleRowCount.signedValue) {
+        list->visibleRowCount.signedValue = list->itemCount;
     }
 
-    growth               = arg0->visibleRowCount.signedValue * arg0->rowHeight;
-    growth              -= arg1->contentBottom.signedValue - arg1->contentTop.signedValue;
-    arg1->bounds.rect.h += growth;
-    overflow             = 0x98 - (arg1->bounds.rect.x + arg1->bounds.rect.w);
-    if (overflow < 0) {
-        arg1->bounds.rect.x += overflow;
+    // Fit the requested rows, then keep the lower/right edges inside the view.
+    heightGrowthPixels    = list->visibleRowCount.signedValue * list->rowHeight;
+    heightGrowthPixels   -= panel->contentBottom.signedValue - panel->contentTop.signedValue;
+    panel->bounds.rect.h += heightGrowthPixels;
+    edgeOverflowPixels    = USER_INTERFACE_LIST_PANEL_RIGHT_LIMIT - (panel->bounds.rect.x + panel->bounds.rect.w);
+    if (edgeOverflowPixels < 0) {
+        panel->bounds.rect.x += edgeOverflowPixels;
     }
-    overflow = 0x70 - (arg1->bounds.rect.y + arg1->bounds.rect.h);
-    if (overflow < 0) {
-        arg1->bounds.rect.y += overflow;
+    edgeOverflowPixels = USER_INTERFACE_LIST_PANEL_BOTTOM_LIMIT - (panel->bounds.rect.y + panel->bounds.rect.h);
+    if (edgeOverflowPixels < 0) {
+        panel->bounds.rect.y += edgeOverflowPixels;
     }
 
-    _uiComputePanelInnerRect(arg1, &arg1->bounds.rect, &sp10);
-    if ((arg1->style & USER_INTERFACE_PANEL_STYLE_MASK) == USER_INTERFACE_PANEL_TITLE_STYLE) {
-        sp10.y += 9;
-        sp10.h -= 0xB;
-        sp10.x += 2;
-        sp10.w -= 4;
+    _uiComputePanelInnerRect(panel, &panel->bounds.rect, &contentRect);
+    USER_INTERFACE_CENTER_LIST_PANEL_CONTENT(panel, contentRect);
+
+    list->topInset   = 0;
+    contentRect.x    = panel->contentOriginX.unsignedValue + panel->contentLeft.signedValue;
+    contentRect.y    = panel->contentOriginY.unsignedValue + panel->contentTop.signedValue;
+    contentRect.w    = panel->contentRight.signedValue - panel->contentLeft.signedValue;
+    contentRect.h    = panel->contentBottom.signedValue - panel->contentTop.signedValue;
+    availableHeight  = contentRect.h;
+    availableHeight -= list->topInset;
+    if (list->rowHeight == 0) {
+        list->rowHeight = USER_INTERFACE_LIST_DEFAULT_ROW_HEIGHT;
+    }
+    if (availableHeight >= list->itemCount * list->rowHeight) {
+        list->visibleRowCount.signedValue = list->itemCount;
     } else {
-        sp10.y += 2;
-        sp10.h -= 4;
-        sp10.x += 2;
-        sp10.w -= 4;
-    }
-    arg1->contentLeft.signedValue      = -(sp10.w >> 1);
-    arg1->contentRight.signedValue     = arg1->contentLeft.signedValue + sp10.w;
-    arg1->contentTop.signedValue       = -(sp10.h >> 1);
-    arg1->contentBottom.signedValue    = arg1->contentTop.signedValue + sp10.h;
-    arg1->contentOriginX.unsignedValue = sp10.x - arg1->contentLeft.signedValue;
-    arg1->contentOriginY.unsignedValue = sp10.y - arg1->contentTop.signedValue;
-
-    arg0->topInset = 0;
-    sp10.x         = arg1->contentOriginX.unsignedValue + arg1->contentLeft.signedValue;
-    sp10.y         = arg1->contentOriginY.unsignedValue + arg1->contentTop.signedValue;
-    sp10.w         = arg1->contentRight.signedValue - arg1->contentLeft.signedValue;
-    sp10.h         = arg1->contentBottom.signedValue - arg1->contentTop.signedValue;
-    height         = sp10.h;
-    height        -= arg0->topInset;
-    if (arg0->rowHeight == 0) {
-        arg0->rowHeight = USER_INTERFACE_LIST_DEFAULT_ROW_HEIGHT;
-    }
-    if (height >= arg0->itemCount * arg0->rowHeight) {
-        arg0->visibleRowCount.signedValue = arg0->itemCount;
-    } else {
-        arg0->visibleRowCount.signedValue = height / arg0->rowHeight;
-        if (arg0->visibleRowCount.signedValue <= 0) {
-            arg0->visibleRowCount.signedValue = 1;
+        list->visibleRowCount.signedValue = availableHeight / list->rowHeight;
+        if (list->visibleRowCount.signedValue <= 0) {
+            list->visibleRowCount.signedValue = 1;
         }
     }
-    if (arg0->selectedItemIndex >= arg0->itemCount) {
-        arg0->selectedItemIndex = arg0->itemCount - 1;
+    if (list->selectedItemIndex >= list->itemCount) {
+        list->selectedItemIndex = list->itemCount - 1;
     }
-    if (arg0->itemCount <= arg0->visibleRowCount.signedValue) {
-        arg0->firstVisibleItemIndex.unsignedValue = 0;
+    if (list->itemCount <= list->visibleRowCount.signedValue) {
+        list->firstVisibleItemIndex.unsignedValue = 0;
     }
-    arg0->flags                 = 0;
-    arg0->scrollPixelsRemaining = 0;
-    arg0->scrollDirection       = USER_INTERFACE_LIST_STEP_NONE;
-    arg0->rowInputEnabled       = USER_INTERFACE_LIST_ROW_INACTIVE;
+    list->flags                 = 0;
+    list->scrollPixelsRemaining = 0;
+    list->scrollDirection       = USER_INTERFACE_LIST_STEP_NONE;
+    list->rowInputEnabled       = USER_INTERFACE_LIST_ROW_INACTIVE;
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.cursorMode != 0) {
-        arg0->selectedItemIndex                   = 0;
-        arg0->firstVisibleItemIndex.unsignedValue = 0;
+        list->selectedItemIndex                   = 0;
+        list->firstVisibleItemIndex.unsignedValue = 0;
     }
 }
 
@@ -1699,43 +1738,50 @@ static inline void _uiListMoveCursor(const UiPanel* panel, s32 contentX, s32 con
     _uiDrawAnimatedCursor(panel, targetX - panel->contentOriginX.signedValue, targetY - panel->contentOriginY.signedValue);
 }
 
-static void Ui_UpdateListRows(UiList* list, UiPanel* panel, s32 animate)
+/// Draws visible list rows, processes navigation and advances animated scrolling.
+///
+/// Requires `uiUpdateList`'s panel ownership, callback, bounds and drawing contract.
+/// inputPort is 0 or 1 for left/right/up/down queries; shoulder paging always
+/// reads port zero. Existing scrolling advances by two pixels per elapsed
+/// nominal 60-Hz tick and blocks generic navigation until complete. Callbacks receive
+/// wrapped item indices and may request row skipping or change the text pen.
+static void _uiUpdateListRows(UiList* list, UiPanel* panel, s32 inputPort)
 {
-    s32 step;
-    s32 playSound;
-    s32 highlight;
-    s32 itemData;
-    s32 margin;
-    s32 rowY;
-    s32 highlightY;
+    s32 selectionStep;
+    s32 playCursorSound;
+    s32 drawHighlight;
+    u32 defaultColorRgb;
+    s32 scrollMarginRows;
+    s32 rowBottom;
+    s32 highlightedRowBottom;
     s32 cursorX;
     s32 cursorY;
-    s32 rows;
-    s32 item;
-    s32 i;
-    s32 inset;
-    s32 h;
-    s32 state;
-    s32 sound;
-    s32 center;
-    s32 rowH;
+    s32 rowsToDraw;
+    s32 itemIndex;
+    s32 rowIndex;
+    s32 textBaselineInset;
+    s32 cursorRowHeight;
+    s32 controlMode;
+    s32 cursorSoundId;
+    s32 rowCenterY;
+    s32 textRowHeight;
 
-    cursorY   = 0;
-    step      = 0;
-    playSound = 0;
-    highlight = 0;
-    margin    = list->visibleRowCount.signedValue >> 2;
-    itemData  = D_80067640;
-    if (margin < 2) {
-        margin = 0;
+    cursorY          = 0;
+    selectionStep    = USER_INTERFACE_LIST_STEP_NONE;
+    playCursorSound  = 0;
+    drawHighlight    = 0;
+    scrollMarginRows = list->visibleRowCount.signedValue >> 2;
+    defaultColorRgb  = D_80067640;
+    if (scrollMarginRows < 2) {
+        scrollMarginRows = 0;
     }
     // Each dispatch publishes fresh results and panel-local row coordinates.
     list->commandResult.signedValue = USER_INTERFACE_LIST_COMMAND_NONE;
     list->actionResult              = USER_INTERFACE_RESULT_NONE;
     list->rowTextX.signedValue      = panel->contentLeft.unsignedValue + 2;
-    state                           = panel->control.word;
-    if (state >= USER_INTERFACE_PANEL_REQUEST_MIN) {
-        switch (state) {
+    controlMode                     = panel->control.word;
+    if (controlMode >= USER_INTERFACE_PANEL_REQUEST_MIN) {
+        switch (controlMode) {
             case USER_INTERFACE_PANEL_SELECT_FIRST_VISIBLE:
                 list->selectedItemIndex = list->firstVisibleItemIndex.signedValue;
                 break;
@@ -1747,8 +1793,9 @@ static void Ui_UpdateListRows(UiList* list, UiPanel* panel, s32 animate)
     if (list->selectedItemIndex < 0) {
         list->selectedItemIndex += list->itemCount;
     }
-    rows = list->visibleRowCount.signedValue;
-    if (rows < list->itemCount) {
+    // An unfinished scroll exposes one extra wrapped row until displacement reaches zero.
+    rowsToDraw = list->visibleRowCount.signedValue;
+    if (rowsToDraw < list->itemCount) {
         if (list->wrapNavigation != 0 || list->firstVisibleItemIndex.signedValue > 0) {
             _uiDrawListOverflowCaret(list, panel, USER_INTERFACE_CARET_UP);
         }
@@ -1769,109 +1816,95 @@ static void Ui_UpdateListRows(UiList* list, UiPanel* panel, s32 animate)
                 list->scrollDirection = USER_INTERFACE_LIST_STEP_NONE;
             } else {
                 if (list->scrollDirection == USER_INTERFACE_LIST_STEP_NEXT) {
-                    s32 top                     = list->rowTextY.signedValue + 7;
-                    cursorY                     = top - list->rowHeight + (list->visibleRowCount.signedValue - 1) * list->rowHeight;
+                    s32 cursorBaselineY         = list->rowTextY.signedValue + 7;
+                    cursorY                     = cursorBaselineY - list->rowHeight + (list->visibleRowCount.signedValue - 1) * list->rowHeight;
                     list->rowTextY.signedValue -= list->rowHeight - list->scrollPixelsRemaining;
                 } else {
-                    s32 top                     = list->rowTextY.signedValue + 7;
-                    cursorY                     = top - list->rowHeight;
+                    s32 cursorBaselineY         = list->rowTextY.signedValue + 7;
+                    cursorY                     = cursorBaselineY - list->rowHeight;
                     list->rowTextY.signedValue -= list->scrollPixelsRemaining;
                 }
-                rows++;
+                rowsToDraw++;
             }
         }
     } else {
         list->rowTextY.signedValue = panel->contentTop.unsignedValue + list->rowHeight;
     }
     list->rowTextY.signedValue += list->topInset;
-    highlightY                  = list->rowTextY.signedValue;
-    rowY                        = highlightY;
+    highlightedRowBottom        = list->rowTextY.signedValue;
+    rowBottom                   = highlightedRowBottom;
     if (list->itemCount == 0) {
-        s32 top = highlightY + 7;
+        s32 cursorBaselineY = highlightedRowBottom + 7;
 
         cursorX = list->rowTextX.signedValue - 2;
-        cursorY = top - list->rowHeight;
+        cursorY = cursorBaselineY - list->rowHeight;
         _uiListMoveCursor(panel, cursorX, cursorY);
         return;
     }
     if (list->scrollPixelsRemaining != 0) {
         _uiQueueListDrawArea(list, panel, 1);
     }
-    item = list->firstVisibleItemIndex.signedValue;
-    for (i = 0; i < rows; i++) {
-        if (item == list->selectedItemIndex) {
+    // Row callbacks may adjust the text pen or request skipping the selected row.
+    itemIndex = list->firstVisibleItemIndex.signedValue;
+    for (rowIndex = 0; rowIndex < rowsToDraw; rowIndex++) {
+        if (itemIndex == list->selectedItemIndex) {
             if (list->scrollDirection == USER_INTERFACE_LIST_STEP_NONE) {
                 if (panel->control.word == USER_INTERFACE_PANEL_ACTIVE) {
                     list->rowInputEnabled = USER_INTERFACE_LIST_ROW_ACTIVE;
-                    highlight             = 1;
-                    list->colorRgb        = itemData;
-                    highlightY            = rowY;
+                    drawHighlight         = 1;
+                    list->colorRgb        = defaultColorRgb;
+                    highlightedRowBottom  = rowBottom;
                 } else {
                     list->rowInputEnabled = USER_INTERFACE_LIST_ROW_INACTIVE;
-                    list->colorRgb        = itemData;
+                    list->colorRgb        = defaultColorRgb;
                 }
             }
-            h       = list->rowHeight;
-            center  = rowY - (h - 1) / 2;
-            cursorY = center - 1;
-            if (h == 8) {
-                cursorY = center - 2;
+            cursorRowHeight = list->rowHeight;
+            rowCenterY      = rowBottom - (cursorRowHeight - 1) / 2;
+            cursorY         = rowCenterY - 1;
+            if (cursorRowHeight == 8) {
+                cursorY = rowCenterY - 2;
             }
         } else {
             list->rowInputEnabled = USER_INTERFACE_LIST_ROW_INACTIVE;
-            list->colorRgb        = itemData;
+            list->colorRgb        = defaultColorRgb;
         }
-        inset                  = 0;
-        rowH                   = list->rowHeight;
-        list->currentItemIndex = item;
-        if (rowH == 10) {
-            inset = 3;
-        } else if (rowH < 10) {
-            inset = 2;
-        } else if (rowH >= 16) {
-            inset = rowH - 15;
+        USER_INTERFACE_DISPATCH_LIST_ROW(list, panel, itemIndex, rowBottom, textBaselineInset, textRowHeight);
+        if (itemIndex == list->selectedItemIndex && list->actionResult == USER_INTERFACE_LIST_ACTION_SKIP_ROW) {
+            drawHighlight = 0;
         }
-        list->rowTextY.signedValue = rowY - inset;
-        if (list->flags & USER_INTERFACE_LIST_SHARED_ROW_CALLBACK) {
-            list->rowCallbacks[0](list, PARENT_OF(panel, UiObject, panel));
-        } else {
-            list->rowCallbacks[item](list, PARENT_OF(panel, UiObject, panel));
-        }
-        if (item == list->selectedItemIndex && list->actionResult == USER_INTERFACE_LIST_ACTION_SKIP_ROW) {
-            highlight = 0;
-        }
-        item++;
-        rowY  = list->rowTextY.signedValue + inset;
-        rowY += list->rowHeight;
-        if (item >= list->itemCount) {
-            item -= list->itemCount;
+        itemIndex++;
+        rowBottom  = list->rowTextY.signedValue + textBaselineInset;
+        rowBottom += list->rowHeight;
+        if (itemIndex >= list->itemCount) {
+            itemIndex -= list->itemCount;
         }
     }
-    if (highlight == 1 && list->rowHeight != USER_INTERFACE_LIST_PREVIEW_ROW_HEIGHT) {
-        _uiDrawListHighlight(list, panel, highlightY, 0);
+    if (drawHighlight == 1 && list->rowHeight != USER_INTERFACE_LIST_PREVIEW_ROW_HEIGHT) {
+        _uiDrawListHighlight(list, panel, highlightedRowBottom, 0);
     }
     cursorX = list->rowTextX.signedValue - 2;
     if (list->scrollPixelsRemaining != 0) {
         _uiQueueListDrawArea(list, panel, 0);
     } else if (panel->control.word == USER_INTERFACE_PANEL_ACTIVE) {
-        if (list->actionResult == USER_INTERFACE_RESULT_NONE && padCheckButtons(animate, PAD_BUTTON_QUERY_HELD_ANY, PAD_BUTTON_RIGHT | PAD_BUTTON_LEFT) == 0) {
-            if (padCheckButtons(animate, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_UP) != 0) {
-                playSound                = 1;
+        if (list->actionResult == USER_INTERFACE_RESULT_NONE && padCheckButtons(inputPort, PAD_BUTTON_QUERY_HELD_ANY, PAD_BUTTON_RIGHT | PAD_BUTTON_LEFT) == 0) {
+            if (padCheckButtons(inputPort, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_UP) != 0) {
+                playCursorSound          = 1;
                 list->navigationStep     = USER_INTERFACE_LIST_STEP_PREVIOUS;
-                step                     = -1;
+                selectionStep            = USER_INTERFACE_LIST_STEP_PREVIOUS;
                 list->selectedItemIndex -= 1;
-            } else if (padCheckButtons(animate, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_DOWN) != 0) {
-                playSound                = 1;
-                step                     = 1;
+            } else if (padCheckButtons(inputPort, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_DOWN) != 0) {
+                playCursorSound          = 1;
+                selectionStep            = USER_INTERFACE_LIST_STEP_NEXT;
                 list->selectedItemIndex += 1;
                 list->navigationStep     = USER_INTERFACE_LIST_STEP_NEXT;
             } else if (list->visibleRowCount.signedValue < list->itemCount && list->wrapNavigation == 0) {
                 if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_L1) != 0) {
                     if (list->selectedItemIndex != 0) {
-                        playSound = 1;
+                        playCursorSound = 1;
                     }
                     list->navigationStep     = USER_INTERFACE_LIST_STEP_PREVIOUS;
-                    step                     = -1;
+                    selectionStep            = USER_INTERFACE_LIST_STEP_PREVIOUS;
                     list->selectedItemIndex -= 1;
                     if (list->firstVisibleItemIndex.signedValue > 0) {
                         list->firstVisibleItemIndex.signedValue -= list->visibleRowCount.signedValue;
@@ -1886,10 +1919,10 @@ static void Ui_UpdateListRows(UiList* list, UiPanel* panel, s32 animate)
                     }
                 } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_R1) != 0) {
                     if (list->selectedItemIndex != list->itemCount - 1) {
-                        playSound = 1;
+                        playCursorSound = 1;
                     }
                     list->navigationStep     = USER_INTERFACE_LIST_STEP_NEXT;
-                    step                     = 1;
+                    selectionStep            = USER_INTERFACE_LIST_STEP_NEXT;
                     list->selectedItemIndex += 1;
                     if (list->firstVisibleItemIndex.signedValue + list->visibleRowCount.signedValue < list->itemCount) {
                         list->firstVisibleItemIndex.signedValue += list->visibleRowCount.signedValue;
@@ -1911,27 +1944,28 @@ static void Ui_UpdateListRows(UiList* list, UiPanel* panel, s32 animate)
                 list->navigationStep = USER_INTERFACE_LIST_STEP_NEXT;
             }
             list->selectedItemIndex += list->navigationStep;
-            step                     = list->navigationStep;
+            selectionStep            = list->navigationStep;
         }
     }
     if ((panel->control.word == USER_INTERFACE_PANEL_ACTIVE || panel->control.modes.suspended == USER_INTERFACE_PANEL_ACTIVE) && list->rowHeight != USER_INTERFACE_LIST_PREVIEW_ROW_HEIGHT) {
         _uiListMoveCursor(panel, cursorX, cursorY);
     }
-    if (step == -1) {
+    // Clamp or wrap selection and start any required one-row scroll.
+    if (selectionStep == USER_INTERFACE_LIST_STEP_PREVIOUS) {
         if (list->selectedItemIndex < 0) {
             if (list->wrapNavigation != 0) {
                 list->selectedItemIndex += list->itemCount;
             } else {
-                playSound               = 0;
+                playCursorSound         = 0;
                 list->actionResult      = USER_INTERFACE_LIST_ACTION_AT_START;
                 list->selectedItemIndex = 0;
                 list->navigationStep    = USER_INTERFACE_LIST_STEP_NEXT;
             }
         }
         if (list->itemCount != list->visibleRowCount.signedValue) {
-            s32 edge = margin - 1;
+            s32 previousScrollEdge = scrollMarginRows - 1;
 
-            if (list->firstVisibleItemIndex.signedValue + edge >= list->selectedItemIndex % list->itemCount) {
+            if (list->firstVisibleItemIndex.signedValue + previousScrollEdge >= list->selectedItemIndex % list->itemCount) {
                 if (list->wrapNavigation != 0) {
                     list->firstVisibleItemIndex.signedValue -= 1;
                     if (list->firstVisibleItemIndex.signedValue < 0) {
@@ -1950,30 +1984,30 @@ static void Ui_UpdateListRows(UiList* list, UiPanel* panel, s32 animate)
                 }
             }
         }
-    } else if (step == 1) {
+    } else if (selectionStep == USER_INTERFACE_LIST_STEP_NEXT) {
         if (list->selectedItemIndex >= list->itemCount) {
             if (list->wrapNavigation != 0) {
                 list->selectedItemIndex -= list->itemCount;
             } else {
-                playSound               = 0;
+                playCursorSound         = 0;
                 list->selectedItemIndex = list->itemCount - 1;
                 list->actionResult      = USER_INTERFACE_LIST_ACTION_AT_END;
                 list->navigationStep    = USER_INTERFACE_LIST_STEP_PREVIOUS;
             }
         }
         if (list->itemCount != list->visibleRowCount.signedValue) {
-            if (list->selectedItemIndex % list->itemCount >= (list->firstVisibleItemIndex.signedValue + list->visibleRowCount.signedValue - margin) % list->itemCount && (list->wrapNavigation != 0 || list->firstVisibleItemIndex.signedValue < list->itemCount - list->visibleRowCount.signedValue)) {
+            if (list->selectedItemIndex % list->itemCount >= (list->firstVisibleItemIndex.signedValue + list->visibleRowCount.signedValue - scrollMarginRows) % list->itemCount && (list->wrapNavigation != 0 || list->firstVisibleItemIndex.signedValue < list->itemCount - list->visibleRowCount.signedValue)) {
                 list->scrollDirection       = USER_INTERFACE_LIST_STEP_NEXT;
                 list->scrollPixelsRemaining = list->rowHeight;
             }
         }
     }
-    if (playSound != 0) {
-        sound = SOUND_SYSTEM_CURSOR;
+    if (playCursorSound != 0) {
+        cursorSoundId = SOUND_SYSTEM_CURSOR;
         if (!(list->flags & USER_INTERFACE_LIST_SYSTEM_CURSOR_SOUND)) {
-            sound = SOUND_MENU_CURSOR;
+            cursorSoundId = SOUND_MENU_CURSOR;
         }
-        sndEvtRequestScriptStart(sound, 0, 0);
+        sndEvtRequestScriptStart(cursorSoundId, 0, 0);
     }
 }
 
@@ -2469,33 +2503,41 @@ void uiStartPanelOpening(UiPanel* panel, Task* owningTask)
     }
 }
 
-void Ui_InitList(UiList* list, UiPanel* panel)
+/// Writes screen-centered content bounds and returns their signed pixel height.
+///
+/// Borrows a laid-out panel and writable rectangle. Unsigned halfword sums and
+/// differences narrow to RECT fields before height is promoted back to s32.
+static inline s16 _uiReadListContentRect(const UiPanel* panel, RECT* contentRect)
 {
-    RECT     sp;
-    UiPanel* a1;
-    s16      temp_v0;
-    u8       temp_a2;
-    s8       temp_v1;
-    s32      height;
+    s16 contentHeight;
 
-    a1             = panel;
-    list->topInset = 0;
-    sp.x           = a1->contentOriginX.unsignedValue + a1->contentLeft.unsignedValue;
-    sp.y           = a1->contentOriginY.unsignedValue + a1->contentTop.unsignedValue;
-    sp.w           = a1->contentRight.unsignedValue - a1->contentLeft.unsignedValue;
-    temp_v0        = a1->contentBottom.unsignedValue - a1->contentTop.unsignedValue;
-    height         = temp_v0;
-    sp.h           = temp_v0;
-    height         = height - list->topInset;
+    contentRect->x = panel->contentOriginX.unsignedValue + panel->contentLeft.unsignedValue;
+    contentRect->y = panel->contentOriginY.unsignedValue + panel->contentTop.unsignedValue;
+    contentRect->w = panel->contentRight.unsignedValue - panel->contentLeft.unsignedValue;
+    contentHeight  = panel->contentBottom.unsignedValue - panel->contentTop.unsignedValue;
+    contentRect->h = contentHeight;
+    return contentHeight;
+}
+
+void uiInitList(UiList* list, const UiPanel* panel)
+{
+    RECT contentRect;
+    u8   itemCount;
+    s8   rowHeight;
+    s32  availableHeight;
+
+    list->topInset   = 0;
+    availableHeight  = _uiReadListContentRect(panel, &contentRect);
+    availableHeight -= list->topInset;
     if (list->rowHeight == 0) {
         list->rowHeight = USER_INTERFACE_LIST_DEFAULT_ROW_HEIGHT;
     }
-    temp_a2 = list->itemCount;
-    temp_v1 = list->rowHeight;
-    if (height >= (temp_a2 * temp_v1)) {
-        list->visibleRowCount.unsignedValue = temp_a2;
+    itemCount = list->itemCount;
+    rowHeight = list->rowHeight;
+    if (availableHeight >= (itemCount * rowHeight)) {
+        list->visibleRowCount.unsignedValue = itemCount;
     } else {
-        list->visibleRowCount.unsignedValue = height / temp_v1;
+        list->visibleRowCount.unsignedValue = availableHeight / rowHeight;
         if (list->visibleRowCount.signedValue <= 0) {
             list->visibleRowCount.unsignedValue = 1;
         }
@@ -2516,24 +2558,20 @@ void Ui_InitList(UiList* list, UiPanel* panel)
     }
 }
 
-void Ui_ComputeVisibleRows(UiList* list, UiPanel* panel)
+void uiRefreshListViewport(UiList* list, const UiPanel* panel)
 {
-    RECT sp;
-    s32  height;
+    RECT contentRect;
+    s32  availableHeight;
 
-    sp.x    = panel->contentOriginX.unsignedValue + panel->contentLeft.unsignedValue;
-    sp.y    = panel->contentOriginY.unsignedValue + panel->contentTop.unsignedValue;
-    sp.w    = panel->contentRight.unsignedValue - panel->contentLeft.unsignedValue;
-    sp.h    = panel->contentBottom.unsignedValue - panel->contentTop.unsignedValue;
-    height  = sp.h;
-    height -= list->topInset;
+    availableHeight  = _uiReadListContentRect(panel, &contentRect);
+    availableHeight -= list->topInset;
     if (list->rowHeight == 0) {
         list->rowHeight = USER_INTERFACE_LIST_DEFAULT_ROW_HEIGHT;
     }
-    if (height >= list->itemCount * list->rowHeight) {
+    if (availableHeight >= list->itemCount * list->rowHeight) {
         list->visibleRowCount.unsignedValue = list->itemCount;
     } else {
-        list->visibleRowCount.unsignedValue = height / list->rowHeight;
+        list->visibleRowCount.unsignedValue = availableHeight / list->rowHeight;
         if (list->visibleRowCount.signedValue <= 0) {
             list->visibleRowCount.unsignedValue = 1;
         }
@@ -2547,36 +2585,36 @@ void Ui_ComputeVisibleRows(UiList* list, UiPanel* panel)
     list->flags = 0;
 }
 
-void Ui_UpdateListNoAnim(void* arg0, void* arg1)
+void uiUpdateList(UiList* list, UiPanel* panel)
 {
-    Ui_UpdateListRows(arg0, arg1, 0);
+    _uiUpdateListRows(list, panel, 0);
 }
 
-static void Ui_ComputeVisibleRowsEx(UiList* list, UiPanel* panel, s32 arg2)
+/// Sets a list's top pixel inset and refreshes its row capacity and selection bound.
+///
+/// topInsetPixels narrows to a signed byte before subtraction from the signed
+/// content height; 0..127 represents a nonnegative reservation. Uses
+/// `uiRefreshListViewport`'s bounds/default/flag-reset contract, preserving scroll
+/// state and row input. Borrows the laid-out panel without changing it.
+static void _uiRefreshListViewportWithInset(UiList* list, const UiPanel* panel, s32 topInsetPixels)
 {
-    RECT sp;
-    s16  temp_v0;
-    u8   temp_a2;
-    s8   temp_v1;
-    s32  height;
+    RECT contentRect;
+    u8   itemCount;
+    s8   rowHeight;
+    s32  availableHeight;
 
-    list->topInset = arg2;
-    sp.x           = panel->contentOriginX.unsignedValue + panel->contentLeft.unsignedValue;
-    sp.y           = panel->contentOriginY.unsignedValue + panel->contentTop.unsignedValue;
-    sp.w           = panel->contentRight.unsignedValue - panel->contentLeft.unsignedValue;
-    temp_v0        = panel->contentBottom.unsignedValue - panel->contentTop.unsignedValue;
-    height         = temp_v0;
-    sp.h           = temp_v0;
-    height         = height - list->topInset;
+    list->topInset   = topInsetPixels;
+    availableHeight  = _uiReadListContentRect(panel, &contentRect);
+    availableHeight -= list->topInset;
     if (list->rowHeight == 0) {
         list->rowHeight = USER_INTERFACE_LIST_DEFAULT_ROW_HEIGHT;
     }
-    temp_a2 = list->itemCount;
-    temp_v1 = list->rowHeight;
-    if (height >= (temp_a2 * temp_v1)) {
-        list->visibleRowCount.unsignedValue = temp_a2;
+    itemCount = list->itemCount;
+    rowHeight = list->rowHeight;
+    if (availableHeight >= (itemCount * rowHeight)) {
+        list->visibleRowCount.unsignedValue = itemCount;
     } else {
-        list->visibleRowCount.unsignedValue = height / temp_v1;
+        list->visibleRowCount.unsignedValue = availableHeight / rowHeight;
         if (list->visibleRowCount.signedValue <= 0) {
             list->visibleRowCount.unsignedValue = 1;
         }
@@ -2762,9 +2800,9 @@ void uiQueueTexturePage(s32 otIndex, s32 blendMode)
     addPrim(gGpuCurrentOt + otIndex, pageCommand);
 }
 
-void Ui_SetListScrollFlag(UiList* list, s32 arg1)
+void uiSetListSystemCursorSound(UiList* list, s32 enabled)
 {
-    if (arg1 == 0) {
+    if (enabled == 0) {
         list->flags &= (u8)~USER_INTERFACE_LIST_SYSTEM_CURSOR_SOUND;
         return;
     }
@@ -2943,26 +2981,47 @@ static void _uiPanelClosing(UiPanel* panel, Task* owningTask)
     panel->contentCallback(owningTask);
 }
 
-static void Ui_AnimCloseStep(UiPanel* panel, Task* task)
+/// Shrinks and runs retained hiding content with input temporarily suspended.
+///
+/// Both objects must remain live through the required callback. savedControl
+/// is the word saved before the animation counter update; callback changes are
+/// preserved, otherwise that word is restored. Unsigned shifts retain all bits.
+static inline void _uiRunHidingPanelContent(UiPanel* panel, Task* owningTask, u32 savedControl)
 {
-    s32 temp_s1;
+    enum { USER_INTERFACE_HIDING_CONTROL_SHIFT = 16 };
 
-    temp_s1 = panel->control.word;
+    panel->control.word = (u32)panel->control.word << USER_INTERFACE_HIDING_CONTROL_SHIFT;
+    _uiLayoutShrinkingPanel(panel);
+    panel->contentCallback(owningTask);
+    if (panel->control.word == (savedControl << USER_INTERFACE_HIDING_CONTROL_SHIFT)) {
+        panel->control.word = savedControl;
+    }
+}
+
+/// Shrinks a panel into retained hidden dispatch without releasing its object or task.
+///
+/// Nonnegative signed-halfword counters advance by elapsed nominal 60-Hz ticks.
+/// At nine ticks or a negative sentinel, stores -1, advances hiding to hidden
+/// and runs hidden content immediately; active control can reopen it there.
+/// Otherwise draws shrinking content with temporarily suspended input, keeping
+/// callback control changes. The live panel belongs to owningTask; its required
+/// callback must keep both live. Requires shrinking/hidden drawing resources.
+static void _uiPanelHiding(UiPanel* panel, Task* owningTask)
+{
+    u32 savedControl;
+
+    savedControl = panel->control.word;
     if (panel->animationTicks >= 0) {
         panel->animationTicks += gDisplayState.frameTicks;
     }
+    // Negative sentinels also finish; run retained hidden content in this update.
     if ((u16)panel->animationTicks >= (u32)USER_INTERFACE_PANEL_ANIMATION_TICKS) {
         panel->animationTicks = USER_INTERFACE_PANEL_ANIMATION_STOPPED;
-        panel->state         += 1;
-        _uiPanelHidden(panel, task);
+        panel->state         += USER_INTERFACE_PANEL_HIDDEN - USER_INTERFACE_PANEL_HIDING;
+        _uiPanelHidden(panel, owningTask);
         return;
     }
-    panel->control.word <<= 0x10;
-    _uiLayoutShrinkingPanel(panel);
-    panel->contentCallback(task);
-    if (panel->control.word == (temp_s1 << 0x10)) {
-        panel->control.word = temp_s1;
-    }
+    _uiRunHidingPanelContent(panel, owningTask, savedControl);
 }
 
 /// Lays out and runs retained hidden content with input temporarily suspended.
@@ -3143,7 +3202,7 @@ static void Ui_ListTaskCallback(Task* task)
         base                                = request->optionCount;
         menu->visibleRowCount.unsignedValue = base;
         menu->itemCount                     = base;
-        Ui_LayoutListPanel(menu, &(obj)->panel);
+        uiFitPanelToList(menu, &(obj)->panel);
         menu->flags  = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
         task->state += 1;
     }
@@ -3151,7 +3210,7 @@ static void Ui_ListTaskCallback(Task* task)
     if (text != NULL) {
         uiDrawPanelLabel(&(obj)->panel, text);
     }
-    Ui_UpdateListRows(menu, &(obj)->panel, 0);
+    _uiUpdateListRows(menu, &(obj)->panel, 0);
     if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         status = obj->result;
         if ((status == USER_INTERFACE_RESULT_CONFIRM) || (status == USER_INTERFACE_RESULT_CANCEL)) {

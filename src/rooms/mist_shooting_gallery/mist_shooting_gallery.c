@@ -1094,14 +1094,14 @@ void func_mist_shooting_gallery_8017E090(Task* task)
         }
         list->selectedItemIndex                   = 0;
         list->firstVisibleItemIndex.unsignedValue = 0;
-        Ui_LayoutListPanel(list, &(obj)->panel);
+        uiFitPanelToList(list, &(obj)->panel);
         list->flags = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
-        Ui_SetListScrollFlag(list, 1);
+        uiSetListSystemCursorSound(list, 1);
         obj->panel.bounds.unsignedRect.x = -((s16)obj->panel.bounds.unsignedRect.w / 2);
         obj->panel.bounds.unsignedRect.y = -((s16)obj->panel.bounds.unsignedRect.h / 2);
         task->state                     += 1;
     }
-    Ui_UpdateListNoAnim(list, obj);
+    uiUpdateList(list, &obj->panel);
     child = task->firstChild;
     if (child != NULL) {
         childObj = child->spawnArg2.pointer;
@@ -1426,14 +1426,14 @@ void func_mist_shooting_gallery_8017EAE0(Task* task)
             list->visibleRowCount.unsignedValue = 4;
         }
         list->selectedItemIndex = 0;
-        Ui_LayoutListPanel(list, &(obj)->panel);
+        uiFitPanelToList(list, &(obj)->panel);
         list->flags = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
         Ui_SpawnFromDesc(&D_mist_shooting_gallery_8018507C[0], 0, 0, 1, obj);
         Ui_SpawnFromDesc(&D_mist_shooting_gallery_8018507C[1], 0, 0, 1, obj);
         Ui_SpawnFromDesc(&D_mist_shooting_gallery_8018507C[2], 0, 0, 1, obj);
         task->state = task->state + 1;
     }
-    Ui_UpdateListNoAnim(list, obj);
+    uiUpdateList(list, &obj->panel);
     if ((obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) && (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0)) {
         sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
         obj->result = USER_INTERFACE_RESULT_CONFIRM;
@@ -2209,9 +2209,9 @@ void func_mist_shooting_gallery_80180728(Task* task)
         }
         menu->selectedItemIndex                   = 0;
         menu->firstVisibleItemIndex.unsignedValue = 0;
-        Ui_LayoutListPanel(menu, &(obj)->panel);
+        uiFitPanelToList(menu, &(obj)->panel);
         menu->flags = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
-        Ui_SetListScrollFlag(menu, 1);
+        uiSetListSystemCursorSound(menu, 1);
         obj->panel.bounds.unsignedRect.x = -((s16)obj->panel.bounds.unsignedRect.w / 2);
         obj->panel.bounds.unsignedRect.y = -((s16)obj->panel.bounds.unsignedRect.h / 2);
         if (Gp_IsDebugAttachRoom() == 0) {
@@ -2221,7 +2221,7 @@ void func_mist_shooting_gallery_80180728(Task* task)
         }
         task->state += 1;
     }
-    Ui_UpdateListNoAnim(menu, obj);
+    uiUpdateList(menu, &obj->panel);
     flags = task->status;
     if (flags < 0xF1) {
         state = task->state;

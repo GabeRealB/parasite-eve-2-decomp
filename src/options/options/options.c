@@ -482,7 +482,7 @@ static void func_options_801D4B64(Task* task)
         list = &D_options_801D5ED8;
     }
     if (task->state == 0) {
-        Ui_LayoutListPanel(list, &(obj)->panel);
+        uiFitPanelToList(list, &(obj)->panel);
         task->state += 1;
         if (task->spawnArg1.value == 1) {
             uiSetPanelContentSize(&(obj)->panel, 0xC0, 0);
@@ -492,7 +492,7 @@ static void func_options_801D4B64(Task* task)
     }
     obj->result = USER_INTERFACE_RESULT_NONE;
     uiDrawPanelLabel(&(obj)->panel, "Option");
-    Ui_UpdateListNoAnim(list, obj);
+    uiUpdateList(list, &obj->panel);
     status = obj->panel.control.word;
     if (status == 1) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {

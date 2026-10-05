@@ -175,13 +175,50 @@ void uiLimitHiddenDelayOrOpen(UiPanel* panel, Task* owningTask, s32 delayTicks);
 /// `owningTask` is the task that owns `panel`. The function does not read it.
 void uiStartPanelOpening(UiPanel* panel, Task* owningTask);
 
-void Ui_LayoutListPanel(UiList* arg0, UiPanel* arg1);
+/// Resizes a panel for its requested list rows and initializes the list viewport.
+///
+/// Zero requested rows means all items; larger requests are capped to itemCount.
+/// Height changes by requested rows times rowHeight minus the old content span.
+/// Set a positive pixel rowHeight before fitting: the zero-height default is
+/// applied only after resizing. Right/bottom edges are moved within (152,112)
+/// screen-centered pixels, with no left/top clamp. Recalculates content layout,
+/// clears topInset and flags, stops scrolling and disables row input. Selection
+/// is capped at the last item; the saved cursor preference may reset it to zero.
+/// Both records are borrowed and mutable; coordinates narrow to halfwords.
+void uiFitPanelToList(UiList* list, UiPanel* panel);
 
-void Ui_InitList(UiList* list, UiPanel* panel);
+/// Initializes a list viewport from an already laid-out panel's content height.
+///
+/// Clears topInset and flags, stops scrolling and disables row input. Zero
+/// rowHeight becomes ten pixels; otherwise it must be positive. Item/visible
+/// counts must fit 0..127, and the signed-halfword content height must fit.
+/// Caps selection at the last item (empty lists can select -1), resetting the
+/// top item when all rows fit. A nonzero saved cursorMode instead resets both
+/// indices to zero. Callers supply callbacks, counts and navigation policy.
+/// Borrows both records, writing only the list; no rows are drawn here.
+void uiInitList(UiList* list, const UiPanel* panel);
 
-void Ui_ComputeVisibleRows(UiList* list, UiPanel* panel);
+/// Refreshes a list's row capacity and upper selection bound without resizing its panel.
+///
+/// Uses signed-halfword content height minus topInset, in pixels. A zero
+/// rowHeight becomes ten; otherwise it must be positive. Stores the item count
+/// when it fits, or the height quotient with a minimum of one. Counts must fit
+/// 0..127. Selection at/past the end becomes itemCount-1; negative selection is
+/// kept. Resets the top item only when all items fit and clears all list flags.
+/// Preserves scrolling, row input and the top inset. Borrows the laid-out panel.
+void uiRefreshListViewport(UiList* list, const UiPanel* panel);
 
-void Ui_UpdateListNoAnim(void* arg0, void* arg1);
+/// Draws list rows and updates selection and animated scrolling using controller port zero.
+///
+/// `panel` must be embedded in the live `UiObject` given to each row callback.
+/// Both records and the required callback table must remain live through each
+/// callback. Uses `UiList`'s index/row-height contract; an active scroll can draw
+/// one extra wrapped row. Clears command/action results, supplies row text
+/// coordinates/color and selected-row input, then handles directional/page
+/// navigation. Suspended active control moves the cursor without accepting input.
+/// Requires resident UI textures, primitive arena space and writable panel OT
+/// tags for rows, clipping, overflow carets, highlighting and cursor drawing.
+void uiUpdateList(UiList* list, UiPanel* panel);
 
 /// Eases the shared selection cursor toward a panel's content position and draws it.
 ///
@@ -277,7 +314,11 @@ void uiDrawRectFrame(RECT* rect, s32 otIndex, s32 style, const char* title);
 /// packets remain in the arena until GPU completion.
 void uiDrawTitle(UiPanel* panel, const char* title);
 
-void Ui_SetListScrollFlag(UiList* list, s32 arg1);
+/// Selects the system cursor sound for a list when enabled is nonzero.
+///
+/// Zero selects the menu cursor sound. Changes only the sound flag in the
+/// borrowed list; viewport initialization/refresh clears that flag again.
+void uiSetListSystemCursorSound(UiList* list, s32 enabled);
 
 /// Queues an opaque fill one pixel inside a content-relative rectangle.
 ///

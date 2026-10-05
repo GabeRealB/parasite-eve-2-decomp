@@ -233,12 +233,12 @@ static void func_map_akropolis_80179D78(Task* task)
     obj->result = USER_INTERFACE_RESULT_NONE;
     uiDrawPanelLabel(&(obj)->panel, D_map_akropolis_8017997C);
     if (task->state == 0) {
-        Ui_LayoutListPanel(list, &(obj)->panel);
+        uiFitPanelToList(list, &(obj)->panel);
         list->flags           = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
         task->spawnArg1.value = -1;
         task->state          += 1;
     }
-    Ui_UpdateListNoAnim(list, obj);
+    uiUpdateList(list, &obj->panel);
     if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel | Pad_MaskMenu) != 0) {
         obj->result = USER_INTERFACE_RESULT_CANCEL;
     }

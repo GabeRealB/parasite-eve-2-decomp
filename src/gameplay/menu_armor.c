@@ -341,7 +341,7 @@ void Gp_EquipSelectMenuTask(Task* arg0)
     val = 0;
     if (arg0->state == 0) {
         Gp_CountEquippableRows(menu, obj);
-        Ui_LayoutListPanel(menu, &(obj)->panel);
+        uiFitPanelToList(menu, &(obj)->panel);
         menu->topInset                           += 0x4C;
         obj->panel.bounds.unsignedRect.h         += 0x4C;
         menu->flags                               = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
@@ -353,7 +353,7 @@ void Gp_EquipSelectMenuTask(Task* arg0)
         arg0->state = arg0->state + 1;
     }
     uiDrawHorizontalSeparator(&(obj)->panel, obj->panel.contentLeft.signedValue, obj->panel.contentRight.signedValue, obj->panel.contentTop.signedValue + 0x4A);
-    Ui_UpdateListNoAnim(menu, obj);
+    uiUpdateList(menu, &obj->panel);
     rec = Gp_NthEquippableRec(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, menu->selectedItemIndex, 0);
     if (rec != NULL) {
         val = rec->itemId;

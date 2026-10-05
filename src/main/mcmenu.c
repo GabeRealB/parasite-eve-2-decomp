@@ -28,7 +28,7 @@ static UiListRowCallback Mc_YesCallbacks[];
 
 static UiList Mc_YesList;
 
-static void McMenu_UpdateListCursor(void* arg0, UiPanel* panel);
+static void McMenu_UpdateListCursor(UiList* arg0, UiPanel* panel);
 
 static void McMenu_ConfirmDialog(UiList* list, UiObject* object);
 
@@ -67,9 +67,9 @@ void McMenu_NoOpTask(Task* unused)
     char pad[0x10];
 }
 
-static void McMenu_UpdateListCursor(void* arg0, UiPanel* panel)
+static void McMenu_UpdateListCursor(UiList* arg0, UiPanel* panel)
 {
-    Ui_UpdateListNoAnim(arg0, panel);
+    uiUpdateList(arg0, panel);
     if (panel->control.word == USER_INTERFACE_PANEL_ACTIVE) {
         uiEaseAndDrawCursor(panel, panel->contentLeft.signedValue + 2, 0);
     }
@@ -84,14 +84,14 @@ void McMenu_SelectList(Task* task)
     menu = &Mc_SaveSlotList;
     uiDrawPanelLabel(obj, McText_Select);
     if (task->state == 0) {
-        Ui_InitList(menu, obj);
+        uiInitList(menu, obj);
         menu->flags                               = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
         menu->selectedItemIndex                   = 0;
         menu->firstVisibleItemIndex.unsignedValue = 0;
-        Ui_SetListScrollFlag(menu, 1);
+        uiSetListSystemCursorSound(menu, 1);
         task->state += 1;
     } else {
-        Ui_UpdateListNoAnim(menu, obj);
+        uiUpdateList(menu, obj);
         if (obj->control.word == USER_INTERFACE_PANEL_ACTIVE) {
             uiEaseAndDrawCursor(obj, obj->contentLeft.signedValue + 2, 0);
         }
@@ -136,7 +136,7 @@ void McMenu_SelectListAlt(Task* task)
     menu = &Mc_LoadSlotList;
     uiDrawPanelLabel(obj, McText_Select);
     if (task->state == 0) {
-        Ui_InitList(menu, obj);
+        uiInitList(menu, obj);
         menu->flags                               = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
         menu->selectedItemIndex                   = work->selectedSlot;
         temp                                      = (u8)menu->selectedItemIndex - menu->visibleRowCount.unsignedValue + 1;
@@ -144,10 +144,10 @@ void McMenu_SelectListAlt(Task* task)
         if ((s8)temp < 0) {
             menu->firstVisibleItemIndex.unsignedValue = 0;
         }
-        Ui_SetListScrollFlag(menu, 1);
+        uiSetListSystemCursorSound(menu, 1);
         task->state += 1;
     } else {
-        Ui_UpdateListNoAnim(menu, obj);
+        uiUpdateList(menu, obj);
         if (obj->control.word == USER_INTERFACE_PANEL_ACTIVE) {
             uiEaseAndDrawCursor(obj, obj->contentLeft.signedValue + 2, 0);
         }
@@ -266,7 +266,7 @@ block_default:
     menu = &Mc_YesNoList;
 block_done:
     if (task->state == 0) {
-        Ui_LayoutListPanel(menu, obj);
+        uiFitPanelToList(menu, obj);
         obj->bounds.rect.y -= obj->bounds.rect.h / 2;
         if (task->spawnArg1.value != 3) {
             menu->selectedItemIndex = 0;
@@ -274,9 +274,9 @@ block_done:
             menu->selectedItemIndex = 1;
         }
         menu->firstVisibleItemIndex.unsignedValue = 0;
-        Ui_SetListScrollFlag(menu, 1);
+        uiSetListSystemCursorSound(menu, 1);
         task->state += 1;
     } else {
-        Ui_UpdateListNoAnim(menu, obj);
+        uiUpdateList(menu, obj);
     }
 }

@@ -1913,10 +1913,10 @@ void Gp_PeMenuListTask(Task* arg0)
     obj->result = USER_INTERFACE_RESULT_NONE;
     menu        = &D_8010F5D0;
     if (owner->state == 0) {
-        Ui_LayoutListPanel(menu, &(obj)->panel);
+        uiFitPanelToList(menu, &(obj)->panel);
         owner->state = owner->state + 1;
     }
-    Ui_UpdateListNoAnim(menu, obj);
+    uiUpdateList(menu, &obj->panel);
     if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CANCEL, 0, 0);
@@ -2022,10 +2022,10 @@ void Gp_PeCommandMenuTask(Task* arg0)
     owner       = obj->owner;
     obj->result = USER_INTERFACE_RESULT_NONE;
     if (owner->state == 0) {
-        Ui_LayoutListPanel(menu, &(obj)->panel);
+        uiFitPanelToList(menu, &(obj)->panel);
         owner->state = owner->state + 1;
     }
-    Ui_UpdateListNoAnim(menu, obj);
+    uiUpdateList(menu, &obj->panel);
     if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CANCEL, 0, 0);
@@ -2225,7 +2225,7 @@ void func_800D29B0(Task* arg0)
         menu->rowHeight                           = 0xF;
         menu->currentItemIndex                    = 0;
         menu->firstVisibleItemIndex.unsignedValue = 0;
-        Ui_LayoutListPanel(menu, &(obj)->panel);
+        uiFitPanelToList(menu, &(obj)->panel);
         levels = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachLevels[arg0->spawnArg1.value * 3];
         if (levels[2] != 0 || (levels[0] == 3 && levels[1] == levels[0])) {
             menu->itemCount = menu->visibleRowCount.unsignedValue = 3;
@@ -2246,7 +2246,7 @@ void func_800D29B0(Task* arg0)
     } else {
         menu->itemCount = menu->visibleRowCount.unsignedValue = 2;
     }
-    Ui_UpdateListNoAnim(menu, obj);
+    uiUpdateList(menu, &obj->panel);
     if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CANCEL, 0, 0);
@@ -2811,7 +2811,7 @@ void Gp_MapMenuListTask(Task* arg0)
     menu        = &D_8010F81C;
     obj->result = USER_INTERFACE_RESULT_NONE;
     if (arg0->state == 0) {
-        Ui_LayoutListPanel(menu, &(obj)->panel);
+        uiFitPanelToList(menu, &(obj)->panel);
         x = 0x96 - ((s16)obj->panel.bounds.unsignedRect.x + (s16)obj->panel.bounds.unsignedRect.w);
         y = 0x6E - ((s16)obj->panel.bounds.unsignedRect.y + (s16)obj->panel.bounds.unsignedRect.h);
         if (x < 0) {
@@ -2822,7 +2822,7 @@ void Gp_MapMenuListTask(Task* arg0)
         }
         arg0->state = arg0->state + 1;
     }
-    Ui_UpdateListNoAnim(menu, obj);
+    uiUpdateList(menu, &obj->panel);
     if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
             obj->result = USER_INTERFACE_RESULT_CANCEL;

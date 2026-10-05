@@ -103,13 +103,13 @@ static void Telephone_PlayDataTask(Task* task)
     uiDrawPanelLabel(&(obj)->panel, Telephone_Data_8017D610);
     if (task->state == 0) {
         Ui_SpawnFromDesc(&Telephone_Data_80181C90, 0, 0, 1, obj);
-        Ui_LayoutListPanel(list, &(obj)->panel);
+        uiFitPanelToList(list, &(obj)->panel);
         obj->panel.bounds.unsignedRect.h += 5;
         list->flags                       = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
-        Ui_SetListScrollFlag(list, 1);
+        uiSetListSystemCursorSound(list, 1);
         task->state += 1;
     }
-    Ui_UpdateListNoAnim(list, obj);
+    uiUpdateList(list, &obj->panel);
     if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {
         obj->result = USER_INTERFACE_RESULT_CONFIRM;
     }

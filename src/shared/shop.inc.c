@@ -585,9 +585,9 @@ static void Shop_ItemListTask(Task* task)
             work->list.wrapNavigation = 0;
             work->list.rowHeight      = 0xF;
             Shop_BuildItemList(&work->list, obj);
-            Ui_LayoutListPanel(&work->list, &(obj)->panel);
+            uiFitPanelToList(&work->list, &(obj)->panel);
             work->list.flags = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
-            Ui_SetListScrollFlag(&work->list, 1);
+            uiSetListSystemCursorSound(&work->list, 1);
             obj->panel.bounds.unsignedRect.h += 8;
             work->list.topInset               = 8;
             Ui_SpawnFromDesc(&Shop_Data_80181BF4, 0, 0, 0, obj);
@@ -595,7 +595,7 @@ static void Shop_ItemListTask(Task* task)
         }
     }
     work = task->work;
-    Ui_UpdateListNoAnim(&work->list, obj);
+    uiUpdateList(&work->list, &obj->panel);
     uiDrawHorizontalSeparator(&(obj)->panel, obj->panel.contentLeft.signedValue, obj->panel.contentRight.signedValue, obj->panel.contentTop.signedValue + 6);
 
     x              = obj->panel.contentOriginX.unsignedValue - 2;
@@ -725,12 +725,12 @@ static void Shop_CategoryListTask(Task* task)
         Ui_SpawnFromDesc(&D_8010D80C, 0, 0, 0, obj);
         list->itemCount                     = 5;
         list->visibleRowCount.unsignedValue = 5;
-        Ui_LayoutListPanel(list, &(obj)->panel);
+        uiFitPanelToList(list, &(obj)->panel);
         list->flags = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
-        Ui_SetListScrollFlag(list, 1);
+        uiSetListSystemCursorSound(list, 1);
         task->state += 1;
     }
-    Ui_UpdateListNoAnim(list, obj);
+    uiUpdateList(list, &obj->panel);
     if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel | Pad_MaskMenu) != 0) {
         obj->result = USER_INTERFACE_RESULT_CANCEL;
     }
@@ -1211,11 +1211,11 @@ static void Shop_BuyPromptTask(Task* task)
     obj         = task->spawnArg2.pointer;
     obj->result = USER_INTERFACE_RESULT_NONE;
     if (task->state == 0) {
-        Ui_LayoutListPanel(list, &(obj)->panel);
-        Ui_SetListScrollFlag(list, 1);
+        uiFitPanelToList(list, &(obj)->panel);
+        uiSetListSystemCursorSound(list, 1);
         task->state += 1;
     }
-    Ui_UpdateListNoAnim(list, obj);
+    uiUpdateList(list, &obj->panel);
     if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CANCEL, 0, 0);

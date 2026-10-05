@@ -214,7 +214,7 @@ void Gp_AttachListTask(Task* task)
     state       = task->state;
     if (state == 0) {
         Gp_BuildAttachList(menu, val);
-        Ui_LayoutListPanel(menu, &(obj)->panel);
+        uiFitPanelToList(menu, &(obj)->panel);
         menu->flags                               = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
         menu->selectedItemIndex                   = 0;
         menu->firstVisibleItemIndex.unsignedValue = 0;
@@ -257,7 +257,7 @@ void Gp_AttachListTask(Task* task)
     }
     one = 1;
     if (state == one) {
-        Ui_UpdateListNoAnim(menu, obj);
+        uiUpdateList(menu, &obj->panel);
         if (obj->panel.control.word == one) {
             if (padCheckButtons(0, one, Pad_MaskMenu) != 0) {
                 obj->result = USER_INTERFACE_RESULT_CANCEL;
@@ -469,7 +469,7 @@ void Gp_SelectArmorMenuTask(Task* arg0)
         GP_COUNT_SPARE_ARMOR(count);
         menu->itemCount                     = count;
         menu->visibleRowCount.unsignedValue = 4;
-        Ui_LayoutListPanel(menu, &(obj)->panel);
+        uiFitPanelToList(menu, &(obj)->panel);
         menu->flags                               = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
         menu->topInset                           += 0x4C;
         obj->panel.bounds.unsignedRect.h         += 0x4C;
@@ -482,7 +482,7 @@ void Gp_SelectArmorMenuTask(Task* arg0)
     }
 
     uiDrawHorizontalSeparator(&(obj)->panel, obj->panel.contentLeft.signedValue, obj->panel.contentRight.signedValue, obj->panel.contentTop.signedValue + 0x4A);
-    Ui_UpdateListNoAnim(menu, obj);
+    uiUpdateList(menu, &obj->panel);
 
     GP_FIND_SPARE_ARMOR(found, menu->selectedItemIndex);
     item = found;

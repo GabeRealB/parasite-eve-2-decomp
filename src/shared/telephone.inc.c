@@ -681,12 +681,12 @@ static void Telephone_UsageTask(Task* task)
         } else {
             Telephone_BuildPeUsage(list, obj);
         }
-        Ui_InitList(list, &(obj)->panel);
+        uiInitList(list, &(obj)->panel);
         list->flags = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
-        Ui_SetListScrollFlag(list, 1);
+        uiSetListSystemCursorSound(list, 1);
         task->state += 1;
     }
-    Ui_UpdateListNoAnim(list, obj);
+    uiUpdateList(list, &obj->panel);
     if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {
         obj->result = USER_INTERFACE_RESULT_CONFIRM;
     }
@@ -739,17 +739,17 @@ static inline void Telephone_MenuTask(Task* task)
             task->state             = task->state + 1;
         }
     } else if (task->state == 0) {
-        Ui_LayoutListPanel(list, &(obj)->panel);
+        uiFitPanelToList(list, &(obj)->panel);
         obj->panel.control.word = one;
         gGameSession->uiOpen    = one;
-        Ui_SetListScrollFlag(list, 1);
+        uiSetListSystemCursorSound(list, 1);
         Gp_ClearPreviewItems();
         D_80067634   = NULL;
         Wip_UiHolder = NULL;
         task->state  = task->state + 1;
     } else {
         uiDrawPanelLabel(&(obj)->panel, Telephone_Data_8017D638);
-        Ui_UpdateListNoAnim(list, obj);
+        uiUpdateList(list, &obj->panel);
     }
     if (obj->result == USER_INTERFACE_RESULT_CONFIRM) {
         obj->result = USER_INTERFACE_RESULT_NONE;

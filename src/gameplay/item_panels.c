@@ -531,14 +531,14 @@ void Gp_ItemCmdMenuTask(Task* arg0)
             val = ptr->itemId;
         }
         Gp_BuildItemCmdList(menu, obj, val, ptr);
-        Ui_LayoutListPanel(menu, &(obj)->panel);
+        uiFitPanelToList(menu, &(obj)->panel);
         y = 0x46 - ((s16)obj->panel.bounds.unsignedRect.y + (s16)obj->panel.bounds.unsignedRect.h);
         if (y < 0) {
             obj->panel.bounds.unsignedRect.y += y;
         }
         arg0->state = arg0->state + 1;
     } else {
-        Ui_UpdateListNoAnim(menu, obj);
+        uiUpdateList(menu, &obj->panel);
         if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
             sel = menu->actionResult;
             if (sel != USER_INTERFACE_LIST_ACTION_INPUT_CONSUMED) {
@@ -1072,12 +1072,12 @@ void Gp_YesNoMenuTask(Task* arg0)
                 break;
         }
         menu->visibleRowCount.unsignedValue = menu->itemCount;
-        Ui_LayoutListPanel(menu, &(obj)->panel);
+        uiFitPanelToList(menu, &(obj)->panel);
         obj->panel.bounds.unsignedRect.y -= (s16)obj->panel.bounds.unsignedRect.h / 2;
         if (arg0->spawnArg1.value & 0x10) {
-            Ui_SetListScrollFlag(menu, 1);
+            uiSetListSystemCursorSound(menu, 1);
         } else {
-            Ui_SetListScrollFlag(menu, 0);
+            uiSetListSystemCursorSound(menu, 0);
         }
         if ((arg0->spawnArg1.value & 0xF) == 3) {
             menu->selectedItemIndex = 1;
@@ -1086,7 +1086,7 @@ void Gp_YesNoMenuTask(Task* arg0)
         }
         arg0->state = arg0->state + 1;
     }
-    Ui_UpdateListNoAnim(menu, obj);
+    uiUpdateList(menu, &obj->panel);
     if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         sel = menu->actionResult;
         if (sel == USER_INTERFACE_RESULT_CONFIRM) {

@@ -575,7 +575,7 @@ void Gp_AmmoListTask(Task* arg0)
     menu        = &D_8010E9A4;
     if (arg0->state == 0) {
         Gp_CountAmmoRows(menu, spawnArg);
-        Ui_LayoutListPanel(menu, &(obj)->panel);
+        uiFitPanelToList(menu, &(obj)->panel);
         if (spawnArg == 0) {
             menu->topInset                   += 0x4C;
             obj->panel.bounds.unsignedRect.h += 0x4C;
@@ -599,7 +599,7 @@ void Gp_AmmoListTask(Task* arg0)
     }
     one = 1;
     if (arg0->state == one) {
-        Ui_UpdateListNoAnim(menu, obj);
+        uiUpdateList(menu, &obj->panel);
         if (obj->panel.control.word == one) {
             if (padCheckButtons(0, one, Pad_MaskMenu) != 0) {
                 obj->result = USER_INTERFACE_RESULT_CANCEL;

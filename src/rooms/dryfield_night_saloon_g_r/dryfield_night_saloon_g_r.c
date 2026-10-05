@@ -2083,9 +2083,9 @@ void func_dryfield_night_saloon_g_r_8017E28C(Task* task)
         }
         menu->selectedItemIndex                   = 0;
         menu->firstVisibleItemIndex.unsignedValue = 0;
-        Ui_LayoutListPanel(menu, &(obj)->panel);
+        uiFitPanelToList(menu, &(obj)->panel);
         menu->flags = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
-        Ui_SetListScrollFlag(menu, 1);
+        uiSetListSystemCursorSound(menu, 1);
         obj->panel.bounds.unsignedRect.x = -((s16)obj->panel.bounds.unsignedRect.w / 2);
         obj->panel.bounds.unsignedRect.y = -((s16)obj->panel.bounds.unsignedRect.h / 2);
         if (Gp_IsDebugAttachRoom() == 0) {
@@ -2095,7 +2095,7 @@ void func_dryfield_night_saloon_g_r_8017E28C(Task* task)
         }
         task->state += 1;
     }
-    Ui_UpdateListNoAnim(menu, obj);
+    uiUpdateList(menu, &obj->panel);
     flags = task->status;
     if (flags < 0xF1) {
         state = task->state;

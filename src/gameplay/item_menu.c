@@ -161,7 +161,7 @@ void Gp_ItemPaneTask(Task* arg0);
 
 /// Task callback for the `Gp_ItemActionList` item list. On first run it copies
 /// `parent->flags`, clamps `field_E + field_12` to 0x64, then calls
-/// `Gp_FillItemActions` and `Ui_LayoutListPanel`. Confirm (`Pad_MaskMenu`) is
+/// `Gp_FillItemActions` and `uiFitPanelToList`. Confirm (`Pad_MaskMenu`) is
 /// cancel (`result = USER_INTERFACE_RESULT_CANCEL`) when `owner->flags` is 0, else
 /// confirm; cancel (`Pad_MaskCancel`) is confirm. Child `result` of cancel, dismiss
 /// or confirm closes, remaps dismiss to confirm, or tears the child down.
@@ -606,7 +606,7 @@ void Gp_ItemPaneTask(Task* arg0)
         }
         menu->selectedItemIndex                   = 0;
         menu->firstVisibleItemIndex.unsignedValue = 0;
-        Ui_LayoutListPanel(menu, &(obj)->panel);
+        uiFitPanelToList(menu, &(obj)->panel);
         menu->flags = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
         arg0->state = arg0->state + 1;
     }
@@ -620,7 +620,7 @@ void Gp_ItemPaneTask(Task* arg0)
     } else {
         uiDrawPanelLabel(&(obj)->panel, Gp_StrPlayerItem);
     }
-    Ui_ComputeVisibleRows(menu, &(obj)->panel);
+    uiRefreshListViewport(menu, &(obj)->panel);
     menu->flags = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
     if (menu->selectedItemIndex >= menu->itemCount) {
         menu->selectedItemIndex = menu->itemCount - 1;
@@ -630,7 +630,7 @@ void Gp_ItemPaneTask(Task* arg0)
         menu->firstVisibleItemIndex.unsignedValue = 0;
     }
     if (menu->itemCount != 0) {
-        Ui_UpdateListNoAnim(menu, obj);
+        uiUpdateList(menu, &obj->panel);
     }
 
     scan  = _gpItemPaneScan(arg0);
@@ -913,10 +913,10 @@ void Gp_ItemActionListTask(Task* arg0)
             obj->panel.bounds.unsignedRect.y = 0x64 - obj->panel.bounds.unsignedRect.h;
         }
         Gp_FillItemActions(menu, obj);
-        Ui_LayoutListPanel(menu, &(obj)->panel);
+        uiFitPanelToList(menu, &(obj)->panel);
         arg0->state = arg0->state + 1;
     }
-    Ui_UpdateListNoAnim(menu, obj);
+    uiUpdateList(menu, &obj->panel);
     if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
             if (obj->owner->status != 0) {
@@ -1598,7 +1598,7 @@ void Gp_ItemMenuListTask(Task* arg0)
     obj->result = USER_INTERFACE_RESULT_NONE;
     menu        = &Gp_ItemMenuList;
     if (arg0->state == 0) {
-        Ui_LayoutListPanel(menu, &(obj)->panel);
+        uiFitPanelToList(menu, &(obj)->panel);
         if (arg0->spawnArg1.value == 0) {
             menu->selectedItemIndex = ITEM_MENU_PROMPT_SELECT;
         } else {
@@ -1607,7 +1607,7 @@ void Gp_ItemMenuListTask(Task* arg0)
         menu->flags  = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
         arg0->state += 1;
     }
-    Ui_UpdateListNoAnim(menu, obj);
+    uiUpdateList(menu, &obj->panel);
 }
 
 void Gp_HolderPromptTask(Task* arg0)

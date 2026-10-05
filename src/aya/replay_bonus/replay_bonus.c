@@ -359,7 +359,7 @@ void func_replay_bonus_80115ED0(Task* arg0)
         Gp_ClearPreviewItems();
         D_80067634 = 0;
         func_replay_bonus_80115D60(list, obj);
-        Ui_LayoutListPanel(list, &(obj)->panel);
+        uiFitPanelToList(list, &(obj)->panel);
         list->flags                               = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
         list->topInset                            = 0xF;
         obj->panel.bounds.unsignedRect.h          = obj->panel.bounds.unsignedRect.h + 0x22;
@@ -453,7 +453,7 @@ void func_replay_bonus_80115ED0(Task* arg0)
     status                                  = obj->panel.control.word;
     obj->panel.control.word                 = USER_INTERFACE_PANEL_INACTIVE;
     obj->panel.contentBottom.unsignedValue -= 0x13;
-    Ui_UpdateListNoAnim(list, obj);
+    uiUpdateList(list, &obj->panel);
     obj->panel.control.word                 = status;
     obj->panel.contentBottom.unsignedValue += 0x13;
 
