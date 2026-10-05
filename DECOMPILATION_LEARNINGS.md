@@ -148667,3 +148667,119 @@ between, or the two in different blocks at combine time), and that global alloc
 cannot tie (source still live). Reusing the `mem->age` local for the copy
 meets the first and third and combine still merges; `u8`/`s8`/`s16`/`u16`
 colour, a `u8` intermediate, chained and read-back stores all give one `andi`.
+## Two call pairs that cross-jumping merged: the join is why a stack local is reloaded, and each pair is a reference (grenadeShellFly, 2026-10-05)
+
+**Symptom.** `count(capsule) ? … : count(sphere) ? … : skip`, then one
+`func_800E0FEC(list, &delta, 1, &idx); idx = classify(&idx);` and a table
+lookup on `idx`. The target stores the class to `idx`'s slot and loads it back
+ten instructions later, sets `a0` in the delay slot of each count's branch, and
+keeps the scratch head in the lower call-saved register. Written with one call
+pair reached by `goto` from both lists, the reload needed
+`SOFT_COMPILER_BARRIER()` and the head an extra `SOFT_USE_REG2`.
+
+**Mechanism.** Each list has its own call pair in the source and both run into
+a common label before the lookup. cse stops at that label (two predecessors),
+so the lookup reads `idx` from memory. The head is named once per pair, which is
+the reference the asm added. After reload the two pairs are the same
+instructions from `addiu a1,head,-0x18` on, and jump2's cross-jumping keeps one;
+the differing `move a0,list` insns stay behind, one in each branch's delay slot.
+
+**Fix.** Write the pair out for each list. The list tried second has to sit
+after the code the first falls into, because GCC lays blocks out in source
+order and the image has it there:
+
+```c
+if (count(work->capsuleContacts, GRID) == 0) goto trySphere;
+func_800E0FEC(work->capsuleContacts, &(head - 1)->delta, 1, &idx);
+idx = classify(&idx);
+classified:
+    … lookup on idx …
+    goto move;
+trySphere:
+if (count(work->sphereContacts, GRID) != 0) {
+    func_800E0FEC(work->sphereContacts, &(head - 1)->delta, 1, &idx);
+    idx = classify(&idx);
+    goto classified;
+}
+move:
+```
+
+An `if / else if` with the lookup after it gives the same registers and the
+same reload but places the second count before the shared calls. A reload of an
+address-taken local with no call or store in between is the sign of a join that
+is no longer in the image.
+
+## A narrow parameter's entry copy is an ordinary insn; an `s32` one stays first (_waterDrawSpinU16, 2026-10-05)
+
+**Symptom.** `sw s4; lui s4,…; ori s4; sw s0; move s0,a2`: the parameter's copy
+into its call-saved register comes after the first statement's constant. With
+`s32 radiusScale` the copy is the first insn of the function
+(`set (reg/v 81) a2` carrying `REG_EQUIV (mem …)`) and sched1 leaves it there;
+the function matched only with `TOUCH_REG_USE(radiusScale, cursor)`.
+
+**Fix.** The parameter is `s16`. A promoted narrow parameter arrives through an
+SImode temporary (`set (reg 84) a2`, then `(reg/v:HI 83) = subreg (reg 84)`),
+and that temporary's copy is scheduled like any other insn, so it lands after
+the constant. The room-local copies of the same drawer (`shelter_r48`,
+`shelter_b1_pod_service_gantry`) were already declared `(u16, s16, s16)`; the
+shared one had `s32` parameters and a `(u16)`/`(s16)` cast at each use. Casts
+at every use of an `s32` parameter are a reason to try the narrow type on the
+parameter itself. Callers that pass a field of that width do not change.
+
+## A local set twice keeps its second load behind the store between them (oddStrangerTick, 2026-10-05)
+
+`work->prevState = (u16)work->state; states.handlers[work->state](actor);`
+compiles to `lh; lhu; sll; addu; sh; lw; jalr` in one variant (sched1
+interleaves the two reads) and the other variant's image has
+`lhu v0; sh v0; lh v0; … jalr`, both temporaries in `$v0`. That is one local:
+`index = (u16)work->state; work->prevState = index; index = work->state;
+states.handlers[index](actor);`. The second set of the pseudo depends on the
+store's use of the first, so the reads cannot be interleaved, and local-alloc
+gives both ranges one register. It replaced a `SCHED_BARRIER()`.
+
+Still pinned there, with the cause measured: the image loads `li s3,0x15` before
+the `jalr` and tests `state == s3` as the second of five equality tests after
+it. `.lreg` priorities (`floor_log2(refs) * refs / length`): scratch 3*12/162,
+actor 4*22/402 = 0.219, enemy 3*9/530 = 0.051. The constant is in `$s3`,
+between actor and enemy, so with two references its range was 10 to 39 insns
+at global-alloc. A plain `stop = 0x15` local anywhere in the call's block is
+birth-promoted by sched1 to 8 insns above its use (0.25, takes `$s1`); set
+before the preceding `if` it spans 80 (takes `$s4`). The range the image needs
+is the whole block (`lhu`, `sh` and the `lh` included), which is what a pseudo
+with `reg_n_sets != 1` gets; sched2 later drops the `li` into the `lh`'s delay
+slot. `TOUCH_REG(stop)` at the end of the function is such a second set. What
+the source's second set was is not known. Not it: a `switch` (five cases over
+0..0x21 is a jump table), the constant as an inline's argument (single set).
+
+## Measured and left (2026-10-05)
+
+- `Shop_QuantityTask` (`register s32 maxHeld asm("v0")`). The image has
+  `jal Gp_ScanStackQty; move v1,v0; lhu v0,2(s0); subu s6,v0,v1`. Unpinned,
+  combine substitutes the return register into the subtraction
+  (`subu s6,v1,v0`, no move). Keeping the copy needs `$v0` set between it and
+  the subtraction, or a second use of the held count; then the count must also
+  lose `$v0` to the loaded limit, which a local with a copy suggestion from
+  `$v0` does not. Tried: the count in the local that later holds the BP
+  quotient (also `$v1` in the image; combine still substitutes), the
+  subtraction written twice, `held >= maxHeld`, a guarded form.
+- `_waterDrawSpinU16` of `shelter_b1_pod_service_gantry` (`asm("s0")`). The
+  depth is the first member of that room's scratch block, so
+  `gte_stszotz(&(scratchEnd - 1)->depth)` is the block pointer itself and the
+  image holds a second copy of it, `move s0,s3`, in the register `coord` has
+  just left. A separate pointer local gets `$v1` (it crosses no call; cse sends
+  later `*depth` reads to `-28(s4)`). Only the pseudo of `coord` itself lands
+  in `$s0`, which in C is `coord = (const GfxCoord*)projection` and a cast back
+  at the store. Not taken. The room cannot include `water_spin_u16.inc.c`: its
+  drawer clears the block with `memFillBytes`, uses texture page 0x2C and a
+  scratch block laid out depth-first.
+- `screenWaveGridTask` (`SOFT_USE_REG(p)`). `p` (25 refs / 168 insns, 0.595)
+  has to outrank the row pointer's reduced giv (reg 731, 29 / 186, 0.624) for
+  `$s4`; the asm adds two references at loop depth 2 (0.639). Writing the row as
+  `&scratch->rows[j]`, `rows[j + 1]` or a `next` pointer changes which givs are
+  spilled (21 to 50 differing hunks). The loop header
+  `rowIndex += 2, j++, rowIndex--` there is a steering form of its own.
+- `func_shelter_b3_garbage_incinerator_8017E158` (two `DEF_REG`). Nothing new
+  beyond the entry of 2026-09-24: the 5-class has to be gone at the else arm
+  while the `kind == 1` class survives, so the break is between the two
+  compares. A label there that only jump2 removes would do it; no source form
+  with a second jump to that point was found.
