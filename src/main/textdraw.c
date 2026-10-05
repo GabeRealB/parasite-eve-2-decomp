@@ -671,16 +671,21 @@ static void _textDrawGlyphOutlinedSingleEntry(TextDrawReq* request, const _FontG
     addPrim(gGpuCurrentOt + request->otIndex, page);
 }
 
-/// Applies the initial face's pair tightening to the mutable drawing pen.
+/// Tightens the drawing pen's horizontal gap before a kerned glyph pair.
 ///
-/// The class sum is kept as s32 until its low byte is tested. Inline face
-/// changes do not change the one-pixel versus two-pixel selection here.
-static inline void _textApplyDrawKerning(TextDrawReq* request, s32 previousRightClass, const _FontGlyph* glyph)
+/// `previousRightClass` is the preceding glyph's unsigned right-edge class
+/// (0 neutral, 1 positive, 255 negative), or neutral before the first glyph.
+/// Only `glyph->leftKerningClass` is read; equal non-neutral classes tighten
+/// the gap. Classes are added after integer promotion and tested modulo 256.
+/// `request->x` decreases by one draw-environment pixel for
+/// `TEXT_GLYPH_TABLE_SMALL` and two otherwise, narrowing back to signed 16 bits.
+/// This scale follows the initial selector even after inline face changes.
+/// Borrows both objects for the call, changing only X and retaining neither;
+/// the caller supplies the next previous class and advances the pen separately.
+static inline void _textApplyDrawKerning(TextDrawReq* request, u8 previousRightClass, const _FontGlyph* glyph)
 {
-    s32 kerningPairSum;
-
-    kerningPairSum = previousRightClass + glyph->leftKerningClass + 1;
-    if ((u8)kerningPairSum >= 3) {
+    // Bias maps every non-tightening pair into 0..2 in the low byte.
+    if ((u8)(previousRightClass + glyph->leftKerningClass + 1) >= 3) {
         if (request->glyphTable == TEXT_GLYPH_TABLE_SMALL) {
             request->x -= 1;
         } else {
@@ -1269,23 +1274,34 @@ u8* textAppendString(u8* dest, const u8* src)
     return dest;
 }
 
-/// Initializes the reusable opaque sprite for an immediate UI glyph.
+/// Initializes an opaque, RGB-modulated UI-glyph fill for immediate submission.
 ///
-/// Borrows one writable, word-aligned packet and read-only pen/metrics. RGB's
-/// high byte is replaced by the modulated, opaque sprite command. The fill
-/// palette is the first 16-color block at VRAM X=976, Y=511. The packet is
-/// submitted separately; this operation does not advance the pen.
+/// `fill` supplies one writable, word-aligned `SPRT`, separate from `request`
+/// and `glyph`. Sets its four-word GPU payload length, RGB, command, rectangle
+/// and fill CLUT, preserving the tag's 24-bit DMA address. `colorRgb` supplies
+/// modulation RGB in bits 0..23 (red low); the command replaces its high byte.
+/// Borrows all objects for the call, leaving request and glyph read-only and
+/// retaining none. Packet storage and submission belong to the caller.
+///
+/// Pen coordinates and glyph offsets are draw-environment pixels. X/Y narrow
+/// to signed 16-bit sprite fields; the last row is at pen Y plus glyph Y offset.
+/// U/V are page-local texels, with signed V bias wrapping modulo 256.
+/// Minus-one dimensions decode to 1..256 pixels/texels. Drawing requires the
+/// 4bpp font page to be selected and the font texture and fill palette resident.
 static inline void _textInitImmediateGlyphSprite(SPRT* fill, const TextDrawReq* request,
-                                                 const _FontGlyph* glyph, s32 colorRgb)
+                                                 const _FontGlyph* glyph, u32 colorRgb)
 {
     enum {
-        TEXT_IMMEDIATE_GLYPH_FILL_CLUT      = getClut(976, 511),
+        /// First 16-color font palette at VRAM word X=976, Y=511 (selector 0x7FFD).
+        TEXT_IMMEDIATE_GLYPH_FILL_CLUT = getClut(976, 511),
+        /// Variable-size textured sprite with RGB modulation and blending disabled.
         TEXT_IMMEDIATE_GLYPH_SPRITE_COMMAND = 0x64,
     };
 
     s32 heightMinusOne;
 
     setlen(fill, (sizeof(*fill) - sizeof(fill->tag)) / sizeof(u32));
+    // The packed RGB store includes the command byte, so set the command last.
     GPU_PRIMITIVE_COLOR_WORD(fill, 0) = colorRgb;
     setcode(fill, TEXT_IMMEDIATE_GLYPH_SPRITE_COMMAND);
     fill->x0       = request->x + glyph->xOffset;
