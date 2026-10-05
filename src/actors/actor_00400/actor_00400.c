@@ -2420,25 +2420,27 @@ static void Actor00400_Fn031A4(Task* arg0, SVECTOR* arg1)
     scratch->spotIndex    = 1;
     scratch->nearestIndex = 0;
     scratch->bestDistance = ACTOR_00400_SURFACE_SPOT_DISTANCE_NONE;
-loop:
-    index  = scratch->spotIndex;
-    kind   = work->surfaceSpots[index].pad;
-    record = &work->surfaceSpots[index];
-    if (kind != -1) {
-        if ((kind != 1) || (index == work->surfaceSpotIndex)) {
-            scratch->delta.vx = dx = work->targetPos.vx - record->vx;
-            scratch->delta.vz = dz = work->targetPos.vz - work->surfaceSpots[scratch->spotIndex].vz;
-            distance               = SquareRoot0((dx * dx) + (dz * dz));
-            scratch->distance      = distance;
-            if (distance < scratch->bestDistance) {
-                arg1->vx              = work->surfaceSpots[scratch->spotIndex].vx;
-                arg1->vz              = work->surfaceSpots[scratch->spotIndex].vz;
-                scratch->bestDistance = scratch->distance;
-                scratch->nearestIndex = scratch->spotIndex;
+    for (;;) {
+        index  = scratch->spotIndex;
+        kind   = work->surfaceSpots[index].pad;
+        record = &work->surfaceSpots[index];
+        if (kind != -1) {
+            if ((kind != 1) || (index == work->surfaceSpotIndex)) {
+                scratch->delta.vx = dx = work->targetPos.vx - record->vx;
+                scratch->delta.vz = dz = work->targetPos.vz - work->surfaceSpots[scratch->spotIndex].vz;
+                distance               = SquareRoot0((dx * dx) + (dz * dz));
+                scratch->distance      = distance;
+                if (distance < scratch->bestDistance) {
+                    arg1->vx              = work->surfaceSpots[scratch->spotIndex].vx;
+                    arg1->vz              = work->surfaceSpots[scratch->spotIndex].vz;
+                    scratch->bestDistance = scratch->distance;
+                    scratch->nearestIndex = scratch->spotIndex;
+                }
             }
+            scratch->spotIndex = scratch->spotIndex + 1;
+            continue;
         }
-        scratch->spotIndex = scratch->spotIndex + 1;
-        goto loop;
+        break;
     }
     SCRATCH_STACK_RELEASE_BLOCK(_Actor00400NearestSurfaceSpotScratch);
 }
