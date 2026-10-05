@@ -861,37 +861,54 @@ static __inline__ void _worldCoordAdmitDirectionalLight(_WorldCoordRankedLight* 
         _worldCoordInsertRankedLight(rankedLights, contributionScore, sourceKind, light, WORLD_COORDINATE_RANKED_LIGHT_COUNT - 2);
     }
 }
-/// Applies the stored Q12 RGB scales to all three model light-colour rows.
+/// Scales one RGB channel's three light coefficients through the query workspace.
 ///
-/// `model->colorMtx` is writable. Uses the query's viewOffset as an eight-byte
-/// GTE staging vector after direction and ambient calculations have finished.
-/// Preserves ambient translation, reads each scale unsigned and changes GTE
-/// arithmetic state. A closed override gate leaves the matrix unchanged.
-static inline void _worldCoordApplyModelLightColorScales(const TmdObject* model, _WorldCoordLightQueryScratch* lightQuery)
+/// `colorRow` borrows three writable signed Q12 coefficients; `channelScale`
+/// borrows one unsigned Q12 multiplier, loaded after the row is staged.
+/// Overwrites `lightQuery->viewOffset` xyz and the GTE arithmetic state.
+static inline void _worldCoordScaleLightColorRow(s16 colorRow[3], const u16* channelScale, _WorldCoordLightQueryScratch* lightQuery)
 {
-    if ((s8)Gp_OverrideVec2Flag == WORLD_COORDINATE_MODEL_LIGHT_OVERRIDE_ENABLED) {
-        const u16* channelScale;
-        s16(*colorRows)[3];
-        s32 channelIndex;
+    // Gather one channel's three light coefficients for GTE scaling.
+    lightQuery->viewOffset.vx = colorRow[0];
+    lightQuery->viewOffset.vy = colorRow[1];
+    lightQuery->viewOffset.vz = colorRow[2];
+    gte_lddp(*channelScale);
+    gte_ldsv(&lightQuery->viewOffset);
+    gte_gpf12();
+    gte_stsv(&lightQuery->viewOffset);
+    colorRow[0] = lightQuery->viewOffset.vx;
+    colorRow[1] = lightQuery->viewOffset.vy;
+    colorRow[2] = lightQuery->viewOffset.vz;
+}
 
-        channelScale = Gp_OverrideVec2.channelScales;
-        channelIndex = 0;
-        colorRows    = model->colorMtx->m;
-        do {
-            lightQuery->viewOffset.vx = colorRows[channelIndex][0];
-            lightQuery->viewOffset.vy = colorRows[channelIndex][1];
-            lightQuery->viewOffset.vz = colorRows[channelIndex][2];
-            gte_lddp(*channelScale);
-            gte_ldsv(&lightQuery->viewOffset);
-            gte_gpf12();
-            gte_stsv(&lightQuery->viewOffset);
-            colorRows[channelIndex][0] = lightQuery->viewOffset.vx;
-            colorRows[channelIndex][1] = lightQuery->viewOffset.vy;
-            colorRows[channelIndex][2] = lightQuery->viewOffset.vz;
-            channelIndex++;
-            channelScale++;
-        } while (channelIndex < (s32)ARRAY_SIZE(Gp_OverrideVec2.channelScales));
-    }
+/// Applies the stored RGB scales to a model's light-colour coefficients.
+///
+/// `colorMtx` supplies nine writable signed Q12 coefficients: each RGB row
+/// holds that channel's contributions from the three lights. Stored scales are
+/// read as unsigned Q12 halfwords (zero suppresses, ONE is unity). GTE GPF12
+/// shifts each product by 12 and saturates the result to a signed halfword.
+/// Ambient translation is preserved.
+///
+/// The caller checks the override gate before calling. `lightQuery` borrows the
+/// live query workspace until return, after position and direction calculations
+/// have finished. Its `viewOffset` xyz are overwritten; the final halfword and
+/// the rest of the query are untouched. Matrix and override storage must be
+/// disjoint from the workspace. Allocates no scratch storage and changes GTE
+/// IR0..3, MAC1..3, RGB FIFO and FLAG.
+static inline void _worldCoordApplyModelLightColorScales(MATRIX* colorMtx, _WorldCoordLightQueryScratch* lightQuery)
+{
+    const u16* channelScale;
+    s16(*colorRows)[3];
+    s32 channelIndex;
+
+    channelScale = Gp_OverrideVec2.channelScales;
+    channelIndex = 0;
+    colorRows    = colorMtx->m;
+    do {
+        _worldCoordScaleLightColorRow(colorRows[channelIndex], channelScale, lightQuery);
+        channelIndex++;
+        channelScale++;
+    } while (channelIndex < (s32)ARRAY_SIZE(Gp_OverrideVec2.channelScales));
 }
 
 void worldCoordSetModelLighting(const TmdObject* model, const void* worldPosition, s32 firstLightIndex, s32 lightCount)
@@ -1149,7 +1166,9 @@ void worldCoordSetModelLighting(const TmdObject* model, const void* worldPositio
         }
     }
 
-    _worldCoordApplyModelLightColorScales(model, lightQuery);
+    if ((s8)Gp_OverrideVec2Flag == WORLD_COORDINATE_MODEL_LIGHT_OVERRIDE_ENABLED) {
+        _worldCoordApplyModelLightColorScales(model->colorMtx, lightQuery);
+    }
 
     // Retain the ranked snapshot before releasing the query's scratch storage.
     if (Pad_RemapState->diagnosticMode == GAME_DEBUG_DIAGNOSTIC_LIGHT_PROBE && D_80760618->captureEnabled == WORLD_COORDINATE_LIGHT_CAPTURE_ENABLED) {
