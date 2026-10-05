@@ -12,6 +12,7 @@
 #include "collision.h"
 #include "gameplay/enemy.h"
 #include "gameplay/geometry.h"
+#include "gameplay/hud_sprites.h"
 #include "gameplay/loading.h"
 #include "gameplay/room.h"
 
@@ -157,6 +158,12 @@ typedef struct {
 } _GfxDirectionRotationScratch;
 STATIC_ASSERT_SIZEOF(_GfxDirectionRotationScratch, 0x4C);
 
+/// The SDK natural logarithm uses twelve fractional bits; ln(2) is 2839 at that scale.
+enum {
+    WORLD_COLLISION_SURFACE_LOG_FRACTION_BITS = 12,
+    WORLD_COLLISION_SURFACE_LOG_TWO           = 2839
+};
+
 /* Define BSS before API headers to preserve first-declaration order. */
 WorldCollisionTrigger* Gp_PendingObj4C;
 
@@ -181,7 +188,7 @@ WorldCollisionBody* Gp_ObjList8;
 #include "world_collision.h"
 
 /// Nine-entry table of `WorldCollisionBody` list heads (`Gp_ObjList0` .. `Gp_ObjList8`).
-/// `Gp_LinkObj` appends to `Gp_ObjLists[index]`; `Gp_UnlinkObj` unlinks.
+/// `Gp_LinkObj` appends to `Gp_ObjLists[index]`; `worldCollisionUnlinkBody` unlinks.
 extern WorldCollisionBody** Gp_ObjLists[9];
 
 /// Two-entry table of `WorldCollisionTrigger` list heads. `Gp_LinkObj4A` appends to
@@ -370,7 +377,7 @@ void func_800E06AC(WorldCollisionBody* node, s32 mask, s32 match)
     }
 }
 
-s32 Gp_PairNop(WorldCollisionBody* arg0, WorldCollisionBody* arg1, s32 kind)
+s32 worldCollisionPairNop(WorldCollisionBody* firstBody, WorldCollisionBody* secondBody, s32 handlerIndex)
 {
     return 0;
 }
@@ -404,50 +411,50 @@ void Gp_LocalToGrid(VECTOR3* arg0, SVECTOR3* arg1)
     SCRATCH_STACK_RELEASE_BYTES(0x10);
 }
 
-void Gp_ObjWorldPos(WorldCollisionBody* arg0, VECTOR3* arg1)
+void worldCollisionGetBodyComposedPosition(const WorldCollisionBody* body, VECTOR* position)
 {
-    VECTOR3* vec;
+    // Only XYZ is accessed; the remainder of the original reservation is unproven.
+    enum { WORLD_COLLISION_BODY_POSITION_SCRATCH_BYTES = 0x30 };
+    VECTOR3* rotatedOffset;
 
-    SCRATCH_STACK_RESERVE_BYTES(0x30);
-    vec = SCRATCH_STACK_CURSOR(VECTOR3);
-    gte_SetRotMatrix(&arg0->coord->workm);
-    gte_ldv0(&arg0->pos.vx);
+    rotatedOffset = SCRATCH_STACK_RESERVE_BYTES(WORLD_COLLISION_BODY_POSITION_SCRATCH_BYTES);
+    gte_SetRotMatrix(&body->coord->workm);
+    gte_ldv0(&body->pos);
     gte_rtv0();
-    gte_stlvnl(vec);
-    arg1->vx = arg0->coord->workm.t[0] + vec->vx;
-    arg1->vy = arg0->coord->workm.t[1] + vec->vy;
-    arg1->vz = arg0->coord->workm.t[2] + vec->vz;
-    SCRATCH_STACK_RELEASE_BYTES(0x30);
+    gte_stlvnl(rotatedOffset);
+    position->vx = body->coord->workm.t[0] + rotatedOffset->vx;
+    position->vy = body->coord->workm.t[1] + rotatedOffset->vy;
+    position->vz = body->coord->workm.t[2] + rotatedOffset->vz;
+    SCRATCH_STACK_RELEASE_BYTES(WORLD_COLLISION_BODY_POSITION_SCRATCH_BYTES);
 }
 
-void func_800E0994(WorldCollisionBody* arg0, VECTOR* arg1, SVECTOR* arg2)
+void worldCollisionPlaceFloorSegment(const WorldCollisionBody* body, VECTOR endpoints[2], SVECTOR* direction)
 {
     _WorldCollisionFloorSegmentScratch* scratch;
-    s32                                 i;
+    s32                                 endpointIndex;
 
-    SCRATCH_STACK_RESERVE_BYTES(sizeof(_WorldCollisionFloorSegmentScratch));
-    scratch = SCRATCH_STACK_CURSOR(_WorldCollisionFloorSegmentScratch);
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(_WorldCollisionFloorSegmentScratch);
     // Local Y segment through the origin: X and Z stay zero, one half-height either side of the body's Y.
     scratch->localEndpoints[0].vx = 0;
-    scratch->localEndpoints[0].vy = (u16)arg0->pos.vy + arg0->radius;
+    scratch->localEndpoints[0].vy = (u16)body->pos.vy + body->radius;
     scratch->localEndpoints[0].vz = 0;
     scratch->localEndpoints[1].vx = 0;
-    scratch->localEndpoints[1].vy = (u16)arg0->pos.vy - arg0->radius;
+    scratch->localEndpoints[1].vy = (u16)body->pos.vy - body->radius;
     scratch->localEndpoints[1].vz = 0;
-    gte_SetRotMatrix(&arg0->coord->workm);
-    for (i = 0; i < ARRAY_SIZE(scratch->localEndpoints); i++) {
-        gte_ldv0(&scratch->localEndpoints[i]);
+    gte_SetRotMatrix(&body->coord->workm);
+    for (endpointIndex = 0; endpointIndex < ARRAY_SIZE(scratch->localEndpoints); endpointIndex++) {
+        gte_ldv0(&scratch->localEndpoints[endpointIndex]);
         gte_rtv0();
         gte_stlvnl(&scratch->work.rotatedEndpoint);
-        arg1[i].vx = scratch->work.rotatedEndpoint.vx + (arg0->coord)->workm.t[0];
-        arg1[i].vy = scratch->work.rotatedEndpoint.vy + (arg0->coord)->workm.t[1];
-        arg1[i].vz = scratch->work.rotatedEndpoint.vz + (arg0->coord)->workm.t[2];
+        endpoints[endpointIndex].vx = scratch->work.rotatedEndpoint.vx + body->coord->workm.t[0];
+        endpoints[endpointIndex].vy = scratch->work.rotatedEndpoint.vy + body->coord->workm.t[1];
+        endpoints[endpointIndex].vz = scratch->work.rotatedEndpoint.vz + body->coord->workm.t[2];
     }
-    scratch->work.segmentDelta.vx = arg1[0].vx - arg1[1].vx;
-    scratch->work.segmentDelta.vy = arg1[0].vy - arg1[1].vy;
-    scratch->work.segmentDelta.vz = arg1[0].vz - arg1[1].vz;
-    VectorNormalS(&scratch->work.segmentDelta, arg2);
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(_WorldCollisionFloorSegmentScratch));
+    scratch->work.segmentDelta.vx = endpoints[0].vx - endpoints[1].vx;
+    scratch->work.segmentDelta.vy = endpoints[0].vy - endpoints[1].vy;
+    scratch->work.segmentDelta.vz = endpoints[0].vz - endpoints[1].vz;
+    VectorNormalS(&scratch->work.segmentDelta, direction);
+    SCRATCH_STACK_RELEASE_BLOCK(_WorldCollisionFloorSegmentScratch);
 }
 
 void Gp_ClearPendingObj4C(void)
@@ -750,25 +757,25 @@ void Gp_LinkObj(s32 arg0, WorldCollisionBody* arg1)
     }
 }
 
-void Gp_UnlinkObj(WorldCollisionBody* node)
+void worldCollisionUnlinkBody(WorldCollisionBody* body)
 {
     u16                  flags;
     WorldCollisionBody*  next;
-    WorldCollisionBody** prev;
+    WorldCollisionBody** previousLink;
 
-    flags = node->flags;
+    flags = body->flags;
     if (flags & WORLD_COLLISION_BODY_LINKED) {
-        next        = node->next;
-        node->flags = flags & WORLD_COLLISION_BODY_KIND_MASK;
-        prev        = node->prev;
+        next         = body->next;
+        body->flags  = flags & WORLD_COLLISION_BODY_KIND_MASK;
+        previousLink = body->prev;
         if (next != NULL) {
-            *prev      = next;
-            next->prev = node->prev;
-            node->next = NULL;
+            *previousLink = next;
+            next->prev    = body->prev;
+            body->next    = NULL;
         } else {
-            *prev = NULL;
+            *previousLink = NULL;
         }
-        node->prev = NULL;
+        body->prev = NULL;
     }
 }
 
@@ -928,7 +935,7 @@ void Gp_ClearObj3AList(s32 arg0)
     }
 }
 
-void Gp_InitRec18Table(WorldCollisionContact* contacts, s32 count, s32 unused)
+void worldCollisionInitContacts(WorldCollisionContact* contacts, s32 count, s32 unused)
 {
     memFillBytes(contacts, 0, count * sizeof(*contacts));
     contacts[count - 1].flags = WORLD_COLLISION_CONTACT_LAST;
@@ -1007,36 +1014,38 @@ void Gp_ClearRec18Occupied(WorldCollisionContact* contacts)
     }
 }
 
-s32 func_800E1ACC(u8* arg0)
+s32 worldCollisionSurfaceClassFromMask(const u8* mask)
 {
-    s32 val;
-    s32 ret;
+    s32 fixedMask;
+    s32 surfaceClass;
 
-    val = *arg0 << 12;
-    if (val != 0) {
-        ret = cln(val) / 2839;
+    fixedMask = *mask << WORLD_COLLISION_SURFACE_LOG_FRACTION_BITS;
+    if (fixedMask != 0) {
+        surfaceClass = cln(fixedMask) / WORLD_COLLISION_SURFACE_LOG_TWO;
     } else {
-        ret = 0;
+        surfaceClass = 0;
     }
-    return ret;
+    return surfaceClass;
 }
 
-s32 func_800E1B24(s32 arg0)
+s32 worldCollisionSurfaceClassFromKey(s32 key)
 {
-    s32 mask[2];
-    s32 val;
-    s32 tmp;
-    s32 ret;
+    // Only the first stack word is written; the second word's role is unproven.
+    s32 storedMask[2];
+    s32 classMask;
+    s32 fixedMask;
+    s32 surfaceClass;
 
-    val     = 1 << arg0;
-    mask[0] = val;
-    tmp     = (u8)val << 12;
-    if (tmp != 0) {
-        ret = cln(tmp) / 2839;
+    // Packed category and response bits do not participate in the target's variable shift.
+    classMask     = 1U << key;
+    storedMask[0] = classMask;
+    fixedMask     = (u8)classMask << WORLD_COLLISION_SURFACE_LOG_FRACTION_BITS;
+    if (fixedMask != 0) {
+        surfaceClass = cln(fixedMask) / WORLD_COLLISION_SURFACE_LOG_TWO;
     } else {
-        ret = 0;
+        surfaceClass = 0;
     }
-    return ret;
+    return surfaceClass;
 }
 
 void Gp_CommitObj4CSave(void)
@@ -1101,8 +1110,27 @@ void Gp_ClaimSlot18(Enemy* arg0, s32 arg1)
     }
 }
 
-void Gp_OrientAlong(VECTOR* arg0, MATRIX* arg1, s32 arg2)
+/// Multiplies the direction-facing rotation factors, writing only the nine rotation elements.
+static __inline__ void _gfxMultiplyDirectionRotations(const MATRIX* left, const MATRIX* right, MATRIX* out)
 {
+    gte_SetRotMatrix(left);
+    gte_ldclmv(right);
+    gte_rtir();
+    gte_stclmv(out);
+    gte_ldclmv(&right->m[0][1]);
+    gte_rtir();
+    gte_stclmv(&out->m[0][1]);
+    gte_ldclmv(&right->m[0][2]);
+    gte_rtir();
+    gte_stclmv(&out->m[0][2]);
+}
+
+void gfxBuildDirectionRotation(const VECTOR* direction, MATRIX* out, s32 roll)
+{
+    enum {
+        GRAPHICS_DIRECTION_ANGLE_MASK    = ONE - 1,
+        GRAPHICS_DIRECTION_FRACTION_BITS = 12
+    };
     _GfxDirectionRotationScratch* scratch;
     MATRIX*                       rotation;
     MATRIX*                       axisRotation;
@@ -1111,17 +1139,18 @@ void Gp_OrientAlong(VECTOR* arg0, MATRIX* arg1, s32 arg2)
     s32                           pitch;
 
     scratch = SCRATCH_STACK_RESERVE_BLOCK(_GfxDirectionRotationScratch);
-    VectorNormalS(arg0, &scratch->work.direction);
+    // The SDK's unqualified normalization input is only read.
+    VectorNormalS((VECTOR*)direction, &scratch->work.direction);
 
     // Measure the heading, then the elevation against the horizontal length.
     rotation     = &scratch->rotation;
-    yaw          = ratan2(scratch->work.direction.vx, scratch->work.direction.vz) & 0xFFF;
+    yaw          = ratan2(scratch->work.direction.vx, scratch->work.direction.vz) & GRAPHICS_DIRECTION_ANGLE_MASK;
     scratch->yaw = yaw;
     yawSine      = rsin(yaw);
     scratch->pitch =
         ratan2(scratch->work.direction.vy,
-               (scratch->work.direction.vx * yawSine + scratch->work.direction.vz * rcos(scratch->yaw)) >> 12) &
-        0xFFF;
+               (scratch->work.direction.vx * yawSine + scratch->work.direction.vz * rcos(scratch->yaw)) >> GRAPHICS_DIRECTION_FRACTION_BITS) &
+        GRAPHICS_DIRECTION_ANGLE_MASK;
 
     scratch->work.angles.vx = 0;
     scratch->work.angles.vz = 0;
@@ -1135,34 +1164,16 @@ void Gp_OrientAlong(VECTOR* arg0, MATRIX* arg1, s32 arg2)
     scratch->work.angles.vz = 0;
     RotMatrix(&scratch->work.angles, axisRotation);
 
-    // rotation = Ry(yaw) * Rx(-pitch), one column at a time.
-    gte_SetRotMatrix(rotation);
-    gte_ldclmv(axisRotation);
-    gte_rtir();
-    gte_stclmv(rotation);
-    gte_ldclmv(&axisRotation->m[0][1]);
-    gte_rtir();
-    gte_stclmv(&rotation->m[0][1]);
-    gte_ldclmv(&axisRotation->m[0][2]);
-    gte_rtir();
-    gte_stclmv(&rotation->m[0][2]);
+    // Compose yaw and negative pitch before applying the caller's roll.
+    _gfxMultiplyDirectionRotations(rotation, axisRotation, rotation);
 
     scratch->work.angles.vx = 0;
     scratch->work.angles.vy = 0;
-    scratch->work.angles.vz = arg2;
+    scratch->work.angles.vz = roll;
     RotMatrix(&scratch->work.angles, axisRotation);
 
     // The caller's rotation is that product times Rz(roll); its translation is untouched.
-    gte_SetRotMatrix(rotation);
-    gte_ldclmv(axisRotation);
-    gte_rtir();
-    gte_stclmv(arg1);
-    gte_ldclmv(&axisRotation->m[0][1]);
-    gte_rtir();
-    gte_stclmv(&arg1->m[0][1]);
-    gte_ldclmv(&axisRotation->m[0][2]);
-    gte_rtir();
-    gte_stclmv(&arg1->m[0][2]);
+    _gfxMultiplyDirectionRotations(rotation, axisRotation, out);
 
     SCRATCH_STACK_RELEASE_BLOCK(_GfxDirectionRotationScratch);
 }

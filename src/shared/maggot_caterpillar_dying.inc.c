@@ -40,10 +40,10 @@ void maggotCaterpillarDyingState(Enemy* arg0, Task* arg1)
                     work->baseMatrix           = coord->coord;
                     arg0->recs                 = 0;
                     worldTargetUnlinkNode(&arg0->node);
-                    Gp_UnlinkObj(&work->gridBody);
-                    Gp_UnlinkObj(&work->body);
-                    Gp_UnlinkObj(&work->attackBody);
-                    Gp_UnlinkObj(&work->flameBody);
+                    worldCollisionUnlinkBody(&work->gridBody);
+                    worldCollisionUnlinkBody(&work->body);
+                    worldCollisionUnlinkBody(&work->attackBody);
+                    worldCollisionUnlinkBody(&work->flameBody);
                     releaseId = 0x37;
                     if (work->isCaterpillar == 0) {
                         releaseId = 0x1A;

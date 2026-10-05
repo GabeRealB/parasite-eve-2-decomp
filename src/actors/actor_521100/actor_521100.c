@@ -1678,7 +1678,7 @@ static void func_actor_521100_80131E8C(Enemy* enemy, Task* task)
     work->groundBody.radius           = 0x190;
     work->groundBody.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(2, &work->groundBody);
-    Gp_InitRec18Table(work->groundContacts, ARRAY_SIZE(work->groundContacts), 0);
+    worldCollisionInitContacts(work->groundContacts, ARRAY_SIZE(work->groundContacts), 0);
     work->groundBody.flags |= (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED);
 
     work->body.coord            = &task->extra.tmd->coords[3];
@@ -1690,7 +1690,7 @@ static void func_actor_521100_80131E8C(Enemy* enemy, Task* task)
     work->body.radius           = 0x190;
     work->body.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(2, &work->body);
-    Gp_InitRec18Table(work->bodyContacts, ARRAY_SIZE(work->bodyContacts), 0);
+    worldCollisionInitContacts(work->bodyContacts, ARRAY_SIZE(work->bodyContacts), 0);
     work->body.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
 
     spawned    = Gp_SpawnEnemyFromTable(D_actor_521100_8015F6E4, 1, 0, enemy);
@@ -1723,7 +1723,7 @@ static void func_actor_521100_80131E8C(Enemy* enemy, Task* task)
     work->weaponAttack.radius           = 0x1C2;
     work->weaponAttack.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(3, &work->weaponAttack);
-    Gp_InitRec18Table(work->attackContacts, ARRAY_SIZE(work->attackContacts), 0);
+    worldCollisionInitContacts(work->attackContacts, ARRAY_SIZE(work->attackContacts), 0);
     work->weaponAttack.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
 
     work->forearmAttack.coord            = &task->extra.tmd->coords[7];
@@ -1756,7 +1756,7 @@ static void func_actor_521100_80131E8C(Enemy* enemy, Task* task)
     work->grabPathProbe.radius          = 0;
     work->grabPathProbe.flags           = WORLD_COLLISION_BODY_CAPSULE;
     Gp_LinkObj(3, &work->grabPathProbe);
-    Gp_InitRec18Table(work->grabProbeContacts, ARRAY_SIZE(work->grabProbeContacts), 0);
+    worldCollisionInitContacts(work->grabProbeContacts, ARRAY_SIZE(work->grabProbeContacts), 0);
     work->grabPathProbe.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
 
     work->grabSpotProbe.coord            = task->extra.tmd->coords;

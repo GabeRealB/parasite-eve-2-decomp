@@ -74,7 +74,7 @@ void sucklercephSpawnState(Enemy* arg0, Task* arg1)
     work->senseBody.radius           = 0xBB8;
     work->senseBody.flags            = (u32)WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(3, &work->senseBody);
-    Gp_InitRec18Table(&work->senseContact, 1, 0);
+    worldCollisionInitContacts(&work->senseContact, 1, 0);
     work->body.coord            = coord;
     work->body.context.contacts = work->contacts;
     work->body.pos.vx           = 0;
@@ -85,7 +85,7 @@ void sucklercephSpawnState(Enemy* arg0, Task* arg1)
     work->body.flags            = (u32)WORLD_COLLISION_BODY_SPHERE;
     work->senseBody.flags       = (u16)(work->senseBody.flags | WORLD_COLLISION_BODY_PAIR_ENABLED);
     Gp_LinkObj(2, &work->body);
-    Gp_InitRec18Table(work->contacts, ARRAY_SIZE(work->contacts), 0);
+    worldCollisionInitContacts(work->contacts, ARRAY_SIZE(work->contacts), 0);
     work->attackBody.coord            = coord;
     work->attackBody.context.contacts = &work->attackContact;
     work->attackBody.pos.vx           = 0;
@@ -96,7 +96,7 @@ void sucklercephSpawnState(Enemy* arg0, Task* arg1)
     work->attackBody.radius           = 0x3E8;
     work->attackBody.flags            = (u32)WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(3, &work->attackBody);
-    Gp_InitRec18Table(&work->attackContact, 1, 0);
+    worldCollisionInitContacts(&work->attackContact, 1, 0);
     work->blastBody.coord            = coord;
     work->blastBody.context.contacts = &work->blastContact;
     work->blastBody.pos.vx           = 0;
@@ -107,7 +107,7 @@ void sucklercephSpawnState(Enemy* arg0, Task* arg1)
     work->blastBody.flags            = (u32)WORLD_COLLISION_BODY_SPHERE;
     work->attackBody.flags           = (u16)(work->attackBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
     Gp_LinkObj(8, &work->blastBody);
-    Gp_InitRec18Table(&work->blastContact, 1, 0);
+    worldCollisionInitContacts(&work->blastContact, 1, 0);
     work->blastBody.flags = (u16)(work->blastBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
     work->field_2DC       = arg1->spawnArg1.value >> 16;
     v                     = (u16)arg1->spawnArg1.value;

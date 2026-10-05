@@ -6899,7 +6899,7 @@ after `block = head` keep the copy but colour it backwards
 the tail restore makes it live across the call so it moves to an `$s`
 register. The permuter's own zero was a dead `head = 0x1F800000` inside the
 tail expression - the scoped `register u8* tmp asm("v0")` block is the
-readable form of the same thing. `func_800E0994` is the example.
+readable form of the same thing. `worldCollisionPlaceFloorSegment` is the example.
 
 Pinning that push temp to `$v0` also *takes `$v0` away from the first field
 copy*, which flips the schedule: the target fills the `lhu` load-delay slot
@@ -7655,10 +7655,10 @@ setup:
 ```c
 *scratch = vec;
 __asm__ volatile("" ::: "memory");
-gte_SetRotMatrix(&((GfxCoord*)arg0->field_8)->workm);
+gte_SetRotMatrix(&body->coord->workm);
 ```
 
-`Gp_ObjWorldPos` is the example. Without the barrier the body still
+`worldCollisionGetBodyComposedPosition` is the example. Without the barrier the body still
 matched and only those two delay-slot nops were gone (90.5%).
 
 ## Capture the table pointer before `idx + (byte - K)`
@@ -24408,12 +24408,12 @@ if (val != 0) {
 
 An early `return cln(val) / 2839` fills the `beqz` delay with `move v0,zero`
 and drops the jump to the epilogue. The if/else `ret` local keeps
-`move v0,zero` on the else path after `j` / `subu`. `func_800E1ACC` is the
-example; the same divide appears in `func_800E1B24`.
+`move v0,zero` on the else path after `j` / `subu`. `worldCollisionSurfaceClassFromMask` is the
+example; the same divide appears in `worldCollisionSurfaceClassFromKey`.
 
 ## Unread `s32[2]` store keeps `sw` + register `andi`
 
-`val = 1 << index` then `(u8)val << 12` is `sllv` / `andi` / `sll` in a
+`classMask = 1U << key` then `(u8)classMask << 12` is `sllv` / `andi` / `sll` in a
 0x18 frame — the word never hits the stack. The target wants that same
 `andi` (not `lbu`) *plus* `sw v0, 0x10(sp)` and a 0x20 frame.
 
@@ -24422,17 +24422,18 @@ reloads with `lbu`. Store the SImode value into an unread `s32[2]` and
 take the byte from the original register:
 
 ```c
-s32 mask[2];
-s32 val;
-s32 tmp;
+s32 storedMask[2];
+s32 classMask;
+s32 fixedMask;
 
-val = 1 << arg0;
-mask[0] = val;           /* sw — array store is not DSE'd */
-tmp = (u8)val << 12;     /* andi of the register, not lbu */
+classMask = 1U << key;
+storedMask[0] = classMask;   /* sw — array store is not DSE'd */
+fixedMask = (u8)classMask << WORLD_COLLISION_SURFACE_LOG_FRACTION_BITS;
+                            /* andi of the register, not lbu */
 ```
 
 `s32[1]` is only 4 bytes (0x18 frame). `u8 buf[4]` stores with `sb`.
-Reading `mask[0]` back as `u8` becomes `lbu`. `func_800E1B24` is the
+Reading `storedMask[0]` back as `u8` becomes `lbu`. `worldCollisionSurfaceClassFromKey` is the
 example.
 
 ## Second pointer before `if` fills `move a3, slot` in the branch delay
@@ -35232,7 +35233,7 @@ scratch->worldEndpoint.vx = scratch->work.rotatedEndpoint.vx + (arg0->coord)->wo
 
 A `-0x28($a2)` or `addiu ..., a2, -0x8` in the target is therefore not
 evidence that the source spelled `head - 0x28` or `head - 8`. Try the typed
-reservation first. `Gp_FindNearestSlot` is the example; `Gp_OrientAlong`
+reservation first. `Gp_FindNearestSlot` is the example; `gfxBuildDirectionRotation`
 shows the same at offset 0.
 
 ## `n = id < K; if (n) goto store` so slti dest is the count, plus `asm("")` to keep `bnez`
@@ -36576,7 +36577,7 @@ pitch                   = scratch->pitch;
 scratch->work.angles.vx = -pitch;
 ```
 
-`Gp_OrientAlong` is the example.
+`gfxBuildDirectionRotation` is the example.
 
 ## Don't reuse a `for`-loop counter as the `(s8)` dest before a second `jal`
 
@@ -46320,7 +46321,7 @@ The culprit was a function nobody touched. `func_actor_403100_8013D88C` had
 been landed earlier as
 
 ```c
-Gp_UnlinkObj(D_actor_403100_80155808 + 0x47C);   /* s32 + byte offset */
+worldCollisionUnlinkBody(D_actor_403100_80155808 + 0x47C);   /* s32 + byte offset */
 ```
 
 which is integer arithmetic while the global is an `s32`, and *pointer*
@@ -46720,7 +46721,7 @@ plus a swapped destination register in its delay slot.
 Merging `Actor03800_Fn02068`'s L-label span needed the byte at `0x801153F2`,
 which is `gSceneCombatState.signals.bytes.actionFlags` in `include/gameplay/scene_combat.h`. Adding that include
 to `src/actors/lib/actor_103800_text.c` does not build: the file opens with its
-own hand-written prototypes for `worldTargetUnlinkNode`, `Gp_UnlinkObj`,
+own hand-written prototypes for `worldTargetUnlinkNode`, `worldCollisionUnlinkBody`,
 `Gp_SetLightMode`, `Gp_ReleaseStateF0Add`, `Gp_UpdateActorColor`,
 `worldCoordGetOriginAudioPan` and `worldCoordGetOriginAudioDepth`, and several of them disagree with the
 header in *arity*, not just in pointer type (`Gp_UpdateActorColor` is declared
@@ -56493,10 +56494,12 @@ exists.
 
 ## A store into an address-taken local is forwarded; the target's reload is a signal
 
-`func_800E1ACC` is called as `idx = func_800E1ACC((u8*)&idx)` — it both writes
-through the pointer and returns the value. GCC records the store into `idx`'s
-frame slot and forwards it to every later read, so the value stays in the
-return register:
+`worldCollisionSurfaceClassFromMask` is called as
+`idx = worldCollisionSurfaceClassFromMask((const u8*)&idx)`: it reads the mask's
+first byte and returns its surface class without writing through the pointer.
+The assignment stores that return value into `idx`. GCC records this store
+into the frame slot and forwards it to every later read, so the value stays
+in the return register:
 
 ```
 move  a1,v0
@@ -56529,7 +56532,7 @@ assignment:
         goto trySphereContacts;
     }
     func_800E0FEC(work->capsuleContacts, &blk->delta, 1, &idx);
-    idx = func_800E1ACC((u8*)&idx);
+    idx = worldCollisionSurfaceClassFromMask((const u8*)&idx);
 check:
     param = Gp_RoomParamTables[...][...][idx];   /* reload: `check` is a join */
     ...
@@ -56537,7 +56540,7 @@ check:
 trySphereContacts:
     if (Gp_CountRec18Hi(work->sphereContacts, 0x100000) != 0) {
         func_800E0FEC(work->sphereContacts, &blk->delta, 1, &idx);
-        idx = func_800E1ACC((u8*)&idx);
+        idx = worldCollisionSurfaceClassFromMask((const u8*)&idx);
         goto check;
     }
 ```
@@ -68677,7 +68680,7 @@ their own work block in the `Task::work` slot, and that block is not a
 Here the init that installs the exit callback (`func_actor_503500_801372C8`)
 does `addiu $a1, $s0, 0x40` before `Gp_LinkObj`, which names the field
 directly: a `WorldCollisionBody` at byte 0x40 of the work block. Declaring it and writing
-`Gp_UnlinkObj(&index->field_1C->obj40)` matched on the next build.
+`worldCollisionUnlinkBody(&index->field_1C->obj40)` matched on the next build.
 
 **Check first:** when a `regs` penalty is one or two instructions, diff the
 immediates before opening any RTL dump. If the wrong constant is an exact
@@ -72328,8 +72331,8 @@ customary "matrix is stale" clear that precedes it.
 ## Recover an array stride in a work block from a sibling function's calls, not from the function you are matching
 
 **Problem.** `func_actor_444000_801433B8` hands eight addresses inside a
-0xF24-byte work block to `Gp_UnlinkObj`: `+0x7F4`, `+0x88C`, `+0x9BC`, `+0xA54`,
-`+0xAEC`, `+0xB84`, `+0xC1C`, `+0xCB4`. `Gp_UnlinkObj` takes a `WorldCollisionBody*`, and
+0xF24-byte work block to `worldCollisionUnlinkBody`: `+0x7F4`, `+0x88C`, `+0x9BC`, `+0xA54`,
+`+0xAEC`, `+0xB84`, `+0xC1C`, `+0xCB4`. `worldCollisionUnlinkBody` takes a `WorldCollisionBody*`, and
 `WorldCollisionBody` is 0x20 bytes, so the 0x98 spacing says nothing on its own — the run
 could be eight unrelated fields with padding between them, and writing it that
 way means eight named `WorldCollisionBody` members and a guess about every gap.
@@ -74494,7 +74497,7 @@ spot this shape in a target.
 ## Group struct writes by object to move a free-floating address computation
 
 `func_actor_444000_8013AFF8` sets up a `WorldCollisionBody` and the `WorldCollisionCapsule` it points
-at, then hands the record table to `Gp_InitRec18Table`. Every version of the
+at, then hands the record table to `worldCollisionInitContacts`. Every version of the
 block emitted all 17 stores in the right order and still left one instruction -
 `addiu s0, s7, 0xd84` (`&work->swipeContacts`, the table pointer) - seven slots too late,
 for a stubborn 99.933%.
@@ -77170,7 +77173,7 @@ quantities with the same reference count the *shorter* live range loses.
 Measured on this function, `&contacts` (3 refs, span 18) scored 1666 against the
 task pointer's 1372 (7 refs, span 102) — an inversion of under 300, so the
 required relation `pri81 in (1282, 1372)` pinned `&contacts`'s span at exactly 22.
-`death` is fixed (the last use is the `a0` move before the `Gp_InitRec18Table`
+`death` is fixed (the last use is the `a0` move before the `worldCollisionInitContacts`
 call), so `birth` had to move two scheduled positions earlier.
 
 `birth` is `2 x` the add's position in the *sched1* order, and sched1 is a
@@ -78054,7 +78057,7 @@ every one of those offsets *is* a `WorldCollisionBody` field:
 `WorldCollisionBody` is 0x20, so `hitBody` at 0x134 ends exactly at `hitContacts` at 0x154, and the
 whole thing satisfies `STATIC_ASSERT_SIZEOF(..., 0x2F4)` unchanged. Declaring
 the three nodes as `WorldCollisionBody` removes every cast in the body — `Gp_LinkObj(2,
-&work->hitBody)` and `Gp_InitRec18Table(work->hitContacts, 1, 0)` take the real
+&work->hitBody)` and `worldCollisionInitContacts(work->hitContacts, 1, 0)` take the real
 types — and the flag edits read as the sibling's
 `work->hitBody.flags |= 0x8000` / `gridBody.flags |= 0x4000` / `attackBody.flags &=
 0x7FFF` (0x18A and 0x20A are the same `flags` word of the 0x16C and 0x1EC
@@ -78083,10 +78086,10 @@ downstream of the addressing, not independent of it.
 ## A WorldCollisionBody node's `flags |= mask` belongs at the head of the *next* node's block
 
 Actor spawns initialise a run of `WorldCollisionBody` collision bodies, each followed by
-`Gp_LinkObj` and `Gp_InitRec18Table`, and the target for
+`Gp_LinkObj` and `worldCollisionInitContacts`, and the target for
 `func_actor_300700_80163510` reads as if each node's flag edit were one
 statement *later* than its own data: `work->obj1.flags |= 0x8000;` is emitted at
-the top of the obj2 block — after `Gp_InitRec18Table(work->rec1, 1, 0)` and
+the top of the obj2 block — after `worldCollisionInitContacts(work->rec1, 1, 0)` and
 before obj2's first field store — not just before `Gp_LinkObj(2, &work->obj2)`.
 Writing the edit at the end of its own node, adjacent to the next link call, is
 the natural thing to do and it loses 8 points. The two placements isolate
@@ -85639,7 +85642,7 @@ Inputs: `base.i` (m2c seed, 54.857%)
 
 m2c renders a field access it cannot type as pointer arithmetic on whatever
 pointer it happens to hold, and that arithmetic is in units of the pointee.
-`func_actor_401300_80141758`'s seed wrote `Gp_UnlinkObj(temp_s0 + 0xBF0)` where
+`func_actor_401300_80141758`'s seed wrote `worldCollisionUnlinkBody(temp_s0 + 0xBF0)` where
 `temp_s0` came from `index->work` and was typed `_StageMusicSelection*` (8 bytes), so the
 object came out `addiu a0,s0,0x5f80`. All three unlink displacements were wrong
 by exactly 8x - `0x5f80/0xbf0 == 0x4b80/0x970 == 0x5580/0xab0 == 8` - and the
@@ -85665,7 +85668,7 @@ typedef struct {
     ...
 } _Actor401300Work;
 
-Gp_UnlinkObj(&work->attackBody);
+worldCollisionUnlinkBody(&work->attackBody);
 ```
 
 The BRIEF's "similar matched bodies" list is the shortcut: the same-shaped
@@ -85946,12 +85949,12 @@ message handlers. Same trick for `sw ..., 0x14(s7)` (`callback`, also
 `TaskFunc`), `0x1C` (`work`), `0x20` (`spawnArg2`) and `0x2C` (`extra`): the
 store offset names the slot, the slot's type names the signature.
 
-The four `Gp_UnlinkObj` arguments came the same way. The installer writes
+The four `worldCollisionUnlinkBody` arguments came the same way. The installer writes
 `sw $v1, 0x8($s0)` / `sh $zero, 0x10($s0)` / `ori $v0, $v0, 0x8000` on
-`0x1E($s0)` and then `Gp_InitRec18Table(field_C, 5, 0)` on `0x20($s0)`, under
+`0x1E($s0)` and then `worldCollisionInitContacts(field_C, 5, 0)` on `0x20($s0)`, under
 `addiu $s0, $s6, 0xB50` — a `WorldCollisionBody` node plus a five-entry `WorldCollisionContact` table
 (`WorldCollisionBody`, then `WorldCollisionContact rec[5]`, 0x98 total). The four nodes at 0xB50 / 0xBE8 /
-0xC80 / 0xD18 are exactly 0x98 apart, and `Gp_LinkObj` / `Gp_UnlinkObj` bracket
+0xC80 / 0xD18 are exactly 0x98 apart, and `Gp_LinkObj` / `worldCollisionUnlinkBody` bracket
 the lifetime. The same `WorldCollisionBody + WorldCollisionContact rec[5]` node is already
 `ActorsShared801433b8Node` in `include/actors/actors_shared_801433b8.h`; the
 0x98 stride is the giveaway.
@@ -91250,13 +91253,13 @@ Inputs: `base_2.i` (93.4%, `regs=8 reorder=8`), `base_4.i` (100%).
 ## Two field accesses through the same `&arr[k]` split into a folded `addiu` and a live pointer, so the source names the element (func_actor_510900_80138BF0, 2026-09-16)
 
 `func_actor_510900_80138BF0` touches `coord[4]` twice, far apart: `&coord[4].workm`
-for `gfxMakeRelativeTransform` at the top and `&coord[4].coord` for `Gp_OrientAlong` at the
+for `gfxMakeRelativeTransform` at the top and `&coord[4].coord` for `gfxBuildDirectionRotation` at the
 bottom. Written as two index expressions, GCC 2.8.1 folds each into one `addiu`:
 
 ```c
 gfxMakeRelativeTransform(&Gfx_ViewWorldMtx, &coord[4].workm, &scratch->view);
 ...
-Gp_OrientAlong(&scratch->local, &coord[4].coord, 0);   /* addiu a1,s2,0x144 */
+gfxBuildDirectionRotation(&scratch->local, &coord[4].coord, 0);   /* addiu a1,s2,0x144 */
 ```
 
 The target instead has `addiu $a1,$s1,0x164` up front and, at the bottom,
@@ -97531,7 +97534,7 @@ Both spellings compile to the identical `lw 0xDEC($v0)` — GCC folds the `+4` i
 the displacement — so the match cannot choose between them and a 100% score is
 not evidence that the struct is right. When a body is shared across overlays,
 take the *shape* from the twin and the *field* from this overlay's own
-`Gp_InitRec18Table` / `Gp_ClearRec18Occupied` call site, which hands the table
+`worldCollisionInitContacts` / `Gp_ClearRec18Occupied` call site, which hands the table
 base over as a bare `addiu` the compiler cannot fold away.
 
 `func_actor_403000_8013D48C` matched at 100% (26 insns, 2 builds; `base_1.i`
@@ -109558,7 +109561,7 @@ and keep the local where it does not (here `gridBody.field_8 = root`,
 `root->parent` / `root->composeStamp` / `actorRenderComposeCoord` / `root->workm.t[]`).
 
 The same choice moves a *base register*, and that can reorder a store. The second
-`body->field_18` write sits after the node's `Gp_InitRec18Table`, next to the
+`body->field_18` write sits after the node's `worldCollisionInitContacts`, next to the
 `head = &work->attackBody` that reloads `$s0`:
 
 ```c
@@ -115868,7 +115871,7 @@ blocks. Three statement moves closed it:
 
 2. **Which statement first names a CSE'd address decides where its `addiu` lands.**
    `work->senseContacts` is named twice (`senseCapsule.contacts = work->senseContacts;` and
-   `Gp_InitRec18Table(work->senseContacts, 1, 0)`), so CSE materialises one `addiu`.
+   `worldCollisionInitContacts(work->senseContacts, 1, 0)`), so CSE materialises one `addiu`.
    With `senseBody.context.capsule = &work->senseCapsule;` written first, that `addiu`
    sits one slot too late and the last insn lands after `addiu v0, s2, 0x1FC`
    instead of before `sh v0, 0x20E`. Moving the `contacts` assignment above the
@@ -129786,7 +129789,7 @@ Inputs: `base_1.c` 92.808% (field form, `sh $2,16($sp)`), `base_2.c` 94.903%
 
 ## `for (i = 0; i < 1; i++)` over a 1-entry table, and how m2c renders its test (func_actor_311500_80162DDC, 2026-09-17)
 
-A table set up as `Gp_InitRec18Table(recs, 1, 0)` (`addiu $a1,$zero,0x1` at the
+A table set up as `worldCollisionInitContacts(recs, 1, 0)` (`addiu $a1,$zero,0x1` at the
 init site is the only place the count appears) searches with a one-iteration
 loop. GCC's codegen for an `s16` counter bound by a constant looks like a
 runaway guard rather than a loop:
@@ -133517,7 +133520,7 @@ A parallel empty asm after the first object-link call resolved this:
 
 ```c
 __asm__("" : "=r"(key), "+r"(table));
-Gp_InitRec18Table(table, 1, 0);
+worldCollisionInitContacts(table, 1, 0);
 ```
 
 The key output is discarded; table passes through unchanged. `flow.c:mark_set_1`
@@ -146685,7 +146688,7 @@ optimization threads the `if` joins away, so each `jal` sits directly before a
 `j` to the same label, and jump2's `find_cross_jump` folds one copy into the
 other. An empty `asm` after the call only hid that.
 
-Write the cleanup out in each arm instead (`Gp_UnlinkObj(...); release(...);
+Write the cleanup out in each arm instead (`worldCollisionUnlinkBody(...); release(...);
 return;`). jump2 still folds each copy of the cleanup into the shared one, and
 the `j` is the same, but each arm's `if` join label is still in front of the
 new jump. `find_cross_jump` stops at a `CODE_LABEL` on the jumping side, so the
@@ -146723,7 +146726,7 @@ the full build before assuming any piece of it is load-bearing.
 
 A state machine's cases each start with "release if the player is dying or the
 room is fading". Two of five cases were written as two separate `if` blocks,
-each repeating `Gp_UnlinkObj(&work->obj2); release; return;`, the others as one
+each repeating `worldCollisionUnlinkBody(&work->obj2); release; return;`, the others as one
 `a || (fade = ..., fade >= 4)` guard. jump2 folds the repeated bodies, so the
 object code is identical either way, but global allocation runs before jump2:
 each written-out copy adds a reference to `work`, and two extra references

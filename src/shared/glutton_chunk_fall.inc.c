@@ -16,8 +16,8 @@ void gluttonChunkFall(Enemy* enemy, Task* task)
     s32                    pan;
 
     if (gGluttonEnded == 1) {
-        Gp_UnlinkObj(&work->attackBody);
-        Gp_UnlinkObj(&work->gridBody);
+        worldCollisionUnlinkBody(&work->attackBody);
+        worldCollisionUnlinkBody(&work->gridBody);
         enemyDestroy(enemy, task);
         return;
     }

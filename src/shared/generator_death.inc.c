@@ -61,8 +61,8 @@ void generatorDeathState(Enemy* arg0, Task* arg1)
             work->unscaledMtx = coord->coord;
             arg0->recs        = 0;
             worldTargetUnlinkNode(&arg0->node);
-            Gp_UnlinkObj(&work->rootBody);
-            Gp_UnlinkObj(&work->targetBody);
+            worldCollisionUnlinkBody(&work->rootBody);
+            worldCollisionUnlinkBody(&work->targetBody);
             Gp_SetLightMode(arg0, 1);
             if (work->kind == 0) {
                 work->stateFrames = 0;

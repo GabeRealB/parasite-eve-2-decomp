@@ -1269,7 +1269,7 @@ static void func_actor_503500_80144E8C(Task* arg0)
     capsule->end0Radius = 0x7D0;
 
     Gp_LinkObj(3, &work->body);
-    Gp_InitRec18Table(contacts, ARRAY_SIZE(work->contacts), 0);
+    worldCollisionInitContacts(contacts, ARRAY_SIZE(work->contacts), 0);
     work->body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
 
     if (arg0->spawnArg1.value == 0) {
@@ -1429,7 +1429,7 @@ static void func_actor_503500_80145480(Task* arg0)
     ext                   = arg0->extra.tmd;
     (ext->coords)->parent = &gGfxViewCoord;
     work                  = arg0->work;
-    Gp_UnlinkObj(&work->body);
+    worldCollisionUnlinkBody(&work->body);
     taskKill(arg0);
 }
 
@@ -1499,7 +1499,7 @@ static void func_actor_503500_801455A4(Task* arg0)
     work->body.radius           = 0x12C;
     work->body.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(3, &work->body);
-    Gp_InitRec18Table(work->contacts, ARRAY_SIZE(work->contacts), 0);
+    worldCollisionInitContacts(work->contacts, ARRAY_SIZE(work->contacts), 0);
     work->body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
 
     eff = Gp_SpawnEff(EFFECT_SHELTER_R48_RING_FLASH_YELLOW, coord, 0, NULL);
@@ -1587,7 +1587,7 @@ static void func_actor_503500_80145950(Task* arg0)
     ext                   = arg0->extra.tmd;
     (ext->coords)->parent = &gGfxViewCoord;
     work                  = arg0->work;
-    Gp_UnlinkObj(&work->body);
+    worldCollisionUnlinkBody(&work->body);
     taskKill(arg0);
 }
 
@@ -1666,7 +1666,7 @@ static void func_actor_503500_80145A2C(Task* arg0)
     capsule->end0Radius = 0xBB8;
 
     Gp_LinkObj(3, &work->body);
-    Gp_InitRec18Table(contacts, ARRAY_SIZE(work->contacts), 0);
+    worldCollisionInitContacts(contacts, ARRAY_SIZE(work->contacts), 0);
     work->body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
 
     eff = Gp_SpawnEff(EFFECT_SHELTER_R48_RING_FLASH, coord, arg0->spawnArg1.value, NULL);
@@ -1766,7 +1766,7 @@ static void func_actor_503500_80145E98(Task* arg0)
     ext                   = arg0->extra.tmd;
     (ext->coords)->parent = &gGfxViewCoord;
     work                  = arg0->work;
-    Gp_UnlinkObj(&work->body);
+    worldCollisionUnlinkBody(&work->body);
     taskKill(arg0);
 }
 

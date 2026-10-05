@@ -11,9 +11,9 @@ void golemPawnRookBulletDestroy(Enemy* arg0, Task* arg1)
     work = arg1->work;
     switch (work->teardownStep) {
         case 0:
-            Gp_UnlinkObj(&work->playerStrikeBody);
-            Gp_UnlinkObj(&work->enemyStrikeBody);
-            Gp_UnlinkObj(&work->wallBody);
+            worldCollisionUnlinkBody(&work->playerStrikeBody);
+            worldCollisionUnlinkBody(&work->enemyStrikeBody);
+            worldCollisionUnlinkBody(&work->wallBody);
             work->timer        = 0;
             work->teardownStep = 1;
             return;

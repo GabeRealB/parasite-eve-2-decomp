@@ -52,7 +52,7 @@ void maggotCaterpillarPuffTick(Enemy* arg0, Task* arg1)
             work->age++;
             if (work->age >= 0xF) {
             block_11:
-                Gp_UnlinkObj(&work->body);
+                worldCollisionUnlinkBody(&work->body);
                 arg1->state = 2;
                 return;
             }

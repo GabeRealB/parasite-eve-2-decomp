@@ -451,7 +451,7 @@ static void func_actor_205200_8014BAE8(Enemy* enemy, Task* task)
     work->hitBody.radius           = 300;
     work->hitBody.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(2, &work->hitBody);
-    Gp_InitRec18Table(work->hitContacts, ARRAY_SIZE(work->hitContacts), 0);
+    worldCollisionInitContacts(work->hitContacts, ARRAY_SIZE(work->hitContacts), 0);
     work->hitBody.flags             |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     work->touchBody.coord            = coords;
     work->touchBody.context.contacts = work->touchContacts;
@@ -462,7 +462,7 @@ static void func_actor_205200_8014BAE8(Enemy* enemy, Task* task)
     work->touchBody.radius           = D_actor_205200_801567B0[work->room];
     work->touchBody.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(2, &work->touchBody);
-    Gp_InitRec18Table(work->touchContacts, ARRAY_SIZE(work->touchContacts), 0);
+    worldCollisionInitContacts(work->touchContacts, ARRAY_SIZE(work->touchContacts), 0);
     work->touchBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     task->msgTable         = D_actor_205200_801567D0;
     task->state            = 1;
@@ -883,8 +883,8 @@ static void func_actor_205200_8014C924(Enemy* arg0, Task* arg1)
 
     work = arg1->work;
     worldTargetUnlinkNode(&arg0->node);
-    Gp_UnlinkObj(&work->hitBody);
-    Gp_UnlinkObj(&work->touchBody);
+    worldCollisionUnlinkBody(&work->hitBody);
+    worldCollisionUnlinkBody(&work->touchBody);
     enemyDestroy(arg0, arg1);
 }
 

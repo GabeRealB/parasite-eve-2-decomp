@@ -15,7 +15,7 @@ void gluttonRainRise(Enemy* enemy, Task* task)
 
     work = task->work;
     if (gGluttonEnded == 1) {
-        Gp_UnlinkObj(&work->attackBody);
+        worldCollisionUnlinkBody(&work->attackBody);
         enemyDestroy(enemy, task);
         return;
     }

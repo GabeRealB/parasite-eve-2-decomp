@@ -1206,7 +1206,7 @@ static void Actor01100_Fn00CF0(Enemy* enemy, Task* task, _Actor01100Work* work, 
         obj->flags            = WORLD_COLLISION_BODY_SPHERE;
         Gp_LinkObj(2, obj);
         obj->flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        Gp_InitRec18Table(obj->context.contacts, 3, 0);
+        worldCollisionInitContacts(obj->context.contacts, 3, 0);
 
         obj                   = &work->bodies[ACTOR_01100_BODY_CHEST];
         obj->coord            = &task->extra.tmd->coords[3];
@@ -1219,7 +1219,7 @@ static void Actor01100_Fn00CF0(Enemy* enemy, Task* task, _Actor01100Work* work, 
         obj->flags            = WORLD_COLLISION_BODY_SPHERE;
         Gp_LinkObj(2, obj);
         obj->flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-        Gp_InitRec18Table(obj->context.contacts, 3, 0);
+        worldCollisionInitContacts(obj->context.contacts, 3, 0);
         obj->pos.vx = 0;
         obj->pos.vy = -0xC8;
         obj->pos.vz = 0xC8;
@@ -1248,7 +1248,7 @@ static void Actor01100_Fn00CF0(Enemy* enemy, Task* task, _Actor01100Work* work, 
                 obj->flags  = WORLD_COLLISION_BODY_SPHERE;
                 Gp_LinkObj(3, obj);
                 obj->flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-                Gp_InitRec18Table(obj->context.contacts, 3, 0);
+                worldCollisionInitContacts(obj->context.contacts, 3, 0);
                 recOff += sizeof(work->contacts[0]);
                 i++;
                 obj = &work->bodies[i + 1];
@@ -3367,7 +3367,7 @@ static void Actor01100_Fn05CFC(Enemy* enemy, Task* task, _Actor01100Work* work, 
 ///
 /// The collision body is linked as kind 3 pointing at the coordinate and at the
 /// 0x28 record, which takes 0x96 for `end0Radius` / `end1Radius` and points
-/// `contacts` at the one-entry collision table `Gp_InitRec18Table` zeroes, and
+/// `contacts` at the one-entry collision table `worldCollisionInitContacts` zeroes, and
 /// its `0xC000` flag pair is ORed in on top of `Gp_LinkObj`'s `flags = 3`. The
 /// actor takes `Actor01100_Fn073A8` as its exit callback and steps on to the
 /// next state, which it also runs immediately.
@@ -3444,7 +3444,7 @@ static void Actor01100_Fn05E68(Task* task)
     rec->ends[0].vz = 0;
     rec->end0Radius = 0x96;
     rec->end1Radius = 0x96;
-    Gp_InitRec18Table(work->contacts, ARRAY_SIZE(work->contacts), 0);
+    worldCollisionInitContacts(work->contacts, ARRAY_SIZE(work->contacts), 0);
     Gp_LinkObj(3, obj);
     obj->flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
 
@@ -3566,7 +3566,7 @@ static void Actor01100_Fn0638C(Task* task)
     obj->radius           = 0x2EE;
     obj->key              = Gp_PackPair(Actor01100_D074F8, 5);
     obj->flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_InitRec18Table(rec, 1, 0);
+    worldCollisionInitContacts(rec, 1, 0);
     Gp_LinkObj(3, obj);
     obj->flags        |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
     task->exitCallback = Actor01100_Fn073A8;
@@ -3639,7 +3639,7 @@ static void Actor01100_Fn0668C(Task* task)
     enemy = task->spawnArg2.pointer;
     work  = task->work;
     for (i = 0; i < ACTOR_01100_BODY_COUNT; i++) {
-        Gp_UnlinkObj(&work->bodies[i]);
+        worldCollisionUnlinkBody(&work->bodies[i]);
     }
     coord           = task->extra.tmd->coords;
     coord[1].parent = coord;
@@ -4148,7 +4148,7 @@ static void Actor01100_Fn0736C(Task* arg0)
 /// back off the object list and kills the task.
 static void Actor01100_Fn073A8(Task* arg0)
 {
-    Gp_UnlinkObj(&((_Actor01100SpitWork*)arg0->work)->body);
+    worldCollisionUnlinkBody(&((_Actor01100SpitWork*)arg0->work)->body);
     taskKill(arg0);
 }
 

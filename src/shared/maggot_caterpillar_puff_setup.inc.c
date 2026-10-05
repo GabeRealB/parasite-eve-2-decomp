@@ -45,7 +45,7 @@ void maggotCaterpillarPuffSetup(Enemy* enemy, Task* task)
     work->body.radius           = 0x100;
     work->body.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(3, &work->body);
-    Gp_InitRec18Table(work->contacts, ARRAY_SIZE(work->contacts), 0);
+    worldCollisionInitContacts(work->contacts, ARRAY_SIZE(work->contacts), 0);
     work->body.flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
     task->state       = 1;
 }

@@ -2833,7 +2833,7 @@ static void func_actor_510900_801397F0(Enemy* arg0, Task* arg1)
     work->attack.radius           = 0xC8;
     work->attack.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(3, &work->attack);
-    Gp_InitRec18Table(work->attackContacts, ARRAY_SIZE(work->attackContacts), 0);
+    worldCollisionInitContacts(work->attackContacts, ARRAY_SIZE(work->attackContacts), 0);
 
     work->gridProbeCapsule.ends[0].vx = 0;
     work->gridProbeCapsule.ends[0].vy = 0;
@@ -2854,7 +2854,7 @@ static void func_actor_510900_801397F0(Enemy* arg0, Task* arg1)
     work->gridProbe.flags             = WORLD_COLLISION_BODY_CAPSULE;
     work->attack.flags               |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     Gp_LinkObj(3, &work->gridProbe);
-    Gp_InitRec18Table(work->gridProbeContacts, ARRAY_SIZE(work->gridProbeContacts), 0);
+    worldCollisionInitContacts(work->gridProbeContacts, ARRAY_SIZE(work->gridProbeContacts), 0);
     work->gridProbe.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
 
     arg1->state = 1;
@@ -2955,7 +2955,7 @@ static void func_actor_510900_80139C10(Enemy* enemy, Task* task)
         }
         work->attack.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         Gp_ClearRec18Occupied(work->attackContacts);
-        Gp_UnlinkObj(&work->gridProbe);
+        worldCollisionUnlinkBody(&work->gridProbe);
         work->frames           = 0;
         task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
         snd                    = (((u16)((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x51100009;
@@ -2965,7 +2965,7 @@ static void func_actor_510900_80139C10(Enemy* enemy, Task* task)
     Gp_ClearRec18Occupied(work->attackContacts);
     if (parent->present == 0) {
         work->attack.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        Gp_UnlinkObj(&work->gridProbe);
+        worldCollisionUnlinkBody(&work->gridProbe);
         work->frames           = 0;
         task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
         task->state            = 2;
@@ -3000,7 +3000,7 @@ static void func_actor_510900_8013A100(Enemy* enemy, Task* task)
                 }
                 if (parent->present == 0) {
                     work->attack.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-                    Gp_UnlinkObj(&work->gridProbe);
+                    worldCollisionUnlinkBody(&work->gridProbe);
                     work->frames           = 0;
                     task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
                     task->state            = 2;
@@ -3021,7 +3021,7 @@ static void func_actor_510900_8013A100(Enemy* enemy, Task* task)
                         work->frames = 0;
                     } else if (parent->present == 0) {
                         work->attack.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-                        Gp_UnlinkObj(&work->gridProbe);
+                        worldCollisionUnlinkBody(&work->gridProbe);
                         work->frames           = 0;
                         task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
                         task->state            = 2;
@@ -3038,7 +3038,7 @@ static void func_actor_510900_8013A100(Enemy* enemy, Task* task)
                 work->frames = tick;
                 if (tick >= 0x1F) {
                     parent->grenadeLive = 0;
-                    Gp_UnlinkObj(&work->attack);
+                    worldCollisionUnlinkBody(&work->attack);
                     enemyDestroy(enemy, task);
                 }
                 break;
@@ -3183,7 +3183,7 @@ static void func_actor_510900_8013A5B8(Enemy* enemy, Task* task)
     work->body.radius           = 0xC8;
     work->body.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(2, &work->body);
-    Gp_InitRec18Table(work->bodyContacts, ARRAY_SIZE(work->bodyContacts), 0);
+    worldCollisionInitContacts(work->bodyContacts, ARRAY_SIZE(work->bodyContacts), 0);
     work->blast.key              = 0x50002;
     work->blast.coord            = coord;
     work->blast.pos.vx           = 0;
@@ -3194,7 +3194,7 @@ static void func_actor_510900_8013A5B8(Enemy* enemy, Task* task)
     work->blast.flags            = WORLD_COLLISION_BODY_SPHERE;
     work->body.flags            &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     Gp_LinkObj(8, &work->blast);
-    Gp_InitRec18Table(work->blastContacts, ARRAY_SIZE(work->blastContacts), 0);
+    worldCollisionInitContacts(work->blastContacts, ARRAY_SIZE(work->blastContacts), 0);
     work->blast.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     task->exitCallback = func_actor_510900_8013C380;
     task->state        = 1;
@@ -3461,7 +3461,7 @@ static void func_actor_510900_8013AD90(Enemy* enemy, Task* task)
     work->body.radius             = 0x12C;
     work->body.flags              = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(2, &work->body);
-    Gp_InitRec18Table(work->bodyContacts, ARRAY_SIZE(work->bodyContacts), 0);
+    worldCollisionInitContacts(work->bodyContacts, ARRAY_SIZE(work->bodyContacts), 0);
     work->blast.pos.vy           = -0x200;
     work->blast.coord            = coord;
     work->blast.pos.vx           = 0;
@@ -3472,7 +3472,7 @@ static void func_actor_510900_8013AD90(Enemy* enemy, Task* task)
     work->blast.flags            = WORLD_COLLISION_BODY_SPHERE;
     work->body.flags            &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     Gp_LinkObj(8, &work->blast);
-    Gp_InitRec18Table(work->blastContacts, ARRAY_SIZE(work->blastContacts), 0);
+    worldCollisionInitContacts(work->blastContacts, ARRAY_SIZE(work->blastContacts), 0);
     work->blast.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     task->exitCallback = func_actor_510900_8013C430;
     task->state        = 1;
@@ -3720,9 +3720,9 @@ void func_actor_510900_8013B608(Task* arg0)
 {
     Actor510900Work* work = arg0->work;
 
-    Gp_UnlinkObj(&work->body);
-    Gp_UnlinkObj(&work->weaponAttack);
-    Gp_UnlinkObj(&work->forearmAttack);
+    worldCollisionUnlinkBody(&work->body);
+    worldCollisionUnlinkBody(&work->weaponAttack);
+    worldCollisionUnlinkBody(&work->forearmAttack);
     enemyDestroy(arg0->spawnArg2.pointer, arg0);
 }
 
@@ -4208,8 +4208,8 @@ static void func_actor_510900_8013C380(Task* arg0)
     _Actor510900HelipadLightWork* work  = arg0->work;
 
     worldTargetUnlinkNode(&enemy->node);
-    Gp_UnlinkObj(&work->body);
-    Gp_UnlinkObj(&work->blast);
+    worldCollisionUnlinkBody(&work->body);
+    worldCollisionUnlinkBody(&work->blast);
     enemyDestroy(enemy, arg0);
 }
 
@@ -4229,7 +4229,7 @@ static void func_actor_510900_8013C430(Task* arg0)
     _Actor510900BlastSourceWork* work  = arg0->work;
 
     worldTargetUnlinkNode(&enemy->node);
-    Gp_UnlinkObj(&work->body);
-    Gp_UnlinkObj(&work->blast);
+    worldCollisionUnlinkBody(&work->body);
+    worldCollisionUnlinkBody(&work->blast);
     enemyDestroy(enemy, arg0);
 }

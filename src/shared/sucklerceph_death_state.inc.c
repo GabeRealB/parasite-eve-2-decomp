@@ -62,10 +62,10 @@ void sucklercephDeathState(Enemy* enemy, Task* task)
                         work->savedRootMtx  = coord->coord;
                         enemy->recs         = NULL;
                         worldTargetUnlinkNode(&enemy->node);
-                        Gp_UnlinkObj(&work->senseBody);
-                        Gp_UnlinkObj(&work->body);
-                        Gp_UnlinkObj(&work->attackBody);
-                        Gp_UnlinkObj(&work->blastBody);
+                        worldCollisionUnlinkBody(&work->senseBody);
+                        worldCollisionUnlinkBody(&work->body);
+                        worldCollisionUnlinkBody(&work->attackBody);
+                        worldCollisionUnlinkBody(&work->blastBody);
                     }
                     break;
                 case SUCKLERCEPH_DEATH_PHASE_FLATTEN:

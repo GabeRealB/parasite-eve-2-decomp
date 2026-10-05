@@ -329,7 +329,7 @@ static void func_actor_206100_8014AF74(Task* task);
 /// coordinate of the actor's `TmdObject` -- `trunkBody` to `coords[1]` with
 /// `field_1C` 0x400, `headBody` to `field_8[4]` with 0x200 -- and both point
 /// their `field_C` at the shared `WorldCollisionContact` pair table zeroed at `hitContacts`,
-/// which is why there is a single `Gp_InitRec18Table` for the pair.  Each
+/// which is why there is a single `worldCollisionInitContacts` for the pair.  Each
 /// block ends by clearing `flags` bit 0x8000 after its `Gp_LinkObj`, the same
 /// tail shape `func_actor_403100_80132320` has (`|= 0x8000` there).
 static void func_actor_206100_8014F18C(Task* task);
@@ -3345,7 +3345,7 @@ static void func_actor_206100_8014EEC0(Task* task)
     shot->strike.attackBody.radius           = 0x140;
     shot->strike.attackBody.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(3, &shot->strike.attackBody);
-    Gp_InitRec18Table(contacts, ARRAY_SIZE(shot->contacts), 0);
+    worldCollisionInitContacts(contacts, ARRAY_SIZE(shot->contacts), 0);
     shot->strike.attackBody.flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
     actorRenderComposeCoord(coord);
     diverImpactBurst(coord, (u16)shot->burstPhase, 0, shot->burstSize + ACTOR_206100_SHOT_BURST_VARIANT);
@@ -3381,7 +3381,7 @@ static void func_actor_206100_8014F18C(Task* task)
     work->trunkBody.radius           = 0x400;
     work->trunkBody.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(2, &work->trunkBody);
-    Gp_InitRec18Table(work->hitContacts, ARRAY_SIZE(work->hitContacts), 0);
+    worldCollisionInitContacts(work->hitContacts, ARRAY_SIZE(work->hitContacts), 0);
     work->trunkBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
 
     work->headBody.coord            = &task->extra.tmd->coords[4];
@@ -3732,8 +3732,8 @@ static void func_actor_206100_8014FBE4(Task* task)
     Gp_ReleaseStateF0Add(task, 0);
     gameFlagSetNibble(GAME_FLAG_0F3, 1);
     enemy->recs = 0;
-    Gp_UnlinkObj(&work->trunkBody);
-    Gp_UnlinkObj(&work->headBody);
+    worldCollisionUnlinkBody(&work->trunkBody);
+    worldCollisionUnlinkBody(&work->headBody);
     work->stateFrames = 0;
     work->state       = work->state + 1;
     soundId           = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40040006;

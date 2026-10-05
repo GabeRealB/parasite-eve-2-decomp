@@ -278,7 +278,7 @@ void func_800DD940(WorldCollisionBody* arg0)
         D_80115450[i] = 0;
     }
     func_800DDC2C(arg0);
-    func_800E0994(arg0, scratch->endpoints, scratch->ray);
+    worldCollisionPlaceFloorSegment(arg0, scratch->endpoints, scratch->ray);
     scratch->placedEndpoint.vx = scratch->endpoints[0].vx;
     scratch->placedEndpoint.vy = scratch->endpoints[0].vy;
     scratch->placedEndpoint.vz = scratch->endpoints[0].vz;

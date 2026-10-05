@@ -405,7 +405,7 @@ void func_actor_403600_80138C34(Task* arg0)
 
 void func_actor_403600_80138C68(Task* arg0)
 {
-    Gp_UnlinkObj(&((Actor403600ProjectileWork*)arg0->work)->attackBody);
+    worldCollisionUnlinkBody(&((Actor403600ProjectileWork*)arg0->work)->attackBody);
     taskKill(arg0);
 }
 
@@ -599,7 +599,7 @@ static void func_actor_403600_80138EF8(Enemy* enemy, Task* task)
     work->hitBody.radius           = 0x3E8;
     work->hitBody.flags            = (u32)WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(2, &work->hitBody);
-    Gp_InitRec18Table(temp_s0_2, 4, 0);
+    worldCollisionInitContacts(temp_s0_2, 4, 0);
     temp_s0_3                         = work->attackContacts;
     work->attackBody.coord            = temp_s5;
     work->attackBody.context.contacts = temp_s0_3;
@@ -611,7 +611,7 @@ static void func_actor_403600_80138EF8(Enemy* enemy, Task* task)
     work->attackBody.radius           = 0x5DC;
     work->attackBody.flags            = (u32)WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(3, &work->attackBody);
-    Gp_InitRec18Table(temp_s0_3, 1, 0);
+    worldCollisionInitContacts(temp_s0_3, 1, 0);
     temp_s0_4                       = work->gridContacts;
     work->gridBody.coord            = temp_s5;
     work->gridBody.context.contacts = temp_s0_4;
@@ -623,7 +623,7 @@ static void func_actor_403600_80138EF8(Enemy* enemy, Task* task)
     work->gridBody.flags            = (u32)WORLD_COLLISION_BODY_SPHERE;
     work->attackBody.flags          = work->attackBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     Gp_LinkObj(3, &work->gridBody);
-    Gp_InitRec18Table(temp_s0_4, 4, 0);
+    worldCollisionInitContacts(temp_s0_4, 4, 0);
     work->gridBody.flags = work->gridBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
     gfxReadMatrixZAxis(&task->extra.tmd->coords->coord, &rot);
     temp_s0_5 = ratan2(rot.vx, rot.vz);
@@ -2897,7 +2897,7 @@ static s32 func_actor_403600_8013D9A8(Task* arg0)
         if (((u32)(work->gridContacts[i].key.value & 0xFFFF0000) >> 16) == 0x10) {
             if (work->gridHitLatched == 0) {
                 work->gridHitLatched++;
-                if (func_800E1B24(work->gridContacts[i].key.value) == 3) {
+                if (worldCollisionSurfaceClassFromKey(work->gridContacts[i].key.value) == 3) {
                     return 2;
                 }
             }
@@ -3918,7 +3918,7 @@ static void func_actor_403600_8013F7B8(Enemy* enemy, Task* task)
     work->hitBody.radius           = 0x3E8;
     work->hitBody.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(2, &work->hitBody);
-    Gp_InitRec18Table(bodyRecs, 4, 0);
+    worldCollisionInitContacts(bodyRecs, 4, 0);
     attackRecs                        = work->attackContacts;
     work->attackBody.coord            = bodyCoord;
     work->attackBody.context.contacts = attackRecs;
@@ -3930,7 +3930,7 @@ static void func_actor_403600_8013F7B8(Enemy* enemy, Task* task)
     work->attackBody.radius           = 0x5DC;
     work->attackBody.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(3, &work->attackBody);
-    Gp_InitRec18Table(attackRecs, 1, 0);
+    worldCollisionInitContacts(attackRecs, 1, 0);
     work->attackBody.flags     &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     work->worldCoord.coord.t[0] = (s32)ownerWork->worldCoord.coord.t[0];
     work->worldCoord.coord.t[1] = (s32)ownerWork->worldCoord.coord.t[1];
@@ -4258,10 +4258,10 @@ static void func_actor_403600_80140488(Enemy* arg0, Task* arg1)
             arg1->extra.tmd->coords->parent = &gGfxViewCoord;
             enemy->recs                     = 0;
             worldTargetUnlinkNode(&enemy->node);
-            Gp_UnlinkObj(&cleanupWork->hitBody);
-            Gp_UnlinkObj(&cleanupWork->attackBody);
+            worldCollisionUnlinkBody(&cleanupWork->hitBody);
+            worldCollisionUnlinkBody(&cleanupWork->attackBody);
             if (arg1 == D_actor_403600_801606A8) {
-                Gp_UnlinkObj(&cleanupWork->gridBody);
+                worldCollisionUnlinkBody(&cleanupWork->gridBody);
             }
             enemyTaskExit(arg1);
             return;
@@ -4663,10 +4663,10 @@ static void func_actor_403600_80141598(Task* task)
     task->extra.tmd->coords->parent = &gGfxViewCoord;
     enemy->recs                     = 0;
     worldTargetUnlinkNode(&enemy->node);
-    Gp_UnlinkObj(&work->hitBody);
-    Gp_UnlinkObj(&work->attackBody);
+    worldCollisionUnlinkBody(&work->hitBody);
+    worldCollisionUnlinkBody(&work->attackBody);
     if (task == D_actor_403600_801606A8) {
-        Gp_UnlinkObj(&work->gridBody);
+        worldCollisionUnlinkBody(&work->gridBody);
     }
     enemyTaskExit(task);
 }

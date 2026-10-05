@@ -1212,7 +1212,7 @@ static void func_actor_401800_8013423C(Enemy* enemy, Task* actor)
     Gp_LinkObj(2, &work->gridBody);
     work->hitCooldown     = 0;
     work->gridBody.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
-    Gp_InitRec18Table(work->gridBody.context.contacts, ARRAY_SIZE(work->gridContacts), 0);
+    worldCollisionInitContacts(work->gridBody.context.contacts, ARRAY_SIZE(work->gridContacts), 0);
 
     body                   = &work->hitBody;
     body->coord            = &actor->extra.tmd->coords[2];
@@ -1225,7 +1225,7 @@ static void func_actor_401800_8013423C(Enemy* enemy, Task* actor)
     body->flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(2, body);
     body->flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-    Gp_InitRec18Table(body->context.contacts, ARRAY_SIZE(work->hitContacts), 0);
+    worldCollisionInitContacts(body->context.contacts, ARRAY_SIZE(work->hitContacts), 0);
 
     dir.vx                 = 0;
     dir.vy                 = 0;
@@ -1240,7 +1240,7 @@ static void func_actor_401800_8013423C(Enemy* enemy, Task* actor)
     head->radius           = 0x180;
     head->flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(3, head);
-    Gp_InitRec18Table(head->context.contacts, ARRAY_SIZE(work->attackContacts), 0);
+    worldCollisionInitContacts(head->context.contacts, ARRAY_SIZE(work->attackContacts), 0);
 
     work->patrolTarget      = 0;
     work->patrolPoints[0].x = actor->extra.tmd->coords->coord.t[0];

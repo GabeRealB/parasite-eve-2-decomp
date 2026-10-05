@@ -57,12 +57,12 @@ void golemPawnRookDeadState(Enemy* arg0, Task* arg1)
         case 0:
             arg0->recs = 0;
             worldTargetUnlinkNode(&arg0->node);
-            Gp_UnlinkObj(&work->sightBody);
-            Gp_UnlinkObj(&work->groundBody);
-            Gp_UnlinkObj(&work->hurtBody);
-            Gp_UnlinkObj(&work->strikeBody);
+            worldCollisionUnlinkBody(&work->sightBody);
+            worldCollisionUnlinkBody(&work->groundBody);
+            worldCollisionUnlinkBody(&work->hurtBody);
+            worldCollisionUnlinkBody(&work->strikeBody);
             if ((u32)((u16)work->actorId - 0x38) < 2U) {
-                Gp_UnlinkObj(&work->laserBody);
+                worldCollisionUnlinkBody(&work->laserBody);
             }
             Gp_ReleaseStateF0Add(arg1, work->actorId);
             anim = 0x1D;

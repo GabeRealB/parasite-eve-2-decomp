@@ -210,7 +210,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
             spriteQuadDraw(coord, mem->age, mem->angle, mem->period);
             glowDrawFlameStar(coord, mem->angle, (s16)((u16)mem->scale << 16 >> 17));
             if (Gp_CountRec18Hi(work->damageBody.context.contacts, 0x30000) != 0) {
-                Gp_UnlinkObj(&work->damageBody);
+                worldCollisionUnlinkBody(&work->damageBody);
                 radius     = (mem->index << 9) + 0x380;
                 mem->angle = radius;
                 for (i = 0; i < 0x556; i += 0x2AA) {
@@ -227,7 +227,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
                 return;
             }
             if (Gp_FindRec18(work->gridBody.context.contacts, WORLD_COLLISION_CONTACT_GRID) != 0) {
-                Gp_UnlinkObj(&work->gridBody);
+                worldCollisionUnlinkBody(&work->gridBody);
                 arg0->state = 2;
                 return;
             }
@@ -235,8 +235,8 @@ void func_pyrokinesis_8012EF48(Task* arg0)
             return;
         case 1:
             if ((Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) || ((peEffectControl = gRoomEffectState->peEffectControl), peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
-                Gp_UnlinkObj(&work->damageBody);
-                Gp_UnlinkObj(&work->gridBody);
+                worldCollisionUnlinkBody(&work->damageBody);
+                worldCollisionUnlinkBody(&work->gridBody);
                 effectKillTask(mem, arg0);
                 return;
             }
@@ -282,7 +282,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
             lightCoord->coord.t[2]   = coord->coord.t[2];
             lightCoord->composeStamp = GRAPHICS_COORD_DIRTY;
             if (Gp_CountRec18Hi(work->damageBody.context.contacts, 0x30000) != 0) {
-                Gp_UnlinkObj(&work->damageBody);
+                worldCollisionUnlinkBody(&work->damageBody);
                 for (i = 0; i < 0x556; i += 0x2AA) {
                     spawned = Gp_SpawnEff(EFFECT_PYROKINESIS_FLAME_RING, coord, i, NULL);
                     if (spawned != NULL) {
@@ -297,14 +297,14 @@ void func_pyrokinesis_8012EF48(Task* arg0)
                 return;
             }
             if (Gp_FindRec18(work->gridBody.context.contacts, WORLD_COLLISION_CONTACT_GRID) != 0) {
-                Gp_UnlinkObj(&work->gridBody);
+                worldCollisionUnlinkBody(&work->gridBody);
                 arg0->state = 2;
                 return;
             }
             tick = mem->age;
             if (tick * 6 > Gp_AttachParams[ATTACHMENT_INDEX_PYROKINESIS][mem->index].area.extent) {
-                Gp_UnlinkObj(&work->damageBody);
-                Gp_UnlinkObj(&work->gridBody);
+                worldCollisionUnlinkBody(&work->damageBody);
+                worldCollisionUnlinkBody(&work->gridBody);
                 arg0->state = 2;
                 return;
             }
@@ -312,13 +312,13 @@ void func_pyrokinesis_8012EF48(Task* arg0)
                 Gp_ClearRec18Occupied(work->contacts);
                 return;
             }
-            Gp_UnlinkObj(&work->damageBody);
-            Gp_UnlinkObj(&work->gridBody);
+            worldCollisionUnlinkBody(&work->damageBody);
+            worldCollisionUnlinkBody(&work->gridBody);
             effectKillTask(mem, arg0);
             return;
         case 2:
             if ((Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) || ((peEffectControl = gRoomEffectState->peEffectControl), peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
-                Gp_UnlinkObj(&work->damageBody);
+                worldCollisionUnlinkBody(&work->damageBody);
                 effectKillTask(mem, arg0);
                 return;
             }
@@ -339,7 +339,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
                 }
             }
             if (Gp_CountRec18Hi(work->damageBody.context.contacts, 0x30000) != 0) {
-                Gp_UnlinkObj(&work->damageBody);
+                worldCollisionUnlinkBody(&work->damageBody);
                 for (i = 0; i < 0x556; i += 0x2AA) {
                     spawned = Gp_SpawnEff(EFFECT_PYROKINESIS_FLAME_RING, coord, i, NULL);
                     if (spawned != NULL) {
@@ -354,7 +354,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
                 return;
             }
             if (mem->angle < 0x80) {
-                Gp_UnlinkObj(&work->damageBody);
+                worldCollisionUnlinkBody(&work->damageBody);
                 effectKillTask(mem, arg0);
                 return;
             }
@@ -362,7 +362,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
             return;
         case 3:
             if ((Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) || ((peEffectControl = gRoomEffectState->peEffectControl), peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
-                Gp_UnlinkObj(&work->gridBody);
+                worldCollisionUnlinkBody(&work->gridBody);
                 effectKillTask(mem, arg0);
                 return;
             }
@@ -377,14 +377,14 @@ void func_pyrokinesis_8012EF48(Task* arg0)
                               (s16)((u16)mem->scale << 16 >> 17));
             mem->angle = mem->angle + 0x40;
             if (mem->angle > ((mem->index << 9) + 0x580)) {
-                Gp_UnlinkObj(&work->gridBody);
+                worldCollisionUnlinkBody(&work->gridBody);
                 effectKillTask(mem, arg0);
                 return;
             }
             return;
         case 4:
             if ((Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) || ((peEffectControl = gRoomEffectState->peEffectControl), peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
-                Gp_UnlinkObj(&work->gridBody);
+                worldCollisionUnlinkBody(&work->gridBody);
                 effectKillTask(mem, arg0);
                 return;
             }
@@ -403,7 +403,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
                     mem->scale = mem->scale - 8;
                     return;
                 }
-                Gp_UnlinkObj(&work->gridBody);
+                worldCollisionUnlinkBody(&work->gridBody);
                 effectKillTask(mem, arg0);
             }
             return;

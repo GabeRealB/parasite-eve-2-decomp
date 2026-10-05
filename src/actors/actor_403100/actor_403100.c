@@ -3624,7 +3624,7 @@ static void func_actor_403100_80132064(Task* arg0, SVECTOR* arg1, SVECTOR* arg2,
             D_actor_403100_80155814[i].body.flags            = WORLD_COLLISION_BODY_SPHERE;
             body                                             = &D_actor_403100_80155814[i].body;
             Gp_LinkObj(3, body);
-            Gp_InitRec18Table(contacts, ARRAY_SIZE(D_actor_403100_80155814[i].contacts), 0);
+            worldCollisionInitContacts(contacts, ARRAY_SIZE(D_actor_403100_80155814[i].contacts), 0);
             if ((mode << 0x10) == 0) {
                 body->flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
             } else {
@@ -3651,7 +3651,7 @@ static void func_actor_403100_80132320(Task* arg0)
     D_actor_403100_80155808->headBody.radius           = 0x400;
     D_actor_403100_80155808->headBody.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(2, &D_actor_403100_80155808->headBody);
-    Gp_InitRec18Table(D_actor_403100_80155808->hitContacts, ARRAY_SIZE(D_actor_403100_80155808->hitContacts), 0);
+    worldCollisionInitContacts(D_actor_403100_80155808->hitContacts, ARRAY_SIZE(D_actor_403100_80155808->hitContacts), 0);
     D_actor_403100_80155808->headBody.flags            |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     D_actor_403100_80155808->trunkBody.coord            = &arg0->extra.tmd->coords[1];
     D_actor_403100_80155808->trunkBody.context.contacts = D_actor_403100_80155808->hitContacts;
@@ -3662,7 +3662,7 @@ static void func_actor_403100_80132320(Task* arg0)
     D_actor_403100_80155808->trunkBody.radius           = 0x800;
     D_actor_403100_80155808->trunkBody.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(2, &D_actor_403100_80155808->trunkBody);
-    Gp_InitRec18Table(D_actor_403100_80155808->initializedContacts, ARRAY_SIZE(D_actor_403100_80155808->initializedContacts), 0);
+    worldCollisionInitContacts(D_actor_403100_80155808->initializedContacts, ARRAY_SIZE(D_actor_403100_80155808->initializedContacts), 0);
     D_actor_403100_80155808->handAttack.key              = 0x3001F;
     D_actor_403100_80155808->trunkBody.flags            |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     D_actor_403100_80155808->handAttack.coord            = &arg0->extra.tmd->coords[7];
@@ -3673,7 +3673,7 @@ static void func_actor_403100_80132320(Task* arg0)
     D_actor_403100_80155808->handAttack.radius           = 0x3A0;
     D_actor_403100_80155808->handAttack.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(3, &D_actor_403100_80155808->handAttack);
-    Gp_InitRec18Table(D_actor_403100_80155808->handContacts, ARRAY_SIZE(D_actor_403100_80155808->handContacts), 0);
+    worldCollisionInitContacts(D_actor_403100_80155808->handContacts, ARRAY_SIZE(D_actor_403100_80155808->handContacts), 0);
     D_actor_403100_80155808->forearmAttack.key              = 0x3001F;
     D_actor_403100_80155808->handAttack.flags              &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     D_actor_403100_80155808->forearmAttack.coord            = &arg0->extra.tmd->coords[6];
@@ -3684,7 +3684,7 @@ static void func_actor_403100_80132320(Task* arg0)
     D_actor_403100_80155808->forearmAttack.radius           = 0x3A0;
     D_actor_403100_80155808->forearmAttack.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(3, &D_actor_403100_80155808->forearmAttack);
-    Gp_InitRec18Table(D_actor_403100_80155808->forearmContacts, ARRAY_SIZE(D_actor_403100_80155808->forearmContacts), 0);
+    worldCollisionInitContacts(D_actor_403100_80155808->forearmContacts, ARRAY_SIZE(D_actor_403100_80155808->forearmContacts), 0);
     D_actor_403100_80155808->forearmAttack.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
 }
 static void func_actor_403100_80132528(Task* arg0)
@@ -4249,7 +4249,7 @@ static void func_actor_403100_80133C94(Task* task)
     for (i = 0; i < ARRAY_SIZE(D_actor_403100_80155814); i++) {
         if (D_actor_403100_80155814[i].active != 0) {
             D_actor_403100_80155814[i].active = 0;
-            Gp_UnlinkObj(&D_actor_403100_80155814[i].body);
+            worldCollisionUnlinkBody(&D_actor_403100_80155814[i].body);
         }
     }
     SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 1);
@@ -4568,7 +4568,7 @@ static void func_actor_403100_8013480C(Task* arg0, s32 arg1)
             flame->spriteStep++;
             if (flame->age == D_actor_403100_80155808->flameLifetime) {
                 flame->active = 0;
-                Gp_UnlinkObj(&D_actor_403100_80155814[i].body);
+                worldCollisionUnlinkBody(&D_actor_403100_80155814[i].body);
             }
         } else {
             _actor403100SetObjFlags(&D_actor_403100_80155814[i].body, (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED)), 0);
@@ -4729,7 +4729,7 @@ static void func_actor_403100_8013539C(Task* arg0)
     for (i = 0; i < ARRAY_SIZE(D_actor_403100_80155814); i++) {
         if (D_actor_403100_80155814[i].active != 0) {
             D_actor_403100_80155814[i].active = 0;
-            Gp_UnlinkObj(&D_actor_403100_80155814[i].body);
+            worldCollisionUnlinkBody(&D_actor_403100_80155814[i].body);
         }
     }
     SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 1);
@@ -4781,7 +4781,7 @@ static void func_actor_403100_801355D4(Task* arg0)
     for (i = 0; i < ARRAY_SIZE(D_actor_403100_80155814); i++) {
         if (D_actor_403100_80155814[i].active != 0) {
             D_actor_403100_80155814[i].active = 0;
-            Gp_UnlinkObj(&D_actor_403100_80155814[i].body);
+            worldCollisionUnlinkBody(&D_actor_403100_80155814[i].body);
         }
     }
     SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 1);
@@ -4868,7 +4868,7 @@ static void func_actor_403100_801359DC(Task* arg0)
     for (i = 0; i < ARRAY_SIZE(D_actor_403100_80155814); i++) {
         if (D_actor_403100_80155814[i].active != 0) {
             D_actor_403100_80155814[i].active = 0;
-            Gp_UnlinkObj(&D_actor_403100_80155814[i].body);
+            worldCollisionUnlinkBody(&D_actor_403100_80155814[i].body);
         }
     }
     SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 1);
@@ -5540,7 +5540,7 @@ static void func_actor_403100_8013712C(Task* arg0)
     for (; i < ARRAY_SIZE(D_actor_403100_80155814); i++) {
         if (flames[i].active != 0) {
             flames[i].active = 0;
-            Gp_UnlinkObj(body);
+            worldCollisionUnlinkBody(body);
         }
         /* The collision body walks as its own pointer, one flame at a time:
            spelled `&flames[i].body` it folds into the walk of `flames[i]`,
@@ -5895,7 +5895,7 @@ static void func_actor_403100_80137F4C(Task* task)
     for (; i < ARRAY_SIZE(D_actor_403100_80155814); i++) {
         if (flame->active != 0) {
             flame->active = 0;
-            Gp_UnlinkObj(body);
+            worldCollisionUnlinkBody(body);
         }
         body = &(PARENT_OF(body, _Actor403100Flame, body) + 1)->body;
         flame++;
@@ -6503,7 +6503,7 @@ static void func_actor_403100_801395EC(Task* arg0)
         do {
             if (flame->active != 0) {
                 flame->active = 0;
-                Gp_UnlinkObj(body);
+                worldCollisionUnlinkBody(body);
             }
             body = &(PARENT_OF(body, _Actor403100Flame, body) + 1)->body;
             i   += 1;
@@ -6841,7 +6841,7 @@ static void func_actor_403100_8013A4C8(Task* arg0)
     for (; i < ARRAY_SIZE(D_actor_403100_80155814); i++) {
         if (flames[i].active != 0) {
             flames[i].active = 0;
-            Gp_UnlinkObj(body);
+            worldCollisionUnlinkBody(body);
         }
         body = &(PARENT_OF(body, _Actor403100Flame, body) + 1)->body;
     }
@@ -7131,7 +7131,7 @@ static void func_actor_403100_8013B128(Task* arg0)
     for (; i < ARRAY_SIZE(D_actor_403100_80155814); i++) {
         if (flames[i].active != 0) {
             flames[i].active = 0;
-            Gp_UnlinkObj(body);
+            worldCollisionUnlinkBody(body);
         }
         body = &(PARENT_OF(body, _Actor403100Flame, body) + 1)->body;
     }
@@ -8191,10 +8191,10 @@ static void func_actor_403100_8013D770(Task* arg0)
 }
 static void func_actor_403100_8013D88C(Task* arg0)
 {
-    Gp_UnlinkObj(&D_actor_403100_80155808->headBody);
-    Gp_UnlinkObj(&D_actor_403100_80155808->trunkBody);
-    Gp_UnlinkObj(&D_actor_403100_80155808->handAttack);
-    Gp_UnlinkObj(&D_actor_403100_80155808->forearmAttack);
+    worldCollisionUnlinkBody(&D_actor_403100_80155808->headBody);
+    worldCollisionUnlinkBody(&D_actor_403100_80155808->trunkBody);
+    worldCollisionUnlinkBody(&D_actor_403100_80155808->handAttack);
+    worldCollisionUnlinkBody(&D_actor_403100_80155808->forearmAttack);
     enemyDestroy(arg0->spawnArg2.pointer, arg0);
 }
 

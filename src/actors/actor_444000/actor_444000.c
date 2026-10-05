@@ -4423,7 +4423,7 @@ static void func_actor_444000_8013AFF8(Enemy* enemy, Task* task)
     work->swipeBody.radius          = 0;
     work->swipeBody.flags           = WORLD_COLLISION_BODY_CAPSULE;
     Gp_LinkObj(2, &work->swipeBody);
-    Gp_InitRec18Table(work->swipeContacts, ARRAY_SIZE(work->swipeContacts), 0);
+    worldCollisionInitContacts(work->swipeContacts, ARRAY_SIZE(work->swipeContacts), 0);
     work->swipeBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
 
     esc                                                   = Gp_SpawnEnemyFromTable(D_actor_444000_801616B0, 4, 0, task->spawnArg2.pointer);

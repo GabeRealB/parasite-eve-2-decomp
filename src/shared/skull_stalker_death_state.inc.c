@@ -44,9 +44,9 @@ void skullStalkerDeathState(Enemy* arg0, Task* arg1)
         work->phaseFrames = 0;
         arg0->recs        = 0;
         worldTargetUnlinkNode(&arg0->node);
-        Gp_UnlinkObj(&work->senseBody);
-        Gp_UnlinkObj(&work->frontSenseBody);
-        Gp_UnlinkObj(&work->body);
+        worldCollisionUnlinkBody(&work->senseBody);
+        worldCollisionUnlinkBody(&work->frontSenseBody);
+        worldCollisionUnlinkBody(&work->body);
     }
     skullStalkerTickAnim(arg1);
 }

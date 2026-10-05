@@ -200,7 +200,7 @@ void func_energyball_8012F180(Task* arg0)
                 }
             }
             if (arg0->state != 0) {
-                Gp_UnlinkObj(&work->body);
+                worldCollisionUnlinkBody(&work->body);
             }
             goto release;
         }
@@ -302,7 +302,7 @@ void func_energyball_8012F180(Task* arg0)
                             SndEvt_EnqueueType7(D_energyball_8013117C[mem->index], 1);
                         }
                     }
-                    Gp_UnlinkObj(&work->body);
+                    worldCollisionUnlinkBody(&work->body);
                     effectKillTask(mem, arg0);
                     return;
                 }
@@ -367,7 +367,7 @@ void func_energyball_8012F180(Task* arg0)
                             SndEvt_EnqueueType7(D_energyball_8013117C[mem->index], 1);
                         }
                     }
-                    Gp_UnlinkObj(&work->body);
+                    worldCollisionUnlinkBody(&work->body);
                     effectKillTask(mem, arg0);
                     return;
                 }
@@ -387,13 +387,13 @@ void func_energyball_8012F180(Task* arg0)
                 }
                 snd = D_energyball_8013117C;
                 sndEvtRequestScriptStart(snd[mem->index + 3], 0, 0);
-                Gp_UnlinkObj(&work->body);
+                worldCollisionUnlinkBody(&work->body);
                 mem->angle  = D_energyball_80131194[mem->index].fullSize;
                 arg0->state = 3;
                 return;
             }
             if (gRoomEffectState->battleState != ROOM_EFFECT_BATTLE_ENGAGED) {
-                Gp_UnlinkObj(&work->body);
+                worldCollisionUnlinkBody(&work->body);
                 arg0->state = 4;
                 return;
             }

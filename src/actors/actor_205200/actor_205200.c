@@ -546,7 +546,7 @@ static void func_actor_205200_8014AE0C(Enemy* arg0, Task* arg1)
     part->body.radius           = 0x1C2;
     part->body.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(2, &part->body);
-    Gp_InitRec18Table(part->contacts, ARRAY_SIZE(part->contacts), 0);
+    worldCollisionInitContacts(part->contacts, ARRAY_SIZE(part->contacts), 0);
     part->body.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     arg1->state       = ACTOR_205200_PART_TASK_LIVE;
 }
@@ -664,7 +664,7 @@ static void func_actor_205200_8014B484(Enemy* arg0, Task* arg1)
             Gp_SpawnEff(EFFECT_SMOKE_PUFF, coord, 0xF2001400, NULL);
             Gp_SpawnEff(EFFECT_SMOKE_PUFF, coord, 0xF2001400, NULL);
             worldTargetUnlinkNode(&arg0->node);
-            Gp_UnlinkObj(&part->body);
+            worldCollisionUnlinkBody(&part->body);
             Gp_ReleaseStateF0Add(arg1, 0x34);
             arg0->recs         = 0;
             work->nearestStale = 1;
@@ -722,7 +722,7 @@ static void func_actor_205200_8014B484(Enemy* arg0, Task* arg1)
         case ACTOR_205200_PART_DOWN_RETIRING:
             (Gp_ReleaseStateF0)(arg1, 0x34);
             worldTargetUnlinkNode(&arg0->node);
-            Gp_UnlinkObj(&part->body);
+            worldCollisionUnlinkBody(&part->body);
             part->downState = ACTOR_205200_PART_DOWN_RETIRED;
             break;
     }

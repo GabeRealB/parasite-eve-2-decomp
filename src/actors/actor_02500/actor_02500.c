@@ -742,7 +742,7 @@ static void Actor02500_Fn00078(Enemy* ctx, Task* actor)
     work->noticeBody.radius           = 0x258;
     work->noticeBody.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(3, &work->noticeBody);
-    Gp_InitRec18Table(work->noticeContacts, ARRAY_SIZE(work->noticeContacts), 0);
+    worldCollisionInitContacts(work->noticeContacts, ARRAY_SIZE(work->noticeContacts), 0);
 
     work->hitBody.coord            = coord;
     work->hitBody.context.contacts = work->hitContacts;
@@ -754,7 +754,7 @@ static void Actor02500_Fn00078(Enemy* ctx, Task* actor)
     work->hitBody.flags            = WORLD_COLLISION_BODY_SPHERE;
     work->noticeBody.flags        |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     Gp_LinkObj(2, &work->hitBody);
-    Gp_InitRec18Table(work->hitContacts, ARRAY_SIZE(work->hitContacts), 0);
+    worldCollisionInitContacts(work->hitContacts, ARRAY_SIZE(work->hitContacts), 0);
 
     if (ctx->place->mode == 0) {
         work->hitBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
@@ -771,7 +771,7 @@ static void Actor02500_Fn00078(Enemy* ctx, Task* actor)
     work->gridBody.radius           = 0x12C;
     work->gridBody.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(2, &work->gridBody);
-    Gp_InitRec18Table(work->gridContacts, ARRAY_SIZE(work->gridContacts), 0);
+    worldCollisionInitContacts(work->gridContacts, ARRAY_SIZE(work->gridContacts), 0);
     work->gridBody.flags |= (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED);
 
     work->attackBody.coord            = actor->extra.tmd->coords + 4;
@@ -783,7 +783,7 @@ static void Actor02500_Fn00078(Enemy* ctx, Task* actor)
     work->attackBody.radius           = 0x12C;
     work->attackBody.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(3, &work->attackBody);
-    Gp_InitRec18Table(work->attackContacts, ARRAY_SIZE(work->attackContacts), 0);
+    worldCollisionInitContacts(work->attackContacts, ARRAY_SIZE(work->attackContacts), 0);
     work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     actor->state            = 1;
 }
@@ -1522,10 +1522,10 @@ death:
     work->savedRootMtx = coord->coord;
     arg0->recs         = NULL;
     worldTargetUnlinkNode(&arg0->node);
-    Gp_UnlinkObj(&work->noticeBody);
-    Gp_UnlinkObj(&work->hitBody);
-    Gp_UnlinkObj(&work->gridBody);
-    Gp_UnlinkObj(&work->attackBody);
+    worldCollisionUnlinkBody(&work->noticeBody);
+    worldCollisionUnlinkBody(&work->hitBody);
+    worldCollisionUnlinkBody(&work->gridBody);
+    worldCollisionUnlinkBody(&work->attackBody);
     Gp_SetLightMode(arg0, ENEMY_COLOR_WEIGHTED);
     Gp_ReleaseStateF0Add(arg1, 0x19);
     c      = arg1->extra.tmd->coords;
@@ -1954,7 +1954,7 @@ static void Actor02500_Fn025D0(Enemy* ctx, Task* task)
     work->body.radius           = 200;
     work->body.flags            = (u32)WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(3, &work->body);
-    Gp_InitRec18Table(contacts, ARRAY_SIZE(work->contacts), 0);
+    worldCollisionInitContacts(contacts, ARRAY_SIZE(work->contacts), 0);
     work->body.flags = (u16)(work->body.flags | WORLD_COLLISION_BODY_PAIR_ENABLED);
     taskDetachFromParent(task);
     task->state = 1;
@@ -2004,7 +2004,7 @@ static void Actor02500_Fn02874(Enemy* ctx, Task* task)
 
     switch (work->releaseStep) {
         case ACTOR_02500_CORPSE_POISON_RELEASE_BEGIN:
-            Gp_UnlinkObj(&work->body);
+            worldCollisionUnlinkBody(&work->body);
             if (work->decal != NULL) {
                 // The decal's state 3 fades it out and ends its task.
                 work->decal->task->state = 3;

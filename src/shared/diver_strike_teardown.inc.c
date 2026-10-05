@@ -15,7 +15,7 @@ void diverStrikeTeardown(Task* task)
     countdown                 = task->killCountdown + 1;
     task->killCountdown       = countdown;
     if ((s16)countdown >= 0xC) {
-        Gp_UnlinkObj(&strike->attackBody);
+        worldCollisionUnlinkBody(&strike->attackBody);
         taskKill(task);
     }
 }

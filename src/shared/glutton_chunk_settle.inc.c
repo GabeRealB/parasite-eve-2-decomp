@@ -17,8 +17,8 @@ void gluttonChunkSettle(Enemy* enemy, Task* task)
     s16                    step;
 
     if (gGluttonEnded == 1) {
-        Gp_UnlinkObj(&work->attackBody);
-        Gp_UnlinkObj(&work->gridBody);
+        worldCollisionUnlinkBody(&work->attackBody);
+        worldCollisionUnlinkBody(&work->gridBody);
         enemyDestroy(enemy, task);
         return;
     }
@@ -64,8 +64,8 @@ void gluttonChunkSettle(Enemy* enemy, Task* task)
     }
 
     if (work->stateTicks >= 0x51) {
-        Gp_UnlinkObj(&work->attackBody);
-        Gp_UnlinkObj(&work->gridBody);
+        worldCollisionUnlinkBody(&work->attackBody);
+        worldCollisionUnlinkBody(&work->gridBody);
         task->state++;
     }
 

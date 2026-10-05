@@ -472,7 +472,7 @@ static void func_actor_323300_80161E78(Task* arg0)
     body->flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(2, body);
     body->flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-    Gp_InitRec18Table(body->context.contacts, 1, 0);
+    worldCollisionInitContacts(body->context.contacts, 1, 0);
     arg0->msgTable = D_actor_323300_80172574;
     func_actor_323300_80162208(arg0, ACTOR_MESSAGE_SET_MODEL_DRAW, 0, 0);
     actorMsgPlaceEuler(arg0, 0x7D3, &D_actor_323300_8017259C, 0);
@@ -717,7 +717,7 @@ void func_actor_323300_80162630(Task* task)
 
 static void func_actor_323300_8016269C(Task* arg0)
 {
-    Gp_UnlinkObj(&((_Actor323300WomanWork*)arg0->work)->body);
+    worldCollisionUnlinkBody(&((_Actor323300WomanWork*)arg0->work)->body);
     enemyTaskExit(arg0);
 }
 

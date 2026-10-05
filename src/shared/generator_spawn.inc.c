@@ -59,7 +59,7 @@ void generatorSpawn(Enemy* arg0, Task* arg1)
     work->rootBody.radius           = 0x5DC;
     work->rootBody.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(2, &work->rootBody);
-    Gp_InitRec18Table(work->contacts, ARRAY_SIZE(work->contacts), 0);
+    worldCollisionInitContacts(work->contacts, ARRAY_SIZE(work->contacts), 0);
     work->rootBody.flags             |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     work->targetBody.coord            = coord;
     work->targetBody.context.contacts = work->contacts;

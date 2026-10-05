@@ -1742,7 +1742,7 @@ void func_actor_403600_80134398(Task* arg0)
             newShape->ends[0].vz              = 0;
             newShape->end0Radius              = 0xC8;
             newShape->end1Radius              = 0xC8;
-            Gp_InitRec18Table(recs, ARRAY_SIZE(newWork->attackContacts), 0);
+            worldCollisionInitContacts(recs, ARRAY_SIZE(newWork->attackContacts), 0);
             Gp_LinkObj(3, obj);
             obj->flags         = obj->flags | (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
             arg0->exitCallback = func_actor_403600_80138C68;

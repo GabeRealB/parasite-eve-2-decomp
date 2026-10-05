@@ -15,7 +15,7 @@ void madChaserLinkBodies(Task* arg0)
     work->pairBody.radius           = 0x170;
     work->pairBody.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(2, &work->pairBody);
-    Gp_InitRec18Table(work->contacts, 8, 0);
+    worldCollisionInitContacts(work->contacts, ARRAY_SIZE(work->contacts), 0);
     work->pairBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
 
     work->attackBody.coord            = &arg0->extra.tmd->coords[1];
@@ -27,7 +27,7 @@ void madChaserLinkBodies(Task* arg0)
     work->attackBody.radius           = 0x170;
     work->attackBody.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(2, &work->attackBody);
-    Gp_InitRec18Table(work->attackContacts, 2, 0);
+    worldCollisionInitContacts(work->attackContacts, ARRAY_SIZE(work->attackContacts), 0);
     work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
 
     work->gridBody.coord            = &arg0->extra.tmd->coords[1];

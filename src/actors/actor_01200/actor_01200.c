@@ -713,7 +713,7 @@ static void Actor01200_Fn00A6C(Enemy* arg0, Task* arg1)
     o1->flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(2, o1);
     o1->flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
-    Gp_InitRec18Table(o1->context.contacts, ARRAY_SIZE(work->gridContacts), 0);
+    worldCollisionInitContacts(o1->context.contacts, ARRAY_SIZE(work->gridContacts), 0);
 
     o2                   = &work->hitBody;
     sv.vx                = 0;
@@ -731,7 +731,7 @@ static void Actor01200_Fn00A6C(Enemy* arg0, Task* arg1)
     o2->flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(2, o2);
     o2->flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-    Gp_InitRec18Table(o2->context.contacts, ARRAY_SIZE(work->hitContacts), 0);
+    worldCollisionInitContacts(o2->context.contacts, ARRAY_SIZE(work->hitContacts), 0);
 
     o3                   = &work->burstAttackBody;
     sv.vx                = 0;
@@ -745,7 +745,7 @@ static void Actor01200_Fn00A6C(Enemy* arg0, Task* arg1)
     o3->radius           = 0x500;
     o3->flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(3, o3);
-    Gp_InitRec18Table(o3->context.contacts, ARRAY_SIZE(work->burstAttackContacts), 0);
+    worldCollisionInitContacts(o3->context.contacts, ARRAY_SIZE(work->burstAttackContacts), 0);
 
     o4                   = &work->burstWaveBody;
     o4->coord            = &gGfxViewCoord;
@@ -756,7 +756,7 @@ static void Actor01200_Fn00A6C(Enemy* arg0, Task* arg1)
     o4->radius           = 0x80;
     o4->flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(8, o4);
-    Gp_InitRec18Table(o4->context.contacts, ARRAY_SIZE(work->burstWaveContacts), 0);
+    worldCollisionInitContacts(o4->context.contacts, ARRAY_SIZE(work->burstWaveContacts), 0);
 
     arg0->field_4    = &coord->coord;
     arg0->field_48   = 0;

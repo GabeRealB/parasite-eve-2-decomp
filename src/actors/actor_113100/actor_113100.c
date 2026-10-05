@@ -1260,7 +1260,7 @@ static void func_actor_113100_80131E58(Task* task)
     obj->flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(2, obj);
     obj->flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-    Gp_InitRec18Table(obj->context.contacts, ARRAY_SIZE(work->contacts), 0);
+    worldCollisionInitContacts(obj->context.contacts, ARRAY_SIZE(work->contacts), 0);
 
     task->msgTable = D_actor_113100_80144338;
     func_mist_parking_80183BAC(1);
@@ -1731,7 +1731,7 @@ void func_actor_113100_80132E98(Task* task)
 /// destroys the task.
 static void func_actor_113100_80132EF0(Task* arg0)
 {
-    Gp_UnlinkObj(&((_Actor113100PierceCarradineWork*)arg0->work)->body);
+    worldCollisionUnlinkBody(&((_Actor113100PierceCarradineWork*)arg0->work)->body);
     enemyTaskExit(arg0);
 }
 

@@ -14,7 +14,7 @@
 // Collision lists, contact records, room grids and collision updates.
 
 /// Pair-handler table used by `Gp_RunPairHandler` / `Gp_CollideLists`.
-/// Indexed by `WorldCollisionPairRule::handlerIndex` (`Gp_PairNop` / `Gp_PairHandler1` /
+/// Indexed by `WorldCollisionPairRule::handlerIndex` (`worldCollisionPairNop` / `Gp_PairHandler1` /
 /// `Gp_PairHandler3`).
 extern WorldCollisionPairHandler Gp_PairHandlers[5];
 
@@ -69,7 +69,11 @@ extern WorldCollisionBody* Gp_ObjList8;
 
 void Gp_ClearObjHeads(void);
 
-s32 Gp_PairNop(WorldCollisionBody* arg0, WorldCollisionBody* arg1, s32 kind);
+/// Pair-dispatch callback for routes that perform no contact test.
+///
+/// Installed at handler indices 0, 2 and 4. Ignores both ordered bodies and
+/// the handler index, changes no state, and returns 0 (no contact).
+s32 worldCollisionPairNop(WorldCollisionBody* firstBody, WorldCollisionBody* secondBody, s32 handlerIndex);
 
 void Gp_ClearObj4AList(s32 arg0);
 
@@ -93,9 +97,32 @@ void func_800E06AC(WorldCollisionBody* node, s32 mask, s32 match);
 
 void Gp_LocalToGrid(VECTOR3* arg0, SVECTOR3* arg1);
 
-void Gp_ObjWorldPos(WorldCollisionBody* arg0, VECTOR3* arg1);
+/// Places a body's local centre/origin in its cached coordinate composition frame.
+///
+/// `body->coord->workm` must already be composed. Rotates `body->pos` and adds
+/// the cached translation, in game-coordinate units; the frame may be the
+/// view frame rather than absolute world axes. Writes XYZ only, leaving the
+/// output's fourth word untouched. Body and output must be disjoint from an
+/// initialized scratch stack's 48-byte reservation, released before return.
+/// Changes GTE rotation and arithmetic state; retains no pointers and does not
+/// compose or modify the body.
+void worldCollisionGetBodyComposedPosition(const WorldCollisionBody* body, VECTOR* position);
 
-void func_800E0994(WorldCollisionBody* arg0, VECTOR* arg1, SVECTOR* arg2);
+/// Places a body's vertical floor-query segment and returns its unit direction.
+///
+/// In the body's frame, X and Z are zero and endpoint Y is `pos.vy + radius`
+/// for [0], `pos.vy - radius` for [1], truncated to signed halfwords. The cached
+/// `coord->workm` rotates and translates both into its composition frame, in
+/// game-coordinate units; it must already be composed. `direction` is endpoint
+/// 0 minus endpoint 1, normalized with 4096 for one unit. Endpoint pad words and
+/// the direction pad halfword are untouched. Radius and transform must produce
+/// a segment delta with signed-halfword components and squared length in
+/// 1..0x7FFFFFFF, as required by the SDK's GTE normalization. Outputs must be
+/// disjoint from each other, the
+/// body and its transform, and the initialized scratch stack's 32-byte
+/// reservation. Releases that reservation before return, changes GTE rotation
+/// and arithmetic state, and retains no pointers.
+void worldCollisionPlaceFloorSegment(const WorldCollisionBody* body, VECTOR endpoints[2], SVECTOR* direction);
 
 void Gp_ClearPendingObj4C(void);
 

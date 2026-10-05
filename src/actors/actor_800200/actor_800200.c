@@ -943,7 +943,7 @@ static void func_actor_800200_80162088(Task* arg0)
         obj->key    = temp | packed;
         Gp_LinkObj(0, obj);
     }
-    Gp_InitRec18Table(actor->collisionMotionContexts[0].contacts, ARRAY_SIZE(actor->collisionContacts), 0);
+    worldCollisionInitContacts(actor->collisionMotionContexts[0].contacts, ARRAY_SIZE(actor->collisionContacts), 0);
     obj->flags                                |= (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
     obj                                        = &actor->collisionBodies[GAME_ACTOR_BODY_PART4];
     next                                       = arg0->extra.tmd->coords;
@@ -1081,8 +1081,8 @@ static void func_actor_800200_801626A0(Task* task)
 
     actor                                          = (GameActor*)task->work;
     gPlayerActorTasks[PLAYER_ACTOR_TASK_COMPANION] = NULL;
-    Gp_UnlinkObj(&actor->collisionBodies[GAME_ACTOR_BODY_ROOT]);
-    Gp_UnlinkObj(&actor->collisionBodies[GAME_ACTOR_BODY_PART4]);
+    worldCollisionUnlinkBody(&actor->collisionBodies[GAME_ACTOR_BODY_ROOT]);
+    worldCollisionUnlinkBody(&actor->collisionBodies[GAME_ACTOR_BODY_PART4]);
     taskKill(task);
 }
 

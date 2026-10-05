@@ -5035,7 +5035,7 @@ static void func_acropolis_bridge_80185988(Enemy* enemy, Task* task)
     link->flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(2, link);
     link->flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-    Gp_InitRec18Table(link->context.contacts, 3, 0);
+    worldCollisionInitContacts(link->context.contacts, 3, 0);
     pos.vx                  = 0;
     pos.vy                  = 0;
     pos.vz                  = 0;
@@ -5046,7 +5046,7 @@ static void func_acropolis_bridge_80185988(Enemy* enemy, Task* task)
     link2->radius = 0x100;
     link2->flags  = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(3, link2);
-    Gp_InitRec18Table(link2->context.contacts, 1, 0);
+    worldCollisionInitContacts(link2->context.contacts, 1, 0);
     work->attack.key  = Gp_PackObjPair(enemy, 0);
     coord->parent     = &gGfxViewCoord;
     work->yaw         = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);

@@ -28,6 +28,6 @@ extern AnimationSet* gRatAnimSets[11];
 
 /// Second variant's spawn: allocates its 0x39C-byte work block, binds the two
 /// pose matrices into the TMD object, then hangs the four render nodes on
-/// their global lists with the record tables `Gp_InitRec18Table` zeroes.
+/// their global lists with the record tables `worldCollisionInitContacts` zeroes.
 
 #endif // SRC_ACTORS_ACTOR_300700_ACTOR_300700_PRIVATE_H

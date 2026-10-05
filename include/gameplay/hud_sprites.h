@@ -33,6 +33,23 @@ void Gp_TriggerPeIfArmed(void);
 /// Changes GTE rotation and arithmetic state; does not update coordinate stamps.
 void gfxMakeRelativeTransform(const MATRIX* reference, const MATRIX* target, MATRIX* out);
 
+/// Builds a rotation whose local +Z axis faces along a supplied direction.
+///
+/// Normalizes the nonzero `direction` in its own frame, then writes
+/// Ry(yaw) * Rx(-pitch) * Rz(roll) into `out` using GTE arithmetic. Yaw is
+/// measured from +Z toward +X and pitch from the XZ plane toward +Y. Angles
+/// count 4096 units per turn; roll is truncated to a signed halfword before
+/// forming its rotation. Matrix elements use `ONE` (4096) for one unit.
+/// Direction is read only; its pad word is ignored. Only the nine rotation
+/// elements of `out` are written, leaving translation and alignment bytes
+/// untouched. Does not update a containing coordinate's composition stamp.
+/// Supply signed-halfword XYZ components whose squared length is in
+/// 1..0x7FFFFFFF, as required by the SDK's GTE normalization.
+/// Requires an initialized scratch stack with 76 free bytes disjoint from
+/// both arguments, released before return. Changes GTE rotation, IR/MAC and
+/// leading-sign-bit-count state; retains no pointers.
+void gfxBuildDirectionRotation(const VECTOR* direction, MATRIX* out, s32 roll);
+
 s32 Gp_TrySpawnViewTask(ViewCamera* camera);
 
 void Gp_ApplyView(ViewCamera* camera);

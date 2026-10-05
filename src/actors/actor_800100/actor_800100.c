@@ -1192,7 +1192,7 @@ static void func_actor_800100_80163214(Task* arg0)
         obj->key    = temp | packed | 0x80;
         Gp_LinkObj(0, obj);
     }
-    Gp_InitRec18Table(actor->collisionMotionContexts[0].contacts, ARRAY_SIZE(actor->collisionContacts), 0);
+    worldCollisionInitContacts(actor->collisionMotionContexts[0].contacts, ARRAY_SIZE(actor->collisionContacts), 0);
     obj->flags                                |= (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
     next                                       = arg0->extra.tmd->coords + 4;
     obj                                        = &actor->collisionBodies[GAME_ACTOR_BODY_PART4];
@@ -1479,11 +1479,11 @@ static void func_actor_800100_80163C04(Task* arg0)
     if (task != NULL) {
         taskKill(task);
     }
-    Gp_UnlinkObj(&actor->collisionBodies[GAME_ACTOR_BODY_ROOT]);
-    Gp_UnlinkObj(&actor->collisionBodies[GAME_ACTOR_BODY_PART4]);
-    Gp_UnlinkObj(&actor->collisionBodies[GAME_ACTOR_BODY_PART1]);
-    Gp_UnlinkObj(&actor->collisionBodies[GAME_ACTOR_BODY_WEAPON]);
-    Gp_UnlinkObj(&companion->probe.body);
+    worldCollisionUnlinkBody(&actor->collisionBodies[GAME_ACTOR_BODY_ROOT]);
+    worldCollisionUnlinkBody(&actor->collisionBodies[GAME_ACTOR_BODY_PART4]);
+    worldCollisionUnlinkBody(&actor->collisionBodies[GAME_ACTOR_BODY_PART1]);
+    worldCollisionUnlinkBody(&actor->collisionBodies[GAME_ACTOR_BODY_WEAPON]);
+    worldCollisionUnlinkBody(&companion->probe.body);
     taskKill(arg0);
 }
 
@@ -3218,7 +3218,7 @@ static s32 func_actor_800100_80166B40(WorldCollisionContact* arg0, GfxCoord* arg
             dist += abs(arg1->workm.t[2] - rec->point.vz);
             if (dist < minDist) {
                 func_800E0FEC(rec, &block->pushback, 1, &idx);
-                idx = func_800E1ACC((u8*)&idx);
+                idx = worldCollisionSurfaceClassFromMask((const u8*)&idx);
                 if (Gp_RoomParamTables[gGameSession->location.loc.stage - 1][gGameSession->location.loc.area - 1][idx]->weaponImpactEnabled != WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS) {
                     minDist = dist;
                     bestIdx = i;
@@ -3345,7 +3345,7 @@ static void func_actor_800100_80166F50(Task* arg0)
         rec->end0Radius      = 1;
         rec->contacts        = actor->aimContacts;
         Gp_LinkObj(1, obj);
-        Gp_InitRec18Table(rec->contacts, 1, 0);
+        worldCollisionInitContacts(rec->contacts, 1, 0);
         obj->flags |= WORLD_COLLISION_BODY_SINGLE_CONTACT;
     }
 }

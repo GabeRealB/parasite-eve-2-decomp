@@ -447,7 +447,7 @@ static void Actor02400_Fn0095C(Enemy* enemy, Task* task)
     work->body.radius           = 0xC8;
     work->body.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(2, &work->body);
-    Gp_InitRec18Table(work->bodyContacts, ARRAY_SIZE(work->bodyContacts), 0);
+    worldCollisionInitContacts(work->bodyContacts, ARRAY_SIZE(work->bodyContacts), 0);
     work->body.flags                 |= (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
     work->attackBody.coord            = &task->extra.tmd->coords[3];
     work->attackBody.context.contacts = work->attackContacts;
@@ -458,7 +458,7 @@ static void Actor02400_Fn0095C(Enemy* enemy, Task* task)
     work->attackBody.radius           = 0x64;
     work->attackBody.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(3, &work->attackBody);
-    Gp_InitRec18Table(work->attackContacts, ARRAY_SIZE(work->attackContacts), 0);
+    worldCollisionInitContacts(work->attackContacts, ARRAY_SIZE(work->attackContacts), 0);
     work->attackBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     task->state             = 1;
 }
@@ -1264,8 +1264,8 @@ static void Actor02400_Fn024F8(Enemy* arg0, Task* arg1)
                     work->baseMatrix = coord->coord;
                     arg0->recs       = 0;
                     worldTargetUnlinkNode(&arg0->node);
-                    Gp_UnlinkObj(&work->body);
-                    Gp_UnlinkObj(&work->attackBody);
+                    worldCollisionUnlinkBody(&work->body);
+                    worldCollisionUnlinkBody(&work->attackBody);
                     Gp_SetLightMode(arg0, ENEMY_COLOR_WEIGHTED);
                     Gp_ReleaseStateF0Add(arg1, 0x18);
                     work->phase = ACTOR_02400_DEATH_PHASE_SQUASH;
@@ -1368,7 +1368,7 @@ static void Actor02400_Fn02790(Enemy* arg0, Task* arg1)
     work->playerStrikeBody.radius           = 0xC8;
     work->playerStrikeBody.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(3, &work->playerStrikeBody);
-    Gp_InitRec18Table(work->strikeContacts, ARRAY_SIZE(work->strikeContacts), 0);
+    worldCollisionInitContacts(work->strikeContacts, ARRAY_SIZE(work->strikeContacts), 0);
     work->playerStrikeBody.flags          |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     objCoord2                              = arg1->extra.tmd->coords;
     work->enemyStrikeBody.context.contacts = work->strikeContacts;
@@ -1405,7 +1405,7 @@ static void Actor02400_Fn02790(Enemy* arg0, Task* arg1)
     work->wallBody.flags           = WORLD_COLLISION_BODY_CAPSULE;
     work->wallBody.coord           = objCoord3;
     Gp_LinkObj(3, &work->wallBody);
-    Gp_InitRec18Table(work->wallContacts, ARRAY_SIZE(work->wallContacts), 0);
+    worldCollisionInitContacts(work->wallContacts, ARRAY_SIZE(work->wallContacts), 0);
     work->timer           = 90;
     work->wallBody.flags |= (WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_GRID_ENABLED);
     taskDetachFromParent(arg1);
@@ -1443,7 +1443,7 @@ static void Actor02400_Fn02AF0(Enemy* arg0, Task* arg1)
             rec = work->wallContacts[0].key.value;
             if ((rec != 0) &&
                 (Gp_RoomParamTables[gGameSession->location.loc.stage - 1][gGameSession->location.loc.area - 1]
-                                   [func_800E1B24(rec)]
+                                   [worldCollisionSurfaceClassFromKey(rec)]
                                        ->probePassThrough == WORLD_COLLISION_SURFACE_BLOCK_PROBES)) {
                 spawn = 1;
             }
@@ -1708,9 +1708,9 @@ static void Actor02400_Fn033B4(Enemy* arg0, Task* arg1)
     work = arg1->work;
     switch (work->teardownStep) {
         case ACTOR_02400_FIREBALL_TEARDOWN_UNLINK:
-            Gp_UnlinkObj(&work->playerStrikeBody);
-            Gp_UnlinkObj(&work->enemyStrikeBody);
-            Gp_UnlinkObj(&work->wallBody);
+            worldCollisionUnlinkBody(&work->playerStrikeBody);
+            worldCollisionUnlinkBody(&work->enemyStrikeBody);
+            worldCollisionUnlinkBody(&work->wallBody);
             work->teardownStep = ACTOR_02400_FIREBALL_TEARDOWN_WAIT;
             work->timer        = 60;
             return;

@@ -2173,7 +2173,7 @@ STATIC_ASSERT(ARRAY_SIZE(SPRITE_QUAD_UV_TABLE) == ARRAY_SIZE(_gActor510900Fireba
 /// flame-jet effect, kept in `flameJetTask` and reparented onto this task.
 ///
 /// `body`, `weaponAttack` and `forearmAttack` are linked into the global
-/// object lists with their contact tables (`Gp_InitRec18Table`); pair tests
+/// object lists with their contact tables (`worldCollisionInitContacts`); pair tests
 /// are then enabled for `body` and left disabled for the two attack spheres.
 ///
 /// A failed allocation tears the enemy down instead and leaves the task on this
@@ -2293,7 +2293,7 @@ void func_actor_510900_801350F8(Enemy* arg0, Task* arg1)
     work->body.radius           = 0x1C2;
     work->body.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(2, &work->body);
-    Gp_InitRec18Table(records1, ARRAY_SIZE(work->bodyContacts), 0);
+    worldCollisionInitContacts(records1, ARRAY_SIZE(work->bodyContacts), 0);
     records2                            = work->attackContacts;
     work->body.flags                   |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     work->weaponAttack.coord            = work->weaponTask->extra.tmd->coords;
@@ -2305,7 +2305,7 @@ void func_actor_510900_801350F8(Enemy* arg0, Task* arg1)
     work->weaponAttack.radius           = 0x190;
     work->weaponAttack.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(3, &work->weaponAttack);
-    Gp_InitRec18Table(records2, ARRAY_SIZE(work->attackContacts), 0);
+    worldCollisionInitContacts(records2, ARRAY_SIZE(work->attackContacts), 0);
     work->weaponAttack.flags            &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     work->forearmAttack.coord            = &arg1->extra.tmd->coords[7];
     work->forearmAttack.context.contacts = records2;

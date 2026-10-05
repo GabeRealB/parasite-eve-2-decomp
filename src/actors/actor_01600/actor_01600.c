@@ -1566,7 +1566,7 @@ static void Actor01600_Fn00480(Task* actor)
     work->sight.body.flags           = WORLD_COLLISION_BODY_CAPSULE;
     work->sight.body.coord           = coord;
     Gp_LinkObj(3, &work->sight.body);
-    Gp_InitRec18Table(table1, ARRAY_SIZE(work->sight.contacts), 0);
+    worldCollisionInitContacts(table1, ARRAY_SIZE(work->sight.contacts), 0);
     table2                                 = work->bodySphere.contacts;
     work->bodySphere.body.coord            = coord;
     work->bodySphere.body.context.contacts = table2;
@@ -1578,7 +1578,7 @@ static void Actor01600_Fn00480(Task* actor)
     work->bodySphere.body.flags            = WORLD_COLLISION_BODY_SPHERE;
     work->sight.body.flags                |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
     Gp_LinkObj(2, &work->bodySphere.body);
-    Gp_InitRec18Table(table2, ARRAY_SIZE(work->bodySphere.contacts), 0);
+    worldCollisionInitContacts(table2, ARRAY_SIZE(work->bodySphere.contacts), 0);
     table3                               = work->pathProbe.contacts;
     work->pathProbe.shape.ends[0].vz     = 0x1F4;
     work->pathProbe.shape.ends[0].vx     = 0x1F4;
@@ -1595,7 +1595,7 @@ static void Actor01600_Fn00480(Task* actor)
     work->pathProbe.body.flags           = WORLD_COLLISION_BODY_CAPSULE;
     work->bodySphere.body.flags         |= (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
     Gp_LinkObj(2, &work->pathProbe.body);
-    Gp_InitRec18Table(table3, ARRAY_SIZE(work->pathProbe.contacts), 0);
+    worldCollisionInitContacts(table3, ARRAY_SIZE(work->pathProbe.contacts), 0);
     table4                           = work->bite.contacts;
     work->bite.body.coord            = coord;
     work->bite.body.context.contacts = table4;
@@ -1607,7 +1607,7 @@ static void Actor01600_Fn00480(Task* actor)
     work->bite.body.radius           = 0x12C;
     work->bite.body.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(3, &work->bite.body);
-    Gp_InitRec18Table(table4, ARRAY_SIZE(work->bite.contacts), 0);
+    worldCollisionInitContacts(table4, ARRAY_SIZE(work->bite.contacts), 0);
     work->bite.body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
 }
 
@@ -3484,10 +3484,10 @@ static void Actor01600_Fn04054(Enemy* arg0, Task* arg1)
             arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
             arg0->recs                   = 0;
             worldTargetUnlinkNode(&arg0->node);
-            Gp_UnlinkObj(&work->pathProbe.body);
-            Gp_UnlinkObj(&work->sight.body);
-            Gp_UnlinkObj(&work->bodySphere.body);
-            Gp_UnlinkObj(&work->bite.body);
+            worldCollisionUnlinkBody(&work->pathProbe.body);
+            worldCollisionUnlinkBody(&work->sight.body);
+            worldCollisionUnlinkBody(&work->bodySphere.body);
+            worldCollisionUnlinkBody(&work->bite.body);
             state = &gSceneCombatState;
             if (state->actor01600Wave >= 3) {
                 if (Actor01600_Fn06F78() == 1) {
@@ -4927,10 +4927,10 @@ static void Actor01600_Fn06EA4(Task* arg0)
     ctx->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
     ctx->recs                   = 0;
     worldTargetUnlinkNode(&ctx->node);
-    Gp_UnlinkObj(&work->pathProbe.body);
-    Gp_UnlinkObj(&work->sight.body);
-    Gp_UnlinkObj(&work->bodySphere.body);
-    Gp_UnlinkObj(&work->bite.body);
+    worldCollisionUnlinkBody(&work->pathProbe.body);
+    worldCollisionUnlinkBody(&work->sight.body);
+    worldCollisionUnlinkBody(&work->bodySphere.body);
+    worldCollisionUnlinkBody(&work->bite.body);
     enemyTaskExit(arg0);
 }
 
@@ -4990,10 +4990,10 @@ static void Actor01600_Fn06FDC(Task* arg0, s32 arg1)
     ctx->recs   = 0;
     worldTargetUnlinkNode(&ctx->node);
     if (!(arg1 & 0xFF)) {
-        Gp_UnlinkObj(&work->pathProbe.body);
-        Gp_UnlinkObj(&work->sight.body);
-        Gp_UnlinkObj(&work->bodySphere.body);
-        Gp_UnlinkObj(&work->bite.body);
+        worldCollisionUnlinkBody(&work->pathProbe.body);
+        worldCollisionUnlinkBody(&work->sight.body);
+        worldCollisionUnlinkBody(&work->bodySphere.body);
+        worldCollisionUnlinkBody(&work->bite.body);
     }
     Gp_SetLightMode(ctx, ENEMY_COLOR_WEIGHTED);
     Gp_ReleaseStateF0Add(arg0, 0x10);

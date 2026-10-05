@@ -45,9 +45,9 @@ void golemKnightBishopDeadState(Enemy* arg0, Task* arg1)
         case 0:
             arg0->recs = 0;
             worldTargetUnlinkNode(&arg0->node);
-            Gp_UnlinkObj(&work->groundBody);
-            Gp_UnlinkObj(&work->hurtBody);
-            Gp_UnlinkObj(&work->strikeBody);
+            worldCollisionUnlinkBody(&work->groundBody);
+            worldCollisionUnlinkBody(&work->hurtBody);
+            worldCollisionUnlinkBody(&work->strikeBody);
             Gp_ReleaseStateF0Add(arg1, work->actorId);
             anim = 0x14;
             if (work->downedPose == 1) {

@@ -68,10 +68,10 @@ death:
     work->savedRootMtx = coord->coord;
     arg0->recs         = 0;
     worldTargetUnlinkNode(&arg0->node);
-    Gp_UnlinkObj(&work->sensorBody);
-    Gp_UnlinkObj(&work->hitBody);
-    Gp_UnlinkObj(&work->gridBody);
-    Gp_UnlinkObj(&work->attackBody);
+    worldCollisionUnlinkBody(&work->sensorBody);
+    worldCollisionUnlinkBody(&work->hitBody);
+    worldCollisionUnlinkBody(&work->gridBody);
+    worldCollisionUnlinkBody(&work->attackBody);
     Gp_SetLightMode(arg0, ENEMY_COLOR_WEIGHTED);
     Gp_ReleaseStateF0Add(arg1, 7);
     work->step = 1;

@@ -18,7 +18,7 @@ void generatorLifeSupportTeardown(Enemy* arg0, Task* arg1)
         part->teardownFrames++;
         if (part->teardownFrames == 1) {
             worldTargetUnlinkNode(&arg0->node);
-            Gp_UnlinkObj(&part->body);
+            worldCollisionUnlinkBody(&part->body);
             arg0->recs = 0;
             SndEvt_EnqueueType7(parentWork->runningSoundId, 1);
             if (part->kind == GENERATOR_BETA) {

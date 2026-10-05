@@ -16,6 +16,7 @@
 #include "gameplay/damage.h"
 #include "gameplay/effects.h"
 #include "gameplay/enemy.h"
+#include "gameplay/hud_sprites.h"
 #include "gameplay/loading.h"
 #include "gameplay/object_fields.h"
 #include "gameplay/enemy_params.h"
@@ -631,7 +632,7 @@ static void Actor02100_Fn00048(Enemy* arg0, Task* arg1)
     work->hitBody.radius           = 0x190;
     work->hitBody.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(2, &work->hitBody);
-    Gp_InitRec18Table(table, 1, 0);
+    worldCollisionInitContacts(table, 1, 0);
     contacts                               = work->strikeContacts;
     work->playerStrikeShape.ends[0].vx     = 0;
     work->playerStrikeShape.ends[0].vy     = 0;
@@ -652,7 +653,7 @@ static void Actor02100_Fn00048(Enemy* arg0, Task* arg1)
     work->playerStrikeBody.flags           = (u32)WORLD_COLLISION_BODY_CAPSULE;
     work->hitBody.flags                    = (u16)(work->hitBody.flags | WORLD_COLLISION_BODY_PAIR_ENABLED);
     Gp_LinkObj(3, &work->playerStrikeBody);
-    Gp_InitRec18Table(contacts, 1, 0);
+    worldCollisionInitContacts(contacts, 1, 0);
     work->enemyStrikeShape.ends[0].vx     = 0;
     work->enemyStrikeShape.ends[0].vy     = 0;
     work->enemyStrikeShape.ends[0].vz     = ACTOR_02100_STRIKE_REACH;
@@ -772,7 +773,7 @@ static void Actor02100_Fn004C4(Task* arg0)
     Gp_ClearRec18Occupied(work->hitContacts);
     work->beamBlocked = 0;
     if (Gp_CountRec18Hi(work->strikeContacts, WORLD_COLLISION_CONTACT_GRID) != 0) {
-        index   = func_800E1B24(work->strikeContacts[0].key.value);
+        index   = worldCollisionSurfaceClassFromKey(work->strikeContacts[0].key.value);
         surface = Gp_RoomParamTables[gGameSession->location.loc.stage - 1]
                                     [gGameSession->location.loc.area - 1][index];
         if (surface->probePassThrough == WORLD_COLLISION_SURFACE_BLOCK_PROBES) {
@@ -1210,7 +1211,7 @@ cleanup:
 /// Aims the actor at its stored target and rebuilds both direction vectors from
 /// the new facing. A fixed forward offset is rotated by the coordinate's matrix,
 /// translated into the coordinate's own frame and subtracted from the target
-/// position; `Gp_OrientAlong` turns the vector that remains into the facing
+/// position; `gfxBuildDirectionRotation` turns the vector that remains into the facing
 /// matrix at `aim`. The near vector at `beamPoints[1]` and the far vector
 /// at `playerStrikeShape.ends[0]`, mirrored into `enemyStrikeShape.ends[0]`,
 /// are then rotated through that matrix. Each step borrows scratch from the scratch stack and releases it.
@@ -1249,7 +1250,7 @@ static __inline__ void Actor02100_AimAndBuildVectors(Task* arg0)
     scratch->aimVector.vx = work->targetPos.vx - scratch->muzzle.vx;
     scratch->aimVector.vy = work->targetPos.vy - scratch->muzzle.vy;
     scratch->aimVector.vz = work->targetPos.vz - scratch->muzzle.vz;
-    Gp_OrientAlong(&scratch->aimVector, &work->aim, 0);
+    gfxBuildDirectionRotation(&scratch->aimVector, &work->aim, 0);
 
     // Release the aim block and reserve a vector block in its place for the
     // beam's end point.
@@ -1517,7 +1518,7 @@ static void Actor02100_Fn016EC(Task* arg0)
 
 /// Points the actor at its stored target. Rotates a fixed forward offset by the
 /// coordinate's matrix, maps it back into the coordinate's own frame, and hands
-/// the vector from there to the target position to `Gp_OrientAlong`, which
+/// the vector from there to the target position to `gfxBuildDirectionRotation`, which
 /// writes the facing matrix at `aim`.
 static __inline__ void Actor02100_OrientScratch(Task* arg0)
 {
@@ -1543,7 +1544,7 @@ static __inline__ void Actor02100_OrientScratch(Task* arg0)
     scratch->aimVector.vx = work->targetPos.vx - scratch->muzzle.vx;
     scratch->aimVector.vy = work->targetPos.vy - scratch->muzzle.vy;
     scratch->aimVector.vz = work->targetPos.vz - scratch->muzzle.vz;
-    Gp_OrientAlong(&scratch->aimVector, &work->aim, 0);
+    gfxBuildDirectionRotation(&scratch->aimVector, &work->aim, 0);
 }
 
 /// Refreshes the two vectors the actor's facing matrix defines: the near one at
@@ -2057,9 +2058,9 @@ static void Actor02100_Fn035D4(Enemy* arg0, Task* arg1)
 case0:
     arg1->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     worldTargetUnlinkNode(&arg0->node);
-    Gp_UnlinkObj(&work->hitBody);
-    Gp_UnlinkObj(&work->playerStrikeBody);
-    Gp_UnlinkObj(&work->enemyStrikeBody);
+    worldCollisionUnlinkBody(&work->hitBody);
+    worldCollisionUnlinkBody(&work->playerStrikeBody);
+    worldCollisionUnlinkBody(&work->enemyStrikeBody);
     arg0->recs = 0;
     Gp_ReleaseStateF0Add(arg1, 0x15);
     work->step       = ACTOR_02100_DEATH_STEP_WAIT;

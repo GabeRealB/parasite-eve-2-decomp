@@ -387,7 +387,7 @@ void func_hypervelocity_8011D830(Task* task)
         work->age = work->age - 1;
         if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             if (task->state != 0) {
-                Gp_UnlinkObj(&roundBody->body);
+                worldCollisionUnlinkBody(&roundBody->body);
             }
             effectKillTask(work, task);
         }
@@ -503,12 +503,12 @@ void func_hypervelocity_8011D830(Task* task)
             lightSlot->framesLeft = 4;
             slot->head.color.g    = slot->head.color.b >> 1;
             if (func_800DE7CC(&after, &before, NULL, NULL) == 1) {
-                Gp_UnlinkObj(&roundBody->body);
+                worldCollisionUnlinkBody(&roundBody->body);
                 task->state = 2;
                 return;
             }
             if (work->age >= 0x15) {
-                Gp_UnlinkObj(&roundBody->body);
+                worldCollisionUnlinkBody(&roundBody->body);
                 effectKillTask(work, task);
                 return;
             }
@@ -688,7 +688,7 @@ static void func_hypervelocity_8011F11C(Task* task)
     void*               mem = task->spawnArg2.pointer;
 
     if (obj != NULL) {
-        Gp_UnlinkObj(obj);
+        worldCollisionUnlinkBody(obj);
     }
     effectKillTask(mem, task);
 }

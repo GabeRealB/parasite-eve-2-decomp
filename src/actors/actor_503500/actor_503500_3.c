@@ -385,7 +385,7 @@ static void func_actor_503500_80132F64(Task* arg0)
     work->body.pos.vy           = D_actor_503500_8016EC50.vy;
     work->body.pos.vz           = D_actor_503500_8016EC50.vz;
     Gp_LinkObj(2, &work->body);
-    Gp_InitRec18Table(recs, ARRAY_SIZE(work->contacts), 0);
+    worldCollisionInitContacts(recs, ARRAY_SIZE(work->contacts), 0);
     work->hitEffect.spawnArgLo = 0x600;
     work->hitEffect.coord      = part;
     work->hitEffect.spawnArgHi = 3;
@@ -2010,7 +2010,7 @@ static void func_actor_503500_80136228(Task* arg0)
 
     enemy = arg0->spawnArg2.pointer;
     func_actor_503500_80136B64(arg0, 0, 1);
-    Gp_UnlinkObj(&((Actor503500Work*)arg0->work)->body);
+    worldCollisionUnlinkBody(&((Actor503500Work*)arg0->work)->body);
     enemy->recs = 0;
     arg0->work  = NULL;
     enemyDestroy(enemy, arg0);
@@ -2702,7 +2702,7 @@ static void func_actor_503500_801372C8(Task* arg0)
     D_actor_503500_80176D88.body.pos.vy           = D_actor_503500_8016F068.vy;
     D_actor_503500_80176D88.body.pos.vz           = D_actor_503500_8016F068.vz;
     Gp_LinkObj(2, &D_actor_503500_80176D88.body);
-    Gp_InitRec18Table(rec, ARRAY_SIZE(D_actor_503500_80176D88.contacts), 0);
+    worldCollisionInitContacts(rec, ARRAY_SIZE(D_actor_503500_80176D88.contacts), 0);
     D_actor_503500_80176D88.hitEffect.spawnArgLo = 0x400;
     D_actor_503500_80176D88.hitEffect.coord      = coord;
     D_actor_503500_80176D88.hitEffect.spawnArgHi = 3;
@@ -3079,7 +3079,7 @@ static void func_actor_503500_80138288(Task* arg0)
     enemy = arg0->spawnArg2.pointer;
     func_actor_503500_8013611C(arg0->spawnArg1.value);
     arg0->extra.tmd->coords->parent = &gGfxViewCoord;
-    Gp_UnlinkObj(&((_Actor503500PinkFlashEmitterWork*)arg0->work)->body);
+    worldCollisionUnlinkBody(&((_Actor503500PinkFlashEmitterWork*)arg0->work)->body);
     enemy->recs = 0;
     arg0->work  = NULL;
     enemyDestroy(enemy, arg0);
@@ -3266,7 +3266,7 @@ static void func_actor_503500_8013852C(Task* arg0)
     work->body.radius           = 0x320;
     work->body.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(2, &work->body);
-    Gp_InitRec18Table(rec, ARRAY_SIZE(work->contacts), 0);
+    worldCollisionInitContacts(rec, ARRAY_SIZE(work->contacts), 0);
     work->hitEffect.spawnArgLo = 0x600;
     work->hitEffect.coord      = part;
     work->hitEffect.spawnArgHi = 3;
@@ -4062,7 +4062,7 @@ static void func_actor_503500_8013A900(Task* arg0)
     enemy = arg0->spawnArg2.pointer;
     func_actor_503500_8013611C(arg0->spawnArg1.value);
     arg0->extra.tmd->coords->parent = &gGfxViewCoord;
-    Gp_UnlinkObj(&((_Actor503500LargeChainWork*)arg0->work)->body);
+    worldCollisionUnlinkBody(&((_Actor503500LargeChainWork*)arg0->work)->body);
     enemy->recs = 0;
     arg0->work  = NULL;
     enemyDestroy(enemy, arg0);

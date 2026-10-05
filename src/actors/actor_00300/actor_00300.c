@@ -1411,7 +1411,7 @@ static void Actor00300_Fn00970(Enemy* enemy, Task* task)
     work->sightBody.radius          = 0;
     work->sightBody.flags           = (u32)WORLD_COLLISION_BODY_CAPSULE;
     Gp_LinkObj(3, &work->sightBody);
-    Gp_InitRec18Table(sightContacts, ARRAY_SIZE(work->sightContacts), 0);
+    worldCollisionInitContacts(sightContacts, ARRAY_SIZE(work->sightContacts), 0);
     hitContacts                    = work->hitContacts;
     work->sightBody.flags          = (u16)(work->sightBody.flags | (WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_SINGLE_CONTACT | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
     work->hitBody.coord            = task->extra.tmd->coords + 3;
@@ -1423,7 +1423,7 @@ static void Actor00300_Fn00970(Enemy* enemy, Task* task)
     work->hitBody.radius           = 0x15E;
     work->hitBody.flags            = (u32)WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(2, &work->hitBody);
-    Gp_InitRec18Table(hitContacts, ARRAY_SIZE(work->hitContacts), 0);
+    worldCollisionInitContacts(hitContacts, ARRAY_SIZE(work->hitContacts), 0);
     work->hitBody.flags             = (u16)(work->hitBody.flags | WORLD_COLLISION_BODY_PAIR_ENABLED);
     work->gridBody.coord            = task->extra.tmd->coords;
     gridContacts                    = work->gridContacts;
@@ -1435,7 +1435,7 @@ static void Actor00300_Fn00970(Enemy* enemy, Task* task)
     work->gridBody.radius           = 0x1F4;
     work->gridBody.flags            = (u32)WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(2, &work->gridBody);
-    Gp_InitRec18Table(gridContacts, ARRAY_SIZE(work->gridContacts), 0);
+    worldCollisionInitContacts(gridContacts, ARRAY_SIZE(work->gridContacts), 0);
     work->gridBody.flags             = (u16)(work->gridBody.flags | (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED));
     work->drainBody.coord            = child->task->extra.tmd->coords;
     drainContacts                    = work->drainContacts;
@@ -1447,7 +1447,7 @@ static void Actor00300_Fn00970(Enemy* enemy, Task* task)
     work->drainBody.radius           = 0x2BC;
     work->drainBody.flags            = (u32)WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(3, &work->drainBody);
-    Gp_InitRec18Table(drainContacts, ARRAY_SIZE(work->drainContacts), 0);
+    worldCollisionInitContacts(drainContacts, ARRAY_SIZE(work->drainContacts), 0);
     gStageSceneMusicEntry = 0xA;
     work->drainBody.flags = (u16)(work->drainBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
     task->msgTable        = Actor00300_D16314;
@@ -2857,10 +2857,10 @@ common:
             work->savedRootMtx = coord->coord;
             arg0->recs         = NULL;
             worldTargetUnlinkNode(&arg0->node);
-            Gp_UnlinkObj(&work->sightBody);
-            Gp_UnlinkObj(&work->gridBody);
-            Gp_UnlinkObj(&work->hitBody);
-            Gp_UnlinkObj(&work->drainBody);
+            worldCollisionUnlinkBody(&work->sightBody);
+            worldCollisionUnlinkBody(&work->gridBody);
+            worldCollisionUnlinkBody(&work->hitBody);
+            worldCollisionUnlinkBody(&work->drainBody);
             Gp_SetLightMode(arg0, ENEMY_COLOR_WEIGHTED);
             Gp_ReleaseStateF0Add(arg1, 3);
             work->timer      = 0;
@@ -3028,7 +3028,7 @@ static void Actor00300_Fn040A4(Enemy* arg0, Task* arg1)
     work->body.radius           = 450;
     work->body.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(3, &work->body);
-    Gp_InitRec18Table(work->contacts, ARRAY_SIZE(work->contacts), 0);
+    worldCollisionInitContacts(work->contacts, ARRAY_SIZE(work->contacts), 0);
     work->sweepCapsule.ends[1].vz   = -0x1A4;
     work->sweepCapsule.end0Radius   = 1;
     work->sweepCapsule.end1Radius   = 1;
@@ -3049,7 +3049,7 @@ static void Actor00300_Fn040A4(Enemy* arg0, Task* arg1)
     work->sweepBody.flags           = WORLD_COLLISION_BODY_CAPSULE;
     work->sweepBody.coord           = objCoord2;
     Gp_LinkObj(3, &work->sweepBody);
-    Gp_InitRec18Table(work->sweepContacts, ARRAY_SIZE(work->sweepContacts), 0);
+    worldCollisionInitContacts(work->sweepContacts, ARRAY_SIZE(work->sweepContacts), 0);
     work->timer            = ACTOR_00300_FIREBALL_FLIGHT_TICKS;
     work->sweepBody.flags |= (WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_GRID_ENABLED);
     taskDetachFromParent(arg1);
@@ -3081,7 +3081,7 @@ static void Actor00300_Fn04370(Enemy* arg0, Task* arg1)
             fireballDrawGlow(coord, 0x200);
             id = work->sweepContacts[0].key.value;
             if (id != 0 && Gp_RoomParamTables[gGameSession->location.loc.stage - 1]
-                                             [gGameSession->location.loc.area - 1][func_800E1B24(id)]
+                                             [gGameSession->location.loc.area - 1][worldCollisionSurfaceClassFromKey(id)]
                                                  ->probePassThrough == WORLD_COLLISION_SURFACE_BLOCK_PROBES) {
                 expired = 1;
             }
@@ -3516,8 +3516,8 @@ static void Actor00300_Fn05278(Enemy* arg0, Task* arg1)
     work = arg1->work;
     switch (work->teardownStep) {
         case ACTOR_00300_FIREBALL_TEARDOWN_UNLINK:
-            Gp_UnlinkObj(&work->body);
-            Gp_UnlinkObj(&work->sweepBody);
+            worldCollisionUnlinkBody(&work->body);
+            worldCollisionUnlinkBody(&work->sweepBody);
             work->timer        = ACTOR_00300_FIREBALL_LINGER_TICKS;
             work->teardownStep = ACTOR_00300_FIREBALL_TEARDOWN_LINGER;
             return;
@@ -3583,10 +3583,10 @@ s32 Actor00300_Fn05434(Task* arg0, s32 arg1, ActorCommand* args, s32 arg3)
     if (args->command != 0) {
         enemy->recs = 0;
         worldTargetUnlinkNode(&enemy->node);
-        Gp_UnlinkObj(&work->sightBody);
-        Gp_UnlinkObj(&work->gridBody);
-        Gp_UnlinkObj(&work->hitBody);
-        Gp_UnlinkObj(&work->drainBody);
+        worldCollisionUnlinkBody(&work->sightBody);
+        worldCollisionUnlinkBody(&work->gridBody);
+        worldCollisionUnlinkBody(&work->hitBody);
+        worldCollisionUnlinkBody(&work->drainBody);
         enemyDestroy(enemy, arg0);
     }
     return 0;

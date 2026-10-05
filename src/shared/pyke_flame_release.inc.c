@@ -9,7 +9,7 @@ static void pykeFlameRelease(Task* task)
     void*               mem  = task->spawnArg2.pointer;
 
     if (body != NULL) {
-        Gp_UnlinkObj(body);
+        worldCollisionUnlinkBody(body);
     }
     effectKillTask(mem, task);
 }

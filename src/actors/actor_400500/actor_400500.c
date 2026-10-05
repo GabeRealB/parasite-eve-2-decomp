@@ -1598,7 +1598,7 @@ static void func_actor_400500_80132000(Task* arg0)
     work->body.radius           = 0x260;
     work->body.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(2, &work->body);
-    Gp_InitRec18Table(work->bodyContacts, 3, 0);
+    worldCollisionInitContacts(work->bodyContacts, ARRAY_SIZE(work->bodyContacts), 0);
     work->body.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
 
     work->rightArmOuter.key              = Gp_PackObjPair(arg0->spawnArg2.pointer, 0);
@@ -1610,7 +1610,7 @@ static void func_actor_400500_80132000(Task* arg0)
     work->rightArmOuter.radius           = 0x290;
     work->rightArmOuter.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(3, &work->rightArmOuter);
-    Gp_InitRec18Table(work->rightArmContacts, 1, 0);
+    worldCollisionInitContacts(work->rightArmContacts, ARRAY_SIZE(work->rightArmContacts), 0);
     work->rightArmOuter.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
 
     work->rightArmInner.key              = Gp_PackObjPair(arg0->spawnArg2.pointer, 0);
@@ -1622,7 +1622,7 @@ static void func_actor_400500_80132000(Task* arg0)
     work->rightArmInner.radius           = 0x250;
     work->rightArmInner.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(3, &work->rightArmInner);
-    Gp_InitRec18Table(work->rightArmContacts, 1, 0);
+    worldCollisionInitContacts(work->rightArmContacts, ARRAY_SIZE(work->rightArmContacts), 0);
     work->rightArmInner.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
 
     work->leftArmOuter.key              = Gp_PackObjPair(arg0->spawnArg2.pointer, 0);
@@ -1634,7 +1634,7 @@ static void func_actor_400500_80132000(Task* arg0)
     work->leftArmOuter.radius           = 0x290;
     work->leftArmOuter.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(3, &work->leftArmOuter);
-    Gp_InitRec18Table(work->leftArmContacts, 1, 0);
+    worldCollisionInitContacts(work->leftArmContacts, ARRAY_SIZE(work->leftArmContacts), 0);
     work->leftArmOuter.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
 
     work->leftArmInner.key              = Gp_PackObjPair(arg0->spawnArg2.pointer, 0);
@@ -1646,7 +1646,7 @@ static void func_actor_400500_80132000(Task* arg0)
     work->leftArmInner.radius           = 0x250;
     work->leftArmInner.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(3, &work->leftArmInner);
-    Gp_InitRec18Table(work->leftArmContacts, 1, 0);
+    worldCollisionInitContacts(work->leftArmContacts, ARRAY_SIZE(work->leftArmContacts), 0);
     work->leftArmInner.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
 }
 
@@ -5743,11 +5743,11 @@ static void func_actor_400500_8013A8E4(Task* arg0)
     worldTargetUnlinkNode(&enemy->node);
     Gp_ReleaseStateF0Add(arg0, 0);
     enemy->recs = 0;
-    Gp_UnlinkObj(&work->body);
-    Gp_UnlinkObj(&work->rightArmOuter);
-    Gp_UnlinkObj(&work->leftArmOuter);
-    Gp_UnlinkObj(&work->rightArmInner);
-    Gp_UnlinkObj(&work->leftArmInner);
+    worldCollisionUnlinkBody(&work->body);
+    worldCollisionUnlinkBody(&work->rightArmOuter);
+    worldCollisionUnlinkBody(&work->leftArmOuter);
+    worldCollisionUnlinkBody(&work->rightArmInner);
+    worldCollisionUnlinkBody(&work->leftArmInner);
     gameFlagSetNibble(GAME_FLAG_GRAY_STALKER_DEFEATED, 1);
     if (work->lastHitReaction == ACTOR_400500_HIT_REACTION_BLAST) {
         work3           = (_Actor400500GrayStalkerWork*)arg0->work;

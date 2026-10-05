@@ -56,6 +56,6 @@ void no9GolemAimHead(Task* arg0)
     if (scratch->aim.vz < 0x200) {
         scratch->aim.vz = 0x200;
     }
-    Gp_OrientAlong(&scratch->aim, &head->coord, 0);
+    gfxBuildDirectionRotation(&scratch->aim, &head->coord, 0);
     SCRATCH_STACK_RELEASE_BYTES(sizeof(_No9GolemHeadAimScratch));
 }

@@ -1405,7 +1405,7 @@ static void func_acropolis_cafeteria_801818DC(Task* task)
     work->body.pos.vz           = 0;
     work->body.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(4, &work->body);
-    Gp_InitRec18Table(work->body.context.contacts, ARRAY_SIZE(work->contacts), 0);
+    worldCollisionInitContacts(work->body.context.contacts, ARRAY_SIZE(work->contacts), 0);
     work->body.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
 }
 
@@ -1497,7 +1497,7 @@ static void func_acropolis_cafeteria_80181E3C(Task* arg0)
     _AcropolisCafeteriaLoosePropWork* work;
 
     work = arg0->work;
-    Gp_UnlinkObj(&work->body);
+    worldCollisionUnlinkBody(&work->body);
     taskKill(arg0);
 }
 

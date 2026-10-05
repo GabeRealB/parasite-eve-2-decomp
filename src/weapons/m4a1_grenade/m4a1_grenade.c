@@ -262,7 +262,7 @@ static void func_m4a1_grenade_8011D654(Task* arg0)
     work->sphereBody.radius           = 0x94;
     work->sphereBody.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(1, &work->sphereBody);
-    Gp_InitRec18Table(work->sphereBody.context.contacts, 1, 0);
+    worldCollisionInitContacts(work->sphereBody.context.contacts, 1, 0);
     work->capsuleBody.context.capsule = &work->capsule;
     work->capsuleBody.flags           = WORLD_COLLISION_BODY_CAPSULE;
     work->capsule.contacts            = work->capsuleContacts;
@@ -282,7 +282,7 @@ static void func_m4a1_grenade_8011D654(Task* arg0)
     work->sphereBody.flags           |= (WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
     work->capsule.ends[1].vy          = -(work->flightTimer.word >> 10);
     Gp_LinkObj(1, &work->capsuleBody);
-    Gp_InitRec18Table(work->capsule.contacts, 1, 0);
+    worldCollisionInitContacts(work->capsule.contacts, 1, 0);
     work->capsuleBody.flags |= (WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_GRID_ENABLED);
     SCRATCH_STACK_RELEASE_BYTES(0x28);
 }
@@ -291,7 +291,7 @@ static void func_m4a1_grenade_8011D654(Task* arg0)
 /// `sphereContacts` detonates it, as does `flightTimer` passing 0xFFFFF.
 /// Grid contacts on `capsuleContacts` are resolved first, then those on
 /// `sphereContacts`; the chosen table is handed to `func_800E0FEC` /
-/// `func_800E1ACC` for the surface it crossed. A surface that blocks probes
+/// `worldCollisionSurfaceClassFromMask` for the surface it crossed. A surface that blocks probes
 /// detonates when it accepts weapon impacts, and otherwise advances the task
 /// to the exit state. Any other surface detonates only for surface index 1
 /// in area 0x14 of stages 2 and 3.
@@ -342,7 +342,7 @@ static void func_m4a1_grenade_8011D994(Task* arg0)
         goto trySphereContacts;
     }
     func_800E0FEC(work->capsuleContacts, &scratch->delta, 1, &idx);
-    idx = func_800E1ACC((u8*)&idx);
+    idx = worldCollisionSurfaceClassFromMask((const u8*)&idx);
 check:
     surface = Gp_RoomParamTables[gGameSession->location.loc.stage - 1][gGameSession->location.loc.area - 1][idx];
     if (surface->probePassThrough == WORLD_COLLISION_SURFACE_BLOCK_PROBES) {
@@ -359,7 +359,7 @@ check:
 trySphereContacts:
     if (Gp_CountRec18Hi(work->sphereContacts, WORLD_COLLISION_CONTACT_GRID) != 0) {
         func_800E0FEC(work->sphereContacts, &scratch->delta, 1, &idx);
-        idx = func_800E1ACC((u8*)&idx);
+        idx = worldCollisionSurfaceClassFromMask((const u8*)&idx);
         goto check;
     }
 move:

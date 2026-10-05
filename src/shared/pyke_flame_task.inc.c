@@ -40,7 +40,7 @@ static inline void pykeFlameTask(Task* task)
     coord         = task->extra.coordBody->coord;
     if (effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
         if (task->state != 0) {
-            Gp_UnlinkObj(&flame->body);
+            worldCollisionUnlinkBody(&flame->body);
         }
         effectKillTask(work, task);
         return;
@@ -114,12 +114,12 @@ static inline void pykeFlameTask(Task* task)
                 pykeFlameDrawSplash(MATRIX_TRANS(&ground.workm), (s16)((work->scale * 2) / 3));
             }
             if (Gp_CountRec18Hi(flame->body.context.contacts, 0x30000) != 0) {
-                Gp_UnlinkObj(&flame->body);
+                worldCollisionUnlinkBody(&flame->body);
                 effectKillTask(work, task);
                 return;
             }
             if (func_800DE7CC(&after, &before, NULL, NULL) == 1) {
-                Gp_UnlinkObj(&flame->body);
+                worldCollisionUnlinkBody(&flame->body);
                 task->state     = 2;
                 work->move.vx   = (u32)rcos(work->angle) >> 8;
                 work->move.vy   = (u32)rsin(work->angle) >> 8;
@@ -129,7 +129,7 @@ static inline void pykeFlameTask(Task* task)
                 return;
             }
             if (work->age >= 0x15) {
-                Gp_UnlinkObj(&flame->body);
+                worldCollisionUnlinkBody(&flame->body);
                 effectKillTask(work, task);
                 return;
             }

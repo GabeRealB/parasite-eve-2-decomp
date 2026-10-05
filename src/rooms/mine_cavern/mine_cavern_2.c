@@ -2964,7 +2964,7 @@ static void func_mine_cavern_80182E34(Enemy* arg0, Task* arg1)
     body->flags                           = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(2, body);
     body->flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-    Gp_InitRec18Table(body->context.contacts, ARRAY_SIZE(work->bodyContacts), 0);
+    worldCollisionInitContacts(body->context.contacts, ARRAY_SIZE(work->bodyContacts), 0);
     work->body.flags       |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     blast                   = &work->blast;
     blast->coord            = arg1->extra.tmd->coords;
@@ -2976,7 +2976,7 @@ static void func_mine_cavern_80182E34(Enemy* arg0, Task* arg1)
     blast->pos.vy           = temp;
     blast->pos.vx           = temp;
     Gp_LinkObj(1, blast);
-    Gp_InitRec18Table(blast->context.contacts, ARRAY_SIZE(work->blastContacts), 0);
+    worldCollisionInitContacts(blast->context.contacts, ARRAY_SIZE(work->blastContacts), 0);
     work->blast.key    = 0x22121;
     work->blast.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     arg0->hp           = D_mine_cavern_8018EAE4.hpMax;
@@ -3173,7 +3173,7 @@ static void func_mine_cavern_80183860(Task* arg0)
 
     work = arg0->work;
     if (work != NULL) {
-        Gp_UnlinkObj(&work->body);
+        worldCollisionUnlinkBody(&work->body);
     }
 }
 
@@ -3184,7 +3184,7 @@ static void func_mine_cavern_80183890(Enemy* enemy, Task* task)
     work                          = task->work;
     work->body.flags             &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-    Gp_UnlinkObj(&work->body);
+    worldCollisionUnlinkBody(&work->body);
     work->frame = 0;
     task->state++;
 }
@@ -3215,7 +3215,7 @@ static const EnemyTaskFuncTable3 D_mine_cavern_8017D80C = {
 /// "BOMB1", drops the model to y = -0x258 and spawns effect 0x01001200; 1
 /// prints "BOMB2" and spawns 0x01000580, parking that effect's own first three
 /// halfwords; 2 and 4 spawn 0x01002500; 3 and 5 clear the pair enable of the
-/// work block's `blast` body; 9 hands `blast` to `Gp_UnlinkObj`; 0x3B advances
+/// work block's `blast` body; 9 hands `blast` to `worldCollisionUnlinkBody`; 0x3B advances
 /// `Task::state`.
 static void func_mine_cavern_801838F4(Enemy* arg0, Task* arg1)
 {
@@ -3260,7 +3260,7 @@ static void func_mine_cavern_801838F4(Enemy* arg0, Task* arg1)
             return;
 
         case 9:
-            Gp_UnlinkObj(&work->blast);
+            worldCollisionUnlinkBody(&work->blast);
             return;
 
         case 0x3B:

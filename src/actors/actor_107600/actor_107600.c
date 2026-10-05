@@ -2086,7 +2086,7 @@ static void func_actor_107600_80134904(Task* arg0)
 
 static void func_actor_107600_80134920(Task* arg0)
 {
-    Gp_UnlinkObj(&((_Actor107600TargetWork*)arg0->work)->body);
+    worldCollisionUnlinkBody(&((_Actor107600TargetWork*)arg0->work)->body);
     enemyDestroy(arg0->spawnArg2.pointer, arg0);
 }
 
@@ -2109,7 +2109,7 @@ static void func_actor_107600_80134958(Task* arg0)
     work->body.radius           = (work->mountBehaviour == ACTOR_107600_MOUNT_HANGING) ? 0x220 : 0x190;
     work->body.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(2, &work->body);
-    Gp_InitRec18Table(rec, ARRAY_SIZE(work->contacts), 0);
+    worldCollisionInitContacts(rec, ARRAY_SIZE(work->contacts), 0);
 }
 
 /// Copies the world position of the model's first attach coordinate onto a

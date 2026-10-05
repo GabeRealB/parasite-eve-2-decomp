@@ -939,7 +939,7 @@ static void Actor01500_Fn00094(Enemy* arg0, Task* arg1)
     work->body.radius           = 300;
     work->body.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(2, &work->body);
-    Gp_InitRec18Table(work->contacts, ARRAY_SIZE(work->contacts), 0);
+    worldCollisionInitContacts(work->contacts, ARRAY_SIZE(work->contacts), 0);
     work->roomBody.context.contacts = work->roomContacts;
     work->roomBody.coord            = coord;
     work->roomBody.pos.vx           = 0;
@@ -955,7 +955,7 @@ static void Actor01500_Fn00094(Enemy* arg0, Task* arg1)
     work->roomBody.radius = 300;
     work->roomBody.flags  = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(2, &work->roomBody);
-    Gp_InitRec18Table(work->roomContacts, ARRAY_SIZE(work->roomContacts), 0);
+    worldCollisionInitContacts(work->roomContacts, ARRAY_SIZE(work->roomContacts), 0);
     records                           = work->attackContacts;
     work->attackBody.coord            = coord;
     work->attackBody.context.contacts = records;
@@ -967,7 +967,7 @@ static void Actor01500_Fn00094(Enemy* arg0, Task* arg1)
     work->attackBody.radius           = 300;
     work->attackBody.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(3, &work->attackBody);
-    Gp_InitRec18Table(records, ARRAY_SIZE(work->attackContacts), 0);
+    worldCollisionInitContacts(records, ARRAY_SIZE(work->attackContacts), 0);
     work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     arg1->state             = 1;
 }
@@ -1796,9 +1796,9 @@ static void Actor01500_Fn01DF0(Enemy* arg0, Task* arg1)
             work->deathBaseMtx = coord->coord;
             arg0->recs         = 0;
             worldTargetUnlinkNode(&arg0->node);
-            Gp_UnlinkObj(&work->body);
-            Gp_UnlinkObj(&work->roomBody);
-            Gp_UnlinkObj(&work->attackBody);
+            worldCollisionUnlinkBody(&work->body);
+            worldCollisionUnlinkBody(&work->roomBody);
+            worldCollisionUnlinkBody(&work->attackBody);
             Gp_SetLightMode(arg0, ENEMY_COLOR_WEIGHTED);
             Gp_ReleaseStateF0Add(arg1, 0xF);
             work->timer      = 0;
@@ -1843,9 +1843,9 @@ static void Actor01500_Fn01DF0(Enemy* arg0, Task* arg1)
         case ACTOR_01500_DEATH_LOST:
             if (work->timer == 0) {
                 worldTargetUnlinkNode(&arg0->node);
-                Gp_UnlinkObj(&work->body);
-                Gp_UnlinkObj(&work->roomBody);
-                Gp_UnlinkObj(&work->attackBody);
+                worldCollisionUnlinkBody(&work->body);
+                worldCollisionUnlinkBody(&work->roomBody);
+                worldCollisionUnlinkBody(&work->attackBody);
                 Gp_ReleaseStateF0Add(arg1, 0xF);
             }
             work->timer++;

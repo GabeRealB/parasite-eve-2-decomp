@@ -327,7 +327,7 @@ static void func_actor_311500_801629D8(Task* arg0)
     work2->hitBody.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(2, &work2->hitBody);
     work2->hitBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-    Gp_InitRec18Table(&work2->hitContacts[0], 1, 0);
+    worldCollisionInitContacts(&work2->hitContacts[0], 1, 0);
     enemy->recs    = &work2->hitContacts[0];
     arg0->msgTable = D_actor_311500_80169330;
     work2->present = 1;
@@ -543,7 +543,7 @@ static s32 func_actor_311500_801630A4(Task* arg0)
                 case 0:
                     Gp_ReleaseStateF0Add(arg0, 0xA);
                     enemy->recs = 0;
-                    Gp_UnlinkObj(&work->hitBody);
+                    worldCollisionUnlinkBody(&work->hitBody);
                     enemy->node.state.parts.flags = state;
                     break;
 

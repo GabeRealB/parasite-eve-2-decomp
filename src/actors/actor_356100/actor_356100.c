@@ -683,7 +683,7 @@ s32 func_actor_356100_8016A0B8(Task* arg0, s32 arg1, ActorCommand* arg2, s32 arg
 
 /// `Task::exitCallback` teardown: kill the two helper tasks, drop the
 /// enemy's `recs` slot, then `enemyDestroy`. Same shape as
-/// `Actor01900_Fn0A6CC` without the three `Gp_UnlinkObj` calls.
+/// `Actor01900_Fn0A6CC` without the three `worldCollisionUnlinkBody` calls.
 static void func_actor_356100_8016A158(Task* task);
 
 /// When the work block's `stateEntered` flag is set, flags the enemy's link node

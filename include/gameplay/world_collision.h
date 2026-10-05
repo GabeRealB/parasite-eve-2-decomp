@@ -49,17 +49,27 @@ s32 func_800E0FEC(WorldCollisionContact* arg0, WorldCollisionDelta* delta, s32 a
 
 void Gp_LinkObj(s32 arg0, WorldCollisionBody* arg1);
 
-void Gp_UnlinkObj(WorldCollisionBody* node);
+/// Removes a borrowed body from its collision list, retaining only its shape kind.
+///
+/// A linked body must have the valid links installed by `Gp_LinkObj`; its
+/// predecessor link and any successor's back-link are repaired before its own
+/// links are cleared. Pass enables and body-index flags are cleared. Unlinked
+/// bodies are left unchanged. Neither the body nor its context/contact storage
+/// is freed or reset; owners must restore flags before linking it again.
+void worldCollisionUnlinkBody(WorldCollisionBody* body);
 
 void Gp_LinkObj4A(s32 arg0, WorldCollisionTrigger* arg1);
 
 void Gp_UnlinkObj4A(s32 arg0, WorldCollisionTrigger* arg1);
 
-/// Clears and initializes the complete caller-owned contact table.
+/// Clears a caller-owned collision-contact table and marks its final entry.
 ///
-/// `count` is the positive number of elements; its final element receives LAST.
-/// The third argument is unused and retained for the resident interface.
-void Gp_InitRec18Table(WorldCollisionContact* contacts, s32 count, s32 unused);
+/// `contacts` supplies writable storage for the positive `count` of elements.
+/// All bytes, including vector pad halfwords, are zeroed before the last
+/// entry receives `WORLD_COLLISION_CONTACT_LAST`. The owner keeps the table
+/// alive while bodies borrow it; this function retains no pointer. `unused`
+/// is ignored and retained for the exported interface; callers pass 0.
+void worldCollisionInitContacts(WorldCollisionContact* contacts, s32 count, s32 unused);
 
 /// Last occupied contact matching `key`, as a 1-based index, or 0.
 ///
@@ -79,14 +89,24 @@ s32 Gp_CountRec18Hi(WorldCollisionContact* contacts, s32 kind);
 /// halfwords are retained. Empty entries are left as they were.
 void Gp_ClearRec18Occupied(WorldCollisionContact* contacts);
 
-s32 func_800E1ACC(u8* arg0);
+/// Returns the highest surface-class bit present in one mask byte, or 0 for zero.
+///
+/// The result is 0..7; class 0 and an empty mask both return 0. When several
+/// classes are present the highest wins. Reads exactly `*mask`, without
+/// modifying or retaining it. A word mask may supply its first byte on this
+/// little-endian target; higher bytes are ignored. Uses the SDK fixed-point
+/// logarithm and changes its GTE leading-sign-bit-count state for a nonzero byte.
+s32 worldCollisionSurfaceClassFromMask(const u8* mask);
 
-s32 func_800E1B24(s32 arg0);
+/// Returns a grid contact key's surface class through a one-byte class mask.
+///
+/// The target shift forms `1U << (key & 31)` and classifies its low byte.
+/// Valid room-grid keys
+/// carry classes 0..7 in those low bits; packed category and response bits are
+/// ignored. Low shift counts 8..31 produce an empty byte and return 0. Changes
+/// the SDK logarithm's GTE leading-sign-bit-count state for a nonzero byte.
+s32 worldCollisionSurfaceClassFromKey(s32 key);
 
 s32 Gp_TakePendingObj4C(u16* arg0, u8* arg1, u8* arg2);
-
-/// Builds a rotation matrix in `arg1` that orients along normalized `arg0`
-/// (yaw from XZ, pitch from Y vs the XZ length, then roll by `arg2`).
-void Gp_OrientAlong(VECTOR* arg0, MATRIX* arg1, s32 arg2);
 
 #endif // GAMEPLAY_WORLD_COLLISION_H

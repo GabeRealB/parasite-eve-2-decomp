@@ -36,7 +36,7 @@ void gluttonThrowFly(Enemy* enemy, Task* task)
     if (gGluttonEnded == 1 || host->state == 0x10 || host->state == 5 ||
         host->state == 0xC || host->state == 0x12) {
         task->state++;
-        Gp_UnlinkObj(&work->attackBody);
+        worldCollisionUnlinkBody(&work->attackBody);
         return;
     }
 
@@ -87,7 +87,7 @@ void gluttonThrowFly(Enemy* enemy, Task* task)
                              gRoomEffectState->groundShadowShade);
 
         if (work->stateTicks >= 0x35) {
-            Gp_UnlinkObj(&work->attackBody);
+            worldCollisionUnlinkBody(&work->attackBody);
             task->state++;
             work->stateChanged = 1;
         }

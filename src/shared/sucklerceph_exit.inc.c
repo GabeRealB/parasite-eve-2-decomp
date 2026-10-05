@@ -13,9 +13,9 @@ void sucklercephExit(Task* task)
 
     enemy->recs = 0;
     worldTargetUnlinkNode(&enemy->node);
-    Gp_UnlinkObj(&work->senseBody);
-    Gp_UnlinkObj(&work->body);
-    Gp_UnlinkObj(&work->attackBody);
-    Gp_UnlinkObj(&work->blastBody);
+    worldCollisionUnlinkBody(&work->senseBody);
+    worldCollisionUnlinkBody(&work->body);
+    worldCollisionUnlinkBody(&work->attackBody);
+    worldCollisionUnlinkBody(&work->blastBody);
     enemyTaskExit(task);
 }

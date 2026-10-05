@@ -1636,7 +1636,7 @@ static void Actor00400_Fn019B4(Task* arg0)
     work->trunkBody.radius           = 0x300;
     work->trunkBody.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(2, &work->trunkBody);
-    Gp_InitRec18Table(work->hitContacts, ARRAY_SIZE(work->hitContacts), 0);
+    worldCollisionInitContacts(work->hitContacts, ARRAY_SIZE(work->hitContacts), 0);
     work->trunkBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
 
     work->headBody.coord            = &arg0->extra.tmd->coords[4];
@@ -1659,7 +1659,7 @@ static void Actor00400_Fn019B4(Task* arg0)
     work->attackBody.radius           = 0x480;
     work->attackBody.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(3, &work->attackBody);
-    Gp_InitRec18Table(work->attackContacts, ARRAY_SIZE(work->attackContacts), 0);
+    worldCollisionInitContacts(work->attackContacts, ARRAY_SIZE(work->attackContacts), 0);
     work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
 
     work->gridBody.coord            = arg0->extra.tmd->coords;
@@ -1671,7 +1671,7 @@ static void Actor00400_Fn019B4(Task* arg0)
     work->gridBody.radius           = 0x380;
     work->gridBody.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(2, &work->gridBody);
-    Gp_InitRec18Table(work->gridContacts, ARRAY_SIZE(work->gridContacts), 0);
+    worldCollisionInitContacts(work->gridContacts, ARRAY_SIZE(work->gridContacts), 0);
     if (work->gridCollision != 0) {
         work->gridBody.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
     } else {
@@ -2921,10 +2921,10 @@ static void Actor00400_Fn042C0(Task* arg0)
     worldTargetUnlinkNode(&obj->node);
     Gp_ReleaseStateF0Add(arg0, 0);
     obj->recs = NULL;
-    Gp_UnlinkObj(&work->trunkBody);
-    Gp_UnlinkObj(&work->headBody);
-    Gp_UnlinkObj(&work->attackBody);
-    Gp_UnlinkObj(&work->gridBody);
+    worldCollisionUnlinkBody(&work->trunkBody);
+    worldCollisionUnlinkBody(&work->headBody);
+    worldCollisionUnlinkBody(&work->attackBody);
+    worldCollisionUnlinkBody(&work->gridBody);
     work->stateFrames = 0;
     if (work->hitReaction == ACTOR_00400_HIT_REACTION_BLAST) {
         _Actor00400Work* w = arg0->work;
@@ -3210,10 +3210,10 @@ static void Actor00400_Fn04CF8(Task* arg0)
     work      = arg0->work;
     obj       = arg0->spawnArg2.pointer;
     obj->recs = NULL;
-    Gp_UnlinkObj(&work->gridBody);
-    Gp_UnlinkObj(&work->trunkBody);
-    Gp_UnlinkObj(&work->headBody);
-    Gp_UnlinkObj(&work->attackBody);
+    worldCollisionUnlinkBody(&work->gridBody);
+    worldCollisionUnlinkBody(&work->trunkBody);
+    worldCollisionUnlinkBody(&work->headBody);
+    worldCollisionUnlinkBody(&work->attackBody);
     worldTargetUnlinkNode(&obj->node);
     Gp_ReleaseStateF0Add(arg0, 0);
     work->shadowShade = 0x80;
@@ -5827,7 +5827,7 @@ static void Actor00400_Fn0A190(Task* task)
     work->child.attackBody.radius           = 0x100;
     work->child.attackBody.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(3, &work->child.attackBody);
-    Gp_InitRec18Table(work->contacts, 2, 0);
+    worldCollisionInitContacts(work->contacts, ARRAY_SIZE(work->contacts), 0);
     work->child.attackBody.flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
     actorRenderComposeCoord(coord);
     work->velocity.vy = ACTOR_00400_SHOT_LAUNCH_SPEED_Y;

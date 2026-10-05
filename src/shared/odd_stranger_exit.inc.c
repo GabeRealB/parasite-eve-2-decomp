@@ -16,9 +16,9 @@ void oddStrangerExit(Task* task)
         if (work->childTask1 != NULL) {
             taskKill(work->childTask1);
         }
-        Gp_UnlinkObj(&work->attackBody);
-        Gp_UnlinkObj(&work->hitBody);
-        Gp_UnlinkObj(&work->gridBody);
+        worldCollisionUnlinkBody(&work->attackBody);
+        worldCollisionUnlinkBody(&work->hitBody);
+        worldCollisionUnlinkBody(&work->gridBody);
         enemy->recs = 0;
     }
     enemyDestroy(enemy, task);

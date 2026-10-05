@@ -76,7 +76,7 @@ void gluttonChunkSpawn(Enemy* enemy, Task* task)
     Gp_LinkObj(2, &work->gridBody);
 
     work->attackBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-    Gp_InitRec18Table(work->gridBody.context.contacts, ARRAY_SIZE(work->gridContacts), 0);
+    worldCollisionInitContacts(work->gridBody.context.contacts, ARRAY_SIZE(work->gridContacts), 0);
     work->gridBody.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
     work->attackBody.key  = Gp_PackObjPair(owner, 5);
 

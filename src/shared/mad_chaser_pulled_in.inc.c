@@ -29,9 +29,9 @@ void madChaserPulledIn(Task* arg0)
     Gp_ReleaseStateF0Add(arg0, 0);
     enemy->recs = 0;
     objs        = (MadChaserWork*)arg0->work;
-    Gp_UnlinkObj(&objs->pairBody);
-    Gp_UnlinkObj(&objs->gridBody);
-    Gp_UnlinkObj(&objs->attackBody);
+    worldCollisionUnlinkBody(&objs->pairBody);
+    worldCollisionUnlinkBody(&objs->gridBody);
+    worldCollisionUnlinkBody(&objs->attackBody);
     madChaserEnterState(arg0, 5);
     taskMessageDispatch(Gp_LookupSlot4(0), ROOM_MESSAGE_ACTOR_EVENT, 0, 0);
     tmd->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;

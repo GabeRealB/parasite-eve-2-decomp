@@ -64,7 +64,7 @@ void mothSpawn(Enemy* arg0, Task* arg1)
     work->hitBody.radius           = 0xFA;
     work->hitBody.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(2, &work->hitBody);
-    Gp_InitRec18Table(work->hitContacts, ARRAY_SIZE(work->hitContacts), 0);
+    worldCollisionInitContacts(work->hitContacts, ARRAY_SIZE(work->hitContacts), 0);
     work->gridBody.coord            = coord;
     work->gridBody.context.contacts = work->gridContacts;
     work->gridBody.pos.vx           = 0;
@@ -75,7 +75,7 @@ void mothSpawn(Enemy* arg0, Task* arg1)
     work->gridBody.flags            = WORLD_COLLISION_BODY_SPHERE;
     work->hitBody.flags             = (u16)(work->hitBody.flags | WORLD_COLLISION_BODY_PAIR_ENABLED);
     Gp_LinkObj(2, &work->gridBody);
-    Gp_InitRec18Table(work->gridContacts, ARRAY_SIZE(work->gridContacts), 0);
+    worldCollisionInitContacts(work->gridContacts, ARRAY_SIZE(work->gridContacts), 0);
     work->attackBody.coord            = coord;
     work->attackBody.context.contacts = work->attackContacts;
     work->attackBody.pos.vx           = 0;
@@ -86,7 +86,7 @@ void mothSpawn(Enemy* arg0, Task* arg1)
     work->attackBody.radius           = 0x190;
     work->attackBody.flags            = (u32)WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(3, &work->attackBody);
-    Gp_InitRec18Table(work->attackContacts, ARRAY_SIZE(work->attackContacts), 0);
+    worldCollisionInitContacts(work->attackContacts, ARRAY_SIZE(work->attackContacts), 0);
     work->attackBody.flags = (u16)(work->attackBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
     arg1->state            = 1;
 }

@@ -74,9 +74,9 @@ void mothDeath(Enemy* arg0, Task* arg1)
                     }
                     work->timer++;
                     if (work->timer >= 0x1E) {
-                        Gp_UnlinkObj(&work->hitBody);
-                        Gp_UnlinkObj(&work->gridBody);
-                        Gp_UnlinkObj(&work->attackBody);
+                        worldCollisionUnlinkBody(&work->hitBody);
+                        worldCollisionUnlinkBody(&work->gridBody);
+                        worldCollisionUnlinkBody(&work->attackBody);
                         work->deathStep = 2;
                     }
                     break;

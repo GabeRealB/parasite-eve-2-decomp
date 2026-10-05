@@ -4239,7 +4239,7 @@ static void func_actor_403200_80138AFC(Enemy* enemy, Task* task)
     work->swipeBody.radius          = 0;
     work->swipeBody.flags           = WORLD_COLLISION_BODY_CAPSULE;
     Gp_LinkObj(2, &work->swipeBody);
-    Gp_InitRec18Table(recs2, ARRAY_SIZE(work->swipeContacts), 0);
+    worldCollisionInitContacts(recs2, ARRAY_SIZE(work->swipeContacts), 0);
     work->swipeBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
 
     escorts                   = task->work;

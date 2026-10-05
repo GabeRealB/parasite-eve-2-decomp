@@ -21,6 +21,7 @@
 #include "gameplay/effect_tasks.h"
 #include "gameplay/effects.h"
 #include "gameplay/enemy.h"
+#include "gameplay/hud_sprites.h"
 #include "gameplay/light.h"
 #include "gameplay/message.h"
 #include "gameplay/object_fields.h"
@@ -962,7 +963,7 @@ static void func_actor_105100_801327B4(Enemy* arg0, Task* arg1)
     work->hitBody.radius           = 0x320;
     work->hitBody.flags            = (u32)WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(2, &work->hitBody);
-    Gp_InitRec18Table(records1, 3, 0);
+    worldCollisionInitContacts(records1, 3, 0);
     work->hitBody.flags              = (u16)(work->hitBody.flags | WORLD_COLLISION_BODY_PAIR_ENABLED);
     work->touchBody.coord            = arg1->extra.tmd->coords;
     records2                         = work->touchContacts;
@@ -974,7 +975,7 @@ static void func_actor_105100_801327B4(Enemy* arg0, Task* arg1)
     work->touchBody.radius           = 0x4B0;
     work->touchBody.flags            = (u32)WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(2, &work->touchBody);
-    Gp_InitRec18Table(records2, 1, 0);
+    worldCollisionInitContacts(records2, 1, 0);
     work->touchBody.flags             = (u16)(work->touchBody.flags | WORLD_COLLISION_BODY_PAIR_ENABLED);
     work->strikeBody.coord            = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
     records3                          = work->strikeContacts;
@@ -986,7 +987,7 @@ static void func_actor_105100_801327B4(Enemy* arg0, Task* arg1)
     work->strikeBody.radius           = 0x1F4;
     work->strikeBody.flags            = (u32)WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(3, &work->strikeBody);
-    Gp_InitRec18Table(records3, 1, 0);
+    worldCollisionInitContacts(records3, 1, 0);
     work->strikeBody.flags = work->strikeBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     arg1->state            = 1;
 }
@@ -1824,9 +1825,9 @@ static void func_actor_105100_80134284(Enemy* arg0, Task* arg1)
             work->placementMtx = coord->coord;
             arg0->recs         = 0;
             worldTargetUnlinkNode(&arg0->node);
-            Gp_UnlinkObj(&work->hitBody);
-            Gp_UnlinkObj(&work->touchBody);
-            Gp_UnlinkObj(&work->strikeBody);
+            worldCollisionUnlinkBody(&work->hitBody);
+            worldCollisionUnlinkBody(&work->touchBody);
+            worldCollisionUnlinkBody(&work->strikeBody);
             Gp_SetLightMode(arg0, ENEMY_COLOR_WEIGHTED);
             work->timer      = 0;
             work->actionStep = 1;
@@ -2008,7 +2009,7 @@ static void func_actor_105100_801347D4(Enemy* arg0, Task* arg1)
     work->sweepBody.coord           = temp;
     Gp_LinkObj(3, &work->sweepBody);
     work->sweepBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
-    Gp_InitRec18Table(work->contacts, ARRAY_SIZE(work->contacts), 0);
+    worldCollisionInitContacts(work->contacts, ARRAY_SIZE(work->contacts), 0);
     work->glowSize  = 0x190;
     rollA           = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
     rollB           = (rollA * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
@@ -2155,7 +2156,7 @@ body:
                 scratch->toPlayer.vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
                 scratch->toPlayer.vy = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
                 scratch->toPlayer.vz = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
-                Gp_OrientAlong(&scratch->toPlayer, &coord->coord, 0);
+                gfxBuildDirectionRotation(&scratch->toPlayer, &coord->coord, 0);
                 work->step  = ACTOR_105100_FIREBALL_FLY;
                 work->timer = 0;
                 work->speed = 1;
@@ -2256,7 +2257,7 @@ static void func_actor_105100_80135278(Enemy* arg0, Task* arg1)
     beam->body.radius           = 0xC8;
     beam->body.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(3, &beam->body);
-    Gp_InitRec18Table(beam->contacts, ARRAY_SIZE(beam->contacts), 0);
+    worldCollisionInitContacts(beam->contacts, ARRAY_SIZE(beam->contacts), 0);
     beam->body.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     arg1->state       = 1;
 }
@@ -2838,8 +2839,8 @@ static void func_actor_105100_801366D8(Enemy* arg0, Task* arg1)
     _Actor105100FireballWork* work;
 
     work = arg1->work;
-    Gp_UnlinkObj(&work->body);
-    Gp_UnlinkObj(&work->sweepBody);
+    worldCollisionUnlinkBody(&work->body);
+    worldCollisionUnlinkBody(&work->sweepBody);
     enemyDestroy(arg0, arg1);
 }
 
@@ -2853,6 +2854,6 @@ void func_actor_105100_8013672C(Task* arg0)
 
 static void func_actor_105100_80136788(Enemy* arg0, Task* arg1)
 {
-    Gp_UnlinkObj(arg1->work);
+    worldCollisionUnlinkBody(arg1->work);
     enemyDestroy(arg0, arg1);
 }

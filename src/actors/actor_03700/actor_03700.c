@@ -854,7 +854,7 @@ static void Actor03700_Fn000A4(Enemy* arg0, Task* task)
     work->body.key              = 0x30025;
     work->body.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(2, &work->body);
-    Gp_InitRec18Table(work->contacts, ARRAY_SIZE(work->contacts), 0);
+    worldCollisionInitContacts(work->contacts, ARRAY_SIZE(work->contacts), 0);
     work->body.flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
     task->state       = 1;
 }
@@ -1801,7 +1801,7 @@ static void Actor03700_Fn020D4(Enemy* enemy, Task* task)
             switch (work->actionStep) {
                 case 0:
                     enemy->recs = 0;
-                    Gp_UnlinkObj(&work->body);
+                    worldCollisionUnlinkBody(&work->body);
                     worldTargetUnlinkNode(&enemy->node);
                     Gp_ReleaseStateF0Add(task, 0x25);
                     model->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;

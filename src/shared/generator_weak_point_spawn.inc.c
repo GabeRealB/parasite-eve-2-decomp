@@ -53,7 +53,7 @@ void generatorLifeSupportSpawn(Enemy* arg0, Task* arg1)
     part->body.radius           = 0xC8;
     part->body.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(2, &part->body);
-    Gp_InitRec18Table(contacts, ARRAY_SIZE(part->contacts), 0);
+    worldCollisionInitContacts(contacts, ARRAY_SIZE(part->contacts), 0);
     part->body.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     type              = work->kind;
     part->kind        = type;

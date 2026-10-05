@@ -150,7 +150,7 @@ void maggotCaterpillarSpawn(Enemy* ctx, Task* actor)
     work->gridBody.radius           = 0x12C;
     work->gridBody.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(2, &work->gridBody);
-    Gp_InitRec18Table(rec0, 4, 0);
+    worldCollisionInitContacts(rec0, 4, 0);
     work->gridBody.flags       |= (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED);
     work->body.coord            = actor->extra.tmd->coords + 1;
     rec1                        = work->bodyContacts;
@@ -162,7 +162,7 @@ void maggotCaterpillarSpawn(Enemy* ctx, Task* actor)
     work->body.radius           = 0x12C;
     work->body.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(2, &work->body);
-    Gp_InitRec18Table(rec1, 2, 0);
+    worldCollisionInitContacts(rec1, 2, 0);
     work->body.flags                 |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     work->attackBody.coord            = actor->extra.tmd->coords + 4;
     rec2                              = work->attackContacts;
@@ -174,7 +174,7 @@ void maggotCaterpillarSpawn(Enemy* ctx, Task* actor)
     work->attackBody.radius           = 0xC8;
     work->attackBody.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(3, &work->attackBody);
-    Gp_InitRec18Table(rec2, 1, 0);
+    worldCollisionInitContacts(rec2, 1, 0);
     work->attackBody.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     work->flameBody.coord            = actor->extra.tmd->coords + 4;
     rec3                             = work->flameContacts;
@@ -186,7 +186,7 @@ void maggotCaterpillarSpawn(Enemy* ctx, Task* actor)
     work->flameBody.radius           = 0x1F4;
     work->flameBody.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(1, &work->flameBody);
-    Gp_InitRec18Table(rec3, 1, 0);
+    worldCollisionInitContacts(rec3, 1, 0);
     work->flameBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     actor->state           = 1;
 }

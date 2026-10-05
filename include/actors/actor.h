@@ -1656,7 +1656,7 @@ static __inline__ void actorLinkWorkObj(GfxCoord* coord, WorldCollisionBody* obj
     obj->radius           = field1C;
     obj->flags            = 1;
     Gp_LinkObj(prio, obj);
-    Gp_InitRec18Table(obj->context.contacts, kind, 0);
+    worldCollisionInitContacts(obj->context.contacts, kind, 0);
 }
 
 /// Whether the XZ offset `gap` reaches at least 1000.

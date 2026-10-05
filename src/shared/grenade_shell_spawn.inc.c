@@ -72,7 +72,7 @@ void grenadeShellSpawn(Task* arg0)
     work->sphereBody.radius = 0x94;
     work->sphereBody.flags  = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(1, &work->sphereBody);
-    Gp_InitRec18Table(work->sphereBody.context.contacts, 1, 0);
+    worldCollisionInitContacts(work->sphereBody.context.contacts, 1, 0);
     work->capsuleBody.context.capsule = &work->capsule;
     work->capsuleBody.flags           = WORLD_COLLISION_BODY_CAPSULE;
     work->capsule.contacts            = work->capsuleContacts;
@@ -92,7 +92,7 @@ void grenadeShellSpawn(Task* arg0)
     work->sphereBody.flags           |= (WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
     work->capsule.ends[1].vz          = -(work->flightTimer.word >> 10);
     Gp_LinkObj(1, &work->capsuleBody);
-    Gp_InitRec18Table(work->capsule.contacts, 1, 0);
+    worldCollisionInitContacts(work->capsule.contacts, 1, 0);
     work->capsuleBody.flags |= (WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_GRID_ENABLED);
     SCRATCH_STACK_RELEASE_BYTES(8);
 }

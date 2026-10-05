@@ -1345,7 +1345,7 @@ static void Actor02300_Fn028AC(Enemy* enemy, Task* actor)
             work->sightBody.flags           = WORLD_COLLISION_BODY_CAPSULE;
             work->sightBody.coord           = &partsA[4];
             Gp_LinkObj(3, &work->sightBody);
-            Gp_InitRec18Table(work->sightContacts, ARRAY_SIZE(work->sightContacts), 0);
+            worldCollisionInitContacts(work->sightContacts, ARRAY_SIZE(work->sightContacts), 0);
             work->sightBody.flags |= (WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_SINGLE_CONTACT | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
 
             partsB                          = actor->extra.tmd->coords;
@@ -1358,7 +1358,7 @@ static void Actor02300_Fn028AC(Enemy* enemy, Task* actor)
             work->hurtBody.flags            = WORLD_COLLISION_BODY_SPHERE;
             work->hurtBody.coord            = &partsB[3];
             Gp_LinkObj(2, &work->hurtBody);
-            Gp_InitRec18Table(work->hurtContacts, ARRAY_SIZE(work->hurtContacts), 0);
+            worldCollisionInitContacts(work->hurtContacts, ARRAY_SIZE(work->hurtContacts), 0);
             work->hurtBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
 
             partsC                            = actor->extra.tmd->coords;
@@ -1371,7 +1371,7 @@ static void Actor02300_Fn028AC(Enemy* enemy, Task* actor)
             work->groundBody.flags            = WORLD_COLLISION_BODY_SPHERE;
             work->groundBody.coord            = partsC;
             Gp_LinkObj(2, &work->groundBody);
-            Gp_InitRec18Table(work->groundContacts, ARRAY_SIZE(work->groundContacts), 0);
+            worldCollisionInitContacts(work->groundContacts, ARRAY_SIZE(work->groundContacts), 0);
             work->groundBody.flags |= (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED);
 
             effParts                          = eff2->task->extra.tmd->coords;
@@ -1384,7 +1384,7 @@ static void Actor02300_Fn028AC(Enemy* enemy, Task* actor)
             work->strikeBody.flags            = WORLD_COLLISION_BODY_SPHERE;
             work->strikeBody.coord            = effParts;
             Gp_LinkObj(3, &work->strikeBody);
-            Gp_InitRec18Table(work->strikeContacts, ARRAY_SIZE(work->strikeContacts), 0);
+            worldCollisionInitContacts(work->strikeContacts, ARRAY_SIZE(work->strikeContacts), 0);
             work->strikeBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             actor->state            = 1;
             break;

@@ -13,8 +13,8 @@ void skullStalkerExit(Task* task)
 
     enemy->recs = 0;
     worldTargetUnlinkNode(&enemy->node);
-    Gp_UnlinkObj(&work->senseBody);
-    Gp_UnlinkObj(&work->frontSenseBody);
-    Gp_UnlinkObj(&work->body);
+    worldCollisionUnlinkBody(&work->senseBody);
+    worldCollisionUnlinkBody(&work->frontSenseBody);
+    worldCollisionUnlinkBody(&work->body);
     enemyTaskExit(task);
 }

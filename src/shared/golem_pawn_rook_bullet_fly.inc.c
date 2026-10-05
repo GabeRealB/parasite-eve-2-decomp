@@ -58,7 +58,7 @@ void golemPawnRookBulletFly(Enemy* arg0, Task* arg1)
     Gp_UpdateActorColor(arg1->spawnArg2.pointer, &pos, 0, 0);
 
     if (work->wallContacts[0].key.value != 0) {
-        idx = func_800E1B24(work->wallContacts[0].key.value);
+        idx = worldCollisionSurfaceClassFromKey(work->wallContacts[0].key.value);
         if (Gp_RoomParamTables[gGameSession->location.loc.stage - 1][gGameSession->location.loc.area - 1][idx]->probePassThrough == WORLD_COLLISION_SURFACE_BLOCK_PROBES) {
             found = 1;
         }

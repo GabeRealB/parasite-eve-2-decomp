@@ -78,7 +78,7 @@ void golemPawnRookBulletSpawn(Enemy* arg0, Task* arg1)
     work->playerStrikeBody.radius           = 0x64;
     work->playerStrikeBody.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(3, &work->playerStrikeBody);
-    Gp_InitRec18Table(work->strikeContacts, 1, 0);
+    worldCollisionInitContacts(work->strikeContacts, ARRAY_SIZE(work->strikeContacts), 0);
     work->playerStrikeBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
 
     work->enemyStrikeBody.coord            = coord;
@@ -110,7 +110,7 @@ void golemPawnRookBulletSpawn(Enemy* arg0, Task* arg1)
     work->wallBody.radius          = 0;
     work->wallBody.flags           = WORLD_COLLISION_BODY_CAPSULE;
     Gp_LinkObj(3, &work->wallBody);
-    Gp_InitRec18Table(work->wallContacts, 1, 0);
+    worldCollisionInitContacts(work->wallContacts, ARRAY_SIZE(work->wallContacts), 0);
     work->wallBody.flags |= (WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_GRID_ENABLED);
 
     arg1->state = 1;

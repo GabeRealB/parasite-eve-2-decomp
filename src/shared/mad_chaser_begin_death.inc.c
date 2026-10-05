@@ -14,9 +14,9 @@ void madChaserBeginDeath(Task* arg0)
     enemy->recs = 0;
 
     objWork = (MadChaserWork*)arg0->work;
-    Gp_UnlinkObj(&objWork->pairBody);
-    Gp_UnlinkObj(&objWork->gridBody);
-    Gp_UnlinkObj(&objWork->attackBody);
+    worldCollisionUnlinkBody(&objWork->pairBody);
+    worldCollisionUnlinkBody(&objWork->gridBody);
+    worldCollisionUnlinkBody(&objWork->attackBody);
 
     work->shrinkScaleY = 0x1000;
     work->savedRootMtx = coord->coord;

@@ -509,7 +509,7 @@ static s16 func_actor_403000_8013D48C(Task* task);
 
 /// `Task::exitCallback` installed by the spawn handler, for the teardown path
 /// where the enemy was created: hand the four collision spheres' bodies back to
-/// `Gp_UnlinkObj`, drop the enemy's `recs` slot, then let `enemyDestroy`
+/// `worldCollisionUnlinkBody`, drop the enemy's `recs` slot, then let `enemyDestroy`
 /// free the enemy and the task.
 static void func_actor_403000_8013D4F4(Task* task);
 
@@ -2590,9 +2590,9 @@ static void func_actor_403000_801343B8(Enemy* arg0, Task* arg1)
     work->headCapsule.body.flags                    = WORLD_COLLISION_BODY_CAPSULE;
     Gp_LinkObj(2, &work->headCapsule.body);
     work->headCapsule.body.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-    Gp_InitRec18Table(rootContacts, ARRAY_SIZE(work->rootCapsule.contacts), 0);
-    Gp_InitRec18Table(headContacts, ARRAY_SIZE(work->headCapsule.contacts), 0);
-    Gp_InitRec18Table(work->rootSphere.body.context.contacts, ARRAY_SIZE(work->rootSphere.contacts), 0);
+    worldCollisionInitContacts(rootContacts, ARRAY_SIZE(work->rootCapsule.contacts), 0);
+    worldCollisionInitContacts(headContacts, ARRAY_SIZE(work->headCapsule.contacts), 0);
+    worldCollisionInitContacts(work->rootSphere.body.context.contacts, ARRAY_SIZE(work->rootSphere.contacts), 0);
     torsoBody                   = &work->torsoSphere.body;
     torsoBody->coord            = &arg1->extra.tmd->coords[1];
     torsoBody->context.contacts = torsoContacts;
@@ -2604,7 +2604,7 @@ static void func_actor_403000_801343B8(Enemy* arg0, Task* arg1)
     torsoBody->flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(2, &work->torsoSphere.body);
     torsoBody->flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-    Gp_InitRec18Table(torsoBody->context.contacts, ARRAY_SIZE(work->torsoSphere.contacts), 0);
+    worldCollisionInitContacts(torsoBody->context.contacts, ARRAY_SIZE(work->torsoSphere.contacts), 0);
     hindBody                   = &work->hindSphere.body;
     hindBody->coord            = &arg1->extra.tmd->coords[15];
     hindBody->context.contacts = work->hindSphere.contacts;
@@ -2616,7 +2616,7 @@ static void func_actor_403000_801343B8(Enemy* arg0, Task* arg1)
     hindBody->flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(2, &work->hindSphere.body);
     hindBody->flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-    Gp_InitRec18Table(hindBody->context.contacts, ARRAY_SIZE(work->hindSphere.contacts), 0);
+    worldCollisionInitContacts(hindBody->context.contacts, ARRAY_SIZE(work->hindSphere.contacts), 0);
     neckBody                   = &work->neckSphere.body;
     neckBody->coord            = &arg1->extra.tmd->coords[4];
     neckBody->context.contacts = work->neckSphere.contacts;
@@ -2628,7 +2628,7 @@ static void func_actor_403000_801343B8(Enemy* arg0, Task* arg1)
     neckBody->flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(2, &work->neckSphere.body);
     neckBody->flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-    Gp_InitRec18Table(neckBody->context.contacts, ARRAY_SIZE(work->neckSphere.contacts), 0);
+    worldCollisionInitContacts(neckBody->context.contacts, ARRAY_SIZE(work->neckSphere.contacts), 0);
     work->hindSphere.body.pos.vx = 0;
     work->hindSphere.body.pos.vy = 0;
     work->hindSphere.body.pos.vz = -0x100;
@@ -5701,10 +5701,10 @@ static void func_actor_403000_8013D4F4(Task* task)
     Enemy*           enemy = (Enemy*)task->spawnArg2.pointer;
 
     if (work != NULL) {
-        Gp_UnlinkObj(&work->torsoSphere.body);
-        Gp_UnlinkObj(&work->hindSphere.body);
-        Gp_UnlinkObj(&work->neckSphere.body);
-        Gp_UnlinkObj(&work->rootSphere.body);
+        worldCollisionUnlinkBody(&work->torsoSphere.body);
+        worldCollisionUnlinkBody(&work->hindSphere.body);
+        worldCollisionUnlinkBody(&work->neckSphere.body);
+        worldCollisionUnlinkBody(&work->rootSphere.body);
         enemy->recs = 0;
     }
     enemyDestroy(enemy, task);

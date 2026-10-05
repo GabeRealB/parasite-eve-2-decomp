@@ -233,11 +233,11 @@ static inline WorldCollisionContact* _worldCollisionGetObjectContacts(WorldColli
 }
 
 WorldCollisionPairHandler Gp_PairHandlers[5] = {
-    Gp_PairNop,
+    worldCollisionPairNop,
     Gp_PairHandler1,
-    Gp_PairNop,
+    worldCollisionPairNop,
     Gp_PairHandler3,
-    Gp_PairNop,
+    worldCollisionPairNop,
 };
 WorldCollisionPairRule D_8010FA4C[4][4] = {
     { { WORLD_COLLISION_PAIR_HANDLER_SPHERES, false },
@@ -365,8 +365,8 @@ s32 Gp_PairHandler1(WorldCollisionBody* arg0, WorldCollisionBody* arg1, s32 kind
     head                                               = SCRATCH_STACK_CURSOR(u8);
     block                                              = (_WorldCollisionSphereScratch*)(head - sizeof(_WorldCollisionSphereScratch));
     SCRATCH_STACK_CURSOR(_WorldCollisionSphereScratch) = block;
-    Gp_ObjWorldPos(arg0, (VECTOR3*)&block->centre0);
-    Gp_ObjWorldPos(arg1, (VECTOR3*)&block->centre1);
+    worldCollisionGetBodyComposedPosition(arg0, &block->centre0);
+    worldCollisionGetBodyComposedPosition(arg1, &block->centre1);
 
     ret                   = 0;
     block->centreDelta.vx = block->centre0.vx - block->centre1.vx;
@@ -414,7 +414,7 @@ s32 Gp_PairHandler3(WorldCollisionBody* arg0, WorldCollisionBody* arg1, s32 kind
     s32                            proj;
     s32                            ret;
     s32                            tapered;
-    VECTOR3*                       sphereCenter;
+    VECTOR*                        sphereCenter;
     s32                            radiusSquared;
     s32                            dx0;
     s32                            dy0;
@@ -440,12 +440,12 @@ s32 Gp_PairHandler3(WorldCollisionBody* arg0, WorldCollisionBody* arg1, s32 kind
     // Address the centre from the cursor before the reservation is stored.
     // Taking &block->sphereCenter after that store does not keep this order.
     head                       = SCRATCH_STACK_CURSOR(u8);
-    sphereCenter               = (VECTOR3*)&((_WorldCollisionCapsuleScratch*)(head - sizeof(_WorldCollisionCapsuleScratch)))->sphereCenter;
+    sphereCenter               = &((_WorldCollisionCapsuleScratch*)(head - sizeof(_WorldCollisionCapsuleScratch)))->sphereCenter;
     SCRATCH_STACK_CURSOR(void) = head - sizeof(_WorldCollisionCapsuleScratch);
     rec                        = arg1->context.capsule;
     block                      = (_WorldCollisionCapsuleScratch*)(head - sizeof(_WorldCollisionCapsuleScratch));
     // Place the sphere centre and the capsule segment in world space.
-    Gp_ObjWorldPos(arg0, sphereCenter);
+    worldCollisionGetBodyComposedPosition(arg0, sphereCenter);
     func_800DEC80(arg1, block->ends, &block->segmentDirection, 0);
 
     block->work.radiusAlongSegment.vx = (block->segmentDirection.vx * arg0->radius) >> 12;
@@ -594,7 +594,7 @@ void Gp_CollideObjGrid(WorldCollisionBody* arg0)
     head                       = SCRATCH_STACK_CURSOR(u8);
     SCRATCH_STACK_CURSOR(void) = head - sizeof(_WorldCollisionGridSphereScratch);
     scratch                    = (_WorldCollisionGridSphereScratch*)(head - sizeof(_WorldCollisionGridSphereScratch));
-    Gp_ObjWorldPos(arg0, (VECTOR3*)&scratch->centre);
+    worldCollisionGetBodyComposedPosition(arg0, &scratch->centre);
     Gp_LocalToGrid((VECTOR3*)&scratch->centre, (SVECTOR3*)&scratch->gridCell);
 
     if ((u16)scratch->gridCell.vx < Gp_GridParams->cellCountX && (u16)scratch->gridCell.vz < Gp_GridParams->cellCountZ) {
@@ -740,7 +740,7 @@ void Gp_CollideObjGridDir(WorldCollisionBody* arg0)
     SCRATCH_STACK_CURSOR(void) = head - sizeof(_WorldCollisionGridSphereScratch);
     scratch                    = (_WorldCollisionGridSphereScratch*)(head - sizeof(_WorldCollisionGridSphereScratch));
     motionContext              = arg0->context.motion;
-    Gp_ObjWorldPos(arg0, (VECTOR3*)&scratch->centre);
+    worldCollisionGetBodyComposedPosition(arg0, &scratch->centre);
     Gp_LocalToGrid((VECTOR3*)&scratch->centre, (SVECTOR3*)&scratch->gridCell);
 
     if ((u16)scratch->gridCell.vx < Gp_GridParams->cellCountX && (u16)scratch->gridCell.vz < Gp_GridParams->cellCountZ) {

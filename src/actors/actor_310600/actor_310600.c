@@ -444,7 +444,7 @@ static void func_actor_310600_80161E64(Task* task)
     obj->flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(2, obj);
     obj->flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-    Gp_InitRec18Table(obj->context.contacts, ARRAY_SIZE(work->contacts), 0);
+    worldCollisionInitContacts(obj->context.contacts, ARRAY_SIZE(work->contacts), 0);
     task->msgTable = D_actor_310600_801796BC;
     func_actor_310600_801625F0(task, ACTOR_MESSAGE_SET_MODEL_DRAW, 0, 0);
     task->exitCallback = func_actor_310600_80162A24;
@@ -760,7 +760,7 @@ void func_actor_310600_801629CC(Task* task)
 
 static void func_actor_310600_80162A24(Task* arg0)
 {
-    Gp_UnlinkObj(&((_Actor310600RupertBroderickWork*)arg0->work)->body);
+    worldCollisionUnlinkBody(&((_Actor310600RupertBroderickWork*)arg0->work)->body);
     enemyTaskExit(arg0);
 }
 

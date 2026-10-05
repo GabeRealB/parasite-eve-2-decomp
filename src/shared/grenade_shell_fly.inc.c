@@ -98,9 +98,8 @@ check:
        `head` the lower of the two call-saved registers. */
     SOFT_USE_REG2(head, head);
     func_800E0FEC(rec, &(head - 1)->delta, 1, &idx);
-    idx = func_800E1ACC((u8*)&idx);
-    /* `func_800E1ACC` writes through `&idx` as well as returning it, so the
-       index is re-read from the slot instead of kept in the return register. */
+    idx = worldCollisionSurfaceClassFromMask((const u8*)&idx);
+    // Preserve the index reload after the contact paths converge.
     SOFT_COMPILER_BARRIER();
     surface = Gp_RoomParamTables[gGameSession->location.loc.stage - 1][gGameSession->location.loc.area - 1][idx];
     if (surface->probePassThrough == WORLD_COLLISION_SURFACE_BLOCK_PROBES) {

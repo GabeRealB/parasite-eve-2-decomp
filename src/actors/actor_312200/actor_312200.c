@@ -426,7 +426,7 @@ static void func_actor_312200_80163178(Enemy* enemy, Task* task)
     node->flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(2, node);
     node->flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-    Gp_InitRec18Table(node->context.contacts, ARRAY_SIZE(work->contacts), 0);
+    worldCollisionInitContacts(node->context.contacts, ARRAY_SIZE(work->contacts), 0);
     task->msgTable       = D_actor_312200_80169F5C;
     work->field_8AC      = 0;
     work->relightPending = 1;

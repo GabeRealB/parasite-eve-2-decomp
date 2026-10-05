@@ -1707,7 +1707,7 @@ static void func_actor_110600_80134AB4(Enemy* enemy, Task* task)
     work->gridBody.flags = enabled = 1;
     Gp_LinkObj(2, &work->gridBody);
     work->gridBody.flags = (u16)(work->gridBody.flags | (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-    Gp_InitRec18Table(work->gridBody.context.contacts, ARRAY_SIZE(work->gridContacts), 0);
+    worldCollisionInitContacts(work->gridBody.context.contacts, ARRAY_SIZE(work->gridContacts), 0);
     obj                   = &work->hitBody;
     obj->coord            = task->extra.tmd->coords;
     obj->context.contacts = contactRecs;
@@ -1719,7 +1719,7 @@ static void func_actor_110600_80134AB4(Enemy* enemy, Task* task)
     obj->flags            = enabled;
     Gp_LinkObj(2, obj);
     obj->flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-    Gp_InitRec18Table(obj->context.contacts, ARRAY_SIZE(work->hitContacts), 0);
+    worldCollisionInitContacts(obj->context.contacts, ARRAY_SIZE(work->hitContacts), 0);
     work->hitBody.pos.vy = -0x2BC;
     bodyObj              = &work->attackBody;
     work->hitBody.key    = 0x30000;
@@ -1729,7 +1729,7 @@ static void func_actor_110600_80134AB4(Enemy* enemy, Task* task)
     pos.vy               = 0;
     pos.vz               = 0;
     Actor110600_InitBodyObj(bodyObj, task->extra.tmd->coords + 3, work->attackContacts, &pos, enabled);
-    Gp_InitRec18Table(bodyObj->context.contacts, ARRAY_SIZE(work->attackContacts), 0);
+    worldCollisionInitContacts(bodyObj->context.contacts, ARRAY_SIZE(work->attackContacts), 0);
     task->msgTable      = D_actor_110600_80148624;
     work->childTask0    = 0;
     work->childTask1    = 0;
@@ -3554,9 +3554,9 @@ static void func_actor_110600_801387F4(Task* task)
         if (helper2 != NULL) {
             helper2->state++;
         }
-        Gp_UnlinkObj(&work->attackBody);
-        Gp_UnlinkObj(&work->hitBody);
-        Gp_UnlinkObj(&work->gridBody);
+        worldCollisionUnlinkBody(&work->attackBody);
+        worldCollisionUnlinkBody(&work->hitBody);
+        worldCollisionUnlinkBody(&work->gridBody);
         enemy->recs = 0;
     }
     displaySetShakeY(0);

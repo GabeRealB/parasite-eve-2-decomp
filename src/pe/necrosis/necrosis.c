@@ -201,13 +201,13 @@ void func_necrosis_8012EF34(Task* arg0)
                 mem->age = mem->age - 1;
             }
             if ((Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
-                Gp_UnlinkObj(&work->damageBody);
-                Gp_UnlinkObj(&work->gridBody);
+                worldCollisionUnlinkBody(&work->damageBody);
+                worldCollisionUnlinkBody(&work->gridBody);
                 goto release;
             }
             if (mem->age > D_necrosis_801306BC[mem->index].travelFrames) {
-                Gp_UnlinkObj(&work->damageBody);
-                Gp_UnlinkObj(&work->gridBody);
+                worldCollisionUnlinkBody(&work->damageBody);
+                worldCollisionUnlinkBody(&work->gridBody);
                 arg0->state = 2;
                 return;
             }
@@ -215,7 +215,7 @@ void func_necrosis_8012EF34(Task* arg0)
                 mem->move.vx = 0;
                 mem->move.vy = 0;
                 mem->move.vz = 0;
-                Gp_UnlinkObj(&work->gridBody);
+                worldCollisionUnlinkBody(&work->gridBody);
             }
             Gp_ClearRec18Occupied(work->contacts);
             return;
