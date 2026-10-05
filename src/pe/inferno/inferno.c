@@ -56,7 +56,7 @@
 /// the six-cell texture row.
 ///
 /// `band` names the two columns. `byBand` is those same bytes in band-major
-/// order, which is how a drawer addresses the column its `kind` selects.
+/// order, addressed by the drawer's `bandIndex`.
 /// `byte` is that order flattened, so the fill can write segment `i` of both
 /// columns from one pointer and stay inside one array. `byte[i]` is segment
 /// `i` of `risingBand`; `byte[i + INFERNO_FAN_SEGMENT_COUNT]` is that segment
@@ -107,9 +107,58 @@ static EffectBandShape D_inferno_801304E4[] = {
 /// which is why the three ids and the three state chains run in step.
 static s32 D_inferno_801304F0[] = { 0xE0100001, 0xE0130001, 0xE00D0001 };
 
-static void func_inferno_8012F3EC(s16 arg0);
-static void func_inferno_8012F978(EffectWork* mem, GfxCoord* coord, s32 kind, _InfernoFanTexturePhase* phase);
-static void func_inferno_8012FF34(EffectWork* mem, GfxCoord* coord, s32 kind, _InfernoFanTexturePhase* phase);
+/// Q12 trigonometry and the six 40-by-40 cells of the fan's additive 4-bit texture.
+enum {
+    INFERNO_FAN_TRIG_FRACTION_BITS = 12,
+    INFERNO_FAN_TEXTURE_DEPTH_4BIT = 0,
+    INFERNO_FAN_TEXTURE_PAGE_X     = 640, // VRAM words
+    INFERNO_FAN_TEXTURE_PAGE_Y     = 0,   // VRAM rows
+    INFERNO_FAN_PALETTE_X          = 32,  // VRAM words
+    INFERNO_FAN_PALETTE_Y          = 266, // VRAM rows
+    INFERNO_FAN_TEXTURE_CELL_SIZE  = 40,  // Texels per cell edge
+    INFERNO_FAN_TEXTURE_V          = 96   // First row within the texture page
+};
+
+static void _infernoDrawScreenWash(s16 intensity);
+static void _infernoDrawRisingFanBand(const EffectWork* work, const GfxCoord* coord, s32 bandIndex, const _InfernoFanTexturePhase* texturePhase);
+static void _infernoDrawConstantLiftFanBand(const EffectWork* work, const GfxCoord* coord, s32 bandIndex, const _InfernoFanTexturePhase* texturePhase);
+
+/// Builds both six-vertex fan rims in the caller's live scratch block.
+///
+/// Expands to multiple statements; use only unconditionally in a drawer body.
+/// Arguments must be side-effect-free values and are read repeatedly:
+/// `scratch` is an `_InfernoFanScratch*`, `coord` is a composed `GfxCoord*`,
+/// radii are signed 16-bit coordinate distances, and lift is the unsigned
+/// 16-bit displacement along local -Y. Captures the caller's `s32`
+/// `segmentIndex` and `yaw`, its `SVECTOR* bottomVertex`, and `GsWSMATRIX`.
+#define INFERNO_BUILD_FAN_RIMS(scratch, coord, baseRadius, liftedRadius, lift)                                                      \
+    gte_SetTransMatrix(&GsWSMATRIX);                                                                                                \
+    /* Wider lifted rim, then the narrower rim in the local XZ plane. */                                                            \
+    for (segmentIndex = 0; segmentIndex < INFERNO_FAN_SEGMENT_COUNT; segmentIndex++) {                                              \
+        yaw                                 = segmentIndex * INFERNO_FAN_SEGMENT_YAW;                                               \
+        (scratch)->topRing[segmentIndex].vx = (rsin(yaw) * (liftedRadius)) >> INFERNO_FAN_TRIG_FRACTION_BITS;                       \
+        (scratch)->topRing[segmentIndex].vy = -(lift);                                                                              \
+        (scratch)->topRing[segmentIndex].vz = (rcos(yaw) * (liftedRadius)) >> INFERNO_FAN_TRIG_FRACTION_BITS;                       \
+        gte_SetRotMatrix(&(coord)->workm);                                                                                          \
+        gte_ldv0(&(scratch)->topRing[segmentIndex]);                                                                                \
+        gte_rtv0();                                                                                                                 \
+        gte_stsv(&(scratch)->topRing[segmentIndex]);                                                                                \
+        (scratch)->topRing[segmentIndex].vx    = (u16)(scratch)->topRing[segmentIndex].vx + (u16)(coord)->workm.t[0];               \
+        (scratch)->topRing[segmentIndex].vy    = (u16)(scratch)->topRing[segmentIndex].vy + (u16)(coord)->workm.t[1];               \
+        (scratch)->topRing[segmentIndex].vz    = (u16)(scratch)->topRing[segmentIndex].vz + (u16)(coord)->workm.t[2];               \
+        (scratch)->bottomRing[segmentIndex].vx = (rsin(yaw) * (baseRadius)) >> INFERNO_FAN_TRIG_FRACTION_BITS;                      \
+        /* Address the lower rim within the full workspace byte extent. */                                                          \
+        bottomVertex     = (SVECTOR*)((u8*)(scratch) + segmentIndex * sizeof(SVECTOR) + OFFSET_OF(_InfernoFanScratch, bottomRing)); \
+        bottomVertex->vy = 0;                                                                                                       \
+        bottomVertex->vz = (rcos(yaw) * (baseRadius)) >> INFERNO_FAN_TRIG_FRACTION_BITS;                                            \
+        gte_SetRotMatrix(&(coord)->workm);                                                                                          \
+        gte_ldv0(&(scratch)->bottomRing[segmentIndex]);                                                                             \
+        gte_rtv0();                                                                                                                 \
+        gte_stsv(&(scratch)->bottomRing[segmentIndex]);                                                                             \
+        (scratch)->bottomRing[segmentIndex].vx = (u16)(scratch)->bottomRing[segmentIndex].vx + (u16)(coord)->workm.t[0];            \
+        bottomVertex->vy                       = (u16)bottomVertex->vy + (u16)(coord)->workm.t[1];                                  \
+        bottomVertex->vz                       = (u16)bottomVertex->vz + (u16)(coord)->workm.t[2];                                  \
+    }
 
 /// Runs one frame of the inferno cast: a state machine driven by
 /// `Task::state`, with the chain it takes chosen in state 0 from
@@ -155,7 +204,7 @@ void func_inferno_8012EF88(Task* arg0)
             return;
         case 5:
             i = 0x200;
-            func_inferno_8012F3EC(mem->angle);
+            _infernoDrawScreenWash(mem->angle);
             Gp_SpawnEff((EFFECT_INFERNO_FLAME | EFFECT_SPAWN_UNLIMITED), coord, 3, NULL);
             mem->scale = 0x600;
             do {
@@ -174,7 +223,7 @@ void func_inferno_8012EF88(Task* arg0)
             arg0->state = 0xA;
             return;
         case 10:
-            func_inferno_8012F3EC(mem->angle);
+            _infernoDrawScreenWash(mem->angle);
             mem->angle = mem->angle - 0x10;
             if (mem->age != 0xC) {
                 return;
@@ -191,7 +240,7 @@ void func_inferno_8012EF88(Task* arg0)
             arg0->state = 0xB;
             return;
         case 11:
-            func_inferno_8012F3EC(mem->angle);
+            _infernoDrawScreenWash(mem->angle);
             if (mem->angle < 0xF0) {
                 mem->angle = mem->angle + 0x10;
             }
@@ -212,7 +261,7 @@ void func_inferno_8012EF88(Task* arg0)
             mem->angle  = 0xFF;
             return;
         case 12:
-            func_inferno_8012F3EC(mem->angle);
+            _infernoDrawScreenWash(mem->angle);
             if (mem->angle >= 9) {
                 mem->angle = mem->angle - 8;
                 return;
@@ -225,48 +274,58 @@ release:
     effectKillTask(mem, arg0);
 }
 
-/// Full-screen wash quad drawn by the inferno cast: an unshaded `POLY_F4`
-/// covering the 320x240 view in `arg0` / `arg0 >> 1` / `arg0 >> 2` red-amber,
-/// added to OT slot 0x30 and followed by a shifted-tpage semi-trans packet.
-static void func_inferno_8012F3EC(s16 arg0)
+/// Draws the Inferno cast's additive red-amber wash over the 320-by-240 view.
+///
+/// `intensity` is the red channel (callers use 0..255); green and blue are
+/// its arithmetic right shifts by one and two, with channels stored as bytes.
+/// Applies the display's vertical offset and queues the blend command before
+/// the quad at the same sorting depth. Requires frame-arena space for one
+/// `POLY_F4` and one `DR_TPAGE`; their storage lives until GPU drawing completes.
+static void _infernoDrawScreenWash(s16 intensity)
 {
-    POLY_F4*      p;
-    DisplayState* ds;
-    s32           x0;
-    s32           x1;
-    s32           yTop;
-    s32           yBot;
-    s32           z;
+    enum {
+        INFERNO_SCREEN_HALF_WIDTH         = 160, // Pixels from the centred screen origin
+        INFERNO_SCREEN_HALF_HEIGHT        = 120,
+        INFERNO_SCREEN_WASH_SORTING_DEPTH = 0x30 // Unscaled depth passed to both OT insertions
+    };
+    POLY_F4*      quad;
+    DisplayState* display;
+    s32           left;
+    s32           right;
+    s32           top;
+    s32           bottom;
+    s32           sortingDepth;
 
-    ds   = &gDisplayState;
-    x0   = -0xA0;
-    x1   = 0xA0;
-    yTop = -0x78;
-    yBot = 0x78;
-    z    = 0x30;
+    display      = &gDisplayState;
+    left         = -INFERNO_SCREEN_HALF_WIDTH;
+    right        = INFERNO_SCREEN_HALF_WIDTH;
+    top          = -INFERNO_SCREEN_HALF_HEIGHT;
+    bottom       = INFERNO_SCREEN_HALF_HEIGHT;
+    sortingDepth = INFERNO_SCREEN_WASH_SORTING_DEPTH;
 
-    p              = gGpuPrimCursor;
-    gGpuPrimCursor = p + 1;
-    setPolyF4(p);
-    setRGB0(p, arg0, arg0 >> 1, arg0 >> 2);
-    p->x0 = x0;
-    p->y0 = yTop - ds->vramYOffset;
-    p->x1 = x1;
-    p->y1 = yTop - ds->vramYOffset;
-    p->x2 = x0;
-    p->y2 = yBot - ds->vramYOffset;
-    p->x3 = x1;
-    p->y3 = yBot - ds->vramYOffset;
-    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)z << ds->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), p);
-    gpuSetPrimitiveBlendMode(p, GPU_BLEND_ADD, z);
+    quad           = gGpuPrimCursor;
+    gGpuPrimCursor = quad + 1;
+    setPolyF4(quad);
+    setRGB0(quad, intensity, intensity >> 1, intensity >> 2);
+    quad->x0 = left;
+    quad->y0 = top - display->vramYOffset;
+    quad->x1 = right;
+    quad->y1 = top - display->vramYOffset;
+    quad->x2 = left;
+    quad->y2 = bottom - display->vramYOffset;
+    quad->x3 = right;
+    quad->y3 = bottom - display->vramYOffset;
+    // Prepending the draw-mode packet makes additive blending active before the wash.
+    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)sortingDepth << display->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), quad);
+    gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, sortingDepth);
 }
 
 /// Companion inferno-cast task: state 0 allocates an `_InfernoFanTexturePhase` and
 /// fills both bands from the LCG, scales `EffectWork::pos` by 0x80
 /// (`gte_gpf12`) and rotates it into `move`. States 1–6 fade `scale` while
 /// spinning `angle` / `period` / `step` and drawing the rising band through
-/// `func_inferno_8012F978` and the constant-lift band through
-/// `func_inferno_8012FF34`. State 3 also walks the effect coordinate by
+/// `_infernoDrawRisingFanBand` and the constant-lift band through
+/// `_infernoDrawConstantLiftFanBand`. State 3 also walks the effect coordinate by
 /// `move`. Releases if the player is dying, the room is fading, or the
 /// state's brightness floor is hit. `Task::spawnArg1 + 1` selects the chain
 /// from state 0.
@@ -329,8 +388,8 @@ void func_inferno_8012F530(Task* arg0)
                 }
                 mem->angle = mem->angle + 0x20;
                 mem->step  = mem->step + 0x18;
-                func_inferno_8012F978(mem, coord, INFERNO_FAN_RISING_BAND, phase);
-                func_inferno_8012FF34(mem, coord, INFERNO_FAN_CONSTANT_LIFT_BAND, phase);
+                _infernoDrawRisingFanBand(mem, coord, INFERNO_FAN_RISING_BAND, phase);
+                _infernoDrawConstantLiftFanBand(mem, coord, INFERNO_FAN_CONSTANT_LIFT_BAND, phase);
                 return;
             }
             break;
@@ -340,8 +399,8 @@ void func_inferno_8012F530(Task* arg0)
                 mem->angle  = mem->angle + 0x20;
                 mem->period = mem->period + 0xC0;
                 mem->step   = mem->step + 0x18;
-                func_inferno_8012F978(mem, coord, INFERNO_FAN_RISING_BAND, phase);
-                func_inferno_8012FF34(mem, coord, INFERNO_FAN_CONSTANT_LIFT_BAND, phase);
+                _infernoDrawRisingFanBand(mem, coord, INFERNO_FAN_RISING_BAND, phase);
+                _infernoDrawConstantLiftFanBand(mem, coord, INFERNO_FAN_CONSTANT_LIFT_BAND, phase);
                 return;
             }
             break;
@@ -356,8 +415,8 @@ void func_inferno_8012F530(Task* arg0)
                 mem->angle  = mem->angle + 0x20;
                 mem->period = mem->period + 0xC0;
                 mem->step   = mem->step + 0x18;
-                func_inferno_8012F978(mem, coord, INFERNO_FAN_RISING_BAND, phase);
-                func_inferno_8012FF34(mem, coord, INFERNO_FAN_CONSTANT_LIFT_BAND, phase);
+                _infernoDrawRisingFanBand(mem, coord, INFERNO_FAN_RISING_BAND, phase);
+                _infernoDrawConstantLiftFanBand(mem, coord, INFERNO_FAN_CONSTANT_LIFT_BAND, phase);
                 return;
             }
             break;
@@ -367,8 +426,8 @@ void func_inferno_8012F530(Task* arg0)
                 mem->angle  = mem->angle + 0x40;
                 mem->period = mem->period + 0xC0;
                 mem->step   = mem->step + 0x10;
-                func_inferno_8012F978(mem, coord, INFERNO_FAN_RISING_BAND, phase);
-                func_inferno_8012FF34(mem, coord, INFERNO_FAN_CONSTANT_LIFT_BAND, phase);
+                _infernoDrawRisingFanBand(mem, coord, INFERNO_FAN_RISING_BAND, phase);
+                _infernoDrawConstantLiftFanBand(mem, coord, INFERNO_FAN_CONSTANT_LIFT_BAND, phase);
                 return;
             }
             break;
@@ -378,8 +437,8 @@ void func_inferno_8012F530(Task* arg0)
                 mem->angle  = mem->angle + 0x40;
                 mem->period = mem->period + 0x40;
                 mem->step   = mem->step + 0x18;
-                func_inferno_8012F978(mem, coord, INFERNO_FAN_RISING_BAND, phase);
-                func_inferno_8012FF34(mem, coord, INFERNO_FAN_CONSTANT_LIFT_BAND, phase);
+                _infernoDrawRisingFanBand(mem, coord, INFERNO_FAN_RISING_BAND, phase);
+                _infernoDrawConstantLiftFanBand(mem, coord, INFERNO_FAN_CONSTANT_LIFT_BAND, phase);
                 return;
             }
             break;
@@ -389,8 +448,8 @@ void func_inferno_8012F530(Task* arg0)
                 mem->angle  = mem->angle + 0x80;
                 mem->period = mem->period + 0x20;
                 mem->step   = mem->step + 0x20;
-                func_inferno_8012F978(mem, coord, INFERNO_FAN_RISING_BAND, phase);
-                func_inferno_8012FF34(mem, coord, INFERNO_FAN_CONSTANT_LIFT_BAND, phase);
+                _infernoDrawRisingFanBand(mem, coord, INFERNO_FAN_RISING_BAND, phase);
+                _infernoDrawConstantLiftFanBand(mem, coord, INFERNO_FAN_CONSTANT_LIFT_BAND, phase);
                 return;
             }
             break;
@@ -401,199 +460,155 @@ release:
     effectKillTask(mem, arg0);
 }
 
-/// Draws the raised band of the inferno's ground fan, the twin of
-/// `func_inferno_8012FF34`. The rims and the primitives match. This band's
-/// top rim is lifted by `EffectWork::period + lift` along local -Y instead
-/// of `lift` alone, so it rises as `period` winds up. `kind` picks the row
-/// of `D_inferno_801304E4` that sizes it.
-static void func_inferno_8012F978(EffectWork* mem, GfxCoord* coord, s32 kind, _InfernoFanTexturePhase* phase)
+/// Draws the Inferno fan band whose upper rim rises with its animated height.
+///
+/// `bandIndex` must select a shape and phase column (0..1); the fan task uses
+/// `INFERNO_FAN_RISING_BAND`. `work->angle` is radial growth, `step` is extra
+/// upper-rim spread, `period` is added to the shape's lift, and `scale` is
+/// byte-stored texture brightness. Radii narrow to signed 16 bits and lift
+/// wraps to unsigned 16 bits before placement along local -Y. Distances use
+/// the coordinate frame's units, and `coord->workm` must be composed.
+///
+/// `texturePhase` supplies six cell phases for each band; adding the task's
+/// nonnegative frame age selects one of six texture cells. Borrows 0x70 bytes
+/// of aligned scratch-stack storage and releases it before returning. Requires
+/// frame-arena space for up to six `POLY_FT4` packets, retained until drawing.
+static void _infernoDrawRisingFanBand(const EffectWork* work, const GfxCoord* coord, s32 bandIndex, const _InfernoFanTexturePhase* texturePhase)
 {
-    u8*                 head;
-    _InfernoFanScratch* block;
-    EffectBandShape*    row;
-    EffectBandShape*    tbl;
-    SVECTOR*            op;
-    POLY_FT4*           prim;
-    s32                 flag;
-    s32                 otz;
-    s32                 i;
-    s32                 next;
-    s32                 ang;
-    s32                 u;
-    s16                 inner;
-    s16                 outer;
-    u16                 height;
-    u16                 frame;
+    _InfernoFanScratch*    scratch;
+    const EffectBandShape* shape;
+    const EffectBandShape* shapes;
+    SVECTOR*               bottomVertex;
+    POLY_FT4*              quad;
+    s32                    projectionFlags;
+    s32                    sortingDepth;
+    s32                    segmentIndex;
+    s32                    nextSegmentIndex;
+    s32                    yaw;
+    s32                    textureU;
+    s16                    baseRadius;
+    s16                    liftedRadius;
+    u16                    lift;
+    u16                    textureCell;
 
-    tbl                        = D_inferno_801304E4;
-    row                        = &tbl[kind];
-    height                     = mem->period + row->lift;
-    inner                      = mem->angle + row->baseRadius;
-    outer                      = row->spread + (inner + mem->step);
-    head                       = SCRATCH_STACK_CURSOR(u8);
-    SCRATCH_STACK_CURSOR(void) = head - sizeof(_InfernoFanScratch);
-    block                      = (_InfernoFanScratch*)(head - sizeof(_InfernoFanScratch));
-    gte_SetTransMatrix(&GsWSMATRIX);
-    // Wider lifted rim, then the narrower rim in the local XZ plane.
-    for (i = 0; i < INFERNO_FAN_SEGMENT_COUNT; i++) {
-        ang                  = i * INFERNO_FAN_SEGMENT_YAW;
-        block->topRing[i].vx = (rsin(ang) * outer) >> 12;
-        block->topRing[i].vy = -height;
-        block->topRing[i].vz = (rcos(ang) * outer) >> 12;
-        gte_SetRotMatrix(&coord->workm);
-        gte_ldv0(&block->topRing[i]);
-        gte_rtv0();
-        gte_stsv(&block->topRing[i]);
-        block->topRing[i].vx    = (u16)block->topRing[i].vx + (u16)coord->workm.t[0];
-        block->topRing[i].vy    = (u16)block->topRing[i].vy + (u16)coord->workm.t[1];
-        block->topRing[i].vz    = (u16)block->topRing[i].vz + (u16)coord->workm.t[2];
-        block->bottomRing[i].vx = (rsin(ang) * inner) >> 12;
-        op                      = &block->topRing[i] + INFERNO_FAN_SEGMENT_COUNT;
-        op->vy                  = 0;
-        op->vz                  = (rcos(ang) * inner) >> 12;
-        gte_SetRotMatrix(&coord->workm);
-        gte_ldv0(&block->bottomRing[i]);
-        gte_rtv0();
-        gte_stsv(&block->bottomRing[i]);
-        block->bottomRing[i].vx = (u16)block->bottomRing[i].vx + (u16)coord->workm.t[0];
-        op->vy                  = (u16)op->vy + (u16)coord->workm.t[1];
-        op->vz                  = (u16)op->vz + (u16)coord->workm.t[2];
-    }
+    shapes       = D_inferno_801304E4;
+    shape        = &shapes[bandIndex];
+    lift         = work->period + shape->lift;
+    baseRadius   = work->angle + shape->baseRadius;
+    liftedRadius = shape->spread + (baseRadius + work->step);
+    scratch      = SCRATCH_STACK_RESERVE_BLOCK(_InfernoFanScratch);
+    INFERNO_BUILD_FAN_RIMS(scratch, coord, baseRadius, liftedRadius, lift);
+    // Project adjacent rim pairs, then queue each valid textured segment.
     gte_SetRotMatrix(&GsWSMATRIX);
-    for (i = 0; i < INFERNO_FAN_SEGMENT_COUNT; i++) {
-        gte_ldv0(&block->topRing[i]);
+    for (segmentIndex = 0; segmentIndex < INFERNO_FAN_SEGMENT_COUNT; segmentIndex++) {
+        gte_ldv0(&scratch->topRing[segmentIndex]);
         gte_rtps();
-        frame = (phase->byBand[kind][i] + mem->age) % INFERNO_FAN_SEGMENT_COUNT;
-        gte_stsxy(&block->sxy0);
-        next = i + 1;
-        gte_ldv3(&block->topRing[next % INFERNO_FAN_SEGMENT_COUNT], &block->bottomRing[i], &block->bottomRing[next % INFERNO_FAN_SEGMENT_COUNT]);
+        textureCell = (texturePhase->byBand[bandIndex][segmentIndex] + work->age) % INFERNO_FAN_SEGMENT_COUNT;
+        gte_stsxy(&scratch->sxy0);
+        nextSegmentIndex = segmentIndex + 1;
+        gte_ldv3(&scratch->topRing[nextSegmentIndex % INFERNO_FAN_SEGMENT_COUNT], &scratch->bottomRing[segmentIndex], &scratch->bottomRing[nextSegmentIndex % INFERNO_FAN_SEGMENT_COUNT]);
         gte_rtpt();
-        gte_stsxy3(&block->sxy1, &block->sxy2, &block->sxy3);
-        gte_stflg(&flag);
-        if (flag >= 0) {
-            gte_stszotz(&otz);
-            otz++;
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setlen(prim, 9);
-            setcode(prim, 0x2E);
-            setRGB0(prim, mem->scale, mem->scale, mem->scale);
-            prim->tpage = 0x2A;
-            prim->clut  = 0x4282;
-            u           = frame * 0x28;
-            setUV4(prim, u, 0x60, u + 0x27, 0x60, u, 0x87, u + 0x27, 0x87);
-            prim->x0 = block->sxy0;
-            prim->y0 = block->sxy0 >> 16;
-            prim->x1 = block->sxy1;
-            prim->y1 = block->sxy1 >> 16;
-            prim->x2 = block->sxy2;
-            prim->y2 = block->sxy2 >> 16;
-            prim->x3 = block->sxy3;
-            prim->y3 = block->sxy3 >> 16;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
+        gte_stsxy3(&scratch->sxy1, &scratch->sxy2, &scratch->sxy3);
+        gte_stflg(&projectionFlags);
+        if (projectionFlags >= 0) {
+            gte_stszotz(&sortingDepth);
+            sortingDepth++;
+            quad           = gGpuPrimCursor;
+            gGpuPrimCursor = quad + 1;
+            setPolyFT4(quad);
+            setSemiTrans(quad, 1);
+            setRGB0(quad, work->scale, work->scale, work->scale);
+            quad->tpage = getTPage(INFERNO_FAN_TEXTURE_DEPTH_4BIT, GPU_BLEND_ADD, INFERNO_FAN_TEXTURE_PAGE_X, INFERNO_FAN_TEXTURE_PAGE_Y);
+            quad->clut  = getClut(INFERNO_FAN_PALETTE_X, INFERNO_FAN_PALETTE_Y);
+            textureU    = textureCell * INFERNO_FAN_TEXTURE_CELL_SIZE;
+            setUV4(quad, textureU, INFERNO_FAN_TEXTURE_V, textureU + INFERNO_FAN_TEXTURE_CELL_SIZE - 1, INFERNO_FAN_TEXTURE_V,
+                   textureU, INFERNO_FAN_TEXTURE_V + INFERNO_FAN_TEXTURE_CELL_SIZE - 1,
+                   textureU + INFERNO_FAN_TEXTURE_CELL_SIZE - 1, INFERNO_FAN_TEXTURE_V + INFERNO_FAN_TEXTURE_CELL_SIZE - 1);
+            quad->x0 = scratch->sxy0;
+            quad->y0 = scratch->sxy0 >> 16;
+            quad->x1 = scratch->sxy1;
+            quad->y1 = scratch->sxy1 >> 16;
+            quad->x2 = scratch->sxy2;
+            quad->y2 = scratch->sxy2 >> 16;
+            quad->x3 = scratch->sxy3;
+            quad->y3 = scratch->sxy3 >> 16;
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)sortingDepth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                    quad);
         }
     }
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(_InfernoFanScratch));
+    SCRATCH_STACK_RELEASE_BLOCK(_InfernoFanScratch);
 }
 
-/// Draws one band of the inferno's ground fan. `kind` picks the row of
-/// `D_inferno_801304E4` that sizes it. The top rim has radius
-/// `angle + baseRadius + step + spread` and is lifted `lift` along local -Y;
-/// the bottom rim has radius `angle + baseRadius` and stays in the local XZ
-/// plane. Both are built by `rsin` / `rcos` a sixth of a turn apart, rotated
-/// by `coord`'s `workm` and offset by its translation. Each segment is then
-/// projected through `GsWSMATRIX` and linked as one semi-transparent
-/// `POLY_FT4`. `phase` and `EffectWork::age` pick which of the
-/// `INFERNO_FAN_SEGMENT_COUNT` texture cells it uses, and a negative
-/// `gte_stflg` drops the segment.
-static void func_inferno_8012FF34(EffectWork* mem, GfxCoord* coord, s32 kind, _InfernoFanTexturePhase* phase)
+/// Draws the Inferno fan band whose upper rim stays at the shape's fixed lift.
+///
+/// `bandIndex` must select a shape and phase column (0..1); the fan task uses
+/// `INFERNO_FAN_CONSTANT_LIFT_BAND`. Uses the radii, brightness, texture phases,
+/// composed coordinate, scratch stack and frame arena described for
+/// `_infernoDrawRisingFanBand`, with no contribution from `work->period`.
+static void _infernoDrawConstantLiftFanBand(const EffectWork* work, const GfxCoord* coord, s32 bandIndex, const _InfernoFanTexturePhase* texturePhase)
 {
-    u8*                 head;
-    _InfernoFanScratch* block;
-    EffectBandShape*    row;
-    EffectBandShape*    tbl;
-    SVECTOR*            op;
-    POLY_FT4*           prim;
-    s32                 flag;
-    s32                 otz;
-    s32                 i;
-    s32                 next;
-    s32                 ang;
-    s32                 u;
-    s16                 inner;
-    s16                 outer;
-    u16                 height;
-    u16                 frame;
+    _InfernoFanScratch*    scratch;
+    const EffectBandShape* shape;
+    const EffectBandShape* shapes;
+    SVECTOR*               bottomVertex;
+    POLY_FT4*              quad;
+    s32                    projectionFlags;
+    s32                    sortingDepth;
+    s32                    segmentIndex;
+    s32                    nextSegmentIndex;
+    s32                    yaw;
+    s32                    textureU;
+    s16                    baseRadius;
+    s16                    liftedRadius;
+    u16                    lift;
+    u16                    textureCell;
 
-    tbl                        = D_inferno_801304E4;
-    row                        = &tbl[kind];
-    inner                      = mem->angle + row->baseRadius;
-    outer                      = row->spread + (inner + mem->step);
-    height                     = row->lift;
-    head                       = SCRATCH_STACK_CURSOR(u8);
-    SCRATCH_STACK_CURSOR(void) = head - sizeof(_InfernoFanScratch);
-    block                      = (_InfernoFanScratch*)(head - sizeof(_InfernoFanScratch));
-    gte_SetTransMatrix(&GsWSMATRIX);
-    // Wider lifted rim, then the narrower rim in the local XZ plane.
-    for (i = 0; i < INFERNO_FAN_SEGMENT_COUNT; i++) {
-        ang                  = i * INFERNO_FAN_SEGMENT_YAW;
-        block->topRing[i].vx = (rsin(ang) * outer) >> 12;
-        block->topRing[i].vy = -height;
-        block->topRing[i].vz = (rcos(ang) * outer) >> 12;
-        gte_SetRotMatrix(&coord->workm);
-        gte_ldv0(&block->topRing[i]);
-        gte_rtv0();
-        gte_stsv(&block->topRing[i]);
-        block->topRing[i].vx    = (u16)block->topRing[i].vx + (u16)coord->workm.t[0];
-        block->topRing[i].vy    = (u16)block->topRing[i].vy + (u16)coord->workm.t[1];
-        block->topRing[i].vz    = (u16)block->topRing[i].vz + (u16)coord->workm.t[2];
-        block->bottomRing[i].vx = (rsin(ang) * inner) >> 12;
-        op                      = &block->topRing[i] + INFERNO_FAN_SEGMENT_COUNT;
-        op->vy                  = 0;
-        op->vz                  = (rcos(ang) * inner) >> 12;
-        gte_SetRotMatrix(&coord->workm);
-        gte_ldv0(&block->bottomRing[i]);
-        gte_rtv0();
-        gte_stsv(&block->bottomRing[i]);
-        block->bottomRing[i].vx = (u16)block->bottomRing[i].vx + (u16)coord->workm.t[0];
-        op->vy                  = (u16)op->vy + (u16)coord->workm.t[1];
-        op->vz                  = (u16)op->vz + (u16)coord->workm.t[2];
-    }
+    shapes       = D_inferno_801304E4;
+    shape        = &shapes[bandIndex];
+    baseRadius   = work->angle + shape->baseRadius;
+    liftedRadius = shape->spread + (baseRadius + work->step);
+    lift         = shape->lift;
+    scratch      = SCRATCH_STACK_RESERVE_BLOCK(_InfernoFanScratch);
+    INFERNO_BUILD_FAN_RIMS(scratch, coord, baseRadius, liftedRadius, lift);
+    // Project adjacent rim pairs, then queue each valid textured segment.
     gte_SetRotMatrix(&GsWSMATRIX);
-    for (i = 0; i < INFERNO_FAN_SEGMENT_COUNT; i++) {
-        gte_ldv0(&block->topRing[i]);
+    for (segmentIndex = 0; segmentIndex < INFERNO_FAN_SEGMENT_COUNT; segmentIndex++) {
+        gte_ldv0(&scratch->topRing[segmentIndex]);
         gte_rtps();
-        frame = (phase->byBand[kind][i] + mem->age) % INFERNO_FAN_SEGMENT_COUNT;
-        gte_stsxy(&block->sxy0);
-        next = i + 1;
-        gte_ldv3(&block->topRing[next % INFERNO_FAN_SEGMENT_COUNT], &block->bottomRing[i], &block->bottomRing[next % INFERNO_FAN_SEGMENT_COUNT]);
+        textureCell = (texturePhase->byBand[bandIndex][segmentIndex] + work->age) % INFERNO_FAN_SEGMENT_COUNT;
+        gte_stsxy(&scratch->sxy0);
+        nextSegmentIndex = segmentIndex + 1;
+        gte_ldv3(&scratch->topRing[nextSegmentIndex % INFERNO_FAN_SEGMENT_COUNT], &scratch->bottomRing[segmentIndex], &scratch->bottomRing[nextSegmentIndex % INFERNO_FAN_SEGMENT_COUNT]);
         gte_rtpt();
-        gte_stsxy3(&block->sxy1, &block->sxy2, &block->sxy3);
-        gte_stflg(&flag);
-        if (flag >= 0) {
-            gte_stszotz(&otz);
-            otz++;
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setlen(prim, 9);
-            setcode(prim, 0x2E);
-            setRGB0(prim, mem->scale, mem->scale, mem->scale);
-            prim->tpage = 0x2A;
-            prim->clut  = 0x4282;
-            u           = frame * 0x28;
-            setUV4(prim, u, 0x60, u + 0x27, 0x60, u, 0x87, u + 0x27, 0x87);
-            prim->x0 = block->sxy0;
-            prim->y0 = block->sxy0 >> 16;
-            prim->x1 = block->sxy1;
-            prim->y1 = block->sxy1 >> 16;
-            prim->x2 = block->sxy2;
-            prim->y2 = block->sxy2 >> 16;
-            prim->x3 = block->sxy3;
-            prim->y3 = block->sxy3 >> 16;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
+        gte_stsxy3(&scratch->sxy1, &scratch->sxy2, &scratch->sxy3);
+        gte_stflg(&projectionFlags);
+        if (projectionFlags >= 0) {
+            gte_stszotz(&sortingDepth);
+            sortingDepth++;
+            quad           = gGpuPrimCursor;
+            gGpuPrimCursor = quad + 1;
+            setPolyFT4(quad);
+            setSemiTrans(quad, 1);
+            setRGB0(quad, work->scale, work->scale, work->scale);
+            quad->tpage = getTPage(INFERNO_FAN_TEXTURE_DEPTH_4BIT, GPU_BLEND_ADD, INFERNO_FAN_TEXTURE_PAGE_X, INFERNO_FAN_TEXTURE_PAGE_Y);
+            quad->clut  = getClut(INFERNO_FAN_PALETTE_X, INFERNO_FAN_PALETTE_Y);
+            textureU    = textureCell * INFERNO_FAN_TEXTURE_CELL_SIZE;
+            setUV4(quad, textureU, INFERNO_FAN_TEXTURE_V, textureU + INFERNO_FAN_TEXTURE_CELL_SIZE - 1, INFERNO_FAN_TEXTURE_V,
+                   textureU, INFERNO_FAN_TEXTURE_V + INFERNO_FAN_TEXTURE_CELL_SIZE - 1,
+                   textureU + INFERNO_FAN_TEXTURE_CELL_SIZE - 1, INFERNO_FAN_TEXTURE_V + INFERNO_FAN_TEXTURE_CELL_SIZE - 1);
+            quad->x0 = scratch->sxy0;
+            quad->y0 = scratch->sxy0 >> 16;
+            quad->x1 = scratch->sxy1;
+            quad->y1 = scratch->sxy1 >> 16;
+            quad->x2 = scratch->sxy2;
+            quad->y2 = scratch->sxy2 >> 16;
+            quad->x3 = scratch->sxy3;
+            quad->y3 = scratch->sxy3 >> 16;
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)sortingDepth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                    quad);
         }
     }
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(_InfernoFanScratch));
+    SCRATCH_STACK_RELEASE_BLOCK(_InfernoFanScratch);
 }
+
+#undef INFERNO_BUILD_FAN_RIMS

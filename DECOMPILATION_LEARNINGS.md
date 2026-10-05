@@ -62556,7 +62556,7 @@ regroup.
 
 ## `lui %hi` ahead of the index math means the table base is staged in its own local
 
-`func_inferno_8012FF34` opens by selecting a row of a 6-byte table:
+`_infernoDrawConstantLiftFanBand` opens by selecting a row of a 6-byte table:
 
 ```
 lui   a0, 0x1f80          # the scratch head address
@@ -62564,13 +62564,13 @@ ori   a0, a0, 0x3fc
 lui   v0, %hi(D_inferno_801304E4)
 addiu v0, v0, %lo(D_inferno_801304E4)
 sw    a2, 0x58(sp)
-sll   v1, a2, 0x1         # kind * 6
+sll   v1, a2, 0x1         # bandIndex * 6
 addu  v1, v1, a2
 sll   v1, v1, 0x1
 addu  v1, v1, v0
 ```
 
-`row = &D_inferno_801304E4[kind];` gets the final `addu` right but emits the
+`shape = &D_inferno_801304E4[bandIndex];` gets the final `addu` right but emits the
 `lui`/`addiu` pair *after* the `sll`/`addu`/`sll` chain, because `fold` sorts a
 `PLUS_EXPR`'s operands by complexity and an `ADDR_EXPR` of a static is the
 simpler one, so it ends up as op1 and is expanded second. `sched2` then has no
@@ -62580,8 +62580,8 @@ the address stay put. That was the whole remaining diff at 99.67%.
 Staging the base in its own local first fixes the order:
 
 ```c
-tbl = D_inferno_801304E4;
-row = &tbl[kind];
+shapes = D_inferno_801304E4;
+shape = &shapes[bandIndex];
 ```
 
 The assignment is its own statement, so the symbol is materialised where it is
@@ -62650,10 +62650,10 @@ def load(p):
 difflib.unified_diff(load(nonmatching_s), load(matched_s), n=2)
 ```
 
-`func_inferno_8012F978` against the matched `func_inferno_8012FF34` came back
+`_infernoDrawRisingFanBand` against the matched `_infernoDrawConstantLiftFanBand` came back
 as a register-allocation shuffle in the prologue plus exactly one extra
-`lhu $a0, 0x28($a0)` / `addu` pair: the twin lifts the rim by `row->field_2`,
-this one by `mem->field_28 + row->field_2`. Every hunk after the prologue was
+`lhu $a0, 0x28($a0)` / `addu` pair: the twin lifts the rim by `shape->lift`,
+this one by `work->period + shape->lift`. Every hunk after the prologue was
 label names only. Copying the sibling's C, adding that one term, and hoisting
 it to the statement position the `sh 0x18($sp)` sits at scored 100% on the
 first attempt.
@@ -63637,17 +63637,17 @@ last 0.4%.
 
 ## Strip a give-up seed's barriers and volatile casts before reading its dumps
 
-`func_inferno_8012F3EC`'s archived seed scored 98.5% with `reorder=2`: the
+`_infernoDrawScreenWash`'s archived seed scored 98.5% with `reorder=2`: the
 target hoists the `lui a3, 0xFF` half of `0xFFFFFF` (`addPrim`'s address mask)
 to the second instruction of the function, and the seed emitted it right
 before the `ori`, twenty instructions down. The seed had fenced each
-`p->yN = -0x78 - gDisplayState.vramYOffset` store with a
+`quad->yN = -INFERNO_SCREEN_HALF_HEIGHT - gDisplayState.vramYOffset` store with a
 `SOFT_COMPILER_BARRIER()` and read the offset through
-`(s8) * (volatile u8*)&ds->vramYOffset`, presumably to stop the four `lbu`s
+`(s8) * (volatile u8*)&display->vramYOffset`, presumably to stop the four `lbu`s
 from being CSE'd or the stores from floating.
 
 Neither was needed. `vramYOffset` is an `s8` field whose reloads survive on
-their own — every `sh` through `p` may alias it, so CSE cannot merge them —
+their own — every `sh` through `quad` may alias it, so CSE cannot merge them —
 and the matched `effectDrawScreenTint` in `gameplay/3CD8_9CC8.c` writes the same
 quad with plain loads. Written that way the function is one block, `lui` is
 ready at entry and list scheduling puts it there; 100% on the first attempt.

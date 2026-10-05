@@ -577,8 +577,8 @@ enum {
     /// by Gp_EffCtlTaskAC and the gunblade.
     EFFECT_EXPANDING_COLOR_BAND = EFFECT_ID(EFFECT_TASK_BANK, 0x0C1),
     /// Companion task of the Inferno PE cast: spins and fades a drawn shape through two
-    /// draw kinds (func_inferno_8012F978/8012FF34), optionally walking outward; Inferno
-    /// spawns several in its cast states.
+    /// draw kinds (`_infernoDrawRisingFanBand`/`_infernoDrawConstantLiftFanBand`),
+    /// optionally walking outward; Inferno spawns several in its cast states.
     EFFECT_INFERNO_FLAME = EFFECT_ID(EFFECT_TASK_BANK, 0x0DA),
     /// Six-frame additive animated sprite (tpage 0x29, selectable palette) burst;
     /// spawned by generator deaths, diver impacts, golem deaths, mine cavern and
