@@ -144,11 +144,14 @@ static const SVECTOR D_acropolis_west_elevator_hall_8017D5EC = { -0x1518, -0x720
 /// in view 5.
 static const SVECTOR D_acropolis_west_elevator_hall_8017D5F4 = { -0x79, -0x876, 0x703, 0 };
 
-s32 func_acropolis_west_elevator_hall_8017F470(Task*, s32, s32, s32);
-s32 func_acropolis_west_elevator_hall_8017F498(Task*, s32, s32, s32);
-s32 func_acropolis_west_elevator_hall_8017F4C0(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_acropolis_west_elevator_hall_8017F560(Task*, s32, s32, s32);
-s32 func_acropolis_west_elevator_hall_80180274(Task*, s32, s32, s32);
+s32        func_acropolis_west_elevator_hall_8017F470(Task*, s32, s32, s32);
+s32        func_acropolis_west_elevator_hall_8017F498(Task*, s32, s32, s32);
+s32        func_acropolis_west_elevator_hall_8017F4C0(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+static s32 _acropolisWestElevatorHallRejectKeyItemMessage(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
+s32        func_acropolis_west_elevator_hall_80180274(Task*, s32, s32, s32);
+
+/// Key-item use request sent to the room task by the inventory menu.
+enum { ACROPOLIS_WEST_ELEVATOR_HALL_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
 extern AnimationPlayRequest     D_acropolis_west_elevator_hall_80184598;
 extern AnimationBankCopyRequest D_acropolis_west_elevator_hall_80184590;
@@ -168,7 +171,7 @@ extern WorldCoordRoomLights  D_acropolis_west_elevator_hall_801869E4[1];
 #include "../../shared/planar_reflection_data.inc.c"
 
 static TaskDesc D_acropolis_west_elevator_hall_801802A8[2] = {
-    { { { TASK_BODY_NONE, 112 } }, func_acropolis_west_elevator_hall_8017F304, { .value = 0 } },
+    { { { TASK_BODY_NONE, 112 } }, acropolisWestElevatorHallPlayerReflectionTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 112 } }, _planarReflectionAttachmentTask, { .value = 0 } },
 };
 
@@ -336,7 +339,7 @@ TaskMessageEntry D_acropolis_west_elevator_hall_801849CC[5] = {
     { 5100, func_acropolis_west_elevator_hall_8017F470 },
     { 5101, func_acropolis_west_elevator_hall_8017F498 },
     { ROOM_EVENT_MESSAGE_RESOLVE, func_acropolis_west_elevator_hall_8017F4C0 },
-    { 5105, func_acropolis_west_elevator_hall_8017F560 },
+    { ACROPOLIS_WEST_ELEVATOR_HALL_MESSAGE_USE_KEY_ITEM, _acropolisWestElevatorHallRejectKeyItemMessage },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -1202,9 +1205,9 @@ Task* D_acropolis_west_elevator_hall_80186AE4[2] = { 0 };
 
 #include "../../shared/planar_reflection.inc.c"
 
-void func_acropolis_west_elevator_hall_8017F304(Task* task)
+void acropolisWestElevatorHallPlayerReflectionTask(Task* reflectionTask)
 {
-    _planarReflectionPlayerTask(task);
+    _planarReflectionPlayerTask(reflectionTask);
 }
 
 #undef PLANAR_REFLECTION_DEFINE_SCALE_WITH_IMPLEMENTATION
@@ -1279,9 +1282,16 @@ s32 func_acropolis_west_elevator_hall_8017F4C0(Task* task, s32 msgId, RoomEventM
     return 1;
 }
 
-s32 func_acropolis_west_elevator_hall_8017F560(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Refuses every key-item use request in this room without consuming the item.
+///
+/// `itemId` is the collected inventory item's ID; `unusedArg` is the unused
+/// second message word. All arguments are ignored. The zero result tells the
+/// inventory menu to display its item-cannot-be-used response.
+static s32 _acropolisWestElevatorHallRejectKeyItemMessage(Task* task, s32 messageId, s32 itemId, s32 unusedArg)
 {
-    return 0;
+    enum { ACROPOLIS_WEST_ELEVATOR_HALL_KEY_ITEM_REFUSED = 0 };
+
+    return ACROPOLIS_WEST_ELEVATOR_HALL_KEY_ITEM_REFUSED;
 }
 
 static void func_acropolis_west_elevator_hall_8017F568(Task* arg0)
@@ -1406,148 +1416,187 @@ void func_acropolis_west_elevator_hall_8017F7D4(Task* task)
     }
 }
 
-/// Per-frame update of the lift bay's lighting: ramps `EffectWork::scale`
-/// from 0 to 0x1000 in 0x800 steps, re-blending the bay CLUT towards its lit
-/// palette on every step it takes, and latching `angle` once the ramp is
-/// full. On every session phase but 5 the CLUT is then blended straight back
-/// to the unlit palette and the effect's work object is released, so only
-/// phase 5 keeps the lit bay on screen.
-void func_acropolis_west_elevator_hall_8017F990(Task* task)
+void acropolisWestElevatorHallBayLightingTask(Task* task)
 {
+    enum {
+        ACROPOLIS_WEST_ELEVATOR_HALL_BAY_LIGHTING_VIEW = 5,
+        ACROPOLIS_WEST_ELEVATOR_HALL_LIGHT_RAMPING     = 0,
+        ACROPOLIS_WEST_ELEVATOR_HALL_LIGHT_HOLDING     = 1
+    };
     EffectWork* work;
-    s32         i;
-    s32         blend;
+    s32         colorIndex;
+    s32         paletteChanged;
 
-    work  = (EffectWork*)task->spawnArg2.pointer;
-    blend = 0;
-    if (work->angle == 0) {
-        work->scale = work->scale + 0x800;
-        if (work->scale == 0x1000) {
-            work->angle = 1;
+    /// Blends and uploads the full bay palette, borrowing the result until GPU completion.
+    ///
+    /// Captures this room's source palettes, destination and upload table.
+    /// `litWeightQ12` is a side-effect-free Q12 expression in 0..ONE, read once
+    /// for each sixteen-colour row. `colorIndex` is a writable s32 loop counter
+    /// whose address and value have no side effects; it exits at ARRAY_SIZE.
+    /// Expands to a loop and an upload: invoke only inside an explicit compound
+    /// statement. Neither argument may alter control flow.
+#define ACROPOLIS_WEST_ELEVATOR_HALL_UPLOAD_BAY_PALETTE(litWeightQ12, colorIndex)                                                                 \
+    for ((colorIndex) = 0; (colorIndex) < (s32)ARRAY_SIZE(D_acropolis_west_elevator_hall_80184E04); (colorIndex) += GPU_RGB555_CLUT_ROW_COLORS) { \
+        gpuBlendRgb555ClutRow(&D_acropolis_west_elevator_hall_80184C04[(colorIndex)],                                                             \
+                              &D_acropolis_west_elevator_hall_80184A04[(colorIndex)], (litWeightQ12),                                             \
+                              &D_acropolis_west_elevator_hall_80184E04[(colorIndex)]);                                                            \
+    }                                                                                                                                             \
+    gpuUploadImages(D_acropolis_west_elevator_hall_80185004)
+
+    work           = task->spawnArg2.pointer;
+    paletteChanged = 0;
+    // The signed halfwords hold a Q12 lit weight and a ramp-complete latch here.
+    if (work->angle == ACROPOLIS_WEST_ELEVATOR_HALL_LIGHT_RAMPING) {
+        work->scale = work->scale + ONE / 2;
+        if (work->scale == ONE) {
+            work->angle = ACROPOLIS_WEST_ELEVATOR_HALL_LIGHT_HOLDING;
         }
-        blend = 1;
+        paletteChanged = 1;
     }
 
-    if (blend != 0) {
-        for (i = 0; i < 0x100; i += GPU_RGB555_CLUT_ROW_COLORS) {
-            gpuBlendRgb555ClutRow(&D_acropolis_west_elevator_hall_80184C04[i],
-                                  &D_acropolis_west_elevator_hall_80184A04[i], work->scale,
-                                  &D_acropolis_west_elevator_hall_80184E04[i]);
-        }
-        gpuUploadImages(D_acropolis_west_elevator_hall_80185004);
+    if (paletteChanged != 0) {
+        ACROPOLIS_WEST_ELEVATOR_HALL_UPLOAD_BAY_PALETTE(work->scale, colorIndex);
     }
 
-    if (gGameSession->location.loc.view != 5) {
-        for (i = 0; i < 0x100; i += GPU_RGB555_CLUT_ROW_COLORS) {
-            gpuBlendRgb555ClutRow(&D_acropolis_west_elevator_hall_80184C04[i],
-                                  &D_acropolis_west_elevator_hall_80184A04[i], 0,
-                                  &D_acropolis_west_elevator_hall_80184E04[i]);
-        }
-        gpuUploadImages(D_acropolis_west_elevator_hall_80185004);
+    // Restore the palette before releasing the effect, even during its ramp.
+    if (gGameSession->location.loc.view != ACROPOLIS_WEST_ELEVATOR_HALL_BAY_LIGHTING_VIEW) {
+        ACROPOLIS_WEST_ELEVATOR_HALL_UPLOAD_BAY_PALETTE(0, colorIndex);
         effectKillTask(work, task);
     }
+#undef ACROPOLIS_WEST_ELEVATOR_HALL_UPLOAD_BAY_PALETTE
 }
 
 #include "../../shared/red_beacon_task.inc.c"
 
-/// Copies 82 scanlines through DR_MOVE packets, applying a horizontal cosine
-/// distortion to a 120-pixel-wide strip of the current frame buffer. During
-/// alternate 128-frame intervals, each row uses a random divisor for the
-/// displacement. The packets share OT slot 0x72, then the task retires.
-void func_acropolis_west_elevator_hall_8017FE18(Task* task)
+/// Queues a one-scanline VRAM copy in the current ordering table.
+///
+/// `sourceRect` supplies the source in VRAM pixels; destination Y is also in
+/// VRAM pixels. The destination X is the distortion strip's fixed origin.
+/// Requires room for one DR_MOVE and a valid ordering-table element `otIndex`.
+static inline void _acropolisWestElevatorHallQueueScanlineCopy(RECT* sourceRect, s32 destinationY, s32 otIndex)
 {
-    RECT     rect;
-    DR_MOVE* mv;
-    void*    mem;
-    s32      otIndex;
-    s32      i;
-    s32      base;
-    s32      x;
-    s32      y;
-    s32      t;
+    enum { ACROPOLIS_WEST_ELEVATOR_HALL_DISTORTION_DESTINATION_X = 80 };
+    DR_MOVE* movePacket;
 
-    mem  = task->spawnArg2.pointer;
-    base = gDisplayState.drawBuffer * 0x110 + 0x50;
-
-    for (i = 0; i < 0x52; i++) {
-        otIndex = 0x72;
-        y       = i;
-        y      += base;
-        t       = 0x800 - rcos((gDisplayState.animFrame + i * 2) * 16);
-        if (gDisplayState.animFrame & 0x80) {
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            x               = t / (s32)(((gRandomLcgState >> 16) & 0x3F) + 0xC0) + 0x50;
-        } else {
-            x = t / 0x100 + 0x50;
-        }
-
-        rect.x         = x;
-        rect.y         = y;
-        rect.w         = 0x78;
-        rect.h         = 1;
-        mv             = gGpuPrimCursor;
-        gGpuPrimCursor = mv + 1;
-        SetDrawMove(mv, &rect, 0x50, i + base);
-
-        addPrim(&gGpuCurrentOt[otIndex], mv);
-    }
-
-    effectKillTask(mem, task);
+    movePacket     = gGpuPrimCursor;
+    gGpuPrimCursor = movePacket + 1;
+    SetDrawMove(movePacket, sourceRect, ACROPOLIS_WEST_ELEVATOR_HALL_DISTORTION_DESTINATION_X, destinationY);
+    addPrim(&gGpuCurrentOt[otIndex], movePacket);
 }
 
-/// Draws one frame of the hall's soft light billboard and then retires the
-/// task. The effect coordinate is projected through `GsWSMATRIX` with a
-/// single `RTPS`, and the resulting screen point becomes the centre of
-/// a semi-transparent `POLY_FT4` whose half-extent shrinks with distance
-/// (`0x6700 / otz`). Sprites closer than `otz == 0x11` are skipped entirely,
-/// which is why the primitive is claimed from `gGpuPrimCursor` before the
-/// depth test but only filled in and linked afterwards.
-void func_acropolis_west_elevator_hall_8017FFE4(Task* arg0)
+void acropolisWestElevatorHallScanlineDistortionTask(Task* task)
 {
-    RoomGlowSpriteScratch* block;
-    GfxCoord*              coord;
-    void*                  mem;
-    POLY_FT4*              prim;
+    enum {
+        ACROPOLIS_WEST_ELEVATOR_HALL_DISTORTION_BUFFER_STRIDE = 272,
+        ACROPOLIS_WEST_ELEVATOR_HALL_DISTORTION_ORIGIN        = 80,
+        ACROPOLIS_WEST_ELEVATOR_HALL_DISTORTION_ROWS          = 82,
+        ACROPOLIS_WEST_ELEVATOR_HALL_DISTORTION_WIDTH         = 120,
+        ACROPOLIS_WEST_ELEVATOR_HALL_DISTORTION_OT_INDEX      = 0x72,
+        ACROPOLIS_WEST_ELEVATOR_HALL_DISTORTION_RANDOM_PHASE  = 0x80,
+        ACROPOLIS_WEST_ELEVATOR_HALL_DISTORTION_DIVISOR_MASK  = 0x3F,
+        ACROPOLIS_WEST_ELEVATOR_HALL_DISTORTION_DIVISOR_MIN   = 192,
+        ACROPOLIS_WEST_ELEVATOR_HALL_DISTORTION_DIVISOR       = 256
+    };
+    RECT        sourceRect;
+    EffectWork* effectWork;
+    s32         otIndex;
+    s32         rowIndex;
+    s32         stripTopY;
+    s32         sourceX;
+    s32         sourceY;
+    s32         displacementQ12;
 
-    coord = arg0->extra.coordBody->coord;
-    mem   = arg0->spawnArg2.pointer;
-    actorRenderComposeCoord(coord);
-    block              = SCRATCH_STACK_RESERVE_BLOCK(RoomGlowSpriteScratch);
-    block->worldPos.vx = coord->workm.t[0];
-    block->worldPos.vy = coord->workm.t[1];
-    block->worldPos.vz = coord->workm.t[2];
+    effectWork = task->spawnArg2.pointer;
+    stripTopY  = gDisplayState.drawBuffer * ACROPOLIS_WEST_ELEVATOR_HALL_DISTORTION_BUFFER_STRIDE + ACROPOLIS_WEST_ELEVATOR_HALL_DISTORTION_ORIGIN;
+
+    // Bit 7 selects 128-frame intervals with a separate random divisor per row.
+    for (rowIndex = 0; rowIndex < ACROPOLIS_WEST_ELEVATOR_HALL_DISTORTION_ROWS; rowIndex++) {
+        otIndex         = ACROPOLIS_WEST_ELEVATOR_HALL_DISTORTION_OT_INDEX;
+        sourceY         = rowIndex;
+        sourceY        += stripTopY;
+        displacementQ12 = ONE / 2 - rcos((gDisplayState.animFrame + rowIndex * 2) * 16);
+        if (gDisplayState.animFrame & ACROPOLIS_WEST_ELEVATOR_HALL_DISTORTION_RANDOM_PHASE) {
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            sourceX         = displacementQ12 / (s32)(((gRandomLcgState >> 16) & ACROPOLIS_WEST_ELEVATOR_HALL_DISTORTION_DIVISOR_MASK) + ACROPOLIS_WEST_ELEVATOR_HALL_DISTORTION_DIVISOR_MIN) + ACROPOLIS_WEST_ELEVATOR_HALL_DISTORTION_ORIGIN;
+        } else {
+            sourceX = displacementQ12 / ACROPOLIS_WEST_ELEVATOR_HALL_DISTORTION_DIVISOR + ACROPOLIS_WEST_ELEVATOR_HALL_DISTORTION_ORIGIN;
+        }
+
+        sourceRect.x = sourceX;
+        sourceRect.y = sourceY;
+        sourceRect.w = ACROPOLIS_WEST_ELEVATOR_HALL_DISTORTION_WIDTH;
+        sourceRect.h = 1;
+        _acropolisWestElevatorHallQueueScanlineCopy(&sourceRect, rowIndex + stripTopY, otIndex);
+    }
+
+    effectKillTask(effectWork, task);
+}
+
+/// Projects a composed light coordinate and queues its additive textured glow.
+///
+/// Borrows one writable scratch block and reserves one POLY_FT4 even when the
+/// depth test rejects the point. Coordinates narrow to signed 16-bit view
+/// units before projection. Queued storage remains live until GPU completion.
+static inline void _acropolisWestElevatorHallDrawLightGlow(const GfxCoord* effectCoord, RoomGlowSpriteScratch* glowScratch)
+{
+    enum {
+        ACROPOLIS_WEST_ELEVATOR_HALL_GLOW_MIN_DEPTH   = 17,
+        ACROPOLIS_WEST_ELEVATOR_HALL_GLOW_TPAGE       = 0xAB,
+        ACROPOLIS_WEST_ELEVATOR_HALL_GLOW_CLUT        = 0x4380,
+        ACROPOLIS_WEST_ELEVATOR_HALL_GLOW_UV_MAX      = 103,
+        ACROPOLIS_WEST_ELEVATOR_HALL_GLOW_SIZE_FACTOR = 0x6700
+    };
+    POLY_FT4* glowQuad;
+
+    // The effect's parent chain has already transformed this centre into view space.
+    glowScratch->worldPos.vx = effectCoord->workm.t[0];
+    glowScratch->worldPos.vy = effectCoord->workm.t[1];
+    glowScratch->worldPos.vz = effectCoord->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&block->worldPos);
+    gte_ldv0(&glowScratch->worldPos);
     gte_rtps();
-    prim           = gGpuPrimCursor;
-    gGpuPrimCursor = prim + 1;
-    setlen(prim, 9);
-    setcode(prim, 0x2C);
-    gte_stsxy(&block->screenPos);
-    gte_stszotz(&block->otz);
-    if (block->otz >= 0x11) {
-        prim->tpage       = 0xAB;
-        prim->clut        = 0x4380;
-        prim->u0          = 0;
-        prim->v0          = 0;
-        prim->u1          = 0x67;
-        prim->v1          = 0;
-        prim->u2          = 0;
-        prim->v2          = 0x67;
-        prim->u3          = 0x67;
-        prim->v3          = 0x67;
-        prim->code       |= 3;
-        block->halfExtent = 0x6700 / block->otz;
-        prim->x0 = prim->x2 = block->screenPos.vx - block->halfExtent;
-        prim->x1 = prim->x3 = block->screenPos.vx + block->halfExtent;
-        prim->y0 = prim->y1 = block->screenPos.vy - block->halfExtent;
-        prim->y2 = prim->y3 = block->screenPos.vy + block->halfExtent;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
+    glowQuad       = gGpuPrimCursor;
+    gGpuPrimCursor = glowQuad + 1;
+    setPolyFT4(glowQuad);
+    gte_stsxy(&glowScratch->screenPos);
+    gte_stszotz(&glowScratch->otz);
+    if (glowScratch->otz >= ACROPOLIS_WEST_ELEVATOR_HALL_GLOW_MIN_DEPTH) {
+        glowQuad->tpage = ACROPOLIS_WEST_ELEVATOR_HALL_GLOW_TPAGE;
+        glowQuad->clut  = ACROPOLIS_WEST_ELEVATOR_HALL_GLOW_CLUT;
+        glowQuad->u0    = 0;
+        glowQuad->v0    = 0;
+        glowQuad->u1    = ACROPOLIS_WEST_ELEVATOR_HALL_GLOW_UV_MAX;
+        glowQuad->v1    = 0;
+        glowQuad->u2    = 0;
+        glowQuad->v2    = ACROPOLIS_WEST_ELEVATOR_HALL_GLOW_UV_MAX;
+        glowQuad->u3    = ACROPOLIS_WEST_ELEVATOR_HALL_GLOW_UV_MAX;
+        glowQuad->v3    = ACROPOLIS_WEST_ELEVATOR_HALL_GLOW_UV_MAX;
+        setSemiTrans(glowQuad, 1);
+        setShadeTex(glowQuad, 1);
+        glowScratch->halfExtent = ACROPOLIS_WEST_ELEVATOR_HALL_GLOW_SIZE_FACTOR / glowScratch->otz;
+        glowQuad->x0 = glowQuad->x2 = glowScratch->screenPos.vx - glowScratch->halfExtent;
+        glowQuad->x1 = glowQuad->x3 = glowScratch->screenPos.vx + glowScratch->halfExtent;
+        glowQuad->y0 = glowQuad->y1 = glowScratch->screenPos.vy - glowScratch->halfExtent;
+        glowQuad->y2 = glowQuad->y3 = glowScratch->screenPos.vy + glowScratch->halfExtent;
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)glowScratch->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                glowQuad);
     }
+}
+
+void acropolisWestElevatorHallLightGlowTask(Task* task)
+{
+    RoomGlowSpriteScratch* glowScratch;
+    GfxCoord*              effectCoord;
+    EffectWork*            effectWork;
+
+    effectCoord = task->extra.coordBody->coord;
+    effectWork  = task->spawnArg2.pointer;
+    actorRenderComposeCoord(effectCoord);
+    glowScratch = SCRATCH_STACK_RESERVE_BLOCK(RoomGlowSpriteScratch);
+    _acropolisWestElevatorHallDrawLightGlow(effectCoord, glowScratch);
     SCRATCH_STACK_RELEASE_BLOCK(RoomGlowSpriteScratch);
-    effectKillTask(mem, arg0);
+    effectKillTask(effectWork, task);
 }
 
 s32 func_acropolis_west_elevator_hall_80180274(Task* task, s32 msgId, s32 arg2, s32 arg3)

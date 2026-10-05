@@ -647,13 +647,13 @@ func_acropolis_square_801823DC = 0x801823DC; // type:func absolute:True owner=ac
 
 acropolisSquareBeaconGlowTask = 0x801825DC; // type:func absolute:True owner=acropolis_square
 
-func_acropolis_west_elevator_hall_8017F990 = 0x8017F990; // type:func absolute:True owner=acropolis_west_elevator_hall shared=rooms
+acropolisWestElevatorHallBayLightingTask = 0x8017F990; // type:func absolute:True owner=acropolis_west_elevator_hall shared=rooms
 
 acropolisWestElevatorHallRedBeaconTask = 0x8017FAE8; // type:func absolute:True owner=acropolis_west_elevator_hall shared=rooms
 
-func_acropolis_west_elevator_hall_8017FE18 = 0x8017FE18; // type:func absolute:True owner=acropolis_west_elevator_hall
+acropolisWestElevatorHallScanlineDistortionTask = 0x8017FE18; // type:func absolute:True owner=acropolis_west_elevator_hall
 
-func_acropolis_west_elevator_hall_8017FFE4 = 0x8017FFE4; // type:func absolute:True owner=acropolis_west_elevator_hall shared=rooms
+acropolisWestElevatorHallLightGlowTask = 0x8017FFE4; // type:func absolute:True owner=acropolis_west_elevator_hall shared=rooms
 
 func_dryfield_back_street_8017D9D0 = 0x8017D9D0; // type:func absolute:True owner=dryfield_back_street shared=rooms
 
@@ -1731,7 +1731,7 @@ acropolisSquarePlayerReflectionTask = 0x8017F41C; // type:func absolute:True own
 
 acropolisEastElevatorHallPlayerReflectionTask = 0x8017F2F8; // type:func absolute:True owner=acropolis_east_elevator_hall
 
-func_acropolis_west_elevator_hall_8017F304 = 0x8017F304; // type:func absolute:True owner=acropolis_west_elevator_hall
+acropolisWestElevatorHallPlayerReflectionTask = 0x8017F304; // type:func absolute:True owner=acropolis_west_elevator_hall
 
 dryfieldMotelRoom6PlayerReflectionTask = 0x80181184; // type:func absolute:True owner=dryfield_motel_room_6
 

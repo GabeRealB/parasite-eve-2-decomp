@@ -54486,7 +54486,7 @@ inside it — an explicit local is not const-equivalent and ranks *higher*),
 `and`s into separate variables (cse1 merges equal `const_int`s in a basic
 block unconditionally; there is no `volatile` or barrier that stops it).
 
-`func_acropolis_west_elevator_hall_8017FE18` is the worked example: a
+`acropolisWestElevatorHallScanlineDistortionTask` is the worked example: a
 0x52-iteration `SetDrawMove` loop whose body sits right at the cut. The
 threshold there is exactly 14 after five earlier moves (`14 * 5 = 70`), so the
 span-5 mask is hoisted at 70 loop insns and left in the loop at 71. What it
@@ -54501,30 +54501,30 @@ took, measured from the `.loop` dump:
   threshold, and it is also where the target's `li $s7, 0x1C8` comes from.
   Folding the shift into the pointer expression, or declaring `ot` at function
   scope, loses both (89%);
-- `x = t / d + 0x50` in *each* arm of the `if`, instead of adding `0x50` after
+- `sourceX = displacementQ12 / d + 0x50` in *each* arm of the `if`, instead of adding `0x50` after
   the join, which is what put the quotient in `$v0`.
 
 One hack is left, and it is not about the mask. The target computes the row
-`y = i + base` before the `rcos` call and recomputes `i + base` for
+`sourceY = rowIndex + stripTopY` before the `rcos` call and recomputes `rowIndex + stripTopY` for
 `SetDrawMove`'s argument; the two are givs with the same `mult`/`add`, and
 `combine_givs` sums their benefits, so loop.c strength-reduces them into a
-second induction register. The target reduces neither, which needs `y` to be
+second induction register. The target reduces neither, which needs `sourceY` to be
 *not replaceable* (a replaceable user-variable giv costs nothing to combine;
 a non-replaceable one pays `copy_cost` and the sum falls to zero). An empty
-`asm("" : "+r"(y))` *before* `y` is set does that - a read of `y` above its
+`asm("" : "+r"(sourceY))` *before* `sourceY` is set does that - a read of `sourceY` above its
 set makes the value live around the back edge, which `check_final_value`
-rejects - and the asm is also the 71st loop insn. Without it, `y` declared
-`s16` supplies the 71st insn but not the non-replaceability; initialising `y`
+rejects - and the asm is also the 71st loop insn. Without it, `sourceY` declared
+`s16` supplies the 71st insn but not the non-replaceability; initialising `sourceY`
 before the loop or using it after the loop is undone by `check_final_value`.
 
-**Resolved without asm (2026-09-27):** write `y = i; y += base;`. Both
+**Resolved without asm (2026-09-27):** write `sourceY = rowIndex; sourceY += stripTopY;`. Both
 statements contribute to the coordinate calculation. CSE retains two sets of
-`y` into loop analysis, where its giv is non-replaceable (`used 2`). The two
+`sourceY` into loop analysis, where its giv is non-replaceable (`used 2`). The two
 row givs still combine, but reduction is rejected as `not worth while, -2790
 vs 71`; flow then deletes the initial copy. The 71-insn loop also keeps the
 tag mask unhoisted. Scratch `base_5.c` scores 100.000% with all penalties zero,
 versus 83.522% for simply removing the asm. Evidence:
-`nonmatchings/func_acropolis_west_elevator_hall_8017FE18-dehack/base_5.i`
+`nonmatchings/acropolisWestElevatorHallScanlineDistortionTask-dehack/base_5.i`
 (`.cse`, `.loop`, `.flow`), SHA-256
 `72b4ddd3b3b596e877b398d68b40549d0f13a598d2a2a484f5a40a152291d989`.
 
@@ -54537,21 +54537,21 @@ the call after the `if`, and the `if` body still reads a pointer that landed in
 `$a0`, the steal is illegal and GCC falls back to filling from the fall-through
 side — one instruction short of the target, with the branch offset off by 8.
 
-`func_acropolis_west_elevator_hall_8017FFE4` is the worked example. The block
+`acropolisWestElevatorHallLightGlowTask` is the worked example. The block
 pointer is used throughout the body, so it wants an early register, and the
 only other user of the value is a `gte_stszotz` operand that dies immediately:
 
 ```c
-block = (AwehSpriteScratch*)(head - 0x14);
+glowScratch = (RoomGlowSpriteScratch*)(head - 0x14);
 ...
-gte_stszotz(&block->otz);           /* no copy: operand *is* block, block -> $a0 */
+gte_stszotz(&glowScratch->otz);     /* no copy: operand *is* glowScratch, glowScratch -> $a0 */
 ```
 
 Writing the operand as a separate local gives it its own pseudo, which local-alloc
-ranks first (short, dense range) and puts in `$a0`, pushing `block` out to `$a1`:
+ranks first (short, dense range) and puts in `$a0`, pushing `glowScratch` out to `$a1`:
 
 ```c
-otzp = &block->otz;                 /* emits `move $a0, $a1`, block -> $a1 */
+otzp = &glowScratch->otz;           /* emits `move $a0, $a1`, glowScratch -> $a1 */
 ...
 gte_stszotz(otzp);
 ```
@@ -54559,7 +54559,7 @@ gte_stszotz(otzp);
 `$a0` is then dead at the branch and the `move $a0, $sN` steal goes through,
 duplicated in the delay slot and before the label as usual. Re-spelling the
 operand as `&((T*)(head - 0x14))->otz` does *not* work — CSE folds it back onto
-`block`'s pseudo and no copy is emitted. It has to be a named local.
+`glowScratch`'s pseudo and no copy is emitted. It has to be a named local.
 
 The general rule: an `asm` operand needs a hard register, so it is the one place
 where an "unnecessary" pointer local reliably survives copy-propagation and can
@@ -147609,7 +147609,7 @@ no free slot left, gets a new one after it. A lone table read at two sites does
 not therefore prove a named global: try the repeated local initializer before
 keeping a `static const`.
 
-## A loop-constant OT slot held in a register (`li s7, 0x1C8` ... `addu a0, s7, a0`): assign the index inside the loop (func_acropolis_west_elevator_hall_8017FE18, 2026-10-05)
+## A loop-constant OT slot held in a register (`li s7, 0x1C8` ... `addu a0, s7, a0`): assign the index inside the loop (acropolisWestElevatorHallScanlineDistortionTask, 2026-10-05)
 
 The target keeps the scaled slot in a callee-saved register and adds the table
 pointer to it, instead of folding it into `lw 0x1C8(a0)`. The matched source
@@ -147628,10 +147628,10 @@ pseudo has `life 1`. The integer form passed only because the statement, a
 Assign the index in the loop body, in an earlier basic block than its use:
 
 ```c
-for (i = 0; i < 0x52; i++) {
+for (rowIndex = 0; rowIndex < 0x52; rowIndex++) {
     otIndex = 0x72;
     ...                                   /* an if/else, a call */
-    addPrim(&gGpuCurrentOt[otIndex], mv);
+    addPrim(&gGpuCurrentOt[otIndex], movePacket);
 }
 ```
 

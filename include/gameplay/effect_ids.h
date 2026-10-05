@@ -140,7 +140,7 @@ enum {
     /// a Parasite Energy is charging.
     EFFECT_PE_CHARGE_PARTICLE = EFFECT_ID(EFFECT_TASK_BANK, 0x032),
     /// Ramps the lift bay CLUT from its unlit to its lit palette (gpuBlendRgb555ClutRow)
-    /// and keeps it lit only in session phase 5; spawned by a west-elevator-hall
+    /// and keeps it lit only in camera view 5; spawned by a west-elevator-hall
     /// message handler.
     EFFECT_ACROPOLIS_WEST_ELEVATOR_BAY_LIGHTS = EFFECT_ID(EFFECT_TASK_BANK, 0x033),
     /// Two-frame rotated textured flare sprite (tpage 0x2A) at a muzzle; spawned by the

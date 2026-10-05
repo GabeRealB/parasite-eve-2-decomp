@@ -568,12 +568,12 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, acropolisHelicopterLandingPadPerimeterLightsTask, { NULL } },          // 0x01D
     { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_west_elevator_hall_8017F7D4, { NULL } },                // 0x01E
     { { { TASK_BODY_COORD, 0x70 } }, acropolisWestElevatorHallRedBeaconTask, { NULL } },                    // 0x01F
-    { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_west_elevator_hall_8017FE18, { NULL } },                // 0x020
+    { { { TASK_BODY_COORD, 0x70 } }, acropolisWestElevatorHallScanlineDistortionTask, { NULL } },           // 0x020
     { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_east_elevator_hall_8017F5B4, { NULL } },                // 0x021
     { { { TASK_BODY_COORD, 0x70 } }, acropolisEastElevatorHallRedBeaconTask, { NULL } },                    // 0x022
     { { { TASK_BODY_COORD, 0x70 } }, acropolisEastElevatorHallPointTileTask, { NULL } },                    // 0x023
     { { { TASK_BODY_COORD, 0x70 } }, func_hypervelocity_8011D1E8, { NULL } },                               // 0x024
-    { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_west_elevator_hall_8017FFE4, { NULL } },                // 0x025
+    { { { TASK_BODY_COORD, 0x70 } }, acropolisWestElevatorHallLightGlowTask, { NULL } },                    // 0x025
     { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_fountain_8017E014, { NULL } },                          // 0x026
     { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_observatory_8017E6F8, { NULL } },                       // 0x027
     { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_observatory_8017E424, { NULL } },                       // 0x028
@@ -587,7 +587,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, Gp_EffSprTask30, { NULL } },                                           // 0x030
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill, { NULL } },                                                   // 0x031
     { { { TASK_BODY_COORD, 0x70 } }, effectSpriteTask32, { NULL } },                                        // 0x032
-    { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_west_elevator_hall_8017F990, { NULL } },                // 0x033
+    { { { TASK_BODY_COORD, 0x70 } }, acropolisWestElevatorHallBayLightingTask, { NULL } },                  // 0x033
     { { { TASK_BODY_COORD, 0x70 } }, effectSpriteTask34, { NULL } },                                        // 0x034
     { { { TASK_BODY_COORD, 0x70 } }, effectSpriteTask35, { NULL } },                                        // 0x035
     { { { TASK_BODY_TMD, 0x70 } }, effectThrownModelTask, { &D_80111FC8 } },                                // 0x036
