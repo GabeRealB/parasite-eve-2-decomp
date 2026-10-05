@@ -1084,15 +1084,15 @@ static void Actor01100_Fn0097C(Enemy* enemy, Task* task, _Actor01100Work* unused
         return;
     }
 
-    locationWord = GAME_LOCATION_WORD(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc);
-    SOFT_BARRIER();
-    param1[2] = 0xA;
-    param2[0] = 0xB;
-    param1[3] = 0;
-    param2[3] = 0;
-    param2[2] = 0;
-    param2[1] = 0;
-    if ((locationWord & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(3, 32, 0, 0)) {
+    locationWord  = GAME_LOCATION_WORD(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc);
+    locationWord &= GAME_LOCATION_STAGE_AREA_MASK;
+    param1[2]     = 0xA;
+    param2[0]     = 0xB;
+    param1[3]     = 0;
+    param2[3]     = 0;
+    param2[2]     = 0;
+    param2[1]     = 0;
+    if (locationWord == GAME_LOCATION_KEY(3, 32, 0, 0)) {
         param1[0]       = 2;
         work->waterRoom = 1;
     } else {
