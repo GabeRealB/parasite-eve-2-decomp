@@ -654,7 +654,7 @@ void func_replay_bonus_80116964(Task* arg0)
     uiDrawTitle(&(obj)->panel, "WARNING");
     if (arg0->state == 0) {
         obj->resultValue = 0x34;
-        Ui_SizeFromText(&(obj)->panel, D_replay_bonus_8011906C, 0, 0);
+        uiSizePanelForText(&(obj)->panel, D_replay_bonus_8011906C, 0, 0);
         uiSetPanelContentSize(&(obj)->panel, 0, uiGetTextRowsHeight(3) + 4);
         arg0->state = arg0->state + 1;
     } else if (arg0->state == 1) {

@@ -588,7 +588,7 @@ void Gp_AmmoListTask(Task* arg0)
             arg0->state         = arg0->state + 1;
             arg0->killCountdown = 0xBC;
             obj->panel.style   |= USER_INTERFACE_PANEL_TITLE_STYLE;
-            Ui_SizeFromTextPlain(&(obj)->panel, Gp_StrNoWeaponEq);
+            uiSizePanelForTextDefault(&(obj)->panel, Gp_StrNoWeaponEq);
             return;
         }
         if ((s16)obj->panel.bounds.unsignedRect.y + (s16)obj->panel.bounds.unsignedRect.h < 0x47) {

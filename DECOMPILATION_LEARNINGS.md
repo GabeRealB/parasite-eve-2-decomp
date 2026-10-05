@@ -20153,26 +20153,27 @@ ptr = base + stride;     /* reuses $a1 for the * 0x30 shift pattern */
 ## Stack pad between packed s32 and RECT (0x10 / 0x18 locals)
 
 When the target has an s32 at `sp+0x10` (often a packed return reloaded with
-`lhu` of both halves) and a `RECT` at `sp+0x18`, separate locals reverse the
-order or pack tightly. Force the gap with an explicit stack struct:
+`lhu` of both halves) and a `RECT` at `sp+0x18`, ordinary separate locals can
+reverse the order or pack tightly. An aligned rectangle member in a stack
+workspace preserves the gap without declaring an unused word:
 
 ```c
 struct {
     union {
-        s32 as32;
-        struct { u16 w; u16 h; } hw;
-    } dims;
-    s32  pad;   /* unused; keeps RECT at +8 */
-    RECT rect;
-} sp;
+        u32 packedSize;
+        struct { u16 widthPixels; u16 heightPixels; } pixels;
+    } measured;
+    RECT contentRect __attribute__((aligned(8)));
+} layout;
 
-sp.dims.as32 = func_that_returns_wh();
+layout.measured.packedSize = func_that_returns_wh();
 /* … */
-func(..., sp.dims.hw.w + t, sp.dims.hw.h + u);
+func(..., layout.measured.pixels.widthPixels + widthMarginPixels,
+          layout.measured.pixels.heightPixels + heightMarginPixels);
 ```
 
 The union gives `lhu` of each half; a plain `s32` with `((u16*)&dims)[i]` often
-changes call-arg scheduling. `Ui_SizeFromText` is the pure example.
+changes call-arg scheduling. `uiSizePanelForText` is the pure example.
 
 ## Temps for `arg + K` before `mem + (arg + K)` call args
 
@@ -20188,12 +20189,13 @@ A direct `mem + (arg + K)` reassociates to `(mem + K) + arg` (`addiu` on the
 loaded halfword). Assign the s-reg addend first:
 
 ```c
-t = arg2 + 5;
-u = arg3 + 1;
-func(arg0, dims.hw.w + t, dims.hw.h + u);
+widthMarginPixels = extraWidthPixels + 5;
+heightMarginPixels = extraHeightPixels + 1;
+func(panel, layout.measured.pixels.widthPixels + widthMarginPixels,
+            layout.measured.pixels.heightPixels + heightMarginPixels);
 ```
 
-`Ui_SizeFromText` is the pure example (text size padding into `uiSetPanelContentSize`).
+`uiSizePanelForText` is the pure example (text size padding into `uiSetPanelContentSize`).
 
 ## Force `bne` (not `xor`/`sltiu`) for u16 equality into a u16 temp
 

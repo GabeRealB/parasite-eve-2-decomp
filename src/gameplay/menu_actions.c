@@ -2090,7 +2090,7 @@ void Gp_DiscardWarnTask(Task* arg0)
     }
     text = Gp_PromptTexts[0];
     if (arg0->state == 0) {
-        Ui_SizeFromTextWide(&(obj)->panel, text);
+        uiSizePanelForTextWide(&(obj)->panel, text);
         spawned = func_800CD89C(obj);
         if (spawned != NULL) {
             spawned->panel.bounds.unsignedRect.x = (obj->panel.bounds.unsignedRect.x + obj->panel.bounds.unsignedRect.w) - 0x18;
@@ -2373,7 +2373,7 @@ void Gp_NoticePanelTask(Task* arg0)
     text  = Gp_NoticeTexts[(u16)arg0->spawnArg1.value];
 
     if (arg0->state == 0) {
-        Ui_SizeFromTextPlain(&(obj)->panel, text);
+        uiSizePanelForTextDefault(&(obj)->panel, text);
         arg0->killCountdown = 0xBC;
         arg0->state         = arg0->state + 1;
     }
@@ -3344,7 +3344,7 @@ static void Gp_DrawExamineCmd(UiObject* arg0, Task* arg1, u8* arg2, s32 arg3)
     s32 one;
 
     if (arg1->state == 0) {
-        Ui_SizeFromTextPlain(&(arg0)->panel, arg2);
+        uiSizePanelForTextDefault(&(arg0)->panel, arg2);
         arg1->killCountdown = 0xBC;
         arg1->state         = arg1->state + 1;
     }
@@ -3377,7 +3377,7 @@ static void Gp_DrawPushCmd(UiObject* arg0, Task* arg1)
     text  = Gp_NoticeTexts[(u16)arg1->spawnArg1.value];
 
     if (arg1->state == 0) {
-        Ui_SizeFromTextPlain(&(arg0)->panel, text);
+        uiSizePanelForTextDefault(&(arg0)->panel, text);
         arg1->killCountdown = 0xBC;
         arg1->state         = arg1->state + 1;
     }

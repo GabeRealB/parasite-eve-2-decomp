@@ -767,31 +767,41 @@ static void _uiDrawPanelBackground(const RECT* rect, s32 style, s32 otIndex)
 
 /// Links one unmodulated 8x8 atlas corner at the panel's frame layer.
 ///
-/// Coordinates and reservation are already set. textureU is a byte atlas
-/// coordinate. Requires the loaded atlas/palette and a writable signed base+3
-/// tag; does not move the arena cursor. Keep the corner packet live for the GPU.
+/// Borrows a live panel and an aligned, reserved SPRT_8 with its screen-pixel
+/// position already set. textureU is a texture-page texel coordinate, narrowed
+/// to u8; V is the atlas's fixed top row. Uses the current GPU texture page,
+/// which must select the loaded UI atlas, and the frame palette. Raw texture
+/// mode leaves RGB bytes unused. Requires a writable signed panel OT base+3
+/// tag; does not move the arena cursor. Keep the packet live until GPU completion.
 static inline void _uiQueuePanelFrameCorner(SPRT_8* corner, const UiPanel* panel, s32 textureU)
 {
+    enum { USER_INTERFACE_FRAME_CORNER_RAW_TEXTURE = 1 };
+
     corner->u0   = textureU;
     corner->v0   = USER_INTERFACE_FRAME_ATLAS_TOP;
     corner->clut = USER_INTERFACE_FRAME_CLUT;
     setSprt8(corner);
-    setShadeTex(corner, 1);
+    setShadeTex(corner, USER_INTERFACE_FRAME_CORNER_RAW_TEXTURE);
     addPrim(gGpuCurrentOt + panel->otIndex.signedValue + USER_INTERFACE_FRAME_OT_OFFSET, corner);
 }
 
 /// Links one unmodulated atlas strip between adjacent frame corners.
 ///
-/// Coordinates/reservation are already set; texture endpoints are byte atlas
-/// coordinates. Requires loaded atlas/palette and a writable signed base+3 tag;
-/// leaves the cursor unchanged. Keep the edge packet live for the GPU.
+/// Borrows a live panel and an aligned, reserved POLY_FT4 with its screen-pixel
+/// vertices already set. Texture endpoints are texture-page texels, narrowed
+/// to u8; the top V is fixed and textureBottom supplies the other V endpoint.
+/// Selects the UI atlas page and frame palette. Raw texture mode leaves RGB
+/// bytes unused. Requires loaded textures and a writable signed panel OT base+3
+/// tag; leaves the cursor unchanged. Keep the packet live until GPU completion.
 static inline void _uiQueuePanelFrameEdge(POLY_FT4* edge, const UiPanel* panel, s32 textureLeft, s32 textureRight, s32 textureBottom)
 {
+    enum { USER_INTERFACE_FRAME_EDGE_RAW_TEXTURE = 1 };
+
     setUV4(edge, textureLeft, USER_INTERFACE_FRAME_ATLAS_TOP, textureRight, USER_INTERFACE_FRAME_ATLAS_TOP, textureLeft, textureBottom, textureRight, textureBottom);
     edge->tpage = USER_INTERFACE_FRAME_ATLAS_TPAGE;
     edge->clut  = USER_INTERFACE_FRAME_CLUT;
     setPolyFT4(edge);
-    setShadeTex(edge, 1);
+    setShadeTex(edge, USER_INTERFACE_FRAME_EDGE_RAW_TEXTURE);
     addPrim(gGpuCurrentOt + panel->otIndex.signedValue + USER_INTERFACE_FRAME_OT_OFFSET, edge);
 }
 
@@ -1095,18 +1105,22 @@ static void _uiComputeScaledPanelRect(const UiPanel* panel, RECT* rect, s32 scal
 
 /// Computes the lifecycle-dependent outer bounds for panel drawing.
 ///
-/// Output is signed 16-bit screen-centered pixels. Opening keeps scales at
-/// least one eighth; closing/hiding replace values outside 1..8 with one.
-/// Other lifecycle values copy full bounds. Keeps intermediate halfword stores.
+/// Borrows a live panel and writes a separate live RECT in screen-centered pixels.
+/// Opening uses (nine - ticks) eighths with a minimum of one and no upper cap;
+/// closing/hiding replace scales outside 1..8 with one. Animation stays at full
+/// width and is bottom-anchored, with style selecting the height rule. Other
+/// states copy full bounds, including hidden; this does not test visibility.
+/// Stores retain sixteen bits, including the scaled helper's intermediate writes.
 static inline void _uiComputeDrawnPanelRect(const UiPanel* panel, RECT* rect)
 {
+    enum { USER_INTERFACE_DRAWN_PANEL_MIN_SCALE_EIGHTHS = 1 };
     s32 scaleEighths;
 
     switch (panel->state) {
         case USER_INTERFACE_PANEL_OPENING:
             scaleEighths = USER_INTERFACE_PANEL_ANIMATION_TICKS - panel->animationTicks;
             if (scaleEighths <= 0) {
-                scaleEighths = 1;
+                scaleEighths = USER_INTERFACE_DRAWN_PANEL_MIN_SCALE_EIGHTHS;
             }
             _uiComputeScaledPanelRect(panel, rect, scaleEighths, 0);
             return;
@@ -1115,8 +1129,9 @@ static inline void _uiComputeDrawnPanelRect(const UiPanel* panel, RECT* rect)
         case USER_INTERFACE_PANEL_CLOSING:
         case USER_INTERFACE_PANEL_HIDING:
             scaleEighths = USER_INTERFACE_PANEL_ANIMATION_TICKS - panel->animationTicks;
-            if ((u32)(scaleEighths - 1) >= (u32)USER_INTERFACE_PANEL_SCALE_ONE) {
-                scaleEighths = 1;
+            // Unsigned subtraction rejects both nonpositive and oversized scales.
+            if ((u32)(scaleEighths - USER_INTERFACE_DRAWN_PANEL_MIN_SCALE_EIGHTHS) >= (u32)USER_INTERFACE_PANEL_SCALE_ONE) {
+                scaleEighths = USER_INTERFACE_DRAWN_PANEL_MIN_SCALE_EIGHTHS;
             }
             _uiComputeScaledPanelRect(panel, rect, scaleEighths, 1);
             return;
@@ -1129,9 +1144,12 @@ static inline void _uiComputeDrawnPanelRect(const UiPanel* panel, RECT* rect)
 
 /// Publishes full-bounds content coordinates and optionally insets the animated frame.
 ///
-/// Coordinates are screen-centered pixels and unsigned halfword stores retain
-/// translation bits. Borrows a live mutable panel; non-NULL outerRect requires
-/// a separate writable innerRect. A NULL outerRect leaves innerRect untouched.
+/// Content edges are relative to their center; origins translate them into
+/// screen-centered pixels. Layout uses full bounds regardless of lifecycle,
+/// then applies title/ordinary content padding with unsigned halfword views.
+/// A non-NULL outerRect also produces its frame inset, before content padding,
+/// in a separate writable innerRect. A NULL outerRect leaves innerRect untouched.
+/// Borrows a live mutable panel; stores retain sixteen bits without clamping.
 static inline void _uiLayoutDrawnPanelContent(UiPanel* panel, const RECT* outerRect, RECT* innerRect)
 {
     RECT contentRect;
@@ -2251,11 +2269,12 @@ UiObject* Ui_SpawnTextBlock(UiOptionDialogRequest* request, s32 unused2, s32 unu
 
 /// Insets a standalone frame while retaining signed-halfword origin truncation.
 ///
-/// Requires separate live rectangles. leadingInset is two screen pixels for
-/// the caller; the opposite inset is one pixel. Signed 16-bit origins are
+/// Requires separate live rectangles. leadingInset applies to the left/top in
+/// pixels (two for the sole caller); the right/bottom inset is one. Signed origins are
 /// retained before computing extents; stores wrap without dimension checks.
 static inline void _uiInsetStandaloneFrame(const RECT* outerRect, RECT* innerRect, s32 leadingInset)
 {
+    enum { USER_INTERFACE_STANDALONE_FRAME_TRAILING_INSET_PIXELS = 1 };
     s16 innerLeft;
     s16 innerTop;
 
@@ -2263,8 +2282,8 @@ static inline void _uiInsetStandaloneFrame(const RECT* outerRect, RECT* innerRec
     innerRect->x = innerLeft;
     innerTop     = outerRect->y + leadingInset;
     innerRect->y = innerTop;
-    innerRect->w = ((outerRect->w + outerRect->x) - innerLeft) - 1;
-    innerRect->h = ((outerRect->h + outerRect->y) - innerTop) - 1;
+    innerRect->w = ((outerRect->w + outerRect->x) - innerLeft) - USER_INTERFACE_STANDALONE_FRAME_TRAILING_INSET_PIXELS;
+    innerRect->h = ((outerRect->h + outerRect->y) - innerTop) - USER_INTERFACE_STANDALONE_FRAME_TRAILING_INSET_PIXELS;
 }
 
 void uiDrawRectFrame(RECT* rect, s32 otIndex, s32 style, const char* title)
@@ -2303,46 +2322,36 @@ void uiDrawRectFrame(RECT* rect, s32 otIndex, s32 style, const char* title)
     }
 }
 
-void Ui_SizeFromText(UiPanel* panel, u8* arg1, s32 arg2, s32 arg3)
+void uiSizePanelForText(UiPanel* panel, const u8* text, s32 extraWidthPixels, s32 extraHeightPixels)
 {
+    enum {
+        USER_INTERFACE_TEXT_PANEL_WIDTH_MARGIN_PIXELS  = 5,
+        USER_INTERFACE_TEXT_PANEL_HEIGHT_MARGIN_PIXELS = 1,
+        USER_INTERFACE_TEXT_PANEL_CENTER_Y_PIXELS      = -20
+    };
     struct {
         union {
-            u32 as32;
+            u32 packedSize;
             struct {
-                u16 w;
-                u16 h;
-            } hw;
-        } dims;
-        s32  pad;
-        RECT rect;
-    } sp;
-    s32 t;
-    s32 u;
+                u16 widthPixels;  // Low halfword of the little-endian packed result
+                u16 heightPixels; // High halfword of the packed result
+            } pixels;
+        } measured;
+        RECT contentRect __attribute__((aligned(8)));
+    } layout;
+    s32 widthMarginPixels;
+    s32 heightMarginPixels;
 
-    sp.dims.as32 = textMeasureUiTextSize(arg1);
-    _uiComputePanelInnerRect(panel, &panel->bounds.rect, &sp.rect);
-    if ((panel->style & USER_INTERFACE_PANEL_STYLE_MASK) == USER_INTERFACE_PANEL_TITLE_STYLE) {
-        sp.rect.y += 9;
-        sp.rect.h -= 0xB;
-        sp.rect.x += 2;
-        sp.rect.w -= 4;
-    } else {
-        sp.rect.y += 2;
-        sp.rect.h -= 4;
-        sp.rect.x += 2;
-        sp.rect.w -= 4;
-    }
-    panel->contentLeft.unsignedValue    = -(sp.rect.w >> 1);
-    panel->contentRight.unsignedValue   = panel->contentLeft.unsignedValue + sp.rect.w;
-    panel->contentTop.unsignedValue     = -(sp.rect.h >> 1);
-    panel->contentBottom.unsignedValue  = panel->contentTop.unsignedValue + sp.rect.h;
-    panel->contentOriginX.unsignedValue = sp.rect.x - panel->contentLeft.unsignedValue;
-    panel->contentOriginY.unsignedValue = sp.rect.y - panel->contentTop.unsignedValue;
-    t                                   = arg2 + 5;
-    u                                   = arg3 + 1;
-    uiSetPanelContentSize(panel, sp.dims.hw.w + t, sp.dims.hw.h + u);
+    layout.measured.packedSize = textMeasureUiTextSize(text);
+    // Establish the old content span so resizing preserves frame and style padding.
+    _uiComputePanelInnerRect(panel, &panel->bounds.rect, &layout.contentRect);
+    USER_INTERFACE_CENTER_PANEL_CONTENT(panel, layout.contentRect);
+    widthMarginPixels  = extraWidthPixels + USER_INTERFACE_TEXT_PANEL_WIDTH_MARGIN_PIXELS;
+    heightMarginPixels = extraHeightPixels + USER_INTERFACE_TEXT_PANEL_HEIGHT_MARGIN_PIXELS;
+    uiSetPanelContentSize(panel, layout.measured.pixels.widthPixels + widthMarginPixels, layout.measured.pixels.heightPixels + heightMarginPixels);
+    // Reposition after resizing; a later layout refreshes the content origins.
     panel->bounds.rect.x = -(panel->bounds.rect.w / 2);
-    panel->bounds.rect.y = -(panel->bounds.rect.h / 2) - 0x14;
+    panel->bounds.rect.y = -(panel->bounds.rect.h / 2) + USER_INTERFACE_TEXT_PANEL_CENTER_Y_PIXELS;
 }
 
 UiObject* Ui_SpawnFromDesc(UiObjectDesc* descriptor, TaskSpawnArg spawnArg1, s32 controlMode, s32 animationTicks, UiObject* parent)
@@ -2685,14 +2694,16 @@ void uiPositionRowDialog(UiPanel* dialogPanel, const UiList* list, const UiPanel
     }
 }
 
-void Ui_SizeFromTextPlain(UiPanel* panel, u8* arg1)
+void uiSizePanelForTextDefault(UiPanel* panel, const u8* text)
 {
-    Ui_SizeFromText(panel, arg1, 0, 0);
+    uiSizePanelForText(panel, text, 0, 0);
 }
 
-void Ui_SizeFromTextWide(UiPanel* panel, u8* arg1)
+void uiSizePanelForTextWide(UiPanel* panel, const u8* text)
 {
-    Ui_SizeFromText(panel, arg1, 0x20, 0);
+    enum { USER_INTERFACE_WIDE_TEXT_PANEL_EXTRA_WIDTH_PIXELS = 32 };
+
+    uiSizePanelForText(panel, text, USER_INTERFACE_WIDE_TEXT_PANEL_EXTRA_WIDTH_PIXELS, 0);
 }
 
 s32 uiIsPanelHidingOrHidden(const UiObject* object)

@@ -26,11 +26,32 @@ UiObject* Ui_SpawnTextBlock(UiOptionDialogRequest* request, s32 unused2, s32 unu
 /// counter in frame ticks. Returns NULL if either allocation fails.
 UiObject* Ui_SpawnFromDesc(UiObjectDesc* descriptor, TaskSpawnArg spawnArg1, s32 controlMode, s32 animationTicks, UiObject* parent);
 
-void Ui_SizeFromText(UiPanel* panel, u8* arg1, s32 arg2, s32 arg3);
+/// Sizes a panel from encoded text and centers it twenty pixels above the screen center.
+///
+/// Adds five width pixels and one height pixel, plus the supplied extra margins,
+/// to the measured content dimensions; retains the frame and style padding.
+/// Positive dimensions resize; nonpositive dimensions keep that outer span.
+/// Margin additions must fit s32; rectangle stores narrow to sixteen bits.
+/// Content coordinates are calculated before the final move and need a layout
+/// update before drawing at the new position. Lifecycle and control are preserved.
+///
+/// Borrows a live panel and read-only text without retaining the text. Measurement
+/// uses the large face and only the first source line: unbroken text gives fifteen
+/// height pixels, an ordinary first break thirty. It reparses that copied line
+/// rather than measuring later source lines. The copy must fit in 64 bytes with
+/// its NUL; encoded commands and glyphs follow `textDrawUiLines`'s text contract.
+void uiSizePanelForText(UiPanel* panel, const u8* text, s32 extraWidthPixels, s32 extraHeightPixels);
 
-void Ui_SizeFromTextPlain(UiPanel* panel, u8* arg1);
+/// Sizes and positions a text panel with the default five-by-one pixel content margin.
+///
+/// Uses `uiSizePanelForText`'s text, storage and subsequent-layout contract.
+void uiSizePanelForTextDefault(UiPanel* panel, const u8* text);
 
-void Ui_SizeFromTextWide(UiPanel* panel, u8* arg1);
+/// Sizes and positions a text panel with thirty-two extra width pixels.
+///
+/// The content margin totals thirty-seven width pixels and one height pixel.
+/// Uses `uiSizePanelForText`'s text, storage and subsequent-layout contract.
+void uiSizePanelForTextWide(UiPanel* panel, const u8* text);
 
 /// Sets positive content dimensions and recalculates centered panel content coordinates.
 ///

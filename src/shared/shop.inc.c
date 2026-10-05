@@ -900,7 +900,7 @@ static void Shop_NoticeTask(Task* task)
     uiDrawPanelLabel(&(obj)->panel, (const char*)Shop_Data_8017D6EC);
     obj->result = USER_INTERFACE_RESULT_NONE;
     if (task->state == 0) {
-        Ui_SizeFromTextPlain(&(obj)->panel, text);
+        uiSizePanelForTextDefault(&(obj)->panel, text);
         task->killCountdown = 0xBC;
         task->state        += 1;
     }

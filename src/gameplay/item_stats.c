@@ -665,7 +665,7 @@ void Gp_UseKeyItemRow(Task* arg0)
             arg0->state               = arg0->state + 1;
         } else {
             arg0->spawnArg1.value = -1;
-            Ui_SizeFromTextPlain(&(obj)->panel, Gp_StrNoUseNow);
+            uiSizePanelForTextDefault(&(obj)->panel, Gp_StrNoUseNow);
             obj->panel.style &= (s32)~USER_INTERFACE_PANEL_NO_FRAME;
         }
         arg0->killCountdown = 0xBC;

@@ -242,7 +242,7 @@ void Gp_AttachListTask(Task* task)
                     }
                 }
             }
-            Ui_SizeFromTextPlain(&(obj)->panel, Gp_StrWrongAmmo2);
+            uiSizePanelForTextDefault(&(obj)->panel, Gp_StrWrongAmmo2);
             if (task->state != 2) {
                 Gp_SizeEquippedPanel(&(obj)->panel, val);
             }
