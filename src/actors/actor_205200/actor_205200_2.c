@@ -713,7 +713,6 @@ static void func_actor_205200_8014C59C(Enemy* arg0, Task* arg1)
     GfxCoord*         coord;
     TmdObject*        obj;
     _Actor205200Work* work;
-    s32               state;
 
     work  = arg1->work;
     obj   = arg1->extra.tmd;
@@ -725,39 +724,26 @@ static void func_actor_205200_8014C59C(Enemy* arg0, Task* arg1)
         arg1->state = 2;
         return;
     }
-    state = gSceneCombatState.actorControl;
-    if (state == 1) {
-        goto case1;
+    switch (gSceneCombatState.actorControl) {
+        case 0:
+            obj->flags = 0;
+            break;
+        case 1:
+            func_actor_205200_8014C87C(arg1);
+            func_actor_205200_8014C8D4(arg1);
+            return;
+        case 2:
+            obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            return;
     }
-    if (state >= 2) {
-        goto ge2;
-    }
-    if (state == 0) {
-        goto case0;
-    }
-    goto default_body;
-ge2:
-    if (state == 2) {
-        goto case2;
-    }
-    goto default_body;
-case0:
-    obj->flags = 0;
-    goto default_body;
-case2:
-    obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    return;
-default_body:
     func_actor_205200_8014BD4C(arg1);
     func_actor_205200_8014C67C(arg1);
     func_actor_205200_8014C7CC(arg1);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(coord);
-case1:
     func_actor_205200_8014C87C(arg1);
     func_actor_205200_8014C8D4(arg1);
 }
-
 /// Per-frame tick of the live state, run from `func_actor_205200_8014C59C`'s
 /// shared body. Bit 0 of `gSceneCombatState.pairedEnemySignals` is a one-shot
 /// request: it is cleared here and starts `ACTOR_205200_ACTION_HIT_REACTION`
