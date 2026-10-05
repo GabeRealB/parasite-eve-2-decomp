@@ -407,7 +407,7 @@ static const EnemyTaskFuncTable3 D_actor_311900_80161E30 = {
 };
 
 /// Runs the actor's state handler that `Task::state` selects. Copies the
-/// table onto the stack first, the same local jump table `Gp_EnemyDispatch`
+/// table onto the stack first, the same local jump table `enemyTeardownDelayTask`
 /// builds for the shared `Gp_EnemyWaitFuncs`, so the call goes through the
 /// stack copy rather than the overlay's own `.rodata`.
 void func_actor_311900_8016222C(Task* task)

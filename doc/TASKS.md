@@ -357,7 +357,7 @@ The other payload structs live with their sole consumers: `_EvsMusicVolumeFade` 
 
 ### Bank 1 — enemies + overlay
 
-Named / matched: `Gp_EnemyDispatch` (`0xB`), `worldCoordUpdateRoomLightsTask` (`0xF`, room lights),
+Named / matched: `enemyTeardownDelayTask` (`0xB`), `worldCoordUpdateRoomLightsTask` (`0xF`, room lights),
 `worldCoordPlayerLightingTask` (`0x10`, player/companion lights),
 `Tmd_DispatchTask` (`0x21`), `tmdRestoreAttachedBuffersTask` (`0x22`),
 `Gp_FadeTileTask` (`0x27`). The rest is `taskKill`, `func_*`, or

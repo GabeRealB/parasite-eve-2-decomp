@@ -1249,12 +1249,12 @@ static void _enemyWaitTick(Enemy* enemy, Task* task)
     }
 }
 
-void Gp_EnemyDispatch(Task* arg0)
+void enemyTeardownDelayTask(Task* task)
 {
-    EnemyTaskFuncTable3 sp;
+    EnemyTaskFuncTable3 stateHandlers;
 
-    sp = Gp_EnemyWaitFuncs;
-    sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
+    stateHandlers = Gp_EnemyWaitFuncs;
+    stateHandlers.funcs[task->state](task->spawnArg2.pointer, task);
 }
 
 static s32 Gp_TryEnqueueSndCd(s32 arg0)
@@ -1998,103 +1998,120 @@ static void _gpuBlendRgb555(const u16* first, const u16* second, s32 firstWeight
     SCRATCH_STACK_RELEASE_BYTES(3 * sizeof(_Rgb555Scratch));
 }
 
-/// Full-screen fade quad. Ramps a 0x140 by 0xF0 semi-transparent `TILE` from
-/// grey 0 to 255 over `rampFrames`, holds that coverage while `phase` stays
-/// running, then ramps the grey back to 0 once the owner requests the return.
-/// Zero `blend` subtracts the grey toward black; any other value adds it
-/// toward white. Sorted into `gGpuCurrentOt[Task::spawnArg1]`, or
-/// (`spawnArg1 == 0`) into the head of the current ordering table, backing up
-/// 0xA entries when the current OT is not one of the two `Gpu_OrderingTables`
-/// roots.
-void Gp_FadeWorkTask(Task* t)
+/// Links a fade tile behind its blend command at the requested screen ordering tag.
+///
+/// Borrows the current ordering table and the two writable frame packets.
+/// A nonzero task tag index must be in bounds. Zero chooses a presentation-table
+/// root or the foreground tag ten entries before the offset current pointer.
+/// The command is prepended last so it executes before the tile.
+static inline void _fadeLinkScreenPackets(Task* task, TILE* tile, DR_TPAGE* blendCommand)
 {
-    ScreenFade* work;
-    TILE*       tile;
-    DR_TPAGE*   dr;
-    s32         color;
-    s16         y;
-    s8          yoff;
+    enum { FADE_SCREEN_FOREGROUND_OT_INDEX = -10 };
 
-    work = t->spawnArg2.pointer;
+    // Prepending the draw mode after the tile makes it execute first.
+    if (task->spawnArg1.value != 0) {
+        u_long* orderingTable;
 
-    if (t->state == 0) {
-        t->killCountdown = 0;
-        if (work->rampFrames <= 0) {
-            work->rampFrames = SCREEN_FADE_DEFAULT_FRAMES;
-        }
-        t->state = t->state + 1;
-    }
-    if ((t->state == 2) && (work->phase == SCREEN_FADE_RETURN)) {
-        t->killCountdown = work->rampFrames;
-    }
-
-    color          = (t->killCountdown * 0xFF0) / work->rampFrames;
-    tile           = gGpuPrimCursor;
-    y              = -0x78;
-    tile->y0       = y;
-    gGpuPrimCursor = tile + 1;
-    setlen(tile, 3);
-    setcode(tile, 0x62);
-    tile->x0 = -0xA0;
-    yoff     = gDisplayState.vramYOffset;
-    tile->w  = 0x140;
-    tile->h  = 0xF0;
-    color    = color >> 4;
-    tile->b0 = color;
-    tile->g0 = color;
-    tile->r0 = color;
-    dr       = gGpuPrimCursor;
-    tile->y0 = y - yoff;
-
-    gGpuPrimCursor = dr + 1;
-    if (work->blend == SCREEN_FADE_SUBTRACT) {
-        setlen(dr, 1);
-        dr->code[0] = 0xE1000240;
+        orderingTable = gGpuCurrentOt;
+        addPrim(&orderingTable[task->spawnArg1.value], tile);
+        addPrim(&orderingTable[task->spawnArg1.value], blendCommand);
     } else {
-        setlen(dr, 1);
-        dr->code[0] = 0xE1000220;
-    }
+        u_long* orderingTable;
 
-    if (t->spawnArg1.value != 0) {
-        u_long* ot;
-
-        ot = gGpuCurrentOt;
-        addPrim(&ot[t->spawnArg1.value], tile);
-        addPrim(&ot[t->spawnArg1.value], dr);
-    } else {
-        u_long* ot;
-
-        ot = gGpuCurrentOt;
-        if ((ot == (u_long*)Gpu_OrderingTables[0].org) || (ot == (u_long*)Gpu_OrderingTables[1].org)) {
-            addPrim(ot, tile);
-            addPrim(ot, dr);
+        orderingTable = gGpuCurrentOt;
+        if ((orderingTable == (u_long*)Gpu_OrderingTables[0].org) || (orderingTable == (u_long*)Gpu_OrderingTables[1].org)) {
+            addPrim(orderingTable, tile);
+            addPrim(orderingTable, blendCommand);
         } else {
-            addPrim(&ot[-0xA], tile);
-            addPrim(&ot[-0xA], dr);
+            addPrim(&orderingTable[FADE_SCREEN_FOREGROUND_OT_INDEX], tile);
+            addPrim(&orderingTable[FADE_SCREEN_FOREGROUND_OT_INDEX], blendCommand);
         }
     }
+}
 
-    switch (t->state) {
-        case 1:
-            t->killCountdown = t->killCountdown + 1;
-            if (t->killCountdown == work->rampFrames) {
-                t->state = t->state + 1;
+void fadeScreenTask(Task* task)
+{
+    enum {
+        FADE_SCREEN_STATE_START             = 0,
+        FADE_SCREEN_STATE_RAMP_UP           = 1,
+        FADE_SCREEN_STATE_HOLD              = 2,
+        FADE_SCREEN_STATE_RAMP_DOWN         = 3,
+        FADE_SCREEN_INTENSITY_FRACTION_BITS = 4,
+        FADE_SCREEN_PEAK_INTENSITY          = 255 << FADE_SCREEN_INTENSITY_FRACTION_BITS
+    };
+
+    ScreenFade* fade;
+    TILE*       tile;
+    DR_TPAGE*   blendCommand;
+    s32         intensity;
+    s16         topY;
+    s8          shakeY;
+
+    fade = task->spawnArg2.pointer;
+
+    if (task->state == FADE_SCREEN_STATE_START) {
+        task->killCountdown = 0;
+        if (fade->rampFrames <= 0) {
+            fade->rampFrames = SCREEN_FADE_DEFAULT_FRAMES;
+        }
+        task->state++;
+    }
+    // A new return length starts at full coverage, even if it differs from ramp-up.
+    if ((task->state == FADE_SCREEN_STATE_HOLD) && (fade->phase == SCREEN_FADE_RETURN)) {
+        task->killCountdown = fade->rampFrames;
+    }
+
+    // Emit this frame's coverage before advancing the ramp counter.
+    intensity      = (task->killCountdown * FADE_SCREEN_PEAK_INTENSITY) / fade->rampFrames;
+    tile           = gGpuPrimCursor;
+    topY           = -DISPLAY_EFFECT_HEIGHT / 2;
+    tile->y0       = topY;
+    gGpuPrimCursor = tile + 1;
+    setlen(tile, sizeof(*tile) / sizeof(u32) - 1);
+    setcode(tile, GPU_SCREEN_SEMITRANSPARENT_TILE);
+    tile->x0     = -DISPLAY_EFFECT_WIDTH / 2;
+    shakeY       = gDisplayState.vramYOffset;
+    tile->w      = DISPLAY_EFFECT_WIDTH;
+    tile->h      = DISPLAY_EFFECT_HEIGHT;
+    intensity    = intensity >> FADE_SCREEN_INTENSITY_FRACTION_BITS;
+    tile->b0     = intensity;
+    tile->g0     = intensity;
+    tile->r0     = intensity;
+    blendCommand = gGpuPrimCursor;
+    tile->y0     = topY - shakeY;
+
+    gGpuPrimCursor = blendCommand + 1;
+    if (fade->blend == SCREEN_FADE_SUBTRACT) {
+        setlen(blendCommand, sizeof(*blendCommand) / sizeof(u32) - 1);
+        blendCommand->code[0] = GPU_SCREEN_DRAW_MODE_SUBTRACT;
+    } else {
+        setlen(blendCommand, sizeof(*blendCommand) / sizeof(u32) - 1);
+        blendCommand->code[0] = GPU_SCREEN_DRAW_MODE_ADD;
+    }
+
+    _fadeLinkScreenPackets(task, tile, blendCommand);
+
+    switch (task->state) {
+        case FADE_SCREEN_STATE_RAMP_UP:
+            task->killCountdown++;
+            if (task->killCountdown == fade->rampFrames) {
+                task->state++;
             }
             break;
-        case 2:
-            if (work->phase == SCREEN_FADE_RETURN) {
-                t->state = 3;
+        case FADE_SCREEN_STATE_HOLD:
+            if (fade->phase == SCREEN_FADE_RETURN) {
+                task->state = FADE_SCREEN_STATE_RAMP_DOWN;
             }
             break;
-        case 3:
-            t->killCountdown = t->killCountdown - 1;
-            if (t->killCountdown <= 0) {
-                work->phase = SCREEN_FADE_DONE;
-                taskKill(t);
+        case FADE_SCREEN_STATE_RAMP_DOWN:
+            task->killCountdown--;
+            if (task->killCountdown <= 0) {
+                fade->phase = SCREEN_FADE_DONE;
+                taskKill(task);
             }
             break;
         default:
-            taskKill(t);
+            taskKill(task);
             break;
     }
 }

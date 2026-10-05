@@ -384,9 +384,36 @@ void animationAimHeadAtPoint(Task* subject, const GfxCoord* targetPointFrame, s3
 /// toward it by `arg2->rate / 0x1000`, clamps, and writes the head rotation.
 void func_800B17D4(Task* arg0, Task* arg1, AnimationHeadAim* arg2);
 
-void Gp_EnemyDispatch(Task* arg0);
+/// Runs the bodyless-enemy teardown delay (bank 1, type 0xB).
+///
+/// Requires state 0 (start), 1 (countdown) or 2 (destroy); dispatch performs
+/// no bounds check. `spawnArg2.pointer` must be the live primary-heap `Enemy`
+/// owned by this bodyless task. Start sets `waitTicks` to `ENEMY_WAIT_FRAMES`;
+/// 120 subsequent countdown invocations advance to destruction on the next
+/// invocation. Destruction releases target tracking, actor locks and enemy
+/// storage, then tears down the task. Neither argument is used afterwards.
+/// Gameplay must remain loaded while the task can dispatch.
+void enemyTeardownDelayTask(Task* task);
 
-void Gp_FadeWorkTask(Task* arg0);
+/// Runs an owner-controlled full-screen fade (bank 1, type 0x31).
+///
+/// `spawnArg2.pointer` borrows a writable `ScreenFade` for the task's lifetime.
+/// State 0 starts, 1 ramps coverage up, 2 holds and 3 ramps it down. A return
+/// request during ramp-up waits for the hold. A nonpositive start length selects
+/// `SCREEN_FADE_DEFAULT_FRAMES`; the length must stay positive and unchanged
+/// during each ramp. The owner may replace it when requesting return in the hold.
+/// Zero blend subtracts toward black; nonzero adds toward white. Intensity uses
+/// signed division with four fractional bits, then narrows to each colour byte.
+/// Drawing precedes the counter step; the final return packet is emitted before
+/// setting `SCREEN_FADE_DONE` and tearing down the task. The record is not freed.
+///
+/// `spawnArg1.value` is a signed ordering-table tag index. A nonzero index must
+/// address a live tag. Zero selects tag 0 at either presentation-table
+/// root, otherwise tag -10 relative to the current pointer, requiring that prefix
+/// to exist. Requires the current frame arena for a `TILE` and `DR_TPAGE`.
+/// The blend command executes before the tile, which compensates vertical shake.
+/// Gameplay must remain loaded; packets are borrowed until that frame is drawn.
+void fadeScreenTask(Task* task);
 
 /// Runs the event-script full-screen pulse task (bank 1, type 0x19).
 ///

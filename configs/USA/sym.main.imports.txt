@@ -124,8 +124,8 @@ Title_ExitTask = 0x800947A8; // type:func absolute:True owner=title
 D_8010FC2C = 0x8010FC2C; // absolute:True
 Gp_MenuRootTask = 0x800BF9FC; // type:func absolute:True
 Gp_EffAttachTask37 = 0x800F6D18; // type:func absolute:True
-Gp_EnemyDispatch = 0x800B058C; // type:func absolute:True
-Gp_FadeWorkTask = 0x800B2200; // type:func absolute:True
+enemyTeardownDelayTask = 0x800B058C; // type:func absolute:True
+fadeScreenTask = 0x800B2200; // type:func absolute:True
 fadePulseTask = 0x800B2910; // type:func absolute:True
 sceneManagerTask = 0x800B5DB8; // type:func absolute:True
 displayBlendPreviousFrameTask = 0x800B60C0; // type:func absolute:True

@@ -37552,15 +37552,15 @@ no need to write it out.
 
 ## Duplicate the shared store in both arms so it lands in the cross-jumped tail
 
-`Gp_FadeWorkTask` writes a `DR_TPAGE` whose `code[0]` depends on a flag. Hoisting
-the common `setlen(dr, 1)` above the `if` lets the scheduler sink `li v0, 1` /
-`sb v0, 3(dr)` *above* the `lbu` that tests the flag, and the constant's `lui`
+`fadeScreenTask` writes a `DR_TPAGE` whose `code[0]` depends on a flag. Hoisting
+the common `setlen(blendCommand, 1)` above the `if` lets the scheduler sink `li v0, 1` /
+`sb v0, 3(blendCommand)` *above* the `lbu` that tests the flag, and the constant's `lui`
 gets hoisted out of both arms into a spare temp:
 
 ```c
-setlen(dr, 1);                    /* wrong: sb runs before the lbu test */
-if (work->blend == 0) { dr->code[0] = 0xE1000240; }
-else                  { dr->code[0] = 0xE1000220; }
+setlen(blendCommand, 1);                    /* wrong: sb runs before the lbu test */
+if (fade->blend == 0) { blendCommand->code[0] = 0xE1000240; }
+else                  { blendCommand->code[0] = 0xE1000220; }
 ```
 
 The target instead has the branch first and `sb len` / `sw code` after the join.
@@ -37569,8 +37569,8 @@ two-insn tail back out, and the differing `ori` stays in each arm with the
 shared `lui` in the branch delay slot:
 
 ```c
-if (work->blend == 0) { setlen(dr, 1); dr->code[0] = 0xE1000240; }
-else                  { setlen(dr, 1); dr->code[0] = 0xE1000220; }
+if (fade->blend == 0) { setlen(blendCommand, 1); blendCommand->code[0] = 0xE1000240; }
+else                  { setlen(blendCommand, 1); blendCommand->code[0] = 0xE1000220; }
 ```
 
 ```
@@ -37589,30 +37589,30 @@ sw    v1, 4(t1)
 This is the mirror image of the `asm volatile("")` entry above: there the goal
 was to *break* a cross-jump, here it is to *feed* one. 97.6% -> 99.3%.
 
-## One `ot` local per mutually exclusive branch, not one for the whole function
+## One `orderingTable` local per mutually exclusive branch, not one for the whole function
 
-`Gp_FadeWorkTask` sorts its two prims into `gGpuCurrentOt[spawnArg1]` or, when
+`fadeScreenTask` sorts its two prims into `gGpuCurrentOt[spawnArg1]` or, when
 `spawnArg1 == 0`, into the current OT head. A single function-scope
-`u_long* ot` reloaded in both arms is allocated one register for the whole
+`u_long* orderingTable` reloaded in both arms is allocated one register for the whole
 function ($t0 in both), which also shifts every other pointer down a register
 and reorders the `lui %hi(Gpu_OrderingTables)` / `lw gGpuCurrentOt` pair. The
 target gives each arm its own register ($a3 in the indexed arm, $a2 in the
 head arm), so declare the pointer at block scope inside each arm:
 
 ```c
-if (t->spawnArg1 != 0) {
-    u_long* ot = gGpuCurrentOt;
-    addPrim(&ot[t->spawnArg1], tile);
-    addPrim(&ot[t->spawnArg1], dr);
+if (task->spawnArg1.value != 0) {
+    u_long* orderingTable = gGpuCurrentOt;
+    addPrim(&orderingTable[task->spawnArg1.value], tile);
+    addPrim(&orderingTable[task->spawnArg1.value], blendCommand);
 } else {
-    u_long* ot = gGpuCurrentOt;
+    u_long* orderingTable = gGpuCurrentOt;
     ...
 }
 ```
 
 Same family as "Fresh block-scope pointer at a join": live ranges that never
 overlap should not share a C variable. 97.6% -> 99.3%, and the remaining
-$t1/$t2 swap was a single `register Task* t asm("t2")` pin.
+$t1/$t2 swap was a single `register Task* task asm("t2")` pin.
 
 ## Handwritten GTE fifo macros: the scratch register is part of the match
 
@@ -48569,7 +48569,7 @@ block copy, base_2's hoists it ahead - and the scheduler's ready list keeps
 same-priority insns in that order. So this is a source question, not a
 scheduling one: do not reach for a scheduler barrier or a `do {} while (0)`
 wrapper. Both forms are in the tree, and the sibling whose disassembly has the
-load in the right place tells you which one to write - `Gp_EnemyDispatch`,
+load in the right place tells you which one to write - `enemyTeardownDelayTask`,
 `Actor00300_Fn04770` and `func_actor_310600_80162A7C` take the inline form,
 `Actor00400_Fn0793C` and `func_actor_311900_8016222C` the local. Matching the
 wrong sibling costs exactly the reorder and the missing `nop` (90.8% with
@@ -49246,7 +49246,7 @@ is the worked example: the m2c seed scored 95.73% with `move s0,a0` against the
 target's `move s0,a1`, plus the branch-offset and `delete` penalties that follow
 from the body being one instruction short; restoring the dropped parameter
 matched on the first build. Read the dispatch body — `src/actors/lib/
-actors_shared_80135df4.c`, or whichever `Gp_EnemyDispatch`-shaped copy the
+actors_shared_80135df4.c`, or whichever `enemyTeardownDelayTask`-shaped copy the
 overlay carries — before inventing a signature.
 
 **Restoring the arity is not free for the parameter that *is* used.** GCC emits
@@ -145075,14 +145075,14 @@ instruction off. The seed had rebuilt the two-statement form around a
 needed once the loop was a plain `for (i = 0; i < gCount; i++)` over the
 two-statement step and the table was read back through the relocated field.
 
-## A constant local feeding a `short` field is `s16`, or CSE re-materialises it (Gp_FadeWorkTask, 2026-09-26)
+## A constant local feeding a `short` field is `s16`, or CSE re-materialises it (fadeScreenTask, 2026-09-26)
 
-A fill primitive stored `-120` into `tile->y0` and later `y0 = y - yoff`,
+A fill primitive stored `-120` into `tile->y0` and later `y0 = topY - shakeY`,
 keeping `-120` live in one register (`li a1,-0x78; sh a1; ... subu a1,a1,a0`).
-With `s32 y`, expand shortens the subtraction to HImode because its result is
-stored to a `short`, reading `(subreg:HI y)`; CSE then substitutes the known
+With `s32 topY`, expand shortens the subtraction to HImode because its result is
+stored to a `short`, reading `(subreg:HI topY)`; CSE then substitutes the known
 constant for that subreg as a fresh HImode pseudo, so a second `li` appears and
-`y` lands elsewhere. The seed pinned `y` to `$a1`. Declaring `y` with the
+`topY` lands elsewhere. The seed pinned `topY` to `$a1`. Declaring `topY` with the
 field's type, `s16`, keeps one pseudo and matches unpinned.
 
 ## A stack argument loaded at entry into `$s` although used once is a reassigned parameter (animationPlaySlotWithBlend, 2026-09-26)

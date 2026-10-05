@@ -537,7 +537,7 @@ TaskDesc D_800670D0[] = {
     { { { TASK_BODY_COORD, 0xC0 } }, func_807080C8 },
     { { { TASK_BODY_COORD, 0xC0 } }, func_80707870 },
     { { { TASK_BODY_NONE, 0xC0 } }, func_80707980 },
-    { { { TASK_BODY_NONE, 0x60 } }, Gp_EnemyDispatch },
+    { { { TASK_BODY_NONE, 0x60 } }, enemyTeardownDelayTask },
     { { { TASK_BODY_TMD, 0x40 } }, func_807077C0, { &D_8075BED4 } },
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
@@ -575,7 +575,7 @@ TaskDesc D_800670D0[] = {
     { { { TASK_BODY_NONE, 0xC0 } }, taskRunExitCallbackTask },
     { { { TASK_BODY_NONE, 0xC0 } }, func_8070A6E8 },
     { { { TASK_BODY_NONE, 0xC0 } }, func_80708778 },
-    { { { TASK_BODY_NONE, 0x2F } }, Gp_FadeWorkTask },
+    { { { TASK_BODY_NONE, 0x2F } }, fadeScreenTask },
     { { { TASK_BODY_TMD, 0x70 } }, Gp_EffAttachTask37 },
 };
 
