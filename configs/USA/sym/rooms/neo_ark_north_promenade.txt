@@ -60,12 +60,12 @@ func_neo_ark_north_promenade_8017E890 = 0x8017E890; // type:func
 func_neo_ark_north_promenade_8017FCA0 = 0x8017FCA0; // type:func
 
 func_neo_ark_north_promenade_8017D720 = 0x8017D720; // type:func
-RoomFx_DrawMote = 0x8017DA7C; // type:func
+_roomVisualEffectsDrawMote = 0x8017DA7C; // type:func
 _roomVisualEffectsDrawHaloRing = 0x8017DD40; // type:func
 _roomVisualEffectsDrawHaloDisc = 0x8017E164; // type:func
 _roomVisualEffectsDrawHaloBurstGlow = 0x8017EA3C; // type:func
 _roomVisualEffectsDrawHaloBurstGroundQuad = 0x8017EF68; // type:func
-RoomFx_DrawFlashStar = 0x8017F2E0; // type:func
+_roomVisualEffectsDrawHaloStar = 0x8017F2E0; // type:func
 _roomVisualEffectsDrawFlashRing = 0x80180078; // type:func
 _roomVisualEffectsDrawFlashDisc = 0x801804A4; // type:func
 _roomVisualEffectsDrawTwinTrail = 0x80180D28; // type:func

@@ -2316,7 +2316,7 @@ void func_mine_cavern_8017FF88(Task* arg0)
 
 void func_mine_cavern_80180320(Task* arg0)
 {
-    RoomFx_OrangeBurstTask(arg0);
+    _roomVisualEffectsHaloOrangeBurstTask(arg0);
 }
 
 #include "../../shared/room_visual_effects_glow_quad.inc.c"

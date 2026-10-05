@@ -109,7 +109,7 @@ static inline void RoomFx_MoteTask(Task* task)
                 actorRenderComposeCoord(coord);
                 if (work->age & 1) {
                     work->index++;
-                    RoomFx_DrawMote(coord, work->index, work->angle | 0x1000, work->scale | work->period);
+                    _roomVisualEffectsDrawMote(coord, work->index, work->angle | ROOM_VISUAL_EFFECTS_MOTE_TEXTURE_ROW_1, work->scale | work->period);
                 }
                 if (work->scale > 0) {
                     if (work->step - 8 < work->age) {
@@ -127,7 +127,7 @@ static inline void RoomFx_MoteTask(Task* task)
                 actorRenderComposeCoord(coord);
                 if (work->age & 1) {
                     work->index++;
-                    RoomFx_DrawMote(coord, work->index, work->angle, work->scale | work->period);
+                    _roomVisualEffectsDrawMote(coord, work->index, work->angle, work->scale | work->period);
                 }
                 if (work->scale > 0) {
                     if (work->step - 8 < work->age) {

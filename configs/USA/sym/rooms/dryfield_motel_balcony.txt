@@ -101,12 +101,12 @@ func_dryfield_motel_balcony_8017ED98 = 0x8017ED98; // type:func
 func_dryfield_motel_balcony_801801A8 = 0x801801A8; // type:func
 
 func_dryfield_motel_balcony_8017DC28 = 0x8017DC28; // type:func
-RoomFx_DrawMote = 0x8017DF84; // type:func
+_roomVisualEffectsDrawMote = 0x8017DF84; // type:func
 _roomVisualEffectsDrawHaloRing = 0x8017E248; // type:func
 _roomVisualEffectsDrawHaloDisc = 0x8017E66C; // type:func
 _roomVisualEffectsDrawHaloBurstGlow = 0x8017EF44; // type:func
 _roomVisualEffectsDrawHaloBurstGroundQuad = 0x8017F470; // type:func
-RoomFx_DrawFlashStar = 0x8017F7E8; // type:func
+_roomVisualEffectsDrawHaloStar = 0x8017F7E8; // type:func
 _roomVisualEffectsDrawFlashRing = 0x80180580; // type:func
 _roomVisualEffectsDrawFlashDisc = 0x801809AC; // type:func
 _roomVisualEffectsDrawTwinTrail = 0x80181230; // type:func

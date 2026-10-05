@@ -746,7 +746,7 @@ void func_mine_secret_passage_8017F5B0(Task* arg0)
 
 void func_mine_secret_passage_8017F948(Task* arg0)
 {
-    RoomFx_OrangeBurstTask(arg0);
+    _roomVisualEffectsHaloOrangeBurstTask(arg0);
 }
 
 #include "../../shared/room_visual_effects_glow_quad.inc.c"

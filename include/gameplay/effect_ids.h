@@ -1614,11 +1614,11 @@ enum {
     /// Orange burst (_roomVisualEffectsFlyingOrangeBurstTask, this unit's copy of the orange burst);
     /// stored in gRoomEffectOrangeBurst2Id, which actor_02400 spawns.
     EFFECT_NEO_ARK_GARDEN_ORANGE_BURST_2 = EFFECT_ID(EFFECT_TASK_BANK, 0x23E),
-    /// mine_cavern's copy of the shared orange burst (RoomFx_OrangeBurstTask): growing
+    /// mine_cavern's copy of the shared orange burst (_roomVisualEffectsHaloOrangeBurstTask): growing
     /// disc and glow with an expanding dimmer ring, then fades; the room stores it in
     /// gRoomEffectOrangeBurstId (orange-burst slot, read by actor_00300).
     EFFECT_MINE_CAVERN_ORANGE_BURST = EFFECT_ID(EFFECT_TASK_BANK, 0x23F),
-    /// mine_secret_passage's copy of RoomFx_OrangeBurstTask (an orange disc/glow with
+    /// mine_secret_passage's copy of _roomVisualEffectsHaloOrangeBurstTask (an orange disc/glow with
     /// an expanding ring), stored in gRoomEffectOrangeBurstId, which the Brain Stinger's fireball
     /// spawns when it expires or hits.
     EFFECT_MINE_SECRET_PASSAGE_ORANGE_BURST = EFFECT_ID(EFFECT_TASK_BANK, 0x240),
@@ -1751,20 +1751,20 @@ enum {
     /// stores it in slot gRoomEffectHaloId, which actor_00300 spawns (e.g. when its touch
     /// drains 0x14 MP).
     EFFECT_NEO_ARK_NORTH_PROMENADE_HALO = EFFECT_ID(EFFECT_TASK_BANK, 0x25B),
-    /// Orange burst (RoomFx_OrangeBurstTask): disc and glow growing inside an expanding
+    /// Orange burst (_roomVisualEffectsHaloOrangeBurstTask): disc and glow growing inside an expanding
     /// ring, then fading; stored in gRoomEffectOrangeBurstId, which actor_00300 spawns where its
     /// fireball ends.
     EFFECT_SHELTER_B1_ELEVATOR_HALL_ORANGE_BURST = EFFECT_ID(EFFECT_TASK_BANK, 0x25C),
-    /// shelter_b1_storeroom's copy of the shared orange burst (RoomFx_OrangeBurstTask):
+    /// shelter_b1_storeroom's copy of the shared orange burst (_roomVisualEffectsHaloOrangeBurstTask):
     /// growing disc and glow with an expanding dimmer ring, then fades; the room stores
     /// it in gRoomEffectOrangeBurstId (orange-burst slot, read by actor_00300).
     EFFECT_SHELTER_B1_STOREROOM_ORANGE_BURST = EFFECT_ID(EFFECT_TASK_BANK, 0x25D),
-    /// shelter_b1_north_maintenance_walkway's copy of RoomFx_OrangeBurstTask (an orange
+    /// shelter_b1_north_maintenance_walkway's copy of _roomVisualEffectsHaloOrangeBurstTask (an orange
     /// disc/glow with an expanding ring), stored in gRoomEffectOrangeBurstId, which the Brain
     /// Stinger's fireball spawns when it expires or hits.
     EFFECT_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_ORANGE_BURST = EFFECT_ID(EFFECT_TASK_BANK, 0x25E),
     /// The shelter_b1_main_corridor instance of the room-effect library's
-    /// RoomFx_OrangeBurstTask: an orange burst: a growing disc and glow with a wider
+    /// _roomVisualEffectsHaloOrangeBurstTask: an orange burst: a growing disc and glow with a wider
     /// dimmer ring expanding and fading behind them; the room stores it in slot
     /// gRoomEffectOrangeBurstId, read by actor_00300 (fireball library) when its fireball times out,
     /// hits or is blocked.
@@ -1773,21 +1773,21 @@ enum {
     /// growing disc and glow with an expanding, fading ring; the room stores it in slot
     /// gRoomEffectOrangeBurstId, which actor_00300 spawns where its fireball ends.
     EFFECT_SHELTER_B1_TRANSFER_TUNNEL_ORANGE_BURST = EFFECT_ID(EFFECT_TASK_BANK, 0x260),
-    /// Orange burst (RoomFx_OrangeBurstTask): disc and glow growing inside an expanding
+    /// Orange burst (_roomVisualEffectsHaloOrangeBurstTask): disc and glow growing inside an expanding
     /// ring, then fading; stored in gRoomEffectOrangeBurstId, which actor_00300 spawns where its
     /// fireball ends.
     EFFECT_SHELTER_B2_ELEVATOR_HALL_ORANGE_BURST = EFFECT_ID(EFFECT_TASK_BANK, 0x261),
     /// shelter_b2_north_maintenance_walkway's copy of the shared orange burst
-    /// (RoomFx_OrangeBurstTask): growing disc and glow with an expanding dimmer ring,
+    /// (_roomVisualEffectsHaloOrangeBurstTask): growing disc and glow with an expanding dimmer ring,
     /// then fades; the room stores it in gRoomEffectOrangeBurstId (orange-burst slot, read by
     /// actor_00300).
     EFFECT_SHELTER_B2_NORTH_MAINTENANCE_WALKWAY_ORANGE_BURST = EFFECT_ID(EFFECT_TASK_BANK, 0x262),
-    /// shelter_b2_pod_access_tunnel's copy of RoomFx_OrangeBurstTask (an orange
+    /// shelter_b2_pod_access_tunnel's copy of _roomVisualEffectsHaloOrangeBurstTask (an orange
     /// disc/glow with an expanding ring), stored in gRoomEffectOrangeBurstId, which the Brain
     /// Stinger's fireball spawns when it expires or hits.
     EFFECT_SHELTER_B2_POD_ACCESS_TUNNEL_ORANGE_BURST = EFFECT_ID(EFFECT_TASK_BANK, 0x263),
     /// The shelter_b3_elevator_hall instance of the room-effect library's
-    /// RoomFx_OrangeBurstTask: an orange burst: a growing disc and glow with a wider
+    /// _roomVisualEffectsHaloOrangeBurstTask: an orange burst: a growing disc and glow with a wider
     /// dimmer ring expanding and fading behind them; the room stores it in slot
     /// gRoomEffectOrangeBurstId, read by actor_00300 (fireball library) when its fireball times out,
     /// hits or is blocked.
@@ -1796,7 +1796,7 @@ enum {
     /// growing disc and glow with an expanding, fading ring; the room stores it in slot
     /// gRoomEffectOrangeBurstId, which actor_00300 spawns where its fireball ends.
     EFFECT_SHELTER_B4_UPPER_SEWER_ORANGE_BURST = EFFECT_ID(EFFECT_TASK_BANK, 0x265),
-    /// Orange burst (RoomFx_OrangeBurstTask): disc and glow growing inside an expanding
+    /// Orange burst (_roomVisualEffectsHaloOrangeBurstTask): disc and glow growing inside an expanding
     /// ring, then fading; stored in gRoomEffectOrangeBurstId, which actor_00300 spawns where its
     /// fireball ends.
     EFFECT_NEO_ARK_NORTH_PROMENADE_ORANGE_BURST = EFFECT_ID(EFFECT_TASK_BANK, 0x266),
@@ -1933,7 +1933,7 @@ enum {
     /// stores it in slot gRoomEffectHaloId, which actor_00300 spawns (e.g. when its touch
     /// drains 0x14 MP).
     EFFECT_DRYFIELD_MOTEL_BALCONY_HALO = EFFECT_ID(EFFECT_TASK_BANK, 0x283),
-    /// Orange burst (RoomFx_OrangeBurstTask): disc and glow growing inside an expanding
+    /// Orange burst (_roomVisualEffectsHaloOrangeBurstTask): disc and glow growing inside an expanding
     /// ring, then fading; stored in gRoomEffectOrangeBurstId, which actor_00300 spawns where its
     /// fireball ends.
     EFFECT_DRYFIELD_MOTEL_BALCONY_ORANGE_BURST = EFFECT_ID(EFFECT_TASK_BANK, 0x284),

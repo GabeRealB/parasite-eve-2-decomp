@@ -588,7 +588,7 @@ void func_shelter_b1_elevator_hall_8017F43C(Task* arg0)
 
 void func_shelter_b1_elevator_hall_8017F7D4(Task* arg0)
 {
-    RoomFx_OrangeBurstTask(arg0);
+    _roomVisualEffectsHaloOrangeBurstTask(arg0);
 }
 
 #include "../../shared/room_visual_effects_glow_quad.inc.c"

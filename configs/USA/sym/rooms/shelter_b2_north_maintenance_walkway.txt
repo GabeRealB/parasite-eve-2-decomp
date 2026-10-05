@@ -87,12 +87,12 @@ func_shelter_b2_north_maintenance_walkway_80180670 = 0x80180670; // type:func
 func_shelter_b2_north_maintenance_walkway_80181A80 = 0x80181A80; // type:func
 
 func_shelter_b2_north_maintenance_walkway_8017DDE8 = 0x8017DDE8; // type:func
-RoomFx_DrawMote = 0x8017F85C; // type:func
+_roomVisualEffectsDrawMote = 0x8017F85C; // type:func
 _roomVisualEffectsDrawHaloRing = 0x8017FB20; // type:func
 _roomVisualEffectsDrawHaloDisc = 0x8017FF44; // type:func
 _roomVisualEffectsDrawHaloBurstGlow = 0x8018081C; // type:func
 _roomVisualEffectsDrawHaloBurstGroundQuad = 0x80180D48; // type:func
-RoomFx_DrawFlashStar = 0x801810C0; // type:func
+_roomVisualEffectsDrawHaloStar = 0x801810C0; // type:func
 _roomVisualEffectsDrawFlashRing = 0x80181E58; // type:func
 _roomVisualEffectsDrawFlashDisc = 0x80182284; // type:func
 _roomVisualEffectsDrawTwinTrail = 0x80182B08; // type:func

@@ -1,69 +1,89 @@
 /* Continue room_visual_effects.inc.c after the preceding overlay wrappers. */
 
-/// Draws one mote: projects the coordinate's world position through
-/// `GsWSMATRIX` and, unless the GTE flags the projection, queues one
-/// semi-transparent textured square centred on it. `arg1`'s low two bits and
-/// `arg2`'s top nibble pick the 24-texel texture cell, `arg2`'s low twelve
-/// bits are the half-extent (scaled by 23 / (depth + 1)), `arg3`'s low byte is
-/// the grey level and its top nibble picks the palette.
-static void RoomFx_DrawMote(GfxCoord* arg0, u16 arg1, u16 arg2, u16 arg3)
+/// Queues one additive animated mote square at a composed coordinate's world position.
+///
+/// `animationFrame & 3` selects a 24-texel cell. `packedHalfExtentRow` holds a
+/// world-unit half-extent in bits 0..11 and a four-cell strip selector in bits
+/// 12..15; callers use strips 0 and 1, both laid out along texture U at V = 0.
+/// `packedBrightnessPalette` holds grey brightness in bits 0..7 and the palette
+/// selector in bits 12..15 (0 uses the default CLUT); bits 8..11 are ignored.
+/// Extent is scaled by 23 / (SZ3 / 4 + 1). Negative GTE flags suppress drawing.
+/// Scratch storage is released after the draw; the packet lives for this frame.
+static void _roomVisualEffectsDrawMote(const GfxCoord* coord, u16 animationFrame, u16 packedHalfExtentRow, u16 packedBrightnessPalette)
 {
-    EffectCentreScratch* block;
-    POLY_FT4*            prim;
-    DisplayState*        ds;
-    u16                  row;
-    u16                  pal;
-    s32                  u0;
-    s32                  u1;
-    s16                  xy;
+    enum { MOTE_SELECTOR_SHIFT       = 12,
+           MOTE_BRIGHTNESS_MASK      = 0xFF,
+           MOTE_FRAME_COUNT          = 4,
+           MOTE_CELL_TEXELS          = 24,
+           MOTE_PROJECTION_SCALE     = 23,
+           MOTE_DEFAULT_PALETTE      = 0,
+           MOTE_DEFAULT_CLUT_X       = 0xB0,
+           MOTE_SELECTED_CLUT_BASE_X = 0xF0,
+           MOTE_CLUT_Y               = 0x10B,
+           MOTE_PALETTE_COLORS       = 16,
+           MOTE_TEXTURE_PAGE_X       = 0x280 };
 
-    row                  = arg2 >> 12;
-    arg2                &= 0xFFF;
-    pal                  = arg3 >> 12;
-    arg3                &= 0xFF;
-    block                = SCRATCH_STACK_RESERVE_BLOCK(EffectCentreScratch);
-    block->worldPoint.vx = arg0->workm.t[0];
-    block->worldPoint.vy = arg0->workm.t[1];
-    block->worldPoint.vz = arg0->workm.t[2];
+    EffectCentreScratch* projection;
+    POLY_FT4*            quad;
+    DisplayState*        displayState;
+    u16                  halfExtent;
+    u16                  paletteIndex;
+    u16                  textureRow;
+    u16                  brightness;
+    s32                  textureLeft;
+    s32                  textureRight;
+    s16                  screenEdge;
+
+    // Unpack the sprite size and tint independently of their texture selectors.
+    halfExtent                = packedHalfExtentRow;
+    textureRow                = halfExtent >> MOTE_SELECTOR_SHIFT;
+    halfExtent               &= ROOM_VISUAL_EFFECTS_MOTE_EXTENT;
+    brightness                = packedBrightnessPalette;
+    paletteIndex              = brightness >> MOTE_SELECTOR_SHIFT;
+    brightness               &= MOTE_BRIGHTNESS_MASK;
+    projection                = SCRATCH_STACK_RESERVE_BLOCK(EffectCentreScratch);
+    projection->worldPoint.vx = coord->workm.t[0];
+    projection->worldPoint.vy = coord->workm.t[1];
+    projection->worldPoint.vz = coord->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&block->worldPoint);
+    gte_ldv0(&projection->worldPoint);
     gte_rtps();
-    gte_stsxy(&block->screenX);
-    gte_stflg(&block->projectionFlags);
-    if (block->projectionFlags >= 0) {
-        gte_stszotz(&block->depth);
-        block->depth++;
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setlen(prim, 9);
-        setcode(prim, 0x2E);
-        prim->tpage = 0x2A;
-        setRGB0(prim, arg3, arg3, arg3);
-        if (pal != 0) {
-            prim->clut = getClut(pal * 16 + 0xF0, 0x10B);
+    gte_stsxy(&projection->screenX);
+    gte_stflg(&projection->projectionFlags);
+    if (projection->projectionFlags >= 0) {
+        gte_stszotz(&projection->depth);
+        projection->depth++;
+        quad           = gGpuPrimCursor;
+        gGpuPrimCursor = quad + 1;
+        setlen(quad, sizeof(*quad) / sizeof(u32) - 1);
+        setcode(quad, ROOM_VISUAL_EFFECTS_TEXTURED_QUAD_BLEND);
+        quad->tpage = getTPage(0, GPU_BLEND_ADD, MOTE_TEXTURE_PAGE_X, 0);
+        setRGB0(quad, brightness, brightness, brightness);
+        if (paletteIndex != MOTE_DEFAULT_PALETTE) {
+            quad->clut = getClut(paletteIndex * MOTE_PALETTE_COLORS + MOTE_SELECTED_CLUT_BASE_X, MOTE_CLUT_Y);
         } else {
-            prim->clut = getClut(0xB0, 0x10B);
+            quad->clut = getClut(MOTE_DEFAULT_CLUT_X, MOTE_CLUT_Y);
         }
-        u0 = row * 0x60 + (arg1 & 3) * 24;
-        u1 = u0 + 0x17;
-        setUV4(prim, u0, 0, u1, 0, u0, 0x17, u1, 0x17);
-        block->screenExtent = arg2 * 23 / block->depth;
-        xy                  = block->screenX - block->screenExtent;
-        prim->x2            = xy;
-        prim->x0            = xy;
-        xy                  = block->screenX + block->screenExtent;
-        prim->x3            = xy;
-        prim->x1            = xy;
-        xy                  = block->screenY - block->screenExtent;
-        prim->y1            = xy;
-        prim->y0            = xy;
-        xy                  = block->screenY + block->screenExtent;
-        prim->y3            = xy;
-        prim->y2            = xy;
-        ds                  = &gDisplayState;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << ds->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
+        textureLeft  = textureRow * (MOTE_FRAME_COUNT * MOTE_CELL_TEXELS) + (animationFrame & (MOTE_FRAME_COUNT - 1)) * MOTE_CELL_TEXELS;
+        textureRight = textureLeft + MOTE_CELL_TEXELS - 1;
+        setUV4(quad, textureLeft, 0, textureRight, 0, textureLeft, MOTE_CELL_TEXELS - 1, textureRight, MOTE_CELL_TEXELS - 1);
+        projection->screenExtent = halfExtent * MOTE_PROJECTION_SCALE / projection->depth;
+        screenEdge               = projection->screenX - projection->screenExtent;
+        quad->x2                 = screenEdge;
+        quad->x0                 = screenEdge;
+        screenEdge               = projection->screenX + projection->screenExtent;
+        quad->x3                 = screenEdge;
+        quad->x1                 = screenEdge;
+        screenEdge               = projection->screenY - projection->screenExtent;
+        quad->y1                 = screenEdge;
+        quad->y0                 = screenEdge;
+        screenEdge               = projection->screenY + projection->screenExtent;
+        quad->y3                 = screenEdge;
+        quad->y2                 = screenEdge;
+        displayState             = &gDisplayState;
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)projection->depth << displayState->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                quad);
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectCentreScratch);
 }
@@ -254,7 +274,7 @@ static inline void RoomFx_HaloTask(Task* arg0)
                     rgb[0] = mem->scale >> RoomFx_GetHaloShades()[mem->index].rShift;
                     rgb[1] = mem->scale >> RoomFx_GetHaloShades()[mem->index].gShift;
                     rgb[2] = mem->scale >> RoomFx_GetHaloShades()[mem->index].bShift;
-                    RoomFx_DrawFlashStar(coord, (u16)mem->angle * 4, rgb);
+                    _roomVisualEffectsDrawHaloStar(coord, (u16)mem->angle * 4, rgb);
                     mem->scale -= 0x10;
                     mem->angle += 8;
                     return;
@@ -270,58 +290,81 @@ kill:
     effectKillTask(mem, arg0);
 }
 
-/// A burst in orange. Each tick draws a disc and a glow at a growing size while
-/// a wider, dimmer ring expands and fades behind them; once that ring is gone
-/// the main level falls 0x18 a tick and the work block is released. It pauses
-/// while the room's event state is set and releases the block when that state
-/// reaches 4.
-static inline void RoomFx_OrangeBurstTask(Task* arg0)
+/// Runs the halo-section orange burst: growing disc and layered glow inside a fading ring.
+///
+/// The task's extra body supplies its coordinate; `spawnArg2.pointer` owns an
+/// `EffectWork`, released on completion or cancellation. Central and ring
+/// brightness start at 224, with glow half-extent and ring base radius at 128
+/// world units. Each active tick grows the glow by 16 and draws the disc at
+/// twice its half-extent. The ring's black edge is 3/2 of its base radius and
+/// its tinted edge is 96 units farther out: it grows by 72 and fades by 24
+/// per tick. Once the ring is dark, central brightness falls by 24 per tick.
+/// Nonzero room effect control pauses the task; four or above cancels it.
+static inline void _roomVisualEffectsHaloOrangeBurstTask(Task* task)
 {
-    u8          rgb[3];
-    EffectWork* mem;
-    GfxCoord*   coord;
-    s16         flag;
-    s16         step;
+    /// Sets the burst's orange tint at full, half and quarter channel brightness.
+    ///
+    /// Both arguments are evaluated repeatedly and must have no side effects;
+    /// `level` must not alias the three-byte destination. Use only as a
+    /// standalone statement list with a terminating semicolon.
+#define ROOM_VISUAL_EFFECTS_SET_HALO_BURST_TINT(rgb, level) \
+    (rgb)[0] = (level);                                     \
+    (rgb)[1] = (level) >> 1;                                \
+    (rgb)[2] = (level) >> 2
 
-    mem   = arg0->spawnArg2.pointer;
-    flag  = gRoomEffectState->effectControl;
-    coord = arg0->extra.coordBody->coord;
-    if (flag != ROOM_EFFECT_CONTROL_RUNNING) {
-        if (flag < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
+    enum { BURST_INITIALIZE,
+           BURST_EXPAND,
+           BURST_INITIAL_LEVEL       = 0xE0,
+           BURST_INITIAL_HALF_EXTENT = 0x80,
+           BURST_GLOW_EXTENT_STEP    = 0x10,
+           BURST_RING_BASE_STEP      = 0x30,
+           BURST_RING_TINT_DELTA     = 0x60,
+           BURST_LEVEL_STEP          = 0x18 };
+
+    u8          rgb[3];
+    EffectWork* work;
+    GfxCoord*   coord;
+    s16         effectControl;
+    s16         glowHalfExtent;
+
+    work          = task->spawnArg2.pointer;
+    effectControl = gRoomEffectState->effectControl;
+    coord         = task->extra.coordBody->coord;
+    if (effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+        if (effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             return;
         }
         goto kill;
     } else {
-        mem->age++;
-        if (arg0->state == 0) {
-            mem->age    = 1;
-            mem->scale  = 0xE0;
-            mem->angle  = 0x80;
-            mem->period = 0xE0;
-            mem->step   = 0x80;
-            arg0->state = 1;
+        work->age++;
+        if (task->state == BURST_INITIALIZE) {
+            // scale/period hold centre/ring brightness; angle/step hold glow extent/ring base radius.
+            work->age    = 1;
+            work->scale  = BURST_INITIAL_LEVEL;
+            work->angle  = BURST_INITIAL_HALF_EXTENT;
+            work->period = BURST_INITIAL_LEVEL;
+            work->step   = BURST_INITIAL_HALF_EXTENT;
+            task->state  = BURST_EXPAND;
         }
         actorRenderComposeCoord(coord);
-        rgb[0]     = mem->scale;
-        rgb[1]     = mem->scale >> 1;
-        rgb[2]     = mem->scale >> 2;
-        step       = mem->angle + 0x10;
-        mem->angle = step;
-        _roomVisualEffectsDrawHaloDisc(coord, (s16)(step * 2), rgb);
-        _roomVisualEffectsDrawHaloBurstGlow(coord, mem->angle);
-        if (mem->period >= 0x19) {
-            rgb[0] = mem->period;
-            rgb[1] = mem->period >> 1;
-            rgb[2] = mem->period >> 2;
-            _roomVisualEffectsDrawHaloRing(coord, (s16)(mem->step * 3 / 2), 0x60, rgb);
-            mem->period -= 0x18;
-            mem->step   += 0x30;
+        ROOM_VISUAL_EFFECTS_SET_HALO_BURST_TINT(rgb, work->scale);
+        glowHalfExtent = work->angle + BURST_GLOW_EXTENT_STEP;
+        work->angle    = glowHalfExtent;
+        _roomVisualEffectsDrawHaloDisc(coord, (s16)(glowHalfExtent * 2), rgb);
+        _roomVisualEffectsDrawHaloBurstGlow(coord, work->angle);
+        // Fade the expanding ring before reducing the central burst brightness.
+        if (work->period > BURST_LEVEL_STEP) {
+            ROOM_VISUAL_EFFECTS_SET_HALO_BURST_TINT(rgb, work->period);
+            _roomVisualEffectsDrawHaloRing(coord, (s16)(work->step * 3 / 2), BURST_RING_TINT_DELTA, rgb);
+            work->period -= BURST_LEVEL_STEP;
+            work->step   += BURST_RING_BASE_STEP;
             return;
         }
-        mem->scale -= 0x18;
-        if (mem->scale < 0x18) {
+        work->scale -= BURST_LEVEL_STEP;
+        if (work->scale < BURST_LEVEL_STEP) {
         kill:
-            effectKillTask(mem, arg0);
+            effectKillTask(work, task);
         }
     }
+#undef ROOM_VISUAL_EFFECTS_SET_HALO_BURST_TINT
 }

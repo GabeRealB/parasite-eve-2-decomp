@@ -1759,7 +1759,7 @@ void func_dryfield_night_main_street_801807B0(Task* arg0)
 
 void func_dryfield_night_main_street_80180B48(Task* arg0)
 {
-    RoomFx_OrangeBurstTask(arg0);
+    _roomVisualEffectsHaloOrangeBurstTask(arg0);
 }
 
 #include "../../shared/room_visual_effects_glow_quad.inc.c"

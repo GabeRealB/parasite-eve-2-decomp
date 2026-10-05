@@ -79,12 +79,12 @@ func_shelter_b1_storeroom_8017F888 = 0x8017F888; // type:func
 func_shelter_b1_storeroom_80180C98 = 0x80180C98; // type:func
 
 func_shelter_b1_storeroom_8017D7EC = 0x8017D7EC; // type:func
-RoomFx_DrawMote = 0x8017EA74; // type:func
+_roomVisualEffectsDrawMote = 0x8017EA74; // type:func
 _roomVisualEffectsDrawHaloRing = 0x8017ED38; // type:func
 _roomVisualEffectsDrawHaloDisc = 0x8017F15C; // type:func
 _roomVisualEffectsDrawHaloBurstGlow = 0x8017FA34; // type:func
 _roomVisualEffectsDrawHaloBurstGroundQuad = 0x8017FF60; // type:func
-RoomFx_DrawFlashStar = 0x801802D8; // type:func
+_roomVisualEffectsDrawHaloStar = 0x801802D8; // type:func
 _roomVisualEffectsDrawFlashRing = 0x80181070; // type:func
 _roomVisualEffectsDrawFlashDisc = 0x8018149C; // type:func
 _roomVisualEffectsDrawTwinTrail = 0x80181D20; // type:func

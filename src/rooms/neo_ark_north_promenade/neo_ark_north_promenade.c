@@ -483,7 +483,7 @@ void func_neo_ark_north_promenade_8017E4F8(Task* arg0)
 
 void func_neo_ark_north_promenade_8017E890(Task* arg0)
 {
-    RoomFx_OrangeBurstTask(arg0);
+    _roomVisualEffectsHaloOrangeBurstTask(arg0);
 }
 
 #include "../../shared/room_visual_effects_glow_quad.inc.c"

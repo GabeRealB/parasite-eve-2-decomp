@@ -229,7 +229,7 @@ void func_shelter_b2_north_maintenance_walkway_801802D8(Task* arg0)
 
 void func_shelter_b2_north_maintenance_walkway_80180670(Task* arg0)
 {
-    RoomFx_OrangeBurstTask(arg0);
+    _roomVisualEffectsHaloOrangeBurstTask(arg0);
 }
 
 #include "../../shared/room_visual_effects_glow_quad.inc.c"

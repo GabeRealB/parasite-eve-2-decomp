@@ -279,11 +279,11 @@ func_mine_cavern_8017F240 = 0x8017F240; // type:func
 func_mine_cavern_8017FF88 = 0x8017FF88; // type:func
 
 func_mine_cavern_80181730 = 0x80181730; // type:func
-RoomFx_DrawMote = 0x8017F50C; // type:func
+_roomVisualEffectsDrawMote = 0x8017F50C; // type:func
 _roomVisualEffectsDrawHaloRing = 0x8017F7D0; // type:func
 _roomVisualEffectsDrawHaloDisc = 0x8017FBF4; // type:func
 _roomVisualEffectsDrawHaloBurstGlow = 0x801804CC; // type:func
 _roomVisualEffectsDrawHaloBurstGroundQuad = 0x801809F8; // type:func
-RoomFx_DrawFlashStar = 0x80180D70; // type:func
+_roomVisualEffectsDrawHaloStar = 0x80180D70; // type:func
 glowDrawCapsule = 0x8017E774; // type:func
 glowDrawFlare = 0x8017EFB8; // type:func

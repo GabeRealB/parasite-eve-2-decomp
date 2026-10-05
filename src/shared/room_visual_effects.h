@@ -81,12 +81,15 @@ enum {
 
 /* Interface for the including source. */
 
-static void RoomFx_DrawMote(GfxCoord* arg0, u16 arg1, u16 arg2, u16 arg3);
+/// Selects the mote's second four-frame strip in packed half-extent/texture-row arguments.
+enum { ROOM_VISUAL_EFFECTS_MOTE_TEXTURE_ROW_1 = 0x1000 };
+
+static void _roomVisualEffectsDrawMote(const GfxCoord* coord, u16 animationFrame, u16 packedHalfExtentRow, u16 packedBrightnessPalette);
 static void _roomVisualEffectsDrawHaloRing(const GfxCoord* coord, s32 blackRadius, s32 tintRadiusDelta, const u8 rgb[3]);
 static void _roomVisualEffectsDrawHaloDisc(const GfxCoord* coord, s16 radius, const u8 rgb[3]);
 static void _roomVisualEffectsDrawHaloBurstGlow(const GfxCoord* coord, s16 halfExtent);
 static void _roomVisualEffectsDrawHaloBurstGroundQuad(const GfxCoord* coord, s32 halfExtent);
-static void RoomFx_DrawFlashStar(GfxCoord* arg0, s16 arg1, u8* arg2);
+static void _roomVisualEffectsDrawHaloStar(const GfxCoord* coord, s16 radius, const u8 rgb[3]);
 static void _roomVisualEffectsDrawFlashRing(const GfxCoord* coord, s32 blackRadius, s32 tintRadiusDelta, const u8 rgb[3]);
 static void _roomVisualEffectsDrawFlashDisc(const GfxCoord* coord, s16 radius, const u8 rgb[3]);
 static void _roomVisualEffectsDrawTwinTrail(const GfxCoord firstTrail[ROOM_VISUAL_EFFECTS_TRAIL_SLOT_COUNT], const GfxCoord secondTrail[ROOM_VISUAL_EFFECTS_TRAIL_SLOT_COUNT], s16 newestSlot, s16 packedColorMultipliers);
@@ -101,7 +104,7 @@ static inline void RoomFx_MoteTask(Task* task);
 
 static inline void RoomFx_HaloTask(Task* arg0);
 
-static inline void RoomFx_OrangeBurstTask(Task* arg0);
+static inline void _roomVisualEffectsHaloOrangeBurstTask(Task* task);
 
 static inline void RoomFx_SparkEmitterTask(Task* arg0);
 
