@@ -2,18 +2,23 @@
 
 /* Part of the Dryfield main street library; see main_street.h. */
 
-/// Initializes a puff's local displacement at the requested speed.
+/// Initializes a puff's constant horizontal drift toward nonpositive local X.
 ///
-/// `work` is live writable effect work; `speed` is 1..255 coordinate units per
-/// tick. Advances the shared LCG twice to select nonpositive X and signed Z,
-/// with zero Y. Normalizes that bearing to Q12, then scales it through the GTE
-/// to integer displacement components; no pointer is retained.
+/// `work` borrows writable effect storage; `speed` is the requested magnitude
+/// in 1..255 local coordinate units per task tick. Stores that magnitude in
+/// `work->step` and the integer displacement components in `work->move`.
+/// Normalization approximates a Q12 unit vector, then scaling rounds each
+/// component down, so the displacement's length need not equal `speed`.
+///
+/// Consumes two successive shared LCG draws for X in -127..0 and Z in
+/// -127..128, with Y zero. Clobbers GTE registers; no pointer is retained.
 static inline void _mainStreetInitializePuffDrift(EffectWork* work, s16 speed)
 {
     enum {
         MAIN_STREET_PUFF_DIRECTION_X_MASK     = 0x7F,
         MAIN_STREET_PUFF_DIRECTION_Z_MASK     = 0xFF,
         MAIN_STREET_PUFF_DIRECTION_Z_MIDPOINT = 0x80,
+        MAIN_STREET_PUFF_RANDOM_SAMPLE_SHIFT  = 16,
     };
     u32 directionXState;
     u32 directionZState;
@@ -22,12 +27,14 @@ static inline void _mainStreetInitializePuffDrift(EffectWork* work, s16 speed)
     work->move.vy   = 0;
     directionXState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
     gRandomLcgState = directionXState;
-    work->move.vx   = -((directionXState >> 16) & MAIN_STREET_PUFF_DIRECTION_X_MASK);
+    work->move.vx   = -((directionXState >> MAIN_STREET_PUFF_RANDOM_SAMPLE_SHIFT) & MAIN_STREET_PUFF_DIRECTION_X_MASK);
     directionZState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
     gRandomLcgState = directionZState;
-    work->move.vz   = MAIN_STREET_PUFF_DIRECTION_Z_MIDPOINT - ((directionZState >> 16) & MAIN_STREET_PUFF_DIRECTION_Z_MASK);
+    work->move.vz   = MAIN_STREET_PUFF_DIRECTION_Z_MIDPOINT - ((directionZState >> MAIN_STREET_PUFF_RANDOM_SAMPLE_SHIFT) & MAIN_STREET_PUFF_DIRECTION_Z_MASK);
+    // Consecutive LCG draws cannot make both horizontal components zero.
     VectorNormalSS(&work->move, &work->move);
 
+    // Quantize the scaled Q12 bearing to a displacement for each task tick.
     gte_lddp(work->step);
     gte_ldsv(&work->move);
     gte_gpf12();
