@@ -147812,3 +147812,28 @@ rebuilt per iteration. `Snd_InitBanks` matched as a plain `for (i = 0; i < 2;
 i++)` over `Snd_BankInitTable[i]`, `Snd_BankSlotsByType[...]` and
 `&Snd_Banks[slot]` with no pointer locals; the early `i = 0`, the mid-body
 `i++` and the hoist order in the target were all the scheduler and loop pass.
+
+### A local in the dead parameter's register while a longer-lived pointer derived from that parameter is not: the local is the parameter's pseudo (func_actor_403600_8013289C, 2026-10-05)
+
+Target: `vtx = a0 + 32` / `page = a0 + 39` (`$a2`, `$t2`), then the screen `x`
+lives in `$a0` to the end. With a typed `quad` parameter and a separate `s32 x`
+the build gives `page` `$a0`, `x` `$t1` and the LCG constant `$t2`.
+
+`-dg` shows why no separate `x` can take `$a0`. `quad` dies in the insn that
+sets `page`, so `expand_preferences` hands `page` the parameter's preference
+for `$a0`; `page` is the lowest-priority allocno and conflicts with everything
+after the `switch`, so `prune_preferences` puts `$a0` in `regs_someone_prefers`
+for `seed`, `vtx`, `y`, `x` and the constant, and all of them skip it. `x` can
+only take `$a0` with a preference of its own, and it has no route to one: no
+insn that sets `x` has a dying pseudo that prefers `$a0` (`vx` stays live,
+the rest are block-local temps), and the one insn where `x` dies sets a
+block-local temp. Only the incoming-argument copy is left, i.e. `x` being the
+parameter's own pseudo.
+
+Tried on the typed form, all with the same three-register difference or
+worse: the part after the `switch` as a `static inline` taking
+`(vtx, page, fade)`; the `switch` as an inline returning `vtx` (adds a stack
+slot for `page`); the inline called from each arm (duplicates the body);
+`page` assigned before `vtx` (swaps the delay slots and ties `vtx` to `$a0`);
+30,770 permuter iterations from the typed base (score 140, none lower). The
+function keeps its integer first parameter.
