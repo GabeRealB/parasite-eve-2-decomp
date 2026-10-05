@@ -997,7 +997,7 @@ void func_neo_ark_submarine_gallery_8017EFEC(Task* arg0)
 
 void func_neo_ark_submarine_gallery_8017F288(Task* task)
 {
-    waterRippleTask(task);
+    _waterRippleTask(task);
 }
 
 #include "../../shared/water_splash.inc.c"

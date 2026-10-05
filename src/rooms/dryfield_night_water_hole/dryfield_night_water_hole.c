@@ -1303,7 +1303,7 @@ void func_dryfield_night_water_hole_8017E6D0(Task* arg0)
 
 void func_dryfield_night_water_hole_8017F254(Task* task)
 {
-    waterRippleTask(task);
+    _waterRippleTask(task);
 }
 
 #include "../../shared/water_splash.inc.c"

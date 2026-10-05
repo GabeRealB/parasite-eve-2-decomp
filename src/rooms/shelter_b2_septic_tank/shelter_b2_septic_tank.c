@@ -1543,7 +1543,7 @@ void func_shelter_b2_septic_tank_8017EB7C(Task* arg0)
 
 void func_shelter_b2_septic_tank_8017F040(Task* task)
 {
-    waterRippleTask(task);
+    _waterRippleTask(task);
 }
 
 #include "../../shared/water_splash.inc.c"

@@ -1296,7 +1296,7 @@ void func_shelter_b4_water_supply_8017EE54(Task* arg0)
 
 void func_shelter_b4_water_supply_8017F24C(Task* task)
 {
-    waterRippleTask(task);
+    _waterRippleTask(task);
 }
 
 #include "../../shared/water_splash.inc.c"

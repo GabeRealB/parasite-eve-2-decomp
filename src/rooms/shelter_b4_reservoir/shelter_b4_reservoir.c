@@ -1790,7 +1790,7 @@ void func_shelter_b4_reservoir_8017FB84(Task* task)
 
 void func_shelter_b4_reservoir_801803DC(Task* task)
 {
-    waterRippleTask(task);
+    _waterRippleTask(task);
 }
 
 #include "../../shared/water_splash.inc.c"

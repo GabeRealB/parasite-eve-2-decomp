@@ -1,45 +1,81 @@
+#include "gameplay/message.h"
+
+#include "main/gfx.h"
 #include "main/random.h"
 
 /* Part of the water effects library; see water_effects.h. */
 
-/// Per-frame driver of an expanding, fading flash effect. While the room's
-/// event state is 0 it updates the task's coordinate, ticks the age counter
-/// `age` and draws the flash through
-/// `_waterDrawSplash` at size `angle` and brightness
-/// `scale`. The first frame sets the brightness to 0x40, takes the size from
-/// the spawn argument's low 12 bits and turns the coordinate about Y by a
-/// random angle; every frame then grows the size by 0x20 and dims the
-/// brightness by 2, releasing the work block once it falls under 2. Once the
-/// event state is non-zero it only draws, releasing the block from event state
-/// 4 on.
-static inline void waterRippleTask(Task* task)
+/// Initializes a ripple's half-size, brightness and random surface yaw.
+///
+/// Borrows the live task, writable effect work and coordinate for this call.
+/// The task's spawn bits 0..11 give the half-side in game coordinate units.
+/// Replaces local rotation with a yaw in 4096 units per turn, preserving
+/// translation, and marks it dirty without changing the composed matrix.
+static inline void _waterInitializeRipple(Task* task, EffectWork* rippleWork, GfxCoord* surfaceCoord)
 {
-    EffectWork* work;
-    GfxCoord*   coord;
+    enum {
+        WATER_RIPPLE_INITIAL_BRIGHTNESS = 0x40,
+        WATER_RIPPLE_SPAWN_SIZE_MASK    = 0xFFF,
+    };
 
-    work  = task->spawnArg2.pointer;
-    coord = task->extra.coordBody->coord;
+    rippleWork->scale = WATER_RIPPLE_INITIAL_BRIGHTNESS;
+    rippleWork->angle = task->spawnArg1.halves.low & WATER_RIPPLE_SPAWN_SIZE_MASK;
+    gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    gfxRotMatrixY(&surfaceCoord->coord, (gRandomLcgState >> 16) & ACTOR_TRANSFORM_ANGLE_MASK, GRAPHICS_ROTATION_REPLACE);
+    surfaceCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+}
+
+/// Advances and draws one expanding, fading water-surface ripple.
+///
+/// `task` must be a live counted effect with an owned `EffectWork` in
+/// `spawnArg2.pointer` and one coordinate body. Its initial state is zero;
+/// `spawnArg1` bits 0..11 give the initial local half-side in game coordinate
+/// units (0..4095); all higher bits are ignored. This task stores half-size
+/// in `EffectWork::angle` and RGB brightness in `EffectWork::scale`.
+///
+/// Running updates compose the coordinate and increment `age`. The first
+/// initializes brightness to 64 and replaces local rotation with a random Y
+/// rotation. Each running update grows the half-side by 32, draws, then dims
+/// by 2. A fresh ripple lasts 32 running updates, drawing half-sides 32..5119
+/// and brightness 64..2; 128 is neutral texture modulation.
+///
+/// Every non-running control value redraws the retained size and brightness
+/// without composing, initializing or aging. Cancellation draws once before
+/// retirement. Cancellation and brightness below 2 release the work, decrement
+/// the live-effect count and tear down the task and its coordinate body.
+static inline void _waterRippleTask(Task* task)
+{
+    enum {
+        WATER_RIPPLE_STATE_NEW            = 0,
+        WATER_RIPPLE_STATE_ACTIVE         = 1,
+        WATER_RIPPLE_HALF_SIZE_PER_UPDATE = 0x20,
+        WATER_RIPPLE_FADE_PER_UPDATE      = 2,
+        WATER_RIPPLE_MIN_DRAW_BRIGHTNESS  = 2,
+    };
+    EffectWork* rippleWork;
+    GfxCoord*   surfaceCoord;
+
+    rippleWork   = task->spawnArg2.pointer;
+    surfaceCoord = task->extra.coordBody->coord;
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
-        _waterDrawSplash(coord, work->angle, work->scale);
+        // Frozen effects still redraw, including the cancellation update.
+        _waterDrawSplash(surfaceCoord, rippleWork->angle, rippleWork->scale);
         if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-            effectKillTask(work, task);
+            effectKillTask(rippleWork, task);
         }
     } else {
-        actorRenderComposeCoord(coord);
-        work->age++;
-        if (task->state == 0) {
-            work->scale     = 0x40;
-            work->angle     = task->spawnArg1.halves.low & 0xFFF;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            gfxRotMatrixY(&coord->coord, (gRandomLcgState >> 16) & 0xFFF, 1);
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            task->state         = 1;
+        // Compose before initialization: the first draw uses the pre-yaw matrix.
+        actorRenderComposeCoord(surfaceCoord);
+        rippleWork->age++;
+        if (task->state == WATER_RIPPLE_STATE_NEW) {
+            _waterInitializeRipple(task, rippleWork, surfaceCoord);
+            task->state = WATER_RIPPLE_STATE_ACTIVE;
         }
-        work->angle += 0x20;
-        _waterDrawSplash(coord, work->angle, work->scale);
-        work->scale -= 2;
-        if (work->scale < 2) {
-            effectKillTask(work, task);
+        rippleWork->angle += WATER_RIPPLE_HALF_SIZE_PER_UPDATE;
+        _waterDrawSplash(surfaceCoord, rippleWork->angle, rippleWork->scale);
+        rippleWork->scale -= WATER_RIPPLE_FADE_PER_UPDATE;
+        if (rippleWork->scale < WATER_RIPPLE_MIN_DRAW_BRIGHTNESS) {
+            effectKillTask(rippleWork, task);
         }
     }
 }

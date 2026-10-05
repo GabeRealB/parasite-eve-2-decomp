@@ -601,7 +601,7 @@ void func_shelter_b4_lower_sewer_8017E400(Task* arg0)
 
 void func_shelter_b4_lower_sewer_8017EEE4(Task* task)
 {
-    waterRippleTask(task);
+    _waterRippleTask(task);
 }
 
 #include "../../shared/water_splash.inc.c"

@@ -251,7 +251,7 @@ enum {
     /// One-frame flickering glow quad lying flat on the ground under the promenade
     /// lamp; respawned each frame by the room spawner.
     EFFECT_ACROPOLIS_PROMENADE_GROUND_GLOW = EFFECT_ID(EFFECT_TASK_BANK, 0x057),
-    /// Expanding, fading splash quad (waterRippleTask, _waterDrawSplash); stored in
+    /// Expanding, fading splash quad (_waterRippleTask, _waterDrawSplash); stored in
     /// gRoomEffectWaterRippleId, which several actors (actor_800100, 401300, 400600, 01100) spawn as
     /// water ripples.
     EFFECT_NEO_ARK_WOODLAND_PATH_WATER_RIPPLE = EFFECT_ID(EFFECT_TASK_BANK, 0x058),
@@ -715,14 +715,14 @@ enum {
     /// as splash drops.
     EFFECT_DRYFIELD_NIGHT_WATER_HOLE_WATER_SPRAY = EFFECT_ID(EFFECT_TASK_BANK, 0x11F),
     /// shelter_b2_main_corridor's copy of the shared expanding, fading water ripple
-    /// (waterRippleTask / _waterDrawSplash); the room stores it in gRoomEffectWaterRippleId (water-
+    /// (_waterRippleTask / _waterDrawSplash); the room stores it in gRoomEffectWaterRippleId (water-
     /// ripple slot, spawned at the water surface by wading actors).
     EFFECT_SHELTER_B2_MAIN_CORRIDOR_WATER_RIPPLE = EFFECT_ID(EFFECT_TASK_BANK, 0x16A),
     /// shelter_b2_main_corridor's water splash droplet: an eight-frame sprite thrown
     /// with gravity (waterDriftTaskNoUpdate); stored in gRoomEffectWaterSprayId, which actors
     /// entering/leaving water spawn at the surface (ring of 16-32 on emergence).
     EFFECT_SHELTER_B2_MAIN_CORRIDOR_WATER_SPRAY = EFFECT_ID(EFFECT_TASK_BANK, 0x16B),
-    /// The shelter_b2_septic_tank instance of the room-effect library's waterRippleTask
+    /// The shelter_b2_septic_tank instance of the room-effect library's _waterRippleTask
     /// / waterRippleTaskFixedCoord: an expanding, fading flat splash quad
     /// (_waterDrawSplash) turned to a random yaw; the room stores it in slot gRoomEffectWaterRippleId,
     /// read alongside gRoomEffectWaterSprayId at the water surface (actor_800100, actor_401300,
@@ -732,7 +732,7 @@ enum {
     /// sprite flung on a velocity under gravity; the room stores it in slot gRoomEffectWaterSprayId,
     /// which actors and the diver impact burst spawn as spray.
     EFFECT_SHELTER_B2_SEPTIC_TANK_WATER_SPRAY = EFFECT_ID(EFFECT_TASK_BANK, 0x16D),
-    /// Expanding, fading splash quad (waterRippleTask, _waterDrawSplash); stored in
+    /// Expanding, fading splash quad (_waterRippleTask, _waterDrawSplash); stored in
     /// gRoomEffectWaterRippleId, which several actors (actor_800100, 401300, 400600, 01100) spawn as
     /// water ripples.
     EFFECT_SHELTER_B4_LOWER_SEWER_WATER_RIPPLE = EFFECT_ID(EFFECT_TASK_BANK, 0x16E),
@@ -762,14 +762,14 @@ enum {
     /// as splash drops.
     EFFECT_SHELTER_B4_RESERVOIR_WATER_SPRAY = EFFECT_ID(EFFECT_TASK_BANK, 0x173),
     /// shelter_b4_water_supply's copy of the shared expanding, fading water ripple
-    /// (waterRippleTask / _waterDrawSplash); the room stores it in gRoomEffectWaterRippleId (water-
+    /// (_waterRippleTask / _waterDrawSplash); the room stores it in gRoomEffectWaterRippleId (water-
     /// ripple slot, spawned at the water surface by wading actors).
     EFFECT_SHELTER_B4_WATER_SUPPLY_WATER_RIPPLE = EFFECT_ID(EFFECT_TASK_BANK, 0x174),
     /// shelter_b4_water_supply's water splash droplet: an eight-frame sprite thrown
     /// with gravity (waterDriftTask); stored in gRoomEffectWaterSprayId, which actors
     /// entering/leaving water spawn at the surface (ring of 16-32 on emergence).
     EFFECT_SHELTER_B4_WATER_SUPPLY_WATER_SPRAY = EFFECT_ID(EFFECT_TASK_BANK, 0x175),
-    /// The neo_ark_pavilion instance of the room-effect library's waterRippleTask /
+    /// The neo_ark_pavilion instance of the room-effect library's _waterRippleTask /
     /// waterRippleTaskFixedCoord: an expanding, fading flat splash quad
     /// (_waterDrawSplash) turned to a random yaw; the room stores it in slot gRoomEffectWaterRippleId,
     /// read alongside gRoomEffectWaterSprayId at the water surface (actor_800100, actor_401300,
@@ -876,7 +876,7 @@ enum {
     /// Three textured ring bands expanding in the XZ plane under an orange fade-quad
     /// screen flash, then fading; spawned when the R48 effect task's countdown ends.
     EFFECT_SHELTER_R48_SHOCKWAVE_RINGS = EFFECT_ID(EFFECT_TASK_BANK, 0x191),
-    /// Expanding, fading splash quad (waterRippleTask, _waterDrawSplash); stored in
+    /// Expanding, fading splash quad (_waterRippleTask, _waterDrawSplash); stored in
     /// gRoomEffectWaterRippleId, which several actors (actor_800100, 401300, 400600, 01100) spawn as
     /// water ripples.
     EFFECT_NEO_ARK_SUBMARINE_GALLERY_WATER_RIPPLE = EFFECT_ID(EFFECT_TASK_BANK, 0x193),

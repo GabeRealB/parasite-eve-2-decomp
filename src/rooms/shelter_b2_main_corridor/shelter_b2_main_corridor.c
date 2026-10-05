@@ -2017,7 +2017,7 @@ void func_shelter_b2_main_corridor_8017EC34(Task* arg0)
 
 void func_shelter_b2_main_corridor_8017EF24(Task* task)
 {
-    waterRippleTask(task);
+    _waterRippleTask(task);
 }
 
 #include "../../shared/water_splash.inc.c"

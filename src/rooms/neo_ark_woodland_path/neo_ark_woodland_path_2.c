@@ -344,7 +344,7 @@ void func_neo_ark_woodland_path_8017ED00(Task* task)
 
 void func_neo_ark_woodland_path_8017F4A0(Task* task)
 {
-    waterRippleTask(task);
+    _waterRippleTask(task);
 }
 
 #include "../../shared/water_splash.inc.c"
