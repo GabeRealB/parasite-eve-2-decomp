@@ -2548,7 +2548,7 @@ loop:
     gameFlagSetNibble(GAME_FLAG_SECURITY_MONITOR_LAST_CAMERA, index);
 done:
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 4;
-    Display_ReleaseRef();
+    displayReleaseMenuHold();
     gGameSession->cutsceneHold = 0;
     gGameSession->hideHud      = 0;
     gGameSession->eventState   = 0;
@@ -2883,7 +2883,7 @@ static void func_acropolis_security_room_8017FC30(Task* task)
     gGameSession->hideHud                                      = 0;
     gGameSession->cutsceneHold                                 = 0;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 3;
-    Display_ReleaseRef();
+    displayReleaseMenuHold();
     taskKill(task->spawnArg2.pointer);
     Task_RequestKill(task, 0);
 }
@@ -3017,7 +3017,7 @@ static void func_acropolis_security_room_80180030(Task* task)
 {
     D_80114D08 = 0xA;
     Gp_MsgPlayer3F3(1);
-    Display_ReleaseRef();
+    displayReleaseMenuHold();
     gGameSession->hideHud      = 0;
     gGameSession->cutsceneHold = 0;
     gGameSession->eventState   = 0;
@@ -3073,7 +3073,7 @@ static void func_acropolis_security_room_80180218(Task* task)
 {
     D_80114D08                                                 = 0xA;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 3;
-    Display_ReleaseRef();
+    displayReleaseMenuHold();
     func_800E9BDC(0, 0xF9FF);
     Task_RequestKill(task, 0);
     gGameSession->hideHud      = 0;

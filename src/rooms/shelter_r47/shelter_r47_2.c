@@ -652,7 +652,7 @@ static void func_shelter_r47_80182348(Task* task)
         Gp_MsgPlayer3F3(1);
         Gp_MenuLockDelay = 8;
         D_80114D08       = 0xA;
-        Display_ReleaseRef();
+        displayReleaseMenuHold();
         gGameSession->eventState   = 0;
         gGameSession->hideHud      = 0;
         gGameSession->cutsceneHold = 0;
@@ -834,7 +834,7 @@ static void func_shelter_r47_80182E78(Task* task)
     func_shelter_r47_8018337C(task);
     Gp_MsgPlayerWeapon(1);
     Gp_MsgPlayer3F3(1);
-    Display_ReleaseRef();
+    displayReleaseMenuHold();
     gGameSession->eventState                                   = 0;
     gGameSession->hideHud                                      = 0;
     gGameSession->cutsceneHold                                 = 0;

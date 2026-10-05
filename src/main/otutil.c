@@ -243,21 +243,16 @@ void Display_AcquireRef(void)
     }
 }
 
-void Display_ReleaseRef(void)
+void displayReleaseMenuHold(void)
 {
     DisplayState* display;
-    u8            remainingHolds;
 
     display = &gDisplayState;
     if (display->holdState >= 0) {
         display->holdCount = 0;
-    } else {
-        remainingHolds     = display->holdCount - 1;
-        display->holdCount = remainingHolds;
-        if (remainingHolds == 0) {
-            display->holdState &= DISPLAY_HOLD_MODE_MASK;
-            display->holdCount  = 0;
-        }
+    } else if (--display->holdCount == 0) {
+        display->holdState &= DISPLAY_HOLD_MODE_MASK;
+        display->holdCount  = 0;
     }
 }
 

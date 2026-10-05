@@ -34,7 +34,7 @@ enum {
     /// Terminates the entire event script; operands 0-4 are ignored.
     ///
     /// Requests framebuffer-blend task exit, clears the selected scene key and
-    /// event state, releases the display reference, and restores CAP view-id
+    /// event state, releases the menu hold, and restores CAP view-id
     /// mapping. Releases event HUD control if still held. If any scene was
     /// selected during the event, also ends its stream and restores the saved
     /// random states. The script task enters its kill state for the next update

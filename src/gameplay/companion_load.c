@@ -425,7 +425,7 @@ void Gp_FlashWhiteTask(Task* task)
                 queue->releasePauseBlockAfterFade = 0;
                 queue->blockGamePause             = 0;
             }
-            Display_ReleaseRef();
+            displayReleaseMenuHold();
             taskKill(task);
             break;
     }

@@ -1920,7 +1920,7 @@ static void func_shelter_r47_80185098(Task* task)
             Gp_MsgPlayerWeapon(1);
         }
         Gp_MsgPlayer3F3(1);
-        Display_ReleaseRef();
+        displayReleaseMenuHold();
         if (state->openMode != SHELTER_R47_MAP_MODE_TIMED) {
             gGameSession->eventState = 0;
         }
@@ -2028,7 +2028,7 @@ static void func_shelter_r47_80185510(Task* task)
     Gp_MsgPlayerWeapon(1);
     Gp_MsgPlayer3F3(1);
     sndEvtRequestScriptStop(SOUND_SHELTER_R47_MAP_TERMINAL_LOOP, SOUND_SCRIPT_STOP_KEEP_RELEASE);
-    Display_ReleaseRef();
+    displayReleaseMenuHold();
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = state->savedView;
     gGameSession->eventState                                   = 0;
     gGameSession->hideHud                                      = 0;

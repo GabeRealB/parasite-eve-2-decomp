@@ -305,7 +305,7 @@ static void Gp_ScriptTaskState1(Task* arg0)
                     taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), CAP_CONTROL_MESSAGE_SHOW_HUD, 0, 0);
                 }
                 arg0->state++;
-                Display_ReleaseRef();
+                displayReleaseMenuHold();
                 if (D_801156CA != 0) {
                     Gp_RestoreStreamRng();
                 }

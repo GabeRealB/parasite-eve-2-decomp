@@ -173,7 +173,7 @@ void Gp_UpdatePadInput(void)
         }
         if (Gp_PadSuppressFall & 0x900) {
             while (Gp_PadSuppressRefs != 0) {
-                Display_ReleaseRef();
+                displayReleaseMenuHold();
                 Gp_PadSuppressRefs--;
             }
         }

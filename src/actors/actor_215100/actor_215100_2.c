@@ -1935,7 +1935,7 @@ void func_actor_215100_8014A5C0(Task* arg0)
 /// task outright. State 1 starts the caption playback and steps to state 2,
 /// which commits the ending: it flags the save-slot session, plays the sound,
 /// clears the actor's own 0x97B, drops the story flag the sibling
-/// `func_actor_215100_8014A908` sets, and releases the display reference.
+/// `func_actor_215100_8014A908` sets, and releases the menu hold.
 void func_actor_215100_8014A7C4(Task* arg0)
 {
     GameActor* actor;
@@ -1968,7 +1968,7 @@ void func_actor_215100_8014A7C4(Task* arg0)
             Gp_MsgPlayerWeapon(1);
             Gp_StateC08.flags &= ATTACHMENT_FLAG_CLEAR_SWAP_LOCK;
             if (gDisplayState.holdCount != 0) {
-                Display_ReleaseRef();
+                displayReleaseMenuHold();
             }
             taskKill(arg0);
             break;

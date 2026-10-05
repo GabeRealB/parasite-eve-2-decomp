@@ -166,7 +166,7 @@ void Gp_MenuExitCallback(Task* arg0)
         }
         Gp_UsedItemId = 0;
     }
-    Display_ReleaseRef();
+    displayReleaseMenuHold();
     taskCallExit(arg0);
 }
 

@@ -2404,7 +2404,7 @@ static void func_shelter_b1_underground_parking_801846EC(Task* arg0)
     D_80114D08 = 0xA;
     Gp_MsgPlayerWeapon(1);
     Gp_MsgPlayer3F3(1);
-    Display_ReleaseRef();
+    displayReleaseMenuHold();
     gGameSession->eventState                                   = 0;
     gGameSession->hideHud                                      = 0;
     gGameSession->cutsceneHold                                 = 0;
@@ -2442,7 +2442,7 @@ static void func_shelter_b1_underground_parking_801847D0(Task* task)
         D_80114D08 = 0xA;
         Gp_MsgPlayerWeapon(1);
         Gp_MsgPlayer3F3(1);
-        Display_ReleaseRef();
+        displayReleaseMenuHold();
         gGameSession->eventState                                   = 0;
         gGameSession->hideHud                                      = 0;
         gGameSession->cutsceneHold                                 = 0;

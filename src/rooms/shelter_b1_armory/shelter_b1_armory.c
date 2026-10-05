@@ -224,7 +224,7 @@ void func_shelter_b1_armory_80180214(Task* task)
             task->state++;
             break;
         case 3:
-            Display_ReleaseRef();
+            displayReleaseMenuHold();
             D_80115768 = 0;
             Gp_MsgPlayerWeapon(0);
             if ((u16)task->spawnArg1.value == 1) {

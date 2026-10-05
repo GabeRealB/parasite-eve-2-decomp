@@ -181,9 +181,14 @@ void Display_ResetHeapWrapper(void);
 /// Acquire a display hold that blocks normal menu-mode requests.
 void Display_AcquireRef(void);
 
-/// Release a matching acquisition; the final release unblocks menu requests.
+/// Releases one hold on normal menu-mode requests.
 ///
-/// Acquisitions and releases must be balanced; the count is stored in a byte.
-void Display_ReleaseRef(void);
+/// Balance `Display_AcquireRef` calls and keep outstanding holds within 1..255.
+/// The last release clears the active hold bit while preserving all other
+/// hold-state bits. If the hold bit is already clear, the count is reset to zero.
+/// An active hold with a zero count wraps to 255 instead of opening the gate.
+/// Queued menu transitions are dispatched by the main loop; requests with their
+/// high bit set bypass this gate.
+void displayReleaseMenuHold(void);
 
 #endif // MAIN_DISPLAY_H

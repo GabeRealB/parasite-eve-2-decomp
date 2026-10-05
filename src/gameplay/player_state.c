@@ -1017,7 +1017,7 @@ static s32 Gp_TestHpDamage(s32 arg0)
     p->hp   = saved18;
     p->mp   = saved1c;
     if (ret != 0) {
-        Display_ReleaseRef();
+        displayReleaseMenuHold();
     }
     return ret;
 }

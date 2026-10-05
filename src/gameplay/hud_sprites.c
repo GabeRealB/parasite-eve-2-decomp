@@ -1604,7 +1604,7 @@ void Gp_ViewGateTask(Task* task)
     if (task->state == 2) {
         task->killCountdown--;
         if (task->killCountdown == 0) {
-            Display_ReleaseRef();
+            displayReleaseMenuHold();
             gGameSession->viewReady = 1;
             task->state             = 3;
         }

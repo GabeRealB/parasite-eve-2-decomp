@@ -773,7 +773,7 @@ static void func_actor_143000_80133800(Task* arg0)
 {
     _Actor143000KeypadWork* work = arg0->work;
 
-    Display_ReleaseRef();
+    displayReleaseMenuHold();
     gGameSession->cutsceneHold = 0;
     if (work->codeAccepted == 0) {
         D_80114D08                                                 = 0xA;

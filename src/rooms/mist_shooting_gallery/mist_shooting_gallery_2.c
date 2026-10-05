@@ -2508,7 +2508,7 @@ static void func_mist_shooting_gallery_80182C58(Task* arg0)
                 break;
             }
             work->phase++;
-            Display_ReleaseRef();
+            displayReleaseMenuHold();
         case 15:
             spawn = &D_mist_shooting_gallery_80186900[0][work->spawnIndex];
             key   = spawn->frame;
@@ -2540,7 +2540,7 @@ static void func_mist_shooting_gallery_80182C58(Task* arg0)
             step = work->captionStep;
             if (step == 0x15) {
                 work->phase = work->resumePhase;
-                Display_ReleaseRef();
+                displayReleaseMenuHold();
             } else {
                 work->captionStep = step + 1;
             }
@@ -2565,7 +2565,7 @@ static void func_mist_shooting_gallery_80182C58(Task* arg0)
 /// Per-frame update for the gallery course itself. START (`0x100`) aborts the
 /// whole mini-game; otherwise the state runs a "3, 2, 1, GO" countdown
 /// (`captionStep` steps the digit sprite once a second) before releasing the
-/// display reference and entering the wave loop. The loop spawns every record
+/// menu hold and entering the wave loop. The loop spawns every record
 /// of `D_mist_shooting_gallery_80186904` that carries the current script frame,
 /// draws the remaining time, and restarts the state machine once the clock
 /// runs out.
@@ -2624,7 +2624,7 @@ static void func_mist_shooting_gallery_801831B0(Task* arg0)
             work->timer = start - 1;
             if ((s32)(start << 16) <= 0) {
                 work->phase++;
-                Display_ReleaseRef();
+                displayReleaseMenuHold();
                 case 4:
                     spawn = &D_mist_shooting_gallery_80186904[work->spawnIndex];
                     key   = spawn->frame;
@@ -3222,7 +3222,7 @@ static void func_mist_shooting_gallery_801842D0(Task* arg0)
             return;
         case 4:
             if (gGameSession->battleResetPending == 1) {
-                Display_ReleaseRef();
+                displayReleaseMenuHold();
                 taskKill(arg0);
             }
             return;
@@ -3443,7 +3443,7 @@ static void func_mist_shooting_gallery_80184A80(Task* arg0)
     actor->movementInputDisabled                        = 0;
     actor->pendingCollisionUpdates                      = 7;
     actor->collisionBodies[GAME_ACTOR_BODY_ROOT].flags |= WORLD_COLLISION_BODY_VIEW_TRIGGER_ENABLED;
-    Display_ReleaseRef();
+    displayReleaseMenuHold();
     Gp_ReleaseStateF0Clear(arg0, 0);
     taskKill(arg0);
 }

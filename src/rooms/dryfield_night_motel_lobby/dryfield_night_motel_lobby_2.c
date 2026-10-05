@@ -971,7 +971,7 @@ static void func_dryfield_night_motel_lobby_8018122C(Task* arg0)
 {
     Gp_MsgPlayerWeapon(1);
     Gp_MsgPlayer3F3(1);
-    Display_ReleaseRef();
+    displayReleaseMenuHold();
     gGameSession->eventState                                   = 0;
     gGameSession->hideHud                                      = 0;
     gGameSession->cutsceneHold                                 = 0;

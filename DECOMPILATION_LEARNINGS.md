@@ -6290,7 +6290,7 @@ Cast the call:
 ```
 
 A neighboring `void(void)` jal whose delay slot is an unrelated store
-(`Display_ReleaseRef` + `sh` of actor flags) needs no cast.
+(`displayReleaseMenuHold` + `sh` of actor flags) needs no cast.
 `func_mist_shooting_gallery_80184A80` is the example.
 
 ## Scratch `-dp` comments drop maspsx load-delay nops after volatile `lbu`
@@ -87503,7 +87503,7 @@ Inputs: `base.i`
 `1dce15224cead24faad31a7bb9df1f5414baaa585c2c95487679ec7c69f9a19a` (100%).
 ## Target `jal`+`nop`: the argument load is hoisted above a byte store's address pair, and reorg fills the slot (func_neo_ark_shrine_8017EED4, 2026-09-15)
 
-The room-script tail `Display_ReleaseRef(); gGameSession->eventState/0x68/0x66 = 0;
+The room-script tail `displayReleaseMenuHold(); gGameSession->eventState/0x68/0x66 = 0;
 D_8007216C = N; taskKill(task->spawnArg2);` recurs across rooms: the shared
 bodies `Room_Script10`/`Room_Script11` are the same tail with other constants,
 and this overlay's own `func_neo_ark_shrine_8017F0F0` has it. Retail keeps source
@@ -100058,7 +100058,7 @@ so it lands late in the arm. Passing the one real argument fixes the base to
 `$a1` and lets the `lui` hoist:
 
 ```c
-Display_ReleaseRef();
+displayReleaseMenuHold();
 gGameSession->cutsceneHold = 0;
 if (work->field_C == 0) { ...; Gp_MsgPlayer3F3(1); }
 ```

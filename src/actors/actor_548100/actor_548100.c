@@ -2278,7 +2278,7 @@ static void func_actor_548100_80134E0C(Task* arg0)
     Gp_MsgPlayerWeapon(1);
     Gp_MsgPlayer3F3(1);
     D_80114D08 = 0xA;
-    Display_ReleaseRef();
+    displayReleaseMenuHold();
     gGameSession->eventState                                   = 0;
     gGameSession->hideHud                                      = 0;
     gGameSession->cutsceneHold                                 = 0;

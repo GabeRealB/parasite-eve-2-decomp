@@ -3562,7 +3562,7 @@ static void func_acropolis_bridge_8017F544(Task* task)
 
 static void func_acropolis_bridge_8017F658(Task* task)
 {
-    Display_ReleaseRef();
+    displayReleaseMenuHold();
     func_acropolis_bridge_8017E60C(ACROPOLIS_BRIDGE_KEYPAD_CODE_BLANK, 0);
     taskKill(task->spawnArg2.pointer);
     Task_RequestKill(task, D_acropolis_bridge_801917A8);

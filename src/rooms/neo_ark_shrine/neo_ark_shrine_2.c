@@ -1191,7 +1191,7 @@ static void func_neo_ark_shrine_8017EED4(Task* task)
     D_80114D08 = 0xA;
     Gp_MsgPlayerWeapon(1);
     Gp_MsgPlayer3F3(1);
-    Display_ReleaseRef();
+    displayReleaseMenuHold();
     gGameSession->eventState                                   = 0;
     gGameSession->hideHud                                      = 0;
     gGameSession->cutsceneHold                                 = 0;
@@ -1329,7 +1329,7 @@ static void func_neo_ark_shrine_8017F274(Task* task)
     gGameSession->roomObjsDirty                                = 1;
     Gp_MsgPlayerWeapon(1);
     Gp_MsgPlayer3F3(1);
-    Display_ReleaseRef();
+    displayReleaseMenuHold();
     gGameSession->eventState                                   = 0;
     gGameSession->hideHud                                      = 0;
     gGameSession->cutsceneHold                                 = 0;
