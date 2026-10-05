@@ -147878,3 +147878,85 @@ slot for `page`); the inline called from each arm (duplicates the body);
 `page` assigned before `vtx` in every arm (swaps the delay slots and ties
 `vtx` to `$a0`) or in one arm (no preference for `page`, but the swap shows
 and `seed` takes `$a0`); 30,770 permuter iterations from the typed base.
+
+### A copy whose source keeps the next shift: cse needs the source named later, local-alloc needs it set (glowDrawRayStar, 2026-10-05)
+
+Target: `addiu v1,v1,120` / `move s6,v1` / `sll v1,v1,16` / `sra s7,v1,17` -
+the sum is copied into the call-saved `color` and the halving shifts stay on
+the temporary. `color = sum; half = (s16)color >> 1;` and every spelling with
+a single-set temporary gave `addiu s6,v1,120` / `sll v0,s6,16`. Two passes each
+move the shift onto the copy, and the old source defeated both by reusing the
+integer for the scratch-head address at the end of the function:
+
+```c
+work   = pulse / 34 + 0x78;
+color  = work;
+work <<= 16;                      /* (b) sets work */
+half   = work >> 17;
+...loops using color...
+work = sizeof(RoomGlowRadiiScratch);                    /* (a) names work after color's last use */
+SCRATCH_POP_BYTES_AT(SCRATCH_STACK_CURSOR_SLOT, work);
+```
+
+(a) `cse.c:make_regs_eqv`: at `color = work` the new register replaces the old
+one as the class's canonical register when it lives past the block and its last
+reference (`regno_last_uid`, stream order, taken by `reg_scan` before cse) is
+later than the old one's. `color` is used in the loops, so it wins and
+`work <<= 16` becomes `sll work,color,16` unless `work` is *mentioned* later
+than `color`'s last use. Any mention counts, a set included, and it need not
+survive: `work = 24` is constant-propagated into the pop and deleted by flow.
+The address the old source parked there was only such a mention.
+
+(b) `local-alloc.c:optimize_reg_copy_1`: after a copy `dest = src`, if `src`
+dies later in the block with neither register set in between, the uses of
+`src` are rewritten to `dest` so that `src` dies at the copy. Writing the shift
+first (`high = level << 16; color = level; half = high >> 17;`) gets past cse,
+and sched1 even moves the copy above the shift (the single-set shift result is
+a `birthing_insn_p` launch that stays glued to its consumer), but then this
+rewrite turns the shift into `sll v0,s6,16`. `work <<= 16` stops the scan at
+`reg_set_p (src, p)`.
+
+Reading: a `move sN,vK` followed by more arithmetic on `vK` means the source
+was a multiply-set variable that is named again further down.
+
+### Half an allocation as a pointer: index a word view inside an inline's argument, and shift rather than multiply (spriteAllocateViewCachedPackets, 2026-10-05)
+
+Target: `sll s1,v0,3` (bytes = count * 7 << 3) ... `srl s1,s1,1` /
+`addu s1,s1,v1` - half the byte count added, offset first, to the block
+`memCalloc` returned. The matched source added it through a `u32`. The second
+buffer is `&first[count]` in packet terms, but that recomputes `count * 28`;
+the binary reuses the byte count.
+
+```c
+static inline SpriteDrawModePacket* _spriteCachedPacketsAtWord(u32* word) { return (SpriteDrawModePacket*)word; }
+
+allocationBytes = (spriteCount * PACKET_WORDS) << 3;      /* not `* 56` */
+words           = memCalloc(allocationBytes, true);
+...
+register SpriteDrawModePacket* secondBuffer asm("s1");
+secondBuffer = _spriteCachedPacketsAtWord(&words[allocationBytes >> 3]);
+```
+
+Three mechanisms, each needed:
+
+- An inline's argument is expanded with `EXPAND_SUM`, which puts a `MULT`
+  first, so `&words[i]` is `(plus (mult i 4) words)`: offset first. A byte view
+  has no `MULT` and stays base first.
+- `(bytes >> 3) << 2` is one `srl bytes,1` only because combine knows the low
+  three bits of `bytes` are zero. `reg_nonzero_bits` is recorded only for a
+  pseudo set once, from its `SET_SRC` (`(ashift x 3)`), in any block. So the
+  byte count has to be its own single-set variable, not the sprite counter
+  scaled in place.
+- `bytes = count * 56` leaves the product in a temporary and copies it; cse1
+  swaps the two destinations, then keeps the temporary as the register the
+  later blocks read, and cse2 swaps back: `sll v0,v0,3` / `bnez v0` /
+  `move s1,v0`. An explicit `<<` as the last operation is expanded straight
+  into the variable. (`count * 7 * 8` folds back to `* 56`; a `words * 8`
+  through a second variable is still a multiply.)
+
+With those, `(set s1 (lshiftrt bytes 1))` gives `bytes` a preference for `$s1`
+(`global.c:set_preference` looks through the first operand), and the counter
+takes `$s1` before it, so the `asm volatile("" : "+r"(bytes))` barrier and the
+integer address both go. The `register ... asm("s1")` on the typed pointer
+stays: a pseudo for the sum is block-local and local-alloc puts it and the
+half in `$v0`.
