@@ -794,9 +794,6 @@ void func_actor_205200_8014B978(Task* arg0)
 /// applies the part's hits, runs `sparkTimer` down while it is nonzero and,
 /// once the controller's `stopRequested` is up, takes the part down at
 /// ACTOR_205200_PART_DOWN_RETIRING.
-/// The dispatch is written as gotos because that is the shape the switch's
-/// binary decision tree leaves behind - mode 0 shares the body with the
-/// default path, so its `break` is a jump into it.
 static void func_actor_205200_8014B9D4(Enemy* arg0, Task* arg1)
 {
     _Actor205200Part*     part;
@@ -808,28 +805,16 @@ static void func_actor_205200_8014B9D4(Enemy* arg0, Task* arg1)
     parentWork = arg1->parent->work;
     state      = gSceneCombatState.actorControl;
     one        = 1;
-    if (state == one) {
-        goto case1;
+    switch (state) {
+        case 0:
+            arg0->node.state.parts.flags = WORLD_TARGET_HIDE_HP;
+            break;
+        case 2:
+            arg0->node.state.parts.flags = one;
+            return;
+        case 1:
+            return;
     }
-    if (state >= 2) {
-        goto ge2;
-    }
-    if (state == 0) {
-        goto case0;
-    }
-    goto default_body;
-ge2:
-    if (state == 2) {
-        goto case2;
-    }
-    goto default_body;
-case0:
-    arg0->node.state.parts.flags = WORLD_TARGET_HIDE_HP;
-    goto default_body;
-case2:
-    arg0->node.state.parts.flags = one;
-    return;
-default_body:
     func_actor_205200_8014B048(arg1, one);
     if (part->sparkTimer != 0) {
         func_actor_205200_8014BA94(arg1);
@@ -838,8 +823,6 @@ default_body:
         arg1->state     = ACTOR_205200_PART_TASK_DOWN;
         part->downState = ACTOR_205200_PART_DOWN_RETIRING;
     }
-case1:
-    return;
 }
 
 /// Counts a live part's `sparkTimer` down, raising a spark burst each time
