@@ -1042,8 +1042,6 @@ static void func_mist_parking_80183304(Task* task)
     RoomOptionDialog* dialog;
     UiDialogOption*   option;
     u8**              line;
-    s32               table;
-    s32               off;
     s32               mode;
     s32               i;
 
@@ -1057,21 +1055,18 @@ static void func_mist_parking_80183304(Task* task)
     i                  = 0;
     mode               = 1;
     line               = D_mist_parking_8018DF24;
-    table              = (s32)D_mist_parking_8018DF24;
-    off                = 8;
     task->work         = dialog;
     task->exitCallback = func_mist_parking_80183434;
 
     for (; i < ARRAY_SIZE(dialog->options); i++) {
         if (task->spawnArg1.value == mode) {
-            option->text = *(u8**)(off + table);
+            option->text = D_mist_parking_8018DF24[i + 2];
         } else {
             option->text = *line;
         }
         option->next = option + 1;
         option++;
         line++;
-        off += 4;
     }
     option[-1].next = NULL;
 
