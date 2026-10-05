@@ -749,7 +749,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_water_tower_80180348, { NULL } },                        // 0x0D2
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_water_tank_8017F084, { NULL } },                         // 0x0D3
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_breezeway_8017FF7C, { NULL } },                          // 0x0D4
-    { { { TASK_BODY_COORD, 0x70 } }, factoryDayDrawGlows, { NULL } },                                       // 0x0D5
+    { { { TASK_BODY_COORD, 0x70 } }, dryfieldFactoryDrawGlowsTask, { NULL } },                              // 0x0D5
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_garage_8017DC68, { NULL } },                             // 0x0D6
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_driveway_8017DE6C, { NULL } },                           // 0x0D7
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_junk_yard_8017DD0C, { NULL } },                          // 0x0D8
@@ -811,7 +811,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_night_water_tower_8017DB80, { NULL } },                  // 0x110
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_night_water_tank_8017DD8C, { NULL } },                   // 0x111
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_night_breezeway_8017E5BC, { NULL } },                    // 0x112
-    { { { TASK_BODY_COORD, 0x70 } }, factoryNightDrawGlows, { NULL } },                                     // 0x113
+    { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightFactoryDrawGlowsTask, { NULL } },                         // 0x113
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_night_garage_80181518, { NULL } },                       // 0x114
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_night_driveway_8017E5CC, { NULL } },                     // 0x115
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_night_junk_yard_8017DA14, { NULL } },                    // 0x116

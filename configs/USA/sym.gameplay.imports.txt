@@ -1787,7 +1787,7 @@ func_dryfield_water_tank_8017F084 = 0x8017F084; // type:func absolute:True owner
 
 func_dryfield_breezeway_8017FF7C = 0x8017FF7C; // type:func absolute:True owner=dryfield_breezeway shared=rooms
 
-factoryDayDrawGlows = 0x801825F0; // type:func absolute:True owner=dryfield_factory shared=rooms
+dryfieldFactoryDrawGlowsTask = 0x801825F0; // type:func absolute:True owner=dryfield_factory shared=rooms
 
 func_dryfield_garage_8017DC68 = 0x8017DC68; // type:func absolute:True owner=dryfield_garage
 
@@ -1827,7 +1827,7 @@ func_dryfield_night_water_tank_8017DD8C = 0x8017DD8C; // type:func absolute:True
 
 func_dryfield_night_breezeway_8017E5BC = 0x8017E5BC; // type:func absolute:True owner=dryfield_night_breezeway
 
-factoryNightDrawGlows = 0x801825F0; // type:func absolute:True owner=dryfield_night_factory shared=rooms
+dryfieldNightFactoryDrawGlowsTask = 0x801825F0; // type:func absolute:True owner=dryfield_night_factory shared=rooms
 
 func_dryfield_night_garage_80181518 = 0x80181518; // type:func absolute:True owner=dryfield_night_garage
 

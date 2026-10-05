@@ -113,7 +113,7 @@ _gDryfieldNightFactoryCollision097FCTable = 0x80186DB4; // size:0x8 defined:True
 gFactoryLiftTurnedTemplate = 0x80186DBC; // size:0x24 defined:True
 gFactoryNightSpawnTable = 0x80186DE0; // size:0x60 defined:True
 
-factoryNightDrawGlows = 0x801825F0; // type:func
+dryfieldNightFactoryDrawGlowsTask = 0x801825F0; // type:func
 actionPromptOutlineRect = 0x80180BA4; // type:func
 actionPromptMoveCursors = 0x801810D8; // type:func
 actionPromptDrawCursor = 0x80181538; // type:func

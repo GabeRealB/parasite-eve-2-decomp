@@ -29,7 +29,15 @@ extern SpriteView D_dryfield_factory_801895B0[];
 
 extern WorldCollisionSurfaceProperties* D_dryfield_factory_8018A37C[];
 
-void factoryDayDrawGlows(Task* task);
+/// Draws the daytime factory's power and lamp glows for the current logical view.
+///
+/// Per-frame effect callback for room views 1..19. Power enables one fixed-world
+/// glow; lamp progress 1 or 2 selects one of two positions and colours, so at
+/// most two glows are queued. Other lamp progress values draw no lamp glow.
+/// Requires the composed view, initialized scratch stack and current packet
+/// arena and ordering table. Packets live until this frame's GPU work completes.
+/// The callback leaves task state unchanged and does not use `task`.
+void dryfieldFactoryDrawGlowsTask(Task* task);
 
 void factoryDayEntryTask(Task* task);
 

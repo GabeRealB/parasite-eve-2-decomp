@@ -1,26 +1,37 @@
 /* Part of the factory library; see factory_lift.h. */
 
-/// Per-frame effect: draws up to three glowing discs at fixed points in the
-/// room. The draw set is selected by the stage-visit byte
-/// `gGameSession->location.loc.view` taken as a bit index, and each group also gates on a
-/// story flag, so a disc only appears on the visits and after the event that
-/// the flag records.
-void factoryDrawGlows(Task* task)
+void FACTORY_DRAW_GLOWS_TASK(Task* task)
 {
-    s32 state;
+    enum {
+        // Bits select 1-based logical room views, before camera/image remapping.
+        FACTORY_GLOW_POWER_VIEW_MASK      = (1 << 3) | (1 << 5) | (1 << 6) | (1 << 12) | (1 << 14) | (1 << 16),
+        FACTORY_GLOW_LAMP_VIEW_MASK       = (1 << 2) | (1 << 6) | (1 << 7) | (1 << 9) | (1 << 10) | (1 << 13) | (1 << 16) | (1 << 17) | (1 << 18) | (1 << 19),
+        FACTORY_GLOW_LAMP_FIRST_POSITION  = 1, // Lamp progress after the power scene
+        FACTORY_GLOW_LAMP_SECOND_POSITION = 2, // Lamp progress after the lamp scene or sound command
+        // Pixel radii are scale * 64 / (camera Z / 4 + 1).
+        FACTORY_GLOW_POWER_RADIUS_SCALE = 0x100,
+        FACTORY_GLOW_LAMP_RADIUS_SCALE  = 0x80,
+        // High nibble is the odd-frame flicker shift; low three are RGB * 16.
+        FACTORY_GLOW_POWER_COLOR       = (3 << 12) | (6 << 8) | (6 << 4),
+        FACTORY_GLOW_LAMP_FIRST_COLOR  = (5 << 12) | (10 << 8),
+        FACTORY_GLOW_LAMP_SECOND_COLOR = (5 << 12) | (10 << 4),
+    };
+    s32 viewBit;
 
-    state = 1 << gGameSession->location.loc.view;
+    viewBit = 1 << gGameSession->location.loc.view;
 #if DRYFIELD_TIME == DRYFIELD_NIGHT
-    actorRenderComposeCoord(task->extra.coordBody->coord); /* the night build also refreshes the task's matrix */
+    // Preserve the night task's coordinate refresh even though the glows use world points.
+    actorRenderComposeCoord(task->extra.coordBody->coord);
 #endif
-    if (gameFlagGetNibble(GAME_FLAG_FACTORY_POWER_ON) != 0 && (state & 0x15068) != 0) {
-        _glowDrawTintedDisc(&gFactoryGlowPos48, 0x100, 0x3660);
+    if (gameFlagGetNibble(GAME_FLAG_FACTORY_POWER_ON) != 0 && (viewBit & FACTORY_GLOW_POWER_VIEW_MASK) != 0) {
+        _glowDrawTintedDisc(&gFactoryGlowPos48, FACTORY_GLOW_POWER_RADIUS_SCALE, FACTORY_GLOW_POWER_COLOR);
     }
-    if (state & 0xF26C4) {
-        if (gameFlagGetNibble(GAME_FLAG_FACTORY_LAMP_PROGRESS) == 1) {
-            _glowDrawTintedDisc(&gFactoryGlowPos4A1, 0x80, 0x5A00);
-        } else if (gameFlagGetNibble(GAME_FLAG_FACTORY_LAMP_PROGRESS) == 2) {
-            _glowDrawTintedDisc(&gFactoryGlowPos4A2, 0x80, 0x50A0);
+    // Lamp progress selects one position independently of the power flag.
+    if (viewBit & FACTORY_GLOW_LAMP_VIEW_MASK) {
+        if (gameFlagGetNibble(GAME_FLAG_FACTORY_LAMP_PROGRESS) == FACTORY_GLOW_LAMP_FIRST_POSITION) {
+            _glowDrawTintedDisc(&gFactoryGlowPos4A1, FACTORY_GLOW_LAMP_RADIUS_SCALE, FACTORY_GLOW_LAMP_FIRST_COLOR);
+        } else if (gameFlagGetNibble(GAME_FLAG_FACTORY_LAMP_PROGRESS) == FACTORY_GLOW_LAMP_SECOND_POSITION) {
+            _glowDrawTintedDisc(&gFactoryGlowPos4A2, FACTORY_GLOW_LAMP_RADIUS_SCALE, FACTORY_GLOW_LAMP_SECOND_COLOR);
         }
     }
 }

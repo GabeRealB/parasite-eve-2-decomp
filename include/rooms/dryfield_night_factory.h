@@ -35,7 +35,16 @@ extern SpriteView D_dryfield_night_factory_80189A24[];
 
 extern WorldCollisionSurfaceProperties* D_dryfield_night_factory_8018A79C[];
 
-void factoryNightDrawGlows(Task* task);
+/// Draws the nighttime factory's power and lamp glows for the current logical view.
+///
+/// Per-frame effect callback for room views 1..19. Power enables one fixed-world
+/// glow; lamp progress 1 or 2 selects one of two positions and colours, so at
+/// most two glows are queued. Other lamp progress values draw no lamp glow.
+/// `task` must have a live coordinate body and writable coordinate parent chain;
+/// its cached transform is refreshed before drawing, without changing task state.
+/// Requires the composed view, initialized scratch stack and current packet
+/// arena and ordering table. Packets live until this frame's GPU work completes.
+void dryfieldNightFactoryDrawGlowsTask(Task* task);
 
 void factoryNightEntryTask(Task* task);
 

@@ -691,6 +691,12 @@ is `src/shared/main_street.h`. Each carrier exports its own puff task to the
 gameplay effect table and keeps the puff drawer private; rendering constants
 use `MAIN_STREET_PUFF_`.
 
+`factory` owns the included Dryfield factory room implementation, with
+`src/shared/factory_lift.h` as its private interface. Its view- and
+progress-gated light-glow task is exported by each room carrier under the full
+package prefix for gameplay's effect table. `FACTORY_DRAW_GLOWS_TASK` binds the
+shared definition to that export; rendering constants use `FACTORY_GLOW_`.
+
 ## Documentation
 
 [`include/main/mem.h`](include/main/mem.h) is the worked example. Read it before

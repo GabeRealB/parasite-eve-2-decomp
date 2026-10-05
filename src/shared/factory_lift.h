@@ -225,23 +225,32 @@ extern PadScriptCmd              gFactoryNightJoltCmds[3];
 extern PadScriptVibrationSegment gFactoryDayJoltRecs[3];
 extern PadScriptVibrationSegment gFactoryNightJoltRecs[3];
 
-void factoryDayDrawGlows(Task* task);
-void factoryNightDrawGlows(Task* task);
 void factoryDayShowView9Sprite(s32 show);
 void factoryNightShowView9Sprite(s32 show);
 void factoryDayShowView11Sprite(s32 show);
 void factoryNightShowView11Sprite(s32 show);
 
+/// Binds the factory glow callback definition to this carrier's exported task.
+///
+/// `DRYFIELD_TIME` must select `DRYFIELD_DAY` or `DRYFIELD_NIGHT` before this
+/// header is included and remain bound through `factory_draw_glows.inc.c`.
+/// Expands to a function identifier with signature `void (Task*)`, declared in
+/// the corresponding public room header. It has no arguments, captured values,
+/// stringification or token pasting, and does not call or evaluate the task.
+#if DRYFIELD_TIME == DRYFIELD_NIGHT
+#define FACTORY_DRAW_GLOWS_TASK dryfieldNightFactoryDrawGlowsTask
+#else
+#define FACTORY_DRAW_GLOWS_TASK dryfieldFactoryDrawGlowsTask
+#endif
+
 // Each build exports the view-sprite functions and the entry task under its
 // own name, which gameplay and the other build refer to; the library's names
 // map onto the build's own.
 #if DRYFIELD_TIME == DRYFIELD_NIGHT
-#define factoryDrawGlows        factoryNightDrawGlows
 #define factoryShowView9Sprite  factoryNightShowView9Sprite
 #define factoryShowView11Sprite factoryNightShowView11Sprite
 #define factoryEntryTask        factoryNightEntryTask
 #else
-#define factoryDrawGlows        factoryDayDrawGlows
 #define factoryShowView9Sprite  factoryDayShowView9Sprite
 #define factoryShowView11Sprite factoryDayShowView11Sprite
 #define factoryEntryTask        factoryDayEntryTask
@@ -293,7 +302,7 @@ void factoryPromptTask(Task* task);
 void factoryPanelTrigger(Task* task, s32, s32, s32);
 void factoryPanelArmPrompt(Task* task);
 
-/// Where `factoryDrawGlows` draws the disc nibble 0x48 enables, and the two
+/// Where `FACTORY_DRAW_GLOWS_TASK` draws the disc nibble 0x48 enables, and the two
 /// it alternates between by nibble 0x4A's value.
 extern SVECTOR gFactoryGlowPos48;
 extern SVECTOR gFactoryGlowPos4A1;
