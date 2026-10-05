@@ -7815,45 +7815,42 @@ static void func_actor_403100_8013C7B4(Task* arg0)
     D_actor_403100_80155808->animationRate = (s16)savedRate;
     Actor403100ResetStateInline(D_actor_403100_80155808->animationId, D_actor_403100_80155808->animationRate, 0);
 }
+
+/// Starts a character-bank sound for this actor's place index at model
+/// coordinate 4, at that coordinate's pan and half its depth.
+static inline void _actor403100PlayJawSound(Task* task, s32 soundId)
+{
+    s32 sound;
+    s32 pan;
+
+    sound = (((u16)((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | soundId;
+    pan   = (s8)worldCoordGetOriginAudioPan(&task->extra.tmd->coords[4]);
+    sndEvtRequestScriptStart(sound, pan, (s8)(worldCoordGetOriginAudioDepth(&task->extra.tmd->coords[4]) / 2));
+}
+
 static void func_actor_403100_8013CBE0(Task* task)
 {
-    s16          next;
-    s16          next2;
-    s32          sound;
-    register s32 soundId asm("a1");
-    s32          pan;
-    u32          random;
-    s32          depth;
-    u8           request;
-    u8           state;
+    s16 next;
+    s16 next2;
+    u32 random;
+    u8  request;
 
-    state = D_actor_403100_80155808->jawPitchPhase;
-    switch (state) {
+    switch (D_actor_403100_80155808->jawPitchPhase) {
         case ACTOR_403100_PITCH_PHASE_REST:
             D_actor_403100_80155808->jawPitchOffset = (s16)((u16)D_actor_403100_80155808->jawPitchOffset + ((s32) - (D_actor_403100_80155808->jawPitchOffset * 0x10) >> 7));
             return;
         case ACTOR_403100_PITCH_PHASE_START:
             request = D_actor_403100_80155808->jawKickSound;
-            if (request == state) {
-                soundId = 0x401F0009;
-                goto play_sound;
-            }
-            if (request == 2) {
+            if (request == 1) {
+                _actor403100PlayJawSound(task, 0x401F0009);
+            } else if (request == 2) {
                 random          = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
                 gRandomLcgState = random;
                 if ((random >> 16) & 1) {
-                    soundId  = 0x401F0000;
-                    soundId |= 2;
+                    _actor403100PlayJawSound(task, 0x401F0002);
                 } else {
-                    soundId  = 0x401F0000;
-                    soundId |= 5;
+                    _actor403100PlayJawSound(task, 0x401F0005);
                 }
-            play_sound:
-                sound = (((u16)((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | soundId;
-                // Keep the selected sound ID in a1 for the bank merge in the call delay slot.
-                pan   = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords + 4);
-                depth = worldCoordGetOriginAudioDepth(task->extra.tmd->coords + 4);
-                sndEvtRequestScriptStart(sound, pan, (s8)(depth / 2));
             }
             D_actor_403100_80155808->jawKickSound  = 0U;
             D_actor_403100_80155808->jawPitchPhase = D_actor_403100_80155808->jawPitchPhase + 1;
@@ -7869,7 +7866,7 @@ static void func_actor_403100_8013CBE0(Task* task)
         case ACTOR_403100_PITCH_PHASE_RETURN:
             next2                                   = (u16)D_actor_403100_80155808->jawPitchOffset + 0xC;
             D_actor_403100_80155808->jawPitchOffset = next2;
-            if ((next2 << 16) >= 0) {
+            if (next2 >= 0) {
                 D_actor_403100_80155808->jawPitchPhase = ACTOR_403100_PITCH_PHASE_REST;
             }
             break;
