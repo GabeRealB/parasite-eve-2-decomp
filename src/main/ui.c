@@ -1648,24 +1648,31 @@ static void _uiDrawListHighlight(const UiList* list, UiPanel* panel, s32 rowBott
     highlightPanel->otIndex.unsignedValue--;
 }
 
-/// Advances the shared 24.8 cursor toward a screen-centered fixed-point target.
+/// Eases the retained selection cursor toward a screen-centered 24.8 target.
 ///
-/// Each elapsed nominal 60-Hz tick moves a quarter of the remaining displacement.
-/// Target coordinates and intermediate differences must fit s32.
-static inline void _uiEaseCursorPosition(s32 targetX, s32 targetY)
+/// `targetXFixed` and `targetYFixed` use 1/256-pixel units. Applies the current
+/// frame's `gDisplayState.frameTicks` nominal 60-Hz steps (normally 1, 2 or 3),
+/// sampled once per call; zero skips movement. Each step adds one quarter of
+/// the remaining displacement, rounded toward negative infinity by a signed
+/// shift. There is no final snap: a positive remainder of 1..3 fixed units
+/// produces no movement. Targets and their differences from the retained
+/// coordinates must fit s32. Calls share the position across panels; this
+/// helper neither checks panel control nor draws the cursor.
+static inline void _uiEaseCursorPosition(s32 targetXFixed, s32 targetYFixed)
 {
-    s32 elapsedTicks;
+    s32 ticksApplied;
     u8  frameTicks;
 
-    elapsedTicks = 0;
+    ticksApplied = 0;
     frameTicks   = gDisplayState.frameTicks;
-    if (frameTicks != 0) {
-        do {
-            elapsedTicks++;
-            D_80067648 += (targetX - D_80067648) >> USER_INTERFACE_CURSOR_EASING_SHIFT;
-            D_8006764C += (targetY - D_8006764C) >> USER_INTERFACE_CURSOR_EASING_SHIFT;
-        } while (elapsedTicks < frameTicks);
+    if (frameTicks == 0) {
+        return;
     }
+    do {
+        ticksApplied++;
+        D_80067648 += (targetXFixed - D_80067648) >> USER_INTERFACE_CURSOR_EASING_SHIFT;
+        D_8006764C += (targetYFixed - D_8006764C) >> USER_INTERFACE_CURSOR_EASING_SHIFT;
+    } while (ticksApplied < frameTicks);
 }
 
 /// Eases and draws the shared selection cursor at a list's content-relative target.
