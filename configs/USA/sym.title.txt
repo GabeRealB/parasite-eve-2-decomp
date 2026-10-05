@@ -23,12 +23,12 @@ jtbl_8009387C = 0x8009387C; // type:jtbl size:0x20
 // Code (src/title/title.c)
 // ---------------------------------------------------------------------------
 Title_InitTask = 0x8009389C; // type:func
-Title_DrawSpriteRow = 0x800939C4; // type:func
+_titleDrawChromeRow = 0x800939C4; // type:func
 Title_MenuTask = 0x80093ABC; // type:func
 Title_RestoreDemoCard = 0x8009407C; // type:func
 Title_FlagAdvanceTask = 0x8009470C; // type:func
 Title_Dispatch = 0x8009472C; // type:func
-Title_ExitTask = 0x800947A8; // type:func
+titleExitTask = 0x800947A8; // type:func
 Title_DemoStreamTask = 0x800947C8; // type:func
 Title_BootTask = 0x80094A08; // type:func
 Title_EnqueueDemoScene = 0x80094B90; // type:func

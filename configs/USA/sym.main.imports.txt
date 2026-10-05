@@ -120,7 +120,7 @@ fadeResumeSessionTask = 0x800AC344; // type:func absolute:True
 viewCommitIndexTask = 0x800A9980; // type:func absolute:True
 loadingRestoreViewGraphicsTask = 0x800A99E0; // type:func absolute:True
 Title_Dispatch = 0x8009472C; // type:func absolute:True owner=title
-Title_ExitTask = 0x800947A8; // type:func absolute:True owner=title
+titleExitTask = 0x800947A8; // type:func absolute:True owner=title
 D_8010FC2C = 0x8010FC2C; // absolute:True
 Gp_MenuRootTask = 0x800BF9FC; // type:func absolute:True
 Gp_EffAttachTask37 = 0x800F6D18; // type:func absolute:True

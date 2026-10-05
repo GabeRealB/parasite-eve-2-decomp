@@ -23567,7 +23567,7 @@ that should hold the mask — or it hoists color math and breaks a later
 
 **Fix:** write the GPU command as two operands so CSE/const folding emits
 `lui 0xE100` + `ori tpage` *after* the mask materialization, matching
-`Title_DrawSpriteRow`-style schedules:
+`_titleDrawChromeRow`-style schedules:
 
 ```c
 setlen(dr, 1);
@@ -23611,7 +23611,7 @@ do {
     s1 += 0x10;
     s0 += 0xE;
     asm("" : "+r"(a0), "+r"(a1), "+r"(a2), "+r"(s0), "+r"(s1));
-    Title_DrawSpriteRow(a0, a1, a2);
+    _titleDrawChromeRow(a0, a1, a2);
     s2 += 1;
 } while (s2 < 3);
 ```

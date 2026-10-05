@@ -279,7 +279,7 @@ This is the only bank we can describe entry-by-entry. Spawn with
 | `03` | `C0` | `GameFlow_StateByField34` | Title new-game / demo path. Also a `Title_MenuSpawnIds` entry |
 | `04` | `C0` | `GameFlow_DispatchTable5` | Title load-style gameflow. Also a `Title_MenuSpawnIds` entry |
 | `05` | `C0` | `Text_UiTaskCallback` | Text / UI. Also a `Title_MenuSpawnIds` entry |
-| `06` | `C0` | `Title_ExitTask` | Title exit. Also a `Title_MenuSpawnIds` entry |
+| `06` | `C0` | `titleExitTask` | Dispatches this task's installed exit handler (initially `taskKill`). Also a `Title_MenuSpawnIds` entry; requires the title overlay |
 | `07` | `C0` | `taskKill` | Unused slot |
 | `08` | `00` | NULL | Unused |
 | `09` | `18` | `GameFlow_DispatchTable` | **Main in-game flow.** Spawned after session reset, from title, etc. |

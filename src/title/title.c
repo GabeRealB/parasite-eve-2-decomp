@@ -58,6 +58,27 @@ enum {
 #define TITLE_SCREEN_FADE_FULL 0x80
 #define TITLE_SCREEN_FADE_STEP 8
 
+/// Page-local V origins, in texels, of the title chrome's 256-by-16 rows.
+enum {
+    TITLE_CHROME_ATLAS_V_PROMPT    = 0x00,
+    TITLE_CHROME_ATLAS_V_COPYRIGHT = 0x10,
+    TITLE_CHROME_ATLAS_V_CURSOR    = 0x20,
+    TITLE_CHROME_ATLAS_V_NEW_GAME  = 0x30,
+    TITLE_CHROME_ATLAS_V_CONTINUE  = 0x40,
+    TITLE_CHROME_ATLAS_V_OPTION    = 0x50,
+    TITLE_CHROME_ROW_WIDTH         = 256,
+    TITLE_CHROME_ROW_HEIGHT        = 16,
+};
+
+/// Chrome placement in draw-environment pixels and the visible menu-row count.
+enum {
+    TITLE_CHROME_MENU_FIRST_Y   = 0x38,
+    TITLE_CHROME_MENU_ROW_STEP  = 14,
+    TITLE_CHROME_MENU_ROW_COUNT = 3,
+    TITLE_CHROME_PROMPT_Y       = 0x40,
+    TITLE_CHROME_COPYRIGHT_Y    = 0x5C,
+};
+
 /// The title screen task's work: the PRESS START BUTTON prompt and the menu
 /// that replaces it, with the idle count that fades the screen in and out.
 typedef struct {
@@ -151,7 +172,7 @@ static const char Title_DemoStartMsg[] = "##########DEMO START\n";
 /// read.
 static const char Title_DemoCardRestoreMsg[44] = "####DEMO_CARD_RESTORE STAGE %d, SCENE %d\n\0\x22\xE1";
 
-static void Title_DrawSpriteRow(s32 y, s32 v, s32 color);
+static void _titleDrawChromeRow(s32 screenY, s32 atlasV, s32 brightness);
 
 static void Title_InitTask(Task* arg0)
 {
@@ -195,34 +216,55 @@ static void Title_InitTask(Task* arg0)
     }
 }
 
-/// One 16px chrome row. v is atlas Y in pe2img_2 (0 logo, 0x10 footer,
-/// 0x20 cursor, 0x30+ menu). clut 0x3FC0, tpage 0xE10002BC.
-static void Title_DrawSpriteRow(s32 y, s32 v, s32 color)
+/// Prepends the additive 8-bit chrome texture mode to the current ordering tag.
+///
+/// Selects VRAM (768, 256), enables dithering and disables drawing into the
+/// display area. The texture must already be loaded.
+/// Requires space for one DR_TPAGE at the word-aligned primitive cursor.
+static inline void _titlePrependChromeDrawMode(void)
 {
-    SPRT*     p;
-    DR_TPAGE* dr;
-    u8        c;
+    enum { TITLE_CHROME_TEXTURE_8_BIT = 1 };
+    DR_TPAGE* drawMode;
 
-    c                              = color;
-    p                              = gGpuPrimCursor;
-    gGpuPrimCursor                 = p + 1;
-    p->x0                          = -0x80;
-    p->w                           = 0x100;
-    p->h                           = 0x10;
-    p->clut                        = 0x3FC0;
-    GPU_PRIMITIVE_COLOR_WORD(p, 0) = (c << 16) | (c << 8) | c;
-    setlen(p, 4);
-    p->u0 = 0;
-    p->v0 = v;
-    setcode(p, 0x66);
-    p->y0 = y;
-    addPrim(gGpuCurrentOt, p);
+    drawMode       = gGpuPrimCursor;
+    gGpuPrimCursor = drawMode + 1;
+    setDrawTPage(drawMode, false, true, getTPage(TITLE_CHROME_TEXTURE_8_BIT, GPU_BLEND_ADD, 768, 256));
+    addPrim(gGpuCurrentOt, drawMode);
+}
 
-    dr             = gGpuPrimCursor;
-    gGpuPrimCursor = dr + 1;
-    setlen(dr, 1);
-    dr->code[0] = 0xE10002BC;
-    addPrim(gGpuCurrentOt, dr);
+/// Queues one centered title-chrome atlas row with additive brightness.
+///
+/// `screenY` is the top edge in draw-environment pixels; `atlasV` is a
+/// TITLE_CHROME_ATLAS_V_ origin in page-local texels. `brightness` is normally
+/// 0..TITLE_SCREEN_FADE_FULL (0 invisible, 0x80 unscaled); packing keeps its
+/// low byte. Coordinates retain the sprite's signed-halfword/unsigned-byte
+/// truncation. The chrome texture and palette must already be loaded.
+/// Requires a current ordering tag and word-aligned space for one SPRT plus
+/// one DR_TPAGE; their storage must remain live until GPU consumption.
+static void _titleDrawChromeRow(s32 screenY, s32 atlasV, s32 brightness)
+{
+    /// Modulated free-size sprite command with semi-transparency enabled.
+    enum { TITLE_CHROME_SPRITE_COMMAND = 0x66 };
+    SPRT* sprite;
+    u8    brightnessByte;
+
+    brightnessByte                      = brightness;
+    sprite                              = gGpuPrimCursor;
+    gGpuPrimCursor                      = sprite + 1;
+    sprite->x0                          = -TITLE_CHROME_ROW_WIDTH / 2;
+    sprite->w                           = TITLE_CHROME_ROW_WIDTH;
+    sprite->h                           = TITLE_CHROME_ROW_HEIGHT;
+    sprite->clut                        = getClut(0, 255);
+    GPU_PRIMITIVE_COLOR_WORD(sprite, 0) = (brightnessByte << 16) | (brightnessByte << 8) | brightnessByte;
+    setlen(sprite, (sizeof(*sprite) - sizeof(sprite->tag)) / sizeof(u_long));
+    sprite->u0 = 0;
+    sprite->v0 = atlasV;
+    setcode(sprite, TITLE_CHROME_SPRITE_COMMAND);
+    sprite->y0 = screenY;
+    addPrim(gGpuCurrentOt, sprite);
+
+    // Prepending after the sprite makes its texture mode execute first.
+    _titlePrependChromeDrawMode();
 }
 
 static void Title_MenuTask(Task* task)
@@ -303,12 +345,15 @@ static void Title_MenuTask(Task* task)
         if (work->menuFade < TITLE_SCREEN_FADE_FULL) {
             work->menuFade += TITLE_SCREEN_FADE_STEP;
         }
-        for (i = 0; i < 3; i++) {
-            Title_DrawSpriteRow(i * 0xE + 0x38, i * 0x10 + 0x30, work->menuFade);
+        for (i = 0; i < TITLE_CHROME_MENU_ROW_COUNT; i++) {
+            _titleDrawChromeRow(i * TITLE_CHROME_MENU_ROW_STEP + TITLE_CHROME_MENU_FIRST_Y,
+                                i * TITLE_CHROME_ROW_HEIGHT + TITLE_CHROME_ATLAS_V_NEW_GAME, work->menuFade);
         }
-        Title_DrawSpriteRow((work->selection - TITLE_MENU_NEW_GAME) * 0xE + 0x38, 0x20, work->menuFade);
-        Title_DrawSpriteRow(work->menuFade / 8 + 0x40, 0, TITLE_SCREEN_FADE_FULL - work->menuFade);
-        Title_DrawSpriteRow(0x5C, 0x10, TITLE_SCREEN_FADE_FULL - work->menuFade);
+        _titleDrawChromeRow((work->selection - TITLE_MENU_NEW_GAME) * TITLE_CHROME_MENU_ROW_STEP + TITLE_CHROME_MENU_FIRST_Y,
+                            TITLE_CHROME_ATLAS_V_CURSOR, work->menuFade);
+        _titleDrawChromeRow(work->menuFade / 8 + TITLE_CHROME_PROMPT_Y, TITLE_CHROME_ATLAS_V_PROMPT,
+                            TITLE_SCREEN_FADE_FULL - work->menuFade);
+        _titleDrawChromeRow(TITLE_CHROME_COPYRIGHT_Y, TITLE_CHROME_ATLAS_V_COPYRIGHT, TITLE_SCREEN_FADE_FULL - work->menuFade);
         if (work->menuFade < TITLE_SCREEN_FADE_FULL) {
             return;
         }
@@ -349,8 +394,9 @@ static void Title_MenuTask(Task* task)
         if (work->promptFade < TITLE_SCREEN_FADE_FULL) {
             work->promptFade += TITLE_SCREEN_FADE_STEP;
         }
-        Title_DrawSpriteRow(0x40 - (TITLE_SCREEN_FADE_FULL - work->promptFade) / 8, 0, work->promptFade);
-        Title_DrawSpriteRow(0x5C, 0x10, TITLE_SCREEN_FADE_FULL);
+        _titleDrawChromeRow(TITLE_CHROME_PROMPT_Y - (TITLE_SCREEN_FADE_FULL - work->promptFade) / 8,
+                            TITLE_CHROME_ATLAS_V_PROMPT, work->promptFade);
+        _titleDrawChromeRow(TITLE_CHROME_COPYRIGHT_Y, TITLE_CHROME_ATLAS_V_COPYRIGHT, TITLE_SCREEN_FADE_FULL);
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm | PAD_BUTTON_START) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
             work->idleFrames = 0;
@@ -433,9 +479,9 @@ void Title_Dispatch(Task* arg0)
     sp.funcs[arg0->state](arg0);
 }
 
-void Title_ExitTask(Task* arg0)
+void titleExitTask(Task* task)
 {
-    taskCallExit(arg0);
+    taskCallExit(task);
 }
 
 void Title_DemoStreamTask(Task* task)

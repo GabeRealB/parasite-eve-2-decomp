@@ -475,22 +475,28 @@ file 1; `Title_InitTask` then `CdCmd_EnqueueLoadFile(1, …)` (same file) and
 Chrome clut `(0, 255)` `h=6` sits on the last draw-band line and the 32-line
 CLUT gutter (`y=240…271`). Do not `isbg` a 256-high env at `y=240`.
 
-**Chrome is a sprite atlas**, not C-string labels. `Title_DrawSpriteRow`:
+**Chrome is a sprite atlas**, not C-string labels. `_titleDrawChromeRow`:
 
 | | |
 |---|---|
-| SPRT | `x0=-0x80`, `w=0x100`, `h=0x10`, `u0=0`, `v0=v`, code `0x66` (shaded + ABR) |
+| SPRT | `x0=-0x80`, `w=0x100`, `h=0x10`, `u0=0`, `v0=atlasV`, code `0x66` (shaded + semi-transparent) |
 | clut | `0x3FC0` = `GetClut(0, 255)` |
 | tpage | `0xE10002BC` — 8bpp, ABR 1, **dtd=1**, page origin `(768, 256)` |
 
-Atlas `v` (texel Y in the chrome page):
+`brightness` supplies the same byte to red, green and blue: 0 contributes
+nothing under additive blending, and 0x80 gives the unscaled texture colour.
+The draw-mode packet is prepended after the sprite so it executes first.
 
-| `v` | Row |
+Atlas `atlasV` (texel Y in the chrome page):
+
+| `atlasV` | Row |
 |---|---|
-| `0x00` | Logo |
-| `0x10` | Footer |
-| `0x20` | Cursor |
-| `0x30`… | Menu (New Game / Load Game / Option), 16px each |
+| `0x00` | PRESS START BUTTON prompt |
+| `0x10` | (c)1999,2000 SQUARE copyright |
+| `0x20` | Cursor highlight |
+| `0x30` | New Game |
+| `0x40` | Continue |
+| `0x50` | Option |
 
 ### 7.6 UI font (main EXE) and `Text_LoadClutImages`
 
