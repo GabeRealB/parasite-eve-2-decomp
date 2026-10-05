@@ -130,8 +130,8 @@ s32 LoadUi_PollDiskSwap(void)
                 break;
             }
             SndEvt_EnqueueType2(0, 8);
-            SndEvt_EnqueueType7(SOUND_BANK_TYPE_ALL_NON_AMBIENT, 0x78);
-            SndEvt_EnqueueType7(SOUND_STAGE_AMBIENT, 0x78);
+            sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, 0x78);
+            sndEvtRequestScriptStop(SOUND_STAGE_AMBIENT, 0x78);
             gDisplayState.gameMode                  = DISPLAY_GAME_MODAL;
             gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_NONE;
             if (D_8007A393 == 1) {

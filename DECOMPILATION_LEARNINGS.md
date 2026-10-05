@@ -68510,7 +68510,7 @@ first and calls once:
 
 ```c
 s32 sfx = (task->spawnArg1 == 0) ? 0x40230008 : 0x40230007;  /* also as if/else */
-SndEvt_EnqueueType7(sfx, 1);
+sndEvtRequestScriptStop(sfx, 1);
 ```
 
 Each arm is then a *single set of a constant to a pseudo immediately before the
@@ -68529,7 +68529,7 @@ bnez v0, .join
 lui  a0, 0x4023
 ori  a0, a0, 0x8
 .join:
-jal  SndEvt_EnqueueType7
+jal  sndEvtRequestScriptStop
 ```
 
 The target keeps both arms whole, so write the call in *both* of them. Each arm
@@ -68538,9 +68538,9 @@ cross-jumping merges the identical `li a1, 1; jal ...` tails back into one call:
 
 ```c
 if (arg0->spawnArg1 == 0) {
-    SndEvt_EnqueueType7(0x40230008, 1);
+    sndEvtRequestScriptStop(0x40230008, 1);
 } else {
-    SndEvt_EnqueueType7(0x40230007, 1);
+    sndEvtRequestScriptStop(0x40230007, 1);
 }
 ```
 
@@ -68554,7 +68554,7 @@ j    .join
 lui  a0, 0x4023
 ori  a0, a0, 0x7
 .join:
-jal  SndEvt_EnqueueType7
+jal  sndEvtRequestScriptStop
  li  a1, 1
 ```
 
@@ -87882,7 +87882,7 @@ s32 var_v0;
 
 That read is what costs the match. `var_v0` is defined *before* the
 `gameFlagGetNibble` call and used after it - and again after
-`SndEvt_EnqueueType7` in the tail - so its live range crosses a call,
+`sndEvtRequestScriptStop` in the tail - so its live range crosses a call,
 local-alloc cannot spend a call-clobbered register on it, and it takes `$s0`.
 `$s0` is the register the target keeps `in` (the incoming `$a2`) in, so the
 pointer is displaced to `$s1`, and the frame grows from 0x18 to 0x20 with a
@@ -87913,7 +87913,7 @@ matched family members already do (`func_neo_ark_shrine_8017D6AC`,
         return 0;
     }
     if (in->field_5 == 0) {
-        SndEvt_EnqueueType7(0x52070005, 0xF);
+        sndEvtRequestScriptStop(0x52070005, 0xF);
     }
     return 1;
 ```
@@ -89207,7 +89207,7 @@ Inputs: `base.i`
 stores plus the task spawn they feed:
 
 ```c
-SndEvt_EnqueueType7(0x80000000, 0);
+sndEvtRequestScriptStop(0x80000000, 0);
 gMcSaveData.field_6 = 0x26;
 gMcSaveData.field_8 = D_dryfield_general_store_80185709;
 gMcSaveData.field_5 = D_dryfield_general_store_8018570A;

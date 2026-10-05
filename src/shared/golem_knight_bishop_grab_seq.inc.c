@@ -180,7 +180,7 @@ void golemKnightBishopGrabSeq(Task* arg0)
                         work->step             = 6;
                         work->grabReleaseTimer = 0;
                         if (work->appearSound != 0) {
-                            SndEvt_EnqueueType7(work->appearSound, 1);
+                            sndEvtRequestScriptStop(work->appearSound, SOUND_SCRIPT_STOP_KEEP_RELEASE);
                             work->appearSound = 0;
                         }
                         work->fadeState = GOLEM_KNIGHT_BISHOP_FADE_FLICKER_START;

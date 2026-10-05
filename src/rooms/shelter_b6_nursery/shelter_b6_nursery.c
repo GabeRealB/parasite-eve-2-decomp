@@ -945,7 +945,7 @@ void func_shelter_b6_nursery_8017FBC0(Task* arg0)
             break;
         case 1:
             if (D_shelter_b6_nursery_8018797C == 0) {
-                SndEvt_EnqueueType7(SOUND_SHELTER_B6_NURSERY_AMBIENCE, 1);
+                sndEvtRequestScriptStop(SOUND_SHELTER_B6_NURSERY_AMBIENCE, SOUND_SCRIPT_STOP_KEEP_RELEASE);
                 taskKill(arg0);
                 return;
             }

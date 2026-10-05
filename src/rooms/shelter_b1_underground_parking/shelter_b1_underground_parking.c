@@ -1969,8 +1969,8 @@ void func_shelter_b1_underground_parking_80182DB4(Task* task)
 /// Keeps the room's looping ambience in step with the area the session is in:
 /// `gGameSession->location.loc.view` selects an entry of the ambience table, and
 /// state 0 starts the loop with `sndEvtRequestScriptStart`. Once
-/// `D_shelter_b1_underground_parking_8018D758` is clear, state 1 queues a
-/// `SndEvt_EnqueueType7` event for the loop and ends the task; otherwise it waits for the session's view to stop matching `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view`,
+/// `D_shelter_b1_underground_parking_8018D758` is clear, state 1 queues a stop
+/// for the loop that keeps its ADSR release settings and ends the task; otherwise it waits for the session's view to stop matching `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view`,
 /// states 2 to 4 walk the task along, and state 5 retunes the loop to the new
 /// entry with `SndEvt_EnqueueTypeA` and returns to state 1.
 void func_shelter_b1_underground_parking_80182FC8(Task* task)
@@ -1996,7 +1996,7 @@ void func_shelter_b1_underground_parking_80182FC8(Task* task)
         case 1:
             if (D_shelter_b1_underground_parking_8018D758 == 0) {
                 func_shelter_b1_underground_parking_80186890(0);
-                SndEvt_EnqueueType7(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_UNDERGROUND_PARKING, 0x0F), 1);
+                sndEvtRequestScriptStop(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_UNDERGROUND_PARKING, 0x0F), SOUND_SCRIPT_STOP_KEEP_RELEASE);
                 taskKill(task);
                 break;
             }

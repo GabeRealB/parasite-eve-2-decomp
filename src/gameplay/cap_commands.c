@@ -340,7 +340,7 @@ void Gp_EnqueueStageSnd7(s32 arg0, s32 arg1)
         arg0 &= 0xF0FFFFFF;
         arg0 |= gGameSession->location.loc.stage << 24;
     }
-    SndEvt_EnqueueType7(arg0, arg1 & 0xFFFF);
+    sndEvtRequestScriptStop(arg0, arg1);
 }
 
 void Gp_MsgAlly3F3(s32 arg0)

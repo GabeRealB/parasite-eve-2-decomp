@@ -17,7 +17,7 @@ void madChaserRecoilHeavy(Task* arg0)
         work2->animRate        = ANIMATION_RATE_ONE;
         work2->animId          = 0xC;
         work2->animRequest     = MAD_CHASER_ANIM_REQUEST_BLEND;
-        SndEvt_EnqueueType7(SOUND_MAD_CHASER_ALERT_CRY, 1);
+        sndEvtRequestScriptStop(SOUND_MAD_CHASER_ALERT_CRY, SOUND_SCRIPT_STOP_KEEP_RELEASE);
     } else {
         work2                  = (MadChaserWork*)arg0->work;
         work2->animBlendFrames = 8;

@@ -608,7 +608,7 @@ void func_actor_146000_80131E24(Task* arg0)
             }
             return;
         case 2:
-            SndEvt_EnqueueType7(SOUND_BANK_TYPE_ALL_NON_AMBIENT, 0);
+            sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
             gameFlagSetNibble(GAME_FLAG_COMPANION_1_SCHEDULE, 0);
             Gp_ApplyAreaRecs(D_dryfield_night_water_hole_80183618);
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = 0x19;

@@ -734,7 +734,7 @@ void Gp_StepCdAudioCmd(void)
                 do {
                     entry = &Gp_SndMaskTable[(u16)i_s1];
                     if (bits & entry->mask) {
-                        SndEvt_EnqueueType7(entry->bankTypeId, 0);
+                        sndEvtRequestScriptStop(entry->bankTypeId, SOUND_SCRIPT_STOP_NO_FADE);
                         SndBank_SetEnableFlags(0, entry->bankTypeId);
                     }
                     i_s1++;
@@ -892,7 +892,7 @@ static void Gp_ApplySndMasks(u16 arg0)
         do {
             entry = &Gp_SndMaskTable[(u16)i];
             if (bits & entry->mask) {
-                SndEvt_EnqueueType7(entry->bankTypeId, 0);
+                sndEvtRequestScriptStop(entry->bankTypeId, SOUND_SCRIPT_STOP_NO_FADE);
                 SndBank_SetEnableFlags(0, entry->bankTypeId);
             }
             i++;
@@ -1117,7 +1117,7 @@ void Gp_EnqueueSndCd(u8 arg0)
     s32 flag;
 
     if (gGameSession->loadedSndId != arg0) {
-        SndEvt_EnqueueType7(SOUND_BANK_TYPE_PE_ALL, 8);
+        sndEvtRequestScriptStop(SOUND_BANK_TYPE_PE_ALL, 8);
         flag      = 1;
         param1[3] = 0;
         param1[2] = 5;

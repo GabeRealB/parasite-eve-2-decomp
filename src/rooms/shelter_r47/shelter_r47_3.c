@@ -1841,7 +1841,7 @@ static void func_shelter_r47_80184658(Task* task)
                 st->panelTargetHeight = 0;
                 task->state           = 6;
                 sndEvtRequestScriptStart(SOUND_SHELTER_R47_MAP_TERMINAL_PAGE_SWITCH, 0, 0);
-                SndEvt_EnqueueType7(SOUND_SHELTER_R47_MAP_TERMINAL_LOOP, 1);
+                sndEvtRequestScriptStop(SOUND_SHELTER_R47_MAP_TERMINAL_LOOP, SOUND_SCRIPT_STOP_KEEP_RELEASE);
                 return;
             case SHELTER_R47_MAP_HOTSPOT_TITLE:
                 switch (st->page) {
@@ -1928,7 +1928,7 @@ static void func_shelter_r47_80185098(Task* task)
         taskKill(task->spawnArg2.pointer);
         Task_RequestKill(task, 0);
     }
-    SndEvt_EnqueueType7(SOUND_SHELTER_R47_MAP_TERMINAL_LOOP, 1);
+    sndEvtRequestScriptStop(SOUND_SHELTER_R47_MAP_TERMINAL_LOOP, SOUND_SCRIPT_STOP_KEEP_RELEASE);
     level = (u8)state->fade;
     fadeDrawOverlay(level, level, level, GPU_BLEND_SUBTRACT);
 }
@@ -2027,7 +2027,7 @@ static void func_shelter_r47_80185510(Task* task)
     D_80114D08 = 0xA;
     Gp_MsgPlayerWeapon(1);
     Gp_MsgPlayer3F3(1);
-    SndEvt_EnqueueType7(SOUND_SHELTER_R47_MAP_TERMINAL_LOOP, 1);
+    sndEvtRequestScriptStop(SOUND_SHELTER_R47_MAP_TERMINAL_LOOP, SOUND_SCRIPT_STOP_KEEP_RELEASE);
     Display_ReleaseRef();
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = state->savedView;
     gGameSession->eventState                                   = 0;

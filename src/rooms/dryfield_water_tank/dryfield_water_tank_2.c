@@ -962,7 +962,7 @@ void func_dryfield_water_tank_8017E568(Task* task)
         case 0:
             SetDispMask(0);
             Mem_AllocAuxWithImages(1);
-            SndEvt_EnqueueType7(SOUND_WATER_TANK_AMBIENCE, 0x3C);
+            sndEvtRequestScriptStop(SOUND_WATER_TANK_AMBIENCE, 0x3C);
             task->state = task->state + 1;
             return;
         case 1:
@@ -991,8 +991,8 @@ void func_dryfield_water_tank_8017E568(Task* task)
             if (Pad_CheckFlag800() == 0) {
                 return;
             }
-            SndEvt_EnqueueType7(SOUND_WATER_TANK_MOVIE_SFX_A, 0x1E);
-            SndEvt_EnqueueType7(SOUND_WATER_TANK_MOVIE_SFX_B, 0x1E);
+            sndEvtRequestScriptStop(SOUND_WATER_TANK_MOVIE_SFX_A, 0x1E);
+            sndEvtRequestScriptStop(SOUND_WATER_TANK_MOVIE_SFX_B, 0x1E);
             SetDispMask(0);
             CdCmd_ActivatePhase1();
             task->state = task->state + 1;

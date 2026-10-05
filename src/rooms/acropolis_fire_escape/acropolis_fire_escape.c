@@ -706,7 +706,7 @@ void func_acropolis_fire_escape_8017FB40(Task* task)
     if (prev == 0) {
         sndEvtRequestScriptStart(SOUND_ACROPOLIS_FIRE_ESCAPE_AMBIENCE, 0, (s8)(((0x64 - vol) * 127) / 100));
     } else if (vol == 0) {
-        SndEvt_EnqueueType7(SOUND_ACROPOLIS_FIRE_ESCAPE_AMBIENCE, 0x1E);
+        sndEvtRequestScriptStop(SOUND_ACROPOLIS_FIRE_ESCAPE_AMBIENCE, 0x1E);
     } else {
         SndEvt_EnqueueTypeA(SOUND_ACROPOLIS_FIRE_ESCAPE_AMBIENCE, 0, (s8)(((0x64 - vol) * 127) / 100));
     }
@@ -723,7 +723,7 @@ s32 func_acropolis_fire_escape_8017FD98(Task* task, s32 msgId, RoomEventMsg* src
 {
     *dst = *src;
     if (src->queryOnly == ROOM_EVENT_EXECUTE) {
-        SndEvt_EnqueueType7(SOUND_ACROPOLIS_FIRE_ESCAPE_AMBIENCE, 0xF);
+        sndEvtRequestScriptStop(SOUND_ACROPOLIS_FIRE_ESCAPE_AMBIENCE, 0xF);
     }
     if (src->areaId == GAME_AREA_ACROPOLIS_BRIDGE && src->queryOnly == ROOM_EVENT_EXECUTE) {
         if (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_BRIDGE_PROGRESS) == 3) {

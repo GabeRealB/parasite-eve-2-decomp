@@ -3094,7 +3094,7 @@ void Gp_TickPlayClock(Task* task)
         if (session->restartMode != GAME_SESSION_RESTART_PRESERVE_DISPLAY) {
             gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             session->deathVariant = (gRandomLcgState >> 16 & 1) + 1;
-            SndEvt_EnqueueType7(SOUND_BANK_TYPE_WEAPON_ALL, 8);
+            sndEvtRequestScriptStop(SOUND_BANK_TYPE_WEAPON_ALL, 8);
             SndBank_SetEnableFlags(0, 0x20000000);
             CdCmd_EnqueueLoadFile(9, ((u8)gGameSession->deathVariant + 0x1D) & 0xFF, 3);
         }
@@ -3115,7 +3115,7 @@ void Gp_TickPlayClock(Task* task)
                 gGameSession->restartMode  = companion;
                 gRandomLcgState            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 gGameSession->deathVariant = (gRandomLcgState >> 16 & 1) + 1;
-                SndEvt_EnqueueType7(SOUND_BANK_TYPE_WEAPON_ALL, 8);
+                sndEvtRequestScriptStop(SOUND_BANK_TYPE_WEAPON_ALL, 8);
                 SndBank_SetEnableFlags(0, 0x20000000);
                 CdCmd_EnqueueLoadFile(9, ((u8)gGameSession->deathVariant + 0x20) & 0xFF, 3);
                 companion = p->state.companionType;
@@ -3160,8 +3160,8 @@ void Gp_RestartSessionTask(Task* arg0)
         SetDispMask(0);
     }
     SndEvt_EnqueueType2(0, 8);
-    SndEvt_EnqueueType7(SOUND_BANK_TYPE_ALL_NON_AMBIENT, 0x78);
-    SndEvt_EnqueueType7(SOUND_STAGE_AMBIENT, 0x78);
+    sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, 0x78);
+    sndEvtRequestScriptStop(SOUND_STAGE_AMBIENT, 0x78);
     flag                  = 0xFF;
     arg0->spawnArg1.value = flag;
     Pad_SetCooldown(0);

@@ -66,7 +66,7 @@ void madChaserPulledLimp(Task* arg0)
         return;
     }
     if (enemy->hp <= 0) {
-        SndEvt_EnqueueType7(SOUND_MAD_CHASER_ALERT_CRY, 1);
+        sndEvtRequestScriptStop(SOUND_MAD_CHASER_ALERT_CRY, SOUND_SCRIPT_STOP_KEEP_RELEASE);
         if (work->hitReaction != MAD_CHASER_HIT_REACTION_BLAST) {
             work->busy = 1;
             if (work->animId == 8) {

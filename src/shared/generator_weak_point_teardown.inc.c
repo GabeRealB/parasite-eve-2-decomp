@@ -20,7 +20,7 @@ void generatorLifeSupportTeardown(Enemy* arg0, Task* arg1)
             worldTargetUnlinkNode(&arg0->node);
             worldCollisionUnlinkBody(&part->body);
             arg0->recs = 0;
-            SndEvt_EnqueueType7(parentWork->runningSoundId, 1);
+            sndEvtRequestScriptStop(parentWork->runningSoundId, SOUND_SCRIPT_STOP_KEEP_RELEASE);
             if (part->kind == GENERATOR_BETA) {
                 func_neo_ark_power_plant_2_8017FD88(0);
                 gameFlagSetNibble(GAME_FLAG_POWER_PLANT_2_GENERATOR_PART_DOWN, 1);

@@ -1443,7 +1443,7 @@ static void Gp_TickState1C(Task* unused)
     }
     previousBattleState = gRoomEffectState->battleState;
     if ((previousBattleState == ROOM_EFFECT_BATTLE_ENGAGED) && (gSceneCombatState.signals.bytes.battlePhase != previousBattleState)) {
-        SndEvt_EnqueueType7(0xFF0D, 1);
+        sndEvtRequestScriptStop(SOUND_COMMON(0x0D) | SOUND_SCRIPT_STOP_ALL_INSTANCES, SOUND_SCRIPT_STOP_KEEP_RELEASE);
         gRoomEffectState->rumbleCount = 0;
     }
     // Publish cancellation for one update alongside the scene actor mode.

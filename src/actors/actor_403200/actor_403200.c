@@ -4829,7 +4829,7 @@ static void func_actor_403200_8013B8C4(Task* arg0)
         sndEvtRequestScriptStart(sfx, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
     }
     if (work->stateTicks == 0xE8) {
-        SndEvt_EnqueueType7((((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4020000A, 1);
+        sndEvtRequestScriptStop((((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_CHARACTER(SOUND_BANK_GLUTTON, 0x0A), SOUND_SCRIPT_STOP_KEEP_RELEASE);
     }
 
     work->hostExposed = 1;
@@ -5049,7 +5049,7 @@ static void func_actor_403200_8013C84C(Task* arg0)
         D_actor_403200_8015F8F4.command           = 3;
         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &D_actor_403200_8015F8F4, ACTOR_COMMAND_MESSAGE_APPLY);
         gGluttonSpinnersReleased = 0;
-        SndEvt_EnqueueType7((((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4020000A, 1);
+        sndEvtRequestScriptStop((((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_CHARACTER(SOUND_BANK_GLUTTON, 0x0A), SOUND_SCRIPT_STOP_KEEP_RELEASE);
         work->animId           = 0xF;
         work->animStep         = GLUTTON_ANIM_STEP_RESTART;
         escorts                = arg0->work;
@@ -5176,7 +5176,7 @@ static void func_actor_403200_8013C84C(Task* arg0)
         D_actor_403200_8015F8E0[0] = 1;
     }
     if (work->stateTicks < 0x18) {
-        SndEvt_EnqueueType7((((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4020000A, 1);
+        sndEvtRequestScriptStop((((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_CHARACTER(SOUND_BANK_GLUTTON, 0x0A), SOUND_SCRIPT_STOP_KEEP_RELEASE);
         TASK_MESSAGE_DISPATCH_POINTER(task, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->playerAnim, 0);
         work->caughtTicks = 0;
     }
@@ -5710,7 +5710,7 @@ static void func_actor_403200_8013DC3C(Task* arg0)
 
     if (work->hostRig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
         work->state = 0xA;
-        SndEvt_EnqueueType7((((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4020000D, 1);
+        sndEvtRequestScriptStop((((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_CHARACTER(SOUND_BANK_GLUTTON, 0x0D), SOUND_SCRIPT_STOP_KEEP_RELEASE);
     }
 
     if (work->stateTicks >= 0x15) {
@@ -5859,7 +5859,7 @@ static void func_actor_403200_8013E5A8(Task* arg0)
         }
         work->viewSelector = 7;
         work->animRate     = 0x10;
-        SndEvt_EnqueueType7((((u16)obj->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4020000A, 1);
+        sndEvtRequestScriptStop((((u16)obj->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_CHARACTER(SOUND_BANK_GLUTTON, 0x0A), SOUND_SCRIPT_STOP_KEEP_RELEASE);
         work->limbPose           = 0;
         work->wallDistanceTarget = 0xFA0;
     }
@@ -5953,8 +5953,8 @@ static void func_actor_403200_8013E9C0(Task* arg0)
                                  (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
         work->limbPose           = 3;
         work->wallDistanceTarget = 0xC80;
-        SndEvt_EnqueueType7((((u16)obj->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4020000D, 1);
-        SndEvt_EnqueueType7((((u16)obj->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40200009, 1);
+        sndEvtRequestScriptStop((((u16)obj->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_CHARACTER(SOUND_BANK_GLUTTON, 0x0D), SOUND_SCRIPT_STOP_KEEP_RELEASE);
+        sndEvtRequestScriptStop((((u16)obj->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_CHARACTER(SOUND_BANK_GLUTTON, 9), SOUND_SCRIPT_STOP_KEEP_RELEASE);
         return;
     }
     SCRATCH_STACK_RESERVE_BYTES(0xC);
@@ -6204,8 +6204,8 @@ static void func_actor_403200_8013EF6C(Task* arg0)
                 }
             }
             work->wallDistanceTarget = 0xC80;
-            SndEvt_EnqueueType7((((u16)host->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4020000D, 1);
-            SndEvt_EnqueueType7((((u16)host->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40200009, 1);
+            sndEvtRequestScriptStop((((u16)host->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_CHARACTER(SOUND_BANK_GLUTTON, 0x0D), SOUND_SCRIPT_STOP_KEEP_RELEASE);
+            sndEvtRequestScriptStop((((u16)host->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_CHARACTER(SOUND_BANK_GLUTTON, 9), SOUND_SCRIPT_STOP_KEEP_RELEASE);
         }
         if (gGluttonLimbReach >= 0x191) {
             gGluttonLimbReach = (u16)gGluttonLimbReach - 0xC8;
@@ -6570,8 +6570,8 @@ after_mode:
         pendingPos           = &pending[9].origin;
         pendingPos->vy       = arg1->extra.tmd->coords->coord.t[1] - 0x64;
         pendingPos->vz       = arg1->extra.tmd->coords->coord.t[2];
-        SndEvt_EnqueueType7((((u16)arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4020000A, 1);
-        SndEvt_EnqueueType7((((u16)arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4020000D, 1);
+        sndEvtRequestScriptStop((((u16)arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_CHARACTER(SOUND_BANK_GLUTTON, 0x0A), SOUND_SCRIPT_STOP_KEEP_RELEASE);
+        sndEvtRequestScriptStop((((u16)arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_CHARACTER(SOUND_BANK_GLUTTON, 0x0D), SOUND_SCRIPT_STOP_KEEP_RELEASE);
     }
 
     if (arg0->hp <= 0) {
@@ -6960,7 +6960,7 @@ static void func_actor_403200_8014123C(Task* arg0)
     gluttonTickAnim(arg0);
     if (work->stateTicks == 8) {
         taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), ROOM_MESSAGE_ACTOR_EVENT, 0, 0);
-        SndEvt_EnqueueType7(((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4020000A, 1);
+        sndEvtRequestScriptStop(((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_CHARACTER(SOUND_BANK_GLUTTON, 0x0A), SOUND_SCRIPT_STOP_KEEP_RELEASE);
     }
 }
 

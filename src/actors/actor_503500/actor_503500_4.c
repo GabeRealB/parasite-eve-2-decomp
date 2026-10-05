@@ -1073,7 +1073,7 @@ static void func_actor_503500_8013B8D0(Task* arg0)
             }
             work->stateFrames++;
             if (work->stateFrames >= ACTOR_503500_LARGE_ORB_EMITTER_DYING_FRAMES) {
-                SndEvt_EnqueueType7(SOUND_BRAHMAN_DEATH_LOOP, 0x2D);
+                sndEvtRequestScriptStop(SOUND_BRAHMAN_DEATH_LOOP, 0x2D);
                 work->stateStep++;
             } else if (work->stateFrames == ACTOR_503500_LARGE_ORB_EMITTER_DYING_REPAINT_FRAME) {
                 side = work->side;
@@ -1447,7 +1447,7 @@ static void func_actor_503500_8013C558(Task* arg0)
             work->shrinkScale -= work->shrinkStep;
             work->shrinkStep  -= ACTOR_503500_REAR_PART_SHRINK_STEP_DECREASE;
             if (work->shrinkStep <= 0) {
-                SndEvt_EnqueueType7(SOUND_BRAHMAN_DEATH_LOOP, 0x2D);
+                sndEvtRequestScriptStop(SOUND_BRAHMAN_DEATH_LOOP, 0x2D);
                 func_actor_503500_8013611C(arg0->spawnArg1.value);
                 work->stateStep++;
             }
@@ -1892,7 +1892,7 @@ static void func_actor_503500_8013D558(Task* arg0)
                     Gp_SpawnEff(EFFECT_SHELTER_R48_DRIFT_SPRITE, coord, 0x05404600, &vec[1]);
                     Gp_SpawnEff(EFFECT_SHELTER_R48_DRIFT_SPRITE, coord, 0x06404600, &vec[2]);
                 }
-                SndEvt_EnqueueType7(SOUND_BRAHMAN_DEATH_LOOP, 0x2D);
+                sndEvtRequestScriptStop(SOUND_BRAHMAN_DEATH_LOOP, 0x2D);
                 work->stateStep++;
             }
             break;
@@ -2429,7 +2429,7 @@ static void func_actor_503500_8013E740(Task* arg0)
             }
             if (work->stateFrames++ >= ACTOR_503500_SMALL_ORB_EMITTER_DYING_FRAMES) {
                 func_actor_503500_8013611C(arg0->spawnArg1.value);
-                SndEvt_EnqueueType7(SOUND_BRAHMAN_DEATH_LOOP, 0x2D);
+                sndEvtRequestScriptStop(SOUND_BRAHMAN_DEATH_LOOP, 0x2D);
                 work->stateStep++;
             }
             break;
@@ -2837,7 +2837,7 @@ static void func_actor_503500_8013F4A4(Task* arg0)
             work->stateFrames++;
             if (work->stateFrames >= ACTOR_503500_YELLOW_FLASH_EMITTER_DYING_FRAMES) {
                 MoveImage(&D_actor_503500_8016F3A4, 0x140, 0x100);
-                SndEvt_EnqueueType7(SOUND_BRAHMAN_DEATH_LOOP, 0x2D);
+                sndEvtRequestScriptStop(SOUND_BRAHMAN_DEATH_LOOP, 0x2D);
                 func_actor_503500_8013611C(arg0->spawnArg1.value);
                 work->stateStep++;
             }
@@ -3433,7 +3433,7 @@ static void func_actor_503500_80140654(Task* arg0)
                     Gp_SetLightMode(enemy, ENEMY_COLOR_BLACK);
                     break;
                 case 40:
-                    SndEvt_EnqueueType7(SOUND_COMMON(0x0D), 1);
+                    sndEvtRequestScriptStop(SOUND_COMMON(0x0D), SOUND_SCRIPT_STOP_KEEP_RELEASE);
                     arg0->state++;
                     break;
             }
@@ -3449,7 +3449,7 @@ static void func_actor_503500_80140654(Task* arg0)
         }
     }
     if (gGameSession->eventState != 0 && gGameSession->viewReady != 0 && work->stateStep > 0) {
-        SndEvt_EnqueueType7(SOUND_COMMON(0x0D), 1);
+        sndEvtRequestScriptStop(SOUND_COMMON(0x0D), SOUND_SCRIPT_STOP_KEEP_RELEASE);
         arg0->state = 2;
     }
 }
@@ -4426,7 +4426,7 @@ static void func_actor_503500_80142980(Task* arg0)
                     Gp_SetLightMode(enemy, ENEMY_COLOR_BLACK);
                     break;
                 case 40:
-                    SndEvt_EnqueueType7(SOUND_COMMON(0x0D), 1);
+                    sndEvtRequestScriptStop(SOUND_COMMON(0x0D), SOUND_SCRIPT_STOP_KEEP_RELEASE);
                     arg0->state++;
                     break;
             }
@@ -4476,7 +4476,7 @@ static void func_actor_503500_80142980(Task* arg0)
         }
     }
     if (gGameSession->eventState != 0 && gGameSession->viewReady != 0 && work->stateStep >= 2) {
-        SndEvt_EnqueueType7(SOUND_COMMON(0x0D), 1);
+        sndEvtRequestScriptStop(SOUND_COMMON(0x0D), SOUND_SCRIPT_STOP_KEEP_RELEASE);
         arg0->state = 2;
     }
 }
@@ -4945,7 +4945,7 @@ static void func_actor_503500_80144238(Task* arg0, s32 arg1)
     func_actor_503500_80135F9C(arg0->parent, arg0->spawnArg1.value, arg1 != 0);
     work->forearmAttackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     work->handAttackBody.flags    &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-    SndEvt_EnqueueType7(SOUND_BRAHMAN_ARM_STRIKE, 1);
+    sndEvtRequestScriptStop(SOUND_BRAHMAN_ARM_STRIKE, SOUND_SCRIPT_STOP_KEEP_RELEASE);
 }
 
 void func_actor_503500_801442A8(Task* task)
@@ -5309,9 +5309,9 @@ static void func_actor_503500_80144DA8(Task* arg0)
 {
     func_actor_503500_801372AC(3);
     if (arg0->spawnArg1.value == 0) {
-        SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, 8), 1);
+        sndEvtRequestScriptStop(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, 8), SOUND_SCRIPT_STOP_KEEP_RELEASE);
     } else {
-        SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, 7), 1);
+        sndEvtRequestScriptStop(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, 7), SOUND_SCRIPT_STOP_KEEP_RELEASE);
     }
     worldCollisionUnlinkBody(&((_Actor503500LingeringShotWork*)arg0->work)->body);
     taskKill(arg0);

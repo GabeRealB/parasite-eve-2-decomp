@@ -1022,7 +1022,7 @@ static void func_actor_403600_801396F8(Task* arg0)
                 work->verticalSpeed = 0;
                 work->animId        = 4;
                 if (work->phaseFrame >= 0x46) {
-                    SndEvt_EnqueueType7(SOUND_SHELTER_B2_POD_BTM_ENEMY_CHARGE, 0x14);
+                    sndEvtRequestScriptStop(SOUND_SHELTER_B2_POD_BTM_ENEMY_CHARGE, 0x14);
                     temp_v0_12                  = arg0->work;
                     temp_v0_12->animBlendFrames = 8;
                     temp_v0_12->animRate        = 0x10;
@@ -1055,7 +1055,7 @@ static void func_actor_403600_801396F8(Task* arg0)
                 }
                 temp_v0_14 = work->phaseFrame;
                 if (temp_v0_14 == 0xA) {
-                    SndEvt_EnqueueType7(SOUND_SHELTER_B2_POD_BTM_ENEMY_CHARGE, 0x14);
+                    sndEvtRequestScriptStop(SOUND_SHELTER_B2_POD_BTM_ENEMY_CHARGE, 0x14);
                     temp_v0_14 = work->phaseFrame;
                 }
                 if (temp_v0_14 >= 0x1E) {
@@ -1484,7 +1484,7 @@ static void func_actor_403600_8013A444(Task* arg0)
             work->animId = 5U;
             temp_v0_3    = work->phaseFrame;
             if (temp_v0_3 == 0xA) {
-                SndEvt_EnqueueType7(SOUND_SHELTER_B2_POD_BTM_ENEMY_CHARGE, 0x14);
+                sndEvtRequestScriptStop(SOUND_SHELTER_B2_POD_BTM_ENEMY_CHARGE, 0x14);
             }
             if (work->phaseFrame >= 0x1E) {
                 temp_v0_4                  = arg0->work;
@@ -1807,7 +1807,7 @@ static void func_actor_403600_8013A444(Task* arg0)
                         taskSpawnFromTable(D_actor_403600_801421A0, 1, (s32)(work->projectileKind), arg0);
                     }
                     if (work->phaseFrame >= work->actionParam) {
-                        SndEvt_EnqueueType7(SOUND_SHELTER_B2_POD_BTM_ENEMY_VOLLEY, 1);
+                        sndEvtRequestScriptStop(SOUND_SHELTER_B2_POD_BTM_ENEMY_VOLLEY, SOUND_SCRIPT_STOP_KEEP_RELEASE);
                         var_v0_6 = 7;
                     block_189:
                         work->phaseFrame = 0;
@@ -2181,7 +2181,7 @@ static void func_actor_403600_8013A444(Task* arg0)
                         }
                     }
                     if (work->actionDelay >= ((s16)work->actionCounter + 0x1E)) {
-                        SndEvt_EnqueueType7(SOUND_SHELTER_B2_POD_BTM_ENEMY_RUMBLE_LOOP, 1);
+                        sndEvtRequestScriptStop(SOUND_SHELTER_B2_POD_BTM_ENEMY_RUMBLE_LOOP, SOUND_SCRIPT_STOP_KEEP_RELEASE);
                         sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_POD_BOTTOM, 0x10), 0, 0);
                         work->forwardSpeed   = 0x320U;
                         work->turnRate       = 0xA0;
@@ -2350,7 +2350,7 @@ static void func_actor_403600_8013A444(Task* arg0)
                         temp_s0_28              = (s8)worldCoordGetOriginAudioPan(temp_s0_27);
                         temp_v0_33              = worldCoordGetOriginAudioDepth(temp_s0_27);
                         sndEvtRequestScriptStart(temp_s4, temp_s0_28, (s32)(((temp_v0_33 >> 0x1F) + temp_v0_33) << 0x17) >> 0x18);
-                        SndEvt_EnqueueType7(SOUND_SHELTER_B2_POD_BTM_ENEMY_DRAIN_WINDUP, 1);
+                        sndEvtRequestScriptStop(SOUND_SHELTER_B2_POD_BTM_ENEMY_DRAIN_WINDUP, SOUND_SCRIPT_STOP_KEEP_RELEASE);
                     } else if (temp_v1_11 < 0x23) {
                         func_actor_403600_80141B60(arg0);
                     }
@@ -2983,7 +2983,7 @@ static void func_actor_403600_8013DAF4(Task* arg0, s32 arg1)
         work->step            = 0;
         work->whiteout        = 0;
         Gp_HaltPadScripts();
-        SndEvt_EnqueueType7(SOUND_SHELTER_B2_POD_BTM_ENEMY_DRAIN_WINDUP, 1);
+        sndEvtRequestScriptStop(SOUND_SHELTER_B2_POD_BTM_ENEMY_DRAIN_WINDUP, SOUND_SCRIPT_STOP_KEEP_RELEASE);
     }
 }
 
@@ -4868,7 +4868,7 @@ static void func_actor_403600_80141B24(Task* arg0)
     Actor403600Work* work = arg0->work;
 
     Gp_HaltPadScripts();
-    SndEvt_EnqueueType7(SOUND_SHELTER_B2_POD_BTM_ENEMY_DRAIN_WINDUP, 1);
+    sndEvtRequestScriptStop(SOUND_SHELTER_B2_POD_BTM_ENEMY_DRAIN_WINDUP, SOUND_SCRIPT_STOP_KEEP_RELEASE);
     work->screenDistortion = 0;
 }
 

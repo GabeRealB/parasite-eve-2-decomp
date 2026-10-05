@@ -133,7 +133,7 @@ static void func_neo_ark_power_plant_1_8017D5EC(Task* task)
                 sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_POWER_PLANT_1, 0x0A), 0, 0);
                 return;
             }
-            SndEvt_EnqueueType7(SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_POWER_PLANT_1, 0x0A), 1);
+            sndEvtRequestScriptStop(SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_POWER_PLANT_1, 0x0A), SOUND_SCRIPT_STOP_KEEP_RELEASE);
         }
     }
 }

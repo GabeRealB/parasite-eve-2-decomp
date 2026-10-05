@@ -308,7 +308,7 @@ void func_m4a1_pyke_8011E4F8(Task* arg0)
                     if (beam != NULL) {
                         beam->spawnArg1.value = spent != 0 ? 3 : 4;
                     }
-                    SndEvt_EnqueueType7(SOUND_PYKE_FIRE_TAIL, 1);
+                    sndEvtRequestScriptStop(SOUND_PYKE_FIRE_TAIL, SOUND_SCRIPT_STOP_KEEP_RELEASE);
                     playerActorPlayChildSlotsWithBlend(arg0, 0xF, 0, 2);
                 }
             } else {

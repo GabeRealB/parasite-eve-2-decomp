@@ -1129,7 +1129,7 @@ void func_acropolis_roof_garden_8017D5D4(Task* task)
     if (prev == 0) {
         sndEvtRequestScriptStart(SOUND_ACROPOLIS_ROOF_GARDEN_AMBIENCE, 0, (s8)(((0x64 - vol) * 127) / 100));
     } else if (vol == 0) {
-        SndEvt_EnqueueType7(SOUND_ACROPOLIS_ROOF_GARDEN_AMBIENCE, 0x1E);
+        sndEvtRequestScriptStop(SOUND_ACROPOLIS_ROOF_GARDEN_AMBIENCE, 0x1E);
     } else {
         SndEvt_EnqueueTypeA(SOUND_ACROPOLIS_ROOF_GARDEN_AMBIENCE, 0, (s8)(((0x64 - vol) * 127) / 100));
     }

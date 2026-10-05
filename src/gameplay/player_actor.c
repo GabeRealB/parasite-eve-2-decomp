@@ -2394,7 +2394,7 @@ void func_800FAA14(Task* arg0)
     if (gRoomEffectState->battleState != ROOM_EFFECT_BATTLE_ENGAGED && (u16)(Gp_StateC08.attachId / 10U) != ATTACHMENT_ID_HEALING_FAMILY) {
     kill:
         if (arg0->spawnArg1.value != 0) {
-            SndEvt_EnqueueType7(arg0->spawnArg1.value, 1);
+            sndEvtRequestScriptStop(arg0->spawnArg1.value, SOUND_SCRIPT_STOP_KEEP_RELEASE);
         }
         effectKillTask(mem, arg0);
         return;
@@ -2653,7 +2653,7 @@ void Gp_EffCtlTaskAE(Task* arg0)
                 goto decay;
             }
         snd7:
-            SndEvt_EnqueueType7(arg0->spawnArg1.value, 1);
+            sndEvtRequestScriptStop(arg0->spawnArg1.value, SOUND_SCRIPT_STOP_KEEP_RELEASE);
             arg0->state = 3;
             return;
         decay:
@@ -2959,7 +2959,7 @@ void Gp_EffCtlTaskAC(Task* arg0)
         goto continue_fx;
     }
 kill:
-    SndEvt_EnqueueType7(SOUND_ANTIBODY_AURA_LOOP, 1);
+    sndEvtRequestScriptStop(SOUND_ANTIBODY_AURA_LOOP, SOUND_SCRIPT_STOP_KEEP_RELEASE);
     effectKillTask(mem, arg0);
     return;
 continue_fx:
@@ -3099,7 +3099,7 @@ void Gp_EffCtlTaskA5(Task* arg0)
     coord = arg0->extra.coordBody->coord;
     if (flag != ROOM_EFFECT_CONTROL_RUNNING) {
         if (flag >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-            SndEvt_EnqueueType7(0xFF0D, 1);
+            sndEvtRequestScriptStop(SOUND_COMMON(0x0D) | SOUND_SCRIPT_STOP_ALL_INSTANCES, SOUND_SCRIPT_STOP_KEEP_RELEASE);
             gRoomEffectState->rumbleCount = 0;
             effectKillTask(mem, arg0);
         }
@@ -3142,7 +3142,7 @@ void Gp_EffCtlTaskA5(Task* arg0)
             if (mem->age >= 0x65) {
                 gRoomEffectState->rumbleCount--;
                 if (gRoomEffectState->rumbleCount <= 0) {
-                    SndEvt_EnqueueType7(0xFF0D, 1);
+                    sndEvtRequestScriptStop(SOUND_COMMON(0x0D) | SOUND_SCRIPT_STOP_ALL_INSTANCES, SOUND_SCRIPT_STOP_KEEP_RELEASE);
                     gRoomEffectState->rumbleCount = 0;
                 }
                 effectKillTask(mem, arg0);
@@ -7196,9 +7196,9 @@ void func_80106350(Task* arg0, s32 arg1, s32 arg2)
         if (actor->weaponEffectTask != NULL) {
             actor->weaponEffectTask->spawnArg1.value = -1;
         }
-        SndEvt_EnqueueType7(SOUND_HYPERVELOCITY_CHARGE_START, 0);
-        SndEvt_EnqueueType7(SOUND_HYPERVELOCITY_CHARGE_CANCEL, 0);
-        SndEvt_EnqueueType7(SOUND_HYPERVELOCITY_CHARGE_LOOP, 0);
+        sndEvtRequestScriptStop(SOUND_HYPERVELOCITY_CHARGE_START, SOUND_SCRIPT_STOP_NO_FADE);
+        sndEvtRequestScriptStop(SOUND_HYPERVELOCITY_CHARGE_CANCEL, SOUND_SCRIPT_STOP_NO_FADE);
+        sndEvtRequestScriptStop(SOUND_HYPERVELOCITY_CHARGE_LOOP, SOUND_SCRIPT_STOP_NO_FADE);
     } else if (arg1 == 0x19) {
         if (actor->weaponEffectTask != NULL) {
             if (Gp_ConsumeSlotQty(0x98, 0x100) != 0) {
@@ -7219,9 +7219,9 @@ void func_80106350(Task* arg0, s32 arg1, s32 arg2)
                 actor->weaponEffectTask->spawnArg1.value = (actor->weaponEffectTask->spawnArg1.value == 2) << 2;
             }
             if (actor->companionWork == NULL) {
-                SndEvt_EnqueueType7(SOUND_PYKE_FIRE_TAIL, 0);
+                sndEvtRequestScriptStop(SOUND_PYKE_FIRE_TAIL, SOUND_SCRIPT_STOP_NO_FADE);
             } else {
-                SndEvt_EnqueueType7(SOUND_COMPANION_PYKE_FIRE_TAIL, 0);
+                sndEvtRequestScriptStop(SOUND_COMPANION_PYKE_FIRE_TAIL, SOUND_SCRIPT_STOP_NO_FADE);
             }
         }
     }

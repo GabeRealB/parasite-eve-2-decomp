@@ -296,7 +296,7 @@ void func_hypervelocity_8011D1E8(Task* task)
                 Gp_DrawArc(coord, (s16)((u16)task->spawnArg1.value * 128), 0x60, rgb);
             }
             if (task->spawnArg1.value < 0) {
-                SndEvt_EnqueueType7(SOUND_HYPERVELOCITY_DISCHARGE, 1);
+                sndEvtRequestScriptStop(SOUND_HYPERVELOCITY_DISCHARGE, SOUND_SCRIPT_STOP_KEEP_RELEASE);
                 task->spawnArg1.value = 0;
                 task->state           = 1;
                 return;
@@ -806,7 +806,7 @@ static void func_hypervelocity_8011F374(Task* arg0)
                 count               = arg0->killCountdown - 1;
                 arg0->killCountdown = count;
                 if (count == 0) {
-                    SndEvt_EnqueueType7(SOUND_HYPERVELOCITY_CHARGE_CANCEL, 1);
+                    sndEvtRequestScriptStop(SOUND_HYPERVELOCITY_CHARGE_CANCEL, SOUND_SCRIPT_STOP_KEEP_RELEASE);
                 }
             }
             coord->coord.t[0] = 0;
@@ -948,21 +948,21 @@ void func_hypervelocity_8011F724(Task* arg0)
                     eff->spawnArg1.value = 0;
                     actor->stateTimer    = 0x15;
                     Gp_ConsumeSlotQty(0x95, 1);
-                    SndEvt_EnqueueType7(SOUND_HYPERVELOCITY_CHARGE_LOOP, 1);
+                    sndEvtRequestScriptStop(SOUND_HYPERVELOCITY_CHARGE_LOOP, SOUND_SCRIPT_STOP_KEEP_RELEASE);
                     Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x20160007, 1);
                     Gp_AnimResetChildSlots(arg0, 0xB);
                 } else if (count == 0x3C) {
                     eff->spawnArg1.value |= 0x20;
-                    SndEvt_EnqueueType7(SOUND_HYPERVELOCITY_CHARGE_START, 1);
+                    sndEvtRequestScriptStop(SOUND_HYPERVELOCITY_CHARGE_START, SOUND_SCRIPT_STOP_KEEP_RELEASE);
                     Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x20160002, 0);
                 }
-                SndEvt_EnqueueType7(SOUND_HYPERVELOCITY_CHARGE_CANCEL, 1);
+                sndEvtRequestScriptStop(SOUND_HYPERVELOCITY_CHARGE_CANCEL, SOUND_SCRIPT_STOP_KEEP_RELEASE);
             } else {
                 actor->statePhase                        = 3;
                 actor->weaponEffectTask->spawnArg1.value = -1;
                 eff->spawnArg1.value                     = 0;
-                SndEvt_EnqueueType7(SOUND_HYPERVELOCITY_CHARGE_START, 1);
-                SndEvt_EnqueueType7(SOUND_HYPERVELOCITY_CHARGE_LOOP, 1);
+                sndEvtRequestScriptStop(SOUND_HYPERVELOCITY_CHARGE_START, SOUND_SCRIPT_STOP_KEEP_RELEASE);
+                sndEvtRequestScriptStop(SOUND_HYPERVELOCITY_CHARGE_LOOP, SOUND_SCRIPT_STOP_KEEP_RELEASE);
                 Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x20160004, 0);
                 playerActorPlayChildSlotsWithBlend(arg0, 0xF, 0, 3);
             }

@@ -2231,7 +2231,7 @@ static __inline__ void set_state(Task* task, s32 state)
 /// honoured while `hitTaken` reads 1, and returns 1 when it did, so the caller
 /// skips this frame's sub-state handler.  Requests 1 and 2 run an animation
 /// through `func_actor_206100_8014EB48` (0x135, then the 0x3A0 recovery);
-/// 3 and 4 sound `SndEvt_EnqueueType7` and move the actor to state 8 and 7 at
+/// 3 and 4 stop the attack loop while keeping its ADSR release settings and move the actor to state 8 and 7 at
 /// sub-state 0.  Every arm clears `hitReaction`.
 ///
 /// The arms that only run an animation `break` to the single `return 0` after
@@ -2256,12 +2256,12 @@ static __inline__ s16 take_request(Task* task)
                 func_actor_206100_8014EB48(task, 0x3A0);
                 break;
             case ACTOR_206100_HIT_REACTION_STATUS:
-                SndEvt_EnqueueType7(SOUND_NEO_ARK_SUB_GALLERY_DIVER_ATTACK_LOOP, 1);
+                sndEvtRequestScriptStop(SOUND_NEO_ARK_SUB_GALLERY_DIVER_ATTACK_LOOP, SOUND_SCRIPT_STOP_KEEP_RELEASE);
                 work->hitReaction = ACTOR_206100_HIT_REACTION_NONE;
                 set_state(task, ACTOR_206100_FIGHT_STATE_STATUS_HOLD);
                 return 1;
             case ACTOR_206100_HIT_REACTION_BLAST:
-                SndEvt_EnqueueType7(SOUND_NEO_ARK_SUB_GALLERY_DIVER_ATTACK_LOOP, 1);
+                sndEvtRequestScriptStop(SOUND_NEO_ARK_SUB_GALLERY_DIVER_ATTACK_LOOP, SOUND_SCRIPT_STOP_KEEP_RELEASE);
                 work->hitReaction = ACTOR_206100_HIT_REACTION_NONE;
                 func_actor_206100_8014EB48(task, 0x3A0);
                 set_state(task, ACTOR_206100_FIGHT_STATE_RECOIL);
@@ -2348,14 +2348,14 @@ static void func_actor_206100_8014D14C(Task* task)
                                  (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
     }
     if (sub->stateFrames == 0x77) {
-        SndEvt_EnqueueType7(SOUND_NEO_ARK_SUB_GALLERY_DIVER_ATTACK_LOOP, 1);
+        sndEvtRequestScriptStop(SOUND_NEO_ARK_SUB_GALLERY_DIVER_ATTACK_LOOP, SOUND_SCRIPT_STOP_KEEP_RELEASE);
     }
     if (sub->stateFrames == 0x54 || sub->stateFrames == 0x5B || sub->stateFrames == 0x62 ||
         sub->stateFrames == 0x69 || sub->stateFrames == 0x70 || sub->stateFrames == 0x77) {
         sub->shotRequested = 1;
     }
     if (diverClipEnded(task)) {
-        SndEvt_EnqueueType7(SOUND_NEO_ARK_SUB_GALLERY_DIVER_ATTACK_LOOP, 1);
+        sndEvtRequestScriptStop(SOUND_NEO_ARK_SUB_GALLERY_DIVER_ATTACK_LOOP, SOUND_SCRIPT_STOP_KEEP_RELEASE);
         set_state(task, ACTOR_206100_FIGHT_STATE_DIVE);
     }
     work                = task->work;
@@ -3725,7 +3725,7 @@ static void func_actor_206100_8014FBE4(Task* task)
 
     work  = task->work;
     enemy = (Enemy*)task->spawnArg2.pointer;
-    SndEvt_EnqueueType7(SOUND_NEO_ARK_SUB_GALLERY_DIVER_ATTACK_LOOP, 1);
+    sndEvtRequestScriptStop(SOUND_NEO_ARK_SUB_GALLERY_DIVER_ATTACK_LOOP, SOUND_SCRIPT_STOP_KEEP_RELEASE);
     Gp_ApplyAreaRecs(D_neo_ark_submarine_gallery_8018590C);
     work->goalY = work->waterLevel;
     worldTargetUnlinkNode(&enemy->node);

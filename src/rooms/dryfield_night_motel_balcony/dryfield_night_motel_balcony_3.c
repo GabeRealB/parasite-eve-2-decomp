@@ -1077,7 +1077,7 @@ void func_dryfield_night_motel_balcony_8017E0C8(Task* arg0)
     Display_SpawnWithOt(D_dryfield_night_motel_balcony_80182834, 1, 0, 0);
     gDisplayState.control.flags.flipMode = DISPLAY_FLIP_TASK_ONLY;
     Gp_SpawnViewTasks();
-    SndEvt_EnqueueType7(SOUND_STAGE_AMBIENT, 1);
+    sndEvtRequestScriptStop(SOUND_STAGE_AMBIENT, SOUND_SCRIPT_STOP_KEEP_RELEASE);
     taskKill(arg0);
 }
 

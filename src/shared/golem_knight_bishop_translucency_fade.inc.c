@@ -38,11 +38,11 @@ void golemKnightBishopTranslucencyFade(Task* arg0)
             work->shadowShade      = -1;
             work->hurtBody.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             if (work->appearSound != 0) {
-                SndEvt_EnqueueType7(work->appearSound, 1);
+                sndEvtRequestScriptStop(work->appearSound, SOUND_SCRIPT_STOP_KEEP_RELEASE);
                 work->appearSound = 0;
             }
             if (work->vanishSound != 0) {
-                SndEvt_EnqueueType7(work->vanishSound, 1);
+                sndEvtRequestScriptStop(work->vanishSound, SOUND_SCRIPT_STOP_KEEP_RELEASE);
                 work->vanishSound = 0;
             }
             break;
@@ -56,7 +56,7 @@ void golemKnightBishopTranslucencyFade(Task* arg0)
                     work->translucency = 0;
                     work->fadeState    = GOLEM_KNIGHT_BISHOP_FADE_SHOWN;
                     if (work->appearSound != 0) {
-                        SndEvt_EnqueueType7(work->appearSound, 1);
+                        sndEvtRequestScriptStop(work->appearSound, SOUND_SCRIPT_STOP_KEEP_RELEASE);
                         work->appearSound = 0;
                     }
                 }
@@ -70,11 +70,11 @@ void golemKnightBishopTranslucencyFade(Task* arg0)
         case GOLEM_KNIGHT_BISHOP_FADE_SHOWN:
             work->shadowShade = 0x80;
             if (work->appearSound != 0) {
-                SndEvt_EnqueueType7(work->appearSound, 1);
+                sndEvtRequestScriptStop(work->appearSound, SOUND_SCRIPT_STOP_KEEP_RELEASE);
                 work->appearSound = 0;
             }
             if (work->vanishSound != 0) {
-                SndEvt_EnqueueType7(work->vanishSound, 1);
+                sndEvtRequestScriptStop(work->vanishSound, SOUND_SCRIPT_STOP_KEEP_RELEASE);
                 work->vanishSound = 0;
             }
             break;
@@ -88,7 +88,7 @@ void golemKnightBishopTranslucencyFade(Task* arg0)
                     obj->shading.colorBlend = 0;
                     work->fadeState         = GOLEM_KNIGHT_BISHOP_FADE_HIDDEN;
                     if (work->vanishSound != 0) {
-                        SndEvt_EnqueueType7(work->vanishSound, 1);
+                        sndEvtRequestScriptStop(work->vanishSound, SOUND_SCRIPT_STOP_KEEP_RELEASE);
                         work->vanishSound = 0;
                     }
                     snd = gGolemKnightBishopFadeCue | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);

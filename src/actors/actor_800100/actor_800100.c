@@ -2988,7 +2988,7 @@ static void func_actor_800100_80166190(Task* arg0)
                 if (actor->weaponEffectTask != NULL) {
                     actor->weaponEffectTask->spawnArg1.value = 3;
                 }
-                SndEvt_EnqueueType7(SOUND_COMPANION_PYKE_FIRE_TAIL, 1);
+                sndEvtRequestScriptStop(SOUND_COMPANION_PYKE_FIRE_TAIL, SOUND_SCRIPT_STOP_KEEP_RELEASE);
                 playerActorPlayChildSlotsWithBlend(arg0, 0xB, 0, 2);
             } else {
                 actor->actionValue = (u16)actor->actionValue - 1;

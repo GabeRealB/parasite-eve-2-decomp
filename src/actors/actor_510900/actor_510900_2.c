@@ -931,7 +931,7 @@ static void func_actor_510900_80135744(Task* arg0)
                     sndEvtRequestScriptStart(sound, pan, (s8)worldCoordGetOriginAudioDepth(coord));
                 }
                 if (work->sparkSound != 0) {
-                    SndEvt_EnqueueType7(work->sparkSound, 0);
+                    sndEvtRequestScriptStop(work->sparkSound, SOUND_SCRIPT_STOP_NO_FADE);
                     work->sparkSound = 0;
                 }
                 if (work->lethalAttackPhase == 1) {
@@ -2080,7 +2080,7 @@ static void func_actor_510900_80137FBC(Task* arg0)
             }
             if (work->animationFrame >= 0x51) {
                 if (work->sparkSound != 0) {
-                    SndEvt_EnqueueType7(work->sparkSound, 0);
+                    sndEvtRequestScriptStop(work->sparkSound, SOUND_SCRIPT_STOP_NO_FADE);
                     work->sparkSound = 0;
                 }
                 if (enemy->hp <= 0) {
@@ -2144,7 +2144,7 @@ static void func_actor_510900_80138250(Task* arg0)
             }
             if (work->animationFrame >= 0x1E) {
                 if (work->sparkSound != 0) {
-                    SndEvt_EnqueueType7(work->sparkSound, 0);
+                    sndEvtRequestScriptStop(work->sparkSound, SOUND_SCRIPT_STOP_NO_FADE);
                     work->sparkSound = 0;
                 }
                 work->animationId = 0x14;
@@ -2195,15 +2195,15 @@ static void func_actor_510900_801384C4(Task* arg0)
     }
     work->flameFrames = 0;
     if (work->sparkSound != 0) {
-        SndEvt_EnqueueType7(work->sparkSound, 0);
+        sndEvtRequestScriptStop(work->sparkSound, SOUND_SCRIPT_STOP_NO_FADE);
         work->sparkSound = 0;
     }
     if (work->flameSound != 0) {
-        SndEvt_EnqueueType7(work->flameSound, 0);
+        sndEvtRequestScriptStop(work->flameSound, SOUND_SCRIPT_STOP_NO_FADE);
         work->flameSound = 0;
     }
     if (work->eventFlameSound != 0) {
-        SndEvt_EnqueueType7(work->eventFlameSound, 0);
+        sndEvtRequestScriptStop(work->eventFlameSound, SOUND_SCRIPT_STOP_NO_FADE);
         work->eventFlameSound = 0;
     }
     ((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
@@ -3982,11 +3982,11 @@ static void func_actor_510900_8013BC80(Task* arg0)
         if (--work->flameFrames <= 0) {
             work->flameMode = ACTOR_510900_FLAME_DYING;
             if (work->flameSound != 0) {
-                SndEvt_EnqueueType7(work->flameSound, 0);
+                sndEvtRequestScriptStop(work->flameSound, SOUND_SCRIPT_STOP_NO_FADE);
                 work->flameSound = 0;
             }
             if (work->eventFlameSound != 0) {
-                SndEvt_EnqueueType7(work->eventFlameSound, 0);
+                sndEvtRequestScriptStop(work->eventFlameSound, SOUND_SCRIPT_STOP_NO_FADE);
                 work->eventFlameSound = 0;
             }
             work->weaponAttack.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);

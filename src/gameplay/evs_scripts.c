@@ -236,7 +236,7 @@ static void Gp_ScriptTaskState1(Task* arg0)
         if (D_801156CC != 0) {
             return;
         }
-        SndEvt_EnqueueType7(SOUND_BANK_TYPE_ALL_NON_AMBIENT, 0x10);
+        sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, 0x10);
         return;
     }
     if (D_801156F0 != 0) {
@@ -404,7 +404,7 @@ static void Gp_ScriptTaskState1(Task* arg0)
                 break;
 
             case EVENT_SCRIPT_OPCODE_STOP_SOUND:
-                SndEvt_EnqueueType7(work->command->operand0.value, (u16)work->command->operand1.value);
+                sndEvtRequestScriptStop(work->command->operand0.value, work->command->operand1.value);
                 break;
 
             case EVENT_SCRIPT_OPCODE_SET_FRAMEBUFFER_BLEND:
@@ -722,7 +722,7 @@ void func_800E8634(EvsCommand* arg0, s32 arg1, EvsCommand* arg2)
     D_801156CE               = 0;
     D_801156F8               = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
     D_801156EC               = gPlayerStatus.weapon;
-    SndEvt_EnqueueType7(0xFF0D, 1);
+    sndEvtRequestScriptStop(SOUND_COMMON(0x0D) | SOUND_SCRIPT_STOP_ALL_INSTANCES, SOUND_SCRIPT_STOP_KEEP_RELEASE);
     Task_Spawn(9, 7, arg1, arg0);
 }
 

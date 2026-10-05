@@ -41,7 +41,7 @@ s32 backStreetEventMsg(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out
     }
     if (in->queryOnly == ROOM_EVENT_EXECUTE) {
         if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
-            SndEvt_EnqueueType7(SOUND_BACK_STREET_AMBIENCE, 0xF);
+            sndEvtRequestScriptStop(SOUND_BACK_STREET_AMBIENCE, 0xF);
         }
     }
     return 1;

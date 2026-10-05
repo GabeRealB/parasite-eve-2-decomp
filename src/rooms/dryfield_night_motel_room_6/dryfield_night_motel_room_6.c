@@ -944,7 +944,7 @@ advance:
 
 L_case5:
     Gp_FillPlayerHpMp();
-    SndEvt_EnqueueType7(SOUND_BANK_TYPE_ALL_NON_AMBIENT, 0);
+    sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
     Gp_ApplyAreaRecs(D_dryfield_night_motel_room_6_80186270);
     if (gameFlagGetNibble(GAME_FLAG_GRAY_STALKER_DEFEATED) != 0) {
         Gp_ApplyAreaRecs(D_dryfield_night_motel_room_6_801862B0);

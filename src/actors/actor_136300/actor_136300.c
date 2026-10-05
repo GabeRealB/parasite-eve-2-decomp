@@ -1468,7 +1468,7 @@ void func_actor_136300_8013267C(Task* arg0)
             return;
         case 6:
             SetDispMask(1);
-            SndEvt_EnqueueType7(SOUND_BANK_TYPE_ALL_NON_AMBIENT, 0);
+            sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
             gameFlagSetNibble(GAME_FLAG_STORY_CHAPTER, 4);
             gameFlagSetNibble(GAME_FLAG_097, 0);
             gameFlagSetNibble(GAME_FLAG_098, 1);

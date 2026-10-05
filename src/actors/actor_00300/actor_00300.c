@@ -2341,7 +2341,7 @@ static void Actor00300_Fn02CE8(Task* arg0)
                 effect->task->state     = 3;
                 work->chargeEffect      = NULL;
                 work->chargeEffectTimer = 0;
-                SndEvt_EnqueueType7(work->chargeSound, 1);
+                sndEvtRequestScriptStop(work->chargeSound, SOUND_SCRIPT_STOP_KEEP_RELEASE);
             }
             if (enemy->hp <= 0) {
                 if (work->hitFromFront == 0) {
@@ -2878,7 +2878,7 @@ common:
                 work->chargeEffect->task->state = 3;
                 work->chargeEffect              = NULL;
                 work->chargeEffectTimer         = 0;
-                SndEvt_EnqueueType7(work->chargeSound, 1);
+                sndEvtRequestScriptStop(work->chargeSound, SOUND_SCRIPT_STOP_KEEP_RELEASE);
             }
             sound = ((((Enemy*)arg1->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40030008;
             pan   = (s8)worldCoordGetOriginAudioPan(coord);
@@ -3354,7 +3354,7 @@ static void Actor00300_Fn04D28(Task* arg0)
                 effect->task->state     = 3;
                 work->chargeEffect      = NULL;
                 work->chargeEffectTimer = 0;
-                SndEvt_EnqueueType7(work->chargeSound, 1);
+                sndEvtRequestScriptStop(work->chargeSound, SOUND_SCRIPT_STOP_KEEP_RELEASE);
             }
             if (Gp_TickObjFlag2(arg0->spawnArg2.pointer) != 0) {
                 enemy                 = arg0->spawnArg2.pointer;

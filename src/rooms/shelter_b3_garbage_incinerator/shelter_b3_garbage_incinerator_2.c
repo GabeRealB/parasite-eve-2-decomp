@@ -753,7 +753,7 @@ static s16 func_shelter_b3_garbage_incinerator_8017DF24(Task* arg0)
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             coord->coord.t[1]  += 15;
             if (D_shelter_b3_garbage_incinerator_80185B58[1].pos.vy < coord->coord.t[1] || (gGameSession->location.loc.view == 0x28 && gGameSession->skipEventIntro != 0)) {
-                SndEvt_EnqueueType7(SOUND_SHELTER_B3_INCINERATOR_LIFT_MOVE_2, 1);
+                sndEvtRequestScriptStop(SOUND_SHELTER_B3_INCINERATOR_LIFT_MOVE_2, SOUND_SCRIPT_STOP_KEEP_RELEASE);
                 sndEvtRequestScriptStart(SOUND_SHELTER_B3_INCINERATOR_LIFT_JOLT, 0, 0);
                 coord->coord.t[1] = D_shelter_b3_garbage_incinerator_80185B58[1].pos.vy;
                 work->carryState++;
@@ -895,7 +895,7 @@ void func_shelter_b3_garbage_incinerator_8017E158(Task* task)
             lift->composeStamp = GRAPHICS_COORD_DIRTY;
             lift->coord.t[1]  -= 3;
             if (lift->coord.t[1] < D_shelter_b3_garbage_incinerator_80185B58[0].pos.vy) {
-                SndEvt_EnqueueType7(SOUND_SHELTER_B3_INCINERATOR_LIFT_MOVE, 1);
+                sndEvtRequestScriptStop(SOUND_SHELTER_B3_INCINERATOR_LIFT_MOVE, SOUND_SCRIPT_STOP_KEEP_RELEASE);
                 sndEvtRequestScriptStart(SOUND_SHELTER_B3_INCINERATOR_LIFT_STOP, 0, 0);
                 lift->coord.t[1] = D_shelter_b3_garbage_incinerator_80185B58[0].pos.vy;
                 landed           = 1;

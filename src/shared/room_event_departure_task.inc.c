@@ -43,7 +43,7 @@ void roomDepartureTask(Task* arg0)
             }
             break;
         case 4:
-            SndEvt_EnqueueType7((s32)SOUND_BANK_TYPE_ALL_NON_AMBIENT, 0);
+            sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
             gDisplayState.spriteVariant                                 = 1;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = ROOM_DEPARTURE.stage;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = ROOM_DEPARTURE.area;

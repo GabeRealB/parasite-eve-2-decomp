@@ -77,7 +77,7 @@ static void func_energyball_80130B54(GfxCoord* arg0, s16 arg1, s16 arg2);
 
 /// The energy ball's sound-script ids. Only the first three are read, indexed by
 /// the cast's level: the cast starts its entry with `sndEvtRequestScriptStart` and
-/// later passes the same id to `SndEvt_EnqueueType7`.
+/// later passes the same id to `sndEvtRequestScriptStop`.
 static s32 D_energyball_8013117C[] = {
     0xE02B0002,
     0xE02E0002,
@@ -196,7 +196,7 @@ void func_energyball_8012F180(Task* arg0)
             if (gEnergyBallInFlightCount > 0) {
                 gEnergyBallInFlightCount -= 1;
                 if (gEnergyBallInFlightCount == 0) {
-                    SndEvt_EnqueueType7(D_energyball_8013117C[mem->index], 1);
+                    sndEvtRequestScriptStop(D_energyball_8013117C[mem->index], SOUND_SCRIPT_STOP_KEEP_RELEASE);
                 }
             }
             if (arg0->state != 0) {
@@ -299,7 +299,7 @@ void func_energyball_8012F180(Task* arg0)
                     if (gEnergyBallInFlightCount > 0) {
                         gEnergyBallInFlightCount -= 1;
                         if (gEnergyBallInFlightCount == 0) {
-                            SndEvt_EnqueueType7(D_energyball_8013117C[mem->index], 1);
+                            sndEvtRequestScriptStop(D_energyball_8013117C[mem->index], SOUND_SCRIPT_STOP_KEEP_RELEASE);
                         }
                     }
                     worldCollisionUnlinkBody(&work->body);
@@ -364,7 +364,7 @@ void func_energyball_8012F180(Task* arg0)
                     if (gEnergyBallInFlightCount > 0) {
                         gEnergyBallInFlightCount -= 1;
                         if (gEnergyBallInFlightCount == 0) {
-                            SndEvt_EnqueueType7(D_energyball_8013117C[mem->index], 1);
+                            sndEvtRequestScriptStop(D_energyball_8013117C[mem->index], SOUND_SCRIPT_STOP_KEEP_RELEASE);
                         }
                     }
                     worldCollisionUnlinkBody(&work->body);
@@ -410,7 +410,7 @@ void func_energyball_8012F180(Task* arg0)
                 if (gEnergyBallInFlightCount > 0) {
                     gEnergyBallInFlightCount -= 1;
                     if (gEnergyBallInFlightCount == 0) {
-                        SndEvt_EnqueueType7(D_energyball_8013117C[mem->index], 1);
+                        sndEvtRequestScriptStop(D_energyball_8013117C[mem->index], SOUND_SCRIPT_STOP_KEEP_RELEASE);
                     }
                 }
                 effectKillTask(mem, arg0);
@@ -420,7 +420,7 @@ void func_energyball_8012F180(Task* arg0)
                 if (gEnergyBallInFlightCount > 0) {
                     gEnergyBallInFlightCount -= 1;
                     if (gEnergyBallInFlightCount == 0) {
-                        SndEvt_EnqueueType7(D_energyball_8013117C[mem->index], 1);
+                        sndEvtRequestScriptStop(D_energyball_8013117C[mem->index], SOUND_SCRIPT_STOP_KEEP_RELEASE);
                     }
                 }
                 effectKillTask(mem, arg0);
@@ -438,7 +438,7 @@ void func_energyball_8012F180(Task* arg0)
                 if (gEnergyBallInFlightCount > 0) {
                     gEnergyBallInFlightCount -= 1;
                     if (gEnergyBallInFlightCount == 0) {
-                        SndEvt_EnqueueType7(D_energyball_8013117C[mem->index], 1);
+                        sndEvtRequestScriptStop(D_energyball_8013117C[mem->index], SOUND_SCRIPT_STOP_KEEP_RELEASE);
                     }
                 }
                 effectKillTask(mem, arg0);
@@ -448,7 +448,7 @@ void func_energyball_8012F180(Task* arg0)
                 if (gEnergyBallInFlightCount > 0) {
                     gEnergyBallInFlightCount -= 1;
                     if (gEnergyBallInFlightCount == 0) {
-                        SndEvt_EnqueueType7(D_energyball_8013117C[mem->index], 1);
+                        sndEvtRequestScriptStop(D_energyball_8013117C[mem->index], SOUND_SCRIPT_STOP_KEEP_RELEASE);
                     }
                 }
                 effectKillTask(mem, arg0);

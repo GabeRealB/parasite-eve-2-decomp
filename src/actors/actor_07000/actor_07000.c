@@ -1191,7 +1191,7 @@ default_body:
                 work->stateFrames  = 0;
                 work->watchFrames += 1;
                 if (work->watchFrames >= 5) {
-                    SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_SUCKLERCEPH, 3), 0);
+                    sndEvtRequestScriptStop(SOUND_CHARACTER(SOUND_BANK_SUCKLERCEPH, 3), SOUND_SCRIPT_STOP_NO_FADE);
                     soundId = ((((Enemy*)arg1->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40460005;
                     sndEvtRequestScriptStart(soundId, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
                     work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
@@ -1614,7 +1614,7 @@ static void Actor07000_Fn04274(Task* arg0, s32 arg1)
     enemy->hp -= arg1;
     func_800DA6E8(&enemy->node, arg1, 0);
     if (enemy->hp <= 0) {
-        SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_SUCKLERCEPH, 3), 0);
+        sndEvtRequestScriptStop(SOUND_CHARACTER(SOUND_BANK_SUCKLERCEPH, 3), SOUND_SCRIPT_STOP_NO_FADE);
         soundId = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40460005;
         sndEvtRequestScriptStart(soundId, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
         work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
@@ -1622,7 +1622,7 @@ static void Actor07000_Fn04274(Task* arg0, s32 arg1)
         work->deathPhase        = ACTOR_07000_SLOUCH_DEATH_PHASE_BEGIN;
         return;
     }
-    SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_SUCKLERCEPH, 3), 0);
+    sndEvtRequestScriptStop(SOUND_CHARACTER(SOUND_BANK_SUCKLERCEPH, 3), SOUND_SCRIPT_STOP_NO_FADE);
     soundId = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40460004;
     sndEvtRequestScriptStart(soundId, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
     state = work->state;
@@ -1738,7 +1738,7 @@ static void Actor07000_Fn04468(Enemy* arg0, Task* arg1)
                     }
                     break;
                 case ACTOR_07000_SLOUCH_DEATH_PHASE_END:
-                    SndEvt_EnqueueType7(SOUND_COMMON(0x0D), 1);
+                    sndEvtRequestScriptStop(SOUND_COMMON(0x0D), SOUND_SCRIPT_STOP_KEEP_RELEASE);
                     obj->flags   = TMD_OBJECT_SKIP_ACTIVE_DRAW;
                     part->parent = coord;
                     arg1->state  = 3;

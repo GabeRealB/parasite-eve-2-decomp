@@ -647,8 +647,8 @@ s32 func_shelter_1f_heliport_801800A0(Task* task, s32 msgId, RoomEventMsg* src, 
     *dst = *src;
     func_map_neo_ark_80179B14(src, dst);
     if (src->areaId == GAME_AREA_SHELTER_1F_TENT && src->queryOnly == ROOM_EVENT_EXECUTE) {
-        SndEvt_EnqueueType7(SOUND_SHELTER_1F_HELIPORT_AMBIENCE_1, 1);
-        SndEvt_EnqueueType7(SOUND_SHELTER_1F_HELIPORT_AMBIENCE_2, 1);
+        sndEvtRequestScriptStop(SOUND_SHELTER_1F_HELIPORT_AMBIENCE_1, SOUND_SCRIPT_STOP_KEEP_RELEASE);
+        sndEvtRequestScriptStop(SOUND_SHELTER_1F_HELIPORT_AMBIENCE_2, SOUND_SCRIPT_STOP_KEEP_RELEASE);
     }
     if (src->areaId == GAME_AREA_SHELTER_1F_BULWARK) {
         if (gameFlagGetNibble(GAME_FLAG_HELIPORT_TALK_PROGRESS) == 0 && gGameSession->location.loc.variant == 1) {
@@ -662,8 +662,8 @@ s32 func_shelter_1f_heliport_801800A0(Task* task, s32 msgId, RoomEventMsg* src, 
         event.flagId   = 0;
         event.fade     = 1;
         if (src->queryOnly == ROOM_EVENT_EXECUTE) {
-            SndEvt_EnqueueType7(SOUND_SHELTER_1F_HELIPORT_AMBIENCE_1, 1);
-            SndEvt_EnqueueType7(SOUND_SHELTER_1F_HELIPORT_AMBIENCE_2, 1);
+            sndEvtRequestScriptStop(SOUND_SHELTER_1F_HELIPORT_AMBIENCE_1, SOUND_SCRIPT_STOP_KEEP_RELEASE);
+            sndEvtRequestScriptStop(SOUND_SHELTER_1F_HELIPORT_AMBIENCE_2, SOUND_SCRIPT_STOP_KEEP_RELEASE);
         }
         return _shelter1fHeliportStartEvent(dst, &event);
     }

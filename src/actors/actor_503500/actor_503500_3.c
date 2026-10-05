@@ -1055,7 +1055,7 @@ static void func_actor_503500_80134408(Task* arg0)
                 ((GameActor*)(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->work)->mode != GAME_ACTOR_MODE_SCRIPTED &&
                 gPlayerStatus.hp > 0 && Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL && gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
                 taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), ROOM_MESSAGE_ACTOR_EVENT, 0, 0);
-                SndEvt_EnqueueType7(SOUND_BRAHMAN_DEATH_LOOP, 0x2D);
+                sndEvtRequestScriptStop(SOUND_BRAHMAN_DEATH_LOOP, 0x2D);
                 work->stateStep = work->stateStep + 1;
             }
             break;
@@ -1092,7 +1092,7 @@ static void func_actor_503500_801345F4(Task* arg0)
                             &D_actor_503500_8016EF58[(u16)((gRandomLcgState >> 16) % 7)]);
             }
             if (work->stateFrames == 0x78) {
-                SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, 0x12), 0x3C);
+                sndEvtRequestScriptStop(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, 0x12), 0x3C);
             }
             if (work->stateFrames == 2) {
                 coord = &arg0->extra.tmd->coords[3];
@@ -2868,7 +2868,7 @@ static void func_actor_503500_80137678(Task* arg0)
                     Gp_SetLightMode(enemy, ENEMY_COLOR_BLACK);
                     break;
                 case ACTOR_503500_PINK_FLASH_EMITTER_DYING_END_FRAME:
-                    SndEvt_EnqueueType7(SOUND_COMMON(0x0D), 1);
+                    sndEvtRequestScriptStop(SOUND_COMMON(0x0D), SOUND_SCRIPT_STOP_KEEP_RELEASE);
                     arg0->state++;
                     break;
             }
@@ -2919,7 +2919,7 @@ static void func_actor_503500_80137678(Task* arg0)
         }
     }
     if (gGameSession->eventState != 0 && gGameSession->viewReady != 0 && work->stateStep >= 3) {
-        SndEvt_EnqueueType7(SOUND_COMMON(0x0D), 1);
+        sndEvtRequestScriptStop(SOUND_COMMON(0x0D), SOUND_SCRIPT_STOP_KEEP_RELEASE);
         arg0->state = 2;
     }
 }
@@ -3605,7 +3605,7 @@ static void func_actor_503500_80139014(Task* arg0)
                     Gp_SetLightMode(enemy, ENEMY_COLOR_BLACK);
                     break;
                 case 40:
-                    SndEvt_EnqueueType7(SOUND_COMMON(0x0D), 1);
+                    sndEvtRequestScriptStop(SOUND_COMMON(0x0D), SOUND_SCRIPT_STOP_KEEP_RELEASE);
                     arg0->state++;
                     break;
             }
@@ -3621,7 +3621,7 @@ static void func_actor_503500_80139014(Task* arg0)
         }
     }
     if (gGameSession->eventState != 0 && gGameSession->viewReady != 0 && work->stateStep > 0) {
-        SndEvt_EnqueueType7(SOUND_COMMON(0x0D), 1);
+        sndEvtRequestScriptStop(SOUND_COMMON(0x0D), SOUND_SCRIPT_STOP_KEEP_RELEASE);
         arg0->state = 2;
     }
 }

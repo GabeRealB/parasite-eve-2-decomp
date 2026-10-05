@@ -796,7 +796,7 @@ static void func_shelter_r47_80180324(Task* task)
         case 1:
             if (gGameSession->eventState != task->killCountdown) {
                 if (gGameSession->eventState != 0) {
-                    SndEvt_EnqueueType7(SOUND_SHELTER_R47_AMBIENCE, 0x3C);
+                    sndEvtRequestScriptStop(SOUND_SHELTER_R47_AMBIENCE, 0x3C);
                 } else {
                     switch (gGameSession->location.loc.view) {
                         case 2:
@@ -823,7 +823,7 @@ static void func_shelter_r47_80180324(Task* task)
                             }
                             break;
                         case 5:
-                            SndEvt_EnqueueType7(SOUND_SHELTER_R47_AMBIENCE, 0x3C);
+                            sndEvtRequestScriptStop(SOUND_SHELTER_R47_AMBIENCE, 0x3C);
                             break;
                     }
                 }

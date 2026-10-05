@@ -4345,7 +4345,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
             return;
         case 15:
             if (CdCmd_IsIdle() != 0) {
-                SndEvt_EnqueueType7(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PLAZA, 2), 0xB4);
+                sndEvtRequestScriptStop(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PLAZA, 2), 0xB4);
                 taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_END_SCRIPTED, 1, 0);
                 Task_RequestKill(task, 0);
             }
@@ -4493,7 +4493,7 @@ static void func_acropolis_plaza_8017F770(u16 fadeIn, u16 fadeOut, u16 hold, u16
         return;
     }
     if (*state != 0) {
-        SndEvt_EnqueueType7(sndId, 0);
+        sndEvtRequestScriptStop(sndId, SOUND_SCRIPT_STOP_NO_FADE);
         *state = 0;
     }
 }
@@ -4781,7 +4781,7 @@ void func_acropolis_plaza_80180054(Task* task)
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = 1;
             gDisplayState.spriteVariant                                 = 1;
             Gp_EnqueueHeldWeaponCd();
-            SndEvt_EnqueueType7(SOUND_BANK_TYPE_ALL_NON_AMBIENT, 0);
+            sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
             Task_Spawn(0, 0x11, 0, 0);
             q->blockGamePause = 0;
             taskKill(task);

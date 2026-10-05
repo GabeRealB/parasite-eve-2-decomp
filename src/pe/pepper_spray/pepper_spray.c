@@ -67,7 +67,7 @@ void func_pepper_spray_8012EF34(Task* arg0)
     mem       = arg0->spawnArg2.pointer;
     coord     = arg0->extra.coordBody->coord;
     if ((Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) || (gRoomEffectState->peEffectControl != ROOM_EFFECT_CONTROL_RUNNING)) {
-        SndEvt_EnqueueType7(SOUND_PEPPER_SPRAY_USE, 1);
+        sndEvtRequestScriptStop(SOUND_PEPPER_SPRAY_USE, SOUND_SCRIPT_STOP_KEEP_RELEASE);
         effectKillTask(mem, arg0);
         return;
     }

@@ -1353,7 +1353,7 @@ void func_acropolis_helicopter_landing_pad_8017DFCC(Task* arg0)
             arg0->state = 2;
             return;
         case 2:
-            SndEvt_EnqueueType7(SOUND_BANK_TYPE_ALL_NON_AMBIENT, 0);
+            sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent         = 1;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = GAME_STAGE_ACROPOLIS;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = GAME_AREA_MIST_R18;
@@ -1496,7 +1496,7 @@ s32 func_acropolis_helicopter_landing_pad_8017E3F0(Task* task, s32 msgId, RoomEv
     if (src->areaId == GAME_AREA_ACROPOLIS_FIRE_ESCAPE) {
         if (D_acropolis_helicopter_landing_pad_80184D9C == 0) {
             if (src->queryOnly == ROOM_EVENT_EXECUTE) {
-                SndEvt_EnqueueType7(-1, 0x1E);
+                sndEvtRequestScriptStop(-1, 0x1E);
             }
             return 1;
         }

@@ -2552,7 +2552,7 @@ static void func_actor_401300_80134F90(Task* arg0)
             enemy->hp -= s->damage;
             func_800DA6E8(&enemy->node, s->damage, 0);
             if (work->state == ACTOR_401300_STATE_DORMANT_SCRIPTED) {
-                SndEvt_EnqueueType7(SOUND_ACROPOLIS_PATIO_STRANGER_DORMANT, 1);
+                sndEvtRequestScriptStop(SOUND_ACROPOLIS_PATIO_STRANGER_DORMANT, SOUND_SCRIPT_STOP_KEEP_RELEASE);
             }
             if ((work->state == ACTOR_401300_STATE_GRAB_PULL || work->state == ACTOR_401300_STATE_GRAB_STRIKE || work->state == ACTOR_401300_STATE_GRAB_DONE) && config->hp > 0 && work->playerHeld == 1) {
                 taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
@@ -3834,7 +3834,7 @@ static void func_actor_401300_801397F8(Task* arg0)
     d->vy              = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
     d->vz              = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
     if (!overlayOutOfRange(d, 3000)) {
-        SndEvt_EnqueueType7(SOUND_ACROPOLIS_PATIO_STRANGER_DORMANT, 1);
+        sndEvtRequestScriptStop(SOUND_ACROPOLIS_PATIO_STRANGER_DORMANT, SOUND_SCRIPT_STOP_KEEP_RELEASE);
         Gp_ArmStateF0(1);
         work->state = ACTOR_401300_STATE_ALERT;
     }

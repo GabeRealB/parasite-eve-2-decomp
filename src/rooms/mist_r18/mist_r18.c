@@ -1617,7 +1617,7 @@ void func_mist_r18_8017EB48(void)
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = 3;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = 3;
     gDisplayState.spriteVariant                                 = 1;
-    SndEvt_EnqueueType7(SOUND_BANK_TYPE_ALL_NON_AMBIENT, 0);
+    sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
     Task_Spawn(0, 0x11, 0, 0);
 }
 

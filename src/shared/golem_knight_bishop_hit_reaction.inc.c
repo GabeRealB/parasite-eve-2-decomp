@@ -23,11 +23,11 @@ void golemKnightBishopPickHitReaction(Task* arg0, s32 arg1)
             state = 5;
         }
         if (work->appearSound != 0) {
-            SndEvt_EnqueueType7(work->appearSound, 1);
+            sndEvtRequestScriptStop(work->appearSound, SOUND_SCRIPT_STOP_KEEP_RELEASE);
             work->appearSound = 0;
         }
         if (work->vanishSound != 0) {
-            SndEvt_EnqueueType7(work->vanishSound, 1);
+            sndEvtRequestScriptStop(work->vanishSound, SOUND_SCRIPT_STOP_KEEP_RELEASE);
             work->vanishSound = 0;
         }
     } else if (max = enemy->param->hpMax, hp < max / 10) {

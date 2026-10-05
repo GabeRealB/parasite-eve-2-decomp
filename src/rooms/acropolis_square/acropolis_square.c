@@ -1566,7 +1566,7 @@ void func_acropolis_square_80181AEC(Task* task)
                     D_acropolis_square_8018382C = 0;
                 }
                 taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM_EFFECT), 0xC1F, 0, 0);
-                SndEvt_EnqueueType7(SOUND_ACROPOLIS_SQUARE_SIREN, 1);
+                sndEvtRequestScriptStop(SOUND_ACROPOLIS_SQUARE_SIREN, SOUND_SCRIPT_STOP_KEEP_RELEASE);
                 taskKill(task);
                 return;
             }

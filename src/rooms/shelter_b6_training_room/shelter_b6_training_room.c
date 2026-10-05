@@ -545,7 +545,7 @@ void func_shelter_b6_training_room_8017DB70(void)
 {
     Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
     Gp_PulseState1C();
-    SndEvt_EnqueueType7(SOUND_BANK_TYPE_ALL_NON_AMBIENT, 1);
+    sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_KEEP_RELEASE);
 }
 
 static void func_shelter_b6_training_room_8017DBB0(s32 arg0)

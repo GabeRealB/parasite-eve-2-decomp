@@ -173,7 +173,7 @@ static void Task_AllocIdMap(Task* task)
                 gStageMusicRow + (gGameSession->location.loc.area * (temp_s4 & 0xFF));
             if ((selection->table[gGameSession->location.loc.area * (temp_s4 & 0xFF)].sequenceId != STAGE_MUSIC_AMBIENT_AREA) &&
                 (gStageAmbientOn != 0)) {
-                SndEvt_EnqueueType7(SOUND_STAGE_AMBIENT, 0x1E);
+                sndEvtRequestScriptStop(SOUND_STAGE_AMBIENT, 0x1E);
                 gStageAmbientOn = 0;
             }
         }
@@ -356,7 +356,7 @@ void Stage_RequestSpecialFlag(s32 unused)
     if (base[product].sequenceId == STAGE_MUSIC_AMBIENT_AREA) {
         if (gameFlagGetNibble(GAME_FLAG_STAGE_AMBIENT_MUTED) == 1) {
             one = 1;
-            SndEvt_EnqueueType7(0x60010000 | one, 0x1E);
+            sndEvtRequestScriptStop(SOUND_ID(6, 1, 0) | one, 0x1E);
             gStageAmbientOn = 0;
         } else if (gStageAmbientOn == 0) {
             one = 1;

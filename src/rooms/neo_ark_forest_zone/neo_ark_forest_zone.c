@@ -142,7 +142,7 @@ s32 func_neo_ark_forest_zone_8017D7E4(Task* arg0, s32 arg1, RoomEventMsg* in, Ro
     *out = *in;
     func_map_neo_ark_80179B14(in, out);
     if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-        SndEvt_EnqueueType7(SOUND_NEO_ARK_FOREST_ZONE_AMBIENCE, 0x3C);
+        sndEvtRequestScriptStop(SOUND_NEO_ARK_FOREST_ZONE_AMBIENCE, 0x3C);
     }
     if (in->areaId != GAME_AREA_NEO_ARK_WOODLAND_PATH) {
         return 1;

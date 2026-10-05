@@ -1037,12 +1037,12 @@ void func_shelter_b1_sterilization_room_80180F74(Task* task)
                     return;
                 }
                 if (task->spawnArg1.value == 0) {
-                    SndEvt_EnqueueType7(SOUND_SHELTER_B1_STERILIZATION_PLAYER_HURT, 1);
+                    sndEvtRequestScriptStop(SOUND_SHELTER_B1_STERILIZATION_PLAYER_HURT, SOUND_SCRIPT_STOP_KEEP_RELEASE);
                     task->spawnArg1.value = 1;
                 }
                 return;
             }
-            SndEvt_EnqueueType7(SOUND_SHELTER_B1_STERILIZATION_PLAYER_HURT, 1);
+            sndEvtRequestScriptStop(SOUND_SHELTER_B1_STERILIZATION_PLAYER_HURT, SOUND_SCRIPT_STOP_KEEP_RELEASE);
         default:
             taskKill(task);
             break;

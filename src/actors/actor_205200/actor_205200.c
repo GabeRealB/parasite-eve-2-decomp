@@ -376,7 +376,7 @@ static void func_actor_205200_8014A958(Enemy* enemy, Task* task)
             work->state = ACTOR_205200_CTRL_STOPPED;
             if (work->stopRequested != 0) {
                 if (work->sustainedSoundId != 0) {
-                    SndEvt_EnqueueType7(work->sustainedSoundId, 1);
+                    sndEvtRequestScriptStop(work->sustainedSoundId, SOUND_SCRIPT_STOP_KEEP_RELEASE);
                     work->sustainedSoundId = 0;
                 }
             }
@@ -417,7 +417,7 @@ static void func_actor_205200_8014A958(Enemy* enemy, Task* task)
                     D_actor_205200_8015B458.state = wavePhase;
                     work->pendingWavePhase        = 0;
                 }
-                SndEvt_EnqueueType7(work->sustainedSoundId, 1);
+                sndEvtRequestScriptStop(work->sustainedSoundId, SOUND_SCRIPT_STOP_KEEP_RELEASE);
                 work->state = ACTOR_205200_CTRL_STOPPED;
                 // `state` is 2 here, which is also the B6 corridor's site.
                 if (work->site == state) {

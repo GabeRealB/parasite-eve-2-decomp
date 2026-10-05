@@ -736,7 +736,7 @@ static void func_dryfield_gas_station_801803C0(Task* task)
                 msg.rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
                 TASK_MESSAGE_DISPATCH_POINTER(cur->player, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg.rec, 0);
             }
-            SndEvt_EnqueueType7(SOUND_GAS_STATION_CUTSCENE_LOOP, 0x3C);
+            sndEvtRequestScriptStop(SOUND_GAS_STATION_CUTSCENE_LOOP, 0x3C);
             SetDispMask(1);
             break;
         case DRYFIELD_GAS_STATION_CUTSCENE_COMMAND_SPAWN_FADE_IN:
@@ -855,7 +855,7 @@ void func_dryfield_gas_station_80180A60(void)
         script.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
         TASK_MESSAGE_DISPATCH_POINTER(work2->player, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &script, 0);
     }
-    SndEvt_EnqueueType7(SOUND_GAS_STATION_CUTSCENE_LOOP, 0x3C);
+    sndEvtRequestScriptStop(SOUND_GAS_STATION_CUTSCENE_LOOP, 0x3C);
     SetDispMask(1);
 }
 

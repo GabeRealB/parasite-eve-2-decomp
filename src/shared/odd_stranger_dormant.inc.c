@@ -49,7 +49,7 @@ void oddStrangerDormant(Task* arg0)
     d->vy              = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
     d->vz              = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
     if (!oddStrangerOutOfRange(d, work->noticeRadius)) {
-        SndEvt_EnqueueType7(SOUND_ACROPOLIS_PATIO_STRANGER_DORMANT, 1);
+        sndEvtRequestScriptStop(SOUND_ACROPOLIS_PATIO_STRANGER_DORMANT, SOUND_SCRIPT_STOP_KEEP_RELEASE);
         Gp_ArmStateF0(1);
         work->state = ODD_STRANGER_STATE_ALERT;
     }

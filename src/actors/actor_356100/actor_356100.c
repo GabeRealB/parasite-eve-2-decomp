@@ -2206,7 +2206,7 @@ static void func_actor_356100_80167818(Task* arg0)
     d                  = &delta;
     Actor356100_PositionDelta(coord, d);
     if (!overlayOutOfRange(d, 3000)) {
-        SndEvt_EnqueueType7(SOUND_ACROPOLIS_PATIO_STRANGER_DORMANT, 1);
+        sndEvtRequestScriptStop(SOUND_ACROPOLIS_PATIO_STRANGER_DORMANT, SOUND_SCRIPT_STOP_KEEP_RELEASE);
         work->state = ACTOR_356100_STATE_ALERT;
     }
 }

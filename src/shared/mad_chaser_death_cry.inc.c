@@ -13,7 +13,7 @@ void madChaserDeathCry(Task* arg0)
     enemy = (Enemy*)arg0->spawnArg2.pointer;
     model = arg0->extra.tmd;
     work  = (MadChaserWork*)arg0->work;
-    SndEvt_EnqueueType7(((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x402C0002, 0xF);
+    sndEvtRequestScriptStop(((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_CHARACTER(SOUND_BANK_MAD_CHASER, 2), 0xF);
     madChaserSetAlertHold(arg0, 0);
     worldTargetUnlinkNode(&enemy->node);
     if (work->hitReaction == MAD_CHASER_HIT_REACTION_BLAST) {

@@ -75,7 +75,43 @@ void SndEvt_EnqueueTypeD(void);
 
 void SndEvt_EnqueueTypeE(void);
 
-void SndEvt_EnqueueType7(s32 arg0, s32 arg1);
+/// Stop controls that do not request a fade for a running sound-script entry.
+enum {
+    SOUND_SCRIPT_STOP_NO_FADE      = 0, // Stop with the stored release policy; normally SPU release rate 5
+    SOUND_SCRIPT_STOP_KEEP_RELEASE = 1  // Keep the voices' existing ADSR release settings
+};
+
+/// OR into a sound id with a nonzero entry to stop every instance, retaining its bank and entry bytes.
+enum { SOUND_SCRIPT_STOP_ALL_INSTANCES = 0xFF00 };
+
+/// Queues a deferred stop for matching sound-script instances.
+///
+/// `soundSelector` uses the bank, instance and entry encoding of a script-start
+/// id. A nonzero entry byte selects that exact id; an instance byte of 255
+/// selects every instance of the entry. A zero entry byte compares the entire
+/// resolved selector with the bank-type nibble, so use a type-only selector
+/// or `SOUND_BANK_TYPE_ALL_NON_AMBIENT` to stop all types except ambient type 6.
+/// Selector 0 stops common-bank scripts; start-request no-op values are not
+/// special here. Type-1 selectors are remapped to the loaded bank at queue
+/// time, requiring a valid image in any matching bank slot during this call.
+/// A remapped type-only selector contains bank bits and no longer matches
+/// a type stop.
+///
+/// For a running entry, `SOUND_SCRIPT_STOP_NO_FADE` stops without a fade,
+/// retaining any earlier keep-release request; otherwise release uses SPU
+/// rate 5. `SOUND_SCRIPT_STOP_KEEP_RELEASE` stops without a fade and keeps
+/// the voices' ADSR release settings. Controls 2..65535 fade before stopping,
+/// with gain steps of 65535 / stopControl per audio update, including extra
+/// PAL updates; integer rounding can extend the fade. A zero master level
+/// bypasses the gain ramp. Bank-type stops ignore fade durations and replace
+/// the release policy: only control 1 keeps the ADSR settings.
+///
+/// Entry selectors cancel a pending start and stop muted or unmuting scripts
+/// without changing their release policy or fading. They leave scripts already
+/// fading or releasing alone. The selector and control are copied into the
+/// event; no caller storage is retained. A full event pool silently drops the
+/// request. Stops do not check bank loading or the bank-type enable gate.
+void sndEvtRequestScriptStop(s32 soundSelector, u16 stopControl);
 
 void SndEvt_EnqueueType8(s32 arg0);
 

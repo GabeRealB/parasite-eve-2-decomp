@@ -1144,7 +1144,7 @@ void func_shelter_b2_laboratory_8017FEB8(Task* arg0)
             break;
         case 1:
             if (D_shelter_b2_laboratory_801864B8 == 0) {
-                SndEvt_EnqueueType7(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_LABORATORY, 0x0E), 1);
+                sndEvtRequestScriptStop(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_LABORATORY, 0x0E), SOUND_SCRIPT_STOP_KEEP_RELEASE);
                 taskKill(arg0);
                 return;
             }

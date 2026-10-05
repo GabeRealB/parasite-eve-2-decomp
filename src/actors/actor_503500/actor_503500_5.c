@@ -1425,7 +1425,7 @@ static void func_actor_503500_80145480(Task* arg0)
     TmdObject*                       ext;
 
     func_actor_503500_801372AC(6);
-    SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, 0x0B), 1);
+    sndEvtRequestScriptStop(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, 0x0B), SOUND_SCRIPT_STOP_KEEP_RELEASE);
     ext                   = arg0->extra.tmd;
     (ext->coords)->parent = &gGfxViewCoord;
     work                  = arg0->work;
@@ -1582,7 +1582,7 @@ static void func_actor_503500_80145950(Task* arg0)
     _Actor503500YellowFlashAttackWork* work;
     TmdObject*                         ext;
 
-    SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, 0x0C), 1);
+    sndEvtRequestScriptStop(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, 0x0C), SOUND_SCRIPT_STOP_KEEP_RELEASE);
     func_actor_503500_801372AC(6);
     ext                   = arg0->extra.tmd;
     (ext->coords)->parent = &gGfxViewCoord;
@@ -1719,7 +1719,7 @@ static void func_actor_503500_80145C50(Task* arg0)
                 return;
             }
             work->body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-            SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, 0x0F), 1);
+            sndEvtRequestScriptStop(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, 0x0F), SOUND_SCRIPT_STOP_KEEP_RELEASE);
         next:
             work->phaseFrames = 0;
             work->phase++;
@@ -1760,9 +1760,9 @@ static void func_actor_503500_80145E98(Task* arg0)
     TmdObject*                         ext;
 
     func_actor_503500_801372AC(8);
-    SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, 0x0E), 1);
-    SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, 0x13), 1);
-    SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, 0x0F), 1);
+    sndEvtRequestScriptStop(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, 0x0E), SOUND_SCRIPT_STOP_KEEP_RELEASE);
+    sndEvtRequestScriptStop(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, 0x13), SOUND_SCRIPT_STOP_KEEP_RELEASE);
+    sndEvtRequestScriptStop(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, 0x0F), SOUND_SCRIPT_STOP_KEEP_RELEASE);
     ext                   = arg0->extra.tmd;
     (ext->coords)->parent = &gGfxViewCoord;
     work                  = arg0->work;

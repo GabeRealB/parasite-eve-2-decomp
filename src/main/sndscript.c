@@ -546,11 +546,11 @@ void Snd_InitFromStage(s32 arg0, s32 arg1)
     SndVoice_ClearActive();
     arg0 = arg0 & 0xFF;
     SndEvt_EnqueueTypeF();
-    SndEvt_EnqueueType7(SOUND_AREA_BANK_ALL, 1);
-    SndEvt_EnqueueType7(SOUND_SCRIPT_REQUEST_TYPE_1, 1);
-    SndEvt_EnqueueType7(0xFF0D, 1);
-    SndEvt_EnqueueType7(SOUND_BANK_TYPE_WEAPON_ALL, 1);
-    SndEvt_EnqueueType7(SOUND_BANK_TYPE_PE_ALL, 1);
+    sndEvtRequestScriptStop(SOUND_AREA_BANK_ALL, SOUND_SCRIPT_STOP_KEEP_RELEASE);
+    sndEvtRequestScriptStop(SOUND_SCRIPT_REQUEST_TYPE_1, SOUND_SCRIPT_STOP_KEEP_RELEASE);
+    sndEvtRequestScriptStop(SOUND_COMMON(0x0D) | SOUND_SCRIPT_STOP_ALL_INSTANCES, SOUND_SCRIPT_STOP_KEEP_RELEASE);
+    sndEvtRequestScriptStop(SOUND_BANK_TYPE_WEAPON_ALL, SOUND_SCRIPT_STOP_KEEP_RELEASE);
+    sndEvtRequestScriptStop(SOUND_BANK_TYPE_PE_ALL, SOUND_SCRIPT_STOP_KEEP_RELEASE);
     arg1       = arg1 & 0xFF;
     D_80082120 = arg0;
     D_80082136 = arg1;
@@ -1010,7 +1010,7 @@ s32 sndEvtRequestScriptStart(s32 soundId, s32 panOffset, s32 attenuation)
     return originalSoundId;
 }
 
-void SndEvt_EnqueueType7(s32 arg0, s32 arg1)
+void sndEvtRequestScriptStop(s32 soundSelector, u16 stopControl)
 {
     SndEvt*           event;
     SndEvtScriptArgs* args;
@@ -1019,8 +1019,8 @@ void SndEvt_EnqueueType7(s32 arg0, s32 arg1)
     if (event != NULL) {
         event->command    = SOUND_EVENT_SCRIPT_STOP;
         args              = &event->args.script;
-        args->soundId     = _sndScriptRemapType1Id(arg0);
-        args->stopControl = arg1;
+        args->soundId     = _sndScriptRemapType1Id(soundSelector);
+        args->stopControl = stopControl;
         sndEvtEnqueue(event);
     }
 }

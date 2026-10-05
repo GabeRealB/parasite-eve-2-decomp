@@ -1603,7 +1603,7 @@ static void func_acropolis_fountain_8017E15C(Task* task, s32 view)
             frame = queue->movieFrame;
             if (frame >= ACROPOLIS_FOUNTAIN_WATER_LOOP_FRAME_FADE) {
                 if (D_acropolis_fountain_8017E7F8 != 0) {
-                    SndEvt_EnqueueType7(SOUND_ACROPOLIS_FOUNTAIN_WATER_LOOP, ACROPOLIS_FOUNTAIN_WATER_LOOP_FADE_TICKS);
+                    sndEvtRequestScriptStop(SOUND_ACROPOLIS_FOUNTAIN_WATER_LOOP, ACROPOLIS_FOUNTAIN_WATER_LOOP_FADE_TICKS);
                     D_acropolis_fountain_8017E7F8 = 0;
                 }
             } else if ((u16)(frame - ACROPOLIS_FOUNTAIN_WATER_LOOP_FRAME_FIRST) < ACROPOLIS_FOUNTAIN_WATER_LOOP_WINDOW) {

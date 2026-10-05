@@ -4115,7 +4115,7 @@ static s32 func_actor_403100_80133928(void)
             return 0;
         }
         if (state == 2) {
-            SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 0xA);
+            sndEvtRequestScriptStop(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 0xA);
             func_actor_403100_8013D24C();
             D_actor_403100_80155808->hitReaction = 0;
             D_actor_403100_80155808->state       = 8;
@@ -4123,7 +4123,7 @@ static s32 func_actor_403100_80133928(void)
             return 1;
         }
         if (state == 3) {
-            SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 0xA);
+            sndEvtRequestScriptStop(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 0xA);
             func_actor_403100_8013D24C();
             D_actor_403100_80155808->hitReaction = 0;
             D_actor_403100_80155808->state       = 0xA;
@@ -4243,7 +4243,7 @@ static void func_actor_403100_80133C94(Task* task)
 {
     s32 i;
 
-    SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 0xA);
+    sndEvtRequestScriptStop(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 0xA);
     worldTargetUnlinkNode(&D_actor_403100_8015580C->node);
     D_actor_403100_80155810 = 0;
     for (i = 0; i < ARRAY_SIZE(D_actor_403100_80155814); i++) {
@@ -4252,7 +4252,7 @@ static void func_actor_403100_80133C94(Task* task)
             worldCollisionUnlinkBody(&D_actor_403100_80155814[i].body);
         }
     }
-    SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 1);
+    sndEvtRequestScriptStop(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), SOUND_SCRIPT_STOP_KEEP_RELEASE);
     D_actor_403100_80155808->animationBlendFrames = 0x20;
     D_actor_403100_80155808->animationRate        = ANIMATION_RATE_ONE;
     D_actor_403100_80155808->animationId          = 0x11;
@@ -4732,7 +4732,7 @@ static void func_actor_403100_8013539C(Task* arg0)
             worldCollisionUnlinkBody(&D_actor_403100_80155814[i].body);
         }
     }
-    SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 1);
+    sndEvtRequestScriptStop(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), SOUND_SCRIPT_STOP_KEEP_RELEASE);
     coord->coord.t[0]                         = -0x74E;
     coord->coord.t[2]                         = -0x1C51;
     coord->coord.t[1]                         = 0;
@@ -4784,7 +4784,7 @@ static void func_actor_403100_801355D4(Task* arg0)
             worldCollisionUnlinkBody(&D_actor_403100_80155814[i].body);
         }
     }
-    SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 1);
+    sndEvtRequestScriptStop(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), SOUND_SCRIPT_STOP_KEEP_RELEASE);
     coord->coord.t[0]                         = -0x74E;
     coord->coord.t[2]                         = -0x1770;
     coord->coord.t[1]                         = 0;
@@ -4815,7 +4815,7 @@ static void func_actor_403100_801356F4(Task* arg0)
         sndEvtRequestScriptStart(sound, pan, (s8)(worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[4]) / 2));
     }
     if ((s16)D_actor_403100_80155808->stateFrames == 0x32) {
-        SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 0xA);
+        sndEvtRequestScriptStop(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 0xA);
     }
     if (D_actor_403100_80155808->stateFrames < 0x33U) {
         first.vy  = -0x1F0;
@@ -4871,7 +4871,7 @@ static void func_actor_403100_801359DC(Task* arg0)
             worldCollisionUnlinkBody(&D_actor_403100_80155814[i].body);
         }
     }
-    SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 1);
+    sndEvtRequestScriptStop(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), SOUND_SCRIPT_STOP_KEEP_RELEASE);
     joint->coord.t[0]      = -0x807;
     coord->coord.t[0]      = -0x384;
     work                   = D_actor_403100_80155808;
@@ -4932,7 +4932,7 @@ static void func_actor_403100_80135C00(Task* arg0)
         sndEvtRequestScriptStart(sound, (s32)pan, (s8)(depth / 2));
     }
     if ((s16)D_actor_403100_80155808->stateFrames == 0x22) {
-        SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 0xA);
+        sndEvtRequestScriptStop(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 0xA);
     }
     if ((s16)D_actor_403100_80155808->stateFrames == 0x28) {
         func_dryfield_night_motel_balcony_8018257C();
@@ -4942,7 +4942,7 @@ static void func_actor_403100_80135C00(Task* arg0)
         sndEvtRequestScriptStart(sound_2, (s32)pan_2, (s8)(depth_2 / 2));
     }
     if ((s16)D_actor_403100_80155808->stateFrames == 0x30) {
-        SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 0xA);
+        sndEvtRequestScriptStop(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 0xA);
     }
     if ((s16)D_actor_403100_80155808->stateFrames == 0x3C) {
         func_dryfield_night_motel_balcony_8018257C();
@@ -4952,7 +4952,7 @@ static void func_actor_403100_80135C00(Task* arg0)
         sndEvtRequestScriptStart(sound_3, (s32)pan_3, (s8)(depth_3 / 2));
     }
     if ((s16)D_actor_403100_80155808->stateFrames == 0x3F) {
-        SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 0xA);
+        sndEvtRequestScriptStop(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 0xA);
     }
     if ((s16)D_actor_403100_80155808->stateFrames == 0x5A) {
         func_dryfield_night_motel_balcony_8018257C();
@@ -4962,7 +4962,7 @@ static void func_actor_403100_80135C00(Task* arg0)
         sndEvtRequestScriptStart(sound_4, (s32)pan_4, (s8)(depth_4 / 2));
     }
     if ((s16)D_actor_403100_80155808->stateFrames == 0x5E) {
-        SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 0xA);
+        sndEvtRequestScriptStop(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 0xA);
     }
     if (Actor403100_TestFlags12C()) {
         D_actor_403100_80155808->animationRate    = ANIMATION_RATE_ONE;
@@ -4994,7 +4994,7 @@ static void func_actor_403100_80135F30(Task* arg0)
         sndEvtRequestScriptStart(sound, (s32)pan, (s8)(depth / 2));
     }
     if ((s16)D_actor_403100_80155808->stateFrames == 0xE) {
-        SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 0xA);
+        sndEvtRequestScriptStop(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 0xA);
     }
     if ((s16)D_actor_403100_80155808->stateFrames == 0x26) {
         sound2 = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F0002;
@@ -5547,7 +5547,7 @@ static void func_actor_403100_8013712C(Task* arg0)
            and the ROM keeps the two apart. */
         body = &(PARENT_OF(body, _Actor403100Flame, body) + 1)->body;
     }
-    SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 1);
+    sndEvtRequestScriptStop(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), SOUND_SCRIPT_STOP_KEEP_RELEASE);
     D_actor_403100_80155808->subState += 1;
 }
 /// Steps of the behaviour mode `func_actor_403100_8013DAC4`, indexed by `subState`.
@@ -5900,7 +5900,7 @@ static void func_actor_403100_80137F4C(Task* task)
         body = &(PARENT_OF(body, _Actor403100Flame, body) + 1)->body;
         flame++;
     }
-    SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 1);
+    sndEvtRequestScriptStop(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), SOUND_SCRIPT_STOP_KEEP_RELEASE);
     D_actor_403100_80155808->animationRate    = ANIMATION_RATE_ONE;
     D_actor_403100_80155808->animationId      = 7;
     D_actor_403100_80155808->animationRequest = ACTOR_403100_ANIMATION_REQUEST_RESET;
@@ -5967,7 +5967,7 @@ static void func_actor_403100_80138048(Task* arg0)
         sndEvtRequestScriptStart(sound, (s32)pan, (s8)(worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[4]) / 2));
     }
     if ((s16)D_actor_403100_80155808->stateFrames == 0x7C) {
-        SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 0xA);
+        sndEvtRequestScriptStop(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 0xA);
     }
     if ((u32)(D_actor_403100_80155808->stateFrames - 0x34) < 0x48U) {
         offset.vy   = -0x1F0;
@@ -6509,7 +6509,7 @@ static void func_actor_403100_801395EC(Task* arg0)
             i   += 1;
             flame++;
         } while (i < ARRAY_SIZE(D_actor_403100_80155814));
-        SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 1);
+        sndEvtRequestScriptStop(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), SOUND_SCRIPT_STOP_KEEP_RELEASE);
     }
 }
 static void func_actor_403100_80139818(Task* arg0)
@@ -6570,7 +6570,7 @@ static void func_actor_403100_80139818(Task* arg0)
         sndEvtRequestScriptStart(sound, pan, (s8)(depth / 2));
     }
     if ((s16)D_actor_403100_80155808->stateFrames == 0x7C) {
-        SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 0xA);
+        sndEvtRequestScriptStop(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 0xA);
     }
     if ((u32)(D_actor_403100_80155808->stateFrames - 0x34) < 0x48U) {
         position.vy = -0x1F0;
@@ -6845,7 +6845,7 @@ static void func_actor_403100_8013A4C8(Task* arg0)
         }
         body = &(PARENT_OF(body, _Actor403100Flame, body) + 1)->body;
     }
-    SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 1);
+    sndEvtRequestScriptStop(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), SOUND_SCRIPT_STOP_KEEP_RELEASE);
     D_actor_403100_80155808->animationRate    = ANIMATION_RATE_ONE;
     D_actor_403100_80155808->animationId      = 7;
     D_actor_403100_80155808->animationRequest = ACTOR_403100_ANIMATION_REQUEST_RESET;
@@ -6882,7 +6882,7 @@ static void func_actor_403100_8013A5AC(Task* arg0)
         sndEvtRequestScriptStart(sound, pan, (s8)(depth / 2));
     }
     if ((s16)D_actor_403100_80155808->stateFrames == 0x7C) {
-        SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 0xA);
+        sndEvtRequestScriptStop(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 0xA);
     }
     if ((u32)(D_actor_403100_80155808->stateFrames - 0x34) < 0x48U) {
         offset.vy   = -0x1F0;
@@ -7135,7 +7135,7 @@ static void func_actor_403100_8013B128(Task* arg0)
         }
         body = &(PARENT_OF(body, _Actor403100Flame, body) + 1)->body;
     }
-    SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 1);
+    sndEvtRequestScriptStop(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), SOUND_SCRIPT_STOP_KEEP_RELEASE);
     D_actor_403100_80155808->savedView                         = gGameSession->location.loc.view;
     D_actor_403100_80155808->savedRootMatrix                   = coords->coord;
     D_actor_403100_80155808->savedRotation                     = D_actor_403100_80155808->rotation;
@@ -8206,7 +8206,7 @@ static void func_actor_403100_8013D8F4(Task* arg0)
     gGameSession->suppressViewTriggers          = 0;
     D_actor_403100_8015580C->reactionFlags      = 0;
     Gp_SetLightMode(arg0->spawnArg2.pointer, ENEMY_COLOR_DEFAULT);
-    SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 0xA);
+    sndEvtRequestScriptStop(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 0xA);
     worldTargetUnlinkNode(&D_actor_403100_8015580C->node);
     func_800E8614(D_actor_335800_80165FC0, 0);
     arg0->state                       = 1;
@@ -8855,7 +8855,7 @@ static void func_actor_403100_8013F230(Task* task)
 static void func_actor_403100_8013F270(Task* task)
 {
     D_actor_403100_80155808->stateFrames = 0;
-    SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 0xA);
+    sndEvtRequestScriptStop(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 0xA);
     D_actor_403100_80155808->animationBlendFrames = 0x14;
     D_actor_403100_80155808->animationRate        = 0x1C;
     D_actor_403100_80155808->animationId          = 3;
@@ -8942,7 +8942,7 @@ static void func_actor_403100_8013F4E0(Task* task)
 static void func_actor_403100_8013F520(Task* task)
 {
     D_actor_403100_80155808->stateFrames = 0;
-    SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 0xA);
+    sndEvtRequestScriptStop(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 0xA);
     D_actor_403100_80155808->animationBlendFrames = 0x14;
     D_actor_403100_80155808->animationRate        = 0x1C;
     D_actor_403100_80155808->animationId          = 3;

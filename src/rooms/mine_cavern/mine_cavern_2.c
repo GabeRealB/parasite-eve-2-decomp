@@ -2697,7 +2697,7 @@ static void func_mine_cavern_801825C8(s16 arg0)
                 case 16:
                 case 17:
                 case 20:
-                    SndEvt_EnqueueType7(SOUND_MINE_CAVERN_GLOW_POINT_0, 1);
+                    sndEvtRequestScriptStop(SOUND_MINE_CAVERN_GLOW_POINT_0, SOUND_SCRIPT_STOP_KEEP_RELEASE);
                     break;
                 case 3:
                     sndEvtRequestScriptStart(SOUND_MINE_CAVERN_GLOW_POINT_0, (s8)worldCoordGetOriginAudioPan(&coord), 0x59);
@@ -2776,7 +2776,7 @@ static void func_mine_cavern_801825C8(s16 arg0)
                 case 23:
                 case 24:
                 case 25:
-                    SndEvt_EnqueueType7(SOUND_MINE_CAVERN_GLOW_POINT_1, 1);
+                    sndEvtRequestScriptStop(SOUND_MINE_CAVERN_GLOW_POINT_1, SOUND_SCRIPT_STOP_KEEP_RELEASE);
                     break;
             }
             break;
@@ -2831,7 +2831,7 @@ static void func_mine_cavern_801825C8(s16 arg0)
                 case 20:
                 case 22:
                 default:
-                    SndEvt_EnqueueType7(SOUND_MINE_CAVERN_GLOW_POINT_2, 1);
+                    sndEvtRequestScriptStop(SOUND_MINE_CAVERN_GLOW_POINT_2, SOUND_SCRIPT_STOP_KEEP_RELEASE);
                     break;
             }
             break;
@@ -2874,7 +2874,7 @@ static void func_mine_cavern_801825C8(s16 arg0)
                 case 24:
                 case 25:
                 default:
-                    SndEvt_EnqueueType7(SOUND_MINE_CAVERN_GLOW_POINT_3, 1);
+                    sndEvtRequestScriptStop(SOUND_MINE_CAVERN_GLOW_POINT_3, SOUND_SCRIPT_STOP_KEEP_RELEASE);
                     break;
             }
             break;

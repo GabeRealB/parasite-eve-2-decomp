@@ -57,7 +57,7 @@ void flareEffectTask(Task* arg0)
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
     if ((state->effectPhase == ATTACHMENT_EFFECT_HELD) || (gRoomEffectState->peEffectControl != ROOM_EFFECT_CONTROL_RUNNING)) {
-        SndEvt_EnqueueType7(SOUND_FLARE_USE, 1);
+        sndEvtRequestScriptStop(SOUND_FLARE_USE, SOUND_SCRIPT_STOP_KEEP_RELEASE);
         effectKillTask(mem, arg0);
         return;
     }

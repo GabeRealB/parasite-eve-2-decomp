@@ -1418,7 +1418,7 @@ static void func_actor_105100_8013345C(Task* arg0, Enemy* arg1)
                 resetRnd          = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
                 gRandomLcgState   = resetRnd;
                 work->timer       = (resetRnd >> 16) & 0x3F;
-                SndEvt_EnqueueType7(work->fireballSound, 1);
+                sndEvtRequestScriptStop(work->fireballSound, SOUND_SCRIPT_STOP_KEEP_RELEASE);
                 work->fireballSound = 0;
             }
             break;
@@ -1517,7 +1517,7 @@ static void func_actor_105100_801336B8(Task* arg0, Enemy* arg1)
             if (--work->timer <= 0 || work->childCount == 0) {
                 work->actionStep = 3;
                 work->anim       = ACTOR_105100_ANIM_CAST_END;
-                SndEvt_EnqueueType7(work->beamSound, 1);
+                sndEvtRequestScriptStop(work->beamSound, SOUND_SCRIPT_STOP_KEEP_RELEASE);
                 work->beamSound = 0;
             }
             break;
@@ -1591,7 +1591,7 @@ static void func_actor_105100_80133A14(Task* arg0, Enemy* arg1)
             if (--work->timer <= 0) {
                 work->actionStep = 2;
                 work->anim       = ACTOR_105100_ANIM_STRIKE;
-                SndEvt_EnqueueType7(work->chargeSound, 1);
+                sndEvtRequestScriptStop(work->chargeSound, SOUND_SCRIPT_STOP_KEEP_RELEASE);
                 work->chargeSound = 0;
                 snd               = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4033000B;
                 sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(self), (s8)worldCoordGetOriginAudioDepth(self));
@@ -2711,17 +2711,17 @@ static void func_actor_105100_801362A0(Task* arg0)
 
     snd = work->fireballSound;
     if (snd != 0) {
-        SndEvt_EnqueueType7(snd, 1);
+        sndEvtRequestScriptStop(snd, SOUND_SCRIPT_STOP_KEEP_RELEASE);
         work->fireballSound = 0;
     }
     snd = work->beamSound;
     if (snd != 0) {
-        SndEvt_EnqueueType7(snd, 1);
+        sndEvtRequestScriptStop(snd, SOUND_SCRIPT_STOP_KEEP_RELEASE);
         work->beamSound = 0;
     }
     snd = work->chargeSound;
     if (snd != 0) {
-        SndEvt_EnqueueType7(snd, 1);
+        sndEvtRequestScriptStop(snd, SOUND_SCRIPT_STOP_KEEP_RELEASE);
         work->chargeSound = 0;
     }
 }
@@ -2758,17 +2758,17 @@ static void func_actor_105100_80136318(Task* arg0)
 
     snd = sndWork->fireballSound;
     if (snd != 0) {
-        SndEvt_EnqueueType7(snd, 1);
+        sndEvtRequestScriptStop(snd, SOUND_SCRIPT_STOP_KEEP_RELEASE);
         sndWork->fireballSound = 0;
     }
     snd = sndWork->beamSound;
     if (snd != 0) {
-        SndEvt_EnqueueType7(snd, 1);
+        sndEvtRequestScriptStop(snd, SOUND_SCRIPT_STOP_KEEP_RELEASE);
         sndWork->beamSound = 0;
     }
     snd = sndWork->chargeSound;
     if (snd != 0) {
-        SndEvt_EnqueueType7(snd, 1);
+        sndEvtRequestScriptStop(snd, SOUND_SCRIPT_STOP_KEEP_RELEASE);
         sndWork->chargeSound = 0;
     }
 

@@ -1393,7 +1393,7 @@ void func_dryfield_breezeway_8017FF7C(Task* task)
         }
     } else if (gameFlagGetNibble(GAME_FLAG_BREEZEWAY_FIRST_EVENT_SEEN) == 1) {
         if (eff->step != 0) {
-            SndEvt_EnqueueType7(SOUND_BREEZEWAY_EFFECT_LOOP, 0);
+            sndEvtRequestScriptStop(SOUND_BREEZEWAY_EFFECT_LOOP, SOUND_SCRIPT_STOP_NO_FADE);
             eff->step = 0;
         }
         if (eff->scale != 0) {

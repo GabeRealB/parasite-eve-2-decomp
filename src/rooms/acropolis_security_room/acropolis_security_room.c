@@ -3136,7 +3136,7 @@ L_case0:
 
 L_case1:
     if (queue->movieFrame >= 0x46 && work->fadeStarted == 0) {
-        SndEvt_EnqueueType7(SOUND_ACROPOLIS_SECURITY_ROOM_MOVIE_LOOP, 0x14);
+        sndEvtRequestScriptStop(SOUND_ACROPOLIS_SECURITY_ROOM_MOVIE_LOOP, 0x14);
         work->fadeStarted = 1;
     }
     if (CdCmd_IsIdle() & 0xFFFF) {
@@ -3146,7 +3146,7 @@ L_case1:
         return;
     }
     if (work->fadeStarted == 0) {
-        SndEvt_EnqueueType7(SOUND_ACROPOLIS_SECURITY_ROOM_MOVIE_LOOP, 0x14);
+        sndEvtRequestScriptStop(SOUND_ACROPOLIS_SECURITY_ROOM_MOVIE_LOOP, 0x14);
     }
 advance:
     task->state = task->state + 1;

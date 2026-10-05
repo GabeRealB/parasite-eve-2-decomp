@@ -653,7 +653,7 @@ s32 func_actor_323300_80162360(Task* arg0, s32 arg1, ActorCommand* msg, ActorTra
                 taskKill(w->strangerTask);
             }
             w->loopSoundEnabled = 0;
-            SndEvt_EnqueueType7(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_TOILET, 6), 1);
+            sndEvtRequestScriptStop(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_TOILET, 6), SOUND_SCRIPT_STOP_KEEP_RELEASE);
             break;
         case 12:
             w->walk.motion       = ACTOR_WALK_MOTION_WALKING;

@@ -1566,7 +1566,7 @@ static void Actor01900_Fn02A50(Task* arg0)
                 Gp_SpawnEff(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[2], (s32)(effect), NULL);
             }
             if (work->state == ACTOR_01900_STATE_DORMANT_SCRIPTED) {
-                SndEvt_EnqueueType7(SOUND_ACROPOLIS_PATIO_STRANGER_DORMANT, 1);
+                sndEvtRequestScriptStop(SOUND_ACROPOLIS_PATIO_STRANGER_DORMANT, SOUND_SCRIPT_STOP_KEEP_RELEASE);
             }
             if ((work->state == ACTOR_01900_STATE_UNUSED_0C || work->state == ACTOR_01900_STATE_UNUSED_0D) && config->hp > 0 && work->playerHeld == 1) {
                 taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
@@ -2674,7 +2674,7 @@ static void Actor01900_Fn06B4C(Task* arg0)
     d->vy                  = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
     d->vz                  = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
     if (!overlayOutOfRange(d, work->noticeRange)) {
-        SndEvt_EnqueueType7(SOUND_ACROPOLIS_PATIO_STRANGER_DORMANT, 1);
+        sndEvtRequestScriptStop(SOUND_ACROPOLIS_PATIO_STRANGER_DORMANT, SOUND_SCRIPT_STOP_KEEP_RELEASE);
         if (Actor01900_ArmIfPlayerLevel(arg0) == 1) {
             work->state = ACTOR_01900_STATE_ALERT;
         }

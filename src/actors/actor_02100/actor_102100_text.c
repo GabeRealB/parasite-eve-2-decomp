@@ -826,7 +826,7 @@ static void Actor02100_Fn004C4(Task* arg0)
     work->velocity.vx = 0;                                                                                                \
     work->velocity.vy = 0;                                                                                                \
     work->velocity.vz = 0;                                                                                                \
-    SndEvt_EnqueueType7(work->loopSound, 1);                                                                              \
+    sndEvtRequestScriptStop(work->loopSound, SOUND_SCRIPT_STOP_KEEP_RELEASE);                                             \
     work->loopSoundKind = ACTOR_02100_LOOP_SOUND_NONE;                                                                    \
     sound               = (((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40150008); \
     {                                                                                                                     \
@@ -1059,7 +1059,7 @@ static void Actor02100_Fn00DCC(Task* arg0)
         work->velocity.vy = 0;
         work->velocity.vz = 0;
         if (work->loopSoundKind == ACTOR_02100_LOOP_SOUND_PATROL) {
-            SndEvt_EnqueueType7(work->loopSound, 1);
+            sndEvtRequestScriptStop(work->loopSound, SOUND_SCRIPT_STOP_KEEP_RELEASE);
             work->loopSoundKind = ACTOR_02100_LOOP_SOUND_NONE;
         }
     }
@@ -1407,7 +1407,7 @@ static void Actor02100_Fn016EC(Task* arg0)
                     work->step       = ACTOR_02100_BEAM_STEP_RECOVER;
                     work->stepFrames = 0;
                     if (work->loopSoundKind == ACTOR_02100_LOOP_SOUND_CHARGE) {
-                        SndEvt_EnqueueType7(work->loopSound, 1);
+                        sndEvtRequestScriptStop(work->loopSound, SOUND_SCRIPT_STOP_KEEP_RELEASE);
                         work->loopSoundKind = ACTOR_02100_LOOP_SOUND_NONE;
                     }
                     break;
@@ -1440,7 +1440,7 @@ static void Actor02100_Fn016EC(Task* arg0)
 
         case ACTOR_02100_BEAM_STEP_LOCK:
             if (work->stepFrames == state) {
-                SndEvt_EnqueueType7(work->loopSound, 1);
+                sndEvtRequestScriptStop(work->loopSound, SOUND_SCRIPT_STOP_KEEP_RELEASE);
                 work->loopSoundKind = ACTOR_02100_LOOP_SOUND_NONE;
             }
             Actor02100_BuildVectors(arg0, work);
@@ -1616,7 +1616,7 @@ static void Actor02100_Fn01FF0(Task* arg0)
                     work->step       = ACTOR_02100_GUN_STEP_RECOVER;
                     work->stepFrames = 0;
                     if (work->loopSoundKind == ACTOR_02100_LOOP_SOUND_CHARGE) {
-                        SndEvt_EnqueueType7(work->loopSound, 1);
+                        sndEvtRequestScriptStop(work->loopSound, SOUND_SCRIPT_STOP_KEEP_RELEASE);
                         work->loopSoundKind = ACTOR_02100_LOOP_SOUND_NONE;
                     }
                     break;
@@ -1649,7 +1649,7 @@ static void Actor02100_Fn01FF0(Task* arg0)
 
         case ACTOR_02100_GUN_STEP_LOCK:
             if (work->stepFrames == 1) {
-                SndEvt_EnqueueType7(work->loopSound, 1);
+                sndEvtRequestScriptStop(work->loopSound, SOUND_SCRIPT_STOP_KEEP_RELEASE);
                 work->loopSoundKind = ACTOR_02100_LOOP_SOUND_NONE;
             }
             if (++work->stepFrames >= 4) {
@@ -2066,7 +2066,7 @@ case0:
     work->step       = ACTOR_02100_DEATH_STEP_WAIT;
     work->stepFrames = 0x3C;
     if (work->loopSoundKind != ACTOR_02100_LOOP_SOUND_NONE) {
-        SndEvt_EnqueueType7(work->loopSound, 1);
+        sndEvtRequestScriptStop(work->loopSound, SOUND_SCRIPT_STOP_KEEP_RELEASE);
     }
     goto epilogue;
 case1:

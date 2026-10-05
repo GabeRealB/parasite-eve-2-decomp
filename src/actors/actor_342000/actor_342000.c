@@ -1044,7 +1044,7 @@ static void func_actor_342000_80162F28(Task* arg0)
             }
             return;
         case ACTOR_342000_STAGING_DOORS_SHUT:
-            SndEvt_EnqueueType7(SOUND_SHELTER_B3_INCINERATOR_DOORS_CLOSING, 1);
+            sndEvtRequestScriptStop(SOUND_SHELTER_B3_INCINERATOR_DOORS_CLOSING, SOUND_SCRIPT_STOP_KEEP_RELEASE);
             sndEvtRequestScriptStart(SOUND_SHELTER_B3_INCINERATOR_DOORS_SHUT, 0, 0);
             taskReparent(arg0, Gp_SpawnScript18(D_actor_444000_80144A74, D_actor_444000_80144A7C));
             actor444000GluttonSetShakeLevel(3);
@@ -1124,7 +1124,7 @@ void func_actor_342000_8016382C(Task* arg0)
     }
     if (gGameSession->enemyCullZone != 0) {
         if (work->doorSoundPlaying != 0) {
-            SndEvt_EnqueueType7(SOUND_SHELTER_B3_INCINERATOR_DOORS_CLOSING, 0xA);
+            sndEvtRequestScriptStop(SOUND_SHELTER_B3_INCINERATOR_DOORS_CLOSING, 0xA);
             work->doorSoundPlaying = 0;
         }
         return;

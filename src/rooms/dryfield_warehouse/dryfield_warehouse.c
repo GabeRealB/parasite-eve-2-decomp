@@ -206,7 +206,7 @@ void func_dryfield_warehouse_8017D5E8(Task* task)
     if (D_dryfield_warehouse_801821B8 == 0) {
         sndEvtRequestScriptStart(SOUND_WAREHOUSE_AMBIENCE, 0, (s8)(((0x64 - vol) * 0x7F) / 100));
     } else if (vol == 0) {
-        SndEvt_EnqueueType7(SOUND_WAREHOUSE_AMBIENCE, 0x1E);
+        sndEvtRequestScriptStop(SOUND_WAREHOUSE_AMBIENCE, 0x1E);
     } else {
         SndEvt_EnqueueTypeA(SOUND_WAREHOUSE_AMBIENCE, 0, (s8)(((0x64 - vol) * 0x7F) / 100));
     }
@@ -262,7 +262,7 @@ s32 func_dryfield_warehouse_8017D824(Task* arg0, s32 arg1, RoomEventMsg* in, Roo
         return 0;
     }
     if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-        SndEvt_EnqueueType7(SOUND_WAREHOUSE_AMBIENCE, 0xF);
+        sndEvtRequestScriptStop(SOUND_WAREHOUSE_AMBIENCE, 0xF);
     }
     return 1;
 }

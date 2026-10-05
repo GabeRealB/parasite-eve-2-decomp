@@ -750,7 +750,7 @@ void func_actor_120500_80132920(void)
 
     actor = D_actor_120500_80138454;
     work  = actor->work;
-    SndEvt_EnqueueType7(SOUND_MOTEL_ROOM_6_MOVIE_SFX, 0xA);
+    sndEvtRequestScriptStop(SOUND_MOTEL_ROOM_6_MOVIE_SFX, 0xA);
     taskMessageDispatch(actor, ACTOR_MESSAGE_SET_MODEL_DRAW, 2, 0);
     work->playerRequest = ACTOR_120500_PLAYER_REQUEST_NONE;
     work->bodyRequest   = ACTOR_120500_BODY_REQUEST_NONE;

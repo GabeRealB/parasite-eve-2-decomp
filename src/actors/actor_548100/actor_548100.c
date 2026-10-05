@@ -2339,7 +2339,7 @@ static void func_actor_548100_80134FEC(Task* arg0)
     if (work->longProgress > work->longLength) {
         work->longProgress = work->longLength;
         if (work->thirdProgress == work->thirdLength) {
-            SndEvt_EnqueueType7(SOUND_MINE_REFUGE_CIRCUIT_CURRENT_LOOP, 1);
+            sndEvtRequestScriptStop(SOUND_MINE_REFUGE_CIRCUIT_CURRENT_LOOP, SOUND_SCRIPT_STOP_KEEP_RELEASE);
             if (D_actor_548100_80135B4C->powersDoor != 0) {
                 sndEvtRequestScriptStart(SOUND_MINE_REFUGE_CIRCUIT_COMPLETE, 0, 0);
                 Gp_RunCapCmd(0xC, 0);

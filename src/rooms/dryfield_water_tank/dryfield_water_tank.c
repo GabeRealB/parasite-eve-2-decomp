@@ -1381,7 +1381,7 @@ void func_dryfield_water_tank_8017E1B4(void)
     playerTask = &work->playerTask;
     taskMessageDispatch(*playerTask, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
     gGameSession->viewDirty = 1;
-    SndEvt_EnqueueType7(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_WATER_TANK, 2), 0xA);
+    sndEvtRequestScriptStop(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_WATER_TANK, 2), 0xA);
 }
 
 #include "../../shared/screen_fade_in_tile.inc.c"

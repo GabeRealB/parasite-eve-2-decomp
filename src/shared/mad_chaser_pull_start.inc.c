@@ -15,7 +15,7 @@ void madChaserPullStart(Task* arg0)
 
     work   = (MadChaserWork*)arg0->work;
     coords = arg0->extra.tmd->coords;
-    SndEvt_EnqueueType7(SOUND_MAD_CHASER_ALERT_CRY, 1);
+    sndEvtRequestScriptStop(SOUND_MAD_CHASER_ALERT_CRY, SOUND_SCRIPT_STOP_KEEP_RELEASE);
     work->moveStartPos.vx = coords->coord.t[0];
     work->moveStartPos.vy = coords->coord.t[1];
     work->moveStartPos.vz = coords->coord.t[2];
