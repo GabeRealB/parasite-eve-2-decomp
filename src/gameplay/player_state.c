@@ -116,13 +116,13 @@ static void func_8010B2D4(Task* arg0, WorldCollisionContact* arg1, s32 arg2);
 
 static void func_8010B348(Task* arg0, WorldCollisionContact* arg1, s32 arg2);
 
-static void func_8010B590(Task* arg0);
+static void _modelObjectInitChildTask(Task* task);
 
-static void func_8010B5C0(Task* arg0);
+static void _modelObjectUpdateChildTask(Task* task);
 
-static void func_8010B5E4(Task* arg0);
+static void _modelObjectDeferChildTaskRemoval(Task* task);
 
-static void func_8010B5F0(Task* arg0);
+static void _modelObjectKillChildTask(Task* task);
 
 s32 func_8010C30C(Task* arg0, s32 unusedMessageId, s32 unusedFirstArg, s32 unusedSecondArg);
 
@@ -1152,39 +1152,52 @@ void func_8010B520(Task* arg0)
     taskKill(arg0);
 }
 
-static void func_8010B590(Task* arg0)
+/// Initializes an attached child model and advances its task from state 0 to state 1.
+///
+/// The model's root coordinate is already parented by the spawner. A nonzero
+/// `param.clearFlags` clears all model flags on this first update; zero keeps
+/// the spawn-time flags until the state-1 update copies the parent's flags.
+static void _modelObjectInitChildTask(Task* task)
 {
-    TmdObject* extra;
-    GfxCoord*  coord;
+    TmdObject* model;
+    GfxCoord*  rootCoord;
 
-    extra = arg0->extra.tmd;
-    coord = extra->coords;
-    arg0->state++;
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    if (coord->param.clearFlags != 0) {
-        extra->flags = 0;
+    model     = task->extra.tmd;
+    rootCoord = model->coords;
+    task->state++;
+    rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+    if (rootCoord->param.clearFlags != 0) {
+        model->flags = 0;
     }
 }
 
-static void func_8010B5C0(Task* arg0)
+/// Copies the live parent's model flags and invalidates the child's root transform.
+///
+/// State 1 requires a non-NULL parent whose TMD body and coordinate ancestry
+/// remain live. Both task bodies must be TMD models.
+static void _modelObjectUpdateChildTask(Task* task)
 {
     Task*      parent;
-    TmdObject* extra;
+    TmdObject* model;
 
-    parent                      = arg0->parent;
-    extra                       = arg0->extra.tmd;
-    extra->flags                = parent->extra.tmd->flags;
-    extra->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+    parent                      = task->parent;
+    model                       = task->extra.tmd;
+    model->flags                = parent->extra.tmd->flags;
+    model->coords->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
-static void func_8010B5E4(Task* arg0)
+/// Advances state 2 to teardown on the child-model task's next dispatch.
+static void _modelObjectDeferChildTaskRemoval(Task* task)
 {
-    arg0->state = 3;
+    enum { MODEL_OBJECT_CHILD_TASK_STATE_KILL = 3 };
+
+    task->state = MODEL_OBJECT_CHILD_TASK_STATE_KILL;
 }
 
-static void func_8010B5F0(Task* arg0)
+/// Hands the state-3 child model and its task to `taskKill` for teardown.
+static void _modelObjectKillChildTask(Task* task)
 {
-    taskKill(arg0);
+    taskKill(task);
 }
 
 void func_8010B610(Task* arg0)
@@ -1506,9 +1519,14 @@ void func_8010BE5C(Task* task, VECTOR3* targetPoint)
     SCRATCH_STACK_RELEASE_BLOCK(_PlayerActorAimScratch);
 }
 
-void func_8010BF7C(Task* arg0, s32 arg1, s32 arg2)
+void companionSetDecisionDelay(Task* task, s32 baseTicks, s32 randomMask)
 {
-    ((GameActor*)arg0->work)->companionWork->decisionTimer = arg1 + (arg2 & rand());
+    s32        randomTicks;
+    GameActor* actor;
+
+    randomTicks                         = randomMask & rand();
+    actor                               = task->work;
+    actor->companionWork->decisionTimer = baseTicks + randomTicks;
 }
 
 void func_8010BFCC(Task* arg0)
@@ -1524,18 +1542,18 @@ void func_8010BFCC(Task* arg0)
                          actor->animationSlots);
 }
 
-s32 func_8010C058(void)
+s32 companionGetHealthBand(void)
 {
-    s32 ret;
+    s32 healthBand;
 
     if ((gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionHpMax >> 1) < gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionHp) {
-        ret = 0;
+        healthBand = COMPANION_HEALTH_BAND_ABOVE_HALF;
     } else if ((gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionHpMax >> 2) >= gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionHp) {
-        ret = 2;
+        healthBand = COMPANION_HEALTH_BAND_AT_MOST_QUARTER;
     } else {
-        ret = 1;
+        healthBand = COMPANION_HEALTH_BAND_ABOVE_QUARTER;
     }
-    return ret;
+    return healthBand;
 }
 
 void Gp_TrackAllyLockTarget(Task* arg0, s32 arg1)
@@ -1876,8 +1894,8 @@ void func_8010C980(void* arg0, WorldCollisionBody* arg1, WorldCollisionContact* 
 }
 
 const TaskFuncTable4 D_80097AB0 = { {
-    func_8010B590,
-    func_8010B5C0,
-    func_8010B5E4,
-    func_8010B5F0,
+    _modelObjectInitChildTask,
+    _modelObjectUpdateChildTask,
+    _modelObjectDeferChildTaskRemoval,
+    _modelObjectKillChildTask,
 } };

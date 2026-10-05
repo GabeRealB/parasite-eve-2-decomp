@@ -24647,7 +24647,7 @@ above the `jal`. Named locals for constants reused on both enqueue setups
 `Gp_EnqueueCompanionCd` is the example.
 
 Same schedule either way — only the dest of the `and` and the s-reg
-pairing change. `func_8010BF7C` is the example.
+pairing change. `companionSetDecisionDelay` is the example.
 
 ## Keep a call result in `$v0` so a wide constant's `lui` fills the jump slot
 

@@ -1636,7 +1636,7 @@ static void func_actor_800300_80161E80(Task* arg0)
     }
     obj->flags                |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
     actor->collisionEnableMask = GAME_ACTOR_COLLISION_REQUEST_MASK;
-    func_8010BF7C(arg0, 0x3C, 0x7F);
+    companionSetDecisionDelay(arg0, 0x3C, 0x7F);
     intervalByte                                = (s8)COMPANION_DISTRESS_INITIAL_INTERVAL;
     companion->activity.distress.flinchInterval = intervalByte;
 }
@@ -2093,7 +2093,7 @@ static void func_actor_800300_80162C98(Task* arg0)
     coord  = arg0->extra.tmd->coords;
     target = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
     if (((GameActor*)arg0->work)->companionWork->decisionTimer <= 0) {
-        func_8010BF7C(arg0, 0x14, 0x3F);
+        companionSetDecisionDelay(arg0, 0x14, 0x3F);
         if ((u32)(func_8010BC70(coord) - 0x581) < 0x87F) {
             func_actor_800300_80163048(arg0);
         }

@@ -1256,7 +1256,7 @@ static void func_actor_800100_80163214(Task* arg0)
     scratch->vy = -0x200;
     scratch->vz = 0;
     Gp_BindActorD4(arg0, scratch, 0x1000);
-    func_8010BF7C(arg0, 0x3C, 0x7F);
+    companionSetDecisionDelay(arg0, 0x3C, 0x7F);
     SCRATCH_STACK_RELEASE_BYTES(8);
 }
 
@@ -1519,7 +1519,7 @@ static void func_actor_800100_80163D54(Task* arg0)
     target = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
     flag   = (GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 42, 0, 0);
     if (((GameActor*)arg0->work)->companionWork->decisionTimer <= 0) {
-        func_8010BF7C(arg0, 0xA, 0x1F);
+        companionSetDecisionDelay(arg0, 0xA, 0x1F);
         dist = func_8010BC70(coord);
         if ((dist >= 0x600 && (rand() & 0xFF) >= 0xF1) || (dist >= 0x400 && flag != 0)) {
             func_actor_800100_801656C8(arg0);
@@ -2667,7 +2667,7 @@ static void func_actor_800100_801659EC(Task* arg0)
             inRange = angle < 4;
             if (inRange != 0) {
                 entry  = D_actor_800100_801672F8[angle];
-                offset = entry + (func_8010C058() * 0x10);
+                offset = entry + (companionGetHealthBand() * 0x10);
                 mode   = offset[rand() & 0xF];
             } else {
                 mode = 3;
@@ -2699,7 +2699,7 @@ static void func_actor_800100_801659EC(Task* arg0)
             break;
         case 2:
             func_actor_800100_80166DF0(arg0);
-            func_8010BF7C(arg0, 0x14, 0x3F);
+            companionSetDecisionDelay(arg0, 0x14, 0x3F);
             break;
         case 3:
             func_actor_800100_80165630(arg0);
