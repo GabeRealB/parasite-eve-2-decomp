@@ -1678,7 +1678,7 @@ static void func_shelter_r47_8018431C(Task* task)
         taskKill(task);
         return;
     }
-    task->spawnArg2.pointer = Task_SpawnFromTable(&D_shelter_r47_8018760C, 0, 1, 0);
+    task->spawnArg2.pointer = taskSpawnFromTable(&D_shelter_r47_8018760C, 0, 1, 0);
     task->work              = state;
     task->state            += 1;
     Display_AcquireRef();

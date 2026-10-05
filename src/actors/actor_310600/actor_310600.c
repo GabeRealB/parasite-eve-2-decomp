@@ -431,7 +431,7 @@ static void func_actor_310600_80161E64(Task* task)
     work->walkCarry[0].word = 0;
     work->walkCarry[1].word = 0;
     work->walkCarry[2].word = 0;
-    Task_SpawnFromTable(D_actor_310600_801796A4, 1, 8, task);
+    taskSpawnFromTable(D_actor_310600_801796A4, 1, 8, task);
     func_actor_310600_80162A58(task);
     obj                   = &work->body;
     obj->coord            = &task->extra.tmd->coords[1];
@@ -515,7 +515,7 @@ static void func_actor_310600_80161FA0(Task* task)
                                     TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(0), ACTOR_COMMAND_MESSAGE_APPLY, &D_actor_310600_8017969C, 0);
                                 } else {
                                     TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(0), ACTOR_COMMAND_MESSAGE_APPLY, &D_actor_310600_801796A0, 0);
-                                    Task_SpawnFromTable(D_acropolis_cafeteria_80182AD8, 2, 0, 0);
+                                    taskSpawnFromTable(D_acropolis_cafeteria_80182AD8, 2, 0, 0);
                                 }
                                 break;
                             case 3:

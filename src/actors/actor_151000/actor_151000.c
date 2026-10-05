@@ -853,7 +853,7 @@ void func_actor_151000_80131EE0(s32 frames)
 {
     D_actor_151000_8013D378 = frames;
     if (frames != 0) {
-        Task_SpawnFromTable(&D_actor_151000_80133360, 0, 0, 0);
+        taskSpawnFromTable(&D_actor_151000_80133360, 0, 0, 0);
     }
 }
 

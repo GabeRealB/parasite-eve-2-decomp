@@ -1837,7 +1837,7 @@ s32 func_acropolis_sanctuary_8017D848(Task* arg0, s32 arg1, RoomEventMsg* in, Ro
 {
     if (in->warp == 1 && gameFlagGetNibble(GAME_FLAG_SANCTUARY_EVENT_LATCH) == 0) {
         gameFlagSetNibble(GAME_FLAG_SANCTUARY_EVENT_LATCH, 1);
-        Task_SpawnFromTable(&D_acropolis_sanctuary_80182240, 0, 0, 0);
+        taskSpawnFromTable(&D_acropolis_sanctuary_80182240, 0, 0, 0);
     }
     return 0;
 }

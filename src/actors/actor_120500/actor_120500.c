@@ -466,7 +466,7 @@ static void func_actor_120500_80132028(Task* arg0)
             }
             return;
         case ACTOR_120500_PLAYER_REQUEST_SECOND_ANIMATION:
-            Task_SpawnFromTable(D_actor_120500_80138418, 1, 8, 0);
+            taskSpawnFromTable(D_actor_120500_80138418, 1, 8, 0);
             reloadedWork = arg0->work;
             Gp_SetOverrideVec(NULL);
             taskMessageDispatch(reloadedWork->playerTask, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
@@ -657,7 +657,7 @@ loop_slots:
     if (work->bodyRequest != ACTOR_120500_BODY_REQUEST_NONE) {
         if (work->bodyRequest == ACTOR_120500_BODY_REQUEST_APPEAR) {
             tmdAllocPrimitiveBuffer(arg0->extra.tmd);
-            Task_SpawnFromTable(D_actor_120500_80138418, 1, 8, 0);
+            taskSpawnFromTable(D_actor_120500_80138418, 1, 8, 0);
             TASK_MESSAGE_DISPATCH_POINTER(arg0, ACTOR_MESSAGE_PLACE, &D_actor_120500_801380C0, 0);
         }
     }
@@ -680,7 +680,7 @@ loop_slots:
         goto screen_request_fade_out;
     }
 screen_request_fade_out:
-    Task_SpawnFromTable(D_actor_120500_80138418, 2, 8, 0);
+    taskSpawnFromTable(D_actor_120500_80138418, 2, 8, 0);
     screenWork->screenRequest = ACTOR_120500_SCREEN_REQUEST_NONE;
     goto screen_request_done;
 screen_request_play_movie:

@@ -111,7 +111,7 @@ s32 func_acropolis_observatory_8017D7C4(Task* arg0, s32 arg1, RoomEventMsg* in, 
 {
     if ((in->warp == 1) && (gGameSession->location.loc.room == 2) && (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_OBSERVATORY_EVENT_SEEN) == 0)) {
         gameFlagSetNibble(GAME_FLAG_ACROPOLIS_OBSERVATORY_EVENT_SEEN, 1);
-        Task_SpawnFromTable(&D_acropolis_observatory_8017FE6C, 0, 0, 0);
+        taskSpawnFromTable(&D_acropolis_observatory_8017FE6C, 0, 0, 0);
     }
     return 0;
 }
@@ -137,11 +137,11 @@ static void func_acropolis_observatory_8017D8AC(Task* task)
 {
     if ((D_acropolis_observatory_8017E7D8 == 0) && (gGameSession->location.loc.warp == 3)) {
         D_acropolis_observatory_8017E7D8 = 1;
-        Task_SpawnFromTable(D_acropolis_observatory_8017E7DC, 1, 0, 0);
+        taskSpawnFromTable(D_acropolis_observatory_8017E7DC, 1, 0, 0);
     }
     if ((D_acropolis_observatory_8017E7D8 == 0) && (gGameSession->location.loc.warp == 4)) {
         D_acropolis_observatory_8017E7D8 = 1;
-        Task_SpawnFromTable(D_acropolis_observatory_8017E7DC, 0, 0, 0);
+        taskSpawnFromTable(D_acropolis_observatory_8017E7DC, 0, 0, 0);
     }
 }
 

@@ -820,7 +820,7 @@ static void func_neo_ark_woodland_path_8017E944(Task* arg0)
 {
     arg0->msgTable = D_neo_ark_woodland_path_80181650;
     gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
-    D_neo_ark_woodland_path_80181680 = Task_SpawnFromTable(D_neo_ark_woodland_path_80184A44, 1, 0, 0);
+    D_neo_ark_woodland_path_80181680 = taskSpawnFromTable(D_neo_ark_woodland_path_80184A44, 1, 0, 0);
     arg0->state                      = (s32)(arg0->state + 1);
 }
 

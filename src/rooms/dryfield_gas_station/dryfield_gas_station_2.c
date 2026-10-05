@@ -167,7 +167,7 @@ L_case0:
     goto advance;
 
 L_case3:
-    cutscene       = Task_SpawnFromTable(D_dryfield_gas_station_8018312C, 0, 0, 0);
+    cutscene       = taskSpawnFromTable(D_dryfield_gas_station_8018312C, 0, 0, 0);
     work->cutscene = cutscene;
     if (cutscene == NULL) {
         goto L_kill;

@@ -2015,8 +2015,8 @@ static void func_actor_120300_801335D8(Task* task)
         animationResetSlot(&animWork->rig.anim, (u16)slotIndex, 0xE);
         slotIndex++;
     } while ((u16)slotIndex < ARRAY_SIZE(animWork->rig.slots));
-    work->headTask  = Task_SpawnFromTable(D_actor_120300_80141B6C, 2, 0, task);
-    work->rifleTask = Task_SpawnFromTable(D_actor_120300_80141B6C, 3, 0, task);
+    work->headTask  = taskSpawnFromTable(D_actor_120300_80141B6C, 2, 0, task);
+    work->rifleTask = taskSpawnFromTable(D_actor_120300_80141B6C, 3, 0, task);
     task->msgTable  = D_actor_120300_80140A44;
     work->scale     = 0x1000;
     taskReparent(task, work->headTask);
@@ -2085,9 +2085,9 @@ void func_actor_120300_801337C4(Task* arg0)
                     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 2;
                     arg0->state                                        += 1;
                 }
-                Mem_CopyUnaligned(&D_actor_120300_801409A8, gDryfieldGarageCollision0108CNormals, 0x18);
-                Mem_CopyUnaligned(&D_actor_120300_80140A20, gDryfieldGarageCollision0108CFaces, sizeof(D_actor_120300_80140A20));
-                Mem_CopyUnaligned(&D_actor_120300_801409C0, gDryfieldGarageCollision0108CVerts, 0x60);
+                memCopyBytes(&D_actor_120300_801409A8, gDryfieldGarageCollision0108CNormals, sizeof(D_actor_120300_801409A8));
+                memCopyBytes(&D_actor_120300_80140A20, gDryfieldGarageCollision0108CFaces, sizeof(D_actor_120300_80140A20));
+                memCopyBytes(&D_actor_120300_801409C0, gDryfieldGarageCollision0108CVerts, sizeof(D_actor_120300_801409C0));
                 break;
             }
             return;
@@ -2249,7 +2249,7 @@ void func_actor_120300_80133E94(void)
 /// Spawns the fade task (entry 4 of the actor's task table) at rate 9.
 void func_actor_120300_80133EE4(void)
 {
-    Task_SpawnFromTable(D_actor_120300_80141B6C, 4, 9, 0);
+    taskSpawnFromTable(D_actor_120300_80141B6C, 4, 9, 0);
 }
 
 void func_actor_120300_80133F14(Task* arg0)

@@ -421,7 +421,7 @@ static void func_800BBB54(Task* arg0)
         word    = *indexed;
         if (((word & (3 << shift)) >> shift) == 2) {
             extra->flags &= (u16)~TMD_OBJECT_FLAGGED_PASS;
-            Task_CallExit(arg0);
+            taskCallExit(arg0);
         }
     }
 }
@@ -447,7 +447,7 @@ void Gp_WaitItemFlag2(Task* arg0)
         shift = (id & 0xF) * 2;
         if (((*p & (3 << shift)) >> shift) == 2) {
             extra->flags &= (u16)~TMD_OBJECT_FLAGGED_PASS;
-            Task_CallExit(arg0);
+            taskCallExit(arg0);
         }
     }
 }

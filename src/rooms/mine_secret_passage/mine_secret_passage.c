@@ -134,7 +134,7 @@ s32 func_mine_secret_passage_8017D7CC(Task* task, s32 msgId, RoomEventMsg* src, 
             D_mine_secret_passage_80183448.field_4           = dst->warp;
             ((u8*)&D_mine_secret_passage_80183448.areaId)[1] = dst->room;
             Gp_MsgPlayerWeapon(0);
-            Task_SpawnFromTable(&D_mine_secret_passage_80180EBC, 0, 0, 0);
+            taskSpawnFromTable(&D_mine_secret_passage_80180EBC, 0, 0, 0);
         }
         return 2;
     }

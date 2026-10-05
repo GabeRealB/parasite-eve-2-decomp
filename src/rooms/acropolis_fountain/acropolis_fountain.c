@@ -66,7 +66,7 @@ s32 func_acropolis_fountain_8017D604(Task* arg0, s32 arg1, RoomEventMsg* in, Roo
             if (in->queryOnly == ROOM_EVENT_EXECUTE) {
                 D_acropolis_fountain_80183BB0 = in->warp;
                 D_acropolis_fountain_80183BB1 = in->room;
-                Task_SpawnFromTable(D_acropolis_fountain_8017E78C, 0, 0, 0);
+                taskSpawnFromTable(D_acropolis_fountain_8017E78C, 0, 0, 0);
             }
             return 0;
         }

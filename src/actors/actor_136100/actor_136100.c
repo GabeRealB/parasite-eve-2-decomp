@@ -2222,18 +2222,18 @@ void func_actor_136100_80133BC8(Task* arg0)
             func_actor_136100_80133A88(arg0);
             work           = arg0->work;
             work->scene    = gameFlagGetNibble(GAME_FLAG_BURNER_DEFEATED) == 0;
-            work->headTask = Task_SpawnFromTable(D_actor_136100_80140744, 2, 0,
-                                                 arg0->extra.tmd->coords + 4);
+            work->headTask = taskSpawnFromTable(D_actor_136100_80140744, 2, 0,
+                                                arg0->extra.tmd->coords + 4);
             if (work->scene == ACTOR_136100_SCENE_AFTER_BURNER) {
                 func_actor_136100_ResetSlots(arg0, 1);
-                work->rifleTask = Task_SpawnFromTable(D_actor_136100_80140744, 3, 0, &gGfxViewCoord);
+                work->rifleTask = taskSpawnFromTable(D_actor_136100_80140744, 3, 0, &gGfxViewCoord);
             } else {
                 func_actor_136100_ResetSlots(arg0, 3);
-                work->rifleTask = Task_SpawnFromTable(D_actor_136100_80140744, 3, 1,
-                                                      arg0->extra.tmd->coords + 8);
-                Mem_CopyUnaligned(&D_actor_136100_8013F224, gDryfieldNightMainStreetCollision06F80Normals, 0x20);
-                Mem_CopyUnaligned(&D_actor_136100_8013F2C4, gDryfieldNightMainStreetCollision06F80Faces, sizeof(D_actor_136100_8013F2C4));
-                Mem_CopyUnaligned(&D_actor_136100_8013F244, gDryfieldNightMainStreetCollision06F80Verts, 0x80);
+                work->rifleTask = taskSpawnFromTable(D_actor_136100_80140744, 3, 1,
+                                                     arg0->extra.tmd->coords + 8);
+                memCopyBytes(&D_actor_136100_8013F224, gDryfieldNightMainStreetCollision06F80Normals, sizeof(D_actor_136100_8013F224));
+                memCopyBytes(&D_actor_136100_8013F2C4, gDryfieldNightMainStreetCollision06F80Faces, sizeof(D_actor_136100_8013F2C4));
+                memCopyBytes(&D_actor_136100_8013F244, gDryfieldNightMainStreetCollision06F80Verts, sizeof(D_actor_136100_8013F244));
             }
             work->companionTask = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION);
             arg0->state++;
@@ -2448,12 +2448,12 @@ void func_actor_136100_80134878(s16 arg0)
 /// Starts the fade-in (entry 4 of the actor's task table).
 void func_actor_136100_80134898(void)
 {
-    Task_SpawnFromTable(D_actor_136100_80140744, 4, 9, 0);
+    taskSpawnFromTable(D_actor_136100_80140744, 4, 9, 0);
 }
 
 void func_actor_136100_801348C8(void)
 {
-    Task_SpawnFromTable(D_actor_136100_80140744, 5, 9, 0);
+    taskSpawnFromTable(D_actor_136100_80140744, 5, 9, 0);
 }
 
 void func_actor_136100_801348F8(void)

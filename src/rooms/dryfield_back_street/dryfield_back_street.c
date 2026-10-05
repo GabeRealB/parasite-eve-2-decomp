@@ -621,7 +621,7 @@ static void func_dryfield_back_street_8017D8B4(Task* task)
 {
     task->msgTable = D_dryfield_back_street_8017F964;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    Task_SpawnFromTable(D_dryfield_back_street_8017F98C, 0, 0, 0);
+    taskSpawnFromTable(D_dryfield_back_street_8017F98C, 0, 0, 0);
     task->state = (s32)(task->state + 1);
 }
 

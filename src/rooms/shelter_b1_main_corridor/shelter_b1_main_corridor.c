@@ -710,7 +710,7 @@ static __inline__ s32 _corridorStartEvent(RoomEventMsg* dst, RoomLatchedEvent* e
             if (event->flagId != 0) {
                 gameFlagSetNibble(event->flagId, 1);
             }
-            Task_SpawnFromTable(&D_shelter_b1_main_corridor_80183098, 0, 0, 0);
+            taskSpawnFromTable(&D_shelter_b1_main_corridor_80183098, 0, 0, 0);
             D_shelter_b1_main_corridor_80185D44[0] = 1;
         }
         return 2;

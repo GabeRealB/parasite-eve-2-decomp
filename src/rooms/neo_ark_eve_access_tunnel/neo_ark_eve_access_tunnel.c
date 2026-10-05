@@ -471,7 +471,7 @@ void func_neo_ark_eve_access_tunnel_8017D980(Task* task)
             wp->warp       = msg.warp;
             wp->room       = msg.room;
             gRoomDeparture = work;
-            Task_SpawnFromTable(&D_neo_ark_eve_access_tunnel_8017EA88, 0, 0, 0);
+            taskSpawnFromTable(&D_neo_ark_eve_access_tunnel_8017EA88, 0, 0, 0);
             taskKill(task);
             break;
         }
@@ -558,7 +558,7 @@ s32 func_neo_ark_eve_access_tunnel_8017DC6C(Task* task, s32 msgId, RoomEventMsg*
                         D_neo_ark_eve_access_tunnel_801807A0.field_4           = dst->warp;
                         ((u8*)&D_neo_ark_eve_access_tunnel_801807A0.areaId)[1] = dst->room;
                         Gp_MsgPlayerWeapon(0);
-                        Task_SpawnFromTable(D_neo_ark_eve_access_tunnel_8017EAC4, 1, 0, 0);
+                        taskSpawnFromTable(D_neo_ark_eve_access_tunnel_8017EAC4, 1, 0, 0);
                     }
                     break;
             }
@@ -601,11 +601,11 @@ s32 func_neo_ark_eve_access_tunnel_8017DE1C(Task* task, s32 msgId, const void* f
     if (request->actionId == 0xA) {
         if (gameFlagGetNibble(GAME_FLAG_0F8) != 0) {
             Gp_RunCapCmd1(5);
-            Task_SpawnFromTable(D_neo_ark_eve_access_tunnel_8017EAC4, 2, 0x1AF, 0);
+            taskSpawnFromTable(D_neo_ark_eve_access_tunnel_8017EAC4, 2, 0x1AF, 0);
         } else {
             Gp_MsgPlayerWeapon(0);
             // Widen the action byte to the task argument's ABI word.
-            Task_SpawnFromTable(D_neo_ark_eve_access_tunnel_8017EAC4, 0, (s32)request->argument, 0);
+            taskSpawnFromTable(D_neo_ark_eve_access_tunnel_8017EAC4, 0, (s32)request->argument, 0);
         }
         return 0;
     }

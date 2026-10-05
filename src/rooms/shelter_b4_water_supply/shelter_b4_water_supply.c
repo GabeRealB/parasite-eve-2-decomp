@@ -836,7 +836,7 @@ s32 func_shelter_b4_water_supply_8017D978(Task* task, s32 msgId, RoomEventMsg* s
             D_shelter_b4_water_supply_80184E3C.warp              = (u8)dst->areaId;
             D_shelter_b4_water_supply_80184E3C.field_4           = dst->warp;
             ((u8*)&D_shelter_b4_water_supply_80184E3C.areaId)[1] = dst->room;
-            Task_SpawnFromTable(D_shelter_b4_water_supply_80182620, 1, 4, 0);
+            taskSpawnFromTable(D_shelter_b4_water_supply_80182620, 1, 4, 0);
         }
         return 0;
     }
@@ -864,7 +864,7 @@ s32 func_shelter_b4_water_supply_8017DA30(Task* task, s32 msgId, const void* fir
                     gameFlagSetNibble(GAME_FLAG_WATER_SUPPLY_VALVE_FIRST_USE, 1);
                     Gp_MsgPlayerWeapon(0);
                     Gp_RunCapCmd1(3);
-                    Task_SpawnFromTable(D_shelter_b4_water_supply_80182620, 0, 0, 0);
+                    taskSpawnFromTable(D_shelter_b4_water_supply_80182620, 0, 0, 0);
                 }
             } else {
                 Gp_RunCapCmd1(1);
@@ -907,7 +907,7 @@ static void func_shelter_b4_water_supply_8017DB18(void)
     wp->warp       = param.warp;
     wp->room       = param.room;
     gRoomDeparture = work;
-    Task_SpawnFromTable(&D_shelter_b4_water_supply_801825E4, 0, 0, 0);
+    taskSpawnFromTable(&D_shelter_b4_water_supply_801825E4, 0, 0, 0);
     if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL && gameFlagGetNibble(GAME_FLAG_0CF) == 0) {
         gameFlagSetNibble(GAME_FLAG_COMPANION_1_SCHEDULE, 6);
     }
@@ -937,7 +937,7 @@ void func_shelter_b4_water_supply_8017DC28(Task* arg0)
         work.warp      = param.warp;
         work.room      = param.room;
         gRoomDeparture = work;
-        Task_SpawnFromTable(&D_shelter_b4_water_supply_801825E4, 0, 0, 0);
+        taskSpawnFromTable(&D_shelter_b4_water_supply_801825E4, 0, 0, 0);
         if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL && gameFlagGetNibble(GAME_FLAG_0CF) == 0) {
             gameFlagSetNibble(GAME_FLAG_COMPANION_1_SCHEDULE, 6);
         }
@@ -951,7 +951,7 @@ static void func_shelter_b4_water_supply_8017DD40(Task* arg0)
 {
     arg0->msgTable = D_shelter_b4_water_supply_801825F0;
     gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
-    Task_SpawnFromTable(D_shelter_b4_water_supply_8018263C, 0, 0, 0);
+    taskSpawnFromTable(D_shelter_b4_water_supply_8018263C, 0, 0, 0);
     arg0->state = (s32)(arg0->state + 1);
 }
 

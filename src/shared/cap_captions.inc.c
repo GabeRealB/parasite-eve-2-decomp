@@ -668,5 +668,5 @@ static void CapCaption_CancelableTask(Task* task)
 static inline void CapCaption_ShowTimed(s16 arg0, s16 arg1, s16 arg2)
 {
     CapCaption_SelectScript(arg0, arg1, 0xD0);
-    Task_SpawnFromTable(&CapCaption_Data_801544FC, 0, (s32)(arg2), 0);
+    taskSpawnFromTable(&CapCaption_Data_801544FC, 0, (s32)(arg2), 0);
 }

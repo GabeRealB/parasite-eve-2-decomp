@@ -1198,11 +1198,11 @@ u8 gPacedWalkAnimBank[64] = {
 u8 gPacedWalkEffectParts[11] = { 1, 3, 5, 6, 9, 14, 15, 16, 17, 18, 19 };
 
 /// Passes the task filed in the session's pointer slot 0xA, if any, to
-/// `Task_CallExit` and empties the slot.
+/// `taskCallExit` and empties the slot.
 void func_actor_160600_80131E24(void)
 {
     if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) {
-        Task_CallExit(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION));
+        taskCallExit(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION));
         gameSetTaskSlot(NULL, GAME_TASK_SLOT_COMPANION);
     }
 }

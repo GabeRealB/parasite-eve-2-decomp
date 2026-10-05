@@ -1662,7 +1662,7 @@ s32 func_dryfield_trailer_coach_80182580(Task* task, s32 msgId, RoomEventMsg* sr
 s32 func_dryfield_trailer_coach_801825A8(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 3) {
-        Task_SpawnFromTable(D_dryfield_trailer_coach_80184FC0, 1, 0, 0);
+        taskSpawnFromTable(D_dryfield_trailer_coach_80184FC0, 1, 0, 0);
     }
     if (arg2 == 0xE) {
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp == 2) {
@@ -1681,7 +1681,7 @@ s32 func_dryfield_trailer_coach_801825A8(Task* arg0, s32 arg1, s32 arg2, s32 arg
         D_dryfield_trailer_coach_80189C9C.endSound        = 0x521B0005;
         D_dryfield_trailer_coach_80189C9C.sceneSound      = 0x521B0004;
         D_dryfield_trailer_coach_80189C9C.afterSceneSound = 0x521B0006;
-        Task_SpawnFromTable(gRoomCutsceneTaskDescs, 0, 3, &D_dryfield_trailer_coach_80189C9C);
+        taskSpawnFromTable(gRoomCutsceneTaskDescs, 0, 3, &D_dryfield_trailer_coach_80189C9C);
         return 0;
     }
     return 0;

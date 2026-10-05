@@ -713,7 +713,7 @@ void func_actor_450900_80131E38(Task* task)
     switch (state) {
         case 0:
             D_actor_450900_80135E70 = 0;
-            D_actor_450900_80136C9C = Task_SpawnFromTable(D_actor_450900_80135E78, 5, 0, 0);
+            D_actor_450900_80136C9C = taskSpawnFromTable(D_actor_450900_80135E78, 5, 0, 0);
             task->state             = task->state + 1;
             break;
         case 1:
@@ -1020,7 +1020,7 @@ void func_actor_450900_80132834(void)
 
     coord = (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION))->extra.tmd->coords;
     if (coord->coord.t[2] < -0x76C) {
-        Task_SpawnFromTable(D_actor_450900_80135E78, 4, 0, 0);
+        taskSpawnFromTable(D_actor_450900_80135E78, 4, 0, 0);
     } else {
         Gp_StartCapSlot(0xB, 1, 0);
     }

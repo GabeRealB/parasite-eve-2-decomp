@@ -88,7 +88,7 @@ STATIC_ASSERT_SIZEOF(_DryfieldNightWaterHoleSurfaceOverride, 0x8);
 extern TaskDesc D_actor_146000_801351FC;
 
 /// Descriptor the room's event task is spawned from, index 0 of the table
-/// `func_dryfield_night_water_hole_8017DC28` hands `Task_SpawnFromTable`. Its
+/// `func_dryfield_night_water_hole_8017DC28` hands `taskSpawnFromTable`. Its
 /// callback is that same task, `roomDepartureTask`.
 extern TaskDesc D_dryfield_night_water_hole_801805EC;
 /// The room's message table, the `TaskMessageEntry` list the room task publishes in
@@ -1048,7 +1048,7 @@ static void func_dryfield_night_water_hole_8017D958(Task* arg0)
     arg0->msgTable = D_dryfield_night_water_hole_801805F8;
     gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     if (gameFlagGetNibble(GAME_FLAG_WATER_HOLE_SHELTER_ROUTE_OPEN) == 0) {
-        Task_SpawnFromTable(D_dryfield_night_water_hole_80180964, 0, 0, 0);
+        taskSpawnFromTable(D_dryfield_night_water_hole_80180964, 0, 0, 0);
     } else {
         func_dryfield_night_water_hole_8017DE88(D_dryfield_night_water_hole_801835D8);
     }
@@ -1062,7 +1062,7 @@ static void func_dryfield_night_water_hole_8017D958(Task* arg0)
     if (gGameSession->location.loc.variant == 0xA && gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != 0 && gameFlagGetNibble(GAME_FLAG_0CF) == 0) {
         gameFlagSetNibble(GAME_FLAG_0CF, 2);
         func_800E3FAC(0xA2, 0x25);
-        Task_SpawnFromTable(&D_actor_146000_801351FC, 1, 0, 0);
+        taskSpawnFromTable(&D_actor_146000_801351FC, 1, 0, 0);
     }
     arg0->state = arg0->state + 1;
 }
@@ -1123,7 +1123,7 @@ s32 func_dryfield_night_water_hole_8017DC28(Task* task, s32 msgId, s32 arg2, s32
             wp->warp       = msg.warp;
             wp->room       = msg.room;
             gRoomDeparture = work;
-            Task_SpawnFromTable(&D_dryfield_night_water_hole_801805EC, 0, 0, 0);
+            taskSpawnFromTable(&D_dryfield_night_water_hole_801805EC, 0, 0, 0);
         } else {
             Gp_RunCapCmd1(2);
             gameFlagSetNibble(GAME_FLAG_MAP_MARK_WATER, 2);

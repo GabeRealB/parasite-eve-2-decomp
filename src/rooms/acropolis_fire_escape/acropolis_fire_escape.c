@@ -629,7 +629,7 @@ s32 func_acropolis_fire_escape_8017F9F8(Task* task, s32 msgId, s32 event, s32 ar
         D_acropolis_fire_escape_80183048.endSound        = 0x510F0004;
         D_acropolis_fire_escape_80183048.sceneSound      = 0x510F0007;
         D_acropolis_fire_escape_80183048.afterSceneSound = 0x510F0008;
-        Task_SpawnFromTable(gRoomCutsceneTaskDescs, 0, 3, &D_acropolis_fire_escape_80183048);
+        taskSpawnFromTable(gRoomCutsceneTaskDescs, 0, 3, &D_acropolis_fire_escape_80183048);
     }
     if (event == 3) {
         if (gameFlagGetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX) < 6) {
@@ -682,7 +682,7 @@ void func_acropolis_fire_escape_8017FB40(Task* task)
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 7;
                 gStageMusicParams.fadeOutTicks                      = 1;
                 gStageMusicParams.field_2                           = 1;
-                Task_SpawnFromTable(&Stage_MusicTaskDesc, 0, 0, 0);
+                taskSpawnFromTable(&Stage_MusicTaskDesc, 0, 0, 0);
                 gGameSession->flowFlags = 0;
             }
             break;
@@ -756,7 +756,7 @@ static void func_acropolis_fire_escape_8017FE50(Task* task)
 {
     task->msgTable = D_acropolis_fire_escape_80181D3C;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    Task_SpawnFromTable(D_acropolis_fire_escape_80181D64, 0, 0, 0);
+    taskSpawnFromTable(D_acropolis_fire_escape_80181D64, 0, 0, 0);
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent == 5) {
         gGameSession->flowFlags = GAME_SESSION_FLOW_LOAD_AREA_MUSIC_ONLY;
     }

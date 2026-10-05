@@ -200,7 +200,7 @@ void GameFlow_StateByField34(Task* task)
             gDisplayState.control.flags.pendingPlayerPos = 0;
             gDisplayState.stopTaskWalk                   = 1;
             taskKill(task);
-            Task_ResetDefaultList();
+            taskResetDefaultList();
             Tmd_InitLists();
             Mem_Init();
             Task_Spawn(0, 9, 0, 0);
@@ -230,7 +230,7 @@ void GameFlow_StateByField34(Task* task)
         }
         gDisplayState.stopTaskWalk = 1;
         taskKill(task);
-        Task_ResetDefaultList();
+        taskResetDefaultList();
         Tmd_InitLists();
         Mem_Init();
         Task_Spawn(0, 9, 0, 0);
@@ -299,7 +299,7 @@ void Game_ClearSession(void)
 
 static void GameFlow_InitSystems(void)
 {
-    Task_ResetDefaultList();
+    taskResetDefaultList();
     Tmd_InitLists();
     Mem_Init();
     Task_Spawn(0, 9, 0, 0);
@@ -380,7 +380,7 @@ static void GameFlow_SpawnMainWhenReady(Task* task)
     }
     gDisplayState.stopTaskWalk = 1;
     taskKill(task);
-    Task_ResetDefaultList();
+    taskResetDefaultList();
     Tmd_InitLists();
     Mem_Init();
     Task_Spawn(0, 9, 0, 0);

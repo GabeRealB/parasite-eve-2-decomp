@@ -190,7 +190,7 @@ s32 func_shelter_b3_incinerator_control_room_8017FB20(Task* arg0, s32 arg1, s32 
             D_shelter_b3_incinerator_control_room_80182A58.endSound        = 0x54290004;
             D_shelter_b3_incinerator_control_room_80182A58.sceneSound      = 0x54290002;
             D_shelter_b3_incinerator_control_room_80182A58.afterSceneSound = 0x54290003;
-            Task_SpawnFromTable(gRoomCutsceneTaskDescs, 0, 7, &D_shelter_b3_incinerator_control_room_80182A58);
+            taskSpawnFromTable(gRoomCutsceneTaskDescs, 0, 7, &D_shelter_b3_incinerator_control_room_80182A58);
         } else {
             gameFlagSetNibble(GAME_FLAG_INCINERATOR_CONTROL_FIRST_USE, 1);
             Gp_SpawnIfCapIdle(6, 1);

@@ -83,7 +83,7 @@ s32 Display_FrameFlipDraw(GsOT* otBufs, s32 frameStart, s32 unused3)
     savedOt        = gGpuCurrentOt;
     gGpuCurrentOt  = orderingTables[display->frameBuffer].org;
     gGpuPrimCursor = _gGpuDisplayPrimBufferBase + display->frameBuffer * halfBytes;
-    Task_ExecList(&gTaskDisplayList);
+    taskExecList(&gTaskDisplayList);
     Boot_DispatchCdCmd();
     if (display->mdecActive == 0) {
         DrawSync(0);
@@ -140,15 +140,15 @@ Task* Display_SpawnWithOtSmall(s32 arg0, s32 arg1, TaskSpawnArg arg2, TaskSpawnA
         _gGpuDisplayPrimBufferBase  = Gpu_PrimBufStatic;
         _gGpuDisplayPrimBufferBytes = sizeof(Gpu_PrimBufStatic);
         temp->frameBuffer           = temp->drawBuffer ^ 1;
-        previousList                = Task_GetActiveList();
-        Task_InitList(&gTaskDisplayList);
+        previousList                = taskGetActiveList();
+        taskInitList(&gTaskDisplayList);
         ret = Task_Spawn(arg0, arg1, arg2, arg3);
         if (ret != NULL) {
             temp->pendingMode            = DISPLAY_MODE_BARE_OT;
             temp->displayOwner           = DISPLAY_OWNER_TASK;
             temp->control.flags.flipMode = DISPLAY_FLIP_FULL;
         }
-        Task_SetActiveList(previousList);
+        taskSetActiveList(previousList);
     }
     return ret;
 }
@@ -171,15 +171,15 @@ Task* Display_SpawnWithOt(TaskDesc* descriptor, s32 arg1, TaskSpawnArg arg2, Tas
         _gGpuDisplayPrimBufferBase  = Gpu_PrimBufStatic;
         _gGpuDisplayPrimBufferBytes = sizeof(Gpu_PrimBufStatic);
         temp->frameBuffer           = temp->drawBuffer ^ 1;
-        previousList                = Task_GetActiveList();
-        Task_InitList(&gTaskDisplayList);
-        ret = Task_SpawnFromTable(descriptor, arg1, arg2, arg3);
+        previousList                = taskGetActiveList();
+        taskInitList(&gTaskDisplayList);
+        ret = taskSpawnFromTable(descriptor, arg1, arg2, arg3);
         if (ret != NULL) {
             temp->pendingMode            = DISPLAY_MODE_BARE_OT;
             temp->displayOwner           = DISPLAY_OWNER_TASK;
             temp->control.flags.flipMode = DISPLAY_FLIP_FULL;
         }
-        Task_SetActiveList(previousList);
+        taskSetActiveList(previousList);
     }
     return ret;
 }
@@ -189,10 +189,10 @@ Task* Task_SpawnOnDefaultListA(s32 arg0, TaskSpawnArg arg1, TaskSpawnArg arg2, T
     TaskNode* previousList;
     Task*     ret;
 
-    previousList = Task_GetActiveList();
-    Task_SetActiveList(&gTaskDefaultList);
+    previousList = taskGetActiveList();
+    taskSetActiveList(&gTaskDefaultList);
     ret = Task_Spawn(arg0, arg1, arg2, arg3);
-    Task_SetActiveList(previousList);
+    taskSetActiveList(previousList);
     return ret;
 }
 
@@ -201,10 +201,10 @@ Task* Task_SpawnOnDefaultList(TaskDesc* descriptor, s32 arg1, TaskSpawnArg arg2,
     TaskNode* previousList;
     Task*     ret;
 
-    previousList = Task_GetActiveList();
-    Task_SetActiveList(&gTaskDefaultList);
-    ret = Task_SpawnFromTable(descriptor, arg1, arg2, arg3);
-    Task_SetActiveList(previousList);
+    previousList = taskGetActiveList();
+    taskSetActiveList(&gTaskDefaultList);
+    ret = taskSpawnFromTable(descriptor, arg1, arg2, arg3);
+    taskSetActiveList(previousList);
     return ret;
 }
 
@@ -349,7 +349,7 @@ static void Display_FlipOtAlt(void)
     gGpuCurrentOt  = Gpu_OtTags + buf * GPU_ORDERING_TABLE_BUFFER_ENTRIES;
     Gpu_ClearOTag(temp->otBuffer);
     gGpuCurrentOt = gGpuCurrentOt + GPU_ORDERING_TABLE_RESERVED_ENTRIES;
-    Task_ExecListFiltered(&gTaskDefaultList, 0x62);
+    taskExecListForPriority(&gTaskDefaultList, 0x62);
     Gp_DrawActorTmdFlagged(&Gpu_OtBuffers[temp->otBuffer]);
     gGpuCurrentOt                = saved;
     temp->control.flags.flipMode = DISPLAY_FLIP_FULL;

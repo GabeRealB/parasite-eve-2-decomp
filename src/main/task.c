@@ -8,7 +8,7 @@
 #include "main/session.h"
 #include "main/session_types.h"
 #include "main/task_types.h"
-#include "main/tmd_types.h"
+#include "main/tmd.h"
 
 #include "gameplay/display.h"
 #include "gameplay/model_objects.h"
@@ -59,11 +59,17 @@ enum {
     TASK_STATUS_STOP_REQUESTED = 0xFF
 };
 
-static Task* Task_SpawnFromDesc(TaskDesc* desc, TaskSpawnArg arg1, TaskSpawnArg arg2, TaskNode* list);
+/// Low byte of a signed priority selector, compared with the stored task byte.
+enum { TASK_PRIORITY_MASK = 0xFF };
 
-static void Task_Unlink(Task* state);
+/// Exact stop request consumed by a walker before collection or advancement.
+enum { TASK_WALK_STOP_REQUESTED = 1 };
 
-static void Task_Free(Task* state);
+static Task* _taskSpawnFromDesc(TaskDesc* desc, TaskSpawnArg spawnArg1, TaskSpawnArg spawnArg2, TaskNode* listHead);
+
+static void _taskUnlinkFromSelectedList(Task* task);
+
+static void _taskFree(Task* task);
 
 bool gTaskDeferModelBufferAllocation = false;
 
@@ -103,7 +109,20 @@ static inline void _taskInsert(TaskNode* listHead, Task* task, u32 priority)
     *backlinkSlot         = &task->node;
 }
 
-static Task* Task_SpawnFromDesc(TaskDesc* desc, TaskSpawnArg arg1, TaskSpawnArg arg2, TaskNode* list)
+/// Creates and inserts a task from a synchronously borrowed descriptor.
+///
+/// `desc` and `listHead` must be live and non-NULL; the head must already be
+/// initialized and ordered by ascending priority. Only body kinds 0, 1 and 2
+/// are accepted. Task allocation or required body attachment failure returns
+/// NULL and leaves the execution list unchanged. Primitive-buffer allocation
+/// failure alone can leave a valid model body with a NULL buffer.
+///
+/// Copies the callback, low-byte priority and both payload words. The task owns
+/// its attached body; callback code and borrowed model geometry must outlive
+/// their use. No descriptor pointer is retained and no task callback runs here.
+/// Equal priorities retain spawn order, so a spawn after a walk's cursor can
+/// run in that same walk. Pointer payload ownership belongs to the callback.
+static Task* _taskSpawnFromDesc(TaskDesc* desc, TaskSpawnArg spawnArg1, TaskSpawnArg spawnArg2, TaskNode* listHead)
 {
     /// Spawn-time creation flag that defers a TMD body's initial primitive buffer.
     ///
@@ -117,55 +136,55 @@ static Task* Task_SpawnFromDesc(TaskDesc* desc, TaskSpawnArg arg1, TaskSpawnArg 
     enum { TASK_SPAWN_DEFER_MODEL_BUFFER = 1 << 1 };
 
     Task*    task;
-    TaskBody extra;
-    u16      flags;
-    s32      attachFlags;
+    TaskBody body;
+    u16      descriptorFlags;
+    s32      bufferFlags;
     u8       priority;
-    s32      kind;
+    s32      bodyKind;
 
-    task = memCalloc(sizeof(Task), 0);
+    task = memCalloc(sizeof(*task), false);
     if (task == NULL) {
         return NULL;
     }
 
-    flags = desc->header.fields.flags;
-    switch (flags & TASK_DESC_BODY_KIND_MASK) {
+    descriptorFlags = desc->header.fields.flags;
+    switch (descriptorFlags & TASK_DESC_BODY_KIND_MASK) {
         case TASK_BODY_TMD:
-            attachFlags = 0;
-            if (flags & TASK_DESC_SKIP_AUTO_MODEL_BUFFER) {
+            bufferFlags = 0;
+            if (descriptorFlags & TASK_DESC_SKIP_AUTO_MODEL_BUFFER) {
                 // Descriptor bit 8 becomes creation bit 0, suppressing allocation and recovery.
-                attachFlags = 1;
+                bufferFlags = TMD_CREATE_SKIP_AUTO_BUFFER;
             }
             if (gTaskDeferModelBufferAllocation) {
-                attachFlags |= TASK_SPAWN_DEFER_MODEL_BUFFER;
+                bufferFlags |= TASK_SPAWN_DEFER_MODEL_BUFFER;
             }
-            extra.tmd = modelObjectAttachTmdWithBufferFlags(task, desc->data.model, attachFlags);
+            body.tmd = modelObjectAttachTmdWithBufferFlags(task, desc->data.model, bufferFlags);
             break;
         case TASK_BODY_COORD:
-            extra.coordBody = modelObjectAttachCoordBody(task);
+            body.coordBody = modelObjectAttachCoordBody(task);
             break;
         case TASK_BODY_NONE:
         default:
-            extra.allocation = NULL;
+            body.allocation = NULL;
             break;
     }
 
     // A descriptor that asks for a body gets no task when the body cannot be attached.
-    if ((desc->header.fields.flags & TASK_DESC_BODY_KIND_MASK) == TASK_BODY_NONE || extra.allocation != NULL) {
+    if ((desc->header.fields.flags & TASK_DESC_BODY_KIND_MASK) == TASK_BODY_NONE || body.allocation != NULL) {
         task->callback     = desc->callback;
         priority           = desc->header.fields.priority;
         task->exitCallback = taskKill;
         task->priority     = priority;
-        kind               = desc->header.fields.flags & TASK_DESC_BODY_KIND_MASK;
-        task->extra        = extra;
-        task->spawnArg1    = arg1;
-        task->spawnArg2    = arg2;
+        bodyKind           = desc->header.fields.flags & TASK_DESC_BODY_KIND_MASK;
+        task->extra        = body;
+        task->spawnArg1    = spawnArg1;
+        task->spawnArg2    = spawnArg2;
         task->parent       = NULL;
         task->firstChild   = NULL;
         task->nextSibling  = task;
-        task->bodyKind     = kind;
+        task->bodyKind     = bodyKind;
 
-        _taskInsert(list, task, priority);
+        _taskInsert(listHead, task, priority);
     } else {
         memFree(task);
         task = NULL;
@@ -368,9 +387,9 @@ void taskKill(Task* task)
     _taskCollectImmediately(task);
 }
 
-Task* Task_SpawnFromTable(TaskDesc* descriptor, s32 arg1, TaskSpawnArg arg2, TaskSpawnArg arg3)
+Task* taskSpawnFromTable(TaskDesc* table, s32 index, TaskSpawnArg spawnArg1, TaskSpawnArg spawnArg2)
 {
-    return Task_SpawnFromDesc(&descriptor[arg1], arg2, arg3, _gTaskActiveList);
+    return _taskSpawnFromDesc(&table[index], spawnArg1, spawnArg2, _gTaskActiveList);
 }
 
 Task* Task_Spawn(s32 arg0, TaskSpawnArg arg1, TaskSpawnArg arg2, TaskSpawnArg arg3)
@@ -383,7 +402,7 @@ Task* Task_Spawn(s32 arg0, TaskSpawnArg arg1, TaskSpawnArg arg2, TaskSpawnArg ar
     } else {
         ptr = arg1.pointer;
     }
-    return Task_SpawnFromDesc(ptr, arg2, arg3, _gTaskActiveList);
+    return _taskSpawnFromDesc(ptr, arg2, arg3, _gTaskActiveList);
 }
 
 void Task_KillChildren(Task* task)
@@ -405,7 +424,7 @@ void Task_KillChildren(Task* task)
     task->firstChild = NULL;
 }
 
-void Task_CallExit(Task* task)
+void taskCallExit(Task* task)
 {
     task->exitCallback(task);
 }
@@ -491,40 +510,51 @@ struct Task* gameGetTaskSlot(s32 slot)
     return gGameSession->ptrSlots[slot];
 }
 
-void Task_InitList(TaskNode* node)
+void taskInitList(TaskNode* listHead)
 {
-    _gTaskActiveList = node;
-    node->next       = NULL;
-    node->prev       = node;
+    _gTaskActiveList = listHead;
+    listHead->next   = NULL;
+    listHead->prev   = listHead;
 }
 
-void Task_ExecList(TaskNode* node)
+/// Collects a released cursor and returns its successor after callback dispatch.
+///
+/// Requires the selected head to own tail tasks and cursor fields to remain
+/// readable until this call. Saves the successor before unlinking and freeing
+/// a marked task; unmarked tasks remain linked. No callback runs here.
+static inline Task* _taskCollectReleasedAndAdvance(Task* task, DisplayState* display)
 {
-    Task*         next;
-    Task*         curr;
-    DisplayState* tmp_ptr; // The indirection is required.
+    Task* nextTask;
 
-    curr             = node->next;
-    _gTaskActiveList = node;
-    if (curr != NULL) {
-        tmp_ptr = &gDisplayState;
-    loop_2:
-        curr->callback(curr);
-        if (tmp_ptr->stopTaskWalk == 1) {
-            tmp_ptr->stopTaskWalk = 0;
+    if (task->bodyKind == TASK_BODY_RELEASED) {
+        nextTask              = task->node.next;
+        display->stopTaskWalk = 0;
+        _taskUnlinkFromSelectedList(task);
+        _taskFree(task);
+        return nextTask;
+    }
+    return task->node.next;
+}
+
+void taskExecList(TaskNode* listHead)
+{
+    Task*         currentTask;
+    DisplayState* display;
+
+    currentTask      = listHead->next;
+    _gTaskActiveList = listHead;
+    if (currentTask != NULL) {
+        display = &gDisplayState;
+    dispatchTask:
+        currentTask->callback(currentTask);
+        // A callback can replace the world; stop before reading its cursor again.
+        if (display->stopTaskWalk == TASK_WALK_STOP_REQUESTED) {
+            display->stopTaskWalk = 0;
             return;
         }
-        if (curr->bodyKind == TASK_BODY_RELEASED) {
-            next                  = curr->node.next;
-            tmp_ptr->stopTaskWalk = 0;
-            Task_Unlink(curr);
-            Task_Free(curr);
-            curr = next;
-        } else {
-            curr = curr->node.next;
-        }
-        if (curr != NULL) {
-            goto loop_2;
+        currentTask = _taskCollectReleasedAndAdvance(currentTask, display);
+        if (currentTask != NULL) {
+            goto dispatchTask;
         }
     }
 }
@@ -535,9 +565,9 @@ TaskDesc* Task_GetDesc(u32 idx1, u32 idx2)
     return base + idx2;
 }
 
-TaskDesc* Task_GetDescAt(TaskDesc* base, u32 idx)
+TaskDesc* taskGetDescAt(TaskDesc* table, u32 index)
 {
-    return base + idx;
+    return table + index;
 }
 
 void Task_RequestKill(Task* task, s32 arg1)
@@ -578,155 +608,136 @@ s32 Task_PollKill(Task* task, s32* arg1)
     return result;
 }
 
-TaskNode* Task_GetActiveList(void)
+TaskNode* taskGetActiveList(void)
 {
     return _gTaskActiveList;
 }
 
-void Task_SetActiveList(TaskNode* node)
+void taskSetActiveList(TaskNode* listHead)
 {
-    _gTaskActiveList = node;
+    _gTaskActiveList = listHead;
 }
 
-void Task_ResetDefaultList(void)
+void taskResetDefaultList(void)
 {
     _gTaskActiveList      = &gTaskDefaultList;
     gTaskDefaultList.next = NULL;
     gTaskDefaultList.prev = &gTaskDefaultList;
 }
 
-static void Task_Unlink(Task* state)
+/// Removes a task's execution links using the selected head for a tail task.
+///
+/// The task must be live and linked. Its predecessor can be a bare head or an
+/// embedded node. When it has no successor, the selected list must own it;
+/// otherwise the successor supplies the backlink. Does not dispatch, release
+/// resources or clear the removed task's own links.
+static void _taskUnlinkFromSelectedList(Task* task)
 {
-    Task*      next;
-    TaskNode*  head;
-    TaskNode** pp;
-    TaskNode*  prev;
+    Task*      nextTask;
+    TaskNode*  selectedListHead;
+    TaskNode** backlinkSlot;
+    TaskNode*  predecessorNode;
 
-    next = state->node.next;
-    head = _gTaskActiveList;
-    do {
-        pp = &head->prev;
-        if (next != NULL) {
-            pp = &next->node.prev;
-        }
-    } while (0);
-    prev       = state->node.prev;
-    *pp        = prev;
-    prev->next = state->node.next;
+    nextTask              = task->node.next;
+    selectedListHead      = _gTaskActiveList;
+    backlinkSlot          = nextTask == NULL ? &selectedListHead->prev : &nextTask->node.prev;
+    predecessorNode       = task->node.prev;
+    *backlinkSlot         = predecessorNode;
+    predecessorNode->next = task->node.next;
 }
 
-static void Task_Free(Task* state)
+/// Releases only the primary-heap task allocation after execution-list unlinking.
+///
+/// Its owned work, body and teardown relationships must already be released.
+/// No handlers run here; the pointer is invalid on return.
+static void _taskFree(Task* task)
 {
-    memFree(state);
+    memFree(task);
 }
 
-void Task_ExecDefaultList(TaskNode* unused)
+void taskExecDefaultList(TaskNode* unusedListHead)
 {
-    Task*         next;
-    Task*         curr;
-    DisplayState* tmp_ptr; // The indirection is required.
+    Task*         currentTask;
+    DisplayState* display;
 
-    curr             = gTaskDefaultList.next;
+    currentTask      = gTaskDefaultList.next;
     _gTaskActiveList = &gTaskDefaultList;
-    if (curr != NULL) {
-        tmp_ptr = &gDisplayState;
-    loop_2:
-        curr->callback(curr);
-        if (tmp_ptr->stopTaskWalk == 1) {
-            tmp_ptr->stopTaskWalk = 0;
+    if (currentTask != NULL) {
+        display = &gDisplayState;
+    dispatchTask:
+        currentTask->callback(currentTask);
+        // A callback can replace the world; stop before reading its cursor again.
+        if (display->stopTaskWalk == TASK_WALK_STOP_REQUESTED) {
+            display->stopTaskWalk = 0;
             return;
         }
-        if (curr->bodyKind == TASK_BODY_RELEASED) {
-            next                  = curr->node.next;
-            tmp_ptr->stopTaskWalk = 0;
-            Task_Unlink(curr);
-            Task_Free(curr);
-            curr = next;
-        } else {
-            curr = curr->node.next;
-        }
-        if (curr != NULL) {
-            goto loop_2;
+        currentTask = _taskCollectReleasedAndAdvance(currentTask, display);
+        if (currentTask != NULL) {
+            goto dispatchTask;
         }
     }
 }
 
-void Task_ExecListFiltered(TaskNode* node, s32 arg1)
+void taskExecListForPriority(TaskNode* listHead, s32 priority)
 {
-    Task*         next;
-    Task*         curr;
-    DisplayState* tmp_ptr;
-    TaskNode*     previousList;
-    s32           filter;
+    Task*         currentTask;
+    DisplayState* display;
+    TaskNode*     savedListHead;
+    s32           selectedPriority;
 
-    curr             = node->next;
-    previousList     = _gTaskActiveList;
-    _gTaskActiveList = node;
-    if (curr != NULL) {
-        filter  = arg1 & 0xFF;
-        tmp_ptr = &gDisplayState;
-    loop_2:
-        if (curr->priority == (u8)filter) {
-            curr->callback(curr);
+    currentTask      = listHead->next;
+    savedListHead    = _gTaskActiveList;
+    _gTaskActiveList = listHead;
+    if (currentTask != NULL) {
+        selectedPriority = priority & TASK_PRIORITY_MASK;
+        display          = &gDisplayState;
+    dispatchTask:
+        if (currentTask->priority == selectedPriority) {
+            currentTask->callback(currentTask);
         }
-        if (tmp_ptr->stopTaskWalk == 1) {
-            tmp_ptr->stopTaskWalk = 0;
-            goto end;
+        // A callback can replace the world; stop before reading its cursor again.
+        if (display->stopTaskWalk == TASK_WALK_STOP_REQUESTED) {
+            display->stopTaskWalk = 0;
+            goto restoreSelection;
         }
-        if (curr->bodyKind == TASK_BODY_RELEASED) {
-            next                  = curr->node.next;
-            tmp_ptr->stopTaskWalk = 0;
-            Task_Unlink(curr);
-            Task_Free(curr);
-            curr = next;
-        } else {
-            curr = curr->node.next;
-        }
-        if (curr != NULL) {
-            goto loop_2;
+        currentTask = _taskCollectReleasedAndAdvance(currentTask, display);
+        if (currentTask != NULL) {
+            goto dispatchTask;
         }
     }
-end:
-    _gTaskActiveList = previousList;
+restoreSelection:
+    _gTaskActiveList = savedListHead;
 }
 
-void Task_CallExitFiltered(TaskNode* node, s32 arg1)
+void taskCallExitForPriority(TaskNode* listHead, s32 priority)
 {
-    Task*         next;
-    Task*         curr;
-    DisplayState* tmp_ptr;
-    TaskNode*     previousList;
-    s32           filter;
+    Task*         currentTask;
+    DisplayState* display;
+    TaskNode*     savedListHead;
+    s32           selectedPriority;
 
-    curr             = node->next;
-    previousList     = _gTaskActiveList;
-    _gTaskActiveList = node;
-    if (curr != NULL) {
-        filter  = arg1 & 0xFF;
-        tmp_ptr = &gDisplayState;
-    loop_2:
-        if (curr->priority == (u8)filter) {
-            Task_CallExit(curr);
+    currentTask      = listHead->next;
+    savedListHead    = _gTaskActiveList;
+    _gTaskActiveList = listHead;
+    if (currentTask != NULL) {
+        selectedPriority = priority & TASK_PRIORITY_MASK;
+        display          = &gDisplayState;
+    dispatchTask:
+        if (currentTask->priority == selectedPriority) {
+            taskCallExit(currentTask);
         }
-        if (tmp_ptr->stopTaskWalk == 1) {
-            tmp_ptr->stopTaskWalk = 0;
-            goto end;
+        // A callback can replace the world; stop before reading its cursor again.
+        if (display->stopTaskWalk == TASK_WALK_STOP_REQUESTED) {
+            display->stopTaskWalk = 0;
+            goto restoreSelection;
         }
-        if (curr->bodyKind == TASK_BODY_RELEASED) {
-            next                  = curr->node.next;
-            tmp_ptr->stopTaskWalk = 0;
-            Task_Unlink(curr);
-            Task_Free(curr);
-            curr = next;
-        } else {
-            curr = curr->node.next;
-        }
-        if (curr != NULL) {
-            goto loop_2;
+        currentTask = _taskCollectReleasedAndAdvance(currentTask, display);
+        if (currentTask != NULL) {
+            goto dispatchTask;
         }
     }
-end:
-    _gTaskActiveList = previousList;
+restoreSelection:
+    _gTaskActiveList = savedListHead;
 }
 
 void taskCountdownCallback(Task* task)
@@ -757,67 +768,86 @@ void taskCountdownCallback(Task* task)
     }
 }
 
-void Game_ClearPtrSlots(void)
+void gameClearTaskSlots(void)
 {
-    s32 i;
+    s32 slot;
 
-    for (i = (s32)ARRAY_SIZE(gGameSession->ptrSlots) - 1; i >= 0; i--) {
-        gGameSession->ptrSlots[i] = NULL;
+    for (slot = (s32)ARRAY_SIZE(gGameSession->ptrSlots) - 1; slot >= 0; slot--) {
+        gGameSession->ptrSlots[slot] = NULL;
     }
 }
 
-void Mem_CopyUnaligned(void* src, void* dest, u32 count)
+void memCopyBytes(const void* source, void* destination, u32 sizeBytes)
 {
-    u32 i;
-    u32 alignment;
-    u8* ptr;
-    u8* dst;
-    u32 remaining;
+    /// Only the low halfword of the requested byte count is copied.
+    enum { MEMORY_COPY_BYTE_COUNT_MASK = 0xFFFF };
 
-    ptr       = (u8*)src;
-    dst       = (u8*)dest;
-    remaining = count;
+    u32       tailByteIndex;
+    u32       sourceAlignment;
+    const u8* sourceCursor;
+    u8*       destinationCursor;
+    u32       bytesRemaining;
 
-    while ((remaining & 0xFFFF) >= 4) {
-        /* Alignment depends on address bits, not the pointed-to value. */
-        alignment = (uintptr)ptr & 3;
+    sourceCursor      = source;
+    destinationCursor = destination;
+    bytesRemaining    = sizeBytes;
 
-        switch (alignment) {
-            case 0:
-                *(u32*)dst = *(u32*)ptr;
-                ptr       += 4;
-                dst       += 4;
-                remaining -= 4;
-                break;
+    /// Copies and advances through the next source word boundary.
+    ///
+    /// Requires at least four remaining bytes and disjoint readable/writable
+    /// regions with the same residue modulo four. Cursor/count arguments must
+    /// be stable distinct lvalues outside those regions, with no evaluation
+    /// side effects: const u8*, u8* and u32. Alignment is a u32 residue in 0..3,
+    /// evaluated once. The selected chunk advances both pointers by 4, 3, 2 or
+    /// 1 bytes; the arguments have no captured surrounding identifiers.
+#define MEMORY_COPY_ALIGNED_CHUNK(sourceCursor, destinationCursor, bytesRemaining, sourceAlignment) \
+    do {                                                                                            \
+        switch ((sourceAlignment)) {                                                                \
+            case 0:                                                                                 \
+                *(u32*)(destinationCursor) = *(const u32*)(sourceCursor);                           \
+                (sourceCursor)            += sizeof(u32);                                           \
+                (destinationCursor)       += sizeof(u32);                                           \
+                (bytesRemaining)          -= sizeof(u32);                                           \
+                break;                                                                              \
+                                                                                                    \
+            case 1:                                                                                 \
+                *(destinationCursor)++     = *(sourceCursor)++;                                     \
+                *(u16*)(destinationCursor) = *(const u16*)(sourceCursor);                           \
+                (sourceCursor)            += sizeof(u16);                                           \
+                (destinationCursor)       += sizeof(u16);                                           \
+                (bytesRemaining)          -= 1 + sizeof(u16);                                       \
+                break;                                                                              \
+                                                                                                    \
+            case 2:                                                                                 \
+                *(u16*)(destinationCursor) = *(const u16*)(sourceCursor);                           \
+                (sourceCursor)            += sizeof(u16);                                           \
+                (destinationCursor)       += sizeof(u16);                                           \
+                (bytesRemaining)          -= sizeof(u16);                                           \
+                break;                                                                              \
+                                                                                                    \
+            case 3:                                                                                 \
+                *(destinationCursor) = *(sourceCursor);                                             \
+                (sourceCursor)      += 1;                                                           \
+                (destinationCursor) += 1;                                                           \
+                (bytesRemaining)    -= 1;                                                           \
+                break;                                                                              \
+        }                                                                                           \
+    } while (0)
 
-            case 1:
-                *dst++     = *ptr++;
-                *(u16*)dst = *(u16*)ptr;
-                ptr       += 2;
-                dst       += 2;
-                remaining -= 3;
-                break;
+    while ((bytesRemaining & MEMORY_COPY_BYTE_COUNT_MASK) >= sizeof(u32)) {
+        // Wide accesses follow source alignment; the destination must share it.
+        sourceAlignment = (uintptr)sourceCursor & (sizeof(u32) - 1);
 
-            case 2:
-                *(u16*)dst = *(u16*)ptr;
-                ptr       += 2;
-                dst       += 2;
-                remaining -= 2;
-                break;
-
-            case 3:
-                *dst       = *ptr;
-                ptr       += 1;
-                dst       += 1;
-                remaining -= 1;
-                break;
-        }
+        MEMORY_COPY_ALIGNED_CHUNK(sourceCursor, destinationCursor, bytesRemaining, sourceAlignment);
     }
 
-    remaining &= 0xFFFF;
-    i          = 0;
-    while ((i & 0xFFFF) < remaining) {
-        *dst++ = *ptr++;
-        i++;
+#undef MEMORY_COPY_ALIGNED_CHUNK
+
+    // Fewer than four effective bytes remain; finish without wide accesses.
+    bytesRemaining &= MEMORY_COPY_BYTE_COUNT_MASK;
+    tailByteIndex   = 0;
+    while ((tailByteIndex & MEMORY_COPY_BYTE_COUNT_MASK) < bytesRemaining) {
+        *destinationCursor++ = *sourceCursor++;
+        tailByteIndex++;
     }
 }

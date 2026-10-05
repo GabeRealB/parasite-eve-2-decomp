@@ -5670,17 +5670,17 @@ static void func_actor_560800_80135BD8(Task* arg0)
     memFillBytes(work, 0, sizeof(*work));
     work->player            = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     D_actor_560800_8017578C = arg0;
-    work->eve               = Task_SpawnFromTable(D_actor_560800_801718F0, 4, 0, 0);
-    sub5                    = Task_SpawnFromTable(D_actor_560800_801718F0, 5, 0, 0);
+    work->eve               = taskSpawnFromTable(D_actor_560800_801718F0, 4, 0, 0);
+    sub5                    = taskSpawnFromTable(D_actor_560800_801718F0, 5, 0, 0);
     work->kyle              = sub5;
-    work->kyleGunHand       = Task_SpawnFromTable(D_actor_560800_801718F0, 7, 1, sub5);
-    work->kyleFreeHand      = Task_SpawnFromTable(D_actor_560800_801718F0, 8, 0, work->kyle);
-    work->kyleGun           = Task_SpawnFromTable(D_actor_560800_801718F0, 9, 2, work->kyle);
-    sub6                    = Task_SpawnFromTable(D_actor_560800_801718F0, 6, 0, 0);
+    work->kyleGunHand       = taskSpawnFromTable(D_actor_560800_801718F0, 7, 1, sub5);
+    work->kyleFreeHand      = taskSpawnFromTable(D_actor_560800_801718F0, 8, 0, work->kyle);
+    work->kyleGun           = taskSpawnFromTable(D_actor_560800_801718F0, 9, 2, work->kyle);
+    sub6                    = taskSpawnFromTable(D_actor_560800_801718F0, 6, 0, 0);
     work->no9               = sub6;
-    work->no9Gunblade       = Task_SpawnFromTable(D_actor_560800_801718F0, 0xA, 3, sub6);
-    work->chainGroup        = Task_SpawnFromTable(D_actor_560800_8017575C, 0, 0, arg0);
-    work->carrierModel      = Task_SpawnFromTable(D_actor_560800_8017575C, 2, 0, arg0);
+    work->no9Gunblade       = taskSpawnFromTable(D_actor_560800_801718F0, 0xA, 3, sub6);
+    work->chainGroup        = taskSpawnFromTable(D_actor_560800_8017575C, 0, 0, arg0);
+    work->carrierModel      = taskSpawnFromTable(D_actor_560800_8017575C, 2, 0, arg0);
     vec.vx                  = 0x5A0;
     vec.vy                  = 0x5A0;
     vec.vz                  = 0x5A0;
@@ -5849,12 +5849,12 @@ void func_actor_560800_801361A0(Task* task, s32 arg1, s32 arg2, s32 arg3)
 /// spawn argument. Script tables in the actor's data call it.
 void func_actor_560800_80136280(s32 arg0)
 {
-    Task_SpawnFromTable(D_actor_560800_801718F0, 2, arg0, 0);
+    taskSpawnFromTable(D_actor_560800_801718F0, 2, arg0, 0);
 }
 
 void func_actor_560800_801362B0(s32 arg0)
 {
-    Task_SpawnFromTable(D_actor_560800_801718F0, 3, arg0, 0);
+    taskSpawnFromTable(D_actor_560800_801718F0, 3, arg0, 0);
 }
 
 void func_actor_560800_801362E0(s16 arg0)
@@ -6178,7 +6178,7 @@ static void func_actor_560800_80136AA8(Task* arg0)
     s = SCRATCH_STACK_CURSOR(_Actor560800ChainScratch) = top - 1;
     group                                              = work->parent->work;
     memFillBytes(s, 0, sizeof(_Actor560800ChainScratch));
-    Mem_CopyUnaligned(work->rot, s->rot, sizeof(s->rot));
+    memCopyBytes(work->rot, s->rot, sizeof(s->rot));
     if (work->chainNumber & 1) {
         speed = 2;
         switch (((D_actor_560800_801752E8 + work->swayPhase) * 2) & 0x300) {
@@ -6318,7 +6318,7 @@ static void func_actor_560800_80136AA8(Task* arg0)
         s->pos.vy += s->joint.vy;
         s->pos.vz += s->joint.vz;
     }
-    Mem_CopyUnaligned(s->rot, work->rot, sizeof(s->rot));
+    memCopyBytes(s->rot, work->rot, sizeof(s->rot));
     switch (work->dipStep) {
         case 0:
             if (abs(s->pos.vy - group->targetWorld.t[1]) < 300) {
@@ -6469,17 +6469,17 @@ void func_actor_560800_80137820(Task* arg0)
             }
             break;
         case 4:
-            child = Task_SpawnFromTable(D_actor_560800_8017575C, 3,
-                                        (s32)D_actor_560800_801757AC->extra.tmd->coords->coord.t[1],
-                                        arg0->spawnArg2.pointer);
+            child = taskSpawnFromTable(D_actor_560800_8017575C, 3,
+                                       (s32)D_actor_560800_801757AC->extra.tmd->coords->coord.t[1],
+                                       arg0->spawnArg2.pointer);
             if (child == NULL) {
                 arg0->state = 1;
                 return;
             }
             i = 0;
             do {
-                Mem_CopyUnaligned(&arg0->extra.tmd->coords[i & 0xFFFF].coord,
-                                  &child->extra.tmd->coords[i & 0xFFFF].coord, 0x20);
+                memCopyBytes(&arg0->extra.tmd->coords[i & 0xFFFF].coord,
+                             &child->extra.tmd->coords[i & 0xFFFF].coord, sizeof(child->extra.tmd->coords[i & 0xFFFF].coord));
                 i++;
             } while ((u32)(i & 0xFFFF) < ARRAY_SIZE(work->rot));
             arg0->killCountdown = 0;
@@ -6853,7 +6853,7 @@ void func_actor_560800_801386D4(Task* task)
                 taskReparent(spawned->cutscene, task);
                 do {
                     spawned->chains[i & 0xFFFF] =
-                        Task_SpawnFromTable(D_actor_560800_8017575C, 1, (i & 0xFFFF) + 1, task);
+                        taskSpawnFromTable(D_actor_560800_8017575C, 1, (i & 0xFFFF) + 1, task);
                     i++;
                 } while ((u32)(i & 0xFFFF) < ARRAY_SIZE(spawned->chains));
                 D_actor_560800_801757A8 = gRandomLcgState;

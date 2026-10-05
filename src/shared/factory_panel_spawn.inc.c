@@ -8,7 +8,7 @@ void factoryPanelSpawn(Task* task)
 
     switch (task->state) {
         case 0:
-            *gFactoryPanelSlot = Task_SpawnFromTable(gFactoryPanelDesc, 0, 0, 0);
+            *gFactoryPanelSlot = taskSpawnFromTable(gFactoryPanelDesc, 0, 0, 0);
             task->state++;
             return;
         case 1:

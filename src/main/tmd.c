@@ -93,10 +93,6 @@ enum {
     TMD_SOURCE_HANDLERS_RESOLVED = 1
 };
 
-enum {
-    TMD_CREATE_SKIP_AUTO_BUFFER = 1 // Creation bit: defer allocation and skip missing-buffer recovery
-};
-
 /// Number of primitive-buffer halves in one allocated block.
 ///
 /// Each half holds `bufferHalfBytes` bytes. Allocation and the attached-buffer

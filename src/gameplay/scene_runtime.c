@@ -492,7 +492,7 @@ s32 func_800AF590(s32 unused0, s32 unused1)
                 p->scenePayloadLoading = 1;
                 (*(D_80114D14 + 1))    = header.bufferKind;
                 if (D_80114D1A != 0) {
-                    Mem_CopyUnaligned(&header, &p->sceneImageHeaders[(*(D_80114D14 + 1))], sizeof(header));
+                    memCopyBytes(&header, &p->sceneImageHeaders[(*(D_80114D14 + 1))], sizeof(header));
                 }
                 switch ((*(D_80114D14 + 1))) {
                     case STREAM_SCENE_BUFFER_DECODE:
@@ -972,7 +972,7 @@ Enemy* Gp_SpawnEnemyFromTable(TaskDesc* table, s32 idx, s32 arg2, Enemy* parent)
     Task*  task;
     Enemy* ret;
 
-    task = Task_SpawnFromTable(table, idx, arg2, 0);
+    task = taskSpawnFromTable(table, idx, arg2, 0);
     if (task != NULL) {
         ret = Gp_AllocEnemy(task, parent);
     } else {
@@ -1180,10 +1180,10 @@ static void Gp_FinishStageLoad(Task* task)
     if (CdCmd_IsIdle() & 0xFFFF) {
         gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_STRIPS;
         if (gGameSession->restartMode == GAME_SESSION_RESTART_ENDING) {
-            Task_SpawnFromTable(D_replay_bonus_8011922C, 0, 0, 0);
+            taskSpawnFromTable(D_replay_bonus_8011922C, 0, 0, 0);
             taskKill(task);
         } else {
-            task->spawnArg2.pointer = Task_SpawnFromTable(D_aya_20900_80115D9C, 0, 0, 0);
+            task->spawnArg2.pointer = taskSpawnFromTable(D_aya_20900_80115D9C, 0, 0, 0);
             SndEvt_EnqueueType1(0x62, 0);
         }
         task->state++;
@@ -1941,47 +1941,47 @@ void func_800B25B0(void)
 {
     switch (GAME_LOCATION_WORD(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc) & GAME_LOCATION_STAGE_AREA_MASK) {
         case GAME_LOCATION_KEY(5, 27, 0, 0):
-            Task_SpawnFromTable(&D_neo_ark_bridge_80181F18, 0, 0, 0);
+            taskSpawnFromTable(&D_neo_ark_bridge_80181F18, 0, 0, 0);
             break;
         case GAME_LOCATION_KEY(5, 15, 0, 0):
-            Task_SpawnFromTable(&D_neo_ark_garden_80181398, 0, 0, 0);
+            taskSpawnFromTable(&D_neo_ark_garden_80181398, 0, 0, 0);
             break;
         case GAME_LOCATION_KEY(5, 14, 0, 0):
-            Task_SpawnFromTable(&D_neo_ark_island_80181B30, 0, 0, 0);
+            taskSpawnFromTable(&D_neo_ark_island_80181B30, 0, 0, 0);
             break;
         case GAME_LOCATION_KEY(5, 13, 0, 0):
-            Task_SpawnFromTable(&D_neo_ark_pavilion_8018384C, 0, 0, 0);
+            taskSpawnFromTable(&D_neo_ark_pavilion_8018384C, 0, 0, 0);
             break;
         case GAME_LOCATION_KEY(5, 12, 0, 0):
-            Task_SpawnFromTable(&D_neo_ark_submarine_tunnel_801810E4, 1, 0, 0);
+            taskSpawnFromTable(&D_neo_ark_submarine_tunnel_801810E4, 1, 0, 0);
             break;
         case GAME_LOCATION_KEY(5, 7, 0, 0):
-            Task_SpawnFromTable(D_neo_ark_observatory_80180DBC, 0, 0, 0);
+            taskSpawnFromTable(D_neo_ark_observatory_80180DBC, 0, 0, 0);
             break;
         case GAME_LOCATION_KEY(2, 30, 0, 0):
-            Task_SpawnFromTable(D_dryfield_motel_room_6_80182D0C, 0, 1, 0);
+            taskSpawnFromTable(D_dryfield_motel_room_6_80182D0C, 0, 1, 0);
             break;
         case GAME_LOCATION_KEY(3, 30, 0, 0):
-            Task_SpawnFromTable(D_dryfield_night_motel_room_6_80182E74, 0, 1, 0);
+            taskSpawnFromTable(D_dryfield_night_motel_room_6_80182E74, 0, 1, 0);
             break;
         case GAME_LOCATION_KEY(4, 18, 0, 0):
-            Task_SpawnFromTable(&D_shelter_b1_control_room_80181B88, 0, 0, 0);
+            taskSpawnFromTable(&D_shelter_b1_control_room_80181B88, 0, 0, 0);
             break;
         case GAME_LOCATION_KEY(5, 31, 0, 0):
-            Task_SpawnFromTable(&D_neo_ark_r31_8017D9E8, 0, 0, 0);
+            taskSpawnFromTable(&D_neo_ark_r31_8017D9E8, 0, 0, 0);
             break;
         case GAME_LOCATION_KEY(5, 30, 0, 0):
-            Task_SpawnFromTable(&D_neo_ark_submarine_gallery_8018186C, 0, 0, 0);
-            Task_SpawnFromTable(&D_neo_ark_submarine_gallery_8018186C, 1, 0, 0);
+            taskSpawnFromTable(&D_neo_ark_submarine_gallery_8018186C, 0, 0, 0);
+            taskSpawnFromTable(&D_neo_ark_submarine_gallery_8018186C, 1, 0, 0);
             break;
         case GAME_LOCATION_KEY(5, 29, 0, 0):
-            Task_SpawnFromTable(&D_neo_ark_woodland_path_80181638, 0, 0, 0);
+            taskSpawnFromTable(&D_neo_ark_woodland_path_80181638, 0, 0, 0);
             break;
         case GAME_LOCATION_KEY(4, 22, 0, 0):
-            Task_SpawnFromTable(&D_actor_361100_801637C8, 0, 0, 0);
+            taskSpawnFromTable(&D_actor_361100_801637C8, 0, 0, 0);
             break;
         case GAME_LOCATION_KEY(4, 48, 0, 0):
-            Task_SpawnFromTable(&D_shelter_r48_80182FAC, 0, 0, 0);
+            taskSpawnFromTable(&D_shelter_r48_80182FAC, 0, 0, 0);
             break;
         case GAME_LOCATION_KEY(1, 20, 0, 0):
             func_mist_shooting_gallery_8017FBD8();
@@ -2032,7 +2032,7 @@ void func_800B2910(Task* arg0)
 
 Task* func_800B2968(void)
 {
-    return Task_SpawnFromTable(&D_replay_bonus_80119218, 0, 0, 0);
+    return taskSpawnFromTable(&D_replay_bonus_80119218, 0, 0, 0);
 }
 
 /// Blends one part's decoded rotations into its local matrix or an unpacked pose.
@@ -3914,7 +3914,7 @@ s32 Gp_ExitChildrenType9(Task* scene, s32 messageId, s32 firstArg, s32 secondArg
         bank  = enemy->workType >> 8;
         next  = child->nextSibling;
         if (bank == SCENE_PLACED_ACTOR_BANK) {
-            Task_CallExit(child);
+            taskCallExit(child);
         }
         child = next;
     } while (child != head);
@@ -4164,7 +4164,7 @@ static const VECTOR D_80093A28 = { 0, -100, 0, 0 };
 static const TaskFuncTable3 D_80093A38 = { {
     func_800B28E0,
     func_800B1EFC,
-    Task_CallExit,
+    taskCallExit,
 } };
 
 /// Error message for animation tracks with unsupported pose encoding 2.
@@ -4176,7 +4176,7 @@ static const char _gAnimationUnsupportedPoseDiagnostic[24] = "ERROR: ex_pdriver_
 static const TaskFuncTable3 D_80093A5C = { {
     func_800B6094,
     func_800B51F4,
-    Task_CallExit,
+    taskCallExit,
 } };
 
 /// Message table the scene task installs while it is the scene manager.

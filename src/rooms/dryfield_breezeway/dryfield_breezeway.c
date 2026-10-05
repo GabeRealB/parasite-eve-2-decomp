@@ -576,14 +576,14 @@ s32 func_dryfield_breezeway_8017DA48(Task* task, s32 msgId, s32 arg2, s32 arg3)
                     }
                 }
                 Gp_MsgPlayerWeapon(0);
-                Task_SpawnFromTable(D_dryfield_breezeway_80181E10, 1, arg2, 0);
+                taskSpawnFromTable(D_dryfield_breezeway_80181E10, 1, arg2, 0);
             }
             break;
         case 3:
             if (gameFlagGetNibble(GAME_FLAG_BREEZEWAY_FACTORY_DOOR_PROGRESS) >= 2) {
                 if (gSceneCombatState.signals.bytes.battlePhase != SCENE_COMBAT_BATTLE_ENGAGED) {
                     if (Gp_GetCurBit2Flag(6) == 1) {
-                        Task_SpawnFromTable(D_dryfield_breezeway_80181E10, 0, 0, 0);
+                        taskSpawnFromTable(D_dryfield_breezeway_80181E10, 0, 0, 0);
                         gameFlagSetNibble(GAME_FLAG_DRYFIELD_BREEZEWAY_0FE, 1);
                     }
                 } else {
@@ -611,7 +611,7 @@ s32 func_dryfield_breezeway_8017DBD8(Task* task, s32 msgId, RoomEventMsg* in, Ro
 {
     if (gameFlagGetNibble(GAME_FLAG_BREEZEWAY_FIRST_EVENT_SEEN) == 0 && in->warp == 1) {
         gameFlagSetNibble(GAME_FLAG_BREEZEWAY_FIRST_EVENT_SEEN, 1);
-        Task_SpawnFromTable(D_dryfield_breezeway_801820B0, 1, 0, 0);
+        taskSpawnFromTable(D_dryfield_breezeway_801820B0, 1, 0, 0);
     }
     return 0;
 }
@@ -631,7 +631,7 @@ void func_dryfield_breezeway_8017DC3C(Task* arg0)
         case 0:
             Gp_MsgPlayerWeapon(0);
             Gp_MsgPlayer3F3(0);
-            D_dryfield_breezeway_801843A8 = Task_SpawnFromTable(&D_dryfield_breezeway_80182E18, 0, 0, 0);
+            D_dryfield_breezeway_801843A8 = taskSpawnFromTable(&D_dryfield_breezeway_80182E18, 0, 0, 0);
             arg0->state                  += 1;
             return;
         case 1:
@@ -678,7 +678,7 @@ static void func_dryfield_breezeway_8017DDB0(Task* task)
         msg.context.loc.area  = gGameSession->location.loc.area;
         msg.command           = 0;
         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
-        Task_SpawnFromTable(D_dryfield_breezeway_801820B0, 0, 0, 0);
+        taskSpawnFromTable(D_dryfield_breezeway_801820B0, 0, 0, 0);
     }
     task->state++;
     D_dryfield_breezeway_801843A8 = NULL;

@@ -920,7 +920,7 @@ static __inline__ s32 _operatingRoomStartEvent(RoomEventMsg* dst, RoomLatchedEve
             if (event->flagId != 0) {
                 gameFlagSetNibble(event->flagId, 1);
             }
-            Task_SpawnFromTable(&D_shelter_b2_operating_room_80180910, 0, 0, 0);
+            taskSpawnFromTable(&D_shelter_b2_operating_room_80180910, 0, 0, 0);
             D_shelter_b2_operating_room_80184234[0] = 1;
         }
         return 2;

@@ -1027,7 +1027,7 @@ void func_actor_335800_801620A0(void)
 
 void func_actor_335800_801620C0(void)
 {
-    Task_SpawnFromTable(D_actor_335800_80164DE0, 0, 0, 0);
+    taskSpawnFromTable(D_actor_335800_80164DE0, 0, 0, 0);
 }
 
 void func_actor_335800_801620F0(u8 arg0)
@@ -1149,7 +1149,7 @@ void func_actor_335800_80162364(Task* arg0)
 
 void func_actor_335800_801623D8(void)
 {
-    Task_SpawnFromTable(D_dryfield_night_motel_balcony_80182834, 0, 0, 0);
+    taskSpawnFromTable(D_dryfield_night_motel_balcony_80182834, 0, 0, 0);
 }
 
 void func_actor_335800_80162408(void)
@@ -1197,7 +1197,7 @@ void func_actor_335800_801624DC(Task* arg0)
 
 void func_actor_335800_80162558(void)
 {
-    Task_SpawnFromTable(D_actor_335800_80164DE0, 3, 0, 0);
+    taskSpawnFromTable(D_actor_335800_80164DE0, 3, 0, 0);
 }
 
 void func_actor_335800_80162588(Task* arg0)
@@ -1244,7 +1244,7 @@ static void func_actor_335800_80162640(Task* arg0)
     work->walk.carry[0].word = 0;
     work->walk.carry[1].word = 0;
     work->walk.carry[2].word = 0;
-    spawned                  = Task_SpawnFromTable(D_actor_335800_8016EADC, 1, 4, arg0);
+    spawned                  = taskSpawnFromTable(D_actor_335800_8016EADC, 1, 4, arg0);
     if (spawned != NULL) {
         TmdObject*     model;
         AreaVariant*   layout;
@@ -1269,7 +1269,7 @@ static void func_actor_335800_80162640(Task* arg0)
             tmdBuildBufferHalf(model);
         }
     }
-    spawned = Task_SpawnFromTable(D_actor_335800_8016EADC, 2, 8, arg0);
+    spawned = taskSpawnFromTable(D_actor_335800_8016EADC, 2, 8, arg0);
     if (spawned != NULL) {
         TmdObject*     model;
         AreaVariant*   layout;

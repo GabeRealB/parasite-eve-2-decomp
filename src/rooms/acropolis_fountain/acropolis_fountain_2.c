@@ -1567,7 +1567,7 @@ void func_acropolis_fountain_8017E014(Task* task)
             mask = 0x100FE;
             bit  = 1 << (work->scale - 1);
             if (bit & mask) {
-                Task_SpawnFromTable(D_acropolis_fountain_8017E7FC, 0, 0, 0);
+                taskSpawnFromTable(D_acropolis_fountain_8017E7FC, 0, 0, 0);
             }
             task->state = 2;
             break;
@@ -1577,7 +1577,7 @@ void func_acropolis_fountain_8017E014(Task* task)
             bit = one << (id - 1);
             if (id != (view & 0xFF)) {
                 if (bit & 0x100FE) {
-                    Task_SpawnFromTable(D_acropolis_fountain_8017E7FC, 1, 0, 0);
+                    taskSpawnFromTable(D_acropolis_fountain_8017E7FC, 1, 0, 0);
                 }
                 work->scale = (u8)view;
                 task->state = 1;

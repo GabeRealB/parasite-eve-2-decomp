@@ -120,9 +120,9 @@ void func_neo_ark_altar_8017D668(Task* task)
             break;
         case 7:
             if (gameFlagGetNibble(GAME_FLAG_NEO_ARK_ALTAR_SWITCH_STATE) != 0) {
-                Task_SpawnFromTable(D_neo_ark_altar_8017EFC0, 0, 0, 0);
+                taskSpawnFromTable(D_neo_ark_altar_8017EFC0, 0, 0, 0);
             } else {
-                Task_SpawnFromTable(D_neo_ark_altar_8017EFC0, 0, 1, 0);
+                taskSpawnFromTable(D_neo_ark_altar_8017EFC0, 0, 1, 0);
             }
             task->state++;
             break;
@@ -175,7 +175,7 @@ s32 func_neo_ark_altar_8017D910(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEven
         if (gGameSession->location.loc.room == in->warp) {
             Gp_RunCapCmd1(3);
         } else {
-            Task_SpawnFromTable(&D_neo_ark_altar_8017EF8C, 0, 0, 0);
+            taskSpawnFromTable(&D_neo_ark_altar_8017EF8C, 0, 0, 0);
         }
     }
     return 0;
@@ -191,7 +191,7 @@ static void func_neo_ark_altar_8017D974(Task* task)
     task->msgTable = D_neo_ark_altar_8017EF98;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     func_neo_ark_altar_8017DC40(gameFlagGetNibble(GAME_FLAG_NEO_ARK_ALTAR_SWITCH_STATE) & 0xFF);
-    Task_SpawnFromTable(D_neo_ark_altar_8017F088, 0, 0, 0);
+    taskSpawnFromTable(D_neo_ark_altar_8017F088, 0, 0, 0);
     task->state = (s32)(task->state + 1);
 }
 

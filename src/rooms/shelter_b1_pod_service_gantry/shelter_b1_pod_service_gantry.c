@@ -1532,14 +1532,14 @@ static void func_shelter_b1_pod_service_gantry_8017D628(Task* task)
 
     switch (work->step) {
         case SHELTER_B1_POD_SERVICE_GANTRY_STEP_START_FIRST_SCENE:
-            work->sceneTask = Task_SpawnFromTable(D_actor_560800_801718F0, 0, 0, 0);
+            work->sceneTask = taskSpawnFromTable(D_actor_560800_801718F0, 0, 0, 0);
             work->step++;
             break;
         case SHELTER_B1_POD_SERVICE_GANTRY_STEP_AWAIT_FIRST_SCENE:
             if (Task_PollKill(work->sceneTask, &poll) == 0) {
                 break;
             }
-            work->sceneTask = Task_SpawnFromTable(D_actor_560800_8016EA28, 0, 0, 0);
+            work->sceneTask = taskSpawnFromTable(D_actor_560800_8016EA28, 0, 0, 0);
             work->step++;
             break;
         case SHELTER_B1_POD_SERVICE_GANTRY_STEP_LOAD_SECOND_SCENE:
@@ -1556,7 +1556,7 @@ static void func_shelter_b1_pod_service_gantry_8017D628(Task* task)
             if (CdCmd_IsIdle() == 0) {
                 break;
             }
-            work->sceneTask = Task_SpawnFromTable(D_actor_160900_8013FB50, 0, 0, 0);
+            work->sceneTask = taskSpawnFromTable(D_actor_160900_8013FB50, 0, 0, 0);
             Gp_ApplyAreaRecs(D_shelter_b1_pod_service_gantry_80182540);
             gameFlagSetNibble(GAME_FLAG_118, 1);
             work->step++;

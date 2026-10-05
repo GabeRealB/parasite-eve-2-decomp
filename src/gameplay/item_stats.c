@@ -199,7 +199,7 @@ void func_800C5F70(Task* arg0)
     obj->result = USER_INTERFACE_RESULT_NONE;
     if (arg0->state == 0) {
         if ((D_80067634 != NULL) && (D_80067634 != obj)) {
-            Task_CallExit(D_80067634->owner);
+            taskCallExit(D_80067634->owner);
             obj->panel.animationTicks = 0x14;
         }
         D_80067634         = obj;

@@ -155,7 +155,7 @@ s32 func_dryfield_water_tower_8017DCFC(Task* task, s32 messageId, s32 firstArg, 
 s32 func_dryfield_water_tower_8017DD04(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 7) {
-        Task_SpawnFromTable(D_dryfield_water_tower_801803D8, 0, 0, 0);
+        taskSpawnFromTable(D_dryfield_water_tower_801803D8, 0, 0, 0);
     }
     return 0;
 }
@@ -181,7 +181,7 @@ static void func_dryfield_water_tower_8017DD6C(Task* arg0)
 
     arg0->msgTable = D_dryfield_water_tower_801803A0;
     gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
-    temp_v0                         = Task_SpawnFromTable(D_dryfield_water_tower_80182384, 0, 0, 0);
+    temp_v0                         = taskSpawnFromTable(D_dryfield_water_tower_80182384, 0, 0, 0);
     arg0->state                     = (s32)(arg0->state + 1);
     D_dryfield_water_tower_801876A0 = temp_v0;
 }

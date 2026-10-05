@@ -648,9 +648,9 @@ case0:
     }
     switch (actor->state) {
         case 0:
-            Mem_CopyUnaligned(&D_actor_311500_80169304, gAcropolisFireEscapeCollision04CE8Verts, 0x20);
-            Mem_CopyUnaligned(&D_actor_311500_801692FC, gAcropolisFireEscapeCollision04CE8Normals, 8);
-            Mem_CopyUnaligned(&D_actor_311500_80169324, gAcropolisFireEscapeCollision04CE8Faces, sizeof(*gAcropolisFireEscapeCollision04CE8Faces));
+            memCopyBytes(&D_actor_311500_80169304, gAcropolisFireEscapeCollision04CE8Verts, sizeof(D_actor_311500_80169304));
+            memCopyBytes(&D_actor_311500_801692FC, gAcropolisFireEscapeCollision04CE8Normals, sizeof(D_actor_311500_801692FC));
+            memCopyBytes(&D_actor_311500_80169324, gAcropolisFireEscapeCollision04CE8Faces, sizeof(*gAcropolisFireEscapeCollision04CE8Faces));
             func_actor_311500_801629D8(actor);
             work = actor->work;
             _actor311500TickAnim(actor);

@@ -657,7 +657,7 @@ static void func_actor_350700_80162B30(Task* arg0)
     work->walk.carry[0].word = 0;
     work->walk.carry[1].word = 0;
     work->walk.carry[2].word = 0;
-    spawned                  = Task_SpawnFromTable(D_actor_350700_801708DC, 1, 8, arg0);
+    spawned                  = taskSpawnFromTable(D_actor_350700_801708DC, 1, 8, arg0);
     if (spawned != NULL) {
         TmdObject*     model;
         AreaVariant*   layout;
@@ -682,7 +682,7 @@ static void func_actor_350700_80162B30(Task* arg0)
             tmdBuildBufferHalf(model);
         }
     }
-    spawned = Task_SpawnFromTable(D_actor_350700_801708DC, 2, 0xC, arg0);
+    spawned = taskSpawnFromTable(D_actor_350700_801708DC, 2, 0xC, arg0);
     if (spawned != NULL) {
         TmdObject*     model;
         AreaVariant*   layout;
@@ -708,7 +708,7 @@ static void func_actor_350700_80162B30(Task* arg0)
             tmdBuildBufferHalf(model);
         }
     }
-    spawned = Task_SpawnFromTable(D_actor_350700_801708DC, 3, 8, arg0);
+    spawned = taskSpawnFromTable(D_actor_350700_801708DC, 3, 8, arg0);
     if (spawned != NULL) {
         work->heldItemTask = spawned;
     }

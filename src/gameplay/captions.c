@@ -214,7 +214,7 @@ resumeView:
                 view = Gp_CapTable[(s16)D_801155AE].control.scene.view;
             }
             if (eventFlags & CAP_SEQUENCE_DELAYED_MESSAGE) {
-                Task_SpawnFromTable(D_8010FB4C, 1, Gp_CapTable[(s16)D_801155AE].control.scene.messageValue | (Gp_CapTable[(s16)D_801155AE].control.scene.messageDelayFrames << 8) | (Gp_CapTable[(s16)D_801155AE].trigger.messageRecipient << 0x10), 0);
+                taskSpawnFromTable(D_8010FB4C, 1, Gp_CapTable[(s16)D_801155AE].control.scene.messageValue | (Gp_CapTable[(s16)D_801155AE].control.scene.messageDelayFrames << 8) | (Gp_CapTable[(s16)D_801155AE].trigger.messageRecipient << 0x10), 0);
             }
             func_800E704C();
             sceneText = Gp_CapTable[(s16)D_801155AE].textRef;

@@ -654,7 +654,7 @@ void func_shelter_b6_corridor_8017E19C(s32 arg0)
         gGameSession->flowFlags                       |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
         gSceneCombatState.signals.bytes.endDelayFrames = arg0;
         Gp_ReleaseStateF0Add(Gp_LookupSlot4(1), 0x31);
-        Task_CallExit(Gp_LookupSlot4(1));
+        taskCallExit(Gp_LookupSlot4(1));
     }
 }
 

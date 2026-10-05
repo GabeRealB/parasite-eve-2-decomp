@@ -1202,10 +1202,10 @@ static void func_actor_113100_80131E58(Task* task)
     work->walk.carry[1].word = 0;
     work->walk.carry[2].word = 0;
     if (gGameSession->location.loc.variant == 2) {
-        work->billboardTask = Task_SpawnFromTable(D_actor_113100_80144308, 1, 8, task);
+        work->billboardTask = taskSpawnFromTable(D_actor_113100_80144308, 1, 8, task);
     }
 
-    child2 = Task_SpawnFromTable(D_actor_113100_80144308, 2, 4, task);
+    child2 = taskSpawnFromTable(D_actor_113100_80144308, 2, 4, task);
     if (child2 != NULL) {
         sessionKey2 = &gGameSession->location.loc;
         raw2        = ((Enemy*)task->spawnArg2.pointer)->placeKey;
@@ -1226,7 +1226,7 @@ static void func_actor_113100_80131E58(Task* task)
         }
     }
 
-    child3 = Task_SpawnFromTable(D_actor_113100_80144308, 3, 2, task);
+    child3 = taskSpawnFromTable(D_actor_113100_80144308, 3, 2, task);
     if (child3 != NULL) {
         sessionKey3 = &gGameSession->location.loc;
         raw3        = ((Enemy*)task->spawnArg2.pointer)->placeKey;

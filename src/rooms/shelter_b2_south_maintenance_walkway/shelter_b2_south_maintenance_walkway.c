@@ -486,7 +486,7 @@ static __inline__ s32 _walkwayStartEvent(RoomEventMsg* dst, RoomLatchedEvent* ev
             if (event->flagId != 0) {
                 gameFlagSetNibble(event->flagId, 1);
             }
-            Task_SpawnFromTable(&D_shelter_b2_south_maintenance_walkway_80182544, 0, 0, 0);
+            taskSpawnFromTable(&D_shelter_b2_south_maintenance_walkway_80182544, 0, 0, 0);
             D_shelter_b2_south_maintenance_walkway_801838F4[0] = 1;
         }
         return 2;

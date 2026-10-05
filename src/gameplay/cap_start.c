@@ -101,7 +101,7 @@ s32 Gp_StartCap(CapSequenceRecord* sequence, s16 arg1, s16 arg2)
         if (D_80115666 != 3) {
             return 0;
         }
-        Task_SpawnFromTable(D_8010FB4C, 0, 0, 0);
+        taskSpawnFromTable(D_8010FB4C, 0, 0, 0);
         D_80115666 = 1;
     } else {
         Gp_CapTask = Task_Spawn(2, 7, 0, 0);

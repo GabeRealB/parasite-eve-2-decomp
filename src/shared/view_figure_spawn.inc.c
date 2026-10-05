@@ -32,7 +32,7 @@ void viewFigureSpawnState(Enemy* enemy, Task* task)
     obj->otOffset                    = 0;
     coord->composeStamp              = GRAPHICS_COORD_DIRTY;
     gActorSelfTask                   = task;
-    gActorHelperTask                 = Task_SpawnFromTable(gViewFigureTasks, 1, 0, 0);
+    gActorHelperTask                 = taskSpawnFromTable(gViewFigureTasks, 1, 0, 0);
     animationInitContext(&gViewFigureWork->rig.anim, (AnimationSet**)gViewFigureAnimSets, obj,
                          gViewFigureWork->rig.poses, gViewFigureWork->rig.slots);
     gViewFigureWork->st.animId = 1;

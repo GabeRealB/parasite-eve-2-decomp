@@ -2765,7 +2765,7 @@ s32 func_acropolis_bridge_8017D7F8(Task* task, s32 msgId, s32 arg2, s32 arg3)
             return 0;
         }
         func_acropolis_bridge_8017E60C(ACROPOLIS_BRIDGE_KEYPAD_CODE_BLANK, 1);
-        Task_SpawnFromTable(D_acropolis_bridge_80188E7C, 1, 0, 0);
+        taskSpawnFromTable(D_acropolis_bridge_80188E7C, 1, 0, 0);
     }
     return 0;
 }
@@ -2836,7 +2836,7 @@ static void func_acropolis_bridge_8017D98C(Task* arg0)
 {
     arg0->msgTable = D_acropolis_bridge_80188E4C;
     gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
-    D_acropolis_bridge_80191794 = Task_SpawnFromTable(D_acropolis_bridge_80188E7C, 0, 0, 0);
+    D_acropolis_bridge_80191794 = taskSpawnFromTable(D_acropolis_bridge_80188E7C, 0, 0, 0);
     arg0->state                 = (s32)(arg0->state + 1);
     func_acropolis_bridge_8017F2D0(gameFlagGetNibble(GAME_FLAG_BRIDGE_ARRIVAL_SCENE_SEEN) & 0xFF);
 }
@@ -2938,7 +2938,7 @@ static void func_acropolis_bridge_8017DD88(Task* arg0)
 
 static void func_acropolis_bridge_8017DD9C(Task* arg0)
 {
-    Task* task = Task_SpawnFromTable(&D_acropolis_bridge_80189234, 0, 0, 0);
+    Task* task = taskSpawnFromTable(&D_acropolis_bridge_80189234, 0, 0, 0);
     s32   next = arg0->state + 1;
 
     D_acropolis_bridge_8019179C = task;
@@ -3045,7 +3045,7 @@ static void func_acropolis_bridge_8017E04C(Task* task)
         Task_RequestKill(task, 0);
         return;
     }
-    task->spawnArg2.pointer = Task_SpawnFromTable(&D_acropolis_bridge_80189830, 0, 1, 0);
+    task->spawnArg2.pointer = taskSpawnFromTable(&D_acropolis_bridge_80189830, 0, 1, 0);
     task->work              = work;
     work->field_0           = 0x14;
     work->code              = ACROPOLIS_BRIDGE_KEYPAD_CODE_BLANK;

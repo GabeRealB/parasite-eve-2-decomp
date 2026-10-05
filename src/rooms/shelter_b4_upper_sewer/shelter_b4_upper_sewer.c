@@ -913,7 +913,7 @@ s32 func_shelter_b4_upper_sewer_8017D9C4(Task* task, s32 msgId, RoomEventMsg* sr
             D_shelter_b4_upper_sewer_80188D24.warp              = (u8)dst->areaId;
             D_shelter_b4_upper_sewer_80188D24.field_4           = dst->warp;
             ((u8*)&D_shelter_b4_upper_sewer_80188D24.areaId)[1] = dst->room;
-            Task_SpawnFromTable(D_shelter_b4_upper_sewer_80186300, 1, 7, 0);
+            taskSpawnFromTable(D_shelter_b4_upper_sewer_80186300, 1, 7, 0);
         }
         return 0;
     }
@@ -922,7 +922,7 @@ s32 func_shelter_b4_upper_sewer_8017D9C4(Task* task, s32 msgId, RoomEventMsg* sr
             D_shelter_b4_upper_sewer_80188D24.warp              = (u8)dst->areaId;
             D_shelter_b4_upper_sewer_80188D24.field_4           = dst->warp;
             ((u8*)&D_shelter_b4_upper_sewer_80188D24.areaId)[1] = dst->room;
-            Task_SpawnFromTable(D_shelter_b4_upper_sewer_80186300, 1, 8, 0);
+            taskSpawnFromTable(D_shelter_b4_upper_sewer_80186300, 1, 8, 0);
         }
         return 0;
     }
@@ -943,7 +943,7 @@ s32 func_shelter_b4_upper_sewer_8017DAB0(Task* task, s32 msgId, s32 arg2, s32 ar
             temp_a1                                                    = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0xD;
             D_shelter_b4_upper_sewer_80188D2C[0]                       = temp_a1;
-            Task_SpawnFromTable(D_shelter_b4_upper_sewer_80186300, 0, 0, 0);
+            taskSpawnFromTable(D_shelter_b4_upper_sewer_80186300, 0, 0, 0);
         } else {
             Gp_RunCapCmd1(6);
         }
@@ -976,7 +976,7 @@ static void func_shelter_b4_upper_sewer_8017DBA8(Task* task)
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     if (gameFlagGetNibble(GAME_FLAG_B4_RESERVOIR_EVENT_DONE) != 0) {
         D_shelter_b4_upper_sewer_80186438 = -0x708;
-        Task_SpawnFromTable(D_shelter_b4_upper_sewer_8018643C, 0, 0, 0);
+        taskSpawnFromTable(D_shelter_b4_upper_sewer_8018643C, 0, 0, 0);
     } else {
         D_shelter_b4_upper_sewer_80186438 = 0;
     }

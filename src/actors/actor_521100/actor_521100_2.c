@@ -918,7 +918,7 @@ s32 func_actor_521100_80136AE0(Task* task, s32 arg1, ActorCommand* msg, s32 arg3
 {
     switch (msg->command) {
         case 1:
-            D_actor_521100_8016A3E0 = Task_SpawnFromTable(D_actor_521100_8016A388, 1, 0, task);
+            D_actor_521100_8016A3E0 = taskSpawnFromTable(D_actor_521100_8016A388, 1, 0, task);
             break;
 
         case 2:
@@ -942,7 +942,7 @@ s32 func_actor_521100_80136AE0(Task* task, s32 arg1, ActorCommand* msg, s32 arg3
             break;
 
         case 4:
-            D_actor_521100_8016A3E4 = Task_SpawnFromTable(D_actor_521100_8016A388, 1, 1, task);
+            D_actor_521100_8016A3E4 = taskSpawnFromTable(D_actor_521100_8016A388, 1, 1, task);
             break;
     }
     return 0;

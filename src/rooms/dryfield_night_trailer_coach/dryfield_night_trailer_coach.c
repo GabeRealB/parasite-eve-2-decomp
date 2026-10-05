@@ -991,10 +991,10 @@ s32 func_dryfield_night_trailer_coach_801826EC(Task* arg0, s32 arg1, s32 arg2, s
         D_dryfield_night_trailer_coach_8018C21C.endSound        = 0x531B0005;
         D_dryfield_night_trailer_coach_8018C21C.sceneSound      = 0x531B0004;
         D_dryfield_night_trailer_coach_8018C21C.afterSceneSound = 0x531B0006;
-        Task_SpawnFromTable(gRoomCutsceneTaskDescs, 0, 3, &D_dryfield_night_trailer_coach_8018C21C);
+        taskSpawnFromTable(gRoomCutsceneTaskDescs, 0, 3, &D_dryfield_night_trailer_coach_8018C21C);
     }
     if (arg2 == 3) {
-        Task_SpawnFromTable(&D_dryfield_night_trailer_coach_8018797C, 0, 0, 0);
+        taskSpawnFromTable(&D_dryfield_night_trailer_coach_8018797C, 0, 0, 0);
     }
     if (arg2 == 0x17) {
         Gp_RunCapCmd1(0x17);

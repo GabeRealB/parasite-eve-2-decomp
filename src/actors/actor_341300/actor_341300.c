@@ -524,7 +524,7 @@ void func_actor_341300_801623FC(void)
 
 void func_actor_341300_8016241C(void)
 {
-    D_actor_341300_80165AA4 = Task_SpawnFromTable(D_actor_341300_80165208, 0, 0, 0);
+    D_actor_341300_80165AA4 = taskSpawnFromTable(D_actor_341300_80165208, 0, 0, 0);
 }
 
 void func_actor_341300_80162450(void)
@@ -567,7 +567,7 @@ void func_actor_341300_80162478(Task* arg0)
 
 void func_actor_341300_80162530(void)
 {
-    D_actor_341300_80165AA4 = Task_SpawnFromTable(D_actor_341300_80165208, 1, 0, 0);
+    D_actor_341300_80165AA4 = taskSpawnFromTable(D_actor_341300_80165208, 1, 0, 0);
 }
 
 void func_actor_341300_80162564(s16 arg0)
@@ -615,7 +615,7 @@ void func_actor_341300_80162698(Task* arg0)
         case 0:
             i = 0;
             do {
-                Task_SpawnFromTable(D_actor_341300_80165A68, 1, 0, arg0);
+                taskSpawnFromTable(D_actor_341300_80165A68, 1, 0, arg0);
                 next = i + 1;
                 i    = next;
             } while (next < 0xA);
@@ -626,7 +626,7 @@ void func_actor_341300_80162698(Task* arg0)
             i                   = 0;
             if ((s16)count >= 0x1F) {
                 do {
-                    Task_SpawnFromTable(D_actor_341300_80165A68, 1, 0, arg0);
+                    taskSpawnFromTable(D_actor_341300_80165A68, 1, 0, arg0);
                     next = i + 1;
                     i    = next;
                 } while (next < 0xA);
@@ -639,7 +639,7 @@ void func_actor_341300_80162698(Task* arg0)
             i                   = 0;
             if ((s16)count >= 0x10) {
                 do {
-                    Task_SpawnFromTable(D_actor_341300_80165A68, 1, 1, arg0);
+                    taskSpawnFromTable(D_actor_341300_80165A68, 1, 1, arg0);
                     next = i + 1;
                     i    = next;
                 } while (next < 0xA);
@@ -653,8 +653,8 @@ void func_actor_341300_80162698(Task* arg0)
             i                   = 0;
             if ((s16)count >= 0x10) {
                 do {
-                    Task_SpawnFromTable(D_actor_341300_80165A68, 1, 3, arg0);
-                    Task_SpawnFromTable(D_actor_341300_80165A68, 1, 1, arg0);
+                    taskSpawnFromTable(D_actor_341300_80165A68, 1, 3, arg0);
+                    taskSpawnFromTable(D_actor_341300_80165A68, 1, 1, arg0);
                     next = i + 1;
                     i    = next;
                 } while (next < 0xA);
@@ -810,9 +810,9 @@ void func_actor_341300_80163028(Task* arg0)
             count               = (u16)arg0->killCountdown + 1;
             arg0->killCountdown = count;
             if ((s16)count % 3 == 0) {
-                Task_SpawnFromTable(D_actor_341300_80165A68, 3, 0, arg0);
-                Task_SpawnFromTable(D_actor_341300_80165A68, 3, 1, arg0);
-                Task_SpawnFromTable(D_actor_341300_80165A68, 3, 1, arg0);
+                taskSpawnFromTable(D_actor_341300_80165A68, 3, 0, arg0);
+                taskSpawnFromTable(D_actor_341300_80165A68, 3, 1, arg0);
+                taskSpawnFromTable(D_actor_341300_80165A68, 3, 1, arg0);
                 arg0->state = arg0->state + 1;
             }
             break;
@@ -820,9 +820,9 @@ void func_actor_341300_80163028(Task* arg0)
             count               = (u16)arg0->killCountdown + 1;
             arg0->killCountdown = count;
             if ((s16)count % 3 == 0) {
-                Task_SpawnFromTable(D_actor_341300_80165A68, 3, 0, arg0);
-                Task_SpawnFromTable(D_actor_341300_80165A68, 3, 0, arg0);
-                Task_SpawnFromTable(D_actor_341300_80165A68, 3, 1, arg0);
+                taskSpawnFromTable(D_actor_341300_80165A68, 3, 0, arg0);
+                taskSpawnFromTable(D_actor_341300_80165A68, 3, 0, arg0);
+                taskSpawnFromTable(D_actor_341300_80165A68, 3, 1, arg0);
                 arg0->state = arg0->state - 1;
             }
             break;
@@ -962,7 +962,7 @@ void func_actor_341300_801631D4(Task* arg0)
 static void func_actor_341300_8016398C(s32 arg0)
 {
     if ((arg0 << 0x10) == 0) {
-        D_actor_341300_80165A2C[0] = Task_SpawnFromTable(D_actor_341300_80165A68, 0, 0, 0);
+        D_actor_341300_80165A2C[0] = taskSpawnFromTable(D_actor_341300_80165A68, 0, 0, 0);
     }
 }
 
@@ -986,8 +986,8 @@ void func_actor_341300_80163A10(Task* arg0)
             }
         } else if (++arg0->killCountdown >= 0x10) {
             for (i = 0; i < 0xA; i++) {
-                Task_SpawnFromTable(D_actor_341300_80165A68, 1, 0, arg0);
-                Task_SpawnFromTable(D_actor_341300_80165A68, 1, 1, arg0);
+                taskSpawnFromTable(D_actor_341300_80165A68, 1, 0, arg0);
+                taskSpawnFromTable(D_actor_341300_80165A68, 1, 1, arg0);
             }
             arg0->killCountdown = 0;
             arg0->state++;

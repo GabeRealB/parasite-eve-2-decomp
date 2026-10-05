@@ -2599,7 +2599,7 @@ static void func_dryfield_dilapidated_house_8017E014(Task* task)
             if (Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL) {
                 if (gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
                     D_dryfield_dilapidated_house_80183EFC += 1;
-                    Task_SpawnFromTable(D_dryfield_dilapidated_house_80183EB4, 3, 0, 0);
+                    taskSpawnFromTable(D_dryfield_dilapidated_house_80183EB4, 3, 0, 0);
                 }
             }
         }
@@ -2939,7 +2939,7 @@ void func_dryfield_dilapidated_house_8017E8E8(s32 arg0)
                 D_dryfield_dilapidated_house_80189C94.span  = 5;
                 D_dryfield_dilapidated_house_80189C94.scale = 0x100;
             }
-            Task_SpawnFromTable(D_dryfield_dilapidated_house_80183E48, 0, 0, &D_dryfield_dilapidated_house_80189C94);
+            taskSpawnFromTable(D_dryfield_dilapidated_house_80183E48, 0, 0, &D_dryfield_dilapidated_house_80189C94);
         }
     } else {
         D_dryfield_dilapidated_house_80189C94.state = arg0;
@@ -2962,7 +2962,7 @@ static void func_dryfield_dilapidated_house_8017E9A4(s32 arg0)
     if (arg0 != 0) {
         Gp_SpawnScript18(D_80114A24, D_80114A34);
         D_dryfield_dilapidated_house_80189B80.duration = arg0;
-        Task_SpawnFromTable(D_dryfield_dilapidated_house_80183E64, 0, 0, &D_dryfield_dilapidated_house_80189B80);
+        taskSpawnFromTable(D_dryfield_dilapidated_house_80183E64, 0, 0, &D_dryfield_dilapidated_house_80189B80);
         return;
     }
     D_dryfield_dilapidated_house_80189B80.done = 1;
@@ -2972,7 +2972,7 @@ void func_dryfield_dilapidated_house_8017EA10(s32 arg0)
 {
     if (arg0 != 0) {
         D_dryfield_dilapidated_house_801857E8 =
-            Task_SpawnFromTable(D_dryfield_dilapidated_house_80186854, 0, 3, gameGetTaskSlot(GAME_TASK_SLOT_PLAYER));
+            taskSpawnFromTable(D_dryfield_dilapidated_house_80186854, 0, 3, gameGetTaskSlot(GAME_TASK_SLOT_PLAYER));
         return;
     }
     if (D_dryfield_dilapidated_house_801857E8 != NULL) {
@@ -2995,11 +2995,11 @@ static void func_dryfield_dilapidated_house_8017EAB4(Task* arg0)
     gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     if (Gp_LookupSlot4(1) != 0) {
         D_dryfield_dilapidated_house_80189B78 =
-            Task_SpawnFromTable(D_dryfield_dilapidated_house_80183EB4, 0, 0, 0);
+            taskSpawnFromTable(D_dryfield_dilapidated_house_80183EB4, 0, 0, 0);
     }
     D_dryfield_dilapidated_house_80189C94.state = SCREEN_WAVE_RAMP_FINISHED;
     D_dryfield_dilapidated_house_80189B7C =
-        Task_SpawnFromTable(D_dryfield_dilapidated_house_80183EB4, 2, 0, 0);
+        taskSpawnFromTable(D_dryfield_dilapidated_house_80183EB4, 2, 0, 0);
     gGameSession->flowFlags = (GAME_SESSION_FLOW_SKIP_ENDING_MUSIC | GAME_SESSION_FLOW_SKIP_AREA_MUSIC | GAME_SESSION_FLOW_REEQUIP_WEAPON);
     arg0->state            += 1;
 }
@@ -3568,22 +3568,22 @@ static void func_dryfield_dilapidated_house_80180B84(Task* task)
     func_dryfield_dilapidated_house_80180FD8(task);
 
     table   = D_dryfield_dilapidated_house_80186854;
-    spawned = Task_SpawnFromTable(table, 3, 9, task);
+    spawned = taskSpawnFromTable(table, 3, 9, task);
     if (spawned != NULL) {
         childCoord        = spawned->extra.tmd->coords;
         childCoord->coord = work->attachMtx;
     }
-    spawned = Task_SpawnFromTable(table, 3, 0x11, task);
+    spawned = taskSpawnFromTable(table, 3, 0x11, task);
     if (spawned != NULL) {
         childCoord        = spawned->extra.tmd->coords;
         childCoord->coord = work->attachMtx;
     }
-    spawned = Task_SpawnFromTable(table, 2, 0, task);
+    spawned = taskSpawnFromTable(table, 2, 0, task);
     if (spawned != NULL) {
         childCoord        = spawned->extra.tmd->coords;
         childCoord->coord = work->attachMtx;
     }
-    spawned = Task_SpawnFromTable(table, 2, 1, task);
+    spawned = taskSpawnFromTable(table, 2, 1, task);
     if (spawned != NULL) {
         childCoord        = spawned->extra.tmd->coords;
         childCoord->coord = work->attachMtx;

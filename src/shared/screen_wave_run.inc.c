@@ -18,7 +18,7 @@ void screenWaveRun(s32 arg0)
         gScreenWaveSpawnCtx.modulateTexture = SCREEN_WAVE_MODULATE_TEXTURE;
         gScreenWaveSpawnCtx.g               = 0x80;
         gScreenWaveSpawnCtx.b               = 0x80;
-        Task_SpawnFromTable(gScreenWaveTaskDesc, 0, 0, &gScreenWaveSpawnCtx);
+        taskSpawnFromTable(gScreenWaveTaskDesc, 0, 0, &gScreenWaveSpawnCtx);
         return;
     }
     gScreenWaveSpawnCtx.state = arg0;

@@ -987,11 +987,11 @@ s32 func_mist_parking_801823F8(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
                     gameFlagSetNibble(GAME_FLAG_0F1, 3);
                 } else if (gameFlagGetNibble(GAME_FLAG_0F1) == 3) {
                     Gp_MsgPlayerWeapon(0);
-                    Task_SpawnFromTable(D_mist_parking_8018D75C, 8, 0, 0);
+                    taskSpawnFromTable(D_mist_parking_8018D75C, 8, 0, 0);
                 }
             } else if (gameFlagGetNibble(GAME_FLAG_0ED) == 1) {
                 Gp_MsgPlayerWeapon(0);
-                Task_SpawnFromTable(D_mist_parking_80190824, 4, 0, 0);
+                taskSpawnFromTable(D_mist_parking_80190824, 4, 0, 0);
             }
             break;
         case 8:
@@ -1003,7 +1003,7 @@ s32 func_mist_parking_801823F8(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
             D_mist_parking_8019533C.endSound        = 0x51130004;
             D_mist_parking_8019533C.sceneSound      = 0x5113000B;
             D_mist_parking_8019533C.afterSceneSound = 0x51130012;
-            Task_SpawnFromTable(gRoomCutsceneTaskDescs, 0, 4, &D_mist_parking_8019533C);
+            taskSpawnFromTable(gRoomCutsceneTaskDescs, 0, 4, &D_mist_parking_8019533C);
             session                                                    = gGameSession;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = 2;
             session->location.loc.warp                                 = 2;
@@ -1011,9 +1011,9 @@ s32 func_mist_parking_801823F8(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
         case 18:
             Gp_MsgPlayerWeapon(0);
             if (gGameSession->location.loc.variant == 1) {
-                Task_SpawnFromTable(D_mist_parking_80190824, 3, 0, 0);
+                taskSpawnFromTable(D_mist_parking_80190824, 3, 0, 0);
             } else {
-                Task_SpawnFromTable(D_mist_parking_8018D75C, 7, 0, 0);
+                taskSpawnFromTable(D_mist_parking_8018D75C, 7, 0, 0);
             }
             break;
         case 1:

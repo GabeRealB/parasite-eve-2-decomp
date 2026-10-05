@@ -717,7 +717,7 @@ void func_shelter_b3_garbage_incinerator_8017DCD4(Task* arg0)
             break;
         case 2:
             if (CdCmd_IsSlotEmpty(arg0->spawnArg1.value)) {
-                arg0->spawnArg2.pointer = Task_SpawnFromTable(D_actor_342000_80164FF8, 0, 0, 0);
+                arg0->spawnArg2.pointer = taskSpawnFromTable(D_actor_342000_80164FF8, 0, 0, 0);
                 arg0->state++;
             }
             break;
@@ -1035,7 +1035,7 @@ static s32 func_shelter_b3_garbage_incinerator_8017F588(Task* arg0)
             Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
             func_800E8614(D_shelter_b3_garbage_incinerator_80186FB8, 0);
             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), CAP_CONTROL_MESSAGE_HIDE_HUD, 0, 0);
-            work->fadeTask   = Task_SpawnFromTable(D_shelter_b3_garbage_incinerator_80187150, 2, 0, arg0);
+            work->fadeTask   = taskSpawnFromTable(D_shelter_b3_garbage_incinerator_80187150, 2, 0, arg0);
             work->sceneState = work->sceneState + 1;
             break;
         case SHELTER_B3_GARBAGE_INCINERATOR_BLAZE_SCENE_RUNNING:
@@ -1080,7 +1080,7 @@ void func_shelter_b3_garbage_incinerator_8017F6D8(Task* arg0)
                 work->playerTask                          = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                 D_shelter_b3_garbage_incinerator_8018FC3C = arg0;
             }
-            Task_SpawnFromTable(D_shelter_b3_garbage_incinerator_80187184, 0, 0xD0, 0);
+            taskSpawnFromTable(D_shelter_b3_garbage_incinerator_80187184, 0, 0xD0, 0);
             if (arg0->spawnArg1.value == 0) {
                 sndEvtRequestScriptStart(SOUND_SHELTER_B3_INCINERATOR_ALERT, 0, 0);
             }
@@ -1156,7 +1156,7 @@ void func_shelter_b3_garbage_incinerator_8017F968(void)
 
     work->blaze.wave.span  = 0x258;
     work->blaze.wave.scale = 0x100;
-    Task_SpawnFromTable(D_shelter_b3_garbage_incinerator_80185BAC, 0, 0, &work->blaze.wave);
+    taskSpawnFromTable(D_shelter_b3_garbage_incinerator_80185BAC, 0, 0, &work->blaze.wave);
 }
 
 void func_shelter_b3_garbage_incinerator_8017F9B4(s32 arg0)
@@ -1167,7 +1167,7 @@ void func_shelter_b3_garbage_incinerator_8017F9B4(s32 arg0)
         sndEvtRequestScriptStart(SOUND_SHELTER_B3_INCINERATOR_BLAZE, 0, 0);
         Gp_PulseState1C();
         gGameSession->enemyCullZone = 0x10;
-        work->bodyFireTask          = Task_SpawnFromTable(D_shelter_b3_garbage_incinerator_80187150, 3, 0, 0);
+        work->bodyFireTask          = taskSpawnFromTable(D_shelter_b3_garbage_incinerator_80187150, 3, 0, 0);
         return;
     }
     work->bodyFireTask->spawnArg1.value = 1;

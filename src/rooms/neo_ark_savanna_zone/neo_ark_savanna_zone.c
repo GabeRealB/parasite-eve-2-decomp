@@ -432,7 +432,7 @@ static __inline__ s32 NeoArkSavannaZone_StartEvent(RoomEventMsg* dst, RoomLatche
             if (event->flagId != 0) {
                 gameFlagSetNibble(event->flagId, 1);
             }
-            Task_SpawnFromTable(&D_neo_ark_savanna_zone_8017F9A0, 0, 0, 0);
+            taskSpawnFromTable(&D_neo_ark_savanna_zone_8017F9A0, 0, 0, 0);
             D_neo_ark_savanna_zone_80180998 = 1;
         }
         return 2;

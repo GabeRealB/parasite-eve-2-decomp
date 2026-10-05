@@ -102,7 +102,7 @@ A block-scope `register MATRIX* mtx asm("v1")` at the caller was deleted: the co
 `expand_preferences` merges hard-reg preferences along a dying copy *before*
 `prune_preferences` strips call-used registers from a call-crossing allocno.
 The wrapped `ratan2` result therefore inherited `$a2` from the later
-`Task_SpawnFromTable` argument and the wrap happened in `$a2`. Splitting a
+`taskSpawnFromTable` argument and the wrap happened in `$a2`. Splitting a
 `bridge` that is assigned in both arms, copied into the spilled `yaw`, and
 live across no call keeps `$a2` on `bridge` (`move $a2, $v1`, then `sw $a2`).
 `angle` has to stay live past that copy — here as an unused `"r"` input of the
@@ -1461,7 +1461,7 @@ move   a1,zero
 li     a2,0x52
 li     a3,2
 Lcall:
-jal    Task_SpawnFromTable
+jal    taskSpawnFromTable
 nop
 ```
 
@@ -1470,10 +1470,10 @@ Write both calls out and let the compiler unify them:
 ```c
 switch (arg2) {
     case 1:
-        Task_SpawnFromTable(&D_room_8017E818, 0, 0x51, 1);
+        taskSpawnFromTable(&D_room_8017E818, 0, 0x51, 1);
         break;
     case 2:
-        Task_SpawnFromTable(&D_room_8017E818, 0, 0x52, 2);
+        taskSpawnFromTable(&D_room_8017E818, 0, 0x52, 2);
         break;
 }
 return 0;                                   /* 100% */
@@ -2595,7 +2595,7 @@ Inputs: `base_2.i`
 The mirror of "`reload_cse` rewrites a later `= 0` as a copy unless the
 destination is wider": there, a wider *source* was needed to break the match;
 here the fix is a **narrower** one. `func_actor_341900_80162EFC` was at 99.966%
-with one instruction left — the target's `move a2,zero` for a `Task_SpawnFromTable`
+with one instruction left — the target's `move a2,zero` for a `taskSpawnFromTable`
 third argument against the candidate's `move a2,s0`. The candidate's `$s0` held
 the loop counter, whose `var_s0 = 0` init is an SImode `(set (reg/v:SI 86)
 (const_int 0))` (`base_5.i.sched` insn 154, before the argument set at insn 143),
@@ -2634,7 +2634,7 @@ then has to place it elsewhere.
 Splitting it into two variables (`work` for the setup half, `seqWork` for the
 post-call half) gives two pseudos with disjoint ranges, the conflict disappears,
 and the first lands in `$s0` — `regs` 7 → 1, then 0. The same split applied to
-the `Task_SpawnFromTable` results is what fixed the earlier `reorder` residue.
+the `taskSpawnFromTable` results is what fixed the earlier `reorder` residue.
 So when the target uses two registers for what reads as one pointer, do not
 reach for a pin: count the definitions in `.greg` first.
 
@@ -4147,7 +4147,7 @@ call look like they can share a register:
 ```c
 part7  = &parts[7];
 parts  = &parts[10];          /* reuse the base pseudo */
-child  = Task_SpawnFromTable(...);
+child  = taskSpawnFromTable(...);
 coord->parent = parts;
 ```
 
@@ -4163,7 +4163,7 @@ land in `$s0` / `$s7`:
 ```c
 part7  = &parts[7];
 part10 = &parts[10];
-child  = Task_SpawnFromTable(...);
+child  = taskSpawnFromTable(...);
 coord->parent = part10;
 ```
 
@@ -4919,7 +4919,7 @@ cross-jump merge them:
 case 0:
     if (Gp_CapBusy() != 0) break;
     if (Gp_GetCapEventKey() == 2) {
-        Task_CallExit(D_8018E0C4);
+        taskCallExit(D_8018E0C4);
         arg0->state++;          /* same tail as case 1 */
     } else {
         taskKill(arg0);        /* same tail as case 2 */
@@ -8469,7 +8469,7 @@ usually loads its address once into a callee-saved register (`lui`/`addiu` into
 fresh `lui %hi(...)` after every call instead, often stuffed into delay slots
 that should hold a `nop`.
 
-Assign it to a local pointer first — the same trick `Task_ExecList` in
+Assign it to a local pointer first — the same trick `taskExecList` in
 `src/main/1C034.c` annotates as *"The indirection is required."*:
 
 ```c
@@ -11368,7 +11368,7 @@ if (next != NULL) {
 
 fully loads `D_head` before `next` (and inserts a load-delay `nop` before
 `beqz`). Wrapping the address-of assignments in `do {} while (0)` restores the
-hi/next/lo interleaving without changing semantics (`Task_Unlink`):
+hi/next/lo interleaving without changing semantics (`_taskUnlinkFromSelectedList`):
 
 ```c
 next = state->node.next;
@@ -11929,7 +11929,7 @@ if (arg0 >= 0) {
 } else {
     ptr = (TaskDesc*)arg1;
 }
-return Task_SpawnFromDesc(ptr, arg2, arg3, _gTaskActiveList);
+return _taskSpawnFromDesc(ptr, arg2, arg3, _gTaskActiveList);
 ```
 
 Also: use `if (index >= 0)` (not `index < 0`) so the fall-through is the table
@@ -17992,7 +17992,7 @@ desc.header.fields.priority = src->taskPriority;
 descriptorData      = src->taskDataValue;       /* load first */
 desc.callback = SomeFunc;
 desc.data.value = descriptorData;
-task = Task_SpawnFromTable(&desc, ...);
+task = taskSpawnFromTable(&desc, ...);
 ```
 
 Without the temp, GCC 2.8.1 hoists `lui %hi(SomeFunc)` ahead of the second
@@ -18016,7 +18016,7 @@ allocation result, hold the eventual return pointer at NULL and cast it:
 UiObject* obj;
 
 obj = NULL;
-task = Task_SpawnFromTable(&desc, (s32)obj, arg1, (s32)obj);
+task = taskSpawnFromTable(&desc, (s32)obj, arg1, (s32)obj);
 if (task != NULL) {
     obj = (UiObject*)memCalloc(0x30, (s32)obj);
     ...
@@ -19337,7 +19337,7 @@ case2:
 merge:
 ```
 
-`Task_SpawnFromDesc` is the pure example (flags low byte 0 / 1 / 2).
+`_taskSpawnFromDesc` is the pure example (flags low byte 0 / 1 / 2).
 
 ## Booleanize `(x & mask)` with `(u32)temp > 0` for `andi` + `sltu`
 
@@ -19357,7 +19357,7 @@ flags_a2 = (u32)temp > 0;
 
 ## Keep `u16` fields that other TUs store with `sh`
 
-Narrowing `TaskDesc::header.fields.priority` from `u16` to `u8` made `Task_SpawnFromDesc`
+Narrowing `TaskDesc::header.fields.priority` from `u16` to `u8` made `_taskSpawnFromDesc`
 emit `lbu`, but broke already-matched `Ui_SpawnFromDesc` (`desc.header.fields.priority =
 arg0->taskPriority` became `lbu`/`sb` instead of `lhu`/`sh`). Keep the wider type
 and force the byte load where needed:
@@ -19394,7 +19394,7 @@ thing, because the two forms are the same register; the named slot is the
 honest spelling and it drops four casts. What does not match is a slot live
 across the walk: a `TaskNode**` the allocator has to keep alongside the walker
 takes a second register and loses the delay-slot `+4` form.
-`Task_SpawnFromDesc` is the example.
+`_taskSpawnFromDesc` is the example.
 
 ## Nested `register Task* ch asm("v1")` to stop `a0` coalesce on child→obj
 
@@ -23579,7 +23579,7 @@ Related delay-slot / pin patterns used on the same function (exit + menu):
 ```c
 /* CallExit delay: force move a0,s4 */
 asm volatile("" ::: "a0");
-Task_CallExit(s4);
+taskCallExit(s4);
 
 /* GetResetCount result stays in v0; first demoScene store survives CSE */
 register u32 v0 asm("v0");
@@ -26099,7 +26099,7 @@ typedef union Actor401000Flags68 {
 
 ## Save `nextSibling` before calling through the iterator
 
-A circular walk that calls a function *on the current node* (`Task_CallExit(index)`)
+A circular walk that calls a function *on the current node* (`taskCallExit(index)`)
 needs the iterator in `$a0` and the next pointer saved first. Writing
 `index = index->nextSibling` after the call makes GCC keep the node in `$s0`
 and only move it into `$a0` in the `jal` delay slot (~83%).
@@ -26118,7 +26118,7 @@ do {
     type  = enemy->workType >> 8;
     next  = arg0->nextSibling;
     if (type == 9) {
-        Task_CallExit(arg0);
+        taskCallExit(arg0);
     }
     arg0 = next;
 } while (arg0 != child);
@@ -42770,7 +42770,7 @@ cross-jumping do the factoring, rather than factoring by hand.
 ## Two `Gp_RunCapCmd1` tails: assign `cmd` after each nibble, then `goto`
 
 When some arms are `Gp_RunCapCmd1(cmd)` and others are that call plus
-`Task_SpawnFromTable`, writing the call in every arm (the one-tail advice
+`taskSpawnFromTable`, writing the call in every arm (the one-tail advice
 above) does **not** cross-jump into that two-block shape. GCC inlines
 `jal Gp_RunCapCmd1` / `j rest` on the cap-only arms and only merges the
 spawn arms, leaving extra `li a0` / `bne` instead of `beq` + delay-slot
@@ -42798,7 +42798,7 @@ if (flag == 2) {
 }
 spawn:
     Gp_RunCapCmd1(cmd);
-    Task_SpawnFromTable(table, 0, 0, 0);
+    taskSpawnFromTable(table, 0, 0, 0);
     goto rest;
 cap_only:
     Gp_RunCapCmd1(cmd);
@@ -43437,7 +43437,7 @@ the earlier case changes nothing: the merge compares `jal taskKill` /
 splits them and reproduces the ROM's duplicated tail (97.66% → 99.9%):
 
 ```c
-Task_SpawnFromTable(D_shelter_b3_elevator_hall_80182A2C, 0, 0x542A0001, 0);
+taskSpawnFromTable(D_shelter_b3_elevator_hall_80182A2C, 0, 0x542A0001, 0);
 taskKill(task);
 SCHED_BARRIER();   /* after: breaks the merge; target's `j advance` slot is nop */
 ```
@@ -44077,7 +44077,7 @@ data-side plumbing `promote` would have skipped: the shared *function* symbol
 address in `configs/USA/sym/<family>/<name>.txt`.
 
 `func_dryfield_main_street_8017DFC8` passes a `TaskDesc` to
-`Task_SpawnFromTable`, and the two copies point at their own room's table —
+`taskSpawnFromTable`, and the two copies point at their own room's table —
 `D_dryfield_main_street_80180E94` in one, `D_dryfield_night_main_street_801820A4`
 in the other. One C body cannot name both. The fix is to name the *datum* the
 same way the function is named: add a line per overlay, each at its own address,
@@ -44318,7 +44318,7 @@ part of the tail (the constant `a2`/`a3` setup plus the `jal`) into one block,
 reproducing the target's `j` into a shared spawn label. It also lets the
 `%hi` of a two-arm `if` hoist into the branch's delay slot.
 
-`func_mist_parking_801823F8` is the example: four `Task_SpawnFromTable(&D_…,
+`func_mist_parking_801823F8` is the example: four `taskSpawnFromTable(&D_…,
 n, 0, 0)` sites, one merged tail, 99.46% → 99.75% purely from dropping the
 locals.
 
@@ -48052,7 +48052,7 @@ descriptor it spawns from **and** the global it stores the spawned `Task*` into.
 `func_dryfield_main_street_8017E320` is three lines and still tripped it twice:
 
 ```c
-RoomsShared8017e320Task = Task_SpawnFromTable(&RoomsShared8017e320Desc, 1, 0, 0);
+RoomsShared8017e320Task = taskSpawnFromTable(&RoomsShared8017e320Desc, 1, 0, 0);
 ```
 
 The way through is to give each carrier's copy of those symbols the *same* name
@@ -48095,7 +48095,7 @@ is two lines and both of them are local:
 
 ```c
 RoomsShared801830f0Sub(arg0, arg1, 0xD0);
-Task_SpawnFromTable(&RoomsShared801830f0Desc, 0, arg2, 0);
+taskSpawnFromTable(&RoomsShared801830f0Desc, 0, arg2, 0);
 ```
 
 The callee does not have to be promoted - it only has to stop being *named*
@@ -54604,7 +54604,7 @@ jal   gameFlagGetNibble
 bnez  v0, .Lend
  li   v0, 1          /* delay: the "already done" result */
 ... body ...
-jal   Task_SpawnFromTable
+jal   taskSpawnFromTable
  sb   s0, 0x1(v0)
 move  v0, zero
 .Lend:
@@ -57445,7 +57445,7 @@ the increment and moving the global store between its two halves keeps that
 pseudo live across the `lui`, which pushes the address to `$a0`:
 
 ```c
-Task* task = Task_SpawnFromTable(&D_acropolis_bridge_80189234, 0, 0, 0);
+Task* task = taskSpawnFromTable(&D_acropolis_bridge_80189234, 0, 0, 0);
 s32   next = arg0->state + 1;
 
 D_acropolis_bridge_8019179C = task;
@@ -60837,7 +60837,7 @@ arguments that differ, with the whole call behind the label:
     desc = &D_acropolis_plaza_80183824; entry = 4; goto spawn;
     ...
 spawn:
-    work->eventTask = Task_SpawnFromTable(desc, entry, 0, (s32)work);
+    work->eventTask = taskSpawnFromTable(desc, entry, 0, (s32)work);
 ```
 
 `entry` is fine — an integer constant is materialised straight into the
@@ -66004,7 +66004,7 @@ headers preserved the 100% result.
 ## Constant array subscript vs pointer dereference can change a cross-call address
 
 `func_800AF590` (GCC 2.8.1, gameplay) accesses the second halfword of
-`extern u16 D_80114D14[2]` before and after `Mem_CopyUnaligned`. Writing
+`extern u16 D_80114D14[2]` before and after `memCopyBytes`. Writing
 `D_80114D14[1]` made GCC retain the full array base across the call and emit
 `lui a0,hi(array); addiu s0,a0,lo(array); sh v1,2(s0)`.
 Writing `*(D_80114D14 + 1)` instead folded the offset into the symbol and kept
@@ -69947,7 +69947,7 @@ cost 5 points instead.
 ### Two adjacent `lui`s swapped at a call: compute the argument expression into a local first
 
 `func_actor_503500_8013E384` passes a computed fourth argument,
-`Task_SpawnFromTable(&D_..._8016E9F0, 0, 1, (tbl[idx] << 12) + (-D_80073B8C->t[1] << 24) / 1000)`.
+`taskSpawnFromTable(&D_..._8016E9F0, 0, 1, (tbl[idx] << 12) + (-D_80073B8C->t[1] << 24) / 1000)`.
 Everything matched except `lui a0,%hi(D_..._8016E9F0)` landing one slot above
 `lui v0,%hi(D_80073B8C)` (99.92%, `regs=4`, no other difference). Both `high`
 insns are ready together with equal priority, so sched1 falls back to LUID
@@ -69957,7 +69957,7 @@ matched outright:
 
 ```c
 arg  = (tbl[idx] << 12) + (-D_80073B8C->t[1] << 24) / 1000;
-task = Task_SpawnFromTable(&D_actor_503500_8016E9F0, 0, 1, arg);
+task = taskSpawnFromTable(&D_actor_503500_8016E9F0, 0, 1, arg);
 ```
 
 The rest of the argument setup (`move a1,zero`, `li a2,1`) did not move.
@@ -71945,7 +71945,7 @@ call look like they can share a register:
 ```c
 part7  = &parts[7];
 parts  = &parts[10];          /* reuse the base pseudo */
-child  = Task_SpawnFromTable(...);
+child  = taskSpawnFromTable(...);
 coord->parent = parts;
 ```
 
@@ -71961,7 +71961,7 @@ land in `$s0` / `$s7`:
 ```c
 part7  = &parts[7];
 part10 = &parts[10];
-child  = Task_SpawnFromTable(...);
+child  = taskSpawnFromTable(...);
 coord->parent = part10;
 ```
 
@@ -84797,14 +84797,14 @@ before writing it into a header.
 ## m2c scales a `(s32)(ptr + N)` argument by the pointee; the store beside it stays a byte offset
 
 `func_actor_342100_80163408` seeds two fields and hands their address to
-`Task_SpawnFromTable` as its fourth argument. m2c rendered both from the same
+`taskSpawnFromTable` as its fourth argument. m2c rendered both from the same
 offset, but only one of them means bytes:
 
 ```c
 temp_a3 = D_actor_342100_80164BB8->work;      /* m2c types this _StageMusicSelection* */
 M2C_FIELD(temp_a3, s16 *, 0x20) = 0x258;       /* byte offset - correct */
 M2C_FIELD(temp_a3, s16 *, 0x22) = 0x100;
-Task_SpawnFromTable(&D_actor_342100_801648DC, 0, 0, (s32) (temp_a3 + 0x20));
+taskSpawnFromTable(&D_actor_342100_801648DC, 0, 0, (s32) (temp_a3 + 0x20));
 ```
 
 `M2C_FIELD` takes a byte offset, but `temp_a3 + 0x20` is C pointer arithmetic on
@@ -84828,7 +84828,7 @@ call, exactly as the matched `(s32)&work->field_40` in `actor_503500_8.c` and
 _Actor342100BlazeWork* work = D_actor_342100_80164BB8->work;
 work->blaze.wave.span  = 0x258;
 work->blaze.wave.scale = 0x100;
-Task_SpawnFromTable(&D_actor_342100_801648DC, 0, 0, (s32)&work->blaze.wave);
+taskSpawnFromTable(&D_actor_342100_801648DC, 0, 0, (s32)&work->blaze.wave);
 ```
 
 Do **not** "correct" the constant to `0x20` or reach for an empty-asm helper:
@@ -84977,7 +84977,7 @@ Inputs: `base.i` (m2c seed, 46.833%)
 
 ## An actor overlay's bare `D_8xxxxxxx` may be room-overlay data — declare it, do not attribute it
 
-`func_actor_143900_80131E24` hands `&D_8017DA00` to `Task_SpawnFromTable`.
+`func_actor_143900_80131E24` hands `&D_8017DA00` to `taskSpawnFromTable`.
 splat left that address unnamed, and it belongs to neither main nor gameplay: it
 is offset 0x440 into the room-overlay region (rooms load at 0x8017D5C0), which
 is why `configs/USA/sym/actors.imports.txt` carries it in its *third* bucket,
@@ -84995,7 +84995,7 @@ calls one of these "map 0x427's spawn points"
 (`D_shelter_b3_dumping_hole_8018B74C`, a table of `OverlayEncounterSpot`).
 
 **Fix - write the bare extern in the overlay's own `.c`, typed by the use.** A
-`Task_SpawnFromTable` table argument is a `TaskDesc`, and the sibling
+`taskSpawnFromTable` table argument is a `TaskDesc`, and the sibling
 declaration is already in the family — `actor_206100.c` has
 
 ```c
@@ -85807,7 +85807,7 @@ addiu s1,a0,0x50
 move  a3,zero
 sh    zero,0x14(sp)
 sh    zero,0x12(sp)
-jal   Task_SpawnFromTable
+jal   taskSpawnFromTable
 sh    zero,0x10(sp)
 ```
 
@@ -85841,7 +85841,7 @@ arg2  = func_actor_207000_8014E614(coord, &sp18);
 sp10.vz = 0;
 sp10.vy = 0;
 sp10.vx = 0;
-spawned = Task_SpawnFromTable(&D_actor_207000_801575F0, 1, arg2, 0);
+spawned = taskSpawnFromTable(&D_actor_207000_801575F0, 1, arg2, 0);
 ```
 
 moved them to the block tail and gave the second `jal` the `sh 0x10` delay slot
@@ -86928,7 +86928,7 @@ lw    $a0, %lo(D_x)($a0)       vs.   addiu $a0, $a0, %lo(D_x)
 The left loads the symbol's *stored value*, so `D_x` is a pointer (`TaskDesc*`,
 `Task**`, ...); the right forms the symbol's *address*, so `D_x` is an array or a
 struct. `func_dryfield_night_factory_8018076C` feeds the left-hand form straight
-to `Task_SpawnFromTable`, whose first parameter is `TaskDesc*` - m2c's `extern
+to `taskSpawnFromTable`, whose first parameter is `TaskDesc*` - m2c's `extern
 s32` reads as though a word were being passed where a table pointer belongs.
 Declaring the real pointer type is byte-identical to m2c's `s32` (the load is
 the same either way), so naming it costs nothing and is what the self-review
@@ -89987,7 +89987,7 @@ Inputs: `base.c` (m2c)
 
 ## A `regs`-only residue can be a sched1 decision, and the MEM flag on the stores is what flipped it (func_dryfield_water_tower_8017DD6C, 2026-09-15)
 
-`field_24 = &msgTable; gameSetTaskSlot(arg0, 7); temp = Task_SpawnFromTable(&desc,
+`field_24 = &msgTable; gameSetTaskSlot(arg0, 7); temp = taskSpawnFromTable(&desc,
 0, 0, 0); arg0->state++; D_...876A0 = temp;` — 25 instructions in one basic block.
 m2c's body (`void* index`, every access a `*(T*)((u8*)index + off)` cast) scores
 99.600% with `regs=2` and every other penalty zero: the final store's `lui` is
@@ -90536,10 +90536,10 @@ every other one in the family:
     if (arg2->field_2 == 0xA) {
         if (gameFlagGetNibble(0xF8) != 0) {
             Gp_RunCapCmd1(5);
-            Task_SpawnFromTable(&D_..., 2, 0x1AF, 0);
+            taskSpawnFromTable(&D_..., 2, 0x1AF, 0);
         } else {
             Gp_MsgPlayerWeapon(0);
-            Task_SpawnFromTable(&D_..., 0, arg2->field_3, 0);
+            taskSpawnFromTable(&D_..., 0, arg2->field_3, 0);
         }
     }
     return 0;
@@ -91522,7 +91522,7 @@ instructions, and the rest of the function then follows the sibling
 `func_neo_ark_eve_access_tunnel_8017DC6C` field for field: `func_80179B14(src,
 dst)`, a dispatch on `src->areaId`, the same three `(u8)dst->areaId`, `dst->warp`, and `dst->room` stores into
 the overlay's staging `RoomEventMsg`, `Gp_MsgPlayerWeapon(0)`, then
-`Task_SpawnFromTable`. That port scored 100.00% with every penalty zero on the
+`taskSpawnFromTable`. That port scored 100.00% with every penalty zero on the
 first build.
 
 Do not chase `switch` vs `if` for the dispatch when only **one** case is present.
@@ -91956,7 +91956,7 @@ the merge point there.
 switch (arg2->field_2) {
     case 1:
         if (gameFlagGetNibble(0x5E) == 0) {
-            Task_SpawnFromTable(&D_dryfield_general_store_8017E4C0, 0, 0, 0);
+            taskSpawnFromTable(&D_dryfield_general_store_8017E4C0, 0, 0, 0);
             gameFlagSetNibble(0x5E, 1);
         }
         break;
@@ -94890,7 +94890,7 @@ s32 func_<room>_<addr>(Task* task, s32 msgId, RoomEventMsg* src, RoomEventMsg* d
             D_<room>_<addr2>.warp = (u8)dst->areaId; /* saved-location byte order */
             D_<room>_<addr2>.field_4 = dst->warp;
             ((u8*)&D_<room>_<addr2>.areaId)[1] = dst->room;
-            Task_SpawnFromTable(&D_<room>_<addr3>, 0, 0, 0);
+            taskSpawnFromTable(&D_<room>_<addr3>, 0, 0, 0);
         }
         return 0;                     /* or 1 / 2, and optional Gp_MsgPlayerWeapon(0) */
     }
@@ -102664,7 +102664,7 @@ Inputs: `base.i`
 ## An actor spawn-handler seed: retype from a matched sibling before forcing `&local` rematerialization (func_actor_443500_80132078, 2026-09-16)
 
 Every enemy actor's spawn handler is the same shape — `memCalloc` a work block,
-seed its head, `Task_SpawnFromTable` a child, copy the location out of the
+seed its head, `taskSpawnFromTable` a child, copy the location out of the
 session area key onto the child's `TmdObject`, install `Task::msgTable` (the
 `(anim id, handler)` table), `Task::exitCallback` and `Task::state++`. Because
 the shape repeats, a *matched* sibling of your function usually already exists
@@ -117250,7 +117250,7 @@ asm, so any spelling that emits the `li` in the right block will do.
 ## A constant and the `%hi` of a global's own address die by `qty_size`, not by birth order
 
 `func_actor_206100_8014CB68` writes six fields of one global and ends with a
-`Task_SpawnFromTable` taking that global's address. The target had the constant
+`taskSpawnFromTable` taking that global's address. The target had the constant
 `1` in `$v1` and the `%hi` in `$t0`; every attempt with the two `1` stores in
 declaration order put them the other way round, and swapping two of the six
 statements fixed it. The mechanism is local-alloc's priority, not the schedule.
@@ -118926,7 +118926,7 @@ with every penalty zero on the first build, unpinned, no search. The prediction
 
 Two consequences worth reading as a rule: the address pseudo is live across the
 helper's calls (`gameFlagGetNibble`, `gameFlagSetNibble`,
-`Task_SpawnFromTable`), which is what makes `global-alloc` owe it a
+`taskSpawnFromTable`), which is what makes `global-alloc` owe it a
 callee-saved register; and because the helper's parameter is an argument, GCC
 does not fold the field reads back to sp-relative, so the memory traffic stays
 in the target's shape. Prefer this to a named `event = &local` pointer when a
@@ -127451,7 +127451,7 @@ Scored: 92.267% with the merged pseudo, 98.331% with the touch.
 
 ## One C variable for two call results inherits both conflict sets, so global-alloc refuses the call's return register (func_actor_135400_80132064, 2026-09-17)
 
-Two `Task_SpawnFromTable` calls whose results were separate variables came out
+Two `taskSpawnFromTable` calls whose results were separate variables came out
 as `move $a2,$v0` for the first and a bare `beqz $v0` for the second, where the
 target has the copy in both. `.greg` explains it:
 
@@ -128016,8 +128016,8 @@ SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 except `regs=3`, and the whole 140-instruction object identical but for one
 register in three instructions -
 
-    jal Task_SpawnFromTable / move s1,v0 / beqz s1,... / move s3,v0 / lw s1,0x2c(s1)   (target)
-    jal Task_SpawnFromTable / move s0,v0 / beqz s0,... / move s3,v0 / lw s1,0x2c(s0)   (mine)
+    jal taskSpawnFromTable / move s1,v0 / beqz s1,... / move s3,v0 / lw s1,0x2c(s1)   (target)
+    jal taskSpawnFromTable / move s0,v0 / beqz s0,... / move s3,v0 / lw s1,0x2c(s0)   (mine)
 
 `spawned1` is pseudo 83; the `.greg` header of the 99.893% build reads
 
@@ -128482,7 +128482,7 @@ one slot too late, leaving a `nop` where the target has the `addiu` (97.35%,
 Two smaller scheduling levers on the same block: split the index into
 `raw = ((Enemy*)spawnArg2)->field_8;` and a late `index = raw >> 12;` so the
 `srl` is free to be scheduled *after* the `addiu $a0` rather than before it; and
-drive all three `Task_SpawnFromTable` results through one `spawned` variable.
+drive all three `taskSpawnFromTable` results through one `spawned` variable.
 The third spawn uses its result only twice, so with a variable of its own the
 call result stays in `$v0` (`beqz $v0` / `sw $v0`) where the target copies it to
 `$a2` first; assigning the same variable in all three blocks is what keeps it in
@@ -132904,7 +132904,7 @@ keeps a name like `work`, `spawnArg1` or `extra` honest for all of its users.
 
 ## An argument the callee never reads is still part of the signature
 
-`Task_ExecDefaultList` walks `gTaskDefaultList` with the address baked into the
+`taskExecDefaultList` walks `gTaskDefaultList` with the address baked into the
 body, and its target loads `$a0` and never reads it — the argument is dead. It
 cannot simply be dropped: the caller's `lui` / `addiu $a0, %hi(gTaskDefaultList)`
 before the `jal` belongs to the target's codegen, and removing the parameter
@@ -132913,9 +132913,9 @@ buffer index, which that caller computes anyway and the callee ignores.
 
 So the parameter stays, and its *name* is the only thing that can carry the
 finding. A signature reading `(TaskNode* node)` claims the function walks the
-list it is handed — the reading its sibling `Task_ExecList` teaches, whose
+list it is handed — the reading its sibling `taskExecList` teaches, whose
 parameter really is read — while this body does the opposite. Name it for the
-fact (`unused`) and put the reason in the header's one-line comment. This is the
+fact (`unusedListHead`) and put the reason in the header's one-line comment. This is the
 definition's-side view of the dummy-extra-arg entry above: there the caller had
 to supply an argument the source had no use for, here the callee ignores one its
 callers still pay for.
@@ -139451,7 +139451,7 @@ constant as a copy of it rather than a fresh `li`.
 
 ## Early-return guards vs one nested `if`: whether a global's `%hi` is kept in `$sN` across calls (func_dryfield_night_main_street_8017DA6C, 2026-09-23)
 
-**Symptom.** A gate stores a global flag twice with calls in between (`flag = 0; … gameFlagGetNibble(); … Task_SpawnFromTable(); flag = 1;`). The target does `lui $s0,%hi(flag)` once and uses `%lo(flag)($s0)` for both stores. The seed rebuilt the `lui` into a scratch register before the second store (99.1%, `regs=13`).
+**Symptom.** A gate stores a global flag twice with calls in between (`flag = 0; … gameFlagGetNibble(); … taskSpawnFromTable(); flag = 1;`). The target does `lui $s0,%hi(flag)` once and uses `%lo(flag)($s0)` for both stores. The seed rebuilt the `lui` into a scratch register before the second store (99.1%, `regs=13`).
 
 **Cause.** The seed wrote the guards as early returns:
 
@@ -140132,7 +140132,7 @@ moves, and writes the last field through the argument register:
 move a1,zero
 move a2,s1
 move a3,s0
-jal  Task_SpawnFromTable
+jal  taskSpawnFromTable
 sw   v0,0xc(a3)      ; candidate: sw v0,0xc(s0)
 ```
 
@@ -144228,7 +144228,7 @@ the hack standing for this.
 ### A pointer stored just before a call cannot share that call's constant argument register without a pin (func_actor_403600_80134288, 2026-09-26)
 
 **Symptom.** The target keeps a freshly allocated pointer in `$a3` from
-`move a3,v0` through `sw a3,0x1c(s0)` just before `jal Task_SpawnFromTable`,
+`move a3,v0` through `sw a3,0x1c(s0)` just before `jal taskSpawnFromTable`,
 whose fourth argument (0) is set in the delay slot (`move a3,a2`). Unpinned, the
 pointer lands in `$t0` and the whole function shifts registers; a single
 `register ... asm("a3")` on it restores the match.
@@ -146610,7 +146610,7 @@ Same function: `D[(u32)(id & 0xF0000000) >> 28] = x;` followed by a test of
 because an `ARRAY_REF` expands its base first. The m2c form, `id &= mask;` as
 a separate statement, puts the mask first.
 
-## A pinned list cursor plus a byte priority re-masked in place: an insertion helper taking the priority as `u32` (Task_SpawnFromDesc, 2026-09-27)
+## A pinned list cursor plus a byte priority re-masked in place: an insertion helper taking the priority as `u32` (_taskSpawnFromDesc, 2026-09-27)
 
 **Symptom.** A spawn routine stores a descriptor's byte priority (`lbu v1;
 sb v1`), then walks a sorted list with `andi v1,v1,0xff` in the loop

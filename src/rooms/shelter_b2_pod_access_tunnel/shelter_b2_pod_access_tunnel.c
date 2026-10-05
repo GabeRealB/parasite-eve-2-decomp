@@ -108,7 +108,7 @@ static __inline__ s32 _shelterB2PodAccessTunnelStartEvent(RoomEventMsg* dst, Roo
             if (event->flagId != 0) {
                 gameFlagSetNibble(event->flagId, 1);
             }
-            Task_SpawnFromTable(&D_shelter_b2_pod_access_tunnel_80183BC0, 0, 0, 0);
+            taskSpawnFromTable(&D_shelter_b2_pod_access_tunnel_80183BC0, 0, 0, 0);
             D_shelter_b2_pod_access_tunnel_80185708_value = 1;
         }
         return 2;
@@ -208,7 +208,7 @@ s32 func_shelter_b2_pod_access_tunnel_8017DB30(Task* arg0, s32 arg1, s32 arg2, s
 {
     if (arg2 == 1) {
         Gp_MsgPlayerWeapon(0);
-        Task_SpawnFromTable(&D_shelter_b2_pod_access_tunnel_80183BFC, 0, 0, 0);
+        taskSpawnFromTable(&D_shelter_b2_pod_access_tunnel_80183BFC, 0, 0, 0);
     }
     return 0;
 }

@@ -1346,7 +1346,7 @@ void func_acropolis_helicopter_landing_pad_8017DFCC(Task* arg0)
             Gp_SetItemSeenBit(0x102, 1);
             gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
             gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 7);
-            Task_SpawnFromTable(D_acropolis_helicopter_landing_pad_80184E68, 0, 0, 0);
+            taskSpawnFromTable(D_acropolis_helicopter_landing_pad_80184E68, 0, 0, 0);
             arg0->state = (s32)(arg0->state + 1);
             return;
         case 1:
@@ -1547,7 +1547,7 @@ s32 func_acropolis_helicopter_landing_pad_8017E4A4(Task* task, s32 msgId, const 
 s32 func_acropolis_helicopter_landing_pad_8017E570(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if ((arg2 == 4) && (D_acropolis_helicopter_landing_pad_80184D9C == 2)) {
-        Task_SpawnFromTable(D_acropolis_helicopter_landing_pad_80184DA0, 4, 0, 0);
+        taskSpawnFromTable(D_acropolis_helicopter_landing_pad_80184DA0, 4, 0, 0);
     }
     return 0;
 }
@@ -1555,22 +1555,22 @@ s32 func_acropolis_helicopter_landing_pad_8017E570(Task* arg0, s32 arg1, s32 arg
 /// Spawns entry 3 of the room's task table.
 void func_acropolis_helicopter_landing_pad_8017E5B8(void)
 {
-    Task_SpawnFromTable(D_acropolis_helicopter_landing_pad_80184DA0, 3, 0, 0);
+    taskSpawnFromTable(D_acropolis_helicopter_landing_pad_80184DA0, 3, 0, 0);
 }
 
 void func_acropolis_helicopter_landing_pad_8017E5E8(void)
 {
-    Task_SpawnFromTable(D_acropolis_helicopter_landing_pad_80184DA0, 1, 0, 0);
+    taskSpawnFromTable(D_acropolis_helicopter_landing_pad_80184DA0, 1, 0, 0);
 }
 
 static void func_acropolis_helicopter_landing_pad_8017E618(s32 arg0, s32 arg1)
 {
-    Task_SpawnFromTable(D_acropolis_helicopter_landing_pad_80184DA0, 2, 0, arg0 | (arg1 << 8));
+    taskSpawnFromTable(D_acropolis_helicopter_landing_pad_80184DA0, 2, 0, arg0 | (arg1 << 8));
 }
 
 void func_acropolis_helicopter_landing_pad_8017E64C(void)
 {
-    Task_SpawnFromTable(D_acropolis_helicopter_landing_pad_80184DA0, 5, 0, 0);
+    taskSpawnFromTable(D_acropolis_helicopter_landing_pad_80184DA0, 5, 0, 0);
 }
 
 void func_acropolis_helicopter_landing_pad_8017E67C(void)
@@ -1582,7 +1582,7 @@ void func_acropolis_helicopter_landing_pad_8017E67C(void)
 
 void func_acropolis_helicopter_landing_pad_8017E6C0(s32 arg0)
 {
-    Task_SpawnFromTable(D_acropolis_helicopter_landing_pad_80184DA0, 6, arg0, 0);
+    taskSpawnFromTable(D_acropolis_helicopter_landing_pad_80184DA0, 6, arg0, 0);
 }
 
 void func_acropolis_helicopter_landing_pad_8017E6F0(void)
@@ -1683,7 +1683,7 @@ void func_acropolis_helicopter_landing_pad_8017E974(Task* task)
             break;
         case 4:
             D_acropolis_helicopter_landing_pad_80184D9C = 3;
-            Task_SpawnFromTable(D_acropolis_helicopter_landing_pad_80184DA0, 0, 0, 0);
+            taskSpawnFromTable(D_acropolis_helicopter_landing_pad_80184DA0, 0, 0, 0);
             taskKill(task);
             break;
     }
@@ -1697,7 +1697,7 @@ static void func_acropolis_helicopter_landing_pad_8017EA6C(Task* task)
     D_acropolis_helicopter_landing_pad_80184E0C = 0;
     task->state++;
     func_800E8614(D_acropolis_helicopter_landing_pad_80183A04, 1);
-    D_acropolis_helicopter_landing_pad_80187F80                 = Task_SpawnFromTable(D_acropolis_helicopter_landing_pad_80184DA0, 7, 0, 0);
+    D_acropolis_helicopter_landing_pad_80187F80                 = taskSpawnFromTable(D_acropolis_helicopter_landing_pad_80184DA0, 7, 0, 0);
     (D_acropolis_helicopter_landing_pad_80185E7C + 4)[0].flags &= (0xFF ^ WORLD_COLLISION_TRIGGER_ENABLED);
 }
 

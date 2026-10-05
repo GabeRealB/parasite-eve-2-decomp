@@ -1284,9 +1284,9 @@ static void func_acropolis_west_elevator_hall_8017F568(Task* arg0)
     arg0->msgTable = D_acropolis_west_elevator_hall_801849CC;
     gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     D_acropolis_west_elevator_hall_80186AE4[0] =
-        Task_SpawnFromTable(D_acropolis_west_elevator_hall_80184568, 0, 0, -1);
+        taskSpawnFromTable(D_acropolis_west_elevator_hall_80184568, 0, 0, -1);
     D_acropolis_west_elevator_hall_80186AE4[1] =
-        Task_SpawnFromTable(D_acropolis_west_elevator_hall_80184568, 1, 0, 1);
+        taskSpawnFromTable(D_acropolis_west_elevator_hall_80184568, 1, 0, 1);
     arg0->state = (s32)(arg0->state + 1);
 }
 

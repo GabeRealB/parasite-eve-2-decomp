@@ -1813,7 +1813,7 @@ static void func_acropolis_promenade_8017D5E4(Task* task)
     if (D_acropolis_promenade_80181140 == 0) {
         if (gGameSession->location.loc.warp == 4) {
             D_acropolis_promenade_80181140 = 1;
-            Task_SpawnFromTable(D_acropolis_promenade_80181148, 2, 0, 0);
+            taskSpawnFromTable(D_acropolis_promenade_80181148, 2, 0, 0);
         }
     }
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent == 6) {
@@ -1963,7 +1963,7 @@ static void func_acropolis_promenade_8017D9E0(Task* arg0)
 {
     arg0->msgTable = D_acropolis_promenade_80180E74;
     gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
-    D_acropolis_promenade_801862D8 = Task_SpawnFromTable(D_acropolis_promenade_80180EA4, 0, 0, 0);
+    D_acropolis_promenade_801862D8 = taskSpawnFromTable(D_acropolis_promenade_80180EA4, 0, 0, 0);
     arg0->state                    = (s32)(arg0->state + 1);
     D_80115598                     = 1;
 }
@@ -2065,12 +2065,12 @@ void func_acropolis_promenade_8017DB9C(Task* task)
                     place.rot.vx = 0;
                     place.rot.vy = 0xC00;
                     TASK_MESSAGE_DISPATCH_POINTER(((RoomMoviePathWork*)task->work)->playerTask, 0x3E9, &place, 0);
-                    Task_SpawnFromTable(D_acropolis_promenade_80181148, 4, 0, 0);
+                    taskSpawnFromTable(D_acropolis_promenade_80181148, 4, 0, 0);
                     task->state = task->state + 1;
                     break;
                 }
             } else if (Pad_CheckFlag800() != 0) {
-                work->skipFadeTask    = Task_SpawnFromTable(D_acropolis_promenade_80181148, 3, 0, 0);
+                work->skipFadeTask    = taskSpawnFromTable(D_acropolis_promenade_80181148, 3, 0, 0);
                 work->skipFadeStarted = 1;
             }
             if ((0x45 - queue->movieFrame) < 6) {

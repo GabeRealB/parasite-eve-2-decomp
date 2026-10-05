@@ -541,7 +541,7 @@ static __inline__ s32 _accessTunnelStartEvent(RoomEventMsg* dst, RoomLatchedEven
             if (event->flagId != 0) {
                 gameFlagSetNibble(event->flagId, 1);
             }
-            Task_SpawnFromTable(&D_shelter_b1_access_tunnel_8017E710, 0, 0, 0);
+            taskSpawnFromTable(&D_shelter_b1_access_tunnel_8017E710, 0, 0, 0);
             D_shelter_b1_access_tunnel_8017FF6C[0] = 1;
         }
         return 2;

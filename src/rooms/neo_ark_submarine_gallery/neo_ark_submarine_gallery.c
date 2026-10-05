@@ -160,7 +160,7 @@ s32 func_neo_ark_submarine_gallery_8017EA0C(Task* task, s32 msgId, RoomEventMsg*
             D_neo_ark_submarine_gallery_80185924.warp              = (u8)dst->areaId;
             D_neo_ark_submarine_gallery_80185924.field_4           = dst->warp;
             ((u8*)&D_neo_ark_submarine_gallery_80185924.areaId)[1] = dst->room;
-            Task_SpawnFromTable(&D_neo_ark_submarine_gallery_801818AC, 0, 0, 0);
+            taskSpawnFromTable(&D_neo_ark_submarine_gallery_801818AC, 0, 0, 0);
         }
         return 0;
     }
@@ -200,7 +200,7 @@ static void func_neo_ark_submarine_gallery_8017EB50(Task* arg0)
     arg0->msgTable = D_neo_ark_submarine_gallery_80181884;
     gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     if (gGameSession->location.loc.variant == 4) {
-        Task_SpawnFromTable(D_neo_ark_submarine_gallery_801818BC, 0, 0, 0);
+        taskSpawnFromTable(D_neo_ark_submarine_gallery_801818BC, 0, 0, 0);
     }
     arg0->state = (s32)(arg0->state + 1);
 }

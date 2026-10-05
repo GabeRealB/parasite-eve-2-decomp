@@ -3013,7 +3013,7 @@ void func_dryfield_night_gas_station_80180780(void)
 /// `D_dryfield_night_gas_station_801907A4`.
 void func_dryfield_night_gas_station_801807A0(void)
 {
-    D_dryfield_night_gas_station_801907A4 = Task_SpawnFromTable(D_dryfield_night_gas_station_801888A0, 0, 0, 0);
+    D_dryfield_night_gas_station_801907A4 = taskSpawnFromTable(D_dryfield_night_gas_station_801888A0, 0, 0, 0);
 }
 
 /// Passes `arg0` to the task tracked in `D_dryfield_night_gas_station_801907A4`
@@ -3085,7 +3085,7 @@ void func_dryfield_night_gas_station_80180920(s32 arg0)
 /// `D_dryfield_night_gas_station_801907A8`.
 void func_dryfield_night_gas_station_80180940(void)
 {
-    D_dryfield_night_gas_station_801907A8 = Task_SpawnFromTable(D_dryfield_night_gas_station_801888A0, 1, 0, 0);
+    D_dryfield_night_gas_station_801907A8 = taskSpawnFromTable(D_dryfield_night_gas_station_801888A0, 1, 0, 0);
 }
 
 /// Retires the room's third tracked task and drops the room's reference to it.
@@ -3120,7 +3120,7 @@ void func_dryfield_night_gas_station_80180998(Task* arg0)
 /// stores it beside `D_dryfield_night_gas_station_801907A8`.
 void func_dryfield_night_gas_station_80180A00(void)
 {
-    D_dryfield_night_gas_station_801907AC = Task_SpawnFromTable(D_dryfield_night_gas_station_801888A0, 2, 0, 0);
+    D_dryfield_night_gas_station_801907AC = taskSpawnFromTable(D_dryfield_night_gas_station_801888A0, 2, 0, 0);
 }
 
 /// Advances the room's second tracked task by one state and drops the room's
@@ -3164,7 +3164,7 @@ void func_dryfield_night_gas_station_80180A60(Task* arg0)
 /// it in `D_dryfield_night_gas_station_801907A8`, the slot the room's teardown clears.
 void func_dryfield_night_gas_station_80180B04(void)
 {
-    D_dryfield_night_gas_station_801907A8 = Task_SpawnFromTable(D_dryfield_night_gas_station_801888A0, 3, 0, 0);
+    D_dryfield_night_gas_station_801907A8 = taskSpawnFromTable(D_dryfield_night_gas_station_801888A0, 3, 0, 0);
 }
 
 /// Second teardown entry point for `D_dryfield_night_gas_station_801907A8`: requests the

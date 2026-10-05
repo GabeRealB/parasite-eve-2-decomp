@@ -970,7 +970,7 @@ static void func_actor_503500_8013B60C(Task* arg0, s32 side, s32 arg2)
     s16       vy;
 
     src  = arg0->extra.tmd->coords;
-    task = Task_SpawnFromTable(D_actor_503500_8016E9F0, 1, 0, 0xA00000);
+    task = taskSpawnFromTable(D_actor_503500_8016E9F0, 1, 0, 0xA00000);
     if (task != NULL) {
         Gp_ComposeParentWorld(src, &m, &pos);
         coord  = task->extra.tmd->coords;
@@ -1793,7 +1793,7 @@ static void func_actor_503500_8013D1CC(Task* arg0)
             if (++work->stateFrames < ACTOR_503500_CHAIN_BASE_ATTACK_LAUNCH_FRAME) {
                 break;
             }
-            task = Task_SpawnFromTable(D_actor_503500_8016E9F0, 1, 1, 0xC00000);
+            task = taskSpawnFromTable(D_actor_503500_8016E9F0, 1, 1, 0xC00000);
             if (task != NULL) {
                 Gp_ComposeParentWorld(coord, &m, &pos);
                 dst    = task->extra.tmd->coords;
@@ -2338,7 +2338,7 @@ static void func_actor_503500_8013E384(Task* arg0)
         case 2:
             idx  = work->stateFrames - ACTOR_503500_SMALL_ORB_EMITTER_ATTACK_LAUNCH_FRAME;
             arg  = (D_actor_503500_8016F2E0[idx] << 12) + (-gPlayerStatus.coordMtx->t[1] << 24) / 1000;
-            task = Task_SpawnFromTable(D_actor_503500_8016E9F0, 0, 1, arg);
+            task = taskSpawnFromTable(D_actor_503500_8016E9F0, 0, 1, arg);
             if (task != NULL) {
                 Gp_ComposeParentWorld(coord, &m, &pos);
                 dst    = task->extra.tmd->coords;
@@ -2769,7 +2769,7 @@ static void func_actor_503500_8013F328(Task* arg0)
                 work->stateFrames = 0;
                 work->stateStep++;
             } else if (work->stateFrames == ACTOR_503500_YELLOW_FLASH_EMITTER_ATTACK_LAUNCH_FRAME) {
-                task = Task_SpawnFromTable(D_actor_503500_8016E9F0, 3, 0, 0);
+                task = taskSpawnFromTable(D_actor_503500_8016E9F0, 3, 0, 0);
                 if (task != NULL) {
                     coord             = task->extra.tmd->coords;
                     coord->parent     = arg0->extra.tmd->coords;
@@ -4668,7 +4668,7 @@ static void func_actor_503500_801437D0(Task* arg0, WorldCollisionContact* rec, s
                 side = vec.vz >= 0;
                 taskMessageDispatch(player, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, Gp_PackObjPair(enemy, 0), 0);
                 TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &D_actor_503500_801714E0[side], 0);
-                Task_SpawnFromTable(&D_actor_503500_8017146C, 0, side, &work->knockbackRotation);
+                taskSpawnFromTable(&D_actor_503500_8017146C, 0, side, &work->knockbackRotation);
                 Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
                 pan                = (s8)worldCoordGetOriginAudioPan(pcoord);
                 sndEvtRequestScriptStart(SOUND_COMMON(7), pan, (s8)(worldCoordGetOriginAudioDepth(pcoord) / 2));

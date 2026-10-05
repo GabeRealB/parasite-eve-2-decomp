@@ -638,7 +638,7 @@ s32 func_actor_323300_80162360(Task* arg0, s32 arg1, ActorCommand* msg, ActorTra
             func_actor_323300_80162208(arg0, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
             break;
         case 10:
-            spawned         = Task_SpawnFromTable(D_actor_323300_8017255C, 1, 0, 0);
+            spawned         = taskSpawnFromTable(D_actor_323300_8017255C, 1, 0, 0);
             w->strangerTask = spawned;
             if (spawned != NULL) {
                 // The stranger appears where the woman stands.

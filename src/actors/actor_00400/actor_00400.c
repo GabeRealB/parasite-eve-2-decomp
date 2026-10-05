@@ -2638,7 +2638,7 @@ static void Actor00400_Fn03920(Task* arg0)
             pos        = arg0->extra.tmd->coords;
             stainEnemy = arg0->spawnArg2.pointer;
             y          = (u16)pos->coord.t[1];
-            task       = Task_SpawnFromTable(Actor00400_D16028, 2, 0, 0);
+            task       = taskSpawnFromTable(Actor00400_D16028, 2, 0, 0);
             if (task != NULL) {
                 stain = memCalloc(sizeof(_Actor00400GroundStainWork), 0);
                 if (stain == NULL) {
@@ -3855,7 +3855,7 @@ static inline void Actor00400_SpawnMarker(Task* arg0)
     coords = arg0->extra.tmd->coords;
     origin = &coords[5];
     span   = &coords[4];
-    task   = Task_SpawnFromTable(Actor00400_D16028, 1, 0, 0);
+    task   = taskSpawnFromTable(Actor00400_D16028, 1, 0, 0);
     if (task != NULL) {
         shot = memCalloc(sizeof(_Actor00400ShotWork), false);
         if (shot == NULL) {

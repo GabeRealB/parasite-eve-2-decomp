@@ -1102,7 +1102,7 @@ static __inline__ s32 NeoArkPavilion_StartEvent(RoomEventMsg* dst, RoomLatchedEv
             if (event->flagId != 0) {
                 gameFlagSetNibble(event->flagId, 1);
             }
-            Task_SpawnFromTable(&D_neo_ark_pavilion_80183864, 0, 0, 0);
+            taskSpawnFromTable(&D_neo_ark_pavilion_80183864, 0, 0, 0);
             D_neo_ark_pavilion_80187A1C_value = 1;
         }
         return 2;

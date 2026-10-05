@@ -99,17 +99,17 @@ static void _effectSpriteDrawRotated(const GfxCoord* coord, u16 frameAndPalette,
 enum { SHELTER_B3_DUMPING_HOLE_SPRITE_WORK_BYTES = 0x24 };
 
 /// Spawns one debris task and gives it a work block seeded with `seed`.
-#define DUMPING_HOLE_SPAWN_DEBRIS(seed)                                                                        \
-    {                                                                                                          \
-        Task*                            t = Task_SpawnFromTable(D_shelter_b3_dumping_hole_80188C04, 0, 0, 0); \
-        _ShelterB3DumpingHoleSpriteWork* w = memMalloc(SHELTER_B3_DUMPING_HOLE_SPRITE_WORK_BYTES, false);      \
-        t->work                            = w;                                                                \
-        if (w == NULL) {                                                                                       \
-            taskKill(t);                                                                                       \
-        } else {                                                                                               \
-            memFillBytes(w, 0, SHELTER_B3_DUMPING_HOLE_SPRITE_WORK_BYTES);                                     \
-            w->seed = seed;                                                                                    \
-        }                                                                                                      \
+#define DUMPING_HOLE_SPAWN_DEBRIS(seed)                                                                       \
+    {                                                                                                         \
+        Task*                            t = taskSpawnFromTable(D_shelter_b3_dumping_hole_80188C04, 0, 0, 0); \
+        _ShelterB3DumpingHoleSpriteWork* w = memMalloc(SHELTER_B3_DUMPING_HOLE_SPRITE_WORK_BYTES, false);     \
+        t->work                            = w;                                                               \
+        if (w == NULL) {                                                                                      \
+            taskKill(t);                                                                                      \
+        } else {                                                                                              \
+            memFillBytes(w, 0, SHELTER_B3_DUMPING_HOLE_SPRITE_WORK_BYTES);                                    \
+            w->seed = seed;                                                                                   \
+        }                                                                                                     \
     }
 
 extern SVECTOR D_shelter_b3_dumping_hole_8018B86C[44];
@@ -2748,14 +2748,14 @@ static void func_shelter_b3_dumping_hole_8017F1B0(Task* arg0)
                     return;
                 case 1:
                     for (i = 0; D_shelter_b3_dumping_hole_801881FC[i].pos.vx != SHELTER_B3_DUMPING_HOLE_TRANSFORM_END; i++) {
-                        Task_SpawnFromTable(D_shelter_b3_dumping_hole_80188BC8, 2, 0, &D_shelter_b3_dumping_hole_801881FC[i]);
+                        taskSpawnFromTable(D_shelter_b3_dumping_hole_80188BC8, 2, 0, &D_shelter_b3_dumping_hole_801881FC[i]);
                     }
                     for (i = 0; D_shelter_b3_dumping_hole_80188304[i].pos.vx != SHELTER_B3_DUMPING_HOLE_TRANSFORM_END; i++) {
-                        Task_SpawnFromTable(D_shelter_b3_dumping_hole_80188BC8, 3, 1, &D_shelter_b3_dumping_hole_80188304[i]);
+                        taskSpawnFromTable(D_shelter_b3_dumping_hole_80188BC8, 3, 1, &D_shelter_b3_dumping_hole_80188304[i]);
                     }
                     for (i = 0; D_shelter_b3_dumping_hole_801884CC[i].transform.pos.vx != SHELTER_B3_DUMPING_HOLE_TRANSFORM_END; i++) {
                         placement = &D_shelter_b3_dumping_hole_801884CC[i];
-                        Task_SpawnFromTable(D_shelter_b3_dumping_hole_80188BC8, 4, 2, &placement->transform);
+                        taskSpawnFromTable(D_shelter_b3_dumping_hole_80188BC8, 4, 2, &placement->transform);
                         if (placement->spriteRing != 0) {
                             // One sprite at the piece, then one at each diagonal around it in the YZ plane.
                             ringed       = placement;
@@ -2945,7 +2945,7 @@ void func_shelter_b3_dumping_hole_8017FCF4(GfxCoord* arg0, SVECTOR* arg1)
     Task*                            task;
     _ShelterB3DumpingHoleSpriteWork* work;
 
-    task       = Task_SpawnFromTable(D_shelter_b3_dumping_hole_80188C04, 1, 0, arg0);
+    task       = taskSpawnFromTable(D_shelter_b3_dumping_hole_80188C04, 1, 0, arg0);
     work       = memMalloc(SHELTER_B3_DUMPING_HOLE_SPRITE_WORK_BYTES, false);
     task->work = work;
     if (work == NULL) {
@@ -2961,9 +2961,9 @@ void func_shelter_b3_dumping_hole_8017FCF4(GfxCoord* arg0, SVECTOR* arg1)
 static void func_shelter_b3_dumping_hole_8017FD9C(GfxCoord* arg0, s32 arg1)
 {
     if ((arg1 << 0x10) == 0) {
-        Task_SpawnFromTable(D_shelter_b3_dumping_hole_80188C04, 3, 0, arg0);
-        Task_SpawnFromTable(D_shelter_b3_dumping_hole_80188C04, 3, -0xA, arg0);
-        Task_SpawnFromTable(D_shelter_b3_dumping_hole_80188C04, 3, 0xA, arg0);
+        taskSpawnFromTable(D_shelter_b3_dumping_hole_80188C04, 3, 0, arg0);
+        taskSpawnFromTable(D_shelter_b3_dumping_hole_80188C04, 3, -0xA, arg0);
+        taskSpawnFromTable(D_shelter_b3_dumping_hole_80188C04, 3, 0xA, arg0);
     }
 }
 
@@ -2977,7 +2977,7 @@ static void func_shelter_b3_dumping_hole_8017FE10(s32 arg0)
 
 void func_shelter_b3_dumping_hole_8017FE34(void)
 {
-    Task_SpawnFromTable(D_shelter_b3_dumping_hole_80188BC8, 1, 9, 0);
+    taskSpawnFromTable(D_shelter_b3_dumping_hole_80188BC8, 1, 9, 0);
 }
 
 void func_shelter_b3_dumping_hole_8017FE64(s32 arg0)
@@ -3276,7 +3276,7 @@ static void func_shelter_b3_dumping_hole_8018098C(Task* task)
                         work->shardSpawn.vel.vz  = 0;
                         work->shardSpawn.gravity = 4;
                         for (i = 0; i < 10; i++) {
-                            Task_SpawnFromTable(D_shelter_b3_dumping_hole_80189ADC, 1, 0, &work->shardSpawn);
+                            taskSpawnFromTable(D_shelter_b3_dumping_hole_80189ADC, 1, 0, &work->shardSpawn);
                         }
                     }
                     if (work->timer >= 0x5B) {
@@ -3403,7 +3403,7 @@ static void func_shelter_b3_dumping_hole_8018098C(Task* task)
             words[4] = 0;
             TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, words, 0);
             if (work->framebufferBlend != NULL) {
-                Task_CallExit(work->framebufferBlend);
+                taskCallExit(work->framebufferBlend);
                 work->framebufferBlend = NULL;
             }
             break;
@@ -3457,7 +3457,7 @@ void func_shelter_b3_dumping_hole_80181430(void)
     work = D_shelter_b3_dumping_hole_8018F4AC->work;
     Gp_SetOverrideVec(NULL);
     if (work->framebufferBlend != NULL) {
-        Task_CallExit(work->framebufferBlend);
+        taskCallExit(work->framebufferBlend);
         work->framebufferBlend = NULL;
     }
     work->field_96 = 1;
@@ -3590,7 +3590,7 @@ void func_shelter_b3_dumping_hole_801819F0(void)
 /// Spawns the task described by `D_shelter_b3_dumping_hole_8018AFBC`.
 void func_shelter_b3_dumping_hole_80181A18(void)
 {
-    Task_SpawnFromTable(&D_shelter_b3_dumping_hole_8018AFBC, 0, 0, 0);
+    taskSpawnFromTable(&D_shelter_b3_dumping_hole_8018AFBC, 0, 0, 0);
 }
 
 void func_shelter_b3_dumping_hole_80181A48(Task* arg0)
@@ -3725,13 +3725,13 @@ static void func_shelter_b3_dumping_hole_801833EC(Task* arg0)
             arg  = D_shelter_b3_dumping_hole_8018B7BC[idx].command;
             switch (type) {
                 case 0:
-                    Task_SpawnFromTable(D_shelter_b3_dumping_hole_8018B83C, 1, (idx << 16) + arg, 0);
+                    taskSpawnFromTable(D_shelter_b3_dumping_hole_8018B83C, 1, (idx << 16) + arg, 0);
                     break;
                 case 1:
-                    Task_SpawnFromTable(D_shelter_b3_dumping_hole_8018B83C, 2, (idx << 16) + arg, 0);
+                    taskSpawnFromTable(D_shelter_b3_dumping_hole_8018B83C, 2, (idx << 16) + arg, 0);
                     break;
                 case 2:
-                    Task_SpawnFromTable(D_shelter_b3_dumping_hole_8018B83C, 3, (idx << 16) + arg, 0);
+                    taskSpawnFromTable(D_shelter_b3_dumping_hole_8018B83C, 3, (idx << 16) + arg, 0);
                     break;
             }
             work->nextSlot++;
@@ -4064,13 +4064,13 @@ static void func_shelter_b3_dumping_hole_80183E6C(s16 arg0, s16 arg1, s16 arg2)
 {
     switch (arg1) {
         case 0:
-            Task_SpawnFromTable(D_shelter_b3_dumping_hole_8018B83C, 1, (arg0 << 16) + arg2, 0);
+            taskSpawnFromTable(D_shelter_b3_dumping_hole_8018B83C, 1, (arg0 << 16) + arg2, 0);
             break;
         case 1:
-            Task_SpawnFromTable(D_shelter_b3_dumping_hole_8018B83C, 2, (arg0 << 16) + arg2, 0);
+            taskSpawnFromTable(D_shelter_b3_dumping_hole_8018B83C, 2, (arg0 << 16) + arg2, 0);
             break;
         case 2:
-            Task_SpawnFromTable(D_shelter_b3_dumping_hole_8018B83C, 3, (arg0 << 16) + arg2, 0);
+            taskSpawnFromTable(D_shelter_b3_dumping_hole_8018B83C, 3, (arg0 << 16) + arg2, 0);
             break;
     }
 }

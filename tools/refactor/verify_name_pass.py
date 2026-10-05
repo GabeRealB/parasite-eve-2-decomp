@@ -81,7 +81,7 @@ def verify(root, logs, jobs, objdiff=False):
     run(["./tools/build-and-verify.sh"], "matching.log")
     decls = run([python, "tools/refactor/check_decls.py", "--across-images", "--strict", "--jobs", str(jobs)],
                 "declarations.log")
-    check_declarations(decls.read_text(), aliases(root, {"Task_ExecDefaultList"}))
+    check_declarations(decls.read_text(), aliases(root, {"taskExecDefaultList"}))
     run([python, "tools/check_symbols.py", "--strict"], "symbols.log")
     if not objdiff:
         print("Naming verification passed (build, declarations, symbols)", flush=True)

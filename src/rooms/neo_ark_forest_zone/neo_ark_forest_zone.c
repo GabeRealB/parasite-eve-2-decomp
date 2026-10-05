@@ -120,7 +120,7 @@ static __inline__ s32 NeoArkForestZone_StartEvent(RoomEventMsg* dst, RoomLatched
             if (event->flagId != 0) {
                 gameFlagSetNibble(event->flagId, 1);
             }
-            Task_SpawnFromTable(&D_neo_ark_forest_zone_80181DBC, 0, 0, 0);
+            taskSpawnFromTable(&D_neo_ark_forest_zone_80181DBC, 0, 0, 0);
             D_neo_ark_forest_zone_80182E40_value = 1;
         }
         return 2;
@@ -214,7 +214,7 @@ static void func_neo_ark_forest_zone_8017DA80(Task* arg0)
     arg0->msgTable = D_neo_ark_forest_zone_80181DC8;
     gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     sndEvtRequestScriptStart(SOUND_NEO_ARK_FOREST_ZONE_AMBIENCE, 0, 0);
-    D_neo_ark_forest_zone_80181E68 = Task_SpawnFromTable(&D_neo_ark_forest_zone_80182E18, 0, 0, 0);
+    D_neo_ark_forest_zone_80181E68 = taskSpawnFromTable(&D_neo_ark_forest_zone_80182E18, 0, 0, 0);
     if (gGameSession->location.loc.variant == 1 && gameFlagGetNibble(GAME_FLAG_NEO_ARK_FOREST_ZONE_EVENT_SEEN) == 0) {
         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &D_neo_ark_forest_zone_80181E30, ACTOR_COMMAND_MESSAGE_APPLY);
     }

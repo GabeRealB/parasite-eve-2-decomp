@@ -647,7 +647,7 @@ s32 func_dryfield_garage_8017D91C(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEv
     if (in->areaId == GAME_AREA_DRYFIELD_JUNK_YARD) {
         if (gameFlagGetNibble(GAME_FLAG_WATER_TANK_SCENE_SEEN) == 0) {
             if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-                Task_SpawnFromTable(D_dryfield_garage_8017DCAC, 0, 0, 0);
+                taskSpawnFromTable(D_dryfield_garage_8017DCAC, 0, 0, 0);
             }
             return 2;
         }
@@ -699,7 +699,7 @@ void func_dryfield_garage_8017DAA0(Task* arg0)
     s32   state;
     switch (arg0->state) {
         case 0:
-            spawned                         = Task_SpawnFromTable(D_actor_120300_80141B6C, 1, 0, 0);
+            spawned                         = taskSpawnFromTable(D_actor_120300_80141B6C, 1, 0, 0);
             state                           = arg0->state;
             D_dryfield_garage_8018021C.task = spawned;
             arg0->state                     = state + 1;

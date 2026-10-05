@@ -23,8 +23,8 @@ void factoryRoomInit(Task* arg0)
     } else {
         gFactoryPanelDesc = gFactoryNightPanelDesc;
     }
-    Task_SpawnFromTable(gFactorySpawnTable, 4, 0, gFactoryPanelSlot);
-    Task_SpawnFromTable(gFactorySpawnTable, 5, 0, 0);
+    taskSpawnFromTable(gFactorySpawnTable, 4, 0, gFactoryPanelSlot);
+    taskSpawnFromTable(gFactorySpawnTable, 5, 0, 0);
     if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
         factoryDayShowView9Sprite(gameFlagGetNibble(GAME_FLAG_FACTORY_POWER_ON) & 0xFF);
     } else {

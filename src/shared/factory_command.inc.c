@@ -6,7 +6,7 @@
 ///
 /// Cases 1/2/3/5/12 spawn an actor out of whichever spawn table the session
 /// selected (`D_..._A7E4`, written by `factoryRoomInit`)
-/// at index 2/3/1/0/6, handing the command on as `Task_SpawnFromTable`'s third
+/// at index 2/3/1/0/6, handing the command on as `taskSpawnFromTable`'s third
 /// argument. Case 6 silences both characters' weapons and spawns the factory's
 /// own table `D_..._80186E4C` at index 0 instead -- that table's task is the
 /// `factoryPanelSpawn` poller. Case 12 only acts while
@@ -42,7 +42,7 @@ s32 factoryCommand(Task* arg0, s32 arg1, s32 cmd, s32 arg3)
             Gp_MsgPlayer3F3(0);
             Gp_MsgAllyWeapon(0);
             Gp_MsgAlly3F3(0);
-            Task_SpawnFromTable(gFactoryPanelSessionDesc, 0, 0, 0);
+            taskSpawnFromTable(gFactoryPanelSessionDesc, 0, 0, 0);
             goto end;
         case 12:
             if (gameFlagGetNibble(GAME_FLAG_FACTORY_LIFT_POSITION) == 1) {
@@ -56,7 +56,7 @@ s32 factoryCommand(Task* arg0, s32 arg1, s32 cmd, s32 arg3)
         default:
             goto end;
     }
-    Task_SpawnFromTable(table, idx, cmd, 0);
+    taskSpawnFromTable(table, idx, cmd, 0);
 end:
     return 0;
 }

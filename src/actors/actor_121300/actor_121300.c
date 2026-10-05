@@ -2025,21 +2025,21 @@ void func_actor_121300_80133064(Task* task)
             }
             break;
         case 1:
-            Task_SpawnFromTable(D_actor_121300_8013D390, 4, task->spawnArg1, 0);
-            Task_SpawnFromTable(D_actor_121300_8013D390, 5, task->spawnArg1, 1);
-            Task_SpawnFromTable(D_actor_121300_8013D390, 6, task->spawnArg1, 2);
-            Task_SpawnFromTable(D_actor_121300_8013D390, 7, task->spawnArg1, 3);
-            Task_SpawnFromTable(D_actor_121300_8013D390, 8, task->spawnArg1, 4);
-            Task_SpawnFromTable(D_actor_121300_8013D390, 4, task->spawnArg1, 5);
-            Task_SpawnFromTable(D_actor_121300_8013D390, 5, task->spawnArg1, 6);
-            Task_SpawnFromTable(D_actor_121300_8013D390, 6, task->spawnArg1, 7);
-            Task_SpawnFromTable(D_actor_121300_8013D390, 7, task->spawnArg1, 8);
-            Task_SpawnFromTable(D_actor_121300_8013D390, 8, task->spawnArg1, 9);
-            Task_SpawnFromTable(D_actor_121300_8013D390, 4, task->spawnArg1, 0xA);
-            Task_SpawnFromTable(D_actor_121300_8013D390, 5, task->spawnArg1, 0xB);
-            Task_SpawnFromTable(D_actor_121300_8013D390, 6, task->spawnArg1, 0xC);
-            Task_SpawnFromTable(D_actor_121300_8013D390, 7, task->spawnArg1, 0xD);
-            Task_SpawnFromTable(D_actor_121300_8013D390, 8, task->spawnArg1, 0xE);
+            taskSpawnFromTable(D_actor_121300_8013D390, 4, task->spawnArg1, 0);
+            taskSpawnFromTable(D_actor_121300_8013D390, 5, task->spawnArg1, 1);
+            taskSpawnFromTable(D_actor_121300_8013D390, 6, task->spawnArg1, 2);
+            taskSpawnFromTable(D_actor_121300_8013D390, 7, task->spawnArg1, 3);
+            taskSpawnFromTable(D_actor_121300_8013D390, 8, task->spawnArg1, 4);
+            taskSpawnFromTable(D_actor_121300_8013D390, 4, task->spawnArg1, 5);
+            taskSpawnFromTable(D_actor_121300_8013D390, 5, task->spawnArg1, 6);
+            taskSpawnFromTable(D_actor_121300_8013D390, 6, task->spawnArg1, 7);
+            taskSpawnFromTable(D_actor_121300_8013D390, 7, task->spawnArg1, 8);
+            taskSpawnFromTable(D_actor_121300_8013D390, 8, task->spawnArg1, 9);
+            taskSpawnFromTable(D_actor_121300_8013D390, 4, task->spawnArg1, 0xA);
+            taskSpawnFromTable(D_actor_121300_8013D390, 5, task->spawnArg1, 0xB);
+            taskSpawnFromTable(D_actor_121300_8013D390, 6, task->spawnArg1, 0xC);
+            taskSpawnFromTable(D_actor_121300_8013D390, 7, task->spawnArg1, 0xD);
+            taskSpawnFromTable(D_actor_121300_8013D390, 8, task->spawnArg1, 0xE);
             break;
         default:
             return;
@@ -2252,7 +2252,7 @@ static void func_actor_121300_80133730(Task* arg0)
                         func_dryfield_r08_8017F340(work->lampsShattered - 1, 1);
                     }
                     func_dryfield_r08_8017F334(work->lampsShattered + 1);
-                    Task_SpawnFromTable(D_actor_121300_8013D390, 3, (s32)work->lampsShattered, 0);
+                    taskSpawnFromTable(D_actor_121300_8013D390, 3, (s32)work->lampsShattered, 0);
                     work->shatterFrames = 0;
                     work->lampsShattered++;
                 }
@@ -2319,7 +2319,7 @@ static void func_actor_121300_80133854(Task* arg0)
                 func_actor_121300_SetCC04(10);
                 work->wave.span  = 0x3C;
                 work->wave.scale = 0x100;
-                work->waveTask   = Task_SpawnFromTable(D_actor_121300_8013BBCC, 0, 0, &work->wave);
+                work->waveTask   = taskSpawnFromTable(D_actor_121300_8013BBCC, 0, 0, &work->wave);
                 work->stepState++;
             }
         case ACTOR_121300_STEP_SHATTER_LAMPS:
@@ -2370,7 +2370,7 @@ static void func_actor_121300_80133854(Task* arg0)
                 case 0:
                     work->wave.span   = 8;
                     work->wave.scale  = 0x100;
-                    work->waveTask    = Task_SpawnFromTable(D_actor_121300_8013BBCC, 0, 0, &work->wave);
+                    work->waveTask    = taskSpawnFromTable(D_actor_121300_8013BBCC, 0, 0, &work->wave);
                     work->pulseFrames = 0;
                     work->stepState++;
                     break;
@@ -2502,7 +2502,7 @@ void func_actor_121300_80133D98(Task* arg0)
             break;
         case 2:
             if (gGameSession->eventState == 0) {
-                Task_SpawnFromTable(D_actor_121300_8013D390, 9, 0, 0);
+                taskSpawnFromTable(D_actor_121300_8013D390, 9, 0, 0);
                 arg0->state += 1;
             }
             break;
@@ -2585,7 +2585,7 @@ void func_actor_121300_801340F0(Task* task)
 
 s32 func_actor_121300_80134224(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
-    Task_SpawnFromTable(D_actor_121300_8013D390, 0xA, arg2, arg0);
+    taskSpawnFromTable(D_actor_121300_8013D390, 0xA, arg2, arg0);
 }
 
 void func_actor_121300_80134250(s16 arg0)
@@ -2615,13 +2615,13 @@ void func_actor_121300_8013427C(void)
 /// Spawns entry 1 of the overlay's spawn table with `arg0` as its argument.
 void func_actor_121300_801342D4(s32 arg0)
 {
-    Task_SpawnFromTable(D_actor_121300_8013D390, 1, arg0, 0);
+    taskSpawnFromTable(D_actor_121300_8013D390, 1, arg0, 0);
 }
 
 /// Spawns entry 2 of the overlay's spawn table with `arg0` as its argument.
 void func_actor_121300_80134304(s32 arg0)
 {
-    Task_SpawnFromTable(D_actor_121300_8013D390, 2, arg0, 0);
+    taskSpawnFromTable(D_actor_121300_8013D390, 2, arg0, 0);
 }
 
 void func_actor_121300_80134334(s32 arg0)

@@ -370,7 +370,7 @@ static Task* Display_SpawnFromMode(void)
     GameLocationKey* ed;
     s32              flag;
 
-    ret = Task_SpawnFromTable(Stage_Ctx->taskDesc, 0, Stage_Ctx->spawnArg1, Stage_Ctx->spawnArg2);
+    ret = taskSpawnFromTable(Stage_Ctx->taskDesc, 0, Stage_Ctx->spawnArg1, Stage_Ctx->spawnArg2);
     if (ret != NULL) {
         mode = Stage_Ctx->entryMode;
         if (mode == STAGE_ENTRY_DRAW_ACTORS) {
@@ -566,14 +566,14 @@ static void Display_FlipOtAndDispatch(s32 unused)
     switch (mode) {
         case STAGE_TRANSITION_TASKS:
         case STAGE_TRANSITION_TASKS_ALT:
-            Task_ExecDefaultList(&gTaskDefaultList);
+            taskExecDefaultList(&gTaskDefaultList);
             break;
         case STAGE_TRANSITION_ACTORS:
             Gp_LinkViewSprts();
             Gp_DrawActorTmdActive(&Gpu_OtBuffers[temp->otBuffer]);
             break;
         case STAGE_TRANSITION_FILTERED:
-            Task_ExecListFiltered(&gTaskDefaultList, 0x62);
+            taskExecListForPriority(&gTaskDefaultList, 0x62);
             Gp_LinkViewSprts();
             Gp_DrawActorTmdFlagged(&Gpu_OtBuffers[temp->otBuffer]);
             break;
@@ -639,8 +639,8 @@ void Stage_InitOtAndSpawn(void)
     temp->displayOwner           = DISPLAY_OWNER_TRANSITION;
     temp->control.flags.flipMode = DISPLAY_FLIP_HOLD;
     temp->frameBuffer            = temp->otBuffer ^ 1;
-    Task_InitList(&gTaskDisplayList);
-    Task_SpawnFromTable(&Display_ModeTaskDesc, 0, 0, 0);
+    taskInitList(&gTaskDisplayList);
+    taskSpawnFromTable(&Display_ModeTaskDesc, 0, 0, 0);
 }
 
 s32 Stage_SetEndingFlag(void)
@@ -918,7 +918,7 @@ static void Stage_FinishCdFollowUp(Task* task)
         gDisplayState.pendingMode               = DISPLAY_MODE_NONE;
         gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_STRIPS;
         Display_SetAutoClear(-1, 0, 0);
-        Task_CallExit(task);
+        taskCallExit(task);
     }
 }
 
@@ -1120,8 +1120,8 @@ static void Mdec_ProcessDecode(void)
                 }
                 // Refresh timing data before releasing the completed decode operation.
                 if (p->sceneStream->control.scene.timingBufferKind != STREAM_TIMING_BUFFER_NONE) {
-                    Mem_CopyUnaligned(&Mdec_DecodeBase[Stage_CdEntry->timingDataOffset], p->timingBuffer,
-                                      Stage_CdEntry->timingDataBytes);
+                    memCopyBytes(&Mdec_DecodeBase[Stage_CdEntry->timingDataOffset], p->timingBuffer,
+                                 Stage_CdEntry->timingDataBytes);
                 }
                 mdecFinishDecode();
             } else if ((u32)++D_8007A358 >= 0x5B) {
@@ -1258,5 +1258,5 @@ static void Mdec_StripCallback(void)
 
 void Stage_TaskExit(Task* task)
 {
-    Task_CallExit(task);
+    taskCallExit(task);
 }

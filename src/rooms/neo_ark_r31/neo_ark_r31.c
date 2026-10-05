@@ -160,7 +160,7 @@ void func_neo_ark_r31_8017D5D0(Task* task)
         task->state++;
     }
     if (D_neo_ark_r31_8017DC54 < 0) {
-        Task_CallExit(task);
+        taskCallExit(task);
         return;
     }
     for (x = 0; x < 0x140; x += 0xA0) {

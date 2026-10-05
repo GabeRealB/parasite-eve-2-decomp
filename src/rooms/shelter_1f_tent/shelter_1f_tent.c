@@ -234,7 +234,7 @@ s32 func_shelter_1f_tent_8017FCA0(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
         D_shelter_1f_tent_801843C4.endSound        = 0x551C0006;
         D_shelter_1f_tent_801843C4.sceneSound      = 0x551C0004;
         D_shelter_1f_tent_801843C4.afterSceneSound = 0x551C0005;
-        Task_SpawnFromTable(gRoomCutsceneTaskDescs, 0, 0xC, &D_shelter_1f_tent_801843C4);
+        taskSpawnFromTable(gRoomCutsceneTaskDescs, 0, 0xC, &D_shelter_1f_tent_801843C4);
     }
     return 0;
 }

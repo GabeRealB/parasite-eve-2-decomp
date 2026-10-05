@@ -29,6 +29,10 @@ extern s32 D_80071210;
 
 void Tmd_InitLists(void);
 
+enum {
+    TMD_CREATE_SKIP_AUTO_BUFFER = 1 // Creation bit: defer allocation and skip missing-buffer recovery
+};
+
 /// Creates an unlinked model with owned part coordinates, initially excluded from active drawing.
 ///
 /// `source` is a non-NULL borrowed descriptor with a writable, word-aligned,

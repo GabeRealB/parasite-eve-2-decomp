@@ -319,7 +319,7 @@ static __inline__ s32 Bulwark_StartEvent(RoomEventMsg* dst, RoomLatchedEvent* ev
             if (event->flagId != 0) {
                 gameFlagSetNibble(event->flagId, 1);
             }
-            Task_SpawnFromTable(&D_shelter_1f_bulwark_80180320, 0, 0, 0);
+            taskSpawnFromTable(&D_shelter_1f_bulwark_80180320, 0, 0, 0);
             D_shelter_1f_bulwark_80180ECC_value = 1;
         }
         return 2;
@@ -342,7 +342,7 @@ s32 func_shelter_1f_bulwark_8017D7B4(Task* task, s32 msgId, RoomEventMsg* src, R
             if (src->queryOnly == ROOM_EVENT_EXECUTE) {
                 gameFlagSetNibble(GAME_FLAG_STORY_CHAPTER, 6);
                 Gp_MsgPlayerWeapon(0);
-                Task_SpawnFromTable(&D_shelter_1f_bulwark_80180354, 0, 0, 0);
+                taskSpawnFromTable(&D_shelter_1f_bulwark_80180354, 0, 0, 0);
             }
             return 0;
         }
@@ -403,7 +403,7 @@ void func_shelter_1f_bulwark_8017DA60(Task* arg0)
             goto advance;
         case 5:
             gameFlagSetNibble(GAME_FLAG_STORY_CHAPTER, 6);
-            Task_SpawnFromTable(D_shelter_1f_bulwark_80180360, 0, 0, 0);
+            taskSpawnFromTable(D_shelter_1f_bulwark_80180360, 0, 0, 0);
         case 4:
         case 6:
         advance:

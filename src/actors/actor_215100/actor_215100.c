@@ -345,7 +345,7 @@ void func_actor_215100_80149F2C(Task* task)
             break;
         case 0x34:
             gGameSession->flowFlags &= (0xFF ^ GAME_SESSION_FLOW_REEQUIP_WEAPON);
-            Task_SpawnFromTable(D_mist_shooting_gallery_801856B8, 0, D_actor_215100_8015E670 - 1, 0);
+            taskSpawnFromTable(D_mist_shooting_gallery_801856B8, 0, D_actor_215100_8015E670 - 1, 0);
             D_actor_215100_8014D03C = 1;
             taskKill(task);
             break;

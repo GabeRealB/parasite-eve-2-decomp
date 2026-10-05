@@ -13,7 +13,7 @@ s32 mainStreetTalkMsg(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
                 Gp_SetCurBit2Flag(0x1B, 1);
             }
             Gp_SpawnIfCapIdle(1, 1);
-            Task_SpawnFromTable(&gMainStreetPlayTimeTaskDesc, 0, 0, 0);
+            taskSpawnFromTable(&gMainStreetPlayTimeTaskDesc, 0, 0, 0);
         } else {
             Gp_SpawnIfCapIdle(0x14, 1);
         }

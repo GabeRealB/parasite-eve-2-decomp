@@ -1519,7 +1519,7 @@ void func_actor_136300_801328D4(s8 arg0)
 
 void func_actor_136300_801328E0(s32 arg0)
 {
-    Task_SpawnFromTable(D_dryfield_night_garage_80183380, 0, arg0, 0);
+    taskSpawnFromTable(D_dryfield_night_garage_80183380, 0, arg0, 0);
 }
 
 /// Message handler driving the screen wave. A positive argument is stored in
@@ -1550,7 +1550,7 @@ void func_actor_136300_80132910(s32 arg0)
                 D_actor_136300_8013C99C.span  = 5;
                 D_actor_136300_8013C99C.scale = 0x100;
             }
-            Task_SpawnFromTable(D_actor_136300_80132AC4, 0, 0, &D_actor_136300_8013C99C);
+            taskSpawnFromTable(D_actor_136300_80132AC4, 0, 0, &D_actor_136300_8013C99C);
         }
     } else {
         D_actor_136300_8013C99C.state = arg0;

@@ -1824,7 +1824,7 @@ s32 func_dryfield_junk_yard_8017DB78(Task* task, s32 msgId, const void* firstArg
     if (msg->actionId == 1) {
         if (gameFlagGetNibble(GAME_FLAG_JUNK_YARD_PROGRESS) == 0) {
             gameFlagSetNibble(GAME_FLAG_JUNK_YARD_PROGRESS, 1);
-            Task_SpawnFromTable(D_dryfield_junk_yard_8017DD48, 0, 0, 0);
+            taskSpawnFromTable(D_dryfield_junk_yard_8017DD48, 0, 0, 0);
         }
     }
     if (msg->actionId == 2) {

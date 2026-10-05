@@ -865,7 +865,7 @@ static void func_dryfield_night_motel_lobby_80180E98(Task* task)
         taskKill(task);
         return;
     }
-    task->spawnArg2.pointer                                    = Task_SpawnFromTable(D_dryfield_night_motel_lobby_80182814, 0, 1, 0);
+    task->spawnArg2.pointer                                    = taskSpawnFromTable(D_dryfield_night_motel_lobby_80182814, 0, 1, 0);
     task->work                                                 = work;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 6;
     /* The once-loop folds away, but `flow` counts its references at loop depth

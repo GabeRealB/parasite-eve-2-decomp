@@ -407,13 +407,13 @@ s32 func_dryfield_night_garage_801800C8(Task* task, s32 msgId, const void* first
             if (gameFlagGetNibble(GAME_FLAG_NIGHT_GARAGE_PROGRESS) == 0) {
                 if (Gp_HasCollectedBit(0x113) == 0) {
                     Gp_MsgPlayerWeapon(0);
-                    Task_SpawnFromTable(D_dryfield_night_garage_80182C98, 0, 6, 0);
+                    taskSpawnFromTable(D_dryfield_night_garage_80182C98, 0, 6, 0);
                 } else if (Gp_HasCollectedBit(0x117) == 0 && Gp_HasCollectedBit(0x118) == 0) {
                     Gp_MsgPlayerWeapon(0);
-                    Task_SpawnFromTable(D_dryfield_night_garage_80182C98, 0, 7, 0);
+                    taskSpawnFromTable(D_dryfield_night_garage_80182C98, 0, 7, 0);
                 } else if (Gp_HasCollectedBit(0x118) == 0) {
                     Gp_MsgPlayerWeapon(0);
-                    Task_SpawnFromTable(D_dryfield_night_garage_80182C98, 0, 8, 0);
+                    taskSpawnFromTable(D_dryfield_night_garage_80182C98, 0, 8, 0);
                 } else if (gameFlagGetNibble(GAME_FLAG_NIGHT_GARAGE_PROGRESS) == 0) {
                     base         = (D_dryfield_night_garage_80186D7C + 3);
                     obj          = base + 2;
@@ -429,9 +429,9 @@ s32 func_dryfield_night_garage_801800C8(Task* task, s32 msgId, const void* first
             } else {
                 Gp_MsgPlayerWeapon(0);
                 if (gameFlagGetNibble(GAME_FLAG_NIGHT_GARAGE_PROGRESS) == 1) {
-                    Task_SpawnFromTable(D_dryfield_night_garage_80182C98, 1, 0xA, 0);
+                    taskSpawnFromTable(D_dryfield_night_garage_80182C98, 1, 0xA, 0);
                 } else {
-                    Task_SpawnFromTable(D_dryfield_night_garage_80182C98, 1, 0x15, 0);
+                    taskSpawnFromTable(D_dryfield_night_garage_80182C98, 1, 0x15, 0);
                 }
             }
         }
@@ -444,7 +444,7 @@ s32 func_dryfield_night_garage_801800C8(Task* task, s32 msgId, const void* first
         }
     }
     if (msg->actionId == 2 && gGameSession->location.loc.variant == 3 && gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) {
-        Task_SpawnFromTable(&D_actor_136300_8013B11C, 1, 0, 0);
+        taskSpawnFromTable(&D_actor_136300_8013B11C, 1, 0, 0);
     }
     return 0;
 }

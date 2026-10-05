@@ -4315,28 +4315,28 @@ static void func_actor_403100_80133E88(Task* arg0)
     rootCoord->composeStamp            = GRAPHICS_COORD_DIRTY;
     rootCoord->coord.t[1]             += 0xC;
     if ((D_actor_403100_80155808->stateFrames & 0x7F) == 0x28) {
-        task = Task_SpawnFromTable(D_actor_403100_8015560C, 1, 0, 0);
+        task = taskSpawnFromTable(D_actor_403100_8015560C, 1, 0, 0);
         if (task != NULL) {
             coord = task->extra.tmd->coords;
             _actor403100PlaceSpawned(coord, 0);
         }
     }
     if ((D_actor_403100_80155808->stateFrames & 0x3F) == 0x20) {
-        task = Task_SpawnFromTable(D_actor_403100_8015560C, 1, 0, 0);
+        task = taskSpawnFromTable(D_actor_403100_8015560C, 1, 0, 0);
         if (task != NULL) {
             coord = task->extra.tmd->coords;
             _actor403100PlaceSpawned(coord, 1);
         }
     }
     if ((D_actor_403100_80155808->stateFrames & 0x7F) == 8) {
-        task = Task_SpawnFromTable(D_actor_403100_8015560C, 1, 0, 0);
+        task = taskSpawnFromTable(D_actor_403100_8015560C, 1, 0, 0);
         if (task != NULL) {
             coord = task->extra.tmd->coords;
             _actor403100PlaceSpawned(coord, 2);
         }
     }
     if ((s16)D_actor_403100_80155808->stateFrames == 2) {
-        task = Task_SpawnFromTable(D_actor_403100_8015560C, 1, 0, 0);
+        task = taskSpawnFromTable(D_actor_403100_8015560C, 1, 0, 0);
         if (task != NULL) {
             coord = task->extra.tmd->coords;
             _actor403100PlaceSpawned(coord, 1);
@@ -4349,7 +4349,7 @@ static void func_actor_403100_80133E88(Task* arg0)
         }
     }
     if ((s16)D_actor_403100_80155808->stateFrames == 0x1E) {
-        task = Task_SpawnFromTable(D_actor_403100_8015560C, 1, 0, 0);
+        task = taskSpawnFromTable(D_actor_403100_8015560C, 1, 0, 0);
         if (task != NULL) {
             coord = task->extra.tmd->coords;
             _actor403100PlaceSpawned(coord, 1);
@@ -4362,7 +4362,7 @@ static void func_actor_403100_80133E88(Task* arg0)
         }
     }
     if ((s16)D_actor_403100_80155808->stateFrames == 0x3C) {
-        task = Task_SpawnFromTable(D_actor_403100_8015560C, 1, 0, 0);
+        task = taskSpawnFromTable(D_actor_403100_8015560C, 1, 0, 0);
         if (task != NULL) {
             coord = task->extra.tmd->coords;
             _actor403100PlaceSpawned(coord, 1);
@@ -4375,7 +4375,7 @@ static void func_actor_403100_80133E88(Task* arg0)
         }
     }
     if ((D_actor_403100_80155808->stateFrames & 0x7F) == 0x40) {
-        task = Task_SpawnFromTable(D_actor_403100_8015560C, 1, 0, 0);
+        task = taskSpawnFromTable(D_actor_403100_8015560C, 1, 0, 0);
         if (task != NULL) {
             coord = task->extra.tmd->coords;
             _actor403100PlaceSpawned(coord, 4);
@@ -4442,31 +4442,31 @@ static void func_actor_403100_801345E0(Task* arg0, Task* arg1)
 
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if (!(D_actor_403100_80155808->stateFrames & 0x3F)) {
-        task = Task_SpawnFromTable(D_actor_403100_8015560C, 1, 0, 0);
+        task = taskSpawnFromTable(D_actor_403100_8015560C, 1, 0, 0);
         if (task != NULL) {
             coord = task->extra.tmd->coords;
             _actor403100PlaceSpawned(coord, 0);
         }
         if (!(D_actor_403100_80155808->stateFrames & 0x3F)) {
-            task = Task_SpawnFromTable(D_actor_403100_8015560C, 1, 0, 0);
+            task = taskSpawnFromTable(D_actor_403100_8015560C, 1, 0, 0);
             if (task != NULL) {
                 coord = task->extra.tmd->coords;
                 _actor403100PlaceSpawned(coord, 1);
             }
             if (!(D_actor_403100_80155808->stateFrames & 0x3F)) {
-                task = Task_SpawnFromTable(D_actor_403100_8015560C, 1, 0, 0);
+                task = taskSpawnFromTable(D_actor_403100_8015560C, 1, 0, 0);
                 if (task != NULL) {
                     coord = task->extra.tmd->coords;
                     _actor403100PlaceSpawned(coord, 2);
                 }
                 if (!(D_actor_403100_80155808->stateFrames & 0x3F)) {
-                    task = Task_SpawnFromTable(D_actor_403100_8015560C, 1, 0, 0);
+                    task = taskSpawnFromTable(D_actor_403100_8015560C, 1, 0, 0);
                     if (task != NULL) {
                         coord = task->extra.tmd->coords;
                         _actor403100PlaceSpawned(coord, 3);
                     }
                     if (!(D_actor_403100_80155808->stateFrames & 0x3F)) {
-                        task = Task_SpawnFromTable(D_actor_403100_8015560C, 1, 0, 0);
+                        task = taskSpawnFromTable(D_actor_403100_8015560C, 1, 0, 0);
                         if (task != NULL) {
                             coord = task->extra.tmd->coords;
                             _actor403100PlaceSpawned(coord, 4);

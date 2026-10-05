@@ -13,7 +13,7 @@ Naming: [`NAMING.md`](../NAMING.md) (`Task_` / `TaskDesc`).
 |------|-------------|
 | Types + APIs | `include/main/task.h`, `src/main/task.c` |
 | Extra lists / OT spawn | `src/main/otutil.c` (`Display_SpawnWithOt*`, `Task_SpawnOnDefaultList*`) |
-| Frame tick | `src/main/gamemain.c` (`GameMain_Loop` → `Task_ExecDefaultList`) |
+| Frame tick | `src/main/gamemain.c` (`GameMain_Loop` → `taskExecDefaultList`) |
 | Bank tables | `asm/USA/main/data/task.data.s` (`gTaskDescBanks`), plus `52E8C` / `578D0` / `57EA8` / `57F34` / `58028` / `59184.data.s` |
 | Gameplay banks 6, 10 | `asm/USA/gameplay/data/data.data.s` (`D_8010FC2C`, `0x80114B34`) |
 | Title extras | `src/title/title.c`, `Title_TaskDescs` |
@@ -62,8 +62,8 @@ scripts, title and other tasks supply their own types.
 
 ```c
 Task* Task_Spawn(s32 bank, s32 type, s32 spawnArg1, s32 spawnArg2);
-Task* Task_SpawnFromTable(TaskDesc* table, s32 idx, s32 spawnArg1, s32 spawnArg2);
-Task* Task_SpawnFromDesc(TaskDesc* desc, s32 spawnArg1, s32 spawnArg2, TaskNode* list);
+Task* taskSpawnFromTable(TaskDesc* table, s32 index, TaskSpawnArg spawnArg1, TaskSpawnArg spawnArg2);
+static Task* _taskSpawnFromDesc(TaskDesc* desc, TaskSpawnArg spawnArg1, TaskSpawnArg spawnArg2, TaskNode* listHead);
 ```
 
 `Task_Spawn` indexes `gTaskDescBanks[bank][type]`. **Negative `bank`** means
@@ -86,6 +86,12 @@ Its walk ends when the complete flags halfword is `TASK_DESC_END`.
 
 The descriptor is read synchronously; no descriptor pointer is retained in the
 new task. Its data word is separate from the two call-supplied spawn payloads.
+`taskSpawnFromTable` takes a signed, unchecked element index into a live table.
+`TaskSpawnArg` transports one word unchanged; callbacks determine its units,
+pointer lifetime and ownership. The private factory does not invoke the task's
+callback. It inserts by ascending byte priority, preserving spawn order among
+equals, and initializes the exit callback to `taskKill`. Unrecognized nonzero
+body kinds fail to spawn; a missing model primitive buffer alone does not.
 
 `TASK_DESC_SKIP_AUTO_MODEL_BUFFER` occupies descriptor bit 8 (`0x100`). For a
 TMD body, spawning translates it to creation-buffer bit 0 (`1`), which leaves
@@ -121,7 +127,7 @@ defaults to `taskKill`.
 `GameMain_Loop` rebuilds the OT, then:
 
 ```c
-Task_ExecDefaultList(...);   // walks gTaskDefaultList
+taskExecDefaultList();   // walks and selects gTaskDefaultList
 ```
 
 Each node’s `callback` runs, then the walk checks:
@@ -132,11 +138,28 @@ Each node’s `callback` runs, then the walk checks:
   continue. The callback can set this marker during the same walk. A stop
   request takes precedence and leaves the marked node for a later walk.
 
-`Task_ExecList` is the same walk on an arbitrary list.
-`Task_ExecListFiltered(list, pri)` only runs callbacks on nodes whose `priority`
+`taskExecList` is the same walk on an arbitrary list.
+`taskExecListForPriority(list, pri)` only runs callbacks on nodes whose `priority`
 equals `pri & 0xFF` (stage load uses `0x62`), but checks every node for release.
-`Task_CallExitFiltered` does the same collection after dispatching selected
+`taskCallExitForPriority` does the same collection after dispatching selected
 exit callbacks.
+
+Unfiltered walkers leave their head selected. Filtered walkers save and restore
+the previous selection, including after a stop. Callbacks must restore temporary
+list switches so tail unlinking uses the owning head. Walks read the forward
+link after dispatch, so tasks inserted after the cursor can run in the same walk;
+tasks inserted before it wait until a later walk. The default walker ignores its
+definition's `unusedListHead` parameter. Its private declaration stays
+unprototyped because the main loop supplies no argument while the display path
+supplies the default head, and both call sequences must match.
+
+`taskCallExit` dispatches the installed exit handler; it does not itself mark or
+free the task. That handler may release it immediately. The filtered exit walk
+still reads the cursor's body kind and forward link afterward unless stopped.
+Immediate grenade exits therefore require those released bytes to remain intact
+until advancement; primary-heap free preserves the payload, but a callback must
+not reuse it before the read. Collection of a marked task saves its successor
+before unlinking and freeing the allocation.
 
 ### 1.4 Kill
 
@@ -201,7 +224,7 @@ List initialization selects its head. Unfiltered walks select their head on
 entry without restoring the previous selection. The default frame walk selects
 `gTaskDefaultList`; filtered update and exit walks save and restore the previous
 selection, including when a stop request ends the walk.
-Other temporary switches use `Task_GetActiveList` / `Task_SetActiveList` to save
+Other temporary switches use `taskGetActiveList` / `taskSetActiveList` to save
 and restore it. Selecting a head changes the spawn and unlink context without
 moving any tasks between lists.
 
@@ -421,6 +444,8 @@ are elements in 0..15 and are unchecked. Empty registrations return `NULL`;
 registration does not keep a task alive or clear itself on task exit. Player
 and companion spawns register immediately, before their first tick publishes
 them in `gPlayerActorTasks`.
+`gameClearTaskSlots` clears all 16 registrations without dispatching handlers or
+releasing tasks; session reset does this before discarding the list and heap.
 
 ---
 

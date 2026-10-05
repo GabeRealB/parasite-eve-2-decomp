@@ -1837,7 +1837,7 @@ void func_actor_215100_8014A398(void)
                                 gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
                                 Gp_RunCapCmd(0x14, 0);
                                 D_80115690 = 1;
-                                Task_SpawnFromTable(D_actor_215100_8014CF6C, 0, 0, 0);
+                                taskSpawnFromTable(D_actor_215100_8014CF6C, 0, 0, 0);
                             }
                         }
                         if ((padCheckButtons(0, PAD_BUTTON_QUERY_HELD_ANY, PAD_BUTTON_DOWN) != 0) && ((u32)(facing - 0x201) < 0x3FFU)) {
@@ -1845,7 +1845,7 @@ void func_actor_215100_8014A398(void)
                             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
                             Gp_RunCapCmd(0x14, 0);
                             D_80115690 = 1;
-                            Task_SpawnFromTable(D_actor_215100_8014CF6C, 0, 0, 0);
+                            taskSpawnFromTable(D_actor_215100_8014CF6C, 0, 0, 0);
                         }
                     }
                 }
@@ -1903,7 +1903,7 @@ void func_actor_215100_8014A5C0(Task* arg0)
             D_actor_215100_8014D038 = 0;
             func_mist_shooting_gallery_80180390(1);
             D_actor_215100_8014D03C = 1;
-            Task_CallExit(D_mist_shooting_gallery_8018E0C4);
+            taskCallExit(D_mist_shooting_gallery_8018E0C4);
             gGameSession->battleResetPending = 1;
             gGameSession->flowFlags         |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
             SndEvt_EnqueueType2(0, 0x1E);
@@ -1947,7 +1947,7 @@ void func_actor_215100_8014A7C4(Task* arg0)
                 break;
             }
             if (Gp_GetCapEventKey() == 2) {
-                Task_CallExit(D_mist_shooting_gallery_8018E0C4);
+                taskCallExit(D_mist_shooting_gallery_8018E0C4);
                 arg0->state++;
             } else {
                 taskKill(arg0);
@@ -2003,7 +2003,7 @@ void func_actor_215100_8014A9A0(void)
     }
     if (D_actor_215100_8015E670 < 3) {
         Gp_RunCapCmd(0x1D, 3);
-        Task_SpawnFromTable(D_actor_215100_8014CF6C, 1, 0, 0);
+        taskSpawnFromTable(D_actor_215100_8014CF6C, 1, 0, 0);
     }
 }
 
@@ -2027,7 +2027,7 @@ s32 func_actor_215100_8014AA54(RoomEventMsg* arg0)
         gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
         Gp_RunCapCmd(0x14, 0);
         D_80115690 = 1;
-        Task_SpawnFromTable(D_actor_215100_8014CF6C, 0, 1, 0);
+        taskSpawnFromTable(D_actor_215100_8014CF6C, 0, 1, 0);
     } else {
         do {
             if (gameFlagGetNibble(GAME_FLAG_0ED) == 0) {
@@ -2039,7 +2039,7 @@ s32 func_actor_215100_8014AA54(RoomEventMsg* arg0)
             D_actor_215100_8015E678 = *arg0;
             Gp_MsgPlayerWeapon(0);
             Gp_RunCapCmd1(0x17);
-            Task_SpawnFromTable(D_actor_215100_8014CF6C, 0, 2, 0);
+            taskSpawnFromTable(D_actor_215100_8014CF6C, 0, 2, 0);
         } while (0);
     }
     return 2;
@@ -2065,7 +2065,7 @@ void func_actor_215100_8014ABAC(Task* arg0)
                 func_800E8634(D_actor_215100_8014E370, 1, D_actor_215100_8014E8F8);
                 arg0->state++;
             } else {
-                Task_SpawnFromTable(D_actor_215100_8014E13C, 1, 0, 0);
+                taskSpawnFromTable(D_actor_215100_8014E13C, 1, 0, 0);
                 taskKill(arg0);
             }
             break;
@@ -2099,7 +2099,7 @@ void func_actor_215100_8014ABAC(Task* arg0)
             break;
         case 11:
             if (gGameSession->eventState == 0) {
-                Task_SpawnFromTable(D_actor_215100_8014E13C, 1, 0, 0);
+                taskSpawnFromTable(D_actor_215100_8014E13C, 1, 0, 0);
                 taskKill(arg0);
             }
             break;
@@ -2109,14 +2109,14 @@ void func_actor_215100_8014ABAC(Task* arg0)
 void func_actor_215100_8014AD50(Task* arg0)
 {
     if (arg0->killCountdown % 48 == 0) {
-        Task_SpawnFromTable(D_mist_shooting_gallery_801856B8, 1, 0, 0);
+        taskSpawnFromTable(D_mist_shooting_gallery_801856B8, 1, 0, 0);
     }
     arg0->killCountdown = arg0->killCountdown + 1;
 }
 
 void func_actor_215100_8014ADD8(void)
 {
-    Task_SpawnFromTable(D_mist_shooting_gallery_80185384, 0, 0, 0);
+    taskSpawnFromTable(D_mist_shooting_gallery_80185384, 0, 0, 0);
 }
 
 void func_actor_215100_8014AE08(s32 arg0)
@@ -2129,7 +2129,7 @@ void func_actor_215100_8014AE08(s32 arg0)
 void func_actor_215100_8014AE2C(s32 arg0)
 {
     if (arg0 != 0) {
-        D_actor_215100_8015E64C = Task_SpawnFromTable(D_actor_215100_8014E13C, 2, 0, 0);
+        D_actor_215100_8015E64C = taskSpawnFromTable(D_actor_215100_8014E13C, 2, 0, 0);
         return;
     }
     if (D_actor_215100_8015E64C != NULL) {

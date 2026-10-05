@@ -1188,7 +1188,7 @@ static __inline__ s32 _shelterB2SepticTankStartEvent(RoomEventMsg* dst, RoomLatc
             if (event->flagId != 0) {
                 gameFlagSetNibble(event->flagId, 1);
             }
-            Task_SpawnFromTable(&D_shelter_b2_septic_tank_80182F40, 0, 0, 0);
+            taskSpawnFromTable(&D_shelter_b2_septic_tank_80182F40, 0, 0, 0);
             D_shelter_b2_septic_tank_80187044 = 1;
         }
         return 2;
@@ -1267,7 +1267,7 @@ static void func_shelter_b2_septic_tank_8017DA18(Task* arg0)
 {
     arg0->msgTable = D_shelter_b2_septic_tank_80182F4C;
     gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
-    Task_SpawnFromTable(D_shelter_b2_septic_tank_801832C0, 0, 0, 0);
+    taskSpawnFromTable(D_shelter_b2_septic_tank_801832C0, 0, 0, 0);
     arg0->state = (s32)(arg0->state + 1);
 }
 

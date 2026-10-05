@@ -281,7 +281,7 @@ static void func_actor_202900_80149E24(Enemy* enemy, Task* task)
     obj->otOffset                    = 1;
     obj->flags                       = 0;
     gActorSelfTask                   = task;
-    gActorHelperTask                 = Task_SpawnFromTable(D_actor_202900_80156E24, 1, 0, 0);
+    gActorHelperTask                 = taskSpawnFromTable(D_actor_202900_80156E24, 1, 0, 0);
     actorTintTask(gActorHelperTask, enemy);
     obj->lightMtx = &D_actor_202900_80156E54->light;
     obj->colorMtx = &D_actor_202900_80156E54->color;

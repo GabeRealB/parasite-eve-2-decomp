@@ -1100,7 +1100,7 @@ static void func_actor_503500_801345F4(Task* arg0)
                 sndEvtRequestScriptStart(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, 0x12), pan, (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
             }
             if (++work->stateFrames >= 0x97) {
-                task = Task_SpawnFromTable(D_actor_503500_8016E9F0, 4, 0x64, arg0);
+                task = taskSpawnFromTable(D_actor_503500_8016E9F0, 4, 0x64, arg0);
                 if (task != NULL) {
                     coord             = task->extra.tmd->coords;
                     coord->parent     = &arg0->extra.tmd->coords[3];
@@ -1120,7 +1120,7 @@ static void func_actor_503500_801345F4(Task* arg0)
                     task->exitCallback(task);
                 }
                 func_actor_503500_80135FB4(arg0, 5, 0x10);
-                task = Task_SpawnFromTable(D_actor_503500_8016E9F0, 4, 0x5A, arg0);
+                task = taskSpawnFromTable(D_actor_503500_8016E9F0, 4, 0x5A, arg0);
                 if (task != NULL) {
                     coord             = task->extra.tmd->coords;
                     coord->parent     = &arg0->extra.tmd->coords[3];
@@ -1257,7 +1257,7 @@ static void func_actor_503500_80134C68(Task* arg0)
         case 1:
             if (func_actor_503500_80136014(arg0, 4) != 0) {
                 func_actor_503500_80135FB4(arg0, 5, 0x10);
-                task = Task_SpawnFromTable(D_actor_503500_8016E9F0, 4, 0x5A, arg0);
+                task = taskSpawnFromTable(D_actor_503500_8016E9F0, 4, 0x5A, arg0);
                 if (task != NULL) {
                     coord             = task->extra.tmd->coords;
                     coord->parent     = &arg0->extra.tmd->coords[3];
@@ -2739,7 +2739,7 @@ static void func_actor_503500_801374BC(Task* arg0)
         case 1:
             if (++work->stateFrames > 0) {
                 for (i = 0; i < 2; i++) {
-                    task = Task_SpawnFromTable(D_actor_503500_8016E9F0, 2, i, 0);
+                    task = taskSpawnFromTable(D_actor_503500_8016E9F0, 2, i, 0);
                     if (task != NULL) {
                         coord             = task->extra.tmd->coords;
                         coord->parent     = arg0->extra.tmd->coords;
@@ -3456,7 +3456,7 @@ static void func_actor_503500_80138C08(Task* arg0)
                 pos.vz = gPlayerStatus.coordMtx->t[2] - work->linkPoints[ACTOR_503500_LARGE_CHAIN_TIP_PART].vz;
                 dist   = SquareRoot0(pos.vx * pos.vx + pos.vz * pos.vz);
                 if (dist < 3000) {
-                    task = Task_SpawnFromTable(D_actor_503500_8016E9F0, 0, 0, dist * 3000);
+                    task = taskSpawnFromTable(D_actor_503500_8016E9F0, 0, 0, dist * 3000);
                     if (task != NULL) {
                         Gp_ComposeParentWorld(&coord[ACTOR_503500_LARGE_CHAIN_TIP_PART], &m, &pos);
                         src    = (s32*)&m;

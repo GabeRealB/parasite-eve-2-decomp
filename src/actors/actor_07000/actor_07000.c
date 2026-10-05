@@ -1873,7 +1873,7 @@ static void Actor07000_Fn04B18(Task* arg0)
     coord = arg0->extra.tmd->coords;
     work  = memCalloc(sizeof(_Actor07000SlouchProjectileWork), false);
     if (work == NULL) {
-        Task_CallExit(arg0);
+        taskCallExit(arg0);
         return;
     }
     body                    = &work->body;
@@ -2580,7 +2580,7 @@ static void Actor07000_Fn062A8(Task* arg0)
     offset.vz = 0;
     offset.vy = 0;
     offset.vx = 0;
-    task      = Task_SpawnFromTable(Actor07000_D0D7D0, 1, angle, 0);
+    task      = taskSpawnFromTable(Actor07000_D0D7D0, 1, angle, 0);
     if (task != NULL) {
         Gp_CopyCoordOffset(task, child, &offset);
         taskReparent(arg0, task);
@@ -2763,7 +2763,7 @@ static void Actor07000_Fn068B4(Task* arg0)
     temp_v0             = arg0->killCountdown - 1;
     arg0->killCountdown = temp_v0;
     if ((temp_v0 << 0x10) <= 0) {
-        Task_CallExit(arg0);
+        taskCallExit(arg0);
     }
 }
 

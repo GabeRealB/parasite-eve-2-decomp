@@ -2011,7 +2011,7 @@ s32 func_acropolis_security_room_8017D6D4(Task* task, s32 msgId, s32 arg2, s32 a
 s32 func_acropolis_security_room_8017D708(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 2) {
-        Task_SpawnFromTable(D_acropolis_security_room_80182618, 1, 0, 0);
+        taskSpawnFromTable(D_acropolis_security_room_80182618, 1, 0, 0);
     }
     return 0;
 }
@@ -2019,7 +2019,7 @@ s32 func_acropolis_security_room_8017D708(Task* arg0, s32 arg1, s32 arg2, s32 ar
 s32 func_acropolis_security_room_8017D740(Task* arg0, s32 arg1, DirectionActionRequest* request, s32 arg3)
 {
     if (request->actionId == 0) {
-        Task_SpawnFromTable(D_acropolis_security_room_80182618, 0, 0, 0);
+        taskSpawnFromTable(D_acropolis_security_room_80182618, 0, 0, 0);
     }
 }
 /// State table of the room's message task: register the room's message table,
@@ -2142,7 +2142,7 @@ static void func_acropolis_security_room_8017D9DC(Task* task)
         taskKill(task);
         return;
     }
-    task->spawnArg2.pointer = Task_SpawnFromTable(&D_acropolis_security_room_8018263C, 0, 1, 0);
+    task->spawnArg2.pointer = taskSpawnFromTable(&D_acropolis_security_room_8018263C, 0, 1, 0);
     task->work              = work;
     work->sweepTimer        = 0;
     stateElse               = 6;
@@ -2802,7 +2802,7 @@ static void func_acropolis_security_room_8017FA18(Task* task)
         taskKill(task);
         return;
     }
-    task->spawnArg2.pointer                                    = Task_SpawnFromTable(D_acropolis_security_room_801826C0, 0, 1, 0);
+    task->spawnArg2.pointer                                    = taskSpawnFromTable(D_acropolis_security_room_801826C0, 0, 1, 0);
     task->msgTable                                             = D_acropolis_security_room_801826CC;
     task->work                                                 = work;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 6;
@@ -2981,7 +2981,7 @@ static void func_acropolis_security_room_8017FF0C(Task* task)
     _AcropolisSecurityRoomPowerSupplyWork* work = task->work;
 
     if (work->timer == 1) {
-        work->sceneTask = Task_SpawnFromTable(D_acropolis_security_room_80182700, 0, 0, 0);
+        work->sceneTask = taskSpawnFromTable(D_acropolis_security_room_80182700, 0, 0, 0);
         task->state     = task->state + 1;
     }
     work->timer = work->timer + 1;
@@ -3052,7 +3052,7 @@ static void func_acropolis_security_room_8018014C(Task* task)
     _AcropolisSecurityRoomPowerSupplyWork* work = task->work;
 
     if (work->timer == 1) {
-        work->sceneTask = Task_SpawnFromTable(D_acropolis_security_room_80182700, 1, 0, 0);
+        work->sceneTask = taskSpawnFromTable(D_acropolis_security_room_80182700, 1, 0, 0);
         task->state     = task->state + 1;
     }
     work->timer = work->timer + 1;

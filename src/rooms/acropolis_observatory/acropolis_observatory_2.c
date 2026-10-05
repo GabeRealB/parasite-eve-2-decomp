@@ -746,12 +746,12 @@ void func_acropolis_observatory_8017D9A8(Task* task)
                     place.rot.vx = 0;
                     place.rot.vy = 0x400;
                     TASK_MESSAGE_DISPATCH_POINTER(((RoomMoviePathWork*)task->work)->playerTask, 0x3E9, &place, 0);
-                    Task_SpawnFromTable(D_acropolis_observatory_8017E7DC, 3, 0, 0);
+                    taskSpawnFromTable(D_acropolis_observatory_8017E7DC, 3, 0, 0);
                     task->state = task->state + 1;
                     break;
                 }
             } else if (Pad_CheckFlag800() != 0) {
-                work->skipFadeTask    = Task_SpawnFromTable(D_acropolis_observatory_8017E7DC, 2, 0, 0);
+                work->skipFadeTask    = taskSpawnFromTable(D_acropolis_observatory_8017E7DC, 2, 0, 0);
                 work->skipFadeStarted = 1;
             }
             if ((queue->movieFrame + 0xA8) >= 0xE6) {
@@ -851,12 +851,12 @@ void func_acropolis_observatory_8017DD3C(Task* task)
                     place.rot.vx = 0;
                     place.rot.vy = 0x400;
                     TASK_MESSAGE_DISPATCH_POINTER(((RoomMoviePathWork*)task->work)->playerTask, 0x3E9, &place, 0);
-                    Task_SpawnFromTable(D_acropolis_observatory_8017E7DC, 3, 0, 0);
+                    taskSpawnFromTable(D_acropolis_observatory_8017E7DC, 3, 0, 0);
                     task->state = task->state + 1;
                     break;
                 }
             } else if (Pad_CheckFlag800() != 0) {
-                work->skipFadeTask    = Task_SpawnFromTable(D_acropolis_observatory_8017E7DC, 2, 0, 0);
+                work->skipFadeTask    = taskSpawnFromTable(D_acropolis_observatory_8017E7DC, 2, 0, 0);
                 work->skipFadeStarted = 1;
             }
             if ((queue->movieFrame + 0xA8) >= 0xE6) {

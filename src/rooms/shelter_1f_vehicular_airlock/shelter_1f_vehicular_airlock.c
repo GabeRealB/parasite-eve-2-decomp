@@ -362,7 +362,7 @@ static __inline__ s32 _shelter1fVehicularAirlockStartEvent(RoomEventMsg* dst, Ro
             if (event->flagId != 0) {
                 gameFlagSetNibble(event->flagId, 1);
             }
-            Task_SpawnFromTable(&D_shelter_1f_vehicular_airlock_80182028, 0, 0, 0);
+            taskSpawnFromTable(&D_shelter_1f_vehicular_airlock_80182028, 0, 0, 0);
             D_shelter_1f_vehicular_airlock_80182AB0_value = 1;
         }
         return 2;

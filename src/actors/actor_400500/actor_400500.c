@@ -1668,7 +1668,7 @@ static void func_actor_400500_8013226C(Task* arg0)
     work                      = (_Actor400500GrayStalkerWork*)arg0->work;
     part7                     = &parts[7];
     part10                    = &parts[10];
-    child                     = Task_SpawnFromTable(D_actor_400500_80153D48, 0, 0, 0);
+    child                     = taskSpawnFromTable(D_actor_400500_80153D48, 0, 0, 0);
     work->armTasks[0]         = child;
     extra                     = child->extra.tmd;
     coord                     = extra->coords;
@@ -1693,7 +1693,7 @@ static void func_actor_400500_8013226C(Task* arg0)
         tmdBuildBufferHalf(tmd);
         tmdBuildBufferHalf(tmd);
     }
-    child                  = Task_SpawnFromTable(D_actor_400500_80153D48, 1, 0, 0);
+    child                  = taskSpawnFromTable(D_actor_400500_80153D48, 1, 0, 0);
     work->armTasks[1]      = child;
     extra                  = child->extra.tmd;
     coord                  = extra->coords;

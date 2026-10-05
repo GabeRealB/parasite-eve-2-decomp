@@ -207,9 +207,9 @@ void Gp_EndingTask(Task* arg0)
             gStageMusicParams.fadeOutTicks = 0;
             gStageMusicParams.field_2      = 0;
             if ((session->flowFlags & GAME_SESSION_FLOW_LOAD_ENDING_MUSIC_ONLY) == 0) {
-                Task_SpawnFromTable(&Stage_MusicTaskDesc, 0, 2, 0);
+                taskSpawnFromTable(&Stage_MusicTaskDesc, 0, 2, 0);
             } else {
-                Task_SpawnFromTable(&Stage_MusicTaskDesc, 0, 3, 0);
+                taskSpawnFromTable(&Stage_MusicTaskDesc, 0, 3, 0);
             }
         } else {
             gStageMusicLoadState = 0xFF;

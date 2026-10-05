@@ -1139,7 +1139,7 @@ void func_actor_535700_80131EF0(s32 frames)
 {
     D_actor_535700_80146840 = frames;
     if (frames != 0) {
-        Task_SpawnFromTable(&D_actor_535700_8013346C, 0, 0, 0);
+        taskSpawnFromTable(&D_actor_535700_8013346C, 0, 0, 0);
     }
 }
 

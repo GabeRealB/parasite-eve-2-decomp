@@ -36,7 +36,7 @@ s32 motelRoom6CutsceneMsg(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
         gMotelRoom6CutsceneRec.endSound        = Gp_PackStageSndId(SOUND_MOTEL_ROOM_6_SCENE_END);
         gMotelRoom6CutsceneRec.sceneSound      = Gp_PackStageSndId(SOUND_MOTEL_ROOM_6_SCENE_TRACK);
         gMotelRoom6CutsceneRec.afterSceneSound = Gp_PackStageSndId(SOUND_MOTEL_ROOM_6_SCENE_COMPLETE);
-        Task_SpawnFromTable(gRoomCutsceneTaskDescs, 0, count, &gMotelRoom6CutsceneRec);
+        taskSpawnFromTable(gRoomCutsceneTaskDescs, 0, count, &gMotelRoom6CutsceneRec);
     } else {
         motelRoom6ActionMsg(arg0, arg1, arg2, arg3);
     }

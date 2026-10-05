@@ -343,7 +343,7 @@ s32 func_dryfield_night_motel_loft_8017D67C(Task* arg0, s32 arg1, s32 arg2, s32 
 {
     if (arg2 == 3) {
         Gp_MsgPlayerWeapon(0);
-        Task_SpawnFromTable(D_dryfield_night_motel_loft_8017EB4C, 0, 0, 0);
+        taskSpawnFromTable(D_dryfield_night_motel_loft_8017EB4C, 0, 0, 0);
     }
     return 0;
 }

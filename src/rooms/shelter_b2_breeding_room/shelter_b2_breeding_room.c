@@ -120,7 +120,7 @@ s32 func_shelter_b2_breeding_room_8017D6A4(Task* task, s32 msgId, s32 arg2, s32 
             func_800E6D4C(0x140, 0x100);
             Gp_MsgPlayerWeapon(0);
             Gp_RunCapCmd1(1);
-            Task_SpawnFromTable(D_shelter_b2_breeding_room_80180444, 0, 0, 0);
+            taskSpawnFromTable(D_shelter_b2_breeding_room_80180444, 0, 0, 0);
         }
     }
     return 0;

@@ -205,10 +205,10 @@ void Gp_BeginSessionTask(Task* arg0)
     u16           one;
 
     queue = &gCdCmdQueue;
-    Game_ClearPtrSlots();
+    gameClearTaskSlots();
     ds               = &gDisplayState;
     ds->stopTaskWalk = 1;
-    Task_ResetDefaultList();
+    taskResetDefaultList();
     Gpu_ClearOTag(0);
     Gpu_ClearOTag(1);
     one = 1;
@@ -390,7 +390,7 @@ void Gp_LoadState2(Task* task)
         gGameSession->deathRestartDelay   = 0x1E;
         gStageMusicParams.fadeOutTicks    = 0x3C;
         gStageMusicParams.field_2         = 0;
-        Task_SpawnFromTable(&Stage_MusicTaskDesc, 0, 0, 0);
+        taskSpawnFromTable(&Stage_MusicTaskDesc, 0, 0, 0);
         task->state++;
     }
 }

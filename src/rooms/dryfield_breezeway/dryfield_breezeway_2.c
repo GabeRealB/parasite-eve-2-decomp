@@ -673,7 +673,7 @@ static void func_dryfield_breezeway_8017E464(Task* arg0)
         return;
     }
 
-    arg0->spawnArg2.pointer = Task_SpawnFromTable(&D_dryfield_breezeway_80182DC0, 0, 1, 0);
+    arg0->spawnArg2.pointer = taskSpawnFromTable(&D_dryfield_breezeway_80182DC0, 0, 1, 0);
     do {
         arg0->msgTable                                             = D_dryfield_breezeway_80182DCC;
         arg0->work                                                 = work;

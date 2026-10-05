@@ -1475,7 +1475,7 @@ s32 func_acropolis_square_801819BC(Task* task, s32 msgId, s32 arg2, s32 arg3)
         D_acropolis_square_801888AC.rec.afterSceneSound = 0x5101000B;
         D_acropolis_square_801888AC.rec.skipScene       = D_acropolis_square_8018382C;
         D_acropolis_square_8018382C                     = 0;
-        Task_SpawnFromTable(gRoomCutsceneTaskDescs, 0, 2, &D_acropolis_square_801888AC.rec);
+        taskSpawnFromTable(gRoomCutsceneTaskDescs, 0, 2, &D_acropolis_square_801888AC.rec);
     }
     if ((arg2 == 0xE) && (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_SQUARE_TRIGGER_E_SEEN) == 0)) {
         gameFlagSetNibble(GAME_FLAG_ACROPOLIS_SQUARE_TRIGGER_E_SEEN, 1);
@@ -1729,7 +1729,7 @@ void func_acropolis_square_80182200(s32 arg0)
 {
     switch (arg0) { /* irregular */
         case 0:
-            D_acropolis_square_8018889C = Task_SpawnFromTable(D_acropolis_square_80183808, 2, 0, 0);
+            D_acropolis_square_8018889C = taskSpawnFromTable(D_acropolis_square_80183808, 2, 0, 0);
             return;
         case 1:
             taskKill(D_acropolis_square_8018889C);
@@ -1777,7 +1777,7 @@ s32 func_acropolis_square_80182360(s32 unused)
         key.area  = GAME_AREA_ACROPOLIS_SQUARE;
         areaSetPlacementVariant(&key, 2, AREA_VARIANT_RESET_ALWAYS);
         gGameSession->eventState = 1;
-        Task_SpawnFromTable(D_acropolis_square_80183808, 0, 0, 0);
+        taskSpawnFromTable(D_acropolis_square_80183808, 0, 0, 0);
         return 0;
     }
     return 1;

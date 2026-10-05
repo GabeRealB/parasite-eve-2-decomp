@@ -286,5 +286,5 @@ void func_dryfield_night_dilapidated_house_8017DAD0(void)
 /// descriptor table, the one that starts the streamed sequence.
 void func_dryfield_night_dilapidated_house_8017DAF0(void)
 {
-    Task_SpawnFromTable(D_dryfield_night_dilapidated_house_801872B4, 0, 0, 0);
+    taskSpawnFromTable(D_dryfield_night_dilapidated_house_801872B4, 0, 0, 0);
 }

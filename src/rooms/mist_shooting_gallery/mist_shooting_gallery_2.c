@@ -2419,7 +2419,7 @@ static void func_mist_shooting_gallery_80182C58(Task* arg0)
             if ((s32)(t5 << 16) <= 0) {
                 work->timer = 0xF;
                 work->phase++;
-                Task_SpawnFromTable(D_mist_shooting_gallery_801856B8, 1, 0, 0);
+                taskSpawnFromTable(D_mist_shooting_gallery_801856B8, 1, 0, 0);
                 sndEvtRequestScriptStart(SOUND_MIST_SHOOTING_GALLERY_ROUND_START, 0, 0);
             }
             break;
@@ -2613,7 +2613,7 @@ static void func_mist_shooting_gallery_801831B0(Task* arg0)
             if ((s32)(ready << 16) <= 0) {
                 work->timer = 0xA;
                 work->phase++;
-                Task_SpawnFromTable(D_mist_shooting_gallery_801856B8, 1, 0, 0);
+                taskSpawnFromTable(D_mist_shooting_gallery_801856B8, 1, 0, 0);
                 sndEvtRequestScriptStart(SOUND_MIST_SHOOTING_GALLERY_ROUND_START, 0, 0);
                 Gp_ArmStateF0(1);
                 return;
@@ -2794,7 +2794,7 @@ static void func_mist_shooting_gallery_8018341C(Task* arg0)
             if ((s32)(ready << 16) <= 0) {
                 work->timer = 0xA;
                 work->phase++;
-                Task_SpawnFromTable(D_mist_shooting_gallery_801856B8, 1, 0, 0);
+                taskSpawnFromTable(D_mist_shooting_gallery_801856B8, 1, 0, 0);
                 sndEvtRequestScriptStart(SOUND_MIST_SHOOTING_GALLERY_ROUND_START, 0, 0);
             }
             break;
@@ -2891,7 +2891,7 @@ static void func_mist_shooting_gallery_801838FC(Task* arg0)
             if (work->actionTriggered != 0) {
                 work->timer = 0x1E;
                 work->phase++;
-                Task_SpawnFromTable(D_mist_shooting_gallery_801856B8, 1, 0, 0);
+                taskSpawnFromTable(D_mist_shooting_gallery_801856B8, 1, 0, 0);
                 sndEvtRequestScriptStart(SOUND_MIST_SHOOTING_GALLERY_ROUND_START, 0, 0);
                 Gp_ArmStateF0(1);
             }
@@ -3100,7 +3100,7 @@ static void func_mist_shooting_gallery_80183E78(Task* arg0)
             if ((s32)(timer << 16) <= 0) {
                 work->timer = 0xF;
                 work->phase++;
-                Task_SpawnFromTable(D_mist_shooting_gallery_801856B8, 1, 0, 0);
+                taskSpawnFromTable(D_mist_shooting_gallery_801856B8, 1, 0, 0);
                 sndEvtRequestScriptStart(SOUND_MIST_SHOOTING_GALLERY_ROUND_START, 0, 0);
                 Gp_StateC08.flags &= ATTACHMENT_FLAG_CLEAR_SWAP_LOCK;
                 Gp_ArmStateF0(1);
@@ -3201,7 +3201,7 @@ static void func_mist_shooting_gallery_801842D0(Task* arg0)
             }
             work->timer = 0x5A;
             work->phase++;
-            Task_SpawnFromTable(D_mist_shooting_gallery_801856B8, 1, 0, 0);
+            taskSpawnFromTable(D_mist_shooting_gallery_801856B8, 1, 0, 0);
             sndEvtRequestScriptStart(SOUND_MIST_SHOOTING_GALLERY_ROUND_START, 0, 0);
             return;
         case 2:

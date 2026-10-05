@@ -687,7 +687,7 @@ s32 func_dryfield_night_water_tank_8017D76C(Task* arg0, s32 arg1, RoomEventMsg* 
         if ((u32)(temp_v1 - 0xA) < 2U) {
             if ((temp_v1 != 0xA) || (gameFlagGetNibble(GAME_FLAG_ITEM_119_HANDOVER_PROGRESS) >= 2)) {
                 Gp_MsgPlayerWeapon(0);
-                Task_SpawnFromTable(&D_actor_146300_8013788C, 0, 0, 0);
+                taskSpawnFromTable(&D_actor_146300_8013788C, 0, 0, 0);
             } else {
                 Gp_RunCapCmd1(0x17);
             }
@@ -711,12 +711,12 @@ static void func_dryfield_night_water_tank_8017D870(Task* task)
 {
     task->msgTable = D_dryfield_night_water_tank_8017DFE8;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    Task_SpawnFromTable(D_dryfield_night_water_tank_8017EE28, 0, 0, 0);
+    taskSpawnFromTable(D_dryfield_night_water_tank_8017EE28, 0, 0, 0);
     if ((u32)(gGameSession->location.loc.variant - 0xA) < 2U) {
         func_dryfield_night_water_tank_8017D9DC(0);
     }
     if (gGameSession->location.loc.variant == 0xA) {
-        Task_SpawnFromTable(D_dryfield_night_water_tank_8017E010, 0, 0, 0);
+        taskSpawnFromTable(D_dryfield_night_water_tank_8017E010, 0, 0, 0);
     }
     if (gGameSession->location.loc.variant == 0xB) {
         func_actor_146300_8013224C();

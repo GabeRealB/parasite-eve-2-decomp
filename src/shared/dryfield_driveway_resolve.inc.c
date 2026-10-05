@@ -37,7 +37,7 @@ s32 drivewayResolveEvent(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* o
                 if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
                     if (gGameSession->location.loc.variant == 1) {
                         if (gameFlagGetNibble(GAME_FLAG_050) == 0) {
-                            Task_SpawnFromTable(gDrivewayCutsceneTasks, 1, 0, 0);
+                            taskSpawnFromTable(gDrivewayCutsceneTasks, 1, 0, 0);
                             return 0;
                         }
                     }
@@ -76,7 +76,7 @@ s32 drivewayResolveEvent(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* o
                 if (p->flagId != 0) {
                     gameFlagSetNibble(p->flagId, 1);
                 }
-                Task_SpawnFromTable(&gRoomEventStagedTaskDesc, 0, 0, 0);
+                taskSpawnFromTable(&gRoomEventStagedTaskDesc, 0, 0, 0);
                 gDrivewayEventSpawned = 1;
                 return 2;
             }

@@ -55,7 +55,7 @@ s32 func_shelter_b1_elevator_hall_8017D810(Task* task, s32 msgId, RoomEventMsg* 
         } else {
             if (src->queryOnly == ROOM_EVENT_EXECUTE) {
                 Gp_RunCapCmd(4, 0);
-                Task_SpawnFromTable(&D_shelter_b1_elevator_hall_80182CAC, 0, 0x54090008, 0);
+                taskSpawnFromTable(&D_shelter_b1_elevator_hall_80182CAC, 0, 0x54090008, 0);
             }
         }
         return 0;
@@ -66,7 +66,7 @@ s32 func_shelter_b1_elevator_hall_8017D810(Task* task, s32 msgId, RoomEventMsg* 
             D_shelter_b1_elevator_hall_801849F8.field_4           = dst->warp;
             ((u8*)&D_shelter_b1_elevator_hall_801849F8.areaId)[1] = dst->room;
             Gp_MsgPlayerWeapon(0);
-            Task_SpawnFromTable(&D_shelter_b1_elevator_hall_80182CE8, 0, 0, 0);
+            taskSpawnFromTable(&D_shelter_b1_elevator_hall_80182CE8, 0, 0, 0);
         }
         return 2;
     }

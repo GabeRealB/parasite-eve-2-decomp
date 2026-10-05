@@ -560,7 +560,7 @@ static void func_dryfield_warehouse_8017DBB0(Task* arg0)
             switch (work->commandStep) {
                 case 0:
                     SetDispMask(1);
-                    Task_SpawnFromTable(D_dryfield_warehouse_8017FB08, 2, 8, 0);
+                    taskSpawnFromTable(D_dryfield_warehouse_8017FB08, 2, 8, 0);
                     Gp_KillPlayerEffs();
                     work->playerEffectsSuppressed = 1;
                     cur                           = arg0->work;
@@ -585,7 +585,7 @@ static void func_dryfield_warehouse_8017DBB0(Task* arg0)
             work->soundLoopFrames++;
             return;
         case DRYFIELD_WAREHOUSE_CUTSCENE_COMMAND_SPAWN_FADE_OUT:
-            D_dryfield_warehouse_801821C0 = Task_SpawnFromTable(D_dryfield_warehouse_8017FB08, 1, 8, 0);
+            D_dryfield_warehouse_801821C0 = taskSpawnFromTable(D_dryfield_warehouse_8017FB08, 1, 8, 0);
             break;
         case DRYFIELD_WAREHOUSE_CUTSCENE_COMMAND_RESTORE_AND_FADE_IN:
             // The restore goes through the published cutscene task's block.
@@ -607,7 +607,7 @@ static void func_dryfield_warehouse_8017DBB0(Task* arg0)
             TASK_MESSAGE_DISPATCH_POINTER(sharedWork->player, 0x3E9, &D_dryfield_warehouse_8017F868, 0);
             switch (work->commandStep) {
                 case 0:
-                    Task_SpawnFromTable(D_dryfield_warehouse_8017FB08, 2, 8, 0);
+                    taskSpawnFromTable(D_dryfield_warehouse_8017FB08, 2, 8, 0);
                     work->commandFrames = 0;
                     work->commandStep++;
                     return;

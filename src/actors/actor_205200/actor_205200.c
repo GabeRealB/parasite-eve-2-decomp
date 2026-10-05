@@ -440,7 +440,7 @@ static void func_actor_205200_8014AB98(Task* arg0)
                 if (D_actor_205200_8015B458.state == SCREEN_WAVE_RAMP_FINISHED) {
                     D_actor_205200_8015B458.span  = 0xF;
                     D_actor_205200_8015B458.scale = 0xA0;
-                    Task_SpawnFromTable(D_actor_205200_8014CA44, 0, 0, &D_actor_205200_8015B458);
+                    taskSpawnFromTable(D_actor_205200_8014CA44, 0, 0, &D_actor_205200_8015B458);
                     Gp_ArmStateF0(1);
                     work->pendingWavePhase = SCREEN_WAVE_RAMP_FALLING;
                     sndEvtRequestScriptStart(((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40340002, 0, 0);

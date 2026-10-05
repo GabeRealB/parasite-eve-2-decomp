@@ -2062,7 +2062,7 @@ s32 func_dryfield_motel_room_6_801819A8(Task* arg0, s32 arg1, const void* firstA
 
     if (request->actionId == 0 && gameFlagGetNibble(GAME_FLAG_DRYFIELD_MOTEL_ROOM_6_031) == 0) {
         gameFlagSetNibble(GAME_FLAG_DRYFIELD_MOTEL_ROOM_6_031, 1);
-        Task_SpawnFromTable(D_dryfield_motel_room_6_80182D78, 0, 0, 0);
+        taskSpawnFromTable(D_dryfield_motel_room_6_80182D78, 0, 0, 0);
     }
     return 1;
 }
@@ -2081,7 +2081,7 @@ void func_dryfield_motel_room_6_80181A08(Task* arg0)
 
     switch (arg0->state) {
         case 0:
-            D_dryfield_motel_room_6_80186828 = Task_SpawnFromTable(&D_actor_120500_8013843C, 1, 0, 0);
+            D_dryfield_motel_room_6_80186828 = taskSpawnFromTable(&D_actor_120500_8013843C, 1, 0, 0);
             arg0->state++;
             break;
         case 1:

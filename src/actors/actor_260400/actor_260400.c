@@ -1077,7 +1077,7 @@ static void func_actor_260400_80149FE0(Enemy* enemy, Task* task)
                          gScriptedWalkWork->rig.poses, gScriptedWalkWork->rig.slots);
     gScriptedWalkWork->st.animId = 1;
     gScriptedWalkWork->st.state  = ACTOR_ENEMY_ANIM_RESET;
-    spawned                      = Task_SpawnFromTable(D_actor_260400_80154C18, 1, 8, 0);
+    spawned                      = taskSpawnFromTable(D_actor_260400_80154C18, 1, 8, 0);
     if (spawned != NULL) {
         gScriptedWalkWork->mongoose = spawned;
         actorTintTask(spawned, (Enemy*)task->spawnArg2.pointer);

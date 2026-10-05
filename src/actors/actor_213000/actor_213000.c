@@ -526,10 +526,10 @@ static void func_actor_213000_80149E54(Task* task)
     work->field_478         = 0;
     work->freeCountdown     = -1;
     obj->flags             |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    work->heldModelTasks[0] = Task_SpawnFromTable(D_actor_213000_80157DE0, 1, 8, task);
-    work->heldModelTasks[1] = Task_SpawnFromTable(D_actor_213000_80157DE0, 2, 8, task);
-    spawned1                = Task_SpawnFromTable(D_actor_213000_80157DE0, 3, 9, task);
-    spawned2                = Task_SpawnFromTable(D_actor_213000_80157DE0, 4, 0xC, task);
+    work->heldModelTasks[0] = taskSpawnFromTable(D_actor_213000_80157DE0, 1, 8, task);
+    work->heldModelTasks[1] = taskSpawnFromTable(D_actor_213000_80157DE0, 2, 8, task);
+    spawned1                = taskSpawnFromTable(D_actor_213000_80157DE0, 3, 9, task);
+    spawned2                = taskSpawnFromTable(D_actor_213000_80157DE0, 4, 0xC, task);
     if (spawned1 != NULL) {
         TmdObject*       model;
         AreaVariant*     layout;

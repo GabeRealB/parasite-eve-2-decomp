@@ -117,9 +117,9 @@ void Gp_AreaEnterTask(Task* arg0)
             gStageMusicParams.fadeOutTicks = 0;
             gStageMusicParams.field_2      = 0;
             if (!(gGameSession->flowFlags & GAME_SESSION_FLOW_LOAD_AREA_MUSIC_ONLY)) {
-                Task_SpawnFromTable(&Stage_MusicTaskDesc, 0, 1, 0);
+                taskSpawnFromTable(&Stage_MusicTaskDesc, 0, 1, 0);
             } else {
-                Task_SpawnFromTable(&Stage_MusicTaskDesc, 0, 3, 0);
+                taskSpawnFromTable(&Stage_MusicTaskDesc, 0, 3, 0);
             }
         } else {
             gStageMusicLoadState = 0xFF;

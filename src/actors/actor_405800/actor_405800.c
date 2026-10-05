@@ -2594,7 +2594,7 @@ static void func_actor_405800_80135780(Task* arg0)
     work                     = (_Actor405800IvoryStalkerWork*)arg0->work;
     parent                   = &root[7];
     parent2                  = &root[10];
-    task                     = Task_SpawnFromTable(D_actor_405800_801514B4, 0, 0, 0);
+    task                     = taskSpawnFromTable(D_actor_405800_801514B4, 0, 0, 0);
     work->armTasks[0]        = task;
     obj                      = task->extra.tmd;
     coord                    = obj->coords;
@@ -2630,7 +2630,7 @@ static void func_actor_405800_80135780(Task* arg0)
     }
     obj->lightMtx = &work->lightMtx;
     obj->colorMtx = &work->colorMtx;
-    task = work->armTasks[1] = Task_SpawnFromTable(D_actor_405800_801514B4, 1, 0, 0);
+    task = work->armTasks[1] = taskSpawnFromTable(D_actor_405800_801514B4, 1, 0, 0);
     obj                      = task->extra.tmd;
     coord                    = obj->coords;
     obj->flags               = TMD_OBJECT_SKIP_ACTIVE_DRAW;

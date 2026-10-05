@@ -1549,7 +1549,7 @@ static void func_actor_146300_801324AC(Enemy* enemy, Task* task)
     obj->otOffset                    = 1;
     obj->flags                       = 0;
     gActorSelfTask                   = task;
-    helper                           = Task_SpawnFromTable(D_actor_146300_801427C8, 1, 0, 0);
+    helper                           = taskSpawnFromTable(D_actor_146300_801427C8, 1, 0, 0);
     gActorHelperTask                 = helper;
     actorTintTask(helper, enemy);
     taskReparent(task, gActorHelperTask);

@@ -92,7 +92,7 @@ typedef struct {
 } _Actor135400GaryDouglasPlaces;
 STATIC_ASSERT_SIZEOF(_Actor135400GaryDouglasPlaces, 0x30);
 
-/// The actor's two-entry `TaskDesc` table, indexed by `Task_SpawnFromTable`:
+/// The actor's two-entry `TaskDesc` table, indexed by `taskSpawnFromTable`:
 /// entry 1 is the model-bearing part task `modelPlacementAttachPart`
 /// reparents, entry 2 the second part (`func_actor_135400_8013252C`).
 extern TaskDesc D_actor_135400_8013A4AC[];
@@ -657,12 +657,12 @@ static void func_actor_135400_80132064(Task* arg0)
     arg0->work         = work;
     work->model.animId = ACTOR_MODEL_STATE_NONE;
     work->model.bank   = ACTOR_MODEL_STATE_NONE;
-    spawned            = Task_SpawnFromTable(D_actor_135400_8013A4AC, 1, 4, arg0);
+    spawned            = taskSpawnFromTable(D_actor_135400_8013A4AC, 1, 4, arg0);
     if (spawned != NULL) {
         work->headTask = spawned;
         actorTintTask(spawned, (Enemy*)arg0->spawnArg2.pointer);
     }
-    spawned = Task_SpawnFromTable(D_actor_135400_8013A4AC, 2, 8, arg0);
+    spawned = taskSpawnFromTable(D_actor_135400_8013A4AC, 2, 8, arg0);
     if (spawned != NULL) {
         work->carriedTask = spawned;
     }

@@ -42,7 +42,7 @@ s32 roomEventGate(RoomEventReq* req, RoomEventMsg* msg)
                     mode = 0;
                 }
                 gameFlagSetNibble(id, mode);
-                Task_SpawnFromTable(&gRoomEventTaskDesc, 0, 0, 0);
+                taskSpawnFromTable(&gRoomEventTaskDesc, 0, 0, 0);
                 ROOM_EVENT_ACTIVE = 1;
                 return 2;
             }

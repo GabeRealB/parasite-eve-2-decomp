@@ -190,7 +190,7 @@ s32 func_dryfield_gas_station_8017FD54(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
         D_dryfield_gas_station_80184BD8.endSound        = 0x52010007;
         D_dryfield_gas_station_80184BD8.sceneSound      = 0x52010008;
         D_dryfield_gas_station_80184BD8.afterSceneSound = 0x52010010;
-        return (s32)Task_SpawnFromTable(gRoomCutsceneTaskDescs, 0, 2, &D_dryfield_gas_station_80184BD8);
+        return (s32)taskSpawnFromTable(gRoomCutsceneTaskDescs, 0, 2, &D_dryfield_gas_station_80184BD8);
     }
     return 1;
 }
@@ -204,7 +204,7 @@ void func_dryfield_gas_station_8017FE20(Task* arg0)
 
     switch (state) {
         case 0:
-            D_dryfield_gas_station_80184BCC = Task_SpawnFromTable(D_dryfield_gas_station_80181E7C, 0, 0, 0);
+            D_dryfield_gas_station_80184BCC = taskSpawnFromTable(D_dryfield_gas_station_80181E7C, 0, 0, 0);
             arg0->state++;
             break;
         case 1:
@@ -227,7 +227,7 @@ static void func_dryfield_gas_station_8017FEDC(Task* arg0)
     arg0->msgTable = D_dryfield_gas_station_80181E54;
     gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp == 1) {
-        Task_SpawnFromTable(D_dryfield_gas_station_80181E3C, 0, 0, 0);
+        taskSpawnFromTable(D_dryfield_gas_station_80181E3C, 0, 0, 0);
         gameFlagSetNibble(GAME_FLAG_STORY_CHAPTER, 2);
         gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
         gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 0);

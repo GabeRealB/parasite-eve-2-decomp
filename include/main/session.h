@@ -60,7 +60,7 @@ extern s32 D_8005ED68;
 /// `slot` is an element index in 0..15 and is not checked. NULL `task` empties
 /// the slot. The store replaces any previous registration. It does not retain
 /// the task, and task exit does not clear the slot, so a non-NULL registration
-/// may be used only while that task is alive. `Game_ClearPtrSlots` empties
+/// may be used only while that task is alive. `gameClearTaskSlots` empties
 /// every slot when the task system resets.
 ///
 /// The player and companion slots are the spawn-time handles of those tasks,
@@ -79,7 +79,7 @@ enum {
     ///
     /// A successful spawn registers the task before its first tick, with a
     /// TMD body and `GameActor` work. This borrowed registration is replaced
-    /// by the next successful spawn and cleared by `Game_ClearPtrSlots`;
+    /// by the next successful spawn and cleared by `gameClearTaskSlots`;
     /// task exit does not clear it. Use it only while that task remains alive.
     /// `gPlayerActorTasks` publishes the player separately during its first tick.
     GAME_TASK_SLOT_PLAYER = 3,
@@ -88,7 +88,7 @@ enum {
     /// Registered when spawned, before area actors are created. Top-level
     /// enemy tasks join its child ring; it routes child lookups and actor
     /// broadcasts once its first tick installs the message table. Registration
-    /// does not retain the task and is cleared by `Game_ClearPtrSlots`, not by
+    /// does not retain the task and is cleared by `gameClearTaskSlots`, not by
     /// task exit. Use it only while the manager is live.
     ///
     /// Event-script sends use the following operand as a placed-actor index
@@ -105,7 +105,7 @@ enum {
 /// `slot` is an element index in 0..15; it is not checked. Registration does
 /// not retain a task or clear itself when the task exits, so a non-NULL result
 /// may be used only while the registered task is alive. `gameSetTaskSlot`
-/// replaces a registration and `Game_ClearPtrSlots` clears them on task-system
+/// replaces a registration and `gameClearTaskSlots` clears them on task-system
 /// reset. The getter neither transfers ownership nor changes the table.
 ///
 /// The player and companion slots are separate from `gPlayerActorTasks`,
@@ -113,7 +113,11 @@ enum {
 ///
 struct Task* gameGetTaskSlot(s32 slot);
 
-/// Empties every pointer slot.
-void Game_ClearPtrSlots(void);
+/// Clears all 16 borrowed task registrations in the resident session.
+///
+/// Requires a live `gGameSession`. No exit handlers run and no tasks or resources
+/// are released. Session resets clear these handles before discarding the task
+/// list and reinitializing its heap; task exit alone leaves registrations intact.
+void gameClearTaskSlots(void);
 
 #endif // MAIN_SESSION_H

@@ -14,7 +14,7 @@ void factoryPanelInit(Task* task)
         taskKill(task);
         return;
     }
-    task->spawnArg2.pointer = Task_SpawnFromTable(gFactoryPromptDesc, 0, 1, 0);
+    task->spawnArg2.pointer = taskSpawnFromTable(gFactoryPromptDesc, 0, 1, 0);
     task->work              = work;
     task->msgTable          = gFactoryPanelMsgTable;
     if (gameFlagGetNibble(GAME_FLAG_FACTORY_POWER_ON) == 0) {

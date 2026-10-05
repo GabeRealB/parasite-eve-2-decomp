@@ -547,19 +547,19 @@ void Gp_MenuRootTask(Task* arg0)
                 (D_80114DE0 == secondaryItemId)) {
                 break;
             }
-            previousList = Task_GetActiveList();
+            previousList = taskGetActiveList();
             list         = &gTaskDefaultList;
-            Task_SetActiveList(list);
+            taskSetActiveList(list);
             saved                   = cfg->weapon;
             old                     = (u8)D_80114DE8;
             disp                    = &gDisplayState;
             disp->immediateTaskFree = 1;
             cfg->weapon             = old;
             Gp_KillPlayerEffs();
-            Task_CallExitFiltered(list, 0x52);
+            taskCallExitForPriority(list, 0x52);
             disp->immediateTaskFree = 0;
             cfg->weapon             = saved;
-            Task_SetActiveList(previousList);
+            taskSetActiveList(previousList);
             Gp_EnqueueHeldWeaponCd();
             break;
         }
@@ -578,8 +578,8 @@ void Gp_MenuRootTask(Task* arg0)
             }
             if ((D_80114DE8 != cfg->weapon) || (D_80114DE4 != cfg->weaponSlotItem) ||
                 (D_80114DE0 != secondaryItemId)) {
-                previousList = Task_GetActiveList();
-                Task_SetActiveList(&gTaskDefaultList);
+                previousList = taskGetActiveList();
+                taskSetActiveList(&gTaskDefaultList);
                 // Rebuild the weapon bodies now; allocate their buffers after the view reload.
                 gTaskDeferModelBufferAllocation = true;
                 Gp_SpawnWeaponEff();
@@ -591,7 +591,7 @@ void Gp_MenuRootTask(Task* arg0)
                     TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &D_8010E7F4, 0);
                 }
                 gTaskDeferModelBufferAllocation = false;
-                Task_SetActiveList(previousList);
+                taskSetActiveList(previousList);
             }
             GameMain_SetFrameTiming(DISPLAY_TIMING_TWO_VBLANKS);
             gDisplayState.keepGraphics = 0;
@@ -608,7 +608,7 @@ void Gp_MenuRootTask(Task* arg0)
             }
             Gp_MenuLockDelay = 8;
             func_800A7E4C();
-            Task_CallExit(arg0);
+            taskCallExit(arg0);
             SndEvt_EnqueueTypeE();
             break;
         }

@@ -590,7 +590,7 @@ static void func_neo_ark_substation_8017D7AC(Task* task)
     task->msgTable = D_neo_ark_substation_8017E294;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     if (gameFlagGetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_2_CLEARED) == 0) {
-        Task_SpawnFromTable(D_neo_ark_substation_8017E2BC, 0, 0, 0);
+        taskSpawnFromTable(D_neo_ark_substation_8017E2BC, 0, 0, 0);
     }
     task->state = (s32)(task->state + 1);
 }

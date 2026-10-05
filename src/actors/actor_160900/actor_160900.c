@@ -1488,7 +1488,7 @@ static void func_actor_160900_80133238(Task* arg0)
         case ACTOR_160900_PLAYER_CUE_WAVE_START:
             work->wave.span  = 8;
             work->wave.scale = 0x80;
-            Task_SpawnFromTable(D_actor_160900_8013F17C, 0, 0, &work->wave);
+            taskSpawnFromTable(D_actor_160900_8013F17C, 0, 0, &work->wave);
             work->playerCue.id = 0;
             return;
         case ACTOR_160900_PLAYER_CUE_WAVE_END:
@@ -1595,7 +1595,7 @@ void func_actor_160900_80133880(void)
     Task*                      task;
 
     data                = D_actor_160900_8013FBB4->work;
-    task                = Task_SpawnFromTable(D_actor_160900_8013FB50, 7, 0, 0);
+    task                = taskSpawnFromTable(D_actor_160900_8013FB50, 7, 0, 0);
     data->lightQuads[0] = task;
     if (task == NULL) {
         return;
@@ -1624,7 +1624,7 @@ void func_actor_160900_80133880(void)
     work->corners[3].vx                 = 0;
     work->corners[3].vy                 = 0;
     work->corners[3].vz                 = 0;
-    task                                = Task_SpawnFromTable(D_actor_160900_8013FB50, 7, 1, 0);
+    task                                = taskSpawnFromTable(D_actor_160900_8013FB50, 7, 1, 0);
     data->lightQuads[1]                 = task;
     if (task == NULL) {
         return;
@@ -1662,7 +1662,7 @@ void func_actor_160900_80133A84(void)
     Task*                      task;
 
     data                = D_actor_160900_8013FBB4->work;
-    task                = Task_SpawnFromTable(D_actor_160900_8013FB50, 7, 5, 0);
+    task                = taskSpawnFromTable(D_actor_160900_8013FB50, 7, 5, 0);
     data->lightQuads[0] = task;
     if (task == NULL) {
         return;
@@ -1691,7 +1691,7 @@ void func_actor_160900_80133A84(void)
     work->corners[3].vx                 = 0;
     work->corners[3].vy                 = 0;
     work->corners[3].vz                 = -0x1F4;
-    task                                = Task_SpawnFromTable(D_actor_160900_8013FB50, 7, 2, 0);
+    task                                = taskSpawnFromTable(D_actor_160900_8013FB50, 7, 2, 0);
     data->lightQuads[1]                 = task;
     if (task == NULL) {
         return;
@@ -1720,7 +1720,7 @@ void func_actor_160900_80133A84(void)
     work->corners[3].vx                 = 0;
     work->corners[3].vy                 = 0;
     work->corners[3].vz                 = 0x1F4;
-    task                                = Task_SpawnFromTable(D_actor_160900_8013FB50, 7, 3, 0);
+    task                                = taskSpawnFromTable(D_actor_160900_8013FB50, 7, 3, 0);
     data->lightQuads[2]                 = task;
     if (task == NULL) {
         return;
@@ -1749,7 +1749,7 @@ void func_actor_160900_80133A84(void)
     work->corners[3].vx                 = 0;
     work->corners[3].vy                 = 0;
     work->corners[3].vz                 = -0x3E8;
-    task                                = Task_SpawnFromTable(D_actor_160900_8013FB50, 7, 4, 0);
+    task                                = taskSpawnFromTable(D_actor_160900_8013FB50, 7, 4, 0);
     data->lightQuads[3]                 = task;
     if (task == NULL) {
         return;
@@ -1778,7 +1778,7 @@ void func_actor_160900_80133A84(void)
     work->corners[3].vx                 = 0;
     work->corners[3].vy                 = 0;
     work->corners[3].vz                 = -0x1F4;
-    task                                = Task_SpawnFromTable(D_actor_160900_8013FB50, 7, 0, 0);
+    task                                = taskSpawnFromTable(D_actor_160900_8013FB50, 7, 0, 0);
     data->lightQuads[4]                 = task;
     if (task == NULL) {
         return;
@@ -1807,7 +1807,7 @@ void func_actor_160900_80133A84(void)
     work->corners[3].vx                 = 0;
     work->corners[3].vy                 = 0;
     work->corners[3].vz                 = 0x1F4;
-    task                                = Task_SpawnFromTable(D_actor_160900_8013FB50, 7, 1, 0);
+    task                                = taskSpawnFromTable(D_actor_160900_8013FB50, 7, 1, 0);
     data->lightQuads[5]                 = task;
     if (task == NULL) {
         return;
@@ -1845,7 +1845,7 @@ void func_actor_160900_80133F90(void)
     Task*                      task;
 
     data                = D_actor_160900_8013FBB4->work;
-    task                = Task_SpawnFromTable(D_actor_160900_8013FB50, 7, 0, 0);
+    task                = taskSpawnFromTable(D_actor_160900_8013FB50, 7, 0, 0);
     data->lightQuads[0] = task;
     if (task == NULL) {
         return;
@@ -1874,7 +1874,7 @@ void func_actor_160900_80133F90(void)
     work->corners[3].vx                 = 0;
     work->corners[3].vy                 = 0;
     work->corners[3].vz                 = 0;
-    task                                = Task_SpawnFromTable(D_actor_160900_8013FB50, 7, 1, 0);
+    task                                = taskSpawnFromTable(D_actor_160900_8013FB50, 7, 1, 0);
     data->lightQuads[1]                 = task;
     if (task == NULL) {
         return;
@@ -1922,9 +1922,9 @@ void func_actor_160900_8013418C(Task* arg0)
                 memFillBytes(work, 0, sizeof(*work));
                 work->player            = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                 D_actor_160900_8013FBB4 = arg0;
-                work->kyle              = Task_SpawnFromTable(D_actor_160900_8013FB50, 3, 0, arg0);
-                work->kyleGunHand       = Task_SpawnFromTable(D_actor_160900_8013FB50, 5, 1, work->kyle);
-                work->kyleFreeHand      = Task_SpawnFromTable(D_actor_160900_8013FB50, 6, 0, work->kyle);
+                work->kyle              = taskSpawnFromTable(D_actor_160900_8013FB50, 3, 0, arg0);
+                work->kyleGunHand       = taskSpawnFromTable(D_actor_160900_8013FB50, 5, 1, work->kyle);
+                work->kyleFreeHand      = taskSpawnFromTable(D_actor_160900_8013FB50, 6, 0, work->kyle);
             }
             Gp_CapFile = 0;
             Gp_LoadCapFile(3);
@@ -2064,14 +2064,14 @@ void func_actor_160900_801345D0(Task* task, s32 arg1, s32 arg2, s32 arg3)
 /// with `arg0` as its first spawn argument.
 void func_actor_160900_801346B0(s32 arg0)
 {
-    Task_SpawnFromTable(D_actor_160900_8013FB50, 1, arg0, 0);
+    taskSpawnFromTable(D_actor_160900_8013FB50, 1, arg0, 0);
 }
 
 /// Spawns the fade task `func_actor_160900_801343E4`, entry 2 of
 /// `D_actor_160900_8013FB50`, with `arg0` as its first spawn argument.
 void func_actor_160900_801346E0(s32 arg0)
 {
-    Task_SpawnFromTable(D_actor_160900_8013FB50, 2, arg0, 0);
+    taskSpawnFromTable(D_actor_160900_8013FB50, 2, arg0, 0);
 }
 
 void func_actor_160900_80134710(void)

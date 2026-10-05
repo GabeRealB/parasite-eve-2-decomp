@@ -778,19 +778,19 @@ static void func_actor_135600_80132234(Task* task)
     work->walk.carry[1].word = 0;
     work->walk.carry[2].word = 0;
 
-    spawned = Task_SpawnFromTable(D_actor_135600_8013B0C4, 1, 8, task);
+    spawned = taskSpawnFromTable(D_actor_135600_8013B0C4, 1, 8, task);
     if (spawned != NULL) {
         work->handTasks[1] = spawned;
         actorTintModel(spawned->extra.tmd, (Enemy*)task->spawnArg2.pointer);
     }
 
-    spawned = Task_SpawnFromTable(D_actor_135600_8013B0C4, 2, 0xC, task);
+    spawned = taskSpawnFromTable(D_actor_135600_8013B0C4, 2, 0xC, task);
     if (spawned != NULL) {
         work->handTasks[0] = spawned;
         actorTintModel(spawned->extra.tmd, (Enemy*)task->spawnArg2.pointer);
     }
 
-    spawned = Task_SpawnFromTable(D_actor_135600_8013B0C4, 3, 8, task);
+    spawned = taskSpawnFromTable(D_actor_135600_8013B0C4, 3, 8, task);
     if (spawned != NULL) {
         work->heldItemTask = spawned;
     }

@@ -1098,7 +1098,7 @@ void func_dryfield_main_street_8017E2F4(s32 arg0)
 /// keeps it in `D_dryfield_main_street_80185630`.
 void func_dryfield_main_street_8017E320(void)
 {
-    D_dryfield_main_street_80185630 = Task_SpawnFromTable(D_dryfield_main_street_8018156C, 1, 0, 0);
+    D_dryfield_main_street_80185630 = taskSpawnFromTable(D_dryfield_main_street_8018156C, 1, 0, 0);
 }
 
 /// Steers the task `func_dryfield_main_street_8017E320` spawned, if there is

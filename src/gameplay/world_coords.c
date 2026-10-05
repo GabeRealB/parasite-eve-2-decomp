@@ -1831,7 +1831,7 @@ static WorldCoordRoomLighting* Gp_GetRoomCoordRec(GameLocationKey* arg0)
 
 void func_800D9CC8(Task* arg0)
 {
-    Task_CallExit(arg0);
+    taskCallExit(arg0);
 }
 
 static void Gp_CopyDefaultBound(WorldCoordRoomAmbientEntry* ambientEntry)

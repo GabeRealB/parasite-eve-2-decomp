@@ -1555,12 +1555,12 @@ void func_actor_403600_80134288(Task* arg0)
     if (arg0->state == 0) {
         fx = memCalloc(sizeof(Actor403600FxWork), false);
         if (fx == NULL) {
-            Task_CallExit(arg0);
+            taskCallExit(arg0);
             return;
         }
         gGameSession->field_80 = 0;
         arg0->work             = fx;
-        child                  = Task_SpawnFromTable(D_actor_403600_801421A0, 2, 0, 0);
+        child                  = taskSpawnFromTable(D_actor_403600_801421A0, 2, 0, 0);
         if (child != NULL) {
             taskReparent(arg0, child);
         }
@@ -1644,11 +1644,11 @@ void func_actor_403600_80134398(Task* arg0)
     sp10   = D_actor_403600_80131E24;
     player = gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER];
     if (player == NULL) {
-        Task_CallExit(arg0);
+        taskCallExit(arg0);
         return;
     }
     if (((Actor403600Work*)((Task*)arg0->spawnArg2.pointer)->work)->defeated == 1) {
-        Task_CallExit(arg0);
+        taskCallExit(arg0);
         return;
     }
     SCRATCH_STACK_RESERVE_BLOCK(_Actor403600ProjectileScratch);
@@ -1656,7 +1656,7 @@ void func_actor_403600_80134398(Task* arg0)
     if (arg0->state == 0) {
         newWork = memCalloc(sizeof(Actor403600ProjectileWork), 0);
         if (newWork == NULL) {
-            Task_CallExit(arg0);
+            taskCallExit(arg0);
             SCRATCH_STACK_RELEASE_BLOCK(_Actor403600ProjectileScratch);
             return;
         }
@@ -1793,7 +1793,7 @@ block_22:
         if ((temp_v1_3 << 0x10) <= 0) {
             temp_v1_4 = arg0->status;
             if (temp_v1_4 == 2) {
-                Task_CallExit(arg0);
+                taskCallExit(arg0);
             } else {
                 if (temp_v1_4 == 3) {
                     temp_s0_3 = (s8)worldCoordGetOriginAudioPan(coord);
@@ -2363,7 +2363,7 @@ void func_actor_403600_80135C28(Task* arg0)
         temp_v0                 = temp_a0->extra.tmd;
         D_actor_403600_801606A0 = NULL;
         temp_v0->flags          = (u16)(temp_v0->flags & (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW);
-        Task_CallExit(arg0);
+        taskCallExit(arg0);
         return;
     }
     if (arg0->state == 0) {
@@ -2413,7 +2413,7 @@ void func_actor_403600_80135C28(Task* arg0)
             }
             arg0->state = (s32)(arg0->state + 1);
         } else {
-            Task_CallExit(arg0);
+            taskCallExit(arg0);
             return;
         }
     }
@@ -2458,7 +2458,7 @@ void func_actor_403600_80135C28(Task* arg0)
     }
     func_actor_403600_801353D0(temp_s0, temp_s4);
     if (arg0->killCountdown <= 0 && _actor403600TrailEmpty(temp_s0)) {
-        Task_CallExit(arg0);
+        taskCallExit(arg0);
     }
 }
 

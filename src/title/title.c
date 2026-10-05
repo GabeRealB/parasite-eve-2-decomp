@@ -260,7 +260,7 @@ static void Title_MenuTask(Task* task)
         } else {
             Wip_SysFlags.skipTitleIntro = 0;
             if (Wip_SysFlags.discNumber == GAME_MAIN_DISC_1) {
-                Task_CallExit(task);
+                taskCallExit(task);
                 gDisplayState.demoScene = GameMain_GetResetCount() + 2;
                 gDisplayState.demoScene = gDisplayState.demoScene % 3 + 1;
                 printf(Title_DemoStartMsg);
@@ -343,7 +343,7 @@ static void Title_MenuTask(Task* task)
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
             Task_Spawn(0, Title_MenuSpawnIds[work->selection], 0, 0);
             gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_NONE;
-            Task_CallExit(task);
+            taskCallExit(task);
         }
     } else {
         if (work->promptFade < TITLE_SCREEN_FADE_FULL) {
@@ -435,7 +435,7 @@ void Title_Dispatch(Task* arg0)
 
 void Title_ExitTask(Task* arg0)
 {
-    Task_CallExit(arg0);
+    taskCallExit(arg0);
 }
 
 void Title_DemoStreamTask(Task* task)
@@ -448,7 +448,7 @@ void Title_DemoStreamTask(Task* task)
 
     switch (task->state) {
         case 0:
-            Mem_CopyUnaligned(Fs_Streams, Stream_Slots, sizeof(Fs_Streams));
+            memCopyBytes(Fs_Streams, Stream_Slots, sizeof(Fs_Streams));
             SetDispMask(0);
             Mem_AllocAuxWithImages(1);
             task->state++;

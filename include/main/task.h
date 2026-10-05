@@ -11,7 +11,7 @@
 /// Ordinary spawns join the currently selected list; the default-list spawn
 /// helpers temporarily select this head even when called from another list.
 ///
-/// Initialize with `Task_ResetDefaultList` before spawning. An empty list has
+/// Initialize with `taskResetDefaultList` before spawning. An empty list has
 /// `next == NULL` and `prev == &gTaskDefaultList`; zeroed BSS alone does not
 /// satisfy this invariant. The head has program lifetime and is never a `Task`.
 ///
@@ -43,7 +43,21 @@ extern TaskDesc D_800670D0[];
 
 extern TaskDesc Stage_MusicTaskDesc;
 
-Task* Task_SpawnFromTable(TaskDesc* table, s32 idx, TaskSpawnArg arg2, TaskSpawnArg arg3);
+/// Spawns an indexed descriptor onto the currently selected execution list.
+///
+/// `table[index]` must be a live, non-terminator descriptor; the signed element
+/// index is unchecked. The selected head must be non-NULL and initialized,
+/// with tasks ordered by ascending byte priority. Equal priorities retain spawn
+/// order. A task inserted after a running walk's cursor can run in that walk.
+///
+/// Reads the descriptor synchronously and copies the two payload words without
+/// invoking the callback or retaining the descriptor. The callback interprets
+/// payloads and determines pointer ownership/lifetime. Keep callback code and
+/// borrowed model geometry loaded while used. The task owns any attached body;
+/// its initial exit callback is `taskKill`. Returns NULL if task allocation or
+/// required body attachment fails, including an unrecognized nonzero body kind.
+/// A missing primitive buffer alone does not fail model spawning.
+Task* taskSpawnFromTable(TaskDesc* table, s32 index, TaskSpawnArg spawnArg1, TaskSpawnArg spawnArg2);
 
 Task* Task_Spawn(s32 bank, TaskSpawnArg type, TaskSpawnArg arg2, TaskSpawnArg arg3);
 
@@ -83,7 +97,14 @@ void taskKill(Task* task);
 
 void Task_KillChildren(Task* task);
 
-void Task_CallExit(Task* task);
+/// Dispatches a live task's current exit callback once.
+///
+/// `task` and its handler must be non-NULL, with handler code still loaded.
+/// Cleanup follows that handler's contract; this call itself neither marks nor
+/// collects the task. A replacement handler can suppress or customize teardown,
+/// and a handler can release the task before returning. Do not assume the task
+/// or its resources remain live after this call.
+void taskCallExit(Task* task);
 
 /// Removes a live task from its parent's circular child ring.
 ///
@@ -117,20 +138,55 @@ void taskDetachFromParent(Task* task);
 /// release, callback dispatch or coordinate attachment occurs.
 void taskReparent(Task* newParent, Task* task);
 
-void Task_CallExitFiltered(TaskNode* node, s32 filter);
+/// Dispatches matching-priority exits and collects every released task in a list.
+///
+/// `listHead` must be a live, initialized bare head. Only the low byte of the
+/// signed `priority` selects exit callbacks, but every visited task is checked
+/// for body-release marking and collection, including nonmatching tasks.
+/// The head is selected for callbacks and tail unlinking; the prior selection
+/// is restored on every return. Callbacks must restore temporary list switches.
+/// A stop request equal to one is cleared and ends the walk before collection
+/// or cursor advancement, including after the callback marks the task.
+///
+/// After dispatch, the walker reads the cursor's body kind and forward link.
+/// A handler freeing that task must preserve their storage until advancement,
+/// or request a stop before returning. In particular, immediate grenade exits
+/// rely on primary-heap release retaining those bytes with no intervening reuse.
+/// Spawns can extend the walk; this is not a snapshot of the entry list.
+void taskCallExitForPriority(TaskNode* listHead, s32 priority);
 
 TaskDesc* Task_GetDesc(u32 bank, u32 type);
 
-TaskDesc* Task_GetDescAt(TaskDesc* base, u32 idx);
+/// Borrows an entry at an unchecked unsigned element index in a descriptor table.
+///
+/// `table` must remain live, and the selected entry must exist. No descriptor is
+/// copied and no task is spawned. Callers using the result must keep the table
+/// loaded; a terminator is not a spawn recipe.
+TaskDesc* taskGetDescAt(TaskDesc* table, u32 index);
 
 void Task_RequestKill(Task* task, s32 arg1);
 
 s32 Task_PollKill(Task* task, s32* out);
 
-TaskNode* Task_GetActiveList(void);
+/// Borrows the currently selected head used for spawning and tail unlinking.
+///
+/// May return NULL before task-list initialization. An empty initialized list
+/// instead has a non-NULL bare head whose next link is NULL. Owns neither the
+/// head nor its tasks; callers save this value when temporarily switching lists.
+TaskNode* taskGetActiveList(void);
 
-void Task_SetActiveList(TaskNode* node);
+/// Selects an existing task-list head without initializing or walking it.
+///
+/// Spawning and tail unlinking require a live, initialized, non-NULL bare head.
+/// Selection borrows its storage and persists until changed; temporary users
+/// must save and restore the previous selection. Does not alter any list links.
+void taskSetActiveList(TaskNode* listHead);
 
-void Task_ResetDefaultList(void);
+/// Discards the default list's links and selects its empty head.
+///
+/// Sets next to NULL and prev to the head. Does not dispatch exits or release
+/// discarded tasks and resources; boot/session callers pair this with heap
+/// reset. Do not use it as live-task teardown.
+void taskResetDefaultList(void);
 
 #endif // MAIN_TASK_H

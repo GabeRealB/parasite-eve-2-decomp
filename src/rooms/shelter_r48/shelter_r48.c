@@ -2178,9 +2178,9 @@ s32 func_shelter_r48_8017E0EC(Task* task, s32 msgId, s32 arg2, s32 arg3)
         gameFlagSetNibble(GAME_FLAG_SHELTER_R48_SCENE_STATE, 2);
     } else {
         func_800E8634(D_actor_503500_8014C540, 0, D_actor_503500_8014CAF8);
-        Task_SpawnFromTable(D_actor_503500_8014B964, 0, 0, 0);
-        Task_SpawnFromTable(D_actor_503500_8014B964, 0, 1, 0);
-        Task_SpawnFromTable(D_actor_503500_8014B964, 0, 3, 0);
+        taskSpawnFromTable(D_actor_503500_8014B964, 0, 0, 0);
+        taskSpawnFromTable(D_actor_503500_8014B964, 0, 1, 0);
+        taskSpawnFromTable(D_actor_503500_8014B964, 0, 3, 0);
         gameFlagSetNibble(GAME_FLAG_SHELTER_R48_SCENE_STATE, 3);
     }
     return 0;

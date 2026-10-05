@@ -87,7 +87,7 @@ extern ActorTransform D_mine_forked_tunnel_80181BA4;
 extern SVECTOR D_mine_forked_tunnel_801819C4[54];
 
 /// Two-entry `TaskDesc` table `func_mine_forked_tunnel_8017D5E8` spawns the
-/// child enemy from; `Task_SpawnFromTable` picks entry 1.
+/// child enemy from; `taskSpawnFromTable` picks entry 1.
 extern TaskDesc D_mine_forked_tunnel_80181B74[];
 
 extern TaskMessageEntry D_mine_forked_tunnel_80181B8C[3];
@@ -1472,7 +1472,7 @@ static void func_mine_forked_tunnel_8017D5E8(Task* arg0)
 
     func_mine_forked_tunnel_8017DD08(arg0, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
     func_mine_forked_tunnel_8017DC70(arg0);
-    work->child    = Task_SpawnFromTable(D_mine_forked_tunnel_80181B74, 1, 0, arg0);
+    work->child    = taskSpawnFromTable(D_mine_forked_tunnel_80181B74, 1, 0, arg0);
     arg0->msgTable = D_mine_forked_tunnel_80181B8C;
     func_mine_forked_tunnel_8017DF34(gameFlagGetNibble(GAME_FLAG_MINE_FORKED_TUNNEL_SWITCH_USED));
     arg0->exitCallback = func_mine_forked_tunnel_8017DC50;
@@ -1816,20 +1816,20 @@ s32 func_mine_forked_tunnel_8017E134(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
         if (gameFlagGetNibble(GAME_FLAG_MINE_FORKED_TUNNEL_152) == 0) {
             Gp_RunCapCmd1(5);
         } else {
-            Task_SpawnFromTable(D_mine_forked_tunnel_80183104, 1, 0, 0);
+            taskSpawnFromTable(D_mine_forked_tunnel_80183104, 1, 0, 0);
         }
     }
     return 0;
 }
 
-/// Message 1 handler: spawn the room's `Task_SpawnFromTable` entry when the
+/// Message 1 handler: spawn the room's `taskSpawnFromTable` entry when the
 /// tunnel switch flag is still clear.
 s32 func_mine_forked_tunnel_8017E19C(Task* task, s32 msgId, const void* firstArg, s32 arg3)
 {
     const DirectionActionRequest* request = firstArg;
 
     if ((request->actionId == 1) && (gameFlagGetNibble(GAME_FLAG_MINE_FORKED_TUNNEL_SWITCH_USED) == 0)) {
-        Task_SpawnFromTable(D_mine_forked_tunnel_80183104, 0, 0, 0);
+        taskSpawnFromTable(D_mine_forked_tunnel_80183104, 0, 0, 0);
     }
     return 0;
 }

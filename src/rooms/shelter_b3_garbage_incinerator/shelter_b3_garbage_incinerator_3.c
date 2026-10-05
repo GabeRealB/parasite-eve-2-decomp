@@ -2415,7 +2415,7 @@ void func_shelter_b3_garbage_incinerator_80184D84(Task* arg0)
             buf.msg[3] = 0;
             buf.msg[4] = 0;
             TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, buf.msg, 0);
-            arg0->spawnArg2.pointer = Task_SpawnFromTable(D_actor_341900_80164190, 0, 0, 0);
+            arg0->spawnArg2.pointer = taskSpawnFromTable(D_actor_341900_80164190, 0, 0, 0);
             arg0->state++;
             return;
         case 1:

@@ -511,7 +511,7 @@ static void func_actor_213100_8014A118(Task* arg0)
     work->model.animId  = ACTOR_MODEL_STATE_NONE;
     work->model.bank    = ACTOR_MODEL_STATE_NONE;
     work->freeCountdown = -1;
-    child               = Task_SpawnFromTable(D_actor_213100_801521A8, 1, 8, arg0);
+    child               = taskSpawnFromTable(D_actor_213100_801521A8, 1, 8, arg0);
     work->heldModelTask = child;
     if (child == NULL) {
         enemyTaskExit(arg0);

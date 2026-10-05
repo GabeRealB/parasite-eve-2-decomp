@@ -370,7 +370,7 @@ static void             func_shelter_b2_elevator_8017D5E8(Task* task);
 /// Spawn one of this room's task descriptors with its signed travel direction.
 static __inline__ Task* ShelterElevator_SpawnTask(s32 index, s32 direction)
 {
-    return Task_SpawnFromTable(D_shelter_b2_elevator_8017DF70, index, 0, direction);
+    return taskSpawnFromTable(D_shelter_b2_elevator_8017DF70, index, 0, direction);
 }
 
 static void func_shelter_b2_elevator_8017D5E8(Task* task)

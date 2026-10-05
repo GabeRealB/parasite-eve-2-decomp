@@ -1024,7 +1024,7 @@ static s32 Gp_TestHpDamage(s32 arg0)
 
 void func_8010B2A0(s32 arg0, s32 arg1)
 {
-    Task_SpawnFromTable(D_80113340, arg0, arg1, 0);
+    taskSpawnFromTable(D_80113340, arg0, arg1, 0);
 }
 
 static void func_8010B2D4(Task* arg0, WorldCollisionContact* arg1, s32 arg2)

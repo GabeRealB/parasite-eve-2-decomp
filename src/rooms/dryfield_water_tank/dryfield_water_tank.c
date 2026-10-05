@@ -970,7 +970,7 @@ void func_dryfield_water_tank_8017D618(Task* arg0)
                 gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
                 gameFlagSetNibble(GAME_FLAG_WATER_TOWER_MECHANISM_STATE, 3);
                 sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_WATER_TANK, 4), 0, 0);
-                Task_SpawnFromTable(D_dryfield_water_tank_8017FF88, 0, 0, 0);
+                taskSpawnFromTable(D_dryfield_water_tank_8017FF88, 0, 0, 0);
                 func_dryfield_water_tank_8017DB48();
             } else {
                 gGameSession->eventState                                   = 0;
@@ -1009,7 +1009,7 @@ s32 func_dryfield_water_tank_8017D7EC(Task* task, s32 msgId, const void* firstAr
     if (request->actionId == 1) {
         if (gameFlagGetNibble(GAME_FLAG_DRYFIELD_WATER_TANK_036) == 0) {
             gameFlagSetNibble(GAME_FLAG_DRYFIELD_WATER_TANK_036, 1);
-            Task_SpawnFromTable(D_dryfield_water_tank_8017F34C, 0, 0, 0);
+            taskSpawnFromTable(D_dryfield_water_tank_8017F34C, 0, 0, 0);
             gameFlagSetNibble(GAME_FLAG_BREEZEWAY_FACTORY_DOOR_PROGRESS, 1);
         }
     }
@@ -1037,7 +1037,7 @@ s32 func_dryfield_water_tank_8017D7EC(Task* task, s32 msgId, const void* firstAr
 s32 func_dryfield_water_tank_8017D910(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 0xE) {
-        Task_SpawnFromTable(D_dryfield_water_tank_8017F34C, 1, 0, 0);
+        taskSpawnFromTable(D_dryfield_water_tank_8017F34C, 1, 0, 0);
     }
     return 0;
 }
@@ -1051,7 +1051,7 @@ void func_dryfield_water_tank_8017D948(Task* task)
 
     switch (task->state) {
         case 0:
-            D_dryfield_water_tank_80188D44 = Task_SpawnFromTable(&D_dryfield_water_tank_80180794, 0, 0, 0);
+            D_dryfield_water_tank_80188D44 = taskSpawnFromTable(&D_dryfield_water_tank_80180794, 0, 0, 0);
             task->state++;
             return;
         case 1:
@@ -1071,7 +1071,7 @@ static void func_dryfield_water_tank_8017D9D4(Task* task)
 {
     task->msgTable = D_dryfield_water_tank_8017F324;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    Task_SpawnFromTable(D_dryfield_water_tank_801868A4, 0, 0, 0);
+    taskSpawnFromTable(D_dryfield_water_tank_801868A4, 0, 0, 0);
     sndEvtRequestScriptStart(SOUND_WATER_TANK_AMBIENCE, 0, 0);
     func_dryfield_water_tank_8017DB48();
     task->state = (s32)(task->state + 1);
@@ -1268,7 +1268,7 @@ void func_dryfield_water_tank_8017DEA4(Task* arg0)
                 D_dryfield_water_tank_80188D4C = arg0;
             }
             work           = arg0->work;
-            work->propTask = Task_SpawnFromTable(D_dryfield_water_tank_8017FF88, 1, 0, 0);
+            work->propTask = taskSpawnFromTable(D_dryfield_water_tank_8017FF88, 1, 0, 0);
             arg0->state    = arg0->state + 1;
             break;
         case 1:

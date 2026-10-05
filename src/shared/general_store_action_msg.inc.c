@@ -17,7 +17,7 @@ s32 storeActionMsg(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
         Gp_SpawnIfCapIdle(arg, 0);
     }
     if (arg2 == 9) {
-        Task_SpawnFromTable(gStoreTaskDescs, 0, 0x53, 9);
+        taskSpawnFromTable(gStoreTaskDescs, 0, 0x53, 9);
     }
     return 0;
 }

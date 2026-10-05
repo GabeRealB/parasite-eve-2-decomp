@@ -989,7 +989,7 @@ static __inline__ s32 _shelterB1PodAccessTunnelStartEvent(RoomEventMsg* dst, Roo
             if (event->flagId != 0) {
                 gameFlagSetNibble(event->flagId, 1);
             }
-            Task_SpawnFromTable(&D_shelter_b1_pod_access_tunnel_801810CC, 0, 0, 0);
+            taskSpawnFromTable(&D_shelter_b1_pod_access_tunnel_801810CC, 0, 0, 0);
             D_shelter_b1_pod_access_tunnel_80184D0C_value = 1;
         }
         return 2;
@@ -1013,7 +1013,7 @@ s32 func_shelter_b1_pod_access_tunnel_8017D7B4(Task* task, s32 msgId, RoomEventM
         if (gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) >= 6) {
             if (in->queryOnly == ROOM_EVENT_EXECUTE) {
                 Gp_MsgPlayerWeapon(0);
-                Task_SpawnFromTable(D_shelter_b1_pod_access_tunnel_80181108, 1, 0, 0);
+                taskSpawnFromTable(D_shelter_b1_pod_access_tunnel_80181108, 1, 0, 0);
             }
             return 2;
         }
@@ -1162,7 +1162,7 @@ s32 func_shelter_b1_pod_access_tunnel_8017DD70(Task* arg0, s32 arg1, s32 arg2, s
     if (arg2 == 1) {
         if (gameFlagGetNibble(GAME_FLAG_B1_POD_ACCESS_TUNNEL_FIRST_USE) != 0) {
             Gp_MsgPlayerWeapon(0);
-            Task_SpawnFromTable(D_shelter_b1_pod_access_tunnel_80181108, 0, 0, 0);
+            taskSpawnFromTable(D_shelter_b1_pod_access_tunnel_80181108, 0, 0, 0);
         } else {
             gameFlagSetNibble(GAME_FLAG_B1_POD_ACCESS_TUNNEL_FIRST_USE, 1);
             Gp_RunCapCmd1(0xA);
@@ -1189,7 +1189,7 @@ static void func_shelter_b1_pod_access_tunnel_8017DE10(Task* arg0)
     arg0->msgTable = D_shelter_b1_pod_access_tunnel_801810D8;
     gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     if (gameFlagGetNibble(GAME_FLAG_118) == 1) {
-        Task_SpawnFromTable(&D_shelter_b1_pod_access_tunnel_801811C8, 0, 0, 0);
+        taskSpawnFromTable(&D_shelter_b1_pod_access_tunnel_801811C8, 0, 0, 0);
         gameFlagSetNibble(GAME_FLAG_118, 2);
         func_800E3FAC(0xA2, 0x37);
     } else if (gameFlagGetNibble(GAME_FLAG_POD_ACCESS_TUNNEL_SCENE_SEEN) == 0) {
@@ -1360,7 +1360,7 @@ void func_shelter_b1_pod_access_tunnel_8017E3FC(void)
 
 void func_shelter_b1_pod_access_tunnel_8017E41C(s32 arg0)
 {
-    Task_SpawnFromTable(D_shelter_b1_pod_access_tunnel_80182D2C, 0, arg0, 0);
+    taskSpawnFromTable(D_shelter_b1_pod_access_tunnel_80182D2C, 0, arg0, 0);
 }
 
 void func_shelter_b1_pod_access_tunnel_8017E44C(Task* task)
@@ -1386,7 +1386,7 @@ void func_shelter_b1_pod_access_tunnel_8017E44C(Task* task)
 
 void func_shelter_b1_pod_access_tunnel_8017E52C(s32 arg0)
 {
-    Task_SpawnFromTable(D_shelter_b1_pod_access_tunnel_80182D2C, 1, arg0, 0);
+    taskSpawnFromTable(D_shelter_b1_pod_access_tunnel_80182D2C, 1, arg0, 0);
 }
 
 /// The image-scroll task's three states: set-up, scroll and exit.
@@ -1438,12 +1438,12 @@ static void func_shelter_b1_pod_access_tunnel_8017E66C(s32 tpage, s16 arg1)
 
 void func_shelter_b1_pod_access_tunnel_8017E704(void)
 {
-    Task_SpawnFromTable(D_actor_141000_801348D8, 0, 0, 0);
+    taskSpawnFromTable(D_actor_141000_801348D8, 0, 0, 0);
 }
 
 void func_shelter_b1_pod_access_tunnel_8017E734(s32 arg0)
 {
-    Display_InitModeObj(Task_GetDescAt(D_shelter_b1_pod_access_tunnel_80182D2C, 2U), arg0, 0, 0x100);
+    Display_InitModeObj(taskGetDescAt(D_shelter_b1_pod_access_tunnel_80182D2C, 2U), arg0, 0, 0x100);
 }
 
 /// Counts the spawn argument down one per frame; once it goes negative, kills

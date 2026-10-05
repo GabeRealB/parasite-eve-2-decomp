@@ -3165,10 +3165,10 @@ void Gp_RestartSessionTask(Task* arg0)
     flag                  = 0xFF;
     arg0->spawnArg1.value = flag;
     Pad_SetCooldown(0);
-    Game_ClearPtrSlots();
+    gameClearTaskSlots();
     ds               = &gDisplayState;
     ds->stopTaskWalk = 1;
-    Task_ResetDefaultList();
+    taskResetDefaultList();
     Gpu_ClearOTag(0);
     Gpu_ClearOTag(1);
     Mem_Init();
@@ -3197,5 +3197,5 @@ void Gp_RestartSessionTask(Task* arg0)
     if (gGameSession->restartMode != flag) {
         CdCmd_SetupMdecBuffers();
     }
-    Task_SpawnFromTable(&D_8010D1FC, 0, 0, 0);
+    taskSpawnFromTable(&D_8010D1FC, 0, 0, 0);
 }

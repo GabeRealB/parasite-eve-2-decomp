@@ -1207,7 +1207,7 @@ static void func_neo_ark_altar_8017EE90(Task* arg0)
     work = arg0->work;
     Gp_MsgPlayer3F3(0);
     gGameSession->hideHud = 1;
-    work->movieLauncher   = Task_SpawnFromTable(D_neo_ark_altar_8017EFC0, 0, 2, 0);
+    work->movieLauncher   = taskSpawnFromTable(D_neo_ark_altar_8017EFC0, 0, 2, 0);
     arg0->state           = (s32)(arg0->state + 1);
 }
 

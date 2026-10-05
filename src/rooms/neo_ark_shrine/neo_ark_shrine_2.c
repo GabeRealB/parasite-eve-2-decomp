@@ -1111,7 +1111,7 @@ static void func_neo_ark_shrine_8017ECC4(Task* task)
         taskKill(task);
         return;
     }
-    task->spawnArg2.pointer                                    = Task_SpawnFromTable(D_neo_ark_shrine_80182404, 0, 1, 0);
+    task->spawnArg2.pointer                                    = taskSpawnFromTable(D_neo_ark_shrine_80182404, 0, 1, 0);
     task->work                                                 = work;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0xB;
     /* The once-loop folds away, but flow counts its references at loop depth
@@ -1273,7 +1273,7 @@ static void func_neo_ark_shrine_8017F0F0(Task* task)
     timer       = work->timer + 1;
     work->timer = timer;
     if (timer >= 0x1EU) {
-        Task_SpawnFromTable(D_neo_ark_shrine_80182508, 1, 0, 0);
+        taskSpawnFromTable(D_neo_ark_shrine_80182508, 1, 0, 0);
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0xE;
         /* Without this the scheduler hoists the `task->state` reload above the
            `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view` byte store to fill its load-delay slot. */
@@ -1294,7 +1294,7 @@ static void func_neo_ark_shrine_8017F178(Task* task)
     if (timer >= 0x5AU) {
         work->timer = 0;
         if (gameFlagGetNibble(GAME_FLAG_0E9) == 0) {
-            Task_SpawnFromTable(D_neo_ark_shrine_80182508, 2, 0, 0);
+            taskSpawnFromTable(D_neo_ark_shrine_80182508, 2, 0, 0);
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0xD;
             gameFlagSetNibble(GAME_FLAG_0E9, 1);
             next = task->state + 1;

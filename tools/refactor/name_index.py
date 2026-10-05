@@ -164,7 +164,7 @@ _ASSERT = re.compile(r"STATIC_ASSERT_SIZEOF\(\s*(\w+)\s*,\s*([^)]+)\)")
 # silently.
 _MEMOP = re.compile(
     r"\b(memFillBytes|memSet|memMalloc|Mem_Calloc|memCalloc"
-    r"|Mem_CopyUnaligned|memCopyUnaligned|memcpy|memset|bcopy)\s*\(([^;]{0,200})\)")
+    r"|memCopyBytes|memCopyUnaligned|memcpy|memset|bcopy)\s*\(([^;]{0,200})\)")
 _NUM = re.compile(r"\b(0x[0-9A-Fa-f]+|\d+)\b")
 
 

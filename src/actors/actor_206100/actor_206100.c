@@ -1853,7 +1853,7 @@ static inline void _actor206100SpawnShot(Task* task)
     SVECTOR               tip;
 
     head     = &task->extra.tmd->coords[4];
-    shotTask = Task_SpawnFromTable(D_actor_206100_80158B0C, 1, 0, 0);
+    shotTask = taskSpawnFromTable(D_actor_206100_80158B0C, 1, 0, 0);
     if (shotTask != NULL) {
         shot = memCalloc(sizeof(_Actor206100ShotWork), 0);
         if (shot == NULL) {
@@ -2104,7 +2104,7 @@ static void func_actor_206100_8014CB68(Task* task)
         D_actor_206100_80158CCC.modulateTexture                    = SCREEN_WAVE_MODULATE_TEXTURE;
         D_actor_206100_80158CCC.g                                  = 0x80;
         D_actor_206100_80158CCC.b                                  = 0x80;
-        work->waveTask                                             = Task_SpawnFromTable(D_actor_206100_80158AF0, 0, 0, &D_actor_206100_80158CCC);
+        work->waveTask                                             = taskSpawnFromTable(D_actor_206100_80158AF0, 0, 0, &D_actor_206100_80158CCC);
     }
 }
 static void func_actor_206100_8014CD08(Task* task)
@@ -3818,7 +3818,7 @@ static void func_actor_206100_8014FDE8(Task* task)
     work->goalY         = work->goalY + 0x10;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     if (work->stateFrames == 0x5A) {
-        Task_SpawnFromTable(D_neo_ark_submarine_gallery_801818BC, 0, 0, 0);
+        taskSpawnFromTable(D_neo_ark_submarine_gallery_801818BC, 0, 0, 0);
     }
     if (work->stateFrames >= 0x10E) {
         task->state    = 4;

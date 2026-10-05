@@ -232,7 +232,7 @@ void func_shelter_1f_guardroom_8017D5E8(Task* task)
                 break;
             }
             gGameSession->hideHud           = 1;
-            D_shelter_1f_guardroom_8017E014 = Task_SpawnFromTable(&D_shelter_1f_guardroom_8017DA6C, 0, 0, 0);
+            D_shelter_1f_guardroom_8017E014 = taskSpawnFromTable(&D_shelter_1f_guardroom_8017DA6C, 0, 0, 0);
             task->state++;
             break;
         case 3:
@@ -276,7 +276,7 @@ s32 func_shelter_1f_guardroom_8017D788(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
     if (arg2 == 2) {
         if (gameFlagGetNibble(GAME_FLAG_SHELTER_1F_BULWARK_UNLOCKED) == 0) {
             Gp_MsgPlayerWeapon(0);
-            Task_SpawnFromTable(&D_shelter_1f_guardroom_8017DA60, 0, 0, 0);
+            taskSpawnFromTable(&D_shelter_1f_guardroom_8017DA60, 0, 0, 0);
         } else {
             Gp_RunCapCmd1(3);
         }

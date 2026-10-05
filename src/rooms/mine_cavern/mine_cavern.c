@@ -294,7 +294,7 @@ s32 func_mine_cavern_8017DAA0(Task* task, s32 msgId, s32 arg2, s32 arg3)
         }
     spawn:
         Gp_RunCapCmd1(cmd);
-        Task_SpawnFromTable(D_mine_cavern_80183CA4, 0, 0, 0);
+        taskSpawnFromTable(D_mine_cavern_80183CA4, 0, 0, 0);
         goto rest;
     cap_only:
         Gp_RunCapCmd1(cmd);
@@ -387,7 +387,7 @@ static void func_mine_cavern_8017DDFC(Task* arg0)
     } else {
         gStageSceneMusicEntry = 1;
     }
-    Task_SpawnFromTable(&D_mine_cavern_8018E3F4, 0, 0, 0);
+    taskSpawnFromTable(&D_mine_cavern_8018E3F4, 0, 0, 0);
     if (gameFlagGetNibble(GAME_FLAG_B6_NURSERY_PROGRESS) != 0) {
         func_mine_cavern_8017E3A0(1);
     } else {

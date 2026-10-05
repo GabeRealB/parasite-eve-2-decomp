@@ -380,7 +380,7 @@ s32 func_shelter_b1_armory_801806F8(Task* task, s32 msgId, const void* firstArg,
 
     if (request->actionId == 1) {
         Gp_MsgPlayerWeapon(0);
-        Task_SpawnFromTable(D_shelter_b1_armory_801824E8, 1, 0, 0);
+        taskSpawnFromTable(D_shelter_b1_armory_801824E8, 1, 0, 0);
     }
     return 0;
 }

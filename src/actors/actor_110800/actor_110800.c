@@ -34,7 +34,7 @@ extern ViewFigureWork* gViewFigureWork;
 /// nodes.
 extern Task* gActorSelfTask;
 
-/// The helper task `Task_SpawnFromTable` returns in the step-0 handler; the
+/// The helper task `taskSpawnFromTable` returns in the step-0 handler; the
 /// visibility handler drives its model alongside the actor's, and the exit
 /// callback kills it.
 extern Task* gActorHelperTask;

@@ -1080,7 +1080,7 @@ static void Actor01100_Fn0097C(Enemy* enemy, Task* task, _Actor01100Work* unused
     task->spawnArg1.value &= 0xFFFF0000;
     work                   = memCalloc(sizeof(_Actor01100Work), 0);
     if (work == NULL) {
-        Task_CallExit(task);
+        taskCallExit(task);
         return;
     }
 
@@ -2208,7 +2208,7 @@ static void Actor01100_Fn02960(Enemy* enemy, Task* task, _Actor01100Work* work, 
         Gp_DrawFloorQuad(task->extra.tmd->coords, 0x600, NULL);
     }
     if (work->mode >= ACTOR_01100_MODE_FINISHED) {
-        Task_CallExit(task);
+        taskCallExit(task);
     }
 }
 
@@ -2947,7 +2947,7 @@ static void Actor01100_Fn04DB4(Enemy* enemy, Task* task, _Actor01100Work* work, 
                 scratch->shortVector.vx = (dir != 0) ? 0x12C : -0x12C;
                 scratch->shortVector.vy = 0;
                 scratch->shortVector.vz = 0;
-                spawned                 = Task_SpawnFromTable(Actor01100_D155E0, kind, yaw, 0);
+                spawned                 = taskSpawnFromTable(Actor01100_D155E0, kind, yaw, 0);
                 if (spawned != NULL) {
                     Gp_CopyCoordOffset(spawned, part, &scratch->shortVector);
                     taskReparent(task, spawned);
@@ -3388,13 +3388,13 @@ static void Actor01100_Fn05E68(Task* task)
     coord = task->extra.tmd->coords;
     work  = memCalloc(sizeof(_Actor01100SpitWork), 0);
     if (work == NULL) {
-        Task_CallExit(task);
+        taskCallExit(task);
         return;
     }
     task->work = work;
     eff        = Gp_SpawnEff(EFFECT_PROJECTILE_GLOW_SPRITE, coord, 0, 0);
     if (eff == NULL) {
-        Task_CallExit(task);
+        taskCallExit(task);
         return;
     }
     task->spawnArg2.pointer = eff->task;
@@ -3511,7 +3511,7 @@ static void Actor01100_Fn06198(Task* task)
         countdown           = task->killCountdown - 1;
         task->killCountdown = countdown;
         if ((countdown << 0x10) <= 0) {
-            Task_CallExit(task);
+            taskCallExit(task);
         }
     }
 }
@@ -3535,7 +3535,7 @@ static void Actor01100_Fn0638C(Task* task)
     variant      = stageAreaKey == GAME_LOCATION_KEY(3, 32, 0, 0);
     work         = memCalloc(sizeof(_Actor01100SpitWork), 0);
     if (work == NULL) {
-        Task_CallExit(task);
+        taskCallExit(task);
         return;
     }
     task->work = work;
@@ -4140,7 +4140,7 @@ static void Actor01100_Fn0736C(Task* arg0)
     temp_v0             = arg0->killCountdown - 1;
     arg0->killCountdown = temp_v0;
     if ((temp_v0 << 0x10) <= 0) {
-        Task_CallExit(arg0);
+        taskCallExit(arg0);
     }
 }
 
@@ -4191,7 +4191,7 @@ static void Actor01100_Fn073DC(Task* task)
         countdown           = (u16)task->killCountdown - 1;
         task->killCountdown = countdown;
         if ((countdown << 0x10) <= 0) {
-            Task_CallExit(task);
+            taskCallExit(task);
         }
     }
 }

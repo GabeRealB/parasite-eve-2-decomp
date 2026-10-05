@@ -124,7 +124,7 @@ s32 func_acropolis_forked_road_8017D5EC(Task* arg0, s32 arg1, RoomEventMsg* in, 
             if (in->queryOnly == ROOM_EVENT_EXECUTE) {
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 7;
                 Gp_MsgPlayerWeapon(0);
-                Task_SpawnFromTable(D_acropolis_forked_road_80180F44, 0, 0, 0);
+                taskSpawnFromTable(D_acropolis_forked_road_80180F44, 0, 0, 0);
                 gameFlagSetNibble(GAME_FLAG_OBSERVATORY_ROUTE_PROGRESS, 3);
             }
             return 0;
@@ -199,7 +199,7 @@ static void func_acropolis_forked_road_8017D970(Task* task)
 {
     if ((D_acropolis_forked_road_80180F3C.spawned == 0) && (gGameSession->location.loc.warp == 2)) {
         D_acropolis_forked_road_80180F3C.spawned = 1;
-        Task_SpawnFromTable(D_acropolis_forked_road_80180F44, 2, 0, 0);
+        taskSpawnFromTable(D_acropolis_forked_road_80180F44, 2, 0, 0);
     }
 }
 

@@ -1095,8 +1095,8 @@ s32 func_shelter_b2_laboratory_8017FD18(Task* arg0, s32 arg1, s32 arg2, s32 arg3
             D_shelter_b2_laboratory_801864BC.rec.endSound        = 0x541F0008;
             D_shelter_b2_laboratory_801864BC.rec.sceneSound      = 0x541F0006;
             D_shelter_b2_laboratory_801864BC.rec.afterSceneSound = 0x541F0007;
-            Task_SpawnFromTable(gRoomCutsceneTaskDescs, 0, 1, &D_shelter_b2_laboratory_801864BC.rec);
-            Task_SpawnFromTable(D_shelter_b2_laboratory_80182A6C, 2, 0, 0);
+            taskSpawnFromTable(gRoomCutsceneTaskDescs, 0, 1, &D_shelter_b2_laboratory_801864BC.rec);
+            taskSpawnFromTable(D_shelter_b2_laboratory_80182A6C, 2, 0, 0);
         } else {
             D_shelter_b2_laboratory_801864BC.rec.view            = 0xD;
             D_shelter_b2_laboratory_801864BC.rec.capSlot         = 1;
@@ -1107,7 +1107,7 @@ s32 func_shelter_b2_laboratory_8017FD18(Task* arg0, s32 arg1, s32 arg2, s32 arg3
             D_shelter_b2_laboratory_801864BC.rec.endSound        = 0x541F0008;
             D_shelter_b2_laboratory_801864BC.rec.sceneSound      = 0x541F0006;
             D_shelter_b2_laboratory_801864BC.rec.afterSceneSound = 0x541F0007;
-            Task_SpawnFromTable(gRoomCutsceneTaskDescs, 0, 8, &D_shelter_b2_laboratory_801864BC.rec);
+            taskSpawnFromTable(gRoomCutsceneTaskDescs, 0, 8, &D_shelter_b2_laboratory_801864BC.rec);
         }
     }
     return 0;
@@ -1209,7 +1209,7 @@ s32 func_shelter_b2_laboratory_801801D0(Task* task, s32 msgId, const void* first
     if (request->actionId == 1) {
         if (gameFlagGetNibble(GAME_FLAG_LABORATORY_CONSOLE_FIRST_USE) != 0) {
             if (gameFlagGetNibble(GAME_FLAG_SHELTER_B2_LABORATORY_PROGRESS) < 2) {
-                Task_SpawnFromTable(D_shelter_b2_laboratory_80182A6C, 0, 0, 0);
+                taskSpawnFromTable(D_shelter_b2_laboratory_80182A6C, 0, 0, 0);
             } else {
                 Gp_RunCapCmd1(6);
             }
@@ -1235,7 +1235,7 @@ void func_shelter_b2_laboratory_80180290(Task* task)
 
     switch (task->state) {
         case 0:
-            D_shelter_b2_laboratory_80182A68 = Task_SpawnFromTable(&D_actor_143000_80134564, 0, 0, 0);
+            D_shelter_b2_laboratory_80182A68 = taskSpawnFromTable(&D_actor_143000_80134564, 0, 0, 0);
             task->state                     += 1;
             return;
         case 1:
@@ -1264,7 +1264,7 @@ void func_shelter_b2_laboratory_80180350(Task* task)
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 0xE;
             gStageMusicParams.fadeOutTicks                      = 0;
             gStageMusicParams.field_2                           = 0;
-            Task_SpawnFromTable(&Stage_MusicTaskDesc, 0, 0, 0);
+            taskSpawnFromTable(&Stage_MusicTaskDesc, 0, 0, 0);
             task->state++;
             return;
         case 2:
@@ -1307,7 +1307,7 @@ void func_shelter_b2_laboratory_801804FC(void)
     if (D_shelter_b2_laboratory_801864B8 == 0) {
         D_shelter_b2_laboratory_801864B8 = 1;
         func_shelter_b2_laboratory_801820F4(1);
-        Task_SpawnFromTable(D_shelter_b2_laboratory_80182A6C, 1, 0, 0);
+        taskSpawnFromTable(D_shelter_b2_laboratory_80182A6C, 1, 0, 0);
     }
 }
 

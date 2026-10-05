@@ -1718,7 +1718,7 @@ static void func_acropolis_patio_8017D5EC(Task* arg0)
             TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(0), 0x7D4, &D_acropolis_patio_80180428, 0);
             TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(0), ACTOR_COMMAND_MESSAGE_APPLY, &D_acropolis_patio_8018044C, 0);
             taskMessageDispatch(Gp_LookupSlot4(0), ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
-            D_acropolis_patio_80187060 = Task_SpawnFromTable(D_acropolis_patio_801802BC, 2, 0, 0);
+            D_acropolis_patio_80187060 = taskSpawnFromTable(D_acropolis_patio_801802BC, 2, 0, 0);
         }
         temp = Gp_LookupSlot4(1);
         if (temp != 0) {
@@ -1779,7 +1779,7 @@ s32 func_acropolis_patio_8017D7D0(Task* arg0, s32 arg1, RoomEventMsg* arg2, Room
         if (gameFlagGetNibble(GAME_FLAG_PATIO_CAFETERIA_DOOR_STATE) == 2) {
             var_v0 = 2;
             if (arg2->queryOnly == 0) {
-                Task_SpawnFromTable(D_acropolis_patio_801802BC, 1, 0, 0);
+                taskSpawnFromTable(D_acropolis_patio_801802BC, 1, 0, 0);
                 Gp_SetItemSeenBit(0x101, 1);
                 D_acropolis_patio_80187064 = arg2->warp;
                 D_acropolis_patio_80187065 = arg2->room;
@@ -2015,7 +2015,7 @@ void func_acropolis_patio_8017DFE4(s32 arg0)
 }
 void func_acropolis_patio_8017E024(void)
 {
-    Task_SpawnFromTable(&D_acropolis_patio_80182800, 0, 0, 0);
+    taskSpawnFromTable(&D_acropolis_patio_80182800, 0, 0, 0);
 }
 
 /// Slow left turn-in-place: nudges the player's facing angle by -0x80 each

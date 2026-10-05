@@ -995,7 +995,7 @@ void func_shelter_b1_sterilization_room_801815EC(void)
 {
     if (!(D_shelter_b1_sterilization_room_8018C340 & 0x20)) {
         D_shelter_b1_sterilization_room_8018C340 |= 0x20;
-        Task_SpawnFromTable(D_shelter_b1_sterilization_room_80188504, 5, 0, 0);
+        taskSpawnFromTable(D_shelter_b1_sterilization_room_80188504, 5, 0, 0);
     }
 }
 

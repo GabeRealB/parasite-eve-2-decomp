@@ -601,7 +601,7 @@ static void _modelObjectStashLists(void)
 /// Requires a preceding stash whose saved elements are still alive.
 static void _modelObjectRestoreLists(void)
 {
-    Task_CallExit(_gModelObjectTemporaryDrawTask);
+    taskCallExit(_gModelObjectTemporaryDrawTask);
     gTmdList                  = _gModelObjectSavedModelList;
     gModelObjectCoordBodyList = _gModelObjectSavedDisp2dList;
 }
@@ -621,7 +621,7 @@ static Task* _modelObjectFindTaskByCoord(GfxCoord* targetCoord)
     s32        found;
     u32        partCount;
 
-    task = Task_GetActiveList()->next;
+    task = taskGetActiveList()->next;
     if (task != NULL) {
         do {
             found = 0;

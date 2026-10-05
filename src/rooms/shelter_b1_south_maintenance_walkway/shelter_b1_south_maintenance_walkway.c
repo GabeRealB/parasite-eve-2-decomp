@@ -454,7 +454,7 @@ static __inline__ s32 _shelterB1SouthMaintenanceWalkwayStartEvent(
             if (event->flagId != 0) {
                 gameFlagSetNibble(event->flagId, 1);
             }
-            Task_SpawnFromTable(&D_shelter_b1_south_maintenance_walkway_801822FC, 0, 0, 0);
+            taskSpawnFromTable(&D_shelter_b1_south_maintenance_walkway_801822FC, 0, 0, 0);
             D_shelter_b1_south_maintenance_walkway_80183644_value = 1;
         }
         return 2;

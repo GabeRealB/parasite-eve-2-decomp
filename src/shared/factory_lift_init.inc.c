@@ -5,7 +5,7 @@
 /// and the light/color matrices at the block's own, then pick the spawn table
 /// for this session variant and hand the model to its own state machine.
 ///
-/// The two spawn tables are passed straight to `Task_SpawnFromTable` from each
+/// The two spawn tables are passed straight to `taskSpawnFromTable` from each
 /// arm rather than through a variable: the argument is then a bare symbol, so
 /// the `lui`/`addiu` pair is built in `$a0` itself and `jump2` merges the two
 /// arms' identical tails back into one call.
@@ -44,9 +44,9 @@ void factoryLiftInit(Task* task)
     factoryLiftBindLighting(task);
     factoryLiftSyncCollision(task, 1, 0);
     if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
-        Task_SpawnFromTable(gFactoryDaySpawnTable, 7, 0, task);
+        taskSpawnFromTable(gFactoryDaySpawnTable, 7, 0, task);
     } else {
-        Task_SpawnFromTable(gFactoryNightSpawnTable, 7, 0, task);
+        taskSpawnFromTable(gFactoryNightSpawnTable, 7, 0, task);
     }
     task->exitCallback  = factoryLiftExit;
     task->killCountdown = 0;

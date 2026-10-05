@@ -645,7 +645,7 @@ s32 func_neo_ark_pyramid_8017DA44(Task* task, s32 msgId, const void* firstArg, s
         } else {
             Gp_MsgPlayerWeapon(0);
             Gp_MsgPlayer3F3(0);
-            Task_SpawnFromTable(&D_neo_ark_pyramid_8017FC0C, 0, 0, 0);
+            taskSpawnFromTable(&D_neo_ark_pyramid_8017FC0C, 0, 0, 0);
         }
     }
     return 0;

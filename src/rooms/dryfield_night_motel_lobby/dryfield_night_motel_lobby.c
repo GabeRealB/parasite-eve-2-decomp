@@ -202,7 +202,7 @@ s32 func_dryfield_night_motel_lobby_8017FB7C(Task* arg0, s32 arg1, s32 arg2, s32
         D_dryfield_night_motel_lobby_801844E0.endSound        = 0x53110004;
         D_dryfield_night_motel_lobby_801844E0.sceneSound      = 0x53110005;
         D_dryfield_night_motel_lobby_801844E0.afterSceneSound = 0x53110006;
-        Task_SpawnFromTable(gRoomCutsceneTaskDescs, 0, 4, &D_dryfield_night_motel_lobby_801844E0);
+        taskSpawnFromTable(gRoomCutsceneTaskDescs, 0, 4, &D_dryfield_night_motel_lobby_801844E0);
     }
     return 0;
 }
@@ -215,7 +215,7 @@ s32 func_dryfield_night_motel_lobby_8017FC6C(Task* task, s32 msgId, const void* 
         if (gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_LOBBY_EVENT_SEEN) == 0) {
             Gp_MsgPlayerWeapon(0);
             Gp_MsgPlayer3F3(0);
-            Task_SpawnFromTable(D_dryfield_night_motel_lobby_801827FC, 0, 0, 0);
+            taskSpawnFromTable(D_dryfield_night_motel_lobby_801827FC, 0, 0, 0);
         } else {
             Gp_RunCapCmd1(8);
         }
@@ -237,7 +237,7 @@ void func_dryfield_night_motel_lobby_8017FD10(Task* task)
 
     switch (task->state) {
         case 0:
-            D_dryfield_night_motel_lobby_801844CC = Task_SpawnFromTable(&D_dryfield_night_motel_lobby_801828D4, 0, 0, 0);
+            D_dryfield_night_motel_lobby_801844CC = taskSpawnFromTable(&D_dryfield_night_motel_lobby_801828D4, 0, 0, 0);
             task->state++;
             return;
         case 1:

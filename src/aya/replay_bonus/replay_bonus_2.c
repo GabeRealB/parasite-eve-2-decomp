@@ -371,7 +371,7 @@ static void func_replay_bonus_80117924(Task* arg0)
     if ((s16)remaining < 0) {
         gDisplayState.gameMode = DISPLAY_GAME_ACTIVE;
         gGameSession->uiOpen   = 0;
-        Task_CallExit(arg0);
+        taskCallExit(arg0);
         gDisplayState.gameMode = DISPLAY_GAME_RESTART;
     }
 }
@@ -452,11 +452,11 @@ void func_replay_bonus_80117A08(Task* arg0)
             temp_v0_2           = arg0->killCountdown - 1;
             arg0->killCountdown = temp_v0_2;
             if ((temp_v0_2 << 0x10) <= 0) {
-                Task_SpawnFromTable(D_replay_bonus_8011922C, 1, 0xB4, 0);
+                taskSpawnFromTable(D_replay_bonus_8011922C, 1, 0xB4, 0);
                 arg0->state = 0xA;
             }
             if (Pad_CheckFlag800() != 0) {
-                Task_SpawnFromTable(D_replay_bonus_8011922C, 2, 0x1E, 0);
+                taskSpawnFromTable(D_replay_bonus_8011922C, 2, 0x1E, 0);
                 CdCmd_CancelReplaceAndActivate();
                 arg0->state         = 0xB;
                 arg0->killCountdown = 0x1E;
@@ -480,7 +480,7 @@ void func_replay_bonus_80117A08(Task* arg0)
             }
             if (Pad_CheckFlag800() != 0) {
                 CdCmd_CancelReplaceAndActivate();
-                Task_SpawnFromTable(D_replay_bonus_8011922C, 2, 0x1E, 0);
+                taskSpawnFromTable(D_replay_bonus_8011922C, 2, 0x1E, 0);
                 arg0->killCountdown = 0x1E;
                 arg0->state        += 1;
                 return;
@@ -492,7 +492,7 @@ void func_replay_bonus_80117A08(Task* arg0)
             temp_v0_3           = arg0->killCountdown - 1;
             arg0->killCountdown = temp_v0_3;
             if ((s16)temp_v0_3 == 0xB4) {
-                Task_SpawnFromTable(D_replay_bonus_8011922C, 2, 0xB4, 0);
+                taskSpawnFromTable(D_replay_bonus_8011922C, 2, 0xB4, 0);
             }
             if ((s16)arg0->killCountdown <= 0) {
                 arg0->state = 0x14;
@@ -814,7 +814,7 @@ static void func_replay_bonus_801183B8(s32 y, ReplayBonusStfCommand* cmds)
                                 break;
                         }
                         D_replay_bonus_801192B8 = x;
-                        Task_SpawnFromTable(D_replay_bonus_8011922C, 3, idx + 1, 0);
+                        taskSpawnFromTable(D_replay_bonus_8011922C, 3, idx + 1, 0);
                     }
                     break;
                 case REPLAY_BONUS_STF_COMMAND_SPRITE:
@@ -943,7 +943,7 @@ void func_replay_bonus_80118C64(Task* arg0)
             picture->vramY          = (D_replay_bonus_80119226 ^ 1) << 8;
             picture->width          = REPLAY_BONUS_PICTURE_WIDTH;
             picture->height         = REPLAY_BONUS_PICTURE_HEIGHT;
-            D_replay_bonus_80119228 = Task_SpawnFromTable(&D_replay_bonus_80118F6C, 0, 0, picture);
+            D_replay_bonus_80119228 = taskSpawnFromTable(&D_replay_bonus_80118F6C, 0, 0, picture);
             D_replay_bonus_80119225 = 1;
             arg0->state            += 1;
             break;

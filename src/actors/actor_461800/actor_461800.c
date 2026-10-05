@@ -996,7 +996,7 @@ void func_actor_461800_801321DC(s32 arg0)
 {
     if (arg0 < 0) {
         if (D_actor_461800_80133EB4 == NULL) {
-            D_actor_461800_80133EB4 = Task_SpawnFromTable(D_actor_461800_80133EBC, 0, 0, 0);
+            D_actor_461800_80133EB4 = taskSpawnFromTable(D_actor_461800_80133EBC, 0, 0, 0);
         }
     } else {
         D_actor_461800_80133EB4->state = arg0;
@@ -1007,7 +1007,7 @@ void func_actor_461800_8013223C(s32 arg0)
 {
     if (arg0 < 0) {
         if (D_actor_461800_80133EB8 == NULL) {
-            D_actor_461800_80133EB8 = Task_SpawnFromTable(D_actor_461800_80133EBC, 1, 0, 0);
+            D_actor_461800_80133EB8 = taskSpawnFromTable(D_actor_461800_80133EBC, 1, 0, 0);
         }
     } else {
         D_actor_461800_80133EB8->state = arg0;
@@ -1085,13 +1085,13 @@ static void func_actor_461800_80132390(Enemy* enemy, Task* task)
     gScriptedWalkWork->st.animId = 1;
     gScriptedWalkWork->st.state  = ACTOR_ENEMY_ANIM_RESET;
 
-    spawned1 = Task_SpawnFromTable(D_actor_461800_80139F8C, 1, 8, 0);
+    spawned1 = taskSpawnFromTable(D_actor_461800_80139F8C, 1, 8, 0);
     if (spawned1 != NULL) {
         gScriptedWalkWork->attachment1 = spawned1;
         actorTintModel(spawned1->extra.tmd, (Enemy*)task->spawnArg2.pointer);
     }
 
-    spawned2 = Task_SpawnFromTable(D_actor_461800_80139F8C, 2, 0xC, 0);
+    spawned2 = taskSpawnFromTable(D_actor_461800_80139F8C, 2, 0xC, 0);
     if (spawned2 != NULL) {
         gScriptedWalkWork->attachment2 = spawned2;
         actorTintModel(spawned2->extra.tmd, (Enemy*)task->spawnArg2.pointer);

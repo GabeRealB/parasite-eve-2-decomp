@@ -123,7 +123,14 @@ void Mem_AllocAuxWithImages(s16 flags);
 /// Configure the aux heap from a Gfx image-slot table (implemented in boot.c).
 void Mem_ConfigureAuxHeap(s32 arg0, s32 arg1);
 
-/// Byte copy that does not require aligned src/dest (implemented in task.c).
-void Mem_CopyUnaligned(void* src, void* dest, u32 count);
+/// Copies the low 16 bits of a byte count from source to destination, advancing forward.
+///
+/// The copied regions must be readable and writable for `sizeBytes & 0xFFFF`
+/// bytes. For an effective count of at least four, both addresses must have the same
+/// residue modulo four: source alignment selects byte, halfword and word
+/// accesses for both pointers. Smaller copies use bytes only. There is no
+/// overlap handling; use disjoint regions. A zero effective count accesses
+/// neither region. Source comes first, unlike the SDK's memcpy interface.
+void memCopyBytes(const void* source, void* destination, u32 sizeBytes);
 
 #endif // MAIN_MEM_H

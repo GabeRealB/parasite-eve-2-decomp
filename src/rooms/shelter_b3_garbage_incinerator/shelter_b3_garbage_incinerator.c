@@ -136,7 +136,7 @@ s32 func_shelter_b3_garbage_incinerator_8017D840(Task* arg0, s32 arg1, RoomEvent
         D_shelter_b3_garbage_incinerator_8018FC2C = *out;
         gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
         gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 1);
-        Task_SpawnFromTable(&D_shelter_b3_garbage_incinerator_801855CC, 0, 0, 0);
+        taskSpawnFromTable(&D_shelter_b3_garbage_incinerator_801855CC, 0, 0, 0);
         return 2;
     }
     if (in->areaId == GAME_AREA_SHELTER_B3_DUMPING_HOLE && in->queryOnly == ROOM_EVENT_EXECUTE) {
@@ -154,7 +154,7 @@ s32 func_shelter_b3_garbage_incinerator_8017D9BC(Task* arg0, s32 arg1, RoomEvent
 {
     if (in->warp == 2 && gGameSession->incineratorExitPhase == GAME_SESSION_INCINERATOR_EXIT_NONE) {
         if (gGameSession->incineratorDescentPhase == GAME_SESSION_INCINERATOR_DESCENT_COMPLETE) {
-            Task_SpawnFromTable(&D_shelter_b3_garbage_incinerator_801855E0, 0, 0, 0);
+            taskSpawnFromTable(&D_shelter_b3_garbage_incinerator_801855E0, 0, 0, 0);
             gGameSession->incineratorExitPhase = GAME_SESSION_INCINERATOR_EXIT_WARP;
         } else if (D_shelter_b3_garbage_incinerator_801855DC >= 0x3D) {
             sndEvtRequestScriptStart(SOUND_SHELTER_B3_INCINERATOR_SWITCH_PRESS, 0, 0);
@@ -173,12 +173,12 @@ s32 func_shelter_b3_garbage_incinerator_8017DA74(Task* arg0, s32 arg1, s32 arg2,
             break;
         case 1:
             gGameSession->skipEventIntro = 1;
-            Task_SpawnFromTable(&D_actor_444000_801449F4, 0, 0, 0);
+            taskSpawnFromTable(&D_actor_444000_801449F4, 0, 0, 0);
             break;
         case 2:
             gGameSession->skipEventIntro              = 1;
             D_shelter_b3_garbage_incinerator_801855DE = 1;
-            Task_SpawnFromTable(&D_actor_444000_801449F4, 0, 1, 0);
+            taskSpawnFromTable(&D_actor_444000_801449F4, 0, 1, 0);
             break;
     }
     return 0;
@@ -202,12 +202,12 @@ static void func_shelter_b3_garbage_incinerator_8017DB7C(Task* task)
     task->msgTable = D_shelter_b3_garbage_incinerator_80185594;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     func_shelter_b3_garbage_incinerator_8018108C(0x180, 0, 0);
-    D_shelter_b3_garbage_incinerator_801855D8 = Task_SpawnFromTable(&D_shelter_b3_garbage_incinerator_80185BA0, 0, 0, 0);
+    D_shelter_b3_garbage_incinerator_801855D8 = taskSpawnFromTable(&D_shelter_b3_garbage_incinerator_80185BA0, 0, 0, 0);
     if (gGameSession->location.loc.room >= 4) {
-        Task_SpawnFromTable(D_shelter_b3_garbage_incinerator_80187150, 0, 0, 0);
+        taskSpawnFromTable(D_shelter_b3_garbage_incinerator_80187150, 0, 0, 0);
     }
     if (gGameSession->location.loc.variant == 2) {
-        Task_SpawnFromTable(D_actor_342400_8016BFE0, 0, 0, 0);
+        taskSpawnFromTable(D_actor_342400_8016BFE0, 0, 0, 0);
     }
     task->state = task->state + 1;
 }

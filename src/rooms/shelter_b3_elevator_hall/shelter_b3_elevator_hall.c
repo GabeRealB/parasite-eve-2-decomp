@@ -178,7 +178,7 @@ void func_shelter_b3_elevator_hall_8017DAF0(Task* task)
         case 2:
             if (gameFlagGetNibble(GAME_FLAG_0CF) != 0) {
                 Gp_RunCapCmd(4, 0);
-                Task_SpawnFromTable(D_shelter_b3_elevator_hall_80182A2C, 0, 0x542A0001, 0);
+                taskSpawnFromTable(D_shelter_b3_elevator_hall_80182A2C, 0, 0x542A0001, 0);
                 taskKill(task);
             } else {
                 Gp_RunCapCmd1(3);
@@ -244,7 +244,7 @@ s32 func_shelter_b3_elevator_hall_8017DC80(Task* arg0, s32 arg1, RoomEventMsg* i
             Gp_RunCapCmd1(2);
             gameFlagSetNibble(GAME_FLAG_SHELTER_ELEVATOR_ENABLED, 1);
         }
-        Task_SpawnFromTable(D_shelter_b3_elevator_hall_80182A68, 0, 0x542A0001, 0);
+        taskSpawnFromTable(D_shelter_b3_elevator_hall_80182A68, 0, 0x542A0001, 0);
     }
     return 0;
 }

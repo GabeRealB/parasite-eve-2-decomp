@@ -2274,8 +2274,8 @@ static void func_actor_511000_80132480(Task* task)
             Gp_DrawEffGroundQuad(&pos, 0x200, gRoomEffectState->groundShadowShade);
         }
     }
-    work->gunTask  = Task_SpawnFromTable(D_actor_511000_801472E8, 1, 8, task);
-    work->propTask = Task_SpawnFromTable(D_actor_511000_801472E8, 2, 0xC, task);
+    work->gunTask  = taskSpawnFromTable(D_actor_511000_801472E8, 1, 8, task);
+    work->propTask = taskSpawnFromTable(D_actor_511000_801472E8, 2, 0xC, task);
     func_actor_511000_801325A4(task);
     task->msgTable     = D_actor_511000_8014730C;
     task->exitCallback = enemyTaskExit;
@@ -2921,7 +2921,7 @@ s32 func_actor_511000_80133554(Task* task, s32 arg1, s32 msg, s32 arg3)
     }
     if (msg == 1 && work->partsSpawned == 0) {
         for (i = 1; i < 4; i++) {
-            child = Task_SpawnFromTable(D_actor_511000_80139924, D_actor_511000_80149054[i - 1], i, task);
+            child = taskSpawnFromTable(D_actor_511000_80139924, D_actor_511000_80149054[i - 1], i, task);
             if (child != NULL) {
                 child->extra.tmd->flags &= ~(TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
             }

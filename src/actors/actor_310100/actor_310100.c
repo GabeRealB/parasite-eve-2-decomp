@@ -1057,7 +1057,7 @@ void func_actor_310100_801627BC(Task* task)
                 while (place->entryId != AREA_PLACEMENT_END && place->entryId != ACTOR_310100_PLACEMENT_OFFICER_1) {
                     place++;
                 }
-                child             = Task_SpawnFromTable(D_actor_310100_801798FC, 2, 1, 0);
+                child             = taskSpawnFromTable(D_actor_310100_801798FC, 2, 1, 0);
                 work->modelTask   = child;
                 coord             = child->extra.tmd->coords;
                 coord->coord.t[0] = place->x;
@@ -1135,7 +1135,7 @@ void func_actor_310100_801629FC(Task* task)
                 while (place->entryId != AREA_PLACEMENT_END && place->entryId != ACTOR_310100_PLACEMENT_OFFICER_2) {
                     place++;
                 }
-                child             = Task_SpawnFromTable(D_actor_310100_80179920, 2, (s32)(work->spawnAnimationId), 0);
+                child             = taskSpawnFromTable(D_actor_310100_80179920, 2, (s32)(work->spawnAnimationId), 0);
                 work->modelTask   = child;
                 coord             = child->extra.tmd->coords;
                 coord->coord.t[0] = place->x;

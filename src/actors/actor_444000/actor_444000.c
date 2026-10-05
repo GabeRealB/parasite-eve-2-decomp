@@ -2933,7 +2933,7 @@ void func_actor_444000_80132358(Task* task)
             if (gGameSession->eventState == 0) {
                 D_shelter_b3_garbage_incinerator_801855DE = 0;
                 gGameSession->sceneClock                  = D_shelter_b3_garbage_incinerator_8018FBC8[0];
-                Task_SpawnFromTable(D_shelter_b3_garbage_incinerator_80187150, 0, 1, 0);
+                taskSpawnFromTable(D_shelter_b3_garbage_incinerator_80187150, 0, 1, 0);
                 taskKill(task);
                 return;
             }

@@ -903,8 +903,8 @@ s32 func_shelter_b6_nursery_8017FA54(Task* task, s32 msgId, s32 arg2, s32 arg3)
             D_shelter_b6_nursery_80187980.rec.capSlot   = 0xB;
             D_shelter_b6_nursery_80187980.rec.capFile   = 0;
             D_shelter_b6_nursery_80187980.rec.skipScene = flag;
-            Task_SpawnFromTable(gRoomCutsceneTaskDescs, 0, 0x19,
-                                &D_shelter_b6_nursery_80187980.rec);
+            taskSpawnFromTable(gRoomCutsceneTaskDescs, 0, 0x19,
+                               &D_shelter_b6_nursery_80187980.rec);
             func_actor_450800_80132028();
             func_shelter_b6_nursery_80182D14(0, 0);
             return 0;
@@ -918,8 +918,8 @@ s32 func_shelter_b6_nursery_8017FA54(Task* task, s32 msgId, s32 arg2, s32 arg3)
         D_shelter_b6_nursery_80187980.rec.capSlot   = 0x16;
         D_shelter_b6_nursery_80187980.rec.capFile   = 0;
         D_shelter_b6_nursery_80187980.rec.skipScene = 0;
-        Task_SpawnFromTable(gRoomCutsceneTaskDescs, 0, 0xA,
-                            &D_shelter_b6_nursery_80187980.rec);
+        taskSpawnFromTable(gRoomCutsceneTaskDescs, 0, 0xA,
+                           &D_shelter_b6_nursery_80187980.rec);
     }
     return 0;
 }
@@ -1040,7 +1040,7 @@ void func_shelter_b6_nursery_8017FFF4(void)
 {
     if (D_shelter_b6_nursery_8018797C == 0) {
         D_shelter_b6_nursery_8018797C = 1;
-        Task_SpawnFromTable(&D_shelter_b6_nursery_80185000, 0, 0, 0);
+        taskSpawnFromTable(&D_shelter_b6_nursery_80185000, 0, 0, 0);
     }
 }
 

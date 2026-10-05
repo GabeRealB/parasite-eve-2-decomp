@@ -1704,13 +1704,13 @@ static void func_shelter_b1_underground_parking_801826C0(Task* roomTask)
                     if ((u32)(facing - 0xA01) < 0x3FFU) {
                         Gp_MsgPlayerWeapon(0);
                         Gp_StartCapSlot(0xA, 0, 1);
-                        Task_SpawnFromTable(D_shelter_b1_underground_parking_8018726C, 4, 0, 0);
+                        taskSpawnFromTable(D_shelter_b1_underground_parking_8018726C, 4, 0, 0);
                     }
                 }
                 if ((padCheckButtons(0, PAD_BUTTON_QUERY_HELD_ANY, PAD_BUTTON_DOWN) != 0) && ((u32)(facing - 0x201) < 0x3FFU)) {
                     Gp_MsgPlayerWeapon(0);
                     Gp_StartCapSlot(0xA, 0, 1);
-                    Task_SpawnFromTable(D_shelter_b1_underground_parking_8018726C, 4, 0, 0);
+                    taskSpawnFromTable(D_shelter_b1_underground_parking_8018726C, 4, 0, 0);
                 }
             }
         }
@@ -1756,7 +1756,7 @@ s32 func_shelter_b1_underground_parking_80182830(Task* task, s32 msgId, RoomEven
             case 5:
                 Gp_MsgPlayerWeapon(0);
                 Gp_RunCapCmd1(0xC);
-                Task_SpawnFromTable(D_shelter_b1_underground_parking_8018726C, 1, 0, 0);
+                taskSpawnFromTable(D_shelter_b1_underground_parking_8018726C, 1, 0, 0);
                 break;
             case 6:
             case 7:
@@ -1776,7 +1776,7 @@ s32 func_shelter_b1_underground_parking_80182830(Task* task, s32 msgId, RoomEven
                 } else if (gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) < 6) {
                     Gp_MsgPlayerWeapon(0);
                     Gp_StartCapSlot(0xB, 1, 1);
-                    Task_SpawnFromTable(D_shelter_b1_underground_parking_8018726C, 3, 0, 0);
+                    taskSpawnFromTable(D_shelter_b1_underground_parking_8018726C, 3, 0, 0);
                 } else {
                     Gp_StartCapSlot(0xB, 1, 2);
                 }
@@ -1804,12 +1804,12 @@ s32 func_shelter_b1_underground_parking_80182A60(Task* task, s32 msgId, s32 arg2
                     } else {
                         Gp_MsgPlayerWeapon(0);
                         Gp_MsgPlayer3F3(0);
-                        Task_SpawnFromTable(D_shelter_b1_underground_parking_8018726C, 0, 0, 0);
+                        taskSpawnFromTable(D_shelter_b1_underground_parking_8018726C, 0, 0, 0);
                     }
                 } else {
                     Gp_MsgPlayerWeapon(0);
                     Gp_MsgPlayer3F3(0);
-                    Task_SpawnFromTable(D_shelter_b1_underground_parking_8018726C, 0, 0, 0);
+                    taskSpawnFromTable(D_shelter_b1_underground_parking_8018726C, 0, 0, 0);
                 }
             } else {
                 Gp_RunCapCmd1(0x10);
@@ -1860,7 +1860,7 @@ s32 func_shelter_b1_underground_parking_80182A60(Task* task, s32 msgId, s32 arg2
         case 3:
         case 5:
             Gp_MsgPlayerWeapon(0);
-            Task_SpawnFromTable(D_shelter_b1_underground_parking_8018726C, 6, arg2, 0);
+            taskSpawnFromTable(D_shelter_b1_underground_parking_8018726C, 6, arg2, 0);
             break;
         case 13:
             st                  = &D_shelter_b1_underground_parking_8018D75C.rec;
@@ -1873,28 +1873,28 @@ s32 func_shelter_b1_underground_parking_80182A60(Task* task, s32 msgId, s32 arg2
                 if (gameFlagGetNibble(GAME_FLAG_UNDERGROUND_PARKING_FIRST_SCENE) == 0) {
                     Gp_MsgPlayerWeapon(0);
                     gameFlagSetNibble(GAME_FLAG_UNDERGROUND_PARKING_FIRST_SCENE, 1);
-                    Task_SpawnFromTable(D_shelter_b1_underground_parking_8018726C, 6, 1, 0);
+                    taskSpawnFromTable(D_shelter_b1_underground_parking_8018726C, 6, 1, 0);
                 } else {
                     st->capSlot   = 1;
                     st->capFile   = 1;
                     st->skipScene = 0;
-                    Task_SpawnFromTable(gRoomCutsceneTaskDescs, 0, 9, st);
+                    taskSpawnFromTable(gRoomCutsceneTaskDescs, 0, 9, st);
                 }
             } else {
                 D_shelter_b1_underground_parking_8018D758 = 0;
                 st->capSlot                               = 0x1F;
                 st->capFile                               = 0;
                 st->skipScene                             = 1;
-                Task_SpawnFromTable(gRoomCutsceneTaskDescs, 0, arg2, st);
+                taskSpawnFromTable(gRoomCutsceneTaskDescs, 0, arg2, st);
             }
             break;
         case 22:
             Gp_MsgPlayerWeapon(0);
-            Task_SpawnFromTable(D_shelter_b1_underground_parking_80187260, 0, arg2, 0);
+            taskSpawnFromTable(D_shelter_b1_underground_parking_80187260, 0, arg2, 0);
             break;
         case 48:
             Gp_MsgPlayerWeapon(0);
-            Task_SpawnFromTable(D_shelter_b1_underground_parking_8018726C, 6, 4, 0);
+            taskSpawnFromTable(D_shelter_b1_underground_parking_8018726C, 6, 4, 0);
             break;
     }
     return 0;
@@ -1958,7 +1958,7 @@ void func_shelter_b1_underground_parking_80182DB4(Task* task)
                 p->warp        = msg.warp;
                 p->room        = msg.room;
                 gRoomDeparture = rec;
-                Task_SpawnFromTable(&D_shelter_b1_underground_parking_80187200, 0, 0, 0);
+                taskSpawnFromTable(&D_shelter_b1_underground_parking_80187200, 0, 0, 0);
                 taskKill(task);
             }
             task->killCountdown--;
@@ -2095,7 +2095,7 @@ void func_shelter_b1_underground_parking_801834D4(Task* task)
 
     switch (task->state) {
         case 0:
-            D_shelter_b1_underground_parking_8018D74C = Task_SpawnFromTable(&D_shelter_b1_underground_parking_80187670, 0, 0, 0);
+            D_shelter_b1_underground_parking_8018D74C = taskSpawnFromTable(&D_shelter_b1_underground_parking_80187670, 0, 0, 0);
             task->state++;
             return;
         case 1:
@@ -2222,7 +2222,7 @@ static void func_shelter_b1_underground_parking_8018390C(void)
     if (D_shelter_b1_underground_parking_8018D758 == 0) {
         D_shelter_b1_underground_parking_8018D758 = 1;
         func_shelter_b1_underground_parking_80186890(1);
-        Task_SpawnFromTable(D_shelter_b1_underground_parking_8018726C, 5, 0, 0);
+        taskSpawnFromTable(D_shelter_b1_underground_parking_8018726C, 5, 0, 0);
     }
 }
 
@@ -2286,7 +2286,7 @@ static void func_shelter_b1_underground_parking_80184304(Task* task)
         taskKill(task);
         return;
     }
-    task->spawnArg2.pointer                                    = Task_SpawnFromTable(D_shelter_b1_underground_parking_80187664, 0, 1, 0);
+    task->spawnArg2.pointer                                    = taskSpawnFromTable(D_shelter_b1_underground_parking_80187664, 0, 1, 0);
     task->work                                                 = work;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0x15;
     /* The once-loops fold away, but flow weights the references inside them

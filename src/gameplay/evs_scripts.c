@@ -296,7 +296,7 @@ static void Gp_ScriptTaskState1(Task* arg0)
 
             case EVENT_SCRIPT_OPCODE_END:
                 if (D_8010FBE0 != NULL) {
-                    Task_CallExit(D_8010FBE0);
+                    taskCallExit(D_8010FBE0);
                     D_8010FBE0 = NULL;
                 }
                 D_801156F4.sceneKey      = NULL;
@@ -411,7 +411,7 @@ static void Gp_ScriptTaskState1(Task* arg0)
                 if (work->command->operand0.value != 0) {
                     D_8010FBE0 = Task_Spawn(1, 0x2D, 0, 0);
                 } else if (D_8010FBE0 != NULL) {
-                    Task_CallExit(D_8010FBE0);
+                    taskCallExit(D_8010FBE0);
                     D_8010FBE0 = NULL;
                 }
                 break;
@@ -436,7 +436,7 @@ static void Gp_ScriptTaskState1(Task* arg0)
                 gStageMusicParams.fadeOutTicks                      = work->command->operand1.value;
                 gStageMusicLoadState                                = 0;
                 gStageMusicParams.field_2                           = work->command->operand2.value;
-                Task_SpawnFromTable(&Stage_MusicTaskDesc, 0, 0, 0);
+                taskSpawnFromTable(&Stage_MusicTaskDesc, 0, 0, 0);
                 break;
 
             case EVENT_SCRIPT_OPCODE_WAIT_MUSIC_LOAD:
@@ -458,7 +458,7 @@ static void Gp_ScriptTaskState1(Task* arg0)
                 Gp_MsgPlayer3F3(1);
                 taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_SET_TEXTURE_SEQUENCE, 0, 0);
                 if (D_8010FBE0 != NULL) {
-                    Task_CallExit(D_8010FBE0);
+                    taskCallExit(D_8010FBE0);
                     D_8010FBE0 = NULL;
                 }
                 _evsCancelSecondaryFade(arg0);

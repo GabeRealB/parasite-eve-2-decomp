@@ -162,7 +162,7 @@ static void GameMain_Init(void)
     D_8005EC64++;
     Mem_ConfigureAuxHeap(0, 0);
     Mem_Init();
-    Task_ResetDefaultList();
+    taskResetDefaultList();
     Tmd_InitLists();
     Gfx_InitGraph();
 
@@ -433,7 +433,7 @@ static void GameMain_Loop(void)
 
         Gpu_SysPrimCursor = Gpu_PrimBufStatic + gDisplayState.otBuffer * (s32)(sizeof(Gpu_PrimBufStatic) / 2);
         gGpuPrimCursor    = Gpu_PrimHeapBase + gDisplayState.otBuffer * (Gpu_PrimHeapSize >> 1);
-        Task_ExecDefaultList();
+        taskExecDefaultList();
 
         if (gDisplayState.displayOwner != DISPLAY_OWNER_GAME_LOOP) {
             continue;

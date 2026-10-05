@@ -632,7 +632,7 @@ static void func_actor_403600_80138EF8(Enemy* enemy, Task* task)
     rot.vz    = 0;
     RotMatrix(&rot, &work->worldCoord.coord);
     work->yaw               = temp_s0_5;
-    temp_v0_4               = Task_SpawnFromTable(D_actor_403600_801421A0, 0, 0, 0);
+    temp_v0_4               = taskSpawnFromTable(D_actor_403600_801421A0, 0, 0, 0);
     D_actor_403600_801606AC = temp_v0_4;
     if (temp_v0_4 != 0) {
         taskReparent(task, temp_v0_4);
@@ -1266,9 +1266,9 @@ static void func_actor_403600_801396F8(Task* arg0)
                 case 2:
                     if (CdCmd_IsIdle() & 0xFFFF) {
                         if (D_actor_403600_801606B4 != 0) {
-                            Task_CallExit(D_actor_403600_801606B4);
+                            taskCallExit(D_actor_403600_801606B4);
                         }
-                        Task_SpawnFromTable(D_actor_303600_80162E98, 0, 0, 0);
+                        taskSpawnFromTable(D_actor_303600_80162E98, 0, 0, 0);
                         func_800E9BDC(0, 0xF9FF);
                         goto block_115;
                     }
@@ -1801,10 +1801,10 @@ static void func_actor_403600_8013A444(Task* arg0)
                         temp_s0_14 = (s8)worldCoordGetOriginAudioPan(temp_s0_13);
                         temp_v0_15 = worldCoordGetOriginAudioDepth(temp_s0_13);
                         sndEvtRequestScriptStart(temp_s4, temp_s0_14, (s32)(((temp_v0_15 >> 0x1F) + temp_v0_15) << 0x17) >> 0x18);
-                        Task_SpawnFromTable(D_actor_403600_801421A0, 1, (s32)((s16)((u16)work->projectileKind | 0x10)), arg0);
+                        taskSpawnFromTable(D_actor_403600_801421A0, 1, (s32)((s16)((u16)work->projectileKind | 0x10)), arg0);
                     }
                     if ((work->phaseFrame == 0x2C) || (work->phaseFrame == 0x31)) {
-                        Task_SpawnFromTable(D_actor_403600_801421A0, 1, (s32)(work->projectileKind), arg0);
+                        taskSpawnFromTable(D_actor_403600_801421A0, 1, (s32)(work->projectileKind), arg0);
                     }
                     if (work->phaseFrame >= work->actionParam) {
                         SndEvt_EnqueueType7(SOUND_SHELTER_B2_POD_BTM_ENEMY_VOLLEY, 1);
@@ -2123,7 +2123,7 @@ static void func_actor_403600_8013A444(Task* arg0)
                     }
                     temp_s1 = func_actor_403600_8013D9A8(arg0) & 0xFF;
                     if (temp_s1 == 2) {
-                        Task_SpawnFromTable(D_actor_403600_801421A0, 3, 0, arg0);
+                        taskSpawnFromTable(D_actor_403600_801421A0, 3, 0, arg0);
                     }
                     if ((temp_s1 == 3) && (work->actionParam == 0xFF)) {
                         work->step        = 6;
@@ -2139,7 +2139,7 @@ static void func_actor_403600_8013A444(Task* arg0)
                         temp_s0_23          = (s8)worldCoordGetOriginAudioPan(temp_s6);
                         temp_v0_24          = worldCoordGetOriginAudioDepth(temp_s6);
                         sndEvtRequestScriptStart(temp_s4, temp_s0_23, (s32)(((temp_v0_24 >> 0x1F) + temp_v0_24) << 0x17) >> 0x18);
-                        Task_SpawnFromTable(D_actor_403600_801421A0, 3, 1, arg0);
+                        taskSpawnFromTable(D_actor_403600_801421A0, 3, 1, arg0);
                         work->actionDelay               = 0;
                         work->gridBody.flags            = (u16)(work->gridBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED));
                         temp_s7->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
@@ -2162,7 +2162,7 @@ static void func_actor_403600_8013A444(Task* arg0)
                         func_actor_403600_8013C864(arg0);
                         work->aimMode = ACTOR_403600_AIM_TARGET_SNAP;
                         func_actor_403600_8013DFE0(arg0);
-                        Task_SpawnFromTable(D_actor_403600_801421A0, 3, 2, arg0);
+                        taskSpawnFromTable(D_actor_403600_801421A0, 3, 2, arg0);
                     }
                     temp_v0_26 = gPlayerStatus.coordMtx->t[0] - work->worldCoord.coord.t[0];
                     temp_lo_3  = temp_v0_26 * temp_v0_26;
@@ -4342,7 +4342,7 @@ s32 func_actor_403600_801406A4(Task* arg0, s32 arg1, ActorCommand* request, s32 
             work->mode         = ACTOR_403600_MODE_SCENE_BRIGHTEN;
             break;
         case 4:
-            D_actor_403600_801606B0 = Task_SpawnFromTable(D_actor_303600_8016E468, 0, 0, 0);
+            D_actor_403600_801606B0 = taskSpawnFromTable(D_actor_303600_8016E468, 0, 0, 0);
             taskMessageDispatch(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 0, 0);
             arg0->extra.tmd->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             arg0->extra.tmd->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;

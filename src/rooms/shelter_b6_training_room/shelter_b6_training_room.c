@@ -464,7 +464,7 @@ void func_shelter_b6_training_room_8017D8E8(Task* task)
 
 void func_shelter_b6_training_room_8017D940(void)
 {
-    D_shelter_b6_training_room_80185C5C = Task_SpawnFromTable(&D_shelter_b6_training_room_801839A8, 0, 0, 0);
+    D_shelter_b6_training_room_80185C5C = taskSpawnFromTable(&D_shelter_b6_training_room_801839A8, 0, 0, 0);
 }
 
 /// Drives the room's tracked task: an argument in 0..1 becomes its
@@ -521,7 +521,7 @@ void func_shelter_b6_training_room_8017D9C8(Task* task)
 /// Spawns the task that starts the room's stream playback.
 void func_shelter_b6_training_room_8017DAC8(void)
 {
-    Task_SpawnFromTable(D_shelter_b6_training_room_8018431C, 0, 0, 0);
+    taskSpawnFromTable(D_shelter_b6_training_room_8018431C, 0, 0, 0);
 }
 
 void func_shelter_b6_training_room_8017DAF8(s32 arg0)

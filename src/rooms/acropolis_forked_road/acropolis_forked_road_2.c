@@ -1378,12 +1378,12 @@ void func_acropolis_forked_road_8017DD60(Task* task)
                     place.rot.vx = 0;
                     place.rot.vy = 0xC00;
                     TASK_MESSAGE_DISPATCH_POINTER(((RoomMoviePathWork*)task->work)->playerTask, 0x3E9, &place, 0);
-                    Task_SpawnFromTable(D_acropolis_forked_road_80180F44, 4, 0, 0);
+                    taskSpawnFromTable(D_acropolis_forked_road_80180F44, 4, 0, 0);
                     task->state = task->state + 1;
                     break;
                 }
             } else if (Pad_CheckFlag800() != 0) {
-                work->skipFadeTask    = Task_SpawnFromTable(D_acropolis_forked_road_80180F44, 3, 0, 0);
+                work->skipFadeTask    = taskSpawnFromTable(D_acropolis_forked_road_80180F44, 3, 0, 0);
                 work->skipFadeStarted = 1;
             }
             if ((0x3B - queue->movieFrame) < 0xB) {

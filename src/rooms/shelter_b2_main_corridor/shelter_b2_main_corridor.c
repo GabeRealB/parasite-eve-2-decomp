@@ -1681,7 +1681,7 @@ s32 func_shelter_b2_main_corridor_8017D9C4(Task* arg0, s32 arg1, RoomEventMsg* i
         if (p->flagId != 0) {
             gameFlagSetNibble(p->flagId, 1);
         }
-        Task_SpawnFromTable(&D_shelter_b2_main_corridor_80182C08, 0, 0, 0);
+        taskSpawnFromTable(&D_shelter_b2_main_corridor_80182C08, 0, 0, 0);
         D_shelter_b2_main_corridor_8018965C_value = 1;
         return 2;
     }
@@ -1707,10 +1707,10 @@ s32 func_shelter_b2_main_corridor_8017DC88(Task* arg0, s32 arg1, const void* fir
                 D_shelter_b2_main_corridor_80189684.sndEvent = 0;
                 D_shelter_b2_main_corridor_80189684.facing   = ROOM_DEPARTURE_SKIP_FACING;
                 Gp_MsgPlayerWeapon(0);
-                Task_SpawnFromTable(D_shelter_b2_main_corridor_80182C44, 0, 6, 0);
+                taskSpawnFromTable(D_shelter_b2_main_corridor_80182C44, 0, 6, 0);
             } else {
                 Gp_RunCapCmd1(3);
-                Task_SpawnFromTable(D_shelter_b2_main_corridor_80182C44, 1, 0x1C4, 0);
+                taskSpawnFromTable(D_shelter_b2_main_corridor_80182C44, 1, 0x1C4, 0);
             }
         }
         if (((const DirectionActionRequest*)firstArg)->argument == 8) {
@@ -1720,7 +1720,7 @@ s32 func_shelter_b2_main_corridor_8017DC88(Task* arg0, s32 arg1, const void* fir
             }
             if (gameFlagGetNibble(GAME_FLAG_0F8) != 0) {
                 Gp_RunCapCmd1(8);
-                Task_SpawnFromTable(D_shelter_b2_main_corridor_80182C44, 1, 0x1AF, 0);
+                taskSpawnFromTable(D_shelter_b2_main_corridor_80182C44, 1, 0x1AF, 0);
                 return 0;
             }
             if (gameFlagGetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_2_CLEARED) != 0) {
@@ -1735,7 +1735,7 @@ s32 func_shelter_b2_main_corridor_8017DC88(Task* arg0, s32 arg1, const void* fir
             D_shelter_b2_main_corridor_80189684.sndEvent = 0;
             D_shelter_b2_main_corridor_80189684.facing   = ROOM_DEPARTURE_SKIP_FACING;
             Gp_MsgPlayerWeapon(0);
-            Task_SpawnFromTable(D_shelter_b2_main_corridor_80182C44, 0, id, 0);
+            taskSpawnFromTable(D_shelter_b2_main_corridor_80182C44, 0, id, 0);
         }
     }
     if (((const DirectionActionRequest*)firstArg)->actionId == 1 && gameFlagGetNibble(GAME_FLAG_SHELTER_R47_EVENT_PROGRESS) >= 2 && gameFlagGetNibble(GAME_FLAG_SHELTER_B2_MAIN_CORRIDOR_0D3) == 0) {
@@ -1813,7 +1813,7 @@ void func_shelter_b2_main_corridor_8017DEB0(Task* arg0)
             D_shelter_b2_main_corridor_80189684.warp = param.warp;
             D_shelter_b2_main_corridor_80189684.room = param.room;
             gRoomDeparture.departure                 = D_shelter_b2_main_corridor_80189684;
-            Task_SpawnFromTable(&D_shelter_b2_main_corridor_801828E0.desc, 0, 0, 0);
+            taskSpawnFromTable(&D_shelter_b2_main_corridor_801828E0.desc, 0, 0, 0);
             taskKill(arg0);
             break;
     }
@@ -1864,7 +1864,7 @@ static void func_shelter_b2_main_corridor_8017E2D4(Task* arg0)
 {
     arg0->msgTable = D_shelter_b2_main_corridor_80182C14;
     gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
-    Task_SpawnFromTable(D_shelter_b2_main_corridor_80182DE0, 0, 0, 0);
+    taskSpawnFromTable(D_shelter_b2_main_corridor_80182DE0, 0, 0, 0);
     arg0->state = (s32)(arg0->state + 1);
 }
 

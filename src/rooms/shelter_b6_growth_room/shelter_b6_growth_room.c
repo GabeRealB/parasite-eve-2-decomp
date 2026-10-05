@@ -63,7 +63,7 @@ s32 func_shelter_b6_growth_room_8017D634(Task* arg0, s32 arg1, s32 arg2, s32 arg
     if (arg2 == 1) {
         if (gameFlagGetNibble(GAME_FLAG_0D8) == 0) {
             Gp_MsgPlayerWeapon(0);
-            Task_SpawnFromTable(D_actor_450900_80135E78, 3, 0, 0);
+            taskSpawnFromTable(D_actor_450900_80135E78, 3, 0, 0);
         } else {
             Gp_RunCapCmd1(1);
         }
@@ -92,8 +92,8 @@ static void func_shelter_b6_growth_room_8017D71C(Task* arg0)
     Gp_FillAllyHp();
     Gp_ApplyAreaRecs(D_shelter_b6_growth_room_801807C8);
     func_800E8634(D_actor_450900_80136110, 0, D_actor_450900_80136308);
-    Task_SpawnFromTable(D_actor_450900_80135E78, 1, 0, 0);
-    Task_SpawnFromTable(D_actor_450900_80135E78, 2, 0, 0);
+    taskSpawnFromTable(D_actor_450900_80135E78, 1, 0, 0);
+    taskSpawnFromTable(D_actor_450900_80135E78, 2, 0, 0);
     func_800E3FAC(0xA2, 0x33);
     arg0->state = (s32)(arg0->state + 1);
 }

@@ -970,7 +970,7 @@ void func_mist_parking_80183100(s32 arg0)
 
 void func_mist_parking_8018312C(s32 arg0)
 {
-    Task_SpawnFromTable(D_mist_parking_8018FC24, 0, arg0, 0);
+    taskSpawnFromTable(D_mist_parking_8018FC24, 0, arg0, 0);
     gGameSession->freezeRoomObjs = 1;
 }
 
@@ -1001,7 +1001,7 @@ void func_mist_parking_801831F0(s32 arg0)
     }
 
     if ((slot != NULL) && (*slot == NULL)) {
-        task  = Task_SpawnFromTable(D_mist_parking_8018D75C, arg0, 0, 0);
+        task  = taskSpawnFromTable(D_mist_parking_8018D75C, arg0, 0, 0);
         *slot = task;
         if (task != NULL) {
             obj         = task->extra.tmd;
@@ -1134,7 +1134,7 @@ void func_mist_parking_801834D4(Task* arg0)
 /// Spawns entry 3 of `D_mist_parking_8018D75C`.
 void func_mist_parking_8018354C(void)
 {
-    Task_SpawnFromTable(D_mist_parking_8018D75C, 3, 0, 0);
+    taskSpawnFromTable(D_mist_parking_8018D75C, 3, 0, 0);
 }
 
 void func_mist_parking_8018357C(Task* arg0)
@@ -1155,5 +1155,5 @@ void func_mist_parking_8018357C(Task* arg0)
 /// `D_mist_parking_80195324`.
 void func_mist_parking_80183600(void)
 {
-    D_mist_parking_80195324 = Task_SpawnFromTable(D_mist_parking_8018D75C, 4, 0, 0);
+    D_mist_parking_80195324 = taskSpawnFromTable(D_mist_parking_8018D75C, 4, 0, 0);
 }

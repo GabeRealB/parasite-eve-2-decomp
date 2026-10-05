@@ -565,7 +565,7 @@ void func_mine_refuge_8017FA08(Task* task)
             return;
         case 2:
             sndEvtRequestScriptStart(SOUND_MINE_REFUGE_CIRCUIT_PANEL_OPEN, 0, 0);
-            D_mine_refuge_80182AD8 = Task_SpawnFromTable(&D_actor_548100_801358D8, 0, 0, 0);
+            D_mine_refuge_80182AD8 = taskSpawnFromTable(&D_actor_548100_801358D8, 0, 0, 0);
             task->state            = task->state + 1;
             return;
         case 3:
@@ -626,7 +626,7 @@ s32 func_mine_refuge_8017FC2C(Task* task, s32 msgId, s32 arg2, s32 arg3)
             D_mine_refuge_80182ADC[0]                                  = temp_a3;
             sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_REFUGE, 3), 0, 0);
             Gp_RunCapCmd(0xD, 0);
-            Task_SpawnFromTable(D_mine_refuge_801818B4, 1, 0, 0);
+            taskSpawnFromTable(D_mine_refuge_801818B4, 1, 0, 0);
         }
     }
     return 0;
@@ -642,7 +642,7 @@ s32 func_mine_refuge_8017FCD0(Task* task, s32 msgId, const void* firstArg, s32 a
         if (gameFlagGetNibble(GAME_FLAG_MINE_SECRET_PASSAGE_STATE) != actionId) {
             gameFlagSetNibble(GAME_FLAG_0C4, 0);
             Gp_MsgPlayerWeapon(0);
-            Task_SpawnFromTable(D_mine_refuge_801818B4, 0, 0, 0);
+            taskSpawnFromTable(D_mine_refuge_801818B4, 0, 0, 0);
         } else {
             Gp_RunCapCmd1(0xA);
         }
@@ -724,7 +724,7 @@ static void func_mine_refuge_8017FE78(s32 arg0)
     D_mine_refuge_80182AE0.endSound        = 0x54060006;
     D_mine_refuge_80182AE0.sceneSound      = 0x54060004;
     D_mine_refuge_80182AE0.afterSceneSound = 0x54060005;
-    Task_SpawnFromTable(gRoomCutsceneTaskDescs, 0, slot, &D_mine_refuge_80182AE0);
+    taskSpawnFromTable(gRoomCutsceneTaskDescs, 0, slot, &D_mine_refuge_80182AE0);
 }
 
 static void func_mine_refuge_8017FF4C(Task* arg0)

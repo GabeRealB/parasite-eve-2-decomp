@@ -356,7 +356,7 @@ void Boot_LoadTask(Task* task)
             if (CdCmd_IsIdle() != 0) {
                 SetDispMask(1);
                 Mem_ConfigureAuxHeap(0, 0);
-                Task_SpawnFromTable(Title_TaskDescs, 0, 0, 0);
+                taskSpawnFromTable(Title_TaskDescs, 0, 0, 0);
                 taskKill(task);
                 gDisplayState.debugMode = 0;
             }

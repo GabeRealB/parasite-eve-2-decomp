@@ -908,7 +908,7 @@ static void func_actor_120400_80131E5C(Task* arg0)
     work->walk.carry[0].word = 0;
     work->walk.carry[1].word = 0;
     work->walk.carry[2].word = 0;
-    spawned                  = Task_SpawnFromTable(D_actor_120400_8013E748, 1, 8, arg0);
+    spawned                  = taskSpawnFromTable(D_actor_120400_8013E748, 1, 8, arg0);
     if (spawned != NULL) {
         TmdObject*     model;
         AreaVariant*   layout;
@@ -932,7 +932,7 @@ static void func_actor_120400_80131E5C(Task* arg0)
             tmdBuildBufferHalf(model);
         }
     }
-    spawned = Task_SpawnFromTable(D_actor_120400_8013E748, 2, 0xC, arg0);
+    spawned = taskSpawnFromTable(D_actor_120400_8013E748, 2, 0xC, arg0);
     if (spawned != NULL) {
         TmdObject*     model;
         AreaVariant*   layout;

@@ -632,7 +632,7 @@ static __inline__ s32 _shelter1fHeliportStartEvent(RoomEventMsg* dst, RoomLatche
             if (event->flagId != 0) {
                 gameFlagSetNibble(event->flagId, 1);
             }
-            Task_SpawnFromTable(&D_shelter_1f_heliport_80181194, 0, 0, 0);
+            taskSpawnFromTable(&D_shelter_1f_heliport_80181194, 0, 0, 0);
             D_shelter_1f_heliport_80182CB0_value = 1;
         }
         return 2;
@@ -723,7 +723,7 @@ s32 func_shelter_1f_heliport_8018041C(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
     switch (arg2) {
         case 0x21:
             Gp_MsgPlayerWeapon(0);
-            Task_SpawnFromTable(&D_shelter_1f_heliport_801811C8, 0, 0x21, 0);
+            taskSpawnFromTable(&D_shelter_1f_heliport_801811C8, 0, 0x21, 0);
             break;
         case 0x22:
             need = 1;

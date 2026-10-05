@@ -65,7 +65,7 @@ STATIC_ASSERT_SIZEOF(_Actor143900Work, 0x4F0);
 
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
 
-/// Spawn table this overlay hands to `Task_SpawnFromTable`. It sits at an
+/// Spawn table this overlay hands to `taskSpawnFromTable`. It sits at an
 /// absolute address outside the actor slot - offset 0x440 into the loaded room
 /// overlay, whose base is 0x8017D5C0 - so splat cannot name it and it keeps its
 /// raw `D_` form.
@@ -1190,7 +1190,7 @@ void func_actor_143900_80131E24(void)
 {
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 9) {
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 0x14;
-        Task_SpawnFromTable(D_shelter_r49_8017DA00, 0, 0, 0);
+        taskSpawnFromTable(D_shelter_r49_8017DA00, 0, 0, 0);
     }
 }
 
@@ -1386,11 +1386,11 @@ static void func_actor_143900_801328D4(Enemy* enemy, Task* task)
                          D_actor_143900_801496C4->rig.poses, D_actor_143900_801496C4->rig.slots);
     D_actor_143900_801496C4->st.animId = 1;
     D_actor_143900_801496C4->st.state  = ACTOR_ENEMY_ANIM_RESET;
-    helper                             = Task_SpawnFromTable(D_actor_143900_80149664, 1, 1, 0);
+    helper                             = taskSpawnFromTable(D_actor_143900_80149664, 1, 1, 0);
     if (helper != NULL) {
         D_actor_143900_801496C4->attachment1 = helper;
     }
-    helper = Task_SpawnFromTable(D_actor_143900_80149664, 2, 0xC, 0);
+    helper = taskSpawnFromTable(D_actor_143900_80149664, 2, 0xC, 0);
     if (helper != NULL) {
         D_actor_143900_801496C4->attachment2 = helper;
     }

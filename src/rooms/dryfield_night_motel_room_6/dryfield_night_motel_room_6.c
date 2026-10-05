@@ -971,7 +971,7 @@ s32 motelRoom6ActionMsg(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
         if (gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) != 0) {
             Gp_RunCapCmd1(0x14);
         } else if (gameFlagGetNibble(GAME_FLAG_NIGHT_GARAGE_PROGRESS) > 0 && gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_ROOM_6_REST_TAKEN) < 2) {
-            Task_SpawnFromTable(&D_dryfield_night_motel_room_6_80182EE0, 0, 0x11, 0);
+            taskSpawnFromTable(&D_dryfield_night_motel_room_6_80182EE0, 0, 0x11, 0);
         } else {
             Gp_RunCapCmd1(arg2);
         }

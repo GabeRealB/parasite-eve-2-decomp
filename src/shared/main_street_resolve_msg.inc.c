@@ -60,7 +60,7 @@ s32 mainStreetResolveMsg(Task* task, s32 msgId, RoomEventMsg* msg, RoomEventMsg*
                 if (ev.flagId != 0) {
                     gameFlagSetNibble(ev.flagId, 1);
                 }
-                Task_SpawnFromTable(&gMainStreetEventTaskDesc, 0, 0, 0);
+                taskSpawnFromTable(&gMainStreetEventTaskDesc, 0, 0, 0);
                 gMainStreetEventSpawned.eventStarted = 1;
                 return 2;
             }
@@ -80,7 +80,7 @@ s32 mainStreetResolveMsg(Task* task, s32 msgId, RoomEventMsg* msg, RoomEventMsg*
                 if (ev.flagId != 0) {
                     gameFlagSetNibble(ev.flagId, 1);
                 }
-                Task_SpawnFromTable(&gMainStreetEventTaskDesc, 0, 0, 0);
+                taskSpawnFromTable(&gMainStreetEventTaskDesc, 0, 0, 0);
                 gMainStreetEventSpawned.eventStarted = 1;
                 return 2;
             }

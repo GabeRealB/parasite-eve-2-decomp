@@ -62,7 +62,7 @@ s32 func_dryfield_motel_room_1_8017D624(Task* arg0, s32 arg1, RoomEventMsg* in, 
 {
     if (gGameSession->location.loc.variant == 3 && gameFlagGetNibble(GAME_FLAG_MOTEL_ROOM_1_EVENT_SEEN) == 0 && in->warp == 1) {
         gameFlagSetNibble(GAME_FLAG_MOTEL_ROOM_1_EVENT_SEEN, 1);
-        Task_SpawnFromTable(&D_dryfield_motel_room_1_8017E478, 0, 0, 0);
+        taskSpawnFromTable(&D_dryfield_motel_room_1_8017E478, 0, 0, 0);
     }
     return 0;
 }

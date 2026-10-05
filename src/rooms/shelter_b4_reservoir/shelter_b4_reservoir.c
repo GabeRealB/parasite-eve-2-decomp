@@ -1116,7 +1116,7 @@ s32 func_shelter_b4_reservoir_8017E264(Task* task, s32 msgId, RoomEventMsg* src,
                 D_shelter_b4_reservoir_80187508.warp              = (u8)dst->areaId;
                 D_shelter_b4_reservoir_80187508.field_4           = dst->warp;
                 ((u8*)&D_shelter_b4_reservoir_80187508.areaId)[1] = dst->room;
-                Task_SpawnFromTable(D_shelter_b4_reservoir_801848EC, 3, 0xB, 0);
+                taskSpawnFromTable(D_shelter_b4_reservoir_801848EC, 3, 0xB, 0);
             }
         }
         return 0;
@@ -1133,7 +1133,7 @@ s32 func_shelter_b4_reservoir_8017E354(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
         Gp_MsgAllyWeapon(0);
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 6;
         gSceneCombatState.actorControl                             = SCENE_COMBAT_ACTORS_HIDDEN;
-        Task_SpawnFromTable(D_shelter_b4_reservoir_801848EC, 0, 0, 0);
+        taskSpawnFromTable(D_shelter_b4_reservoir_801848EC, 0, 0, 0);
     }
     return 0;
 }
@@ -1218,7 +1218,7 @@ void func_shelter_b4_reservoir_8017E690(s32 arg0)
 {
     switch (arg0) {
         case 0:
-            D_shelter_b4_reservoir_8018492C = Task_SpawnFromTable(D_shelter_b4_reservoir_801848EC, 1, 0x96, 0);
+            D_shelter_b4_reservoir_8018492C = taskSpawnFromTable(D_shelter_b4_reservoir_801848EC, 1, 0x96, 0);
             break;
         case 1:
             if (D_shelter_b4_reservoir_8018492C != 0) {
@@ -1228,7 +1228,7 @@ void func_shelter_b4_reservoir_8017E690(s32 arg0)
             D_shelter_b4_reservoir_80184F80 = -0x1F4;
             break;
         case 2:
-            D_shelter_b4_reservoir_8018492C = Task_SpawnFromTable(D_shelter_b4_reservoir_801848EC, 2, 0x96, 0);
+            D_shelter_b4_reservoir_8018492C = taskSpawnFromTable(D_shelter_b4_reservoir_801848EC, 2, 0x96, 0);
             break;
         case 3:
             if (D_shelter_b4_reservoir_8018492C != 0) {
@@ -1262,13 +1262,13 @@ static void func_shelter_b4_reservoir_8017E7C8(Task* arg0)
 {
     arg0->msgTable = D_shelter_b4_reservoir_801848BC;
     gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
-    Task_SpawnFromTable(D_shelter_b4_reservoir_80184F84, 0, 0, 0);
+    taskSpawnFromTable(D_shelter_b4_reservoir_80184F84, 0, 0, 0);
     if (gameFlagGetNibble(GAME_FLAG_B4_RESERVOIR_EVENT_DONE) != 0) {
         D_shelter_b4_reservoir_80184F80 = -0x1F4;
     } else {
         D_shelter_b4_reservoir_80184F80 = -0x7D0;
     }
-    D_shelter_b4_reservoir_80184930 = Task_SpawnFromTable(D_shelter_b4_reservoir_80184920, 0, 0, 0);
+    D_shelter_b4_reservoir_80184930 = taskSpawnFromTable(D_shelter_b4_reservoir_80184920, 0, 0, 0);
     arg0->state                     = (s32)(arg0->state + 1);
 }
 

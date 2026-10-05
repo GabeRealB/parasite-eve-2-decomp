@@ -635,7 +635,7 @@ void func_mist_parking_80184408(s32 arg0)
 
 void func_mist_parking_80184428(s32 arg0)
 {
-    Task_SpawnFromTable(D_mist_parking_8018FC24, 0, arg0, 0);
+    taskSpawnFromTable(D_mist_parking_8018FC24, 0, arg0, 0);
     gGameSession->freezeRoomObjs = 1;
 }
 
@@ -656,7 +656,7 @@ void func_mist_parking_80184468(s32 arg0)
 /// Spawns entry 0 of `D_mist_parking_80190824`.
 void func_mist_parking_801844EC(void)
 {
-    Task_SpawnFromTable(D_mist_parking_80190824, 0, 0, 0);
+    taskSpawnFromTable(D_mist_parking_80190824, 0, 0, 0);
 }
 
 void func_mist_parking_8018451C(Task* task)
@@ -677,7 +677,7 @@ void func_mist_parking_8018451C(Task* task)
 /// `D_mist_parking_8019532C.task`.
 void func_mist_parking_8018459C(void)
 {
-    D_mist_parking_8019532C.task = Task_SpawnFromTable(D_mist_parking_80190824, 1, 0, 0);
+    D_mist_parking_8019532C.task = taskSpawnFromTable(D_mist_parking_80190824, 1, 0, 0);
 }
 
 /// Hands `phase` (0 or 1) to the task in `D_mist_parking_8019532C.task` as its
@@ -704,7 +704,7 @@ kill:
 
 void func_mist_parking_80184624(s32 arg0)
 {
-    Display_InitModeObj(Task_GetDescAt(D_mist_parking_80190824, 2U), arg0, 0, 0);
+    Display_InitModeObj(taskGetDescAt(D_mist_parking_80190824, 2U), arg0, 0, 0);
 }
 
 void func_mist_parking_80184668(Task* arg0)

@@ -1788,7 +1788,7 @@ void func_mist_shooting_gallery_8017F6C8(Task* task)
     } else {
         task->killCountdown = task->killCountdown - 1;
         if (task->killCountdown < 0) {
-            Task_CallExit(task);
+            taskCallExit(task);
             GameMain_SetFrameTiming(DISPLAY_TIMING_TWO_VBLANKS);
             Wip_UiHolder = NULL;
             Stage_SetEndingFlag();
@@ -1870,9 +1870,9 @@ static void func_mist_shooting_gallery_8017FC2C(Task* arg0)
     }
     func_mist_shooting_gallery_801801E4(var_a0);
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene == 7) {
-        Task_SpawnFromTable(D_mist_shooting_gallery_801856B8, 0, 0, 0);
+        taskSpawnFromTable(D_mist_shooting_gallery_801856B8, 0, 0, 0);
     } else if (gGameSession->location.loc.warp == 7) {
-        Task_SpawnFromTable(D_actor_215100_8014E13C, 0, 0, 0);
+        taskSpawnFromTable(D_actor_215100_8014E13C, 0, 0, 0);
     }
     if ((gGameSession->location.loc.warp == 6) && (gameFlagGetNibble(GAME_FLAG_0ED) != 0)) {
         Gp_RunCapCmd1(0x16);
@@ -1982,12 +1982,12 @@ s32 func_mist_shooting_gallery_80180000(Task* arg0, s32 arg1, s32 arg2, s32 arg3
             if (arg2 < 0x23) {
                 if (arg2 >= 0x21) {
                     Gp_MsgPlayerWeapon(0);
-                    Task_SpawnFromTable(&D_mist_shooting_gallery_801850DC, 0, arg2, MIST_SHOOTING_GALLERY_CAP_FILE_HIGH_COMMANDS);
+                    taskSpawnFromTable(&D_mist_shooting_gallery_801850DC, 0, arg2, MIST_SHOOTING_GALLERY_CAP_FILE_HIGH_COMMANDS);
                 }
             }
         } else {
             Gp_MsgPlayerWeapon(0);
-            Task_SpawnFromTable(&D_mist_shooting_gallery_801850DC, 0, arg2, MIST_SHOOTING_GALLERY_CAP_FILE_LOW_COMMANDS);
+            taskSpawnFromTable(&D_mist_shooting_gallery_801850DC, 0, arg2, MIST_SHOOTING_GALLERY_CAP_FILE_LOW_COMMANDS);
         }
     }
     return 0;
@@ -1999,7 +1999,7 @@ s32 func_mist_shooting_gallery_8018008C(Task* task, s32 msgId, const void* first
 
     if ((request->actionId == 1) && (D_actor_215100_8014D038 == 0)) {
         Gp_MsgPlayerWeapon(0);
-        Task_SpawnFromTable(D_actor_215100_8014E13C, 1, 1, 0);
+        taskSpawnFromTable(D_actor_215100_8014E13C, 1, 1, 0);
         D_80114D08 = 0xA;
     }
     if ((request->actionId == 2) && (gameFlagGetNibble(GAME_FLAG_0ED) == 0)) {

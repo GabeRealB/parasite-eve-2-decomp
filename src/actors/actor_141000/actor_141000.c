@@ -2029,7 +2029,7 @@ static void func_actor_141000_80132C7C(Task* task)
     obj->flags     &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
     func_actor_141000_80132FD0(coord, 0);
     func_actor_141000_8013308C(coord, 0);
-    Task_SpawnFromTable(D_actor_141000_801348D8, 1, 0, task);
+    taskSpawnFromTable(D_actor_141000_801348D8, 1, 0, task);
     task->exitCallback = func_actor_141000_80132E04;
     task->state       += 1;
 }
@@ -2122,7 +2122,7 @@ static void func_actor_141000_80132EF4(Task* arg0)
     }
 
     if (!(work->frames & 7)) {
-        spawned = Task_SpawnFromTable(D_actor_141000_801348D8, 2, 0, 0);
+        spawned = taskSpawnFromTable(D_actor_141000_801348D8, 2, 0, 0);
         if (spawned != NULL) {
             src             = arg0->extra.tmd->coords;
             dst             = spawned->extra.tmd->coords;

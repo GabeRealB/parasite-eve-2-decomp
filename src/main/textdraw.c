@@ -1423,7 +1423,7 @@ static void Text_UiTaskCallback(Task* task)
         task->killCountdown = temp;
         if (temp <= 0) {
             Task_Spawn(0, 2, 0xC, 0);
-            Task_CallExit(task);
+            taskCallExit(task);
         }
     }
 }
@@ -1433,7 +1433,7 @@ static void Text_BootTask(Task* task)
     Text_LoadClutImages();
     Display_SetMode(DISPLAY_SETUP_DEFAULT);
     Game_ClearSession();
-    Task_SpawnFromTable(Title_TaskDescs, 0, 0, 0);
+    taskSpawnFromTable(Title_TaskDescs, 0, 0, 0);
     taskKill(task);
 }
 

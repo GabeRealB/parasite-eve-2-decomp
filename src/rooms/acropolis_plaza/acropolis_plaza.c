@@ -4266,7 +4266,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
             }
             work->elapsedFrames = work->elapsedFrames + 1;
             if (work->elapsedFrames >= 0x3D) {
-                Task_SpawnFromTable(D_acropolis_plaza_80183824, 7, 9, 0);
+                taskSpawnFromTable(D_acropolis_plaza_80183824, 7, 9, 0);
                 task->state = task->state + 1;
             }
             func_acropolis_plaza_8017DE24(7);
@@ -4308,7 +4308,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
             work->elapsedFrames = work->elapsedFrames + 1;
             if (work->elapsedFrames >= 0xB) {
                 sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PLAZA, 0x0B), 0, 0);
-                Task_SpawnFromTable(D_acropolis_plaza_80183824, 8, 8, 0);
+                taskSpawnFromTable(D_acropolis_plaza_80183824, 8, 8, 0);
                 work->elapsedFrames = 0;
                 task->state         = task->state + 1;
             }
@@ -4576,12 +4576,12 @@ static u16 func_acropolis_plaza_8017FB50(Task* task)
                 work->eventParameter1 = evtSub;
                 if ((s8)evtKind == ACROPOLIS_PLAZA_EVENT_FIRST_SCENE) {
                     work->eventTask =
-                        Task_SpawnFromTable(D_acropolis_plaza_80183824, 4, 0, work);
+                        taskSpawnFromTable(D_acropolis_plaza_80183824, 4, 0, work);
                     work->step = work->step + 1;
                     goto running;
                 } else if ((s8)evtKind >= ACROPOLIS_PLAZA_EVENT_FIRST_CAPTION) {
                     work->eventTask =
-                        Task_SpawnFromTable(D_acropolis_plaza_80183824, 9, 0, work);
+                        taskSpawnFromTable(D_acropolis_plaza_80183824, 9, 0, work);
                     work->step = ACROPOLIS_PLAZA_STEP_RUN_FIRST_CAPTION;
                 }
             }
@@ -4591,7 +4591,7 @@ static u16 func_acropolis_plaza_8017FB50(Task* task)
                 work->sceneArg.skipStreamReset = 1;
                 work->sceneArg.startFrame      = work->resumeFrame;
                 work->sceneTask =
-                    Task_SpawnFromTable(D_acropolis_plaza_80183824, 1, 0, &work->sceneArg);
+                    taskSpawnFromTable(D_acropolis_plaza_80183824, 1, 0, &work->sceneArg);
                 Gp_UnlinkObj4A(0, &D_acropolis_plaza_801991F0);
                 work->step = work->step + 1;
             }
@@ -4605,31 +4605,31 @@ static u16 func_acropolis_plaza_8017FB50(Task* task)
                 kind                  = (s8)evtKind;
                 if (kind == ACROPOLIS_PLAZA_EVENT_STREAM_SCENE) {
                     work->eventTask =
-                        Task_SpawnFromTable(D_acropolis_plaza_80183824, 2, 0, work);
+                        taskSpawnFromTable(D_acropolis_plaza_80183824, 2, 0, work);
                     work->step = work->step + 1;
                     goto running;
                 } else if (kind == ACROPOLIS_PLAZA_EVENT_FINAL_SCENE) {
                     work->eventTask =
-                        Task_SpawnFromTable(D_acropolis_plaza_80183824, 3, 0, work);
+                        taskSpawnFromTable(D_acropolis_plaza_80183824, 3, 0, work);
                     work->step = work->step + 1;
                     goto running;
                 } else if (kind == ACROPOLIS_PLAZA_EVENT_REPEAT_SCENE) {
                     if (work->repeatVariant == 0) {
                         work->eventTask =
-                            Task_SpawnFromTable(D_acropolis_plaza_80183824, 6, 0, work);
+                            taskSpawnFromTable(D_acropolis_plaza_80183824, 6, 0, work);
                         work->step = ACROPOLIS_PLAZA_STEP_RUN_REPEAT_SCENE;
                     } else if (work->repeatVariant == 1) {
                         work->eventTask =
-                            Task_SpawnFromTable(D_acropolis_plaza_80183824, 6, 1, work);
+                            taskSpawnFromTable(D_acropolis_plaza_80183824, 6, 1, work);
                         work->step = ACROPOLIS_PLAZA_STEP_RUN_REPEAT_SCENE;
                     } else {
                         work->eventTask =
-                            Task_SpawnFromTable(D_acropolis_plaza_80183824, 6, 2, work);
+                            taskSpawnFromTable(D_acropolis_plaza_80183824, 6, 2, work);
                         work->step = ACROPOLIS_PLAZA_STEP_RUN_REPEAT_SCENE;
                     }
                 } else if (kind >= ACROPOLIS_PLAZA_EVENT_FIRST_CAPTION) {
                     work->eventTask =
-                        Task_SpawnFromTable(D_acropolis_plaza_80183824, 9, 0, work);
+                        taskSpawnFromTable(D_acropolis_plaza_80183824, 9, 0, work);
                     work->step = ACROPOLIS_PLAZA_STEP_RUN_CAPTION;
                 }
             }
@@ -4653,7 +4653,7 @@ static u16 func_acropolis_plaza_8017FB50(Task* task)
                 work->sceneArg.skipStreamReset = 1;
                 work->sceneArg.startFrame      = work->resumeFrame;
                 work->sceneTask =
-                    Task_SpawnFromTable(D_acropolis_plaza_80183824, 1, 0, &work->sceneArg);
+                    taskSpawnFromTable(D_acropolis_plaza_80183824, 1, 0, &work->sceneArg);
             }
             return 0;
         case ACROPOLIS_PLAZA_STEP_RUN_REPEAT_SCENE:
@@ -4663,7 +4663,7 @@ static u16 func_acropolis_plaza_8017FB50(Task* task)
                 work->sceneArg.skipStreamReset = 1;
                 work->sceneArg.startFrame      = work->resumeFrame;
                 work->sceneTask =
-                    Task_SpawnFromTable(D_acropolis_plaza_80183824, 1, 0, &work->sceneArg);
+                    taskSpawnFromTable(D_acropolis_plaza_80183824, 1, 0, &work->sceneArg);
                 step = work->step;
                 if (step == ACROPOLIS_PLAZA_STEP_RUN_FIRST_CAPTION) {
                     work->step = ACROPOLIS_PLAZA_STEP_AWAIT_FIRST_SCENE;
@@ -4744,9 +4744,9 @@ void func_acropolis_plaza_80180054(Task* task)
             memFillBytes(newWork, 0, sizeof(*newWork));
             ((_AcropolisPlazaSequenceWork*)task->work)->playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
             ((_AcropolisPlazaSequenceWork*)task->work)->eventTask =
-                Task_SpawnFromTable(D_acropolis_plaza_80183824, 5, 0, 0);
+                taskSpawnFromTable(D_acropolis_plaza_80183824, 5, 0, 0);
             Gp_KillPlayerEffs();
-            Task_SpawnFromTable(D_acropolis_plaza_80183824, 0xB, 0, 0);
+            taskSpawnFromTable(D_acropolis_plaza_80183824, 0xB, 0, 0);
             task->state = task->state + 1;
             return;
         case 1:
@@ -4761,9 +4761,9 @@ void func_acropolis_plaza_80180054(Task* task)
             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), CAP_CONTROL_MESSAGE_HIDE_HUD, 0, 0);
             work->sceneArg.skipStreamReset = 0;
             work->sceneArg.startFrame      = 0;
-            work->sceneTask                = Task_SpawnFromTable(D_acropolis_plaza_80183824, 1, 0, &work->sceneArg);
+            work->sceneTask                = taskSpawnFromTable(D_acropolis_plaza_80183824, 1, 0, &work->sceneArg);
             Stage_RequestFromAreaTable(0);
-            Task_SpawnFromTable(D_acropolis_plaza_80183824, 8, 6, 0);
+            taskSpawnFromTable(D_acropolis_plaza_80183824, 8, 6, 0);
             q->blockGamePause = 1;
             task->state       = task->state + 1;
             return;

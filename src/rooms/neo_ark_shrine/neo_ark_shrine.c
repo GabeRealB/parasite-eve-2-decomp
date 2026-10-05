@@ -315,7 +315,7 @@ s32 func_neo_ark_shrine_8017D7F0(Task* task, s32 msgId, const void* firstArg, s3
 
     if (request->actionId == 1) {
         if (gameFlagGetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_2_CLEARED) == 0) {
-            Task_SpawnFromTable(D_neo_ark_shrine_80181E5C, 0, 0, 0);
+            taskSpawnFromTable(D_neo_ark_shrine_80181E5C, 0, 0, 0);
         } else {
             Gp_RunCapCmd1(9);
         }
@@ -331,7 +331,7 @@ void func_neo_ark_shrine_8017D84C(Task* task)
         case 0:
             Gp_MsgPlayerWeapon(0);
             Gp_MsgPlayer3F3(0);
-            D_neo_ark_shrine_80186864 = Task_SpawnFromTable(D_neo_ark_shrine_80182508, 0, 0, 0);
+            D_neo_ark_shrine_80186864 = taskSpawnFromTable(D_neo_ark_shrine_80182508, 0, 0, 0);
             task->state++;
             return;
         case 1:

@@ -537,7 +537,7 @@ void func_actor_342100_80162C88(void)
     while (pos->vx != 0) {
         rng               = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         gRandomLcgState   = rng;
-        task              = Task_SpawnFromTable(D_actor_342100_80164B78, 4, (rng >> 16) & 0x1F, 0);
+        task              = taskSpawnFromTable(D_actor_342100_80164B78, 4, (rng >> 16) & 0x1F, 0);
         coord             = task->extra.tmd->coords;
         rot               = (GfxRotationWords*)&coord->coord;
         rot->m00M01       = ONE;
@@ -585,7 +585,7 @@ static s32 func_actor_342100_80162F54(Task* arg0)
             Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
             func_800E8614(D_actor_342100_801649C8, 0);
             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), CAP_CONTROL_MESSAGE_HIDE_HUD, 0, 0);
-            work->fadeTask   = Task_SpawnFromTable(D_actor_342100_80164B78, 2, 0, arg0);
+            work->fadeTask   = taskSpawnFromTable(D_actor_342100_80164B78, 2, 0, arg0);
             work->sceneState = work->sceneState + 1;
             break;
         case ACTOR_342100_BLAZE_SCENE_RUNNING:
@@ -636,14 +636,14 @@ void func_actor_342100_801630A4(Task* arg0)
                 newWork->playerTask     = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                 D_actor_342100_80164BB8 = arg0;
             }
-            Task_SpawnFromTable(D_shelter_b3_dumping_hole_8018B57C, 0, 0xD0, 0);
+            taskSpawnFromTable(D_shelter_b3_dumping_hole_8018B57C, 0, 0xD0, 0);
             sndEvtRequestScriptStart(SOUND_SHELTER_B3_DUMPING_HOLE_ALERT, 0, 0);
             switch (gGameSession->spawnPhase[0]) {
                 case GAME_SESSION_SPAWN_IDLE:
                     arg0->state++;
                     break;
                 case GAME_SESSION_SPAWN_ARMED:
-                    work->encounterTask = Task_SpawnFromTable(D_shelter_b3_dumping_hole_8018B83C, 0, 1, 0);
+                    work->encounterTask = taskSpawnFromTable(D_shelter_b3_dumping_hole_8018B83C, 0, 1, 0);
                 default:
                     arg0->state = 2;
                     break;
@@ -652,7 +652,7 @@ void func_actor_342100_801630A4(Task* arg0)
         case 1:
             if (gameFlagGetNibble(GAME_FLAG_11E) != 0) {
                 if (Gp_TakePendingObj4C(&id, (u8*)&kind, &extra) != 0 && (id & (0xFFFF ^ WORLD_COLLISION_TRIGGER_AUTOMATIC)) == WORLD_COLLISION_TRIGGER_ACTION_ROOM && kind == 1) {
-                    work->encounterTask = Task_SpawnFromTable(D_shelter_b3_dumping_hole_8018B83C, 0, 0, 0);
+                    work->encounterTask = taskSpawnFromTable(D_shelter_b3_dumping_hole_8018B83C, 0, 0, 0);
                     arg0->state++;
                 }
             }
@@ -735,7 +735,7 @@ void func_actor_342100_80163408(void)
 
     work->blaze.wave.span  = 0x258;
     work->blaze.wave.scale = 0x100;
-    Task_SpawnFromTable(D_actor_342100_801648DC, 0, 0, &work->blaze.wave);
+    taskSpawnFromTable(D_actor_342100_801648DC, 0, 0, &work->blaze.wave);
 }
 
 /// Entry/exit of the overlay's spawned child. A zero arm plays the cue, asks
@@ -758,7 +758,7 @@ void func_actor_342100_80163454(s32 arg0)
         if (work->encounterTask != NULL) {
             TASK_MESSAGE_DISPATCH_POINTER(work->encounterTask, ACTOR_COMMAND_MESSAGE_APPLY, &msg, 0);
         }
-        work->bodyFireTask = Task_SpawnFromTable(D_actor_342100_80164B78, 3, 0, 0);
+        work->bodyFireTask = taskSpawnFromTable(D_actor_342100_80164B78, 3, 0, 0);
         return;
     }
     work->bodyFireTask->spawnArg1.value = 1;

@@ -313,7 +313,7 @@ static void Ui_DrawTextUnderline(UiPanel* panel, s32 x, s32 y, char* arg3, s32 a
         _uiSpawnDescriptorArg                   = _uiSpawnDescriptor->taskDataValue;                                                \
         _uiSpawnTaskDesc.callback               = Ui_DispatchObjectState;                                                           \
         _uiSpawnTaskDesc.data.value             = _uiSpawnDescriptorArg;                                                            \
-        _uiSpawnTask                            = Task_SpawnFromTable(&_uiSpawnTaskDesc, 0, _uiSpawnPayload, _uiSpawnResult);       \
+        _uiSpawnTask                            = taskSpawnFromTable(&_uiSpawnTaskDesc, 0, _uiSpawnPayload, _uiSpawnResult);        \
         if (_uiSpawnTask != NULL) {                                                                                                 \
             _uiSpawnResult = memCalloc(sizeof(*_uiSpawnResult), 0);                                                                 \
             if (_uiSpawnResult != NULL) {                                                                                           \
@@ -2728,7 +2728,7 @@ static void Ui_TickAnimCounter(UiPanel* panel, Task* task)
     }
     if ((u16)panel->animationTicks >= (u32)USER_INTERFACE_PANEL_ANIMATION_TICKS) {
         panel->animationTicks = USER_INTERFACE_PANEL_ANIMATION_TICKS;
-        Task_CallExit(task);
+        taskCallExit(task);
         return;
     }
     panel->control.word = USER_INTERFACE_PANEL_INACTIVE;

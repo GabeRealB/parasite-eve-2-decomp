@@ -67,7 +67,7 @@ s32 storeDoorMsg(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
         return 2;
     }
     if (gameFlagGetNibble(GAME_FLAG_GENERAL_STORE_UNDERPASS_BLOCKED) == 0) {
-        Task_SpawnFromTable(gStoreTaskDescs, 1, 0, 0);
+        taskSpawnFromTable(gStoreTaskDescs, 1, 0, 0);
         gStoreWarp = in->warp;
         gStoreRoom = in->room;
     } else {

@@ -625,7 +625,7 @@ s32 func_neo_ark_island_8017E968(Task* task, s32 msgId, RoomEventMsg* src, RoomE
             D_neo_ark_island_80184008.field_4           = dst->warp;
             ((u8*)&D_neo_ark_island_80184008.areaId)[1] = dst->room;
             Gp_MsgPlayerWeapon(0);
-            Task_SpawnFromTable(&D_neo_ark_island_80181B78, 0, 0, 0);
+            taskSpawnFromTable(&D_neo_ark_island_80181B78, 0, 0, 0);
         }
         return 0;
     }

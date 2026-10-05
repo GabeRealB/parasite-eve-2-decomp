@@ -119,7 +119,7 @@ s32 func_shelter_b1_sleeping_quarters_8017D6FC(Task* arg0, s32 arg1, s32 arg2, s
 {
     if (arg2 == 8) {
         Gp_MsgPlayerWeapon(0);
-        Task_SpawnFromTable(&D_shelter_b1_sleeping_quarters_80180540, 0, 8, 0);
+        taskSpawnFromTable(&D_shelter_b1_sleeping_quarters_80180540, 0, 8, 0);
     }
     if (arg2 == 3) {
         Gp_SpawnIfCapIdle(gameFlagGetNibble(GAME_FLAG_SLEEPING_QUARTERS_16F) == 0 ? 3 : 0xF, 0);

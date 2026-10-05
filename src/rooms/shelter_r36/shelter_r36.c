@@ -668,7 +668,7 @@ void func_shelter_r36_8017D7B4(Task* task)
     switch (task->state) {
         case 0:
             Gp_MsgPlayerWeapon(0);
-            Task_SpawnFromTable(D_shelter_r36_8017E9A4, 0, 0, 0);
+            taskSpawnFromTable(D_shelter_r36_8017E9A4, 0, 0, 0);
             task->state++;
             break;
         case 1:
@@ -738,10 +738,10 @@ static void func_shelter_r36_8017D924(Task* task)
     task->msgTable = D_shelter_r36_8017E97C;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     if (gGameSession->location.loc.warp == 1) {
-        Task_SpawnFromTable(D_shelter_r36_8017DF14, 0, 0, 0);
+        taskSpawnFromTable(D_shelter_r36_8017DF14, 0, 0, 0);
     }
     if (gGameSession->location.loc.warp == 2) {
-        Task_SpawnFromTable(D_shelter_r36_8017DF14, 1, 0, 0);
+        taskSpawnFromTable(D_shelter_r36_8017DF14, 1, 0, 0);
     }
     task->state++;
 }

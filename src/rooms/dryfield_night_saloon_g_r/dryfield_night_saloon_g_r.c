@@ -1946,7 +1946,7 @@ s32 func_dryfield_night_saloon_g_r_8017DD84(Task* task, s32 msgId, s32 arg2, s32
     switch (arg2) {
         case 4:
             Gp_MsgPlayerWeapon(0);
-            Task_SpawnFromTable(D_dryfield_night_saloon_g_r_8017F940, 0, 0, 0);
+            taskSpawnFromTable(D_dryfield_night_saloon_g_r_8017F940, 0, 0, 0);
             break;
         case 8:
             if (gameFlagGetNibble(GAME_FLAG_NIGHT_SALOON_TALK_PROGRESS) == 0) {

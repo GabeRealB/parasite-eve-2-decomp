@@ -2848,21 +2848,21 @@ static void func_actor_450800_80132160(Enemy* enemy, Task* task)
     work->st.animId = 1;
     work->st.state  = ACTOR_ENEMY_ANIM_RESET;
 
-    spawned = Task_SpawnFromTable(D_actor_450800_8014AC88, 1, 8, 0);
+    spawned = taskSpawnFromTable(D_actor_450800_8014AC88, 1, 8, 0);
     if (spawned != NULL) {
         work->handLeftTask = spawned;
         spawned->parent    = task;
         _actor450800TintModel(spawned, task);
     }
 
-    spawned = Task_SpawnFromTable(D_actor_450800_8014AC88, 2, 0xC, 0);
+    spawned = taskSpawnFromTable(D_actor_450800_8014AC88, 2, 0xC, 0);
     if (spawned != NULL) {
         work->handRightTask = spawned;
         spawned->parent     = task;
         _actor450800TintModel(spawned, task);
     }
 
-    spawned = Task_SpawnFromTable(D_actor_450800_8014AC88, 4, 8, 0);
+    spawned = taskSpawnFromTable(D_actor_450800_8014AC88, 4, 8, 0);
     if (spawned != NULL) {
         spawned->parent = task;
         work->gunTask   = spawned;

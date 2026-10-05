@@ -1340,7 +1340,7 @@ void func_actor_450200_801320D4(s32 arg0)
             D_actor_450200_801401E4 = NULL;
         }
     } else if (arg0 == 1) {
-        D_actor_450200_801401E4 = Task_SpawnFromTable(D_actor_450200_80137A60, 1, 0, 0);
+        D_actor_450200_801401E4 = taskSpawnFromTable(D_actor_450200_80137A60, 1, 0, 0);
     } else if (D_actor_450200_801401E4 != NULL) {
         D_actor_450200_801401E4->state = arg0;
     }
@@ -1403,7 +1403,7 @@ void func_actor_450200_801322F8(void)
         func_neo_ark_observatory_8017FA98(0);
     }
     if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) {
-        D_actor_450200_801401E0 = Task_SpawnFromTable(D_actor_450200_80137A60, 2, 0, 0);
+        D_actor_450200_801401E0 = taskSpawnFromTable(D_actor_450200_80137A60, 2, 0, 0);
     }
 }
 
@@ -1519,7 +1519,7 @@ void func_actor_450200_80132538(Task* task)
 void func_actor_450200_80132848(s32 arg0)
 {
     if (arg0 == 1) {
-        Task_SpawnFromTable(&D_actor_450200_8013FB40, 0, 0, 0);
+        taskSpawnFromTable(&D_actor_450200_8013FB40, 0, 0, 0);
     }
 }
 

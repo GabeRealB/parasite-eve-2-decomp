@@ -925,7 +925,7 @@ static void func_actor_548100_80132420(Task* task)
         taskKill(task);
         return;
     }
-    task->spawnArg2.pointer                                    = Task_SpawnFromTable(&D_actor_548100_801351B4, 0, 1, 0);
+    task->spawnArg2.pointer                                    = taskSpawnFromTable(&D_actor_548100_801351B4, 0, 1, 0);
     task->msgTable                                             = D_actor_548100_801351C0;
     task->work                                                 = work;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 4;

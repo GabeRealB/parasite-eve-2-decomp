@@ -277,7 +277,7 @@ void func_dryfield_warehouse_8017D8D4(Task* arg0)
     switch (arg0->state) {
         case 0:
             SetDispMask(0);
-            D_dryfield_warehouse_801821B4 = Task_SpawnFromTable(D_dryfield_warehouse_8017FB08, 0, 0, 0);
+            D_dryfield_warehouse_801821B4 = taskSpawnFromTable(D_dryfield_warehouse_8017FB08, 0, 0, 0);
             arg0->state                  += 1;
             return;
         case 1:
@@ -299,7 +299,7 @@ static void func_dryfield_warehouse_8017D99C(Task* arg0)
 {
     arg0->msgTable = D_dryfield_warehouse_8017F554;
     gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
-    Task_SpawnFromTable(D_dryfield_warehouse_8017F56C, 1, 0, 0);
+    taskSpawnFromTable(D_dryfield_warehouse_8017F56C, 1, 0, 0);
     arg0->state = (s32)(arg0->state + 1);
 }
 

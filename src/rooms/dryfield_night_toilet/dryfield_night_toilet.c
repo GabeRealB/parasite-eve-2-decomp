@@ -507,7 +507,7 @@ static void func_dryfield_night_toilet_8017D690(Task* task)
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     if (gameFlagGetNibble(GAME_FLAG_NIGHT_TOILET_EVENT_SEEN) == 0 && gGameSession->location.loc.variant == 1) {
         gameFlagSetNibble(GAME_FLAG_NIGHT_TOILET_EVENT_SEEN, 1);
-        Task_SpawnFromTable(&Actor04000_D0C6FC, 0, 0, 0);
+        taskSpawnFromTable(&Actor04000_D0C6FC, 0, 0, 0);
     }
     task->state = task->state + 1;
 }

@@ -347,7 +347,7 @@ def defines(header: str, symbol: str) -> bool:
     `Task`, because a type is named by every header that takes one as a
     parameter. Matching the shapes a definition actually takes narrows that to
     the header that owns it -- main/task.h for Task, TaskDesc, taskKill and
-    Task_SpawnFromTable alike.
+    taskSpawnFromTable alike.
     """
     path = REPO_ROOT / "include" / header
     if not path.is_file():

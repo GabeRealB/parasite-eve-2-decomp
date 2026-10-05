@@ -345,13 +345,13 @@ static void func_actor_342400_80162324(Task* arg0)
             arg  = gMadChaserWaveSlots[idx].command;
             switch (type) {
                 case 0:
-                    Task_SpawnFromTable(D_actor_342400_8016BFE0, 1, (idx << 16) + arg + (func_actor_342400_801624A4() << 16 >> 8), 0);
+                    taskSpawnFromTable(D_actor_342400_8016BFE0, 1, (idx << 16) + arg + (func_actor_342400_801624A4() << 16 >> 8), 0);
                     break;
                 case 1:
-                    Task_SpawnFromTable(D_actor_342400_8016BFE0, 2, (idx << 16) + arg + (func_actor_342400_801624A4() << 16 >> 8), 0);
+                    taskSpawnFromTable(D_actor_342400_8016BFE0, 2, (idx << 16) + arg + (func_actor_342400_801624A4() << 16 >> 8), 0);
                     break;
                 case 2:
-                    Task_SpawnFromTable(D_actor_342400_8016BFE0, 3, (idx << 16) + arg + (func_actor_342400_801624A4() << 16 >> 8), 0);
+                    taskSpawnFromTable(D_actor_342400_8016BFE0, 3, (idx << 16) + arg + (func_actor_342400_801624A4() << 16 >> 8), 0);
                     break;
             }
             work->nextSlot++;
@@ -701,13 +701,13 @@ void madChaserWaveSpawnSlot(s16 arg0, s16 arg1, s16 arg2)
 {
     switch (arg1) {
         case 0:
-            Task_SpawnFromTable(D_actor_342400_8016BFE0, 1, (arg0 << 16) + arg2 + (func_actor_342400_801624A4() << 8), 0);
+            taskSpawnFromTable(D_actor_342400_8016BFE0, 1, (arg0 << 16) + arg2 + (func_actor_342400_801624A4() << 8), 0);
             break;
         case 1:
-            Task_SpawnFromTable(D_actor_342400_8016BFE0, 2, (arg0 << 16) + arg2 + (func_actor_342400_801624A4() << 8), 0);
+            taskSpawnFromTable(D_actor_342400_8016BFE0, 2, (arg0 << 16) + arg2 + (func_actor_342400_801624A4() << 8), 0);
             break;
         case 2:
-            Task_SpawnFromTable(D_actor_342400_8016BFE0, 3, (arg0 << 16) + arg2 + (func_actor_342400_801624A4() << 8), 0);
+            taskSpawnFromTable(D_actor_342400_8016BFE0, 3, (arg0 << 16) + arg2 + (func_actor_342400_801624A4() << 8), 0);
             break;
     }
 }

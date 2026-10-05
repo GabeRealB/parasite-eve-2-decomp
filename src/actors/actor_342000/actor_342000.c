@@ -1147,19 +1147,19 @@ void func_actor_342000_8016382C(Task* arg0)
                 msg.context.loc.area  = gGameSession->location.loc.area;
                 msg.command           = 0;
                 TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
-                work->doors[0] = Task_SpawnFromTable(D_actor_342000_80164FF8, 8, 0, arg0);
-                work->doors[1] = Task_SpawnFromTable(D_actor_342000_80164FF8, 9, 0, arg0);
+                work->doors[0] = taskSpawnFromTable(D_actor_342000_80164FF8, 8, 0, arg0);
+                work->doors[1] = taskSpawnFromTable(D_actor_342000_80164FF8, 9, 0, arg0);
                 goto next;
             }
-            work->doors[0] = Task_SpawnFromTable(D_actor_342000_80164FF8, 8, 1, arg0);
-            work->doors[1] = Task_SpawnFromTable(D_actor_342000_80164FF8, 9, 1, arg0);
+            work->doors[0] = taskSpawnFromTable(D_actor_342000_80164FF8, 8, 1, arg0);
+            work->doors[1] = taskSpawnFromTable(D_actor_342000_80164FF8, 9, 1, arg0);
             func_shelter_b3_garbage_incinerator_80180FE4(0x17, 0, 0x3C);
             arg0->state = 4;
             break;
         case 1:
-            work->glutton = Task_SpawnFromTable(D_actor_342000_80164FF8, 2, 0, arg0);
+            work->glutton = taskSpawnFromTable(D_actor_342000_80164FF8, 2, 0, arg0);
             for (i = 0; i < 5; i++) {
-                child = Task_SpawnFromTable(D_actor_342000_80164FF8, i + 3, i + 1, work->glutton);
+                child = taskSpawnFromTable(D_actor_342000_80164FF8, i + 3, i + 1, work->glutton);
                 if (i == 0) {
                     work->gluttonLegRight = child;
                 }
@@ -1175,7 +1175,7 @@ void func_actor_342000_8016382C(Task* arg0)
         case 3:
             if (gGameSession->eventState == 0) {
                 gGameSession->sceneClock = D_shelter_b3_garbage_incinerator_8018FBC8[0];
-                Task_SpawnFromTable(D_shelter_b3_garbage_incinerator_80187150, 0, 1, 0);
+                taskSpawnFromTable(D_shelter_b3_garbage_incinerator_80187150, 0, 1, 0);
                 gGameSession->incineratorExitPhase = GAME_SESSION_INCINERATOR_EXIT_ENCOUNTER;
                 Task_RequestKill(arg0, 0);
                 return;
@@ -1353,7 +1353,7 @@ void func_actor_342000_801641B4(void)
 
     work = D_actor_342000_80165070->work;
     if (work->glutton != NULL) {
-        Task_CallExit(work->glutton);
+        taskCallExit(work->glutton);
     }
     work->glutton = NULL;
 }

@@ -742,7 +742,7 @@ static void func_dryfield_gas_station_801803C0(Task* task)
         case DRYFIELD_GAS_STATION_CUTSCENE_COMMAND_SPAWN_FADE_IN:
             switch (work->commandStep) {
                 case 0:
-                    Task_SpawnFromTable(D_dryfield_gas_station_8018312C, 1, 0x1E, 0);
+                    taskSpawnFromTable(D_dryfield_gas_station_8018312C, 1, 0x1E, 0);
                     // The spawn and the one-frame wait share this update.
                 case 1:
                     work->commandStep++;

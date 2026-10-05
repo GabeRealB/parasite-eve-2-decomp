@@ -801,7 +801,7 @@ void func_actor_142900_80131F5C(void)
 void func_actor_142900_80131FDC(s32 arg0)
 {
     if (arg0 == 1) {
-        Task_SpawnFromTable(D_actor_142900_80137600, 1, 0, 0);
+        taskSpawnFromTable(D_actor_142900_80137600, 1, 0, 0);
     }
     D_actor_142900_801382AC = arg0;
 }

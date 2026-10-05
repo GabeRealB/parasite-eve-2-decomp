@@ -428,7 +428,7 @@ void func_actor_143000_801342F8(s32 x, s32 y, const u16* codes, s32 index, s32 a
 
 void func_actor_143000_801344A8(s32 arg0)
 {
-    Task_SpawnFromTable(&D_actor_143000_801350C8, 0, 0, arg0);
+    taskSpawnFromTable(&D_actor_143000_801350C8, 0, 0, arg0);
 }
 
 void func_actor_143000_801344D8(void)

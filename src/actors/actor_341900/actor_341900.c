@@ -928,13 +928,13 @@ void func_actor_341900_80162EFC(Task* arg0)
             request.context.loc.area  = sessionIdLo;
             TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &request, ACTOR_COMMAND_MESSAGE_APPLY);
             seqWork          = arg0->work;
-            seqWork->glutton = Task_SpawnFromTable(D_actor_341900_80164190, 2, 0, arg0);
+            seqWork->glutton = taskSpawnFromTable(D_actor_341900_80164190, 2, 0, arg0);
             for (var_s0 = 0; (u32)(var_s0 & 0xFFFF) < 5U; var_s0++) {
                 temp_a2 = var_s0 & 0xFFFF;
-                Task_SpawnFromTable(D_actor_341900_80164190, temp_a2 + 3, temp_a2 + 1, seqWork->glutton);
+                taskSpawnFromTable(D_actor_341900_80164190, temp_a2 + 3, temp_a2 + 1, seqWork->glutton);
             }
-            seqWork->doors[0]        = Task_SpawnFromTable(D_actor_341900_80164190, 8, 0, arg0);
-            seqWork->doors[1]        = Task_SpawnFromTable(D_actor_341900_80164190, 9, 0, arg0);
+            seqWork->doors[0]        = taskSpawnFromTable(D_actor_341900_80164190, 8, 0, arg0);
+            seqWork->doors[1]        = taskSpawnFromTable(D_actor_341900_80164190, 9, 0, arg0);
             gGameSession->flowFlags |= (GAME_SESSION_FLOW_SKIP_ENDING_MUSIC | GAME_SESSION_FLOW_SKIP_AREA_MUSIC);
             goto next;
         case 1:
@@ -1075,7 +1075,7 @@ void func_actor_341900_801634D0(void)
 
 void func_actor_341900_80163534(void)
 {
-    Task_SpawnFromTable(D_actor_341900_80164190, 1, 9, 0);
+    taskSpawnFromTable(D_actor_341900_80164190, 1, 9, 0);
 }
 
 void func_actor_341900_80163564(s16 arg0)

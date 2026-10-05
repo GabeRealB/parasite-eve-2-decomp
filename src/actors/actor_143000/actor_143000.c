@@ -275,7 +275,7 @@ static void func_actor_143000_801324C8(Task* arg0)
         taskKill(arg0);
         return;
     }
-    arg0->spawnArg2.pointer                                    = Task_SpawnFromTable(&D_actor_143000_80134558, 0, 1, 0);
+    arg0->spawnArg2.pointer                                    = taskSpawnFromTable(&D_actor_143000_80134558, 0, 1, 0);
     arg0->work                                                 = work;
     temp_a0                                                    = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0xB;
@@ -783,7 +783,7 @@ static void func_actor_143000_80133800(Task* arg0)
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = D_actor_143000_80135C0C_value;
         Gp_MsgPlayer3F3(1);
     } else {
-        Task_SpawnFromTable(D_actor_143000_801350B0, 1, 0, &D_actor_143000_80135C08);
+        taskSpawnFromTable(D_actor_143000_801350B0, 1, 0, &D_actor_143000_80135C08);
     }
     taskKill(arg0->spawnArg2.pointer);
     Task_RequestKill(arg0, work->codeAccepted);

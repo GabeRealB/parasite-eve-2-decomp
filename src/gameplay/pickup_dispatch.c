@@ -167,7 +167,7 @@ void Gp_MenuExitCallback(Task* arg0)
         Gp_UsedItemId = 0;
     }
     Display_ReleaseRef();
-    Task_CallExit(arg0);
+    taskCallExit(arg0);
 }
 
 static void func_800CE398(s32 arg0)

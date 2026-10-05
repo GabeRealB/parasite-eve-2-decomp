@@ -1731,7 +1731,7 @@ static void func_actor_303600_80161F40(Task* arg0)
                 taskKill(D_actor_303600_8016E4C4);
                 D_actor_303600_8016E4C4 = NULL;
             }
-            Task_SpawnFromTable(D_actor_303600_80162E98, 1, 4, 0);
+            taskSpawnFromTable(D_actor_303600_80162E98, 1, 4, 0);
             break;
         case 5:
             w                     = D_actor_303600_8016E4C0->work;
@@ -1742,18 +1742,18 @@ static void func_actor_303600_80161F40(Task* arg0)
             w->lastActorCommand = 5;
             break;
         case 6:
-            Task_SpawnFromTable(D_actor_303600_80162E98, 2, 8, 0);
+            taskSpawnFromTable(D_actor_303600_80162E98, 2, 8, 0);
             break;
         case 7:
-            Task_SpawnFromTable(D_actor_303600_80162E98, 2, 4, 0);
+            taskSpawnFromTable(D_actor_303600_80162E98, 2, 4, 0);
             break;
         case 8:
             if (D_actor_303600_8016E4C4 != NULL) {
                 taskKill(D_actor_303600_8016E4C4);
                 D_actor_303600_8016E4C4 = NULL;
             }
-            Task_SpawnFromTable(D_actor_303600_80162E98, 3, 0, 0);
-            Task_SpawnFromTable(D_actor_303600_80162E98, 1, 4, 0);
+            taskSpawnFromTable(D_actor_303600_80162E98, 3, 0, 0);
+            taskSpawnFromTable(D_actor_303600_80162E98, 1, 4, 0);
             break;
     }
     work->command = 0;
@@ -1936,7 +1936,7 @@ void func_actor_303600_8016253C(void)
         work->endCommandSent   = 1;
     }
 
-    Task_SpawnFromTable(D_actor_303600_80162E98, 3, 0, 0);
+    taskSpawnFromTable(D_actor_303600_80162E98, 3, 0, 0);
 }
 
 void func_actor_303600_80162600(s16 arg0)
@@ -1978,7 +1978,7 @@ void func_actor_303600_80162698(void)
 
 /// Spawn state of the package's scrolling shaft: allocates the work block the
 /// later states read through `Task::work`, clears the task's own root
-/// coordinate, then spawns the five segment models -- one `Task_SpawnFromTable`
+/// coordinate, then spawns the five segment models -- one `taskSpawnFromTable`
 /// of `D_actor_303600_8016E468` entry 1 each, parked in `segments` and stacked
 /// one segment height apart in Y, centred on the task's coordinate.  The spread
 /// reaches the coordinate through the strength-reduced `i * 8000 - 16000`
@@ -2006,7 +2006,7 @@ static void func_actor_303600_801626C0(Task* task)
     coord->coord.t[1] = 0;
     coord->coord.t[2] = 0;
     for (i = 0; i < (s32)ARRAY_SIZE(work->segments); i++) {
-        child = Task_SpawnFromTable(D_actor_303600_8016E468, 1, 0, task);
+        child = taskSpawnFromTable(D_actor_303600_8016E468, 1, 0, task);
         if (child == NULL) {
             break;
         }

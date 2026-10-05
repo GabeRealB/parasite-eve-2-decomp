@@ -74,7 +74,7 @@ static void func_mist_r21_8017D61C(Task* task)
 {
     task->msgTable = D_mist_r21_8017D770;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    Task_SpawnFromTable(D_mist_r21_8017D798, 0, 0, 0);
+    taskSpawnFromTable(D_mist_r21_8017D798, 0, 0, 0);
     task->state = (s32)(task->state + 1);
 }
 

@@ -257,7 +257,7 @@ s32 func_shelter_b3_dumping_hole_8017D868(Task* task, s32 msgId, s32 arg2, s32 a
 
 s32 func_shelter_b3_dumping_hole_8017D870(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
-    Task_SpawnFromTable(D_shelter_b3_dumping_hole_80189ADC, 0, 0, 0);
+    taskSpawnFromTable(D_shelter_b3_dumping_hole_80189ADC, 0, 0, 0);
     return 0;
 }
 
@@ -277,7 +277,7 @@ static void func_shelter_b3_dumping_hole_8017D8A0(Task* arg0)
         }
     }
     if (gGameSession->location.loc.room >= 2) {
-        Task_SpawnFromTable(D_actor_342100_80164B78, 0, 0, 0);
+        taskSpawnFromTable(D_actor_342100_80164B78, 0, 0, 0);
     }
     arg0->state                             += 1;
     D_shelter_b3_dumping_hole_8018F4A4_value = 0;

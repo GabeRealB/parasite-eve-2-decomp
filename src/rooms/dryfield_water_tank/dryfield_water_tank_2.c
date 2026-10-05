@@ -1070,7 +1070,7 @@ static void func_dryfield_water_tank_8017E78C(Task* task)
             }
             break;
         case DRYFIELD_WATER_TANK_EVENT_COMMAND_FADE_OUT:
-            Task_SpawnFromTable(D_dryfield_water_tank_80180764, 3, 8, 0);
+            taskSpawnFromTable(D_dryfield_water_tank_80180764, 3, 8, 0);
             break;
         case DRYFIELD_WATER_TANK_EVENT_COMMAND_TURN_PLAYER:
             msg.warp.rot.vy = 0x800;
@@ -1219,7 +1219,7 @@ void func_dryfield_water_tank_8017EBA0(void)
 
 void func_dryfield_water_tank_8017EC38(u32 arg0)
 {
-    Task_SpawnFromTable(D_dryfield_water_tank_80184DF4, arg0 & 0xFFFF, (s32)(arg0 >> 0x10), 0);
+    taskSpawnFromTable(D_dryfield_water_tank_80184DF4, arg0 & 0xFFFF, (s32)(arg0 >> 0x10), 0);
 }
 
 /// Walks the water tank one step along `D_dryfield_water_tank_80184530` per

@@ -372,7 +372,7 @@ static __inline__ s32 _shelter1fParkingGarageStartEvent(RoomEventMsg* dst, RoomL
             if (event->flagId != 0) {
                 gameFlagSetNibble(event->flagId, 1);
             }
-            Task_SpawnFromTable(&D_shelter_1f_parking_garage_80180BAC, 0, 0, 0);
+            taskSpawnFromTable(&D_shelter_1f_parking_garage_80180BAC, 0, 0, 0);
             D_shelter_1f_parking_garage_80181984_value = 1;
         }
         return 2;
@@ -442,7 +442,7 @@ void func_shelter_1f_parking_garage_8017DAF0(Task* task)
                 p->warp        = msg.warp;
                 p->room        = msg.room;
                 gRoomDeparture = rec;
-                Task_SpawnFromTable(&D_shelter_1f_parking_garage_80180BA0, 0, 0, 0);
+                taskSpawnFromTable(&D_shelter_1f_parking_garage_80180BA0, 0, 0, 0);
                 taskKill(task);
             }
             task->killCountdown--;
@@ -486,7 +486,7 @@ s32 func_shelter_1f_parking_garage_8017DE4C(Task* task, s32 msgId, const void* f
     if (request->actionId == 0xA) {
         Gp_MsgPlayerWeapon(0);
         Gp_RunCapCmd1(2);
-        Task_SpawnFromTable(&D_shelter_1f_parking_garage_80180BE0, 0, 0, 0);
+        taskSpawnFromTable(&D_shelter_1f_parking_garage_80180BE0, 0, 0, 0);
     }
     return 0;
 }

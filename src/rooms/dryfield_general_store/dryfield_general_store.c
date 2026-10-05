@@ -1592,7 +1592,7 @@ s32 func_dryfield_general_store_8017DDFC(Task* task, s32 msgId, RoomEventMsg* ar
     switch (arg2->warp) {
         case 1:
             if (gameFlagGetNibble(GAME_FLAG_GENERAL_STORE_CUTSCENE_STATE) == 0) {
-                Task_SpawnFromTable(&D_dryfield_general_store_8017E4C0, 0, 0, 0);
+                taskSpawnFromTable(&D_dryfield_general_store_8017E4C0, 0, 0, 0);
                 gameFlagSetNibble(GAME_FLAG_GENERAL_STORE_CUTSCENE_STATE, 1);
             }
             break;

@@ -28,18 +28,41 @@ extern TaskDesc D_800678F4[];
 
 extern TaskDesc D_80068B7C[];
 
-void Task_InitList(TaskNode* node);
+/// Initializes an empty execution-list head and selects it for spawning.
+///
+/// `listHead` must be non-NULL writable bare-head storage, kept live while
+/// selected. Sets next to NULL and prev to itself without releasing any tasks
+/// previously reachable through it. Selection persists after return.
+void taskInitList(TaskNode* listHead);
 
-void Task_ExecList(TaskNode* node);
+/// Runs task callbacks in list order and collects tasks whose bodies are released.
+///
+/// Requires a live initialized bare head and live linked tasks. Selects the head
+/// without restoring the previous selection; callbacks must restore temporary
+/// switches so tail collection uses the owning head. After each callback, a
+/// stop request equal to one is cleared and returns before collection. Otherwise
+/// a released task is unlinked and freed in this walk. Callback cursor fields
+/// must remain readable and unchanged by release/reuse until advancement, unless
+/// the callback requests a stop. New tasks inserted after the cursor can run
+/// in the same walk. Neither the head nor the entry list is copied.
+void taskExecList(TaskNode* listHead);
 
-/// Runs the default frame list. The body reloads `gTaskDefaultList` itself, so
-/// the argument is not read.
-/// Legacy ABI: GameMain_Loop passes no argument, while the display path
-/// passes the default-list pointer. The implementation ignores that argument.
-/// Keep this declaration unprototyped to preserve both original call sequences.
-void Task_ExecDefaultList();
+/// Runs and selects the default frame list, with the collection contract of `taskExecList`.
+///
+/// The implementation ignores its `unusedListHead` argument and reads
+/// `gTaskDefaultList` directly. The main loop supplies no argument while the
+/// display path supplies the default head. Keep the legacy unprototyped
+/// declaration to preserve both matched call sequences. Initialization must
+/// precede dispatch; the default head stays selected after this call.
+void taskExecDefaultList();
 
-void Task_ExecListFiltered(TaskNode* node, s32 filter);
+/// Runs matching-priority callbacks and collects every released task in a list.
+///
+/// Requires the live-list and callback-cursor contract of `taskExecList`.
+/// Compares only `priority & 0xFF`; nonmatching tasks still undergo collection.
+/// Selects the supplied head during dispatch and tail unlinking, then restores
+/// the previous selection, including after a cleared stop request ends the walk.
+void taskExecListForPriority(TaskNode* listHead, s32 priority);
 
 /// Inert task callback for idle tasks and stop or teardown handoffs.
 ///

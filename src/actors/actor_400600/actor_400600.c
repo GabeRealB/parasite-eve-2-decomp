@@ -2912,7 +2912,7 @@ static void func_actor_400600_801356E0(Task* arg0)
     work              = (_Actor400600ZebraStalkerWork*)arg0->work;
     parent            = &root[7];
     parent2           = &root[10];
-    task              = Task_SpawnFromTable(D_actor_400600_80151AF8, 0, 0, 0);
+    task              = taskSpawnFromTable(D_actor_400600_80151AF8, 0, 0, 0);
     work->armTasks[0] = task;
     if (task != NULL) {
         obj                      = task->extra.tmd;
@@ -2950,7 +2950,7 @@ static void func_actor_400600_801356E0(Task* arg0)
         obj->lightMtx = &work->lightMtx;
         obj->colorMtx = &work->colorMtx;
     }
-    task = work->armTasks[1] = Task_SpawnFromTable(D_actor_400600_80151AF8, 1, 0, 0);
+    task = work->armTasks[1] = taskSpawnFromTable(D_actor_400600_80151AF8, 1, 0, 0);
     if (task != NULL) {
         obj                    = task->extra.tmd;
         coord                  = obj->coords;

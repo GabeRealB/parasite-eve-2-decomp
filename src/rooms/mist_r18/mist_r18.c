@@ -1507,7 +1507,7 @@ void func_mist_r18_8017E6D8(s32 idx)
     }
 
     if ((slot != NULL) && (*slot == NULL)) {
-        task  = Task_SpawnFromTable(D_mist_r18_80184F04, idx, 8, gameGetTaskSlot(GAME_TASK_SLOT_PLAYER));
+        task  = taskSpawnFromTable(D_mist_r18_80184F04, idx, 8, gameGetTaskSlot(GAME_TASK_SLOT_PLAYER));
         *slot = task;
         if (task != NULL) {
             task->extra.tmd->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -1533,13 +1533,13 @@ void func_mist_r18_8017E784(s32 idx)
 
 void func_mist_r18_8017E7F0(void)
 {
-    Task_SpawnFromTable(D_mist_r18_80184F04, 5, 0, &D_mist_r18_80184EE4);
+    taskSpawnFromTable(D_mist_r18_80184F04, 5, 0, &D_mist_r18_80184EE4);
 }
 
 /// Spawn entry 3 of the room's task table.
 void func_mist_r18_8017E824(void)
 {
-    Task_SpawnFromTable(D_mist_r18_80184F04, 3, 0, 0);
+    taskSpawnFromTable(D_mist_r18_80184F04, 3, 0, 0);
 }
 
 /// Per-frame entry point of the backdrop task: run the handler its state
@@ -1576,7 +1576,7 @@ static void func_mist_r18_8017E8B8(Task* task)
 /// `D_mist_r18_80186E98`, which `func_mist_r18_8017EA60` kills.
 void func_mist_r18_8017EA2C(void)
 {
-    D_mist_r18_80186E98 = Task_SpawnFromTable(D_mist_r18_80184F04, 4, 0, 0);
+    D_mist_r18_80186E98 = taskSpawnFromTable(D_mist_r18_80184F04, 4, 0, 0);
 }
 
 void func_mist_r18_8017EA60(void)
@@ -1630,7 +1630,7 @@ void func_mist_r18_8017EBB8(void)
 
 void func_mist_r18_8017EBF8(void)
 {
-    if (Task_SpawnFromTable(D_mist_r18_80184F04, 7, 0, 0) != NULL) {
+    if (taskSpawnFromTable(D_mist_r18_80184F04, 7, 0, 0) != NULL) {
         D_801156F9 = 1;
     }
 }

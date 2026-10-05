@@ -126,7 +126,7 @@ static void Reflection_InitPlayer(Task* task)
     for (i = 0; i < 2; i++) {
         child = actor->attachmentTasks[i];
         if (child != NULL) {
-            spawned = Task_SpawnFromTable(Reflection_GetTasks(), 1, i, task);
+            spawned = taskSpawnFromTable(Reflection_GetTasks(), 1, i, task);
             if (spawned != NULL) {
                 taskReparent(child, spawned);
             }
@@ -240,7 +240,7 @@ static void Reflection_UpdatePlayer(Task* task)
         for (i = 0; i < 2; i++) {
             child = actor->equipmentTasks[i];
             if (child != NULL) {
-                spawned = Task_SpawnFromTable(Reflection_GetTasks(), 1, i + 2, task);
+                spawned = taskSpawnFromTable(Reflection_GetTasks(), 1, i + 2, task);
                 if (spawned != NULL) {
                     taskReparent(child, spawned);
                 }
@@ -761,7 +761,7 @@ static void Reflection_HeldObjectTask(Task* task)
     u16             flags;
 
     if (task->parent == NULL) {
-        Task_CallExit(task);
+        taskCallExit(task);
     }
     mirror      = (Task*)task->spawnArg2.pointer;
     mirrorPart  = &mirror->extra.tmd->coords[Reflection_Data_8017FC8C[task->spawnArg1.value]];
@@ -771,7 +771,7 @@ static void Reflection_HeldObjectTask(Task* task)
         src      = task->parent->extra.tmd;
         srcParts = src->coords;
         if (modelObjectAttachTmd(task, src->source) == NULL) {
-            Task_CallExit(task);
+            taskCallExit(task);
             return;
         }
         extra                    = task->extra.tmd;

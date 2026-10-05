@@ -89,7 +89,7 @@ void func_800E31E8(Task* arg0)
 loop:
     if (desc->header.word == kind &&
         (desc->data.value == room || desc->data.value == area)) {
-        Task_SpawnFromTable(table, index, 0, 0);
+        taskSpawnFromTable(table, index, 0, 0);
         arg0->state++;
         return;
     }

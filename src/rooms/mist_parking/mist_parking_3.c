@@ -157,7 +157,7 @@ kill:
 
 void func_mist_parking_80183688(s32 arg0)
 {
-    Display_InitModeObj(Task_GetDescAt(D_mist_parking_8018D75C, 5U), arg0, 0, 0);
+    Display_InitModeObj(taskGetDescAt(D_mist_parking_8018D75C, 5U), arg0, 0, 0);
 }
 
 void func_mist_parking_801836CC(Task* arg0)

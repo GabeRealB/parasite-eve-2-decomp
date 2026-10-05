@@ -2441,14 +2441,14 @@ void func_actor_443500_80131EE4(void)
 
 void func_actor_443500_80131F18(void)
 {
-    Task_SpawnFromTable(&D_shelter_r47_80187618, 0, 1, 0);
+    taskSpawnFromTable(&D_shelter_r47_80187618, 0, 1, 0);
     Gp_MsgPlayer3F3(0);
     Gp_MsgPlayerWeapon(0);
 }
 
 void func_actor_443500_80131F58(void)
 {
-    Task_SpawnFromTable(&D_actor_443500_80140E38, 0, 0, 0);
+    taskSpawnFromTable(&D_actor_443500_80140E38, 0, 0, 0);
 }
 
 void func_actor_443500_80131F88(Task* arg0)
@@ -2510,7 +2510,7 @@ static void func_actor_443500_80132078(Task* task)
     work->model.bank      = ACTOR_MODEL_STATE_NONE;
     work->freeCountdown   = -1;
     work->savedModelFlags = task->extra.tmd->flags;
-    spawned               = Task_SpawnFromTable(D_actor_443500_8015873C, 1, 4, task);
+    spawned               = taskSpawnFromTable(D_actor_443500_8015873C, 1, 4, task);
     if (spawned != NULL) {
         sessionKey = &gGameSession->location.loc;
         raw        = ((Enemy*)task->spawnArg2.pointer)->placeKey;

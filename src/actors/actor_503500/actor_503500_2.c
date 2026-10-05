@@ -1842,12 +1842,12 @@ void func_actor_503500_80132BF8(void)
 
 void func_actor_503500_80132C40(s32 arg0)
 {
-    Task_SpawnFromTable(D_actor_503500_8014B964, 0, arg0, 0);
+    taskSpawnFromTable(D_actor_503500_8014B964, 0, arg0, 0);
 }
 
 void func_actor_503500_80132C70(s32 arg0)
 {
-    D_actor_503500_80176558 = Task_SpawnFromTable(D_actor_503500_8014B964, 1, arg0, 0);
+    D_actor_503500_80176558 = taskSpawnFromTable(D_actor_503500_8014B964, 1, arg0, 0);
 }
 
 /// Record handler (opcode 0x0D) of the actor's script data: calls

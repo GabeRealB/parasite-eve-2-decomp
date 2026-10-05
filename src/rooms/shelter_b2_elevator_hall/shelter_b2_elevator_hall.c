@@ -536,7 +536,7 @@ s32 func_shelter_b2_elevator_hall_8017DAD4(Task* arg0, s32 arg1, RoomEventMsg* i
         }
         if (in->queryOnly == ROOM_EVENT_EXECUTE) {
             Gp_RunCapCmd(5, 0);
-            Task_SpawnFromTable(&D_shelter_b2_elevator_hall_8018379C, 0, 0x541B0001, 0);
+            taskSpawnFromTable(&D_shelter_b2_elevator_hall_8018379C, 0, 0x541B0001, 0);
         }
         return 0;
     }

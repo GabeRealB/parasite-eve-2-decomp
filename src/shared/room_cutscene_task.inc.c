@@ -70,7 +70,7 @@ void roomCutsceneTask(Task* task)
             break;
         case 4:
             ROOM_CUTSCENE_SOUND_TASK =
-                Task_SpawnFromTable(gRoomCutsceneTaskDescs, 1, 0, script->sceneSound);
+                taskSpawnFromTable(gRoomCutsceneTaskDescs, 1, 0, script->sceneSound);
             Gp_StartCapSlot(script->capSlot, 0, 0x63);
             task->state++;
             break;

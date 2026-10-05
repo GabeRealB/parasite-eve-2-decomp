@@ -1570,7 +1570,7 @@ void func_acropolis_cafeteria_8018286C(Task* task)
     tmd->colorMtx = &D_acropolis_cafeteria_8018D5E0;
     if (flag == 2) {
         tmd->flags &= (u16)~TMD_OBJECT_FLAGGED_PASS;
-        Task_CallExit(task);
+        taskCallExit(task);
     } else {
         tmd->flags    = TMD_OBJECT_FLAGGED_PASS;
         tmd->otOffset = 0;

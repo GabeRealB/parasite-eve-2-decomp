@@ -1623,7 +1623,7 @@ s32 func_neo_ark_observatory_8017F6F8(Task* arg0, s32 arg1, const void* firstArg
                 Gp_MsgPlayerWeapon(0);
                 _neoArkObservatoryStageMarker(&desc, resolve);
                 gRoomDeparture = desc;
-                Task_SpawnFromTable(&D_neo_ark_observatory_80180DD4, 0, 0, 0);
+                taskSpawnFromTable(&D_neo_ark_observatory_80180DD4, 0, 0, 0);
                 return 0;
             }
         }
@@ -1637,7 +1637,7 @@ s32 func_neo_ark_observatory_8017F6F8(Task* arg0, s32 arg1, const void* firstArg
         Gp_MsgPlayerWeapon(0);
         _neoArkObservatoryStageMarker(&desc, resolve);
         gRoomDeparture = desc;
-        Task_SpawnFromTable(&D_neo_ark_observatory_80180DD4, 0, 0, 0);
+        taskSpawnFromTable(&D_neo_ark_observatory_80180DD4, 0, 0, 0);
     }
     if (request->actionId == 1 && gameFlagGetNibble(GAME_FLAG_0D7) == 0) {
         gameFlagSetNibble(GAME_FLAG_0D7, 1);
@@ -1741,7 +1741,7 @@ s32 func_neo_ark_observatory_8017FCA0(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 1) {
         Gp_MsgPlayerWeapon(0);
-        Task_SpawnFromTable(&D_neo_ark_observatory_801811AC, 0, 1, 0);
+        taskSpawnFromTable(&D_neo_ark_observatory_801811AC, 0, 1, 0);
     }
     return 0;
 }

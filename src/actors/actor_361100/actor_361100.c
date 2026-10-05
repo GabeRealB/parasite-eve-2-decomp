@@ -970,7 +970,7 @@ void func_actor_361100_80161E3C(Task* arg0)
         if (arg0->state == 0) {
             state = memCalloc(sizeof(Actor403600Ripple), false);
             if (state == NULL) {
-                Task_CallExit(arg0);
+                taskCallExit(arg0);
                 i = 0;
             }
             arg0->work      = state;
@@ -1004,7 +1004,7 @@ void func_actor_361100_80161E3C(Task* arg0)
             func_actor_403600_801353D0(state, coord);
             return;
         } else if (mode == 10) {
-            Task_CallExit(arg0);
+            taskCallExit(arg0);
         }
     }
 }
@@ -1428,7 +1428,7 @@ void func_actor_361100_8016297C(void)
 
 void func_actor_361100_8016299C(void)
 {
-    D_actor_361100_80171BE0 = Task_SpawnFromTable(D_actor_361100_80165C58, 0, 0, 0);
+    D_actor_361100_80171BE0 = taskSpawnFromTable(D_actor_361100_80165C58, 0, 0, 0);
 }
 
 void func_actor_361100_801629D0(s32 arg0)
@@ -1447,7 +1447,7 @@ void func_actor_361100_801629D0(s32 arg0)
 
 void func_actor_361100_80162A24(s32 arg0)
 {
-    Task_SpawnFromTable(D_actor_361100_80165C58, 1, arg0, 0);
+    taskSpawnFromTable(D_actor_361100_80165C58, 1, arg0, 0);
 }
 
 void func_actor_361100_80162A54(Task* arg0)

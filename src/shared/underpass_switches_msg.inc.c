@@ -8,10 +8,10 @@ s32 underpassSwitchMsg(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     switch (arg2) {
         case 1:
-            Task_SpawnFromTable(gUnderpassSwitchTaskDesc, 0, 0x51, 1);
+            taskSpawnFromTable(gUnderpassSwitchTaskDesc, 0, 0x51, 1);
             break;
         case 2:
-            Task_SpawnFromTable(gUnderpassSwitchTaskDesc, 0, 0x52, 2);
+            taskSpawnFromTable(gUnderpassSwitchTaskDesc, 0, 0x52, 2);
             break;
     }
     return 0;

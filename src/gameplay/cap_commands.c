@@ -312,7 +312,7 @@ void Gp_FillAllyHp(void)
 void Gp_SpawnIfCapIdle(s32 arg0, s32 arg1)
 {
     if (Gp_CapBusy() == 0) {
-        Task_SpawnFromTable(Gp_EvtSpawnTable, 0, arg1, arg0);
+        taskSpawnFromTable(Gp_EvtSpawnTable, 0, arg1, arg0);
     }
 }
 
@@ -417,5 +417,5 @@ void Gp_ClearAllFlagNibbles(void)
 
 void Gp_SpawnEvt1(s32 arg0, s32 arg1)
 {
-    Task_SpawnFromTable(Gp_EvtSpawnTable, 1, arg0, arg1);
+    taskSpawnFromTable(Gp_EvtSpawnTable, 1, arg0, arg1);
 }

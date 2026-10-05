@@ -593,7 +593,7 @@ live in the actor overlay** (`D_80136224`, `D_8013700C`, … at
 `_tmdResolveSourceDrawHandlers` patches the handler-slot word in place.
 
 `TmdSource` (`tmd.h`) points at this stream via `stream`. Type-1
-`TaskDesc.data.model` is a `TmdSource*` (`Task_SpawnFromDesc`).
+`TaskDesc.data.model` is a `TmdSource*` (`_taskSpawnFromDesc`).
 
 ### 6.3 Animation split
 
