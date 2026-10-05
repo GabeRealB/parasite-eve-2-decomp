@@ -638,7 +638,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_cafeteria_8017EA90, { NULL } },                         // 0x061
     { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_promenade_8017F0BC, { NULL } },                         // 0x062
     { { { TASK_BODY_NONE, 0x70 } }, taskKill, { NULL } },                                                   // 0x063
-    { { { TASK_BODY_TMD, 0x70 } }, func_acropolis_cafeteria_8017F390, { &gAcropolisCafeteriaModel077D8 } }, // 0x064
+    { { { TASK_BODY_TMD, 0x70 } }, acropolisCafeteriaModelWanderTask, { &gAcropolisCafeteriaModel077D8 } }, // 0x064
     { { { TASK_BODY_COORD, 0x70 } }, func_actor_510900_80134284, { NULL } },                                // 0x065
     { { { TASK_BODY_TMD, 0x70 } }, Gp_EffModelTask, { &D_80112200 } },                                      // 0x066
     { { { TASK_BODY_TMD, 0x70 } }, Gp_EffModelTask, { &D_801120E4 } },                                      // 0x067
@@ -1191,8 +1191,8 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_toilet_8017E69C, { NULL } },                             // 0x28A
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_toilet_8017EBF4, { NULL } },                             // 0x28B
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_toilet_8017F854, { NULL } },                             // 0x28C
-    { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_cafeteria_8017F948, { NULL } },                         // 0x28D
-    { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_cafeteria_801803AC, { NULL } },                         // 0x28E
+    { { { TASK_BODY_COORD, 0x70 } }, acropolisCafeteriaRoomVisualEffectsFlashTask, { NULL } },              // 0x28D
+    { { { TASK_BODY_COORD, 0x70 } }, acropolisCafeteriaRoomVisualEffectsTwinTrailTask, { NULL } },          // 0x28E
     { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_cafeteria_80180C94, { NULL } },                         // 0x28F
     { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_forked_road_8017EF80, { NULL } },                       // 0x290
     { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_forked_road_8017F9E4, { NULL } },                       // 0x291

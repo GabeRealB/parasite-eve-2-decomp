@@ -51,13 +51,39 @@ extern WorldCollisionSurfaceProperties* D_acropolis_cafeteria_8018CA2C[];
 
 void func_acropolis_cafeteria_8017E708(Task* task);
 
-void func_acropolis_cafeteria_8017F390(Task* task);
+/// Moves the cafeteria's model effect through random turns, short runs and departure.
+///
+/// Requires the TMD body and counted `EffectWork` installed by `Gp_SpawnEff`.
+/// A zero `spawnArg1.value` selects timed wandering, departing from age 121;
+/// nonzero selects ambient wandering. The model exits beyond local X 2816 or
+/// 3472 respectively. Nonzero room effect control pauses it; control at four
+/// or above cancels it and releases the effect work.
+///
+/// `EffectWork::index` is the movement phase (0 timed turn, 1 timed run,
+/// 2 ambient turn, 3 ambient run, 4 departure). `scale` is yaw in 4096 units
+/// per turn, `angle` is forward speed with four fractional bits, `period` is
+/// the local X exit threshold, and `step` latches the departure sound (0 pending,
+/// 1 played). Rotation columns use twelve fractional bits.
+void acropolisCafeteriaModelWanderTask(Task* task);
 
 void func_acropolis_cafeteria_8017E89C(Task* task);
 
-void func_acropolis_cafeteria_8017F948(Task* task);
+/// Runs the cafeteria's charging pink flash, peak screen tint and fading star.
+///
+/// Requires a coordinate body and counted `EffectWork` from `Gp_SpawnEff`.
+/// `spawnArg1.value` is a positive charge duration in callback ticks and is
+/// consumed as a countdown. Nonzero room effect control pauses the flash;
+/// control at four or above cancels it. Completion releases the work and task.
+void acropolisCafeteriaRoomVisualEffectsFlashTask(Task* task);
 
-void func_acropolis_cafeteria_801803AC(Task* task);
+/// Runs the cafeteria's twin trails from two offsets on the effect's parent.
+///
+/// Requires a coordinate body and counted `EffectWork` from `Gp_SpawnEff`.
+/// `spawnArg1.value` is the lifetime in active ticks (2..32767); initialization
+/// counts as the first tick. Owns two eight-coordinate histories in `Task::work`,
+/// released with the effect on completion. Allocation failure retries with age
+/// reset to zero. Room effect control at two or above holds both age and drawing.
+void acropolisCafeteriaRoomVisualEffectsTwinTrailTask(Task* task);
 
 void func_acropolis_cafeteria_80180C94(Task* task);
 

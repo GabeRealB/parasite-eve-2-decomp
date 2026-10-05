@@ -48893,7 +48893,7 @@ no input dependency. The target has it *after* the loads. Writing `composeStamp 
 **last** in the source still emits the store first (the stores are to distinct
 stack offsets, so they get reordered freely) but changes its scheduling
 priority, and the loads move up instead. This took
-`func_acropolis_cafeteria_801803AC` from 99.32% to 100%; the only diff was one
+`acropolisCafeteriaRoomVisualEffectsTwinTrailTask` from 99.32% to 100%; the only diff was one
 `sw zero, 0x10(sp)` five instructions early, twice.
 
 ## `&arr[1]` as a pointer, not an index
@@ -66071,7 +66071,7 @@ GameFlow function-pointer tables in plain `gameflow_1` rodata.
 
 ## `D_80073B8C` is `gPlayerStatus.coordMtx`: correct aliasing also removes an extra saved register
 
-`func_acropolis_cafeteria_80181A3C` reached 96.138% with a typed debris work
+`_acropolisCafeteriaLoosePropUpdate` reached 96.138% with a typed debris work
 block, four-case switch, `MATRIX` assignment and `ABS()` checks. A bare
 `extern MATRIX* D_80073B8C` allowed its load and the direction address to
 move before the matrix copy. The overlapping pointer lifetimes then required
@@ -139809,24 +139809,24 @@ The digit-blanking loop in front of it is the reversed count-up loop from the
 byte for byte, but only because the early `u = 0xA` stretches the constant's
 live range as far as the reversal does. Look for the reversed form first.
 
-## A large constant in an if/else that allocates one register too high may be a variable shared by both arms (func_acropolis_cafeteria_8017F390, 2026-09-23)
+## A large constant in an if/else that allocates one register too high may be a variable shared by both arms (acropolisCafeteriaModelWanderTask, 2026-09-23)
 
-Each arm of `if (w > 0x400) { lcg; w -= 0x10; w -= rnd; } else { lcg; ... }`
+Each arm of `if (departureYaw > 0x400) { lcg; departureYaw -= 0x10; departureYaw -= rnd; } else { lcg; ... }`
 materialises `0x71357911` (`lui`/`ori`). Written as a literal, each arm's
 constant is a **local** pseudo. local-alloc runs before global-alloc, so it
-takes the first free register (`a1`, after `v0`/`v1`/`a0`). The global `w`
+takes the first free register (`a1`, after `v0`/`v1`/`a0`). The global `departureYaw`
 then conflicts with `a1` and falls to `a2`. Retail has the pair swapped:
-`w` in `a1` and the constant in `a2`.
+`departureYaw` in `a1` and the constant in `a2`.
 
 **Symptom:** a 99.7% match with only `a1`/`a2` swapped between the arm-crossing
-value and the constant. No rewrite of `w` fixes it: separate per-arm temps,
+value and the constant. No rewrite of `departureYaw` fixes it: separate per-arm temps,
 separate result variables, a store per arm, or moving the `- 0x10`. Some of
 those change sched1's order or cause reassociation instead.
 
 **Fix:** assign the constant to one variable in both arms
-(`k = 0x71357911; gRandomLcgState = gRandomLcgState * 5 + k;`). One pseudo set in two
-blocks is global, so global-alloc places it after the higher-priority `w`.
-That gives `w` `a1` and `k` `a2`. The `.greg` conflict list gives it away:
+(`randomIncrement = 0x71357911; gRandomLcgState = gRandomLcgState * 5 + randomIncrement;`). One pseudo set in two
+blocks is global, so global-alloc places it after the higher-priority `departureYaw`.
+That gives `departureYaw` `a1` and `randomIncrement` `a2`. The `.greg` conflict list gives it away:
 if the arm-crossing pseudo lists a hard register that only a local constant
 occupies, making the constant global is the lever.
 

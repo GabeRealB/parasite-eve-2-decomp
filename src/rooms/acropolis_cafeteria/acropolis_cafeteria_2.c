@@ -38,7 +38,6 @@
 #include "main/gameflow.h"
 #include "main/random.h"
 #include "main/gfx.h"
-#include "main/gfx_types.h"
 #include "main/mem.h"
 #include "main/pad.h"
 #include "main/scratch.h"
@@ -103,7 +102,7 @@ static inline SVECTOR* ActorContact_GetScratchPosition(void)
     return &ActorContact_ScratchPosition;
 }
 
-static void func_acropolis_cafeteria_80181E3C(Task* arg0);
+static void _acropolisCafeteriaLoosePropExit(Task* task);
 
 static u32     _gAcropolisCafeteriaModel0FDFCPartVerts[1];
 static SVECTOR _gAcropolisCafeteriaModel0FDFCVerts[22];
@@ -883,9 +882,9 @@ s32 D_acropolis_cafeteria_8018D6A8 = 0;
 
 SVECTOR ActorContact_ScratchPosition = { 0 };
 
-static void func_acropolis_cafeteria_801818DC(Task* task);
-static void func_acropolis_cafeteria_80181A3C(Task* task);
-static void func_acropolis_cafeteria_80181E30(Task* arg0);
+static void _acropolisCafeteriaLoosePropInit(Task* task);
+static void _acropolisCafeteriaLoosePropUpdate(Task* task);
+static void _acropolisCafeteriaLoosePropRequestExit(Task* task);
 static void func_acropolis_cafeteria_80182954(Task* task);
 static void func_acropolis_cafeteria_80182A08(Task* task);
 
@@ -972,17 +971,20 @@ L_case5:
     displayResumeGameLoop();
 }
 
-/// Fades the screen to white, four steps of the kill countdown per frame, and
-/// kills the task once the countdown reaches 0x100.
-void func_acropolis_cafeteria_8017E658(Task* arg0)
+void acropolisCafeteriaBlackoutTask(Task* task)
 {
-    u16 temp_v0;
+    enum {
+        BLACKOUT_INTENSITY    = 0xFF,
+        BLACKOUT_COUNTER_STEP = 4,
+        BLACKOUT_COUNTER_END  = 0x100
+    };
+    u16 elapsedQuarterTicks;
 
-    fadeDrawOverlay(0xFF, 0xFF, 0xFF, GPU_BLEND_SUBTRACT);
-    temp_v0             = arg0->killCountdown + 4;
-    arg0->killCountdown = temp_v0;
-    if ((s16)temp_v0 >= 0x100) {
-        taskKill(arg0);
+    fadeDrawOverlay(BLACKOUT_INTENSITY, BLACKOUT_INTENSITY, BLACKOUT_INTENSITY, GPU_BLEND_SUBTRACT);
+    elapsedQuarterTicks = task->killCountdown + BLACKOUT_COUNTER_STEP;
+    task->killCountdown = elapsedQuarterTicks;
+    if ((s16)elapsedQuarterTicks >= BLACKOUT_COUNTER_END) {
+        taskKill(task);
     }
 }
 
@@ -1193,136 +1195,151 @@ void func_acropolis_cafeteria_8017EA90(Task* task)
     effectKillTask(work, task);
 }
 
-void func_acropolis_cafeteria_8017F390(Task* task)
+void acropolisCafeteriaModelWanderTask(Task* task)
 {
-    TmdObject*        obj;
-    EffectWork*       work;
-    GfxCoord*         coord;
-    GfxRotationWords* rot;
-    s16               state;
-    s32               v;
-    s32               w;
-    s32               n;
-    s32               k; // one variable for both branches' LCG addend; literal constants allocate differently
-    s32               pan;
+    enum {
+        WANDER_INITIALIZE                    = 0,
+        WANDER_TIMED_TURN                    = 0,
+        WANDER_TIMED_MOVE                    = 1,
+        WANDER_AMBIENT_TURN                  = 2,
+        WANDER_AMBIENT_MOVE                  = 3,
+        WANDER_DEPART                        = 4,
+        WANDER_DEPART_AGE                    = 121,
+        WANDER_TIMED_EXIT_X                  = 0xB00,
+        WANDER_AMBIENT_EXIT_X                = 0xD90,
+        WANDER_EXIT_YAW                      = 0x400,
+        WANDER_MOVE_SPEED_Q4                 = 0x200,
+        WANDER_DEPART_SPEED_Q4               = 0x300,
+        WANDER_DIRECTION_SPEED_FRACTION_BITS = 16,
+        WANDER_SOUND_VIEW                    = 7,
+        WANDER_SOUND_SCRIPT                  = 6,
+        WANDER_SOUND_PENDING                 = 0,
+        WANDER_SOUND_PLAYED                  = 1
+    };
+    TmdObject*  model;
+    EffectWork* work;
+    GfxCoord*   coord;
+    s16         effectControl;
+    s32         previousYaw;
+    s32         departureYaw;
+    s32         nextYaw;
+    s32         randomIncrement;
+    s32         audioPan;
 
-    obj   = task->extra.tmd;
-    work  = (EffectWork*)task->spawnArg2.pointer;
-    state = gRoomEffectState->effectControl;
-    coord = obj->coords;
-    if (state >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
+    model         = task->extra.tmd;
+    work          = task->spawnArg2.pointer;
+    effectControl = gRoomEffectState->effectControl;
+    coord         = model->coords;
+    if (effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
         effectKillTask(work, task);
         return;
     }
-    if (state != ROOM_EFFECT_CONTROL_RUNNING) {
+    if (effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         return;
     }
     actorRenderComposeCoord(coord);
     work->age++;
-    if (task->state == 0) {
-        obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    // A nonzero spawn argument selects ambient wandering without the departure timer.
+    if (task->state == WANDER_INITIALIZE) {
+        model->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
         if (task->spawnArg1.value != 0) {
-            work->period    = 0xD90;
+            work->period    = WANDER_AMBIENT_EXIT_X;
             work->angle     = 0;
-            work->index     = 2;
+            work->index     = WANDER_AMBIENT_TURN;
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             work->scale     = (gRandomLcgState >> 16) & 0xF00;
         } else {
-            work->scale  = 0x400;
+            work->scale  = WANDER_EXIT_YAW;
             work->angle  = 0;
-            work->period = 0xB00;
+            work->period = WANDER_TIMED_EXIT_X;
         }
-        gfxRotMatrixY(&coord->coord, work->scale, 0);
+        gfxRotMatrixY(&coord->coord, work->scale, GRAPHICS_ROTATION_COMPOSE);
         task->state++;
         return;
     }
     switch (work->index) {
-        case 0:
+        case WANDER_TIMED_TURN:
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             work->angle     = 0;
             work->scale    -= ((gRandomLcgState >> 16) & 0xFF) - 0x80;
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             if ((u16)((gRandomLcgState >> 16) % 30) == 0) {
-                work->index = 1;
+                work->index = WANDER_TIMED_MOVE;
             }
-            if (work->age >= 0x79) {
-                work->index = 4;
+            if (work->age >= WANDER_DEPART_AGE) {
+                work->index = WANDER_DEPART;
             }
             break;
-        case 1:
+        case WANDER_TIMED_MOVE:
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             if ((gRandomLcgState >> 16) & 1) {
-                v = work->scale;
-                if (v > 0x400) {
+                previousYaw = work->scale;
+                if (previousYaw > WANDER_EXIT_YAW) {
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    n               = v - 0x10;
-                    n              -= (gRandomLcgState >> 16) & 0x3F;
+                    nextYaw         = previousYaw - 0x10;
+                    nextYaw        -= (gRandomLcgState >> 16) & 0x3F;
                 } else {
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    n               = v + 0x10;
-                    n              += (gRandomLcgState >> 16) & 0x3F;
+                    nextYaw         = previousYaw + 0x10;
+                    nextYaw        += (gRandomLcgState >> 16) & 0x3F;
                 }
-                work->scale = n;
+                work->scale = nextYaw;
             }
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->angle     = 0x200;
+            work->angle     = WANDER_MOVE_SPEED_Q4;
             if ((u16)((gRandomLcgState >> 16) % 30) == 0) {
-                work->index = 0;
+                work->index = WANDER_TIMED_TURN;
             }
-            if (work->age >= 0x79) {
-                work->index = 4;
+            if (work->age >= WANDER_DEPART_AGE) {
+                work->index = WANDER_DEPART;
             }
             break;
-        case 2:
+        case WANDER_AMBIENT_TURN:
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             work->scale    -= ((gRandomLcgState >> 16) & 0xFF) - 0x80;
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             if ((u16)((gRandomLcgState >> 16) % 240) == 0) {
-                work->scale = 0x400;
-                work->angle = 0x200;
-                work->index = 3;
+                work->scale = WANDER_EXIT_YAW;
+                work->angle = WANDER_MOVE_SPEED_Q4;
+                work->index = WANDER_AMBIENT_MOVE;
             }
             break;
-        case 3:
+        case WANDER_AMBIENT_MOVE:
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             if (((gRandomLcgState >> 16) & 7) == 0) {
                 work->angle = 0;
-                work->index = 2;
+                work->index = WANDER_AMBIENT_TURN;
             }
             break;
-        case 4:
-            w = work->scale;
-            if (w > 0x400) {
-                k               = RANDOM_LCG_INCREMENT;
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + k;
-                w              -= 0x10;
-                w              -= (gRandomLcgState >> 16) & 0x3F;
+        case WANDER_DEPART:
+            departureYaw = work->scale;
+            if (departureYaw > WANDER_EXIT_YAW) {
+                randomIncrement = RANDOM_LCG_INCREMENT;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + randomIncrement;
+                departureYaw   -= 0x10;
+                departureYaw   -= (gRandomLcgState >> 16) & 0x3F;
             } else {
-                k               = RANDOM_LCG_INCREMENT;
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + k;
-                w              += 0x10;
-                w              += (gRandomLcgState >> 16) & 0x3F;
+                randomIncrement = RANDOM_LCG_INCREMENT;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + randomIncrement;
+                departureYaw   += 0x10;
+                departureYaw   += (gRandomLcgState >> 16) & 0x3F;
             }
-            work->scale = w;
-            work->angle = 0x300;
-            if ((viewGetMappedIndex() & 0xFF) == 7 && work->step == 0) {
-                pan = (s8)worldCoordGetOriginAudioPan(coord);
-                sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_CAFETERIA, 6), pan, (s8)worldCoordGetOriginAudioDepth(coord));
-                work->step = 1;
+            work->scale = departureYaw;
+            work->angle = WANDER_DEPART_SPEED_Q4;
+            if ((viewGetMappedIndex() & 0xFF) == WANDER_SOUND_VIEW && work->step == WANDER_SOUND_PENDING) {
+                audioPan = (s8)worldCoordGetOriginAudioPan(coord);
+                sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_CAFETERIA, WANDER_SOUND_SCRIPT), audioPan, (s8)worldCoordGetOriginAudioDepth(coord));
+                work->step = WANDER_SOUND_PLAYED;
             }
             break;
     }
-    rot         = (GfxRotationWords*)&coord->coord;
-    rot->m00M01 = ONE;
-    rot->m02M10 = 0;
-    rot->m11M12 = ONE;
-    rot->m20M21 = 0;
-    rot->m22    = ONE;
-    gfxRotMatrixY(&coord->coord, work->scale, 0);
+    // Rebuild yaw without changing translation, then turn Q12 forward into a Q4-speed step.
+    gfxSetRotIdentity(&coord->coord);
+    gfxRotMatrixY(&coord->coord, work->scale, GRAPHICS_ROTATION_COMPOSE);
     gte_ReadMatrixColumn(&coord->coord, 2, &work->move);
-    work->move.vx       = (work->move.vx * work->angle) >> 16;
-    work->move.vy       = (work->move.vy * work->angle) >> 16;
-    work->move.vz       = (work->move.vz * work->angle) >> 16;
+    work->move.vx       = (work->move.vx * work->angle) >> WANDER_DIRECTION_SPEED_FRACTION_BITS;
+    work->move.vy       = (work->move.vy * work->angle) >> WANDER_DIRECTION_SPEED_FRACTION_BITS;
+    work->move.vz       = (work->move.vz * work->angle) >> WANDER_DIRECTION_SPEED_FRACTION_BITS;
     coord->coord.t[0]  += work->move.vx;
     coord->coord.t[1]  += work->move.vy;
     coord->coord.t[2]  += work->move.vz;
@@ -1348,14 +1365,14 @@ s32 func_acropolis_cafeteria_8017F908(Task* task, s32 msgId, s32 arg2, s32 arg3)
 
 #include "../../shared/room_visual_effects_flash_task.inc.c"
 
-void func_acropolis_cafeteria_8017F948(Task* arg0)
+void acropolisCafeteriaRoomVisualEffectsFlashTask(Task* task)
 {
-    _roomVisualEffectsFlashTask(arg0);
+    _roomVisualEffectsFlashTask(task);
 }
 
 #include "../../shared/room_visual_effects_trails.inc.c"
 
-void func_acropolis_cafeteria_801803AC(Task* task)
+void acropolisCafeteriaRoomVisualEffectsTwinTrailTask(Task* task)
 {
 #include "../../shared/room_visual_effects_trail_task.inc.c"
 }
@@ -1369,33 +1386,39 @@ void func_acropolis_cafeteria_80180C94(Task* task)
 
 #include "../../shared/room_visual_effects_glow.inc.c"
 
-static void func_acropolis_cafeteria_801818DC(Task* task)
+/// Places a loose model above the player with a positive-Z offset and links its sphere.
+///
+/// Requires a fresh state-zero TMD task and a live player. Owns one primary-heap
+/// work block with six contacts; allocation failure kills the uninitialized task.
+/// The exit callback unlinks the sphere before task teardown frees the work.
+static void _acropolisCafeteriaLoosePropInit(Task* task)
 {
-    TmdObject*                        obj;
+    TmdObject*                        model;
     GfxCoord*                         coord;
     _AcropolisCafeteriaLoosePropWork* work;
-    GfxCoord*                         player;
+    GfxCoord*                         playerCoord;
 
-    obj   = task->extra.tmd;
-    coord = obj->coords;
+    model = task->extra.tmd;
+    coord = model->coords;
     work  = memCalloc(sizeof(*work), false);
     if (work == NULL) {
         taskKill(task);
         return;
     }
     task->work         = work;
-    task->exitCallback = func_acropolis_cafeteria_80181E3C;
+    task->exitCallback = _acropolisCafeteriaLoosePropExit;
     task->state        = task->state + 1;
     memFillBytes(work, 0, sizeof(*work));
     coord->parent       = &gGfxViewCoord;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    obj->flags          = 0;
+    model->flags        = 0;
     RotMatrix(&work->rotation, &coord->coord);
-    work->kickStrength          = (rand() & 0xFFF) + 0x3000;
-    player                      = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords;
-    coord->coord.t[0]           = player->coord.t[0];
-    coord->coord.t[1]           = player->coord.t[1] - 0x800;
-    coord->coord.t[2]           = player->coord.t[2] + 0x800;
+    work->kickStrength = (rand() & 0xFFF) + 0x3000;
+    playerCoord        = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords;
+    coord->coord.t[0]  = playerCoord->coord.t[0];
+    coord->coord.t[1]  = playerCoord->coord.t[1] - 0x800;
+    coord->coord.t[2]  = playerCoord->coord.t[2] + 0x800;
+    // The body borrows the contacts embedded in the work block for its whole lifetime.
     work->body.context.contacts = work->contacts;
     work->body.key              = 0x50000;
     work->body.radius           = 0xFA;
@@ -1409,16 +1432,37 @@ static void func_acropolis_cafeteria_801818DC(Task* task)
     work->body.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
 }
 
-static void func_acropolis_cafeteria_80181A3C(Task* task)
+/// Dampens horizontal slide velocity and advances the phase when both axes stop.
+static inline void _acropolisCafeteriaDampLoosePropSlide(_AcropolisCafeteriaLoosePropWork* work)
 {
-    MATRIX*                           head;
+    work->velocity.vx = (work->velocity.vx * 6) / 7;
+    if (ABS(work->velocity.vx) < 9) {
+        work->velocity.vx = 0;
+    }
+    work->velocity.vz = (work->velocity.vz * 6) / 7;
+    if (ABS(work->velocity.vz) < 9) {
+        work->velocity.vz = 0;
+    }
+    if ((work->velocity.vx | work->velocity.vz) == 0) {
+        work->phase++;
+    }
+}
+
+/// Sinks the loose prop and handles its contact-driven hop, slide and leveling.
+///
+/// Requires initialized work and a linked sphere. Position increments are integer
+/// world units per tick; Euler angles and the normalized kick direction use 4096
+/// units per turn and per unit vector respectively. Every update clears contacts.
+static void _acropolisCafeteriaLoosePropUpdate(Task* task)
+{
+    MATRIX*                           scratchEnd;
     _AcropolisCafeteriaLoosePropWork* work;
     GfxCoord*                         coord;
-    SVECTOR*                          direction;
-    s32                               speed;
+    SVECTOR*                          kickDirection;
+    s32                               launchMagnitude;
 
-    head                         = SCRATCH_STACK_CURSOR(MATRIX);
-    SCRATCH_STACK_CURSOR(MATRIX) = head - 1;
+    scratchEnd                   = SCRATCH_STACK_CURSOR(MATRIX);
+    SCRATCH_STACK_CURSOR(MATRIX) = scratchEnd - 1;
     work                         = task->work;
     coord                        = task->extra.tmd->coords;
     work->kickStrength--;
@@ -1429,17 +1473,18 @@ static void func_acropolis_cafeteria_80181A3C(Task* task)
         case ACROPOLIS_CAFETERIA_LOOSE_PROP_RESTING:
             if (worldCollisionFindContactIndex(work->body.context.contacts, WORLD_COLLISION_FIND_ANY_KEY)) {
                 work->phase++;
-                head[-1]  = coord->coord;
-                direction = &work->kickDirection;
-                gfxReadMatrixZAxis(gPlayerStatus.coordMtx, direction);
-                VectorNormalSS(direction, direction);
+                // The matrix snapshot is unused; the discarded random draw still advances rand().
+                scratchEnd[-1] = coord->coord;
+                kickDirection  = &work->kickDirection;
+                gfxReadMatrixZAxis(gPlayerStatus.coordMtx, kickDirection);
+                VectorNormalSS(kickDirection, kickDirection);
                 rand();
-                speed             = work->kickStrength;
-                speed           >>= 1;
-                speed             = (speed * speed) >> 6;
+                launchMagnitude   = work->kickStrength;
+                launchMagnitude >>= 1;
+                launchMagnitude   = (launchMagnitude * launchMagnitude) >> 6;
                 work->velocity.vy = -0x100;
-                work->velocity.vx = (work->kickDirection.vx * speed) >> 24;
-                work->velocity.vz = (work->kickDirection.vz * speed) >> 24;
+                work->velocity.vx = (work->kickDirection.vx * launchMagnitude) >> 24;
+                work->velocity.vz = (work->kickDirection.vz * launchMagnitude) >> 24;
             }
             break;
         case ACROPOLIS_CAFETERIA_LOOSE_PROP_HOPPING:
@@ -1452,18 +1497,9 @@ static void func_acropolis_cafeteria_80181A3C(Task* task)
                 work->rotation.vy += (work->kickStrength >> 6) + (rand() & 0x7F);
                 work->rotation.vz += (work->kickStrength >> 6) + (rand() & 0x7F);
             }
+            // Fall through: the hop also loses horizontal speed and applies velocity.
         case ACROPOLIS_CAFETERIA_LOOSE_PROP_SLIDING:
-            work->velocity.vx = (work->velocity.vx * 6) / 7;
-            if (ABS(work->velocity.vx) < 9) {
-                work->velocity.vx = 0;
-            }
-            work->velocity.vz = (work->velocity.vz * 6) / 7;
-            if (ABS(work->velocity.vz) < 9) {
-                work->velocity.vz = 0;
-            }
-            if ((work->velocity.vx | work->velocity.vz) == 0) {
-                work->phase++;
-            }
+            _acropolisCafeteriaDampLoosePropSlide(work);
             coord->coord.t[0] += work->velocity.vx;
             coord->coord.t[1] += work->velocity.vy;
             coord->coord.t[2] += work->velocity.vz;
@@ -1487,27 +1523,30 @@ static void func_acropolis_cafeteria_80181A3C(Task* task)
     SCRATCH_STACK_RELEASE_BLOCK(MATRIX);
 }
 
-static void func_acropolis_cafeteria_80181E30(Task* arg0)
+/// Selects the loose-prop exit handler for the next task dispatch.
+static void _acropolisCafeteriaLoosePropRequestExit(Task* task)
 {
-    arg0->state = 3;
+    enum { LOOSE_PROP_TASK_EXIT = 3 };
+    task->state = LOOSE_PROP_TASK_EXIT;
 }
 
-static void func_acropolis_cafeteria_80181E3C(Task* arg0)
+/// Unlinks the initialized loose prop's sphere before teardown frees its work and model.
+static void _acropolisCafeteriaLoosePropExit(Task* task)
 {
     _AcropolisCafeteriaLoosePropWork* work;
 
-    work = arg0->work;
+    work = task->work;
     worldCollisionUnlinkBody(&work->body);
-    taskKill(arg0);
+    taskKill(task);
 }
 
 /// State handlers of the loose-prop task: set-up, the per-frame update, a
 /// step that moves the task to state 3, and the exit that unlinks and kills it.
 static const TaskFuncTable4 D_acropolis_cafeteria_8017D69C = { {
-    func_acropolis_cafeteria_801818DC,
-    func_acropolis_cafeteria_80181A3C,
-    func_acropolis_cafeteria_80181E30,
-    func_acropolis_cafeteria_80181E3C,
+    _acropolisCafeteriaLoosePropInit,
+    _acropolisCafeteriaLoosePropUpdate,
+    _acropolisCafeteriaLoosePropRequestExit,
+    _acropolisCafeteriaLoosePropExit,
 } };
 
 /// Runs the task's current state through a stack copy of the room's

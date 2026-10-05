@@ -553,11 +553,11 @@ func_acropolis_cafeteria_8017E708 = 0x8017E708; // type:func absolute:True owner
 
 func_acropolis_cafeteria_8017E89C = 0x8017E89C; // type:func absolute:True owner=acropolis_cafeteria
 
-func_acropolis_cafeteria_8017F390 = 0x8017F390; // type:func absolute:True owner=acropolis_cafeteria
+acropolisCafeteriaModelWanderTask = 0x8017F390; // type:func absolute:True owner=acropolis_cafeteria
 
-func_acropolis_cafeteria_8017F948 = 0x8017F948; // type:func absolute:True owner=acropolis_cafeteria shared=rooms
+acropolisCafeteriaRoomVisualEffectsFlashTask = 0x8017F948; // type:func absolute:True owner=acropolis_cafeteria shared=rooms
 
-func_acropolis_cafeteria_801803AC = 0x801803AC; // type:func absolute:True owner=acropolis_cafeteria
+acropolisCafeteriaRoomVisualEffectsTwinTrailTask = 0x801803AC; // type:func absolute:True owner=acropolis_cafeteria
 
 func_acropolis_cafeteria_80180C94 = 0x80180C94; // type:func absolute:True owner=acropolis_cafeteria
 

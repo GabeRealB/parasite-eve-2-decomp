@@ -65,7 +65,12 @@ extern AcropolisCafeteriaSpotLightStorage gAcropolisCafeteriaSpotLightStorage;
 // Callbacks referenced by the overlay's shared data tables.
 void func_acropolis_cafeteria_8017E47C(Task*);
 
-void func_acropolis_cafeteria_8017E658(Task*);
+/// Holds the frame black during the cafeteria's movie transition.
+///
+/// Queues maximum subtractive intensity each tick. `killCountdown` advances
+/// by four with 16-bit wraparound; its signed value reaching 256 ends the task.
+/// A fresh bodyless task starts at zero and lasts 64 callback ticks.
+void acropolisCafeteriaBlackoutTask(Task* task);
 
 void func_acropolis_cafeteria_8017E6B8(Task*);
 

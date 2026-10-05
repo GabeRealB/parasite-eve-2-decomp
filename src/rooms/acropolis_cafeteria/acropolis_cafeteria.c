@@ -475,7 +475,7 @@ RECT D_acropolis_cafeteria_80184170 = { 0, 271, 256, 1 };
 
 TaskDesc D_acropolis_cafeteria_80184178[3] = {
     { { { TASK_BODY_NONE, 192 } }, func_acropolis_cafeteria_8017E6B8, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_acropolis_cafeteria_8017E658, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, acropolisCafeteriaBlackoutTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, func_acropolis_cafeteria_8017E47C, { .value = 0 } },
 };
 

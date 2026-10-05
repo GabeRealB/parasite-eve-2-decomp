@@ -223,13 +223,13 @@ RoomFx_TrailOffsets = 0x80184E80; // size:0x10 defined:True
 
 func_acropolis_cafeteria_8017E708 = 0x8017E708; // type:func
 
-func_acropolis_cafeteria_8017F390 = 0x8017F390; // type:func
+acropolisCafeteriaModelWanderTask = 0x8017F390; // type:func
 
 func_acropolis_cafeteria_8017E89C = 0x8017E89C; // type:func
 
-func_acropolis_cafeteria_8017F948 = 0x8017F948; // type:func
+acropolisCafeteriaRoomVisualEffectsFlashTask = 0x8017F948; // type:func
 
-func_acropolis_cafeteria_801803AC = 0x801803AC; // type:func
+acropolisCafeteriaRoomVisualEffectsTwinTrailTask = 0x801803AC; // type:func
 
 func_acropolis_cafeteria_80180C94 = 0x80180C94; // type:func
 
@@ -240,3 +240,8 @@ _roomVisualEffectsDrawTwinTrail = 0x8018089C; // type:func
 _roomVisualEffectsDrawBurstStar = 0x80180F1C; // type:func
 ActorContact_PushContact = 0x80181ED4; // type:func
 ActorContact_Push = 0x80182078; // type:func
+_acropolisCafeteriaLoosePropExit = 0x80181e3c; // type:func
+_acropolisCafeteriaLoosePropRequestExit = 0x80181e30; // type:func
+_acropolisCafeteriaLoosePropInit = 0x801818dc; // type:func
+_acropolisCafeteriaLoosePropUpdate = 0x80181a3c; // type:func
+acropolisCafeteriaBlackoutTask = 0x8017e658; // type:func
