@@ -309,8 +309,6 @@ static s32 _mcUpdateOkPrompt(Task* dialogTask, s32 promptId, s32 unusedPromptTim
 
 static s32 _mcUpdateYesNoPrompt(Task* dialogTask, s32 promptId, s32 unusedPromptTimer);
 
-static inline void _mcInitYesNoPromptChild(UiObject* dialogObject, UiObject* choiceObject);
-
 static s32 _mcUpdateYesNoPromptInitialNo(Task* dialogTask, s32 promptId, s32 unusedPromptTimer);
 
 static s32 _mcUpdateCancelPrompt(Task* dialogTask, s32 promptId, s32 unusedPromptTimer);
@@ -386,46 +384,41 @@ static void _mcDrawLoadFileRow(UiList* list, UiObject* object);
 
 static u16* _mcEncodeAsciiTitleText(const u8* asciiText, u16* titleCursor);
 
-static void Mc_InitFileName(void);
+static void _mcResetFileNameSuffixes(void);
 
-static void Mc_CopyFileName(s32 arg0);
+static void _mcCopyCardFileName(s32 restoreSavedName);
 
 static void Mc_WriteSaveHdrChecksum(void);
 
 static s32 _mcVerifySaveHeaderChecksum(const McSaveData* save);
 
-/// Out-of-line form of `_mcWriteBlockChecksum`. Nothing calls it.
-static void Mc_WriteBlockChecksum(u8* data, s32 size);
+static void _mcWriteRecordChecksum(u8* recordBytes, s32 recordByteCount);
 
 static void _mcResetStageFlagRecords(void);
 
-/// Whether a buffer's header holds the sum of its payload, as
-/// `Mc_WriteBlockChecksum` stores it. Only the sum is compared, not its
-/// complement. Nothing calls it.
-static s32 Mc_VerifyBlockChecksum(u8* data, s32 size);
+static s32 _mcVerifyRecordChecksum(const u8* recordBytes, s32 recordByteCount);
 
-/// Unused memory-card entry point; retained for the original image layout.
-static void Mc_UnusedStub(void);
+static void _mcNoOp(void);
 
-static s32 Mc_CompareBufferHalves(void);
+static s32 _mcQuerySectionWriteMask(void);
 
 static void _mcWriteLiveSaveSectionChecksums(void);
 
 static void Mc_WriteFirstByteChecksum(void);
 
-static s32 Mc_VerifyFirstByteChecksum(void);
+static s32 _mcCheckSectionChecksumSummary(void);
 
-static s32 Mc_VerifySlotChecksums(void);
+static s32 _mcCheckSaveSectionChecksums(void);
 
-static void Mc_DuplicateBuffers(void);
+static void _mcBackupLiveSaveSections(void);
 
-static void Mc_DrawPrompt(Task* task, s32 arg1);
+static void _mcDrawDialogPrompt(Task* dialogTask, s32 promptId);
 
-static void Mc_HideChildUi(Task* task);
+static void _mcCloseChildAndReactivateDialog(Task* dialogTask);
 
-static void Mc_WriteDataChecksum(s32 arg0, McWork* work);
+static void _mcWriteSelectedCardHeaderChecksum(s32 useReadBuffer, McWork* work);
 
-static s32 Mc_CompareSaveChecksum(McSaveData* save, McWork* work);
+static s32 _mcMatchesCardHeaderChecksum(const McSaveData* save, const McWork* work);
 
 static void _mcStateInitSaveWork(Task* task, McWork* work);
 
@@ -939,21 +932,32 @@ static inline void _mcDrawPrompt(Task* task, s32 promptId)
     textDrawUiLine(panelObject, panelObject->panel.contentLeft.signedValue + 2, 0xF, prompt->lowerLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
 }
 
-/// Place a single-action prompt below its dialog and give it exclusive input.
+/// Position an OK or Cancel child below its dialog and suspend dialog input.
 ///
-/// Borrows live objects. Unsigned layout arithmetic narrows to panel halfwords;
-/// the parent answer stays pending until the child confirms its action.
+/// Call once after spawning the active choice child under the live dialog.
+/// Layout values are unsigned pixels relative to the screen center; additions
+/// narrow to 16-bit bounds. Aligns the child's right edge five pixels beyond
+/// the dialog's content right edge and places it eight pixels below the bottom.
+/// Clears the dialog answer to pending; the child's task owns its lifetime.
 static inline void _mcInitSingleActionPromptChild(UiObject* dialogObject, UiObject* choiceObject)
 {
-    choiceObject->panel.bounds.unsignedRect.x = (dialogObject->panel.contentOriginX.unsignedValue + dialogObject->panel.contentRight.unsignedValue + 5) - choiceObject->panel.bounds.unsignedRect.w;
-    choiceObject->panel.bounds.unsignedRect.y = dialogObject->panel.contentOriginY.unsignedValue + dialogObject->panel.contentBottom.unsignedValue + 8;
+    enum {
+        MEMORY_CARD_CHOICE_RIGHT_OFFSET_PIXELS = 5,
+        MEMORY_CARD_CHOICE_BELOW_DIALOG_PIXELS = 8
+    };
+
+    choiceObject->panel.bounds.unsignedRect.x = (dialogObject->panel.contentOriginX.unsignedValue + dialogObject->panel.contentRight.unsignedValue + MEMORY_CARD_CHOICE_RIGHT_OFFSET_PIXELS) - choiceObject->panel.bounds.unsignedRect.w;
+    choiceObject->panel.bounds.unsignedRect.y = dialogObject->panel.contentOriginY.unsignedValue + dialogObject->panel.contentBottom.unsignedValue + MEMORY_CARD_CHOICE_BELOW_DIALOG_PIXELS;
     dialogObject->resultValue                 = MEMORY_CARD_PROMPT_ANSWER_PENDING;
     dialogObject->panel.control.word          = USER_INTERFACE_PANEL_INACTIVE;
 }
 
 /// Latch a confirmed prompt answer, detach its closing child and restore input.
 ///
-/// Both objects must be live; the UI task releases the child after closing.
+/// Requires a live dialog and its live, confirmed choice child. Copies only
+/// `resultValue`: OK or Cancel publishes 1, Yes/No publishes 1 or -1.
+/// Closing detaches the child tree; its UI task releases the objects later.
+/// The caller must leave the answered state before spawning another choice.
 static inline void _mcAcceptPromptAnswer(UiObject* dialogObject, UiObject* choiceObject)
 {
     dialogObject->resultValue = choiceObject->resultValue;
@@ -995,14 +999,22 @@ static s32 _mcUpdateOkPrompt(Task* dialogTask, s32 promptId, s32 unusedPromptTim
     return dialogObject->resultValue;
 }
 
-/// Place the Yes/No child below the dialog and give it exclusive input.
+/// Position a Yes/No child below its dialog and suspend dialog input.
 ///
-/// Both objects must remain live. Coordinates use the panel's unsigned layout
-/// values and narrow to 16 bits; the dialog retains the pending answer.
+/// Call once after spawning the active choice child under the live dialog.
+/// Uses unsigned screen-centered pixel layout values, narrowing to 16-bit bounds.
+/// The child's right edge is five pixels beyond the content right edge, and its
+/// top is sixteen pixels below the bottom. Clears the dialog answer to pending;
+/// initial Yes/No selection and the child's lifetime belong to its UI task.
 static inline void _mcInitYesNoPromptChild(UiObject* dialogObject, UiObject* choiceObject)
 {
-    choiceObject->panel.bounds.unsignedRect.x = (dialogObject->panel.contentOriginX.unsignedValue + dialogObject->panel.contentRight.unsignedValue + 5) - choiceObject->panel.bounds.unsignedRect.w;
-    choiceObject->panel.bounds.unsignedRect.y = dialogObject->panel.contentOriginY.unsignedValue + dialogObject->panel.contentBottom.unsignedValue + 16;
+    enum {
+        MEMORY_CARD_CHOICE_RIGHT_OFFSET_PIXELS = 5,
+        MEMORY_CARD_CHOICE_BELOW_DIALOG_PIXELS = 16
+    };
+
+    choiceObject->panel.bounds.unsignedRect.x = (dialogObject->panel.contentOriginX.unsignedValue + dialogObject->panel.contentRight.unsignedValue + MEMORY_CARD_CHOICE_RIGHT_OFFSET_PIXELS) - choiceObject->panel.bounds.unsignedRect.w;
+    choiceObject->panel.bounds.unsignedRect.y = dialogObject->panel.contentOriginY.unsignedValue + dialogObject->panel.contentBottom.unsignedValue + MEMORY_CARD_CHOICE_BELOW_DIALOG_PIXELS;
     dialogObject->resultValue                 = MEMORY_CARD_PROMPT_ANSWER_PENDING;
     dialogObject->panel.control.word          = USER_INTERFACE_PANEL_INACTIVE;
 }
@@ -2726,33 +2738,23 @@ static u16* _mcEncodeAsciiTitleText(const u8* asciiText, u16* titleCursor)
     return _mcAppendAsciiTitleText(asciiText, titleCursor);
 }
 
-static void Mc_InitFileName(void)
+/// Invalidate the current and remembered card filenames, preserving their prefix.
+///
+/// Writes underscores to bytes 12..19 and NUL to byte 20 of both 24-byte arrays.
+/// Retained unused out-of-line entry point; bytes 0..11 and 21..23 are preserved.
+static void _mcResetFileNameSuffixes(void)
 {
-    u8* ptr1;
-    u8* ptr0;
-    s32 i;
-    s32 ch;
-
-    ptr1 = Mc_FileName;
-    ptr0 = Mc_FileNameBuf;
-    i    = 0;
-    ch   = 0x5F;
-    do {
-        if (i >= 0xC) {
-            *ptr0 = ch;
-            *ptr1 = ch;
-        }
-        ptr1++;
-        i++;
-        ptr0++;
-    } while (i < 0x14);
-    *ptr0 = 0;
-    *ptr1 = 0;
+    _mcInvalidateFileNameSuffixes();
 }
 
-static void Mc_CopyFileName(s32 arg0)
+/// Save the current card filename, or restore the remembered one.
+///
+/// Zero saves; any nonzero `restoreSavedName` restores. Copies the 20-byte name
+/// and its terminator, preserving the final three bytes of each 24-byte array.
+/// Retained unused out-of-line entry point.
+static void _mcCopyCardFileName(s32 restoreSavedName)
 {
-    _mcCopyFileName(arg0);
+    _mcCopyFileName(restoreSavedName);
 }
 
 static void Mc_WriteSaveHdrChecksum(void)
@@ -2790,27 +2792,15 @@ static s32 _mcVerifySaveHeaderChecksum(const McSaveData* save)
     return _mcVerifySavePreviewChecksum(&save->preview);
 }
 
-/// Out-of-line form of `_mcWriteBlockChecksum`. Nothing calls it.
-static void Mc_WriteBlockChecksum(u8* data, s32 size)
+/// Write a save record's signed-byte payload checksum and its complement.
+///
+/// `recordBytes` borrows writable, halfword-aligned storage. `recordByteCount`
+/// includes the four-byte checksum header and must be at least four. Each
+/// addition retains its low 16 bits; an empty payload stores zero and 0xFFFF.
+/// Retained unused out-of-line entry point.
+static void _mcWriteRecordChecksum(u8* recordBytes, s32 recordByteCount)
 {
-    _McChecksumBlock* block;
-    s16               sum;
-    u32               i;
-
-    block = (_McChecksumBlock*)data;
-    sum   = 0;
-    data  = block->payload;
-    size -= sizeof(_McChecksumBlock);
-    i     = 0;
-    if (size != 0) {
-        do {
-            i    += 1;
-            sum  += (s8)*data;
-            data += 1;
-        } while (i < size);
-    }
-    block->checksum           = sum;
-    block->checksumComplement = ~sum;
+    _mcWriteBlockChecksum(recordBytes, recordByteCount);
 }
 
 void mcResetOptions(void)
@@ -2836,35 +2826,44 @@ void mcInit(void)
     mcResetSaveData();
 }
 
-/// Whether a buffer's header holds the sum of its payload, as
-/// `Mc_WriteBlockChecksum` stores it. Only the sum is compared, not its
-/// complement. Nothing calls it.
-static s32 Mc_VerifyBlockChecksum(u8* data, s32 size)
+/// Return whether a save record's checksum matches its signed-byte payload sum.
+///
+/// Borrows halfword-aligned, read-only storage of `recordByteCount` bytes,
+/// including the four-byte checksum header; the count must be at least four.
+/// Each addition retains its low 16 bits. The checksum complement is unchecked.
+/// Retained unused out-of-line entry point.
+static s32 _mcVerifyRecordChecksum(const u8* recordBytes, s32 recordByteCount)
 {
-    _McChecksumBlock* block;
-    s16               sum;
-    u32               i;
+    const _McChecksumBlock* block;
+    s16                     sum;
+    u32                     byteIndex;
 
-    block = (_McChecksumBlock*)data;
-    sum   = 0;
-    data  = block->payload;
-    size -= sizeof(_McChecksumBlock);
-    i     = 0;
-    if (size != 0) {
+    block            = (const _McChecksumBlock*)recordBytes;
+    sum              = 0;
+    recordBytes      = block->payload;
+    recordByteCount -= sizeof(_McChecksumBlock);
+    byteIndex        = 0;
+    if (recordByteCount != 0) {
         do {
-            i    += 1;
-            sum  += (s8)*data;
-            data += 1;
-        } while (i < size);
+            byteIndex   += 1;
+            sum         += (s8)*recordBytes;
+            recordBytes += 1;
+        } while (byteIndex < recordByteCount);
     }
-    return (block->checksum ^ (sum & 0xFFFF)) == 0;
+    return (block->checksum ^ (sum & MEMORY_CARD_CHECKSUM_MASK)) == 0;
 }
 
-static void Mc_UnusedStub(void)
+/// Retained unused memory-card no-op; its original purpose is unproven.
+static void _mcNoOp(void)
 {
 }
 
-static s32 Mc_CompareBufferHalves(void)
+/// Return the nine-bit mask of save sections selected for writing.
+///
+/// Bit n selects `Mc_BufferSlots[n]`. Sections 1..8 compare their complete live
+/// record with the adjacent backup; bits 0, 1 and 8 are always set for the file
+/// header, save state and nibble bank. Retained unused out-of-line entry point.
+static s32 _mcQuerySectionWriteMask(void)
 {
     return _mcGetSectionWriteMask();
 }
@@ -2884,97 +2883,104 @@ static void Mc_WriteFirstByteChecksum(void)
     _mcWriteSectionChecksumSummary();
 }
 
-static s32 Mc_VerifyFirstByteChecksum(void)
+/// Return whether the live save matches the sections' low-checksum-byte sum.
+///
+/// Adds sections 1..8's unsigned low checksum bytes, yielding 0..2040, and
+/// compares `bufferChecksum`. Its complement, backups and file header are
+/// unchecked. Retained unused out-of-line entry point.
+static s32 _mcCheckSectionChecksumSummary(void)
 {
     return _mcVerifySectionChecksumSummary();
 }
 
-static s32 Mc_VerifySlotChecksums(void)
+/// Return whether every live save section has the correct payload checksum.
+///
+/// Sections 1..8 sum signed bytes after their four-byte checksum header,
+/// retaining the low 16 bits. Visits every live record even after a mismatch;
+/// backups and complements are unchecked. Retained unused out-of-line entry point.
+static s32 _mcCheckSaveSectionChecksums(void)
 {
     return _mcVerifySaveSectionChecksums();
 }
 
-static void Mc_DuplicateBuffers(void)
+/// Copy sections 1..8's complete live records over their adjacent backups.
+///
+/// Each copy is `bytesPerCopy` bytes, including its checksum header. Section
+/// zero holds distinct card-header data and is excluded. Does not allocate or
+/// write to the card. Retained unused out-of-line entry point.
+static void _mcBackupLiveSaveSections(void)
 {
-    u32             i;
-    u32             j;
-    _McSaveSection* p;
-    _McSaveSection* base;
-    u8*             src;
-    s32             size;
-    u8*             dest;
-
-    i    = 1;
-    base = Mc_BufferSlots;
-    p    = base + 1;
-    do {
-        src  = p->buffer;
-        size = p->bytesPerCopy;
-        j    = 0;
-        dest = src + size;
-        while (j < (u32)size) {
-            j    += 1;
-            *dest = *src;
-            src  += 1;
-            dest += 1;
-        }
-        i += 1;
-        p += 1;
-    } while (i < 9);
+    _mcBackupSaveSections();
 }
 
-static void Mc_DrawPrompt(Task* task, s32 arg1)
+/// Draw the memory-card title and both lines of a prompt, clearing the UI result.
+///
+/// `dialogTask->spawnArg2.pointer` must borrow a live `UiObject`. `promptId`
+/// indexes `Mc_PromptTable`; text uses normal color, outlines and left alignment.
+/// Retained unused out-of-line entry point.
+static void _mcDrawDialogPrompt(Task* dialogTask, s32 promptId)
 {
-    _mcDrawPrompt(task, arg1);
+    _mcDrawPrompt(dialogTask, promptId);
 }
 
-static void Mc_HideChildUi(Task* task)
+/// Close the first child UI tree and reactivate its dialog's input.
+///
+/// Does nothing without a child. Both tasks must borrow live `UiObject`s in
+/// `spawnArg2.pointer`. Deactivates the child, detaches and starts closing its
+/// tree, then enables dialog input. UI tasks release the closing objects later.
+/// Retained unused out-of-line entry point.
+static void _mcCloseChildAndReactivateDialog(Task* dialogTask)
 {
-    Task*     child;
-    UiObject* obj;
-    UiObject* flag;
-
-    child = task->firstChild;
-    if (child != NULL) {
-        obj                     = child->spawnArg2.pointer;
-        flag                    = task->spawnArg2.pointer;
-        obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
-        uiStartTreeClosing(obj, obj->owner);
-        flag->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
-    }
+    _mcCloseChildUi(dialogTask, USER_INTERFACE_PANEL_ACTIVE);
 }
 
-static void Mc_WriteDataChecksum(s32 arg0, McWork* work)
+/// Write the signed-byte checksum pair for the resident or read card file header.
+///
+/// Zero `useReadBuffer` selects `Mc_DefaultChecksumSrc` and the live save's
+/// `titleChecksum` pair. Any nonzero value selects `work->buffer` and the work's
+/// checksum pair; that buffer must contain at least the complete 512-byte header.
+/// The source is borrowed for this call; additions retain their low 16 bits.
+/// Retained unused out-of-line entry point.
+static void _mcWriteSelectedCardHeaderChecksum(s32 useReadBuffer, McWork* work)
 {
-    s16  sum;
-    s32  count;
-    u8*  src;
-    s16* dst;
-    s32  i;
+    s16       sum;
+    s32       headerByteCount;
+    const u8* headerByte;
+    u16*      checksum;
+    s32       byteIndex;
 
-    sum   = 0;
-    count = 0x200;
-    if (arg0 == 0) {
-        src = Mc_DefaultChecksumSrc;
-        dst = (s16*)&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.titleChecksum;
+    sum             = 0;
+    headerByteCount = sizeof(Mc_DefaultChecksumSrc);
+    if (useReadBuffer == 0) {
+        headerByte = Mc_DefaultChecksumSrc;
+        checksum   = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.titleChecksum;
     } else {
-        src = work->buffer;
-        dst = (s16*)&work->checksum;
+        headerByte = work->buffer;
+        checksum   = &work->checksum;
     }
 
-    i      = 0;
-    dst[0] = sum;
-    dst[1] = ~sum;
-    while (i < count) {
-        i   += 1;
-        sum += (s8)*src;
-        src += 1;
+    // The checksum and complement remain fields of the same selected owner.
+    byteIndex = 0;
+    *checksum = sum;
+
+    *(useReadBuffer == 0 ? &PARENT_OF(checksum, McSaveState, titleChecksum)->titleChecksumComplement : &PARENT_OF(checksum, McWork, checksum)->checksumComplement) = ~sum;
+    while (byteIndex < headerByteCount) {
+        byteIndex  += 1;
+        sum        += (s8)*headerByte;
+        headerByte += 1;
     }
-    dst[0] = sum;
-    dst[1] = ~sum;
+    *checksum = sum;
+
+    *(useReadBuffer == 0 ? &PARENT_OF(checksum, McSaveState, titleChecksum)->titleChecksumComplement : &PARENT_OF(checksum, McWork, checksum)->checksumComplement) = ~sum;
 }
 
-static s32 Mc_CompareSaveChecksum(McSaveData* save, McWork* work)
+/// Return whether an eligible save matches the read card file header's checksum.
+///
+/// Borrows a save and dialog work with an already-computed card-header sum.
+/// Cheat-mode or demo saves return zero; other saves compare the unsigned
+/// 16-bit `titleChecksum` with `work->checksum`. Neither complement nor payload
+/// is checked. Retained unused out-of-line entry point.
+static s32 _mcMatchesCardHeaderChecksum(const McSaveData* save, const McWork* work)
 {
     if (save->state.cheatMode != 0) {
         return 0;

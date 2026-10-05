@@ -12079,7 +12079,7 @@ if (arg0 == 0) {
 }
 ```
 
-`if (index != 0)` swaps the arms and GCC emits `beqz` with the non-zero path as fall-through — same code, inverted control flow, large score drop. `Mc_CopyFileName` is a short example (copy between `Mc_FileName` / `Mc_FileNameBuf`).
+`if (index != 0)` swaps the arms and GCC emits `beqz` with the non-zero path as fall-through — same code, inverted control flow, large score drop. `_mcCopyCardFileName` is a short example (copy between `Mc_FileName` / `Mc_FileNameBuf`).
 
 **`return` in the `== 0` arm defeats this.** GCC sinks return blocks to the
 function end and rewrites the test as `beqz` → exit, with the continue path as
@@ -12702,7 +12702,7 @@ do {
 } while (i < 9);
 ```
 
-`Mc_VerifyFirstByteChecksum` is the pure example. Same body with `i` then `p` scores ~94%.
+`_mcCheckSectionChecksumSummary` is the pure example. Same body with `i` then `p` scores ~94%.
 
 ## Separate s16 next/sum forces a2/v1 accumulator split
 
@@ -12749,7 +12749,7 @@ gMcSaveData.bufferChecksumComplement = ~next;
 Also keep an intermediate `base = Mc_BufferSlots; p = base + 1;` so the address
 forms as `addiu v0, %lo(Mc_BufferSlots)` then `addiu a0, v0, 0xC` rather than a
 folded `%lo(Mc_BufferSlots+0xC)`. `Mc_WriteFirstByteChecksum` is the pure example; its verify
-sibling `Mc_VerifyFirstByteChecksum` uses a plain `s32 sum` and different scheduling.
+sibling `_mcCheckSectionChecksumSummary` uses a plain `s32 sum` and different scheduling.
 
 ## Statement order picks which local reuses `$a1`
 
@@ -13294,7 +13294,7 @@ while (j < (u32)size) {
 }
 ```
 
-`Mc_DuplicateBuffers` is the pure example (`Mc_BufferSlots[1..8]` buffer duplicate).
+`_mcBackupLiveSaveSections` is the pure example (`Mc_BufferSlots[1..8]` live records copied to adjacent backups).
 
 ## Switch result phi via `temp` + goto join
 
@@ -14607,7 +14607,7 @@ count registers. If sum ends up correct in `$a2` but the loop index and count
 are swapped (`$a1`/`$a0`), pin the index: `register u32 j asm("a0")`.
 
 `_mcWriteLiveSaveSectionChecksums` is the pure example (batch write over `Mc_BufferSlots[1..8]`;
-contrast `Mc_WriteBlockChecksum` which uses `~sum` for a single buffer).
+contrast `_mcWriteRecordChecksum` which uses `~sum` for a single buffer).
 
 ## Signed `/ 2` chain must land in `$a0` via the call argument
 
@@ -14716,9 +14716,9 @@ size = base[idx].bytesPerCopy;
 ```
 
 Pair with `base = Mc_BufferSlots` kept live (not `Mc_BufferSlots[idx]` alone) so the
-`%lo` address stays in a temp across the loop. `Mc_CompareBufferHalves` is the pure
-example (reverse walk of `Mc_BufferSlots[8..1]` comparing each buffer to its
-duplicate half).
+`%lo` address stays in a temp across the loop. `_mcQuerySectionWriteMask` is the pure
+example (reverse walk of `Mc_BufferSlots[8..1]` comparing each live save record
+to its adjacent backup).
 
 `func_actor_206100_8014DEAC` is the version of this where **both** operands come
 from memory and a store sits between the two reads. Its `else` arm reads
@@ -14795,7 +14795,7 @@ sum += (s8)*ptr;
 
 an `s32 sum` collapses the cast to a single `lb`. The target often wants the
 longer form (`lbu` / `sll 24` / `sra 24`) that `_mcWriteLiveSaveSectionChecksums` and its verify
-sibling `Mc_VerifySlotChecksums` use over `Mc_BufferSlots[1..8]`.
+sibling `_mcCheckSaveSectionChecksums` use over `Mc_BufferSlots[1..8]`.
 
 Declare the accumulator `s16`:
 
@@ -143973,7 +143973,7 @@ overlays write them; check the siblings' spelling before steering.
 4-byte header) wants the walking pointer allocated before the count and the
 counter. Written with a local pointer (`ptr = block->payload`), it loses: inlined
 into `mcResetSaveData` the count and the pointer swap `$a0`/`$v1`, standalone
-(`Mc_WriteBlockChecksum`, `Mc_VerifyBlockChecksum`) the pointer and `i` swap.
+(`_mcWriteRecordChecksum`, `_mcVerifyRecordChecksum`) the pointer and `i` swap.
 Every earlier match carried a `register u8* ptr asm(...)` pin for it, and one
 shared inline helper could not serve both inlined callers with one pin.
 
