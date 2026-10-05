@@ -916,12 +916,14 @@ static void _dryfieldR08DrawAlternateDriftSprite(const GfxCoord* coord, u16 fram
 
 #include "../../shared/glow_draw_disc.inc.c"
 
-/// Initializes a lamp-glow wedge with a coloured centre and black rim.
+/// Initializes the colour gradient of a lamp-glow disc wedge or ray.
 ///
-/// Borrows one writable `POLY_G4`; colour arguments are stored as low bytes.
-/// Sets the packet length and Gouraud command. Coordinates, ordering-table
-/// linkage and additive blend commands are supplied by the drawer.
-static inline void _dryfieldR08InitLampGlowWedge(POLY_G4* wedge, s32 red, s32 green, s32 blue)
+/// Borrows one word-aligned writable `POLY_G4` without retaining it. Vertex 2
+/// receives the RGB bytes; vertices 0, 1 and 3 are black. Wider colour arguments
+/// wrap modulo 256 at the call boundary. Sets the eight-word payload length and
+/// opaque Gouraud-quad command; the caller supplies screen coordinates,
+/// ordering-table linkage and additive blend setup.
+static inline void _dryfieldR08InitLampGlowWedge(POLY_G4* wedge, u8 red, u8 green, u8 blue)
 {
     setPolyG4(wedge);
     setRGB0(wedge, 0, 0, 0);
