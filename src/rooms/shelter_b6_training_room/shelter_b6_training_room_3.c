@@ -98,8 +98,8 @@ extern SVECTOR D_shelter_b6_training_room_80184334[];
 extern u16     D_shelter_b6_training_room_801843FC[];
 
 static void func_shelter_b6_training_room_80180530(GfxCoord* from, GfxCoord* to, s16 size, u16 color);
-static void func_shelter_b6_training_room_80181368(EffectWork* mem, GfxCoord* coord, s32 band);
-static void func_shelter_b6_training_room_80181FDC(GfxCoord* arg0, GfxCoord* arg1, s32 arg2, s16 arg3);
+static void _shelterB6TrainingRoomDrawRingBand(const EffectWork* work, const GfxCoord* coord, s32 bandIndex);
+static void _shelterB6TrainingRoomDrawEnergyStrip(const GfxCoord* startCoord, const GfxCoord* endCoord, s32 textureFrame, s16 widthScale);
 
 TaskMessageEntry D_shelter_b6_training_room_80182AF4[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b6_training_room_8017D640 },
@@ -394,97 +394,96 @@ _ShelterB6TrainingRoomBandShapeStorage D_shelter_b6_training_room_80184404 = { {
 
 static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 packedColor);
 
-void func_shelter_b6_training_room_8017DDE8(Task* task)
-{
-    s32 i;
-    s32 j;
+/// RGB nibbles passed to the room's fixed-glow drawers, scaled by 16 per channel.
+enum {
+    SHELTER_B6_TRAINING_ROOM_GLOW_RGB_210 = 0x210,
+    SHELTER_B6_TRAINING_ROOM_GLOW_RGB_444 = 0x444,
+    SHELTER_B6_TRAINING_ROOM_GLOW_RGB_044 = 0x044,
+    SHELTER_B6_TRAINING_ROOM_GLOW_RGB_600 = 0x600
+};
 
-    if (task->state == 0) {
+/// Draws the eight point glows visible together in mapped views 3 through 6.
+static inline void _shelterB6TrainingRoomDrawFixedGlows(void)
+{
+    glowDrawDisc(&D_shelter_b6_training_room_80184334[0], 0x180, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_044);
+    glowDrawDisc(&D_shelter_b6_training_room_80184334[1], 0x200, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_044);
+    glowDrawDisc(&D_shelter_b6_training_room_80184334[2], 0x100, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_044);
+    glowDrawDisc(&D_shelter_b6_training_room_80184334[3], 0x100, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_044);
+    glowDrawDisc(&D_shelter_b6_training_room_80184334[4], 0x100, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_044);
+    glowDrawDisc(&D_shelter_b6_training_room_80184334[5], 0x100, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_044);
+    glowDrawDisc(&D_shelter_b6_training_room_80184334[6], 0x180, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_600);
+    glowDrawDisc(&D_shelter_b6_training_room_80184334[7], 0x200, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_044);
+}
+
+void shelterB6TrainingRoomGlowTask(Task* task)
+{
+    enum {
+        SHELTER_B6_TRAINING_ROOM_GLOW_INIT = 0,
+        SHELTER_B6_TRAINING_ROOM_GLOW_DRAW = 1
+    };
+    s32 segmentIndex;
+    s32 seedPass;
+
+    if (task->state == SHELTER_B6_TRAINING_ROOM_GLOW_INIT) {
         D_shelter_b6_training_room_80185C98 = 0;
-        for (j = 0; j < 3; j++) {
-            for (i = 0; i < 6; i++) {
-                D_shelter_b6_training_room_80185C60[task->spawnArg1.value][i] = (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16;
+        // Preserve all three seed passes over the selected band, including the discarded draws.
+        for (seedPass = 0; seedPass < 3; seedPass++) {
+            for (segmentIndex = 0; segmentIndex < SHELTER_B6_TRAINING_ROOM_BAND_SEGMENT_COUNT; segmentIndex++) {
+                D_shelter_b6_training_room_80185C60[task->spawnArg1.value][segmentIndex] = (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16;
             }
         }
-        task->state = 1;
+        task->state = SHELTER_B6_TRAINING_ROOM_GLOW_DRAW;
     }
 
+    // Draw only the fixtures visible in this mapped camera view.
     switch (viewGetMappedIndex() & 0xFF) {
         case 2:
-            _glowDrawCapsule(&D_shelter_b6_training_room_80184334[10], 0x180, 0x210);
+            _glowDrawCapsule(&D_shelter_b6_training_room_80184334[10], 0x180, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_210);
             break;
         case 3:
-            _glowDrawCapsule(&D_shelter_b6_training_room_80184334[10], 0x180, 0x210);
-            _glowDrawCapsule(&D_shelter_b6_training_room_80184334[8], 0x180, 0x210);
-            glowDrawDisc(&D_shelter_b6_training_room_80184334[12], 0x280, 0x444);
-            glowDrawDisc(&D_shelter_b6_training_room_80184334[13], 0x280, 0x444);
-            glowDrawDisc(&D_shelter_b6_training_room_80184334[14], 0x280, 0x444);
-            glowDrawDisc(&D_shelter_b6_training_room_80184334[15], 0x280, 0x444);
-            glowDrawDisc(&D_shelter_b6_training_room_80184334[16], 0x280, 0x444);
-            glowDrawDisc(&D_shelter_b6_training_room_80184334[18], 0x280, 0x444);
-            glowDrawDisc(&D_shelter_b6_training_room_80184334[19], 0x280, 0x444);
-            glowDrawDisc(&D_shelter_b6_training_room_80184334[20], 0x280, 0x444);
-            glowDrawDisc(&D_shelter_b6_training_room_80184334[21], 0x280, 0x444);
-            glowDrawDisc(&D_shelter_b6_training_room_80184334[22], 0x280, 0x444);
-            glowDrawDisc(&D_shelter_b6_training_room_80184334[0], 0x180, 0x44);
-            glowDrawDisc(&D_shelter_b6_training_room_80184334[1], 0x200, 0x44);
-            glowDrawDisc(&D_shelter_b6_training_room_80184334[2], 0x100, 0x44);
-            glowDrawDisc(&D_shelter_b6_training_room_80184334[3], 0x100, 0x44);
-            glowDrawDisc(&D_shelter_b6_training_room_80184334[4], 0x100, 0x44);
-            glowDrawDisc(&D_shelter_b6_training_room_80184334[5], 0x100, 0x44);
-            glowDrawDisc(&D_shelter_b6_training_room_80184334[6], 0x180, 0x600);
-            glowDrawDisc(&D_shelter_b6_training_room_80184334[7], 0x200, 0x44);
+            _glowDrawCapsule(&D_shelter_b6_training_room_80184334[10], 0x180, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_210);
+            _glowDrawCapsule(&D_shelter_b6_training_room_80184334[8], 0x180, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_210);
+            glowDrawDisc(&D_shelter_b6_training_room_80184334[12], 0x280, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_444);
+            glowDrawDisc(&D_shelter_b6_training_room_80184334[13], 0x280, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_444);
+            glowDrawDisc(&D_shelter_b6_training_room_80184334[14], 0x280, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_444);
+            glowDrawDisc(&D_shelter_b6_training_room_80184334[15], 0x280, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_444);
+            glowDrawDisc(&D_shelter_b6_training_room_80184334[16], 0x280, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_444);
+            glowDrawDisc(&D_shelter_b6_training_room_80184334[18], 0x280, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_444);
+            glowDrawDisc(&D_shelter_b6_training_room_80184334[19], 0x280, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_444);
+            glowDrawDisc(&D_shelter_b6_training_room_80184334[20], 0x280, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_444);
+            glowDrawDisc(&D_shelter_b6_training_room_80184334[21], 0x280, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_444);
+            glowDrawDisc(&D_shelter_b6_training_room_80184334[22], 0x280, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_444);
+            _shelterB6TrainingRoomDrawFixedGlows();
             break;
         case 4:
-            _glowDrawCapsule(&D_shelter_b6_training_room_80184334[8], 0x180, 0x210);
-            glowDrawDisc(&D_shelter_b6_training_room_80184334[12], 0x280, 0x444);
-            glowDrawDisc(&D_shelter_b6_training_room_80184334[13], 0x280, 0x444);
-            glowDrawDisc(&D_shelter_b6_training_room_80184334[14], 0x280, 0x444);
-            glowDrawDisc(&D_shelter_b6_training_room_80184334[18], 0x280, 0x444);
-            glowDrawDisc(&D_shelter_b6_training_room_80184334[19], 0x280, 0x444);
-            glowDrawDisc(&D_shelter_b6_training_room_80184334[20], 0x280, 0x444);
-            glowDrawDisc(&D_shelter_b6_training_room_80184334[0], 0x180, 0x44);
-            glowDrawDisc(&D_shelter_b6_training_room_80184334[1], 0x200, 0x44);
-            glowDrawDisc(&D_shelter_b6_training_room_80184334[2], 0x100, 0x44);
-            glowDrawDisc(&D_shelter_b6_training_room_80184334[3], 0x100, 0x44);
-            glowDrawDisc(&D_shelter_b6_training_room_80184334[4], 0x100, 0x44);
-            glowDrawDisc(&D_shelter_b6_training_room_80184334[5], 0x100, 0x44);
-            glowDrawDisc(&D_shelter_b6_training_room_80184334[6], 0x180, 0x600);
-            glowDrawDisc(&D_shelter_b6_training_room_80184334[7], 0x200, 0x44);
+            _glowDrawCapsule(&D_shelter_b6_training_room_80184334[8], 0x180, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_210);
+            glowDrawDisc(&D_shelter_b6_training_room_80184334[12], 0x280, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_444);
+            glowDrawDisc(&D_shelter_b6_training_room_80184334[13], 0x280, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_444);
+            glowDrawDisc(&D_shelter_b6_training_room_80184334[14], 0x280, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_444);
+            glowDrawDisc(&D_shelter_b6_training_room_80184334[18], 0x280, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_444);
+            glowDrawDisc(&D_shelter_b6_training_room_80184334[19], 0x280, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_444);
+            glowDrawDisc(&D_shelter_b6_training_room_80184334[20], 0x280, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_444);
+            _shelterB6TrainingRoomDrawFixedGlows();
             break;
         case 5:
-            _glowDrawCapsule(&D_shelter_b6_training_room_80184334[8], 0x180, 0x210);
-            glowDrawDisc(&D_shelter_b6_training_room_80184334[0], 0x180, 0x44);
-            glowDrawDisc(&D_shelter_b6_training_room_80184334[1], 0x200, 0x44);
-            glowDrawDisc(&D_shelter_b6_training_room_80184334[2], 0x100, 0x44);
-            glowDrawDisc(&D_shelter_b6_training_room_80184334[3], 0x100, 0x44);
-            glowDrawDisc(&D_shelter_b6_training_room_80184334[4], 0x100, 0x44);
-            glowDrawDisc(&D_shelter_b6_training_room_80184334[5], 0x100, 0x44);
-            glowDrawDisc(&D_shelter_b6_training_room_80184334[6], 0x180, 0x600);
-            glowDrawDisc(&D_shelter_b6_training_room_80184334[7], 0x200, 0x44);
+            _glowDrawCapsule(&D_shelter_b6_training_room_80184334[8], 0x180, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_210);
+            _shelterB6TrainingRoomDrawFixedGlows();
             break;
         case 6:
-            glowDrawDisc(&D_shelter_b6_training_room_80184334[0], 0x180, 0x44);
-            glowDrawDisc(&D_shelter_b6_training_room_80184334[1], 0x200, 0x44);
-            glowDrawDisc(&D_shelter_b6_training_room_80184334[2], 0x100, 0x44);
-            glowDrawDisc(&D_shelter_b6_training_room_80184334[3], 0x100, 0x44);
-            glowDrawDisc(&D_shelter_b6_training_room_80184334[4], 0x100, 0x44);
-            glowDrawDisc(&D_shelter_b6_training_room_80184334[5], 0x100, 0x44);
-            glowDrawDisc(&D_shelter_b6_training_room_80184334[6], 0x180, 0x600);
-            glowDrawDisc(&D_shelter_b6_training_room_80184334[7], 0x200, 0x44);
+            _shelterB6TrainingRoomDrawFixedGlows();
             break;
         case 7:
-            _glowDrawCapsule(&D_shelter_b6_training_room_80184334[10], 0x180, 0x210);
-            glowDrawDisc(&D_shelter_b6_training_room_80184334[17], 0x280, 0x444);
-            glowDrawDisc(&D_shelter_b6_training_room_80184334[23], 0x280, 0x444);
+            _glowDrawCapsule(&D_shelter_b6_training_room_80184334[10], 0x180, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_210);
+            glowDrawDisc(&D_shelter_b6_training_room_80184334[17], 0x280, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_444);
+            glowDrawDisc(&D_shelter_b6_training_room_80184334[23], 0x280, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_444);
             break;
         case 8:
-            glowDrawDisc(&D_shelter_b6_training_room_80184334[2], 0x100, 0x44);
-            glowDrawDisc(&D_shelter_b6_training_room_80184334[3], 0x100, 0x44);
-            glowDrawDisc(&D_shelter_b6_training_room_80184334[4], 0x100, 0x44);
-            glowDrawDisc(&D_shelter_b6_training_room_80184334[5], 0x100, 0x44);
-            glowDrawDisc(&D_shelter_b6_training_room_80184334[6], 0x180, 0x600);
-            glowDrawDisc(&D_shelter_b6_training_room_80184334[7], 0x200, 0x44);
+            glowDrawDisc(&D_shelter_b6_training_room_80184334[2], 0x100, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_044);
+            glowDrawDisc(&D_shelter_b6_training_room_80184334[3], 0x100, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_044);
+            glowDrawDisc(&D_shelter_b6_training_room_80184334[4], 0x100, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_044);
+            glowDrawDisc(&D_shelter_b6_training_room_80184334[5], 0x100, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_044);
+            glowDrawDisc(&D_shelter_b6_training_room_80184334[6], 0x180, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_600);
+            glowDrawDisc(&D_shelter_b6_training_room_80184334[7], 0x200, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_044);
             break;
     }
 }
@@ -493,52 +492,57 @@ void func_shelter_b6_training_room_8017DDE8(Task* task)
 
 #include "../../shared/glow_draw_disc.inc.c"
 
-void func_shelter_b6_training_room_8017EE70(Task* arg0)
+void shelterB6TrainingRoomOrangeBurstTask(Task* task)
 {
+    enum {
+        SHELTER_B6_TRAINING_ROOM_ORANGE_BURST_INIT = 0,
+        SHELTER_B6_TRAINING_ROOM_ORANGE_BURST_FADE = 1
+    };
     u8          rgb[3];
-    EffectWork* mem;
+    EffectWork* work;
     GfxCoord*   coord;
-    s16         flag;
-    s16         step;
+    s16         effectControl;
+    s16         radiusScale;
 
-    mem   = arg0->spawnArg2.pointer;
-    flag  = gRoomEffectState->effectControl;
-    coord = arg0->extra.coordBody->coord;
-    if (flag != ROOM_EFFECT_CONTROL_RUNNING) {
-        if (flag < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
+    work          = task->spawnArg2.pointer;
+    effectControl = gRoomEffectState->effectControl;
+    coord         = task->extra.coordBody->coord;
+    if (effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+        if (effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             return;
         }
         goto kill;
     } else {
-        mem->age++;
-        if (arg0->state == 0) {
-            mem->age    = 1;
-            mem->scale  = 0xE0;
-            mem->angle  = 0x100;
-            mem->period = 0xE0;
-            mem->step   = 0x100;
-            arg0->state = 1;
+        work->age++;
+        if (task->state == SHELTER_B6_TRAINING_ROOM_ORANGE_BURST_INIT) {
+            work->age    = 1;
+            work->scale  = 0xE0;
+            work->angle  = 0x100;
+            work->period = 0xE0;
+            work->step   = 0x100;
+            task->state  = SHELTER_B6_TRAINING_ROOM_ORANGE_BURST_FADE;
         }
-        rgb[0]     = mem->scale;
-        rgb[1]     = mem->scale >> 1;
-        rgb[2]     = mem->scale >> 2;
-        step       = mem->angle + 0x10;
-        mem->angle = step;
-        effectDrawGouraudDisc(coord, (s16)(step * 2), rgb);
-        _roomVisualEffectsDrawHaloBurstGlow(coord, mem->angle);
-        if (mem->period >= 0x19) {
-            rgb[0] = mem->period;
-            rgb[1] = mem->period >> 1;
-            rgb[2] = mem->period >> 2;
-            effectDrawOuterGlowBand(coord, (s16)(mem->step * 3 / 2), 0x60, rgb);
-            mem->period -= 0x18;
-            mem->step   += 0x80;
+        rgb[0]      = work->scale;
+        rgb[1]      = work->scale >> 1;
+        rgb[2]      = work->scale >> 2;
+        radiusScale = work->angle + 0x10;
+        work->angle = radiusScale;
+        effectDrawGouraudDisc(coord, (s16)(radiusScale * 2), rgb);
+        _roomVisualEffectsDrawHaloBurstGlow(coord, work->angle);
+        // Exhaust the expanding outer band before fading the inner disc.
+        if (work->period >= 0x19) {
+            rgb[0] = work->period;
+            rgb[1] = work->period >> 1;
+            rgb[2] = work->period >> 2;
+            effectDrawOuterGlowBand(coord, (s16)(work->step * 3 / 2), 0x60, rgb);
+            work->period -= 0x18;
+            work->step   += 0x80;
             return;
         }
-        mem->scale -= 0x10;
-        if (mem->scale < 0x10) {
+        work->scale -= 0x10;
+        if (work->scale < 0x10) {
         kill:
-            effectKillTask(mem, arg0);
+            effectKillTask(work, task);
         }
     }
 }
@@ -546,81 +550,88 @@ void func_shelter_b6_training_room_8017EE70(Task* arg0)
 #include "../../shared/room_visual_effects.inc.c"
 #include "../../shared/room_visual_effects_glow_quad.inc.c"
 
-void func_shelter_b6_training_room_8017F8B8(Task* task)
+void shelterB6TrainingRoomSummonRingTask(Task* task)
 {
+    enum {
+        SHELTER_B6_TRAINING_ROOM_SUMMON_RING_INIT    = 0,
+        SHELTER_B6_TRAINING_ROOM_SUMMON_RING_GROW    = 1,
+        SHELTER_B6_TRAINING_ROOM_SUMMON_RING_FADE    = 2,
+        SHELTER_B6_TRAINING_ROOM_SUMMON_RING_WAIT    = 3,
+        SHELTER_B6_TRAINING_ROOM_SUMMON_RING_RELEASE = 4
+    };
     EffectWork* work;
     GfxCoord*   coord;
     u8          rgb[3];
+
+    /// Stages violet RGB bytes and draws both discs and the outer band.
+    ///
+    /// Requires a live EffectWork, composed GfxCoord, writable RGB[3] and
+    /// signed sizing radius. Arguments must have no side effects: work, coord
+    /// and rgb are evaluated repeatedly. Captures no caller identifiers.
+    /// Expands to multiple statements; use only in braced blocks. Undefined
+    /// before this task ends.
+#define SHELTER_B6_TRAINING_ROOM_DRAW_SUMMON_GLOW(work, coord, outerRadius, rgb) \
+    (rgb)[0] = (work)->scale >> 1;                                               \
+    (rgb)[1] = (work)->scale >> 2;                                               \
+    (rgb)[2] = (work)->scale;                                                    \
+    effectDrawGouraudDisc((coord), (work)->angle, (rgb));                        \
+    effectDrawGouraudDisc((coord), (s16)((u16)(work)->angle * 2), (rgb));        \
+    effectDrawOuterGlowBand((coord), (outerRadius), 0x100, (rgb));
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
     if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
         work->age++;
         switch (task->state) {
-            case 0:
-                task->state                         = 1;
+            // A positive spawn countdown is required for the brightness increment.
+            case SHELTER_B6_TRAINING_ROOM_SUMMON_RING_INIT:
+                task->state                         = SHELTER_B6_TRAINING_ROOM_SUMMON_RING_GROW;
                 work->scale                         = 0;
                 work->angle                         = 0x100;
                 D_shelter_b6_training_room_80185C90 = NULL;
                 work->step                          = 0x80 / task->spawnArg1.value;
-            case 1:
+            case SHELTER_B6_TRAINING_ROOM_SUMMON_RING_GROW:
                 if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
-                    rgb[0] = work->scale >> 1;
-                    rgb[1] = work->scale >> 2;
-                    rgb[2] = work->scale;
-                    effectDrawGouraudDisc(coord, work->angle, rgb);
-                    effectDrawGouraudDisc(coord, (s16)((u16)work->angle * 2), rgb);
-                    effectDrawOuterGlowBand(coord, (s16)((task->spawnArg1.value << 5) + 0x300), 0x100, rgb);
+                    SHELTER_B6_TRAINING_ROOM_DRAW_SUMMON_GLOW(work, coord, (s16)((task->spawnArg1.value << 5) + 0x300), rgb);
                     break;
                 }
                 work->scale += work->step;
                 work->angle += work->step << 3;
                 task->spawnArg1.value--;
-                rgb[0] = work->scale >> 1;
-                rgb[1] = work->scale >> 2;
-                rgb[2] = work->scale;
-                effectDrawGouraudDisc(coord, work->angle, rgb);
-                effectDrawGouraudDisc(coord, (s16)((u16)work->angle * 2), rgb);
-                effectDrawOuterGlowBand(coord, (s16)((task->spawnArg1.value << 5) + 0x300), 0x100, rgb);
+                SHELTER_B6_TRAINING_ROOM_DRAW_SUMMON_GLOW(work, coord, (s16)((task->spawnArg1.value << 5) + 0x300), rgb);
                 if (task->spawnArg1.value == 0) {
-                    work->scale                         = 0xFF;
-                    task->state                         = 2;
-                    work->period                        = 0x600;
-                    work->step                          = 0;
+                    work->scale  = 0xFF;
+                    task->state  = SHELTER_B6_TRAINING_ROOM_SUMMON_RING_FADE;
+                    work->period = 0x600;
+                    work->step   = 0;
+                    // Publish the beam origin only once the buildup is complete.
                     D_shelter_b6_training_room_80185C90 = coord;
                 }
                 break;
-            case 2:
+            case SHELTER_B6_TRAINING_ROOM_SUMMON_RING_FADE:
                 if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
-                    rgb[0] = work->scale >> 1;
-                    rgb[1] = work->scale >> 2;
-                    rgb[2] = work->scale;
-                    effectDrawGouraudDisc(coord, work->angle, rgb);
-                    effectDrawGouraudDisc(coord, (s16)((u16)work->angle * 2), rgb);
-                    effectDrawOuterGlowBand(coord, 0x300, 0x100, rgb);
+                    SHELTER_B6_TRAINING_ROOM_DRAW_SUMMON_GLOW(work, coord, 0x300, rgb);
                     break;
                 }
                 if (work->scale >= 9) {
-                    rgb[0] = work->scale >> 1;
-                    rgb[1] = work->scale >> 2;
-                    rgb[2] = work->scale;
-                    effectDrawGouraudDisc(coord, work->angle, rgb);
-                    effectDrawGouraudDisc(coord, (s16)((u16)work->angle * 2), rgb);
-                    effectDrawOuterGlowBand(coord, 0x300, 0x100, rgb);
+                    SHELTER_B6_TRAINING_ROOM_DRAW_SUMMON_GLOW(work, coord, 0x300, rgb);
                     work->scale -= 8;
                     break;
                 }
-                task->state = 3;
+                task->state = SHELTER_B6_TRAINING_ROOM_SUMMON_RING_WAIT;
                 break;
-            case 3:
+            // The actor retains the work block and requests state 4 when the attack ends.
+            case SHELTER_B6_TRAINING_ROOM_SUMMON_RING_WAIT:
                 break;
-            case 4:
+            case SHELTER_B6_TRAINING_ROOM_SUMMON_RING_RELEASE:
                 effectKillTask(work, task);
                 break;
         }
     } else {
         effectKillTask(work, task);
     }
+
+#undef SHELTER_B6_TRAINING_ROOM_DRAW_SUMMON_GLOW
 }
 
 /// Draws a glowing capsule from the anchor coordinate
@@ -969,158 +980,193 @@ void func_shelter_b6_training_room_80180DB4(Task* task)
     effectKillTask(work, task);
 }
 
-void func_shelter_b6_training_room_801811AC(Task* task)
+void shelterB6TrainingRoomRingBandTask(Task* task)
 {
-    EffectWork* mem;
+    enum {
+        SHELTER_B6_TRAINING_ROOM_RING_BAND_INIT        = 0,
+        SHELTER_B6_TRAINING_ROOM_RING_BAND_RISE        = 1,
+        SHELTER_B6_TRAINING_ROOM_RING_BAND_FADE_MIDDLE = 2,
+        SHELTER_B6_TRAINING_ROOM_RING_BAND_FADE_OUTER  = 3,
+        SHELTER_B6_TRAINING_ROOM_RING_BAND_RELEASE     = 4
+    };
+    EffectWork* work;
     GfxCoord*   coord;
 
-    mem   = task->spawnArg2.pointer;
+    work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
-        func_shelter_b6_training_room_80181368(mem, coord, task->spawnArg1.value);
+        _shelterB6TrainingRoomDrawRingBand(work, coord, task->spawnArg1.value);
         if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             return;
         }
         goto release;
     }
-    mem->age++;
+    work->age++;
     switch (task->state) {
-        case 0:
-            mem->scale          = 0x80;
-            task->state         = task->spawnArg1.value + 1;
+        // Flatten the effect origin to its local ground plane before the first draw.
+        case SHELTER_B6_TRAINING_ROOM_RING_BAND_INIT:
+            work->scale         = 0x80;
+            task->state         = task->spawnArg1.value + SHELTER_B6_TRAINING_ROOM_RING_BAND_RISE;
             coord->coord.t[1]   = 0;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             actorRenderComposeCoord(coord);
             return;
-        case 1:
-            if (mem->scale < 5) {
+        case SHELTER_B6_TRAINING_ROOM_RING_BAND_RISE:
+            if (work->scale < 5) {
                 goto release;
             }
-            if (mem->period < 0xC00) {
-                mem->period += 0xC0;
+            if (work->period < 0xC00) {
+                work->period += 0xC0;
             } else {
-                mem->scale -= 4;
+                work->scale -= 4;
             }
-            mem->angle += 0x20;
-            mem->step  += 0x18;
-            func_shelter_b6_training_room_80181368(mem, coord, task->spawnArg1.value);
+            work->angle += 0x20;
+            work->step  += 0x18;
+            _shelterB6TrainingRoomDrawRingBand(work, coord, task->spawnArg1.value);
             return;
-        case 2:
-            if (mem->scale < 4) {
+        case SHELTER_B6_TRAINING_ROOM_RING_BAND_FADE_MIDDLE:
+            if (work->scale < 4) {
                 goto release;
             }
-            mem->scale -= 3;
-            mem->angle += 0x40;
-            mem->step  += 0x18;
-            func_shelter_b6_training_room_80181368(mem, coord, task->spawnArg1.value);
+            work->scale -= 3;
+            work->angle += 0x40;
+            work->step  += 0x18;
+            _shelterB6TrainingRoomDrawRingBand(work, coord, task->spawnArg1.value);
             return;
-        case 3:
-            if (mem->scale < 5) {
+        case SHELTER_B6_TRAINING_ROOM_RING_BAND_FADE_OUTER:
+            if (work->scale < 5) {
                 goto release;
             }
-            mem->scale -= 4;
-            mem->angle += 0x180;
-            mem->step  += 0x18;
-            func_shelter_b6_training_room_80181368(mem, coord, task->spawnArg1.value);
+            work->scale -= 4;
+            work->angle += 0x180;
+            work->step  += 0x18;
+            _shelterB6TrainingRoomDrawRingBand(work, coord, task->spawnArg1.value);
             return;
-        case 4:
+        case SHELTER_B6_TRAINING_ROOM_RING_BAND_RELEASE:
         release:
-            effectKillTask(mem, task);
+            effectKillTask(work, task);
         default:
             return;
     }
 }
 
-/// Draws band `band` of a six-sided textured ring around `coord`: six
-/// `POLY_FT4` quads joining a ground rim of radius `angle + baseRadius` to a rim
-/// raised by `period + lift` and widened by `step + spread`. Both rims are
-/// rotated by the coordinate's `workm`, translated by its `t[]` and projected
-/// through `GsWSMATRIX`. Quad `i` takes its texture column from
-/// `(D_shelter_b6_training_room_80185C60[band][i] + age) % 6`, so each quad
-/// animates on its own phase, and `scale` sets its brightness.
-static void func_shelter_b6_training_room_80181368(EffectWork* mem, GfxCoord* coord, s32 band)
+/// Draws one six-segment textured band between a lifted top ring and a ground bottom ring.
+///
+/// `bandIndex` is 0..2. The shape adds to `work->angle` for bottom radius,
+/// `work->step` for top-ring spread and `work->period` for lift along local -Y;
+/// distances narrow to 16 bits. `work->scale` supplies RGB brightness and
+/// `work->age` advances each segment's signed texture phase modulo six.
+/// A negative remainder wraps through the packet's UV bytes.
+/// `coord->workm` must be composed; inputs are borrowed until return.
+/// Requires one free scratch block, a current ordering table and room for up to
+/// six `POLY_FT4` packets. Releases scratch storage on return; emitted packets
+/// remain in the frame arena. Overwrites GTE transform and projection registers.
+static void _shelterB6TrainingRoomDrawRingBand(const EffectWork* work, const GfxCoord* coord, s32 bandIndex)
 {
-    _ShelterB6TrainingRoomBandScratch* block;
+    enum {
+        SHELTER_B6_TRAINING_ROOM_RING_TEXTURE_FRAMES = 6,
+        SHELTER_B6_TRAINING_ROOM_RING_CELL_SIZE      = 40,
+        SHELTER_B6_TRAINING_ROOM_RING_TOP_V          = 96,
+        SHELTER_B6_TRAINING_ROOM_RING_TRIG_SHIFT     = 12
+    };
+    _ShelterB6TrainingRoomBandScratch* scratch;
     SVECTOR*                           bottomVertex;
-    POLY_FT4*                          prim;
-    EffectBandShape*                   shape;
-    s32                                i;
-    s32                                next;
-    s32                                ang;
-    s32                                u;
-    s16                                frame;
-    s16                                rTop;
-    s16                                rBase;
-    u16                                height;
-    u16                                period;
+    POLY_FT4*                          quad;
+    const EffectBandShape*             shape;
+    s32                                segmentIndex;
+    s32                                nextSegment;
+    s32                                yaw;
+    s32                                leftU;
+    s16                                textureFrame;
+    s16                                topRadius;
+    s16                                bottomRadius;
+    u16                                lift;
+    u16                                liftGrowth;
 
-    shape  = &D_shelter_b6_training_room_80184404.entries[band];
-    period = mem->period;
-    rBase  = mem->angle;
-    height = period + shape->lift;
-    rBase += shape->baseRadius;
-    rTop   = rBase + mem->step + shape->spread;
-    block  = SCRATCH_STACK_RESERVE_BLOCK(_ShelterB6TrainingRoomBandScratch);
-    gte_SetTransMatrix(&GsWSMATRIX);
-    for (i = 0; i < SHELTER_B6_TRAINING_ROOM_BAND_SEGMENT_COUNT; i++) {
-        ang                  = i * (ONE / SHELTER_B6_TRAINING_ROOM_BAND_SEGMENT_COUNT);
-        block->topRing[i].vx = (rsin(ang) * rTop) >> 12;
-        block->topRing[i].vy = -height;
-        block->topRing[i].vz = (rcos(ang) * rTop) >> 12;
-        gte_SetRotMatrix(&coord->workm);
-        gte_ldv0(&block->topRing[i]);
-        gte_rtv0();
-        gte_stsv(&block->topRing[i]);
-        block->topRing[i].vx    = (u16)block->topRing[i].vx + (u16)coord->workm.t[0];
-        block->topRing[i].vy    = (u16)block->topRing[i].vy + (u16)coord->workm.t[1];
-        block->topRing[i].vz    = (u16)block->topRing[i].vz + (u16)coord->workm.t[2];
-        block->bottomRing[i].vx = (rsin(ang) * rBase) >> 12;
-        bottomVertex            = &block->topRing[i] + SHELTER_B6_TRAINING_ROOM_BAND_SEGMENT_COUNT;
-        bottomVertex->vy        = 0;
-        bottomVertex->vz        = (rcos(ang) * rBase) >> 12;
-        gte_SetRotMatrix(&coord->workm);
-        gte_ldv0(&block->bottomRing[i]);
-        gte_rtv0();
-        gte_stsv(&block->bottomRing[i]);
-        block->bottomRing[i].vx = (u16)block->bottomRing[i].vx + (u16)coord->workm.t[0];
-        bottomVertex->vy        = (u16)bottomVertex->vy + (u16)coord->workm.t[1];
-        bottomVertex->vz        = (u16)bottomVertex->vz + (u16)coord->workm.t[2];
+    shape         = &D_shelter_b6_training_room_80184404.entries[bandIndex];
+    liftGrowth    = work->period;
+    bottomRadius  = work->angle;
+    lift          = liftGrowth + shape->lift;
+    bottomRadius += shape->baseRadius;
+    topRadius     = bottomRadius + work->step + shape->spread;
+    scratch       = SCRATCH_STACK_RESERVE_BLOCK(_ShelterB6TrainingRoomBandScratch);
+    // Build the lifted top ring and ground bottom ring, then narrow their world positions.
+    /// Builds the lifted and ground rings in a reserved scratch block.
+    ///
+    /// Requires a _ShelterB6TrainingRoomBandScratch*, a composed GfxCoord*,
+    /// signed 16-bit radii and unsigned 16-bit lift in coordinate units. All
+    /// arguments must have no side effects and may be evaluated repeatedly.
+    /// Captures s32 segmentIndex/yaw, SVECTOR* bottomVertex, GsWSMATRIX and
+    /// this drawer's Q12 shift constant. Expands to multiple statements; invoke
+    /// unconditionally in the drawer. Undefined before it ends.
+#define SHELTER_B6_TRAINING_ROOM_BUILD_BAND_RINGS(scratch, coord, topRadius, bottomRadius, lift)                                                                         \
+    gte_SetTransMatrix(&GsWSMATRIX);                                                                                                                                     \
+    for (segmentIndex = 0; segmentIndex < SHELTER_B6_TRAINING_ROOM_BAND_SEGMENT_COUNT; segmentIndex++) {                                                                 \
+        yaw                                 = segmentIndex * (ONE / SHELTER_B6_TRAINING_ROOM_BAND_SEGMENT_COUNT);                                                        \
+        (scratch)->topRing[segmentIndex].vx = (rsin(yaw) * (topRadius)) >> SHELTER_B6_TRAINING_ROOM_RING_TRIG_SHIFT;                                                     \
+        (scratch)->topRing[segmentIndex].vy = -(lift);                                                                                                                   \
+        (scratch)->topRing[segmentIndex].vz = (rcos(yaw) * (topRadius)) >> SHELTER_B6_TRAINING_ROOM_RING_TRIG_SHIFT;                                                     \
+        gte_SetRotMatrix(&(coord)->workm);                                                                                                                               \
+        gte_ldv0(&(scratch)->topRing[segmentIndex]);                                                                                                                     \
+        gte_rtv0();                                                                                                                                                      \
+        gte_stsv(&(scratch)->topRing[segmentIndex]);                                                                                                                     \
+        (scratch)->topRing[segmentIndex].vx    = (u16)(scratch)->topRing[segmentIndex].vx + (u16)(coord)->workm.t[0];                                                    \
+        (scratch)->topRing[segmentIndex].vy    = (u16)(scratch)->topRing[segmentIndex].vy + (u16)(coord)->workm.t[1];                                                    \
+        (scratch)->topRing[segmentIndex].vz    = (u16)(scratch)->topRing[segmentIndex].vz + (u16)(coord)->workm.t[2];                                                    \
+        (scratch)->bottomRing[segmentIndex].vx = (rsin(yaw) * (bottomRadius)) >> SHELTER_B6_TRAINING_ROOM_RING_TRIG_SHIFT;                                               \
+        bottomVertex                           = (SVECTOR*)((u8*)(scratch) + segmentIndex * sizeof(SVECTOR) + OFFSET_OF(_ShelterB6TrainingRoomBandScratch, bottomRing)); \
+        bottomVertex->vy                       = 0;                                                                                                                      \
+        bottomVertex->vz                       = (rcos(yaw) * (bottomRadius)) >> SHELTER_B6_TRAINING_ROOM_RING_TRIG_SHIFT;                                               \
+        gte_SetRotMatrix(&(coord)->workm);                                                                                                                               \
+        gte_ldv0(&(scratch)->bottomRing[segmentIndex]);                                                                                                                  \
+        gte_rtv0();                                                                                                                                                      \
+        gte_stsv(&(scratch)->bottomRing[segmentIndex]);                                                                                                                  \
+        (scratch)->bottomRing[segmentIndex].vx = (u16)(scratch)->bottomRing[segmentIndex].vx + (u16)(coord)->workm.t[0];                                                 \
+        bottomVertex->vy                       = (u16)bottomVertex->vy + (u16)(coord)->workm.t[1];                                                                       \
+        bottomVertex->vz                       = (u16)bottomVertex->vz + (u16)(coord)->workm.t[2];                                                                       \
     }
+
+    SHELTER_B6_TRAINING_ROOM_BUILD_BAND_RINGS(scratch, coord, topRadius, bottomRadius, lift);
+    // Project each segment and use its signed phase byte to select a texture cell.
     gte_SetRotMatrix(&GsWSMATRIX);
-    for (i = 0; i < SHELTER_B6_TRAINING_ROOM_BAND_SEGMENT_COUNT; i++) {
-        gte_ldv0(&block->topRing[i]);
+    for (segmentIndex = 0; segmentIndex < SHELTER_B6_TRAINING_ROOM_BAND_SEGMENT_COUNT; segmentIndex++) {
+        gte_ldv0(&scratch->topRing[segmentIndex]);
         gte_rtps();
-        gte_stsxy(&block->sxy0);
-        next = i + 1;
-        gte_ldv3(&block->topRing[next % SHELTER_B6_TRAINING_ROOM_BAND_SEGMENT_COUNT], &block->bottomRing[i], &block->bottomRing[next % SHELTER_B6_TRAINING_ROOM_BAND_SEGMENT_COUNT]);
+        gte_stsxy(&scratch->sxy0);
+        nextSegment = segmentIndex + 1;
+        gte_ldv3(&scratch->topRing[nextSegment % SHELTER_B6_TRAINING_ROOM_BAND_SEGMENT_COUNT], &scratch->bottomRing[segmentIndex], &scratch->bottomRing[nextSegment % SHELTER_B6_TRAINING_ROOM_BAND_SEGMENT_COUNT]);
         gte_rtpt();
-        frame = ((s8)D_shelter_b6_training_room_80185C60[band][i] + mem->age) % 6;
-        gte_stsxy3(&block->sxy1, &block->sxy2, &block->sxy3);
-        gte_stflg(&block->projectionFlags);
-        if (block->projectionFlags >= 0) {
-            gte_stszotz(&block->otz);
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setlen(prim, 9);
-            prim->code = 0x2E;
-            setRGB0(prim, mem->scale, mem->scale, mem->scale);
-            prim->tpage = 0x2A;
-            prim->clut  = 0x4282;
-            u           = frame * 0x28;
-            setUV4(prim, u, 0x60, u + 0x27, 0x60, u, 0x87, u + 0x27, 0x87);
-            prim->x0 = (u16)block->sxy0.vx;
-            prim->y0 = (u16)block->sxy0.vy;
-            prim->x1 = (u16)block->sxy1.vx;
-            prim->y1 = (u16)block->sxy1.vy;
-            prim->x2 = (u16)block->sxy2.vx;
-            prim->y2 = (u16)block->sxy2.vy;
-            prim->x3 = (u16)block->sxy3.vx;
-            prim->y3 = (u16)block->sxy3.vy;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
+        textureFrame = ((s8)D_shelter_b6_training_room_80185C60[bandIndex][segmentIndex] + work->age) % SHELTER_B6_TRAINING_ROOM_RING_TEXTURE_FRAMES;
+        gte_stsxy3(&scratch->sxy1, &scratch->sxy2, &scratch->sxy3);
+        gte_stflg(&scratch->projectionFlags);
+        if (scratch->projectionFlags >= 0) {
+            gte_stszotz(&scratch->otz);
+            quad           = gGpuPrimCursor;
+            gGpuPrimCursor = quad + 1;
+            setPolyFT4(quad);
+            setSemiTrans(quad, true);
+            setRGB0(quad, work->scale, work->scale, work->scale);
+            quad->tpage = getTPage(0, GPU_BLEND_ADD, 640, 0);
+            quad->clut  = getClut(32, 266);
+            leftU       = textureFrame * SHELTER_B6_TRAINING_ROOM_RING_CELL_SIZE;
+            setUV4(quad, leftU, SHELTER_B6_TRAINING_ROOM_RING_TOP_V, leftU + SHELTER_B6_TRAINING_ROOM_RING_CELL_SIZE - 1, SHELTER_B6_TRAINING_ROOM_RING_TOP_V,
+                   leftU, SHELTER_B6_TRAINING_ROOM_RING_TOP_V + SHELTER_B6_TRAINING_ROOM_RING_CELL_SIZE - 1,
+                   leftU + SHELTER_B6_TRAINING_ROOM_RING_CELL_SIZE - 1, SHELTER_B6_TRAINING_ROOM_RING_TOP_V + SHELTER_B6_TRAINING_ROOM_RING_CELL_SIZE - 1);
+            quad->x0 = (u16)scratch->sxy0.vx;
+            quad->y0 = (u16)scratch->sxy0.vy;
+            quad->x1 = (u16)scratch->sxy1.vx;
+            quad->y1 = (u16)scratch->sxy1.vy;
+            quad->x2 = (u16)scratch->sxy2.vx;
+            quad->y2 = (u16)scratch->sxy2.vy;
+            quad->x3 = (u16)scratch->sxy3.vx;
+            quad->y3 = (u16)scratch->sxy3.vy;
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                    quad);
         }
     }
     SCRATCH_STACK_RELEASE_BLOCK(_ShelterB6TrainingRoomBandScratch);
+
+#undef SHELTER_B6_TRAINING_ROOM_BUILD_BAND_RINGS
 }
 
 void func_shelter_b6_training_room_80181930(Task* task)
@@ -1146,45 +1192,45 @@ void func_shelter_b6_training_room_80181930(Task* task)
     }
 }
 
-void func_shelter_b6_training_room_80181A3C(Task* task)
+void shelterB6TrainingRoomEnergyArcTask(Task* task)
 {
-    EffectWork* mem;
+    enum {
+        SHELTER_B6_TRAINING_ROOM_ENERGY_ARC_INIT = 0,
+        SHELTER_B6_TRAINING_ROOM_ENERGY_ARC_DRAW = 1
+    };
+    EffectWork* work;
     GfxCoord*   coord;
 
-    mem   = task->spawnArg2.pointer;
+    work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
     if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
-        mem->age++;
+        work->age++;
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        if (task->state == 0) {
-            GfxRotationWords* rot;
-            u32               first;
+        // Reparent the sprite to its live joint and restore the spawn offset.
+        if (task->state == SHELTER_B6_TRAINING_ROOM_ENERGY_ARC_INIT) {
+            u32 sizeRandom;
 
-            rot                 = (GfxRotationWords*)&coord->coord;
-            coord->parent       = mem->parent;
-            rot->m00M01         = ONE;
-            rot->m02M10         = 0;
-            rot->m11M12         = ONE;
-            rot->m20M21         = 0;
-            rot->m22            = ONE;
-            coord->coord.t[0]   = mem->pos.vx;
+            coord->parent = work->parent;
+            gfxSetRotIdentity(&coord->coord);
+            coord->coord.t[0]   = work->pos.vx;
             gRandomLcgState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            first               = gRandomLcgState;
-            coord->coord.t[1]   = mem->pos.vy;
+            sizeRandom          = gRandomLcgState;
+            coord->coord.t[1]   = work->pos.vy;
             gRandomLcgState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            coord->coord.t[2]   = mem->pos.vz;
+            coord->coord.t[2]   = work->pos.vz;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            mem->scale          = ((first >> 16) & 0x1FF) + 0x100;
-            mem->angle          = (gRandomLcgState >> 16) & 0xFFF;
-            mem->period         = ((gRandomLcgState >> 16) & 0xF) + 6;
-            task->state         = 1;
+            work->scale         = ((sizeRandom >> 16) & 0x1FF) + 0x100;
+            work->angle         = (gRandomLcgState >> 16) & (ONE - 1);
+            work->period        = ((gRandomLcgState >> 16) & 0xF) + 6;
+            task->state         = SHELTER_B6_TRAINING_ROOM_ENERGY_ARC_DRAW;
         }
-        spriteQuadDraw(coord, mem->age, mem->scale, mem->angle);
-        if (mem->age & 1) {
-            func_shelter_b6_training_room_80181FDC(coord, D_shelter_b6_training_room_80185C94, mem->age >> 1, mem->scale);
+        // Draw the animated sprite every tick and the link to the body anchor on odd ticks.
+        spriteQuadDraw(coord, work->age, work->scale, work->angle);
+        if (work->age & 1) {
+            _shelterB6TrainingRoomDrawEnergyStrip(coord, D_shelter_b6_training_room_80185C94, work->age >> 1, work->scale);
         }
-        if (mem->age > mem->period) {
-            effectKillTask(mem, task);
+        if (work->age > work->period) {
+            effectKillTask(work, task);
         }
     }
 }
@@ -1207,89 +1253,109 @@ void func_shelter_b6_training_room_80181A3C(Task* task)
 #define SPRITE_QUAD_OTZ_BIAS 0
 #include "../../shared/sprite_quad_draw.inc.c"
 
-/// Draws a textured `POLY_FT4` strip between the world positions of two
-/// coordinates. Both ends are projected and the strip is dropped if either
-/// fails the GTE flag test. Its half-width is `arg3 * 23 / depth`, laid
-/// perpendicular to the screen-space line between the ends, and `arg2`
-/// selects one of four 128x24 texture frames. The primitive is queued at the
-/// first end's depth.
-static void func_shelter_b6_training_room_80181FDC(GfxCoord* arg0, GfxCoord* arg1, s32 arg2, s16 arg3)
+/// Draws an additive textured parallelogram linking two composed world positions.
+///
+/// Both coordinates are borrowed read-only; their translations narrow to s16.
+/// A negative GTE FLAG at either end drops the strip. `textureFrame` wraps
+/// modulo four over two 128-texel columns and two 24-texel rows. `widthScale`
+/// is signed: the corner scale is `widthScale * 23 / (SZ3 / 4)` pixels using
+/// the start depth, which must be nonzero. Opposite corners use perpendicular
+/// offsets, the other pair longitudinal ones; the short edges are skewed.
+/// Requires one free `EffectStripScratch` block, a current ordering table and
+/// room for one `POLY_FT4`. Releases scratch on every path; emitted packets
+/// remain in the frame arena. Overwrites GTE transform and projection registers.
+static void _shelterB6TrainingRoomDrawEnergyStrip(const GfxCoord* startCoord, const GfxCoord* endCoord, s32 textureFrame, s16 widthScale)
 {
-    EffectStripScratch** scratch;
-    EffectStripScratch*  head;
-    EffectStripScratch*  block;
-    EffectStripScratch*  vecp;
-    POLY_FT4*            prim;
-    s16                  ang;
-    u16                  vz;
+    enum {
+        SHELTER_B6_TRAINING_ROOM_STRIP_CELL_WIDTH   = 128,
+        SHELTER_B6_TRAINING_ROOM_STRIP_CELL_HEIGHT  = 24,
+        SHELTER_B6_TRAINING_ROOM_STRIP_COLUMN_MASK  = 1,
+        SHELTER_B6_TRAINING_ROOM_STRIP_FRAME_MASK   = 3,
+        SHELTER_B6_TRAINING_ROOM_STRIP_TOP_V        = 208,
+        SHELTER_B6_TRAINING_ROOM_STRIP_QUARTER_TURN = ONE / 4,
+        SHELTER_B6_TRAINING_ROOM_STRIP_TRIG_SHIFT   = 12
+    };
+    EffectStripScratch* block;
+    POLY_FT4*           quad;
+    s16                 screenAngle;
 
-    scratch                = &SCRATCH_STACK_CURSOR(EffectStripScratch);
-    head                   = *scratch;
-    head[-1].worldStart.vx = (u16)arg0->workm.t[0];
-    block                  = head - 1;
-    block->worldStart.vy   = (u16)arg0->workm.t[1];
-    block->worldStart.vz   = (u16)arg0->workm.t[2];
-    block->worldEnd.vx     = (u16)arg1->workm.t[0];
-    block->worldEnd.vy     = (u16)arg1->workm.t[1];
-    vz                     = (u16)arg1->workm.t[2];
-    *scratch               = block;
-    block->worldEnd.vz     = vz;
-    vecp                   = block;
+    /// Projects one word-aligned SVECTOR with the GTE matrices already loaded.
+    ///
+    /// Writes screen pixels and the full FLAG word, leaving SZ3 for depth.
+    /// Each pointer is evaluated once in order; outputs must be writable and
+    /// word-aligned. Captures no caller identifiers. Expands to multiple
+    /// statements; use within braced blocks. Undefined before the drawer ends.
+#define SHELTER_B6_TRAINING_ROOM_PROJECT_STRIP_POINT(worldPoint, screenPoint, projectionFlags) \
+    gte_ldv0((worldPoint));                                                                    \
+    gte_rtps();                                                                                \
+    gte_stsxy((screenPoint));                                                                  \
+    gte_stflg((projectionFlags));
+
+    // Stage both cached world translations, retaining their low 16 bits.
+    block                = SCRATCH_STACK_RESERVE_BLOCK(EffectStripScratch);
+    block->worldStart.vx = startCoord->workm.t[0];
+    block->worldStart.vy = startCoord->workm.t[1];
+    block->worldStart.vz = startCoord->workm.t[2];
+    block->worldEnd.vx   = endCoord->workm.t[0];
+    block->worldEnd.vy   = endCoord->workm.t[1];
+    block->worldEnd.vz   = endCoord->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&vecp->worldStart);
-    gte_rtps();
-    gte_stsxy(&head[-1].screenStart);
-    gte_stflg(&head[-1].projectionFlags);
+    SHELTER_B6_TRAINING_ROOM_PROJECT_STRIP_POINT(&block->worldStart, &block->screenStart, &block->projectionFlags);
     if (block->projectionFlags >= 0) {
-        gte_stszotz(&head[-1].depth);
-        gte_ldv0(&head[-1].worldEnd);
-        gte_rtps();
-        gte_stsxy(&head[-1].screenEnd);
-        gte_stflg(&head[-1].projectionFlags);
+        gte_stszotz(&block->depth);
+        SHELTER_B6_TRAINING_ROOM_PROJECT_STRIP_POINT(&block->worldEnd, &block->screenEnd, &block->projectionFlags);
         if (block->projectionFlags >= 0) {
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setlen(prim, 9);
-            setcode(prim, 0x2F);
-            prim->tpage          = 0x28;
-            prim->clut           = 0x42C8;
-            prim->u0             = (arg2 & 1) << 7;
-            prim->v0             = ((u32)(arg2 & 3) >> 1) * 24 - 0x30;
-            prim->u1             = ((arg2 & 1) << 7) + 0x7F;
-            prim->v1             = ((u32)(arg2 & 3) >> 1) * 24 - 0x30;
-            prim->u2             = (arg2 & 1) << 7;
-            prim->v2             = ((u32)(arg2 & 3) >> 1) * 24 - 0x19;
-            prim->u3             = ((arg2 & 1) << 7) + 0x7F;
-            prim->v3             = ((u32)(arg2 & 3) >> 1) * 24 - 0x19;
-            ang                  = ratan2(block->screenEnd.vy - block->screenStart.vy, block->screenEnd.vx - block->screenStart.vx);
-            block->cornerOffsetX = (((arg3 * 23) / block->depth) * rsin(ang)) >> 12;
-            block->cornerOffsetY = (((arg3 * 23) / block->depth) * rcos(ang)) >> 12;
-            prim->x0             = (u16)block->screenStart.vx + (u16)block->cornerOffsetX;
-            prim->x3             = (u16)block->screenEnd.vx - (u16)block->cornerOffsetX;
-            prim->y0             = (u16)block->screenStart.vy - (u16)block->cornerOffsetY;
-            prim->y3             = (u16)block->screenEnd.vy + (u16)block->cornerOffsetY;
-            block->cornerOffsetX = (((arg3 * 23) / block->depth) * rsin(ang + 0x400)) >> 12;
-            block->cornerOffsetY = (((arg3 * 23) / block->depth) * rcos(ang + 0x400)) >> 12;
-            prim->x1             = (u16)block->screenEnd.vx + (u16)block->cornerOffsetX;
-            prim->x2             = (u16)block->screenStart.vx - (u16)block->cornerOffsetX;
-            prim->y1             = (u16)block->screenEnd.vy - (u16)block->cornerOffsetY;
-            prim->y2             = (u16)block->screenStart.vy + (u16)block->cornerOffsetY;
+            quad           = gGpuPrimCursor;
+            gGpuPrimCursor = quad + 1;
+            setPolyFT4(quad);
+            setSemiTrans(quad, true);
+            setShadeTex(quad, true);
+            quad->tpage = getTPage(0, GPU_BLEND_ADD, 512, 0);
+            quad->clut  = getClut(128, 267);
+            quad->u0    = (textureFrame & SHELTER_B6_TRAINING_ROOM_STRIP_COLUMN_MASK) * SHELTER_B6_TRAINING_ROOM_STRIP_CELL_WIDTH;
+            quad->v0    = ((u32)(textureFrame & SHELTER_B6_TRAINING_ROOM_STRIP_FRAME_MASK) >> 1) * SHELTER_B6_TRAINING_ROOM_STRIP_CELL_HEIGHT - (256 - SHELTER_B6_TRAINING_ROOM_STRIP_TOP_V);
+            quad->u1    = ((textureFrame & SHELTER_B6_TRAINING_ROOM_STRIP_COLUMN_MASK) * SHELTER_B6_TRAINING_ROOM_STRIP_CELL_WIDTH) + (SHELTER_B6_TRAINING_ROOM_STRIP_CELL_WIDTH - 1);
+            quad->v1    = ((u32)(textureFrame & SHELTER_B6_TRAINING_ROOM_STRIP_FRAME_MASK) >> 1) * SHELTER_B6_TRAINING_ROOM_STRIP_CELL_HEIGHT - (256 - SHELTER_B6_TRAINING_ROOM_STRIP_TOP_V);
+            quad->u2    = (textureFrame & SHELTER_B6_TRAINING_ROOM_STRIP_COLUMN_MASK) * SHELTER_B6_TRAINING_ROOM_STRIP_CELL_WIDTH;
+            quad->v2    = ((u32)(textureFrame & SHELTER_B6_TRAINING_ROOM_STRIP_FRAME_MASK) >> 1) * SHELTER_B6_TRAINING_ROOM_STRIP_CELL_HEIGHT - (256 - SHELTER_B6_TRAINING_ROOM_STRIP_TOP_V - (SHELTER_B6_TRAINING_ROOM_STRIP_CELL_HEIGHT - 1));
+            quad->u3    = ((textureFrame & SHELTER_B6_TRAINING_ROOM_STRIP_COLUMN_MASK) * SHELTER_B6_TRAINING_ROOM_STRIP_CELL_WIDTH) + (SHELTER_B6_TRAINING_ROOM_STRIP_CELL_WIDTH - 1);
+            quad->v3    = ((u32)(textureFrame & SHELTER_B6_TRAINING_ROOM_STRIP_FRAME_MASK) >> 1) * SHELTER_B6_TRAINING_ROOM_STRIP_CELL_HEIGHT - (256 - SHELTER_B6_TRAINING_ROOM_STRIP_TOP_V - (SHELTER_B6_TRAINING_ROOM_STRIP_CELL_HEIGHT - 1));
+            // Use perpendicular offsets for opposite corners, then longitudinal offsets.
+            screenAngle          = ratan2(block->screenEnd.vy - block->screenStart.vy, block->screenEnd.vx - block->screenStart.vx);
+            block->cornerOffsetX = (((widthScale * (SHELTER_B6_TRAINING_ROOM_STRIP_CELL_HEIGHT - 1)) / block->depth) * rsin(screenAngle)) >> SHELTER_B6_TRAINING_ROOM_STRIP_TRIG_SHIFT;
+            block->cornerOffsetY = (((widthScale * (SHELTER_B6_TRAINING_ROOM_STRIP_CELL_HEIGHT - 1)) / block->depth) * rcos(screenAngle)) >> SHELTER_B6_TRAINING_ROOM_STRIP_TRIG_SHIFT;
+            quad->x0             = (u16)block->screenStart.vx + (u16)block->cornerOffsetX;
+            quad->x3             = (u16)block->screenEnd.vx - (u16)block->cornerOffsetX;
+            quad->y0             = (u16)block->screenStart.vy - (u16)block->cornerOffsetY;
+            quad->y3             = (u16)block->screenEnd.vy + (u16)block->cornerOffsetY;
+            block->cornerOffsetX = (((widthScale * (SHELTER_B6_TRAINING_ROOM_STRIP_CELL_HEIGHT - 1)) / block->depth) * rsin(screenAngle + SHELTER_B6_TRAINING_ROOM_STRIP_QUARTER_TURN)) >> SHELTER_B6_TRAINING_ROOM_STRIP_TRIG_SHIFT;
+            block->cornerOffsetY = (((widthScale * (SHELTER_B6_TRAINING_ROOM_STRIP_CELL_HEIGHT - 1)) / block->depth) * rcos(screenAngle + SHELTER_B6_TRAINING_ROOM_STRIP_QUARTER_TURN)) >> SHELTER_B6_TRAINING_ROOM_STRIP_TRIG_SHIFT;
+            quad->x1             = (u16)block->screenEnd.vx + (u16)block->cornerOffsetX;
+            quad->x2             = (u16)block->screenStart.vx - (u16)block->cornerOffsetX;
+            quad->y1             = (u16)block->screenEnd.vy - (u16)block->cornerOffsetY;
+            quad->y2             = (u16)block->screenStart.vy + (u16)block->cornerOffsetY;
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
+                    quad);
         }
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectStripScratch);
+
+#undef SHELTER_B6_TRAINING_ROOM_PROJECT_STRIP_POINT
 }
 
-void func_shelter_b6_training_room_8018245C(Task* task)
+void shelterB6TrainingRoomHitFlashTask(Task* task)
 {
-    EffectWork* mem;
+    enum {
+        SHELTER_B6_TRAINING_ROOM_HIT_FLASH_INIT = 0,
+        SHELTER_B6_TRAINING_ROOM_HIT_FLASH_FADE = 1
+    };
+    EffectWork* work;
     GfxCoord*   coord;
     s16         effectControl;
     u8          rgb[3];
 
-    mem           = task->spawnArg2.pointer;
+    work          = task->spawnArg2.pointer;
     effectControl = gRoomEffectState->effectControl;
     coord         = task->extra.coordBody->coord;
     if (effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
@@ -1298,61 +1364,68 @@ void func_shelter_b6_training_room_8018245C(Task* task)
         }
         goto release;
     }
-    mem->age++;
-    if (task->state == 0) {
-        mem->scale = 0xC0;
-        mem->angle = 0x200;
+    work->age++;
+    if (task->state == SHELTER_B6_TRAINING_ROOM_HIT_FLASH_INIT) {
+        work->scale = 0xC0;
+        work->angle = 0x200;
+        // A new generation supersedes every older hit flash; the stamp wraps at 16 bits.
         D_shelter_b6_training_room_80185C98++;
-        task->state           = 1;
+        task->state           = SHELTER_B6_TRAINING_ROOM_HIT_FLASH_FADE;
         task->spawnArg1.value = D_shelter_b6_training_room_80185C98;
     }
     if (task->spawnArg1.value != D_shelter_b6_training_room_80185C98) {
         goto release;
     }
-    rgb[0]      = mem->scale;
-    rgb[1]      = mem->scale;
-    rgb[2]      = mem->scale >> 1;
-    mem->angle += 0x18;
-    effectDrawOuterGlowBand(coord, (s16)(mem->angle * 2), 0, rgb);
-    effectDrawGouraudDisc(coord, (s16)((u16)mem->angle * 4), rgb);
-    if (mem->age < 9) {
+    rgb[0]       = work->scale;
+    rgb[1]       = work->scale;
+    rgb[2]       = work->scale >> 1;
+    work->angle += 0x18;
+    effectDrawOuterGlowBand(coord, (s16)(work->angle * 2), 0, rgb);
+    effectDrawGouraudDisc(coord, (s16)((u16)work->angle * 4), rgb);
+    if (work->age < 9) {
         return;
     }
-    mem->scale -= 0x18;
-    if (mem->scale < 0x18) {
+    work->scale -= 0x18;
+    if (work->scale < 0x18) {
     release:
-        effectKillTask(mem, task);
+        effectKillTask(work, task);
     }
 }
 
-void func_shelter_b6_training_room_801825C0(Task* task)
+void shelterB6TrainingRoomSinkingSpriteTask(Task* task)
 {
-    EffectWork* mem;
+    enum {
+        SHELTER_B6_TRAINING_ROOM_SINKING_SPRITE_INIT = 0,
+        SHELTER_B6_TRAINING_ROOM_SINKING_SPRITE_DRAW = 1
+    };
+    enum { SHELTER_B6_TRAINING_ROOM_SINKING_SPRITE_FRAME_COUNT = 8 };
+    EffectWork* work;
     GfxCoord*   coord;
 
-    mem   = task->spawnArg2.pointer;
+    work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
     if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
-        mem->age++;
-        if (task->state == 0) {
-            mem->move.vx    = 0;
-            mem->move.vy    = 8;
-            mem->move.vz    = 0;
+        work->age++;
+        if (task->state == SHELTER_B6_TRAINING_ROOM_SINKING_SPRITE_INIT) {
+            work->move.vx   = 0;
+            work->move.vy   = 8;
+            work->move.vz   = 0;
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            mem->scale      = ((gRandomLcgState >> 16) & 0xFFF) | 0x1000;
-            task->state     = 1;
+            work->scale     = ((gRandomLcgState >> 16) & (ONE - 1)) | ONE;
+            task->state     = SHELTER_B6_TRAINING_ROOM_SINKING_SPRITE_DRAW;
         }
-        coord->coord.t[1]  += mem->move.vy;
+        coord->coord.t[1]  += work->move.vy;
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        if (!(mem->age & 1)) {
-            mem->index++;
+        // Advance on even ticks and draw on odd ticks, one sprite every two running ticks.
+        if (!(work->age & 1)) {
+            work->index++;
         }
-        if (mem->index < 8) {
-            if (mem->age & 1) {
-                effectDrawSpinningBillboard(coord, mem->index, 0x400, mem->scale);
+        if (work->index < SHELTER_B6_TRAINING_ROOM_SINKING_SPRITE_FRAME_COUNT) {
+            if (work->age & 1) {
+                effectDrawSpinningBillboard(coord, work->index, 0x400, work->scale);
             }
         } else {
-            effectKillTask(mem, task);
+            effectKillTask(work, task);
         }
     }
 }
@@ -1421,43 +1494,46 @@ void func_shelter_b6_training_room_8018294C(Task* task)
     }
 }
 
-void func_shelter_b6_training_room_80182A14(s32 arg0, s32 arg1)
+void shelterB6TrainingRoomSetPartDestroyedSprites(u8 partSlot, u8 destroyed)
 {
-    GameLocationKey* sess = &gGameSession->location.loc;
-    SpriteView*      rec  = Gp_SprtTables[sess->stage - 1]->areaViews[sess->area - 1];
+    enum { SHELTER_B6_TRAINING_ROOM_PART_INTACT    = 0,
+           SHELTER_B6_TRAINING_ROOM_PART_DESTROYED = 1 };
+    GameLocationKey* location = &gGameSession->location.loc;
+    SpriteView*      views    = Gp_SprtTables[location->stage - 1]->areaViews[location->area - 1];
     SpriteBatch*     batches;
-    s32              run = arg0 & 0xFF;
-    s32              flag;
+    s32              slot = partSlot;
+    s32              destroyedState;
 
-    if (run == 0) {
-        flag = arg1 & 0xFF;
-        if (flag == 0) {
-            batches           = rec[2].batches;
+    // Each part exposes a different destruction sprite group in views 2 and 6.
+    if (slot == 0) {
+        destroyedState = destroyed;
+        if (destroyedState == SHELTER_B6_TRAINING_ROOM_PART_INTACT) {
+            batches           = views[2].batches;
             batches[2].hidden = 1;
-            batches           = rec[6].batches;
+            batches           = views[6].batches;
             batches[1].hidden = 1;
             return;
         }
-        if (flag == 1) {
-            batches           = rec[2].batches;
+        if (destroyedState == SHELTER_B6_TRAINING_ROOM_PART_DESTROYED) {
+            batches           = views[2].batches;
             batches[2].hidden = 0;
-            batches           = rec[6].batches;
+            batches           = views[6].batches;
             batches[1].hidden = 0;
             return;
         }
-    } else if (run == 1) {
-        flag = arg1 & 0xFF;
-        if (flag == 0) {
-            batches           = rec[2].batches;
-            batches[1].hidden = run;
-            batches           = rec[6].batches;
-            batches[2].hidden = run;
+    } else if (slot == 1) {
+        destroyedState = destroyed;
+        if (destroyedState == SHELTER_B6_TRAINING_ROOM_PART_INTACT) {
+            batches           = views[2].batches;
+            batches[1].hidden = slot;
+            batches           = views[6].batches;
+            batches[2].hidden = slot;
             return;
         }
-        if (flag == run) {
-            batches           = rec[2].batches;
+        if (destroyedState == slot) {
+            batches           = views[2].batches;
             batches[1].hidden = 0;
-            batches           = rec[6].batches;
+            batches           = views[6].batches;
             batches[2].hidden = 0;
         }
     }

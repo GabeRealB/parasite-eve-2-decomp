@@ -887,7 +887,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b6_nursery_801800A0, { NULL } },                          // 0x15C
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b6_growth_room_8017D9D8, { NULL } },                      // 0x15D
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b6_corridor_8017E238, { NULL } },                         // 0x15E
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b6_training_room_8017DDE8, { NULL } },                    // 0x15F
+    { { { TASK_BODY_COORD, 0x70 } }, shelterB6TrainingRoomGlowTask, { NULL } },                             // 0x15F
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_bridge_8017E954, { NULL } },                              // 0x160
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_woodland_path_8017EA08, { NULL } },                       // 0x161
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_r49_8017D9D0, { NULL } },                                 // 0x162
@@ -959,13 +959,13 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, shelterB6NurseryAnimatedParticleTask, { NULL } },                      // 0x1A4
     { { { TASK_BODY_COORD, 0x70 } }, shelterB6NurserySparkShowerShardTask, { NULL } },                      // 0x1A5
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_golem_freezer_1_8017DFFC, { NULL } },                  // 0x1A6
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b6_training_room_8017EE70, { NULL } },                    // 0x1A7
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b6_training_room_8017F8B8, { NULL } },                    // 0x1A8
+    { { { TASK_BODY_COORD, 0x70 } }, shelterB6TrainingRoomOrangeBurstTask, { NULL } },                      // 0x1A7
+    { { { TASK_BODY_COORD, 0x70 } }, shelterB6TrainingRoomSummonRingTask, { NULL } },                       // 0x1A8
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b6_training_room_80180DB4, { NULL } },                    // 0x1A9
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b6_training_room_801811AC, { NULL } },                    // 0x1AA
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b6_training_room_80181A3C, { NULL } },                    // 0x1AB
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b6_training_room_8018245C, { NULL } },                    // 0x1AC
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b6_training_room_801825C0, { NULL } },                    // 0x1AD
+    { { { TASK_BODY_COORD, 0x70 } }, shelterB6TrainingRoomRingBandTask, { NULL } },                         // 0x1AA
+    { { { TASK_BODY_COORD, 0x70 } }, shelterB6TrainingRoomEnergyArcTask, { NULL } },                        // 0x1AB
+    { { { TASK_BODY_COORD, 0x70 } }, shelterB6TrainingRoomHitFlashTask, { NULL } },                         // 0x1AC
+    { { { TASK_BODY_COORD, 0x70 } }, shelterB6TrainingRoomSinkingSpriteTask, { NULL } },                    // 0x1AD
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b6_training_room_801826E0, { NULL } },                    // 0x1AE
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b6_training_room_80182804, { NULL } },                    // 0x1AF
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_night_motel_loft_8017E090, { NULL } },                   // 0x1B0

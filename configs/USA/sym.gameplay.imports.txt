@@ -1335,19 +1335,19 @@ shelterB6NurseryRoomVisualEffectsTwinTrailTask = 0x8018378C; // type:func absolu
 func_shelter_b6_nursery_80184074 = 0x80184074; // type:func absolute:True owner=shelter_b6_nursery
 
 
-func_shelter_b6_training_room_8017EE70 = 0x8017EE70; // type:func absolute:True owner=shelter_b6_training_room
+shelterB6TrainingRoomOrangeBurstTask = 0x8017EE70; // type:func absolute:True owner=shelter_b6_training_room
 
-func_shelter_b6_training_room_8017F8B8 = 0x8017F8B8; // type:func absolute:True owner=shelter_b6_training_room
+shelterB6TrainingRoomSummonRingTask = 0x8017F8B8; // type:func absolute:True owner=shelter_b6_training_room
 
 func_shelter_b6_training_room_80180DB4 = 0x80180DB4; // type:func absolute:True owner=shelter_b6_training_room
 
-func_shelter_b6_training_room_801811AC = 0x801811AC; // type:func absolute:True owner=shelter_b6_training_room
+shelterB6TrainingRoomRingBandTask = 0x801811AC; // type:func absolute:True owner=shelter_b6_training_room
 
-func_shelter_b6_training_room_80181A3C = 0x80181A3C; // type:func absolute:True owner=shelter_b6_training_room
+shelterB6TrainingRoomEnergyArcTask = 0x80181A3C; // type:func absolute:True owner=shelter_b6_training_room
 
-func_shelter_b6_training_room_8018245C = 0x8018245C; // type:func absolute:True owner=shelter_b6_training_room
+shelterB6TrainingRoomHitFlashTask = 0x8018245C; // type:func absolute:True owner=shelter_b6_training_room
 
-func_shelter_b6_training_room_801825C0 = 0x801825C0; // type:func absolute:True owner=shelter_b6_training_room
+shelterB6TrainingRoomSinkingSpriteTask = 0x801825C0; // type:func absolute:True owner=shelter_b6_training_room
 
 func_shelter_b6_training_room_801826E0 = 0x801826E0; // type:func absolute:True owner=shelter_b6_training_room
 
@@ -1911,7 +1911,7 @@ func_neo_ark_south_promenade_8017D6D0 = 0x8017D6D0; // type:func absolute:True o
 
 func_neo_ark_altar_8017EF84 = 0x8017EF84; // type:func absolute:True owner=neo_ark_altar
 
-func_shelter_b6_training_room_8017DDE8 = 0x8017DDE8; // type:func absolute:True owner=shelter_b6_training_room shared=rooms
+shelterB6TrainingRoomGlowTask = 0x8017DDE8; // type:func absolute:True owner=shelter_b6_training_room shared=rooms
 
 func_shelter_r49_8017D9D0 = 0x8017D9D0; // type:func absolute:True owner=shelter_r49 shared=rooms
 

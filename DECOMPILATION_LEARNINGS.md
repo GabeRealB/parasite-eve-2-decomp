@@ -47698,7 +47698,7 @@ first attempt written this way.
 
 m2c renders the same merge as `var_v0 = ...; goto block_N;` with the tail storing
 the locals, and faithfully porting that shape gets close enough to mislead
-(`func_shelter_b6_training_room_801811AC`: 94.6%, only `regs`/`reorder`). How to
+(`shelterB6TrainingRoomRingBandTask`: 94.6%, only `regs`/`reorder`). How to
 spot it: in the target, each arm loads its fields *after* the arm's own store and
 before the `j`, which the scheduler would not do if the source had a real join
 there, because the scheduler runs before cross-jumping and has nothing stopping
@@ -140805,7 +140805,7 @@ function: an argument computed from an `s16` field (`mem->scale * 8`) still
 needs its explicit `(s16)` cast, because the prototype conversion alone did not
 emit the extension there.
 
-## `task->spawnArg1 = ++g;` next to a `= 1` store folds the increment into `addu v0,v0,v1`; write `g++;` and re-read `g` (func_shelter_b6_training_room_8018245C, 2026-09-23)
+## `task->spawnArg1 = ++g;` next to a `= 1` store folds the increment into `addu v0,v0,v1`; write `g++;` and re-read `g` (shelterB6TrainingRoomHitFlashTask, 2026-09-23)
 
 **Symptom.** The target stamps a task with a fresh id from a `u16` global:
 `lhu v0,g; addiu v0,v0,1; sh v0,g; andi v1,v0,0xffff; li v0,1; sw v0,state;
@@ -140826,7 +140826,7 @@ task->spawnArg1 = g;
 CSE still forwards the stored value, so the re-read is not emitted, but the
 `li 1` is no longer scheduled ahead of the add. 90.8% to 100%.
 
-## A switch arm that jumps into another arm's absolute-address tail *past a dead base load* is its own copy of the tail, cross-jumped; a `goto` hands the full merge to the wrong arm (func_shelter_b6_training_room_8017DDE8, 2026-09-23)
+## A switch arm that jumps into another arm's absolute-address tail *past a dead base load* is its own copy of the tail, cross-jumped; a `goto` hands the full merge to the wrong arm (shelterB6TrainingRoomGlowTask, 2026-09-23)
 
 **Symptom.** A `Room_Draw13` switch over one `SVECTOR` array. The last arm
 loads `lui $s0,%hi(A+16)` / `addiu $s0,...`, never reads `$s0`, then draws six
@@ -140890,7 +140890,7 @@ argument loads (`lhu`/`lh`/`sll+sra`) for the true parameter width.
 **Symptom.** A `POLY_FT4` emit loop reads four GTE screen positions back from a
 scratch block. It matched except that `lui %hi(gGpuPrimCursor)` was hoisted
 into a `$t` register ahead of the loop, which shifted the other hoisted
-invariants (func_shelter_b6_training_room_80181368, 99.1%).
+invariants (_shelterB6TrainingRoomDrawRingBand, 99.1%).
 
 **Cause.** `move_movables` hoists an invariant when
 `threshold * savings * lifetime >= loop insns`, and `threshold` drops by 3

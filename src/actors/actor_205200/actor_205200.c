@@ -348,8 +348,8 @@ static void func_actor_205200_8014A72C(Enemy* enemy, Task* task)
             gameFlagSetNibble(GAME_FLAG_B6_CORRIDOR_EVE_PART_1_DOWN, 0);
             break;
         case ACTOR_205200_SITE_B6_TRAINING_ROOM:
-            func_shelter_b6_training_room_80182A14(0, 0);
-            func_shelter_b6_training_room_80182A14(1, 0);
+            shelterB6TrainingRoomSetPartDestroyedSprites(0, 0);
+            shelterB6TrainingRoomSetPartDestroyedSprites(1, 0);
             gameFlagSetNibble(GAME_FLAG_153, 0);
             gameFlagSetNibble(GAME_FLAG_154, 0);
             break;
@@ -680,7 +680,7 @@ static void func_actor_205200_8014B484(Enemy* arg0, Task* arg1)
                     gameFlagSetNibble(part->slot + GAME_FLAG_B6_CORRIDOR_EVE_PART_0_DOWN, 1);
                     break;
                 case ACTOR_205200_SITE_B6_TRAINING_ROOM:
-                    func_shelter_b6_training_room_80182A14((u8)part->slot, 1);
+                    shelterB6TrainingRoomSetPartDestroyedSprites(part->slot, 1);
                     gameFlagSetNibble(part->slot + GAME_FLAG_153, 1);
                     break;
                 case 0:
