@@ -15642,8 +15642,8 @@ store:
 }
 ```
 
-`Mc_StatePromptChoiceB` is the pure example (memcard state handler next to
-`Mc_StatePromptChoice9`).
+`_mcStateConfirmFileCreation` is the pure example (memcard state handler next to
+`_mcStateConfirmCardFormat`).
 
 ## Reload pointer into a0 with halfword temp for dual end stores
 
@@ -18148,7 +18148,7 @@ Assign `field_30` in each branch (do **not** funnel through a `next` temp). A
 reorders `sw field_30` past `li a1,1`. Direct stores keep the constant in `$v0`
 and schedule the join `sw` before the prompt setup.
 
-`Mc_StatePadFileName` is the pure example (status 0 vs pad-filename path for
+`_mcStateResolveFileHeaderWrite` is the pure example (status 0 vs filename-suffix invalidation for
 1..3/default).
 
 ## Dual `lb`/`lbu` + `bltz` clamp to 0x7F
@@ -18308,7 +18308,7 @@ if (work->confirmOverwrite == 1) {
 }
 ```
 
-`Mc_StateNameEntry` is the pure example. Pair with `register Task* task asm("s3")`
+`_mcStateConfirmSaveOverwrite` is the pure example. Pair with `register Task* task asm("s3")`
 (and other pins for later reuse of `$s0`/`$s1`) so the prologue is
 `sw s3; sw s2; move s2,a1` with `move s3,a0` in the first `bne` delay slot.
 
@@ -20480,7 +20480,7 @@ arg1->foreignBlockCount = new28c;
 } while (i < n);
 ```
 
-`Mc_StateScanDirFlags` is the pure example (memcard free-block map).
+`_mcStateScanCardBlocks` is the pure example (memcard free-block map).
 
 ## Reuse `arg2` as `/3` quotient + explicit `%2` for SPRT UV frame index
 
@@ -22032,7 +22032,7 @@ work->slotWriteMask = (u32)work->slotWriteMask >> 1;
 
 often schedules the `slotsRemaining` store between `addiu` and `srl`. Keep both values in
 registers, finish both ALU ops, then barrier before either store
-(`Mc_StateBackupBuffers`):
+(`_mcStatePrepareSectionWrite`):
 
 ```c
 register s32 f24 asm("v0");
@@ -143208,7 +143208,7 @@ range: try `SCRATCH_STACK_RESERVE_BLOCK(T)` in place of `SCRATCH_STACK_CURSOR(T)
 `SCRATCH_STACK_CURSOR(T) = block;` (and the reverse). Statement order will not do it -
 sched1 re-sorts the stores and all orders compile identically.
 
-## A pinned `blk = buf` copy stored to after a loop is an inline helper converting its `void*` parameter to a typed local (Mc_StateBackupBuffers, 2026-09-26)
+## A pinned `blk = buf` copy stored to after a loop is an inline helper converting its `void*` parameter to a typed local (_mcStatePrepareSectionWrite, 2026-09-26)
 
 **Symptom.** The target reads the payload through `addiu a0,s2,4` but stores
 the checksum after the loop through `a3`, a copy of `s2` made in the loop
@@ -144021,7 +144021,7 @@ static inline void _mcWriteBlockChecksum(u8* recordBytes, s32 recordByteCount)
 ```
 
 The same body, with no pin, matches the helper inlined into both
-`mcResetSaveData` and `Mc_StateBackupBuffers`, and the two standalone
+`mcResetSaveData` and `_mcStatePrepareSectionWrite`, and the two standalone
 functions. A local `u8* ptr`, a `_McChecksumBlock*` parameter with a local
 walker, `count = size - 4`, `*ptr++`, `for`/`while` forms and statement order
 all keep the swap. When a pinned walker is the only thing left in a loop over a

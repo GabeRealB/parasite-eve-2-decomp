@@ -70,6 +70,29 @@ enum {
 /// No Yes/No answer has been published on the dialog yet.
 enum { MEMORY_CARD_PROMPT_ANSWER_PENDING = 0 };
 
+/// Choice results and nonblocking card-sync statuses used by the save questions.
+enum {
+    MEMORY_CARD_PROMPT_ANSWER_YES           = 1,
+    MEMORY_CARD_PROMPT_ANSWER_NO            = -1,
+    MEMORY_CARD_SYNC_IDLE                   = -1,
+    MEMORY_CARD_SYNC_PENDING                = 0,
+    MEMORY_CARD_SYNC_COMPLETE               = 1,
+    MEMORY_CARD_SYNC_POLL                   = 1,
+    MEMORY_CARD_SAVE_RETRY_DELAY_FRAMES     = 12,
+    MEMORY_CARD_PROMPT_APPROACH_STEP_FRAMES = 2,
+};
+
+/// Additional destinations of the save questions and load failure notices.
+enum {
+    MEMORY_CARD_SAVE_STATE_BEGIN_OPEN_FILE    = 5,
+    MEMORY_CARD_SAVE_STATE_BEGIN_CREATE       = 8,
+    MEMORY_CARD_SAVE_STATE_BEGIN_FORMAT       = 0x16,
+    MEMORY_CARD_SAVE_STATE_DELAY_RETRY        = 0x27,
+    MEMORY_CARD_SAVE_STATE_DELAY_SECTION      = 0x28,
+    MEMORY_CARD_SAVE_STATE_DELAY_CONFIRMATION = 0x29,
+    MEMORY_CARD_LOAD_STATE_CLOSE_FILE         = 3,
+};
+
 /// The two text lines of one memory-card prompt, drawn one above the other.
 ///
 /// `Mc_PromptTable` has one row per `promptId`. The second line continues the
@@ -323,10 +346,9 @@ static inline u16* _mcAppendEncodedTitleLabel(const u8* encodedLabel, u16* title
 
 static inline void _mcWriteCardHeaderChecksum(void);
 
-/// Chooses the save number and builds the card title and its checksums.
-static void Mc_BuildSaveTitle(McWork* work);
+static void _mcBuildCardFileTitle(const McWork* work);
 
-static void Mc_StateScanDirFlags(Task* task, McWork* work);
+static void _mcStateScanCardBlocks(Task* task, McWork* work);
 
 static void _mcStateReadSaveDirectory(Task* task, McWork* work);
 
@@ -346,15 +368,15 @@ static void _mcStateOpenSaveFileForWrite(Task* task, McWork* work);
 
 static void _mcStateCreateSaveFile(Task* task, McWork* work);
 
-static void Mc_StatePadFileName(Task* task, McWork* work);
+static void _mcStateResolveFileHeaderWrite(Task* task, McWork* work);
 
-static void Mc_StateNameEntry(Task* task, McWork* work);
+static void _mcStateConfirmSaveOverwrite(Task* task, McWork* work);
 
 static inline void _mcBackupSaveSections(void);
 
 static inline void _mcWriteSectionChecksumSummary(void);
 
-static void Mc_StateBackupBuffers(Task* task, McWork* work);
+static void _mcStatePrepareSectionWrite(Task* task, McWork* work);
 
 static void _mcStateFinishSectionWrite(Task* task, McWork* work);
 
@@ -430,7 +452,7 @@ static void _mcStatePollCardAdvance(Task* task, McWork* work);
 
 static void _mcStateBeginOpenSaveFile(Task* task, McWork* work);
 
-static void Mc_StatePromptChoiceB(Task* task, McWork* work);
+static void _mcStateConfirmFileCreation(Task* task, McWork* work);
 
 static void _mcStateBeginCreateFile(Task* task, McWork* work);
 
@@ -438,7 +460,7 @@ static void _mcStateBeginFileHeaderWrite(Task* task, McWork* work);
 
 static void _mcStateWriteFileHeader(Task* task, McWork* work);
 
-static void Mc_StatePromptChoiceGeneric(Task* task, McWork* work);
+static void _mcStateConfirmSave(Task* task, McWork* work);
 
 static void _mcStateWriteSection(Task* task, McWork* work);
 
@@ -448,13 +470,13 @@ static void _mcStateKillSaveDialogIfRequested(Task* task, McWork* unusedWork);
 
 static void _mcStateWaitSaveCardInsertion(Task* task, McWork* work);
 
-static void Mc_StatePromptChoice9(Task* task, McWork* work);
+static void _mcStateConfirmCardFormat(Task* task, McWork* work);
 
-static void Mc_StateColdBoot(Task* task, McWork* work);
+static void _mcStateBeginCardFormat(Task* task, McWork* work);
 
-static void Mc_StateSyncPrompt13(Task* task, McWork* work);
+static void _mcStateWaitFullCardRemoval(Task* task, McWork* work);
 
-static void Mc_StateEnterPrompt0(Task* task, McWork* work);
+static void _mcStateAcknowledgeSaveAccessFailure(Task* task, McWork* work);
 
 static void _mcStateDismissSavePrompt(Task* task, McWork* work);
 
@@ -476,11 +498,11 @@ static void _mcStateDelaySaveConfirmation(Task* task, McWork* work);
 
 static void _mcStateDelaySectionWrite(Task* task, McWork* work);
 
-static void Mc_StateEnterPromptE(Task* task, McWork* work);
+static void _mcStateAcknowledgeSaveFailure(Task* task, McWork* work);
 
-static void Mc_StateEnterPromptD(Task* task, McWork* work);
+static void _mcStateAcknowledgeFormatFailure(Task* task, McWork* work);
 
-static void Mc_StateInitWorkDefaults(Task* task, McWork* work);
+static void _mcStateInitLoadWork(Task* task, McWork* work);
 
 static void _mcStateInitLoadSections(Task* task, McWork* work);
 
@@ -492,7 +514,7 @@ static void _mcStateDismissLoadPrompt(Task* task, McWork* work);
 
 static void _mcStateKillLoadDialogIfRequested(Task* task, McWork* unusedWork);
 
-static void Mc_StateEnterPromptF(Task* task, McWork* work);
+static void _mcStateAcknowledgeLoadFailure(Task* task, McWork* work);
 
 static void _mcStateAcceptLoadCard(Task* task, McWork* work);
 
@@ -514,7 +536,7 @@ static void _mcStateReadLoadPreview(Task* task, McWork* work);
 
 static void _mcStateAdvanceLoadPreview(Task* task, McWork* work);
 
-static void Mc_StateEnterPrompt17(Task* task, McWork* work);
+static void _mcStateAcknowledgeCorruptLoad(Task* task, McWork* work);
 
 static const char McText_CloseParen[];
 
@@ -1286,64 +1308,84 @@ static inline void _mcWriteCardHeaderChecksum(void)
     PARENT_OF(checksum, McSaveState, titleChecksum)->titleChecksumComplement = MEMORY_CARD_CHECKSUM_MASK - (u32)sum;
 }
 
-static void Mc_BuildSaveTitle(McWork* work)
+/// Choose a place-local save number and rebuild the card file title and checksum pairs.
+///
+/// Borrows at most fifteen cached previews. The live save's place index must
+/// select one of the seventeen title labels (0..16). Appends full-width Shift-JIS
+/// `PE2 H:MM Place(number)` beginning at header byte 4, increments the save count
+/// up to 99 (255 starts at zero), then updates the preview and file-header sums.
+/// Save numbers are 1..99: after 99, the first unused number at that place is chosen.
+/// The section-checksum summary is cleared for the subsequent record preparation.
+/// Appends are unchecked; the longest current title plus terminator is 66 bytes,
+/// within the 512-byte header, and can extend past the 64-byte title region.
+static void _mcBuildCardFileTitle(const McWork* work)
 {
-    u8             buffer[0x20];
-    u16*           title;
-    s32            number;
-    s32            i;
-    s32            candidate;
-    s32            available;
-    McSavePreview* slot;
+    enum {
+        MEMORY_CARD_TITLE_BYTE_OFFSET = 4,
+        MEMORY_CARD_TITLE_BYTES       = 64,
+        MEMORY_CARD_SAVE_NUMBER_FIRST = 1,
+        MEMORY_CARD_SAVE_NUMBER_LIMIT = 100,
+        MEMORY_CARD_SAVE_COUNT_MAX    = 99,
+        MEMORY_CARD_SAVE_COUNT_NEW    = 0xFF,
+    };
+    u8                   formatScratch[0x20];
+    u16*                 titleCursor;
+    s32                  saveNumber;
+    s32                  previewIndex;
+    s32                  candidateNumber;
+    s32                  numberAvailable;
+    const McSavePreview* preview;
 
-    title  = (u16*)(Mc_DefaultChecksumSrc + 4);
-    number = 1;
+    // Continue this place's numbering, wrapping to its first unused number.
+    titleCursor = (u16*)(Mc_DefaultChecksumSrc + MEMORY_CARD_TITLE_BYTE_OFFSET);
+    saveNumber  = MEMORY_CARD_SAVE_NUMBER_FIRST;
     if (work->entryCount > 0) {
-        for (i = 0; i < work->entryCount; i++) {
-            slot = &work->previews[i];
-            if ((s8)slot->savePoint == (s8)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.savePoint) {
-                if (slot->saveNumber >= number) {
-                    number = slot->saveNumber + 1;
+        for (previewIndex = 0; previewIndex < work->entryCount; previewIndex++) {
+            preview = &work->previews[previewIndex];
+            if ((s8)preview->savePoint == (s8)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.savePoint) {
+                if (preview->saveNumber >= saveNumber) {
+                    saveNumber = preview->saveNumber + 1;
                 }
             }
         }
-        if (number >= 100) {
-            for (candidate = 1; candidate < 100; candidate++) {
-                available = 1;
-                for (i = 0; i < work->entryCount; i++) {
-                    slot = &work->previews[i];
-                    if ((s8)slot->savePoint == (s8)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.savePoint && slot->saveNumber == candidate) {
-                        available = 0;
+        if (saveNumber >= MEMORY_CARD_SAVE_NUMBER_LIMIT) {
+            for (candidateNumber = MEMORY_CARD_SAVE_NUMBER_FIRST; candidateNumber < MEMORY_CARD_SAVE_NUMBER_LIMIT; candidateNumber++) {
+                numberAvailable = 1;
+                for (previewIndex = 0; previewIndex < work->entryCount; previewIndex++) {
+                    preview = &work->previews[previewIndex];
+                    if ((s8)preview->savePoint == (s8)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.savePoint && preview->saveNumber == candidateNumber) {
+                        numberAvailable = 0;
                         break;
                     }
                 }
-                if (available == 1) {
-                    number = candidate;
+                if (numberAvailable == 1) {
+                    saveNumber = candidateNumber;
                     break;
                 }
             }
         }
     }
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.saveNumber = number;
-    title                                               = _mcAppendAsciiTitleLiteral("PE2 ", title);
-    title                                               = _mcAppendAsciiTitleText(textFormatPlayTime(buffer, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.playTime), title);
-    title                                               = _mcAppendAsciiTitleLiteral(" ", title);
-    Mc_DefaultChecksumSrc[0x43]                         = 0;
-    Mc_DefaultChecksumSrc[0x42]                         = 0;
-    title                                               = _mcAppendEncodedTitleLabel(Mc_LocationTitleLabels[(s8)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.savePoint], title);
-    title                                               = _mcAppendAsciiTitleLiteral("(", title);
-    title                                               = _mcAppendAsciiTitleText(textItoaSigned(buffer, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.saveNumber), title);
-    title                                               = _mcAppendAsciiTitleLiteral(McText_CloseParen, title);
-    *title                                              = 0;
-    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.saveCount == 0xFF) {
+    // ASCII fragments become halfword glyphs; the place label is already encoded.
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.saveNumber                                = saveNumber;
+    titleCursor                                                                        = _mcAppendAsciiTitleLiteral("PE2 ", titleCursor);
+    titleCursor                                                                        = _mcAppendAsciiTitleText(textFormatPlayTime(formatScratch, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.playTime), titleCursor);
+    titleCursor                                                                        = _mcAppendAsciiTitleLiteral(" ", titleCursor);
+    Mc_DefaultChecksumSrc[MEMORY_CARD_TITLE_BYTE_OFFSET + MEMORY_CARD_TITLE_BYTES - 1] = 0;
+    Mc_DefaultChecksumSrc[MEMORY_CARD_TITLE_BYTE_OFFSET + MEMORY_CARD_TITLE_BYTES - 2] = 0;
+    titleCursor                                                                        = _mcAppendEncodedTitleLabel(Mc_LocationTitleLabels[(s8)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.savePoint], titleCursor);
+    titleCursor                                                                        = _mcAppendAsciiTitleLiteral("(", titleCursor);
+    titleCursor                                                                        = _mcAppendAsciiTitleText(textItoaSigned(formatScratch, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.saveNumber), titleCursor);
+    titleCursor                                                                        = _mcAppendAsciiTitleLiteral(McText_CloseParen, titleCursor);
+    *titleCursor                                                                       = 0;
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.saveCount == MEMORY_CARD_SAVE_COUNT_NEW) {
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.saveCount = 0;
-    } else if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.saveCount < 99) {
+    } else if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.saveCount < MEMORY_CARD_SAVE_COUNT_MAX) {
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.saveCount++;
     }
     _mcWriteSaveHeaderChecksum();
     _mcWriteCardHeaderChecksum();
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.bufferChecksum           = 0;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.bufferChecksumComplement = 0xFFFF;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.bufferChecksumComplement = MEMORY_CARD_CHECKSUM_MASK;
 }
 
 static const char McText_CloseParen[] = ")";
@@ -1356,32 +1398,32 @@ static const _McSaveStateTable Mc_PromptStates = { {
     _mcStateResolveSaveCardProbe,
     _mcStateBeginOpenSaveFile,
     _mcStateOpenSaveFileForWrite,
-    Mc_StatePromptChoiceB,
+    _mcStateConfirmFileCreation,
     _mcStateBeginCreateFile,
     _mcStateCreateSaveFile,
     _mcStateBeginFileHeaderWrite,
     _mcStateWriteFileHeader,
     _mcStatePollCardAdvance,
-    Mc_StatePadFileName,
-    Mc_StatePromptChoiceGeneric,
-    Mc_StateBackupBuffers,
+    _mcStateResolveFileHeaderWrite,
+    _mcStateConfirmSave,
+    _mcStatePrepareSectionWrite,
     _mcStateWriteSection,
     _mcStatePollCardAdvance,
     _mcStateFinishSectionWrite,
     _mcStateCloseSaveFile,
     _mcStateWaitSaveCardInsertion,
-    Mc_StatePromptChoice9,
-    Mc_StateColdBoot,
+    _mcStateConfirmCardFormat,
+    _mcStateBeginCardFormat,
     _mcStateFormatCard,
-    Mc_StateEnterPrompt0,
-    Mc_StateSyncPrompt13,
-    Mc_StateNameEntry,
+    _mcStateAcknowledgeSaveAccessFailure,
+    _mcStateWaitFullCardRemoval,
+    _mcStateConfirmSaveOverwrite,
     _mcStateDismissSavePrompt,
     _mcStateRestartSaveDirectory,
     _mcStateWaitSaveClose,
     _mcStateKillSaveDialogIfRequested,
     _mcStateBeginSaveDirectory,
-    Mc_StateScanDirFlags,
+    _mcStateScanCardBlocks,
     _mcStateReadSaveDirectory,
     _mcStateOpenSavePreview,
     _mcStateReadSavePreview,
@@ -1391,57 +1433,55 @@ static const _McSaveStateTable Mc_PromptStates = { {
     _mcStateDelaySaveRetry,
     _mcStateDelaySectionWrite,
     _mcStateDelaySaveConfirmation,
-    Mc_StateEnterPromptE,
-    Mc_StateEnterPromptD,
+    _mcStateAcknowledgeSaveFailure,
+    _mcStateAcknowledgeFormatFailure,
 } };
 
-static void Mc_StateScanDirFlags(Task* task, McWork* work)
+/// Scan every card file and mark its occupied blocks after the directory delay.
+///
+/// Entry requires a positive frame timer. The SDK fills at most fifteen entries;
+/// its result is ignored. Each head is a sector number beyond the directory block,
+/// and its contiguous extent must lie in the fifteen usable blocks. Records the
+/// rounded-up block total for the following product-only scan, then advances.
+/// The sixteenth ownership byte is retained. Draws the current prompt each run.
+static void _mcStateScanCardBlocks(Task* task, McWork* work)
 {
-    u32       textColorRgb;
-    UiObject* obj;
-    s32       i;
-    s32       j;
-    s32       size;
-    s32       blocks;
-    s32       head;
-    s32       idx;
+    s32 directoryIndex;
+    s32 fileBlockIndex;
+    s32 fileBytes;
+    s32 fileBlockCount;
+    s32 firstDataBlock;
 
     work->cardTimer -= 1;
     if (work->cardTimer == 0) {
         work->entryCount = 0;
         // Mark the fifteen usable blocks free, then claim each file's blocks.
-        for (i = 0; i < MEMORY_CARD_BLOCK_COUNT; i++) {
-            work->blockOwners[i] = MEMORY_CARD_BLOCK_FREE;
+        for (directoryIndex = 0; directoryIndex < MEMORY_CARD_BLOCK_COUNT; directoryIndex++) {
+            work->blockOwners[directoryIndex] = MEMORY_CARD_BLOCK_FREE;
         }
         MemCardGetDirentry(
             work->channel, "*", work->directory, &work->entryCount, 0,
-            MEMORY_CARD_DIRECTORY_CAPACITY);
+            ARRAY_SIZE(work->directory));
 
         work->foreignBlockCount = 0;
         if (work->entryCount != 0) {
-            for (i = 0; i < work->entryCount; i++) {
-                size   = work->directory[i].size;
-                head   = work->directory[i].head;
-                blocks = size / MEMORY_CARD_BLOCK_BYTES + ((size % MEMORY_CARD_BLOCK_BYTES) != 0);
-                // `head` counts 128-byte sectors. Block 0 is the card directory.
-                head /= MEMORY_CARD_SECTORS_PER_BLOCK;
-                head -= 1;
-                for (j = 0; j < blocks; j++) {
-                    work->blockOwners[head + j] = MEMORY_CARD_BLOCK_FOREIGN;
+            for (directoryIndex = 0; directoryIndex < work->entryCount; directoryIndex++) {
+                fileBytes      = work->directory[directoryIndex].size;
+                firstDataBlock = work->directory[directoryIndex].head;
+                fileBlockCount = fileBytes / MEMORY_CARD_BLOCK_BYTES + ((fileBytes % MEMORY_CARD_BLOCK_BYTES) != 0);
+                // Sector-to-block conversion excludes block 0, the card directory.
+                firstDataBlock /= MEMORY_CARD_SECTORS_PER_BLOCK;
+                firstDataBlock -= 1;
+                for (fileBlockIndex = 0; fileBlockIndex < fileBlockCount; fileBlockIndex++) {
+                    work->blockOwners[firstDataBlock + fileBlockIndex] = MEMORY_CARD_BLOCK_FOREIGN;
                 }
-                work->foreignBlockCount += blocks;
+                work->foreignBlockCount += fileBlockCount;
             }
         }
         task->state += 1;
     }
 
-    obj          = task->spawnArg2.pointer;
-    idx          = work->promptId;
-    textColorRgb = uiGetTextColor(obj, USER_INTERFACE_TEXT_COLOR_NORMAL);
-    obj->result  = USER_INTERFACE_RESULT_NONE;
-    uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, Mc_PromptTable[idx].upperLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, Mc_PromptTable[idx].lowerLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    _mcDrawPrompt(task, work->promptId);
 }
 
 /// Enumerate this product's saves, restore the save destination and prepare preview reads.
@@ -1852,94 +1892,99 @@ static void _mcStateCreateSaveFile(Task* task, McWork* work)
     _mcDrawPrompt(task, work->promptId);
 }
 
-static void Mc_StatePadFileName(Task* task, McWork* work)
+/// Resolve the initial file-header write before reopening the new file for saving.
+///
+/// A successful sync restarts all nine sections without overwrite confirmation.
+/// Every other result invalidates both filename suffixes and shows save failure.
+/// The preceding header transfer uses resident bytes, so clearing `buffer` owns
+/// no allocation. Draws the current prompt on the live dialog object.
+static void _mcStateResolveFileHeaderWrite(Task* task, McWork* work)
 {
-    u32           textColorRgb;
-    u32           status;
-    s32           idx;
-    s32           i;
-    s32           ch;
-    u8*           ptr1;
-    u8*           ptr0;
-    UiObject*     obj;
-    McPromptPair* entry;
-    McPromptPair* base;
+    /// Invalidate both filename suffixes and enter the save-failure state.
+    ///
+    /// The cursor arguments must be distinct, simple writable u8* local lvalues
+    /// pointing at buffers of at least 21 bytes. They are evaluated repeatedly and
+    /// advanced to byte 20, which is terminated; later backing bytes are retained.
+    /// `dialogTask` is evaluated once and must point at the live save dialog task.
+#define MEMORY_CARD_FAIL_FILE_HEADER_WRITE(dialogTask, filenameCursor, savedFilenameCursor) \
+    do {                                                                                    \
+        enum {                                                                              \
+            MEMORY_CARD_FILENAME_PREFIX_BYTES = 12,                                         \
+            MEMORY_CARD_FILENAME_BYTES        = 20                                          \
+        };                                                                                  \
+        s32 filenameByteIndex = 0;                                                          \
+        s32 unusedChar        = '_';                                                        \
+        do {                                                                                \
+            if (filenameByteIndex >= MEMORY_CARD_FILENAME_PREFIX_BYTES) {                   \
+                *(savedFilenameCursor) = unusedChar;                                        \
+                *(filenameCursor)      = unusedChar;                                        \
+            }                                                                               \
+            (filenameCursor)++;                                                             \
+            filenameByteIndex++;                                                            \
+            (savedFilenameCursor)++;                                                        \
+        } while (filenameByteIndex < MEMORY_CARD_FILENAME_BYTES);                           \
+        *(savedFilenameCursor) = 0;                                                         \
+        *(filenameCursor)      = 0;                                                         \
+        (dialogTask)->state    = MEMORY_CARD_SAVE_STATE_WRITE_FAILED;                       \
+    } while (0)
+    u32 writeResult;
+    u8* filenameByte;
+    u8* savedFilenameByte;
 
-    status = work->syncResult;
-    if (status < 4U) {
-        ptr1 = Mc_FileName;
-        if (status == 0) {
+    writeResult = work->syncResult;
+    if (writeResult < (u32)McErrNotFormat) {
+        filenameByte = Mc_FileName;
+        if (writeResult == McErrNone) {
             work->slotsRemaining   = MEMORY_CARD_BUFFER_SLOT_COUNT;
             work->slotWriteMask    = MEMORY_CARD_SLOT_WRITE_ALL;
             work->confirmOverwrite = MEMORY_CARD_OVERWRITE_PROCEED;
-            task->state            = 5;
+            task->state            = MEMORY_CARD_SAVE_STATE_BEGIN_OPEN_FILE;
         } else {
-            goto pad;
+            goto invalidateFileNames;
         }
     } else {
-        ptr1 = Mc_FileName;
-    pad:
-        ptr0 = Mc_FileNameBuf;
-        i    = 0;
-        ch   = 0x5F;
-        do {
-            if (i >= 0xC) {
-                *ptr0 = ch;
-                *ptr1 = ch;
-            }
-            ptr1++;
-            i++;
-            ptr0++;
-        } while (i < 0x14);
-        *ptr0       = 0;
-        *ptr1       = 0;
-        task->state = 0x2A;
+        filenameByte = Mc_FileName;
+    invalidateFileNames:
+        savedFilenameByte = Mc_FileNameBuf;
+        MEMORY_CARD_FAIL_FILE_HEADER_WRITE(task, filenameByte, savedFilenameByte);
     }
-    work->buffer = 0;
+    work->buffer = NULL;
 
-    obj          = task->spawnArg2.pointer;
-    idx          = work->promptId;
-    textColorRgb = uiGetTextColor(obj, USER_INTERFACE_TEXT_COLOR_NORMAL);
-    obj->result  = USER_INTERFACE_RESULT_NONE;
-    uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
-    base  = Mc_PromptTable;
-    entry = &base[idx];
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    _mcDrawPrompt(task, work->promptId);
+#undef MEMORY_CARD_FAIL_FILE_HEADER_WRITE
 }
 
-static void Mc_StateNameEntry(Task* task, McWork* work)
+/// Confirm overwriting the selected file, or start saving when confirmation is waived.
+///
+/// The overwrite question initially selects No. Yes arms the section-write delay;
+/// No restores the remembered filename and arms a retry. Polls card presence after
+/// processing either answer, so a completed card error takes priority and returns
+/// to card acceptance. Both the dialog and any first choice child must be live.
+static void _mcStateConfirmSaveOverwrite(Task* task, McWork* work)
 {
-    s32 syncResult;
-    u8* src;
-    u8* dst;
-    s32 i;
+    s32 syncState;
 
     if (work->confirmOverwrite == MEMORY_CARD_OVERWRITE_CONFIRM) {
         work->promptId = MEMORY_CARD_PROMPT_OVERWRITE;
         switch (_mcUpdateYesNoPromptInitialNo(task, MEMORY_CARD_PROMPT_OVERWRITE, work->promptTimer)) {
-            case 0:
+            case MEMORY_CARD_PROMPT_ANSWER_PENDING:
                 break;
-            case 1:
+            case MEMORY_CARD_PROMPT_ANSWER_YES:
                 work->cardTimer    = MEMORY_CARD_IO_SETTLE_FRAMES;
                 work->sectorOffset = 0;
-                task->state        = 0x28;
+                task->state        = MEMORY_CARD_SAVE_STATE_DELAY_SECTION;
                 break;
-            case -1:
-                src = Mc_FileNameBuf;
-                dst = Mc_FileName;
-                for (i = 0; i < 0x15; i++) {
-                    *dst++ = *src++;
-                }
-                task->killCountdown = 0xC;
-                task->state         = 0x27;
+            case MEMORY_CARD_PROMPT_ANSWER_NO:
+                _mcCopyFileName(true);
+                task->killCountdown = MEMORY_CARD_SAVE_RETRY_DELAY_FRAMES;
+                task->state         = MEMORY_CARD_SAVE_STATE_DELAY_RETRY;
                 break;
         }
-        syncResult = MemCardSync(1, &work->syncCommand, &work->syncResult);
-        if (syncResult != -1) {
-            if (syncResult == 1 && work->syncResult != 0) {
-                task->state = 2;
-                _mcCloseChildUi(task, syncResult);
+        syncState = MemCardSync(MEMORY_CARD_SYNC_POLL, &work->syncCommand, &work->syncResult);
+        if (syncState != MEMORY_CARD_SYNC_IDLE) {
+            if (syncState == MEMORY_CARD_SYNC_COMPLETE && work->syncResult != McErrNone) {
+                task->state = MEMORY_CARD_SAVE_STATE_ACCEPT_CARD;
+                _mcCloseChildUi(task, syncState);
             }
         } else {
             MemCardExist(work->channel);
@@ -1947,7 +1992,7 @@ static void Mc_StateNameEntry(Task* task, McWork* work)
     } else {
         work->sectorOffset = 0;
         work->promptId     = MEMORY_CARD_PROMPT_SAVING;
-        task->state        = 0xF;
+        task->state        = MEMORY_CARD_SAVE_STATE_PREPARE_SECTION;
         _mcDrawPrompt(task, work->promptId);
     }
 }
@@ -2009,34 +2054,44 @@ static inline void _mcWriteSectionChecksumSummary(void)
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.bufferChecksumComplement = ~sum;
 }
 
-static void Mc_StateBackupBuffers(Task* task, McWork* work)
+/// Prepare the next selected file section, or refresh resident backups when the walk ends.
+///
+/// Entry requires `slotsRemaining` in 0..9 and no owned transfer allocation.
+/// Its section index is `9 - slotsRemaining` before decrementing. Header section
+/// zero copies its two distinct halves; record sections copy the newly checksummed
+/// live record twice. Transfers round the two-copy byte length up to 128 bytes,
+/// with a zero-filled tail, and remain owned until write completion. Allocation
+/// failure retries; a clear mask bit skips the section's sector extent.
+static void _mcStatePrepareSectionWrite(Task* task, McWork* work)
 {
-    u8*   buf;
-    s32   size;
-    void* mem;
+    enum { MEMORY_CARD_CURRENT_SECTION_SELECTED = 1 << 0 };
+    u8* liveRecordBytes;
+    s32 bytesPerCopy;
+    u8* transferBuffer;
 
     if (work->slotsRemaining == 0) {
         _mcBackupSaveSections();
         work->closeAnswer = USER_INTERFACE_LIST_COMMAND_YES;
-        task->state       = 0x13;
-    } else if (work->slotWriteMask & 1) {
-        size                = Mc_BufferSlots[MEMORY_CARD_BUFFER_SLOT_COUNT - work->slotsRemaining].bytesPerCopy;
-        buf                 = Mc_BufferSlots[MEMORY_CARD_BUFFER_SLOT_COUNT - work->slotsRemaining].buffer;
-        work->transferBytes = (((u32)(size * 2 - 1) >> 7) + 1) << 7;
-        mem                 = memCalloc(work->transferBytes, 0);
-        if (mem != 0) {
-            work->buffer = mem;
+        task->state       = MEMORY_CARD_SAVE_STATE_CLOSE_PROMPT;
+    } else if (work->slotWriteMask & MEMORY_CARD_CURRENT_SECTION_SELECTED) {
+        bytesPerCopy        = Mc_BufferSlots[MEMORY_CARD_BUFFER_SLOT_COUNT - work->slotsRemaining].bytesPerCopy;
+        liveRecordBytes     = Mc_BufferSlots[MEMORY_CARD_BUFFER_SLOT_COUNT - work->slotsRemaining].buffer;
+        work->transferBytes = (((u32)(bytesPerCopy * 2 - 1) >> MEMORY_CARD_SECTOR_BYTE_SHIFT) + 1) << MEMORY_CARD_SECTOR_BYTE_SHIFT;
+        transferBuffer      = memCalloc(work->transferBytes, false);
+        if (transferBuffer != NULL) {
+            work->buffer = transferBuffer;
             if (work->slotsRemaining == MEMORY_CARD_BUFFER_SLOT_COUNT) {
-                // Slot 0 is the card title. The next slot is the save image.
-                Mc_BuildSaveTitle(work);
-                memcpy(mem, buf, size * 2);
+                // The file header precedes the save record containing its checksum.
+                _mcBuildCardFileTitle(work);
+                memcpy(transferBuffer, liveRecordBytes, bytesPerCopy * 2);
             } else {
-                _mcWriteBlockChecksum(buf, size);
+                _mcWriteBlockChecksum(liveRecordBytes, bytesPerCopy);
                 if (work->slotsRemaining == MEMORY_CARD_BUFFER_SLOT_COUNT - 1) {
                     _mcWriteSectionChecksumSummary();
                 }
-                memcpy(mem, buf, size);
-                memcpy((u8*)mem + size, buf, size);
+                // Both on-card copies come from the live record, not its old backup.
+                memcpy(transferBuffer, liveRecordBytes, bytesPerCopy);
+                memcpy(transferBuffer + bytesPerCopy, liveRecordBytes, bytesPerCopy);
             }
             work->cardTimer      = 0;
             task->state          = task->state + 1;
@@ -2183,13 +2238,13 @@ static void Mc_StateSyncFileSelect(Task* task, McWork* work)
 
 /// Jump table of 26 _McStateFunc handlers used by Mc_DispatchStateTable26.
 static const _McFileSelectStateTable Mc_FileSelectStates = { {
-    Mc_StateInitWorkDefaults,
+    _mcStateInitLoadWork,
     _mcStateInitLoadSections,
     _mcStateConfirmLoadAfterDelay,
     _mcStateCloseLoadFile,
     _mcStateDismissLoadPrompt,
     _mcStateKillLoadDialogIfRequested,
-    Mc_StateEnterPromptF,
+    _mcStateAcknowledgeLoadFailure,
     _mcStateAcceptLoadCard,
     _mcStatePollCardAdvance,
     _mcStateResolveLoadCardProbe,
@@ -2208,7 +2263,7 @@ static const _McFileSelectStateTable Mc_FileSelectStates = { {
     _mcStatePollCardAdvance,
     _mcStateAdvanceLoadPreview,
     Mc_StateSyncFileSelect,
-    Mc_StateEnterPrompt17,
+    _mcStateAcknowledgeCorruptLoad,
 } };
 
 /// Resolve the load card probe, invalidating remembered names before enumeration.
@@ -3087,45 +3142,33 @@ static void _mcStateBeginOpenSaveFile(Task* task, McWork* work)
     task->state = task->state + 1;
 }
 
-static void Mc_StatePromptChoiceB(Task* task, McWork* work)
+/// Ask whether to create a save file, while detecting card removal or replacement.
+///
+/// Yes enters file creation; No restores the previous filename and arms a retry.
+/// Card polling follows the answer, so a completed error overrides it, closes any
+/// choice child and returns to card acceptance. Requires a live dialog object.
+static void _mcStateConfirmFileCreation(Task* task, McWork* work)
 {
-    s32       ret;
-    s32       syncResult;
-    Task*     child;
-    UiObject* obj;
-    UiObject* flag;
-    u8*       src;
-    u8*       dst;
-    s32       i;
+    s32 promptAnswer;
+    s32 syncState;
 
     work->promptId = MEMORY_CARD_PROMPT_CREATE;
-    ret            = _mcUpdateYesNoPrompt(task, MEMORY_CARD_PROMPT_CREATE, work->promptTimer);
-    if (ret != -1) {
-        if (ret == 1) {
-            task->state = 8;
+    promptAnswer   = _mcUpdateYesNoPrompt(task, MEMORY_CARD_PROMPT_CREATE, work->promptTimer);
+    if (promptAnswer != MEMORY_CARD_PROMPT_ANSWER_NO) {
+        if (promptAnswer == MEMORY_CARD_PROMPT_ANSWER_YES) {
+            task->state = MEMORY_CARD_SAVE_STATE_BEGIN_CREATE;
         }
     } else {
-        src = Mc_FileNameBuf;
-        dst = Mc_FileName;
-        for (i = 0; i < 0x15; i++) {
-            *dst++ = *src++;
-        }
-        task->killCountdown = 0xC;
-        task->state         = 0x27;
+        _mcCopyFileName(true);
+        task->killCountdown = MEMORY_CARD_SAVE_RETRY_DELAY_FRAMES;
+        task->state         = MEMORY_CARD_SAVE_STATE_DELAY_RETRY;
     }
-    syncResult = MemCardSync(1, &work->syncCommand, &work->syncResult);
-    if (syncResult != -1) {
-        if (syncResult == 1) {
-            if (work->syncResult != 0) {
-                child       = task->firstChild;
-                task->state = 2;
-                if (child != NULL) {
-                    obj                     = child->spawnArg2.pointer;
-                    flag                    = task->spawnArg2.pointer;
-                    obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
-                    uiStartTreeClosing(obj, obj->owner);
-                    flag->panel.control.word = syncResult;
-                }
+    syncState = MemCardSync(MEMORY_CARD_SYNC_POLL, &work->syncCommand, &work->syncResult);
+    if (syncState != MEMORY_CARD_SYNC_IDLE) {
+        if (syncState == MEMORY_CARD_SYNC_COMPLETE) {
+            if (work->syncResult != McErrNone) {
+                task->state = MEMORY_CARD_SAVE_STATE_ACCEPT_CARD;
+                _mcCloseChildUi(task, syncState);
             }
         }
     } else {
@@ -3174,28 +3217,33 @@ static void _mcStateWriteFileHeader(Task* task, McWork* work)
     _mcDrawPrompt(task, work->promptId);
 }
 
-static void Mc_StatePromptChoiceGeneric(Task* task, McWork* work)
+/// Ask whether to save, then retry card acceptance or close with the retained answer.
+///
+/// Yes arms the retry delay; No enters save-file closure. Draws through the
+/// question helper and steps the signed prompt timer toward zero by two frames.
+/// The second timer test observes the first step, so an odd positive count stays at 1.
+static void _mcStateConfirmSave(Task* task, McWork* work)
 {
-    s32 ret;
+    s32 promptAnswer;
 
     work->promptId = MEMORY_CARD_PROMPT_SAVE;
-    ret            = _mcUpdateYesNoPrompt(task, MEMORY_CARD_PROMPT_SAVE, work->promptTimer);
-    switch (ret) {
-        case 0:
+    promptAnswer   = _mcUpdateYesNoPrompt(task, MEMORY_CARD_PROMPT_SAVE, work->promptTimer);
+    switch (promptAnswer) {
+        case MEMORY_CARD_PROMPT_ANSWER_PENDING:
             break;
-        case 1:
-            task->killCountdown = 0xC;
-            task->state         = 0x27;
+        case MEMORY_CARD_PROMPT_ANSWER_YES:
+            task->killCountdown = MEMORY_CARD_SAVE_RETRY_DELAY_FRAMES;
+            task->state         = MEMORY_CARD_SAVE_STATE_DELAY_RETRY;
             break;
-        case -1:
-            task->state = 0x13;
+        case MEMORY_CARD_PROMPT_ANSWER_NO:
+            task->state = MEMORY_CARD_SAVE_STATE_CLOSE_PROMPT;
             break;
     }
     if (work->promptTimer > 0) {
-        work->promptTimer -= 2;
+        work->promptTimer -= MEMORY_CARD_PROMPT_APPROACH_STEP_FRAMES;
     }
     if (work->promptTimer < 0) {
-        work->promptTimer += 2;
+        work->promptTimer += MEMORY_CARD_PROMPT_APPROACH_STEP_FRAMES;
     }
 }
 
@@ -3287,40 +3335,35 @@ static void _mcStateWaitSaveCardInsertion(Task* task, McWork* work)
     }
 }
 
-static void Mc_StatePromptChoice9(Task* task, McWork* work)
+/// Ask to format an unformatted card, initially selecting No, while polling its presence.
+///
+/// Yes enters the format delay; No arms the delay before returning to the save
+/// question. A completed card error overrides either answer, closes the choice
+/// child and returns to card acceptance. Requires a live dialog object.
+static void _mcStateConfirmCardFormat(Task* task, McWork* work)
 {
-    s32       ret;
-    s32       syncResult;
-    Task*     child;
-    UiObject* obj;
-    UiObject* flag;
+    s32 promptAnswer;
+    s32 syncState;
 
     work->promptId = MEMORY_CARD_PROMPT_UNFORMATTED;
-    ret            = _mcUpdateYesNoPromptInitialNo(task, MEMORY_CARD_PROMPT_UNFORMATTED, work->promptTimer);
-    switch (ret) {
-        case 0:
+    promptAnswer   = _mcUpdateYesNoPromptInitialNo(task, MEMORY_CARD_PROMPT_UNFORMATTED, work->promptTimer);
+    switch (promptAnswer) {
+        case MEMORY_CARD_PROMPT_ANSWER_PENDING:
             break;
-        case 1:
-            task->state = 0x16;
+        case MEMORY_CARD_PROMPT_ANSWER_YES:
+            task->state = MEMORY_CARD_SAVE_STATE_BEGIN_FORMAT;
             break;
-        case -1:
-            task->killCountdown = 0xC;
-            task->state         = 0x29;
+        case MEMORY_CARD_PROMPT_ANSWER_NO:
+            task->killCountdown = MEMORY_CARD_SAVE_RETRY_DELAY_FRAMES;
+            task->state         = MEMORY_CARD_SAVE_STATE_DELAY_CONFIRMATION;
             break;
     }
-    syncResult = MemCardSync(1, &work->syncCommand, &work->syncResult);
-    if (syncResult != -1) {
-        if (syncResult == 1) {
-            if (work->syncResult != 0) {
-                child       = task->firstChild;
-                task->state = 2;
-                if (child != NULL) {
-                    obj                     = child->spawnArg2.pointer;
-                    flag                    = task->spawnArg2.pointer;
-                    obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
-                    uiStartTreeClosing(obj, obj->owner);
-                    flag->panel.control.word = syncResult;
-                }
+    syncState = MemCardSync(MEMORY_CARD_SYNC_POLL, &work->syncCommand, &work->syncResult);
+    if (syncState != MEMORY_CARD_SYNC_IDLE) {
+        if (syncState == MEMORY_CARD_SYNC_COMPLETE) {
+            if (work->syncResult != McErrNone) {
+                task->state = MEMORY_CARD_SAVE_STATE_ACCEPT_CARD;
+                _mcCloseChildUi(task, syncState);
             }
         }
     } else {
@@ -3328,89 +3371,61 @@ static void Mc_StatePromptChoice9(Task* task, McWork* work)
     }
 }
 
-static void Mc_StateColdBoot(Task* task, McWork* work)
+/// Show the formatting prompt and arm the delay before the synchronous format call.
+///
+/// Advances to formatting with a fourteen-frame settle timer. The dialog object
+/// must be live; this state submits no card operation itself.
+static void _mcStateBeginCardFormat(Task* task, McWork* work)
 {
-    u32           textColorRgb;
-    UiObject*     obj;
-    McPromptPair* entry;
-    McPromptPair* base;
-
     work->promptId = MEMORY_CARD_PROMPT_FORMATTING;
-    obj            = task->spawnArg2.pointer;
-    textColorRgb   = uiGetTextColor(obj, USER_INTERFACE_TEXT_COLOR_NORMAL);
-    obj->result    = USER_INTERFACE_RESULT_NONE;
-    uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
-    base  = Mc_PromptTable;
-    entry = &base[MEMORY_CARD_PROMPT_FORMATTING];
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    _mcDrawPrompt(task, MEMORY_CARD_PROMPT_FORMATTING);
     work->cardTimer = MEMORY_CARD_IO_SETTLE_FRAMES;
     task->state     = task->state + 1;
 }
 
-static void Mc_StateSyncPrompt13(Task* task, McWork* work)
+/// Wait for removal of a full card, or close the save dialog when Cancel is confirmed.
+///
+/// A completed no-card probe closes any choice child and enters insertion recovery.
+/// Other completed results keep waiting; an idle SDK starts another presence probe.
+/// Cancel returns before polling. The dialog and any first choice child must be live.
+static void _mcStateWaitFullCardRemoval(Task* task, McWork* work)
 {
-    s32       syncResult;
-    s32       rslt;
-    Task*     child;
-    UiObject* obj;
-    UiObject* flag;
+    s32 syncState;
+    s32 presenceResult;
 
     work->promptId = MEMORY_CARD_PROMPT_CARD_FULL;
     if (_mcUpdateCancelPrompt(task, MEMORY_CARD_PROMPT_CARD_FULL, work->promptTimer) != 0) {
-        task->state = 0x13;
+        task->state = MEMORY_CARD_SAVE_STATE_CLOSE_PROMPT;
         return;
     }
-    syncResult = MemCardSync(1, &work->syncCommand, &work->syncResult);
-    switch (syncResult) {
-        case -1:
+    syncState = MemCardSync(MEMORY_CARD_SYNC_POLL, &work->syncCommand, &work->syncResult);
+    switch (syncState) {
+        case MEMORY_CARD_SYNC_IDLE:
             MemCardExist(work->channel);
             return;
-        case 1:
-            rslt = work->syncResult;
-            if (rslt == syncResult) {
-                child = task->firstChild;
-                if (child != NULL) {
-                    obj                     = child->spawnArg2.pointer;
-                    flag                    = task->spawnArg2.pointer;
-                    obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
-                    uiStartTreeClosing(obj, obj->owner);
-                    flag->panel.control.word = rslt;
-                }
-                task->state = 0x14;
+        case MEMORY_CARD_SYNC_COMPLETE:
+            presenceResult = work->syncResult;
+            if (presenceResult == McErrCardNotExist) {
+                _mcCloseChildUi(task, presenceResult);
+                task->state = MEMORY_CARD_SAVE_STATE_NO_CARD;
             }
             return;
-        case 0:
+        case MEMORY_CARD_SYNC_PENDING:
             return;
     }
 }
 
-static void Mc_StateEnterPrompt0(Task* task, McWork* work)
+/// Show an access failure and invalidate both filenames when OK closes the save dialog.
+///
+/// Clears the I/O wait counter each run. Requires a live dialog and retains both
+/// product prefixes and each filename's final three backing bytes.
+static void _mcStateAcknowledgeSaveAccessFailure(Task* task, McWork* work)
 {
-    u8* ptr1;
-    u8* ptr0;
-    s32 i;
-    s32 ch;
-
     work->promptId  = MEMORY_CARD_PROMPT_ACCESS_FAILED;
     work->cardTimer = 0;
     if (_mcUpdateOkPrompt(task, work->promptId, 0) != 0) {
-        ptr1 = Mc_FileName;
-        ptr0 = Mc_FileNameBuf;
-        i    = 0;
-        ch   = 0x5F;
-        do {
-            if (i >= 0xC) {
-                *ptr0 = ch;
-                *ptr1 = ch;
-            }
-            ptr1++;
-            i++;
-            ptr0++;
-        } while (i < 0x14);
-        *ptr0       = 0;
-        *ptr1       = 0;
-        task->state = 0x13;
+        _mcInvalidateFileNameSuffixes();
+        task->state = MEMORY_CARD_SAVE_STATE_CLOSE_PROMPT;
     }
 }
 
@@ -3577,21 +3592,27 @@ static void _mcStateDelaySectionWrite(Task* task, McWork* work)
     _mcDrawPrompt(task, MEMORY_CARD_PROMPT_SAVING);
 }
 
-static void Mc_StateEnterPromptE(Task* task, McWork* work)
+/// Show save failure until OK enters save-file closure.
+///
+/// Resets the I/O wait counter each run; the dialog object must be live.
+static void _mcStateAcknowledgeSaveFailure(Task* task, McWork* work)
 {
     work->promptId  = MEMORY_CARD_PROMPT_SAVE_FAILED;
     work->cardTimer = 0;
     if (_mcUpdateOkPrompt(task, MEMORY_CARD_PROMPT_SAVE_FAILED, 0) != 0) {
-        task->state = 0x13;
+        task->state = MEMORY_CARD_SAVE_STATE_CLOSE_PROMPT;
     }
 }
 
-static void Mc_StateEnterPromptD(Task* task, McWork* work)
+/// Show format failure until OK enters save-file closure.
+///
+/// Resets the I/O wait counter each run; the dialog object must be live.
+static void _mcStateAcknowledgeFormatFailure(Task* task, McWork* work)
 {
     work->promptId  = MEMORY_CARD_PROMPT_FORMAT_FAILED;
     work->cardTimer = 0;
     if (_mcUpdateOkPrompt(task, MEMORY_CARD_PROMPT_FORMAT_FAILED, 0) != 0) {
-        task->state = 0x13;
+        task->state = MEMORY_CARD_SAVE_STATE_CLOSE_PROMPT;
     }
 }
 
@@ -3619,14 +3640,20 @@ void Mc_DispatchStateTable(Task* task)
     Mc_LastRandomValue = rand();
 }
 
-static void Mc_StateInitWorkDefaults(Task* task, McWork* work)
+/// Initialize the shared work for loading and clear a pending player-position update.
+///
+/// Selects the first card port, the load question and multiline corruption notice,
+/// then advances to section selection. Entry requires no outstanding allocation:
+/// clearing `buffer` does not free it. The cached directory and filenames are retained.
+static void _mcStateInitLoadWork(Task* task, McWork* work)
 {
+    enum { MEMORY_CARD_CHANNEL_FIRST_PORT = 0 };
     work->promptTimer                            = MEMORY_CARD_PROMPT_LEAD_FRAMES;
     work->promptId                               = MEMORY_CARD_PROMPT_LOAD;
     work->corruptNoticeStyle                     = MEMORY_CARD_CORRUPT_NOTICE_MULTILINE;
     work->cardTimer                              = 0;
-    work->buffer                                 = 0;
-    work->channel                                = 0;
+    work->buffer                                 = NULL;
+    work->channel                                = MEMORY_CARD_CHANNEL_FIRST_PORT;
     gDisplayState.control.flags.pendingPlayerPos = 0;
     task->state                                 += 1;
 }
@@ -3728,32 +3755,17 @@ static void _mcStateKillLoadDialogIfRequested(Task* task, McWork* unusedWork)
     }
 }
 
-static void Mc_StateEnterPromptF(Task* task, McWork* work)
+/// Show load failure and invalidate both filenames when OK enters load-file closure.
+///
+/// Clears the I/O wait counter each run. Requires a live dialog; filename product
+/// prefixes and final backing bytes are retained. Transfer cleanup is the caller's.
+static void _mcStateAcknowledgeLoadFailure(Task* task, McWork* work)
 {
-    u8* ptr1;
-    u8* ptr0;
-    s32 i;
-    s32 ch;
-
     work->promptId  = MEMORY_CARD_PROMPT_LOAD_FAILED;
     work->cardTimer = 0;
     if (_mcUpdateOkPrompt(task, MEMORY_CARD_PROMPT_LOAD_FAILED, 0) != 0) {
-        ptr1 = Mc_FileName;
-        ptr0 = Mc_FileNameBuf;
-        i    = 0;
-        ch   = 0x5F;
-        do {
-            if (i >= 0xC) {
-                *ptr0 = ch;
-                *ptr1 = ch;
-            }
-            ptr1++;
-            i++;
-            ptr0++;
-        } while (i < 0x14);
-        *ptr0       = 0;
-        *ptr1       = 0;
-        task->state = 3;
+        _mcInvalidateFileNameSuffixes();
+        task->state = MEMORY_CARD_LOAD_STATE_CLOSE_FILE;
     }
 }
 
@@ -3984,32 +3996,17 @@ static void _mcStateAdvanceLoadPreview(Task* task, McWork* work)
     _mcDrawPrompt(task, work->promptId);
 }
 
-static void Mc_StateEnterPrompt17(Task* task, McWork* work)
+/// Show unusable save data and invalidate both filenames when OK closes the load file.
+///
+/// Clears the I/O wait counter each run. Requires a live dialog; filename product
+/// prefixes and final backing bytes are retained. Transfer cleanup is the caller's.
+static void _mcStateAcknowledgeCorruptLoad(Task* task, McWork* work)
 {
-    u8* ptr1;
-    u8* ptr0;
-    s32 i;
-    s32 ch;
-
     work->promptId  = MEMORY_CARD_PROMPT_CORRUPTED;
     work->cardTimer = 0;
     if (_mcUpdateOkPrompt(task, MEMORY_CARD_PROMPT_CORRUPTED, 0) != 0) {
-        ptr1 = Mc_FileName;
-        ptr0 = Mc_FileNameBuf;
-        i    = 0;
-        ch   = 0x5F;
-        do {
-            if (i >= 0xC) {
-                *ptr0 = ch;
-                *ptr1 = ch;
-            }
-            ptr1++;
-            i++;
-            ptr0++;
-        } while (i < 0x14);
-        *ptr0       = 0;
-        *ptr1       = 0;
-        task->state = 3;
+        _mcInvalidateFileNameSuffixes();
+        task->state = MEMORY_CARD_LOAD_STATE_CLOSE_FILE;
     }
 }
 
