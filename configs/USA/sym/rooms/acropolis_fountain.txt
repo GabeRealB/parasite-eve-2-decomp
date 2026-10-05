@@ -77,8 +77,15 @@ D_acropolis_fountain_80183BB1 = 0x80183BB1; // size:0x1 defined:True
 D_acropolis_fountain_80183BB2 = 0x80183BB2; // size:0x2 defined:True
 D_acropolis_fountain_80183BB4 = 0x80183BB4; // size:0x4 defined:True
 
-func_acropolis_fountain_8017DD44 = 0x8017DD44; // type:func
+acropolisFountainSprayTask = 0x8017DD44; // type:func
 
 func_acropolis_fountain_8017DA78 = 0x8017DA78; // type:func
 
 func_acropolis_fountain_8017E014 = 0x8017E014; // type:func
+_acropolisFountainClimbTurnPlayer = 0x8017daa4; // type:func
+_acropolisFountainClimbWaitForTurn = 0x8017db00; // type:func
+_acropolisFountainClimbStep = 0x8017db54; // type:func
+_acropolisFountainClimbWaitForStep = 0x8017dbac; // type:func
+_acropolisFountainClimbMovePlayer = 0x8017dc00; // type:func
+_acropolisFountainClimbFinish = 0x8017dc6c; // type:func
+acropolisFountainClimbTask = 0x8017dcd4; // type:func

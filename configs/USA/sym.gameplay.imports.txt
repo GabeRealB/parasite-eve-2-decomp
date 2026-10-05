@@ -579,7 +579,7 @@ func_acropolis_forked_road_8017F9E4 = 0x8017F9E4; // type:func absolute:True own
 
 func_acropolis_forked_road_801802CC = 0x801802CC; // type:func absolute:True owner=acropolis_forked_road
 
-func_acropolis_fountain_8017DD44 = 0x8017DD44; // type:func absolute:True owner=acropolis_fountain shared=rooms
+acropolisFountainSprayTask = 0x8017DD44; // type:func absolute:True owner=acropolis_fountain shared=rooms
 
 func_acropolis_helicopter_landing_pad_8017FA30 = 0x8017FA30; // type:func absolute:True owner=acropolis_helicopter_landing_pad
 

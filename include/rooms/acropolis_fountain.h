@@ -30,16 +30,25 @@ extern ViewCamera D_acropolis_fountain_80183864[];
 
 extern WorldCollisionSurfaceProperties* D_acropolis_fountain_80183B90[];
 
-void func_acropolis_fountain_8017DD44(Task* task);
+/// Draws the fountain spray as a flickering, semitransparent textured quad.
+///
+/// Requires a live coordinate body, the room's texture and palette, and space
+/// for one `POLY_FT4` in the frame arena. Draws in raw camera views 7, 8, 15 and
+/// 21 while room effects are active. Reserves and releases scratch storage and
+/// consumes a packet even when projected depth (SZ3 / 4) is below 17.
+void acropolisFountainSprayTask(Task* task);
 
 void func_acropolis_fountain_8017DA78(s32 unused0, s32 unused1);
 
 void func_acropolis_fountain_8017E014(Task* task);
 
-/// Task entries the resident task descriptor tables name. A table in main or
-/// gameplay reaches each of these by name, so they are the family's interface
-/// to the resident code.
-void func_acropolis_fountain_8017DCD4(Task* arg0);
+/// Runs the player's turn, one-step ascent and walk to the room's fixed destination.
+///
+/// Spawned from task bank 2, slot 14 with state zero. The player task must remain
+/// live through the six phases (0 turn, 1 await turn, 2 ascend, 3 await ascent,
+/// 4 walk, 5 await arrival). Completion restores player control and kills this
+/// task. Its state is an unchecked index maintained only by these callbacks.
+void acropolisFountainClimbTask(Task* task);
 
 void func_acropolis_fountain_8017D9C4(Task* task);
 

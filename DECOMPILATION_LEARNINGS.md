@@ -53041,7 +53041,7 @@ reproduce the byte-lane instructions by hand.
 When every emitted instruction already matches and the only diff is the frame
 size (`addiu $sp,$sp,-0x28` against the ROM's `-0x30`, with the `$s0`/`$ra`
 slots shifted to match), the stack local handed to `taskMessageDispatch` as `arg2`
-is bigger than the fields the function writes. `func_acropolis_fountain_8017DC00`
+is bigger than the fields the function writes. `_acropolisFountainClimbMovePlayer`
 stores only three words at `sp+0x10`/`0x14`/`0x18` yet reserves 0x18 bytes of
 locals: the payload is the 0x18-byte `ActorTransform` (`include/gameplay/message.h`),
 and msg `0x3F2` fills its position `pos` while leaving the angles `rot`
@@ -53193,7 +53193,7 @@ the ROM does.
 
 ## A `move` between two registers holding the same pointer is a pin, not `TOUCH_REG`
 
-`func_acropolis_fountain_8017DD44` takes a 0x14-byte block off
+`acropolisFountainSprayTask` takes a 0x14-byte block off
 `SCRATCH_STACK_CURSOR_SLOT`, keeps it in `$a1`, and copies it to `$a0` for one use — the
 `gte_stszotz` operand:
 

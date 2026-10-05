@@ -98,6 +98,24 @@ extern Task*                 D_acropolis_fountain_80183BB4;
 
 static void func_acropolis_fountain_8017E15C(Task* task, s32 view);
 
+/// Ordered phases of the player's single-step climb and subsequent walk.
+enum {
+    ACROPOLIS_FOUNTAIN_CLIMB_TURN = 0,
+    ACROPOLIS_FOUNTAIN_CLIMB_WAIT_FOR_TURN,
+    ACROPOLIS_FOUNTAIN_CLIMB_STEP,
+    ACROPOLIS_FOUNTAIN_CLIMB_WAIT_FOR_STEP,
+    ACROPOLIS_FOUNTAIN_CLIMB_MOVE,
+    ACROPOLIS_FOUNTAIN_CLIMB_FINISH,
+    ACROPOLIS_FOUNTAIN_CLIMB_STATE_COUNT
+};
+
+static void _acropolisFountainClimbTurnPlayer(Task* task);
+static void _acropolisFountainClimbWaitForTurn(Task* task);
+static void _acropolisFountainClimbStep(Task* task);
+static void _acropolisFountainClimbWaitForStep(Task* task);
+static void _acropolisFountainClimbMovePlayer(Task* task);
+static void _acropolisFountainClimbFinish(Task* task);
+
 void func_acropolis_fountain_8017E3D4(Task*);
 void func_acropolis_fountain_8017E72C(Task*);
 
@@ -1366,12 +1384,35 @@ u16 D_acropolis_fountain_80183BB2 = 8192;
 
 Task* D_acropolis_fountain_80183BB4 = NULL;
 
-static void func_acropolis_fountain_8017DAA4(Task* arg0);
-static void func_acropolis_fountain_8017DB00(Task* arg0);
-static void func_acropolis_fountain_8017DB54(Task* arg0);
-static void func_acropolis_fountain_8017DBAC(Task* arg0);
-static void func_acropolis_fountain_8017DC00(Task* arg0);
-static void func_acropolis_fountain_8017DC6C(Task* arg0);
+/// Applies the fountain spray's texture cell and grayscale modulation to a quad.
+///
+/// The packet header must already describe a `POLY_FT4`; corners and the GPU
+/// link are filled by the drawer. Brightness is an unsigned-byte GPU level.
+static inline void _acropolisFountainInitSprayQuad(POLY_FT4* sprite, s32 brightness)
+{
+    enum {
+        ACROPOLIS_FOUNTAIN_SPRAY_TPAGE   = 0x2B,
+        ACROPOLIS_FOUNTAIN_SPRAY_CLUT    = 0x4382,
+        ACROPOLIS_FOUNTAIN_SPRAY_U_FIRST = 0x50,
+        ACROPOLIS_FOUNTAIN_SPRAY_U_LAST  = 0x77,
+        ACROPOLIS_FOUNTAIN_SPRAY_V_LAST  = 0x27
+    };
+
+    sprite->tpage = ACROPOLIS_FOUNTAIN_SPRAY_TPAGE;
+    sprite->clut  = ACROPOLIS_FOUNTAIN_SPRAY_CLUT;
+    sprite->u0    = ACROPOLIS_FOUNTAIN_SPRAY_U_FIRST;
+    sprite->v0    = 0;
+    sprite->u1    = ACROPOLIS_FOUNTAIN_SPRAY_U_LAST;
+    sprite->v1    = 0;
+    sprite->u2    = ACROPOLIS_FOUNTAIN_SPRAY_U_FIRST;
+    sprite->v2    = ACROPOLIS_FOUNTAIN_SPRAY_V_LAST;
+    sprite->u3    = ACROPOLIS_FOUNTAIN_SPRAY_U_LAST;
+    sprite->v3    = ACROPOLIS_FOUNTAIN_SPRAY_V_LAST;
+    sprite->r0    = brightness;
+    sprite->g0    = brightness;
+    sprite->b0    = brightness;
+    setSemiTrans(sprite, 1);
+}
 
 void func_acropolis_fountain_8017DA1C(void)
 {
@@ -1386,156 +1427,148 @@ void func_acropolis_fountain_8017DA78(s32 unused0, s32 unused1)
     Task_Spawn(2, 0xE, 0, 0);
 }
 
-static void func_acropolis_fountain_8017DAA4(Task* arg0)
+/// Takes scripted control and turns the player to face the ascent at yaw 2048.
+static void _acropolisFountainClimbTurnPlayer(Task* task)
 {
-    ActorTransform msg;
-    Task*          slot;
+    ActorTransform facing;
+    Task*          player;
 
-    slot       = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    msg.rot.vx = 0;
-    msg.rot.vy = 0x800;
-    msg.rot.vz = 0;
-    TASK_MESSAGE_DISPATCH_POINTER(slot, 0x3EE, &msg, 0);
-    arg0->state = arg0->state + 1;
+    player        = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    facing.rot.vx = 0;
+    facing.rot.vy = ACTOR_TRANSFORM_ANGLE_HALF_TURN;
+    facing.rot.vz = 0;
+    TASK_MESSAGE_DISPATCH_POINTER(player, GAME_ACTOR_MESSAGE_TURN_TO_YAW, &facing, 0);
+    task->state = task->state + 1;
 }
 
-static void func_acropolis_fountain_8017DB00(Task* arg0)
+/// Advances to the climb once the player's scripted turn has finished.
+static void _acropolisFountainClimbWaitForTurn(Task* task)
 {
     if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, 0, 0) == 0) {
-        arg0->state = (s32)(arg0->state + 1);
+        task->state = task->state + 1;
     }
 }
 
-static void func_acropolis_fountain_8017DB54(Task* arg0)
+/// Starts the player's one-step ascent along its current facing direction.
+static void _acropolisFountainClimbStep(Task* task)
 {
+    enum { ACROPOLIS_FOUNTAIN_CLIMB_ASCEND = 0 };
+
     GameActorStairClimb climb;
-    Task*               slot;
+    Task*               player;
 
-    slot            = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    climb.descend   = 0;
+    player          = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    climb.descend   = ACROPOLIS_FOUNTAIN_CLIMB_ASCEND;
     climb.stepCount = 1;
-    TASK_MESSAGE_DISPATCH_POINTER(slot, GAME_ACTOR_MESSAGE_CLIMB_STAIRS, &climb, 0);
-    arg0->state = arg0->state + 1;
+    TASK_MESSAGE_DISPATCH_POINTER(player, GAME_ACTOR_MESSAGE_CLIMB_STAIRS, &climb, 0);
+    task->state = task->state + 1;
 }
 
-static void func_acropolis_fountain_8017DBAC(Task* arg0)
+/// Advances to the destination walk once the player's ascent has finished.
+static void _acropolisFountainClimbWaitForStep(Task* task)
 {
     if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, 0, 0) == 0) {
-        arg0->state = (s32)(arg0->state + 1);
+        task->state = task->state + 1;
     }
 }
 
-static void func_acropolis_fountain_8017DC00(Task* arg0)
+/// Walks the player to world position (2599, -200, -6054) after the ascent.
+static void _acropolisFountainClimbMovePlayer(Task* task)
 {
-    ActorTransform msg;
-    Task*          slot;
+    ActorTransform destination;
+    Task*          player;
 
     gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    slot       = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    msg.pos.vx = 0xA27;
-    msg.pos.vy = -0xC8;
-    msg.pos.vz = -0x17A6;
-    TASK_MESSAGE_DISPATCH_POINTER(slot, 0x3F2, &msg, 0);
-    arg0->state = arg0->state + 1;
+    player             = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    destination.pos.vx = 2599;
+    destination.pos.vy = -200;
+    destination.pos.vz = -6054;
+    TASK_MESSAGE_DISPATCH_POINTER(player, GAME_ACTOR_MESSAGE_MOVE_TO, &destination, 0);
+    task->state = task->state + 1;
 }
 
-static void func_acropolis_fountain_8017DC6C(Task* arg0)
+/// Waits for arrival, restores player control and releases the climb task.
+static void _acropolisFountainClimbFinish(Task* task)
 {
-    Task* temp_v0;
+    Task* player;
 
-    temp_v0 = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    if (taskMessageDispatch(temp_v0, GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, 0, 0) == 0) {
-        taskMessageDispatch(temp_v0, GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
-        taskKill(arg0);
+    player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    if (taskMessageDispatch(player, GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, 0, 0) == 0) {
+        taskMessageDispatch(player, GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
+        taskKill(task);
     }
 }
 
-/// Six-state dispatcher of the fountain cutscene task; the handler table is
-/// built on the stack from the overlay's rodata block.
-void func_acropolis_fountain_8017DCD4(Task* arg0)
+void acropolisFountainClimbTask(Task* task)
 {
-    TaskFunc states[6] = {
-        func_acropolis_fountain_8017DAA4,
-        func_acropolis_fountain_8017DB00,
-        func_acropolis_fountain_8017DB54,
-        func_acropolis_fountain_8017DBAC,
-        func_acropolis_fountain_8017DC00,
-        func_acropolis_fountain_8017DC6C,
+    TaskFunc stateHandlers[ACROPOLIS_FOUNTAIN_CLIMB_STATE_COUNT] = {
+        [ACROPOLIS_FOUNTAIN_CLIMB_TURN]          = _acropolisFountainClimbTurnPlayer,
+        [ACROPOLIS_FOUNTAIN_CLIMB_WAIT_FOR_TURN] = _acropolisFountainClimbWaitForTurn,
+        [ACROPOLIS_FOUNTAIN_CLIMB_STEP]          = _acropolisFountainClimbStep,
+        [ACROPOLIS_FOUNTAIN_CLIMB_WAIT_FOR_STEP] = _acropolisFountainClimbWaitForStep,
+        [ACROPOLIS_FOUNTAIN_CLIMB_MOVE]          = _acropolisFountainClimbMovePlayer,
+        [ACROPOLIS_FOUNTAIN_CLIMB_FINISH]        = _acropolisFountainClimbFinish,
     };
 
-    states[arg0->state](arg0);
+    stateHandlers[task->state](task);
 }
 
-/// Draws the fountain's water-spray sprite for the current frame. The task's
-/// coordinate is refreshed and projected through `GsWSMATRIX` into a
-/// `RoomGlowSpriteScratch` block; the resulting screen point becomes the centre of a
-/// semi-transparent `POLY_FT4` (tpage 0x2B, clut 0x4382, the 0x28x0x27 cell at
-/// u 0x50) whose half-extent is `0x4E00 / otz`, so the spray shrinks with
-/// distance and is dropped entirely inside `otz` 0x11. The grey level
-/// alternates between 0x40 and 0x50 with the frame counter's low bit, which
-/// makes the spray flicker. Only the eight camera views in the `0x1040C0` mask
-/// see the fountain, and the whole draw is skipped once `gRoomEffectState->effectControl`
-/// reaches 4 (the room is fading out).
-void func_acropolis_fountain_8017DD44(Task* task)
+void acropolisFountainSprayTask(Task* task)
 {
-    RoomGlowSpriteScratch* blk;
+    enum {
+        ACROPOLIS_FOUNTAIN_SPRAY_VISIBLE_VIEWS    = (1 << 6) | (1 << 7) | (1 << 14) | (1 << 20),
+        ACROPOLIS_FOUNTAIN_SPRAY_MIN_DEPTH        = 0x11,   // GTE SZ3 / 4
+        ACROPOLIS_FOUNTAIN_SPRAY_SIZE_DEPTH       = 0x4E00, // Pixel half-extent multiplied by depth
+        ACROPOLIS_FOUNTAIN_SPRAY_DIM              = 0x40,   // Texture modulation on even frames
+        ACROPOLIS_FOUNTAIN_SPRAY_BRIGHT_INCREMENT = 0x10
+    };
+
+    RoomGlowSpriteScratch* projection;
     GfxCoord*              coord;
-    POLY_FT4*              prim;
-    s16                    x;
-    s16                    y;
-    s32                    level;
+    POLY_FT4*              sprite;
+    s16                    edgeX;
+    s16                    edgeY;
+    s32                    brightness;
 
     coord = task->extra.coordBody->coord;
-    if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN && ((0x1040C0 >> (gGameSession->location.loc.view - 1)) & 1)) {
+    if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN && ((ACROPOLIS_FOUNTAIN_SPRAY_VISIBLE_VIEWS >> (gGameSession->location.loc.view - 1)) & 1)) {
+        // Project the effect's world centre; the GTE input keeps its signed low halfwords.
         actorRenderComposeCoord(coord);
-        blk              = SCRATCH_STACK_RESERVE_BLOCK(RoomGlowSpriteScratch);
-        blk->worldPos.vx = coord->workm.t[0];
-        blk->worldPos.vy = coord->workm.t[1];
-        blk->worldPos.vz = coord->workm.t[2];
+        projection              = SCRATCH_STACK_RESERVE_BLOCK(RoomGlowSpriteScratch);
+        projection->worldPos.vx = coord->workm.t[0];
+        projection->worldPos.vy = coord->workm.t[1];
+        projection->worldPos.vz = coord->workm.t[2];
         gte_SetTransMatrix(&GsWSMATRIX);
         gte_SetRotMatrix(&GsWSMATRIX);
-        gte_ldv0(&blk->worldPos);
+        gte_ldv0(&projection->worldPos);
         gte_rtps();
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setlen(prim, 9);
-        setcode(prim, 0x2C);
-        gte_stsxy(&blk->screenPos);
-        gte_stszotz(&blk->otz);
-        if (blk->otz >= 0x11) {
-            level           = (((u8)gDisplayState.animFrame & 1) << 4) + 0x40;
-            prim->tpage     = 0x2B;
-            prim->clut      = 0x4382;
-            prim->u0        = 0x50;
-            prim->v0        = 0;
-            prim->u1        = 0x77;
-            prim->v1        = 0;
-            prim->u2        = 0x50;
-            prim->v2        = 0x27;
-            prim->u3        = 0x77;
-            prim->v3        = 0x27;
-            prim->r0        = level;
-            prim->g0        = level;
-            prim->b0        = level;
-            prim->code     |= 2;
-            blk->halfExtent = 0x4E00 / blk->otz;
-            x               = blk->screenPos.vx - blk->halfExtent;
-            prim->x2        = x;
-            prim->x0        = x;
-            x               = blk->screenPos.vx + blk->halfExtent;
-            prim->x3        = x;
-            prim->x1        = x;
-            y               = blk->screenPos.vy - blk->halfExtent;
-            prim->y1        = y;
-            prim->y0        = y;
-            y               = blk->screenPos.vy + blk->halfExtent;
-            prim->y3        = y;
-            prim->y2        = y;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz
+        // Even a depth-rejected centre consumes one packet from the frame arena.
+        sprite         = gGpuPrimCursor;
+        gGpuPrimCursor = sprite + 1;
+        setPolyFT4(sprite);
+        gte_stsxy(&projection->screenPos);
+        gte_stszotz(&projection->otz);
+        if (projection->otz >= ACROPOLIS_FOUNTAIN_SPRAY_MIN_DEPTH) {
+            brightness = (((u8)gDisplayState.animFrame & 1) * ACROPOLIS_FOUNTAIN_SPRAY_BRIGHT_INCREMENT) + ACROPOLIS_FOUNTAIN_SPRAY_DIM;
+            _acropolisFountainInitSprayQuad(sprite, brightness);
+            projection->halfExtent = ACROPOLIS_FOUNTAIN_SPRAY_SIZE_DEPTH / projection->otz;
+            edgeX                  = projection->screenPos.vx - projection->halfExtent;
+            sprite->x2             = edgeX;
+            sprite->x0             = edgeX;
+            edgeX                  = projection->screenPos.vx + projection->halfExtent;
+            sprite->x3             = edgeX;
+            sprite->x1             = edgeX;
+            edgeY                  = projection->screenPos.vy - projection->halfExtent;
+            sprite->y1             = edgeY;
+            sprite->y0             = edgeY;
+            edgeY                  = projection->screenPos.vy + projection->halfExtent;
+            sprite->y3             = edgeY;
+            sprite->y2             = edgeY;
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)projection->otz
                                                                << gDisplayState.otDepthShift) >>
                                                               2) &
                                                              GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
+                    sprite);
         }
         SCRATCH_STACK_RELEASE_BLOCK(RoomGlowSpriteScratch);
     }
