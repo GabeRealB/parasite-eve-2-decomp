@@ -1263,16 +1263,28 @@ void SndEvt_FlushType5Pending(void)
     }
 }
 
+/// Zeroes `slot` and marks it free.
+static inline void Midi_ResetNoteSlot(_MidiNoteSlot* slot)
+{
+    s32* slotWords;
+    u32  slotWordIndex;
+
+    slotWords     = (s32*)slot;
+    slotWordIndex = 0;
+    do {
+        *slotWords = 0;
+        slotWordIndex++;
+        slotWords++;
+    } while (slotWordIndex < sizeof(*slot) / sizeof(*slotWords));
+    slot->channel = MIDI_NOTE_SLOT_FREE;
+    slot->voice   = MIDI_NOTE_SLOT_FREE;
+}
+
 static void Midi_InitSlot(s32 arg0)
 {
-    _MidiSong*     song;
-    s32*           p;
-    u32            i;
-    s32            slotOffsetBytes;
-    u32            slotWordIndex;
-    _MidiNoteSlot* slot;
-    s32*           slotWords;
-    s8             freeSlotMarker;
+    _MidiSong* song;
+    s32*       p;
+    u32        i;
 
     arg0 &= 0xFF;
     song  = &(&Midi_Song)[arg0];
@@ -1288,25 +1300,9 @@ static void Midi_InitSlot(s32 arg0)
     LinInterp_Setup(&song->volumeRamp, 0, 0, 0);
     Midi_InitChannelTable(&song->channels);
 
-    i               = 0;
-    freeSlotMarker  = MIDI_NOTE_SLOT_FREE;
-    slotOffsetBytes = 0;
-    do {
-        // Keep offset-first address formation, then locate the contained slot.
-        slot          = (_MidiNoteSlot*)(slotOffsetBytes + (s32)song);
-        slot          = (_MidiNoteSlot*)((u8*)slot + OFFSET_OF(_MidiSong, voiceSlots));
-        slotWords     = (s32*)slot;
-        slotWordIndex = 0;
-        do {
-            *slotWords = 0;
-            slotWordIndex++;
-            slotWords++;
-        } while (slotWordIndex < sizeof(*slot) / sizeof(*slotWords));
-        slotOffsetBytes += (s32)sizeof(*slot);
-        i++;
-        slot->channel = freeSlotMarker;
-        slot->voice   = freeSlotMarker;
-    } while ((s32)i < ARRAY_SIZE(song->voiceSlots));
+    for (i = 0; (s32)i < ARRAY_SIZE(song->voiceSlots); i++) {
+        Midi_ResetNoteSlot(&song->voiceSlots[i]);
+    }
 }
 
 /// Reads the big-endian 32-bit value at `p`, the form every length in a
