@@ -188,19 +188,28 @@ static void _tonfaBatonInitModelTask(Task* task)
     model->flags            = 0;
 }
 
-/// Steps the baton's stored Z angle and replaces its local rotation.
+/// Steps the attached baton's rest/strike Z rotation in its parent's frame.
 ///
-/// Angles use 4096 units per turn. Mode 0 returns toward zero by 256 units;
-/// mode 1 advances toward a half turn by 448 units; other modes hold the angle.
-/// Both steps retain signed-halfword truncation and may cross the target.
-static inline void _tonfaBatonStepModelPose(GfxCoord* rootCoord, s32 poseMode)
+/// `rootCoord` must be live and writable with an initialized signed
+/// `param.rot.vz` angle, in 4096 units per turn. `poseRequest` is the caller's
+/// low-nibble request: 0 rest, 1 strike, 2..15 hold the stored angle.
+/// Rest subtracts 256 only while the angle is positive; strike adds 448 only
+/// while it is below 2048. The tests precede the steps, so a crossed target
+/// stays overshot until another request moves the angle again.
+///
+/// Always replaces the local 3x3 rotation, including on a hold request, and
+/// preserves translation. Other stored Euler components are unused here.
+/// The caller owns the coordinate and must invalidate its composition stamp
+/// and compose it before using the cached matrix. Requires the initialized
+/// scratch stack used by `gfxRotMatrixZ`; retains no pointer.
+static inline void _tonfaBatonStepModelPose(GfxCoord* rootCoord, s32 poseRequest)
 {
     enum {
         TONFA_BATON_POSE_RETURN_STEP = 0x100,
         TONFA_BATON_POSE_STRIKE_STEP = 0x1C0
     };
 
-    switch (poseMode) {
+    switch (poseRequest) {
         case TONFA_BATON_POSE_REST:
             if (rootCoord->param.rot.vz > 0) {
                 rootCoord->param.rot.vz -= TONFA_BATON_POSE_RETURN_STEP;
@@ -212,6 +221,7 @@ static inline void _tonfaBatonStepModelPose(GfxCoord* rootCoord, s32 poseMode)
             }
             break;
     }
+    // A held angle still replaces the rotation; translation stays at the grip.
     gfxRotMatrixZ(&rootCoord->coord, rootCoord->param.rot.vz, GRAPHICS_ROTATION_REPLACE);
 }
 
