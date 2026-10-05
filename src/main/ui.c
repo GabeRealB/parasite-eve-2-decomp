@@ -389,7 +389,7 @@ static void _uiDrawUnderlinedLabel(const UiPanel* panel, s32 x, s32 y, const cha
         _uiSpawnTaskDesc.header.fields.flags    = _uiSpawnDescriptor->taskFlags;                                                    \
         _uiSpawnTaskDesc.header.fields.priority = _uiSpawnDescriptor->taskPriority;                                                 \
         _uiSpawnDescriptorArg                   = _uiSpawnDescriptor->taskDataValue;                                                \
-        _uiSpawnTaskDesc.callback               = Ui_DispatchObjectState;                                                           \
+        _uiSpawnTaskDesc.callback               = _uiDispatchPanelLifecycle;                                                        \
         _uiSpawnTaskDesc.data.value             = _uiSpawnDescriptorArg;                                                            \
         _uiSpawnTask                            = taskSpawnFromTable(&_uiSpawnTaskDesc, 0, _uiSpawnPayload, _uiSpawnResult);        \
         if (_uiSpawnTask != NULL) {                                                                                                 \
@@ -519,7 +519,7 @@ static void _uiPanelHiding(UiPanel* panel, Task* owningTask);
 
 static void _uiPanelHidden(UiPanel* panel, Task* task);
 
-static void Ui_DispatchObjectState(Task* task);
+static void _uiDispatchPanelLifecycle(Task* owningTask);
 
 static void Ui_DrawDialogLine(UiList* list, UiObject* object);
 
@@ -3085,14 +3085,23 @@ static void _uiPanelHidden(UiPanel* panel, Task* task)
     }
 }
 
-static void Ui_DispatchObjectState(Task* task)
+/// Runs the owning UI object's current panel lifecycle handler.
+///
+/// `owningTask->spawnArg2.pointer` must hold a live `UiObject` owned by that
+/// task. Its panel state must be 0..5 (initial, opening, open, closing, hiding,
+/// hidden); dispatch does not check the index. The selected handler receives
+/// the embedded panel and its owning task, and may exit the task and release
+/// the object. Neither is accessed after the handler returns.
+static void _uiDispatchPanelLifecycle(Task* owningTask)
 {
-    _UiPanelLifecycleFuncTable6 sp;
-    UiPanel*                    temp;
+    _UiPanelLifecycleFuncTable6 handlers;
+    UiObject*                   object;
+    UiPanel*                    panel;
 
-    sp   = Ui_ObjectStates;
-    temp = task->spawnArg2.pointer;
-    sp.funcs[temp->state](temp, task);
+    handlers = Ui_ObjectStates;
+    object   = owningTask->spawnArg2.pointer;
+    panel    = &object->panel;
+    handlers.funcs[panel->state](panel, owningTask);
 }
 
 s32 uiGetCursorPositionWord(void)

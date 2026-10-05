@@ -13072,13 +13072,15 @@ The index form then becomes `addiu v1,sp,0x10` / `sll` / `addu v1,v1,v0` /
 `lw v0,0(v1)`. `GameFlow_DispatchTable` is the pure example (3 entries). The same idea
 applies to `GameFlow_States5` (5 entries) for the sibling dispatcher `GameFlow_DispatchTable5`.
 
-Two-arg handlers (e.g. `_UiPanelLifecycleFunc` / `Ui_ObjectStates` / `Ui_DispatchObjectState`) use the same
+Two-arg handlers (e.g. `_UiPanelLifecycleFunc` / `Ui_ObjectStates` / `_uiDispatchPanelLifecycle`) use the same
 struct-assignment pattern. When the object that supplies the index is also the
 first call argument, keep it in a temp so both the index and the call share it:
 
 ```c
-temp = arg0->field_20;
-sp.funcs[temp->field_8](temp, arg0);
+handlers = Ui_ObjectStates;
+object = owningTask->spawnArg2.pointer;
+panel = &object->panel;
+handlers.funcs[panel->state](panel, owningTask);
 ```
 
 Six entries still multi-load in two groups of three (`lw`/`sw` at 0/4/8 then
