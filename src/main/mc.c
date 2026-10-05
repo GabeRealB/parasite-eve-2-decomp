@@ -28,10 +28,11 @@
 #include "wipsys.h"
 #include "main/wipsys_types.h"
 
-/// Serialized preview range and place-label values used by the slot UI.
+/// Serialized preview span, checksum width and place-label values.
 enum {
     MEMORY_CARD_SAVE_PREVIEW_FILE_OFFSET   = 0x200,
     MEMORY_CARD_SAVE_HEADER_CHECKSUM_BYTES = 0x38,
+    MEMORY_CARD_CHECKSUM_MASK              = 0xFFFF,
     MEMORY_CARD_SAVE_POINT_COUNT           = 16,
     MEMORY_CARD_SAVE_POINT_OPENING         = 15,
 };
@@ -269,10 +270,7 @@ static void Mc_BuildFileName(u8* arg0, s32 arg1);
 
 static void Mc_InitDualBankBuffers(void);
 
-/// Store the checksum of a `size`-byte record's payload (everything after its
-/// `_McChecksumBlock` header) in the header: the signed byte sum and its
-/// complement.
-static inline void _mcWriteBlockChecksum(u8* data, s32 size);
+static inline void _mcWriteBlockChecksum(u8* recordBytes, s32 recordByteCount);
 
 /// Prompt + optional choice dialog (Mc_PromptTable[mode]).
 static s32 Mc_PromptDialog(Task* task, s32 arg1, s32 unused3);
@@ -287,11 +285,11 @@ static inline u16* Mc_EncodeTitleText(s8* arg0, u16* arg1);
 
 static inline u16* Mc_EncodeTitleLiteral(s8* arg0, u16* arg1);
 
-static inline void Mc_UpdateTitleHeaderChecksum(void);
+static inline void _mcWriteSaveHeaderChecksum(void);
 
-static inline u8* Mc_CopyTitleBytes(u8* src, u8* dst);
+static inline u16* _mcAppendEncodedTitleLabel(const u8* encodedLabel, u16* titleCursor);
 
-static inline void Mc_UpdateTitleDataChecksum(void);
+static inline void _mcWriteCardHeaderChecksum(void);
 
 /// Chooses the save number and builds the card title and its checksums.
 static void Mc_BuildSaveTitle(McWork* work);
@@ -300,20 +298,16 @@ static void Mc_StateScanDirFlags(Task* task, McWork* work);
 
 static void Mc_StateListDirectory(Task* task, McWork* work);
 
-/// Inline form of Mc_DrawPrompt.
-static inline void _mcDrawPrompt(Task* task, s32 mode);
+static inline void _mcDrawPrompt(Task* task, s32 promptId);
 
-/// Tear down the task's child UI and report status on the task's own object.
-static inline void _mcCloseChild(Task* task, s32 status);
+static inline void _mcCloseChildUi(Task* task, s32 parentInputControl);
 
 /// Inline form of Mc_CopyFileName: 0 saves Mc_FileName to Mc_FileNameBuf, otherwise restores it.
 static inline void _mcCopyFileName(s32 arg0);
 
 static void Mc_StateFileSelect(Task* task, McWork* work);
 
-/// Mask of the buffer slots to write, bit n for slot n: set where the slot's
-/// two halves differ, and always for slots 0, 1 and 8.
-static inline s32 _mcCompareBufferHalves(void);
+static inline s32 _mcGetSectionWriteMask(void);
 
 static void Mc_StateCompareBuffers(Task* task, McWork* work);
 
@@ -325,11 +319,9 @@ static void Mc_StatePadFileName(Task* task, McWork* work);
 
 static void Mc_StateNameEntry(Task* task, McWork* work);
 
-/// Copy the first half of each of Mc_BufferSlots[1..8] over its second half.
-static inline void _mcCopyBufferHalves(void);
+static inline void _mcBackupSaveSections(void);
 
-/// Inline form of Mc_WriteFirstByteChecksum.
-static inline void _mcWriteFirstByteChecksum(void);
+static inline void _mcWriteSectionChecksumSummary(void);
 
 static void Mc_StateBackupBuffers(Task* task, McWork* work);
 
@@ -343,27 +335,19 @@ static void Mc_StateBlankFileName(Task* task, McWork* work);
 
 static void Mc_StateSyncOpen(Task* task, McWork* work);
 
-/// Inline form of Mc_VerifySlotChecksums.
-static inline s32 _mcVerifySlotChecksums(void);
+static inline s32 _mcVerifySaveSectionChecksums(void);
 
-/// Inline form of Mc_WriteSlotChecksums: store the signed byte sum of each
-/// buffer slot 1..8's payload, and its complement, in the buffer's header.
-static inline void _mcWriteSlotChecksums(void);
+static inline void _mcWriteSaveSectionChecksums(void);
 
-/// Inline form of Mc_VerifyFirstByteChecksum.
-static inline s32 _mcVerifyFirstByteChecksum(void);
+static inline s32 _mcVerifySectionChecksumSummary(void);
 
 static void Mc_StateVerifyFinish(Task* task, McWork* work);
 
-/// Checksum the 0x200-byte work buffer into the work's sum / complement pair,
-/// clearing the pair first.
-static inline void _mcWriteWorkChecksum(McWork* work);
+static inline void _mcWriteReadCardHeaderChecksum(McWork* work);
 
 static void Mc_StateFinishWrite(Task* task, McWork* work);
 
-/// Inline form of Mc_VerifySaveHdrChecksum: whether a save header names a valid
-/// save point and carries the checksum of its 56 bytes from `McSavePreview.location`.
-static inline s32 _mcVerifySaveHdrChecksum(McSavePreview* save);
+static inline s32 _mcVerifySavePreviewChecksum(const McSavePreview* preview);
 
 static void Mc_StateSaveSlotUi(UiList* list, UiObject* object);
 
@@ -375,7 +359,7 @@ static void Mc_CopyFileName(s32 arg0);
 
 static void Mc_WriteSaveHdrChecksum(void);
 
-static s32 Mc_VerifySaveHdrChecksum(McSaveData* save);
+static s32 _mcVerifySaveHeaderChecksum(const McSaveData* save);
 
 /// Out-of-line form of `_mcWriteBlockChecksum`. Nothing calls it.
 static void Mc_WriteBlockChecksum(u8* data, s32 size);
@@ -416,7 +400,7 @@ static void Mc_WriteSlotChecksumsEx(Task* task, McWork* work);
 
 static void Mc_StateAcceptMode1(Task* task, McWork* work);
 
-static void Mc_StateSyncAdvance(Task* task, McWork* work);
+static void _mcStatePollCardAdvance(Task* task, McWork* work);
 
 static void Mc_StateDrawPromptAdvance(Task* task, McWork* work);
 
@@ -783,26 +767,28 @@ static void Mc_InitDualBankBuffers(void)
     (&gPlayerStatus)[idx].weapon = two;
 }
 
-/// Store the checksum of a `size`-byte record's payload (everything after its
-/// `_McChecksumBlock` header) in the header: the signed byte sum and its
-/// complement.
-static inline void _mcWriteBlockChecksum(u8* data, s32 size)
+/// Write the signed-byte payload sum and its complement into a save record.
+///
+/// `recordByteCount` includes the four-byte `_McChecksumBlock` header and must
+/// be at least that large. `recordBytes` must point to a writable, halfword-aligned
+/// record of that extent. Each addition retains its low 16 bits.
+static inline void _mcWriteBlockChecksum(u8* recordBytes, s32 recordByteCount)
 {
     _McChecksumBlock* block;
     s16               sum;
-    u32               i;
+    u32               byteIndex;
 
-    block = (_McChecksumBlock*)data;
-    sum   = 0;
-    data  = block->payload;
-    size -= sizeof(_McChecksumBlock);
-    i     = 0;
-    if (size != 0) {
+    block            = (_McChecksumBlock*)recordBytes;
+    sum              = 0;
+    recordBytes      = block->payload;
+    recordByteCount -= sizeof(_McChecksumBlock);
+    byteIndex        = 0;
+    if (recordByteCount != 0) {
         do {
-            i    += 1;
-            sum  += (s8)*data;
-            data += 1;
-        } while (i < size);
+            byteIndex   += 1;
+            sum         += (s8)*recordBytes;
+            recordBytes += 1;
+        } while (byteIndex < recordByteCount);
     }
     block->checksum           = sum;
     block->checksumComplement = ~sum;
@@ -1067,63 +1053,81 @@ static inline u16* Mc_EncodeTitleLiteral(s8* arg0, u16* arg1)
     return arg1;
 }
 
-static inline void Mc_UpdateTitleHeaderChecksum(void)
+/// Write the live save's preview checksum and complement.
+///
+/// Covers `MEMORY_CARD_SAVE_HEADER_CHECKSUM_BYTES` signed bytes from `location`,
+/// including the checksum pair. Initialize that pair to zero and all ones so
+/// its signed-byte contribution stays -2 when the result is stored.
+static inline void _mcWriteSaveHeaderChecksum(void)
 {
-    u16 sum;
-    u8* ptr;
-    s32 limit;
-    s32 i;
-    s16 tmp;
+    u16       sum;
+    const u8* headerByte;
+    s32       checksumByteCount;
+    s32       byteIndex;
+    s16       signedByte;
 
     sum                                                               = 0;
-    ptr                                                               = (u8*)&gMcSaveData[MEMORY_CARD_SAVE_LIVE];
-    ptr                                                              += OFFSET_OF(McSavePreview, location);
-    limit                                                             = MEMORY_CARD_SAVE_HEADER_CHECKSUM_BYTES;
-    i                                                                 = 0;
+    headerByte                                                        = (const u8*)&gMcSaveData[MEMORY_CARD_SAVE_LIVE];
+    headerByte                                                       += OFFSET_OF(McSavePreview, location);
+    checksumByteCount                                                 = MEMORY_CARD_SAVE_HEADER_CHECKSUM_BYTES;
+    byteIndex                                                         = 0;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.headerChecksum           = 0;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.headerChecksumComplement = 0xFFFF;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.headerChecksumComplement = MEMORY_CARD_CHECKSUM_MASK;
     do {
-        i   += 1;
-        tmp  = (s8)*ptr;
-        sum  = sum + tmp;
-        ptr += 1;
-    } while (i < limit);
+        byteIndex  += 1;
+        signedByte  = (s8)*headerByte;
+        sum         = sum + signedByte;
+        headerByte += 1;
+    } while (byteIndex < checksumByteCount);
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.headerChecksum           = sum;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.headerChecksumComplement = 0xFFFF - (u32)sum;
-    Mc_VerifySaveHdrChecksum(&gMcSaveData[MEMORY_CARD_SAVE_LIVE]);
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.headerChecksumComplement = MEMORY_CARD_CHECKSUM_MASK - (u32)sum;
+    _mcVerifySaveHeaderChecksum(&gMcSaveData[MEMORY_CARD_SAVE_LIVE]);
 }
 
-static inline u8* Mc_CopyTitleBytes(u8* src, u8* dst)
+/// Append a zero-terminated Shift-JIS place label to the card-title cursor.
+///
+/// `encodedLabel` contains complete two-byte glyphs with no embedded zero bytes.
+/// `titleCursor` must be halfword-aligned and have room for the label and its
+/// byte terminator; source and destination must not overlap. Returns the
+/// cursor at that terminator for the next append;
+/// the copy preserves encoded bytes without converting them.
+static inline u16* _mcAppendEncodedTitleLabel(const u8* encodedLabel, u16* titleCursor)
 {
-    while (*src != 0) {
-        *dst++ = *src++;
+    u8* destinationByte = (u8*)titleCursor;
+
+    while (*encodedLabel != 0) {
+        *destinationByte++ = *encodedLabel++;
     }
-    *dst = 0;
-    return dst;
+    *destinationByte = 0;
+    return (u16*)destinationByte;
 }
 
-static inline void Mc_UpdateTitleDataChecksum(void)
+/// Store the complete card file header's signed-byte sum in the live save.
+///
+/// Covers all title, CLUT and icon bytes in `Mc_DefaultChecksumSrc`, retaining
+/// the low 16 bits and storing their complement in the saved checksum pair.
+static inline void _mcWriteCardHeaderChecksum(void)
 {
-    u16               sum;
-    s32               count;
-    u8*               src;
-    _McChecksumBlock* dst;
-    s32               i;
+    u16       sum;
+    s32       headerByteCount;
+    const u8* headerByte;
+    u16*      checksum;
+    s32       byteIndex;
 
-    sum                     = 0;
-    count                   = 0x200;
-    src                     = Mc_DefaultChecksumSrc;
-    dst                     = (_McChecksumBlock*)&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.titleChecksum;
-    i                       = 0;
-    dst->checksum           = sum;
-    dst->checksumComplement = 0xFFFF - (u32)sum;
+    sum                                                                      = 0;
+    headerByteCount                                                          = sizeof(Mc_DefaultChecksumSrc);
+    headerByte                                                               = Mc_DefaultChecksumSrc;
+    checksum                                                                 = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.titleChecksum;
+    byteIndex                                                                = 0;
+    *checksum                                                                = sum;
+    PARENT_OF(checksum, McSaveState, titleChecksum)->titleChecksumComplement = MEMORY_CARD_CHECKSUM_MASK - (u32)sum;
     do {
-        i   += 1;
-        sum += (s8)*src;
-        src += 1;
-    } while (i < count);
-    dst->checksum           = sum;
-    dst->checksumComplement = 0xFFFF - (u32)sum;
+        byteIndex  += 1;
+        sum        += (s8)*headerByte;
+        headerByte += 1;
+    } while (byteIndex < headerByteCount);
+    *checksum                                                                = sum;
+    PARENT_OF(checksum, McSaveState, titleChecksum)->titleChecksumComplement = MEMORY_CARD_CHECKSUM_MASK - (u32)sum;
 }
 
 static void Mc_BuildSaveTitle(McWork* work)
@@ -1170,7 +1174,7 @@ static void Mc_BuildSaveTitle(McWork* work)
     title                                               = Mc_EncodeTitleLiteral(" ", title);
     Mc_DefaultChecksumSrc[0x43]                         = 0;
     Mc_DefaultChecksumSrc[0x42]                         = 0;
-    title                                               = (u16*)Mc_CopyTitleBytes(Mc_LocationTitleLabels[(s8)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.savePoint], (u8*)title);
+    title                                               = _mcAppendEncodedTitleLabel(Mc_LocationTitleLabels[(s8)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.savePoint], title);
     title                                               = Mc_EncodeTitleLiteral("(", title);
     title                                               = Mc_EncodeTitleText((s8*)textItoaSigned(buffer, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.saveNumber), title);
     title                                               = Mc_EncodeTitleLiteral((s8*)McText_CloseParen, title);
@@ -1180,8 +1184,8 @@ static void Mc_BuildSaveTitle(McWork* work)
     } else if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.saveCount < 99) {
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.saveCount++;
     }
-    Mc_UpdateTitleHeaderChecksum();
-    Mc_UpdateTitleDataChecksum();
+    _mcWriteSaveHeaderChecksum();
+    _mcWriteCardHeaderChecksum();
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.bufferChecksum           = 0;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.bufferChecksumComplement = 0xFFFF;
 }
@@ -1192,7 +1196,7 @@ static const _McSaveStateTable Mc_PromptStates = { {
     Mc_ResetWork,
     Mc_WriteSlotChecksumsEx,
     Mc_StateAcceptMode1,
-    Mc_StateSyncAdvance,
+    _mcStatePollCardAdvance,
     Mc_StateCompareBuffers,
     Mc_StateDrawPromptAdvance,
     Mc_StateOpenRead,
@@ -1201,12 +1205,12 @@ static const _McSaveStateTable Mc_PromptStates = { {
     Mc_StateCreateFile,
     Mc_StateEnterDialog4,
     Mc_StateWriteFile,
-    Mc_StateSyncAdvance,
+    _mcStatePollCardAdvance,
     Mc_StatePadFileName,
     Mc_StatePromptChoiceGeneric,
     Mc_StateBackupBuffers,
     Mc_StateWriteData,
-    Mc_StateSyncAdvance,
+    _mcStatePollCardAdvance,
     Mc_StateFreeBuffer,
     Mc_StateClosePrompt,
     Mc_StateSyncPromptFile3,
@@ -1225,7 +1229,7 @@ static const _McSaveStateTable Mc_PromptStates = { {
     Mc_StateListDirectory,
     Mc_StateOpenSelected,
     Mc_StateReadHeader,
-    Mc_StateSyncAdvance,
+    _mcStatePollCardAdvance,
     Mc_StateOpenNext,
     Mc_StateFileSelect,
     Mc_StateUiCountdown2,
@@ -1359,38 +1363,46 @@ static void Mc_StateListDirectory(Task* task, McWork* work)
     textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, textColorRgb, one, TEXT_ALIGNMENT_LEFT);
 }
 
-/// Inline form of Mc_DrawPrompt.
-static inline void _mcDrawPrompt(Task* task, s32 mode)
+/// Draw one memory-card prompt on the dialog task's panel and clear its UI result.
+///
+/// `task->spawnArg2.pointer` must borrow a live `UiObject`; `promptId` must index
+/// `Mc_PromptTable`. Draws the title and both prompt lines in the normal text
+/// color, with outlines and left alignment.
+static inline void _mcDrawPrompt(Task* task, s32 promptId)
 {
     u32           textColorRgb;
-    UiObject*     obj;
-    McPromptPair* entry;
-    McPromptPair* base;
+    UiObject*     panelObject;
+    McPromptPair* prompt;
+    McPromptPair* prompts;
 
-    obj          = task->spawnArg2.pointer;
-    textColorRgb = uiGetTextColor(obj, USER_INTERFACE_TEXT_COLOR_NORMAL);
-    obj->result  = USER_INTERFACE_RESULT_NONE;
-    uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
-    base  = Mc_PromptTable;
-    entry = &base[mode];
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    panelObject         = task->spawnArg2.pointer;
+    textColorRgb        = uiGetTextColor(panelObject, USER_INTERFACE_TEXT_COLOR_NORMAL);
+    panelObject->result = USER_INTERFACE_RESULT_NONE;
+    uiDrawTitle(&(panelObject)->panel, Mc_StrMemoryCard);
+    prompts = Mc_PromptTable;
+    prompt  = &prompts[promptId];
+    textDrawUiLine(panelObject, panelObject->panel.contentLeft.signedValue + 2, -2, prompt->upperLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(panelObject, panelObject->panel.contentLeft.signedValue + 2, 0xF, prompt->lowerLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
 }
 
-/// Tear down the task's child UI and report status on the task's own object.
-static inline void _mcCloseChild(Task* task, s32 status)
+/// Start closing the first child panel and set the parent panel's input control.
+///
+/// Does nothing without a child task. Both tasks must borrow live `UiObject`s
+/// through `spawnArg2.pointer`. The child becomes inactive before its UI tree
+/// starts closing; `parentInputControl` is written to the parent's control word.
+static inline void _mcCloseChildUi(Task* task, s32 parentInputControl)
 {
     Task*     child;
-    UiObject* obj;
-    UiObject* flag;
+    UiObject* childPanel;
+    UiObject* parentPanel;
 
     child = task->firstChild;
     if (child != NULL) {
-        obj                     = child->spawnArg2.pointer;
-        flag                    = task->spawnArg2.pointer;
-        obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
-        uiStartTreeClosing(obj, obj->owner);
-        flag->panel.control.word = status;
+        childPanel                     = child->spawnArg2.pointer;
+        parentPanel                    = task->spawnArg2.pointer;
+        childPanel->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
+        uiStartTreeClosing(childPanel, childPanel->owner);
+        parentPanel->panel.control.word = parentInputControl;
     }
 }
 
@@ -1486,47 +1498,55 @@ static void Mc_StateFileSelect(Task* task, McWork* work)
     if (syncResult != -1) {
         if (syncResult == 1 && work->syncResult != 0) {
             task->state = 2;
-            _mcCloseChild(task, syncResult);
+            _mcCloseChildUi(task, syncResult);
         }
     } else {
         MemCardExist(work->channel);
     }
 }
 
-/// Mask of the buffer slots to write, bit n for slot n: set where the slot's
-/// two halves differ, and always for slots 0, 1 and 8.
-static inline s32 _mcCompareBufferHalves(void)
+/// Return the save-section write mask by comparing each live record with its backup.
+///
+/// Bit n selects `Mc_BufferSlots[n]`. Compare sections 1..8 byte for byte and
+/// always select the card file header (0), saved state (1) and nibble bank (8).
+static inline s32 _mcGetSectionWriteMask(void)
 {
-    _McSaveSection* base;
-    u8*             src;
-    u8*             dest;
-    u32             count;
-    u32             i;
-    u32             j;
-    s32             flags;
+    enum {
+        MEMORY_CARD_SECTION_WRITE_FILE_HEADER = 1 << 0,
+        MEMORY_CARD_SECTION_WRITE_SAVE_STATE  = 1 << 1,
+        MEMORY_CARD_SECTION_WRITE_NIBBLE_BANK = 1 << 8
+    };
 
-    flags = 0;
-    i     = 0;
-    base  = Mc_BufferSlots;
+    const _McSaveSection* sections;
+    const u8*             liveByte;
+    const u8*             backupByte;
+    u32                   bytesPerCopy;
+    u32                   reverseIndex;
+    u32                   byteIndex;
+    s32                   writeMask;
+
+    writeMask    = 0;
+    reverseIndex = 0;
+    sections     = Mc_BufferSlots;
     do {
-        src   = base[8 - i].buffer;
-        count = base[8 - i].bytesPerCopy;
-        j     = 0;
-        dest  = src + count;
-        while (j < count) {
-            if (*src != *dest) {
-                flags |= 1;
+        liveByte     = sections[ARRAY_SIZE(Mc_BufferSlots) - 1 - reverseIndex].buffer;
+        bytesPerCopy = sections[ARRAY_SIZE(Mc_BufferSlots) - 1 - reverseIndex].bytesPerCopy;
+        byteIndex    = 0;
+        backupByte   = liveByte + bytesPerCopy;
+        while (byteIndex < bytesPerCopy) {
+            if (*liveByte != *backupByte) {
+                writeMask |= 1;
             }
-            j    += 1;
-            src  += 1;
-            dest += 1;
+            byteIndex  += 1;
+            liveByte   += 1;
+            backupByte += 1;
         }
-        i      += 1;
-        flags <<= 1;
-    } while (i < 8U);
-    flags |= 0x100;
-    flags |= 3;
-    return flags;
+        reverseIndex += 1;
+        writeMask   <<= 1;
+    } while (reverseIndex < (u32)(ARRAY_SIZE(Mc_BufferSlots) - 1));
+    writeMask |= MEMORY_CARD_SECTION_WRITE_NIBBLE_BANK;
+    writeMask |= MEMORY_CARD_SECTION_WRITE_FILE_HEADER | MEMORY_CARD_SECTION_WRITE_SAVE_STATE;
+    return writeMask;
 }
 
 static void Mc_StateCompareBuffers(Task* task, McWork* work)
@@ -1548,7 +1568,7 @@ static void Mc_StateCompareBuffers(Task* task, McWork* work)
     switch (status) {
         case 0:
             work->slotsRemaining   = MEMORY_CARD_BUFFER_SLOT_COUNT;
-            flags                  = _mcCompareBufferHalves();
+            flags                  = _mcGetSectionWriteMask();
             work->confirmOverwrite = MEMORY_CARD_OVERWRITE_CONFIRM;
             work->slotWriteMask    = flags;
             task->state            = 0x1F;
@@ -1782,7 +1802,7 @@ static void Mc_StateNameEntry(Task* task, McWork* work)
         if (syncResult != -1) {
             if (syncResult == 1 && work->syncResult != 0) {
                 task->state = 2;
-                _mcCloseChild(task, syncResult);
+                _mcCloseChildUi(task, syncResult);
             }
         } else {
             MemCardExist(work->channel);
@@ -1795,57 +1815,61 @@ static void Mc_StateNameEntry(Task* task, McWork* work)
     }
 }
 
-/// Copy the first half of each of Mc_BufferSlots[1..8] over its second half.
-static inline void _mcCopyBufferHalves(void)
+/// Copy every live save record over its adjacent resident backup.
+///
+/// Sections 1..8 each own two consecutive `bytesPerCopy`-byte records. The card
+/// file header in section 0 is excluded because its halves are distinct data.
+static inline void _mcBackupSaveSections(void)
 {
-    _McSaveSection* p;
-    _McSaveSection* base;
-    u8*             src;
-    u8*             dest;
-    u32             count;
-    u32             i;
-    u32             j;
+    _McSaveSection* section;
+    _McSaveSection* sections;
+    u8*             liveByte;
+    u8*             backupByte;
+    u32             bytesPerCopy;
+    u32             sectionIndex;
+    u32             byteIndex;
 
-    i    = 1;
-    base = Mc_BufferSlots;
-    p    = base + 1;
+    sectionIndex = 1;
+    sections     = Mc_BufferSlots;
+    section      = sections + 1;
     do {
-        src   = p->buffer;
-        count = p->bytesPerCopy;
-        j     = 0;
-        dest  = src + count;
-        while (j < count) {
-            j      += 1;
-            *dest++ = *src++;
+        liveByte     = section->buffer;
+        bytesPerCopy = section->bytesPerCopy;
+        byteIndex    = 0;
+        backupByte   = liveByte + bytesPerCopy;
+        while (byteIndex < bytesPerCopy) {
+            byteIndex    += 1;
+            *backupByte++ = *liveByte++;
         }
-        i += 1;
-        p += 1;
-    } while (i < 9U);
+        sectionIndex += 1;
+        section      += 1;
+    } while (sectionIndex < (u32)ARRAY_SIZE(Mc_BufferSlots));
 }
 
-/// Inline form of Mc_WriteFirstByteChecksum.
-static inline void _mcWriteFirstByteChecksum(void)
+/// Store the sum of the live sections' low checksum bytes and its complement.
+///
+/// Adds the unsigned low byte of each section 1..8 checksum, a sum in 0..2040,
+/// into the live save's `bufferChecksum` pair. The card file header is excluded.
+static inline void _mcWriteSectionChecksumSummary(void)
 {
-    _McChecksumBlock* block;
-    _McSaveSection*   p;
-    _McSaveSection*   base;
-    s16               next;
+    _McChecksumBlock* record;
+    _McSaveSection*   section;
+    _McSaveSection*   sections;
     s16               sum;
-    u32               i;
+    u32               sectionIndex;
 
-    sum  = 0;
-    i    = 1;
-    base = Mc_BufferSlots;
-    p    = base + 1;
+    sum          = 0;
+    sectionIndex = 1;
+    sections     = Mc_BufferSlots;
+    section      = sections + 1;
     do {
-        block = p->buffer;
-        p    += 1;
-        i    += 1;
-        next  = sum + (u8)block->checksum;
-        sum   = next;
-    } while (i < 9U);
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.bufferChecksum           = next;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.bufferChecksumComplement = ~next;
+        record        = section->buffer;
+        section      += 1;
+        sectionIndex += 1;
+        sum          += (u8)record->checksum;
+    } while (sectionIndex < (u32)ARRAY_SIZE(Mc_BufferSlots));
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.bufferChecksum           = sum;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.bufferChecksumComplement = ~sum;
 }
 
 static void Mc_StateBackupBuffers(Task* task, McWork* work)
@@ -1855,7 +1879,7 @@ static void Mc_StateBackupBuffers(Task* task, McWork* work)
     void* mem;
 
     if (work->slotsRemaining == 0) {
-        _mcCopyBufferHalves();
+        _mcBackupSaveSections();
         work->closeAnswer = USER_INTERFACE_LIST_COMMAND_YES;
         task->state       = 0x13;
     } else if (work->slotWriteMask & 1) {
@@ -1872,7 +1896,7 @@ static void Mc_StateBackupBuffers(Task* task, McWork* work)
             } else {
                 _mcWriteBlockChecksum(buf, size);
                 if (work->slotsRemaining == MEMORY_CARD_BUFFER_SLOT_COUNT - 1) {
-                    _mcWriteFirstByteChecksum();
+                    _mcWriteSectionChecksumSummary();
                 }
                 memcpy(mem, buf, size);
                 memcpy((u8*)mem + size, buf, size);
@@ -2015,7 +2039,7 @@ static void Mc_StateSyncFileSelect(Task* task, McWork* work)
         MemCardExist(work->channel);
     } else if (syncResult == 1 && work->syncResult != 0) {
         task->state = 7;
-        _mcCloseChild(task, syncResult);
+        _mcCloseChildUi(task, syncResult);
         return;
     }
     child = task->firstChild;
@@ -2057,7 +2081,7 @@ static const _McFileSelectStateTable Mc_FileSelectStates = { {
     Mc_KillIfCountdownAlt,
     Mc_StateEnterPromptF,
     Mc_StateAccept,
-    Mc_StateSyncAdvance,
+    _mcStatePollCardAdvance,
     Mc_StateBlankFileName,
     Mc_StateSyncPrompt3,
     Mc_StateSyncPromptA,
@@ -2065,13 +2089,13 @@ static const _McFileSelectStateTable Mc_FileSelectStates = { {
     Mc_StateSyncOpen,
     Mc_StateVerifyFinish,
     Mc_StateReadData,
-    Mc_StateSyncAdvance,
+    _mcStatePollCardAdvance,
     Mc_StateFinishWrite,
     Mc_StateDrawPrompt1,
     Mc_StateGetDirentry,
     Mc_StateOpenDirEntry,
     Mc_StateReadSlot,
-    Mc_StateSyncAdvance,
+    _mcStatePollCardAdvance,
     Mc_StateWalkDirectory,
     Mc_StateSyncFileSelect,
     Mc_StateEnterPrompt17,
@@ -2181,97 +2205,109 @@ static void Mc_StateSyncOpen(Task* task, McWork* work)
     }
 }
 
-/// Inline form of Mc_VerifySlotChecksums.
-static inline s32 _mcVerifySlotChecksums(void)
+/// Return whether every live save section carries its signed-byte payload sum.
+///
+/// Sections 1..8 cover `bytesPerCopy` minus the four-byte record header. Each sum
+/// retains its low 16 bits; backup records and checksum complements are not
+/// checked. All live sections are visited even after a mismatch.
+static inline s32 _mcVerifySaveSectionChecksums(void)
 {
-    _McChecksumBlock* block;
-    _McSaveSection*   p;
-    _McSaveSection*   base;
-    s16               sum;
-    u32               count;
-    u32               i;
-    u32               j;
-    u8*               ptr;
-    s32               ok;
+    const _McChecksumBlock* record;
+    const _McSaveSection*   section;
+    const _McSaveSection*   sections;
+    s16                     sum;
+    u32                     payloadByteCount;
+    u32                     sectionIndex;
+    u32                     byteIndex;
+    const u8*               payloadByte;
+    s32                     allMatch;
 
-    ok   = 1;
-    i    = 1;
-    base = Mc_BufferSlots;
-    p    = base + 1;
+    allMatch     = 1;
+    sectionIndex = 1;
+    sections     = Mc_BufferSlots;
+    section      = sections + 1;
     do {
-        sum   = 0;
-        block = p->buffer;
-        count = p->bytesPerCopy;
-        ptr   = block->payload;
-        count = count - sizeof(_McChecksumBlock);
-        j     = 0;
-        while (j < count) {
-            j   += 1;
-            sum += (s8)*ptr++;
+        sum              = 0;
+        record           = section->buffer;
+        payloadByteCount = section->bytesPerCopy;
+        payloadByte      = record->payload;
+        payloadByteCount = payloadByteCount - sizeof(_McChecksumBlock);
+        byteIndex        = 0;
+        while (byteIndex < payloadByteCount) {
+            byteIndex += 1;
+            sum       += (s8)*payloadByte++;
         }
-        if (block->checksum != (sum & 0xFFFF)) {
-            ok = 0;
+        if (record->checksum != (sum & MEMORY_CARD_CHECKSUM_MASK)) {
+            allMatch = 0;
         }
-        i += 1;
-        p += 1;
-    } while (i < 9U);
-    return ok;
+        sectionIndex += 1;
+        section      += 1;
+    } while (sectionIndex < (u32)ARRAY_SIZE(Mc_BufferSlots));
+    return allMatch;
 }
 
-/// Inline form of Mc_WriteSlotChecksums: store the signed byte sum of each
-/// buffer slot 1..8's payload, and its complement, in the buffer's header.
-static inline void _mcWriteSlotChecksums(void)
+/// Write the signed-byte payload checksum pair of every live save section.
+///
+/// Sections 1..8 cover `bytesPerCopy` minus the four-byte record header. Each sum
+/// retains its low 16 bits. The card file header and resident backups are left
+/// alone; the complement is stored before the checksum.
+static inline void _mcWriteSaveSectionChecksums(void)
 {
-    _McChecksumBlock* block;
-    _McSaveSection*   p;
-    _McSaveSection*   base;
+    _McChecksumBlock* record;
+    _McSaveSection*   section;
+    _McSaveSection*   sections;
     s16               sum;
-    s32               inv;
-    u32               count;
-    u32               i;
-    u32               j;
-    u8*               ptr;
+    s32               checksumMask;
+    u32               payloadByteCount;
+    u32               sectionIndex;
+    u32               byteIndex;
+    u8*               payloadByte;
 
-    i    = 1;
-    inv  = 0xFFFF;
-    base = Mc_BufferSlots;
-    p    = base + 1;
+    sectionIndex = 1;
+    checksumMask = MEMORY_CARD_CHECKSUM_MASK;
+    sections     = Mc_BufferSlots;
+    section      = sections + 1;
     do {
-        sum   = 0;
-        j     = 0;
-        block = p->buffer;
-        count = p->bytesPerCopy;
-        ptr   = block->payload;
-        count = count - sizeof(_McChecksumBlock);
-        while (j < count) {
-            j   += 1;
-            sum += (s8)*ptr++;
+        sum              = 0;
+        byteIndex        = 0;
+        record           = section->buffer;
+        payloadByteCount = section->bytesPerCopy;
+        payloadByte      = record->payload;
+        payloadByteCount = payloadByteCount - sizeof(_McChecksumBlock);
+        while (byteIndex < payloadByteCount) {
+            byteIndex += 1;
+            sum       += (s8)*payloadByte++;
         }
-        p                        += 1;
-        i                        += 1;
-        block->checksumComplement = inv - sum;
-        block->checksum           = sum;
-    } while (i < 9U);
+        section                   += 1;
+        sectionIndex              += 1;
+        record->checksumComplement = checksumMask - sum;
+        record->checksum           = sum;
+    } while (sectionIndex < (u32)ARRAY_SIZE(Mc_BufferSlots));
 }
 
-/// Inline form of Mc_VerifyFirstByteChecksum.
-static inline s32 _mcVerifyFirstByteChecksum(void)
+/// Return whether the live save has the sum of sections 1..8's low checksum bytes.
+///
+/// The bytes are unsigned, giving a sum in 0..2040. Checks `bufferChecksum` only;
+/// its complement, resident backups and the card file header are not checked.
+static inline s32 _mcVerifySectionChecksumSummary(void)
 {
-    s32             sum;
-    u32             i;
-    _McSaveSection* p;
-    _McSaveSection* base;
+    const _McChecksumBlock* record;
+    s32                     sum;
+    u32                     sectionIndex;
+    const _McSaveSection*   section;
+    const _McSaveSection*   sections;
 
-    sum  = 0;
-    i    = 1;
-    base = Mc_BufferSlots;
-    p    = base + 1;
+    sum          = 0;
+    sectionIndex = 1;
+    sections     = Mc_BufferSlots;
+    section      = sections + 1;
     do {
-        sum += (u8)((_McChecksumBlock*)p->buffer)->checksum;
-        p   += 1;
-        i   += 1;
-    } while (i < 9);
-    return ((u16)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.bufferChecksum ^ (sum & 0xFFFF)) == 0;
+        record        = section->buffer;
+        sum          += (u8)record->checksum;
+        section      += 1;
+        sectionIndex += 1;
+    } while (sectionIndex < (u32)ARRAY_SIZE(Mc_BufferSlots));
+    return (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.bufferChecksum ^ (sum & MEMORY_CARD_CHECKSUM_MASK)) == 0;
 }
 
 static void Mc_StateVerifyFinish(Task* task, McWork* work)
@@ -2280,7 +2316,7 @@ static void Mc_StateVerifyFinish(Task* task, McWork* work)
     void* mem;
 
     if (work->slotsRemaining == 0) {
-        if (_mcVerifySlotChecksums() && _mcVerifyFirstByteChecksum()) {
+        if (_mcVerifySaveSectionChecksums() && _mcVerifySectionChecksumSummary()) {
             playClockResetMinuteTicks();
             gDisplayState.control.flags.pendingPlayerPos = 1;
             task->state                                  = 3;
@@ -2313,33 +2349,36 @@ static void Mc_StateVerifyFinish(Task* task, McWork* work)
     }
 
     work->promptId = MEMORY_CARD_PROMPT_LOADING;
-    _mcDrawPrompt(task, 5);
+    _mcDrawPrompt(task, MEMORY_CARD_PROMPT_LOADING);
 }
 
-/// Checksum the 0x200-byte work buffer into the work's sum / complement pair,
-/// clearing the pair first.
-static inline void _mcWriteWorkChecksum(McWork* work)
+/// Store the read card file header's signed-byte sum and complement in dialog work.
+///
+/// `work->buffer` must borrow the complete card file header for this call. Covers
+/// the same byte extent as `Mc_DefaultChecksumSrc`, retaining the low 16 bits;
+/// the stored sum can be compared with the live save's title checksum.
+static inline void _mcWriteReadCardHeaderChecksum(McWork* work)
 {
-    s16  sum;
-    s32  count;
-    u8*  src;
-    u16* dst;
-    s32  i;
+    s16       sum;
+    s32       headerByteCount;
+    const u8* headerByte;
+    u16*      checksum;
+    s32       byteIndex;
 
-    sum    = 0;
-    count  = 0x200;
-    src    = work->buffer;
-    dst    = &work->checksum;
-    i      = 0;
-    dst[0] = 0;
-    dst[1] = ~0;
+    sum                                                       = 0;
+    headerByteCount                                           = sizeof(Mc_DefaultChecksumSrc);
+    headerByte                                                = work->buffer;
+    checksum                                                  = &work->checksum;
+    byteIndex                                                 = 0;
+    *checksum                                                 = 0;
+    PARENT_OF(checksum, McWork, checksum)->checksumComplement = ~0;
     do {
-        i   += 1;
-        sum += (s8)*src;
-        src += 1;
-    } while (i < count);
-    dst[0] = sum;
-    dst[1] = ~sum;
+        byteIndex  += 1;
+        sum        += (s8)*headerByte;
+        headerByte += 1;
+    } while (byteIndex < headerByteCount);
+    *checksum                                                 = sum;
+    PARENT_OF(checksum, McWork, checksum)->checksumComplement = ~sum;
 }
 
 static void Mc_StateFinishWrite(Task* task, McWork* work)
@@ -2357,7 +2396,7 @@ static void Mc_StateFinishWrite(Task* task, McWork* work)
         if (status == 0) {
             slotIdx = MEMORY_CARD_BUFFER_SLOT_COUNT - 1 - work->slotsRemaining;
             if (slotIdx == 0) {
-                _mcWriteWorkChecksum(work);
+                _mcWriteReadCardHeaderChecksum(work);
             } else {
                 size   = Mc_BufferSlots[slotIdx].bytesPerCopy;
                 size <<= 1;
@@ -2393,29 +2432,33 @@ static void Mc_StateFinishWrite(Task* task, McWork* work)
     _mcDrawPrompt(task, work->promptId);
 }
 
-/// Inline form of Mc_VerifySaveHdrChecksum: whether a save header names a valid
-/// save point and carries the checksum of its 56 bytes from `McSavePreview.location`.
-static inline s32 _mcVerifySaveHdrChecksum(McSavePreview* save)
+/// Return whether a save preview names a place in 1..16 and has a valid header sum.
+///
+/// Covers 56 signed bytes from `location`, including the checksum pair and
+/// retained preview bytes; compares the low 16 bits with `headerChecksum`.
+/// The complement is included in the byte sum, without a separate pair check.
+/// `preview` must borrow at least one complete `McSavePreview`.
+static inline s32 _mcVerifySavePreviewChecksum(const McSavePreview* preview)
 {
-    u16 sum;
-    u8* ptr;
-    s32 limit;
-    s32 i;
+    u16       sum;
+    const u8* headerByte;
+    s32       checksumByteCount;
+    s32       byteIndex;
 
     sum = 0;
-    if ((u32)(save->savePoint - 1) >= (u32)MEMORY_CARD_SAVE_POINT_COUNT) {
+    if ((u32)(preview->savePoint - 1) >= (u32)MEMORY_CARD_SAVE_POINT_COUNT) {
         return 0;
     }
     // The serialized checksum spans fields and retained bytes beyond the location cell.
-    ptr   = (u8*)save + OFFSET_OF(McSavePreview, location);
-    limit = MEMORY_CARD_SAVE_HEADER_CHECKSUM_BYTES;
-    i     = 0;
+    headerByte        = (const u8*)preview + OFFSET_OF(McSavePreview, location);
+    checksumByteCount = MEMORY_CARD_SAVE_HEADER_CHECKSUM_BYTES;
+    byteIndex         = 0;
     do {
-        i   += 1;
-        sum += (s8)*ptr;
-        ptr += 1;
-    } while (i < limit);
-    return save->headerChecksum == sum;
+        byteIndex  += 1;
+        sum        += (s8)*headerByte;
+        headerByte += 1;
+    } while (byteIndex < checksumByteCount);
+    return preview->headerChecksum == sum;
 }
 
 static void Mc_StateSaveSlotUi(UiList* list, UiObject* object)
@@ -2428,7 +2471,7 @@ static void Mc_StateSaveSlotUi(UiList* list, UiObject* object)
     // Scale the index and add the preview offset before the work base.
     previewByteOffset = list->currentItemIndex * sizeof(McSavePreview) + OFFSET_OF(McWork, previews);
     work              = object->owner->spawnArg1.pointer;
-    if (!_mcVerifySaveHdrChecksum((McSavePreview*)((u8*)work + previewByteOffset))) {
+    if (!_mcVerifySavePreviewChecksum((McSavePreview*)((u8*)work + previewByteOffset))) {
         enabled = 0;
         uiGetTextColor(object, USER_INTERFACE_TEXT_COLOR_DIMMED);
     }
@@ -2470,7 +2513,7 @@ void Mc_DrawSlotDetails(UiObject* object, McWork* work, s32 slot, s32 arg3, s32 
     textColorRgb = uiGetTextColor(object, USER_INTERFACE_TEXT_COLOR_NORMAL);
     if (slot < work->entryCount) {
         save = &work->previews[slot];
-        if (!_mcVerifySaveHdrChecksum(save)) {
+        if (!_mcVerifySavePreviewChecksum(save)) {
             x = arg3 + object->panel.contentLeft.signedValue + 8;
             y = arg4 + object->panel.contentTop.signedValue + 0x11;
             if (work->corruptNoticeStyle == MEMORY_CARD_CORRUPT_NOTICE_PROMPT) {
@@ -2699,12 +2742,16 @@ static void Mc_WriteSaveHdrChecksum(void)
     } while (i < limit);
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.headerChecksum           = sum;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.headerChecksumComplement = ~sum;
-    Mc_VerifySaveHdrChecksum(&gMcSaveData[MEMORY_CARD_SAVE_LIVE]);
+    _mcVerifySaveHeaderChecksum(&gMcSaveData[MEMORY_CARD_SAVE_LIVE]);
 }
 
-static s32 Mc_VerifySaveHdrChecksum(McSaveData* save)
+/// Check a resident save's preview checksum and its place-label range (1..16).
+///
+/// Reads the shared prefix through `save->preview`; neither the complete saved
+/// state payload nor the card file header is verified. Returns nonzero on success.
+static s32 _mcVerifySaveHeaderChecksum(const McSaveData* save)
 {
-    return _mcVerifySaveHdrChecksum(&save->preview);
+    return _mcVerifySavePreviewChecksum(&save->preview);
 }
 
 /// Out-of-line form of `_mcWriteBlockChecksum`. Nothing calls it.
@@ -2808,27 +2855,27 @@ static void Mc_UnusedStub(void)
 
 static s32 Mc_CompareBufferHalves(void)
 {
-    return _mcCompareBufferHalves();
+    return _mcGetSectionWriteMask();
 }
 
 static void Mc_WriteSlotChecksums(void)
 {
-    _mcWriteSlotChecksums();
+    _mcWriteSaveSectionChecksums();
 }
 
 static void Mc_WriteFirstByteChecksum(void)
 {
-    _mcWriteFirstByteChecksum();
+    _mcWriteSectionChecksumSummary();
 }
 
 static s32 Mc_VerifyFirstByteChecksum(void)
 {
-    return _mcVerifyFirstByteChecksum();
+    return _mcVerifySectionChecksumSummary();
 }
 
 static s32 Mc_VerifySlotChecksums(void)
 {
-    return _mcVerifySlotChecksums();
+    return _mcVerifySaveSectionChecksums();
 }
 
 static void Mc_DuplicateBuffers(void)
@@ -2938,7 +2985,7 @@ static void Mc_WriteSlotChecksumsEx(Task* task, McWork* work)
     work->slotsRemaining   = MEMORY_CARD_BUFFER_SLOT_COUNT;
     work->slotWriteMask    = MEMORY_CARD_SLOT_WRITE_ALL;
     work->confirmOverwrite = MEMORY_CARD_OVERWRITE_CONFIRM;
-    _mcWriteSlotChecksums();
+    _mcWriteSaveSectionChecksums();
 
     if (task->spawnArg1.value != 0) {
         task->killCountdown = 2;
@@ -2981,34 +3028,32 @@ static void Mc_StateAcceptMode1(Task* task, McWork* work)
     }
 }
 
-static void Mc_StateSyncAdvance(Task* task, McWork* work)
+/// Poll card I/O and advance either dialog machine when no operation is pending.
+///
+/// A zero sync return keeps this state and increments the card wait counter;
+/// any nonzero return, including -1, clears it and advances to the next state.
+/// The following state interprets `work->syncResult`. Draws the current prompt
+/// and steps its signed frame timer toward zero by two; odd positive values stay at 1.
+static void _mcStatePollCardAdvance(Task* task, McWork* work)
 {
-    u32           textColorRgb;
-    s32           idx;
-    UiObject*     obj;
-    McPromptPair* entry;
-    McPromptPair* base;
+    enum {
+        MEMORY_CARD_SYNC_POLL                   = 1,
+        MEMORY_CARD_PROMPT_APPROACH_STEP_FRAMES = 2
+    };
 
-    if (MemCardSync(1, &work->syncCommand, &work->syncResult) != 0) {
+    if (MemCardSync(MEMORY_CARD_SYNC_POLL, &work->syncCommand, &work->syncResult) != 0) {
         work->cardTimer = 0;
         task->state     = task->state + 1;
     } else {
         work->cardTimer = work->cardTimer + 1;
     }
-    idx          = work->promptId;
-    obj          = task->spawnArg2.pointer;
-    textColorRgb = uiGetTextColor(obj, USER_INTERFACE_TEXT_COLOR_NORMAL);
-    obj->result  = USER_INTERFACE_RESULT_NONE;
-    uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
-    base  = Mc_PromptTable;
-    entry = &base[idx];
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    _mcDrawPrompt(task, work->promptId);
+    // Test the negative case after the positive step; an odd positive timer stays at 1.
     if (work->promptTimer > 0) {
-        work->promptTimer -= 2;
+        work->promptTimer -= MEMORY_CARD_PROMPT_APPROACH_STEP_FRAMES;
     }
     if (work->promptTimer < 0) {
-        work->promptTimer += 2;
+        work->promptTimer += MEMORY_CARD_PROMPT_APPROACH_STEP_FRAMES;
     }
 }
 

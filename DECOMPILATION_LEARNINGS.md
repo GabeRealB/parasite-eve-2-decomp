@@ -13879,7 +13879,7 @@ tmp = (s8)*ptr;
 sum = sum + tmp;   /* addu v1, v1, v0 */
 ```
 
-`Mc_VerifySaveHdrChecksum` needs both this and the s16/`volatile u8*` pairing above.
+`_mcVerifySaveHeaderChecksum` needs both this and the s16/`volatile u8*` pairing above.
 
 ## Parallel dead offset temp for `p + offset` bank loops
 
@@ -14117,21 +14117,21 @@ clears:
 
 ```c
 sum = 0;
-ptr = (u8*)&gMcSaveData;
+ptr = (u8*)&gMcSaveData[MEMORY_CARD_SAVE_LIVE];
 ptr += 4;                      /* addiu a0, v1, %lo(D); addiu a0, a0, 4 */
 limit = 0x38;
 i = 0;
-gMcSaveData.headerChecksum = 0;       /* completes v1 with second %lo(D) */
-gMcSaveData.headerChecksumComplement = 0xFFFF;
+gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.headerChecksum = 0;       /* completes v1 with second %lo(D) */
+gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.headerChecksumComplement = 0xFFFF;
 do {
     i += 1;
     tmp = (s8)*ptr;
     sum = sum + tmp;
     ptr += 1;
 } while (i < limit);
-gMcSaveData.headerChecksum = sum;
-gMcSaveData.headerChecksumComplement = ~sum;
-Mc_VerifySaveHdrChecksum(&gMcSaveData);
+gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.headerChecksum = sum;
+gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.headerChecksumComplement = ~sum;
+_mcVerifySaveHeaderChecksum(&gMcSaveData[MEMORY_CARD_SAVE_LIVE]);
 ```
 
 That emits the shared-`%hi` shape:
@@ -14148,7 +14148,7 @@ After the loop, reloading `&gMcSaveData` as `%lo(D+4)` / `addiu -4` is fine —
 it links to the same address as a splat `D_xxx+4` symbol (e.g. `D_8007216C`).
 
 `Mc_WriteSaveHdrChecksum` is the pure example (checksum writer for `McSaveState::headerChecksum` /
-`headerChecksumComplement`; pair with the s16 / `sum = sum + tmp` notes used by `Mc_VerifySaveHdrChecksum`).
+`headerChecksumComplement`; pair with the s16 / `sum = sum + tmp` notes used by `_mcVerifySaveHeaderChecksum`).
 
 ## Signed division needs `--expand-div` on the TU
 
@@ -143961,23 +143961,23 @@ parameter is copied into a fresh pseudo at entry (inline or not), and the
 folded copy leaves stale refs on the walker too, lifting it above the count:
 
 ```c
-static inline void _mcWriteBlockChecksum(u8* data, s32 size)
+static inline void _mcWriteBlockChecksum(u8* recordBytes, s32 recordByteCount)
 {
     _McChecksumBlock* block;
     s16               sum;
-    u32               i;
+    u32               byteIndex;
 
-    block = (_McChecksumBlock*)data;
-    sum   = 0;
-    data  = block->payload;
-    size -= 4;
-    i     = 0;
-    if (size != 0) {
+    block            = (_McChecksumBlock*)recordBytes;
+    sum              = 0;
+    recordBytes      = block->payload;
+    recordByteCount -= sizeof(_McChecksumBlock);
+    byteIndex        = 0;
+    if (recordByteCount != 0) {
         do {
-            i    += 1;
-            sum  += (s8)*data;
-            data += 1;
-        } while (i < size);
+            byteIndex   += 1;
+            sum         += (s8)*recordBytes;
+            recordBytes += 1;
+        } while (byteIndex < recordByteCount);
     }
     block->checksum           = sum;
     block->checksumComplement = ~sum;
