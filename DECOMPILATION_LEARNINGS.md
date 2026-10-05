@@ -148045,3 +148045,67 @@ threshold at that insn. A count that is off by two is one narrow local: an
 `s16`/`s8` invariant used in arithmetic contributes a hoisted extension pair
 that is invisible in the output. Try the type of each invariant local before
 any construct that changes cse's blocks.
+## Unresolved, with the mechanism measured: a counter's zero that the loop pre-test still reads from a register (Gp_CountAmmoRows, Gp_BuildAttachList, Gp_DrawHpMpStats, Gp_DrawAmmoRow, 2026-10-05)
+
+A second dehack pass removed nothing from these four, but it replaced "the pin
+is needed" with what each pin stands for. Nothing below is a fix; each is the
+condition a natural source has to meet.
+
+**`slt v0,count,limit` before the loop, where `count` is 0.** `Gp_CountAmmoRows`
+written exactly like its hack-free sibling `Gp_NthRelatedId` (`table[idx].field`
+everywhere, `for (i = 0; i < scan->rowCount; i++)`, two `for (j…)` loops with
+`break`) reproduces all 94 instructions except the prologue and three register
+names. The pre-test comes out `beqz limit`:
+
+- cse1 writes the duplicated exit test as `(lt count limit)` - `count` is the
+  oldest register holding 0, so it becomes the operand whichever of `i`/`count`
+  the source compared.
+- combine then folds it. `flow.c` makes a `LOG_LINK` only from the **next use**
+  of a register back to its setter, so `(lt count limit)` is linked to
+  `count = 0` only while nothing else reads `count` in between. With the link,
+  the three-insn try (`count = 0`, `slt`, branch) succeeds through the
+  "PARALLEL of two independent SETs" split in `try_combine`: the branch becomes
+  `(eq limit 0)` and `count = 0` is re-emitted at the `slt`'s position.
+- So the target's surviving `slt` needs a real read of `count` between its
+  zeroing and the test - `(set i (reg count))` - that cse did not fold. cse
+  folds `i = count`, `for (i = count; …)`, `i = count = 0`, a `u8`/`s16`
+  counter and an inline wrapper alike, because a pseudo costs 1 and
+  `(const_int 0)` costs 0. A `register … asm` variable costs 0 (`CHEAP_REG`),
+  which is the only reason the pinned spelling keeps the copy. `asm volatile`
+  between the two blocks the fold a second way (`can_combine_p` refuses to
+  cross a volatile insn), which is why the hand-built `lui` was also holding
+  the `slt` in place.
+
+**`move s2,s3` after `move s3,s5`.** `reload_cse_simplify_set` scans hard
+registers upward and takes the **lowest-numbered** one known to hold the value,
+so `move t3,t0` can be a folded `i = 0`. A copy from a register that was itself
+filled by such a fold cannot: `reload_cse_record_set` forwards values through a
+copy only when the modes agree and a `CONST_INT` is `VOIDmode`. Passing
+`&count` to an inline does not make the counter a late register either - the
+formal's `copy_to_mode_reg` of the `ADDRESSOF` keeps it in a stack slot
+(`sw zero,16(sp)`).
+
+**The remaining register names are allocation order, and the numbers are
+close.** `global_alloc` gives the lowest free register to the highest
+`floor_log2(refs) * refs / live_length`, with references weighted by loop
+depth (1 outside, 2 in the outer loop, 3 in the inner):
+
+| function | has to be allocated first | measured | competitor |
+|---|---|---|---|
+| `Gp_CountAmmoRows` | the reduced `&table[idx]` giv (`$a3`) | 15 refs / 52 = 0.865 | hoisted `(id - 0x80) * 4`, 5 / 9 = 1.11; `count`, 20 / 69 = 1.16 |
+| `Gp_DrawHpMpStats` | `x` (`$s0`) | 10 refs / 180 = 0.167 | `y2`, 7 / 71 = 0.197 |
+| `Gp_DrawAmmoRow` | `spawnArg` (`$s4`) before the list (`$s5`) | 6 / 190 = 0.063 | list 13 / 396 = 0.098 |
+
+One more weighted reference to the giv (16 refs: `floor_log2` steps to 4, 1.23)
+orders all three `Gp_CountAmmoRows` registers as the target has them, with no
+pin. In `Gp_DrawHpMpStats` the alternative to priority is a conflict: `&req8`
+is a block-local pseudo crossing a call, local-alloc gives it `$s0`, and a
+`y2` still live there cannot take `$s0` (writing the ninth draw's row as
+`y2 - 0x26` proves it - everything else then matches - but that is not what
+the target computes). Splitting `y2` in two makes both halves block-local, and
+local-alloc hands the first one `$s0` before `x` is considered.
+
+**`Gp_ArmorMenuTask`'s copy.** `end = top; end += count` survives cse only when
+`top` is reassigned between the two, and `top = t + top` is then expanded with
+the operands swapped. `top = menu->selectedItemIndex = t + top` keeps the
+operand order but `top` is not the class head there and the copy dies again.
