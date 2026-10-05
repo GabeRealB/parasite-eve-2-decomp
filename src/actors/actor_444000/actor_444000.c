@@ -4964,16 +4964,20 @@ static void func_actor_444000_8013E058(Task* task)
     yawCoord      = task->extra.tmd->coords;
     angle         = ratan2(sc->offset.vx, dz) - ratan2(-yawCoord->coord.m[2][0], yawCoord->coord.m[2][2]);
     if (angle < 0) {
-    wrapUp:
-        if (angle < -0x800) {
-            angle += 0x1000;
-            goto wrapUp;
+        while (1) {
+            if (angle < -0x800) {
+                angle += 0x1000;
+                continue;
+            }
+            break;
         }
     } else {
-    wrapDown:
-        if (angle > 0x800) {
-            angle -= 0x1000;
-            goto wrapDown;
+        while (1) {
+            if (angle > 0x800) {
+                angle -= 0x1000;
+                continue;
+            }
+            break;
         }
     }
     work->neckYawTarget = angle;
