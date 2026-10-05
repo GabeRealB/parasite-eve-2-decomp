@@ -10,6 +10,9 @@
 #include "main/session.h"
 #include "main/task.h"
 
+/// Duration units of each per-frame motor refresh; one unit spans two serviced controller polls.
+enum { PAD_SCRIPT_MOTOR_REFRESH_DURATION_UNITS = 1 };
+
 /// Fraction bits of the Q8 intensity a `_PadScriptLerpWork` ramps.
 ///
 /// The ramp posts the byte above these bits, so the value is also the bit
@@ -90,7 +93,7 @@ static void Gp_KickScriptAB(Task* task);
 
 static void Gp_DispatchScript18(Task* task);
 
-static void Gp_ScriptAState0(Task* task);
+static void _padScriptBinaryLaneStoppedState(Task* task);
 
 static void Gp_TickScriptADelay(Task* task);
 
@@ -98,7 +101,7 @@ static void Gp_ScriptAState3(Task* task);
 
 static void Gp_ScriptAState4(Task* task);
 
-static void Gp_ScriptBState0(Task* task);
+static void _padScriptVariableLaneStoppedState(Task* task);
 
 static void Gp_TickScriptBDelay(Task* task);
 
@@ -365,7 +368,11 @@ void Gp_Script18Task(Task* arg0)
     }
 }
 
-static void Gp_ScriptAState0(Task* task)
+/// Keeps the stopped binary-motor lane idle while the other script lane can continue.
+///
+/// `task` is the shared script task and is unused here. Normal completion
+/// waits for both saved lane opcodes to be `PAD_SCRIPT_STOP`.
+static void _padScriptBinaryLaneStoppedState(Task* task)
 {
 }
 
@@ -389,7 +396,11 @@ static void Gp_ScriptAState4(Task* task)
     Gp_StepScriptA(task);
 }
 
-static void Gp_ScriptBState0(Task* task)
+/// Keeps the stopped variable-motor lane idle while the other script lane can continue.
+///
+/// `task` is the shared script task and is unused here. Normal completion
+/// waits for both saved lane opcodes to be `PAD_SCRIPT_STOP`.
+static void _padScriptVariableLaneStoppedState(Task* task)
 {
 }
 
@@ -413,12 +424,12 @@ static void Gp_ScriptBState4(Task* task)
     Gp_StepScriptB(task);
 }
 
-void Gp_PadHoldTask(Task* task)
+void padScriptBinaryMotorHoldTask(Task* task)
 {
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING || (gGameSession->padScriptFlags & GAME_SESSION_PAD_SCRIPT_DURING_BATTLE_FREEZE)) {
         if (task->spawnArg1.value != 0 && Gp_PadHoldHalt == 0) {
             task->spawnArg1.value--;
-            padPostVibrationRequest(0, PAD_VIBRATION_MOTOR_BINARY, PAD_VIBRATION_BINARY_ON, 1);
+            padPostVibrationRequest(0, PAD_VIBRATION_MOTOR_BINARY, PAD_VIBRATION_BINARY_ON, PAD_SCRIPT_MOTOR_REFRESH_DURATION_UNITS);
             gGameSession->padScriptFlags |= GAME_SESSION_PAD_SCRIPT_HOLD_ACTIVE;
         } else {
             gGameSession->padScriptFlags &= ~GAME_SESSION_PAD_SCRIPT_HOLD_ACTIVE;
@@ -427,17 +438,17 @@ void Gp_PadHoldTask(Task* task)
     }
 }
 
-void Gp_PadLerpTask(Task* task)
+void padScriptVariableMotorRampTask(Task* task)
 {
-    _PadScriptLerpWork* work;
+    _PadScriptLerpWork* ramp;
 
-    work = task->work;
+    ramp = task->work;
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING || (gGameSession->padScriptFlags & GAME_SESSION_PAD_SCRIPT_DURING_BATTLE_FREEZE)) {
-        if (work->framesRemaining != 0 && Gp_PadLerpHalt == 0) {
+        if (ramp->framesRemaining != 0 && Gp_PadLerpHalt == 0) {
             // Post this frame's whole intensity to the variable motor, then advance the ramp.
-            work->framesRemaining--;
-            padPostVibrationRequest(0, PAD_VIBRATION_MOTOR_VARIABLE, work->intensity.bytes.whole, 1);
-            work->intensity.q8           += work->intensityStep;
+            ramp->framesRemaining--;
+            padPostVibrationRequest(0, PAD_VIBRATION_MOTOR_VARIABLE, ramp->intensity.bytes.whole, PAD_SCRIPT_MOTOR_REFRESH_DURATION_UNITS);
+            ramp->intensity.q8           += ramp->intensityStep;
             gGameSession->padScriptFlags |= GAME_SESSION_PAD_SCRIPT_LERP_ACTIVE;
         } else {
             gGameSession->padScriptFlags &= ~GAME_SESSION_PAD_SCRIPT_LERP_ACTIVE;
@@ -454,7 +465,7 @@ static const TaskFuncTable3 Gp_Script18States = { {
 
 // Indexed by the lane opcode: stop, play, wait, loop, jump.
 static const TaskFuncTable5 Gp_ScriptAStates = { {
-    Gp_ScriptAState0,
+    _padScriptBinaryLaneStoppedState,
     Gp_TickScriptADelay,
     Gp_TickScriptADelay,
     Gp_ScriptAState3,
@@ -463,7 +474,7 @@ static const TaskFuncTable5 Gp_ScriptAStates = { {
 
 // Indexed by the lane opcode: stop, play, wait, loop, jump.
 static const TaskFuncTable5 Gp_ScriptBStates = { {
-    Gp_ScriptBState0,
+    _padScriptVariableLaneStoppedState,
     Gp_TickScriptBDelay,
     Gp_TickScriptBDelay,
     Gp_ScriptBState3,

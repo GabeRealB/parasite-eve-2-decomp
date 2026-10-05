@@ -84,9 +84,38 @@ void Gp_SpawnPadLerp(s16 arg0, u8 arg1, u8 arg2);
 
 Task* Gp_SpawnScript18Ex(PadScriptCmd* commands, PadScriptVibrationSegment* segments, s32 arg2);
 
-void Gp_PadHoldTask(Task* task);
+/// Holds port 0's binary vibration motor on for the task's remaining script frames.
+///
+/// Bank 2, type 0x0B passes a live, bodyless `task` with a positive frame count
+/// in `Task::spawnArg1.value`; no work block is needed. Each eligible callback
+/// decrements the count, posts an on request lasting two serviced controller
+/// polls and sets `GAME_SESSION_PAD_SCRIPT_HOLD_ACTIVE`. The next eligible
+/// callback after the count reaches zero, or after the hold halt flag is
+/// raised, clears that bit and tears down the task.
+///
+/// Actor-control freeze pauses posting, countdown and teardown unless
+/// `GAME_SESSION_PAD_SCRIPT_DURING_BATTLE_FREEZE` permits execution. Activity
+/// records the task's refresh, even when demo playback suppresses the request;
+/// existing requests expire independently of this task.
+void padScriptBinaryMotorHoldTask(Task* task);
 
-void Gp_PadLerpTask(Task* task);
+/// Ramps port 0's variable vibration motor once per eligible script frame.
+///
+/// Bank 2, type 0x0C requires a live, bodyless `task` with the owned ramp work
+/// initialized by `Gp_SpawnPadLerp` or the script interpreter. Its signed
+/// halfword frame count must be positive for ordinary playback. Each eligible
+/// callback decrements that count, posts the Q8 whole-intensity byte for two
+/// serviced controller polls, then adds the signed Q8 step. The first post is
+/// the start intensity; no extra post of the final accumulated value is made.
+/// `GAME_SESSION_PAD_SCRIPT_LERP_ACTIVE` records the task's refresh, even when
+/// demo playback suppresses the request.
+///
+/// Actor-control freeze pauses the ramp and teardown unless
+/// `GAME_SESSION_PAD_SCRIPT_DURING_BATTLE_FREEZE` permits execution. On the
+/// next eligible callback after zero frames remain, or when the lerp halt
+/// flag is raised, the task clears its activity bit and tears down, releasing
+/// its work. Existing requests expire independently of this task.
+void padScriptVariableMotorRampTask(Task* task);
 
 void Gp_Script18Task(Task* arg0);
 

@@ -27757,7 +27757,7 @@ case 9:
 ## Overlay the mid-byte of a little-endian `s32` so the load is `lbu`
 
 An 8.8 interpolator stored as `s32` (`start << 8`) is posted as its
-integer byte. `(u8)(work->intensity >> 8)` emits `lw; srl; andi`. The
+integer byte. `(u8)(ramp->intensity.q8 >> 8)` emits `lw; srl; andi`. The
 target is a single `lbu` at offset +1 of that word (LE byte 1).
 
 Put a union on the word so the mid-byte is a real field. GCC then
@@ -27772,10 +27772,10 @@ union {
     } bytes;
 } intensity;
 
-padPostVibrationRequest(0, PAD_VIBRATION_MOTOR_VARIABLE, work->intensity.bytes.whole, 1);
+padPostVibrationRequest(0, PAD_VIBRATION_MOTOR_VARIABLE, ramp->intensity.bytes.whole, PAD_SCRIPT_MOTOR_REFRESH_DURATION_UNITS);
 ```
 
-`Gp_PadLerpTask` is the example. The shift form compiles and is
+`padScriptVariableMotorRampTask` is the example. The shift form compiles and is
 semantically identical but cannot match.
 
 ## Index the copy (`dest[i] = src[i]`) so `count` wins `$a1`

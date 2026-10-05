@@ -348,8 +348,8 @@ The other payload structs live with their sole consumers: `_EvsMusicVolumeFade` 
 | Type | Callback | Notes |
 |------|----------|-------|
 | `07` | `func_800E70AC` | **Caption / dialogue.** `Gp_CapTask = Task_Spawn(2, 7, …)` or `Display_InitModeObj(Task_GetDesc(2, 7), …)` |
-| `0B` | `Gp_PadHoldTask` | `Gp_SpawnPadHold` — hold countdown in `spawnArg1` |
-| `0C` | `Gp_PadLerpTask` | `Gp_SpawnPadLerp` — work block in `work` |
+| `0B` | `padScriptBinaryMotorHoldTask` | `Gp_SpawnPadHold` — port 0 binary-motor vibration, remaining script frames in `spawnArg1.value` |
+| `0C` | `padScriptVariableMotorRampTask` | `Gp_SpawnPadLerp` — port 0 variable-motor Q8 intensity ramp, owned work block in `work` |
 | `0D` | `Gp_Script18Task` | Script-18 dispatcher |
 | `06`, `10` | `Gp_EffAttachTask37` | Shared type-1 TMD |
 | `04` | `0x807257A0` | Stage overlay |
