@@ -122,7 +122,7 @@ void func_gunblade_8011D1E4(Task* task)
                     actorRenderComposeCoord(dst);
                 }
                 if (work->age < 9) {
-                    bladeTrailDraw(work->age & 7, 0x112);
+                    _bladeTrailDraw(work->age & 7, BLADE_TRAIL_TINT_BLUE_WHITE);
                     return;
                 }
                 if (work->index == 1) {
@@ -132,7 +132,7 @@ void func_gunblade_8011D1E4(Task* task)
                         taskReparent(task, eff->task);
                     }
                 }
-                bladeTrailDraw(work->age & 7, 0x331);
+                _bladeTrailDraw(work->age & 7, BLADE_TRAIL_TINT_YELLOW_WHITE);
                 keep = work->age < 0xD;
                 break;
             default:

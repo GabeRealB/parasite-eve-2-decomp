@@ -156,7 +156,7 @@ void func_tonfa_baton_8011D1EC(Task* task)
                     dst->composeStamp = GRAPHICS_COORD_DIRTY;
                     actorRenderComposeCoord(dst);
                 }
-                bladeTrailDraw(work->age & 7, D_tonfa_baton_8012C0EC);
+                _bladeTrailDraw(work->age & 7, D_tonfa_baton_8012C0EC);
                 break;
         }
         if (work->age >= 0x1F) {

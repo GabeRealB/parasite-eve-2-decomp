@@ -16,9 +16,18 @@
 
 #include "common.h"
 
+/// Packed trail tints: red at bit 8, green at bit 4 and blue at bit 0.
+///
+/// Each channel is an unshifted multiplier in 0..3; the intervening bits are
+/// zero. The drawer multiplies these channels by each edge's fading brightness.
+enum {
+    BLADE_TRAIL_TINT_BLUE_WHITE   = 0x112, // Red 1, green 1, blue 2
+    BLADE_TRAIL_TINT_YELLOW_WHITE = 0x331  // Red 3, green 3, blue 1
+};
+
 /// Scratch-stack workspace for one quad of a blade trail.
 ///
-/// `bladeTrailDraw` reserves one block and reuses it for each of the seven
+/// `_bladeTrailDraw` reserves one block and reuses it for each of the seven
 /// quads between the blade's base and tip rings. The corners are those frames'
 /// world translations, narrowed to signed 16-bit coordinate units. Corner 0 is
 /// the newer base and is projected on its own. Corners 1, 2 and 3 are the newer
@@ -40,6 +49,6 @@ typedef struct {
 } BladeTrailScratch;
 STATIC_ASSERT_SIZEOF(BladeTrailScratch, 0x2C);
 
-void bladeTrailDraw(s16 slot, s16 flags);
+static void _bladeTrailDraw(s16 newestSlot, s16 packedTint);
 
 #endif /* SRC_SHARED_BLADE_TRAIL_H */

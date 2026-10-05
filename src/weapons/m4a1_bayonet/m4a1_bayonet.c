@@ -46,7 +46,7 @@ static SVECTOR D_m4a1_bayonet_8011DED0 = { 0, 0x0180, 0x0040, 0 };
 /// `[1]` under it, then seeds all sixteen trail slots with that pose. State 1
 /// re-poses both frames every frame, writes them into trail slot
 /// `age & 7`, re-runs the whole ring so the older slots follow their
-/// parents, and hands the ribbon to `bladeTrailDraw`. The task
+/// parents, and hands the ribbon to `_bladeTrailDraw`. The task
 /// lives 13 frames.
 void func_m4a1_bayonet_8011D1E4(Task* task)
 {
@@ -137,7 +137,7 @@ void func_m4a1_bayonet_8011D1E4(Task* task)
                     slot->composeStamp = GRAPHICS_COORD_DIRTY;
                     actorRenderComposeCoord(slot);
                 }
-                bladeTrailDraw(work->age & 7, 0x112);
+                _bladeTrailDraw(work->age & 7, BLADE_TRAIL_TINT_BLUE_WHITE);
                 break;
         }
         alive = work->age < 0xD;

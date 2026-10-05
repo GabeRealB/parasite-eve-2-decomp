@@ -4,4 +4,4 @@ D_tonfa_baton_8011E460 = 0x8011E460; // model named by a task descriptor
 D_tonfa_baton_8011E5EC = 0x8011E5EC; // model named by a task descriptor
 
 func_tonfa_baton_8011D1EC = 0x8011D1EC; // type:func
-bladeTrailDraw = 0x8011D6B0; // type:func
+_bladeTrailDraw = 0x8011D6B0; // type:func

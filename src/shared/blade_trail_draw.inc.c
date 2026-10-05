@@ -1,73 +1,115 @@
 /* Part of the blade trail library; see blade_trail.h. */
 
-/// Draws the beam as seven Gouraud quads, one per trail slot, walking backwards
-/// from `slot`. Each quad spans the near and far trail coordinates of two
-/// adjacent slots and fades out along the trail: the leading edge is scaled by
-/// `0x40 - 9 * i` and the trailing edge by nine less. `flags` is the beam
-/// colour, three 2-bit channels at bits 8, 4 and 0 that each multiply that
-/// fade.
-void bladeTrailDraw(s16 slot, s16 flags)
+/// Colours both ends of a Gouraud quad with fading packed-tint multipliers.
+///
+/// Brightness values are byte-sized factors. Tint channels are in 0..3 at
+/// bits 8, 4 and 0; red intentionally uses the complete signed high part.
+/// Each resulting colour is narrowed to the packet's byte field.
+static inline void _bladeTrailTintQuad(POLY_G4* quad, s32 newerBrightness, s32 olderBrightness, s16 packedTint)
 {
-    BladeTrailScratch* blk;
-    GfxCoord*          a;
-    GfxCoord*          b;
-    POLY_G4*           prim;
-    s32                i;
-    s32                j;
-    s32                i0;
-    s32                i1;
-    s32                hi;
-    s32                lo;
-    s32                fade;
+    enum {
+        BLADE_TRAIL_TINT_RED_SHIFT    = 8,
+        BLADE_TRAIL_TINT_GREEN_SHIFT  = 4,
+        BLADE_TRAIL_TINT_CHANNEL_MASK = 3
+    };
+    setRGB0(quad, newerBrightness * (packedTint >> BLADE_TRAIL_TINT_RED_SHIFT),
+            newerBrightness * ((packedTint >> BLADE_TRAIL_TINT_GREEN_SHIFT) & BLADE_TRAIL_TINT_CHANNEL_MASK),
+            newerBrightness * (packedTint & BLADE_TRAIL_TINT_CHANNEL_MASK));
+    setRGB1(quad, newerBrightness * (packedTint >> BLADE_TRAIL_TINT_RED_SHIFT),
+            newerBrightness * ((packedTint >> BLADE_TRAIL_TINT_GREEN_SHIFT) & BLADE_TRAIL_TINT_CHANNEL_MASK),
+            newerBrightness * (packedTint & BLADE_TRAIL_TINT_CHANNEL_MASK));
+    setRGB2(quad, olderBrightness * (packedTint >> BLADE_TRAIL_TINT_RED_SHIFT),
+            olderBrightness * ((packedTint >> BLADE_TRAIL_TINT_GREEN_SHIFT) & BLADE_TRAIL_TINT_CHANNEL_MASK),
+            olderBrightness * (packedTint & BLADE_TRAIL_TINT_CHANNEL_MASK));
+    setRGB3(quad, olderBrightness * (packedTint >> BLADE_TRAIL_TINT_RED_SHIFT),
+            olderBrightness * ((packedTint >> BLADE_TRAIL_TINT_GREEN_SHIFT) & BLADE_TRAIL_TINT_CHANNEL_MASK),
+            olderBrightness * (packedTint & BLADE_TRAIL_TINT_CHANNEL_MASK));
+}
 
-    SCRATCH_STACK_RESERVE_BYTES(sizeof(BladeTrailScratch));
-    blk = SCRATCH_STACK_CURSOR(BladeTrailScratch);
+/// Queues a fading additive ribbon through eight recorded blade poses.
+///
+/// `newestSlot` identifies the newest base/tip pair in 0..7; indexing wraps
+/// modulo eight. Both rings must have initialized, composed `workm` view-space
+/// translations in coordinate units. Their low signed 16 bits are projected
+/// through `GsWSMATRIX`. The coordinates are borrowed read-only for this call.
+/// `packedTint` supplies RGB multipliers in 0..3 at bits 8, 4 and 0, with all
+/// other bits zero. Red uses a signed shift without masking the high part.
+///
+/// The seven quads fade from brightness 64 to 1 in steps of 9. Only the GTE
+/// FLAG from the last three corners rejects a quad; corner 0's flags are
+/// overwritten. Sorting and additive blend commands use the older tip's SZ3 / 4,
+/// scaled and wrapped by the current ordering-table configuration.
+///
+/// Requires an initialized scratch stack with one free `BladeTrailScratch`
+/// block and a word-aligned frame arena with room for seven `POLY_G4` packets
+/// and up to seven `DR_TPAGE` commands. A quad consumes arena space even when
+/// rejected. Scratch is released before return; queued packets live until GPU
+/// drawing finishes. Overwrites the GTE matrix and projection registers.
+static void _bladeTrailDraw(s16 newestSlot, s16 packedTint)
+{
+    enum {
+        BLADE_TRAIL_INITIAL_BRIGHTNESS   = 64,
+        BLADE_TRAIL_FADE_STEP            = 9,
+        BLADE_TRAIL_BRIGHTNESS_BYTE_MASK = 0xFF
+    };
+    BladeTrailScratch* scratch;
+    const GfxCoord*    baseCoord;
+    const GfxCoord*    tipCoord;
+    POLY_G4*           quad;
+    s32                segment;
+    s32                unwrappedSlot;
+    s32                newerSlot;
+    s32                olderSlot;
+    s32                newerBrightness;
+    s32                olderBrightness;
+    s32                brightness;
+
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(BladeTrailScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    for (i = 0; i < 7; i++) {
-        j                       = slot - i;
-        i0                      = j & 7;
-        i1                      = (j - 1) & 7;
-        a                       = &gBladeTrailBase[i0];
-        blk->worldCorners[0].vx = (u16)a->workm.t[0];
-        blk->worldCorners[0].vy = (u16)a->workm.t[1];
-        b                       = &gBladeTrailTip[i0];
-        blk->worldCorners[0].vz = (u16)a->workm.t[2];
-        blk->worldCorners[1].vx = (u16)b->workm.t[0];
-        blk->worldCorners[1].vy = (u16)b->workm.t[1];
-        a                       = &gBladeTrailBase[i1];
-        blk->worldCorners[1].vz = (u16)b->workm.t[2];
-        blk->worldCorners[2].vx = (u16)a->workm.t[0];
-        blk->worldCorners[2].vy = (u16)a->workm.t[1];
-        b                       = &gBladeTrailTip[i1];
-        blk->worldCorners[2].vz = (u16)a->workm.t[2];
-        blk->worldCorners[3].vx = (u16)b->workm.t[0];
-        blk->worldCorners[3].vy = (u16)b->workm.t[1];
-        blk->worldCorners[3].vz = (u16)b->workm.t[2];
+    for (segment = 0; segment < ARRAY_SIZE(gBladeTrailBase) - 1; segment++) {
+        // Join successive recorded poses, retaining the low signed coordinate halves.
+        unwrappedSlot               = newestSlot - segment;
+        newerSlot                   = unwrappedSlot & (ARRAY_SIZE(gBladeTrailBase) - 1);
+        olderSlot                   = (unwrappedSlot - 1) & (ARRAY_SIZE(gBladeTrailTip) - 1);
+        baseCoord                   = &gBladeTrailBase[newerSlot];
+        scratch->worldCorners[0].vx = baseCoord->workm.t[0];
+        scratch->worldCorners[0].vy = baseCoord->workm.t[1];
+        tipCoord                    = &gBladeTrailTip[newerSlot];
+        scratch->worldCorners[0].vz = baseCoord->workm.t[2];
+        scratch->worldCorners[1].vx = tipCoord->workm.t[0];
+        scratch->worldCorners[1].vy = tipCoord->workm.t[1];
+        baseCoord                   = &gBladeTrailBase[olderSlot];
+        scratch->worldCorners[1].vz = tipCoord->workm.t[2];
+        scratch->worldCorners[2].vx = baseCoord->workm.t[0];
+        scratch->worldCorners[2].vy = baseCoord->workm.t[1];
+        tipCoord                    = &gBladeTrailTip[olderSlot];
+        scratch->worldCorners[2].vz = baseCoord->workm.t[2];
+        scratch->worldCorners[3].vx = tipCoord->workm.t[0];
+        scratch->worldCorners[3].vy = tipCoord->workm.t[1];
+        scratch->worldCorners[3].vz = tipCoord->workm.t[2];
         // Corner 0 is projected alone. The flag word belongs to the transform of the other three.
-        gte_ldv0(&blk->worldCorners[0]);
+        gte_ldv0(&scratch->worldCorners[0]);
         gte_rtps();
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setPolyG4(prim);
-        gte_stsxy(&prim->x0);
-        gte_ldv3(&blk->worldCorners[1], &blk->worldCorners[2], &blk->worldCorners[3]);
+        quad           = gGpuPrimCursor;
+        gGpuPrimCursor = quad + 1;
+        setPolyG4(quad);
+        gte_stsxy(&quad->x0);
+        gte_ldv3(&scratch->worldCorners[1], &scratch->worldCorners[2], &scratch->worldCorners[3]);
         gte_rtpt();
-        gte_stsxy3(&prim->x1, &prim->x2, &prim->x3);
-        gte_stflg(&blk->projectionFlags);
-        if (blk->projectionFlags >= 0) {
-            gte_stszotz(&blk->otz);
-            fade = 0x40 - i * 9;
-            hi   = fade & 0xFF;
-            lo   = (fade - 9) & 0xFF;
-            setRGB0(prim, hi * (flags >> 8), hi * ((flags >> 4) & 3), hi * (flags & 3));
-            setRGB1(prim, hi * (flags >> 8), hi * ((flags >> 4) & 3), hi * (flags & 3));
-            setRGB2(prim, lo * (flags >> 8), lo * ((flags >> 4) & 3), lo * (flags & 3));
-            setRGB3(prim, lo * (flags >> 8), lo * ((flags >> 4) & 3), lo * (flags & 3));
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, blk->otz);
+        gte_stsxy3(&quad->x1, &quad->x2, &quad->x3);
+        gte_stflg(&scratch->projectionFlags);
+        if (scratch->projectionFlags >= 0) {
+            // Fade each edge and queue its additive mode at the older tip's depth.
+            gte_stszotz(&scratch->otz);
+            brightness      = BLADE_TRAIL_INITIAL_BRIGHTNESS - segment * BLADE_TRAIL_FADE_STEP;
+            newerBrightness = brightness & BLADE_TRAIL_BRIGHTNESS_BYTE_MASK;
+            olderBrightness = (brightness - BLADE_TRAIL_FADE_STEP) & BLADE_TRAIL_BRIGHTNESS_BYTE_MASK;
+            _bladeTrailTintQuad(quad, newerBrightness, olderBrightness, packedTint);
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(scratch->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                    quad);
+            gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, scratch->otz);
         }
     }
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(BladeTrailScratch));
+    SCRATCH_STACK_RELEASE_BLOCK(BladeTrailScratch);
 }

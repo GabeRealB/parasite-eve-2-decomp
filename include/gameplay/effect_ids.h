@@ -154,7 +154,7 @@ enum {
     /// gravity by Gp_EffModelTask; spawned by the handgun/SMG firing controller 0x6002B
     /// and six at once by the reload effect 0x6006D.
     EFFECT_BULLET_CASING = EFFECT_ID(EFFECT_TASK_BANK, 0x036),
-    /// Blade trail (bladeTrailDraw over eight base/tip frame pairs) following the tonfa
+    /// Blade trail (_bladeTrailDraw over eight base/tip frame pairs) following the tonfa
     /// baton during a swing; spawned by the tonfa baton weapon on its attack.
     EFFECT_TONFA_BATON_SWING_TRAIL = EFFECT_ID(EFFECT_TASK_BANK, 0x03A),
     /// Bullet/impact spark: a rotated flash sprite (_effectDrawImpactSparkFlash) shown for 4
@@ -170,7 +170,7 @@ enum {
     /// balcony's break bursts and ambient task.
     EFFECT_DRYFIELD_NIGHT_MOTEL_BALC_DEBRIS = EFFECT_ID(EFFECT_TASK_BANK, 0x03D),
     /// M4A1 bayonet blade trail: records tip and hilt frames in an 8-slot ring each
-    /// frame and draws the ribbon with bladeTrailDraw for 13 frames; spawned on the
+    /// frame and draws the ribbon with _bladeTrailDraw for 13 frames; spawned on the
     /// bayonet stab.
     EFFECT_M4A1_BAYONET_TRAIL = EFFECT_ID(EFFECT_TASK_BANK, 0x03E),
     /// A small drifting sprite particle with random velocity, spawned at random by the
