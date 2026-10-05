@@ -137,5 +137,5 @@ RoomFx_DrawBurst2Glow = 0x80185A2C; // type:func
 RoomFx_DrawGround2Quad = 0x80185F58; // type:func
 glowDrawCapsule = 0x8017F8CC; // type:func
 waterDrawSplash = 0x8017EA0C; // type:func
-waterDrawSpin = 0x8017F1FC; // type:func
+_waterDrawSpin = 0x8017F1FC; // type:func
 waterDrawTile = 0x8017F5E8; // type:func

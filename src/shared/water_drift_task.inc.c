@@ -2,7 +2,7 @@
 
 /* Part of the water effects library; see water_effects.h. */
 
-/// Per-frame update of an effect task drawn with `waterDrawSpin`
+/// Per-frame update of an effect task drawn with `_waterDrawSpin`
 /// (state 1) or `waterDrawTile` (state 2). State 0 seeds the
 /// work from `spawnArg1` and, when `move` is zero, picks a random velocity
 /// scaled through the GTE. Later ticks draw, drift the coordinate by that velocity with `vy` growing by 6,
@@ -24,7 +24,7 @@ static inline void waterDriftTask(Task* task)
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             if (task->state < 2) {
-                waterDrawSpin(coord, work->index, work->scale, work->angle);
+                _waterDrawSpin(coord, work->index, work->scale, work->angle);
             } else {
                 waterDrawTile(coord, work->index, work->scale);
             }
@@ -105,7 +105,7 @@ static inline void waterDriftTask(Task* task)
             }
             return;
         case 1:
-            waterDrawSpin(coord, work->index, work->scale, work->angle);
+            _waterDrawSpin(coord, work->index, work->scale, work->angle);
             break;
         case 2:
             waterDrawTile(coord, work->index, work->scale);

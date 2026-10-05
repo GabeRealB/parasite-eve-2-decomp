@@ -24,7 +24,6 @@
 #include "main/task_types.h"
 
 void waterDrawSplash(GfxCoord* arg0, s32 arg1, s32 arg2);
-void waterDrawSpin(GfxCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
 void waterDrawTile(GfxCoord* arg0, s16 arg1, s16 arg2);
 /* WATER_SHARED_U16_DRAWERS is an empty presence flag. The including file
  * defines it, with no replacement list, before this header. defined() is the

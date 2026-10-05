@@ -69,6 +69,8 @@
 #include "../../shared/glow_draw.h"
 #include "../../shared/water_effects.h"
 
+static void _waterDrawSpin(const GfxCoord* coord, s16 textureColumn, s16 radiusScale, s16 spinAngle);
+
 #define RAND() ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16)
 
 extern SVECTOR D_shelter_b4_reservoir_80185024[14];

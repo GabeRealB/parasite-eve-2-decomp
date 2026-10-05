@@ -65,6 +65,8 @@
 #include "../../shared/glow_draw.h"
 #include "../../shared/water_effects.h"
 
+static void _waterDrawSpin(const GfxCoord* coord, s16 textureColumn, s16 radiusScale, s16 spinAngle);
+
 #define D_shelter_b4_upper_sewer_80186520 (D_shelter_b4_upper_sewer_801864F0 + 6)
 
 /// A rectangular water patch in world coordinates whose entry chooses its own strip axis.
