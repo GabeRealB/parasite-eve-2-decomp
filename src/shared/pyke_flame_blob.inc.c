@@ -1,6 +1,13 @@
 /* Part of the Pyke flame library; see pyke_flame.h. */
 
-/// Copies an atlas frame's palette and inclusive UV corners into a flame quad.
+/// Applies an effect-atlas frame's palette and UV rectangle to a flying-flame quad.
+///
+/// Borrows a writable `quad` and one `gEffectSpriteAtlasFrames` entry for this
+/// call. U/V origins and `EFFECT_SPRITE_ATLAS_UV_SPAN` count page-relative
+/// texels; the inclusive corners cover a 40-by-40 cell in top-left, top-right,
+/// bottom-left, bottom-right order. Palette X/Y count VRAM words/scanlines.
+/// Writes the CLUT and eight UV bytes. The caller owns packet initialization,
+/// geometry, texture-page selection and submission to the ordering table.
 static inline void _pykeFlameSetBlobTexture(POLY_FT4* quad, const EffectSpriteTextureFrame* textureFrame)
 {
     quad->clut = getClut(textureFrame->clutX, textureFrame->clutY);
