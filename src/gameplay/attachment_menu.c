@@ -297,10 +297,10 @@ void Gp_AttachListTask(Task* task)
         return;
     }
     if (state == 2) {
-        Ui_DrawText(&(obj)->panel, Gp_StrNotice);
+        uiDrawPanelLabel(&(obj)->panel, Gp_StrNotice);
         Text_DrawMultiLine(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, Gp_StrWrongAmmo2, 0x606060, one, TEXT_ALIGNMENT_LEFT);
     } else {
-        Ui_DrawText(&(obj)->panel, Gp_StrEquip);
+        uiDrawPanelLabel(&(obj)->panel, Gp_StrEquip);
         func_800CF6E8(obj, val);
     }
     task->killCountdown--;
@@ -344,7 +344,7 @@ void Gp_SelectAmmoMenuTask(Task* arg0)
     }
     state = arg0->state;
     if (state == 1) {
-        Ui_DrawText(&(obj)->panel, Gp_StrSelectAmmo);
+        uiDrawPanelLabel(&(obj)->panel, Gp_StrSelectAmmo);
         if (savedState == 0) {
             menu->topInset                   += 0x4C;
             obj->panel.bounds.unsignedRect.h += 0x4C;
@@ -461,7 +461,7 @@ void Gp_SelectArmorMenuTask(Task* arg0)
     menu        = &D_8010E9F4;
     obj         = arg0->spawnArg2.pointer;
     obj->result = USER_INTERFACE_RESULT_NONE;
-    Ui_DrawText(&(obj)->panel, Gp_StrSelectArmor);
+    uiDrawPanelLabel(&(obj)->panel, Gp_StrSelectArmor);
 
     if (arg0->state == 0) {
         GP_COUNT_SPARE_ARMOR(count);
@@ -533,7 +533,7 @@ void Gp_ReloadPromptTask(Task* arg0)
     lo          = arg0->spawnArg1.value & 0xFF;
     hi          = (arg0->spawnArg1.value >> 8) & 0xFF;
     obj->result = USER_INTERFACE_RESULT_NONE;
-    Ui_DrawText(&(obj)->panel, Gp_StrReload);
+    uiDrawPanelLabel(&(obj)->panel, Gp_StrReload);
     if (arg0->state == 0) {
         if (lo == 0) {
             slot        = Gp_GetItemSlot(hi);
@@ -577,7 +577,7 @@ void Gp_ReloadPromptTask(Task* arg0)
             width = textMeasureLineWidth(text);
             rows  = 1;
         }
-        Ui_UpdateLayoutSize(&(obj)->panel, width + 5, uiGetTextRowsHeight(rows) + 1);
+        uiSetPanelContentSize(&(obj)->panel, width + 5, uiGetTextRowsHeight(rows) + 1);
         (&(obj)->panel)->bounds.rect.x = (-(&(obj)->panel)->bounds.rect.w) >> 1;
         if (arg0->state < 0x20) {
             if (arg0->state < 0x10) {
@@ -627,7 +627,7 @@ void Gp_AttachPromptTask(Task* arg0)
     text        = Gp_GetItemText(arg0->spawnArg1.value, 0, 0);
     if (arg0->state == 0) {
         width = textMeasureLineWidth(text) + 0x40;
-        Ui_UpdateLayoutSize(&(obj)->panel, width, uiGetTextRowsHeight(2) + 8);
+        uiSetPanelContentSize(&(obj)->panel, width, uiGetTextRowsHeight(2) + 8);
         (&(obj)->panel)->bounds.rect.x = (-(&(obj)->panel)->bounds.rect.w) >> 1;
         arg0->killCountdown            = 0xBC;
         arg0->state                    = arg0->state + 1;
@@ -637,7 +637,7 @@ void Gp_AttachPromptTask(Task* arg0)
             arg0->state = arg0->state + 1;
         }
     }
-    Ui_DrawText(&(obj)->panel, Gp_StrAttach);
+    uiDrawPanelLabel(&(obj)->panel, Gp_StrAttach);
     color = 0x606060;
     one   = 1;
     textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 6, 0, (const u8*)Gp_StrEquipped, color, one, TEXT_ALIGNMENT_LEFT);
@@ -697,7 +697,7 @@ void Gp_EquipPromptTask(Task* arg0)
         if (width < other) {
             width = other;
         }
-        Ui_UpdateLayoutSize(&(obj)->panel, width + 5, uiGetTextRowsHeight(2) + 1);
+        uiSetPanelContentSize(&(obj)->panel, width + 5, uiGetTextRowsHeight(2) + 1);
         (&(obj)->panel)->bounds.rect.x = (-(&(obj)->panel)->bounds.rect.w) >> 1;
         arg0->killCountdown            = 0xBC;
         arg0->state                    = arg0->state + 1;
@@ -711,7 +711,7 @@ void Gp_EquipPromptTask(Task* arg0)
             arg0->state = arg0->state + 1;
         }
     }
-    Ui_DrawText(&(obj)->panel, Gp_StrEquip);
+    uiDrawPanelLabel(&(obj)->panel, Gp_StrEquip);
     text  = Gp_GetItemText(arg0->spawnArg1.value, 0, 0);
     color = 0x606060;
     one   = 1;

@@ -349,7 +349,7 @@ void Gp_UiBoostAttach(UiObject* arg0, Task* arg1)
             if (width < other) {
                 width = other;
             }
-            Ui_UpdateLayoutSize(&(arg0)->panel, width + 5, uiGetTextRowsHeight(2) + 1);
+            uiSetPanelContentSize(&(arg0)->panel, width + 5, uiGetTextRowsHeight(2) + 1);
             (&(arg0)->panel)->bounds.rect.x = (-(&(arg0)->panel)->bounds.rect.w) >> 1;
             (&(arg0)->panel)->bounds.rect.y = ((-(&(arg0)->panel)->bounds.rect.h) >> 1) - 0x14;
             func_800B996C_RemoveItem(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, Gp_SelItemRec, 1);
@@ -367,7 +367,7 @@ void Gp_UiBoostAttach(UiObject* arg0, Task* arg1)
 
     x = arg0->panel.contentLeft.signedValue + 2;
     y = arg0->panel.contentTop.signedValue;
-    Ui_DrawText(&(arg0)->panel, Gp_StrNotice2);
+    uiDrawPanelLabel(&(arg0)->panel, Gp_StrNotice2);
     color = 0x606060;
     one   = 1;
     row   = y + 0xF;

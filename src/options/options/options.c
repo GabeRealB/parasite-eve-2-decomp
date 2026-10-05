@@ -486,13 +486,13 @@ static void func_options_801D4B64(Task* task)
         Ui_LayoutListPanel(list, &(obj)->panel);
         task->state += 1;
         if (task->spawnArg1.value == 1) {
-            Ui_UpdateLayoutSize(&(obj)->panel, 0xC0, 0);
+            uiSetPanelContentSize(&(obj)->panel, 0xC0, 0);
             obj->panel.bounds.unsignedRect.y = -((s16)obj->panel.bounds.unsignedRect.h / 2);
             obj->panel.bounds.unsignedRect.x = -((s16)obj->panel.bounds.unsignedRect.w / 2);
         }
     }
     obj->result = USER_INTERFACE_RESULT_NONE;
-    Ui_DrawText(&(obj)->panel, "Option");
+    uiDrawPanelLabel(&(obj)->panel, "Option");
     Ui_UpdateListNoAnim(list, obj);
     status = obj->panel.control.word;
     if (status == 1) {
@@ -575,9 +575,9 @@ static void func_options_801D4D0C(Task* task)
         runWalk = D_options_801D5C14;
     }
     obj->result = USER_INTERFACE_RESULT_NONE;
-    Ui_DrawText(&(obj)->panel, "Key Configuration");
+    uiDrawPanelLabel(&(obj)->panel, "Key Configuration");
     if (task->state == 0) {
-        Ui_UpdateLayoutSize(&(obj)->panel, 0, uiGetTextRowsHeight(9) + 6);
+        uiSetPanelContentSize(&(obj)->panel, 0, uiGetTextRowsHeight(9) + 6);
         task->spawnArg1.value = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.buttonLayout;
         task->state          += 1;
     }

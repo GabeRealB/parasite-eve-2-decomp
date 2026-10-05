@@ -68,6 +68,12 @@ enum {
 /// Animated list displacement per nominal 60-Hz tick, in pixels.
 enum { USER_INTERFACE_LIST_SCROLL_PIXELS_PER_TICK = 2 };
 
+/// Focus colors for the animated underlined panel labels, red in the low byte.
+enum {
+    USER_INTERFACE_PANEL_LABEL_INACTIVE_COLOR = GPU_PACK_COLOR_WORD(64, 80, 80, 0),
+    USER_INTERFACE_PANEL_LABEL_ACTIVE_COLOR   = GPU_PACK_COLOR_WORD(32, 96, 128, 0)
+};
+
 /// Handler for one panel lifecycle index.
 ///
 /// The owning task's update selects the handler with `UiPanel.state` and calls
@@ -255,7 +261,7 @@ static void Ui_DrawPanelFrame(UiPanel* panel, RECT* outer, RECT* inner, s32 unus
 
 static void Ui_DrawPanel(UiPanel* panel, RECT* arg1, RECT* arg2, s32 arg3);
 
-static void Ui_SetupClip(UiPanel* panel);
+static void _uiLayoutHiddenPanel(UiPanel* panel);
 
 static void _uiComputeScaledPanelRect(const UiPanel* panel, RECT* rect, s32 scaleEighths, s32 unusedClosing);
 
@@ -267,9 +273,9 @@ static void Ui_LayoutAndDrawAlt(UiPanel* panel);
 
 static void _uiQueueListDrawArea(const UiList* list, const UiPanel* panel, s32 fullScreen);
 
-static void Ui_DrawCursor(UiPanel* panel, s32 arg1, s32 arg2);
+static void _uiDrawAnimatedCursor(const UiPanel* panel, s32 contentX, s32 contentY);
 
-static void Ui_DrawCaret(UiList* list, UiPanel* panel, s32 arg2);
+static void _uiDrawListOverflowCaret(const UiList* list, const UiPanel* panel, s32 pointsDown);
 
 static inline void _uiFillRectInterior(const UiPanel* panel, s32 left, s32 top, s32 width, s32 height, u32 colorWord);
 
@@ -346,6 +352,33 @@ static void _uiComputePanelInnerRect(const UiPanel* unusedPanel, const RECT* out
 
 static void _uiComputeAnimatedPanelRect(const UiPanel* panel, RECT* rect);
 
+/// Applies content padding and publishes centered edges from a frame-inset rectangle.
+///
+/// Requires a stable UiPanel pointer and a writable RECT lvalue; arguments are
+/// used repeatedly and must have no side effects. Ordered unsigned halfword
+/// stores retain the original coordinate truncation and translation.
+/// Expands to several statements: invoke only as a standalone statement within
+/// a compound block, never as an unbraced conditional or loop body. Keeping the
+/// assignments in the caller's block allows packet setup to interleave with them.
+#define USER_INTERFACE_CENTER_PANEL_CONTENT(panelValue, contentRectValue)                                        \
+    if (((panelValue)->style & USER_INTERFACE_PANEL_STYLE_MASK) == USER_INTERFACE_PANEL_TITLE_STYLE) {           \
+        (contentRectValue).y += 9;                                                                               \
+        (contentRectValue).h -= 0xB;                                                                             \
+        (contentRectValue).x += 2;                                                                               \
+        (contentRectValue).w -= 4;                                                                               \
+    } else {                                                                                                     \
+        (contentRectValue).y += 2;                                                                               \
+        (contentRectValue).h -= 4;                                                                               \
+        (contentRectValue).x += 2;                                                                               \
+        (contentRectValue).w -= 4;                                                                               \
+    }                                                                                                            \
+    (panelValue)->contentLeft.unsignedValue    = -((contentRectValue).w >> 1);                                   \
+    (panelValue)->contentRight.unsignedValue   = (panelValue)->contentLeft.unsignedValue + (contentRectValue).w; \
+    (panelValue)->contentTop.unsignedValue     = -((contentRectValue).h >> 1);                                   \
+    (panelValue)->contentBottom.unsignedValue  = (panelValue)->contentTop.unsignedValue + (contentRectValue).h;  \
+    (panelValue)->contentOriginX.unsignedValue = (contentRectValue).x - (panelValue)->contentLeft.unsignedValue; \
+    (panelValue)->contentOriginY.unsignedValue = (contentRectValue).y - (panelValue)->contentTop.unsignedValue;
+
 static void Ui_AnimOpenStep(UiPanel* panel, Task* task);
 
 static void Ui_DrawAndCallback(UiPanel* panel, Task* task);
@@ -356,7 +389,7 @@ static void Ui_TickAnimCounter(UiPanel* panel, Task* task);
 
 static void Ui_AnimCloseStep(UiPanel* panel, Task* task);
 
-static void Ui_ClipAndCallback(UiPanel* panel, Task* task);
+static void _uiPanelHidden(UiPanel* panel, Task* task);
 
 static void Ui_DispatchObjectState(Task* task);
 
@@ -533,7 +566,7 @@ static const _UiPanelLifecycleFuncTable6 Ui_ObjectStates = { {
     [USER_INTERFACE_PANEL_OPEN]    = Ui_LayoutDrawAndCallback,
     [USER_INTERFACE_PANEL_CLOSING] = Ui_TickAnimCounter,
     [USER_INTERFACE_PANEL_HIDING]  = Ui_AnimCloseStep,
-    Ui_ClipAndCallback,
+    _uiPanelHidden,
 } };
 
 /// Idle callback for task bank 1, slot 36; leaves the live task and all its state unchanged.
@@ -921,48 +954,46 @@ static void Ui_DrawPanel(UiPanel* panel, RECT* arg1, RECT* arg2, s32 arg3)
     }
 }
 
-static void Ui_SetupClip(UiPanel* panel)
+/// Updates full-bounds content layout and restricts drawing for hidden content.
+///
+/// Requires two DR_AREA reservations and writable signed panel OT base/base+3
+/// tags. A zero-span draw area applies to content; the SDK clamps its negative
+/// end coordinates, leaving only VRAM pixel (0,0) in buffer zero and an inverted
+/// Y range in buffer one. The base tag restores the 320 by 240 view in the
+/// active VRAM buffer, whose rows are 272 apart.
+/// Packets remain in the arena until GPU completion.
+static void _uiLayoutHiddenPanel(UiPanel* panel)
 {
-    RECT     sp10;
-    RECT     sp18;
-    DR_AREA* p;
+    enum {
+        USER_INTERFACE_HIDDEN_CLIP_OT_OFFSET     = 3,
+        USER_INTERFACE_HIDDEN_CLIP_VIEW_WIDTH    = 320,
+        USER_INTERFACE_HIDDEN_CLIP_VIEW_HEIGHT   = 240,
+        USER_INTERFACE_HIDDEN_CLIP_BUFFER_STRIDE = 272
+    };
+    RECT     drawArea;
+    RECT     contentRect;
+    DR_AREA* areaCommand;
 
-    _uiComputePanelInnerRect(panel, &panel->bounds.rect, &sp18);
-    if ((panel->style & USER_INTERFACE_PANEL_STYLE_MASK) == USER_INTERFACE_PANEL_TITLE_STYLE) {
-        sp18.y += 9;
-        sp18.h -= 0xB;
-        sp18.x += 2;
-        sp18.w -= 4;
-    } else {
-        sp18.y += 2;
-        sp18.h -= 4;
-        sp18.x += 2;
-        sp18.w -= 4;
-    }
-    panel->contentLeft.unsignedValue    = -(sp18.w >> 1);
-    panel->contentRight.unsignedValue   = panel->contentLeft.unsignedValue + sp18.w;
-    panel->contentTop.unsignedValue     = -(sp18.h >> 1);
-    panel->contentBottom.unsignedValue  = panel->contentTop.unsignedValue + sp18.h;
-    panel->contentOriginX.unsignedValue = sp18.x - panel->contentLeft.unsignedValue;
-    panel->contentOriginY.unsignedValue = sp18.y - panel->contentTop.unsignedValue;
+    _uiComputePanelInnerRect(panel, &panel->bounds.rect, &contentRect);
+    USER_INTERFACE_CENTER_PANEL_CONTENT(panel, contentRect);
 
-    p              = gGpuPrimCursor;
-    gGpuPrimCursor = p + 1;
-    sp10.x         = 0;
-    sp10.w         = 0;
-    sp10.h         = 0;
-    sp10.y         = gDisplayState.drawBuffer * 0x110;
-    SetDrawArea(p, &sp10);
-    addPrim(gGpuCurrentOt + panel->otIndex.signedValue + 3, p);
+    areaCommand    = gGpuPrimCursor;
+    gGpuPrimCursor = areaCommand + 1;
+    drawArea.x     = 0;
+    drawArea.w     = 0;
+    drawArea.h     = 0;
+    drawArea.y     = gDisplayState.drawBuffer * USER_INTERFACE_HIDDEN_CLIP_BUFFER_STRIDE;
+    SetDrawArea(areaCommand, &drawArea);
+    addPrim(gGpuCurrentOt + panel->otIndex.signedValue + USER_INTERFACE_HIDDEN_CLIP_OT_OFFSET, areaCommand);
 
-    p              = gGpuPrimCursor;
-    gGpuPrimCursor = p + 1;
-    sp10.x         = 0;
-    sp10.w         = 0x140;
-    sp10.h         = 0xF0;
-    sp10.y         = gDisplayState.drawBuffer * 0x110;
-    SetDrawArea(p, &sp10);
-    addPrim(gGpuCurrentOt + panel->otIndex.signedValue, p);
+    areaCommand    = gGpuPrimCursor;
+    gGpuPrimCursor = areaCommand + 1;
+    drawArea.x     = 0;
+    drawArea.w     = USER_INTERFACE_HIDDEN_CLIP_VIEW_WIDTH;
+    drawArea.h     = USER_INTERFACE_HIDDEN_CLIP_VIEW_HEIGHT;
+    drawArea.y     = gDisplayState.drawBuffer * USER_INTERFACE_HIDDEN_CLIP_BUFFER_STRIDE;
+    SetDrawArea(areaCommand, &drawArea);
+    addPrim(gGpuCurrentOt + panel->otIndex.signedValue, areaCommand);
 }
 
 /// Builds a bottom-anchored animation rectangle using a scale in eighths.
@@ -1244,130 +1275,178 @@ static void _uiQueueListDrawArea(const UiList* list, const UiPanel* panel, s32 f
     }
 }
 
-static void Ui_DrawCursor(UiPanel* panel, s32 arg1, s32 arg2)
+/// Selects one of six atlas frames from an eight-VSync animation step.
+///
+/// The nonnegative step visits three columns in each of two rows; stores
+/// retain eight-bit texture coordinates, mapping the negative U base to 232.
+static inline void _uiSetCursorTextureFrame(SPRT_8* cursor, s32 animationStep)
 {
-    SPRT_8*   p;
-    DR_TPAGE* dr;
-    s32       n;
-    s32       y;
-    s32       row;
-    s32       half;
-    s32       t;
+    enum {
+        USER_INTERFACE_CURSOR_TEXTURE_COLUMNS = 3,
+        USER_INTERFACE_CURSOR_TEXTURE_ROWS    = 2,
+        USER_INTERFACE_CURSOR_SPRITE_PIXELS   = 8,
+        USER_INTERFACE_CURSOR_TEXTURE_LEFT    = -24,
+        USER_INTERFACE_CURSOR_TEXTURE_TOP     = 48,
+    };
+    s32 textureColumn;
+    s32 textureRow;
+    s32 textureRowInCycle;
+    s32 textureCoordinate;
 
-    n = (u32)gDisplayState.vsyncCount >> 3;
+    textureColumn     = animationStep / USER_INTERFACE_CURSOR_TEXTURE_COLUMNS;
+    textureRow        = textureColumn;
+    textureColumn     = animationStep - textureRow * USER_INTERFACE_CURSOR_TEXTURE_COLUMNS;
+    textureRowInCycle = textureRow / USER_INTERFACE_CURSOR_TEXTURE_ROWS;
+    textureRowInCycle = textureRow - textureRowInCycle * USER_INTERFACE_CURSOR_TEXTURE_ROWS;
+    textureCoordinate = textureColumn * USER_INTERFACE_CURSOR_SPRITE_PIXELS + USER_INTERFACE_CURSOR_TEXTURE_LEFT;
+    cursor->u0        = textureCoordinate;
+    textureCoordinate = textureRowInCycle * USER_INTERFACE_CURSOR_SPRITE_PIXELS + USER_INTERFACE_CURSOR_TEXTURE_TOP;
+    cursor->v0        = textureCoordinate;
+}
+
+/// Queues the six-frame textured selection cursor for any nonzero control word.
+///
+/// Coordinates are content-relative pixels; its 8 by 8 sprite starts eight
+/// pixels left and two up. Suspended input still draws it. A frame lasts eight
+/// VSync ticks. Requires the UI atlas/palette, SPRT_8 and DR_TPAGE arena space,
+/// and writable fixed OT tag 4. Packets remain live until GPU completion.
+static void _uiDrawAnimatedCursor(const UiPanel* panel, s32 contentX, s32 contentY)
+{
+    enum {
+        USER_INTERFACE_CURSOR_OT_INDEX           = 4,
+        USER_INTERFACE_CURSOR_CLUT               = getClut(160, 240),
+        USER_INTERFACE_CURSOR_TEXTURE_PAGE       = getTPage(0, 0, 896, 256),
+        USER_INTERFACE_CURSOR_FRAME_TICK_SHIFT   = 3,
+        USER_INTERFACE_CURSOR_RAW_SPRITE_COMMAND = 0x75,
+        USER_INTERFACE_CURSOR_SPRITE_WORDS       = sizeof(SPRT_8) / sizeof(u32) - 1
+    };
+    SPRT_8*   cursor;
+    DR_TPAGE* pageCommand;
+    s32       animationStep;
+    s32       screenOriginY;
+
+    animationStep = (u32)gDisplayState.vsyncCount >> USER_INTERFACE_CURSOR_FRAME_TICK_SHIFT;
     if (panel->control.word != USER_INTERFACE_PANEL_INACTIVE) {
-        p              = gGpuPrimCursor;
-        gGpuPrimCursor = p + 1;
-        p->x0          = panel->contentOriginX.unsignedValue + arg1 - 8;
-        y              = panel->contentOriginY.unsignedValue;
-        p->clut        = 0x3C0A;
-        setlen(p, 3);
-        setcode(p, 0x75);
-        p->y0 = y + arg2 - 2;
-        arg2  = n / 3;
-        row   = arg2;
-        arg2  = n - row * 3;
-        half  = row / 2;
-        half  = row - half * 2;
-        t     = arg2 * 8 - 0x18;
-        p->u0 = t;
-        t     = half * 8 + 0x30;
-        p->v0 = t;
-        addPrim(gGpuCurrentOt + 4, p);
-        dr             = gGpuPrimCursor;
-        gGpuPrimCursor = dr + 1;
-        setDrawTPage(dr, 0, 1, 0x1E);
-        addPrim(gGpuCurrentOt + 4, dr);
+        cursor         = gGpuPrimCursor;
+        gGpuPrimCursor = cursor + 1;
+        cursor->x0     = panel->contentOriginX.unsignedValue + contentX - 8;
+        screenOriginY  = panel->contentOriginY.unsignedValue;
+        cursor->clut   = USER_INTERFACE_CURSOR_CLUT;
+        setlen(cursor, USER_INTERFACE_CURSOR_SPRITE_WORDS);
+        setcode(cursor, USER_INTERFACE_CURSOR_RAW_SPRITE_COMMAND);
+        cursor->y0 = screenOriginY + contentY - 2;
+        _uiSetCursorTextureFrame(cursor, animationStep);
+        addPrim(gGpuCurrentOt + USER_INTERFACE_CURSOR_OT_INDEX, cursor);
+        pageCommand    = gGpuPrimCursor;
+        gGpuPrimCursor = pageCommand + 1;
+        setDrawTPage(pageCommand, 0, 1, USER_INTERFACE_CURSOR_TEXTURE_PAGE);
+        addPrim(gGpuCurrentOt + USER_INTERFACE_CURSOR_OT_INDEX, pageCommand);
     }
 }
 
-static void Ui_DrawCaret(UiList* list, UiPanel* panel, s32 arg2)
+/// Spreads a gouraud overflow caret's base from vertices initialized at its tip.
+///
+/// Coordinates retain sixteen bits; zero points up and nonzero points down.
+static inline void _uiSetOverflowCaretBase(POLY_G3* caret, s32 pointsDown)
 {
-    POLY_G3* p;
-    s16      x;
-    s32      y;
-    s32      y0;
-    u16      t;
+    u16 baseY;
 
-    p              = gGpuPrimCursor;
-    gGpuPrimCursor = p + 1;
-    setPolyG3(p);
-
-    x     = panel->bounds.rect.x + panel->bounds.rect.w - 5;
-    p->x2 = x;
-    p->x1 = x;
-    p->x0 = x;
-
-    y     = panel->contentOriginY.unsignedValue;
-    p->y2 = y;
-    p->y1 = y;
-    p->y0 = y;
-
-    if (arg2 == 0) {
-        y    += panel->contentTop.unsignedValue;
-        p->y0 = y;
-        if (panel->control.word == USER_INTERFACE_PANEL_ACTIVE) {
-            p->y0 -= (((u32)gDisplayState.vsyncCount >> 3) & 3) - 3;
-        }
-        p->y0 += list->topInset;
-        p->x1 -= 4;
-        t      = p->y0 + 5;
-        p->x2 += 5;
-        p->y2  = t;
-        p->y1  = t;
+    if (pointsDown == USER_INTERFACE_CARET_UP) {
+        caret->x1 -= 4;
+        baseY      = caret->y0 + 5;
+        caret->x2 += 5;
+        caret->y2  = baseY;
+        caret->y1  = baseY;
     } else {
-        y0    = y + 2;
-        p->y0 = panel->contentBottom.unsignedValue + y0;
-        if (panel->control.word == USER_INTERFACE_PANEL_ACTIVE) {
-            p->y0 += (((u32)gDisplayState.vsyncCount >> 3) & 3) - 3;
-        }
-        p->x1 -= 3;
-        t      = p->y0 - 4;
-        p->x2 += 4;
-        p->y2  = t;
-        p->y1  = t;
+        caret->x1 -= 3;
+        baseY      = caret->y0 - 4;
+        caret->x2 += 4;
+        caret->y2  = baseY;
+        caret->y1  = baseY;
     }
-
-    p->r0 = 0x9F;
-    p->g0 = 0x7F;
-    p->b0 = 0xBF;
-    p->r2 = 0xDF;
-    p->r1 = 0xDF;
-    p->g2 = 0xCF;
-    p->g1 = 0xCF;
-    p->b2 = 0xFF;
-    p->b1 = 0xFF;
-    addPrim(gGpuCurrentOt + panel->otIndex.signedValue + 1, p);
 }
 
-void Ui_UpdateLayoutSize(UiPanel* panel, s32 arg1, s32 arg2)
+/// Queues a gouraud caret showing list rows available above or below the window.
+///
+/// Zero points up, using the list's top inset; any nonzero value points down.
+/// Active control moves the tip through four one-pixel positions, one per eight
+/// VSync ticks. The right edge and content edges locate the caret; coordinates
+/// retain sixteen bits. Borrows both records and requires a POLY_G3 reservation
+/// and writable signed panel OT base+1 tag, live until GPU completion.
+static void _uiDrawListOverflowCaret(const UiList* list, const UiPanel* panel, s32 pointsDown)
 {
-    RECT sp10;
+    enum {
+        USER_INTERFACE_OVERFLOW_CARET_OT_OFFSET        = 1,
+        USER_INTERFACE_OVERFLOW_CARET_FRAME_TICK_SHIFT = 3,
+        USER_INTERFACE_OVERFLOW_CARET_PHASE_MASK       = 3,
+        USER_INTERFACE_OVERFLOW_CARET_PHASE_BIAS       = 3,
+        USER_INTERFACE_OVERFLOW_CARET_TIP_RED          = 159,
+        USER_INTERFACE_OVERFLOW_CARET_TIP_GREEN        = 127,
+        USER_INTERFACE_OVERFLOW_CARET_TIP_BLUE         = 191,
+        USER_INTERFACE_OVERFLOW_CARET_BASE_RED         = 223,
+        USER_INTERFACE_OVERFLOW_CARET_BASE_GREEN       = 207,
+        USER_INTERFACE_OVERFLOW_CARET_BASE_BLUE        = 255
+    };
+    POLY_G3* caret;
+    s16      tipX;
+    s32      screenOriginY;
+    s32      bottomOriginY;
 
-    if (arg1 > 0) {
-        panel->bounds.rect.w = (panel->bounds.rect.w - (panel->contentRight.unsignedValue - panel->contentLeft.unsignedValue)) + arg1;
-    }
-    if (arg2 > 0) {
-        panel->bounds.rect.h = (panel->bounds.rect.h - (panel->contentBottom.unsignedValue - panel->contentTop.unsignedValue)) + arg2;
-    }
-    _uiComputePanelInnerRect(panel, &panel->bounds.rect, &sp10);
-    if ((panel->style & USER_INTERFACE_PANEL_STYLE_MASK) == USER_INTERFACE_PANEL_TITLE_STYLE) {
-        sp10.y += 9;
-        sp10.h -= 0xB;
-        sp10.x += 2;
-        sp10.w -= 4;
+    caret          = gGpuPrimCursor;
+    gGpuPrimCursor = caret + 1;
+    setPolyG3(caret);
+
+    tipX      = panel->bounds.rect.x + panel->bounds.rect.w - 5;
+    caret->x2 = tipX;
+    caret->x1 = tipX;
+    caret->x0 = tipX;
+
+    screenOriginY = panel->contentOriginY.unsignedValue;
+    caret->y2     = screenOriginY;
+    caret->y1     = screenOriginY;
+    caret->y0     = screenOriginY;
+
+    if (pointsDown == USER_INTERFACE_CARET_UP) {
+        screenOriginY += panel->contentTop.unsignedValue;
+        caret->y0      = screenOriginY;
+        if (panel->control.word == USER_INTERFACE_PANEL_ACTIVE) {
+            caret->y0 -= (((u32)gDisplayState.vsyncCount >> USER_INTERFACE_OVERFLOW_CARET_FRAME_TICK_SHIFT) & USER_INTERFACE_OVERFLOW_CARET_PHASE_MASK) - USER_INTERFACE_OVERFLOW_CARET_PHASE_BIAS;
+        }
+        caret->y0 += list->topInset;
+        _uiSetOverflowCaretBase(caret, USER_INTERFACE_CARET_UP);
     } else {
-        sp10.y += 2;
-        sp10.h -= 4;
-        sp10.x += 2;
-        sp10.w -= 4;
+        bottomOriginY = screenOriginY + 2;
+        caret->y0     = panel->contentBottom.unsignedValue + bottomOriginY;
+        if (panel->control.word == USER_INTERFACE_PANEL_ACTIVE) {
+            caret->y0 += (((u32)gDisplayState.vsyncCount >> USER_INTERFACE_OVERFLOW_CARET_FRAME_TICK_SHIFT) & USER_INTERFACE_OVERFLOW_CARET_PHASE_MASK) - USER_INTERFACE_OVERFLOW_CARET_PHASE_BIAS;
+        }
+        _uiSetOverflowCaretBase(caret, USER_INTERFACE_CARET_DOWN);
     }
-    panel->contentLeft.unsignedValue    = -(sp10.w >> 1);
-    panel->contentRight.unsignedValue   = panel->contentLeft.unsignedValue + sp10.w;
-    panel->contentTop.unsignedValue     = -(sp10.h >> 1);
-    panel->contentBottom.unsignedValue  = panel->contentTop.unsignedValue + sp10.h;
-    panel->contentOriginX.unsignedValue = sp10.x - panel->contentLeft.unsignedValue;
-    panel->contentOriginY.unsignedValue = sp10.y - panel->contentTop.unsignedValue;
+
+    caret->r0 = USER_INTERFACE_OVERFLOW_CARET_TIP_RED;
+    caret->g0 = USER_INTERFACE_OVERFLOW_CARET_TIP_GREEN;
+    caret->b0 = USER_INTERFACE_OVERFLOW_CARET_TIP_BLUE;
+    caret->r2 = USER_INTERFACE_OVERFLOW_CARET_BASE_RED;
+    caret->r1 = USER_INTERFACE_OVERFLOW_CARET_BASE_RED;
+    caret->g2 = USER_INTERFACE_OVERFLOW_CARET_BASE_GREEN;
+    caret->g1 = USER_INTERFACE_OVERFLOW_CARET_BASE_GREEN;
+    caret->b2 = USER_INTERFACE_OVERFLOW_CARET_BASE_BLUE;
+    caret->b1 = USER_INTERFACE_OVERFLOW_CARET_BASE_BLUE;
+    addPrim(gGpuCurrentOt + panel->otIndex.signedValue + USER_INTERFACE_OVERFLOW_CARET_OT_OFFSET, caret);
+}
+
+void uiSetPanelContentSize(UiPanel* panel, s32 contentWidth, s32 contentHeight)
+{
+    RECT contentRect;
+
+    if (contentWidth > 0) {
+        panel->bounds.rect.w = (panel->bounds.rect.w - (panel->contentRight.unsignedValue - panel->contentLeft.unsignedValue)) + contentWidth;
+    }
+    if (contentHeight > 0) {
+        panel->bounds.rect.h = (panel->bounds.rect.h - (panel->contentBottom.unsignedValue - panel->contentTop.unsignedValue)) + contentHeight;
+    }
+    _uiComputePanelInnerRect(panel, &panel->bounds.rect, &contentRect);
+    USER_INTERFACE_CENTER_PANEL_CONTENT(panel, contentRect);
 }
 
 void Ui_LayoutListPanel(UiList* arg0_, UiPanel* arg1_)
@@ -1585,7 +1664,7 @@ static inline void _uiListMoveCursor(UiPanel* panel, s32 x, s32 y)
     }
     targetX = D_80067648 >> 8;
     targetY = D_8006764C >> 8;
-    Ui_DrawCursor(panel, targetX - panel->contentOriginX.signedValue, targetY - panel->contentOriginY.signedValue);
+    _uiDrawAnimatedCursor(panel, targetX - panel->contentOriginX.signedValue, targetY - panel->contentOriginY.signedValue);
 }
 
 static void Ui_UpdateListRows(UiList* list, UiPanel* panel, s32 animate)
@@ -1639,10 +1718,10 @@ static void Ui_UpdateListRows(UiList* list, UiPanel* panel, s32 animate)
     rows = list->visibleRowCount.signedValue;
     if (rows < list->itemCount) {
         if (list->wrapNavigation != 0 || list->firstVisibleItemIndex.signedValue > 0) {
-            Ui_DrawCaret(list, panel, 0);
+            _uiDrawListOverflowCaret(list, panel, USER_INTERFACE_CARET_UP);
         }
         if (list->wrapNavigation != 0 || list->firstVisibleItemIndex.signedValue + list->visibleRowCount.signedValue < list->itemCount) {
-            Ui_DrawCaret(list, panel, 1);
+            _uiDrawListOverflowCaret(list, panel, USER_INTERFACE_CARET_DOWN);
         }
         list->rowTextY.signedValue = panel->contentTop.unsignedValue + list->rowHeight;
         if (list->scrollPixelsRemaining > 0) {
@@ -2039,112 +2118,94 @@ static void _uiDrawUnderlinedLabel(const UiPanel* panel, s32 x, s32 y, const cha
     uiDrawHorizontalSeparator(panel, x - panel->contentOriginX.signedValue, request.x - panel->contentOriginX.signedValue, y + 7 - panel->contentOriginY.signedValue);
 }
 
-void Ui_DrawTextColored(UiPanel* panel, char* arg1)
+/// Selects the bottom-anchored animation rectangle for a panel label.
+///
+/// Opening accepts every positive scale; closing/hiding accept only 1..8.
+/// Other lifecycles copy full bounds, so visibility is the caller's concern.
+static inline void _uiComputePanelLabelRect(const UiPanel* panel, RECT* rect)
 {
-    RECT      sp18;
-    RECT*     r;
-    s32       var_a2;
-    s32       color;
-    s32       x;
-    s32       y;
-    Task*     child;
-    UiObject* childObject;
+    s32 scaleEighths;
 
-    color = 0x505040;
+    switch (panel->state) {
+        case USER_INTERFACE_PANEL_OPENING:
+            scaleEighths = USER_INTERFACE_PANEL_ANIMATION_TICKS - panel->animationTicks;
+            if (scaleEighths <= 0) {
+                scaleEighths = 1;
+            }
+            _uiComputeScaledPanelRect(panel, rect, scaleEighths, 0);
+            break;
+        case USER_INTERFACE_PANEL_OPEN:
+            goto fullBounds;
+        case USER_INTERFACE_PANEL_CLOSING:
+        case USER_INTERFACE_PANEL_HIDING:
+            scaleEighths = USER_INTERFACE_PANEL_ANIMATION_TICKS - panel->animationTicks;
+            if ((u32)(scaleEighths - 1) >= (u32)USER_INTERFACE_PANEL_SCALE_ONE) {
+                scaleEighths = 1;
+            }
+            _uiComputeScaledPanelRect(panel, rect, scaleEighths, 1);
+            break;
+        default:
+        fullBounds:
+            rect->x = panel->bounds.rect.x;
+            rect->y = panel->bounds.rect.y;
+            rect->w = panel->bounds.rect.w;
+            rect->h = panel->bounds.rect.h;
+            break;
+    }
+}
+
+void uiDrawPanelLabelWithChildFocus(UiPanel* panel, const char* label)
+{
+    RECT            animatedRect;
+    u32             colorRgb;
+    s32             labelLeft;
+    s32             labelTop;
+    const Task*     child;
+    const UiObject* childObject;
+
+    colorRgb = USER_INTERFACE_PANEL_LABEL_INACTIVE_COLOR;
     if (panel->control.word == USER_INTERFACE_PANEL_ACTIVE) {
-        color = 0x806020;
+        colorRgb = USER_INTERFACE_PANEL_LABEL_ACTIVE_COLOR;
     }
     child = (PARENT_OF(panel, UiObject, panel))->owner->firstChild;
     if (child != NULL) {
         childObject = child->spawnArg2.pointer;
         if (childObject->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
             if ((childObject->panel.style & USER_INTERFACE_PANEL_STYLE_MASK) != USER_INTERFACE_PANEL_TITLE_STYLE) {
-                color = 0x806020;
+                colorRgb = USER_INTERFACE_PANEL_LABEL_ACTIVE_COLOR;
             }
         }
     }
-    r = &sp18;
-    switch (panel->state) {
-        case USER_INTERFACE_PANEL_OPENING:
-            var_a2 = USER_INTERFACE_PANEL_ANIMATION_TICKS - panel->animationTicks;
-            if (var_a2 <= 0) {
-                var_a2 = 1;
-            }
-            _uiComputeScaledPanelRect(panel, r, var_a2, 0);
-            break;
-        case USER_INTERFACE_PANEL_OPEN:
-            goto block_default;
-        case USER_INTERFACE_PANEL_CLOSING:
-        case USER_INTERFACE_PANEL_HIDING:
-            var_a2 = USER_INTERFACE_PANEL_ANIMATION_TICKS - panel->animationTicks;
-            if ((u32)(var_a2 - 1) >= (u32)USER_INTERFACE_PANEL_SCALE_ONE) {
-                var_a2 = 1;
-            }
-            _uiComputeScaledPanelRect(panel, r, var_a2, 1);
-            break;
-        default:
-        block_default:
-            r->x = panel->bounds.rect.x;
-            r->y = panel->bounds.rect.y;
-            r->w = panel->bounds.rect.w;
-            r->h = panel->bounds.rect.h;
-            break;
-    }
-    x                             = sp18.x;
-    y                             = sp18.y;
-    x                             = x + 1;
-    y                             = y + 1;
+    // Follow the animated edge without gating content on lifecycle visibility.
+    _uiComputePanelLabelRect(panel, &animatedRect);
+    labelLeft                     = animatedRect.x;
+    labelTop                      = animatedRect.y;
+    labelLeft                     = labelLeft + 1;
+    labelTop                      = labelTop + 1;
     panel->otIndex.unsignedValue -= 1;
-    _uiDrawUnderlinedLabel(panel, x - panel->contentOriginX.signedValue, y - panel->contentOriginY.signedValue, arg1, color);
+    _uiDrawUnderlinedLabel(panel, labelLeft - panel->contentOriginX.signedValue, labelTop - panel->contentOriginY.signedValue, label, colorRgb);
     panel->otIndex.unsignedValue += 1;
 }
 
-void Ui_DrawText(UiPanel* panel, char* arg1)
+void uiDrawPanelLabel(UiPanel* panel, const char* label)
 {
-    RECT  sp18;
-    RECT* r;
-    s32   var_a2;
-    s32   color;
-    s32   x;
-    s32   y;
+    RECT animatedRect;
+    u32  colorRgb;
+    s32  labelLeft;
+    s32  labelTop;
 
-    color = 0x505040;
+    colorRgb = USER_INTERFACE_PANEL_LABEL_INACTIVE_COLOR;
     if (panel->control.word == USER_INTERFACE_PANEL_ACTIVE) {
-        color = 0x806020;
+        colorRgb = USER_INTERFACE_PANEL_LABEL_ACTIVE_COLOR;
     }
-    r = &sp18;
-    switch (panel->state) {
-        case USER_INTERFACE_PANEL_OPENING:
-            var_a2 = USER_INTERFACE_PANEL_ANIMATION_TICKS - panel->animationTicks;
-            if (var_a2 <= 0) {
-                var_a2 = 1;
-            }
-            _uiComputeScaledPanelRect(panel, r, var_a2, 0);
-            break;
-        case USER_INTERFACE_PANEL_OPEN:
-            goto block_default;
-        case USER_INTERFACE_PANEL_CLOSING:
-        case USER_INTERFACE_PANEL_HIDING:
-            var_a2 = USER_INTERFACE_PANEL_ANIMATION_TICKS - panel->animationTicks;
-            if ((u32)(var_a2 - 1) >= (u32)USER_INTERFACE_PANEL_SCALE_ONE) {
-                var_a2 = 1;
-            }
-            _uiComputeScaledPanelRect(panel, r, var_a2, 1);
-            break;
-        default:
-        block_default:
-            r->x = panel->bounds.rect.x;
-            r->y = panel->bounds.rect.y;
-            r->w = panel->bounds.rect.w;
-            r->h = panel->bounds.rect.h;
-            break;
-    }
-    x                             = sp18.x;
-    y                             = sp18.y;
-    x                             = x + 1;
-    y                             = y + 1;
+    // Follow the animated edge without gating content on lifecycle visibility.
+    _uiComputePanelLabelRect(panel, &animatedRect);
+    labelLeft                     = animatedRect.x;
+    labelTop                      = animatedRect.y;
+    labelLeft                     = labelLeft + 1;
+    labelTop                      = labelTop + 1;
     panel->otIndex.unsignedValue -= 1;
-    _uiDrawUnderlinedLabel(panel, x - panel->contentOriginX.signedValue, y - panel->contentOriginY.signedValue, arg1, color);
+    _uiDrawUnderlinedLabel(panel, labelLeft - panel->contentOriginX.signedValue, labelTop - panel->contentOriginY.signedValue, label, colorRgb);
     panel->otIndex.unsignedValue += 1;
 }
 
@@ -2314,7 +2375,7 @@ void Ui_SizeFromText(UiPanel* panel, u8* arg1, s32 arg2, s32 arg3)
     panel->contentOriginY.unsignedValue = sp.rect.y - panel->contentTop.unsignedValue;
     t                                   = arg2 + 5;
     u                                   = arg3 + 1;
-    Ui_UpdateLayoutSize(panel, sp.dims.hw.w + t, sp.dims.hw.h + u);
+    uiSetPanelContentSize(panel, sp.dims.hw.w + t, sp.dims.hw.h + u);
     panel->bounds.rect.x = -(panel->bounds.rect.w / 2);
     panel->bounds.rect.y = -(panel->bounds.rect.h / 2) - 0x14;
 }
@@ -2540,7 +2601,7 @@ void Ui_SmoothCursor(UiPanel* panel, s32 arg1, s32 arg2)
     }
     targetX = D_80067648 >> 8;
     targetY = D_8006764C >> 8;
-    Ui_DrawCursor(panel, targetX - panel->contentOriginX.signedValue, targetY - panel->contentOriginY.signedValue);
+    _uiDrawAnimatedCursor(panel, targetX - panel->contentOriginX.signedValue, targetY - panel->contentOriginY.signedValue);
 }
 
 s32 Ui_LookupTable(void* unused1, s32 arg1)
@@ -2739,31 +2800,15 @@ static void _uiComputePanelInnerRect(const UiPanel* unusedPanel, const RECT* out
     innerRect->h = (outerRect->h + outerRect->y) - innerRect->y - USER_INTERFACE_PANEL_FRAME_TRAILING_INSET_PIXELS;
 }
 
-void Ui_InsetLayout(UiPanel* panel, RECT* arg1, RECT* arg2, s32 unused4)
+void uiUpdatePanelContentLayout(UiPanel* panel, const RECT* outerRect, RECT* innerRect, s32 unused)
 {
-    RECT sp10;
+    RECT contentRect;
 
     // Center content within the full panel and retain its screen translation.
-    _uiComputePanelInnerRect(panel, &panel->bounds.rect, &sp10);
-    if ((panel->style & USER_INTERFACE_PANEL_STYLE_MASK) == USER_INTERFACE_PANEL_TITLE_STYLE) {
-        sp10.y += 9;
-        sp10.h -= 0xB;
-        sp10.x += 2;
-        sp10.w -= 4;
-    } else {
-        sp10.y += 2;
-        sp10.h -= 4;
-        sp10.x += 2;
-        sp10.w -= 4;
-    }
-    panel->contentLeft.unsignedValue    = -(sp10.w >> 1);
-    panel->contentRight.unsignedValue   = panel->contentLeft.unsignedValue + sp10.w;
-    panel->contentTop.unsignedValue     = -(sp10.h >> 1);
-    panel->contentBottom.unsignedValue  = panel->contentTop.unsignedValue + sp10.h;
-    panel->contentOriginX.unsignedValue = sp10.x - panel->contentLeft.unsignedValue;
-    panel->contentOriginY.unsignedValue = sp10.y - panel->contentTop.unsignedValue;
-    if (arg1 != NULL) {
-        _uiComputePanelInnerRect(panel, arg1, arg2);
+    _uiComputePanelInnerRect(panel, &panel->bounds.rect, &contentRect);
+    USER_INTERFACE_CENTER_PANEL_CONTENT(panel, contentRect);
+    if (outerRect != NULL) {
+        _uiComputePanelInnerRect(panel, outerRect, innerRect);
     }
 }
 
@@ -2815,7 +2860,7 @@ static void Ui_AnimOpenStep(UiPanel* panel, Task* task)
             panel->animationTicks += USER_INTERFACE_PANEL_ANIMATION_TICKS;
         }
         panel->state = USER_INTERFACE_PANEL_HIDDEN;
-        Ui_ClipAndCallback(panel, task);
+        _uiPanelHidden(panel, task);
     }
 }
 
@@ -2872,7 +2917,7 @@ static void Ui_AnimCloseStep(UiPanel* panel, Task* task)
     if ((u16)panel->animationTicks >= (u32)USER_INTERFACE_PANEL_ANIMATION_TICKS) {
         panel->animationTicks = USER_INTERFACE_PANEL_ANIMATION_STOPPED;
         panel->state         += 1;
-        Ui_ClipAndCallback(panel, task);
+        _uiPanelHidden(panel, task);
         return;
     }
     panel->control.word <<= 0x10;
@@ -2883,31 +2928,47 @@ static void Ui_AnimCloseStep(UiPanel* panel, Task* task)
     }
 }
 
-static void Ui_ClipAndCallback(UiPanel* panel, Task* task)
+/// Runs hidden content with suspended input, retaining callback control changes.
+static inline void _uiRunHiddenPanelContent(UiPanel* panel, Task* task)
 {
-    s16 temp_a0;
-    s16 temp_v0;
-    s32 temp_s0;
-    s32 temp_s2;
+    enum { USER_INTERFACE_HIDDEN_CONTROL_SHIFT = 16 };
+    s32 savedControl;
+    s32 suspendedControl;
+
+    savedControl        = panel->control.word;
+    suspendedControl    = savedControl << USER_INTERFACE_HIDDEN_CONTROL_SHIFT;
+    panel->control.word = suspendedControl;
+    _uiLayoutHiddenPanel(panel);
+    panel->contentCallback(task);
+    if (panel->control.word == suspendedControl) {
+        panel->control.word = savedControl;
+    }
+}
+
+/// Updates retained hidden content and requests reopening when its delay or focus permits.
+///
+/// Borrows the live panel and owning task; the required content callback must
+/// keep them live through return. Input is shifted into the upper halfword,
+/// then restored only if the callback left that word unchanged. Positive
+/// counters decrease by elapsed nominal 60-Hz ticks and clamp to the nine-tick
+/// bias, which triggers opening. Negative counters reopen only with active
+/// control after the callback; zero stays hidden. Counter stores narrow to s16.
+static void _uiPanelHidden(UiPanel* panel, Task* task)
+{
+    s16 remainingTicks;
+    s16 nextTicks;
 
     // Hidden content still updates while clipping its drawing and suspending input.
-    temp_s2             = panel->control.word;
-    temp_s0             = temp_s2 << 0x10;
-    panel->control.word = temp_s0;
-    Ui_SetupClip(panel);
-    panel->contentCallback(task);
-    if (panel->control.word == temp_s0) {
-        panel->control.word = temp_s2;
-    }
+    _uiRunHiddenPanelContent(panel, task);
     if (panel->animationTicks > 0) {
-        temp_v0               = (u16)panel->animationTicks - gDisplayState.frameTicks;
-        panel->animationTicks = temp_v0;
-        if (temp_v0 < USER_INTERFACE_PANEL_ANIMATION_TICKS) {
+        nextTicks             = (u16)panel->animationTicks - gDisplayState.frameTicks;
+        panel->animationTicks = nextTicks;
+        if (nextTicks < USER_INTERFACE_PANEL_ANIMATION_TICKS) {
             panel->animationTicks = USER_INTERFACE_PANEL_ANIMATION_TICKS;
         }
     }
-    temp_a0 = panel->animationTicks;
-    if (((temp_a0 < 0) && (panel->control.word == USER_INTERFACE_PANEL_ACTIVE)) || (temp_a0 == USER_INTERFACE_PANEL_ANIMATION_TICKS)) {
+    remainingTicks = panel->animationTicks;
+    if (((remainingTicks < 0) && (panel->control.word == USER_INTERFACE_PANEL_ACTIVE)) || (remainingTicks == USER_INTERFACE_PANEL_ANIMATION_TICKS)) {
         uiStartPanelOpening(panel, task);
     }
 }
@@ -3056,7 +3117,7 @@ static void Ui_ListTaskCallback(Task* task)
     }
     text = request->title;
     if (text != NULL) {
-        Ui_DrawText(&(obj)->panel, text);
+        uiDrawPanelLabel(&(obj)->panel, text);
     }
     Ui_UpdateListRows(menu, &(obj)->panel, 0);
     if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {

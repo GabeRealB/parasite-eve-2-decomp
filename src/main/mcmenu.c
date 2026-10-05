@@ -82,7 +82,7 @@ void McMenu_SelectList(Task* task)
 
     obj  = task->spawnArg2.pointer;
     menu = &Mc_SaveSlotList;
-    Ui_DrawText(obj, McText_Select);
+    uiDrawPanelLabel(obj, McText_Select);
     if (task->state == 0) {
         Ui_InitList(menu, obj);
         menu->flags                               = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
@@ -134,7 +134,7 @@ void McMenu_SelectListAlt(Task* task)
     obj  = task->spawnArg2.pointer;
     work = task->spawnArg1.pointer;
     menu = &Mc_LoadSlotList;
-    Ui_DrawText(obj, McText_Select);
+    uiDrawPanelLabel(obj, McText_Select);
     if (task->state == 0) {
         Ui_InitList(menu, obj);
         menu->flags                               = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;

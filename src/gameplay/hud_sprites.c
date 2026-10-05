@@ -897,7 +897,7 @@ void Gp_DrawItemObtained(Task* arg0)
     obj = arg0->spawnArg2.pointer;
     if (arg0->spawnArg1.value == 2) {
         if (arg0->state == 0) {
-            Ui_UpdateLayoutSize(&(obj)->panel, textMeasureLineWidth(Gp_StrBonusItem) + 0xA, 0);
+            uiSetPanelContentSize(&(obj)->panel, textMeasureLineWidth(Gp_StrBonusItem) + 0xA, 0);
             obj->panel.bounds.unsignedRect.x -= 0xF;
             obj->panel.bounds.unsignedRect.y += 9;
             arg0->state++;

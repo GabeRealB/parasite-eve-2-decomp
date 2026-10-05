@@ -2066,7 +2066,7 @@ void func_dryfield_night_saloon_g_r_8017E28C(Task* task)
     menu = &D_dryfield_night_saloon_g_r_80185028;
 
     obj->result = USER_INTERFACE_RESULT_NONE;
-    Ui_DrawText(&(obj)->panel, D_dryfield_night_saloon_g_r_8017D898);
+    uiDrawPanelLabel(&(obj)->panel, D_dryfield_night_saloon_g_r_8017D898);
     if (task->state == 0) {
         task->spawnArg1.value = -1;
         if (Gp_IsDebugAttachRoom() == 0) {

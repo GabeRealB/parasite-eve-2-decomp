@@ -402,23 +402,23 @@ void Gp_EquipSummaryTask(Task* arg0)
     obj    = arg0->spawnArg2.pointer;
     slot   = 0;
     if (mode == 0) {
-        Ui_DrawText(&(obj)->panel, Gp_StrWeaponTitle);
+        uiDrawPanelLabel(&(obj)->panel, Gp_StrWeaponTitle);
         item = cfg->weapon + 0x7F;
         if (item < 0x80) {
             item = 0;
         }
     } else if (mode == 1) {
-        Ui_DrawText(&(obj)->panel, Gp_StrAmmoCaps);
+        uiDrawPanelLabel(&(obj)->panel, Gp_StrAmmoCaps);
         slotp = Gp_GetItemSlot(cfg->weapon + 0x7F);
         item  = slotp->primaryItemId;
         if (Gp_ReloadMode == 2) {
             item = slotp->secondaryItemId;
         }
     } else if (mode == 2) {
-        Ui_DrawText(&(obj)->panel, Gp_StrArmor);
+        uiDrawPanelLabel(&(obj)->panel, Gp_StrArmor);
         item = cfg->armor + 0x5F;
     } else {
-        Ui_DrawText(&(obj)->panel, Gp_StrAttachments);
+        uiDrawPanelLabel(&(obj)->panel, Gp_StrAttachments);
         skip = 1;
         if (Gp_SelItemRec != NULL) {
             item = Gp_SelItemRec->itemId;
@@ -639,7 +639,7 @@ void Gp_AmmoListTask(Task* arg0)
         }
         return;
     }
-    Ui_DrawText(&(obj)->panel, Gp_StrAttention);
+    uiDrawPanelLabel(&(obj)->panel, Gp_StrAttention);
     Text_DrawMultiLine(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, Gp_StrNoWeaponEq, 0x606060, one, TEXT_ALIGNMENT_LEFT);
     arg0->killCountdown--;
     if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
@@ -673,7 +673,7 @@ void Gp_SelectWeaponMenuTask(Task* arg0)
     menu = &D_8010E9A4;
     obj  = arg0->spawnArg2.pointer;
     cfg  = &gPlayerStatus;
-    Ui_DrawText(&(obj)->panel, Gp_StrSelectWeapon);
+    uiDrawPanelLabel(&(obj)->panel, Gp_StrSelectWeapon);
     uiDrawHorizontalSeparator(&(obj)->panel, obj->panel.contentLeft.signedValue, obj->panel.contentRight.signedValue, obj->panel.contentTop.signedValue + 0x4A);
     if (arg0->state == 0) {
         parent     = arg0->parent;

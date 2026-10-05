@@ -1070,7 +1070,7 @@ void func_mist_shooting_gallery_8017E090(Task* task)
     obj         = task->spawnArg2.pointer;
     obj->result = USER_INTERFACE_RESULT_NONE;
     list        = &D_mist_shooting_gallery_80184F4C;
-    Ui_DrawText(&obj->panel, D_mist_shooting_gallery_8017D5D8);
+    uiDrawPanelLabel(&obj->panel, D_mist_shooting_gallery_8017D5D8);
     if (task->state == 0) {
         count  = 0;
         i      = count;
@@ -1257,7 +1257,7 @@ void func_mist_shooting_gallery_8017E234(Task* task)
     textDrawString(&req6, "TOTAL");
 
     obj->result = USER_INTERFACE_RESULT_NONE;
-    Ui_DrawText(&(obj)->panel, "Result");
+    uiDrawPanelLabel(&(obj)->panel, "Result");
 
     if (task->state == 0) {
         if (gGameSession->battleResetPending == 1) {
@@ -1267,7 +1267,7 @@ void func_mist_shooting_gallery_8017E234(Task* task)
             return;
         }
         gGameSession->battleResetPending = 1;
-        Ui_UpdateLayoutSize(&(obj)->panel, 0, (rows * 0xB) + 0x21);
+        uiSetPanelContentSize(&(obj)->panel, 0, (rows * 0xB) + 0x21);
         obj->panel.bounds.unsignedRect.y = -((s16)obj->panel.bounds.unsignedRect.h / 2);
         task->state                      = task->state + 1;
     }
@@ -1329,7 +1329,7 @@ void func_mist_shooting_gallery_8017E854(Task* task)
     score = task->spawnArg1.value;
 
     obj->result = USER_INTERFACE_RESULT_NONE;
-    Ui_DrawText(&(obj)->panel, "BONUS");
+    uiDrawPanelLabel(&(obj)->panel, "BONUS");
     if (task->state == 0) {
         bonus = func_mist_shooting_gallery_80184470(score);
         cfg   = &gPlayerStatus;
@@ -1407,7 +1407,7 @@ void func_mist_shooting_gallery_8017EAE0(Task* task)
     UiList*   list = &D_mist_shooting_gallery_8018503C;
 
     obj->result = USER_INTERFACE_RESULT_NONE;
-    Ui_DrawText(&(obj)->panel, "SELECT");
+    uiDrawPanelLabel(&(obj)->panel, "SELECT");
     if (task->state == 0) {
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.replayRank == 0) {
             list->itemCount                     = 2;
@@ -1458,7 +1458,7 @@ void func_mist_shooting_gallery_8017EC58(Task* task)
     uiDrawTitle(&(obj)->panel, "STATUS");
     obj->result = USER_INTERFACE_RESULT_NONE;
     if (task->state == 0) {
-        Ui_UpdateLayoutSize(&(obj)->panel, 0, uiGetTextRowsHeight(4));
+        uiSetPanelContentSize(&(obj)->panel, 0, uiGetTextRowsHeight(4));
         task->state = task->state + 1;
     }
 
@@ -1842,7 +1842,7 @@ void func_mist_shooting_gallery_8017FAE8(Task* task)
 
     obj->result = USER_INTERFACE_RESULT_NONE;
     if (task->state == 0) {
-        Ui_UpdateLayoutSize(&(obj)->panel, 0, uiGetTextRowsHeight(3) + 1);
+        uiSetPanelContentSize(&(obj)->panel, 0, uiGetTextRowsHeight(3) + 1);
         obj->panel.bounds.unsignedRect.y = 0x68 - obj->panel.bounds.unsignedRect.h;
         task->state                      = task->state + 1;
     }
@@ -2192,7 +2192,7 @@ void func_mist_shooting_gallery_80180728(Task* task)
     menu = &D_mist_shooting_gallery_80185338;
 
     obj->result = USER_INTERFACE_RESULT_NONE;
-    Ui_DrawText(&(obj)->panel, D_mist_shooting_gallery_8017DB04);
+    uiDrawPanelLabel(&(obj)->panel, D_mist_shooting_gallery_8017DB04);
     if (task->state == 0) {
         task->spawnArg1.value = -1;
         if (Gp_IsDebugAttachRoom() == 0) {

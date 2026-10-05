@@ -231,7 +231,7 @@ static void func_map_akropolis_80179D78(Task* task)
     list        = &D_map_akropolis_8017A9C0;
     obj         = task->spawnArg2.pointer;
     obj->result = USER_INTERFACE_RESULT_NONE;
-    Ui_DrawText(&(obj)->panel, D_map_akropolis_8017997C);
+    uiDrawPanelLabel(&(obj)->panel, D_map_akropolis_8017997C);
     if (task->state == 0) {
         Ui_LayoutListPanel(list, &(obj)->panel);
         list->flags           = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;

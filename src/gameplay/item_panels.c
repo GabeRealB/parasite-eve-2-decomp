@@ -584,9 +584,9 @@ void Gp_UseHealItemPanel(UiObject* arg0, Task* arg1, s32 arg2)
 
     cfg          = &gPlayerStatus;
     arg0->result = USER_INTERFACE_RESULT_NONE;
-    Ui_DrawText(&(arg0)->panel, Gp_StrStatus);
+    uiDrawPanelLabel(&(arg0)->panel, Gp_StrStatus);
     if (arg1->state == 0) {
-        Ui_UpdateLayoutSize(&(arg0)->panel, 0xB0, 0x2F);
+        uiSetPanelContentSize(&(arg0)->panel, 0xB0, 0x2F);
         w                                 = (s16)arg0->panel.bounds.unsignedRect.w;
         h                                 = (s16)arg0->panel.bounds.unsignedRect.h;
         arg0->panel.bounds.unsignedRect.x = -(w >> 1);
@@ -820,7 +820,7 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
             if (bonus != 0) {
                 lines += 1;
             }
-            Ui_UpdateLayoutSize(&(arg0)->panel, 0xA8, uiGetTextRowsHeight(lines) + 1);
+            uiSetPanelContentSize(&(arg0)->panel, 0xA8, uiGetTextRowsHeight(lines) + 1);
             (&(arg0)->panel)->bounds.rect.x = (-(&(arg0)->panel)->bounds.rect.w) >> 1;
             (&(arg0)->panel)->bounds.rect.y = ((-(&(arg0)->panel)->bounds.rect.h) >> 1) - 0x14;
             arg1->killCountdown             = 0xBC;
@@ -838,7 +838,7 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
     y     = arg0->panel.contentTop.signedValue + 0xF;
     work  = arg1->work;
     x     = arg0->panel.contentLeft.signedValue + 2;
-    Ui_DrawText(&(arg0)->panel, Gp_StrNotice);
+    uiDrawPanelLabel(&(arg0)->panel, Gp_StrNotice);
     hiddenState = USER_INTERFACE_PANEL_HIDDEN;
     item        = work->previousWeaponItemId;
     if (arg0->panel.state != hiddenState) {
@@ -972,7 +972,7 @@ void Gp_InvokePeItemPanel(UiObject* arg0, Task* arg1, s32 arg2)
         if (width < temp) {
             width = temp;
         }
-        Ui_UpdateLayoutSize(&(arg0)->panel, width + 5, uiGetTextRowsHeight(2) + 1);
+        uiSetPanelContentSize(&(arg0)->panel, width + 5, uiGetTextRowsHeight(2) + 1);
         (&(arg0)->panel)->bounds.rect.x = (-(&(arg0)->panel)->bounds.rect.w) >> 1;
         (&(arg0)->panel)->bounds.rect.y = ((-(&(arg0)->panel)->bounds.rect.h) >> 1) - 0x14;
         Gp_RemoveItem(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, Gp_SelItemRec, 1);
@@ -994,7 +994,7 @@ void Gp_InvokePeItemPanel(UiObject* arg0, Task* arg1, s32 arg2)
         arg1->state         = arg1->state + 1;
     }
 
-    Ui_DrawText(&(arg0)->panel, Gp_StrInvoke);
+    uiDrawPanelLabel(&(arg0)->panel, Gp_StrInvoke);
     textDrawUiLine(arg0, arg0->panel.contentLeft.signedValue + 2, arg0->panel.contentTop.signedValue + 0xF, (const u8*)Gp_StrInvoked, 0x606060, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     width = textDrawUiLine(arg0, arg0->panel.contentLeft.signedValue + 2, arg0->panel.contentTop.signedValue + 0x1E, text, 0x37A78, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     textDrawUiLine(arg0, width, arg0->panel.contentTop.signedValue + 0x1E, (const u8*)Gp_StrDot, 0x606060, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
@@ -1399,7 +1399,7 @@ void Gp_PickupTitleTask(Task* arg0)
     }
     if (arg0->state == 0) {
         spawned = Ui_SpawnFromDesc(&D_8010F09C, 0, 0, 1, obj);
-        Ui_UpdateLayoutSize(&(obj)->panel, 0, uiGetTextRowsHeight(1) + 1);
+        uiSetPanelContentSize(&(obj)->panel, 0, uiGetTextRowsHeight(1) + 1);
         if (spawned != NULL) {
             spawned->panel.bounds.unsignedRect.y = obj->panel.bounds.unsignedRect.y + obj->panel.bounds.unsignedRect.h;
         }
@@ -1452,7 +1452,7 @@ void Gp_PickupAskTask(Task* arg0)
         }
         arg0->state = arg0->state + 1;
     }
-    Ui_DrawTextColored(&(obj)->panel, Gp_StrMessage);
+    uiDrawPanelLabelWithChildFocus(&(obj)->panel, Gp_StrMessage);
     color = 0x606060;
     one   = 1;
     textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, (const u8*)Gp_StrPickupAsk, color, one, TEXT_ALIGNMENT_LEFT);
@@ -1502,7 +1502,7 @@ void Gp_PickupFullTask(Task* arg0)
     s32       one;
 
     obj = arg0->spawnArg2.pointer;
-    Ui_DrawTextColored(&(obj)->panel, Gp_StrWarning);
+    uiDrawPanelLabelWithChildFocus(&(obj)->panel, Gp_StrWarning);
     obj->result = USER_INTERFACE_RESULT_NONE;
     if (arg0->state == 0) {
         spawned = Ui_SpawnFromDesc(&D_8010EA98, 1, 1, 2, obj);
@@ -1541,7 +1541,7 @@ void Gp_ObtainedNoticeTask(Task* arg0)
     obj         = arg0->spawnArg2.pointer;
     item        = (u16)arg0->spawnArg1.value;
     obj->result = USER_INTERFACE_RESULT_NONE;
-    Ui_DrawText(&(obj)->panel, Gp_StrNotice);
+    uiDrawPanelLabel(&(obj)->panel, Gp_StrNotice);
     if (arg0->state == 0) {
         arg0->killCountdown = 0xBC;
         width               = textMeasureLineWidth((const u8*)Gp_GetItemText(item, 0, 0)) + 0xB;
@@ -1549,7 +1549,7 @@ void Gp_ObtainedNoticeTask(Task* arg0)
         if (width < temp) {
             width = temp;
         }
-        Ui_UpdateLayoutSize(&(obj)->panel, width + 5, uiGetTextRowsHeight(2) + 1);
+        uiSetPanelContentSize(&(obj)->panel, width + 5, uiGetTextRowsHeight(2) + 1);
         (&(obj)->panel)->bounds.rect.x = (-(&(obj)->panel)->bounds.rect.w) >> 1;
         arg0->state                    = arg0->state + 1;
     }

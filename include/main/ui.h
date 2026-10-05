@@ -32,7 +32,14 @@ void Ui_SizeFromTextPlain(UiPanel* panel, u8* arg1);
 
 void Ui_SizeFromTextWide(UiPanel* panel, u8* arg1);
 
-void Ui_UpdateLayoutSize(UiPanel* panel, s32 arg1, s32 arg2);
+/// Sets positive content dimensions and recalculates centered panel content coordinates.
+///
+/// Dimensions are pixels. A nonpositive width or height keeps that outer
+/// dimension; a positive value replaces the current content span while retaining
+/// the difference between the outer and content spans. Layout then uses the full
+/// bounds and style, independent of lifecycle. The existing content coordinates
+/// must describe those bounds. Halfword stores truncate without clamping.
+void uiSetPanelContentSize(UiPanel* panel, s32 contentWidth, s32 contentHeight);
 
 /// Detaches a UI subtree and requests closing animations before task release.
 ///
@@ -75,11 +82,37 @@ void uiStartPanelHiding(UiObject* object, Task* unusedOwningTask);
 /// retained; `object` must be live and its lifecycle index must be in 0..5.
 s32 uiIsPanelHidingOrHidden(const UiObject* object);
 
-void Ui_DrawTextColored(UiPanel* panel, char* arg1);
+/// Draws a panel label, highlighting it when the panel or its first child has focus.
+///
+/// Uses `uiDrawPanelLabel`'s drawing contract. Only an active first child whose
+/// low style nibble is not the title style contributes focus. `panel` must be
+/// embedded in a live `UiObject` with a live owner; any first child must store
+/// its live `UiObject` in the second spawn argument. Other children are ignored.
+void uiDrawPanelLabelWithChildFocus(UiPanel* panel, const char* label);
 
-void Ui_DrawText(UiPanel* panel, char* arg1);
+/// Queues an underlined label at the panel's animated upper-left edge.
+///
+/// Active control selects RGB (32,96,128); other modes use (64,80,80).
+/// The small-font pen starts three pixels right and six down from that edge.
+/// Opening uses (nine - ticks) eighths, at least one; closing/hiding replace
+/// scales outside 1..8 with one. Other states use full bounds, including hidden.
+/// Borrows encoded text following `textDrawString`'s contract and requires
+/// resident UI/font textures, glyph storage, a POLY_FT4-sized backing reservation,
+/// any separator packet, and writable signed panel OT base/base+1 tags.
+/// The OT halfword is temporarily decremented and restored modulo 65536.
+/// Packets remain live in the primitive arena until GPU completion.
+void uiDrawPanelLabel(UiPanel* panel, const char* label);
 
-void Ui_InsetLayout(UiPanel* panel, RECT* arg1, RECT* arg2, s32 unused4);
+/// Recalculates centered content edges and their translation from full panel bounds.
+///
+/// Coordinates and extents are pixels; lifecycle does not affect layout.
+/// Insets the frame, then reserves nine pixels above title-style content or
+/// two above other content, and two at the other content edges. Stores retain
+/// sixteen bits without clamping. If `outerRect` is non-NULL, also writes its
+/// frame inset to a live `innerRect`, without the style-specific content padding.
+/// Rectangle writes are ordered x, y, w, h, including when the rectangles alias.
+/// Null `outerRect` ignores `innerRect`. `unused` is an ABI-only argument.
+void uiUpdatePanelContentLayout(UiPanel* panel, const RECT* outerRect, RECT* innerRect, s32 unused);
 
 /// Places a dialog beside the list's current row and limits its right/bottom edges.
 ///

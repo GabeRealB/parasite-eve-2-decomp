@@ -214,9 +214,9 @@ void func_800C5F70(Task* arg0)
         }
     } else {
         if (arg0->spawnArg1.value & 0x20000) {
-            Ui_DrawText(&(obj)->panel, Gp_StrNextReplay);
+            uiDrawPanelLabel(&(obj)->panel, Gp_StrNextReplay);
         } else {
-            Ui_DrawText(&(obj)->panel, Gp_StrSpecs);
+            uiDrawPanelLabel(&(obj)->panel, Gp_StrSpecs);
         }
         if (obj->panel.state == USER_INTERFACE_PANEL_OPEN) {
             displaySetFrameTiming(DISPLAY_TIMING_TWO_VBLANKS);
@@ -655,7 +655,7 @@ void Gp_UseKeyItemRow(Task* arg0)
             if (width < other) {
                 width = other;
             }
-            Ui_UpdateLayoutSize(&(obj)->panel, width + 5, uiGetTextRowsHeight(2) + 1);
+            uiSetPanelContentSize(&(obj)->panel, width + 5, uiGetTextRowsHeight(2) + 1);
             (&(obj)->panel)->bounds.rect.x = (-(&(obj)->panel)->bounds.rect.w) >> 1;
             obj->panel.style              &= (s32)~USER_INTERFACE_PANEL_NO_FRAME;
         } else if (ret == 2) {
@@ -672,7 +672,7 @@ void Gp_UseKeyItemRow(Task* arg0)
         arg0->state         = arg0->state + 1;
     }
     if (arg0->state != 2) {
-        Ui_DrawText(&(obj)->panel, Gp_StrNotice);
+        uiDrawPanelLabel(&(obj)->panel, Gp_StrNotice);
         if (arg0->spawnArg1.value == -1) {
             color = Ui_LookupTable(obj, 1);
             textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, (const u8*)Gp_StrNoUseNow, color, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
@@ -845,7 +845,7 @@ void Gp_KeyItemMenuTask(Task* arg0)
     obj         = arg0->spawnArg2.pointer;
     menu        = &D_8010E960;
     obj->result = USER_INTERFACE_RESULT_NONE;
-    Ui_DrawText(&(obj)->panel, Gp_StrKeyItem);
+    uiDrawPanelLabel(&(obj)->panel, Gp_StrKeyItem);
     if (arg0->state == 0) {
         menu->visibleRowCount.unsignedValue = menu->itemCount = Gp_CountCollectedBits();
         if (menu->itemCount < menu->selectedItemIndex) {
@@ -854,7 +854,7 @@ void Gp_KeyItemMenuTask(Task* arg0)
         Ui_InitList(menu, &(obj)->panel);
         menu->flags = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
         if (arg0->spawnArg1.value == 0) {
-            Ui_UpdateLayoutSize(&(obj)->panel, 0, uiGetTextRowsHeight(0xA) + 1);
+            uiSetPanelContentSize(&(obj)->panel, 0, uiGetTextRowsHeight(0xA) + 1);
             Ui_SpawnFromDesc(&D_8010F868, 0, 0, 1, obj);
         }
         menu->selectedItemIndex                   = 0;

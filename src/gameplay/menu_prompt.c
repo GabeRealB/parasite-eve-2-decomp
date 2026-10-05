@@ -148,12 +148,12 @@ void Gp_UiPromptDispatch(UiObject* arg0, Task* arg1)
     } else if (flag != 0xC) {
         scale = 2;
     } else {
-        Ui_UpdateLayoutSize(&(arg0)->panel, 0, uiGetTextRowsHeight(2) + 1);
+        uiSetPanelContentSize(&(arg0)->panel, 0, uiGetTextRowsHeight(2) + 1);
         width  = arg0->panel.bounds.unsignedRect.h;
         height = 0x4C;
         goto store;
     }
-    Ui_UpdateLayoutSize(&(arg0)->panel, 0, uiGetTextRowsHeight(scale) + 1);
+    uiSetPanelContentSize(&(arg0)->panel, 0, uiGetTextRowsHeight(scale) + 1);
     width  = arg0->panel.bounds.unsignedRect.h;
     height = 0x68;
 store:
@@ -1459,7 +1459,7 @@ static void Gp_ItemListTask(Task* arg0)
         }
         arg0->state = arg0->state + 1;
     }
-    Ui_DrawText(&(obj)->panel, Gp_StrItemHdr);
+    uiDrawPanelLabel(&(obj)->panel, Gp_StrItemHdr);
     countItemRows(menu);
     Ui_ComputeVisibleRows(menu, &(obj)->panel);
     menu->flags = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
@@ -1893,7 +1893,7 @@ void Gp_WeaponMenuTask(Task* arg0)
     obj         = arg0->spawnArg2.pointer;
     menu        = &D_8010E884;
     obj->result = USER_INTERFACE_RESULT_NONE;
-    Ui_DrawText(&(obj)->panel, Gp_StrWeaponTitle);
+    uiDrawPanelLabel(&(obj)->panel, Gp_StrWeaponTitle);
     if (arg0->state == 0) {
         _gpWeaponMenuSetRows(menu);
         menu->selectedItemIndex = 0;
@@ -2230,7 +2230,7 @@ void Gp_ArmorMenuTask(Task* arg0)
     obj         = arg0->spawnArg2.pointer;
     cfg         = &gPlayerStatus;
     obj->result = USER_INTERFACE_RESULT_NONE;
-    Ui_DrawText(&(obj)->panel, Gp_StrArmor);
+    uiDrawPanelLabel(&(obj)->panel, Gp_StrArmor);
 
     if (arg0->state == 0) {
         s32 id;

@@ -665,9 +665,9 @@ static void Telephone_UsageTask(Task* task)
     obj->result = USER_INTERFACE_RESULT_NONE;
     list        = &Telephone_Data_80181C6C;
     if (task->spawnArg1.value == 0) {
-        Ui_DrawText(&(obj)->panel, Telephone_Data_8017D624);
+        uiDrawPanelLabel(&(obj)->panel, Telephone_Data_8017D624);
     } else {
-        Ui_DrawText(&(obj)->panel, Telephone_Data_8017D630);
+        uiDrawPanelLabel(&(obj)->panel, Telephone_Data_8017D630);
     }
     if (task->state == 0) {
         work = memCalloc(sizeof(_TelephoneUsageWork), 0);
@@ -748,7 +748,7 @@ static inline void Telephone_MenuTask(Task* task)
         Wip_UiHolder = NULL;
         task->state  = task->state + 1;
     } else {
-        Ui_DrawText(&(obj)->panel, Telephone_Data_8017D638);
+        uiDrawPanelLabel(&(obj)->panel, Telephone_Data_8017D638);
         Ui_UpdateListNoAnim(list, obj);
     }
     if (obj->result == USER_INTERFACE_RESULT_CONFIRM) {

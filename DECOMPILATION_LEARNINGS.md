@@ -5204,9 +5204,9 @@ tail, coalesces `high`+`lo_sum` into `$a1` in each arm, and the independent
 
 ```c
 if (arg0->spawnArg1 == 0) {
-    Ui_DrawText(&obj->panel, D_replay_bonus_801157A8);
+    uiDrawPanelLabel(&obj->panel, D_replay_bonus_801157A8);
 } else {
-    Ui_DrawText(&obj->panel, D_replay_bonus_801157B0);
+    uiDrawPanelLabel(&obj->panel, D_replay_bonus_801157B0);
 }
 ```
 
@@ -16234,7 +16234,7 @@ func(obj, targetX - obj->field_20, targetY - obj->field_22);
 ```
 
 `Ui_SmoothCursor` is the pure example (smooth cursor toward a UI object over
-`gDisplayState.frameTicks` frames, then call `Ui_DrawCursor`).
+`gDisplayState.frameTicks` frames, then call `_uiDrawAnimatedCursor`).
 
 ## `u8` index + `arr[i]` for large-offset slot walks
 
@@ -18536,7 +18536,7 @@ sra 17; negu`: write `-(w >> 1)` (not `/ 2`, which emits the signed-div bias)
 and chain the pair through the field itself (`p->lo = -(w >> 1); p->hi = p->lo
 + w`) so `negu` stays in `$v0` rather than a separate temp in `$v1`.
 
-`Ui_InsetLayout` is the pure example (factored tail ~81%, duplicated arms → 100%).
+`uiUpdatePanelContentLayout` is the pure example (factored tail ~81%, duplicated arms → 100%).
 
 ## Force early `lui`/`ori` of a late-used constant
 
@@ -18578,7 +18578,7 @@ width = a1->contentRight.signedValue - x1; /* lh into $v0, nop, subu */
 ## Signed and unsigned views of panel layout halfwords
 
 `UiPanel.contentLeft` / `contentRight` use `UiHalf`: functions like
-`Ui_InsetLayout` select `unsignedValue` to emit `lhu`, while a sibling draw
+`uiUpdatePanelContentLayout` select `unsignedValue` to emit `lhu`, while a sibling draw
 helper selects `signedValue` to emit `lh` for the same bits. Selecting the view
 before promotion preserves both matches without a separate layout overlay:
 
@@ -18654,7 +18654,7 @@ live `y = contentOriginY.unsignedValue` that the target keeps in `$a1` across a 
 both forces the early value elsewhere and emits `lui a1,0xFF00` too early.
 Leave the early temp unpinned: with `mask_hi` reserved for the epilogue, GCC
 still naturally places the live-across-branch value in free `$a1`, and the late
-`mask_hi` assignment keeps the correct `lui` schedule. `Ui_DrawCaret` is the
+`mask_hi` assignment keeps the correct `lui` schedule. `_uiDrawListOverflowCaret` is the
 example (shares the dual-use OT pattern with `uiDrawFlatCaret`).
 
 ## Oversize prim advance using the reservation's size
@@ -20033,7 +20033,7 @@ changes the `bne` delay from `addiu s1,sp,0x10` to `addiu s2,sp,0x18`. Pass
 `&sp18` directly so each use is a fresh `addiu a2,sp,0x18`.
 
 `Ui_LayoutAndDraw` is the pure example (same shape as inlined `_uiComputeAnimatedPanelRect` +
-`Ui_InsetLayout` + `Ui_DrawPanel`).
+`uiUpdatePanelContentLayout` + `Ui_DrawPanel`).
 
 ## Ring-buffer queue drain: non-volatile entry + split index advances
 
@@ -20191,7 +20191,7 @@ u = arg3 + 1;
 func(arg0, dims.hw.w + t, dims.hw.h + u);
 ```
 
-`Ui_SizeFromText` is the pure example (text size padding into `Ui_UpdateLayoutSize`).
+`Ui_SizeFromText` is the pure example (text size padding into `uiSetPanelContentSize`).
 
 ## Force `bne` (not `xor`/`sltiu`) for u16 equality into a u16 temp
 
@@ -20518,7 +20518,7 @@ p->v0 = t;
 
 Pinning `half` to `$a0` coalesces the bias into `$a0` (`addu a0,v1,v0`
 instead of `addu v0,v1,v0`). Leaving `half` unpinned after the explicit
-`/2` + subtract form yields the retail chain. `Ui_DrawCursor` is the pure
+`/2` + subtract form yields the retail chain. `_uiDrawAnimatedCursor` is the pure
 example (SPRT_8 cursor + DR_TPAGE, OT index 4).
 
 ## Scoped `register asm` pins for multi-section functions
@@ -24795,13 +24795,13 @@ switch (val & ~0xFFFF) {
 
 A gameplay overlay call of a 3-arg main function can still emit
 `move a3, a1` (`$a3 = 0`) before the `jal`. The target did that for
-`Ui_InsetLayout(panel, NULL, NULL)` — the extra zero is not used by the
+`uiUpdatePanelContentLayout(panel, NULL, NULL)` — the extra zero is not used by the
 callee, but omitting it drops an instruction and fails the match.
 
 If the callee has no other C callers whose codegen would change, add
 the unused parameter to the real prototype and pass `0`. An unused
 register argument does not change the callee body. `Gp_DrawWeaponLabel` /
-`Ui_InsetLayout(..., 0)` is the example.
+`uiUpdatePanelContentLayout(..., 0)` is the example.
 
 ## Non-void callee return occupies `$v0` so the next `li` uses `$v1`
 
@@ -29351,7 +29351,7 @@ the callee still sees the new value:
 
 ```c
 obj->result = 0;
-Ui_DrawText(&obj->panel, text);
+uiDrawPanelLabel(&obj->panel, text);
 ```
 
 `Gp_EquipSelectMenuTask` is the example. The store-after-call form stuck at
@@ -30730,7 +30730,7 @@ jal   Gp_GetScanSlot
 Omitting it schedules `addu a0, a2, a0` into the delay slot and drops
 one instruction. Add an unused `s32 arg2` to the real prototype (it
 does not change the callee) and pass `0`. Same rule as overlay imports
-of main (`Ui_InsetLayout`). `Gp_FillItemActions` is the example.
+of main (`uiUpdatePanelContentLayout`). `Gp_FillItemActions` is the example.
 
 ## Store the first vtable slot through the global, then take its address
 
@@ -34355,23 +34355,23 @@ clobbers the base and the stores must happen before `sll` reuses `$v0`:
 
 `Gp_ItemPaneTask` is the example.
 
-## Three `Ui_DrawText` calls CSE to one `jal` with `lui a1`; a `char*` temp uses `$v0`
+## Three `uiDrawPanelLabel` calls CSE to one `jal` with `lui a1`; a `char*` temp uses `$v0`
 
 A 3-way title pick compiled as
 
 ```c
 if (arg0->spawnArg1 == 0) {
     if (arg0->status == 1) {
-        Ui_DrawText(&obj->panel, Gp_StrBattleField);
+        uiDrawPanelLabel(&obj->panel, Gp_StrBattleField);
     } else {
-        Ui_DrawText(&obj->panel, Gp_StrItemBox);
+        uiDrawPanelLabel(&obj->panel, Gp_StrItemBox);
     }
 } else {
-    Ui_DrawText(&obj->panel, Gp_StrPlayerItem);
+    uiDrawPanelLabel(&obj->panel, Gp_StrPlayerItem);
 }
 ```
 
-shares one `jal Ui_DrawText` and loads each string with `lui a1` /
+shares one `jal uiDrawPanelLabel` and loads each string with `lui a1` /
 `addiu a1, a1, %lo(...)`. Assigning through `char* text` first emits
 `lui v0` / `addiu a1, v0` and hoists the else-string into the
 `bnez spawnArg1` delay instead of `move a0, s2`. `Gp_ItemPaneTask` is the
@@ -34573,7 +34573,7 @@ mask |= 0xFFFF;
 p->y2 = ((s8)*(volatile u8*)&gDisplayState.vramYOffset + 7) * -1 + y;
 ```
 
-Use that `mask` in a handwritten `addPrim` (same shape as `Ui_DrawCaret`).
+Use that `mask` in a handwritten `addPrim` (same shape as `_uiDrawListOverflowCaret`).
 `Gp_DrawCapCaret` is the example.
 
 ## `s16` `>=` as `x > y - 1` so GCC emits `addiu -1` / `slt` / `beqz`
@@ -49045,10 +49045,10 @@ compiler will not emit as padding (it pads with zeros). Those two bytes belong
 to the literal:
 
 ```c
-Ui_DrawText(&obj->panel, "Telephone\000\001");
+uiDrawPanelLabel(&obj->panel, "Telephone\000\001");
 ```
 
-`Ui_DrawText` stops at the first NUL, so the trailing byte is inert at runtime,
+`uiDrawPanelLabel` stops at the first NUL, so the trailing byte is inert at runtime,
 but the object has to contain it. Symptom: a 100% scratch score and a scoped
 build whose checksum fails with a `*fill* 0x…  0x2 00000000` line in the map
 exactly where the target has data.
@@ -61724,8 +61724,8 @@ and an `extern` array compiles to exactly the same two instructions, so
 replacing the literal with an alias is byte-for-byte free:
 
 ```c
-Ui_DrawText(&obj->panel, "Telephone\000\001");   /* one room's bytes  */
-Ui_DrawText(&obj->panel, RoomsShared8017ea68Title);  /* every room's */
+uiDrawPanelLabel(&obj->panel, "Telephone\000\001");   /* one room's bytes  */
+uiDrawPanelLabel(&obj->panel, RoomsShared8017ea68Title);  /* every room's */
 ```
 
 `RoomsShared8017ea68` is the worked case: nineteen rooms hold "Telephone\0"
@@ -65885,7 +65885,7 @@ obj = task->spawnArg2;
 textIndex = task->spawnArg1;
 task->status = 0;
 menu = &lists[task->spawnArg1];
-Ui_DrawText(&obj->panel, captions[textIndex]);
+uiDrawPanelLabel(&obj->panel, captions[textIndex]);
 ```
 
 Reading both indices after the flags store allowed CSE to drop a load. Loading

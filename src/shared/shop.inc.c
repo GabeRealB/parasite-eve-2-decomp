@@ -575,7 +575,7 @@ static void Shop_ItemListTask(Task* task)
 
     obj         = task->spawnArg2.pointer;
     obj->result = USER_INTERFACE_RESULT_NONE;
-    Ui_DrawText(&(obj)->panel, (char*)Shop_Data_8017D6D0);
+    uiDrawPanelLabel(&(obj)->panel, (const char*)Shop_Data_8017D6D0);
     if (task->state == 0) {
         mem = memCalloc(sizeof(_ShopItemListWork), 0);
         if (mem != NULL) {
@@ -717,7 +717,7 @@ static void Shop_CategoryListTask(Task* task)
     obj         = task->spawnArg2.pointer;
     list        = &Shop_Data_80181AE0;
     obj->result = USER_INTERFACE_RESULT_NONE;
-    Ui_DrawText(&(obj)->panel, (char*)Shop_Data_8017D6DC);
+    uiDrawPanelLabel(&(obj)->panel, (const char*)Shop_Data_8017D6DC);
     if (task->state == 0) {
         Gp_ClearPreviewItems();
         D_80067634 = NULL;
@@ -897,7 +897,7 @@ static void Shop_NoticeTask(Task* task)
             break;
     }
 
-    Ui_DrawText(&(obj)->panel, (char*)Shop_Data_8017D6EC);
+    uiDrawPanelLabel(&(obj)->panel, (const char*)Shop_Data_8017D6EC);
     obj->result = USER_INTERFACE_RESULT_NONE;
     if (task->state == 0) {
         Ui_SizeFromTextPlain(&(obj)->panel, text);
@@ -940,7 +940,7 @@ static void Shop_ChargeTask(Task* task)
 
     obj         = task->spawnArg2.pointer;
     obj->result = USER_INTERFACE_RESULT_NONE;
-    Ui_DrawText(&(obj)->panel, (char*)Shop_Data_8017D6F4);
+    uiDrawPanelLabel(&(obj)->panel, Shop_Data_8017D6F4);
 
     if (task->state == 0) {
         task->spawnArg1.value = 0;
@@ -1096,7 +1096,7 @@ static void Shop_QuantityTask(Task* task)
 
     if (task->state == 0) {
         task->extraState.value = 1;
-        Ui_UpdateLayoutSize(&(obj)->panel, 0, uiGetTextRowsHeight(3) - 3);
+        uiSetPanelContentSize(&(obj)->panel, 0, uiGetTextRowsHeight(3) - 3);
         task->state = task->state + 1;
     }
 

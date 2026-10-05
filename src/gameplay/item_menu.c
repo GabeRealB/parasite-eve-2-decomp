@@ -613,12 +613,12 @@ void Gp_ItemPaneTask(Task* arg0)
 
     if (arg0->spawnArg1.value == 0) {
         if (arg0->status == 1) {
-            Ui_DrawText(&(obj)->panel, Gp_StrBattleField);
+            uiDrawPanelLabel(&(obj)->panel, Gp_StrBattleField);
         } else {
-            Ui_DrawText(&(obj)->panel, Gp_StrItemBox);
+            uiDrawPanelLabel(&(obj)->panel, Gp_StrItemBox);
         }
     } else {
-        Ui_DrawText(&(obj)->panel, Gp_StrPlayerItem);
+        uiDrawPanelLabel(&(obj)->panel, Gp_StrPlayerItem);
     }
     Ui_ComputeVisibleRows(menu, &(obj)->panel);
     menu->flags = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
@@ -1001,7 +1001,7 @@ void func_800BDF6C(Task* task)
     obj         = task->spawnArg2.pointer;
     obj->result = USER_INTERFACE_RESULT_NONE;
     width       = (obj->panel.contentRight.signedValue - obj->panel.contentLeft.signedValue) - 0x50;
-    Ui_DrawText(&(obj)->panel, (char*)Gp_StrBullet);
+    uiDrawPanelLabel(&(obj)->panel, Gp_StrBullet);
     if (task->state == 0) {
         split = memCalloc(sizeof(*split), 0);
         if (split == NULL) {

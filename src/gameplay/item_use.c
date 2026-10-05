@@ -479,8 +479,8 @@ void func_800D6334(Task* task)
     panel                              = task->spawnArg2.pointer;
     panel->result                      = USER_INTERFACE_RESULT_NONE;
     panel->panel.bounds.unsignedRect.y = 0x1C - gDisplayState.vramYOffset;
-    Ui_InsetLayout(&(panel)->panel, 0, 0, 0);
-    Ui_DrawText(&(panel)->panel, (char*)D_80097440);
+    uiUpdatePanelContentLayout(&(panel)->panel, 0, 0, 0);
+    uiDrawPanelLabel(&(panel)->panel, D_80097440);
     usable = 1;
     if (task->state == 0) {
         Gp_HealPending = 0;
@@ -714,11 +714,11 @@ void Gp_DrawWeaponLabel(Task* arg0)
 
     panel                = arg0->spawnArg2.pointer;
     panel->bounds.rect.y = 0x1C - gDisplayState.vramYOffset;
-    Ui_InsetLayout(panel, NULL, NULL, 0);
+    uiUpdatePanelContentLayout(panel, NULL, NULL, 0);
     x = panel->contentLeft.signedValue;
     y = panel->contentTop.signedValue;
     Gp_DrawEquipSummary(panel, x + 2, y + 0xF, 1);
-    Ui_DrawText(panel, Gp_StrWeapon);
+    uiDrawPanelLabel(panel, Gp_StrWeapon);
 }
 
 const char D_8009745C[] = {

@@ -775,7 +775,7 @@ void Gp_SizeEquippedPanel(UiPanel* arg0, s32 arg1)
     if (width < temp) {
         width = temp;
     }
-    Ui_UpdateLayoutSize(arg0, width + 5, uiGetTextRowsHeight(2) + 1);
+    uiSetPanelContentSize(arg0, width + 5, uiGetTextRowsHeight(2) + 1);
     arg0->bounds.rect.x = (-arg0->bounds.rect.w) >> 1;
 }
 
@@ -1694,7 +1694,7 @@ void Gp_HelpPanelTask(Task* arg0)
 
     obj         = arg0->spawnArg2.pointer;
     obj->result = USER_INTERFACE_RESULT_NONE;
-    Ui_DrawText(&(obj)->panel, Gp_StrHelp);
+    uiDrawPanelLabel(&(obj)->panel, Gp_StrHelp);
     switch (arg0->state) {
         case 0:
             CdCmd_EnqueueLoadFile(8, D_8010F13D, 0);
@@ -1748,7 +1748,7 @@ void Gp_DrawMapName(Task* arg0)
             req.drawMode   = TEXT_DRAW_FILL_ONLY;
             textAlignLine(&req, text);
             width = -req.x + 4;
-            Ui_UpdateLayoutSize(&(obj)->panel, width, uiGetTextRowsHeight(1));
+            uiSetPanelContentSize(&(obj)->panel, width, uiGetTextRowsHeight(1));
             arg0->state = arg0->state + 1;
         }
         req2.x          = obj->panel.contentLeft.unsignedValue + (obj->panel.contentOriginX.unsignedValue + 2);
@@ -2097,7 +2097,7 @@ void Gp_DiscardWarnTask(Task* arg0)
         }
         arg0->state += 1;
     }
-    Ui_DrawTextColored(&(obj)->panel, Gp_StrAttention2);
+    uiDrawPanelLabelWithChildFocus(&(obj)->panel, Gp_StrAttention2);
     Text_DrawMultiLine(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, text, 0x606060, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
 
     child = arg0->firstChild;
@@ -2216,7 +2216,7 @@ void func_800D29B0(Task* arg0)
     textIndex    = arg0->spawnArg1.value;
     arg0->status = 0;
     menu         = &D_80114DF8[arg0->spawnArg1.value];
-    Ui_DrawText(&(obj)->panel, D_8010F644[textIndex]);
+    uiDrawPanelLabel(&(obj)->panel, D_8010F644[textIndex]);
     if (arg0->state == 0) {
         menu->rowCallbacks                        = D_8010F620;
         menu->itemCount                           = 3;
@@ -2367,7 +2367,7 @@ void Gp_NoticePanelTask(Task* arg0)
 
     obj         = arg0->spawnArg2.pointer;
     obj->result = USER_INTERFACE_RESULT_NONE;
-    Ui_DrawText(&(obj)->panel, Gp_StrNotice3);
+    uiDrawPanelLabel(&(obj)->panel, Gp_StrNotice3);
 
     color = 0x606060;
     text  = Gp_NoticeTexts[(u16)arg0->spawnArg1.value];
@@ -2432,7 +2432,7 @@ void Gp_PeUpgradePanelTask(Task* arg0)
     obj->result = USER_INTERFACE_RESULT_NONE;
 
     if (arg0->state == 0) {
-        Ui_UpdateLayoutSize(&(obj)->panel, 0, uiGetTextRowsHeight(2) + 1);
+        uiSetPanelContentSize(&(obj)->panel, 0, uiGetTextRowsHeight(2) + 1);
         frame = func_800CD814(obj);
         if (frame != NULL) {
             frame->panel.animationTicks         = obj->panel.animationTicks - 8;
@@ -3401,7 +3401,7 @@ void Gp_DrawNextLevelCmd(Task* arg0)
     saved                   = obj->panel.control.word;
     obj->result             = USER_INTERFACE_RESULT_NONE;
     obj->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
-    Ui_DrawText(&(obj)->panel, Gp_StrNextLevel);
+    uiDrawPanelLabel(&(obj)->panel, Gp_StrNextLevel);
     obj->panel.control.word = saved;
     func_800D3D98(obj, spawnArg, 1);
     y    = obj->panel.contentBottom.signedValue;
@@ -3429,7 +3429,7 @@ void Gp_DrawSpecsCmd(Task* arg0)
     obj         = arg0->spawnArg2.pointer;
     spawnArg    = arg0->spawnArg1.value;
     obj->result = USER_INTERFACE_RESULT_NONE;
-    Ui_DrawText(&(obj)->panel, Gp_StrSpecs2);
+    uiDrawPanelLabel(&(obj)->panel, Gp_StrSpecs2);
     if ((spawnArg & 3) == 0) {
         spawnArg += 1;
     }
@@ -3509,9 +3509,9 @@ void func_800D5A48(Task* arg0)
     flags       = 0;
     if (arg0->state == 0) {
         if (arg0->spawnArg1.value == 0) {
-            Ui_UpdateLayoutSize(&(obj)->panel, 0x84, 0x64);
+            uiSetPanelContentSize(&(obj)->panel, 0x84, 0x64);
         } else {
-            Ui_UpdateLayoutSize(&(obj)->panel, 0x84, 0x83);
+            uiSetPanelContentSize(&(obj)->panel, 0x84, 0x83);
         }
         arg0->state = arg0->state + 1;
     }

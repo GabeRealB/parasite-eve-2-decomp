@@ -337,7 +337,7 @@ void Gp_EquipSelectMenuTask(Task* arg0)
     obj         = arg0->spawnArg2.pointer;
     menu        = &D_8010E8D4;
     obj->result = USER_INTERFACE_RESULT_NONE;
-    Ui_DrawText(&(obj)->panel, Gp_StrSelectTitle);
+    uiDrawPanelLabel(&(obj)->panel, Gp_StrSelectTitle);
     val = 0;
     if (arg0->state == 0) {
         Gp_CountEquippableRows(menu, obj);

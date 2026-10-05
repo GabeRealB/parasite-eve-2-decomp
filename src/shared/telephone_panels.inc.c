@@ -100,7 +100,7 @@ static void Telephone_PlayDataTask(Task* task)
     list        = &Telephone_Data_80181C44;
     obj         = task->spawnArg2.pointer;
     obj->result = USER_INTERFACE_RESULT_NONE;
-    Ui_DrawText(&(obj)->panel, Telephone_Data_8017D610);
+    uiDrawPanelLabel(&(obj)->panel, Telephone_Data_8017D610);
     if (task->state == 0) {
         Ui_SpawnFromDesc(&Telephone_Data_80181C90, 0, 0, 1, obj);
         Ui_LayoutListPanel(list, &(obj)->panel);

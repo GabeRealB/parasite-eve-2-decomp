@@ -347,7 +347,7 @@ void func_replay_bonus_80115ED0(Task* arg0)
     list        = &D_replay_bonus_80119130;
     obj         = arg0->spawnArg2.pointer;
     obj->result = USER_INTERFACE_RESULT_NONE;
-    Ui_DrawText(&(obj)->panel, D_replay_bonus_80115774);
+    uiDrawPanelLabel(&(obj)->panel, D_replay_bonus_80115774);
     if (arg0->state == 0) {
         cfg        = &gPlayerStatus;
         mem        = memMalloc(0x258, false);
@@ -574,9 +574,9 @@ void func_replay_bonus_801166AC(Task* arg0)
     }
     obj->result = USER_INTERFACE_RESULT_NONE;
     if (arg0->spawnArg1.value == 0) {
-        Ui_DrawText(&(obj)->panel, D_replay_bonus_801157A8);
+        uiDrawPanelLabel(&(obj)->panel, D_replay_bonus_801157A8);
     } else {
-        Ui_DrawText(&(obj)->panel, D_replay_bonus_801157B0);
+        uiDrawPanelLabel(&(obj)->panel, D_replay_bonus_801157B0);
     }
     color          = 0x606060;
     xOff           = obj->panel.contentLeft.signedValue + 2;
@@ -655,7 +655,7 @@ void func_replay_bonus_80116964(Task* arg0)
     if (arg0->state == 0) {
         obj->resultValue = 0x34;
         Ui_SizeFromText(&(obj)->panel, D_replay_bonus_8011906C, 0, 0);
-        Ui_UpdateLayoutSize(&(obj)->panel, 0, uiGetTextRowsHeight(3) + 4);
+        uiSetPanelContentSize(&(obj)->panel, 0, uiGetTextRowsHeight(3) + 4);
         arg0->state = arg0->state + 1;
     } else if (arg0->state == 1) {
         spawned = func_800CD89C(obj);
@@ -776,7 +776,7 @@ void func_replay_bonus_80116D68(Task* arg0)
 
     obj   = arg0->spawnArg2.pointer;
     bonus = D_replay_bonus_80119274.extraBonusBp;
-    Ui_DrawText(&(obj)->panel, "EXTRA BONUS\0\0\0\0");
+    uiDrawPanelLabel(&(obj)->panel, "EXTRA BONUS\0\0\0\0");
     if (arg0->state == 0) {
         arg0->killCountdown = 0xBC;
         arg0->state         = arg0->state + 1;

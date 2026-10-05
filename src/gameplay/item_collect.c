@@ -749,7 +749,7 @@ void Gp_TickBoostPanel(Task* arg0)
 
     panel = arg0->spawnArg2.pointer;
     if (arg0->state == 0) {
-        Ui_UpdateLayoutSize(panel, 0xB0, 0x2F);
+        uiSetPanelContentSize(panel, 0xB0, 0x2F);
         panel->bounds.rect.y = -0xC;
         panel->bounds.rect.x = -panel->bounds.rect.w / 2;
         arg0->state++;
