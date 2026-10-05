@@ -7,15 +7,21 @@
 #error "Bind EFFECT_SPRITE_DEBRIS_TASK to the carrier's void (Task*) callback before inclusion"
 #endif
 
-/// Converts the debris's signed direction into an integer per-update velocity.
+/// Converts a debris sprite's launch direction to its per-update velocity.
 ///
-/// Borrows the task's work; Q12 normalization precedes reading `step` for speed
-/// scaling. Updates `move` in place and clobbers GTE data/result registers.
+/// `work` must be a live, writable effect work block. Its signed `move`
+/// components supply a direction in the coordinate's parent space; `step`
+/// supplies speed in coordinate units per running update (0 for stationary
+/// debris, otherwise 1..255). Normalize in place to Q12, then read the speed
+/// and scale back to signed halfword integer displacements.
+///
+/// Zero directions follow `VectorNormalSS` without a special case. Only the
+/// three `move` components change; `step` and the vector's fourth halfword
+/// remain intact. No pointer is retained. Clobbers GTE data/result registers.
 static __inline__ void _effectSpriteDebrisInitializeVelocity(EffectWork* work)
 {
-    SVECTOR* velocity;
+    SVECTOR* velocity = &work->move;
 
-    velocity = &work->move;
     VectorNormalSS(velocity, velocity);
     gte_lddp(work->step);
     gte_ldsv(velocity);
@@ -23,11 +29,17 @@ static __inline__ void _effectSpriteDebrisInitializeVelocity(EffectWork* work)
     gte_stsv(velocity);
 }
 
-/// Moves the debris in its coordinate's parent space, then accelerates downward.
+/// Advances a debris sprite's translation and velocity by one running update.
 ///
-/// Borrows live task work and coordinate. Signed halfword velocity components
-/// displace the 32-bit translation; Y acceleration narrows back to a halfword.
-/// The caller gates movement with `step`; the changed transform is marked stale.
+/// `work` and `coord` must be live, writable objects borrowed from the effect
+/// task. Signed halfwords in `work->move` are sign-extended for additions to
+/// the 32-bit parent-space translation. Then add 6 coordinate units per update
+/// to Y velocity, narrowing back to a signed halfword for the next update.
+/// Acceleration is along positive parent-space Y; no parent rotation is applied.
+///
+/// The caller skips this operation when `work->step` is zero. Otherwise the
+/// composition stamp is cleared even for zero velocity, so the cached transform
+/// must be rebuilt before use. Neither pointer is retained.
 static __inline__ void _effectSpriteDebrisMove(EffectWork* work, GfxCoord* coord)
 {
     enum { EFFECT_SPRITE_DEBRIS_GRAVITY = 6 }; // Coordinate units per running update squared
