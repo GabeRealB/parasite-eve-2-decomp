@@ -1450,10 +1450,10 @@ void effectThrownModelTask(Task* task)
     effectControl = gRoomEffectState->effectControl;
     coord         = model->coords;
     if (effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
-        if (effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-            return;
+        if (effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
+            effectKillTask(work, task);
         }
-        goto release;
+        return;
     }
     actorRenderComposeCoord(coord);
     // Select the launch direction, speed and blink age, then seed the spin.
@@ -1658,12 +1658,9 @@ void effectThrownModelTask(Task* task)
     if (work->angle < work->age) {
         model->flags = (gDisplayState.animFrame & 1) ? model->flags & (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW : model->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW;
         if (work->angle * 2 < work->age) {
-            goto release;
+            effectKillTask(work, task);
         }
     }
-    return;
-release:
-    effectKillTask(work, task);
 }
 
 void Gp_EffCtlTask6E(Task* arg0)
