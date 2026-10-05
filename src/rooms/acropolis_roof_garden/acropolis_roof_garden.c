@@ -1468,10 +1468,9 @@ void func_acropolis_roof_garden_8017E29C(Task* arg0)
     s16                   flip;
     s32                   z;
     u32                   tag;
-    u_long*               ot;
     u8                    red;
     s32                   shift;
-    u32                   otByteOffset;
+    u32                   shiftedDepth;
 
     coord = arg0->extra.coordBody->coord;
     mem   = arg0->spawnArg2.pointer;
@@ -1563,15 +1562,15 @@ void func_acropolis_roof_garden_8017E29C(Task* arg0)
                         prim->x3     = blk->screenPos.vx + ((blk->innerRadius * D_acropolis_roof_garden_80184C5C[i + 8]) >> 12);
                         prim->y3     = blk->screenPos.vy + ((blk->innerRadius * D_acropolis_roof_garden_80184C5C[i + 4]) >> 12);
                         shift        = gDisplayState.otDepthShift;
-                        otByteOffset = (((u32)blk->otz << shift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK;
+                        shiftedDepth = (u32)blk->otz << shift;
                         // Keep the shift and its source live through the first OT address.
-                        __asm__("" : "+r"(otByteOffset) : "r"(shift), "m"(gDisplayState.otDepthShift));
-                        setaddr(prim, getaddr(((u_long*)((otByteOffset) + (uintptr)gGpuCurrentOt))));
-                        ot  = ((u_long*)((((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) + (uintptr)gGpuCurrentOt));
-                        tag = *ot;
-                        tag = (tag & GPU_DMA_PACKET_LENGTH_MASK) | ((u32)prim & GPU_DMA_LINK_ADDRESS_MASK);
-                        *ot = tag;
-                        z   = blk->otz;
+                        __asm__("" : "+r"(shiftedDepth) : "r"(shift), "m"(gDisplayState.otDepthShift));
+                        setaddr(prim, getaddr(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((shiftedDepth >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)));
+                        tag                                                                                                                                   = *GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK));
+                        tag                                                                                                                                   = (tag & GPU_DMA_PACKET_LENGTH_MASK) | ((u32)prim & GPU_DMA_LINK_ADDRESS_MASK);
+                        *GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) = tag;
+
+                        z = blk->otz;
                         SOFT_TOUCH_REG_USE(z, tag);
                         SOFT_TOUCH_REG_USE(prim, z);
                         gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, z);
