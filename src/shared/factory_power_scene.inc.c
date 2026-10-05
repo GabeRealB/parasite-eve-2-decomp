@@ -11,7 +11,8 @@ void factoryPowerScene(Task* task)
             Gp_MsgPlayerWeapon(0);
             Gp_MsgAllyWeapon(0);
             Gp_RunCapCmd(task->spawnArg1.value, 0);
-            goto advance;
+            task->state++;
+            return;
         case 1:
             if (gameFlagGetNibble(GAME_FLAG_FACTORY_POWER_ON) <= 0) {
                 if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
@@ -41,7 +42,6 @@ void factoryPowerScene(Task* task)
                 }
                 Gp_StartCapSlot(task->spawnArg1.value, 1, 2);
             }
-        advance:
             task->state++;
             return;
         case 4:
