@@ -739,11 +739,13 @@ static void Reflection_UpdatePlayer(Task* task)
     }
 }
 
-/// Reflects an attachment's local offset across X and invalidates its composed transform.
+/// Copies an attachment root's offset with local X negated and marks its composed transform stale.
 ///
-/// Both root coordinates must be live. Translation is in signed game units;
-/// the caller supplies the reflected parent and any required rotation flip.
-static inline void _planarReflectionReflectAttachmentOffset(GfxCoord* reflectionRoot, GfxCoord* sourceRoot)
+/// Both pointers borrow live root coordinates for the call. The three translation
+/// components are signed 32-bit game units; source X must have a representable
+/// negation. The reflection root keeps its rotation and parent, which the caller
+/// sets separately, and must be composed again before its cached matrix is used.
+static inline void _planarReflectionReflectAttachmentOffset(GfxCoord* reflectionRoot, const GfxCoord* sourceRoot)
 {
     reflectionRoot->coord.t[0]   = -sourceRoot->coord.t[0];
     reflectionRoot->coord.t[1]   = sourceRoot->coord.t[1];
@@ -775,7 +777,7 @@ static void _planarReflectionAttachmentTask(Task* reflectionTask)
     RoomMirrorWork* mirrorWork;
     GfxCoord*       reflectedPart;
     TmdObject*      sourceModel;
-    GfxCoord*       sourceRoot;
+    const GfxCoord* sourceRoot;
     TmdObject*      reflectionModel;
     GfxCoord*       reflectionRoot;
     VECTOR          xFlipScale;
