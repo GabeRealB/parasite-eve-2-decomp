@@ -4,14 +4,21 @@
 #define PYKE_FLAME_REDRAW_UPDATES_COORD 0
 #endif
 
-/// Advances a flame in its parent frame and refreshes its composed transform.
-static inline void _pykeFlameAdvanceCoord(GfxCoord* coord, const EffectWork* work)
+/// Advances a Pyke flame by one parent-frame displacement and refreshes its composed transform.
+///
+/// `flameWork->move` supplies signed 16-bit XYZ displacements in integer game
+/// units for one running tick, already in `flameCoord`'s parent frame. Both
+/// pointers must be non-NULL and remain live for this call; neither is retained.
+/// The coordinate and its ancestors must stay live and writable in an acyclic
+/// parent chain. Local rotation is preserved; `workm` is composed through the complete
+/// chain for drawing and collision, clobbering the GTE working registers.
+static inline void _pykeFlameAdvanceCoord(GfxCoord* flameCoord, const EffectWork* flameWork)
 {
-    coord->coord.t[0]  += work->move.vx;
-    coord->coord.t[1]  += work->move.vy;
-    coord->coord.t[2]  += work->move.vz;
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    actorRenderComposeCoord(coord);
+    flameCoord->coord.t[0]  += flameWork->move.vx;
+    flameCoord->coord.t[1]  += flameWork->move.vy;
+    flameCoord->coord.t[2]  += flameWork->move.vz;
+    flameCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+    actorRenderComposeCoord(flameCoord);
 }
 
 /// Updates one Pyke flame's colliding flight and spreading drift after a geometry hit.
