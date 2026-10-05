@@ -101,6 +101,18 @@ void taskNoopBank0Slot12(Task* unusedTask);
 /// it as the callback of a task that attaches no body.
 void taskCountdownCallback(Task* task);
 
-void Task_KillMaybeSpawn(Task* task);
+/// Launches an external debug task when enabled, then tears down the launcher.
+///
+/// Resident bank 5, slot 1 installs this callback on a bodyless task.
+/// Nonzero `gDisplayState.debugMode` requests descriptor 0 at 0x80725C54
+/// on the currently selected execution list, with both spawn payloads zero.
+/// That address must provide a readable `TaskDesc`; its callback code and
+/// any borrowed model geometry must remain loaded while used. The backing
+/// debug image and descriptor contents are unproven.
+///
+/// Spawn failure is ignored. Every call then performs `taskKill` on the live,
+/// non-NULL `task`, following its teardown contract even when debug is disabled.
+/// The task and its resources may be released before return.
+void taskDebugLaunchCallback(Task* task);
 
 #endif // MAIN_PRIVATE_TASK_H

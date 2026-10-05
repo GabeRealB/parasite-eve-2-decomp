@@ -244,7 +244,7 @@ NULL.
 | 2 (=11–13) | `D_80067828` | 17 | Caption, pad helpers, script-18, room overlay, one stage overlay |
 | 3 | `D_80062780` | 8 | Four `taskKill` stubs + four `0x807xxxxx` |
 | 4 | `D_800676A8` | 9 | Stubs + TMD / overlay |
-| 5 | `D_800626AC` | 5 | Stubs + `Task_KillMaybeSpawn` + one overlay |
+| 5 | `D_800626AC` | 5 | Stubs + `taskDebugLaunchCallback` + one overlay |
 | 6 | `D_8010FC2C` | **667** | Room-overlay actor catalog (gameplay data → `0x8017xxxx`) |
 | 7 | `D_800678F4` | 164 | Equipped TMD attaches (`func_8010B610` + per-item `data.model`) |
 | 8 | `D_800626EC` | 6 | Stubs + shared `Gp_EffAttachTask37` |
@@ -389,8 +389,11 @@ gear to an actor, then rewrites `parent` and TMD coord links.
 ### Banks 3, 4, 5, 8, 10, 14
 
 Placeholder slots plus a few overlay or shared-TMD callbacks. Bank 5 type `1`
-is `Task_KillMaybeSpawn` (`taskutil.c`): on `gDisplayState.debugMode` it
-spawns `D_80725C54[0]` (overlay desc) then kills itself.
+is `taskDebugLaunchCallback` (`taskutil.c`): when `gDisplayState.debugMode`
+is nonzero, it requests descriptor 0 through a `TaskDesc*` view of the external
+debug address `0x80725C54`, with both spawn payload words zero. It then tears
+down its own task, including when spawning fails or debug is disabled. The
+backing debug image and descriptor contents are unproven.
 
 ---
 
@@ -406,7 +409,7 @@ These are real actors too; they just skip `gTaskDescBanks`.
 | `D_80062774[0]` | `Stage_DispatchTaskTable` — bank-load spawn from gameplay |
 | `D_8006268C[0]` | `0x800BF9FC` (gameplay) |
 | `Stage_Ctx->taskDesc` | Per-stage desc table; `Display_SpawnFromMode` spawns index 0 |
-| `D_80725C54` | Overlay desc, from `Task_KillMaybeSpawn` |
+| `D_80725C54` | External debug-address descriptor view, from `taskDebugLaunchCallback`; backing storage unproven |
 | `D_8010D1FC`, `D_8010FB4C`, `D_80115D9C`, `D_80119218`, `D_8011922C`, `D_80113340`, `D_80183824`, … | Gameplay / save-slot / enemy tables (`1BC.c` `func_800B25B0` switches on `gMcSaveData`) |
 | Stack `TaskDesc` | `uiSpawnObject` copies `UiObjectDesc.taskFlags`, `taskPriority` and `taskDataValue`; task callback dispatches the panel, which keeps `contentCallback` |
 

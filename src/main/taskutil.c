@@ -3,16 +3,15 @@
 #include "types.h"
 
 #include "main/display.h"
-#include "main/display_types.h"
 #include "main/task.h"
-#include "main/task_types.h"
 
 extern u8 D_80725C54[];
 
-void Task_KillMaybeSpawn(Task* task)
+void taskDebugLaunchCallback(Task* task)
 {
     if (gDisplayState.debugMode != 0) {
-        taskSpawnFromTable((TaskDesc*)&D_80725C54, 0, 0, 0);
+        // View the external debug address as a descriptor; its backing storage is unproven.
+        taskSpawnFromTable((TaskDesc*)D_80725C54, 0, 0, 0);
     }
     taskKill(task);
 }

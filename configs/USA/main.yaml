@@ -308,7 +308,7 @@ segments:
       - [0x32928, o, libgte/mtx_004] # ApplyMatrixLV
       - [0x32a88, o, libgpu/p40] # SetDrawStp
       - [0x32ab8, o, libgpu/p36] # MargePrim
-      - [0x32af8, c, taskutil] # Task_KillMaybeSpawn + display tables
+      - [0x32af8, c, taskutil] # External debug-task launcher callback
       - [0x32b44, o, libgpu/p26] # SetTile
       - [0x32b64, c, loadui] # CdCmd_EnqueueLoadFile + loading SPRT
       - [0x332e0, o, libgpu/p01] # GetClut

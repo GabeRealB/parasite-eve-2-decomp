@@ -204,7 +204,7 @@ static TaskDesc  Display_ModeTaskDesc = { { { TASK_BODY_NONE, 0 } }, Display_Dis
 GameDebugState*  Pad_RemapState       = &_gGameDebugStateStorage;
 TaskDesc         D_800626AC[]         = {
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
-    { { { TASK_BODY_NONE, 0xC0 } }, Task_KillMaybeSpawn },
+    { { { TASK_BODY_NONE, 0xC0 } }, taskDebugLaunchCallback },
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
     { { { TASK_BODY_NONE, 0xC0 } }, func_80701470 },
