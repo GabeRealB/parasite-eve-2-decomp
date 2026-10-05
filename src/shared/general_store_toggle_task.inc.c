@@ -13,17 +13,18 @@ void storeToggleTask(Task* task)
     switch (task->state) {
         case 0:
             Gp_RunCapCmd1(cmd);
-            goto advance;
+            task->state = task->state + 1;
+            break;
         case 1:
             if (Gp_CapBusy() != 0) {
                 break;
             }
-            goto advance;
+            task->state = task->state + 1;
+            break;
         case 2:
             if (Gp_GetCapEventKey() >= 0xA) {
                 gameFlagSetNibble(flag, gameFlagGetNibble(flag) == 0);
             }
-        advance:
             task->state = task->state + 1;
             break;
         case 3:
