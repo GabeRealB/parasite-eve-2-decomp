@@ -166,7 +166,7 @@ void ratContacts(Task* actor)
         worldCollisionClearContacts(effectRec);
     }
     contactRec = work->sensorContacts;
-    if (Gp_CountRec18Hi(contactRec, 0x10000) != 0) {
+    if (worldCollisionCountContactsByKind(contactRec, WORLD_COLLISION_CONTACT_PLAYER_BODY) != 0) {
         sourceCoord             = gPlayerActorTasks[(u8)work->sensorContacts[0].key.parts.id >> 7]->extra.tmd->coords;
         work->attackRequested   = 1;
         work->sensorBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);

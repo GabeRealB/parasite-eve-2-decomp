@@ -1214,7 +1214,7 @@ static void Actor03800_Fn00A98(Task* arg0)
     }
     worldCollisionClearContacts(work->hitContacts);
     work->attackTouched = 0;
-    result              = Gp_CountRec18Hi(work->attackContacts, 0x10000);
+    result              = worldCollisionCountContactsByKind(work->attackContacts, WORLD_COLLISION_CONTACT_PLAYER_BODY);
     if (result != 0) {
         Gp_ArmStateF0(1);
         work->attackTouched = 1;

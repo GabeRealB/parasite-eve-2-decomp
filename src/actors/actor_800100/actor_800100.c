@@ -3206,7 +3206,7 @@ static s32 func_actor_800100_80166B40(WorldCollisionContact* arg0, GfxCoord* arg
     s32                             dist;
 
     minDist = 0x7FFFFFFF;
-    if (Gp_CountRec18Hi(arg0, 0x30000) != 0) {
+    if (worldCollisionCountContactsByKind(arg0, WORLD_COLLISION_CONTACT_ENEMY_BODY) != 0) {
         return 0;
     }
     block = SCRATCH_STACK_RESERVE_BLOCK(PlayerActorWeaponImpactScratch);

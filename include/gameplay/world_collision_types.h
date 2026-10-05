@@ -15,6 +15,9 @@ enum {
     WORLD_COLLISION_CONTACT_LAST             = 2,
     WORLD_COLLISION_CONTACT_BODY_INDEX_MASK  = 0xF0,
     WORLD_COLLISION_CONTACT_BODY_INDEX_SHIFT = 4,
+    WORLD_COLLISION_CONTACT_PLAYER_BODY      = 0x10000, // Player or companion body
+    WORLD_COLLISION_CONTACT_ATTACK           = 0x20000, // Weapon or other attack that can hit enemy bodies
+    WORLD_COLLISION_CONTACT_ENEMY_BODY       = 0x30000, // Enemy body, body part or detached boss chunk
     WORLD_COLLISION_CONTACT_GRID             = 0x100000,
     WORLD_COLLISION_CONTACT_GRID_FLOOR       = 0x100100,
     WORLD_COLLISION_CONTACT_GRID_EDGE        = 0x200

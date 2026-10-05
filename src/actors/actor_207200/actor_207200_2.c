@@ -820,7 +820,7 @@ static void func_actor_207200_8014B628(Task* arg0)
     work = arg0->work;
     obj  = arg0->extra.tmd->coords;
     if (work->headLost == 0) {
-        if (Gp_CountRec18Hi(work->senseContacts, 0x10000) != 0) {
+        if (worldCollisionCountContactsByKind(work->senseContacts, WORLD_COLLISION_CONTACT_PLAYER_BODY) != 0) {
             work->wakeRequested = 1;
         }
         if (work->wakeRequested != 0 || gSceneCombatState.signals.bytes.enemyAlert != 0) {

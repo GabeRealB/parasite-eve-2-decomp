@@ -156,7 +156,7 @@ void func_m4a1_bayonet_8011DA34(Task* arg0)
                     actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
                 }
             }
-            if (Gp_CountRec18Hi(actor->weaponContacts, 0x30000) != 0) {
+            if (worldCollisionCountContactsByKind(actor->weaponContacts, WORLD_COLLISION_CONTACT_ENEMY_BODY) != 0) {
                 Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x201A0005, 0);
             }
             break;

@@ -1286,12 +1286,12 @@ static void Actor07000_Fn03460(Task* arg0, TmdObject* arg1, s32 arg2)
             }
             break;
     }
-    if (Gp_CountRec18Hi(work->senseContacts, 0x10000) != 0 && work->alert != 0) {
+    if (worldCollisionCountContactsByKind(work->senseContacts, WORLD_COLLISION_CONTACT_PLAYER_BODY) != 0 && work->alert != 0) {
         work->state         = ACTOR_07000_SLOUCH_STATE_ENGAGED;
         work->stateFrames   = 0;
         work->engagedAction = ACTOR_07000_SLOUCH_ENGAGED_WATCH;
     }
-    if (Gp_CountRec18Hi(work->contacts, 0x10000) != 0 || work->field_388 != 0) {
+    if (worldCollisionCountContactsByKind(work->contacts, WORLD_COLLISION_CONTACT_PLAYER_BODY) != 0 || work->field_388 != 0) {
         work->state         = ACTOR_07000_SLOUCH_STATE_ENGAGED;
         work->stateFrames   = 0;
         work->engagedAction = ACTOR_07000_SLOUCH_ENGAGED_SPIT;
@@ -1319,7 +1319,7 @@ static void Actor07000_Fn037EC(Task* arg0, TmdObject* arg1, s32 arg2)
                 Gp_ArmStateF0(1);
             }
             Actor07000_Fn047F4(arg0->extra.tmd->coords, &distance);
-            if (Gp_CountRec18Hi(work->senseContacts, 0x10000) == 0 || distance >= 5000U) {
+            if (worldCollisionCountContactsByKind(work->senseContacts, WORLD_COLLISION_CONTACT_PLAYER_BODY) == 0 || distance >= 5000U) {
                 work->stateFrames++;
                 if (work->stateFrames > work->idleFrames) {
                     work->stateFrames = 0;
@@ -1567,7 +1567,7 @@ static void Actor07000_Fn03E08(Task* arg0)
                 break;
             case 0x30000:
                 if (work->field_37E == 0) {
-                    if ((Gp_CountRec18Hi(work->contacts, 0x30000) != 0) && (work->field_37A == 0)) {
+                    if ((worldCollisionCountContactsByKind(work->contacts, WORLD_COLLISION_CONTACT_ENEMY_BODY) != 0) && (work->field_37A == 0)) {
                         work->forwardSpeed = 0;
                         work->field_37A    = 1;
                         work->animId       = ACTOR_07000_SLOUCH_ANIM_IDLE;
@@ -1765,7 +1765,7 @@ static void Actor07000_Fn046B8(Task* arg0, s32 arg1)
 
     work = arg0->work;
     Actor07000_Fn047F4(arg0->extra.tmd->coords, &dist);
-    if (Gp_CountRec18Hi(work->senseContacts, 0x10000) == 0 || dist >= 3000) {
+    if (worldCollisionCountContactsByKind(work->senseContacts, WORLD_COLLISION_CONTACT_PLAYER_BODY) == 0 || dist >= 3000) {
         work->engagedAction = ACTOR_07000_SLOUCH_ENGAGED_WATCH;
         work->stateFrames   = 0;
     } else {
@@ -1999,7 +1999,7 @@ default_body:
     coord->coord.t[2]   = coord->coord.t[2] + work->velocity.vz;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     work->velocity.vy   = work->velocity.vy + 0xA;
-    if (Gp_CountRec18Hi(contacts, 0x10000) != 0) {
+    if (worldCollisionCountContactsByKind(contacts, WORLD_COLLISION_CONTACT_PLAYER_BODY) != 0) {
         sndEvtRequestScriptStart(SOUND_SUCKLERCEPH_PROJECTILE_IMPACT, (s8)worldCoordGetOriginAudioPan(coord),
                                  (s8)worldCoordGetOriginAudioDepth(coord));
         if (child != NULL) {

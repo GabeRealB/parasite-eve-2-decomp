@@ -25805,7 +25805,7 @@ for (;;) {
 }
 ```
 
-`worldCollisionClearContacts` is the example. The sibling `Gp_CountRec18Hi` *does* match
+`worldCollisionClearContacts` is the example. The sibling `worldCollisionCountContactsByKind` *does* match
 as `do … while (!((index++)->flags & 2))` because it never stores
 `flags` and the target uses the post-increment form.
 
@@ -35227,18 +35227,18 @@ register that holds the old cursor, and leaves the other members on `$s0`.
 
 ```c
 scratch = SCRATCH_STACK_RESERVE_BLOCK(_WorldCollisionNearestContactScratch);
-slot    = rec->contacts;
-gte_SetRotMatrix(&arg0->coord->workm);
+contact = capsule->contacts;
+gte_SetRotMatrix(&body->coord->workm);
 ...
 gte_ldv0(&scratch->localEndpoint);
 gte_rtv0();
 gte_stlvnl(&scratch->work.rotatedEndpoint);
-scratch->worldEndpoint.vx = scratch->work.rotatedEndpoint.vx + (arg0->coord)->workm.t[0];
+scratch->worldEndpoint.vx = scratch->work.rotatedEndpoint.vx + body->coord->workm.t[0];
 ```
 
 A `-0x28($a2)` or `addiu ..., a2, -0x8` in the target is therefore not
 evidence that the source spelled `head - 0x28` or `head - 8`. Try the typed
-reservation first. `Gp_FindNearestSlot` is the example; `gfxBuildDirectionRotation`
+reservation first. `_worldCollisionFindNearestCapsuleEndContactIndex` is the example; `gfxBuildDirectionRotation`
 shows the same at offset 0.
 
 ## `n = id < K; if (n) goto store` so slti dest is the count, plus `asm("")` to keep `bnez`
@@ -56435,7 +56435,7 @@ winner to a common block. Written the obvious way,
 
 ```c
 rec = work->sphereContacts;
-if (Gp_CountRec18Hi(work->sphereContacts, 0x100000) != 0) goto check;
+if (worldCollisionCountContactsByKind(work->sphereContacts, WORLD_COLLISION_CONTACT_GRID) != 0) goto check;
 ```
 
 `rec` is live across the `jal`, so `global_alloc` has to give it a callee-saved
@@ -56444,14 +56444,14 @@ register, and the copy is emitted ahead of the call:
 ```
 move  s0,s4
 move  a0,s4
-jal   Gp_CountRec18Hi
+jal   worldCollisionCountContactsByKind
 ```
 
 Splitting the count into its own local so the assignment lands *after* the
 call —
 
 ```c
-count = Gp_CountRec18Hi(work->sphereContacts, 0x100000);
+count = worldCollisionCountContactsByKind(work->sphereContacts, WORLD_COLLISION_CONTACT_GRID);
 rec   = work->sphereContacts;
 if (count != 0) goto check;
 ```
@@ -56462,7 +56462,7 @@ branch's delay slot:
 
 ```
 move  a0,s2
-jal   Gp_CountRec18Hi
+jal   worldCollisionCountContactsByKind
 lui   a1,0x10
 bnez  v0,check
 move  a0,s2
@@ -56533,7 +56533,7 @@ two records, and the original wrote them once per path, joined *after* the
 assignment:
 
 ```c
-    if (Gp_CountRec18Hi(work->capsuleContacts, 0x100000) == 0) {
+    if (worldCollisionCountContactsByKind(work->capsuleContacts, WORLD_COLLISION_CONTACT_GRID) == 0) {
         goto trySphereContacts;
     }
     func_800E0FEC(work->capsuleContacts, &blk->delta, 1, &idx);
@@ -56543,7 +56543,7 @@ check:
     ...
     goto move;
 trySphereContacts:
-    if (Gp_CountRec18Hi(work->sphereContacts, 0x100000) != 0) {
+    if (worldCollisionCountContactsByKind(work->sphereContacts, WORLD_COLLISION_CONTACT_GRID) != 0) {
         func_800E0FEC(work->sphereContacts, &blk->delta, 1, &idx);
         idx = worldCollisionSurfaceClassFromMask((const u8*)&idx);
         goto check;

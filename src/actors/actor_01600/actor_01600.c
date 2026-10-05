@@ -2165,7 +2165,7 @@ static void Actor01600_Fn017BC(Task* actor)
     model                      = actor->extra.tmd;
     coord                      = model->coords;
     ctx                        = actor->spawnArg2.pointer;
-    if (Gp_CountRec18Hi(rec, 0x10000) != 0) {
+    if (worldCollisionCountContactsByKind(rec, WORLD_COLLISION_CONTACT_PLAYER_BODY) != 0) {
         work->alerted = 1;
     }
     if (work->alerted != 0) {

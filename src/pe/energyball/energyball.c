@@ -161,7 +161,7 @@ void func_energyball_8012EF48(Task* arg0)
 /// reaches `fullSize`, then links it on list 1 with a random direction; 2
 /// flies it, re-aiming at the player every eighth frame and nudging each
 /// velocity component by 0x10 on odd frames, bursting into three 0x600F9
-/// effects on a hit (`Gp_CountRec18Hi`) or unlinking when the room's
+/// effects on a hit (`worldCollisionCountContactsByKind`) or unlinking when the room's
 /// `field_16` drops; 3 and 4 fade the burst out, growing to twice the row's
 /// size or shrinking below one step. Cancel (`Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD` or
 /// PE effect control at 4 or more) anywhere but combo 0x2B lets the ball go: the last
@@ -372,7 +372,7 @@ void func_energyball_8012F180(Task* arg0)
                     return;
                 }
             }
-            if (Gp_CountRec18Hi(work->body.context.contacts, 0x30000) != 0) {
+            if (worldCollisionCountContactsByKind(work->body.context.contacts, WORLD_COLLISION_CONTACT_ENEMY_BODY) != 0) {
                 spawned = Gp_SpawnEff(EFFECT_ENERGYBALL_IMPACT_RING, coord, 0, NULL);
                 if (spawned != NULL) {
                     taskReparent(arg0, spawned->task);

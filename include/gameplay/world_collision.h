@@ -136,11 +136,16 @@ enum { WORLD_COLLISION_FIND_ANY_KEY = 0 };
 /// and no pointer is retained.
 s32 worldCollisionFindContactIndex(const WorldCollisionContact* contacts, s32 searchKey);
 
-/// Number of occupied contacts whose packed high halfword equals `kind`.
+/// Counts occupied contacts of one packed-key category.
 ///
-/// Supply `kind` in its word position (for example, class 2 is 0x20000).
-/// Traversal ends at the initialized table's final-element marker.
-s32 Gp_CountRec18Hi(WorldCollisionContact* contacts, s32 kind);
+/// `contactKind` is already shifted into the high halfword, as in
+/// `WORLD_COLLISION_CONTACT_PLAYER_BODY`, `WORLD_COLLISION_CONTACT_ENEMY_BODY`
+/// or `WORLD_COLLISION_CONTACT_GRID`; the low halfword must be zero.
+/// Supply a non-NULL readable table ending in `WORLD_COLLISION_CONTACT_LAST`.
+/// The final entry is included, empty entries are skipped and identities in
+/// the low halfword are ignored. Returns an element count, including zero;
+/// the table is unchanged and no pointer is retained.
+s32 worldCollisionCountContactsByKind(const WorldCollisionContact* contacts, s32 contactKind);
 
 /// Empties occupied contacts while preserving the table's final-entry marker.
 ///

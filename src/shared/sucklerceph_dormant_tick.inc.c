@@ -20,7 +20,7 @@ void sucklercephDormantTick(Task* arg0)
     coord = arg0->extra.tmd->coords;
     work  = arg0->work;
     SCRATCH_STACK_RESERVE_BYTES(8);
-    if (Gp_CountRec18Hi(&work->senseContact, 0x10000) != 0) {
+    if (worldCollisionCountContactsByKind(&work->senseContact, WORLD_COLLISION_CONTACT_PLAYER_BODY) != 0) {
         work->wakeRequested = 1;
     }
     if (work->wakeRequested != 0) {

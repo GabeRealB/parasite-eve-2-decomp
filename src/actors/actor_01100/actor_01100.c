@@ -2681,7 +2681,7 @@ static void Actor01100_Fn04410(Enemy* enemy, Task* task, _Actor01100Work* work, 
         sndEvtRequestScriptStart((work->waterRoom << 22) | (((u8)work->placeIndex << 8) | 0x400B0008), (s8)scratch->pan, (s8)scratch->depth);
     }
     if (((u32)((u16)work->stateCounter - 0x17) < 0x15U) && (work->stateStep == 1) &&
-        (Gp_CountRec18Hi(work->contacts[ACTOR_01100_BODY_LEFT_HAND], 0x10000) != 0)) {
+        (worldCollisionCountContactsByKind(work->contacts[ACTOR_01100_BODY_LEFT_HAND], WORLD_COLLISION_CONTACT_PLAYER_BODY) != 0)) {
         work->stateStep = 3;
     }
     time = work->stateCounter;
@@ -2825,7 +2825,7 @@ static void Actor01100_Fn048C8(Enemy* enemy, Task* task, _Actor01100Work* work, 
         sndEvtRequestScriptStart((work->waterRoom << 22) | (((u8)work->placeIndex << 8) | 0x400B0008), (s8)scratch->pan, (s8)scratch->depth);
     }
     if (((u32)((u16)work->stateCounter - 0x24) < 0x18U) && (work->stateStep == 1) &&
-        (Gp_CountRec18Hi(work->contacts[ACTOR_01100_BODY_RIGHT_HAND], 0x10000) != 0)) {
+        (worldCollisionCountContactsByKind(work->contacts[ACTOR_01100_BODY_RIGHT_HAND], WORLD_COLLISION_CONTACT_PLAYER_BODY) != 0)) {
         work->stateStep = 3;
     }
     time = work->stateCounter;
@@ -3484,7 +3484,7 @@ static void Actor01100_Fn06198(Task* task)
         coord->coord.t[2]  += work->velocity.vz;
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
         work->velocity.vy   = work->velocity.vy + 0xA;
-        if (Gp_CountRec18Hi(rec, 0x10000) != 0) {
+        if (worldCollisionCountContactsByKind(rec, WORLD_COLLISION_CONTACT_PLAYER_BODY) != 0) {
             child = task->firstChild;
             if (child != NULL) {
                 child->spawnArg1.value = 3;
@@ -4179,7 +4179,7 @@ static void Actor01100_Fn073DC(Task* task)
                     taskReparent(task, eff->task);
                 }
             }
-            if (Gp_CountRec18Hi(&work->contacts[0], 0x10000) != 0) {
+            if (worldCollisionCountContactsByKind(&work->contacts[0], WORLD_COLLISION_CONTACT_PLAYER_BODY) != 0) {
                 obj         = &work->body;
                 obj->flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
             }

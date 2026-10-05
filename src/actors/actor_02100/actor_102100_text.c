@@ -772,7 +772,7 @@ static void Actor02100_Fn004C4(Task* arg0)
 
     worldCollisionClearContacts(work->hitContacts);
     work->beamBlocked = 0;
-    if (Gp_CountRec18Hi(work->strikeContacts, WORLD_COLLISION_CONTACT_GRID) != 0) {
+    if (worldCollisionCountContactsByKind(work->strikeContacts, WORLD_COLLISION_CONTACT_GRID) != 0) {
         index   = worldCollisionSurfaceClassFromKey(work->strikeContacts[0].key.value);
         surface = Gp_RoomParamTables[gGameSession->location.loc.stage - 1]
                                     [gGameSession->location.loc.area - 1][index];

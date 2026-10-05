@@ -967,7 +967,7 @@ static void Actor02500_Fn00494(Task* actor)
         sndEvtRequestScriptStart(soundId, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
     }
     worldCollisionClearContacts(work->attackContacts);
-    if (Gp_CountRec18Hi(work->noticeContacts, 0x10000) != 0 && work->action == ACTOR_02500_ACTION_WANDER) {
+    if (worldCollisionCountContactsByKind(work->noticeContacts, WORLD_COLLISION_CONTACT_PLAYER_BODY) != 0 && work->action == ACTOR_02500_ACTION_WANDER) {
         work->action     = ACTOR_02500_ACTION_CHASE;
         work->actionStep = ACTOR_02500_CHASE_STEP_BEGIN;
         Gp_ArmStateF0(1);
@@ -1976,7 +1976,7 @@ static void Actor02500_Fn02750(Enemy* ctx, Task* task)
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         contacts = work->contacts;
         // A contact of the player's category: the poison has been delivered.
-        if (Gp_CountRec18Hi(contacts, 0x10000) != 0) {
+        if (worldCollisionCountContactsByKind(contacts, WORLD_COLLISION_CONTACT_PLAYER_BODY) != 0) {
             done  = 1;
             sound = (((u16)ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40190007;
             pan   = (s8)worldCoordGetOriginAudioPan(coord);

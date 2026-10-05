@@ -255,7 +255,7 @@ void func_tonfa_baton_8011DB98(Task* arg0)
 /// recovery of case 5. Case 3 is the follow-through: it re-arms the hitbox
 /// three ticks in and parks in case 4, whose 9 ticks clear the hit flag again.
 /// Cases 1/2 and 4 also play the connect sound once per swing when
-/// `Gp_CountRec18Hi` reports a hit.
+/// `worldCollisionCountContactsByKind` reports a hit.
 void func_tonfa_baton_8011DBFC(Task* arg0)
 {
     GameActor*                actor;
@@ -310,7 +310,7 @@ void func_tonfa_baton_8011DBFC(Task* arg0)
                     }
                 }
             }
-            if (actor->actionValue != 1 && Gp_CountRec18Hi(actor->weaponContacts, 0x30000) != 0) {
+            if (actor->actionValue != 1 && worldCollisionCountContactsByKind(actor->weaponContacts, WORLD_COLLISION_CONTACT_ENEMY_BODY) != 0) {
                 actor->actionValue = 1;
                 Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x20130003, 0);
             }
@@ -362,7 +362,7 @@ void func_tonfa_baton_8011DBFC(Task* arg0)
                     actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                 }
             }
-            if (actor->actionValue != 2 && Gp_CountRec18Hi(actor->weaponContacts, 0x30000) != 0) {
+            if (actor->actionValue != 2 && worldCollisionCountContactsByKind(actor->weaponContacts, WORLD_COLLISION_CONTACT_ENEMY_BODY) != 0) {
                 actor->actionValue = 2;
                 Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x20130004, 0);
             }

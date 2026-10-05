@@ -6938,7 +6938,7 @@ s32 Gp_PickNearestRec18(WorldCollisionContact* arg0, GfxCoord* arg1, GfxCoord* a
     s32                             dist;
 
     minDist = 0x7FFFFFFF;
-    if (Gp_CountRec18Hi(arg0, 0x30000) != 0) {
+    if (worldCollisionCountContactsByKind(arg0, WORLD_COLLISION_CONTACT_ENEMY_BODY) != 0) {
         return 0;
     }
     block = SCRATCH_STACK_RESERVE_BLOCK(PlayerActorWeaponImpactScratch);

@@ -15,7 +15,7 @@
 ///   seeds the width and spin, links the body and falls through.
 /// - State 1 flies the flame, redraws it, and on a random third of the frames
 ///   traces the ground under it for a splash. A category-3 contact
-///   (`Gp_CountRec18Hi`, high halfword 0x30000) or living past 0x14 frames
+///   (`worldCollisionCountContactsByKind`, `WORLD_COLLISION_CONTACT_ENEMY_BODY`) or living past 0x14 frames
 ///   releases it; hitting geometry (`worldCollisionProbeGridSegment`) switches to state 2
 ///   with a fresh velocity.
 /// - State 2 coasts on that velocity with a fast-widening flame until it is
@@ -113,7 +113,7 @@ static inline void pykeFlameTask(Task* task)
                 Gp_TraceGroundCoord(coord, &ground) == 1) {
                 pykeFlameDrawSplash(MATRIX_TRANS(&ground.workm), (s16)((work->scale * 2) / 3));
             }
-            if (Gp_CountRec18Hi(flame->body.context.contacts, 0x30000) != 0) {
+            if (worldCollisionCountContactsByKind(flame->body.context.contacts, WORLD_COLLISION_CONTACT_ENEMY_BODY) != 0) {
                 worldCollisionUnlinkBody(&flame->body);
                 effectKillTask(work, task);
                 return;

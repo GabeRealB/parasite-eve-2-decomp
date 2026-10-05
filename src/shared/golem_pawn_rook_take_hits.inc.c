@@ -295,7 +295,7 @@ void golemPawnRookTakeHits(Task* arg0)
         worldCollisionClearContacts(work->strikeContacts);
     }
     work->playerSpotted = 0;
-    if (Gp_CountRec18Hi(work->sightContacts, 0x10000) != 0) {
+    if (worldCollisionCountContactsByKind(work->sightContacts, WORLD_COLLISION_CONTACT_PLAYER_BODY) != 0) {
         part                     = &(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords[4];
         scratch->effectOffset.vx = part->workm.t[0];
         scratch->effectOffset.vy = part->workm.t[1];

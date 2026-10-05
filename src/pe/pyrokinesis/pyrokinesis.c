@@ -209,7 +209,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
             arg0->state = 1;
             spriteQuadDraw(coord, mem->age, mem->angle, mem->period);
             glowDrawFlameStar(coord, mem->angle, (s16)((u16)mem->scale << 16 >> 17));
-            if (Gp_CountRec18Hi(work->damageBody.context.contacts, 0x30000) != 0) {
+            if (worldCollisionCountContactsByKind(work->damageBody.context.contacts, WORLD_COLLISION_CONTACT_ENEMY_BODY) != 0) {
                 worldCollisionUnlinkBody(&work->damageBody);
                 radius     = (mem->index << 9) + 0x380;
                 mem->angle = radius;
@@ -281,7 +281,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
             lightCoord->coord.t[1]   = coord->coord.t[1];
             lightCoord->coord.t[2]   = coord->coord.t[2];
             lightCoord->composeStamp = GRAPHICS_COORD_DIRTY;
-            if (Gp_CountRec18Hi(work->damageBody.context.contacts, 0x30000) != 0) {
+            if (worldCollisionCountContactsByKind(work->damageBody.context.contacts, WORLD_COLLISION_CONTACT_ENEMY_BODY) != 0) {
                 worldCollisionUnlinkBody(&work->damageBody);
                 for (i = 0; i < 0x556; i += 0x2AA) {
                     spawned = Gp_SpawnEff(EFFECT_PYROKINESIS_FLAME_RING, coord, i, NULL);
@@ -338,7 +338,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
                     taskReparent(arg0, spawned->task);
                 }
             }
-            if (Gp_CountRec18Hi(work->damageBody.context.contacts, 0x30000) != 0) {
+            if (worldCollisionCountContactsByKind(work->damageBody.context.contacts, WORLD_COLLISION_CONTACT_ENEMY_BODY) != 0) {
                 worldCollisionUnlinkBody(&work->damageBody);
                 for (i = 0; i < 0x556; i += 0x2AA) {
                     spawned = Gp_SpawnEff(EFFECT_PYROKINESIS_FLAME_RING, coord, i, NULL);

@@ -54,7 +54,7 @@ void grenadeShellFly(Task* arg0)
     SCRATCH_STACK_CURSOR(_GrenadeShellFlightScratch) = head - 1;
     scratch                                          = head - 1;
     coord->composeStamp                              = GRAPHICS_COORD_DIRTY;
-    if (Gp_CountRec18Hi(work->sphereContacts, 0x30000) != 0) {
+    if (worldCollisionCountContactsByKind(work->sphereContacts, WORLD_COLLISION_CONTACT_ENEMY_BODY) != 0) {
     explode:
         // The shot arrives packed in the spawn argument: the loaded round in
         // the low byte and the firing weapon's index in the byte above it.
@@ -87,7 +87,7 @@ void grenadeShellFly(Task* arg0)
 
     /* `rec` is picked after each count, not before: assigning it first would
        make it cross the call and cost a call-saved register. */
-    count = Gp_CountRec18Hi(work->capsuleContacts, WORLD_COLLISION_CONTACT_GRID);
+    count = worldCollisionCountContactsByKind(work->capsuleContacts, WORLD_COLLISION_CONTACT_GRID);
     rec   = work->capsuleContacts;
     if (count == 0) {
         goto trySphereContacts;
@@ -114,7 +114,7 @@ check:
     }
     goto move;
 trySphereContacts:
-    count = Gp_CountRec18Hi(work->sphereContacts, WORLD_COLLISION_CONTACT_GRID);
+    count = worldCollisionCountContactsByKind(work->sphereContacts, WORLD_COLLISION_CONTACT_GRID);
     rec   = work->sphereContacts;
     if (count != 0) {
         goto check;

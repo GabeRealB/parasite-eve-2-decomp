@@ -208,7 +208,7 @@ void func_gunblade_8011E040(Task* arg0)
                     Gp_PlayObjSfx(arg0->extra.tmd->coords, sfx | 0x20170001, 0);
                 }
             }
-            if (actor->actionValue != 1 && Gp_CountRec18Hi(actor->weaponContacts, 0x30000) != 0) {
+            if (actor->actionValue != 1 && worldCollisionCountContactsByKind(actor->weaponContacts, WORLD_COLLISION_CONTACT_ENEMY_BODY) != 0) {
                 actor->actionValue = 1;
                 Gp_PlayObjSfx(arg0->extra.tmd->coords, sfx | 0x20170007, 0);
             }
@@ -223,7 +223,7 @@ void func_gunblade_8011E040(Task* arg0)
             if (gPlayerStatus.weaponSlotItem != 0xD) {
                 hit = Gp_PickNearestRec18(actor->weaponContacts, coord, &scratch->impactCoord);
                 if (gPlayerStatus.weaponSlotItem == 0xE) {
-                    if (hit != 0 || Gp_CountRec18Hi(actor->weaponContacts, 0x30000) != 0) {
+                    if (hit != 0 || worldCollisionCountContactsByKind(actor->weaponContacts, WORLD_COLLISION_CONTACT_ENEMY_BODY) != 0) {
                         scratch->impactCoord.workm.t[0] = actor->weaponContacts[0].point.vx;
                         scratch->impactCoord.workm.t[1] = actor->weaponContacts[0].point.vy;
                         scratch->impactCoord.workm.t[2] = actor->weaponContacts[0].point.vz;

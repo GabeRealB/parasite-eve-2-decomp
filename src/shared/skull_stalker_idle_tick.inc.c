@@ -24,7 +24,7 @@ void skullStalkerIdleTick(Task* arg0)
     work = arg0->work;
     SCRATCH_STACK_RESERVE_BYTES(8);
     obj = arg0->extra.tmd->coords;
-    if (Gp_CountRec18Hi(work->senseContacts, 0x10000) != 0 || Gp_CountRec18Hi(work->frontSenseContacts, 0x10000) != 0) {
+    if (worldCollisionCountContactsByKind(work->senseContacts, WORLD_COLLISION_CONTACT_PLAYER_BODY) != 0 || worldCollisionCountContactsByKind(work->frontSenseContacts, WORLD_COLLISION_CONTACT_PLAYER_BODY) != 0) {
         gSceneCombatState.signals.bytes.enemyAlert = 1;
         work->alertRequested                       = 1;
         work->animId                               = SKULL_STALKER_ANIM_ALERT;

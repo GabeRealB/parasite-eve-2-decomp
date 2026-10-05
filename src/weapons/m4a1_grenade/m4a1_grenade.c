@@ -313,7 +313,7 @@ static void func_m4a1_grenade_8011D994(Task* arg0)
     slot                = Gp_GetItemSlot(gPlayerStatus.weapon + 0x7F);
     scratch             = SCRATCH_STACK_RESERVE_BLOCK(_M4a1GrenadeFlightScratch);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    if (Gp_CountRec18Hi(work->sphereContacts, 0x30000) != 0) {
+    if (worldCollisionCountContactsByKind(work->sphereContacts, WORLD_COLLISION_CONTACT_ENEMY_BODY) != 0) {
     explode:
         // The launcher's load is the rifle's secondary one. With no round
         // loaded the index comes out negative and the grenade detonates as
@@ -338,7 +338,7 @@ static void func_m4a1_grenade_8011D994(Task* arg0)
         return;
     }
 
-    if (Gp_CountRec18Hi(work->capsuleContacts, WORLD_COLLISION_CONTACT_GRID) == 0) {
+    if (worldCollisionCountContactsByKind(work->capsuleContacts, WORLD_COLLISION_CONTACT_GRID) == 0) {
         goto trySphereContacts;
     }
     func_800E0FEC(work->capsuleContacts, &scratch->delta, 1, &idx);
@@ -357,7 +357,7 @@ check:
     }
     goto move;
 trySphereContacts:
-    if (Gp_CountRec18Hi(work->sphereContacts, WORLD_COLLISION_CONTACT_GRID) != 0) {
+    if (worldCollisionCountContactsByKind(work->sphereContacts, WORLD_COLLISION_CONTACT_GRID) != 0) {
         func_800E0FEC(work->sphereContacts, &scratch->delta, 1, &idx);
         idx = worldCollisionSurfaceClassFromMask((const u8*)&idx);
         goto check;
