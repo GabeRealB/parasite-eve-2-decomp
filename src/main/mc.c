@@ -67,6 +67,9 @@ enum {
     MEMORY_CARD_LOAD_STATE_OPEN_PREVIEW    = 0x14,
 };
 
+/// No Yes/No answer has been published on the dialog yet.
+enum { MEMORY_CARD_PROMPT_ANSWER_PENDING = 0 };
+
 /// The two text lines of one memory-card prompt, drawn one above the other.
 ///
 /// `Mc_PromptTable` has one row per `promptId`. The second line continues the
@@ -305,7 +308,9 @@ static inline void _mcWriteBlockChecksum(u8* recordBytes, s32 recordByteCount);
 /// Prompt + optional choice dialog (Mc_PromptTable[mode]).
 static s32 Mc_PromptDialog(Task* task, s32 arg1, s32 unused3);
 
-static s32 Mc_PromptDialogChoice(Task* task, s32 arg1, s32 unused3);
+static s32 _mcUpdateYesNoPrompt(Task* dialogTask, s32 promptId, s32 unusedPromptTimer);
+
+static inline void _mcInitYesNoPromptChild(UiObject* dialogObject, UiObject* choiceObject);
 
 static s32 Mc_PromptDialogSpawn(Task* task, s32 arg1, s32 unused3);
 
@@ -381,7 +386,7 @@ static inline s32 _mcVerifySavePreviewChecksum(const McSavePreview* preview);
 
 static void Mc_StateSaveSlotUi(UiList* list, UiObject* object);
 
-static u16* Mc_EncodeAsciiGlyphs(s8* arg0, u16* arg1);
+static u16* _mcEncodeAsciiTitleText(const u8* asciiText, u16* titleCursor);
 
 static void Mc_InitFileName(void);
 
@@ -406,7 +411,7 @@ static void Mc_UnusedStub(void);
 
 static s32 Mc_CompareBufferHalves(void);
 
-static void Mc_WriteSlotChecksums(void);
+static void _mcWriteLiveSaveSectionChecksums(void);
 
 static void Mc_WriteFirstByteChecksum(void);
 
@@ -478,7 +483,7 @@ static void _mcStateDelaySaveRetry(Task* task, McWork* work);
 
 static void _mcStateDelaySaveConfirmation(Task* task, McWork* work);
 
-static void Mc_StateUiCountdownF(Task* task, McWork* work);
+static void _mcStateDelaySectionWrite(Task* task, McWork* work);
 
 static void Mc_StateEnterPromptE(Task* task, McWork* work);
 
@@ -486,7 +491,7 @@ static void Mc_StateEnterPromptD(Task* task, McWork* work);
 
 static void Mc_StateInitWorkDefaults(Task* task, McWork* work);
 
-static void Mc_StateSetOpenDefaults(Task* task, McWork* work);
+static void _mcStateInitLoadSections(Task* task, McWork* work);
 
 static void Mc_StateCountdownPrompt(Task* task, McWork* work);
 
@@ -964,35 +969,57 @@ static s32 Mc_PromptDialog(Task* task, s32 arg1, s32 unused3)
     return obj->resultValue;
 }
 
-static s32 Mc_PromptDialogChoice(Task* task, s32 arg1, s32 unused3)
+/// Place the Yes/No child below the dialog and give it exclusive input.
+///
+/// Both objects must remain live. Coordinates use the panel's unsigned layout
+/// values and narrow to 16 bits; the dialog retains the pending answer.
+static inline void _mcInitYesNoPromptChild(UiObject* dialogObject, UiObject* choiceObject)
 {
-    UiObject* obj;
-    Task*     child;
-    UiObject* childObject;
+    choiceObject->panel.bounds.unsignedRect.x = (dialogObject->panel.contentOriginX.unsignedValue + dialogObject->panel.contentRight.unsignedValue + 5) - choiceObject->panel.bounds.unsignedRect.w;
+    choiceObject->panel.bounds.unsignedRect.y = dialogObject->panel.contentOriginY.unsignedValue + dialogObject->panel.contentBottom.unsignedValue + 16;
+    dialogObject->resultValue                 = MEMORY_CARD_PROMPT_ANSWER_PENDING;
+    dialogObject->panel.control.word          = USER_INTERFACE_PANEL_INACTIVE;
+}
 
-    obj = task->spawnArg2.pointer;
-    _mcDrawPrompt(task, arg1);
+/// Draw a memory-card question and create or poll its Yes/No child.
+///
+/// `dialogTask` must own the live `UiObject` in its second spawn argument;
+/// any first child must own this question's choice object. `promptId` indexes
+/// `Mc_PromptTable`. Yes is initially selected. Returns 0 while waiting or
+/// allocation fails, 1 for Yes or -1 for No. Confirmation latches the answer,
+/// detaches and starts closing the child, and restores parent input. The caller
+/// must leave this state when answered, since another call can spawn a new child.
+/// The UI task owns the child and releases it after animated closing.
+/// `unusedPromptTimer` retains the callers' lead-in timer argument; this
+/// routine does not read it or delay opening the choices.
+static s32 _mcUpdateYesNoPrompt(Task* dialogTask, s32 promptId, s32 unusedPromptTimer)
+{
+    enum { MEMORY_CARD_CHOICE_OPEN_DELAY_TICKS = 2 };
+    UiObject* dialogObject;
+    Task*     choiceTask;
+    UiObject* choiceObject;
 
-    child = task->firstChild;
-    if (child == NULL) {
-        UiObject* spawned;
+    dialogObject = dialogTask->spawnArg2.pointer;
+    _mcDrawPrompt(dialogTask, promptId);
 
-        spawned = uiSpawnObject(Mc_PromptDesc, MEMORY_CARD_MENU_PROMPT_YES_NO, 1, 2, obj);
-        if (spawned != NULL) {
-            spawned->panel.bounds.unsignedRect.x = (obj->panel.contentOriginX.unsignedValue + obj->panel.contentRight.unsignedValue + 5) - spawned->panel.bounds.unsignedRect.w;
-            spawned->panel.bounds.unsignedRect.y = obj->panel.contentOriginY.unsignedValue + obj->panel.contentBottom.unsignedValue + 0x10;
-            obj->resultValue                     = 0;
-            obj->panel.control.word              = USER_INTERFACE_PANEL_INACTIVE;
+    choiceTask = dialogTask->firstChild;
+    if (choiceTask == NULL) {
+        UiObject* spawnedChoice;
+
+        spawnedChoice = uiSpawnObject(Mc_PromptDesc, MEMORY_CARD_MENU_PROMPT_YES_NO, USER_INTERFACE_PANEL_ACTIVE, MEMORY_CARD_CHOICE_OPEN_DELAY_TICKS, dialogObject);
+        if (spawnedChoice != NULL) {
+            _mcInitYesNoPromptChild(dialogObject, spawnedChoice);
         }
-        return 0;
+        return MEMORY_CARD_PROMPT_ANSWER_PENDING;
     }
-    childObject = child->spawnArg2.pointer;
-    if (childObject->result == USER_INTERFACE_RESULT_CONFIRM) {
-        obj->resultValue = childObject->resultValue;
-        uiStartTreeClosing(childObject, childObject->owner);
-        obj->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
+    choiceObject = choiceTask->spawnArg2.pointer;
+    if (choiceObject->result == USER_INTERFACE_RESULT_CONFIRM) {
+        // Latch the answer before closing releases the child and restores input.
+        dialogObject->resultValue = choiceObject->resultValue;
+        uiStartTreeClosing(choiceObject, choiceObject->owner);
+        dialogObject->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
     }
-    return obj->resultValue;
+    return dialogObject->resultValue;
 }
 
 static s32 Mc_PromptDialogSpawn(Task* task, s32 arg1, s32 unused3)
@@ -1299,7 +1326,7 @@ static const _McSaveStateTable Mc_PromptStates = { {
     Mc_StateOpenNext,
     Mc_StateFileSelect,
     _mcStateDelaySaveRetry,
-    Mc_StateUiCountdownF,
+    _mcStateDelaySectionWrite,
     _mcStateDelaySaveConfirmation,
     Mc_StateEnterPromptE,
     Mc_StateEnterPromptD,
@@ -2120,7 +2147,7 @@ static void Mc_StateSyncFileSelect(Task* task, McWork* work)
 /// Jump table of 26 _McStateFunc handlers used by Mc_DispatchStateTable26.
 static const _McFileSelectStateTable Mc_FileSelectStates = { {
     Mc_StateInitWorkDefaults,
-    Mc_StateSetOpenDefaults,
+    _mcStateInitLoadSections,
     Mc_StateCountdownPrompt,
     Mc_StateCloseReturn,
     _mcStateDismissLoadPrompt,
@@ -2707,36 +2734,16 @@ void Mc_DrawSlotDetails(UiObject* object, McWork* work, s32 slot, s32 arg3, s32 
     }
 }
 
-static u16* Mc_EncodeAsciiGlyphs(s8* arg0, u16* arg1)
+/// Append ASCII text as full-width Shift-JIS glyphs to a memory-card title.
+///
+/// The NUL-terminated source is borrowed and read-only: use letters or space
+/// through '@'. The halfword-aligned destination must not overlap the source
+/// and needs one halfword per character plus a zero halfword. No capacity is
+/// checked. Returns the terminator for another append. This unused out-of-line
+/// entry point is retained for the image layout.
+static u16* _mcEncodeAsciiTitleText(const u8* asciiText, u16* titleCursor)
 {
-    s32 ch;
-    u16 idx;
-    u8  ch_u;
-
-    ch_u = *arg0;
-    if (*arg0 != 0) {
-        do {
-            ch = (s8)ch_u;
-            if (ch >= 0x61) {
-                idx = Mc_GlyphsLower[ch - 0x61];
-                goto store;
-            }
-            if (ch >= 0x41) {
-                idx = Mc_GlyphsUpper[ch - 0x41];
-                goto store;
-            }
-            if (ch >= 0x20) {
-                idx = Mc_GlyphsSymbol[ch - 0x20];
-            store:
-                *arg1 = idx;
-            }
-            arg0++;
-            ch_u = *arg0;
-            arg1++;
-        } while (*arg0 != 0);
-    }
-    *arg1 = 0;
-    return arg1;
+    return _mcAppendAsciiTitleText(asciiText, titleCursor);
 }
 
 static void Mc_InitFileName(void)
@@ -2882,7 +2889,12 @@ static s32 Mc_CompareBufferHalves(void)
     return _mcGetSectionWriteMask();
 }
 
-static void Mc_WriteSlotChecksums(void)
+/// Write the checksum and complement of the payload in each live save section.
+///
+/// Sections 1..8 sum signed bytes after their four-byte checksum header,
+/// retaining the low 16 bits. The card file header and backups are kept intact.
+/// This unused out-of-line entry point is retained for the image layout.
+static void _mcWriteLiveSaveSectionChecksums(void)
 {
     _mcWriteSaveSectionChecksums();
 }
@@ -3106,7 +3118,7 @@ static void Mc_StatePromptChoiceB(Task* task, McWork* work)
     s32       i;
 
     work->promptId = MEMORY_CARD_PROMPT_CREATE;
-    ret            = Mc_PromptDialogChoice(task, MEMORY_CARD_PROMPT_CREATE, work->promptTimer);
+    ret            = _mcUpdateYesNoPrompt(task, MEMORY_CARD_PROMPT_CREATE, work->promptTimer);
     if (ret != -1) {
         if (ret == 1) {
             task->state = 8;
@@ -3186,7 +3198,7 @@ static void Mc_StatePromptChoiceGeneric(Task* task, McWork* work)
     s32 ret;
 
     work->promptId = MEMORY_CARD_PROMPT_SAVE;
-    ret            = Mc_PromptDialogChoice(task, MEMORY_CARD_PROMPT_SAVE, work->promptTimer);
+    ret            = _mcUpdateYesNoPrompt(task, MEMORY_CARD_PROMPT_SAVE, work->promptTimer);
     switch (ret) {
         case 0:
             break;
@@ -3595,26 +3607,19 @@ static void _mcStateDelaySaveConfirmation(Task* task, McWork* work)
     _mcDrawPrompt(task, work->promptId);
 }
 
-static void Mc_StateUiCountdownF(Task* task, McWork* work)
+/// Draw the saving prompt during the delay before preparing a section write.
+///
+/// The overwrite confirmation arms `cardTimer` in frames. Decrements it once
+/// per run and enters section preparation when the new value is zero or below.
+/// The task must borrow a live dialog `UiObject`; no card request is submitted.
+static void _mcStateDelaySectionWrite(Task* task, McWork* work)
 {
-    u32           textColorRgb;
-    UiObject*     obj;
-    McPromptPair* entry;
-    McPromptPair* base;
-
     work->cardTimer -= 1;
     if (work->cardTimer <= 0) {
-        task->state = 0xF;
+        task->state = MEMORY_CARD_SAVE_STATE_PREPARE_SECTION;
     }
     work->promptId = MEMORY_CARD_PROMPT_SAVING;
-    obj            = task->spawnArg2.pointer;
-    textColorRgb   = uiGetTextColor(obj, USER_INTERFACE_TEXT_COLOR_NORMAL);
-    obj->result    = USER_INTERFACE_RESULT_NONE;
-    uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
-    base  = Mc_PromptTable;
-    entry = &base[MEMORY_CARD_PROMPT_SAVING];
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    _mcDrawPrompt(task, MEMORY_CARD_PROMPT_SAVING);
 }
 
 static void Mc_StateEnterPromptE(Task* task, McWork* work)
@@ -3671,11 +3676,18 @@ static void Mc_StateInitWorkDefaults(Task* task, McWork* work)
     task->state                                 += 1;
 }
 
-static void Mc_StateSetOpenDefaults(Task* task, McWork* work)
+/// Select all nine file sections for loading, then enter card acceptance.
+///
+/// Initializes the remaining-section count and shifted transfer mask, including
+/// section zero's card file header. Used after load-dialog initialization;
+/// the later directory and file-open states choose the file and transfer offset.
+static void _mcStateInitLoadSections(Task* task, McWork* work)
 {
+    enum { MEMORY_CARD_LOAD_STATE_ACCEPT_CARD = 7 };
+
     work->slotsRemaining = MEMORY_CARD_BUFFER_SLOT_COUNT;
     work->slotWriteMask  = MEMORY_CARD_SLOT_WRITE_ALL;
-    task->state          = 7;
+    task->state          = MEMORY_CARD_LOAD_STATE_ACCEPT_CARD;
 }
 
 static void Mc_StateCountdownPrompt(Task* task, McWork* work)
@@ -3692,7 +3704,7 @@ static void Mc_StateCountdownPrompt(Task* task, McWork* work)
     }
     if (work->promptTimer == 0) {
         work->promptId = MEMORY_CARD_PROMPT_LOAD;
-        status         = Mc_PromptDialogChoice(task, MEMORY_CARD_PROMPT_LOAD, work->promptTimer);
+        status         = _mcUpdateYesNoPrompt(task, MEMORY_CARD_PROMPT_LOAD, work->promptTimer);
         switch (status) {
             case 0:
                 break;

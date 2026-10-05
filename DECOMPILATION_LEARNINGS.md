@@ -14606,7 +14606,7 @@ count = count - 4;
 count registers. If sum ends up correct in `$a2` but the loop index and count
 are swapped (`$a1`/`$a0`), pin the index: `register u32 j asm("a0")`.
 
-`Mc_WriteSlotChecksums` is the pure example (batch write over `Mc_BufferSlots[1..8]`;
+`_mcWriteLiveSaveSectionChecksums` is the pure example (batch write over `Mc_BufferSlots[1..8]`;
 contrast `Mc_WriteBlockChecksum` which uses `~sum` for a single buffer).
 
 ## Signed `/ 2` chain must land in `$a0` via the call argument
@@ -14794,7 +14794,7 @@ sum += (s8)*ptr;
 ```
 
 an `s32 sum` collapses the cast to a single `lb`. The target often wants the
-longer form (`lbu` / `sll 24` / `sra 24`) that `Mc_WriteSlotChecksums` and its verify
+longer form (`lbu` / `sll 24` / `sra 24`) that `_mcWriteLiveSaveSectionChecksums` and its verify
 sibling `Mc_VerifySlotChecksums` use over `Mc_BufferSlots[1..8]`.
 
 Declare the accumulator `s16`:
@@ -16585,7 +16585,7 @@ GCC 2.8.1 keeps the pre-decrement copy in `$v1`, decrements `$v0`, and emits
 after the store, when the new value is `< 0`), which is one-off from a plain
 `-= 1; if (x <= 0)` check that fires when the counter hits zero.
 
-`_mcStateWaitSaveClose` is the pure example. Nearby `Mc_StateUiCountdownF` uses the early
+`_mcStateWaitSaveClose` is the pure example. Nearby `_mcStateDelaySectionWrite` uses the early
 `x -= 1; if (x <= 0)` form and correctly gets `bgtz` on the decremented value
 because the check is at the top of the function with lower register pressure —
 same logical intent, different placement, different instruction shape.
@@ -18417,7 +18417,7 @@ if (childObject->result == USER_INTERFACE_RESULT_CONFIRM) {
 return obj->resultValue;
 ```
 
-`Mc_PromptDialogChoice` is the pure example (~97.5% → 100% with only this change).
+`_mcUpdateYesNoPrompt` is the pure example (~97.5% → 100% with only this change).
 
 ## Dense 0..N switch → equality-chain if/gotos with duplicated tails
 
@@ -66759,7 +66759,7 @@ two block-local ranges. Keep the unpinned attempts and inspect `.lreg` /
 
 ## Inline save-title encoding and unsigned checksum constants (`func_80030AB0`)
 
-The archived m2c seed scored 45.112%; the matched `Mc_EncodeAsciiGlyphs` and
+The archived m2c seed scored 45.112%; the matched `_mcEncodeAsciiTitleText` and
 checksum siblings in `mc.c` supplied the useful C shapes. In the inline glyph
 encoder, separate stores in the three `if`/`else if` arms gave the destination
 pointer enough references to win allocation before the source pointer. GCC
