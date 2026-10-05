@@ -1714,41 +1714,48 @@ void Gp_PublishItemObj(Task* arg0)
     arg0->state         = arg0->state + 1;
 }
 
-/// Queues the transition's screen-sized subtractive tile and its blend command.
+/// Queues a screen-sized subtractive overlay for a display transition.
 ///
-/// Uses the live task's 0..8 step counter, a signed pixel Y offset and a writable
-/// OT entry. Reserves one TILE plus one DR_TPAGE in the aligned frame arena;
-/// packets and the ordering table must remain live until GPU completion.
-static inline void _fadeQueueDisplayTransitionOverlay(Task* task, s32 yOffsetPixels, s32 otIndex)
+/// `fadeStep` borrows a signed counter in 0..8 for this call. The tile's RGB
+/// darkness is min(step * 32 + 31, 255); steps seven and eight both draw black.
+/// `yOffsetPixels` is a signed pixel offset subtracted from the centered
+/// tile's Y coordinate to compensate the display's vertical shake.
+/// `otIndex` counts tags in `gGpuCurrentOt`; the caller selects 0, 59 or 63.
+///
+/// Requires space for one TILE and one DR_TPAGE at the word-aligned
+/// `gGpuPrimCursor` and a writable selected OT tag. The packets and ordering
+/// table remain borrowed until GPU completion; no capacity check is made.
+static inline void _fadeQueueDisplayTransitionOverlay(const s16* fadeStep, s32 yOffsetPixels, s32 otIndex)
 {
-    s32       grey;
+    s32       darkness;
     TILE*     fadeTile;
     DR_TPAGE* blendCommand;
 
     fadeTile       = gGpuPrimCursor;
     gGpuPrimCursor = fadeTile + 1;
     setTile(fadeTile);
-    setSemiTrans(fadeTile, 1);
+    setSemiTrans(fadeTile, true);
     fadeTile->x0 = -FADE_DISPLAY_WIDTH_PIXELS / 2;
     fadeTile->y0 = -FADE_DISPLAY_HEIGHT_PIXELS / 2 - yOffsetPixels;
     fadeTile->w  = FADE_DISPLAY_WIDTH_PIXELS;
     fadeTile->h  = FADE_DISPLAY_HEIGHT_PIXELS;
-    if (task->killCountdown < FADE_DISPLAY_STEPS) {
-        grey         = (task->killCountdown << FADE_DISPLAY_INTENSITY_SHIFT) + FADE_DISPLAY_MIN_GREY;
-        fadeTile->b0 = grey;
-        fadeTile->g0 = grey;
-        fadeTile->r0 = grey;
+    if (*fadeStep < FADE_DISPLAY_STEPS) {
+        darkness     = (*fadeStep << FADE_DISPLAY_INTENSITY_SHIFT) + FADE_DISPLAY_MIN_GREY;
+        fadeTile->b0 = darkness;
+        fadeTile->g0 = darkness;
+        fadeTile->r0 = darkness;
     } else {
-        grey         = FADE_DISPLAY_MAX_GREY;
-        fadeTile->b0 = grey;
-        fadeTile->g0 = grey;
-        fadeTile->r0 = grey;
+        darkness     = FADE_DISPLAY_MAX_GREY;
+        fadeTile->b0 = darkness;
+        fadeTile->g0 = darkness;
+        fadeTile->r0 = darkness;
     }
 
+    // OT insertion prepends packets: link the draw mode last so it runs first.
     addPrim(&gGpuCurrentOt[otIndex], fadeTile);
     blendCommand   = gGpuPrimCursor;
     gGpuPrimCursor = blendCommand + 1;
-    setlen(blendCommand, sizeof(*blendCommand) / sizeof(u32) - 1);
+    setlen(blendCommand, ARRAY_SIZE(blendCommand->code));
     blendCommand->code[0] = FADE_DISPLAY_DRAW_MODE;
     addPrim(&gGpuCurrentOt[otIndex], blendCommand);
 }
@@ -1799,7 +1806,7 @@ void fadeDisplayTransitionTask(Task* task)
         otIndex = FADE_DISPLAY_TASK_OT;
     }
 
-    _fadeQueueDisplayTransitionOverlay(task, yOffsetPixels, otIndex);
+    _fadeQueueDisplayTransitionOverlay(&task->killCountdown, yOffsetPixels, otIndex);
 
     // Queue the final overlay before changing presentation and releasing the task.
     if ((darkening == 0) && (task->killCountdown <= 0)) {
