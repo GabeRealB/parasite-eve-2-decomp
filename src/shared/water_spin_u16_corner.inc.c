@@ -1,26 +1,34 @@
 /* Part of the water effects library; see water_effects.h. */
 
-/// Writes the signed pixel offset to a rotated water-sprite corner.
+/// Stores the rotated pixel offset from a water sprite's centre to one corner.
 ///
-/// `projection` borrows a live scratch block with positive `depth` in SZ3/4
-/// units (including the drawer's bias). Only `extent.corner` changes; no
-/// pointer is retained. `radiusScale * 31 / depth` is the signed half-diagonal
-/// in pixels, truncated toward zero. Q12 products must fit s32 and round down.
-/// `angle` is a corner bearing in 4096 units per turn, with X right and Y up;
-/// it stays 32-bit so a quarter-turn addition is not narrowed again.
-static inline void _waterComputeSpriteCornerOffset(EffectShapeScratch* projection, s16 radiusScale, s32 angle)
+/// `projection` must point to one live, word-aligned `EffectShapeScratch` with
+/// positive `depth` in SZ3/4 units, including any caller bias. `radiusScale`
+/// is a signed 16-bit size parameter, even when a drawer receives it as s32.
+/// Its projected half-diagonal is `radiusScale * 31 / depth` integer pixels,
+/// truncated toward zero before multiplying by the Q12 sine and cosine.
+/// Each product must fit s32; shifting to integer pixels rounds down.
+///
+/// `cornerAngle` uses 4096 units per turn and stays 32-bit across the caller's
+/// quarter-turn addition. With positive scale, zero points up and a quarter
+/// turn points right: X is rightward and Y upward, so the caller subtracts Y
+/// from screen Y. Opposite corners use opposite signs of the same offset.
+/// Only the two s32 components of `extent.corner` are overwritten; all other
+/// fields are preserved. No allocation is made and no pointer is retained.
+static inline void _waterComputeSpriteCornerOffset(EffectShapeScratch* projection, s16 radiusScale, s32 cornerAngle)
 {
     enum {
-        WATER_SPIN_U16_PERSPECTIVE_SCALE  = 31,
-        WATER_SPIN_U16_TRIG_FRACTION_BITS = 12
+        WATER_SPRITE_CORNER_PERSPECTIVE_SCALE  = 31,
+        WATER_SPRITE_CORNER_TRIG_FRACTION_BITS = 12
     };
-    s32 halfDiagonalPixels;
-    s32 trigSample;
+    s32    halfDiagonalPixels;
+    q19_12 angleSine;
+    q19_12 angleCosine;
 
-    trigSample                  = rsin(angle);
-    halfDiagonalPixels          = (radiusScale * WATER_SPIN_U16_PERSPECTIVE_SCALE) / projection->depth;
-    projection->extent.corner.x = (halfDiagonalPixels * trigSample) >> WATER_SPIN_U16_TRIG_FRACTION_BITS;
-    trigSample                  = rcos(angle);
-    halfDiagonalPixels          = (radiusScale * WATER_SPIN_U16_PERSPECTIVE_SCALE) / projection->depth;
-    projection->extent.corner.y = (halfDiagonalPixels * trigSample) >> WATER_SPIN_U16_TRIG_FRACTION_BITS;
+    angleSine                   = rsin(cornerAngle);
+    halfDiagonalPixels          = (radiusScale * WATER_SPRITE_CORNER_PERSPECTIVE_SCALE) / projection->depth;
+    projection->extent.corner.x = (halfDiagonalPixels * angleSine) >> WATER_SPRITE_CORNER_TRIG_FRACTION_BITS;
+    angleCosine                 = rcos(cornerAngle);
+    halfDiagonalPixels          = (radiusScale * WATER_SPRITE_CORNER_PERSPECTIVE_SCALE) / projection->depth;
+    projection->extent.corner.y = (halfDiagonalPixels * angleCosine) >> WATER_SPRITE_CORNER_TRIG_FRACTION_BITS;
 }
