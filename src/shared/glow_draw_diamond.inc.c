@@ -1,16 +1,18 @@
 /* Part of the glow drawing library; see glow_draw.h. */
 
-/// Initializes an allocated glow quad's lit centre vertices and black rim.
+/// Prepares one half of a world-point diamond with a cyan centre and a black rim.
 ///
-/// Colour stores use the low byte. Coordinates, linkage and blend mode are
-/// supplied by the caller; this operation neither allocates nor links a packet.
-static inline void _glowInitDiamondHalf(POLY_G4* prim, s32 intensity)
+/// Borrows one writable `POLY_G4`, setting its opaque Gouraud command and
+/// packet length. Vertex 2 has zero red and the low byte of `cyanIntensity`
+/// in green and blue; vertices 0, 1 and 3 are black. The caller supplies the
+/// three outer corners, centre coordinates, DMA linkage and semitransparency.
+static inline void _glowInitDiamondHalf(POLY_G4* diamondHalf, s32 cyanIntensity)
 {
-    setPolyG4(prim);
-    setRGB0(prim, 0, 0, 0);
-    setRGB1(prim, 0, 0, 0);
-    setRGB2(prim, 0, intensity, intensity);
-    setRGB3(prim, 0, 0, 0);
+    setPolyG4(diamondHalf);
+    setRGB0(diamondHalf, 0, 0, 0);
+    setRGB1(diamondHalf, 0, 0, 0);
+    setRGB2(diamondHalf, 0, cyanIntensity, cyanIntensity);
+    setRGB3(diamondHalf, 0, 0, 0);
 }
 
 /// Draws a pulsing cyan diamond with two diagonals around a world point.

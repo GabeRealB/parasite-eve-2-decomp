@@ -1,15 +1,18 @@
 /* Part of the glow drawing library; see glow_draw.h. */
 
-/// Places an allocated flare quad around its projected centre and half-extent.
+/// Sets a depth-clipped flare's square screen bounds from its projected centre.
 ///
-/// Preserves signed-halfword screen-coordinate narrowing. The scratch block is
-/// borrowed for this call; no texture, colour or linkage fields are changed.
-static inline void _glowSetClippedFlareBounds(POLY_FT4* prim, const GlowCentreRadiusScratch* block)
+/// Borrows a writable `POLY_FT4` and the projection for this call. `sx`, `sy`
+/// and `radius` are in pixels; radius is the square's half-extent. Vertices
+/// 0, 1, 2 and 3 become top-left, top-right, bottom-left and bottom-right,
+/// respectively, with each coordinate narrowed to signed 16 bits. The caller
+/// supplies the accepted projection, packet header, texture, colour and linkage.
+static inline void _glowSetClippedFlareBounds(POLY_FT4* flare, const GlowCentreRadiusScratch* projection)
 {
-    prim->x0 = prim->x2 = block->sx - block->radius;
-    prim->x1 = prim->x3 = block->sx + block->radius;
-    prim->y0 = prim->y1 = block->sy - block->radius;
-    prim->y2 = prim->y3 = block->sy + block->radius;
+    flare->x0 = flare->x2 = projection->sx - projection->radius;
+    flare->x1 = flare->x3 = projection->sx + projection->radius;
+    flare->y0 = flare->y1 = projection->sy - projection->radius;
+    flare->y2 = flare->y3 = projection->sy + projection->radius;
 }
 
 void glowDrawFlareClipped(const SVECTOR* worldPoint, s32 textureIndex, s32 radiusScale)

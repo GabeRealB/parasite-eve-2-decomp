@@ -1,16 +1,18 @@
 /* Part of the glow drawing library; see glow_draw.h. */
 
-/// Initializes an allocated cap quad with one lit centre and a black rim.
+/// Prepares a light shaft's cap wedge with a grey centre and a black rim.
 ///
-/// Colour stores use the low byte. Coordinates, linkage and blend mode are
-/// supplied by the caller; this operation neither allocates nor links a packet.
-static inline void _glowInitShaftQuad(POLY_G4* prim, s32 intensity)
+/// Borrows one writable `POLY_G4`, setting its opaque Gouraud command and
+/// packet length. Vertex 2 receives the low byte of `intensity` in all three
+/// channels; vertices 0, 1 and 3 are black. The caller supplies coordinates,
+/// DMA linkage and semitransparency; its flicker supplies intensity 32 or 48.
+static inline void _glowInitShaftCapWedge(POLY_G4* capWedge, s32 intensity)
 {
-    setPolyG4(prim);
-    setRGB0(prim, 0, 0, 0);
-    setRGB1(prim, 0, 0, 0);
-    setRGB2(prim, intensity, intensity, intensity);
-    setRGB3(prim, 0, 0, 0);
+    setPolyG4(capWedge);
+    setRGB0(capWedge, 0, 0, 0);
+    setRGB1(capWedge, 0, 0, 0);
+    setRGB2(capWedge, intensity, intensity, intensity);
+    setRGB3(capWedge, 0, 0, 0);
 }
 
 /// Draws a grey light shaft aligned with the projected line between two world points.
@@ -72,7 +74,7 @@ static void _glowDrawShaft(const SVECTOR worldPoints[2], s32 radiusScale)
                 do {
                     prim           = gGpuPrimCursor;
                     gGpuPrimCursor = prim + 1;
-                    _glowInitShaftQuad(prim, intensity);
+                    _glowInitShaftCapWedge(prim, intensity);
                     prim->x0       = block->sx0 + ((block->radius0 * rsin(sweepAngle)) >> GLOW_TRIG_SHIFT);
                     sampleAngle    = sweepAngle + GLOW_EIGHTH_TURN;
                     prim->y0       = block->sy0 + ((block->radius0 * rcos(sweepAngle)) >> GLOW_TRIG_SHIFT);
@@ -111,7 +113,7 @@ static void _glowDrawShaft(const SVECTOR worldPoints[2], s32 radiusScale)
                     farRimAngle    = sweepAngle + GLOW_HALF_TURN;
                     sampleAngle    = farRimAngle;
                     gGpuPrimCursor = prim + 1;
-                    _glowInitShaftQuad(prim, intensity);
+                    _glowInitShaftCapWedge(prim, intensity);
                     prim->x0    = block->sx1 + ((block->radius1 * rsin(sampleAngle)) >> GLOW_TRIG_SHIFT);
                     prim->y0    = block->sy1 + ((block->radius1 * rcos(sampleAngle)) >> GLOW_TRIG_SHIFT);
                     sampleAngle = sweepAngle + GLOW_HALF_TURN + GLOW_EIGHTH_TURN;

@@ -1,25 +1,19 @@
 /* Part of the glow drawing library; see glow_draw.h. */
 
-/// Places an allocated flare quad around its projected centre and half-extent.
+/// Sets a world-point flare's square screen bounds from its projected centre.
 ///
-/// Preserves signed-halfword screen-coordinate narrowing. The scratch block is
-/// borrowed for this call; no texture, colour or linkage fields are changed.
-static inline void _glowSetFlareBounds(POLY_FT4* prim, const GlowCentreScratch* block)
+/// Borrows a writable `POLY_FT4` and the projection for this call. `sx`, `sy`
+/// and `radius` are in pixels; radius is the square's half-extent. Vertices
+/// 0, 1, 2 and 3 become top-left, top-right, bottom-left and bottom-right,
+/// respectively, with each coordinate narrowed
+/// to signed 16 bits. The caller supplies the accepted projection, packet
+/// header, texture, colour and linkage.
+static inline void _glowSetFlareBounds(POLY_FT4* flare, const GlowCentreScratch* projection)
 {
-    s16 screenEdge;
-
-    screenEdge = block->sx - (u16)block->radius;
-    prim->x2   = screenEdge;
-    prim->x0   = screenEdge;
-    screenEdge = block->sx + (u16)block->radius;
-    prim->x3   = screenEdge;
-    prim->x1   = screenEdge;
-    screenEdge = block->sy - (u16)block->radius;
-    prim->y1   = screenEdge;
-    prim->y0   = screenEdge;
-    screenEdge = block->sy + (u16)block->radius;
-    prim->y3   = screenEdge;
-    prim->y2   = screenEdge;
+    flare->x0 = flare->x2 = projection->sx - projection->radius;
+    flare->x1 = flare->x3 = projection->sx + projection->radius;
+    flare->y0 = flare->y1 = projection->sy - projection->radius;
+    flare->y2 = flare->y3 = projection->sy + projection->radius;
 }
 
 /// Draws a flickering textured flare centred on a world point.

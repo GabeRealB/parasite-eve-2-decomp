@@ -1,21 +1,25 @@
 /* Part of the glow drawing library; see glow_draw.h. */
 
-/// Allocates a centre-lit Gouraud quad in the current frame packet arena.
+/// Reserves one half of a local-point star's diamond with a cyan centre.
 ///
-/// Requires one packet's space; colours narrow to bytes. The caller supplies
-/// coordinates, ordering-table linkage and the blend command.
+/// Requires word-aligned space for one `POLY_G4` at `gGpuPrimCursor`;
+/// reservation advances the cursor by that packet without checking capacity.
+/// Sets the opaque Gouraud command and packet length. Vertex 2 has zero red
+/// and the low byte of `cyanIntensity` in green and blue; vertices 0, 1 and 3
+/// are black. The caller supplies coordinates, DMA linkage and semitransparency.
+/// The returned packet belongs to the frame arena until GPU drawing completes.
 static inline POLY_G4* _glowAllocateLocalStarHalf(s32 cyanIntensity)
 {
-    POLY_G4* prim;
+    POLY_G4* diamondHalf;
 
-    prim           = gGpuPrimCursor;
-    gGpuPrimCursor = prim + 1;
-    setPolyG4(prim);
-    setRGB0(prim, 0, 0, 0);
-    setRGB1(prim, 0, 0, 0);
-    setRGB2(prim, 0, cyanIntensity, cyanIntensity);
-    setRGB3(prim, 0, 0, 0);
-    return prim;
+    diamondHalf    = gGpuPrimCursor;
+    gGpuPrimCursor = diamondHalf + 1;
+    setPolyG4(diamondHalf);
+    setRGB0(diamondHalf, 0, 0, 0);
+    setRGB1(diamondHalf, 0, 0, 0);
+    setRGB2(diamondHalf, 0, cyanIntensity, cyanIntensity);
+    setRGB3(diamondHalf, 0, 0, 0);
+    return diamondHalf;
 }
 
 /// Draws a pulsing additive cyan diamond with diagonal rays at a local point.

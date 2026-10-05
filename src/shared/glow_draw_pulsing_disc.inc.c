@@ -1,16 +1,18 @@
 /* Part of the glow drawing library; see glow_draw.h. */
 
-/// Initializes an allocated glow quad's lit centre vertices and black rim.
+/// Prepares a pulsing disc wedge or blade with a cyan centre and a black rim.
 ///
-/// Colour stores use the low byte. Coordinates, linkage and blend mode are
-/// supplied by the caller; this operation neither allocates nor links a packet.
-static inline void _glowInitPulsingDiscWedge(POLY_G4* prim, s32 intensity)
+/// Borrows one writable `POLY_G4`, setting its opaque Gouraud command and
+/// packet length. Vertex 2 has zero red and the low byte of `cyanIntensity`
+/// in green and blue; vertices 0, 1 and 3 are black. The caller supplies
+/// coordinates, DMA linkage and semitransparency for the inner disc and blades.
+static inline void _glowInitPulsingDiscWedge(POLY_G4* wedge, s32 cyanIntensity)
 {
-    setPolyG4(prim);
-    setRGB0(prim, 0, 0, 0);
-    setRGB1(prim, 0, 0, 0);
-    setRGB2(prim, 0, intensity, intensity);
-    setRGB3(prim, 0, 0, 0);
+    setPolyG4(wedge);
+    setRGB0(wedge, 0, 0, 0);
+    setRGB1(wedge, 0, 0, 0);
+    setRGB2(wedge, 0, cyanIntensity, cyanIntensity);
+    setRGB3(wedge, 0, 0, 0);
 }
 
 /// Draws layered pulsing cyan discs and four glow blades around a world point.

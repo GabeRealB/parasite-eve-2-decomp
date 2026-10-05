@@ -1,25 +1,18 @@
 /* Part of the glow drawing library; see glow_draw.h. */
 
-/// Places an allocated flare quad around its projected centre and half-extent.
+/// Sets a local-point flare's square screen bounds from its projected centre.
 ///
-/// Preserves signed-halfword screen-coordinate narrowing. The scratch block is
-/// borrowed for this call; no texture, colour or linkage fields are changed.
-static inline void _glowSetLocalFlareBounds(POLY_FT4* prim, const RoomGlowSpriteScratch* block)
+/// Borrows a writable `POLY_FT4` and the projection for this call. `screenPos`
+/// and `halfExtent` are in pixels. Vertices 0, 1, 2 and 3 become top-left,
+/// top-right, bottom-left and bottom-right, respectively, with each coordinate
+/// narrowed to signed 16 bits. The caller supplies the accepted projection,
+/// packet header, texture, colour and linkage.
+static inline void _glowSetLocalFlareBounds(POLY_FT4* flare, const RoomGlowSpriteScratch* projection)
 {
-    s16 screenEdge;
-
-    screenEdge = block->screenPos.vx - block->halfExtent;
-    prim->x2   = screenEdge;
-    prim->x0   = screenEdge;
-    screenEdge = block->screenPos.vx + block->halfExtent;
-    prim->x3   = screenEdge;
-    prim->x1   = screenEdge;
-    screenEdge = block->screenPos.vy - block->halfExtent;
-    prim->y1   = screenEdge;
-    prim->y0   = screenEdge;
-    screenEdge = block->screenPos.vy + block->halfExtent;
-    prim->y3   = screenEdge;
-    prim->y2   = screenEdge;
+    flare->x0 = flare->x2 = projection->screenPos.vx - projection->halfExtent;
+    flare->x1 = flare->x3 = projection->screenPos.vx + projection->halfExtent;
+    flare->y0 = flare->y1 = projection->screenPos.vy - projection->halfExtent;
+    flare->y2 = flare->y3 = projection->screenPos.vy + projection->halfExtent;
 }
 
 /// Draws a depth-clipped textured flare at a coordinate's local point.

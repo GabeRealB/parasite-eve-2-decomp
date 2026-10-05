@@ -1,16 +1,18 @@
 /* Part of the glow drawing library; see glow_draw.h. */
 
-/// Initializes an allocated glow quad's lit centre vertices and black rim.
+/// Prepares a tinted disc wedge or blade with an RGB centre and a black rim.
 ///
-/// Colour stores use the low byte. Coordinates, linkage and blend mode are
-/// supplied by the caller; this operation neither allocates nor links a packet.
-static inline void _glowInitBiasedTintedDiscWedge(POLY_G4* prim, s32 red, s32 green, s32 blue)
+/// Borrows one writable `POLY_G4`, setting its opaque Gouraud command and
+/// packet length. Vertex 2 receives the low byte of each colour argument;
+/// vertices 0, 1 and 3 are black. The caller supplies coordinates, DMA linkage
+/// and semitransparency for both the inner disc and its overlaid blades.
+static inline void _glowInitBiasedTintedDiscWedge(POLY_G4* wedge, s32 red, s32 green, s32 blue)
 {
-    setPolyG4(prim);
-    setRGB0(prim, 0, 0, 0);
-    setRGB1(prim, 0, 0, 0);
-    setRGB2(prim, red, green, blue);
-    setRGB3(prim, 0, 0, 0);
+    setPolyG4(wedge);
+    setRGB0(wedge, 0, 0, 0);
+    setRGB1(wedge, 0, 0, 0);
+    setRGB2(wedge, red, green, blue);
+    setRGB3(wedge, 0, 0, 0);
 }
 
 /// Draws layered tinted discs and four glow blades at a biased world-point depth.

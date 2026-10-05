@@ -1,16 +1,18 @@
 /* Part of the glow drawing library; see glow_draw.h. */
 
-/// Initializes an allocated cap quad with one lit centre and a black rim.
+/// Prepares a fixed-angle beam's cap wedge with an RGB centre and a black rim.
 ///
-/// Colour stores use the low byte. Coordinates, linkage and blend mode are
-/// supplied by the caller; this operation neither allocates nor links a packet.
-static inline void _glowInitBeamQuad(POLY_G4* prim, u8 red, u8 green, u8 blue)
+/// Borrows one writable `POLY_G4`, setting its opaque Gouraud command and
+/// packet length. Vertex 2 receives the supplied colour bytes; vertices 0, 1
+/// and 3 are black. The caller supplies coordinates, DMA linkage and
+/// semitransparency for this end-cap packet.
+static inline void _glowInitBeamCapWedge(POLY_G4* capWedge, u8 red, u8 green, u8 blue)
 {
-    setPolyG4(prim);
-    setRGB0(prim, 0, 0, 0);
-    setRGB1(prim, 0, 0, 0);
-    setRGB2(prim, red, green, blue);
-    setRGB3(prim, 0, 0, 0);
+    setPolyG4(capWedge);
+    setRGB0(capWedge, 0, 0, 0);
+    setRGB1(capWedge, 0, 0, 0);
+    setRGB2(capWedge, red, green, blue);
+    setRGB3(capWedge, 0, 0, 0);
 }
 
 /// Draws a flickering tinted beam between two world points at a fixed screen angle.
@@ -77,7 +79,7 @@ static void _glowDrawBeam(const SVECTOR worldPoints[2], s32 radiusScale, s32 sta
         do {
             prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
-            _glowInitBeamQuad(prim, red, green, blue);
+            _glowInitBeamCapWedge(prim, red, green, blue);
             prim->x0       = block->sx0 + ((block->radius0 * rsin(baseAngle + sweepAngle)) >> GLOW_TRIG_SHIFT);
             prim->y0       = block->sy0 + ((block->radius0 * rcos(baseAngle + sweepAngle)) >> GLOW_TRIG_SHIFT);
             sampleAngle    = sweepAngle + GLOW_EIGHTH_TURN;
@@ -115,7 +117,7 @@ static void _glowDrawBeam(const SVECTOR worldPoints[2], s32 radiusScale, s32 sta
             prim           = gGpuPrimCursor;
             sampleAngle    = sweepAngle - GLOW_FULL_TURN;
             gGpuPrimCursor = prim + 1;
-            _glowInitBeamQuad(prim, red, green, blue);
+            _glowInitBeamCapWedge(prim, red, green, blue);
             prim->x0    = block->sx1 + ((block->radius1 * rsin(baseAngle - farRimAngle)) >> GLOW_TRIG_SHIFT);
             prim->y0    = block->sy1 + ((block->radius1 * rcos(baseAngle - sampleAngle)) >> GLOW_TRIG_SHIFT);
             sampleAngle = sweepAngle - (GLOW_FULL_TURN - GLOW_EIGHTH_TURN);

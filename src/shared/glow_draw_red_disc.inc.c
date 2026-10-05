@@ -1,16 +1,18 @@
 /* Part of the glow drawing library; see glow_draw.h. */
 
-/// Initializes an allocated glow quad's lit centre vertices and black rim.
+/// Prepares a red disc wedge with a red centre and a black rim.
 ///
-/// Colour stores use the low byte. Coordinates, linkage and blend mode are
-/// supplied by the caller; this operation neither allocates nor links a packet.
-static inline void _glowInitRedDiscWedge(POLY_G4* prim, s32 redIntensity)
+/// Borrows one writable `POLY_G4`, setting its opaque Gouraud command and
+/// packet length. Vertex 2 has the low byte of `redIntensity` in red and zero
+/// green and blue; vertices 0, 1 and 3 are black. The caller supplies
+/// coordinates, DMA linkage and semitransparency; its flicker supplies 32 or 40.
+static inline void _glowInitRedDiscWedge(POLY_G4* wedge, s32 redIntensity)
 {
-    setPolyG4(prim);
-    setRGB0(prim, 0, 0, 0);
-    setRGB1(prim, 0, 0, 0);
-    setRGB2(prim, redIntensity, 0, 0);
-    setRGB3(prim, 0, 0, 0);
+    setPolyG4(wedge);
+    setRGB0(wedge, 0, 0, 0);
+    setRGB1(wedge, 0, 0, 0);
+    setRGB2(wedge, redIntensity, 0, 0);
+    setRGB3(wedge, 0, 0, 0);
 }
 
 void glowDrawRedDisc(const SVECTOR* worldPoint, s16 radiusScale)

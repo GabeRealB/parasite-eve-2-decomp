@@ -1,21 +1,25 @@
 /* Part of the glow drawing library; see glow_draw.h. */
 
-/// Allocates a centre-lit Gouraud quad in the current frame packet arena.
+/// Reserves a disc wedge with an RGB centre and a black rim.
 ///
-/// Requires one packet's space; colours narrow to bytes. The caller supplies
-/// coordinates, ordering-table linkage and the blend command.
+/// Requires word-aligned space for one `POLY_G4` at `gGpuPrimCursor`;
+/// reservation advances the cursor by that packet without checking capacity.
+/// Sets the opaque Gouraud command and packet length, colours vertex 2 with
+/// the supplied bytes, and makes vertices 0, 1 and 3 black. The caller supplies
+/// coordinates, DMA linkage and semitransparency. The returned packet belongs
+/// to the current frame's arena until GPU drawing completes.
 static inline POLY_G4* _glowAllocateBitDiscWedge(u8 red, u8 green, u8 blue)
 {
-    POLY_G4* prim;
+    POLY_G4* wedge;
 
-    prim           = gGpuPrimCursor;
-    gGpuPrimCursor = prim + 1;
-    setPolyG4(prim);
-    setRGB0(prim, 0, 0, 0);
-    setRGB1(prim, 0, 0, 0);
-    setRGB2(prim, red, green, blue);
-    setRGB3(prim, 0, 0, 0);
-    return prim;
+    wedge          = gGpuPrimCursor;
+    gGpuPrimCursor = wedge + 1;
+    setPolyG4(wedge);
+    setRGB0(wedge, 0, 0, 0);
+    setRGB1(wedge, 0, 0, 0);
+    setRGB2(wedge, red, green, blue);
+    setRGB3(wedge, 0, 0, 0);
+    return wedge;
 }
 
 /// Draws an additive disc with a red-byte factor and single-bit green/blue factors.
