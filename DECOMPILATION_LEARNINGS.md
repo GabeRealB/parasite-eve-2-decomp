@@ -147684,3 +147684,33 @@ addPrim(&gGpuCurrentOt[((u32)(scratch->depth << gDisplayState.otDepthShift) >> 4
 Where other statements sit between the two halves, write `setaddr(prim, getaddr(&ot[i]))`
 and `setaddr(&ot[i], prim)` separately with the subscript repeated. All three
 links in the function matched this way with no other change.
+
+### An index reused across basic blocks keeps the element address out of its register; give each block its own local (func_actor_511000_80133958, 2026-10-05)
+
+Problem: two copies of the same tint sequence shared one integer local that
+was shifted and then had the table base added through `(u32)`, so that the
+index's call-saved register also held the element address
+(`srl s0,s0,12` ... `sll s0,s0,4` / `addu s0,s0,v0` / `lbu v0,0xD(s0)`).
+
+Symptom: with the shared local kept as the index, `place = &layout->placements[i]`
+gives `sll v0,s0,4` / `addu v1,v1,v0` (base first, scratch registers);
+`layout->placements[i].field` inline at both reads reloads `placements` after
+the first byte store; a base local with inline subscripts
+(`recs = layout->placements; recs[i].a; recs[i].b`) gets the offset-first
+`addu` but still in `v0`.
+
+Fix: the base local with inline subscripts, and a separate index local for each
+copy (`placeIndex`, `placeIndex2`). Each is then set and used inside one basic
+block, and the scaled index and the address stay in its register. Calls do not
+end a basic block, so the index still crosses the two calls in `s0`.
+
+### `&p->array[i]` always sums the member offset into the index; `(i + p) + off` has no typed spelling found (func_actor_511000_80132E6C, 2026-10-05)
+
+Target `addu s0,s1,s2` / `addiu s0,s0,0xC` (index plus struct pointer, then the
+member offset) inside a loop. `&work->palette[i]`, `work->palette + i`,
+`&i[work->palette]`, `&work->palette[0] + i` and an unsigned index all compile
+to `addiu s0,s1,12` / `addu s0,s2,s0`; `dst = work->palette; dst += i;` to
+`addiu s0,s2,12` / `addu s0,s0,s1`; inline `work->palette[i]` stores form
+`addu a0,s1,s2` at the store with the 12 in the displacement. Counting colours
+(`i < 16`, `[i * 2]`) strength-reduces all three pointers. Left as the
+integer form.
