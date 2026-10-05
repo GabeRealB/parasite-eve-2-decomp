@@ -109,11 +109,11 @@ func_acropolis_square_80182360 = 0x80182360; // type:func
 
 func_acropolis_square_801823DC = 0x801823DC; // type:func
 
-func_acropolis_square_801825DC = 0x801825DC; // type:func
+acropolisSquareBeaconGlowTask = 0x801825DC; // type:func
 
 func_acropolis_square_80180804 = 0x80180804; // type:func
 
-func_acropolis_square_8017F41C = 0x8017F41C; // type:func
+acropolisSquarePlayerReflectionTask = 0x8017F41C; // type:func
 Telephone_DrawPlayDataRow = 0x8017F46C; // type:func
 Telephone_DrawUsageRow = 0x8017FC38; // type:func
 Telephone_BuildWeaponUsage = 0x80180034; // type:func
@@ -139,3 +139,5 @@ _planarReflectionAttachmentTask = 0x8017F24C; // type:func
 Reflection_Data_8017D5C4 = 0x8017D5C4;
 roomCutsceneTask = 0x80181228; // type:func
 roomCutsceneSoundTask = 0x80182048; // type:func
+_acropolisSquareRejectKeyItemUse = 0x80182108; // type:func
+_acropolisSquareNoOp = 0x8018345c; // type:func

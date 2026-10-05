@@ -607,7 +607,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_actor_510900_801340E8, { NULL } },                                // 0x044
     { { { TASK_BODY_COORD, 0x70 } }, func_actor_510900_80132D4C, { NULL } },                                // 0x045
     { { { TASK_BODY_COORD, 0x70 } }, effectSpriteTask46, { NULL } },                                        // 0x046
-    { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_square_801825DC, { NULL } },                            // 0x047
+    { { { TASK_BODY_COORD, 0x70 } }, acropolisSquareBeaconGlowTask, { NULL } },                             // 0x047
     { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_security_room_801805A4, { NULL } },                     // 0x048
     { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_security_room_80180E34, { NULL } },                     // 0x049
     { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_promenade_8017E03C, { NULL } },                         // 0x04A

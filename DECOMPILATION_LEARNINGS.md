@@ -142898,7 +142898,7 @@ without a pin was a dead `= NULL` initialiser at function scope. That moves
 `REGNO_FIRST_UID` earlier, so the set stops being movable, but nothing suggests
 the original wrote it.
 
-### After an earlier call in the same block, argument moves tie on priority and source order decides (func_acropolis_square_801825DC, 2026-09-26)
+### After an earlier call in the same block, argument moves tie on priority and source order decides (acropolisSquareBeaconGlowTask, 2026-09-26)
 
 **Problem.** The twin of `func_acropolis_fire_escape_80180B20`. With every
 barrier stripped and one empty `do {} while (0)` after the second wedge's
@@ -148050,7 +148050,7 @@ for (i = 2; i < 0x10; i += 8) {
 
 The same change removed an `ampSi = amp;` copy the first loop carried inside
 its body: `amp` used directly gives the same hoisted extension.
-`func_acropolis_square_801825DC` and `func_acropolis_roof_garden_8017E29C`
+`acropolisSquareBeaconGlowTask` and `func_acropolis_roof_garden_8017E29C`
 take the same form.
 
 **Use.** When `.loop` shows a constant hoisted that the target keeps in the

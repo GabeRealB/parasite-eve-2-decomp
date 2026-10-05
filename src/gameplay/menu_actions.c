@@ -952,7 +952,7 @@ void func_800CFD78(Task* arg0)
     }
     switch (D_80114DCC) {
         case GAME_LOCATION_KEY(1, 1, 0, 0):
-            func_acropolis_square_8017F41C(arg0);
+            acropolisSquarePlayerReflectionTask(arg0);
             break;
         case GAME_LOCATION_KEY(1, 2, 0, 0):
             acropolisEastElevatorHallPlayerReflectionTask(arg0);

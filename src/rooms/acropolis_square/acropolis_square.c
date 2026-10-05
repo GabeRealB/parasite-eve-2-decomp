@@ -179,15 +179,15 @@ extern GfxCoord D_acropolis_square_801888CC;
 static void func_acropolis_square_80182260(Task* task);
 static void func_acropolis_square_801822A4(Task* task);
 
-s32  func_acropolis_square_80181794(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32  func_acropolis_square_801819BC(Task*, s32, s32, s32);
-s32  func_acropolis_square_801820D8(Task* task, s32 msgId, const void* firstArg, s32 arg3);
-s32  func_acropolis_square_80182108(Task*, s32, s32, s32);
-s32  func_acropolis_square_80182110(Task*, s32, s32, s32);
-void func_acropolis_square_80181AEC(Task*);
-void func_acropolis_square_80181DD0(Task*);
-void func_acropolis_square_80182148(Task*);
-void func_acropolis_square_80182200(s32);
+s32        func_acropolis_square_80181794(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32        func_acropolis_square_801819BC(Task*, s32, s32, s32);
+s32        func_acropolis_square_801820D8(Task* task, s32 msgId, const void* firstArg, s32 arg3);
+static s32 _acropolisSquareRejectKeyItemUse(Task* unusedTask, s32 unusedMessageId, s32 unusedItemId, s32 unusedSecondArg);
+s32        func_acropolis_square_80182110(Task*, s32, s32, s32);
+void       func_acropolis_square_80181AEC(Task*);
+void       func_acropolis_square_80181DD0(Task*);
+void       func_acropolis_square_80182148(Task*);
+void       func_acropolis_square_80182200(s32);
 
 extern WorldCollisionGrid         D_acropolis_square_8018519C[1];
 extern WorldCollisionTrigger      D_acropolis_square_801851C0[16];
@@ -198,7 +198,7 @@ extern WorldCoordRoomLights       D_acropolis_square_80186468[1];
 #include "../../shared/planar_reflection_data.inc.c"
 
 static TaskDesc D_acropolis_square_80183468[2] = {
-    { { { TASK_BODY_NONE, 112 } }, func_acropolis_square_8017F41C, { .value = 0 } },
+    { { { TASK_BODY_NONE, 112 } }, acropolisSquarePlayerReflectionTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 112 } }, _planarReflectionAttachmentTask, { .value = 0 } },
 };
 
@@ -220,10 +220,12 @@ TaskDesc gRoomCutsceneTaskDescs[3] = {
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
+enum { ACROPOLIS_SQUARE_MESSAGE_USE_KEY_ITEM = 5105 };
+
 TaskMessageEntry D_acropolis_square_801837C4[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_acropolis_square_80181794 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_acropolis_square_801820D8 },
-    { 5105, func_acropolis_square_80182108 },
+    { ACROPOLIS_SQUARE_MESSAGE_USE_KEY_ITEM, _acropolisSquareRejectKeyItemUse },
     { ROOM_MESSAGE_COMMAND, func_acropolis_square_801819BC },
     { ROOM_MESSAGE_SOUND, func_acropolis_square_80182110 },
     { TASK_MESSAGE_TABLE_END, NULL },
@@ -1360,13 +1362,11 @@ GfxCoord D_acropolis_square_801888CC = { 0 };
 /// Telephone menu title, including retained bytes after its terminator.
 static const char Telephone_Data_8017D638[];
 
-static void func_acropolis_square_8018345C(void);
-
 #include "../../shared/planar_reflection.inc.c"
 
-void func_acropolis_square_8017F41C(Task* task)
+void acropolisSquarePlayerReflectionTask(Task* reflectionTask)
 {
-    _planarReflectionPlayerTask(task);
+    _planarReflectionPlayerTask(reflectionTask);
 }
 
 #undef PLANAR_REFLECTION_DEFINE_SCALE_WITH_IMPLEMENTATION
@@ -1686,8 +1686,11 @@ s32 func_acropolis_square_801820D8(Task* task, s32 msgId, const void* firstArg, 
     return 0;
 }
 
-/// Always returns 0.
-s32 func_acropolis_square_80182108(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Refuses every key-item-use request with result 0 and no side effects.
+///
+/// Handles `ACROPOLIS_SQUARE_MESSAGE_USE_KEY_ITEM` on the room task. The item
+/// ID and second argument are ignored; no payload storage is accessed.
+static s32 _acropolisSquareRejectKeyItemUse(Task* unusedTask, s32 unusedMessageId, s32 unusedItemId, s32 unusedSecondArg)
 {
     return 0;
 }
@@ -1830,169 +1833,189 @@ void func_acropolis_square_801823DC(Task* task)
     }
 }
 
-void func_acropolis_square_801825DC(Task* task)
+/// Queues an additive glow packet with its blend command ahead of it in GPU order.
+static inline void _acropolisSquareQueueBeaconGlow(void* primitive, RoomGlowRadiiScratch* projection)
 {
-    RoomGlowRadiiScratch* blk;
-    POLY_G4*              prim;
-    LINE_G3*              line;
-    GfxCoord*             coord;
-    void*                 mem;
-    s32                   i;
-    s32                   pulse;
-    s32                   level;
-    s32                   height;
-    s16                   amp;
-    s16                   flip;
-    s16                   ampHalf;
+    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(
+                ((((u32)projection->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            primitive);
+    gpuSetPrimitiveBlendMode(primitive, GPU_BLEND_ADD, projection->otz);
+}
 
-    coord = task->extra.coordBody->coord;
-    mem   = task->spawnArg2.pointer;
-    actorRenderComposeCoord(coord);
-    blk              = SCRATCH_STACK_RESERVE_BLOCK(RoomGlowRadiiScratch);
-    blk->worldPos.vx = (u16)coord->workm.t[0];
-    blk->worldPos.vy = (u16)coord->workm.t[1];
-    blk->worldPos.vz = (u16)coord->workm.t[2];
+void acropolisSquareBeaconGlowTask(Task* task)
+{
+    enum {
+        ACROPOLIS_SQUARE_GLOW_MIN_DEPTH            = 17,
+        ACROPOLIS_SQUARE_GLOW_PULSE_RATE_MASK      = 0xFF,
+        ACROPOLIS_SQUARE_GLOW_RADIUS_SHIFT         = 8,
+        ACROPOLIS_SQUARE_GLOW_RADIUS_MASK          = 0xFF,
+        ACROPOLIS_SQUARE_GLOW_CYAN_SHIFT           = 16,
+        ACROPOLIS_SQUARE_GLOW_STREAKS              = 0x10000000,
+        ACROPOLIS_SQUARE_GLOW_PULSE_FALLING        = 0x80,
+        ACROPOLIS_SQUARE_GLOW_PULSE_RAMP_MASK      = 0x7F,
+        ACROPOLIS_SQUARE_GLOW_TRIG_FRACTION_BITS   = 12,
+        ACROPOLIS_SQUARE_GLOW_FAN_RADIUS_FACTOR    = 0x600,
+        ACROPOLIS_SQUARE_GLOW_RAY_RADIUS_FACTOR    = 0xC0,
+        ACROPOLIS_SQUARE_GLOW_DIAMOND_RADIUS_SHIFT = 9
+    };
+    RoomGlowRadiiScratch* projection;
+    POLY_G4*              quad;
+    LINE_G3*              streak;
+    GfxCoord*             effectCoord;
+    void*                 effectWork;
+    s32                   segmentIndex;
+    s32                   pulsePhase;
+    s32                   glowValue;
+    s32                   radiusScale;
+    s16                   intensity;
+    s16                   cyan;
+    s16                   halfIntensity;
+
+    // Project the composed effect center after narrowing to game coordinates.
+    effectCoord = task->extra.coordBody->coord;
+    effectWork  = task->spawnArg2.pointer;
+    actorRenderComposeCoord(effectCoord);
+    projection              = SCRATCH_STACK_RESERVE_BLOCK(RoomGlowRadiiScratch);
+    projection->worldPos.vx = (u16)effectCoord->workm.t[0];
+    projection->worldPos.vy = (u16)effectCoord->workm.t[1];
+    projection->worldPos.vz = (u16)effectCoord->workm.t[2];
 
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&blk->worldPos);
+    gte_ldv0(&projection->worldPos);
     gte_rtps();
-    gte_stsxy(&blk->screenPos);
-    gte_stszotz(&blk->otz);
-    if (blk->otz >= 0x11) {
-        pulse  = gDisplayState.animFrame;
-        pulse *= task->spawnArg1.value & 0xFF;
-        flip   = (task->spawnArg1.value >> 16) & 1;
-        if (pulse & 0x80) {
-            level = ~pulse & 0x7F;
+    gte_stsxy(&projection->screenPos);
+    gte_stszotz(&projection->otz);
+    if (projection->otz >= ACROPOLIS_SQUARE_GLOW_MIN_DEPTH) {
+        // Fold the frame phase into a triangular red or cyan brightness ramp.
+        pulsePhase  = gDisplayState.animFrame;
+        pulsePhase *= task->spawnArg1.value & ACROPOLIS_SQUARE_GLOW_PULSE_RATE_MASK;
+        cyan        = (task->spawnArg1.value >> ACROPOLIS_SQUARE_GLOW_CYAN_SHIFT) & 1;
+        if (pulsePhase & ACROPOLIS_SQUARE_GLOW_PULSE_FALLING) {
+            glowValue = ~pulsePhase & ACROPOLIS_SQUARE_GLOW_PULSE_RAMP_MASK;
         } else {
-            level = pulse & 0x7F;
+            glowValue = pulsePhase & ACROPOLIS_SQUARE_GLOW_PULSE_RAMP_MASK;
         }
-        amp   = level * 2;
-        level = task->spawnArg1.value;
-        if (level < 0) {
-            height           = (level >> 8) & 0xFF;
-            blk->outerRadius = (height * 0x600) / blk->otz;
-            blk->innerRadius = (height * 0xC0) / blk->otz;
-            for (i = 0; i < 0x10; i += 2) {
-                prim           = gGpuPrimCursor;
-                gGpuPrimCursor = prim + 1;
-                setPolyG4(prim);
-                setRGB0(prim, 0, 0, 0);
-                setRGB1(prim, 0, 0, 0);
-                setRGB2(prim, (amp * (flip ^ 1)) >> 1, (flip * amp) >> 1, (flip * amp) >> 1);
-                setRGB3(prim, 0, 0, 0);
-                prim->x0 = blk->screenPos.vx + ((blk->outerRadius * D_acropolis_square_80183B68[i + 4]) >> 12);
-                prim->y0 = blk->screenPos.vy + ((blk->outerRadius * D_acropolis_square_80183B68[i]) >> 12);
-                prim->x1 = blk->screenPos.vx + ((blk->outerRadius * D_acropolis_square_80183B68[i + 5]) >> 12);
-                prim->y1 = blk->screenPos.vy + ((blk->outerRadius * D_acropolis_square_80183B68[i + 1]) >> 12);
-                prim->x2 = blk->screenPos.vx;
-                prim->y2 = blk->screenPos.vy;
-                prim->x3 = blk->screenPos.vx + ((blk->outerRadius * D_acropolis_square_80183B68[i + 6]) >> 12);
-                prim->y3 = blk->screenPos.vy + ((blk->outerRadius * D_acropolis_square_80183B68[i + 2]) >> 12);
-                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                        prim);
-                gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, blk->otz);
+        intensity = glowValue * 2;
+        glowValue = task->spawnArg1.value;
+        // The sign bit selects the round fan; the other form is a flat diamond.
+        if (glowValue < 0) {
+            radiusScale             = (glowValue >> ACROPOLIS_SQUARE_GLOW_RADIUS_SHIFT) & ACROPOLIS_SQUARE_GLOW_RADIUS_MASK;
+            projection->outerRadius = (radiusScale * ACROPOLIS_SQUARE_GLOW_FAN_RADIUS_FACTOR) / projection->otz;
+            projection->innerRadius = (radiusScale * ACROPOLIS_SQUARE_GLOW_RAY_RADIUS_FACTOR) / projection->otz;
+            for (segmentIndex = 0; segmentIndex < 0x10; segmentIndex += 2) {
+                quad           = gGpuPrimCursor;
+                gGpuPrimCursor = quad + 1;
+                setPolyG4(quad);
+                setRGB0(quad, 0, 0, 0);
+                setRGB1(quad, 0, 0, 0);
+                setRGB2(quad, (intensity * (cyan ^ 1)) >> 1, (cyan * intensity) >> 1, (cyan * intensity) >> 1);
+                setRGB3(quad, 0, 0, 0);
+                quad->x0 = projection->screenPos.vx + ((projection->outerRadius * D_acropolis_square_80183B68[segmentIndex + 4]) >> ACROPOLIS_SQUARE_GLOW_TRIG_FRACTION_BITS);
+                quad->y0 = projection->screenPos.vy + ((projection->outerRadius * D_acropolis_square_80183B68[segmentIndex]) >> ACROPOLIS_SQUARE_GLOW_TRIG_FRACTION_BITS);
+                quad->x1 = projection->screenPos.vx + ((projection->outerRadius * D_acropolis_square_80183B68[segmentIndex + 5]) >> ACROPOLIS_SQUARE_GLOW_TRIG_FRACTION_BITS);
+                quad->y1 = projection->screenPos.vy + ((projection->outerRadius * D_acropolis_square_80183B68[segmentIndex + 1]) >> ACROPOLIS_SQUARE_GLOW_TRIG_FRACTION_BITS);
+                quad->x2 = projection->screenPos.vx;
+                quad->y2 = projection->screenPos.vy;
+                quad->x3 = projection->screenPos.vx + ((projection->outerRadius * D_acropolis_square_80183B68[segmentIndex + 6]) >> ACROPOLIS_SQUARE_GLOW_TRIG_FRACTION_BITS);
+                quad->y3 = projection->screenPos.vy + ((projection->outerRadius * D_acropolis_square_80183B68[segmentIndex + 2]) >> ACROPOLIS_SQUARE_GLOW_TRIG_FRACTION_BITS);
+                _acropolisSquareQueueBeaconGlow(quad, projection);
 
-                prim           = gGpuPrimCursor;
-                gGpuPrimCursor = prim + 1;
-                setPolyG4(prim);
-                setRGB0(prim, 0, 0, 0);
-                setRGB1(prim, 0, 0, 0);
-                setRGB2(prim, amp * (flip ^ 1), flip * amp, flip * amp);
-                setRGB3(prim, 0, 0, 0);
-                prim->x0 = blk->screenPos.vx + ((blk->outerRadius * D_acropolis_square_80183B68[i + 4]) >> 13);
-                prim->y0 = blk->screenPos.vy + ((blk->outerRadius * D_acropolis_square_80183B68[i]) >> 13);
-                prim->x1 = blk->screenPos.vx + ((blk->outerRadius * D_acropolis_square_80183B68[i + 5]) >> 13);
-                prim->y1 = blk->screenPos.vy + ((blk->outerRadius * D_acropolis_square_80183B68[i + 1]) >> 13);
-                prim->x2 = blk->screenPos.vx;
-                prim->y2 = blk->screenPos.vy;
-                prim->x3 = blk->screenPos.vx + ((blk->outerRadius * D_acropolis_square_80183B68[i + 6]) >> 13);
-                prim->y3 = blk->screenPos.vy + ((blk->outerRadius * D_acropolis_square_80183B68[i + 2]) >> 13);
-                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                        prim);
-                gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, blk->otz);
+                quad           = gGpuPrimCursor;
+                gGpuPrimCursor = quad + 1;
+                setPolyG4(quad);
+                setRGB0(quad, 0, 0, 0);
+                setRGB1(quad, 0, 0, 0);
+                setRGB2(quad, intensity * (cyan ^ 1), cyan * intensity, cyan * intensity);
+                setRGB3(quad, 0, 0, 0);
+                quad->x0 = projection->screenPos.vx + ((projection->outerRadius * D_acropolis_square_80183B68[segmentIndex + 4]) >> (ACROPOLIS_SQUARE_GLOW_TRIG_FRACTION_BITS + 1));
+                quad->y0 = projection->screenPos.vy + ((projection->outerRadius * D_acropolis_square_80183B68[segmentIndex]) >> (ACROPOLIS_SQUARE_GLOW_TRIG_FRACTION_BITS + 1));
+                quad->x1 = projection->screenPos.vx + ((projection->outerRadius * D_acropolis_square_80183B68[segmentIndex + 5]) >> (ACROPOLIS_SQUARE_GLOW_TRIG_FRACTION_BITS + 1));
+                quad->y1 = projection->screenPos.vy + ((projection->outerRadius * D_acropolis_square_80183B68[segmentIndex + 1]) >> (ACROPOLIS_SQUARE_GLOW_TRIG_FRACTION_BITS + 1));
+                quad->x2 = projection->screenPos.vx;
+                quad->y2 = projection->screenPos.vy;
+                quad->x3 = projection->screenPos.vx + ((projection->outerRadius * D_acropolis_square_80183B68[segmentIndex + 6]) >> (ACROPOLIS_SQUARE_GLOW_TRIG_FRACTION_BITS + 1));
+                quad->y3 = projection->screenPos.vy + ((projection->outerRadius * D_acropolis_square_80183B68[segmentIndex + 2]) >> (ACROPOLIS_SQUARE_GLOW_TRIG_FRACTION_BITS + 1));
+                _acropolisSquareQueueBeaconGlow(quad, projection);
             }
-            ampHalf = amp >> 1;
-            for (i = 2; i < 0x10; i += 8) {
-                prim           = gGpuPrimCursor;
-                gGpuPrimCursor = prim + 1;
-                setPolyG4(prim);
-                setRGB0(prim, 0, 0, 0);
-                setRGB1(prim, 0, 0, 0);
-                setRGB2(prim, ampHalf * (flip ^ 1), flip * ampHalf, flip * ampHalf);
-                setRGB3(prim, 0, 0, 0);
-                prim->x0 = blk->screenPos.vx + ((blk->innerRadius * D_acropolis_square_80183B68[i]) >> 12);
-                prim->y0 = blk->screenPos.vy + ((blk->innerRadius * D_acropolis_square_80183B68[i - 4]) >> 12);
-                prim->x1 = blk->screenPos.vx + ((blk->outerRadius * D_acropolis_square_80183B68[i + 4]) >> 11);
-                prim->y1 = blk->screenPos.vy + ((blk->outerRadius * D_acropolis_square_80183B68[i]) >> 11);
-                prim->x2 = blk->screenPos.vx;
-                prim->y2 = blk->screenPos.vy;
-                prim->x3 = blk->screenPos.vx + ((blk->innerRadius * D_acropolis_square_80183B68[i + 8]) >> 12);
-                prim->y3 = blk->screenPos.vy + ((blk->innerRadius * D_acropolis_square_80183B68[i + 4]) >> 12);
-                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
-                gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, blk->otz);
+            // Add two opposing pairs of long rays over the circular fan.
+            halfIntensity = intensity >> 1;
+            for (segmentIndex = 2; segmentIndex < 0x10; segmentIndex += 8) {
+                quad           = gGpuPrimCursor;
+                gGpuPrimCursor = quad + 1;
+                setPolyG4(quad);
+                setRGB0(quad, 0, 0, 0);
+                setRGB1(quad, 0, 0, 0);
+                setRGB2(quad, halfIntensity * (cyan ^ 1), cyan * halfIntensity, cyan * halfIntensity);
+                setRGB3(quad, 0, 0, 0);
+                quad->x0 = projection->screenPos.vx + ((projection->innerRadius * D_acropolis_square_80183B68[segmentIndex]) >> ACROPOLIS_SQUARE_GLOW_TRIG_FRACTION_BITS);
+                quad->y0 = projection->screenPos.vy + ((projection->innerRadius * D_acropolis_square_80183B68[segmentIndex - 4]) >> ACROPOLIS_SQUARE_GLOW_TRIG_FRACTION_BITS);
+                quad->x1 = projection->screenPos.vx + ((projection->outerRadius * D_acropolis_square_80183B68[segmentIndex + 4]) >> (ACROPOLIS_SQUARE_GLOW_TRIG_FRACTION_BITS - 1));
+                quad->y1 = projection->screenPos.vy + ((projection->outerRadius * D_acropolis_square_80183B68[segmentIndex]) >> (ACROPOLIS_SQUARE_GLOW_TRIG_FRACTION_BITS - 1));
+                quad->x2 = projection->screenPos.vx;
+                quad->y2 = projection->screenPos.vy;
+                quad->x3 = projection->screenPos.vx + ((projection->innerRadius * D_acropolis_square_80183B68[segmentIndex + 8]) >> ACROPOLIS_SQUARE_GLOW_TRIG_FRACTION_BITS);
+                quad->y3 = projection->screenPos.vy + ((projection->innerRadius * D_acropolis_square_80183B68[segmentIndex + 4]) >> ACROPOLIS_SQUARE_GLOW_TRIG_FRACTION_BITS);
+                _acropolisSquareQueueBeaconGlow(quad, projection);
 
-                prim           = gGpuPrimCursor;
-                gGpuPrimCursor = prim + 1;
-                setPolyG4(prim);
-                setRGB0(prim, 0, 0, 0);
-                setRGB1(prim, 0, 0, 0);
-                setRGB2(prim, ampHalf * (flip ^ 1), flip * ampHalf, flip * ampHalf);
-                setRGB3(prim, 0, 0, 0);
-                prim->x0 = blk->screenPos.vx + ((blk->innerRadius * D_acropolis_square_80183B68[i + 4]) >> 13);
-                prim->y0 = blk->screenPos.vy + ((blk->innerRadius * D_acropolis_square_80183B68[i]) >> 13);
-                prim->x1 = blk->screenPos.vx + ((blk->outerRadius * D_acropolis_square_80183B68[i + 8]) >> 12);
-                prim->y1 = blk->screenPos.vy + ((blk->outerRadius * D_acropolis_square_80183B68[i + 4]) >> 12);
-                prim->x2 = blk->screenPos.vx;
-                prim->y2 = blk->screenPos.vy;
-                prim->x3 = blk->screenPos.vx + ((blk->innerRadius * D_acropolis_square_80183B68[i + 0xC]) >> 13);
-                prim->y3 = blk->screenPos.vy + ((blk->innerRadius * D_acropolis_square_80183B68[i + 8]) >> 13);
-                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
-                gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, blk->otz);
+                quad           = gGpuPrimCursor;
+                gGpuPrimCursor = quad + 1;
+                setPolyG4(quad);
+                setRGB0(quad, 0, 0, 0);
+                setRGB1(quad, 0, 0, 0);
+                setRGB2(quad, halfIntensity * (cyan ^ 1), cyan * halfIntensity, cyan * halfIntensity);
+                setRGB3(quad, 0, 0, 0);
+                quad->x0 = projection->screenPos.vx + ((projection->innerRadius * D_acropolis_square_80183B68[segmentIndex + 4]) >> (ACROPOLIS_SQUARE_GLOW_TRIG_FRACTION_BITS + 1));
+                quad->y0 = projection->screenPos.vy + ((projection->innerRadius * D_acropolis_square_80183B68[segmentIndex]) >> (ACROPOLIS_SQUARE_GLOW_TRIG_FRACTION_BITS + 1));
+                quad->x1 = projection->screenPos.vx + ((projection->outerRadius * D_acropolis_square_80183B68[segmentIndex + 8]) >> ACROPOLIS_SQUARE_GLOW_TRIG_FRACTION_BITS);
+                quad->y1 = projection->screenPos.vy + ((projection->outerRadius * D_acropolis_square_80183B68[segmentIndex + 4]) >> ACROPOLIS_SQUARE_GLOW_TRIG_FRACTION_BITS);
+                quad->x2 = projection->screenPos.vx;
+                quad->y2 = projection->screenPos.vy;
+                quad->x3 = projection->screenPos.vx + ((projection->innerRadius * D_acropolis_square_80183B68[segmentIndex + 0xC]) >> (ACROPOLIS_SQUARE_GLOW_TRIG_FRACTION_BITS + 1));
+                quad->y3 = projection->screenPos.vy + ((projection->innerRadius * D_acropolis_square_80183B68[segmentIndex + 8]) >> (ACROPOLIS_SQUARE_GLOW_TRIG_FRACTION_BITS + 1));
+                _acropolisSquareQueueBeaconGlow(quad, projection);
             }
         } else {
-            blk->outerRadius = (((level >> 8) & 0xFF) << 9) / blk->otz;
-            for (i = 0; i < 2; i++) {
-                prim           = gGpuPrimCursor;
-                gGpuPrimCursor = prim + 1;
-                setPolyG4(prim);
-                setRGB0(prim, 0, 0, 0);
-                setRGB1(prim, 0, 0, 0);
-                setRGB2(prim, amp * (flip ^ 1), flip * amp, flip * amp);
-                setRGB3(prim, 0, 0, 0);
-                prim->x0 = blk->screenPos.vx - blk->outerRadius;
-                prim->x1 = prim->x2 = blk->screenPos.vx;
-                prim->x3            = blk->screenPos.vx + blk->outerRadius;
-                prim->y0 = prim->y2 = prim->y3 = blk->screenPos.vy;
-                prim->y1                       = (blk->screenPos.vy - blk->outerRadius) + blk->outerRadius * (i + i);
-                addPrim((&gGpuCurrentOt[((u32)blk->otz << gDisplayState.otDepthShift) >> 4 & 0x3FF]),
-                        prim);
-                gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, blk->otz);
+            projection->outerRadius = (((glowValue >> ACROPOLIS_SQUARE_GLOW_RADIUS_SHIFT) & ACROPOLIS_SQUARE_GLOW_RADIUS_MASK) << ACROPOLIS_SQUARE_GLOW_DIAMOND_RADIUS_SHIFT) / projection->otz;
+            for (segmentIndex = 0; segmentIndex < 2; segmentIndex++) {
+                quad           = gGpuPrimCursor;
+                gGpuPrimCursor = quad + 1;
+                setPolyG4(quad);
+                setRGB0(quad, 0, 0, 0);
+                setRGB1(quad, 0, 0, 0);
+                setRGB2(quad, intensity * (cyan ^ 1), cyan * intensity, cyan * intensity);
+                setRGB3(quad, 0, 0, 0);
+                quad->x0 = projection->screenPos.vx - projection->outerRadius;
+                quad->x1 = quad->x2 = projection->screenPos.vx;
+                quad->x3            = projection->screenPos.vx + projection->outerRadius;
+                quad->y0 = quad->y2 = quad->y3 = projection->screenPos.vy;
+                quad->y1                       = (projection->screenPos.vy - projection->outerRadius) + projection->outerRadius * (segmentIndex + segmentIndex);
+                addPrim((&gGpuCurrentOt[((u32)projection->otz << gDisplayState.otDepthShift) >> 4 & 0x3FF]),
+                        quad);
+                gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, projection->otz);
             }
-            if (task->spawnArg1.value & 0x10000000) {
-                for (i = 0; i < 2; i++) {
-                    line           = gGpuPrimCursor;
-                    gGpuPrimCursor = line + 1;
-                    setLineG3(line);
-                    setRGB0(line, 0, 0, 0);
-                    setRGB1(line, amp * (flip ^ 1), flip * amp, flip * amp);
-                    setRGB2(line, 0, 0, 0);
-                    line->x0 = blk->screenPos.vx + blk->outerRadius * (i * 3 - 1);
-                    line->y0 = blk->screenPos.vy - blk->outerRadius * (i + 1);
-                    line->x1 = blk->screenPos.vx;
-                    line->y1 = blk->screenPos.vy;
-                    line->x2 = blk->screenPos.vx - blk->outerRadius * (i * 3 - 1);
-                    line->y2 = blk->screenPos.vy + blk->outerRadius * (i + 1);
-                    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                            line);
-                    gpuSetPrimitiveBlendMode(line, GPU_BLEND_ADD, blk->otz);
+            if (task->spawnArg1.value & ACROPOLIS_SQUARE_GLOW_STREAKS) {
+                for (segmentIndex = 0; segmentIndex < 2; segmentIndex++) {
+                    streak         = gGpuPrimCursor;
+                    gGpuPrimCursor = streak + 1;
+                    setLineG3(streak);
+                    setRGB0(streak, 0, 0, 0);
+                    setRGB1(streak, intensity * (cyan ^ 1), cyan * intensity, cyan * intensity);
+                    setRGB2(streak, 0, 0, 0);
+                    streak->x0 = projection->screenPos.vx + projection->outerRadius * (segmentIndex * 3 - 1);
+                    streak->y0 = projection->screenPos.vy - projection->outerRadius * (segmentIndex + 1);
+                    streak->x1 = projection->screenPos.vx;
+                    streak->y1 = projection->screenPos.vy;
+                    streak->x2 = projection->screenPos.vx - projection->outerRadius * (segmentIndex * 3 - 1);
+                    streak->y2 = projection->screenPos.vy + projection->outerRadius * (segmentIndex + 1);
+                    _acropolisSquareQueueBeaconGlow(streak, projection);
                 }
             }
         }
     }
     SCRATCH_STACK_RELEASE_BLOCK(RoomGlowRadiiScratch);
-    effectKillTask(mem, task);
+    // This is a one-frame counted effect, including when projection rejects it.
+    effectKillTask(effectWork, task);
 }
 
 s32 func_acropolis_square_8018344C(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
@@ -2001,6 +2024,7 @@ s32 func_acropolis_square_8018344C(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
     return 0;
 }
 
-static void func_acropolis_square_8018345C(void)
+/// Unused empty function retained in the overlay image; its original role is unproven.
+static void _acropolisSquareNoOp(void)
 {
 }

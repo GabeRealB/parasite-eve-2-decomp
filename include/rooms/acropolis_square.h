@@ -38,11 +38,37 @@ s32 func_acropolis_square_80182360(s32 unused);
 
 void func_acropolis_square_801823DC(Task* task);
 
-void func_acropolis_square_801825DC(Task* task);
+/// Draws one frame of the square's pulsing red or cyan beacon glow, then ends the effect.
+///
+/// Bank-6 slot 0x47 requires a live coordinate body and a counted room effect.
+/// `spawnArg1.value` packs the pulse phase advance per animation frame in bits
+/// 0..7, radius scale in bits 8..15 and color in bit 16 (0 red, 1 cyan).
+/// Bit 31 selects a round fan with rays; otherwise the glow is a diamond,
+/// with crossing streaks when bit 28 is set. Other bits are ignored.
+/// The 256-step triangular pulse gives center intensity 0..254.
+///
+/// Composed world coordinates narrow to signed 16-bit before projection through
+/// `GsWSMATRIX`. Only SZ3 / 4 depths at least 17 draw; GTE FLAG is not tested.
+/// The word-aligned packet arena must hold up to twenty `POLY_G4` packets or
+/// two `POLY_G4` plus two `LINE_G3`, and one blend-mode packet per primitive.
+/// Packets remain live through GPU drawing; scratch storage is released here.
+/// Every call frees `spawnArg2.pointer` and tears down the task, even when
+/// nothing is drawn. That pointer must be NULL or owned primary-heap storage,
+/// distinct from `Task::work`, with nested resources already released.
+/// Keep this overlay loaded through the callback.
+void acropolisSquareBeaconGlowTask(Task* task);
 
 void func_acropolis_square_80180804(Task* task);
 
-void func_acropolis_square_8017F41C(Task* task);
+/// Initializes and updates the player's floor or mirror-plane reflection in the square.
+///
+/// State must be 0 (start bodyless) or 1 (initialized model and work).
+/// `spawnArg1.value` selects the floor (0) or room mirror plane (1).
+/// Requires a live player with a TMD body. The task owns its cloned model and
+/// work, borrows the player's geometry, and becomes a child of the player.
+/// Keep this overlay and the player live while the reflection and its
+/// attachment reflections run.
+void acropolisSquarePlayerReflectionTask(Task* reflectionTask);
 
 /// Task entries the Akropolis map UI overlay's stage tables name: each room's
 /// entry task, started for its location, and the enemy descriptors' tasks.
