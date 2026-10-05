@@ -402,17 +402,32 @@ enum {
     SHELTER_B6_TRAINING_ROOM_GLOW_RGB_600 = 0x600
 };
 
-/// Draws the eight point glows visible together in mapped views 3 through 6.
+/// Draws eight additive flickering discs at the room's fixed glow positions.
+///
+/// Seven centres are cyan and one is red; odd animation frames add eight to
+/// each RGB channel. The caller selects visibility in mapped views 3..6.
+/// Requires a composed view matrix, nonzero projected depths, scratch-stack
+/// space for one `GlowCentreScratch`, and a current ordering table and frame
+/// arena for up to 32 `POLY_G4` packets plus their blend commands. Scratch is
+/// released after each disc; queued packets live until GPU drawing completes.
+/// Overwrites GTE transform and projection registers.
 static inline void _shelterB6TrainingRoomDrawFixedGlows(void)
 {
-    glowDrawDisc(&D_shelter_b6_training_room_80184334[0], 0x180, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_044);
-    glowDrawDisc(&D_shelter_b6_training_room_80184334[1], 0x200, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_044);
-    glowDrawDisc(&D_shelter_b6_training_room_80184334[2], 0x100, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_044);
-    glowDrawDisc(&D_shelter_b6_training_room_80184334[3], 0x100, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_044);
-    glowDrawDisc(&D_shelter_b6_training_room_80184334[4], 0x100, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_044);
-    glowDrawDisc(&D_shelter_b6_training_room_80184334[5], 0x100, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_044);
-    glowDrawDisc(&D_shelter_b6_training_room_80184334[6], 0x180, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_600);
-    glowDrawDisc(&D_shelter_b6_training_room_80184334[7], 0x200, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_044);
+    // Pixel radius is the signed scale times 64, divided by camera Z / 4.
+    enum {
+        SHELTER_B6_TRAINING_ROOM_FIXED_GLOW_SMALL_RADIUS_SCALE  = 0x100,
+        SHELTER_B6_TRAINING_ROOM_FIXED_GLOW_MEDIUM_RADIUS_SCALE = 0x180,
+        SHELTER_B6_TRAINING_ROOM_FIXED_GLOW_LARGE_RADIUS_SCALE  = 0x200
+    };
+
+    glowDrawDisc(&D_shelter_b6_training_room_80184334[0], SHELTER_B6_TRAINING_ROOM_FIXED_GLOW_MEDIUM_RADIUS_SCALE, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_044);
+    glowDrawDisc(&D_shelter_b6_training_room_80184334[1], SHELTER_B6_TRAINING_ROOM_FIXED_GLOW_LARGE_RADIUS_SCALE, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_044);
+    glowDrawDisc(&D_shelter_b6_training_room_80184334[2], SHELTER_B6_TRAINING_ROOM_FIXED_GLOW_SMALL_RADIUS_SCALE, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_044);
+    glowDrawDisc(&D_shelter_b6_training_room_80184334[3], SHELTER_B6_TRAINING_ROOM_FIXED_GLOW_SMALL_RADIUS_SCALE, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_044);
+    glowDrawDisc(&D_shelter_b6_training_room_80184334[4], SHELTER_B6_TRAINING_ROOM_FIXED_GLOW_SMALL_RADIUS_SCALE, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_044);
+    glowDrawDisc(&D_shelter_b6_training_room_80184334[5], SHELTER_B6_TRAINING_ROOM_FIXED_GLOW_SMALL_RADIUS_SCALE, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_044);
+    glowDrawDisc(&D_shelter_b6_training_room_80184334[6], SHELTER_B6_TRAINING_ROOM_FIXED_GLOW_MEDIUM_RADIUS_SCALE, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_600);
+    glowDrawDisc(&D_shelter_b6_training_room_80184334[7], SHELTER_B6_TRAINING_ROOM_FIXED_GLOW_LARGE_RADIUS_SCALE, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_044);
 }
 
 void shelterB6TrainingRoomGlowTask(Task* task)
