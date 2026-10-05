@@ -214,20 +214,30 @@ static __inline__ s32 _effectSetCriticalHitRingCorners(POLY_G4* quad, const Effe
     return nextSegmentAngle;
 }
 
-/// Projects a shadow square with one single and one triple GTE transform.
+/// Projects the ground-shadow quad from world coordinates to screen pixels.
 ///
-/// The caller has loaded the world-to-screen translation; all four vertices
-/// must be ready in the live scratch block. The final FLAG governs rejection.
-static __inline__ void _effectProjectGroundShadow(EffectQuadScratch* scratch)
+/// quadScratch is a live, word-aligned block with all four vertices' XYZ
+/// components initialized in signed 16-bit world coordinates, in GPU quad
+/// strip order. The caller
+/// supplies the GTE projection settings and `GsWSMATRIX`'s translation; this
+/// loads that matrix's rotation. The block is borrowed only for this call.
+///
+/// Writes all four `screenCorners` and the triple transform's `projectionFlags`,
+/// even on rejection. Corner 0's single-transform flags are not accumulated;
+/// the caller rejects a negative final FLAG. Leaves the depth member untouched
+/// and corner 3's depth in GTE SZ3, to be read before another depth-changing
+/// GTE command.
+static __inline__ void _effectProjectGroundShadow(EffectQuadScratch* quadScratch)
 {
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&scratch->vertices[0]);
+    // Save corner 0 before the triple transform replaces the screen FIFO.
+    gte_ldv0(&quadScratch->vertices[0]);
     gte_rtps();
-    gte_stsxy(&scratch->screenCorners[0]);
-    gte_ldv3(&scratch->vertices[1], &scratch->vertices[2], &scratch->vertices[3]);
+    gte_stsxy(&quadScratch->screenCorners[0]);
+    gte_ldv3(&quadScratch->vertices[1], &quadScratch->vertices[2], &quadScratch->vertices[3]);
     gte_rtpt();
-    gte_stsxy3(&scratch->screenCorners[1], &scratch->screenCorners[2], &scratch->screenCorners[3]);
-    gte_stflg(&scratch->projectionFlags);
+    gte_stsxy3(&quadScratch->screenCorners[1], &quadScratch->screenCorners[2], &quadScratch->screenCorners[3]);
+    gte_stflg(&quadScratch->projectionFlags);
 }
 
 EffectUnitQuadCorner D_80111E38[4] = {
@@ -3180,7 +3190,6 @@ void effectDrawGroundShadow(const VECTOR3* centre, s32 halfSize, s16 shade)
             quadScratch->vertices[cornerIndex].vz += centre->vz;
         }
 
-        // Project one corner, then the remaining three with the GTE triple transform.
         _effectProjectGroundShadow(quadScratch);
         if (quadScratch->projectionFlags >= 0) {
             gte_stszotz(&quadScratch->depth);
