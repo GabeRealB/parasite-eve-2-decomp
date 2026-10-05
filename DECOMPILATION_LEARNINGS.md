@@ -145729,6 +145729,10 @@ at the join label, no longer forwarded the popped head into the next
 `SCRATCH_STACK_RESERVE_BLOCK`'s reload. The tree had faked that with a memory barrier after a
 single post-join pop.
 ## A `SOFT_TOUCH_REG` on a sibling-ring head buys one `REG_N_REFS`; the only natural source found, a reload of `firstChild`, also keeps the parent live (Actor02100_Fn011C4, 2026-09-27)
+
+**Corrected 2026-10-05:** the touch is not needed. See "A local reused for the
+value loaded through it keeps both reference counts" - `head = gameGetTaskSlot(...);
+head = head->firstChild;` matches.
 The body walks `list->firstChild` as a ring (`current = head; do {...} while
 (current != head)`) with a scratch block pushed before the loop. Unpinned, the
 head and the loop-hoisted `&scratch->from` swap `$s5`/`$s6`: both have 5 refs
@@ -148501,3 +148505,88 @@ keep their own `move` and the test stays. Reading `frames` before the call
 test and it leaves `$v0`. 168 inline shapes (five bodies, two numerators,
 return / local / `start0` types) gave nothing closer. The target needs the zero
 set in the same block as the compare and after the `lh`, yet unknown to cse2.
+## A local reused for the value loaded through it keeps both reference counts (Actor02100_Fn011C4, 2026-10-05)
+
+**Problem.** Two call-crossing pseudos swap `$s5`/`$s6`: a ring head with 5
+weighted refs over 119 insns loses to a loop-hoisted address with 5 over 104.
+The seed bought the head a sixth ref with `SOFT_TOUCH_REG(head)`.
+
+**Cause.** flow counts `REG_N_REFS` before combine, and combine never lowers
+it. With one local for both the task and its first child
+
+```c
+head = gameGetTaskSlot(GAME_TASK_SLOT_SCENE);
+head = head->firstChild;
+```
+
+flow sees `head = v0` and `head = mem(head + 12)`: two sets and a use more than
+the two-variable spelling. combine then merges the pair into
+`head = mem(v0 + 12)` - the same instructions as before - and `.lreg` still
+prints `used 7 times` for a pseudo that is mentioned five times. `2*7/119`
+beats `2*5/104`.
+
+**Fix.** When a pin or touch only buys references for a pointer that was
+loaded through another pointer, write the chain through one local. The emitted
+code does not change; the priority does. Compare `used N times` in `.lreg`
+with the mentions you can count in the RTL to spot a stale count.
+
+## A value masked in its own statement is set twice, so its load is not birth-promoted (Actor01100_Fn0097C, 2026-10-05)
+
+**Symptom.** `lui/lw` of a global, then a run of byte stores, then
+`and`/`lui K`/`bne`. Written as `if ((word & MASK) == K)` sched1 sinks the load
+below the first `li/sb` pair; the seed held it with `SOFT_BARRIER()`.
+
+**Cause.** `.sched` shows the load at `7f000001`: `birthing_insn_p` promotes an
+insn whose destination is live and has `REG_N_SETS == 1` to `LAUNCH_PRIORITY`
+the moment its last user is scheduled, so it lands directly above that user
+(here it was also blocked a cycle at a time by the load-delay hazard and
+drifted up past some stores, not all). A destination set twice is never
+promoted and keeps its source position on the luid tie-break.
+
+**Fix.**
+
+```c
+locationWord  = GAME_LOCATION_WORD(save.location.loc);
+locationWord &= GAME_LOCATION_STAGE_AREA_MASK;
+...stores...
+if (locationWord == GAME_LOCATION_KEY(3, 32, 0, 0))
+```
+
+The `&=` is the second set of the same pseudo; the `and` is still emitted
+where it was. Reusing another local for the load (`placeIndex`, `hp`,
+`entryId`) also stops the promotion but moves that other value's register.
+
+## Five asm barriers measured and left (2026-10-05)
+
+- `Actor01600_Fn04EB0` (`TOUCH_REG(callAngle)`). Needs `callAngle = v0` to stay
+  above the next call's `a0 = arg0` copy, so that `arg0` conflicts with the
+  block-local angle in `$s0` and takes `$s2`. Unpinned the copy is
+  birth-promoted below it and `arg0`/`flags` swap. Reusing `flags` for the
+  angle fixes the order (set more than once) but then nothing local holds
+  `$s0` and `work` takes it. The permuter's only exact answer was
+  `do { callAngle = f(); } while (0);`, a loop-note fence, not kept.
+- `func_actor_160900_Reseed` (`TOUCH_REG_USE2`). The target is
+  `lw work; move s2,a2; sh a2`: the `id = anim` copy sits after the stores at
+  `.lreg` (sched2 lifts it into the load-delay slot later). Plain C gives the
+  stores priority 2 (they depend on the in-block `lw`, cost 2) and the copy and
+  the hoisted `li 10` priority 1, so both float above the stores, and
+  `optimize_reg_copy_1` (local-alloc.c) then rewrites the store to use the
+  copy's destination: `sh s2`. An `s32` parameter with a `(u16)` argument makes
+  the copy a SUBREG, which that pass skips, but moves the `lhu` below the
+  branch.
+- `func_actor_510900_80132D4C` (`"=r"(col) : "0"(x2)`). `andi a2,s3,0xff`
+  survives only if `reg_nonzero_bits[col]` covers the low nibble. A second set
+  of `col` from anything with low bits does that (`col = rand & 0xF;
+  mem->angle = col;` gives `0xff`), because the bits are the union over all
+  sets, taken before combine merges anything. But the extra range is real and
+  takes `$s2`. It would have to be a set combine deletes; none found.
+- `func_actor_143000_80133CF0` (two). The strip count is in `$a1` because the
+  helper's frame base is already in `$a0` when the count is stored, and the
+  `*640` shifts stay above the struct copy. Both are births that must not sink
+  to their users. Reusing one local for the count and the offset does not tie
+  them (cse replaces the second range). `bottom` as `s32` and the offset
+  computed before `r.h` reproduce the two separate `lh`/`lhu` reads of `r.y`.
+- `func_actor_521100_80133104` (two). `move a1,s1` / `addiu a1,a1,0x280` is
+  still only reachable with the touch: `&coord[8]`, an inline taking the
+  element, an inline incrementing its parameter, an inline returning the
+  element and a re-read of `arg0->extra.tmd->coords` all fold to one `addiu`.
