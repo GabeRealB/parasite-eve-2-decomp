@@ -4537,15 +4537,9 @@ static const DesertChaserTaskStates gDesertChaserTaskStates = {
 /// or its model is shown (flag 0x80 clear), 0 once it is dead and hidden.
 s32 func_actor_421600_8013E4EC(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
-    if (((Enemy*)task->spawnArg2.pointer)->hp > 0) {
-        goto return_one;
-    }
-
-    if ((task->extra.tmd->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) != 0) {
+    if (((Enemy*)task->spawnArg2.pointer)->hp <= 0 && (task->extra.tmd->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) != 0) {
         return 0;
     }
-
-return_one:
     return 1;
 }
 
