@@ -164,10 +164,15 @@ static __inline__ void _worldTargetReleaseActorLocks(const WorldTargetNode* node
     } while (actorSlot < PLAYER_ACTOR_TASK_COUNT);
 }
 
-/// Stages one upload rectangle for the SDK queue, which borrows its pixels.
+/// Queues one raw texture or palette transfer without changing its upload record.
 ///
-/// `scratchDestination` is writable scratch storage; the SDK copies it before
-/// returning. `upload` and its payload meet the `gpuUploadImages` contract.
+/// `scratchDestination` must hold a word-aligned writable `RECT`, separate from
+/// `upload`, so SDK width/height clamping cannot change the source destination.
+/// The upload must meet `GpuImageUpload`'s VRAM bounds and pixel-buffer contract.
+/// The caller selects copy entries; this helper does not read the operation.
+/// The scratch rectangle can be reused on return; pixel storage stays borrowed
+/// until transfer completes. The SDK return value is ignored, and this helper
+/// neither waits for transfer completion nor manages the scratch-stack cursor.
 static __inline__ void _gpuUploadImageEntry(RECT* scratchDestination, const GpuImageUpload* upload)
 {
     scratchDestination->x = upload->destination.x;
