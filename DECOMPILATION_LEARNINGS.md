@@ -148571,8 +148571,9 @@ where it was. Reusing another local for the load (`placeIndex`, `hp`,
   stores priority 2 (they depend on the in-block `lw`, cost 2) and the copy and
   the hoisted `li 10` priority 1, so both float above the stores, and
   `optimize_reg_copy_1` (local-alloc.c) then rewrites the store to use the
-  copy's destination: `sh s2`. An `s32` parameter with a `(u16)` argument makes
-  the copy a SUBREG, which that pass skips, but moves the `lhu` below the
+  copy's destination: `sh s2`. An `s32` parameter with a `(u16)` argument keeps
+  `sh` on the loaded register (the copy is then presumably a SUBREG, which that
+  pass does not take; not checked in the dump) but moves the `lhu` below the
   branch.
 - `func_actor_510900_80132D4C` (`"=r"(col) : "0"(x2)`). `andi a2,s3,0xff`
   survives only if `reg_nonzero_bits[col]` covers the low nibble. A second set
