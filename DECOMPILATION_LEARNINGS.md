@@ -148109,3 +148109,118 @@ local-alloc hands the first one `$s0` before `x` is considered.
 `top` is reassigned between the two, and `top = t + top` is then expanded with
 the operands swapped. `top = menu->selectedItemIndex = t + top` keeps the
 operand order but `top` is not the class head there and the copy dies again.
+
+### A pseudo that dies where another is set inherits its register preferences: give the other branch its own local (Mc_PromptDialog and its three siblings, 2026-10-05)
+
+**Symptom.** `child = task->firstChild; if (child == NULL) { obj2 = Ui_SpawnFromDesc(...); ... return 0; } obj2 = child->spawnArg2.pointer; ... uiStartTreeClosing(obj2, ...)`.
+The target keeps `child` in `$a0` (`lw a0,0xc(s2)` / `bnez a0` / `lw a0,0x20(a0)`),
+which lets `li v0,6` ride in the branch delay slot. Natural C put `child` in
+`$v0`; four functions held it with `register Task* childTask asm("a0")`.
+
+**Mechanism.** `expand_preferences` (global.c): for an insn `(set A ...)` with
+a `REG_DEAD` note for B, where A and B do not conflict, each gets the other's
+hard-register preferences. `obj2 = child->spawnArg2.pointer` is such an insn,
+so `child` inherits what `obj2` prefers. `obj2` prefers `$a0` (it is the first
+argument of `uiStartTreeClosing`) **and `$v0`**, because the same variable also
+receives the return value of `Ui_SpawnFromDesc` in the other branch. `child`
+conflicts with nothing, so it takes the lowest preferred register, `$v0`
+(`;; 84 preferences: 2 4` in `.greg`).
+
+**Fix.** The spawned panel is a block local of the `NULL` branch:
+
+```c
+child = task->firstChild;
+if (child == NULL) {
+    UiObject* spawned;
+
+    spawned = Ui_SpawnFromDesc(Mc_PromptDesc, 0, 1, 2, obj);
+    if (spawned != NULL) { ... }
+    return 0;
+}
+childObject = child->spawnArg2.pointer;
+```
+
+`childObject` then prefers only `$a0`, `child` inherits only `$a0`, and
+`spawned` still lands in `$a0` because `$v0`/`$v1` are taken by temporaries.
+The same four functions also carried `one = 1; base = Mc_PromptTable;` locals
+and a hand-expanded prompt; they are `_mcDrawPrompt(task, promptId)`, the
+inline the state functions already use, defined above them (GCC 2.8.1 only
+inlines a function defined before its caller).
+
+**Use.** When a pinned pointer is loaded, tested and then replaced by a field
+of itself, print the `preferences:` lines of `.greg`. A preference for `$v0`
+on a pseudo that never touches a call result is inherited; find the variable
+that is both "set where the pinned one dies" and "assigned from a call"
+elsewhere, and split it by block. This corrects "Pin the child task to `$a0`
+for `lw a0,0x20(a0)`".
+
+### A two-insn priority tie: write the three-way mode test as a `switch` (func_options_801D404C, 2026-10-05)
+
+**Symptom.** `arg0` and `span` swapped `$s7`/`$fp`. `.lreg` gives `arg0` 8
+refs over 216 insns and `span` 3 over 27: both `floor_log2(refs)*refs/len`
+come out 0.1111 exactly, the tie goes to the lower pseudo number (`arg0`), and
+the target wants `span` first. A `SOFT_BARRIER()` after the loop added the
+insns that broke the tie.
+
+**Fix.** The tail `cur = field; if (saved != cur) { if (cur != 0) { if (cur != 1) f(1); else f(0); } else f(1); }`
+is a switch on the field that was just stored:
+
+```c
+gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.soundMode = selected;
+if (saved != gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.soundMode) {
+    switch (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.soundMode) {
+        case 0:  sndOutputSetStereo(SOUND_OUTPUT_STEREO); break;
+        case 1:  sndOutputSetStereo(SOUND_OUTPUT_MONO);   break;
+        default: sndOutputSetStereo(SOUND_OUTPUT_STEREO); break;
+    }
+}
+```
+
+Same instructions, but the switch has two more insns at flow time (218), which
+is the tie-break the barrier supplied. The `title` local, `y = i` and
+`i += one` were not needed either.
+
+**Still there, with the condition measured: the `one` local.** The loop
+(`do { color; one = 1; textDrawUiLine(..., TEXT_DRAW_OUTLINED, ...); ... } while (i < 2)`)
+keeps `li s3,1` inside it, and `$s3` then serves every later `1`
+(`bne v0,s3`, `move a1,s3`, `addu s1,s1,s3` - cse2 and reload_cse do that, the
+source can write literals there). With no `one` variable the constant for the
+stack argument is a temporary and loop.c hoists it: the loop has 29 insns and
+`threshold(29) * savings(1) * lifetime(1) >= 29`. Hoisted, it loses its
+register to `count` and everything shifts. What keeps it in the loop:
+
+- 30 insns in the loop (`*p++` as the argument, or `label = *p;` first, adds
+  the one) - but then sched1 puts `i++` before the constant, so reload_cse
+  cannot turn `addiu s2,s2,1` into `addu s2,s2,s3`, and `span`'s length goes
+  to 28, which loses the tie above;
+- an invariant moved before it (threshold drops by 3): a narrow `count`
+  (`s16`/`s8`) or `if (i != saved)` with `s8 saved` does that, but the hoisted
+  extension then takes a callee-saved register of its own;
+- or the rule at the top of `scan_loop`: a `REG_USERVAR_P` register set after
+  a jump in the loop (`maybe_never`) and referenced outside the set's basic
+  block is never a movable. That is the `one` local with one use after the
+  loop, and nothing else found so far meets it. `li t0,2` for the divisor is
+  not a second instance: `columnCount = 2` at the top of the function is a
+  `REG_EQUIV` pseudo that gets no register and reload rematerialises it.
+
+### Unresolved, with the mechanism measured: the two barriers of func_replay_bonus_801183B8 (2026-10-05)
+
+Removing both `SOFT_USE_REG` lines leaves 13 differing instructions, all one
+swap: `gh` and `gv` exchange `$t4`/`$t5` in the glyph loop and the sprite loop.
+Removing either one alone is worse, because they compensate each other:
+
+- `gh` has to be allocated before `gv`. Without barriers both have 17
+  weighted refs; `gv` lives 135 insns (0.504) and `gh` 157 (0.433). The
+  `SOFT_USE_REG2(piece, gh)` gives `gh` three refs (20 / 158 = 0.506); the
+  `SOFT_USE_REG(gv)` stretches `gv` to the end of the glyph body (20 / 183 =
+  0.437).
+- The `gv` barrier's two extra insns also decide `clut` (5 refs / 110) against
+  the hoisted `%hi(D_replay_bonus_801192AC)` (19 / 836): 10/110 and 76/836 are
+  both 0.0909, and the lower pseudo (`clut`) wins the tie and `$fp`. With both
+  barriers gone `clut` is at 109 and wins outright.
+
+So the natural source has to give `gh` one more inner-loop reference than
+`gv`, or a shorter life. Tried without effect: every integer type for each of
+18 locals, all 24 orders of the four glyph loads and of the four sprite
+loads, the page flag computed next to the height. `clut` is `getClut(...)`;
+the `clutY` local was not needed.
