@@ -939,7 +939,7 @@ enum {
 };
 
 static void        _actor403600UnifyGridQuadTexturePage(_Actor403600GridQuad* quad);
-static void        func_actor_403600_8013289C(s32 x, s32 corner, SVECTOR* arg2, s32 fade);
+static void        func_actor_403600_8013289C(_Actor403600GridQuad* quad, s32 corner, SVECTOR* arg2, s32 fade);
 static inline void _actor403600RotateSv(const MATRIX* rotationMatrix, const SVECTOR* input, SVECTOR* output);
 static inline void _actor403600TrailTick(Actor403600Ripple* state);
 static inline s32  _actor403600TrailEmpty(Actor403600Ripple* state);
@@ -1160,15 +1160,15 @@ static void _actor403600UnifyGridQuadTexturePage(_Actor403600GridQuad* quad)
  * screen space, jittered by a few pixels with probability rising with `fade`,
  * clamped to the 320x240 frame (the clamp is folded back into the vertex), and
  * given the texture coordinate of the frame copy beneath it.
- * The quad arrives as an integer because the same variable then holds the
- * vertex's screen x: only one variable keeps both in the register the build
- * requires. The third argument's value is never read. */
-static void func_actor_403600_8013289C(s32 x, s32 corner, SVECTOR* arg2, s32 fade)
+ * The third argument's value is never read. */
+static void func_actor_403600_8013289C(_Actor403600GridQuad* quad, s32 corner, SVECTOR* arg2, s32 fade)
 {
     _Actor403600GridVertex* vtx;
     s16                     vx;
     s16                     vy;
+    s32                     x;
     s32                     y;
+    s32                     left;
     s32                     top;
     s32                     seed;
     s32                     seed2;
@@ -1177,20 +1177,20 @@ static void func_actor_403600_8013289C(s32 x, s32 corner, SVECTOR* arg2, s32 fad
 
     switch (corner) {
         case 0:
-            vtx  = &((_Actor403600GridQuad*)x)->vertex0;
-            page = &((_Actor403600GridQuad*)x)->page0;
+            vtx  = &quad->vertex0;
+            page = &quad->page0;
             break;
         case 1:
-            vtx  = &((_Actor403600GridQuad*)x)->vertex1;
-            page = &((_Actor403600GridQuad*)x)->page1;
+            vtx  = &quad->vertex1;
+            page = &quad->page1;
             break;
         case 2:
-            vtx  = &((_Actor403600GridQuad*)x)->vertex2;
-            page = &((_Actor403600GridQuad*)x)->page2;
+            vtx  = &quad->vertex2;
+            page = &quad->page2;
             break;
         default:
-            vtx  = &((_Actor403600GridQuad*)x)->vertex3;
-            page = &((_Actor403600GridQuad*)x)->page3;
+            vtx  = &quad->vertex3;
+            page = &quad->page3;
             break;
     }
     vx                      = vtx->x;
@@ -1200,9 +1200,9 @@ static void func_actor_403600_8013289C(s32 x, s32 corner, SVECTOR* arg2, s32 fad
     seed                    = D_actor_403600_80160698 * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
     D_actor_403600_80160698 = seed;
     if (((seed >> 16) & 0xFFF) < fade + 0x400) {
+        left                    = vx + 0x9C;
         seed2                   = seed * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        x                       = vx + 0x9C;
-        x                      += (seed2 >> 16) & 7;
+        x                       = left + ((seed2 >> 16) & 7);
         seed3                   = seed2 * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         D_actor_403600_80160698 = seed3;
         top                     = vy + 0x74;
@@ -1269,7 +1269,7 @@ static void func_actor_403600_80132A18(Task* arg0, Actor403600Work* work, Actor4
             if (x == -0xA0) {
                 poly->vertex2.x = x;
                 poly->vertex2.y = y + 0x10;
-                func_actor_403600_8013289C((s32)poly, 2, &scratch->field_14, fade);
+                func_actor_403600_8013289C(poly, 2, &scratch->field_14, fade);
             } else {
                 previous                                        = poly - 1;
                 ACTOR_403600_GRID_VERTEX_XY_WORD(poly->vertex2) = ACTOR_403600_GRID_VERTEX_XY_WORD(previous->vertex3);
@@ -1281,7 +1281,7 @@ static void func_actor_403600_80132A18(Task* arg0, Actor403600Work* work, Actor4
                 if (x == -0xA0) {
                     poly->vertex0.x = x;
                     poly->vertex0.y = y;
-                    func_actor_403600_8013289C((s32)poly, 0, &scratch->field_14, fade);
+                    func_actor_403600_8013289C(poly, 0, &scratch->field_14, fade);
                 } else {
                     previous                                        = poly - 1;
                     ACTOR_403600_GRID_VERTEX_XY_WORD(poly->vertex0) = ACTOR_403600_GRID_VERTEX_XY_WORD(previous->vertex1);
@@ -1291,7 +1291,7 @@ static void func_actor_403600_80132A18(Task* arg0, Actor403600Work* work, Actor4
                 }
                 poly->vertex1.x = x + 0x10;
                 poly->vertex1.y = y;
-                func_actor_403600_8013289C((s32)poly, 1, &scratch->field_14, fade);
+                func_actor_403600_8013289C(poly, 1, &scratch->field_14, fade);
             } else {
                 above                                           = poly - 20;
                 ACTOR_403600_GRID_VERTEX_XY_WORD(poly->vertex0) = ACTOR_403600_GRID_VERTEX_XY_WORD(above->vertex2);
@@ -1305,7 +1305,7 @@ static void func_actor_403600_80132A18(Task* arg0, Actor403600Work* work, Actor4
             }
             poly->vertex3.x = x + 0x10;
             poly->vertex3.y = y + 0x10;
-            func_actor_403600_8013289C((s32)poly, 3, &scratch->field_14, fade);
+            func_actor_403600_8013289C(poly, 3, &scratch->field_14, fade);
             _actor403600UnifyGridQuadTexturePage(poly);
             if (fade < 0xC00) {
                 setlen(poly, 9);

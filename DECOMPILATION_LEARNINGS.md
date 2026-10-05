@@ -147826,27 +147826,51 @@ i++)` over `Snd_BankInitTable[i]`, `Snd_BankSlotsByType[...]` and
 `&Snd_Banks[slot]` with no pointer locals; the early `i = 0`, the mid-body
 `i++` and the hoist order in the target were all the scheduler and loop pass.
 
-### A local in the dead parameter's register while a longer-lived pointer derived from that parameter is not: the local is the parameter's pseudo (func_actor_403600_8013289C, 2026-10-05)
+### A local in the dead parameter's register after the parameter died: a block-local temp that local-alloc put there hands it over (func_actor_403600_8013289C, 2026-10-05)
 
 Target: `vtx = a0 + 32` / `page = a0 + 39` (`$a2`, `$t2`), then the screen `x`
 lives in `$a0` to the end. With a typed `quad` parameter and a separate `s32 x`
-the build gives `page` `$a0`, `x` `$t1` and the LCG constant `$t2`.
+the build gives `page` `$a0`, `x` `$t1` and the LCG constant `$t2`; the matched
+source had therefore passed the quad as an integer and reused that variable
+as `x`.
 
-`-dg` shows why no separate `x` can take `$a0`. `quad` dies in the insn that
-sets `page`, so `expand_preferences` hands `page` the parameter's preference
-for `$a0`; `page` is the lowest-priority allocno and conflicts with everything
-after the `switch`, so `prune_preferences` puts `$a0` in `regs_someone_prefers`
-for `seed`, `vtx`, `y`, `x` and the constant, and all of them skip it. `x` can
-only take `$a0` with a preference of its own, and it has no route to one: no
-insn that sets `x` has a dying pseudo that prefers `$a0` (`vx` stays live,
-the rest are block-local temps), and the one insn where `x` dies sets a
-block-local temp. Only the incoming-argument copy is left, i.e. `x` being the
-parameter's own pseudo.
+`-dg` on the typed form: `quad` dies in the insn that sets `page`, so
+`expand_preferences` hands `page` the parameter's preference for `$a0`; `page`
+is the lowest-priority allocno and conflicts with everything after the
+`switch`, so `prune_preferences` puts `$a0` in `regs_someone_prefers` for
+`seed`, `vtx`, `y`, `x` and the constant, and all of them skip it. `x` takes
+`$a0` only with a preference of its own. `expand_preferences` cannot give it
+one (no global pseudo that prefers `$a0` dies in an insn setting `x`), but
+`set_preference` can: it reads operands through `reg_renumber`, so a pseudo
+local-alloc already placed in a hard register counts as that hard register.
 
-Tried on the typed form, all with the same three-register difference or
+Fix: make the jittered x start in a block-local temp.
+
+```c
+if (...) {
+    left  = vx + 0x9C;                       /* block-local: local-alloc */
+    seed2 = seed * MUL + INC;                /* v1 */
+    x     = left + ((seed2 >> 16) & 7);      /* v0 busy too -> left is in a0 */
+```
+
+`left` lives across the two local quantities that hold `$v1` and `$v0`, so
+local-alloc gives it the next register in order, `$a0`. In global, `$a0` is
+then a hard-register conflict for every allocno live there (`page`, `seed`,
+`vtx`, the constant), which prunes `page`'s inherited preference, and
+`x = left + t` records `x` preferring `$a0`. The old `x = vx + 0x9C; x += t;`
+set the global `x` directly and left nothing in `$a0` for it to inherit. The
+statement order matters twice: `left` before `seed2` keeps the `addiu` ahead of
+the LCG step and shortens `vx`'s life enough to keep it ahead of the global's
+address in the allocation order (`$t3`/`$t4`).
+
+General reading: a value in register N that no preference chain explains may
+be inherited from a block-local temp, and which register that temp has is
+local-alloc's count of the temps live beside it (`$v0`, `$v1`, then `$a0`).
+
+Tried before this on the typed form, all with the three-register difference or
 worse: the part after the `switch` as a `static inline` taking
 `(vtx, page, fade)`; the `switch` as an inline returning `vtx` (adds a stack
 slot for `page`); the inline called from each arm (duplicates the body);
-`page` assigned before `vtx` (swaps the delay slots and ties `vtx` to `$a0`);
-30,770 permuter iterations from the typed base (score 140, none lower). The
-function keeps its integer first parameter.
+`page` assigned before `vtx` in every arm (swaps the delay slots and ties
+`vtx` to `$a0`) or in one arm (no preference for `page`, but the swap shows
+and `seed` takes `$a0`); 30,770 permuter iterations from the typed base.
