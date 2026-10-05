@@ -147954,7 +147954,7 @@ buffer is `&first[count]` in packet terms, but that recomputes `count * 28`;
 the binary reuses the byte count.
 
 ```c
-static inline SpriteDrawModePacket* _spriteCachedPacketsAtWord(u32* word) { return (SpriteDrawModePacket*)word; }
+static inline SpriteDrawModePacket* _spriteCachedPacketsAtWord(u32* bufferWords) { return (SpriteDrawModePacket*)bufferWords; }
 
 allocationBytes = (spriteCount * PACKET_WORDS) << 3;      /* not `* 56` */
 words           = memCalloc(allocationBytes, true);

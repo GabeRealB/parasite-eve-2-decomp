@@ -56,20 +56,33 @@ SpriteDrawModePacket* Gp_SprtLists[2] = {
     NULL,
 };
 
-/// Initializes and merges a sprite with its preceding GPU draw-mode command.
+/// Initializes the headers of one merged draw-mode and sprite packet.
 ///
-/// `drawPacket` must be writable; the merge sends the sprite's zeroed tag as a
-/// no-op between commands. `texturePage` carries encoded GPU page/blend bits.
-/// Starts with colour modulation; source code flags are applied afterwards.
-/// Sets headers only, preserving RGB and geometry.
-static inline void _spriteInitDrawModePacket(SpriteDrawModePacket* drawPacket, u32 texturePage)
+/// Requires a word-aligned, writable `SpriteDrawModePacket` and a readable
+/// texture-page halfword outside that packet. Page and blend bits are retained;
+/// dithering and drawing into the display area are disabled. `rawTexture` selects
+/// ignored RGB (true) or colour modulation (false). Preserves RGB, texture
+/// coordinates, CLUT and geometry; callers apply source code flags afterwards.
+/// The merge clears the sprite tag and makes it a no-op in the six-word payload.
+/// Leaves the draw-mode tag's link address intact for subsequent OT linking.
+static inline void _spriteInitDrawModePacket(SpriteDrawModePacket* drawPacket, const u16* texturePageAddress, bool rawTexture)
 {
     SpritePacket* spritePacket = &drawPacket->sprite;
+    u32           texturePageBits;
 
-    setlen(&drawPacket->drawMode, ARRAY_SIZE(drawPacket->drawMode.code));
-    setSprt(&spritePacket->sprt);
-    drawPacket->drawMode.code[0] = SPRITE_DRAW_MODE_COMMAND | (texturePage & SPRITE_SOURCE_TEXTURE_PAGE_MASK);
-    MargePrim(drawPacket, &spritePacket->sprt);
+    // Retain each emitter's source-read and header-write order for matching.
+    if (rawTexture != 0) {
+        setlen(&drawPacket->drawMode, ARRAY_SIZE(drawPacket->drawMode.code));
+        texturePageBits = *texturePageAddress;
+        setSprt(&drawPacket->sprite.sprt);
+        drawPacket->sprite.sprt.code |= SPRITE_SOURCE_RAW_TEXTURE;
+    } else {
+        texturePageBits = *texturePageAddress;
+        setlen(&drawPacket->drawMode, ARRAY_SIZE(drawPacket->drawMode.code));
+        setSprt(&spritePacket->sprt);
+    }
+    drawPacket->drawMode.code[0] = SPRITE_DRAW_MODE_COMMAND | (texturePageBits & SPRITE_SOURCE_TEXTURE_PAGE_MASK);
+    MargePrim(&drawPacket->drawMode, &spritePacket->sprt);
 }
 
 /// Borrows the sprite descriptor selected by the current logical room view.
@@ -173,7 +186,6 @@ static void _spriteEmitBatch(const SpriteSource* sourceElements, const SpriteBat
     u32                   packetLengthMask;
     u32                   linkAddressMask;
     SpritePacket*         spritePacket;
-    u32                   texturePage;
 
     spriteIndex       = 0;
     drawPacket        = gGpuPrimCursor;
@@ -190,8 +202,7 @@ static void _spriteEmitBatch(const SpriteSource* sourceElements, const SpriteBat
             if ((source->codeFlags & SPRITE_SOURCE_RAW_TEXTURE) == 0) {
                 spritePacket->packed.color = GPU_PRIMITIVE_COLOR_WORD(source, 0);
             }
-            texturePage = texturePageSource->tpage;
-            _spriteInitDrawModePacket(drawPacket, texturePage);
+            _spriteInitDrawModePacket(drawPacket, &texturePageSource->tpage, false);
             spritePacket->sprt.code      |= source->codeFlags;
             spritePacket->packed.uv       = source->uv.packed;
             spritePacket->sprt.clut       = source->clut;
@@ -251,28 +262,15 @@ static void _spriteSetViewRawTexture(s32 rawTexture)
     }
 }
 
-/// Seeds a cached raw-texture sprite packet from one live source's texture page.
+/// Views the start of a cached-packet buffer through its allocation's word view.
 ///
-/// `drawPacket` must be writable and `source` must remain live for its texture
-/// page read. Changes only packet headers, preserving RGB and geometry.
-static inline void _spriteInitCachedDrawModePacket(SpriteDrawModePacket* drawPacket,
-                                                   const SpriteSource*   source)
+/// Converts the address without reading, initializing or allocating storage.
+/// NULL remains NULL. A non-NULL address must be word-aligned and have room for
+/// the caller's packet count; the returned packets share the allocation's life.
+/// The inline call preserves word-offset expansion when locating buffer two.
+static inline SpriteDrawModePacket* _spriteCachedPacketsAtWord(u32* bufferWords)
 {
-    SpritePacket* spritePacket = &drawPacket->sprite;
-    u32           texturePage;
-
-    setlen(&drawPacket->drawMode, ARRAY_SIZE(drawPacket->drawMode.code));
-    texturePage = source->tpage;
-    setSprt(&drawPacket->sprite.sprt);
-    drawPacket->sprite.sprt.code |= SPRITE_SOURCE_RAW_TEXTURE;
-    drawPacket->drawMode.code[0]  = SPRITE_DRAW_MODE_COMMAND | (texturePage & SPRITE_SOURCE_TEXTURE_PAGE_MASK);
-    MargePrim(drawPacket, &spritePacket->sprt);
-}
-
-/// The cached packets that start at `word` of the allocation's GPU words.
-static inline SpriteDrawModePacket* _spriteCachedPacketsAtWord(u32* word)
-{
-    return (SpriteDrawModePacket*)word;
+    return (SpriteDrawModePacket*)bufferWords;
 }
 
 void spriteAllocateViewCachedPackets(void)
@@ -343,7 +341,7 @@ void spriteAllocateViewCachedPackets(void)
                 drawPacket                 = bufferCursors[drawBuffer];
                 spritePacket               = &drawPacket->sprite;
                 spritePacket->packed.color = SPRITE_CACHED_INITIAL_COLOR_WORD;
-                _spriteInitCachedDrawModePacket(drawPacket, source);
+                _spriteInitDrawModePacket(drawPacket, &source->tpage, true);
                 spritePacket->sprt.code      |= source->codeFlags;
                 spritePacket->packed.uv       = source->uv.packed;
                 spritePacket->sprt.clut       = source->clut;
