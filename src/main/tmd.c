@@ -645,7 +645,7 @@ static void Tmd_SetupDraw(TmdObject* obj)
     s32              vertexDepths[TMD_DRAW_VERTEX_DEPTH_COUNT];
     _TmdDrawScratch* scratchEnd;
     _TmdDrawScratch* scratch;
-    void*            stream;
+    u32*             stream;
     u32              flags;
     void*            bufptr;
     s32              disp;
@@ -704,7 +704,7 @@ static void Tmd_SetupDraw(TmdObject* obj)
     gte_rtir();
     gte_stclmv(&scratch->workspace.viewLightRotation[0][2]);
 
-    Tmd_SetupGteMatrices(&scratch->workspace, flags, stream, obj);
+    tmdDrawModelStream(&scratch->workspace, flags, stream, obj);
 
     SCRATCH_STACK_RELEASE_BLOCK(_TmdDrawScratch);
 }

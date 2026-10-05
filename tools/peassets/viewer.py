@@ -1527,7 +1527,7 @@ class AssetViewer(tk.Tk):
             lines += [
                 "",
                 f"{mesh.part_count} parts, split at the 0xFFFFFFFE markers; the game",
-                "draws each under its own bone matrix (Tmd_SetupGteMatrices).",
+                "draws each under its own bone matrix (tmdDrawModelStream).",
             ]
         if mesh.posed:
             lines += [

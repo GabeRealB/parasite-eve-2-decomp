@@ -117,18 +117,29 @@ The caller consumes that word and advances the coordinate slot even for an
 empty group, so consecutive markers preserve empty parts:
 
 ```text
-Tmd_SetupGteMatrices(ws, flags, stream, obj):
-    s0 = obj->field_30          # part count
-    s1 = obj->field_8           # per-part blocks, 0x50 bytes each
+tmdDrawModelStream(workspace, objectFlags, stream, model):
+    remainingParts = model->partCount
+    part = model->coords                           # GfxCoord cursor
     loop:
         w = *stream
         if w == TMD_STREAM_END: return              # 0xFFFFFFFF; leave the word
-        if w != 0xFFFFFFFE and s0 > 0:
-            ctc2 rotation   <- s1[0x24 .. 0x37]     # GTE R11R12 .. R33
-            ctc2 translation<- s1[0x38], [0x3C], [0x40]
-        stream = Tmd_DispatchStream(stream)         # walks to the next 0xFFFFFFFE
-        stream += 4;  s0 -= 1;  s1 += 0x50
+        if w != TMD_STREAM_GROUP_END and remainingParts > 0:
+            GTE rotation    <- part->workm.m
+            GTE light       <- workspace->viewLightRotation * part->workm.m
+            GTE translation <- part->workm.t
+        stream = Tmd_DispatchStream(workspace, objectFlags, stream)
+        stream += 1                                # u32 words; consume the marker
+        remainingParts -= 1;  part += 1
 ```
+
+The light-matrix composition uses GTE multiplication with 12 fractional bits
+and signed IR saturation. The caller supplies projection settings, the colour
+matrix and background colour, and initialized packet/depth/OT workspace state.
+Neither the group walk nor its dispatcher initializes the workspace's saved
+`gteFlag`; any command reading that word needs it supplied before the command.
+Empty groups and groups beyond `partCount` leave the current GTE matrices in
+place. Storage extents are unchecked, and emitted packets and the ordering
+table must remain valid until the GPU finishes consuming them.
 
 The groups corresponding to skeletal parts are drawn under their own bone
 matrices, so **vertices only share a coordinate space within a part**. The

@@ -197,11 +197,11 @@ class Mesh:
 
     ``parts`` is parallel to ``faces`` and names the part each face belongs to.
     A stream is split by ``0xFFFFFFFE`` into parts that the game draws under one
-    bone matrix each (``Tmd_SetupGteMatrices``), so **vertices only share a
+    bone matrix each (``tmdDrawModelStream``), so **vertices only share a
     coordinate space within a part**. Drawing every part together without those
     matrices piles the limbs on top of each other - aya's left and right arm
     both span x[-39, 40] because each is in its own local frame. The matrices
-    live in ``TmdObject.field_8`` at runtime and are not in the package, so an
+    live in ``TmdObject.coords`` at runtime and are not in the package, so an
     offline viewer can draw one part correctly but cannot pose the whole model.
 
     ``normals`` is parallel to ``faces`` and holds each face's **outward**

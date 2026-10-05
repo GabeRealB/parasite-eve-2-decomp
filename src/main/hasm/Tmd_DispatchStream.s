@@ -12,10 +12,10 @@
  *   Walk a TMD command stream (a2): for each record, unpack fields into
  *   the scratch block (a0) and jalr the per-entry handler until the
  *   TMD_STREAM_GROUP_END word (-2), returning its address without consuming
- *   it. Called only from Tmd_SetupGteMatrices.
+ *   it. Called only from tmdDrawModelStream.
  *
  * Why this stays handwritten assembly
- *   Same early-image hasm constraints as Tmd_SetupGteMatrices (see that
+ *   Same early-image hasm constraints as tmdDrawModelStream (see that
  *   file). Small independent helper — kept as its own unit for clarity.
  *   Do not convert to type: c or INCLUDE_ASM from a regular TU.
  */

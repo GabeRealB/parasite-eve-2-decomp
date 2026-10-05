@@ -11,8 +11,36 @@
 
 struct Task;
 
-/// Early-image handwritten GTE matrix load (src/main/hasm/Tmd_SetupGteMatrices.s).
-void Tmd_SetupGteMatrices(TmdStreamWorkspace* ws, u32 flags, void* stream, TmdObject* node);
+/// Draws a model's command groups under their corresponding part transforms.
+///
+/// `stream` is a word-aligned, resolved command stream with complete records.
+/// Every group, including an empty one, ends with `TMD_STREAM_GROUP_END`;
+/// `TMD_STREAM_END` must occur at entry or immediately after a group marker.
+/// Each group advances the part slot. A nonempty group within the
+/// nonnegative `model->partCount` loads `model->coords[part].workm` into the
+/// GTE rotation/translation registers and composes its light matrix from
+/// `workspace->viewLightRotation * workm.m`. Coefficients have 12 fractional
+/// bits and use GTE multiplication/saturation; translations use vertex units.
+/// The coordinates must already be composed into view space. Empty groups and
+/// groups beyond the part count retain the current GTE matrices, allowing a
+/// final group of pre-transformed primitives without another coordinate.
+///
+/// The caller initializes the workspace's object, geometry, packet cursors,
+/// depth cache, displaced OT base and depth shift, plus `viewLightRotation`
+/// (light-direction matrix times inverse view rotation). GTE projection,
+/// colour/background and depth-average settings must already be supplied.
+/// `objectFlags` carries the zero-extended model flags unchanged to each draw
+/// callback. Dispatch updates record dimensions/opcode and saves its return
+/// address and flags in the workspace; callbacks may update other state.
+/// Neither this walk nor dispatch initializes the saved `gteFlag` word:
+/// commands reading it require a value supplied before they run.
+///
+/// Stream, model, coordinates and workspace are borrowed for the call; handler
+/// geometry/cache references and packet writes must fit their supplied storage.
+/// No stream length or handler capacities are checked. Returns at the stream
+/// terminator without consuming it, allocating storage or restoring GTE state.
+/// Packets and OT storage must stay valid until GPU consumption finishes.
+void tmdDrawModelStream(TmdStreamWorkspace* workspace, u32 objectFlags, u32* stream, TmdObject* model);
 
 /// Walk stream records and jalr each draw handler until `TMD_STREAM_GROUP_END`.
 ///

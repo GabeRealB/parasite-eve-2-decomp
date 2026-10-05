@@ -10,7 +10,7 @@ The model format is a packet stream, read out of ``Tmd_InitSourceStream``
 
 ``0xFFFFFFFE`` occupies one word without a command header or payload.
 ``Tmd_DispatchStream`` *returns* a pointer at it, and its caller
-``Tmd_SetupGteMatrices`` consumes the word and advances the bone slot, even for
+``tmdDrawModelStream`` consumes the word and advances the bone slot, even for
 an empty group. Skeletal groups are drawn under their own matrices, with each
 part's vertices in that part's local space. A final group can contain
 pre-transformed primitives without another bone. Walking straight over the

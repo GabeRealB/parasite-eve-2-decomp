@@ -803,7 +803,7 @@ Angles use `4096` for a full turn and the rotation order is PsyQ's `RotMatrix`
 - **Pose banks.** The per-model bone count is now available — it is the number
   of `0xFFFFFFFE`-delimited parts in the model stream
   ([`TMD_FORMAT.md` §2.2](TMD_FORMAT.md)), and §9.3.1 binds tracks to parts —
-  but the per-part block that `Tmd_SetupGteMatrices` consumes is a
+  but the per-part block that `tmdDrawModelStream` consumes is a
   `GfxCoord` (0x50 bytes, `workm` at `+0x24`) whose parent links
   (`.parent`) are built at runtime. Animation writes the local rotation as
   described above; encoding 1 also writes translation. `0xC8` turned out

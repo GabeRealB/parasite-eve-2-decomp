@@ -23310,7 +23310,7 @@ Named handwritten helpers (see `src/main/hasm/README.md`):
 |--------|------|
 | `Fs_DecompressChunk` (+ jtbl in same `.s`) | Resumable LZ for FS CD chunks |
 | `Fs_DecompressImage` | Non-resumable LZ for image strips |
-| `Tmd_SetupGteMatrices` | TMD draw: GTE light matrices + transforms |
+| `tmdDrawModelStream` | Draw command groups with per-part GTE transforms and light matrices |
 
 ```yaml
 options:
@@ -134861,7 +134861,7 @@ in `Tmd_StreamHandlers_Ops.s`: its family groupings are wrong in both directions
 
 A model's packet stream is walked twice. `tmdBuildBufferHalf` lays each record's
 texture words into the buffer half when a model's buffer is allocated; the draw pass
-- `Tmd_SetupDraw` to `Tmd_SetupGteMatrices` to `Tmd_DispatchStream` - runs per frame,
+- `Tmd_SetupDraw` to `tmdDrawModelStream` to `Tmd_DispatchStream` - runs per frame,
 takes each element's triangle to screen space, lights and culls it and links its
 packet into the ordering table. Only the second jalrs the handler a record carries,
 which is the one `Tmd_InitSourceStream` stored there at init, so the handlers in
@@ -134927,7 +134927,7 @@ as a duplicate of the loop it twins.
 Which copy a model's faces take is `flags & 0x10`, read in the entry before the
 branch that reaches one of them. Those flags are the drawing object's and not the
 record's: `Tmd_DispatchStream` passes on the `flags` argument it was given, which
-`Tmd_SetupGteMatrices` takes from `Tmd_SetupDraw` and that in turn from
+`tmdDrawModelStream` takes from `Tmd_SetupDraw` and that in turn from
 `TmdObject::flags`. Six entries read the bit, over four distinct loops: the
 gouraud textured triangle and quad entries of the transform-region family, and
 the opaque and ABR entries of each of the two pre-transformed ones, which share a

@@ -23,9 +23,9 @@ Tmd_StreamHandler_Prim3A    = 0x800106F0; // type:func
 tmdDrawStreamPrimG4PreXform = 0x80010718; // type:func  (alabel)
 
 //--------------------------------------------------------------------
-//--- PA: 0x01048   VA: 0x80010848   subsegment: hasm, Tmd_SetupGteMatrices
+//--- PA: 0x01048   VA: 0x80010848   subsegment: hasm, tmdDrawModelStream
 //--------------------------------------------------------------------
-Tmd_SetupGteMatrices        = 0x80010848; // type:func
+tmdDrawModelStream          = 0x80010848; // type:func
 
 //--------------------------------------------------------------------
 //--- PA: 0x01220   VA: 0x80010A20   subsegment: hasm, Tmd_DispatchStream

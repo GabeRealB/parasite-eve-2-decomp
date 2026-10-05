@@ -4,17 +4,14 @@
 .set noreorder
 
 /*
- * Tmd_SetupGteMatrices  (VRAM 0x80010848 / ROM 0x1048)
+ * tmdDrawModelStream  (VRAM 0x80010848 / ROM 0x1048)
  * ------------------------------------------------------------
  * Permanent handwritten assembly (splat type: hasm).
  *
- * Role
- *   Draw-path helper called from Tmd_SetupDraw. Loads light / colour
- *   matrices into the GTE (ctc2 to control regs) and runs packed mvmva
- *   vertex transforms for the current TMD node. Args (a0..a3) are the
- *   draw scratch block's stream workspace, flags, stream pointer, and TmdObject*.
- *   Calls Tmd_DispatchStream to walk one command group. Returns, without
- *   consuming the word, when the stream pointer addresses TMD_STREAM_END.
+ * Interface and draw contract: src/main/tmd.h.
+ *   a0 = workspace, a1 = objectFlags, a2 = u32 stream cursor, a3 = model.
+ *   s0 = remaining part slots, s1 = coordinate cursor,
+ *   s2 = workspace light/view rotation, s3 = model saved across dispatch.
  *
  * Why this stays handwritten assembly
  *   1. Direct GTE coprocessor ops (ctc2 / mtc2 / mfc2 / mvmva) laid out
@@ -29,7 +26,13 @@
 
 .section .text, "ax"
 
-glabel Tmd_SetupGteMatrices
+/* Assembly encodings of the markers declared in main/tmd_types.h. */
+.equ TMD_STREAM_END, -1
+.equ TMD_STREAM_GROUP_END, -2
+/* sizeof(GfxCoord): advance a slot even when its command group is empty. */
+.equ TMD_DRAW_MODEL_STREAM_COORD_BYTES, 0x50
+
+glabel tmdDrawModelStream
     /* 1048 80010848 ECFFBD27 */  addiu      $sp, $sp, -0x14
     /* 104C 8001084C 0000B0AF */  sw         $s0, 0x0($sp)
     /* 1050 80010850 0400B1AF */  sw         $s1, 0x4($sp)
@@ -42,19 +45,21 @@ glabel Tmd_SetupGteMatrices
     /* 106C 8001086C 20420008 */  j          .L80010880
     /* 1070 80010870 00000000 */   nop
   .L80010874:
+    /* Consume the group marker and advance the part slot, including empty groups. */
     /* 1074 80010874 0400C624 */  addiu      $a2, $a2, 0x4
     /* 1078 80010878 FFFF1026 */  addiu      $s0, $s0, -0x1
-    /* 107C 8001087C 50003126 */  addiu      $s1, $s1, 0x50
+    /* 107C 8001087C 50003126 */  addiu      $s1, $s1, TMD_DRAW_MODEL_STREAM_COORD_BYTES
   .L80010880:
     /* 1080 80010880 0000C88C */  lw         $t0, 0x0($a2)
-    /* 1084 80010884 FFFF0924 */  addiu      $t1, $zero, -0x1 /* TMD_STREAM_END */
+    /* 1084 80010884 FFFF0924 */  addiu      $t1, $zero, TMD_STREAM_END
     /* 1088 80010888 5D000911 */  beq        $t0, $t1, .L80010A00
     /* 108C 8001088C 00000000 */   nop
     /* 1090 80010890 5400001A */  blez       $s0, .L800109E4
     /* 1094 80010894 00000000 */   nop
-    /* 1098 80010898 FEFF0924 */  addiu      $t1, $zero, -0x2 /* TMD_STREAM_GROUP_END */
+    /* 1098 80010898 FEFF0924 */  addiu      $t1, $zero, TMD_STREAM_GROUP_END
     /* 109C 8001089C 51000911 */  beq        $t0, $t1, .L800109E4
     /* 10A0 800108A0 00000000 */   nop
+    /* Install the part rotation and stage its transpose in the GTE light matrix. */
     /* 10A4 800108A4 2400288E */  lw         $t0, 0x24($s1)
     /* 10A8 800108A8 2800298E */  lw         $t1, 0x28($s1)
     /* 10AC 800108AC 2C002A8E */  lw         $t2, 0x2C($s1)
@@ -85,6 +90,7 @@ glabel Tmd_SetupGteMatrices
     /* 1110 80010910 0058CF48 */  ctc2       $t7, $11 /* handwritten instruction */
     /* 1114 80010914 0020C848 */  ctc2       $t0, $4 /* handwritten instruction */
     /* 1118 80010918 0060C848 */  ctc2       $t0, $12 /* handwritten instruction */
+    /* Transform each light/view row by the transposed part rotation: B * R. */
     /* 111C 8001091C 0000488E */  lw         $t0, 0x0($s2)
     /* 1120 80010920 0400498E */  lw         $t1, 0x4($s2)
     /* 1124 80010924 00008848 */  mtc2       $t0, $0 /* handwritten instruction */
@@ -129,6 +135,7 @@ glabel Tmd_SetupGteMatrices
     /* 11C0 800109C0 0050CD48 */  ctc2       $t5, $10 /* handwritten instruction */
     /* 11C4 800109C4 0058CE48 */  ctc2       $t6, $11 /* handwritten instruction */
     /* 11C8 800109C8 0060D848 */  ctc2       $t8, $12 /* handwritten instruction */
+    /* Complete the part's local-to-view transform with its cached translation. */
     /* 11CC 800109CC 3800288E */  lw         $t0, 0x38($s1)
     /* 11D0 800109D0 3C00298E */  lw         $t1, 0x3C($s1)
     /* 11D4 800109D4 40002A8E */  lw         $t2, 0x40($s1)
@@ -136,6 +143,7 @@ glabel Tmd_SetupGteMatrices
     /* 11DC 800109DC 0030C948 */  ctc2       $t1, $6 /* handwritten instruction */
     /* 11E0 800109E0 0038CA48 */  ctc2       $t2, $7 /* handwritten instruction */
   .L800109E4:
+    /* Dispatch leaves the marker in place and restores workspace and objectFlags. */
     /* 11E4 800109E4 21980700 */  addu       $s3, $zero, $a3
     /* 11E8 800109E8 8842000C */  jal        Tmd_DispatchStream
     /* 11EC 800109EC 00000000 */   nop
@@ -152,4 +160,4 @@ glabel Tmd_SetupGteMatrices
     /* 1214 80010A14 1400BD27 */  addiu      $sp, $sp, 0x14
     /* 1218 80010A18 0800E003 */  jr         $ra
     /* 121C 80010A1C 00000000 */   nop
-endlabel Tmd_SetupGteMatrices
+endlabel tmdDrawModelStream

@@ -16,7 +16,7 @@ That is the first normal module `.rodata`; PsyQ `.rdata` follows.
 | `tmdSkipStreamRecord.s` | `tmdSkipStreamRecord` | `0x800105AC` | Fallback record handler: steps over elements the current pass does not consume |
 | `Tmd_StreamHandler_Prim32.s` | `Prim32` + alabel `tmdDrawStreamPrimG3PreXform` | `0x800105CC` / `0x800105F4` | Pre-transformed untextured gouraud triangles, one entry per prim code (0x32 blended / 0x30 opaque) |
 | `Tmd_StreamHandler_Prim3A.s` | `Prim3A` + alabel `tmdDrawStreamPrimG4PreXform` | `0x800106F0` / `0x80010718` | Pre-transformed untextured gouraud quads, one entry per prim code (0x3A blended / 0x38 opaque) |
-| `Tmd_SetupGteMatrices.s` | `Tmd_SetupGteMatrices` | `0x80010848` | TMD draw: GTE light matrices + transforms |
+| `tmdDrawModelStream.s` | `tmdDrawModelStream` | `0x80010848` | Draw command groups with per-part GTE transforms and light matrices |
 | `Tmd_DispatchStream.s` | `Tmd_DispatchStream` | `0x80010A20` | Stream walk + `jalr` handlers (callee of Setup) |
 | `Tmd_StreamHandlers_Ops.s` | 20 handlers, one per record family | `0x80010A90`–`0x80012750` | TMD draw: completes and links each record's packet, each named for the command it serves |
 
@@ -66,7 +66,7 @@ mid-function labels for cooperative suspend when the CD sector buffer ends
 1. **Opcodes** — signed `sub` / `addi` (GCC only emits `subu` / `addiu`).
 2. **Mid-function resume** — fixed PCs in the jump table; C cannot invent them.
 3. **Early-image layout** — not normal main `.text`.
-4. **Hand schedule** — zero-frame `$t*` machine / hand GTE ops (`Tmd_SetupGteMatrices`).
+4. **Hand schedule** — packed matrix composition and hand GTE ops (`tmdDrawModelStream`).
 
 ## Build notes
 
