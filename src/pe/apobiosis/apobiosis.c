@@ -299,18 +299,29 @@ static void _apobiosisDrawScreenFlash(s16 brightness)
 #define GLOW_DRAW_HALO_PULL 0x40
 #include "../../shared/glow_draw_halo.inc.c"
 
-/// Initializes a shard's world endpoint offset, fixed screen rotation and PE level row.
+/// Seeds one apobiosis shard's strip displacement, fixed sprite rotation and PE level row.
+///
+/// `work` must be a live, writable `EffectWork` whose spawn offset has already
+/// positioned its coordinate. Replaces `pos` with a world-space displacement:
+/// Y is -4096 and X/Z are each in -2047..2048. The strip adds this displacement
+/// to the coordinate's world origin without applying its rotation.
+///
+/// Advances the shared random sequence three times, for X, Z and then `angle`.
+/// The sprite rotation stays fixed in 0..4095, with 4096 units per turn.
+/// The active spell must be apobiosis at PE level 1-3; its level digit selects
+/// `step`, the zero-based tuning row in 0..2. Rendering sizes come from that
+/// row. The retained write of 128 to `scale` has no reader in the shard task.
 static inline void _apobiosisInitShardAppearance(EffectWork* work)
 {
     enum {
         APOBIOSIS_SHARD_END_Y         = -4096,
-        APOBIOSIS_SHARD_INITIAL_SCALE = 128,
+        APOBIOSIS_SHARD_UNUSED_SCALE  = 128,
         APOBIOSIS_SHARD_END_SPAN      = 4096,
         APOBIOSIS_SHARD_END_HALF_SPAN = APOBIOSIS_SHARD_END_SPAN / 2,
     };
-    // Replace the spawn offset with the strip's world-space endpoint offset.
+    // The spawn offset has positioned the shard; pos now describes its strip.
     work->pos.vy    = APOBIOSIS_SHARD_END_Y;
-    work->scale     = APOBIOSIS_SHARD_INITIAL_SCALE;
+    work->scale     = APOBIOSIS_SHARD_UNUSED_SCALE;
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
     work->pos.vx    = APOBIOSIS_SHARD_END_HALF_SPAN - ((gRandomLcgState >> 16) & (APOBIOSIS_SHARD_END_SPAN - 1));
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
