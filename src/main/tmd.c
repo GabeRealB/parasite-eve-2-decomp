@@ -146,7 +146,7 @@ static const TaskFuncTable3 Tmd_TaskStates;
 
 static void _tmdResolveSourceDrawHandlers(TmdSource* source);
 
-static void Tmd_SetupDraw(TmdObject* obj);
+static void _tmdDrawModel(TmdObject* model);
 
 static s32 _tmdSumAttachedBufferBytes(void);
 
@@ -687,71 +687,91 @@ TmdObject* tmdCreateModel(TmdSource* source, s32 bufferFlags)
     return model;
 }
 
-static void Tmd_SetupDraw(TmdObject* obj)
+/// Combines the model's light directions with inverse view rotation for the draw walk.
+///
+/// Stores a 3x3 matrix with 12 fractional bits in the borrowed workspace.
+/// Each column uses GTE multiplication and saturation; translation is ignored.
+/// Leaves the model's light-direction matrix installed as GTE rotation.
+static inline void _tmdComposeViewLightRotation(TmdObject* model, TmdStreamWorkspace* workspace)
+{
+    gte_TransposeMatrix(&gGfxViewCoord.workm, &workspace->viewLightRotation);
+    gte_SetRotMatrix(model->lightMtx);
+    gte_ldclmv(&workspace->viewLightRotation[0][0]);
+    gte_rtir();
+    gte_stclmv(&workspace->viewLightRotation[0][0]);
+    gte_ldclmv(&workspace->viewLightRotation[0][1]);
+    gte_rtir();
+    gte_stclmv(&workspace->viewLightRotation[0][1]);
+    gte_ldclmv(&workspace->viewLightRotation[0][2]);
+    gte_rtir();
+    gte_stclmv(&workspace->viewLightRotation[0][2]);
+}
+
+/// Draws one model into its selected buffer half and the current ordering table.
+///
+/// Requires a live, initialized two-half buffer, resolved word stream, composed
+/// view-space part coordinates, and borrowed geometry and lighting matrices.
+/// Packet cursors stay within the source's two regions; vertex depth references
+/// must fit the 1024-entry cache and follow their projection commands. The
+/// current OT plus the signed entry offset must cover every callback bucket.
+/// Projection and depth-average GTE settings are supplied by the caller.
+///
+/// Toggles the half selector before dispatch, even for an empty stream. Reserves
+/// and releases one uninitialized `_TmdDrawScratch`; the CPU-stack depth cache
+/// is also uninitialized and lives only for this call. Saved GTE FLAG is not
+/// initialized here: commands reading it require an earlier producer. Callbacks
+/// must retain neither scratch nor the cache. GTE registers are left changed;
+/// packet and OT storage must remain valid until the GPU finishes consuming it.
+static void _tmdDrawModel(TmdObject* model)
 {
     s32              vertexDepths[TMD_DRAW_VERTEX_DEPTH_COUNT];
-    _TmdDrawScratch* scratchEnd;
     _TmdDrawScratch* scratch;
     u32*             stream;
-    u32              flags;
-    void*            bufptr;
-    s32              disp;
-    u_long*          ot;
-    TmdSource*       p;
-    s32              e;
-    s32*             depthTable;
+    u32              objectFlags;
+    u8*              buffer;
+    s32              otDepthShift;
+    u_long*          currentOt;
+    TmdSource*       source;
+    s32              otEntryOffset;
     SVECTOR*         normals;
 
     {
-        TmdSource* p;
+        TmdSource* streamSource;
 
-        p                               = obj->source;
-        scratchEnd                      = SCRATCH_STACK_CURSOR(_TmdDrawScratch);
-        stream                          = p->stream;
-        disp                            = gDisplayState.otDepthShift;
-        scratch                         = scratchEnd - 1;
-        scratch->workspace.obj          = obj;
-        scratch->workspace.otDepthShift = disp;
+        streamSource                    = model->source;
+        stream                          = streamSource->stream;
+        otDepthShift                    = gDisplayState.otDepthShift;
+        scratch                         = SCRATCH_STACK_RESERVE_BLOCK(_TmdDrawScratch);
+        scratch->workspace.obj          = model;
+        scratch->workspace.otDepthShift = otDepthShift;
     }
-    bufptr                                = obj->buffer;
-    scratch->workspace.primWrite          = bufptr;
-    SCRATCH_STACK_CURSOR(_TmdDrawScratch) = scratch;
-    if (obj->nextBufferHalf != 0) {
-        scratch->workspace.primWrite = (u8*)bufptr + obj->bufferHalfBytes;
+    // Select the half, then split it at the source's byte-sized region boundary.
+    buffer                       = model->buffer;
+    scratch->workspace.primWrite = buffer;
+    if (model->nextBufferHalf != 0) {
+        scratch->workspace.primWrite = buffer + model->bufferHalfBytes;
     }
     scratch->workspace.preXformWrite = scratch->workspace.primWrite;
-    scratch->workspace.primWrite     = scratch->workspace.primWrite + obj->source->preXformRegionBytes;
-    obj->nextBufferHalf             ^= 1;
-    scratch->workspace.verts         = obj->source->verts;
-    ot                               = gGpuCurrentOt;
-    p                                = obj->source;
-    normals                          = p->normals;
-    scratch->workspace.ot            = ot;
+    scratch->workspace.primWrite     = scratch->workspace.primWrite + model->source->preXformRegionBytes;
+    model->nextBufferHalf           ^= 1;
+    scratch->workspace.verts         = model->source->verts;
+    currentOt                        = gGpuCurrentOt;
+    source                           = model->source;
+    normals                          = source->normals;
+    scratch->workspace.ot            = currentOt;
     scratch->workspace.normals       = normals;
-    e                                = obj->otOffset;
-    depthTable                       = vertexDepths;
-    scratch->workspace.szTable       = depthTable;
-    scratch->workspace.ot            = ot + e;
+    otEntryOffset                    = model->otOffset;
+    scratch->workspace.szTable       = vertexDepths;
+    scratch->workspace.ot            = currentOt + otEntryOffset;
 
-    gte_SetColorMatrix(obj->colorMtx);
-    gte_ldbkdir(obj->colorMtx->t[0], obj->colorMtx->t[1], obj->colorMtx->t[2]);
+    gte_SetColorMatrix(model->colorMtx);
+    gte_ldbkdir(model->colorMtx->t[0], model->colorMtx->t[1], model->colorMtx->t[2]);
 
-    flags = obj->flags;
+    objectFlags = model->flags;
     // Remove the view rotation before combining the light directions with each part.
-    gte_TransposeMatrix(&gGfxViewCoord.workm, &scratch->workspace.viewLightRotation);
+    _tmdComposeViewLightRotation(model, &scratch->workspace);
 
-    gte_SetRotMatrix(obj->lightMtx);
-    gte_ldclmv(&scratch->workspace.viewLightRotation[0][0]);
-    gte_rtir();
-    gte_stclmv(&scratch->workspace.viewLightRotation[0][0]);
-    gte_ldclmv(&scratch->workspace.viewLightRotation[0][1]);
-    gte_rtir();
-    gte_stclmv(&scratch->workspace.viewLightRotation[0][1]);
-    gte_ldclmv(&scratch->workspace.viewLightRotation[0][2]);
-    gte_rtir();
-    gte_stclmv(&scratch->workspace.viewLightRotation[0][2]);
-
-    tmdDrawModelStream(&scratch->workspace, flags, stream, obj);
+    tmdDrawModelStream(&scratch->workspace, objectFlags, stream, model);
 
     SCRATCH_STACK_RELEASE_BLOCK(_TmdDrawScratch);
 }
@@ -991,21 +1011,19 @@ void Tmd_DrawFlaggedNodes(TmdObject* node)
     while (node != NULL) {
         if (node->flags & TMD_OBJECT_FLAGGED_PASS) {
             if (node->buffer != NULL) {
-                Tmd_SetupDraw(node);
+                _tmdDrawModel(node);
             }
         }
         node = PARENT_OF(node->link.next, TmdObject, link);
     }
 }
 
-void Tmd_DrawActiveNodes(TmdObject* node)
+void tmdDrawActiveModels(TmdObject* model)
 {
-    while (node != NULL) {
-        if (!(node->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
-            if (node->buffer != NULL) {
-                Tmd_SetupDraw(node);
-            }
+    while (model != NULL) {
+        if (!(model->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) && model->buffer != NULL) {
+            _tmdDrawModel(model);
         }
-        node = PARENT_OF(node->link.next, TmdObject, link);
+        model = PARENT_OF(model->link.next, TmdObject, link);
     }
 }

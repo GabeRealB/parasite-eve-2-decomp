@@ -610,7 +610,8 @@ s32 func_actor_312200_801636CC(Task* task, s32 msgId, ActorCommand* msg, s32 arg
 
 /// Handler of `ACTOR_312200_STATE_HIDDEN`. On the state's first tick
 /// (`stateEntered`) it marks the enemy's target node not lockable, raises the
-/// model's 0x80 bit (which takes it out of `Tmd_DrawActiveNodes`), clears
+/// model's `TMD_OBJECT_SKIP_ACTIVE_DRAW` bit, excluding it from
+/// `tmdDrawActiveModels`, clears
 /// `Enemy::field_4D` and takes `body` out of the pair tests.
 static void func_actor_312200_80163778(Task* task)
 {

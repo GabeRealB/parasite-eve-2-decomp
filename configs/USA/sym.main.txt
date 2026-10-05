@@ -1426,7 +1426,7 @@ Stage_TaskExit               = 0x800409B0; // type:func
 _tmdResolveSourceDrawHandlers               = 0x800409D0; // type:func
 tmdBuildBufferHalf               = 0x800410F0; // type:func
 tmdCreateModel               = 0x80041700; // type:func
-Tmd_SetupDraw               = 0x800418C0; // type:func
+_tmdDrawModel               = 0x800418C0; // type:func
 tmdFreePrimitiveBuffer               = 0x80041B4C; // type:func
 tmdAllocPrimitiveBuffer               = 0x80041B88; // type:func
 _tmdSumAttachedBufferBytes               = 0x80041BFC; // type:func
@@ -1438,7 +1438,7 @@ gpuResetAndInvalidateModelBuffers               = 0x80041E4C; // type:func
 tmdResetAuxHeapAndRestoreBuffers               = 0x80041EB4; // type:func
 tmdRestoreAttachedBuffersTask               = 0x80041F58; // type:func
 Tmd_DrawFlaggedNodes               = 0x80041FF8; // type:func
-Tmd_DrawActiveNodes               = 0x80042058; // type:func
+tmdDrawActiveModels               = 0x80042058; // type:func
 
 //--------------------------------------------------------------------
 //--- PA: 0x328B8   VA: 0x800420B8   subsegment: o, libgte/fgo_00

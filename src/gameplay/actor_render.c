@@ -228,7 +228,7 @@ void Gp_DrawActorTmdFlagged(GsOT* arg0)
 void Gp_DrawActorTmdActive(GsOT* arg0)
 {
     _actorRenderComposeListedCoords();
-    Tmd_DrawActiveNodes(PARENT_OF(gTmdList.next, TmdObject, link));
+    tmdDrawActiveModels(PARENT_OF(gTmdList.next, TmdObject, link));
 }
 
 void actorRenderComposeCoord(GfxCoord* coord)

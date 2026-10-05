@@ -137,7 +137,26 @@ void tmdFreePrimitiveBuffer(TmdObject* model);
 
 void Tmd_DrawFlaggedNodes(TmdObject* node);
 
-void Tmd_DrawActiveNodes(TmdObject* node);
+/// Draws buffered models not excluded from the active pass, starting at `model`.
+///
+/// NULL is a no-op; otherwise `model` begins a live chain of `TmdObject.link`
+/// entries ending at NULL. The chain and all borrowed sources, coordinates,
+/// lighting matrices and resolved callbacks must remain valid during the walk.
+/// `TMD_OBJECT_SKIP_ACTIVE_DRAW` excludes a model; a NULL primitive buffer also
+/// skips it. `TMD_OBJECT_FLAGGED_PASS` does not affect this selection.
+///
+/// Coordinates must already be composed into view space, and the current OT,
+/// depth shift and GTE projection/depth-average settings must be established.
+/// Each drawn model updates its selected, previously constructed buffer half,
+/// links accepted packets into `gGpuCurrentOt` with its signed entry offset,
+/// and toggles `nextBufferHalf`. Its stream and geometry references must fit
+/// the source and its packet regions; pre-transformed depth references must
+/// fit the 1024-entry cache and follow their projection commands. Capacities
+/// are unchecked. The shared scratch stack must have room for the 0x98-byte
+/// draw block and any nested callback reservations. Scratch is uninitialized;
+/// callbacks may read only state already supplied by setup or earlier commands.
+/// GTE state is not restored. Keep packet and OT storage valid until GPU use ends.
+void tmdDrawActiveModels(TmdObject* model);
 
 /// Projects, lights and links a stream record's gouraud textured triangles.
 ///

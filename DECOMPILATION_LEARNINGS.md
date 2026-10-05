@@ -22299,15 +22299,15 @@ Making *both* volatile keeps the body order correct but parks `lui` after
 `sw ra` (~99.6%). Making *both* non-volatile moves `lui` early but reorders
 `lbu`/stores. Only the mixed pair matches.
 
-`Tmd_SetupDraw` is the pure example.
+`_tmdDrawModel` is the pure example.
 
 ## Handwritten light setup: SetColorMatrix + ldbkdir + transpose MulMatrix0
 
-`Tmd_SetupDraw` loads `index->field_20` (color MATRIX, often `D_80074080`) with
+`_tmdDrawModel` loads `model->colorMtx` (color MATRIX, often `D_80074080`) with
 `gte_SetColorMatrix`, then ambient from `t[]` via `gte_ldbkdir(t[0],t[1],t[2])`
-(not `gte_SetBackColor` — no `<<4`). It then transpose-copies `Gfx_ViewWorldMtx` into
+(not `gte_SetBackColor` — no `<<4`). It then transpose-copies `gGfxViewCoord.workm` into
 scratch (same `t4/t5/t6` halfword pattern as `_gfxTransposeRotation`), `gte_SetRotMatrix`
-on `index->field_1C` (light dir, often `GsLIGHTWSMATRIX`), and in-place column
+on `model->lightMtx` (light dir, often `GsLIGHTWSMATRIX`), and in-place column
 RTIR via `gte_ldclmv` + `gte_rtir()` (`0x4A49E012` with `gte.h` included) +
 `gte_stclmv` three times.
 
@@ -133495,7 +133495,7 @@ body it completes, and why it steps over the packets one primitive at a time:
 the step is the primitive's size (`0x34` for the `POLY_GT4` that
 `tmdDrawStreamPrimGt4CornerColors` completes, `0x1C` for the `POLY_G3` of `0x20`),
 and that arithmetic is what shows the two passes share the region.
-`Tmd_SetupDraw` sets its cursor to the half and the region the process pass
+`_tmdDrawModel` sets its cursor to the half and the region the process pass
 wrote into, in the other half of the alternating pair.
 
 ## A symbol another binary imports is cited in prose under the importer's name
@@ -134874,7 +134874,7 @@ in `Tmd_StreamHandlers_Ops.s`: its family groupings are wrong in both directions
 
 A model's packet stream is walked twice. `tmdBuildBufferHalf` lays each record's
 texture words into the buffer half when a model's buffer is allocated; the draw pass
-- `Tmd_SetupDraw` to `tmdDrawModelStream` to `Tmd_DispatchStream` - runs per frame,
+- `_tmdDrawModel` to `tmdDrawModelStream` to `Tmd_DispatchStream` - runs per frame,
 takes each element's triangle to screen space, lights and culls it and links its
 packet into the ordering table. Only the second jalrs the handler a record carries,
 which is the one `_tmdResolveSourceDrawHandlers` stored there at init, so the handlers in
@@ -134940,7 +134940,7 @@ as a duplicate of the loop it twins.
 Which copy a model's faces take is `flags & 0x10`, read in the entry before the
 branch that reaches one of them. Those flags are the drawing object's and not the
 record's: `Tmd_DispatchStream` passes on the `flags` argument it was given, which
-`tmdDrawModelStream` takes from `Tmd_SetupDraw` and that in turn from
+`tmdDrawModelStream` takes from `_tmdDrawModel` and that in turn from
 `TmdObject::flags`. Six entries read the bit, over four distinct loops: the
 gouraud textured triangle and quad entries of the transform-region family, and
 the opaque and ABR entries of each of the two pre-transformed ones, which share a
@@ -142244,15 +142244,15 @@ each block was a `static inline`; block-scoped locals never share. The union
 of all the layouts plus `la` asm that the seed used is what those helpers
 compile to.
 
-## A `move` right after a GTE asm whose operand was reloaded is a re-read of the same field (Tmd_SetupDraw)
+## A `move` right after a GTE asm whose operand was reloaded is a re-read of the same field (_tmdDrawModel)
 
 Target: `lw t2,0x20(a3)`, `gte_SetColorMatrix` through `t2`, then `move v0,t2`
 and the three `gte_ldbkdir` operands loaded through `v0` into `t3/t7/t2`. A
 `colorMtx` local gives `lw v0,0x20(a3)` and loads straight off `v0`; pinning
 `t2`/`v0`/`t3`/`t7` was the old reproduction. The mechanism is reload, not
 allocation: the asm needs three GR registers, reload spills `t2/t3/t7`, and
-the pointer operand gets a spill register. Writing `obj->colorMtx` afresh in
-both macros (`gte_SetColorMatrix(obj->colorMtx); gte_ldbkdir(obj->colorMtx->t[0],
+the pointer operand gets a spill register. Writing `model->colorMtx` afresh in
+both macros (`gte_SetColorMatrix(model->colorMtx); gte_ldbkdir(model->colorMtx->t[0],
 ...)`) makes the second read its own load, which post-reload CSE turns into a
 copy of the value already in `t2`. When the `.greg` dump says `Spilling reg`
 for an asm insn, look for a repeated field read before pinning anything.
