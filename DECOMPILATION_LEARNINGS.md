@@ -142244,12 +142244,12 @@ both macros (`gte_SetColorMatrix(obj->colorMtx); gte_ldbkdir(obj->colorMtx->t[0]
 copy of the value already in `t2`. When the `.greg` dump says `Spilling reg`
 for an asm insn, look for a repeated field read before pinning anything.
 
-## An in-place GTE transform whose destination address is computed before the copy is an inline helper (func_actor_403600_80138004)
+## An in-place GTE transform whose destination address is computed before the copy is an inline helper (actor403600DrawStreamGt4PlaneClamp)
 
 Target: `addiu v0,sp,0x18` (the stack copy) and `addiu v1,s4,-0x78` (the
 vector's own address) both before the `lwl/lwr` pair that copies the vector to
 the stack, then `ApplyMatrixSV` from the copy back into `0(v1)`. Open-coded
-(`v = sc->offset; gte_ApplyMatrixSV(m, &v, &sc->offset);`) the destination is
+(`v = scratch->offset; gte_ApplyMatrixSV(m, &v, &scratch->offset);`) the destination is
 computed at the `gte_stsv` and scheduled late; a pointer local gets it to the
 right block but sched1 still puts it ahead of the preceding `sh`. A helper
 taking the vector by pointer matches exactly, because the inlined parameter is

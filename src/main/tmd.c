@@ -25,6 +25,8 @@
 #include "tmd.h"
 #include "main/tmd_types.h"
 
+#include "actors/actor_403600.h"
+
 #include "gameplay/model_lighting.h"
 #include "gameplay/model_objects.h"
 
@@ -158,26 +160,6 @@ static void _tmdHideAttachedModelsTask(Task* task);
 
 static void _tmdFreeAttachedBuffersTask(Task* task);
 
-u32* func_actor_403600_80136224(TmdStreamWorkspace* ws, s32 flags, u32* stream);
-
-u32* func_actor_403600_80136500(TmdStreamWorkspace* ws, s32 flags, u32* stream);
-
-u32* func_actor_403600_8013685C(TmdStreamWorkspace* ws, s32 flags, u32* stream);
-
-u32* func_actor_403600_80136C00(TmdStreamWorkspace* ws, s32 flags, u32* stream);
-
-u32* func_actor_403600_8013700C(TmdStreamWorkspace* ws, s32 flags, u32* stream);
-
-u32* func_actor_403600_80137300(TmdStreamWorkspace* ws, s32 flags, u32* stream);
-
-u32* func_actor_403600_801375F8(TmdStreamWorkspace* ws, s32 flags, u32* stream);
-
-u32* func_actor_403600_801379B4(TmdStreamWorkspace* ws, s32 flags, u32* stream);
-
-u32* func_actor_403600_80138004(TmdStreamWorkspace* ws, s32 flags, u32* stream);
-
-u32* func_actor_403600_801386EC(TmdStreamWorkspace* ws, s32 flags, u32* stream);
-
 static const TaskFuncTable3 Tmd_TaskStates = { {
     _tmdHideAttachedModelsTask,
     _tmdFreeAttachedBuffersTask,
@@ -234,31 +216,31 @@ static void Tmd_InitSourceStream(TmdSource* src)
                     handler = tmdDrawStreamGt3;
                     break;
                 case 0x8038:
-                    handler = func_actor_403600_80136224;
+                    handler = actor403600DrawStreamGt3BottomFade;
                     break;
                 case 0x10038:
-                    handler = func_actor_403600_8013700C;
+                    handler = actor403600DrawStreamGt3TopDisplace;
                     break;
                 case 0x20038:
-                    handler = func_actor_403600_801379B4;
+                    handler = actor403600DrawStreamGt3PlaneClamp;
                     break;
                 case 0x3A:
                     handler = tmdDrawStreamGt3SemiTrans;
                     break;
                 case 0x1003A:
-                    handler = func_actor_403600_80137300;
+                    handler = actor403600DrawStreamGt3TopDisplaceSemiTrans;
                     break;
                 case 0x78:
                     handler = tmdDrawStreamGt4;
                     break;
                 case 0x8078:
-                    handler = func_actor_403600_8013685C;
+                    handler = actor403600DrawStreamGt4BottomFade;
                     break;
                 case 0x10078:
-                    handler = func_actor_403600_801375F8;
+                    handler = actor403600DrawStreamGt4TopDisplace;
                     break;
                 case 0x20078:
-                    handler = func_actor_403600_80138004;
+                    handler = actor403600DrawStreamGt4PlaneClamp;
                     break;
                 case 0x7A:
                     handler = tmdDrawStreamGt4SemiTrans;
@@ -273,7 +255,7 @@ static void Tmd_InitSourceStream(TmdSource* src)
                     }
                     break;
                 case 0x200C8:
-                    handler = func_actor_403600_801386EC;
+                    handler = actor403600XformStreamVertsPlaneClamp;
                     break;
                 case 0x31:
                 case 0x39:
@@ -281,7 +263,7 @@ static void Tmd_InitSourceStream(TmdSource* src)
                     handler = tmdDrawStreamPrimGt3PreXform;
                     break;
                 case 0x8039:
-                    handler = func_actor_403600_80136500;
+                    handler = actor403600DrawStreamGt3PreXformBottomFade;
                     break;
                 case 0x3B:
                     handler = tmdDrawStreamPrimGt3PreXformSemiTrans;
@@ -292,7 +274,7 @@ static void Tmd_InitSourceStream(TmdSource* src)
                     handler = tmdDrawStreamPrimGt4PreXform;
                     break;
                 case 0x8079:
-                    handler = func_actor_403600_80136C00;
+                    handler = actor403600DrawStreamGt4PreXformBottomFade;
                     break;
                 case 0x7B:
                     handler = tmdDrawStreamPrimGt4PreXformSemiTrans;

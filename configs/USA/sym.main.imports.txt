@@ -92,16 +92,16 @@ func_map_akropolis_80179988 = 0x80179988; // type:func absolute:True owner=map_a
 func_map_neo_ark_801799BC = 0x801799BC; // type:func absolute:True owner=map_neo_ark
 func_map_neo_ark_80179BE4 = 0x80179BE4; // type:func absolute:True owner=map_neo_ark
 func_801D4B64 = 0x801D4B64; // type:func absolute:True
-func_actor_403600_80136224 = 0x80136224; // type:func absolute:True owner=actor_403600
-func_actor_403600_80136500 = 0x80136500; // type:func absolute:True owner=actor_403600
-func_actor_403600_8013685C = 0x8013685C; // type:func absolute:True owner=actor_403600 shared=actors
-func_actor_403600_80136C00 = 0x80136C00; // type:func absolute:True owner=actor_403600
-func_actor_403600_8013700C = 0x8013700C; // type:func absolute:True owner=actor_403600
-func_actor_403600_80137300 = 0x80137300; // type:func absolute:True owner=actor_403600
-func_actor_403600_801375F8 = 0x801375F8; // type:func absolute:True owner=actor_403600
-func_actor_403600_801379B4 = 0x801379B4; // type:func absolute:True owner=actor_403600
-func_actor_403600_80138004 = 0x80138004; // type:func absolute:True owner=actor_403600
-func_actor_403600_801386EC = 0x801386EC; // type:func absolute:True owner=actor_403600
+actor403600DrawStreamGt3BottomFade = 0x80136224; // type:func absolute:True owner=actor_403600
+actor403600DrawStreamGt3PreXformBottomFade = 0x80136500; // type:func absolute:True owner=actor_403600
+actor403600DrawStreamGt4BottomFade = 0x8013685C; // type:func absolute:True owner=actor_403600 shared=actors
+actor403600DrawStreamGt4PreXformBottomFade = 0x80136C00; // type:func absolute:True owner=actor_403600
+actor403600DrawStreamGt3TopDisplace = 0x8013700C; // type:func absolute:True owner=actor_403600
+actor403600DrawStreamGt3TopDisplaceSemiTrans = 0x80137300; // type:func absolute:True owner=actor_403600
+actor403600DrawStreamGt4TopDisplace = 0x801375F8; // type:func absolute:True owner=actor_403600
+actor403600DrawStreamGt3PlaneClamp = 0x801379B4; // type:func absolute:True owner=actor_403600
+actor403600DrawStreamGt4PlaneClamp = 0x80138004; // type:func absolute:True owner=actor_403600
+actor403600XformStreamVertsPlaneClamp = 0x801386EC; // type:func absolute:True owner=actor_403600
 
 // Overlay task entry points and descriptor banks named by main's descriptor tables.
 func_800A8654 = 0x800A8654; // type:func absolute:True

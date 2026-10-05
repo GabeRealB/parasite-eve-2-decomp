@@ -926,21 +926,160 @@ typedef struct {
     MATRIX  local;    // Model-to-reference transform
 } _Actor403600QuadScratch;
 
-static void        func_actor_403600_801327A0(_Actor403600GridQuad* arg0);
+/// Pixel boundary and Q7 colour weight of the package's vertical screen fades.
+enum {
+    ACTOR_403600_SCREEN_FADE_ORIGIN_Y    = 360,
+    ACTOR_403600_SCREEN_FADE_COLOR_ONE   = 128,
+    ACTOR_403600_SCREEN_FADE_COLOR_SHIFT = 7,
+    ACTOR_403600_GEOMETRY_OFFSET_SHIFT   = 3,      // Serialized eight-byte SVECTOR offsets to element indices
+    ACTOR_403600_GEOMETRY_OFFSET_MASK    = 0xFFF8, // Strip low flag bits from serialized eight-byte SVECTOR offsets
+    ACTOR_403600_DEPTH_OFFSET_MASK       = 0xFFFC, // Strip low flag bits from serialized four-byte depth-cache offsets
+    ACTOR_403600_OT_DEPTH_SHIFT          = 4,      // Sixteen camera-depth units per OT bucket before the display shift
+    ACTOR_403600_OT_INDEX_MASK           = 0x3FF   // Wrap relative OT buckets into 0..1023
+};
+
+static void        _actor403600UnifyGridQuadTexturePage(_Actor403600GridQuad* quad);
 static void        func_actor_403600_8013289C(s32 x, s32 corner, SVECTOR* arg2, s32 fade);
-static inline void _actor403600ApplyMatrixSv(MATRIX* m, SVECTOR* in, SVECTOR* out);
+static inline void _actor403600RotateSv(const MATRIX* rotationMatrix, const SVECTOR* input, SVECTOR* output);
 static inline void _actor403600TrailTick(Actor403600Ripple* state);
 static inline s32  _actor403600TrailEmpty(Actor403600Ripple* state);
-u32*               func_actor_403600_80136224(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2);
-u32*               func_actor_403600_80136500(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2);
-u32*               func_actor_403600_8013685C(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2);
-u32*               func_actor_403600_80136C00(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2);
-u32*               func_actor_403600_8013700C(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2);
-u32*               func_actor_403600_80137300(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2);
-u32*               func_actor_403600_801375F8(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2);
-u32*               func_actor_403600_801379B4(TmdStreamWorkspace* ws, s32 flags, u32* stream);
-u32*               func_actor_403600_80138004(TmdStreamWorkspace* ws, s32 flags, u32* stream);
-u32*               func_actor_403600_801386EC(TmdStreamWorkspace* ws, s32 flags, u32* stream);
+
+/// Lights GT3 corner normals using a common screen-fade RGB weight.
+///
+/// Arguments must have no side effects; colour, workspace and offsets are used
+/// repeatedly. `lightColor` is a CVECTOR lvalue, `fadeAmount` a loss in 0..128,
+/// and `normalBytes` a writable const-byte-pointer lvalue receiving the borrowed
+/// normal-array view. Requires complete serialized offsets, writable packet RGB,
+/// and loaded GTE light/colour matrices. Retains no pointer and overwrites GTE
+/// normal, RGB, MAC, IR and FLAG state. Use as a standalone statement inside
+/// a braced block.
+#define ACTOR_403600_LIGHT_GT3_SCREEN_FADE(workspace, lightColor, fadeAmount, offsets, packet, normalBytes) \
+    {                                                                                                       \
+        (lightColor).r = -ACTOR_403600_SCREEN_FADE_COLOR_ONE - (fadeAmount);                                \
+        (lightColor).g = -ACTOR_403600_SCREEN_FADE_COLOR_ONE - (fadeAmount);                                \
+        (lightColor).b = -ACTOR_403600_SCREEN_FADE_COLOR_ONE - (fadeAmount);                                \
+        gte_ldrgb(&(lightColor));                                                                           \
+        (normalBytes) = (const u8*)(workspace)->normals;                                                    \
+        gte_ldv3((normalBytes) + ((offsets)[3] & ACTOR_403600_GEOMETRY_OFFSET_MASK),                        \
+                 (normalBytes) + ((offsets)[4] & ACTOR_403600_GEOMETRY_OFFSET_MASK),                        \
+                 (normalBytes) + ((offsets)[5] & ACTOR_403600_GEOMETRY_OFFSET_MASK));                       \
+        gte_ncct();                                                                                         \
+        gte_strgb3_gt3(packet);                                                                             \
+    }
+
+/// Lights GT4 corner normals using a common screen-fade RGB weight.
+///
+/// Arguments must have no side effects; colour, workspace and offsets are used
+/// repeatedly. `lightColor` is a CVECTOR lvalue, `fadeAmount` a loss in 0..128,
+/// and `normalBytes` a writable const-byte-pointer lvalue receiving the borrowed
+/// normal-array view. Requires complete serialized offsets, writable packet RGB,
+/// and loaded GTE light/colour matrices. Retains no pointer and overwrites GTE
+/// normal, RGB, MAC, IR and FLAG state. Use as a standalone statement inside
+/// a braced block.
+#define ACTOR_403600_LIGHT_GT4_SCREEN_FADE(workspace, lightColor, fadeAmount, offsets, packet, normalBytes) \
+    {                                                                                                       \
+        (lightColor).r = -ACTOR_403600_SCREEN_FADE_COLOR_ONE - (fadeAmount);                                \
+        (lightColor).g = -ACTOR_403600_SCREEN_FADE_COLOR_ONE - (fadeAmount);                                \
+        (lightColor).b = -ACTOR_403600_SCREEN_FADE_COLOR_ONE - (fadeAmount);                                \
+        gte_ldrgb(&(lightColor));                                                                           \
+        (normalBytes) = (const u8*)(workspace)->normals;                                                    \
+        gte_ldv3((normalBytes) + ((offsets)[4] & ACTOR_403600_GEOMETRY_OFFSET_MASK),                        \
+                 (normalBytes) + ((offsets)[5] & ACTOR_403600_GEOMETRY_OFFSET_MASK),                        \
+                 (normalBytes) + ((offsets)[6] & ACTOR_403600_GEOMETRY_OFFSET_MASK));                       \
+        gte_ncct();                                                                                         \
+        gte_strgb3_gt4(packet);                                                                             \
+        gte_ldv0((const u8*)(workspace)->normals + ((offsets)[7] & ACTOR_403600_GEOMETRY_OFFSET_MASK));     \
+        gte_nccs();                                                                                         \
+        gte_strgb(&(packet)->r3);                                                                           \
+    }
+
+/// Fades pre-transformed GT3 RGB channels using the remaining Q7 weight.
+///
+/// `packet` must be a side-effect-free POLY_GT3 pointer; it is evaluated
+/// repeatedly. `fadeAmount` is a side-effect-free writable s32 lvalue, initially
+/// a loss in 0..128 and changed to 128 minus that loss. Channel stores truncate
+/// to bytes after shifting products right by 7. Use as a standalone statement
+/// inside a braced block.
+#define ACTOR_403600_FADE_PRE_XFORM_GT3_COLORS(packet, fadeAmount)                            \
+    {                                                                                         \
+        s32 fadedChannel;                                                                     \
+                                                                                              \
+        (fadeAmount) = ACTOR_403600_SCREEN_FADE_COLOR_ONE - (fadeAmount);                     \
+        fadedChannel = ((packet)->r0 * (fadeAmount)) >> ACTOR_403600_SCREEN_FADE_COLOR_SHIFT; \
+        (packet)->r0 = fadedChannel;                                                          \
+        fadedChannel = ((packet)->g0 * (fadeAmount)) >> ACTOR_403600_SCREEN_FADE_COLOR_SHIFT; \
+        (packet)->g0 = fadedChannel;                                                          \
+        fadedChannel = ((packet)->b0 * (fadeAmount)) >> ACTOR_403600_SCREEN_FADE_COLOR_SHIFT; \
+        (packet)->b0 = fadedChannel;                                                          \
+        fadedChannel = ((packet)->r1 * (fadeAmount)) >> ACTOR_403600_SCREEN_FADE_COLOR_SHIFT; \
+        (packet)->r1 = fadedChannel;                                                          \
+        fadedChannel = ((packet)->g1 * (fadeAmount)) >> ACTOR_403600_SCREEN_FADE_COLOR_SHIFT; \
+        (packet)->g1 = fadedChannel;                                                          \
+        fadedChannel = ((packet)->b1 * (fadeAmount)) >> ACTOR_403600_SCREEN_FADE_COLOR_SHIFT; \
+        (packet)->b1 = fadedChannel;                                                          \
+        fadedChannel = ((packet)->r2 * (fadeAmount)) >> ACTOR_403600_SCREEN_FADE_COLOR_SHIFT; \
+        (packet)->r2 = fadedChannel;                                                          \
+        fadedChannel = ((packet)->g2 * (fadeAmount)) >> ACTOR_403600_SCREEN_FADE_COLOR_SHIFT; \
+        (packet)->g2 = fadedChannel;                                                          \
+        fadedChannel = ((packet)->b2 * (fadeAmount)) >> ACTOR_403600_SCREEN_FADE_COLOR_SHIFT; \
+        (packet)->b2 = fadedChannel;                                                          \
+    }
+
+/// Fades pre-transformed GT4 RGB channels using the remaining Q7 weight.
+///
+/// `packet` must be a side-effect-free POLY_GT4 pointer; it is evaluated
+/// repeatedly. `fadeAmount` is a side-effect-free writable s32 lvalue, initially
+/// a loss in 0..128 and changed to 128 minus that loss. Channel stores truncate
+/// to bytes after shifting products right by 7. Use as a standalone statement
+/// inside a braced block.
+/// Leaves corner 1 unchanged, fades its RGB into corner 3, then fades corner 3
+/// again. Corners 0 and 2 fade once, preserving the packet writer's order.
+#define ACTOR_403600_FADE_PRE_XFORM_GT4_COLORS(packet, fadeAmount)                            \
+    {                                                                                         \
+        s32 fadedChannel;                                                                     \
+                                                                                              \
+        (fadeAmount) = ACTOR_403600_SCREEN_FADE_COLOR_ONE - (fadeAmount);                     \
+        fadedChannel = ((packet)->r0 * (fadeAmount)) >> ACTOR_403600_SCREEN_FADE_COLOR_SHIFT; \
+        (packet)->r0 = fadedChannel;                                                          \
+        fadedChannel = ((packet)->g0 * (fadeAmount)) >> ACTOR_403600_SCREEN_FADE_COLOR_SHIFT; \
+        (packet)->g0 = fadedChannel;                                                          \
+        fadedChannel = ((packet)->b0 * (fadeAmount)) >> ACTOR_403600_SCREEN_FADE_COLOR_SHIFT; \
+        (packet)->b0 = fadedChannel;                                                          \
+        fadedChannel = ((packet)->r1 * (fadeAmount)) >> ACTOR_403600_SCREEN_FADE_COLOR_SHIFT; \
+        (packet)->r3 = fadedChannel;                                                          \
+        fadedChannel = ((packet)->g1 * (fadeAmount)) >> ACTOR_403600_SCREEN_FADE_COLOR_SHIFT; \
+        (packet)->g3 = fadedChannel;                                                          \
+        fadedChannel = ((packet)->b1 * (fadeAmount)) >> ACTOR_403600_SCREEN_FADE_COLOR_SHIFT; \
+        (packet)->b3 = fadedChannel;                                                          \
+        fadedChannel = ((packet)->r2 * (fadeAmount)) >> ACTOR_403600_SCREEN_FADE_COLOR_SHIFT; \
+        (packet)->r2 = fadedChannel;                                                          \
+        fadedChannel = ((packet)->g2 * (fadeAmount)) >> ACTOR_403600_SCREEN_FADE_COLOR_SHIFT; \
+        (packet)->g2 = fadedChannel;                                                          \
+        fadedChannel = ((packet)->b2 * (fadeAmount)) >> ACTOR_403600_SCREEN_FADE_COLOR_SHIFT; \
+        (packet)->b2 = fadedChannel;                                                          \
+        fadedChannel = ((packet)->r3 * (fadeAmount)) >> ACTOR_403600_SCREEN_FADE_COLOR_SHIFT; \
+        (packet)->r3 = fadedChannel;                                                          \
+        fadedChannel = ((packet)->g3 * (fadeAmount)) >> ACTOR_403600_SCREEN_FADE_COLOR_SHIFT; \
+        (packet)->g3 = fadedChannel;                                                          \
+        fadedChannel = ((packet)->b3 * (fadeAmount)) >> ACTOR_403600_SCREEN_FADE_COLOR_SHIFT; \
+        (packet)->b3 = fadedChannel;                                                          \
+    }
+
+/// Transforms a vertex by the loaded model-to-plane matrix, then clamps its Y.
+///
+/// `source` addresses a readable, word-aligned SVECTOR; `planeVertex` is a
+/// writable SVECTOR lvalue with halfword-aligned xyz. Its address expression
+/// must have no side effects: it is evaluated three times. Overwrites GTE V0, MAC,
+/// IR and FLAG, with no scratch-stack use or pointer retention.
+#define ACTOR_403600_TRANSFORM_AND_CLAMP_PLANE_VERTEX(source, planeVertex) \
+    {                                                                      \
+        gte_ldv0(source);                                                  \
+        gte_rtv0tr();                                                      \
+        gte_stsv(&(planeVertex));                                          \
+        if ((planeVertex).vy > 0) {                                        \
+            (planeVertex).vy = 0;                                          \
+        }                                                                  \
+    }
 
 /// Links primitive `p` at the head of ordering-table entry `ot` through tag words.
 ///
@@ -953,49 +1092,68 @@ u32*               func_actor_403600_801386EC(TmdStreamWorkspace* ws, s32 flags,
 
 #include "../../shared/frame_capture.inc.c"
 
-static void func_actor_403600_801327A0(_Actor403600GridQuad* arg0)
+/// Gives a captured-frame quad one texture page and rebases all four U bytes.
+///
+/// The incoming U bytes plus their per-corner page shifts are capture-relative
+/// pixel coordinates in 0..319; shifts are 0 or 64. Uses the page at VRAM
+/// (448,256), or (512,256) when a corner reaches 256 or all corners reach 64.
+/// The latter fits all four corners only when their span lies in 64..319;
+/// callers must keep each quad within one 256-pixel page. Y, V and packet
+/// header are unchanged. Stores the chosen shift in every corner's page byte
+/// so neighbouring quads can recover their shared vertices' capture-relative U.
+static void _actor403600UnifyGridQuadTexturePage(_Actor403600GridQuad* quad)
 {
-    s32 temp_a0;
-    s32 temp_a1;
-    s32 temp_t1;
-    s32 temp_t2;
-    s32 max;
-    s32 min;
-    u8  adjust;
+    enum {
+        ACTOR_403600_CAPTURE_PAGE_PIXELS  = 0x100,
+        ACTOR_403600_CAPTURE_PAGE_SHIFT   = 0x40,
+        ACTOR_403600_CAPTURE_X            = 0x1C0,
+        ACTOR_403600_CAPTURE_Y            = 0x100,
+        ACTOR_403600_CAPTURE_COLOR_DEPTH  = 2,
+        ACTOR_403600_CAPTURE_PAGE_X_SHIFT = 6
+    };
 
-    temp_t2 = arg0->vertex0.u + arg0->page0;
-    min     = temp_t2;
-    max     = temp_t2;
-    temp_t1 = arg0->vertex1.u + arg0->page1;
-    temp_a1 = arg0->vertex2.u + arg0->page2;
-    temp_a0 = arg0->vertex3.u + arg0->page3;
-    if (temp_t1 < min) {
-        min = temp_t1;
-    } else if (max < temp_t1) {
-        max = temp_t1;
+    s32 u3;
+    s32 u2;
+    s32 u1;
+    s32 u0;
+    s32 maxU;
+    s32 minU;
+    u8  pageShift;
+
+    // Recover capture-relative U before selecting one page for all four corners.
+    u0   = quad->vertex0.u + quad->page0;
+    minU = u0;
+    maxU = u0;
+    u1   = quad->vertex1.u + quad->page1;
+    u2   = quad->vertex2.u + quad->page2;
+    u3   = quad->vertex3.u + quad->page3;
+    if (u1 < minU) {
+        minU = u1;
+    } else if (maxU < u1) {
+        maxU = u1;
     }
-    if (temp_a1 < min) {
-        min = temp_a1;
-    } else if (max < temp_a1) {
-        max = temp_a1;
+    if (u2 < minU) {
+        minU = u2;
+    } else if (maxU < u2) {
+        maxU = u2;
     }
-    if (temp_a0 < min) {
-        min = temp_a0;
-    } else if (max < temp_a0) {
-        max = temp_a0;
+    if (u3 < minU) {
+        minU = u3;
+    } else if (maxU < u3) {
+        maxU = u3;
     }
-    if ((max >= 0x100) || (adjust = 0, min >= 0x40)) {
-        adjust = 0x40;
-    }
-    arg0->tpage     = (s16)(((u32)(adjust + 0x1C0) >> 6) | 0x110);
-    arg0->vertex0.u = (u8)(temp_t2 - adjust);
-    arg0->vertex1.u = (u8)(temp_t1 - adjust);
-    arg0->vertex2.u = (u8)(temp_a1 - adjust);
-    arg0->vertex3.u = (u8)(temp_a0 - adjust);
-    arg0->page3     = adjust;
-    arg0->page2     = adjust;
-    arg0->page1     = adjust;
-    arg0->page0     = adjust;
+    pageShift       = ((maxU >= ACTOR_403600_CAPTURE_PAGE_PIXELS) || (minU >= ACTOR_403600_CAPTURE_PAGE_SHIFT))
+                          ? ACTOR_403600_CAPTURE_PAGE_SHIFT
+                          : 0;
+    quad->tpage     = (s16)(((u32)(pageShift + ACTOR_403600_CAPTURE_X) >> ACTOR_403600_CAPTURE_PAGE_X_SHIFT) | getTPage(ACTOR_403600_CAPTURE_COLOR_DEPTH, GPU_BLEND_AVERAGE, 0, ACTOR_403600_CAPTURE_Y));
+    quad->vertex0.u = (u8)(u0 - pageShift);
+    quad->vertex1.u = (u8)(u1 - pageShift);
+    quad->vertex2.u = (u8)(u2 - pageShift);
+    quad->vertex3.u = (u8)(u3 - pageShift);
+    quad->page3     = pageShift;
+    quad->page2     = pageShift;
+    quad->page1     = pageShift;
+    quad->page0     = pageShift;
 }
 
 /* Places vertex `corner` of a grid quad on screen: the vertex is moved to
@@ -1148,7 +1306,7 @@ static void func_actor_403600_80132A18(Task* arg0, Actor403600Work* work, Actor4
             poly->vertex3.x = x + 0x10;
             poly->vertex3.y = y + 0x10;
             func_actor_403600_8013289C((s32)poly, 3, &scratch->field_14, fade);
-            func_actor_403600_801327A0(poly);
+            _actor403600UnifyGridQuadTexturePage(poly);
             if (fade < 0xC00) {
                 setlen(poly, 9);
                 poly->code = 0x2D;
@@ -1182,13 +1340,19 @@ static void func_actor_403600_80132A18(Task* arg0, Actor403600Work* work, Actor4
     SCRATCH_STACK_RELEASE_BYTES(sizeof(_Actor403600ScreenDistortionScratch));
 }
 
-/// Rotates `in` by `m` into `out`.
-static inline void _actor403600ApplyMatrixSv(MATRIX* m, SVECTOR* in, SVECTOR* out)
+/// Applies a Q12 matrix's 3x3 part to a short vector without adding translation.
+///
+/// Inputs are read only; xyz products shift right by 12 and saturate to signed
+/// 16 bits. `output` may alias `input`; its fourth halfword is unchanged.
+/// Requires the matrix's first 20 bytes readable and word aligned, and the input
+/// vector's full eight bytes readable and word aligned. The output needs writable,
+/// halfword-aligned xyz. Borrows the pointers until return and overwrites GTE rotation, V0, MAC, IR and FLAG state.
+static inline void _actor403600RotateSv(const MATRIX* rotationMatrix, const SVECTOR* input, SVECTOR* output)
 {
-    gte_SetRotMatrix(m);
-    gte_ldv0(in);
+    gte_SetRotMatrix(rotationMatrix);
+    gte_ldv0(input);
     gte_rtv0();
-    gte_stsv(out);
+    gte_stsv(output);
 }
 
 void func_actor_403600_80132E40(Task* arg0, Actor403600Work* work, Actor403600FxWork* fx)
@@ -1298,7 +1462,7 @@ void func_actor_403600_80132E40(Task* arg0, Actor403600Work* work, Actor403600Fx
             i = 0;
             do {
                 GfxCoord* segment = &actor->extra.tmd->coords[i + 9];
-                _actor403600ApplyMatrixSv(&gGfxViewCoord.workm, &scratch->dirs[i], &scratch->segment);
+                _actor403600RotateSv(&gGfxViewCoord.workm, &scratch->dirs[i], &scratch->segment);
                 TransposeMatrix(&center->workm, &scratch->rot);
                 _gfxRotateSv(&scratch->rot, &scratch->segment);
                 scratch->aux.vx     = 0;
@@ -1352,7 +1516,7 @@ void func_actor_403600_80132E40(Task* arg0, Actor403600Work* work, Actor403600Fx
                 fx->limbTips[i].vy = scratch->aux.vy + scratch->segment.vy;
                 fx->limbTips[i].vz = scratch->aux.vz + scratch->segment.vz;
 
-                _actor403600ApplyMatrixSv(&gGfxViewCoord.workm, &scratch->dirs[i], &scratch->segment);
+                _actor403600RotateSv(&gGfxViewCoord.workm, &scratch->dirs[i], &scratch->segment);
                 TransposeMatrix(&limb->workm, &scratch->rot);
                 _gfxRotateSv(&scratch->rot, &scratch->segment);
                 scratch->aux.vx = 0;
@@ -2298,964 +2462,878 @@ void func_actor_403600_80135C28(Task* arg0)
     }
 }
 
-u32* func_actor_403600_80136224(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2)
+u32* actor403600DrawStreamGt3BottomFade(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements)
 {
-    CVECTOR       col;
-    s16           upper_y;
-    s16           lower_y;
-    POLY_GT3*     poly;
-    s32           upper_delta;
-    s32           upper_calc;
-    s32           lower_delta;
+    CVECTOR       lightColor;
+    s16           fadeAnchorY;
+    s16           displaceAnchorY;
+    POLY_GT3*     packet;
+    s32           fadeAmount;
+    s32           fadeAnchorFromOrigin;
+    s32           yDisplacement;
     s32           fadeDistance;
-    s32           upper_limit;
-    s32*          opz;
-    u16*          rec;
-    u8*           verts;
-    u8*           norms;
-    DisplayState* ds;
+    s32           fadeStartY;
+    s32*          gteResult;
+    const u16*    offsets;
+    const u8*     vertexBytes;
+    const u8*     normalBytes;
+    DisplayState* display;
 
-    poly         = (POLY_GT3*)arg0->primWrite;
-    col          = D_actor_403600_80131E34;
-    fadeDistance = arg0->obj->shading.screenFadeDistance;
-    if (arg0->elemCount-- > 0) {
-        opz         = &arg0->gteResult;
-        upper_limit = 0x168 - fadeDistance;
-        ds          = &gDisplayState;
+    packet       = (POLY_GT3*)workspace->primWrite;
+    lightColor   = D_actor_403600_80131E34;
+    fadeDistance = workspace->obj->shading.screenFadeDistance;
+    if (workspace->elemCount-- > 0) {
+        gteResult  = &workspace->gteResult;
+        fadeStartY = ACTOR_403600_SCREEN_FADE_ORIGIN_Y - fadeDistance;
+        display    = &gDisplayState;
         do {
-            rec   = (u16*)arg2;
-            verts = (u8*)arg0->verts;
-            gte_ldv3(verts + (rec[0] & 0xFFF8), verts + (rec[1] & 0xFFF8),
-                     verts + (rec[2] & 0xFFF8));
+            offsets     = (const u16*)elements;
+            vertexBytes = (const u8*)workspace->verts;
+            gte_ldv3(vertexBytes + (offsets[0] & ACTOR_403600_GEOMETRY_OFFSET_MASK), vertexBytes + (offsets[1] & ACTOR_403600_GEOMETRY_OFFSET_MASK),
+                     vertexBytes + (offsets[2] & ACTOR_403600_GEOMETRY_OFFSET_MASK));
             gte_rtpt();
-            gte_stflg(&arg0->gteFlag);
-            if (arg0->gteFlag >= 0) {
+            gte_stflg(&workspace->gteFlag);
+            if (workspace->gteFlag >= 0) {
                 gte_nclip();
-                gte_stopz(opz);
-                if (arg0->gteResult > 0) {
-                    gte_stsxy3_gt3(poly);
+                gte_stopz(gteResult);
+                if (workspace->gteResult > 0) {
+                    gte_stsxy3_gt3(packet);
                     gte_avsz3();
-                    upper_delta = 0;
+                    // Fade from corner 0; every corner uses this same colour weight.
+                    fadeAmount = 0;
                     if (fadeDistance != 0) {
-                        upper_y = poly->y0;
-                        if (upper_limit < upper_y) {
-                            upper_calc  = upper_y - 0x168;
-                            upper_delta = (upper_calc + fadeDistance) * 2;
+                        fadeAnchorY = packet->y0;
+                        if (fadeStartY < fadeAnchorY) {
+                            fadeAnchorFromOrigin = fadeAnchorY - ACTOR_403600_SCREEN_FADE_ORIGIN_Y;
+                            fadeAmount           = (fadeAnchorFromOrigin + fadeDistance) * 2;
                         }
                     }
-                    if (upper_delta >= 0x81) {
-                        GPU_PRIMITIVE_COLOR_WORD(poly, 0) = 0;
-                        GPU_PRIMITIVE_COLOR_WORD(poly, 1) = 0;
-                        GPU_PRIMITIVE_COLOR_WORD(poly, 2) = 0;
+                    if (fadeAmount >= (ACTOR_403600_SCREEN_FADE_COLOR_ONE + 1)) {
+                        GPU_PRIMITIVE_COLOR_WORD(packet, 0) = 0;
+                        GPU_PRIMITIVE_COLOR_WORD(packet, 1) = 0;
+                        GPU_PRIMITIVE_COLOR_WORD(packet, 2) = 0;
                     } else {
-                        col.r = -0x80 - upper_delta;
-                        col.g = -0x80 - upper_delta;
-                        col.b = -0x80 - upper_delta;
-                        gte_ldrgb(&col);
-                        norms = (u8*)arg0->normals;
-                        gte_ldv3(norms + (rec[3] & 0xFFF8), norms + (rec[4] & 0xFFF8),
-                                 norms + (rec[5] & 0xFFF8));
-                        gte_ncct();
-                        gte_strgb3_gt3(poly);
+                        ACTOR_403600_LIGHT_GT3_SCREEN_FADE(workspace, lightColor, fadeAmount, offsets, packet, normalBytes);
                     }
+                    // Reflect corner 0 about the fade boundary by translating every Y.
                     if (fadeDistance != 0) {
-                        lower_y = poly->y0;
-                        if (upper_limit < lower_y) {
-                            lower_delta  = lower_y;
-                            lower_delta -= 0x168;
-                            lower_delta += fadeDistance;
-                            lower_delta *= 2;
-                            poly->y1    -= lower_delta;
-                            poly->y2    -= lower_delta;
-                            poly->y0    -= lower_delta;
+                        displaceAnchorY = packet->y0;
+                        if (fadeStartY < displaceAnchorY) {
+                            yDisplacement  = displaceAnchorY;
+                            yDisplacement -= ACTOR_403600_SCREEN_FADE_ORIGIN_Y;
+                            yDisplacement += fadeDistance;
+                            yDisplacement *= 2;
+                            packet->y1    -= yDisplacement;
+                            packet->y2    -= yDisplacement;
+                            packet->y0    -= yDisplacement;
                         }
                     }
-                    setlen(poly, 9);
-                    setcode(poly, 0x36);
-                    gte_stotz(opz);
-                    addPrim(&arg0->ot[((u32)arg0->gteResult << ds->otDepthShift) >> 4 & 0x3FF], poly);
+                    setPolyGT3(packet);
+                    setSemiTrans(packet, 1);
+                    gte_stotz(gteResult);
+                    addPrim(&workspace->ot[((u32)workspace->gteResult << display->otDepthShift) >> ACTOR_403600_OT_DEPTH_SHIFT & ACTOR_403600_OT_INDEX_MASK], packet);
                 }
             }
-            poly++;
-            arg2 += arg0->elemStride;
-        } while (arg0->elemCount-- > 0);
+            packet++;
+            elements += workspace->elemStride;
+        } while (workspace->elemCount-- > 0);
     }
-    arg0->primWrite = (u8*)poly;
-    return arg2;
+    workspace->primWrite = (u8*)packet;
+    return elements;
 }
 
-u32* func_actor_403600_80136500(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2)
+u32* actor403600DrawStreamGt3PreXformBottomFade(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements)
 {
-    POLY_GT3*     poly;
-    s32*          opz;
-    DisplayState* ds;
-    u32           clip_mask;
-    u16*          rec;
+    POLY_GT3*     packet;
+    s32*          gteResult;
+    DisplayState* display;
+    u32           invalidDepthMask;
+    const u16*    offsets;
     s32           fadeDistance;
-    s32           upper_limit;
-    s32           upper_delta;
-    s32           upper_calc;
-    s32           lower_delta;
-    s32           sz;
-    s32           idx;
-    s32*          sz_table;
-    s16           upper_y;
-    s16           lower_y;
+    s32           fadeStartY;
+    s32           fadeAmount;
+    s32           fadeAnchorFromOrigin;
+    s32           yDisplacement;
+    s32           vertexDepth;
+    s32           depthOffsetBytes;
+    s32*          depths;
+    s16           fadeAnchorY;
+    s16           displaceAnchorY;
 
-    poly         = (POLY_GT3*)arg0->preXformWrite;
-    fadeDistance = arg0->obj->shading.screenFadeDistance;
-    if (arg0->elemCount-- > 0) {
-        opz         = &arg0->gteResult;
-        clip_mask   = TMD_VERTEX_DEPTH_INVALID;
-        upper_limit = 0x168 - fadeDistance;
-        ds          = &gDisplayState;
+    packet       = (POLY_GT3*)workspace->preXformWrite;
+    fadeDistance = workspace->obj->shading.screenFadeDistance;
+    if (workspace->elemCount-- > 0) {
+        gteResult        = &workspace->gteResult;
+        invalidDepthMask = TMD_VERTEX_DEPTH_INVALID;
+        fadeStartY       = ACTOR_403600_SCREEN_FADE_ORIGIN_Y - fadeDistance;
+        display          = &gDisplayState;
         do {
-            rec = (u16*)arg2;
-            gte_ldSXYP(GPU_PRIMITIVE_XY_WORD(poly, 0));
-            gte_ldSXYP(GPU_PRIMITIVE_XY_WORD(poly, 1));
-            gte_ldSXYP(GPU_PRIMITIVE_XY_WORD(poly, 2));
+            offsets = (const u16*)elements;
+            gte_ldSXYP(GPU_PRIMITIVE_XY_WORD(packet, 0));
+            gte_ldSXYP(GPU_PRIMITIVE_XY_WORD(packet, 1));
+            gte_ldSXYP(GPU_PRIMITIVE_XY_WORD(packet, 2));
             gte_nclip();
-            gte_stopz(opz);
-            if (arg0->gteResult > 0) {
-                sz_table = arg0->szTable;
-                idx      = rec[0] & 0xFFFC;
-                sz       = sz_table[(u32)idx / sizeof(*sz_table)];
-                if (!(sz & clip_mask)) {
-                    gte_ldSZ1(sz);
-                    idx = rec[1] & 0xFFFC;
-                    sz  = sz_table[(u32)idx / sizeof(*sz_table)];
-                    if (!(sz & clip_mask)) {
-                        gte_ldSZ2(sz);
-                        idx = rec[2] & 0xFFFC;
-                        sz  = sz_table[(u32)idx / sizeof(*sz_table)];
-                        if (!(sz & clip_mask)) {
-                            gte_ldSZ3(sz);
+            gte_stopz(gteResult);
+            if (workspace->gteResult > 0) {
+                depths           = workspace->szTable;
+                depthOffsetBytes = offsets[0] & ACTOR_403600_DEPTH_OFFSET_MASK;
+                vertexDepth      = depths[(u32)depthOffsetBytes / sizeof(*depths)];
+                if (!(vertexDepth & invalidDepthMask)) {
+                    gte_ldSZ1(vertexDepth);
+                    depthOffsetBytes = offsets[1] & ACTOR_403600_DEPTH_OFFSET_MASK;
+                    vertexDepth      = depths[(u32)depthOffsetBytes / sizeof(*depths)];
+                    if (!(vertexDepth & invalidDepthMask)) {
+                        gte_ldSZ2(vertexDepth);
+                        depthOffsetBytes = offsets[2] & ACTOR_403600_DEPTH_OFFSET_MASK;
+                        vertexDepth      = depths[(u32)depthOffsetBytes / sizeof(*depths)];
+                        if (!(vertexDepth & invalidDepthMask)) {
+                            gte_ldSZ3(vertexDepth);
                             gte_avsz3();
-                            upper_delta = 0;
+                            // Fade from corner 0; every corner uses this same colour weight.
+                            fadeAmount = 0;
                             if (fadeDistance != 0) {
-                                upper_y = poly->y0;
-                                if (upper_limit < upper_y) {
-                                    upper_calc  = upper_y - 0x168;
-                                    upper_delta = (upper_calc + fadeDistance) * 2;
+                                fadeAnchorY = packet->y0;
+                                if (fadeStartY < fadeAnchorY) {
+                                    fadeAnchorFromOrigin = fadeAnchorY - ACTOR_403600_SCREEN_FADE_ORIGIN_Y;
+                                    fadeAmount           = (fadeAnchorFromOrigin + fadeDistance) * 2;
                                 }
-                                if (upper_delta >= 0x81) {
-                                    GPU_PRIMITIVE_COLOR_WORD(poly, 0) = 0;
-                                    GPU_PRIMITIVE_COLOR_WORD(poly, 1) = 0;
-                                    GPU_PRIMITIVE_COLOR_WORD(poly, 2) = 0;
+                                if (fadeAmount >= (ACTOR_403600_SCREEN_FADE_COLOR_ONE + 1)) {
+                                    GPU_PRIMITIVE_COLOR_WORD(packet, 0) = 0;
+                                    GPU_PRIMITIVE_COLOR_WORD(packet, 1) = 0;
+                                    GPU_PRIMITIVE_COLOR_WORD(packet, 2) = 0;
                                 } else {
-                                    s32 faded;
-
-                                    upper_delta = 0x80 - upper_delta;
-                                    faded       = (poly->r0 * upper_delta) >> 7;
-                                    poly->r0    = faded;
-                                    faded       = (poly->g0 * upper_delta) >> 7;
-                                    poly->g0    = faded;
-                                    faded       = (poly->b0 * upper_delta) >> 7;
-                                    poly->b0    = faded;
-                                    faded       = (poly->r1 * upper_delta) >> 7;
-                                    poly->r1    = faded;
-                                    faded       = (poly->g1 * upper_delta) >> 7;
-                                    poly->g1    = faded;
-                                    faded       = (poly->b1 * upper_delta) >> 7;
-                                    poly->b1    = faded;
-                                    faded       = (poly->r2 * upper_delta) >> 7;
-                                    poly->r2    = faded;
-                                    faded       = (poly->g2 * upper_delta) >> 7;
-                                    poly->g2    = faded;
-                                    faded       = (poly->b2 * upper_delta) >> 7;
-                                    poly->b2    = faded;
+                                    ACTOR_403600_FADE_PRE_XFORM_GT3_COLORS(packet, fadeAmount);
                                 }
                             }
                             if (fadeDistance != 0) {
-                                lower_y = poly->y0;
-                                if (upper_limit < lower_y) {
-                                    lower_delta  = lower_y;
-                                    lower_delta -= 0x168;
-                                    lower_delta += fadeDistance;
-                                    lower_delta *= 2;
-                                    poly->y1    -= lower_delta;
-                                    poly->y2    -= lower_delta;
-                                    poly->y0    -= lower_delta;
+                                displaceAnchorY = packet->y0;
+                                if (fadeStartY < displaceAnchorY) {
+                                    yDisplacement  = displaceAnchorY;
+                                    yDisplacement -= ACTOR_403600_SCREEN_FADE_ORIGIN_Y;
+                                    yDisplacement += fadeDistance;
+                                    yDisplacement *= 2;
+                                    packet->y1    -= yDisplacement;
+                                    packet->y2    -= yDisplacement;
+                                    packet->y0    -= yDisplacement;
                                 }
                             }
-                            setlen(poly, 9);
-                            setcode(poly, 0x36);
-                            gte_stotz(opz);
-                            addPrim(&arg0->ot[((u32)arg0->gteResult << ds->otDepthShift) >> 4 & 0x3FF], poly);
+                            setPolyGT3(packet);
+                            setSemiTrans(packet, 1);
+                            gte_stotz(gteResult);
+                            addPrim(&workspace->ot[((u32)workspace->gteResult << display->otDepthShift) >> ACTOR_403600_OT_DEPTH_SHIFT & ACTOR_403600_OT_INDEX_MASK], packet);
                         }
                     }
                 }
             }
-            poly++;
-            arg2 += arg0->elemStride;
-        } while (arg0->elemCount-- > 0);
+            packet++;
+            elements += workspace->elemStride;
+        } while (workspace->elemCount-- > 0);
     }
-    arg0->preXformWrite = (u8*)poly;
-    return arg2;
+    workspace->preXformWrite = (u8*)packet;
+    return elements;
 }
 
-u32* func_actor_403600_8013685C(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2)
+u32* actor403600DrawStreamGt4BottomFade(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements)
 {
-    CVECTOR       col;
-    s16           upper_y;
-    s16           lower_y;
-    POLY_GT4*     poly;
-    s32           upper_delta;
-    s32           upper_calc;
-    s32           lower_delta;
+    CVECTOR       lightColor;
+    s16           fadeAnchorY;
+    s16           displaceAnchorY;
+    POLY_GT4*     packet;
+    s32           fadeAmount;
+    s32           fadeAnchorFromOrigin;
+    s32           yDisplacement;
     s32           fadeDistance;
-    s32           upper_limit;
-    s32*          opz;
-    s32*          flg;
-    u32           clip_mask;
-    u16*          rec;
-    u8*           verts;
-    u8*           norms;
-    DisplayState* ds;
+    s32           fadeStartY;
+    s32*          gteResult;
+    s32*          gteFlag;
+    u32           gteErrorMask;
+    const u16*    offsets;
+    const u8*     vertexBytes;
+    const u8*     normalBytes;
+    DisplayState* display;
 
-    poly         = (POLY_GT4*)arg0->primWrite;
-    col          = D_actor_403600_80131E34;
-    fadeDistance = arg0->obj->shading.screenFadeDistance;
-    gte_ldrgb(&col);
-    if (arg0->elemCount-- > 0) {
-        flg         = &arg0->gteFlag;
-        clip_mask   = TMD_GTE_ERROR_FLAG;
-        opz         = &arg0->gteResult;
-        upper_limit = 0x168 - fadeDistance;
-        ds          = &gDisplayState;
+    packet       = (POLY_GT4*)workspace->primWrite;
+    lightColor   = D_actor_403600_80131E34;
+    fadeDistance = workspace->obj->shading.screenFadeDistance;
+    gte_ldrgb(&lightColor);
+    if (workspace->elemCount-- > 0) {
+        gteFlag      = &workspace->gteFlag;
+        gteErrorMask = TMD_GTE_ERROR_FLAG;
+        gteResult    = &workspace->gteResult;
+        fadeStartY   = ACTOR_403600_SCREEN_FADE_ORIGIN_Y - fadeDistance;
+        display      = &gDisplayState;
         do {
-            rec   = (u16*)arg2;
-            verts = (u8*)arg0->verts;
-            gte_ldv3(verts + (rec[0] & 0xFFF8), verts + (rec[1] & 0xFFF8),
-                     verts + (rec[2] & 0xFFF8));
+            offsets     = (const u16*)elements;
+            vertexBytes = (const u8*)workspace->verts;
+            gte_ldv3(vertexBytes + (offsets[0] & ACTOR_403600_GEOMETRY_OFFSET_MASK), vertexBytes + (offsets[1] & ACTOR_403600_GEOMETRY_OFFSET_MASK),
+                     vertexBytes + (offsets[2] & ACTOR_403600_GEOMETRY_OFFSET_MASK));
             gte_rtpt();
-            gte_stflg(flg);
-            if (!(arg0->gteFlag & clip_mask)) {
+            gte_stflg(gteFlag);
+            if (!(workspace->gteFlag & gteErrorMask)) {
                 gte_nclip();
-                gte_stopz(opz);
-                gte_stsxy3_gt4(poly);
-                gte_ldv0((u8*)arg0->verts + (rec[3] & 0xFFF8));
+                gte_stopz(gteResult);
+                gte_stsxy3_gt4(packet);
+                gte_ldv0((const u8*)workspace->verts + (offsets[3] & ACTOR_403600_GEOMETRY_OFFSET_MASK));
                 gte_rtps();
-                gte_stflg(flg);
-                if (!(arg0->gteFlag & clip_mask)) {
-                    if (arg0->gteResult > 0) {
+                gte_stflg(gteFlag);
+                if (!(workspace->gteFlag & gteErrorMask)) {
+                    if (workspace->gteResult > 0) {
                         goto draw;
                     }
                     gte_nclip();
-                    gte_stopz(opz);
-                    if (arg0->gteResult < 0) {
+                    gte_stopz(gteResult);
+                    if (workspace->gteResult < 0) {
                     draw:
-                        gte_stsxy2(&poly->x3);
+                        gte_stsxy2(&packet->x3);
                         gte_avsz4();
-                        upper_delta = 0;
+                        // Fade from corner 0; every corner uses this same colour weight.
+                        fadeAmount = 0;
                         if (fadeDistance != 0) {
-                            upper_y = poly->y0;
-                            if (upper_limit < upper_y) {
-                                upper_calc  = upper_y - 0x168;
-                                upper_delta = (upper_calc + fadeDistance) * 2;
+                            fadeAnchorY = packet->y0;
+                            if (fadeStartY < fadeAnchorY) {
+                                fadeAnchorFromOrigin = fadeAnchorY - ACTOR_403600_SCREEN_FADE_ORIGIN_Y;
+                                fadeAmount           = (fadeAnchorFromOrigin + fadeDistance) * 2;
                             }
                         }
-                        if (upper_delta >= 0x81) {
-                            GPU_PRIMITIVE_COLOR_WORD(poly, 0) = 0;
-                            GPU_PRIMITIVE_COLOR_WORD(poly, 1) = 0;
-                            GPU_PRIMITIVE_COLOR_WORD(poly, 2) = 0;
-                            GPU_PRIMITIVE_COLOR_WORD(poly, 3) = 0;
+                        if (fadeAmount >= (ACTOR_403600_SCREEN_FADE_COLOR_ONE + 1)) {
+                            GPU_PRIMITIVE_COLOR_WORD(packet, 0) = 0;
+                            GPU_PRIMITIVE_COLOR_WORD(packet, 1) = 0;
+                            GPU_PRIMITIVE_COLOR_WORD(packet, 2) = 0;
+                            GPU_PRIMITIVE_COLOR_WORD(packet, 3) = 0;
                         } else {
-                            col.r = -0x80 - upper_delta;
-                            col.g = -0x80 - upper_delta;
-                            col.b = -0x80 - upper_delta;
-                            gte_ldrgb(&col);
-                            norms = (u8*)arg0->normals;
-                            gte_ldv3(norms + (rec[4] & 0xFFF8), norms + (rec[5] & 0xFFF8),
-                                     norms + (rec[6] & 0xFFF8));
-                            gte_ncct();
-                            gte_strgb3_gt4(poly);
-                            gte_ldv0((u8*)arg0->normals + (rec[7] & 0xFFF8));
-                            gte_nccs();
-                            gte_strgb(&poly->r3);
+                            ACTOR_403600_LIGHT_GT4_SCREEN_FADE(workspace, lightColor, fadeAmount, offsets, packet, normalBytes);
                         }
                         if (fadeDistance != 0) {
-                            lower_y = poly->y0;
-                            if (upper_limit < lower_y) {
-                                lower_delta  = lower_y;
-                                lower_delta -= 0x168;
-                                lower_delta += fadeDistance;
-                                lower_delta *= 2;
-                                poly->y3    -= lower_delta;
-                                poly->y2    -= lower_delta;
-                                poly->y1    -= lower_delta;
-                                poly->y0    -= lower_delta;
+                            displaceAnchorY = packet->y0;
+                            if (fadeStartY < displaceAnchorY) {
+                                yDisplacement  = displaceAnchorY;
+                                yDisplacement -= ACTOR_403600_SCREEN_FADE_ORIGIN_Y;
+                                yDisplacement += fadeDistance;
+                                yDisplacement *= 2;
+                                packet->y3    -= yDisplacement;
+                                packet->y2    -= yDisplacement;
+                                packet->y1    -= yDisplacement;
+                                packet->y0    -= yDisplacement;
                             }
                         }
-                        setlen(poly, 12);
-                        setcode(poly, 0x3E);
-                        gte_stotz(opz);
-                        addPrim(&arg0->ot[((u32)arg0->gteResult << ds->otDepthShift) >> 4 & 0x3FF], poly);
+                        setPolyGT4(packet);
+                        setSemiTrans(packet, 1);
+                        gte_stotz(gteResult);
+                        addPrim(&workspace->ot[((u32)workspace->gteResult << display->otDepthShift) >> ACTOR_403600_OT_DEPTH_SHIFT & ACTOR_403600_OT_INDEX_MASK], packet);
                     }
                 }
             }
-            poly++;
-            arg2 += arg0->elemStride;
-        } while (arg0->elemCount-- > 0);
+            packet++;
+            elements += workspace->elemStride;
+        } while (workspace->elemCount-- > 0);
     }
-    arg0->primWrite = (u8*)poly;
-    return arg2;
+    workspace->primWrite = (u8*)packet;
+    return elements;
 }
 
-u32* func_actor_403600_80136C00(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2)
+u32* actor403600DrawStreamGt4PreXformBottomFade(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements)
 {
-    POLY_GT4*     poly;
-    s32*          opz;
-    DisplayState* ds;
-    u32           clip_mask;
-    u16*          rec;
+    POLY_GT4*     packet;
+    s32*          gteResult;
+    DisplayState* display;
+    u32           invalidDepthMask;
+    const u16*    offsets;
     s32           fadeDistance;
-    s32           upper_limit;
-    s32           upper_delta;
-    s32           upper_calc;
-    s32           lower_delta;
-    s32           sz;
-    s32           idx;
-    s32*          sz_table;
-    s16           upper_y;
-    s16           lower_y;
+    s32           fadeStartY;
+    s32           fadeAmount;
+    s32           fadeAnchorFromOrigin;
+    s32           yDisplacement;
+    s32           vertexDepth;
+    s32           depthOffsetBytes;
+    s32*          depths;
+    s16           fadeAnchorY;
+    s16           displaceAnchorY;
 
-    poly         = (POLY_GT4*)arg0->preXformWrite;
-    fadeDistance = arg0->obj->shading.screenFadeDistance;
-    if (arg0->elemCount-- > 0) {
-        opz         = &arg0->gteResult;
-        clip_mask   = TMD_VERTEX_DEPTH_INVALID;
-        upper_limit = 0x168 - fadeDistance;
-        ds          = &gDisplayState;
+    packet       = (POLY_GT4*)workspace->preXformWrite;
+    fadeDistance = workspace->obj->shading.screenFadeDistance;
+    if (workspace->elemCount-- > 0) {
+        gteResult        = &workspace->gteResult;
+        invalidDepthMask = TMD_VERTEX_DEPTH_INVALID;
+        fadeStartY       = ACTOR_403600_SCREEN_FADE_ORIGIN_Y - fadeDistance;
+        display          = &gDisplayState;
         do {
-            rec = (u16*)arg2;
-            gte_ldSXYP(GPU_PRIMITIVE_XY_WORD(poly, 0));
-            gte_ldSXYP(GPU_PRIMITIVE_XY_WORD(poly, 1));
-            gte_ldSXYP(GPU_PRIMITIVE_XY_WORD(poly, 2));
+            offsets = (const u16*)elements;
+            gte_ldSXYP(GPU_PRIMITIVE_XY_WORD(packet, 0));
+            gte_ldSXYP(GPU_PRIMITIVE_XY_WORD(packet, 1));
+            gte_ldSXYP(GPU_PRIMITIVE_XY_WORD(packet, 2));
             gte_nclip();
-            gte_stopz(opz);
-            if (arg0->gteResult > 0) {
+            gte_stopz(gteResult);
+            if (workspace->gteResult > 0) {
                 goto draw;
             }
-            gte_ldSXYP(GPU_PRIMITIVE_XY_WORD(poly, 3));
+            gte_ldSXYP(GPU_PRIMITIVE_XY_WORD(packet, 3));
             gte_nclip();
-            gte_stopz(opz);
-            if (arg0->gteResult < 0) {
+            gte_stopz(gteResult);
+            if (workspace->gteResult < 0) {
             draw:
-                sz_table = arg0->szTable;
-                idx      = rec[0] & 0xFFFC;
-                sz       = sz_table[(u32)idx / sizeof(*sz_table)];
-                if (!(sz & clip_mask)) {
-                    gte_ldSZ0(sz);
-                    idx = rec[1] & 0xFFFC;
-                    sz  = sz_table[(u32)idx / sizeof(*sz_table)];
-                    if (!(sz & clip_mask)) {
-                        gte_ldSZ1(sz);
-                        idx = rec[2] & 0xFFFC;
-                        sz  = sz_table[(u32)idx / sizeof(*sz_table)];
-                        if (!(sz & clip_mask)) {
-                            gte_ldSZ2(sz);
-                            idx = rec[3] & 0xFFFC;
-                            sz  = sz_table[(u32)idx / sizeof(*sz_table)];
-                            if (!(sz & clip_mask)) {
-                                gte_ldSZ3(sz);
+                depths           = workspace->szTable;
+                depthOffsetBytes = offsets[0] & ACTOR_403600_DEPTH_OFFSET_MASK;
+                vertexDepth      = depths[(u32)depthOffsetBytes / sizeof(*depths)];
+                if (!(vertexDepth & invalidDepthMask)) {
+                    gte_ldSZ0(vertexDepth);
+                    depthOffsetBytes = offsets[1] & ACTOR_403600_DEPTH_OFFSET_MASK;
+                    vertexDepth      = depths[(u32)depthOffsetBytes / sizeof(*depths)];
+                    if (!(vertexDepth & invalidDepthMask)) {
+                        gte_ldSZ1(vertexDepth);
+                        depthOffsetBytes = offsets[2] & ACTOR_403600_DEPTH_OFFSET_MASK;
+                        vertexDepth      = depths[(u32)depthOffsetBytes / sizeof(*depths)];
+                        if (!(vertexDepth & invalidDepthMask)) {
+                            gte_ldSZ2(vertexDepth);
+                            depthOffsetBytes = offsets[3] & ACTOR_403600_DEPTH_OFFSET_MASK;
+                            vertexDepth      = depths[(u32)depthOffsetBytes / sizeof(*depths)];
+                            if (!(vertexDepth & invalidDepthMask)) {
+                                gte_ldSZ3(vertexDepth);
                                 gte_avsz4();
-                                upper_delta = 0;
+                                // Fade from corner 0; every corner uses this same colour weight.
+                                fadeAmount = 0;
                                 if (fadeDistance != 0) {
-                                    upper_y = poly->y0;
-                                    if (upper_limit < upper_y) {
-                                        upper_calc  = upper_y - 0x168;
-                                        upper_delta = (upper_calc + fadeDistance) * 2;
+                                    fadeAnchorY = packet->y0;
+                                    if (fadeStartY < fadeAnchorY) {
+                                        fadeAnchorFromOrigin = fadeAnchorY - ACTOR_403600_SCREEN_FADE_ORIGIN_Y;
+                                        fadeAmount           = (fadeAnchorFromOrigin + fadeDistance) * 2;
                                     }
-                                    if (upper_delta >= 0x81) {
-                                        GPU_PRIMITIVE_COLOR_WORD(poly, 0) = 0;
-                                        GPU_PRIMITIVE_COLOR_WORD(poly, 1) = 0;
-                                        GPU_PRIMITIVE_COLOR_WORD(poly, 2) = 0;
-                                        GPU_PRIMITIVE_COLOR_WORD(poly, 3) = 0;
+                                    if (fadeAmount >= (ACTOR_403600_SCREEN_FADE_COLOR_ONE + 1)) {
+                                        GPU_PRIMITIVE_COLOR_WORD(packet, 0) = 0;
+                                        GPU_PRIMITIVE_COLOR_WORD(packet, 1) = 0;
+                                        GPU_PRIMITIVE_COLOR_WORD(packet, 2) = 0;
+                                        GPU_PRIMITIVE_COLOR_WORD(packet, 3) = 0;
                                     } else {
-                                        s32 faded;
-
-                                        // Vertex 1's colour is faded into vertex 3 and then faded
-                                        // again with it, while vertex 1 keeps its own colour; the
-                                        // original writes it that way.
-                                        upper_delta = 0x80 - upper_delta;
-                                        faded       = (poly->r0 * upper_delta) >> 7;
-                                        poly->r0    = faded;
-                                        faded       = (poly->g0 * upper_delta) >> 7;
-                                        poly->g0    = faded;
-                                        faded       = (poly->b0 * upper_delta) >> 7;
-                                        poly->b0    = faded;
-                                        faded       = (poly->r1 * upper_delta) >> 7;
-                                        poly->r3    = faded;
-                                        faded       = (poly->g1 * upper_delta) >> 7;
-                                        poly->g3    = faded;
-                                        faded       = (poly->b1 * upper_delta) >> 7;
-                                        poly->b3    = faded;
-                                        faded       = (poly->r2 * upper_delta) >> 7;
-                                        poly->r2    = faded;
-                                        faded       = (poly->g2 * upper_delta) >> 7;
-                                        poly->g2    = faded;
-                                        faded       = (poly->b2 * upper_delta) >> 7;
-                                        poly->b2    = faded;
-                                        faded       = (poly->r3 * upper_delta) >> 7;
-                                        poly->r3    = faded;
-                                        faded       = (poly->g3 * upper_delta) >> 7;
-                                        poly->g3    = faded;
-                                        faded       = (poly->b3 * upper_delta) >> 7;
-                                        poly->b3    = faded;
+                                        ACTOR_403600_FADE_PRE_XFORM_GT4_COLORS(packet, fadeAmount);
                                     }
                                 }
                                 if (fadeDistance != 0) {
-                                    lower_y = poly->y0;
-                                    if (upper_limit < lower_y) {
-                                        lower_delta  = lower_y;
-                                        lower_delta -= 0x168;
-                                        lower_delta += fadeDistance;
-                                        lower_delta *= 2;
-                                        poly->y3    -= lower_delta;
-                                        poly->y2    -= lower_delta;
-                                        poly->y1    -= lower_delta;
-                                        poly->y0    -= lower_delta;
+                                    displaceAnchorY = packet->y0;
+                                    if (fadeStartY < displaceAnchorY) {
+                                        yDisplacement  = displaceAnchorY;
+                                        yDisplacement -= ACTOR_403600_SCREEN_FADE_ORIGIN_Y;
+                                        yDisplacement += fadeDistance;
+                                        yDisplacement *= 2;
+                                        packet->y3    -= yDisplacement;
+                                        packet->y2    -= yDisplacement;
+                                        packet->y1    -= yDisplacement;
+                                        packet->y0    -= yDisplacement;
                                     }
                                 }
-                                setlen(poly, 12);
-                                setcode(poly, 0x3E);
-                                gte_stotz(opz);
-                                gte_stotz(opz);
-                                addPrim(&arg0->ot[((u32)arg0->gteResult << ds->otDepthShift) >> 4 & 0x3FF], poly);
+                                setPolyGT4(packet);
+                                setSemiTrans(packet, 1);
+                                gte_stotz(gteResult);
+                                gte_stotz(gteResult);
+                                addPrim(&workspace->ot[((u32)workspace->gteResult << display->otDepthShift) >> ACTOR_403600_OT_DEPTH_SHIFT & ACTOR_403600_OT_INDEX_MASK], packet);
                             }
                         }
                     }
                 }
             }
-            poly++;
-            arg2 += arg0->elemStride;
-        } while (arg0->elemCount-- > 0);
+            packet++;
+            elements += workspace->elemStride;
+        } while (workspace->elemCount-- > 0);
     }
-    arg0->preXformWrite = (u8*)poly;
-    return arg2;
+    workspace->preXformWrite = (u8*)packet;
+    return elements;
 }
 
-u32* func_actor_403600_8013700C(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2)
+u32* actor403600DrawStreamGt3TopDisplace(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements)
 {
-    CVECTOR       col;
-    s16           upper_y;
-    s16           lower_y;
-    POLY_GT3*     poly;
-    s32           upper_delta;
-    s32           upper_calc;
-    s32           lower_delta;
+    CVECTOR       lightColor;
+    s16           fadeAnchorY;
+    s16           displaceAnchorY;
+    POLY_GT3*     packet;
+    s32           fadeAmount;
+    s32           fadeAnchorFromOrigin;
+    s32           yDisplacement;
     s32           fadeDistance;
-    s32           upper_limit;
-    s32*          opz;
-    u16*          rec;
-    u8*           verts;
-    u8*           norms;
-    DisplayState* ds;
+    s32           fadeStartY;
+    s32*          gteResult;
+    const u16*    offsets;
+    const u8*     vertexBytes;
+    const u8*     normalBytes;
+    DisplayState* display;
 
-    poly         = (POLY_GT3*)arg0->primWrite;
-    col          = D_actor_403600_80131E34;
-    fadeDistance = arg0->obj->shading.screenFadeDistance;
-    if (arg0->elemCount-- > 0) {
-        opz         = &arg0->gteResult;
-        upper_limit = 0x168 - fadeDistance;
-        ds          = &gDisplayState;
+    packet       = (POLY_GT3*)workspace->primWrite;
+    lightColor   = D_actor_403600_80131E34;
+    fadeDistance = workspace->obj->shading.screenFadeDistance;
+    if (workspace->elemCount-- > 0) {
+        gteResult  = &workspace->gteResult;
+        fadeStartY = ACTOR_403600_SCREEN_FADE_ORIGIN_Y - fadeDistance;
+        display    = &gDisplayState;
         do {
-            rec   = (u16*)arg2;
-            verts = (u8*)arg0->verts;
-            gte_ldv3(verts + (rec[0] & 0xFFF8), verts + (rec[1] & 0xFFF8),
-                     verts + (rec[2] & 0xFFF8));
+            offsets     = (const u16*)elements;
+            vertexBytes = (const u8*)workspace->verts;
+            gte_ldv3(vertexBytes + (offsets[0] & ACTOR_403600_GEOMETRY_OFFSET_MASK), vertexBytes + (offsets[1] & ACTOR_403600_GEOMETRY_OFFSET_MASK),
+                     vertexBytes + (offsets[2] & ACTOR_403600_GEOMETRY_OFFSET_MASK));
             gte_rtpt();
-            gte_stflg(&arg0->gteFlag);
-            if (arg0->gteFlag >= 0) {
+            gte_stflg(&workspace->gteFlag);
+            if (workspace->gteFlag >= 0) {
                 gte_nclip();
-                gte_stopz(opz);
-                if (arg0->gteResult > 0) {
-                    gte_stsxy3_gt3(poly);
+                gte_stopz(gteResult);
+                if (workspace->gteResult > 0) {
+                    gte_stsxy3_gt3(packet);
                     gte_avsz3();
-                    upper_delta = 0;
+                    // Fade from corner 0; every corner uses this same colour weight.
+                    fadeAmount = 0;
                     if (fadeDistance != 0) {
-                        upper_y = poly->y0;
-                        if (upper_limit < upper_y) {
-                            upper_calc  = upper_y - 0x168;
-                            upper_delta = (upper_calc + fadeDistance) * 2;
+                        fadeAnchorY = packet->y0;
+                        if (fadeStartY < fadeAnchorY) {
+                            fadeAnchorFromOrigin = fadeAnchorY - ACTOR_403600_SCREEN_FADE_ORIGIN_Y;
+                            fadeAmount           = (fadeAnchorFromOrigin + fadeDistance) * 2;
                         }
                     }
-                    if (upper_delta >= 0x81) {
-                        GPU_PRIMITIVE_COLOR_WORD(poly, 0) = 0;
-                        GPU_PRIMITIVE_COLOR_WORD(poly, 1) = 0;
-                        GPU_PRIMITIVE_COLOR_WORD(poly, 2) = 0;
+                    if (fadeAmount >= (ACTOR_403600_SCREEN_FADE_COLOR_ONE + 1)) {
+                        GPU_PRIMITIVE_COLOR_WORD(packet, 0) = 0;
+                        GPU_PRIMITIVE_COLOR_WORD(packet, 1) = 0;
+                        GPU_PRIMITIVE_COLOR_WORD(packet, 2) = 0;
                     } else {
-                        col.r = -0x80 - upper_delta;
-                        col.g = -0x80 - upper_delta;
-                        col.b = -0x80 - upper_delta;
-                        gte_ldrgb(&col);
-                        norms = (u8*)arg0->normals;
-                        gte_ldv3(norms + (rec[3] & 0xFFF8), norms + (rec[4] & 0xFFF8),
-                                 norms + (rec[5] & 0xFFF8));
-                        gte_ncct();
-                        gte_strgb3_gt3(poly);
+                        ACTOR_403600_LIGHT_GT3_SCREEN_FADE(workspace, lightColor, fadeAmount, offsets, packet, normalBytes);
                     }
-                    setlen(poly, 9);
-                    setcode(poly, 0x34);
+                    setPolyGT3(packet);
+                    // Translate the whole packet upward beyond the top threshold.
                     if (fadeDistance != 0) {
-                        lower_y = poly->y0;
-                        if (lower_y < (fadeDistance - 0x168)) {
-                            lower_delta  = lower_y;
-                            lower_delta += 0x168;
-                            lower_delta -= fadeDistance;
-                            lower_delta *= 2;
-                            poly->y1    += lower_delta;
-                            poly->y2    += lower_delta;
-                            poly->y0    += lower_delta;
-                            poly->code  |= 2;
+                        displaceAnchorY = packet->y0;
+                        if (displaceAnchorY < (fadeDistance - ACTOR_403600_SCREEN_FADE_ORIGIN_Y)) {
+                            yDisplacement  = displaceAnchorY;
+                            yDisplacement += ACTOR_403600_SCREEN_FADE_ORIGIN_Y;
+                            yDisplacement -= fadeDistance;
+                            yDisplacement *= 2;
+                            packet->y1    += yDisplacement;
+                            packet->y2    += yDisplacement;
+                            packet->y0    += yDisplacement;
+                            setSemiTrans(packet, 1);
                         }
                     }
-                    poly->code &= 0xFE;
-                    gte_stotz(opz);
-                    addPrim(&arg0->ot[((u32)arg0->gteResult << ds->otDepthShift) >> 4 & 0x3FF], poly);
+                    setShadeTex(packet, 0);
+                    gte_stotz(gteResult);
+                    addPrim(&workspace->ot[((u32)workspace->gteResult << display->otDepthShift) >> ACTOR_403600_OT_DEPTH_SHIFT & ACTOR_403600_OT_INDEX_MASK], packet);
                 }
             }
-            poly++;
-            arg2 += arg0->elemStride;
-        } while (arg0->elemCount-- > 0);
+            packet++;
+            elements += workspace->elemStride;
+        } while (workspace->elemCount-- > 0);
     }
-    arg0->primWrite = (u8*)poly;
-    return arg2;
+    workspace->primWrite = (u8*)packet;
+    return elements;
 }
 
-u32* func_actor_403600_80137300(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2)
+u32* actor403600DrawStreamGt3TopDisplaceSemiTrans(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements)
 {
-    CVECTOR       col;
-    s16           upper_y;
-    s16           lower_y;
-    POLY_GT3*     poly;
-    s32           upper_delta;
-    s32           upper_calc;
-    s32           lower_delta;
+    CVECTOR       lightColor;
+    s16           fadeAnchorY;
+    s16           displaceAnchorY;
+    POLY_GT3*     packet;
+    s32           fadeAmount;
+    s32           fadeAnchorFromOrigin;
+    s32           yDisplacement;
     s32           fadeDistance;
-    s32           upper_limit;
-    s32*          opz;
-    u16*          rec;
-    u8*           verts;
-    u8*           norms;
-    DisplayState* ds;
+    s32           fadeStartY;
+    s32*          gteResult;
+    const u16*    offsets;
+    const u8*     vertexBytes;
+    const u8*     normalBytes;
+    DisplayState* display;
 
-    poly         = (POLY_GT3*)arg0->primWrite;
-    col          = D_actor_403600_80131E34;
-    fadeDistance = arg0->obj->shading.screenFadeDistance;
-    if (arg0->elemCount-- > 0) {
-        opz         = &arg0->gteResult;
-        upper_limit = 0x168 - fadeDistance;
-        ds          = &gDisplayState;
+    packet       = (POLY_GT3*)workspace->primWrite;
+    lightColor   = D_actor_403600_80131E34;
+    fadeDistance = workspace->obj->shading.screenFadeDistance;
+    if (workspace->elemCount-- > 0) {
+        gteResult  = &workspace->gteResult;
+        fadeStartY = ACTOR_403600_SCREEN_FADE_ORIGIN_Y - fadeDistance;
+        display    = &gDisplayState;
         do {
-            rec   = (u16*)arg2;
-            verts = (u8*)arg0->verts;
-            gte_ldv3(verts + (rec[0] & 0xFFF8), verts + (rec[1] & 0xFFF8),
-                     verts + (rec[2] & 0xFFF8));
+            offsets     = (const u16*)elements;
+            vertexBytes = (const u8*)workspace->verts;
+            gte_ldv3(vertexBytes + (offsets[0] & ACTOR_403600_GEOMETRY_OFFSET_MASK), vertexBytes + (offsets[1] & ACTOR_403600_GEOMETRY_OFFSET_MASK),
+                     vertexBytes + (offsets[2] & ACTOR_403600_GEOMETRY_OFFSET_MASK));
             gte_rtpt();
-            gte_stflg(&arg0->gteFlag);
-            if (arg0->gteFlag >= 0) {
+            gte_stflg(&workspace->gteFlag);
+            if (workspace->gteFlag >= 0) {
                 gte_nclip();
-                gte_stopz(opz);
-                if (arg0->gteResult > 0) {
-                    gte_stsxy3_gt3(poly);
+                gte_stopz(gteResult);
+                if (workspace->gteResult > 0) {
+                    gte_stsxy3_gt3(packet);
                     gte_avsz3();
-                    upper_delta = 0;
+                    // Fade from corner 0; every corner uses this same colour weight.
+                    fadeAmount = 0;
                     if (fadeDistance != 0) {
-                        upper_y = poly->y0;
-                        if (upper_limit < upper_y) {
-                            upper_calc  = upper_y - 0x168;
-                            upper_delta = (upper_calc + fadeDistance) * 2;
+                        fadeAnchorY = packet->y0;
+                        if (fadeStartY < fadeAnchorY) {
+                            fadeAnchorFromOrigin = fadeAnchorY - ACTOR_403600_SCREEN_FADE_ORIGIN_Y;
+                            fadeAmount           = (fadeAnchorFromOrigin + fadeDistance) * 2;
                         }
                     }
-                    if (upper_delta >= 0x81) {
-                        GPU_PRIMITIVE_COLOR_WORD(poly, 0) = 0;
-                        GPU_PRIMITIVE_COLOR_WORD(poly, 1) = 0;
-                        GPU_PRIMITIVE_COLOR_WORD(poly, 2) = 0;
+                    if (fadeAmount >= (ACTOR_403600_SCREEN_FADE_COLOR_ONE + 1)) {
+                        GPU_PRIMITIVE_COLOR_WORD(packet, 0) = 0;
+                        GPU_PRIMITIVE_COLOR_WORD(packet, 1) = 0;
+                        GPU_PRIMITIVE_COLOR_WORD(packet, 2) = 0;
                     } else {
-                        col.r = -0x80 - upper_delta;
-                        col.g = -0x80 - upper_delta;
-                        col.b = -0x80 - upper_delta;
-                        gte_ldrgb(&col);
-                        norms = (u8*)arg0->normals;
-                        gte_ldv3(norms + (rec[3] & 0xFFF8), norms + (rec[4] & 0xFFF8),
-                                 norms + (rec[5] & 0xFFF8));
-                        gte_ncct();
-                        gte_strgb3_gt3(poly);
+                        ACTOR_403600_LIGHT_GT3_SCREEN_FADE(workspace, lightColor, fadeAmount, offsets, packet, normalBytes);
                     }
-                    setlen(poly, 9);
-                    setcode(poly, 0x34);
+                    setPolyGT3(packet);
+                    // Translate the whole packet upward beyond the top threshold.
                     if (fadeDistance != 0) {
-                        lower_y = poly->y0;
-                        if (lower_y < (fadeDistance - 0x168)) {
-                            lower_delta  = lower_y;
-                            lower_delta += 0x168;
-                            lower_delta -= fadeDistance;
-                            lower_delta *= 2;
-                            poly->y1    += lower_delta;
-                            poly->y2    += lower_delta;
-                            poly->y0    += lower_delta;
-                            poly->code  |= 2;
+                        displaceAnchorY = packet->y0;
+                        if (displaceAnchorY < (fadeDistance - ACTOR_403600_SCREEN_FADE_ORIGIN_Y)) {
+                            yDisplacement  = displaceAnchorY;
+                            yDisplacement += ACTOR_403600_SCREEN_FADE_ORIGIN_Y;
+                            yDisplacement -= fadeDistance;
+                            yDisplacement *= 2;
+                            packet->y1    += yDisplacement;
+                            packet->y2    += yDisplacement;
+                            packet->y0    += yDisplacement;
+                            setSemiTrans(packet, 1);
                         }
                     }
-                    poly->code = (poly->code & 0xFE) | 2;
-                    gte_stotz(opz);
-                    addPrim(&arg0->ot[((u32)arg0->gteResult << ds->otDepthShift) >> 4 & 0x3FF], poly);
+                    setShadeTex(packet, 0);
+                    setSemiTrans(packet, 1);
+                    gte_stotz(gteResult);
+                    addPrim(&workspace->ot[((u32)workspace->gteResult << display->otDepthShift) >> ACTOR_403600_OT_DEPTH_SHIFT & ACTOR_403600_OT_INDEX_MASK], packet);
                 }
             }
-            poly++;
-            arg2 += arg0->elemStride;
-        } while (arg0->elemCount-- > 0);
+            packet++;
+            elements += workspace->elemStride;
+        } while (workspace->elemCount-- > 0);
     }
-    arg0->primWrite = (u8*)poly;
-    return arg2;
+    workspace->primWrite = (u8*)packet;
+    return elements;
 }
 
-u32* func_actor_403600_801375F8(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2)
+u32* actor403600DrawStreamGt4TopDisplace(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements)
 {
-    CVECTOR       col;
-    s16           upper_y;
-    s16           lower_y;
-    POLY_GT4*     poly;
-    s32           upper_delta;
-    s32           upper_calc;
-    s32           lower_delta;
+    CVECTOR       lightColor;
+    s16           fadeAnchorY;
+    s16           displaceAnchorY;
+    POLY_GT4*     packet;
+    s32           fadeAmount;
+    s32           fadeAnchorFromOrigin;
+    s32           yDisplacement;
     s32           fadeDistance;
-    s32           upper_limit;
-    s32*          opz;
-    s32*          flg;
-    u32           clip_mask;
-    u16*          rec;
-    u8*           verts;
-    u8*           norms;
-    DisplayState* ds;
+    s32           fadeStartY;
+    s32*          gteResult;
+    s32*          gteFlag;
+    u32           gteErrorMask;
+    const u16*    offsets;
+    const u8*     vertexBytes;
+    const u8*     normalBytes;
+    DisplayState* display;
 
-    poly         = (POLY_GT4*)arg0->primWrite;
-    col          = D_actor_403600_80131E34;
-    fadeDistance = arg0->obj->shading.screenFadeDistance;
-    gte_ldrgb(&col);
-    if (arg0->elemCount-- > 0) {
-        flg         = &arg0->gteFlag;
-        clip_mask   = TMD_GTE_ERROR_FLAG;
-        opz         = &arg0->gteResult;
-        upper_limit = 0x168 - fadeDistance;
-        ds          = &gDisplayState;
+    packet       = (POLY_GT4*)workspace->primWrite;
+    lightColor   = D_actor_403600_80131E34;
+    fadeDistance = workspace->obj->shading.screenFadeDistance;
+    gte_ldrgb(&lightColor);
+    if (workspace->elemCount-- > 0) {
+        gteFlag      = &workspace->gteFlag;
+        gteErrorMask = TMD_GTE_ERROR_FLAG;
+        gteResult    = &workspace->gteResult;
+        fadeStartY   = ACTOR_403600_SCREEN_FADE_ORIGIN_Y - fadeDistance;
+        display      = &gDisplayState;
         do {
-            rec   = (u16*)arg2;
-            verts = (u8*)arg0->verts;
-            gte_ldv3(verts + (rec[0] & 0xFFF8), verts + (rec[1] & 0xFFF8),
-                     verts + (rec[2] & 0xFFF8));
+            offsets     = (const u16*)elements;
+            vertexBytes = (const u8*)workspace->verts;
+            gte_ldv3(vertexBytes + (offsets[0] & ACTOR_403600_GEOMETRY_OFFSET_MASK), vertexBytes + (offsets[1] & ACTOR_403600_GEOMETRY_OFFSET_MASK),
+                     vertexBytes + (offsets[2] & ACTOR_403600_GEOMETRY_OFFSET_MASK));
             gte_rtpt();
-            gte_stflg(flg);
-            if (!(arg0->gteFlag & clip_mask)) {
+            gte_stflg(gteFlag);
+            if (!(workspace->gteFlag & gteErrorMask)) {
                 gte_nclip();
-                gte_stopz(opz);
-                gte_stsxy3_gt4(poly);
-                gte_ldv0((u8*)arg0->verts + (rec[3] & 0xFFF8));
+                gte_stopz(gteResult);
+                gte_stsxy3_gt4(packet);
+                gte_ldv0((const u8*)workspace->verts + (offsets[3] & ACTOR_403600_GEOMETRY_OFFSET_MASK));
                 gte_rtps();
-                gte_stflg(flg);
-                if (!(arg0->gteFlag & clip_mask)) {
-                    if (arg0->gteResult > 0) {
+                gte_stflg(gteFlag);
+                if (!(workspace->gteFlag & gteErrorMask)) {
+                    if (workspace->gteResult > 0) {
                         goto draw;
                     }
                     gte_nclip();
-                    gte_stopz(opz);
-                    if (arg0->gteResult < 0) {
+                    gte_stopz(gteResult);
+                    if (workspace->gteResult < 0) {
                     draw:
-                        gte_stsxy2(&poly->x3);
+                        gte_stsxy2(&packet->x3);
                         gte_avsz4();
-                        upper_delta = 0;
+                        // Fade from corner 0; every corner uses this same colour weight.
+                        fadeAmount = 0;
                         if (fadeDistance != 0) {
-                            upper_y = poly->y0;
-                            if (upper_limit < upper_y) {
-                                upper_calc  = upper_y - 0x168;
-                                upper_delta = (upper_calc + fadeDistance) * 2;
+                            fadeAnchorY = packet->y0;
+                            if (fadeStartY < fadeAnchorY) {
+                                fadeAnchorFromOrigin = fadeAnchorY - ACTOR_403600_SCREEN_FADE_ORIGIN_Y;
+                                fadeAmount           = (fadeAnchorFromOrigin + fadeDistance) * 2;
                             }
                         }
-                        if (upper_delta >= 0x81) {
-                            GPU_PRIMITIVE_COLOR_WORD(poly, 0) = 0;
-                            GPU_PRIMITIVE_COLOR_WORD(poly, 1) = 0;
-                            GPU_PRIMITIVE_COLOR_WORD(poly, 2) = 0;
-                            GPU_PRIMITIVE_COLOR_WORD(poly, 3) = 0;
+                        if (fadeAmount >= (ACTOR_403600_SCREEN_FADE_COLOR_ONE + 1)) {
+                            GPU_PRIMITIVE_COLOR_WORD(packet, 0) = 0;
+                            GPU_PRIMITIVE_COLOR_WORD(packet, 1) = 0;
+                            GPU_PRIMITIVE_COLOR_WORD(packet, 2) = 0;
+                            GPU_PRIMITIVE_COLOR_WORD(packet, 3) = 0;
                         } else {
-                            col.r = -0x80 - upper_delta;
-                            col.g = -0x80 - upper_delta;
-                            col.b = -0x80 - upper_delta;
-                            gte_ldrgb(&col);
-                            norms = (u8*)arg0->normals;
-                            gte_ldv3(norms + (rec[4] & 0xFFF8), norms + (rec[5] & 0xFFF8),
-                                     norms + (rec[6] & 0xFFF8));
-                            gte_ncct();
-                            gte_strgb3_gt4(poly);
-                            gte_ldv0((u8*)arg0->normals + (rec[7] & 0xFFF8));
-                            gte_nccs();
-                            gte_strgb(&poly->r3);
+                            ACTOR_403600_LIGHT_GT4_SCREEN_FADE(workspace, lightColor, fadeAmount, offsets, packet, normalBytes);
                         }
-                        setlen(poly, 12);
-                        setcode(poly, 0x3C);
+                        setPolyGT4(packet);
                         if (fadeDistance != 0) {
-                            lower_y = poly->y0;
-                            if (lower_y < (fadeDistance - 0x168)) {
-                                lower_delta  = lower_y;
-                                lower_delta += 0x168;
-                                lower_delta -= fadeDistance;
-                                lower_delta *= 2;
-                                poly->y3    += lower_delta;
-                                poly->y2    += lower_delta;
-                                poly->y1    += lower_delta;
-                                poly->y0    += lower_delta;
-                                poly->code  |= 2;
+                            displaceAnchorY = packet->y0;
+                            if (displaceAnchorY < (fadeDistance - ACTOR_403600_SCREEN_FADE_ORIGIN_Y)) {
+                                yDisplacement  = displaceAnchorY;
+                                yDisplacement += ACTOR_403600_SCREEN_FADE_ORIGIN_Y;
+                                yDisplacement -= fadeDistance;
+                                yDisplacement *= 2;
+                                packet->y3    += yDisplacement;
+                                packet->y2    += yDisplacement;
+                                packet->y1    += yDisplacement;
+                                packet->y0    += yDisplacement;
+                                setSemiTrans(packet, 1);
                             }
                         }
-                        poly->code &= 0xFE;
-                        gte_stotz(opz);
-                        addPrim(&arg0->ot[((u32)arg0->gteResult << ds->otDepthShift) >> 4 & 0x3FF], poly);
+                        setShadeTex(packet, 0);
+                        gte_stotz(gteResult);
+                        addPrim(&workspace->ot[((u32)workspace->gteResult << display->otDepthShift) >> ACTOR_403600_OT_DEPTH_SHIFT & ACTOR_403600_OT_INDEX_MASK], packet);
                     }
                 }
             }
-            poly++;
-            arg2 += arg0->elemStride;
-        } while (arg0->elemCount-- > 0);
+            packet++;
+            elements += workspace->elemStride;
+        } while (workspace->elemCount-- > 0);
     }
-    arg0->primWrite = (u8*)poly;
-    return arg2;
+    workspace->primWrite = (u8*)packet;
+    return elements;
 }
 
-u32* func_actor_403600_801379B4(TmdStreamWorkspace* ws, s32 flags, u32* stream)
+#undef ACTOR_403600_LIGHT_GT3_SCREEN_FADE
+#undef ACTOR_403600_LIGHT_GT4_SCREEN_FADE
+#undef ACTOR_403600_FADE_PRE_XFORM_GT3_COLORS
+#undef ACTOR_403600_FADE_PRE_XFORM_GT4_COLORS
+
+u32* actor403600DrawStreamGt3PlaneClamp(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements)
 {
     CVECTOR                 color;
-    u8*                     head;
-    _Actor403600TriScratch* sc;
-    GfxCoord*               coord;
-    POLY_GT3*               poly;
-    u16*                    rec;
-    s32                     i;
+    u8*                     savedScratchHead;
+    _Actor403600TriScratch* scratch;
+    GfxCoord*               planeCoord;
+    POLY_GT3*               packet;
+    const u16*              offsets;
+    s32                     cornerIndex;
 
     if (D_actor_403600_801606A0 != NULL) {
-        poly  = (POLY_GT3*)ws->primWrite;
-        color = D_actor_403600_80131E34;
-        head  = SCRATCH_STACK_CURSOR(u8);
-        sc    = SCRATCH_STACK_CURSOR(_Actor403600TriScratch) =
-            (_Actor403600TriScratch*)(head - sizeof(_Actor403600TriScratch));
-        gte_sttr(&sc->trans);
-        gte_ReadRotMatrix(&sc->savedRot);
-        TransposeMatrix(&D_actor_403600_801606A0->workm, &sc->local);
-        coord         = D_actor_403600_801606A0;
-        sc->offset.vx = sc->trans.vx - coord->workm.t[0];
-        sc->offset.vy = sc->trans.vy - coord->workm.t[1];
-        sc->offset.vz = sc->trans.vz - coord->workm.t[2];
-        _gfxRotateSv(&sc->local, &sc->offset);
-        gte_MulMatrix0(&sc->local, &sc->savedRot, &sc->local);
-        sc->local.t[0] = sc->offset.vx;
-        sc->local.t[1] = sc->offset.vy;
-        sc->local.t[2] = sc->offset.vz;
+        packet           = (POLY_GT3*)workspace->primWrite;
+        color            = D_actor_403600_80131E34;
+        savedScratchHead = SCRATCH_STACK_CURSOR(u8);
+        scratch          = SCRATCH_STACK_CURSOR(_Actor403600TriScratch) =
+            (_Actor403600TriScratch*)(savedScratchHead - sizeof(_Actor403600TriScratch));
+        // Save the part transform and compose it into the ripple plane frame.
+        gte_sttr(&scratch->trans);
+        gte_ReadRotMatrix(&scratch->savedRot);
+        TransposeMatrix(&D_actor_403600_801606A0->workm, &scratch->local);
+        planeCoord         = D_actor_403600_801606A0;
+        scratch->offset.vx = scratch->trans.vx - planeCoord->workm.t[0];
+        scratch->offset.vy = scratch->trans.vy - planeCoord->workm.t[1];
+        scratch->offset.vz = scratch->trans.vz - planeCoord->workm.t[2];
+        _gfxRotateSv(&scratch->local, &scratch->offset);
+        gte_MulMatrix0(&scratch->local, &scratch->savedRot, &scratch->local);
+        scratch->local.t[0] = scratch->offset.vx;
+        scratch->local.t[1] = scratch->offset.vy;
+        scratch->local.t[2] = scratch->offset.vz;
         gte_ldrgb(&color);
-        for (; ws->elemCount-- > 0; poly++, stream += ws->elemStride) {
-            rec = (u16*)stream;
-            gte_SetTransMatrix(&sc->local);
-            gte_SetRotMatrix(&sc->local);
-            sc->index[0] = rec[0] >> 3;
-            sc->index[1] = rec[1] >> 3;
-            sc->index[2] = rec[2] >> 3;
-            for (i = 0; i < 3; i++) {
-                gte_ldv0(&ws->verts[sc->index[i]]);
-                gte_rtv0tr();
-                gte_stsv(&sc->verts[i]);
-                if (sc->verts[i].vy > 0) {
-                    sc->verts[i].vy = 0;
-                }
+        for (; workspace->elemCount-- > 0; packet++, elements += workspace->elemStride) {
+            offsets = (const u16*)elements;
+            // Flatten the positive-Y side, then project back through the plane.
+            gte_SetTransMatrix(&scratch->local);
+            gte_SetRotMatrix(&scratch->local);
+            scratch->index[0] = offsets[0] >> ACTOR_403600_GEOMETRY_OFFSET_SHIFT;
+            scratch->index[1] = offsets[1] >> ACTOR_403600_GEOMETRY_OFFSET_SHIFT;
+            scratch->index[2] = offsets[2] >> ACTOR_403600_GEOMETRY_OFFSET_SHIFT;
+            for (cornerIndex = 0; cornerIndex < (s32)ARRAY_SIZE(scratch->verts); cornerIndex++) {
+                ACTOR_403600_TRANSFORM_AND_CLAMP_PLANE_VERTEX(&workspace->verts[scratch->index[cornerIndex]], scratch->verts[cornerIndex]);
             }
             gte_SetRotMatrix(&D_actor_403600_801606A0->workm);
             gte_SetTransMatrix(&D_actor_403600_801606A0->workm);
-            gte_ldv3(&sc->verts[0], &sc->verts[1], &sc->verts[2]);
+            gte_ldv3(&scratch->verts[0], &scratch->verts[1], &scratch->verts[2]);
             gte_rtpt();
-            gte_stflg(&ws->gteFlag);
-            if (ws->gteFlag & TMD_GTE_ERROR_FLAG) {
+            gte_stflg(&workspace->gteFlag);
+            if (workspace->gteFlag & TMD_GTE_ERROR_FLAG) {
                 continue;
             }
             gte_nclip();
-            gte_stopz(&ws->gteResult);
-            if (ws->gteResult <= 0) {
+            gte_stopz(&workspace->gteResult);
+            if (workspace->gteResult <= 0) {
                 continue;
             }
-            gte_stsxy3_gt3(poly);
+            gte_stsxy3_gt3(packet);
             gte_avsz3();
-            gte_ldv3(&ws->normals[rec[3] >> 3], &ws->normals[rec[4] >> 3], &ws->normals[rec[5] >> 3]);
+            gte_ldv3(&workspace->normals[offsets[3] >> ACTOR_403600_GEOMETRY_OFFSET_SHIFT], &workspace->normals[offsets[4] >> ACTOR_403600_GEOMETRY_OFFSET_SHIFT], &workspace->normals[offsets[5] >> ACTOR_403600_GEOMETRY_OFFSET_SHIFT]);
             gte_ncct();
-            gte_strgb3_gt3(poly);
-            setlen(poly, 9);
-            setcode(poly, 0x34);
-            gte_stotz(&ws->gteResult);
-            addPrim(&ws->ot[((u32)ws->gteResult << gDisplayState.otDepthShift) >> 4 & 0x3FF], poly);
+            gte_strgb3_gt3(packet);
+            setPolyGT3(packet);
+            gte_stotz(&workspace->gteResult);
+            addPrim(&workspace->ot[((u32)workspace->gteResult << gDisplayState.otDepthShift) >> ACTOR_403600_OT_DEPTH_SHIFT & ACTOR_403600_OT_INDEX_MASK], packet);
         }
-        ws->primWrite = (u8*)poly;
-        gte_SetTransVector(&sc->trans);
-        gte_SetRotMatrix(&sc->savedRot);
+        workspace->primWrite = (u8*)packet;
+        // The following stream records still require the original part transform.
+        gte_SetTransVector(&scratch->trans);
+        gte_SetRotMatrix(&scratch->savedRot);
         SCRATCH_STACK_RELEASE_BYTES(sizeof(_Actor403600TriScratch));
-        return stream;
+        return elements;
     }
-    return tmdDrawStreamGt3(ws, flags, stream);
+    return tmdDrawStreamGt3(workspace, objectFlags, elements);
 }
 
-u32* func_actor_403600_80138004(TmdStreamWorkspace* ws, s32 flags, u32* stream)
+u32* actor403600DrawStreamGt4PlaneClamp(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements)
 {
     CVECTOR                  color;
-    u8*                      head;
-    _Actor403600QuadScratch* sc;
-    GfxCoord*                coord;
-    POLY_GT4*                poly;
-    u16*                     rec;
-    s32                      i;
+    u8*                      savedScratchHead;
+    _Actor403600QuadScratch* scratch;
+    GfxCoord*                planeCoord;
+    POLY_GT4*                packet;
+    const u16*               offsets;
+    s32                      cornerIndex;
 
     if (D_actor_403600_801606A0 != NULL) {
-        poly  = (POLY_GT4*)ws->primWrite;
-        color = D_actor_403600_80131E34;
-        head  = SCRATCH_STACK_CURSOR(u8);
-        sc    = SCRATCH_STACK_CURSOR(_Actor403600QuadScratch) =
-            (_Actor403600QuadScratch*)(head - sizeof(_Actor403600QuadScratch));
-        gte_sttr(&sc->trans);
-        gte_ReadRotMatrix(&sc->savedRot);
-        TransposeMatrix(&D_actor_403600_801606A0->workm, &sc->local);
-        coord         = D_actor_403600_801606A0;
-        sc->offset.vx = sc->trans.vx - coord->workm.t[0];
-        sc->offset.vy = sc->trans.vy - coord->workm.t[1];
-        sc->offset.vz = sc->trans.vz - coord->workm.t[2];
-        _gfxRotateSv(&sc->local, &sc->offset);
-        gte_MulMatrix0(&sc->local, &sc->savedRot, &sc->local);
-        sc->local.t[0] = sc->offset.vx;
-        sc->local.t[1] = sc->offset.vy;
-        sc->local.t[2] = sc->offset.vz;
+        packet           = (POLY_GT4*)workspace->primWrite;
+        color            = D_actor_403600_80131E34;
+        savedScratchHead = SCRATCH_STACK_CURSOR(u8);
+        scratch          = SCRATCH_STACK_CURSOR(_Actor403600QuadScratch) =
+            (_Actor403600QuadScratch*)(savedScratchHead - sizeof(_Actor403600QuadScratch));
+        // Save the part transform and compose it into the ripple plane frame.
+        gte_sttr(&scratch->trans);
+        gte_ReadRotMatrix(&scratch->savedRot);
+        TransposeMatrix(&D_actor_403600_801606A0->workm, &scratch->local);
+        planeCoord         = D_actor_403600_801606A0;
+        scratch->offset.vx = scratch->trans.vx - planeCoord->workm.t[0];
+        scratch->offset.vy = scratch->trans.vy - planeCoord->workm.t[1];
+        scratch->offset.vz = scratch->trans.vz - planeCoord->workm.t[2];
+        _gfxRotateSv(&scratch->local, &scratch->offset);
+        gte_MulMatrix0(&scratch->local, &scratch->savedRot, &scratch->local);
+        scratch->local.t[0] = scratch->offset.vx;
+        scratch->local.t[1] = scratch->offset.vy;
+        scratch->local.t[2] = scratch->offset.vz;
         gte_ldrgb(&color);
-        for (; ws->elemCount-- > 0; poly++, stream += ws->elemStride) {
-            rec = (u16*)stream;
-            gte_SetTransMatrix(&sc->local);
-            gte_SetRotMatrix(&sc->local);
-            sc->index[0] = rec[0] >> 3;
-            sc->index[1] = rec[1] >> 3;
-            sc->index[2] = rec[2] >> 3;
-            sc->index[3] = rec[3] >> 3;
-            for (i = 0; i < 4; i++) {
-                gte_ldv0(&ws->verts[sc->index[i]]);
-                gte_rtv0tr();
-                gte_stsv(&sc->verts[i]);
-                if (sc->verts[i].vy > 0) {
-                    sc->verts[i].vy = 0;
-                }
+        for (; workspace->elemCount-- > 0; packet++, elements += workspace->elemStride) {
+            offsets = (const u16*)elements;
+            // Flatten the positive-Y side, then project back through the plane.
+            gte_SetTransMatrix(&scratch->local);
+            gte_SetRotMatrix(&scratch->local);
+            scratch->index[0] = offsets[0] >> ACTOR_403600_GEOMETRY_OFFSET_SHIFT;
+            scratch->index[1] = offsets[1] >> ACTOR_403600_GEOMETRY_OFFSET_SHIFT;
+            scratch->index[2] = offsets[2] >> ACTOR_403600_GEOMETRY_OFFSET_SHIFT;
+            scratch->index[3] = offsets[3] >> ACTOR_403600_GEOMETRY_OFFSET_SHIFT;
+            for (cornerIndex = 0; cornerIndex < (s32)ARRAY_SIZE(scratch->verts); cornerIndex++) {
+                ACTOR_403600_TRANSFORM_AND_CLAMP_PLANE_VERTEX(&workspace->verts[scratch->index[cornerIndex]], scratch->verts[cornerIndex]);
             }
             gte_SetRotMatrix(&D_actor_403600_801606A0->workm);
             gte_SetTransMatrix(&D_actor_403600_801606A0->workm);
-            gte_ldv3(&sc->verts[0], &sc->verts[1], &sc->verts[2]);
+            gte_ldv3(&scratch->verts[0], &scratch->verts[1], &scratch->verts[2]);
             gte_rtpt();
-            gte_stflg(&ws->gteFlag);
-            if (ws->gteFlag & TMD_GTE_ERROR_FLAG) {
+            gte_stflg(&workspace->gteFlag);
+            if (workspace->gteFlag & TMD_GTE_ERROR_FLAG) {
                 continue;
             }
             gte_nclip();
-            gte_stopz(&ws->gteResult);
-            gte_stsxy3_gt4(poly);
-            gte_ldv0(&sc->verts[3]);
+            gte_stopz(&workspace->gteResult);
+            gte_stsxy3_gt4(packet);
+            gte_ldv0(&scratch->verts[3]);
             gte_rtps();
-            gte_stflg(&ws->gteFlag);
-            if (ws->gteFlag & TMD_GTE_ERROR_FLAG) {
+            gte_stflg(&workspace->gteFlag);
+            if (workspace->gteFlag & TMD_GTE_ERROR_FLAG) {
                 continue;
             }
-            /* Drawn when either triangle of the quad faces the camera. */
-            if (ws->gteResult <= 0) {
+            // Either triangle can establish the quad's facing.
+            if (workspace->gteResult <= 0) {
                 gte_nclip();
-                gte_stopz(&ws->gteResult);
-                if (ws->gteResult >= 0) {
+                gte_stopz(&workspace->gteResult);
+                if (workspace->gteResult >= 0) {
                     continue;
                 }
             }
-            gte_stsxy2(&poly->x3);
+            gte_stsxy2(&packet->x3);
             gte_avsz4();
-            gte_ldv3(&ws->normals[rec[4] >> 3], &ws->normals[rec[5] >> 3], &ws->normals[rec[6] >> 3]);
+            gte_ldv3(&workspace->normals[offsets[4] >> ACTOR_403600_GEOMETRY_OFFSET_SHIFT], &workspace->normals[offsets[5] >> ACTOR_403600_GEOMETRY_OFFSET_SHIFT], &workspace->normals[offsets[6] >> ACTOR_403600_GEOMETRY_OFFSET_SHIFT]);
             gte_ncct();
-            gte_strgb3_gt4(poly);
-            gte_ldv0(&ws->normals[rec[7] >> 3]);
+            gte_strgb3_gt4(packet);
+            gte_ldv0(&workspace->normals[offsets[7] >> ACTOR_403600_GEOMETRY_OFFSET_SHIFT]);
             gte_nccs();
-            gte_strgb(&poly->r3);
-            setlen(poly, 12);
-            setcode(poly, 0x3C);
-            gte_stotz(&ws->gteResult);
-            addPrim(&ws->ot[((u32)ws->gteResult << gDisplayState.otDepthShift) >> 4 & 0x3FF], poly);
+            gte_strgb(&packet->r3);
+            setPolyGT4(packet);
+            gte_stotz(&workspace->gteResult);
+            addPrim(&workspace->ot[((u32)workspace->gteResult << gDisplayState.otDepthShift) >> ACTOR_403600_OT_DEPTH_SHIFT & ACTOR_403600_OT_INDEX_MASK], packet);
         }
-        ws->primWrite = (u8*)poly;
-        gte_SetTransVector(&sc->trans);
-        gte_SetRotMatrix(&sc->savedRot);
+        workspace->primWrite = (u8*)packet;
+        // The following stream records still require the original part transform.
+        gte_SetTransVector(&scratch->trans);
+        gte_SetRotMatrix(&scratch->savedRot);
         SCRATCH_STACK_RELEASE_BYTES(sizeof(_Actor403600QuadScratch));
-        return stream;
+        return elements;
     }
-    return tmdDrawStreamGt4(ws, flags, stream);
+    return tmdDrawStreamGt4(workspace, objectFlags, elements);
 }
 
-u32* func_actor_403600_801386EC(TmdStreamWorkspace* ws, s32 flags, u32* stream)
+u32* actor403600XformStreamVertsPlaneClamp(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements)
 {
     CVECTOR                 color;
-    u8*                     head;
-    _Actor403600TriScratch* sc;
-    GfxCoord*               coord;
-    u16*                    rec;
-    s32                     previous;
+    u8*                     savedScratchHead;
+    _Actor403600TriScratch* scratch;
+    GfxCoord*               planeCoord;
+    const u16*              offsets;
+    s32                     previousVertexOffset;
 
     if (D_actor_403600_801606A0 != NULL) {
-        previous = -1;
-        color    = D_actor_403600_80131E34;
-        if (ws->elemCount == 0) {
-            return stream;
+        enum { ACTOR_403600_NO_PREVIOUS_VERTEX = -1 };
+
+        previousVertexOffset = ACTOR_403600_NO_PREVIOUS_VERTEX;
+        color                = D_actor_403600_80131E34;
+        if (workspace->elemCount == 0) {
+            return elements;
         }
-        head = SCRATCH_STACK_CURSOR(u8);
-        sc   = SCRATCH_STACK_CURSOR(_Actor403600TriScratch) =
-            (_Actor403600TriScratch*)(head - sizeof(_Actor403600TriScratch));
-        gte_sttr(&sc->trans);
-        gte_ReadRotMatrix(&sc->savedRot);
-        TransposeMatrix(&D_actor_403600_801606A0->workm, &sc->local);
-        coord         = D_actor_403600_801606A0;
-        sc->offset.vx = sc->trans.vx - coord->workm.t[0];
-        sc->offset.vy = sc->trans.vy - coord->workm.t[1];
-        sc->offset.vz = sc->trans.vz - coord->workm.t[2];
-        _gfxRotateSv(&sc->local, &sc->offset);
-        gte_MulMatrix0(&sc->local, &sc->savedRot, &sc->local);
-        sc->local.t[0] = sc->offset.vx;
-        sc->local.t[1] = sc->offset.vy;
-        sc->local.t[2] = sc->offset.vz;
+        savedScratchHead = SCRATCH_STACK_CURSOR(u8);
+        scratch          = SCRATCH_STACK_CURSOR(_Actor403600TriScratch) =
+            (_Actor403600TriScratch*)(savedScratchHead - sizeof(_Actor403600TriScratch));
+        // Save the part transform and compose it into the ripple plane frame.
+        gte_sttr(&scratch->trans);
+        gte_ReadRotMatrix(&scratch->savedRot);
+        TransposeMatrix(&D_actor_403600_801606A0->workm, &scratch->local);
+        planeCoord         = D_actor_403600_801606A0;
+        scratch->offset.vx = scratch->trans.vx - planeCoord->workm.t[0];
+        scratch->offset.vy = scratch->trans.vy - planeCoord->workm.t[1];
+        scratch->offset.vz = scratch->trans.vz - planeCoord->workm.t[2];
+        _gfxRotateSv(&scratch->local, &scratch->offset);
+        gte_MulMatrix0(&scratch->local, &scratch->savedRot, &scratch->local);
+        scratch->local.t[0] = scratch->offset.vx;
+        scratch->local.t[1] = scratch->offset.vy;
+        scratch->local.t[2] = scratch->offset.vz;
         gte_ldrgb(&color);
-        while (ws->elemCount-- > 0) {
-            rec = (u16*)stream;
-            if (rec[0] != previous) {
-                gte_SetTransMatrix(&sc->local);
-                gte_SetRotMatrix(&sc->local);
-                gte_ldv0(&ws->verts[rec[0] >> 3]);
-                gte_rtv0tr();
-                gte_stsv(&sc->verts[0]);
-                if (sc->verts[0].vy > 0) {
-                    sc->verts[0].vy = 0;
-                }
+        while (workspace->elemCount-- > 0) {
+            offsets = (const u16*)elements;
+            // Consecutive references reuse projection and depth, even on GTE failure.
+            if (offsets[0] != previousVertexOffset) {
+                gte_SetTransMatrix(&scratch->local);
+                gte_SetRotMatrix(&scratch->local);
+                ACTOR_403600_TRANSFORM_AND_CLAMP_PLANE_VERTEX(&workspace->verts[offsets[0] >> ACTOR_403600_GEOMETRY_OFFSET_SHIFT], scratch->verts[0]);
                 gte_SetRotMatrix(&D_actor_403600_801606A0->workm);
                 gte_SetTransMatrix(&D_actor_403600_801606A0->workm);
-                gte_ldv0(&sc->verts[0]);
+                gte_ldv0(&scratch->verts[0]);
                 gte_rtps();
-                gte_stsz(&ws->gteResult);
-                gte_stflg(&ws->gteFlag);
-                if (ws->gteFlag & TMD_GTE_ERROR_FLAG) {
-                    ws->gteResult |= TMD_VERTEX_DEPTH_INVALID;
+                gte_stsz(&workspace->gteResult);
+                gte_stflg(&workspace->gteFlag);
+                if (workspace->gteFlag & TMD_GTE_ERROR_FLAG) {
+                    workspace->gteResult |= TMD_VERTEX_DEPTH_INVALID;
                 }
-                ws->szTable[rec[0] >> 3] = ws->gteResult;
+                workspace->szTable[offsets[0] >> ACTOR_403600_GEOMETRY_OFFSET_SHIFT] = workspace->gteResult;
             }
-            gte_stsxy(ws->preXformWrite + rec[2]);
-            gte_ldv0(&ws->normals[rec[1] >> 3]);
+            gte_stsxy(workspace->preXformWrite + offsets[2]);
+            gte_ldv0(&workspace->normals[offsets[1] >> ACTOR_403600_GEOMETRY_OFFSET_SHIFT]);
             gte_nccs();
-            stream += ws->elemStride;
-            gte_strgb(ws->preXformWrite + rec[3]);
-            previous = rec[0];
+            elements += workspace->elemStride;
+            gte_strgb(workspace->preXformWrite + offsets[3]);
+            previousVertexOffset = offsets[0];
         }
-        gte_SetTransVector(&sc->trans);
-        gte_SetRotMatrix(&sc->savedRot);
+        // Restore the part transform without advancing either packet-region cursor.
+        gte_SetTransVector(&scratch->trans);
+        gte_SetRotMatrix(&scratch->savedRot);
         SCRATCH_STACK_RELEASE_BYTES(sizeof(_Actor403600TriScratch));
-        return stream;
+        return elements;
     }
-    return tmdXformStreamVerts(ws, flags, stream);
+    return tmdXformStreamVerts(workspace, objectFlags, elements);
 }
+
+#undef ACTOR_403600_TRANSFORM_AND_CLAMP_PLANE_VERTEX
 
 static const CVECTOR D_actor_403600_80131E34 = { 0x80, 0x80, 0x80, 0 };

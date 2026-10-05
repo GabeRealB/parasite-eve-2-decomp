@@ -211,3 +211,14 @@ gShelterB2PodBottomModel0AA08 = 0x80188264; // absolute:True owner=shelter_b2_po
 
 gShelterB2PodBottomModel0AE48 = 0x8018864C; // absolute:True owner=shelter_b2_pod_bottom
 frameCaptureQueue = 0x801320F8; // type:func
+_actor403600UnifyGridQuadTexturePage = 0x801327a0; // type:func
+actor403600DrawStreamGt3BottomFade = 0x80136224; // type:func
+actor403600DrawStreamGt3PreXformBottomFade = 0x80136500; // type:func
+actor403600DrawStreamGt4BottomFade = 0x8013685c; // type:func
+actor403600DrawStreamGt4PreXformBottomFade = 0x80136c00; // type:func
+actor403600DrawStreamGt3TopDisplace = 0x8013700c; // type:func
+actor403600DrawStreamGt3TopDisplaceSemiTrans = 0x80137300; // type:func
+actor403600DrawStreamGt4TopDisplace = 0x801375f8; // type:func
+actor403600DrawStreamGt3PlaneClamp = 0x801379b4; // type:func
+actor403600DrawStreamGt4PlaneClamp = 0x80138004; // type:func
+actor403600XformStreamVertsPlaneClamp = 0x801386ec; // type:func
