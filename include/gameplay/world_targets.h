@@ -7,7 +7,6 @@
 
 #include "types.h"
 
-#include "gameplay/gpu_image_upload.h"
 #include "gameplay/world_targets_types.h"
 
 #include "main/session_types.h"
@@ -24,21 +23,34 @@ void func_800DA6E8(void* arg0, s32 arg1, s32 arg2);
 /// flags are retained, and no storage is freed.
 void worldTargetUnlinkNode(WorldTargetNode* node);
 
-/// Appends `node` to the tracked list when it is not already on it, and marks
-/// it lockable.
-void Gp_LinkNode(WorldTargetNode* node);
+/// Enables lock-on for `node`, appending it to target tracking if off-list.
+///
+/// `node` must be live and non-NULL, and the tracked list must be acyclic.
+/// An `onList` byte of zero appends at the tail, clears `targeted` and sets
+/// membership to one. A nonzero byte preserves the links and target mark.
+/// Both paths clear only `WORLD_TARGET_NOT_LOCKABLE`. The caller owns the
+/// entry and must unlink it before its storage expires.
+void worldTargetLinkNode(WorldTargetNode* node);
 
-/// Two-bit mask of `gPlayerActorTasks[]`: the slots whose actor is locked onto
-/// `node`.
-s32 Gp_NodeSlotMask(WorldTargetNode* node);
+/// Returns the player/companion slots whose current target equals `node`.
+///
+/// Bit zero is the player and bit one the companion; absent tasks add no bit.
+/// This compares borrowed pointers without dereferencing `node`. Passing NULL
+/// selects occupied actor slots with no current target. Occupied tasks must
+/// have live `GameActor` work blocks.
+s32 worldTargetGetActorLockMask(const WorldTargetNode* node);
 
 /// Locks actor slot 0 onto `node`, releasing whichever node held it, and marks
 /// `node` lockable.
 void Gp_AssignNodeSlot0(WorldTargetNode* node);
 
-/// Detaches `node` from every actor slot and marks it un-lockable, leaving it
-/// on the tracked list.
-void Gp_ClearNodeSlots(WorldTargetNode* node);
+/// Releases actor locks on `node` and disables further lock-on to it.
+///
+/// `node` must be live and non-NULL. Clears its target mark and sets
+/// `WORLD_TARGET_NOT_LOCKABLE`, preserving other flags and list membership.
+/// Occupied player/companion tasks must have live `GameActor` work blocks.
+/// The caller retains ownership; this does not unlink or free the entry.
+void worldTargetDisableNodeLockOn(WorldTargetNode* node);
 
 void* Gp_FindLockNode(Task* arg0);
 
@@ -46,17 +58,7 @@ void* Gp_FindLockNodePad(Task* arg0);
 
 void Gp_GetLockPos(WorldTargetNode* arg0, VECTOR3* out);
 
-s32 Gp_LoadActorImage(Task* arg0, GpuImageUpload* uploadList, RECT* arg2);
-
-void Gp_LoadImages(GpuImageUpload* uploadList);
-
 void Gp_ArmStateF0(s32 arg0);
-
-void Gp_SetStateF0Bit(s32 arg0);
-
-void Gp_SetStateF0Byte3(s32 arg0);
-
-void Gp_IncStateF0Ref(s32 arg0);
 
 void Gp_ReleaseStateF0Add(Task* arg0, s32 arg1);
 

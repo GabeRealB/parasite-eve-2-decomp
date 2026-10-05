@@ -10,4 +10,37 @@
 /// and scripted encounters hold battle references until they die or retire.
 extern SceneCombatState gSceneCombatState;
 
+/// One-based selectors accepted by `sceneLatchActionSignal`, rather than masks.
+enum {
+    SCENE_COMBAT_ACTION_SIGNAL_NONE               = 0,
+    SCENE_COMBAT_ACTION_SIGNAL_NOISE              = 1,
+    SCENE_COMBAT_ACTION_SIGNAL_PE_ACTIVE          = 2,
+    SCENE_COMBAT_ACTION_SIGNAL_PE_CAST_OTHER      = 3,
+    SCENE_COMBAT_ACTION_SIGNAL_PE_CAST_300_TO_600 = 4,
+    SCENE_COMBAT_ACTION_SIGNAL_FOOTSTEP           = 5
+};
+
+/// Latches one scene action stimulus until the player update clears it.
+///
+/// Pass a `SCENE_COMBAT_ACTION_SIGNAL_*` selector; zero leaves the byte intact.
+/// Nonzero selectors OR bit (selector - 1) into the stored eight-bit flags.
+/// The implementation does not validate the shift range or retain higher bits.
+void sceneLatchActionSignal(s32 actionSignal);
+
+/// Replaces the scene's enemy stimulus byte with the low eight bits of `alertClass`.
+///
+/// Zero clears the stimulus; callers use classes 1 and 2. Enemy kinds react to
+/// either nonzero class or a specific class. A universal distinction between
+/// the classes is unproven. This replaces the previous value rather than ORing
+/// it, and does not engage a battle or acquire a battle reference.
+void sceneSetEnemyAlert(s32 alertClass);
+
+/// Acquires one scene battle hold for an enemy or scripted encounter.
+///
+/// `unusedArg` is ignored and retained for event-script callback compatibility.
+/// The 16-bit outstanding-reference count increments without overflow checks;
+/// callers must balance holds with the battle-release APIs and avoid overflow.
+/// Acquiring a hold does not change the battle phase or pending rewards.
+void sceneAcquireBattleRef(s32 unusedArg);
+
 #endif // GAMEPLAY_SCENE_COMBAT_H

@@ -1485,7 +1485,7 @@ static void Actor01600_Fn001F4(Enemy* ctx, Task* actor)
     work->targetAnchorPhase                      = ACTOR_01600_TARGET_ANCHOR_FOLLOW;
     ctx->field_4                                 = &coord->coord;
     ctx->field_48                                = 0;
-    Gp_LinkNode(&ctx->node);
+    worldTargetLinkNode(&ctx->node);
     ctx->bodyPos.vy             = -0x190;
     ctx->node.state.parts.flags = 0;
     ctx->coord                  = coord;
@@ -1501,7 +1501,7 @@ static void Actor01600_Fn001F4(Enemy* ctx, Task* actor)
     for (i = 1; i < ARRAY_SIZE(work->slots); i++) {
         animationResetSlot(&work->anim, i, 1);
     }
-    Gp_IncStateF0Ref(0);
+    sceneAcquireBattleRef(0);
     work->animRequest     = 1;
     work->animPlaying     = 1;
     work->idleSoundTimer  = 0x14;

@@ -5362,7 +5362,7 @@ static void func_801030CC(Task* arg0)
                 rect->y = 0x4E;
                 rect->w = 0x19;
                 rect->h = 0x10;
-                Gp_LoadActorImage(arg0, uploadList, rect);
+                actorRenderUploadTexture(arg0, uploadList, rect);
                 actor->textureDelayA = 4;
                 actor->textureFrameA++;
             } else {
@@ -5380,7 +5380,7 @@ static void func_801030CC(Task* arg0)
                 rect->y = 0x68;
                 rect->w = 0xE;
                 rect->h = 0x14;
-                Gp_LoadActorImage(arg0, uploadList, rect);
+                actorRenderUploadTexture(arg0, uploadList, rect);
                 actor->textureDelayB = 8;
                 actor->textureFrameB++;
             } else {
@@ -7023,7 +7023,7 @@ s32 func_80105ED4(Task* arg0)
                         sound = footstepSounds->scriptedJump;
                     } else if ((u16)actor->movementMode == PLAYER_ACTOR_FOOTSTEP_RUNNING_MOVEMENT_MODE) {
                         sound = footstepSounds->run;
-                        Gp_SetStateF0Bit(5);
+                        sceneLatchActionSignal(SCENE_COMBAT_ACTION_SIGNAL_FOOTSTEP);
                     } else {
                         sound = footstepSounds->walk;
                     }
@@ -7236,7 +7236,7 @@ void Gp_PlayObjSfx(GfxCoord* coord, s32 sfx, s32 arg2)
     temp = (s8)worldCoordGetOriginAudioPan(coord);
     sndEvtRequestScriptStart(sfx, temp, (s8)worldCoordGetOriginAudioDepth(coord));
     if (arg2 == 1) {
-        Gp_SetStateF0Bit(1);
+        sceneLatchActionSignal(SCENE_COMBAT_ACTION_SIGNAL_NOISE);
     }
 }
 
@@ -7812,7 +7812,7 @@ static void Gp_PlayerNormalState6(Task* arg0)
 {
     GameActor* actor;
     s32        mode;
-    s32        snd;
+    s32        actionSignal;
 
     actor               = arg0->work;
     actor->movementSign = 0;
@@ -7832,7 +7832,7 @@ static void Gp_PlayerNormalState6(Task* arg0)
                 mode = 0x2A;
             }
             playerActorPlayChildSlotsWithBlend(arg0, mode, 0, 6);
-            Gp_SetStateF0Bit(2);
+            sceneLatchActionSignal(SCENE_COMBAT_ACTION_SIGNAL_PE_ACTIVE);
             break;
         case 2:
             actor->animationState = 0;
@@ -7849,11 +7849,11 @@ static void Gp_PlayerNormalState6(Task* arg0)
             if (Gp_StateC08.duration == 0) {
                 actor->animationState = 9;
                 actor->statePhase    += 1;
-                snd                   = 4;
+                actionSignal          = SCENE_COMBAT_ACTION_SIGNAL_PE_CAST_300_TO_600;
                 if (Gp_StateC08.attachId < ATTACHMENT_ID_EARLY_SPELL_LIMIT || Gp_StateC08.attachId > ATTACHMENT_ID_LAST_SPELL) {
-                    snd = 3;
+                    actionSignal = SCENE_COMBAT_ACTION_SIGNAL_PE_CAST_OTHER;
                 }
-                Gp_SetStateF0Bit(snd);
+                sceneLatchActionSignal(actionSignal);
                 if (actor->actionArgument == 0) {
                     mode = 0x1C;
                 } else if (actor->actionArgument == 1) {
@@ -7865,7 +7865,7 @@ static void Gp_PlayerNormalState6(Task* arg0)
                 break;
             }
         case 1:
-            Gp_SetStateF0Bit(2);
+            sceneLatchActionSignal(SCENE_COMBAT_ACTION_SIGNAL_PE_ACTIVE);
             break;
         case 4:
             break;

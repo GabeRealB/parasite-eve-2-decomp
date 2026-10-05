@@ -447,7 +447,7 @@ void func_mine_cavern_8017E0B4(void)
 {
     gSceneCombatState.signals.bytes.battlePhase = SCENE_COMBAT_BATTLE_IDLE;
     if (gSceneCombatState.battleRefs == 0) {
-        (Gp_IncStateF0Ref)(0);
+        (sceneAcquireBattleRef)(0);
     }
     Gp_ArmStateF0(1);
 }

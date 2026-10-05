@@ -2166,7 +2166,7 @@ static void func_actor_400600_80133434(Task* arg0)
     enemy->bodyPos.vy = 0;
     enemy->bodyPos.vz = 0;
     enemy->coord      = &arg0->extra.tmd->coords[3];
-    Gp_LinkNode(&enemy->node);
+    worldTargetLinkNode(&enemy->node);
     enemy->node.state.parts.flags = (WORLD_TARGET_NOT_LOCKABLE | WORLD_TARGET_KEEP_SCANNED);
     enemy->param                  = &D_actor_400600_80144EB0;
     enemy->recs                   = work->bodyContacts;
@@ -2188,7 +2188,7 @@ static void func_actor_400600_80133434(Task* arg0)
     func_actor_400600_8013203C(arg0);
     work->body.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
     func_actor_400600_801356E0(arg0);
-    (Gp_IncStateF0Ref)(0);
+    (sceneAcquireBattleRef)(0);
     func_actor_400600_80138A24(arg0, 1);
     w3                 = (_Actor400600ZebraStalkerWork*)arg0->work;
     w3->state          = 0;

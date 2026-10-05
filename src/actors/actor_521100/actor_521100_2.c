@@ -14,6 +14,7 @@
 #include "gameplay/message.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
+#include "gameplay/scene_combat.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
 #include "gameplay/world_targets.h"
@@ -477,7 +478,7 @@ s32 func_actor_521100_80135D58(Task* arg0, s32 arg1, ActorCommand* request, s32 
 s32 func_actor_521100_80135D9C(Task* arg0, s32 msgId, s32 arg2, s32 arg3)
 {
     ((Actor521100Work*)arg0->work)->activated = 1;
-    (Gp_IncStateF0Ref)(0);
+    (sceneAcquireBattleRef)(0);
     return 0;
 }
 

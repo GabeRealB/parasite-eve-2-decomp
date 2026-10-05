@@ -1224,7 +1224,7 @@ static void Actor01900_Fn02018(Enemy* enemy, Task* actor)
         enemyDestroy(enemy, actor);
         return;
     }
-    (Gp_IncStateF0Ref)(0);
+    (sceneAcquireBattleRef)(0);
     actor->exitCallback = Actor01900_Fn0A6CC;
     Actor01900_BindMatrices(actor);
     enemy->field_4    = &actor->extra.tmd->coords->coord;
@@ -1233,7 +1233,7 @@ static void Actor01900_Fn02018(Enemy* enemy, Task* actor)
     enemy->bodyPos.vy = 0;
     enemy->bodyPos.vz = 0;
     enemy->coord      = &actor->extra.tmd->coords[2];
-    Gp_LinkNode(&enemy->node);
+    worldTargetLinkNode(&enemy->node);
     enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
     enemy->reactionFlags          = 0;
     enemy->hp                     = (s16)Actor01900_D0AC54.hpMax;
@@ -2532,7 +2532,7 @@ static void Actor01900_Fn06634(Task* arg0)
         work->lookYaw                 = 0;
         work->lookYawTarget           = 0;
         if (enemy->hp < 0 && work->commandBytes[0] != 1 && work->commandBytes[1] != 3 && work->commandBytes[2] != 2) {
-            Gp_SetStateF0Byte3(1);
+            sceneSetEnemyAlert(1);
         }
         work->hitBody.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
     }
@@ -3257,7 +3257,7 @@ static void Actor01900_Fn09BE8(Task* arg0)
         work->lookYaw                 = 0;
         work->lookYawTarget           = 0;
         if (enemy->hp < 0) {
-            Gp_SetStateF0Byte3(1);
+            sceneSetEnemyAlert(1);
         }
         work->hitBody.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
     }

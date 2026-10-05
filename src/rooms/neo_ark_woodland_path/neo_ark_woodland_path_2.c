@@ -460,7 +460,7 @@ static void func_neo_ark_woodland_path_80180DDC(Task* task)
                     }
                 }
                 if (obj->hp > 0) {
-                    Gp_IncStateF0Ref(0);
+                    sceneAcquireBattleRef(0);
                     gRoamerCooldown += 0x5A;
                     TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(i), ACTOR_COMMAND_MESSAGE_APPLY, &gRoamerCommand, 0);
                     switch ((s16)(gRoamerSpawnRequest - 1)) {

@@ -68,9 +68,9 @@ void madChaserSpawnHidden(Task* task)
     coord->parent = &gGfxViewCoord;
     madChaserLinkBodies(task);
     w->rotation.vy = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]) + 0x800;
-    (Gp_IncStateF0Ref)(0);
+    (sceneAcquireBattleRef)(0);
     e2 = task->spawnArg2.pointer;
-    Gp_LinkNode(&e2->node);
+    worldTargetLinkNode(&e2->node);
     e2->field_4                = &task->extra.tmd->coords->coord;
     e2->field_48               = 0;
     e2->bodyPos.vx             = 0;

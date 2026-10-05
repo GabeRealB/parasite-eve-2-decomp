@@ -8022,10 +8022,11 @@ Assign the `(div + K)` term inside the add. That forces `lbu/sll/sra` for
 the tpage and pins K onto the divide result:
 
 ```c
-arg1->x = ((s8)extra->texturePageOffset << 6) + (x = (arg2->x + 1) / 2 + 0x180);
+uploadList->destination.x = (model->texturePageOffset << ACTOR_RENDER_TEXTURE_PAGE_WORD_SHIFT) +
+                           (baseXWords = (textureRect->x + 1) / 2 + ACTOR_RENDER_TEXTURE_BASE_X_WORDS);
 ```
 
-`Gp_LoadActorImage` is the example. The natural
+`actorRenderUploadTexture` is the example. The natural
 `tpage + (x + 1) / 2 + 0x180` stuck at 94% with only the `addiu 0x180`
 moved.
 
@@ -26158,7 +26159,7 @@ if (node->onList == 0) {
 node->flags = val & 0xFE;
 ```
 
-`u8 val` with the same pin does not stick (QImode). `Gp_LinkNode` is the
+`u8 val` with the same pin does not stick (QImode). `worldTargetLinkNode` is the
 example; the sibling `Gp_AssignNodeSlot0` needs no pin because its load and
 `= 1` stay in one block.
 
@@ -29400,7 +29401,7 @@ asm("" :: "r"(max));
 `temp = head - 8; dest = temp` keeps the subtract in `$v0` and the
 `move` into the dest s-reg. `*scratch = dest` (not `temp`) is the
 `sw s1`. Walk with `if (rec->field_0 == 0) { copy; LoadImage; } else
-{ done = 1; } rec++;` so work is the `bnez` fall-through. `Gp_LoadImages`
+{ done = 1; } rec++;` so work is the `bnez` fall-through. `gpuUploadImages`
 is the example. Assigning `max` before the scratch address stuck at
 97.9% with only those two instruction pairs swapped.
 
@@ -33575,7 +33576,7 @@ case 3:
     break;
 case 1:
 shared:
-    Gp_SetStateF0Bit(2);
+    sceneLatchActionSignal(2);
     break;
 ```
 
@@ -58207,14 +58208,14 @@ change was 99.94% -> 100%.
 
 ## A constant that must be live across a call has to be *used*, not just assigned
 
-`Gp_IncStateF0Ref` is called under an `if` and the `switch` after the join
+`sceneAcquireBattleRef` is called under an `if` and the `switch` after the join
 compares the spawn variant against 1 with `beq $v1, $s0`, i.e. against a
 callee-saved register:
 
 ```
 beqz  $v0, .Ljoin
  li   $s0, 1          ; delay slot, pulled out of the join block
-jal   Gp_IncStateF0Ref
+jal   sceneAcquireBattleRef
 ```
 
 A fresh `case 1` constant expanded inside the join block gets a call-clobbered
@@ -58231,7 +58232,7 @@ index:
 ```c
 axisY = 1;
 if (D_801153F6 < 3) {
-    ((void (*)(s32))Gp_IncStateF0Ref)(0);
+    ((void (*)(s32))sceneAcquireBattleRef)(0);
 }
 ...
     case 1:
@@ -70409,7 +70410,7 @@ store left outside cannot fill a slot inside, and vice versa (the permuter's
 first hit wrapped only the last two stores and scored 98.6%).
 
 ### `li $s0,1` right *after* a call: assign `one = 1` *before* the call
-`func_actor_342400_80163C58` ends with `jal Gp_IncStateF0Ref` then
+`func_actor_342400_80163C58` ends with `jal sceneAcquireBattleRef` then
 `lw v0,0x34(s3); li s0,1; andi; bne v0,s0` and `sw s0,0x30(s3)` (state = 1) in
 the else arm. Plain `if ((task->spawnArg1 & 0xF) == 1) ... task->state = 1;`
 scored 99.89%: the same code with the constant in `$v1`.
@@ -70428,7 +70429,7 @@ the `jal`:
 ```c
 enemy->node.flags = 4;
 one                 = 1;
-Gp_IncStateF0Ref(0);
+sceneAcquireBattleRef(0);
 if ((task->spawnArg1 & 0xF) == one) { ... task->state = 2; ... }
 else                                { ... task->state = one; ... }
 ```
@@ -82066,7 +82067,7 @@ only the address materialisation for its own argument:
 ```
 case 1:  lhu/addiu/sh/sll/bgez ; lui a1,%hi(D_...D28C) ; j .text+0xac ; addiu a1,a1,%lo(D_...D28C)
 case 2:  lhu/addiu/sh/sll/bgez ; lui a1,%hi(D_...CE84) ; addiu a1,a1,%lo(D_...CE84)
-0xac:    jal Gp_LoadActorImage ; addiu a2,sp,0x10 ; lbu v0,0x4ca ; lhu v1,0x4c4 ; addiu v0,v0,1 ;
+0xac:    jal actorRenderUploadTexture ; addiu a2,sp,0x10 ; lbu v0,0x4ca ; lhu v1,0x4c4 ; addiu v0,v0,1 ;
          sh v1,0x4c6 ; j .text+0xf8 ; sb v0,0x4ca
 ```
 
@@ -98799,7 +98800,7 @@ clearing arm, call and all, as the fall-through.
 ## A switch's case bodies are laid out in source order, so an out-of-order target layout is the source's case order (func_actor_511000_80132904, 2026-09-16)
 
 A four-value mode switch that stores one of three image records into a local and
-passes it to `Gp_LoadActorImage`, with the cases written ascending
+passes it to `actorRenderUploadTexture`, with the cases written ascending
 (`case 0: case 2:` ... then `case 1:` ...), scores **99.52%** (`branch=3
 regs=4`) with an otherwise perfect 48/48 instructions, matching predicates and
 matching calls and blocks. The only difference is which of the two
@@ -101631,7 +101632,7 @@ lhu   $v0, 0x1E($s0) / ori 0x8000 / sh
 Every one of those deltas is `WorldCollisionBody`'s, so the base is pinned rather than
 guessed, and `work->body.flags &= 0x7FFF` is the port. The same call site
 also types `Task::spawnArg2`: the handler's other argument (`$s0` here) gets
-`Gp_LinkNode($s0 + 0x10)`, `sb` at 0x14, `sw $zero` over the three words at
+`worldTargetLinkNode($s0 + 0x10)`, `sb` at 0x14, `sw $zero` over the three words at
 0x1C and `sb` at 0x48/0x4C/0x4D - all `Enemy` - so the ctx is `Enemy*`, not
 an overlay-local ctx, and 0x4D is a real field (`pad_4D` renamed to `field_4D`,
 size and offset unchanged). `Gp_AllocEnemy` confirms it from the other side:
@@ -103305,13 +103306,13 @@ the first register in `reg_alloc_order` not marked live over the quantity's
 `[birth, death)` span, so a chain born in the insn where its predecessor dies
 inherits that predecessor's register; and sched2 cannot hoist a load above the
 independent stores that precede it in the RTL. Both penalties came from one
-placement: moving the statement up to just after `Gp_LinkNode(&ctx->node);`
+placement: moving the statement up to just after `worldTargetLinkNode(&ctx->node);`
 made `$a3` free at the birth, and the loads then hoisted above the stores.
 100.000%, all penalties zero.
 
 The two matched siblings that share this function shape both put `field_18`
 first in that group — `func_actor_105100_801327B4` and this overlay's own
-`Actor00700_Fn01FE0` (`field_18` immediately after `Gp_LinkNode`, before
+`Actor00700_Fn01FE0` (`field_18` immediately after `worldTargetLinkNode`, before
 `node.flags`). Neither sibling's *object* shows that order: the store sinks to
 the end of the run anyway. Read the sibling's source for statement order, never
 its disassembly.
@@ -115799,12 +115800,12 @@ The fix is to name what each address belongs to instead of adding to a temp -
 compound-literal forms from the matched sibling `func_actor_107000_80133690` in
 the same TU, which builds the identical 0x2E4-byte block. Two differences beyond
 the arithmetic remain visible in the target and are load-bearing: the sibling's
-`((void (*)(s32))Gp_IncStateF0Ref)(0);` cast is what puts `addu $a0,$zero,$zero`
-in the `jal` delay slot of a `(void)` prototype, and the `| 0x8000` / `| 0xC200`
+`(sceneAcquireBattleRef)(0);` supplies the ignored `s32` argument that puts
+`addu $a0,$zero,$zero` in the `jal` delay slot, and the `| 0x8000` / `| 0xC200`
 forms here where the sibling has `& 0x7FFF` / `& 0x3DFF` are stored at the same
 statement positions. A dead `addiu $a0,$s1,0x10` in the destroy path's delay slot
 is `&index->node` (node is at 0x10) hoisted by the scheduler; it falls out of
-`Gp_LinkNode(&index->node)` on its own and needs nothing written for it.
+`worldTargetLinkNode(&index->node)` on its own and needs nothing written for it.
 
 Inputs: `base.i` (m2c seed, 91.220%), `base_1.c` (100.000%, all penalties 0)
 
@@ -115882,7 +115883,7 @@ blocks. Three statement moves closed it:
    100.000%.
 
 3. Everything else was already right: the `one` local (a named `s32 one = 1`)
-   keeps `$s5` live across `Gp_LinkNode`, `part = &coord[6]` lands in `$s7` in
+   keeps `$s5` live across `worldTargetLinkNode`, `part = &coord[6]` lands in `$s7` in
    the `bne` delay slot, and the work block's 0x1FC run is a `WorldCollisionCapsule`
    whose `contacts` names the single `WorldCollisionContact` beside it - not, as the m2c
    spelling suggests, a `WorldCollisionContact` at 0x1FC plus a stray word store at 0x210.
@@ -127933,7 +127934,7 @@ rather than falling through:
     lui    $a1, %hi(img2)
     addiu  $a1, $a1, %lo(img2)    /* case 2 falls into .Ltail */
 .Ltail:
-    jal    Gp_LoadActorImage
+    jal    actorRenderUploadTexture
 ```
 
 GCC reaches that shape from *duplicated source*, not from a shared helper and not
@@ -144573,7 +144574,7 @@ load wins 8 refs over 86 against the block's 12 over 140, and neither span can
 move past the calls and volatile asm that bound them. Wrapping any single
 statement range in `do { } while (0)` doubles the refs inside it, but loop
 notes are also scheduling barriers, and no range matched.
-## A constant loaded into a callee-saved register and never read is a case compare that jump2 deleted (Gp_LoadImages, 2026-09-26)
+## A constant loaded into a callee-saved register and never read is a case compare that jump2 deleted (gpuUploadImages, 2026-09-26)
 
 The target set `li $s4,0xFF` in the prologue of a record-walking loop and never
 used `$s4` again; the seed kept it with a pinned `max` local and

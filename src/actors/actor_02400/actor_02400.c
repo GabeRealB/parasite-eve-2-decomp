@@ -414,7 +414,7 @@ static void Actor02400_Fn0095C(Enemy* enemy, Task* task)
     }
     enemy->field_4  = &coord->coord;
     enemy->field_48 = 0;
-    Gp_LinkNode(&enemy->node);
+    worldTargetLinkNode(&enemy->node);
     enemy->bodyPos.vy             = -0x96;
     enemy->coord                  = coord;
     enemy->node.state.parts.flags = 0;
@@ -431,7 +431,7 @@ static void Actor02400_Fn0095C(Enemy* enemy, Task* task)
     work->effectArg.coord      = &task->extra.tmd->coords[1];
     work->effectArg.spawnArgLo = 0x200;
     work->effectArg.spawnArgHi = 1;
-    Gp_IncStateF0Ref(0);
+    sceneAcquireBattleRef(0);
     work->scale.vx              = ACTOR_02400_SCALE_FLAT;
     work->scale.vy              = ACTOR_02400_SCALE_FLAT;
     work->scale.vz              = ACTOR_02400_SCALE_FLAT;

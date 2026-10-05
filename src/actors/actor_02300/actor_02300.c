@@ -1286,7 +1286,7 @@ static void Actor02300_Fn028AC(Enemy* enemy, Task* actor)
         case 0:
             enemy->field_4  = &coord->coord;
             enemy->field_48 = 0;
-            Gp_LinkNode(&enemy->node);
+            worldTargetLinkNode(&enemy->node);
             parts             = actor->extra.tmd->coords;
             enemy->bodyPos.vx = 0;
             enemy->bodyPos.vy = 0;
@@ -1295,7 +1295,7 @@ static void Actor02300_Fn028AC(Enemy* enemy, Task* actor)
             enemy->recs       = work->hurtContacts;
             enemy->coord      = &parts[3];
             enemy->hp         = Actor02300_D159D8.hpMax;
-            Gp_IncStateF0Ref(0);
+            sceneAcquireBattleRef(0);
             work->patrols = enemy->place->mode & 1;
             if (work->patrols == 0) {
                 work->anim     = 1;

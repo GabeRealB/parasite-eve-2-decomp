@@ -37,7 +37,7 @@ void sucklercephSpawnState(Enemy* arg0, Task* arg1)
     obj->colorMtx       = &work->colorMtx;
     arg0->field_4       = &coord[1].coord;
     arg0->field_48      = 0;
-    Gp_LinkNode(&arg0->node);
+    worldTargetLinkNode(&arg0->node);
     arg0->coord                  = part;
     arg0->node.state.parts.flags = 0;
     arg0->bodyPos.vx             = 0;
@@ -52,7 +52,7 @@ void sucklercephSpawnState(Enemy* arg0, Task* arg1)
         animationResetSlot(&work->anim, i, SUCKLERCEPH_ANIM_IDLE);
         i += 1;
     } while (i < ARRAY_SIZE(work->slots));
-    (Gp_IncStateF0Ref)(0);
+    (sceneAcquireBattleRef)(0);
     work->animId                     = SUCKLERCEPH_ANIM_IDLE;
     work->appliedAnim                = SUCKLERCEPH_ANIM_IDLE;
     work->swellScale                 = ONE;

@@ -329,7 +329,7 @@ void desertChaserRoam(Task* arg0)
                     }
                     if ((yawDifference >= 0x601)
 #if !DESERT_CHASER_RUN_SEQUENCE
-                        || (Gp_NodeSlotMask(&ctx->node) == 0)
+                        || (worldTargetGetActorLockMask(&ctx->node) == 0)
 #endif
                     ) {
                         work->state = 0x1C;

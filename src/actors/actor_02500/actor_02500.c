@@ -687,7 +687,7 @@ static void Actor02500_Fn00078(Enemy* ctx, Task* actor)
     obj->colorMtx       = &work->colorMtx;
     ctx->field_4        = &coord->coord;
     ctx->field_48       = 0;
-    Gp_LinkNode(&ctx->node);
+    worldTargetLinkNode(&ctx->node);
     ctx->bodyPos.vy               = -0x96;
     ctx->coord                    = coord;
     ctx->node.state.parts.flags   = 0;
@@ -704,7 +704,7 @@ static void Actor02500_Fn00078(Enemy* ctx, Task* actor)
     for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
         animationResetSlot(&work->rig.anim, i, work->anim);
     }
-    Gp_IncStateF0Ref(0);
+    sceneAcquireBattleRef(0);
     switch (ctx->place->mode) {
         case 0:
             work->action     = ACTOR_02500_ACTION_WANDER;

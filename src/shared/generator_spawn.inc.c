@@ -29,7 +29,7 @@ void generatorSpawn(Enemy* arg0, Task* arg1)
     obj->colorMtx       = &work->colorMtx;
     arg0->field_4       = &coord->coord;
     arg0->field_48      = 0;
-    Gp_LinkNode(&arg0->node);
+    worldTargetLinkNode(&arg0->node);
     arg0->coord                = coord;
     arg0->bodyPos.vx           = gGeneratorSpawnOffsets[GENERATOR_KIND].vx;
     arg0->bodyPos.vy           = gGeneratorSpawnOffsets[GENERATOR_KIND].vy;
@@ -44,7 +44,7 @@ void generatorSpawn(Enemy* arg0, Task* arg1)
     for (i = 1; i < ARRAY_SIZE(work->slots); i++) {
         animationResetSlot(&work->anim, i, GENERATOR_ANIM_IDLE);
     }
-    (Gp_IncStateF0Ref)(0);
+    (sceneAcquireBattleRef)(0);
     work->kind                      = GENERATOR_KIND;
     work->shrinkScale               = ONE;
     work->unscaledMtx               = coord->coord;

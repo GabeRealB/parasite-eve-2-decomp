@@ -778,7 +778,7 @@ static void Actor03700_Fn000A4(Enemy* arg0, Task* task)
     obj->colorMtx       = &work->colorMtx;
     arg0->field_4       = &coord->coord;
     arg0->field_48      = 0;
-    Gp_LinkNode(&arg0->node);
+    worldTargetLinkNode(&arg0->node);
     arg0->param                   = &Actor03700_D07F0C;
     arg0->coord                   = coord;
     arg0->node.state.parts.flags  = 0;
@@ -841,7 +841,7 @@ static void Actor03700_Fn000A4(Enemy* arg0, Task* task)
     for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
         work->rig.slots[i].rate += kind;
     }
-    (Gp_IncStateF0Ref)(0);
+    (sceneAcquireBattleRef)(0);
     work->homePos.vx            = coord->coord.t[0];
     work->homePos.vy            = coord->coord.t[1];
     work->homePos.vz            = coord->coord.t[2];

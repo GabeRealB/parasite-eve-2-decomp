@@ -109,7 +109,7 @@ void golemKnightBishopStrikeSeq(Task* arg0)
                     work->colorBlendFadeFrames   = 8;
                     work->timer                  = work->translucencyFadeFrames + work->colorBlendFadeFrames;
                 }
-                Gp_ClearNodeSlots(&((Enemy*)arg0->spawnArg2.pointer)->node);
+                worldTargetDisableNodeLockOn(&((Enemy*)arg0->spawnArg2.pointer)->node);
             }
             break;
         case 3:

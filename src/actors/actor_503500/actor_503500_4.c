@@ -759,7 +759,7 @@ static void func_actor_503500_8013AD64(Task* arg0)
     mtx->m[2][2]                     = 0x1000;
     enemy->field_4                   = mtx;
     enemy->field_48                  = 0;
-    Gp_LinkNode(&enemy->node);
+    worldTargetLinkNode(&enemy->node);
     enemy->coord                   = coord;
     enemy->node.state.parts.flags |= (WORLD_TARGET_HIDE_HP | WORLD_TARGET_NOT_LOCKABLE);
     enemy->bodyPos.vx              = D_actor_503500_8016F0F0[idx].vx;
@@ -1044,7 +1044,7 @@ static void func_actor_503500_8013B8D0(Task* arg0)
             worldTargetUnlinkNode(&enemy->node);
             func_actor_503500_80135CE8(arg0->parent, arg0->spawnArg1.value);
             work->hitCooldown = 0;
-            (Gp_IncStateF0Ref)(0);
+            (sceneAcquireBattleRef)(0);
             Gp_ReleaseStateF0Add(arg0, 0);
             func_actor_503500_80136048(arg0->parent);
             enemy->reactionFlags &= ENEMY_REACTION_LOW_CLEAR;
@@ -1257,7 +1257,7 @@ static void func_actor_503500_8013BEE4(Task* arg0)
     mtx->m[2][2]                     = 0x1000;
     enemy->field_4                   = mtx;
     enemy->field_48                  = 0;
-    Gp_LinkNode(&enemy->node);
+    worldTargetLinkNode(&enemy->node);
     enemy->coord                  = coord;
     enemy->node.state.parts.flags = (enemy->node.state.parts.flags | WORLD_TARGET_HIDE_HP) & WORLD_TARGET_NOT_LOCKABLE_CLEAR;
     enemy->bodyPos.vx             = D_actor_503500_8016F1B0.vx;
@@ -1416,7 +1416,7 @@ static void func_actor_503500_8013C558(Task* arg0)
             worldTargetUnlinkNode(&((Enemy*)arg0->spawnArg2.pointer)->node);
             func_actor_503500_80135CE8(arg0->parent, arg0->spawnArg1.value);
             work->hitCooldown = 0;
-            (Gp_IncStateF0Ref)(0);
+            (sceneAcquireBattleRef)(0);
             Gp_ReleaseStateF0Add(arg0, 0);
             func_actor_503500_80136048(arg0->parent);
             ((Enemy*)arg0->spawnArg2.pointer)->reactionFlags &= ENEMY_REACTION_LOW_CLEAR;
@@ -1869,7 +1869,7 @@ static void func_actor_503500_8013D558(Task* arg0)
             worldTargetUnlinkNode(&((Enemy*)arg0->spawnArg2.pointer)->node);
             func_actor_503500_80135CE8(arg0->parent, arg0->spawnArg1.value);
             work->hitCooldown = 0;
-            (Gp_IncStateF0Ref)(0);
+            (sceneAcquireBattleRef)(0);
             Gp_ReleaseStateF0Add(arg0, 0);
             func_actor_503500_80136048(arg0->parent);
             ((Enemy*)arg0->spawnArg2.pointer)->reactionFlags &= ENEMY_REACTION_LOW_CLEAR;
@@ -2110,7 +2110,7 @@ static void func_actor_503500_8013DC4C(Task* arg0)
         func_actor_503500_8013DBA8(arg0, ACTOR_503500_CHAIN_BASE_STATE_EXPOSED);
         work              = arg0->work;
         work->body.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-        Gp_LinkNode(&((Enemy*)arg0->spawnArg2.pointer)->node);
+        worldTargetLinkNode(&((Enemy*)arg0->spawnArg2.pointer)->node);
     }
 }
 
@@ -2154,7 +2154,7 @@ static void func_actor_503500_8013DD10(Task* arg0)
     mtx->m[2][2]                     = 0x1000;
     enemy->field_4                   = mtx;
     enemy->field_48                  = 0;
-    Gp_LinkNode(&enemy->node);
+    worldTargetLinkNode(&enemy->node);
     enemy->coord                  = coord;
     enemy->node.state.parts.flags = (enemy->node.state.parts.flags | WORLD_TARGET_HIDE_HP) & WORLD_TARGET_NOT_LOCKABLE_CLEAR;
     enemy->bodyPos.vx             = D_actor_503500_8016F2D8.vx;
@@ -2406,7 +2406,7 @@ static void func_actor_503500_8013E740(Task* arg0)
             worldTargetUnlinkNode(&enemy->node);
             func_actor_503500_80135CE8(arg0->parent, arg0->spawnArg1.value);
             work->hitCooldown = 0;
-            (Gp_IncStateF0Ref)(0);
+            (sceneAcquireBattleRef)(0);
             Gp_ReleaseStateF0Add(arg0, 0);
             func_actor_503500_80136048(arg0->parent);
             enemy->reactionFlags &= ENEMY_REACTION_LOW_CLEAR;
@@ -2603,7 +2603,7 @@ static void func_actor_503500_8013ECBC(Task* arg0)
     mtx->m[2][2]                     = 0x1000;
     enemy->field_4                   = mtx;
     enemy->field_48                  = 0;
-    Gp_LinkNode(&enemy->node);
+    worldTargetLinkNode(&enemy->node);
     enemy->coord                   = coord;
     enemy->node.state.parts.flags |= (WORLD_TARGET_HIDE_HP | WORLD_TARGET_NOT_LOCKABLE);
     enemy->bodyPos.vx              = D_actor_503500_8016F36C.vx;
@@ -2816,7 +2816,7 @@ static void func_actor_503500_8013F4A4(Task* arg0)
             worldTargetUnlinkNode(&enemy->node);
             func_actor_503500_80135CE8(arg0->parent, arg0->spawnArg1.value);
             work->hitCooldown = 0;
-            (Gp_IncStateF0Ref)(0);
+            (sceneAcquireBattleRef)(0);
             Gp_ReleaseStateF0Add(arg0, 0);
             func_actor_503500_80136048(arg0->parent);
             enemy->reactionFlags &= ENEMY_REACTION_LOW_CLEAR;
@@ -3104,7 +3104,7 @@ static void func_actor_503500_8013FA74(Task* arg0)
             func_actor_503500_80142310(arg0, ACTOR_503500_LUNGING_CHAIN_STATE_REGROWING);
             break;
         default:
-            Gp_LinkNode(&enemy->node);
+            worldTargetLinkNode(&enemy->node);
             enemy->hp         = D_actor_503500_8016E7EC[arg0->spawnArg1.value].hpMax;
             work->blendWeight = 0x1000;
             work->body.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
@@ -3354,7 +3354,7 @@ static void func_actor_503500_80140654(Task* arg0)
             worldTargetUnlinkNode(&enemy->node);
             func_actor_503500_80135CE8(arg0->parent, arg0->spawnArg1.value);
             work->hitCooldown = 0;
-            (Gp_IncStateF0Ref)(0);
+            (sceneAcquireBattleRef)(0);
             Gp_ReleaseStateF0Add(arg0, 0);
             func_actor_503500_80136048(arg0->parent);
             enemy->reactionFlags &= ENEMY_REACTION_LOW_CLEAR;
@@ -3912,7 +3912,7 @@ static void func_actor_503500_80141F48(Task* arg0)
     work               = arg0->work;
     work->blendWeight += 0x10;
     if (work->blendWeight > 0x1000) {
-        Gp_LinkNode(&((Enemy*)arg0->spawnArg2.pointer)->node);
+        worldTargetLinkNode(&((Enemy*)arg0->spawnArg2.pointer)->node);
         work->blendWeight = 0x1000;
         work->body.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
         func_actor_503500_80142310(arg0, ACTOR_503500_LUNGING_CHAIN_STATE_IDLE);
@@ -3947,7 +3947,7 @@ static void func_actor_503500_80141FC8(Task* arg0)
         case 1:
             work->blendWeight += 0x20;
             if (work->blendWeight > 0x1000) {
-                Gp_LinkNode(&((Enemy*)arg0->spawnArg2.pointer)->node);
+                worldTargetLinkNode(&((Enemy*)arg0->spawnArg2.pointer)->node);
                 work->blendWeight = 0x1000;
                 work->body.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
                 func_actor_503500_80142310(arg0, ACTOR_503500_LUNGING_CHAIN_STATE_IDLE);
@@ -4301,7 +4301,7 @@ static void func_actor_503500_80142980(Task* arg0)
             worldTargetUnlinkNode(&enemy->node);
             func_actor_503500_80135CE8(arg0->parent, arg0->spawnArg1.value);
             work->hitCooldown = 0;
-            (Gp_IncStateF0Ref)(0);
+            (sceneAcquireBattleRef)(0);
             Gp_ReleaseStateF0Add(arg0, 0);
             func_actor_503500_80136048(arg0->parent);
             enemy->reactionFlags             &= ENEMY_REACTION_LOW_CLEAR;
@@ -4929,7 +4929,7 @@ static void func_actor_503500_801441E8(Task* arg0)
 
     work              = arg0->work;
     work->body.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-    Gp_LinkNode(&((Enemy*)arg0->spawnArg2.pointer)->node);
+    worldTargetLinkNode(&((Enemy*)arg0->spawnArg2.pointer)->node);
     func_actor_503500_80144238(arg0, ACTOR_503500_ARM_STATE_IDLE);
 }
 

@@ -59,7 +59,7 @@ static u_long Text_FillClutPixels[] = {
 };
 /// Upload list for the fill palettes: one copy to (256, 243) and the end record.
 ///
-/// The palette data carries the list form that gameplay's `Gp_LoadImages`
+/// The palette data carries the list form that gameplay's `gpuUploadImages`
 /// walks, but the resident executable never reads it: `Text_LoadClutImages`
 /// uploads the same words to the same rectangle itself.
 static GpuImageUpload Text_FillClut[2] = {

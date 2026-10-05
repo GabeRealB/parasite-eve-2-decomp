@@ -515,7 +515,7 @@ static void func_actor_342400_80162A34(Task* arg0)
     OverlayEncounterControllerWork* work = arg0->work;
 
     if (++work->frames == 15) {
-        (Gp_IncStateF0Ref)(0);
+        (sceneAcquireBattleRef)(0);
         gGameSession->spawnPhase[1] = GAME_SESSION_SPAWN_ARMED;
         Gp_ArmStateF0(1);
         arg0->state++;

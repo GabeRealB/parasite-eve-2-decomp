@@ -525,7 +525,7 @@ static void func_actor_205200_8014AE0C(Enemy* arg0, Task* arg1)
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     arg0->field_4       = mat;
     arg0->field_48      = 0;
-    Gp_LinkNode(&arg0->node);
+    worldTargetLinkNode(&arg0->node);
     arg0->coord      = coord;
     arg0->bodyPos.vx = 0;
     arg0->bodyPos.vy = 0;
@@ -533,7 +533,7 @@ static void func_actor_205200_8014AE0C(Enemy* arg0, Task* arg1)
     arg0->param      = &D_actor_205200_8014C9BC;
     arg0->recs       = part->contacts;
     arg0->hp         = D_actor_205200_8014C9BC.hpMax;
-    (Gp_IncStateF0Ref)(0);
+    (sceneAcquireBattleRef)(0);
     part->effectArg.spawnArgLo  = 0x400;
     part->effectArg.spawnArgHi  = 3;
     part->effectArg.coord       = coord;

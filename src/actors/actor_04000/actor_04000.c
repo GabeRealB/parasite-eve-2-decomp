@@ -1485,7 +1485,7 @@ static void Actor04000_Fn010B8(Enemy* arg0, Task* arg1)
     arg0->bodyPos.vy = 0;
     arg0->bodyPos.vz = 0;
     arg0->coord      = arg1->extra.tmd->coords + 2;
-    Gp_LinkNode(&arg0->node);
+    worldTargetLinkNode(&arg0->node);
     arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
     arg0->reactionFlags          = 0;
     arg0->hp = arg0->hpMax    = Actor04000_D07084.hpMax;
@@ -1535,7 +1535,7 @@ static void Actor04000_Fn010B8(Enemy* arg0, Task* arg1)
     work->patrolPoints[1].vy = arg1->extra.tmd->coords->coord.t[1];
     work->patrolPoints[1].vz = arg1->extra.tmd->coords->coord.t[2] - sv.vz;
     /* the gameplay prototype takes no argument, but this call site passes 0 */
-    (Gp_IncStateF0Ref)(0);
+    (sceneAcquireBattleRef)(0);
     if ((arg1->spawnArg1.value >> 16) == 0) {
         work->state = ACTOR_04000_STATE_PATROL;
     } else if ((arg1->spawnArg1.value >> 16) == 1) {
@@ -2614,7 +2614,7 @@ static void Actor04000_Fn0522C(Enemy* arg0, Task* arg1)
     animDriverTick(arg1);
     if ((u8)viewGetMappedIndex() == 5) {
         arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-        Gp_ClearNodeSlots(&(arg0)->node);
+        worldTargetDisableNodeLockOn(&(arg0)->node);
         return;
     }
     arg0->node.state.parts.flags = 0;

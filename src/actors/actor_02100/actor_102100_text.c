@@ -597,7 +597,7 @@ static void Actor02100_Fn00048(Enemy* arg0, Task* arg1)
     gte_stclmv(column2);
     arg0->field_4  = matrix;
     arg0->field_48 = 0;
-    Gp_LinkNode(&arg0->node);
+    worldTargetLinkNode(&arg0->node);
     arg0->bodyPos.vz           = 0x96;
     arg0->coord                = coord;
     arg0->bodyPos.vx           = 0;
@@ -608,7 +608,7 @@ static void Actor02100_Fn00048(Enemy* arg0, Task* arg1)
     work->hitEffect.coord      = coord;
     work->hitEffect.spawnArgLo = 0x200;
     work->hitEffect.spawnArgHi = 1;
-    Gp_IncStateF0Ref(0);
+    sceneAcquireBattleRef(0);
     scale = 0x19;
     if (work->patrolRange == 0) {
         work->mode = ACTOR_02100_MODE_WATCH;

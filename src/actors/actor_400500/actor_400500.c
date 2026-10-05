@@ -2894,7 +2894,7 @@ static void func_actor_400500_80135414(Task* arg0)
     enemy->bodyPos.vy = 0;
     enemy->bodyPos.vz = 0;
     enemy->coord      = &arg0->extra.tmd->coords[3];
-    Gp_LinkNode(&enemy->node);
+    worldTargetLinkNode(&enemy->node);
     enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
     enemy->recs                   = work->bodyContacts;
     enemy->param                  = &D_actor_400500_80153C90;
@@ -2931,7 +2931,7 @@ static void func_actor_400500_80135414(Task* arg0)
     extra2->shading.colorBlend = work5->colorBlend;
     func_actor_400500_80132000(arg0);
     func_actor_400500_8013226C(arg0);
-    Gp_IncStateF0Ref(0);
+    sceneAcquireBattleRef(0);
     coord2                     = arg0->extra.tmd->coords;
     work->effectArg.spawnArgLo = 0x100;
     work->effectArg.spawnArgHi = 3;

@@ -764,7 +764,7 @@ static void Actor01200_Fn00A6C(Enemy* arg0, Task* arg1)
     arg0->bodyPos.vy = 0;
     arg0->bodyPos.vz = 0;
     arg0->coord      = arg1->extra.tmd->coords + 2;
-    Gp_LinkNode(&arg0->node);
+    worldTargetLinkNode(&arg0->node);
     arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
     arg0->hp = arg0->hpMax = 1;
     arg0->reactionFlags    = 0;
@@ -814,7 +814,7 @@ static void Actor01200_Fn00A6C(Enemy* arg0, Task* arg1)
     work->patrolPoints[1].vx = arg1->extra.tmd->coords->coord.t[0] - sv.vx;
     work->patrolPoints[1].vy = arg1->extra.tmd->coords->coord.t[1];
     work->patrolPoints[1].vz = arg1->extra.tmd->coords->coord.t[2] - sv.vz;
-    (Gp_IncStateF0Ref)(0);
+    (sceneAcquireBattleRef)(0);
     if ((arg1->spawnArg1.value >> 16) == 0) {
         work->state = ACTOR_01200_STATE_PATROL;
     } else if ((arg1->spawnArg1.value >> 16) == 1) {

@@ -6,7 +6,26 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 
+#include "gameplay/gpu_image_upload.h"
+
 #include "main/coord.h"
+#include "main/task_types.h"
+
+/// Queues texture copies after placing the first entry on an actor's texture page.
+///
+/// `actorTask` must be live with a TMD extra. A NULL `uploadList` returns 1
+/// without accessing `textureRect`; a present list returns 0 regardless of SDK
+/// transfer results. A present list must be writable and terminated as required
+/// by `gpuUploadImages`, and `textureRect` must be readable for this call.
+///
+/// The input rectangle mixes units: X counts two positions per 16-bit VRAM
+/// word, width counts VRAM words, and Y/height count rows. The first destination
+/// becomes X = 384 + trunc((X + 1) / 2) + 64 * signed texture-page displacement,
+/// Y = 256 + Y, with width and height copied verbatim. Stores retain the low
+/// 16 bits. Later entries keep their destinations. The resulting rectangles
+/// must fit VRAM and the payload must cover the replaced width and height;
+/// pixel storage remains borrowed until GPU transfer completes.
+s32 actorRenderUploadTexture(Task* actorTask, GpuImageUpload* uploadList, const RECT* textureRect);
 
 /// Refreshes a coordinate's cached transform through its complete parent chain.
 ///

@@ -1366,7 +1366,7 @@ static void Actor00400_Fn00B48(Task* arg0)
     obj->bodyPos.vz            = 0;
     slot                       = work->targetPart;
     obj->coord                 = &arg0->extra.tmd->coords[slot];
-    Gp_LinkNode(&obj->node);
+    worldTargetLinkNode(&obj->node);
     obj->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
     obj->recs                   = work->hitContacts;
     obj->param                  = &Actor00400_D0FDC8;
@@ -2618,7 +2618,7 @@ static void Actor00400_Fn03920(Task* arg0)
             arg0->state    = 7;
             w->state       = 0;
             w->subState    = 0;
-            Gp_IncStateF0Ref(0);
+            sceneAcquireBattleRef(0);
             obj->hp = (s16)obj->hpMax / 8;
             break;
         case 6:
@@ -2633,7 +2633,7 @@ static void Actor00400_Fn03920(Task* arg0)
             arg0->state    = 6;
             w->state       = 0;
             w->subState    = 0;
-            Gp_IncStateF0Ref(0);
+            sceneAcquireBattleRef(0);
             obj->hp    = (s16)obj->hpMax / 8;
             pos        = arg0->extra.tmd->coords;
             stainEnemy = arg0->spawnArg2.pointer;
@@ -2774,7 +2774,7 @@ static void Actor00400_Fn03920(Task* arg0)
             work->goalY       = (u16)work->waterLevel;
             coord->coord.t[1] = work->surfaceSpot.vy + work->waterLevel + 0x7D0;
             coord->coord.t[2] = work->surfaceSpot.vz;
-            Gp_IncStateF0Ref(0);
+            sceneAcquireBattleRef(0);
             w           = arg0->work;
             arg0->state = 3;
             w->state    = 0;
@@ -4322,7 +4322,7 @@ static void Actor00400_Fn07738(Task* arg0)
 
     work  = arg0->work;
     coord = arg0->extra.tmd->coords;
-    Gp_IncStateF0Ref(0);
+    sceneAcquireBattleRef(0);
     gRandomLcgState  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
     work->bobPhase   = gRandomLcgState >> 16;
     gRandomLcgState  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
@@ -5230,7 +5230,7 @@ static void Actor00400_Fn090B4(Task* arg0)
 
     work                                                      = arg0->work;
     ((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = 0;
-    Gp_IncStateF0Ref(0);
+    sceneAcquireBattleRef(0);
     work->bobPhase   = 0;
     work->frameCount = 0x174B;
     w                = arg0->work;
@@ -5759,7 +5759,7 @@ static void Actor00400_Fn09FDC(Task* arg0)
     if (((_Actor00400Work*)arg0->work)->command == ACTOR_00400_COMMAND_FIGHT) {
         obj->node.state.parts.flags = 0;
         Actor00400_Fn02FF8(arg0);
-        Gp_IncStateF0Ref(0);
+        sceneAcquireBattleRef(0);
         work           = arg0->work;
         work->state    = ACTOR_00400_SWIM_STATE_DIVE;
         work->subState = 0;
@@ -5775,7 +5775,7 @@ static void Actor00400_Fn0A034(Task* arg0)
     if (((_Actor00400Work*)arg0->work)->command == ACTOR_00400_COMMAND_FIGHT) {
         obj->node.state.parts.flags = 0;
         Actor00400_Fn02FF8(arg0);
-        Gp_IncStateF0Ref(0);
+        sceneAcquireBattleRef(0);
         work           = arg0->work;
         work->state    = ACTOR_00400_SWIM_STATE_DIVE;
         work->subState = 0;

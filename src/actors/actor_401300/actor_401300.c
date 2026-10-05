@@ -1371,7 +1371,7 @@ s32 func_actor_401300_80132554(Task* arg0, s32 arg1, ActorCommand* arg2, s32 arg
                 if ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) == 0) {
                     work->state = ACTOR_401300_STATE_ALERT;
                     enemy->hp   = D_actor_401300_80141FA0.hpMax;
-                    (Gp_IncStateF0Ref)(0);
+                    (sceneAcquireBattleRef)(0);
                 }
                 return 1;
         }
@@ -2217,7 +2217,7 @@ static void func_actor_401300_80134454(Enemy* enemy, Task* actor)
         return;
     }
     if ((actor->spawnArg1.value >> 16) != 2) {
-        (Gp_IncStateF0Ref)(0);
+        (sceneAcquireBattleRef)(0);
     }
     actor->exitCallback = func_actor_401300_80141758;
     Actor401300_BindMatrices(actor);
@@ -2227,7 +2227,7 @@ static void func_actor_401300_80134454(Enemy* enemy, Task* actor)
     enemy->bodyPos.vy = 0;
     enemy->bodyPos.vz = 0;
     enemy->coord      = &actor->extra.tmd->coords[2];
-    Gp_LinkNode(&enemy->node);
+    worldTargetLinkNode(&enemy->node);
     enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
     enemy->reactionFlags          = 0;
     enemy->hp                     = (s16)D_actor_401300_80141FA0.hpMax;
@@ -3555,7 +3555,7 @@ static void func_actor_401300_80138CF8(Task* arg0)
         work->lookYaw                 = 0;
         work->lookYawTarget           = 0;
         if (enemy->hp <= 0) {
-            Gp_SetStateF0Byte3(1);
+            sceneSetEnemyAlert(1);
         }
         work->jointPairTarget = 0x20;
         work->jointPairStep   = 8;
@@ -3607,7 +3607,7 @@ static void func_actor_401300_80138FCC(Task* arg0)
         work->lookYaw                 = 0;
         work->lookYawTarget           = 0;
         if (enemy->hp <= 0) {
-            Gp_SetStateF0Byte3(1);
+            sceneSetEnemyAlert(1);
         }
         work->jointPairTarget = 0x20;
         work->jointPairStep   = 8;
@@ -5259,7 +5259,7 @@ static void func_actor_401300_80140300(Task* arg0)
         work->lookYaw                 = 0;
         work->lookYawTarget           = 0;
         if (enemy->hp <= 0) {
-            Gp_SetStateF0Byte3(1);
+            sceneSetEnemyAlert(1);
         }
         work->jointPairTarget = 0x40;
         work->jointPairBlend  = 0xC8;
@@ -5305,7 +5305,7 @@ static void func_actor_401300_8014046C(Task* arg0)
         work->jointPairBlend          = 0xC8;
         work->jointPairStep           = 0x40;
         if (enemy->hp <= 0) {
-            Gp_SetStateF0Byte3(1);
+            sceneSetEnemyAlert(1);
         }
         work->hitBody.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
     }

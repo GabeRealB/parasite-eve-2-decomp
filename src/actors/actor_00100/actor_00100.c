@@ -1949,7 +1949,7 @@ static void Actor00100_Fn02C54(Enemy* arg0, Task* arg1)
         enemyDestroy(arg0, arg1);
         return;
     }
-    (Gp_IncStateF0Ref)(0);
+    (sceneAcquireBattleRef)(0);
     arg1->exitCallback = desertChaserExit;
     mapped             = arg1->work;
     model              = arg1->extra.tmd;
@@ -1961,7 +1961,7 @@ static void Actor00100_Fn02C54(Enemy* arg0, Task* arg1)
     arg0->bodyPos.vy   = 0;
     arg0->bodyPos.vz   = 0;
     arg0->coord        = &arg1->extra.tmd->coords[2];
-    Gp_LinkNode(&arg0->node);
+    worldTargetLinkNode(&arg0->node);
     arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
     arg0->reactionFlags          = 0;
     arg0->hp                     = Actor00100_D0BDA4.hpMax;
@@ -3713,7 +3713,7 @@ static void Actor00100_Fn0BB2C(Task* arg0)
         work->lookYawTarget                                   = 0;
         work->waistYawTarget                                  = 0;
         if (ctx->hp <= 0) {
-            Gp_SetStateF0Byte3(1);
+            sceneSetEnemyAlert(1);
         }
     }
     desertChaserAnimTick(arg0);

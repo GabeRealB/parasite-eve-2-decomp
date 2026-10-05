@@ -869,7 +869,7 @@ static void Actor01500_Fn00094(Enemy* arg0, Task* arg1)
     obj->colorMtx       = &work->colorMtx;
     arg0->field_4       = &coord->coord;
     arg0->field_48      = 0;
-    Gp_LinkNode(&arg0->node);
+    worldTargetLinkNode(&arg0->node);
     arg0->coord                   = &arg1->extra.tmd->coords[2];
     arg0->node.state.parts.flags  = 0;
     arg0->bodyPos.vx              = 0;
@@ -917,7 +917,7 @@ static void Actor01500_Fn00094(Enemy* arg0, Task* arg1)
             work->loopSoundTimer = ACTOR_01500_FLIGHT_START_TICKS;
             break;
     }
-    (Gp_IncStateF0Ref)(0);
+    (sceneAcquireBattleRef)(0);
     animationInitContext(&work->rig.anim, Actor01500_D0A014, obj, work->rig.poses, work->rig.slots);
     for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
         animationResetSlot(&work->rig.anim, i, work->anim);
@@ -1197,7 +1197,7 @@ static void Actor01500_Fn00AFC(Task* actor, s32 damage)
         work->loopSound = 0;
         work->animFrame = 0;
     }
-    Gp_SetStateF0Byte3(2);
+    sceneSetEnemyAlert(2);
 }
 
 /// `ACTOR_01500_ACTION_PERCH`: waits on the spawn perch. The player coming
@@ -2115,8 +2115,8 @@ static void Actor01500_Fn027B0(Task* actor)
     u16              val;
 
     if (++work->timer == 60) {
-        Gp_SetStateF0Byte3(1);
-        Gp_SetStateF0Bit(1);
+        sceneSetEnemyAlert(1);
+        sceneLatchActionSignal(SCENE_COMBAT_ACTION_SIGNAL_NOISE);
     }
     anim = ACTOR_01500_ANIM_TAKE_OFF_WALL;
     if (work->timer >= 90) {

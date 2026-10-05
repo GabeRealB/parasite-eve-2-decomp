@@ -423,7 +423,7 @@ static void func_actor_205200_8014BAE8(Enemy* enemy, Task* task)
     tmd->colorMtx        = &work->colorMtx;
     enemy->field_4       = &coords->coord;
     enemy->field_48      = 0;
-    Gp_LinkNode(&enemy->node);
+    worldTargetLinkNode(&enemy->node);
     enemy->coord                  = &task->extra.tmd->coords[3];
     enemy->node.state.parts.flags = (WORLD_TARGET_NOT_LOCKABLE | WORLD_TARGET_KEEP_SCANNED);
     enemy->bodyPos.vx             = 0;

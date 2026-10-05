@@ -12,7 +12,7 @@ enum { GPU_IMAGE_UPLOAD_COPY = 0 };
 
 /// One entry in a terminated list of raw texture or palette uploads.
 ///
-/// `Gp_LoadImages` requires a non-NULL list with an accessible terminator:
+/// `gpuUploadImages` requires a non-NULL list with an accessible terminator:
 /// every nonzero `operation` ends the walk, and assets use `GP_IMG_REC_END`
 /// (255). The terminator's remaining fields are ignored.
 ///
@@ -32,5 +32,17 @@ typedef struct {
     u_long* pixels;      // Borrowed packed texture or palette words, read by the GPU upload
 } GpuImageUpload;
 STATIC_ASSERT_SIZEOF(GpuImageUpload, 0x10);
+
+/// Queues every raw texture or palette copy in a terminated upload list.
+///
+/// `uploadList` must be non-NULL and contain an accessible nonzero-operation
+/// terminator. Only `GPU_IMAGE_UPLOAD_COPY` entries transfer data; any other
+/// operation ends the walk. Each rectangle must fit VRAM and its pixel buffer
+/// must meet `GpuImageUpload`'s alignment, extent and transfer-lifetime contract.
+/// The records are read only and can be released after this call. Pixel data
+/// stays borrowed until GPU transfer completes. SDK return values are ignored;
+/// this does not wait for completion. Reserves one `RECT` on the scratch stack
+/// and restores the cursor before returning.
+void gpuUploadImages(const GpuImageUpload* uploadList);
 
 #endif // GAMEPLAY_GPU_IMAGE_UPLOAD_H

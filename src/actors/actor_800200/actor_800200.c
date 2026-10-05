@@ -2615,7 +2615,7 @@ static s32 func_actor_800200_80165104(Task* arg0)
                             sound++;
                         }
                         if ((u16)actor->movementMode == 6) {
-                            Gp_SetStateF0Bit(5);
+                            sceneLatchActionSignal(SCENE_COMBAT_ACTION_SIGNAL_FOOTSTEP);
                         }
                     }
                     if (sound != WORLD_COLLISION_FOOTSTEP_SILENT) {

@@ -2345,7 +2345,7 @@ static void func_mist_shooting_gallery_80182B1C(Task* arg0)
     }
     gSceneCombatState.signals.bytes.battlePhase = SCENE_COMBAT_BATTLE_IDLE;
     gGameSession->battleResetPending            = 0;
-    (Gp_IncStateF0Ref)(0);
+    (sceneAcquireBattleRef)(0);
 }
 
 /// Per-frame update for the gallery's bonus course. START (`0x100`) aborts the

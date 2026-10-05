@@ -730,7 +730,7 @@ static void func_actor_123200_8013352C(Enemy* enemy, Task* task)
     enemy->bodyPos.vy = 0;
     enemy->bodyPos.vz = 0;
     enemy->coord      = &task->extra.tmd->coords[2];
-    Gp_LinkNode(&enemy->node);
+    worldTargetLinkNode(&enemy->node);
     enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
     enemy->param                  = &D_actor_123200_80134208;
     enemy->reactionFlags          = 0;

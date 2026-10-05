@@ -2325,7 +2325,7 @@ static void func_actor_141000_801335D4(Task* arg0)
         case ACTOR_141000_BLINK_CLOSED:
             work->blinkCountdown = work->blinkCountdown - 1;
             if (work->blinkCountdown < 0) {
-                Gp_LoadActorImage(arg0, &D_actor_141000_8013D28C[0], &rect);
+                actorRenderUploadTexture(arg0, &D_actor_141000_8013D28C[0], &rect);
                 work->blinkCountdown = work->blinkFrameDelay;
                 work->blinkStep      = work->blinkStep + 1;
             }
@@ -2333,7 +2333,7 @@ static void func_actor_141000_801335D4(Task* arg0)
         case ACTOR_141000_BLINK_HALF:
             work->blinkCountdown = work->blinkCountdown - 1;
             if (work->blinkCountdown < 0) {
-                Gp_LoadActorImage(arg0, &D_actor_141000_8013CE84[0], &rect);
+                actorRenderUploadTexture(arg0, &D_actor_141000_8013CE84[0], &rect);
                 work->blinkCountdown = work->blinkFrameDelay;
                 work->blinkStep      = work->blinkStep + 1;
             }
@@ -2341,7 +2341,7 @@ static void func_actor_141000_801335D4(Task* arg0)
         case ACTOR_141000_BLINK_OPEN:
             work->blinkCountdown = work->blinkCountdown - 1;
             if (work->blinkCountdown < 0) {
-                Gp_LoadActorImage(arg0, &D_actor_141000_8013CA7C[0], &rect);
+                actorRenderUploadTexture(arg0, &D_actor_141000_8013CA7C[0], &rect);
                 work->blinkStep = ACTOR_141000_BLINK_NONE;
             }
             break;
@@ -2667,7 +2667,7 @@ s32 func_actor_141000_80133F6C(Task* task, s32 arg1, ActorCommand* msg, s32 arg3
 }
 
 /// Image-load handler: picks one of the overlay's texture uploads by `mode`
-/// and posts it through `Gp_LoadActorImage` over a scratch `RECT` -- the
+/// and posts it through `actorRenderUploadTexture` over a scratch `RECT` -- the
 /// 0x19x0x14 rect at (0, 0x40) for modes 0-3, the 0xEx0x14 rect at (0xC, 0x60)
 /// for 4 and 5. Mode 3 also starts a blink, `blinkStep` at the closed eyes and
 /// `blinkFrameDelay` at 1. Unknown modes load nothing and return 0.
@@ -2718,7 +2718,7 @@ s32 func_actor_141000_80133FA8(Task* task, s32 arg1, s32 mode, s32 arg3)
             break;
     }
     if (uploadList != NULL) {
-        ret = Gp_LoadActorImage(task, uploadList, &rect);
+        ret = actorRenderUploadTexture(task, uploadList, &rect);
     }
     return ret;
 }

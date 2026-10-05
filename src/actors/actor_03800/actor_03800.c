@@ -733,11 +733,11 @@ static void Actor03800_Fn000B8(Enemy* arg0, Task* arg1)
     extra->lightMtx = &work->lightMtx;
     extra->flags    = 0;
     extra->colorMtx = &work->colorMtx;
-    Gp_IncStateF0Ref(0);
+    sceneAcquireBattleRef(0);
     Actor03800_Fn003B8(arg1);
     arg0->field_4  = &work->rootCoord->coord;
     arg0->field_48 = 0;
-    Gp_LinkNode(&arg0->node);
+    worldTargetLinkNode(&arg0->node);
     arg0->coord                   = &arg1->extra.tmd->coords[3];
     arg0->node.state.parts.flags  = 0;
     arg0->bodyPos.vx              = 0;

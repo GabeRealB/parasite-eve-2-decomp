@@ -6,7 +6,7 @@
 /// for spawn kind 1 (low nibble of `spawnArg1`), state 1 otherwise. The root
 /// coord is lifted by 0x3C and its translation kept as the spawn position.
 ///
-/// `one` is a separate variable set before `Gp_IncStateF0Ref`: the ROM holds
+/// `one` is a separate variable set before `sceneAcquireBattleRef`: the ROM holds
 /// the constant in `$s0`, which GCC only picks for a pseudo that crosses a
 /// call (sched2 then sinks the `li` below the `jal`).
 void madChaserSpawn(Task* task)
@@ -55,7 +55,7 @@ void madChaserSpawn(Task* task)
     madChaserLinkBodies(task);
     w->rotation.vy = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]) + 0x800;
     enemy          = task->spawnArg2.pointer;
-    Gp_LinkNode(&enemy->node);
+    worldTargetLinkNode(&enemy->node);
     enemy->field_4                = &task->extra.tmd->coords->coord;
     enemy->field_48               = 0;
     enemy->bodyPos.vx             = 0;
@@ -64,7 +64,7 @@ void madChaserSpawn(Task* task)
     enemy->coord                  = &task->extra.tmd->coords[1];
     enemy->node.state.parts.flags = WORLD_TARGET_KEEP_SCANNED;
     one                           = 1;
-    (Gp_IncStateF0Ref)(0);
+    (sceneAcquireBattleRef)(0);
     if ((task->spawnArg1.value & 0xF) == one) {
         w3           = (MadChaserWork*)task->work;
         task->state  = 2;

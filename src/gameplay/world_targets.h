@@ -17,9 +17,12 @@ void Gp_DrawTargetCursor(void);
 
 void Gp_ResetLinkState(void);
 
-/// Drops the `targeted` mark from every actor slot's current node, without
-/// releasing the slot itself.
-void Gp_ClearSlotNodeFlags(void);
+/// Clears the target marks on the player and companion's current nodes.
+///
+/// Retains the actors' borrowed target pointers and each node's flags and
+/// membership. Occupied tasks require live `GameActor` work blocks, and any
+/// referenced target must remain writable and live.
+void worldTargetClearActorTargetMarks(void);
 
 s32 Gp_GrantLocationItems(InventoryItemRange* arg0);
 

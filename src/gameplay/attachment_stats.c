@@ -1615,7 +1615,7 @@ after:
                 attachment->previewSound = 0;
                 attachment->soundStep    = ATTACHMENT_SOUND_IDLE;
                 Gp_PulseState1C80();
-                Gp_ClearSlotNodeFlags();
+                worldTargetClearActorTargetMarks();
                 if ((gGameSession->flowFlags & GAME_SESSION_FLOW_REEQUIP_WEAPON) == 0) {
                     goto inc1;
                 }

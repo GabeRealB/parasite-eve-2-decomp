@@ -1646,7 +1646,7 @@ static void func_actor_521100_80131E8C(Enemy* enemy, Task* task)
     obj->colorMtx       = &work->color;
     enemy->field_4      = &coord->coord;
     enemy->field_48     = 0;
-    Gp_LinkNode(&enemy->node);
+    worldTargetLinkNode(&enemy->node);
     enemy->coord                  = &task->extra.tmd->coords[3];
     enemy->bodyPos.vx             = 0;
     enemy->bodyPos.vy             = 0;

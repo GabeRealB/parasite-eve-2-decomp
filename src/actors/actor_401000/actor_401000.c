@@ -1147,7 +1147,7 @@ static void func_actor_401000_80133274(Enemy* enemy, Task* actor)
         enemyDestroy(enemy, actor);
         return;
     }
-    (Gp_IncStateF0Ref)(0);
+    (sceneAcquireBattleRef)(0);
     actor->exitCallback = oddStrangerExit;
     Actor401000_BindMatrices(actor);
     enemy->field_4    = &actor->extra.tmd->coords->coord;
@@ -1156,7 +1156,7 @@ static void func_actor_401000_80133274(Enemy* enemy, Task* actor)
     enemy->bodyPos.vy = 0;
     enemy->bodyPos.vz = 0;
     enemy->coord      = &actor->extra.tmd->coords[2];
-    Gp_LinkNode(&enemy->node);
+    worldTargetLinkNode(&enemy->node);
     enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
     enemy->reactionFlags          = 0;
     enemy->hp                     = (s16)D_actor_401000_8013E09C.hpMax;
@@ -1756,7 +1756,7 @@ static void func_actor_401000_801388F4(Task* arg0)
         work->lookYaw                 = 0;
         work->lookYawTarget           = 0;
         if (enemy->hp < 0) {
-            Gp_SetStateF0Byte3(1);
+            sceneSetEnemyAlert(1);
         }
         work->hitBody.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
     }
@@ -1813,7 +1813,7 @@ static void func_actor_401000_80138BB4(Task* arg0)
         work->lookYaw                 = 0;
         work->lookYawTarget           = 0;
         if (enemy->hp < 0) {
-            Gp_SetStateF0Byte3(1);
+            sceneSetEnemyAlert(1);
         }
         work->hitBody.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
     }
@@ -2110,7 +2110,7 @@ static void func_actor_401000_8013CD9C(Task* arg0)
         work->lookYaw                 = 0;
         work->lookYawTarget           = 0;
         if (enemy->hp < 0) {
-            Gp_SetStateF0Byte3(1);
+            sceneSetEnemyAlert(1);
         }
         work->hitBody.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
     }
@@ -2155,7 +2155,7 @@ static void func_actor_401000_8013CEF0(Task* arg0)
         work->lookYaw                 = 0;
         work->lookYawTarget           = 0;
         if (enemy->hp < 0) {
-            Gp_SetStateF0Byte3(1);
+            sceneSetEnemyAlert(1);
         }
         work->hitBody.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
     }

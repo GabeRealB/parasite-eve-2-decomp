@@ -2186,7 +2186,7 @@ static void func_actor_511000_80132048(Task* arg0)
         case ACTOR_511000_BLINK_CLOSED:
             work->blinkCountdown = work->blinkCountdown - 1;
             if (work->blinkCountdown < 0) {
-                Gp_LoadActorImage(arg0, &D_actor_511000_801472B4[0], &rect);
+                actorRenderUploadTexture(arg0, &D_actor_511000_801472B4[0], &rect);
                 work->blinkCountdown = work->blinkFrameDelay;
                 work->blinkStep      = work->blinkStep + 1;
             }
@@ -2194,7 +2194,7 @@ static void func_actor_511000_80132048(Task* arg0)
         case ACTOR_511000_BLINK_HALF:
             work->blinkCountdown = work->blinkCountdown - 1;
             if (work->blinkCountdown < 0) {
-                Gp_LoadActorImage(arg0, &D_actor_511000_80146F94[0], &rect);
+                actorRenderUploadTexture(arg0, &D_actor_511000_80146F94[0], &rect);
                 work->blinkCountdown = work->blinkFrameDelay;
                 work->blinkStep      = work->blinkStep + 1;
             }
@@ -2202,7 +2202,7 @@ static void func_actor_511000_80132048(Task* arg0)
         case ACTOR_511000_BLINK_OPEN:
             work->blinkCountdown = work->blinkCountdown - 1;
             if (work->blinkCountdown < 0) {
-                Gp_LoadActorImage(arg0, &D_actor_511000_80146C74[0], &rect);
+                actorRenderUploadTexture(arg0, &D_actor_511000_80146C74[0], &rect);
                 work->blinkStep = ACTOR_511000_BLINK_NONE;
             }
             break;
@@ -2464,7 +2464,7 @@ s32 func_actor_511000_80132904(Task* arg0, s32 arg1, s32 mode, s32 arg3)
     }
 
     if (uploadList != NULL) {
-        ret = Gp_LoadActorImage(arg0, uploadList, &rect);
+        ret = actorRenderUploadTexture(arg0, uploadList, &rect);
     }
     return ret;
 }
@@ -2667,7 +2667,7 @@ static void func_actor_511000_80132E6C(_Actor511000HelicopterWork* work)
         _actor511000BlendPaletteColor(&work->palette[i], &D_actor_511000_80147E84[i], &D_actor_511000_80147EC4[i], inv, fade);
         i += 2;
     } while (i < ACTOR_511000_PALETTE_BYTES);
-    Gp_LoadImages(&D_actor_511000_80147EA4[0]);
+    gpuUploadImages(&D_actor_511000_80147EA4[0]);
 }
 
 /// Spawn/setup state: allocates the work block, parks it in `work`, leaves

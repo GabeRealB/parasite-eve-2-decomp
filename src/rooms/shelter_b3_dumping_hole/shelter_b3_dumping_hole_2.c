@@ -3864,7 +3864,7 @@ static void func_shelter_b3_dumping_hole_80183824(Task* arg0)
     OverlayEncounterControllerWork* work = arg0->work;
 
     if (++work->frames == 15) {
-        (Gp_IncStateF0Ref)(0);
+        (sceneAcquireBattleRef)(0);
         gGameSession->spawnPhase[0] = GAME_SESSION_SPAWN_ARMED;
         Gp_ArmStateF0(1);
         arg0->state += 1;

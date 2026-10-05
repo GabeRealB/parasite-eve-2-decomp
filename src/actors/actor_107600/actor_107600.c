@@ -874,7 +874,7 @@ static void func_actor_107600_80131F10(Task* arg0)
     enemy->field_48    = 0;
     if (work->behaviour != ACTOR_107600_MOUNT_FIXED) {
         /* retail passes a 0 the resident definition ignores */
-        (Gp_IncStateF0Ref)(0);
+        (sceneAcquireBattleRef)(0);
     }
     work->spawnX = coord->coord.t[0];
     work->spawnY = coord->coord.t[1];
@@ -1383,7 +1383,7 @@ static void func_actor_107600_80132ED0(Task* arg0)
     enemy->hpMax         = hp;
     enemy->hp            = hp;
     func_actor_107600_80134958(arg0);
-    Gp_LinkNode(&enemy->node);
+    worldTargetLinkNode(&enemy->node);
     enemy->field_4                = &coord->workm;
     enemy->bodyPos.vy             = -0x244;
     enemy->field_48               = 0;
@@ -1446,7 +1446,7 @@ static void func_actor_107600_80133024(Task* arg0)
             break;
     }
     if (work->mountBehaviour != ACTOR_107600_MOUNT_FIXED) {
-        ((MistShootingGalleryWork*)D_mist_shooting_gallery_8018E0C4->work)->targetLockMask = Gp_NodeSlotMask(&enemy->node);
+        ((MistShootingGalleryWork*)D_mist_shooting_gallery_8018E0C4->work)->targetLockMask = worldTargetGetActorLockMask(&enemy->node);
     }
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     func_actor_107600_80134A50(arg0);

@@ -1754,7 +1754,7 @@ static void func_actor_405800_801334B8(Task* arg0)
     enemy->bodyPos.vy     = 0;
     enemy->bodyPos.vz     = 0;
     enemy->coord          = &arg0->extra.tmd->coords[3];
-    Gp_LinkNode(&enemy->node);
+    worldTargetLinkNode(&enemy->node);
     enemy->node.state.parts.flags = (WORLD_TARGET_NOT_LOCKABLE | WORLD_TARGET_KEEP_SCANNED);
     enemy->param                  = &D_actor_405800_801418FC;
     enemy->recs                   = work->bodyContacts;
@@ -1774,7 +1774,7 @@ static void func_actor_405800_801334B8(Task* arg0)
     coord->parent = &gGfxViewCoord;
     func_actor_405800_80132670(arg0);
     func_actor_405800_80135780(arg0);
-    (Gp_IncStateF0Ref)(0);
+    (sceneAcquireBattleRef)(0);
     w3           = (_Actor405800IvoryStalkerWork*)arg0->work;
     w3->state    = 0;
     w3->subState = 0;

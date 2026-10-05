@@ -2040,7 +2040,7 @@ static void func_actor_421600_80134AD4(Enemy* enemy, Task* actor)
         enemyDestroy(enemy, actor);
         return;
     }
-    (Gp_IncStateF0Ref)(0);
+    (sceneAcquireBattleRef)(0);
     actor->exitCallback = func_actor_421600_8013E668;
     Actor421600_BindMatrices(actor);
     enemy->field_4    = &actor->extra.tmd->coords[0].coord;
@@ -2049,7 +2049,7 @@ static void func_actor_421600_80134AD4(Enemy* enemy, Task* actor)
     enemy->bodyPos.vy = 0;
     enemy->bodyPos.vz = 0;
     enemy->coord      = &actor->extra.tmd->coords[2];
-    Gp_LinkNode(&enemy->node);
+    worldTargetLinkNode(&enemy->node);
     enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
     enemy->reactionFlags          = 0;
     enemy->hp                     = (s16)D_actor_421600_8013EF38.hpMax;
@@ -4074,7 +4074,7 @@ static void func_actor_421600_8013BA70(Task* arg0)
             if (yawDifference < 0) {
                 yawDifference = -yawDifference;
             }
-            if (yawDifference >= 0x601 || Gp_NodeSlotMask(&enemy->node) == 0) {
+            if (yawDifference >= 0x601 || worldTargetGetActorLockMask(&enemy->node) == 0) {
                 work->state = 0x1C;
             }
         } else {

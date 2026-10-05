@@ -1101,7 +1101,7 @@ static void func_actor_210700_80149E30(Task* arg0)
         case ACTOR_210700_BLINK_CLOSED:
             work->blinkCountdown = work->blinkCountdown - 1;
             if (work->blinkCountdown < 0) {
-                Gp_LoadActorImage(arg0, &D_actor_210700_8015858C[0], &rect);
+                actorRenderUploadTexture(arg0, &D_actor_210700_8015858C[0], &rect);
                 work->blinkCountdown = work->blinkFrameDelay;
                 work->blinkStep      = work->blinkStep + 1;
             }
@@ -1109,7 +1109,7 @@ static void func_actor_210700_80149E30(Task* arg0)
         case ACTOR_210700_BLINK_HALF:
             work->blinkCountdown = work->blinkCountdown - 1;
             if (work->blinkCountdown < 0) {
-                Gp_LoadActorImage(arg0, &D_actor_210700_8015826C[0], &rect);
+                actorRenderUploadTexture(arg0, &D_actor_210700_8015826C[0], &rect);
                 work->blinkCountdown = work->blinkFrameDelay;
                 work->blinkStep      = work->blinkStep + 1;
             }
@@ -1117,7 +1117,7 @@ static void func_actor_210700_80149E30(Task* arg0)
         case ACTOR_210700_BLINK_OPEN:
             work->blinkCountdown = work->blinkCountdown - 1;
             if (work->blinkCountdown < 0) {
-                Gp_LoadActorImage(arg0, &D_actor_210700_80157F4C[0], &rect);
+                actorRenderUploadTexture(arg0, &D_actor_210700_80157F4C[0], &rect);
                 work->blinkStep = ACTOR_210700_BLINK_NONE;
             }
             break;
@@ -1385,7 +1385,7 @@ s32 func_actor_210700_8014A4B0(Task* arg0, s32 arg1, s32 mode, s32 arg3)
     }
 
     if (uploadList != NULL) {
-        ret = Gp_LoadActorImage(arg0, uploadList, &rect);
+        ret = actorRenderUploadTexture(arg0, uploadList, &rect);
     }
     return ret;
 }

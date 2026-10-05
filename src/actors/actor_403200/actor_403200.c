@@ -4011,7 +4011,7 @@ static void func_actor_403200_80138AFC(Enemy* enemy, Task* task)
         return;
     }
 
-    (Gp_IncStateF0Ref)(0);
+    (sceneAcquireBattleRef)(0);
     task->exitCallback = gluttonExit;
 
     enemy->field_4    = &task->extra.tmd->coords->coord;
@@ -4020,7 +4020,7 @@ static void func_actor_403200_80138AFC(Enemy* enemy, Task* task)
     enemy->bodyPos.vy = -0xC8;
     enemy->bodyPos.vz = 0;
     enemy->coord      = &task->extra.tmd->coords[4];
-    Gp_LinkNode(&enemy->node);
+    worldTargetLinkNode(&enemy->node);
     enemy->reactionFlags = 0;
     enemy->hp            = D_actor_403200_80141C00.hpMax;
     enemy->param         = &D_actor_403200_80141C00;
@@ -4095,7 +4095,7 @@ static void func_actor_403200_80138AFC(Enemy* enemy, Task* task)
     work->escorts[0]->bodyPos.vy = 0;
     work->escorts[0]->bodyPos.vz = 0x3E8;
     work->escorts[0]->coord      = &work->escorts[0]->task->extra.tmd->coords[1];
-    Gp_LinkNode(&work->escorts[0]->node);
+    worldTargetLinkNode(&work->escorts[0]->node);
     work->escorts[0]->reactionFlags = 0;
     work->escorts[0]->hp            = D_actor_403200_80141C00.hpMax;
     work->groups3To5Pool            = D_actor_403200_80141C20.hpMax;
@@ -4125,7 +4125,7 @@ static void func_actor_403200_80138AFC(Enemy* enemy, Task* task)
     work->escorts[1]->bodyPos.vy = 0;
     work->escorts[1]->bodyPos.vz = 0x3E8;
     work->escorts[1]->coord      = &work->escorts[1]->task->extra.tmd->coords[1];
-    Gp_LinkNode(&work->escorts[1]->node);
+    worldTargetLinkNode(&work->escorts[1]->node);
     work->escorts[1]->reactionFlags = 0;
     work->escorts[1]->hp            = D_actor_403200_80141C00.hpMax;
     work->groups6To8Pool            = D_actor_403200_80141C30.hpMax;
@@ -4162,7 +4162,7 @@ static void func_actor_403200_80138AFC(Enemy* enemy, Task* task)
         work->escorts[3]->bodyPos.vy                          = 0x1F4;
         work->escorts[3]->bodyPos.vz                          = 0x384;
         work->escorts[3]->coord                               = work->escorts[3]->task->extra.tmd->coords;
-        Gp_LinkNode(&work->escorts[3]->node);
+        worldTargetLinkNode(&work->escorts[3]->node);
         work->escorts[3]->reactionFlags = 0;
         work->escorts[3]->hp            = D_actor_403200_80141C00.hpMax;
         work->groups1To2Pool            = D_actor_403200_80141C40.hpMax;
@@ -5107,10 +5107,10 @@ static void func_actor_403200_8013C84C(Task* arg0)
         gGluttonSpinnersReleased = 0;
         Gp_StateC08.flags       |= ATTACHMENT_FLAG_EVENT_LOCK;
         Gp_PulseState1C();
-        Gp_ClearNodeSlots(&enemy->node);
-        Gp_ClearNodeSlots(&work->escorts[3]->node);
-        Gp_ClearNodeSlots(&work->escorts[0]->node);
-        Gp_ClearNodeSlots(&work->escorts[1]->node);
+        worldTargetDisableNodeLockOn(&enemy->node);
+        worldTargetDisableNodeLockOn(&work->escorts[3]->node);
+        worldTargetDisableNodeLockOn(&work->escorts[0]->node);
+        worldTargetDisableNodeLockOn(&work->escorts[1]->node);
         return;
     }
 
@@ -6612,7 +6612,7 @@ after_mode:
         work->escorts[0]->node.state.parts.flags = nodeFlags;
         work->escorts[1]->node.state.parts.flags = nodeFlags;
     } else if (work->hostExposed != 0) {
-        if (Gp_NodeSlotMask(&work->escorts[3]->node) != 0) {
+        if (worldTargetGetActorLockMask(&work->escorts[3]->node) != 0) {
             Gp_AssignNodeSlot0(&arg0->node);
         }
         arg0->node.state.parts.flags             = WORLD_TARGET_HIDE_HP;
@@ -6620,7 +6620,7 @@ after_mode:
         work->escorts[0]->node.state.parts.flags = (WORLD_TARGET_NOT_LOCKABLE | WORLD_TARGET_KEEP_SCANNED);
         work->escorts[1]->node.state.parts.flags = (WORLD_TARGET_NOT_LOCKABLE | WORLD_TARGET_KEEP_SCANNED);
     } else {
-        if (Gp_NodeSlotMask(&arg0->node) != 0) {
+        if (worldTargetGetActorLockMask(&arg0->node) != 0) {
             Gp_AssignNodeSlot0(&work->escorts[3]->node);
         }
         arg0->node.state.parts.flags             = WORLD_TARGET_NOT_LOCKABLE;

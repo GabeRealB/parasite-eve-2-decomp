@@ -49,7 +49,7 @@ void maggotCaterpillarDyingState(Enemy* arg0, Task* arg1)
                         releaseId = 0x1A;
                     }
                     Gp_ReleaseStateF0Add(arg1, releaseId);
-                    Gp_SetStateF0Byte3(2);
+                    sceneSetEnemyAlert(2);
                     work->stateCounter = 0;
                     work->step         = 1;
                     Gp_SetLightMode(arg0, 1);

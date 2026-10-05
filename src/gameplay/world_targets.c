@@ -164,6 +164,19 @@ static __inline__ void _worldTargetReleaseActorLocks(const WorldTargetNode* node
     } while (actorSlot < PLAYER_ACTOR_TASK_COUNT);
 }
 
+/// Stages one upload rectangle for the SDK queue, which borrows its pixels.
+///
+/// `scratchDestination` is writable scratch storage; the SDK copies it before
+/// returning. `upload` and its payload meet the `gpuUploadImages` contract.
+static __inline__ void _gpuUploadImageEntry(RECT* scratchDestination, const GpuImageUpload* upload)
+{
+    scratchDestination->x = upload->destination.x;
+    scratchDestination->y = upload->destination.y;
+    scratchDestination->w = upload->destination.w;
+    scratchDestination->h = upload->destination.h;
+    LoadImage(scratchDestination, upload->pixels);
+}
+
 static __inline__ void project_slot(s32* sxy, WorldTargetReadout* slot)
 {
     WorldTargetNode*               src;
@@ -620,47 +633,54 @@ void worldTargetUnlinkNode(WorldTargetNode* node)
     }
 }
 
-void Gp_LinkNode(WorldTargetNode* node)
+void worldTargetLinkNode(WorldTargetNode* node)
 {
-    WorldTargetNode** p;
+    enum {
+        WORLD_TARGET_OFF_LIST     = 0,
+        WORLD_TARGET_ON_LIST      = 1,
+        WORLD_TARGET_NOT_TARGETED = 0
+    };
+    WorldTargetNode** incomingLink;
 
-    if (node->state.parts.onList == 0) {
-        p = &gWorldTargetListHead;
-        while (*p != NULL) {
-            p = &(*p)->next;
+    if (node->state.parts.onList == WORLD_TARGET_OFF_LIST) {
+        incomingLink = &gWorldTargetListHead;
+        while (*incomingLink != NULL) {
+            incomingLink = &(*incomingLink)->next;
         }
-        *p                         = node;
+        *incomingLink              = node;
         node->next                 = NULL;
-        node->state.parts.targeted = 0;
-        node->state.parts.onList   = 1;
-        node->state.parts.flags   &= ~WORLD_TARGET_NOT_LOCKABLE;
+        node->state.parts.targeted = WORLD_TARGET_NOT_TARGETED;
+        node->state.parts.onList   = WORLD_TARGET_ON_LIST;
+        node->state.parts.flags   &= WORLD_TARGET_NOT_LOCKABLE_CLEAR;
     } else {
-        node->state.parts.flags &= ~WORLD_TARGET_NOT_LOCKABLE;
+        node->state.parts.flags &= WORLD_TARGET_NOT_LOCKABLE_CLEAR;
     }
 }
 
-s32 Gp_NodeSlotMask(WorldTargetNode* node)
+s32 worldTargetGetActorLockMask(const WorldTargetNode* node)
 {
-    s32             mask;
-    s32             i;
-    s32             one;
-    Task* volatile* p;
-    Task*           work;
+    s32              mask;
+    s32              actorSlot;
+    s32              slotBit;
+    Task**           taskSlot;
+    Task*            actorTask;
+    const GameActor* actor;
 
-    mask = 0;
-    i    = mask;
-    one  = 1;
-    p    = gPlayerActorTasks;
+    mask      = 0;
+    actorSlot = 0;
+    slotBit   = 1;
+    taskSlot  = gPlayerActorTasks;
     do {
-        work = *p;
-        if (work != NULL) {
-            if (((GameActor*)work->work)->targetNode == node) {
-                mask |= one << i;
+        actorTask = *taskSlot;
+        if (actorTask != NULL) {
+            actor = actorTask->work;
+            if (actor->targetNode == node) {
+                mask |= slotBit << actorSlot;
             }
         }
-        i++;
-        p++;
-    } while (i < PLAYER_ACTOR_TASK_COUNT);
+        actorSlot++;
+        taskSlot++;
+    } while (actorSlot < PLAYER_ACTOR_TASK_COUNT);
     return mask;
 }
 
@@ -685,30 +705,15 @@ void Gp_AssignNodeSlot0(WorldTargetNode* node)
     node->state.parts.flags    = val & WORLD_TARGET_NOT_LOCKABLE_CLEAR;
 }
 
-void Gp_ClearNodeSlots(WorldTargetNode* node)
+void worldTargetDisableNodeLockOn(WorldTargetNode* node)
 {
-    s32             i;
-    Task* volatile* p;
-    Task*           work;
-    GameActor*      actor;
-    u8              val;
+    enum { WORLD_TARGET_NOT_TARGETED = 0 };
+    u8 flags;
 
-    i = 0;
-    p = gPlayerActorTasks;
-    do {
-        work = *p;
-        if (work != NULL) {
-            actor = work->work;
-            if (actor->targetNode == node) {
-                actor->targetNode = NULL;
-            }
-        }
-        i++;
-        p++;
-    } while (i < PLAYER_ACTOR_TASK_COUNT);
-    val                        = node->state.parts.flags;
-    node->state.parts.targeted = 0;
-    node->state.parts.flags    = val | WORLD_TARGET_NOT_LOCKABLE;
+    _worldTargetReleaseActorLocks(node);
+    flags                      = node->state.parts.flags;
+    node->state.parts.targeted = WORLD_TARGET_NOT_TARGETED;
+    node->state.parts.flags    = flags | WORLD_TARGET_NOT_LOCKABLE;
 }
 
 void* Gp_FindLockNode(Task* arg0)
@@ -832,26 +837,29 @@ static s32 Gp_ProjectToSxy(WorldTargetNode* arg0, s32* sxy)
     return ret;
 }
 
-void Gp_ClearSlotNodeFlags(void)
+void worldTargetClearActorTargetMarks(void)
 {
-    s32              i;
-    Task* volatile*  p;
-    Task*            work;
+    enum { WORLD_TARGET_NOT_TARGETED = 0 };
+    s32              actorSlot;
+    Task**           taskSlot;
+    Task*            actorTask;
+    const GameActor* actor;
     WorldTargetNode* node;
 
-    i = 0;
-    p = gPlayerActorTasks;
+    actorSlot = 0;
+    taskSlot  = gPlayerActorTasks;
     do {
-        work = *p;
-        if (work != NULL) {
-            node = ((GameActor*)work->work)->targetNode;
+        actorTask = *taskSlot;
+        if (actorTask != NULL) {
+            actor = actorTask->work;
+            node  = actor->targetNode;
             if (node != NULL) {
-                node->state.parts.targeted = 0;
+                node->state.parts.targeted = WORLD_TARGET_NOT_TARGETED;
             }
         }
-        i++;
-        p++;
-    } while (i < PLAYER_ACTOR_TASK_COUNT);
+        actorSlot++;
+        taskSlot++;
+    } while (actorSlot < PLAYER_ACTOR_TASK_COUNT);
 }
 
 s32 Gp_GrantLocationItems(InventoryItemRange* arg0)
@@ -904,52 +912,58 @@ s32 Gp_GrantLocationItems(InventoryItemRange* arg0)
     return ret;
 }
 
-s32 Gp_LoadActorImage(Task* arg0, GpuImageUpload* uploadList, RECT* arg2)
+s32 actorRenderUploadTexture(Task* actorTask, GpuImageUpload* uploadList, const RECT* textureRect)
 {
-    s32        ret;
-    TmdObject* extra;
-    s32        x;
+    enum {
+        ACTOR_RENDER_TEXTURE_PAGE_WORD_SHIFT = 6,
+        ACTOR_RENDER_TEXTURE_BASE_X_WORDS    = 0x180,
+        ACTOR_RENDER_TEXTURE_BASE_Y_ROWS     = 0x100,
+        ACTOR_RENDER_TEXTURE_LIST_PRESENT    = 0,
+        ACTOR_RENDER_TEXTURE_LIST_ABSENT     = 1
+    };
+    s32        listAbsent;
+    TmdObject* model;
+    s32        baseXWords;
 
-    extra = arg0->extra.tmd;
-    ret   = 0;
+    model      = actorTask->extra.tmd;
+    listAbsent = ACTOR_RENDER_TEXTURE_LIST_PRESENT;
     if (uploadList != NULL) {
-        uploadList->destination.x = (extra->texturePageOffset << 6) + (x = (arg2->x + 1) / 2 + 0x180);
-        uploadList->destination.y = arg2->y + 0x100;
-        uploadList->destination.w = arg2->w;
-        uploadList->destination.h = arg2->h;
-        Gp_LoadImages(uploadList);
+        // Translate the mixed-unit model rectangle into a VRAM destination.
+        uploadList->destination.x = (model->texturePageOffset << ACTOR_RENDER_TEXTURE_PAGE_WORD_SHIFT) +
+                                    (baseXWords = (textureRect->x + 1) / 2 + ACTOR_RENDER_TEXTURE_BASE_X_WORDS);
+        uploadList->destination.y = textureRect->y + ACTOR_RENDER_TEXTURE_BASE_Y_ROWS;
+        uploadList->destination.w = textureRect->w;
+        uploadList->destination.h = textureRect->h;
+        gpuUploadImages(uploadList);
     } else {
-        ret = 1;
+        listAbsent = ACTOR_RENDER_TEXTURE_LIST_ABSENT;
     }
-    return ret;
+    return listAbsent;
 }
 
-void Gp_LoadImages(GpuImageUpload* uploadList)
+void gpuUploadImages(const GpuImageUpload* uploadList)
 {
-    RECT* dest;
-    s32   done;
+    RECT* scratchDestination;
+    s32   reachedEnd;
 
-    done = 0;
-    dest = SCRATCH_STACK_RESERVE_BLOCK(RECT);
+    reachedEnd         = 0;
+    scratchDestination = SCRATCH_STACK_RESERVE_BLOCK(RECT);
 
+    // The SDK copies each rectangle into its queue but borrows the pixel data.
     do {
         switch (uploadList->operation) {
             case GPU_IMAGE_UPLOAD_COPY:
-                dest->x = uploadList->destination.x;
-                dest->y = uploadList->destination.y;
-                dest->w = uploadList->destination.w;
-                dest->h = uploadList->destination.h;
-                LoadImage(dest, uploadList->pixels);
+                _gpuUploadImageEntry(scratchDestination, uploadList);
                 break;
             case GP_IMG_REC_END:
-                done = 1;
+                reachedEnd = 1;
                 break;
             default:
-                done = 1;
+                reachedEnd = 1;
                 break;
         }
         uploadList++;
-    } while (done == 0);
+    } while (reachedEnd == 0);
 
     SCRATCH_STACK_RELEASE_BLOCK(RECT);
 }
@@ -1012,19 +1026,19 @@ void Gp_ArmStateF0(s32 arg0)
     }
 }
 
-void Gp_SetStateF0Bit(s32 arg0)
+void sceneLatchActionSignal(s32 actionSignal)
 {
-    if (arg0 != 0) {
-        gSceneCombatState.signals.bytes.actionFlags |= 1 << (arg0 - 1);
+    if (actionSignal != SCENE_COMBAT_ACTION_SIGNAL_NONE) {
+        gSceneCombatState.signals.bytes.actionFlags |= 1 << (actionSignal - 1);
     }
 }
 
-void Gp_SetStateF0Byte3(s32 arg0)
+void sceneSetEnemyAlert(s32 alertClass)
 {
-    gSceneCombatState.signals.bytes.enemyAlert = arg0;
+    gSceneCombatState.signals.bytes.enemyAlert = alertClass;
 }
 
-void Gp_IncStateF0Ref(s32 arg0)
+void sceneAcquireBattleRef(s32 unusedArg)
 {
     gSceneCombatState.battleRefs++;
 }

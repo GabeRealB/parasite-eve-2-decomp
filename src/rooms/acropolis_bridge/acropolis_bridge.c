@@ -5057,7 +5057,7 @@ static void func_acropolis_bridge_80185988(Enemy* enemy, Task* task)
     enemy->bodyPos.vx = 0;
     enemy->bodyPos.vy = 0;
     enemy->bodyPos.vz = 0;
-    Gp_LinkNode(&enemy->node);
+    worldTargetLinkNode(&enemy->node);
     enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
     task->msgTable                = D_acropolis_bridge_80191744;
     work->prevState               = -1;
@@ -5097,7 +5097,7 @@ static void func_acropolis_bridge_80185988(Enemy* enemy, Task* task)
     _acropolisBridgeLightModel(task, task->extra.tmd->coords);
     axisY = 1;
     if (gSceneCombatState.battleRefs < 3) {
-        Gp_IncStateF0Ref(0);
+        sceneAcquireBattleRef(0);
     }
     if (gGameSession->location.loc.room == 2) {
         variant = enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
@@ -5757,7 +5757,7 @@ void func_acropolis_bridge_80187310(Task* task)
         gRandomLcgState               = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         gfxRotMatrixY(&task->extra.tmd->coords->coord, gRandomLcgState >> 16, 1);
         task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_ClearNodeSlots(&enemy->node);
+        worldTargetDisableNodeLockOn(&enemy->node);
         if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_IDLE && gSceneCombatState.battleRefs != 0) {
             Gp_ArmStateF0(1);
         }
@@ -5803,7 +5803,7 @@ void func_acropolis_bridge_801874DC(Task* task)
         work->attack.flags           &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->body.flags             &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-        Gp_ClearNodeSlots(&enemy->node);
+        worldTargetDisableNodeLockOn(&enemy->node);
         if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_IDLE && gSceneCombatState.battleRefs != 0) {
             Gp_ArmStateF0(1);
         }

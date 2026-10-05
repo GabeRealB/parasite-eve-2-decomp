@@ -287,7 +287,7 @@ static void func_actor_311500_801629D8(Task* arg0)
         taskKill(arg0);
         return;
     }
-    (Gp_IncStateF0Ref)(0);
+    (sceneAcquireBattleRef)(0);
     work2 = arg0->work;
     memFillBytes(work2, 0, sizeof(*work2));
     coords->parent = &gGfxViewCoord;
@@ -312,7 +312,7 @@ static void func_actor_311500_801629D8(Task* arg0)
     enemy->bodyPos.vy = 0;
     enemy->bodyPos.vz = 0;
     enemy->coord      = &arg0->extra.tmd->coords[2];
-    Gp_LinkNode(&enemy->node);
+    worldTargetLinkNode(&enemy->node);
     enemy->hp                       = 0x32;
     enemy->node.state.parts.flags   = 0;
     enemy->reactionFlags            = 0;

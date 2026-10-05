@@ -2215,7 +2215,7 @@ void func_actor_510900_801350F8(Enemy* arg0, Task* arg1)
     obj->colorMtx       = &work->color;
     arg0->field_4       = &coord->coord;
     arg0->field_48      = 0;
-    Gp_LinkNode(&arg0->node);
+    worldTargetLinkNode(&arg0->node);
     arg0->coord                   = &arg1->extra.tmd->coords[3];
     arg0->bodyPos.vx              = 0;
     arg0->bodyPos.vy              = 0;

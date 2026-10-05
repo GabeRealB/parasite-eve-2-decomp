@@ -32,7 +32,7 @@ void generatorLifeSupportSpawn(Enemy* arg0, Task* arg1)
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     arg0->field_4       = &coord->coord;
     arg0->field_48      = 0;
-    Gp_LinkNode(&arg0->node);
+    worldTargetLinkNode(&arg0->node);
     contacts                    = part->contacts;
     arg0->coord                 = coord;
     arg0->bodyPos.vx            = 0;

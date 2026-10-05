@@ -42,7 +42,7 @@ void maggotCaterpillarSpawn(Enemy* ctx, Task* actor)
     work->taskTable     = &gMaggotCaterpillarBodyTask;
     ctx->field_4        = matrix;
     ctx->field_48       = 0;
-    Gp_LinkNode(&ctx->node);
+    worldTargetLinkNode(&ctx->node);
     ctx->coord                 = actor->extra.tmd->coords + 1;
     ctx->bodyPos.vy            = -0x64;
     ctx->recs                  = work->bodyContacts;
@@ -139,7 +139,7 @@ void maggotCaterpillarSpawn(Enemy* ctx, Task* actor)
     for (i = 1; i < 8; i++) {
         animationResetSlot(&work->rig.anim, i, 1);
     }
-    (Gp_IncStateF0Ref)(0);
+    (sceneAcquireBattleRef)(0);
     rec0                            = work->gridContacts;
     work->gridBody.coord            = coord;
     work->gridBody.context.contacts = rec0;

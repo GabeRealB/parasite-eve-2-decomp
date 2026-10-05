@@ -1347,7 +1347,7 @@ static void Actor00300_Fn00970(Enemy* enemy, Task* task)
     obj->colorMtx       = &work->colorMtx;
     enemy->field_4      = &coord->coord;
     enemy->field_48     = 0;
-    Gp_LinkNode(&enemy->node);
+    worldTargetLinkNode(&enemy->node);
     slot                          = 1;
     parts                         = task->extra.tmd->coords;
     enemy->bodyPos.vx             = 0;
@@ -1366,7 +1366,7 @@ static void Actor00300_Fn00970(Enemy* enemy, Task* task)
         animationResetSlot(&work->rig.anim, slot, 1);
         slot += 1;
     } while (slot < ARRAY_SIZE(work->rig.slots));
-    (Gp_IncStateF0Ref)(0);
+    (sceneAcquireBattleRef)(0);
     work->savedRootMtx = coord->coord;
     work->timer        = 0xA;
     work->mp           = ACTOR_00300_MP_AT_SPAWN;

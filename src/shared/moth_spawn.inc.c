@@ -33,7 +33,7 @@ void mothSpawn(Enemy* arg0, Task* arg1)
     obj->colorMtx  = &work->colorMtx;
     arg0->field_4  = &coord->coord;
     arg0->field_48 = 0;
-    Gp_LinkNode(&arg0->node);
+    worldTargetLinkNode(&arg0->node);
     arg0->coord                   = coord;
     arg0->node.state.parts.flags  = 0;
     arg0->bodyPos.vx              = 0;
@@ -49,7 +49,7 @@ void mothSpawn(Enemy* arg0, Task* arg1)
     for (i = 1; i < 4; i++) {
         animationResetSlot(&work->rig.anim, i, 1);
     }
-    (Gp_IncStateF0Ref)(0);
+    (sceneAcquireBattleRef)(0);
     work->flapSign                 = 1;
     work->homePos.vx               = coord->coord.t[0];
     work->homePos.vy               = coord->coord.t[1];

@@ -701,7 +701,7 @@ static void func_actor_207200_8014B278(Enemy* arg0, Task* arg1)
     obj->colorMtx       = &work->colorMtx;
     arg0->field_4       = &coord->coord;
     arg0->field_48      = 0;
-    Gp_LinkNode(&arg0->node);
+    worldTargetLinkNode(&arg0->node);
     arg0->coord                  = coord;
     arg0->node.state.parts.flags = 0;
     arg0->bodyPos.vx             = 0;
@@ -715,7 +715,7 @@ static void func_actor_207200_8014B278(Enemy* arg0, Task* arg1)
     for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
         animationResetSlot(&work->rig.anim, i, ACTOR_207200_ANIM_IDLE);
     }
-    (Gp_IncStateF0Ref)(0);
+    (sceneAcquireBattleRef)(0);
 
     work->animId      = ACTOR_207200_ANIM_IDLE;
     work->appliedAnim = ACTOR_207200_ANIM_IDLE;
@@ -1843,7 +1843,7 @@ static void func_actor_207200_8014D8DC(Task* arg0)
         }
     }
     ctx->coord = coord;
-    Gp_LinkNode(&ctx->node);
+    worldTargetLinkNode(&ctx->node);
 }
 
 /// While `work->headLost` is set, runs each column of the node's rotation

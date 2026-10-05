@@ -3237,7 +3237,7 @@ void func_acropolis_security_room_801805A4(Task* task)
             for (i = 0; i < 0x100; i += 0x10) {
                 Gp_BlendRgb555Clut(&pal[i], &base[i], 0, &out[i]);
             }
-            Gp_LoadImages(D_acropolis_security_room_80183918);
+            gpuUploadImages(D_acropolis_security_room_80183918);
             task->state = task->state + 1;
             break;
         }
@@ -3275,7 +3275,7 @@ void func_acropolis_security_room_801805A4(Task* task)
                 for (i = 0; i < 0x100; i += 0x10) {
                     Gp_BlendRgb555Clut(&pal[i], &base[i], work->step, &out[i]);
                 }
-                Gp_LoadImages(D_acropolis_security_room_80183918);
+                gpuUploadImages(D_acropolis_security_room_80183918);
 
                 for (i = 0; i < 4; i++) {
                     Gp_SpawnEff(EFFECT_ACROPOLIS_SECURITY_MONITOR_FEED, coord, i, NULL);

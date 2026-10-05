@@ -1678,7 +1678,7 @@ static void func_actor_110600_80134AB4(Enemy* enemy, Task* task)
     enemy->bodyPos.vy    = 0;
     enemy->bodyPos.vz    = 0;
     enemy->coord         = task->extra.tmd->coords + 3;
-    Gp_LinkNode(&enemy->node);
+    worldTargetLinkNode(&enemy->node);
     enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
     enemy->reactionFlags          = 0;
     enemy->param                  = &D_actor_110600_80138F14;
@@ -3531,7 +3531,7 @@ s32 func_actor_110600_801387C0(Task* arg0, s32 msgId, s32 arg2, s32 arg3)
     _Actor110600Work* work;
 
     work = arg0->work;
-    (Gp_IncStateF0Ref)(0);
+    (sceneAcquireBattleRef)(0);
     work->state = ACTOR_110600_STATE_ALERT;
     return 1;
 }

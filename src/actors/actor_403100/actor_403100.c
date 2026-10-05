@@ -5161,7 +5161,7 @@ static void func_actor_403100_80136610(Task* arg0)
     D_actor_403100_8015580C->bodyPos.vy = 0;
     D_actor_403100_8015580C->bodyPos.vz = 0x300;
     D_actor_403100_8015580C->coord      = &arg0->extra.tmd->coords[3];
-    Gp_LinkNode(&D_actor_403100_8015580C->node);
+    worldTargetLinkNode(&D_actor_403100_8015580C->node);
     kind = 9;
     TOUCH_REG(kind);
     D_actor_403100_8015580C->node.state.parts.flags = kind;
@@ -5520,7 +5520,7 @@ static void func_actor_403100_8013712C(Task* arg0)
     D_actor_403100_80155808->engageDelay            = 0x1E;
     D_actor_403100_80155808->walkSpeed              = 0x20;
     D_actor_403100_80155808->stridePhase            = 0;
-    (Gp_IncStateF0Ref)(0);
+    (sceneAcquireBattleRef)(0);
     i                                        = 0;
     flames                                   = D_actor_403100_80155814;
     body                                     = &flames->body;
@@ -7180,7 +7180,7 @@ static void func_actor_403100_8013B3C4(Task* arg0)
     D_actor_403100_80155808->stateFrames                      += 1;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0x18;
     if ((s16)D_actor_403100_80155808->stateFrames == 0x64) {
-        Gp_LoadImages(&D_actor_403100_801555EC[0]);
+        gpuUploadImages(&D_actor_403100_801555EC[0]);
     }
     if ((s16)D_actor_403100_80155808->stateFrames == 0x10E) {
         sound = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F0005;
@@ -7196,7 +7196,7 @@ static void func_actor_403100_8013B3C4(Task* arg0)
     D_actor_403100_80155808->rotation.vz = 0;
     if (Actor403100_TestFlags()) {
         D_actor_403100_80155808->vulnerable = 0;
-        Gp_LinkNode(&D_actor_403100_8015580C->node);
+        worldTargetLinkNode(&D_actor_403100_8015580C->node);
         D_actor_403100_8015580C->node.state.parts.flags = WORLD_TARGET_HIDE_HP;
         gGameSession->hideHud                           = 0;
         taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_END_SCRIPTED, 2, 0);

@@ -1413,7 +1413,7 @@ static void func_actor_800100_80163A58(Task* arg0)
                 rect->y             = 0x28;
                 rect->w             = 0x15;
                 rect->h             = 8;
-                Gp_LoadActorImage(arg0, uploadList, rect);
+                actorRenderUploadTexture(arg0, uploadList, rect);
                 actor->textureDelayA = 4;
                 actor->textureFrameA++;
             } else {
@@ -1433,7 +1433,7 @@ static void func_actor_800100_80163A58(Task* arg0)
                 rect->y = 0x40;
                 rect->w = 0xD;
                 rect->h = 0xC;
-                Gp_LoadActorImage(arg0, uploadList, rect);
+                actorRenderUploadTexture(arg0, uploadList, rect);
                 actor->textureDelayB = 8;
                 actor->textureFrameB++;
             } else {

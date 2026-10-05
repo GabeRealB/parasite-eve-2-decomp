@@ -1222,7 +1222,7 @@ ge2:
 case0:
     ctx->field_4  = &coord->coord;
     ctx->field_48 = 0;
-    Gp_LinkNode(&ctx->node);
+    worldTargetLinkNode(&ctx->node);
     parts           = actor->extra.tmd->coords;
     ctx->bodyPos.vx = 0;
     ctx->bodyPos.vy = 0;
@@ -1231,7 +1231,7 @@ case0:
     ctx->recs       = work->hurtContacts;
     ctx->coord      = &parts[3];
     ctx->hp         = Actor02000_D15D10.hpMax;
-    Gp_IncStateF0Ref(0);
+    sceneAcquireBattleRef(0);
     work->patrols = ctx->place->mode & 1;
     if (work->patrols == 0) {
         work->anim     = one;

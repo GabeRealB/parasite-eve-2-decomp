@@ -2519,7 +2519,7 @@ static void func_actor_403000_801343B8(Enemy* arg0, Task* arg1)
     arg0->bodyPos.vy   = 0;
     arg0->bodyPos.vz   = 0;
     arg0->coord        = &arg1->extra.tmd->coords[2];
-    Gp_LinkNode(&arg0->node);
+    worldTargetLinkNode(&arg0->node);
     animSrc               = D_actor_403000_80158B50;
     work->lockOnSuspended = 1;
     arg0->reactionFlags   = 0;
@@ -3119,7 +3119,7 @@ static void func_actor_403000_8013603C(Task* arg0)
         tmdAllocPrimitiveBuffer(tmd);
         work->lockOnSuspended        = 1;
         work->rootSphere.body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
-        Gp_ClearNodeSlots(&enemy->node);
+        worldTargetDisableNodeLockOn(&enemy->node);
         work->stateFrame = 0;
         Gp_SetLightMode(enemy, ENEMY_COLOR_DEFAULT);
     }
@@ -3193,7 +3193,7 @@ static void func_actor_403000_801365D0(Task* arg0)
         tmdAllocPrimitiveBuffer(tmd);
         work->lockOnSuspended        = 1;
         work->rootSphere.body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
-        Gp_ClearNodeSlots(&enemy->node);
+        worldTargetDisableNodeLockOn(&enemy->node);
         work->stateFrame = 0;
         Gp_SetLightMode(enemy, ENEMY_COLOR_DEFAULT);
     }
@@ -3268,7 +3268,7 @@ static void func_actor_403000_80136B14(Task* arg0)
         work->animStart               = ACTOR_403000_ANIM_RESTART;
         enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
         work->lockOnSuspended         = 1;
-        Gp_ClearNodeSlots(&enemy->node);
+        worldTargetDisableNodeLockOn(&enemy->node);
         arg0->extra.tmd->otOffset = 8;
         work->stateFrame          = 0;
     }
@@ -3321,7 +3321,7 @@ static void func_actor_403000_80136D68(Task* arg0)
         work->animStart               = ACTOR_403000_ANIM_RESTART;
         enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
         work->lockOnSuspended         = 1;
-        Gp_ClearNodeSlots(&enemy->node);
+        worldTargetDisableNodeLockOn(&enemy->node);
         arg0->extra.tmd->otOffset = 8;
         work->stateFrame          = 0;
     }
@@ -5427,7 +5427,7 @@ static void func_actor_403000_8013C864(Enemy* arg0, Task* arg1)
             arg0->node.state.parts.flags = (WORLD_TARGET_HIDE_HP | WORLD_TARGET_KEEP_SCANNED);
         } else {
             arg0->node.state.parts.flags = (WORLD_TARGET_HIDE_HP | WORLD_TARGET_KEEP_SCANNED | WORLD_TARGET_NOT_LOCKABLE);
-            Gp_ClearNodeSlots(&arg0->node);
+            worldTargetDisableNodeLockOn(&arg0->node);
         }
     }
     if (!(gDisplayState.animFrame & 1)) {
@@ -5789,7 +5789,7 @@ static void func_actor_403000_8013D72C(Task* arg0)
         obj                   = arg0->extra.tmd;
         enemy                 = arg0->spawnArg2.pointer;
         work->lockOnSuspended = 1;
-        Gp_ClearNodeSlots(&enemy->node);
+        worldTargetDisableNodeLockOn(&enemy->node);
         obj->flags = 0;
         tmdAllocPrimitiveBuffer(obj);
         work->animRate               = 0x10;

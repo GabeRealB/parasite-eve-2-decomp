@@ -26,7 +26,7 @@ void ratSpawn(Enemy* ctx, Task* actor)
     obj->colorMtx       = &work->colorMtx;
     ctx->field_4        = &coord->coord;
     ctx->field_48       = 0;
-    Gp_LinkNode(&ctx->node);
+    worldTargetLinkNode(&ctx->node);
     ctx->coord                    = &actor->extra.tmd->coords[4];
     ctx->node.state.parts.flags   = 0;
     ctx->bodyPos.vx               = 0;
@@ -42,7 +42,7 @@ void ratSpawn(Enemy* ctx, Task* actor)
     for (i = 1; i < 7; i++) {
         animationResetSlot(&work->rig.anim, i, RAT_ANIM_IDLE);
     }
-    Gp_IncStateF0Ref(0);
+    sceneAcquireBattleRef(0);
     work->animId                      = RAT_ANIM_IDLE;
     work->appliedAnimId               = RAT_ANIM_IDLE;
     work->sensorBody.coord            = coord;

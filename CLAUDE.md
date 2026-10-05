@@ -181,7 +181,7 @@ recovered extent. Record the offset and access width; do not turn it into a
 new global just because it falls in a current `pad` interval.
 
 Known fields can also be accessed with the offset folded into `%hi/%lo`
-immediates, as in `Gp_SetStateF0Byte3`. Cross-check these absolute addresses
+immediates, as in `sceneSetEnemyAlert`. Cross-check these absolute addresses
 against uses that establish the containing base. Splat's choice of `D_x`
 versus `symbol + offset` depends on the symbol map and declared sizes, so the
 printed expression alone is not independent evidence of an object boundary.

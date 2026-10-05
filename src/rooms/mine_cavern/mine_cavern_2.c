@@ -2990,7 +2990,7 @@ static void func_mine_cavern_80182E34(Enemy* arg0, Task* arg1)
     arg0->bodyPos.vy = -0x320;
     arg0->bodyPos.vz = 0;
     arg0->coord      = arg1->extra.tmd->coords;
-    Gp_LinkNode(&arg0->node);
+    worldTargetLinkNode(&arg0->node);
     arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
     arg1->state++;
 }

@@ -27,7 +27,7 @@ void desertChaserFlinch(Task* arg0)
         work->lookYawTarget                                   = 0;
         work->waistYawTarget                                  = 0;
         if (ctx->hp <= 0) {
-            Gp_SetStateF0Byte3(1);
+            sceneSetEnemyAlert(1);
         }
     }
     desertChaserAnimTick(arg0);

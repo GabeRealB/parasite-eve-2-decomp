@@ -321,7 +321,7 @@ extern TaskDesc D_actor_206100_80158AF0[];
 /// the pair's max HP and both `field_40` and `field_42` take it -- reading the
 /// global twice instead costs a register and shifts the whole function's
 /// allocation (see `DECOMPILATION_LEARNINGS.md`, "A repeated global load ...").
-/// The two `task->extra` walks after `Gp_LinkNode` are separate reloads in the
+/// The two `task->extra` walks after `worldTargetLinkNode` are separate reloads in the
 /// original, which is why `tmd` is not reused for `field_8[4]`.
 static void func_actor_206100_8014AF74(Task* task);
 
@@ -1095,7 +1095,7 @@ static void func_actor_206100_8014AF74(Task* task)
     enemy->bodyPos.vy          = 0;
     enemy->bodyPos.vz          = 0;
     enemy->coord               = &task->extra.tmd->coords[4];
-    Gp_LinkNode(&enemy->node);
+    worldTargetLinkNode(&enemy->node);
     enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
     enemy->recs                   = work->hitContacts;
     enemy->param                  = &D_actor_206100_80155198;
@@ -1665,7 +1665,7 @@ static inline void _actor206100AnimUpdate(Task* task)
 ///
 /// The tail seeds `field_508`, `field_50A`, `modelScale` and `goalY`, asks for
 /// the neck drawn in, places the root coordinate at the goal height, takes the state-0
-/// reference `Gp_IncStateF0Ref` and re-arms the actor in state 1 with the state
+/// reference `sceneAcquireBattleRef` and re-arms the actor in state 1 with the state
 /// and sub-state indices cleared -- the two index pairs written through the two
 /// fresh `Task::work` loads, the block-local store shape `func_actor_206100_8014CE60`
 /// uses.
@@ -1707,7 +1707,7 @@ static void func_actor_206100_8014C274(Task* task)
     work->goalY         = 0x2710;
     coord->coord.t[1]   = 0x2710;
     coord->coord.t[2]   = 0;
-    (Gp_IncStateF0Ref)(0);
+    (sceneAcquireBattleRef)(0);
     state           = task->work;
     task->state     = 1;
     state->state    = 0;

@@ -59,7 +59,7 @@ void golemPawnRookSpawn(Enemy* ctx, Task* actor)
         case 0:
             ctx->field_4  = &coord->coord;
             ctx->field_48 = 0;
-            Gp_LinkNode(&ctx->node);
+            worldTargetLinkNode(&ctx->node);
             parts           = actor->extra.tmd->coords;
             ctx->bodyPos.vx = 0;
             ctx->bodyPos.vy = 0;
@@ -68,7 +68,7 @@ void golemPawnRookSpawn(Enemy* ctx, Task* actor)
             ctx->recs       = work->hurtContacts;
             ctx->coord      = &parts[3];
             ctx->hp         = gGolemPawnRookParams->hpMax;
-            Gp_IncStateF0Ref(0);
+            sceneAcquireBattleRef(0);
             work->patrols = ctx->place->mode & 1;
             if (work->patrols == 0) {
                 work->anim     = 1;

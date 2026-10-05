@@ -559,7 +559,7 @@ static void func_actor_403600_80138EF8(Enemy* enemy, Task* task)
     temp_s2->colorMtx     = &work->color;
     enemy->field_4        = &temp_s0[1].coord;
     enemy->field_48       = 0;
-    Gp_LinkNode(&enemy->node);
+    worldTargetLinkNode(&enemy->node);
     enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
     enemy->bodyPos.vy             = -0x1F4;
     gpSess                        = gGameSession;
@@ -579,7 +579,7 @@ static void func_actor_403600_80138EF8(Enemy* enemy, Task* task)
         animationResetSlot(&work->rig.anim, var_s0, 1);
         var_s0 += 1;
     } while (var_s0 < 0x14);
-    (Gp_IncStateF0Ref)(0);
+    (sceneAcquireBattleRef)(0);
     work->animId                   = 1;
     work->hitEffectArg.coord       = &work->worldCoord;
     work->hitEffectArg.spawnArgLo  = 0x600;
@@ -2143,7 +2143,7 @@ static void func_actor_403600_8013A444(Task* arg0)
                         work->actionDelay               = 0;
                         work->gridBody.flags            = (u16)(work->gridBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED));
                         temp_s7->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-                        Gp_ClearNodeSlots(&temp_s7->node);
+                        worldTargetDisableNodeLockOn(&temp_s7->node);
                         work->phaseFrame    = 0;
                         work->step          = 5;
                         work->actionCounter = (u16)work->actionTimer;
@@ -2261,7 +2261,7 @@ static void func_actor_403600_8013A444(Task* arg0)
                     break;
                 case 8:
                     if ((work->phaseFrame == 1) && (work->childEnemy == 0)) {
-                        work->childEnemy = Gp_SpawnEnemyFromTable(D_actor_403600_80160514, 1, Gp_NodeSlotMask(&temp_s7->node), 0);
+                        work->childEnemy = Gp_SpawnEnemyFromTable(D_actor_403600_80160514, 1, worldTargetGetActorLockMask(&temp_s7->node), 0);
                     }
                     if (work->phaseFrame >= 0x1E) {
                         work->forwardSpeed  = -0xAU;
@@ -3881,7 +3881,7 @@ static void func_actor_403600_8013F7B8(Enemy* enemy, Task* task)
     model->colorMtx = &work->color;
     enemy->field_4  = &modelCoord[1].coord;
     enemy->field_48 = 0;
-    Gp_LinkNode(&enemy->node);
+    worldTargetLinkNode(&enemy->node);
     enemy->node.state.parts.flags = WORLD_TARGET_HIDE_HP;
     enemy->coord                  = bodyCoord;
     enemy->bodyPos.vx             = 0;
@@ -3896,7 +3896,7 @@ static void func_actor_403600_8013F7B8(Enemy* enemy, Task* task)
         animationResetSlot(&work->rig.anim, i, 1);
         i += 1;
     } while (i < 0x14);
-    (Gp_IncStateF0Ref)(0);
+    (sceneAcquireBattleRef)(0);
     bodyRecs            = work->hitContacts;
     work->animId        = 9;
     work->appliedAnimId = 0;
@@ -4310,7 +4310,7 @@ s32 func_actor_403600_801406A4(Task* arg0, s32 arg1, ActorCommand* request, s32 
         case 1:
             _actor403600ResetState(arg0);
             enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-            Gp_ClearNodeSlots(&enemy->node);
+            worldTargetDisableNodeLockOn(&enemy->node);
             work->animId                = 1;
             work->worldCoord.coord.t[0] = 0x1D7A;
             work->worldCoord.coord.t[1] = -0x145A;

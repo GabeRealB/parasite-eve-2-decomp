@@ -2569,7 +2569,7 @@ s32 func_actor_510900_801391B8(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 
     switch (arg2) {
         case 0:
-            (Gp_IncStateF0Ref)(0x1B);
+            (sceneAcquireBattleRef)(0x1B);
             obj->flags                             = 0;
             work->weaponTask->extra.tmd->flags     = 0;
             work->chestModelTask->extra.tmd->flags = 0;
@@ -3153,7 +3153,7 @@ static void func_actor_510900_8013A5B8(Enemy* enemy, Task* task)
     rot                        = (SVECTOR*)(head - 8);
     SCRATCH_STACK_CURSOR(void) = head - 8;
     enemy->field_48            = 0;
-    Gp_LinkNode(&enemy->node);
+    worldTargetLinkNode(&enemy->node);
     enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
     enemy->coord                  = coord;
     enemy->bodyPos.vx             = -0xC8;
@@ -3446,7 +3446,7 @@ static void func_actor_510900_8013AD90(Enemy* enemy, Task* task)
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     enemy->field_4      = &coord->coord;
     enemy->field_48     = 0;
-    Gp_LinkNode(&enemy->node);
+    worldTargetLinkNode(&enemy->node);
     enemy->coord                  = coord;
     enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
     enemy->bodyPos.vx             = 0;

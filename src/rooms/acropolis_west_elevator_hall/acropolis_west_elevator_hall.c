@@ -1429,7 +1429,7 @@ void func_acropolis_west_elevator_hall_8017F990(Task* task)
                                &D_acropolis_west_elevator_hall_80184A04[i], work->scale,
                                &D_acropolis_west_elevator_hall_80184E04[i]);
         }
-        Gp_LoadImages(D_acropolis_west_elevator_hall_80185004);
+        gpuUploadImages(D_acropolis_west_elevator_hall_80185004);
     }
 
     if (gGameSession->location.loc.view != 5) {
@@ -1438,7 +1438,7 @@ void func_acropolis_west_elevator_hall_8017F990(Task* task)
                                &D_acropolis_west_elevator_hall_80184A04[i], 0,
                                &D_acropolis_west_elevator_hall_80184E04[i]);
         }
-        Gp_LoadImages(D_acropolis_west_elevator_hall_80185004);
+        gpuUploadImages(D_acropolis_west_elevator_hall_80185004);
         effectKillTask(work, task);
     }
 }

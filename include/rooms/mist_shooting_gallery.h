@@ -37,7 +37,7 @@ typedef struct {
     u8  liveTargets;                                    // Spawned targets still in play; scripts wait for 0 between waves
     u8  kills[MIST_SHOOTING_GALLERY_TARGET_KIND_COUNT]; // Targets destroyed, per target kind
     u8  course;                                         // Course being run (0..4), from the task's spawn argument; selects script, time and scoring
-    u8  targetLockMask;                                 // Player-actor slots locking onto the current target (`Gp_NodeSlotMask`)
+    u8  targetLockMask;                                 // Player-actor slots locking onto the current target (`worldTargetGetActorLockMask`)
     u8  interrupted;                                    // Set once the course's single interruption (out of ammo, abort, lethal hit) has fired
     u8  actionTriggered;                                // Raised when the player uses the gallery's action point; scripts clear it
     u8  captionStep;                                    // Next caption of the course's caption script to show

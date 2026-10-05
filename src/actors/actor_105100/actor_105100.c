@@ -931,7 +931,7 @@ static void func_actor_105100_801327B4(Enemy* arg0, Task* arg1)
     obj->colorMtx       = &work->colorMtx;
     arg0->field_4       = &coord->coord;
     arg0->field_48      = 0;
-    Gp_LinkNode(&arg0->node);
+    worldTargetLinkNode(&arg0->node);
     arg0->coord                   = &arg1->extra.tmd->coords[3];
     arg0->bodyPos.vx              = 0;
     arg0->bodyPos.vy              = 0x64;
@@ -947,7 +947,7 @@ static void func_actor_105100_801327B4(Enemy* arg0, Task* arg1)
     for (i = 1; i < 0x13; i++) {
         animationResetSlot(&work->rig.anim, i, 1);
     }
-    (Gp_IncStateF0Ref)(0);
+    (sceneAcquireBattleRef)(0);
     work->placementMtx             = coord->coord;
     work->scale                    = 0x2800;
     work->shield.fields.active     = 1;

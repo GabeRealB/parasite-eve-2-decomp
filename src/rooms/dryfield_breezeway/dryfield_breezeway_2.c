@@ -761,7 +761,7 @@ static void func_dryfield_breezeway_8017E464(Task* arg0)
 
 /// The two image records the key-item prompt's scan uploads the first time it
 /// runs, taken from the room's trailing data blob: the confirm and cancel
-/// artwork `Gp_LoadImages` stages into VRAM.
+/// artwork `gpuUploadImages` stages into VRAM.
 
 /// Runs the key-item prompt's scan state: uploads this room's two prompt
 /// `GpuImageUpload`s the first time it runs (`Task::killCountdown` is zero, and the
@@ -794,8 +794,8 @@ static void func_dryfield_breezeway_8017E65C(Task* task)
     prompt = D_80114D28;
 
     if (task->killCountdown == 0) {
-        Gp_LoadImages(&D_dryfield_breezeway_80182F24[0]);
-        Gp_LoadImages(&D_dryfield_breezeway_80183144[0]);
+        gpuUploadImages(&D_dryfield_breezeway_80182F24[0]);
+        gpuUploadImages(&D_dryfield_breezeway_80183144[0]);
         task->killCountdown = (u16)task->killCountdown + 1;
     }
 

@@ -1029,7 +1029,7 @@ static void Actor07000_Fn02E0C(Enemy* arg0, Task* arg1)
     obj->colorMtx       = &work->colorMtx;
     arg0->field_4       = &coord->coord;
     arg0->field_48      = 0;
-    Gp_LinkNode(&arg0->node);
+    worldTargetLinkNode(&arg0->node);
     arg0->bodyPos.vy              = -0x64;
     arg0->coord                   = coord;
     arg0->node.state.parts.flags  = 0;
@@ -1045,7 +1045,7 @@ static void Actor07000_Fn02E0C(Enemy* arg0, Task* arg1)
     for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
         animationResetSlot(&work->rig.anim, i, 1);
     }
-    (Gp_IncStateF0Ref)(0);
+    (sceneAcquireBattleRef)(0);
     work->animId                    = ACTOR_07000_SLOUCH_ANIM_IDLE;
     work->appliedAnim               = ACTOR_07000_SLOUCH_ANIM_IDLE;
     work->field_388                 = 0;
@@ -1315,7 +1315,7 @@ static void Actor07000_Fn037EC(Task* arg0, TmdObject* arg1, s32 arg2)
         case ACTOR_07000_SLOUCH_ENGAGED_WATCH:
             work->animId = ACTOR_07000_SLOUCH_ANIM_WATCH;
             if (work->animFrames >= 18) {
-                Gp_SetStateF0Byte3(1);
+                sceneSetEnemyAlert(1);
                 Gp_ArmStateF0(1);
             }
             Actor07000_Fn047F4(arg0->extra.tmd->coords, &distance);
@@ -2074,7 +2074,7 @@ static void Actor07000_Fn05068(Enemy* arg0, Task* arg1)
     obj->colorMtx       = &work->colorMtx;
     arg0->field_4       = &coord->coord;
     arg0->field_48      = 0;
-    Gp_LinkNode(&arg0->node);
+    worldTargetLinkNode(&arg0->node);
     arg0->coord                   = coord;
     arg0->node.state.parts.flags  = one;
     arg0->bodyPos.vx              = 0;
@@ -2092,7 +2092,7 @@ static void Actor07000_Fn05068(Enemy* arg0, Task* arg1)
         animationResetSlot(&work->rig.anim, i, 1);
         i += 1;
     } while (i < ARRAY_SIZE(work->rig.slots));
-    (Gp_IncStateF0Ref)(0);
+    (sceneAcquireBattleRef)(0);
     work->animId                    = ACTOR_07000_SLOUCH_ANIM_IDLE;
     work->appliedAnim               = ACTOR_07000_SLOUCH_ANIM_IDLE;
     work->field_388                 = 0;

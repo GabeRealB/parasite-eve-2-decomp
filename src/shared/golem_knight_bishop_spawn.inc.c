@@ -54,7 +54,7 @@ void golemKnightBishopSpawn(Enemy* arg0, Task* arg1)
             work->shadowShade = -1;
             arg0->field_4     = &coord->coord;
             arg0->field_48    = 0;
-            Gp_LinkNode(&arg0->node);
+            worldTargetLinkNode(&arg0->node);
             arg0->coord      = &arg1->extra.tmd->coords[3];
             arg0->bodyPos.vx = 0;
             arg0->bodyPos.vy = 0;
@@ -69,7 +69,7 @@ void golemKnightBishopSpawn(Enemy* arg0, Task* arg1)
                 }
             }
             work->sequence = GOLEM_KNIGHT_BISHOP_SEQUENCE_REGION_SCAN;
-            (Gp_IncStateF0Ref)(0);
+            (sceneAcquireBattleRef)(0);
             work->actorId = GOLEM_KNIGHT_BISHOP_ID;
             cues          = gGolemKnightBishopStageCues[gGameSession->location.loc.stage];
             if (cues != NULL) {

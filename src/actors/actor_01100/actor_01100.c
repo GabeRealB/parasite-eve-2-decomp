@@ -1167,7 +1167,7 @@ static void Actor01100_Fn0097C(Enemy* enemy, Task* task, _Actor01100Work* unused
             break;
     }
 
-    Gp_IncStateF0Ref(0);
+    sceneAcquireBattleRef(0);
     endCoords                     = task->extra.tmd->coords;
     work->hitEffectArg.spawnArgLo = 0x400;
     work->hitEffectArg.spawnArgHi = 3;
@@ -1194,7 +1194,7 @@ static void Actor01100_Fn00CF0(Enemy* enemy, Task* task, _Actor01100Work* work, 
     s32                 idx;
 
     if (CdCmd_IsIdle() & 0xFFFF) {
-        Gp_LinkNode(&enemy->node);
+        worldTargetLinkNode(&enemy->node);
         obj                   = &work->bodies[ACTOR_01100_BODY_ROOT];
         obj->coord            = task->extra.tmd->coords;
         obj->context.contacts = &work->contacts[ACTOR_01100_BODY_ROOT][0];

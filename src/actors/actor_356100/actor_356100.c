@@ -1083,7 +1083,7 @@ static void func_actor_356100_8016382C(Enemy* enemy, Task* actor)
     enemy->bodyPos.vy = 0;
     enemy->bodyPos.vz = 0;
     enemy->coord      = &actor->extra.tmd->coords[2];
-    Gp_LinkNode(&enemy->node);
+    worldTargetLinkNode(&enemy->node);
     enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
     enemy->reactionFlags          = 0;
     enemy->hp                     = (s16)D_actor_356100_8016A984.hpMax;
@@ -3079,7 +3079,7 @@ static void func_actor_356100_8016A710(Task* arg0)
         work->lookYaw                 = 0;
         work->lookYawTarget           = 0;
         if (enemy->hp < 0) {
-            Gp_SetStateF0Byte3(1);
+            sceneSetEnemyAlert(1);
         }
     }
     func_actor_356100_80163508(arg0);
@@ -3120,7 +3120,7 @@ static void func_actor_356100_8016A834(Task* arg0)
         work->lookYaw                 = 0;
         work->lookYawTarget           = 0;
         if (enemy->hp < 0) {
-            Gp_SetStateF0Byte3(1);
+            sceneSetEnemyAlert(1);
         }
     }
     func_actor_356100_80163508(arg0);
