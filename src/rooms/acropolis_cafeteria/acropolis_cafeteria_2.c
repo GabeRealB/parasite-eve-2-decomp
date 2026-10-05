@@ -899,76 +899,66 @@ void func_acropolis_cafeteria_8017E47C(Task* arg0)
     queue = &gCdCmdQueue;
     switch (task->state) {
         case 0:
-            goto L_case0;
+            SetDispMask(0);
+            Mem_AllocAuxWithImages(1);
+            task->state = task->state + 1;
+            break;
+
         case 1:
-            goto L_case1;
+            key          = gGameSession->location;
+            key.loc.view = 0x64;
+            slotParam[0] = streamFindMovieSlot(&key.loc, 0, 0);
+            cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, 0, slotParam);
+            task->state = task->state + 1;
+            break;
+
         case 2:
-            goto L_case2;
+            if (queue->movieReady == 0) {
+                return;
+            }
+            SetDispMask(1);
+            task->killCountdown   = 0;
+            task->spawnArg1.value = 0;
+            task->state           = task->state + 1;
+            break;
+
         case 3:
-            goto L_case3;
+            if (++task->killCountdown == 0x443) {
+                Stage_RequestFromAreaTable(0);
+                task->spawnArg1.value = 1;
+            }
+            if (CdCmd_IsIdle() & 0xFFFF) {
+                SetDispMask(0);
+                task->state = task->state + 1;
+                break;
+            }
+            if (Pad_CheckFlag800() == 0) {
+                return;
+            }
+            SetDispMask(0);
+            CdCmd_ActivatePhase1();
+            task->state = task->state + 1;
+            break;
+
         case 4:
-            goto L_case4;
+            if ((CdCmd_IsIdle() & 0xFFFF) == 0) {
+                return;
+            }
+            Stream_ResetRestoreState();
+            task->state = task->state + 1;
+            break;
+
         case 5:
-            goto L_case5;
+            if ((Stream_RestoreAfterLoad(0, 1) & 0xFFFF) == 0) {
+                return;
+            }
+            if (task->spawnArg1.value == 0) {
+                Stage_RequestFromAreaTable(0);
+            }
+            taskKill(task);
+            displayResumeGameLoop();
+            break;
     }
-    return;
-
-L_case0:
-    SetDispMask(0);
-    Mem_AllocAuxWithImages(1);
-    goto advance;
-
-L_case1:
-    key          = gGameSession->location;
-    key.loc.view = 0x64;
-    slotParam[0] = streamFindMovieSlot(&key.loc, 0, 0);
-    cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, 0, slotParam);
-    goto advance;
-
-L_case2:
-    if (queue->movieReady == 0) {
-        return;
-    }
-    SetDispMask(1);
-    task->killCountdown   = 0;
-    task->spawnArg1.value = 0;
-    task->state           = task->state + 1;
-    return;
-
-L_case3:
-    if (++task->killCountdown == 0x443) {
-        Stage_RequestFromAreaTable(0);
-        task->spawnArg1.value = 1;
-    }
-    if (CdCmd_IsIdle() & 0xFFFF) {
-        SetDispMask(0);
-        goto advance;
-    }
-    if (Pad_CheckFlag800() == 0) {
-        return;
-    }
-    SetDispMask(0);
-    CdCmd_ActivatePhase1();
-    goto advance;
-
-L_case4:
-    if ((CdCmd_IsIdle() & 0xFFFF) == 0) {
-        return;
-    }
-    Stream_ResetRestoreState();
-advance:
-    task->state = task->state + 1;
-    return;
-
-L_case5:
-    if ((Stream_RestoreAfterLoad(0, 1) & 0xFFFF) == 0) {
-        return;
-    }
-    if (task->spawnArg1.value == 0) {
-        Stage_RequestFromAreaTable(0);
-    }
-    taskKill(task);
-    displayResumeGameLoop();
 }
 
 void acropolisCafeteriaBlackoutTask(Task* task)
