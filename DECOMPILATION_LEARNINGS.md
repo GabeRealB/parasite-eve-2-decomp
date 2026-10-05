@@ -6700,7 +6700,7 @@ if ((flag == 0) && (count <= 0)) {
 }
 ```
 
-`Gp_FadeTileTask` is the example. TILE RGB must still be stored in *both*
+`fadeDisplayTransitionTask` is the example. TILE RGB must still be stored in *both*
 arms of the `< 8` color `if` (see “Per-branch stores”) or `-fschedule-insns`
 lifts `addPrim`’s `lui 0xFFFFFF` / `lui 0xE100` above the three `sb`s.
 
@@ -26354,9 +26354,9 @@ forces it into `$a1` and emits `move s2, a1` / `lw a1, firstChild` up
 front.
 
 Assign `child = next` *before* the reloaded-`firstChild == NULL` break
-so `move a1, s0` fills that `beqz` delay slot. `Gp_ForEachUiChild` is the
+so `move a1, s0` fills that `beqz` delay slot. `_uiVisitChildObjects` is the
 helper; `Gp_ItemPaneTask` and `Gp_ItemMoveTask` inline the same walk with
-`Gp_CloseItemPane` / `Gp_ItemMoveChild`.
+`_itemMenuHandlePaneChildResult` / `Gp_ItemMoveChild`.
 
 ## Snapshot `(u16)s32` before an early-out so `lhu` fills the load delay
 
@@ -41932,7 +41932,7 @@ time.
 
 Two different functions can plausibly earn the same descriptive name.
 `func_800B2200` (a `ScreenFade` TILE task in 1BC) and the already-named
-`Gp_FadeTileTask` at `0x800BF738` in 4CC are both "the fade tile task"; so are
+`fadeDisplayTransitionTask` at `0x800BF738` in 4CC are both "the fade tile task"; so are
 `func_800DA2A0` and the existing `Gp_FindLockNodeAt`. Renaming into a taken
 name puts two addresses behind one symbol in `sym.gameplay.txt`.
 

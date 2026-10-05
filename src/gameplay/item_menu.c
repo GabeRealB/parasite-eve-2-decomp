@@ -8,6 +8,7 @@
 
 #include "gameplay/actor_render.h"
 #include "cap.h"
+#include "gameplay/display.h"
 #include "gameplay/enemy.h"
 #include "gameplay/inventory.h"
 #include "item_menu.h"
@@ -36,6 +37,29 @@
 
 /// Prevents a cancel press from also activating the discard row it selected.
 enum { ITEM_MENU_LIST_ACTION_CANCEL_HANDLED = 0x21 };
+
+/// Commands a child dialog forwards through its inventory pane to the move screen.
+enum {
+    ITEM_MENU_RESULT_BEGIN_SWAP       = 0x23,
+    ITEM_MENU_RESULT_MOVE_ALL         = 0x26,
+    ITEM_MENU_RESULT_DISCARD_AND_EXIT = 0x27
+};
+
+/// Fixed extent and counter-to-grey conversion of the display transition overlay.
+enum {
+    FADE_DISPLAY_WIDTH_PIXELS    = 320,
+    FADE_DISPLAY_HEIGHT_PIXELS   = 240,
+    FADE_DISPLAY_STEPS           = 8,
+    FADE_DISPLAY_INTENSITY_SHIFT = 5,
+    FADE_DISPLAY_MIN_GREY        = (1 << FADE_DISPLAY_INTENSITY_SHIFT) - 1,
+    FADE_DISPLAY_MAX_GREY        = 255,
+    FADE_DISPLAY_WORLD_OT        = 0,
+    FADE_DISPLAY_CLEAR_IMAGE_OT  = 59,
+    FADE_DISPLAY_TASK_OT         = 63
+};
+
+/// GPU draw mode with dithering, drawing to the display area and subtractive blending.
+enum { FADE_DISPLAY_DRAW_MODE = 0xE1000600 | (GPU_BLEND_SUBTRACT << 5) };
 
 /// Row of the item-move command list.
 ///
@@ -139,7 +163,7 @@ static const char Gp_StrBullet[];
 /* After Gp_StrBullet from func_800BDF6C so the overlay .rodata stays packed. */
 static const _ItemMenuPromptTexts Gp_ItemPromptTexts;
 
-/// Fullscreen-fade vector template used by `Gp_FadeTileTask` / `Gp_ItemPickupTilt`.
+/// Vector template used by `Gp_ItemPickupTilt`.
 static const VECTOR D_80093DB0;
 
 /// Task callback for the item-move UI. `spawnArg2` is the `UiObject`.
@@ -156,7 +180,7 @@ void Gp_ItemMoveTask(Task* arg0);
 /// list from `Gp_MoveScanSrc[spawnArg1].rowCount` (visible rows capped at 10).
 /// First-state confirm/cancel is `result = USER_INTERFACE_RESULT_CANCEL`; later states write
 /// `0x24`. Circle (src) / Square (dest) / mask 3 switch panes (`0xA`)
-/// and play type-6 sound 2. Walks children through `Gp_CloseItemPane`.
+/// and play type-6 sound 2. Walks children through `_itemMenuHandlePaneChildResult`.
 void Gp_ItemPaneTask(Task* arg0);
 
 /// Task callback for the `Gp_ItemActionList` item list. On first run it copies
@@ -204,15 +228,11 @@ static void Gp_FillItemActions(UiList* arg0, UiObject* arg1);
 /// counts when the carried items no longer include any of that item.
 static inline void _gpDropOrphanedWeaponLoads(void);
 
-static void Gp_ForEachUiChild(UiObject* arg0, UiObjectTaskFunc arg1);
+static void _uiVisitChildObjects(const UiObject* object, UiObjectTaskFunc visitChild);
 
 static s32 Gp_ItemUseRestricted(s32 arg0, s32 arg1);
 
-/// Child closer for the `Gp_InvLists` inventory panes. Cancel tears down and
-/// either restores parent status or sets the parent `result` to cancel when the
-/// parent owner has no flags; confirm / `0x23` / `38` / `39` copy those codes
-/// onto the parent (confirm also restores status).
-static void Gp_CloseItemPane(UiObject* arg0, Task* arg1);
+static void _itemMenuHandlePaneChildResult(UiObject* child, Task* childTask);
 
 UiList            Gp_ItemActionList = { Gp_ItemActionFns, 3, { 3 }, 1, 10, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0 };
 UiListRowCallback D_8010D6B0[1]     = { Gp_ItemMenuPrompt };
@@ -694,7 +714,7 @@ void Gp_ItemPaneTask(Task* arg0)
     }
 
 children:
-    cb    = Gp_CloseItemPane;
+    cb    = _itemMenuHandlePaneChildResult;
     owner = obj->owner;
     child = owner->firstChild;
     if (child != NULL) {
@@ -1215,7 +1235,7 @@ void func_800BDF6C(Task* task)
 
 /* After Gp_StrBullet from func_800BDF6C so the overlay .rodata stays packed. */
 static const _ItemMenuPromptTexts Gp_ItemPromptTexts = { Gp_StrAll, Gp_StrSelect, Gp_StrDiscard, Gp_StrEnd };
-/// Fullscreen-fade vector template used by `Gp_FadeTileTask` / `Gp_ItemPickupTilt`.
+/// Vector template used by `Gp_ItemPickupTilt`.
 static const VECTOR D_80093DB0 = { 0, -100, 0, 0 };
 
 /// For each carried weapon, empties its primary and secondary ammunition
@@ -1518,25 +1538,35 @@ void Gp_ItemPickupTilt(Task* arg0)
     worldCoordSetModelLighting(extra, &vec2, 0, 3);
 }
 
-static void Gp_ForEachUiChild(UiObject* arg0, UiObjectTaskFunc arg1)
+/// Visits the task-owned UI objects in a parent's circular child ring.
+///
+/// Borrows a live object and owner, with a closed ring of live child tasks whose
+/// spawnArg2 pointers are their UI objects. The callback must be non-NULL while
+/// children exist. It may detach or release the current child, but must keep the
+/// saved successor live if the ring remains nonempty, preserve traversal order,
+/// and keep the parent owner live. Inserting or reordering children is unsupported.
+/// Stops at an empty ring or when the saved successor is the current head;
+/// detaching the head can therefore end this walk before visiting its siblings.
+static void _uiVisitChildObjects(const UiObject* object, UiObjectTaskFunc visitChild)
 {
-    Task* owner;
-    Task* child;
-    Task* next;
-    Task* head;
+    Task* owningTask;
+    Task* childTask;
+    Task* nextSibling;
+    Task* childHead;
 
-    owner = arg0->owner;
-    child = owner->firstChild;
-    if (child != NULL) {
+    owningTask = object->owner;
+    childTask  = owningTask->firstChild;
+    if (childTask != NULL) {
         do {
-            next = child->nextSibling;
-            arg1(child->spawnArg2.pointer, child);
-            head  = owner->firstChild;
-            child = next;
-            if (head == NULL) {
+            // The callback can detach this node and move or clear the ring's head.
+            nextSibling = childTask->nextSibling;
+            visitChild(childTask->spawnArg2.pointer, childTask);
+            childHead = owningTask->firstChild;
+            childTask = nextSibling;
+            if (childHead == NULL) {
                 break;
             }
-        } while (child != head);
+        } while (childTask != childHead);
     }
 }
 
@@ -1554,37 +1584,42 @@ static s32 Gp_ItemUseRestricted(s32 arg0, s32 arg1)
     return ret;
 }
 
-/// Child closer for the `Gp_InvLists` inventory panes. Cancel tears down and
-/// either restores parent status or sets the parent `result` to cancel when the
-/// parent owner has no flags; confirm / `0x23` / `38` / `39` copy those codes
-/// onto the parent (confirm also restores status).
-static void Gp_CloseItemPane(UiObject* arg0, Task* arg1)
+/// Handles a child dialog's result for its inventory pane.
+///
+/// Borrows the live child and its owning task, whose parent owns the pane.
+/// Cancel closes the child: battle-field mode resumes pane input, while item-box
+/// mode leaves it inactive and forwards cancel. Confirm closes the child and resumes
+/// pane input without forwarding a result. Begin-swap closes and forwards;
+/// move-all and discard-and-exit forward without closing. Other results do
+/// nothing. Closing detaches the child and requests its animation; it does not
+/// immediately release the child object or task.
+static void _itemMenuHandlePaneChildResult(UiObject* child, Task* childTask)
 {
-    UiObject* parent;
+    UiObject* pane;
 
-    parent = arg1->parent->spawnArg2.pointer;
-    switch (arg0->result) {
+    pane = childTask->parent->spawnArg2.pointer;
+    switch (child->result) {
         case USER_INTERFACE_RESULT_CANCEL:
-            if (parent->owner->status) {
-                parent->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
-                uiStartTreeClosing(arg0, arg0->owner);
+            if (pane->owner->status) {
+                pane->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
+                uiStartTreeClosing(child, child->owner);
             } else {
-                uiStartTreeClosing(arg0, arg0->owner);
-                parent->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
-                parent->result             = USER_INTERFACE_RESULT_CANCEL;
+                uiStartTreeClosing(child, child->owner);
+                pane->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
+                pane->result             = USER_INTERFACE_RESULT_CANCEL;
             }
             break;
         case USER_INTERFACE_RESULT_CONFIRM:
-            parent->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
-            uiStartTreeClosing(arg0, arg0->owner);
+            pane->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
+            uiStartTreeClosing(child, child->owner);
             break;
-        case 0x23:
-            uiStartTreeClosing(arg0, arg0->owner);
-            parent->result = 0x23;
+        case ITEM_MENU_RESULT_BEGIN_SWAP:
+            uiStartTreeClosing(child, child->owner);
+            pane->result = ITEM_MENU_RESULT_BEGIN_SWAP;
             break;
-        case 38:
-        case 39:
-            parent->result = arg0->result;
+        case ITEM_MENU_RESULT_MOVE_ALL:
+        case ITEM_MENU_RESULT_DISCARD_AND_EXIT:
+            pane->result = child->result;
             break;
     }
 }
@@ -1679,97 +1714,108 @@ void Gp_PublishItemObj(Task* arg0)
     arg0->state         = arg0->state + 1;
 }
 
-/// Fullscreen semi-trans TILE fade. `spawnArg1` 0/2 count down from 7/8;
-/// 4 also counts down once `gDisplayState.control.flags.imageSource == 2`; 5 and other
-/// values count up and write `gDisplayState.control.flags.imageSource` / `gDisplayState.control.flags.flipMode` on completion.
-void Gp_FadeTileTask(Task* arg0)
+/// Queues the transition's screen-sized subtractive tile and its blend command.
+///
+/// Uses the live task's 0..8 step counter, a signed pixel Y offset and a writable
+/// OT entry. Reserves one TILE plus one DR_TPAGE in the aligned frame arena;
+/// packets and the ordering table must remain live until GPU completion.
+static inline void _fadeQueueDisplayTransitionOverlay(Task* task, s32 yOffsetPixels, s32 otIndex)
 {
-    s32       flag;
-    s32       yoff;
-    s32       otIdx;
-    s32       color;
-    TILE*     tile;
-    DR_TPAGE* dr;
+    s32       grey;
+    TILE*     fadeTile;
+    DR_TPAGE* blendCommand;
 
-    flag = 0;
-    if (arg0->state == 0) {
-        if (arg0->spawnArg1.value == 0) {
+    fadeTile       = gGpuPrimCursor;
+    gGpuPrimCursor = fadeTile + 1;
+    setTile(fadeTile);
+    setSemiTrans(fadeTile, 1);
+    fadeTile->x0 = -FADE_DISPLAY_WIDTH_PIXELS / 2;
+    fadeTile->y0 = -FADE_DISPLAY_HEIGHT_PIXELS / 2 - yOffsetPixels;
+    fadeTile->w  = FADE_DISPLAY_WIDTH_PIXELS;
+    fadeTile->h  = FADE_DISPLAY_HEIGHT_PIXELS;
+    if (task->killCountdown < FADE_DISPLAY_STEPS) {
+        grey         = (task->killCountdown << FADE_DISPLAY_INTENSITY_SHIFT) + FADE_DISPLAY_MIN_GREY;
+        fadeTile->b0 = grey;
+        fadeTile->g0 = grey;
+        fadeTile->r0 = grey;
+    } else {
+        grey         = FADE_DISPLAY_MAX_GREY;
+        fadeTile->b0 = grey;
+        fadeTile->g0 = grey;
+        fadeTile->r0 = grey;
+    }
+
+    addPrim(&gGpuCurrentOt[otIndex], fadeTile);
+    blendCommand   = gGpuPrimCursor;
+    gGpuPrimCursor = blendCommand + 1;
+    setlen(blendCommand, sizeof(*blendCommand) / sizeof(u32) - 1);
+    blendCommand->code[0] = FADE_DISPLAY_DRAW_MODE;
+    addPrim(&gGpuCurrentOt[otIndex], blendCommand);
+}
+
+void fadeDisplayTransitionTask(Task* task)
+{
+    s32 darkening;
+    s32 yOffsetPixels;
+    s32 otIndex;
+
+    darkening = 0;
+    if (task->state == 0) {
+        if (task->spawnArg1.value == FADE_DISPLAY_REVEAL_FULL) {
             displaySetFrameTiming(DISPLAY_TIMING_TWO_VBLANKS);
             gDisplayState.control.flags.flipMode = DISPLAY_FLIP_FULL;
-            arg0->killCountdown                  = 7;
-        } else if ((arg0->spawnArg1.value == 2) || (arg0->spawnArg1.value == 4)) {
-            arg0->killCountdown = 8;
+            task->killCountdown                  = FADE_DISPLAY_STEPS - 1;
+        } else if ((task->spawnArg1.value == FADE_DISPLAY_REVEAL_WORLD) || (task->spawnArg1.value == FADE_DISPLAY_REVEAL_TRANSITION)) {
+            task->killCountdown = FADE_DISPLAY_STEPS;
         } else {
-            arg0->killCountdown = 0;
+            task->killCountdown = 0;
         }
-        arg0->state = arg0->state + 1;
+        task->state = task->state + 1;
     }
 
-    if (arg0->spawnArg1.value == 4) {
+    // Transition reveal holds black until its image strips are ready.
+    if (task->spawnArg1.value == FADE_DISPLAY_REVEAL_TRANSITION) {
         if (gDisplayState.control.flags.imageSource == DISPLAY_IMAGE_TRANSITION_STRIPS) {
-            arg0->killCountdown--;
+            task->killCountdown--;
         } else {
             displaySetFrameTiming(DISPLAY_TIMING_TWO_VBLANKS);
         }
-    } else if ((arg0->spawnArg1.value == 0) || (arg0->spawnArg1.value == 2)) {
-        flag = 0;
-        arg0->killCountdown--;
+    } else if ((task->spawnArg1.value == FADE_DISPLAY_REVEAL_FULL) || (task->spawnArg1.value == FADE_DISPLAY_REVEAL_WORLD)) {
+        darkening = 0;
+        task->killCountdown--;
     } else {
-        flag                 = 1;
-        arg0->killCountdown += flag;
+        darkening            = 1;
+        task->killCountdown += darkening;
     }
 
-    yoff = 0;
-    if (arg0->spawnArg1.value == 2) {
-        yoff  = gDisplayState.vramYOffset;
-        otIdx = 0;
-    } else if (arg0->spawnArg1.value == 5) {
-        otIdx = 0x3B;
+    // World rendering moves with screen shake; the task overlays stay centered.
+    yOffsetPixels = 0;
+    if (task->spawnArg1.value == FADE_DISPLAY_REVEAL_WORLD) {
+        yOffsetPixels = gDisplayState.vramYOffset;
+        otIndex       = FADE_DISPLAY_WORLD_OT;
+    } else if (task->spawnArg1.value == FADE_DISPLAY_CLEAR_IMAGE) {
+        otIndex = FADE_DISPLAY_CLEAR_IMAGE_OT;
     } else {
-        otIdx = 0x3F;
+        otIndex = FADE_DISPLAY_TASK_OT;
     }
 
-    tile           = gGpuPrimCursor;
-    gGpuPrimCursor = tile + 1;
-    setlen(tile, 3);
-    setcode(tile, 0x62);
-    tile->x0 = -0xA0;
-    tile->y0 = -0x78 - yoff;
-    tile->w  = 0x140;
-    tile->h  = 0xF0;
-    if (arg0->killCountdown < 8) {
-        color    = (arg0->killCountdown << 5) + 0x1F;
-        tile->b0 = color;
-        tile->g0 = color;
-        tile->r0 = color;
-    } else {
-        color    = 0xFF;
-        tile->b0 = color;
-        tile->g0 = color;
-        tile->r0 = color;
-    }
+    _fadeQueueDisplayTransitionOverlay(task, yOffsetPixels, otIndex);
 
-    addPrim(&gGpuCurrentOt[otIdx], tile);
-    dr             = gGpuPrimCursor;
-    gGpuPrimCursor = dr + 1;
-    setlen(dr, 1);
-    dr->code[0] = 0xE1000640;
-    addPrim(&gGpuCurrentOt[otIdx], dr);
-
-    if ((flag == 0) && (arg0->killCountdown <= 0)) {
-        if (arg0->spawnArg1.value == 4) {
+    // Queue the final overlay before changing presentation and releasing the task.
+    if ((darkening == 0) && (task->killCountdown <= 0)) {
+        if (task->spawnArg1.value == FADE_DISPLAY_REVEAL_TRANSITION) {
             displaySetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
         }
-        taskKill(arg0);
-    } else if (flag == 1) {
-        if (arg0->killCountdown >= 8) {
-            if (arg0->spawnArg1.value == 5) {
+        taskKill(task);
+    } else if (darkening == 1) {
+        if (task->killCountdown >= FADE_DISPLAY_STEPS) {
+            if (task->spawnArg1.value == FADE_DISPLAY_CLEAR_IMAGE) {
                 gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_NONE;
             } else {
-                gDisplayState.control.flags.flipMode = flag;
+                gDisplayState.control.flags.flipMode = DISPLAY_FLIP_TASK_ONLY;
                 displaySetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
             }
-            taskKill(arg0);
+            taskKill(task);
         }
     }
 }

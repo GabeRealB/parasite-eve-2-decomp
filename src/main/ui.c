@@ -24,6 +24,7 @@
 #include "main/tmd_types.h"
 #include "main/ui_types.h"
 
+#include "gameplay/display.h"
 #include "gameplay/effect_tasks.h"
 #include "gameplay/item_menu.h"
 #include "gameplay/scene_runtime.h"
@@ -565,7 +566,7 @@ TaskDesc D_800670D0[] = {
     { { { TASK_BODY_NONE, 0xC0 } }, _taskNoOpCallback },
     { { { TASK_BODY_NONE, 0x70 } }, func_800CFD78 },
     { { { TASK_BODY_NONE, 0xC0 } }, func_800CE22C },
-    { { { TASK_BODY_NONE, 0xC2 } }, Gp_FadeTileTask },
+    { { { TASK_BODY_NONE, 0xC2 } }, fadeDisplayTransitionTask },
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
     { { { TASK_BODY_NONE, 0xC0 } }, func_807127A8 },
     { { { TASK_BODY_NONE, 0x0 } }, NULL },

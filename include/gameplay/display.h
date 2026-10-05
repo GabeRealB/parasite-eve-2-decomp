@@ -20,6 +20,36 @@
 /// `fadeDrawOverlay` uses.
 void fadeResumeSessionTask(Task* task);
 
+/// Descriptor slot used to spawn `fadeDisplayTransitionTask`.
+enum { FADE_DISPLAY_TASK_BANK = 1,
+       FADE_DISPLAY_TASK_TYPE = 0x27 };
+
+/// Special `fadeDisplayTransitionTask` modes, passed in `Task::spawnArg1.value`.
+///
+/// Other values darken the frame and finish by selecting task-only presentation.
+enum {
+    FADE_DISPLAY_REVEAL_FULL       = 0, // Seven updates; first enables full presentation at two VBlanks.
+    FADE_DISPLAY_REVEAL_WORLD      = 2, // Eight updates at world OT entry zero, compensating vertical shake.
+    FADE_DISPLAY_REVEAL_TRANSITION = 4, // Holds black until transition strips are selected, then reveals them.
+    FADE_DISPLAY_CLEAR_IMAGE       = 5  // Eight darkening updates; completion disables image-strip drawing.
+};
+
+/// Draws a subtractive fullscreen fade while changing display presentation.
+///
+/// Bank 1, type 0x27 has no body or work block; spawnArg2 is unused. Start with
+/// state zero and keep spawnArg1's mode fixed. The signed killCountdown holds
+/// a step in 0..8, advanced once per callback, independently of elapsed frame
+/// ticks. Grey is min(step * 32 + 31, 255), so reveal finishes at 31 rather
+/// than zero. Clear-image and other darkening modes draw 255 on both final
+/// updates. Transition reveal restores one-VBlank timing when finished; other
+/// darkening modes do so after selecting task-only presentation.
+///
+/// Requires a live task, a word-aligned arena reservation for one TILE and one
+/// DR_TPAGE, and writable ordering-table entry 0 (world), 59 (clear image), or
+/// 63 (other modes). Packets remain borrowed until GPU completion. The task
+/// releases itself after queuing its final overlay; do not access it afterwards.
+void fadeDisplayTransitionTask(Task* task);
+
 /// `ScreenFade::blend`. Zero darkens the frame toward black. Any other value
 /// brightens it toward white.
 enum { SCREEN_FADE_SUBTRACT = 0 };

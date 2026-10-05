@@ -8,6 +8,7 @@
 
 #include "attachments.h"
 #include "gameplay/captions.h"
+#include "gameplay/display.h"
 #include "hud_sprites.h"
 #include "item_menu.h"
 #include "gameplay/items.h"
@@ -601,7 +602,7 @@ void Gp_MenuRootTask(Task* arg0)
             } else {
                 Stage_BeginTransitionKind7(gGameSession->location.loc.view);
             }
-            Task_SpawnOnDefaultListA(1, 0x27, 2, 0);
+            Task_SpawnOnDefaultListA(FADE_DISPLAY_TASK_BANK, FADE_DISPLAY_TASK_TYPE, FADE_DISPLAY_REVEAL_WORLD, 0);
             if (taskSpawnFromTableOnDefaultList(&D_8010E7E8, 0, 0, 0) != NULL) {
                 Display_AcquireRef();
             }

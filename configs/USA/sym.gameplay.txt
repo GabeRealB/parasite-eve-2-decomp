@@ -476,14 +476,14 @@ Gp_ItemActionListTask = 0x800BDDC4; // type:func
 func_800BDF6C = 0x800BDF6C; // type:func
 Gp_ItemMenuPrompt = 0x800BE808; // type:func
 Gp_ItemPickupTilt = 0x800BEBE4; // type:func
-Gp_ForEachUiChild = 0x800BF2C8; // type:func
+_uiVisitChildObjects = 0x800BF2C8; // type:func
 Gp_ItemUseRestricted = 0x800BF334; // type:func
-Gp_CloseItemPane = 0x800BF398; // type:func
+_itemMenuHandlePaneChildResult = 0x800BF398; // type:func
 Gp_ItemMenuListTask = 0x800BF464; // type:func
 Gp_HolderPromptTask = 0x800BF4FC; // type:func
 Gp_BindItemObj2 = 0x800BF5CC; // type:func
 Gp_PublishItemObj = 0x800BF624; // type:func
-Gp_FadeTileTask = 0x800BF738; // type:func
+fadeDisplayTransitionTask = 0x800BF738; // type:func
 
 // ---------------------------------------------------------------------------
 // Code (src/gameplay/menu_root.c) — file-split 0x2C1FC

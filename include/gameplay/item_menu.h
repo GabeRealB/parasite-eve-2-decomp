@@ -17,8 +17,6 @@ extern UiObjectDesc D_8010D6F4[];
 /// Extra `UiObjectDesc` spawned after the `D_8010D6F4` pair.
 #define D_8010D80C D_8010D6F4[10]
 
-void Gp_FadeTileTask(Task* arg0);
-
 /// Named as a task entry by the enemy descriptor tables in the map UI overlays.
 void Gp_ItemPickupTilt(Task* arg0);
 
