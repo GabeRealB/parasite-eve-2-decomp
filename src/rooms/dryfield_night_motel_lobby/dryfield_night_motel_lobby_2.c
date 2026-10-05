@@ -80,7 +80,7 @@ extern AreaApplyRec D_dryfield_night_motel_lobby_801844AC[];
 /// draws; the second name is the same run from its second entry.
 
 static s16  func_dryfield_night_motel_lobby_80180734(void);
-static void func_dryfield_night_motel_lobby_80182200(SVECTOR* arg0, s32 arg1, s32 arg2);
+static void _dryfieldNightMotelLobbyDrawFlare(const SVECTOR* worldPoint, s32 textureIndex, s32 radiusScale);
 
 static void func_dryfield_night_motel_lobby_80180E98(Task* task);
 static void func_dryfield_night_motel_lobby_80180FA4(Task* task);
@@ -89,7 +89,7 @@ static void func_dryfield_night_motel_lobby_8018103C(Task* task);
 static void func_dryfield_night_motel_lobby_80181138(Task* arg0);
 static void func_dryfield_night_motel_lobby_8018119C(Task* arg0);
 static void func_dryfield_night_motel_lobby_801811E0(Task* arg0);
-static void func_dryfield_night_motel_lobby_80181218(Task* arg0);
+static void _dryfieldNightMotelLobbyCashRegisterExitDelay(Task* task);
 static void func_dryfield_night_motel_lobby_8018122C(Task* arg0);
 
 /// The eleven states of the room's examine task, run by
@@ -105,7 +105,7 @@ static const TaskFuncTable11 D_dryfield_night_motel_lobby_8017D6B0 = {
         func_dryfield_night_motel_lobby_80181138,
         func_dryfield_night_motel_lobby_8018119C,
         func_dryfield_night_motel_lobby_801811E0,
-        func_dryfield_night_motel_lobby_80181218,
+        _dryfieldNightMotelLobbyCashRegisterExitDelay,
         func_dryfield_night_motel_lobby_8018122C,
     },
 };
@@ -965,9 +965,13 @@ static void func_dryfield_night_motel_lobby_801811E0(Task* arg0)
     arg0->state = (s32)(arg0->state + 1);
 }
 
-static void func_dryfield_night_motel_lobby_80181218(Task* arg0)
+/// Advances the cash-register task through one idle update before restoring play.
+///
+/// Called in state 9 after the completion CAP command request; state 10
+/// restores player control, the HUD and the normal lobby view on the next update.
+static void _dryfieldNightMotelLobbyCashRegisterExitDelay(Task* task)
 {
-    arg0->state = arg0->state + 1;
+    task->state = task->state + 1;
 }
 
 static void func_dryfield_night_motel_lobby_8018122C(Task* arg0)
@@ -989,17 +993,17 @@ void func_dryfield_night_motel_lobby_801812F8(Task* unused)
     switch (gGameSession->location.loc.view) {
         case 2:
             _glowDrawDiamond(&D_dryfield_night_motel_lobby_801828E0[0], 0x60, 0x60);
-            func_dryfield_night_motel_lobby_80182200(&D_dryfield_night_motel_lobby_801828E0[1], 2, 0x300);
-            func_dryfield_night_motel_lobby_80182200(&D_dryfield_night_motel_lobby_801828E0[2], 1, 0x300);
-            func_dryfield_night_motel_lobby_80182200(&D_dryfield_night_motel_lobby_801828E0[3], 1, 0x300);
+            _dryfieldNightMotelLobbyDrawFlare(&D_dryfield_night_motel_lobby_801828E0[1], 2, 0x300);
+            _dryfieldNightMotelLobbyDrawFlare(&D_dryfield_night_motel_lobby_801828E0[2], 1, 0x300);
+            _dryfieldNightMotelLobbyDrawFlare(&D_dryfield_night_motel_lobby_801828E0[3], 1, 0x300);
             break;
         case 3:
-            func_dryfield_night_motel_lobby_80182200(&D_dryfield_night_motel_lobby_801828E8[0], 2, 0x300);
-            func_dryfield_night_motel_lobby_80182200(&D_dryfield_night_motel_lobby_801828E8[3], 1, 0x300);
+            _dryfieldNightMotelLobbyDrawFlare(&D_dryfield_night_motel_lobby_801828E8[0], 2, 0x300);
+            _dryfieldNightMotelLobbyDrawFlare(&D_dryfield_night_motel_lobby_801828E8[3], 1, 0x300);
             break;
         case 4:
             _glowDrawDiamond(&D_dryfield_night_motel_lobby_801828E0[0], 0x60, 0x60);
-            func_dryfield_night_motel_lobby_80182200(&D_dryfield_night_motel_lobby_801828E0[1], 2, 0x300);
+            _dryfieldNightMotelLobbyDrawFlare(&D_dryfield_night_motel_lobby_801828E0[1], 2, 0x300);
             break;
         case 5:
             _glowDrawPulsingDisc(&D_dryfield_night_motel_lobby_801828E0[0], 0x60, 0x30);
@@ -1011,55 +1015,67 @@ void func_dryfield_night_motel_lobby_801812F8(Task* unused)
 
 #include "../../shared/glow_draw_pulsing_disc.inc.c"
 
-/// Projects the point `arg0` through `gGfxViewCoord.workm` and, when the GTE flag
-/// is non-negative, queues one semi-transparent `POLY_FT4` sprite centred on it:
-/// UV column `(s16)arg1 * 40`, on-screen half-extent `(s16)arg2 * 39 / otz`, and
-/// an RGB that alternates between 0x20 and 0x30 with `animFrame`. It reserves
-/// 0x20 bytes of scratch but releases only 0x10 on exit.
-static void func_dryfield_night_motel_lobby_80182200(SVECTOR* arg0, s32 arg1, s32 arg2)
+/// Sets a flare's square screen bounds from its projected centre and half-extent.
+///
+/// Coordinates are pixels, narrowed to signed 16 bits in the packet. The caller
+/// supplies the accepted projection, packet header, texture, colour and linkage.
+static inline void _dryfieldNightMotelLobbySetFlareBounds(POLY_FT4* flare, const GlowCentreScratch* projection)
 {
-    GlowCentreScratch* block;
-    POLY_FT4*          prim;
-    s32                idx;
-    s32                blend;
-    s16                xy;
+    flare->x0 = flare->x2 = projection->sx - (u16)projection->radius;
+    flare->x1 = flare->x3 = projection->sx + (u16)projection->radius;
+    flare->y0 = flare->y1 = projection->sy - (u16)projection->radius;
+    flare->y2 = flare->y3 = projection->sy + (u16)projection->radius;
+}
 
-    block = SCRATCH_STACK_RESERVE_BYTES(0x20);
+/// Draws a flickering textured flare at a lobby light's world position.
+///
+/// Borrows `worldPoint` during the call and queues one semitransparent quad in
+/// the current frame, with RGB intensity 32 or 48 on alternating frames.
+/// `textureIndex` uses its signed low halfword for a 40-texel column and its
+/// low six bits for the palette offset; lobby callers select columns 1 and 2.
+/// The signed low halfword of `radiusScale` gives a pixel half-extent of
+/// `radiusScale * 39 / depth`, where depth is camera Z / 4 and must be nonzero.
+/// The view, packet arena and depth ordering table must be ready for drawing.
+///
+/// Requires 32 free scratch bytes, uses the lower 16 for the projection and
+/// releases those 16 on either path. The upper 16 remain reserved until the
+/// frame's scratch reset; their role is unproven.
+static void _dryfieldNightMotelLobbyDrawFlare(const SVECTOR* worldPoint, s32 textureIndex, s32 radiusScale)
+{
+    enum { DRYFIELD_NIGHT_MOTEL_LOBBY_FLARE_RETAINED_SCRATCH_BYTES = 0x10 };
+    GlowCentreScratch* projection;
+    POLY_FT4*          flare;
+    s32                columnIndex;
+    s32                intensity;
 
+    projection = SCRATCH_STACK_RESERVE_BYTES(sizeof(*projection) + DRYFIELD_NIGHT_MOTEL_LOBBY_FLARE_RETAINED_SCRATCH_BYTES);
+
+    // Reject projection errors before reserving a GPU packet.
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
-    gte_ldv0(arg0);
+    gte_ldv0(worldPoint);
     gte_rtps();
-    gte_stsxy(&block->sx);
-    gte_stflg(&block->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&block->otz);
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setlen(prim, 9);
-        setcode(prim, 0x2C);
-        idx         = (s16)arg1;
-        blend       = (((u8)gDisplayState.animFrame & 1) * 16) + 0x20;
-        prim->tpage = 0x2B;
-        prim->clut  = (idx & 0x3F) | 0x4380;
-        setUVWH(prim, idx * 40, 0, 0x27, 0x27);
-        setRGB0(prim, blend, blend, blend);
-        setSemiTrans(prim, 1);
-        block->radius = ((s16)arg2 * 39) / block->otz;
-        xy            = block->sx - (u16)block->radius;
-        prim->x2      = xy;
-        prim->x0      = xy;
-        xy            = block->sx + (u16)block->radius;
-        prim->x3      = xy;
-        prim->x1      = xy;
-        xy            = block->sy - (u16)block->radius;
-        prim->y1      = xy;
-        prim->y0      = xy;
-        xy            = block->sy + (u16)block->radius;
-        prim->y3      = xy;
-        prim->y2      = xy;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
+    gte_stsxy(&projection->sx);
+    gte_stflg(&projection->flag);
+    if (projection->flag >= 0) {
+        gte_stszotz(&projection->otz);
+        flare          = gGpuPrimCursor;
+        gGpuPrimCursor = flare + 1;
+        setPolyFT4(flare);
+        columnIndex  = (s16)textureIndex;
+        intensity    = (((u8)gDisplayState.animFrame & 1) * (1 << GLOW_BRIGHT_FLICKER_SHIFT)) + GLOW_FLICKER_BASE_INTENSITY;
+        flare->tpage = GLOW_FLARE_TEXTURE_PAGE;
+        flare->clut  = (columnIndex & GLOW_FLARE_PALETTE_OFFSET_MASK) | GLOW_FLARE_PALETTE_BASE;
+        setUVWH(flare, columnIndex * GLOW_FLARE_CELL_STRIDE, 0, GLOW_FLARE_CELL_LAST_TEXEL, GLOW_FLARE_CELL_LAST_TEXEL);
+        setRGB0(flare, intensity, intensity, intensity);
+        setSemiTrans(flare, 1);
+
+        // Perspective-size the square and sort it at the light's projected depth.
+        projection->radius = ((s16)radiusScale * GLOW_FLARE_CELL_LAST_TEXEL) / projection->otz;
+        _dryfieldNightMotelLobbySetFlareBounds(flare, projection);
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)projection->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                flare);
     }
+    // Preserve the extra reservation above the projection, including on rejection.
     SCRATCH_STACK_RELEASE_BLOCK(GlowCentreScratch);
 }
