@@ -2,7 +2,7 @@
  *
  * PlayerTask is a static-inline implementation. The including overlay defines
  * its ordinary entry point after planar_reflection.inc.c and owns the two-entry
- * task table. Reflection_GetTasks supplies that table as a typed, inline view.
+ * task table. `_planarReflectionGetTaskTable` borrows that table without copying it.
  * Any exported table has an unconditional declaration in the overlay header.
  *
  * Each room defines `PLANAR_REFLECTION_DEFINE_SCALE_WITH_IMPLEMENTATION` as 0
@@ -25,7 +25,10 @@
 
 static inline void Reflection_PlayerTask(Task* task);
 
+/// Descriptor slot for reflected player attachment and equipment models.
+enum { PLANAR_REFLECTION_TASK_ATTACHMENT = 1 };
+
 /* The including overlay supplies its task table. */
-static inline TaskDesc* Reflection_GetTasks(void);
+static inline TaskDesc* _planarReflectionGetTaskTable(void);
 
 #endif /* SRC_SHARED_PLANAR_REFLECTION_H */

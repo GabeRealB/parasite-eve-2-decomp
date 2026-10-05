@@ -125,7 +125,7 @@ static void Reflection_InitPlayer(Task* task)
     for (i = 0; i < 2; i++) {
         child = actor->attachmentTasks[i];
         if (child != NULL) {
-            spawned = taskSpawnFromTable(Reflection_GetTasks(), 1, i, task);
+            spawned = taskSpawnFromTable(_planarReflectionGetTaskTable(), PLANAR_REFLECTION_TASK_ATTACHMENT, i, task);
             if (spawned != NULL) {
                 taskReparent(child, spawned);
             }
@@ -239,7 +239,7 @@ static void Reflection_UpdatePlayer(Task* task)
         for (i = 0; i < 2; i++) {
             child = actor->equipmentTasks[i];
             if (child != NULL) {
-                spawned = taskSpawnFromTable(Reflection_GetTasks(), 1, i + 2, task);
+                spawned = taskSpawnFromTable(_planarReflectionGetTaskTable(), PLANAR_REFLECTION_TASK_ATTACHMENT, i + 2, task);
                 if (spawned != NULL) {
                     taskReparent(child, spawned);
                 }

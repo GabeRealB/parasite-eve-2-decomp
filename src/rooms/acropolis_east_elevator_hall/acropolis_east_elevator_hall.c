@@ -115,11 +115,14 @@ extern WorldCollisionTrigger D_acropolis_east_elevator_hall_8018685C[6];
 extern WorldCollisionTrigger D_acropolis_east_elevator_hall_80186A24[7];
 extern EvsSceneKey           D_acropolis_east_elevator_hall_80185CB4;
 extern WorldCoordRoomLights  D_acropolis_east_elevator_hall_80187A44[1];
-s32                          func_acropolis_east_elevator_hall_8017F348(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32                          func_acropolis_east_elevator_hall_8017F370(Task*, s32, s32, s32);
+static s32                   _acropolisEastElevatorHallResolveTransitionMessage(Task* task, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply);
+static s32                   _acropolisEastElevatorHallRejectKeyItemMessage(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
 s32                          func_acropolis_east_elevator_hall_8017F378(Task* task, s32 msgId, const void* firstArg, s32);
 s32                          func_acropolis_east_elevator_hall_8017F420(Task*, s32, s32, s32);
 void                         func_acropolis_east_elevator_hall_8017F450(void);
+
+/// Key-item use request sent to the room task by the inventory menu.
+enum { ACROPOLIS_EAST_ELEVATOR_HALL_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
 #include "../../shared/planar_reflection_data.inc.c"
 
@@ -128,7 +131,12 @@ static TaskDesc D_acropolis_east_elevator_hall_8017FC90[2] = {
     { { { TASK_BODY_NONE, 112 } }, _planarReflectionAttachmentTask, { .value = 0 } },
 };
 
-static inline TaskDesc* Reflection_GetTasks(void)
+/// Borrows this overlay's two reflection task descriptors.
+///
+/// Slot 0 spawns the player reflection; slot 1 spawns an attachment or equipment
+/// reflection. There is no terminator. The table and its callbacks remain valid
+/// while the overlay is loaded; the caller neither owns nor copies the table.
+static inline TaskDesc* _planarReflectionGetTaskTable(void)
 {
     return D_acropolis_east_elevator_hall_8017FC90;
 }
@@ -318,9 +326,9 @@ EvsCommand D_acropolis_east_elevator_hall_8018621C[9] = {
 };
 
 TaskMessageEntry D_acropolis_east_elevator_hall_801862F4[5] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_acropolis_east_elevator_hall_8017F348 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _acropolisEastElevatorHallResolveTransitionMessage },
     { ROOM_MESSAGE_COMMAND, func_acropolis_east_elevator_hall_8017F420 },
-    { 5105, func_acropolis_east_elevator_hall_8017F370 },
+    { ACROPOLIS_EAST_ELEVATOR_HALL_MESSAGE_USE_KEY_ITEM, _acropolisEastElevatorHallRejectKeyItemMessage },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_acropolis_east_elevator_hall_8017F378 },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
@@ -735,18 +743,30 @@ void func_acropolis_east_elevator_hall_8017F2F8(Task* task)
 
 #undef PLANAR_REFLECTION_DEFINE_SCALE_WITH_IMPLEMENTATION
 
-/// Message handler that copies the incoming location record onto the
-/// outgoing one and answers 1.
-s32 func_acropolis_east_elevator_hall_8017F348(Task* task, s32 msgId, RoomEventMsg* src, RoomEventMsg* dst)
+/// Allows a room transition with the requested destination unchanged.
+///
+/// The resolve message borrows a readable eight-byte request and a writable
+/// reply for this call; they may be the same record. Copies the entire record
+/// for both queries and execution requests and returns 1 (transition allowed).
+/// The receiving task and message ID are unused; no payload storage is retained.
+static s32 _acropolisEastElevatorHallResolveTransitionMessage(Task* task, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply)
 {
-    *dst = *src;
-    return 1;
+    enum { ROOM_EVENT_RESULT_ALLOWED = 1 };
+
+    *reply = *request;
+    return ROOM_EVENT_RESULT_ALLOWED;
 }
 
-/// Message handler that accepts the message and does nothing else.
-s32 func_acropolis_east_elevator_hall_8017F370(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Refuses every key-item use request in this room.
+///
+/// `itemId` is the collected inventory item's ID and `unusedArg` is the unused
+/// second message word. All arguments are ignored. Returns 0, which tells the
+/// inventory menu that the item cannot be used here; no item is consumed.
+static s32 _acropolisEastElevatorHallRejectKeyItemMessage(Task* task, s32 messageId, s32 itemId, s32 unusedArg)
 {
-    return 0;
+    enum { ROOM_KEY_ITEM_RESULT_REFUSED = 0 };
+
+    return ROOM_KEY_ITEM_RESULT_REFUSED;
 }
 
 s32 func_acropolis_east_elevator_hall_8017F378(Task* task, s32 msgId, const void* firstArg, s32 arg3)

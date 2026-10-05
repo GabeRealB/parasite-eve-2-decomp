@@ -172,7 +172,12 @@ static TaskDesc D_acropolis_west_elevator_hall_801802A8[2] = {
     { { { TASK_BODY_NONE, 112 } }, _planarReflectionAttachmentTask, { .value = 0 } },
 };
 
-static inline TaskDesc* Reflection_GetTasks(void)
+/// Borrows this overlay's two reflection task descriptors.
+///
+/// Slot 0 spawns the player reflection; slot 1 spawns an attachment or equipment
+/// reflection. There is no terminator. The table and its callbacks remain valid
+/// while the overlay is loaded; the caller neither owns nor copies the table.
+static inline TaskDesc* _planarReflectionGetTaskTable(void)
 {
     return D_acropolis_west_elevator_hall_801802A8;
 }
