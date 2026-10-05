@@ -4655,7 +4655,7 @@ static void func_actor_403100_80134D50(Task* arg0)
     timer = D_actor_403100_80155808->bufferReleaseDelay;
     if (timer >= 0) {
         if (timer == 0) {
-            Tmd_FreeBuffers(object);
+            tmdFreePrimitiveBuffer(object);
         }
         D_actor_403100_80155808->bufferReleaseDelay = (u16)D_actor_403100_80155808->bufferReleaseDelay - 1;
     }

@@ -1895,8 +1895,8 @@ static void func_actor_207200_8014DAF8(Task* dst, Task* src)
     to->texturePageOffset = from->texturePageOffset;
     to->clutRowOffset     = from->clutRowOffset;
     if (to->buffer != NULL) {
-        tmdProcessStream(to);
-        tmdProcessStream(to);
+        tmdBuildBufferHalf(to);
+        tmdBuildBufferHalf(to);
     }
 }
 

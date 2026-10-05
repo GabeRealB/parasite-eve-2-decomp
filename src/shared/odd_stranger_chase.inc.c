@@ -31,7 +31,7 @@ void oddStrangerChase(Task* arg0)
         obj                                                       = arg0->extra.tmd;
         ((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = 0;
         obj->flags                                                = 0;
-        Tmd_AllocBuffers(obj);
+        tmdAllocPrimitiveBuffer(obj);
         work->hitBody.radius    = ODD_STRANGER_SWING_RADIUS;
         work->animRequest       = ODD_STRANGER_ANIM_REQUEST_BLEND;
         work->animId            = 3;

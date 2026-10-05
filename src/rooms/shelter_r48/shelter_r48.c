@@ -1857,7 +1857,7 @@ void func_shelter_r48_8017D660(Task* arg0)
     xRight  = 0xA0;
     if (arg0->state == 0) {
         tmd->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
-        Tmd_AllocBuffers(tmd);
+        tmdAllocPrimitiveBuffer(tmd);
         arg0->state++;
     }
     disp = &gDisplayState;

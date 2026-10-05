@@ -35,7 +35,7 @@ void desertChaserApproach(Task* arg0)
         obj                         = arg0->extra.tmd;
         ctx->node.state.parts.flags = 0;
         obj->flags                  = 0;
-        Tmd_AllocBuffers(obj);
+        tmdAllocPrimitiveBuffer(obj);
         work->spheres[DESERT_CHASER_SPHERE_FRONT].body.radius = 0x19C;
         work->animRequest                                     = DESERT_CHASER_ANIM_REQUEST_BLEND;
 #if DESERT_CHASER_RUN_SEQUENCE

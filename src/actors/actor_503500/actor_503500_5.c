@@ -1844,7 +1844,7 @@ static void func_actor_503500_80145FDC(Task* task)
     }
     if (work->freeCountdown >= 0) {
         if (work->freeCountdown == 0) {
-            Tmd_FreeBuffers(ext);
+            tmdFreePrimitiveBuffer(ext);
         }
         work->freeCountdown--;
     }
@@ -2015,7 +2015,7 @@ s32 func_actor_503500_801466E0(Task* task, s32 arg1, s32 mode, s32 arg3)
             break;
         case 1:
             ext->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            Tmd_AllocBuffers(ext);
+            tmdAllocPrimitiveBuffer(ext);
             ext->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 2:

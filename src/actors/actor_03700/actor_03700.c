@@ -793,7 +793,7 @@ static void Actor03700_Fn000A4(Enemy* arg0, Task* task)
     kind                          = arg0->place->mode;
     switch (kind / 10) {
         case 0:
-            Tmd_AllocBuffers(obj);
+            tmdAllocPrimitiveBuffer(obj);
             if (kind < 3) {
                 work->action = kind;
             } else {
@@ -1760,8 +1760,8 @@ static inline void _actor03700SpawnRemains(Task* task)
     model->texturePageOffset = entry->texturePageOffset;
     model->clutRowOffset     = entry->clutRowOffset;
     if (model->buffer != NULL) {
-        tmdProcessStream(model);
-        tmdProcessStream(model);
+        tmdBuildBufferHalf(model);
+        tmdBuildBufferHalf(model);
     }
 }
 
@@ -1826,7 +1826,7 @@ static void Actor03700_Fn020D4(Enemy* enemy, Task* task)
                     }
                     switch (work->deathEffect) {
                         case 0:
-                            Tmd_FreeBuffers(model);
+                            tmdFreePrimitiveBuffer(model);
                             model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
                             _actor03700SpawnRemains(task);
                             break;
@@ -1925,7 +1925,7 @@ static void Actor03700_Fn025C8(Task* task)
                 work->actionStep = 0;
                 gRandomLcgState  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 work->timer      = (gRandomLcgState >> 16) & 0x1F;
-                Tmd_AllocBuffers(obj);
+                tmdAllocPrimitiveBuffer(obj);
                 obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             }
             break;
@@ -2009,7 +2009,7 @@ static void Actor03700_Fn029C0(Task* task)
                 work->targetPos.vz = coord->coord.t[2] + (((gRandomLcgState >> 16) & 0x1FF) + 2000);
                 gRandomLcgState    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 work->timer        = (gRandomLcgState >> 16) & 0x1F;
-                Tmd_AllocBuffers(obj);
+                tmdAllocPrimitiveBuffer(obj);
                 obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             }
             break;

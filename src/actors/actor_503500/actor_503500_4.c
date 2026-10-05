@@ -3129,7 +3129,7 @@ static void func_actor_503500_8013FF0C(Task* arg0)
     tmd       = arg0->extra.tmd;
     if (countdown >= 0) {
         if (countdown == 0) {
-            Tmd_FreeBuffers(tmd);
+            tmdFreePrimitiveBuffer(tmd);
         }
         work->bufferFreeCountdown--;
     }
@@ -4369,7 +4369,7 @@ static void func_actor_503500_80142980(Task* arg0)
                 }
                 tmd         = arg0->extra.tmd;
                 tmd->flags &= (u16) ~(TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
-                Tmd_AllocBuffers(tmd);
+                tmdAllocPrimitiveBuffer(tmd);
                 rot.vx = 0;
                 rot.vy = 0;
                 rot.vz = 0;

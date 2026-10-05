@@ -2769,7 +2769,7 @@ static void func_actor_421600_80134AD4(Enemy* enemy, Task* actor)
         default:
             work->prevState = -1;
             work->state     = 0x18;
-            Tmd_AllocBuffers(obj);
+            tmdAllocPrimitiveBuffer(obj);
             break;
     }
 
@@ -3125,7 +3125,7 @@ static void func_actor_421600_80135F6C(Task* arg0)
         obj                                                       = arg0->extra.tmd;
         ((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = 0;
         obj->flags                                                = 0;
-        Tmd_AllocBuffers(obj);
+        tmdAllocPrimitiveBuffer(obj);
         work->animRate                                       = 0x10;
         work->spheres[DESERT_CHASER_SPHERE_ROOT].body.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
         if (work->animId == 0xD) {
@@ -3211,7 +3211,7 @@ static void func_actor_421600_80136138(Task* arg0)
         obj                         = arg0->extra.tmd;
         ctx->node.state.parts.flags = 0;
         obj->flags                  = 0;
-        Tmd_AllocBuffers(obj);
+        tmdAllocPrimitiveBuffer(obj);
         work->animRate                                       = 0x10;
         work->animId                                         = 0;
         work->animRequest                                    = DESERT_CHASER_ANIM_REQUEST_BLEND;
@@ -3543,7 +3543,7 @@ static void func_actor_421600_80138D24(Task* arg0)
         ctx                         = arg0->spawnArg2.pointer;
         ctx->node.state.parts.flags = 0;
         obj->flags                  = 0;
-        Tmd_AllocBuffers(obj);
+        tmdAllocPrimitiveBuffer(obj);
         work->spheres[DESERT_CHASER_SPHERE_FRONT].body.radius = 0x19C;
         work->animRequest                                     = DESERT_CHASER_ANIM_REQUEST_BLEND;
         work->animRate                                        = 0x10;
@@ -3612,7 +3612,7 @@ static void func_actor_421600_8013903C(Task* arg0)
         obj                         = arg0->extra.tmd;
         ctx->node.state.parts.flags = 0;
         obj->flags                  = 0;
-        Tmd_AllocBuffers(obj);
+        tmdAllocPrimitiveBuffer(obj);
         work->spheres[DESERT_CHASER_SPHERE_FRONT].body.radius = 0x19C;
         work->animRequest                                     = DESERT_CHASER_ANIM_REQUEST_BLEND;
         work->animRate                                        = 0x10;
@@ -3688,7 +3688,7 @@ static void func_actor_421600_8013947C(Task* arg0)
         obj                         = arg0->extra.tmd;
         ctx->node.state.parts.flags = 0;
         obj->flags                  = 0;
-        Tmd_AllocBuffers(obj);
+        tmdAllocPrimitiveBuffer(obj);
         work->spheres[DESERT_CHASER_SPHERE_FRONT].body.radius = 0x19C;
         work->animRate                                        = 0x10;
         work->animId                                          = 0xA;
@@ -3860,7 +3860,7 @@ static void func_actor_421600_8013A554(Task* arg0)
         ctx->node.state.parts.flags = 0;
         Gp_ArmStateF0(1);
         obj->flags = 0;
-        Tmd_AllocBuffers(obj);
+        tmdAllocPrimitiveBuffer(obj);
         work->spheres[DESERT_CHASER_SPHERE_FRONT].body.radius = 0x19C;
         work->animRequest                                     = DESERT_CHASER_ANIM_REQUEST_BLEND;
         work->animRate                                        = 0x10;
@@ -4080,7 +4080,7 @@ static void func_actor_421600_8013B00C(Task* arg0)
         ctx                         = arg0->spawnArg2.pointer;
         ctx->node.state.parts.flags = 0;
         obj->flags                  = 0;
-        Tmd_AllocBuffers(obj);
+        tmdAllocPrimitiveBuffer(obj);
         work->animRate                                       = 0x10;
         work->animId                                         = 3;
         work->animRequest                                    = DESERT_CHASER_ANIM_REQUEST_BLEND;
@@ -4237,7 +4237,7 @@ static void func_actor_421600_8013B4C4(Task* arg0)
         ctx                         = arg0->spawnArg2.pointer;
         ctx->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
         obj->flags                  = 0;
-        Tmd_AllocBuffers(obj);
+        tmdAllocPrimitiveBuffer(obj);
         work->animRate                                       = 0x10;
         work->animId                                         = 3;
         work->animRequest                                    = DESERT_CHASER_ANIM_REQUEST_BLEND;
@@ -4333,7 +4333,7 @@ static void func_actor_421600_8013B8E0(Task* arg0)
         temp_a0                                                   = arg0->extra.tmd;
         ((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = 0;
         temp_a0->flags                                            = 0;
-        Tmd_AllocBuffers(temp_a0);
+        tmdAllocPrimitiveBuffer(temp_a0);
         temp_s1->animRate                                       = 0x10;
         temp_s1->animId                                         = 0x11;
         temp_s1->animRequest                                    = DESERT_CHASER_ANIM_REQUEST_RESET;
@@ -4430,7 +4430,7 @@ static void func_actor_421600_8013BA70(Task* arg0)
         scratch                       = (SCRATCH_STACK_CURSOR(_Actor421600RouteRoamScratch) = head - 1);
         enemy->node.state.parts.flags = 0;
         obj->flags                    = 0;
-        Tmd_AllocBuffers(obj);
+        tmdAllocPrimitiveBuffer(obj);
         work->spheres[DESERT_CHASER_SPHERE_FRONT].body.radius = 0x19C;
         work->animRequest                                     = DESERT_CHASER_ANIM_REQUEST_BLEND;
         work->animRate                                        = 0x10;
@@ -4742,7 +4742,7 @@ static void func_actor_421600_8013C8E0(Task* arg0)
     }
     if (work->stateTimer == 2) {
         obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-        Tmd_FreeBuffers(obj);
+        tmdFreePrimitiveBuffer(obj);
     }
     if (work->stateTimer == 3) {
         D_80114B34[5].data.model = &_gActor421600DesertChaserBurstLegRight;
@@ -5240,7 +5240,7 @@ static void func_actor_421600_8013E9D8(Task* arg0)
         obj                                                       = arg0->extra.tmd;
         ((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = 0;
         obj->flags                                                = 0;
-        Tmd_AllocBuffers(obj);
+        tmdAllocPrimitiveBuffer(obj);
         work->spheres[DESERT_CHASER_SPHERE_FRONT].body.radius = 0x19C;
         work->animRequest                                     = DESERT_CHASER_ANIM_REQUEST_BLEND;
         work->animRate                                        = 0x10;
@@ -5272,7 +5272,7 @@ static void func_actor_421600_8013EAAC(Task* arg0)
         obj                                                       = arg0->extra.tmd;
         ((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = 0;
         obj->flags                                                = 0;
-        Tmd_AllocBuffers(obj);
+        tmdAllocPrimitiveBuffer(obj);
         work->spheres[DESERT_CHASER_SPHERE_FRONT].body.radius = 0x19C;
         work->animRequest                                     = DESERT_CHASER_ANIM_REQUEST_BLEND;
         work->animRate                                        = 0x10;
@@ -5299,7 +5299,7 @@ static void func_actor_421600_8013EB7C(Task* arg0)
         obj                                                       = arg0->extra.tmd;
         ((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = 0;
         obj->flags                                                = 0;
-        Tmd_AllocBuffers(obj);
+        tmdAllocPrimitiveBuffer(obj);
         work->spheres[DESERT_CHASER_SPHERE_FRONT].body.radius = 0x19C;
         work->animRequest                                     = DESERT_CHASER_ANIM_REQUEST_BLEND;
         work->animRate                                        = 0x10;

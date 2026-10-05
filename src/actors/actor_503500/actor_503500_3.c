@@ -409,8 +409,8 @@ static void func_actor_503500_80132F64(Task* arg0)
             model->texturePageOffset = entry->texturePageOffset;
             model->clutRowOffset     = entry->clutRowOffset;
             if (model->buffer != NULL) {
-                tmdProcessStream(model);
-                tmdProcessStream(model);
+                tmdBuildBufferHalf(model);
+                tmdBuildBufferHalf(model);
             }
             work->enemies[i] = child;
         }
@@ -446,7 +446,7 @@ static void func_actor_503500_80133270(Task* arg0)
         case 1:
             if (work->controlPaused == 0) {
                 SndEvt_EnqueueType8(SOUND_BANK_TYPE_CHARACTER_ALL);
-                Tmd_AllocBuffers(tmd);
+                tmdAllocPrimitiveBuffer(tmd);
                 tmd->flags         &= (u16) ~(TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
                 work->controlPaused = mode;
                 work->controlHidden = 0;
@@ -456,7 +456,7 @@ static void func_actor_503500_80133270(Task* arg0)
         case 2:
             if (work->bufferFreeCountdown >= 0) {
                 if (work->bufferFreeCountdown == 0) {
-                    Tmd_FreeBuffers(tmd);
+                    tmdFreePrimitiveBuffer(tmd);
                 }
                 work->bufferFreeCountdown--;
             }
@@ -484,7 +484,7 @@ static void func_actor_503500_80133270(Task* arg0)
             }
             if (work->bufferFreeCountdown >= 0) {
                 if (work->bufferFreeCountdown == 0) {
-                    Tmd_FreeBuffers(tmd);
+                    tmdFreePrimitiveBuffer(tmd);
                 }
                 work->bufferFreeCountdown--;
             }
@@ -1628,7 +1628,7 @@ static void func_actor_503500_80135644(Task* arg0)
 /// Copies bits 0x80 and 2, and `TMD_OBJECT_SKIP_AUTO_BUFFER`, from the parent
 /// model's flags onto `arg0`'s model, unless that model is attached to
 /// `gGfxViewCoord`. Clearing `TMD_OBJECT_SKIP_AUTO_BUFFER` also calls
-/// `Tmd_AllocBuffers`; setting it writes 2 to `*arg1`.
+/// `tmdAllocPrimitiveBuffer`; setting it writes 2 to `*arg1`.
 void func_actor_503500_80135828(Task* arg0, s8* arg1)
 {
     TmdObject* obj;
@@ -1659,7 +1659,7 @@ void func_actor_503500_80135828(Task* arg0, s8* arg1)
         if (flags2 & TMD_OBJECT_SKIP_AUTO_BUFFER) {
             if (!(pobj->flags & TMD_OBJECT_SKIP_AUTO_BUFFER)) {
                 obj->flags = flags2 & ~TMD_OBJECT_SKIP_AUTO_BUFFER;
-                Tmd_AllocBuffers(obj);
+                tmdAllocPrimitiveBuffer(obj);
             }
         } else if (pobj->flags & TMD_OBJECT_SKIP_AUTO_BUFFER) {
             obj->flags = flags2 | TMD_OBJECT_SKIP_AUTO_BUFFER;
@@ -1818,8 +1818,8 @@ Enemy* func_actor_503500_80135D00(Task* arg0, s32 arg1)
         model->texturePageOffset = entry->texturePageOffset;
         model->clutRowOffset     = entry->clutRowOffset;
         if (model->buffer != NULL) {
-            tmdProcessStream(model);
-            tmdProcessStream(model);
+            tmdBuildBufferHalf(model);
+            tmdBuildBufferHalf(model);
         }
         work->enemies[arg1] = enemy;
     }
@@ -2603,7 +2603,7 @@ s32 func_actor_503500_80137158(Task* arg0, s32 arg1, s32 mode, s32 arg3)
             break;
         case 1:
             ext->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            Tmd_AllocBuffers(ext);
+            tmdAllocPrimitiveBuffer(ext);
             ext->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 2:
@@ -3043,7 +3043,7 @@ static void func_actor_503500_8013815C(Task* arg0)
     tmd       = arg0->extra.tmd;
     if (countdown >= 0) {
         if (countdown == 0) {
-            Tmd_FreeBuffers(tmd);
+            tmdFreePrimitiveBuffer(tmd);
         }
         work->bufferFreeCountdown--;
     }
@@ -3299,7 +3299,7 @@ static void func_actor_503500_80138898(Task* arg0)
     tmd = arg0->extra.tmd;
     if (countdown >= 0) {
         if (countdown == 0) {
-            Tmd_FreeBuffers(tmd);
+            tmdFreePrimitiveBuffer(tmd);
         }
         work->bufferFreeCountdown = (s8)((u8)work->bufferFreeCountdown - 1);
     }

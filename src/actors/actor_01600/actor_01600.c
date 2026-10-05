@@ -4071,7 +4071,7 @@ static void Actor01600_Fn05400(Task* arg0)
     switch (kind) {
         case 0:
             Actor01600_Fn00480(arg0);
-            Tmd_AllocBuffers(arg0->extra.tmd);
+            tmdAllocPrimitiveBuffer(arg0->extra.tmd);
             obj          = arg0->extra.tmd;
             obj->flags  &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
             obj2         = arg0->extra.tmd;
@@ -4201,7 +4201,7 @@ static s32 Actor01600_Fn05558(Task* arg0)
             if (gSceneCombatState.actor01600Wave == 1) {
                 work->bodySphere.body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
             }
-            Tmd_AllocBuffers(arg0->extra.tmd);
+            tmdAllocPrimitiveBuffer(arg0->extra.tmd);
             obj                   = arg0->extra.tmd;
             obj->flags           &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
             obj2                  = arg0->extra.tmd;
@@ -4259,7 +4259,7 @@ static s32 Actor01600_Fn05558(Task* arg0)
             ctx->node.state.parts.flags = 0;
             work->active                = 1;
             Actor01600_Fn00480(arg0);
-            Tmd_AllocBuffers(arg0->extra.tmd);
+            tmdAllocPrimitiveBuffer(arg0->extra.tmd);
             obj3                  = arg0->extra.tmd;
             obj3->flags          &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
             obj4                  = arg0->extra.tmd;
@@ -5016,8 +5016,8 @@ static void Actor01600_Fn070AC(Task* arg0, Task* arg1)
     dst->texturePageOffset = src->texturePageOffset;
     dst->clutRowOffset     = src->clutRowOffset;
     if (dst->buffer != NULL) {
-        tmdProcessStream(dst);
-        tmdProcessStream(dst);
+        tmdBuildBufferHalf(dst);
+        tmdBuildBufferHalf(dst);
     }
 }
 

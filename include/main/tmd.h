@@ -43,30 +43,58 @@ void Tmd_InitLists(void);
 /// leaves a valid object with a NULL buffer for later allocation.
 TmdObject* Tmd_Create(TmdSource* src, s32 bufferFlags);
 
-/// Builds a model's primitives into one half of its buffer: it walks the model's
-/// packet stream and runs the handler the record's opcode selects, and the
-/// handler lays the record's packets out and fills in what the record carries.
+/// Initializes persistent primitive data in the model's selected buffer half.
 ///
-/// A packet is not all per-frame. Its screen coordinates, its lit colours and its
-/// link into the ordering table are the draw pass's to write as it transforms the
-/// record, and what is left — a textured primitive's texture coordinates, and the
-/// model's texture page and CLUT row added to the primitive's own — is settled
-/// here, once. So the walk runs wherever a model's buffer is filled, and again
-/// wherever the page or CLUT the model draws with changes.
+/// `model` must own a live auxiliary-heap buffer containing two source-sized
+/// halves. The source's cached half capacity and region boundary must remain
+/// unchanged: pre-transformed packets use the first region, directly transformed
+/// packets the second. The writable, word-aligned stream must contain complete
+/// three-word headers and count * stride payload words, with stride in u32 words,
+/// a group marker after each group and a final `TMD_STREAM_END`. Capacities and
+/// callback-specific element layouts are unchecked.
 ///
-/// It builds the half selected by `TmdObject.nextBufferHalf`, then toggles the
-/// selector for the next build or draw pass. A caller that needs both halves
-/// to carry the change calls it twice in a row. Its scratch frame is pushed on
-/// the scratch stack for the length of the walk, and the place the session is in
-/// picks between the two handlers a record asking for a semi-transparent layer
-/// has.
-void tmdProcessStream(TmdObject* obj);
+/// Selects `nextBufferHalf` (0 first, 1 second), then toggles it before invoking
+/// callbacks. Call twice consecutively to refresh both halves after changing
+/// texture offsets. Constructors copy UVs and apply signed encoded page/CLUT
+/// displacements; some flat-colour commands also initialize colour and GPU code.
+/// Drawing later supplies projection, lighting and OT links. The walk selects
+/// constructors from opcodes, ignores cached draw slots and passes zero object
+/// flags; it neither resolves handlers nor draws. Layered GT3/GT4 records select
+/// offset layers in Dryfield by day's parking lot and toilet, independently of
+/// draw resolution's toilet-only choice.
+///
+/// Unsupported construction opcodes skip payloads without advancing packet
+/// cursors. This includes drawing's 0x22/0x62/0x122 variants; conversely the
+/// 0x4000/0x4020/0x4120 and 0x4040/0x4060/0x4160 cases reserve untextured slots
+/// without a resolved draw handler. Both walks must fit the source capacities;
+/// construction's final cursors alone do not measure the draw extent.
+/// Reserves one uninitialized `TmdStreamWorkspace` on the shared scratch stack
+/// for the call and releases it afterwards. Callbacks retain no workspace;
+/// keep the buffer alive and avoid changing packets still in use by the GPU.
+void tmdBuildBufferHalf(TmdObject* model);
 
 void Tmd_AllocMissingBuffers(void);
 
-s32 Tmd_AllocBuffers(TmdObject* obj);
+/// Allocates and initializes both primitive-buffer halves when the model has none.
+///
+/// Returns 1 only for a newly allocated buffer, and 0 when a buffer already
+/// exists or allocation fails. Existing buffers are untouched. A failed request
+/// leaves the buffer NULL and preserves the half selector; success resets it
+/// to zero and builds both halves, leaving it zero. Draw flags are unchanged,
+/// including `TMD_OBJECT_SKIP_AUTO_BUFFER` and active-pass exclusion.
+/// The live source supplies each half's byte capacity (0..65535), which must
+/// agree with the model's cache; the auxiliary heap must remain configured.
+/// A zero-sized request fails. The model owns the resulting block until release
+/// with `tmdFreePrimitiveBuffer`; see `tmdBuildBufferHalf` for stream requirements.
+s32 tmdAllocPrimitiveBuffer(TmdObject* model);
 
-void Tmd_FreeBuffers(TmdObject* obj);
+/// Releases the model's auxiliary-heap primitive block and clears its buffer pointer.
+///
+/// A NULL buffer is a no-op. Otherwise it must be a live allocation from the
+/// currently configured auxiliary heap, and GPU consumption must have finished.
+/// Both halves are released together. The object, coordinates, source, draw
+/// flags and half selector remain unchanged, permitting later reallocation.
+void tmdFreePrimitiveBuffer(TmdObject* model);
 
 void Tmd_DrawFlaggedNodes(TmdObject* node);
 

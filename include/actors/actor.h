@@ -1421,8 +1421,8 @@ static __inline__ void actorTintModel(TmdObject* model, Enemy* enemy)
     model->texturePageOffset = place->texturePageOffset;
     model->clutRowOffset     = place->clutRowOffset;
     if (model->buffer != NULL) {
-        tmdProcessStream(model);
-        tmdProcessStream(model);
+        tmdBuildBufferHalf(model);
+        tmdBuildBufferHalf(model);
     }
 }
 
@@ -1449,8 +1449,8 @@ static __inline__ void actorTintTask(Task* spawned, Enemy* enemy)
     model->texturePageOffset = place->texturePageOffset;
     model->clutRowOffset     = place->clutRowOffset;
     if (model->buffer != NULL) {
-        tmdProcessStream(model);
-        tmdProcessStream(model);
+        tmdBuildBufferHalf(model);
+        tmdBuildBufferHalf(model);
     }
 }
 

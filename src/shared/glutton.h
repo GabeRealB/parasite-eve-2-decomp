@@ -440,8 +440,8 @@ static __inline__ void gluttonTintEscort(TmdObject* model)
     model->texturePageOffset = entry->texturePageOffset;
     model->clutRowOffset     = entry->clutRowOffset;
     if (model->buffer != NULL) {
-        tmdProcessStream(model);
-        tmdProcessStream(model);
+        tmdBuildBufferHalf(model);
+        tmdBuildBufferHalf(model);
     }
 }
 

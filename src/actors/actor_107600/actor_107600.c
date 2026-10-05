@@ -1338,8 +1338,8 @@ static void func_actor_107600_80132DF0(Enemy* arg0, s32 arg1, s32 arg2)
         } else {
             obj->clutRowOffset = 0;
         }
-        tmdProcessStream(obj);
-        tmdProcessStream(obj);
+        tmdBuildBufferHalf(obj);
+        tmdBuildBufferHalf(obj);
         enemy->workType = ENEMY_WORK_PLAIN;
     }
 }

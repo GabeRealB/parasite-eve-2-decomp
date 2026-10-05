@@ -3790,10 +3790,10 @@ s32 func_actor_403200_80138468(Task* task, s32 arg1, s32 arg2, s32 arg3)
     switch (arg2) {
         case 0:
             buffers = task->work;
-            Tmd_AllocBuffers(task->extra.tmd);
+            tmdAllocPrimitiveBuffer(task->extra.tmd);
             for (j = 0; j < ARRAY_SIZE(buffers->escorts); j++) {
                 if (buffers->escorts[j] != NULL) {
-                    Tmd_AllocBuffers(buffers->escorts[j]->task->extra.tmd);
+                    tmdAllocPrimitiveBuffer(buffers->escorts[j]->task->extra.tmd);
                 }
             }
             escorts                = task->work;
@@ -3816,10 +3816,10 @@ s32 func_actor_403200_80138468(Task* task, s32 arg1, s32 arg2, s32 arg3)
                 }
             }
             rebuilt = task->work;
-            Tmd_AllocBuffers(task->extra.tmd);
+            tmdAllocPrimitiveBuffer(task->extra.tmd);
             for (j = 0; j < ARRAY_SIZE(rebuilt->escorts); j++) {
                 if (rebuilt->escorts[j] != NULL) {
-                    Tmd_AllocBuffers(rebuilt->escorts[j]->task->extra.tmd);
+                    tmdAllocPrimitiveBuffer(rebuilt->escorts[j]->task->extra.tmd);
                 }
             }
             break;
@@ -3907,10 +3907,10 @@ s32 func_actor_403200_80138748(Task* task, s32 msgId, ActorCommand* msg, s32 arg
                     }
                 }
                 rebuilt = task->work;
-                Tmd_AllocBuffers(task->extra.tmd);
+                tmdAllocPrimitiveBuffer(task->extra.tmd);
                 for (j = 0; j < ARRAY_SIZE(rebuilt->escorts); j++) {
                     if (rebuilt->escorts[j] != NULL) {
-                        Tmd_AllocBuffers(rebuilt->escorts[j]->task->extra.tmd);
+                        tmdAllocPrimitiveBuffer(rebuilt->escorts[j]->task->extra.tmd);
                     }
                 }
                 work->viewSelector = 0;
@@ -4069,10 +4069,10 @@ static void func_actor_403200_80138AFC(Enemy* enemy, Task* task)
 
     work->prevState = -1;
     buffers         = task->work;
-    Tmd_AllocBuffers(task->extra.tmd);
+    tmdAllocPrimitiveBuffer(task->extra.tmd);
     for (i = 0; i < ARRAY_SIZE(buffers->escorts); i++) {
         if (buffers->escorts[i] != NULL) {
-            Tmd_AllocBuffers(buffers->escorts[i]->task->extra.tmd);
+            tmdAllocPrimitiveBuffer(buffers->escorts[i]->task->extra.tmd);
         }
     }
 
@@ -4550,10 +4550,10 @@ static void func_actor_403200_8013B23C(Task* arg0)
             }
         }
         dying = arg0->work;
-        Tmd_FreeBuffers(arg0->extra.tmd);
+        tmdFreePrimitiveBuffer(arg0->extra.tmd);
         for (j = 0; j < ARRAY_SIZE(dying->escorts); j++) {
             if (dying->escorts[j] != NULL) {
-                Tmd_FreeBuffers(dying->escorts[j]->task->extra.tmd);
+                tmdFreePrimitiveBuffer(dying->escorts[j]->task->extra.tmd);
             }
         }
     }
@@ -4604,10 +4604,10 @@ static void func_actor_403200_8013B3C8(Task* arg0)
             }
         }
         dying = arg0->work;
-        Tmd_AllocBuffers(arg0->extra.tmd);
+        tmdAllocPrimitiveBuffer(arg0->extra.tmd);
         for (j = 0; j < ARRAY_SIZE(dying->escorts); j++) {
             if (dying->escorts[j] != NULL) {
-                Tmd_AllocBuffers(dying->escorts[j]->task->extra.tmd);
+                tmdAllocPrimitiveBuffer(dying->escorts[j]->task->extra.tmd);
             }
         }
         work->neckYawEnabled   = 1;
@@ -4740,10 +4740,10 @@ static void func_actor_403200_8013B8C4(Task* arg0)
             }
         }
         dying = arg0->work;
-        Tmd_AllocBuffers(arg0->extra.tmd);
+        tmdAllocPrimitiveBuffer(arg0->extra.tmd);
         for (j = 0; j < ARRAY_SIZE(dying->escorts); j++) {
             if (dying->escorts[j] != NULL) {
-                Tmd_AllocBuffers(dying->escorts[j]->task->extra.tmd);
+                tmdAllocPrimitiveBuffer(dying->escorts[j]->task->extra.tmd);
             }
         }
         work->neckPitchTarget    = 0;
@@ -5062,10 +5062,10 @@ static void func_actor_403200_8013C84C(Task* arg0)
             }
         }
         dying = arg0->work;
-        Tmd_AllocBuffers(arg0->extra.tmd);
+        tmdAllocPrimitiveBuffer(arg0->extra.tmd);
         for (j = 0; j < ARRAY_SIZE(dying->escorts); j++) {
             if (dying->escorts[j] != NULL) {
-                Tmd_AllocBuffers(dying->escorts[j]->task->extra.tmd);
+                tmdAllocPrimitiveBuffer(dying->escorts[j]->task->extra.tmd);
             }
         }
         work->neckYawEnabled   = 1;
@@ -5262,10 +5262,10 @@ static void func_actor_403200_8013D028(Task* arg0)
             }
         }
         dying = arg0->work;
-        Tmd_AllocBuffers(arg0->extra.tmd);
+        tmdAllocPrimitiveBuffer(arg0->extra.tmd);
         for (j = 0; j < ARRAY_SIZE(dying->escorts); j++) {
             if (dying->escorts[j] != NULL) {
-                Tmd_AllocBuffers(dying->escorts[j]->task->extra.tmd);
+                tmdAllocPrimitiveBuffer(dying->escorts[j]->task->extra.tmd);
             }
         }
         work->neckYawEnabled   = 1;
@@ -5457,10 +5457,10 @@ static void func_actor_403200_8013D78C(Task* arg0)
             }
         }
         dying = arg0->work;
-        Tmd_AllocBuffers(arg0->extra.tmd);
+        tmdAllocPrimitiveBuffer(arg0->extra.tmd);
         for (j = 0; j < ARRAY_SIZE(dying->escorts); j++) {
             if (dying->escorts[j] != NULL) {
-                Tmd_AllocBuffers(dying->escorts[j]->task->extra.tmd);
+                tmdAllocPrimitiveBuffer(dying->escorts[j]->task->extra.tmd);
             }
         }
         arg0->extra.tmd->coords->coord.t[1] = 0x7D0;
@@ -5533,10 +5533,10 @@ static void func_actor_403200_8013D9EC(Task* arg0)
             }
         }
         dying = arg0->work;
-        Tmd_AllocBuffers(arg0->extra.tmd);
+        tmdAllocPrimitiveBuffer(arg0->extra.tmd);
         for (j = 0; j < ARRAY_SIZE(dying->escorts); j++) {
             if (dying->escorts[j] != NULL) {
-                Tmd_AllocBuffers(dying->escorts[j]->task->extra.tmd);
+                tmdAllocPrimitiveBuffer(dying->escorts[j]->task->extra.tmd);
             }
         }
         work->neckYawEnabled     = 1;
@@ -5627,10 +5627,10 @@ static void func_actor_403200_8013DC3C(Task* arg0)
             }
         }
         dying = arg0->work;
-        Tmd_AllocBuffers(arg0->extra.tmd);
+        tmdAllocPrimitiveBuffer(arg0->extra.tmd);
         for (j = 0; j < ARRAY_SIZE(dying->escorts); j++) {
             if (dying->escorts[j] != NULL) {
-                Tmd_AllocBuffers(dying->escorts[j]->task->extra.tmd);
+                tmdAllocPrimitiveBuffer(dying->escorts[j]->task->extra.tmd);
             }
         }
         work->neckPitchEnabled   = 1;
@@ -5742,10 +5742,10 @@ static void func_actor_403200_8013E2FC(Task* arg0)
             }
         }
         dying = arg0->work;
-        Tmd_AllocBuffers(arg0->extra.tmd);
+        tmdAllocPrimitiveBuffer(arg0->extra.tmd);
         for (j = 0; j < ARRAY_SIZE(dying->escorts); j++) {
             if (dying->escorts[j] != NULL) {
-                Tmd_AllocBuffers(dying->escorts[j]->task->extra.tmd);
+                tmdAllocPrimitiveBuffer(dying->escorts[j]->task->extra.tmd);
             }
         }
         work->animRate           = 0x10;
@@ -5840,10 +5840,10 @@ static void func_actor_403200_8013E5A8(Task* arg0)
             }
         }
         dying = arg0->work;
-        Tmd_AllocBuffers(arg0->extra.tmd);
+        tmdAllocPrimitiveBuffer(arg0->extra.tmd);
         for (j = 0; j < ARRAY_SIZE(dying->escorts); j++) {
             if (dying->escorts[j] != NULL) {
-                Tmd_AllocBuffers(dying->escorts[j]->task->extra.tmd);
+                tmdAllocPrimitiveBuffer(dying->escorts[j]->task->extra.tmd);
             }
         }
         work->animRate         = 0x40;
@@ -6193,8 +6193,8 @@ static void func_actor_403200_8013EF6C(Task* arg0)
                         model->texturePageOffset = entry->texturePageOffset;
                         model->clutRowOffset     = entry->clutRowOffset;
                         if (model->buffer != NULL) {
-                            tmdProcessStream(model);
-                            tmdProcessStream(model);
+                            tmdBuildBufferHalf(model);
+                            tmdBuildBufferHalf(model);
                         }
                         work->summons[sc->slot]->workType = ENEMY_WORK_PLAIN;
                         escort                            = work->summons[sc->slot];
@@ -6413,12 +6413,12 @@ static void func_actor_403200_8013FB54(Enemy* arg0, Task* arg1)
         if (dying->freeCountdown == 0) {
             tmd         = arg1->extra.tmd;
             tmd->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-            Tmd_FreeBuffers(arg1->extra.tmd);
+            tmdFreePrimitiveBuffer(arg1->extra.tmd);
             for (i = 0; i < ARRAY_SIZE(dying->escorts); i++) {
                 if (dying->escorts[i] != NULL) {
                     escortTmd         = dying->escorts[i]->task->extra.tmd;
                     escortTmd->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-                    Tmd_FreeBuffers(dying->escorts[i]->task->extra.tmd);
+                    tmdFreePrimitiveBuffer(dying->escorts[i]->task->extra.tmd);
                 }
             }
         }

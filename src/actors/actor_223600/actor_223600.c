@@ -1071,7 +1071,7 @@ static void func_actor_223600_8014B840(Enemy* enemy, Task* task)
         obj                           = task->extra.tmd;
         enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
         obj->flags                    = 0;
-        Tmd_AllocBuffers(obj);
+        tmdAllocPrimitiveBuffer(obj);
         work->walkTarget.vx = 0x115D;
         work->walkTarget.vy = 1;
         work->walkTarget.vz = 0x12D5;
@@ -1157,7 +1157,7 @@ static void func_actor_223600_8014BBF4(Enemy* enemy, Task* task)
         obj                           = task->extra.tmd;
         enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
         obj->flags                    = 0;
-        Tmd_AllocBuffers(obj);
+        tmdAllocPrimitiveBuffer(obj);
         mode = enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
         switch (mode) {
             case 0:
@@ -1465,12 +1465,12 @@ s32 func_actor_223600_8014CC04(Task* task, s32 arg1, s32 arg2, s32 arg3)
     switch (arg2) {
         case 0:
             obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            Tmd_AllocBuffers(obj);
+            tmdAllocPrimitiveBuffer(obj);
             work->state = ACTOR_223600_STATE_WALK;
             break;
         case 1:
             obj->flags = 0;
-            Tmd_AllocBuffers(obj);
+            tmdAllocPrimitiveBuffer(obj);
             work->state = ACTOR_223600_STATE_WALK;
             break;
         case 2:

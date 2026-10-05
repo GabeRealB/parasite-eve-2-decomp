@@ -68,7 +68,7 @@ void maggotCaterpillarDyingState(Enemy* arg0, Task* arg1)
                     if (work->burst != 0) {
                         if (work->burst >= 2) {
                             work->burst = 0;
-                            Tmd_FreeBuffers(obj);
+                            tmdFreePrimitiveBuffer(obj);
                             obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
                             maggotCaterpillarSpawnHusk(arg1);
                             maggotCaterpillarShrinkNode2(arg1);

@@ -16,7 +16,7 @@ void oddStrangerFacePlayer(Task* arg0)
         obj                                                       = arg0->extra.tmd;
         ((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = 0;
         obj->flags                                                = 0;
-        Tmd_AllocBuffers(obj);
+        tmdAllocPrimitiveBuffer(obj);
         work->animRequest       = ODD_STRANGER_ANIM_REQUEST_BLEND;
         work->animRate          = 0x10;
         work->animId            = 9;

@@ -41,22 +41,22 @@ void gluttonEscortState(Task* arg0)
         }
 #if GLUTTON_ROOM == GLUTTON_DUMPING_HOLE
         dying = arg0->work;
-        Tmd_AllocBuffers(arg0->extra.tmd);
+        tmdAllocPrimitiveBuffer(arg0->extra.tmd);
 #else
         tmd   = arg0->extra.tmd;
         dying = arg0->work;
         if (tmd->buffer == NULL) {
-            Tmd_AllocBuffers(tmd);
+            tmdAllocPrimitiveBuffer(tmd);
         }
 #endif
         for (j = 0; j < ARRAY_SIZE(dying->escorts); j++) {
             if (dying->escorts[j] != NULL) {
 #if GLUTTON_ROOM == GLUTTON_DUMPING_HOLE
-                Tmd_AllocBuffers(dying->escorts[j]->task->extra.tmd);
+                tmdAllocPrimitiveBuffer(dying->escorts[j]->task->extra.tmd);
 #else
                 escortTmd = dying->escorts[j]->task->extra.tmd;
                 if (escortTmd->buffer == NULL) {
-                    Tmd_AllocBuffers(escortTmd);
+                    tmdAllocPrimitiveBuffer(escortTmd);
                 }
 #endif
             }

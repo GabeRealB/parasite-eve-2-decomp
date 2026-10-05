@@ -16121,7 +16121,7 @@ A plain `switch` with empty cases for the non-writing IDs folds those cases
 into default and loses the `sltiu` split. Putting `stream += 2` only after the
 switch (or on every arm with one join) also merges the two `addiu`s.
 
-`Tmd_RewriteOpcodes` is the pure example (rewrite opcodes `0x38`→`0x4038` /
+`_tmdEnableSourceLayeredTextures` is the pure example (rewrite opcodes `0x38`→`0x4038` /
 `0x78`→`0x4078` while walking a `[id, handler, dims, data…]` stream).
 
 ## Dual terminator constants for outer/inner loops
@@ -20707,7 +20707,7 @@ rather than preloading the mask into `$a1`. Free the scratch pointer after the
 block and rematerialize the restore with a bare
 `*SCRATCH_STACK_CURSOR_SLOT = (u8*)*SCRATCH_STACK_CURSOR_SLOT + 0x88`.
 
-`tmdProcessStream` is the pure example.
+`tmdBuildBufferHalf` is the pure example.
 
 ## Dual `lw` + dual `andi 0xFF` for store + switch of the same expression
 
@@ -33648,15 +33648,15 @@ constraint used in `mc.c`:
 
 ## Split `la` of a function pointer so `%hi` lands in `$v1` while `$v0` holds a `lhu`
 
-Taking `func = Tmd_AllocBuffers` with `func` pinned to `$s2` emits the
+Taking `func = tmdAllocPrimitiveBuffer` with `func` pinned to `$s2` emits the
 same-register form (`lui s2` / `addiu s2, s2`). The target wants the
 two-register form so `%hi` can sit in `$v1` while `$v0` stays live as
 the `lhu` of a nearby `u16` field:
 
 ```
-lui    v1, %hi(Tmd_AllocBuffers)
+lui    v1, %hi(tmdAllocPrimitiveBuffer)
 lhu    v0, field_C(s1)
-addiu  s2, v1, %lo(Tmd_AllocBuffers)
+addiu  s2, v1, %lo(tmdAllocPrimitiveBuffer)
 ori    v0, v0, 0x80
 ```
 
@@ -33669,9 +33669,9 @@ register s32 hi asm("v1");
 register void (*func)(TmdObject*) asm("s2");
 u16 flags;
 
-asm("lui %0, %%hi(Tmd_AllocBuffers)" : "=r"(hi));
+asm("lui %0, %%hi(tmdAllocPrimitiveBuffer)" : "=r"(hi));
 flags = extra->flags;
-asm("addiu %0, %1, %%lo(Tmd_AllocBuffers)" : "=r"(func) : "r"(hi));
+asm("addiu %0, %1, %%lo(tmdAllocPrimitiveBuffer)" : "=r"(func) : "r"(hi));
 extra->flags = (flags | 0x80) & 0xFFFB;
 ```
 
@@ -46225,7 +46225,7 @@ the destination of a store. `func_actor_341900_801633F8 1 attempt, base_1.c
 Model tasks carry `TmdObject` (`include/main/tmd_types.h`) in `Task.extra.tmd`:
 `coords` points to the owned part array, `flags` is the u16 halfword whose
 `TMD_OBJECT_SKIP_ACTIVE_DRAW` bit `taskKill` sets, and `buffer` is the storage
-`Tmd_AllocBuffers` / `Tmd_FreeBuffers` own. Coordinate-body tasks instead carry
+`tmdAllocPrimitiveBuffer` / `tmdFreePrimitiveBuffer` own. Coordinate-body tasks instead carry
 `ModelObjectCoordBody` in `Task.extra.coordBody`, with one node at `coord`.
 The shared pointer offset does not make these bodies interchangeable.
 
@@ -54127,7 +54127,7 @@ has the same type and lands in the same register.
 The sharper version of the entry above, when the two loops are the arms of one
 `if`/`else` rather than sequential. `func_actor_444000_8013D810` walks the same
 seven-escort array twice: the reset arm only stores a halfword, the teardown arm
-calls `Tmd_FreeBuffers` on each escort. Writing it with one `escorts` pointer and
+calls `tmdFreePrimitiveBuffer` on each escort. Writing it with one `escorts` pointer and
 one `i` shared by both arms merges each into a single pseudo whose live range
 spans the teardown arm's calls, so global allocation has to give *all four*
 values callee-saved homes - `$s0`-`$s3`, a 0x28 frame and four save/restore
@@ -54144,7 +54144,7 @@ if (work->field_4 != 0) {
     for (i = 0; i < 7; i++) { /* no call */ }
 } else {
     dying = arg0->field_1C;
-    for (j = 0; j < 7; j++) { Tmd_FreeBuffers(...); }
+    for (j = 0; j < 7; j++) { tmdFreePrimitiveBuffer(...); }
 }
 ```
 
@@ -64883,7 +64883,7 @@ mid-unit ones cost a rename and a re-check of the `rodata` cuts.
 ## An already-promoted shared body can turn up inlined inside a larger one
 
 The tail of `func_actor_105600_80136930` - copy `tpage` / `clut` from one
-`TmdObject` to another, then call `tmdProcessStream` twice if `buffer` is
+`TmdObject` to another, then call `tmdBuildBufferHalf` twice if `buffer` is
 non-NULL - is `ActorsShared8013851c` verbatim, a body promoted to
 `src/actors/lib/` days earlier. It is not a call here; the original inlined it,
 so the C has to write it out again.
@@ -64892,7 +64892,7 @@ That is still worth spotting, because a promoted body comes with its header
 comment and its field types already worked out. Reading
 `include/actors/actors_shared_8013851c.h` settled what the two pointers were and
 why the stream is processed twice, which was most of the function. `grep -rn
-tmdProcessStream include/actors/` found it in one step - grepping the *callee
+tmdBuildBufferHalf include/actors/` found it in one step - grepping the *callee
 list* from the brief against the family's existing shared headers is a cheap
 first move on any actor function, and it finds inlined copies that
 `overlay_dup_index.py find` cannot, since that compares whole functions.
@@ -69807,7 +69807,7 @@ fixed, so which of the two moved the allocation was not isolated.
 ## A call between deriving `p = a->b` and re-using `a->b` reloads the expression: reference it inline post-call
 
 `func_shelter_b3_dumping_hole_8017E7DC` caches `extra = index->extra` (a saved
-reg `s2`) for `coord = extra->coords` and `Tmd_AllocBuffers(extra)`, but the
+reg `s2`) for `coord = extra->coords` and `tmdAllocPrimitiveBuffer(extra)`, but the
 `extra->flags = 0` store *after* an intervening `memFillBytes(work,…)` call comes
 out as a fresh `lw v0,0x2C(s4)` reload, not `sh zero,0xC(s2)`. GCC 2.8.1's CSE
 does not carry a memory load across a call: `index->extra` read before `memFillBytes`
@@ -83358,7 +83358,7 @@ with the arms written out in full:
     ret = 0;
     switch (mode) {
         case 0: obj->field_C |= 0x80;  obj->field_C &= ~4; break;
-        case 1: obj->field_C &= ~0x80; Tmd_AllocBuffers(obj); obj->field_C &= ~4; break;
+        case 1: obj->field_C &= ~0x80; tmdAllocPrimitiveBuffer(obj); obj->field_C &= ~4; break;
         case 2: obj->field_C |= 0x80;  work->field_44 = mode; obj->field_C |= 4; break;
         case 3: obj->field_C &= ~0x80; obj->field_C |= 4; break;
         default: ret = 1; break;
@@ -98749,7 +98749,7 @@ else                        var = dst->field_C | 0x80;
 dst->field_C = var;
 if (!(src->field_C & 4)) {
     dst->field_C &= 0xFFFB;
-    Tmd_AllocBuffers(dst);
+    tmdAllocPrimitiveBuffer(dst);
     return;
 }
 dst->field_C |= 4;
@@ -98786,7 +98786,7 @@ layout shows -- but the merge no longer knows any value. That reached 91.58%,
 and negating the condition (`if (!(src->field_C & 0x80))`, so the branch is
 `bnez` to the set arm and the clear arm is the fall-through) reached 100%.
 
-The second `if` keeps m2c's `if (!(x & 4)) { ...; Tmd_AllocBuffers(x); return; }
+The second `if` keeps m2c's `if (!(x & 4)) { ...; tmdAllocPrimitiveBuffer(x); return; }
 x |= 4;` shape, which is what leaves its `bnez` on the *set* arm with the
 clearing arm, call and all, as the fall-through.
 
@@ -111659,14 +111659,14 @@ Scratch `nonmatchings/func_actor_511000_801327A0-vacuum`.
 
 ## A separate temp for `t - 1` is born while `t` is still live, so `global_conflicts` forces two registers; compute it once, on the same variable, after the join (func_actor_511000_801330F0, 2026-09-17)
 
-The tail of this state handler runs a `Tmd_FreeBuffers` countdown. m2c seeds it
+The tail of this state handler runs a `tmdFreePrimitiveBuffer` countdown. m2c seeds it
 with the result in its own temp:
 
 ```c
 temp_v0_2 = work->freeCountdown;
 if (temp_v0_2 >= 0) {
     var_v0 = temp_v0_2 - 1;
-    if (temp_v0_2 == 0) { Tmd_FreeBuffers(obj); var_v0 = work->freeCountdown - 1; }
+    if (temp_v0_2 == 0) { tmdFreePrimitiveBuffer(obj); var_v0 = work->freeCountdown - 1; }
     work->freeCountdown = var_v0;
 }
 ```
@@ -111678,7 +111678,7 @@ lw    v0, 8(s3)
 bltz  v0, end
 bnez  v0, store
 addiu v0, v0, -1      # the branch's own register
-jal   Tmd_FreeBuffers
+jal   tmdFreePrimitiveBuffer
 lw    v0, 8(s3)
 addiu v0, v0, -1
 store: sw v0, 8(s3)
@@ -111698,7 +111698,7 @@ single pseudo with two definitions, and the block falls out at 100%:
 ```c
 temp_v0_2 = work->freeCountdown;
 if (temp_v0_2 >= 0) {
-    if (temp_v0_2 == 0) { Tmd_FreeBuffers(obj); temp_v0_2 = work->freeCountdown; }
+    if (temp_v0_2 == 0) { tmdFreePrimitiveBuffer(obj); temp_v0_2 = work->freeCountdown; }
     work->freeCountdown = temp_v0_2 - 1;
 }
 ```
@@ -112898,7 +112898,7 @@ callee-saved home:
         obj               = arg0->field_2C;
         ctx->node.flags = 0;
         obj->field_C      = 0;
-        Tmd_AllocBuffers(obj);
+        tmdAllocPrimitiveBuffer(obj);
         work->animRequest = 2;
         work->animRate = 0x10;
     loop_2:
@@ -113986,7 +113986,7 @@ beqz  v1, X            /* v1 == 0 -> X */
 addiu v0, zero, 4
 beq   v1, v0, Y        /* v1 == 4 -> Y */
 addiu v0, zero, 0x80
-X: sh zero, 0xC(a1)    /* reset + Tmd_AllocBuffers, reached two ways */
+X: sh zero, 0xC(a1)    /* reset + tmdAllocPrimitiveBuffer, reached two ways */
 ```
 
 Only a `regs`-free leftover gives this away as a structure problem rather than an allocation one:
@@ -114007,13 +114007,13 @@ test's taken path and the second test's untaken path arrive at:
     case 1:
         if (enemy->spawnState == 0) {            /* first arm */
             obj->field_C = 0;
-            Tmd_AllocBuffers(obj);
+            tmdAllocPrimitiveBuffer(obj);
         } else if (enemy->spawnState == 4) {     /* second arm */
             obj->field_C = 0x80;
             work->state = 0;
         } else {                               /* same text as the first arm */
             obj->field_C = 0;
-            Tmd_AllocBuffers(obj);
+            tmdAllocPrimitiveBuffer(obj);
         }
         break;
 ```
@@ -115895,7 +115895,7 @@ Inputs: `base.c` (77.433%), `base_1.c` (93.913%, struct view), `base_7.c`
 The handler reads `Task::extra` and the model coordinate hung off it at six
 places, and the target reloads the whole chain at each one - `lw v0,0x2C(s4)` /
 `lw v0,8(v0)` before `sw zero,0(v0)`, again before `jal actorRenderComposeCoord`, again for
-the `Tmd_AllocBuffers` argument and each `field_C` read-modify-write. Holding
+the `tmdAllocPrimitiveBuffer` argument and each `field_C` read-modify-write. Holding
 `TmdObject* obj = index->extra` in a local makes it one register instead, and
 because it is then live across every call in the function the allocator spends a
 callee-saved register on it: the frame grows, `s6` appears, and the two long-lived
@@ -123201,7 +123201,7 @@ lets `cse` unify them: by `.lreg` insn 141 stores `(reg:QI 101)` where `.rtl` ha
 106, and `insn.py --reg 101` reports `used 3 times across 24 insns; crosses 1
 call`. `.greg` opens with `9 regs to allocate: 85 89 81 87 84 80 101 82 83` and
 disposes `101 in 21` (`$s5`), so the merged constant is live from the `-1` store
-through `Tmd_AllocBuffers`, `gameFlagGetNibble` and `RotMatrixX` to the second
+through `tmdAllocPrimitiveBuffer`, `gameFlagGetNibble` and `RotMatrixX` to the second
 one. One more value live across both calls than the target has, and global-alloc
 re-homes every one of them:
 
@@ -124240,7 +124240,7 @@ tails.
 
 `func_actor_120300_80132004` is `func_actor_120300_801321C8` - the next function
 in the same TU, same `0x38` frame, same `memMalloc`/`memFillBytes`/
-`Tmd_AllocBuffers` prologue, same `func_800D7A9C` + `ScaleMatrix` tail - with one
+`tmdAllocPrimitiveBuffer` prologue, same `func_800D7A9C` + `ScaleMatrix` tail - with one
 constant changed and one block inserted before the state step. m2c's rendering
 of it scored 73.549% (`branch=4 regs=41 reorder=3 insert=6 delete=20`, 113 insns
 against the target's 99). Copying the matched sibling's C body and splicing the
@@ -125289,14 +125289,14 @@ past `work`'s 4473. `model` is then allocated first, takes `$s1` (its conflicts
 already contain `$s0` through `obj`), and `work` falls to `$s2` — the ROM's
 layout.
 
-**Where the seventh reference comes from.** The block calls `tmdProcessStream`
+**Where the seventh reference comes from.** The block calls `tmdBuildBufferHalf`
 twice on the same pointer:
 
 ```c
         if (model1->field_18 != NULL) {
-            tmdProcessStream(model1);
+            tmdBuildBufferHalf(model1);
             do {                        /* <- this wrapper is load-bearing */
-                tmdProcessStream(model1);
+                tmdBuildBufferHalf(model1);
             } while (0);
         }
 ```
@@ -126433,7 +126433,7 @@ work = task->work;   /* the entry-block load */
 
 That reproduced the target exactly, `$v1` as its home. A caller-saved temp is
 the right home here because the only path from the load to its use, entry ->
-case 2, does not cross case 1's `Tmd_AllocBuffers` call -- so hoisting the load
+case 2, does not cross case 1's `tmdAllocPrimitiveBuffer` call -- so hoisting the load
 into case 2 is not a pure relocation, it frees the register. Two byte-shaped
 siblings are not enough to settle which form a third carrier used; read the
 block the load sits in.
@@ -127270,7 +127270,7 @@ The 4-way `TmdObject::flags` switch this body shares with
             break;
         case 1:
             obj->field_C &= ~0x80;
-            Tmd_AllocBuffers(obj);
+            tmdAllocPrimitiveBuffer(obj);
             obj->field_C &= ~4;
             break;
 ```
@@ -127286,12 +127286,12 @@ Two traps follow. Fusing case 0 into one expression
 (`field_C = (field_C | 0x80) & ~4;`) keeps `andi`/`sh` inside case 0's own block
 and loses the shape. And reading the target backwards as a source-level
 fall-through (`case 0:` with no `break`, falling into case 1) is wrong for a
-different reason: case 0 would then run case 1's `Tmd_AllocBuffers`. Only the
+different reason: case 0 would then run case 1's `tmdAllocPrimitiveBuffer`. Only the
 tail is shared. The `nop` at the merge label is a scheduling artifact, not an
 instruction to write.
 
 The same family generalises as a port: this is the fourth member, and only
-case 2's middle statement (a `Tmd_FreeBuffers` here, a mode latch in the twins)
+case 2's middle statement (a `tmdFreePrimitiveBuffer` here, a mode latch in the twins)
 plus the trailing copy onto `work->field_4B8->extra` distinguishes it — one
 build from the sibling's C, against an m2c seed at 74.279%.
 
@@ -127370,7 +127370,7 @@ result *before* the `v == 0` test:
     if (temp_v0_2 >= 0) {
         var_v0 = temp_v0_2 - 1;                 /* here */
         if (temp_v0_2 == 0) {
-            Tmd_FreeBuffers(temp_s3);
+            tmdFreePrimitiveBuffer(temp_s3);
             var_v0 = temp_s1->freeCountdown - 1;
         }
         temp_s1->freeCountdown = var_v0;
@@ -127390,7 +127390,7 @@ compound assignment on the field - makes both paths land in one register:
     step = work->freeCountdown;
     if (step >= 0) {
         if (step == 0) {
-            Tmd_FreeBuffers(ext);
+            tmdFreePrimitiveBuffer(ext);
             step = work->freeCountdown;
         }
         step -= 1;
@@ -128733,7 +128733,7 @@ whole diff being that `work` and `ret` had swapped `$s1`/`$s2`:
 + sw    s2,0x18(sp)   lw s1,0x1c(a0) ... sw a2,0x4bc(s1)   move v0,s2
 ```
 
-Both cross the mode-1 `Tmd_AllocBuffers` call (the trailing `savedModelFlags` mirror
+Both cross the mode-1 `tmdAllocPrimitiveBuffer` call (the trailing `savedModelFlags` mirror
 is reachable from it), so both need a `$s` register, and `.lreg` shows them
 *exactly* tied: `Register 85 used 3 times across 42 insns; crosses 1 call;
 pointer.` against `Register 86 used 3 times across 42 insns; crosses 1 call.`
@@ -128898,7 +128898,7 @@ the recomputation after the call has a home:
     if (temp_v0 >= 0) {
         var_v0_2 = temp_v0 - 1;
         if (temp_v0 == 0) {
-            Tmd_FreeBuffers(extra);
+            tmdFreePrimitiveBuffer(extra);
             var_v0_2 = work->freeCountdown - 1;
         }
         work->freeCountdown = var_v0_2;
@@ -128915,7 +128915,7 @@ spelling out:
 ```c
     if (work->freeCountdown >= 0) {
         if (work->freeCountdown == 0) {
-            Tmd_FreeBuffers(extra);
+            tmdFreePrimitiveBuffer(extra);
         }
         work->freeCountdown--;
     }
@@ -133191,7 +133191,7 @@ source that repeated the code instead.
 ```c
 void modelObjectFreeTmd(TmdObject* model)   /* target jals: memFreeFromHeap, memFree */
 {
-    if (model->buffer != NULL) {   /* this half is Tmd_FreeBuffers, verbatim */
+    if (model->buffer != NULL) {   /* this half is tmdFreePrimitiveBuffer, verbatim */
         memFreeFromHeap(model->buffer, true);
         model->buffer = NULL;
     }
@@ -133419,7 +133419,7 @@ tool resolves, the symbol map row, and the two lists that key the file's labels
 
 ## A model stream record's packet type is in its draw-path twin
 
-A model's packet stream is dispatched by opcode twice: `tmdProcessStream` (main)
+A model's packet stream is dispatched by opcode twice: `tmdBuildBufferHalf` (main)
 selects the C bodies in the gameplay overlay that lay each record's packet into
 the buffer, and the draw path selects the handwritten handlers in
 `src/main/hasm/Tmd_StreamHandlers_Ops.s`. Only the second set is named, so an
@@ -133437,7 +133437,7 @@ config's `name:` before deciding which case a unit is in.
 
 ## A model stream record's packet type is in its draw-path twin
 
-A model's packet stream is dispatched twice: `tmdProcessStream` (main) switches
+A model's packet stream is dispatched twice: `tmdBuildBufferHalf` (main) switches
 on the opcode and calls the C bodies in the gameplay overlay that lay each
 record's packet into the buffer, while the draw path takes the handler out of the
 record's slot — the one `Tmd_InitSourceStream` patched — and `Tmd_DispatchStream`
@@ -133474,7 +133474,7 @@ named rather than the twin's own label list. A draw handler can branch on its
 variant), and the process path may merge into one arm what the draw path splits.
 
 The two arms write one packet between them, rather than one writing it and the
-other reading it. `tmdProcessStream` lays the texture words down and the draw
+other reading it. `tmdBuildBufferHalf` lays the texture words down and the draw
 handler completes the same primitive in place with what only a transform can
 decide — its projected corners, its lit corner colours, its primitive code and
 its ordering-table link. That is why a draw handler looks truncated beside the
@@ -134859,7 +134859,7 @@ the GTE ops give the lighting. Do not take the kind from the file header comment
 in `Tmd_StreamHandlers_Ops.s`: its family groupings are wrong in both directions.
 ## A stream handler belongs to the pass that runs it, not the one that resolved it
 
-A model's packet stream is walked twice. `tmdProcessStream` lays each record's
+A model's packet stream is walked twice. `tmdBuildBufferHalf` lays each record's
 texture words into the buffer half when a model's buffer is allocated; the draw pass
 - `Tmd_SetupDraw` to `Tmd_SetupGteMatrices` to `Tmd_DispatchStream` - runs per frame,
 takes each element's triangle to screen space, lights and culls it and links its
@@ -135223,7 +135223,7 @@ name, the occurrence is splat's own.
 
 A model's packet stream is walked twice, by the opcode switch in
 `Tmd_InitSourceStream` (the draw pass, which writes the resolved handler's
-address into the record) and by the one in `tmdProcessStream` (the pass that
+address into the record) and by the one in `tmdBuildBufferHalf` (the pass that
 builds the primitives). Every record family that has a second, layered form
 appears in both as
 

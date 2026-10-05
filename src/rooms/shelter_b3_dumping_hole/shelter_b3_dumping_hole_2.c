@@ -2422,7 +2422,7 @@ static void func_shelter_b3_dumping_hole_8017E7DC(Task* arg0)
     memFillBytes(work, 0, sizeof(*work));
     coord->parent          = &gGfxViewCoord;
     arg0->extra.tmd->flags = 0;
-    Tmd_AllocBuffers(extra);
+    tmdAllocPrimitiveBuffer(extra);
     extra->lightMtx   = &work->lightMtx;
     extra->colorMtx   = &work->colorMtx;
     coord->coord.t[0] = placement->pos.vx;

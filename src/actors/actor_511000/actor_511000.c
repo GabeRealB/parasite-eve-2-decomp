@@ -2157,7 +2157,7 @@ static void func_actor_511000_80131E78(Task* arg0)
     func_actor_511000_80132048(arg0);
     if (work->freeCountdown >= 0) {
         if (work->freeCountdown == 0) {
-            Tmd_FreeBuffers(extra);
+            tmdFreePrimitiveBuffer(extra);
         }
         work->freeCountdown--;
     }
@@ -2368,7 +2368,7 @@ s32 func_actor_511000_801327A0(Task* arg0, s32 arg1, s32 mode, s32 arg3)
             break;
         case 1:
             obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            Tmd_AllocBuffers(obj);
+            tmdAllocPrimitiveBuffer(obj);
             obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 2:
@@ -2704,7 +2704,7 @@ static void func_actor_511000_80133034(Task* task)
 /// coordinate's own translation, and runs the work block's follow-up. Once the
 /// session reaches mode 0x18 it walks `killCountdown` up to 0x77, spawning a
 /// view task for the camera record at each index and re-posing the model from
-/// the matching rotations, and finally runs the `Tmd_FreeBuffers` countdown the
+/// the matching rotations, and finally runs the `tmdFreePrimitiveBuffer` countdown the
 /// spawn state armed at -1, freeing the buffers and latching the field back to
 /// -1 on the frame the countdown reaches zero.
 static void func_actor_511000_801330F0(Task* task)
@@ -2737,7 +2737,7 @@ static void func_actor_511000_801330F0(Task* task)
     countdown = work->freeCountdown;
     if (countdown >= 0) {
         if (countdown == 0) {
-            Tmd_FreeBuffers(obj);
+            tmdFreePrimitiveBuffer(obj);
             countdown = work->freeCountdown;
         }
         work->freeCountdown = countdown - 1;
@@ -2903,7 +2903,7 @@ s32 func_actor_511000_80133554(Task* task, s32 arg1, s32 msg, s32 arg3)
             break;
         case 1:
             obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            Tmd_AllocBuffers(obj);
+            tmdAllocPrimitiveBuffer(obj);
             obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 2:
@@ -3078,8 +3078,8 @@ static void func_actor_511000_80133958(Enemy* enemy, Task* task)
     model->texturePageOffset = ((AreaPlacement*)placementWord)->texturePageOffset;
     model->clutRowOffset     = ((AreaPlacement*)placementWord)->clutRowOffset;
     if (model->buffer != NULL) {
-        tmdProcessStream(model);
-        tmdProcessStream(model);
+        tmdBuildBufferHalf(model);
+        tmdBuildBufferHalf(model);
     }
     spawned       = Gp_SpawnEnemyFromTable(table, 2, 0, enemy);
     session       = gGameSession;
@@ -3101,8 +3101,8 @@ static void func_actor_511000_80133958(Enemy* enemy, Task* task)
     model->texturePageOffset = ((AreaPlacement*)placementWord)->texturePageOffset;
     model->clutRowOffset     = ((AreaPlacement*)placementWord)->clutRowOffset;
     if (model->buffer != NULL) {
-        tmdProcessStream(model);
-        tmdProcessStream(model);
+        tmdBuildBufferHalf(model);
+        tmdBuildBufferHalf(model);
     }
     Gp_SpawnEnemyFromTable(table, 3, 0, enemy);
     task->state = STATE_UPDATE;

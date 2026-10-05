@@ -4377,7 +4377,7 @@ s32 func_actor_403600_801406A4(Task* arg0, s32 arg1, ActorCommand* request, s32 
             RotMatrix(&angles, &work->worldCoord.coord);
             work->worldCoord.composeStamp = GRAPHICS_COORD_DIRTY;
             actorRenderComposeCoord(&work->worldCoord);
-            Tmd_AllocBuffers(arg0->extra.tmd);
+            tmdAllocPrimitiveBuffer(arg0->extra.tmd);
             arg0->extra.tmd->flags &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
             arg0->extra.tmd->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             work->step              = 0;
@@ -4396,7 +4396,7 @@ s32 func_actor_403600_801406A4(Task* arg0, s32 arg1, ActorCommand* request, s32 
             angles.vy                     = 0x200;
             angles.vz                     = 0;
             RotMatrix(&angles, &work->worldCoord.coord);
-            Tmd_AllocBuffers(arg0->extra.tmd);
+            tmdAllocPrimitiveBuffer(arg0->extra.tmd);
             arg0->extra.tmd->flags &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
             arg0->extra.tmd->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;
@@ -4816,8 +4816,8 @@ static void func_actor_403600_801419E8(Task* arg0)
     *&obj->texturePageOffset = -0xF;
     obj->clutRowOffset       = 2;
     if (obj->buffer != NULL) {
-        tmdProcessStream(obj);
-        tmdProcessStream(obj);
+        tmdBuildBufferHalf(obj);
+        tmdBuildBufferHalf(obj);
     }
 }
 
@@ -5015,7 +5015,7 @@ static void func_actor_403600_80141E78(Enemy* arg0, Task* arg1)
     value             = work->hitCooldown + 1;
     work->hitCooldown = value;
     if ((s16)value >= 2) {
-        Tmd_AllocBuffers(arg1->extra.tmd);
+        tmdAllocPrimitiveBuffer(arg1->extra.tmd);
         obj          = arg1->extra.tmd;
         obj->flags  &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
         obj2         = arg1->extra.tmd;

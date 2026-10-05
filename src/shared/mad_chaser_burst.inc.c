@@ -14,7 +14,7 @@ void madChaserBurst(Task* arg0)
 
     model = arg0->extra.tmd;
     enemy = (Enemy*)arg0->spawnArg2.pointer;
-    Tmd_FreeBuffers(model);
+    tmdFreePrimitiveBuffer(model);
     model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
     madChaserSpawnGibs(arg0);
     Gp_ReleaseStateF0Add(arg0, 0);

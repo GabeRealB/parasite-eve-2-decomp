@@ -31,7 +31,7 @@ void factoryHatchInit(Task* task)
     }
     if (!(capModel->flags & TMD_OBJECT_SKIP_AUTO_BUFFER)) {
         model->flags &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
-        Tmd_AllocBuffers(model);
+        tmdAllocPrimitiveBuffer(model);
     } else {
         model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
     }

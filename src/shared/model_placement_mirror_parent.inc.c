@@ -3,7 +3,7 @@
 /// Tick state of the child in the second state table: copies the spawner's
 /// `TMD_OBJECT_SKIP_ACTIVE_DRAW` and `TMD_OBJECT_SKIP_AUTO_BUFFER` onto this
 /// task's model. When the spawner's skip bit is clear, the child clears its
-/// own and `Tmd_AllocBuffers` fills a missing buffer; a set bit is copied and
+/// own and `tmdAllocPrimitiveBuffer` fills a missing buffer; a set bit is copied and
 /// the child's buffer is left alone.
 void modelPlacementMirrorParent(Task* task)
 {
@@ -20,7 +20,7 @@ void modelPlacementMirrorParent(Task* task)
     }
     if (!(parentObject->flags & TMD_OBJECT_SKIP_AUTO_BUFFER)) {
         object->flags &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
-        Tmd_AllocBuffers(object);
+        tmdAllocPrimitiveBuffer(object);
         return;
     }
     object->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;

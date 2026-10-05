@@ -1212,7 +1212,7 @@ static void func_actor_210700_8014A0AC(Task* task)
     func_actor_210700_80149E30(task);
     if (work->freeCountdown >= 0) {
         if (work->freeCountdown == 0) {
-            Tmd_FreeBuffers(ext);
+            tmdFreePrimitiveBuffer(ext);
         }
         work->freeCountdown--;
     }
@@ -1305,7 +1305,7 @@ s32 func_actor_210700_8014A344(Task* task, s32 arg1, ActorTransform* args, s32 a
 /// Message-0x7D5 handler: sets the model's visibility and mode bit from the
 /// message's mode word. `TmdObject::flags` bit 0x80 hides the model and bit
 /// 0x4 is the one modes 2 and 3 raise. Mode 0 hides the model and drops 0x4,
-/// 1 shows it, reallocates its buffers through `Tmd_AllocBuffers` and drops
+/// 1 shows it, reallocates its buffers through `tmdAllocPrimitiveBuffer` and drops
 /// 0x4, 2 hides it, raises 0x4 and starts the work block's `freeCountdown`
 /// at two ticks to freeing the buffers, and 3 shows it and raises 0x4. Handled
 /// modes return 0; anything else returns 1 and changes nothing.
@@ -1326,7 +1326,7 @@ s32 func_actor_210700_8014A3D4(Task* arg0, s32 arg1, s32 mode, s32 arg3)
             break;
         case 1:
             obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            Tmd_AllocBuffers(obj);
+            tmdAllocPrimitiveBuffer(obj);
             obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 2:

@@ -59,7 +59,7 @@ void maggotCaterpillarEntranceState(Task* arg0)
             }
             break;
         case 2:
-            Tmd_AllocBuffers(obj);
+            tmdAllocPrimitiveBuffer(obj);
             obj->flags   = (u16)obj->flags & (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
             indexOrSound = 0;
             if (work->entranceKind == 0) {

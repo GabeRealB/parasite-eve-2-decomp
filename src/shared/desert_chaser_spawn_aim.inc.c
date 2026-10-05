@@ -31,7 +31,7 @@ void desertChaserSpawnAim(Task* arg0)
         work->hitFlag = 0;
 #endif
         obj->flags = 0;
-        Tmd_AllocBuffers(obj);
+        tmdAllocPrimitiveBuffer(obj);
         work->spheres[DESERT_CHASER_SPHERE_FRONT].body.radius = 0x19C;
         work->animId                                          = 5;
         work->animRequest                                     = DESERT_CHASER_ANIM_REQUEST_BLEND;

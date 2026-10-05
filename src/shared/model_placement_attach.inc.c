@@ -26,7 +26,7 @@ void modelPlacementAttachChild(Task* task)
     }
     if (!(parentObj->flags & TMD_OBJECT_SKIP_AUTO_BUFFER)) {
         obj->flags &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
-        Tmd_AllocBuffers(obj);
+        tmdAllocPrimitiveBuffer(obj);
     } else {
         obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
     }

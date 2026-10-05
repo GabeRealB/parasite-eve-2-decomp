@@ -2248,8 +2248,8 @@ void func_actor_510900_801350F8(Enemy* arg0, Task* arg1)
     model1->texturePageOffset = entry1->texturePageOffset;
     model1->clutRowOffset     = entry1->clutRowOffset;
     if (model1->buffer != NULL) {
-        tmdProcessStream(model1);
-        tmdProcessStream(model1);
+        tmdBuildBufferHalf(model1);
+        tmdBuildBufferHalf(model1);
     }
     work->weaponTask = spawned->task;
     eff              = Gp_SpawnEff((EFFECT_ACTOR_510900_FLAME_JET | EFFECT_SPAWN_UNLIMITED), spawned->task->extra.tmd->coords, 0, NULL);
@@ -2275,8 +2275,8 @@ void func_actor_510900_801350F8(Enemy* arg0, Task* arg1)
     model2->texturePageOffset = entry2->texturePageOffset;
     model2->clutRowOffset     = entry2->clutRowOffset;
     if (model2->buffer != NULL) {
-        tmdProcessStream(model2);
-        tmdProcessStream(model2);
+        tmdBuildBufferHalf(model2);
+        tmdBuildBufferHalf(model2);
     }
     work->chestModelTask = spawned->task;
     Gp_SpawnEnemyFromTable(D_actor_510900_80167A18, 5, 0, arg0);

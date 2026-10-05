@@ -1509,7 +1509,7 @@ static void func_mine_forked_tunnel_8017D724(Task* arg0)
 
     if (((_MineForkedTunnelAreaObjectWork*)arg0->work)->freeCountdown >= 0) {
         if (((_MineForkedTunnelAreaObjectWork*)arg0->work)->freeCountdown == 0) {
-            Tmd_FreeBuffers(ext);
+            tmdFreePrimitiveBuffer(ext);
         }
         ((_MineForkedTunnelAreaObjectWork*)arg0->work)->freeCountdown--;
     }
@@ -1661,7 +1661,7 @@ static void func_mine_forked_tunnel_8017DC70(Task* arg0)
 /// buffer-alloc bits of the task's `TmdObject` extra. Modes 0 and 1 set and
 /// clear bit 0x80 - hiding and showing the model - and leave
 /// `TMD_OBJECT_SKIP_AUTO_BUFFER` clear so the model keeps its buffers, mode 1
-/// reinstating them through `Tmd_AllocBuffers` first. Modes 2 and 3 set
+/// reinstating them through `tmdAllocPrimitiveBuffer` first. Modes 2 and 3 set
 /// `TMD_OBJECT_SKIP_AUTO_BUFFER` instead, skipping that
 /// allocation; mode 2 also arms
 /// `_MineForkedTunnelAreaObjectWork::freeCountdown` with its own value, which
@@ -1681,7 +1681,7 @@ s32 func_mine_forked_tunnel_8017DD08(Task* task, s32 arg1, s32 mode, s32 arg3)
             break;
         case 1:
             ext->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            Tmd_AllocBuffers(ext);
+            tmdAllocPrimitiveBuffer(ext);
             ext->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 2:

@@ -104,8 +104,8 @@ static void Reflection_InitPlayer(Task* task)
     }
     task->work               = work;
     extra->texturePageOffset = 6;
-    tmdProcessStream(extra);
-    tmdProcessStream(extra);
+    tmdBuildBufferHalf(extra);
+    tmdBuildBufferHalf(extra);
     extra->flags    = TMD_OBJECT_REVERSE_CULLING;
     extra->otOffset = 0x1F;
     if (task->spawnArg1.value == 0) {
@@ -777,8 +777,8 @@ static void Reflection_HeldObjectTask(Task* task)
         extra                    = task->extra.tmd;
         parts                    = extra->coords;
         extra->texturePageOffset = src->texturePageOffset;
-        tmdProcessStream(extra);
-        tmdProcessStream(extra);
+        tmdBuildBufferHalf(extra);
+        tmdBuildBufferHalf(extra);
         extra->flags    = TMD_OBJECT_REVERSE_CULLING;
         extra->otOffset = 0x1F;
         parts->parent   = mirrorPart;

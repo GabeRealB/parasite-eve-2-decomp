@@ -2154,7 +2154,7 @@ case3:
         goto inc368;
     }
     work->burstStage = 0;
-    Tmd_FreeBuffers(obj);
+    tmdFreePrimitiveBuffer(obj);
     obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
     Actor03800_Fn02E50(arg1);
     goto timer;
@@ -2255,8 +2255,8 @@ static void Actor03800_Fn03008(Task* actor, u32 variant)
     model->texturePageOffset = entry->texturePageOffset;
     model->clutRowOffset     = entry->clutRowOffset;
     if (model->buffer != NULL) {
-        tmdProcessStream(model);
-        tmdProcessStream(model);
+        tmdBuildBufferHalf(model);
+        tmdBuildBufferHalf(model);
     }
 }
 

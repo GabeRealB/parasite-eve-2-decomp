@@ -3315,8 +3315,8 @@ static Enemy* func_actor_206100_8014EE2C(s32 arg0)
         obj                    = enemy->task->extra.tmd;
         obj->texturePageOffset = 0;
         obj->clutRowOffset     = 2;
-        tmdProcessStream(obj);
-        tmdProcessStream(obj);
+        tmdBuildBufferHalf(obj);
+        tmdBuildBufferHalf(obj);
         return enemy;
     }
     return NULL;

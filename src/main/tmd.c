@@ -9,6 +9,7 @@
 #include "common.h"
 #include "gte.h"
 
+#include "main/areas.h"
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
@@ -112,22 +113,50 @@ enum { TMD_DRAW_VERTEX_DEPTH_COUNT = 1024 };
 /// -8192..8128, which fits in the s16 displacement.
 enum { TMD_ENCODED_CLUT_ROW_SHIFT = 6 };
 
+/// Stream opcode families and modifiers consumed by primitive-buffer construction.
+///
+/// Modifiers select distinct serialized records, not TmdObject.flags. The actor
+/// draw variants resolve to different actor-overlay callbacks but use the base
+/// family's constructor and element layout. Unlisted combinations fall back
+/// to skipping their payload; combining bits does not make a supported opcode.
+enum {
+    TMD_STREAM_G3_ONE_NORMAL       = 0x00,
+    TMD_STREAM_F3                  = 0x04,
+    TMD_STREAM_GT3_ONE_NORMAL      = 0x18,
+    TMD_STREAM_FT3                 = 0x1C,
+    TMD_STREAM_G3_CORNER_NORMALS   = 0x20,
+    TMD_STREAM_GT3_ELEMENT_COLOR   = 0x30,
+    TMD_STREAM_GT3_CORNER_NORMALS  = 0x38,
+    TMD_STREAM_G4_ONE_NORMAL       = 0x40,
+    TMD_STREAM_F4                  = 0x44,
+    TMD_STREAM_GT4_ONE_NORMAL      = 0x58,
+    TMD_STREAM_FT4                 = 0x5C,
+    TMD_STREAM_G4_CORNER_NORMALS   = 0x60,
+    TMD_STREAM_GT4_ELEMENT_COLOR   = 0x70,
+    TMD_STREAM_GT4_CORNER_NORMALS  = 0x78,
+    TMD_STREAM_GT4_UNLIT           = 0x156,
+    TMD_STREAM_PRE_XFORM           = 0x01,
+    TMD_STREAM_SEMI_TRANS          = 0x02,
+    TMD_STREAM_CORNER_COLORS       = 0x100,
+    TMD_STREAM_LAYERED_TEXTURE     = 0x4000,
+    TMD_STREAM_ACTOR_DRAW_VARIANT1 = 0x8000,
+    TMD_STREAM_ACTOR_DRAW_VARIANT2 = 0x10000,
+    TMD_STREAM_ACTOR_DRAW_VARIANT3 = 0x20000
+};
+
 static const TaskFuncTable3 Tmd_TaskStates;
 
 static void Tmd_InitSourceStream(TmdSource* src);
 
 static void Tmd_SetupDraw(TmdObject* obj);
 
-/// Total bytes the attached models hold in their buffers.
-static s32 Tmd_SumBufferBytes(void);
+static s32 _tmdSumAttachedBufferBytes(void);
 
-static void Tmd_RewriteOpcodes(TmdSource* src);
+static void _tmdEnableSourceLayeredTextures(const TmdSource* source);
 
-/// Excludes every attached model from the active draw pass.
-static void Tmd_FlagAllNodes(Task* task);
+static void _tmdHideAttachedModelsTask(Task* task);
 
-/// Releases the buffer of every attached model.
-static void Tmd_FreeNodeBuffers(Task* task);
+static void _tmdFreeAttachedBuffersTask(Task* task);
 
 u32* func_actor_403600_80136224(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
@@ -150,8 +179,8 @@ u32* func_actor_403600_80138004(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 u32* func_actor_403600_801386EC(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
 static const TaskFuncTable3 Tmd_TaskStates = { {
-    Tmd_FlagAllNodes,
-    Tmd_FreeNodeBuffers,
+    _tmdHideAttachedModelsTask,
+    _tmdFreeAttachedBuffersTask,
     taskKill,
 } };
 
@@ -388,184 +417,186 @@ static void Tmd_InitSourceStream(TmdSource* src)
     }
 }
 
-void tmdProcessStream(TmdObject* obj)
+void tmdBuildBufferHalf(TmdObject* model)
 {
-    TmdStreamWorkspace*    ws;
-    TmdSource*             src;
+    TmdStreamWorkspace*    workspace;
+    TmdSource*             source;
     u32*                   stream;
-    u32                    id;
+    u32                    opcode;
     _TmdModelStreamHandler handler;
-    s32                    flag;
-    void*                  buf;
+    s32                    useOffsetLayer;
+    u8*                    bufferBase;
     u32                    stageAreaKey;
-    TmdStreamWorkspace*    head;
-    TmdStreamWorkspace*    tmp;
+    TmdStreamWorkspace*    reservedWorkspace;
+    TmdStreamWorkspace*    scratchEnd;
 
-    flag                                     = 0;
-    src                                      = obj->source;
-    tmp                                      = SCRATCH_STACK_CURSOR(TmdStreamWorkspace);
-    stream                                   = src->stream;
+    useOffsetLayer                           = 0;
+    source                                   = model->source;
+    scratchEnd                               = SCRATCH_STACK_CURSOR(TmdStreamWorkspace);
+    stream                                   = source->stream;
     stageAreaKey                             = GAME_LOCATION_WORD(gGameSession->location.loc);
-    head                                     = tmp - 1;
+    reservedWorkspace                        = scratchEnd - 1;
     stageAreaKey                            &= GAME_LOCATION_STAGE_AREA_MASK;
-    SCRATCH_STACK_CURSOR(TmdStreamWorkspace) = head;
-    if ((stageAreaKey == GAME_LOCATION_KEY(2, 15, 0, 0)) || (stageAreaKey == GAME_LOCATION_KEY(2, 16, 0, 0))) {
-        flag = 1;
+    SCRATCH_STACK_CURSOR(TmdStreamWorkspace) = reservedWorkspace;
+    if ((stageAreaKey == GAME_LOCATION_KEY(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_PARKING_LOT, 0, 0)) ||
+        (stageAreaKey == GAME_LOCATION_KEY(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_TOILET, 0, 0))) {
+        useOffsetLayer = 1;
     }
-    ws = head;
-
-    ws->obj       = obj;
-    buf           = obj->buffer;
-    ws->primWrite = buf;
-    if (obj->nextBufferHalf != 0) {
-        ws->primWrite = (u8*)buf + obj->bufferHalfBytes;
+    workspace = reservedWorkspace;
+    // Select one half; pre-transformed packets precede directly transformed packets.
+    workspace->obj       = model;
+    bufferBase           = model->buffer;
+    workspace->primWrite = bufferBase;
+    if (model->nextBufferHalf != 0) {
+        workspace->primWrite = bufferBase + model->bufferHalfBytes;
     }
-    ws->preXformWrite     = ws->primWrite;
-    ws->primWrite         = ws->primWrite + src->preXformRegionBytes;
-    obj->nextBufferHalf  ^= 1;
-    ws->verts             = obj->source->verts;
-    ws->normals           = obj->source->normals;
-    ws->texturePageOffset = obj->texturePageOffset;
-    // Place the signed row count at bit 6 of the encoded CLUT word.
-    ws->encodedClutOffset = obj->clutRowOffset << TMD_ENCODED_CLUT_ROW_SHIFT;
-    goto read_id;
+    workspace->preXformWrite     = workspace->primWrite;
+    workspace->primWrite         = workspace->primWrite + source->preXformRegionBytes;
+    model->nextBufferHalf       ^= 1;
+    workspace->verts             = model->source->verts;
+    workspace->normals           = model->source->normals;
+    workspace->texturePageOffset = model->texturePageOffset;
+    // Scale the byte representation, then sign-extend it to an encoded CLUT displacement.
+    workspace->encodedClutOffset = (s32)((u32)(u8)model->clutRowOffset << 24) >> (24 - TMD_ENCODED_CLUT_ROW_SHIFT);
+    goto readOpcode;
 
     for (;;) {
-        switch (id) {
-            case 0x4038:
+        switch (opcode) {
+            case TMD_STREAM_GT3_CORNER_NORMALS | TMD_STREAM_LAYERED_TEXTURE:
                 handler = tmdBuildStreamGt3LayeredBase;
-                if (flag != 0) {
+                if (useOffsetLayer != 0) {
                     handler = tmdBuildStreamGt3OffsetLayer;
                 }
                 break;
-            case 0x38:
-            case 0x3A:
-            case 0x8038:
-            case 0x10038:
-            case 0x1003A:
-            case 0x20038:
+            case TMD_STREAM_GT3_CORNER_NORMALS:
+            case TMD_STREAM_GT3_CORNER_NORMALS | TMD_STREAM_SEMI_TRANS:
+            case TMD_STREAM_GT3_CORNER_NORMALS | TMD_STREAM_ACTOR_DRAW_VARIANT1:
+            case TMD_STREAM_GT3_CORNER_NORMALS | TMD_STREAM_ACTOR_DRAW_VARIANT2:
+            case TMD_STREAM_GT3_CORNER_NORMALS | TMD_STREAM_SEMI_TRANS | TMD_STREAM_ACTOR_DRAW_VARIANT2:
+            case TMD_STREAM_GT3_CORNER_NORMALS | TMD_STREAM_ACTOR_DRAW_VARIANT3:
                 handler = tmdBuildStreamGt3;
                 break;
-            case 0x4078:
+            case TMD_STREAM_GT4_CORNER_NORMALS | TMD_STREAM_LAYERED_TEXTURE:
                 handler = tmdBuildStreamGt4LayeredBase;
-                if (flag != 0) {
+                if (useOffsetLayer != 0) {
                     handler = tmdBuildStreamGt4OffsetLayer;
                 }
                 break;
-            case 0x78:
-            case 0x7A:
-            case 0x8078:
-            case 0x10078:
-            case 0x20078:
+            case TMD_STREAM_GT4_CORNER_NORMALS:
+            case TMD_STREAM_GT4_CORNER_NORMALS | TMD_STREAM_SEMI_TRANS:
+            case TMD_STREAM_GT4_CORNER_NORMALS | TMD_STREAM_ACTOR_DRAW_VARIANT1:
+            case TMD_STREAM_GT4_CORNER_NORMALS | TMD_STREAM_ACTOR_DRAW_VARIANT2:
+            case TMD_STREAM_GT4_CORNER_NORMALS | TMD_STREAM_ACTOR_DRAW_VARIANT3:
                 handler = tmdBuildStreamGt4;
                 break;
-            case 0x31:
-            case 0x39:
-            case 0x3B:
-            case 0x131:
-            case 0x8039:
+            case TMD_STREAM_GT3_ELEMENT_COLOR | TMD_STREAM_PRE_XFORM:
+            case TMD_STREAM_GT3_CORNER_NORMALS | TMD_STREAM_PRE_XFORM:
+            case TMD_STREAM_GT3_CORNER_NORMALS | TMD_STREAM_PRE_XFORM | TMD_STREAM_SEMI_TRANS:
+            case TMD_STREAM_GT3_ELEMENT_COLOR | TMD_STREAM_PRE_XFORM | TMD_STREAM_CORNER_COLORS:
+            case TMD_STREAM_GT3_CORNER_NORMALS | TMD_STREAM_PRE_XFORM | TMD_STREAM_ACTOR_DRAW_VARIANT1:
                 handler = tmdBuildStreamGt3PreXform;
                 break;
-            case 0x71:
-            case 0x79:
-            case 0x7B:
-            case 0x171:
-            case 0x8079:
+            case TMD_STREAM_GT4_ELEMENT_COLOR | TMD_STREAM_PRE_XFORM:
+            case TMD_STREAM_GT4_CORNER_NORMALS | TMD_STREAM_PRE_XFORM:
+            case TMD_STREAM_GT4_CORNER_NORMALS | TMD_STREAM_PRE_XFORM | TMD_STREAM_SEMI_TRANS:
+            case TMD_STREAM_GT4_ELEMENT_COLOR | TMD_STREAM_PRE_XFORM | TMD_STREAM_CORNER_COLORS:
+            case TMD_STREAM_GT4_CORNER_NORMALS | TMD_STREAM_PRE_XFORM | TMD_STREAM_ACTOR_DRAW_VARIANT1:
                 handler = tmdBuildStreamGt4PreXform;
                 break;
-            case 0x4039:
+            case TMD_STREAM_GT3_CORNER_NORMALS | TMD_STREAM_PRE_XFORM | TMD_STREAM_LAYERED_TEXTURE:
                 handler = tmdBuildStreamGt3PreXformEnvLayer;
-                if (flag != 0) {
+                if (useOffsetLayer != 0) {
                     handler = tmdBuildStreamGt3PreXformOffsetLayer;
                 }
                 break;
-            case 0x4079:
+            case TMD_STREAM_GT4_CORNER_NORMALS | TMD_STREAM_PRE_XFORM | TMD_STREAM_LAYERED_TEXTURE:
                 handler = tmdBuildStreamGt4PreXformEnvLayer;
-                if (flag != 0) {
+                if (useOffsetLayer != 0) {
                     handler = tmdBuildStreamGt4PreXformOffsetLayer;
                 }
                 break;
-            case 0x18:
-            case 0x1A:
+            case TMD_STREAM_GT3_ONE_NORMAL:
+            case TMD_STREAM_GT3_ONE_NORMAL | TMD_STREAM_SEMI_TRANS:
                 handler = tmdBuildStreamGt3OneNormal;
                 break;
-            case 0x58:
-            case 0x5A:
+            case TMD_STREAM_GT4_ONE_NORMAL:
+            case TMD_STREAM_GT4_ONE_NORMAL | TMD_STREAM_SEMI_TRANS:
                 handler = tmdBuildStreamGt4OneNormal;
                 break;
-            case 0x1C:
-            case 0x1E:
+            case TMD_STREAM_FT3:
+            case TMD_STREAM_FT3 | TMD_STREAM_SEMI_TRANS:
                 handler = modelLightingStreamPrimFt3;
                 break;
-            case 0x5C:
-            case 0x5E:
+            case TMD_STREAM_FT4:
+            case TMD_STREAM_FT4 | TMD_STREAM_SEMI_TRANS:
                 handler = modelLightingStreamPrimFt4;
                 break;
-            case 0x30:
+            case TMD_STREAM_GT3_ELEMENT_COLOR:
                 handler = tmdBuildStreamGt3ElemColor;
                 break;
-            case 0x130:
+            case TMD_STREAM_GT3_ELEMENT_COLOR | TMD_STREAM_CORNER_COLORS:
                 handler = tmdBuildStreamGt3CornerColors;
                 break;
-            case 0x70:
+            case TMD_STREAM_GT4_ELEMENT_COLOR:
                 handler = tmdBuildStreamGt4ElemColor;
                 break;
-            case 0x170:
+            case TMD_STREAM_GT4_ELEMENT_COLOR | TMD_STREAM_CORNER_COLORS:
                 handler = tmdBuildStreamGt4CornerColors;
                 break;
-            case 0x156:
+            case TMD_STREAM_GT4_UNLIT:
                 handler = tmdBuildStreamGt4Unlit;
                 break;
-            case 4:
+            case TMD_STREAM_F3:
                 handler = modelLightingStreamPrimF3;
                 break;
-            case 0x44:
+            case TMD_STREAM_F4:
                 handler = modelLightingStreamPrimF4;
                 break;
-            case 5:
+            case TMD_STREAM_F3 | TMD_STREAM_PRE_XFORM:
                 handler = modelLightingStreamPrimF3PreXform;
                 break;
-            case 0x45:
+            case TMD_STREAM_F4 | TMD_STREAM_PRE_XFORM:
                 handler = modelLightingStreamPrimF4PreXform;
                 break;
-            case 0x40:
-            case 0x60:
-            case 0x160:
-            case 0x4040:
-            case 0x4060:
-            case 0x4160:
+            case TMD_STREAM_G4_ONE_NORMAL:
+            case TMD_STREAM_G4_CORNER_NORMALS:
+            case TMD_STREAM_G4_CORNER_NORMALS | TMD_STREAM_CORNER_COLORS:
+            case TMD_STREAM_G4_ONE_NORMAL | TMD_STREAM_LAYERED_TEXTURE:
+            case TMD_STREAM_G4_CORNER_NORMALS | TMD_STREAM_LAYERED_TEXTURE:
+            case TMD_STREAM_G4_CORNER_NORMALS | TMD_STREAM_CORNER_COLORS | TMD_STREAM_LAYERED_TEXTURE:
                 handler = modelLightingReserveStreamPrimG4;
                 break;
             default:
                 handler = tmdSkipStreamRecord;
                 break;
-            case 0:
-            case 0x20:
-            case 0x120:
-            case 0x4000:
-            case 0x4020:
-            case 0x4120:
+            case TMD_STREAM_G3_ONE_NORMAL:
+            case TMD_STREAM_G3_CORNER_NORMALS:
+            case TMD_STREAM_G3_CORNER_NORMALS | TMD_STREAM_CORNER_COLORS:
+            case TMD_STREAM_G3_ONE_NORMAL | TMD_STREAM_LAYERED_TEXTURE:
+            case TMD_STREAM_G3_CORNER_NORMALS | TMD_STREAM_LAYERED_TEXTURE:
+            case TMD_STREAM_G3_CORNER_NORMALS | TMD_STREAM_CORNER_COLORS | TMD_STREAM_LAYERED_TEXTURE:
                 handler = modelLightingReserveStreamPrimG3;
                 break;
         }
 
-        ws->opcode     = *stream;
-        stream        += 2;
-        ws->elemStride = ((u16*)stream)[0];
-        ws->elemCount  = ((u16*)stream)[1];
-        stream        += 1;
-        stream         = handler(ws, 0, stream);
-        id             = *stream;
+        // Ignore the resolved draw slot and decode little-endian count/word stride.
+        workspace->opcode     = *stream;
+        stream               += 2;
+        workspace->elemStride = ((u16*)stream)[0];
+        workspace->elemCount  = ((u16*)stream)[1];
+        stream               += 1;
+        stream                = handler(workspace, 0, stream);
+        opcode                = *stream;
 
         while (1) {
-            if (id != TMD_STREAM_GROUP_END) {
+            if (opcode != TMD_STREAM_GROUP_END) {
                 break;
             }
             stream++;
-        read_id:
-            id = *stream;
+        readOpcode:
+            opcode = *stream;
             // Terminator at entry, or after a group marker. Leave the word in place.
-            if (id == TMD_STREAM_END) {
+            if (opcode == TMD_STREAM_END) {
                 goto done;
             }
         }
@@ -617,8 +648,8 @@ TmdObject* Tmd_Create(TmdSource* src, s32 bufferFlags)
             if (buffer != NULL) {
                 obj->buffer = buffer;
                 // Initialize both buffer halves before the first draw.
-                tmdProcessStream(obj);
-                tmdProcessStream(obj);
+                tmdBuildBufferHalf(obj);
+                tmdBuildBufferHalf(obj);
             }
         } else if (bufferFlags & TMD_CREATE_SKIP_AUTO_BUFFER) {
             obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
@@ -696,133 +727,168 @@ static void Tmd_SetupDraw(TmdObject* obj)
     SCRATCH_STACK_RELEASE_BLOCK(_TmdDrawScratch);
 }
 
-void Tmd_FreeBuffers(TmdObject* obj)
+void tmdFreePrimitiveBuffer(TmdObject* model)
 {
-    if (obj->buffer != NULL) {
-        memFreeFromHeap(obj->buffer, true);
-        obj->buffer = NULL;
+    if (model->buffer != NULL) {
+        memFreeFromHeap(model->buffer, true);
+        model->buffer = NULL;
     }
 }
 
-s32 Tmd_AllocBuffers(TmdObject* obj)
+/// Initializes a new primitive block in both halves, leaving the selector at zero.
+static inline void _tmdInitializeBufferHalves(TmdObject* model)
 {
-    s32   result;
-    void* mem;
+    model->nextBufferHalf = 0;
+    tmdBuildBufferHalf(model);
+    tmdBuildBufferHalf(model);
+}
 
-    result = 0;
-    if (obj->buffer == NULL) {
-        mem         = memCalloc(obj->source->bufferHalfBytes * TMD_BUFFER_HALF_COUNT, 1);
-        obj->buffer = mem;
-        if (mem != NULL) {
-            obj->nextBufferHalf = 0;
-            tmdProcessStream(obj);
-            tmdProcessStream(obj);
-            result = 1;
+s32 tmdAllocPrimitiveBuffer(TmdObject* model)
+{
+    s32   allocated;
+    void* buffer;
+
+    allocated = false;
+    if (model->buffer == NULL) {
+        buffer        = memCalloc(model->source->bufferHalfBytes * TMD_BUFFER_HALF_COUNT, true);
+        model->buffer = buffer;
+        if (buffer != NULL) {
+            _tmdInitializeBufferHalves(model);
+            allocated = true;
         }
     }
-    return result;
+    return allocated;
 }
 
-/// Total bytes the attached models hold in their buffers.
-static s32 Tmd_SumBufferBytes(void)
+/// Sums both primitive-buffer halves of attached models that currently own buffers.
+///
+/// Counts source-declared payload capacity in bytes, excluding heap metadata
+/// and model/coordinate allocations. Sources must remain unchanged while their
+/// objects live, and the attached-list total must fit s32. No current caller.
+static s32 _tmdSumAttachedBufferBytes(void)
 {
-    TmdObject* node;
-    s32        result;
+    TmdObject* model;
+    s32        totalBytes;
 
-    result = 0;
-    node   = PARENT_OF(gTmdList.next, TmdObject, link);
-    while (node != NULL) {
-        if (node->buffer != NULL) {
-            result += node->source->bufferHalfBytes * TMD_BUFFER_HALF_COUNT;
+    totalBytes = 0;
+    model      = PARENT_OF(gTmdList.next, TmdObject, link);
+    while (model != NULL) {
+        if (model->buffer != NULL) {
+            totalBytes += model->source->bufferHalfBytes * TMD_BUFFER_HALF_COUNT;
         }
-        node = PARENT_OF(node->link.next, TmdObject, link);
+        model = PARENT_OF(model->link.next, TmdObject, link);
     }
-    return result;
+    return totalBytes;
 }
 
-static void Tmd_RewriteOpcodes(TmdSource* src)
+/// Converts ordinary directly transformed GT3/GT4 records to layered texture records.
+///
+/// Rewrites only 0x38 to 0x4038 and 0x78 to 0x4078 in the borrowed writable
+/// stream. Payloads, dimensions and cached draw-handler slots are unchanged.
+/// Call before handler resolution and allocate capacity for two packets per
+/// converted element; this routine neither resets resolution nor resizes buffers.
+/// Groups must end with TMD_STREAM_GROUP_END before the final TMD_STREAM_END.
+/// There is no stored stream length or current caller.
+static void _tmdEnableSourceLayeredTextures(const TmdSource* source)
 {
     u32* stream;
-    u32  id;
-    u32  dims;
-    u32  lo;
+    u32  opcode;
+    u32  dimensions;
+    u32  elementStrideWords;
     u32  groupEnd;
 
-    stream = src->stream;
+    /// Skips a dimensions word and its count-times-word-stride payload.
+    ///
+    /// Captures this function's dimensions and elementStrideWords locals.
+    /// Evaluates cursor three times; it must be a side-effect-free u32* lvalue
+    /// addressing complete dimensions and payload words in the same stream.
+#define TMD_SKIP_STREAM_PAYLOAD(cursor)                      \
+    do {                                                     \
+        dimensions         = *(cursor);                      \
+        elementStrideWords = dimensions & 0xFFFF;            \
+        (cursor)++;                                          \
+        (cursor) += (dimensions >> 16) * elementStrideWords; \
+    } while (0)
+
+    stream = source->stream;
     // A stream whose first word is the terminator has no groups to rewrite.
     if (*stream != TMD_STREAM_END) {
         groupEnd = TMD_STREAM_GROUP_END;
         do {
             if (*stream != groupEnd) {
                 do {
-                    id = *stream;
-                    if (id == 0x3B) {
-                        goto case_advance;
+                    opcode = *stream;
+                    if (opcode == (TMD_STREAM_GT3_CORNER_NORMALS | TMD_STREAM_PRE_XFORM | TMD_STREAM_SEMI_TRANS)) {
+                        goto skipPayload;
                     }
-                    if (id < 0x3CU) {
-                        if (id == 0x38) {
-                            goto case_38;
+                    if (opcode <= (u32)(TMD_STREAM_GT3_CORNER_NORMALS | TMD_STREAM_SEMI_TRANS | TMD_STREAM_PRE_XFORM)) {
+                        if (opcode == TMD_STREAM_GT3_CORNER_NORMALS) {
+                            goto convertTriangle;
                         }
-                        goto default_advance;
+                        goto skipOtherPayload;
                     }
-                    if (id == 0x79) {
-                        goto case_advance;
+                    if (opcode == (TMD_STREAM_GT4_CORNER_NORMALS | TMD_STREAM_PRE_XFORM)) {
+                        goto skipPayload;
                     }
-                    if (id >= 0x7AU) {
-                        goto case_advance;
+                    if (opcode >= (u32)(TMD_STREAM_GT4_CORNER_NORMALS | TMD_STREAM_SEMI_TRANS)) {
+                        goto skipPayload;
                     }
-                    if (id == 0x78) {
-                        goto case_78;
+                    if (opcode == TMD_STREAM_GT4_CORNER_NORMALS) {
+                        goto convertQuad;
                     }
-                    goto default_advance;
+                    goto skipOtherPayload;
 
-                case_38:
-                    *stream = 0x4038;
-                    goto case_advance;
-                case_78:
-                    *stream = 0x4078;
-                case_advance:
+                convertTriangle:
+                    *stream = (TMD_STREAM_GT3_CORNER_NORMALS | TMD_STREAM_LAYERED_TEXTURE);
+                    goto skipPayload;
+                convertQuad:
+                    *stream = (TMD_STREAM_GT4_CORNER_NORMALS | TMD_STREAM_LAYERED_TEXTURE);
+                skipPayload:
                     stream += 2;
-                    goto after;
-                default_advance:
+                    goto readDimensions;
+                skipOtherPayload:
                     stream += 2;
-                after:
-                    dims = *stream;
-                    lo   = dims & 0xFFFF;
-                    stream++;
-                    stream += (dims >> 16) * lo;
+                readDimensions:
+                    TMD_SKIP_STREAM_PAYLOAD(stream);
                 } while (*stream != TMD_STREAM_GROUP_END);
             }
             stream++;
         } while (*stream != TMD_STREAM_END);
     }
+#undef TMD_SKIP_STREAM_PAYLOAD
 }
 
-/// Excludes every attached model from the active draw pass.
-static void Tmd_FlagAllNodes(Task* task)
+/// Hides every attached model, then advances the buffer-release task to its next state.
+///
+/// State 0 of Tmd_DispatchTask sets only active-pass exclusion. Buffers and
+/// flagged-pass selection remain intact until the subsequent release state.
+static void _tmdHideAttachedModelsTask(Task* task)
 {
-    TmdObject* node;
+    TmdObject* model;
 
-    node = PARENT_OF(gTmdList.next, TmdObject, link);
-    while (node != NULL) {
-        node->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-        node         = PARENT_OF(node->link.next, TmdObject, link);
+    model = PARENT_OF(gTmdList.next, TmdObject, link);
+    while (model != NULL) {
+        model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        model         = PARENT_OF(model->link.next, TmdObject, link);
     }
     task->state++;
 }
 
-/// Releases the buffer of every attached model.
-static void Tmd_FreeNodeBuffers(Task* task)
+/// Releases all attached primitive buffers, then advances the task to its kill state.
+///
+/// State 1 follows the hide state on the next dispatch. Models and coordinates
+/// stay attached; GPU use of these buffers must already have finished.
+static void _tmdFreeAttachedBuffersTask(Task* task)
 {
-    TmdObject* node;
+    TmdObject* model;
 
-    node = PARENT_OF(gTmdList.next, TmdObject, link);
-    while (node != NULL) {
-        if (node->buffer != NULL) {
-            memFreeFromHeap(node->buffer, true);
-            node->buffer = NULL;
+    model = PARENT_OF(gTmdList.next, TmdObject, link);
+    while (model != NULL) {
+        if (model->buffer != NULL) {
+            memFreeFromHeap(model->buffer, true);
+            model->buffer = NULL;
         }
-        node = PARENT_OF(node->link.next, TmdObject, link);
+        model = PARENT_OF(model->link.next, TmdObject, link);
     }
     task->state++;
 }
@@ -866,8 +932,8 @@ void Tmd_AllocMissingBuffers(void)
                 if (mem != NULL) {
                     node->buffer         = mem;
                     node->nextBufferHalf = 0;
-                    tmdProcessStream(node);
-                    tmdProcessStream(node);
+                    tmdBuildBufferHalf(node);
+                    tmdBuildBufferHalf(node);
                 }
             }
         }
@@ -875,24 +941,25 @@ void Tmd_AllocMissingBuffers(void)
     }
 }
 
-void Tmd_AllocNodeBuffers(Task* task)
+void tmdRestoreAttachedBuffersTask(Task* task)
 {
-    TmdObject* node;
-    void*      mem;
+    TmdObject* model;
+    void*      buffer;
 
-    node = PARENT_OF(gTmdList.next, TmdObject, link);
-    while (node != NULL) {
-        if (node->buffer == NULL) {
-            mem = memCalloc(node->source->bufferHalfBytes * TMD_BUFFER_HALF_COUNT, 1);
-            if (mem != NULL) {
-                node->buffer         = mem;
-                node->nextBufferHalf = 0;
-                node->flags         &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-                tmdProcessStream(node);
-                tmdProcessStream(node);
+    model = PARENT_OF(gTmdList.next, TmdObject, link);
+    while (model != NULL) {
+        if (model->buffer == NULL) {
+            buffer = memCalloc(model->source->bufferHalfBytes * TMD_BUFFER_HALF_COUNT, true);
+            if (buffer != NULL) {
+                model->buffer         = buffer;
+                model->nextBufferHalf = 0;
+                // Only a newly allocated model becomes eligible for active drawing.
+                model->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+                tmdBuildBufferHalf(model);
+                tmdBuildBufferHalf(model);
             }
         }
-        node = PARENT_OF(node->link.next, TmdObject, link);
+        model = PARENT_OF(model->link.next, TmdObject, link);
     }
     taskKill(task);
 }

@@ -1558,6 +1558,6 @@ void func_acropolis_helicopter_landing_pad_801822B0(Task* task)
     } else {
         tmd->flags    = TMD_OBJECT_FLAGGED_PASS;
         tmd->otOffset = 0;
-        Tmd_AllocBuffers(tmd);
+        tmdAllocPrimitiveBuffer(tmd);
     }
 }

@@ -15,7 +15,7 @@ and animation sit together.
 
 | Area | Code / tools |
 |------|----------------|
-| Stream walk + opcode switches | `src/main/tmd.c` (`Tmd_InitSourceStream`, `tmdProcessStream`) |
+| Stream walk + opcode switches | `src/main/tmd.c` (`Tmd_InitSourceStream`, `tmdBuildBufferHalf`) |
 | Early-image handlers | `src/main/hasm/Tmd_StreamHandlers_Ops.s` |
 | Container types | `include/main/tmd_types.h` (`TmdSource`, `TmdObject`) |
 | Attach path | `src/gameplay/model_objects.c` (`Gp_AttachTmd`), `src/main/task.c` |
@@ -51,8 +51,8 @@ TmdSource (0x24 bytes; handlersResolved is 0 on disc, set to 1 after first use)
   +0x20  u32  -> face stream
 ```
 
-`tmdProcessStream` copies those into its scratch as `ws->verts` (vertices)
-and `ws->normals` (normals); the handlers index off them.
+`tmdBuildBufferHalf` copies those into its scratch as `workspace->verts` (vertices)
+and `workspace->normals` (normals); the handlers index off them.
 
 Each object allocates two `bufferHalfBytes` halves. The first
 `preXformRegionBytes` bytes of each half hold pre-transformed primitives; the
@@ -310,7 +310,7 @@ primitives per element goes 1 → 2 with the UV word positions unchanged.
 
 In this default path, the layer's texture coordinates do not come from the
 element. Each pair has an alternate handler. For transform-region triangles,
-`tmdProcessStream` selects `tmdBuildStreamGt3OffsetLayer` in stage 2 areas 15 and
+`tmdBuildBufferHalf` selects `tmdBuildStreamGt3OffsetLayer` in stage 2 areas 15 and
 16: both packets copy the element's texture words, with independent layer and
 base page/CLUT displacements. The layer sets only ABR bit 5 after relocation,
 preserving bit 6 (modes 1 or 3); it does not add the base offsets. The default
@@ -520,10 +520,11 @@ different jobs:
 | Switch | Handlers | What it does |
 |---|---|---|
 | `Tmd_InitSourceStream` | main, `Tmd_StreamHandler_*` at `0x80010A90` | one-shot, guarded by `TmdSource.handlersResolved`. Resolves 61 opcodes to 53 handlers and **writes the pointer into the packet's slot word**. These are the transform/light/cull routines: they read vertices, run `RTPT`/`NCLIP`/`AVSZ`, and store screen XY and lit RGB. |
-| `tmdProcessStream` | the loaded overlay, `0x8009xxxx`, decompiled in `src/gameplay/model_objects.c` and `src/gameplay/model_lighting.c` | walks the stream when a model's primitives are built, and again when the model's texture page or CLUT changes: it lays the primitives out and fills their **static** fields — UV, CLUT, tpage. It picks the handler from the record's own opcode and steps over the slot word, which is the draw pass's to read. |
+| `tmdBuildBufferHalf` | the loaded overlay, `0x8009xxxx`, decompiled in `src/gameplay/model_objects.c` and `src/gameplay/model_lighting.c` | walks the stream when a model's primitives are built, and again when the model's texture page or CLUT changes: it lays the primitives out and fills their **static** fields — UV, CLUT, tpage. It picks the handler from the record's own opcode and steps over the slot word, which is the draw pass's to read. |
 
-That split is why the untextured families do nothing per pass:
-`modelLightingReserveStreamPrimG3` and `modelLightingReserveStreamPrimG4` only advance their
+For supported untextured Gouraud records, construction reserves space without
+initializing packet fields. `modelLightingReserveStreamPrimG3` and
+`modelLightingReserveStreamPrimG4` only advance their
 primitive cursors by one `POLY_G3` (`sizeof(POLY_G3)`, `0x1C`) and
 one `POLY_G4` (`sizeof(POLY_G4)`, `0x24`), respectively, and step the stream
 cursor by the stride in u32 words. An untextured
@@ -532,12 +533,12 @@ no UV to refresh, so there is nothing for that handler to copy — and their pri
 advance is what confirms the primitive type for opcodes whose handler names no
 `POLY_*`.
 
-`tmdProcessStream` also confirms the `dims` split independently of the
+`tmdBuildBufferHalf` also confirms the `dims` split independently of the
 empirical evidence in §2:
 
 ```c
-ws->elemStride = ((u16*)stream)[0];   // stride, added to the handler's cursor per element
-ws->elemCount = ((u16*)stream)[1];   // count, the handler's loop counter
+workspace->elemStride = ((u16*)stream)[0];   // stride, added to the handler's cursor per element
+workspace->elemCount = ((u16*)stream)[1];   // count, the handler's loop counter
 ```
 
 Little-endian, so `[0]` is the low halfword — stride low, count high.
@@ -602,12 +603,12 @@ the page registers:
 
 ```c
 poly->tpage += ws->texturePageOffset; // from TmdObject.texturePageOffset
-poly->clut  += ws->encodedClutOffset; // from TmdObject.clutRowOffset << TMD_ENCODED_CLUT_ROW_SHIFT
+poly->clut  += ws->encodedClutOffset; // signed TmdObject.clutRowOffset scaled by 64
 ```
 
 So the stored `tpage`/`clut` are **relative** — the object's texture-page
 displacement is added when building the primitive buffer, and the CLUT
-displacement is the object's row count shifted by `TMD_ENCODED_CLUT_ROW_SHIFT`
+displacement is the object's signed row count scaled by `1 << TMD_ENCODED_CLUT_ROW_SHIFT`
 (the row field of a GPU CLUT word, 64 per row). An exporter has to apply the same bias to
 resolve a real page.
 
@@ -617,7 +618,7 @@ the `clut` (in `u0`) or `tpage` (in `u1`) halfword, exactly as `POLY_GT3` /
 
 ### Records the build pass steps over
 
-`tmdProcessStream` — the pass that lays a record's packets out — has no entry for
+`tmdBuildBufferHalf` — the pass that lays a record's packets out — has no entry for
 these opcodes, so it walks past their elements and builds nothing for them. That
 says nothing about what a frame draws from the record: `Tmd_InitSourceStream`
 still resolves a handler into it, and the draw walk (`Tmd_DispatchStream`) runs

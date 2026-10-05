@@ -2625,8 +2625,8 @@ static void func_actor_405800_80135780(Task* arg0)
     dst->texturePageOffset = src->texturePageOffset;
     dst->clutRowOffset     = src->clutRowOffset;
     if (dst->buffer != NULL) {
-        tmdProcessStream(dst);
-        tmdProcessStream(dst);
+        tmdBuildBufferHalf(dst);
+        tmdBuildBufferHalf(dst);
     }
     obj->lightMtx = &work->lightMtx;
     obj->colorMtx = &work->colorMtx;
@@ -2643,8 +2643,8 @@ static void func_actor_405800_80135780(Task* arg0)
     dst->texturePageOffset   = src->texturePageOffset;
     dst->clutRowOffset       = src->clutRowOffset;
     if (dst->buffer != NULL) {
-        tmdProcessStream(dst);
-        tmdProcessStream(dst);
+        tmdBuildBufferHalf(dst);
+        tmdBuildBufferHalf(dst);
     }
     pm2                       = &m;
     pm2->rotationWords.m00M01 = ONE;
@@ -3146,8 +3146,8 @@ static void func_actor_405800_80136E14(Task* task)
         dst->texturePageOffset = src->texturePageOffset;
         dst->clutRowOffset     = src->clutRowOffset;
         if (dst->buffer != NULL) {
-            tmdProcessStream(dst);
-            tmdProcessStream(dst);
+            tmdBuildBufferHalf(dst);
+            tmdBuildBufferHalf(dst);
         }
     }
     D_800678F0[0] = &_gActor405800StalkerBurstTorso;
@@ -3158,8 +3158,8 @@ static void func_actor_405800_80136E14(Task* task)
         dst2->texturePageOffset = src2->texturePageOffset;
         dst2->clutRowOffset     = src2->clutRowOffset;
         if (dst2->buffer != NULL) {
-            tmdProcessStream(dst2);
-            tmdProcessStream(dst2);
+            tmdBuildBufferHalf(dst2);
+            tmdBuildBufferHalf(dst2);
         }
     }
     D_800678F0[0] = &_gActor405800StalkerEffect;
@@ -3170,8 +3170,8 @@ static void func_actor_405800_80136E14(Task* task)
         dst3->texturePageOffset = src3->texturePageOffset;
         dst3->clutRowOffset     = src3->clutRowOffset;
         if (dst3->buffer != NULL) {
-            tmdProcessStream(dst3);
-            tmdProcessStream(dst3);
+            tmdBuildBufferHalf(dst3);
+            tmdBuildBufferHalf(dst3);
         }
     }
     D_800678F0[0] = &_gActor405800StalkerBurstHandLeft;
@@ -3182,8 +3182,8 @@ static void func_actor_405800_80136E14(Task* task)
         dst4->texturePageOffset = src4->texturePageOffset;
         dst4->clutRowOffset     = src4->clutRowOffset;
         if (dst4->buffer != NULL) {
-            tmdProcessStream(dst4);
-            tmdProcessStream(dst4);
+            tmdBuildBufferHalf(dst4);
+            tmdBuildBufferHalf(dst4);
         }
     }
     Gp_SpawnEff(EFFECT_030, &task->extra.tmd->coords[1], 0x200, NULL);
@@ -3863,7 +3863,7 @@ static void func_actor_405800_80138C30(Task* task)
     model = task->extra.tmd;
     work  = (_Actor405800IvoryStalkerWork*)task->work;
     enemy = (Enemy*)task->spawnArg2.pointer;
-    Tmd_FreeBuffers(model);
+    tmdFreePrimitiveBuffer(model);
     model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
     func_actor_405800_80136E14(task);
     work->shadowShade = 0;

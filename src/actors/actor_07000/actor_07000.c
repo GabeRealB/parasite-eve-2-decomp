@@ -2379,7 +2379,7 @@ s32 Actor07000_Fn05AB8(Task* arg0, s32 arg1, ActorCommand* request, s32 arg3)
                 coord->coord.t[1] = D_shelter_b3_garbage_incinerator_801874C4[request->command >> 8].y;
                 coord->coord.t[2] = D_shelter_b3_garbage_incinerator_801874C4[request->command >> 8].z;
             }
-            Tmd_AllocBuffers(arg0->extra.tmd);
+            tmdAllocPrimitiveBuffer(arg0->extra.tmd);
             arg0->extra.tmd->flags       &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             arg0->extra.tmd->flags       &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
             enemy->node.state.parts.flags = 0;
@@ -2698,8 +2698,8 @@ static void Actor07000_Fn066FC(Task* dst, Task* src)
     to->texturePageOffset = from->texturePageOffset;
     to->clutRowOffset     = from->clutRowOffset;
     if (to->buffer != NULL) {
-        tmdProcessStream(to);
-        tmdProcessStream(to);
+        tmdBuildBufferHalf(to);
+        tmdBuildBufferHalf(to);
     }
 }
 

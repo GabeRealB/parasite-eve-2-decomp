@@ -20,7 +20,7 @@ void oddStrangerDormant(Task* arg0)
         work->animId             = 0x10;
         work->animRequest        = ODD_STRANGER_ANIM_REQUEST_RESET;
         obj->flags               = 0;
-        Tmd_AllocBuffers(obj);
+        tmdAllocPrimitiveBuffer(obj);
         work->hitBody.radius          = ODD_STRANGER_BODY_RADIUS;
         work->attackBody.flags       &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->gridBody.flags         |= WORLD_COLLISION_BODY_GRID_ENABLED;

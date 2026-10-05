@@ -504,7 +504,7 @@ static void func_actor_312200_80163370(Enemy* enemy, Task* task)
 /// Id 0x7D5 command handler, listed first in `D_actor_312200_80169F5C`. `arg2`
 /// is the mode: 0 sets the model's `TmdObject::flags` to exactly 0x80, 1 clears
 /// them, 2 raises `TMD_OBJECT_SKIP_AUTO_BUFFER`, and 3 clears them and then raises `TMD_OBJECT_SKIP_AUTO_BUFFER`. Modes 0
-/// and 1 re-run `Tmd_AllocBuffers` on the model, and every mode except 1 resets
+/// and 1 re-run `tmdAllocPrimitiveBuffer` on the model, and every mode except 1 resets
 /// the work block's `state` to `ACTOR_312200_STATE_HIDDEN`. `arg1` is unused.
 s32 func_actor_312200_80163510(Task* task, s32 arg1, s32 arg2, s32 arg3)
 {
@@ -516,12 +516,12 @@ s32 func_actor_312200_80163510(Task* task, s32 arg1, s32 arg2, s32 arg3)
     switch (arg2) {
         case 0:
             obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            Tmd_AllocBuffers(obj);
+            tmdAllocPrimitiveBuffer(obj);
             work->state = ACTOR_312200_STATE_HIDDEN;
             break;
         case 1:
             obj->flags = 0;
-            Tmd_AllocBuffers(obj);
+            tmdAllocPrimitiveBuffer(obj);
             break;
         case 2:
             obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;

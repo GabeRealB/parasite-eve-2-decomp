@@ -1332,7 +1332,7 @@ static void Actor01900_Fn02018(Enemy* enemy, Task* actor)
         default:
             work->prevState = -1;
             work->state     = ACTOR_01900_STATE_PATROL;
-            Tmd_AllocBuffers(obj);
+            tmdAllocPrimitiveBuffer(obj);
             break;
     }
     switch (actor->spawnArg1.value & 0xF) {
@@ -1754,7 +1754,7 @@ static void Actor01900_Fn03710(Task* arg0)
         obj                           = arg0->extra.tmd;
         enemy->node.state.parts.flags = 0;
         obj->flags                    = 0;
-        Tmd_AllocBuffers(obj);
+        tmdAllocPrimitiveBuffer(obj);
         work->animRequest     = ACTOR_01900_ANIM_REQUEST_RESET;
         work->animRate        = 0x10;
         work->animId          = 0x17;
@@ -1817,7 +1817,7 @@ static void Actor01900_Fn03854(Task* arg0)
         obj                                                       = arg0->extra.tmd;
         ((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = 0;
         obj->flags                                                = 0;
-        Tmd_AllocBuffers(obj);
+        tmdAllocPrimitiveBuffer(obj);
         work->animRequest      = ACTOR_01900_ANIM_REQUEST_BLEND;
         work->animRate         = 0x10;
         work->animId           = 9;
@@ -2031,7 +2031,7 @@ static void Actor01900_Fn042BC(Task* arg0)
         obj                                                       = arg0->extra.tmd;
         ((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = 0;
         obj->flags                                                = 0;
-        Tmd_AllocBuffers(obj);
+        tmdAllocPrimitiveBuffer(obj);
         work->hitBody.radius    = 0x180;
         work->animRequest       = ACTOR_01900_ANIM_REQUEST_BLEND;
         work->animRate          = 0x42;
@@ -2158,7 +2158,7 @@ static void Actor01900_Fn04D14(Task* arg0)
         obj                                                       = arg0->extra.tmd;
         ((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = 0;
         obj->flags                                                = 0;
-        Tmd_AllocBuffers(obj);
+        tmdAllocPrimitiveBuffer(obj);
         work->hitBody.radius    = 0xC0;
         work->animRequest       = ACTOR_01900_ANIM_REQUEST_BLEND;
         work->animId            = 3;
@@ -2274,7 +2274,7 @@ static void Actor01900_Fn0551C(Task* arg0)
         chase                                                     = head - 1;
         ((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = 0;
         obj->flags                                                = 0;
-        Tmd_AllocBuffers(obj);
+        tmdAllocPrimitiveBuffer(obj);
         work->hitBody.radius    = 0x180;
         work->animRequest       = ACTOR_01900_ANIM_REQUEST_BLEND;
         work->animRate          = 0x10;
@@ -2349,7 +2349,7 @@ static void Actor01900_Fn05B4C(Task* arg0)
         obj                                                       = arg0->extra.tmd;
         ((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = 0;
         obj->flags                                                = 0;
-        Tmd_AllocBuffers(obj);
+        tmdAllocPrimitiveBuffer(obj);
         work->hitBody.radius    = 0xC0;
         work->stateTimer        = 0;
         work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
@@ -2467,7 +2467,7 @@ static void Actor01900_Fn06100(Task* arg0)
         obj                                                       = arg0->extra.tmd;
         ((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = 0;
         obj->flags                                                = 0;
-        Tmd_AllocBuffers(obj);
+        tmdAllocPrimitiveBuffer(obj);
         work->hitBody.radius    = 0x180;
         work->animRequest       = ACTOR_01900_ANIM_REQUEST_BLEND;
         work->animRate          = 8;
@@ -2627,7 +2627,7 @@ static void Actor01900_Fn06B4C(Task* arg0)
         work->animId          = 0x10;
         work->animRequest     = ACTOR_01900_ANIM_REQUEST_RESET;
         obj->flags            = 0;
-        Tmd_AllocBuffers(obj);
+        tmdAllocPrimitiveBuffer(obj);
         work->hitBody.radius          = 0x180;
         work->attackBody.flags       &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->gridBody.flags         |= WORLD_COLLISION_BODY_GRID_ENABLED;
@@ -2701,7 +2701,7 @@ static void Actor01900_Fn06F40(Task* arg0)
         obj                                                       = arg0->extra.tmd;
         ((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = 0;
         obj->flags                                                = 0;
-        Tmd_AllocBuffers(obj);
+        tmdAllocPrimitiveBuffer(obj);
         work->hitBody.radius    = 0x180;
         work->animRequest       = ACTOR_01900_ANIM_REQUEST_BLEND;
         work->animRate          = 0x10;
@@ -2800,7 +2800,7 @@ static void Actor01900_Fn07810(Task* arg0)
         work->animId      = 0x12;
         work->animRequest = ACTOR_01900_ANIM_REQUEST_BLEND;
         obj->flags        = 0;
-        Tmd_AllocBuffers(obj);
+        tmdAllocPrimitiveBuffer(obj);
         work->hitBody.radius          = 0x180;
         work->attackBody.flags       &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->gridBody.flags         |= WORLD_COLLISION_BODY_GRID_ENABLED;
@@ -2851,7 +2851,7 @@ static void Actor01900_Fn07BA8(Task* arg0)
         obj                                                       = arg0->extra.tmd;
         ((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = 0;
         obj->flags                                                = 0;
-        Tmd_AllocBuffers(obj);
+        tmdAllocPrimitiveBuffer(obj);
         work->hitBody.radius    = 0x180;
         work->animRequest       = ACTOR_01900_ANIM_REQUEST_BLEND;
         work->animRate          = 0x16;
@@ -2918,7 +2918,7 @@ static void Actor01900_Fn080A8(Task* arg0)
         obj                                                       = arg0->extra.tmd;
         ((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = 0;
         obj->flags                                                = 0;
-        Tmd_AllocBuffers(obj);
+        tmdAllocPrimitiveBuffer(obj);
         work->hitBody.radius    = 0x180;
         work->animRequest       = ACTOR_01900_ANIM_REQUEST_BLEND;
         work->animRate          = 0x10;
@@ -2969,7 +2969,7 @@ static void Actor01900_Fn083E8(Task* arg0)
         obj                                                       = arg0->extra.tmd;
         ((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
         obj->flags                                                = 0;
-        Tmd_AllocBuffers(obj);
+        tmdAllocPrimitiveBuffer(obj);
         work->hitBody.radius    = 0x180;
         work->animRequest       = ACTOR_01900_ANIM_REQUEST_RESET;
         work->animRate          = 0x10;
@@ -3177,7 +3177,7 @@ static void Actor01900_Fn09694(Task* arg0)
         obj                                                       = arg0->extra.tmd;
         ((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = 0;
         obj->flags                                                = 0;
-        Tmd_AllocBuffers(obj);
+        tmdAllocPrimitiveBuffer(obj);
         work->hitBody.radius    = 0x180;
         work->animRequest       = ACTOR_01900_ANIM_REQUEST_BLEND;
         work->animRate          = 0x10;
@@ -3568,7 +3568,7 @@ static void Actor01900_Fn0A7C0(Task* arg0)
         obj                                                       = arg0->extra.tmd;
         ((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = 0;
         obj->flags                                                = 0;
-        Tmd_AllocBuffers(obj);
+        tmdAllocPrimitiveBuffer(obj);
         work->animRequest      = ACTOR_01900_ANIM_REQUEST_RESET;
         work->animRate         = 0x10;
         work->animId           = 2;
@@ -3592,7 +3592,7 @@ static void Actor01900_Fn0A868(Task* arg0)
         obj                                                       = arg0->extra.tmd;
         ((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = 0;
         obj->flags                                                = 0;
-        Tmd_AllocBuffers(obj);
+        tmdAllocPrimitiveBuffer(obj);
         work->animRequest      = ACTOR_01900_ANIM_REQUEST_RESET;
         work->animRate         = 0x10;
         work->animId           = 3;
@@ -3616,7 +3616,7 @@ static void Actor01900_Fn0A914(Task* arg0)
         obj                                                       = arg0->extra.tmd;
         ((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = 0;
         obj->flags                                                = 0;
-        Tmd_AllocBuffers(obj);
+        tmdAllocPrimitiveBuffer(obj);
         work->animRequest      = ACTOR_01900_ANIM_REQUEST_RESET;
         work->animRate         = 0x10;
         work->animId           = 0xB;
@@ -3640,7 +3640,7 @@ static void Actor01900_Fn0A9C0(Task* arg0)
         obj                                                       = arg0->extra.tmd;
         ((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = 0;
         obj->flags                                                = 0;
-        Tmd_AllocBuffers(obj);
+        tmdAllocPrimitiveBuffer(obj);
         work->animRequest       = ACTOR_01900_ANIM_REQUEST_RESET;
         work->animRate          = 0x12;
         work->animId            = 0xD;

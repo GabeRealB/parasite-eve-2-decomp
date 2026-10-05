@@ -928,8 +928,8 @@ static void func_actor_120400_80131E5C(Task* arg0)
         model->texturePageOffset = place->texturePageOffset;
         model->clutRowOffset     = place->clutRowOffset;
         if (model->buffer != NULL) {
-            tmdProcessStream(model);
-            tmdProcessStream(model);
+            tmdBuildBufferHalf(model);
+            tmdBuildBufferHalf(model);
         }
     }
     spawned = Task_SpawnFromTable(D_actor_120400_8013E748, 2, 0xC, arg0);
@@ -953,8 +953,8 @@ static void func_actor_120400_80131E5C(Task* arg0)
         model->texturePageOffset = place->texturePageOffset;
         model->clutRowOffset     = place->clutRowOffset;
         if (model->buffer != NULL) {
-            tmdProcessStream(model);
-            tmdProcessStream(model);
+            tmdBuildBufferHalf(model);
+            tmdBuildBufferHalf(model);
         }
     }
     func_actor_120400_801327D4(arg0);
@@ -1014,7 +1014,7 @@ static void func_actor_120400_80132050(Task* arg0)
     }
     if (work->freeCountdown >= 0) {
         if (work->freeCountdown == 0) {
-            Tmd_FreeBuffers(ext);
+            tmdFreePrimitiveBuffer(ext);
         }
         work->freeCountdown--;
     }
@@ -1186,7 +1186,7 @@ static void func_actor_120400_80132920(Task* task)
 /// 0x4 is the one the children copy alongside it:
 ///
 ///   mode 0  hide, drop 0x4
-///   mode 1  show, `Tmd_AllocBuffers`, drop 0x4
+///   mode 1  show, `tmdAllocPrimitiveBuffer`, drop 0x4
 ///   mode 2  hide, start the `freeCountdown` countdown to freeing the buffers, raise 0x4
 ///   mode 3  show, raise 0x4
 ///
@@ -1207,7 +1207,7 @@ s32 func_actor_120400_80132C38(Task* task, s32 arg1, s32 mode, s32 arg3)
             break;
         case 1:
             obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            Tmd_AllocBuffers(obj);
+            tmdAllocPrimitiveBuffer(obj);
             obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 2:

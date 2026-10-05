@@ -3384,8 +3384,8 @@ void func_mist_shooting_gallery_801848B4(void)
         obj                    = enemy->task->extra.tmd;
         obj->texturePageOffset = 0;
         obj->clutRowOffset     = 2;
-        tmdProcessStream(obj);
-        tmdProcessStream(obj);
+        tmdBuildBufferHalf(obj);
+        tmdBuildBufferHalf(obj);
         coord             = enemy->task->extra.tmd->coords;
         coord->coord.t[0] = 0x1770;
         coord->coord.t[2] = 0xBB8;
@@ -3530,8 +3530,8 @@ static Enemy* func_mist_shooting_gallery_80184CD0(Task* arg0, _MistShootingGalle
         obj                    = enemy->task->extra.tmd;
         obj->texturePageOffset = 0;
         obj->clutRowOffset     = 2;
-        tmdProcessStream(obj);
-        tmdProcessStream(obj);
+        tmdBuildBufferHalf(obj);
+        tmdBuildBufferHalf(obj);
         coord             = enemy->task->extra.tmd->coords;
         coord->coord.t[0] = arg1->x;
         coord->coord.t[1] = arg1->y;

@@ -1265,7 +1265,7 @@ static void func_actor_113000_80132070(Task* task)
     func_actor_113000_80131E30(task);
     if (work->freeCountdown >= 0) {
         if (work->freeCountdown == 0) {
-            Tmd_FreeBuffers(extra);
+            tmdFreePrimitiveBuffer(extra);
         }
         work->freeCountdown--;
     }
@@ -1334,9 +1334,9 @@ s32 func_actor_113000_80132208(Task* task, s32 msgId, AnimationPlayRequest* msg,
 /// (hidden) and sets or clears `TMD_OBJECT_SKIP_AUTO_BUFFER`:
 ///
 ///   mode 0  set 0x80, clear `TMD_OBJECT_SKIP_AUTO_BUFFER`
-///   mode 1  clear 0x80, `Tmd_AllocBuffers`, clear `TMD_OBJECT_SKIP_AUTO_BUFFER`
+///   mode 1  clear 0x80, `tmdAllocPrimitiveBuffer`, clear `TMD_OBJECT_SKIP_AUTO_BUFFER`
 ///   mode 2  set 0x80, store 2 in the countdown `_Actor113000Work::freeCountdown`
-///           that `func_actor_113000_80132070` ends in `Tmd_FreeBuffers`,
+///           that `func_actor_113000_80132070` ends in `tmdFreePrimitiveBuffer`,
 ///           set `TMD_OBJECT_SKIP_AUTO_BUFFER`
 ///   mode 3  clear 0x80, set `TMD_OBJECT_SKIP_AUTO_BUFFER`
 ///
@@ -1357,7 +1357,7 @@ s32 func_actor_113000_80132398(Task* task, s32 arg1, s32 mode, s32 arg3)
             break;
         case 1:
             obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            Tmd_AllocBuffers(obj);
+            tmdAllocPrimitiveBuffer(obj);
             obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 2:

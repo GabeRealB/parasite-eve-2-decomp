@@ -1015,8 +1015,8 @@ void Gp_PumpTmdStream(Task* task)
         obj->texturePageOffset = 4;
         obj->clutRowOffset     = 6;
         if (obj->buffer != NULL) {
-            tmdProcessStream(obj);
-            tmdProcessStream(obj);
+            tmdBuildBufferHalf(obj);
+            tmdBuildBufferHalf(obj);
         }
     }
 }

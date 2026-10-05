@@ -3466,8 +3466,8 @@ static void func_mine_mesa_80181358(Task* arg0)
             printf("tpage=%x, clut=%x, eno=%x\n", place->texturePageOffset, place->clutRowOffset, 0);
         }
         if (tmd->buffer != NULL) {
-            tmdProcessStream(tmd);
-            tmdProcessStream(tmd);
+            tmdBuildBufferHalf(tmd);
+            tmdBuildBufferHalf(tmd);
         }
         gfxRotMatrixY(&D_mine_mesa_80189B74[i]->task->extra.tmd->coords->coord,
                       pt->yaw, 1);

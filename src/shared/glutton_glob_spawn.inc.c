@@ -48,8 +48,8 @@ void gluttonGlobSpawn(Enemy* enemy, Task* task)
     task->extra.tmd->clutRowOffset     = 2;
 
     if (task->extra.tmd->buffer != NULL) {
-        tmdProcessStream(task->extra.tmd);
-        tmdProcessStream(task->extra.tmd);
+        tmdBuildBufferHalf(task->extra.tmd);
+        tmdBuildBufferHalf(task->extra.tmd);
         sfx = ((owner->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4020001C;
         pan = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
         sndEvtRequestScriptStart(sfx, pan, (s8)(worldCoordGetOriginAudioDepth(task->extra.tmd->coords) / 2));

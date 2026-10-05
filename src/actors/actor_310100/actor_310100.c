@@ -922,7 +922,7 @@ static void func_actor_310100_80162414(Task* task, s32 arg1)
     memFillBytes(task->work, 0U, sizeof(*work));
     work->playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     coord->parent    = &gGfxViewCoord;
-    Tmd_AllocBuffers(obj);
+    tmdAllocPrimitiveBuffer(obj);
     obj->lightMtx = &work->light;
     obj->colorMtx = &work->color;
     obj->flags    = 0;
@@ -982,7 +982,7 @@ static void func_actor_310100_801625E4(Task* task, s32 arg1)
     memFillBytes(task->work, 0U, sizeof(*work));
     work->playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     coord->parent    = &gGfxViewCoord;
-    Tmd_AllocBuffers(obj);
+    tmdAllocPrimitiveBuffer(obj);
     obj->lightMtx = &work->light;
     obj->colorMtx = &work->color;
     obj->flags    = 0;

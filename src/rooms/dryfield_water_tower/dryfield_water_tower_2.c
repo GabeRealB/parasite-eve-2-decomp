@@ -2053,7 +2053,7 @@ void func_dryfield_water_tower_8017E1DC(Task* arg0)
                     mem->playerTask    = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                     modelCoord->parent = &gGfxViewCoord;
                     model->flags       = 0;
-                    Tmd_AllocBuffers(model);
+                    tmdAllocPrimitiveBuffer(model);
                     model->colorMtx = &mem->colorMtx;
                     model->lightMtx = &mem->lightMtx;
                     arg0->msgTable  = D_dryfield_water_tower_80181B00;
@@ -2282,7 +2282,7 @@ void func_dryfield_water_tower_8017E764(Task* arg0)
                 state->playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                 coord->parent     = &gGfxViewCoord;
                 tmp->flags        = 0;
-                Tmd_AllocBuffers(tmp);
+                tmdAllocPrimitiveBuffer(tmp);
                 tmp->colorMtx  = &state->colorMtx;
                 tmp->lightMtx  = &state->lightMtx;
                 arg0->msgTable = D_dryfield_water_tower_80181B00;

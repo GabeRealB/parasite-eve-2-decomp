@@ -1136,7 +1136,7 @@ static void func_actor_356100_8016382C(Enemy* enemy, Task* actor)
         default:
             work->prevState = -1;
             work->state     = ACTOR_356100_STATE_PATROL;
-            Tmd_AllocBuffers(obj);
+            tmdAllocPrimitiveBuffer(obj);
             break;
     }
     switch (actor->spawnArg1.value & 0xF) {
@@ -1162,7 +1162,7 @@ static void func_actor_356100_8016382C(Enemy* enemy, Task* actor)
 
 /// Runs the clip the work block's `animRequest` halfword selects and holds this
 /// state until it ends: while the actor is live, reset the model (`node.state.parts.flags`
-/// / `obj->field_C`, `Tmd_AllocBuffers`), start clip 2 at speed 0x10, and tick
+/// / `obj->field_C`, `tmdAllocPrimitiveBuffer`), start clip 2 at speed 0x10, and tick
 /// until clip 0xB has reached frame 6 or clip 0xC frame 9, then park `animRate`
 /// at 0x20. Once the actor is no longer live the same slot is halved per frame as
 /// a scale ramp that bounces between 0x10 and -0x10 — ending the state with
@@ -1184,7 +1184,7 @@ static void func_actor_356100_80163CD4(Task* arg0)
         obj                         = arg0->extra.tmd;
         ctx->node.state.parts.flags = 0;
         obj->flags                  = 0;
-        Tmd_AllocBuffers(obj);
+        tmdAllocPrimitiveBuffer(obj);
         work->animRequest = ACTOR_356100_ANIM_REQUEST_RESET;
         work->animRate    = 0x10;
         do {
@@ -1228,7 +1228,7 @@ static void func_actor_356100_80163E2C(Task* arg0)
         obj                                                       = arg0->extra.tmd;
         ((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = 0;
         obj->flags                                                = 0;
-        Tmd_AllocBuffers(obj);
+        tmdAllocPrimitiveBuffer(obj);
         work->animRequest = ACTOR_356100_ANIM_REQUEST_BLEND;
         work->animRate    = 0x10;
         work->blendActive = 0;
@@ -1394,7 +1394,7 @@ static void func_actor_356100_80164158(Task* arg0)
         obj                                                       = arg0->extra.tmd;
         ((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = 0;
         obj->flags                                                = 0;
-        Tmd_AllocBuffers(obj);
+        tmdAllocPrimitiveBuffer(obj);
         work->hitRadius   = 0x180;
         work->animRequest = ACTOR_356100_ANIM_REQUEST_BLEND;
         work->animRate    = 0x12;
@@ -1496,7 +1496,7 @@ static void func_actor_356100_80164ACC(Task* arg0)
         obj                                                       = arg0->extra.tmd;
         ((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = 0;
         obj->flags                                                = 0;
-        Tmd_AllocBuffers(obj);
+        tmdAllocPrimitiveBuffer(obj);
         work->hitRadius   = 0xC0;
         work->animRequest = ACTOR_356100_ANIM_REQUEST_BLEND;
         work->blendActive = 0;
@@ -1629,7 +1629,7 @@ static void func_actor_356100_801653F4(Task* arg0)
         chase                                                     = head - 1;
         ((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = 0;
         obj->flags                                                = 0;
-        Tmd_AllocBuffers(obj);
+        tmdAllocPrimitiveBuffer(obj);
         work->hitRadius     = 0x180;
         work->animRequest   = ACTOR_356100_ANIM_REQUEST_BLEND;
         work->animRate      = 0x10;
@@ -1720,7 +1720,7 @@ static void func_actor_356100_80165B30(Task* arg0)
         obj                                                       = arg0->extra.tmd;
         ((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = 0;
         obj->flags                                                = 0;
-        Tmd_AllocBuffers(obj);
+        tmdAllocPrimitiveBuffer(obj);
         work->hitRadius  = 0xC0;
         work->stateTimer = 0;
         actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &aim->delta);
@@ -2007,7 +2007,7 @@ static void func_actor_356100_80166CF0(Task* arg0)
         obj                                                       = arg0->extra.tmd;
         ((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = 0;
         obj->flags                                                = 0;
-        Tmd_AllocBuffers(obj);
+        tmdAllocPrimitiveBuffer(obj);
         work->hitRadius   = 0x180;
         work->animRequest = ACTOR_356100_ANIM_REQUEST_BLEND;
         work->animRate    = 8;
@@ -2122,7 +2122,7 @@ static void func_actor_356100_80167584(Task* arg0)
         obj        = arg0->extra.tmd;
         enemy      = arg0->spawnArg2.pointer;
         obj->flags = 0;
-        Tmd_AllocBuffers(obj);
+        tmdAllocPrimitiveBuffer(obj);
         work->hitRadius               = 0x180;
         enemy->node.state.parts.flags = 0;
         work->stateTimer              = 0;
@@ -2180,7 +2180,7 @@ static void func_actor_356100_80167818(Task* arg0)
         work->animId                = 0x10;
         work->animRequest           = ACTOR_356100_ANIM_REQUEST_RESET;
         obj->flags                  = 0;
-        Tmd_AllocBuffers(obj);
+        tmdAllocPrimitiveBuffer(obj);
         work->hitRadius               = 0x180;
         enemy->node.state.parts.flags = 0;
         work->lookYaw                 = 0;
@@ -2250,7 +2250,7 @@ static void func_actor_356100_80167A7C(Task* arg0)
         obj                                                       = arg0->extra.tmd;
         ((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = 0;
         obj->flags                                                = 0;
-        Tmd_AllocBuffers(obj);
+        tmdAllocPrimitiveBuffer(obj);
         work->hitRadius   = 0x180;
         work->animRequest = ACTOR_356100_ANIM_REQUEST_BLEND;
         work->animRate    = 0x10;
@@ -2319,7 +2319,7 @@ static void func_actor_356100_8016804C(Task* arg0)
         work->animId      = 0x12;
         work->animRequest = ACTOR_356100_ANIM_REQUEST_BLEND;
         obj->flags        = 0;
-        Tmd_AllocBuffers(obj);
+        tmdAllocPrimitiveBuffer(obj);
         work->hitRadius               = 0x180;
         enemy->node.state.parts.flags = 0;
         work->lookYaw                 = 0;
@@ -2382,7 +2382,7 @@ static void func_actor_356100_801684F0(Task* arg0)
         obj                                                       = arg0->extra.tmd;
         ((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = 0;
         obj->flags                                                = 0;
-        Tmd_AllocBuffers(obj);
+        tmdAllocPrimitiveBuffer(obj);
         work->hitRadius   = 0x180;
         work->animRequest = ACTOR_356100_ANIM_REQUEST_BLEND;
         work->animRate    = 0x16;
@@ -2465,7 +2465,7 @@ static void func_actor_356100_80168AFC(Task* arg0)
         obj                                                       = arg0->extra.tmd;
         ((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = 0;
         obj->flags                                                = 0;
-        Tmd_AllocBuffers(obj);
+        tmdAllocPrimitiveBuffer(obj);
         work->hitRadius   = 0x180;
         work->animRequest = ACTOR_356100_ANIM_REQUEST_BLEND;
         work->animRate    = 0x10;
@@ -2518,7 +2518,7 @@ static void func_actor_356100_80168E44(Task* arg0)
         obj                                                       = arg0->extra.tmd;
         ((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
         obj->flags                                                = 0;
-        Tmd_AllocBuffers(obj);
+        tmdAllocPrimitiveBuffer(obj);
         work->hitRadius   = 0x180;
         work->animRequest = ACTOR_356100_ANIM_REQUEST_RESET;
         work->animRate    = 0x10;
@@ -2582,7 +2582,7 @@ static void func_actor_356100_80169180(Task* arg0)
 
         ctx                    = arg0->spawnArg2.pointer;
         arg0->extra.tmd->flags = 0;
-        Tmd_AllocBuffers(arg0->extra.tmd);
+        tmdAllocPrimitiveBuffer(arg0->extra.tmd);
         ctx->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
         work->animId                = 1;
         work->animRequest           = ACTOR_356100_ANIM_REQUEST_RESET;
@@ -2886,7 +2886,7 @@ static void func_actor_356100_8016A21C(Task* arg0)
         obj                                                       = arg0->extra.tmd;
         ((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = 0;
         obj->flags                                                = 0;
-        Tmd_AllocBuffers(obj);
+        tmdAllocPrimitiveBuffer(obj);
         work->animRequest = ACTOR_356100_ANIM_REQUEST_RESET;
         work->blendActive = 0;
         work->animRate    = 0x10;
@@ -2908,7 +2908,7 @@ static void func_actor_356100_8016A2AC(Task* arg0)
         obj                                                       = arg0->extra.tmd;
         ((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = 0;
         obj->flags                                                = 0;
-        Tmd_AllocBuffers(obj);
+        tmdAllocPrimitiveBuffer(obj);
         work->animRequest = ACTOR_356100_ANIM_REQUEST_RESET;
         work->animRate    = 0x10;
         work->blendActive = 0;
@@ -2930,7 +2930,7 @@ static void func_actor_356100_8016A340(Task* arg0)
         obj                                                       = arg0->extra.tmd;
         ((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = 0;
         obj->flags                                                = 0;
-        Tmd_AllocBuffers(obj);
+        tmdAllocPrimitiveBuffer(obj);
         work->animRequest = ACTOR_356100_ANIM_REQUEST_RESET;
         work->animRate    = 0x10;
         work->blendActive = 0;
@@ -2952,7 +2952,7 @@ static void func_actor_356100_8016A3D4(Task* arg0)
         obj                                                       = arg0->extra.tmd;
         ((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = 0;
         obj->flags                                                = 0;
-        Tmd_AllocBuffers(obj);
+        tmdAllocPrimitiveBuffer(obj);
         work->animRequest = ACTOR_356100_ANIM_REQUEST_RESET;
         work->animRate    = 0x10;
         work->blendActive = 0;

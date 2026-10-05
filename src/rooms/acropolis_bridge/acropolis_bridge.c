@@ -5747,7 +5747,7 @@ void func_acropolis_bridge_80187310(Task* task)
     s32                        step;
 
     if (work->stateEntered != 0) {
-        Tmd_AllocBuffers(task->extra.tmd);
+        tmdAllocPrimitiveBuffer(task->extra.tmd);
         work->attack.flags           &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->body.flags             &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
@@ -5972,11 +5972,11 @@ running:
                     task->extra.tmd->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
                     extra                   = task->extra.tmd;
                     if (extra->buffer != NULL) {
-                        Tmd_FreeBuffers(extra);
+                        tmdFreePrimitiveBuffer(extra);
                     }
                     goto resync;
                 default:
-                    Tmd_AllocBuffers(task->extra.tmd);
+                    tmdAllocPrimitiveBuffer(task->extra.tmd);
                 draw:
                     task->extra.tmd->flags = 0;
                     break;
@@ -6109,7 +6109,7 @@ void func_acropolis_bridge_80187D04(Task* task)
     }
     extra->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
     if (extra->buffer != NULL) {
-        Tmd_FreeBuffers(extra);
+        tmdFreePrimitiveBuffer(extra);
     }
 }
 

@@ -1959,8 +1959,8 @@ static void Actor00400_Fn0237C(Task* arg0)
         dst1->texturePageOffset = src1->texturePageOffset;
         dst1->clutRowOffset     = src1->clutRowOffset;
         if (dst1->buffer != NULL) {
-            tmdProcessStream(dst1);
-            tmdProcessStream(dst1);
+            tmdBuildBufferHalf(dst1);
+            tmdBuildBufferHalf(dst1);
         }
     }
     D_800678F0[0] = &_gActor00400DiverBurstArmRight;
@@ -1971,8 +1971,8 @@ static void Actor00400_Fn0237C(Task* arg0)
         dst2->texturePageOffset = src2->texturePageOffset;
         dst2->clutRowOffset     = src2->clutRowOffset;
         if (dst2->buffer != NULL) {
-            tmdProcessStream(dst2);
-            tmdProcessStream(dst2);
+            tmdBuildBufferHalf(dst2);
+            tmdBuildBufferHalf(dst2);
         }
     }
     D_800678F0[0] = &_gActor00400DiverBurstArmLeft1;
@@ -1983,8 +1983,8 @@ static void Actor00400_Fn0237C(Task* arg0)
         dst3->texturePageOffset = src3->texturePageOffset;
         dst3->clutRowOffset     = src3->clutRowOffset;
         if (dst3->buffer != NULL) {
-            tmdProcessStream(dst3);
-            tmdProcessStream(dst3);
+            tmdBuildBufferHalf(dst3);
+            tmdBuildBufferHalf(dst3);
         }
     }
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
@@ -2001,8 +2001,8 @@ static void Actor00400_Fn0237C(Task* arg0)
         dst4->texturePageOffset = src4->texturePageOffset;
         dst4->clutRowOffset     = src4->clutRowOffset;
         if (dst4->buffer != NULL) {
-            tmdProcessStream(dst4);
-            tmdProcessStream(dst4);
+            tmdBuildBufferHalf(dst4);
+            tmdBuildBufferHalf(dst4);
         }
     }
     D_800678F0[0] = &_gActor00400DiverEnergyBall;
@@ -2013,8 +2013,8 @@ static void Actor00400_Fn0237C(Task* arg0)
         dst5->texturePageOffset = src5->texturePageOffset;
         dst5->clutRowOffset     = src5->clutRowOffset;
         if (dst5->buffer != NULL) {
-            tmdProcessStream(dst5);
-            tmdProcessStream(dst5);
+            tmdBuildBufferHalf(dst5);
+            tmdBuildBufferHalf(dst5);
         }
     }
     Gp_SpawnEff(EFFECT_030, &arg0->extra.tmd->coords[1], 0x200, NULL);
@@ -4645,7 +4645,7 @@ static void Actor00400_Fn07F88(Task* arg0)
 
     model = arg0->extra.tmd;
     work  = arg0->work;
-    Tmd_FreeBuffers(model);
+    tmdFreePrimitiveBuffer(model);
     model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
     Actor00400_Fn0237C(arg0);
     work->state = (u16)work->state + 1;
@@ -5206,7 +5206,7 @@ static void Actor00400_Fn09038(Task* arg0)
 
     model = arg0->extra.tmd;
     work  = arg0->work;
-    Tmd_FreeBuffers(model);
+    tmdFreePrimitiveBuffer(model);
     model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
     Actor00400_Fn0237C(arg0);
     work->state = (u16)work->state + 1;

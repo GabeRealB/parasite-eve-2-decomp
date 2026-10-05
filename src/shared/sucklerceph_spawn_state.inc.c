@@ -116,8 +116,8 @@ void sucklercephSpawnState(Enemy* arg0, Task* arg1)
         obj->texturePageOffset = obj->texturePageOffset + 1;
         obj->clutRowOffset     = obj->clutRowOffset + 1;
         if (obj->buffer != 0) {
-            tmdProcessStream(obj);
-            tmdProcessStream(obj);
+            tmdBuildBufferHalf(obj);
+            tmdBuildBufferHalf(obj);
         }
     }
     work->deathPhase   = SUCKLERCEPH_DEATH_PHASE_COUNTDOWN;

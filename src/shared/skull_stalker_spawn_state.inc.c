@@ -109,8 +109,8 @@ void skullStalkerSpawnState(Enemy* arg0, Task* arg1)
         obj->texturePageOffset++;
         obj->clutRowOffset++;
         if (obj->buffer != NULL) {
-            tmdProcessStream(obj);
-            tmdProcessStream(obj);
+            tmdBuildBufferHalf(obj);
+            tmdBuildBufferHalf(obj);
         }
     }
     arg1->exitCallback = skullStalkerExit;

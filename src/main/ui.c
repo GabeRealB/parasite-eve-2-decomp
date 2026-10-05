@@ -400,7 +400,7 @@ TaskDesc D_800670D0[] = {
     { { { TASK_BODY_NONE, 0x0 } }, NULL },
     { { { TASK_BODY_NONE, 0x0 } }, NULL },
     { { { TASK_BODY_NONE, 0xC0 } }, Tmd_DispatchTask },
-    { { { TASK_BODY_NONE, 0xC0 } }, Tmd_AllocNodeBuffers },
+    { { { TASK_BODY_NONE, 0xC0 } }, tmdRestoreAttachedBuffersTask },
     { { { TASK_BODY_NONE, 0x60 } }, func_800B5DB8 },
     { { { TASK_BODY_NONE, 0xC0 } }, Ui_NoOpTask },
     { { { TASK_BODY_NONE, 0x70 } }, func_800CFD78 },

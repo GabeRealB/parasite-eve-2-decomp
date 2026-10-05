@@ -656,7 +656,7 @@ loop_slots:
 
     if (work->bodyRequest != ACTOR_120500_BODY_REQUEST_NONE) {
         if (work->bodyRequest == ACTOR_120500_BODY_REQUEST_APPEAR) {
-            Tmd_AllocBuffers(arg0->extra.tmd);
+            tmdAllocPrimitiveBuffer(arg0->extra.tmd);
             Task_SpawnFromTable(D_actor_120500_80138418, 1, 8, 0);
             TASK_MESSAGE_DISPATCH_POINTER(arg0, ACTOR_MESSAGE_PLACE, &D_actor_120500_801380C0, 0);
         }

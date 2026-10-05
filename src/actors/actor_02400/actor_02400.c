@@ -409,8 +409,8 @@ static void Actor02400_Fn0095C(Enemy* enemy, Task* task)
     work->variant       = enemy->place->mode & 1;
     if (work->variant != 0) {
         obj->clutRowOffset += 1;
-        tmdProcessStream(obj);
-        tmdProcessStream(obj);
+        tmdBuildBufferHalf(obj);
+        tmdBuildBufferHalf(obj);
     }
     enemy->field_4  = &coord->coord;
     enemy->field_48 = 0;

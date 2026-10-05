@@ -1688,8 +1688,8 @@ static void Actor01500_Fn01AB0(Task* arg0)
         model1->texturePageOffset = entry1->texturePageOffset;
         model1->clutRowOffset     = entry1->clutRowOffset;
         if (model1->buffer != NULL) {
-            tmdProcessStream(model1);
-            tmdProcessStream(model1);
+            tmdBuildBufferHalf(model1);
+            tmdBuildBufferHalf(model1);
         }
     }
 
@@ -1710,8 +1710,8 @@ static void Actor01500_Fn01AB0(Task* arg0)
         model2->texturePageOffset = entry2->texturePageOffset;
         model2->clutRowOffset     = entry2->clutRowOffset;
         if (model2->buffer != NULL) {
-            tmdProcessStream(model2);
-            tmdProcessStream(model2);
+            tmdBuildBufferHalf(model2);
+            tmdBuildBufferHalf(model2);
         }
     }
 
@@ -1732,8 +1732,8 @@ static void Actor01500_Fn01AB0(Task* arg0)
         model3->texturePageOffset = entry3->texturePageOffset;
         model3->clutRowOffset     = entry3->clutRowOffset;
         if (model3->buffer != NULL) {
-            tmdProcessStream(model3);
-            tmdProcessStream(model3);
+            tmdBuildBufferHalf(model3);
+            tmdBuildBufferHalf(model3);
         }
     }
 
@@ -1754,8 +1754,8 @@ static void Actor01500_Fn01AB0(Task* arg0)
         model4->texturePageOffset = entry4->texturePageOffset;
         model4->clutRowOffset     = entry4->clutRowOffset;
         if (model4->buffer != NULL) {
-            tmdProcessStream(model4);
-            tmdProcessStream(model4);
+            tmdBuildBufferHalf(model4);
+            tmdBuildBufferHalf(model4);
         }
     }
 }
@@ -1828,7 +1828,7 @@ static void Actor01500_Fn01DF0(Enemy* arg0, Task* arg1)
             if (work->burstPending != 0) {
                 if (work->burstPending >= 2) {
                     work->burstPending = 0;
-                    Tmd_FreeBuffers(model);
+                    tmdFreePrimitiveBuffer(model);
                     model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
                     Actor01500_Fn01AB0(arg1);
                 } else {

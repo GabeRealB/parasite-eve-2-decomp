@@ -5041,7 +5041,7 @@ static void func_actor_403000_80135F08(Task* arg0)
         tmd                   = arg0->extra.tmd;
         work->lockOnSuspended = 0;
         tmd->flags            = 0;
-        Tmd_AllocBuffers(tmd);
+        tmdAllocPrimitiveBuffer(tmd);
         work->animRate               = 0x10;
         work->requestedAnimId        = 0xF;
         work->animStart              = ACTOR_403000_ANIM_RESTART;
@@ -5106,7 +5106,7 @@ static void func_actor_403000_8013603C(Task* arg0)
     enemy = arg0->spawnArg2.pointer;
     if (work->stateEntered != 0) {
         tmd->flags = 0;
-        Tmd_AllocBuffers(tmd);
+        tmdAllocPrimitiveBuffer(tmd);
         work->lockOnSuspended        = 1;
         work->rootSphere.body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
         Gp_ClearNodeSlots(&enemy->node);
@@ -5180,7 +5180,7 @@ static void func_actor_403000_801365D0(Task* arg0)
     enemy = arg0->spawnArg2.pointer;
     if (work->stateEntered != 0) {
         tmd->flags = 0;
-        Tmd_AllocBuffers(tmd);
+        tmdAllocPrimitiveBuffer(tmd);
         work->lockOnSuspended        = 1;
         work->rootSphere.body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
         Gp_ClearNodeSlots(&enemy->node);
@@ -5249,7 +5249,7 @@ static void func_actor_403000_80136B14(Task* arg0)
     enemy = arg0->spawnArg2.pointer;
     if (work->stateEntered != 0) {
         tmd->flags = 0;
-        Tmd_AllocBuffers(tmd);
+        tmdAllocPrimitiveBuffer(tmd);
         work->rootSphere.body.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
         Gp_SetLightMode(enemy, ENEMY_COLOR_WEIGHTED);
         enemy->reactionFlags          = 0;
@@ -5302,7 +5302,7 @@ static void func_actor_403000_80136D68(Task* arg0)
     enemy = arg0->spawnArg2.pointer;
     if (work->stateEntered != 0) {
         tmd->flags = 0;
-        Tmd_AllocBuffers(tmd);
+        tmdAllocPrimitiveBuffer(tmd);
         work->rootSphere.body.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
         Gp_SetLightMode(enemy, ENEMY_COLOR_WEIGHTED);
         enemy->reactionFlags          = 0;
@@ -5433,7 +5433,7 @@ static void func_actor_403000_80137084(Task* arg0)
         tmd                   = arg0->extra.tmd;
         work->lockOnSuspended = 0;
         tmd->flags            = 0;
-        Tmd_AllocBuffers(tmd);
+        tmdAllocPrimitiveBuffer(tmd);
         work->torsoSphere.body.radius      = 0x3E8;
         work->animStart                    = ACTOR_403000_ANIM_BLEND_IN;
         work->animRate                     = 0x10;
@@ -6342,7 +6342,7 @@ static void func_actor_403000_80139AE0(Task* arg0)
         obj                   = arg0->extra.tmd;
         work->lockOnSuspended = 0;
         obj->flags            = 0;
-        Tmd_AllocBuffers(obj);
+        tmdAllocPrimitiveBuffer(obj);
         work->torsoSphere.body.radius = 0x3E8;
         work->animStart               = ACTOR_403000_ANIM_BLEND_IN;
         work->animRate                = 0x10;
@@ -6455,7 +6455,7 @@ static void func_actor_403000_8013A08C(Task* arg0)
         obj                   = arg0->extra.tmd;
         work->lockOnSuspended = 0;
         obj->flags            = 0;
-        Tmd_AllocBuffers(obj);
+        tmdAllocPrimitiveBuffer(obj);
         work->torsoSphere.body.radius = 0x3E8;
         work->animStart               = ACTOR_403000_ANIM_BLEND_IN;
         work->animRate                = 0x10;
@@ -6576,7 +6576,7 @@ static void func_actor_403000_8013A678(Task* arg0)
         obj                   = arg0->extra.tmd;
         work->lockOnSuspended = 0;
         obj->flags            = 0;
-        Tmd_AllocBuffers(obj);
+        tmdAllocPrimitiveBuffer(obj);
         work->torsoSphere.body.radius = 0x3E8;
         work->animStart               = ACTOR_403000_ANIM_BLEND_IN;
         work->animRate                = 0x10;
@@ -6732,7 +6732,7 @@ static void func_actor_403000_8013ACBC(Task* arg0)
         obj                   = arg0->extra.tmd;
         work->lockOnSuspended = 0;
         obj->flags            = 0;
-        Tmd_AllocBuffers(obj);
+        tmdAllocPrimitiveBuffer(obj);
         work->torsoSphere.body.radius = 0x3E8;
         work->animStart               = ACTOR_403000_ANIM_BLEND_IN;
         work->animRate                = 0x10;
@@ -6851,7 +6851,7 @@ static void func_actor_403000_8013B238(Task* arg0)
         obj                   = arg0->extra.tmd;
         work->lockOnSuspended = 0;
         obj->flags            = 0;
-        Tmd_AllocBuffers(obj);
+        tmdAllocPrimitiveBuffer(obj);
         work->torsoSphere.body.radius = 0x3E8;
         work->animStart               = ACTOR_403000_ANIM_BLEND_IN;
         work->animRate                = 0x10;
@@ -7237,7 +7237,7 @@ static void func_actor_403000_8013C2D4(Task* arg0)
         obj                   = arg0->extra.tmd;
         work->lockOnSuspended = 0;
         obj->flags            = 0;
-        Tmd_AllocBuffers(obj);
+        tmdAllocPrimitiveBuffer(obj);
         work->torsoSphere.body.radius = 0x3E8;
         work->animStart               = ACTOR_403000_ANIM_BLEND_IN;
         work->animRate                = 0x10;
@@ -7586,7 +7586,7 @@ s32 func_actor_403000_8013D260(Task* task, s32 msgId, s32 arg2, s32 arg3)
 
 /// Handler for message 0x7D5 in the actor's message table. `arg2` picks the
 /// display mode: 0 hides the model (flag 0x80) and 1 shows it again, both
-/// re-running `Tmd_AllocBuffers`; 2 sets `TMD_OBJECT_SKIP_AUTO_BUFFER` on top of the current flags
+/// re-running `tmdAllocPrimitiveBuffer`; 2 sets `TMD_OBJECT_SKIP_AUTO_BUFFER` on top of the current flags
 /// and 3 replaces them with just `TMD_OBJECT_SKIP_AUTO_BUFFER`. Every mode but 1 sets
 /// `state` to `ACTOR_403000_STATE_HIDDEN`. `arg1` is unused.
 s32 func_actor_403000_8013D268(Task* task, s32 arg1, s32 arg2, s32 arg3)
@@ -7599,12 +7599,12 @@ s32 func_actor_403000_8013D268(Task* task, s32 arg1, s32 arg2, s32 arg3)
     switch (arg2) {
         case 0:
             obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            Tmd_AllocBuffers(obj);
+            tmdAllocPrimitiveBuffer(obj);
             work->state = ACTOR_403000_STATE_HIDDEN;
             break;
         case 1:
             obj->flags = 0;
-            Tmd_AllocBuffers(obj);
+            tmdAllocPrimitiveBuffer(obj);
             break;
         case 2:
             obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
@@ -7781,7 +7781,7 @@ static void func_actor_403000_8013D72C(Task* arg0)
         work->lockOnSuspended = 1;
         Gp_ClearNodeSlots(&enemy->node);
         obj->flags = 0;
-        Tmd_AllocBuffers(obj);
+        tmdAllocPrimitiveBuffer(obj);
         work->animRate               = 0x10;
         work->animStart              = ACTOR_403000_ANIM_RESTART;
         work->forelegYawTarget       = 0;
@@ -7821,7 +7821,7 @@ static void func_actor_403000_8013D850(Task* arg0)
         obj                   = arg0->extra.tmd;
         work->lockOnSuspended = 0;
         obj->flags            = 0;
-        Tmd_AllocBuffers(obj);
+        tmdAllocPrimitiveBuffer(obj);
         work->torsoSphere.body.radius = 0x3E8;
         work->animStart               = ACTOR_403000_ANIM_BLEND_IN;
         work->animRate                = 0x10;

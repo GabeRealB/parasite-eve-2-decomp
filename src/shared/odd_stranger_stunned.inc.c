@@ -20,7 +20,7 @@ void oddStrangerStunned(Task* arg0)
         tmd                           = arg0->extra.tmd;
         enemy->node.state.parts.flags = 0;
         tmd->flags                    = 0;
-        Tmd_AllocBuffers(tmd);
+        tmdAllocPrimitiveBuffer(tmd);
         work->animRequest     = ODD_STRANGER_ANIM_REQUEST_RESET;
         work->animRate        = 0x10;
         work->gridBody.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;

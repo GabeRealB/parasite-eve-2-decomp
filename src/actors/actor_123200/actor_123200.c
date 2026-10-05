@@ -827,7 +827,7 @@ static void func_actor_123200_80133820(Enemy* enemy, Task* task)
         obj                           = task->extra.tmd;
         enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
         obj->flags                    = 0;
-        Tmd_AllocBuffers(obj);
+        tmdAllocPrimitiveBuffer(obj);
         work->walkTarget.vx       = 0x115D;
         work->walkTarget.vy       = 1;
         work->walkTarget.vz       = 0x12D5;
@@ -890,7 +890,7 @@ static void func_actor_123200_801339F0(Enemy* enemy, Task* task)
         obj                           = task->extra.tmd;
         enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
         obj->flags                    = 0;
-        Tmd_AllocBuffers(obj);
+        tmdAllocPrimitiveBuffer(obj);
         work->walkTarget.vx       = 0x115D;
         work->walkTarget.vy       = 1;
         work->walkTarget.vz       = 0x12D5;
@@ -998,7 +998,7 @@ static const EnemyTaskFuncTable3 D_actor_123200_80131E30 = {
 /// mode: 0 hides the model (`TmdObject.flags` bit 0x80), 1 clears its flags and
 /// so shows it, 2 sets `TMD_OBJECT_SKIP_AUTO_BUFFER`, and 3 and 4 both clear
 /// the flags and then set `TMD_OBJECT_SKIP_AUTO_BUFFER`. Modes 0 and 1 reinstate the model's buffers through
-/// `Tmd_AllocBuffers` and set the work block's `state` to `ACTOR_123200_STATE_WALK`;
+/// `tmdAllocPrimitiveBuffer` and set the work block's `state` to `ACTOR_123200_STATE_WALK`;
 /// modes 2, 3 and 4 set it to `ACTOR_123200_STATE_HIDDEN`. `arg1` is unused. Always returns 0.
 s32 func_actor_123200_80133E30(Task* task, s32 arg1, s32 arg2, s32 arg3)
 {
@@ -1010,12 +1010,12 @@ s32 func_actor_123200_80133E30(Task* task, s32 arg1, s32 arg2, s32 arg3)
     switch (arg2) {
         case 0:
             obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            Tmd_AllocBuffers(obj);
+            tmdAllocPrimitiveBuffer(obj);
             work->state = ACTOR_123200_STATE_WALK;
             break;
         case 1:
             obj->flags = 0;
-            Tmd_AllocBuffers(obj);
+            tmdAllocPrimitiveBuffer(obj);
             work->state = ACTOR_123200_STATE_WALK;
             break;
         case 2:

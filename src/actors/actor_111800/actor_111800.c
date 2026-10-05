@@ -391,7 +391,7 @@ static void func_actor_111800_80132390(Task* task)
     work = task->work;
     memFillBytes(work, 0U, sizeof(*work));
     coord->parent = &gGfxViewCoord;
-    Tmd_AllocBuffers(obj);
+    tmdAllocPrimitiveBuffer(obj);
     obj->lightMtx = &work->light;
     obj->colorMtx = &work->color;
     obj->flags    = 0;

@@ -5424,8 +5424,8 @@ inline static Task* spawn_tmd_attach(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
         obj->texturePageOffset = 6;
         obj->clutRowOffset     = 0;
     }
-    tmdProcessStream(obj);
-    tmdProcessStream(obj);
+    tmdBuildBufferHalf(obj);
+    tmdBuildBufferHalf(obj);
     return task;
 }
 
@@ -5958,8 +5958,8 @@ Task* func_80104258(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
         obj->texturePageOffset = 6;
         obj->clutRowOffset     = 0;
     }
-    tmdProcessStream(obj);
-    tmdProcessStream(obj);
+    tmdBuildBufferHalf(obj);
+    tmdBuildBufferHalf(obj);
     return task;
 }
 
@@ -6095,47 +6095,47 @@ s32 func_80104684(Task* arg0, s32 arg1, s32 arg2, s32 unusedSecondArg)
 {
     GameActor* actor;
     TmdObject* extra;
-    void       (*func)(TmdObject*);
+    void       (*bufferOperation)(TmdObject*);
     Task*      node;
     Task*      child;
     Task*      cur;
 
-    actor = arg0->work;
-    extra = arg0->extra.tmd;
-    func  = NULL;
+    actor           = arg0->work;
+    extra           = arg0->extra.tmd;
+    bufferOperation = NULL;
     switch (arg2) {
         case 0:
-            func         = Tmd_AllocBuffers;
-            extra->flags = (extra->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW) & (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
+            bufferOperation = tmdAllocPrimitiveBuffer;
+            extra->flags    = (extra->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW) & (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 1:
             extra->flags = extra->flags & (u16) ~(TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
             break;
         case 2:
-            func         = Tmd_FreeBuffers;
-            extra->flags = extra->flags | (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
+            bufferOperation = tmdFreePrimitiveBuffer;
+            extra->flags    = extra->flags | (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
             break;
         case 3:
             extra->flags = extra->flags | (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
             break;
         case 4:
-            func         = Tmd_AllocBuffers;
-            extra->flags = extra->flags & (u16) ~(TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
+            bufferOperation = tmdAllocPrimitiveBuffer;
+            extra->flags    = extra->flags & (u16) ~(TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
             break;
     }
-    if (func != NULL) {
-        func(extra);
+    if (bufferOperation != NULL) {
+        bufferOperation(extra);
     }
     if (actor->attachmentTasks[0] != NULL) {
         actor->attachmentTasks[0]->extra.tmd->flags = extra->flags;
-        if (func != NULL) {
-            func(extra);
+        if (bufferOperation != NULL) {
+            bufferOperation(extra);
         }
     }
     if (actor->attachmentTasks[1] != NULL) {
         actor->attachmentTasks[1]->extra.tmd->flags = extra->flags;
-        if (func != NULL) {
-            func(extra);
+        if (bufferOperation != NULL) {
+            bufferOperation(extra);
         }
     }
     if (actor->equipmentTasks[1] != NULL) {
@@ -6146,14 +6146,14 @@ s32 func_80104684(Task* arg0, s32 arg1, s32 arg2, s32 unusedSecondArg)
             child                   = node;
             child->extra.tmd->flags = extra->flags;
             cur                     = child;
-            if (func != NULL) {
-                func(extra);
+            if (bufferOperation != NULL) {
+                bufferOperation(extra);
             }
             while (cur->nextSibling != child) {
                 cur                   = cur->nextSibling;
                 cur->extra.tmd->flags = extra->flags;
-                if (func != NULL) {
-                    func(extra);
+                if (bufferOperation != NULL) {
+                    bufferOperation(extra);
                 }
             }
         }

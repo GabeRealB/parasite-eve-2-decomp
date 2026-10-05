@@ -402,7 +402,7 @@ static void func_actor_317000_80161E68(Task* task)
     func_actor_317000_801621F4(task, gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x400, 0x200, work->turnWeight);
     if (work->freeCountdown >= 0) {
         if (work->freeCountdown == 0) {
-            Tmd_FreeBuffers(ext);
+            tmdFreePrimitiveBuffer(ext);
         }
         work->freeCountdown--;
     }
@@ -817,9 +817,9 @@ static void func_actor_317000_80162950(Task* arg0)
 /// clears bit 0x80 of `TmdObject::flags` and sets or clears `TMD_OBJECT_SKIP_AUTO_BUFFER`:
 ///
 ///   mode 0  set 0x80, clear `TMD_OBJECT_SKIP_AUTO_BUFFER`
-///   mode 1  clear 0x80, `Tmd_AllocBuffers`, clear `TMD_OBJECT_SKIP_AUTO_BUFFER`
+///   mode 1  clear 0x80, `tmdAllocPrimitiveBuffer`, clear `TMD_OBJECT_SKIP_AUTO_BUFFER`
 ///   mode 2  set 0x80, store 2 in the countdown `_Actor317000Work::freeCountdown`
-///           that `func_actor_317000_80161E68` ends in `Tmd_FreeBuffers`,
+///           that `func_actor_317000_80161E68` ends in `tmdFreePrimitiveBuffer`,
 ///           set `TMD_OBJECT_SKIP_AUTO_BUFFER`
 ///   mode 3  clear 0x80, set `TMD_OBJECT_SKIP_AUTO_BUFFER`
 ///
@@ -840,7 +840,7 @@ s32 func_actor_317000_80162BC4(Task* task, s32 arg1, s32 mode, s32 arg3)
             break;
         case 1:
             obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            Tmd_AllocBuffers(obj);
+            tmdAllocPrimitiveBuffer(obj);
             obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 2:

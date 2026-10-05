@@ -1307,7 +1307,7 @@ check:
 
 /// Tick of the head-and-hat model's task: on its first run it allocates a
 /// whole `_Actor136100Work` block, zeroes it and parks it in `Task::work`, then wires
-/// the model object up -- `Tmd_AllocBuffers`, `TmdObject::flags` cleared, the
+/// the model object up -- `tmdAllocPrimitiveBuffer`, `TmdObject::flags` cleared, the
 /// work block's light/colour matrices into `TmdObject::lightMtx` / `colorMtx`
 /// and the animation-context task reparented under `D_actor_136100_8014078C`.
 /// The texture page / CLUT row come from the placement record at the nested
@@ -1336,7 +1336,7 @@ void func_actor_136100_801320E0(Task* task)
             memFillBytes(work, 0, sizeof(*work));
             coord->parent          = task->spawnArg2.pointer;
             task->extra.tmd->flags = 0;
-            Tmd_AllocBuffers(tmd);
+            tmdAllocPrimitiveBuffer(tmd);
             tmd->lightMtx  = &work->light;
             tmd->colorMtx  = &work->color;
             task->msgTable = D_actor_136100_8013F2F4;
@@ -1382,7 +1382,7 @@ void func_actor_136100_80132284(Task* arg0)
             memFillBytes(work, 0, sizeof(*work));
             coord->parent          = arg0->spawnArg2.pointer;
             arg0->extra.tmd->flags = 0;
-            Tmd_AllocBuffers(tmd);
+            tmdAllocPrimitiveBuffer(tmd);
             tmd->lightMtx  = &work->light;
             tmd->colorMtx  = &work->color;
             arg0->msgTable = D_actor_136100_8013F2F4;
@@ -2094,7 +2094,7 @@ static void func_actor_136100_80133A88(Task* task)
     work->playerTask        = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     D_actor_136100_8014078C = task;
     coord->parent           = &gGfxViewCoord;
-    Tmd_AllocBuffers(tmd);
+    tmdAllocPrimitiveBuffer(tmd);
     tmd->lightMtx = &work->light;
     tmd->colorMtx = &work->color;
     tmd->flags   &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;

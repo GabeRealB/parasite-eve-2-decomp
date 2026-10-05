@@ -1707,8 +1707,8 @@ static void func_actor_510900_801373B8(Task* arg0)
         model->texturePageOffset = entry->texturePageOffset;
         model->clutRowOffset     = entry->clutRowOffset;
         if (model->buffer != NULL) {
-            tmdProcessStream(model);
-            tmdProcessStream(model);
+            tmdBuildBufferHalf(model);
+            tmdBuildBufferHalf(model);
         }
         snd = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40780012;
         pan = (s8)worldCoordGetOriginAudioPan(coord);
@@ -4064,8 +4064,8 @@ static void func_actor_510900_8013BEEC(Enemy* enemy, Task* task)
     work                = task->parent->work;
     coord               = obj->coords;
     obj->clutRowOffset += 2;
-    tmdProcessStream(obj);
-    tmdProcessStream(obj);
+    tmdBuildBufferHalf(obj);
+    tmdBuildBufferHalf(obj);
     coord->parent       = &task->parent->extra.tmd->coords[12];
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     obj->flags          = TMD_OBJECT_SKIP_ACTIVE_DRAW;

@@ -1709,8 +1709,8 @@ static void func_actor_521100_80131E8C(Enemy* enemy, Task* task)
     model->texturePageOffset = place->texturePageOffset;
     model->clutRowOffset     = place->clutRowOffset;
     if (model->buffer != NULL) {
-        tmdProcessStream(model);
-        tmdProcessStream(model);
+        tmdBuildBufferHalf(model);
+        tmdBuildBufferHalf(model);
     }
     work->weaponTask = spawned->task;
 

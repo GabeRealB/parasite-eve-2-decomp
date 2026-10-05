@@ -3285,7 +3285,7 @@ static void func_actor_323400_801641C4(Enemy* enemy, Task* task)
         obj                           = task->extra.tmd;
         enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
         obj->flags                    = 0;
-        Tmd_AllocBuffers(obj);
+        tmdAllocPrimitiveBuffer(obj);
         work->animRate       = 0x10;
         work->animId         = 0xD;
         work->animRequest    = DESERT_CHASER_ANIM_REQUEST_RESET;
@@ -3423,7 +3423,7 @@ static void func_actor_323400_80164BD0(Enemy* enemy, Task* task)
         obj                           = task->extra.tmd;
         enemy->node.state.parts.flags = 0;
         obj->flags                    = 0;
-        Tmd_AllocBuffers(obj);
+        tmdAllocPrimitiveBuffer(obj);
         work->animRate       = 0x10;
         work->animRequest    = DESERT_CHASER_ANIM_REQUEST_RESET;
         work->waistYawTarget = 0;
@@ -3449,7 +3449,7 @@ static void func_actor_323400_80164C4C(Enemy* enemy, Task* task)
         obj                           = task->extra.tmd;
         enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
         obj->flags                    = 0;
-        Tmd_AllocBuffers(obj);
+        tmdAllocPrimitiveBuffer(obj);
         work->animRate       = 0x10;
         work->animId         = 2;
         work->animRequest    = DESERT_CHASER_ANIM_REQUEST_BLEND;

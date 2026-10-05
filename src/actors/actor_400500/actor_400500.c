@@ -1690,8 +1690,8 @@ static void func_actor_400500_8013226C(Task* arg0)
     tmd->texturePageOffset = parentTmd->texturePageOffset;
     tmd->clutRowOffset     = parentTmd->clutRowOffset;
     if (tmd->buffer != NULL) {
-        tmdProcessStream(tmd);
-        tmdProcessStream(tmd);
+        tmdBuildBufferHalf(tmd);
+        tmdBuildBufferHalf(tmd);
     }
     child                  = Task_SpawnFromTable(D_actor_400500_80153D48, 1, 0, 0);
     work->armTasks[1]      = child;
@@ -1707,8 +1707,8 @@ static void func_actor_400500_8013226C(Task* arg0)
     tmd->texturePageOffset = parentTmd->texturePageOffset;
     tmd->clutRowOffset     = parentTmd->clutRowOffset;
     if (tmd->buffer != NULL) {
-        tmdProcessStream(tmd);
-        tmdProcessStream(tmd);
+        tmdBuildBufferHalf(tmd);
+        tmdBuildBufferHalf(tmd);
     }
     rot.rotationWords.m00M01  = ONE;
     src->rotationWords.m02M10 = 0;
@@ -2826,8 +2826,8 @@ static void func_actor_400500_80134B88(Task* arg0)
         dst->texturePageOffset = src->texturePageOffset;
         dst->clutRowOffset     = src->clutRowOffset;
         if (dst->buffer != NULL) {
-            tmdProcessStream(dst);
-            tmdProcessStream(dst);
+            tmdBuildBufferHalf(dst);
+            tmdBuildBufferHalf(dst);
         }
     }
     D_800678F0[0] = &_gActor400500GrayStalkerBurstLegRight;
@@ -2838,8 +2838,8 @@ static void func_actor_400500_80134B88(Task* arg0)
         dst2->texturePageOffset = src2->texturePageOffset;
         dst2->clutRowOffset     = src2->clutRowOffset;
         if (dst2->buffer != NULL) {
-            tmdProcessStream(dst2);
-            tmdProcessStream(dst2);
+            tmdBuildBufferHalf(dst2);
+            tmdBuildBufferHalf(dst2);
         }
     }
     D_800678F0[0] = &_gActor400500GrayStalkerBurstLegLeft;
@@ -2850,8 +2850,8 @@ static void func_actor_400500_80134B88(Task* arg0)
         dst3->texturePageOffset = src3->texturePageOffset;
         dst3->clutRowOffset     = src3->clutRowOffset;
         if (dst3->buffer != NULL) {
-            tmdProcessStream(dst3);
-            tmdProcessStream(dst3);
+            tmdBuildBufferHalf(dst3);
+            tmdBuildBufferHalf(dst3);
         }
     }
     Gp_SpawnEff(EFFECT_030, &arg0->extra.tmd->coords[1], 0x200, NULL);
@@ -7583,7 +7583,7 @@ static void func_actor_400500_8013DA68(Task* arg0)
 
     model = arg0->extra.tmd;
     work  = (_Actor400500GrayStalkerWork*)arg0->work;
-    Tmd_FreeBuffers(model);
+    tmdFreePrimitiveBuffer(model);
     model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
     func_actor_400500_80134B88(arg0);
     work->state = work->state + 1;

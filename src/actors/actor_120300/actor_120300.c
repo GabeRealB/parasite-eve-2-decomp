@@ -1390,7 +1390,7 @@ static inline s16 _actor120300InitChild(Task* arg0, s32 part)
     memFillBytes(work, 0, sizeof(*work));
     coord->parent          = ((Task*)arg0->spawnArg2.pointer)->extra.tmd->coords + part;
     arg0->extra.tmd->flags = 0;
-    Tmd_AllocBuffers(tmd);
+    tmdAllocPrimitiveBuffer(tmd);
     tmd->lightMtx  = &work->light;
     tmd->colorMtx  = &work->color;
     arg0->msgTable = D_actor_120300_80140A44;
@@ -1992,7 +1992,7 @@ static void func_actor_120300_801335D8(Task* task)
     work->playerTask        = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     D_actor_120300_80141BA8 = task;
     coord->parent           = &gGfxViewCoord;
-    Tmd_AllocBuffers(tmd);
+    tmdAllocPrimitiveBuffer(tmd);
     tmd->lightMtx = &work->light;
     tmd->colorMtx = &work->color;
     tmd->flags   &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;

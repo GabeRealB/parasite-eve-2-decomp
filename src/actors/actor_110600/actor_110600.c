@@ -1659,7 +1659,7 @@ static void func_actor_110600_80134AB4(Enemy* enemy, Task* task)
     coord = model->coords;
     if (((task->spawnArg1.value >> 16) & 0xF) != 2) {
         model->flags = 0;
-        Tmd_AllocBuffers(model);
+        tmdAllocPrimitiveBuffer(model);
     }
     work       = memCalloc(sizeof(_Actor110600Work), false);
     task->work = work;
@@ -2727,8 +2727,8 @@ static void func_actor_110600_80136ECC(Task* arg0)
             model1->texturePageOffset = entry1->texturePageOffset;
             model1->clutRowOffset     = entry1->clutRowOffset;
             if (model1->buffer != NULL) {
-                tmdProcessStream(model1);
-                tmdProcessStream(model1);
+                tmdBuildBufferHalf(model1);
+                tmdBuildBufferHalf(model1);
             }
         }
 
@@ -2748,8 +2748,8 @@ static void func_actor_110600_80136ECC(Task* arg0)
             model2->texturePageOffset = entry2->texturePageOffset;
             model2->clutRowOffset     = entry2->clutRowOffset;
             if (model2->buffer != NULL) {
-                tmdProcessStream(model2);
-                tmdProcessStream(model2);
+                tmdBuildBufferHalf(model2);
+                tmdBuildBufferHalf(model2);
             }
         }
 
@@ -2769,8 +2769,8 @@ static void func_actor_110600_80136ECC(Task* arg0)
             model3->texturePageOffset = entry3->texturePageOffset;
             model3->clutRowOffset     = entry3->clutRowOffset;
             if (model3->buffer != NULL) {
-                tmdProcessStream(model3);
-                tmdProcessStream(model3);
+                tmdBuildBufferHalf(model3);
+                tmdBuildBufferHalf(model3);
             }
         }
 
@@ -2790,8 +2790,8 @@ static void func_actor_110600_80136ECC(Task* arg0)
             model4->texturePageOffset = entry4->texturePageOffset;
             model4->clutRowOffset     = entry4->clutRowOffset;
             if (model4->buffer != NULL) {
-                tmdProcessStream(model4);
-                tmdProcessStream(model4);
+                tmdBuildBufferHalf(model4);
+                tmdBuildBufferHalf(model4);
             }
         }
 
@@ -2811,8 +2811,8 @@ static void func_actor_110600_80136ECC(Task* arg0)
             model5->texturePageOffset = entry5->texturePageOffset;
             model5->clutRowOffset     = entry5->clutRowOffset;
             if (model5->buffer != NULL) {
-                tmdProcessStream(model5);
-                tmdProcessStream(model5);
+                tmdBuildBufferHalf(model5);
+                tmdBuildBufferHalf(model5);
             }
         }
     }
@@ -3441,19 +3441,19 @@ s32 func_actor_110600_80138448(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
     switch (arg2) {
         case 0:
             obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            Tmd_AllocBuffers(obj);
+            tmdAllocPrimitiveBuffer(obj);
             work->state = ACTOR_110600_STATE_HIDDEN;
             break;
         case 1:
             if (enemy->spawnState == 0) {
                 obj->flags = 0;
-                Tmd_AllocBuffers(obj);
+                tmdAllocPrimitiveBuffer(obj);
             } else if (enemy->spawnState == 4) {
                 obj->flags  = TMD_OBJECT_SKIP_ACTIVE_DRAW;
                 work->state = ACTOR_110600_STATE_HIDDEN;
             } else {
                 obj->flags = 0;
-                Tmd_AllocBuffers(obj);
+                tmdAllocPrimitiveBuffer(obj);
             }
             break;
         case 2:
@@ -3780,7 +3780,7 @@ static void func_actor_110600_80138D7C(Task* arg0)
         obj                           = arg0->extra.tmd;
         enemy->node.state.parts.flags = WORLD_TARGET_HIDE_HP;
         obj->flags                    = 0;
-        Tmd_AllocBuffers(obj);
+        tmdAllocPrimitiveBuffer(obj);
         work->animRequest       = ACTOR_110600_ANIM_REQUEST_RESET;
         work->animId            = 5;
         work->animRate          = 0x30;

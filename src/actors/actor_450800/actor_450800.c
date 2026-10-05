@@ -2798,8 +2798,8 @@ static inline void _actor450800TintModel(Task* spawned, Task* actor)
     model->texturePageOffset = entry->texturePageOffset;
     model->clutRowOffset     = entry->clutRowOffset;
     if (model->buffer != NULL) {
-        tmdProcessStream(model);
-        tmdProcessStream(model);
+        tmdBuildBufferHalf(model);
+        tmdBuildBufferHalf(model);
     }
 }
 

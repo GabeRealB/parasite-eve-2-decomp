@@ -1974,7 +1974,7 @@ void func_actor_121300_8013293C(Task* arg0)
             break;
         case 1:
             if (work->delay == 0) {
-                Tmd_AllocBuffers(obj);
+                tmdAllocPrimitiveBuffer(obj);
                 obj->flags = 0;
                 arg0->state++;
             } else {

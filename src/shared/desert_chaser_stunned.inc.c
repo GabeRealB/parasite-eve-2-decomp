@@ -14,7 +14,7 @@ void desertChaserStunned(Task* arg0)
         obj                         = arg0->extra.tmd;
         ctx->node.state.parts.flags = 0;
         obj->flags                  = 0;
-        Tmd_AllocBuffers(obj);
+        tmdAllocPrimitiveBuffer(obj);
         work->animId                                         = DESERT_CHASER_CLIP_STUNNED;
         work->animRequest                                    = DESERT_CHASER_ANIM_REQUEST_RESET;
         work->animRate                                       = 0x10;

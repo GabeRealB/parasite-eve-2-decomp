@@ -1064,11 +1064,11 @@ s32 func_actor_341700_8016CE28(Task* task, s32 arg1, s32 arg2, s32 arg3)
     switch (arg2) {
         case 0:
             obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            Tmd_AllocBuffers(obj);
+            tmdAllocPrimitiveBuffer(obj);
             break;
         case 1:
             obj->flags = 0;
-            Tmd_AllocBuffers(obj);
+            tmdAllocPrimitiveBuffer(obj);
             break;
         case 2:
             obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
@@ -1185,7 +1185,7 @@ static void func_actor_341700_8016D2E8(Enemy* arg0, Task* arg1)
         model                        = arg1->extra.tmd;
         arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
         model->flags                 = 0;
-        Tmd_AllocBuffers(model);
+        tmdAllocPrimitiveBuffer(model);
     }
 }
 

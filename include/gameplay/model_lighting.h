@@ -572,7 +572,7 @@ u32* tmdBuildStreamGt3OneNormal(TmdStreamWorkspace* workspace, s32 objectFlags, 
 
 /// Initializes persistent texture fields for one-normal Gouraud textured quads.
 ///
-/// `tmdProcessStream` selects this construction callback for `0x58`/`0x5A`.
+/// `tmdBuildBufferHalf` selects this construction callback for `0x58`/`0x5A`.
 /// `elements` starts after the three-word record header. Words 0..1 pack four
 /// vertex byte references; the whole of word 2 is the face normal's unsigned
 /// byte offset into the normal array. Those references are not read here.
@@ -627,7 +627,7 @@ u32* tmdBuildStreamGt4Unlit(TmdStreamWorkspace* workspace, s32 objectFlags, u32*
 
 /// Initializes persistent texture fields for flat textured-triangle stream records.
 ///
-/// `tmdProcessStream` selects this construction callback for `0x1C` and `0x1E`.
+/// `tmdBuildBufferHalf` selects this construction callback for `0x1C` and `0x1E`.
 /// Each element reserves one `POLY_FT3` at `workspace->primWrite` in the selected
 /// buffer half's second region. Drawing supplies the positions, packet length,
 /// raw-texture command and ordering-table link; construction sets no colour.
@@ -649,7 +649,7 @@ u32* modelLightingStreamPrimFt3(TmdStreamWorkspace* workspace, s32 objectFlags, 
 
 /// Initializes persistent texture fields for flat textured-quad stream records.
 ///
-/// `tmdProcessStream` selects this construction callback for `0x5C` and `0x5E`.
+/// `tmdBuildBufferHalf` selects this construction callback for `0x5C` and `0x5E`.
 /// Each element reserves one `POLY_FT4` at `workspace->primWrite` in the selected
 /// buffer half's second region. Drawing supplies screen positions, packet
 /// length, the raw-texture command (opaque or semi-transparent) and the
@@ -712,7 +712,7 @@ u32* modelLightingStreamPrimF3(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
 /// Initializes both textures in each layered Gouraud triangle packet pair.
 ///
-/// `tmdProcessStream` selects this construction callback for `0x4038` in stage
+/// `tmdBuildBufferHalf` selects this construction callback for `0x4038` in stage
 /// 2, areas 15 and 16. `elements` starts after the three-word record header.
 /// Words 0..2 pack three vertex and three normal references; words 3 and 4
 /// pack unsigned byte U/V texel coordinates with encoded CLUT and texture-page
@@ -772,7 +772,7 @@ u32* tmdBuildStreamGt3LayeredBase(TmdStreamWorkspace* workspace, s32 objectFlags
 
 /// Initializes both textures in each layered Gouraud quad packet pair.
 ///
-/// `tmdProcessStream` selects this construction callback for `0x4078` in stage
+/// `tmdBuildBufferHalf` selects this construction callback for `0x4078` in stage
 /// 2, areas 15 and 16. `elements` starts after the three-word record header.
 /// Words 0..3 pack four vertex and four normal references; this callback does
 /// not read them. Words 4 and 5 pack unsigned byte U/V texel coordinates with
@@ -806,7 +806,7 @@ u32* tmdBuildStreamGt4OffsetLayer(TmdStreamWorkspace* workspace, s32 objectFlags
 
 /// Initializes the opaque base texture in each layered Gouraud quad packet pair.
 ///
-/// `tmdProcessStream` selects this construction callback for `0x4078` outside
+/// `tmdBuildBufferHalf` selects this construction callback for `0x4078` outside
 /// stage 2, areas 15 and 16, which use `tmdBuildStreamGt4OffsetLayer` instead.
 /// `elements` starts after the three-word record header. Words 0..3 pack four
 /// vertex and four normal byte-offset references used during drawing; this
@@ -838,7 +838,7 @@ u32* tmdBuildStreamGt4LayeredBase(TmdStreamWorkspace* workspace, s32 objectFlags
 
 /// Initializes texture fields in pre-transformed environment/base triangle pairs.
 ///
-/// `tmdProcessStream` selects this construction callback for `0x4039` outside
+/// `tmdBuildBufferHalf` selects this construction callback for `0x4039` outside
 /// stage 2, areas 15 and 16. `elements` starts after the three-word record header.
 /// Words 0..1 contain three u16 depth-cache references used during drawing;
 /// their fourth halfword is ignored. Words 2 and 3 pack unsigned byte U/V texel
@@ -899,7 +899,7 @@ u32* tmdBuildStreamGt4PreXformEnvLayer(TmdStreamWorkspace* workspace, s32 object
 
 /// Initializes texture fields in pre-transformed offset-layer/base triangle pairs.
 ///
-/// `tmdProcessStream` selects this construction callback for opcode `0x4039`
+/// `tmdBuildBufferHalf` selects this construction callback for opcode `0x4039`
 /// in stage 2, areas 15 and 16. `elements` starts after the three-word header.
 /// Words 0..1 contain three u16 depth-cache references for drawing and an
 /// ignored high half; none are read here. Words 2 and 3 pack unsigned byte

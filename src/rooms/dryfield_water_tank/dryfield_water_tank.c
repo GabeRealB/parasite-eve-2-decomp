@@ -1217,7 +1217,7 @@ void func_dryfield_water_tank_8017DD20(Task* arg0)
                 work->playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                 coord->parent    = &gGfxViewCoord;
                 extra->flags     = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-                Tmd_AllocBuffers(extra);
+                tmdAllocPrimitiveBuffer(extra);
                 extra->lightMtx = &work->lightMtx;
                 extra->colorMtx = &work->colorMtx;
                 arg0->msgTable  = D_dryfield_water_tank_8017FD90;

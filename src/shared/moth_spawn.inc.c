@@ -27,8 +27,8 @@ void mothSpawn(Enemy* arg0, Task* arg1)
     coord->composeStamp     = GRAPHICS_COORD_DIRTY;
     obj->texturePageOffset += 1;
     obj->clutRowOffset     += 1;
-    tmdProcessStream(obj);
-    tmdProcessStream(obj);
+    tmdBuildBufferHalf(obj);
+    tmdBuildBufferHalf(obj);
     obj->lightMtx  = &work->lightMtx;
     obj->colorMtx  = &work->colorMtx;
     arg0->field_4  = &coord->coord;

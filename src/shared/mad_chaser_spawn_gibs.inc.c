@@ -23,8 +23,8 @@ void madChaserSpawnGibs(Task* arg0)
         dst->texturePageOffset = src->texturePageOffset;
         dst->clutRowOffset     = src->clutRowOffset;
         if (dst->buffer != NULL) {
-            tmdProcessStream(dst);
-            tmdProcessStream(dst);
+            tmdBuildBufferHalf(dst);
+            tmdBuildBufferHalf(dst);
         }
     }
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
@@ -41,8 +41,8 @@ void madChaserSpawnGibs(Task* arg0)
         dst2->texturePageOffset = src2->texturePageOffset;
         dst2->clutRowOffset     = src2->clutRowOffset;
         if (dst2->buffer != NULL) {
-            tmdProcessStream(dst2);
-            tmdProcessStream(dst2);
+            tmdBuildBufferHalf(dst2);
+            tmdBuildBufferHalf(dst2);
         }
     }
     Gp_SpawnEff(EFFECT_030, &arg0->extra.tmd->coords[1], 0x200, NULL);

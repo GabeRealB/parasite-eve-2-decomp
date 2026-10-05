@@ -80,7 +80,7 @@ s32 sucklercephMessage(Task* arg0, s32 arg1, ActorCommand* request, s32 arg3)
                     work->heading = heading + 0x1000;
                 }
             }
-            Tmd_AllocBuffers(arg0->extra.tmd);
+            tmdAllocPrimitiveBuffer(arg0->extra.tmd);
             arg0->extra.tmd->flags       &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             arg0->extra.tmd->flags       &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
             enemy->node.state.parts.flags = 0;

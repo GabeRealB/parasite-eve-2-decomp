@@ -3960,13 +3960,13 @@ s32 func_actor_444000_8013A958(Task* task, s32 msgId, s32 arg2, s32 arg3)
         case 0:
             buffers = task->work;
             if (tmd->buffer == NULL) {
-                Tmd_AllocBuffers(tmd);
+                tmdAllocPrimitiveBuffer(tmd);
             }
             for (j = 0; j < ARRAY_SIZE(buffers->escorts); j++) {
                 if (buffers->escorts[j] != NULL) {
                     escortTmd = buffers->escorts[j]->task->extra.tmd;
                     if (escortTmd->buffer == NULL) {
-                        Tmd_AllocBuffers(escortTmd);
+                        tmdAllocPrimitiveBuffer(escortTmd);
                     }
                 }
             }
@@ -3992,13 +3992,13 @@ s32 func_actor_444000_8013A958(Task* task, s32 msgId, s32 arg2, s32 arg3)
             hostTmd = task->extra.tmd;
             rebuilt = task->work;
             if (hostTmd->buffer == NULL) {
-                Tmd_AllocBuffers(hostTmd);
+                tmdAllocPrimitiveBuffer(hostTmd);
             }
             for (j = 0; j < ARRAY_SIZE(rebuilt->escorts); j++) {
                 if (rebuilt->escorts[j] != NULL) {
                     escortTmd = rebuilt->escorts[j]->task->extra.tmd;
                     if (escortTmd->buffer == NULL) {
-                        Tmd_AllocBuffers(escortTmd);
+                        tmdAllocPrimitiveBuffer(escortTmd);
                     }
                 }
             }
@@ -4292,13 +4292,13 @@ static void func_actor_444000_8013AFF8(Enemy* enemy, Task* task)
     model   = task->extra.tmd;
     buffers = task->work;
     if (model->buffer == NULL) {
-        Tmd_AllocBuffers(model);
+        tmdAllocPrimitiveBuffer(model);
     }
     for (i = 0; i < ARRAY_SIZE(buffers->escorts); i++) {
         if (buffers->escorts[i] != NULL) {
             escortTmd = buffers->escorts[i]->task->extra.tmd;
             if (escortTmd->buffer == NULL) {
-                Tmd_AllocBuffers(escortTmd);
+                tmdAllocPrimitiveBuffer(escortTmd);
             }
         }
     }
@@ -4747,10 +4747,10 @@ static void func_actor_444000_8013D810(Task* arg0)
         }
         if (work->stateTicks == 2) {
             dying = arg0->work;
-            Tmd_FreeBuffers(arg0->extra.tmd);
+            tmdFreePrimitiveBuffer(arg0->extra.tmd);
             for (j = 0; j < ARRAY_SIZE(dying->escorts); j++) {
                 if (dying->escorts[j] != NULL) {
-                    Tmd_FreeBuffers(dying->escorts[j]->task->extra.tmd);
+                    tmdFreePrimitiveBuffer(dying->escorts[j]->task->extra.tmd);
                 }
             }
         }
@@ -4922,13 +4922,13 @@ static void func_actor_444000_8013E058(Task* task)
         tmd     = task->extra.tmd;
         buffers = task->work;
         if (tmd->buffer == NULL) {
-            Tmd_AllocBuffers(tmd);
+            tmdAllocPrimitiveBuffer(tmd);
         }
         for (j = 0; j < ARRAY_SIZE(buffers->escorts); j++) {
             if (buffers->escorts[j] != NULL) {
                 escortTmd = buffers->escorts[j]->task->extra.tmd;
                 if (escortTmd->buffer == NULL) {
-                    Tmd_AllocBuffers(escortTmd);
+                    tmdAllocPrimitiveBuffer(escortTmd);
                 }
             }
         }
@@ -5304,13 +5304,13 @@ static void func_actor_444000_8013EC84(Task* arg0)
         tmd     = arg0->extra.tmd;
         buffers = arg0->work;
         if (tmd->buffer == NULL) {
-            Tmd_AllocBuffers(tmd);
+            tmdAllocPrimitiveBuffer(tmd);
         }
         for (j = 0; j < ARRAY_SIZE(buffers->escorts); j++) {
             if (buffers->escorts[j] != NULL) {
                 escortTmd = buffers->escorts[j]->task->extra.tmd;
                 if (escortTmd->buffer == NULL) {
-                    Tmd_AllocBuffers(escortTmd);
+                    tmdAllocPrimitiveBuffer(escortTmd);
                 }
             }
         }
@@ -5516,13 +5516,13 @@ static void func_actor_444000_8013FB74(Task* arg0)
         tmd     = arg0->extra.tmd;
         buffers = arg0->work;
         if (tmd->buffer == NULL) {
-            Tmd_AllocBuffers(tmd);
+            tmdAllocPrimitiveBuffer(tmd);
         }
         for (j = 0; j < ARRAY_SIZE(buffers->escorts); j++) {
             if (buffers->escorts[j] != NULL) {
                 escortTmd = buffers->escorts[j]->task->extra.tmd;
                 if (escortTmd->buffer == NULL) {
-                    Tmd_AllocBuffers(escortTmd);
+                    tmdAllocPrimitiveBuffer(escortTmd);
                 }
             }
         }
@@ -5882,13 +5882,13 @@ static void func_actor_444000_80140BBC(Task* arg0)
         tmd     = arg0->extra.tmd;
         buffers = arg0->work;
         if (tmd->buffer == NULL) {
-            Tmd_AllocBuffers(tmd);
+            tmdAllocPrimitiveBuffer(tmd);
         }
         for (j = 0; j < ARRAY_SIZE(buffers->escorts); j++) {
             if (buffers->escorts[j] != NULL) {
                 escortTmd = buffers->escorts[j]->task->extra.tmd;
                 if (escortTmd->buffer == NULL) {
-                    Tmd_AllocBuffers(escortTmd);
+                    tmdAllocPrimitiveBuffer(escortTmd);
                 }
             }
         }
@@ -5965,13 +5965,13 @@ static void func_actor_444000_80140E28(Task* arg0)
         tmd     = arg0->extra.tmd;
         buffers = arg0->work;
         if (tmd->buffer == NULL) {
-            Tmd_AllocBuffers(tmd);
+            tmdAllocPrimitiveBuffer(tmd);
         }
         for (j = 0; j < ARRAY_SIZE(buffers->escorts); j++) {
             if (buffers->escorts[j] != NULL) {
                 escortTmd = buffers->escorts[j]->task->extra.tmd;
                 if (escortTmd->buffer == NULL) {
-                    Tmd_AllocBuffers(escortTmd);
+                    tmdAllocPrimitiveBuffer(escortTmd);
                 }
             }
         }
@@ -6252,8 +6252,8 @@ static void func_actor_444000_80141618(Task* task)
                     model->texturePageOffset = entry->texturePageOffset;
                     model->clutRowOffset     = entry->clutRowOffset;
                     if (model->buffer != NULL) {
-                        tmdProcessStream(model);
-                        tmdProcessStream(model);
+                        tmdBuildBufferHalf(model);
+                        tmdBuildBufferHalf(model);
                     }
                     work->summons[sc->slot]->workType = ENEMY_WORK_PLAIN;
                     escort                            = work->summons[sc->slot];
@@ -6489,7 +6489,7 @@ static void func_actor_444000_80142254(void)
 ///
 /// `freeCountdown` is a countdown armed when the fight hides the models: while it
 /// runs the host is flagged hidden, and the step that takes it to zero also
-/// raises bit 2 and hands every model's buffers back with `Tmd_FreeBuffers`.
+/// raises bit 2 and hands every model's buffers back with `tmdFreePrimitiveBuffer`.
 ///
 /// `hostExposed` selects which of the two bodies is the "live" one -- the host
 /// (`enemy`) or escort 3 (`escorts[3]`) -- and that choice drives the colour
@@ -6546,11 +6546,11 @@ static void func_actor_444000_801423C4(Enemy* enemy, Task* task)
         task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
         if (--escorts->freeCountdown == 0) {
             task->extra.tmd->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-            Tmd_FreeBuffers(task->extra.tmd);
+            tmdFreePrimitiveBuffer(task->extra.tmd);
             for (j = 0; j < ARRAY_SIZE(escorts->escorts); j++) {
                 if (escorts->escorts[j] != NULL) {
                     escorts->escorts[j]->task->extra.tmd->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-                    Tmd_FreeBuffers(escorts->escorts[j]->task->extra.tmd);
+                    tmdFreePrimitiveBuffer(escorts->escorts[j]->task->extra.tmd);
                 }
             }
         }

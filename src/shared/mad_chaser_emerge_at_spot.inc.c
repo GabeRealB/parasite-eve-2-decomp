@@ -22,7 +22,7 @@ void madChaserEmergeAtSpot(Task* arg0)
         work->gridBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
         obj->flags           &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
         if ((arg0->spawnArg1.value & 0xF) != 2) {
-            Tmd_AllocBuffers(obj);
+            tmdAllocPrimitiveBuffer(obj);
             obj->flags &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
         }
         enemy->node.state.parts.flags = 0;

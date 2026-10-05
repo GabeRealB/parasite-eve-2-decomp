@@ -3270,8 +3270,8 @@ void Gp_SpawnArea(GameLocationKey* location)
                                 model->texturePageOffset = placement->texturePageOffset;
                                 model->clutRowOffset     = placement->clutRowOffset;
                                 if (model->buffer != NULL) {
-                                    tmdProcessStream(model);
-                                    tmdProcessStream(model);
+                                    tmdBuildBufferHalf(model);
+                                    tmdBuildBufferHalf(model);
                                 }
                             }
                             if (!(areaState->spawnFlags & AREA_SPAWN_RESTORE_SAVED_POSES)) {
@@ -3639,8 +3639,8 @@ void Gp_SetTmdBytes(TmdObject* arg0, s32 arg1, s32 arg2)
     arg0->texturePageOffset = arg1;
     arg0->clutRowOffset     = arg2;
     if (arg0->buffer != NULL) {
-        tmdProcessStream(arg0);
-        tmdProcessStream(arg0);
+        tmdBuildBufferHalf(arg0);
+        tmdBuildBufferHalf(arg0);
     }
 }
 
@@ -4044,7 +4044,7 @@ void Gp_FreeSlot4TmdBuffers(void)
             if (iter->bodyKind == TASK_BODY_TMD) {
                 obj         = iter->extra.tmd;
                 obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-                Tmd_FreeBuffers(obj);
+                tmdFreePrimitiveBuffer(obj);
             }
             iter = iter->nextSibling;
         } while (iter != child);

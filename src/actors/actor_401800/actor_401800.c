@@ -1280,7 +1280,7 @@ static void func_actor_401800_8013423C(Enemy* enemy, Task* actor)
         default:
             work->prevState = -1;
             work->state     = ODD_STRANGER_STATE_PATROL;
-            Tmd_AllocBuffers(obj);
+            tmdAllocPrimitiveBuffer(obj);
             break;
     }
     switch (actor->spawnArg1.value & 0xF) {
@@ -1418,7 +1418,7 @@ static void func_actor_401800_80136560(Task* arg0)
         obj                                                       = arg0->extra.tmd;
         ((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = 0;
         obj->flags                                                = 0;
-        Tmd_AllocBuffers(obj);
+        tmdAllocPrimitiveBuffer(obj);
         work->hitBody.radius    = 0x12C;
         work->animRequest       = ODD_STRANGER_ANIM_REQUEST_BLEND;
         work->blendActive       = 0;
@@ -1888,7 +1888,7 @@ static void func_actor_401800_80139D60(Task* arg0)
         obj        = arg0->extra.tmd;
         enemy      = arg0->spawnArg2.pointer;
         obj->flags = 0;
-        Tmd_AllocBuffers(obj);
+        tmdAllocPrimitiveBuffer(obj);
         work->hitBody.radius          = 0x12C;
         work->attackBody.flags       &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->gridBody.flags         &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
@@ -1967,7 +1967,7 @@ static void func_actor_401800_8013B784(Task* arg0)
         obj                                                       = arg0->extra.tmd;
         ((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
         obj->flags                                                = 0;
-        Tmd_AllocBuffers(obj);
+        tmdAllocPrimitiveBuffer(obj);
         work->hitBody.radius    = 0x12C;
         work->animRequest       = ODD_STRANGER_ANIM_REQUEST_RESET;
         work->animRate          = 0x10;

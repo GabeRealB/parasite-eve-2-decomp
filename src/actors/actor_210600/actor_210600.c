@@ -497,7 +497,7 @@ static void func_actor_210600_8014B434(Enemy* enemy, Task* task)
 /// Message 0x7D5 handler, listed in `D_actor_210600_8015A4CC`: `arg2` selects
 /// the display mode. 0 hides the model (`TmdObject::flags` = 0x80) and 1 shows
 /// it (flags cleared), both reallocating its buffers through
-/// `Tmd_AllocBuffers`; 2 adds `TMD_OBJECT_SKIP_AUTO_BUFFER` to the flags and any other value sets
+/// `tmdAllocPrimitiveBuffer`; 2 adds `TMD_OBJECT_SKIP_AUTO_BUFFER` to the flags and any other value sets
 /// them to `TMD_OBJECT_SKIP_AUTO_BUFFER` alone. Modes 0 and 2 set `_Actor210600Work::suspended`, which
 /// stops the update state, and the other two clear it. `arg1` is unused.
 s32 func_actor_210600_8014B5F4(Task* task, s32 arg1, s32 arg2, s32 arg3)
@@ -510,12 +510,12 @@ s32 func_actor_210600_8014B5F4(Task* task, s32 arg1, s32 arg2, s32 arg3)
     switch (arg2) {
         case 0:
             obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            Tmd_AllocBuffers(obj);
+            tmdAllocPrimitiveBuffer(obj);
             work->suspended = 1;
             break;
         case 1:
             obj->flags = 0;
-            Tmd_AllocBuffers(obj);
+            tmdAllocPrimitiveBuffer(obj);
             work->suspended = 0;
             break;
         case 2:

@@ -21,8 +21,8 @@ void golemPawnRookGunTick(Enemy* enemy, Task* task)
         dst->texturePageOffset = src->texturePageOffset;
         dst->clutRowOffset     = src->clutRowOffset;
         if (dst->buffer != NULL) {
-            tmdProcessStream(dst);
-            tmdProcessStream(dst);
+            tmdBuildBufferHalf(dst);
+            tmdBuildBufferHalf(dst);
         }
     }
 }

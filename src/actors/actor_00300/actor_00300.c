@@ -1386,8 +1386,8 @@ static void Actor00300_Fn00970(Enemy* enemy, Task* task)
     model->texturePageOffset = entry->texturePageOffset;
     model->clutRowOffset     = entry->clutRowOffset;
     if (model->buffer != NULL) {
-        tmdProcessStream(model);
-        tmdProcessStream(model);
+        tmdBuildBufferHalf(model);
+        tmdBuildBufferHalf(model);
     }
     childTask                     = child->task;
     work->sightCapsule.ends[0].vz = 0x2328;
@@ -2696,8 +2696,8 @@ static void Actor00300_Fn03618(Task* arg0)
         model1->texturePageOffset = entry1->texturePageOffset;
         model1->clutRowOffset     = entry1->clutRowOffset;
         if (model1->buffer != NULL) {
-            tmdProcessStream(model1);
-            tmdProcessStream(model1);
+            tmdBuildBufferHalf(model1);
+            tmdBuildBufferHalf(model1);
         }
     }
 
@@ -2718,8 +2718,8 @@ static void Actor00300_Fn03618(Task* arg0)
         model2->texturePageOffset = entry2->texturePageOffset;
         model2->clutRowOffset     = entry2->clutRowOffset;
         if (model2->buffer != NULL) {
-            tmdProcessStream(model2);
-            tmdProcessStream(model2);
+            tmdBuildBufferHalf(model2);
+            tmdBuildBufferHalf(model2);
         }
     }
 
@@ -2740,8 +2740,8 @@ static void Actor00300_Fn03618(Task* arg0)
         model3->texturePageOffset = entry3->texturePageOffset;
         model3->clutRowOffset     = entry3->clutRowOffset;
         if (model3->buffer != NULL) {
-            tmdProcessStream(model3);
-            tmdProcessStream(model3);
+            tmdBuildBufferHalf(model3);
+            tmdBuildBufferHalf(model3);
         }
     }
 
@@ -2762,8 +2762,8 @@ static void Actor00300_Fn03618(Task* arg0)
         model4->texturePageOffset = entry4->texturePageOffset;
         model4->clutRowOffset     = entry4->clutRowOffset;
         if (model4->buffer != NULL) {
-            tmdProcessStream(model4);
-            tmdProcessStream(model4);
+            tmdBuildBufferHalf(model4);
+            tmdBuildBufferHalf(model4);
         }
     }
 
@@ -2784,8 +2784,8 @@ static void Actor00300_Fn03618(Task* arg0)
         model5->texturePageOffset = entry5->texturePageOffset;
         model5->clutRowOffset     = entry5->clutRowOffset;
         if (model5->buffer != NULL) {
-            tmdProcessStream(model5);
-            tmdProcessStream(model5);
+            tmdBuildBufferHalf(model5);
+            tmdBuildBufferHalf(model5);
         }
     }
 }
@@ -2909,7 +2909,7 @@ common:
             if (work->burstStage != 0) {
                 if (work->burstStage >= 2) {
                     work->burstStage = 0;
-                    Tmd_FreeBuffers(obj);
+                    tmdFreePrimitiveBuffer(obj);
                     obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
                     Actor00300_Fn03618(arg1);
                 } else

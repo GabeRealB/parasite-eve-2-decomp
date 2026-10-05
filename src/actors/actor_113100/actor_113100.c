@@ -1221,8 +1221,8 @@ static void func_actor_113100_80131E58(Task* task)
         model2->texturePageOffset = entry2->texturePageOffset;
         model2->clutRowOffset     = entry2->clutRowOffset;
         if (model2->buffer != NULL) {
-            tmdProcessStream(model2);
-            tmdProcessStream(model2);
+            tmdBuildBufferHalf(model2);
+            tmdBuildBufferHalf(model2);
         }
     }
 
@@ -1242,8 +1242,8 @@ static void func_actor_113100_80131E58(Task* task)
         model3->texturePageOffset = entry3->texturePageOffset;
         model3->clutRowOffset     = entry3->clutRowOffset;
         if (model3->buffer != NULL) {
-            tmdProcessStream(model3);
-            tmdProcessStream(model3);
+            tmdBuildBufferHalf(model3);
+            tmdBuildBufferHalf(model3);
         }
     }
 
@@ -1361,7 +1361,7 @@ static void func_actor_113100_80132104(Task* task)
         }
         if (work->freeCountdown >= 0) {
             if (work->freeCountdown == 0) {
-                Tmd_FreeBuffers(extra);
+                tmdFreePrimitiveBuffer(extra);
             }
             work->freeCountdown--;
         }
@@ -1505,9 +1505,9 @@ static void func_actor_113100_8013264C(Task* task)
 /// actor's own `TmdObject::flags`, whose `TMD_OBJECT_SKIP_ACTIVE_DRAW` bit
 /// excludes active drawing and whose 0x4 is the flag `Tmd_Create` seeds from `flags & 1`:
 /// mode 0 shows the model and clears 0x4; mode 1 hides it, hands the object to
-/// `Tmd_AllocBuffers` and clears 0x4; mode 2 hides it, latches 2 into
+/// `tmdAllocPrimitiveBuffer` and clears 0x4; mode 2 hides it, latches 2 into
 /// `freeCountdown` -- the countdown `func_actor_113100_80132104` walks down to
-/// `Tmd_FreeBuffers` -- and raises 0x4; mode 3 shows it and raises 0x4.
+/// `tmdFreePrimitiveBuffer` -- and raises 0x4; mode 3 shows it and raises 0x4.
 ///
 /// `work` and `work2` are the same `Task::work` read twice. The second read
 /// becomes a register copy at the entry, which is what leaves the block in
@@ -1548,7 +1548,7 @@ s32 func_actor_113100_80132790(Task* task, s32 msgId, s32 mode, s32 arg3)
                 node->flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                 node++;
             }
-            Tmd_AllocBuffers(obj);
+            tmdAllocPrimitiveBuffer(obj);
             obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 2:

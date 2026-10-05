@@ -44,7 +44,7 @@ void reverseWalkUpdate(Task* arg0)
     }
     if (work->freeCountdown >= 0) {
         if (work->freeCountdown == 0) {
-            Tmd_FreeBuffers(ext);
+            tmdFreePrimitiveBuffer(ext);
         }
         work->freeCountdown--;
     }

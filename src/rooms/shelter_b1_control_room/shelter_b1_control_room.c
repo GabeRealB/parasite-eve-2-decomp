@@ -355,8 +355,8 @@ void func_shelter_b1_control_room_8017D7B8(Task* task)
         parts                    = model->coords;
         model->clutRowOffset     = body->clutRowOffset;
         model->texturePageOffset = body->texturePageOffset;
-        tmdProcessStream(model);
-        tmdProcessStream(model);
+        tmdBuildBufferHalf(model);
+        tmdBuildBufferHalf(model);
         model->otOffset        = 0x16;
         model->flags           = TMD_OBJECT_REVERSE_CULLING;
         gGameSession->field_4E = 1;

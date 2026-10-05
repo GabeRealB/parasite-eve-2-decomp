@@ -678,8 +678,8 @@ static void func_actor_350700_80162B30(Task* arg0)
         model->texturePageOffset = place->texturePageOffset;
         model->clutRowOffset     = place->clutRowOffset;
         if (model->buffer != NULL) {
-            tmdProcessStream(model);
-            tmdProcessStream(model);
+            tmdBuildBufferHalf(model);
+            tmdBuildBufferHalf(model);
         }
     }
     spawned = Task_SpawnFromTable(D_actor_350700_801708DC, 2, 0xC, arg0);
@@ -704,8 +704,8 @@ static void func_actor_350700_80162B30(Task* arg0)
         model->texturePageOffset = place->texturePageOffset;
         model->clutRowOffset     = place->clutRowOffset;
         if (model->buffer != NULL) {
-            tmdProcessStream(model);
-            tmdProcessStream(model);
+            tmdBuildBufferHalf(model);
+            tmdBuildBufferHalf(model);
         }
     }
     spawned = Task_SpawnFromTable(D_actor_350700_801708DC, 3, 8, arg0);
@@ -770,7 +770,7 @@ static void func_actor_350700_80162D5C(Task* arg0)
     func_800D7A9C(ext, (VECTOR*)arg0->extra.tmd->coords[1].workm.t, 0, 3);
     if (work->freeCountdown >= 0) {
         if (work->freeCountdown == 0) {
-            Tmd_FreeBuffers(ext);
+            tmdFreePrimitiveBuffer(ext);
         }
         work->freeCountdown--;
     }
@@ -914,7 +914,7 @@ s32 func_actor_350700_80163840(Task* task, s32 arg1, s32 mode, s32 arg3)
             break;
         case 1:
             obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            Tmd_AllocBuffers(obj);
+            tmdAllocPrimitiveBuffer(obj);
             obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 2:

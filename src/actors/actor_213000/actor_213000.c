@@ -550,8 +550,8 @@ static void func_actor_213000_80149E54(Task* task)
         model->texturePageOffset = place->texturePageOffset;
         model->clutRowOffset     = place->clutRowOffset;
         if (model->buffer != NULL) {
-            tmdProcessStream(model);
-            tmdProcessStream(model);
+            tmdBuildBufferHalf(model);
+            tmdBuildBufferHalf(model);
         }
     }
     if (spawned2 != NULL) {
@@ -574,8 +574,8 @@ static void func_actor_213000_80149E54(Task* task)
         model->texturePageOffset = place->texturePageOffset;
         model->clutRowOffset     = place->clutRowOffset;
         if (model->buffer != NULL) {
-            tmdProcessStream(model);
-            tmdProcessStream(model);
+            tmdBuildBufferHalf(model);
+            tmdBuildBufferHalf(model);
         }
     }
     func_actor_213000_8014A6AC(task);
@@ -675,7 +675,7 @@ static void func_actor_213000_8014A35C(Task* task)
     }
     if (!(parentObj->flags & TMD_OBJECT_SKIP_AUTO_BUFFER)) {
         obj->flags &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
-        Tmd_AllocBuffers(obj);
+        tmdAllocPrimitiveBuffer(obj);
     } else {
         obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
     }
@@ -753,7 +753,7 @@ static void func_actor_213000_8014A5D0(Task* task)
     }
     if (work->freeCountdown >= 0) {
         if (work->freeCountdown == 0) {
-            Tmd_FreeBuffers(extra);
+            tmdFreePrimitiveBuffer(extra);
         }
         work->freeCountdown--;
     }
@@ -817,7 +817,7 @@ s32 func_actor_213000_8014A70C(Task* task, s32 arg1, AnimationPlayRequest* msg, 
 
 /// Message-0x7D5 display handler, switching on the message's mode word. Mode
 /// 0 hides the model and clears `TMD_OBJECT_SKIP_AUTO_BUFFER`; 1 shows it, reallocates its buffers
-/// through `Tmd_AllocBuffers` and clears `TMD_OBJECT_SKIP_AUTO_BUFFER`; 2 hides it, sets
+/// through `tmdAllocPrimitiveBuffer` and clears `TMD_OBJECT_SKIP_AUTO_BUFFER`; 2 hides it, sets
 /// `TMD_OBJECT_SKIP_AUTO_BUFFER` and starts
 /// `freeCountdown` at 2, after which the tick frees the buffers; 3
 /// shows it and sets `TMD_OBJECT_SKIP_AUTO_BUFFER`. The handled modes return 0; any other mode changes
@@ -841,7 +841,7 @@ s32 func_actor_213000_8014A8A4(Task* task, s32 arg1, s32 mode, s32 arg3)
             break;
         case 1:
             obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            Tmd_AllocBuffers(obj);
+            tmdAllocPrimitiveBuffer(obj);
             obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 2:

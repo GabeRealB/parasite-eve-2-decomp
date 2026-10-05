@@ -543,7 +543,7 @@ static void func_actor_310600_80161FA0(Task* task)
     }
     if (work->freeCountdown >= 0) {
         if (work->freeCountdown == 0) {
-            Tmd_FreeBuffers(ext);
+            tmdFreePrimitiveBuffer(ext);
         }
         work->freeCountdown--;
     }
@@ -659,7 +659,7 @@ s32 func_actor_310600_8016246C(Task* task, s32 arg1, AnimationPlayRequest* cmd, 
 /// `arg2`. Modes 0 and 2 hide the model: bit 0x80 of `TmdObject.flags` goes on,
 /// the 0x8000 flag comes off the actor's own object, and 0x4 is cleared. Modes 1
 /// and 3 show it: 0x80 comes off, 0x8000 goes on, the buffers are reinstated
-/// through `Tmd_AllocBuffers`, and 0x4 is set. Mode 2 additionally latches
+/// through `tmdAllocPrimitiveBuffer`, and 0x4 is set. Mode 2 additionally latches
 /// `freeCountdown` to 2. Returns 1 for a mode outside 0..3.
 ///
 /// `work` and `w` are the same block on purpose. cse turns the second load of
@@ -701,7 +701,7 @@ s32 func_actor_310600_801625F0(Task* task, s32 arg1, s32 arg2, s32 arg3)
                 p->flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
                 p++;
             }
-            Tmd_AllocBuffers(ext);
+            tmdAllocPrimitiveBuffer(ext);
             ext->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 2:

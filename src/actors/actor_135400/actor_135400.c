@@ -819,12 +819,12 @@ s32 func_actor_135400_801327E8(Task* task, s32 msgId, s32 mode, s32 arg3)
             break;
         case 1:
             obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            Tmd_AllocBuffers(obj);
+            tmdAllocPrimitiveBuffer(obj);
             obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 2:
             obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            Tmd_FreeBuffers(obj);
+            tmdFreePrimitiveBuffer(obj);
             obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 3:
@@ -925,7 +925,7 @@ static void func_actor_135400_801329B0(Task* task)
     step = work->freeCountdown;
     if (step >= 0) {
         if (step == 0) {
-            Tmd_FreeBuffers(ext);
+            tmdFreePrimitiveBuffer(ext);
             step = work->freeCountdown;
         }
         step               -= 1;
@@ -1068,7 +1068,7 @@ s32 func_actor_135400_80132EBC(Task* task, s32 anim, s32 arg2, s32 arg3)
             break;
         case 1:
             obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            Tmd_AllocBuffers(obj);
+            tmdAllocPrimitiveBuffer(obj);
             obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 2:

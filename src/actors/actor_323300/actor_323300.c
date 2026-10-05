@@ -535,7 +535,7 @@ static void func_actor_323300_80161FE8(Task* arg0)
     }
     if (work->freeCountdown >= 0) {
         if (work->freeCountdown == 0) {
-            Tmd_FreeBuffers(extra);
+            tmdFreePrimitiveBuffer(extra);
         }
         work->freeCountdown--;
     }
@@ -586,7 +586,7 @@ s32 func_actor_323300_80162208(Task* arg0, s32 arg1, s32 mode, s32 arg3)
             for (i = 0; i < 1; i++) {
                 flags[i * (sizeof(WorldCollisionBody) / sizeof(*flags))] |= WORLD_COLLISION_BODY_PAIR_ENABLED;
             }
-            Tmd_AllocBuffers(extra);
+            tmdAllocPrimitiveBuffer(extra);
             extra->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 2:
@@ -855,8 +855,8 @@ static void func_actor_323300_80162BE4(Task* arg0)
     extra->texturePageOffset      = 0;
     extra->shading.colorBlend     = TMD_OBJECT_COLOR_BLEND_ONE - 1;
     extra->flags                 &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    tmdProcessStream(extra);
-    tmdProcessStream(extra);
+    tmdBuildBufferHalf(extra);
+    tmdBuildBufferHalf(extra);
     func_actor_323300_80163718(arg0, 0x7D3, &D_actor_323300_80174A74, 0);
     func_actor_323300_8016369C(arg0, 0x7D3, &D_actor_323300_80174AB0, 0);
 

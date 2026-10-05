@@ -85,8 +85,8 @@ void generatorSpawn(Enemy* arg0, Task* arg1)
     model->texturePageOffset = place->texturePageOffset;
     model->clutRowOffset     = place->clutRowOffset;
     if (model->buffer != NULL) {
-        tmdProcessStream(model);
-        tmdProcessStream(model);
+        tmdBuildBufferHalf(model);
+        tmdBuildBufferHalf(model);
     }
     sound                = gGeneratorSpawnSound | ((((Enemy*)arg1->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
     work->runningSoundId = sound;

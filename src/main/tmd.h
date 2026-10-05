@@ -26,8 +26,17 @@ u32* Tmd_DispatchStream(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 // independently of this task.
 void Tmd_DispatchTask(struct Task* task);
 
-/// Gives a buffer back to every attached model that has none, then kills the task.
-void Tmd_AllocNodeBuffers(struct Task* task);
+/// Restores missing attached-model buffers, activates successful allocations and kills the task.
+///
+/// Visits the current `gTmdList` once. Existing buffers and their draw flags
+/// are untouched. For each NULL buffer, attempts an auxiliary-heap allocation
+/// of both source-sized halves, ignoring `TMD_OBJECT_SKIP_AUTO_BUFFER`.
+/// Success resets the half selector, clears only active-pass exclusion and
+/// builds both halves; failure leaves the pointer and flags unchanged.
+/// Models and sources must remain live throughout, with stable capacities and
+/// well-formed streams as required by `tmdBuildBufferHalf`. The auxiliary heap
+/// and scratch stack must be initialized; the task is killed even on failure.
+void tmdRestoreAttachedBuffersTask(struct Task* task);
 
 /// Fallback handler for a stream record the current pass does not consume.
 ///

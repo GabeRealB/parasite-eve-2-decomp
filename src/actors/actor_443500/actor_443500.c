@@ -2529,8 +2529,8 @@ static void func_actor_443500_80132078(Task* task)
         model->texturePageOffset = entry->texturePageOffset;
         model->clutRowOffset     = entry->clutRowOffset;
         if (model->buffer != NULL) {
-            tmdProcessStream(model);
-            tmdProcessStream(model);
+            tmdBuildBufferHalf(model);
+            tmdBuildBufferHalf(model);
         }
     }
     func_actor_443500_8013297C(task, ACTOR_MESSAGE_SET_MODEL_DRAW, 0, 0);
@@ -2625,7 +2625,7 @@ static void func_actor_443500_801321F0(Task* task)
     }
     if (work->freeCountdown >= 0) {
         if (work->freeCountdown == 0) {
-            Tmd_FreeBuffers(extra);
+            tmdFreePrimitiveBuffer(extra);
         }
         work->freeCountdown--;
     }
@@ -2722,7 +2722,7 @@ s32 func_actor_443500_801327E0(Task* task, s32 anim, AnimationPlayRequest* param
 /// missing-buffer recovery.
 ///
 ///   mode 0  hide, clear `TMD_OBJECT_SKIP_AUTO_BUFFER`
-///   mode 1  show, `Tmd_AllocBuffers`, clear `TMD_OBJECT_SKIP_AUTO_BUFFER`
+///   mode 1  show, `tmdAllocPrimitiveBuffer`, clear `TMD_OBJECT_SKIP_AUTO_BUFFER`
 ///   mode 2  hide, latch `mode` in the work block's `freeCountdown`, set `TMD_OBJECT_SKIP_AUTO_BUFFER`
 ///   mode 3  show, set `TMD_OBJECT_SKIP_AUTO_BUFFER`
 ///
@@ -2747,7 +2747,7 @@ s32 func_actor_443500_8013297C(Task* task, s32 anim, s32 mode, s32 arg3)
             break;
         case 1:
             obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            Tmd_AllocBuffers(obj);
+            tmdAllocPrimitiveBuffer(obj);
             obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 2:

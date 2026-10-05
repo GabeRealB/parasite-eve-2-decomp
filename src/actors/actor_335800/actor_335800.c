@@ -1265,8 +1265,8 @@ static void func_actor_335800_80162640(Task* arg0)
         model->texturePageOffset = place->texturePageOffset;
         model->clutRowOffset     = place->clutRowOffset;
         if (model->buffer != NULL) {
-            tmdProcessStream(model);
-            tmdProcessStream(model);
+            tmdBuildBufferHalf(model);
+            tmdBuildBufferHalf(model);
         }
     }
     spawned = Task_SpawnFromTable(D_actor_335800_8016EADC, 2, 8, arg0);
@@ -1290,8 +1290,8 @@ static void func_actor_335800_80162640(Task* arg0)
         model->texturePageOffset = place->texturePageOffset;
         model->clutRowOffset     = place->clutRowOffset;
         if (model->buffer != NULL) {
-            tmdProcessStream(model);
-            tmdProcessStream(model);
+            tmdBuildBufferHalf(model);
+            tmdBuildBufferHalf(model);
         }
     }
     func_actor_335800_80162F9C(arg0);
@@ -1360,7 +1360,7 @@ static void func_actor_335800_80162844(Task* task)
     }
     if (work->freeCountdown >= 0) {
         if (work->freeCountdown == 0) {
-            Tmd_FreeBuffers(ext);
+            tmdFreePrimitiveBuffer(ext);
         }
         work->freeCountdown--;
     }
@@ -1481,7 +1481,7 @@ s32 func_actor_335800_8016343C(Task* task, s32 arg1, s32 mode, s32 arg3)
             break;
         case 1:
             obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            Tmd_AllocBuffers(obj);
+            tmdAllocPrimitiveBuffer(obj);
             obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 2:
@@ -1553,7 +1553,7 @@ static void func_actor_335800_80163568(Task* task)
     }
     if (work->freeCountdown >= 0) {
         if (work->freeCountdown == 0) {
-            Tmd_FreeBuffers(ext);
+            tmdFreePrimitiveBuffer(ext);
         }
         work->freeCountdown--;
     }
@@ -1857,7 +1857,7 @@ s32 func_actor_335800_80163FB8(Task* task, s32 arg1, s32 mode, s32 arg3)
             break;
         case 1:
             obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            Tmd_AllocBuffers(obj);
+            tmdAllocPrimitiveBuffer(obj);
             obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 2:

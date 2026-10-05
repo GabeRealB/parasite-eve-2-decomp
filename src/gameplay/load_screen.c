@@ -165,8 +165,8 @@ void func_800AA548(s32 arg0)
     model                    = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd;
     model->texturePageOffset = 6;
     model->clutRowOffset     = 0;
-    tmdProcessStream(model);
-    tmdProcessStream(model);
+    tmdBuildBufferHalf(model);
+    tmdBuildBufferHalf(model);
     Gp_LoadStageView();
     gameSetTaskSlot(Task_Spawn(1, 0x23, 0, 0), GAME_TASK_SLOT_SCENE);
     gameSetTaskSlot(Task_Spawn(6, 4, 0, 0), GAME_TASK_SLOT_ROOM_EFFECT);

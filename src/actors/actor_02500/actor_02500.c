@@ -1413,8 +1413,8 @@ static void Actor02500_Fn0184C(Task* arg0)
         model1->texturePageOffset = entry1->texturePageOffset;
         model1->clutRowOffset     = entry1->clutRowOffset;
         if (model1->buffer != NULL) {
-            tmdProcessStream(model1);
-            tmdProcessStream(model1);
+            tmdBuildBufferHalf(model1);
+            tmdBuildBufferHalf(model1);
         }
     }
     D_80067704[0] = &_gActor02500ScorpionBurstPincer2;
@@ -1434,8 +1434,8 @@ static void Actor02500_Fn0184C(Task* arg0)
         model2->texturePageOffset = entry2->texturePageOffset;
         model2->clutRowOffset     = entry2->clutRowOffset;
         if (model2->buffer != NULL) {
-            tmdProcessStream(model2);
-            tmdProcessStream(model2);
+            tmdBuildBufferHalf(model2);
+            tmdBuildBufferHalf(model2);
         }
     }
     D_80067704[0] = &_gActor02500ScorpionBurstPincer1;
@@ -1455,8 +1455,8 @@ static void Actor02500_Fn0184C(Task* arg0)
         model3->texturePageOffset = entry3->texturePageOffset;
         model3->clutRowOffset     = entry3->clutRowOffset;
         if (model3->buffer != NULL) {
-            tmdProcessStream(model3);
-            tmdProcessStream(model3);
+            tmdBuildBufferHalf(model3);
+            tmdBuildBufferHalf(model3);
         }
     }
 }
@@ -1572,7 +1572,7 @@ case3:
         goto inc;
     }
     work->burstStage = 0;
-    Tmd_FreeBuffers(obj);
+    tmdFreePrimitiveBuffer(obj);
     obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
     Actor02500_Fn0184C(arg1);
     goto timer;

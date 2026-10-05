@@ -3177,8 +3177,8 @@ static __inline__ void _actor01100SpawnModelEff(Task* task, TmdSource* model)
         tmd->texturePageOffset = owner->texturePageOffset;
         tmd->clutRowOffset     = owner->clutRowOffset;
         if (tmd->buffer != NULL) {
-            tmdProcessStream(tmd);
-            tmdProcessStream(tmd);
+            tmdBuildBufferHalf(tmd);
+            tmdBuildBufferHalf(tmd);
         }
     }
 }
