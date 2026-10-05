@@ -2680,11 +2680,6 @@ void func_dryfield_dilapidated_house_8017E144(Task* task)
 /// has not already banked this clear (`gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene`) -- applies the
 /// room's two area records, raises the progression flags, refills the party
 /// and hands off to the results screen with `Task_Spawn(0, 0x11, 0, 0)`.
-/// States 0..6 share the `advance` tail that walks the task one state on;
-/// `goto advance` from state 1 is the `acropolis_patio` idiom, and the
-/// `do/while (0)` around the shared increment is this project's allocation
-/// lever, not a loop: it weights the task pointer's references by loop depth
-/// so it outranks the `gMcSaveData` base and takes `$s0` instead of `$s1`.
 void func_dryfield_dilapidated_house_8017E2B0(Task* task)
 {
     switch (task->state) {
@@ -2696,7 +2691,7 @@ void func_dryfield_dilapidated_house_8017E2B0(Task* task)
             if (gGameSession->eventState == 2) {
                 Gp_ReleaseStateF0Add(Gp_LookupSlot4(0), 0x1B);
                 gSceneCombatState.signals.bytes.endDelayFrames = 3;
-                goto advance;
+                task->state                                   += 1;
             }
             return;
         case 2:
@@ -2706,13 +2701,9 @@ void func_dryfield_dilapidated_house_8017E2B0(Task* task)
             task->state += 1;
             return;
         case 6:
-            if (gGameSession->battleResetPending == 0) {
-                return;
-            }
-        advance:
-            do {
+            if (gGameSession->battleResetPending != 0) {
                 task->state += 1;
-            } while (0);
+            }
             return;
         case 7:
             if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 9) {
