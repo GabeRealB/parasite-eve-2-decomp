@@ -182,8 +182,8 @@ static void GameMain_Init(void)
     displaySetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
 
     Display_PendingFlip = 0;
-    Gpu_ClearOTag(0);
-    Gpu_ClearOTag(1);
+    gpuClearFrameOrderingTable(0);
+    gpuClearFrameOrderingTable(1);
     Spu_WaitDma();
     Snd_SetMutedVolumes(0);
     Boot_InitCdAudio();
@@ -600,10 +600,11 @@ void displaySetFrameTiming(s32 timingMode)
     }
 }
 
-void Gpu_ClearOTag(s16 tableIdx)
+void gpuClearFrameOrderingTable(s16 bufferIndex)
 {
-    u_long* tableStart = Gpu_OtTags + tableIdx * GPU_ORDERING_TABLE_BUFFER_ENTRIES;
+    u_long* tableStart = Gpu_OtTags + bufferIndex * GPU_ORDERING_TABLE_BUFFER_ENTRIES;
     ClearOTagR(tableStart, GPU_ORDERING_TABLE_BUFFER_ENTRIES);
+    // End at the first frame tag instead of following the SDK's trailing packets.
     *tableStart = GPU_OT_END_PRIM;
 }
 

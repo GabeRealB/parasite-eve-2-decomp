@@ -929,8 +929,8 @@ void Gpu_ResetGraphAndOt(void)
 
     node = PARENT_OF(gTmdList.next, TmdObject, link);
     ResetGraph(1);
-    Gpu_ClearOTag(0);
-    Gpu_ClearOTag(1);
+    gpuClearFrameOrderingTable(0);
+    gpuClearFrameOrderingTable(1);
     while (node != NULL) {
         if (node->buffer != NULL) {
             node->buffer = NULL;

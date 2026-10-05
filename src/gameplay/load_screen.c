@@ -209,8 +209,8 @@ void Gp_BeginSessionTask(Task* arg0)
     ds               = &gDisplayState;
     ds->stopTaskWalk = 1;
     taskResetDefaultList();
-    Gpu_ClearOTag(0);
-    Gpu_ClearOTag(1);
+    gpuClearFrameOrderingTable(0);
+    gpuClearFrameOrderingTable(1);
     one = 1;
     Mem_Init();
     CdCmd_ActivatePhase1();

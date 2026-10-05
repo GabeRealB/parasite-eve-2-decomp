@@ -343,7 +343,7 @@ static void Display_FlipOtAlt(void)
     buf            = temp->otBuffer ^ 1;
     temp->otBuffer = buf;
     gGpuCurrentOt  = Gpu_OtTags + buf * GPU_ORDERING_TABLE_BUFFER_ENTRIES;
-    Gpu_ClearOTag(temp->otBuffer);
+    gpuClearFrameOrderingTable(temp->otBuffer);
     gGpuCurrentOt = gGpuCurrentOt + GPU_ORDERING_TABLE_RESERVED_ENTRIES;
     taskExecListForPriority(&gTaskDefaultList, 0x62);
     Gp_DrawActorTmdFlagged(&Gpu_OtBuffers[temp->otBuffer]);

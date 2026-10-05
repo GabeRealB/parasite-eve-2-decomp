@@ -817,8 +817,8 @@ static void Gp_ReloadFromSave(void)
     save                  = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
     slot->spawnArg1.value = save->state.location.loc.view;
     ResetGraph(1);
-    Gpu_ClearOTag(0);
-    Gpu_ClearOTag(1);
+    gpuClearFrameOrderingTable(0);
+    gpuClearFrameOrderingTable(1);
     gGameSession->location.loc.view = save->state.location.loc.view;
     Pad_SetCooldown(0);
     Gp_SpawnCurView(2);

@@ -139,7 +139,13 @@ extern GsOT Gpu_OrderingTables[2];
 /// or retain the cursor across display/frame changes.
 extern void* gGpuPrimCursor;
 
-void Gpu_ClearOTag(s16 tableIdx);
+/// Discards the primitives linked into one resident frame ordering table.
+///
+/// `bufferIndex` selects buffer 0 or 1. Rebuilds all 1088 tags as a reverse
+/// DMA chain ending at the first tag, including the reserved foreground tags.
+/// Call once GPU drawing has finished using the selected table. The current
+/// ordering-table base and primitive storage retain their existing values.
+void gpuClearFrameOrderingTable(s16 bufferIndex);
 
 /// Configure the two draw/display environments from packed setup bits.
 ///

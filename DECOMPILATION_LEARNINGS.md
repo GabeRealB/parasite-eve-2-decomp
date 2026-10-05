@@ -36904,7 +36904,7 @@ slots around the POLY_FT4 XY stores).
 `expected/` is gitignored and assembled from splat `glabel`s. Renaming a
 function in C and `sym.*.txt` does not refresh those objects. objdiff then
 shows the old auto-name (`F179D4_ClearOTag`, `F16494_ResetSpuAttr`,
-`F04CF8_800148A0`, …) at 0% beside the compiled name (`Gpu_ClearOTag`,
+`F04CF8_800148A0`, …) at 0% beside the compiled name (`gpuClearFrameOrderingTable`,
 `Spu_ResetCommonAttr`, `Boot_WaitCdAudioReady`), even though the linked
 binary still matches.
 

@@ -463,8 +463,8 @@ static void Display_TransitionTask(Task* task)
                 if (!(Stage_Ctx->requestFlags & STAGE_REQUEST_KEEP_VIEW)) {
                     (gameGetTaskSlot(GAME_TASK_SLOT_VIEW_GATE))->spawnArg1.value = gGameSession->location.loc.view;
                     ResetGraph(1);
-                    Gpu_ClearOTag(0);
-                    Gpu_ClearOTag(1);
+                    gpuClearFrameOrderingTable(0);
+                    gpuClearFrameOrderingTable(1);
                     memInitAuxHeap();
                     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = gGameSession->location.loc.view;
                     Pad_SetCooldown(0);
