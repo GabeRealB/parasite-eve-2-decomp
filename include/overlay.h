@@ -136,20 +136,28 @@ typedef struct {
 } OverlayCoordChainScratch;
 STATIC_ASSERT_SIZEOF(OverlayCoordChainScratch, 0x20);
 
-/// Wraps an angle into [-0x800, 0x800], spelled with backward jumps.
+/// Wraps an angle into [-0x800, 0x800].
+///
+/// Each loop tests at its top and jumps back from its bottom, with no second
+/// copy of the test: written `while (cond)` the compiler rotates the loop and
+/// duplicates the exit test, which the callers' code does not have.
 static __inline__ s16 overlayWrapAngle(s16 angle)
 {
     if (angle < 0) {
-    wrapUp:
-        if (angle < -0x800) {
-            angle += 0x1000;
-            goto wrapUp;
+        while (1) {
+            if (angle < -0x800) {
+                angle += 0x1000;
+                continue;
+            }
+            break;
         }
     } else {
-    wrapDown:
-        if (angle > 0x800) {
-            angle -= 0x1000;
-            goto wrapDown;
+        while (1) {
+            if (angle > 0x800) {
+                angle -= 0x1000;
+                continue;
+            }
+            break;
         }
     }
     return angle;
