@@ -2243,7 +2243,7 @@ void func_mist_shooting_gallery_80182064(Task* task)
 
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         spriteQuadDraw(coord, work->index, 0x600, work->angle);
-        beamStripDraw(coord, &work->pos, work->index, 0x600);
+        _beamStripDraw(coord, &work->pos, work->index, 0x600);
         rgb[0] = work->scale >> 1;
         rgb[1] = work->scale >> 1;
         rgb[2] = work->scale;
@@ -2275,7 +2275,7 @@ void func_mist_shooting_gallery_80182064(Task* task)
         case 1:
             if (work->age & 1) {
                 spriteQuadDraw(coord, ++work->index, 0x400, work->angle);
-                beamStripDraw(coord, &work->pos, work->index, 0x400);
+                _beamStripDraw(coord, &work->pos, work->index, 0x400);
             }
             rgb[0] = work->scale >> 1;
             rgb[1] = work->scale >> 1;

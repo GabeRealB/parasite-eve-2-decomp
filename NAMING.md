@@ -440,6 +440,12 @@ textures. Its interface is `src/shared/sprite_quad.h`; its configuration macros
 use `SPRITE_QUAD_`. The frame-type binding selects each static instance's 16-bit
 texture-frame argument, including its signedness.
 
+`beamStrip` owns the included additive textured parallelogram between a cached
+world translation and a world-space endpoint, used by Hammer's shock trails and
+the M.I.S.T. shooting-gallery tracer. Its interface is `src/shared/beam_strip.h`;
+each carrier's drawer is static. `BEAM_STRIP_` constants describe the four-cell
+texture layout and perspective sizing.
+
 `modelMorph` owns the included deformation of a TMD model by a ramp: scaled
 vertex deltas added to a snapshot of the rest shape, and normals interpolated
 toward a target set. Its interface is `src/shared/model_morph.h`. The record

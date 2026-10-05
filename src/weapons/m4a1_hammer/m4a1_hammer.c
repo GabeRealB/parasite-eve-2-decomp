@@ -189,7 +189,7 @@ void func_m4a1_hammer_8011D1E0(Task* task)
                                 work->pos.vx = work->pos.vx + (u16)D_m4a1_hammer_8012D668.vx;
                                 work->pos.vy = work->pos.vy + (u16)D_m4a1_hammer_8012D668.vy;
                                 work->pos.vz = work->pos.vz + (u16)D_m4a1_hammer_8012D668.vz;
-                                beamStripDraw(coord, &work->pos, work->age, 0x280);
+                                _beamStripDraw(coord, &work->pos, work->age, 0x280);
                             }
                         }
                         lightSlot->framesLeft = 4;
@@ -287,7 +287,7 @@ void func_m4a1_hammer_8011DD08(Task* arg0)
             if (mem->age & 1) {
                 spriteQuadDraw(coord, ++mem->index, 0x400, mem->angle);
                 if (mem->age < 8) {
-                    beamStripDraw(coord, &D_m4a1_hammer_8012D668, mem->index, 0x280);
+                    _beamStripDraw(coord, &D_m4a1_hammer_8012D668, mem->index, 0x280);
                 }
             }
             if (mem->age >= 0x19) {
@@ -1255,5 +1255,5 @@ Task* D_m4a1_hammer_8012D660 = NULL;
 /// vector that follows.
 static s32 s_unused_8012D664 = 0;
 
-/// Offset vector handed to the `beamStripDraw` sprite draw.
+/// World-space endpoint supplied to `_beamStripDraw`.
 SVECTOR D_m4a1_hammer_8012D668 = { 0, 0, 0, 0 };
