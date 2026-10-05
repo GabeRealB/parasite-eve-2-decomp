@@ -434,6 +434,6 @@ void func_dryfield_souvenir_shop_8017DFD4(Task* task)
 {
     GfxCoord* coord = task->extra.coordBody->coord;
 
-    glowDrawGreyPrism(coord, 0);
-    glowDrawGreyPrism(coord, 8);
+    _glowDrawGreyPrism(coord, 0);
+    _glowDrawGreyPrism(coord, 8);
 }

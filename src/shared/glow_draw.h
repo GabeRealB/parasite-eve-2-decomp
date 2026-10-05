@@ -8,9 +8,9 @@
  *
  * Include this header in the prologue and each glow_draw_<shape>.inc.c at the
  * position of that helper. A package includes only the helpers it carries. The
- * TU-local drawers have static declarations in their carriers. Drawers called
- * from other files in a package retain external linkage. glowDrawPrism reads
- * its corners from the package's gGlowPrismCorners.
+ * TU-local drawers have static declarations in this header or their carriers.
+ * Drawers called from other files in a package retain external linkage. The
+ * prism drawers read their corners from the package's gGlowPrismCorners.
  */
 
 #ifndef SRC_SHARED_GLOW_DRAW_H
@@ -121,12 +121,12 @@ void glowDrawDimGreyCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 s
 /// The shift must be 0..7; colour bytes wrap. Rejects negative GTE flags and
 /// requires nonzero depth. Borrows `worldPoint` for the call and queues twenty
 /// additive quads plus blend commands in the current frame.
-void glowDrawTintedDiscNoBias(const SVECTOR* worldPoint, s32 radiusScale, s32 packedColor);
-void glowDrawFactorDisc(SVECTOR* worldPoint, s32 radiusScale, s32 packedColor);
-void glowDrawBitDisc(SVECTOR* worldPoint, s32 radiusScale, s32 packedColor);
-void glowDrawWideDiamond(SVECTOR* arg0, s32 arg1, s32 arg2);
-void glowDrawPrism(GfxCoord* coord, s16 arg1);
-void glowDrawTaperedBeam(GfxCoord* arg0, SVECTOR* arg1, SVECTOR* arg2, s32 arg3);
+void        glowDrawTintedDiscNoBias(const SVECTOR* worldPoint, s32 radiusScale, s32 packedColor);
+static void _glowDrawFactorDisc(const SVECTOR* worldPoint, s32 radiusScale, s32 packedColor);
+static void _glowDrawBitDisc(const SVECTOR* worldPoint, s32 radiusScale, s32 packedColor);
+static void _glowDrawWideDiamond(const SVECTOR* worldPoint, s32 pulseRate, s32 radiusScale);
+static void _glowDrawPrism(const GfxCoord* coord, s16 firstCorner);
+static void _glowDrawTaperedBeam(const GfxCoord* coord, const SVECTOR* startPoint, const SVECTOR* endPoint, s32 radiusScale);
 
 /// Draws one additive fan blade around a coordinate's world origin.
 ///
@@ -196,9 +196,9 @@ void glowDrawFlameDisc(const GfxCoord* coord, s16 radiusScale, s16 intensity);
 /// vertex's camera Z / 4 plus one.
 void glowDrawFlameRing(const GfxCoord* coord, s16 innerRadius, s32 width, s16 intensity);
 
-void glowDrawGreyPrism(GfxCoord* coord, s16 arg1);
+static void _glowDrawGreyPrism(const GfxCoord* coord, s16 firstCorner);
 
-void glowDrawStarLocal(GfxCoord* arg0, SVECTOR* arg1, s32 arg2, s32 arg3);
+static void _glowDrawStarLocal(GfxCoord* coord, const SVECTOR* localPoint, s32 pulseRate, s32 radiusScale);
 
 /// Draws a pulsing red diamond with two diagonals around a world point.
 ///
@@ -211,7 +211,7 @@ void glowDrawStarLocal(GfxCoord* arg0, SVECTOR* arg1, s32 arg2, s32 arg3);
 /// during the call and queues four additive packets plus blend commands.
 void glowDrawPulsingStar(const SVECTOR* worldPoint, s16 pulseRate, s32 radiusScale);
 
-void glowDrawGreyCapsule(SVECTOR* arg0, s32 arg1, s32 arg2);
+static void _glowDrawGreyCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 startAngle);
 
 void glowDrawTwinShafts(GfxCoord* coord);
 

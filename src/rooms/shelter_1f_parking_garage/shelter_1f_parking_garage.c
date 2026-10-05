@@ -551,7 +551,7 @@ void func_shelter_1f_parking_garage_8017DF6C(Task* arg0)
         }
         case 4: {
             SVECTOR* p = D_shelter_1f_parking_garage_80180C4C;
-            glowDrawFactorDisc(&p[0], 0x300, 0x200);
+            _glowDrawFactorDisc(&p[0], 0x300, 0x200);
             _glowDrawAngledCapsule(&p[-12], 0x200, 0x800, 0x210);
             _glowDrawAngledCapsule(&p[-6], 0x200, 0, 0x210);
             break;

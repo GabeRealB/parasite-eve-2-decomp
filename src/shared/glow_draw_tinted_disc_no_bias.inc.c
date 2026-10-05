@@ -1,6 +1,10 @@
 /* Part of the glow drawing library; see glow_draw.h. */
 
-/// Sets a tinted wedge's coloured centre and black rim in an allocated quad.
+/// Initializes the packet type and colour gradient of an allocated tinted wedge.
+///
+/// Borrows one writable `POLY_G4`; RGB inputs narrow to bytes at vertex 2,
+/// and vertices 0/1/3 are black. Allocation, coordinates, ordering-table link
+/// and blend command remain the caller's responsibility.
 static inline void _glowInitTintedDiscWedge(POLY_G4* prim, s32 red, s32 green, s32 blue)
 {
     setPolyG4(prim);

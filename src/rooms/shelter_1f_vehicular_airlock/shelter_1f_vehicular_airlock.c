@@ -477,7 +477,7 @@ void func_shelter_1f_vehicular_airlock_8017DAA0(Task* task)
             _glowDrawAngledCapsule(&p[2], 0x200, 0x800, 0x210);
             _glowDrawAngledCapsule(&p[6], 0x200, 0, 0x210);
             _glowDrawAngledCapsule(&p[8], 0x200, 0, 0x210);
-            glowDrawFactorDisc(&p[12], 0x200, 0x200);
+            _glowDrawFactorDisc(&p[12], 0x200, 0x200);
             break;
         }
         case 3: {
@@ -493,9 +493,9 @@ void func_shelter_1f_vehicular_airlock_8017DAA0(Task* task)
                 func_shelter_1f_vehicular_airlock_8017E80C(&p[16], 0xC0, 0x120, 0x210);
                 func_shelter_1f_vehicular_airlock_8017E80C(&p[17], -0xC0, 0x120, 0x210);
             } else {
-                glowDrawFactorDisc(&p[15], 0x180, 0x21);
-                glowDrawFactorDisc(&p[16], 0x140, 0x210);
-                glowDrawFactorDisc(&p[17], 0x140, 0x210);
+                _glowDrawFactorDisc(&p[15], 0x180, 0x21);
+                _glowDrawFactorDisc(&p[16], 0x140, 0x210);
+                _glowDrawFactorDisc(&p[17], 0x140, 0x210);
             }
             break;
         }

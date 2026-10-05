@@ -1,6 +1,11 @@
 /* Part of the glow drawing library; see glow_draw.h. */
 
-/// Reserves a Gouraud quad with a coloured centre and a black rim.
+/// Allocates a flame-coloured, centre-lit Gouraud wedge in the frame packet arena.
+///
+/// Requires space for one `POLY_G4`. Vertex 2 uses `(intensity, intensity >> 1,
+/// intensity >> 2)` with signed shifts and byte narrowing; vertices 0/1/3 are
+/// black. Normal intensity is 0..255. The caller supplies coordinates, the
+/// ordering-table link and blend command. The packet lives until GPU completion.
 static inline POLY_G4* _glowAllocateFlameDiscWedge(s16 intensity)
 {
     POLY_G4* prim;

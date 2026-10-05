@@ -2491,12 +2491,12 @@ void func_dryfield_night_dilapidated_house_8017E670(Task* arg0)
     mask  = 1 << gGameSession->location.loc.view;
     actorRenderComposeCoord(coord);
     if (mask & 0x99C) {
-        glowDrawPrism(coord, 0);
+        _glowDrawPrism(coord, 0);
     }
     if (mask & 0x998) {
-        glowDrawPrism(coord, 8);
+        _glowDrawPrism(coord, 8);
     }
     if (mask & 0x9F8) {
-        glowDrawPrism(coord, 0x10);
+        _glowDrawPrism(coord, 0x10);
     }
 }

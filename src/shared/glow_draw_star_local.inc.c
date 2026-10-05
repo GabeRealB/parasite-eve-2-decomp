@@ -1,33 +1,65 @@
 /* Part of the glow drawing library; see glow_draw.h. */
 
-/// Draws a pulsing light shaft at a point in `arg0`'s space. `arg1` is rotated
-/// by the coordinate's `workm` and offset by its translation, then projected
-/// through `GsWSMATRIX` into a `RoomGlowSpriteScratch` block; nothing is
-/// drawn when `otz` is 0x10 or less. Two gouraud `POLY_G4` halves of half width
-/// `(s16)arg3 * 32 / otz` and two `LINE_G3` diagonals meet at the projected
-/// point, whose vertex pulses cyan as `rsin(animFrame * arg2) / 34 + 0x78`.
-void glowDrawStarLocal(GfxCoord* arg0, SVECTOR* arg1, s32 arg2, s32 arg3)
+/// Allocates a centre-lit Gouraud quad in the current frame packet arena.
+///
+/// Requires one packet's space; colours narrow to bytes. The caller supplies
+/// coordinates, ordering-table linkage and the blend command.
+static inline POLY_G4* _glowAllocateLocalStarHalf(s32 cyanIntensity)
 {
+    POLY_G4* prim;
+
+    prim           = gGpuPrimCursor;
+    gGpuPrimCursor = prim + 1;
+    setPolyG4(prim);
+    setRGB0(prim, 0, 0, 0);
+    setRGB1(prim, 0, 0, 0);
+    setRGB2(prim, 0, cyanIntensity, cyanIntensity);
+    setRGB3(prim, 0, 0, 0);
+    return prim;
+}
+
+/// Draws a pulsing additive cyan diamond with diagonal rays at a local point.
+///
+/// Composes `coord`, then rotates and translates the borrowed `localPoint`
+/// into world components narrowed to signed 16 bits. Projects through
+/// `GsWSMATRIX` and requires camera Z / 4 depth of at least 17; projection
+/// flags are not tested. The signed low halfword of `radiusScale` gives a
+/// pixel half-extent of `radiusScale * 32 / depth`.
+///
+/// `pulseRate` uses its signed low halfword in 4096 units per turn per frame;
+/// cyan intensity is `rsin(animFrame * pulseRate) / 34 + 120`. Two quad halves
+/// and two three-vertex diagonal rays meet at the lit centre and fade to black.
+/// Queues four packets and additive blend commands in the current frame arena.
+static void _glowDrawStarLocal(GfxCoord* coord, const SVECTOR* localPoint, s32 pulseRate, s32 radiusScale)
+{
+    enum {
+        GLOW_LOCAL_STAR_PULSE_DIVISOR = 34,
+        GLOW_LOCAL_STAR_CYAN_BASE     = 120,
+        GLOW_LOCAL_STAR_MIN_DEPTH     = 17,
+        GLOW_LOCAL_STAR_RADIUS_SHIFT  = 5,
+    };
+
     RoomGlowSpriteScratch* block;
     POLY_G4*               prim;
     LINE_G3*               line;
-    s32                    i;
-    s32                    color;
-    s32                    pulse;
-    s32                    twice;
-    s32                    t;
-    s32                    t2;
+    s32                    partIndex;
+    s32                    cyanIntensity;
+    s32                    pulseSine;
+    s32                    verticalSide;
+    s32                    xRadiusMultiple;
+    s32                    yRadiusMultiple;
 
-    actorRenderComposeCoord(arg0);
+    // Composition updates the coordinate; the borrowed local point remains unchanged.
+    actorRenderComposeCoord(coord);
     block = SCRATCH_STACK_RESERVE_BLOCK(RoomGlowSpriteScratch);
 
-    gte_SetRotMatrix(&arg0->workm);
-    gte_ldv0(arg1);
+    gte_SetRotMatrix(&coord->workm);
+    gte_ldv0(localPoint);
     gte_rtv0();
     gte_stsv(&block->worldPos);
-    block->worldPos.vx += arg0->workm.t[0];
-    block->worldPos.vy += arg0->workm.t[1];
-    block->worldPos.vz += arg0->workm.t[2];
+    block->worldPos.vx += coord->workm.t[0];
+    block->worldPos.vy += coord->workm.t[1];
+    block->worldPos.vz += coord->workm.t[2];
 
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
@@ -35,52 +67,48 @@ void glowDrawStarLocal(GfxCoord* arg0, SVECTOR* arg1, s32 arg2, s32 arg3)
     gte_rtps();
     gte_stsxy(&block->screenPos);
     gte_stszotz(&block->otz);
-    if (block->otz >= 0x11) {
-        pulse             = rsin(gDisplayState.animFrame * (s16)arg2);
-        i                 = 0;
-        block->halfExtent = ((s16)arg3 << 5) / block->otz;
-        color             = pulse / 34 + 0x78;
+    if (block->otz >= GLOW_LOCAL_STAR_MIN_DEPTH) {
+        pulseSine         = rsin(gDisplayState.animFrame * (s16)pulseRate);
+        partIndex         = 0;
+        block->halfExtent = ((s16)radiusScale << GLOW_LOCAL_STAR_RADIUS_SHIFT) / block->otz;
+        cyanIntensity     = pulseSine / GLOW_LOCAL_STAR_PULSE_DIVISOR + GLOW_LOCAL_STAR_CYAN_BASE;
+        // Fill the diamond with two centre-lit halves.
         do {
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, 0, color, color);
-            setRGB3(prim, 0, 0, 0);
+            prim     = _glowAllocateLocalStarHalf(cyanIntensity);
             prim->x0 = block->screenPos.vx - block->halfExtent;
             prim->x1 = prim->x2 = block->screenPos.vx;
             prim->x3            = block->screenPos.vx + block->halfExtent;
             prim->y0 = prim->y2 = prim->y3 = block->screenPos.vy;
-            twice                          = i << 1;
-            prim->y1                       = (block->screenPos.vy - block->halfExtent) + block->halfExtent * twice;
+            verticalSide                   = partIndex << 1;
+            prim->y1                       = (block->screenPos.vy - block->halfExtent) + block->halfExtent * verticalSide;
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
             gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
-            i++;
-        } while (i < 2);
+            partIndex++;
+        } while (partIndex < 2);
 
-        i = 0;
+        // Overlay two diagonal rays through the same lit centre.
+        partIndex = 0;
         do {
             line           = gGpuPrimCursor;
             gGpuPrimCursor = line + 1;
             setLineG3(line);
             setRGB0(line, 0, 0, 0);
-            setRGB1(line, 0, color, color);
+            setRGB1(line, 0, cyanIntensity, cyanIntensity);
             setRGB2(line, 0, 0, 0);
-            t        = i * 3 - 1;
-            t2       = i + 1;
-            line->x0 = block->screenPos.vx + (block->halfExtent * t);
-            line->y0 = block->screenPos.vy - (block->halfExtent * t2);
-            line->x1 = block->screenPos.vx;
-            line->y1 = block->screenPos.vy;
-            line->x2 = block->screenPos.vx - (block->halfExtent * t);
-            line->y2 = block->screenPos.vy + (block->halfExtent * t2);
-            addPrim((&gGpuCurrentOt[((u32)block->otz << gDisplayState.otDepthShift) >> 4 & 0x3FF]),
+            xRadiusMultiple = partIndex * 3 - 1;
+            yRadiusMultiple = partIndex + 1;
+            line->x0        = block->screenPos.vx + (block->halfExtent * xRadiusMultiple);
+            line->y0        = block->screenPos.vy - (block->halfExtent * yRadiusMultiple);
+            line->x1        = block->screenPos.vx;
+            line->y1        = block->screenPos.vy;
+            line->x2        = block->screenPos.vx - (block->halfExtent * xRadiusMultiple);
+            line->y2        = block->screenPos.vy + (block->halfExtent * yRadiusMultiple);
+            addPrim((&gGpuCurrentOt[((u32)block->otz << gDisplayState.otDepthShift) >> 4 & (GPU_ORDERING_TABLE_DEPTH_BYTE_MASK >> 2)]),
                     line);
             gpuSetPrimitiveBlendMode(line, GPU_BLEND_ADD, block->otz);
-            i = t2;
-        } while (i < 2);
+            partIndex = yRadiusMultiple;
+        } while (partIndex < 2);
     }
     SCRATCH_STACK_RELEASE_BLOCK(RoomGlowSpriteScratch);
 }

@@ -980,7 +980,7 @@ void func_dryfield_night_junk_yard_8017DA14(Task* task)
         case 2:
         case 8: {
             SVECTOR* p = D_dryfield_night_junk_yard_8018073C;
-            glowDrawGreyCapsule(&p[0], 0x180, 0x400);
+            _glowDrawGreyCapsule(&p[0], 0x180, 0x400);
             glowDrawFlareClipped(&p[3], 0, 0x300);
             glowDrawFlareClipped(&p[4], 0, 0x300);
             glowDrawFlareClipped(&p[5], 2, 0x300);
@@ -998,7 +998,7 @@ void func_dryfield_night_junk_yard_8017DA14(Task* task)
         case 5:
         case 10: {
             SVECTOR* p = D_dryfield_night_junk_yard_8018073C;
-            glowDrawGreyCapsule(&p[0], 0x180, 0);
+            _glowDrawGreyCapsule(&p[0], 0x180, 0);
             glowDrawFlareClipped(&p[2], 0, 0x300);
             glowDrawFlareClipped(&p[3], 0, 0x300);
             glowDrawFlareClipped(&p[6], 1, 0x200);
@@ -1006,7 +1006,7 @@ void func_dryfield_night_junk_yard_8017DA14(Task* task)
         }
         case 7: {
             SVECTOR* p = D_dryfield_night_junk_yard_8018073C;
-            glowDrawGreyCapsule(&p[0], 0x180, 0);
+            _glowDrawGreyCapsule(&p[0], 0x180, 0);
             glowDrawFlareClipped(&p[2], 0, 0x300);
             glowDrawFlareClipped(&p[3], 0, 0x300);
             break;

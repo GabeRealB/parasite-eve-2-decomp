@@ -173,4 +173,4 @@ _glowDrawBeam = 0x80180934; // type:func
 _glowDrawTintedDisc = 0x801814C0; // type:func
 roomEventGate = 0x8017FF40; // type:func
 roomEventTask = 0x801800A4; // type:func
-glowDrawBitDisc = 0x8018111C; // type:func
+_glowDrawBitDisc = 0x8018111C; // type:func

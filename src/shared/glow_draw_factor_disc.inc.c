@@ -1,93 +1,100 @@
 /* Part of the glow drawing library; see glow_draw.h. */
 
-/// Draws a glow at a world-space point: projects `worldPoint` through
-/// `gGfxViewCoord.workm` and, when the resulting OTZ is at least 0x11, queues
-/// four gouraud `POLY_G4` wedges around the projected centre, dark at the rim
-/// and coloured at the centre. The on-screen radius is `(s16)radiusScale * 64 / otz`.
-/// The centre colour takes red from bits 8..15 of `packedColor` and green and blue
-/// from two-bit fields at bits 4 and 0, each scaled by a brightness that
-/// alternates with the frame counter.
+/// Allocates a centre-lit Gouraud quad in the current frame packet arena.
 ///
-/// `worldPoint` uses world coordinates; `radiusScale` is narrowed to signed 16 bits
-/// before division by camera depth/4. Angles use 4096 units per turn and the
-/// trigonometric coordinates use a 12-bit fractional scale. Colour bytes wrap.
-void glowDrawFactorDisc(SVECTOR* worldPoint, s32 radiusScale, s32 packedColor)
+/// Requires one packet's space; colours narrow to bytes. The caller supplies
+/// coordinates, ordering-table linkage and the blend command.
+static inline POLY_G4* _glowAllocateFactorDiscWedge(u8 red, u8 green, u8 blue)
+{
+    POLY_G4* prim;
+
+    prim           = gGpuPrimCursor;
+    gGpuPrimCursor = prim + 1;
+    setPolyG4(prim);
+    setRGB0(prim, 0, 0, 0);
+    setRGB1(prim, 0, 0, 0);
+    setRGB2(prim, red, green, blue);
+    setRGB3(prim, 0, 0, 0);
+    return prim;
+}
+
+/// Draws an additive disc with a red-byte factor and two-bit green/blue factors.
+///
+/// Borrows `worldPoint` for view projection. Depth is camera Z / 4 and must
+/// be at least 17; projection flags are not tested. The signed low halfword
+/// of `radiusScale` gives a pixel radius of `radiusScale * 64 / depth`.
+/// Four centre-lit Gouraud wedges fade to a black rim.
+///
+/// `packedColor` bits 8..15 supply the red factor, bits 4..5 the green factor
+/// and bits 0..1 the blue factor. Factors multiply the frame-parity intensity
+/// 32/40; colour bytes wrap, and the signed red extraction is retained. Queues
+/// four quads and additive blend commands in the current frame packet arena.
+static void _glowDrawFactorDisc(const SVECTOR* worldPoint, s32 radiusScale, s32 packedColor)
 {
     enum {
-        ROOM_VISUAL_EFFECTS_GLOW_MIN_DEPTH       = 17,
-        ROOM_VISUAL_EFFECTS_GLOW_BRIGHTNESS_BASE = 0x20,
-        ROOM_VISUAL_EFFECTS_GLOW_BRIGHTNESS_STEP = 8,
-        ROOM_VISUAL_EFFECTS_GLOW_TRIG_SHIFT      = 12,
-        ROOM_VISUAL_EFFECTS_GLOW_FULL_TURN       = 0x1000,
+        GLOW_MIN_DEPTH         = 17,
+        GLOW_BRIGHTNESS_BASE   = 0x20,
+        GLOW_BRIGHTNESS_STEP   = 8,
+        GLOW_TRIG_SHIFT        = 12,
+        GLOW_FULL_TURN         = 0x1000,
+        GLOW_DISC_RADIUS_SCALE = 64,
+        GLOW_DISC_WEDGE_ANGLE  = 0x400,
     };
 
-    u8*                      head;
+    GlowCentreRadiusScratch* previousTop;
     GlowCentreRadiusScratch* block;
     POLY_G4*                 prim;
-    DisplayState*            displayBase;
-    DisplayState*            ds;
+    DisplayState*            displayState;
+    DisplayState*            display;
     s32                      radius;
     s32                      angle;
     s32                      halfStepAngle;
     s32                      nextAngle;
     s32                      shiftedColor;
     u8                       brightness;
-    u8                       r;
-    u8                       g;
-    u8                       b;
+    u8                       red;
+    u8                       green;
+    u8                       blue;
 
-    {
-        void** scratch;
-        u8*    tmp;
-
-        scratch = SCRATCH_STACK_CURSOR_SLOT;
-        head    = *scratch;
-        tmp     = (*scratch = head - sizeof(*block));
-        block   = (GlowCentreRadiusScratch*)tmp;
-    }
+    previousTop = SCRATCH_STACK_CURSOR(GlowCentreRadiusScratch);
+    block       = (SCRATCH_STACK_CURSOR(GlowCentreRadiusScratch) = previousTop - 1);
 
     // Project the world point before allocating its glow packets.
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_ldv0(worldPoint);
     gte_rtps();
-    gte_stsxy(&((GlowCentreRadiusScratch*)(head - sizeof(*block)))->sx);
+    gte_stsxy(&previousTop[-1].sx);
     gte_stszotz(&block->otz);
-    if (((GlowCentreRadiusScratch*)(head - sizeof(*block)))->otz >= ROOM_VISUAL_EFFECTS_GLOW_MIN_DEPTH) {
-        radius        = ((s16)radiusScale * 64) / ((GlowCentreRadiusScratch*)(head - sizeof(*block)))->otz;
-        displayBase   = &gDisplayState;
+    if (previousTop[-1].otz >= GLOW_MIN_DEPTH) {
+        radius        = ((s16)radiusScale * GLOW_DISC_RADIUS_SCALE) / previousTop[-1].otz;
+        displayState  = &gDisplayState;
         shiftedColor  = packedColor << 16;
-        brightness    = (((u8)displayBase->animFrame & 1) * ROOM_VISUAL_EFFECTS_GLOW_BRIGHTNESS_STEP) | ROOM_VISUAL_EFFECTS_GLOW_BRIGHTNESS_BASE;
-        r             = brightness * (shiftedColor >> 24);
-        g             = brightness * ((shiftedColor >> 20) & 3);
-        b             = brightness * (packedColor & 3);
+        brightness    = (((u8)displayState->animFrame & 1) * GLOW_BRIGHTNESS_STEP) | GLOW_BRIGHTNESS_BASE;
+        red           = brightness * (shiftedColor >> 24);
+        green         = brightness * ((shiftedColor >> 20) & 3);
+        blue          = brightness * (packedColor & 3);
         angle         = 0;
-        ds            = displayBase;
+        display       = displayState;
         block->radius = radius;
         // Build four glow wedges and quantize their shared camera depth.
         do {
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, r, g, b);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0      = block->sx + ((block->radius * rsin(angle)) >> ROOM_VISUAL_EFFECTS_GLOW_TRIG_SHIFT);
-            halfStepAngle = angle + 0x200;
-            prim->y0      = block->sy + ((block->radius * rcos(angle)) >> ROOM_VISUAL_EFFECTS_GLOW_TRIG_SHIFT);
-            prim->x1      = block->sx + ((block->radius * rsin(halfStepAngle)) >> ROOM_VISUAL_EFFECTS_GLOW_TRIG_SHIFT);
-            prim->y1      = block->sy + ((block->radius * rcos(halfStepAngle)) >> ROOM_VISUAL_EFFECTS_GLOW_TRIG_SHIFT);
-            nextAngle     = angle + 0x400;
+            prim          = _glowAllocateFactorDiscWedge(red, green, blue);
+            prim->x0      = block->sx + ((block->radius * rsin(angle)) >> GLOW_TRIG_SHIFT);
+            halfStepAngle = angle + GLOW_DISC_WEDGE_ANGLE / 2;
+            prim->y0      = block->sy + ((block->radius * rcos(angle)) >> GLOW_TRIG_SHIFT);
+            prim->x1      = block->sx + ((block->radius * rsin(halfStepAngle)) >> GLOW_TRIG_SHIFT);
+            prim->y1      = block->sy + ((block->radius * rcos(halfStepAngle)) >> GLOW_TRIG_SHIFT);
+            nextAngle     = angle + GLOW_DISC_WEDGE_ANGLE;
             prim->x2      = block->sx;
             prim->y2      = block->sy;
-            prim->x3      = block->sx + ((block->radius * rsin(nextAngle)) >> ROOM_VISUAL_EFFECTS_GLOW_TRIG_SHIFT);
-            prim->y3      = block->sy + ((block->radius * rcos(nextAngle)) >> ROOM_VISUAL_EFFECTS_GLOW_TRIG_SHIFT);
+            prim->x3      = block->sx + ((block->radius * rsin(nextAngle)) >> GLOW_TRIG_SHIFT);
+            prim->y3      = block->sy + ((block->radius * rcos(nextAngle)) >> GLOW_TRIG_SHIFT);
             angle         = nextAngle;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << ds->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << display->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
             gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
-        } while (angle < ROOM_VISUAL_EFFECTS_GLOW_FULL_TURN);
+        } while (angle < GLOW_FULL_TURN);
     }
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(*block));
+    SCRATCH_STACK_RELEASE_BLOCK(GlowCentreRadiusScratch);
 }

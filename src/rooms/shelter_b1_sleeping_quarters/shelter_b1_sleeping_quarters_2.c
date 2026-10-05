@@ -153,7 +153,7 @@ void func_shelter_b1_sleeping_quarters_8017D8E0(Task* arg0)
         case 8:
             _glowDrawBeam(D_shelter_b1_sleeping_quarters_801805BC, 0x200, 0x800, 0x111);
         case 9:
-            glowDrawBitDisc(D_shelter_b1_sleeping_quarters_8018055C, 0x300, 0x100);
+            _glowDrawBitDisc(D_shelter_b1_sleeping_quarters_8018055C, 0x300, 0x100);
             break;
         case 10: {
             SVECTOR* p;

@@ -569,14 +569,14 @@ void func_shelter_1f_bulwark_8017E2A4(Task* arg0)
     switch (view) {
         case 2: {
             SVECTOR* p = D_shelter_1f_bulwark_80180378;
-            glowDrawFactorDisc(&p[0], 0x300, 0x210);
-            glowDrawFactorDisc(&p[1], 0x300, 0x210);
-            glowDrawFactorDisc(&p[2], 0x300, 0x111);
-            glowDrawFactorDisc(&p[3], 0x300, 0x111);
+            _glowDrawFactorDisc(&p[0], 0x300, 0x210);
+            _glowDrawFactorDisc(&p[1], 0x300, 0x210);
+            _glowDrawFactorDisc(&p[2], 0x300, 0x111);
+            _glowDrawFactorDisc(&p[3], 0x300, 0x111);
             break;
         }
         case 3:
-            glowDrawFactorDisc(&D_shelter_1f_bulwark_80180398[0], 0x200, 0x200);
+            _glowDrawFactorDisc(&D_shelter_1f_bulwark_80180398[0], 0x200, 0x200);
             break;
     }
 }

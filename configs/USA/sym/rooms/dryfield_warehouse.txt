@@ -75,4 +75,4 @@ func_dryfield_warehouse_8017F494 = 0x8017F494; // type:func
 
 func_dryfield_warehouse_8017D9F8 = 0x8017D9F8; // type:func
 screenFadeInTask = 0x8017E22C; // type:func
-glowDrawGreyPrism = 0x8017E414; // type:func
+_glowDrawGreyPrism = 0x8017E414; // type:func

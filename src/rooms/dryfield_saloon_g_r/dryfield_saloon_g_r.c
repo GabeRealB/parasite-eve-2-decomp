@@ -803,7 +803,7 @@ void func_dryfield_saloon_g_r_8017DA70(Task* arg0)
         glowDrawTwinShafts(coord);
     }
     if (mask & D_dryfield_saloon_g_r_8017ED84[11]) {
-        glowDrawTaperedBeam(coord, &gSaloonLightPoints[13], &gSaloonLightPoints[12], 0x100);
+        _glowDrawTaperedBeam(coord, &gSaloonLightPoints[13], &gSaloonLightPoints[12], 0x100);
     }
 }
 

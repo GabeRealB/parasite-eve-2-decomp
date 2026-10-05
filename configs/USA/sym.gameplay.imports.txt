@@ -571,7 +571,7 @@ func_acropolis_fire_escape_80180B20 = 0x80180B20; // type:func absolute:True own
 
 func_acropolis_forked_road_8017E298 = 0x8017E298; // type:func absolute:True owner=acropolis_forked_road
 
-func_acropolis_forked_road_8017E410 = 0x8017E410; // type:func absolute:True owner=acropolis_forked_road shared=rooms
+func_acropolis_forked_road_8017E410 = 0x8017E410; // type:func absolute:True owner=acropolis_forked_road
 
 func_acropolis_forked_road_8017EF80 = 0x8017EF80; // type:func absolute:True owner=acropolis_forked_road
 
@@ -821,7 +821,7 @@ func_mine_mesa_8017FC94 = 0x8017FC94; // type:func absolute:True owner=mine_mesa
 
 func_mine_mesa_8018057C = 0x8018057C; // type:func absolute:True owner=mine_mesa
 
-func_mine_secret_passage_8017E868 = 0x8017E868; // type:func absolute:True owner=mine_secret_passage shared=rooms
+func_mine_secret_passage_8017E868 = 0x8017E868; // type:func absolute:True owner=mine_secret_passage
 
 func_mine_secret_passage_8017F5B0 = 0x8017F5B0; // type:func absolute:True owner=mine_secret_passage
 
@@ -1777,7 +1777,7 @@ func_dryfield_souvenir_shop_8017DFD4 = 0x8017DFD4; // type:func absolute:True ow
 
 func_dryfield_motel_room_1_8017E0A0 = 0x8017E0A0; // type:func absolute:True owner=dryfield_motel_room_1
 
-func_dryfield_motel_room_2_8017D6B4 = 0x8017D6B4; // type:func absolute:True owner=dryfield_motel_room_2 shared=rooms
+func_dryfield_motel_room_2_8017D6B4 = 0x8017D6B4; // type:func absolute:True owner=dryfield_motel_room_2
 
 func_dryfield_parking_lot_8017DBAC = 0x8017DBAC; // type:func absolute:True owner=dryfield_parking_lot shared=rooms
 
@@ -1919,7 +1919,7 @@ func_shelter_1f_vehicular_airlock_8017DAA0 = 0x8017DAA0; // type:func absolute:T
 
 func_shelter_1f_bulwark_8017E2A4 = 0x8017E2A4; // type:func absolute:True owner=shelter_1f_bulwark shared=rooms
 
-func_shelter_1f_heliport_80180B4C = 0x80180B4C; // type:func absolute:True owner=shelter_1f_heliport shared=rooms
+func_shelter_1f_heliport_80180B4C = 0x80180B4C; // type:func absolute:True owner=shelter_1f_heliport
 
 func_shelter_1f_guardroom_8017DA28 = 0x8017DA28; // type:func absolute:True owner=shelter_1f_guardroom shared=rooms
 

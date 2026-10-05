@@ -553,7 +553,7 @@ void func_shelter_b1_armory_801807E4(Task* unused)
             break;
         case 3:
             _glowDrawBeam(&D_shelter_b1_armory_80182558[0], 0x200, 0, 0x111);
-            glowDrawBitDisc(&D_shelter_b1_armory_80182558[2], 0x300, 0x11);
+            _glowDrawBitDisc(&D_shelter_b1_armory_80182558[2], 0x300, 0x11);
             if (gameFlagGetNibble(GAME_FLAG_SHELTER_B1_ARMORY_UNLOCKED) != 0) {
                 _glowDrawTintedDisc(&D_shelter_b1_armory_80182558[3], 0x100, 0x50C0);
             } else {
@@ -571,7 +571,7 @@ void func_shelter_b1_armory_801807E4(Task* unused)
             }
             break;
         case 13:
-            glowDrawBitDisc(D_shelter_b1_armory_80182568, 0x300, 0x11);
+            _glowDrawBitDisc(D_shelter_b1_armory_80182568, 0x300, 0x11);
             break;
     }
 }

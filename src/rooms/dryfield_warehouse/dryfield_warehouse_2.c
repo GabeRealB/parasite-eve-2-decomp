@@ -899,7 +899,7 @@ static void func_dryfield_warehouse_8017ED34(GfxCoord* coord, s16 arg1, s16 arg2
 /// `gRoomEffectState->roomEffectMode` index. `Task::extra.coordBody->coord` is the
 /// coordinate every draw shares. The stage-visit byte
 /// `gGameSession->location.loc.view` is used as a bit index: bits 2, 3, 6 and 9 (`0x24C`)
-/// pose through `glowDrawGreyPrism`, bit 2 (`4`) also drives
+/// pose through `_glowDrawGreyPrism`, bit 2 (`4`) also drives
 /// `func_dryfield_warehouse_8017ED34` to step 0, those same `0x24C` visits also
 /// drive it to step 2, and bits 2, 3, 4 and 6-9 (`0x3DC`) drive it to steps 4
 /// and 6.
@@ -913,7 +913,7 @@ void func_dryfield_warehouse_8017F494(Task* arg0)
     poseMask = mask & 0x24C;
     coord    = arg0->extra.coordBody->coord;
     if (poseMask != 0) {
-        glowDrawGreyPrism(coord, 8);
+        _glowDrawGreyPrism(coord, 8);
     }
     if (mask & 4) {
         func_dryfield_warehouse_8017ED34(coord, 0, 8);

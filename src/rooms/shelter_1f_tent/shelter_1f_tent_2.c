@@ -637,7 +637,7 @@ void func_shelter_1f_tent_8017FE10(Task* unused)
             glowDrawDisc(&p[-3], 0x180, 0x22);
             glowDrawDisc(&p[-2], 0x280, 0x444);
             glowDrawDisc(&p[-1], 0x180, 0x22);
-            glowDrawWideDiamond(&D_shelter_1f_tent_80181D3C[0], 0x60, 0x80);
+            _glowDrawWideDiamond(&D_shelter_1f_tent_80181D3C[0], 0x60, 0x80);
             break;
         }
         case 3: {
@@ -645,7 +645,7 @@ void func_shelter_1f_tent_8017FE10(Task* unused)
             glowDrawDisc(&p[0], 0x280, 0x40);
             glowDrawDisc(&p[1], 0x280, 0x444);
             glowDrawDisc(&p[2], 0x180, 0x22);
-            glowDrawWideDiamond(&p[7], 0x60, 0x80);
+            _glowDrawWideDiamond(&p[7], 0x60, 0x80);
             break;
         }
         case 5: {
@@ -666,7 +666,7 @@ void func_shelter_1f_tent_8017FE10(Task* unused)
             glowDrawDisc(&p[0], 0x280, 0x40);
             glowDrawDisc(&p[1], 0x280, 0x444);
             glowDrawDisc(&p[2], 0x180, 0x22);
-            glowDrawWideDiamond(&D_shelter_1f_tent_80181D3C[0], 0x60, 0x80);
+            _glowDrawWideDiamond(&D_shelter_1f_tent_80181D3C[0], 0x60, 0x80);
             break;
         }
     }

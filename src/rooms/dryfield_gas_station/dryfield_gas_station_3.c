@@ -880,7 +880,7 @@ void func_dryfield_gas_station_80180B2C(s16 arg0)
 /// coordinate, then enables `gRoomEffectState->roomEffectMode`.
 /// `Task::extra.coordBody->coord` is the coordinate both draws share. The
 /// stage-visit byte `gGameSession->location.loc.view` is used as a bit index: bits 4, 6,
-/// 11 and 12 (`0x1850`) select `glowDrawStarLocal` with the wide half-extent 0x80,
+/// 11 and 12 (`0x1850`) select `_glowDrawStarLocal` with radius scale 0x80,
 /// and any other non-zero bit selects `glowDrawRayStar`
 /// with 0x40.
 void func_dryfield_gas_station_80181A78(Task* arg0)
@@ -891,7 +891,7 @@ void func_dryfield_gas_station_80181A78(Task* arg0)
     mask  = 1 << gGameSession->location.loc.view;
     coord = arg0->extra.coordBody->coord;
     if (mask & 0x1850) {
-        glowDrawStarLocal(coord, &D_dryfield_gas_station_80183144, 0x60, 0x80);
+        _glowDrawStarLocal(coord, &D_dryfield_gas_station_80183144, 0x60, 0x80);
     } else if (mask != 0) {
         glowDrawRayStar(coord, &D_dryfield_gas_station_80183144, 0x60, 0x40);
     }

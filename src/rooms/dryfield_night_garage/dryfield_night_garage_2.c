@@ -1257,7 +1257,7 @@ void func_dryfield_night_garage_80180D4C(Task* arg0)
 /// Garage room draw: sweeps the glowing strip the current visit
 /// (`gGameSession->location.loc.view`) selects. Visits 3 and 15 sweep all four of the
 /// room's run, 7 and 14 only its first pair, and 11 the last pair of the run
-/// with its own blend (`arg2` 0x800 instead of 0). Each case names its own last
+/// with a half-turn starting angle (`startAngle` 0x800 instead of 0). Each case names its own last
 /// draw, which `jump.c` cross-jumps into one tail block after the last case.
 void func_dryfield_night_garage_80181518(Task* unused)
 {
@@ -1265,20 +1265,20 @@ void func_dryfield_night_garage_80181518(Task* unused)
         case 3:
         case 15: {
             SVECTOR* p = D_dryfield_night_garage_801833A4;
-            glowDrawGreyCapsule(&p[0], 0x200, 0);
-            glowDrawGreyCapsule(&p[2], 0x200, 0);
-            glowDrawGreyCapsule(&p[4], 0x200, 0);
-            glowDrawGreyCapsule(&p[6], 0x200, 0);
+            _glowDrawGreyCapsule(&p[0], 0x200, 0);
+            _glowDrawGreyCapsule(&p[2], 0x200, 0);
+            _glowDrawGreyCapsule(&p[4], 0x200, 0);
+            _glowDrawGreyCapsule(&p[6], 0x200, 0);
             break;
         }
         case 7:
         case 14:
-            glowDrawGreyCapsule(&D_dryfield_night_garage_801833A4[0], 0x200, 0);
+            _glowDrawGreyCapsule(&D_dryfield_night_garage_801833A4[0], 0x200, 0);
             break;
         case 11: {
             SVECTOR* p = &D_dryfield_night_garage_801833D4;
-            glowDrawGreyCapsule(&p[0], 0x200, 0x800);
-            glowDrawGreyCapsule(&p[2], 0x200, 0x800);
+            _glowDrawGreyCapsule(&p[0], 0x200, 0x800);
+            _glowDrawGreyCapsule(&p[2], 0x200, 0x800);
             break;
         }
     }

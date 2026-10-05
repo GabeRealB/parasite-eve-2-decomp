@@ -2490,7 +2490,7 @@ void func_shelter_b1_underground_parking_80184A18(Task* unused)
             } else {
                 _glowDrawDiamond(D_shelter_b1_underground_parking_80187714, 0x60, 0xC0);
             }
-            glowDrawBitDisc(D_shelter_b1_underground_parking_8018771C, 0x300, 0x10);
+            _glowDrawBitDisc(D_shelter_b1_underground_parking_8018771C, 0x300, 0x10);
             _glowDrawBeam(&D_shelter_b1_underground_parking_8018771C[11], 0x200, 0, 0x111);
             break;
         case 3:
@@ -2502,7 +2502,7 @@ void func_shelter_b1_underground_parking_80184A18(Task* unused)
             } else {
                 _glowDrawDiamond(D_shelter_b1_underground_parking_80187714, 0x60, 0xC0);
             }
-            glowDrawBitDisc(D_shelter_b1_underground_parking_8018771C, 0x300, 0x10);
+            _glowDrawBitDisc(D_shelter_b1_underground_parking_8018771C, 0x300, 0x10);
             _glowDrawBeam(&D_shelter_b1_underground_parking_8018771C[11], 0x200, 0, 0x111);
             break;
         case 8:
@@ -2524,7 +2524,7 @@ void func_shelter_b1_underground_parking_80184A18(Task* unused)
             _glowDrawBeam(&D_shelter_b1_underground_parking_80187784[2], 0x200, 0x800, 0x111);
             break;
         case 16:
-            glowDrawBitDisc(D_shelter_b1_underground_parking_8018771C, 0x300, 0x10);
+            _glowDrawBitDisc(D_shelter_b1_underground_parking_8018771C, 0x300, 0x10);
             break;
         case 18:
             if (D_shelter_b1_underground_parking_8018D78C != 0) {

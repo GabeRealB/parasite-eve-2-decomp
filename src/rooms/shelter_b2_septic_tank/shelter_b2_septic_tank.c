@@ -1464,8 +1464,8 @@ void func_shelter_b2_septic_tank_8017EB7C(Task* arg0)
                     _glowDrawBeam(&p[16], 0x200, 0, 0x111);
                     _glowDrawBeam(&p[60], 0x200, 0, 0x111);
                     _glowDrawBeam(&p[62], 0x200, 0, 0x111);
-                    glowDrawBitDisc(&p[70], 0x300, 0x10);
-                    glowDrawBitDisc(&p[72], 0x300, 0x100);
+                    _glowDrawBitDisc(&p[70], 0x300, 0x10);
+                    _glowDrawBitDisc(&p[72], 0x300, 0x100);
                     break;
                 }
                 case 3: {
@@ -1485,9 +1485,9 @@ void func_shelter_b2_septic_tank_8017EB7C(Task* arg0)
                     _glowDrawBeam(&p[48], 0x200, 0, 0x111);
                     _glowDrawBeam(&p[60], 0x200, 0, 0x111);
                     _glowDrawBeam(&p[62], 0x200, 0, 0x111);
-                    glowDrawBitDisc(&p[70], 0x300, 0x10);
-                    glowDrawBitDisc(&p[71], 0x300, 0x100);
-                    glowDrawBitDisc(&p[72], 0x300, 0x100);
+                    _glowDrawBitDisc(&p[70], 0x300, 0x10);
+                    _glowDrawBitDisc(&p[71], 0x300, 0x100);
+                    _glowDrawBitDisc(&p[72], 0x300, 0x100);
                     break;
                 }
                 case 4: {
@@ -1529,9 +1529,9 @@ void func_shelter_b2_septic_tank_8017EB7C(Task* arg0)
                     _glowDrawBeam(&p[30], 0x200, 0x800, 0x111);
                     _glowDrawBeam(&p[60], 0x200, 0, 0x111);
                     _glowDrawBeam(&p[62], 0x200, 0, 0x111);
-                    glowDrawBitDisc(&p[70], 0x300, 0x10);
-                    glowDrawBitDisc(&p[71], 0x300, 0x100);
-                    glowDrawBitDisc(&p[72], 0x300, 0x100);
+                    _glowDrawBitDisc(&p[70], 0x300, 0x10);
+                    _glowDrawBitDisc(&p[71], 0x300, 0x100);
+                    _glowDrawBitDisc(&p[72], 0x300, 0x100);
                     break;
                 }
             }

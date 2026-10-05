@@ -536,7 +536,7 @@ void func_dryfield_night_warehouse_8017E778(Task* arg0)
     mask  = 1 << gGameSession->location.loc.view;
     actorRenderComposeCoord(coord);
     if (mask & 0x24C) {
-        glowDrawPrism(coord, 8);
+        _glowDrawPrism(coord, 8);
     }
     if (mask & 4) {
         func_dryfield_night_warehouse_8017DFF4(coord, 0, 8);

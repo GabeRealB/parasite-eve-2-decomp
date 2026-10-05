@@ -43,5 +43,5 @@ D_map_neo_ark_8017AFD0 = 0x8017AFD0; // absolute:True owner=map_neo_ark
 D_map_neo_ark_8017AFF0 = 0x8017AFF0; // absolute:True owner=map_neo_ark
 
 func_shelter_1f_airlock_8017D6D0 = 0x8017D6D0; // type:func
-glowDrawFactorDisc = 0x8017E0F0; // type:func
+_glowDrawFactorDisc = 0x8017E0F0; // type:func
 _glowDrawCapsule = 0x8017D8A8; // type:func

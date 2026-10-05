@@ -45,4 +45,4 @@ D_map_dryfield_full_8017B308 = 0x8017B308; // absolute:True owner=map_dryfield_f
 D_map_dryfield_full_8017B358 = 0x8017B358; // absolute:True owner=map_dryfield_full
 
 func_dryfield_night_souvenir_shop_8017DFF4 = 0x8017DFF4; // type:func
-glowDrawPrism = 0x8017D6B4; // type:func
+_glowDrawPrism = 0x8017D6B4; // type:func

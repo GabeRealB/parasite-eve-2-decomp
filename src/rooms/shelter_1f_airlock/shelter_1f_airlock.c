@@ -452,8 +452,8 @@ void func_shelter_1f_airlock_8017D6D0(Task* unused)
 {
     switch (viewGetMappedIndex() & 0xFF) {
         case 3:
-            glowDrawFactorDisc(&D_shelter_1f_airlock_8017E4C4[0], 0x200, 0x111);
-            glowDrawFactorDisc(&D_shelter_1f_airlock_8017E4C4[1], 0x200, 0x111);
+            _glowDrawFactorDisc(&D_shelter_1f_airlock_8017E4C4[0], 0x200, 0x111);
+            _glowDrawFactorDisc(&D_shelter_1f_airlock_8017E4C4[1], 0x200, 0x111);
             _glowDrawCapsule(&D_shelter_1f_airlock_8017E4C4[3], 0x180, 0x1011);
             _glowDrawCapsule(&D_shelter_1f_airlock_8017E4C4[5], 0x180, 0x1011);
             _glowDrawCapsule(&D_shelter_1f_airlock_8017E4C4[7], 0x180, 0x1011);
@@ -462,8 +462,8 @@ void func_shelter_1f_airlock_8017D6D0(Task* unused)
             _glowDrawCapsule(&D_shelter_1f_airlock_8017E4C4[17], 0x180, 0x1011);
             break;
         case 4:
-            glowDrawFactorDisc(&D_shelter_1f_airlock_8017E4BC[0], 0x200, 0x111);
-            glowDrawFactorDisc(&D_shelter_1f_airlock_8017E4BC[1], 0x200, 0x111);
+            _glowDrawFactorDisc(&D_shelter_1f_airlock_8017E4BC[0], 0x200, 0x111);
+            _glowDrawFactorDisc(&D_shelter_1f_airlock_8017E4BC[1], 0x200, 0x111);
             _glowDrawCapsule(&D_shelter_1f_airlock_8017E4BC[4], 0x180, 0x1011);
             _glowDrawCapsule(&D_shelter_1f_airlock_8017E4BC[6], 0x180, 0x1011);
             _glowDrawCapsule(&D_shelter_1f_airlock_8017E4BC[8], 0x180, 0x1011);
@@ -478,7 +478,7 @@ void func_shelter_1f_airlock_8017D6D0(Task* unused)
             _glowDrawCapsule(&D_shelter_1f_airlock_8017E4BC[26], 0x180, 0x1011);
             break;
         case 5:
-            glowDrawFactorDisc(&D_shelter_1f_airlock_8017E4D4[0], 0x200, 0x200);
+            _glowDrawFactorDisc(&D_shelter_1f_airlock_8017E4D4[0], 0x200, 0x200);
             break;
     }
 }

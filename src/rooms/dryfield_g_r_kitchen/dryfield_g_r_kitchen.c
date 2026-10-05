@@ -338,7 +338,7 @@ void func_dryfield_g_r_kitchen_8017D9A4(Task* task)
 
 #include "../../shared/glow_draw_tapered_beam.inc.c"
 
-/// The same tapered light beam as `glowDrawTaperedBeam`,
+/// The same tapered light beam as `_glowDrawTaperedBeam`,
 /// between two points of `arg0`'s local space, with every angle turned back a
 /// quarter turn. The two
 /// `RTPS` projections, the drop when the far end's `otz` is below 0x11, the
@@ -349,7 +349,7 @@ void func_dryfield_g_r_kitchen_8017D9A4(Task* task)
 /// walked backwards from 0xC00 to 0x400, and the side quads join the two
 /// circles at -0x400 and 0x400. The centre colour is 0x10 or 0x20 on the
 /// parity of `gDisplayState.animFrame`, one step darker than
-/// `glowDrawTaperedBeam`'s.
+/// `_glowDrawTaperedBeam`'s.
 static void func_dryfield_g_r_kitchen_8017E27C(GfxCoord* arg0, SVECTOR* arg1, SVECTOR* arg2, s32 arg3)
 {
     GlowWorldPointPairScratch* block;
@@ -463,7 +463,7 @@ static void func_dryfield_g_r_kitchen_8017E27C(GfxCoord* arg0, SVECTOR* arg1, SV
 /// Draws two light beams under the task's coordinate in `arg0->extra.coordBody->coord`,
 /// picked by the current view `gGameSession->location.loc.view`: in view 2 the
 /// beams of `D_dryfield_g_r_kitchen_8017EBF0` through
-/// `glowDrawTaperedBeam`, in view 3 those of
+/// `_glowDrawTaperedBeam`, in view 3 those of
 /// `D_dryfield_g_r_kitchen_8017EC08` through
 /// `func_dryfield_g_r_kitchen_8017E27C`. Any other view draws nothing.
 void func_dryfield_g_r_kitchen_8017EB04(Task* arg0)
@@ -472,8 +472,8 @@ void func_dryfield_g_r_kitchen_8017EB04(Task* arg0)
 
     coord = arg0->extra.coordBody->coord;
     if (gGameSession->location.loc.view == 2) {
-        glowDrawTaperedBeam(coord, &D_dryfield_g_r_kitchen_8017EBF0[0], &D_dryfield_g_r_kitchen_8017EBF0[-1], 0x100);
-        glowDrawTaperedBeam(coord, &D_dryfield_g_r_kitchen_8017EBF0[2], &D_dryfield_g_r_kitchen_8017EBF0[1], 0x100);
+        _glowDrawTaperedBeam(coord, &D_dryfield_g_r_kitchen_8017EBF0[0], &D_dryfield_g_r_kitchen_8017EBF0[-1], 0x100);
+        _glowDrawTaperedBeam(coord, &D_dryfield_g_r_kitchen_8017EBF0[2], &D_dryfield_g_r_kitchen_8017EBF0[1], 0x100);
     } else if (gGameSession->location.loc.view == 3) {
         func_dryfield_g_r_kitchen_8017E27C(coord, &D_dryfield_g_r_kitchen_8017EC08[0], &D_dryfield_g_r_kitchen_8017EC08[1], 0x100);
         func_dryfield_g_r_kitchen_8017E27C(coord, &D_dryfield_g_r_kitchen_8017EC08[2], &D_dryfield_g_r_kitchen_8017EC08[3], 0x100);

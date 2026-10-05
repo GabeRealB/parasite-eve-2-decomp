@@ -92,4 +92,4 @@ _roomVisualEffectsDrawFlyingDisc = 0x8017F500; // type:func
 _roomVisualEffectsDrawFlyingBurstGlow = 0x8017FA40; // type:func
 _roomVisualEffectsDrawFlyingBurstGroundQuad = 0x8017FF6C; // type:func
 _glowDrawBeam = 0x8017DB50; // type:func
-glowDrawBitDisc = 0x8017E338; // type:func
+_glowDrawBitDisc = 0x8017E338; // type:func

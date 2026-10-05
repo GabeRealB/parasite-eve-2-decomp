@@ -8,7 +8,7 @@ void motelRoom6DrawGlow(Task* unused)
     switch (view) {
         case 3:
         case 4:
-            glowDrawWideDiamond(&gMotelRoom6GlowPos[0], 0x60, 0x60);
+            _glowDrawWideDiamond(&gMotelRoom6GlowPos[0], 0x60, 0x60);
             break;
         case 12:
             _glowDrawPulsingDisc(&gMotelRoom6GlowPos[0], 0x60, 0x80);

@@ -1410,7 +1410,7 @@ void waterHoleWaterStart(Task* arg0)
 /// `waterY` is below that model's root, spawns each effect at water level under
 /// each part with odds that grow with how far the part moved since last frame,
 /// then, once game-flag nibble 0x51 is 1, draws the glowing beams
-/// `glowDrawTaperedBeam` renders between the point pairs the
+/// `_glowDrawTaperedBeam` renders between the point pairs the
 /// current view selects.
 void func_dryfield_water_hole_8017E040(Task* arg0)
 {
@@ -1475,16 +1475,16 @@ void func_dryfield_water_hole_8017E040(Task* arg0)
             }
             if (gameFlagGetNibble(GAME_FLAG_UNDERPASS_SWITCH_1) == 1) {
                 if (mask & 0x18) {
-                    glowDrawTaperedBeam(coord, &D_dryfield_water_hole_8017FCC4[0], &D_dryfield_water_hole_8017FCC4[-1], 0x100);
-                    glowDrawTaperedBeam(coord, &D_dryfield_water_hole_8017FCC4[2], &D_dryfield_water_hole_8017FCC4[1], 0x100);
+                    _glowDrawTaperedBeam(coord, &D_dryfield_water_hole_8017FCC4[0], &D_dryfield_water_hole_8017FCC4[-1], 0x100);
+                    _glowDrawTaperedBeam(coord, &D_dryfield_water_hole_8017FCC4[2], &D_dryfield_water_hole_8017FCC4[1], 0x100);
                 }
                 if (mask & 0x50) {
-                    glowDrawTaperedBeam(coord, &D_dryfield_water_hole_8017FCDC[0], &D_dryfield_water_hole_8017FCDC[1], 0x100);
-                    glowDrawTaperedBeam(coord, &D_dryfield_water_hole_8017FCDC[2], &D_dryfield_water_hole_8017FCDC[3], 0x100);
+                    _glowDrawTaperedBeam(coord, &D_dryfield_water_hole_8017FCDC[0], &D_dryfield_water_hole_8017FCDC[1], 0x100);
+                    _glowDrawTaperedBeam(coord, &D_dryfield_water_hole_8017FCDC[2], &D_dryfield_water_hole_8017FCDC[3], 0x100);
                 }
                 if (mask & 0x80) {
-                    glowDrawTaperedBeam(coord, &D_dryfield_water_hole_8017FD04[0], &D_dryfield_water_hole_8017FD04[-1], 0x100);
-                    glowDrawTaperedBeam(coord, &D_dryfield_water_hole_8017FD04[2], &D_dryfield_water_hole_8017FD04[1], 0x100);
+                    _glowDrawTaperedBeam(coord, &D_dryfield_water_hole_8017FD04[0], &D_dryfield_water_hole_8017FD04[-1], 0x100);
+                    _glowDrawTaperedBeam(coord, &D_dryfield_water_hole_8017FD04[2], &D_dryfield_water_hole_8017FD04[1], 0x100);
                 }
             }
             break;

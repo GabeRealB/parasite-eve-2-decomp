@@ -302,4 +302,4 @@ D_dryfield_night_dilapidated_house_80187134 = 0x80187134; // size:0x180 defined:
 func_dryfield_night_dilapidated_house_8017E670 = 0x8017E670; // type:func
 roomEventGate = 0x8017D600; // type:func
 roomEventTask = 0x8017D764; // type:func
-glowDrawPrism = 0x8017DD30; // type:func
+_glowDrawPrism = 0x8017DD30; // type:func

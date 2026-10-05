@@ -111,6 +111,6 @@ _waterDrawSplash = 0x8017F194; // type:func
 _waterDrawSpin = 0x8017F984; // type:func
 _waterDrawTile = 0x8017FD70; // type:func
 roomEventStagedTask = 0x8017D614; // type:func
-glowDrawBitDisc = 0x8018083C; // type:func
+_glowDrawBitDisc = 0x8018083C; // type:func
 _waterDrawWaveStrips = 0x8017DB68; // type:func
 _waterDrawSecondWaveStrips = 0x8017E2DC; // type:func

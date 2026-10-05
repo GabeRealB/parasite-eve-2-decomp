@@ -1841,8 +1841,8 @@ void func_dryfield_trailer_coach_80182950(Task* task)
 
 /// Picks the trailer's shaft drawer for the current camera view. The
 /// stage-visit byte `gGameSession->location.loc.view` is used as a bit index: views 2
-/// and 8 (bits 2 and 8, `0x104`) take `glowDrawStarLocal`
-/// with the tall half-extent 0xC0, and view 10 (bit 10, `0x400`) takes `glowDrawRayStar`
+/// and 8 (bits 2 and 8, `0x104`) take `_glowDrawStarLocal`
+/// with radius scale 0xC0, and view 10 (bit 10, `0x400`) takes `glowDrawRayStar`
 /// with 0x30. `Task::extra` is the task's `TmdObject`, so `coords` is the
 /// coordinate both draws share.
 void func_dryfield_trailer_coach_801838DC(Task* arg0)
@@ -1853,7 +1853,7 @@ void func_dryfield_trailer_coach_801838DC(Task* arg0)
     mask  = 1 << gGameSession->location.loc.view;
     coord = arg0->extra.coordBody->coord;
     if (mask & 0x104) {
-        glowDrawStarLocal(coord, &D_dryfield_trailer_coach_801871C4, 0x60, 0xC0);
+        _glowDrawStarLocal(coord, &D_dryfield_trailer_coach_801871C4, 0x60, 0xC0);
         return;
     }
     if (mask & 0x400) {
