@@ -1,11 +1,22 @@
 /* Part of the falling leaves library; see falling_leaves.h. */
 
-/// Builds, rotates and translates one leaf corner, preserving 16-bit narrowing.
+/// Places one corner of the leaf's local XZ square in its composed coordinate space.
+///
+/// `cornerIndex` is 0..3 in GPU quad strip order; `halfSize` is the half-side
+/// in coordinate units (the leaf task supplies 32). `coord->workm` must be
+/// composed, and `quadScratch` must be a live, word-aligned scratch block.
+/// Local products and translated components narrow to signed 16 bits; the
+/// intervening rotation stores the GTE's signed IR results. Reading the signs
+/// as `u16` preserves the same low product bits for negative corners.
+/// Updates only the selected vertex's X/Y/Z, leaving its fourth halfword
+/// intact. Loads the GTE rotation matrix and V0 and overwrites the IR results;
+/// it does not project or load GTE translation. Both pointers are borrowed
+/// for this call, with no allocation or retention.
 static inline void _leafTransformCorner(EffectQuadCornersScratch* quadScratch, s32 cornerIndex, s32 halfSize, const GfxCoord* coord)
 {
     SVECTOR* corner;
     quadScratch->vertices[cornerIndex].vx = (u16)D_80111E38[cornerIndex].axis0Sign * halfSize;
-    // Keep the store address separate from the GTE operand to preserve both pointer registers.
+    // This aliases vertices[cornerIndex]; the byte view preserves separate store/GTE addresses.
     corner     = (SVECTOR*)((u8*)quadScratch + cornerIndex * sizeof(SVECTOR) + OFFSET_OF(EffectQuadCornersScratch, vertices));
     corner->vy = 0;
     corner->vz = (u16)D_80111E38[cornerIndex].axis1Sign * halfSize;

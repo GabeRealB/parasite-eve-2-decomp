@@ -2,19 +2,36 @@
 
 /* Part of the falling leaves library; see falling_leaves.h. */
 
-/// Seeds the leaf's X/Z tumble increments and initial displacement per tick.
+/// Initializes a leaf's tumble rates and translation per tick.
+///
+/// `work` must be a live, writable `EffectWork`. `period` receives the X
+/// tumble rate (-240..256), and `step` the Z rate (-112..128), both in
+/// 4096-units-per-turn angles and multiples of 16. Each `move` component
+/// receives -15..16 parent-coordinate units per tick.
+/// Consumes exactly five shared random draws, ordered X/Z tumble then X/Y/Z
+/// translation. Other work fields, including the vector's fourth halfword,
+/// are left intact; the borrowed work pointer is not retained.
 static inline void _leafSeedMotion(EffectWork* work)
 {
+    enum {
+        LEAF_INITIAL_X_TUMBLE_BIAS = 256,
+        LEAF_INITIAL_X_TUMBLE_MASK = 0x1F0,
+        LEAF_INITIAL_Z_TUMBLE_BIAS = 128,
+        LEAF_INITIAL_Z_TUMBLE_MASK = 0xF0,
+        LEAF_INITIAL_MOVE_BIAS     = 16,
+        LEAF_INITIAL_MOVE_MASK     = 0x1F,
+    };
+
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    work->period    = 0x100 - ((gRandomLcgState >> 16) & 0x1F0);
+    work->period    = LEAF_INITIAL_X_TUMBLE_BIAS - ((gRandomLcgState >> 16) & LEAF_INITIAL_X_TUMBLE_MASK);
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    work->step      = 0x80 - ((gRandomLcgState >> 16) & 0xF0);
+    work->step      = LEAF_INITIAL_Z_TUMBLE_BIAS - ((gRandomLcgState >> 16) & LEAF_INITIAL_Z_TUMBLE_MASK);
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    work->move.vx   = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
+    work->move.vx   = LEAF_INITIAL_MOVE_BIAS - ((gRandomLcgState >> 16) & LEAF_INITIAL_MOVE_MASK);
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    work->move.vy   = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
+    work->move.vy   = LEAF_INITIAL_MOVE_BIAS - ((gRandomLcgState >> 16) & LEAF_INITIAL_MOVE_MASK);
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    work->move.vz   = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
+    work->move.vz   = LEAF_INITIAL_MOVE_BIAS - ((gRandomLcgState >> 16) & LEAF_INITIAL_MOVE_MASK);
 }
 
 /// Advances one tumbling leaf through its fall, stationary hold and fade.
