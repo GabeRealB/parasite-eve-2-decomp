@@ -147714,3 +147714,45 @@ to `addiu s0,s1,12` / `addu s0,s2,s0`; `dst = work->palette; dst += i;` to
 `addu a0,s1,s2` at the store with the 12 in the displacement. Counting colours
 (`i < 16`, `[i * 2]`) strength-reduces all three pointers. Left as the
 integer form.
+
+### A byte-offset counter beside a loop index is a giv the loop pass could not extend: put `i + K` in a local (func_dryfield_trailer_coach_801826A0, 2026-10-05)
+
+Target keeps the loop index, a second counter stepping by the element size from
+`K * size` (`li a2,8` ... `addiu a2,a2,4`) and adds it to a hoisted base at the
+use (`addu v0,a2,t0` / `lw v0,0(v0)`). The matched source had spelled that as
+`off = 8; ... *(u8**)(off + (s32)table); off += 4;`.
+
+Symptom: `table[i + 2]` with a pointer local, `(*menus)[i + 2]`, `menus[1][i]`
+and `*(tbl + i + 2)` are all reduced to one pointer giv (`move a2,a1` /
+`lw v0,8(a2)` / `addiu a2,a2,4`): `fold` distributes the scale, the RTL is
+`r = i << 2; addr = r + table`, and both are givs of `i`.
+
+Fix: `index = i + 2; ... table[index];` with `index` assigned inside the loop.
+The scale is no longer distributed, so the RTL is `r1 = i + 2; r2 = r1 << 2;
+addr = r2 + table`. `-dL` lists `r1` and `r2` as givs and not `addr`, so only
+`r2` is reduced and the base is added per iteration, offset first. Indexing a
+global array directly (`D_mist_parking_8018DF24[i + 2]`, no local at all)
+expands the same add-then-shift through `get_inner_reference` and matches too;
+a struct member reached that way leaves the member offset in the displacement
+(`addiu t0,a1,-124` / `lw v0,124(v0)`), which is when the pointer local is
+needed.
+
+### `dst->m[i][j] = src->m[i][j]` wanting offset-first on one side only: name the global on that side (func_800A8654, 2026-10-05)
+
+Target `addu v1,a0,t1` (offset + destination) and `addu v0,t0,a0` (source +
+offset) in a 3x3 copy. Through two pointer locals both come out base first.
+Dropping the local for the destination, `gGfxViewRotCoord.coord.m[i][j] =
+src->coord.m[i][j]`, gives the static object's address plus the offset with the
+offset first, and its `lui`/`addiu` is still hoisted to where the local's
+assignment had put it.
+
+### Element pointer wanted in a later block: read inline first, then take `&a[i]` in the block that needs it (Gp_InsertRankedSlot, 2026-10-05)
+
+`rec = &a[i]` before the first read is base first; the inline read
+`a[i].rank` is offset first (`addu v1,v0,a0`), and so is an inline struct copy
+`a[i + 1] = a[i]` (`lw 0(v1)` ... `sw 12(v1)`). A later `next = &a[i + 1]` does
+not reuse that register (`addu v0,t1,12` / `addu v0,a0,v0`), but
+`slot = &a[i]; next = slot + 1;` written in the later block does: cse matches
+the sum whichever way round it is written, emits nothing for `slot`, and
+`next` is `addiu v0,v1,12`. Forming `slot` straight after the first read, in
+the same block, had failed.
