@@ -65,7 +65,7 @@ enum {
     /// pen advance; inline font and position commands do not change that width.
     /// With no measured glyph, width is -4 and X moves four pixels right.
     /// The result is stored in signed 16-bit X; restore the anchor before another
-    /// alignment call. `Text_MeasureWidth` uses X=0 and returns the negated X.
+    /// alignment call. `textMeasureLineWidth` uses X=0 and returns the negated X.
     TEXT_ALIGNMENT_RIGHT = 2,
 };
 
@@ -285,9 +285,35 @@ const u8* textSkipLines(const u8* text, s32 lineCount);
 
 s32 Text_DrawMultiLine(UiObject* object, s32 arg1, s32 arg2, const u8* arg3, s32 arg4, s32 arg5, s32 arg6);
 
-s32 Text_MeasureWidth(u8* arg0);
+/// Measures one encoded UI-text line with the large face, in pixels.
+///
+/// Borrows read-only unsigned bytes under `textAlignLine`'s readability and
+/// glyph-index contract. NUL, LF and a case-insensitive \\n command end the
+/// measurement; CR does not. Inline styling and position commands are skipped.
+/// Includes pair kerning and excludes the final glyph's extra pen advance;
+/// returns -4 when no glyph is measured. The measured width is negated into a
+/// signed 16-bit X, then negated as s32 for the return, retaining that narrowing.
+s32 textMeasureLineWidth(const u8* text);
 
-s32 Text_DrawPrompt(UiObject* object, s32 arg1, s32 arg2, const u8* arg3, s32 arg4, s32 arg5, s32 arg6);
+/// Draws one large encoded UI-text line relative to a panel or at absolute pixels.
+///
+/// With an object, X/Y are content pixels: the panel origin is added and three
+/// pixels are subtracted from Y for the glyph baseline. A hidden panel skips drawing
+/// and returns zero. Otherwise returns the final signed-16-bit pen X minus the
+/// panel's signed origin X, suitable for continuing text on the same line.
+/// A NULL object uses X/Y directly in draw-environment pixels and returns the
+/// original s32 X argument, irrespective of alignment or glyph advance.
+/// Both paths narrow pen coordinates to signed 16 bits. Panel-origin additions
+/// use the unsigned halfword views; the final origin subtraction uses signed X.
+///
+/// `colorRgb` packs R/G/B into bits 0..23 (R low byte); the high byte is ignored.
+/// `drawMode` and `alignment` narrow to signed bytes selecting `TEXT_DRAW_*`
+/// and `TEXT_ALIGNMENT_*`. Initial metrics are large; inline commands can
+/// change drawing style under `textDrawString`'s stream contract. Text and the
+/// object are borrowed only for the call, and neither is modified or retained.
+/// Fonts, palettes, OT entries and primitive capacity must satisfy that drawer's
+/// requirements: the starting OT entry is panel base + 1, or 4 without an object.
+s32 textDrawUiLine(const UiObject* object, s32 x, s32 y, const u8* text, u32 colorRgb, s32 drawMode, s32 alignment);
 
 /// EXE palettes over the title font clut dests. Text_FillClutPixels (64) → (256, 243);
 /// Text_OutlineClutPixels (48) → (0x3D0, 0x1FF) = clut 0x7FFD/E/F. TIM pe2clut_0 row 0 is

@@ -538,7 +538,7 @@ void Gp_DrawSortCmd(UiList* arg0, UiObject* arg1)
     if (Gp_ItemOrderMode == one) {
         arg0->colorRgb = Ui_LookupTable(arg1, 2);
     }
-    Text_DrawPrompt(arg1, arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, Gp_StrSort, arg0->colorRgb, one, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(arg1, arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, (const u8*)Gp_StrSort, arg0->colorRgb, one, TEXT_ALIGNMENT_LEFT);
     status = arg1->panel.control.word;
     if (((status >> 16) == one) || (status == one)) {
         if (arg0->selectedItemIndex == arg0->currentItemIndex) {
@@ -642,10 +642,10 @@ void Gp_DrawItemDescLine(UiList* arg0, UiObject* arg1)
     id  = (u16)arg1->owner->spawnArg1.value;
     if ((idx < 2) && (id < 0x100)) {
         text = Gp_GetItemText(id, idx + 1, 1);
-        Text_DrawPrompt(arg1, arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, text, 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_LEFT);
+        textDrawUiLine(arg1, arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, text, 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_LEFT);
     } else {
         text = textSkipLines(Fs_GetChunkPayload(), arg0->currentItemIndex + 5);
-        Text_DrawPrompt(arg1, arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, text, 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_LEFT);
+        textDrawUiLine(arg1, arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, text, 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_LEFT);
     }
 }
 
@@ -771,8 +771,8 @@ void Gp_SizeEquippedPanel(UiPanel* arg0, s32 arg1)
     s32 width;
     s32 temp;
 
-    width = Text_MeasureWidth(Gp_GetItemText(arg1, 0, 0)) + 0xB;
-    temp  = Text_MeasureWidth(Gp_StrEquipped);
+    width = textMeasureLineWidth((const u8*)Gp_GetItemText(arg1, 0, 0)) + 0xB;
+    temp  = textMeasureLineWidth((const u8*)Gp_StrEquipped);
     if (width < temp) {
         width = temp;
     }
@@ -790,9 +790,9 @@ void func_800CF6E8(UiObject* arg0, s32 arg1)
     text  = Gp_GetItemText(arg1, 0, 0);
     color = 0x606060;
     one   = 1;
-    Text_DrawPrompt(arg0, arg0->panel.contentLeft.signedValue + 2, arg0->panel.contentTop.signedValue + 0xF, Gp_StrEquipped, color, one, TEXT_ALIGNMENT_LEFT);
-    x = Text_DrawPrompt(arg0, arg0->panel.contentLeft.signedValue + 2, arg0->panel.contentTop.signedValue + 0x1E, text, 0x37A78, one, TEXT_ALIGNMENT_LEFT);
-    Text_DrawPrompt(arg0, x, arg0->panel.contentTop.signedValue + 0x1E, Gp_StrDot, color, one, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(arg0, arg0->panel.contentLeft.signedValue + 2, arg0->panel.contentTop.signedValue + 0xF, (const u8*)Gp_StrEquipped, color, one, TEXT_ALIGNMENT_LEFT);
+    x = textDrawUiLine(arg0, arg0->panel.contentLeft.signedValue + 2, arg0->panel.contentTop.signedValue + 0x1E, text, 0x37A78, one, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(arg0, x, arg0->panel.contentTop.signedValue + 0x1E, (const u8*)Gp_StrDot, color, one, TEXT_ALIGNMENT_LEFT);
 }
 
 void Gp_DrawUsePrompt(UiList* arg0, UiObject* arg1)
@@ -893,7 +893,7 @@ void func_800CFAA8(UiObject* arg0, Task* arg1)
 
 void Gp_DrawOkCmd(UiList* arg0, UiObject* arg1)
 {
-    Text_DrawPrompt(arg1, arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, Gp_StrOk, arg0->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(arg1, arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, (const u8*)Gp_StrOk, arg0->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     if (arg0->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
@@ -905,7 +905,7 @@ void Gp_DrawOkCmd(UiList* arg0, UiObject* arg1)
 
 void Gp_DrawCancelCmd(UiList* arg0, UiObject* arg1)
 {
-    Text_DrawPrompt(arg1, arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, Gp_StrCancel, arg0->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(arg1, arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, (const u8*)Gp_StrCancel, arg0->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     if (arg0->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
@@ -919,7 +919,7 @@ void Gp_DrawYesCmd(UiList* arg0, UiObject* arg1)
 {
     s32 temp;
 
-    Text_DrawPrompt(arg1, arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, Gp_StrYes, arg0->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(arg1, arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, (const u8*)Gp_StrYes, arg0->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     temp = arg0->rowInputEnabled;
     if (temp == 1) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
@@ -936,7 +936,7 @@ void Gp_DrawYesCmd(UiList* arg0, UiObject* arg1)
 
 void Gp_DrawNoCmd(UiList* arg0, UiObject* arg1)
 {
-    Text_DrawPrompt(arg1, arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, Gp_StrNo, arg0->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(arg1, arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, (const u8*)Gp_StrNo, arg0->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     if (arg0->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm | Pad_MaskCancel) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CANCEL, 0, 0);
@@ -2340,9 +2340,9 @@ void Gp_DrawCastCostLines(UiObject* arg0, s32 arg1)
     text  = Gp_GetItemText(arg1, 1, 1);
     color = 0x606060;
     one   = 1;
-    Text_DrawPrompt(arg0, arg0->panel.contentLeft.signedValue + 2, lineY, text, color, one, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(arg0, arg0->panel.contentLeft.signedValue + 2, lineY, text, color, one, TEXT_ALIGNMENT_LEFT);
     text = Gp_GetItemText(arg1, 2, one);
-    Text_DrawPrompt(arg0, arg0->panel.contentLeft.signedValue + 2, y + 0x1E, text, color, one, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(arg0, arg0->panel.contentLeft.signedValue + 2, y + 0x1E, text, color, one, TEXT_ALIGNMENT_LEFT);
     y     = arg0->panel.contentTop.unsignedValue;
     lineY = y + 0xF;
     Ui_DrawVBar(&(arg0)->panel, y, arg0->panel.contentBottom.signedValue, 0x2F);
@@ -2473,7 +2473,7 @@ void Gp_PeUpgradePanelTask(Task* arg0)
     } else if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.clearCount > 0) {
         cost = (cost * 2) / 5;
     }
-    Text_DrawPrompt(obj, x + 0x30, y, Text_ItoaSigned(str, cost & 0xFFFF), 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
+    textDrawUiLine(obj, x + 0x30, y, Text_ItoaSigned(str, cost & 0xFFFF), 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
 
     y += 0xF;
 
@@ -2499,8 +2499,8 @@ void Gp_PeUpgradePanelTask(Task* arg0)
     row2     = ((id + 1) & 0x30) >> 4;
     col2     = ((id + 1) & 0xC) >> 2;
     lvl2     = (id + 1) & 3;
-    Text_DrawPrompt(obj, x + 0x30, y, Text_ItoaSigned(str, Gp_IdParamHi.rows[(row2 * 3 + col2) * 3 + lvl2].value[bonusIdx]),
-                    0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
+    textDrawUiLine(obj, x + 0x30, y, Text_ItoaSigned(str, Gp_IdParamHi.rows[(row2 * 3 + col2) * 3 + lvl2].value[bonusIdx]),
+                   0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
 
     if (arg0->firstChild != NULL) {
         child = arg0->firstChild;
@@ -3407,9 +3407,9 @@ void Gp_DrawNextLevelCmd(Task* arg0)
     func_800D3D98(obj, spawnArg, 1);
     y    = obj->panel.contentBottom.signedValue;
     text = Gp_GetItemText(spawnArg + 1, 1, 1);
-    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, y - 0xF, text, 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, y - 0xF, text, 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_LEFT);
     text = Gp_GetItemText(spawnArg + 1, 2, 1);
-    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, y, text, 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, y, text, 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_LEFT);
 }
 
 void func_800D573C(Task* arg0)

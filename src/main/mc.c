@@ -864,8 +864,8 @@ static s32 Mc_PromptDialog(Task* task, s32 arg1, s32 unused3)
     one   = 1;
     base  = Mc_PromptTable;
     entry = &base[arg1];
-    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, one, TEXT_ALIGNMENT_LEFT);
-    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, one, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, one, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, one, TEXT_ALIGNMENT_LEFT);
 
     childTask = task->firstChild;
     if (childTask == NULL) {
@@ -905,8 +905,8 @@ static s32 Mc_PromptDialogChoice(Task* task, s32 arg1, s32 unused3)
     one   = 1;
     base  = Mc_PromptTable;
     entry = &base[arg1];
-    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, one, TEXT_ALIGNMENT_LEFT);
-    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, one, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, one, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, one, TEXT_ALIGNMENT_LEFT);
 
     childTask = task->firstChild;
     if (childTask == NULL) {
@@ -946,8 +946,8 @@ static s32 Mc_PromptDialogSpawn(Task* task, s32 arg1, s32 unused3)
     one   = 1;
     base  = Mc_PromptTable;
     entry = &base[arg1];
-    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, one, TEXT_ALIGNMENT_LEFT);
-    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, one, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, one, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, one, TEXT_ALIGNMENT_LEFT);
 
     childTask = task->firstChild;
     if (childTask == NULL) {
@@ -987,8 +987,8 @@ static s32 Mc_PromptDialogFile(Task* task, s32 arg1, s32 unused3)
     one   = 1;
     base  = Mc_PromptTable;
     entry = &base[arg1];
-    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, one, TEXT_ALIGNMENT_LEFT);
-    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, one, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, one, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, one, TEXT_ALIGNMENT_LEFT);
 
     childTask = task->firstChild;
     if (childTask == NULL) {
@@ -1280,8 +1280,8 @@ static void Mc_StateScanDirFlags(Task* task, McWork* work)
     ret         = Ui_LookupTable(obj, 1);
     obj->result = USER_INTERFACE_RESULT_NONE;
     Ui_DrawTitle(&(obj)->panel, Mc_StrMemoryCard);
-    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, -2, Mc_PromptTable[idx].upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, 0xF, Mc_PromptTable[idx].lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, Mc_PromptTable[idx].upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, Mc_PromptTable[idx].lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
 }
 
 static void Mc_StateListDirectory(Task* task, McWork* work)
@@ -1355,8 +1355,8 @@ static void Mc_StateListDirectory(Task* task, McWork* work)
     one   = 1;
     base  = Mc_PromptTable;
     entry = &base[idx];
-    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, one, TEXT_ALIGNMENT_LEFT);
-    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, one, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, one, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, one, TEXT_ALIGNMENT_LEFT);
 }
 
 /// Inline form of Mc_DrawPrompt.
@@ -1373,8 +1373,8 @@ static inline void _mcDrawPrompt(Task* task, s32 mode)
     Ui_DrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[mode];
-    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
 }
 
 /// Tear down the task's child UI and report status on the task's own object.
@@ -1594,8 +1594,8 @@ static void Mc_StateCompareBuffers(Task* task, McWork* work)
     one   = 1;
     base  = Mc_PromptTable;
     entry = &base[idx];
-    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, one, TEXT_ALIGNMENT_LEFT);
-    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, one, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, one, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, one, TEXT_ALIGNMENT_LEFT);
 }
 
 static void Mc_StateOpenRead(Task* task, McWork* work)
@@ -1644,8 +1644,8 @@ static void Mc_StateOpenRead(Task* task, McWork* work)
     Ui_DrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[idx];
-    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
 }
 
 static void Mc_StateCreateFile(Task* task, McWork* work)
@@ -1691,8 +1691,8 @@ static void Mc_StateCreateFile(Task* task, McWork* work)
     Ui_DrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[idx];
-    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
 }
 
 static void Mc_StatePadFileName(Task* task, McWork* work)
@@ -1747,8 +1747,8 @@ static void Mc_StatePadFileName(Task* task, McWork* work)
     Ui_DrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[idx];
-    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
 }
 
 static void Mc_StateNameEntry(Task* task, McWork* work)
@@ -1953,8 +1953,8 @@ static void Mc_StateFreeBuffer(Task* task, McWork* work)
     Ui_DrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[idx];
-    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
 }
 
 static void Mc_StateFormat(Task* task, McWork* work)
@@ -1992,8 +1992,8 @@ static void Mc_StateFormat(Task* task, McWork* work)
     Ui_DrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[idx];
-    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
 }
 
 static void Mc_StateSyncFileSelect(Task* task, McWork* work)
@@ -2130,8 +2130,8 @@ static void Mc_StateBlankFileName(Task* task, McWork* work)
     Ui_DrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[idx];
-    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
 }
 
 static void Mc_StateSyncOpen(Task* task, McWork* work)
@@ -2474,7 +2474,7 @@ void Mc_DrawSlotDetails(UiObject* object, McWork* work, s32 slot, s32 arg3, s32 
             x = arg3 + object->panel.contentLeft.signedValue + 8;
             y = arg4 + object->panel.contentTop.signedValue + 0x11;
             if (work->corruptNoticeStyle == MEMORY_CARD_CORRUPT_NOTICE_PROMPT) {
-                Text_DrawPrompt(object, x, y, McText_LoadAbortedCorrupted, 0x606060, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+                textDrawUiLine(object, x, y, McText_LoadAbortedCorrupted, 0x606060, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
                 return;
             }
             Text_DrawMultiLine(object, x, y, McText_LoadAbortedCorrupted, 0x37A78, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
@@ -2530,12 +2530,12 @@ void Mc_DrawSlotDetails(UiObject* object, McWork* work, s32 slot, s32 arg3, s32 
         }
         x = arg3 + object->panel.contentLeft.signedValue + 4;
         y = arg4 + object->panel.contentTop.signedValue + 0x11;
-        Text_DrawPrompt(object, x, y, Mc_LocationLabels[(s8)save->savePoint], color, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+        textDrawUiLine(object, x, y, Mc_LocationLabels[(s8)save->savePoint], color, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
         sp60.buf[0] = 0;
         textAppendString(sp60.buf, McText_OpenParen);
         textAppendString(sp60.buf, Text_ItoaSigned(sp20.buf, save->saveNumber));
         textAppendString(sp60.buf, McText_CloseParen);
-        detailRequest.x          = object->panel.contentOriginX.unsignedValue + (x + Text_MeasureWidth(Mc_LocationLabels[(s8)save->savePoint]));
+        detailRequest.x          = object->panel.contentOriginX.unsignedValue + (x + textMeasureLineWidth(Mc_LocationLabels[(s8)save->savePoint]));
         detailRequest.y          = object->panel.contentOriginY.unsignedValue + (y - 3);
         detailRequest.otIndex    = object->panel.otIndex.signedValue + 1;
         detailRequest.colorRgb   = color;
@@ -2971,8 +2971,8 @@ static void Mc_StateAcceptMode1(Task* task, McWork* work)
     Ui_DrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[idx];
-    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     if (work->promptTimer > 0) {
         work->promptTimer -= 2;
     }
@@ -3002,8 +3002,8 @@ static void Mc_StateSyncAdvance(Task* task, McWork* work)
     Ui_DrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[idx];
-    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     if (work->promptTimer > 0) {
         work->promptTimer -= 2;
     }
@@ -3028,8 +3028,8 @@ static void Mc_StateDrawPromptAdvance(Task* task, McWork* work)
     Ui_DrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[idx];
-    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     task->state = task->state + 1;
 }
 
@@ -3094,8 +3094,8 @@ static void Mc_StateDrawPrompt4(Task* task, McWork* work)
     Ui_DrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[MEMORY_CARD_PROMPT_SAVING];
-    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     task->state = task->state + 1;
 }
 
@@ -3115,8 +3115,8 @@ static void Mc_StateEnterDialog4(Task* task, McWork* work)
     Ui_DrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[MEMORY_CARD_PROMPT_SAVING];
-    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
 }
 
 static void Mc_StateWriteFile(Task* task, McWork* work)
@@ -3141,8 +3141,8 @@ static void Mc_StateWriteFile(Task* task, McWork* work)
     Ui_DrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[idx];
-    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
 }
 
 static void Mc_StatePromptChoiceGeneric(Task* task, McWork* work)
@@ -3191,8 +3191,8 @@ static void Mc_StateWriteData(Task* task, McWork* work)
     Ui_DrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[idx];
-    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
 }
 
 static void Mc_StateClosePrompt(Task* task, McWork* work)
@@ -3213,8 +3213,8 @@ static void Mc_StateClosePrompt(Task* task, McWork* work)
     Ui_DrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[idx];
-    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     task->state = 0x1B;
     flag        = task->spawnArg2.pointer;
     if (flag != NULL) {
@@ -3321,8 +3321,8 @@ static void Mc_StateColdBoot(Task* task, McWork* work)
     Ui_DrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[MEMORY_CARD_PROMPT_FORMATTING];
-    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     work->cardTimer = MEMORY_CARD_IO_SETTLE_FRAMES;
     task->state     = task->state + 1;
 }
@@ -3409,8 +3409,8 @@ static void Mc_StatePromptCountdown(Task* task, McWork* work)
     Ui_DrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[idx];
-    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     if (work->promptTimer < MEMORY_CARD_PROMPT_DISMISS_LIMIT) {
         task->killCountdown = 0;
         task->state         = -1;
@@ -3432,8 +3432,8 @@ static void Mc_StateDrawPromptTo1F(Task* task, McWork* work)
     Ui_DrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[idx];
-    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     task->state = 0x1F;
 }
 
@@ -3451,8 +3451,8 @@ static void Mc_StateCountdownPrompt4(Task* task, McWork* work)
     Ui_DrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[MEMORY_CARD_PROMPT_SAVING];
-    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     if (work->cardTimer-- <= 0) {
         work->closeAnswer = USER_INTERFACE_LIST_COMMAND_YES;
         task->state       = 0x13;
@@ -3474,8 +3474,8 @@ static void Mc_StateDrawPrompt1Advance(Task* task, McWork* work)
     Ui_DrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[MEMORY_CARD_PROMPT_CHECKING];
-    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     task->state = task->state + 1;
 }
 
@@ -3519,8 +3519,8 @@ static void Mc_StateReadHeader(Task* task, McWork* work)
     Ui_DrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[idx];
-    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
 }
 
 static void Mc_StateOpenNext(Task* task, McWork* work)
@@ -3555,8 +3555,8 @@ static void Mc_StateOpenNext(Task* task, McWork* work)
     Ui_DrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[modeIdx];
-    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
 }
 
 static void Mc_StateUiCountdown2(Task* task, McWork* work)
@@ -3578,8 +3578,8 @@ static void Mc_StateUiCountdown2(Task* task, McWork* work)
     Ui_DrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[idx];
-    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
 }
 
 static void Mc_StateUiCountdownE(Task* task, McWork* work)
@@ -3601,8 +3601,8 @@ static void Mc_StateUiCountdownE(Task* task, McWork* work)
     Ui_DrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[idx];
-    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
 }
 
 static void Mc_StateUiCountdownF(Task* task, McWork* work)
@@ -3623,8 +3623,8 @@ static void Mc_StateUiCountdownF(Task* task, McWork* work)
     Ui_DrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[MEMORY_CARD_PROMPT_SAVING];
-    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
 }
 
 static void Mc_StateEnterPromptE(Task* task, McWork* work)
@@ -3721,8 +3721,8 @@ static void Mc_StateCountdownPrompt(Task* task, McWork* work)
         Ui_DrawTitle(&(obj)->panel, Mc_StrMemoryCard);
         base  = Mc_PromptTable;
         entry = &base[idx];
-        Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-        Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+        textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+        textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     }
 }
 
@@ -3742,8 +3742,8 @@ static void Mc_StateCloseReturn(Task* task, McWork* work)
     Ui_DrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[idx];
-    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     task->state = 4;
     if (task->spawnArg2.pointer != NULL) {
         ((UiObject*)task->spawnArg2.pointer)->result = USER_INTERFACE_RESULT_CANCEL;
@@ -3766,8 +3766,8 @@ static void Mc_StatePromptTimeout(Task* task, McWork* work)
     Ui_DrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[idx];
-    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     if (work->promptTimer < MEMORY_CARD_PROMPT_DISMISS_LIMIT) {
         task->killCountdown = 0;
         task->state         = task->state + 1;
@@ -3910,8 +3910,8 @@ static void Mc_StateDrawCurrentPrompt(Task* task, McWork* work)
     Ui_DrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[idx];
-    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     task->state = task->state + 1;
 }
 
@@ -3936,8 +3936,8 @@ static void Mc_StateReadData(Task* task, McWork* work)
     Ui_DrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[idx];
-    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
 }
 
 static void Mc_StateDrawPrompt1(Task* task, McWork* work)
@@ -3955,8 +3955,8 @@ static void Mc_StateDrawPrompt1(Task* task, McWork* work)
     Ui_DrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[MEMORY_CARD_PROMPT_CHECKING];
-    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     task->state = task->state + 1;
 }
 
@@ -3990,8 +3990,8 @@ static void Mc_StateGetDirentry(Task* task, McWork* work)
     Ui_DrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[idx];
-    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
 }
 
 static void Mc_StateOpenDirEntry(Task* task, McWork* work)
@@ -4034,8 +4034,8 @@ static void Mc_StateReadSlot(Task* task, McWork* work)
     Ui_DrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[idx];
-    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
 }
 
 static void Mc_StateWalkDirectory(Task* task, McWork* work)
@@ -4070,8 +4070,8 @@ static void Mc_StateWalkDirectory(Task* task, McWork* work)
     Ui_DrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[modeIdx];
-    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
 }
 
 static void Mc_StateEnterPrompt17(Task* task, McWork* work)

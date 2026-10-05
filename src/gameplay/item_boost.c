@@ -200,9 +200,9 @@ static inline void _gpDrawPromptItem(UiObject* obj, s32 x, s32 y, u8* str, s32 i
 {
     s32 width;
 
-    Text_DrawPrompt(obj, x, y, str, color, one, TEXT_ALIGNMENT_LEFT);
-    width = Text_MeasureWidth(str) + 4;
-    Text_DrawPrompt(obj, x + width, y, Gp_GetItemText(item, 0, 0), 0x37A78, one, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, x, y, str, color, one, TEXT_ALIGNMENT_LEFT);
+    width = textMeasureLineWidth(str) + 4;
+    textDrawUiLine(obj, x + width, y, (const u8*)Gp_GetItemText(item, 0, 0), 0x37A78, one, TEXT_ALIGNMENT_LEFT);
 }
 static __inline__ s32 Gp_HasStockedItemInline(s32 arg0)
 {
@@ -344,8 +344,8 @@ void Gp_UiBoostAttach(UiObject* arg0, Task* arg1)
             arg1->status = 0x1A;
         }
         if (arg1->status == 0xFF) {
-            width = Text_MeasureWidth(Gp_GetItemText(item, 0, 0)) + Text_MeasureWidth(Gp_StrMore) + 4;
-            other = Text_MeasureWidth(Gp_StrAttachAvail);
+            width = textMeasureLineWidth((const u8*)Gp_GetItemText(item, 0, 0)) + textMeasureLineWidth(Gp_StrMore) + 4;
+            other = textMeasureLineWidth(Gp_StrAttachAvail);
             if (width < other) {
                 width = other;
             }
@@ -372,7 +372,7 @@ void Gp_UiBoostAttach(UiObject* arg0, Task* arg1)
     one   = 1;
     row   = y + 0xF;
     _gpDrawPromptItem(arg0, x, row, Gp_StrMore, item, color, one);
-    Text_DrawPrompt(arg0, x, y + 0x1E, Gp_StrAttachAvail, color, one, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(arg0, x, y + 0x1E, Gp_StrAttachAvail, color, one, TEXT_ALIGNMENT_LEFT);
 
     if (arg0->panel.control.word == one) {
         arg1->killCountdown--;

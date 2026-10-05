@@ -198,7 +198,7 @@ static void func_map_akropolis_80179C50(UiList* arg0, UiObject* arg1)
     s32 sel;
 
     item = D_map_akropolis_8017A9AC[arg0->currentItemIndex];
-    Text_DrawPrompt(arg1, arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, (u8*)Gp_GetItemText(item, 0, 0), arg0->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(arg1, arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, (const u8*)Gp_GetItemText(item, 0, 0), arg0->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     if (((arg1->panel.control.word >> 16) == USER_INTERFACE_PANEL_ACTIVE) || (arg1->panel.control.word == USER_INTERFACE_PANEL_ACTIVE)) {
         if (arg0->selectedItemIndex == arg0->currentItemIndex) {
             Gp_SetPreviewItem(item, 0);

@@ -1480,7 +1480,7 @@ void func_mist_shooting_gallery_8017EC58(Task* task)
     req1.alignment  = TEXT_ALIGNMENT_LEFT;
     req1.drawMode   = TEXT_DRAW_OUTLINED;
     textDrawString(&req1, "HP");
-    Text_DrawPrompt(obj, -xOff, y, Text_ItoaSigned(buf, val), color, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
+    textDrawUiLine(obj, -xOff, y, Text_ItoaSigned(buf, val), color, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
 
     y     = top + 0x1E;
     val   = Gp_StatRows[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode].baseMp;
@@ -1497,7 +1497,7 @@ void func_mist_shooting_gallery_8017EC58(Task* task)
     req2.alignment  = TEXT_ALIGNMENT_LEFT;
     req2.drawMode   = TEXT_DRAW_OUTLINED;
     textDrawString(&req2, "MP");
-    Text_DrawPrompt(obj, -xOff, y, Text_ItoaSigned(buf, val), color, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
+    textDrawUiLine(obj, -xOff, y, Text_ItoaSigned(buf, val), color, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
 
     y      = top + 0x2D;
     rawExp = D_mist_shooting_gallery_8018E0BC;
@@ -1529,7 +1529,7 @@ void func_mist_shooting_gallery_8017EC58(Task* task)
     req3.alignment  = TEXT_ALIGNMENT_LEFT;
     req3.drawMode   = TEXT_DRAW_OUTLINED;
     textDrawString(&req3, "EXP");
-    Text_DrawPrompt(obj, -xOff, y, Text_ItoaSigned(buf, val), 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
+    textDrawUiLine(obj, -xOff, y, Text_ItoaSigned(buf, val), 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
 
     y    += 0xF;
     rawBp = D_mist_shooting_gallery_8018E0C0;
@@ -1561,7 +1561,7 @@ void func_mist_shooting_gallery_8017EC58(Task* task)
     req4.alignment  = TEXT_ALIGNMENT_LEFT;
     req4.drawMode   = TEXT_DRAW_OUTLINED;
     textDrawString(&req4, "BP");
-    Text_DrawPrompt(obj, -xOff, y, Text_ItoaSigned(buf, val), 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
+    textDrawUiLine(obj, -xOff, y, Text_ItoaSigned(buf, val), 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
 }
 static const _MistShootingGalleryModeTexts D_mist_shooting_gallery_8017D708 = { { D_mist_shooting_gallery_80184DD4, D_mist_shooting_gallery_80184E24, D_mist_shooting_gallery_80184E70, D_mist_shooting_gallery_80184EC4 } };
 
@@ -1642,7 +1642,7 @@ void func_mist_shooting_gallery_8017F128(Task* task)
     value0.alignment  = TEXT_ALIGNMENT_RIGHT;
     value0.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
     textDrawString(&value0, rating->name);
-    Text_DrawPrompt(obj, 0x46, y, gaugeByLevel[rating->level], 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, 0x46, y, (const u8*)gaugeByLevel[rating->level], 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_LEFT);
     uiDrawHorizontalSeparator(&(obj)->panel, col + 6, -x + 5, row + 0xD);
 
     y                 = row + 0x1E;
@@ -1664,7 +1664,7 @@ void func_mist_shooting_gallery_8017F128(Task* task)
     value1.alignment  = TEXT_ALIGNMENT_RIGHT;
     value1.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
     textDrawString(&value1, rating->name);
-    Text_DrawPrompt(obj, 0x46, y, gaugeByLevel[rating->level], 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, 0x46, y, (const u8*)gaugeByLevel[rating->level], 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_LEFT);
 
     y                 = row + 0x2D;
     label2.x          = obj->panel.contentOriginX.unsignedValue + x;
@@ -1685,7 +1685,7 @@ void func_mist_shooting_gallery_8017F128(Task* task)
     value2.alignment  = TEXT_ALIGNMENT_RIGHT;
     value2.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
     textDrawString(&value2, rating->name);
-    Text_DrawPrompt(obj, 0x46, y, gaugeByLevel[rating->level], 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, 0x46, y, (const u8*)gaugeByLevel[rating->level], 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_LEFT);
 
     y                 = row + 0x3C;
     label3.x          = obj->panel.contentOriginX.unsignedValue + x;
@@ -1706,7 +1706,7 @@ void func_mist_shooting_gallery_8017F128(Task* task)
     value3.alignment  = TEXT_ALIGNMENT_RIGHT;
     value3.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
     textDrawString(&value3, rating->name);
-    Text_DrawPrompt(obj, 0x46, y, gaugeByLevel[rating->level], 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, 0x46, y, (const u8*)gaugeByLevel[rating->level], 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_LEFT);
 }
 /// Task handler for the gallery's closing sequence. State 0 spawns the results
 /// panel and stashes `gPlayerStatus.exp` / `gPlayerStatus.bp` in
@@ -1809,7 +1809,7 @@ void func_mist_shooting_gallery_8017F98C(UiList* arg0, UiObject* arg1)
     modeNames = D_mist_shooting_gallery_8017D6D8;
     one       = 1;
     // The list has one row per run mode, so the row index is the mode.
-    Text_DrawPrompt(arg1, arg0->rowTextX.signedValue, arg0->rowTextY.signedValue - 1, modeNames.byMode[arg0->currentItemIndex], arg0->colorRgb, one, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(arg1, arg0->rowTextX.signedValue, arg0->rowTextY.signedValue - 1, (const u8*)modeNames.byMode[arg0->currentItemIndex], arg0->colorRgb, one, TEXT_ALIGNMENT_LEFT);
     if (arg0->rowInputEnabled == one) {
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode = (u8)arg0->currentItemIndex;
     }

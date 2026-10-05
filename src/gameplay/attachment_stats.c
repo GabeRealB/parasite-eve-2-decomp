@@ -885,7 +885,7 @@ static s32 func_800A2104(HudState* hud, s32 arg1, s32 arg2)
         ret   = getAttachWheelLevel(Gp_StateC08.wheelIndex);
         color = 0x606060;
         func_800C2538(&obj, -0xB, 0x28, ret, color);
-        Text_DrawPrompt(&obj, 0x8E, 0x28, Text_ItoaSigned(scratch.text.costDigits, param), color, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
+        textDrawUiLine(&obj, 0x8E, 0x28, Text_ItoaSigned(scratch.text.costDigits, param), color, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
 
         rect.x = arg1;
         rect.y = arg2 + 0x17;

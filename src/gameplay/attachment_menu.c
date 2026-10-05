@@ -559,22 +559,22 @@ void Gp_ReloadPromptTask(Task* arg0)
                 text        = Gp_StrRemovedAmmo;
             }
             Gp_ClearEquipSlotSel(hi, Gp_ReloadMode);
-            other = Text_MeasureWidth(Gp_StrRemoved);
+            other = textMeasureLineWidth((const u8*)Gp_StrRemoved);
         } else {
             Gp_SetItemSeenBit(lo, 1);
             text = Gp_GetItemText(lo, 0, 0);
             Gp_EquipRelatedItem(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, hi, lo, -1);
-            other       = Text_MeasureWidth(Gp_StrLoaded);
+            other       = textMeasureLineWidth((const u8*)Gp_StrLoaded);
             arg0->state = 1;
         }
         if (arg0->state != 0x20) {
-            width = Text_MeasureWidth(text) + 0xB;
+            width = textMeasureLineWidth(text) + 0xB;
             if (width < other) {
                 width = other;
             }
             rows = 2;
         } else {
-            width = Text_MeasureWidth(text);
+            width = textMeasureLineWidth(text);
             rows  = 1;
         }
         Ui_UpdateLayoutSize(&(obj)->panel, width + 5, Ui_Scale15(rows) + 1);
@@ -592,16 +592,16 @@ void Gp_ReloadPromptTask(Task* arg0)
     } else if (arg0->state < 0x20) {
         text = Gp_GetItemText(lo, 0, 0);
         if (arg0->state < 0x10) {
-            Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, Gp_StrLoaded, 0x606060, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+            textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, (const u8*)Gp_StrLoaded, 0x606060, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
         } else {
-            Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, Gp_StrRemoved, 0x606060, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+            textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, (const u8*)Gp_StrRemoved, 0x606060, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
         }
         one   = 1;
-        width = Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0x1E, text, 0x37A78, one, TEXT_ALIGNMENT_LEFT);
+        width = textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0x1E, text, 0x37A78, one, TEXT_ALIGNMENT_LEFT);
         color = 0x606060;
-        Text_DrawPrompt(obj, width, obj->panel.contentTop.signedValue + 0x1E, Gp_StrDot, color, one, TEXT_ALIGNMENT_LEFT);
+        textDrawUiLine(obj, width, obj->panel.contentTop.signedValue + 0x1E, (const u8*)Gp_StrDot, color, one, TEXT_ALIGNMENT_LEFT);
     } else {
-        Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, Gp_StrRemovedAmmo, 0x606060, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+        textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, (const u8*)Gp_StrRemovedAmmo, 0x606060, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     }
     arg0->killCountdown--;
     if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
@@ -626,7 +626,7 @@ void Gp_AttachPromptTask(Task* arg0)
     obj->result = USER_INTERFACE_RESULT_NONE;
     text        = Gp_GetItemText(arg0->spawnArg1.value, 0, 0);
     if (arg0->state == 0) {
-        width = Text_MeasureWidth(text) + 0x40;
+        width = textMeasureLineWidth(text) + 0x40;
         Ui_UpdateLayoutSize(&(obj)->panel, width, Ui_Scale15(2) + 8);
         (&(obj)->panel)->bounds.rect.x = (-(&(obj)->panel)->bounds.rect.w) >> 1;
         arg0->killCountdown            = 0xBC;
@@ -640,9 +640,9 @@ void Gp_AttachPromptTask(Task* arg0)
     Ui_DrawText(&(obj)->panel, Gp_StrAttach);
     color = 0x606060;
     one   = 1;
-    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 6, 0, Gp_StrEquipped, color, one, TEXT_ALIGNMENT_LEFT);
-    width = Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 6, 0xE, text, 0x37A78, one, TEXT_ALIGNMENT_LEFT);
-    Text_DrawPrompt(obj, width, 0xE, Gp_StrDot, color, one, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 6, 0, (const u8*)Gp_StrEquipped, color, one, TEXT_ALIGNMENT_LEFT);
+    width = textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 6, 0xE, text, 0x37A78, one, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, width, 0xE, (const u8*)Gp_StrDot, color, one, TEXT_ALIGNMENT_LEFT);
     arg0->killCountdown--;
     if (obj->panel.control.word == one) {
         if (padCheckButtons(0, one, Pad_MaskMenu) != 0) {
@@ -692,8 +692,8 @@ void Gp_EquipPromptTask(Task* arg0)
         } else if ((u32)(val - 0x60) < 0x20U) {
             Gp_EquipMod(val);
         }
-        width = Text_MeasureWidth(Gp_GetItemText(arg0->spawnArg1.value, 0, 0)) + 0xB;
-        other = Text_MeasureWidth(Gp_StrEquipped);
+        width = textMeasureLineWidth((const u8*)Gp_GetItemText(arg0->spawnArg1.value, 0, 0)) + 0xB;
+        other = textMeasureLineWidth((const u8*)Gp_StrEquipped);
         if (width < other) {
             width = other;
         }
@@ -715,9 +715,9 @@ void Gp_EquipPromptTask(Task* arg0)
     text  = Gp_GetItemText(arg0->spawnArg1.value, 0, 0);
     color = 0x606060;
     one   = 1;
-    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, Gp_StrEquipped, color, one, TEXT_ALIGNMENT_LEFT);
-    width = Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0x1E, text, 0x37A78, one, TEXT_ALIGNMENT_LEFT);
-    Text_DrawPrompt(obj, width, obj->panel.contentTop.signedValue + 0x1E, Gp_StrDot, color, one, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, (const u8*)Gp_StrEquipped, color, one, TEXT_ALIGNMENT_LEFT);
+    width = textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0x1E, text, 0x37A78, one, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, width, obj->panel.contentTop.signedValue + 0x1E, (const u8*)Gp_StrDot, color, one, TEXT_ALIGNMENT_LEFT);
     arg0->killCountdown--;
     if (obj->panel.control.word == one) {
         if (padCheckButtons(0, one, Pad_MaskMenu) != 0) {

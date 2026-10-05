@@ -172,7 +172,7 @@ static void func_options_801D404C(UiList* arg0, UiObject* arg1)
 
     columnCount = 2;
     title       = D_options_801D5B60;
-    Text_DrawPrompt(arg1, arg1->panel.contentLeft.signedValue + 6, arg0->rowTextY.signedValue, title, arg0->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(arg1, arg1->panel.contentLeft.signedValue + 6, arg0->rowTextY.signedValue, title, arg0->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     i        = 0;
     p        = labels;
     saved    = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.soundMode;
@@ -187,7 +187,7 @@ static void func_options_801D404C(UiList* arg0, UiObject* arg1)
             look = Ui_LookupTable(arg1, 1);
         }
         one = 1;
-        Text_DrawPrompt(arg1, x + y / columnCount, arg0->rowTextY.signedValue, *p, look, one, TEXT_ALIGNMENT_LEFT);
+        textDrawUiLine(arg1, x + y / columnCount, arg0->rowTextY.signedValue, *p, look, one, TEXT_ALIGNMENT_LEFT);
         p++;
         y += span;
         i += one;
@@ -252,7 +252,7 @@ static void func_options_801D42A8(UiList* arg0, UiObject* arg1)
     count = 4;
     a0tmp = arg1;
     title = D_options_801D5B78;
-    Text_DrawPrompt(a0tmp, arg1->panel.contentLeft.signedValue + 6, arg0->rowTextY.signedValue, title, arg0->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(a0tmp, arg1->panel.contentLeft.signedValue + 6, arg0->rowTextY.signedValue, title, arg0->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     i        = 0;
     p        = labels;
     saved    = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.musicVolume;
@@ -267,7 +267,7 @@ static void func_options_801D42A8(UiList* arg0, UiObject* arg1)
             look = Ui_LookupTable(arg1, 1);
         }
         one = 1;
-        Text_DrawPrompt(arg1, x + y / count, arg0->rowTextY.signedValue, *p, look, one, TEXT_ALIGNMENT_LEFT);
+        textDrawUiLine(arg1, x + y / count, arg0->rowTextY.signedValue, *p, look, one, TEXT_ALIGNMENT_LEFT);
         p++;
         y += span;
         i += one;
@@ -311,7 +311,7 @@ static void func_options_801D4504(UiList* arg0, UiObject* arg1)
     s32  n2;
     s32  status;
 
-    Text_DrawPrompt(arg1, arg1->panel.contentLeft.signedValue + 6, arg0->rowTextY.signedValue, D_options_801D5B90, arg0->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(arg1, arg1->panel.contentLeft.signedValue + 6, arg0->rowTextY.signedValue, D_options_801D5B90, arg0->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     i        = 0;
     p        = labels;
     y        = i;
@@ -326,7 +326,7 @@ static void func_options_801D4504(UiList* arg0, UiObject* arg1)
             look = Ui_LookupTable(arg1, 1);
         }
         one = 1;
-        Text_DrawPrompt(arg1, x + y / n2, arg0->rowTextY.signedValue, *p, look, one, TEXT_ALIGNMENT_LEFT);
+        textDrawUiLine(arg1, x + y / n2, arg0->rowTextY.signedValue, *p, look, one, TEXT_ALIGNMENT_LEFT);
         p++;
         y += span;
         i += one;
@@ -369,7 +369,7 @@ static void func_options_801D4724(UiList* arg0, UiObject* arg1)
     s32  status;
 
     title = D_options_801D5B4C;
-    Text_DrawPrompt(arg1, arg1->panel.contentLeft.signedValue + 6, arg0->rowTextY.signedValue, title, arg0->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(arg1, arg1->panel.contentLeft.signedValue + 6, arg0->rowTextY.signedValue, title, arg0->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     i        = 0;
     p        = labels;
     y        = i;
@@ -384,7 +384,7 @@ static void func_options_801D4724(UiList* arg0, UiObject* arg1)
             look = Ui_LookupTable(arg1, 1);
         }
         one = 1;
-        Text_DrawPrompt(arg1, x + y / n2, arg0->rowTextY.signedValue, *p, look, one, TEXT_ALIGNMENT_LEFT);
+        textDrawUiLine(arg1, x + y / n2, arg0->rowTextY.signedValue, *p, look, one, TEXT_ALIGNMENT_LEFT);
         p++;
         y += span;
         i += one;
@@ -427,7 +427,7 @@ static void func_options_801D4944(UiList* arg0, UiObject* arg1)
     s32  status;
 
     title = D_options_801D5BB8;
-    Text_DrawPrompt(arg1, arg1->panel.contentLeft.signedValue + 6, arg0->rowTextY.signedValue, title, arg0->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(arg1, arg1->panel.contentLeft.signedValue + 6, arg0->rowTextY.signedValue, title, arg0->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     i           = 0;
     p           = labels;
     y           = i;
@@ -442,7 +442,7 @@ static void func_options_801D4944(UiList* arg0, UiObject* arg1)
             look = Ui_LookupTable(arg1, 1);
         }
         one = 1;
-        Text_DrawPrompt(arg1, x + y / columnCount, arg0->rowTextY.signedValue, *p, look, one, TEXT_ALIGNMENT_LEFT);
+        textDrawUiLine(arg1, x + y / columnCount, arg0->rowTextY.signedValue, *p, look, one, TEXT_ALIGNMENT_LEFT);
         p++;
         y += span;
         i += one;
@@ -590,7 +590,7 @@ static void func_options_801D4D0C(Task* task)
     l2 = (s16)obj->panel.bounds.unsignedRect.x + (s16)obj->panel.bounds.unsignedRect.w;
     r2 = obj->panel.contentOriginX.signedValue + 5;
     Ui_DrawFlatCaret(&(obj)->panel, l2 - r2, y, 0x606060, one);
-    Text_DrawPrompt(obj, xRight, y, labels[type], 0x606060, one, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, xRight, y, labels[type], 0x606060, one, TEXT_ALIGNMENT_LEFT);
     status = obj->panel.control.word;
     if (((status >> 16) == one) || (status == one)) {
         Ui_SmoothCursor(&(obj)->panel, xRight, x + 7);
@@ -608,7 +608,7 @@ static void func_options_801D4D0C(Task* task)
     base = obj->panel.contentLeft.signedValue;
     one2 = 1;
     x    = base + 0x1E;
-    Text_DrawPrompt(obj, x, y, D_options_801D5C4C, color, one2, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, x, y, D_options_801D5C4C, color, one2, TEXT_ALIGNMENT_LEFT);
     yHdr = y;
     y   += 0xB;
 
@@ -675,7 +675,7 @@ static void func_options_801D4D0C(Task* task)
     textDrawString(&req5, D_options_801D5BF0);
 
     /* Middle column: run / walk assignments. */
-    Text_DrawPrompt(obj, x, y, D_options_801D5C54, color, one2, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, x, y, D_options_801D5C54, color, one2, TEXT_ALIGNMENT_LEFT);
     y += 0xB;
     if (type != one2) {
         req6.x          = obj->panel.contentOriginX.unsignedValue + x;
@@ -756,7 +756,7 @@ static void func_options_801D4D0C(Task* task)
     y    = yHdr;
     x    = obj->panel.contentRight.signedValue - 4;
     one3 = 1;
-    Text_DrawPrompt(obj, x, y, D_options_801D5C5C, color2, one3, TEXT_ALIGNMENT_RIGHT);
+    textDrawUiLine(obj, x, y, D_options_801D5C5C, color2, one3, TEXT_ALIGNMENT_RIGHT);
     y            += 0xB;
     textAlignment = TEXT_ALIGNMENT_RIGHT;
     if (type == 0) {
@@ -930,7 +930,7 @@ static void func_options_801D5954(UiList* arg0, UiObject* arg1)
 {
     s32 status;
 
-    Text_DrawPrompt(arg1, arg1->panel.contentLeft.signedValue + 6, arg0->rowTextY.signedValue, D_options_801D5BAC, arg0->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(arg1, arg1->panel.contentLeft.signedValue + 6, arg0->rowTextY.signedValue, D_options_801D5BAC, arg0->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     status = arg1->panel.control.word;
     if ((((status >> 0x10) == 1) || (status == 1)) && (arg0->selectedItemIndex == arg0->currentItemIndex)) {
         Ui_SetHolderParam(D_options_801D5DA4, 0, 0);
@@ -946,7 +946,7 @@ static void func_options_801D5A4C(UiList* arg0, UiObject* arg1)
 {
     s32 status;
 
-    Text_DrawPrompt(arg1, arg1->panel.contentLeft.signedValue + 6, arg0->rowTextY.signedValue, D_options_801D5B2C, arg0->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(arg1, arg1->panel.contentLeft.signedValue + 6, arg0->rowTextY.signedValue, D_options_801D5B2C, arg0->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     status = arg1->panel.control.word;
     if ((((status >> 0x10) == 1) || (status == 1)) && (arg0->selectedItemIndex == arg0->currentItemIndex)) {
         Ui_SetHolderParam(D_options_801D5DDC, 0, 0);

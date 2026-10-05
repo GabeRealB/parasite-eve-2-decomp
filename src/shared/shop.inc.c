@@ -332,7 +332,7 @@ static void Shop_ItemRow(UiList* prompt, UiObject* obj)
             blocked          = 1;
             prompt->colorRgb = Ui_LookupTable(obj, 2);
         }
-        Text_DrawPrompt(obj, prompt->rowTextX.signedValue, prompt->rowTextY.signedValue, Shop_Data_80181A1C, prompt->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+        textDrawUiLine(obj, prompt->rowTextX.signedValue, prompt->rowTextY.signedValue, Shop_Data_80181A1C, prompt->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
         if (prompt->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE && blocked == 0 && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
             sndEvtRequestScriptStart(SOUND_SYSTEM_CONFIRM, 0, 0);
             child = Ui_SpawnFromDesc(&Shop_Data_80181B84, itemId, 1, 1, obj);
@@ -380,7 +380,7 @@ static void Shop_ItemRow(UiList* prompt, UiObject* obj)
         Gp_DrawQty(obj, prompt->rowTextX.signedValue, prompt->rowTextY.signedValue, gpItemStock(itemId)->packQty, prompt->colorRgb);
     }
     Text_ItoaUnsigned(buf, price);
-    Text_DrawPrompt(obj, -prompt->rowTextX.signedValue, prompt->rowTextY.signedValue, buf, prompt->colorRgb, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
+    textDrawUiLine(obj, -prompt->rowTextX.signedValue, prompt->rowTextY.signedValue, buf, prompt->colorRgb, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
 }
 
 /// Adds an item id to the room's shop list, keeping one entry per item kind:
@@ -653,7 +653,7 @@ static void Shop_CategoryRow(UiList* prompt, UiObject* obj)
 
     if ((prompt->itemCount - 1) == prompt->currentItemIndex) {
         one = 1;
-        Text_DrawPrompt(obj, prompt->rowTextX.signedValue, prompt->rowTextY.signedValue, Shop_Data_80181A04, prompt->colorRgb, one, TEXT_ALIGNMENT_LEFT);
+        textDrawUiLine(obj, prompt->rowTextX.signedValue, prompt->rowTextY.signedValue, Shop_Data_80181A04, prompt->colorRgb, one, TEXT_ALIGNMENT_LEFT);
         if (prompt->rowInputEnabled == one && padCheckButtons(0, one, Pad_MaskConfirm) != 0) {
             obj->result = USER_INTERFACE_RESULT_CONFIRM;
         }
@@ -685,7 +685,7 @@ static void Shop_CategoryRow(UiList* prompt, UiObject* obj)
     }
 
     one2 = 1;
-    Text_DrawPrompt(obj, prompt->rowTextX.signedValue, prompt->rowTextY.signedValue, text, prompt->colorRgb, one2, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, prompt->rowTextX.signedValue, prompt->rowTextY.signedValue, text, prompt->colorRgb, one2, TEXT_ALIGNMENT_LEFT);
 
     status = obj->panel.control.word;
     if (((status >> 16) == one2) || (status == one2)) {
@@ -792,7 +792,7 @@ static void Shop_BalanceTask(Task* task)
     textDrawString(&req0, Shop_Data_8017D6D8);
 
     Text_ItoaUnsigned((u8*)digits, cfg->bp);
-    Text_DrawPrompt(obj, col, y + 0x19, (u8*)digits, 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
+    textDrawUiLine(obj, col, y + 0x19, (const u8*)digits, 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
 
     y2              = y + 0x28;
     req1.x          = obj->panel.contentOriginX.unsignedValue + x;
@@ -814,7 +814,7 @@ static void Shop_BalanceTask(Task* task)
     }
     *p = '/';
     Text_ItoaUnsigned((u8*)(p + 1), capacity);
-    Text_DrawPrompt(obj, col, y2 + 0xA, (u8*)total, 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
+    textDrawUiLine(obj, col, y2 + 0xA, (const u8*)total, 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
 }
 
 /// Row handler of the buy prompt. On confirm it checks the price against the
@@ -1060,8 +1060,8 @@ static void Shop_PreviewTask(Task* task)
         textDrawString(&req, Shop_Data_80181AC4);
         count = 0;
         count = Shop_AddItemCount(item, count);
-        Text_DrawPrompt(obj, obj->panel.contentRight.signedValue - 2, y + 0xA, Text_ItoaSigned(buf, count), 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED,
-                        TEXT_ALIGNMENT_RIGHT);
+        textDrawUiLine(obj, obj->panel.contentRight.signedValue - 2, y + 0xA, Text_ItoaSigned(buf, count), 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED,
+                       TEXT_ALIGNMENT_RIGHT);
     }
 }
 
@@ -1136,8 +1136,8 @@ static void Shop_QuantityTask(Task* task)
     }
 
     count = task->extraState.value;
-    Text_DrawPrompt(obj, left + 0x98, y, Shop_Data_80181AD0, 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
-    Text_DrawPrompt(obj, -x, y, Text_ItoaSigned(buf, count), 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
+    textDrawUiLine(obj, left + 0x98, y, Shop_Data_80181AD0, 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
+    textDrawUiLine(obj, -x, y, Text_ItoaSigned(buf, count), 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
     uiDrawHorizontalSeparator(&(obj)->panel, left, -x + 2, top + 0x12);
 
     req.x          = obj->panel.contentOriginX.unsignedValue - x;
@@ -1150,7 +1150,7 @@ static void Shop_QuantityTask(Task* task)
     req.drawMode   = TEXT_DRAW_OUTLINED;
     textDrawString(&req, Shop_Data_8017D6D8);
 
-    Text_DrawPrompt(obj, -x, top + 0x2B, Text_ItoaSigned(buf, count * price), 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
+    textDrawUiLine(obj, -x, top + 0x2B, Text_ItoaSigned(buf, count * price), 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
 
     if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         parentObj = task->parent->spawnArg2.pointer;

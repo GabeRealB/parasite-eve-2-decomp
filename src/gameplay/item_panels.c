@@ -877,7 +877,7 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
         Gp_DrawItemIcon(arg0, x, y, item, 0);
     }
     y += 0xF;
-    Text_DrawPrompt(arg0, x, y, Gp_StrUsedDot, 0x606060, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(arg0, x, y, (const u8*)Gp_StrUsedDot, 0x606060, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     hiddenState = USER_INTERFACE_PANEL_HIDDEN;
     item        = work->createdWeaponItemId;
     y          += 0xF;
@@ -937,7 +937,7 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
             }
         }
     }
-    Text_DrawPrompt(arg0, x, y + 0xF, Gp_StrCreatedDot, 0x606060, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(arg0, x, y + 0xF, (const u8*)Gp_StrCreatedDot, 0x606060, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     if (arg0->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         cd                  = arg1->killCountdown - 1;
         arg1->killCountdown = cd;
@@ -967,8 +967,8 @@ void Gp_InvokePeItemPanel(UiObject* arg0, Task* arg1, s32 arg2)
 
     text = Gp_GetItemText(arg2, 0, 0);
     if (arg1->state == 0) {
-        width = Text_MeasureWidth(text) + 0xB;
-        temp  = Text_MeasureWidth(Gp_StrInvoked);
+        width = textMeasureLineWidth(text) + 0xB;
+        temp  = textMeasureLineWidth((const u8*)Gp_StrInvoked);
         if (width < temp) {
             width = temp;
         }
@@ -995,9 +995,9 @@ void Gp_InvokePeItemPanel(UiObject* arg0, Task* arg1, s32 arg2)
     }
 
     Ui_DrawText(&(arg0)->panel, Gp_StrInvoke);
-    Text_DrawPrompt(arg0, arg0->panel.contentLeft.signedValue + 2, arg0->panel.contentTop.signedValue + 0xF, Gp_StrInvoked, 0x606060, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    width = Text_DrawPrompt(arg0, arg0->panel.contentLeft.signedValue + 2, arg0->panel.contentTop.signedValue + 0x1E, text, 0x37A78, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    Text_DrawPrompt(arg0, width, arg0->panel.contentTop.signedValue + 0x1E, Gp_StrDot, 0x606060, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(arg0, arg0->panel.contentLeft.signedValue + 2, arg0->panel.contentTop.signedValue + 0xF, (const u8*)Gp_StrInvoked, 0x606060, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    width = textDrawUiLine(arg0, arg0->panel.contentLeft.signedValue + 2, arg0->panel.contentTop.signedValue + 0x1E, text, 0x37A78, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(arg0, width, arg0->panel.contentTop.signedValue + 0x1E, (const u8*)Gp_StrDot, 0x606060, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     arg1->killCountdown--;
     if (arg0->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
@@ -1455,7 +1455,7 @@ void Gp_PickupAskTask(Task* arg0)
     Ui_DrawTextColored(&(obj)->panel, Gp_StrMessage);
     color = 0x606060;
     one   = 1;
-    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, Gp_StrPickupAsk, color, one, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, (const u8*)Gp_StrPickupAsk, color, one, TEXT_ALIGNMENT_LEFT);
     child = arg0->firstChild;
     if (child != NULL) {
         childObj = child->spawnArg2.pointer;
@@ -1516,8 +1516,8 @@ void Gp_PickupFullTask(Task* arg0)
     }
     color = 0x606060;
     one   = 1;
-    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, Gp_StrInvFull, color, one, TEXT_ALIGNMENT_LEFT);
-    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0x1E, D_8010E588, color, one, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, (const u8*)Gp_StrInvFull, color, one, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0x1E, (const u8*)D_8010E588, color, one, TEXT_ALIGNMENT_LEFT);
     childTask = arg0->firstChild;
     if (childTask != NULL) {
         childObj = childTask->spawnArg2.pointer;
@@ -1544,8 +1544,8 @@ void Gp_ObtainedNoticeTask(Task* arg0)
     Ui_DrawText(&(obj)->panel, Gp_StrNotice);
     if (arg0->state == 0) {
         arg0->killCountdown = 0xBC;
-        width               = Text_MeasureWidth(Gp_GetItemText(item, 0, 0)) + 0xB;
-        temp                = Text_MeasureWidth(Gp_StrObtained);
+        width               = textMeasureLineWidth((const u8*)Gp_GetItemText(item, 0, 0)) + 0xB;
+        temp                = textMeasureLineWidth((const u8*)Gp_StrObtained);
         if (width < temp) {
             width = temp;
         }
@@ -1555,10 +1555,10 @@ void Gp_ObtainedNoticeTask(Task* arg0)
     }
     color = 0x606060;
     one   = 1;
-    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, Gp_StrObtained, color, one, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, (const u8*)Gp_StrObtained, color, one, TEXT_ALIGNMENT_LEFT);
     text = Gp_GetItemText(item, 0, 0);
-    temp = Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0x1E, text, 0x37A78, one, TEXT_ALIGNMENT_LEFT);
-    Text_DrawPrompt(obj, temp, obj->panel.contentTop.signedValue + 0x1E, Gp_StrDot, color, one, TEXT_ALIGNMENT_LEFT);
+    temp = textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0x1E, text, 0x37A78, one, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, temp, obj->panel.contentTop.signedValue + 0x1E, (const u8*)Gp_StrDot, color, one, TEXT_ALIGNMENT_LEFT);
     arg0->killCountdown--;
     if (obj->panel.control.word == one) {
         if ((arg0->killCountdown <= 0) ||

@@ -107,7 +107,7 @@ static void Telephone_DrawPlayDataRow(UiList* arg0, UiObject* arg1)
             req.drawMode   = TEXT_DRAW_OUTLINED;
             textDrawString(&req, Telephone_Data_80181A20);
             Text_FormatTime(p, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.playTime);
-            Text_DrawPrompt(arg1, -arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, buf, arg0->colorRgb, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
+            textDrawUiLine(arg1, -arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, buf, arg0->colorRgb, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
             break;
         }
         case 1: {
@@ -125,7 +125,7 @@ static void Telephone_DrawPlayDataRow(UiList* arg0, UiObject* arg1)
             textDrawString(&req, Telephone_Data_80181A50);
             Text_ItoaUnsigned(p, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.saveCount);
             textAppendString(p, Telephone_Data_80181A70);
-            Text_DrawPrompt(arg1, -arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, buf, arg0->colorRgb, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
+            textDrawUiLine(arg1, -arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, buf, arg0->colorRgb, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
             break;
         }
         case 2: {
@@ -143,7 +143,7 @@ static void Telephone_DrawPlayDataRow(UiList* arg0, UiObject* arg1)
             textDrawString(&req, Telephone_Data_80181A28);
             Text_ItoaUnsigned(p, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.battlesWon);
             textAppendString(p, Telephone_Data_80181A70);
-            Text_DrawPrompt(arg1, -arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, buf, arg0->colorRgb, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
+            textDrawUiLine(arg1, -arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, buf, arg0->colorRgb, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
             break;
         }
         case 3: {
@@ -161,7 +161,7 @@ static void Telephone_DrawPlayDataRow(UiList* arg0, UiObject* arg1)
             textDrawString(&req, Telephone_Data_80181A2C);
             Text_ItoaUnsigned(p, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.battlesEscaped);
             textAppendString(p, Telephone_Data_80181A70);
-            Text_DrawPrompt(arg1, -arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, buf, arg0->colorRgb, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
+            textDrawUiLine(arg1, -arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, buf, arg0->colorRgb, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
             break;
         }
         case 4: {
@@ -209,7 +209,7 @@ static void Telephone_DrawPlayDataRow(UiList* arg0, UiObject* arg1)
             }
             q[1] = 0x2E;
             textAppendString(p, Telephone_Data_80181A78);
-            Text_DrawPrompt(arg1, -arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, buf, arg0->colorRgb, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
+            textDrawUiLine(arg1, -arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, buf, arg0->colorRgb, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
             break;
         }
         case 5: {
@@ -262,7 +262,7 @@ static void Telephone_DrawPlayDataRow(UiList* arg0, UiObject* arg1)
             }
             q[1] = 0x2E;
             textAppendString(p, Telephone_Data_80181A78);
-            Text_DrawPrompt(arg1, -arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, buf, arg0->colorRgb, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
+            textDrawUiLine(arg1, -arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, buf, arg0->colorRgb, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
             uiDrawHorizontalSeparator(&(arg1)->panel, arg1->panel.contentLeft.signedValue, arg1->panel.contentRight.signedValue, arg0->rowTextY.signedValue + 3);
             arg0->rowTextY.signedValue = arg0->rowTextY.unsignedValue + 5;
             break;
@@ -282,7 +282,7 @@ static void Telephone_DrawPlayDataRow(UiList* arg0, UiObject* arg1)
             textDrawString(&req, Telephone_Data_80181A58);
             Text_ItoaUnsigned(p, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.clearCount);
             textAppendString(p, Telephone_Data_80181A70);
-            Text_DrawPrompt(arg1, -arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, buf, arg0->colorRgb, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
+            textDrawUiLine(arg1, -arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, buf, arg0->colorRgb, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
             break;
         }
         case 7: {
@@ -298,8 +298,8 @@ static void Telephone_DrawPlayDataRow(UiList* arg0, UiObject* arg1)
             req.alignment  = TEXT_ALIGNMENT_LEFT;
             req.drawMode   = TEXT_DRAW_OUTLINED;
             textDrawString(&req, Telephone_Data_80181A60);
-            Text_DrawPrompt(arg1, -arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, Text_ItoaUnsigned(p, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.maxExp),
-                            arg0->colorRgb, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
+            textDrawUiLine(arg1, -arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, Text_ItoaUnsigned(p, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.maxExp),
+                           arg0->colorRgb, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
             break;
         }
         case 8: {
@@ -315,8 +315,8 @@ static void Telephone_DrawPlayDataRow(UiList* arg0, UiObject* arg1)
             req.alignment  = TEXT_ALIGNMENT_LEFT;
             req.drawMode   = TEXT_DRAW_OUTLINED;
             textDrawString(&req, Telephone_Data_80181A68);
-            Text_DrawPrompt(arg1, -arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, Text_ItoaUnsigned(p, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.maxBp),
-                            arg0->colorRgb, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
+            textDrawUiLine(arg1, -arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, Text_ItoaUnsigned(p, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.maxBp),
+                           arg0->colorRgb, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
             break;
         }
     }
@@ -381,7 +381,7 @@ static void Telephone_DrawUsageRow(UiList* arg0, UiObject* arg1)
     }
     limit = 1;
     if (value >= 10000) {
-        Text_DrawPrompt(arg1, -arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, Telephone_Data_8017D61C, arg0->colorRgb, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
+        textDrawUiLine(arg1, -arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, Telephone_Data_8017D61C, arg0->colorRgb, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
     } else {
         for (i = 2; i > 0; i--) {
             limit *= 10;
@@ -408,7 +408,7 @@ static void Telephone_DrawUsageRow(UiList* arg0, UiObject* arg1)
         }
         q[1] = '.';
         textAppendString(p, Telephone_Data_80181A78);
-        Text_DrawPrompt(arg1, -arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, buf, arg0->colorRgb, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
+        textDrawUiLine(arg1, -arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, buf, arg0->colorRgb, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
     }
 
     base  = arg1->panel.contentLeft.signedValue + 0x80;

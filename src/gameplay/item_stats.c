@@ -651,8 +651,8 @@ void Gp_UseKeyItemRow(Task* arg0)
         ret      = taskMessageDispatch(roomTask, 0x13F1, item, 0);
         if (ret == 1) {
             arg0->spawnArg1.value = item;
-            width                 = Text_MeasureWidth(Gp_GetItemText(item, 0, 0)) + 0xB;
-            other                 = Text_MeasureWidth(Gp_StrUsed);
+            width                 = textMeasureLineWidth((const u8*)Gp_GetItemText(item, 0, 0)) + 0xB;
+            other                 = textMeasureLineWidth((const u8*)Gp_StrUsed);
             if (width < other) {
                 width = other;
             }
@@ -676,14 +676,14 @@ void Gp_UseKeyItemRow(Task* arg0)
         Ui_DrawText(&(obj)->panel, Gp_StrNotice);
         if (arg0->spawnArg1.value == -1) {
             color = Ui_LookupTable(obj, 1);
-            Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, Gp_StrNoUseNow, color, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+            textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, (const u8*)Gp_StrNoUseNow, color, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
         } else {
             color = Ui_LookupTable(obj, 1);
             one   = 1;
-            Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, Gp_StrUsed, color, one, TEXT_ALIGNMENT_LEFT);
+            textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, (const u8*)Gp_StrUsed, color, one, TEXT_ALIGNMENT_LEFT);
             text  = Gp_GetItemText(arg0->spawnArg1.value, 0, 0);
-            width = Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0x1E, text, 0x37A78, one, TEXT_ALIGNMENT_LEFT);
-            Text_DrawPrompt(obj, width, obj->panel.contentTop.signedValue + 0x1E, Gp_StrDot, 0x606060, one, TEXT_ALIGNMENT_LEFT);
+            width = textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0x1E, text, 0x37A78, one, TEXT_ALIGNMENT_LEFT);
+            textDrawUiLine(obj, width, obj->panel.contentTop.signedValue + 0x1E, (const u8*)Gp_StrDot, 0x606060, one, TEXT_ALIGNMENT_LEFT);
         }
         arg0->killCountdown = arg0->killCountdown - gDisplayState.frameTicks;
         if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {

@@ -2076,7 +2076,7 @@ UiObject* Ui_SpawnTextBlock(UiOptionDialogRequest* request, s32 unused2, s32 unu
                 obj->panel.style = 3;
             }
             for (; count > 0; count--) {
-                width = Text_MeasureWidth(option->text);
+                width = textMeasureLineWidth(option->text);
                 if (maxWidth < width) {
                     maxWidth = width;
                 }
@@ -2879,7 +2879,7 @@ static void Ui_DrawDialogLine(UiList* list, UiObject* object)
             var_v0 -= 1;
         } while (var_v0 > 0);
     }
-    Text_DrawPrompt(object, list->rowTextX.signedValue, list->rowTextY.signedValue, option->text, list->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(object, list->rowTextX.signedValue, list->rowTextY.signedValue, option->text, list->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
             temp                = USER_INTERFACE_RESULT_CONFIRM;

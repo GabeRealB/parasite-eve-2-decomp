@@ -5833,7 +5833,7 @@ This is a CFG fence, not a wrapper around `TOUCH_REG` / `SCHED_BARRIER`.
 
 ## `SCHED_BARRIER` then `TOUCH_REG` on first-call `$a0`/`$a3` copies
 
-A prompt handler that zeroes a loop index *before* the first `Text_DrawPrompt`
+A prompt handler that zeroes a loop index *before* the first `textDrawUiLine`
 wants a tight save-all prologue, then
 
 ```
@@ -5865,7 +5865,7 @@ TOUCH_REG(title);
 i = 0;
 p = labels;
 y = i;
-Text_DrawPrompt((UiObject*)a0tmp, arg1->field_1C + 6, arg0->rowTextY.signedValue, title, ...);
+textDrawUiLine((UiObject*)a0tmp, arg1->field_1C + 6, arg0->rowTextY.signedValue, title, ...);
 ```
 
 Field loads stay through `value` (`lh 0x1C(s6)`), not the `$a0` copy. Without
@@ -5887,7 +5887,7 @@ and does not fold back to an immediate 2:
 n2 = 2;
 do {
     two = n2;
-    Text_DrawPrompt(..., x + y / two, ...);
+    textDrawUiLine(..., x + y / two, ...);
     ...
 } while (i < 2);
 if (selected >= n2) {
@@ -5918,7 +5918,7 @@ Three separate leftovers, three levers:
    shifts `$s4`–`$s6` as well.
 
 2. **`div $a1` vs `div $t0`.** With `n2` unusable, `two = 2` inside the loop
-   coalesces with the `Text_DrawPrompt` `$a1` quotient. A function-scope
+   coalesces with the `textDrawUiLine` `$a1` quotient. A function-scope
    `register s32 two asm("t0")` is the leftover fix; an unpinned 99.87% seed
    exists. The pin reserves `$t0` for the whole function, so the later
    `lw $t0, saved` becomes `lw $t1` unless the same local is reused for the
@@ -6736,13 +6736,13 @@ jump after B (B falls into the join). The target wants A physically second:
 ```
 beq    v1, v0, path_eq      # state == 0x20
 nop
-jal    Text_MeasureWidth    # != path
+jal    textMeasureLineWidth    # != path
 addiu  s0, v0, 0xB
 ...
 j      join
 move   s0, s1
 path_eq:
-jal    Text_MeasureWidth
+jal    textMeasureLineWidth
 move   s0, v0
 li     a0, 1
 join:
@@ -6754,7 +6754,7 @@ still below it. `Gp_ReloadPromptTask` is the example.
 
 ## Inline the first `0x606060`; assign `color` only after a later call
 
-A `color` local reused across two `Text_DrawPrompt` calls is allocated to
+A `color` local reused across two `textDrawUiLine` calls is allocated to
 `$v1` from the start, because the later call needs `$v0` for the returned
 x. That also pulls `lh a1` / `lh a2` *after* the tail-merged join (the
 free `$v0` is used for `li v0, 1` early). The target loads the first
@@ -15754,7 +15754,7 @@ keeps `beqz` but falls through into the draw and branches on `beq` for the
 early return — wrong block order. Only the if/else + continuation shape emits
 `bne` over both the early return and the else into the shared tail.
 
-`Text_DrawPrompt` is the pure example (two `TextDrawReq` stack slots at `sp+0x10`
+`textDrawUiLine` is the pure example (two `TextDrawReq` stack slots at `sp+0x10`
 and `sp+0x20` for the two draw paths).
 
 ## Interleaved jump tables: pad + absolute copy for still-asm neighbors
@@ -18794,7 +18794,7 @@ Also for multi-line loops over text (`_textParseLine` + `func_8002E53C`):
   (`x = value`) so the target's `lw s2, 0xA4(sp)` matches.
 
 `Text_DrawMultiLine` is the pure example (multi-line sibling of single-line
-`Text_DrawPrompt`).
+`textDrawUiLine`).
 
 ## Scratch-head 8-byte alloc: pin `v1`/`a3`/`v0` for `move s1,v0`
 
@@ -24671,7 +24671,7 @@ register u8* text asm("v0");
     obj   = arg1;
     str   = text; /* move a3, v0 — $v0 now free */
     mode  = 3;    /* li v0, 3 */
-    Text_DrawPrompt(obj, x, y, str, color, mode, 0);
+    textDrawUiLine(obj, x, y, str, color, mode, 0);
 }
 ```
 
@@ -27592,7 +27592,7 @@ if (arg0 == 0) {
 
 ## Split `spawnArg1` (`s32 val`) from the `textSkipLines` result
 
-A two-line prompt (`Text_DrawPrompt` / `textSkipLines` / `Text_DrawPrompt`)
+A two-line prompt (`textDrawUiLine` / `textSkipLines` / `textDrawUiLine`)
 that keeps the string in one `const u8* text` — assign from `spawnArg1`, then
 `text = textSkipLines(text, one)` — is 98.9% with only `$s2`/`$s3` swapped:
 the `UiObject*` lands in `$s3` and the string in `$s2`. The target wants the
@@ -27604,9 +27604,9 @@ a separate `const u8* text` for the skip result (same shape as `Gp_DrawPromptLin
 ```c
 val = arg0->spawnArg1;
 if (val != 0) {
-    Text_DrawPrompt(..., (u8*)val, ...);
+    textDrawUiLine(..., (u8*)val, ...);
     text = textSkipLines((const u8*)val, one);
-    Text_DrawPrompt(..., text, ...);
+    textDrawUiLine(..., text, ...);
 }
 ```
 
@@ -32063,7 +32063,7 @@ A layout width that is `max(measure(name) + 0xB, measure(label))` wants
 the second measure in `$v1`:
 
 ```
-jal   Text_MeasureWidth
+jal   textMeasureLineWidth
 move  v1, v0
 slt   v0, s0, v1
 beqz  v0, skip
@@ -32083,8 +32083,8 @@ interfere with `rec` (`$s1`) and `&gPlayerStatus` (`$s2`), so the later
 on the draw path:
 
 ```c
-width = Text_MeasureWidth(Gp_GetItemText(arg0->spawnArg1, 0, 0)) + 0xB;
-other = Text_MeasureWidth(Gp_StrEquipped);
+width = textMeasureLineWidth(Gp_GetItemText(arg0->spawnArg1, 0, 0)) + 0xB;
+other = textMeasureLineWidth(Gp_StrEquipped);
 if (width < other) {
     width = other;
 }
@@ -32659,7 +32659,7 @@ if (arg0->currentItemIndex == 0) {
 {
     register s32 mode asm("v0");
     mode = arg0->currentItemIndex;
-    Text_DrawPrompt(..., texts.texts[mode], ...);
+    textDrawUiLine(..., texts.texts[mode], ...);
 }
 ```
 
@@ -32867,7 +32867,7 @@ the load.
 
 A prompt with two text arms (error string vs item name) wants a literal
 `1` in the short arm and a named `one` only in the arm that reuses it
-for several `Text_DrawPrompt` calls:
+for several `textDrawUiLine` calls:
 
 ```
 bne   v1, v0, else
@@ -36300,7 +36300,7 @@ the example: `func_800B996C_RemoveItem` hands its else branch to
 
 ## Hold the previous `$s0` dest live so `addiu s0, v0, N` fills the `jal` delay
 
-`width = Text_MeasureWidth(str) + 4` then `func(item, 0, 0)` wants
+`width = textMeasureLineWidth(str) + 4` then `func(item, 0, 0)` wants
 `addiu s0, v0, 4` in the `jal` delay (`s0` was the string, overwritten
 with the measured width). Emitting the `+ 4` right after the measure
 leaves the delay for `move a2, a1`. Keep `str` / the call args / the
@@ -36308,7 +36308,7 @@ measure result live across a dummy `asm` so the `+ 4` is the last
 independent instruction before the `jal` and delay-fills:
 
 ```c
-w      = Text_MeasureWidth(str);
+w      = textMeasureLineWidth(str);
 a0item = item;
 za     = 0;
 zb     = za;
@@ -54977,7 +54977,7 @@ question becomes which source shape changes it.
 `n_refs` is counted **before** cross-jumping (`jump2` runs after reload), so a
 tail the target duplicates in both arms of an `if` still contributes its
 references twice at allocation time. Here the target's single
-`Text_DrawPrompt(…)` after the join is really *two* calls, one per arm, merged
+`textDrawUiLine(…)` after the join is really *two* calls, one per arm, merged
 later; writing it once left `index` three references short (14 instead of 17),
 which is what put `p` ahead of it. Duplicating the call fixed the register
 assignment and the emitted code stayed identical — 85% to 94% in one edit. This
@@ -63849,7 +63849,7 @@ stride = 4;
 ...
 do {
     ...
-    Text_DrawPrompt(arg1, x + y / count, arg0->rowTextY.signedValue, *p, look, one, 0);
+    textDrawUiLine(arg1, x + y / count, arg0->rowTextY.signedValue, *p, look, one, 0);
     p = (u8**)((u8*)p + stride);
     ...
 } while (i < 4);

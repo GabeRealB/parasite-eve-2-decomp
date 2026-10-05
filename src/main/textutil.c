@@ -28,13 +28,27 @@ enum {
     TEXT_LINE_END = -1,
 };
 
+/// Placement defaults for large UI-text lines outside or inside a panel.
+enum {
+    TEXT_UI_LINE_ABSOLUTE_OT_INDEX     = 4,
+    TEXT_UI_LINE_PANEL_BASELINE_OFFSET = 3,
+};
+
 static s32 _textParseLine(const u8** cursor, u8* line);
 
-/// One line of Text_DrawMultiLine or Text_DrawMultiLineScroll: relative to obj's origin, or at an absolute
-/// position when obj is NULL; skipped when `obj->panel.state` is `USER_INTERFACE_PANEL_HIDDEN`.
-static inline void _textDrawLine(UiObject* obj, s32 x, s32 y, u8* text, s32 arg4, s32 arg5, s32 arg6);
+/// Initializes large UI metrics, packed RGB and byte-narrowed line selectors.
+/// `request` is a TextDrawReq lvalue, evaluated repeatedly; all arguments must
+/// be free of side effects. Coordinates and the OT index are left unchanged.
+/// Expands to four statements and must be used within a braced statement block.
+#define TEXT_SET_UI_LINE_STYLE(request, rgbValue, modeValue, alignmentValue) \
+    (request).colorRgb   = (rgbValue);                                       \
+    (request).glyphTable = TEXT_GLYPH_TABLE_LARGE;                           \
+    (request).alignment  = (alignmentValue);                                 \
+    (request).drawMode   = (modeValue)
 
-static void Text_DrawPromptCompat(UiObject* object, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 arg5, s32 arg6);
+static inline void _textDrawLine(const UiObject* object, s32 x, s32 y, const u8* text, u32 colorRgb, s32 drawMode, s32 alignment);
+
+static void _textDrawUiLineVoid(const UiObject* object, s32 x, s32 y, const u8* text, u32 colorRgb, s32 drawMode, s32 alignment);
 
 static s32 Text_DrawMultiLineScroll(UiObject* object, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 arg5, s32 arg6,
                                     s32 arg7, s32 arg8);
@@ -179,35 +193,35 @@ static s32 _textParseLine(const u8** cursor, u8* line)
     return lineEnd;
 }
 
-/// One line of Text_DrawMultiLine or Text_DrawMultiLineScroll: relative to obj's origin, or at an absolute
-/// position when obj is NULL; skipped when `obj->panel.state` is `USER_INTERFACE_PANEL_HIDDEN`.
-static inline void _textDrawLine(UiObject* obj, s32 x, s32 y, u8* text, s32 arg4, s32 arg5, s32 arg6)
+/// Draws one large UI-text line for the multiline drawers, discarding its final pen.
+///
+/// Borrows `object` and the read-only encoded bytes for this call. Placement,
+/// hidden-panel suppression, RGB, byte-narrowed selectors and drawing resources
+/// have the contract of `textDrawUiLine`. A NULL object selects absolute pixels.
+static inline void _textDrawLine(const UiObject* object, s32 x, s32 y, const u8* text, u32 colorRgb, s32 drawMode, s32 alignment)
 {
-    TextDrawReq req;
-    TextDrawReq req2;
-    s32         temp;
+    TextDrawReq panelRequest;
+    TextDrawReq absoluteRequest;
+    s32         panelOtIndex;
 
-    if (obj != NULL) {
-        if (obj->panel.state != USER_INTERFACE_PANEL_HIDDEN) {
-            req.x          = obj->panel.contentOriginX.unsignedValue + x;
-            req.y          = (obj->panel.contentOriginY.unsignedValue + y) - 3;
-            temp           = obj->panel.otIndex.signedValue;
-            req.colorRgb   = arg4;
-            req.otIndex    = temp + 1;
-            req.glyphTable = TEXT_GLYPH_TABLE_LARGE;
-            req.alignment  = arg6;
-            req.drawMode   = arg5;
-            textDrawString(&req, text);
+    if (object != NULL) {
+        if (object->panel.state != USER_INTERFACE_PANEL_HIDDEN) {
+            panelRequest.x          = object->panel.contentOriginX.unsignedValue + x;
+            panelRequest.y          = (object->panel.contentOriginY.unsignedValue + y) - TEXT_UI_LINE_PANEL_BASELINE_OFFSET;
+            panelOtIndex            = object->panel.otIndex.signedValue;
+            panelRequest.colorRgb   = colorRgb;
+            panelRequest.otIndex    = panelOtIndex + 1;
+            panelRequest.glyphTable = TEXT_GLYPH_TABLE_LARGE;
+            panelRequest.alignment  = alignment;
+            panelRequest.drawMode   = drawMode;
+            textDrawString(&panelRequest, text);
         }
     } else {
-        req2.x          = x;
-        req2.y          = y;
-        req2.otIndex    = 4;
-        req2.colorRgb   = arg4;
-        req2.glyphTable = TEXT_GLYPH_TABLE_LARGE;
-        req2.alignment  = arg6;
-        req2.drawMode   = arg5;
-        textDrawString(&req2, text);
+        absoluteRequest.x       = x;
+        absoluteRequest.y       = y;
+        absoluteRequest.otIndex = TEXT_UI_LINE_ABSOLUTE_OT_INDEX;
+        TEXT_SET_UI_LINE_STYLE(absoluteRequest, colorRgb, drawMode, alignment);
+        textDrawString(&absoluteRequest, text);
     }
 }
 
@@ -232,7 +246,7 @@ s32 Text_DrawMultiLine(UiObject* object, s32 arg1, s32 arg2, const u8* arg3, s32
     return 0;
 }
 
-s32 Text_MeasureWidth(u8* arg0)
+s32 textMeasureLineWidth(const u8* text)
 {
     TextDrawReq request;
 
@@ -243,7 +257,8 @@ s32 Text_MeasureWidth(u8* arg0)
     request.colorRgb   = 0;
     request.alignment  = TEXT_ALIGNMENT_RIGHT;
     request.drawMode   = TEXT_DRAW_FILL_ONLY;
-    textAlignLine(&request, arg0);
+    // Keep the alignment path's signed-halfword narrowing of the measured width.
+    textAlignLine(&request, text);
     return -request.x;
 }
 
@@ -293,42 +308,43 @@ s32 Text_MeasureMultiLine(u8* arg0)
     return (height << 16) | maxWidth;
 }
 
-s32 Text_DrawPrompt(UiObject* object, s32 arg1, s32 arg2, const u8* arg3, s32 arg4, s32 arg5, s32 arg6)
+s32 textDrawUiLine(const UiObject* object, s32 x, s32 y, const u8* text, u32 colorRgb, s32 drawMode, s32 alignment)
 {
     TextDrawReq panelRequest;
     TextDrawReq absoluteRequest;
-    s32         temp;
+    s32         panelOtIndex;
 
     if (object != NULL) {
         if (object->panel.state == USER_INTERFACE_PANEL_HIDDEN) {
             return 0;
         }
     } else {
-        absoluteRequest.x          = arg1;
-        absoluteRequest.y          = arg2;
-        absoluteRequest.otIndex    = 4;
-        absoluteRequest.colorRgb   = arg4;
-        absoluteRequest.glyphTable = TEXT_GLYPH_TABLE_LARGE;
-        absoluteRequest.alignment  = arg6;
-        absoluteRequest.drawMode   = arg5;
-        textDrawString(&absoluteRequest, arg3);
-        return arg1;
+        absoluteRequest.x       = x;
+        absoluteRequest.y       = y;
+        absoluteRequest.otIndex = TEXT_UI_LINE_ABSOLUTE_OT_INDEX;
+        TEXT_SET_UI_LINE_STYLE(absoluteRequest, colorRgb, drawMode, alignment);
+        textDrawString(&absoluteRequest, text);
+        return x;
     }
-    panelRequest.x          = object->panel.contentOriginX.unsignedValue + arg1;
-    panelRequest.y          = (object->panel.contentOriginY.unsignedValue + arg2) - 3;
-    temp                    = object->panel.otIndex.signedValue;
-    panelRequest.colorRgb   = arg4;
-    panelRequest.glyphTable = TEXT_GLYPH_TABLE_LARGE;
-    panelRequest.alignment  = arg6;
-    panelRequest.drawMode   = arg5;
-    panelRequest.otIndex    = temp + 1;
-    textDrawString(&panelRequest, arg3);
+    // Translate panel content pixels to the glyph baseline and the panel's text OT entry.
+    panelRequest.x = object->panel.contentOriginX.unsignedValue + x;
+    panelRequest.y = (object->panel.contentOriginY.unsignedValue + y) - TEXT_UI_LINE_PANEL_BASELINE_OFFSET;
+    panelOtIndex   = object->panel.otIndex.signedValue;
+    TEXT_SET_UI_LINE_STYLE(panelRequest, colorRgb, drawMode, alignment);
+    panelRequest.otIndex = panelOtIndex + 1;
+    textDrawString(&panelRequest, text);
     return panelRequest.x - object->panel.contentOriginX.signedValue;
 }
 
-static void Text_DrawPromptCompat(UiObject* object, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 arg5, s32 arg6)
+#undef TEXT_SET_UI_LINE_STYLE
+
+/// Draws a large UI-text line through `textDrawUiLine` without returning its pen.
+///
+/// Arguments, narrowing, borrowed lifetimes and resource requirements are those
+/// of `textDrawUiLine`.
+static void _textDrawUiLineVoid(const UiObject* object, s32 x, s32 y, const u8* text, u32 colorRgb, s32 drawMode, s32 alignment)
 {
-    Text_DrawPrompt(object, arg1, arg2, arg3, arg4, arg5, arg6);
+    textDrawUiLine(object, x, y, text, colorRgb, drawMode, alignment);
 }
 
 static s32 Text_DrawMultiLineScroll(UiObject* object, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 arg5, s32 arg6,
