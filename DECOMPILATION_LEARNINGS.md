@@ -26894,15 +26894,15 @@ Assign the field to the **same** pointer temporary the other case already
 uses. That pins the load in `$v1` instead of overwriting `$v0`:
 
 ```c
-case 1:
+case TASK_BODY_TMD:
     model = task->extra.tmd;
     coord = model->coords; /* lw v1, 8(v0) */
     /* walk coord */
     break;
-case 2:
+case TASK_BODY_COORD:
     coord = task->extra.coordBody->coord; /* lw v1, 8(v0) — not lw v0 */
     if (coord == targetCoord) {
-        found = 1;
+        ownsTargetCoord = true;
     }
     break;
 ```

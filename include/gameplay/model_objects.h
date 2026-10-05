@@ -1,8 +1,6 @@
 #ifndef GAMEPLAY_MODEL_OBJECTS_H
 #define GAMEPLAY_MODEL_OBJECTS_H
 
-struct Task;
-
 #include "types.h"
 
 #include "gameplay/display.h"
@@ -118,7 +116,20 @@ void modelObjectUnlinkCoordBody(TmdListNode* node);
 /// The primary heap becomes active even for `NULL` and remains selected.
 void modelObjectFreeCoordBody(ModelObjectCoordBody* body);
 
-void Gp_DrawDisp2dOt(struct Task* unused);
+/// Composes attached coordinates and draws models on the temporary live lists each frame.
+///
+/// Bank-0 draw callback used while the previous model and coordinate-body lists
+/// are stashed. Visits the current `gTmdList` and `gModelObjectCoordBodyList`;
+/// the saved lists remain untouched. `unusedTask` is ignored; the callback
+/// requires no task body or work allocation.
+///
+/// `gDisplayState.drawBuffer` must be 0 or 1 for the `Gpu_OtBuffers` argument.
+/// That argument does not select the destination: drawing uses `gGpuCurrentOt`,
+/// which the caller must select together with the depth shift and GTE settings.
+/// Composition, active-model selection and resource-lifetime requirements
+/// follow `actorRenderComposeAndDrawActiveModels`, including keeping linked
+/// packets and OT storage alive until the GPU finishes consuming them.
+void modelObjectDrawTemporaryListsTask(Task* unusedTask);
 
 /// Culls and links pre-transformed flat quads from TMD stream opcode `0x45`.
 ///

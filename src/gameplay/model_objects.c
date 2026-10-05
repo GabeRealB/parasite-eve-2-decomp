@@ -611,50 +611,74 @@ void actorRenderComposeCoordChain(GfxCoord* coord, s32 stamp, s32 parity, GfxCoo
     _actorRenderRefreshCoord(coord, stamp, parity, root);
 }
 
-/// Returns the first task on the active list that owns `targetCoord`, or `NULL`.
-static Task* _modelObjectFindTaskByCoord(GfxCoord* targetCoord)
+/// Borrows the first task on the selected list whose attached body contains `targetCoord`.
+///
+/// Tests pointer identity against every TMD part coordinate and each single
+/// coordinate body, regardless of model drawing flags or task priority.
+/// Does not follow coordinate parents or inspect `targetCoord`'s contents.
+/// Returns `NULL` when the selected list is empty or no body matches.
+///
+/// The selected task-list head must be initialized and non-NULL, and its
+/// forward chain must terminate at `NULL`. Tasks with a TMD or coordinate body
+/// must have a live body; a TMD must own its nonnegative `partCount` coordinates.
+/// The list and bodies must remain intact during the search. No state changes
+/// or lifetime extension occur; the returned pointer is borrowed until task release.
+static Task* _modelObjectFindTaskByCoord(const GfxCoord* targetCoord)
 {
-    Task*      task;
-    TmdObject* model;
-    GfxCoord*  coord;
-    u32        partIndex;
-    s32        found;
-    u32        partCount;
+    /// Scans a model's owned part coordinates by pointer identity.
+    ///
+    /// `result` is a writable boolean lvalue, initially false, set true only
+    /// on a match. `cursor` is a writable coordinate-pointer lvalue and receives
+    /// the matched coordinate or the end of the owned array. All
+    /// arguments must be side-effect-free: the model is read twice, the target
+    /// is compared per part, and the cursor is assigned and advanced in place.
+    /// The model must own its nonnegative partCount coordinates.
+#define MODEL_OBJECT_SCAN_PART_COORDS(model, target, cursor, result) \
+    do {                                                             \
+        u32 partCount;                                               \
+        u32 partIndex;                                               \
+        partCount = (model)->partCount;                              \
+        (cursor)  = (model)->coords;                                 \
+        for (partIndex = 0; partIndex < partCount; partIndex++) {    \
+            if ((cursor) == (target)) {                              \
+                (result) = true;                                     \
+                break;                                               \
+            }                                                        \
+            (cursor)++;                                              \
+        }                                                            \
+    } while (false)
+    Task*            task;
+    const TmdObject* model;
+    const GfxCoord*  coord;
+    bool             ownsTargetCoord;
 
     task = taskGetActiveList()->next;
     if (task != NULL) {
         do {
-            found = 0;
+            ownsTargetCoord = false;
             switch (task->bodyKind) {
                 case TASK_BODY_TMD:
-                    model     = task->extra.tmd;
-                    partCount = model->partCount;
-                    coord     = model->coords;
-                    for (partIndex = 0; partIndex < partCount; partIndex++) {
-                        if (coord == targetCoord) {
-                            found = 1;
-                            break;
-                        }
-                        coord++;
-                    }
+                    model = task->extra.tmd;
+                    MODEL_OBJECT_SCAN_PART_COORDS(model, targetCoord, coord, ownsTargetCoord);
                     break;
                 case TASK_BODY_COORD:
                     coord = task->extra.coordBody->coord;
                     if (coord == targetCoord) {
-                        found = 1;
+                        ownsTargetCoord = true;
                     }
                     break;
             }
-            if (found != 0) {
+            if (ownsTargetCoord) {
                 break;
             }
             task = task->node.next;
         } while (task != NULL);
     }
     return task;
+#undef MODEL_OBJECT_SCAN_PART_COORDS
 }
 
-void Gp_DrawDisp2dOt(Task* unused)
+void modelObjectDrawTemporaryListsTask(Task* unusedTask)
 {
     actorRenderComposeAndDrawActiveModels(&Gpu_OtBuffers[gDisplayState.drawBuffer]);
 }

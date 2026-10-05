@@ -205,7 +205,7 @@ static TaskDesc D_8005EDA0[] = {
     { { { TASK_BODY_NONE, 0x2F } }, spriteAllocateViewCachedPacketsTask },
     { { { TASK_BODY_NONE, 0xC0 } }, Stage_TaskExit },
     { { { TASK_BODY_NONE, 0xC0 } }, func_807011D8 },
-    { { { TASK_BODY_NONE, 0xE0 } }, Gp_DrawDisp2dOt },
+    { { { TASK_BODY_NONE, 0xE0 } }, modelObjectDrawTemporaryListsTask },
     { { { TASK_BODY_NONE, 0xD0 } }, spriteViewTask },
     { { { TASK_BODY_NONE, 0x2F } }, Gp_LoadStateTask },
     { { { TASK_BODY_NONE, 0x18 } }, func_800A77B4 },

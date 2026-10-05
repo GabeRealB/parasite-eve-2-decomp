@@ -299,7 +299,7 @@ This is the only bank we can describe entry-by-entry. Spawn with
 | `17` | `2F` | `spriteAllocateViewCachedPacketsTask` | Allocate and initialize both cached room-view sprite buffers, then kill self; spawned when view-image loading finishes |
 | `18` | `C0` | `Stage_TaskExit` | Stage teardown |
 | `19` | `C0` | `0x807011D8` | Stage overlay — not in this tree |
-| `1A` | `E0` | `Gp_DrawDisp2dOt` | Refresh body coordinates and draw active models. Temporary task `_gModelObjectTemporaryDrawTask` |
+| `1A` | `E0` | `modelObjectDrawTemporaryListsTask` | Compose the temporary live model/coordinate-body lists and draw active models into the selected `gGpuCurrentOt`; task argument is ignored. Spawned as `_gModelObjectTemporaryDrawTask` while the previous lists are stashed |
 | `1B` | `D0` | `spriteViewTask` | Select the view background, then link cached sprites each frame; frozen with room-object dispatch. Parents the room-object task |
 | `1C` | `2F` | `Gp_LoadStateTask` | 8-way dispatcher (pause / menu-ish) |
 | `1D` | `18` | `func_800A77B4` | 6-way dispatcher |
