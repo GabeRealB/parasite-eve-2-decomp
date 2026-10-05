@@ -1833,13 +1833,26 @@ void func_acropolis_square_801823DC(Task* task)
     }
 }
 
-/// Queues an additive glow packet with its blend command ahead of it in GPU order.
-static inline void _acropolisSquareQueueBeaconGlow(void* primitive, RoomGlowRadiiScratch* projection)
+/// Queues a beacon-glow primitive with additive blending at its projected depth.
+///
+/// `primitive` is an initialized, writable `POLY_G4` or `LINE_G3` in the frame
+/// arena. `sortingDepth` borrows a readable signed word holding SZ3 / 4 before
+/// display scaling; the caller rejects depths below 17. The scaled depth wraps
+/// to tag 0..1023 in the current table. Keep the depth word separate from packet
+/// storage; no depth pointer is retained.
+/// Requires word-aligned space for one `DR_TPAGE` at `gGpuPrimCursor`, consumed
+/// without a capacity check. Both packets must live until GPU drawing completes.
+/// The dithered additive draw mode persists until another command replaces it.
+static inline void _acropolisSquareQueueBeaconGlow(void* primitive, const s32* sortingDepth)
 {
+    // Sixteen depth units per tag, expressed as four-byte table offsets.
+    enum { ACROPOLIS_SQUARE_GLOW_DEPTH_TO_BYTE_OFFSET_SHIFT = 2 };
+
     addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(
-                ((((u32)projection->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                ((((u32)*sortingDepth << gDisplayState.otDepthShift) >> ACROPOLIS_SQUARE_GLOW_DEPTH_TO_BYTE_OFFSET_SHIFT) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
             primitive);
-    gpuSetPrimitiveBlendMode(primitive, GPU_BLEND_ADD, projection->otz);
+    // Prepending the draw mode after the primitive makes the GPU apply it first.
+    gpuSetPrimitiveBlendMode(primitive, GPU_BLEND_ADD, *sortingDepth);
 }
 
 void acropolisSquareBeaconGlowTask(Task* task)
@@ -1919,7 +1932,7 @@ void acropolisSquareBeaconGlowTask(Task* task)
                 quad->y2 = projection->screenPos.vy;
                 quad->x3 = projection->screenPos.vx + ((projection->outerRadius * D_acropolis_square_80183B68[segmentIndex + 6]) >> ACROPOLIS_SQUARE_GLOW_TRIG_FRACTION_BITS);
                 quad->y3 = projection->screenPos.vy + ((projection->outerRadius * D_acropolis_square_80183B68[segmentIndex + 2]) >> ACROPOLIS_SQUARE_GLOW_TRIG_FRACTION_BITS);
-                _acropolisSquareQueueBeaconGlow(quad, projection);
+                _acropolisSquareQueueBeaconGlow(quad, &projection->otz);
 
                 quad           = gGpuPrimCursor;
                 gGpuPrimCursor = quad + 1;
@@ -1936,7 +1949,7 @@ void acropolisSquareBeaconGlowTask(Task* task)
                 quad->y2 = projection->screenPos.vy;
                 quad->x3 = projection->screenPos.vx + ((projection->outerRadius * D_acropolis_square_80183B68[segmentIndex + 6]) >> (ACROPOLIS_SQUARE_GLOW_TRIG_FRACTION_BITS + 1));
                 quad->y3 = projection->screenPos.vy + ((projection->outerRadius * D_acropolis_square_80183B68[segmentIndex + 2]) >> (ACROPOLIS_SQUARE_GLOW_TRIG_FRACTION_BITS + 1));
-                _acropolisSquareQueueBeaconGlow(quad, projection);
+                _acropolisSquareQueueBeaconGlow(quad, &projection->otz);
             }
             // Add two opposing pairs of long rays over the circular fan.
             halfIntensity = intensity >> 1;
@@ -1956,7 +1969,7 @@ void acropolisSquareBeaconGlowTask(Task* task)
                 quad->y2 = projection->screenPos.vy;
                 quad->x3 = projection->screenPos.vx + ((projection->innerRadius * D_acropolis_square_80183B68[segmentIndex + 8]) >> ACROPOLIS_SQUARE_GLOW_TRIG_FRACTION_BITS);
                 quad->y3 = projection->screenPos.vy + ((projection->innerRadius * D_acropolis_square_80183B68[segmentIndex + 4]) >> ACROPOLIS_SQUARE_GLOW_TRIG_FRACTION_BITS);
-                _acropolisSquareQueueBeaconGlow(quad, projection);
+                _acropolisSquareQueueBeaconGlow(quad, &projection->otz);
 
                 quad           = gGpuPrimCursor;
                 gGpuPrimCursor = quad + 1;
@@ -1973,7 +1986,7 @@ void acropolisSquareBeaconGlowTask(Task* task)
                 quad->y2 = projection->screenPos.vy;
                 quad->x3 = projection->screenPos.vx + ((projection->innerRadius * D_acropolis_square_80183B68[segmentIndex + 0xC]) >> (ACROPOLIS_SQUARE_GLOW_TRIG_FRACTION_BITS + 1));
                 quad->y3 = projection->screenPos.vy + ((projection->innerRadius * D_acropolis_square_80183B68[segmentIndex + 8]) >> (ACROPOLIS_SQUARE_GLOW_TRIG_FRACTION_BITS + 1));
-                _acropolisSquareQueueBeaconGlow(quad, projection);
+                _acropolisSquareQueueBeaconGlow(quad, &projection->otz);
             }
         } else {
             projection->outerRadius = (((glowValue >> ACROPOLIS_SQUARE_GLOW_RADIUS_SHIFT) & ACROPOLIS_SQUARE_GLOW_RADIUS_MASK) << ACROPOLIS_SQUARE_GLOW_DIAMOND_RADIUS_SHIFT) / projection->otz;
@@ -2008,7 +2021,7 @@ void acropolisSquareBeaconGlowTask(Task* task)
                     streak->y1 = projection->screenPos.vy;
                     streak->x2 = projection->screenPos.vx - projection->outerRadius * (segmentIndex * 3 - 1);
                     streak->y2 = projection->screenPos.vy + projection->outerRadius * (segmentIndex + 1);
-                    _acropolisSquareQueueBeaconGlow(streak, projection);
+                    _acropolisSquareQueueBeaconGlow(streak, &projection->otz);
                 }
             }
         }
