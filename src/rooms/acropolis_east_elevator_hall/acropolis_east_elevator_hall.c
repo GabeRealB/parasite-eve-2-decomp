@@ -876,22 +876,34 @@ void func_acropolis_east_elevator_hall_8017F5B4(Task* task)
 
 #include "../../shared/red_beacon_task.inc.c"
 
-/// Projects a composed view-space coordinate and queues its additive gray pixel.
+/// Projects a view-space translation and queues a single additive gray pixel.
 ///
-/// Borrows a reserved, word-aligned scratch block and the frame's packet arena.
-/// Translation narrows to signed 16 bits. Reserves one tile even at rejected
-/// depths; accepted SZ3 / 4 depths also reserve a blend command. No pointer is
-/// retained beyond the queued GPU packets, and GTE projection state is replaced.
-static inline void _acropolisEastElevatorHallDrawPointTile(const GfxCoord* effectCoord, EffectPointTileScratch* tileScratch)
+/// `composedCoord` must have a current view-space composition. Only its cached
+/// x/y/z translation is read, in signed 32-bit game-coordinate units, and each
+/// component narrows to signed 16 bits before projection through `GsWSMATRIX`.
+/// The GTE projection geometry must already be configured; FLAG is not tested.
+/// `tileScratch` borrows one complete, word-aligned `EffectPointTileScratch`
+/// block for this call. Neither input nor scratch storage is retained.
+///
+/// The word-aligned frame arena needs one `TILE_1` even at rejected depths and
+/// one additional `DR_TPAGE` when SZ3 / 4 is at least `EFFECT_POINT_TILE_MIN_DEPTH`.
+/// The current ordering table must provide 1024 depth tags; scaled depths wrap
+/// into those tags. Queued packets remain live until GPU drawing completes.
+/// Changes GTE state and leaves additive GPU draw mode active after the
+/// accepted pixel.
+static inline void _acropolisEastElevatorHallDrawPointTile(const GfxCoord* composedCoord, EffectPointTileScratch* tileScratch)
 {
-    enum { ACROPOLIS_EAST_ELEVATOR_HALL_POINT_TILE_COLOR = 0x80 };
+    enum {
+        ACROPOLIS_EAST_ELEVATOR_HALL_POINT_TILE_COLOR                   = 0x80,
+        ACROPOLIS_EAST_ELEVATOR_HALL_POINT_TILE_DEPTH_TO_OT_BYTES_SHIFT = 2,
+    };
 
     TILE_1* tile;
 
     // Narrow the composed view position before perspective projection.
-    tileScratch->viewPoint.vx = effectCoord->workm.t[0];
-    tileScratch->viewPoint.vy = effectCoord->workm.t[1];
-    tileScratch->viewPoint.vz = effectCoord->workm.t[2];
+    tileScratch->viewPoint.vx = composedCoord->workm.t[0];
+    tileScratch->viewPoint.vy = composedCoord->workm.t[1];
+    tileScratch->viewPoint.vz = composedCoord->workm.t[2];
 
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
@@ -905,8 +917,10 @@ static inline void _acropolisEastElevatorHallDrawPointTile(const GfxCoord* effec
     gte_stszotz(&tileScratch->depth);
     if (tileScratch->depth >= EFFECT_POINT_TILE_MIN_DEPTH) {
         setRGB0(tile, ACROPOLIS_EAST_ELEVATOR_HALL_POINT_TILE_COLOR, ACROPOLIS_EAST_ELEVATOR_HALL_POINT_TILE_COLOR, ACROPOLIS_EAST_ELEVATOR_HALL_POINT_TILE_COLOR);
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)tileScratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(
+                    (((u32)tileScratch->depth << gDisplayState.otDepthShift) >> ACROPOLIS_EAST_ELEVATOR_HALL_POINT_TILE_DEPTH_TO_OT_BYTES_SHIFT) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK),
                 tile);
+        // Prepend the draw-mode command at the same depth so blending is set before the tile.
         gpuSetPrimitiveBlendMode(tile, GPU_BLEND_ADD, tileScratch->depth);
     }
 }
