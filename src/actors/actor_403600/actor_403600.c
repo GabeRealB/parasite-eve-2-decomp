@@ -1701,9 +1701,9 @@ void func_actor_403600_80134398(Task* arg0)
             gte_stsv(temp_s1);
 
             if (arg0->spawnArg1.value == 0x1100) {
-                Gp_CopyCoordOffset(arg0, &owner->extra.tmd->coords[14], &sp10);
+                actorRenderCopyCoordBodyTransform(arg0, &owner->extra.tmd->coords[14], &sp10);
             } else {
-                Gp_CopyCoordOffset(arg0, &owner->extra.tmd->coords[18], &sp10);
+                actorRenderCopyCoordBodyTransform(arg0, &owner->extra.tmd->coords[18], &sp10);
             }
             if (arg0->spawnArg1.value < 0x1000) {
                 Gp_SpawnEff(EFFECT_EVE_ENERGY_RING, coord, 0x20, 0);
@@ -1852,7 +1852,7 @@ block_22:
                         motionParent = arg0->spawnArg2.pointer;
                         if ((s16)arg0->killCountdown >= 7) {
                             var_a1_2 = &motionParent->extra.tmd->coords[18];
-                            Gp_CopyCoordOffset(arg0, var_a1_2, &sp10);
+                            actorRenderCopyCoordBodyTransform(arg0, var_a1_2, &sp10);
                             var_s4 = 0;
                             do {
                                 work->trail[var_s4].vx = (u16)coord->coord.t[0];
@@ -1867,9 +1867,9 @@ block_22:
                     } else {
                         temp_a0_3 = arg0->spawnArg2.pointer;
                         if (arg0->spawnArg1.value == 0x1000) {
-                            Gp_CopyCoordOffset(arg0, &temp_a0_3->extra.tmd->coords[18], &sp10);
+                            actorRenderCopyCoordBodyTransform(arg0, &temp_a0_3->extra.tmd->coords[18], &sp10);
                         } else {
-                            Gp_CopyCoordOffset(arg0, &temp_a0_3->extra.tmd->coords[14], &sp10);
+                            actorRenderCopyCoordBodyTransform(arg0, &temp_a0_3->extra.tmd->coords[14], &sp10);
                         }
                     block_51:
                         steeringPass += 1;
@@ -2375,7 +2375,7 @@ void func_actor_403600_80135C28(Task* arg0)
             arg0->work         = temp_v0_2;
             temp_v0_2->shallow = 0;
             sp10               = D_actor_403600_80131E2C;
-            Gp_CopyCoordOffset(arg0, &temp_s2->parent->extra.tmd->coords[1], &sp10);
+            actorRenderCopyCoordBodyTransform(arg0, &temp_s2->parent->extra.tmd->coords[1], &sp10);
             mtx                               = &temp_v0_2->clipCoord.coord;
             MATRIX_PAIR(mtx, 0, 0)            = 0x1000;
             MATRIX_PAIR(mtx, 0, 2)            = 0;

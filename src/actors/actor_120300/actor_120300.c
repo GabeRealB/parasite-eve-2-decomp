@@ -1432,7 +1432,7 @@ void func_actor_120300_80132004(Task* task)
             place++;
             id = place->entryId;
         }
-        Gp_SetTmdBytes(task->extra.tmd, place->texturePageOffset, place->clutRowOffset);
+        tmdSetTextureOffsets(task->extra.tmd, place->texturePageOffset, place->clutRowOffset);
         task->state += 1;
     }
     tmd2     = task->extra.tmd;
@@ -2005,7 +2005,7 @@ static void func_actor_120300_801335D8(Task* task)
         place++;
         entryId = place->entryId;
     }
-    Gp_SetTmdBytes(tmd, place->texturePageOffset, place->clutRowOffset);
+    tmdSetTextureOffsets(tmd, place->texturePageOffset, place->clutRowOffset);
     animationInitContext(&work->rig.anim, D_actor_120300_80140910, tmd, work->rig.poses, work->rig.slots);
     animWork                = task->work;
     animWork->bodyAnimation = 0xE;
@@ -2034,7 +2034,7 @@ void func_actor_120300_801337C4(Task* arg0)
 {
     union {
         struct {
-            SVECTOR rot;
+            SVECTOR shadowOffset;
             VECTOR  vec;
         } draw;
         AnimationPlayRequest rec;
@@ -2136,10 +2136,10 @@ void func_actor_120300_801337C4(Task* arg0)
 
     func_actor_120300_80132338(arg0);
     func_actor_120300_80132C60(arg0);
-    scratch.draw.rot.vx = 0;
-    scratch.draw.rot.vy = 0x380;
-    scratch.draw.rot.vz = 0;
-    Gp_DrawFloorQuad(&arg0->extra.tmd->coords[1], 0x300, &scratch.draw.rot);
+    scratch.draw.shadowOffset.vx = 0;
+    scratch.draw.shadowOffset.vy = 0x380;
+    scratch.draw.shadowOffset.vz = 0;
+    actorRenderDrawGroundShadow(&arg0->extra.tmd->coords[1], 0x300, &scratch.draw.shadowOffset);
     tmd      = arg0->extra.tmd;
     scaleRaw = work->scale;
     func_actor_120300_FillLight(arg0, tmd, &scratch.draw.vec);

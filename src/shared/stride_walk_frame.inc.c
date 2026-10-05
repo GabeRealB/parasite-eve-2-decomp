@@ -32,6 +32,6 @@ void strideWalkFrame(Enemy* enemy, Task* task)
             work->turnWeight = 0;
         }
     }
-    func_800B0928(task, gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x200, 0x100, work->turnWeight);
+    animationAimHeadAtTask(task, gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x200, 0x100, work->turnWeight);
     walkerDrawShadow(task);
 }

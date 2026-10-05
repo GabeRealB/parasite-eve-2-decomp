@@ -645,7 +645,7 @@ meaningful while *that weapon's* package is loaded. Two consequences:
 
 ### 9.2 Animation blocks
 
-Layout, from `Gp_AnimInitCtx` / `animationResetSlot` / `Gp_AnimResetSlotEx` in
+Layout, from `Gp_AnimInitCtx` / `animationResetSlot` / `animationResetRemappedSlot` in
 `src/gameplay/scene_runtime.c`:
 
 ```text
@@ -755,7 +755,7 @@ quarter: the trailing `0x80`/`0xC0` pair holds 129 + 128 in `durationFrames`, wh
 is never read on a control entry — it continues at `wordOffset` or ends the track
 instead. Corrected, Kyle's clips are 3–391 ticks.
 
-**The pose encoding belongs to the track, not the record.** `Gp_AnimInitSlot` takes
+**The pose encoding belongs to the track, not the record.** `animationInitDirectSlot` takes
 it once (`slot->poseEncoding = recordFlags & ANIMATION_RECORD_POSE_ENCODING_MASK`) and
 `animationTickSlotPose` reads `poseEncoding = slot->poseEncoding` for every record after that. The control records carry 0
 in those bits, so reading the encoding per record throws away the final keyframe.

@@ -4136,7 +4136,7 @@ static void func_actor_503500_8013AAC0(Task* arg0)
 
 /// Blends a large chain's model parts 1..8 toward `bindPose`: while
 /// `blendWeight` is below 0x1000, each part's `coord` rotation goes through
-/// `Gp_LerpOrthonormal` and its translation keeps a `blendWeight / 0x1000`
+/// `gfxBlendOrthonormalRotation` and its translation keeps a `blendWeight / 0x1000`
 /// share of its offset from the saved matrix.
 static void func_actor_503500_8013AB38(Task* arg0)
 {
@@ -4153,7 +4153,7 @@ static void func_actor_503500_8013AB38(Task* arg0)
         mat = &work->bindPose[1];
         t   = work->blendWeight;
         for (i = 1; i < ACTOR_503500_LARGE_CHAIN_PART_COUNT; i++) {
-            Gp_LerpOrthonormal(mat, &coord->coord, &coord->coord, t);
+            gfxBlendOrthonormalRotation(mat, &coord->coord, &coord->coord, t);
             d.vx              = ((coord->coord.t[0] - mat->t[0]) * t) >> 12;
             d.vy              = ((coord->coord.t[1] - mat->t[1]) * t) >> 12;
             d.vz              = ((coord->coord.t[2] - mat->t[2]) * t) >> 12;

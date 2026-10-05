@@ -557,7 +557,7 @@ static void func_actor_120500_801322A0(Task* task)
         place++;
         entryId = place->entryId;
     }
-    Gp_SetTmdBytes(tmd, place->texturePageOffset, place->clutRowOffset);
+    tmdSetTextureOffsets(tmd, place->texturePageOffset, place->clutRowOffset);
     animationInitContext(&work->rig.anim, D_actor_120500_80138088, tmd, work->rig.poses, work->rig.slots);
     slotsWork      = task->work;
     task->msgTable = D_actor_120500_80138408;

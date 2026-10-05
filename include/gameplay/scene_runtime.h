@@ -29,13 +29,19 @@ s32 func_800B0118(s32 arg0, s32 arg1);
 
 Enemy* Gp_SpawnEnemyFromTable(TaskDesc* table, s32 idx, s32 arg2, Enemy* parent);
 
-/// Copies `arg1`'s matrix onto the coordinate at `Task::extra.coordBody->coord`,
-/// adding `arg2` in that space. If `arg1->parent` is world (`gGfxViewCoord`),
-/// copies `coord` and transforms in place; otherwise computes `workm`
-/// via `actorRenderComposeCoord`, transforms there, and converts to local with
-/// `gfxMakeRelativeTransform`. Always parents the dest to world and clears `composeStamp`.
-/// Returns `arg0` (or NULL).
-Task* Gp_CopyCoordOffset(Task* arg0, GfxCoord* arg1, SVECTOR* arg2);
+/// Copies a source frame and local offset into a coordinate-body task's world placement.
+///
+/// `task` may be NULL, in which case NULL is returned without accessing the other
+/// arguments. Otherwise it must own a live `TASK_BODY_COORD` body with one writable
+/// coordinate.
+/// `localOffset` supplies xyz in the source frame's integer coordinate units.
+/// The destination preserves the source rotation, moves its origin by the transformed
+/// offset, is parented to `gGfxViewCoord`, and is marked dirty.
+/// A world-parented source uses its local matrix directly; other sources are composed
+/// through their live, acyclic parent chains and converted back from view space.
+/// Returns `task`. Borrows all storage and reserves eight scratch bytes around
+/// composition; no pointer is retained.
+Task* actorRenderCopyCoordBodyTransform(Task* task, GfxCoord* sourceCoord, const SVECTOR* localOffset);
 
 /// Extracts one XYZ Euler solution by cancelling the transformed +Z and +Y axes.
 ///
@@ -60,11 +66,17 @@ void gfxExtractEulerAngles(const MATRIX* matrix, SVECTOR* angles);
 /// scratch.
 SVECTOR* gfxExtractSmallestEuler(SVECTOR* angles, const MATRIX* matrix);
 
-/// Lerps the 3x3 rotation of `arg0` toward `arg1` by `arg3 / ONE`, then
-/// orthonormalizes into `arg2`. Outer products of each interpolated row
-/// pair pick the two most independent axes; `MatrixNormal_0` / `_1` / `_2`
-/// reconstructs the missing row.
-void Gp_LerpOrthonormal(MATRIX* arg0, MATRIX* arg1, MATRIX* arg2, s32 arg3);
+/// Blends two Q12 rotations and rebuilds an orthonormal basis from their strongest row pair.
+///
+/// `blendWeight` is in 1/4096 units, normally 0..`ONE`: zero selects
+/// `fromRotation`, and `ONE` selects `toRotation` before normalization.
+/// Row differences narrow to signed halfwords before the signed multiply and divide.
+/// Cross-product lengths choose the two least parallel rows; the first pair wins
+/// a tie. The input rotations must give a usable, nonzero basis after blending.
+/// Only the nine rotation halfwords of `destination` are written; translation and
+/// padding are untouched. The destination may alias either source: all source
+/// rotation reads finish before the output is written. Changes GTE state.
+void gfxBlendOrthonormalRotation(const MATRIX* fromRotation, const MATRIX* toRotation, MATRIX* destination, s32 blendWeight);
 
 /// Composes a coordinate node and its ancestors into world rotation and translation.
 ///
@@ -88,7 +100,30 @@ enum { GPU_RGB555_CLUT_ROW_COLORS = 16 };
 /// storage per colour and retains no pointers.
 void gpuBlendRgb555ClutRow(const u16* first, const u16* second, s32 firstWeight, u16* destination);
 
-void func_800B3AA4(AnimationContext* context, AnimationSlot* arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5);
+/// Starts a directly supplied track, blending from its current pose during demo scene 1.
+///
+/// Outside demo scene 1, performs the same normalized-set, matching-track/part
+/// initialization as `animationInitDirectSlot`; `trackRecordOffset` and
+/// `blendFrames` are ignored.
+///
+/// In demo scene 1 the slot must already be initialized, with its track index equal
+/// to its playback-array index. Rebinds `context->slots` from that index, changes
+/// only the destination coordinate index to `partIndex`, ticks and captures the
+/// encoded pose in that slot's buffer, then makes the buffer the current endpoint.
+/// `requestedSetIndex` is narrowed to u16 without normalization and must select a
+/// loaded slot set, excluding the buffered-pose sentinel. `trackRecordOffset` counts
+/// records from that set's existing track start; the sum is narrowed to u16 before
+/// following controls. Jumps accumulate walk flags; a stop retains the capture
+/// tick's next record index in the target set. The capture's flags and boundary
+/// hold remain, and the buffered-rotation cache is invalidated.
+///
+/// `blendFrames` counts whole normal-rate frames, shifted to sixteenths and narrowed
+/// through u16 into both time fields; 0..2047 keeps remaining time nonnegative.
+/// Every slot, coordinate, buffer entry, visited record and encoded pose must fit
+/// its live storage. The track-start sum must fit s32 and control chains must
+/// terminate. The buffer must remain live while an endpoint refers to it.
+/// Capture and GTE requirements are those of `animationTickSlotPose`.
+void animationStartDirectSlot(AnimationContext* context, AnimationSlot* directSlot, s32 partIndex, s32 requestedSetIndex, s32 trackRecordOffset, s32 blendFrames);
 
 /// Binds an animation context to a model allocation's coordinate tail and caller-owned playback data.
 ///
@@ -97,11 +132,44 @@ void func_800B3AA4(AnimationContext* context, AnimationSlot* arg1, s32 arg2, s32
 /// live while the context is used. Playback slots are bound separately.
 void Gp_AnimInitCtx(AnimationContext* ctx, void* sets, TmdObject* model, void* poses);
 
-void Gp_AnimInitSlot(AnimationContext* context, AnimationSlot* arg1, s32 arg2, s32 arg3);
+/// Initializes a directly supplied playback slot at a model-part track's first keyframe.
+///
+/// `setIndex` is normalized: zero selects set 1 and a negative index selects
+/// its positive magnitude (INT_MIN is invalid). The resulting index must fit the
+/// loaded context table and u16, excluding `ANIMATION_SET_BUFFERED_POSE`.
+/// `partIndex` selects both the source track and destination coordinate; it must
+/// fit u8 and both arrays. The slot borrows the context's set table and places
+/// both endpoints at that track's start, selecting its initial pose encoding.
+/// Sets normal rate, zero remaining time, and clears the status word and boundary
+/// hold. Does not tick or write a model pose. Time span and buffered-pose cache
+/// state remain untouched until playback updates them. All borrowed data must
+/// remain live, and the initial record and complete encoded pose must fit the set.
+void animationInitDirectSlot(AnimationContext* context, AnimationSlot* slot, s32 partIndex, s32 setIndex);
 
-void Gp_AnimTickSlot(AnimationContext* context, AnimationSlot* arg1);
+/// Ticks a directly supplied slot after rebinding its context to the slot's playback array.
+///
+/// The slot's existing `trackIndex` must equal its array index; the complete live
+/// array must extend backwards to `slot - slot->trackIndex`. Replaces
+/// `context->slots` with that base and invokes `animationTickSlotPose` with
+/// no unpacked or encoded output, applying the pose to the selected model coordinate.
+/// Playback, buffer, index, scratch and GTE requirements follow that tick's contract.
+/// The context retains the recovered array pointer after return.
+void animationTickDirectSlot(AnimationContext* context, AnimationSlot* slot);
 
-void Gp_AnimResetSlotEx(AnimationContext* context, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+/// Restarts an indexed playback slot with independent source-track and destination-part indices.
+///
+/// `slotIndex` selects a writable context slot. `setIndex` selects a loaded
+/// context set without normalization, including set zero; it must fit u16 and
+/// exclude `ANIMATION_SET_BUFFERED_POSE`. `trackIndex` and `coordIndex` must
+/// fit u8 and their respective track-start and model-coordinate arrays.
+/// Binds the context's set table, selects the track start and its pose encoding,
+/// sets normal rate and zero remaining time, and clears status and boundary hold.
+/// The current record index is primed to zero rather than the track start;
+/// the first forward tick replaces it before pose lookup. Does not write a pose.
+/// The source set, records, encoded poses, slot and model coordinates must remain
+/// live. This remapped slot must be ticked by its array index, not by a direct-slot
+/// helper that reconstructs the array from the track index.
+void animationResetRemappedSlot(AnimationContext* context, s32 slotIndex, s32 setIndex, s32 trackIndex, s32 coordIndex);
 
 void Gp_AnimWritePoseBlend(AnimationContext* context, s32 arg1, AnimationPose* arg2, AnimationPose* arg3, s32 arg4,
                            s32 arg5);
@@ -148,7 +216,15 @@ void Gp_SpawnArea(GameLocationKey* location);
 /// exits or releases its enemy work. Does not create or retain a reference.
 Enemy* sceneFindEnemyByPlaceKey(u16 placeKey);
 
-void Gp_SetTmdBytes(TmdObject* arg0, s32 arg1, s32 arg2);
+/// Changes a model's encoded texture-page and CLUT-row displacements and refreshes both buffer halves.
+///
+/// Both arguments narrow to signed bytes; -128..127 preserves their values.
+/// `texturePageOffset` is added to encoded page words, while one `clutRowOffset`
+/// unit adds 64 to encoded CLUT words. A live model and source are required.
+/// When a buffer exists, it must hold both writable halves: two builds update
+/// them and restore the original next-half selector. With no buffer only the
+/// model's offsets change. Storage ownership and lifetime are unchanged.
+void tmdSetTextureOffsets(TmdObject* model, s32 texturePageOffset, s32 clutRowOffset);
 
 s32 Gp_GetAreaFlag2(GameLocationKey* key);
 
@@ -178,36 +254,73 @@ AreaVariant* Gp_GetNestedAreaRec(GameLocationKey* key);
 /// An existing layout table requires its saved area-state record to exist too.
 void areaSyncLocationVariant(GameLocationKey* key);
 
-/// Draws a semi-transparent textured square of side `arg1` on the XZ plane,
-/// anchored at `arg2` (or at the coordinate's own origin when `arg2` is
-/// `NULL`), transformed by `arg0->workm` and linked into `gGpuCurrentOt`
-/// at the largest corner `otz`.
-void Gp_DrawFloorQuad(GfxCoord* arg0, u32 arg1, SVECTOR* arg2);
-
-/// Contact offset in the view coordinate frame, in signed world-coordinate units.
+/// Draws a subtractive textured ground-shadow square in a model coordinate's local XZ plane.
 ///
-/// `position` and `contact->point` are world positions. Their delta is
-/// truncated to signed halfwords before measuring its length. The offset
-/// magnitude is `-abs(length - contact->distance)`, including when the point
-/// lies beyond that distance; `offset` receives the scaled normalized delta
-/// transformed by the transpose of the view coordinate's world rotation.
-void worldCollisionCalcContactViewOffset(SVECTOR* position, WorldCollisionContact* contact, SVECTOR* offset);
+/// `side` is the full side length in that frame's integer coordinate units.
+/// `centreOffset` supplies the local centre, or NULL selects the origin;
+/// corner coordinates narrow to signed halfwords. `frame` is composed through
+/// its live, acyclic parent chain before projection. Only the last corner's
+/// projection flags decide rejection, and the largest corner depth selects
+/// the ordering-table entry with a fixed four-bit shift.
+/// Borrows a POLY_FT4 packet from the current frame arena and releases its scratch
+/// workspace before returning. The packet lives through drawing that frame.
+/// The current ordering table must provide 1024 entries. Changes GTE state.
+void actorRenderDrawGroundShadow(GfxCoord* frame, u32 side, const SVECTOR* centreOffset);
+
+/// Computes a world-axis separation offset from a contact and a queried view-space position.
+///
+/// `position` and `contact->point` must be in the same composed view frame, in
+/// integer coordinate units; the contact distance uses the same length units.
+/// Their difference narrows to signed halfwords before its length is measured.
+/// The signed scale is `-abs(length - contact->distance)`, including when the
+/// queried point lies beyond that distance. The normalized delta is rotated by
+/// the transpose of the view rotation into world axes, then scaled with the GTE;
+/// the scale passes through signed IR0 and output components saturate to halfwords.
+/// Requires live inputs, writable xyz output and an initialized scratch stack.
+/// No pointer is retained; input storage is not modified.
+void worldCollisionCalcContactWorldOffset(const SVECTOR* position, const WorldCollisionContact* contact, SVECTOR* offset);
 
 Task* func_800B2968(void);
 
 void Gp_SetStreamBuf(void* arg0);
 
-void func_800B0928(Task* arg0, Task* arg1, s32 arg2, s32 arg3, s32 arg4);
+/// Blends a model's part-4 head rotation toward another model's accumulated chain position.
+///
+/// Both tasks must own live TMD models with at least five coordinates arranged
+/// in the expected root-to-head order. Position sums include transformed
+/// translations of parts 0..3; part 4 is transformed separately but its result
+/// is excluded. Each accumulated rotation is updated as local * accumulated.
+/// The target delta narrows to signed halfwords and is rotated into the
+/// subject's pre-head frame; pitch uses the absolute forward component.
+///
+/// Angles and nonnegative `maxYaw` / `maxPitch` use 4096 units per turn.
+/// `blendWeight` is a signed 1/4096 interpolation weight, normally 0..`ONE`,
+/// with signed division toward zero and no angle-wrap correction. Each limit
+/// is widened to the magnitude of the existing head angle before clamping,
+/// so an existing out-of-limit pose is not forced inward. Existing roll is
+/// preserved. Writes part 4's rotation and marks that coordinate dirty.
+/// Borrows all model storage, retains no pointers and changes GTE state.
+void animationAimHeadAtTask(Task* subject, Task* targetTask, s32 maxYaw, s32 maxPitch, s32 blendWeight);
 
-/// Turns the slot-3 skeleton's head toward the world point in `arg1`'s
-/// translation (`coord.t`). Sums the first five `GfxCoord` transforms of
-/// `arg0->extra` to get the head's own position and orientation, takes the
-/// offset to the target through `ratan2` as a yaw/pitch pair, steps toward it
-/// by `arg4 / 0x1000` of the remaining angle and clamps the result to `arg2`
-/// yaw and `arg3` pitch before writing the rotation with `RotMatrix`.
-void func_800B0CF4(Task* arg0, GfxCoord* arg1, s32 arg2, s32 arg3, s32 arg4);
+/// Blends a model's part-4 head rotation toward a world point carried in a coordinate's translation.
+///
+/// `subject` must own a live TMD model with at least five coordinates in the
+/// expected root-to-head order. Sums transformed translations of parts 0..4,
+/// updating the accumulated rotation as accumulated * local, then takes the
+/// target delta through the inverse accumulated rotation. The delta narrows
+/// to signed halfwords. Only `targetPointFrame->coord.t[0..2]` is read; the
+/// other coordinate fields need not be initialized and no target composition occurs.
+///
+/// Angles and nonnegative `maxYaw` / `maxPitch` use 4096 units per turn.
+/// `blendWeight` is in 1/4096 units, normally 0..`ONE`, using signed division
+/// toward zero without angle-wrap correction. Each limit is widened to the
+/// magnitude of the existing head angle before clamping; existing roll remains.
+/// Writes only part 4's rotation. Its composition stamp is left unchanged, so
+/// the owner must invalidate the coordinate before a later composition uses it.
+/// Borrows its inputs, retains no pointers and changes GTE state.
+void animationAimHeadAtPoint(Task* subject, const GfxCoord* targetPointFrame, s32 maxYaw, s32 maxPitch, s32 blendWeight);
 
-/// `func_800B0928` with the limits and step taken from `arg2` and the target
+/// `animationAimHeadAtTask` with the limits and step taken from `arg2` and the target
 /// being `arg1`'s head: composes the first five `GfxCoord` transforms of
 /// both tasks (plus the `D_80093A28` head offset) to get each head's world
 /// position, takes the offset in `arg0`'s head frame through `ratan2`, unwraps

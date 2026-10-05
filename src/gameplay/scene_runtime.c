@@ -101,6 +101,9 @@
 /// must be below `ANIMATION_POSE_BANK_COUNT` even for unsupported encodings.
 enum { ANIMATION_RECORD_POSE_ENCODING_MASK = 0x0F };
 
+/// Root-to-head chain endpoint used by the model head-aim routines.
+enum { ANIMATION_HEAD_PART_INDEX = 4 };
+
 /// Lowest unsigned record-flags value that ends a forward animation-track walk.
 ///
 /// Values 0xC0..0xFF have both control and stop bits set; the low six bits do
@@ -514,6 +517,129 @@ static const TaskFuncTable3 D_80093A5C;
 static const char Gp_StrNewEnemyNull[];
 
 static const EnemyTaskFuncTable3 Gp_EnemyWaitFuncs;
+
+/// Blends Euler pitch/yaw and clamps them without pulling an existing pose inward.
+///
+/// The writable angles and read-only current pose use 4096 units per turn;
+/// weight uses 1/4096 units. Current roll is copied. The angle storage must
+/// be disjoint, and limits are nonnegative. No wrap correction is performed.
+///
+/// Expands to a compound statement for standalone calls. Requires writable
+/// aggregate and limit lvalues without side effects: each is evaluated repeatedly.
+/// Captures four caller-declared s32 locals: currentPitchMagnitude,
+/// currentYawMagnitude, pitchMagnitude and yawMagnitude. Each receives a
+/// current or candidate angle magnitude for its corresponding axis.
+#define ANIMATION_BLEND_LIMITED_HEAD_ANGLES(aimAngles, currentAngles, maxYaw, maxPitch, blendWeight)              \
+    {                                                                                                             \
+        (aimAngles).vx        = (currentAngles).vx + ((aimAngles).vx - (currentAngles).vx) * (blendWeight) / ONE; \
+        (aimAngles).vy        = (currentAngles).vy + ((aimAngles).vy - (currentAngles).vy) * (blendWeight) / ONE; \
+        (aimAngles).vz        = (currentAngles).vz;                                                               \
+        currentPitchMagnitude = (currentAngles).vx >= 0 ? (currentAngles).vx : -(currentAngles).vx;               \
+        if ((maxPitch) < currentPitchMagnitude) {                                                                 \
+            (maxPitch) = currentPitchMagnitude;                                                                   \
+        }                                                                                                         \
+        currentYawMagnitude = (currentAngles).vy >= 0 ? (currentAngles).vy : -(currentAngles).vy;                 \
+        if ((maxYaw) < currentYawMagnitude) {                                                                     \
+            (maxYaw) = currentYawMagnitude;                                                                       \
+        }                                                                                                         \
+        pitchMagnitude = (aimAngles).vx >= 0 ? (aimAngles).vx : -(aimAngles).vx;                                  \
+        if ((maxPitch) < pitchMagnitude) {                                                                        \
+            (aimAngles).vx = (aimAngles).vx < 0 ? -(maxPitch) : (maxPitch);                                       \
+        }                                                                                                         \
+        yawMagnitude = (aimAngles).vy >= 0 ? (aimAngles).vy : -(aimAngles).vy;                                    \
+        if ((maxYaw) < yawMagnitude) {                                                                            \
+            (aimAngles).vy = (aimAngles).vy < 0 ? -(maxYaw) : (maxYaw);                                           \
+        }                                                                                                         \
+    }
+
+/// Measures the Q12 cross product of two blended matrix rows.
+///
+/// Both row vectors stay live through the call. The writable vectors receive
+/// the cross product and its normalized direction; the return is its length.
+/// The two output vectors must be distinct. Changes GTE state.
+///
+/// This GNU statement expression returns the length. Pointer arguments must be
+/// stable and side-effect-free; rowCrossProduct is evaluated twice and the
+/// other pointers once. Its local vector operands are provided by the caller.
+#define GRAPHICS_MEASURE_ROW_INDEPENDENCE(firstRow, secondRow, rowCrossProduct, normalizedCrossProduct) \
+    ({                                                                                                  \
+        gte_ldopv1((firstRow));                                                                         \
+        gte_ldopv2((secondRow));                                                                        \
+        gte_op12();                                                                                     \
+        gte_stlvnl((rowCrossProduct));                                                                  \
+        VectorNormal((rowCrossProduct), (normalizedCrossProduct));                                      \
+    })
+
+/// Primes mapped playback indices without selecting the first record or pose encoding.
+///
+/// Indices must fit their slot fields and corresponding borrowed arrays.
+/// The caller binds the set table, selects endpoints and clears playback status.
+///
+/// Pointer and index arguments must be stable and side-effect-free. Evaluates
+/// slot seven times and targetSetIndex twice; the track and coordinate indices
+/// once each. Stores narrow to the existing byte/halfword fields. Captures no locals.
+#define ANIMATION_PRIME_MAPPED_SLOT(slot, targetSetIndex, sourceTrackIndex, destinationCoordIndex) \
+    do {                                                                                           \
+        (slot)->rate                            = ANIMATION_RATE_ONE;                              \
+        (slot)->timeLeft                        = 0;                                               \
+        (slot)->currentPose.indices.setIndex    = (targetSetIndex);                                \
+        (slot)->currentPose.indices.recordIndex = 0;                                               \
+        (slot)->coordIndex                      = (destinationCoordIndex);                         \
+        (slot)->trackIndex                      = (sourceTrackIndex);                              \
+        (slot)->nextPose.indices.setIndex       = (targetSetIndex);                                \
+    } while (0)
+
+/// Selects the demo transition's target record while retaining the capture tick's flags.
+///
+/// Candidate and fallback indices must fit the target record array. Jump controls
+/// install their absolute wordOffset; stop retains the slot's prior next index.
+/// The control chain must terminate; record storage remains borrowed.
+///
+/// candidateIndex is a writable u16 lvalue and is updated by the walk. All
+/// arguments must be stable and side-effect-free; slot and the index are
+/// evaluated repeatedly; records is read at the flag test and again for a
+/// visited control. Captures no locals.
+#define ANIMATION_SELECT_DIRECT_BLEND_RECORD(slot, records, candidateIndex)          \
+    do {                                                                             \
+        const AnimationRecord* controlRecord;                                        \
+                                                                                     \
+        while ((s8)(records)[(candidateIndex)].flags < 0) {                          \
+            controlRecord = (records) - -(s32)(candidateIndex);                      \
+            if (controlRecord->flags < ANIMATION_RECORD_END_THRESHOLD) {             \
+                (candidateIndex) = controlRecord->wordOffset;                        \
+                if ((candidateIndex) == (slot)->nextPose.indices.recordIndex) {      \
+                    (slot)->status.fields.flags |= ANIMATION_SLOT_REACHED_BOUNDARY;  \
+                }                                                                    \
+                (slot)->status.fields.flags |= ANIMATION_SLOT_FOLLOWED_JUMP;         \
+            } else {                                                                 \
+                (candidateIndex)             = (slot)->nextPose.indices.recordIndex; \
+                (slot)->status.fields.flags |= ANIMATION_SLOT_REACHED_BOUNDARY;      \
+                break;                                                               \
+            }                                                                        \
+        }                                                                            \
+        (slot)->nextPose.indices.recordIndex = (candidateIndex);                     \
+    } while (0)
+
+/// Projects one local shadow corner with the composed frame already loaded in the GTE.
+///
+/// `cornerIndex` selects 0..3 in the same scratch block's vertex and screen arrays.
+/// Overwrites the latest depth, depth cue and flags; keeps the largest depth so far.
+///
+/// Arguments must be stable and side-effect-free: scratch is evaluated
+/// repeatedly and cornerIndex twice. Captures no caller locals. GTE rotation,
+/// translation and projection parameters must already describe the desired view.
+#define ACTOR_RENDER_PROJECT_SHADOW_CORNER(scratch, cornerIndex) \
+    do {                                                         \
+        gte_ldv0(&(scratch)->vertices[(cornerIndex)]);           \
+        gte_rtps();                                              \
+        gte_stsxy(&(scratch)->screenXy[(cornerIndex)]);          \
+        gte_stdp(&(scratch)->depthCue);                          \
+        gte_stflg(&(scratch)->projectionFlags);                  \
+        gte_stszotz(&(scratch)->depth);                          \
+        if ((scratch)->depth > (scratch)->farthestDepth) {       \
+            (scratch)->farthestDepth = (scratch)->depth;         \
+        }                                                        \
+    } while (0)
 
 s32 func_800AF590(s32 unused0, s32 unused1)
 {
@@ -1050,41 +1176,44 @@ void enemyTaskExit(Task* task)
     taskKill(task);
 }
 
-Task* Gp_CopyCoordOffset(Task* arg0, GfxCoord* arg1, SVECTOR* arg2)
+Task* actorRenderCopyCoordBodyTransform(Task* task, GfxCoord* sourceCoord, const SVECTOR* localOffset)
 {
-    ModelObjectCoordBody* body;
-    GfxCoord*             dest;
-    GfxCoord*             world;
+    enum { ACTOR_RENDER_COORD_COPY_SCRATCH_BYTES = 8 };
 
-    if (arg0 == NULL) {
+    ModelObjectCoordBody* body;
+    GfxCoord*             destinationCoord;
+    GfxCoord*             worldParent;
+
+    if (task == NULL) {
         return NULL;
     }
 
-    SCRATCH_STACK_RESERVE_BYTES(8);
-    world = &gGfxViewCoord;
-    body  = arg0->extra.coordBody;
-    dest  = body->coord;
-    if (arg1->parent == world) {
-        dest->coord = arg1->coord;
-        gte_SetRotMatrix(&arg1->coord);
-        gte_SetTransMatrix(&arg1->coord);
-        gte_ldv0(arg2);
+    SCRATCH_STACK_RESERVE_BYTES(ACTOR_RENDER_COORD_COPY_SCRATCH_BYTES);
+    worldParent      = &gGfxViewCoord;
+    body             = task->extra.coordBody;
+    destinationCoord = body->coord;
+    if (sourceCoord->parent == worldParent) {
+        destinationCoord->coord = sourceCoord->coord;
+        gte_SetRotMatrix(&sourceCoord->coord);
+        gte_SetTransMatrix(&sourceCoord->coord);
+        gte_ldv0(localOffset);
         gte_rtv0tr();
-        gte_stlvnl(dest->coord.t);
+        gte_stlvnl(destinationCoord->coord.t);
     } else {
-        actorRenderComposeCoord(arg1);
-        dest->workm = arg1->workm;
-        gte_SetRotMatrix(&arg1->workm);
-        gte_SetTransMatrix(&arg1->workm);
-        gte_ldv0(arg2);
+        // Compose through the view, then recover a world-parented local matrix.
+        actorRenderComposeCoord(sourceCoord);
+        destinationCoord->workm = sourceCoord->workm;
+        gte_SetRotMatrix(&sourceCoord->workm);
+        gte_SetTransMatrix(&sourceCoord->workm);
+        gte_ldv0(localOffset);
         gte_rtv0tr();
-        gte_stlvnl(dest->workm.t);
-        gfxMakeRelativeTransform(&world->workm, &dest->workm, &dest->coord);
+        gte_stlvnl(destinationCoord->workm.t);
+        gfxMakeRelativeTransform(&worldParent->workm, &destinationCoord->workm, &destinationCoord->coord);
     }
-    dest->parent       = &gGfxViewCoord;
-    dest->composeStamp = GRAPHICS_COORD_DIRTY;
-    SCRATCH_STACK_RELEASE_BYTES(8);
-    return arg0;
+    destinationCoord->parent       = &gGfxViewCoord;
+    destinationCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+    SCRATCH_STACK_RELEASE_BYTES(ACTOR_RENDER_COORD_COPY_SCRATCH_BYTES);
+    return task;
 }
 
 static Enemy* Gp_AllocEnemy(Task* task, Enemy* parent)
@@ -1250,189 +1379,159 @@ static void Gp_StageLoadState2(Task* task)
     }
 }
 
-void func_800B0928(Task* arg0, Task* arg1, s32 arg2, s32 arg3, s32 arg4)
+void animationAimHeadAtTask(Task* subject, Task* targetTask, s32 maxYaw, s32 maxPitch, s32 blendWeight)
 {
-    VECTOR    tmp;
-    VECTOR    acc0;
-    VECTOR    acc1;
-    SVECTOR   delta;
-    SVECTOR   ang;
-    SVECTOR   euler;
-    MATRIX    mtx0;
-    MATRIX    mtx1;
-    MATRIX    tmtx;
-    s32       i;
-    GfxCoord* rec;
-    GfxCoord* rec1;
-    s32       pitchLimit;
-    s32       yawLimit;
+    VECTOR    transformedTranslation;
+    VECTOR    subjectPosition;
+    VECTOR    targetPosition;
+    SVECTOR   targetDelta;
+    SVECTOR   aimAngles;
+    SVECTOR   currentAngles;
+    MATRIX    subjectRotation;
+    MATRIX    targetRotation;
+    MATRIX    inverseSubjectRotation;
+    s32       partIndex;
+    GfxCoord* subjectPart;
+    GfxCoord* targetPart;
+    s32       currentPitchMagnitude;
+    s32       currentYawMagnitude;
     s32       pitchMagnitude;
     s32       yawMagnitude;
-    MATRIX*   m0;
-    MATRIX*   m1;
-    GfxCoord* base;
-    MATRIX*   m;
+    MATRIX*   subjectRotationStorage;
+    MATRIX*   targetRotationStorage;
+    GfxCoord* subjectParts;
+    MATRIX*   headRotation;
 
-    i                        = 0;
-    m0                       = &mtx0;
-    *(s32*)&mtx0             = ONE;
-    MATRIX_PAIR(&mtx0, 0, 2) = 0;
-    MATRIX_PAIR(m0, 1, 1)    = ONE;
-    MATRIX_PAIR(&mtx0, 2, 0) = 0;
-    m0->m[2][2]              = ONE;
-    acc0.vx                  = 0;
-    acc0.vy                  = 0;
-    acc0.vz                  = 0;
-    for (i = 0; i < 4; i++) {
-        rec = &arg0->extra.tmd->coords[i];
-        ApplyMatrixLV(&mtx0, (VECTOR*)rec->coord.t, &tmp);
-        acc0.vx += tmp.vx;
-        acc0.vy += tmp.vy;
-        acc0.vz += tmp.vz;
-        MulMatrix0(&rec->coord, &mtx0, &mtx0);
+    // Accumulate the pre-head translations in the retained local * accumulated order.
+    partIndex                                 = 0;
+    subjectRotationStorage                    = &subjectRotation;
+    MATRIX_PAIR(&subjectRotation, 0, 0)       = ONE;
+    MATRIX_PAIR(&subjectRotation, 0, 2)       = 0;
+    MATRIX_PAIR(subjectRotationStorage, 1, 1) = ONE;
+    MATRIX_PAIR(&subjectRotation, 2, 0)       = 0;
+    subjectRotationStorage->m[2][2]           = ONE;
+    subjectPosition.vx                        = 0;
+    subjectPosition.vy                        = 0;
+    subjectPosition.vz                        = 0;
+    for (partIndex = 0; partIndex < ANIMATION_HEAD_PART_INDEX; partIndex++) {
+        subjectPart = &subject->extra.tmd->coords[partIndex];
+        ApplyMatrixLV(&subjectRotation, (VECTOR*)subjectPart->coord.t, &transformedTranslation);
+        subjectPosition.vx += transformedTranslation.vx;
+        subjectPosition.vy += transformedTranslation.vy;
+        subjectPosition.vz += transformedTranslation.vz;
+        MulMatrix0(&subjectPart->coord, &subjectRotation, &subjectRotation);
     }
-    rec = &arg0->extra.tmd->coords[i];
-    ApplyMatrixLV(&mtx0, (VECTOR*)rec->coord.t, &tmp);
-    i                        = 0;
-    m1                       = &mtx1;
-    *(s32*)&mtx1             = ONE;
-    MATRIX_PAIR(&mtx1, 0, 2) = 0;
-    MATRIX_PAIR(m1, 1, 1)    = ONE;
-    MATRIX_PAIR(&mtx1, 2, 0) = 0;
-    m1->m[2][2]              = ONE;
-    acc1.vx                  = 0;
-    acc1.vy                  = 0;
-    acc1.vz                  = 0;
-    for (i = 0; i < 4; i++) {
-        rec1 = &arg1->extra.tmd->coords[i];
-        ApplyMatrixLV(&mtx1, (VECTOR*)rec1->coord.t, &tmp);
-        acc1.vx += tmp.vx;
-        acc1.vy += tmp.vy;
-        acc1.vz += tmp.vz;
-        MulMatrix0(&rec1->coord, &mtx1, &mtx1);
+    subjectPart = &subject->extra.tmd->coords[partIndex];
+    ApplyMatrixLV(&subjectRotation, (VECTOR*)subjectPart->coord.t, &transformedTranslation);
+    partIndex                                = 0;
+    targetRotationStorage                    = &targetRotation;
+    MATRIX_PAIR(&targetRotation, 0, 0)       = ONE;
+    MATRIX_PAIR(&targetRotation, 0, 2)       = 0;
+    MATRIX_PAIR(targetRotationStorage, 1, 1) = ONE;
+    MATRIX_PAIR(&targetRotation, 2, 0)       = 0;
+    targetRotationStorage->m[2][2]           = ONE;
+    targetPosition.vx                        = 0;
+    targetPosition.vy                        = 0;
+    targetPosition.vz                        = 0;
+    for (partIndex = 0; partIndex < ANIMATION_HEAD_PART_INDEX; partIndex++) {
+        targetPart = &targetTask->extra.tmd->coords[partIndex];
+        ApplyMatrixLV(&targetRotation, (VECTOR*)targetPart->coord.t, &transformedTranslation);
+        targetPosition.vx += transformedTranslation.vx;
+        targetPosition.vy += transformedTranslation.vy;
+        targetPosition.vz += transformedTranslation.vz;
+        MulMatrix0(&targetPart->coord, &targetRotation, &targetRotation);
     }
-    rec1 = &arg1->extra.tmd->coords[i];
-    ApplyMatrixLV(&mtx1, (VECTOR*)rec1->coord.t, &tmp);
+    targetPart = &targetTask->extra.tmd->coords[partIndex];
+    ApplyMatrixLV(&targetRotation, (VECTOR*)targetPart->coord.t, &transformedTranslation);
 
-    delta.vx = (u16)acc1.vx - (u16)acc0.vx;
-    delta.vy = (u16)acc1.vy - (u16)acc0.vy;
-    delta.vz = (u16)acc1.vz - (u16)acc0.vz;
-    TransposeMatrix(&mtx0, &tmtx);
-    ApplyMatrix(&tmtx, &delta, &acc0);
+    // Truncate separation before expressing it in the subject rotation frame.
+    targetDelta.vx = (u16)targetPosition.vx - (u16)subjectPosition.vx;
+    targetDelta.vy = (u16)targetPosition.vy - (u16)subjectPosition.vy;
+    targetDelta.vz = (u16)targetPosition.vz - (u16)subjectPosition.vz;
+    TransposeMatrix(&subjectRotation, &inverseSubjectRotation);
+    ApplyMatrix(&inverseSubjectRotation, &targetDelta, &subjectPosition);
 
-    ang.vx = ratan2(-acc0.vy, acc0.vz >= 0 ? acc0.vz : -acc0.vz);
-    ang.vy = ratan2(acc0.vx, acc0.vz);
-    ang.vz = 0;
+    aimAngles.vx = ratan2(-subjectPosition.vy, subjectPosition.vz >= 0 ? subjectPosition.vz : -subjectPosition.vz);
+    aimAngles.vy = ratan2(subjectPosition.vx, subjectPosition.vz);
+    aimAngles.vz = 0;
 
-    base = arg0->extra.tmd->coords;
-    rec  = base + 4;
-    gfxExtractEulerAngles(&base[4].coord, &euler);
+    subjectParts = subject->extra.tmd->coords;
+    subjectPart  = subjectParts + ANIMATION_HEAD_PART_INDEX;
+    gfxExtractEulerAngles(&subjectParts[ANIMATION_HEAD_PART_INDEX].coord, &currentAngles);
 
-    ang.vx     = euler.vx + (ang.vx - euler.vx) * arg4 / 4096;
-    ang.vy     = euler.vy + (ang.vy - euler.vy) * arg4 / 4096;
-    ang.vz     = euler.vz;
-    pitchLimit = euler.vx >= 0 ? euler.vx : -euler.vx;
-    if (arg3 < pitchLimit) {
-        arg3 = pitchLimit;
-    }
-    yawLimit = euler.vy >= 0 ? euler.vy : -euler.vy;
-    if (arg2 < yawLimit) {
-        arg2 = yawLimit;
-    }
-    pitchMagnitude = ang.vx >= 0 ? ang.vx : -ang.vx;
-    if (arg3 < pitchMagnitude) {
-        ang.vx = ang.vx < 0 ? -arg3 : arg3;
-    }
-    yawMagnitude = ang.vy >= 0 ? ang.vy : -ang.vy;
-    if (arg2 < yawMagnitude) {
-        ang.vy = ang.vy < 0 ? -arg2 : arg2;
-    }
+    // Preserve existing roll and widen limits to contain the current pose.
+    ANIMATION_BLEND_LIMITED_HEAD_ANGLES(aimAngles, currentAngles, maxYaw, maxPitch, blendWeight);
 
-    m                    = &rec->coord;
-    *(s32*)&rec->coord   = ONE;
-    MATRIX_PAIR(m, 0, 2) = 0;
-    MATRIX_PAIR(m, 1, 1) = ONE;
-    MATRIX_PAIR(m, 2, 0) = 0;
-    m->m[2][2]           = ONE;
-    RotMatrix(&ang, m);
-    rec->composeStamp = GRAPHICS_COORD_DIRTY;
+    headRotation                           = &subjectPart->coord;
+    MATRIX_PAIR(&subjectPart->coord, 0, 0) = ONE;
+    MATRIX_PAIR(headRotation, 0, 2)        = 0;
+    MATRIX_PAIR(headRotation, 1, 1)        = ONE;
+    MATRIX_PAIR(headRotation, 2, 0)        = 0;
+    headRotation->m[2][2]                  = ONE;
+    RotMatrix(&aimAngles, headRotation);
+    subjectPart->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
-void func_800B0CF4(Task* arg0, GfxCoord* arg1, s32 arg2, s32 arg3, s32 arg4)
+void animationAimHeadAtPoint(Task* subject, const GfxCoord* targetPointFrame, s32 maxYaw, s32 maxPitch, s32 blendWeight)
 {
-    VECTOR    transformed;
-    VECTOR    position;
-    VECTOR    target;
-    SVECTOR   offset;
-    SVECTOR   angles;
-    SVECTOR   current;
-    MATRIX    world;
-    MATRIX    inverse;
-    MATRIX*   mtx;
-    MATRIX*   outMtx;
-    GfxCoord* part;
-    s32       i;
+    VECTOR    transformedTranslation;
+    VECTOR    headPosition;
+    VECTOR    targetPosition;
+    SVECTOR   targetDelta;
+    SVECTOR   aimAngles;
+    SVECTOR   currentAngles;
+    MATRIX    subjectRotation;
+    MATRIX    inverseSubjectRotation;
+    MATRIX*   subjectRotationStorage;
+    MATRIX*   headRotation;
+    GfxCoord* headPart;
+    s32       partIndex;
     s32       pitchMagnitude;
     s32       yawMagnitude;
-    s32       pitchLimit;
-    s32       yawLimit;
+    s32       currentPitchMagnitude;
+    s32       currentYawMagnitude;
 
-    mtx                       = &world;
-    MATRIX_PAIR(&world, 0, 0) = 0x1000;
-    MATRIX_PAIR(&world, 0, 2) = 0;
-    MATRIX_PAIR(mtx, 1, 1)    = 0x1000;
-    MATRIX_PAIR(&world, 2, 0) = 0;
-    mtx->m[2][2]              = 0x1000;
-    position.vx               = 0;
-    position.vy               = 0;
-    position.vz               = 0;
-    for (i = 0; i < 5; i++) {
-        part = &arg0->extra.tmd->coords[i];
-        ApplyMatrixLV(&world, (VECTOR*)part->coord.t, &transformed);
-        position.vx += transformed.vx;
-        position.vy += transformed.vy;
-        position.vz += transformed.vz;
-        MulMatrix0(&world, &part->coord, &world);
+    // Compose the complete five-part chain without the view transform.
+    subjectRotationStorage                    = &subjectRotation;
+    MATRIX_PAIR(&subjectRotation, 0, 0)       = ONE;
+    MATRIX_PAIR(&subjectRotation, 0, 2)       = 0;
+    MATRIX_PAIR(subjectRotationStorage, 1, 1) = ONE;
+    MATRIX_PAIR(&subjectRotation, 2, 0)       = 0;
+    subjectRotationStorage->m[2][2]           = ONE;
+    headPosition.vx                           = 0;
+    headPosition.vy                           = 0;
+    headPosition.vz                           = 0;
+    for (partIndex = 0; partIndex < ANIMATION_HEAD_PART_INDEX + 1; partIndex++) {
+        headPart = &subject->extra.tmd->coords[partIndex];
+        ApplyMatrixLV(&subjectRotation, (VECTOR*)headPart->coord.t, &transformedTranslation);
+        headPosition.vx += transformedTranslation.vx;
+        headPosition.vy += transformedTranslation.vy;
+        headPosition.vz += transformedTranslation.vz;
+        MulMatrix0(&subjectRotation, &headPart->coord, &subjectRotation);
     }
-    target.vx = arg1->coord.t[0];
-    target.vy = arg1->coord.t[1];
-    target.vz = arg1->coord.t[2];
-    offset.vx = target.vx - position.vx;
-    offset.vy = target.vy - position.vy;
-    offset.vz = target.vz - position.vz;
-    TransposeMatrix(&world, &inverse);
-    ApplyMatrix(&inverse, &offset, &position);
-    angles.vx = -ratan2(position.vy, position.vz);
-    angles.vy = ratan2(position.vx, position.vz);
-    angles.vz = 0;
-    part      = &arg0->extra.tmd->coords[4];
-    gfxExtractEulerAngles(&part->coord, &current);
-    angles.vx  = current.vx + (angles.vx - current.vx) * arg4 / 4096;
-    angles.vy  = current.vy + (angles.vy - current.vy) * arg4 / 4096;
-    angles.vz  = current.vz;
-    pitchLimit = current.vx >= 0 ? current.vx : -current.vx;
-    if (arg3 < pitchLimit) {
-        arg3 = pitchLimit;
-    }
-    yawLimit = current.vy >= 0 ? current.vy : -current.vy;
-    if (arg2 < yawLimit) {
-        arg2 = yawLimit;
-    }
-    pitchMagnitude = angles.vx >= 0 ? angles.vx : -angles.vx;
-    if (arg3 < pitchMagnitude) {
-        angles.vx = angles.vx < 0 ? -arg3 : arg3;
-    }
-    yawMagnitude = angles.vy >= 0 ? angles.vy : -angles.vy;
-    if (arg2 < yawMagnitude) {
-        angles.vy = angles.vy < 0 ? -arg2 : arg2;
-    }
-    outMtx                          = &part->coord;
-    MATRIX_PAIR(&part->coord, 0, 0) = 0x1000;
-    MATRIX_PAIR(outMtx, 0, 2)       = 0;
-    MATRIX_PAIR(outMtx, 1, 1)       = 0x1000;
-    MATRIX_PAIR(outMtx, 2, 0)       = 0;
-    outMtx->m[2][2]                 = 0x1000;
-    RotMatrix(&angles, outMtx);
+    targetPosition.vx = targetPointFrame->coord.t[0];
+    targetPosition.vy = targetPointFrame->coord.t[1];
+    targetPosition.vz = targetPointFrame->coord.t[2];
+    // Truncate separation before expressing it in the subject rotation frame.
+    targetDelta.vx = targetPosition.vx - headPosition.vx;
+    targetDelta.vy = targetPosition.vy - headPosition.vy;
+    targetDelta.vz = targetPosition.vz - headPosition.vz;
+    TransposeMatrix(&subjectRotation, &inverseSubjectRotation);
+    ApplyMatrix(&inverseSubjectRotation, &targetDelta, &headPosition);
+    aimAngles.vx = -ratan2(headPosition.vy, headPosition.vz);
+    aimAngles.vy = ratan2(headPosition.vx, headPosition.vz);
+    aimAngles.vz = 0;
+    headPart     = &subject->extra.tmd->coords[ANIMATION_HEAD_PART_INDEX];
+    gfxExtractEulerAngles(&headPart->coord, &currentAngles);
+    ANIMATION_BLEND_LIMITED_HEAD_ANGLES(aimAngles, currentAngles, maxYaw, maxPitch, blendWeight);
+
+    headRotation                        = &headPart->coord;
+    MATRIX_PAIR(&headPart->coord, 0, 0) = ONE;
+    MATRIX_PAIR(headRotation, 0, 2)     = 0;
+    MATRIX_PAIR(headRotation, 1, 1)     = ONE;
+    MATRIX_PAIR(headRotation, 2, 0)     = 0;
+    headRotation->m[2][2]               = ONE;
+    RotMatrix(&aimAngles, headRotation);
 }
 
 void gfxExtractEulerAngles(const MATRIX* matrix, SVECTOR* angles)
@@ -1512,87 +1611,79 @@ SVECTOR* gfxExtractSmallestEuler(SVECTOR* angles, const MATRIX* matrix)
     return angles;
 }
 
-void Gp_LerpOrthonormal(MATRIX* arg0, MATRIX* arg1, MATRIX* arg2, s32 arg3)
+void gfxBlendOrthonormalRotation(const MATRIX* fromRotation, const MATRIX* toRotation, MATRIX* destination, s32 blendWeight)
 {
-    MATRIX mtx;
-    MATRIX diffs;
-    VECTOR vec[3];
-    VECTOR tmp;
-    VECTOR nrm;
-    s32    i;
-    s32    best;
-    s32    len;
-    s32    ret;
+    MATRIX selectedRows;
+    MATRIX rowDeltas;
+    VECTOR blendedRows[3];
+    VECTOR rowCrossProduct;
+    VECTOR normalizedCrossProduct;
+    s32    rowIndex;
+    s32    rebuildRow;
+    s32    largestCrossLength;
+    s32    crossLength;
 
-    best = 0;
-    for (i = 0; i < 3; i++) {
-        diffs.m[i][0] = arg1->m[i][0] - arg0->m[i][0];
-        diffs.m[i][1] = arg1->m[i][1] - arg0->m[i][1];
-        diffs.m[i][2] = arg1->m[i][2] - arg0->m[i][2];
+    // Interpolate each row after the signed-halfword difference truncation.
+    rebuildRow = 0;
+    for (rowIndex = 0; rowIndex < ARRAY_SIZE(blendedRows); rowIndex++) {
+        rowDeltas.m[rowIndex][0] = toRotation->m[rowIndex][0] - fromRotation->m[rowIndex][0];
+        rowDeltas.m[rowIndex][1] = toRotation->m[rowIndex][1] - fromRotation->m[rowIndex][1];
+        rowDeltas.m[rowIndex][2] = toRotation->m[rowIndex][2] - fromRotation->m[rowIndex][2];
     }
-    for (i = 0; i < 3; i++) {
-        vec[i].vx = arg0->m[i][0] + (diffs.m[i][0] * arg3) / ONE;
-        vec[i].vy = arg0->m[i][1] + (diffs.m[i][1] * arg3) / ONE;
-        vec[i].vz = arg0->m[i][2] + (diffs.m[i][2] * arg3) / ONE;
-    }
-
-    len = -1;
-
-    gte_ldopv1(&vec[0]);
-    gte_ldopv2(&vec[1]);
-    gte_op12();
-    gte_stlvnl(&tmp);
-    ret = VectorNormal(&tmp, &nrm);
-    if (len < ret) {
-        len  = ret;
-        best = 2;
+    for (rowIndex = 0; rowIndex < ARRAY_SIZE(blendedRows); rowIndex++) {
+        blendedRows[rowIndex].vx = fromRotation->m[rowIndex][0] + (rowDeltas.m[rowIndex][0] * blendWeight) / ONE;
+        blendedRows[rowIndex].vy = fromRotation->m[rowIndex][1] + (rowDeltas.m[rowIndex][1] * blendWeight) / ONE;
+        blendedRows[rowIndex].vz = fromRotation->m[rowIndex][2] + (rowDeltas.m[rowIndex][2] * blendWeight) / ONE;
     }
 
-    gte_ldopv1(&vec[1]);
-    gte_ldopv2(&vec[2]);
-    gte_op12();
-    gte_stlvnl(&tmp);
-    ret = VectorNormal(&tmp, &nrm);
-    if (len < ret) {
-        len  = ret;
-        best = 0;
+    // Keep the most independent pair; a later equal length does not replace it.
+    largestCrossLength = -1;
+
+    crossLength = GRAPHICS_MEASURE_ROW_INDEPENDENCE(&blendedRows[0], &blendedRows[1], &rowCrossProduct, &normalizedCrossProduct);
+    if (largestCrossLength < crossLength) {
+        largestCrossLength = crossLength;
+        rebuildRow         = 2;
     }
 
-    gte_ldopv1(&vec[0]);
-    gte_ldopv2(&vec[2]);
-    gte_op12();
-    gte_stlvnl(&tmp);
-    if (len < VectorNormal(&tmp, &nrm)) {
-        best = 1;
+    crossLength = GRAPHICS_MEASURE_ROW_INDEPENDENCE(&blendedRows[1], &blendedRows[2], &rowCrossProduct, &normalizedCrossProduct);
+    if (largestCrossLength < crossLength) {
+        largestCrossLength = crossLength;
+        // Interpolate each row after the signed-halfword difference truncation.
+        rebuildRow = 0;
     }
 
-    switch (best) {
+    if (largestCrossLength < GRAPHICS_MEASURE_ROW_INDEPENDENCE(&blendedRows[0], &blendedRows[2], &rowCrossProduct, &normalizedCrossProduct)) {
+        rebuildRow = 1;
+    }
+
+    // Rebuild the missing row and normalize the resulting basis.
+    switch (rebuildRow) {
         case 0:
-            mtx.m[1][0] = vec[1].vx;
-            mtx.m[1][1] = vec[1].vy;
-            mtx.m[1][2] = vec[1].vz;
-            mtx.m[2][0] = vec[2].vx;
-            mtx.m[2][1] = vec[2].vy;
-            mtx.m[2][2] = vec[2].vz;
-            MatrixNormal_1(&mtx, arg2);
+            selectedRows.m[1][0] = blendedRows[1].vx;
+            selectedRows.m[1][1] = blendedRows[1].vy;
+            selectedRows.m[1][2] = blendedRows[1].vz;
+            selectedRows.m[2][0] = blendedRows[2].vx;
+            selectedRows.m[2][1] = blendedRows[2].vy;
+            selectedRows.m[2][2] = blendedRows[2].vz;
+            MatrixNormal_1(&selectedRows, destination);
             break;
         case 1:
-            mtx.m[0][0] = vec[0].vx;
-            mtx.m[0][1] = vec[0].vy;
-            mtx.m[0][2] = vec[0].vz;
-            mtx.m[2][0] = vec[2].vx;
-            mtx.m[2][1] = vec[2].vy;
-            mtx.m[2][2] = vec[2].vz;
-            MatrixNormal_2(&mtx, arg2);
+            selectedRows.m[0][0] = blendedRows[0].vx;
+            selectedRows.m[0][1] = blendedRows[0].vy;
+            selectedRows.m[0][2] = blendedRows[0].vz;
+            selectedRows.m[2][0] = blendedRows[2].vx;
+            selectedRows.m[2][1] = blendedRows[2].vy;
+            selectedRows.m[2][2] = blendedRows[2].vz;
+            MatrixNormal_2(&selectedRows, destination);
             break;
         case 2:
-            mtx.m[0][0] = vec[0].vx;
-            mtx.m[0][1] = vec[0].vy;
-            mtx.m[0][2] = vec[0].vz;
-            mtx.m[1][0] = vec[1].vx;
-            mtx.m[1][1] = vec[1].vy;
-            mtx.m[1][2] = vec[1].vz;
-            MatrixNormal_0(&mtx, arg2);
+            selectedRows.m[0][0] = blendedRows[0].vx;
+            selectedRows.m[0][1] = blendedRows[0].vy;
+            selectedRows.m[0][2] = blendedRows[0].vz;
+            selectedRows.m[1][0] = blendedRows[1].vx;
+            selectedRows.m[1][1] = blendedRows[1].vy;
+            selectedRows.m[1][2] = blendedRows[1].vz;
+            MatrixNormal_0(&selectedRows, destination);
             break;
     }
 }
@@ -1744,12 +1835,16 @@ void func_800B17D4(Task* arg0, Task* arg1, AnimationHeadAim* arg2)
 
 /// Appends a node's local rotation to the parent rotation already loaded in the GTE.
 ///
-/// Writes the three destination columns independently; translation is untouched.
+/// Both matrices use Q12 rotation and must be halfword-aligned. Multiplies
+/// parent * local, loading and writing one column at a time; the destination
+/// may be the node's own rotation. Translation and padding are untouched.
+/// Requires the complete parent rotation already loaded in the GTE and
+/// changes its vector/arithmetic registers without replacing that rotation.
 static inline void _gfxComposeNodeRotation(const GfxCoord* node, MATRIX* worldRotation)
 {
-    gte_ldclmv(&node->coord);
+    gte_ldclmv(&node->coord.m[0][0]);
     gte_rtir();
-    gte_stclmv(worldRotation);
+    gte_stclmv(&worldRotation->m[0][0]);
     gte_ldclmv(&node->coord.m[0][1]);
     gte_rtir();
     gte_stclmv(&worldRotation->m[0][1]);
@@ -1793,7 +1888,11 @@ void gfxComposeNodeWorldTransform(const GfxCoord* node, MATRIX* worldRotation, S
 
 /// Emits a screen-pulse tile and its add/subtract draw mode at tag 0.
 ///
-/// Borrows two packets from the current frame arena; screen shake offsets the tile.
+/// `task->spawnArg2.value == SCREEN_FADE_SUBTRACT` selects subtraction;
+/// every other value selects addition. `intensity` is a byte RGB shade.
+/// Requires room for a TILE and DR_TPAGE in the current frame arena, and a
+/// writable ordering-table head. Packets stay live until the frame is drawn.
+/// Vertical screen shake offsets the tile; no task state is changed.
 static inline void _fadeDrawPulse(Task* task, u8 intensity)
 {
     TILE*     tile;
@@ -1801,7 +1900,7 @@ static inline void _fadeDrawPulse(Task* task, u8 intensity)
 
     tile           = gGpuPrimCursor;
     gGpuPrimCursor = tile + 1;
-    setlen(tile, 3);
+    setlen(tile, sizeof(*tile) / sizeof(u32) - 1);
     setcode(tile, GPU_SCREEN_SEMITRANSPARENT_TILE);
     setXY0(tile, -DISPLAY_EFFECT_WIDTH / 2, -DISPLAY_EFFECT_HEIGHT / 2);
     tile->y0 -= gDisplayState.vramYOffset;
@@ -1813,10 +1912,10 @@ static inline void _fadeDrawPulse(Task* task, u8 intensity)
     blendCommand   = gGpuPrimCursor;
     gGpuPrimCursor = blendCommand + 1;
     if (task->spawnArg2.value == SCREEN_FADE_SUBTRACT) {
-        setlen(blendCommand, 1);
+        setlen(blendCommand, sizeof(*blendCommand) / sizeof(u32) - 1);
         blendCommand->code[0] = GPU_SCREEN_DRAW_MODE_SUBTRACT;
     } else {
-        setlen(blendCommand, 1);
+        setlen(blendCommand, sizeof(*blendCommand) / sizeof(u32) - 1);
         blendCommand->code[0] = GPU_SCREEN_DRAW_MODE_ADD;
     }
     addPrim(gGpuCurrentOt, tile);
@@ -1855,6 +1954,10 @@ static void _fadeTickPulse(Task* task)
 }
 
 /// Expands RGB555 channels into the short-vector scale used by the Q12 GTE blend.
+///
+/// Writes only r/g/b as unsigned 5-bit values shifted left seven (0..3968).
+/// Packed bit 15 is ignored and the scratch slot's fourth halfword is untouched.
+/// The caller supplies live writable channel storage; no GTE state is changed.
 static inline void _gpuUnpackRgb555(u16 color, _Rgb555Scratch* channels)
 {
     channels->b = color;
@@ -2704,78 +2807,59 @@ static void Gp_AnimSeekSlotEx(AnimationContext* context, s32 arg1, s32 arg2, s32
     slot->timeLeft = segmentTime;
 }
 
-void func_800B3AA4(AnimationContext* context, AnimationSlot* arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5)
+void animationStartDirectSlot(AnimationContext* context, AnimationSlot* directSlot, s32 partIndex, s32 requestedSetIndex, s32 trackRecordOffset, s32 blendFrames)
 {
+    enum { ANIMATION_DEMO_BLEND_SCENE = 1 };
+
     AnimationSlot*         slot;
     AnimationSet**         sets;
     AnimationSet*          set;
-    const AnimationRecord* recs;
-    const AnimationRecord* rec;
+    const AnimationRecord* records;
     u16                    recordIndex;
-    u16                    blendTime;
+    u16                    blendDuration;
     u8                     recordFlags;
-    s32                    setIndex;
+    s32                    selectedSetIndex;
 
-    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene == 1) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene == ANIMATION_DEMO_BLEND_SCENE) {
         u8 slotIndex;
         u8(*bufferedPose)[ANIMATION_POSE_BUFFER_BYTES];
 
-        slotIndex        = arg1->trackIndex;
-        setIndex         = arg3;
-        context->slots   = arg1 - slotIndex;
-        arg1->coordIndex = arg2;
-        slotIndex        = arg1->trackIndex;
+        slotIndex              = directSlot->trackIndex;
+        selectedSetIndex       = requestedSetIndex;
+        context->slots         = directSlot - slotIndex;
+        directSlot->coordIndex = partIndex;
+        slotIndex              = directSlot->trackIndex;
         // Capture this slot's encoded blend before replacing its destination keyframe.
         bufferedPose = context->poseBuffer + slotIndex;
         slot         = &context->slots[slotIndex];
-        animationTickSlotPose(context, slotIndex, 0, bufferedPose);
+        animationTickSlotPose(context, slotIndex, NULL, bufferedPose);
         slot->currentPose.indices.setIndex = ANIMATION_SET_BUFFERED_POSE;
-        set                                = slot->sets[(u16)setIndex];
-        recs                               = set->records;
-        recordIndex                        = set->trackStartIndices[slot->trackIndex] + arg4;
-        while ((s8)recs[recordIndex].flags < 0) {
-            rec = recs - -(s32)recordIndex;
-            if (rec->flags < ANIMATION_RECORD_END_THRESHOLD) {
-                recordIndex = rec->wordOffset;
-                if (recordIndex == slot->nextPose.indices.recordIndex) {
-                    slot->status.fields.flags |= ANIMATION_SLOT_REACHED_BOUNDARY;
-                }
-                slot->status.fields.flags |= ANIMATION_SLOT_FOLLOWED_JUMP;
-            } else {
-                recordIndex                = slot->nextPose.indices.recordIndex;
-                slot->status.fields.flags |= ANIMATION_SLOT_REACHED_BOUNDARY;
-                break;
-            }
-        }
-        slot->nextPose.indices.recordIndex = recordIndex;
-        slot->nextPose.indices.setIndex    = setIndex;
-        blendTime                          = arg5 << ANIMATION_TIME_FRACTION_BITS;
-        slot->timeSpan                     = blendTime;
-        slot->timeLeft                     = blendTime;
-        slot->usesBufferedPose             = 0;
+        set                                = slot->sets[(u16)selectedSetIndex];
+        records                            = set->records;
+        recordIndex                        = set->trackStartIndices[slot->trackIndex] + trackRecordOffset;
+        ANIMATION_SELECT_DIRECT_BLEND_RECORD(slot, records, recordIndex);
+        slot->nextPose.indices.setIndex = selectedSetIndex;
+        blendDuration                   = blendFrames << ANIMATION_TIME_FRACTION_BITS;
+        slot->timeSpan                  = blendDuration;
+        slot->timeLeft                  = blendDuration;
+        slot->usesBufferedPose          = 0;
     } else {
-        if (arg3 == 0) {
-            arg3 = 1;
-        } else if (arg3 < 0) {
-            arg3 = -arg3;
+        if (requestedSetIndex == 0) {
+            requestedSetIndex = 1;
+        } else if (requestedSetIndex < 0) {
+            requestedSetIndex = -requestedSetIndex;
         }
 
-        arg1->rate                            = ANIMATION_RATE_ONE;
-        arg1->timeLeft                        = 0;
-        arg1->currentPose.indices.setIndex    = arg3;
-        arg1->currentPose.indices.recordIndex = 0;
-        arg1->coordIndex                      = arg2;
-        arg1->trackIndex                      = arg2;
-        arg1->nextPose.indices.setIndex       = arg3;
-        sets                                  = context->sets;
-        arg1->sets                            = sets;
-        arg1->nextPose.indices.recordIndex    = sets[arg3]->trackStartIndices[arg1->trackIndex];
-        arg1->currentPose.indices.recordIndex = arg1->sets[arg3]->trackStartIndices[arg1->trackIndex];
-        recordFlags                           = arg1->sets[arg1->nextPose.indices.setIndex]->records[arg1->nextPose.indices.recordIndex].flags;
-        arg1->status.fields.field_12          = 0;
-        arg1->status.fields.flags             = 0;
-        arg1->atEnd                           = 0;
-        arg1->poseEncoding                    = recordFlags & ANIMATION_RECORD_POSE_ENCODING_MASK;
+        ANIMATION_PRIME_MAPPED_SLOT(directSlot, requestedSetIndex, partIndex, partIndex);
+        sets                                        = context->sets;
+        directSlot->sets                            = sets;
+        directSlot->nextPose.indices.recordIndex    = sets[requestedSetIndex]->trackStartIndices[directSlot->trackIndex];
+        directSlot->currentPose.indices.recordIndex = directSlot->sets[requestedSetIndex]->trackStartIndices[directSlot->trackIndex];
+        recordFlags                                 = directSlot->sets[directSlot->nextPose.indices.setIndex]->records[directSlot->nextPose.indices.recordIndex].flags;
+        directSlot->status.fields.field_12          = 0;
+        directSlot->status.fields.flags             = 0;
+        directSlot->atEnd                           = 0;
+        directSlot->poseEncoding                    = recordFlags & ANIMATION_RECORD_POSE_ENCODING_MASK;
     }
 }
 
@@ -2787,42 +2871,36 @@ void Gp_AnimInitCtx(AnimationContext* ctx, void* sets, TmdObject* model, void* p
     ctx->partCount  = model->partCount;
 }
 
-void Gp_AnimInitSlot(AnimationContext* context, AnimationSlot* arg1, s32 arg2, s32 arg3)
+void animationInitDirectSlot(AnimationContext* context, AnimationSlot* slot, s32 partIndex, s32 setIndex)
 {
     AnimationSet** sets;
     u8             recordFlags;
 
-    if (arg3 == 0) {
-        arg3 = 1;
-    } else if (arg3 < 0) {
-        arg3 = -arg3;
+    if (setIndex == 0) {
+        setIndex = 1;
+    } else if (setIndex < 0) {
+        setIndex = -setIndex;
     }
 
-    arg1->rate                            = ANIMATION_RATE_ONE;
-    arg1->timeLeft                        = 0;
-    arg1->currentPose.indices.setIndex    = arg3;
-    arg1->currentPose.indices.recordIndex = 0;
-    arg1->coordIndex                      = arg2;
-    arg1->trackIndex                      = arg2;
-    arg1->nextPose.indices.setIndex       = arg3;
+    ANIMATION_PRIME_MAPPED_SLOT(slot, setIndex, partIndex, partIndex);
     sets                                  = context->sets;
-    arg1->sets                            = sets;
-    arg1->nextPose.indices.recordIndex    = sets[arg3]->trackStartIndices[arg1->trackIndex];
-    arg1->currentPose.indices.recordIndex = arg1->sets[arg3]->trackStartIndices[arg1->trackIndex];
-    recordFlags                           = arg1->sets[arg1->nextPose.indices.setIndex]->records[arg1->nextPose.indices.recordIndex].flags;
-    arg1->status.fields.field_12          = 0;
-    arg1->status.fields.flags             = 0;
-    arg1->atEnd                           = 0;
-    arg1->poseEncoding                    = recordFlags & ANIMATION_RECORD_POSE_ENCODING_MASK;
+    slot->sets                            = sets;
+    slot->nextPose.indices.recordIndex    = sets[setIndex]->trackStartIndices[slot->trackIndex];
+    slot->currentPose.indices.recordIndex = slot->sets[setIndex]->trackStartIndices[slot->trackIndex];
+    recordFlags                           = slot->sets[slot->nextPose.indices.setIndex]->records[slot->nextPose.indices.recordIndex].flags;
+    slot->status.fields.field_12          = 0;
+    slot->status.fields.flags             = 0;
+    slot->atEnd                           = 0;
+    slot->poseEncoding                    = recordFlags & ANIMATION_RECORD_POSE_ENCODING_MASK;
 }
 
-void Gp_AnimTickSlot(AnimationContext* context, AnimationSlot* arg1)
+void animationTickDirectSlot(AnimationContext* context, AnimationSlot* slot)
 {
-    u8 idx;
+    u8 slotIndex;
 
-    idx            = arg1->trackIndex;
-    context->slots = arg1 - idx;
-    animationTickSlotPose(context, idx, 0, 0);
+    slotIndex      = slot->trackIndex;
+    context->slots = slot - slotIndex;
+    animationTickSlotPose(context, slotIndex, NULL, NULL);
 }
 
 void Gp_AnimTickSlot2(AnimationContext* context, AnimationSlot* arg1)
@@ -2849,7 +2927,7 @@ static void func_800B3E74(AnimationContext* context, AnimationSlot* arg1, s32 ar
     u16                    segmentTime;
 
     recs = arg1->sets[arg3]->records;
-    func_800B3AA4(context, arg1, arg2, arg3, 0, 8);
+    animationStartDirectSlot(context, arg1, arg2, arg3, 0, 8);
     segmentTime    = recs[arg1->nextPose.indices.recordIndex].durationFrames << ANIMATION_TIME_FRACTION_BITS;
     arg1->timeSpan = segmentTime;
     arg1->timeLeft = segmentTime;
@@ -2861,7 +2939,7 @@ static void func_800B3EE8(AnimationContext* context, AnimationSlot* arg1, s32 ar
     u16                    segmentTime;
 
     recs = arg1->sets[arg3]->records;
-    func_800B3AA4(context, arg1, arg2, arg3, arg4, 8);
+    animationStartDirectSlot(context, arg1, arg2, arg3, arg4, 8);
     segmentTime    = recs[arg1->nextPose.indices.recordIndex].durationFrames << ANIMATION_TIME_FRACTION_BITS;
     arg1->timeSpan = segmentTime;
     arg1->timeLeft = segmentTime;
@@ -2923,28 +3001,22 @@ void animationResetSlot(AnimationContext* context, s32 slotIndex, s32 setIndex)
     slot->poseEncoding                 = recordFlags & ANIMATION_RECORD_POSE_ENCODING_MASK;
 }
 
-void Gp_AnimResetSlotEx(AnimationContext* context, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
+void animationResetRemappedSlot(AnimationContext* context, s32 slotIndex, s32 setIndex, s32 trackIndex, s32 coordIndex)
 {
     AnimationSlot* slot;
     AnimationSet** sets;
     u8             recordFlags;
 
-    slot                                  = &context->slots[arg1];
-    slot->rate                            = ANIMATION_RATE_ONE;
-    slot->timeLeft                        = 0;
-    slot->currentPose.indices.setIndex    = arg2;
-    slot->currentPose.indices.recordIndex = 0;
-    slot->coordIndex                      = arg4;
-    slot->trackIndex                      = arg3;
-    slot->nextPose.indices.setIndex       = arg2;
-    sets                                  = context->sets;
-    slot->sets                            = sets;
-    slot->nextPose.indices.recordIndex    = sets[arg2]->trackStartIndices[slot->trackIndex];
-    recordFlags                           = slot->sets[slot->nextPose.indices.setIndex]->records[slot->nextPose.indices.recordIndex].flags;
-    slot->status.fields.flags             = 0;
-    slot->atEnd                           = 0;
-    slot->status.fields.field_12          = 0;
-    slot->poseEncoding                    = recordFlags & ANIMATION_RECORD_POSE_ENCODING_MASK;
+    slot = &context->slots[slotIndex];
+    ANIMATION_PRIME_MAPPED_SLOT(slot, setIndex, trackIndex, coordIndex);
+    sets                               = context->sets;
+    slot->sets                         = sets;
+    slot->nextPose.indices.recordIndex = sets[setIndex]->trackStartIndices[slot->trackIndex];
+    recordFlags                        = slot->sets[slot->nextPose.indices.setIndex]->records[slot->nextPose.indices.recordIndex].flags;
+    slot->status.fields.flags          = 0;
+    slot->atEnd                        = 0;
+    slot->status.fields.field_12       = 0;
+    slot->poseEncoding                 = recordFlags & ANIMATION_RECORD_POSE_ENCODING_MASK;
 }
 
 static void Gp_AnimSeekSlot(AnimationContext* context, s32 arg1, s32 arg2)
@@ -3384,97 +3456,86 @@ void Gp_SpawnArea(GameLocationKey* location)
     } while (placement->entryId != AREA_PLACEMENT_END);
 }
 
-void Gp_DrawFloorQuad(GfxCoord* arg0, u32 arg1, SVECTOR* arg2)
+void actorRenderDrawGroundShadow(GfxCoord* frame, u32 side, const SVECTOR* centreOffset)
 {
-    _ActorRenderGroundShadowScratch* scratch;
-    POLY_FT4*                        prim;
+    enum {
+        ACTOR_RENDER_GROUND_SHADOW_PACKET_CODE = 0x2E,
+        ACTOR_RENDER_GROUND_SHADOW_U_LEFT      = 0xC0,
+        ACTOR_RENDER_GROUND_SHADOW_U_RIGHT     = 0xF7,
+        ACTOR_RENDER_GROUND_SHADOW_V_TOP       = 0x98,
+        ACTOR_RENDER_GROUND_SHADOW_V_BOTTOM    = 0xCF,
+        ACTOR_RENDER_GROUND_SHADOW_SHADE       = 0xC0,
+        ACTOR_RENDER_GROUND_SHADOW_OT_SHIFT    = 4
+    };
 
+    _ActorRenderGroundShadowScratch* scratch;
+    POLY_FT4*                        shadowQuad;
+
+    // Construct the square in the model part's frame before composing it for projection.
     scratch = SCRATCH_STACK_RESERVE_BLOCK(_ActorRenderGroundShadowScratch);
-    if (arg2 == NULL) {
-        scratch->vertices[0].vx = -(arg1 >> 1);
+    if (centreOffset == NULL) {
+        scratch->vertices[0].vx = -(side >> 1);
         scratch->vertices[0].vy = 0;
-        scratch->vertices[0].vz = -(arg1 >> 1);
+        scratch->vertices[0].vz = -(side >> 1);
     } else {
-        scratch->vertices[0].vx = arg2->vx - (arg1 >> 1);
-        scratch->vertices[0].vy = arg2->vy;
-        scratch->vertices[0].vz = arg2->vz - (arg1 >> 1);
+        scratch->vertices[0].vx = centreOffset->vx - (side >> 1);
+        scratch->vertices[0].vy = centreOffset->vy;
+        scratch->vertices[0].vz = centreOffset->vz - (side >> 1);
     }
     scratch->vertices[3].vy = scratch->vertices[2].vy = scratch->vertices[1].vy = scratch->vertices[0].vy;
-    scratch->vertices[1].vx = scratch->vertices[3].vx = scratch->vertices[0].vx + arg1;
+    scratch->vertices[1].vx = scratch->vertices[3].vx = scratch->vertices[0].vx + side;
     scratch->vertices[2].vx                           = scratch->vertices[0].vx;
-    scratch->vertices[2].vz = scratch->vertices[3].vz = scratch->vertices[0].vz + arg1;
+    scratch->vertices[2].vz = scratch->vertices[3].vz = scratch->vertices[0].vz + side;
     scratch->vertices[1].vz                           = scratch->vertices[0].vz;
-    actorRenderComposeCoord(arg0);
-    gte_SetRotMatrix(&arg0->workm);
-    gte_SetTransMatrix(&arg0->workm);
+    actorRenderComposeCoord(frame);
+    gte_SetRotMatrix(&frame->workm);
+    gte_SetTransMatrix(&frame->workm);
     scratch->farthestDepth = 0;
 
-    gte_ldv0(&scratch->vertices[0]);
-    gte_rtps();
-    gte_stsxy(&scratch->screenXy[0]);
-    gte_stdp(&scratch->depthCue);
-    gte_stflg(&scratch->projectionFlags);
-    gte_stszotz(&scratch->depth);
-    if (scratch->depth > scratch->farthestDepth) {
-        scratch->farthestDepth = scratch->depth;
-    }
+    // Keep every corner's depth while the projection diagnostics describe only the last.
+    ACTOR_RENDER_PROJECT_SHADOW_CORNER(scratch, 0);
 
-    gte_ldv0(&scratch->vertices[1]);
-    gte_rtps();
-    gte_stsxy(&scratch->screenXy[1]);
-    gte_stdp(&scratch->depthCue);
-    gte_stflg(&scratch->projectionFlags);
-    gte_stszotz(&scratch->depth);
-    if (scratch->depth > scratch->farthestDepth) {
-        scratch->farthestDepth = scratch->depth;
-    }
+    ACTOR_RENDER_PROJECT_SHADOW_CORNER(scratch, 1);
 
-    gte_ldv0(&scratch->vertices[2]);
-    gte_rtps();
-    gte_stsxy(&scratch->screenXy[2]);
-    gte_stdp(&scratch->depthCue);
-    gte_stflg(&scratch->projectionFlags);
-    gte_stszotz(&scratch->depth);
-    if (scratch->depth > scratch->farthestDepth) {
-        scratch->farthestDepth = scratch->depth;
-    }
+    ACTOR_RENDER_PROJECT_SHADOW_CORNER(scratch, 2);
 
-    gte_ldv0(&scratch->vertices[3]);
-    gte_rtps();
-    gte_stsxy(&scratch->screenXy[3]);
-    gte_stdp(&scratch->depthCue);
-    gte_stflg(&scratch->projectionFlags);
-    gte_stszotz(&scratch->depth);
-    if (scratch->depth > scratch->farthestDepth) {
-        scratch->farthestDepth = scratch->depth;
-    }
+    ACTOR_RENDER_PROJECT_SHADOW_CORNER(scratch, 3);
 
     if (scratch->projectionFlags >= 0) {
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setlen(prim, 9);
-        setcode(prim, 0x2E);
-        GPU_PRIMITIVE_XY_WORD(prim, 0) = scratch->screenXy[0];
-        GPU_PRIMITIVE_XY_WORD(prim, 1) = scratch->screenXy[1];
-        GPU_PRIMITIVE_XY_WORD(prim, 2) = scratch->screenXy[2];
-        GPU_PRIMITIVE_XY_WORD(prim, 3) = scratch->screenXy[3];
-        setUV4(prim, 0xC0, 0x98, 0xF7, 0x98, 0xC0, 0xCF, 0xF7, 0xCF);
-        prim->tpage = 0x48;
-        prim->g0    = 0xC0;
-        prim->b0    = 0xC0;
-        prim->r0    = 0xC0;
-        prim->clut  = 0x4283;
-        addPrim(&gGpuCurrentOt[scratch->farthestDepth >> 4], prim);
+        shadowQuad     = gGpuPrimCursor;
+        gGpuPrimCursor = shadowQuad + 1;
+        setlen(shadowQuad, sizeof(*shadowQuad) / sizeof(u32) - 1);
+        setcode(shadowQuad, ACTOR_RENDER_GROUND_SHADOW_PACKET_CODE);
+        GPU_PRIMITIVE_XY_WORD(shadowQuad, 0) = scratch->screenXy[0];
+        GPU_PRIMITIVE_XY_WORD(shadowQuad, 1) = scratch->screenXy[1];
+        GPU_PRIMITIVE_XY_WORD(shadowQuad, 2) = scratch->screenXy[2];
+        GPU_PRIMITIVE_XY_WORD(shadowQuad, 3) = scratch->screenXy[3];
+        setUV4(shadowQuad, ACTOR_RENDER_GROUND_SHADOW_U_LEFT, ACTOR_RENDER_GROUND_SHADOW_V_TOP,
+               ACTOR_RENDER_GROUND_SHADOW_U_RIGHT, ACTOR_RENDER_GROUND_SHADOW_V_TOP,
+               ACTOR_RENDER_GROUND_SHADOW_U_LEFT, ACTOR_RENDER_GROUND_SHADOW_V_BOTTOM,
+               ACTOR_RENDER_GROUND_SHADOW_U_RIGHT, ACTOR_RENDER_GROUND_SHADOW_V_BOTTOM);
+        shadowQuad->tpage = getTPage(0, GPU_BLEND_SUBTRACT, 512, 0);
+        shadowQuad->g0    = ACTOR_RENDER_GROUND_SHADOW_SHADE;
+        shadowQuad->b0    = ACTOR_RENDER_GROUND_SHADOW_SHADE;
+        shadowQuad->r0    = ACTOR_RENDER_GROUND_SHADOW_SHADE;
+        shadowQuad->clut  = getClut(48, 266);
+        addPrim(&gGpuCurrentOt[scratch->farthestDepth >> ACTOR_RENDER_GROUND_SHADOW_OT_SHIFT], shadowQuad);
     }
     SCRATCH_STACK_RELEASE_BLOCK(_ActorRenderGroundShadowScratch);
 }
 
 /// Selects both raw 16-bit texture halves from the framebuffer opposite the draw buffer.
 ///
-/// The two framebuffer origins are VRAM rows 0 and 272; the right half starts at X=160.
-static inline void _displaySetPreviousFrameTextures(POLY_FT4* leftQuad, POLY_FT4* rightQuad, u16 drawBufferHalfword)
+/// Zero `drawBufferIndex` samples the lower framebuffer at VRAM Y=272;
+/// any nonzero value samples the upper one at Y=0. The right half starts at X=160.
+/// Writes only texture-page and UV fields of two distinct writable quads.
+/// No CLUT is needed for these 16-bit textures. Retains no pointer and does
+/// not allocate packets, enqueue GPU commands or read framebuffer pixels.
+static inline void _displaySetPreviousFrameTextures(POLY_FT4* leftQuad, POLY_FT4* rightQuad, u16 drawBufferIndex)
 {
-    if (drawBufferHalfword) {
+    enum { DISPLAY_FRAME_REDRAW_LOWER_PAGE_Y = 256 };
+
+    if (drawBufferIndex) {
         leftQuad->tpage = getTPage(DISPLAY_FRAME_REDRAW_TEXTURE_DEPTH, GPU_BLEND_AVERAGE, 0, 0);
         leftQuad->u0 = leftQuad->u2 = 0;
         leftQuad->u1 = leftQuad->u3 = DISPLAY_EFFECT_WIDTH / 2;
@@ -3486,12 +3547,12 @@ static inline void _displaySetPreviousFrameTextures(POLY_FT4* leftQuad, POLY_FT4
         rightQuad->v0 = rightQuad->v1 = 0;
         rightQuad->v2 = rightQuad->v3 = DISPLAY_EFFECT_HEIGHT - 1;
     } else {
-        leftQuad->tpage = getTPage(DISPLAY_FRAME_REDRAW_TEXTURE_DEPTH, GPU_BLEND_AVERAGE, 0, 256);
+        leftQuad->tpage = getTPage(DISPLAY_FRAME_REDRAW_TEXTURE_DEPTH, GPU_BLEND_AVERAGE, 0, DISPLAY_FRAME_REDRAW_LOWER_PAGE_Y);
         leftQuad->u0 = leftQuad->u2 = 0;
         leftQuad->u1 = leftQuad->u3 = DISPLAY_EFFECT_WIDTH / 2;
         leftQuad->v0 = leftQuad->v1 = DISPLAY_FRAME_REDRAW_LOWER_BUFFER_V;
         leftQuad->v2 = leftQuad->v3 = DISPLAY_FRAME_REDRAW_LOWER_BUFFER_V + DISPLAY_EFFECT_HEIGHT - 1;
-        rightQuad->tpage            = getTPage(DISPLAY_FRAME_REDRAW_TEXTURE_DEPTH, GPU_BLEND_AVERAGE, DISPLAY_FRAME_REDRAW_RIGHT_PAGE_X, 256);
+        rightQuad->tpage            = getTPage(DISPLAY_FRAME_REDRAW_TEXTURE_DEPTH, GPU_BLEND_AVERAGE, DISPLAY_FRAME_REDRAW_RIGHT_PAGE_X, DISPLAY_FRAME_REDRAW_LOWER_PAGE_Y);
         rightQuad->u0 = rightQuad->u2 = DISPLAY_FRAME_REDRAW_RIGHT_U;
         rightQuad->u1 = rightQuad->u3 = DISPLAY_FRAME_REDRAW_RIGHT_U + DISPLAY_EFFECT_WIDTH / 2 - 1;
         rightQuad->v0 = rightQuad->v1 = DISPLAY_FRAME_REDRAW_LOWER_BUFFER_V;
@@ -3676,17 +3737,17 @@ void Gp_ApplyAreaTmdFlags(void)
     }
 }
 
-void Gp_ReparentCoord(GfxCoord* arg0, GfxCoord* arg1)
+void gfxReparentCoord(GfxCoord* newParent, GfxCoord* coord)
 {
-    GfxCoord* dest;
+    GfxCoord* destinationCoord;
 
-    dest = arg1;
-    if (dest->parent != arg0) {
-        actorRenderComposeCoord(arg0);
-        actorRenderComposeCoord(dest);
-        dest->parent = arg0;
-        gfxMakeRelativeTransform(&arg0->workm, &dest->workm, &dest->coord);
-        dest->composeStamp = GRAPHICS_COORD_DIRTY;
+    destinationCoord = coord;
+    if (destinationCoord->parent != newParent) {
+        actorRenderComposeCoord(newParent);
+        actorRenderComposeCoord(destinationCoord);
+        destinationCoord->parent = newParent;
+        gfxMakeRelativeTransform(&newParent->workm, &destinationCoord->workm, &destinationCoord->coord);
+        destinationCoord->composeStamp = GRAPHICS_COORD_DIRTY;
     }
 }
 
@@ -3714,13 +3775,14 @@ Enemy* sceneFindEnemyByPlaceKey(u16 placeKey)
     return enemy;
 }
 
-void Gp_SetTmdBytes(TmdObject* arg0, s32 arg1, s32 arg2)
+void tmdSetTextureOffsets(TmdObject* model, s32 texturePageOffset, s32 clutRowOffset)
 {
-    arg0->texturePageOffset = arg1;
-    arg0->clutRowOffset     = arg2;
-    if (arg0->buffer != NULL) {
-        tmdBuildBufferHalf(arg0);
-        tmdBuildBufferHalf(arg0);
+    model->texturePageOffset = texturePageOffset;
+    model->clutRowOffset     = clutRowOffset;
+    // Each build flips the half selector; rebuilding twice refreshes both halves.
+    if (model->buffer != NULL) {
+        tmdBuildBufferHalf(model);
+        tmdBuildBufferHalf(model);
     }
 }
 
@@ -4096,31 +4158,31 @@ void func_800B60C0(Task* arg0)
     sp.funcs[arg0->state](arg0);
 }
 
-void worldCollisionCalcContactViewOffset(SVECTOR* position, WorldCollisionContact* contact, SVECTOR* offset)
+void worldCollisionCalcContactWorldOffset(const SVECTOR* position, const WorldCollisionContact* contact, SVECTOR* offset)
 {
     _WorldCollisionContactViewOffsetScratch* scratch;
     SVECTOR*                                 delta;
     GfxCoord*                                viewCoord;
-    s32                                      scale;
+    s32                                      signedPushLength;
 
     scratch = SCRATCH_STACK_RESERVE_BLOCK(_WorldCollisionContactViewOffsetScratch);
     delta   = &scratch->delta;
     // Measure separation after the signed-halfword coordinate truncation.
-    delta->vx = contact->point.vx - position->vx;
-    delta->vy = contact->point.vy - position->vy;
-    delta->vz = contact->point.vz - position->vz;
-    viewCoord = &gGfxViewCoord;
-    scale     = SquareRoot0(gfxDotProduct(delta, delta)) - contact->distance;
-    if (scale >= 0) {
-        scale = -scale;
+    delta->vx        = contact->point.vx - position->vx;
+    delta->vy        = contact->point.vy - position->vy;
+    delta->vz        = contact->point.vz - position->vz;
+    viewCoord        = &gGfxViewCoord;
+    signedPushLength = SquareRoot0(gfxDotProduct(delta, delta)) - contact->distance;
+    if (signedPushLength >= 0) {
+        signedPushLength = -signedPushLength;
     }
-    // Rotate and scale the offset in the view coordinate frame.
+    // Rotate and signedPushLength the offset in the view coordinate frame.
     VectorNormalSS(&scratch->delta, &scratch->delta);
     TransposeMatrix(&viewCoord->workm, &scratch->transposedView);
     _gfxLoadRotSv(&scratch->transposedView, &scratch->delta);
     gte_rtv0();
     gte_stsv(delta);
-    gte_lddp(scale);
+    gte_lddp(signedPushLength);
     gte_ldsv(delta);
     gte_gpf12();
     gte_stsv(offset);

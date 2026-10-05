@@ -2582,7 +2582,7 @@ static void Actor07000_Fn062A8(Task* arg0)
     offset.vx = 0;
     task      = taskSpawnFromTable(Actor07000_D0D7D0, 1, angle, 0);
     if (task != NULL) {
-        Gp_CopyCoordOffset(task, child, &offset);
+        actorRenderCopyCoordBodyTransform(task, child, &offset);
         taskReparent(arg0, task);
     }
 }

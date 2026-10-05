@@ -570,7 +570,7 @@ static void func_actor_341900_80162330(Task* arg0)
             break;
         }
     }
-    Gp_SetTmdBytes(extra, rec->texturePageOffset, rec->clutRowOffset);
+    tmdSetTextureOffsets(extra, rec->texturePageOffset, rec->clutRowOffset);
     switch (arg0->spawnArg1.value) {
         case 0:
             animationInitContext(&w->rig.anim, D_actor_341900_801639AC, extra, w->rig.poses, w->rig.slots);

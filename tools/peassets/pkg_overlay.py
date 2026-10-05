@@ -394,7 +394,7 @@ def package_id(path: Path) -> int | None:
 # quarter: the 0x80/0xC0 pair claims 129 + 128 ticks between them.
 #
 # The pose *kind* is a property of the track, not of each record: the slot
-# takes it once in `Gp_AnimInitSlot` (`arg1->poseEncoding = op & 0xF`) and
+# takes it once in `animationInitDirectSlot` (`slot->poseEncoding = recordFlags & ANIMATION_RECORD_POSE_ENCODING_MASK`) and
 # `animationTickSlotPose` reads `op = slot->poseEncoding` for every record afterwards. The
 # control records carry 0 in those bits, so reading the kind per record loses
 # the final keyframe.

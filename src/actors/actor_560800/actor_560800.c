@@ -4354,7 +4354,7 @@ static s32 func_actor_560800_80132498(Task* arg0)
 void func_actor_560800_801326C4(Task* arg0)
 {
     _Actor560800CastWork* work = arg0->work;
-    SVECTOR               ofs;
+    SVECTOR               shadowOffset;
     VECTOR                pos;
 
     switch (arg0->state) {
@@ -4385,7 +4385,7 @@ void func_actor_560800_801326C4(Task* arg0)
                         place++;
                         id = place->entryId;
                     }
-                    Gp_SetTmdBytes(arg0->extra.tmd, place->texturePageOffset, place->clutRowOffset);
+                    tmdSetTextureOffsets(arg0->extra.tmd, place->texturePageOffset, place->clutRowOffset);
                     taskReparent(D_actor_560800_8017578C, arg0);
                     failed = 0;
                 }
@@ -4441,10 +4441,10 @@ void func_actor_560800_801326C4(Task* arg0)
             }
         } break;
     }
-    ofs.vx = 0;
-    ofs.vy = 0x380;
-    ofs.vz = 0;
-    Gp_DrawFloorQuad(&arg0->extra.tmd->coords[1], 0x300, &ofs);
+    shadowOffset.vx = 0;
+    shadowOffset.vy = 0x380;
+    shadowOffset.vz = 0;
+    actorRenderDrawGroundShadow(&arg0->extra.tmd->coords[1], 0x300, &shadowOffset);
     func_actor_560800_80132498(arg0);
     if (work->relit != 0) {
         TmdObject* obj = arg0->extra.tmd;
@@ -4499,9 +4499,9 @@ void func_actor_560800_80132A14(Task* arg0)
                 place++;
                 id = place->entryId;
             }
-            Gp_SetTmdBytes(arg0->extra.tmd, place->texturePageOffset, place->clutRowOffset);
+            tmdSetTextureOffsets(arg0->extra.tmd, place->texturePageOffset, place->clutRowOffset);
         } else if (arg0->spawnArg1.value == 2) {
-            Gp_SetTmdBytes(arg0->extra.tmd, 0, 0);
+            tmdSetTextureOffsets(arg0->extra.tmd, 0, 0);
         } else if (arg0->spawnArg1.value == 3) {
             place = Gp_GetNestedAreaRec(&gGameSession->location.loc)->placements;
             id    = place->entryId;
@@ -4512,7 +4512,7 @@ void func_actor_560800_80132A14(Task* arg0)
                 place++;
                 id = place->entryId;
             }
-            Gp_SetTmdBytes(arg0->extra.tmd, place->texturePageOffset, place->clutRowOffset);
+            tmdSetTextureOffsets(arg0->extra.tmd, place->texturePageOffset, place->clutRowOffset);
         }
         taskReparent(parent, arg0);
         arg0->msgTable = D_actor_560800_8016F34C;
@@ -4532,7 +4532,7 @@ void func_actor_560800_80132A14(Task* arg0)
 void func_actor_560800_80132C60(Task* arg0)
 {
     _Actor560800CastWork* work = arg0->work;
-    SVECTOR               ofs;
+    SVECTOR               shadowOffset;
     VECTOR                pos;
 
     if (arg0->state == 0) {
@@ -4562,7 +4562,7 @@ void func_actor_560800_80132C60(Task* arg0)
                     place++;
                     id = place->entryId;
                 }
-                Gp_SetTmdBytes(arg0->extra.tmd, place->texturePageOffset, place->clutRowOffset);
+                tmdSetTextureOffsets(arg0->extra.tmd, place->texturePageOffset, place->clutRowOffset);
                 taskReparent(D_actor_560800_8017578C, arg0);
                 failed = 0;
             }
@@ -4593,10 +4593,10 @@ void func_actor_560800_80132C60(Task* arg0)
         }
         arg0->state += 1;
     }
-    ofs.vx = 0;
-    ofs.vy = 0x380;
-    ofs.vz = 0;
-    Gp_DrawFloorQuad(&arg0->extra.tmd->coords[1], 0x300, &ofs);
+    shadowOffset.vx = 0;
+    shadowOffset.vy = 0x380;
+    shadowOffset.vz = 0;
+    actorRenderDrawGroundShadow(&arg0->extra.tmd->coords[1], 0x300, &shadowOffset);
     if (work->animPaused == 0) {
         func_actor_560800_80132498(arg0);
     }
@@ -4622,7 +4622,7 @@ void func_actor_560800_80132C60(Task* arg0)
 void func_actor_560800_80132F64(Task* arg0)
 {
     _Actor560800CastWork* work = arg0->work;
-    SVECTOR               ofs;
+    SVECTOR               shadowOffset;
     VECTOR                pos;
 
     if (arg0->state == 0) {
@@ -4652,7 +4652,7 @@ void func_actor_560800_80132F64(Task* arg0)
                     place++;
                     id = place->entryId;
                 }
-                Gp_SetTmdBytes(arg0->extra.tmd, place->texturePageOffset, place->clutRowOffset);
+                tmdSetTextureOffsets(arg0->extra.tmd, place->texturePageOffset, place->clutRowOffset);
                 taskReparent(D_actor_560800_8017578C, arg0);
                 failed = 0;
             }
@@ -4684,10 +4684,10 @@ void func_actor_560800_80132F64(Task* arg0)
         arg0->state += 1;
     }
     if (!(arg0->extra.tmd->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) && work->floorQuadHidden == 0) {
-        ofs.vx = 0;
-        ofs.vy = 0x380;
-        ofs.vz = 0;
-        Gp_DrawFloorQuad(&arg0->extra.tmd->coords[1], 0x300, &ofs);
+        shadowOffset.vx = 0;
+        shadowOffset.vy = 0x380;
+        shadowOffset.vz = 0;
+        actorRenderDrawGroundShadow(&arg0->extra.tmd->coords[1], 0x300, &shadowOffset);
     }
     func_actor_560800_80132498(arg0);
     if (work->relit != 0) {

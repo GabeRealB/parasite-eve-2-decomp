@@ -3095,7 +3095,7 @@ void func_mine_mesa_8017E7B0(Task* task)
                     task->killCountdown = 0;
                 }
             }
-            func_800B0928(playerTask, companionTask, 0x300, 0x10, task->killCountdown);
+            animationAimHeadAtTask(playerTask, companionTask, 0x300, 0x10, task->killCountdown);
             return;
         }
         taskKill(task);

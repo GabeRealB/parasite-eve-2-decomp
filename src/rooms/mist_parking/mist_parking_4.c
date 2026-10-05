@@ -413,7 +413,7 @@ void func_mist_parking_80183D58(Task* task)
                 }
             }
             enemy = sceneFindEnemyByPlaceKey(gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8));
-            func_800B0928(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), enemy->task, 0x200, 0x100, task->killCountdown);
+            animationAimHeadAtTask(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), enemy->task, 0x200, 0x100, task->killCountdown);
         } else {
             taskKill(task);
         }

@@ -391,7 +391,7 @@ static void func_actor_202900_8014A208(void)
 
     i = 1;
     do {
-        Gp_AnimTickSlot(&D_actor_202900_80156E54->rig.anim, &D_actor_202900_80156E54->rig.slots[i]);
+        animationTickDirectSlot(&D_actor_202900_80156E54->rig.anim, &D_actor_202900_80156E54->rig.slots[i]);
         i++;
     } while (i < 0x13);
 }
@@ -409,8 +409,8 @@ static void func_actor_202900_8014A260(void)
     i = 1;
     do {
         D_actor_202900_80156E54->rig.slots[i].rate = 1;
-        Gp_AnimInitSlot(&D_actor_202900_80156E54->rig.anim, &D_actor_202900_80156E54->rig.slots[i], i,
-                        D_actor_202900_80156E54->st.animId);
+        animationInitDirectSlot(&D_actor_202900_80156E54->rig.anim, &D_actor_202900_80156E54->rig.slots[i], i,
+                                D_actor_202900_80156E54->st.animId);
         i++;
     } while (i < 0x13);
     D_actor_202900_80156E54->st.appliedAnimId = D_actor_202900_80156E54->st.animId;
@@ -429,8 +429,8 @@ static void func_actor_202900_8014A304(void)
 
     i = 1;
     do {
-        func_800B3AA4(&D_actor_202900_80156E54->rig.anim, &D_actor_202900_80156E54->rig.slots[i], i,
-                      D_actor_202900_80156E54->st.animId, 0, 8);
+        animationStartDirectSlot(&D_actor_202900_80156E54->rig.anim, &D_actor_202900_80156E54->rig.slots[i], i,
+                                 D_actor_202900_80156E54->st.animId, 0, 8);
         i++;
     } while (i < 0x13);
     D_actor_202900_80156E54->st.appliedAnimId = D_actor_202900_80156E54->st.animId;

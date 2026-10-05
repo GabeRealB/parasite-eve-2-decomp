@@ -1125,7 +1125,7 @@ kill:
 
 /// Per-frame ramp task. While `D_801156F9` is clear, state 0 ramps
 /// `killCountdown` by 0x100 a frame towards 0x1000 while `spawnArg1` is set,
-/// or towards 0 while it is clear, and passes it to `func_800B0928` with the
+/// or towards 0 while it is clear, and passes it to `animationAimHeadAtTask` with the
 /// player and the current area's work object. Any other state ends the task.
 void func_dryfield_main_street_8017E3A8(Task* task)
 {
@@ -1148,7 +1148,7 @@ void func_dryfield_main_street_8017E3A8(Task* task)
                 }
             }
             enemy = sceneFindEnemyByPlaceKey(gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8));
-            func_800B0928(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), enemy->task, 0x300, 0x200, task->killCountdown);
+            animationAimHeadAtTask(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), enemy->task, 0x300, 0x200, task->killCountdown);
         } else {
             taskKill(task);
         }

@@ -3816,7 +3816,7 @@ static void func_actor_503500_80141B94(Task* arg0)
         mat = &work->blendStart[1];
         t   = work->blendWeight;
         for (i = 1; i < ACTOR_503500_LUNGING_CHAIN_PART_COUNT; i++) {
-            Gp_LerpOrthonormal(mat, &coord->coord, &m, t);
+            gfxBlendOrthonormalRotation(mat, &coord->coord, &m, t);
             dst = (s32*)&coord->coord;
             src = (s32*)&m;
             for (j = 0; j < 4; j++) {
@@ -4008,7 +4008,7 @@ static void func_actor_503500_801421A8(Task* arg0)
 /// back as Euler angles, its pitch replaced with the caller's per-node angle,
 /// and the matrix rebuilt from the result. The identity splat before
 /// `RotMatrixZYX` clears the node's rotation with five aligned stores, the same
-/// idiom `func_800B0928` uses.
+/// idiom `animationAimHeadAtTask` uses.
 static void func_actor_503500_80142220(SVECTOR* angles, GfxCoord* nodes)
 {
     SVECTOR ang;

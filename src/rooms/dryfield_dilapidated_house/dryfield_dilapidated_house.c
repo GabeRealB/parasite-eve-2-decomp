@@ -2826,7 +2826,7 @@ void func_dryfield_dilapidated_house_8017E6DC(Task* arg0)
             arg0->state          += 1;
             return;
         case 2:
-            func_800B0928(temp_s1, temp_a1, 0x200, 0x180, 0x1000);
+            animationAimHeadAtTask(temp_s1, temp_a1, 0x200, 0x180, 0x1000);
             /* fallthrough */
         case 1:
             return;

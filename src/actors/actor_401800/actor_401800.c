@@ -1352,7 +1352,7 @@ s32 oddStrangerPushContacts(Task* arg0, WorldCollisionContact* recs, s16 count)
         s->kind = recs[s->recordIndex].key.value & WORLD_COLLISION_CONTACT_KIND_MASK;
         if (s->kind == 0x10000 || s->kind == 0x30000) {
             s->hit = 1;
-            worldCollisionCalcContactViewOffset(&s->position, &recs[s->recordIndex], &s->offset);
+            worldCollisionCalcContactWorldOffset(&s->position, &recs[s->recordIndex], &s->offset);
             s->offsetLength = s->offset.vx * s->offset.vx + s->offset.vz * s->offset.vz;
             s->offsetLength = SquareRoot0(s->offsetLength);
             if (s->offsetLength >= 0x96) {

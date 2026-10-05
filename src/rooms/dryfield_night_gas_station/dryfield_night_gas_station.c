@@ -3046,7 +3046,7 @@ kill:
 /// clear. The slot-3 pointer going away forces `state` to -1, which retires
 /// the task on the following test; a live one moves `killCountdown` a step of
 /// 0x100 towards 0x1000 (or zero), then passes it with the slot-3 and slot-0xA
-/// objects to `func_800B0928`.
+/// objects to `animationAimHeadAtTask`.
 void func_dryfield_night_gas_station_80180828(Task* task)
 {
     Task* owner;
@@ -3071,7 +3071,7 @@ void func_dryfield_night_gas_station_80180828(Task* task)
                     task->killCountdown = 0;
                 }
             }
-            func_800B0928(owner, gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), 0x300, 0x10, task->killCountdown);
+            animationAimHeadAtTask(owner, gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), 0x300, 0x10, task->killCountdown);
             return;
         }
         taskKill(task);

@@ -686,7 +686,7 @@ static void func_actor_135400_80132064(Task* arg0)
 /// of `TmdObject::flags`) draws its ground shadow from the second
 /// part's translation, recomputes that part's world matrix, relights the model
 /// through `worldCoordSetModelLighting`, ramps the head-turn weight `turnWeight` and finally
-/// turns the head toward the slot-3 skeleton with `func_800B0928`.
+/// turns the head toward the slot-3 skeleton with `animationAimHeadAtTask`.
 static void func_actor_135400_801322A8(Task* task)
 {
     _Actor135400GaryDouglasWork* work;
@@ -721,7 +721,7 @@ static void func_actor_135400_801322A8(Task* task)
                 work->turnWeight = 0;
             }
         }
-        func_800B0928(task, gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x200, 0x100, work->turnWeight);
+        animationAimHeadAtTask(task, gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x200, 0x100, work->turnWeight);
     }
 }
 

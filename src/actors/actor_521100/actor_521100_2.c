@@ -616,7 +616,7 @@ static void func_actor_521100_801360C4(Enemy* spawnArg2, Task* task)
 
     i = 1;
     do {
-        Gp_AnimTickSlot(&D_actor_521100_8016A3D8->rig.anim, &D_actor_521100_8016A3D8->rig.slots[i]);
+        animationTickDirectSlot(&D_actor_521100_8016A3D8->rig.anim, &D_actor_521100_8016A3D8->rig.slots[i]);
         i++;
     } while (i < 0x13);
 
@@ -772,7 +772,7 @@ static void func_actor_521100_80136724(void)
 
     i = 1;
     do {
-        Gp_AnimTickSlot(&D_actor_521100_8016A3D8->rig.anim, &D_actor_521100_8016A3D8->rig.slots[i]);
+        animationTickDirectSlot(&D_actor_521100_8016A3D8->rig.anim, &D_actor_521100_8016A3D8->rig.slots[i]);
         i++;
     } while (i < 0x13);
 }
@@ -787,8 +787,8 @@ static void func_actor_521100_8013677C(void)
     i = 1;
     do {
         D_actor_521100_8016A3D8->rig.slots[i].rate = 1;
-        Gp_AnimInitSlot(&D_actor_521100_8016A3D8->rig.anim, &D_actor_521100_8016A3D8->rig.slots[i], i,
-                        D_actor_521100_8016A3D8->st.animId);
+        animationInitDirectSlot(&D_actor_521100_8016A3D8->rig.anim, &D_actor_521100_8016A3D8->rig.slots[i], i,
+                                D_actor_521100_8016A3D8->st.animId);
         i++;
     } while (i < 0x13);
     D_actor_521100_8016A3D8->st.appliedAnimId = D_actor_521100_8016A3D8->st.animId;
@@ -802,8 +802,8 @@ static void func_actor_521100_80136820(void)
 
     i = 1;
     do {
-        func_800B3AA4(&D_actor_521100_8016A3D8->rig.anim, &D_actor_521100_8016A3D8->rig.slots[i], i,
-                      D_actor_521100_8016A3D8->st.animId, 0, 8);
+        animationStartDirectSlot(&D_actor_521100_8016A3D8->rig.anim, &D_actor_521100_8016A3D8->rig.slots[i], i,
+                                 D_actor_521100_8016A3D8->st.animId, 0, 8);
         i++;
     } while (i < 0x13);
     D_actor_521100_8016A3D8->st.appliedAnimId = D_actor_521100_8016A3D8->st.animId;

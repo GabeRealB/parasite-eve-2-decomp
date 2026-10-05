@@ -335,7 +335,7 @@ static void func_actor_311500_801629D8(Task* arg0)
     while (place->entryId != AREA_PLACEMENT_END && place->entryId != 0xA) {
         place++;
     }
-    Gp_SetTmdBytes(tmd, place->texturePageOffset, place->clutRowOffset);
+    tmdSetTextureOffsets(tmd, place->texturePageOffset, place->clutRowOffset);
 }
 
 /// Sets animation slots 1 to 18 to play at `rate` and restarts each of them.

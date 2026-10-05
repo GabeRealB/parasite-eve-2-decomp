@@ -1078,8 +1078,8 @@ static void func_actor_420700_80131E24(Enemy* enemy, Task* task)
 /// Step 1 of the `func_actor_420700_80132340` dispatcher: refresh the model's third
 /// coordinate and colour the actor from its world translation, run
 /// `func_actor_420700_80132478`, then step the `st.turnWeight` ramp by the mode in
-/// `st.turnMode` and pass it as the weight of `func_800B0928` aimed at the
-/// slot-3 task (modes 0, 1 and 2) or of `func_800B0CF4` aimed at a fixed
+/// `st.turnMode` and pass it as the weight of `animationAimHeadAtTask` aimed at the
+/// slot-3 task (modes 0, 1 and 2) or of `animationAimHeadAtPoint` aimed at a fixed
 /// world point (mode 3).
 ///
 /// Mode 0 chooses its own step each frame: +0x40 while the actor lies behind
@@ -1128,9 +1128,9 @@ static void func_actor_420700_80132064(Enemy* enemy, Task* task)
             target[0].coord.t[0] = 0x1173;
             target[0].coord.t[1] = 0;
             target[0].coord.t[2] = -0x733;
-            func_800B0CF4(task, target, 0x200, 0x100, gScriptedWalkWork->st.turnWeight);
+            animationAimHeadAtPoint(task, target, 0x200, 0x100, gScriptedWalkWork->st.turnWeight);
         } else {
-            func_800B0928(task, gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x200, 0x100, gScriptedWalkWork->st.turnWeight);
+            animationAimHeadAtTask(task, gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x200, 0x100, gScriptedWalkWork->st.turnWeight);
         }
     } else {
         if (gGameSession->eventState == 0) {
@@ -1156,7 +1156,7 @@ static void func_actor_420700_80132064(Enemy* enemy, Task* task)
         if (gScriptedWalkWork->st.turnWeight < 0) {
             gScriptedWalkWork->st.turnWeight = 0;
         }
-        func_800B0928(task, gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x200, 0x100, gScriptedWalkWork->st.turnWeight);
+        animationAimHeadAtTask(task, gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x200, 0x100, gScriptedWalkWork->st.turnWeight);
     }
     for (i = 1; i < 0x14; i++) {
         gScriptedWalkWork->rig.slots[i].rate = rate;

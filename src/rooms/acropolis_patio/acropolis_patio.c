@@ -1957,11 +1957,11 @@ void func_acropolis_patio_8017DE2C(Task* task)
         case 1:
             return;
         case 2:
-            func_800B0CF4(target, &focus, 0x200, 0x100, 0x1000);
+            animationAimHeadAtPoint(target, &focus, 0x200, 0x100, 0x1000);
             return;
         case 3:
             task->spawnArg1.value = 0;
-            func_800B0CF4(target, &focus, 0x200, 0x100, 0x1000);
+            animationAimHeadAtPoint(target, &focus, 0x200, 0x100, 0x1000);
             task->state = task->state + 1;
             return;
         case 4:
@@ -1971,7 +1971,7 @@ void func_acropolis_patio_8017DE2C(Task* task)
                 task->spawnArg1.value = 0x1000;
             }
             focus.coord.t[2] -= task->spawnArg1.value;
-            func_800B0CF4(target, &focus, 0x200, 0x100, 0x1000);
+            animationAimHeadAtPoint(target, &focus, 0x200, 0x100, 0x1000);
             return;
     }
 }

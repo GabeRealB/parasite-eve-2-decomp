@@ -2437,7 +2437,7 @@ static void func_actor_121300_80133BFC(Task* task)
         place++;
         entryId = place->entryId;
     }
-    Gp_SetTmdBytes(tmd, place->texturePageOffset, place->clutRowOffset);
+    tmdSetTextureOffsets(tmd, place->texturePageOffset, place->clutRowOffset);
     // Keep the image-column offset for later streamed texture uploads.
     work->texturePageOffset = place->texturePageOffset;
     animationInitContext(&work->rig.anim, D_actor_121300_8013CC08, tmd, work->rig.poses,

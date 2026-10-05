@@ -6891,7 +6891,7 @@ block    = tmp;
 ```
 
 `Gp_UpdateActorColor` is the example. Same split-address `lui` in a branch delay
-as `Gp_CopyCoordOffset`.
+as `actorRenderCopyCoordBodyTransform`.
 
 The unpinned substitutes do not reach it. `TOUCH_REG(head)` / `TOUCH_REG_USE`
 after `block = head` keep the copy but colour it backwards
@@ -6970,7 +6970,7 @@ and can put `lui 0x1F80` in the first-branch jump delay:
 *SCRATCH_STACK_CURSOR_SLOT = (u8*)*SCRATCH_STACK_CURSOR_SLOT + 8;
 ```
 
-`Gp_CopyCoordOffset` is the example.
+`actorRenderCopyCoordBodyTransform` is the example.
 
 `scratch = SCRATCH_STACK_CURSOR_SLOT` first hoists `lui`/`ori` above `sw s4`.
 `register s32 thresh asm("s4"); thresh = arg2;` without a use delays
@@ -8714,19 +8714,19 @@ name. Incoming `index` is then the first param that needs a callee-saved
 register:
 
 ```c
-GfxCoord* dest;
+GfxCoord* destinationCoord;
 
-dest = arg1;
-if (dest->parent != arg0) {
-    func_A(arg0);
-    func_A(dest);
-    dest->parent = arg0; /* also fills the next jal delay slot */
-    func_B(&arg0->workm, &dest->workm, &dest->coord);
-    dest->composeStamp = 0;
+destinationCoord = coord;
+if (destinationCoord->parent != newParent) {
+    func_A(newParent);
+    func_A(destinationCoord);
+    destinationCoord->parent = newParent; /* also fills the next jal delay slot */
+    func_B(&newParent->workm, &destinationCoord->workm, &destinationCoord->coord);
+    destinationCoord->composeStamp = 0;
 }
 ```
 
-`Gp_ReparentCoord` is the pure example. Using `value` directly swapped `$s0`/`$s1`
+`gfxReparentCoord` is the pure example. Using `value` directly swapped `$s0`/`$s1`
 (~89%) even with the rest of the body identical.
 
 ## `~x != 0` for `nor` + `sltu` (not `x != -1`)
@@ -28495,7 +28495,7 @@ swapped `cmd` / table-pointer coloring (`$v1`/`$a2`) without a pin.
 
 ## Index the stored `u8` field so CSE emits `andi v0, arg, 0xff`
 
-After `slot->trackIndex = arg3`, `table[(u8)arg3]` (or a `u8` parameter)
+After `slot->trackIndex = trackIndex`, `table[(u8)trackIndex]` (or a `u8` parameter)
 zero-extends in place (`andi a3, a3, 0xff`) and the pointer load takes
 `$v0`. The target instead does
 
@@ -28511,12 +28511,12 @@ argument register and the `andi` dest is `$v0`, so the pointer stays in
 `$a0`:
 
 ```c
-slot->trackIndex = arg3;
-slot->nextPose.indices.recordIndex    = sets[arg2]->trackStartIndices[slot->trackIndex];
+slot->trackIndex = trackIndex;
+slot->nextPose.indices.recordIndex    = sets[setIndex]->trackStartIndices[slot->trackIndex];
 ```
 
-`Gp_AnimResetSlotEx` is the example (`animationResetSlot` already uses
-`trackStartIndices[slot->trackIndex]` for the same reason). The `(u8)arg3` form
+`animationResetRemappedSlot` is the example (`animationResetSlot` already uses
+`trackStartIndices[slot->trackIndex]` for the same reason). The `(u8)trackIndex` form
 stuck at 98.8% with only those six registers swapped.
 
 ## Write switch cases in target body order, not numeric order
@@ -33209,7 +33209,7 @@ asm("" : "+r"(block));
 
 `register SVECTOR* vec asm("s2")` is enough; do not pin `block`. Write
 the first component through `head - 0x28` (not `vec->vx`) so the `sh`
-stays head-relative. `worldCollisionCalcContactViewOffset` is the example.
+stays head-relative. `worldCollisionCalcContactWorldOffset` is the example.
 
 ## Force `addiu $v0, $sp, N` after `gte_SetRotMatrix`
 
@@ -33226,7 +33226,7 @@ gte_ldv0(tmpp);
 ```
 
 The offset is the stack slot of `tmp` (saved-reg frame: `0x10` when
-`s0`–`s7`/`ra` start at `0x18`). `worldCollisionCalcContactViewOffset` is the example.
+`s0`–`s7`/`ra` start at `0x18`). `worldCollisionCalcContactWorldOffset` is the example.
 
 ## Keep the loop result in `$a0` until the first `li a0, 1`
 
@@ -34721,8 +34721,8 @@ move   v1, a2
 
 ## Copy a live-across-call arg inside the calling branch, not at entry
 
-A function with `if (flag == 1) { call(); use(arg3); } else { if (arg3 == 0)
-arg3 = 1; use(arg3); }` that mentions `arg3` after the call makes GCC copy
+A function with `if (flag == 1) { call(); use(requestedSetIndex); } else { if (requestedSetIndex == 0)
+requestedSetIndex = 1; use(requestedSetIndex); }` that mentions `requestedSetIndex` after the call makes GCC copy
 it at function entry:
 
 ```
@@ -34735,9 +34735,9 @@ bne    v0, v1, else
 
 Both branches then use `$s1`, so the else-path's `bnez a3` / `negu a3`
 becomes `bnez s1` / `negu s1`. Copy to a local *inside* the calling
-branch (`setIdx = arg3` before the jal, then only `setIdx` after it).
+branch (`selectedSetIndex = requestedSetIndex` before the jal, then only `selectedSetIndex` after it).
 `$a3` stays the else-path's register, and `move s1, a3` fills the first
-`lbu trackIndex` delay on the taken path. `func_800B3AA4` is the example.
+`lbu trackIndex` delay on the taken path. `animationStartDirectSlot` is the example.
 
 ## Same-value extra store hoists `%hi`; keep CSE `1` as a literal
 
@@ -36718,17 +36718,17 @@ rec2 = recs + (u8)i;
 ## Store 3 packed `SVECTOR3` rows in a `MATRIX` so the next `VECTOR[]` lands on 0x10
 
 `VECTOR` arrays are 8-byte aligned. `SVECTOR3[3]` is 0x12 bytes, so a following
-`VECTOR vec[3]` starts 8 bytes early (`0x48` instead of `0x50`) and the frame
+`VECTOR blendedRows[3]` starts 8 bytes early (`0x48` instead of `0x50`) and the frame
 shrinks from `0xC0` to `0xB8`. A `MATRIX` is 0x20 and holds the same 9 packed
 halfwords in `m[3][3]`:
 
 ```c
-MATRIX diffs; /* not SVECTOR3 diff[3] */
-diffs.m[i][0] = b->m[i][0] - a->m[i][0];
-vec[i].vx     = a->m[i][0] + (diffs.m[i][0] * t) / ONE;
+MATRIX rowDeltas; /* not SVECTOR3 diff[3] */
+rowDeltas.m[i][0] = b->m[i][0] - a->m[i][0];
+blendedRows[i].vx     = a->m[i][0] + (rowDeltas.m[i][0] * t) / ONE;
 ```
 
-`Gp_LerpOrthonormal` is the example.
+`gfxBlendOrthonormalRotation` is the example.
 
 ## Do not reuse the loop index for a `VectorNormal` return if the copy is `$v1`
 
@@ -36737,15 +36737,15 @@ After a `for (i = 0; i < 3; i++)` the index lives in `$t1`. Assigning
 `slt v0, s1, t1`). The target copies into `$v1`:
 
 ```c
-ret = VectorNormal(&tmp, &nrm);
-if (len < ret) {
-    len  = ret;
-    best = 2;
+crossLength = VectorNormal(&rowCrossProduct, &normalizedCrossProduct);
+if (largestCrossLength < crossLength) {
+    largestCrossLength  = crossLength;
+    rebuildRow = 2;
 }
 ```
 
 The last compare can still use the return in `$v0` directly
-(`if (len < VectorNormal(...))`). `Gp_LerpOrthonormal` is the example.
+(`if (largestCrossLength < VectorNormal(...))`). `gfxBlendOrthonormalRotation` is the example.
 
 ## GTE outer product of two `VECTOR`s
 
@@ -36754,14 +36754,18 @@ The last compare can still use the return in `$v0` directly
 plus `gte_op12()` (the real `0x4B78000C` with `gte.h` included):
 
 ```c
-gte_ldopv1(&vec[0]);
-gte_ldopv2(&vec[1]);
+gte_ldopv1(&blendedRows[0]);
+gte_ldopv2(&blendedRows[1]);
 gte_op12();
-gte_stlvnl(&tmp);
+gte_stlvnl(&rowCrossProduct);
 ```
 
-`Gp_LerpOrthonormal` is the example.
+`gfxBlendOrthonormalRotation` is the example.
 
+
+The current function expresses the cross-product and normalization sequence
+with `GRAPHICS_MEASURE_ROW_INDEPENDENCE`; its last comparison still consumes
+the normalization return directly.
 ## Copy `$a1` into its saved reg with `addu dest, src, $zero` so a later `la` cannot stage it
 
 After `prompt = index` (`move s4, a0`), a plain `obj = value` is delayed: GCC
@@ -38901,7 +38905,7 @@ scratch pointers that the target keeps in the *same* register across both nests
 
 ## Pin repeated UV/RGB constants so the scheduler can spend them as load-delay filler
 
-`Gp_DrawFloorQuad` fills a `POLY_FT4` whose `0xC0` appears five times (`u0`, `u2`,
+The archived field-by-field seed of `actorRenderDrawGroundShadow` fills a `POLY_FT4` whose `0xC0` appears five times (`u0`, `u2`,
 `g0`, `b0`, `r0`) and whose `0xF7` appears twice (`u1`, `u3`), then calls
 `addPrim`. Written as plain literals, GCC materialises both at their first use:
 
@@ -38936,13 +38940,17 @@ pseudos `local_alloc` coloured first; here it fixes *where the scheduler puts
 the `li`*, which is why picking the target's own registers (`v1`, `a1`) matters
 — they are the ones free at the slots the target fills.
 
+The current matching source uses `setUV4` and the G/R/B writes in G/B/R
+order, with no hard-register pins; the 2026-09-26 `setUV4` entry below records
+that final form.
+
 ## Mixing `*(u16*)&f` and the plain `f` read is what produces `lhu` + `move`
 
-Same function, fanning one `SVECTOR` corner out to four:
+An archived form of the same function, fanning one `SVECTOR` corner out to four:
 
 ```c
 s32 tmp = *(u16*)&scratch->vertices[0].vx;      /* lhu v1 ; addu v0,v1,a1 — no `move` */
-scratch->vertices[1].vx = scratch->vertices[3].vx = tmp + arg1;
+scratch->vertices[1].vx = scratch->vertices[3].vx = tmp + side;
 scratch->vertices[2].vx = tmp;
 ```
 
@@ -38953,13 +38961,17 @@ the copy — makes CSE forward the zero-extended load into the `s16` read and
 emit the target's `lhu v0` / `move v1,v0` / `addu v0,v0,a1`:
 
 ```c
-scratch->vertices[1].vx = scratch->vertices[3].vx = *(u16*)&scratch->vertices[0].vx + arg1;
+scratch->vertices[1].vx = scratch->vertices[3].vx = *(u16*)&scratch->vertices[0].vx + side;
 scratch->vertices[2].vx = scratch->vertices[0].vx;
 ```
 
 That one change was worth 94.8% -> 96.9%. Reusing a *single* named temp across
 the `vy`/`vx`/`vz` groups is the other trap: it gives all three one pseudo, one
 hard register, and a schedule the target does not have.
+
+The current `actorRenderDrawGroundShadow` reads the signed fields directly
+for both the arithmetic and the copies; it needs neither this byte view nor
+an extra temporary.
 
 ## Re-read `tbl[(u8)i]` at every use instead of caching it in a `u8` local
 
@@ -39725,7 +39737,7 @@ quad->u2 = 0xA8; quad->v2 = 0xFF;
 quad->u3 = 0xDF; quad->v3 = 0xFF;
 ```
 
-Unlike `Gp_DrawFloorQuad`, GCC *will* reorder `sb`s to different offsets of the
+Unlike `actorRenderDrawGroundShadow`, GCC *will* reorder `sb`s to different offsets of the
 same prim, so the emitted store order is not a direct read of the source order —
 but the source order still decides which stores end up adjacent, and that is
 what decides whether a dying pseudo's hard register is free when the repeated
@@ -65990,7 +66002,7 @@ as described in "A value defined before the compare can never be allocated
 `$v0`"; the sibling already contains that matching shape.
 
 
-## func_800B0CF4: split reused absolute-value and matrix-pointer locals
+## animationAimHeadAtPoint: split reused absolute-value and matrix-pointer locals
 
 The structured unpinned attempt reached 92.505% with stack=0, branch=9,
 regs=45, reorder=1, insert=5 and delete=6. Its `.jump2` showed `abs:SI`
@@ -66137,9 +66149,9 @@ both allocation and scheduling even when its two values never overlap.
 
 ## Split skeleton-walk pointers and use the matched sibling's angle expressions
 
-`func_800B0928`'s archived seed scored 90.189% after replacing the obsolete
+`animationAimHeadAtTask`'s archived seed scored 90.189% after replacing the obsolete
 `GameActorExt` name with `TmdObject`. Removing its two `$s1` pins scored
-89.181%. Reusing `func_800B0CF4`'s ordinary signed `/ 4096` interpolation
+89.181%. Reusing `animationAimHeadAtPoint`'s ordinary signed `/ 4096` interpolation
 and separate ternary magnitude expressions repaired the angle block;
 the seed's reused product and absolute-value locals had changed its
 register allocation and branch scheduling.
@@ -66651,7 +66663,7 @@ it. Ask what makes the *other* entries single-set copies instead.
 
 `func_800B17D4`'s give-up seed sat at 99.97% after 178 attempts with nine
 register pins and three empty asms, most of them there to reproduce this
-tail, which the sibling `func_800B0928` matches with plain C:
+tail, which the sibling `animationAimHeadAtTask` matches with plain C:
 
 ```c
 ang.vx = euler.vx + (ang.vx - euler.vx) * rate / 4096;
@@ -66680,7 +66692,7 @@ Two more things the pinned seed was compensating for, both already in the
 corpus under other names: the identity splat is three `sp`-relative stores
 plus two through `m0 = &mtx0` with the loop calls taking `&mtx0` directly
 (that is what puts the address through `$v0` before `$s0`), and the four
-magnitudes must be four locals (see the `func_800B0CF4` entry). The
+magnitudes must be four locals (see the `animationAimHeadAtPoint` entry). The
 unpinned version modeled on the sibling matched on its fourth attempt.
 Before working from a pinned give-up seed, check
 `asm/<ver>/<overlay>/matchings/<unit>/` for a sibling with the same
@@ -85870,7 +85882,7 @@ register-allocation problem.
 "Reuse the extra pointer so `lw v0,8(v0)` feeds the `+ N` delay slot", read the
 other way round: keeping `+0x50` out of the use site lets the loaded coordinate
 die in `$a0` at the call (the `+0x50` copy takes `$s1`). With the `+0x50` inline
-at the `Gp_CopyCoordOffset` call the load lives across both calls in `$s1` and
+at the `actorRenderCopyCoordBodyTransform` call the load lives across both calls in `$s1` and
 is copied to `$a0` (`lw s1,8(v0)` / `move a0,s1`), 14 register penalties.
 
 Inputs: `base.i` (m2c seed, 81.361%, `delete=4 insert=2`)
@@ -86312,7 +86324,7 @@ strength reduction *after* that hoist, which is what moves it behind.
 ```c
     i = 1;
     do {
-        Gp_AnimTickSlot(&ActorsShared80131f9cWork->anim,
+        animationTickDirectSlot(&ActorsShared80131f9cWork->anim,
                         &ActorsShared80131f9cWork->slots[i]);
         i++;
     } while (i < 0x13);
@@ -118221,7 +118233,7 @@ Before committing, count `bodies_of()` across the files to make sure none were l
 ## Frame-offset buffer address merged into a callee-saved pseudo across a call
 
 **Problem:** one function-scope buffer passed by address to two consecutive calls
-(`worldCoordSetModelLighting(obj, &buf.vec, ...)` then `Gp_DrawFloorQuad(..., &buf.rot)`).
+(`worldCoordSetModelLighting(obj, &buf.vec, ...)` then `actorRenderDrawGroundShadow(..., &buf.rot)`).
 The target reloads `addiu a2,sp,0x18` for the second call; ours emitted
 `addiu s0,sp,0x18` before the first call and `move a2,s0` afterwards.
 
@@ -124273,7 +124285,7 @@ while (entryId != AREA_PLACEMENT_END) {
     place++;
     entryId = place->entryId;
 }
-Gp_SetTmdBytes(task->extra.tmd, place->texturePageOffset, place->clutRowOffset);
+tmdSetTextureOffsets(task->extra.tmd, place->texturePageOffset, place->clutRowOffset);
 ```
 
 Three things came along with the splice that would each have cost a build to
@@ -130308,7 +130320,7 @@ was itself evidence the missing value was a pointer the source never spelled.
 `C file: src/actors/actor_535700/actor_535700_7.c`, and quoted the latter's
 INCLUDE_ASM site. Those are two *different* functions: actor_161500's body is
 0x110 bytes (extra `func_actor_161500_8013252C` call plus a `field_4F0` ramp
-feeding `func_800B0928`), actor_535700's is 0x84.
+feeding `animationAimHeadAtTask`), actor_535700's is 0x84.
 
 **Why.** The generated per-overlay `symbol_name_format` guarantees that
 `func_<overlay>_<addr>` identifies one overlay, but the hand-given
@@ -144426,7 +144438,7 @@ moves it into the branch delay slot.
 **Fix.** `trans = &head[-1].translation;` just above `if (slot->poseEncoding == ANIMATION_POSE_TRANSLATION_ROTATION)`, no
 pins. This also settled a scheduling difference the seed held with `USE_REG`.
 
-## `addiu sB,sH,-N; move sV,sB` at entry with the head store reading `sB`: `SCRATCH_STACK_RESERVE_BLOCK` first, member pointer second (worldCollisionCalcContactViewOffset, 2026-09-26)
+## `addiu sB,sH,-N; move sV,sB` at entry with the head store reading `sB`: `SCRATCH_STACK_RESERVE_BLOCK` first, member pointer second (worldCollisionCalcContactWorldOffset, 2026-09-26)
 
 **Symptom.** A scratch-pad block is carved off the head, then copied at once
 into a second callee-saved register: the head store and one later call read the
@@ -144443,7 +144455,7 @@ as the hack did, puts it after the copy and it collapses onto one register.
 `s = SCRATCH_STACK_RESERVE_BLOCK(_WorldCollisionContactViewOffsetScratch); delta = &s->delta; delta->vx = …;` - later calls
 that pass `&s->delta` keep the block register because cse's equivalence ends at
 the `if` before them.
-### Constants pinned to registers across a `POLY_FT4` fill: write the UVs with `setUV4` (Gp_DrawFloorQuad, 2026-09-26)
+### Constants pinned to registers across a `POLY_FT4` fill: write the UVs with `setUV4` (actorRenderDrawGroundShadow, 2026-09-26)
 
 **Symptom.** A prim fill keeps `0xC0` and `0xF7` in `v1`/`a1` for several `sb`s,
 loaded early into the delay slots of the `lw`/`sw` screen-coordinate copies,

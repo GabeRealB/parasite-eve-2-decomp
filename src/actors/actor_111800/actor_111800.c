@@ -365,7 +365,7 @@ static void func_actor_111800_8013214C(Task* task)
 /// Spawn/setup handler for the actor's model: allocates the work block
 /// into `Task::work`, hands the model object the view coordinate and the
 /// block's two matrices, builds the animation context over the nineteen slots
-/// and applies the nested area record matching id 0x13 through `Gp_SetTmdBytes`.
+/// and applies the nested area record matching id 0x13 through `tmdSetTextureOffsets`.
 ///
 /// The allocation is parked in `Task::work` and read back before it is used, so
 /// the first thing the block is named by is a reload: the `memCalloc` result is
@@ -412,7 +412,7 @@ static void func_actor_111800_80132390(Task* task)
     while (place->entryId != AREA_PLACEMENT_END && place->entryId != 0x13) {
         place++;
     }
-    Gp_SetTmdBytes(obj, place->texturePageOffset, place->clutRowOffset);
+    tmdSetTextureOffsets(obj, place->texturePageOffset, place->clutRowOffset);
 }
 
 /// Builds `arg0`'s absolute rotation in `arg1`, seeded from `src` rather than

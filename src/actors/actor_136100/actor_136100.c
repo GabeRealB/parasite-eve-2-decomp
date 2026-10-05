@@ -1351,7 +1351,7 @@ void func_actor_136100_801320E0(Task* task)
             place++;
             id = place->entryId;
         }
-        Gp_SetTmdBytes(task->extra.tmd, place->texturePageOffset, place->clutRowOffset);
+        tmdSetTextureOffsets(task->extra.tmd, place->texturePageOffset, place->clutRowOffset);
         task->state += 1;
     }
     {
@@ -2107,7 +2107,7 @@ static void func_actor_136100_80133A88(Task* task)
         place++;
         entryId = place->entryId;
     }
-    Gp_SetTmdBytes(tmd, place->texturePageOffset, place->clutRowOffset);
+    tmdSetTextureOffsets(tmd, place->texturePageOffset, place->clutRowOffset);
     animationInitContext(&work->rig.anim, D_actor_136100_8013F1A0, tmd, work->rig.poses, work->rig.slots);
     task->msgTable = D_actor_136100_8013F2F4;
 }
@@ -2174,7 +2174,7 @@ static inline s16 func_actor_136100_TakeStartCue(u16* evtId, u8* evtKind, u8* ev
 
 /// Refresh the shadow coordinate and hand its translation to `worldCoordSetModelLighting`.
 /// `vec` is a parameter rather than a local so the caller's buffer address
-/// stays out of the CSE class of the `Gp_DrawFloorQuad` argument that follows.
+/// stays out of the CSE class of the `actorRenderDrawGroundShadow` argument that follows.
 static inline void func_actor_136100_UpdateShadow(Task* arg0, VECTOR* vec)
 {
     TmdObject* obj = arg0->extra.tmd;
@@ -2326,7 +2326,7 @@ void func_actor_136100_80133BC8(Task* arg0)
     message.floorOffset.vx = 0;
     message.floorOffset.vy = 0x380;
     message.floorOffset.vz = 0;
-    Gp_DrawFloorQuad(&arg0->extra.tmd->coords[1], 0x300, &message.floorOffset);
+    actorRenderDrawGroundShadow(&arg0->extra.tmd->coords[1], 0x300, &message.floorOffset);
 }
 
 #include "../../shared/screen_fade_in.inc.c"

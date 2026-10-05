@@ -896,7 +896,7 @@ void func_actor_310100_80162284(Task* task)
 /// work block into `task->work`, hands it the view coordinate and the two TMD
 /// buffers, binds the animation set selected by the display id (0x6C or 0x6D),
 /// seeds its 18 slots, points `task->msgTable` at `D_actor_310100_801798B4` and
-/// applies the nested area record matching that id through `Gp_SetTmdBytes`.
+/// applies the nested area record matching that id through `tmdSetTextureOffsets`.
 static void func_actor_310100_80162414(Task* task, s32 arg1)
 {
     _Actor310100PoliceOfficerWork* work;
@@ -948,7 +948,7 @@ static void func_actor_310100_80162414(Task* task, s32 arg1)
     while (place->entryId != AREA_PLACEMENT_END && place->entryId != id) {
         place++;
     }
-    Gp_SetTmdBytes(obj, place->texturePageOffset, place->clutRowOffset);
+    tmdSetTextureOffsets(obj, place->texturePageOffset, place->clutRowOffset);
 }
 
 /// Common spawn of the two floor-quad display handlers: `func_actor_310100_801631B0`
@@ -1009,7 +1009,7 @@ static void func_actor_310100_801625E4(Task* task, s32 arg1)
     while (place->entryId != AREA_PLACEMENT_END && place->entryId != id) {
         place++;
     }
-    Gp_SetTmdBytes(obj, place->texturePageOffset, place->clutRowOffset);
+    tmdSetTextureOffsets(obj, place->texturePageOffset, place->clutRowOffset);
 }
 
 /// Controller for the display model spawned from `D_actor_310100_801798FC`.
@@ -1302,7 +1302,7 @@ s32 func_actor_310100_80162F34(Task* task, s32 msgId, s32 arg2, s32 arg3)
 void func_actor_310100_80162F88(Task* task)
 {
     _Actor310100PoliceOfficerWork* work;
-    SVECTOR                        rot;
+    SVECTOR                        shadowOffset;
     VECTOR                         vec;
     TmdObject*                     extra;
 
@@ -1313,10 +1313,10 @@ void func_actor_310100_80162F88(Task* task)
             task->state++;
             /* fallthrough */
         case 1:
-            rot.vx = 0;
-            rot.vy = 0x380;
-            rot.vz = 0;
-            Gp_DrawFloorQuad(&task->extra.tmd->coords[1], 0x300, &rot);
+            shadowOffset.vx = 0;
+            shadowOffset.vy = 0x380;
+            shadowOffset.vz = 0;
+            actorRenderDrawGroundShadow(&task->extra.tmd->coords[1], 0x300, &shadowOffset);
             switch (work->playState) {
                 case ACTOR_310100_PLAY_STATE_POSED:
                     break;
@@ -1346,7 +1346,7 @@ void func_actor_310100_80162F88(Task* task)
 void func_actor_310100_8016309C(Task* task)
 {
     _Actor310100PoliceOfficerWork* work;
-    SVECTOR                        rot;
+    SVECTOR                        shadowOffset;
     VECTOR                         vec;
     TmdObject*                     extra;
 
@@ -1357,10 +1357,10 @@ void func_actor_310100_8016309C(Task* task)
             task->state++;
             /* fallthrough */
         case 1:
-            rot.vx = 0;
-            rot.vy = 0x380;
-            rot.vz = 0;
-            Gp_DrawFloorQuad(&task->extra.tmd->coords[1], 0x300, &rot);
+            shadowOffset.vx = 0;
+            shadowOffset.vy = 0x380;
+            shadowOffset.vz = 0;
+            actorRenderDrawGroundShadow(&task->extra.tmd->coords[1], 0x300, &shadowOffset);
             switch (work->playState) {
                 case ACTOR_310100_PLAY_STATE_POSED:
                     break;
@@ -1405,7 +1405,7 @@ static inline void _actor310100DrawOfficerShadow(Task* task)
     offset.vx = 0;
     offset.vy = ACTOR_310100_SHADOW_DROP;
     offset.vz = 0;
-    Gp_DrawFloorQuad(&task->extra.tmd->coords[1], ACTOR_310100_SHADOW_SIDE, &offset);
+    actorRenderDrawGroundShadow(&task->extra.tmd->coords[1], ACTOR_310100_SHADOW_SIDE, &offset);
 }
 
 /// State handler for the display model spawned by `func_actor_310100_80162C64`:

@@ -59,7 +59,14 @@ void animationPlaySlotWithBlend(AnimationContext* context, s32 slotIndex, Animat
 
 void Gp_ApplyAreaTmdFlags(void);
 
-void Gp_ReparentCoord(GfxCoord* arg0, GfxCoord* arg1);
+/// Changes a coordinate parent while preserving its composed transform.
+///
+/// Both nodes and their existing parent chains must be live and acyclic;
+/// `newParent` must not be the node or one of its descendants. An unchanged
+/// parent is a no-op. Otherwise composes both nodes, converts the old composed
+/// matrix into the new parent frame and marks the coordinate dirty. Retains
+/// the borrowed parent pointer and does not allocate or release storage.
+void gfxReparentCoord(GfxCoord* newParent, GfxCoord* coord);
 
 void Gp_SetAreaFlag2(s32 useSavedPoses, GameLocationKey* key);
 

@@ -1982,7 +1982,7 @@ static inline void _dryfieldWaterTowerDrawCapShadow(Task* task, GfxCoord* coord)
     offset.vx = 0;
     offset.vy = -((u16)coord->coord.t[1]) - 0xC8;
     offset.vz = 0;
-    Gp_DrawFloorQuad(task->extra.tmd->coords, 0x300, &offset);
+    actorRenderDrawGroundShadow(task->extra.tmd->coords, 0x300, &offset);
 }
 
 /// The table's entry-2 cap prop, the one that raises the cap: it runs the same

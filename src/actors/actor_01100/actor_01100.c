@@ -2205,7 +2205,7 @@ static void Actor01100_Fn02960(Enemy* enemy, Task* task, _Actor01100Work* work, 
     scratch->vector.vz = root->workm.t[2];
     Gp_UpdateActorColor(enemy, &scratch->vector, 0, 0);
     if (!(task->extra.tmd->flags & TMD_OBJECT_SEMI_TRANS)) {
-        Gp_DrawFloorQuad(task->extra.tmd->coords, 0x600, NULL);
+        actorRenderDrawGroundShadow(task->extra.tmd->coords, 0x600, NULL);
     }
     if (work->mode >= ACTOR_01100_MODE_FINISHED) {
         taskCallExit(task);
@@ -2949,7 +2949,7 @@ static void Actor01100_Fn04DB4(Enemy* enemy, Task* task, _Actor01100Work* work, 
                 scratch->shortVector.vz = 0;
                 spawned                 = taskSpawnFromTable(Actor01100_D155E0, kind, yaw, 0);
                 if (spawned != NULL) {
-                    Gp_CopyCoordOffset(spawned, part, &scratch->shortVector);
+                    actorRenderCopyCoordBodyTransform(spawned, part, &scratch->shortVector);
                     taskReparent(task, spawned);
                 }
                 sndEvtRequestScriptStart((work->waterRoom << 22) | (((u8)work->placeIndex << 8) | 0x400B000A), (s8)scratch->pan, (s8)scratch->depth);

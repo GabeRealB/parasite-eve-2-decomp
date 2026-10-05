@@ -1424,7 +1424,7 @@ static s32 func_actor_401300_80132910(Task* arg0, WorldCollisionContact* recs, s
             if (s->kind == 0x10000) {
                 s->hit = 1;
             }
-            worldCollisionCalcContactViewOffset(&s->position, &recs[s->recordIndex], &s->offset);
+            worldCollisionCalcContactWorldOffset(&s->position, &recs[s->recordIndex], &s->offset);
             s->offsetLength = s->offset.vx * s->offset.vx + s->offset.vz * s->offset.vz;
             s->offsetLength = SquareRoot0(s->offsetLength);
             if (s->offsetLength >= 0x140) {
@@ -1951,9 +1951,9 @@ static __inline__ void Actor401300_ResetAnim(Task* arg0)
     for (i = 1; i < 0x13; i++) {
         work->rig.slots[i].rate = work->animRate;
         if (i < 7) {
-            Gp_AnimResetSlotEx(&work->rig.anim, i, work->animId, i, i);
+            animationResetRemappedSlot(&work->rig.anim, i, work->animId, i, i);
         } else if (i >= 9) {
-            Gp_AnimResetSlotEx(&work->rig.anim, i, work->animId, i - 2, i);
+            animationResetRemappedSlot(&work->rig.anim, i, work->animId, i - 2, i);
         }
     }
     work->appliedAnim = work->animId;
@@ -1970,9 +1970,9 @@ static __inline__ void Actor401300_ResetBlendAnim(Task* arg0)
     for (i = 1; i < 0x13; i++) {
         work->rig.slots[i].rate = work->blendRate;
         if (i < 7) {
-            Gp_AnimResetSlotEx(&work->blend.anim, i, work->blendAnimId, i, i);
+            animationResetRemappedSlot(&work->blend.anim, i, work->blendAnimId, i, i);
         } else if (i >= 9) {
-            Gp_AnimResetSlotEx(&work->blend.anim, i, work->blendAnimId, i - 2, i);
+            animationResetRemappedSlot(&work->blend.anim, i, work->blendAnimId, i - 2, i);
         }
     }
 }

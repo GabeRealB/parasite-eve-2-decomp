@@ -6861,7 +6861,7 @@ s32 Gp_ApplyPlayerDamage(Task* arg0, s32 arg1, s32 arg2, s32 unusedSecondArg)
 
 s32 func_80105A60(Task* arg0, s32 arg1, GfxCoord* arg2, s32 unusedSecondArg)
 {
-    Gp_ReparentCoord(arg2, arg0->extra.tmd->coords);
+    gfxReparentCoord(arg2, arg0->extra.tmd->coords);
     return 0;
 }
 

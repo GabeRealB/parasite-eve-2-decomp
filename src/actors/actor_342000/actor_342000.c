@@ -588,7 +588,7 @@ static void func_actor_342000_80162158(Task* arg0)
             break;
         }
     }
-    Gp_SetTmdBytes(extra, rec->texturePageOffset, rec->clutRowOffset);
+    tmdSetTextureOffsets(extra, rec->texturePageOffset, rec->clutRowOffset);
     switch (arg0->spawnArg1.value) {
         case 0:
             w->parentCoord = &gGfxViewCoord;
