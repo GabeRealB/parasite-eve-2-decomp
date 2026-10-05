@@ -637,7 +637,7 @@ void Gp_UseKeyItemRow(Task* arg0)
     s32       ret;
     s32       width;
     s32       other;
-    s32       color;
+    u32       textColorRgb;
     s32       one;
     u8*       text;
 
@@ -674,12 +674,12 @@ void Gp_UseKeyItemRow(Task* arg0)
     if (arg0->state != 2) {
         uiDrawPanelLabel(&(obj)->panel, Gp_StrNotice);
         if (arg0->spawnArg1.value == -1) {
-            color = Ui_LookupTable(obj, 1);
-            textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, (const u8*)Gp_StrNoUseNow, color, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+            textColorRgb = uiGetTextColor(obj, USER_INTERFACE_TEXT_COLOR_NORMAL);
+            textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, (const u8*)Gp_StrNoUseNow, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
         } else {
-            color = Ui_LookupTable(obj, 1);
-            one   = 1;
-            textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, (const u8*)Gp_StrUsed, color, one, TEXT_ALIGNMENT_LEFT);
+            textColorRgb = uiGetTextColor(obj, USER_INTERFACE_TEXT_COLOR_NORMAL);
+            one          = 1;
+            textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, (const u8*)Gp_StrUsed, textColorRgb, one, TEXT_ALIGNMENT_LEFT);
             text  = Gp_GetItemText(arg0->spawnArg1.value, 0, 0);
             width = textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0x1E, text, 0x37A78, one, TEXT_ALIGNMENT_LEFT);
             textDrawUiLine(obj, width, obj->panel.contentTop.signedValue + 0x1E, (const u8*)Gp_StrDot, 0x606060, one, TEXT_ALIGNMENT_LEFT);

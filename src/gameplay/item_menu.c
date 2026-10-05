@@ -1266,7 +1266,7 @@ void Gp_ItemMenuPrompt(UiList* arg0, UiObject* arg1)
     labels = Gp_ItemPromptTexts;
     if (arg0->currentItemIndex == ITEM_MENU_PROMPT_ALL) {
         if (arg1->owner->spawnArg1.value == 0) {
-            arg0->colorRgb = Ui_LookupTable(arg1, 2);
+            arg0->colorRgb = uiGetTextColor(arg1, USER_INTERFACE_TEXT_COLOR_DIMMED);
             if (arg0->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
                 arg0->navigationStep  = USER_INTERFACE_LIST_STEP_NEXT;
                 arg0->actionResult    = USER_INTERFACE_LIST_ACTION_SKIP_ROW;

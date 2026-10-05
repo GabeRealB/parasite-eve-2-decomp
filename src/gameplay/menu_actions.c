@@ -236,13 +236,13 @@ char Gp_StrCheckMap[]      = "Check the map.";
 void Gp_DrawPeEnergyCmd(UiList* arg0, UiObject* arg1)
 {
     TextDrawReq req;
-    s32         color;
+    u32         textColorRgb;
     s32         status;
     s32         one;
 
-    color = arg0->colorRgb;
+    textColorRgb = arg0->colorRgb;
     if (Gp_IsDebugAttachRoom() != 0) {
-        color = Ui_LookupTable(arg1, 2);
+        textColorRgb = uiGetTextColor(arg1, USER_INTERFACE_TEXT_COLOR_DIMMED);
     } else {
         status = arg1->panel.control.word;
         one    = 1;
@@ -256,7 +256,7 @@ void Gp_DrawPeEnergyCmd(UiList* arg0, UiObject* arg1)
     req.x          = arg1->panel.contentOriginX.unsignedValue + arg0->rowTextX.unsignedValue;
     req.y          = arg1->panel.contentOriginY.unsignedValue + arg0->rowTextY.unsignedValue;
     req.otIndex    = arg1->panel.otIndex.signedValue + 1;
-    req.colorRgb   = color;
+    req.colorRgb   = textColorRgb;
     req.glyphTable = TEXT_GLYPH_TABLE_SMALL;
     req.alignment  = TEXT_ALIGNMENT_LEFT;
     req.drawMode   = TEXT_DRAW_FILL_ONLY;
@@ -535,7 +535,7 @@ void Gp_DrawSortCmd(UiList* arg0, UiObject* arg1)
 
     one = 1;
     if (Gp_ItemOrderMode == one) {
-        arg0->colorRgb = Ui_LookupTable(arg1, 2);
+        arg0->colorRgb = uiGetTextColor(arg1, USER_INTERFACE_TEXT_COLOR_DIMMED);
     }
     textDrawUiLine(arg1, arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, (const u8*)Gp_StrSort, arg0->colorRgb, one, TEXT_ALIGNMENT_LEFT);
     status = arg1->panel.control.word;
@@ -2169,7 +2169,7 @@ void Gp_DrawPeSlotRow(UiList* arg0, UiObject* arg1)
     base  = slot * 4 + 0x300;
     item  = off + base + count;
     if (count == 0) {
-        arg0->colorRgb = Ui_LookupTable(arg1, 2);
+        arg0->colorRgb = uiGetTextColor(arg1, USER_INTERFACE_TEXT_COLOR_DIMMED);
     }
     Gp_DrawItemLabel(arg1, arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, item, arg0->colorRgb, 0);
     if (count != 0) {

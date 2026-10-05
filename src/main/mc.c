@@ -849,7 +849,7 @@ void Mc_InitBufferSlots(void)
 /// Prompt + optional choice dialog (Mc_PromptTable[mode]).
 static s32 Mc_PromptDialog(Task* task, s32 arg1, s32 unused3)
 {
-    s32            ret;
+    u32            textColorRgb;
     s32            one;
     UiObject*      obj;
     register Task* childTask asm("a0");
@@ -857,15 +857,15 @@ static s32 Mc_PromptDialog(Task* task, s32 arg1, s32 unused3)
     McPromptPair*  entry;
     McPromptPair*  base;
 
-    obj         = task->spawnArg2.pointer;
-    ret         = Ui_LookupTable(obj, 1);
-    obj->result = USER_INTERFACE_RESULT_NONE;
+    obj          = task->spawnArg2.pointer;
+    textColorRgb = uiGetTextColor(obj, USER_INTERFACE_TEXT_COLOR_NORMAL);
+    obj->result  = USER_INTERFACE_RESULT_NONE;
     uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     one   = 1;
     base  = Mc_PromptTable;
     entry = &base[arg1];
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, one, TEXT_ALIGNMENT_LEFT);
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, one, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, textColorRgb, one, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, textColorRgb, one, TEXT_ALIGNMENT_LEFT);
 
     childTask = task->firstChild;
     if (childTask == NULL) {
@@ -890,7 +890,7 @@ static s32 Mc_PromptDialog(Task* task, s32 arg1, s32 unused3)
 
 static s32 Mc_PromptDialogChoice(Task* task, s32 arg1, s32 unused3)
 {
-    s32            ret;
+    u32            textColorRgb;
     s32            one;
     UiObject*      obj;
     register Task* childTask asm("a0");
@@ -898,15 +898,15 @@ static s32 Mc_PromptDialogChoice(Task* task, s32 arg1, s32 unused3)
     McPromptPair*  entry;
     McPromptPair*  base;
 
-    obj         = task->spawnArg2.pointer;
-    ret         = Ui_LookupTable(obj, 1);
-    obj->result = USER_INTERFACE_RESULT_NONE;
+    obj          = task->spawnArg2.pointer;
+    textColorRgb = uiGetTextColor(obj, USER_INTERFACE_TEXT_COLOR_NORMAL);
+    obj->result  = USER_INTERFACE_RESULT_NONE;
     uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     one   = 1;
     base  = Mc_PromptTable;
     entry = &base[arg1];
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, one, TEXT_ALIGNMENT_LEFT);
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, one, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, textColorRgb, one, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, textColorRgb, one, TEXT_ALIGNMENT_LEFT);
 
     childTask = task->firstChild;
     if (childTask == NULL) {
@@ -931,7 +931,7 @@ static s32 Mc_PromptDialogChoice(Task* task, s32 arg1, s32 unused3)
 
 static s32 Mc_PromptDialogSpawn(Task* task, s32 arg1, s32 unused3)
 {
-    s32            ret;
+    u32            textColorRgb;
     s32            one;
     UiObject*      obj;
     register Task* childTask asm("a0");
@@ -939,15 +939,15 @@ static s32 Mc_PromptDialogSpawn(Task* task, s32 arg1, s32 unused3)
     McPromptPair*  entry;
     McPromptPair*  base;
 
-    obj         = task->spawnArg2.pointer;
-    ret         = Ui_LookupTable(obj, 1);
-    obj->result = USER_INTERFACE_RESULT_NONE;
+    obj          = task->spawnArg2.pointer;
+    textColorRgb = uiGetTextColor(obj, USER_INTERFACE_TEXT_COLOR_NORMAL);
+    obj->result  = USER_INTERFACE_RESULT_NONE;
     uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     one   = 1;
     base  = Mc_PromptTable;
     entry = &base[arg1];
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, one, TEXT_ALIGNMENT_LEFT);
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, one, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, textColorRgb, one, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, textColorRgb, one, TEXT_ALIGNMENT_LEFT);
 
     childTask = task->firstChild;
     if (childTask == NULL) {
@@ -972,7 +972,7 @@ static s32 Mc_PromptDialogSpawn(Task* task, s32 arg1, s32 unused3)
 
 static s32 Mc_PromptDialogFile(Task* task, s32 arg1, s32 unused3)
 {
-    s32            ret;
+    u32            textColorRgb;
     s32            one;
     UiObject*      obj;
     register Task* childTask asm("a0");
@@ -980,15 +980,15 @@ static s32 Mc_PromptDialogFile(Task* task, s32 arg1, s32 unused3)
     McPromptPair*  entry;
     McPromptPair*  base;
 
-    obj         = task->spawnArg2.pointer;
-    ret         = Ui_LookupTable(obj, 1);
-    obj->result = USER_INTERFACE_RESULT_NONE;
+    obj          = task->spawnArg2.pointer;
+    textColorRgb = uiGetTextColor(obj, USER_INTERFACE_TEXT_COLOR_NORMAL);
+    obj->result  = USER_INTERFACE_RESULT_NONE;
     uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     one   = 1;
     base  = Mc_PromptTable;
     entry = &base[arg1];
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, one, TEXT_ALIGNMENT_LEFT);
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, one, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, textColorRgb, one, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, textColorRgb, one, TEXT_ALIGNMENT_LEFT);
 
     childTask = task->firstChild;
     if (childTask == NULL) {
@@ -1237,7 +1237,7 @@ static const _McSaveStateTable Mc_PromptStates = { {
 
 static void Mc_StateScanDirFlags(Task* task, McWork* work)
 {
-    s32       ret;
+    u32       textColorRgb;
     UiObject* obj;
     s32       i;
     s32       j;
@@ -1275,18 +1275,18 @@ static void Mc_StateScanDirFlags(Task* task, McWork* work)
         task->state += 1;
     }
 
-    obj         = task->spawnArg2.pointer;
-    idx         = work->promptId;
-    ret         = Ui_LookupTable(obj, 1);
-    obj->result = USER_INTERFACE_RESULT_NONE;
+    obj          = task->spawnArg2.pointer;
+    idx          = work->promptId;
+    textColorRgb = uiGetTextColor(obj, USER_INTERFACE_TEXT_COLOR_NORMAL);
+    obj->result  = USER_INTERFACE_RESULT_NONE;
     uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, Mc_PromptTable[idx].upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, Mc_PromptTable[idx].lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, Mc_PromptTable[idx].upperLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, Mc_PromptTable[idx].lowerLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
 }
 
 static void Mc_StateListDirectory(Task* task, McWork* work)
 {
-    s32           ret;
+    u32           textColorRgb;
     s32           one;
     s32           var_s0;
     s32           temp_v0;
@@ -1347,34 +1347,34 @@ static void Mc_StateListDirectory(Task* task, McWork* work)
         }
     }
 
-    obj         = task->spawnArg2.pointer;
-    idx         = work->promptId;
-    ret         = Ui_LookupTable(obj, 1);
-    obj->result = USER_INTERFACE_RESULT_NONE;
+    obj          = task->spawnArg2.pointer;
+    idx          = work->promptId;
+    textColorRgb = uiGetTextColor(obj, USER_INTERFACE_TEXT_COLOR_NORMAL);
+    obj->result  = USER_INTERFACE_RESULT_NONE;
     uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     one   = 1;
     base  = Mc_PromptTable;
     entry = &base[idx];
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, one, TEXT_ALIGNMENT_LEFT);
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, one, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, textColorRgb, one, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, textColorRgb, one, TEXT_ALIGNMENT_LEFT);
 }
 
 /// Inline form of Mc_DrawPrompt.
 static inline void _mcDrawPrompt(Task* task, s32 mode)
 {
-    s32           ret;
+    u32           textColorRgb;
     UiObject*     obj;
     McPromptPair* entry;
     McPromptPair* base;
 
-    obj         = task->spawnArg2.pointer;
-    ret         = Ui_LookupTable(obj, 1);
-    obj->result = USER_INTERFACE_RESULT_NONE;
+    obj          = task->spawnArg2.pointer;
+    textColorRgb = uiGetTextColor(obj, USER_INTERFACE_TEXT_COLOR_NORMAL);
+    obj->result  = USER_INTERFACE_RESULT_NONE;
     uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[mode];
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
 }
 
 /// Tear down the task's child UI and report status on the task's own object.
@@ -1532,7 +1532,7 @@ static inline s32 _mcCompareBufferHalves(void)
 static void Mc_StateCompareBuffers(Task* task, McWork* work)
 {
     s32           flags;
-    s32           ret;
+    u32           textColorRgb;
     u32           status;
     s32           idx;
     s32           one;
@@ -1586,21 +1586,21 @@ static void Mc_StateCompareBuffers(Task* task, McWork* work)
             break;
     }
 
-    obj         = task->spawnArg2.pointer;
-    idx         = work->promptId;
-    ret         = Ui_LookupTable(obj, 1);
-    obj->result = USER_INTERFACE_RESULT_NONE;
+    obj          = task->spawnArg2.pointer;
+    idx          = work->promptId;
+    textColorRgb = uiGetTextColor(obj, USER_INTERFACE_TEXT_COLOR_NORMAL);
+    obj->result  = USER_INTERFACE_RESULT_NONE;
     uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     one   = 1;
     base  = Mc_PromptTable;
     entry = &base[idx];
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, one, TEXT_ALIGNMENT_LEFT);
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, one, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, textColorRgb, one, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, textColorRgb, one, TEXT_ALIGNMENT_LEFT);
 }
 
 static void Mc_StateOpenRead(Task* task, McWork* work)
 {
-    s32           ret;
+    u32           textColorRgb;
     u32           status;
     s32           idx;
     UiObject*     obj;
@@ -1637,20 +1637,20 @@ static void Mc_StateOpenRead(Task* task, McWork* work)
         }
     }
 
-    obj         = task->spawnArg2.pointer;
-    idx         = work->promptId;
-    ret         = Ui_LookupTable(obj, 1);
-    obj->result = USER_INTERFACE_RESULT_NONE;
+    obj          = task->spawnArg2.pointer;
+    idx          = work->promptId;
+    textColorRgb = uiGetTextColor(obj, USER_INTERFACE_TEXT_COLOR_NORMAL);
+    obj->result  = USER_INTERFACE_RESULT_NONE;
     uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[idx];
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
 }
 
 static void Mc_StateCreateFile(Task* task, McWork* work)
 {
-    s32           ret;
+    u32           textColorRgb;
     u32           status;
     s32           idx;
     UiObject*     obj;
@@ -1684,20 +1684,20 @@ static void Mc_StateCreateFile(Task* task, McWork* work)
         }
     }
 
-    obj         = task->spawnArg2.pointer;
-    idx         = work->promptId;
-    ret         = Ui_LookupTable(obj, 1);
-    obj->result = USER_INTERFACE_RESULT_NONE;
+    obj          = task->spawnArg2.pointer;
+    idx          = work->promptId;
+    textColorRgb = uiGetTextColor(obj, USER_INTERFACE_TEXT_COLOR_NORMAL);
+    obj->result  = USER_INTERFACE_RESULT_NONE;
     uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[idx];
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
 }
 
 static void Mc_StatePadFileName(Task* task, McWork* work)
 {
-    s32           ret;
+    u32           textColorRgb;
     u32           status;
     s32           idx;
     s32           i;
@@ -1740,15 +1740,15 @@ static void Mc_StatePadFileName(Task* task, McWork* work)
     }
     work->buffer = 0;
 
-    obj         = task->spawnArg2.pointer;
-    idx         = work->promptId;
-    ret         = Ui_LookupTable(obj, 1);
-    obj->result = USER_INTERFACE_RESULT_NONE;
+    obj          = task->spawnArg2.pointer;
+    idx          = work->promptId;
+    textColorRgb = uiGetTextColor(obj, USER_INTERFACE_TEXT_COLOR_NORMAL);
+    obj->result  = USER_INTERFACE_RESULT_NONE;
     uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[idx];
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
 }
 
 static void Mc_StateNameEntry(Task* task, McWork* work)
@@ -1896,7 +1896,7 @@ static void Mc_StateBackupBuffers(Task* task, McWork* work)
 
 static void Mc_StateFreeBuffer(Task* task, McWork* work)
 {
-    s32           ret;
+    u32           textColorRgb;
     u32           status;
     s32           idx;
     s32           i;
@@ -1946,20 +1946,20 @@ static void Mc_StateFreeBuffer(Task* task, McWork* work)
     memFree(work->buffer);
     work->buffer = 0;
 
-    obj         = task->spawnArg2.pointer;
-    idx         = work->promptId;
-    ret         = Ui_LookupTable(obj, 1);
-    obj->result = USER_INTERFACE_RESULT_NONE;
+    obj          = task->spawnArg2.pointer;
+    idx          = work->promptId;
+    textColorRgb = uiGetTextColor(obj, USER_INTERFACE_TEXT_COLOR_NORMAL);
+    obj->result  = USER_INTERFACE_RESULT_NONE;
     uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[idx];
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
 }
 
 static void Mc_StateFormat(Task* task, McWork* work)
 {
-    s32           ret;
+    u32           textColorRgb;
     s32           status;
     s32           idx;
     s32           next;
@@ -1985,15 +1985,15 @@ static void Mc_StateFormat(Task* task, McWork* work)
         task->state = next;
     }
 
-    obj         = task->spawnArg2.pointer;
-    idx         = work->promptId;
-    ret         = Ui_LookupTable(obj, 1);
-    obj->result = USER_INTERFACE_RESULT_NONE;
+    obj          = task->spawnArg2.pointer;
+    idx          = work->promptId;
+    textColorRgb = uiGetTextColor(obj, USER_INTERFACE_TEXT_COLOR_NORMAL);
+    obj->result  = USER_INTERFACE_RESULT_NONE;
     uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[idx];
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
 }
 
 static void Mc_StateSyncFileSelect(Task* task, McWork* work)
@@ -2079,7 +2079,7 @@ static const _McFileSelectStateTable Mc_FileSelectStates = { {
 
 static void Mc_StateBlankFileName(Task* task, McWork* work)
 {
-    s32           ret;
+    u32           textColorRgb;
     u32           status;
     s32           idx;
     s32           i;
@@ -2123,15 +2123,15 @@ static void Mc_StateBlankFileName(Task* task, McWork* work)
             break;
     }
 
-    obj         = task->spawnArg2.pointer;
-    idx         = work->promptId;
-    ret         = Ui_LookupTable(obj, 1);
-    obj->result = USER_INTERFACE_RESULT_NONE;
+    obj          = task->spawnArg2.pointer;
+    idx          = work->promptId;
+    textColorRgb = uiGetTextColor(obj, USER_INTERFACE_TEXT_COLOR_NORMAL);
+    obj->result  = USER_INTERFACE_RESULT_NONE;
     uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[idx];
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
 }
 
 static void Mc_StateSyncOpen(Task* task, McWork* work)
@@ -2430,7 +2430,7 @@ static void Mc_StateSaveSlotUi(UiList* list, UiObject* object)
     work              = object->owner->spawnArg1.pointer;
     if (!_mcVerifySaveHdrChecksum((McSavePreview*)((u8*)work + previewByteOffset))) {
         enabled = 0;
-        Ui_LookupTable(object, 2);
+        uiGetTextColor(object, USER_INTERFACE_TEXT_COLOR_DIMMED);
     }
     Mc_DrawSlotDetails(object, work, list->currentItemIndex, 0, list->rowTextY.signedValue + 7);
     if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
@@ -2464,10 +2464,10 @@ void Mc_DrawSlotDetails(UiObject* object, McWork* work, s32 slot, s32 arg3, s32 
     s32            x;
     s32            y;
     s32            textX;
-    s32            color;
+    u32            textColorRgb;
     McSavePreview* save;
 
-    color = Ui_LookupTable(object, 1);
+    textColorRgb = uiGetTextColor(object, USER_INTERFACE_TEXT_COLOR_NORMAL);
     if (slot < work->entryCount) {
         save = &work->previews[slot];
         if (!_mcVerifySaveHdrChecksum(save)) {
@@ -2493,7 +2493,7 @@ void Mc_DrawSlotDetails(UiObject* object, McWork* work, s32 slot, s32 arg3, s32 
         timeValueRequest.x          = object->panel.contentOriginX.unsignedValue + 0x28 + x;
         timeValueRequest.y          = object->panel.contentOriginY.unsignedValue + y;
         timeValueRequest.otIndex    = object->panel.otIndex.signedValue + 1;
-        timeValueRequest.colorRgb   = color;
+        timeValueRequest.colorRgb   = textColorRgb;
         timeValueRequest.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
         timeValueRequest.alignment  = TEXT_ALIGNMENT_LEFT;
         timeValueRequest.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
@@ -2512,7 +2512,7 @@ void Mc_DrawSlotDetails(UiObject* object, McWork* work, s32 slot, s32 arg3, s32 
             detailRequest.x          = object->panel.contentOriginX.unsignedValue + x;
             detailRequest.y          = object->panel.contentOriginY.unsignedValue + y;
             detailRequest.otIndex    = object->panel.otIndex.signedValue + 1;
-            detailRequest.colorRgb   = color;
+            detailRequest.colorRgb   = textColorRgb;
             detailRequest.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
             detailRequest.alignment  = TEXT_ALIGNMENT_RIGHT;
             detailRequest.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
@@ -2530,7 +2530,7 @@ void Mc_DrawSlotDetails(UiObject* object, McWork* work, s32 slot, s32 arg3, s32 
         }
         x = arg3 + object->panel.contentLeft.signedValue + 4;
         y = arg4 + object->panel.contentTop.signedValue + 0x11;
-        textDrawUiLine(object, x, y, Mc_LocationLabels[(s8)save->savePoint], color, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+        textDrawUiLine(object, x, y, Mc_LocationLabels[(s8)save->savePoint], textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
         sp60.buf[0] = 0;
         textAppendString(sp60.buf, McText_OpenParen);
         textAppendString(sp60.buf, textItoaSigned(sp20.buf, save->saveNumber));
@@ -2538,7 +2538,7 @@ void Mc_DrawSlotDetails(UiObject* object, McWork* work, s32 slot, s32 arg3, s32 
         detailRequest.x          = object->panel.contentOriginX.unsignedValue + (x + textMeasureLineWidth(Mc_LocationLabels[(s8)save->savePoint]));
         detailRequest.y          = object->panel.contentOriginY.unsignedValue + (y - 3);
         detailRequest.otIndex    = object->panel.otIndex.signedValue + 1;
-        detailRequest.colorRgb   = color;
+        detailRequest.colorRgb   = textColorRgb;
         detailRequest.glyphTable = TEXT_GLYPH_TABLE_LARGE;
         detailRequest.alignment  = TEXT_ALIGNMENT_LEFT;
         detailRequest.drawMode   = TEXT_DRAW_OUTLINED;
@@ -2608,7 +2608,7 @@ void Mc_DrawSlotDetails(UiObject* object, McWork* work, s32 slot, s32 arg3, s32 
         sp20.req.y          = object->panel.contentOriginY.unsignedValue + 5 + arg4;
         sp20.req.otIndex    = object->panel.otIndex.signedValue + 1;
         sp20.req.glyphTable = TEXT_GLYPH_TABLE_LARGE;
-        sp20.req.colorRgb   = color;
+        sp20.req.colorRgb   = textColorRgb;
         sp20.req.alignment  = TEXT_ALIGNMENT_CENTER;
         sp20.req.drawMode   = TEXT_DRAW_OUTLINED;
         textDrawString(&sp20.req, McText_NewBlock);
@@ -2950,7 +2950,7 @@ static void Mc_WriteSlotChecksumsEx(Task* task, McWork* work)
 
 static void Mc_StateAcceptMode1(Task* task, McWork* work)
 {
-    s32           ret;
+    u32           textColorRgb;
     s32           idx;
     UiObject*     obj;
     McPromptPair* entry;
@@ -2966,13 +2966,13 @@ static void Mc_StateAcceptMode1(Task* task, McWork* work)
     work->cardTimer = work->cardTimer + 1;
     idx             = work->promptId;
     obj             = task->spawnArg2.pointer;
-    ret             = Ui_LookupTable(obj, 1);
+    textColorRgb    = uiGetTextColor(obj, USER_INTERFACE_TEXT_COLOR_NORMAL);
     obj->result     = USER_INTERFACE_RESULT_NONE;
     uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[idx];
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     if (work->promptTimer > 0) {
         work->promptTimer -= 2;
     }
@@ -2983,7 +2983,7 @@ static void Mc_StateAcceptMode1(Task* task, McWork* work)
 
 static void Mc_StateSyncAdvance(Task* task, McWork* work)
 {
-    s32           ret;
+    u32           textColorRgb;
     s32           idx;
     UiObject*     obj;
     McPromptPair* entry;
@@ -2995,15 +2995,15 @@ static void Mc_StateSyncAdvance(Task* task, McWork* work)
     } else {
         work->cardTimer = work->cardTimer + 1;
     }
-    idx         = work->promptId;
-    obj         = task->spawnArg2.pointer;
-    ret         = Ui_LookupTable(obj, 1);
-    obj->result = USER_INTERFACE_RESULT_NONE;
+    idx          = work->promptId;
+    obj          = task->spawnArg2.pointer;
+    textColorRgb = uiGetTextColor(obj, USER_INTERFACE_TEXT_COLOR_NORMAL);
+    obj->result  = USER_INTERFACE_RESULT_NONE;
     uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[idx];
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     if (work->promptTimer > 0) {
         work->promptTimer -= 2;
     }
@@ -3014,7 +3014,7 @@ static void Mc_StateSyncAdvance(Task* task, McWork* work)
 
 static void Mc_StateDrawPromptAdvance(Task* task, McWork* work)
 {
-    s32           ret;
+    u32           textColorRgb;
     s32           idx;
     UiObject*     obj;
     McPromptPair* entry;
@@ -3023,13 +3023,13 @@ static void Mc_StateDrawPromptAdvance(Task* task, McWork* work)
     work->cardTimer = MEMORY_CARD_IO_SETTLE_FRAMES;
     obj             = task->spawnArg2.pointer;
     idx             = work->promptId;
-    ret             = Ui_LookupTable(obj, 1);
+    textColorRgb    = uiGetTextColor(obj, USER_INTERFACE_TEXT_COLOR_NORMAL);
     obj->result     = USER_INTERFACE_RESULT_NONE;
     uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[idx];
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     task->state = task->state + 1;
 }
 
@@ -3081,7 +3081,7 @@ static void Mc_StatePromptChoiceB(Task* task, McWork* work)
 
 static void Mc_StateDrawPrompt4(Task* task, McWork* work)
 {
-    s32           ret;
+    u32           textColorRgb;
     UiObject*     obj;
     McPromptPair* entry;
     McPromptPair* base;
@@ -3089,19 +3089,19 @@ static void Mc_StateDrawPrompt4(Task* task, McWork* work)
     work->cardTimer = MEMORY_CARD_IO_SETTLE_FRAMES;
     work->promptId  = MEMORY_CARD_PROMPT_SAVING;
     obj             = task->spawnArg2.pointer;
-    ret             = Ui_LookupTable(obj, 1);
+    textColorRgb    = uiGetTextColor(obj, USER_INTERFACE_TEXT_COLOR_NORMAL);
     obj->result     = USER_INTERFACE_RESULT_NONE;
     uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[MEMORY_CARD_PROMPT_SAVING];
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     task->state = task->state + 1;
 }
 
 static void Mc_StateEnterDialog4(Task* task, McWork* work)
 {
-    s32           ret;
+    u32           textColorRgb;
     UiObject*     obj;
     McPromptPair* entry;
     McPromptPair* base;
@@ -3110,18 +3110,18 @@ static void Mc_StateEnterDialog4(Task* task, McWork* work)
     task->state++;
     work->promptId = MEMORY_CARD_PROMPT_SAVING;
     obj            = task->spawnArg2.pointer;
-    ret            = Ui_LookupTable(obj, 1);
+    textColorRgb   = uiGetTextColor(obj, USER_INTERFACE_TEXT_COLOR_NORMAL);
     obj->result    = USER_INTERFACE_RESULT_NONE;
     uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[MEMORY_CARD_PROMPT_SAVING];
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
 }
 
 static void Mc_StateWriteFile(Task* task, McWork* work)
 {
-    s32           ret;
+    u32           textColorRgb;
     UiObject*     obj;
     McPromptPair* entry;
     McPromptPair* base;
@@ -3134,15 +3134,15 @@ static void Mc_StateWriteFile(Task* task, McWork* work)
     } else {
         work->cardTimer = work->cardTimer + 1;
     }
-    idx         = work->promptId;
-    obj         = task->spawnArg2.pointer;
-    ret         = Ui_LookupTable(obj, 1);
-    obj->result = USER_INTERFACE_RESULT_NONE;
+    idx          = work->promptId;
+    obj          = task->spawnArg2.pointer;
+    textColorRgb = uiGetTextColor(obj, USER_INTERFACE_TEXT_COLOR_NORMAL);
+    obj->result  = USER_INTERFACE_RESULT_NONE;
     uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[idx];
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
 }
 
 static void Mc_StatePromptChoiceGeneric(Task* task, McWork* work)
@@ -3172,7 +3172,7 @@ static void Mc_StatePromptChoiceGeneric(Task* task, McWork* work)
 
 static void Mc_StateWriteData(Task* task, McWork* work)
 {
-    s32           ret;
+    u32           textColorRgb;
     UiObject*     obj;
     McPromptPair* entry;
     McPromptPair* base;
@@ -3184,20 +3184,20 @@ static void Mc_StateWriteData(Task* task, McWork* work)
     } else {
         work->cardTimer = work->cardTimer + 1;
     }
-    idx         = work->promptId;
-    obj         = task->spawnArg2.pointer;
-    ret         = Ui_LookupTable(obj, 1);
-    obj->result = USER_INTERFACE_RESULT_NONE;
+    idx          = work->promptId;
+    obj          = task->spawnArg2.pointer;
+    textColorRgb = uiGetTextColor(obj, USER_INTERFACE_TEXT_COLOR_NORMAL);
+    obj->result  = USER_INTERFACE_RESULT_NONE;
     uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[idx];
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
 }
 
 static void Mc_StateClosePrompt(Task* task, McWork* work)
 {
-    s32           ret;
+    u32           textColorRgb;
     UiObject*     obj;
     McPromptPair* entry;
     McPromptPair* base;
@@ -3206,15 +3206,15 @@ static void Mc_StateClosePrompt(Task* task, McWork* work)
     s16           val;
 
     MemCardClose();
-    idx         = work->promptId;
-    obj         = task->spawnArg2.pointer;
-    ret         = Ui_LookupTable(obj, 1);
-    obj->result = USER_INTERFACE_RESULT_NONE;
+    idx          = work->promptId;
+    obj          = task->spawnArg2.pointer;
+    textColorRgb = uiGetTextColor(obj, USER_INTERFACE_TEXT_COLOR_NORMAL);
+    obj->result  = USER_INTERFACE_RESULT_NONE;
     uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[idx];
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     task->state = 0x1B;
     flag        = task->spawnArg2.pointer;
     if (flag != NULL) {
@@ -3309,20 +3309,20 @@ static void Mc_StatePromptChoice9(Task* task, McWork* work)
 
 static void Mc_StateColdBoot(Task* task, McWork* work)
 {
-    s32           ret;
+    u32           textColorRgb;
     UiObject*     obj;
     McPromptPair* entry;
     McPromptPair* base;
 
     work->promptId = MEMORY_CARD_PROMPT_FORMATTING;
     obj            = task->spawnArg2.pointer;
-    ret            = Ui_LookupTable(obj, 1);
+    textColorRgb   = uiGetTextColor(obj, USER_INTERFACE_TEXT_COLOR_NORMAL);
     obj->result    = USER_INTERFACE_RESULT_NONE;
     uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[MEMORY_CARD_PROMPT_FORMATTING];
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     work->cardTimer = MEMORY_CARD_IO_SETTLE_FRAMES;
     task->state     = task->state + 1;
 }
@@ -3395,7 +3395,7 @@ static void Mc_StateEnterPrompt0(Task* task, McWork* work)
 
 static void Mc_StatePromptCountdown(Task* task, McWork* work)
 {
-    s32           ret;
+    u32           textColorRgb;
     UiObject*     obj;
     McPromptPair* entry;
     McPromptPair* base;
@@ -3404,13 +3404,13 @@ static void Mc_StatePromptCountdown(Task* task, McWork* work)
     work->promptTimer -= 1;
     obj                = task->spawnArg2.pointer;
     idx                = work->promptId;
-    ret                = Ui_LookupTable(obj, 1);
+    textColorRgb       = uiGetTextColor(obj, USER_INTERFACE_TEXT_COLOR_NORMAL);
     obj->result        = USER_INTERFACE_RESULT_NONE;
     uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[idx];
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     if (work->promptTimer < MEMORY_CARD_PROMPT_DISMISS_LIMIT) {
         task->killCountdown = 0;
         task->state         = -1;
@@ -3419,40 +3419,40 @@ static void Mc_StatePromptCountdown(Task* task, McWork* work)
 
 static void Mc_StateDrawPromptTo1F(Task* task, McWork* work)
 {
-    s32           ret;
+    u32           textColorRgb;
     UiObject*     obj;
     McPromptPair* entry;
     McPromptPair* base;
     s32           idx;
 
-    idx         = work->promptId;
-    obj         = task->spawnArg2.pointer;
-    ret         = Ui_LookupTable(obj, 1);
-    obj->result = USER_INTERFACE_RESULT_NONE;
+    idx          = work->promptId;
+    obj          = task->spawnArg2.pointer;
+    textColorRgb = uiGetTextColor(obj, USER_INTERFACE_TEXT_COLOR_NORMAL);
+    obj->result  = USER_INTERFACE_RESULT_NONE;
     uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[idx];
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     task->state = 0x1F;
 }
 
 static void Mc_StateCountdownPrompt4(Task* task, McWork* work)
 {
-    s32           ret;
+    u32           textColorRgb;
     UiObject*     obj;
     McPromptPair* entry;
     McPromptPair* base;
 
     work->promptId = MEMORY_CARD_PROMPT_SAVING;
     obj            = task->spawnArg2.pointer;
-    ret            = Ui_LookupTable(obj, 1);
+    textColorRgb   = uiGetTextColor(obj, USER_INTERFACE_TEXT_COLOR_NORMAL);
     obj->result    = USER_INTERFACE_RESULT_NONE;
     uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[MEMORY_CARD_PROMPT_SAVING];
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     if (work->cardTimer-- <= 0) {
         work->closeAnswer = USER_INTERFACE_LIST_COMMAND_YES;
         task->state       = 0x13;
@@ -3461,7 +3461,7 @@ static void Mc_StateCountdownPrompt4(Task* task, McWork* work)
 
 static void Mc_StateDrawPrompt1Advance(Task* task, McWork* work)
 {
-    s32           ret;
+    u32           textColorRgb;
     UiObject*     obj;
     McPromptPair* entry;
     McPromptPair* base;
@@ -3469,13 +3469,13 @@ static void Mc_StateDrawPrompt1Advance(Task* task, McWork* work)
     work->cardTimer = MEMORY_CARD_IO_BRIEF_FRAMES;
     work->promptId  = MEMORY_CARD_PROMPT_CHECKING;
     obj             = task->spawnArg2.pointer;
-    ret             = Ui_LookupTable(obj, 1);
+    textColorRgb    = uiGetTextColor(obj, USER_INTERFACE_TEXT_COLOR_NORMAL);
     obj->result     = USER_INTERFACE_RESULT_NONE;
     uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[MEMORY_CARD_PROMPT_CHECKING];
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     task->state = task->state + 1;
 }
 
@@ -3499,7 +3499,7 @@ static void Mc_StateOpenSelected(Task* task, McWork* work)
 
 static void Mc_StateReadHeader(Task* task, McWork* work)
 {
-    s32           ret;
+    u32           textColorRgb;
     UiObject*     obj;
     McPromptPair* entry;
     McPromptPair* base;
@@ -3512,15 +3512,15 @@ static void Mc_StateReadHeader(Task* task, McWork* work)
     } else {
         work->cardTimer = work->cardTimer + 1;
     }
-    obj         = task->spawnArg2.pointer;
-    idx         = work->promptId;
-    ret         = Ui_LookupTable(obj, 1);
-    obj->result = USER_INTERFACE_RESULT_NONE;
+    obj          = task->spawnArg2.pointer;
+    idx          = work->promptId;
+    textColorRgb = uiGetTextColor(obj, USER_INTERFACE_TEXT_COLOR_NORMAL);
+    obj->result  = USER_INTERFACE_RESULT_NONE;
     uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[idx];
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
 }
 
 static void Mc_StateOpenNext(Task* task, McWork* work)
@@ -3529,7 +3529,7 @@ static void Mc_StateOpenNext(Task* task, McWork* work)
     Task*         a0;
     UiObject*     obj;
     s32           modeIdx;
-    s32           ret;
+    u32           textColorRgb;
     s32           temp_v0;
     McPromptPair* entry;
     McPromptPair* base;
@@ -3548,20 +3548,20 @@ static void Mc_StateOpenNext(Task* task, McWork* work)
     } else {
         a0->state = 0x18;
     }
-    obj         = a0->spawnArg2.pointer;
-    modeIdx     = a1->promptId;
-    ret         = Ui_LookupTable(obj, 1);
-    obj->result = USER_INTERFACE_RESULT_NONE;
+    obj          = a0->spawnArg2.pointer;
+    modeIdx      = a1->promptId;
+    textColorRgb = uiGetTextColor(obj, USER_INTERFACE_TEXT_COLOR_NORMAL);
+    obj->result  = USER_INTERFACE_RESULT_NONE;
     uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[modeIdx];
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
 }
 
 static void Mc_StateUiCountdown2(Task* task, McWork* work)
 {
-    s32           ret;
+    u32           textColorRgb;
     UiObject*     obj;
     McPromptPair* entry;
     McPromptPair* base;
@@ -3571,20 +3571,20 @@ static void Mc_StateUiCountdown2(Task* task, McWork* work)
     if (task->killCountdown <= 0) {
         task->state = 2;
     }
-    obj         = task->spawnArg2.pointer;
-    idx         = work->promptId;
-    ret         = Ui_LookupTable(obj, 1);
-    obj->result = USER_INTERFACE_RESULT_NONE;
+    obj          = task->spawnArg2.pointer;
+    idx          = work->promptId;
+    textColorRgb = uiGetTextColor(obj, USER_INTERFACE_TEXT_COLOR_NORMAL);
+    obj->result  = USER_INTERFACE_RESULT_NONE;
     uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[idx];
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
 }
 
 static void Mc_StateUiCountdownE(Task* task, McWork* work)
 {
-    s32           ret;
+    u32           textColorRgb;
     UiObject*     obj;
     McPromptPair* entry;
     McPromptPair* base;
@@ -3594,20 +3594,20 @@ static void Mc_StateUiCountdownE(Task* task, McWork* work)
     if (task->killCountdown <= 0) {
         task->state = 0xE;
     }
-    obj         = task->spawnArg2.pointer;
-    idx         = work->promptId;
-    ret         = Ui_LookupTable(obj, 1);
-    obj->result = USER_INTERFACE_RESULT_NONE;
+    obj          = task->spawnArg2.pointer;
+    idx          = work->promptId;
+    textColorRgb = uiGetTextColor(obj, USER_INTERFACE_TEXT_COLOR_NORMAL);
+    obj->result  = USER_INTERFACE_RESULT_NONE;
     uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[idx];
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
 }
 
 static void Mc_StateUiCountdownF(Task* task, McWork* work)
 {
-    s32           ret;
+    u32           textColorRgb;
     UiObject*     obj;
     McPromptPair* entry;
     McPromptPair* base;
@@ -3618,13 +3618,13 @@ static void Mc_StateUiCountdownF(Task* task, McWork* work)
     }
     work->promptId = MEMORY_CARD_PROMPT_SAVING;
     obj            = task->spawnArg2.pointer;
-    ret            = Ui_LookupTable(obj, 1);
+    textColorRgb   = uiGetTextColor(obj, USER_INTERFACE_TEXT_COLOR_NORMAL);
     obj->result    = USER_INTERFACE_RESULT_NONE;
     uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[MEMORY_CARD_PROMPT_SAVING];
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
 }
 
 static void Mc_StateEnterPromptE(Task* task, McWork* work)
@@ -3691,7 +3691,7 @@ static void Mc_StateSetOpenDefaults(Task* task, McWork* work)
 static void Mc_StateCountdownPrompt(Task* task, McWork* work)
 {
     s32           status;
-    s32           ret;
+    u32           textColorRgb;
     s32           idx;
     UiObject*     obj;
     McPromptPair* entry;
@@ -3714,36 +3714,36 @@ static void Mc_StateCountdownPrompt(Task* task, McWork* work)
                 break;
         }
     } else {
-        obj         = task->spawnArg2.pointer;
-        idx         = work->promptId;
-        ret         = Ui_LookupTable(obj, 1);
-        obj->result = USER_INTERFACE_RESULT_NONE;
+        obj          = task->spawnArg2.pointer;
+        idx          = work->promptId;
+        textColorRgb = uiGetTextColor(obj, USER_INTERFACE_TEXT_COLOR_NORMAL);
+        obj->result  = USER_INTERFACE_RESULT_NONE;
         uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
         base  = Mc_PromptTable;
         entry = &base[idx];
-        textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-        textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+        textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+        textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     }
 }
 
 static void Mc_StateCloseReturn(Task* task, McWork* work)
 {
-    s32           ret;
+    u32           textColorRgb;
     UiObject*     obj;
     McPromptPair* entry;
     McPromptPair* base;
     s32           idx;
 
     MemCardClose();
-    idx         = work->promptId;
-    obj         = task->spawnArg2.pointer;
-    ret         = Ui_LookupTable(obj, 1);
-    obj->result = USER_INTERFACE_RESULT_NONE;
+    idx          = work->promptId;
+    obj          = task->spawnArg2.pointer;
+    textColorRgb = uiGetTextColor(obj, USER_INTERFACE_TEXT_COLOR_NORMAL);
+    obj->result  = USER_INTERFACE_RESULT_NONE;
     uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[idx];
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     task->state = 4;
     if (task->spawnArg2.pointer != NULL) {
         ((UiObject*)task->spawnArg2.pointer)->result = USER_INTERFACE_RESULT_CANCEL;
@@ -3752,7 +3752,7 @@ static void Mc_StateCloseReturn(Task* task, McWork* work)
 
 static void Mc_StatePromptTimeout(Task* task, McWork* work)
 {
-    s32           ret;
+    u32           textColorRgb;
     UiObject*     obj;
     McPromptPair* entry;
     McPromptPair* base;
@@ -3761,13 +3761,13 @@ static void Mc_StatePromptTimeout(Task* task, McWork* work)
     work->promptTimer -= 1;
     obj                = task->spawnArg2.pointer;
     idx                = work->promptId;
-    ret                = Ui_LookupTable(obj, 1);
+    textColorRgb       = uiGetTextColor(obj, USER_INTERFACE_TEXT_COLOR_NORMAL);
     obj->result        = USER_INTERFACE_RESULT_NONE;
     uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[idx];
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     if (work->promptTimer < MEMORY_CARD_PROMPT_DISMISS_LIMIT) {
         task->killCountdown = 0;
         task->state         = task->state + 1;
@@ -3896,7 +3896,7 @@ static void Mc_StateSyncPromptA(Task* task, McWork* work)
 
 static void Mc_StateDrawCurrentPrompt(Task* task, McWork* work)
 {
-    s32           ret;
+    u32           textColorRgb;
     UiObject*     obj;
     McPromptPair* entry;
     McPromptPair* base;
@@ -3905,19 +3905,19 @@ static void Mc_StateDrawCurrentPrompt(Task* task, McWork* work)
     work->cardTimer = MEMORY_CARD_IO_BRIEF_FRAMES;
     obj             = task->spawnArg2.pointer;
     idx             = work->promptId;
-    ret             = Ui_LookupTable(obj, 1);
+    textColorRgb    = uiGetTextColor(obj, USER_INTERFACE_TEXT_COLOR_NORMAL);
     obj->result     = USER_INTERFACE_RESULT_NONE;
     uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[idx];
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     task->state = task->state + 1;
 }
 
 static void Mc_StateReadData(Task* task, McWork* work)
 {
-    s32           ret;
+    u32           textColorRgb;
     UiObject*     obj;
     McPromptPair* entry;
     McPromptPair* base;
@@ -3929,20 +3929,20 @@ static void Mc_StateReadData(Task* task, McWork* work)
     } else {
         work->cardTimer = work->cardTimer + 1;
     }
-    obj         = task->spawnArg2.pointer;
-    idx         = work->promptId;
-    ret         = Ui_LookupTable(obj, 1);
-    obj->result = USER_INTERFACE_RESULT_NONE;
+    obj          = task->spawnArg2.pointer;
+    idx          = work->promptId;
+    textColorRgb = uiGetTextColor(obj, USER_INTERFACE_TEXT_COLOR_NORMAL);
+    obj->result  = USER_INTERFACE_RESULT_NONE;
     uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[idx];
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
 }
 
 static void Mc_StateDrawPrompt1(Task* task, McWork* work)
 {
-    s32           ret;
+    u32           textColorRgb;
     UiObject*     obj;
     McPromptPair* entry;
     McPromptPair* base;
@@ -3950,19 +3950,19 @@ static void Mc_StateDrawPrompt1(Task* task, McWork* work)
     work->cardTimer = MEMORY_CARD_IO_BRIEF_FRAMES;
     work->promptId  = MEMORY_CARD_PROMPT_CHECKING;
     obj             = task->spawnArg2.pointer;
-    ret             = Ui_LookupTable(obj, 1);
+    textColorRgb    = uiGetTextColor(obj, USER_INTERFACE_TEXT_COLOR_NORMAL);
     obj->result     = USER_INTERFACE_RESULT_NONE;
     uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[MEMORY_CARD_PROMPT_CHECKING];
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     task->state = task->state + 1;
 }
 
 static void Mc_StateGetDirentry(Task* task, McWork* work)
 {
-    s32           ret;
+    u32           textColorRgb;
     s32           idx;
     UiObject*     obj;
     McPromptPair* entry;
@@ -3983,15 +3983,15 @@ static void Mc_StateGetDirentry(Task* task, McWork* work)
         }
     }
 
-    obj         = task->spawnArg2.pointer;
-    idx         = work->promptId;
-    ret         = Ui_LookupTable(obj, 1);
-    obj->result = USER_INTERFACE_RESULT_NONE;
+    obj          = task->spawnArg2.pointer;
+    idx          = work->promptId;
+    textColorRgb = uiGetTextColor(obj, USER_INTERFACE_TEXT_COLOR_NORMAL);
+    obj->result  = USER_INTERFACE_RESULT_NONE;
     uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[idx];
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
 }
 
 static void Mc_StateOpenDirEntry(Task* task, McWork* work)
@@ -4014,7 +4014,7 @@ static void Mc_StateOpenDirEntry(Task* task, McWork* work)
 
 static void Mc_StateReadSlot(Task* task, McWork* work)
 {
-    s32           ret;
+    u32           textColorRgb;
     UiObject*     obj;
     McPromptPair* entry;
     McPromptPair* base;
@@ -4027,15 +4027,15 @@ static void Mc_StateReadSlot(Task* task, McWork* work)
     } else {
         work->cardTimer = work->cardTimer + 1;
     }
-    obj         = task->spawnArg2.pointer;
-    idx         = work->promptId;
-    ret         = Ui_LookupTable(obj, 1);
-    obj->result = USER_INTERFACE_RESULT_NONE;
+    obj          = task->spawnArg2.pointer;
+    idx          = work->promptId;
+    textColorRgb = uiGetTextColor(obj, USER_INTERFACE_TEXT_COLOR_NORMAL);
+    obj->result  = USER_INTERFACE_RESULT_NONE;
     uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[idx];
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
 }
 
 static void Mc_StateWalkDirectory(Task* task, McWork* work)
@@ -4044,7 +4044,7 @@ static void Mc_StateWalkDirectory(Task* task, McWork* work)
     Task*         a0;
     UiObject*     obj;
     s32           modeIdx;
-    s32           ret;
+    u32           textColorRgb;
     s32           temp_v0;
     McPromptPair* entry;
     McPromptPair* base;
@@ -4063,15 +4063,15 @@ static void Mc_StateWalkDirectory(Task* task, McWork* work)
     } else {
         a0->state = 0x6;
     }
-    obj         = a0->spawnArg2.pointer;
-    modeIdx     = a1->promptId;
-    ret         = Ui_LookupTable(obj, 1);
-    obj->result = USER_INTERFACE_RESULT_NONE;
+    obj          = a0->spawnArg2.pointer;
+    modeIdx      = a1->promptId;
+    textColorRgb = uiGetTextColor(obj, USER_INTERFACE_TEXT_COLOR_NORMAL);
+    obj->result  = USER_INTERFACE_RESULT_NONE;
     uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
     base  = Mc_PromptTable;
     entry = &base[modeIdx];
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, ret, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
 }
 
 static void Mc_StateEnterPrompt17(Task* task, McWork* work)

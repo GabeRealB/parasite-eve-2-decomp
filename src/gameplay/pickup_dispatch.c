@@ -214,18 +214,18 @@ void Gp_ItemMenuTask(Task* arg0)
 void Gp_DrawPromptLines(UiObject* arg0, Task* arg1)
 {
     const u8*    text;
-    s32          color;
+    u32          textColorRgb;
     s32          one;
     TaskSpawnArg val;
 
     val = arg1->spawnArg1;
     if (val.value != 0) {
         if (val.unsignedValue > 0xFFFF) {
-            color = Ui_LookupTable(arg0, 1);
-            one   = 1;
-            textDrawUiLine(arg0, arg0->panel.contentLeft.signedValue + 2, arg0->panel.contentTop.signedValue + 0xF, val.pointer, color, one, TEXT_ALIGNMENT_LEFT);
+            textColorRgb = uiGetTextColor(arg0, USER_INTERFACE_TEXT_COLOR_NORMAL);
+            one          = 1;
+            textDrawUiLine(arg0, arg0->panel.contentLeft.signedValue + 2, arg0->panel.contentTop.signedValue + 0xF, val.pointer, textColorRgb, one, TEXT_ALIGNMENT_LEFT);
             text = textSkipLines(val.pointer, one);
-            textDrawUiLine(arg0, arg0->panel.contentLeft.signedValue + 2, arg0->panel.contentTop.signedValue + 0x1E, text, color, one, TEXT_ALIGNMENT_LEFT);
+            textDrawUiLine(arg0, arg0->panel.contentLeft.signedValue + 2, arg0->panel.contentTop.signedValue + 0x1E, text, textColorRgb, one, TEXT_ALIGNMENT_LEFT);
         } else if ((u32)(val.value - 0x300) < 0x100U) {
             Gp_DrawCastCostLines(arg0, val.value);
         }

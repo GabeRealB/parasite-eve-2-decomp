@@ -163,7 +163,7 @@ static void func_options_801D404C(UiList* arg0, UiObject* arg1)
     s32  span;
     s32  selected;
     s32  one;
-    s32  look;
+    u32  textColorRgb;
     s32  status;
     s32  saved;
     s32  cur;
@@ -181,12 +181,12 @@ static void func_options_801D404C(UiList* arg0, UiObject* arg1)
     span     = arg1->panel.contentRight.signedValue - x;
     do {
         if (i != selected) {
-            look = Ui_LookupTable(arg1, 2);
+            textColorRgb = uiGetTextColor(arg1, USER_INTERFACE_TEXT_COLOR_DIMMED);
         } else {
-            look = Ui_LookupTable(arg1, 1);
+            textColorRgb = uiGetTextColor(arg1, USER_INTERFACE_TEXT_COLOR_NORMAL);
         }
         one = 1;
-        textDrawUiLine(arg1, x + y / columnCount, arg0->rowTextY.signedValue, *p, look, one, TEXT_ALIGNMENT_LEFT);
+        textDrawUiLine(arg1, x + y / columnCount, arg0->rowTextY.signedValue, *p, textColorRgb, one, TEXT_ALIGNMENT_LEFT);
         p++;
         y += span;
         i += one;
@@ -244,7 +244,7 @@ static void func_options_801D42A8(UiList* arg0, UiObject* arg1)
     s32       selected;
     s32       saved;
     s32       one;
-    s32       look;
+    u32       textColorRgb;
     s32       count;
     s32       status;
 
@@ -261,12 +261,12 @@ static void func_options_801D42A8(UiList* arg0, UiObject* arg1)
     span     = arg1->panel.contentRight.signedValue - x;
     do {
         if (i != selected) {
-            look = Ui_LookupTable(arg1, 2);
+            textColorRgb = uiGetTextColor(arg1, USER_INTERFACE_TEXT_COLOR_DIMMED);
         } else {
-            look = Ui_LookupTable(arg1, 1);
+            textColorRgb = uiGetTextColor(arg1, USER_INTERFACE_TEXT_COLOR_NORMAL);
         }
         one = 1;
-        textDrawUiLine(arg1, x + y / count, arg0->rowTextY.signedValue, *p, look, one, TEXT_ALIGNMENT_LEFT);
+        textDrawUiLine(arg1, x + y / count, arg0->rowTextY.signedValue, *p, textColorRgb, one, TEXT_ALIGNMENT_LEFT);
         p++;
         y += span;
         i += one;
@@ -306,7 +306,7 @@ static void func_options_801D4504(UiList* arg0, UiObject* arg1)
     s32  span;
     s32  selected;
     s32  one;
-    s32  look;
+    u32  textColorRgb;
     s32  n2;
     s32  status;
 
@@ -320,12 +320,12 @@ static void func_options_801D4504(UiList* arg0, UiObject* arg1)
     n2       = 2;
     do {
         if (i != selected) {
-            look = Ui_LookupTable(arg1, 2);
+            textColorRgb = uiGetTextColor(arg1, USER_INTERFACE_TEXT_COLOR_DIMMED);
         } else {
-            look = Ui_LookupTable(arg1, 1);
+            textColorRgb = uiGetTextColor(arg1, USER_INTERFACE_TEXT_COLOR_NORMAL);
         }
         one = 1;
-        textDrawUiLine(arg1, x + y / n2, arg0->rowTextY.signedValue, *p, look, one, TEXT_ALIGNMENT_LEFT);
+        textDrawUiLine(arg1, x + y / n2, arg0->rowTextY.signedValue, *p, textColorRgb, one, TEXT_ALIGNMENT_LEFT);
         p++;
         y += span;
         i += one;
@@ -363,7 +363,7 @@ static void func_options_801D4724(UiList* arg0, UiObject* arg1)
     s32  span;
     s32  selected;
     s32  one;
-    s32  look;
+    u32  textColorRgb;
     s32  n2;
     s32  status;
 
@@ -378,12 +378,12 @@ static void func_options_801D4724(UiList* arg0, UiObject* arg1)
     n2       = 2;
     do {
         if (i != selected) {
-            look = Ui_LookupTable(arg1, 2);
+            textColorRgb = uiGetTextColor(arg1, USER_INTERFACE_TEXT_COLOR_DIMMED);
         } else {
-            look = Ui_LookupTable(arg1, 1);
+            textColorRgb = uiGetTextColor(arg1, USER_INTERFACE_TEXT_COLOR_NORMAL);
         }
         one = 1;
-        textDrawUiLine(arg1, x + y / n2, arg0->rowTextY.signedValue, *p, look, one, TEXT_ALIGNMENT_LEFT);
+        textDrawUiLine(arg1, x + y / n2, arg0->rowTextY.signedValue, *p, textColorRgb, one, TEXT_ALIGNMENT_LEFT);
         p++;
         y += span;
         i += one;
@@ -421,7 +421,7 @@ static void func_options_801D4944(UiList* arg0, UiObject* arg1)
     s32  span;
     s32  selected;
     s32  one;
-    s32  look;
+    u32  textColorRgb;
     s32  columnCount;
     s32  status;
 
@@ -436,12 +436,12 @@ static void func_options_801D4944(UiList* arg0, UiObject* arg1)
     columnCount = 2;
     do {
         if (i != selected) {
-            look = Ui_LookupTable(arg1, 2);
+            textColorRgb = uiGetTextColor(arg1, USER_INTERFACE_TEXT_COLOR_DIMMED);
         } else {
-            look = Ui_LookupTable(arg1, 1);
+            textColorRgb = uiGetTextColor(arg1, USER_INTERFACE_TEXT_COLOR_NORMAL);
         }
         one = 1;
-        textDrawUiLine(arg1, x + y / columnCount, arg0->rowTextY.signedValue, *p, look, one, TEXT_ALIGNMENT_LEFT);
+        textDrawUiLine(arg1, x + y / columnCount, arg0->rowTextY.signedValue, *p, textColorRgb, one, TEXT_ALIGNMENT_LEFT);
         p++;
         y += span;
         i += one;

@@ -300,7 +300,7 @@ static void Shop_ItemRow(UiList* prompt, UiObject* obj)
             }
         }
         if (Gp_HasMappedItem() == 0) {
-            prompt->colorRgb        = Ui_LookupTable(obj, 2);
+            prompt->colorRgb        = uiGetTextColor(obj, USER_INTERFACE_TEXT_COLOR_DIMMED);
             prompt->rowInputEnabled = USER_INTERFACE_LIST_ROW_INACTIVE;
         }
         req.x          = obj->panel.contentOriginX.unsignedValue + prompt->rowTextX.signedValue;
@@ -329,7 +329,7 @@ static void Shop_ItemRow(UiList* prompt, UiObject* obj)
         }
         if (Gp_SumScanQty(scan, 0x8F) != 0) {
             blocked          = 1;
-            prompt->colorRgb = Ui_LookupTable(obj, 2);
+            prompt->colorRgb = uiGetTextColor(obj, USER_INTERFACE_TEXT_COLOR_DIMMED);
         }
         textDrawUiLine(obj, prompt->rowTextX.signedValue, prompt->rowTextY.signedValue, Shop_Data_80181A1C, prompt->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
         if (prompt->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE && blocked == 0 && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
@@ -346,7 +346,7 @@ static void Shop_ItemRow(UiList* prompt, UiObject* obj)
     price = Gp_ItemDescs[itemId].price;
     if (func_800B7420(itemId) != 0) {
         blocked          = 1;
-        prompt->colorRgb = Ui_LookupTable(obj, 2);
+        prompt->colorRgb = uiGetTextColor(obj, USER_INTERFACE_TEXT_COLOR_DIMMED);
     }
     if (prompt->actionResult != USER_INTERFACE_LIST_ACTION_SKIP_ROW) {
         status = obj->panel.control.word;
@@ -679,7 +679,7 @@ static void Shop_CategoryRow(UiList* prompt, UiObject* obj)
     }
 
     if (*Shop_SelectStock(obj->owner->spawnArg1.value) == 0xFFFF) {
-        prompt->colorRgb        = Ui_LookupTable(obj, 2);
+        prompt->colorRgb        = uiGetTextColor(obj, USER_INTERFACE_TEXT_COLOR_DIMMED);
         prompt->rowInputEnabled = USER_INTERFACE_LIST_ROW_INACTIVE;
     }
 

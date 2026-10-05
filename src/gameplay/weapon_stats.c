@@ -440,7 +440,7 @@ void Gp_EquipSummaryTask(Task* arg0)
     }
 
     if (item != 0) {
-        _gpDrawItemNameAt(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, Ui_LookupTable(obj, 1), item, 1);
+        _gpDrawItemNameAt(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, uiGetTextColor(obj, USER_INTERFACE_TEXT_COLOR_NORMAL), item, 1);
     }
 
     uiDrawHorizontalSeparator(&(obj)->panel, obj->panel.contentLeft.signedValue, obj->panel.contentRight.signedValue, obj->panel.contentTop.signedValue + 0x11);

@@ -32878,7 +32878,7 @@ for several `textDrawUiLine` calls:
 ```
 bne   v1, v0, else
  move a0, s1
-jal   Ui_LookupTable
+jal   uiGetTextColor
  li   a1, 1
 ...
 li    v0, 1
@@ -32886,7 +32886,7 @@ sw    v0, 0x14(sp)
 j     join
 ...
 else:
-jal   Ui_LookupTable
+jal   uiGetTextColor
  li   a1, 1
 ...
 li    s0, 1
@@ -32894,7 +32894,7 @@ sw    s0, 0x14(sp)
 ```
 
 Hoisting `one = 1` before the `if` parks `1` in `$s0` and steals the
-`bne` delay slot (`li s0, 1`), turns `Ui_LookupTable(obj, 1)` into
+`bne` delay slot (`li s0, 1`), turns `uiGetTextColor(obj, USER_INTERFACE_TEXT_COLOR_NORMAL)` into
 `move a1, s0`, and makes `if (obj->status == 1)` compare against the
 live `one` (`lw v0, 0(s1)` / `bne v0, s0`) instead of
 `lw s0` / `li v0, 1` / `bne s0, v0`. That last `$s0` load is also what

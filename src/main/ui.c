@@ -2610,9 +2610,9 @@ void uiEaseAndDrawCursor(const UiPanel* panel, s32 contentX, s32 contentY)
     _uiDrawAnimatedCursor(panel, targetX - panel->contentOriginX.signedValue, targetY - panel->contentOriginY.signedValue);
 }
 
-s32 Ui_LookupTable(void* unused1, s32 arg1)
+u32 uiGetTextColor(const UiObject* unusedObject, s32 colorIndex)
 {
-    return D_8006763C[arg1];
+    return D_8006763C[colorIndex];
 }
 
 s32 uiGetTextRowsHeight(s32 rowCount)
@@ -2965,18 +2965,29 @@ static void Ui_AnimCloseStep(UiPanel* panel, Task* task)
     }
 }
 
-/// Runs hidden content with suspended input, retaining callback control changes.
-static inline void _uiRunHiddenPanelContent(UiPanel* panel, Task* task)
+/// Lays out and runs retained hidden content with input temporarily suspended.
+///
+/// Borrows a live panel and its owning task. The required content callback must
+/// keep both live through return. Low-halfword control moves into the high half
+/// while the low half becomes inactive; the previous high half is discarded.
+/// The original word is restored only if content leaves the suspended word
+/// unchanged, so callback requests survive. Layout uses full panel bounds and
+/// queues restricted clipping for content followed by the normal view restore.
+/// Requires two DR_AREA slots and writable signed panel OT base/base+3 tags;
+/// queued packets remain live until GPU completion. No lifecycle or tick update
+/// occurs here apart from changes made by content.
+static inline void _uiRunHiddenPanelContent(UiPanel* panel, Task* owningTask)
 {
     enum { USER_INTERFACE_HIDDEN_CONTROL_SHIFT = 16 };
-    s32 savedControl;
-    s32 suspendedControl;
+    u32 savedControl;
+    u32 suspendedControl;
 
+    // Shift control bits without signed overflow, then preserve content requests.
     savedControl        = panel->control.word;
     suspendedControl    = savedControl << USER_INTERFACE_HIDDEN_CONTROL_SHIFT;
     panel->control.word = suspendedControl;
     _uiLayoutHiddenPanel(panel);
-    panel->contentCallback(task);
+    panel->contentCallback(owningTask);
     if (panel->control.word == suspendedControl) {
         panel->control.word = savedControl;
     }

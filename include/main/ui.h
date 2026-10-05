@@ -205,7 +205,21 @@ void uiEaseAndDrawCursor(const UiPanel* panel, s32 contentX, s32 contentY);
 /// used across images; this call does not advance the cursor.
 s32 uiGetCursorPositionWord(void);
 
-s32 Ui_LookupTable(void* unused1, s32 arg1);
+/// Text-color selectors shared by resident prompts, menus and list rows.
+enum {
+    USER_INTERFACE_TEXT_COLOR_NORMAL = 1,
+    USER_INTERFACE_TEXT_COLOR_DIMMED = 2
+};
+
+/// Returns a shared text modulation color with red in the low byte.
+///
+/// Normal is RGB (96,96,96); dimmed is (60,68,56), used for unavailable
+/// commands and unselected option values. `colorIndex` is an element index;
+/// callers use the selectors above. Other indices have no established contract
+/// and are unchecked. The high byte is zero for these two colors.
+/// `unusedObject` is an ABI-only argument: it may be NULL and is neither read
+/// nor retained. The result does not depend on the object or its input mode.
+u32 uiGetTextColor(const UiObject* unusedObject, s32 colorIndex);
 
 /// Returns the pixel height of `rowCount` text rows at fifteen pixels per row.
 ///
