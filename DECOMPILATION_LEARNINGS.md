@@ -148224,3 +148224,122 @@ So the natural source has to give `gh` one more inner-loop reference than
 18 locals, all 24 orders of the four glyph loads and of the four sprite
 loads, the page flag computed next to the height. `clut` is `getClut(...)`;
 the `clutY` local was not needed.
+
+### A temporary feeding `aN = temp + K` sits in `$aN` only once the parameter that arrived there is dead: read the parameter last (func_8010BE5C, 2026-10-05)
+
+**Target.** `lw v0,0x2c(a0)` / `lw s4,0x1c(a0)` ... `lw v0,8(v0)` ...
+`jal Gp_PlaceCoordOffset` / `addiu a0,v0,0x140`: the coordinate array is loaded
+into `$v0` and the argument is formed from it in the delay slot. The source
+read `extra = task->extra.tmd; actor = task->work;` and later
+`parts = extra->coords;`, which gave `lw a0,8(v0)` / `addiu a0,a0,0x140`, and
+held `$v0` with `register GfxCoord* parts asm("v0")`.
+
+**Mechanism.** `parts` dies in `(set a0 (plus parts 320))`, so local-alloc
+gives its quantity `$a0` as a suggestion and tries only that first. The
+suggestion fails when `$a0` is still occupied over the quantity's range, and
+the occupant is the parameter: `task` is itself a block-local quantity whose
+copy suggestion is `$a0`, live from entry to its last read. With
+`actor = task->work` written before `parts = extra->coords`, `task` is dead
+when `parts` is born and the suggestion succeeds. Written after it, `task`
+overlaps `parts`, the suggestion is refused and `parts` takes the lowest free
+register, `$v0`, which `extra` has just vacated.
+
+The final order of the two loads says nothing about this: sched2 puts
+`lw s4,0x1c(a0)` back above `lw v0,8(v0)` in both builds. The allocation is
+made on sched1's order, where a load written later stays later.
+
+**Fix.**
+
+```c
+extra  = task->extra.tmd;
+...
+parts  = extra->coords;
+actor  = task->work;      /* the parameter's last read, after the array load */
+```
+
+**Use.** When a value that only feeds an argument sits in `$v0`/`$v1` and the
+natural source puts it in the argument register, look for a parameter that
+arrived in that register and move its last read below the value's load,
+before trying a pin or a retained use.
+
+### One counter that becomes the byte count and then the second buffer's address (spriteAllocateViewCachedPackets, addendum 2026-10-05)
+
+The entry "Half an allocation as a pointer" keeps `register ... secondBuffer
+asm("s1")`. Without it the differences are not confined to the sum: the byte
+count takes `$s0`, the mapped view index `$s3` and the view table `$s2`
+(28 differing lines). The whole register picture comes back with no pin when
+the sprite counter, the byte count and the half are **one** `u32`:
+
+```c
+spriteCount *= 56;
+...
+Gp_SprtLists[0] = memCalloc(spriteCount, true);
+...
+spriteCount >>= 1;                         /* srl s1,s1,1, in place */
+```
+
+leaving one line, `addu a0,v1,s1` for `addu s1,s1,v1`. `* 56` needs no `<<`
+in this form. The sum is where a typed pointer cannot follow:
+
+- `(u8*)base + n` is expanded base first. `-fforce-mem` loads a `MEM` operand
+  into a register before `expand_binop` could swap a non-register first
+  operand, and the swap that remains is `target == op1`, which needs the sum
+  assigned to the offset's own variable.
+- The inline-argument form (`EXPAND_SUM`, `MULT` first) needs
+  `(n >> 3) << 2` folded to `n >> 1`, which combine does only for a pseudo
+  set once; the reused counter is set three times.
+- `n = (n >> 1) + (u32)p` matches only as two statements
+  (`n >>= 1; n += (u32)p;`).
+
+So the bytes say the original added the pointer to the integer in the
+integer's variable. The source keeps the typed second buffer and the pin; the
+pin stands in for that integer sum, not for an allocation accident.
+
+### Open register questions, with the numbers that decide them (2026-10-05)
+
+Recorded so the next attempt starts from the measurement instead of the
+source.
+
+- **Gp_UpdatePlayerMove**, `coord` pinned to `$s1`. Global priorities:
+  `coord` 14 refs / 80 insns = 5250, `vec` 14 / 78 = 5384; `vec` allocates
+  first and takes `$s1`. The `GP_REFRESH_COORD` macro this function had until
+  the 2026-09-30 naming commit matched without a pin only because its
+  `do { } while (0)` counted the stamp store and the call argument at loop
+  depth 1 (16 refs = 8000). One more reference to `coord`, or a tie
+  (`coord` wins ties, lower pseudo), is enough. `coord`'s load cannot be
+  scheduled later: it must precede the pad capture's first `sb`, and the two
+  loads in front of that store have later luids. `vec`'s copy is held last in
+  its block by the load-use gap before `bnez`.
+- **Gp_UpdatePadInput**, `pressedButtons` pinned to `$s2`. Three allocnos:
+  `%hi(Gp_PadSuppressMask)` 7 / 102 = 1372, `actor` 11 / 243 = 1358,
+  `%hi(gGameSession)` 7 / 104 = 1346. The target needs `actor` last of the
+  three: 10 references, or a live length of 246 or more. Both `%hi` lengths
+  are doubled (`REG_EQUIV`), so they move in steps of two. The two
+  `(use (reg))` insns combine leaves at a label when it merges an `lh` out of
+  an `lhu` that stays live (`Gp_MenuLockDelay`, `Gp_PadSuppressTimer`) are
+  counted in live lengths; nothing else in the range is absent from the
+  output. Publishing the three masks through an inline with a `u32` third
+  parameter gives the right three priorities (1400 / 1372 / 1358) but moves
+  the released mask's extension before the first call.
+- **Gp_UiBoostAttach**, `row` pinned to `$s1`. All of block 33's call-crossing
+  values are local quantities: the string address 6250, the width 2000, `x`
+  1714 (it is tied to its `lh`), the `1` 1612, `row` 714 (3 refs over 42
+  half-insns), `y` 454, the colour 375. The target allocates `row` before
+  `x`, which needs a fourth reference. The `1` and the colour are shared by
+  cse and `reload_cse_regs` from literals; the `one` local was not needed.
+- **func_800FF710**, `one`/`old` pinned to `$v1`, `k` to `$a2`. The split
+  `lui 0x7135` ... `ori 0x7911` is what a plain `+ RANDOM_LCG_INCREMENT`
+  expands to (two insns on one pseudo); the hand split is not needed for
+  that. Those two insns have sched1 priority 1 and are only picked when a
+  hazard blocks everything else. The target's `sh m[2][2]` / `lw state` /
+  `ori` / `sw zero` is the `ori` filling the gap a load needs before the
+  zero store, which happens only if the `m[2][2]` store is not ready at that
+  cycle, that is, if it depends on the load. An in-struct halfword store does
+  not conflict with a fixed scalar load in `true_dependence`, so with separate
+  pseudos the store is taken instead (`sw 8(v0)` / `lw` / `ori` / `sh`), the
+  `ONE` and the state overlap, and the state leaves `$v1`. The shared pinned
+  `$v1` supplies that dependence. One variable for both values supplies it
+  too, but has two live ranges, goes to global-alloc and lands in `$a2`. The
+  barrier keeps the constant's `lui` first in the block so that its quantity
+  is long enough (2 refs over 30 or more half-insns) to rank below
+  `%hi(gRandomLcgState)` and take `$a2`.
