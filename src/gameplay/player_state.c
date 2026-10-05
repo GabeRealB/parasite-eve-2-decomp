@@ -1488,17 +1488,16 @@ void func_8010BE5C(Task* task, VECTOR3* targetPoint)
     GfxCoord*               coord;
     SVECTOR*                offset;
     TmdObject*              extra;
-    register GfxCoord*      parts asm("v0");
+    GfxCoord*               parts;
     GameActor*              actor;
     s32                     yawStep;
 
     head   = SCRATCH_STACK_CURSOR(_PlayerActorAimScratch);
     extra  = task->extra.tmd;
-    actor  = task->work;
     coord  = &head[-1].originCoord;
     offset = &head[-1].originOffset;
-    // Retain the array pointer's register without treating it as a model object.
-    parts = extra->coords;
+    parts  = extra->coords;
+    actor  = task->work;
     block = SCRATCH_STACK_CURSOR(_PlayerActorAimScratch) = head - 1;
     block->originOffset.vx                               = 0;
     block->originOffset.vy                               = 0;
