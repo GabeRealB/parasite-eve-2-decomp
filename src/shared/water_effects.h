@@ -11,7 +11,7 @@
  * inline: gameplay's room-effect tables name each room's copy, so a room
  * keeps its own entry point, which calls the task.
  *
- * waterDriftTaskU16 feeds its drawers an unsigned 16-bit sprite index.
+ * _waterDriftTaskU16 feeds its drawers an unsigned 16-bit sprite index.
  * _waterDrawSpinU16 and _waterDrawTileU16 are those drawers. The flags below
  * choose whether this header declares the shared drawers or the room supplies
  * its own prototypes. The bodies stay in their own includes.

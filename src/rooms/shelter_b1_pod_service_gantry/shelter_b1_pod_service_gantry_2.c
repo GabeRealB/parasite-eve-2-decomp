@@ -359,7 +359,7 @@ static void _shelterB1PodServiceGantryDrawAlternateDriftSprite(const GfxCoord* c
 
 void func_shelter_b1_pod_service_gantry_8017E880(Task* task)
 {
-    waterDriftTaskU16(task);
+    _waterDriftTaskU16(task);
 }
 
 /// Writes the signed screen offset from a water sprite's centre to one corner.

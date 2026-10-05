@@ -1312,7 +1312,7 @@ void func_dryfield_night_water_hole_8017F254(Task* task)
 
 void func_dryfield_night_water_hole_8017F6DC(Task* task)
 {
-    waterDriftTaskU16(task);
+    _waterDriftTaskU16(task);
 }
 
 #include "../../shared/water_spin_u16.inc.c"

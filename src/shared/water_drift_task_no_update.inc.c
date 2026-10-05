@@ -2,7 +2,7 @@
 
 /* Part of the water effects library; see water_effects.h. */
 
-/// waterDriftTaskU16 without the per-frame actorRenderComposeCoord. The first frame
+/// `_waterDriftTaskU16` without the per-frame actorRenderComposeCoord. The first frame
 /// reads size, frame period, draw style and launch kind (none, upward burst,
 /// spray, narrow jet or stored direction) from the spawn argument. Later frames
 /// draw with _waterDrawSpinU16/_waterDrawTileU16, move under gravity (+6 vy) and

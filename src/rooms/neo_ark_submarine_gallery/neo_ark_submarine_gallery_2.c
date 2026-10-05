@@ -1006,7 +1006,7 @@ void func_neo_ark_submarine_gallery_8017F288(Task* task)
 
 void func_neo_ark_submarine_gallery_8017F710(Task* task)
 {
-    waterDriftTaskU16(task);
+    _waterDriftTaskU16(task);
 }
 
 #include "../../shared/water_spin_u16.inc.c"

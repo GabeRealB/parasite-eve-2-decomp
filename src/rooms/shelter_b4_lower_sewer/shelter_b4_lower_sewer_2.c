@@ -610,7 +610,7 @@ void func_shelter_b4_lower_sewer_8017EEE4(Task* task)
 
 void func_shelter_b4_lower_sewer_8017F36C(Task* task)
 {
-    waterDriftTaskU16(task);
+    _waterDriftTaskU16(task);
 }
 
 #include "../../shared/water_spin_u16.inc.c"

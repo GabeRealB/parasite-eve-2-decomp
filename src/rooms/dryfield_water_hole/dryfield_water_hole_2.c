@@ -32,7 +32,7 @@
 
 void func_dryfield_water_hole_8017F118(Task* task)
 {
-    waterDriftTaskU16(task);
+    _waterDriftTaskU16(task);
 }
 
 #include "../../shared/water_spin_u16.inc.c"

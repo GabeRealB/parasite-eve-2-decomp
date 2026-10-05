@@ -2670,7 +2670,7 @@ static void func_shelter_r48_8017F124(EffectWork* work, GfxCoord* coord, s32 par
 
 void func_shelter_r48_8017F6C0(Task* task)
 {
-    waterDriftTaskU16(task);
+    _waterDriftTaskU16(task);
 }
 
 #include "../../shared/water_spin_u16_corner.inc.c"
