@@ -86,7 +86,7 @@ enum {
     /// quad) that lifts and animates for a few frames; spawned repeatedly around the
     /// player by the Metabolism PE.
     EFFECT_METABOLISM_SPARKLE = EFFECT_ID(EFFECT_TASK_BANK, 0x013),
-    /// Rising spark sprite (risingSparkTask) emitted every eighth tick by the Healing
+    /// Rising spark sprite (`_risingSparkTask`) emitted every eighth tick by the Healing
     /// PE effect around the player.
     EFFECT_HEALING_SPARK = EFFECT_ID(EFFECT_TASK_BANK, 0x016),
     /// Healing PE particle: an animated sprite that drifts for 30 ticks at the PE
@@ -526,7 +526,7 @@ enum {
     /// and spawning 0x600C1 when the player takes damage and 0x600E0 sparkles
     /// otherwise, until the aura flag clears.
     EFFECT_ANTIBODY_AURA = EFFECT_ID(EFFECT_TASK_BANK, 0x0AC),
-    /// Rising spark sprite (risingSparkTask) emitted by the Life Drain PE effect.
+    /// Rising spark sprite (`_risingSparkTask`) emitted by the Life Drain PE effect.
     EFFECT_LIFEDRAIN_SPARK = EFFECT_ID(EFFECT_TASK_BANK, 0x0AD),
     /// Life Drain mote: drifts from the hit enemy, sheds sparks, then homes on the
     /// player; spawned per hit by func_800FDB18 kind 13.

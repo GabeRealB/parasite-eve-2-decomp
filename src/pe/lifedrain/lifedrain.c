@@ -343,7 +343,7 @@ void func_lifedrain_8012EF48(Task* arg0)
 /// gameplay's effect table.
 void func_lifedrain_8012F9A8(Task* task)
 {
-    risingSparkTask(task);
+    _risingSparkTask(task);
 }
 
 /// Runs one frame of a life-drain mote. Any state releases the work block once

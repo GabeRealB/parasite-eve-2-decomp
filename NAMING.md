@@ -674,6 +674,11 @@ flash task shared by the P229 and MP5A5 variants. Its interface is
 its own effect-table wrapper and keeps the shared functions private. Carriers
 supply the muzzle offset and four retained streak angles.
 
+`risingSpark` owns the included short-lived additive spark billboard task
+shared by Healing and Life Drain. Its implementation interface is
+`src/shared/rising_spark.h`; task constants use `RISING_SPARK_`. Each carrier
+exports its own effect-table wrapper and keeps the shared inline body private.
+
 `leaf` owns the included falling-leaf task and textured-square drawers shared
 by the Acropolis gardens and Neo Ark woodland rooms. Its implementation
 interface is `src/shared/falling_leaves.h`; `LEAF_` constants describe its

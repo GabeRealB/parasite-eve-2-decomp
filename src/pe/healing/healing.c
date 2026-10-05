@@ -200,7 +200,7 @@ void func_healing_8012EF34(Task* arg0)
 /// effect table.
 void func_healing_8012F494(Task* task)
 {
-    risingSparkTask(task);
+    _risingSparkTask(task);
 }
 
 void func_healing_8012F5E4(Task* arg0)
