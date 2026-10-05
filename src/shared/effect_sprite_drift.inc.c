@@ -52,12 +52,16 @@ static __inline__ void _effectSpriteDriftInitializeVelocity(EffectWork* work)
     gte_stsv(velocity);
 }
 
-/// Moves the sprite by its signed-halfword velocity and invalidates the composed transform.
+/// Advances a drift sprite's local translation by one running update's velocity.
 ///
-/// `coord` and `work` are borrowed from a live effect task. Velocity components
-/// are coordinate units per running update; translation uses signed 32-bit
-/// arithmetic. Acceleration and animation advancement remain with the caller.
-static __inline__ void _effectSpriteDriftMove(EffectWork* work, GfxCoord* coord)
+/// `work` and writable `coord` must be live, non-NULL objects borrowed from the
+/// effect task. The signed halfwords in `work->move` are integer displacements
+/// in the coordinate's parent space, sign-extended for the 32-bit additions.
+/// The caller gates movement with `work->step` and applies acceleration after it.
+///
+/// Clearing the composition stamp makes the cached transform stale, even for
+/// zero velocity; the next composition rebuilds it. Neither pointer is retained.
+static __inline__ void _effectSpriteDriftMove(const EffectWork* work, GfxCoord* coord)
 {
     coord->coord.t[0]  += work->move.vx;
     coord->coord.t[1]  += work->move.vy;
