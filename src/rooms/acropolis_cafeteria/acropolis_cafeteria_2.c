@@ -1432,15 +1432,22 @@ static void _acropolisCafeteriaLoosePropInit(Task* task)
     work->body.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
 }
 
-/// Dampens horizontal slide velocity and advances the phase when both axes stop.
+/// Dampens the loose prop's horizontal velocity and advances its motion phase at rest.
+///
+/// Requires initialized task work in the hopping or sliding phase. X/Z velocity
+/// is in integer world units per tick: retain 6/7, truncating toward zero, then
+/// snap magnitudes below 9 to zero. Both axes stopping increments the current
+/// phase once, including during a hop; vertical velocity is preserved.
 static inline void _acropolisCafeteriaDampLoosePropSlide(_AcropolisCafeteriaLoosePropWork* work)
 {
+    enum { SLIDE_STOP_SPEED = 9 }; // Exclusive magnitude threshold after damping, in world units per tick.
+
     work->velocity.vx = (work->velocity.vx * 6) / 7;
-    if (ABS(work->velocity.vx) < 9) {
+    if (ABS(work->velocity.vx) < SLIDE_STOP_SPEED) {
         work->velocity.vx = 0;
     }
     work->velocity.vz = (work->velocity.vz * 6) / 7;
-    if (ABS(work->velocity.vz) < 9) {
+    if (ABS(work->velocity.vz) < SLIDE_STOP_SPEED) {
         work->velocity.vz = 0;
     }
     if ((work->velocity.vx | work->velocity.vz) == 0) {
