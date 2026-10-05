@@ -606,10 +606,23 @@ static const TaskFuncTable6 Gp_LoadWaitFns = { {
 
 static const _LoadingConfigFileHundreds Gp_ConfigCdTable = { { 4, 3, 2, 5, 6 } };
 
-/// Restores discarded model buffers before allocating the current view's sprite packets.
+/// Restores discarded model storage and initializes the current view's cached sprite packets.
+///
+/// `keepGraphics` is the display preservation flag's snapshot: zero resets
+/// queued GPU work, invalidates attached-model buffers, resets the auxiliary
+/// heap and restores eligible model buffers. Any nonzero value preserves that
+/// state. Both paths allocate and initialize new cached view-sprite packets.
+///
+/// Requires loaded view resources and a configured auxiliary heap. With zero,
+/// all prior uses of its allocations must have ended; with nonzero, the heap
+/// must already be initialized. Previous cached sprite storage must be retired
+/// in either path. The source and storage contracts of
+/// `tmdResetAuxHeapAndRestoreBuffers` and `spriteAllocateViewCachedPackets` apply.
+/// Allocation failure does not abort the remaining work or report a status.
 static __inline__ void _loadingRestoreViewGraphics(s32 keepGraphics)
 {
     if (keepGraphics == 0) {
+        // Invalidate model pointers before resetting their backing storage.
         gpuResetAndInvalidateModelBuffers();
         tmdResetAuxHeapAndRestoreBuffers();
     }
