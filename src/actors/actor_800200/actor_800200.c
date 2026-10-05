@@ -1959,21 +1959,9 @@ static void func_actor_800200_80163F5C(Task* arg0)
                 goto resume;
             }
             angle = rand() & 0x3FF;
-            if ((0x800 - angle) < dist) {
-                goto in_range;
+            if (((0x800 - angle) >= dist && actor->statePhase == 2) || (dist >= angle + 0xC00 && actor->statePhase == 1)) {
+                actor->statePhase = 0;
             }
-            if (actor->statePhase == 2) {
-                goto reset;
-            }
-        in_range:
-            if (dist < angle + 0xC00) {
-                break;
-            }
-            if (actor->statePhase != 1) {
-                break;
-            }
-        reset:
-            actor->statePhase = 0;
             break;
         default:
             break;
