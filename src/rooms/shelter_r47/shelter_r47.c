@@ -866,12 +866,12 @@ static void func_shelter_r47_80180650(Task* task)
             Gp_LoadCapFile(1);
             func_800E6D4C(0x240, 0x100);
             Gp_RunCapCmd1(task->spawnArg1.value);
-            goto advance;
+            task->state++;
+            break;
         case 1:
             if (Gp_CapBusy() != 0) {
                 break;
             }
-        advance:
             task->state++;
             break;
         case 2:
