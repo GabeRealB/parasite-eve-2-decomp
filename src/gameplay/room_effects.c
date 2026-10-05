@@ -463,6 +463,12 @@ static const TaskFuncTable3 D_80097678;
 
 enum { ROOM_EFFECT_NORMAL_SPAWN_LIMIT = 0x81 };
 
+/// Spinning billboard cells: 32-texel origin strides and a 31-texel inclusive span.
+enum {
+    EFFECT_BILLBOARD_CELL_SHIFT = 5,
+    EFFECT_BILLBOARD_UV_SPAN    = (1 << EFFECT_BILLBOARD_CELL_SHIFT) - 1,
+};
+
 /// Fixed texture-page fields shared by the untextured effect blend commands.
 enum {
     GPU_EFFECT_TEXTURE_DEPTH_4BIT = 0,
@@ -1897,55 +1903,75 @@ void effectDrawGouraudDisc(const GfxCoord* centreCoord, s32 radius, const u8* rg
     SCRATCH_STACK_RELEASE_BLOCK(EffectCentreScratch);
 }
 
-void Gp_DrawFxQuad(GfxCoord* arg0, u16 arg1, s16 arg2, u16 arg3)
+/// Writes one billboard corner's signed pixel offset from its projected centre.
+///
+/// Scratch depth must be positive. Division precedes the Q12 rotation; the
+/// caller must keep the signed products within s32 and uses opposite signs
+/// for the opposite corner. Reuses the scratch record's corner workspace.
+static inline void _effectComputeBillboardCornerOffset(EffectShapeScratch* scratch, s16 size, s32 angle)
 {
-    EffectShapeScratch* block;
-    POLY_FT4*           prim;
-    u16                 clutIdx;
-    s32                 u0;
-    s32                 u1;
-    s32                 ang2;
+    scratch->extent.corner.x = (((size * EFFECT_BILLBOARD_UV_SPAN) / scratch->depth) * rsin(angle)) >> EFFECT_RADIAL_TRIG_FRACTION_BITS;
+    scratch->extent.corner.y = (((size * EFFECT_BILLBOARD_UV_SPAN) / scratch->depth) * rcos(angle)) >> EFFECT_RADIAL_TRIG_FRACTION_BITS;
+}
 
-    block                = SCRATCH_STACK_RESERVE_BLOCK(EffectShapeScratch);
-    block->worldPoint.vx = arg0->workm.t[0];
-    block->worldPoint.vy = arg0->workm.t[1];
-    block->worldPoint.vz = arg0->workm.t[2];
+void effectDrawSpinningBillboard(const GfxCoord* coord, u16 frame, s16 size, u16 packedAnglePalette)
+{
+    enum {
+        EFFECT_BILLBOARD_TOP_V         = 24,
+        EFFECT_BILLBOARD_BOTTOM_V      = EFFECT_BILLBOARD_TOP_V + EFFECT_BILLBOARD_UV_SPAN,
+        EFFECT_BILLBOARD_PALETTE_SHIFT = 12,
+        EFFECT_BILLBOARD_ANGLE_MASK    = 0xFFF,
+        EFFECT_BILLBOARD_QUARTER_TURN  = 0x400,
+        EFFECT_BILLBOARD_CLUT_Y        = 267,
+    };
+
+    EffectShapeScratch* scratch;
+    POLY_FT4*           quad;
+    u16                 paletteIndex;
+    s32                 leftU;
+    s32                 rightU;
+    s32                 nextCornerAngle;
+
+    // Project only the composed translation; billboard rotation is in screen space.
+    scratch                = SCRATCH_STACK_RESERVE_BLOCK(EffectShapeScratch);
+    scratch->worldPoint.vx = coord->workm.t[0];
+    scratch->worldPoint.vy = coord->workm.t[1];
+    scratch->worldPoint.vz = coord->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&block->worldPoint);
+    gte_ldv0(&scratch->worldPoint);
     gte_rtps();
-    clutIdx = arg3 >> 12;
-    arg3   &= 0xFFF;
-    gte_stsxy(&block->screenX);
-    gte_stflg(&block->projectionFlags);
-    if (block->projectionFlags >= 0) {
-        gte_stszotz(&block->depth);
-        block->depth++;
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setPolyFT4(prim);
-        setSemiTrans(prim, 1);
-        setShadeTex(prim, 1);
-        prim->tpage = 0x2A;
-        setClut(prim, Gp_QuadClutX[clutIdx], 0x10B);
-        u0 = arg1 << 5;
-        u1 = u0 + 0x1F;
-        setUV4(prim, u0, 0x18, u1, 0x18, u0, 0x37, u1, 0x37);
-        block->extent.corner.x = (((arg2 * 31) / block->depth) * rsin(arg3)) >> 12;
-        block->extent.corner.y = (((arg2 * 31) / block->depth) * rcos(arg3)) >> 12;
-        prim->x0               = block->screenX + (u16)block->extent.corner.x;
-        prim->x3               = block->screenX - (u16)block->extent.corner.x;
-        prim->y0               = block->screenY - (u16)block->extent.corner.y;
-        prim->y3               = block->screenY + (u16)block->extent.corner.y;
-        ang2                   = arg3 + 0x400;
-        block->extent.corner.x = (((arg2 * 31) / block->depth) * rsin(ang2)) >> 12;
-        block->extent.corner.y = (((arg2 * 31) / block->depth) * rcos(ang2)) >> 12;
-        prim->x1               = block->screenX + (u16)block->extent.corner.x;
-        prim->x2               = block->screenX - (u16)block->extent.corner.x;
-        prim->y1               = block->screenY - (u16)block->extent.corner.y;
-        prim->y2               = block->screenY + (u16)block->extent.corner.y;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
+    paletteIndex        = packedAnglePalette >> EFFECT_BILLBOARD_PALETTE_SHIFT;
+    packedAnglePalette &= EFFECT_BILLBOARD_ANGLE_MASK;
+    gte_stsxy(&scratch->screenX);
+    gte_stflg(&scratch->projectionFlags);
+    if (scratch->projectionFlags >= 0) {
+        gte_stszotz(&scratch->depth);
+        scratch->depth++;
+        quad           = gGpuPrimCursor;
+        gGpuPrimCursor = quad + 1;
+        setPolyFT4(quad);
+        setSemiTrans(quad, true);
+        setShadeTex(quad, true);
+        quad->tpage = getTPage(GPU_EFFECT_TEXTURE_DEPTH_4BIT, GPU_BLEND_ADD, GPU_EFFECT_TEXTURE_PAGE_X, 0);
+        setClut(quad, Gp_QuadClutX[paletteIndex], EFFECT_BILLBOARD_CLUT_Y);
+        leftU  = frame << EFFECT_BILLBOARD_CELL_SHIFT;
+        rightU = leftU + EFFECT_BILLBOARD_UV_SPAN;
+        setUV4(quad, leftU, EFFECT_BILLBOARD_TOP_V, rightU, EFFECT_BILLBOARD_TOP_V, leftU, EFFECT_BILLBOARD_BOTTOM_V, rightU, EFFECT_BILLBOARD_BOTTOM_V);
+        // Rotate the perspective-scaled half-diagonal into two opposite corner pairs.
+        _effectComputeBillboardCornerOffset(scratch, size, packedAnglePalette);
+        quad->x0        = scratch->screenX + (u16)scratch->extent.corner.x;
+        quad->x3        = scratch->screenX - (u16)scratch->extent.corner.x;
+        quad->y0        = scratch->screenY - (u16)scratch->extent.corner.y;
+        quad->y3        = scratch->screenY + (u16)scratch->extent.corner.y;
+        nextCornerAngle = packedAnglePalette + EFFECT_BILLBOARD_QUARTER_TURN;
+        _effectComputeBillboardCornerOffset(scratch, size, nextCornerAngle);
+        quad->x1 = scratch->screenX + (u16)scratch->extent.corner.x;
+        quad->x2 = scratch->screenX - (u16)scratch->extent.corner.x;
+        quad->y1 = scratch->screenY - (u16)scratch->extent.corner.y;
+        quad->y2 = scratch->screenY + (u16)scratch->extent.corner.y;
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                quad);
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);
 }
@@ -1997,167 +2023,162 @@ void func_800EB6E8(GfxCoord* arg0, u16 arg1, u16 arg2, u16 arg3)
     SCRATCH_STACK_RELEASE_BLOCK(EffectCentreScratch);
 }
 
-void Gp_DrawBand(GfxCoord* arg0, s16 arg1, u8* rgb)
+/// Projects one band's four corners with the current world-to-screen GTE matrices.
+///
+/// segmentIndex is 0..EFFECT_BAND_SEGMENT_COUNT-1. The FLAG retained is from
+/// the final RTPT, matching the caller's per-segment rejection; its SZ3 is
+/// left in the GTE for the caller's ordering-depth read.
+static inline void _effectProjectGlowBandSegment(EffectBandScratch* scratch, s32 segmentIndex)
 {
-    EffectBandScratch* block;
-    SVECTOR*           op;
-    POLY_G4*           prim;
-    DR_TPAGE*          dr;
-    s32                i;
-    s32                next;
-    s32                ang;
-    s32                otz;
-    s16                r0;
-    s16                r1;
+    s32 nextIndex;
 
-    r1    = arg1 + 0x100;
-    block = SCRATCH_STACK_RESERVE_BLOCK(EffectBandScratch);
+    gte_ldv0(&scratch->topRing[segmentIndex]);
+    gte_rtps();
+    gte_stsxy(&scratch->sxy0);
+    nextIndex = (segmentIndex + 1) & (EFFECT_BAND_SEGMENT_COUNT - 1);
+    gte_ldv3(&scratch->topRing[nextIndex], &scratch->bottomRing[segmentIndex], &scratch->bottomRing[nextIndex]);
+    gte_rtpt();
+    gte_stsxy3(&scratch->sxy1, &scratch->sxy2, &scratch->sxy3);
+    gte_stflg(&scratch->projectionFlags);
+}
+
+void effectDrawRaisedGlowBand(const GfxCoord* coord, s16 innerRadius, const u8* rgb)
+{
+    enum { EFFECT_RAISED_GLOW_BAND_SPAN = 256 };
+
+    EffectBandScratch* scratch;
+    SVECTOR*           outerVertex;
+    POLY_G4*           quad;
+    s32                segmentIndex;
+    s32                angle;
+    s32                sortingDepth;
+    s16                outerRadius;
+
+    outerRadius = innerRadius + EFFECT_RAISED_GLOW_BAND_SPAN;
+    scratch     = SCRATCH_STACK_RESERVE_BLOCK(EffectBandScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
-    r0 = arg1;
-    for (i = 0; i < EFFECT_BAND_SEGMENT_COUNT; i++) {
-        ang                  = i << 8;
-        block->topRing[i].vx = (rsin(ang) * r0) >> 12;
-        block->topRing[i].vy = (rcos(ang) * r0) >> 12;
-        block->topRing[i].vz = 0x100;
-        gte_SetRotMatrix(&arg0->workm);
-        gte_ldv0(&block->topRing[i]);
+    // Build both rings in local coordinates, then rotate and translate into world space.
+    for (segmentIndex = 0; segmentIndex < EFFECT_BAND_SEGMENT_COUNT; segmentIndex++) {
+        angle                             = segmentIndex * EFFECT_RADIAL_ANGLE_STEP;
+        scratch->topRing[segmentIndex].vx = (rsin(angle) * innerRadius) >> EFFECT_RADIAL_TRIG_FRACTION_BITS;
+        scratch->topRing[segmentIndex].vy = (rcos(angle) * innerRadius) >> EFFECT_RADIAL_TRIG_FRACTION_BITS;
+        scratch->topRing[segmentIndex].vz = EFFECT_RAISED_GLOW_BAND_SPAN;
+        gte_SetRotMatrix(&coord->workm);
+        gte_ldv0(&scratch->topRing[segmentIndex]);
         gte_rtv0();
-        gte_stsv(&block->topRing[i]);
-        block->topRing[i].vx = (u16)block->topRing[i].vx + (u16)arg0->workm.t[0];
-        block->topRing[i].vy = (u16)block->topRing[i].vy + (u16)arg0->workm.t[1];
-        block->topRing[i].vz = (u16)block->topRing[i].vz + (u16)arg0->workm.t[2];
-        op                   = &block->topRing[i] + EFFECT_BAND_SEGMENT_COUNT;
-        op->vx               = (rsin(ang) * r1) >> 12;
-        op->vy               = (rcos(ang) * r1) >> 12;
-        op->vz               = 0;
-        gte_SetRotMatrix(&arg0->workm);
-        gte_ldv0(&block->bottomRing[i]);
+        gte_stsv(&scratch->topRing[segmentIndex]);
+        scratch->topRing[segmentIndex].vx = (u16)scratch->topRing[segmentIndex].vx + (u16)coord->workm.t[0];
+        scratch->topRing[segmentIndex].vy = (u16)scratch->topRing[segmentIndex].vy + (u16)coord->workm.t[1];
+        scratch->topRing[segmentIndex].vz = (u16)scratch->topRing[segmentIndex].vz + (u16)coord->workm.t[2];
+        // Address the outer vertex through the complete scratch block's byte view.
+        outerVertex     = (SVECTOR*)((u8*)scratch + segmentIndex * sizeof(SVECTOR) + sizeof(scratch->topRing));
+        outerVertex->vx = (rsin(angle) * outerRadius) >> EFFECT_RADIAL_TRIG_FRACTION_BITS;
+        outerVertex->vy = (rcos(angle) * outerRadius) >> EFFECT_RADIAL_TRIG_FRACTION_BITS;
+        outerVertex->vz = 0;
+        gte_SetRotMatrix(&coord->workm);
+        gte_ldv0(&scratch->bottomRing[segmentIndex]);
         gte_rtv0();
-        gte_stsv(&block->bottomRing[i]);
-        op->vx = (u16)op->vx + (u16)arg0->workm.t[0];
-        op->vy = (u16)op->vy + (u16)arg0->workm.t[1];
-        op->vz = (u16)op->vz + (u16)arg0->workm.t[2];
+        gte_stsv(&scratch->bottomRing[segmentIndex]);
+        outerVertex->vx = (u16)outerVertex->vx + (u16)coord->workm.t[0];
+        outerVertex->vy = (u16)outerVertex->vy + (u16)coord->workm.t[1];
+        outerVertex->vz = (u16)outerVertex->vz + (u16)coord->workm.t[2];
     }
+    // Project each segment independently; only accepted segments consume GPU packets.
     gte_SetRotMatrix(&GsWSMATRIX);
-    for (i = 0; i < EFFECT_BAND_SEGMENT_COUNT; i++) {
-        gte_ldv0(&block->topRing[i]);
-        gte_rtps();
-        gte_stsxy(&block->sxy0);
-        next = (i + 1) & (EFFECT_BAND_SEGMENT_COUNT - 1);
-        gte_ldv3(&block->topRing[next], &block->bottomRing[i], &block->bottomRing[next]);
-        gte_rtpt();
-        gte_stsxy3(&block->sxy1, &block->sxy2, &block->sxy3);
-        gte_stflg(&block->projectionFlags);
-        if (block->projectionFlags >= 0) {
-            gte_stszotz(&block->otz);
-            block->otz++;
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, rgb[0], rgb[1], rgb[2]);
-            setRGB1(prim, rgb[0], rgb[1], rgb[2]);
-            setRGB2(prim, 0, 0, 0);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0 = (u16)block->sxy0.vx;
-            prim->y0 = (u16)block->sxy0.vy;
-            prim->x1 = (u16)block->sxy1.vx;
-            prim->y1 = (u16)block->sxy1.vy;
-            prim->x2 = (u16)block->sxy2.vx;
-            prim->y2 = (u16)block->sxy2.vy;
-            prim->x3 = (u16)block->sxy3.vx;
-            prim->y3 = (u16)block->sxy3.vy;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            otz = block->otz;
-            setSemiTrans(prim, 1);
-            dr             = gGpuPrimCursor;
-            gGpuPrimCursor = dr + 1;
-            setDrawTPage(dr, 0, 1, 0x2A);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    dr);
+    for (segmentIndex = 0; segmentIndex < EFFECT_BAND_SEGMENT_COUNT; segmentIndex++) {
+        _effectProjectGlowBandSegment(scratch, segmentIndex);
+        if (scratch->projectionFlags >= 0) {
+            gte_stszotz(&scratch->otz);
+            scratch->otz++;
+            quad           = gGpuPrimCursor;
+            gGpuPrimCursor = quad + 1;
+            setPolyG4(quad);
+            setRGB0(quad, rgb[0], rgb[1], rgb[2]);
+            setRGB1(quad, rgb[0], rgb[1], rgb[2]);
+            setRGB2(quad, 0, 0, 0);
+            setRGB3(quad, 0, 0, 0);
+            quad->x0 = scratch->sxy0.vx;
+            quad->y0 = scratch->sxy0.vy;
+            quad->x1 = scratch->sxy1.vx;
+            quad->y1 = scratch->sxy1.vy;
+            quad->x2 = scratch->sxy2.vx;
+            quad->y2 = scratch->sxy2.vy;
+            quad->x3 = scratch->sxy3.vx;
+            quad->y3 = scratch->sxy3.vy;
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                    quad);
+            sortingDepth = scratch->otz;
+            _gpuSetEffectPrimitiveBlendMode(quad, GPU_BLEND_ADD, sortingDepth);
         }
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectBandScratch);
 }
 
-void Gp_DrawBandEx(GfxCoord* arg0, s16 arg1, s32 arg2, u8* rgb)
+void effectDrawInnerGlowBand(const GfxCoord* coord, s16 innerRadius, s32 width, const u8* rgb)
 {
-    EffectBandScratch* block;
-    SVECTOR*           op;
-    POLY_G4*           prim;
-    DR_TPAGE*          dr;
-    s32                i;
-    s32                next;
-    s32                ang;
-    s32                otz;
-    s16                r0;
-    s16                r1;
+    EffectBandScratch* scratch;
+    SVECTOR*           outerVertex;
+    POLY_G4*           quad;
+    s32                segmentIndex;
+    s32                angle;
+    s32                sortingDepth;
+    s16                outerRadius;
 
-    r1    = arg1 + arg2;
-    block = SCRATCH_STACK_RESERVE_BLOCK(EffectBandScratch);
+    outerRadius = innerRadius + width;
+    scratch     = SCRATCH_STACK_RESERVE_BLOCK(EffectBandScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
-    r0 = arg1;
-    for (i = 0; i < EFFECT_BAND_SEGMENT_COUNT; i++) {
-        ang                  = i << 8;
-        block->topRing[i].vx = (rsin(ang) * r0) >> 12;
-        block->topRing[i].vy = 0;
-        block->topRing[i].vz = (rcos(ang) * r0) >> 12;
-        gte_SetRotMatrix(&arg0->workm);
-        gte_ldv0(&block->topRing[i]);
+    // Build both rings in local coordinates, then rotate and translate into world space.
+    for (segmentIndex = 0; segmentIndex < EFFECT_BAND_SEGMENT_COUNT; segmentIndex++) {
+        angle                             = segmentIndex * EFFECT_RADIAL_ANGLE_STEP;
+        scratch->topRing[segmentIndex].vx = (rsin(angle) * innerRadius) >> EFFECT_RADIAL_TRIG_FRACTION_BITS;
+        scratch->topRing[segmentIndex].vy = 0;
+        scratch->topRing[segmentIndex].vz = (rcos(angle) * innerRadius) >> EFFECT_RADIAL_TRIG_FRACTION_BITS;
+        gte_SetRotMatrix(&coord->workm);
+        gte_ldv0(&scratch->topRing[segmentIndex]);
         gte_rtv0();
-        gte_stsv(&block->topRing[i]);
-        block->topRing[i].vx   += arg0->workm.t[0];
-        block->topRing[i].vy   += arg0->workm.t[1];
-        block->topRing[i].vz   += arg0->workm.t[2];
-        block->bottomRing[i].vx = (rsin(ang) * r1) >> 12;
-        op                      = &block->topRing[i] + EFFECT_BAND_SEGMENT_COUNT;
-        op->vy                  = 0;
-        op->vz                  = (rcos(ang) * r1) >> 12;
-        gte_SetRotMatrix(&arg0->workm);
-        gte_ldv0(&block->bottomRing[i]);
+        gte_stsv(&scratch->topRing[segmentIndex]);
+        scratch->topRing[segmentIndex].vx   += coord->workm.t[0];
+        scratch->topRing[segmentIndex].vy   += coord->workm.t[1];
+        scratch->topRing[segmentIndex].vz   += coord->workm.t[2];
+        scratch->bottomRing[segmentIndex].vx = (rsin(angle) * outerRadius) >> EFFECT_RADIAL_TRIG_FRACTION_BITS;
+        // Address the outer vertex through the complete scratch block's byte view.
+        outerVertex     = (SVECTOR*)((u8*)scratch + segmentIndex * sizeof(SVECTOR) + sizeof(scratch->topRing));
+        outerVertex->vy = 0;
+        outerVertex->vz = (rcos(angle) * outerRadius) >> EFFECT_RADIAL_TRIG_FRACTION_BITS;
+        gte_SetRotMatrix(&coord->workm);
+        gte_ldv0(&scratch->bottomRing[segmentIndex]);
         gte_rtv0();
-        gte_stsv(&block->bottomRing[i]);
-        block->bottomRing[i].vx += arg0->workm.t[0];
-        op->vy                  += arg0->workm.t[1];
-        op->vz                  += arg0->workm.t[2];
+        gte_stsv(&scratch->bottomRing[segmentIndex]);
+        scratch->bottomRing[segmentIndex].vx += coord->workm.t[0];
+        outerVertex->vy                      += coord->workm.t[1];
+        outerVertex->vz                      += coord->workm.t[2];
     }
+    // Project each segment independently; only accepted segments consume GPU packets.
     gte_SetRotMatrix(&GsWSMATRIX);
-    for (i = 0; i < EFFECT_BAND_SEGMENT_COUNT; i++) {
-        gte_ldv0(&block->topRing[i]);
-        gte_rtps();
-        gte_stsxy(&block->sxy0);
-        next = (i + 1) & (EFFECT_BAND_SEGMENT_COUNT - 1);
-        gte_ldv3(&block->topRing[next], &block->bottomRing[i], &block->bottomRing[next]);
-        gte_rtpt();
-        gte_stsxy3(&block->sxy1, &block->sxy2, &block->sxy3);
-        gte_stflg(&block->projectionFlags);
-        if (block->projectionFlags >= 0) {
-            gte_stszotz(&block->otz);
-            block->otz++;
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, rgb[0], rgb[1], rgb[2]);
-            setRGB1(prim, rgb[0], rgb[1], rgb[2]);
-            setRGB2(prim, 0, 0, 0);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sxy0.vx;
-            prim->y0 = block->sxy0.vy;
-            prim->x1 = block->sxy1.vx;
-            prim->y1 = block->sxy1.vy;
-            prim->x2 = block->sxy2.vx;
-            prim->y2 = block->sxy2.vy;
-            prim->x3 = block->sxy3.vx;
-            prim->y3 = block->sxy3.vy;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            otz = block->otz;
-            setSemiTrans(prim, 1);
-            dr             = gGpuPrimCursor;
-            gGpuPrimCursor = dr + 1;
-            setDrawTPage(dr, 0, 1, 0x2A);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    dr);
+    for (segmentIndex = 0; segmentIndex < EFFECT_BAND_SEGMENT_COUNT; segmentIndex++) {
+        _effectProjectGlowBandSegment(scratch, segmentIndex);
+        if (scratch->projectionFlags >= 0) {
+            gte_stszotz(&scratch->otz);
+            scratch->otz++;
+            quad           = gGpuPrimCursor;
+            gGpuPrimCursor = quad + 1;
+            setPolyG4(quad);
+            setRGB0(quad, rgb[0], rgb[1], rgb[2]);
+            setRGB1(quad, rgb[0], rgb[1], rgb[2]);
+            setRGB2(quad, 0, 0, 0);
+            setRGB3(quad, 0, 0, 0);
+            quad->x0 = scratch->sxy0.vx;
+            quad->y0 = scratch->sxy0.vy;
+            quad->x1 = scratch->sxy1.vx;
+            quad->y1 = scratch->sxy1.vy;
+            quad->x2 = scratch->sxy2.vx;
+            quad->y2 = scratch->sxy2.vy;
+            quad->x3 = scratch->sxy3.vx;
+            quad->y3 = scratch->sxy3.vy;
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                    quad);
+            sortingDepth = scratch->otz;
+            _gpuSetEffectPrimitiveBlendMode(quad, GPU_BLEND_ADD, sortingDepth);
         }
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectBandScratch);

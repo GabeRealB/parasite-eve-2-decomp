@@ -7,7 +7,7 @@
 /// 0x2A, `arg3` spins the quad and `arg2` sizes it: the corners sit
 /// `arg2 * 31 / otz` from the projected centre along `arg3` and `arg3 + 0x400`,
 /// so the sprite shrinks with depth. Same shape as the gameplay
-/// `Gp_DrawFxQuad`, with the CLUT fixed at 0x42C2 instead of picked from
+/// `effectDrawSpinningBillboard`, with the CLUT fixed at 0x42C2 instead of picked from
 /// `Gp_QuadClutX`.
 void pyroFlameDrawSprite(GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
 {

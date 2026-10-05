@@ -621,7 +621,7 @@ void func_lifedrain_801308C0(Task* arg0)
     rgb[0]      = mem->scale >> 1;
     rgb[1]      = mem->scale >> 1;
     rgb[2]      = (u8)mem->scale;
-    Gp_DrawBandEx(coord, mem->angle, mem->period, rgb);
+    effectDrawInnerGlowBand(coord, mem->angle, mem->period, rgb);
 
     scale      = (u16)mem->scale;
     scale     -= 8;

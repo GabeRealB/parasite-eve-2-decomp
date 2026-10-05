@@ -3,7 +3,7 @@
 /// State 0 seeds the spark: a rise of 4 per frame, a random spin in `scale`,
 /// the spawn argument's low twelve bits as its angle and full brightness in
 /// `period`. State 1 lifts the coordinate, steps the frame every other tick
-/// and on the odd ones draws `Gp_DrawFxQuad`; past frame 7 it releases the
+/// and on the odd ones draws `effectDrawSpinningBillboard`; past frame 7 it releases the
 /// effect.
 static inline void risingSparkTask(Task* task)
 {
@@ -41,8 +41,8 @@ static inline void risingSparkTask(Task* task)
             }
             if (mem->index < 8) {
                 if (mem->age & 1) {
-                    Gp_DrawFxQuad(coord, mem->index, mem->angle,
-                                  mem->scale | mem->period);
+                    effectDrawSpinningBillboard(coord, mem->index, mem->angle,
+                                                mem->scale | mem->period);
                     return;
                 }
             } else {

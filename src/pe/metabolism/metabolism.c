@@ -261,8 +261,8 @@ void func_metabolism_8012F5A0(Task* arg0)
             }
             if (mem->index < 8) {
                 if (mem->age & 1) {
-                    Gp_DrawFxQuad(coord, mem->index, mem->angle,
-                                  mem->scale | mem->period);
+                    effectDrawSpinningBillboard(coord, mem->index, mem->angle,
+                                                mem->scale | mem->period);
                     return;
                 }
             } else {

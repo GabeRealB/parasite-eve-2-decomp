@@ -1,4 +1,4 @@
-/* Sprite quad: the overlays' copy of gameplay's `Gp_DrawFxQuad` with the
+/* Sprite quad: the overlays' copy of gameplay's `effectDrawSpinningBillboard` with the
  * texture fixed per overlay. A world position is projected through
  * `GsWSMATRIX` and, unless it lands behind the camera, a camera-facing
  * textured POLY_FT4 is drawn there: `frame` selects a texture cell,

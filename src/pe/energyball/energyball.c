@@ -642,7 +642,7 @@ void func_energyball_8013107C(Task* arg0)
     rgb[0] = mem->scale >> 1;
     rgb[1] = (u8)mem->scale;
     rgb[2] = mem->scale >> 1;
-    Gp_DrawBandEx(coord, mem->angle, 0x180, rgb);
+    effectDrawInnerGlowBand(coord, mem->angle, 0x180, rgb);
 
     angle      = (u16)mem->angle;
     scale      = (u16)mem->scale;

@@ -63,7 +63,7 @@ enum {
     /// ground splash, sparks, room light, shrinking ring on impact; spawned by the
     /// hypervelocity weapon when it fires.
     EFFECT_HYPERVELOCITY_ROUND = EFFECT_ID(EFFECT_TASK_BANK, 0x00C),
-    /// Expanding blue-white band (Gp_DrawBand) that widens 0x40 and fades 0x10 per
+    /// Expanding blue-white band (effectDrawRaisedGlowBand) that widens 0x40 and fades 0x10 per
     /// frame; spawned by the Hypervelocity weapon when its beam fires and reparented
     /// under the beam task.
     EFFECT_HYPERVELOCITY_SHOCK_RING = EFFECT_ID(EFFECT_TASK_BANK, 0x00D),
@@ -82,7 +82,7 @@ enum {
     /// Expanding, fading flame cone (glowDrawFlameCone) drawn at the pyrokinesis launch
     /// point; spawned once when the Pyrokinesis projectile is launched.
     EFFECT_PYROKINESIS_LAUNCH_CONE = EFFECT_ID(EFFECT_TASK_BANK, 0x011),
-    /// Spinning additive billboard quad (Gp_DrawFxQuad, or the fading func_800EB6E8
+    /// Spinning additive billboard quad (effectDrawSpinningBillboard, or the fading func_800EB6E8
     /// quad) that lifts and animates for a few frames; spawned repeatedly around the
     /// player by the Metabolism PE.
     EFFECT_METABOLISM_SPARKLE = EFFECT_ID(EFFECT_TASK_BANK, 0x013),
@@ -572,7 +572,7 @@ enum {
     /// Falling dust mote: a 1x1 tile drifting and falling for 0x1F ticks; spawned in
     /// bursts of 0x20/8 at random points by the bridge.
     EFFECT_ACROPOLIS_BRIDGE_DUST_MOTE = EFFECT_ID(EFFECT_TASK_BANK, 0x0BC),
-    /// An expanding, fading coloured band (Gp_DrawBandEx) at a Z angle from the spawn
+    /// An expanding, fading coloured band (effectDrawInnerGlowBand) at a Z angle from the spawn
     /// argument, with colour from D_80112C6C; spawned three at a time 120 degrees apart
     /// by Gp_EffCtlTaskAC and the gunblade.
     EFFECT_EXPANDING_COLOR_BAND = EFFECT_ID(EFFECT_TASK_BANK, 0x0C1),
@@ -618,7 +618,7 @@ enum {
     /// in slot gRoomEffectFlashId, which the Pawn/Rook golem library spawns at body part 4 for
     /// its scream (golemPawnRookSilenceScream).
     EFFECT_MINE_MESA_FLASH = EFFECT_ID(EFFECT_TASK_BANK, 0x0E9),
-    /// Blue expanding band (Gp_DrawBandEx) tilted by the spawn argument and sized by
+    /// Blue expanding band (effectDrawInnerGlowBand) tilted by the spawn argument and sized by
     /// the PE level, fading 8 per frame; spawned in a loop and reparented by the
     /// Lifedrain PE.
     EFFECT_LIFEDRAIN_RING = EFFECT_ID(EFFECT_TASK_BANK, 0x0EA),
@@ -665,7 +665,7 @@ enum {
     /// draws a triangle burst and two rings on request, and spawns 0x600F4 at the
     /// player's hands; spawned by Energy Shot once charged.
     EFFECT_ENERGY_SHOT_AURA = EFFECT_ID(EFFECT_TASK_BANK, 0x0F3),
-    /// Additive animated billboard (Gp_DrawFxQuad) that rises for 8 animation frames
+    /// Additive animated billboard (effectDrawSpinningBillboard) that rises for 8 animation frames
     /// with a random or fixed CLUT; spawned at random player hand joints by the Energy
     /// Shot aura (0x600F3), by Energy Shot itself, and at random joints of the model in
     /// the B2 pod bottom.
@@ -684,7 +684,7 @@ enum {
     /// One ball of the Energy Ball cast: grows, flies homing at targets with its own
     /// light and collision, bursts into 0x600F9 effects on a hit.
     EFFECT_ENERGY_BALL = EFFECT_ID(EFFECT_TASK_BANK, 0x0F8),
-    /// Green expanding band (Gp_DrawBandEx) rotated by the spawn argument and fading 8
+    /// Green expanding band (effectDrawInnerGlowBand) rotated by the spawn argument and fading 8
     /// per frame; Energyball spawns three (0, 0x2AA, 0x555) when the ball makes
     /// contact.
     EFFECT_ENERGYBALL_IMPACT_RING = EFFECT_ID(EFFECT_TASK_BANK, 0x0F9),
@@ -950,7 +950,7 @@ enum {
     /// Short yellow arc-and-ring flash expanding over 9 ticks, spawned at an actor part
     /// or the player's model by actor_105100 and actor_205200 hits.
     EFFECT_SHELTER_B6_TRAINING_ROOM_HIT_FLASH = EFFECT_ID(EFFECT_TASK_BANK, 0x1AC),
-    /// Unidentified. Additive animated billboard (Gp_DrawFxQuad) that sinks 8 units per
+    /// Unidentified. Additive animated billboard (effectDrawSpinningBillboard) that sinks 8 units per
     /// frame for 8 frames; shed at random by the training room's descending emitter
     /// 0x601AE.
     EFFECT_1AD = EFFECT_ID(EFFECT_TASK_BANK, 0x1AD),
@@ -1030,7 +1030,7 @@ enum {
     /// slot gRoomEffectSparkBurstId, which the grenade-launcher Pawn/Rook golems spawn where a
     /// grenade lands (golemPawnRookBulletFly).
     EFFECT_SHELTER_1F_BULWARK_SPARK_BURST = EFFECT_ID(EFFECT_TASK_BANK, 0x1C4),
-    /// Rising eight-cell Gp_DrawFxQuad sprite with a random CLUT
+    /// Rising eight-cell effectDrawSpinningBillboard sprite with a random CLUT
     /// (effectSpriteRiseTask); spawned every 128 ticks from part 2 of actor_560800's
     /// animated model part in the B1 pod service gantry.
     EFFECT_SHELTER_B1_GANTRY_RISING_SPRITE = EFFECT_ID(EFFECT_TASK_BANK, 0x1C6),

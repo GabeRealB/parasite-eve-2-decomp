@@ -2712,7 +2712,7 @@ void Gp_EffCtlTaskC1(Task* arg0)
     rgb[0] = (mem->scale * ((mem->period >> 8) & 0xF)) >> 3;
     rgb[1] = (mem->scale * ((u8)mem->period >> 4)) >> 3;
     rgb[2] = (mem->scale * (mem->period & 0xF)) >> 3;
-    Gp_DrawBandEx(coord, mem->angle, 0x100, rgb);
+    effectDrawInnerGlowBand(coord, mem->angle, 0x100, rgb);
 
     angle      = (u16)mem->angle;
     scale      = (u16)mem->scale;
@@ -2890,11 +2890,11 @@ void Gp_EffCtlTaskF4(Task* arg0)
     if (mem->period & 0x8000) {
     draw_lcg:
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        Gp_DrawFxQuad(coord, mem->index, mem->angle,
-                      mem->scale | ((gRandomLcgState >> 16) & 0x1000));
+        effectDrawSpinningBillboard(coord, mem->index, mem->angle,
+                                    mem->scale | ((gRandomLcgState >> 16) & 0x1000));
     } else {
-        Gp_DrawFxQuad(coord, mem->index, mem->angle,
-                      mem->scale | mem->period);
+        effectDrawSpinningBillboard(coord, mem->index, mem->angle,
+                                    mem->scale | mem->period);
     }
     return;
 kill:

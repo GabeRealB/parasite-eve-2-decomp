@@ -31955,7 +31955,7 @@ move   v0, s3
 Which of the two orders a given function wants is decided by how much else is
 ready to schedule there, so try both before reaching for a pin -
 `func_flare_8012F304` needed the store last where the otherwise identical
-`Gp_DrawFxQuad` wants it before the `vz` store. Note that a
+`effectDrawSpinningBillboard` wants it before the `vz` store. Note that a
 `register SVECTOR* v asm("v0")` pin *does* produce the `move`, but only lands
 it correctly when declared between the two `gte_Set*Matrix` calls, and any
 earlier pin reserves `$v0` across the prologue and re-colours `head` and the
@@ -32349,7 +32349,7 @@ The first LCG stays in `$a0`, the constant in `$a2`, `&gRandomLcgState` in
 `$a1`, and both `sw`s are delayed until after `field_24`. Temps
 (`rng` / `rng2`) put the first result in `$t1` and DSE the first store.
 The same `gRandomLcgState = gRandomLcgState * 5 + C` form at a later
-`Gp_DrawFxQuad` call site lands the LCG in `$v0` so `$a3` can hold the
+`effectDrawSpinningBillboard` call site lands the LCG in `$v0` so `$a3` can hold the
 constant, then the `>> 16 & 0x1000` bit.
 
 An independent `coord->composeStamp = 0` next to `coord->coord.t[1] += step`
@@ -39399,7 +39399,7 @@ prototype changed nothing on its side.
 
 ## Sink prim UV temporaries to their first use to free `$v0` for the table `%hi/%lo`
 
-`Gp_DrawFxQuad` builds one `POLY_FT4`: `setPolyFT4` / `setSemiTrans` /
+`effectDrawSpinningBillboard` builds one `POLY_FT4`: `setPolyFT4` / `setSemiTrans` /
 `setShadeTex`, `prim->tpage = 0x2A`, a CLUT read out of a `u16` table, then
 `setUV4`. Computing the two U coordinates where they are conceptually
 introduced (right after the prim is bumped off `gGpuPrimCursor`) stalls at 98.6%
@@ -40411,32 +40411,33 @@ actorRenderComposeCoord(coord);
 
 `Gp_EffSprTaskE1` is the example: the hoist alone is 96.8% → 100%.
 
-## Split a second-array pointer with `&arr[i] + N` so an asm operand recomputes
+## Split a second-array pointer through the complete object's byte view so an asm operand recomputes
 
 When a loop touches two parallel arrays in one scratch struct and the second
 array's element address is *also* fed to a GTE inline asm, the target can show
 three different addressings of the same element: `0x80(s2)` for one field,
 `2(s0)` / `4(s0)` with `addiu s0, s2, 0x80` for the others, and a freshly
 recomputed `sll s1, i, 3; addiu s1, s1, 0x80; addu s1, base, s1` for the asm
-operand. Writing the pointer as `op = &block->bottomRing[i];` collapses all three:
+operand. Writing the pointer as `outerVertex = &scratch->bottomRing[segmentIndex];` collapses all three:
 cse1 folds it to the same rtx as `&block->bottomRing[i]` in the asm operand, so the
 asm's non-reducible address wins and the field refs ride along on it.
 
-Derive the pointer from the *other* array instead. `&block->topRing[i] + 16`
+Derive the pointer through a byte view of the *complete scratch block* instead.
+`(SVECTOR*)((u8*)scratch + segmentIndex * sizeof(SVECTOR) + sizeof(scratch->topRing))`
 expands as `(base + i*8) + 128`, which cse1 does not equate with the asm
 operand's `base + (i*8 + 128)`. The loop pass then strength-reduces it as a
 giv combined with the inner walking pointer (`addiu s0, s2, 0x80`) while the
 asm operand keeps its own computation:
 
 ```c
-block->bottomRing[i].vx = (rsin(ang) * r1) >> 12;
-op                 = &block->topRing[i] + 16;  /* not &block->bottomRing[i] */
-op->vy             = 0;
-op->vz             = (rcos(ang) * r1) >> 12;
-gte_ldv0(&block->bottomRing[i]);
+scratch->bottomRing[segmentIndex].vx = (rsin(angle) * outerRadius) >> EFFECT_RADIAL_TRIG_FRACTION_BITS;
+outerVertex = (SVECTOR*)((u8*)scratch + segmentIndex * sizeof(SVECTOR) + sizeof(scratch->topRing));
+outerVertex->vy = 0;
+outerVertex->vz = (rcos(angle) * outerRadius) >> EFFECT_RADIAL_TRIG_FRACTION_BITS;
+gte_ldv0(&scratch->bottomRing[segmentIndex]);
 ```
 
-`Gp_DrawBandEx` is the example (98.6% → 99.7% from this alone). Flattening the
+`effectDrawInnerGlowBand` is the example (98.6% → 99.7% from this alone). Flattening the
 two arrays into one `SVECTOR v[32]` and indexing `v[i + 16]` is much worse
 (94.2%) — the `(i + 16) * 8` form loses the `addiu 0x80` shape everywhere.
 
@@ -40471,7 +40472,7 @@ block->topRing[i].vz = 0x100;   /* lands between mult and mflo */
 Same for `op->vy = (rcos(ang) * r1) >> 12; op->vz = 0;` — keeping the constant
 last also stops the `addiu a0, s2, 0x80` from crossing the `rcos` call, so `op`
 stays in a caller-saved register instead of being promoted to `$s0`.
-`Gp_DrawBand` is the example: 98.2% -> 100% from this reorder alone.
+`effectDrawRaisedGlowBand` is the example: 98.2% -> 100% from this reorder alone.
 
 ## Unpin the scratch `block` instead of pinning the `head` temp
 
@@ -56787,7 +56788,7 @@ the *doc comments*, which are written when a function is matched and spell out
 its arithmetic in exactly the vocabulary the target asm gives you.
 
 `func_m4a1_javelin_8011F0AC` has an almost line-for-line twin in
-`src/gameplay/3CD8_9CC8.c` (`Gp_DrawFxQuad`) — same 0x1C `SCRATCH_STACK_CURSOR_SLOT` block,
+`src/gameplay/3CD8_9CC8.c` (`effectDrawSpinningBillboard`) — same 0x1C `SCRATCH_STACK_CURSOR_SLOT` block,
 same single `RTPS`, same `POLY_FT4` — and `overlay_dup_index.py find` reported
 nothing, because the index compares disassembly text across *overlays* and
 cannot see a body living in the main `gameplay` unit. It would not have matched
@@ -56883,7 +56884,7 @@ middle of a run would.
 
 `func_hypervelocity_8011E494` came back from `overlay_dup_index.py find` as its
 own only copy, yet it is the same function as the already-matched
-`Gp_DrawFxQuad` (gameplay `3CD8_9CC8.c`) and `func_m4a1_javelin_8011F0AC`: a
+`effectDrawSpinningBillboard` (gameplay `3CD8_9CC8.c`) and `func_m4a1_javelin_8011F0AC`: a
 0x1C scratchpad block, `gte_SetTransMatrix`/`gte_SetRotMatrix(&GsWSMATRIX)`,
 one `gte_ldv0` + `RTPS`, `gte_stsxy`/`gte_stflg`/`gte_stszotz`, then a
 `POLY_FT4` whose four corners are `sx/sy ± dx/dy` at `ang` and `ang + 0x400`,
@@ -56910,11 +56911,11 @@ u1 = col - 0x59;`) so GCC emits two `addiu`s off one register rather than
 chaining `u1 = u0 + 0x37`, and read `coord->workm.t[i]` through
 `*(u16*)&…` so the store is the `lhu`/`sh` pair the ROM uses.
 
-## A 0x118 scratchpad block is `Gp_DrawBandEx`
+## A 0x118 scratchpad block is `effectDrawInnerGlowBand`
 
 The previous entry's "scratch size is the strongest fingerprint" rule has one
 more entry worth writing down: a `- 0x118` off `SCRATCH_STACK_CURSOR_SLOT` is the
-`EffectBandScratch` two-ring band, and the matched example is `Gp_DrawBandEx`
+`EffectBandScratch` two-ring band, and the matched example is `effectDrawInnerGlowBand`
 (gameplay `3CD8_9CC8.c`). `glowDrawFlameRing` is that function with the
 colour source swapped and the trailing `DR_TPAGE` replaced by
 `gpuSetPrimitiveBlendMode`; porting the sibling and changing only those two things
@@ -62830,7 +62831,7 @@ The block layout is the fingerprint. Read it straight off the store offsets — 
 grep -n "STATIC_ASSERT_SIZEOF(Gp.*Scratch, 0x1C)" include/gameplay/3CD8.h
 ```
 
-That named `EffectShapeScratch`, also used by `Gp_DrawFxQuad`, whose
+That named `EffectShapeScratch`, also used by `effectDrawSpinningBillboard`, whose
 already-matched near-twin `func_combustion_8012FB14` differed only in the CLUT (0x428F vs
 0x42C2), the texture cell width (`value * 0x28` / `+0x27` vs `arg1 << 5` / `+0x1F`),
 the V rows and the radius scale (`arg2 * 39` vs `arg2 * 31`). Copying that body

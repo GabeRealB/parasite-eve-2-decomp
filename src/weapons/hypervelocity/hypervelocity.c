@@ -722,7 +722,7 @@ void func_hypervelocity_8011F168(Task* arg0)
     rgb[0] = mem->scale >> 1;
     rgb[1] = mem->scale >> 1;
     rgb[2] = mem->scale;
-    Gp_DrawBand(coord, mem->angle, rgb);
+    effectDrawRaisedGlowBand(coord, mem->angle, rgb);
     mem->angle += 0x40;
     val         = mem->scale - 0x10;
     mem->scale  = val;

@@ -401,7 +401,7 @@ void func_energyshot_8012FFB8(Task* arg0)
         mem->index = mem->index + 1;
     }
     if (mem->index < 8) {
-        Gp_DrawFxQuad(coord, mem->index, 0x400, mem->scale);
+        effectDrawSpinningBillboard(coord, mem->index, 0x400, mem->scale);
         return;
     }
     effectKillTask(mem, arg0);

@@ -157,13 +157,22 @@ void effectDrawOuterGlowBand(const GfxCoord* centreCoord, s32 innerRadius, s32 w
 /// must stay clear of that storage. Leaves additive draw mode active.
 void effectDrawGouraudDisc(const GfxCoord* centreCoord, s32 radius, const u8* rgb);
 
-/// Draws one textured, additive `POLY_FT4` billboard at `arg0`'s projected
-/// position. `arg1` is the animation frame (U origin `arg1 * 32`, the sprite
-/// is 0x20 x 0x20 at V 0x18), `arg2` the radius (scaled by 31 and divided by
-/// the projected OTZ) and `arg3` packs the sprite's CLUT index
-/// (`Gp_QuadClutX`) in its top nibble and the spin angle in its low 12 bits,
-/// so the quad's corners sit at `angle` and `angle + 0x400`.
-void Gp_DrawFxQuad(GfxCoord* arg0, u16 arg1, s16 arg2, u16 arg3);
+/// Draws one additive, unmodulated cell of the eight-frame spinning billboard strip.
+///
+/// `coord` supplies a composed translation in the input space of `GsWSMATRIX`;
+/// its rotation is unused and its position narrows to signed 16-bit coordinates.
+/// `frame` selects a 32-by-32 texel cell at V=24..55; GPU UV bytes wrap it
+/// modulo eight. `packedAnglePalette` holds a palette index 0..5 in bits 12..15
+/// and a screen rotation in bits 0..11, in 4096 units per turn. At angle zero
+/// the first corner is above the centre; increasing angles turn clockwise.
+///
+/// `size` is a signed sizing numerator: size * 31 / (SZ3 / 4 + 1) is the
+/// screen-space half-diagonal in pixels before Q12 rotation. Division truncates
+/// toward zero; intermediate products must fit s32. A negative GTE FLAG drops
+/// the sprite. Borrows inputs for this call, reserves/releases scratch storage,
+/// and appends one `POLY_FT4` to the unchecked frame arena when accepted.
+/// Inputs must stay clear of that storage; the packet lives through GPU drawing.
+void effectDrawSpinningBillboard(const GfxCoord* coord, u16 frame, s16 size, u16 packedAnglePalette);
 
 /// Draws a grayscale, semitransparent textured billboard at the projected
 /// world position. `arg1 & 3` selects the 24-pixel animation frame, `arg2`
@@ -172,9 +181,38 @@ void Gp_DrawFxQuad(GfxCoord* arg0, u16 arg1, s16 arg2, u16 arg3);
 /// low byte.
 void func_800EB6E8(GfxCoord* arg0, u16 arg1, u16 arg2, u16 arg3);
 
-void Gp_DrawBand(GfxCoord* arg0, s16 arg1, u8* arg2);
+/// Draws a raised additive band, coloured at its smaller ring and black at its wider rim.
+///
+/// Sixteen Gouraud quads join local XY rings: radius `innerRadius` at Z=256,
+/// and radius (s16)(innerRadius + 256) at Z=0, in game-coordinate units.
+/// `coord` must supply a composed rotation and translation in `GsWSMATRIX`'s
+/// input space. Rotated vertices plus translation narrow to signed 16 bits;
+/// `rgb` supplies three readable colour bytes. Signed radii are retained.
+///
+/// Each segment rejects a negative GTE FLAG after projecting its last three
+/// corners and sorts by its last corner's SZ3 / 4 + 1. Reserves/releases one
+/// scratch block and appends up to sixteen `POLY_G4`/`DR_TPAGE` pairs to the
+/// unchecked frame arena. Inputs are borrowed for this call and must stay
+/// clear of that storage; packets live through GPU drawing. Leaves additive
+/// draw mode with dithering enabled after an accepted segment.
+void effectDrawRaisedGlowBand(const GfxCoord* coord, s16 innerRadius, const u8* rgb);
 
-void Gp_DrawBandEx(GfxCoord* arg0, s16 arg1, s32 arg2, u8* arg3);
+/// Draws an additive local-XZ band, coloured at its inner edge and black at its outer edge.
+///
+/// Sixteen Gouraud quads join radii `innerRadius` and (s16)(innerRadius + width)
+/// at local Y=0, in game-coordinate units. Radii and width are signed; the sum
+/// must fit s32 before narrowing. `coord` must supply a composed rotation and
+/// translation in `GsWSMATRIX`'s input space. Rotated vertices plus translation
+/// narrow to signed 16 bits; translation additions must fit s32.
+/// `rgb` supplies three readable colour bytes.
+///
+/// Each segment rejects a negative GTE FLAG after projecting its last three
+/// corners and sorts by its last corner's SZ3 / 4 + 1. Reserves/releases one
+/// scratch block and appends up to sixteen `POLY_G4`/`DR_TPAGE` pairs to the
+/// unchecked frame arena. Inputs are borrowed for this call and must stay
+/// clear of that storage; packets live through GPU drawing. Leaves additive
+/// draw mode with dithering enabled after an accepted segment.
+void effectDrawInnerGlowBand(const GfxCoord* coord, s16 innerRadius, s32 width, const u8* rgb);
 
 /// Ends one counted effect by freeing its work and performing default task teardown.
 ///

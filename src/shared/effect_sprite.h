@@ -1,7 +1,7 @@
 /* Drawing of the Shelter rooms' animated effect sprites as camera-facing
  * textured quads at a coordinate's world position, rotated and scaled by depth.
  * effectSpriteRiseTask is the plainer rising sprite of the pod rooms: eight
- * cells drawn through gameplay's Gp_DrawFxQuad in one of six random CLUTs.
+ * cells drawn through gameplay's effectDrawSpinningBillboard in one of six random CLUTs.
  *
  * Include this header in the prologue and each fragment at its function's
  * position.

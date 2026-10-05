@@ -23,7 +23,7 @@ void effectSpriteRiseTask(Task* task)
             return;
         }
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        Gp_DrawFxQuad(coord, work->index, work->angle, work->scale | (((gRandomLcgState >> 16) % 6) << 12));
+        effectDrawSpinningBillboard(coord, work->index, work->angle, work->scale | (((gRandomLcgState >> 16) % 6) << 12));
         return;
     }
     work->age++;
@@ -47,7 +47,7 @@ void effectSpriteRiseTask(Task* task)
     }
     if (work->index < 8) {
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        Gp_DrawFxQuad(coord, work->index, work->angle, work->scale | (((gRandomLcgState >> 16) % 6) << 12));
+        effectDrawSpinningBillboard(coord, work->index, work->angle, work->scale | (((gRandomLcgState >> 16) % 6) << 12));
         return;
     }
     effectKillTask(work, task);

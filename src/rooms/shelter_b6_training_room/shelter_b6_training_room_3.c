@@ -1347,7 +1347,7 @@ void func_shelter_b6_training_room_801825C0(Task* task)
         }
         if (mem->index < 8) {
             if (mem->age & 1) {
-                Gp_DrawFxQuad(coord, mem->index, 0x400, mem->scale);
+                effectDrawSpinningBillboard(coord, mem->index, 0x400, mem->scale);
             }
         } else {
             effectKillTask(mem, task);
