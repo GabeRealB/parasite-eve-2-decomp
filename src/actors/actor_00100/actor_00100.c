@@ -2826,16 +2826,20 @@ static void Actor00100_Fn08E7C(Task* arg0)
     wrapped = delta;
 
     if (delta < 0) {
-    wrapNegative:
-        if (wrapped < -0x800) {
-            wrapped += 0x1000;
-            goto wrapNegative;
+        for (;;) {
+            if (wrapped < -0x800) {
+                wrapped += 0x1000;
+            } else {
+                break;
+            }
         }
     } else {
-    wrapPositive:
-        if (wrapped >= 0x801) {
-            wrapped -= 0x1000;
-            goto wrapPositive;
+        for (;;) {
+            if (wrapped >= 0x801) {
+                wrapped -= 0x1000;
+            } else {
+                break;
+            }
         }
     }
     firstDelta             = wrapped;
@@ -2853,16 +2857,20 @@ static void Actor00100_Fn08E7C(Task* arg0)
     scratch->yawFromPlayer = targetYaw;
 
     if (targetYaw < 0) {
-    wrapYawNegative:
-        if (wrappedYaw < -0x800) {
-            wrappedYaw += 0x1000;
-            goto wrapYawNegative;
+        for (;;) {
+            if (wrappedYaw < -0x800) {
+                wrappedYaw += 0x1000;
+            } else {
+                break;
+            }
         }
     } else {
-    wrapYawPositive:
-        if (wrappedYaw >= 0x801) {
-            wrappedYaw -= 0x1000;
-            goto wrapYawPositive;
+        for (;;) {
+            if (wrappedYaw >= 0x801) {
+                wrappedYaw -= 0x1000;
+            } else {
+                break;
+            }
         }
     }
     scratch->yawFromPlayer = wrappedYaw;
@@ -2872,16 +2880,20 @@ static void Actor00100_Fn08E7C(Task* arg0)
     wrapped2               = delta2;
 
     if (delta2 < 0) {
-    wrapFinalNegative:
-        if (wrapped2 < -0x800) {
-            wrapped2 += 0x1000;
-            goto wrapFinalNegative;
+        for (;;) {
+            if (wrapped2 < -0x800) {
+                wrapped2 += 0x1000;
+            } else {
+                break;
+            }
         }
     } else {
-    wrapFinalPositive:
-        if (wrapped2 >= 0x801) {
-            wrapped2 -= 0x1000;
-            goto wrapFinalPositive;
+        for (;;) {
+            if (wrapped2 >= 0x801) {
+                wrapped2 -= 0x1000;
+            } else {
+                break;
+            }
         }
     }
     finalDelta          = wrapped2;
