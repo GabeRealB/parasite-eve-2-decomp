@@ -3035,7 +3035,9 @@ static void func_actor_511000_80133958(Enemy* enemy, Task* task)
     GfxCoord*                 coord;
     _Actor511000No9GolemWork* work;
     TaskDesc*                 table;
-    u32                       placementWord;
+    u32                       placeIndex;
+    u32                       placeIndex2;
+    AreaPlacement*            placements;
     Enemy*                    spawned;
     GameSession*              session;
 
@@ -3060,46 +3062,46 @@ static void func_actor_511000_80133958(Enemy* enemy, Task* task)
     session = gGameSession;
     // Child models inherit the texture relocation of the parent's placement.
     // Reusing the spawn result preserves its register preference at the task load.
-    spawned       = (Enemy*)spawned->task;
-    sessionKey    = &session->location.loc;
-    placementWord = enemy->placeKey;
-    stage         = sessionKey->stage;
-    model         = ((Task*)spawned)->extra.tmd;
-    key.stage     = stage;
-    key.area      = sessionKey->area;
-    key.room      = sessionKey->room;
-    view          = session->location.loc.view;
-    placementWord = placementWord >> 12;
-    key.view      = view;
+    // Each child has its own index local. With one local shared by both
+    // children the scaled index and the element address leave its register.
+    spawned    = (Enemy*)spawned->task;
+    sessionKey = &session->location.loc;
+    placeIndex = enemy->placeKey;
+    stage      = sessionKey->stage;
+    model      = ((Task*)spawned)->extra.tmd;
+    key.stage  = stage;
+    key.area   = sessionKey->area;
+    key.room   = sessionKey->room;
+    view       = session->location.loc.view;
+    placeIndex = placeIndex >> ENEMY_PLACE_INDEX_SHIFT;
+    key.view   = view;
     areaSyncLocationVariant(&key);
     layout                   = Gp_GetNestedAreaRec(&key);
-    placementWord          <<= 4;
-    placementWord           += (u32)layout->placements;
-    model->texturePageOffset = ((AreaPlacement*)placementWord)->texturePageOffset;
-    model->clutRowOffset     = ((AreaPlacement*)placementWord)->clutRowOffset;
+    placements               = layout->placements;
+    model->texturePageOffset = placements[placeIndex].texturePageOffset;
+    model->clutRowOffset     = placements[placeIndex].clutRowOffset;
     if (model->buffer != NULL) {
         tmdBuildBufferHalf(model);
         tmdBuildBufferHalf(model);
     }
-    spawned       = Gp_SpawnEnemyFromTable(table, 2, 0, enemy);
-    session       = gGameSession;
-    spawned       = (Enemy*)spawned->task;
-    sessionKey    = &session->location.loc;
-    placementWord = enemy->placeKey;
-    stage         = sessionKey->stage;
-    model         = ((Task*)spawned)->extra.tmd;
-    key.stage     = stage;
-    key.area      = sessionKey->area;
-    key.room      = sessionKey->room;
-    view          = session->location.loc.view;
-    placementWord = placementWord >> 12;
-    key.view      = view;
+    spawned     = Gp_SpawnEnemyFromTable(table, 2, 0, enemy);
+    session     = gGameSession;
+    spawned     = (Enemy*)spawned->task;
+    sessionKey  = &session->location.loc;
+    placeIndex2 = enemy->placeKey;
+    stage       = sessionKey->stage;
+    model       = ((Task*)spawned)->extra.tmd;
+    key.stage   = stage;
+    key.area    = sessionKey->area;
+    key.room    = sessionKey->room;
+    view        = session->location.loc.view;
+    placeIndex2 = placeIndex2 >> ENEMY_PLACE_INDEX_SHIFT;
+    key.view    = view;
     areaSyncLocationVariant(&key);
     layout                   = Gp_GetNestedAreaRec(&key);
-    placementWord          <<= 4;
-    placementWord           += (u32)layout->placements;
-    model->texturePageOffset = ((AreaPlacement*)placementWord)->texturePageOffset;
-    model->clutRowOffset     = ((AreaPlacement*)placementWord)->clutRowOffset;
+    placements               = layout->placements;
+    model->texturePageOffset = placements[placeIndex2].texturePageOffset;
+    model->clutRowOffset     = placements[placeIndex2].clutRowOffset;
     if (model->buffer != NULL) {
         tmdBuildBufferHalf(model);
         tmdBuildBufferHalf(model);
