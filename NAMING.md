@@ -427,6 +427,12 @@ table entry is `ActionPromptHotspot` in that header. The included
 motion, drawing, hotspot test and outline are `src/shared/action_prompt.h` and
 its fragments; a package includes only the fragments it carries.
 
+`planarReflection` owns player and held-object reflections. Gameplay dispatches
+the player task to the captured room through
+`include/gameplay/planar_reflection.h`; room-specific wrappers export the
+included implementation from `src/shared/planar_reflection.h` under their
+package prefixes.
+
 `roomEvent` owns the included room event gates, latched event records and event
 tasks. Its implementation interface is `src/shared/room_events.h`; record types
 used by several room overlays are declared in `include/rooms/room_common.h`.

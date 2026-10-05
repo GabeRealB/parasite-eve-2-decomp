@@ -27,6 +27,7 @@
 #include "gameplay/display.h"
 #include "gameplay/effect_tasks.h"
 #include "gameplay/item_menu.h"
+#include "gameplay/planar_reflection.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
 
@@ -564,7 +565,7 @@ TaskDesc D_800670D0[] = {
     { { { TASK_BODY_NONE, 0xC0 } }, tmdRestoreAttachedBuffersTask },
     { { { TASK_BODY_NONE, 0x60 } }, sceneManagerTask },
     { { { TASK_BODY_NONE, 0xC0 } }, _taskNoOpCallback },
-    { { { TASK_BODY_NONE, 0x70 } }, func_800CFD78 },
+    { { { TASK_BODY_NONE, 0x70 } }, planarReflectionDispatchPlayerTask },
     { { { TASK_BODY_NONE, 0xC0 } }, func_800CE22C },
     { { { TASK_BODY_NONE, 0xC2 } }, fadeDisplayTransitionTask },
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill },

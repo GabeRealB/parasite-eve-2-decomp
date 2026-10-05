@@ -23,7 +23,9 @@
 #include "items.h"
 #include "loading.h"
 #include "gameplay/map.h"
+#include "gameplay/planar_reflection.h"
 
+#include "main/areas.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
@@ -175,7 +177,7 @@ static void Gp_SpawnItemUsePrompt(UiList* arg0, UiObject* arg1);
 
 static void Gp_DrawMapCursor(Task* arg0);
 
-static void func_800D0614(Task* arg0);
+static void _menuMapDrawPicture(Task* mapTask);
 
 static void Gp_DrawMapMarks(Task* arg0);
 
@@ -189,7 +191,7 @@ static s8 func_800D1434(u32 roomId, u8 flagId);
 
 static void func_800D15D0(Task* arg0);
 
-static void func_800D1F90(Task* arg0);
+static void _menuMapPrepareClosing(Task* mapTask);
 
 static u8 Gp_GetMapRoomId(void);
 
@@ -199,7 +201,15 @@ static void func_800D3660(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4
 
 static void func_800D3D98(UiObject* arg0, s32 arg1, s32 arg2);
 
-static void func_800D4270(UiObject* obj, TmdSource* mesh, s32 mode, s32 dp);
+/// Texture treatment for a map area's shape, independent of its visited flags.
+typedef enum {
+    MENU_MAP_AREA_FILL_PATTERN = 0,
+    MENU_MAP_AREA_FILL_DIM     = 1,
+    MENU_MAP_AREA_FILL_BLUE    = 2,
+    MENU_MAP_AREA_FILL_RED     = 3
+} _MenuMapAreaShapeFill;
+
+static void _menuMapDrawAreaShape(UiObject* mapObject, const TmdSource* areaModel, _MenuMapAreaShapeFill fillMode, s32 scaleQ12);
 
 static void Gp_DrawExamineCmd(UiObject* arg0, Task* arg1, u8* arg2, s32 arg3);
 
@@ -945,29 +955,32 @@ void Gp_DrawNoCmd(UiList* arg0, UiObject* arg1)
     }
 }
 
-void func_800CFD78(Task* arg0)
+void planarReflectionDispatchPlayerTask(Task* reflectionTask)
 {
-    if (arg0->state == 0) {
+    enum { PLANAR_REFLECTION_DISPATCH_STATE_INIT = 0 };
+
+    // Latch the room before its callback creates and reparents the reflection.
+    if (reflectionTask->state == PLANAR_REFLECTION_DISPATCH_STATE_INIT) {
         D_80114DCC = GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK;
     }
     switch (D_80114DCC) {
-        case GAME_LOCATION_KEY(1, 1, 0, 0):
-            acropolisSquarePlayerReflectionTask(arg0);
+        case GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_SQUARE, 0, 0):
+            acropolisSquarePlayerReflectionTask(reflectionTask);
             break;
-        case GAME_LOCATION_KEY(1, 2, 0, 0):
-            acropolisEastElevatorHallPlayerReflectionTask(arg0);
+        case GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_EAST_ELEVATOR_HALL, 0, 0):
+            acropolisEastElevatorHallPlayerReflectionTask(reflectionTask);
             break;
-        case GAME_LOCATION_KEY(1, 17, 0, 0):
-            acropolisWestElevatorHallPlayerReflectionTask(arg0);
+        case GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_WEST_ELEVATOR_HALL, 0, 0):
+            acropolisWestElevatorHallPlayerReflectionTask(reflectionTask);
             break;
-        case GAME_LOCATION_KEY(2, 30, 0, 0):
-            dryfieldMotelRoom6PlayerReflectionTask(arg0);
+        case GAME_LOCATION_KEY(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_MOTEL_ROOM_6, 0, 0):
+            dryfieldMotelRoom6PlayerReflectionTask(reflectionTask);
             break;
-        case GAME_LOCATION_KEY(3, 30, 0, 0):
-            dryfieldNightMotelRoom6PlayerReflectionTask(arg0);
+        case GAME_LOCATION_KEY(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_MOTEL_ROOM_6, 0, 0):
+            dryfieldNightMotelRoom6PlayerReflectionTask(reflectionTask);
             break;
         default:
-            taskKill(arg0);
+            taskKill(reflectionTask);
             break;
     }
 }
@@ -1003,7 +1016,7 @@ void Gp_MapTaskState2(Task* arg0)
     flags = Gp_MapFlagIds[gGameSession->location.loc.stage - 1];
     Gp_DrawMapCursor(arg0);
     func_800D0C34(arg0);
-    func_800D0614(arg0);
+    _menuMapDrawPicture(arg0);
     Gp_DrawMapMarks(arg0);
     func_800D15D0(arg0);
     if (gDisplayState.keepGraphics != 0) {
@@ -1014,7 +1027,7 @@ void Gp_MapTaskState2(Task* arg0)
     if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel | PAD_BUTTON_SELECT) != 0) {
             obj->resultValue = 0x101;
-            func_800D1F90(arg0);
+            _menuMapPrepareClosing(arg0);
             obj->result = USER_INTERFACE_RESULT_CONFIRM;
             if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 40, 0, 0)) {
                 Gp_LoadViewAndCd(1);
@@ -1023,7 +1036,7 @@ void Gp_MapTaskState2(Task* arg0)
             return;
         }
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
-            func_800D1F90(arg0);
+            _menuMapPrepareClosing(arg0);
             obj->result = USER_INTERFACE_RESULT_CANCEL;
             if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 40, 0, 0)) {
                 Gp_LoadViewAndCd(1);
@@ -1079,7 +1092,7 @@ void Gp_MapTaskState2(Task* arg0)
             uiStartTreeClosing(child, child->owner);
         }
         if (child->result == USER_INTERFACE_RESULT_CANCEL) {
-            func_800D1F90(arg0);
+            _menuMapPrepareClosing(arg0);
             obj->result = USER_INTERFACE_RESULT_CANCEL;
             if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 40, 0, 0)) {
                 Gp_LoadViewAndCd(1);
@@ -1170,55 +1183,62 @@ noDir:
     SCRATCH_STACK_RELEASE_BLOCK(_MenuMapCentreScratch);
 }
 
-static void func_800D0614(Task* arg0)
+/// Queues the centred 254x208 map picture and the fixed map-screen sprite.
+///
+/// Borrows the live `UiObject` in `mapTask->spawnArg2.pointer` and the loaded
+/// eight-bit map texture. Coordinates are pixels from the picture's centre;
+/// the panel's OT index must admit offsets +2 and -25. Packets belong to the
+/// current primitive buffer; scratch storage is released before returning.
+static void _menuMapDrawPicture(Task* mapTask)
 {
-    UiObject*              obj;
+    enum {
+        MENU_MAP_PICTURE_HALF_WIDTH  = 127,
+        MENU_MAP_PICTURE_HALF_HEIGHT = 104,
+        MENU_MAP_FIXED_SPRITE_CODE   = 0x67 // Textured, semitransparent sprite without colour modulation
+    };
+    UiObject*              mapObject;
     _MenuMapCentreScratch* centre;
-    POLY_FT4*              p;
-    SPRT*                  sprt;
-    DR_TPAGE*              dr;
+    POLY_FT4*              picture;
+    SPRT*                  fixedSprite;
+    DR_TPAGE*              spritePage;
 
-    obj              = arg0->spawnArg2.pointer;
-    p                = gGpuPrimCursor;
-    centre           = SCRATCH_STACK_RESERVE_BLOCK(_MenuMapCentreScratch);
-    gGpuPrimCursor   = p + 1;
-    centre->field_14 = 0;
-    centre->field_12 = 0;
-    centre->field_10 = 0;
-    centre->y        = 0;
-    centre->x        = 0;
-    setPolyFT4(p);
-    setRGB0(p, 0x80, 0x80, 0x80);
-    p->clut = 0x4000;
-    setSemiTrans(p, 1);
-    p->tpage = GetTPage(1, 0, 0x380, 0x20);
-    p->u0 = p->u2 = 1;
-    p->v0 = p->v1 = 0x20;
-    p->u3 = p->u1 = 0xFF;
-    p->v3 = p->v2 = 0xF0;
-    p->x0 = p->x2 = centre->x - 0x7F;
-    p->y0 = p->y1 = centre->y - 0x68;
-    p->x1 = p->x3 = centre->x + 0x7F;
-    p->y2 = p->y3 = centre->y + 0x68;
-    addPrim(&gGpuCurrentOt[obj->panel.otIndex.signedValue + 2], p);
+    mapObject      = mapTask->spawnArg2.pointer;
+    picture        = gGpuPrimCursor;
+    centre         = SCRATCH_STACK_RESERVE_BLOCK(_MenuMapCentreScratch);
+    gGpuPrimCursor = picture + 1;
+    centre->x = centre->y = centre->field_10 = centre->field_12 = centre->field_14 = 0;
+    setPolyFT4(picture);
+    setRGB0(picture, 0x80, 0x80, 0x80);
+    picture->clut = getClut(0, 0x100);
+    setSemiTrans(picture, 1);
+    picture->tpage = GetTPage(1, 0, 0x380, 0x20);
+    picture->u0 = picture->u2 = 1;
+    picture->v0 = picture->v1 = 0x20;
+    picture->u3 = picture->u1 = 0xFF;
+    picture->v3 = picture->v2 = 0xF0;
+    picture->x0 = picture->x2 = centre->x - MENU_MAP_PICTURE_HALF_WIDTH;
+    picture->y0 = picture->y1 = centre->y - MENU_MAP_PICTURE_HALF_HEIGHT;
+    picture->x1 = picture->x3 = centre->x + MENU_MAP_PICTURE_HALF_WIDTH;
+    picture->y2 = picture->y3 = centre->y + MENU_MAP_PICTURE_HALF_HEIGHT;
+    addPrim(&gGpuCurrentOt[mapObject->panel.otIndex.signedValue + 2], picture);
     SCRATCH_STACK_RELEASE_BLOCK(_MenuMapCentreScratch);
 
-    sprt           = gGpuPrimCursor;
-    gGpuPrimCursor = sprt + 1;
-    setlen(sprt, 4);
-    setcode(sprt, 0x67);
-    sprt->clut = GetClut(0x70, 0x101);
-    sprt->u0   = 0xC0;
-    sprt->w    = 0x20;
-    sprt->h    = 0x18;
-    sprt->x0   = 0x7E;
-    sprt->v0   = 0;
-    sprt->y0   = -0x64;
-    addPrim(&gGpuCurrentOt[obj->panel.otIndex.signedValue - 0x19], sprt);
-    dr             = gGpuPrimCursor;
-    gGpuPrimCursor = dr + 1;
-    setDrawTPage(dr, 0, 0, 0xE);
-    addPrim(&gGpuCurrentOt[obj->panel.otIndex.signedValue - 0x19], dr);
+    fixedSprite    = gGpuPrimCursor;
+    gGpuPrimCursor = fixedSprite + 1;
+    setlen(fixedSprite, 4);
+    setcode(fixedSprite, MENU_MAP_FIXED_SPRITE_CODE);
+    fixedSprite->clut = GetClut(0x70, 0x101);
+    fixedSprite->u0   = 0xC0;
+    fixedSprite->w    = 0x20;
+    fixedSprite->h    = 0x18;
+    fixedSprite->x0   = 0x7E;
+    fixedSprite->v0   = 0;
+    fixedSprite->y0   = -0x64;
+    addPrim(&gGpuCurrentOt[mapObject->panel.otIndex.signedValue - 0x19], fixedSprite);
+    spritePage     = gGpuPrimCursor;
+    gGpuPrimCursor = spritePage + 1;
+    setDrawTPage(spritePage, 0, 0, 0xE);
+    addPrim(&gGpuCurrentOt[mapObject->panel.otIndex.signedValue - 0x19], spritePage);
 }
 
 static void Gp_DrawMapMarks(Task* arg0)
@@ -1232,7 +1252,7 @@ static void Gp_DrawMapMarks(Task* arg0)
     MenuMapAreaShape*     shapes;
     MenuMapAreaShape**    shapeTables;
     UiObject*             obj;
-    s32                   color;
+    s32                   scaleQ12;
     s32                   i;
     s32                   which;
     s32                   bit;
@@ -1242,7 +1262,7 @@ static void Gp_DrawMapMarks(Task* arg0)
     s32                   stageM1;
 
     keep        = arg0;
-    color       = 0x5D7;
+    scaleQ12    = 0x5D7;
     session     = gGameSession;
     banks       = Gp_FlagBanks;
     shapeTables = (keep, Gp_MapMarkTables);
@@ -1253,7 +1273,7 @@ static void Gp_DrawMapMarks(Task* arg0)
     shapes      = shapeTables[stageM1];
     flagTbl     = Gp_MapFlagIds[stageM1];
     if (stage == 1) {
-        color = 0x83B;
+        scaleQ12 = 0x83B;
     }
     flags[0] = bank->visitedAreas[0];
     flags[1] = bank->visitedAreas[1];
@@ -1296,21 +1316,21 @@ static void Gp_DrawMapMarks(Task* arg0)
                     if (gameFlagGetNibble(flagTbl[Gp_MapRoomId]) == 0) {
                         if ((bit & flags[which]) == 0) {
                             if (Gp_DrawMapIcons(arg0, (u8)i, 1) != 0) {
-                                func_800D4270(obj, shapes[(u8)idx].model, 1, (u16)color);
+                                _menuMapDrawAreaShape(obj, shapes[(u8)idx].model, MENU_MAP_AREA_FILL_DIM, (u16)scaleQ12);
                             } else {
-                                func_800D4270(obj, shapes[(u8)idx].model, 0, (u16)color);
+                                _menuMapDrawAreaShape(obj, shapes[(u8)idx].model, MENU_MAP_AREA_FILL_PATTERN, (u16)scaleQ12);
                             }
                         } else if ((bit & Gp_AreaIdBits[which]) != 0) {
-                            func_800D4270(obj, shapes[(u8)idx].model, 3, (u16)color);
+                            _menuMapDrawAreaShape(obj, shapes[(u8)idx].model, MENU_MAP_AREA_FILL_RED, (u16)scaleQ12);
                             Gp_DrawMapIcons(arg0, (u8)i, 0);
                         } else {
                             Gp_DrawMapIcons(arg0, (u8)i, 0);
                         }
                     } else if ((bit & flags[which]) == 0) {
-                        func_800D4270(obj, shapes[(u8)idx].model, 1, (u16)color);
+                        _menuMapDrawAreaShape(obj, shapes[(u8)idx].model, MENU_MAP_AREA_FILL_DIM, (u16)scaleQ12);
                         Gp_DrawMapIcons(arg0, (u8)i, 1);
                     } else if ((bit & Gp_AreaIdBits[which]) != 0) {
-                        func_800D4270(obj, shapes[(u8)idx].model, 3, (u16)color);
+                        _menuMapDrawAreaShape(obj, shapes[(u8)idx].model, MENU_MAP_AREA_FILL_RED, (u16)scaleQ12);
                         Gp_DrawMapIcons(arg0, (u8)i, 0);
                     } else {
                         Gp_DrawMapIcons(arg0, (u8)i, 0);
@@ -1810,7 +1830,7 @@ void Gp_MapFirstDrawTask(Task* arg0)
         obj->panel.animationTicks = 1;
         Gp_DrawMapCursor(arg0);
         func_800D0C34(arg0);
-        func_800D0614(arg0);
+        _menuMapDrawPicture(arg0);
         Gp_DrawMapMarks(arg0);
         func_800D15D0(arg0);
         arg0->state = arg0->state + 1;
@@ -1841,20 +1861,29 @@ void Gp_MapDrawTask(Task* arg0)
     } else if (arg0->killCountdown >= 2) {
         Gp_DrawMapCursor(arg0);
         func_800D0C34(arg0);
-        func_800D0614(arg0);
+        _menuMapDrawPicture(arg0);
         Gp_DrawMapMarks(arg0);
     }
 }
 
-static void func_800D1F90(Task* arg0)
+/// Arms four closing updates before the map task restores the saved view image.
+///
+/// Requires a live map task and its `UiObject` in `spawnArg2.pointer`. Restores
+/// two-VBlank frame timing, resets panel animation ticks, and marks the saved
+/// image restoration pending. The caller selects the closing task state.
+static void _menuMapPrepareClosing(Task* mapTask)
 {
-    UiObject* obj;
+    enum {
+        MENU_MAP_CLOSING_UPDATES = 4,
+        MENU_MAP_RESTORE_PENDING = 0
+    };
+    UiObject* mapObject;
 
-    obj = arg0->spawnArg2.pointer;
+    mapObject = mapTask->spawnArg2.pointer;
     displaySetFrameTiming(DISPLAY_TIMING_TWO_VBLANKS);
-    arg0->killCountdown       = 4;
-    obj->panel.animationTicks = 0;
-    arg0->spawnArg1.value     = 0;
+    mapTask->killCountdown          = MENU_MAP_CLOSING_UPDATES;
+    mapObject->panel.animationTicks = 0;
+    mapTask->spawnArg1.value        = MENU_MAP_RESTORE_PENDING;
 }
 
 static u8 Gp_GetMapRoomId(void)
@@ -2878,249 +2907,255 @@ void Gp_MapScreenTask(Task* arg0)
     }
 }
 
-static void func_800D4270(UiObject* obj, TmdSource* mesh, s32 mode, s32 dp)
+/// Scales one model vertex and places a map corner about the scratch origin.
+///
+/// Borrows a complete `SVECTOR` and the live scratch block; `scaleQ12` uses 4096
+/// for 1.0. Output halfwords receive X and inverted Z in map-screen pixels.
+/// The scaled Z load precedes the origin-Y load; output pointers must name
+/// separate corner coordinates outside the scratch block.
+static inline void _menuMapPlaceAreaShapeVertex(const SVECTOR* vertex, _MenuMapAreaShapeScratch* scratch, s32 scaleQ12, s16* x, s16* y)
 {
-    RECT                      tw;
-    DR_MODE*                  dr;
-    s32                       otz;
-    u8*                       verts;
+    s16 scaledZ;
+
+    gte_lddp(scaleQ12);
+    gte_ldsv(vertex);
+    gte_gpf12();
+    gte_stsv(&scratch->scaled);
+    *x      = scratch->scaled.vx + scratch->originX;
+    scaledZ = scratch->scaled.vz;
+    *y      = scratch->originY - scaledZ;
+}
+
+/// Draws a flat area model over the map picture with the selected fill treatment.
+///
+/// Borrows a live `mapObject` and `areaModel`. Only the first stream group is read:
+/// each record must have opcode 0x04 (textured triangle) or 0x44 (textured quad),
+/// a positive 16-bit element count, and a word stride covering at least its three or
+/// four packed u16 vertex references. `TMD_STREAM_GROUP_END` closes the group.
+/// Each reference's low three bits are ignored; its remaining byte offset
+/// must address a complete eight-byte `SVECTOR` in the source vertex pool.
+/// The stream carries no checked length and this routine has no fallback for
+/// other opcodes, empty records, missing terminators or out-of-range references.
+///
+/// `scaleQ12` is the GTE IR0 multiplier (4096 = 1.0). Model X/Z become map X/-Y;
+/// scaled coordinates saturate to signed halfwords before packet coordinates
+/// and texture coordinates truncate to 16 and 8 bits. The OT must admit the
+/// panel index and the next entry. Reserves and releases its scratch block;
+/// queued packets live in the current primitive buffer, with room for two
+/// texture-window commands and every triangle/quad in the first group.
+static void _menuMapDrawAreaShape(UiObject* mapObject, const TmdSource* areaModel, _MenuMapAreaShapeFill fillMode, s32 scaleQ12)
+{
+    enum {
+        MENU_MAP_AREA_TRIANGLE_OPCODE    = 0x04,
+        MENU_MAP_AREA_QUAD_OPCODE        = 0x44,
+        MENU_MAP_AREA_VERTEX_OFFSET_MASK = 0xFFF8,
+        MENU_MAP_AREA_PATTERN_MASK       = 0x1F,
+        MENU_MAP_AREA_PATTERN_SIZE       = 0x20,
+        MENU_MAP_AREA_TEXTURE_ORIGIN_X   = 0x80,
+        MENU_MAP_AREA_TEXTURE_ORIGIN_Y   = 0x78,
+        MENU_MAP_AREA_RAW_QUAD_CODE      = 0x2D, // Textured quad without colour modulation
+        MENU_MAP_AREA_RAW_TRIANGLE_CODE  = 0x25  // Textured triangle without colour modulation
+    };
+    RECT                      textureWindow;
+    DR_MODE*                  windowPacket;
+    s32                       otIndex;
+    const u8*                 vertexBytes;
     _MenuMapAreaShapeScratch* scratch;
-    u32*                      cur;
-    s32                       type;
-    u32                       word;
-    s32                       count;
-    s32                       stride;
-    s16                       vz;
+    const u32*                command;
+    s32                       opcode;
+    u32                       dimensions;
+    s32                       elementCount;
+    s32                       elementStrideWords;
     s32                       minX;
     s32                       minY;
 
-    otz            = obj->panel.otIndex.signedValue;
-    verts          = (u8*)mesh->verts;
-    cur            = mesh->stream;
-    tw.y           = 0;
-    tw.x           = 0;
-    scratch        = SCRATCH_STACK_RESERVE_BLOCK(_MenuMapAreaShapeScratch);
-    dr             = gGpuPrimCursor;
-    gGpuPrimCursor = dr + 1;
-    tw.h           = 0xFF;
-    tw.w           = 0xFF;
-    setTexWindow(dr, &tw);
-    addPrim(&gGpuCurrentOt[otz], dr);
+    otIndex         = mapObject->panel.otIndex.signedValue;
+    vertexBytes     = (const u8*)areaModel->verts;
+    command         = areaModel->stream;
+    textureWindow.y = 0;
+    textureWindow.x = 0;
+    scratch         = SCRATCH_STACK_RESERVE_BLOCK(_MenuMapAreaShapeScratch);
+    windowPacket    = gGpuPrimCursor;
+    gGpuPrimCursor  = windowPacket + 1;
+    textureWindow.h = 0xFF;
+    textureWindow.w = 0xFF;
+    setTexWindow(windowPacket, &textureWindow);
+    addPrim(&gGpuCurrentOt[otIndex], windowPacket);
     // Every shape is placed at the centre of the map picture.
     scratch->originX = 0;
     scratch->originY = 0;
-    while (*cur != TMD_STREAM_GROUP_END) {
-        type   = *cur;
-        cur   += 2;
-        word   = *cur;
-        count  = word >> 16;
-        stride = word & 0xFFFF;
-        cur   += 1;
-        if (type == 0x44) {
-            if (count > 0) {
+    // Headers and payload strides are u32 words; vertex offsets are bytes.
+    while (*command != TMD_STREAM_GROUP_END) {
+        opcode             = *command;
+        command           += 2; // Skip the opcode and its unused draw-handler slot.
+        dimensions         = *command;
+        elementCount       = dimensions >> 16;
+        elementStrideWords = dimensions & 0xFFFF;
+        command           += 1;
+        if (opcode == MENU_MAP_AREA_QUAD_OPCODE) {
+            if (elementCount > 0) {
                 do {
-                    POLY_FT4* p4;
-                    SVECTOR*  vert;
+                    POLY_FT4*      quad;
+                    const SVECTOR* vertex;
 
-                    vert           = (SVECTOR*)(verts + (((u16*)cur)[0] & 0xFFF8));
-                    p4             = gGpuPrimCursor;
-                    gGpuPrimCursor = p4 + 1;
-                    gte_lddp(dp);
-                    gte_ldsv(vert);
-                    gte_gpf12();
-                    gte_stsv(&scratch->scaled);
-                    p4->x0 = scratch->scaled.vx + scratch->originX;
-                    vz     = scratch->scaled.vz;
-                    p4->y0 = scratch->originY - vz;
+                    vertex         = (const SVECTOR*)(vertexBytes + (((const u16*)command)[0] & MENU_MAP_AREA_VERTEX_OFFSET_MASK));
+                    quad           = gGpuPrimCursor;
+                    gGpuPrimCursor = quad + 1;
+                    _menuMapPlaceAreaShapeVertex(vertex, scratch, scaleQ12, &quad->x0, &quad->y0);
 
-                    vert = (SVECTOR*)(verts + (((u16*)cur)[1] & 0xFFF8));
-                    gte_lddp(dp);
-                    gte_ldsv(vert);
-                    gte_gpf12();
-                    gte_stsv(&scratch->scaled);
-                    p4->x1 = scratch->scaled.vx + scratch->originX;
-                    vz     = scratch->scaled.vz;
-                    p4->y1 = scratch->originY - vz;
+                    vertex = (const SVECTOR*)(vertexBytes + (((const u16*)command)[1] & MENU_MAP_AREA_VERTEX_OFFSET_MASK));
+                    _menuMapPlaceAreaShapeVertex(vertex, scratch, scaleQ12, &quad->x1, &quad->y1);
 
-                    vert = (SVECTOR*)(verts + (((u16*)cur)[2] & 0xFFF8));
-                    gte_lddp(dp);
-                    gte_ldsv(vert);
-                    gte_gpf12();
-                    gte_stsv(&scratch->scaled);
-                    p4->x2 = scratch->scaled.vx + scratch->originX;
-                    vz     = scratch->scaled.vz;
-                    p4->y2 = scratch->originY - vz;
+                    vertex = (const SVECTOR*)(vertexBytes + (((const u16*)command)[2] & MENU_MAP_AREA_VERTEX_OFFSET_MASK));
+                    _menuMapPlaceAreaShapeVertex(vertex, scratch, scaleQ12, &quad->x2, &quad->y2);
 
-                    vert = (SVECTOR*)(verts + (((u16*)cur)[3] & 0xFFF8));
-                    gte_lddp(dp);
-                    gte_ldsv(vert);
-                    gte_gpf12();
-                    gte_stsv(&scratch->scaled);
-                    p4->x3 = scratch->scaled.vx + scratch->originX;
-                    vz     = scratch->scaled.vz;
-                    p4->y3 = scratch->originY - vz;
-                    if (mode == 0) {
-                        minX = p4->x0;
-                        if (p4->x1 < minX) {
-                            minX = p4->x1;
+                    vertex = (const SVECTOR*)(vertexBytes + (((const u16*)command)[3] & MENU_MAP_AREA_VERTEX_OFFSET_MASK));
+                    _menuMapPlaceAreaShapeVertex(vertex, scratch, scaleQ12, &quad->x3, &quad->y3);
+                    // Pattern UVs wrap in 32 pixels; tinted fills sample the map picture.
+                    if (fillMode == MENU_MAP_AREA_FILL_PATTERN) {
+                        minX = quad->x0;
+                        if (quad->x1 < minX) {
+                            minX = quad->x1;
                         }
-                        if (p4->x2 < minX) {
-                            minX = p4->x2;
+                        if (quad->x2 < minX) {
+                            minX = quad->x2;
                         }
-                        if (p4->x3 < minX) {
-                            minX = p4->x3;
+                        if (quad->x3 < minX) {
+                            minX = quad->x3;
                         }
-                        minY = p4->y0;
-                        if (p4->y1 < minY) {
-                            minY = p4->y1;
+                        minY = quad->y0;
+                        if (quad->y1 < minY) {
+                            minY = quad->y1;
                         }
-                        if (p4->y2 < minY) {
-                            minY = p4->y2;
+                        if (quad->y2 < minY) {
+                            minY = quad->y2;
                         }
-                        if (p4->y3 < minY) {
-                            minY = p4->y3;
+                        if (quad->y3 < minY) {
+                            minY = quad->y3;
                         }
-                        p4->clut = 0x3FC0;
-                        p4->u0   = (minX & 0x1F) + ((u8)p4->x0 - minX);
-                        p4->v0   = (minY & 0x1F) + ((u8)p4->y0 - minY);
-                        p4->u1   = (minX & 0x1F) + ((u8)p4->x1 - minX);
-                        p4->v1   = (minY & 0x1F) + ((u8)p4->y1 - minY);
-                        p4->u2   = (minX & 0x1F) + ((u8)p4->x2 - minX);
-                        p4->v2   = (minY & 0x1F) + ((u8)p4->y2 - minY);
-                        p4->u3   = (minX & 0x1F) + ((u8)p4->x3 - minX);
-                        p4->v3   = (minY & 0x1F) + ((u8)p4->y3 - minY);
+                        quad->clut = getClut(0, 0xFF);
+                        quad->u0   = (minX & MENU_MAP_AREA_PATTERN_MASK) + ((u8)quad->x0 - minX);
+                        quad->v0   = (minY & MENU_MAP_AREA_PATTERN_MASK) + ((u8)quad->y0 - minY);
+                        quad->u1   = (minX & MENU_MAP_AREA_PATTERN_MASK) + ((u8)quad->x1 - minX);
+                        quad->v1   = (minY & MENU_MAP_AREA_PATTERN_MASK) + ((u8)quad->y1 - minY);
+                        quad->u2   = (minX & MENU_MAP_AREA_PATTERN_MASK) + ((u8)quad->x2 - minX);
+                        quad->v2   = (minY & MENU_MAP_AREA_PATTERN_MASK) + ((u8)quad->y2 - minY);
+                        quad->u3   = (minX & MENU_MAP_AREA_PATTERN_MASK) + ((u8)quad->x3 - minX);
+                        quad->v3   = (minY & MENU_MAP_AREA_PATTERN_MASK) + ((u8)quad->y3 - minY);
                     } else {
-                        p4->u0 = p4->x0 - 0x80;
-                        p4->u1 = p4->x1 - 0x80;
-                        p4->u2 = p4->x2 - 0x80;
-                        p4->u3 = p4->x3 - 0x80;
-                        p4->v0 = p4->y0 - 0x78;
-                        p4->v1 = p4->y1 - 0x78;
-                        p4->v2 = p4->y2 - 0x78;
-                        p4->v3 = p4->y3 - 0x78;
-                        if (mode == 1) {
-                            GPU_PRIMITIVE_COLOR_WORD(p4, 0) = GPU_PACK_COLOR_WORD(0x20, 0x20, 0x20, 0);
-                        } else if (mode == 2) {
-                            GPU_PRIMITIVE_COLOR_WORD(p4, 0) = GPU_PACK_COLOR_WORD(0x40, 0x40, 0xff, 0);
+                        quad->u0 = quad->x0 - MENU_MAP_AREA_TEXTURE_ORIGIN_X;
+                        quad->u1 = quad->x1 - MENU_MAP_AREA_TEXTURE_ORIGIN_X;
+                        quad->u2 = quad->x2 - MENU_MAP_AREA_TEXTURE_ORIGIN_X;
+                        quad->u3 = quad->x3 - MENU_MAP_AREA_TEXTURE_ORIGIN_X;
+                        quad->v0 = quad->y0 - MENU_MAP_AREA_TEXTURE_ORIGIN_Y;
+                        quad->v1 = quad->y1 - MENU_MAP_AREA_TEXTURE_ORIGIN_Y;
+                        quad->v2 = quad->y2 - MENU_MAP_AREA_TEXTURE_ORIGIN_Y;
+                        quad->v3 = quad->y3 - MENU_MAP_AREA_TEXTURE_ORIGIN_Y;
+                        if (fillMode == MENU_MAP_AREA_FILL_DIM) {
+                            GPU_PRIMITIVE_COLOR_WORD(quad, 0) = GPU_PACK_COLOR_WORD(0x20, 0x20, 0x20, 0);
+                        } else if (fillMode == MENU_MAP_AREA_FILL_BLUE) {
+                            GPU_PRIMITIVE_COLOR_WORD(quad, 0) = GPU_PACK_COLOR_WORD(0x40, 0x40, 0xff, 0);
                         } else {
-                            GPU_PRIMITIVE_COLOR_WORD(p4, 0) = GPU_PACK_COLOR_WORD(0xff, 0x40, 0x40, 0);
+                            GPU_PRIMITIVE_COLOR_WORD(quad, 0) = GPU_PACK_COLOR_WORD(0xff, 0x40, 0x40, 0);
                         }
-                        p4->clut = 0x4000;
+                        quad->clut = getClut(0, 0x100);
                     }
-                    p4->tpage = 0xAE;
-                    setlen(p4, 9);
-                    setcode(p4, 0x2C);
-                    if (mode == 0) {
-                        setcode(p4, 0x2D);
-                        addPrim(&gGpuCurrentOt[otz], p4);
+                    quad->tpage = getTPage(1, 1, 0x380, 0);
+                    setPolyFT4(quad);
+                    if (fillMode == MENU_MAP_AREA_FILL_PATTERN) {
+                        setcode(quad, MENU_MAP_AREA_RAW_QUAD_CODE);
+                        addPrim(&gGpuCurrentOt[otIndex], quad);
                     } else {
-                        addPrim(&gGpuCurrentOt[otz] + 1, p4);
+                        addPrim(&gGpuCurrentOt[otIndex] + 1, quad);
                     }
-                    cur += stride;
-                    count--;
-                } while (count > 0);
+                    command += elementStrideWords;
+                    elementCount--;
+                } while (elementCount > 0);
             }
-        } else if (type == 4) {
-            if (count > 0) {
+        } else if (opcode == MENU_MAP_AREA_TRIANGLE_OPCODE) {
+            if (elementCount > 0) {
                 do {
-                    POLY_FT3* p3;
-                    SVECTOR*  vert;
+                    POLY_FT3*      triangle;
+                    const SVECTOR* vertex;
 
-                    vert           = (SVECTOR*)(verts + (((u16*)cur)[0] & 0xFFF8));
-                    p3             = gGpuPrimCursor;
-                    gGpuPrimCursor = p3 + 1;
-                    gte_lddp(dp);
-                    gte_ldsv(vert);
+                    vertex         = (const SVECTOR*)(vertexBytes + (((const u16*)command)[0] & MENU_MAP_AREA_VERTEX_OFFSET_MASK));
+                    triangle       = gGpuPrimCursor;
+                    gGpuPrimCursor = triangle + 1;
+                    gte_lddp(scaleQ12);
+                    gte_ldsv(vertex);
                     gte_gpf12();
                     gte_stsv(&scratch->scaled);
 
-                    vert = (SVECTOR*)(verts + (((u16*)cur)[0] & 0xFFF8));
-                    gte_lddp(dp);
-                    gte_ldsv(vert);
-                    gte_gpf12();
-                    gte_stsv(&scratch->scaled);
-                    p3->x0 = scratch->scaled.vx + scratch->originX;
-                    vz     = scratch->scaled.vz;
-                    p3->y0 = scratch->originY - vz;
+                    // Retain the stream drawer's second scale of triangle vertex zero.
+                    vertex = (const SVECTOR*)(vertexBytes + (((const u16*)command)[0] & MENU_MAP_AREA_VERTEX_OFFSET_MASK));
+                    _menuMapPlaceAreaShapeVertex(vertex, scratch, scaleQ12, &triangle->x0, &triangle->y0);
 
-                    vert = (SVECTOR*)(verts + (((u16*)cur)[1] & 0xFFF8));
-                    gte_lddp(dp);
-                    gte_ldsv(vert);
-                    gte_gpf12();
-                    gte_stsv(&scratch->scaled);
-                    p3->x1 = scratch->scaled.vx + scratch->originX;
-                    vz     = scratch->scaled.vz;
-                    p3->y1 = scratch->originY - vz;
+                    vertex = (const SVECTOR*)(vertexBytes + (((const u16*)command)[1] & MENU_MAP_AREA_VERTEX_OFFSET_MASK));
+                    _menuMapPlaceAreaShapeVertex(vertex, scratch, scaleQ12, &triangle->x1, &triangle->y1);
 
-                    vert = (SVECTOR*)(verts + (((u16*)cur)[2] & 0xFFF8));
-                    gte_lddp(dp);
-                    gte_ldsv(vert);
-                    gte_gpf12();
-                    gte_stsv(&scratch->scaled);
-                    p3->x2 = scratch->scaled.vx + scratch->originX;
-                    vz     = scratch->scaled.vz;
-                    p3->y2 = scratch->originY - vz;
-                    if (mode == 0) {
-                        minX = p3->x0;
-                        if (p3->x1 < minX) {
-                            minX = p3->x1;
+                    vertex = (const SVECTOR*)(vertexBytes + (((const u16*)command)[2] & MENU_MAP_AREA_VERTEX_OFFSET_MASK));
+                    _menuMapPlaceAreaShapeVertex(vertex, scratch, scaleQ12, &triangle->x2, &triangle->y2);
+                    if (fillMode == MENU_MAP_AREA_FILL_PATTERN) {
+                        minX = triangle->x0;
+                        if (triangle->x1 < minX) {
+                            minX = triangle->x1;
                         }
-                        if (p3->x2 < minX) {
-                            minX = p3->x2;
+                        if (triangle->x2 < minX) {
+                            minX = triangle->x2;
                         }
-                        minY = p3->y0;
-                        if (p3->y1 < minY) {
-                            minY = p3->y1;
+                        minY = triangle->y0;
+                        if (triangle->y1 < minY) {
+                            minY = triangle->y1;
                         }
-                        if (p3->y2 < minY) {
-                            minY = p3->y2;
+                        if (triangle->y2 < minY) {
+                            minY = triangle->y2;
                         }
-                        p3->clut = 0x3FC0;
-                        p3->u0   = (minX & 0x1F) + ((u8)p3->x0 - minX);
-                        p3->v0   = (minY & 0x1F) + ((u8)p3->y0 - minY);
-                        p3->u1   = (minX & 0x1F) + ((u8)p3->x1 - minX);
-                        p3->v1   = (minY & 0x1F) + ((u8)p3->y1 - minY);
-                        p3->u2   = (minX & 0x1F) + ((u8)p3->x2 - minX);
-                        p3->v2   = (minY & 0x1F) + ((u8)p3->y2 - minY);
+                        triangle->clut = getClut(0, 0xFF);
+                        triangle->u0   = (minX & MENU_MAP_AREA_PATTERN_MASK) + ((u8)triangle->x0 - minX);
+                        triangle->v0   = (minY & MENU_MAP_AREA_PATTERN_MASK) + ((u8)triangle->y0 - minY);
+                        triangle->u1   = (minX & MENU_MAP_AREA_PATTERN_MASK) + ((u8)triangle->x1 - minX);
+                        triangle->v1   = (minY & MENU_MAP_AREA_PATTERN_MASK) + ((u8)triangle->y1 - minY);
+                        triangle->u2   = (minX & MENU_MAP_AREA_PATTERN_MASK) + ((u8)triangle->x2 - minX);
+                        triangle->v2   = (minY & MENU_MAP_AREA_PATTERN_MASK) + ((u8)triangle->y2 - minY);
                     } else {
-                        p3->u0 = p3->x0 - 0x80;
-                        p3->u1 = p3->x1 - 0x80;
-                        p3->u2 = p3->x2 - 0x80;
-                        p3->v0 = p3->y0 - 0x78;
-                        p3->v1 = p3->y1 - 0x78;
-                        p3->v2 = p3->y2 - 0x78;
-                        if (mode == 1) {
-                            GPU_PRIMITIVE_COLOR_WORD(p3, 0) = GPU_PACK_COLOR_WORD(0x20, 0x20, 0x20, 0);
-                        } else if (mode == 2) {
-                            GPU_PRIMITIVE_COLOR_WORD(p3, 0) = GPU_PACK_COLOR_WORD(0x40, 0x40, 0xff, 0);
+                        triangle->u0 = triangle->x0 - MENU_MAP_AREA_TEXTURE_ORIGIN_X;
+                        triangle->u1 = triangle->x1 - MENU_MAP_AREA_TEXTURE_ORIGIN_X;
+                        triangle->u2 = triangle->x2 - MENU_MAP_AREA_TEXTURE_ORIGIN_X;
+                        triangle->v0 = triangle->y0 - MENU_MAP_AREA_TEXTURE_ORIGIN_Y;
+                        triangle->v1 = triangle->y1 - MENU_MAP_AREA_TEXTURE_ORIGIN_Y;
+                        triangle->v2 = triangle->y2 - MENU_MAP_AREA_TEXTURE_ORIGIN_Y;
+                        if (fillMode == MENU_MAP_AREA_FILL_DIM) {
+                            GPU_PRIMITIVE_COLOR_WORD(triangle, 0) = GPU_PACK_COLOR_WORD(0x20, 0x20, 0x20, 0);
+                        } else if (fillMode == MENU_MAP_AREA_FILL_BLUE) {
+                            GPU_PRIMITIVE_COLOR_WORD(triangle, 0) = GPU_PACK_COLOR_WORD(0x40, 0x40, 0xff, 0);
                         } else {
-                            GPU_PRIMITIVE_COLOR_WORD(p3, 0) = GPU_PACK_COLOR_WORD(0xff, 0x40, 0x40, 0);
+                            GPU_PRIMITIVE_COLOR_WORD(triangle, 0) = GPU_PACK_COLOR_WORD(0xff, 0x40, 0x40, 0);
                         }
-                        p3->clut = 0x4000;
+                        triangle->clut = getClut(0, 0x100);
                     }
-                    p3->tpage = 0xAE;
-                    setlen(p3, 7);
-                    setcode(p3, 0x24);
-                    if (mode == 0) {
-                        setcode(p3, 0x25);
-                        addPrim(&gGpuCurrentOt[otz], p3);
+                    triangle->tpage = getTPage(1, 1, 0x380, 0);
+                    setPolyFT3(triangle);
+                    if (fillMode == MENU_MAP_AREA_FILL_PATTERN) {
+                        setcode(triangle, MENU_MAP_AREA_RAW_TRIANGLE_CODE);
+                        addPrim(&gGpuCurrentOt[otIndex], triangle);
                     } else {
-                        addPrim(&gGpuCurrentOt[otz] + 1, p3);
+                        addPrim(&gGpuCurrentOt[otIndex] + 1, triangle);
                     }
-                    cur += stride;
-                    count--;
-                } while (count > 0);
+                    command += elementStrideWords;
+                    elementCount--;
+                } while (elementCount > 0);
             }
         }
     }
-    dr             = gGpuPrimCursor;
-    gGpuPrimCursor = dr + 1;
-    tw.x           = 0;
-    tw.y           = 0;
-    tw.w           = 0x20;
-    tw.h           = 0x20;
-    setTexWindow(dr, &tw);
-    addPrim(&gGpuCurrentOt[otz], dr);
+    // OT links prepend: this window precedes pattern primitives, then the no-mask window follows.
+    windowPacket    = gGpuPrimCursor;
+    gGpuPrimCursor  = windowPacket + 1;
+    textureWindow.x = 0;
+    textureWindow.y = 0;
+    textureWindow.w = MENU_MAP_AREA_PATTERN_SIZE;
+    textureWindow.h = MENU_MAP_AREA_PATTERN_SIZE;
+    setTexWindow(windowPacket, &textureWindow);
+    addPrim(&gGpuCurrentOt[otIndex], windowPacket);
     SCRATCH_STACK_RELEASE_BLOCK(_MenuMapAreaShapeScratch);
 }
 

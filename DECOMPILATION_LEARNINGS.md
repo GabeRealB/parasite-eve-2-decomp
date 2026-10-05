@@ -23679,7 +23679,7 @@ to the renamed import. Overlay C should include the matching main/psyq
 header (or a local prototype with the same name). Keep a *local*
 overlay prototype only when the match needs a different signature
 (dummy extra arg, `void` vs `s32` return) — do not change the main
-header. `func_800CFD78` / `taskKill` is the example.
+header. `planarReflectionDispatchPlayerTask` / `taskKill` is the example.
 
 ## `s32 flag = (s8)u8_field` gives `lb` and hoists the next store
 
@@ -42101,7 +42101,7 @@ the accesses resolve again.
 
 ## Name a cross-overlay import after the overlay that defines it
 
-The rule already documented for overlay code calling main (`func_800CFD78` /
+The rule already documented for overlay code calling main (`planarReflectionDispatchPlayerTask` /
 `taskKill`) runs the other way too, and that direction was not being followed.
 `src/main/tmd.c` called 53 gameplay functions as `D_800xxxxx` while
 `src/gameplay/gameplay.c` defines the same addresses as `func_800xxxxx`.
@@ -60171,17 +60171,17 @@ Same statements, same values, one reordering: 97.2% to 100%.
 
 ## A parameter you copy into a local pays for the copy in the prologue
 
-`func_800D4270` takes a mode and a GTE `dp` value in `$a2`/`$a3` and keeps both
+`_menuMapDrawAreaShape` takes a fill mode and a GTE `scaleQ12` value in `$a2`/`$a3` and keeps both
 in callee-saved registers across the whole draw loop. The obvious decompilation
 gives them names:
 
 ```c
-register s32 mode asm("s0");
-register s32 dp asm("s1");
-mode = arg2;
-dp = arg3;
-SOFT_TOUCH_REG(mode);   /* without this the copies fold away and s0/s1 go elsewhere */
-SOFT_TOUCH_REG(dp);
+register s32 fillMode asm("s0");
+register s32 scaleQ12 asm("s1");
+fillMode = arg2;
+scaleQ12 = arg3;
+SOFT_TOUCH_REG(fillMode);   /* without this the copies fold away and s0/s1 go elsewhere */
+SOFT_TOUCH_REG(scaleQ12);
 ```
 
 That reproduces `move $s0,$a2` / `move $s1,$a3` and the right allocation, but it
@@ -60197,7 +60197,7 @@ Using the parameters directly removes the copies, the touches and the problem in
 one step:
 
 ```c
-void func_800D4270(UiObject* obj, TmdSource* mesh, s32 mode, s32 dp)
+static void _menuMapDrawAreaShape(UiObject* mapObject, const TmdSource* areaModel, _MenuMapAreaShapeFill fillMode, s32 scaleQ12)
 ```
 
 GCC still spills `$a2`/`$a3` into `$s0`/`$s1` in the prologue, because both are
@@ -60213,21 +60213,21 @@ For
 
 ```c
 for (;;) {
-    type = *cur;
-    if (type == -2) { break; }
-    cur += 2;
+    opcode = *command;
+    if (opcode == TMD_STREAM_GROUP_END) { break; }
+    command += 2;
     ...
 }
 ```
 
 `jump.c` moves the head `lw` and its test out of the loop as the entry guard and
-leaves the loop starting at `cur += 2`, so `*cur` is loaded exactly twice --
+leaves the loop starting at `command += 2`, so `*command` is loaded exactly twice --
 once in the guard and once at the loop bottom. For
 
 ```c
-while (*cur != -2) {
-    type = *cur;
-    cur += 2;
+while (*command != TMD_STREAM_GROUP_END) {
+    opcode = *command;
+    command += 2;
     ...
 }
 ```
@@ -60242,7 +60242,7 @@ and, because every branch offset shifts with it, 26 branch penalties.
 
 ## Alternate the two texcoord runs before blaming register allocation
 
-The map-marker draw writes `u0..u3` from a minimum X and `v0..v3` from a minimum
+The map-area shape draw writes `u0..u3` from a minimum X and `v0..v3` from a minimum
 Y. Written as the target *emits* them -- `u0, u1, v0, u2, v1, v2, u3, v3` -- the
 allocator put the two masked minima in `$t3`/`$a1` instead of the target's
 `$a1`/`$a0`, which pushed one loop-invariant constant into a fifth callee-saved
@@ -60250,10 +60250,10 @@ register and renamed everything downstream (`regs=141`). Writing the source in
 strict alternation instead
 
 ```c
-p4->u0 = mx + ((u8)p4->x0 - minX);
-p4->v0 = my + ((u8)p4->y0 - minY);
-p4->u1 = mx + ((u8)p4->x1 - minX);
-p4->v1 = my + ((u8)p4->y1 - minY);
+quad->u0 = mx + ((u8)quad->x0 - minX);
+quad->v0 = my + ((u8)quad->y0 - minY);
+quad->u1 = mx + ((u8)quad->x1 - minX);
+quad->v1 = my + ((u8)quad->y1 - minY);
 ...
 ```
 

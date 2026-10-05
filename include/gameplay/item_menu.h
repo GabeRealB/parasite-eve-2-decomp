@@ -56,8 +56,6 @@ s32 func_800D4E78(s32 arg0, s32 arg1, s32 arg2);
 
 s32 Gp_GetPreviewItem(void);
 
-void func_800CFD78(Task* arg0);
-
 extern char Gp_StrEmpty[];
 
 void func_800C0E20(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5, u32 arg6);
