@@ -729,13 +729,20 @@ static s32 Gp_FindNearestSlot(WorldCollisionBody* arg0, s32 arg1)
     return best;
 }
 
-/// Appends an unlinked body and installs the link that its predecessor owns.
-static __inline__ void _worldCollisionAppendBody(WorldCollisionBody** head, WorldCollisionBody* body)
+/// Appends a borrowed collision body in insertion order and records its incoming link.
+///
+/// `listHead` must address a live, writable head slot for an acyclic list;
+/// `body` must be non-NULL and absent from every list. The incoming link is
+/// the head slot for an empty list, or the previous tail's `next` otherwise.
+/// The head slot must remain alive while the list is nonempty, and each body
+/// until it is unlinked. The body becomes the new tail; its shape, contacts
+/// and flags are unchanged. The caller is responsible for validating the
+/// shape kind and setting the LINKED flag.
+static __inline__ void _worldCollisionAppendBody(WorldCollisionBody** listHead, WorldCollisionBody* body)
 {
-    WorldCollisionBody* tail;
-    WorldCollisionBody* first;
+    WorldCollisionBody*       tail;
+    WorldCollisionBody* const first = *listHead;
 
-    first = *head;
     if (first != NULL) {
         tail = first;
         while (tail->next != NULL) {
@@ -744,8 +751,8 @@ static __inline__ void _worldCollisionAppendBody(WorldCollisionBody** head, Worl
         tail->next = body;
         body->prev = &tail->next;
     } else {
-        *head      = body;
-        body->prev = head;
+        *listHead  = body;
+        body->prev = listHead;
     }
     body->next = NULL;
 }
@@ -1086,7 +1093,16 @@ s32 Gp_TakePendingObj4C(u16* arg0, u8* arg1, u8* arg2)
     return 0;
 }
 
-/// Writes a synthetic attack with no geometric response, preserving flags and vector padding.
+/// Writes a Parasite Energy attack into one enemy contact slot.
+///
+/// `contact` must be non-NULL writable storage in the target's initialized
+/// contact table; either an empty or an occupied slot may be supplied.
+/// `attackKey` is the complete packed attack identity and is copied unchanged.
+/// Distance and the point/response XYZ components are zero because targeting
+/// supplies no collision geometry. Existing flags, including LAST and body-index
+/// bits, and both vector pad halfwords survive. OCCUPIED is set after writing
+/// the payload. The caller selects the slot and counts the target; no pointer
+/// is retained.
 static __inline__ void _attachmentWriteTargetContact(WorldCollisionContact* contact, s32 attackKey)
 {
     contact->key.value             = attackKey;
