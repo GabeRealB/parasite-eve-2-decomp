@@ -53,19 +53,29 @@ STATIC_ASSERT_SIZEOF(_RoomFxMoteArg, 0x4);
 /// `_RoomFxMoteArg::extentPalette` bits giving the sprite's palette.
 #define ROOM_VISUAL_EFFECTS_MOTE_PALETTE 0xF000
 
-/// Moves a mote along local Y and draws its next animation frame on odd active ticks.
+/// Moves a mote each active tick and queues its next sprite frame on odd ages.
 ///
-/// `textureRow` is already packed into the draw argument's upper nibble.
-/// The work stores the frame in index, half-extent in angle, brightness in
-/// scale and the packed palette in period; brightness changes after this draw.
-static inline void _roomVisualEffectsMoveAndDrawMote(EffectWork* work, GfxCoord* coord, s32 textureRow)
+/// Borrowed `work` and `coord`, including the coordinate's ancestors, must be
+/// live and writable. The caller advances `work->age` before this call and
+/// changes brightness afterward. `work->move.vy` is a signed displacement in
+/// parent-space coordinate units; the composed transform is refreshed every call.
+/// On odd ages, `work->index` advances before drawing; its low two bits select
+/// one of four frames. `work->angle` holds the half-extent (0..4095 coordinate
+/// units), `work->scale` the brightness (0..128), and `work->period` the palette
+/// selector already packed into bits 12..15. `packedTextureStrip` is 0 for the
+/// first strip or `ROOM_VISUAL_EFFECTS_MOTE_TEXTURE_ROW_1` for the second;
+/// its bits 12..15 are combined with the half-extent, not the palette.
+static inline void _roomVisualEffectsMoveAndDrawMote(EffectWork* work, GfxCoord* coord, u16 packedTextureStrip)
 {
+    enum { MOTE_ANIMATION_INTERVAL_TICKS = 2 };
+
+    // Refresh the composed position even on ticks that queue no sprite.
     coord->coord.t[1]  += work->move.vy;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(coord);
-    if (work->age & 1) {
+    if (work->age & (MOTE_ANIMATION_INTERVAL_TICKS - 1)) {
         work->index++;
-        _roomVisualEffectsDrawMote(coord, work->index, work->angle | textureRow, work->scale | work->period);
+        _roomVisualEffectsDrawMote(coord, work->index, work->angle | packedTextureStrip, work->scale | work->period);
     }
 }
 
