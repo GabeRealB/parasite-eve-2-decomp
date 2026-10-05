@@ -771,7 +771,7 @@ static void SndEvt_HandlePanRamp(SndEvt* event)
     args    = &event->args.script;
     temp_v0 = SndVoice_FindById(args->soundId);
     if (temp_v0 >= 0) {
-        SndVoice_SetPanRamp(temp_v0, args->panOffset, args->level.attenuation);
+        sndScriptRampMix(temp_v0, args->panOffset, args->level.attenuation);
     }
 }
 
@@ -783,7 +783,7 @@ static void SndEvt_HandleVolumeRamp(SndEvt* event)
     args    = &event->args.script;
     temp_v0 = SndVoice_FindById(args->soundId);
     if (temp_v0 >= 0) {
-        SndVoice_SetVolumeRamp(temp_v0, args->level.volumeScale);
+        sndScriptRampVolume(temp_v0, args->level.volumeScale);
     }
 }
 

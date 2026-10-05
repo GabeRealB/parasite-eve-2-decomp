@@ -11083,7 +11083,7 @@ and `SndEvt_HandleVolumeRamp` shows both spellings:
 SndEvtScriptArgs* args = &arg0->args.script; /* +4 base; the loads rebase to it */
 temp = SndVoice_FindById(args->soundId);   /* the field at arg0+0x8 */
 if (temp >= 0) {
-    SndVoice_SetVolumeRamp(temp, args->level.volumeScale); /* the field at arg0+0x5 */
+    sndScriptRampVolume(temp, args->level.volumeScale); /* the field at arg0+0x5 */
 }
 ```
 
@@ -14255,7 +14255,7 @@ t = (s8)t;                       /* sll; sra */
 ```
 
 Same pattern as `C37C.c`'s `status = *(volatile u8*)&entry->stage` followed by
-`stageIndex = (s8)stageIndex`. `SndVoice_SetVolumeRamp` needs this for `_SndScript.attenuation`.
+`stageIndex = (s8)stageIndex`. `sndScriptRampVolume` needs this for `_SndScript.attenuation`.
 
 ## Three-way sign with `<= 0` outer for `bgtz` fall-through
 
@@ -14284,7 +14284,7 @@ p->dirty = 1;
 
 `if (diff <= 0)` (not `if (diff > 0)` first) makes the positive arm the `bgtz`
 branch target and the negative arm fall through after `bgez` fails — matching
-the `bgtz` / `bgez` / shared-zero label shape of `SndVoice_SetVolumeRamp` / `SndVoice_SetPanRamp`.
+the `bgtz` / `bgez` / shared-zero label shape of `sndScriptRampVolume` / `sndScriptRampMix`.
 
 ## Booleanize `(x & mask)` via `== mask`, not `!= 0`
 
@@ -15524,17 +15524,17 @@ own where a sign is all that reader wants (see "One field read at two convention
 is a union inside its own arm" above) — then no call site casts:
 
 ```c
-/* callee: void SndVoice_SetPanRamp(s32, s32, s32); — body keeps $a1 as-is */
-SndVoice_SetPanRamp(idx, arg0->args.script.panOffset, arg0->args.script.level.attenuation); /* lb, not lbu */
-SndVoice_SetPanRamp(idx, args->panOffset, args->level.attenuation); /* lb, not lbu */
+/* callee: void sndScriptRampMix(s32, s32, s32); — body keeps $a1 as-is */
+sndScriptRampMix(idx, arg0->args.script.panOffset, arg0->args.script.level.attenuation); /* lb, not lbu */
+sndScriptRampMix(idx, args->panOffset, args->level.attenuation); /* lb, not lbu */
 ```
 
 Bare `args->level.attenuation` with an `s8` formal also yields `lb`, but
 then the callee mismatches. Prefer `s32` formals + `(s8)` at the few call sites,
 or type each view of the field for its reader — the pan ramp's view is `s8`,
-while `SndVoice_SetVolumeRamp` reads the same byte through a `u8` one.
-`SndVoice_SetPanRamp` / `SndEvt_HandlePanRamp` are the pure example (sibling
-`SndVoice_SetVolumeRamp` already takes `s32` and its caller reads it unsigned).
+while `sndScriptRampVolume` reads the same byte through a `u8` one.
+`sndScriptRampMix` / `SndEvt_HandlePanRamp` are the pure example (sibling
+`sndScriptRampVolume` already takes `s32` and its caller reads it unsigned).
 
 ## Early load into a temp forces prior store before zero-fills
 
@@ -18077,7 +18077,7 @@ SPU voice volume scaling multiplies a master level (`s8`, often 0..0x7F) by two
 node->scaledVolume = (master * params->volumeScale * node->baseVolume) / 16129;
 ```
 
-Do not hand-write the magic constant. `SndVoice_ApplyMasterVolume` (and the same sequence in
+Do not hand-write the magic constant. `sndScriptSetMasterVolume` (and the same sequence in
 `SndScript_Exec`) is the reference. Related layout notes:
 
 - `_SndScript::entryControls` is a `SndScriptEntryControls*` entry-control block (`volumeScale` gain).
@@ -22839,7 +22839,7 @@ Column targets use `head - 0x42` (col1) and `head - 0x40` (col2), same
   duration, add `gDisplayState.region == 1 ? 0x9999 : 0x10000` and return 0;
   on success subtract `duration << 16` and return 1 (caller loops while nonzero).
 - Volume: `(scale * entryControls->volumeScale * voice->baseVolume) / 16129` (127²), same
-  as `SndVoice_ApplyMasterVolume`.
+  as `sndScriptSetMasterVolume`.
 
 ## `a3` prim pointer → `t0` copy frees `a3` for the `0xFFFFFF` mask
 
@@ -145411,7 +145411,7 @@ with `break` falls to the function's single `return index;` block: fill_eager
 delay slot filled. The tell is the whole function: if every "return" path is
 `jr ra; move v0,a0` but the shared exit block has `move v0,a0; jr ra; nop`, the
 arms were `break`s to one return.
-## A `move` copy whose source is then rewritten in place is a narrower copy taken before the variable is reassigned (SndVoice_SetVolumeRamp, 2026-09-26)
+## A `move` copy whose source is then rewritten in place is a narrower copy taken before the variable is reassigned (sndScriptRampVolume, 2026-09-26)
 
 **Symptom.** `andi a1,a1,0x7f; move a0,a1; ...; subu a1,a1,v0; sll a1,a1,16; sra a1,a1,16`:
 the value is copied to `a0` (used only by later `sb` stores), then the original
@@ -145429,10 +145429,10 @@ the same equivalence class) or the original is killed before the stores.
 `u8` copy taken in between:
 
 ```c
-diff = ~arg1 & 0x7F;
-vol  = diff;               /* u8: what the stores write */
-diff -= (s8)p->attenuation;   /* s16: in place, lbu + sll/sra for the byte */
-if (ABS(diff) > 0x20) {
+attenuationDelta  = ~volumeScale & SOUND_SCRIPT_VOLUME_UNITY;
+targetAttenuation = attenuationDelta; /* u8: what the stores write */
+attenuationDelta -= (s8)script->attenuation; /* s16: in place, lbu + sll/sra for the byte */
+if (ABS(attenuationDelta) > SOUND_SCRIPT_MIX_RAMP_THRESHOLD) {
 ```
 ## A `x / 4` duplicated in two arms stops cross-jumping when cse rewrites the first copy's bias test to the dividend (SndVoice_DriveSlots, 2026-09-26)
 

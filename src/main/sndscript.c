@@ -418,6 +418,13 @@ enum {
     SOUND_SCRIPT_RETRIGGER_DISABLED  = -1
 };
 
+// Mix changes above 32 ramp by 8 per voice visit; pan uses quarter-offset units.
+enum {
+    SOUND_SCRIPT_MIX_RAMP_THRESHOLD = 32,
+    SOUND_SCRIPT_MIX_RAMP_STEP      = 8,
+    SOUND_SCRIPT_PAN_FRACTION_SCALE = 4
+};
+
 // Descriptor lookup modes; all other values produce no match.
 enum {
     /// Selects exact matching of a sound-script slot's attached sample-bank id.
@@ -872,11 +879,11 @@ void Snd_SetMutedVolumes(s32 arg0)
 
     if (arg0 == 0) {
         gSndVolumeReducedMode = SOUND_VOLUME_MODE_NORMAL;
-        SndVoice_ApplyMasterVolume(0x7F);
+        sndScriptSetMasterVolume(0x7F);
         var_a0 = 0x40;
     } else {
         gSndVolumeReducedMode = SOUND_VOLUME_MODE_REDUCED;
-        SndVoice_ApplyMasterVolume(0x28);
+        sndScriptSetMasterVolume(0x28);
         var_a0 = 0;
     }
     midiSetMasterVolume(var_a0);
@@ -1219,7 +1226,7 @@ static void SndVoice_StepMasterLevel(void)
     s16 var_a0;
     s8  bound;
 
-    var_a0 = SndVoice_GetMasterVolume();
+    var_a0 = sndScriptGetMasterVolume();
     if (D_8008274A > 0) {
         var_a0 = var_a0 + D_8008274A;
         bound  = (u8)D_80082749;
@@ -1237,7 +1244,7 @@ static void SndVoice_StepMasterLevel(void)
             D_8008274A = 0;
         }
     }
-    SndVoice_ApplyMasterVolume(var_a0);
+    sndScriptSetMasterVolume(var_a0);
 }
 
 static s32 SndVoice_DriveSlots(s32* unused)
@@ -1876,74 +1883,80 @@ void SndVoice_FadeMatching(s32 arg0, s32 arg1)
     }
 }
 
-void SndVoice_SetPanRamp(s32 arg0, s32 arg1, s32 arg2)
+void sndScriptRampMix(s32 scriptSlotIndex, s32 panOffset, s32 attenuation)
 {
-    _SndScript* p;
-    s32         t;
+    _SndScript* script;
+    s32         panDelta;
+    s32         panStep;
+    s32         volumeScale;
 
-    arg0      &= 7;
-    p          = &SndScript_Slots[arg0];
-    t          = *(volatile u8*)&p->panOffset;
-    t          = arg1 - t;
-    p->panStep = t;
-    t          = (s8)t;
-    if (t < 0) {
-        t = -t;
+    scriptSlotIndex &= ARRAY_SIZE(SndScript_Slots) - 1;
+    script           = &SndScript_Slots[scriptSlotIndex];
+
+    // Wrap the pan delta to a signed byte before choosing a snap or ramp.
+    panDelta        = *(volatile u8*)&script->panOffset;
+    panDelta        = panOffset - panDelta;
+    script->panStep = panDelta;
+    panDelta        = (s8)panDelta;
+    if (panDelta < 0) {
+        panDelta = -panDelta;
     }
-    if ((t * 4) >= 0x21) {
-        p->panTarget = arg1;
-        if (p->panStep <= 0) {
-            if (p->panStep < 0) {
-                t = -8;
+    if ((panDelta * SOUND_SCRIPT_PAN_FRACTION_SCALE) >= SOUND_SCRIPT_MIX_RAMP_THRESHOLD + 1) {
+        script->panTarget = panOffset;
+        if (script->panStep <= 0) {
+            if (script->panStep < 0) {
+                panStep = -SOUND_SCRIPT_MIX_RAMP_STEP;
             } else {
-                t = 0;
+                panStep = 0;
             }
         } else {
-            t = 8;
+            panStep = SOUND_SCRIPT_MIX_RAMP_STEP;
         }
-        p->panStep = t;
+        script->panStep = panStep;
     } else {
-        p->panOffset = arg1;
-        p->panStep   = 0;
+        script->panOffset = panOffset;
+        script->panStep   = 0;
     }
-    p->mixDirty = 1;
+    script->mixDirty = 1;
 
-    arg1 = (s8)arg2;
-    if (arg1 < 0) {
-        arg1 = arg1 + 0x7F;
+    // Convert signed attenuation to the volume request used by the shared ramp.
+    volumeScale = (s8)attenuation;
+    if (volumeScale < 0) {
+        volumeScale = volumeScale + SOUND_SCRIPT_VOLUME_UNITY;
     } else {
-        arg1 = 0x7F - arg1;
+        volumeScale = SOUND_SCRIPT_VOLUME_UNITY - volumeScale;
     }
-    SndVoice_SetVolumeRamp(arg0, arg1);
-    p->mixDirty = 1;
+    sndScriptRampVolume(scriptSlotIndex, volumeScale);
+    script->mixDirty = 1;
 }
 
-void SndVoice_SetVolumeRamp(s32 arg0, s32 arg1)
+void sndScriptRampVolume(s32 scriptSlotIndex, s32 volumeScale)
 {
-    _SndScript* p;
-    u8          vol;
-    s16         diff;
+    _SndScript* script;
+    u8          targetAttenuation;
+    s16         attenuationDelta;
 
-    p     = &SndScript_Slots[arg0 & 7];
-    diff  = ~arg1 & 0x7F;
-    vol   = diff;
-    diff -= (s8)p->attenuation;
-    if (ABS(diff) > 0x20) {
-        p->attenuationTarget = vol;
-        if (diff <= 0) {
-            if (diff < 0) {
-                p->attenuationStep = -8;
+    script = &SndScript_Slots[scriptSlotIndex & (ARRAY_SIZE(SndScript_Slots) - 1)];
+    // Keep the unsigned target byte separate from the signed ramp difference.
+    attenuationDelta  = ~volumeScale & SOUND_SCRIPT_VOLUME_UNITY;
+    targetAttenuation = attenuationDelta;
+    attenuationDelta -= (s8)script->attenuation;
+    if (ABS(attenuationDelta) > SOUND_SCRIPT_MIX_RAMP_THRESHOLD) {
+        script->attenuationTarget = targetAttenuation;
+        if (attenuationDelta <= 0) {
+            if (attenuationDelta < 0) {
+                script->attenuationStep = -SOUND_SCRIPT_MIX_RAMP_STEP;
             } else {
-                p->attenuationStep = 0;
+                script->attenuationStep = 0;
             }
         } else {
-            p->attenuationStep = 8;
+            script->attenuationStep = SOUND_SCRIPT_MIX_RAMP_STEP;
         }
     } else {
-        p->attenuation     = vol;
-        p->attenuationStep = 0;
+        script->attenuation     = targetAttenuation;
+        script->attenuationStep = 0;
     }
-    p->mixDirty = 1;
+    script->mixDirty = 1;
 }
 
 void SndVoice_IncRefCount(void)
@@ -1954,7 +1967,7 @@ void SndVoice_IncRefCount(void)
     if (D_8008274C == 1) {
         if (D_8008274A == 0) {
             if (D_80082749 == 0) {
-                temp = SndVoice_GetMasterVolume();
+                temp = sndScriptGetMasterVolume();
                 if (temp >= 0x30) {
                     D_80082749 = temp;
                     D_8008274A = -8;
@@ -2009,7 +2022,7 @@ static void SndVoice_Init(void)
 
     D_8008274A = 0;
     D_80082749 = 0;
-    SndVoice_ApplyMasterVolume(0x7F);
+    sndScriptSetMasterVolume(0x7F);
     SndVoice_SetPriorityLevel(1);
 }
 
@@ -2042,37 +2055,48 @@ s32 SndVoice_FindById(s32 arg0)
     return -1;
 }
 
-void SndVoice_ApplyMasterVolume(s8 arg0)
+/// Recomputes the master/entry/base gain of every voice owned by one instance.
+///
+/// Its voice list and loaded entry controls must remain valid during the walk.
+static inline void _sndScriptRescaleVoices(_SndScript* script, s8 masterVolume)
 {
-    _SndScript* p;
-    s32         i;
-    _SndVoice*  node;
-    _SndVoice*  temp;
-    s8          vol;
+    _SndVoice* voice;
+    _SndVoice* firstVoice;
 
-    for (i = 0; i < 8; i++) {
-        p = &SndScript_Slots[i];
-        if ((p->useUnduckedVolume != 1) || (D_80082749 == 0)) {
-            temp = p->voices;
-            if (temp != NULL) {
-                node = temp;
-                do {
-                    node->scaledVolume = (arg0 * p->entryControls->volumeScale * node->baseVolume) / (SOUND_SCRIPT_VOLUME_UNITY * SOUND_SCRIPT_VOLUME_UNITY);
-                    node               = node->next;
-                } while (node != NULL);
-                p->mixDirty = 0;
-            }
-            p->mixDirty = 1;
-        }
+    firstVoice = script->voices;
+    if (firstVoice != NULL) {
+        voice = firstVoice;
+        do {
+            voice->scaledVolume = (masterVolume * script->entryControls->volumeScale * voice->baseVolume) / (SOUND_SCRIPT_VOLUME_UNITY * SOUND_SCRIPT_VOLUME_UNITY);
+            voice               = voice->next;
+        } while (voice != NULL);
+        script->mixDirty = 0;
     }
-    vol = arg0;
-    if (vol < 0) {
-        vol = 0;
-    }
-    D_80082748 = vol;
 }
 
-s8 SndVoice_GetMasterVolume(void)
+void sndScriptSetMasterVolume(s8 masterVolume)
+{
+    _SndScript* script;
+    s32         slotIndex;
+    s8          storedVolume;
+
+    // Entries exempt from active ducking keep their previously scaled gain.
+    for (slotIndex = 0; slotIndex < ARRAY_SIZE(SndScript_Slots); slotIndex++) {
+        script = &SndScript_Slots[slotIndex];
+        if ((script->useUnduckedVolume != 1) || (D_80082749 == 0)) {
+            _sndScriptRescaleVoices(script, masterVolume);
+            script->mixDirty = 1;
+        }
+    }
+    // Clamp the saved level only after applying the original signed request.
+    storedVolume = masterVolume;
+    if (storedVolume < 0) {
+        storedVolume = 0;
+    }
+    D_80082748 = storedVolume;
+}
+
+s8 sndScriptGetMasterVolume(void)
 {
     return D_80082748;
 }

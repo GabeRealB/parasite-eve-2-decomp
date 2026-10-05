@@ -208,9 +208,29 @@ s32 SndScript_StopMatching(s32 arg0, s32 arg1);
 
 void SndVoice_FadeMatching(s32 arg0, s32 arg1);
 
-void SndVoice_SetPanRamp(s32 arg0, s32 arg1, s32 arg2);
+/// Updates a sound-script instance's pan and attenuation, ramping larger changes.
+///
+/// The low three bits of `scriptSlotIndex` select one of eight resident slots;
+/// the caller must select a live instance. `panOffset` is a signed-byte offset
+/// adding three SPU pan steps per unit. Its delta wraps to a signed byte:
+/// magnitudes through 8 snap, larger changes step by 2 offset units per voice
+/// visit. Only the target's low byte is stored.
+///
+/// The low signed byte of `attenuation` requests a volume-table index scale of
+/// (127 - magnitude) / 127 for magnitudes 0..127. It uses
+/// `sndScriptRampVolume`'s attenuation ramp;
+/// -128 instead targets zero attenuation. Both ramps advance once per voice
+/// visited during audio updates, and hardware mixing is deferred to that update.
+void sndScriptRampMix(s32 scriptSlotIndex, s32 panOffset, s32 attenuation);
 
-void SndVoice_SetVolumeRamp(s32 arg0, s32 arg1);
+/// Updates a sound-script instance's volume scale, ramping larger attenuation changes.
+///
+/// The low three bits of `scriptSlotIndex` select a live resident instance.
+/// Only the low seven bits of `volumeScale` matter (0 silent, 127 full): their
+/// complement is the target attenuation, compared with the current signed byte.
+/// Differences through 32 snap; larger changes step by 8 attenuation units per
+/// voice visited during audio updates. Hardware mixing is deferred to that update.
+void sndScriptRampVolume(s32 scriptSlotIndex, s32 volumeScale);
 
 void SndVoice_IncRefCount(void);
 
@@ -218,9 +238,21 @@ void SndVoice_TickRefCount(void);
 
 s32 SndVoice_FindById(s32 arg0);
 
-void SndVoice_ApplyMasterVolume(s8 arg0);
+/// Sets the sound-script master gain and schedules eligible instances for remixing.
+///
+/// `masterVolume` is normally 0..127 (0 silent, 127 full). Recalculates each
+/// eligible voice's gain as master * entry gain * base gain / 127^2; entries
+/// exempt from active ducking keep their gain. Hardware volume and pan are
+/// refreshed on the next voice visit, including mix-mode changes. The saved
+/// master level clamps negative inputs to zero after applying the signed input
+/// to existing voices. Live voices require their bank's entry controls to remain loaded.
+void sndScriptSetMasterVolume(s8 masterVolume);
 
-s8 SndVoice_GetMasterVolume(void);
+/// Returns the current sound-script master gain (0 silent, 127 full).
+///
+/// During ducking this is the reduced gain; exempt entries use the saved
+/// unducked level separately. The result is a signed byte, always nonnegative.
+s8 sndScriptGetMasterVolume(void);
 
 /// Returns the stable sound-script bank slot selected by the low byte of `slotIndex`.
 ///
