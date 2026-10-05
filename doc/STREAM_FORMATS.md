@@ -75,8 +75,13 @@ the eighteen-entry serialized capacity does not enlarge the runtime table.
 
 `Fs_BuildFolderTables` copies non-empty entries into **`Stream_Slots[15]`**
 (BSS). Title may bulk-copy `Fs_Streams` → `Stream_Slots`. Lookup:
-`Stream_FindSlot` / `Stream_FindSlotByKey` by stream id fields; playback via
-CD command queue / CdAudio.
+`streamFindMovieSlot` selects a loaded movie using the location key's view byte
+as stream ID, its room byte (or descriptor group 0 as a wildcard), and a 16-bit
+sub-ID. Its optional view-stream filter stops at a rejected room-specific match,
+but continues past a rejected wildcard. `streamFindViewMovieSlot` selects the
+first view-enabled movie with the same ID/room rules, without checking sub-ID
+or loaded sector. Both return a slot index 0..14 or `STREAM_SLOT_NOT_FOUND`.
+Playback uses the CD command queue / CdAudio.
 
 ---
 
@@ -308,7 +313,7 @@ The engine does **not** scan INTER for a valid frame. It always:
 
 ```text
 caller supplies stream id (+ optional sub keys)
-    → Stream_FindSlot (exact match on key.parts.id / subId / key.parts.group rules)
+    → streamFindMovieSlot (exact match on key.parts.id / subId / key.parts.group rules)
     → Stream_InitFromSlot(slot)
     → if data.movie.volumeTableIndex ≠ 0: seek INTER_LBA + source.interSectorOffset
       else:                seek absolutized offset (stage CDF)
@@ -324,12 +329,13 @@ ISO root scan sets the disc number (`Wip_SysFlags.discNumber`):
 
 ```c
 // title.c
+key = gGameSession->location;
 if (Wip_SysFlags.discNumber == GAME_MAIN_DISC_2)
-    key_id = 0x65;  // 101
+    key.loc.view = 0x65;  // 101
 else
-    key_id = 0x64;  // 100
-slot = Stream_FindSlot(key, 0, 0);
-CdCmd_Enqueue(0x61, slot);
+    key.loc.view = 0x64;  // 100
+slotParam[0] = streamFindMovieSlot(&key.loc, 0, 0);
+CdCmd_Enqueue(CD_COMMAND_PLAY_STREAM, 0, slotParam);
 ```
 
 Both title rows share `source.interSectorOffset = 0` (same video). Disc → id is still how
@@ -338,7 +344,7 @@ path). 320×240.
 
 #### In-game
 
-Same `Stream_FindSlot` path. The id comes from session/stage keys (e.g.
+Same `streamFindMovieSlot` path. The id comes from session/stage keys (e.g.
 `gGameSession` field block filled from room/event data such as
 `Stage_Ctx->pendingView`). We have **not** fully decompiled every script path that
 chooses id 100 vs 101 for stage‑3 duals; the engine side is only **id → slot**.
@@ -512,7 +518,7 @@ python3 tools/peassets/extract_movies.py --rom rom/USA --out assets/USA -j 16
 Disc insert → ISO scan → INTER LBA + disc class flag
 Folder/HED load → Stream_Slots (all descriptors, including duals)
 Caller sets stream id (title: disc flag; in-game: session/event)
-Stream_FindSlot(id) → slot
+streamFindMovieSlot(&key.loc, subId, 0) → slot
 CdCmd 0x61 + Stream_InitFromSlot
   data.movie.volumeTableIndex≠0 → seek INTER + source.interSectorOffset
   data.movie.volumeTableIndex==0 → seek stage CDF + startSector
@@ -526,7 +532,7 @@ STR → demux → MDEC → VRAM
 | Disc STAGE / INTER inventory | High |
 | INTER seek = `source.interSectorOffset + INTER_LBA` (incl. 0) | High (`Stream_InitializePlayback`) |
 | `data.movie.volumeTableIndex` volume selection and CDF vs INTER | High |
-| Stream id lookup (`Stream_FindSlot`) | High |
+| Stream id lookup (`streamFindMovieSlot`) | High |
 | Title disc flag → id 100/101 | High (`title.c` + ISO scan) |
 | Stage‑3 dual rows = per-disc packing (not dual-valid) | High (hashes + frame heads) |
 | In-game script choice of id 100 vs 101 | Medium (path clear; not all callers decompiled) |

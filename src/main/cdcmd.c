@@ -157,7 +157,7 @@ void* CdCmd_SetupMdecBuffers(void)
     D_8006AC00 = NULL;
     if (gGameSession->location.loc.stage == GAME_STAGE_NONE) {
         D_8006AC00 = memMalloc(0x4B000, true);
-    } else if (Stream_FindSlot((u8*)&gGameSession->location.loc, 0, 0) < 0) {
+    } else if (streamFindMovieSlot(&gGameSession->location.loc, 0, 0) < 0) {
         return NULL;
     } else {
         sizeRow = CdCmd_MapHeapSizes[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage];
@@ -1040,7 +1040,7 @@ u16 CdCmd_IsSlotEmpty(s16 arg0)
 void CdCmd_BuildVlcIfStream(void)
 {
     gCdCmdQueue.movieFrame = 1;
-    if (Stream_HasActiveLowId(&gGameSession->location.loc.view) != 0) {
+    if (streamHasLoadedViewMovie(&gGameSession->location.loc.view) != 0) {
         DecDCTvlcBuild(Fs_ActorLoadBase0);
         gGameSession->field_7C = 0;
     }
@@ -1083,7 +1083,7 @@ void CdCmd_SelectMdecBuffer(void)
     CdCmdQueue* p;
 
     p = &gCdCmdQueue;
-    if (Stream_FindSlot((u8*)&gGameSession->location.loc, 0, 0) >= 0) {
+    if (streamFindMovieSlot(&gGameSession->location.loc, 0, 0) >= 0) {
         D_8006AC40 = D_8006AC00;
     }
     p->movieFrameAvailable = 0;

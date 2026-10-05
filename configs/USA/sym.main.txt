@@ -453,8 +453,8 @@ strncmp                     = 0x8001EAC4;
 //--------------------------------------------------------------------
 Mdec_SetupBuffers               = 0x8001EB44; // type:func
 Stream_InitFromSlot               = 0x8001ED20; // type:func
-Stream_FindSlot               = 0x8001EDC8; // type:func
-Stream_FindSlotByKey               = 0x8001EED8; // type:func
+streamFindMovieSlot               = 0x8001EDC8; // type:func
+streamFindViewMovieSlot               = 0x8001EED8; // type:func
 Stream_RestoreAfterLoad               = 0x8001EF9C; // type:func
 Stream_InitializePlayback               = 0x8001F180; // type:func
 CdCmd_StopMdec               = 0x8001F2FC; // type:func
@@ -464,11 +464,11 @@ Mdec_KickStrip               = 0x8001F854; // type:func
 Mdec_DecodeFrame               = 0x8001F990; // type:func
 Stream_PollPlayback               = 0x8001FAE0; // type:func
 Stream_PresentFrame               = 0x80020058; // type:func
-Stream_GetSlot               = 0x80020278; // type:func
+streamGetSlot               = 0x80020278; // type:func
 Mem_AllocAuxWithImages               = 0x80020298; // type:func
 Stream_ResetRestoreState               = 0x80020388; // type:func
-Stream_HasActiveLowId               = 0x80020394; // type:func
-Stream_GetSlotField1A               = 0x80020414; // type:func
+streamHasLoadedViewMovie               = 0x80020394; // type:func
+streamGetFrameLimit               = 0x80020414; // type:func
 Stream_KickDecode               = 0x8002043C; // type:func
 
 //--------------------------------------------------------------------

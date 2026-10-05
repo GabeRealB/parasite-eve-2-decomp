@@ -44,8 +44,8 @@ STATIC_ASSERT_SIZEOF(GameLocationKey, 0x6);
 /// Eight-byte location cell shared by the live session and saved state.
 ///
 /// Whole-cell copies preserve the two bytes following the six-byte key;
-/// their role is unproven. The cell is byte-aligned. Stream lookups borrow a
-/// byte view of the cell and read only its leading view and room bytes;
+/// their role is unproven. The cell is byte-aligned. Stream lookups borrow
+/// `loc` and read only its leading view and room bytes;
 /// a local copy can replace the view byte with a stream identifier.
 typedef struct {
     GameLocationKey loc;          // Place key; leading view and room also select streams

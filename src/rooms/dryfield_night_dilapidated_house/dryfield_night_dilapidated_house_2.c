@@ -2419,7 +2419,7 @@ void func_dryfield_night_dilapidated_house_8017DB20(Task* task)
             } else {
                 key.loc.view = 0x64;
             }
-            slot         = Stream_FindSlot((u8*)&key, 0, 0);
+            slot         = streamFindMovieSlot(&key.loc, 0, 0);
             slotParam[0] = slot;
             CdCmd_Enqueue(CD_COMMAND_PLAY_STREAM, 0, slotParam);
             task->state = task->state + 1;

@@ -16438,8 +16438,8 @@ loop:
     }
 ```
 
-`Stream_FindSlot` is the pure example (search of `Stream_Slots`, mask of `value`
-against `field_10`).
+`streamFindMovieSlot` is the pure example (search of `Stream_Slots`, mask of `subId`
+against `StreamSlot::subId`).
 
 ## Place `return -1` after shared match labels
 
@@ -23464,7 +23464,7 @@ asm("" : "+r"(mask));
 Title_SkipFadeFlag = 0;       /* sh fills jal delay */
 SetDispMask(mask);    /* beqz delay already has move a0, zero */
 
-/* After Stream_FindSlot: */
+/* After streamFindMovieSlot: */
 register s32 cmd asm("a0");
 register s32 zero asm("a1");
 register u8* p asm("a2");
@@ -23480,7 +23480,7 @@ arg setup before `D_800691DE = 1` (absolute alias of `gCdCmdQueue.preserveDispla
 `Title_DemoStreamTask` is the pure example.
 
 The trigger is a basic-block split, not the call itself. The identical
-`slot = Stream_FindSlot((u8*)&key, 0, 0); slotParam[0] = slot;
+`slot = streamFindMovieSlot(&key.loc, 0, 0); slotParam[0] = slot;
 CdCmd_Enqueue(0x61, 0, slotParam);` sequence matches with no pins when the
 preceding `key.loc.view = 0x64;` is unconditional, because the whole case body
 is one block and `sched2` sinks the `sb` past the arg setup. Add an `if/else`
@@ -42750,7 +42750,7 @@ equivalent C spellings, and they cross-jump differently.
 `func_dryfield_night_motel_balcony_8017DDD0` is a 9-case `switch (task->state)`
 in which cases 2 and 5 are byte-identical (`lhu 0x1FA(a0)` / `SetDispMask(1)`),
 as are the `SetDispMask(0)` heads of cases 3 and 6 and the
-`Stream_FindSlot` / `CdCmd_Enqueue` tails of cases 1 and 4. The ROM keeps
+`streamFindMovieSlot` / `CdCmd_Enqueue` tails of cases 1 and 4. The ROM keeps
 every one of those duplicate blocks and shares only the trailing
 `lw 0x30(s0); addiu 1; sw 0x30(s0)`, which each case reaches with a `j`.
 

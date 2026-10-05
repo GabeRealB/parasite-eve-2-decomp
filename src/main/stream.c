@@ -203,103 +203,102 @@ static void Stream_InitFromSlot(u32 arg0)
     D_8006AC18                            = slot->data.movie.uploadMode;
 }
 
-s16 Stream_FindSlot(u8* arg0, s32 arg1, s32 arg2)
+s16 streamFindMovieSlot(const GameLocationKey* location, s32 subId, s32 requireViewStream)
 {
-    s32         i;
-    s32         found;
-    s32         result;
-    StreamSlot* slots;
-    s32         one;
-    s32         ret;
+    s32         slotIndex;
+    s32         hasMatch;
+    s32         matchedSlotIndex;
+    StreamSlot* slotTable;
+    s32         movieKind;
 
-    result = 0;
-    i      = result;
-    found  = result;
-    slots  = Stream_Slots;
-    one    = STREAM_KIND_MOVIE;
-    arg2  &= 0xFFFF;
+    matchedSlotIndex   = 0;
+    slotIndex          = matchedSlotIndex;
+    hasMatch           = matchedSlotIndex;
+    slotTable          = Stream_Slots;
+    movieKind          = STREAM_KIND_MOVIE;
+    requireViewStream &= 0xFFFF;
 
 loop:
-    if (slots[i & 0xFFFF].kind == one) {
-        if (slots[i & 0xFFFF].startSector != 0) {
-            if (slots[i & 0xFFFF].key.parts.id == arg0[0]) {
-                if (slots[i & 0xFFFF].subId == (arg1 & 0xFFFF)) {
-                    if (slots[i & 0xFFFF].key.parts.group == STREAM_KEY_ANY_GROUP) {
-                        if (arg2 == 0) {
+    if (slotTable[slotIndex & 0xFFFF].kind == movieKind) {
+        if (slotTable[slotIndex & 0xFFFF].startSector != 0) {
+            if (slotTable[slotIndex & 0xFFFF].key.parts.id == location->view) {
+                if (slotTable[slotIndex & 0xFFFF].subId == (subId & 0xFFFF)) {
+                    if (slotTable[slotIndex & 0xFFFF].key.parts.group == STREAM_KEY_ANY_GROUP) {
+                        if (requireViewStream == 0) {
                             goto matched;
                         }
-                        if (slots[i & 0xFFFF].data.movie.viewStream != 0) {
-                            found = 1;
+                        if (slotTable[slotIndex & 0xFFFF].data.movie.viewStream != 0) {
+                            hasMatch = 1;
                             goto matched_result;
                         }
-                    } else if (slots[i & 0xFFFF].key.parts.group == arg0[1]) {
-                        if (arg2 == 0) {
+                    } else if (slotTable[slotIndex & 0xFFFF].key.parts.group == location->room) {
+                        if (requireViewStream == 0) {
                             goto matched;
                         }
-                        if (slots[i & 0xFFFF].data.movie.viewStream == 0) {
+                        // A room-specific rejection suppresses later matches.
+                        if (slotTable[slotIndex & 0xFFFF].data.movie.viewStream == 0) {
                             goto done;
                         }
-                        found = 1;
+                        hasMatch = 1;
                         goto matched_result;
                     }
                 }
             }
         }
     }
-    i = i + 1;
-    if ((u32)(i & 0xFFFF) < ARRAY_SIZE(Stream_Slots)) {
+    slotIndex = slotIndex + 1;
+    if ((u32)(slotIndex & 0xFFFF) < ARRAY_SIZE(Stream_Slots)) {
         goto loop;
     }
 done:
-    if ((found & 0xFFFF) == 0) {
+    if ((hasMatch & 0xFFFF) == 0) {
         goto ret_neg;
     }
-    ret = result << 0x10;
-    return ret >> 0x10;
+    return matchedSlotIndex;
 
 matched:
-    found = 1;
+    hasMatch = 1;
 matched_result:
-    result = i;
+    matchedSlotIndex = slotIndex;
     goto done;
 
 ret_neg:
-    return -1;
+    return STREAM_SLOT_NOT_FOUND;
 }
 
-s16 Stream_FindSlotByKey(u8* arg0)
+s16 streamFindViewMovieSlot(const GameLocationKey* location)
 {
-    s32         i;
-    StreamSlot* slots;
-    s32         one;
-    s32         ret;
+    s32         slotIndex;
+    StreamSlot* slotTable;
+    s32         movieKind;
+    s32         shiftedSlotIndex;
 
-    i     = 0;
-    slots = Stream_Slots;
-    one   = STREAM_KIND_MOVIE;
+    slotIndex = 0;
+    slotTable = Stream_Slots;
+    movieKind = STREAM_KIND_MOVIE;
     while (1) {
-        if (slots[i & 0xFFFF].kind == one) {
-            if (slots[i & 0xFFFF].key.parts.id == arg0[0]) {
-                if (slots[i & 0xFFFF].key.parts.group == STREAM_KEY_ANY_GROUP) {
-                    if (slots[i & 0xFFFF].data.movie.viewStream != 0) {
-                        ret = i << 0x10;
-                        return ret >> 0x10;
+        if (slotTable[slotIndex & 0xFFFF].kind == movieKind) {
+            if (slotTable[slotIndex & 0xFFFF].key.parts.id == location->view) {
+                if (slotTable[slotIndex & 0xFFFF].key.parts.group == STREAM_KEY_ANY_GROUP) {
+                    if (slotTable[slotIndex & 0xFFFF].data.movie.viewStream != 0) {
+                        shiftedSlotIndex = slotIndex << 16;
+                        return shiftedSlotIndex >> 16;
                     }
                 }
-                if (slots[i & 0xFFFF].key.parts.group == arg0[1]) {
-                    if (slots[i & 0xFFFF].data.movie.viewStream != 0) {
-                        ret = i << 0x10;
-                        return ret >> 0x10;
+                if (slotTable[slotIndex & 0xFFFF].key.parts.group == location->room) {
+                    if (slotTable[slotIndex & 0xFFFF].data.movie.viewStream != 0) {
+                        shiftedSlotIndex = slotIndex << 16;
+                        return shiftedSlotIndex >> 16;
                     }
                 }
             }
         }
-        i = i + 1;
-        if ((u32)(i & 0xFFFF) >= ARRAY_SIZE(Stream_Slots)) {
+        slotIndex = slotIndex + 1;
+        if ((u32)(slotIndex & 0xFFFF) >= ARRAY_SIZE(Stream_Slots)) {
             break;
         }
     }
-    return -1;
+    return STREAM_SLOT_NOT_FOUND;
 }
 
 u16 Stream_RestoreAfterLoad(s32 arg0, s32 arg1)
@@ -976,9 +975,9 @@ void Stream_PresentFrame(void)
     }
 }
 
-StreamSlot* Stream_GetSlot(u32 arg0)
+StreamSlot* streamGetSlot(u16 slotIndex)
 {
-    return &Stream_Slots[arg0 & 0xFFFF];
+    return &Stream_Slots[slotIndex];
 }
 
 void Mem_AllocAuxWithImages(s16 arg0)
@@ -1016,33 +1015,34 @@ void Stream_ResetRestoreState(void)
     D_8006AC28 = 0;
 }
 
-s16 Stream_HasActiveLowId(void* unused)
+s16 streamHasLoadedViewMovie(void* unusedLocation)
 {
-    s32 i;
-    s32 result;
+    enum { STREAM_VIEW_MOVIE_ID_LIMIT = 100U };
+    s32 slotIndex;
+    s32 hasLoadedMovie;
 
-    i      = 0;
-    result = 0;
+    slotIndex      = 0;
+    hasLoadedMovie = 0;
     while (1) {
-        if (Stream_Slots[i & 0xFFFF].kind == STREAM_KIND_MOVIE) {
-            if (Stream_Slots[i & 0xFFFF].key.parts.id < 0x64U) {
-                if (Stream_Slots[i & 0xFFFF].startSector != 0) {
-                    result = 1;
+        if (Stream_Slots[slotIndex & 0xFFFF].kind == STREAM_KIND_MOVIE) {
+            if (Stream_Slots[slotIndex & 0xFFFF].key.parts.id < (u32)STREAM_VIEW_MOVIE_ID_LIMIT) {
+                if (Stream_Slots[slotIndex & 0xFFFF].startSector != 0) {
+                    hasLoadedMovie = 1;
                     break;
                 }
             }
         }
-        i = i + 1;
-        if ((u32)(i & 0xFFFF) >= ARRAY_SIZE(Stream_Slots)) {
+        slotIndex = slotIndex + 1;
+        if ((u32)(slotIndex & 0xFFFF) >= ARRAY_SIZE(Stream_Slots)) {
             break;
         }
     }
-    return result;
+    return hasLoadedMovie;
 }
 
-u16 Stream_GetSlotField1A(u32 arg0)
+u16 streamGetFrameLimit(u16 slotIndex)
 {
-    return Stream_Slots[arg0 & 0xFFFF].data.movie.frameLimit;
+    return Stream_Slots[slotIndex].data.movie.frameLimit;
 }
 
 void Stream_KickDecode(u32 arg0)

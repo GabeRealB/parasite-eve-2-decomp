@@ -460,7 +460,7 @@ void Title_DemoStreamTask(Task* task)
             } else {
                 key.loc.view = 0x64;
             }
-            slotParam[0] = Stream_FindSlot((u8*)&key, 0, 0);
+            slotParam[0] = streamFindMovieSlot(&key.loc, 0, 0);
             CdCmd_Enqueue(CD_COMMAND_PLAY_STREAM, 0, slotParam);
             task->state++;
             break;

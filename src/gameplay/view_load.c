@@ -71,7 +71,7 @@ void Gp_ViewBeginLoad(Task* task)
             Mdec_ResolveStreamBuffer(&gGameSession->location.loc.view);
             task->state = 5;
         } else {
-            D_80114C40 = Stream_FindSlot((u8*)&gGameSession->location.loc, 0, 1);
+            D_80114C40 = streamFindMovieSlot(&gGameSession->location.loc, 0, 1);
             if (D_80114C40 >= 0) {
                 Gp_FreeSlot4TmdBuffers();
                 q->viewMovieSelected = 1;

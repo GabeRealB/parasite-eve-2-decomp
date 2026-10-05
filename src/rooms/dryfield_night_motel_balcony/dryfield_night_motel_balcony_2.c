@@ -76,7 +76,7 @@ void func_dryfield_night_motel_balcony_8017DDD0(Task* task)
             } else {
                 introKey.loc.view = 0x65;
             }
-            slot         = Stream_FindSlot((u8*)&introKey, 0, 0);
+            slot         = streamFindMovieSlot(&introKey.loc, 0, 0);
             slotParam[0] = slot;
             CdCmd_Enqueue(CD_COMMAND_PLAY_STREAM, 0, slotParam);
             task->state = task->state + 1;
@@ -109,7 +109,7 @@ void func_dryfield_night_motel_balcony_8017DDD0(Task* task)
                 } else {
                     loopKey.loc.view = 0x64;
                 }
-                slot         = Stream_FindSlot((u8*)&loopKey, 0, 0);
+                slot         = streamFindMovieSlot(&loopKey.loc, 0, 0);
                 slotParam[0] = slot;
                 CdCmd_Enqueue(CD_COMMAND_PLAY_STREAM, 0, slotParam);
             }

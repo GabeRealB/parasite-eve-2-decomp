@@ -1716,7 +1716,7 @@ void func_acropolis_fountain_8017E3D4(Task* task)
                     gGameSession->field_4E = 1;
                     key                    = gGameSession->location;
                     key.loc.view           = view;
-                    textureStream          = Stream_GetSlot(Stream_FindSlotByKey((u8*)&key) & 0xFFFF);
+                    textureStream          = streamGetSlot(streamFindViewMovieSlot(&key.loc));
 
                     p              = gGpuPrimCursor;
                     gGpuPrimCursor = p + 1;
@@ -1752,7 +1752,7 @@ void func_acropolis_fountain_8017E3D4(Task* task)
                         queue2             = &gCdCmdQueue;
                         key2               = gGameSession->location;
                         key2.loc.view      = Gp_FindViewIndex(4);
-                        loopStream         = Stream_GetSlot(Stream_FindSlot((u8*)&key2, 0, 1) & 0xFFFF);
+                        loopStream         = streamGetSlot(streamFindMovieSlot(&key2.loc, 0, 1));
                         count              = queue2->movieFrame + 1;
                         queue2->movieFrame = count;
                         if (count >= loopStream->data.movie.frameLimit - 0xA) {

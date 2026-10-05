@@ -13,6 +13,10 @@ u32 Stream_InitializePlayback(u32 slotIndex);
 /// Uploads and presents a completed streaming frame when its timing allows.
 void Stream_PresentFrame(void);
 
-s16 Stream_HasActiveLowId(void* unused);
+/// Returns 1 if any resident movie with an ID below 100 has a loaded sector, else 0.
+///
+/// `unusedLocation` is ignored: this examines the entire table, without a room,
+/// sub-ID or `viewStream` filter. The argument is retained by the resident ABI.
+s16 streamHasLoadedViewMovie(void* unusedLocation);
 
 #endif // MAIN_PRIVATE_STREAM_H

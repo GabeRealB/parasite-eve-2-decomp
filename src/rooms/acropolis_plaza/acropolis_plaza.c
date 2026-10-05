@@ -3427,7 +3427,7 @@ void func_acropolis_plaza_8017DBFC(Task* task)
         case 1:
             key          = gGameSession->location;
             key.loc.view = 0x64;
-            slotParam[0] = Stream_FindSlot((u8*)&key, 0, 0);
+            slotParam[0] = streamFindMovieSlot(&key.loc, 0, 0);
             CdCmd_Enqueue(CD_COMMAND_PLAY_STREAM, 0, slotParam);
             task->state++;
             break;
@@ -3698,7 +3698,7 @@ L_case0:
     // The argument is fetched from the task again after the queue stores.
     arg = task->spawnArg2.pointer;
     if (arg->skipStreamReset == 0) {
-        slot[0]   = Stream_FindSlot((u8*)&gGameSession->location.loc, q->plazaStreamSubId, 0);
+        slot[0]   = streamFindMovieSlot(&gGameSession->location.loc, q->plazaStreamSubId, 0);
         frameOfs  = (q->movieFrame - 1) * ACROPOLIS_PLAZA_SEEK_FRAMES_FINE;
         openFrame = frameOfs & 0xFFFF;
         slot[1]   = openFrame >> 8;
@@ -3724,7 +3724,7 @@ L_case1:
     goto L_tail;
 
 L_case2:
-    work->frameLimit = Stream_GetSlotField1A(q->plazaStreamSubId);
+    work->frameLimit = streamGetFrameLimit(q->plazaStreamSubId);
     if (q->movieAtEnd != 0) {
         task->state = 6;
         goto L_tail;
@@ -3795,7 +3795,7 @@ L_case2:
         }
     }
 L_enqueue:
-    slot[0]   = Stream_FindSlot((u8*)&gGameSession->location.loc, q->plazaStreamSubId, 0);
+    slot[0]   = streamFindMovieSlot(&gGameSession->location.loc, q->plazaStreamSubId, 0);
     seekFrame = frameOfs & 0xFFFF;
     slot[1]   = seekFrame >> 8;
     slot[2]   = seekFrame;
@@ -3933,7 +3933,7 @@ static inline void _acropolisPlazaRestartStream(u8 subId)
 {
     u8 streamAt[4];
 
-    streamAt[0] = Stream_FindSlot((u8*)&gGameSession->location.loc, subId, 0);
+    streamAt[0] = streamFindMovieSlot(&gGameSession->location.loc, subId, 0);
     streamAt[1] = 0;
     streamAt[2] = 0;
     CdCmd_Enqueue(CD_COMMAND_RESET_STREAM_AT_OFFSET, 0, streamAt);
@@ -3948,7 +3948,7 @@ static inline void _acropolisPlazaPlayStream(u8 subId)
 {
     u8 streamAt[4];
 
-    streamAt[0] = Stream_FindSlot((u8*)&gGameSession->location.loc, subId, 0);
+    streamAt[0] = streamFindMovieSlot(&gGameSession->location.loc, subId, 0);
     streamAt[1] = 0;
     streamAt[2] = 0;
     CdCmd_Enqueue(CD_COMMAND_PLAY_STREAM_AT_OFFSET, 0, streamAt);
@@ -4207,7 +4207,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
             q->sceneFrame       = 1;
             q->movieFrame       = 1;
             q->plazaStreamSubId = 4;
-            slot[0]             = Stream_FindSlot((u8*)&gGameSession->location.loc, 4, 0);
+            slot[0]             = streamFindMovieSlot(&gGameSession->location.loc, 4, 0);
             slot[1]             = 0;
             slot[2]             = 0;
             CdCmd_Enqueue(CD_COMMAND_RESET_STREAM_AT_OFFSET, 0, slot);
@@ -4234,7 +4234,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
             q->sceneFrame       = 1;
             q->movieFrame       = 1;
             q->plazaStreamSubId = 5;
-            slot[0]             = Stream_FindSlot((u8*)&gGameSession->location.loc, 5, 0);
+            slot[0]             = streamFindMovieSlot(&gGameSession->location.loc, 5, 0);
             slot[1]             = 0;
             slot[2]             = 0;
             CdCmd_Enqueue(CD_COMMAND_RESET_STREAM_AT_OFFSET, 0, slot);
@@ -4289,7 +4289,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
             q->sceneFrame       = 1;
             q->movieFrame       = 1;
             q->plazaStreamSubId = 3;
-            slot[0]             = Stream_FindSlot((u8*)&gGameSession->location.loc, 3, 0);
+            slot[0]             = streamFindMovieSlot(&gGameSession->location.loc, 3, 0);
             slot[1]             = 0;
             slot[2]             = 0;
             CdCmd_Enqueue(CD_COMMAND_RESET_STREAM_AT_OFFSET, 0, slot);
