@@ -1015,16 +1015,19 @@ void func_dryfield_night_motel_lobby_801812F8(Task* unused)
 
 #include "../../shared/glow_draw_pulsing_disc.inc.c"
 
-/// Sets a flare's square screen bounds from its projected centre and half-extent.
+/// Sets a lobby flare quad's square around its projected light centre.
 ///
-/// Coordinates are pixels, narrowed to signed 16 bits in the packet. The caller
-/// supplies the accepted projection, packet header, texture, colour and linkage.
+/// Borrows the writable `flare` packet and read-only `projection` for this call.
+/// `sx`, `sy` and `radius` are pixels; radius is the square's half-extent.
+/// Vertices 0, 1, 2 and 3 become top-left, top-right, bottom-left and bottom-right,
+/// with coordinates wrapping to the packet's signed 16 bits.
+/// The caller supplies the accepted projection, header, texture, colour and linkage.
 static inline void _dryfieldNightMotelLobbySetFlareBounds(POLY_FT4* flare, const GlowCentreScratch* projection)
 {
-    flare->x0 = flare->x2 = projection->sx - (u16)projection->radius;
-    flare->x1 = flare->x3 = projection->sx + (u16)projection->radius;
-    flare->y0 = flare->y1 = projection->sy - (u16)projection->radius;
-    flare->y2 = flare->y3 = projection->sy + (u16)projection->radius;
+    flare->x0 = flare->x2 = projection->sx - projection->radius;
+    flare->x1 = flare->x3 = projection->sx + projection->radius;
+    flare->y0 = flare->y1 = projection->sy - projection->radius;
+    flare->y2 = flare->y3 = projection->sy + projection->radius;
 }
 
 /// Draws a flickering textured flare at a lobby light's world position.
