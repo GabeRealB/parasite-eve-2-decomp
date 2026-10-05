@@ -151,7 +151,7 @@ enum {
     /// 0x6C, 0x6A, 0x6E, 0xA1).
     EFFECT_MUZZLE_SPARK = EFFECT_ID(EFFECT_TASK_BANK, 0x035),
     /// Ejected cartridge case: a small TMD model (D_80111FC8) thrown with spin and
-    /// gravity by Gp_EffModelTask; spawned by the handgun/SMG firing controller 0x6002B
+    /// gravity by effectThrownModelTask; spawned by the handgun/SMG firing controller 0x6002B
     /// and six at once by the reload effect 0x6006D.
     EFFECT_BULLET_CASING = EFFECT_ID(EFFECT_TASK_BANK, 0x036),
     /// Blade trail (_bladeTrailDraw over eight base/tip frame pairs) following the tonfa
@@ -297,11 +297,11 @@ enum {
     /// Ejected shell-casing model (TmdSource D_80112200) thrown from the muzzle by the
     /// muzzle-flash controller for weapon id 5 (P229) and NPC gunfire (0x21).
     EFFECT_P229_SHELL_CASING = EFFECT_ID(EFFECT_TASK_BANK, 0x066),
-    /// Muzzle-flash model piece (Gp_EffModelTask with TmdSource D_801120E4) placed at
+    /// Muzzle-flash model piece (effectThrownModelTask with TmdSource D_801120E4) placed at
     /// the weapon's muzzle offset; spawned by the rifle muzzle-flash controller 0x6006B
     /// (M4A1 family, M249).
     EFFECT_RIFLE_MUZZLE_FLASH_MODEL = EFFECT_ID(EFFECT_TASK_BANK, 0x067),
-    /// Ejected shotgun shell: a small TMD model (D_8011231C) thrown by Gp_EffModelTask;
+    /// Ejected shotgun shell: a small TMD model (D_8011231C) thrown by effectThrownModelTask;
     /// spawned by the shotgun firing controller 0x600A1 (AS12, PA3, gunblade).
     EFFECT_SHOTGUN_SHELL_CASING = EFFECT_ID(EFFECT_TASK_BANK, 0x068),
     /// A rising 8-frame flame sprite (pyroFlameDrawSprite) with random spin, spawned
@@ -422,7 +422,7 @@ enum {
     /// by the room task (func_acropolis_roof_garden_8017DCDC) for particular camera
     /// views.
     EFFECT_ACROPOLIS_ROOF_GARDEN_FLARE = EFFECT_ID(EFFECT_TASK_BANK, 0x090),
-    /// Unidentified. Gp_EffModelTask instance of the small procedural model D_801124B8
+    /// Unidentified. effectThrownModelTask instance of the small procedural model D_801124B8
     /// placed at the D_8011280C/D_801125EC muzzle offsets; spawned once by the grenade-
     /// fire controller 0x6006C and every frame for ~12 frames by the post-reload
     /// controller 0x6006E.

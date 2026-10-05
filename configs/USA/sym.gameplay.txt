@@ -953,7 +953,7 @@ effectLineTaskA3 = 0x800EEC14; // type:func
 _effectDrawMuzzleFlash = 0x800EF0E0; // type:func
 effectSpriteTask35 = 0x800EF4D0; // type:func
 effectSpriteTask6F = 0x800EFBC4; // type:func
-Gp_EffModelTask = 0x800F02B4; // type:func
+effectThrownModelTask = 0x800F02B4; // type:func
 Gp_EffCtlTask6E = 0x800F1364; // type:func
 Gp_EffCtlTask6D = 0x800F1594; // type:func
 effectTileTaskA4 = 0x800F1638; // type:func
@@ -962,7 +962,7 @@ _effectDrawImpactSparkFlash = 0x800F1BEC; // type:func
 Gp_EffSprTask5C = 0x800F1FF4; // type:func
 func_800F289C = 0x800F289C; // type:func
 Gp_EffSprTask76 = 0x800F3414; // type:func
-Gp_EffSprTask7C = 0x800F3A78; // type:func
+effectSpriteTask7C = 0x800F3A78; // type:func
 func_800F4308 = 0x800F4308; // type:func
 effectLineTask92 = 0x800F4D24; // type:func
 Gp_EffPolyTask9C = 0x800F5184; // type:func
@@ -971,7 +971,7 @@ effectSpriteTask9E = 0x800F59DC; // type:func
 Gp_EffSprTask54 = 0x800F5E1C; // type:func
 effectDrawGroundGlow = 0x800F6560; // type:func
 effectDrawGroundShadow = 0x800F68AC; // type:func
-Gp_EffSprTask53 = 0x800F6C2C; // type:func
+effectSpriteTask53 = 0x800F6C2C; // type:func
 Gp_EffAttachTask37 = 0x800F6D18; // type:func
 
 // ---------------------------------------------------------------------------

@@ -255,7 +255,7 @@ than an invented visual description:
 | Player actor states | `playerActor<Mode>State<N>` (`playerActorNormalState5`) | `GameActor.state` indexes `D_8009794C` in mode 0 (`Gp_TickPlayerNormal`) and `Gp_PlayerMode2States` in mode 2; `mode` picks the mode through `Gp_PlayerModeFns`, which also has a mode 1 (`Gp_TickPlayerMode1`). `Gp_PlayerWorkStates` is a separate four-entry `Task::state` dispatcher, not a mode. |
 
 A handler shared by several slots takes a behavioural name instead
-(`Gp_EffModelTask` covers bank-6 0x36/0x66/0x67/0x68/0x91).
+(`effectThrownModelTask` covers bank-6 0x36/0x66/0x67/0x68/0x91).
 
 Names in the dispatch evidence above identify the current code, not target
 prefixes. Apply the TU-private `_` marker to the target pattern where appropriate.

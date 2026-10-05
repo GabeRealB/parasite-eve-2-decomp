@@ -9514,7 +9514,7 @@ the `rodata` remainder segment (and its `asm/<ver>/<overlay>/data/<name>.rodata.
 and let the single `.rodata` subsegment span both tables. The pad word comes back
 on its own, because GCC emits `.align 3` before the second table inside the same
 object. `[0x3E9C, .rodata, 3E9C]` / `[0x3F20, rodata, rodata_3E9C]` collapsed to
-just `[0x3E9C, .rodata, 3E9C]` when `Gp_EffModelTask` joined `Gp_EffCtlTask2B`
+just `[0x3E9C, .rodata, 3E9C]` when `effectThrownModelTask` joined `Gp_EffCtlTask2B`
 (0x84-byte table at +0, `.align 3` pad at +0x84, second table at +0x88). Leaving
 the `rodata` remainder in place instead makes splat's scan complain that
 "the rodata segment ... has jumptables that are not aligned properly file-wise".
@@ -10652,8 +10652,8 @@ rodata file appended as a second input:
 
 ```sh
 python3 tools/m2ctx.py src/gameplay/3E9C.c          # writes ./ctx.c
-python3 tools/m2c/m2c.py --target mipsel-gcc-c -f Gp_EffModelTask --context ctx.c \
-    asm/USA/gameplay/nonmatchings/3E9C/Gp_EffModelTask.s \
+python3 tools/m2c/m2c.py --target mipsel-gcc-c -f effectThrownModelTask --context ctx.c \
+    asm/USA/gameplay/nonmatchings/3E9C/effectThrownModelTask.s \
     asm/USA/gameplay/data/rodata_3E9C.rodata.s
 ```
 
@@ -25924,12 +25924,12 @@ the store first lets GCC emit it immediately and steal the first load's delay
 slot. Assign the loaded pointer to a temp first:
 
 ```c
-parent     = (GfxCoord*)((GameActorExt*)slot->extra)->field_8;
-coord->composeStamp = 0;          /* after both loads, not before */
-coord->parent = parent + 1; /* addiu 0x50 in the jal delay */
+playerCoords        = playerTask->extra.tmd->coords;
+coord->composeStamp = GRAPHICS_COORD_DIRTY;          /* after both loads, not before */
+coord->parent       = playerCoords + 1; /* addiu 0x50 in the jal delay */
 ```
 
-`coord->composeStamp = 0` before the `parent =` load stuck at 99% (`Gp_EffSprTask53`).
+`coord->composeStamp = GRAPHICS_COORD_DIRTY` before the `playerCoords =` load stuck at 99% (`effectSpriteTask53`).
 
 ## Pin the later live-across-call local so sched1 does not swap `$s2`/`$s3`
 
@@ -41383,45 +41383,45 @@ the extra in-loop reference is what the allocator saw. This took the score from
 
 ## A run of LCG draws: assign `gRandomLcgState` directly, don't route through a temp
 
-`Gp_EffSprTask7C` seeds four `EffectWork` fields from four consecutive LCG steps.
-Written with a temp per step (`rng = gRandomLcgState * 5 + 0x71357911;
-gRandomLcgState = rng; mem->field_X = ((u32)rng >> 16) & M;`) GCC 2.8.1 hoists all
+`effectSpriteTask7C` seeds four `EffectWork` fields from four consecutive LCG steps.
+Written with a temp per step (`randomState = gRandomLcgState * 5 + 0x71357911;
+gRandomLcgState = randomState; work->step = 0x100 - (((u32)randomState >> 16) & 0x1F0);`) GCC 2.8.1 hoists all
 four `sll`/`addu`/`addu` multiply chains to the front of the block and defers
 every `andi`/`subu`/`sh`, because the temps form one dependency chain with
 nothing anchoring the extractions. Reading and writing the global directly
 
 ```c
 gRandomLcgState   = gRandomLcgState * 5 + 0x71357911;
-mem->field_2A = 0x100 - (((u32)gRandomLcgState >> 16) & 0x1F0);
+work->step = 0x100 - (((u32)gRandomLcgState >> 16) & 0x1F0);
 gRandomLcgState   = gRandomLcgState * 5 + 0x71357911;
-mem->field_10 = 0x40 - (((u32)gRandomLcgState >> 16) & 0x7F);
+work->move.vx = 0x40 - (((u32)gRandomLcgState >> 16) & 0x7F);
 ```
 
 keeps each extraction next to its draw (the value still stays in registers —
 `gRandomLcgState`'s address is never taken, so it is loaded once). That single
-change was worth 7.3% on `Gp_EffSprTask7C`. Note this is the opposite fix from
+change was worth 7.3% on `effectSpriteTask7C`. Note this is the opposite fix from
 the chained `x = gRandomLcgState = ...` entry above, which applies when a *single*
 draw's value has to survive into a loop-carried live range.
 
 ## `(u8)x` folds to `andi 0xF0` when GCC knows the low nibble
 
-A fade colour `col = (0x1F - n) * 16;` assigned to a `u32` with `param = (u8)col;`
-compiles to `andi <param>, <col>, 0xFF`, but assigning it to a `u8` variable —
+A fade colour `shade = (0x1F - n) * 16;` assigned to a `u32` with `glowBrightness = (u8)shade;`
+compiles to `andi <glowBrightness>, <shade>, 0xFF`, but assigning it to a `u8` variable —
 or anything else that lets combine see the `sll` feeding the mask — folds the
 constant to `0xF0`. If the target has `andi ..., 0xFF` *and* a preceding
 register copy, both come from making the value opaque with a tie-constrained
 no-op asm:
 
 ```c
-col = (0x1F - mem->field_22) * 16;
-__asm__ volatile("" : "=r"(tmp) : "0"(col)); /* move <tmp>, <col> */
-param = (u8)tmp;                              /* andi <param>, <tmp>, 0xFF */
-prim->r0 = col;
+shade = (0x1F - work->age) * 16;
+__asm__ volatile("" : "=r"(shadeByteSource) : "0"(shade)); /* move <shadeByteSource>, <shade> */
+glowBrightness = (u8)shadeByteSource;                              /* andi <glowBrightness>, <shadeByteSource>, 0xFF */
+quad->r0 = shade;
 ```
 
-Unlike `register s32 tmp asm("v1")`, this does not reserve a hard register, so
+Unlike `register s32 shadeByteSource asm("v1")`, this does not reserve a hard register, so
 it leaves the rest of the allocation alone — the pinned version stole `$v1`
-from two later `mult`/`mflo` pairs in `Gp_EffSprTask7C`.
+from two later `mult`/`mflo` pairs in `effectSpriteTask7C`.
 
 The same fade in `func_actor_510900_80132D4C` masks at the *call*
 (`andi a2,s3,0xFF` for a `u8 col` set to the fade or to `0x80` in an if/else),
@@ -66949,7 +66949,7 @@ A short scratch `vecp = head - 0x1C` plus `SOFT_TOUCH_REG(head)` before
 only two scheduling penalties. The empty asm takes the last `lhu` delay-slot
 opportunity, moving both `GsWSMATRIX` address instructions earlier. A 360-second
 permuter run (5,142 iterations) did not improve this candidate. The final match
-uses the adjacent `Gp_EffSprTask7C` pattern: `vecp` and the preceding `u16 vx`
+uses the adjacent `effectSpriteTask7C` pattern: `vecp` and the preceding `u16 vx`
 load both constrained to `v0`, with `USE_REG(head)` before that load. The bare
 worktree build-and-verify script validates the landed body.
 
@@ -143159,24 +143159,24 @@ the loop. The emitted layout (2 then the merged 1/3) is identical either way.
 numeric case order before chasing loop size - "cases in body order" holds only
 for bodies that survive to the output.
 
-## An if/else read-modify-write on one field is two stores; the `?:` of the two values is one (Gp_EffModelTask, 2026-09-26)
+## An if/else read-modify-write on one field is two stores; the `?:` of the two values is one (effectThrownModelTask, 2026-09-26)
 
 The converse of "A `?:` stored straight into a field is one *store per arm*":
 when the arms are *computed* values, not constants, the `?:` goes through a
 temporary and the RTL carries a single store, while the equivalent if/else
 carries one per arm. The object is the same either way - jump2 merges the
 if/else's two `sh` into the join - but `flow.c` counts both. In
-`Gp_EffModelTask` that was the whole `$s2`/`$s3` swap between the model pointer
+`effectThrownModelTask` that was the whole `$s2`/`$s3` swap between the model pointer
 and its coordinate (hidden behind a pin and two `COMPILER_BARRIER`s):
 
 ```c
-if (gDisplayState.animFrame & 1) {   /* extra: 8 refs, 3*8/151 = 0.159 > coord's 0.155 */
-    extra->flags &= 0xFF7F;
+if (gDisplayState.animFrame & 1) {   /* model: 8 refs, 3*8/151 = 0.159 > coord's 0.155 */
+    model->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
 } else {
-    extra->flags |= 0x80;
+    model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
 }
-extra->flags = (gDisplayState.animFrame & 1) ? extra->flags & 0xFF7F
-                                             : extra->flags | 0x80;
+model->flags = (gDisplayState.animFrame & 1) ? model->flags & (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW
+                                             : model->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW;
                                      /* 7 refs, 2*7/151 = 0.093: coord wins */
 ```
 
@@ -143808,7 +143808,7 @@ lives beyond the path) and `gte_ldv0` gets a stray `move v0,t1`; the tree pinned
 to both arms; cse deletes the else-arm store (`0x2D & ~2` is the value already
 there) but its label splits the path, `block` outlives it, and becomes the head.
 Same shape as the `effectDrawGouraudDisc` push, where a loop does the splitting.
-## `addiu v0,a1,-0x1C; move s0,v0` scratch carve: read the first pointer in the `gte_ldv0` after the copy; a near-tie priority settled by one shared release call (Gp_EffSprTask7C, 2026-09-26)
+## `addiu v0,a1,-0x1C; move s0,v0` scratch carve: read the first pointer in the `gte_ldv0` after the copy; a near-tie priority settled by one shared release call (effectSpriteTask7C, 2026-09-26)
 
 **Carve.** Target carves the block into `v0` and copies it to a callee-saved
 register (`addiu v0,a1,-0x1C; lhu v1,..; move s0,v0`), with the head in `a1`
@@ -143821,9 +143821,9 @@ rewrites the asm to read `block` and `p` dies at the copy, in `v0`. A statement
 between the carve and the copy matters too: when the copy directly follows the
 carve, cse swaps them and `block` takes the `addiu`.
 
-**Priority.** With the pins gone, `mem` (48 refs) and `prim` (31 refs) swapped
-`s1`/`s2`: `5*48/367` beat `4*31/190` by one insn of `mem`'s live length. The
-target shares one `effectKillTask` call between the early `flag >= 4`
+**Priority.** With the pins gone, `work` (48 refs) and `quad` (31 refs) swapped
+`s1`/`s2`: `5*48/367` beat `4*31/190` by one insn of `work`'s live length. The
+target shares one `effectKillTask` call between the early `effectControl >= 4`
 exit and the `age >= 0x1F` exit, with the early path jumping into the second
 one's call. Two calls cross-jumped by jump2 give the same layout but count both
 in flow's live lengths; one call reached by `goto release;` from the early exit,

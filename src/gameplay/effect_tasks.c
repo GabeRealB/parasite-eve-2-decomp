@@ -67,6 +67,8 @@ enum {
     EFFECT_RED_GROUND_GLOW_TICKS             = 1024,
     EFFECT_RED_GROUND_GLOW_DEFAULT_HALF_SIZE = 1024,
     EFFECT_RED_GROUND_GLOW_DEPTH_BIAS        = 128,
+    EFFECT_BOUNCING_SPARK_CELL_SIZE          = 16,
+    EFFECT_BOUNCING_SPARK_UV_SPAN            = EFFECT_BOUNCING_SPARK_CELL_SIZE - 1,
 };
 
 /// Flag in `_EffectCriticalHitStyle::color` that adds four radial spikes, each
@@ -194,23 +196,29 @@ static void _effectDrawImpactSparkFlash(const GfxCoord* coord, u16 frame, s16 si
 
 static void _effectDrawCriticalHitBurst(const GfxCoord* coord, s16 radius, s16 brightness, u16 color);
 
-/// Places one shaded ring segment between its outer and inner projected radii.
+/// Places the four corners of one sixteenth-turn critical-hit ring segment.
 ///
-/// Returns the next segment's angle (4096 units per turn); scratch is live and
-/// supplies the centre and pixel radii. quad is a writable GPU packet.
+/// segmentAngle is 0..3840 in 4096-unit turns; returns the angle plus 256.
+/// scratch supplies the projected centre and signed integer pixel radii in
+/// extent.burst. Corners 0/1 follow the outer radius and 2/3 the inner radius,
+/// in GPU strip order. Q12 sine/cosine products shift arithmetically; each
+/// resulting pixel coordinate narrows to the packet's signed halfword.
+/// Borrows both pointers, writes only quad's XY fields and consumes no arena
+/// or scratch-stack storage. Packet colours and its DMA tag are untouched.
 static __inline__ s32 _effectSetCriticalHitRingCorners(POLY_G4* quad, const EffectShapeScratch* scratch, s32 segmentAngle)
 {
+    enum { EFFECT_CRITICAL_HIT_TRIG_FRACTION_BITS = 12 };
     s32 nextSegmentAngle;
 
-    quad->x0         = scratch->screenX + ((scratch->extent.burst.outer * rsin(segmentAngle)) >> 12);
+    quad->x0         = scratch->screenX + ((scratch->extent.burst.outer * rsin(segmentAngle)) >> EFFECT_CRITICAL_HIT_TRIG_FRACTION_BITS);
     nextSegmentAngle = segmentAngle + EFFECT_CRITICAL_HIT_RING_ANGLE_STEP;
-    quad->y0         = scratch->screenY + ((scratch->extent.burst.outer * rcos(segmentAngle)) >> 12);
-    quad->x1         = scratch->screenX + ((scratch->extent.burst.outer * rsin(nextSegmentAngle)) >> 12);
-    quad->y1         = scratch->screenY + ((scratch->extent.burst.outer * rcos(nextSegmentAngle)) >> 12);
-    quad->x2         = scratch->screenX + ((scratch->extent.burst.inner * rsin(segmentAngle)) >> 12);
-    quad->y2         = scratch->screenY + ((scratch->extent.burst.inner * rcos(segmentAngle)) >> 12);
-    quad->x3         = scratch->screenX + ((scratch->extent.burst.inner * rsin(nextSegmentAngle)) >> 12);
-    quad->y3         = scratch->screenY + ((scratch->extent.burst.inner * rcos(nextSegmentAngle)) >> 12);
+    quad->y0         = scratch->screenY + ((scratch->extent.burst.outer * rcos(segmentAngle)) >> EFFECT_CRITICAL_HIT_TRIG_FRACTION_BITS);
+    quad->x1         = scratch->screenX + ((scratch->extent.burst.outer * rsin(nextSegmentAngle)) >> EFFECT_CRITICAL_HIT_TRIG_FRACTION_BITS);
+    quad->y1         = scratch->screenY + ((scratch->extent.burst.outer * rcos(nextSegmentAngle)) >> EFFECT_CRITICAL_HIT_TRIG_FRACTION_BITS);
+    quad->x2         = scratch->screenX + ((scratch->extent.burst.inner * rsin(segmentAngle)) >> EFFECT_CRITICAL_HIT_TRIG_FRACTION_BITS);
+    quad->y2         = scratch->screenY + ((scratch->extent.burst.inner * rcos(segmentAngle)) >> EFFECT_CRITICAL_HIT_TRIG_FRACTION_BITS);
+    quad->x3         = scratch->screenX + ((scratch->extent.burst.inner * rsin(nextSegmentAngle)) >> EFFECT_CRITICAL_HIT_TRIG_FRACTION_BITS);
+    quad->y3         = scratch->screenY + ((scratch->extent.burst.inner * rcos(nextSegmentAngle)) >> EFFECT_CRITICAL_HIT_TRIG_FRACTION_BITS);
     return nextSegmentAngle;
 }
 
@@ -238,6 +246,67 @@ static __inline__ void _effectProjectGroundShadow(EffectQuadScratch* quadScratch
     gte_rtpt();
     gte_stsxy3(&quadScratch->screenCorners[1], &quadScratch->screenCorners[2], &quadScratch->screenCorners[3]);
     gte_stflg(&quadScratch->projectionFlags);
+}
+
+/// Chooses a sideways ejection direction using the spawning coordinate's local rotation.
+///
+/// Consumes three consecutive LCG values and writes work->move. The caller
+/// normalizes it after selecting its launch profile; work->parent must be
+/// live with the intended launch rotation in its local matrix.
+static __inline__ void _effectChooseThrownModelDirection(EffectWork* work)
+{
+    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    work->move.vx   = ((gRandomLcgState >> 16) & 0x3F) + 0x60;
+    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    work->move.vy   = 0x10 - ((gRandomLcgState >> 16) & 0x7F);
+    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    work->move.vz   = (gRandomLcgState >> 16) & 0x7F;
+    gte_SetRotMatrix(&work->parent->coord);
+    gte_ldv0(&work->move);
+    gte_rtv0();
+    gte_stsv(&work->move);
+}
+
+/// Projects the bouncing spark's staged view position onto its screen centre.
+///
+/// scratch is a live block with XYZ initialized in signed halfword coordinate
+/// units. Writes screenX/Y and projectionFlags even on rejection, leaving
+/// depth untouched and SZ3 ready to read before another GTE transform.
+static __inline__ void _effectProjectBouncingSpark(EffectShapeScratch* scratch)
+{
+    gte_SetTransMatrix(&GsWSMATRIX);
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_ldv0(&scratch->worldPoint);
+    gte_rtps();
+    gte_stsxy(&scratch->screenX);
+    gte_stflg(&scratch->projectionFlags);
+}
+
+/// Places the bouncing spark's two opposite corner pairs around its screen centre.
+///
+/// scratch has a positive biased depth and projected centre; work supplies
+/// the size numerator and angle in 4096-unit turns. The half-diagonal uses
+/// the 15-texel UV span.
+/// Reuses scratch's corner words for each pair, retaining the unsigned
+/// halfword narrowing before addition to the packet's signed pixel fields.
+static __inline__ void _effectSetBouncingSparkCorners(POLY_FT4* quad, EffectShapeScratch* scratch, const EffectWork* work)
+{
+    enum {
+        EFFECT_BOUNCING_SPARK_TRIG_FRACTION_BITS = 12,
+    };
+
+    scratch->extent.corner.x = (((work->scale * EFFECT_BOUNCING_SPARK_UV_SPAN) / scratch->depth) * rsin(work->angle)) >> EFFECT_BOUNCING_SPARK_TRIG_FRACTION_BITS;
+    scratch->extent.corner.y = (((work->scale * EFFECT_BOUNCING_SPARK_UV_SPAN) / scratch->depth) * rcos(work->angle)) >> EFFECT_BOUNCING_SPARK_TRIG_FRACTION_BITS;
+    quad->x0                 = scratch->screenX + (u16)scratch->extent.corner.x;
+    quad->x3                 = scratch->screenX - (u16)scratch->extent.corner.x;
+    quad->y0                 = scratch->screenY - (u16)scratch->extent.corner.y;
+    quad->y3                 = scratch->screenY + (u16)scratch->extent.corner.y;
+    scratch->extent.corner.x = (((work->scale * EFFECT_BOUNCING_SPARK_UV_SPAN) / scratch->depth) * rsin(work->angle + EFFECT_DRAW_QUARTER_TURN)) >> EFFECT_BOUNCING_SPARK_TRIG_FRACTION_BITS;
+    scratch->extent.corner.y = (((work->scale * EFFECT_BOUNCING_SPARK_UV_SPAN) / scratch->depth) * rcos(work->angle + EFFECT_DRAW_QUARTER_TURN)) >> EFFECT_BOUNCING_SPARK_TRIG_FRACTION_BITS;
+    quad->x1                 = scratch->screenX + (u16)scratch->extent.corner.x;
+    quad->x2                 = scratch->screenX - (u16)scratch->extent.corner.x;
+    quad->y1                 = scratch->screenY - (u16)scratch->extent.corner.y;
+    quad->y2                 = scratch->screenY + (u16)scratch->extent.corner.y;
 }
 
 EffectUnitQuadCorner D_80111E38[4] = {
@@ -1330,297 +1399,271 @@ void effectSpriteTask6F(Task* task)
     effectKillTask(work, task);
 }
 
-void Gp_EffModelTask(Task* arg0)
+void effectThrownModelTask(Task* task)
 {
-    SVECTOR     delta;
-    SVECTOR     dir;
-    SVECTOR     pos;
-    VECTOR      vec;
-    VECTOR      tmp;
-    TmdObject*  extra;
-    EffectWork* mem;
+    // Profiles follow weapon indices, with separate NPC and grenade-ejection keys.
+    enum {
+        EFFECT_THROWN_MODEL_PROFILE_P08                   = 1,
+        EFFECT_THROWN_MODEL_PROFILE_M93R                  = 2,
+        EFFECT_THROWN_MODEL_PROFILE_M950                  = 3,
+        EFFECT_THROWN_MODEL_PROFILE_P229                  = 5,
+        EFFECT_THROWN_MODEL_PROFILE_MONGOOSE              = 9,
+        EFFECT_THROWN_MODEL_PROFILE_GRENADE_PISTOL        = 11,
+        EFFECT_THROWN_MODEL_PROFILE_MM1                   = 12,
+        EFFECT_THROWN_MODEL_PROFILE_PA3                   = 13,
+        EFFECT_THROWN_MODEL_PROFILE_SP12                  = 14,
+        EFFECT_THROWN_MODEL_PROFILE_AS12                  = 15,
+        EFFECT_THROWN_MODEL_PROFILE_M4A1                  = 16,
+        EFFECT_THROWN_MODEL_PROFILE_M249                  = 17,
+        EFFECT_THROWN_MODEL_PROFILE_M4A1_UPGRADE_1        = 20,
+        EFFECT_THROWN_MODEL_PROFILE_M4A1_UPGRADE_2        = 21,
+        EFFECT_THROWN_MODEL_PROFILE_GUNBLADE              = 23,
+        EFFECT_THROWN_MODEL_PROFILE_M4A1_HAMMER           = 25,
+        EFFECT_THROWN_MODEL_PROFILE_M4A1_BAYONET          = 26,
+        EFFECT_THROWN_MODEL_PROFILE_M4A1_GRENADE          = 27,
+        EFFECT_THROWN_MODEL_PROFILE_M4A1_PYKE             = 28,
+        EFFECT_THROWN_MODEL_PROFILE_M4A1_JAVELIN          = 29,
+        EFFECT_THROWN_MODEL_PROFILE_MP5A5                 = 30,
+        EFFECT_THROWN_MODEL_PROFILE_MP5A5_UPGRADE_1       = 31,
+        EFFECT_THROWN_MODEL_PROFILE_MP5A5_UPGRADE_2       = 32,
+        EFFECT_THROWN_MODEL_PROFILE_NPC_PISTOL            = 33,
+        EFFECT_THROWN_MODEL_PROFILE_M4A1_GRENADE_EJECTION = 37,
+        EFFECT_THROWN_MODEL_LONG_BLINK_AGE                = 20,
+        EFFECT_THROWN_MODEL_MEDIUM_BLINK_AGE              = 15,
+        EFFECT_THROWN_MODEL_SHORT_BLINK_AGE               = 10,
+        EFFECT_THROWN_MODEL_MIN_BLINK_AGE                 = 5,
+        EFFECT_THROWN_MODEL_GRAVITY                       = 384,
+    };
+    SVECTOR     displacement;
+    SVECTOR     probeEnd;
+    SVECTOR     probeStartOrNormal;
+    VECTOR      rotatedLaunchVector;
+    VECTOR      launchVector;
+    TmdObject*  model;
+    EffectWork* work;
     GfxCoord*   coord;
-    SVECTOR*    vel;
-    s16         flag;
+    SVECTOR*    direction;
+    s16         effectControl;
 
-    extra = arg0->extra.tmd;
-    mem   = arg0->spawnArg2.pointer;
-    flag  = gRoomEffectState->effectControl;
-    coord = extra->coords;
-    if (flag != ROOM_EFFECT_CONTROL_RUNNING) {
-        if (flag < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
+    model         = task->extra.tmd;
+    work          = task->spawnArg2.pointer;
+    effectControl = gRoomEffectState->effectControl;
+    coord         = model->coords;
+    if (effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+        if (effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             return;
         }
         goto release;
     }
     actorRenderComposeCoord(coord);
-    if (arg0->state == 0) {
-        extra->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-        switch (arg0->spawnArg1.value) {
-            case 1:
+    // Select the launch direction, speed and blink age, then seed the spin.
+    if (task->state == EFFECT_DRAW_TASK_NEW) {
+        model->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        switch (task->spawnArg1.value) {
+            case EFFECT_THROWN_MODEL_PROFILE_P08:
             default:
-                mem->scale      = 0xD4;
-                mem->angle      = 0x14;
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->move.vx    = ((gRandomLcgState >> 16) & 0x3F) + 0x60;
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->move.vy    = 0x10 - ((gRandomLcgState >> 16) & 0x7F);
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->move.vz    = (gRandomLcgState >> 16) & 0x7F;
-                gte_SetRotMatrix(&mem->parent->coord);
-                gte_ldv0(&mem->move);
-                gte_rtv0();
-                gte_stsv(&mem->move);
+                work->scale = 0xD4;
+                work->angle = EFFECT_THROWN_MODEL_LONG_BLINK_AGE;
+                _effectChooseThrownModelDirection(work);
                 break;
-            case 2:
-                mem->scale      = 0x100;
-                mem->angle      = 0x14;
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->move.vx    = ((gRandomLcgState >> 16) & 0x3F) + 0x60;
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->move.vy    = 0x10 - ((gRandomLcgState >> 16) & 0x7F);
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->move.vz    = (gRandomLcgState >> 16) & 0x7F;
-                gte_SetRotMatrix(&mem->parent->coord);
-                gte_ldv0(&mem->move);
-                gte_rtv0();
-                gte_stsv(&mem->move);
+            case EFFECT_THROWN_MODEL_PROFILE_M93R:
+                work->scale = 0x100;
+                work->angle = EFFECT_THROWN_MODEL_LONG_BLINK_AGE;
+                _effectChooseThrownModelDirection(work);
                 break;
-            case 3:
-                mem->scale      = 0x114;
-                mem->angle      = 0xF;
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->move.vx    = ((gRandomLcgState >> 16) & 0x3F) + 0x60;
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->move.vy    = 0x10 - ((gRandomLcgState >> 16) & 0x7F);
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->move.vz    = (gRandomLcgState >> 16) & 0x7F;
-                gte_SetRotMatrix(&mem->parent->coord);
-                gte_ldv0(&mem->move);
-                gte_rtv0();
-                gte_stsv(&mem->move);
+            case EFFECT_THROWN_MODEL_PROFILE_M950:
+                work->scale = 0x114;
+                work->angle = EFFECT_THROWN_MODEL_MEDIUM_BLINK_AGE;
+                _effectChooseThrownModelDirection(work);
                 break;
-            case 30:
-            case 31:
-            case 32:
-                mem->scale      = 0x114;
-                mem->angle      = 0xA;
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->move.vx    = ((gRandomLcgState >> 16) & 0x3F) + 0x60;
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->move.vy    = 0x10 - ((gRandomLcgState >> 16) & 0x7F);
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->move.vz    = (gRandomLcgState >> 16) & 0x7F;
-                gte_SetRotMatrix(&mem->parent->coord);
-                gte_ldv0(&mem->move);
-                gte_rtv0();
-                gte_stsv(&mem->move);
+            case EFFECT_THROWN_MODEL_PROFILE_MP5A5:
+            case EFFECT_THROWN_MODEL_PROFILE_MP5A5_UPGRADE_1:
+            case EFFECT_THROWN_MODEL_PROFILE_MP5A5_UPGRADE_2:
+                work->scale = 0x114;
+                work->angle = EFFECT_THROWN_MODEL_SHORT_BLINK_AGE;
+                _effectChooseThrownModelDirection(work);
                 break;
-            case 5:
-            case 33:
-                mem->scale      = 0xD4;
-                mem->angle      = 0x14;
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->move.vx    = ((gRandomLcgState >> 16) & 0x3F) + 0x60;
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->move.vy    = 0x10 - ((gRandomLcgState >> 16) & 0x7F);
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->move.vz    = (gRandomLcgState >> 16) & 0x7F;
-                gte_SetRotMatrix(&mem->parent->coord);
-                gte_ldv0(&mem->move);
-                gte_rtv0();
-                gte_stsv(&mem->move);
+            case EFFECT_THROWN_MODEL_PROFILE_P229:
+            case EFFECT_THROWN_MODEL_PROFILE_NPC_PISTOL:
+                work->scale = 0xD4;
+                work->angle = EFFECT_THROWN_MODEL_LONG_BLINK_AGE;
+                _effectChooseThrownModelDirection(work);
                 break;
-            case 9:
-                mem->angle      = 0x14;
+            case EFFECT_THROWN_MODEL_PROFILE_MONGOOSE:
+                work->angle     = EFFECT_THROWN_MODEL_LONG_BLINK_AGE;
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->move.vx    = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
+                work->move.vx   = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->move.vy    = ((gRandomLcgState >> 16) & 0x3F) + 0x40;
+                work->move.vy   = ((gRandomLcgState >> 16) & 0x3F) + 0x40;
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->move.vz    = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
+                work->move.vz   = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->scale      = ((gRandomLcgState >> 16) & 0x3F) + 0x40;
-                gte_SetRotMatrix(&mem->parent->coord);
-                gte_ldv0(&mem->move);
+                work->scale     = ((gRandomLcgState >> 16) & 0x3F) + 0x40;
+                gte_SetRotMatrix(&work->parent->coord);
+                gte_ldv0(&work->move);
                 gte_rtv0();
-                gte_stsv(&mem->move);
+                gte_stsv(&work->move);
                 break;
-            case 16:
-            case 20:
-            case 21:
-            case 25:
-            case 26:
-            case 27:
-            case 28:
-            case 29:
-                mem->scale      = 0x114;
-                mem->angle      = 0xF;
+            case EFFECT_THROWN_MODEL_PROFILE_M4A1:
+            case EFFECT_THROWN_MODEL_PROFILE_M4A1_UPGRADE_1:
+            case EFFECT_THROWN_MODEL_PROFILE_M4A1_UPGRADE_2:
+            case EFFECT_THROWN_MODEL_PROFILE_M4A1_HAMMER:
+            case EFFECT_THROWN_MODEL_PROFILE_M4A1_BAYONET:
+            case EFFECT_THROWN_MODEL_PROFILE_M4A1_GRENADE:
+            case EFFECT_THROWN_MODEL_PROFILE_M4A1_PYKE:
+            case EFFECT_THROWN_MODEL_PROFILE_M4A1_JAVELIN:
+                work->scale = 0x114;
+                work->angle = EFFECT_THROWN_MODEL_MEDIUM_BLINK_AGE;
+                _effectChooseThrownModelDirection(work);
+                break;
+            case EFFECT_THROWN_MODEL_PROFILE_M249:
+                work->scale     = 0x114;
+                work->angle     = EFFECT_THROWN_MODEL_MIN_BLINK_AGE;
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->move.vx    = ((gRandomLcgState >> 16) & 0x3F) + 0x60;
+                work->move.vx   = ((gRandomLcgState >> 16) & 0x3F) + 0x40;
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->move.vy    = 0x10 - ((gRandomLcgState >> 16) & 0x7F);
+                work->move.vy   = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->move.vz    = (gRandomLcgState >> 16) & 0x7F;
-                gte_SetRotMatrix(&mem->parent->coord);
-                gte_ldv0(&mem->move);
+                work->move.vz   = 0xFF80 - ((gRandomLcgState >> 16) & 0x3F);
+                gte_SetRotMatrix(&work->parent->coord);
+                gte_ldv0(&work->move);
                 gte_rtv0();
-                gte_stsv(&mem->move);
+                gte_stsv(&work->move);
                 break;
-            case 17:
-                mem->scale      = 0x114;
-                mem->angle      = 5;
+            case EFFECT_THROWN_MODEL_PROFILE_PA3:
+            case EFFECT_THROWN_MODEL_PROFILE_SP12:
+            case EFFECT_THROWN_MODEL_PROFILE_AS12:
+                work->scale = 0xBF;
+                work->angle = EFFECT_THROWN_MODEL_LONG_BLINK_AGE;
+                _effectChooseThrownModelDirection(work);
+                break;
+            case EFFECT_THROWN_MODEL_PROFILE_GUNBLADE:
+                work->scale     = 0xBF;
+                work->angle     = EFFECT_THROWN_MODEL_LONG_BLINK_AGE;
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->move.vx    = ((gRandomLcgState >> 16) & 0x3F) + 0x40;
+                work->move.vx   = 0xFFA0 - ((gRandomLcgState >> 16) & 0x3F);
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->move.vy    = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
+                work->move.vy   = 0x10 - ((gRandomLcgState >> 16) & 0x7F);
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->move.vz    = 0xFF80 - ((gRandomLcgState >> 16) & 0x3F);
-                gte_SetRotMatrix(&mem->parent->coord);
-                gte_ldv0(&mem->move);
+                work->move.vz   = -((gRandomLcgState >> 16) & 0x7F);
+                memset(&launchVector, 0, sizeof(launchVector));
+                launchVector.vx     = work->move.vx;
+                launchVector.vy     = work->move.vy;
+                launchVector.vz     = work->move.vz;
+                rotatedLaunchVector = launchVector;
+                ApplyTransposeMatrixLV(&coord->coord, &rotatedLaunchVector, &rotatedLaunchVector);
+                work->move.vx = rotatedLaunchVector.vx;
+                work->move.vy = rotatedLaunchVector.vy;
+                work->move.vz = rotatedLaunchVector.vz;
+                break;
+            case EFFECT_THROWN_MODEL_PROFILE_GRENADE_PISTOL:
+                work->scale     = 0x60;
+                work->angle     = EFFECT_THROWN_MODEL_LONG_BLINK_AGE;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                work->move.vx   = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                work->move.vy   = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                work->move.vz   = (((gRandomLcgState >> 16) & 0x1F) + 0x10);
+                gte_SetRotMatrix(&work->parent->coord);
+                gte_ldv0(&work->move);
                 gte_rtv0();
-                gte_stsv(&mem->move);
+                gte_stsv(&work->move);
                 break;
-            case 13:
-            case 14:
-            case 15:
-                mem->scale      = 0xBF;
-                mem->angle      = 0x14;
+            case EFFECT_THROWN_MODEL_PROFILE_MM1:
+                work->scale     = 0x80;
+                work->angle     = EFFECT_THROWN_MODEL_MEDIUM_BLINK_AGE;
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->move.vx    = ((gRandomLcgState >> 16) & 0x3F) + 0x60;
+                work->move.vx   = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->move.vy    = 0x10 - ((gRandomLcgState >> 16) & 0x7F);
+                work->move.vy   = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->move.vz    = (gRandomLcgState >> 16) & 0x7F;
-                gte_SetRotMatrix(&mem->parent->coord);
-                gte_ldv0(&mem->move);
+                work->move.vz   = 0xFFC0 - ((gRandomLcgState >> 16) & 0x3F);
+                gte_SetRotMatrix(&work->parent->coord);
+                gte_ldv0(&work->move);
                 gte_rtv0();
-                gte_stsv(&mem->move);
+                gte_stsv(&work->move);
                 break;
-            case 23:
-                mem->scale      = 0xBF;
-                mem->angle      = 0x14;
+            case EFFECT_THROWN_MODEL_PROFILE_M4A1_GRENADE_EJECTION:
+                work->scale     = 0x60;
+                work->angle     = EFFECT_THROWN_MODEL_LONG_BLINK_AGE;
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->move.vx    = 0xFFA0 - ((gRandomLcgState >> 16) & 0x3F);
+                work->move.vx   = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->move.vy    = 0x10 - ((gRandomLcgState >> 16) & 0x7F);
+                work->move.vy   = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->move.vz    = -((gRandomLcgState >> 16) & 0x7F);
-                memset(&tmp, 0, 0x10);
-                tmp.vx = mem->move.vx;
-                tmp.vy = mem->move.vy;
-                tmp.vz = mem->move.vz;
-                vec    = tmp;
-                ApplyTransposeMatrixLV(&coord->coord, &vec, &vec);
-                mem->move.vx = vec.vx;
-                mem->move.vy = vec.vy;
-                mem->move.vz = vec.vz;
-                break;
-            case 11:
-                mem->scale      = 0x60;
-                mem->angle      = 0x14;
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->move.vx    = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->move.vy    = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->move.vz    = (((gRandomLcgState >> 16) & 0x1F) + 0x10);
-                gte_SetRotMatrix(&mem->parent->coord);
-                gte_ldv0(&mem->move);
+                work->move.vz   = 0xFFF0 - ((gRandomLcgState >> 16) & 0x1F);
+                gte_SetRotMatrix(&work->parent->coord);
+                gte_ldv0(&work->move);
                 gte_rtv0();
-                gte_stsv(&mem->move);
-                break;
-            case 12:
-                mem->scale      = 0x80;
-                mem->angle      = 0xF;
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->move.vx    = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->move.vy    = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->move.vz    = 0xFFC0 - ((gRandomLcgState >> 16) & 0x3F);
-                gte_SetRotMatrix(&mem->parent->coord);
-                gte_ldv0(&mem->move);
-                gte_rtv0();
-                gte_stsv(&mem->move);
-                break;
-            case 37:
-                mem->scale      = 0x60;
-                mem->angle      = 0x14;
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->move.vx    = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->move.vy    = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->move.vz    = 0xFFF0 - ((gRandomLcgState >> 16) & 0x1F);
-                gte_SetRotMatrix(&mem->parent->coord);
-                gte_ldv0(&mem->move);
-                gte_rtv0();
-                gte_stsv(&mem->move);
+                gte_stsv(&work->move);
                 break;
         }
-        VectorNormalSS(&mem->move, &mem->move);
+        VectorNormalSS(&work->move, &work->move);
         gRandomLcgState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        mem->pos.vx         = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
+        work->pos.vx        = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
         gRandomLcgState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        mem->pos.vy         = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
+        work->pos.vy        = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
         gRandomLcgState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        mem->pos.vz         = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
+        work->pos.vz        = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        arg0->state         = 1;
-        gfxRotMatrixX(&coord->coord, 0x800, GRAPHICS_ROTATION_COMPOSE);
+        task->state         = EFFECT_DRAW_TASK_ACTIVE;
+        gfxRotMatrixX(&coord->coord, EFFECT_DRAW_FULL_TURN / 2, GRAPHICS_ROTATION_COMPOSE);
         return;
     }
-    gfxRotMatrixXYZ(&coord->coord, &mem->pos, GRAPHICS_ROTATION_COMPOSE);
+    // Probe the attempted displacement in view space before accepting a rebound.
+    gfxRotMatrixXYZ(&coord->coord, &work->pos, GRAPHICS_ROTATION_COMPOSE);
     MatrixNormal(&coord->coord, &coord->coord);
-    gte_lddp(mem->scale);
-    vel = &mem->move;
-    gte_ldsv(vel);
+    gte_lddp(work->scale);
+    direction = &work->move;
+    gte_ldsv(direction);
     gte_gpf12();
-    gte_stsv(&delta);
-    coord->coord.t[0]  += delta.vx;
-    coord->coord.t[1]  += delta.vy;
-    coord->coord.t[2]  += delta.vz;
+    gte_stsv(&displacement);
+    coord->coord.t[0]  += displacement.vx;
+    coord->coord.t[1]  += displacement.vy;
+    coord->coord.t[2]  += displacement.vz;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     gte_SetRotMatrix(&gGfxViewCoord.workm);
-    gte_ldv0(&delta);
+    gte_ldv0(&displacement);
     gte_rtv0();
-    gte_stsv(&dir);
-    pos.vx  = (u16)coord->workm.t[0];
-    pos.vy  = (u16)coord->workm.t[1];
-    pos.vz  = (u16)coord->workm.t[2];
-    dir.vx += pos.vx;
-    dir.vy += pos.vy;
-    dir.vz += pos.vz;
-    if (worldCollisionProbeGridSegment(&dir, &pos, &dir, &pos) == 1) {
-        coord->coord.t[0] -= delta.vx;
-        coord->coord.t[1] -= delta.vy;
-        coord->coord.t[2] -= delta.vz;
-        mem->move.vx       = (pos.vx >> 1) + (mem->move.vx >> 1);
-        mem->move.vy       = pos.vy + (mem->move.vy >> 1);
-        mem->move.vz       = (pos.vz >> 1) + (mem->move.vz >> 1);
-        VectorNormalSS(vel, vel);
-        mem->scale = (mem->scale * 2) / 3;
-        gte_lddp(mem->scale);
-        gte_ldsv(vel);
+    gte_stsv(&probeEnd);
+    probeStartOrNormal.vx = (u16)coord->workm.t[0];
+    probeStartOrNormal.vy = (u16)coord->workm.t[1];
+    probeStartOrNormal.vz = (u16)coord->workm.t[2];
+    probeEnd.vx          += probeStartOrNormal.vx;
+    probeEnd.vy          += probeStartOrNormal.vy;
+    probeEnd.vz          += probeStartOrNormal.vz;
+    if (worldCollisionProbeGridSegment(&probeEnd, &probeStartOrNormal, &probeEnd, &probeStartOrNormal) == 1) {
+        // The probe replaces its start vector with the room-space Q12 normal.
+        coord->coord.t[0] -= displacement.vx;
+        coord->coord.t[1] -= displacement.vy;
+        coord->coord.t[2] -= displacement.vz;
+        work->move.vx      = (probeStartOrNormal.vx >> 1) + (work->move.vx >> 1);
+        work->move.vy      = probeStartOrNormal.vy + (work->move.vy >> 1);
+        work->move.vz      = (probeStartOrNormal.vz >> 1) + (work->move.vz >> 1);
+        VectorNormalSS(direction, direction);
+        work->scale = (work->scale * 2) / 3;
+        gte_lddp(work->scale);
+        gte_ldsv(direction);
         gte_gpf12();
-        gte_stsv(&delta);
-        coord->coord.t[0] += delta.vx;
-        coord->coord.t[1] += delta.vy;
-        coord->coord.t[2] += delta.vz;
+        gte_stsv(&displacement);
+        coord->coord.t[0] += displacement.vx;
+        coord->coord.t[1] += displacement.vy;
+        coord->coord.t[2] += displacement.vz;
     } else {
-        mem->move.vy += 0x180;
+        work->move.vy += EFFECT_THROWN_MODEL_GRAVITY;
     }
-    mem->age++;
-    if (mem->angle < mem->age) {
-        extra->flags = (gDisplayState.animFrame & 1) ? extra->flags & (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW : extra->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW;
-        if (mem->angle * 2 < mem->age) {
+    // Blink on alternate display frames before releasing the piece.
+    work->age++;
+    if (work->angle < work->age) {
+        model->flags = (gDisplayState.animFrame & 1) ? model->flags & (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW : model->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        if (work->angle * 2 < work->age) {
             goto release;
         }
     }
     return;
 release:
-    effectKillTask(mem, arg0);
+    effectKillTask(work, task);
 }
 
 void Gp_EffCtlTask6E(Task* arg0)
@@ -2285,142 +2328,136 @@ void Gp_EffSprTask76(Task* arg0)
     }
 }
 
-void Gp_EffSprTask7C(Task* arg0)
+void effectSpriteTask7C(Task* task)
 {
-    GfxCoord            hit;
-    EffectWork*         mem;
+    enum {
+        EFFECT_BOUNCING_SPARK_DEFAULT_SIZE           = 512,
+        EFFECT_BOUNCING_SPARK_PERIOD_MASK            = 0xF000,
+        EFFECT_BOUNCING_SPARK_PERIOD_SHIFT           = 12,
+        EFFECT_BOUNCING_SPARK_PERIOD_MAX             = 15,
+        EFFECT_BOUNCING_SPARK_FRAME_COUNT            = 6,
+        EFFECT_BOUNCING_SPARK_TEXTURE_V              = 88,
+        EFFECT_BOUNCING_SPARK_TEXTURE_PAGE           = getTPage(0, GPU_BLEND_ADD, 512, 0),
+        EFFECT_BOUNCING_SPARK_CLUT                   = getClut(160, 266),
+        EFFECT_BOUNCING_SPARK_UNMODULATED_BRIGHTNESS = 128,
+        EFFECT_BOUNCING_SPARK_FADE_AGE               = 24,
+        EFFECT_BOUNCING_SPARK_TICKS                  = 31,
+        EFFECT_BOUNCING_SPARK_GRAVITY                = 5,
+    };
+    GfxCoord            groundCoord;
+    EffectWork*         work;
     GfxCoord*           coord;
-    EffectShapeScratch* head;
-    EffectShapeScratch* projectionScratch;
     EffectShapeScratch* block;
-    POLY_FT4*           prim;
-    s16                 flag;
-    s32                 rng;
-    s16                 scale;
-    s16                 step;
-    s32                 col;
-    s32                 tmp;
-    u32                 param;
-    u16                 vz;
+    POLY_FT4*           quad;
+    s16                 effectControl;
+    s32                 randomState;
+    s16                 size;
+    s16                 ticksPerFrame;
+    s32                 shade;
+    s32                 shadeByteSource;
+    u32                 glowBrightness;
 
-    mem   = arg0->spawnArg2.pointer;
-    flag  = gRoomEffectState->effectControl;
-    coord = arg0->extra.coordBody->coord;
-    param = 0x80;
-    if (flag >= ROOM_EFFECT_CONTROL_HIDDEN) {
-        if (flag < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
+    work           = task->spawnArg2.pointer;
+    effectControl  = gRoomEffectState->effectControl;
+    coord          = task->extra.coordBody->coord;
+    glowBrightness = EFFECT_BOUNCING_SPARK_UNMODULATED_BRIGHTNESS;
+    if (effectControl >= ROOM_EFFECT_CONTROL_HIDDEN) {
+        if (effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             return;
         }
         goto release;
     }
-    if (mem->index == 0) {
-        scale = 0x200;
-        if (arg0->spawnArg1.value & 0xFFF) {
-            scale = arg0->spawnArg1.halves.low & 0xFFF;
+    if (work->index == 0) {
+        size = EFFECT_BOUNCING_SPARK_DEFAULT_SIZE;
+        if (task->spawnArg1.value & EFFECT_DRAW_SIZE_MASK) {
+            size = task->spawnArg1.halves.low & EFFECT_DRAW_SIZE_MASK;
         }
-        mem->scale      = scale;
-        rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        mem->angle      = ((u32)rng >> 16) & 0xFFF;
-        gRandomLcgState = rng;
-        if (arg0->spawnArg1.value & 0xF000) {
-            step = (arg0->spawnArg1.value >> 12) & 0xF;
+        work->scale     = size;
+        randomState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        work->angle     = ((u32)randomState >> 16) & EFFECT_DRAW_ANGLE_MASK;
+        gRandomLcgState = randomState;
+        if (task->spawnArg1.value & EFFECT_BOUNCING_SPARK_PERIOD_MASK) {
+            ticksPerFrame = (task->spawnArg1.value >> EFFECT_BOUNCING_SPARK_PERIOD_SHIFT) & EFFECT_BOUNCING_SPARK_PERIOD_MAX;
         } else {
-            step = 1;
+            ticksPerFrame = 1;
         }
-        mem->period     = step;
+        work->period    = ticksPerFrame;
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        mem->step       = 0x100 - ((gRandomLcgState >> 16) & 0x1F0);
+        work->step      = 0x100 - ((gRandomLcgState >> 16) & 0x1F0);
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        mem->move.vx    = 0x40 - ((gRandomLcgState >> 16) & 0x7F);
+        work->move.vx   = 0x40 - ((gRandomLcgState >> 16) & 0x7F);
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        mem->move.vy    = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
+        work->move.vy   = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        mem->move.vz    = 0x40 - ((gRandomLcgState >> 16) & 0x7F);
-        mem->index++;
+        work->move.vz   = 0x40 - ((gRandomLcgState >> 16) & 0x7F);
+        work->index++;
     }
     actorRenderComposeCoord(coord);
-    head                                     = SCRATCH_STACK_CURSOR(EffectShapeScratch);
-    projectionScratch                        = head - 1;
-    projectionScratch->worldPoint.vx         = (u16)coord->workm.t[0];
-    block                                    = projectionScratch;
-    block->worldPoint.vy                     = (u16)coord->workm.t[1];
-    vz                                       = (u16)coord->workm.t[2];
-    SCRATCH_STACK_CURSOR(EffectShapeScratch) = block;
-    block->worldPoint.vz                     = vz;
-    gte_SetTransMatrix(&GsWSMATRIX);
-    gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&projectionScratch->worldPoint);
-    gte_rtps();
-    gte_stsxy(&(head - 1)->screenX);
-    gte_stflg(&(head - 1)->projectionFlags);
+    // Project the current position before moving the spark for its next tick.
+    block                = SCRATCH_STACK_RESERVE_BLOCK(EffectShapeScratch);
+    block->worldPoint.vx = coord->workm.t[0];
+    block->worldPoint.vy = coord->workm.t[1];
+    block->worldPoint.vz = coord->workm.t[2];
+    _effectProjectBouncingSpark(block);
     if (block->projectionFlags >= 0) {
-        gte_stszotz(&(head - 1)->depth);
+        gte_stszotz(&block->depth);
         block->depth   = block->depth + 1;
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setlen(prim, 9);
-        setcode(prim, 0x2C);
-        if (mem->age >= 0x18) {
-            col = (0x1F - mem->age) * 16;
-            __asm__ volatile("" : "=r"(tmp) : "0"(col));
-            param    = (u8)tmp;
-            prim->r0 = col;
-            prim->g0 = col;
-            prim->b0 = col;
+        quad           = gGpuPrimCursor;
+        gGpuPrimCursor = quad + 1;
+        setlen(quad, EFFECT_DRAW_TEXTURED_QUAD_PACKET_WORDS);
+        setcode(quad, EFFECT_DRAW_ADDITIVE_TEXTURED_QUAD & ~2);
+        if (work->age >= EFFECT_BOUNCING_SPARK_FADE_AGE) {
+            shade = (EFFECT_BOUNCING_SPARK_TICKS - work->age) * EFFECT_BOUNCING_SPARK_CELL_SIZE;
+            // Keep a separate word copy for the glow's byte conversion.
+            __asm__ volatile("" : "=r"(shadeByteSource) : "0"(shade));
+            glowBrightness = (u8)shadeByteSource;
+            quad->r0       = shade;
+            quad->g0       = shade;
+            quad->b0       = shade;
         } else {
-            setcode(prim, 0x2D);
+            setcode(quad, EFFECT_DRAW_RAW_ADDITIVE_TEXTURED_QUAD & ~2);
         }
-        prim->tpage            = 0x28;
-        prim->code            |= 2;
-        prim->clut             = 0x428A;
-        prim->u0               = ((mem->age / mem->period) % 6) * 16;
-        prim->v0               = 0x58;
-        prim->u1               = ((mem->age / mem->period) % 6) * 16 + 0xF;
-        prim->v1               = 0x58;
-        prim->u2               = ((mem->age / mem->period) % 6) * 16;
-        prim->v2               = 0x67;
-        prim->u3               = ((mem->age / mem->period) % 6) * 16 + 0xF;
-        prim->v3               = 0x67;
-        block->extent.corner.x = (((mem->scale * 15) / block->depth) * rsin(mem->angle)) >> 12;
-        block->extent.corner.y = (((mem->scale * 15) / block->depth) * rcos(mem->angle)) >> 12;
-        prim->x0               = block->screenX + (u16)block->extent.corner.x;
-        prim->x3               = block->screenX - (u16)block->extent.corner.x;
-        prim->y0               = block->screenY - (u16)block->extent.corner.y;
-        prim->y3               = block->screenY + (u16)block->extent.corner.y;
-        block->extent.corner.x = (((mem->scale * 15) / block->depth) * rsin(mem->angle + 0x400)) >> 12;
-        block->extent.corner.y = (((mem->scale * 15) / block->depth) * rcos(mem->angle + 0x400)) >> 12;
-        prim->x1               = block->screenX + (u16)block->extent.corner.x;
-        prim->x2               = block->screenX - (u16)block->extent.corner.x;
-        prim->y1               = block->screenY - (u16)block->extent.corner.y;
-        prim->y2               = block->screenY + (u16)block->extent.corner.y;
+        quad->tpage = EFFECT_BOUNCING_SPARK_TEXTURE_PAGE;
+        setSemiTrans(quad, true);
+        quad->clut = EFFECT_BOUNCING_SPARK_CLUT;
+        quad->u0   = ((work->age / work->period) % EFFECT_BOUNCING_SPARK_FRAME_COUNT) * EFFECT_BOUNCING_SPARK_CELL_SIZE;
+        quad->v0   = EFFECT_BOUNCING_SPARK_TEXTURE_V;
+        quad->u1   = ((work->age / work->period) % EFFECT_BOUNCING_SPARK_FRAME_COUNT) * EFFECT_BOUNCING_SPARK_CELL_SIZE + (EFFECT_BOUNCING_SPARK_CELL_SIZE - 1);
+        quad->v1   = EFFECT_BOUNCING_SPARK_TEXTURE_V;
+        quad->u2   = ((work->age / work->period) % EFFECT_BOUNCING_SPARK_FRAME_COUNT) * EFFECT_BOUNCING_SPARK_CELL_SIZE;
+        quad->v2   = EFFECT_BOUNCING_SPARK_TEXTURE_V + EFFECT_BOUNCING_SPARK_CELL_SIZE - 1;
+        quad->u3   = ((work->age / work->period) % EFFECT_BOUNCING_SPARK_FRAME_COUNT) * EFFECT_BOUNCING_SPARK_CELL_SIZE + (EFFECT_BOUNCING_SPARK_CELL_SIZE - 1);
+        quad->v3   = EFFECT_BOUNCING_SPARK_TEXTURE_V + EFFECT_BOUNCING_SPARK_CELL_SIZE - 1;
+        _effectSetBouncingSparkCorners(quad, block, work);
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
+                quad);
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         return;
     }
-    coord->coord.t[0]  += mem->move.vx;
-    coord->coord.t[1]  += mem->move.vy;
-    coord->coord.t[2]  += mem->move.vz;
+    coord->coord.t[0]  += work->move.vx;
+    coord->coord.t[1]  += work->move.vy;
+    coord->coord.t[2]  += work->move.vz;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(coord);
-    mem->move.vy += 5;
-    mem->angle   += mem->step;
-    mem->age++;
-    if (mem->age >= 0x1F) {
+    work->move.vy += EFFECT_BOUNCING_SPARK_GRAVITY;
+    work->angle   += work->step;
+    work->age++;
+    if (work->age >= EFFECT_BOUNCING_SPARK_TICKS) {
     release:
-        effectKillTask(mem, arg0);
+        effectKillTask(work, task);
         return;
     }
-    if (worldCollisionProjectGroundCoord(coord, &hit) == 1) {
-        effectDrawGroundGlow(&hit, mem->scale >> 1, param);
+    // Glow only on hits; the retained bounce test also reads the output after misses.
+    if (worldCollisionProjectGroundCoord(coord, &groundCoord) == 1) {
+        effectDrawGroundGlow(&groundCoord, work->scale >> 1, glowBrightness);
     }
-    if (coord->coord.t[1] > hit.coord.t[1]) {
-        coord->coord.t[1] -= mem->move.vy * 2;
-        mem->move.vy       = -(mem->move.vy >> 1);
-        mem->move.vx       = mem->move.vx >> 1;
-        mem->move.vz       = mem->move.vz >> 1;
+    if (coord->coord.t[1] > groundCoord.coord.t[1]) {
+        coord->coord.t[1] -= work->move.vy * 2;
+        work->move.vy      = -(work->move.vy >> 1);
+        work->move.vx      = work->move.vx >> 1;
+        work->move.vz      = work->move.vz >> 1;
     }
 }
 
@@ -3229,27 +3266,29 @@ void effectDrawGroundShadow(const VECTOR3* centre, s32 halfSize, s16 shade)
     }
 }
 
-void Gp_EffSprTask53(Task* arg0)
+void effectSpriteTask53(Task* task)
 {
-    VECTOR3   vec;
-    Task*     slot;
+    enum { EFFECT_PLAYER_GROUND_SHADOW_HALF_SIZE = 448 };
+    VECTOR3   groundPoint;
+    Task*     playerTask;
     GfxCoord* coord;
-    GfxCoord* parent;
+    GfxCoord* playerCoords;
 
-    slot  = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    coord = arg0->extra.coordBody->coord;
-    if (slot != NULL) {
-        if (arg0->state == 0) {
-            parent              = slot->extra.tmd->coords;
+    playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    coord      = task->extra.coordBody->coord;
+    // Wait for the player before borrowing its first model-part coordinate.
+    if (playerTask != NULL) {
+        if (task->state == EFFECT_DRAW_TASK_NEW) {
+            playerCoords        = playerTask->extra.tmd->coords;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            coord->parent       = parent + 1;
+            coord->parent       = playerCoords + 1;
             actorRenderComposeCoord(coord);
-            arg0->state = 1;
+            task->state = EFFECT_DRAW_TASK_ACTIVE;
         } else if (gRoomEffectState->groundShadowShade >= 0) {
-            if (!(slot->extra.tmd->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
+            if (!(playerTask->extra.tmd->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
                 actorRenderComposeCoord(coord);
-                if ((s16)worldCollisionProjectGroundPoint(MATRIX_TRANS(&coord->workm), &vec) != 0) {
-                    effectDrawGroundShadow(&vec, 0x1C0, gRoomEffectState->groundShadowShade);
+                if ((s16)worldCollisionProjectGroundPoint(MATRIX_TRANS(&coord->workm), &groundPoint) != 0) {
+                    effectDrawGroundShadow(&groundPoint, EFFECT_PLAYER_GROUND_SHADOW_HALF_SIZE, gRoomEffectState->groundShadowShade);
                 }
             }
         }

@@ -83,7 +83,16 @@ void effectSpriteTask35(Task* task);
 /// requests release the work and task.
 void effectSpriteTask6F(Task* task);
 
-void Gp_EffModelTask(Task* arg0);
+/// Throws, spins and blinks a short-lived model piece, with room-grid rebounds.
+///
+/// Shared by bank-6 slots 0x36, 0x66, 0x67, 0x68 and 0x91. spawnArg1 selects
+/// the weapon's launch profile; work->move is a Q12 direction, work->scale
+/// its speed in coordinate units per tick, work->pos the Euler spin per tick
+/// (4096 units per turn), and work->angle the age after which blinking starts.
+/// A rebound reduces speed to two thirds; a miss adds 384 to direction Y.
+/// The task releases its counted work after twice the blink age. Paused or
+/// hidden effects wait; cancellation releases the work and model task.
+void effectThrownModelTask(Task* task);
 
 void Gp_EffCtlTask6E(Task* arg0);
 
@@ -106,7 +115,17 @@ void func_800F289C(Task* arg0);
 
 void Gp_EffSprTask76(Task* arg0);
 
-void Gp_EffSprTask7C(Task* arg0);
+/// Moves and spins a six-frame additive spark, fading during its last seven ticks.
+///
+/// spawnArg1 bits 0..11 supply size (zero selects 512), and bits 12..15
+/// ticks per frame (zero selects one). work->scale holds size, work->angle
+/// the 4096-unit rotation, work->step its increment, and work->move the
+/// displacement in the view coordinate's local frame. The half-diagonal is
+/// size * 15 / (SZ3 / 4 + 1) pixels. Motion adds five to Y velocity per tick;
+/// crossing the probed floor reverses and halves Y and halves X/Z velocity.
+/// Paused effects draw without aging; hidden effects wait; age 31 or
+/// cancellation releases the counted work and task.
+void effectSpriteTask7C(Task* task);
 
 void func_800F4308(Task* arg0);
 
@@ -129,6 +148,13 @@ void effectSpriteTask9E(Task* task);
 
 void Gp_EffSprTask54(Task* arg0);
 
-void Gp_EffSprTask53(Task* arg0);
+/// Keeps the player's subtractive ground shadow beneath model part 1.
+///
+/// Parents its coordinate once the player task exists, then probes from its
+/// composed view position and draws with half-size 448 coordinate units and
+/// groundShadowShade. A disabled shade, hidden player model or missed probe
+/// suppresses drawing. The task persists across absent-player ticks and does
+/// not age or release its work in this callback.
+void effectSpriteTask53(Task* task);
 
 #endif // GAMEPLAY_PRIVATE_EFFECT_TASKS_H
