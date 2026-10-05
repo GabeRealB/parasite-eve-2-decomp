@@ -76,13 +76,16 @@ extern TaskMessageEntry D_dryfield_g_r_kitchen_8017EBC0[];
 /// `[3]`.
 
 static void func_dryfield_g_r_kitchen_8017D958(Task* task);
-static void func_dryfield_g_r_kitchen_8017D99C(Task* task);
-static void func_dryfield_g_r_kitchen_8017E27C(GfxCoord* arg0, SVECTOR* arg1, SVECTOR* arg2, s32 arg3);
+static void _dryfieldGRKitchenIdleRoomTask(Task* task);
+static void _dryfieldGRKitchenDrawDimTaperedBeam(const GfxCoord* coord, const SVECTOR* startPoint, const SVECTOR* endPoint, s32 radiusScale);
 
 // Indexed views below share one contiguous table.
-s32 func_dryfield_g_r_kitchen_8017D8BC(Task*, s32, s32, s32);
-s32 func_dryfield_g_r_kitchen_8017D948(Task*, s32, s32, s32);
-s32 func_dryfield_g_r_kitchen_8017D950(Task*, s32, s32, s32);
+static s32 _dryfieldGRKitchenRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedSecondArg);
+static s32 _dryfieldGRKitchenIgnoreCommand(Task* task, s32 messageId, s32 commandId, s32 commandMode);
+static s32 _dryfieldGRKitchenIgnoreActionRequest(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedSecondArg);
+
+/// Inventory request to use a key item in this room.
+enum { DRYFIELD_G_R_KITCHEN_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
 extern WorldCollisionGrid    D_dryfield_g_r_kitchen_8017EEC0[1];
 extern WorldCollisionTrigger D_dryfield_g_r_kitchen_8017F038[2];
@@ -93,9 +96,9 @@ TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .va
 
 TaskMessageEntry D_dryfield_g_r_kitchen_8017EBC0[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, grKitchenDoorMsg },
-    { 5105, func_dryfield_g_r_kitchen_8017D8BC },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_g_r_kitchen_8017D950 },
-    { ROOM_MESSAGE_COMMAND, func_dryfield_g_r_kitchen_8017D948 },
+    { DRYFIELD_G_R_KITCHEN_MESSAGE_USE_KEY_ITEM, _dryfieldGRKitchenRejectKeyItemUse },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldGRKitchenIgnoreActionRequest },
+    { ROOM_MESSAGE_COMMAND, _dryfieldGRKitchenIgnoreCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -284,30 +287,38 @@ RoomEventReq gRoomEventReq;
 /// The room task's three-state table, run from a stack copy by
 /// `func_dryfield_g_r_kitchen_8017D9A4`: the entry state
 /// `func_dryfield_g_r_kitchen_8017D958`, the idle state
-/// `func_dryfield_g_r_kitchen_8017D99C`, then `taskKill`.
+/// `_dryfieldGRKitchenIdleRoomTask`, then `taskKill`.
 static const TaskFuncTable3 D_dryfield_g_r_kitchen_8017D5DC = {
-    { func_dryfield_g_r_kitchen_8017D958, func_dryfield_g_r_kitchen_8017D99C, taskKill },
+    { func_dryfield_g_r_kitchen_8017D958, _dryfieldGRKitchenIdleRoomTask, taskKill },
 };
 
-/// Handler for message 0x13F1 in the room's message table: the room takes no
-/// action and reports the message as not handled.
-s32 func_dryfield_g_r_kitchen_8017D8BC(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Refuses every key-item use request in this room.
+///
+/// Ignores all arguments and returns 0, selecting the inventory's "No use now"
+/// notice without consuming the item or starting a room event.
+static s32 _dryfieldGRKitchenRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedSecondArg)
 {
-    return 0;
+    enum { DRYFIELD_G_R_KITCHEN_KEY_ITEM_REFUSED = 0 };
+
+    return DRYFIELD_G_R_KITCHEN_KEY_ITEM_REFUSED;
 }
 
 #include "../../shared/g_r_kitchen_door_msg.inc.c"
 
-/// Handler for message 0x13F0 in the room's message table: the room takes no
-/// action and reports the message as not handled.
-s32 func_dryfield_g_r_kitchen_8017D948(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores room commands from CAP playback and direction triggers.
+///
+/// Neither the command ID nor its mode changes room state. Returns 0;
+/// the senders discard the result.
+static s32 _dryfieldGRKitchenIgnoreCommand(Task* task, s32 messageId, s32 commandId, s32 commandMode)
 {
     return 0;
 }
 
-/// Handler for message 0x13EF in the room's message table: the room takes no
-/// action and reports the message as not handled.
-s32 func_dryfield_g_r_kitchen_8017D950(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores room-action requests from direction triggers.
+///
+/// The request is borrowed for synchronous dispatch but is never accessed
+/// or retained. Returns 0; the sender discards the result.
+static s32 _dryfieldGRKitchenIgnoreActionRequest(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedSecondArg)
 {
     return 0;
 }
@@ -321,8 +332,11 @@ static void func_dryfield_g_r_kitchen_8017D958(Task* task)
     task->state = (s32)(task->state + 1);
 }
 
-/// Idle state of the room task.
-static void func_dryfield_g_r_kitchen_8017D99C(Task* task)
+/// Keeps the registered room task idle between message dispatches.
+///
+/// Leaves the task and its state unchanged; the installed message table
+/// remains available without any per-frame room work.
+static void _dryfieldGRKitchenIdleRoomTask(Task* task)
 {
 }
 
@@ -338,124 +352,128 @@ void func_dryfield_g_r_kitchen_8017D9A4(Task* task)
 
 #include "../../shared/glow_draw_tapered_beam.inc.c"
 
-/// The same tapered light beam as `_glowDrawTaperedBeam`,
-/// between two points of `arg0`'s local space, with every angle turned back a
-/// quarter turn. The two
-/// `RTPS` projections, the drop when the far end's `otz` is below 0x11, the
-/// clamp of the near end's `otz` to 0x10 and the radii `(s16)arg3 * 64 / otz`
-/// are unchanged.
+/// Draws an additive dim grey beam between two local-space endpoints.
 ///
-/// The near cap's wedges cover -0x400..0x400, the far cap's the opposite half
-/// walked backwards from 0xC00 to 0x400, and the side quads join the two
-/// circles at -0x400 and 0x400. The centre colour is 0x10 or 0x20 on the
-/// parity of `gDisplayState.animFrame`, one step darker than
-/// `_glowDrawTaperedBeam`'s.
-static void func_dryfield_g_r_kitchen_8017E27C(GfxCoord* arg0, SVECTOR* arg1, SVECTOR* arg2, s32 arg3)
+/// Borrows `coord`, `startPoint` and `endPoint` during the call. `coord->workm`
+/// must already map the endpoints into world space. Inputs must be word-aligned,
+/// and each endpoint must provide a complete `SVECTOR` for the GTE's two word
+/// loads. World components narrow to signed 16 bits before view projection.
+/// Each pixel radius is the signed low halfword of `radiusScale` times 64
+/// divided by its endpoint's camera Z / 4 depth. The second depth must be at
+/// least 17; the first is clamped to 16. Projection flags are not tested.
+///
+/// Opposing half-disc caps fade from grey 16/32 on frame parity to a black
+/// rim. Two bands join their left and right edges and sort at the first
+/// endpoint's depth. Angles are a quarter turn behind `_glowDrawTaperedBeam`.
+/// Requires an initialized scratch stack with one free 40-byte block, a current
+/// depth ordering table and room for six `POLY_G4` plus six `DR_TPAGE` packets
+/// in the word-aligned frame arena. Queued storage lives until GPU completion.
+static void _dryfieldGRKitchenDrawDimTaperedBeam(const GfxCoord* coord, const SVECTOR* startPoint, const SVECTOR* endPoint, s32 radiusScale)
 {
-    GlowWorldPointPairScratch* block;
-    POLY_G4*                   prim;
-    s32                        ang;
-    s32                        t;
-    s32                        rgb;
-    s32                        extent;
+    enum {
+        DRYFIELD_G_R_KITCHEN_BEAM_BASE_INTENSITY = 16,
+        DRYFIELD_G_R_KITCHEN_BEAM_FLICKER_STEP   = 16,
+    };
 
-    block = SCRATCH_STACK_RESERVE_BLOCK(GlowWorldPointPairScratch);
+    GlowWorldPointPairScratch* scratch;
+    POLY_G4*                   quad;
+    s32                        angle;
+    s32                        rimAngle;
+    s32                        intensity;
+    s32                        scaledRadius;
 
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(GlowWorldPointPairScratch);
+
+    // Place both local endpoints in world space before projecting them.
     gte_SetTransMatrix(&GsWSMATRIX);
-    gte_SetRotMatrix(&arg0->workm);
-    gte_ldv0(arg1);
+    gte_SetRotMatrix(&coord->workm);
+    gte_ldv0(startPoint);
     gte_rtv0();
-    gte_stsv(&block->worldPoint0);
-    block->worldPoint0.vx += arg0->workm.t[0];
-    block->worldPoint0.vy += arg0->workm.t[1];
-    block->worldPoint0.vz += arg0->workm.t[2];
+    gte_stsv(&scratch->worldPoint0);
+    scratch->worldPoint0.vx += coord->workm.t[0];
+    scratch->worldPoint0.vy += coord->workm.t[1];
+    scratch->worldPoint0.vz += coord->workm.t[2];
 
-    gte_SetRotMatrix(&arg0->workm);
-    gte_ldv0(arg2);
+    gte_SetRotMatrix(&coord->workm);
+    gte_ldv0(endPoint);
     gte_rtv0();
-    gte_stsv(&block->worldPoint1);
-    block->worldPoint1.vx += arg0->workm.t[0];
-    block->worldPoint1.vy += arg0->workm.t[1];
-    block->worldPoint1.vz += arg0->workm.t[2];
+    gte_stsv(&scratch->worldPoint1);
+    scratch->worldPoint1.vx += coord->workm.t[0];
+    scratch->worldPoint1.vy += coord->workm.t[1];
+    scratch->worldPoint1.vz += coord->workm.t[2];
 
+    // Use the second endpoint for clipping and each depth for perspective sizing.
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&block->worldPoint0);
+    gte_ldv0(&scratch->worldPoint0);
     gte_rtps();
-    gte_stsxy(&block->sx0);
-    gte_stszotz(&block->otz0);
-    gte_ldv0(&block->worldPoint1);
+    gte_stsxy(&scratch->sx0);
+    gte_stszotz(&scratch->otz0);
+    gte_ldv0(&scratch->worldPoint1);
     gte_rtps();
-    gte_stsxy(&block->sx1);
-    gte_stszotz(&block->otz1);
-    if (block->otz1 >= 0x11) {
-        if (block->otz0 < 0x10) {
-            block->otz0 = 0x10;
+    gte_stsxy(&scratch->sx1);
+    gte_stszotz(&scratch->otz1);
+    if (scratch->otz1 >= GLOW_MIN_DEPTH) {
+        if (scratch->otz0 < GLOW_NEAR_DEPTH_CLAMP) {
+            scratch->otz0 = GLOW_NEAR_DEPTH_CLAMP;
         }
-        extent         = (s16)arg3 * 64;
-        ang            = 0;
-        rgb            = (((u8)gDisplayState.animFrame & 1) * 16) + 0x10;
-        block->radius0 = extent / block->otz0;
-        block->radius1 = extent / block->otz1;
+        scaledRadius     = (s16)radiusScale * GLOW_RADIUS_SCALE;
+        angle            = 0;
+        intensity        = (((u8)gDisplayState.animFrame & 1) * DRYFIELD_G_R_KITCHEN_BEAM_FLICKER_STEP) + DRYFIELD_G_R_KITCHEN_BEAM_BASE_INTENSITY;
+        scratch->radius0 = scaledRadius / scratch->otz0;
+        scratch->radius1 = scaledRadius / scratch->otz1;
+        // Join opposite half-disc caps with bands at the left and right rims.
         do {
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, rgb, rgb, rgb);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx0 + ((block->radius0 * rsin(ang - 0x400)) >> 12);
-            t        = ang - 0x200;
-            prim->y0 = block->sy0 + ((block->radius0 * rcos(ang - 0x400)) >> 12);
-            prim->x1 = block->sx0 + ((block->radius0 * rsin(t)) >> 12);
-            prim->y1 = block->sy0 + ((block->radius0 * rcos(t)) >> 12);
-            prim->x2 = block->sx0;
-            prim->y2 = block->sy0;
-            prim->x3 = block->sx0 + ((block->radius0 * rsin(ang)) >> 12);
-            prim->y3 = block->sy0 + ((block->radius0 * rcos(ang)) >> 12);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz0 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz0);
+            quad           = gGpuPrimCursor;
+            gGpuPrimCursor = quad + 1;
+            _glowInitTaperedBeamWedge(quad, intensity);
+            quad->x0 = scratch->sx0 + ((scratch->radius0 * rsin(angle - GLOW_QUARTER_TURN)) >> GLOW_TRIG_SHIFT);
+            rimAngle = angle - GLOW_EIGHTH_TURN;
+            quad->y0 = scratch->sy0 + ((scratch->radius0 * rcos(angle - GLOW_QUARTER_TURN)) >> GLOW_TRIG_SHIFT);
+            quad->x1 = scratch->sx0 + ((scratch->radius0 * rsin(rimAngle)) >> GLOW_TRIG_SHIFT);
+            quad->y1 = scratch->sy0 + ((scratch->radius0 * rcos(rimAngle)) >> GLOW_TRIG_SHIFT);
+            quad->x2 = scratch->sx0;
+            quad->y2 = scratch->sy0;
+            quad->x3 = scratch->sx0 + ((scratch->radius0 * rsin(angle)) >> GLOW_TRIG_SHIFT);
+            quad->y3 = scratch->sy0 + ((scratch->radius0 * rcos(angle)) >> GLOW_TRIG_SHIFT);
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->otz0 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                    quad);
+            gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, scratch->otz0);
 
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, rgb, rgb, rgb);
-            setRGB3(prim, rgb, rgb, rgb);
-            prim->x0 = block->sx0 + ((block->radius0 * rsin(ang * 2 - 0x400)) >> 12);
-            prim->y0 = block->sy0 + ((block->radius0 * rcos(ang * 2 - 0x400)) >> 12);
-            prim->x1 = block->sx1 + ((block->radius1 * rsin(ang * 2 - 0x400)) >> 12);
-            prim->y1 = block->sy1 + ((block->radius1 * rcos(ang * 2 - 0x400)) >> 12);
-            prim->x2 = block->sx0;
-            prim->y2 = block->sy0;
-            prim->x3 = block->sx1;
-            prim->y3 = block->sy1;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz0 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz0);
+            quad           = gGpuPrimCursor;
+            gGpuPrimCursor = quad + 1;
+            setPolyG4(quad);
+            setRGB0(quad, 0, 0, 0);
+            setRGB1(quad, 0, 0, 0);
+            setRGB2(quad, intensity, intensity, intensity);
+            setRGB3(quad, intensity, intensity, intensity);
+            quad->x0 = scratch->sx0 + ((scratch->radius0 * rsin(angle * 2 - GLOW_QUARTER_TURN)) >> GLOW_TRIG_SHIFT);
+            quad->y0 = scratch->sy0 + ((scratch->radius0 * rcos(angle * 2 - GLOW_QUARTER_TURN)) >> GLOW_TRIG_SHIFT);
+            quad->x1 = scratch->sx1 + ((scratch->radius1 * rsin(angle * 2 - GLOW_QUARTER_TURN)) >> GLOW_TRIG_SHIFT);
+            quad->y1 = scratch->sy1 + ((scratch->radius1 * rcos(angle * 2 - GLOW_QUARTER_TURN)) >> GLOW_TRIG_SHIFT);
+            quad->x2 = scratch->sx0;
+            quad->y2 = scratch->sy0;
+            quad->x3 = scratch->sx1;
+            quad->y3 = scratch->sy1;
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->otz0 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                    quad);
+            gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, scratch->otz0);
 
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, rgb, rgb, rgb);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx1 + ((block->radius1 * rsin(0xC00 - ang)) >> 12);
-            prim->y0 = block->sy1 + ((block->radius1 * rcos(0xC00 - ang)) >> 12);
-            prim->x1 = block->sx1 + ((block->radius1 * rsin(0xA00 - ang)) >> 12);
-            prim->y1 = block->sy1 + ((block->radius1 * rcos(0xA00 - ang)) >> 12);
-            prim->x2 = block->sx1;
-            prim->y2 = block->sy1;
-            prim->x3 = block->sx1 + ((block->radius1 * rsin(0x800 - ang)) >> 12);
-            prim->y3 = block->sy1 + ((block->radius1 * rcos(0x800 - ang)) >> 12);
-            ang     += 0x400;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz1 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz1);
-        } while (ang < 0x800);
+            quad           = gGpuPrimCursor;
+            gGpuPrimCursor = quad + 1;
+            _glowInitTaperedBeamWedge(quad, intensity);
+            quad->x0 = scratch->sx1 + ((scratch->radius1 * rsin((GLOW_FULL_TURN - GLOW_QUARTER_TURN) - angle)) >> GLOW_TRIG_SHIFT);
+            quad->y0 = scratch->sy1 + ((scratch->radius1 * rcos((GLOW_FULL_TURN - GLOW_QUARTER_TURN) - angle)) >> GLOW_TRIG_SHIFT);
+            quad->x1 = scratch->sx1 + ((scratch->radius1 * rsin((GLOW_FULL_TURN - GLOW_QUARTER_TURN - GLOW_EIGHTH_TURN) - angle)) >> GLOW_TRIG_SHIFT);
+            quad->y1 = scratch->sy1 + ((scratch->radius1 * rcos((GLOW_FULL_TURN - GLOW_QUARTER_TURN - GLOW_EIGHTH_TURN) - angle)) >> GLOW_TRIG_SHIFT);
+            quad->x2 = scratch->sx1;
+            quad->y2 = scratch->sy1;
+            quad->x3 = scratch->sx1 + ((scratch->radius1 * rsin(GLOW_HALF_TURN - angle)) >> GLOW_TRIG_SHIFT);
+            quad->y3 = scratch->sy1 + ((scratch->radius1 * rcos(GLOW_HALF_TURN - angle)) >> GLOW_TRIG_SHIFT);
+            angle   += GLOW_QUARTER_TURN;
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->otz1 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                    quad);
+            gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, scratch->otz1);
+        } while (angle < GLOW_HALF_TURN);
     }
     SCRATCH_STACK_RELEASE_BLOCK(GlowWorldPointPairScratch);
 }
@@ -465,7 +483,7 @@ static void func_dryfield_g_r_kitchen_8017E27C(GfxCoord* arg0, SVECTOR* arg1, SV
 /// beams of `D_dryfield_g_r_kitchen_8017EBF0` through
 /// `_glowDrawTaperedBeam`, in view 3 those of
 /// `D_dryfield_g_r_kitchen_8017EC08` through
-/// `func_dryfield_g_r_kitchen_8017E27C`. Any other view draws nothing.
+/// `_dryfieldGRKitchenDrawDimTaperedBeam`. Any other view draws nothing.
 void func_dryfield_g_r_kitchen_8017EB04(Task* arg0)
 {
     GfxCoord* coord;
@@ -475,7 +493,7 @@ void func_dryfield_g_r_kitchen_8017EB04(Task* arg0)
         _glowDrawTaperedBeam(coord, &D_dryfield_g_r_kitchen_8017EBF0[0], &D_dryfield_g_r_kitchen_8017EBF0[-1], 0x100);
         _glowDrawTaperedBeam(coord, &D_dryfield_g_r_kitchen_8017EBF0[2], &D_dryfield_g_r_kitchen_8017EBF0[1], 0x100);
     } else if (gGameSession->location.loc.view == 3) {
-        func_dryfield_g_r_kitchen_8017E27C(coord, &D_dryfield_g_r_kitchen_8017EC08[0], &D_dryfield_g_r_kitchen_8017EC08[1], 0x100);
-        func_dryfield_g_r_kitchen_8017E27C(coord, &D_dryfield_g_r_kitchen_8017EC08[2], &D_dryfield_g_r_kitchen_8017EC08[3], 0x100);
+        _dryfieldGRKitchenDrawDimTaperedBeam(coord, &D_dryfield_g_r_kitchen_8017EC08[0], &D_dryfield_g_r_kitchen_8017EC08[1], 0x100);
+        _dryfieldGRKitchenDrawDimTaperedBeam(coord, &D_dryfield_g_r_kitchen_8017EC08[2], &D_dryfield_g_r_kitchen_8017EC08[3], 0x100);
     }
 }
