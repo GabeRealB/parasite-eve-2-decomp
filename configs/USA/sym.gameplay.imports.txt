@@ -370,7 +370,7 @@ D_map_dryfield_8017BD80 = 0x8017BD80; // absolute:True owner=map_dryfield shared
 D_map_dryfield_full_8017D1CC = 0x8017D1CC; // absolute:True
 D_map_shelter_8017BD8C = 0x8017BD8C; // absolute:True owner=map_shelter shared=mapui
 D_map_neo_ark_8017CB0C = 0x8017CB0C; // absolute:True owner=map_neo_ark
-func_acropolis_east_elevator_hall_8017FAAC = 0x8017FAAC; // type:func absolute:True owner=acropolis_east_elevator_hall shared=rooms
+acropolisEastElevatorHallPointTileTask = 0x8017FAAC; // type:func absolute:True owner=acropolis_east_elevator_hall shared=rooms
 func_8011D1E0 = 0x8011D1E0; // type:func absolute:True shared=weapons
 D_map_akropolis_8017A8AC = 0x8017A8AC; // absolute:True owner=map_akropolis
 D_map_dryfield_8017A6A4 = 0x8017A6A4; // absolute:True owner=map_dryfield
@@ -1729,7 +1729,7 @@ func_mist_shooting_gallery_8017FBD8 = 0x8017FBD8; // type:func absolute:True own
 
 func_acropolis_square_8017F41C = 0x8017F41C; // type:func absolute:True owner=acropolis_square
 
-func_acropolis_east_elevator_hall_8017F2F8 = 0x8017F2F8; // type:func absolute:True owner=acropolis_east_elevator_hall
+acropolisEastElevatorHallPlayerReflectionTask = 0x8017F2F8; // type:func absolute:True owner=acropolis_east_elevator_hall
 
 func_acropolis_west_elevator_hall_8017F304 = 0x8017F304; // type:func absolute:True owner=acropolis_west_elevator_hall
 

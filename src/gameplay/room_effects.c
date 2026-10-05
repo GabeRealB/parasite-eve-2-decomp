@@ -532,8 +532,6 @@ static void _gpuSetPrimitiveBlendModeFixedDepth(void* primitive, s32 blendMode, 
 // Retained effect slots without a proven owning room. See the local type audit.
 void func_mist_parking_8018345C(Task* task);
 
-void func_acropolis_east_elevator_hall_8017FAAC(Task* task);
-
 void func_8011D1E0(Task* task);
 
 /// Task bank 6: effects and loaded-overlay task entry points.
@@ -573,7 +571,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_west_elevator_hall_8017FE18, { NULL } },                // 0x020
     { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_east_elevator_hall_8017F5B4, { NULL } },                // 0x021
     { { { TASK_BODY_COORD, 0x70 } }, acropolisEastElevatorHallRedBeaconTask, { NULL } },                    // 0x022
-    { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_east_elevator_hall_8017FAAC, { NULL } },                // 0x023
+    { { { TASK_BODY_COORD, 0x70 } }, acropolisEastElevatorHallPointTileTask, { NULL } },                    // 0x023
     { { { TASK_BODY_COORD, 0x70 } }, func_hypervelocity_8011D1E8, { NULL } },                               // 0x024
     { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_west_elevator_hall_8017FFE4, { NULL } },                // 0x025
     { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_fountain_8017E014, { NULL } },                          // 0x026

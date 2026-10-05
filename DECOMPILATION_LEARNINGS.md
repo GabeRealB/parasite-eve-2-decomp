@@ -53288,7 +53288,7 @@ order before reshaping the ranges.
 
 ## `local_alloc` and `global_alloc` rank by the same formula, in the same direction
 
-`func_acropolis_east_elevator_hall_8017FAAC` projects one view-space point through
+`acropolisEastElevatorHallPointTileTask` projects one view-space point through
 `GsWSMATRIX` into a 0xC-byte `SCRATCH_STACK_CURSOR_SLOT` block and links a `TILE_1` into
 the OT. The unpinned C scored 99.6% with `regs=9`, and the whole diff was two
 block-local pointers trading registers: the scratch pointer wanted `$v1` and got

@@ -955,7 +955,7 @@ void func_800CFD78(Task* arg0)
             func_acropolis_square_8017F41C(arg0);
             break;
         case GAME_LOCATION_KEY(1, 2, 0, 0):
-            func_acropolis_east_elevator_hall_8017F2F8(arg0);
+            acropolisEastElevatorHallPlayerReflectionTask(arg0);
             break;
         case GAME_LOCATION_KEY(1, 17, 0, 0):
             func_acropolis_west_elevator_hall_8017F304(arg0);

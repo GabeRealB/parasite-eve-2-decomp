@@ -127,7 +127,7 @@ enum { ACROPOLIS_EAST_ELEVATOR_HALL_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 #include "../../shared/planar_reflection_data.inc.c"
 
 static TaskDesc D_acropolis_east_elevator_hall_8017FC90[2] = {
-    { { { TASK_BODY_NONE, 112 } }, func_acropolis_east_elevator_hall_8017F2F8, { .value = 0 } },
+    { { { TASK_BODY_NONE, 112 } }, acropolisEastElevatorHallPlayerReflectionTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 112 } }, _planarReflectionAttachmentTask, { .value = 0 } },
 };
 
@@ -732,13 +732,11 @@ WorldCollisionSurfaceProperties* D_acropolis_east_elevator_hall_80187B74[8] = {
     D_acropolis_east_elevator_hall_80187B64,
 };
 
-void func_acropolis_east_elevator_hall_8017FAAC(Task* arg0);
-
 #include "../../shared/planar_reflection.inc.c"
 
-void func_acropolis_east_elevator_hall_8017F2F8(Task* task)
+void acropolisEastElevatorHallPlayerReflectionTask(Task* reflectionTask)
 {
-    _planarReflectionPlayerTask(task);
+    _planarReflectionPlayerTask(reflectionTask);
 }
 
 #undef PLANAR_REFLECTION_DEFINE_SCALE_WITH_IMPLEMENTATION
@@ -878,37 +876,52 @@ void func_acropolis_east_elevator_hall_8017F5B4(Task* task)
 
 #include "../../shared/red_beacon_task.inc.c"
 
-void func_acropolis_east_elevator_hall_8017FAAC(Task* arg0)
+/// Projects a composed view-space coordinate and queues its additive gray pixel.
+///
+/// Borrows a reserved, word-aligned scratch block and the frame's packet arena.
+/// Translation narrows to signed 16 bits. Reserves one tile even at rejected
+/// depths; accepted SZ3 / 4 depths also reserve a blend command. No pointer is
+/// retained beyond the queued GPU packets, and GTE projection state is replaced.
+static inline void _acropolisEastElevatorHallDrawPointTile(const GfxCoord* effectCoord, EffectPointTileScratch* tileScratch)
 {
-    EffectPointTileScratch* tileScratch;
-    TILE_1*                 prim;
-    GfxCoord*               coord;
-    void*                   mem;
+    enum { ACROPOLIS_EAST_ELEVATOR_HALL_POINT_TILE_COLOR = 0x80 };
 
-    coord = arg0->extra.tmd->coords;
-    mem   = arg0->spawnArg2.pointer;
-    actorRenderComposeCoord(coord);
-    tileScratch = SCRATCH_STACK_RESERVE_BLOCK(EffectPointTileScratch);
-    // Project the cached view position; screen coordinates go straight into the tile.
-    tileScratch->viewPoint.vx = coord->workm.t[0];
-    tileScratch->viewPoint.vy = coord->workm.t[1];
-    tileScratch->viewPoint.vz = coord->workm.t[2];
+    TILE_1* tile;
+
+    // Narrow the composed view position before perspective projection.
+    tileScratch->viewPoint.vx = effectCoord->workm.t[0];
+    tileScratch->viewPoint.vy = effectCoord->workm.t[1];
+    tileScratch->viewPoint.vz = effectCoord->workm.t[2];
 
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&tileScratch->viewPoint);
     gte_rtps();
-    prim           = gGpuPrimCursor;
-    gGpuPrimCursor = prim + 1;
-    setTile1(prim);
-    gte_stsxy(&prim->x0);
+    // Reserve the tile even when its depth will reject it.
+    tile           = gGpuPrimCursor;
+    gGpuPrimCursor = tile + 1;
+    setTile1(tile);
+    gte_stsxy(&tile->x0);
     gte_stszotz(&tileScratch->depth);
     if (tileScratch->depth >= EFFECT_POINT_TILE_MIN_DEPTH) {
-        setRGB0(prim, 0x80, 0x80, 0x80);
+        setRGB0(tile, ACROPOLIS_EAST_ELEVATOR_HALL_POINT_TILE_COLOR, ACROPOLIS_EAST_ELEVATOR_HALL_POINT_TILE_COLOR, ACROPOLIS_EAST_ELEVATOR_HALL_POINT_TILE_COLOR);
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)tileScratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
-        gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, tileScratch->depth);
+                tile);
+        gpuSetPrimitiveBlendMode(tile, GPU_BLEND_ADD, tileScratch->depth);
     }
+}
+
+void acropolisEastElevatorHallPointTileTask(Task* task)
+{
+    EffectPointTileScratch* tileScratch;
+    GfxCoord*               effectCoord;
+    void*                   effectWork;
+
+    effectCoord = task->extra.coordBody->coord;
+    effectWork  = task->spawnArg2.pointer;
+    actorRenderComposeCoord(effectCoord);
+    tileScratch = SCRATCH_STACK_RESERVE_BLOCK(EffectPointTileScratch);
+    _acropolisEastElevatorHallDrawPointTile(effectCoord, tileScratch);
     SCRATCH_STACK_RELEASE_BLOCK(EffectPointTileScratch);
-    effectKillTask(mem, arg0);
+    effectKillTask(effectWork, task);
 }
