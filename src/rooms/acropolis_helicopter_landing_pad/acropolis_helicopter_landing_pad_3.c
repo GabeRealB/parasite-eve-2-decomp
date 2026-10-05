@@ -68,15 +68,32 @@ static inline SVECTOR* ActorContact_GetScratchPosition(void)
     return &ActorContact_ScratchPosition;
 }
 
+/// Converts one local spark endpoint to signed 16-bit view coordinates in place.
+///
+/// Borrows an EffectLineScratch block, index 0 or 1, and a composed GfxCoord.
+/// Arguments are evaluated repeatedly and must be side-effect-free; captures
+/// no locals. Changes GTE state and narrows XYZ sums to s16. Expands to several
+/// statements and is used only at standalone call sites in the two drawers.
+#define ACROPOLIS_HELICOPTER_LANDING_PAD_TRANSFORM_SPARK_ENDPOINT(line, endpointIndex, coord) \
+    gte_SetRotMatrix(&(coord)->workm);                                                        \
+    gte_ldv0(&(line)->endpoints[endpointIndex]);                                              \
+    gte_rtv0();                                                                               \
+    gte_stsv(&(line)->endpoints[endpointIndex]);                                              \
+    (line)->endpoints[endpointIndex].vx += (coord)->workm.t[0];                               \
+    (line)->endpoints[endpointIndex].vy += (coord)->workm.t[1];                               \
+    (line)->endpoints[endpointIndex].vz += (coord)->workm.t[2]
+
 extern AnimationSet* D_acropolis_helicopter_landing_pad_801838F4[3];
 
 extern SVECTOR D_acropolis_helicopter_landing_pad_80184E80[12];
 extern s32     D_acropolis_helicopter_landing_pad_80184EE0[12];
 
 static void func_acropolis_helicopter_landing_pad_8017ED50(Task* arg0);
-static void func_acropolis_helicopter_landing_pad_8017EE2C(Task* arg0);
-static void func_acropolis_helicopter_landing_pad_8017F010(SVECTOR* pos, s16 index, s32 level);
-static void func_acropolis_helicopter_landing_pad_80180664(GfxCoord* coord);
+static void _acropolisHelicopterLandingPadTurnPlayerToExit(Task* task);
+static void _acropolisHelicopterLandingPadDescendExitStairs(Task* task);
+static void _acropolisHelicopterLandingPadWaitForPlayerTurn(Task* task);
+static void _acropolisHelicopterLandingPadDrawPerimeterLight(const SVECTOR* worldPoint, s16 lightIndex, s32 brightness);
+static void _acropolisHelicopterLandingPadDrawUpperSparkLine(GfxCoord* coord);
 
 void func_acropolis_helicopter_landing_pad_8017EB58(Task*);
 void func_acropolis_helicopter_landing_pad_8017ED00(Task*);
@@ -590,8 +607,6 @@ WorldCollisionTrigger D_acropolis_helicopter_landing_pad_801859BC[16] = {
     { NULL, NULL, NULL, { -5856, 0, 4064, 0 }, { { 1437, 6080, -1741, 0 }, { -1437, 6080, 1740, 0 }, { 1437, -6080, -1741, 0 }, { -1437, -6080, 1740, 0 } }, { -3161, 0, -2610, 0 }, { 0, 0, 4096, 0 }, 6476, 0, 10, 9, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-static void func_acropolis_helicopter_landing_pad_8017EDD4(Task* arg0);
-static void func_acropolis_helicopter_landing_pad_8017EE80(Task* arg0);
 static void func_acropolis_helicopter_landing_pad_8017EEDC(Task* arg0);
 
 void func_acropolis_helicopter_landing_pad_8017EB58(Task* arg0)
@@ -698,37 +713,52 @@ static void func_acropolis_helicopter_landing_pad_8017ED50(Task* arg0)
     }
 }
 
-static void func_acropolis_helicopter_landing_pad_8017EDD4(Task* arg0)
+/// Starts the player's scripted turn toward the exit stairs, then advances the task.
+///
+/// Yaw zero faces the flight. Synchronous dispatch copies the target yaw;
+/// the payload's position is unused and the turn finishes in a later frame.
+static void _acropolisHelicopterLandingPadTurnPlayerToExit(Task* task)
 {
-    ActorTransform msg;
-    Task*          slot;
+    enum { ACROPOLIS_HELICOPTER_LANDING_PAD_EXIT_YAW = 0 };
 
-    slot       = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    msg.rot.vx = 0;
-    msg.rot.vy = 0;
-    msg.rot.vz = 0;
-    TASK_MESSAGE_DISPATCH_POINTER(slot, 0x3EE, &msg, 0);
-    arg0->state = arg0->state + 1;
+    ActorTransform targetTransform;
+    Task*          playerTask;
+
+    playerTask             = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    targetTransform.rot.vx = 0;
+    targetTransform.rot.vy = ACROPOLIS_HELICOPTER_LANDING_PAD_EXIT_YAW;
+    targetTransform.rot.vz = 0;
+    TASK_MESSAGE_DISPATCH_POINTER(playerTask, GAME_ACTOR_MESSAGE_TURN_TO_YAW, &targetTransform, 0);
+    task->state = task->state + 1;
 }
 
-/// Task state step: advances the state once msg 0x3F0 to slot 3 returns 0.
-static void func_acropolis_helicopter_landing_pad_8017EE2C(Task* arg0)
+/// Holds the exit sequence until the player's scripted turn has finished.
+///
+/// Requires the live player task that received the turn request; advances once
+/// its scripted-motion query returns zero.
+static void _acropolisHelicopterLandingPadWaitForPlayerTurn(Task* task)
 {
     if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, 0, 0) == 0) {
-        arg0->state = (s32)(arg0->state + 1);
+        task->state = task->state + 1;
     }
 }
 
-static void func_acropolis_helicopter_landing_pad_8017EE80(Task* arg0)
+/// Starts the player's three-step descent from the landing pad, then advances.
+///
+/// Requires the preceding turn to yaw zero to have finished. The player copies
+/// the stair request during dispatch and completes the descent asynchronously.
+static void _acropolisHelicopterLandingPadDescendExitStairs(Task* task)
 {
-    GameActorStairClimb climb;
-    Task*               slot;
+    enum { ACROPOLIS_HELICOPTER_LANDING_PAD_EXIT_STAIR_STEPS = 3 };
 
-    slot            = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    climb.descend   = 1;
-    climb.stepCount = 3;
-    TASK_MESSAGE_DISPATCH_POINTER(slot, GAME_ACTOR_MESSAGE_CLIMB_STAIRS, &climb, 0);
-    arg0->state = arg0->state + 1;
+    GameActorStairClimb climb;
+    Task*               playerTask;
+
+    playerTask      = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    climb.descend   = true;
+    climb.stepCount = ACROPOLIS_HELICOPTER_LANDING_PAD_EXIT_STAIR_STEPS;
+    TASK_MESSAGE_DISPATCH_POINTER(playerTask, GAME_ACTOR_MESSAGE_CLIMB_STAIRS, &climb, 0);
+    task->state = task->state + 1;
 }
 
 static void func_acropolis_helicopter_landing_pad_8017EEDC(Task* arg0)
@@ -754,9 +784,9 @@ void func_acropolis_helicopter_landing_pad_8017EF8C(Task* arg0)
     GameActor* actor     = (GameActor*)(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->work;
     TaskFunc   states[5] = {
         func_acropolis_helicopter_landing_pad_8017ED50,
-        func_acropolis_helicopter_landing_pad_8017EDD4,
-        func_acropolis_helicopter_landing_pad_8017EE2C,
-        func_acropolis_helicopter_landing_pad_8017EE80,
+        _acropolisHelicopterLandingPadTurnPlayerToExit,
+        _acropolisHelicopterLandingPadWaitForPlayerTurn,
+        _acropolisHelicopterLandingPadDescendExitStairs,
         func_acropolis_helicopter_landing_pad_8017EEDC,
     };
 
@@ -764,153 +794,171 @@ void func_acropolis_helicopter_landing_pad_8017EF8C(Task* arg0)
     states[arg0->state](arg0);
 }
 
-/// Draws one helipad floodlight glow. Light `index` owns transient light slot
-/// `6 + (index & 1)`; the light is skipped while `gRoomEffectState->effectControl` is
-/// non-zero (switching the slot off once it reaches 4) and unless the
-/// current view's bit is set in the light's
-/// `D_acropolis_helicopter_landing_pad_80184EE0` mask. Otherwise `pos` is
-/// projected through `gGfxViewCoord.workm` into a scratch stack block and,
-/// when the GTE flag word is clean, the record is refreshed and two rings of
-/// flat-shaded `POLY_G4` fans are linked into the OT at the light's `otz`: 16
-/// wedges of the outer radius (a dim `level >> 1` layer under a `level` one)
-/// and four inner-radius blades whose intensity is `level >> 1`.
-static void func_acropolis_helicopter_landing_pad_8017F010(SVECTOR* pos, s16 index, s32 level)
+/// Initializes an allocated red Gouraud wedge with a bright centre and black edges.
+///
+/// The signed halfword brightness narrows to a byte at vertex 2. Allocation, geometry, ordering and
+/// the additive blend command remain with the perimeter-light drawer.
+static inline void _acropolisHelicopterLandingPadInitGlowWedge(POLY_G4* wedge, s16 brightness)
 {
+    setPolyG4(wedge);
+    setRGB0(wedge, 0, 0, 0);
+    setRGB1(wedge, 0, 0, 0);
+    setRGB2(wedge, brightness, 0, 0);
+    setRGB3(wedge, 0, 0, 0);
+}
+
+/// Draws a pulsing red perimeter glow and refreshes its shared transient light.
+///
+/// Borrows one aligned world point; `lightIndex` is 0..11 and `brightness` is 0..254.
+/// The current mapped view is 1..27; its bit in the light's visibility mask must
+/// be set. Slots 6/7 alternate by index and later visible lights overwrite them.
+/// A successful projection refreshes the slot for two frames with Q12 red
+/// `brightness` * 16, full strength to 1600 world units and no light at 12800.
+///
+/// Queues sixteen Gouraud wedges and four blades with additive blending, at the
+/// unbiased `SZ3` / 4 depth. Their screen radii are 0xC000/depth and 0x1800/depth;
+/// the current GTE projection must yield a nonzero depth on success. Reserves
+/// and releases 20 scratch bytes and consumes twenty `POLY_G4` packets. Paused
+/// controls skip drawing; cancellation disables the slot. Retains no pointer.
+static void _acropolisHelicopterLandingPadDrawPerimeterLight(const SVECTOR* worldPoint, s16 lightIndex, s32 brightness)
+{
+    enum {
+        ACROPOLIS_HELICOPTER_LANDING_PAD_GLOW_FIRST_LIGHT_SLOT     = 6,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_GLOW_LIGHT_FRAMES         = 2,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_GLOW_LIGHT_INNER_DISTANCE = 1600,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_GLOW_LIGHT_OUTER_DISTANCE = 12800,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_GLOW_LIGHT_COLOR_SCALE    = ONE / 256,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_GLOW_OUTER_RADIUS_SCALE   = 0xC000,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_GLOW_INNER_RADIUS_SCALE   = 0x1800,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_GLOW_TRIG_FRACTION_BITS   = 12,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_GLOW_FULL_TURN            = 0x1000,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_GLOW_WEDGE_ANGLE          = 0x200,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_GLOW_QUARTER_TURN         = 0x400,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_GLOW_HALF_TURN            = 0x800,
+    };
+
     WorldCoordTransientPointLight* lightSlot;
     WorldCoordPointLight*          pointLight;
-    GlowCentreRadiiScratch*        blk;
-    POLY_G4*                       prim;
-    s32                            a;
-    s32                            b;
-    s32                            c;
-    s32                            d;
-    s16                            lvl;
-    s32                            half;
-    s32                            mask;
+    GlowCentreRadiiScratch*        block;
+    POLY_G4*                       wedge;
+    s32                            angle;
+    s32                            halfStepAngle;
+    s32                            nextAngle;
+    s32                            armEdgeAngle;
+    s16                            wedgeBrightness;
+    s32                            halfBrightness;
+    s32                            visibleViewBit;
 
-    lvl        = level;
-    lightSlot  = &gWorldCoordTransientPointLights[6 + (index & 1)];
-    pointLight = &lightSlot->light;
+    wedgeBrightness = brightness;
+    lightSlot       = &gWorldCoordTransientPointLights[ACROPOLIS_HELICOPTER_LANDING_PAD_GLOW_FIRST_LIGHT_SLOT + (lightIndex & 1)];
+    pointLight      = &lightSlot->light;
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             lightSlot->framesLeft = WORLD_COORDINATE_TRANSIENT_LIGHT_INACTIVE;
         }
     } else {
-        mask = D_acropolis_helicopter_landing_pad_80184EE0[index] & (1 << ((viewGetMappedIndex() & 0xFF) - 1));
-        if (mask == 0) {
+        visibleViewBit = D_acropolis_helicopter_landing_pad_80184EE0[lightIndex] & (1 << ((viewGetMappedIndex() & 0xFF) - 1));
+        if (visibleViewBit == 0) {
             return;
         }
-        blk = SCRATCH_STACK_RESERVE_BLOCK(GlowCentreRadiiScratch);
+        // Project the authored world position with the current view.
+        block = SCRATCH_STACK_RESERVE_BLOCK(GlowCentreRadiiScratch);
         gte_SetTransMatrix(&gGfxViewCoord.workm);
         gte_SetRotMatrix(&gGfxViewCoord.workm);
-        gte_ldv0(pos);
+        gte_ldv0(worldPoint);
         gte_rtps();
-        gte_stsxy(&blk->sx);
-        gte_stflg(&blk->flag);
-        if (blk->flag >= 0) {
-            gte_stszotz(&blk->otz);
-            lightSlot->framesLeft                              = 2;
-            pointLight->inner                                  = 0x640;
-            pointLight->outer                                  = 0x3200;
-            pointLight->head.color.r                           = level * 16;
+        gte_stsxy(&block->sx);
+        gte_stflg(&block->flag);
+        if (block->flag >= 0) {
+            gte_stszotz(&block->otz);
+            lightSlot->framesLeft                              = ACROPOLIS_HELICOPTER_LANDING_PAD_GLOW_LIGHT_FRAMES;
+            pointLight->inner                                  = ACROPOLIS_HELICOPTER_LANDING_PAD_GLOW_LIGHT_INNER_DISTANCE;
+            pointLight->outer                                  = ACROPOLIS_HELICOPTER_LANDING_PAD_GLOW_LIGHT_OUTER_DISTANCE;
+            pointLight->head.color.r                           = brightness * ACROPOLIS_HELICOPTER_LANDING_PAD_GLOW_LIGHT_COLOR_SCALE;
             pointLight->head.color.g                           = 0;
             pointLight->head.color.b                           = 0;
-            pointLight->head.transform.lighting.local.t[0]     = pos->vx;
-            pointLight->head.transform.lighting.local.t[1]     = pos->vy;
-            pointLight->head.transform.lighting.local.t[2]     = pos->vz;
+            pointLight->head.transform.lighting.local.t[0]     = worldPoint->vx;
+            pointLight->head.transform.lighting.local.t[1]     = worldPoint->vy;
+            pointLight->head.transform.lighting.local.t[2]     = worldPoint->vz;
             lightSlot->light.head.transform.coord.composeStamp = GRAPHICS_COORD_DIRTY;
-            blk->outerRadius                                   = 0xC000 / blk->otz;
-            blk->innerRadius                                   = 0x1800 / blk->otz;
+            block->outerRadius                                 = ACROPOLIS_HELICOPTER_LANDING_PAD_GLOW_OUTER_RADIUS_SCALE / block->otz;
+            block->innerRadius                                 = ACROPOLIS_HELICOPTER_LANDING_PAD_GLOW_INNER_RADIUS_SCALE / block->otz;
 
-            for (a = 0; a < 0x1000; a += 0x200) {
-                prim           = gGpuPrimCursor;
-                gGpuPrimCursor = prim + 1;
-                setlen(prim, 8);
-                setcode(prim, 0x38);
-                setRGB0(prim, 0, 0, 0);
-                setRGB1(prim, 0, 0, 0);
-                half = lvl >> 1;
-                setRGB2(prim, half, 0, 0);
-                setRGB3(prim, 0, 0, 0);
-                prim->x0 = blk->sx + ((blk->outerRadius * rsin(a)) >> 12);
-                prim->y0 = blk->sy + ((blk->outerRadius * rcos(a)) >> 12);
-                b        = a + 0x100;
-                prim->x1 = blk->sx + ((blk->outerRadius * rsin(b)) >> 12);
-                prim->y1 = blk->sy + ((blk->outerRadius * rcos(b)) >> 12);
-                prim->x2 = blk->sx;
-                prim->y2 = blk->sy;
-                c        = a + 0x200;
-                prim->x3 = blk->sx + ((blk->outerRadius * rsin(c)) >> 12);
-                prim->y3 = blk->sy + ((blk->outerRadius * rcos(c)) >> 12);
-                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                        prim);
-                gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, blk->otz);
+            // Layer eight dim outer wedges with eight brighter half-radius wedges.
+            for (angle = 0; angle < ACROPOLIS_HELICOPTER_LANDING_PAD_GLOW_FULL_TURN; angle += ACROPOLIS_HELICOPTER_LANDING_PAD_GLOW_WEDGE_ANGLE) {
+                wedge          = gGpuPrimCursor;
+                gGpuPrimCursor = wedge + 1;
+                setPolyG4(wedge);
+                setRGB0(wedge, 0, 0, 0);
+                setRGB1(wedge, 0, 0, 0);
+                halfBrightness = wedgeBrightness >> 1;
+                setRGB2(wedge, halfBrightness, 0, 0);
+                setRGB3(wedge, 0, 0, 0);
+                wedge->x0     = block->sx + ((block->outerRadius * rsin(angle)) >> ACROPOLIS_HELICOPTER_LANDING_PAD_GLOW_TRIG_FRACTION_BITS);
+                wedge->y0     = block->sy + ((block->outerRadius * rcos(angle)) >> ACROPOLIS_HELICOPTER_LANDING_PAD_GLOW_TRIG_FRACTION_BITS);
+                halfStepAngle = angle + (ACROPOLIS_HELICOPTER_LANDING_PAD_GLOW_WEDGE_ANGLE / 2);
+                wedge->x1     = block->sx + ((block->outerRadius * rsin(halfStepAngle)) >> ACROPOLIS_HELICOPTER_LANDING_PAD_GLOW_TRIG_FRACTION_BITS);
+                wedge->y1     = block->sy + ((block->outerRadius * rcos(halfStepAngle)) >> ACROPOLIS_HELICOPTER_LANDING_PAD_GLOW_TRIG_FRACTION_BITS);
+                wedge->x2     = block->sx;
+                wedge->y2     = block->sy;
+                nextAngle     = angle + ACROPOLIS_HELICOPTER_LANDING_PAD_GLOW_WEDGE_ANGLE;
+                wedge->x3     = block->sx + ((block->outerRadius * rsin(nextAngle)) >> ACROPOLIS_HELICOPTER_LANDING_PAD_GLOW_TRIG_FRACTION_BITS);
+                wedge->y3     = block->sy + ((block->outerRadius * rcos(nextAngle)) >> ACROPOLIS_HELICOPTER_LANDING_PAD_GLOW_TRIG_FRACTION_BITS);
+                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                        wedge);
+                gpuSetPrimitiveBlendMode(wedge, GPU_BLEND_ADD, block->otz);
 
-                prim           = gGpuPrimCursor;
-                gGpuPrimCursor = prim + 1;
-                setlen(prim, 8);
-                setcode(prim, 0x38);
-                setRGB0(prim, 0, 0, 0);
-                setRGB1(prim, 0, 0, 0);
-                setRGB2(prim, lvl, 0, 0);
-                setRGB3(prim, 0, 0, 0);
-                prim->x0 = blk->sx + ((blk->outerRadius * rsin(a)) >> 13);
-                prim->y0 = blk->sy + ((blk->outerRadius * rcos(a)) >> 13);
-                prim->x1 = blk->sx + ((blk->outerRadius * rsin(b)) >> 13);
-                prim->y1 = blk->sy + ((blk->outerRadius * rcos(b)) >> 13);
-                prim->x2 = blk->sx;
-                prim->y2 = blk->sy;
-                prim->x3 = blk->sx + ((blk->outerRadius * rsin(c)) >> 13);
-                prim->y3 = blk->sy + ((blk->outerRadius * rcos(c)) >> 13);
-                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                        prim);
-                gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, blk->otz);
+                wedge          = gGpuPrimCursor;
+                gGpuPrimCursor = wedge + 1;
+                _acropolisHelicopterLandingPadInitGlowWedge(wedge, wedgeBrightness);
+                wedge->x0 = block->sx + ((block->outerRadius * rsin(angle)) >> (ACROPOLIS_HELICOPTER_LANDING_PAD_GLOW_TRIG_FRACTION_BITS + 1));
+                wedge->y0 = block->sy + ((block->outerRadius * rcos(angle)) >> (ACROPOLIS_HELICOPTER_LANDING_PAD_GLOW_TRIG_FRACTION_BITS + 1));
+                wedge->x1 = block->sx + ((block->outerRadius * rsin(halfStepAngle)) >> (ACROPOLIS_HELICOPTER_LANDING_PAD_GLOW_TRIG_FRACTION_BITS + 1));
+                wedge->y1 = block->sy + ((block->outerRadius * rcos(halfStepAngle)) >> (ACROPOLIS_HELICOPTER_LANDING_PAD_GLOW_TRIG_FRACTION_BITS + 1));
+                wedge->x2 = block->sx;
+                wedge->y2 = block->sy;
+                wedge->x3 = block->sx + ((block->outerRadius * rsin(nextAngle)) >> (ACROPOLIS_HELICOPTER_LANDING_PAD_GLOW_TRIG_FRACTION_BITS + 1));
+                wedge->y3 = block->sy + ((block->outerRadius * rcos(nextAngle)) >> (ACROPOLIS_HELICOPTER_LANDING_PAD_GLOW_TRIG_FRACTION_BITS + 1));
+                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                        wedge);
+                gpuSetPrimitiveBlendMode(wedge, GPU_BLEND_ADD, block->otz);
             }
 
-            lvl = half;
-            for (a = 0x200; a < 0x1000; a += 0x800) {
-                d              = a - 0x400;
-                prim           = gGpuPrimCursor;
-                gGpuPrimCursor = prim + 1;
-                setlen(prim, 8);
-                setcode(prim, 0x38);
-                setRGB0(prim, 0, 0, 0);
-                setRGB1(prim, 0, 0, 0);
-                setRGB2(prim, lvl, 0, 0);
-                setRGB3(prim, 0, 0, 0);
-                prim->x0 = blk->sx + ((blk->innerRadius * rsin(d)) >> 13);
-                prim->y0 = blk->sy + ((blk->innerRadius * rcos(d)) >> 13);
-                prim->x1 = blk->sx + ((blk->outerRadius * rsin(a)) >> 12);
-                prim->y1 = blk->sy + ((blk->outerRadius * rcos(a)) >> 12);
-                prim->x2 = blk->sx;
-                prim->y2 = blk->sy;
-                d        = a + 0x400;
-                prim->x3 = blk->sx + ((blk->innerRadius * rsin(d)) >> 13);
-                prim->y3 = blk->sy + ((blk->innerRadius * rcos(d)) >> 13);
-                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                        prim);
-                gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, blk->otz);
+            // Overlay four red blades; alternate tips reach twice the disc radius.
+            wedgeBrightness = halfBrightness;
+            for (angle = ACROPOLIS_HELICOPTER_LANDING_PAD_GLOW_WEDGE_ANGLE; angle < ACROPOLIS_HELICOPTER_LANDING_PAD_GLOW_FULL_TURN; angle += ACROPOLIS_HELICOPTER_LANDING_PAD_GLOW_HALF_TURN) {
+                armEdgeAngle   = angle - ACROPOLIS_HELICOPTER_LANDING_PAD_GLOW_QUARTER_TURN;
+                wedge          = gGpuPrimCursor;
+                gGpuPrimCursor = wedge + 1;
+                _acropolisHelicopterLandingPadInitGlowWedge(wedge, wedgeBrightness);
+                wedge->x0    = block->sx + ((block->innerRadius * rsin(armEdgeAngle)) >> (ACROPOLIS_HELICOPTER_LANDING_PAD_GLOW_TRIG_FRACTION_BITS + 1));
+                wedge->y0    = block->sy + ((block->innerRadius * rcos(armEdgeAngle)) >> (ACROPOLIS_HELICOPTER_LANDING_PAD_GLOW_TRIG_FRACTION_BITS + 1));
+                wedge->x1    = block->sx + ((block->outerRadius * rsin(angle)) >> ACROPOLIS_HELICOPTER_LANDING_PAD_GLOW_TRIG_FRACTION_BITS);
+                wedge->y1    = block->sy + ((block->outerRadius * rcos(angle)) >> ACROPOLIS_HELICOPTER_LANDING_PAD_GLOW_TRIG_FRACTION_BITS);
+                wedge->x2    = block->sx;
+                wedge->y2    = block->sy;
+                armEdgeAngle = angle + ACROPOLIS_HELICOPTER_LANDING_PAD_GLOW_QUARTER_TURN;
+                wedge->x3    = block->sx + ((block->innerRadius * rsin(armEdgeAngle)) >> (ACROPOLIS_HELICOPTER_LANDING_PAD_GLOW_TRIG_FRACTION_BITS + 1));
+                wedge->y3    = block->sy + ((block->innerRadius * rcos(armEdgeAngle)) >> (ACROPOLIS_HELICOPTER_LANDING_PAD_GLOW_TRIG_FRACTION_BITS + 1));
+                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                        wedge);
+                gpuSetPrimitiveBlendMode(wedge, GPU_BLEND_ADD, block->otz);
 
-                prim           = gGpuPrimCursor;
-                gGpuPrimCursor = prim + 1;
-                setlen(prim, 8);
-                setcode(prim, 0x38);
-                setRGB0(prim, 0, 0, 0);
-                setRGB1(prim, 0, 0, 0);
-                setRGB2(prim, lvl, 0, 0);
-                setRGB3(prim, 0, 0, 0);
-                prim->x0 = blk->sx + ((blk->innerRadius * rsin(a)) >> 12);
-                prim->y0 = blk->sy + ((blk->innerRadius * rcos(a)) >> 12);
-                prim->x1 = blk->sx + ((blk->outerRadius * rsin(d)) >> 11);
-                prim->y1 = blk->sy + ((blk->outerRadius * rcos(d)) >> 11);
-                prim->x2 = blk->sx;
-                prim->y2 = blk->sy;
-                d        = a + 0x800;
-                prim->x3 = blk->sx + ((blk->innerRadius * rsin(d)) >> 12);
-                prim->y3 = blk->sy + ((blk->innerRadius * rcos(d)) >> 12);
-                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                        prim);
-                gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, blk->otz);
+                wedge          = gGpuPrimCursor;
+                gGpuPrimCursor = wedge + 1;
+                _acropolisHelicopterLandingPadInitGlowWedge(wedge, wedgeBrightness);
+                wedge->x0    = block->sx + ((block->innerRadius * rsin(angle)) >> ACROPOLIS_HELICOPTER_LANDING_PAD_GLOW_TRIG_FRACTION_BITS);
+                wedge->y0    = block->sy + ((block->innerRadius * rcos(angle)) >> ACROPOLIS_HELICOPTER_LANDING_PAD_GLOW_TRIG_FRACTION_BITS);
+                wedge->x1    = block->sx + ((block->outerRadius * rsin(armEdgeAngle)) >> (ACROPOLIS_HELICOPTER_LANDING_PAD_GLOW_TRIG_FRACTION_BITS - 1));
+                wedge->y1    = block->sy + ((block->outerRadius * rcos(armEdgeAngle)) >> (ACROPOLIS_HELICOPTER_LANDING_PAD_GLOW_TRIG_FRACTION_BITS - 1));
+                wedge->x2    = block->sx;
+                wedge->y2    = block->sy;
+                armEdgeAngle = angle + ACROPOLIS_HELICOPTER_LANDING_PAD_GLOW_HALF_TURN;
+                wedge->x3    = block->sx + ((block->innerRadius * rsin(armEdgeAngle)) >> ACROPOLIS_HELICOPTER_LANDING_PAD_GLOW_TRIG_FRACTION_BITS);
+                wedge->y3    = block->sy + ((block->innerRadius * rcos(armEdgeAngle)) >> ACROPOLIS_HELICOPTER_LANDING_PAD_GLOW_TRIG_FRACTION_BITS);
+                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                        wedge);
+                gpuSetPrimitiveBlendMode(wedge, GPU_BLEND_ADD, block->otz);
             }
         }
         SCRATCH_STACK_RELEASE_BLOCK(GlowCentreRadiiScratch);
@@ -1063,9 +1111,9 @@ void func_acropolis_helicopter_landing_pad_8017FA30(Task* arg0)
 
 /// Effect task for the helipad floodlights anchored to `gWorldCoordTransientPointLights[4]` and
 /// `[5]`. On first run it parents the coord to the work's `parent` and
-/// positions it from `pos`. State 0 rolls 0-3 spawns of
-/// `func_acropolis_helicopter_landing_pad_80180664`, a 1-in-4 roll of
-/// `func_acropolis_helicopter_landing_pad_80180A64`, and refreshes slot 4 as a
+/// positions it from `pos`. State 0 draws 0-3 upper spark lines with
+/// `_acropolisHelicopterLandingPadDrawUpperSparkLine` and, on a 1-in-4 roll, a
+/// lower line with `acropolisHelicopterLandingPadDrawLowerSparkLine`; it refreshes slot 4 as a
 /// light with a four-frame expiry countdown. State 1 (also reached by fallthrough) rearms
 /// `scale` on a 1-in-4 roll every 8th frame; when armed it plays sound
 /// `0x51100001` panned at the coord, spawns one 0x6003B and six 0x600A4
@@ -1107,12 +1155,12 @@ void func_acropolis_helicopter_landing_pad_801802E0(Task* arg0)
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             n               = (gRandomLcgState >> 16) & 3;
             for (i = 0; i < n; i++) {
-                func_acropolis_helicopter_landing_pad_80180664(coord);
+                _acropolisHelicopterLandingPadDrawUpperSparkLine(coord);
             }
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             if (((gRandomLcgState >> 16) & 3) == 0) {
                 if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
-                    func_acropolis_helicopter_landing_pad_80180A64(coord);
+                    acropolisHelicopterLandingPadDrawLowerSparkLine(coord);
                 }
             }
             lightSlot             = &gWorldCoordTransientPointLights[4];
@@ -1166,20 +1214,22 @@ void func_acropolis_helicopter_landing_pad_801802E0(Task* arg0)
     }
 }
 
-/// Draws one random spark line off the floodlight coord, the same shape as
-/// `func_acropolis_helicopter_landing_pad_80180A64` with a different box:
-/// endpoint 0 is rolled 64 wide and 128 tall, 0x41..0xC0 units from the coord
-/// on its negative Y side, and endpoint 1 is centred on it (128 wide, 255 tall
-/// via an LCG modulo). Both are staged in an `EffectLineScratch`, rotated by
-/// the coord's `workm`, offset by its translation and projected through
-/// `GsWSMATRIX` into a semi-transparent `LINE_F2` whose green is an LCG byte
-/// and red half of it. Nothing is queued when the GTE flag word is negative.
-static void func_acropolis_helicopter_landing_pad_80180664(GfxCoord* coord)
+/// Draws one blue spark from above the coordinate toward its origin.
+///
+/// Borrows a live coordinate chain and composes it. Local endpoint 0 has x/z
+/// in [-32,31] and y in [-192,-65]; endpoint 1 has x/z in [-64,63] and y in
+/// [-128,126]. Negative local Y is the upper side of an upright light.
+/// The transformed endpoints narrow to signed 16-bit view coordinates before
+/// projection. Queues one opaque `LINE_F2`, with a random green byte and half
+/// that value in red, unless the second projection has negative GTE flags.
+/// Uses that endpoint's `SZ3` / 4 for ordering, consumes seven LCG samples and
+/// 32 scratch bytes, and retains no pointers after returning.
+static void _acropolisHelicopterLandingPadDrawUpperSparkLine(GfxCoord* coord)
 {
     EffectLineScratch* line;
-    LINE_F2*           prim;
-    u32                tmp;
-    u16                lvl;
+    LINE_F2*           spark;
+    u32                colorSample;
+    u16                greenIntensity;
 
     actorRenderComposeCoord(coord);
     line                  = SCRATCH_STACK_RESERVE_BLOCK(EffectLineScratch);
@@ -1189,26 +1239,16 @@ static void func_acropolis_helicopter_landing_pad_80180664(GfxCoord* coord)
     line->endpoints[0].vy = ((gRandomLcgState >> 16) & 0x7F) - 0xC0;
     gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
     line->endpoints[0].vz = ((gRandomLcgState >> 16) & 0x3F) - 0x20;
-    gte_SetRotMatrix(&coord->workm);
-    gte_ldv0(&line->endpoints[0]);
-    gte_rtv0();
-    gte_stsv(&line->endpoints[0]);
-    line->endpoints[0].vx += coord->workm.t[0];
-    line->endpoints[0].vy += coord->workm.t[1];
-    line->endpoints[0].vz += coord->workm.t[2];
-    gRandomLcgState        = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    line->endpoints[1].vx  = ((gRandomLcgState >> 16) & 0x7F) - 0x40;
-    gRandomLcgState        = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    line->endpoints[1].vy  = ((gRandomLcgState >> 16) % 0xFF) - 0x80;
-    gRandomLcgState        = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    line->endpoints[1].vz  = ((gRandomLcgState >> 16) & 0x7F) - 0x40;
-    gte_SetRotMatrix(&coord->workm);
-    gte_ldv0(&line->endpoints[1]);
-    gte_rtv0();
-    gte_stsv(&line->endpoints[1]);
-    line->endpoints[1].vx += coord->workm.t[0];
-    line->endpoints[1].vy += coord->workm.t[1];
-    line->endpoints[1].vz += coord->workm.t[2];
+    // Convert the local endpoint to view space, narrowing each component to s16.
+    ACROPOLIS_HELICOPTER_LANDING_PAD_TRANSFORM_SPARK_ENDPOINT(line, 0, coord);
+    gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    line->endpoints[1].vx = ((gRandomLcgState >> 16) & 0x7F) - 0x40;
+    gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    line->endpoints[1].vy = ((gRandomLcgState >> 16) % 0xFF) - 0x80;
+    gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    line->endpoints[1].vz = ((gRandomLcgState >> 16) & 0x7F) - 0x40;
+    ACROPOLIS_HELICOPTER_LANDING_PAD_TRANSFORM_SPARK_ENDPOINT(line, 1, coord);
+    // Project both ends; only the second endpoint supplies rejection flags and depth.
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&line->endpoints[0]);
@@ -1217,37 +1257,31 @@ static void func_acropolis_helicopter_landing_pad_80180664(GfxCoord* coord)
     gte_ldv0(&line->endpoints[1]);
     gte_rtps();
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    tmp             = (gRandomLcgState >> 16) & 0xFF;
-    lvl             = tmp;
+    colorSample     = (gRandomLcgState >> 16) & 0xFF;
+    greenIntensity  = colorSample;
     gte_stsxy(&line->screenEndpoints[1]);
     gte_stflg(&line->projectionFlags);
     if (line->projectionFlags >= 0) {
         gte_stszotz(&line->depth);
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setLineF2(prim);
-        setRGB0(prim, tmp >> 1, lvl, 0xFF);
-        prim->x0 = line->screenEndpoints[0].vx;
-        prim->y0 = line->screenEndpoints[0].vy;
-        prim->x1 = line->screenEndpoints[1].vx;
-        prim->y1 = line->screenEndpoints[1].vy;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)line->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
+        spark          = gGpuPrimCursor;
+        gGpuPrimCursor = spark + 1;
+        setLineF2(spark);
+        setRGB0(spark, colorSample >> 1, greenIntensity, 0xFF);
+        spark->x0 = line->screenEndpoints[0].vx;
+        spark->y0 = line->screenEndpoints[0].vy;
+        spark->x1 = line->screenEndpoints[1].vx;
+        spark->y1 = line->screenEndpoints[1].vy;
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)line->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), spark);
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectLineScratch);
 }
 
-/// Draws one random spark line off the floodlight coord: two endpoints are
-/// rolled from the LCG into an `EffectLineScratch` (endpoint 0 in a 64x128x64
-/// box, endpoint 1 in 64x256x64, both on the coord's positive Y side), rotated by
-/// the coord's `workm` and offset by its translation, then projected through
-/// `GsWSMATRIX` into a semi-transparent `LINE_F2` whose green is an LCG byte
-/// and red half of it. Nothing is queued when the GTE flag word is negative.
-void func_acropolis_helicopter_landing_pad_80180A64(GfxCoord* coord)
+void acropolisHelicopterLandingPadDrawLowerSparkLine(GfxCoord* coord)
 {
     EffectLineScratch* line;
-    LINE_F2*           prim;
-    u32                tmp;
-    u16                lvl;
+    LINE_F2*           spark;
+    u32                colorSample;
+    u16                greenIntensity;
 
     actorRenderComposeCoord(coord);
     line                  = SCRATCH_STACK_RESERVE_BLOCK(EffectLineScratch);
@@ -1257,26 +1291,16 @@ void func_acropolis_helicopter_landing_pad_80180A64(GfxCoord* coord)
     line->endpoints[0].vy = (gRandomLcgState >> 16) & 0x7F;
     gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
     line->endpoints[0].vz = ((gRandomLcgState >> 16) & 0x3F) - 0x20;
-    gte_SetRotMatrix(&coord->workm);
-    gte_ldv0(&line->endpoints[0]);
-    gte_rtv0();
-    gte_stsv(&line->endpoints[0]);
-    line->endpoints[0].vx += coord->workm.t[0];
-    line->endpoints[0].vy += coord->workm.t[1];
-    line->endpoints[0].vz += coord->workm.t[2];
-    gRandomLcgState        = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    line->endpoints[1].vx  = ((gRandomLcgState >> 16) & 0x3F) - 0x20;
-    gRandomLcgState        = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    line->endpoints[1].vy  = (gRandomLcgState >> 16) & 0xFF;
-    gRandomLcgState        = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    line->endpoints[1].vz  = ((gRandomLcgState >> 16) & 0x3F) - 0x20;
-    gte_SetRotMatrix(&coord->workm);
-    gte_ldv0(&line->endpoints[1]);
-    gte_rtv0();
-    gte_stsv(&line->endpoints[1]);
-    line->endpoints[1].vx += coord->workm.t[0];
-    line->endpoints[1].vy += coord->workm.t[1];
-    line->endpoints[1].vz += coord->workm.t[2];
+    // Convert the local endpoint to view space, narrowing each component to s16.
+    ACROPOLIS_HELICOPTER_LANDING_PAD_TRANSFORM_SPARK_ENDPOINT(line, 0, coord);
+    gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    line->endpoints[1].vx = ((gRandomLcgState >> 16) & 0x3F) - 0x20;
+    gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    line->endpoints[1].vy = (gRandomLcgState >> 16) & 0xFF;
+    gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    line->endpoints[1].vz = ((gRandomLcgState >> 16) & 0x3F) - 0x20;
+    ACROPOLIS_HELICOPTER_LANDING_PAD_TRANSFORM_SPARK_ENDPOINT(line, 1, coord);
+    // Project both ends; only the second endpoint supplies rejection flags and depth.
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&line->endpoints[0]);
@@ -1285,24 +1309,26 @@ void func_acropolis_helicopter_landing_pad_80180A64(GfxCoord* coord)
     gte_ldv0(&line->endpoints[1]);
     gte_rtps();
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    tmp             = (gRandomLcgState >> 16) & 0xFF;
-    lvl             = tmp;
+    colorSample     = (gRandomLcgState >> 16) & 0xFF;
+    greenIntensity  = colorSample;
     gte_stsxy(&line->screenEndpoints[1]);
     gte_stflg(&line->projectionFlags);
     if (line->projectionFlags >= 0) {
         gte_stszotz(&line->depth);
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setLineF2(prim);
-        setRGB0(prim, tmp >> 1, lvl, 0xFF);
-        prim->x0 = line->screenEndpoints[0].vx;
-        prim->y0 = line->screenEndpoints[0].vy;
-        prim->x1 = line->screenEndpoints[1].vx;
-        prim->y1 = line->screenEndpoints[1].vy;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)line->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
+        spark          = gGpuPrimCursor;
+        gGpuPrimCursor = spark + 1;
+        setLineF2(spark);
+        setRGB0(spark, colorSample >> 1, greenIntensity, 0xFF);
+        spark->x0 = line->screenEndpoints[0].vx;
+        spark->y0 = line->screenEndpoints[0].vy;
+        spark->x1 = line->screenEndpoints[1].vx;
+        spark->y1 = line->screenEndpoints[1].vy;
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)line->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), spark);
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectLineScratch);
 }
+
+#undef ACROPOLIS_HELICOPTER_LANDING_PAD_TRANSFORM_SPARK_ENDPOINT
 
 /// Effect task for the helipad beacon anchored to `gWorldCoordTransientPointLights[4]`. State 0
 /// spawns two 0x6005E effects, enables the slot for four gameplay frames and seeds its
@@ -1500,38 +1526,42 @@ void func_acropolis_helicopter_landing_pad_80181064(Task* arg0)
     }
 }
 
-/// Per-frame driver of the twelve helipad lights. Flags `gRoomEffectState->groundShadowShade`
-/// while view 0x12 is active, folds the frame counter `gDisplayState.animFrame * 4` into a
-/// 0..0xFE triangle wave kept in the effect work's `scale` (the low two bits
-/// are dropped on the rising half so the ramp steps in fours), then runs
-/// `func_acropolis_helicopter_landing_pad_8017F010` once per light position.
-void func_acropolis_helicopter_landing_pad_801818F0(Task* arg0)
+void acropolisHelicopterLandingPadPerimeterLightsTask(Task* task)
 {
-    EffectWork* work = (EffectWork*)arg0->spawnArg2.pointer;
-    SVECTOR*    pos;
-    s32         i;
-    s32         v;
-    s32         level;
+    enum {
+        ACROPOLIS_HELICOPTER_LANDING_PAD_GROUND_SHADOW_DISABLED_VIEW = 18,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_PULSE_FRAME_SHIFT           = 2,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_PULSE_FALLING_BIT           = 0x80,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_PULSE_HALF_MASK             = 0x7F,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_PULSE_RISING_MASK           = 0x7C,
+    };
 
-    if ((viewGetMappedIndex() & 0xFF) == 0x12) {
+    EffectWork*    work = task->spawnArg2.pointer;
+    const SVECTOR* worldPoint;
+    s32            lightIndex;
+    s32            phase;
+    s32            halfBrightness;
+
+    if ((viewGetMappedIndex() & 0xFF) == ACROPOLIS_HELICOPTER_LANDING_PAD_GROUND_SHADOW_DISABLED_VIEW) {
         gRoomEffectState->groundShadowShade = ROOM_EFFECT_GROUND_SHADOW_DISABLED;
     } else {
         gRoomEffectState->groundShadowShade = ROOM_EFFECT_GROUND_SHADOW_UNMODULATED;
     }
 
-    v           = gDisplayState.animFrame << 2;
-    work->scale = v;
-    if (v & 0x80) {
-        level = 0x7F - (v & 0x7F);
+    // Keep the full word for the wave; the work field deliberately narrows to s16.
+    phase       = gDisplayState.animFrame << ACROPOLIS_HELICOPTER_LANDING_PAD_PULSE_FRAME_SHIFT;
+    work->scale = phase;
+    if (phase & ACROPOLIS_HELICOPTER_LANDING_PAD_PULSE_FALLING_BIT) {
+        halfBrightness = ACROPOLIS_HELICOPTER_LANDING_PAD_PULSE_HALF_MASK - (phase & ACROPOLIS_HELICOPTER_LANDING_PAD_PULSE_HALF_MASK);
     } else {
-        level = v & 0x7C;
+        halfBrightness = phase & ACROPOLIS_HELICOPTER_LANDING_PAD_PULSE_RISING_MASK;
     }
-    work->scale = level * 2;
+    work->scale = halfBrightness * 2;
 
-    i   = 0;
-    pos = D_acropolis_helicopter_landing_pad_80184E80;
-    for (; i < 12; i++) {
-        func_acropolis_helicopter_landing_pad_8017F010(pos++, i, work->scale);
+    lightIndex = 0;
+    worldPoint = D_acropolis_helicopter_landing_pad_80184E80;
+    for (; lightIndex < ARRAY_SIZE(D_acropolis_helicopter_landing_pad_80184E80); lightIndex++) {
+        _acropolisHelicopterLandingPadDrawPerimeterLight(worldPoint++, lightIndex, work->scale);
     }
 }
 

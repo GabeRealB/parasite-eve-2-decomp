@@ -52512,34 +52512,34 @@ points at a single coordinate embedded in the node, where a model body's points 
 per-part array that follows it — and the task's own spawn type (or the
 descriptor that built it) is what decides which type is in hand.
 
-## `andi 0x7F` narrowed to `0x7C`: an `s16` local's `(v & K)` is folded into HImode and re-extended
+## `andi 0x7F` narrowed to `0x7C`: an `s16` local's `(phase & K)` is folded into HImode and re-extended
 
-`func_acropolis_helicopter_landing_pad_801818F0` stores a frame counter times
+`acropolisHelicopterLandingPadPerimeterLightsTask` stores a frame counter times
 four into an `s16` field, then folds it into a triangle wave:
 
 ```c
-v = D_80070F70 * 4;   work->field_24 = v;
-if (v & 0x80) level = 0x7F - (v & 0x7F); else level = v & 0x7C;
-work->field_24 = level * 2;
+phase = gDisplayState.animFrame * 4;   work->scale = phase;
+if (phase & 0x80) halfBrightness = 0x7F - (phase & 0x7F); else halfBrightness = phase & 0x7C;
+work->scale = halfBrightness * 2;
 ```
 
-With `s16 v` the true arm compiles to `andi v1,v1,0x7c` where the ROM has
-`0x7f`. The C front end folds `(int)v & 0x7F` into `(int)(short)(v & 0x7F)`,
+With `s16 phase` the true arm compiles to `andi v1,v1,0x7c` where the ROM has
+`0x7f`. The C front end folds `(int)phase & 0x7F` into `(int)(short)(phase & 0x7F)`,
 so the RTL is `and` + `ashift 16` + `ashiftrt 16`; when `combine` merges the
 sign extension away it runs `simplify_and_const_int`, whose `nonzero_bits`
 knows the `sll 2` result has two zero low bits and rewrites the mask. The
 `0x80` test and the `0x7C` arm are not affected because their masks already
-have those bits clear. An `s32 v` has no sign extension to fold, so the `and`
+have those bits clear. An `s32 phase` has no sign extension to fold, so the `and`
 insn is never revisited and the constant survives. Contrast with "`(u8)x` folds
 to `andi 0xF0` when GCC knows the low nibble": same `nonzero_bits` rule, but
 here the trigger is the `s16` type of the *operand*, not a cast on the result.
 
-The same function needs `v = D_80070F70 << 2;` rather than `* 4`. With one
-definition of `v`, `* 4` expands as `tmp = ashift; v = tmp` and the jump pass
-turns the copy around into `v = ashift; tmp = v` instead of deleting it; CSE
-then substitutes `tmp` for `v` on the *else* path, so both pseudos stay live
-and an extra `move a0,v1` appears before the branch. `<< 2` expands with `v`
-as the shift's target and there is no copy. Giving `v` a second (even dead)
+The same function needs `phase = gDisplayState.animFrame << 2;` rather than `* 4`. With one
+definition of `phase`, `* 4` expands as `tmp = ashift; phase = tmp` and the jump pass
+turns the copy around into `phase = ashift; tmp = phase` instead of deleting it; CSE
+then substitutes `tmp` for `phase` on the *else* path, so both pseudos stay live
+and an extra `move a0,v1` appears before the branch. `<< 2` expands with `phase`
+as the shift's target and there is no copy. Giving `phase` a second (even dead)
 assignment also removes it, which is why the multi-assignment m2c seed never
 showed the `move`.
 
@@ -52757,7 +52757,7 @@ bytes, so the scratch diff shows only the symbol name once the order is right.
 
 ## Store the scratch push temp before naming it, or CSE folds the `move` into the block pointer
 
-`func_acropolis_helicopter_landing_pad_8017F010` pushes a 0x14 block and wants
+`_acropolisHelicopterLandingPadDrawPerimeterLight` pushes a 0x14 block and wants
 
 ```asm
 lw    a0,0(v1)
@@ -52766,24 +52766,24 @@ move  s3,v0
 sw    v0,0(v1)
 ```
 
-Both `blk = (T*)(head - 0x14); *scratch = blk;` and the explicit
-`tmp = head - 0x14; blk = (T*)tmp; *scratch = tmp;` compile to
+Both `block = (T*)(head - 0x14); *scratch = block;` and the explicit
+`tmp = head - 0x14; block = (T*)tmp; *scratch = tmp;` compile to
 `addiu s3,a0,-0x14` / `sw s3,0(v1)` with no `move`. The temp is not being
 tied by local-alloc; it is being rewritten away by CSE. `make_regs_eqv` makes
 the *longer-lived* pseudo the canonical one for a quantity when it outlives the
-basic block, so once `blk = tmp` has been seen, a later `*scratch = tmp` is
-canonicalised to `*scratch = blk` and `tmp` dies at the copy, which local-alloc
+basic block, so once `block = tmp` has been seen, a later `*scratch = tmp` is
+canonicalised to `*scratch = block` and `tmp` dies at the copy, which local-alloc
 then ties. Emit the store **before** the assignment that names the block:
 
 ```c
 head     = *scratch;
 *scratch = head - 0x14;               /* addiu v0 ... ; sw v0 */
-blk      = (AhlpLightScratch*)(head - 0x14);   /* CSE: blk = tmp -> move s3,v0 */
+block      = (GlowCentreRadiiScratch*)(head - 0x14);   /* CSE: block = tmp -> move s3,v0 */
 ```
 
 The store is processed while `tmp` is still the only member of its quantity,
 so it keeps `tmp`; the block-local temp then goes to local-alloc (`$v0`) and
-the copy into the global `blk` survives. This is the same shape "Unpin the
+the copy into the global `block` survives. This is the same shape "Unpin the
 scratch `block` instead of pinning the `head` temp" arrives at by removing a
 pin, and it is why `src/gameplay/3FB8_7E28.c` needed `register u8* tmp asm("v0")`:
 it names the block first.
@@ -52828,7 +52828,7 @@ MEM) applies to the *loads* as much as the stores, and it decides where the
 scheduler may put a `+=` on a scratch-block field relative to a chain of
 `gRandomLcgState = gRandomLcgState * 5 + K;` stores.
 
-`func_acropolis_helicopter_landing_pad_80180A64` adds the coord translation to
+`acropolisHelicopterLandingPadDrawLowerSparkLine` adds the coord translation to
 a rotated `SVECTOR` and then rolls three more LCG draws into a second vector.
 The target interleaves them:
 
@@ -52845,7 +52845,7 @@ sw    a0,%lo(gRandomLcgState)(a3)
 lhu   v0,4(t3)            ; a.vz, after the third
 ```
 
-Written the sibling way, `blk->a.vy = *(u16*)&blk->a.vy + *(u16*)&coord->workm.t[1];`
+Written the sibling way, `line->endpoints[0].vy = *(u16*)&line->endpoints[0].vy + *(u16*)&coord->workm.t[1];`
 the reads are non-struct MEMs, they conflict with the `sw` to the scalar
 global, and the only C order that reproduces the target is a contrived
 `L1; b.vx; L2; b.vy; a.vy; L3; ...` interleave — which then dead-stores the
@@ -52853,11 +52853,11 @@ first `sw` (see "Interleave stores to keep redundant global writes alive").
 Cast the *value* instead of the address:
 
 ```c
-blk->a.vx = (u16)blk->a.vx + (u16)coord->workm.t[0];
-blk->a.vy = (u16)blk->a.vy + (u16)coord->workm.t[1];
-blk->a.vz = (u16)blk->a.vz + (u16)coord->workm.t[2];
+line->endpoints[0].vx = (u16)line->endpoints[0].vx + (u16)coord->workm.t[0];
+line->endpoints[0].vy = (u16)line->endpoints[0].vy + (u16)coord->workm.t[1];
+line->endpoints[0].vz = (u16)line->endpoints[0].vz + (u16)coord->workm.t[2];
 gRandomLcgState = gRandomLcgState * 5 + 0x71357911;
-blk->b.vx   = (((u32)gRandomLcgState >> 16) & 0x3F) - 0x20;
+line->endpoints[1].vx   = (((u32)gRandomLcgState >> 16) & 0x3F) - 0x20;
 ...
 ```
 
@@ -52883,35 +52883,35 @@ sb    v0,4(a0)
 sb    a2,5(a0)           ; g0 = the copy
 ```
 
-`u32 tmp = (x >> 16) & 0xFF; u8 lvl = tmp;` gets the copy but the wrong way
-round: CSE rewrites the `(set (mem:QI) (reg:QI lvl))` source to
-`(subreg:QI (reg tmp))` because a plain REG source is looked up against its
-equivalence class, and combine then folds `zero_extend(lvl)` in `lvl >> 1` to
+`u32 colorSample = (x >> 16) & 0xFF; u8 greenIntensity = colorSample;` gets the copy but the wrong way
+round: CSE rewrites the `(set (mem:QI) (reg:QI greenIntensity))` source to
+`(subreg:QI (reg colorSample))` because a plain REG source is looked up against its
+equivalence class, and combine then folds `zero_extend(greenIntensity)` in `greenIntensity >> 1` to
 a paradoxical subreg of the copy. `srl` reads `a2`, `sb` reads `a1`. Using
-`tmp >> 1` with a `u8` copy loses the copy altogether.
+`colorSample >> 1` with a `u8` copy loses the copy altogether.
 
 Declare the copy `u16` (or `s16`) and shift the original:
 
 ```c
-u32 tmp;
-u16 lvl;
-tmp = ((u32)gRandomLcgState >> 16) & 0xFF;
-lvl = tmp;
+u32 colorSample;
+u16 greenIntensity;
+colorSample = ((u32)gRandomLcgState >> 16) & 0xFF;
+greenIntensity = colorSample;
 ...
-setRGB0(prim, tmp >> 1, lvl, 0xFF);
+setRGB0(spark, colorSample >> 1, greenIntensity, 0xFF);
 ```
 
-The byte store of a `u16` is `(subreg:QI (reg:HI lvl))`; that source is not a
-bare REG, so `cse_insn` does not swap it for `tmp`'s subreg, and `canon_reg`
-leaves `lvl` alone because it is the first register of its own class. 99.88%
-→ 100% in `func_acropolis_helicopter_landing_pad_80180A64`.
+The byte store of a `u16` is `(subreg:QI (reg:HI greenIntensity))`; that source is not a
+bare REG, so `cse_insn` does not swap it for `colorSample`'s subreg, and `canon_reg`
+leaves `greenIntensity` alone because it is the first register of its own class. 99.88%
+→ 100% in `acropolisHelicopterLandingPadDrawLowerSparkLine`.
 
-## `GsWSMATRIX` (0x80071138) and `Gfx_ViewWorldMtx` (0x80070F34) are different matrices
+## `GsWSMATRIX` (0x80071138) and `gGfxViewCoord.workm` (0x80070F34) are different matrices
 
 Both are loaded with `gte_SetTransMatrix` / `gte_SetRotMatrix` before an
-`rtps`, and both appear in the same room TU: `func_acropolis_helicopter_landing_pad_8017F010`
-projects through `Gfx_ViewWorldMtx`, its sibling
-`func_acropolis_helicopter_landing_pad_80180A64` through `GsWSMATRIX`. The
+`rtps`, and both appear in the same room TU: `_acropolisHelicopterLandingPadDrawPerimeterLight`
+projects through `gGfxViewCoord.workm`, its sibling
+`acropolisHelicopterLandingPadDrawLowerSparkLine` through `GsWSMATRIX`. The
 scratch diff shows the symbol name in the `lui`/`addiu` relocation, and that
 line is the *only* leftover once codegen matches. Read the name off the target
 asm rather than copying the neighbour's; `GsWSMATRIX` needs

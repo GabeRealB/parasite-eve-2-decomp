@@ -3372,10 +3372,10 @@ case1:
         work->blast.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     }
     worldCollisionClearContacts(work->blastContacts);
-    func_acropolis_helicopter_landing_pad_80180A64(&task->extra.tmd->coords[9]);
-    func_acropolis_helicopter_landing_pad_80180A64(&task->extra.tmd->coords[8]);
-    func_acropolis_helicopter_landing_pad_80180A64(&task->extra.tmd->coords[7]);
-    func_acropolis_helicopter_landing_pad_80180A64(&task->extra.tmd->coords[6]);
+    acropolisHelicopterLandingPadDrawLowerSparkLine(&task->extra.tmd->coords[9]);
+    acropolisHelicopterLandingPadDrawLowerSparkLine(&task->extra.tmd->coords[8]);
+    acropolisHelicopterLandingPadDrawLowerSparkLine(&task->extra.tmd->coords[7]);
+    acropolisHelicopterLandingPadDrawLowerSparkLine(&task->extra.tmd->coords[6]);
     work->sparkFrames--;
     next = 2;
     if (work->sparkFrames <= 0) {

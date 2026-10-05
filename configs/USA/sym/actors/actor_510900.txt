@@ -258,7 +258,7 @@ D_actor_510900_8016796C = 0x8016796C; // size:0x14 defined:True
 D_actor_510900_80167CE4 = 0x80167CE4; // size:0x8 defined:True
 D_actor_510900_80167CEC = 0x80167CEC; // size:0x38 defined:True
 
-func_acropolis_helicopter_landing_pad_80180A64 = 0x80180A64; // type:func absolute:True owner=acropolis_helicopter_landing_pad shared=rooms
+acropolisHelicopterLandingPadDrawLowerSparkLine = 0x80180A64; // type:func absolute:True owner=acropolis_helicopter_landing_pad shared=rooms
 
 D_acropolis_helicopter_landing_pad_80187D34 = 0x80187D34; // absolute:True owner=acropolis_helicopter_landing_pad shared=rooms
 

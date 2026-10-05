@@ -174,9 +174,9 @@ D_acropolis_helicopter_landing_pad_80184CF4 = 0x80184CF4; // size:0xA8 defined:T
 D_acropolis_helicopter_landing_pad_80184D9C = 0x80184D9C; // size:0x4 defined:True
 D_acropolis_helicopter_landing_pad_80184DA0 = 0x80184DA0; // size:0x6C defined:True
 
-func_acropolis_helicopter_landing_pad_80180A64 = 0x80180A64; // type:func
+acropolisHelicopterLandingPadDrawLowerSparkLine = 0x80180A64; // type:func
 
-func_acropolis_helicopter_landing_pad_801818F0 = 0x801818F0; // type:func
+acropolisHelicopterLandingPadPerimeterLightsTask = 0x801818F0; // type:func
 
 func_acropolis_helicopter_landing_pad_8017FA30 = 0x8017FA30; // type:func
 
@@ -190,3 +190,8 @@ func_acropolis_helicopter_landing_pad_801802E0 = 0x801802E0; // type:func
 ActorContact_PushContact = 0x801819C0; // type:func
 ActorContact_Push = 0x80181B64; // type:func
 actorMsgPlaceEuler = 0x8017D8E8; // type:func
+_acropolisHelicopterLandingPadTurnPlayerToExit = 0x8017edd4; // type:func
+_acropolisHelicopterLandingPadWaitForPlayerTurn = 0x8017ee2c; // type:func
+_acropolisHelicopterLandingPadDescendExitStairs = 0x8017ee80; // type:func
+_acropolisHelicopterLandingPadDrawPerimeterLight = 0x8017f010; // type:func
+_acropolisHelicopterLandingPadDrawUpperSparkLine = 0x80180664; // type:func
