@@ -3302,7 +3302,7 @@ void func_acropolis_plaza_8017D6D4(void)
                         case 0:
                             switch ((s16)CdCmd_PollStatus(0, 0)) {
                                 case 0:
-                                    break;
+                                    return;
                                 case 2:
                                     CdFlush();
                                     /* fallthrough */
@@ -3319,13 +3319,10 @@ void func_acropolis_plaza_8017D6D4(void)
                                         Stream_PollPlayback(1, q->activeRequest.resumeSector);
                                     }
                                     q->step++;
-                                    /* fallthrough */
-                                default:
-                                    goto poll;
+                                    break;
                             }
-                            break;
+                            /* fallthrough */
                         case 1:
-                        poll:
                             if (q->entries[q->readIdx].cmd == CD_COMMAND_PLAY_STREAM_AT_OFFSET) {
                                 if (Stream_PollPlayback(0, sectorOffset) != 0) {
                                     CdCmd_AdvanceRead();
