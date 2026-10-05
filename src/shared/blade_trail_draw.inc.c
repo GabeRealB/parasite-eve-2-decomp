@@ -1,10 +1,13 @@
 /* Part of the blade trail library; see blade_trail.h. */
 
-/// Colours both ends of a Gouraud quad with fading packed-tint multipliers.
+/// Colours the newer and older edges of a blade-trail quad with one packed tint.
 ///
-/// Brightness values are byte-sized factors. Tint channels are in 0..3 at
-/// bits 8, 4 and 0; red intentionally uses the complete signed high part.
-/// Each resulting colour is narrowed to the packet's byte field.
+/// `quad` borrows one writable `POLY_G4`: vertices 0/1 are the newer base/tip
+/// and vertices 2/3 the older base/tip. Only their RGB bytes are written.
+/// Brightness arguments are integer factors in 0..255. Tint multipliers occupy
+/// bits 8..9 (red), 4..5 (green) and 0..1 (blue), with other bits zero.
+/// Red uses the complete signed high part of `packedTint`, without masking.
+/// Each product is narrowed to its low eight bits without saturation.
 static inline void _bladeTrailTintQuad(POLY_G4* quad, s32 newerBrightness, s32 olderBrightness, s16 packedTint)
 {
     enum {
@@ -12,18 +15,17 @@ static inline void _bladeTrailTintQuad(POLY_G4* quad, s32 newerBrightness, s32 o
         BLADE_TRAIL_TINT_GREEN_SHIFT  = 4,
         BLADE_TRAIL_TINT_CHANNEL_MASK = 3
     };
-    setRGB0(quad, newerBrightness * (packedTint >> BLADE_TRAIL_TINT_RED_SHIFT),
-            newerBrightness * ((packedTint >> BLADE_TRAIL_TINT_GREEN_SHIFT) & BLADE_TRAIL_TINT_CHANNEL_MASK),
-            newerBrightness * (packedTint & BLADE_TRAIL_TINT_CHANNEL_MASK));
-    setRGB1(quad, newerBrightness * (packedTint >> BLADE_TRAIL_TINT_RED_SHIFT),
-            newerBrightness * ((packedTint >> BLADE_TRAIL_TINT_GREEN_SHIFT) & BLADE_TRAIL_TINT_CHANNEL_MASK),
-            newerBrightness * (packedTint & BLADE_TRAIL_TINT_CHANNEL_MASK));
-    setRGB2(quad, olderBrightness * (packedTint >> BLADE_TRAIL_TINT_RED_SHIFT),
-            olderBrightness * ((packedTint >> BLADE_TRAIL_TINT_GREEN_SHIFT) & BLADE_TRAIL_TINT_CHANNEL_MASK),
-            olderBrightness * (packedTint & BLADE_TRAIL_TINT_CHANNEL_MASK));
-    setRGB3(quad, olderBrightness * (packedTint >> BLADE_TRAIL_TINT_RED_SHIFT),
-            olderBrightness * ((packedTint >> BLADE_TRAIL_TINT_GREEN_SHIFT) & BLADE_TRAIL_TINT_CHANNEL_MASK),
-            olderBrightness * (packedTint & BLADE_TRAIL_TINT_CHANNEL_MASK));
+    s32 redMultiplier;
+    s32 greenMultiplier;
+    s32 blueMultiplier;
+
+    redMultiplier   = packedTint >> BLADE_TRAIL_TINT_RED_SHIFT;
+    greenMultiplier = (packedTint >> BLADE_TRAIL_TINT_GREEN_SHIFT) & BLADE_TRAIL_TINT_CHANNEL_MASK;
+    blueMultiplier  = packedTint & BLADE_TRAIL_TINT_CHANNEL_MASK;
+    setRGB0(quad, newerBrightness * redMultiplier, newerBrightness * greenMultiplier, newerBrightness * blueMultiplier);
+    setRGB1(quad, newerBrightness * redMultiplier, newerBrightness * greenMultiplier, newerBrightness * blueMultiplier);
+    setRGB2(quad, olderBrightness * redMultiplier, olderBrightness * greenMultiplier, olderBrightness * blueMultiplier);
+    setRGB3(quad, olderBrightness * redMultiplier, olderBrightness * greenMultiplier, olderBrightness * blueMultiplier);
 }
 
 /// Queues a fading additive ribbon through eight recorded blade poses.
