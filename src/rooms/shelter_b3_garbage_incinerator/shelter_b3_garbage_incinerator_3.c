@@ -80,8 +80,8 @@ static void _effectSpriteDrawRotated(const GfxCoord* coord, u16 frameAndPalette,
 #define D_shelter_b3_garbage_incinerator_801875B4 (D_shelter_b3_garbage_incinerator_80187544 + 14)
 #define D_shelter_b3_garbage_incinerator_80187614 (D_shelter_b3_garbage_incinerator_80187544 + 26)
 
-static void func_shelter_b3_garbage_incinerator_80183E78(SVECTOR* v, s32 arg1, s32 arg2, s32 arg3);
-static void func_shelter_b3_garbage_incinerator_801842A4(SVECTOR* v, u16 arg1, u16 arg2, u16 arg3);
+static void _shelterB3GarbageIncineratorDrawPulsingDisc(const SVECTOR* worldPoint, s32 radiusScale, s32 packedColor, s32 pulseRate);
+static void _shelterB3GarbageIncineratorDrawLayeredGlow(const SVECTOR* worldPoint, u16 radiusScale, u16 packedColor, u16 pulseAndRotation);
 
 extern TaskDesc D_actor_341900_80164190[];
 
@@ -97,7 +97,7 @@ extern u16 D_shelter_b3_garbage_incinerator_8018FBCC[][4];
 extern TaskDesc D_actor_207000_801575F0;
 extern TaskDesc D_shelter_b3_garbage_incinerator_8018FAC0[2];
 void            func_shelter_b3_garbage_incinerator_80184D84(Task*);
-void            func_shelter_b3_garbage_incinerator_80184ECC(Task*);
+static void     _shelterB3GarbageIncineratorKillTask(Task* task);
 
 OverlayEncounterSpot D_shelter_b3_garbage_incinerator_801874C4[16] = {
     { 2000, -2500, 300, 2048 },
@@ -1752,7 +1752,7 @@ AreaVariant D_shelter_b3_garbage_incinerator_8018FA58[13] = {
 
 TaskDesc D_shelter_b3_garbage_incinerator_8018FAC0[2] = {
     { { { TASK_BODY_NONE, 192 } }, func_shelter_b3_garbage_incinerator_80184D84, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_shelter_b3_garbage_incinerator_80184ECC, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _shelterB3GarbageIncineratorKillTask, { .value = 0 } },
 };
 
 WorldCollisionOccluder D_shelter_b3_garbage_incinerator_8018FAD8[1] = {
@@ -1888,8 +1888,6 @@ ScreenWaveGridOscillator gScreenWaveRows[30];
 
 POLY_FT4 gScreenWaveGrid[2][30][8];
 
-static void func_shelter_b3_garbage_incinerator_80184D7C(void);
-static void func_shelter_b3_garbage_incinerator_80184EEC(void);
 static void func_shelter_b3_garbage_incinerator_80185574(void);
 
 void func_shelter_b3_garbage_incinerator_8018110C(Task* task)
@@ -1922,10 +1920,10 @@ void func_shelter_b3_garbage_incinerator_8018110C(Task* task)
             glowDrawDisc(&D_shelter_b3_garbage_incinerator_8018759C[0], 0x200, 0x5400);
             glowDrawDisc(&D_shelter_b3_garbage_incinerator_8018759C[1], 0x200, 0x5400);
             glowDrawDisc(&D_shelter_b3_garbage_incinerator_8018759C[5], 0x200, 0x5400);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_8018759C[16], 0x300, 0x400, 0x40);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_8018759C[17], 0x300, 0x400, 0x40);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_8018759C[24], 0x300, 0x400, 0x40);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_8018759C[25], 0x300, 0x400, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_8018759C[16], 0x300, 0x400, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_8018759C[17], 0x300, 0x400, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_8018759C[24], 0x300, 0x400, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_8018759C[25], 0x300, 0x400, 0x40);
             break;
         case 0x03:
         case 0x17:
@@ -1935,16 +1933,16 @@ void func_shelter_b3_garbage_incinerator_8018110C(Task* task)
             glowDrawDisc(&D_shelter_b3_garbage_incinerator_8018759C[5], 0x200, 0x5200);
             glowDrawDisc(&D_shelter_b3_garbage_incinerator_8018759C[6], 0x200, 0x5300);
             glowDrawDisc(&D_shelter_b3_garbage_incinerator_8018759C[7], 0x200, 0x5400);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_8018759C[16], 0x300, 0x200, 0x40);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_8018759C[17], 0x300, 0x300, 0x40);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_8018759C[18], 0x300, 0x300, 0x40);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_8018759C[19], 0x300, 0x400, 0x40);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_8018759C[20], 0x300, 0x400, 0x40);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_8018759C[24], 0x300, 0x200, 0x40);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_8018759C[25], 0x300, 0x300, 0x40);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_8018759C[26], 0x300, 0x300, 0x40);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_8018759C[27], 0x300, 0x400, 0x40);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_8018759C[28], 0x300, 0x400, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_8018759C[16], 0x300, 0x200, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_8018759C[17], 0x300, 0x300, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_8018759C[18], 0x300, 0x300, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_8018759C[19], 0x300, 0x400, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_8018759C[20], 0x300, 0x400, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_8018759C[24], 0x300, 0x200, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_8018759C[25], 0x300, 0x300, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_8018759C[26], 0x300, 0x300, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_8018759C[27], 0x300, 0x400, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_8018759C[28], 0x300, 0x400, 0x40);
             break;
         case 0x04:
         case 0x18:
@@ -1953,16 +1951,16 @@ void func_shelter_b3_garbage_incinerator_8018110C(Task* task)
             glowDrawDisc(&D_shelter_b3_garbage_incinerator_801875AC[2], 0x200, 0x5200);
             glowDrawDisc(&D_shelter_b3_garbage_incinerator_801875AC[6], 0x200, 0x5300);
             glowDrawDisc(&D_shelter_b3_garbage_incinerator_801875AC[7], 0x200, 0x5400);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_801875AC[18], 0x300, 0x200, 0x40);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_801875AC[19], 0x300, 0x200, 0x40);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_801875AC[20], 0x300, 0x200, 0x40);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_801875AC[21], 0x300, 0x200, 0x40);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_801875AC[28], 0x300, 0x400, 0x40);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_801875AC[29], 0x300, 0x400, 0x40);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_801875AC[30], 0x300, 0x300, 0x40);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_801875AC[31], 0x300, 0x300, 0x40);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_801875AC[32], 0x300, 0x400, 0x40);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_801875AC[33], 0x300, 0x400, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_801875AC[18], 0x300, 0x200, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_801875AC[19], 0x300, 0x200, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_801875AC[20], 0x300, 0x200, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_801875AC[21], 0x300, 0x200, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_801875AC[28], 0x300, 0x400, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_801875AC[29], 0x300, 0x400, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_801875AC[30], 0x300, 0x300, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_801875AC[31], 0x300, 0x300, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_801875AC[32], 0x300, 0x400, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_801875AC[33], 0x300, 0x400, 0x40);
             break;
         case 0x05:
         case 0x19:
@@ -1972,23 +1970,23 @@ void func_shelter_b3_garbage_incinerator_8018110C(Task* task)
             glowDrawDisc(&D_shelter_b3_garbage_incinerator_801875B4[6], 0x200, 0x5300);
             glowDrawDisc(&D_shelter_b3_garbage_incinerator_801875B4[7], 0x200, 0x5400);
             glowDrawDisc(&D_shelter_b3_garbage_incinerator_801875B4[10], 0x200, 0x5400);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_801875B4[19], 0x300, 0x100, 0x40);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_801875B4[20], 0x300, 0x100, 0x40);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_801875B4[28], 0x300, 0x100, 0x40);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_801875B4[29], 0x300, 0x100, 0x40);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_801875B4[30], 0x300, 0x200, 0x40);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_801875B4[31], 0x300, 0x200, 0x40);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_801875B4[32], 0x300, 0x200, 0x40);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_801875B4[33], 0x300, 0x300, 0x40);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_801875B4[34], 0x300, 0x400, 0x40);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_801875B4[49], 0x300, 0x200, 0x40);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_801875B4[50], 0x300, 0x300, 0x40);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_801875B4[51], 0x300, 0x400, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_801875B4[19], 0x300, 0x100, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_801875B4[20], 0x300, 0x100, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_801875B4[28], 0x300, 0x100, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_801875B4[29], 0x300, 0x100, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_801875B4[30], 0x300, 0x200, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_801875B4[31], 0x300, 0x200, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_801875B4[32], 0x300, 0x200, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_801875B4[33], 0x300, 0x300, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_801875B4[34], 0x300, 0x400, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_801875B4[49], 0x300, 0x200, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_801875B4[50], 0x300, 0x300, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_801875B4[51], 0x300, 0x400, 0x40);
             break;
         case 0x06:
         case 0x1A:
         case 0x23:
-            func_shelter_b3_garbage_incinerator_801842A4(&D_shelter_b3_garbage_incinerator_80187544[0], 0x200, work->scale, 0x80);
+            _shelterB3GarbageIncineratorDrawLayeredGlow(&D_shelter_b3_garbage_incinerator_80187544[0], 0x200, work->scale, 0x80);
             glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[9], 0x200, 0x3444);
             glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[10], 0x200, 0x3444);
             glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[19], 0x200, 0x5100);
@@ -1997,25 +1995,25 @@ void func_shelter_b3_garbage_incinerator_8018110C(Task* task)
             glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[22], 0x200, 0x5400);
             glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[24], 0x200, 0x5300);
             glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[25], 0x200, 0x5400);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_80187544[42], 0x300, 0x100, 0x40);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_80187544[45], 0x300, 0x100, 0x40);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_80187544[46], 0x300, 0x100, 0x40);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_80187544[47], 0x300, 0x100, 0x40);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_80187544[48], 0x300, 0x200, 0x40);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_80187544[49], 0x300, 0x200, 0x40);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_80187544[50], 0x300, 0x300, 0x40);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_80187544[51], 0x300, 0x300, 0x40);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_80187544[63], 0x300, 0x100, 0x40);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_80187544[64], 0x300, 0x200, 0x40);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_80187544[65], 0x300, 0x200, 0x40);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_80187544[66], 0x300, 0x300, 0x40);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_80187544[67], 0x300, 0x300, 0x40);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_80187544[68], 0x300, 0x400, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[42], 0x300, 0x100, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[45], 0x300, 0x100, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[46], 0x300, 0x100, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[47], 0x300, 0x100, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[48], 0x300, 0x200, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[49], 0x300, 0x200, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[50], 0x300, 0x300, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[51], 0x300, 0x300, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[63], 0x300, 0x100, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[64], 0x300, 0x200, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[65], 0x300, 0x200, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[66], 0x300, 0x300, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[67], 0x300, 0x300, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[68], 0x300, 0x400, 0x40);
             break;
         case 0x07:
         case 0x1B:
         case 0x24:
-            func_shelter_b3_garbage_incinerator_801842A4(&D_shelter_b3_garbage_incinerator_80187544[0], 0x200, work->scale, 0x80);
+            _shelterB3GarbageIncineratorDrawLayeredGlow(&D_shelter_b3_garbage_incinerator_80187544[0], 0x200, work->scale, 0x80);
             glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[9], 0x200, 0x3444);
             glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[10], 0x200, 0x3444);
             glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[20], 0x200, 0x5100);
@@ -2023,59 +2021,59 @@ void func_shelter_b3_garbage_incinerator_8018110C(Task* task)
             glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[22], 0x200, 0x5300);
             glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[24], 0x200, 0x5200);
             glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[25], 0x200, 0x5300);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_80187544[47], 0x300, 0x100, 0x40);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_80187544[48], 0x300, 0x100, 0x40);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_80187544[49], 0x300, 0x200, 0x40);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_80187544[50], 0x300, 0x200, 0x40);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_80187544[51], 0x300, 0x300, 0x40);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_80187544[52], 0x300, 0x300, 0x40);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_80187544[53], 0x300, 0x400, 0x40);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_80187544[54], 0x300, 0x400, 0x40);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_80187544[55], 0x300, 0x400, 0x40);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_80187544[64], 0x300, 0x100, 0x40);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_80187544[65], 0x300, 0x100, 0x40);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_80187544[66], 0x300, 0x200, 0x40);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_80187544[67], 0x300, 0x200, 0x40);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_80187544[68], 0x300, 0x300, 0x40);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_80187544[69], 0x300, 0x300, 0x40);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_80187544[70], 0x300, 0x400, 0x40);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_80187544[71], 0x300, 0x400, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[47], 0x300, 0x100, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[48], 0x300, 0x100, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[49], 0x300, 0x200, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[50], 0x300, 0x200, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[51], 0x300, 0x300, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[52], 0x300, 0x300, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[53], 0x300, 0x400, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[54], 0x300, 0x400, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[55], 0x300, 0x400, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[64], 0x300, 0x100, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[65], 0x300, 0x100, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[66], 0x300, 0x200, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[67], 0x300, 0x200, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[68], 0x300, 0x300, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[69], 0x300, 0x300, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[70], 0x300, 0x400, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[71], 0x300, 0x400, 0x40);
             break;
         case 0x08:
         case 0x1C:
         case 0x22:
         case 0x25:
-            func_shelter_b3_garbage_incinerator_801842A4(&D_shelter_b3_garbage_incinerator_80187544[0], 0x200, work->scale, 0x80);
-            func_shelter_b3_garbage_incinerator_801842A4(&D_shelter_b3_garbage_incinerator_80187544[1], 0x200, work->scale, 0x80);
+            _shelterB3GarbageIncineratorDrawLayeredGlow(&D_shelter_b3_garbage_incinerator_80187544[0], 0x200, work->scale, 0x80);
+            _shelterB3GarbageIncineratorDrawLayeredGlow(&D_shelter_b3_garbage_incinerator_80187544[1], 0x200, work->scale, 0x80);
             if (gGameSession->incineratorExitPhase == GAME_SESSION_INCINERATOR_EXIT_WARP) {
-                func_shelter_b3_garbage_incinerator_801842A4(&D_shelter_b3_garbage_incinerator_80187544[3], 0x200, 0xF63, 0x10C0);
+                _shelterB3GarbageIncineratorDrawLayeredGlow(&D_shelter_b3_garbage_incinerator_80187544[3], 0x200, 0xF63, 0x10C0);
             }
             glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[20], 0x200, 0x5400);
             glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[21], 0x200, 0x5400);
             glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[22], 0x200, 0x5400);
             glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[24], 0x200, 0x5400);
             glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[25], 0x200, 0x5400);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_80187544[49], 0x300, 0x100, 0x40);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_80187544[50], 0x300, 0x0, 0x40);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_80187544[51], 0x300, 0x200, 0x40);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_80187544[52], 0x300, 0x200, 0x40);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_80187544[53], 0x300, 0x300, 0x40);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_80187544[54], 0x300, 0x300, 0x40);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_80187544[55], 0x300, 0x400, 0x40);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_80187544[56], 0x300, 0x400, 0x40);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_80187544[57], 0x300, 0x400, 0x40);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_80187544[67], 0x300, 0x100, 0x40);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_80187544[68], 0x300, 0x100, 0x40);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_80187544[69], 0x300, 0x200, 0x40);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_80187544[70], 0x300, 0x200, 0x40);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_80187544[71], 0x300, 0x300, 0x40);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_80187544[72], 0x300, 0x300, 0x40);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_80187544[73], 0x300, 0x400, 0x40);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_80187544[74], 0x300, 0x400, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[49], 0x300, 0x100, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[50], 0x300, 0x0, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[51], 0x300, 0x200, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[52], 0x300, 0x200, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[53], 0x300, 0x300, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[54], 0x300, 0x300, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[55], 0x300, 0x400, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[56], 0x300, 0x400, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[57], 0x300, 0x400, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[67], 0x300, 0x100, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[68], 0x300, 0x100, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[69], 0x300, 0x200, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[70], 0x300, 0x200, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[71], 0x300, 0x300, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[72], 0x300, 0x300, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[73], 0x300, 0x400, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[74], 0x300, 0x400, 0x40);
             break;
         case 0x09:
         case 0x1D:
-            func_shelter_b3_garbage_incinerator_801842A4(&D_shelter_b3_garbage_incinerator_8018754C[0], 0x200, work->scale, 0x80);
+            _shelterB3GarbageIncineratorDrawLayeredGlow(&D_shelter_b3_garbage_incinerator_8018754C[0], 0x200, work->scale, 0x80);
             glowDrawDisc(&D_shelter_b3_garbage_incinerator_8018754C[5], 0x280, 0x3040);
             glowDrawDisc(&D_shelter_b3_garbage_incinerator_8018754C[6], 0x200, 0x3444);
             glowDrawDisc(&D_shelter_b3_garbage_incinerator_8018754C[7], 0x200, 0x3444);
@@ -2083,11 +2081,11 @@ void func_shelter_b3_garbage_incinerator_8018110C(Task* task)
             glowDrawDisc(&D_shelter_b3_garbage_incinerator_8018754C[25], 0x200, 0x5400);
             break;
         case 0x0A:
-            func_shelter_b3_garbage_incinerator_801842A4(&D_shelter_b3_garbage_incinerator_80187554[0], 0x180, 0x3F6, 0xC0);
+            _shelterB3GarbageIncineratorDrawLayeredGlow(&D_shelter_b3_garbage_incinerator_80187554[0], 0x180, 0x3F6, 0xC0);
             /* fallthrough */
         case 0x1E:
         case 0x26:
-            func_shelter_b3_garbage_incinerator_801842A4(&D_shelter_b3_garbage_incinerator_80187544[0], 0x200, work->scale, 0x80);
+            _shelterB3GarbageIncineratorDrawLayeredGlow(&D_shelter_b3_garbage_incinerator_80187544[0], 0x200, work->scale, 0x80);
             glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[9], 0x200, 0x3444);
             glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[10], 0x200, 0x3444);
             glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[22], 0x200, 0x5400);
@@ -2102,20 +2100,20 @@ void func_shelter_b3_garbage_incinerator_8018110C(Task* task)
             glowDrawDisc(&D_shelter_b3_garbage_incinerator_801875AC[5], 0x200, 0x5400);
             glowDrawDisc(&D_shelter_b3_garbage_incinerator_801875AC[6], 0x200, 0x5100);
             glowDrawDisc(&D_shelter_b3_garbage_incinerator_801875AC[7], 0x200, 0x5100);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_801875AC[20], 0x300, 0x400, 0x40);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_801875AC[21], 0x300, 0x300, 0x40);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_801875AC[28], 0x300, 0x400, 0x40);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_801875AC[29], 0x300, 0x300, 0x40);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_801875AC[30], 0x300, 0x300, 0x40);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_801875AC[31], 0x300, 0x200, 0x40);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_801875AC[32], 0x300, 0x300, 0x40);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_801875AC[33], 0x300, 0x200, 0x40);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_801875AC[34], 0x300, 0x300, 0x40);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_801875AC[50], 0x300, 0x100, 0x40);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_801875AC[51], 0x300, 0x100, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_801875AC[20], 0x300, 0x400, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_801875AC[21], 0x300, 0x300, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_801875AC[28], 0x300, 0x400, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_801875AC[29], 0x300, 0x300, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_801875AC[30], 0x300, 0x300, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_801875AC[31], 0x300, 0x200, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_801875AC[32], 0x300, 0x300, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_801875AC[33], 0x300, 0x200, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_801875AC[34], 0x300, 0x300, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_801875AC[50], 0x300, 0x100, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_801875AC[51], 0x300, 0x100, 0x40);
             break;
         case 0x0E:
-            func_shelter_b3_garbage_incinerator_801842A4(&D_shelter_b3_garbage_incinerator_80187544[0], 0x200, work->scale, 0x80);
+            _shelterB3GarbageIncineratorDrawLayeredGlow(&D_shelter_b3_garbage_incinerator_80187544[0], 0x200, work->scale, 0x80);
             glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[9], 0x200, 0x3444);
             glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[10], 0x200, 0x3444);
             glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[22], 0x200, 0x5400);
@@ -2123,14 +2121,14 @@ void func_shelter_b3_garbage_incinerator_8018110C(Task* task)
         case 0x0F:
         case 0x1F:
         case 0x27:
-            func_shelter_b3_garbage_incinerator_801842A4(&D_shelter_b3_garbage_incinerator_8018754C[0], 0x200, work->scale, 0x80);
+            _shelterB3GarbageIncineratorDrawLayeredGlow(&D_shelter_b3_garbage_incinerator_8018754C[0], 0x200, work->scale, 0x80);
             if (gGameSession->incineratorExitPhase == GAME_SESSION_INCINERATOR_EXIT_WARP) {
-                func_shelter_b3_garbage_incinerator_801842A4(&D_shelter_b3_garbage_incinerator_8018754C[2], 0x200, 0xF63, 0x10C0);
+                _shelterB3GarbageIncineratorDrawLayeredGlow(&D_shelter_b3_garbage_incinerator_8018754C[2], 0x200, 0xF63, 0x10C0);
             }
             break;
         case 0x10:
         case 0x20:
-            func_shelter_b3_garbage_incinerator_801842A4(&D_shelter_b3_garbage_incinerator_80187544[0], 0x200, work->scale, 0x80);
+            _shelterB3GarbageIncineratorDrawLayeredGlow(&D_shelter_b3_garbage_incinerator_80187544[0], 0x200, work->scale, 0x80);
             glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[9], 0x200, 0x3333);
             glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[10], 0x200, 0x3333);
             glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[20], 0x100, 0x5400);
@@ -2143,27 +2141,27 @@ void func_shelter_b3_garbage_incinerator_8018110C(Task* task)
             glowDrawDisc(&D_shelter_b3_garbage_incinerator_8018759C[0], 0x200, 0x5300);
             glowDrawDisc(&D_shelter_b3_garbage_incinerator_8018759C[1], 0x200, 0x5400);
             glowDrawDisc(&D_shelter_b3_garbage_incinerator_8018759C[5], 0x200, 0x5300);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_8018759C[16], 0x300, 0x400, 0x40);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_8018759C[17], 0x300, 0x300, 0x40);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_8018759C[24], 0x300, 0x400, 0x40);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_8018759C[25], 0x300, 0x300, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_8018759C[16], 0x300, 0x400, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_8018759C[17], 0x300, 0x300, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_8018759C[24], 0x300, 0x400, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_8018759C[25], 0x300, 0x300, 0x40);
             break;
         case 0x12:
         case 0x21:
-            func_shelter_b3_garbage_incinerator_801842A4(&D_shelter_b3_garbage_incinerator_80187544[0], 0x200, work->scale, 0x80);
+            _shelterB3GarbageIncineratorDrawLayeredGlow(&D_shelter_b3_garbage_incinerator_80187544[0], 0x200, work->scale, 0x80);
             break;
         case 0x13:
             glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187614[0], 0x200, 0x3400);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_80187614[35], 0x300, 0x400, 0x40);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_80187614[36], 0x300, 0x400, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187614[35], 0x300, 0x400, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187614[36], 0x300, 0x400, 0x40);
             break;
         case 0x15:
             glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187574[0], 0x280, 0x3400);
             glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187574[1], 0x200, 0x3444);
             glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187574[2], 0x200, 0x3444);
             glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187574[20], 0x200, 0x5400);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_80187574[56], 0x300, 0x400, 0x40);
-            func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_80187574[72], 0x300, 0x400, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187574[56], 0x300, 0x400, 0x40);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187574[72], 0x300, 0x400, 0x40);
             break;
     }
 }
@@ -2184,208 +2182,241 @@ void func_shelter_b3_garbage_incinerator_8018110C(Task* task)
 
 #include "../../shared/effect_sprite_draw_billboard.inc.c"
 
-static void func_shelter_b3_garbage_incinerator_80183E78(SVECTOR* v, s32 arg1, s32 arg2, s32 arg3)
+/// Draws a sine-pulsed additive disc around a world point.
+///
+/// The signed low halfword of `radiusScale` gives a pixel radius of
+/// `radiusScale * 64 / depth`, with depth equal to camera Z / 4. RGB nibbles
+/// in `packedColor` bits 8..11, 4..7 and 0..3 scale a centre intensity of
+/// `rsin(animFrame * pulseRate) / 34 + 120`; the rim is black. `pulseRate`
+/// uses its signed low halfword, in 4096 angle units per animation frame.
+/// Rejects negative GTE flags and requires nonzero depth. Borrows `worldPoint`
+/// during the call, reserves one scratch block, and queues four Gouraud quads
+/// plus additive blend commands in the current frame's packet arena. View
+/// matrices, scratch stack and arena must be ready.
+static void _shelterB3GarbageIncineratorDrawPulsingDisc(const SVECTOR* worldPoint, s32 radiusScale, s32 packedColor, s32 pulseRate)
 {
-    u8*                head;
     GlowCentreScratch* block;
-    POLY_G4*           prim;
-    s32                ang;
-    s32                t;
-    s32                t2;
-    u8                 lvl;
-    u8                 r;
-    u8                 g;
-    u8                 b;
+    POLY_G4*           wedge;
+    s32                screenRadius;
+    s32                angle;
+    s32                halfStepAngle;
+    s32                nextAngle;
+    u8                 pulseLevel;
+    u8                 red;
+    u8                 green;
+    u8                 blue;
 
-    head                       = SCRATCH_STACK_CURSOR(void);
-    SCRATCH_STACK_CURSOR(void) = head - 0x10;
-    block                      = SCRATCH_STACK_CURSOR(GlowCentreScratch);
+    block = SCRATCH_STACK_RESERVE_BLOCK(GlowCentreScratch);
 
+    // Project once; all wedges share the screen centre and sorting depth.
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
-    gte_ldv0(v);
-    gte_rtps();
-    gte_stsxy(&((GlowCentreScratch*)(head - 0x10))->sx);
-    gte_stflg(&((GlowCentreScratch*)(head - 0x10))->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&block->otz);
-        lvl           = rsin(gDisplayState.animFrame * (s16)arg3) / 34 + 0x78;
-        arg1          = ((s16)arg1 * 64) / ((GlowCentreScratch*)(head - 0x10))->otz;
-        r             = lvl * (((s16)arg2 >> 8) & 0xF) / 15;
-        g             = lvl * (((s16)arg2 >> 4) & 0xF) / 15;
-        b             = lvl * (arg2 & 0xF) / 15;
-        ang           = 0;
-        block->radius = arg1;
-        do {
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, r, g, b);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx + ((block->radius * rsin(ang)) >> 12);
-            t        = ang + 0x200;
-            prim->y0 = block->sy + ((block->radius * rcos(ang)) >> 12);
-            prim->x1 = block->sx + ((block->radius * rsin(t)) >> 12);
-            prim->y1 = block->sy + ((block->radius * rcos(t)) >> 12);
-            t2       = ang + 0x400;
-            prim->x2 = block->sx;
-            prim->y2 = block->sy;
-            prim->x3 = block->sx + ((block->radius * rsin(t2)) >> 12);
-            prim->y3 = block->sy + ((block->radius * rcos(t2)) >> 12);
-            ang      = t2;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
-        } while (ang < 0x1000);
-    }
-    SCRATCH_STACK_RELEASE_BYTES(0x10);
-}
-
-static void func_shelter_b3_garbage_incinerator_801842A4(SVECTOR* arg0, u16 arg1, u16 arg2, u16 arg3)
-{
-    GlowCentreRadiiScratch* block;
-    POLY_G4*                prim;
-    s32                     ang;
-    s32                     t;
-    s32                     t2;
-    s32                     ua;
-    s32                     ub;
-    s32                     uc;
-    u16                     frame;
-    u16                     start;
-    s32                     blend;
-    u32                     packed;
-    u8                      lvl;
-    u8                      r;
-    u8                      g;
-    u8                      b;
-
-    block = SCRATCH_STACK_RESERVE_BLOCK(GlowCentreRadiiScratch);
-
-    gte_SetTransMatrix(&gGfxViewCoord.workm);
-    gte_SetRotMatrix(&gGfxViewCoord.workm);
-    gte_ldv0(arg0);
+    gte_ldv0(worldPoint);
     gte_rtps();
     gte_stsxy(&block->sx);
     gte_stflg(&block->flag);
     if (block->flag >= 0) {
         gte_stszotz(&block->otz);
-        frame = gDisplayState.animFrame;
-        if (arg3 & 0x1000) {
-            start = (frame << 7) & 0xF80;
+        pulseLevel    = rsin(gDisplayState.animFrame * (s16)pulseRate) / GLOW_PULSE_DIVISOR + GLOW_PULSE_BASE_INTENSITY;
+        screenRadius  = ((s16)radiusScale * GLOW_RADIUS_SCALE) / block->otz;
+        red           = pulseLevel * (((s16)packedColor >> 8) & 0xF) / 15;
+        green         = pulseLevel * (((s16)packedColor >> 4) & 0xF) / 15;
+        blue          = pulseLevel * (packedColor & 0xF) / 15;
+        angle         = 0;
+        block->radius = screenRadius;
+        do {
+            wedge         = _glowAllocateDiscWedge(red, green, blue);
+            wedge->x0     = block->sx + ((block->radius * rsin(angle)) >> GLOW_TRIG_SHIFT);
+            halfStepAngle = angle + GLOW_EIGHTH_TURN;
+            wedge->y0     = block->sy + ((block->radius * rcos(angle)) >> GLOW_TRIG_SHIFT);
+            wedge->x1     = block->sx + ((block->radius * rsin(halfStepAngle)) >> GLOW_TRIG_SHIFT);
+            wedge->y1     = block->sy + ((block->radius * rcos(halfStepAngle)) >> GLOW_TRIG_SHIFT);
+            nextAngle     = angle + GLOW_QUARTER_TURN;
+            wedge->x2     = block->sx;
+            wedge->y2     = block->sy;
+            wedge->x3     = block->sx + ((block->radius * rsin(nextAngle)) >> GLOW_TRIG_SHIFT);
+            wedge->y3     = block->sy + ((block->radius * rcos(nextAngle)) >> GLOW_TRIG_SHIFT);
+            angle         = nextAngle;
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                    wedge);
+            gpuSetPrimitiveBlendMode(wedge, GPU_BLEND_ADD, block->otz);
+        } while (angle < GLOW_FULL_TURN);
+    }
+    SCRATCH_STACK_RELEASE_BLOCK(GlowCentreScratch);
+}
+
+/// Draws two tinted glow fans and four blades around a world point.
+///
+/// `radiusScale` gives outer/inner pixel radii of `radiusScale * 64 / depth`
+/// and `radiusScale * 8 / depth`, with depth equal to camera Z / 4. RGB nibbles
+/// are in `packedColor` bits 8..11, 4..7 and 0..3. A nonzero high nibble adds
+/// `1 << nibble` on odd frames to each nibble scaled by 16; bytes wrap.
+/// With a zero high nibble, intensity is the byte-wrapped result of
+/// `rsin(animFrame * rate) / 68 - 76`, ranging from 120 to 240.
+///
+/// `pulseAndRotation` bits 0..11 are the rate, in 4096 angle units per frame;
+/// bit 12 rotates by 128 units per frame. Higher bits are ignored. Eight dim
+/// outer wedges have bright copies at half radius; half-bright blades alternate
+/// between the outer radius and twice it. Rejects negative GTE flags and requires
+/// nonzero depth. Borrows `worldPoint` during the call, reserves one scratch
+/// block, and queues twenty additive quads plus blend commands in the current
+/// frame's packet arena. View matrices, scratch stack and arena must be ready.
+static void _shelterB3GarbageIncineratorDrawLayeredGlow(const SVECTOR* worldPoint, u16 radiusScale, u16 packedColor, u16 pulseAndRotation)
+{
+    enum {
+        SHELTER_B3_GARBAGE_INCINERATOR_GLOW_ROTATE         = 0x1000,
+        SHELTER_B3_GARBAGE_INCINERATOR_GLOW_PHASE_MASK     = GLOW_FULL_TURN - 1,
+        SHELTER_B3_GARBAGE_INCINERATOR_GLOW_ROTATION_SHIFT = 7,
+        SHELTER_B3_GARBAGE_INCINERATOR_GLOW_ROTATION_MASK  = 0xF80,
+        SHELTER_B3_GARBAGE_INCINERATOR_GLOW_FLICKER_MASK   = 0xF000,
+        SHELTER_B3_GARBAGE_INCINERATOR_GLOW_PULSE_DIVISOR  = 68,
+        SHELTER_B3_GARBAGE_INCINERATOR_GLOW_PULSE_SUBTRACT = 76,
+    };
+
+    GlowCentreRadiiScratch* block;
+    POLY_G4*                wedge;
+    s32                     angle;
+    s32                     halfStepAngle;
+    s32                     nextAngle;
+    s32                     previousBladeAngle;
+    s32                     nextBladeAngle;
+    s32                     oppositeBladeAngle;
+    u16                     animationFrame;
+    u16                     startAngle;
+    s32                     flicker;
+    u32                     colorWord;
+    u8                      pulseLevel;
+    u8                      red;
+    u8                      green;
+    u8                      blue;
+
+    /// Initializes a glow quad with a coloured vertex 2 and a black rim.
+    ///
+    /// `packet` must be a side-effect-free pointer to writable POLY_G4 storage;
+    /// it is evaluated repeatedly. Each colour is evaluated once and narrows to
+    /// a byte. Captures no locals; geometry, DMA linkage and blend remain unset.
+#define SHELTER_B3_GARBAGE_INCINERATOR_INIT_GLOW_WEDGE(packet, red, green, blue) \
+    (setPolyG4(packet),                                                          \
+     setRGB0(packet, 0, 0, 0),                                                   \
+     setRGB1(packet, 0, 0, 0),                                                   \
+     setRGB2(packet, (red), (green), (blue)),                                    \
+     setRGB3(packet, 0, 0, 0))
+
+    block = SCRATCH_STACK_RESERVE_BLOCK(GlowCentreRadiiScratch);
+
+    // Project once; the two fans and four blades share the centre and depth.
+    gte_SetTransMatrix(&gGfxViewCoord.workm);
+    gte_SetRotMatrix(&gGfxViewCoord.workm);
+    gte_ldv0(worldPoint);
+    gte_rtps();
+    gte_stsxy(&block->sx);
+    gte_stflg(&block->flag);
+    if (block->flag >= 0) {
+        gte_stszotz(&block->otz);
+        animationFrame = gDisplayState.animFrame;
+        if (pulseAndRotation & SHELTER_B3_GARBAGE_INCINERATOR_GLOW_ROTATE) {
+            startAngle = (animationFrame << SHELTER_B3_GARBAGE_INCINERATOR_GLOW_ROTATION_SHIFT) & SHELTER_B3_GARBAGE_INCINERATOR_GLOW_ROTATION_MASK;
         } else {
-            start = 0;
+            startAngle = 0;
         }
-        arg3 &= 0xFFF;
-        if (arg2 & 0xF000) {
-            blend   = frame & 1;
-            packed  = arg2;
-            blend <<= packed >> 12;
-            r       = blend + ((packed >> 4) & 0xF0);
-            g       = blend + (packed & 0xF0);
-            b       = blend + ((arg2 & 0xF) << 4);
+        pulseAndRotation &= SHELTER_B3_GARBAGE_INCINERATOR_GLOW_PHASE_MASK;
+        // A nonzero high nibble selects frame flicker; zero selects a wrapped pulse.
+        if (packedColor & SHELTER_B3_GARBAGE_INCINERATOR_GLOW_FLICKER_MASK) {
+            flicker   = animationFrame & 1;
+            colorWord = packedColor;
+            flicker <<= colorWord >> 12;
+            red       = flicker + ((colorWord >> 4) & 0xF0);
+            green     = flicker + (colorWord & 0xF0);
+            blue      = flicker + ((packedColor & 0xF) << 4);
         } else {
-            lvl = rsin((frame * arg3) & 0xFFF) / 68 - 0x4C;
-            r   = lvl * ((arg2 >> 8) & 0xF) / 15;
-            g   = lvl * ((arg2 >> 4) & 0xF) / 15;
-            b   = lvl * (arg2 & 0xF) / 15;
+            pulseLevel = rsin((animationFrame * pulseAndRotation) & SHELTER_B3_GARBAGE_INCINERATOR_GLOW_PHASE_MASK) / SHELTER_B3_GARBAGE_INCINERATOR_GLOW_PULSE_DIVISOR - SHELTER_B3_GARBAGE_INCINERATOR_GLOW_PULSE_SUBTRACT;
+            red        = pulseLevel * ((packedColor >> 8) & 0xF) / 15;
+            green      = pulseLevel * ((packedColor >> 4) & 0xF) / 15;
+            blue       = pulseLevel * (packedColor & 0xF) / 15;
         }
-        block->outerRadius = (arg1 * 64) / block->otz;
-        block->innerRadius = (arg1 * 8) / block->otz;
-        for (ang = start; ang < start + 0x1000; ang = t2) {
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, (u8)r >> 1, (u8)g >> 1, (u8)b >> 1);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx + ((block->outerRadius * rsin(ang)) >> 12);
-            t        = ang + 0x100;
-            prim->y0 = block->sy + ((block->outerRadius * rcos(ang)) >> 12);
-            prim->x1 = block->sx + ((block->outerRadius * rsin(t)) >> 12);
-            prim->y1 = block->sy + ((block->outerRadius * rcos(t)) >> 12);
-            t2       = ang + 0x200;
-            prim->x2 = block->sx;
-            prim->y2 = block->sy;
-            prim->x3 = block->sx + ((block->outerRadius * rsin(t2)) >> 12);
-            prim->y3 = block->sy + ((block->outerRadius * rcos(t2)) >> 12);
+        block->outerRadius = (radiusScale * GLOW_RADIUS_SCALE) / block->otz;
+        block->innerRadius = (radiusScale * GLOW_INNER_RADIUS_SCALE) / block->otz;
+        // Eight dim outer wedges receive bright copies at half radius.
+        for (angle = startAngle; angle < startAngle + GLOW_FULL_TURN; angle = nextAngle) {
+            wedge          = gGpuPrimCursor;
+            gGpuPrimCursor = wedge + 1;
+            SHELTER_B3_GARBAGE_INCINERATOR_INIT_GLOW_WEDGE(wedge, (u8)red >> 1, (u8)green >> 1, (u8)blue >> 1);
+            wedge->x0     = block->sx + ((block->outerRadius * rsin(angle)) >> GLOW_TRIG_SHIFT);
+            halfStepAngle = angle + GLOW_SIXTEENTH_TURN;
+            wedge->y0     = block->sy + ((block->outerRadius * rcos(angle)) >> GLOW_TRIG_SHIFT);
+            wedge->x1     = block->sx + ((block->outerRadius * rsin(halfStepAngle)) >> GLOW_TRIG_SHIFT);
+            wedge->y1     = block->sy + ((block->outerRadius * rcos(halfStepAngle)) >> GLOW_TRIG_SHIFT);
+            nextAngle     = angle + GLOW_EIGHTH_TURN;
+            wedge->x2     = block->sx;
+            wedge->y2     = block->sy;
+            wedge->x3     = block->sx + ((block->outerRadius * rsin(nextAngle)) >> GLOW_TRIG_SHIFT);
+            wedge->y3     = block->sy + ((block->outerRadius * rcos(nextAngle)) >> GLOW_TRIG_SHIFT);
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
+                    wedge);
+            gpuSetPrimitiveBlendMode(wedge, GPU_BLEND_ADD, block->otz);
 
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, r, g, b);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx + ((block->outerRadius * rsin(ang)) >> 13);
-            prim->y0 = block->sy + ((block->outerRadius * rcos(ang)) >> 13);
-            prim->x1 = block->sx + ((block->outerRadius * rsin(t)) >> 13);
-            prim->y1 = block->sy + ((block->outerRadius * rcos(t)) >> 13);
-            prim->x2 = block->sx;
-            prim->y2 = block->sy;
-            prim->x3 = block->sx + ((block->outerRadius * rsin(t2)) >> 13);
-            prim->y3 = block->sy + ((block->outerRadius * rcos(t2)) >> 13);
+            wedge          = gGpuPrimCursor;
+            gGpuPrimCursor = wedge + 1;
+            SHELTER_B3_GARBAGE_INCINERATOR_INIT_GLOW_WEDGE(wedge, red, green, blue);
+            wedge->x0 = block->sx + ((block->outerRadius * rsin(angle)) >> (GLOW_TRIG_SHIFT + 1));
+            wedge->y0 = block->sy + ((block->outerRadius * rcos(angle)) >> (GLOW_TRIG_SHIFT + 1));
+            wedge->x1 = block->sx + ((block->outerRadius * rsin(halfStepAngle)) >> (GLOW_TRIG_SHIFT + 1));
+            wedge->y1 = block->sy + ((block->outerRadius * rcos(halfStepAngle)) >> (GLOW_TRIG_SHIFT + 1));
+            wedge->x2 = block->sx;
+            wedge->y2 = block->sy;
+            wedge->x3 = block->sx + ((block->outerRadius * rsin(nextAngle)) >> (GLOW_TRIG_SHIFT + 1));
+            wedge->y3 = block->sy + ((block->outerRadius * rcos(nextAngle)) >> (GLOW_TRIG_SHIFT + 1));
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
+                    wedge);
+            gpuSetPrimitiveBlendMode(wedge, GPU_BLEND_ADD, block->otz);
         }
 
-        r = (u8)r >> 1;
-        g = (u8)g >> 1;
-        b = (u8)b >> 1;
-        for (ang = start + 0x200; ang < start + 0x1000; ang = uc) {
-            ua             = ang - 0x400;
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, r, g, b);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx + ((block->innerRadius * rsin(ua)) >> 13);
-            prim->y0 = block->sy + ((block->innerRadius * rcos(ua)) >> 13);
-            prim->x1 = block->sx + ((block->outerRadius * rsin(ang)) >> 12);
-            prim->y1 = block->sy + ((block->outerRadius * rcos(ang)) >> 12);
-            ub       = ang + 0x400;
-            prim->x2 = block->sx;
-            prim->y2 = block->sy;
-            prim->x3 = block->sx + ((block->innerRadius * rsin(ub)) >> 13);
-            prim->y3 = block->sy + ((block->innerRadius * rcos(ub)) >> 13);
+        // Overlay four half-bright blades, alternating full and double outer radius.
+        red   = (u8)red >> 1;
+        green = (u8)green >> 1;
+        blue  = (u8)blue >> 1;
+        for (angle = startAngle + GLOW_EIGHTH_TURN; angle < startAngle + GLOW_FULL_TURN; angle = oppositeBladeAngle) {
+            previousBladeAngle = angle - GLOW_QUARTER_TURN;
+            wedge              = gGpuPrimCursor;
+            gGpuPrimCursor     = wedge + 1;
+            SHELTER_B3_GARBAGE_INCINERATOR_INIT_GLOW_WEDGE(wedge, red, green, blue);
+            wedge->x0      = block->sx + ((block->innerRadius * rsin(previousBladeAngle)) >> (GLOW_TRIG_SHIFT + 1));
+            wedge->y0      = block->sy + ((block->innerRadius * rcos(previousBladeAngle)) >> (GLOW_TRIG_SHIFT + 1));
+            wedge->x1      = block->sx + ((block->outerRadius * rsin(angle)) >> GLOW_TRIG_SHIFT);
+            wedge->y1      = block->sy + ((block->outerRadius * rcos(angle)) >> GLOW_TRIG_SHIFT);
+            nextBladeAngle = angle + GLOW_QUARTER_TURN;
+            wedge->x2      = block->sx;
+            wedge->y2      = block->sy;
+            wedge->x3      = block->sx + ((block->innerRadius * rsin(nextBladeAngle)) >> (GLOW_TRIG_SHIFT + 1));
+            wedge->y3      = block->sy + ((block->innerRadius * rcos(nextBladeAngle)) >> (GLOW_TRIG_SHIFT + 1));
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
+                    wedge);
+            gpuSetPrimitiveBlendMode(wedge, GPU_BLEND_ADD, block->otz);
 
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, r, g, b);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx + ((block->innerRadius * rsin(ang)) >> 12);
-            prim->y0 = block->sy + ((block->innerRadius * rcos(ang)) >> 12);
-            prim->x1 = block->sx + ((block->outerRadius * rsin(ub)) >> 11);
-            prim->y1 = block->sy + ((block->outerRadius * rcos(ub)) >> 11);
-            uc       = ang + 0x800;
-            prim->x2 = block->sx;
-            prim->y2 = block->sy;
-            prim->x3 = block->sx + ((block->innerRadius * rsin(uc)) >> 12);
-            prim->y3 = block->sy + ((block->innerRadius * rcos(uc)) >> 12);
+            wedge          = gGpuPrimCursor;
+            gGpuPrimCursor = wedge + 1;
+            SHELTER_B3_GARBAGE_INCINERATOR_INIT_GLOW_WEDGE(wedge, red, green, blue);
+            wedge->x0          = block->sx + ((block->innerRadius * rsin(angle)) >> GLOW_TRIG_SHIFT);
+            wedge->y0          = block->sy + ((block->innerRadius * rcos(angle)) >> GLOW_TRIG_SHIFT);
+            wedge->x1          = block->sx + ((block->outerRadius * rsin(nextBladeAngle)) >> (GLOW_TRIG_SHIFT - 1));
+            wedge->y1          = block->sy + ((block->outerRadius * rcos(nextBladeAngle)) >> (GLOW_TRIG_SHIFT - 1));
+            oppositeBladeAngle = angle + GLOW_HALF_TURN;
+            wedge->x2          = block->sx;
+            wedge->y2          = block->sy;
+            wedge->x3          = block->sx + ((block->innerRadius * rsin(oppositeBladeAngle)) >> GLOW_TRIG_SHIFT);
+            wedge->y3          = block->sy + ((block->innerRadius * rcos(oppositeBladeAngle)) >> GLOW_TRIG_SHIFT);
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
+                    wedge);
+            gpuSetPrimitiveBlendMode(wedge, GPU_BLEND_ADD, block->otz);
         }
     }
     SCRATCH_STACK_RELEASE_BLOCK(GlowCentreRadiiScratch);
+
+#undef SHELTER_B3_GARBAGE_INCINERATOR_INIT_GLOW_WEDGE
 }
 
-static void func_shelter_b3_garbage_incinerator_80184D7C(void)
+/// Retains an unused no-op function in this overlay's text.
+static void _shelterB3GarbageIncineratorNoop(void)
 {
 }
 
@@ -2440,49 +2471,78 @@ void func_shelter_b3_garbage_incinerator_80184D84(Task* arg0)
     }
 }
 
-void func_shelter_b3_garbage_incinerator_80184ECC(Task* task)
+/// Ends this resource-table task immediately when it is dispatched.
+static void _shelterB3GarbageIncineratorKillTask(Task* task)
 {
     taskKill(task);
 }
 
-static void func_shelter_b3_garbage_incinerator_80184EEC(void)
+/// Rebuilds the two coincident collision quads used by room variant 2.
+///
+/// Requires this room's active writable grid: faces/normals 6..7 and vertices
+/// 24..31. Each wall spans x=10000..13000, y=200..1000 at z=-15000 in grid-local
+/// game coordinates, with a normalized +Z normal and room surface class 1
+/// (passes probes, ignores weapon impacts, applies pushback). Other variants
+/// leave the grid unchanged; cell lists remain valid and are not rebuilt.
+static void _shelterB3GarbageIncineratorSetVariant2Walls(void)
 {
+    enum {
+        SHELTER_B3_GARBAGE_INCINERATOR_EXTRA_WALL_VARIANT        = 2,
+        SHELTER_B3_GARBAGE_INCINERATOR_FIRST_EXTRA_WALL          = 6,
+        SHELTER_B3_GARBAGE_INCINERATOR_EXTRA_WALL_END            = 8,
+        SHELTER_B3_GARBAGE_INCINERATOR_WALL_VERTEX_COUNT         = 4,
+        SHELTER_B3_GARBAGE_INCINERATOR_PASS_PROBES_SURFACE_CLASS = 1,
+        SHELTER_B3_GARBAGE_INCINERATOR_NORMAL_SCALE              = 4096,
+    };
+
     SVECTOR                 normal;
     SVECTOR*                normals;
-    SVECTOR*                verts;
+    SVECTOR*                vertices;
     WorldCollisionGridFace* faces;
-    s16                     i;
-    SVECTOR*                np;
+    s16                     faceIndex;
+    SVECTOR*                normalPointer;
 
-    normals = Gp_GridParams->normals;
-    verts   = Gp_GridParams->vertices;
-    faces   = Gp_GridParams->faces;
-    if (gGameSession->location.loc.variant == 2) {
-        i = 6;
+    /// Initializes a wall quad's four vertex indices, surface and normal index.
+    ///
+    /// The pool must contain `index`; `index * vertexCount` starts four grid
+    /// vertices, and `index` also addresses its normal. Pool, index and stride
+    /// expressions are evaluated repeatedly and must have no side effects.
+    /// Surface class is evaluated once. Captures no locals; use as a statement.
+#define SHELTER_B3_GARBAGE_INCINERATOR_INIT_WALL_FACE(pool, index, vertexCount, propertyIndex) \
+    ((pool)[(index)].vertexIndices[1] = (index) * (vertexCount) + 1,                           \
+     (pool)[(index)].vertexIndices[0] = (index) * (vertexCount),                               \
+     (pool)[(index)].vertexIndices[2] = (index) * (vertexCount) + 2,                           \
+     (pool)[(index)].vertexIndices[3] = (index) * (vertexCount) + 3,                           \
+     (pool)[(index)].surfaceClass     = (propertyIndex),                                       \
+     (pool)[(index)].normalIndex      = (index))
+
+    normals  = Gp_GridParams->normals;
+    vertices = Gp_GridParams->vertices;
+    faces    = Gp_GridParams->faces;
+    if (gGameSession->location.loc.variant == SHELTER_B3_GARBAGE_INCINERATOR_EXTRA_WALL_VARIANT) {
+        faceIndex = SHELTER_B3_GARBAGE_INCINERATOR_FIRST_EXTRA_WALL;
         do {
-            verts[i * 4].vx = verts[i * 4 + 2].vx = 13000;
-            verts[i * 4].vy = verts[i * 4 + 2].vy = 1000;
-            verts[i * 4].vz = verts[i * 4 + 2].vz = -15000;
-            verts[i * 4 + 1].vx = verts[i * 4 + 3].vx = 10000;
-            verts[i * 4 + 1].vy = verts[i * 4 + 3].vy = 1000;
-            verts[i * 4 + 1].vz = verts[i * 4 + 3].vz = -15000;
-            verts[i * 4].vy                           = 200;
-            verts[i * 4 + 1].vy                       = 200;
-            faces[i].vertexIndices[1]                 = i * 4 + 1;
-            faces[i].vertexIndices[0]                 = i * 4;
-            faces[i].vertexIndices[2]                 = i * 4 + 2;
-            faces[i].vertexIndices[3]                 = i * 4 + 3;
-            faces[i].surfaceClass                     = 1;
-            faces[i].normalIndex                      = i;
-            np                                        = &normal;
-            normal.vx                                 = 0;
-            normal.vy                                 = 0;
-            normal.vz                                 = 0x1000;
-            VectorNormalSS(np, np);
-            normals[i] = normal;
-            i++;
-        } while (i < 8);
+            vertices[faceIndex * SHELTER_B3_GARBAGE_INCINERATOR_WALL_VERTEX_COUNT].vx = vertices[faceIndex * SHELTER_B3_GARBAGE_INCINERATOR_WALL_VERTEX_COUNT + 2].vx = 13000;
+            vertices[faceIndex * SHELTER_B3_GARBAGE_INCINERATOR_WALL_VERTEX_COUNT].vy = vertices[faceIndex * SHELTER_B3_GARBAGE_INCINERATOR_WALL_VERTEX_COUNT + 2].vy = 1000;
+            vertices[faceIndex * SHELTER_B3_GARBAGE_INCINERATOR_WALL_VERTEX_COUNT].vz = vertices[faceIndex * SHELTER_B3_GARBAGE_INCINERATOR_WALL_VERTEX_COUNT + 2].vz = -15000;
+            vertices[faceIndex * SHELTER_B3_GARBAGE_INCINERATOR_WALL_VERTEX_COUNT + 1].vx = vertices[faceIndex * SHELTER_B3_GARBAGE_INCINERATOR_WALL_VERTEX_COUNT + 3].vx = 10000;
+            vertices[faceIndex * SHELTER_B3_GARBAGE_INCINERATOR_WALL_VERTEX_COUNT + 1].vy = vertices[faceIndex * SHELTER_B3_GARBAGE_INCINERATOR_WALL_VERTEX_COUNT + 3].vy = 1000;
+            vertices[faceIndex * SHELTER_B3_GARBAGE_INCINERATOR_WALL_VERTEX_COUNT + 1].vz = vertices[faceIndex * SHELTER_B3_GARBAGE_INCINERATOR_WALL_VERTEX_COUNT + 3].vz = -15000;
+            vertices[faceIndex * SHELTER_B3_GARBAGE_INCINERATOR_WALL_VERTEX_COUNT].vy                                                                                     = 200;
+            vertices[faceIndex * SHELTER_B3_GARBAGE_INCINERATOR_WALL_VERTEX_COUNT + 1].vy                                                                                 = 200;
+            SHELTER_B3_GARBAGE_INCINERATOR_INIT_WALL_FACE(faces, faceIndex, SHELTER_B3_GARBAGE_INCINERATOR_WALL_VERTEX_COUNT,
+                                                          SHELTER_B3_GARBAGE_INCINERATOR_PASS_PROBES_SURFACE_CLASS);
+            normalPointer = &normal;
+            normal.vx     = 0;
+            normal.vy     = 0;
+            normal.vz     = SHELTER_B3_GARBAGE_INCINERATOR_NORMAL_SCALE;
+            VectorNormalSS(normalPointer, normalPointer);
+            normals[faceIndex] = normal;
+            faceIndex++;
+        } while (faceIndex < SHELTER_B3_GARBAGE_INCINERATOR_EXTRA_WALL_END);
     }
+
+#undef SHELTER_B3_GARBAGE_INCINERATOR_INIT_WALL_FACE
 }
 
 void func_shelter_b3_garbage_incinerator_8018507C(void)
@@ -2499,7 +2559,7 @@ void func_shelter_b3_garbage_incinerator_8018507C(void)
     verts   = Gp_GridParams->vertices;
     faces   = Gp_GridParams->faces;
     np      = &normal;
-    func_shelter_b3_garbage_incinerator_80184EEC();
+    _shelterB3GarbageIncineratorSetVariant2Walls();
     do {
         verts[i * 4].vx = verts[i * 4 + 2].vx = D_shelter_b3_garbage_incinerator_8018FBCC[i][0];
         verts[i * 4].vy = verts[i * 4 + 2].vy = 0;
@@ -2538,7 +2598,7 @@ void func_shelter_b3_garbage_incinerator_80185220(void)
     verts   = Gp_GridParams->vertices;
     faces   = Gp_GridParams->faces;
     np      = &normal;
-    func_shelter_b3_garbage_incinerator_80184EEC();
+    _shelterB3GarbageIncineratorSetVariant2Walls();
     do {
         verts[i * 4].vx = verts[i * 4 + 2].vx = D_shelter_b3_garbage_incinerator_8018FBFC[i][0];
         verts[i * 4].vy = verts[i * 4 + 2].vy = 0;
@@ -2575,7 +2635,7 @@ void func_shelter_b3_garbage_incinerator_801853C4(void)
     normals = Gp_GridParams->normals;
     verts   = Gp_GridParams->vertices;
     faces   = Gp_GridParams->faces;
-    func_shelter_b3_garbage_incinerator_80184EEC();
+    _shelterB3GarbageIncineratorSetVariant2Walls();
     do {
         verts[i * 4].vx = verts[i * 4 + 2].vx = D_shelter_b3_garbage_incinerator_8018FBFC[i][0];
         verts[i * 4].vy = verts[i * 4 + 2].vy = 0;
