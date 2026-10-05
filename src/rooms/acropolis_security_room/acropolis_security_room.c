@@ -2896,7 +2896,7 @@ static void func_acropolis_security_room_8017FC30(Task* task)
 /// Repaints the two security-monitor sprites for the current state of game
 /// flag nibble 9, whose low two bits say which of the two shutters has been
 /// opened. The nibble selects, for each of the two sprite commands of view 6
-/// in this room's sprite record, whether `Gp_LinkViewSprts` skips linking it
+/// in this room's sprite record, whether `spriteLinkViewCachedPackets` skips linking it
 /// (`field_4` non-zero) or draws it.
 static void func_acropolis_security_room_8017FD64(s32 flags)
 {

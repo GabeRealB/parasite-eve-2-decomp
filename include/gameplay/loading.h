@@ -36,7 +36,18 @@ extern WorldCollisionSurfaceProperties*** Gp_RoomParamTables[];
 /// Per-stage pointer table. Index is `GameSession.location.loc.stage - 1`.
 extern SpriteAreaTable* Gp_SprtTables[];
 
-void Gp_LinkViewSprts(void);
+/// Links the current view's cached sprites into the current frame ordering table.
+///
+/// Selects the packet buffer with `gDisplayState.drawBuffer`, then links included
+/// batches at their sources' scaled, masked sorting depths. Hidden batches still
+/// consume their cached packet slots; excluded batches do not. A nonzero first
+/// count suppresses background-image strips; zero leaves that selection intact
+/// and advances to the next batch before testing the terminal marker.
+///
+/// Requires valid loaded stage/area/room/view indices and source ranges, a
+/// terminated list after advancing past a zero-count first batch, cached packets
+/// initialized for this view (or no allocation), and a 1024-tag depth-sorted OT.
+void spriteLinkViewCachedPackets(void);
 
 /// Alloc dual-buffer merged `DR_TPAGE`+`SPRT` lists into `Gp_SprtLists`
 /// from the current view's `SpriteView` records. Byte size is the sum of
@@ -48,7 +59,12 @@ void Gp_AllocSprtLists(void);
 /// list. Length is the `Gp_ViewCountTables` cell as an s16. Returns 0 if absent.
 s8 Gp_FindViewIndex(s32 arg0);
 
-void* Gp_GetViewSprtExtra(void);
+/// Borrows the current mapped view's draw-area list, or returns NULL if absent.
+///
+/// Requires valid loaded stage, area, room and logical-view indices. The list
+/// ends at `SPRITE_DRAW_AREA_END` and belongs to the selected room overlay;
+/// retain it only while that overlay and the selected view resources stay live.
+SpriteDrawArea* spriteGetViewDrawAreas(void);
 
 void Gp_AllocSprtListsTask(Task* task);
 

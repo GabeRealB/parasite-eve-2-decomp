@@ -11735,7 +11735,7 @@ Hoist `opz = &ws->gteResult` *before* `ds` / `0xFFFFFF` / `0xFF000000` so
 `&ws->gteResult` lands in `$t3`. Name a `u_long* ot` temp and GCC CSEs the
 shifted OT slot (~85%); write both `addPrim` halves as the full
 `((((u32)otz << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot`
-expression, same as `Gp_LinkSprtCmd`.
+expression, same as `_spriteLinkCachedBatch`.
 
 ## Decode the COP2 register file before reading an unmatched GTE body as C
 
@@ -23909,7 +23909,7 @@ Inlining `memFree(index->spawnArg2.pointer)` after the decrement is the 83% form
 0x8007`. Taking `&gDisplayState` into a local and then writing
 
 ```c
-D_80071068 = Gp_ViewSprtCmdEmpty();
+D_80071068 = _spriteViewUsesImageStrips();
 ```
 
 lets CSE keep that shared high half in `$s0` across the call (`sw s0` /
@@ -23917,7 +23917,7 @@ lets CSE keep that shared high half in `$s0` across the call (`sw s0` /
 rematerialises after the call:
 
 ```
-jal  Gp_ViewSprtCmdEmpty
+jal  _spriteViewUsesImageStrips
 nop
 lui  v1, %hi(D_80071068)
 sb   v0, %lo(D_80071068)(v1)
@@ -23929,7 +23929,7 @@ into the earlier address:
 ```c
 s32 val;
 
-val        = Gp_ViewSprtCmdEmpty();
+val        = _spriteViewUsesImageStrips();
 D_80071068 = val;
 ```
 
@@ -27813,16 +27813,16 @@ immediately (keeps `&array[i]` live, load delayed), then index the
 other global with the same `i`:
 
 ```c
-tbl68 = Gp_SprtTables;
-i     = sess->field_3 - 1;
-tbl68 = &tbl68[i];          /* addu a2, v1, a2 */
-viewIndexTable = Gp_ViewIndexTables[i]; /* addu v1, v1, v0; lw 0(v1) */
+stageSpriteEntry = Gp_SprtTables;
+stageIndex       = location->stage - 1;
+stageSpriteEntry = &stageSpriteEntry[stageIndex]; /* addu a2, v1, a2 */
+viewIndexTable = Gp_ViewIndexTables[stageIndex]; /* addu v1, v1, v0; lw 0(v1) */
 ...
-tbl2  = *tbl68;             /* delayed lw 0(a2) */
+spriteTable = *stageSpriteEntry; /* delayed lw 0(a2) */
 ```
 
-Direct `Gp_SprtTables[sess->field_3 - 1]` rematerialises that address
-later (`Gp_GetViewSprtExtra`). `Gp_ViewSprtCmdEmpty` is the example.
+Direct `Gp_SprtTables[location->stage - 1]` rematerialises that address
+later (`spriteGetViewDrawAreas`). `_spriteViewUsesImageStrips` is the example.
 
 ## `volatile` walk pointer so a field reloads after `sltiu`
 
@@ -30686,7 +30686,7 @@ maskHi = 0xFF000000;
 
 `register ... asm("t0")` is required here — unlike `Gp_FindViewIndex` the
 target increment is in-place `addiu t0, t0, 1`, so the pin does not
-rewrite it. `Gp_LinkSprtCmd` is the example.
+rewrite it. `_spriteLinkCachedBatch` is the example.
 
 ## Repeat a table lookup in the compare and the store so `$v0` holds the value
 
@@ -31152,17 +31152,17 @@ The for-init is only the `i = 0` / `i < n` peel; the real trip count and
 the `p += stride` live in an inner do-while whose condition is `++i < n`:
 
 ```c
-for (i = 0; i < rec->field_2; ) {
-    p = &prim->field_F;
+for (i = 0; i < batch->spriteCount; ) {
+    p = &packet->sprite.sprt.code;
     do {
         /* … */
         p += 0x1C;
-        prim++;
-    } while (++i < rec->field_2);
+        packet++;
+    } while (++i < batch->spriteCount);
 }
 ```
 
-`Gp_SetSprtShadeBits` is the example. Pin `prim` with `register … asm("a1")` so
+`_spriteSetViewRawTexture` is the example. Pin `packet` with `register … asm("a1")` so
 the `%hi(Gp_SprtLists)` reused for the later `Gp_SprtLists[0]` NULL check
 stays in `$a2`.
 
@@ -37231,7 +37231,7 @@ callee-saved register (`$s3` here), which in turn pushes the `u8` args and the
 return-value local into the frame (`sb a1, 0x10(sp)` / `sw zero, 0x14(sp)`).
 
 Writing the OT link by hand with a `u32 mask = 0xFFFFFF;` local (the
-`Gp_LinkSprtCmd` style) produces the same instructions but ranks `mask` *below*
+`_spriteLinkCachedBatch` style) produces the same instructions but ranks `mask` *below*
 the other entry-block locals, so every saved register shifts by one. Prefer the
 psyq macros unless the target really does keep a mask variable of its own.
 
@@ -57642,8 +57642,8 @@ rec[(u8)view - 1].batches[35].hidden = 1;
 
 With the cast at the use, the `andi` is an ordinary insn of the indexing
 expression and the scheduler is free to slide it in among the `lui`/`addiu` of
-the table base. This is the same shape `Gp_LinkViewSprts` in `gameplay/D4.c`
-already uses (`view = viewGetMappedIndex();` … `recs[(u8)view - 1]`), so prefer
+the table base. This is the same shape `spriteLinkViewCachedPackets` in `gameplay/sprite_link.c`
+already uses (`mappedViewIndex = viewGetMappedIndex();` … `areaViews[(u8)mappedViewIndex - 1]`), so prefer
 that idiom for every view-index lookup. The reverse also holds: if the target
 masks right after the `jal`, fold the `& 0xFF` into the assignment.
 
@@ -65832,7 +65832,7 @@ when the target carries an argument-register preference between disjoint
 uses. Check `.lreg` block locality and `.greg` preferences before adding pins.
 
 
-## func_800AD024: restore unaligned RECT assignments before tuning codegen
+## _spriteQueueViewDrawAreas: restore unaligned RECT assignments before tuning codegen
 
 The m2c seed compiled at 68.270% despite replacing a paired `lwl`/`lwr`
 rectangle copy with `M2C_ERROR` placeholders and splitting the destination
@@ -65841,7 +65841,7 @@ RECT into unrelated locals. A naturally two-byte-aligned record containing
 `for` loop restored the copy and both walking pointers without barriers or
 pins. Use byte-correct primitive allocation (`DR_AREA* prim; prim + 1`) and
 OT addressing: arithmetic on `DR_TPAGE*` or `u_long*` silently multiplies
-m2c's byte offsets. Reusing the adjacent `Gp_GetViewSprtExtra` lookup and
+m2c's byte offsets. Reusing the adjacent `spriteGetViewDrawAreas` lookup and
 PsyQ `addPrim` macros matched on the first corrected attempt (100.000%,
 all penalties zero). Ordinary `rect.x`, `rect.w`, `rect.h` source order
 scheduled to the target's different store order.
@@ -94314,7 +94314,7 @@ k = (disp - field_offset) / sizeof(*rec)
 `rec[18]`, `0x100` → `rec[21]`. All four divide exactly, and the member name is
 what confirms it: the writes off each loaded pointer land on
 `SpriteBatch.hidden` (`cmd[2].hidden = 0` at `0x14`, `cmd[3]` at `0x1C`,
-`cmd[6..10]` at `0x34`..`0x54`), the byte `Gp_LinkViewSprts` reads as "skip
+`cmd[6..10]` at `0x34`..`0x54`), the byte `spriteLinkViewCachedPackets` reads as "skip
 OT-linking" in the matched siblings `room_util16/17.c` and `acropolis_bridge_6.c`.
 
 Gaps are the source's business, not a mis-read: index 21 skips 19 and 20 because
@@ -146382,7 +146382,7 @@ first. The emitted code is unchanged apart from the registers.
 
 **Fix.** `coords = task->extra.tmd->coords;` as the first statement, then the
 push, then the call with `coords`.
-## A global pointer local one register too high: store the global first, then read the local back from it (Gp_SetSprtShadeBits, 2026-09-27)
+## A global pointer local one register too high: store the global first, then read the local back from it (_spriteSetViewRawTexture, 2026-09-27)
 
 **Shape.** A function sets a cursor global from a table (`lw $a1,0(...)`,
 `sw $a1,%lo(cursor)`) and then walks a loop with the same pointer in `$a1`.

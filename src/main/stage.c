@@ -570,12 +570,12 @@ static void Display_FlipOtAndDispatch(s32 unused)
             taskExecDefaultList(&gTaskDefaultList);
             break;
         case STAGE_TRANSITION_ACTORS:
-            Gp_LinkViewSprts();
+            spriteLinkViewCachedPackets();
             Gp_DrawActorTmdActive(&Gpu_OtBuffers[temp->otBuffer]);
             break;
         case STAGE_TRANSITION_FILTERED:
             taskExecListForPriority(&gTaskDefaultList, 0x62);
-            Gp_LinkViewSprts();
+            spriteLinkViewCachedPackets();
             Gp_DrawActorTmdFlagged(&Gpu_OtBuffers[temp->otBuffer]);
             break;
     }

@@ -3341,7 +3341,7 @@ static void func_acropolis_bridge_8017E81C(void)
 /// Slides one of three mutually exclusive bridge sprites in view 9 by
 /// `(dx, dy)` and makes it the visible one. Each state owns three consecutive
 /// `SpriteSource` entries, which move together, and one of the three
-/// `SpriteBatch` slots; `Gp_LinkViewSprts` treats a nonzero `hidden` as "skip
+/// `SpriteBatch` slots; `spriteLinkViewCachedPackets` treats a nonzero `hidden` as "skip
 /// OT-linking", so the selected command gets 0 and the other two get 1. A
 /// state outside 0..2 moves nothing and hides all three.
 static void func_acropolis_bridge_8017EB4C(s32 state, s8 dx, s8 dy)
@@ -3410,7 +3410,7 @@ void func_acropolis_bridge_8017F280(Task* task)
 
 /// Repaints the two bridge sprites that game flag nibble 0x10 governs: one
 /// sprite command in view 2 of this room's sprite record and one in view 5.
-/// `Gp_LinkViewSprts` reads `field_4` to decide whether to skip OT-linking a
+/// `spriteLinkViewCachedPackets` reads `field_4` to decide whether to skip OT-linking a
 /// command's prims, so a zero nibble draws both and a non-zero one hides them.
 void func_acropolis_bridge_8017F2D0(s32 flags)
 {
@@ -3437,7 +3437,7 @@ void func_acropolis_bridge_8017F2D0(s32 flags)
 }
 
 /// Picks which of three mutually exclusive bridge sprites view 9 of this room
-/// draws. `Gp_LinkViewSprts` treats a nonzero `field_4` as "skip OT-linking",
+/// draws. `spriteLinkViewCachedPackets` treats a nonzero `field_4` as "skip OT-linking",
 /// so the selected command gets 0 and the other two get 1; a state outside
 /// 0..2 hides all three.
 void func_acropolis_bridge_8017F358(s32 state)

@@ -34,17 +34,17 @@ extern SpriteDrawModePacket* Gp_SprtLists[];
 
 static void Gp_EmitSprts(SpriteSource* sources, SpriteBatch* batch);
 
-static void Gp_SetSprtShadeBits(s32 arg0);
+static void _spriteSetViewRawTexture(s32 rawTexture);
 
 static void Gp_LinkRoomObjects(Task* task);
 
-static s32 Gp_ViewSprtCmdEmpty(void);
+static s32 _spriteViewUsesImageStrips(void);
 
-static void func_800AD024(void);
+static void _spriteQueueViewDrawAreas(void);
 
-static void Gp_LinkSprtCmd(SpriteSource* sources, SpriteBatch* batch);
+static void _spriteLinkCachedBatch(const SpriteSource* sources, const SpriteBatch* batch);
 
-static void func_800AD620(Task* task);
+static void _spriteInitViewBackgroundTask(Task* task);
 
 static void func_800AD65C(Task* task);
 
@@ -53,36 +53,78 @@ SpriteDrawModePacket* Gp_SprtLists[2] = {
     NULL,
 };
 
-void Gp_LinkViewSprts(void)
+/// Borrows the selected sprite-view descriptor through the live room view map.
+///
+/// Requires loaded stage/area/room directories and a valid nonzero mapped byte
+/// within the selected area's view array. The returned descriptor borrows the
+/// room overlay's lifetime; the map is read again on each call.
+static inline SpriteView* _spriteGetCurrentView(void)
 {
-    GameLocationKey*       sess;
-    s32                    view;
-    DisplayState*          ds;
-    SpriteDrawModePacket** table;
-    SpriteAreaTable*       tbl;
-    SpriteView*            recs;
+    GameSession*     session;
+    GameLocationKey* location;
+    ViewIndexTable*  viewIndexTable;
+    u8***            areaViewMaps;
+    u8**             roomViewMaps;
+    u8*              viewMap;
+    u8               mappedViewIndex;
+    SpriteAreaTable* spriteTable;
+    SpriteView**     spriteAreaViews;
+    SpriteView*      areaViews;
+
+    session         = gGameSession;
+    location        = &session->location.loc;
+    viewIndexTable  = Gp_ViewIndexTables[location->stage - 1];
+    areaViewMaps    = viewIndexTable->viewMaps;
+    roomViewMaps    = areaViewMaps[location->area - 1];
+    viewMap         = roomViewMaps[location->room - 1];
+    mappedViewIndex = viewMap[location->view - 1];
+    spriteTable     = Gp_SprtTables[location->stage - 1];
+    spriteAreaViews = spriteTable->areaViews;
+    areaViews       = spriteAreaViews[location->area - 1];
+    return &areaViews[mappedViewIndex - 1];
+}
+
+/// Reserves and encodes one clip command in the current frame's packet arena.
+static inline DR_AREA* _spriteCreateDrawAreaPacket(RECT* rect)
+{
+    DR_AREA* packet;
+
+    packet         = gGpuPrimCursor;
+    gGpuPrimCursor = packet + 1;
+    SetDrawArea(packet, rect);
+    return packet;
+}
+
+void spriteLinkViewCachedPackets(void)
+{
+    GameLocationKey*       location;
+    s32                    mappedViewIndex;
+    DisplayState*          display;
+    SpriteDrawModePacket** packetBuffers;
+    SpriteAreaTable*       spriteTable;
+    SpriteView*            areaViews;
     SpriteBatch*           batch;
     SpriteSource*          sources;
 
-    sess          = &gGameSession->location.loc;
-    view          = viewGetMappedIndex();
-    table         = Gp_SprtLists;
-    ds            = &gDisplayState;
-    Gp_SprtCursor = table[ds->drawBuffer];
-    tbl           = Gp_SprtTables[sess->stage - 1];
-    recs          = tbl->areaViews[sess->area - 1];
-    batch         = recs[(u8)view - 1].batches;
-    sources       = recs[(u8)view - 1].sources.elements;
-    // The first count selects decoded strips or the cached sprite background.
+    location        = &gGameSession->location.loc;
+    mappedViewIndex = viewGetMappedIndex();
+    packetBuffers   = Gp_SprtLists;
+    display         = &gDisplayState;
+    Gp_SprtCursor   = packetBuffers[display->drawBuffer];
+    spriteTable     = Gp_SprtTables[location->stage - 1];
+    areaViews       = spriteTable->areaViews[location->area - 1];
+    batch           = areaViews[(u8)mappedViewIndex - 1].batches;
+    sources         = areaViews[(u8)mappedViewIndex - 1].sources.elements;
+    // A zero first count keeps image strips and skips the first batch before testing its end marker.
     if (batch->spriteCount == 0) {
         batch++;
     } else {
-        ds->control.flags.imageSource = DISPLAY_IMAGE_NONE;
+        display->control.flags.imageSource = DISPLAY_IMAGE_NONE;
     }
     if (batch->firstSprite != SPRITE_BATCH_END) {
         do {
             if (batch->skipCachedPackets == 0) {
-                Gp_LinkSprtCmd(sources, batch);
+                _spriteLinkCachedBatch(sources, batch);
             }
             batch++;
         } while (batch->firstSprite != SPRITE_BATCH_END);
@@ -138,34 +180,41 @@ static void Gp_EmitSprts(SpriteSource* sources, SpriteBatch* batch)
     }
 }
 
-static void Gp_SetSprtShadeBits(s32 arg0)
+/// Enables or disables raw texture on the current buffer's cached view sprites.
+///
+/// Nonzero `rawTexture` ignores packet RGB; zero enables colour modulation.
+/// Requires live view resources and initialized cached packets. Excluded batches
+/// consume no packets, while hidden batches are updated too. Only the selected
+/// draw buffer changes; the other buffer and source flags retain their values.
+/// Leaves the published cached-packet cursor at the selected buffer's start.
+static void _spriteSetViewRawTexture(s32 rawTexture)
 {
-    GameLocationKey*      sess;
-    s32                   view;
-    SpriteDrawModePacket* prim;
-    SpriteAreaTable*      tbl;
-    SpriteView*           recs;
+    GameLocationKey*      location;
+    s32                   mappedViewIndex;
+    SpriteDrawModePacket* packet;
+    SpriteAreaTable*      spriteTable;
+    SpriteView*           areaViews;
     SpriteBatch*          batch;
-    u32                   i;
+    u32                   spriteIndex;
 
-    sess          = &gGameSession->location.loc;
-    view          = viewGetMappedIndex();
-    Gp_SprtCursor = Gp_SprtLists[gDisplayState.drawBuffer];
-    tbl           = Gp_SprtTables[sess->stage - 1];
-    recs          = tbl->areaViews[sess->area - 1];
-    batch         = recs[(u8)view - 1].batches;
-    prim          = Gp_SprtCursor;
+    location        = &gGameSession->location.loc;
+    mappedViewIndex = viewGetMappedIndex();
+    Gp_SprtCursor   = Gp_SprtLists[gDisplayState.drawBuffer];
+    spriteTable     = Gp_SprtTables[location->stage - 1];
+    areaViews       = spriteTable->areaViews[location->area - 1];
+    batch           = areaViews[(u8)mappedViewIndex - 1].batches;
+    packet          = Gp_SprtCursor;
     if (batch->firstSprite != SPRITE_BATCH_END) {
         do {
             if (batch->skipCachedPackets == 0) {
                 if (Gp_SprtLists[0] != NULL) {
-                    for (i = 0; i < batch->spriteCount; i++) {
-                        if (arg0 != 0) {
-                            prim->sprite.sprt.code |= 1;
+                    for (spriteIndex = 0; spriteIndex < batch->spriteCount; spriteIndex++) {
+                        if (rawTexture != 0) {
+                            packet->sprite.sprt.code |= SPRITE_SOURCE_RAW_TEXTURE;
                         } else {
-                            prim->sprite.sprt.code &= ~1;
+                            packet->sprite.sprt.code &= ~SPRITE_SOURCE_RAW_TEXTURE;
                         }
-                        prim++;
+                        packet++;
                     }
                 }
             }
@@ -337,88 +386,81 @@ s8 Gp_FindViewIndex(s32 arg0)
     return 0;
 }
 
-static s32 Gp_ViewSprtCmdEmpty(void)
+/// Returns 1 to select decoded-image strips, or 0 to suppress that background.
+///
+/// Tests only the mapped view's first batch count, including a terminal first
+/// record; it does not count sprites or test the whole list for emptiness.
+/// Requires valid loaded stage/area/room/view indices and a first batch record.
+static s32 _spriteViewUsesImageStrips(void)
 {
     GameSession*      session;
-    GameLocationKey*  sess;
-    SpriteAreaTable** tbl68;
-    s32               i;
+    GameLocationKey*  location;
+    SpriteAreaTable** stageSpriteEntry;
+    s32               stageIndex;
     ViewIndexTable*   viewIndexTable;
     u8***             areaViewMaps;
     u8**              roomViewMaps;
     u8*               viewMap;
     u8                mappedViewIndex;
-    SpriteAreaTable*  tbl2;
-    SpriteView**      mid2;
-    SpriteView*       recs;
+    SpriteAreaTable*  spriteTable;
+    SpriteView**      spriteAreaViews;
+    SpriteView*       areaViews;
 
-    session         = gGameSession;
-    tbl68           = Gp_SprtTables;
-    sess            = &session->location.loc;
-    i               = sess->stage - 1;
-    tbl68           = &tbl68[i];
-    viewIndexTable  = Gp_ViewIndexTables[i];
-    areaViewMaps    = viewIndexTable->viewMaps;
-    roomViewMaps    = areaViewMaps[sess->area - 1];
-    viewMap         = roomViewMaps[sess->room - 1];
-    mappedViewIndex = viewMap[sess->view - 1];
-    tbl2            = *tbl68;
-    mid2            = tbl2->areaViews;
-    recs            = mid2[sess->area - 1];
-    return recs[mappedViewIndex - 1].batches->spriteCount == 0;
+    session          = gGameSession;
+    stageSpriteEntry = Gp_SprtTables;
+    location         = &session->location.loc;
+    stageIndex       = location->stage - 1;
+    stageSpriteEntry = &stageSpriteEntry[stageIndex];
+    viewIndexTable   = Gp_ViewIndexTables[stageIndex];
+    areaViewMaps     = viewIndexTable->viewMaps;
+    roomViewMaps     = areaViewMaps[location->area - 1];
+    viewMap          = roomViewMaps[location->room - 1];
+    mappedViewIndex  = viewMap[location->view - 1];
+    spriteTable      = *stageSpriteEntry;
+    spriteAreaViews  = spriteTable->areaViews;
+    areaViews        = spriteAreaViews[location->area - 1];
+    return areaViews[mappedViewIndex - 1].batches->spriteCount == 0;
 }
 
-static void func_800AD024(void)
+/// Queues the current view's clipping areas and depth-sorted full-buffer restores.
+///
+/// Each nonterminal draw-area record consumes two `DR_AREA` packets from the
+/// current frame arena. Coordinates are pixels in the fixed 320x240 view;
+/// buffer 1 adds its 272-row VRAM origin. The clip is linked at the last depth
+/// tag, then the full-buffer restore at the scaled, masked `restoreDepth`.
+/// Requires live view resources, sufficient packet storage and a 1024-tag OT.
+static void _spriteQueueViewDrawAreas(void)
 {
-    RECT             rect;
-    GameSession*     session;
-    GameLocationKey* sess;
-    ViewIndexTable*  viewIndexTable;
-    u8***            areaViewMaps;
-    u8**             roomViewMaps;
-    u8*              viewMap;
-    u8               mappedViewIndex;
-    SpriteAreaTable* tbl2;
-    SpriteView**     mid2;
-    SpriteView*      recs;
-    SpriteDrawArea*  drawArea;
-    DR_AREA*         prim;
+    enum {
+        SPRITE_VIEW_WIDTH_PIXELS    = 320,
+        SPRITE_VIEW_HEIGHT_PIXELS   = 240,
+        SPRITE_VIEW_BUFFER_Y_STRIDE = 272
+    };
+    RECT            rect;
+    SpriteDrawArea* drawArea;
+    DR_AREA*        drawAreaPacket;
 
-    session         = gGameSession;
-    sess            = &session->location.loc;
-    viewIndexTable  = Gp_ViewIndexTables[sess->stage - 1];
-    areaViewMaps    = viewIndexTable->viewMaps;
-    roomViewMaps    = areaViewMaps[sess->area - 1];
-    viewMap         = roomViewMaps[sess->room - 1];
-    mappedViewIndex = viewMap[sess->view - 1];
-    tbl2            = Gp_SprtTables[sess->stage - 1];
-    mid2            = tbl2->areaViews;
-    recs            = mid2[sess->area - 1];
-    drawArea        = recs[mappedViewIndex - 1].drawAreas;
+    drawArea = _spriteGetCurrentView()->drawAreas;
     if (drawArea != NULL) {
         for (; drawArea->restoreDepth != SPRITE_DRAW_AREA_END; drawArea++) {
             // Apply the view clip before depth-sorted drawing begins.
             rect = drawArea->clipRect;
             if (gDisplayState.drawBuffer != 0) {
-                rect.y += 0x110;
+                rect.y += SPRITE_VIEW_BUFFER_Y_STRIDE;
             }
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            SetDrawArea(prim, &rect);
-            addPrim(&gGpuCurrentOt[GPU_ORDERING_TABLE_DEPTH_BYTE_MASK / sizeof(*gGpuCurrentOt)], prim);
+            drawAreaPacket = _spriteCreateDrawAreaPacket(&rect);
+            addPrim(&gGpuCurrentOt[GPU_ORDERING_TABLE_DEPTH_BYTE_MASK / sizeof(*gGpuCurrentOt)], drawAreaPacket);
             // Restore the full draw buffer at this record's sorting boundary.
             if (gDisplayState.drawBuffer != 0) {
-                rect.y = 0x110;
+                rect.y = SPRITE_VIEW_BUFFER_Y_STRIDE;
             } else {
                 rect.y = 0;
             }
             rect.x         = 0;
-            rect.w         = 0x140;
-            rect.h         = 0xF0;
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            SetDrawArea(prim, &rect);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)drawArea->restoreDepth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK), prim);
+            rect.w         = SPRITE_VIEW_WIDTH_PIXELS;
+            rect.h         = SPRITE_VIEW_HEIGHT_PIXELS;
+            drawAreaPacket = _spriteCreateDrawAreaPacket(&rect);
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)drawArea->restoreDepth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK), drawAreaPacket);
         }
     }
 }
@@ -439,30 +481,9 @@ s32 viewGetMappedIndex(void)
     return viewMap[location->view - 1];
 }
 
-void* Gp_GetViewSprtExtra(void)
+SpriteDrawArea* spriteGetViewDrawAreas(void)
 {
-    GameSession*     session;
-    GameLocationKey* sess;
-    ViewIndexTable*  viewIndexTable;
-    u8***            areaViewMaps;
-    u8**             roomViewMaps;
-    u8*              viewMap;
-    u8               mappedViewIndex;
-    SpriteAreaTable* tbl2;
-    SpriteView**     mid2;
-    SpriteView*      recs;
-
-    session         = gGameSession;
-    sess            = &session->location.loc;
-    viewIndexTable  = Gp_ViewIndexTables[sess->stage - 1];
-    areaViewMaps    = viewIndexTable->viewMaps;
-    roomViewMaps    = areaViewMaps[sess->area - 1];
-    viewMap         = roomViewMaps[sess->room - 1];
-    mappedViewIndex = viewMap[sess->view - 1];
-    tbl2            = Gp_SprtTables[sess->stage - 1];
-    mid2            = tbl2->areaViews;
-    recs            = mid2[sess->area - 1];
-    return recs[mappedViewIndex - 1].drawAreas;
+    return _spriteGetCurrentView()->drawAreas;
 }
 
 void Gp_RoomObjState1(Task* task)
@@ -476,27 +497,33 @@ void Gp_RoomObjState1(Task* task)
         Gp_LinkRoomObjects(task);
         gGameSession->roomObjsDirty = 0;
     }
-    func_800AD024();
+    _spriteQueueViewDrawAreas();
 }
 
-static void Gp_LinkSprtCmd(SpriteSource* sources, SpriteBatch* batch)
+/// Links one included batch from the cached packet cursor at current source depths.
+///
+/// `firstSprite` and `spriteCount` select a valid source range in elements.
+/// Requires initialized packets and a 1024-tag depth-sorted ordering table.
+/// Hidden batches advance the cursor without linking; a missing allocation
+/// leaves the cursor intact. The caller skips `skipCachedPackets` batches.
+static void _spriteLinkCachedBatch(const SpriteSource* sources, const SpriteBatch* batch)
 {
-    u32                   i;
-    SpriteDrawModePacket* prim;
-    SpriteSource*         source;
+    u32                   spriteIndex;
+    SpriteDrawModePacket* packet;
+    const SpriteSource*   source;
 
     if (Gp_SprtLists[0] == NULL) {
         return;
     }
-    prim   = Gp_SprtCursor;
+    packet = Gp_SprtCursor;
     source = sources + batch->firstSprite;
     // Hiding a batch preserves its packet positions for later batches.
-    for (i = 0; i < batch->spriteCount; prim++, i++, source++) {
+    for (spriteIndex = 0; spriteIndex < batch->spriteCount; packet++, spriteIndex++, source++) {
         if (batch->hidden == 0) {
-            addPrim(&gGpuCurrentOt[((u32)source->depth << gDisplayState.otDepthShift) >> 4 & 0x3FF], prim);
+            addPrim(&gGpuCurrentOt[((u32)source->depth << gDisplayState.otDepthShift) >> 4 & (GPU_ORDERING_TABLE_DEPTH_BYTE_MASK >> 2)], packet);
         }
     }
-    Gp_SprtCursor = prim;
+    Gp_SprtCursor = packet;
 }
 
 void func_800AD50C(Task* task)
@@ -519,21 +546,23 @@ void Gp_AllocSprtListsTask(Task* task)
 
 void func_800AD5B8(Task* task)
 {
-    TaskFunc funcs[2] = { func_800AD620, func_800AD65C };
+    TaskFunc funcs[2] = { _spriteInitViewBackgroundTask, func_800AD65C };
 
     if (gGameSession->freezeRoomObjs == 0) {
         funcs[task->state](task);
     }
 }
 
-static void func_800AD620(Task* task)
+/// Selects the mapped view's initial background source and advances to linking.
+///
+/// The first batch count selects decoded strips (zero) or no image (nonzero).
+/// Called in state 0 by the unfrozen view-sprite task; advances to state 1.
+static void _spriteInitViewBackgroundTask(Task* task)
 {
-    s32 val;
+    s32 useImageStrips;
 
-    val = Gp_ViewSprtCmdEmpty();
-    do {
-        gDisplayState.control.flags.imageSource = val;
-    } while (0);
+    useImageStrips                          = _spriteViewUsesImageStrips();
+    gDisplayState.control.flags.imageSource = useImageStrips;
     task->state++;
 }
 
@@ -544,9 +573,9 @@ static void func_800AD65C(Task* task)
 
     ds = &gDisplayState;
     if ((ds->displayOwner != DISPLAY_OWNER_TASK) && (ds->skipDraw == 0)) {
-        Gp_LinkViewSprts();
+        spriteLinkViewCachedPackets();
     } else {
-        val                                     = Gp_ViewSprtCmdEmpty();
+        val                                     = _spriteViewUsesImageStrips();
         gDisplayState.control.flags.imageSource = val;
     }
 }

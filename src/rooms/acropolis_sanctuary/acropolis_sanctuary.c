@@ -2097,7 +2097,7 @@ static void func_acropolis_sanctuary_8017DD78(void)
 
 /// Toggles a pair of sprite commands for view `arg1` of the current room:
 /// `arg0` zero draws the second command and skips the third, non-zero does the
-/// reverse. `Gp_LinkViewSprts` reads `field_4` to decide whether to skip
+/// reverse. `spriteLinkViewCachedPackets` reads `field_4` to decide whether to skip
 /// OT-linking each command's prims.
 static void func_acropolis_sanctuary_8017DF88(s32 arg0, s32 arg1)
 {

@@ -43,7 +43,7 @@ void frameCaptureQueue(s32 otz)
     RECT*                 clip;
     u_short*              ofs;
 
-    drawArea       = Gp_GetViewSprtExtra();
+    drawArea       = spriteGetViewDrawAreas();
     scratch        = SCRATCH_STACK_RESERVE_BLOCK(_FrameCaptureScratch);
     scratch->otz   = otz;
     area           = gGpuPrimCursor;

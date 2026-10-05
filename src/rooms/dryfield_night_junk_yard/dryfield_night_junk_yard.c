@@ -211,7 +211,7 @@ void func_dryfield_night_junk_yard_8017D960(Task* task)
 
 /// Applies game flag nibble 0x9F to the sixth sprite command of view 0 in the
 /// current room's sprite record: a zero nibble draws the command, a nonzero one
-/// hides it (`Gp_LinkViewSprts` skips OT-linking when `field_4` is set).
+/// hides it (`spriteLinkViewCachedPackets` skips OT-linking when `field_4` is set).
 void func_dryfield_night_junk_yard_8017D9B8(u8 arg0)
 {
     GameLocationKey* sess = &gGameSession->location.loc;
