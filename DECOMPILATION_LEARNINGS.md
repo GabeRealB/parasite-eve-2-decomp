@@ -16575,7 +16575,7 @@ if (x <= 0) { ... }  /* addiu; bgtz v0  — compare new value */
 Use a post-decrement in the condition:
 
 ```c
-if (arg1->field_4-- <= 0) {
+if (work->cardTimer-- <= 0) {
     /* timeout / transition */
 }
 ```
@@ -16585,7 +16585,7 @@ GCC 2.8.1 keeps the pre-decrement copy in `$v1`, decrements `$v0`, and emits
 after the store, when the new value is `< 0`), which is one-off from a plain
 `-= 1; if (x <= 0)` check that fires when the counter hits zero.
 
-`Mc_StateCountdownPrompt4` is the pure example. Nearby `Mc_StateUiCountdownF` uses the early
+`_mcStateWaitSaveClose` is the pure example. Nearby `Mc_StateUiCountdownF` uses the early
 `x -= 1; if (x <= 0)` form and correctly gets `bgtz` on the decremented value
 because the check is at the top of the function with lower register pressure —
 same logical intent, different placement, different instruction shape.
