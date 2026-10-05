@@ -26,7 +26,7 @@
  * hold differing non-zero fill in others, so the room sets
  * ROOM_FX_HALO_STORAGE_TYPE, _BOUND and _INITIALIZER before including
  * _halo_data - RoomFxShade [3], or RoomFxHaloStorage to spell the fill - and
- * defines RoomFx_GetHaloShades, the array view the halo code reads, where its
+ * defines _roomVisualEffectsGetHaloShades, the array view the halo code reads, where its
  * halo code is.
  */
 
@@ -137,7 +137,7 @@ STATIC_ASSERT_SIZEOF(RoomFxShade, 0x6);
 /// `RoomFxShade [3]` and let the compiler pad it. The rest carry the same shades
 /// followed by a value that differs from room to room, so it is not part of the
 /// shared table; C can reproduce it only as a member. Code reads the shades
-/// alone, through `RoomFx_GetHaloShades`.
+/// alone, through `_roomVisualEffectsGetHaloShades`.
 typedef struct {
     RoomFxShade entries[3];    // the halo's colour variants, indexed by spawn argument
     u16         alignmentFill; // build fill before the next word-aligned table; never read
@@ -147,7 +147,8 @@ STATIC_ASSERT_SIZEOF(RoomFxHaloStorage, 0x14);
 extern SVECTOR     RoomFx_TrailOffsets[2];
 extern RoomFxShade RoomFx_DiscShades[2];
 
-/* Array view of the including overlay's halo allocation. */
-static inline RoomFxShade* RoomFx_GetHaloShades(void);
+/* Each carrier returns its three readable tint rows, live for that overlay's
+ * lifetime. Spawn tint indices must be 0..2; alignment fill is not a row. */
+static inline const RoomFxShade* _roomVisualEffectsGetHaloShades(void);
 
 #endif /* SRC_SHARED_ROOM_VISUAL_EFFECTS_H */

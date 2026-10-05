@@ -692,13 +692,13 @@ func_dryfield_motel_balcony_8017DCB8 = 0x8017DCB8; // type:func absolute:True ow
 
 func_dryfield_motel_balcony_8017EA00 = 0x8017EA00; // type:func absolute:True owner=dryfield_motel_balcony
 
-func_dryfield_motel_balcony_8017ED98 = 0x8017ED98; // type:func absolute:True owner=dryfield_motel_balcony shared=rooms
+dryfieldMotelBalconyRoomVisualEffectsHaloOrangeBurstTask = 0x8017ED98; // type:func absolute:True owner=dryfield_motel_balcony shared=rooms
 
 func_dryfield_motel_balcony_801801A8 = 0x801801A8; // type:func absolute:True owner=dryfield_motel_balcony
 
-func_dryfield_motel_balcony_801802DC = 0x801802DC; // type:func absolute:True owner=dryfield_motel_balcony
+dryfieldMotelBalconyRoomVisualEffectsFlashTask = 0x801802DC; // type:func absolute:True owner=dryfield_motel_balcony
 
-func_dryfield_motel_balcony_80180D40 = 0x80180D40; // type:func absolute:True owner=dryfield_motel_balcony
+dryfieldMotelBalconyRoomVisualEffectsTwinTrailTask = 0x80180D40; // type:func absolute:True owner=dryfield_motel_balcony
 
 func_dryfield_motel_balcony_80181628 = 0x80181628; // type:func absolute:True owner=dryfield_motel_balcony
 

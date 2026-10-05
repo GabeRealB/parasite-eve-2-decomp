@@ -543,7 +543,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill, { NULL } },                                                   // 0x002
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill, { NULL } },                                                   // 0x003
     { { { TASK_BODY_NONE, 0x4F } }, func_800EA420, { NULL } },                                              // 0x004
-    { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_motel_balcony_801802DC, { NULL } },                      // 0x005
+    { { { TASK_BODY_COORD, 0x70 } }, dryfieldMotelBalconyRoomVisualEffectsFlashTask, { NULL } },            // 0x005
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_night_gas_station_80181D80, { NULL } },                  // 0x006
     { { { TASK_BODY_NONE, 0x70 } }, Gp_EffCtlTask07, { NULL } },                                            // 0x007
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_night_gas_station_801827E4, { NULL } },                  // 0x008
@@ -653,7 +653,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_800F289C, { NULL } },                                             // 0x070
     { { { TASK_BODY_COORD, 0x70 } }, func_800F4308, { NULL } },                                             // 0x071
     { { { TASK_BODY_COORD, 0x70 } }, effectSpriteTask72, { NULL } },                                        // 0x072
-    { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_motel_balcony_80180D40, { NULL } },                      // 0x073
+    { { { TASK_BODY_COORD, 0x70 } }, dryfieldMotelBalconyRoomVisualEffectsTwinTrailTask, { NULL } },        // 0x073
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_motel_balcony_80181628, { NULL } },                      // 0x074
     { { { TASK_BODY_NONE, 0x70 } }, taskKill, { NULL } },                                                   // 0x075
     { { { TASK_BODY_COORD, 0x70 } }, Gp_EffSprTask76, { NULL } },                                           // 0x076
@@ -1182,7 +1182,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_submarine_tunnel_80180694, { NULL } },                    // 0x281
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_motel_balcony_8017DCB8, { NULL } },                      // 0x282
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_motel_balcony_8017EA00, { NULL } },                      // 0x283
-    { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_motel_balcony_8017ED98, { NULL } },                      // 0x284
+    { { { TASK_BODY_COORD, 0x70 } }, dryfieldMotelBalconyRoomVisualEffectsHaloOrangeBurstTask, { NULL } },  // 0x284
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_motel_balcony_801801A8, { NULL } },                      // 0x285
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_night_main_street_8017FA68, { NULL } },                  // 0x286
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_night_main_street_801807B0, { NULL } },                  // 0x287

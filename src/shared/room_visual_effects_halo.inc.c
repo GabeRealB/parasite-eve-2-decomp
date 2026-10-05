@@ -251,9 +251,9 @@ static inline void RoomFx_HaloTask(Task* arg0)
                 mem->scale            += mem->step;
                 mem->angle            += mem->step;
                 arg0->spawnArg1.value -= 1;
-                rgb[0]                 = mem->scale >> RoomFx_GetHaloShades()[mem->index].rShift;
-                rgb[1]                 = mem->scale >> RoomFx_GetHaloShades()[mem->index].gShift;
-                rgb[2]                 = mem->scale >> RoomFx_GetHaloShades()[mem->index].bShift;
+                rgb[0]                 = mem->scale >> _roomVisualEffectsGetHaloShades()[mem->index].rShift;
+                rgb[1]                 = mem->scale >> _roomVisualEffectsGetHaloShades()[mem->index].gShift;
+                rgb[2]                 = mem->scale >> _roomVisualEffectsGetHaloShades()[mem->index].bShift;
                 _roomVisualEffectsDrawHaloDisc(coord, mem->angle, rgb);
                 rgb[0] = rgb[0] >> 1;
                 rgb[1] = rgb[1] >> 1;
@@ -271,9 +271,9 @@ static inline void RoomFx_HaloTask(Task* arg0)
             case 2:
                 actorRenderComposeCoord(coord);
                 if (mem->scale >= 0x11) {
-                    rgb[0] = mem->scale >> RoomFx_GetHaloShades()[mem->index].rShift;
-                    rgb[1] = mem->scale >> RoomFx_GetHaloShades()[mem->index].gShift;
-                    rgb[2] = mem->scale >> RoomFx_GetHaloShades()[mem->index].bShift;
+                    rgb[0] = mem->scale >> _roomVisualEffectsGetHaloShades()[mem->index].rShift;
+                    rgb[1] = mem->scale >> _roomVisualEffectsGetHaloShades()[mem->index].gShift;
+                    rgb[2] = mem->scale >> _roomVisualEffectsGetHaloShades()[mem->index].bShift;
                     _roomVisualEffectsDrawHaloStar(coord, (u16)mem->angle * 4, rgb);
                     mem->scale -= 0x10;
                     mem->angle += 8;

@@ -450,7 +450,8 @@ s32 D_dryfield_night_main_street_80182230[16] = {
 #define ROOM_FX_HALO_STORAGE_BOUND
 #include "../../shared/room_visual_effects_halo_data.inc.c"
 
-static inline RoomFxShade* RoomFx_GetHaloShades(void)
+/// Returns this overlay's three read-only halo tint rows for spawn indices 0..2.
+static inline const RoomFxShade* _roomVisualEffectsGetHaloShades(void)
 {
     return _gRoomEffectHaloShades.entries;
 }

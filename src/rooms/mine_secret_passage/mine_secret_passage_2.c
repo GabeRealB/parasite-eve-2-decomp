@@ -122,7 +122,8 @@ SVECTOR D_mine_secret_passage_80180F08[16] = {
 #define ROOM_FX_HALO_STORAGE_BOUND
 #include "../../shared/room_visual_effects_halo_data.inc.c"
 
-static inline RoomFxShade* RoomFx_GetHaloShades(void)
+/// Returns this overlay's three read-only halo tint rows for spawn indices 0..2.
+static inline const RoomFxShade* _roomVisualEffectsGetHaloShades(void)
 {
     return _gRoomEffectHaloShades.entries;
 }

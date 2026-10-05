@@ -4,99 +4,88 @@
  * register/volatile/assembly workarounds. Private drawing helpers remain in
  * the other room_visual_effects fragments. */
 
-/// A twin trail. The first tick allocates sixteen coordinate frames, eight for
-/// each trail, and seeds them all from the two points offset from the anchor,
-/// so both trails start collapsed. Each later tick re-places the two points,
-/// records them in the next slot of each ring of eight and draws the trails
-/// between the rings as a beam. The work block is released once the tick count
-/// reaches the spawn argument. It idles while the room's event state is 2 or
-/// more.
+/// Two view-relative endpoint histories owned by the effect task's work pointer.
+typedef struct {
+    GfxCoord first[ROOM_VISUAL_EFFECTS_TRAIL_SLOT_COUNT];  // Eight snapshots of the first endpoint
+    GfxCoord second[ROOM_VISUAL_EFFECTS_TRAIL_SLOT_COUNT]; // Eight snapshots of the second endpoint
+} _RoomVisualEffectsTwinTrailHistory;
 
-GfxCoord    coord;
-GfxCoord*   coords;
-GfxCoord*   objCoord;
-GfxCoord*   dst;
-EffectWork* work;
-SVECTOR*    vec;
-s32         i;
+enum { TRAIL_INITIALIZE,
+       TRAIL_RECORD,
+       TRAIL_SLOT_MASK         = ROOM_VISUAL_EFFECTS_TRAIL_SLOT_COUNT - 1,
+       TRAIL_COLOR_MULTIPLIERS = (1 << 8) | (2 << 4) | 3 }; // R:G:B = 1:2:3
 
-coords   = task->work;
-work     = (EffectWork*)task->spawnArg2.pointer;
-objCoord = task->extra.coordBody->coord;
+GfxCoord                            secondEndpointCoord;
+_RoomVisualEffectsTwinTrailHistory* history;
+GfxCoord*                           firstEndpointCoord;
+GfxCoord*                           historyFrame;
+EffectWork*                         work;
+SVECTOR*                            initialOffset;
+s32                                 slotIndex;
+
+history            = task->work;
+work               = task->spawnArg2.pointer;
+firstEndpointCoord = task->extra.coordBody->coord;
 
 if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_HIDDEN) {
     work->age++;
     switch (task->state) {
-        case 0:
-            coords = memCalloc(sizeof(GfxCoord[16]), 0);
-            if (coords == NULL) {
+        case TRAIL_INITIALIZE:
+            // Seed both histories from the current endpoints, so the beam starts collapsed.
+            history = memCalloc(sizeof(*history), false);
+            if (history == NULL) {
                 work->age = 0;
                 return;
             }
-            task->work             = coords;
-            objCoord->parent       = work->parent;
-            objCoord->coord.t[0]   = RoomFx_TrailOffsets[0].vx;
-            objCoord->coord.t[1]   = RoomFx_TrailOffsets[0].vy;
-            objCoord->coord.t[2]   = RoomFx_TrailOffsets[0].vz;
-            objCoord->composeStamp = GRAPHICS_COORD_DIRTY;
-            actorRenderComposeCoord(objCoord);
-            task->state        = 1;
-            coord.parent       = work->parent;
-            vec                = &RoomFx_TrailOffsets[1];
-            coord.coord.t[0]   = vec->vx;
-            coord.coord.t[1]   = vec->vy;
-            coord.coord.t[2]   = vec->vz;
-            coord.composeStamp = GRAPHICS_COORD_DIRTY;
-            actorRenderComposeCoord(&coord);
-            for (i = 0; i < 8; i++) {
-                dst         = &coords[i];
-                dst->parent = &gGfxViewCoord;
-                dst->workm  = objCoord->workm;
-                gte_SetRotMatrix(&objCoord->workm);
-                gte_SetTransMatrix(&objCoord->workm);
-                gfxMakeRelativeTransform(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
-                dst         = &coords[i + 8];
-                dst->parent = &gGfxViewCoord;
-                dst->workm  = coord.workm;
-                gte_SetRotMatrix(&coord.workm);
-                gte_SetTransMatrix(&coord.workm);
-                gfxMakeRelativeTransform(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
+            task->work                       = history;
+            firstEndpointCoord->parent       = work->parent;
+            firstEndpointCoord->coord.t[0]   = RoomFx_TrailOffsets[0].vx;
+            firstEndpointCoord->coord.t[1]   = RoomFx_TrailOffsets[0].vy;
+            firstEndpointCoord->coord.t[2]   = RoomFx_TrailOffsets[0].vz;
+            firstEndpointCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+            actorRenderComposeCoord(firstEndpointCoord);
+            task->state                      = TRAIL_RECORD;
+            secondEndpointCoord.parent       = work->parent;
+            initialOffset                    = &RoomFx_TrailOffsets[1];
+            secondEndpointCoord.coord.t[0]   = initialOffset->vx;
+            secondEndpointCoord.coord.t[1]   = initialOffset->vy;
+            secondEndpointCoord.coord.t[2]   = initialOffset->vz;
+            secondEndpointCoord.composeStamp = GRAPHICS_COORD_DIRTY;
+            actorRenderComposeCoord(&secondEndpointCoord);
+            for (slotIndex = 0; slotIndex < ROOM_VISUAL_EFFECTS_TRAIL_SLOT_COUNT; slotIndex++) {
+                historyFrame = &history->first[slotIndex];
+                _roomVisualEffectsStoreTrailFrame(historyFrame, firstEndpointCoord);
+                historyFrame = &history->second[slotIndex];
+                _roomVisualEffectsStoreTrailFrame(historyFrame, &secondEndpointCoord);
             }
             break;
 
-        case 1:
-            objCoord->composeStamp = GRAPHICS_COORD_DIRTY;
-            actorRenderComposeCoord(objCoord);
-            coord.parent = work->parent;
+        case TRAIL_RECORD:
+            // View-relative snapshots keep old edges independent of later anchor movement.
+            firstEndpointCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+            actorRenderComposeCoord(firstEndpointCoord);
+            secondEndpointCoord.parent = work->parent;
             {
-                SVECTOR* edge    = &RoomFx_TrailOffsets[1];
-                coord.coord.t[0] = edge->vx;
-                coord.coord.t[1] = edge->vy;
-                coord.coord.t[2] = edge->vz;
+                SVECTOR* updateOffset          = &RoomFx_TrailOffsets[1];
+                secondEndpointCoord.coord.t[0] = updateOffset->vx;
+                secondEndpointCoord.coord.t[1] = updateOffset->vy;
+                secondEndpointCoord.coord.t[2] = updateOffset->vz;
             }
-            coord.composeStamp = GRAPHICS_COORD_DIRTY;
-            actorRenderComposeCoord(&coord);
-            dst         = &coords[work->age & 7];
-            dst->parent = &gGfxViewCoord;
-            dst->workm  = objCoord->workm;
-            gte_SetRotMatrix(&objCoord->workm);
-            gte_SetTransMatrix(&objCoord->workm);
-            gfxMakeRelativeTransform(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
-            dst         = &coords[(work->age & 7) + 8];
-            dst->parent = &gGfxViewCoord;
-            dst->workm  = coord.workm;
-            gte_SetRotMatrix(&coord.workm);
-            gte_SetTransMatrix(&coord.workm);
-            gfxMakeRelativeTransform(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
-            for (i = 0; i < 8; i++) {
-                dst               = &coords[i];
-                dst->composeStamp = GRAPHICS_COORD_DIRTY;
-                actorRenderComposeCoord(dst);
-                dst               = &coords[i + 8];
-                dst->composeStamp = GRAPHICS_COORD_DIRTY;
-                actorRenderComposeCoord(dst);
+            secondEndpointCoord.composeStamp = GRAPHICS_COORD_DIRTY;
+            actorRenderComposeCoord(&secondEndpointCoord);
+            historyFrame = &history->first[work->age & TRAIL_SLOT_MASK];
+            _roomVisualEffectsStoreTrailFrame(historyFrame, firstEndpointCoord);
+            historyFrame = &history->second[work->age & TRAIL_SLOT_MASK];
+            _roomVisualEffectsStoreTrailFrame(historyFrame, &secondEndpointCoord);
+            for (slotIndex = 0; slotIndex < ROOM_VISUAL_EFFECTS_TRAIL_SLOT_COUNT; slotIndex++) {
+                historyFrame               = &history->first[slotIndex];
+                historyFrame->composeStamp = GRAPHICS_COORD_DIRTY;
+                actorRenderComposeCoord(historyFrame);
+                historyFrame               = &history->second[slotIndex];
+                historyFrame->composeStamp = GRAPHICS_COORD_DIRTY;
+                actorRenderComposeCoord(historyFrame);
             }
-            _roomVisualEffectsDrawTwinTrail(coords, &coords[8], work->age & 7, 0x123);
+            _roomVisualEffectsDrawTwinTrail(history->first, history->second, work->age & TRAIL_SLOT_MASK, TRAIL_COLOR_MULTIPLIERS);
             if (work->age == task->spawnArg1.value && work->age != 0) {
                 effectKillTask(work, task);
             }

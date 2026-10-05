@@ -113,7 +113,8 @@ SVECTOR D_shelter_b2_north_maintenance_walkway_80183C30[1] = {
 #define ROOM_FX_HALO_STORAGE_BOUND
 #include "../../shared/room_visual_effects_halo_data.inc.c"
 
-static inline RoomFxShade* RoomFx_GetHaloShades(void)
+/// Returns this overlay's three read-only halo tint rows for spawn indices 0..2.
+static inline const RoomFxShade* _roomVisualEffectsGetHaloShades(void)
 {
     return _gRoomEffectHaloShades.entries;
 }

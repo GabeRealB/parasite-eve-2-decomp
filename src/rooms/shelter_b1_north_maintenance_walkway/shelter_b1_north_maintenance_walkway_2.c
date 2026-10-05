@@ -58,7 +58,8 @@
 #include "../../shared/room_visual_effects_disc_data.inc.c"
 #include "../../shared/room_events.h"
 
-static inline RoomFxShade* RoomFx_GetHaloShades(void)
+/// Returns this overlay's three read-only halo tint rows for spawn indices 0..2.
+static inline const RoomFxShade* _roomVisualEffectsGetHaloShades(void)
 {
     return _gRoomEffectHaloShades.entries;
 }

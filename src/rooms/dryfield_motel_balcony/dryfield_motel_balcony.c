@@ -91,17 +91,19 @@ extern WorldCoordRoomLights       D_dryfield_motel_balcony_801865E8[1];
 
 extern AreaResource D_dryfield_motel_balcony_801861A8[1];
 
-s32 func_dryfield_motel_balcony_8017DB6C(Task*, s32, s32, s32);
-s32 func_dryfield_motel_balcony_8017DB74(Task*, s32, s32, s32);
-s32 func_dryfield_motel_balcony_8017DB7C(Task*, s32, s32, s32);
+enum { DRYFIELD_MOTEL_BALCONY_MESSAGE_USE_KEY_ITEM = 0x13F1 };
+
+static s32 _dryfieldMotelBalconyUseKeyItemMsg(Task* task, s32 messageId, s32 itemId, s32 secondArg);
+static s32 _dryfieldMotelBalconyCommandMsg(Task* task, s32 messageId, s32 commandId, s32 secondArg);
+static s32 _dryfieldMotelBalconyRoomActionMsg(Task* task, s32 messageId, s32 firstArg, s32 secondArg);
 
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
 TaskMessageEntry D_dryfield_motel_balcony_8018227C[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, roomVariantMotelBalconyDoorsMsg },
-    { 5105, func_dryfield_motel_balcony_8017DB6C },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_motel_balcony_8017DB7C },
-    { ROOM_MESSAGE_COMMAND, func_dryfield_motel_balcony_8017DB74 },
+    { DRYFIELD_MOTEL_BALCONY_MESSAGE_USE_KEY_ITEM, _dryfieldMotelBalconyUseKeyItemMsg },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldMotelBalconyRoomActionMsg },
+    { ROOM_MESSAGE_COMMAND, _dryfieldMotelBalconyCommandMsg },
     { ROOM_MESSAGE_SOUND, roomVariantMotelBalconySoundMsg },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
@@ -111,7 +113,8 @@ TaskMessageEntry D_dryfield_motel_balcony_8018227C[6] = {
 #define ROOM_FX_HALO_STORAGE_BOUND
 #include "../../shared/room_visual_effects_halo_data.inc.c"
 
-static inline RoomFxShade* RoomFx_GetHaloShades(void)
+/// Returns this overlay's three read-only halo tint rows for spawn indices 0..2.
+static inline const RoomFxShade* _roomVisualEffectsGetHaloShades(void)
 {
     return _gRoomEffectHaloShades.entries;
 }
@@ -1126,7 +1129,7 @@ RoomEventActiveBytes gRoomEventActive = { 0, { 238, 254, 37 } };
 RoomEventReq gRoomEventReq;
 
 static void func_dryfield_motel_balcony_8017DB84(Task* task);
-static void func_dryfield_motel_balcony_8017DBC8(Task* arg0);
+static void _dryfieldMotelBalconyIdleState(Task* task);
 
 #include "../../shared/room_event_gate.inc.c"
 
@@ -1136,17 +1139,23 @@ static void func_dryfield_motel_balcony_8017DBC8(Task* arg0);
 
 #include "../../shared/room_variants_motel_balcony_sound.inc.c"
 
-s32 func_dryfield_motel_balcony_8017DB6C(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Rejects key-item use in this room by returning zero; all arguments are unused.
+static s32 _dryfieldMotelBalconyUseKeyItemMsg(Task* task, s32 messageId, s32 itemId, s32 secondArg)
 {
     return 0;
 }
 
-s32 func_dryfield_motel_balcony_8017DB74(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores room commands and returns zero without reading either payload word.
+static s32 _dryfieldMotelBalconyCommandMsg(Task* task, s32 messageId, s32 commandId, s32 secondArg)
 {
     return 0;
 }
 
-s32 func_dryfield_motel_balcony_8017DB7C(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores trigger actions and returns zero without reading the borrowed action request.
+///
+/// The unused first word transports a `DirectionActionRequest` address; retain
+/// the integer message ABI because this handler never accesses the payload.
+static s32 _dryfieldMotelBalconyRoomActionMsg(Task* task, s32 messageId, s32 firstArg, s32 secondArg)
 {
     return 0;
 }
@@ -1160,15 +1169,15 @@ static void func_dryfield_motel_balcony_8017DB84(Task* task)
     task->state = (s32)(task->state + 1);
 }
 
-/// Room task state 1: idles.
-static void func_dryfield_motel_balcony_8017DBC8(Task* arg0)
+/// Keeps the initialized room task alive while it waits for messages or teardown.
+static void _dryfieldMotelBalconyIdleState(Task* task)
 {
 }
 
 /// The room task's three states: setup, idle and exit.
 static const TaskFuncTable3 D_dryfield_motel_balcony_8017D5DC = {
     func_dryfield_motel_balcony_8017DB84,
-    func_dryfield_motel_balcony_8017DBC8,
+    _dryfieldMotelBalconyIdleState,
     taskKill,
 };
 
@@ -1212,9 +1221,9 @@ void func_dryfield_motel_balcony_8017EA00(Task* arg0)
     RoomFx_HaloTask(arg0);
 }
 
-void func_dryfield_motel_balcony_8017ED98(Task* arg0)
+void dryfieldMotelBalconyRoomVisualEffectsHaloOrangeBurstTask(Task* task)
 {
-    _roomVisualEffectsHaloOrangeBurstTask(arg0);
+    _roomVisualEffectsHaloOrangeBurstTask(task);
 }
 
 #include "../../shared/room_visual_effects_glow_quad.inc.c"
@@ -1227,14 +1236,14 @@ void func_dryfield_motel_balcony_801801A8(Task* arg0)
 
 #include "../../shared/room_visual_effects_flash_task.inc.c"
 
-void func_dryfield_motel_balcony_801802DC(Task* arg0)
+void dryfieldMotelBalconyRoomVisualEffectsFlashTask(Task* task)
 {
-    _roomVisualEffectsFlashTask(arg0);
+    _roomVisualEffectsFlashTask(task);
 }
 
 #include "../../shared/room_visual_effects_trails.inc.c"
 
-void func_dryfield_motel_balcony_80180D40(Task* task)
+void dryfieldMotelBalconyRoomVisualEffectsTwinTrailTask(Task* task)
 {
 #include "../../shared/room_visual_effects_trail_task.inc.c"
 }

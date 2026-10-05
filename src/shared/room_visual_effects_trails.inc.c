@@ -1,5 +1,18 @@
 /* Continue room_visual_effects.inc.c after the preceding overlay wrappers. */
 
+/// Stores a composed endpoint as a trail frame parented to the current view.
+///
+/// The frames must be distinct. Captures the world transform, loads the GTE
+/// rotation and translation, and computes the view-relative local transform.
+static inline void _roomVisualEffectsStoreTrailFrame(GfxCoord* historyFrame, const GfxCoord* endpoint)
+{
+    historyFrame->parent = &gGfxViewCoord;
+    historyFrame->workm  = endpoint->workm;
+    gte_SetRotMatrix(&endpoint->workm);
+    gte_SetTransMatrix(&endpoint->workm);
+    gfxMakeRelativeTransform(&gGfxViewCoord.workm, &historyFrame->workm, &historyFrame->coord);
+}
+
 /// Draws an additive sixteen-segment ring around a composed coordinate's world position.
 ///
 /// `blackRadius` and `blackRadius + tintRadiusDelta` are narrowed separately to

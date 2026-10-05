@@ -48444,7 +48444,7 @@ void func_dryfield_motel_balcony_8017DBD0(Task* task)
 
 const TaskFuncTable3 D_dryfield_motel_balcony_8017D5DC = {
     func_dryfield_motel_balcony_8017DB84,
-    func_dryfield_motel_balcony_8017DBC8,
+    _dryfieldMotelBalconyIdleState,
     taskKill,
 };
 ```
@@ -48781,10 +48781,10 @@ The `(s16)` cast is what stops CSE replacing the `if` arm's use of `flag` with
 `got`; without it the negate reads the copy and the load lands in the wrong
 register. `func_dryfield_motel_balcony_8017D5E8`, 97.5% -> 100%.
 
-The same shape shows up for fields: `mem->field_24 += mem->field_2A;
-mem->field_26 += mem->field_2A;` (two reads) produces the `move` pair, while
-hoisting `step = mem->field_2A;` produces one register and does not match
-(`func_dryfield_motel_balcony_801802DC`).
+The same shape shows up for fields: `work->scale += work->step;
+work->angle += work->step;` (two reads) produces the `move` pair, while
+hoisting `step = work->step;` produces one register and does not match
+(`dryfieldMotelBalconyRoomVisualEffectsFlashTask`).
 
 ## Loop temporaries: one variable per loop, and keep the IV copy alive
 
@@ -61695,7 +61695,7 @@ Two follow-ons, both silent:
 Renaming an overlay-local callee to a `RoomsShared…` alias is how a shared body
 gets past `promote`'s local-reference refusal, but the alias also *unhooks* the
 declaration when the callee's definition and the caller end up in different
-files. `func_dryfield_motel_balcony_8017ED98` used to sit below the definition
+files. `dryfieldMotelBalconyRoomVisualEffectsHaloOrangeBurstTask` used to sit below the definition
 of `func_dryfield_motel_balcony_8017E66C` in one `.c`, so the call was
 prototyped; after the split the caller had no declaration at all and K&R
 promotion widened the argument:
