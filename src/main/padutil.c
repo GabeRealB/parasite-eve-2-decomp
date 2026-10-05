@@ -16,6 +16,16 @@ enum {
     PAD_SOFT_RESET_COMBO    = 0x90F,
 };
 
+/// Advances the shared vibration cursor, preserving its byte store before wrap.
+static inline void _padAdvanceVibrationSlot(PadState* pad, u8 slot)
+{
+    slot                   = slot + 1;
+    pad->nextVibrationSlot = slot;
+    if (slot >= ARRAY_SIZE(pad->vibrationRequests[PAD_VIBRATION_MOTOR_BINARY])) {
+        pad->nextVibrationSlot = 0;
+    }
+}
+
 s32 padCheckButtons(s32 port, s32 mode, s32 mask)
 {
     const PadState* pad;
@@ -39,45 +49,39 @@ s32 padCheckButtons(s32 port, s32 mode, s32 mask)
     return (buttons & mask) != 0;
 }
 
-void Pad_PostEvent(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
+void padPostVibrationRequest(s32 port, s32 motorBank, s32 intensity, s32 durationUnits)
 {
-    PadState*            p;
+    PadState*            pad;
     PadVibrationRequest* requests;
     PadVibrationRequest* request;
-    s32                  i;
+    s32                  slotsExamined;
     s32                  durationPolls;
-    u8                   idx;
+    u8                   slot;
 
-    p = &gPadStates[arg0];
+    pad = &gPadStates[port];
     if (gDisplayState.demoScene != DISPLAY_DEMO_NONE) {
         return;
     }
 
-    i        = 0;
-    requests = p->vibrationRequests[arg1];
-    for (; i < ARRAY_SIZE(p->vibrationRequests[arg1]); i++) {
-        idx     = p->nextVibrationSlot;
-        request = &requests[idx];
+    // A full bank retains the last examined slot for replacement.
+    slotsExamined = 0;
+    requests      = pad->vibrationRequests[motorBank];
+    for (; slotsExamined < ARRAY_SIZE(pad->vibrationRequests[motorBank]); slotsExamined++) {
+        slot    = pad->nextVibrationSlot;
+        request = &requests[slot];
         if (request->active == PAD_VIBRATION_INACTIVE) {
             break;
         }
-        idx                  = idx + 1;
-        p->nextVibrationSlot = idx;
-        if (idx >= ARRAY_SIZE(p->vibrationRequests[arg1])) {
-            p->nextVibrationSlot = 0;
-        }
+        _padAdvanceVibrationSlot(pad, slot);
     }
 
+    // Preserve the byte intensity and doubled halfword countdown conversions.
     request->active         = PAD_VIBRATION_ACTIVE;
-    durationPolls           = (s16)arg3 * PAD_VIBRATION_POLLS_PER_DURATION_UNIT;
-    request->intensity      = arg2;
+    durationPolls           = (s16)durationUnits * PAD_VIBRATION_POLLS_PER_DURATION_UNIT;
+    request->intensity      = intensity;
     request->pollsRemaining = durationPolls;
 
-    idx                  = p->nextVibrationSlot + 1;
-    p->nextVibrationSlot = idx;
-    if (idx >= ARRAY_SIZE(p->vibrationRequests[arg1])) {
-        p->nextVibrationSlot = 0;
-    }
+    _padAdvanceVibrationSlot(pad, pad->nextVibrationSlot);
 }
 
 void Pad_SetCooldown(s32 arg0)
@@ -107,27 +111,24 @@ s32 Pad_ReadButtonsInv(s32 arg0)
     return (u16)~sp;
 }
 
-void Pad_ClearEvents(s32 arg0)
+void padClearVibrationRequests(s32 port)
 {
-    PadState*            p;
-    s32                  i;
-    s32                  j;
-    s32                  bankByteOffset;
+    PadState*            pad;
+    s32                  motorBank;
+    s32                  slot;
     PadVibrationRequest* requests;
 
-    p              = &gPadStates[arg0];
-    i              = 0;
-    bankByteOffset = OFFSET_OF(PadState, vibrationRequests);
-    for (; i < ARRAY_SIZE(p->vibrationRequests); i++) {
-        requests = p->vibrationRequests[i];
-        for (j = 0; j < ARRAY_SIZE(p->vibrationRequests[i]); j++) {
-            requests[j].active         = PAD_VIBRATION_INACTIVE;
-            requests[j].intensity      = 0;
-            requests[j].pollsRemaining = 0;
+    pad       = &gPadStates[port];
+    motorBank = 0;
+    for (; motorBank < ARRAY_SIZE(pad->vibrationRequests); motorBank++) {
+        requests = pad->vibrationRequests[motorBank];
+        for (slot = 0; slot < ARRAY_SIZE(pad->vibrationRequests[motorBank]); slot++) {
+            requests[slot].active         = PAD_VIBRATION_INACTIVE;
+            requests[slot].intensity      = 0;
+            requests[slot].pollsRemaining = 0;
         }
-        bankByteOffset += sizeof(p->vibrationRequests[i]);
     }
-    p->nextVibrationSlot = 0;
+    pad->nextVibrationSlot = 0;
 }
 
 s32 Pad_CheckSpecialCombo(void)

@@ -13888,38 +13888,40 @@ When the target walks banks of a fixed-size array with:
 ```
 li    a1, 0x10
 ...
-addu  v1, a3, a1      /* requests = p + bankByteOffset */
+addu  v1, a3, a1      /* requests = pad + bankByteOffset */
 ...
 addiu a1, a1, 0x20    /* delay of outer branch */
 ```
 
-writing the clean form `requests = p->vibrationRequests[i]` alone often loses the offset
-register and rewrites the address as `sll`/`addu` on `i`. Keep a parallel
+writing the clean form `requests = pad->vibrationRequests[motorBank]` alone often loses the offset
+register and rewrites the address as `sll`/`addu` on `motorBank`. Keep a parallel
 offset temporary that starts at the first bank's byte offset and advances by
 the bank stride each outer iteration — even if it is never read in C. GCC CSE
-equates `vibrationRequests[i]` with `p + bankByteOffset` and emits the target's `addu` /
+equates `vibrationRequests[motorBank]` with `pad + bankByteOffset` and emits the target's `addu` /
 `addiu …, 0x20` shape:
 
 ```c
-i = 0;
+motorBank = 0;
 bankByteOffset = OFFSET_OF(PadState, vibrationRequests); /* first bank at struct offset 0x10 */
-for (; i < 2; i++) {
-    requests = p->vibrationRequests[i]; /* not (PadVibrationRequest*)((u8*)p + bankByteOffset) */
-    for (j = 0; j < 8; j++) {
-        requests[j].active = PAD_VIBRATION_INACTIVE;
-        requests[j].intensity = 0;
-        requests[j].pollsRemaining = 0;
+for (; motorBank < ARRAY_SIZE(pad->vibrationRequests); motorBank++) {
+    requests = pad->vibrationRequests[motorBank]; /* not (PadVibrationRequest*)((u8*)pad + bankByteOffset) */
+    for (slot = 0; slot < ARRAY_SIZE(pad->vibrationRequests[motorBank]); slot++) {
+        requests[slot].active = PAD_VIBRATION_INACTIVE;
+        requests[slot].intensity = 0;
+        requests[slot].pollsRemaining = 0;
     }
-    bankByteOffset += sizeof(p->vibrationRequests[i]); /* bank stride; keeps a1 live for addu */
+    bankByteOffset += sizeof(pad->vibrationRequests[motorBank]); /* bank stride; keeps a1 live for addu */
 }
 ```
 
-Also: prefer `requests[j].field = …` over `request->field = …; request++`. Pointer
+Also: prefer `requests[slot].field = …` over `request->field = …; request++`. Pointer
 increment tends to CSE a separate address for a mid-struct halfword field
 (`addiu v1, a0, 2` then `sb -1(v1)` / `sh 0(v1)`), while array indexing keeps
 one base and `sb 0` / `sb 1` / `sh 2` plus `addiu base, 4` in the branch delay.
 
-`Pad_ClearEvents` (`PadState::vibrationRequests[2][8]`) is the example.
+`padClearVibrationRequests` (`PadState::vibrationRequests[2][8]`) supplied this
+example. With the current typed banks and indexed field stores, removing the
+parallel offset temporary also matches; it is no longer required in that function.
 
 ## Capture a reused halfword field so `%lo` wins and `$a0` stays free
 
@@ -17081,14 +17083,14 @@ target does; without the pin, scale and product drift into `$a0` and the
 For a wrap-around counter written as:
 
 ```c
-idx = idx + 1;
-p->nextVibrationSlot = idx;
-if (idx >= 8) {
-    p->nextVibrationSlot = 0;
+slot = slot + 1;
+pad->nextVibrationSlot = slot;
+if (slot >= ARRAY_SIZE(pad->vibrationRequests[PAD_VIBRATION_MOTOR_BINARY])) {
+    pad->nextVibrationSlot = 0;
 }
 ```
 
-`idx` must be `u8` (same width as the field). That emits:
+`slot` must be `u8` (same width as the field). That emits:
 
 ```
 addiu  v0, v1, 1
@@ -17100,8 +17102,8 @@ bnez   v0, no_wrap
 sb     zero, field(t0)
 ```
 
-An `s32` index with `(u8)idx >= 8` rewrites to check-first / store-in-delay-slot
-and mismatches. `Pad_PostEvent` is the pure example (vibration-request ring at
+An `s32` index with `(u8)slot >= 8` rewrites to check-first / store-in-delay-slot
+and mismatches. `padPostVibrationRequest` is the pure example (vibration-request ring at
 `PadState.nextVibrationSlot`).
 
 ## Force `prev = curr` before the next-pointer load in list walks
@@ -27755,7 +27757,7 @@ union {
     } bytes;
 } intensity;
 
-Pad_PostEvent(0, 1, work->intensity.bytes.whole, 1);
+padPostVibrationRequest(0, PAD_VIBRATION_MOTOR_VARIABLE, work->intensity.bytes.whole, 1);
 ```
 
 `Gp_PadLerpTask` is the example. The shift form compiles and is

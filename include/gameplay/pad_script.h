@@ -75,7 +75,7 @@ typedef struct PadScriptVibrationSegment {
 STATIC_ASSERT_SIZEOF(PadScriptVibrationSegment, 4);
 
 /// Suspends pad-driven scripting: raises the script, hold and lerp halt
-/// flags, clears `GameSession::padScriptFlags` and flushes the pad event queue.
+/// flags, clears `GameSession::padScriptFlags` and clears port 0's vibration requests.
 void Gp_HaltPadScripts(void);
 
 Task* Gp_SpawnScript18(PadScriptCmd* commands, PadScriptVibrationSegment* segments);

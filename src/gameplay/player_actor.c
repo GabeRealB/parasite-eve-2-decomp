@@ -218,13 +218,13 @@ STATIC_ASSERT_SIZEOF(_PlayerActorAimPitchScratch, 0x84);
 /// The poster indexes the one-entry table with the low halfword of its
 /// selector. Normal-mode state 4 is the only caller and passes 0. While
 /// `GameActor::rumblePosted` is clear, port 0's variable motor is posted at
-/// `intensity` for `durationUnits` and the latch is set. `Pad_PostEvent`
+/// `intensity` for `durationUnits` and the latch is set. `padPostVibrationRequest`
 /// doubles each unit into serviced controller polls. The stored pulse is full
 /// intensity for two units. `field_1` is never read; its role is unproven.
 typedef struct {
     u8  intensity;     // Variable-motor drive (0..255)
     u8  field_1;       // Never read; role unproven
-    s16 durationUnits; // Duration before `Pad_PostEvent` doubles it into controller polls
+    s16 durationUnits; // Duration before `padPostVibrationRequest` doubles it into controller polls
 } _PlayerActorVibrationPreset;
 STATIC_ASSERT_SIZEOF(_PlayerActorVibrationPreset, 0x4);
 
@@ -5922,7 +5922,7 @@ static void func_801041FC(Task* arg0, s32 arg1)
     if (actor->rumblePosted == 0) {
         actor->rumblePosted++;
         preset = &D_80112E28[idx];
-        Pad_PostEvent(0, PAD_VIBRATION_MOTOR_VARIABLE, preset->intensity, preset->durationUnits);
+        padPostVibrationRequest(0, PAD_VIBRATION_MOTOR_VARIABLE, preset->intensity, preset->durationUnits);
     }
 }
 

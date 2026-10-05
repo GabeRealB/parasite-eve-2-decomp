@@ -37,7 +37,7 @@ enum {
 /// polls, normally once per VSync, and pauses while polling skips the controller.
 /// A request still contributes on the poll that decrements its countdown to zero.
 ///
-/// `Pad_PostEvent` doubles a signed halfword duration and stores the low halfword
+/// `padPostVibrationRequest` doubles a signed halfword duration and stores the low halfword
 /// without clamping; intensity is narrowed to a byte. Slots belong to the
 /// resident controller state and can be replaced by later requests. Expiration
 /// clears only `active`, so the other fields are meaningful only while active.

@@ -74,7 +74,33 @@ enum {
 /// bit. A zero mask returns 1 only for held-all.
 s32 padCheckButtons(s32 port, s32 mode, s32 mask);
 
-void Pad_PostEvent(s32 port, s32 bank, s32 arg2, s32 arg3);
+/// Motor drive values for timed vibration requests.
+enum {
+    PAD_VIBRATION_BINARY_ON     = 1,
+    PAD_VIBRATION_INTENSITY_MAX = 255,
+};
+
+/// Adds a timed vibration contribution to one controller motor's request bank.
+///
+/// `port` must be 0 or 1; `motorBank` is `PAD_VIBRATION_MOTOR_BINARY` (0) or
+/// `PAD_VIBRATION_MOTOR_VARIABLE` (1). Intensity is stored as its low byte:
+/// zero contributes no drive, nonzero drives the binary motor, and 0..255
+/// sets variable-motor strength. Requests mix by binary OR or variable maximum.
+/// Demo scenes suppress the post without changing requests or the shared cursor.
+///
+/// Searches eight slots starting at the cursor shared by both motor banks.
+/// Uses the first inactive slot, or replaces the last examined slot if all are
+/// active. The cursor advances past an available slot; a full-bank scan wraps
+/// to its starting cursor and then advances once more, independently of the
+/// replaced slot. The stored request belongs to resident controller state.
+///
+/// Duration uses the signed low halfword of `durationUnits`, doubled and stored
+/// as a signed halfword without clamping. Each unit normally spans two serviced
+/// controller polls (VSyncs); skipped polls pause the countdown, and the expiry
+/// poll still contributes. The countdown wraps at 16 bits: a stored zero lasts
+/// 65536 serviced polls rather than cancelling. Posting does not poll or send
+/// an actuator command; polling currently services only port 0.
+void padPostVibrationRequest(s32 port, s32 motorBank, s32 intensity, s32 durationUnits);
 
 void Pad_SetCooldown(s32 port);
 
@@ -87,6 +113,11 @@ void padClearInputBlock(s32 port);
 
 s32 Pad_ReadButtonsInv(s32 port);
 
-void Pad_ClearEvents(s32 port);
+/// Clears every stored vibration request for both motors of one controller port.
+///
+/// `port` must be 0 or 1. Resets the shared slot cursor to zero, including during
+/// demo scenes. The actuator command buffer is refreshed on the next serviced
+/// poll; this call does not poll or send a command.
+void padClearVibrationRequests(s32 port);
 
 #endif // MAIN_PAD_H

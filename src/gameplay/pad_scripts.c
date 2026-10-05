@@ -279,7 +279,7 @@ void Gp_HaltPadScripts(void)
     Gp_PadHoldHalt               = 1;
     Gp_PadLerpHalt               = 1;
     gGameSession->padScriptFlags = 0;
-    Pad_ClearEvents(0);
+    padClearVibrationRequests(0);
 }
 
 Task* Gp_SpawnScript18(PadScriptCmd* commands, PadScriptVibrationSegment* segments)
@@ -418,7 +418,7 @@ void Gp_PadHoldTask(Task* task)
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING || (gGameSession->padScriptFlags & GAME_SESSION_PAD_SCRIPT_DURING_BATTLE_FREEZE)) {
         if (task->spawnArg1.value != 0 && Gp_PadHoldHalt == 0) {
             task->spawnArg1.value--;
-            Pad_PostEvent(0, 0, 1, 1);
+            padPostVibrationRequest(0, PAD_VIBRATION_MOTOR_BINARY, PAD_VIBRATION_BINARY_ON, 1);
             gGameSession->padScriptFlags |= GAME_SESSION_PAD_SCRIPT_HOLD_ACTIVE;
         } else {
             gGameSession->padScriptFlags &= ~GAME_SESSION_PAD_SCRIPT_HOLD_ACTIVE;
@@ -436,7 +436,7 @@ void Gp_PadLerpTask(Task* task)
         if (work->framesRemaining != 0 && Gp_PadLerpHalt == 0) {
             // Post this frame's whole intensity to the variable motor, then advance the ramp.
             work->framesRemaining--;
-            Pad_PostEvent(0, 1, work->intensity.bytes.whole, 1);
+            padPostVibrationRequest(0, PAD_VIBRATION_MOTOR_VARIABLE, work->intensity.bytes.whole, 1);
             work->intensity.q8           += work->intensityStep;
             gGameSession->padScriptFlags |= GAME_SESSION_PAD_SCRIPT_LERP_ACTIVE;
         } else {

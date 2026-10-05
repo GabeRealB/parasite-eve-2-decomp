@@ -5278,7 +5278,7 @@ static void func_actor_560800_80134384(Task* task)
 /// Restarts Kyle's animation slots in clip 0x20 -- writing `animRate` and every
 /// slot's `rate` with `ANIMATION_RATE_ONE` -- then spawns
 /// effect 0x6002B on the ninth per-part coordinate of the task at `kyle`
-/// and posts the pad event that releases the input lock.
+/// and posts a brief full-strength pulse to port 0's variable vibration motor.
 ///
 /// The rate is held in a local rather than written as two literals: both uses
 /// have to reach the same register, and the rate is live across the loop's
@@ -5308,7 +5308,7 @@ void func_actor_560800_80134B14(s32 arg0)
         } while (i < anim->slotCount);
     }
     Gp_SpawnEff(EFFECT_HANDGUN_MUZZLE_FLASH, &work->kyle->extra.tmd->coords[8], 0x21, NULL);
-    Pad_PostEvent(0, 1, 0xFF, 2);
+    padPostVibrationRequest(0, PAD_VIBRATION_MOTOR_VARIABLE, PAD_VIBRATION_INTENSITY_MAX, 2);
 }
 
 static inline void Actor560800_BlendSlotsFirst(Task* task, u16 id, s16 rate)
@@ -5460,7 +5460,7 @@ static void func_actor_560800_80134BFC(Task* arg0)
                         return;
                     }
                     Gp_SpawnEff(EFFECT_HIT_PUFF, &work->player->extra.tmd->coords[6], 0, NULL);
-                    Pad_PostEvent(0, 1, 0xFF, 2);
+                    padPostVibrationRequest(0, PAD_VIBRATION_MOTOR_VARIABLE, PAD_VIBRATION_INTENSITY_MAX, 2);
                     break;
                 default:
                     return;
@@ -5561,7 +5561,7 @@ static void func_actor_560800_80134BFC(Task* arg0)
                     if (++work->kyleCue.counter < 0x1F) {
                         return;
                     }
-                    Pad_PostEvent(0, 1, 0xFF, 2);
+                    padPostVibrationRequest(0, PAD_VIBRATION_MOTOR_VARIABLE, PAD_VIBRATION_INTENSITY_MAX, 2);
                     Gp_SpawnEff(EFFECT_HANDGUN_MUZZLE_FLASH, &work->kyle->extra.tmd->coords[8], 0x21, NULL);
                     blend           = work->no9->work;
                     blend->animId   = 0x20;
