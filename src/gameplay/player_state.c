@@ -1389,7 +1389,7 @@ have_actor:
     memFillBytes(companion, 0, sizeof(*companion));
     task->work           = actor;
     actor->companionWork = companion;
-    Gp_PumpTmdStream(task);
+    companionRelocateModelTextures(task);
     actor->actionArgument = options->initialAnimationId;
     actor->rotation.vy    = spawnTransform->yaw.angle;
     coord                 = task->extra.tmd->coords;

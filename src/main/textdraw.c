@@ -215,8 +215,8 @@ static TaskDesc D_8005EDA0[] = {
     { { { TASK_BODY_NONE, 0xF8 } }, NULL },
     { { { TASK_BODY_NONE, 0xC0 } }, func_80701400 },
     { { { TASK_BODY_NONE, 0x2F } }, NULL },
-    { { { TASK_BODY_NONE, 0xF8 } }, Gp_CommitSpawnLoc },
-    { { { TASK_BODY_NONE, 0xF8 } }, Gp_SetupSprtDisplay },
+    { { { TASK_BODY_NONE, 0xF8 } }, viewCommitIndexTask },
+    { { { TASK_BODY_NONE, 0xF8 } }, loadingRestoreViewGraphicsTask },
 };
 
 TaskDesc* gTaskDescBanks[15] = {

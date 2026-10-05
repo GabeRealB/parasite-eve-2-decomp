@@ -310,8 +310,8 @@ This is the only bank we can describe entry-by-entry. Spawn with
 | `22` | `F8` | NULL | Unused |
 | `23` | `C0` | `0x80701400` | Stage overlay — not in this tree |
 | `24` | `2F` | NULL | Unused |
-| `25` | `F8` | `Gp_CommitSpawnLoc` | Commit spawn location |
-| `26` | `F8` | `Gp_SetupSprtDisplay` | Sprite display setup |
+| `25` | `F8` | `viewCommitIndexTask` | Commit the low-byte view index to session and live save; kill self |
+| `26` | `F8` | `loadingRestoreViewGraphicsTask` | Restore model/sprite packets, kill self and resume game-loop presentation |
 
 `Title_MenuSpawnIds` (6 words) is `{6, 6, 3, 4, 5, 6}` — bank 0 types spawned
 from `Title_MenuTask` on confirm.

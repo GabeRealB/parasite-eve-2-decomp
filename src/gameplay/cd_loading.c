@@ -606,6 +606,16 @@ static const TaskFuncTable6 Gp_LoadWaitFns = { {
 
 static const _LoadingConfigFileHundreds Gp_ConfigCdTable = { { 4, 3, 2, 5, 6 } };
 
+/// Restores discarded model buffers before allocating the current view's sprite packets.
+static __inline__ void _loadingRestoreViewGraphics(s32 keepGraphics)
+{
+    if (keepGraphics == 0) {
+        gpuResetAndInvalidateModelBuffers();
+        tmdResetAuxHeapAndRestoreBuffers();
+    }
+    spriteAllocateViewCachedPackets();
+}
+
 /// Maps `gPlayerStatus.weapon` / `gPlayerStatus.weaponSlotItem` (and the 0x1B attach id) to a
 /// CdCmd 0x21 payload. No-op when `gPlayerStatus.weapon` is 0 or the mapped byte is 0.
 static void Gp_EnqueueWeaponCd(void)
@@ -840,13 +850,13 @@ static void Gp_ReloadAtLoc(s32 arg0)
     Task_Spawn(0, 0x1E, 0, 0);
 }
 
-void Gp_CommitSpawnLoc(Task* task)
+void viewCommitIndexTask(Task* task)
 {
-    u8 val;
+    u8 viewIndex;
 
-    val                                                        = (u8)task->spawnArg1.value;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = val;
-    gGameSession->location.loc.view                            = val;
+    viewIndex                                                  = (u8)task->spawnArg1.value;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = viewIndex;
+    gGameSession->location.loc.view                            = viewIndex;
     taskKill(task);
 }
 
@@ -855,19 +865,16 @@ void func_800A99B4(void)
     Display_SpawnWithOtSmall(0, 0x26, 0, 0);
 }
 
-void Gp_SetupSprtDisplay(Task* task)
+void loadingRestoreViewGraphicsTask(Task* task)
 {
-    DisplayState* ds;
-    s32           flag;
+    DisplayState* display;
+    s32           keepGraphics;
 
-    ds                         = &gDisplayState;
-    flag                       = ds->keepGraphics;
-    ds->control.flags.flipMode = DISPLAY_FLIP_HOLD;
-    if (flag == 0) {
-        gpuResetAndInvalidateModelBuffers();
-        tmdResetAuxHeapAndRestoreBuffers();
-    }
-    spriteAllocateViewCachedPackets();
+    display                         = &gDisplayState;
+    keepGraphics                    = display->keepGraphics;
+    display->control.flags.flipMode = DISPLAY_FLIP_HOLD;
+    // Finish rebuilding graphics before returning presentation to the game loop.
+    _loadingRestoreViewGraphics(keepGraphics);
     taskKill(task);
     displayResumeGameLoop();
 }
@@ -1006,17 +1013,22 @@ void Gp_EnqueueCompanionCd(u8 type, u8 variant)
     SCRATCH_STACK_RELEASE_BYTES(8);
 }
 
-void Gp_PumpTmdStream(Task* task)
+void companionRelocateModelTextures(Task* companionTask)
 {
-    TmdObject* obj;
+    enum {
+        COMPANION_MODEL_TEXTURE_PAGE_OFFSET = 4,
+        COMPANION_MODEL_CLUT_ROW_OFFSET     = 6
+    };
+    TmdObject* model;
 
-    obj = task->extra.tmd;
-    if (task->bodyKind == TASK_BODY_TMD) {
-        obj->texturePageOffset = 4;
-        obj->clutRowOffset     = 6;
-        if (obj->buffer != NULL) {
-            tmdBuildBufferHalf(obj);
-            tmdBuildBufferHalf(obj);
+    model = companionTask->extra.tmd;
+    if (companionTask->bodyKind == TASK_BODY_TMD) {
+        model->texturePageOffset = COMPANION_MODEL_TEXTURE_PAGE_OFFSET;
+        model->clutRowOffset     = COMPANION_MODEL_CLUT_ROW_OFFSET;
+        if (model->buffer != NULL) {
+            // Each build toggles the half selector; two refresh both and restore it.
+            tmdBuildBufferHalf(model);
+            tmdBuildBufferHalf(model);
         }
     }
 }

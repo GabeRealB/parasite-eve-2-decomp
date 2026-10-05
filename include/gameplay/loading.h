@@ -21,11 +21,29 @@ void Gp_EnqueueHeldWeaponCd(void);
 
 void Gp_EnqueueConfigCd(s32 arg0);
 
-void Gp_CommitSpawnLoc(Task* task);
+/// Commits a logical view index to the current session and live save, then kills the task.
+///
+/// Bank-0 task 0x25. Uses the low eight bits of `task->spawnArg1.value` without
+/// validation or view-resource lookup. Requires a live task and `gGameSession`;
+/// changes only the view bytes, without loading resources or applying a camera.
+void viewCommitIndexTask(Task* task);
 
 void Gp_LoadWaitDispatch(Task* task);
 
-void Gp_SetupSprtDisplay(Task* task);
+/// Restores the current view's graphics and returns presentation to the game loop.
+///
+/// Bank-0 task 0x26. Holds framebuffer flips, then resets GPU work and rebuilds
+/// eligible attached-model buffers if `gDisplayState.keepGraphics` is zero.
+/// Always allocates cached view-sprite packets, kills the task and resumes the
+/// game loop, including after allocation failure.
+///
+/// Requires a live task, loaded view resources and the memory-lifetime contracts
+/// of `spriteAllocateViewCachedPackets` and `displayResumeGameLoop`. When
+/// graphics are discarded, other users of auxiliary storage must have ended
+/// before `tmdResetAuxHeapAndRestoreBuffers` resets it; preserved graphics need
+/// a live configured auxiliary heap. Previous cached sprite storage must already
+/// be retired. No task-owned drawing may remain when game-loop presentation resumes.
+void loadingRestoreViewGraphicsTask(Task* task);
 
 /// Per-stage pointer table. Index is `GameSession.location.loc.stage - 1`.
 /// Each entry is an array of `WorldCollisionSurfaceProperties**`, indexed by area - 1.

@@ -49,7 +49,16 @@ extern const TaskFuncTable3 Gp_RoomObjStates;
 
 void Gp_EnqueueViewCd(Task* task);
 
-void Gp_PumpTmdStream(Task* task);
+/// Applies the companion texture relocation to a task's model and its cached packets.
+///
+/// A live TMD task must have a valid `extra.tmd`; other body kinds are unchanged.
+/// Sets an encoded texture-page displacement of 4 (256 VRAM words horizontally)
+/// and a CLUT displacement of 6 rows. Rebuilds both buffer halves when present,
+/// preserving the half selector; a missing buffer retains the offsets for its
+/// later construction. Does not allocate, draw, change task state or kill it.
+/// Existing buffers and borrowed sources must satisfy `tmdBuildBufferHalf`'s
+/// contract, with no GPU work still reading packets that will be rebuilt.
+void companionRelocateModelTextures(Task* companionTask);
 
 void Gp_FinishLoadWait(Task* task);
 

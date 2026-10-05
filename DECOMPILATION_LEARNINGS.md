@@ -23685,21 +23685,22 @@ header. `func_800CFD78` / `taskKill` is the example.
 
 A `u8` field compared as signed (`lb` + `bnez`) must not go through an `s8`
 temporary. `s8 flag = field` (or `s8 flag = (s8)field`) is QImode, so the
-compare promotes with `lbu` + `sll 24`. Assign the cast into an `s32`:
+compare promotes with `lbu` + `sll 24`. Assign the cast into an `s32`; an
+already-signed byte needs no cast, as in the current example:
 
 ```c
-s32 flag;
+s32 keepGraphics;
 
-flag = (s8)ds->keepGraphics;
-ds->control.flags.flipMode = 2;
-if (flag == 0) {
+keepGraphics = display->keepGraphics;
+display->control.flags.flipMode = DISPLAY_FLIP_HOLD;
+if (keepGraphics == 0) {
     /* calls */
 }
 ```
 
 `lb` fills a 32-bit register; the independent store then sits in the `bnez`
 delay slot. Using the `(s8)` cast only in the `if` condition emits `lb` but
-does not hoist the store. `Gp_SetupSprtDisplay` is the example.
+does not hoist the store. `loadingRestoreViewGraphicsTask` is the example.
 
 ## Volatile object pointer pins field loads after a global store
 
