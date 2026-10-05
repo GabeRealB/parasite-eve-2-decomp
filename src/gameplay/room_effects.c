@@ -1903,15 +1903,29 @@ void effectDrawGouraudDisc(const GfxCoord* centreCoord, s32 radius, const u8* rg
     SCRATCH_STACK_RELEASE_BLOCK(EffectCentreScratch);
 }
 
-/// Writes one billboard corner's signed pixel offset from its projected centre.
+/// Writes a billboard corner's pixel displacement, with X rightward and Y upward.
 ///
-/// Scratch depth must be positive. Division precedes the Q12 rotation; the
-/// caller must keep the signed products within s32 and uses opposite signs
-/// for the opposite corner. Reuses the scratch record's corner workspace.
-static inline void _effectComputeBillboardCornerOffset(EffectShapeScratch* scratch, s16 size, s32 angle)
+/// Borrows a live `scratch` block with positive `depth`; only `extent.corner`
+/// is replaced and no pointer is retained. `sizeFactor * 31 / depth` gives the
+/// signed half-diagonal in pixels, truncated toward zero before Q12 rotation.
+/// The signed 32-bit products must fit; the arithmetic right shift rounds
+/// negative rotated products down. No depth or overflow check occurs here.
+///
+/// `cornerAngle` uses 4096 units per turn. For a positive half-diagonal, zero
+/// points upward and a quarter turn points rightward. The drawer subtracts Y
+/// from the screen centre, negates both offsets for the opposite corner, and
+/// repeats the calculation a quarter turn later for the other pair.
+static inline void _effectComputeBillboardCornerOffset(EffectShapeScratch* scratch, s16 sizeFactor, s32 cornerAngle)
 {
-    scratch->extent.corner.x = (((size * EFFECT_BILLBOARD_UV_SPAN) / scratch->depth) * rsin(angle)) >> EFFECT_RADIAL_TRIG_FRACTION_BITS;
-    scratch->extent.corner.y = (((size * EFFECT_BILLBOARD_UV_SPAN) / scratch->depth) * rcos(angle)) >> EFFECT_RADIAL_TRIG_FRACTION_BITS;
+    s32 halfDiagonalPixels;
+    s32 trigSample;
+
+    trigSample               = rsin(cornerAngle);
+    halfDiagonalPixels       = (sizeFactor * EFFECT_BILLBOARD_UV_SPAN) / scratch->depth;
+    scratch->extent.corner.x = (halfDiagonalPixels * trigSample) >> EFFECT_RADIAL_TRIG_FRACTION_BITS;
+    trigSample               = rcos(cornerAngle);
+    halfDiagonalPixels       = (sizeFactor * EFFECT_BILLBOARD_UV_SPAN) / scratch->depth;
+    scratch->extent.corner.y = (halfDiagonalPixels * trigSample) >> EFFECT_RADIAL_TRIG_FRACTION_BITS;
 }
 
 void effectDrawSpinningBillboard(const GfxCoord* coord, u16 frame, s16 size, u16 packedAnglePalette)
@@ -2023,20 +2037,28 @@ void func_800EB6E8(GfxCoord* arg0, u16 arg1, u16 arg2, u16 arg3)
     SCRATCH_STACK_RELEASE_BLOCK(EffectCentreScratch);
 }
 
-/// Projects one band's four corners with the current world-to-screen GTE matrices.
+/// Projects a glow band's segment into the four screen corners of its quad.
 ///
-/// segmentIndex is 0..EFFECT_BAND_SEGMENT_COUNT-1. The FLAG retained is from
-/// the final RTPT, matching the caller's per-segment rejection; its SZ3 is
-/// left in the GTE for the caller's ordering-depth read.
+/// Borrows a live, word-aligned `scratch` block with both rings initialized to
+/// signed 16-bit world positions. `segmentIndex` must be in
+/// 0..`EFFECT_BAND_SEGMENT_COUNT`-1; the next index wraps to zero at the end.
+/// The GTE world-to-screen matrices must already be set. Only `sxy0`..`sxy3`
+/// and `projectionFlags` are replaced; no pointer is retained.
+///
+/// Corners 0/1 come from the current/next top-ring vertices, and corners 2/3
+/// from the current/next bottom-ring vertices. The retained FLAG tests only
+/// the final three-vertex projection. The final corner's SZ3 remains in the
+/// GTE for the caller's depth read; `scratch->otz` is unchanged.
 static inline void _effectProjectGlowBandSegment(EffectBandScratch* scratch, s32 segmentIndex)
 {
-    s32 nextIndex;
+    s32 nextSegmentIndex;
 
     gte_ldv0(&scratch->topRing[segmentIndex]);
     gte_rtps();
+    // Save the first corner before projecting the other three advances the FIFO.
     gte_stsxy(&scratch->sxy0);
-    nextIndex = (segmentIndex + 1) & (EFFECT_BAND_SEGMENT_COUNT - 1);
-    gte_ldv3(&scratch->topRing[nextIndex], &scratch->bottomRing[segmentIndex], &scratch->bottomRing[nextIndex]);
+    nextSegmentIndex = (segmentIndex + 1) & (EFFECT_BAND_SEGMENT_COUNT - 1);
+    gte_ldv3(&scratch->topRing[nextSegmentIndex], &scratch->bottomRing[segmentIndex], &scratch->bottomRing[nextSegmentIndex]);
     gte_rtpt();
     gte_stsxy3(&scratch->sxy1, &scratch->sxy2, &scratch->sxy3);
     gte_stflg(&scratch->projectionFlags);
