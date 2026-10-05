@@ -1,5 +1,5 @@
 // Overlay-local symbols for shelter_b4_water_supply.
-D_shelter_b4_water_supply_80182648 = 0x80182648; // size:0x14 defined:True
+_gShelterB4WaterSupplyWaterWaveSurfaces = 0x80182648; // size:0x14 defined:True
 D_shelter_b4_water_supply_8018265C = 0x8018265C; // size:0x14 defined:True
 D_shelter_b4_water_supply_80182670 = 0x80182670; // size:0x10 defined:True
 D_shelter_b4_water_supply_80182680 = 0x80182680; // size:0x10 defined:True
@@ -9,7 +9,7 @@ D_shelter_b4_water_supply_80182690 = 0x80182690; // size:0x50 defined:True
 D_shelter_b4_water_supply_801825E4 = 0x801825E4; // size:0xC defined:True
 D_shelter_b4_water_supply_801825F0 = 0x801825F0; // size:0x30 defined:True
 D_shelter_b4_water_supply_80182620 = 0x80182620; // size:0x18 defined:True
-D_shelter_b4_water_supply_80182638 = 0x80182638; // size:0x2 defined:True
+_gShelterB4WaterSupplyWaterY = 0x80182638; // size:0x2 defined:True
 D_shelter_b4_water_supply_8018263C = 0x8018263C; // size:0xC defined:True
 D_shelter_b4_water_supply_801826FC = 0x801826FC; // size:0x40 defined:True
 D_shelter_b4_water_supply_8018273C = 0x8018273C; // size:0x4 defined:True
@@ -66,7 +66,7 @@ D_actor_100400_80147E48 = 0x80147E48; // absolute:True owner=actor_100400
 D_actor_207200_80153EC8 = 0x80153EC8; // absolute:True owner=actor_207200
 D_shelter_b4_water_supply_80184E3C = 0x80184E3C; // size:0x8 defined:True
 gRoomDeparture = 0x80184E44; // size:0xC defined:True
-D_shelter_b4_water_supply_80184E50 = 0x80184E50; // size:0x4 defined:True
+_gShelterB4WaterSupplyWaterPacketCursor = 0x80184E50; // size:0x4 defined:True
 
 func_shelter_b4_water_supply_8017EE54 = 0x8017EE54; // type:func
 
@@ -89,4 +89,4 @@ waterDrawSplash = 0x8017F3A0; // type:func
 waterDrawSpin = 0x8017FB90; // type:func
 waterDrawTile = 0x8017FF7C; // type:func
 roomDepartureTask = 0x8017D650; // type:func
-waterDrawWaveStrips = 0x8017DE74; // type:func
+_waterDrawWaveStrips = 0x8017DE74; // type:func

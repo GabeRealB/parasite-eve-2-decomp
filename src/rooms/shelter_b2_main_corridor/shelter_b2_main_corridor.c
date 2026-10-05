@@ -149,9 +149,6 @@ extern EvsCommand D_shelter_b2_main_corridor_80182CA8[];
 /// Tasks the room's first task state spawns.
 extern TaskDesc D_shelter_b2_main_corridor_80182DE0[];
 
-/// The room's water surfaces.
-extern RoomWaterSurface D_shelter_b2_main_corridor_80182DEC[];
-
 /// Light positions the per-view drawer places beams and glows at.
 extern SVECTOR D_shelter_b2_main_corridor_80182F7C[];
 extern SVECTOR D_shelter_b2_main_corridor_80182F9C[];
@@ -167,13 +164,9 @@ extern SVECTOR D_shelter_b2_main_corridor_8018306C[];
 /// Areas the room re-applies when it clears its pending game-flag state.
 extern AreaApplyRec D_shelter_b2_main_corridor_80189644[];
 
-/// Cursor into the primitive area the water surface is written to.
-extern u8* D_shelter_b2_main_corridor_80189660;
-
 static void func_shelter_b2_main_corridor_8017E264(RoomEventMsg* msg);
 static void func_shelter_b2_main_corridor_8017E2D4(Task* arg0);
 static void func_shelter_b2_main_corridor_8017E330(Task* arg0);
-static void waterDrawWaveStrips(Task* arg0);
 static void func_shelter_b2_main_corridor_8017EBF4(Task* arg0);
 
 extern TaskDesc D_actor_100400_80147E48;
@@ -259,7 +252,8 @@ TaskDesc D_shelter_b2_main_corridor_80182DE0[1] = {
     { { { TASK_BODY_NONE, 96 } }, func_shelter_b2_main_corridor_8017EB8C, { .value = 0 } },
 };
 
-RoomWaterSurface D_shelter_b2_main_corridor_80182DEC[5] = {
+/// Four water rectangles rendered as Z-running wave strips, followed by the list end.
+static RoomWaterSurface _gShelterB2MainCorridorWaterWaveSurfaces[] = {
     { -2400, -0x3C8C, 1600, 4400, 0 },
     { 900, -0x3C8C, 1500, 4500, 0 },
     { -2400, -8800, 1600, 5600, 0 },
@@ -267,7 +261,7 @@ RoomWaterSurface D_shelter_b2_main_corridor_80182DEC[5] = {
     { 0, 0, 0, 0, WATER_SURFACE_LIST_END },
 };
 
-s16 D_shelter_b2_main_corridor_80182E28 = 150;
+s16 gShelterB2MainCorridorWaterY = 150;
 
 SVECTOR D_shelter_b2_main_corridor_80182E2C[8] = {
     { 1700, 1500, -4300, 0 },
@@ -1596,7 +1590,12 @@ u8 D_shelter_b2_main_corridor_8018965C[4] = {
     44,
 };
 
-u8* D_shelter_b2_main_corridor_80189660 = NULL;
+/// Next byte for mixed water quad and draw-mode packets in a borrowed actor-load buffer.
+///
+/// The drawer resets this word-aligned cursor to the current 0xC000-byte half.
+/// The four rectangles consume at most 0x1800 bytes; the buffer stays reserved
+/// until the GPU finishes the frame's ordering table.
+static u8* _gShelterB2MainCorridorWaterPacketCursor = NULL;
 
 _RoomDepartureStorage gRoomDeparture = { 0 };
 
@@ -1887,9 +1886,23 @@ void func_shelter_b2_main_corridor_8017E338(Task* task)
 
 /// Selects the drawer's actor-load cursor reset and corridor view exclusions.
 #define WATER_WAVE_STRIPS_RESET_ACTOR_LOAD_CURSOR 1
-#define WATER_WAVE_STRIPS_SURFACES                D_shelter_b2_main_corridor_80182DEC
-#define WATER_WAVE_STRIPS_HEIGHT                  D_shelter_b2_main_corridor_80182E28
-#define WATER_WAVE_STRIPS_PRIM_CURSOR             D_shelter_b2_main_corridor_80189660
+/// Binds the readable four-rectangle list, including its in-bounds terminator.
+///
+/// Supplies a `RoomWaterSurface*` without side effects or captured locals.
+/// The shared strip include consumes and undefines this binding.
+#define WATER_WAVE_STRIPS_SURFACES _gShelterB2MainCorridorWaterWaveSurfaces
+/// Binds the undisplaced water Y in signed world units.
+///
+/// Read once per draw from the room's `s16`; no side effects or captured locals.
+/// The shared strip include consumes and undefines this binding.
+#define WATER_WAVE_STRIPS_HEIGHT gShelterB2MainCorridorWaterY
+/// Binds the writable byte cursor for mixed water quad and draw-mode packets.
+///
+/// A stable `u8*` lvalue, read and advanced repeatedly; requires word alignment
+/// and a borrowed arena reserved until GPU consumption. The shared strip
+/// include consumes and undefines this binding.
+/// This instance resets the cursor to the selected display buffer half.
+#define WATER_WAVE_STRIPS_PACKET_CURSOR _gShelterB2MainCorridorWaterPacketCursor
 /// Scales the seam's sine displacement to -64..64 world-coordinate Y units.
 ///
 /// Integer shift count for `water_wave_strips.inc.c`; see its configuration
@@ -1902,10 +1915,10 @@ void func_shelter_b2_main_corridor_8017E338(Task* task)
 /// and each tick publishes the room's water height to the session.
 void func_shelter_b2_main_corridor_8017EB8C(Task* task)
 {
-    TaskFunc states[2] = { func_shelter_b2_main_corridor_8017EBF4, waterDrawWaveStrips };
+    TaskFunc states[2] = { func_shelter_b2_main_corridor_8017EBF4, _waterDrawWaveStrips };
 
     states[task->state](task);
-    gGameSession->waterY = D_shelter_b2_main_corridor_80182E28;
+    gGameSession->waterY = gShelterB2MainCorridorWaterY;
 }
 
 /// First state of the water task: clears the session's `field_80` or

@@ -14,8 +14,15 @@
 #error "WATER_WAVE_STRIPS_AMPLITUDE_SHIFT must be in 0..16 to preserve signed Y offsets"
 #endif
 
-#ifndef WATER_WAVE_STRIPS_FUNC
-#define WATER_WAVE_STRIPS_FUNC waterDrawWaveStrips
+#ifndef WATER_WAVE_STRIPS_DRAW_FUNCTION
+/// Selects the private task-compatible function emitted by this include.
+///
+/// Bind a single function identifier for a `static void (Task*)` definition.
+/// The default serves one list per carrier; the septic tank overrides it for
+/// its second list. The task argument is unused. There are no captured locals,
+/// evaluations, stringification or token pasting; the include undefines the
+/// binding, so a later instance must bind its distinct identifier again.
+#define WATER_WAVE_STRIPS_DRAW_FUNCTION _waterDrawWaveStrips
 #endif
 #ifndef WATER_WAVE_STRIPS_SURFACE_T
 #define WATER_WAVE_STRIPS_SURFACE_T RoomWaterSurface
@@ -47,7 +54,7 @@
 /// also skips stage 4, area 0x21, views 10 and 11, returning before any cursor
 /// reset or scratch reservation.
 ///
-/// `WATER_WAVE_STRIPS_PRIM_CURSOR` must bind a writable `u8*` lvalue. The caller
+/// `WATER_WAVE_STRIPS_PACKET_CURSOR` must bind a writable `u8*` lvalue. The caller
 /// must reserve the selected packet area, with word alignment and enough space
 /// for the surface lists, until the GPU has consumed it. This configuration
 /// binding is tested only by the preprocessor and undefined after each include.
@@ -65,6 +72,10 @@
 /// default instance.
 #define WATER_WAVE_STRIPS_FIRST_COLOURS_HELPER_DEFINED
 /// Sets the first X strip's default vertex colours for subtractive blending.
+///
+/// Writes all RGB bytes: (128, 0, 0) on the flat edge (vertices 0/1),
+/// (32, 32, 32) on the waving seam (2/3). `quad` is writable; other fields
+/// are preserved and the pointer is not retained.
 static inline void _waterSetFirstWaveStripColours(POLY_G4* quad)
 {
     quad->r0 = 0x80;
@@ -109,6 +120,10 @@ static inline void _waterSetFirstWaveStripColours(POLY_G4* quad)
 /// default instance.
 #define WATER_WAVE_STRIPS_SECOND_COLOURS_HELPER_DEFINED
 /// Sets the second X strip's default vertex colours for subtractive blending.
+///
+/// Writes all RGB bytes: (32, 32, 32) on the waving seam (vertices 0/1),
+/// (128, 0, 0) on the flat edge (2/3). `quad` is writable; other fields
+/// are preserved and the pointer is not retained.
 static inline void _waterSetSecondWaveStripColours(POLY_G4* quad)
 {
     quad->r2 = 0x80;
@@ -141,148 +156,167 @@ static inline void _waterSetSecondWaveStripColours(POLY_G4* quad)
 #define WATER_WAVE_STRIPS_SET_SECOND_STRIP_COLOURS(quad) _waterSetSecondWaveStripColours(quad)
 #endif
 
-/// Draws each surface of WATER_WAVE_STRIPS_SURFACES at height
-/// WATER_WAVE_STRIPS_HEIGHT as two strips of 16 semi-transparent gouraud quads
-/// side by side along X, each running along Z and projected through the view
-/// matrix. The seam between them is lifted by a sine wave along Z, scrolling
-/// with the display frame (scaled by `WATER_WAVE_STRIPS_AMPLITUDE_SHIFT`);
-/// each quad is followed by a draw-mode packet selecting blend mode 2. The
-/// packets append to `WATER_WAVE_STRIPS_PRIM_CURSOR`, with initialization
-/// selected by `WATER_WAVE_STRIPS_RESET_ACTOR_LOAD_CURSOR`.
-/// The strips' vertex colours are WATER_WAVE_STRIPS_SET_FIRST_STRIP_COLOURS(poly) and
-/// WATER_WAVE_STRIPS_SET_SECOND_STRIP_COLOURS(poly).
-static void WATER_WAVE_STRIPS_FUNC(Task* task)
+/// Draws rectangular water patches as two subtractive wave strips subdivided along Z.
+///
+/// Each rectangle produces at most 32 quads: sixteen per side of a waving X
+/// seam. Width/2 and depth/16 use signed integer division and are narrowed to
+/// world-coordinate halfwords. The sine phase advances 512/4096 turn per
+/// segment and scrolls -16/4096 turn per display frame. Projection through the
+/// view matrix rejects quads with a negative GTE flag word.
+///
+/// `WATER_WAVE_STRIPS_SURFACES` supplies a readable descriptor table terminated
+/// within its bounds; `WATER_WAVE_STRIPS_HEIGHT` supplies signed world Y.
+/// `WATER_WAVE_STRIPS_PACKET_CURSOR` supplies a word-aligned byte cursor with
+/// 32 * (sizeof(POLY_G4) + sizeof(DR_MODE)) = 0x600 bytes available per drawable
+/// rectangle. Each accepted quad advances past both complete packet objects,
+/// although the draw-mode packet sends only its first command word. The arena
+/// must remain reserved until the GPU has consumed the frame's ordering table.
+/// Cursor reset is selected by `WATER_WAVE_STRIPS_RESET_ACTOR_LOAD_CURSOR`;
+/// append instances require the caller to initialize it. Reserves and releases
+/// one `WaterQuadScratch`. `task` is unused; the signature permits task dispatch.
+static void WATER_WAVE_STRIPS_DRAW_FUNCTION(Task* task)
 {
-    SVECTOR                      v0, v1, v2, v3;
-    long                         sxy0, sxy1, sxy2, sxy3;
-    long                         p, flag;
-    s32                          phase;
+    enum {
+        WATER_WAVE_STRIPS_SEGMENTS_PER_STRIP = 16,
+        WATER_WAVE_STRIPS_PHASE_STEP_SHIFT   = 9,  // 512 angle units, one eighth-turn
+        WATER_WAVE_STRIPS_PHASE_PER_FRAME    = 16, // Angle units per display frame
+        WATER_WAVE_STRIPS_PACKET_HALF_BYTES  = 0xC000,
+        WATER_WAVE_STRIPS_FIRST_HIDDEN_VIEW  = 10,
+        WATER_WAVE_STRIPS_HIDDEN_VIEW_COUNT  = 2
+    };
+    SVECTOR                      vertex0, vertex1, vertex2, vertex3;
+    long                         screenXY0, screenXY1, screenXY2, screenXY3;
+    long                         projectionScale, projectionFlags;
+    s32                          wavePhase;
     WATER_WAVE_STRIPS_SURFACE_T* surface;
-    WaterQuadScratch*            scratch;
-    WaterQuadScratch*            scratchEnd;
-    POLY_G4*                     poly;
-    DR_MODE*                     dr;
-    s32                          otz;
-    s32                          i;
+    WaterQuadScratch*            strip;
+    WaterQuadScratch*            scratchTop;
+    POLY_G4*                     quad;
+    DR_MODE*                     drawMode;
+    s32                          depth;
+    s32                          segment;
 #if WATER_WAVE_STRIPS_RESET_ACTOR_LOAD_CURSOR
-    GameLocationKey* k;
+    GameLocationKey* location;
 #endif
 
+    /// Queues the completed quad and its draw mode into one depth bucket.
+    ///
+    /// Captures `quad`, `depth`, `drawMode`, the instance's byte cursor and the
+    /// current display table. Takes no arguments and is undefined before
+    /// leaving this function. Prepending the draw mode last makes the GPU
+    /// consume it before the quad. This statement list must be invoked inside
+    /// a braced block, never as an unbraced branch.
+#define WATER_WAVE_STRIPS_QUEUE_QUAD()                                                                                                                \
+    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), quad); \
+    drawMode                        = (DR_MODE*)WATER_WAVE_STRIPS_PACKET_CURSOR;                                                                      \
+    WATER_WAVE_STRIPS_PACKET_CURSOR = (u8*)(drawMode + 1);                                                                                            \
+    setDrawTPage(drawMode, 0, 0, getTPage(0, GPU_BLEND_SUBTRACT, 640, 0));                                                                            \
+    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), drawMode)
+
 #if WATER_WAVE_STRIPS_RESET_ACTOR_LOAD_CURSOR
-    surface = WATER_WAVE_STRIPS_SURFACES;
-    phase   = -(gDisplayState.animFrame * 16);
-    k       = &gGameSession->location.loc;
-    /* not drawn in views 10 and 11 of stage 4, area 0x21 */
-    if (k->stage == GAME_STAGE_MINE_SHELTER) {
-        if (k->area == GAME_AREA_SHELTER_B2_MAIN_CORRIDOR) {
-            if ((u32)(gGameSession->location.loc.view - 0xA) < 2) {
+    surface   = WATER_WAVE_STRIPS_SURFACES;
+    wavePhase = -(gDisplayState.animFrame * WATER_WAVE_STRIPS_PHASE_PER_FRAME);
+    location  = &gGameSession->location.loc;
+    // These corridor views omit water, before reserving either packet or scratch space.
+    if (location->stage == GAME_STAGE_MINE_SHELTER) {
+        if (location->area == GAME_AREA_SHELTER_B2_MAIN_CORRIDOR) {
+            if ((u32)(gGameSession->location.loc.view - WATER_WAVE_STRIPS_FIRST_HIDDEN_VIEW) < WATER_WAVE_STRIPS_HIDDEN_VIEW_COUNT) {
                 return;
             }
         }
     }
-    /* the strips are written to this buffer's half of the actor load area */
+    // Borrow the unused actor-load area, split by the display's buffer index.
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType == 0) {
-        WATER_WAVE_STRIPS_PRIM_CURSOR = (u8*)Fs_ActorLoadBase2 + gDisplayState.otBuffer * 0xC000;
+        WATER_WAVE_STRIPS_PACKET_CURSOR = (u8*)Fs_ActorLoadBase2 + gDisplayState.otBuffer * WATER_WAVE_STRIPS_PACKET_HALF_BYTES;
     } else {
-        WATER_WAVE_STRIPS_PRIM_CURSOR = (u8*)Fs_ActorLoadBase1 + gDisplayState.otBuffer * 0xC000;
+        WATER_WAVE_STRIPS_PACKET_CURSOR = (u8*)Fs_ActorLoadBase1 + gDisplayState.otBuffer * WATER_WAVE_STRIPS_PACKET_HALF_BYTES;
     }
-    scratchEnd                 = SCRATCH_STACK_CURSOR(WaterQuadScratch);
+    scratchTop                 = SCRATCH_STACK_CURSOR(WaterQuadScratch);
     gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
 #else
     surface                    = WATER_WAVE_STRIPS_SURFACES;
     gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
-    scratchEnd                 = SCRATCH_STACK_CURSOR(WaterQuadScratch);
-    phase                      = -(gDisplayState.animFrame * 16);
+    scratchTop                 = SCRATCH_STACK_CURSOR(WaterQuadScratch);
+    wavePhase                  = -(gDisplayState.animFrame * WATER_WAVE_STRIPS_PHASE_PER_FRAME);
 #endif
     // One scratch reservation holds the values reused across the surface list.
-    SCRATCH_STACK_CURSOR(WaterQuadScratch) = scratchEnd - 1;
-    scratch                                = scratchEnd - 1;
+    SCRATCH_STACK_CURSOR(WaterQuadScratch) = scratchTop - 1;
+    strip                                  = scratchTop - 1;
     actorRenderComposeCoord(&gGfxViewCoord);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_SetTransMatrix(&gGfxViewCoord.workm);
-    scratch->y = WATER_WAVE_STRIPS_HEIGHT;
+    strip->y = WATER_WAVE_STRIPS_HEIGHT;
     for (; !WATER_WAVE_STRIPS_IS_LIST_END(surface); surface++) {
-        scratch->dx = surface->width / 2;
-        scratch->dz = surface->depth / 16;
-        scratch->x  = surface->x;
-        scratch->z  = surface->z;
-        for (i = 0; i < 16; i++) {
-            v0.vx            = scratch->x;
-            v0.vy            = scratch->y;
-            v0.vz            = scratch->z + scratch->dz * i;
-            v1.vx            = scratch->x;
-            v1.vy            = scratch->y;
-            v1.vz            = scratch->z + scratch->dz * (i + 1);
-            scratch->yOffset = (u32)rsin(phase + (i << 9)) >> WATER_WAVE_STRIPS_AMPLITUDE_SHIFT;
-            v2.vx            = scratch->x + scratch->dx;
-            v2.vy            = scratch->y + scratch->yOffset;
-            v2.vz            = scratch->z + scratch->dz * i;
-            scratch->yOffset = (u32)rsin(phase + ((i + 1) << 9)) >> WATER_WAVE_STRIPS_AMPLITUDE_SHIFT;
-            v3.vx            = scratch->x + scratch->dx;
-            v3.vy            = scratch->y + scratch->yOffset;
-            v3.vz            = scratch->z + scratch->dz * (i + 1);
-            otz              = RotTransPers4(&v0, &v1, &v2, &v3, &sxy0, &sxy1, &sxy2, &sxy3, &p, &flag);
-            if (flag >= 0) {
-                poly                          = (POLY_G4*)WATER_WAVE_STRIPS_PRIM_CURSOR;
-                WATER_WAVE_STRIPS_PRIM_CURSOR = (u8*)(poly + 1);
-                setlen(poly, 8);
-                setcode(poly, 0x3A);
-                GPU_PRIMITIVE_XY_WORD(poly, 0) = sxy0;
-                GPU_PRIMITIVE_XY_WORD(poly, 1) = sxy1;
-                GPU_PRIMITIVE_XY_WORD(poly, 2) = sxy2;
-                GPU_PRIMITIVE_XY_WORD(poly, 3) = sxy3;
-                WATER_WAVE_STRIPS_SET_FIRST_STRIP_COLOURS(poly);
-                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                        poly);
-                dr                            = (DR_MODE*)WATER_WAVE_STRIPS_PRIM_CURSOR;
-                WATER_WAVE_STRIPS_PRIM_CURSOR = (u8*)(dr + 1);
-                setlen(dr, 1);
-                dr->code[0] = 0xE100004A;
-                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                        dr);
+        strip->dx = surface->width / 2;
+        strip->dz = surface->depth / WATER_WAVE_STRIPS_SEGMENTS_PER_STRIP;
+        strip->x  = surface->x;
+        strip->z  = surface->z;
+        // First strip: flat outer edge to the displaced seam.
+        for (segment = 0; segment < WATER_WAVE_STRIPS_SEGMENTS_PER_STRIP; segment++) {
+            vertex0.vx     = strip->x;
+            vertex0.vy     = strip->y;
+            vertex0.vz     = strip->z + strip->dz * segment;
+            vertex1.vx     = strip->x;
+            vertex1.vy     = strip->y;
+            vertex1.vz     = strip->z + strip->dz * (segment + 1);
+            strip->yOffset = (u32)rsin(wavePhase + (segment << WATER_WAVE_STRIPS_PHASE_STEP_SHIFT)) >> WATER_WAVE_STRIPS_AMPLITUDE_SHIFT;
+            vertex2.vx     = strip->x + strip->dx;
+            vertex2.vy     = strip->y + strip->yOffset;
+            vertex2.vz     = strip->z + strip->dz * segment;
+            strip->yOffset = (u32)rsin(wavePhase + ((segment + 1) << WATER_WAVE_STRIPS_PHASE_STEP_SHIFT)) >> WATER_WAVE_STRIPS_AMPLITUDE_SHIFT;
+            vertex3.vx     = strip->x + strip->dx;
+            vertex3.vy     = strip->y + strip->yOffset;
+            vertex3.vz     = strip->z + strip->dz * (segment + 1);
+            depth          = RotTransPers4(&vertex0, &vertex1, &vertex2, &vertex3, &screenXY0, &screenXY1, &screenXY2, &screenXY3, &projectionScale, &projectionFlags);
+            if (projectionFlags >= 0) {
+                quad                            = (POLY_G4*)WATER_WAVE_STRIPS_PACKET_CURSOR;
+                WATER_WAVE_STRIPS_PACKET_CURSOR = (u8*)(quad + 1);
+                setPolyG4(quad);
+                setSemiTrans(quad, 1);
+                GPU_PRIMITIVE_XY_WORD(quad, 0) = screenXY0;
+                GPU_PRIMITIVE_XY_WORD(quad, 1) = screenXY1;
+                GPU_PRIMITIVE_XY_WORD(quad, 2) = screenXY2;
+                GPU_PRIMITIVE_XY_WORD(quad, 3) = screenXY3;
+                WATER_WAVE_STRIPS_SET_FIRST_STRIP_COLOURS(quad);
+                WATER_WAVE_STRIPS_QUEUE_QUAD();
             }
         }
-        for (i = 0; i < 16; i++) {
-            scratch->yOffset = (u32)rsin(phase + (i << 9)) >> WATER_WAVE_STRIPS_AMPLITUDE_SHIFT;
-            v0.vx            = scratch->x + scratch->dx;
-            v0.vy            = scratch->y + scratch->yOffset;
-            v0.vz            = scratch->z + scratch->dz * i;
-            scratch->yOffset = (u32)rsin(phase + ((i + 1) << 9)) >> WATER_WAVE_STRIPS_AMPLITUDE_SHIFT;
-            v1.vx            = scratch->x + scratch->dx;
-            v1.vy            = scratch->y + scratch->yOffset;
-            v1.vz            = scratch->z + scratch->dz * (i + 1);
-            v2.vx            = scratch->x + scratch->dx * 2;
-            v2.vy            = scratch->y;
-            v2.vz            = scratch->z + scratch->dz * i;
-            v3.vx            = scratch->x + scratch->dx * 2;
-            v3.vy            = scratch->y;
-            v3.vz            = scratch->z + scratch->dz * (i + 1);
-            otz              = RotTransPers4(&v0, &v1, &v2, &v3, &sxy0, &sxy1, &sxy2, &sxy3, &p, &flag);
-            if (flag >= 0) {
-                poly                          = (POLY_G4*)WATER_WAVE_STRIPS_PRIM_CURSOR;
-                WATER_WAVE_STRIPS_PRIM_CURSOR = (u8*)(poly + 1);
-                setlen(poly, 8);
-                setcode(poly, 0x3A);
-                GPU_PRIMITIVE_XY_WORD(poly, 0) = sxy0;
-                GPU_PRIMITIVE_XY_WORD(poly, 1) = sxy1;
-                GPU_PRIMITIVE_XY_WORD(poly, 2) = sxy2;
-                GPU_PRIMITIVE_XY_WORD(poly, 3) = sxy3;
-                WATER_WAVE_STRIPS_SET_SECOND_STRIP_COLOURS(poly);
-                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                        poly);
-                dr                            = (DR_MODE*)WATER_WAVE_STRIPS_PRIM_CURSOR;
-                WATER_WAVE_STRIPS_PRIM_CURSOR = (u8*)(dr + 1);
-                setlen(dr, 1);
-                dr->code[0] = 0xE100004A;
-                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                        dr);
+        // Second strip: the same displaced seam to the other flat outer edge.
+        for (segment = 0; segment < WATER_WAVE_STRIPS_SEGMENTS_PER_STRIP; segment++) {
+            strip->yOffset = (u32)rsin(wavePhase + (segment << WATER_WAVE_STRIPS_PHASE_STEP_SHIFT)) >> WATER_WAVE_STRIPS_AMPLITUDE_SHIFT;
+            vertex0.vx     = strip->x + strip->dx;
+            vertex0.vy     = strip->y + strip->yOffset;
+            vertex0.vz     = strip->z + strip->dz * segment;
+            strip->yOffset = (u32)rsin(wavePhase + ((segment + 1) << WATER_WAVE_STRIPS_PHASE_STEP_SHIFT)) >> WATER_WAVE_STRIPS_AMPLITUDE_SHIFT;
+            vertex1.vx     = strip->x + strip->dx;
+            vertex1.vy     = strip->y + strip->yOffset;
+            vertex1.vz     = strip->z + strip->dz * (segment + 1);
+            vertex2.vx     = strip->x + strip->dx * 2;
+            vertex2.vy     = strip->y;
+            vertex2.vz     = strip->z + strip->dz * segment;
+            vertex3.vx     = strip->x + strip->dx * 2;
+            vertex3.vy     = strip->y;
+            vertex3.vz     = strip->z + strip->dz * (segment + 1);
+            depth          = RotTransPers4(&vertex0, &vertex1, &vertex2, &vertex3, &screenXY0, &screenXY1, &screenXY2, &screenXY3, &projectionScale, &projectionFlags);
+            if (projectionFlags >= 0) {
+                quad                            = (POLY_G4*)WATER_WAVE_STRIPS_PACKET_CURSOR;
+                WATER_WAVE_STRIPS_PACKET_CURSOR = (u8*)(quad + 1);
+                setPolyG4(quad);
+                setSemiTrans(quad, 1);
+                GPU_PRIMITIVE_XY_WORD(quad, 0) = screenXY0;
+                GPU_PRIMITIVE_XY_WORD(quad, 1) = screenXY1;
+                GPU_PRIMITIVE_XY_WORD(quad, 2) = screenXY2;
+                GPU_PRIMITIVE_XY_WORD(quad, 3) = screenXY3;
+                WATER_WAVE_STRIPS_SET_SECOND_STRIP_COLOURS(quad);
+                WATER_WAVE_STRIPS_QUEUE_QUAD();
             }
         }
     }
     SCRATCH_STACK_RELEASE_BLOCK(WaterQuadScratch);
+#undef WATER_WAVE_STRIPS_QUEUE_QUAD
 }
 
-#undef WATER_WAVE_STRIPS_FUNC
+#undef WATER_WAVE_STRIPS_DRAW_FUNCTION
 #undef WATER_WAVE_STRIPS_SURFACES
 #undef WATER_WAVE_STRIPS_HEIGHT
 #undef WATER_WAVE_STRIPS_SET_FIRST_STRIP_COLOURS
@@ -291,4 +325,4 @@ static void WATER_WAVE_STRIPS_FUNC(Task* task)
 #undef WATER_WAVE_STRIPS_IS_LIST_END
 #undef WATER_WAVE_STRIPS_RESET_ACTOR_LOAD_CURSOR
 #undef WATER_WAVE_STRIPS_AMPLITUDE_SHIFT
-#undef WATER_WAVE_STRIPS_PRIM_CURSOR
+#undef WATER_WAVE_STRIPS_PACKET_CURSOR

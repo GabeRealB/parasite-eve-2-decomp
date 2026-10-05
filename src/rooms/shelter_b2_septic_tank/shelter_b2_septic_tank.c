@@ -73,10 +73,6 @@ extern EvsCommand       D_shelter_b2_septic_tank_8018310C[];
 /// Tasks the room's first task state spawns.
 extern TaskDesc D_shelter_b2_septic_tank_801832C0[];
 
-/// The room's water surfaces, as two lists drawn by separate functions.
-extern RoomWaterSurface D_shelter_b2_septic_tank_801832CC[];
-extern RoomWaterSurface D_shelter_b2_septic_tank_801832F0[];
-
 extern SVECTOR D_shelter_b2_septic_tank_80183314[];
 extern SVECTOR D_shelter_b2_septic_tank_80183344[];
 extern SVECTOR D_shelter_b2_septic_tank_80183374[];
@@ -89,8 +85,6 @@ extern SVECTOR D_shelter_b2_septic_tank_80183534[];
 
 extern u8 D_shelter_b2_septic_tank_80187045;
 
-static void waterDrawWaveStrips(Task* task);
-static void waterDrawWaveStrips2(Task* task);
 static void func_shelter_b2_septic_tank_8017EAB8(Task* arg0);
 static void func_shelter_b2_septic_tank_8017EAF8(Task* task);
 
@@ -100,8 +94,12 @@ extern RoomEventMsg     gRoomEventStagedMsg;
 extern u8               D_shelter_b2_septic_tank_80187044;
 extern RoomLatchedEvent gRoomEventLatched;
 
-/// Cursor into the primitive area the water surface is written to.
-extern u8* D_shelter_b2_septic_tank_80187054;
+/// Next byte for mixed water quad and draw-mode packets in a borrowed actor-load buffer.
+///
+/// Reset once per frame to the current word-aligned 0xC000-byte half, then
+/// advanced by both surface lists (at most 0x1800 bytes together). The buffer
+/// stays reserved until the GPU finishes the frame's ordering table.
+static u8* _gShelterB2SepticTankWaterPacketCursor;
 
 void func_shelter_b2_septic_tank_8017EA50(Task*);
 
@@ -218,19 +216,21 @@ EvsCommand D_shelter_b2_septic_tank_8018310C[18] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-s16 D_shelter_b2_septic_tank_801832BC = 150;
+s16 gShelterB2SepticTankWaterY = 150;
 
 TaskDesc D_shelter_b2_septic_tank_801832C0[1] = {
     { { { TASK_BODY_NONE, 96 } }, func_shelter_b2_septic_tank_8017EA50, { .value = 0 } },
 };
 
-RoomWaterSurface D_shelter_b2_septic_tank_801832CC[3] = {
+/// Two water rectangles starting at Z = -13500, drawn first, followed by the list end.
+static RoomWaterSurface _gShelterB2SepticTankFirstWaterWaveSurfaces[] = {
     { -3500, -0x34BC, 2500, 7000, 0 },
     { 1100, -0x34BC, 2400, 7000, 0 },
     { 0, 0, 0, 0, WATER_SURFACE_LIST_END },
 };
 
-RoomWaterSurface D_shelter_b2_septic_tank_801832F0[3] = {
+/// Two water rectangles starting at Z = -6500, appended second, followed by the list end.
+static RoomWaterSurface _gShelterB2SepticTankSecondWaterWaveSurfaces[] = {
     { -3500, -6500, 2500, 7000, 0 },
     { 1100, -6500, 2400, 7000, 0 },
     { 0, 0, 0, 0, WATER_SURFACE_LIST_END },
@@ -1170,8 +1170,6 @@ u16 D_shelter_b2_septic_tank_80187046 = 0x5868;
 
 RoomLatchedEvent gRoomEventLatched;
 
-u8* D_shelter_b2_septic_tank_80187054;
-
 static __inline__ s32 _shelterB2SepticTankStartEvent(RoomEventMsg* dst, RoomLatchedEvent* event);
 static void           func_shelter_b2_septic_tank_8017DA18(Task* arg0);
 static void           func_shelter_b2_septic_tank_8017DA74(Task* task);
@@ -1308,15 +1306,33 @@ void func_shelter_b2_septic_tank_8017DB10(Task* task)
     sp.funcs[task->state](task);
 }
 
-#define WATER_WAVE_STRIPS_SURFACES    D_shelter_b2_septic_tank_801832CC
-#define WATER_WAVE_STRIPS_HEIGHT      D_shelter_b2_septic_tank_801832BC
-#define WATER_WAVE_STRIPS_PRIM_CURSOR D_shelter_b2_septic_tank_80187054
+/// Binds the readable first two-rectangle list, including its in-bounds terminator.
+///
+/// Supplies a `RoomWaterSurface*` without side effects or captured locals.
+/// The shared strip include consumes and undefines this binding.
+#define WATER_WAVE_STRIPS_SURFACES _gShelterB2SepticTankFirstWaterWaveSurfaces
+/// Binds the undisplaced water Y in signed world units.
+///
+/// Read once per draw from the room's `s16`; no side effects or captured locals.
+/// The shared strip include consumes and undefines this binding.
+#define WATER_WAVE_STRIPS_HEIGHT gShelterB2SepticTankWaterY
+/// Binds the writable byte cursor for mixed water quad and draw-mode packets.
+///
+/// A stable `u8*` lvalue, read and advanced repeatedly; requires word alignment
+/// and a borrowed arena reserved until GPU consumption. The shared strip
+/// include consumes and undefines this binding.
+/// The caller resets it once before both drawers, which append in draw order.
+#define WATER_WAVE_STRIPS_PACKET_CURSOR _gShelterB2SepticTankWaterPacketCursor
 /// Scales the seam's sine displacement to -128..128 world-coordinate Y units.
 ///
 /// Integer shift count for `water_wave_strips.inc.c`; see its configuration
 /// contract. The include consumes and undefines this binding.
 #define WATER_WAVE_STRIPS_AMPLITUDE_SHIFT 5
 /// Sets the first X strip's blue vertex colours for subtractive blending.
+///
+/// Writes all RGB bytes: (0, 64, 128) on the flat edge (vertices 0/1),
+/// (0, 16, 32) on the waving seam (2/3). `quad` is writable; other fields
+/// are preserved and the pointer is not retained.
 static inline void _shelterB2SepticTankSetFirstWaterStripColours(POLY_G4* quad)
 {
     setRGB0(quad, 0, 0x40, 0x80);
@@ -1335,6 +1351,11 @@ static inline void _shelterB2SepticTankSetFirstWaterStripColours(POLY_G4* quad)
 /// consumes and undefines this override.
 #define WATER_WAVE_STRIPS_SET_FIRST_STRIP_COLOURS(quad) _shelterB2SepticTankSetFirstWaterStripColours(quad)
 /// Sets the second X strip's blue vertex colours for subtractive blending.
+///
+/// Writes all RGB bytes: (0, 64, 128) on the waving seam (vertices 0/1),
+/// (0, 16, 32) on the flat edge (2/3). This retains the first strip's
+/// vertex-index palette, so the two sides of the seam have different colours.
+/// `quad` is writable; other fields are preserved and the pointer is not retained.
 static inline void _shelterB2SepticTankSetSecondWaterStripColours(POLY_G4* quad)
 {
     setRGB0(quad, 0, 0x40, 0x80);
@@ -1353,10 +1374,19 @@ static inline void _shelterB2SepticTankSetSecondWaterStripColours(POLY_G4* quad)
 #define WATER_WAVE_STRIPS_SET_SECOND_STRIP_COLOURS(quad) _shelterB2SepticTankSetSecondWaterStripColours(quad)
 #include "../../shared/water_wave_strips.inc.c"
 
-#define WATER_WAVE_STRIPS_FUNC        waterDrawWaveStrips2
-#define WATER_WAVE_STRIPS_SURFACES    D_shelter_b2_septic_tank_801832F0
-#define WATER_WAVE_STRIPS_HEIGHT      D_shelter_b2_septic_tank_801832BC
-#define WATER_WAVE_STRIPS_PRIM_CURSOR D_shelter_b2_septic_tank_80187054
+/// Emits the second private water drawer with the task-compatible `void (Task*)` signature.
+///
+/// A single identifier; the argument is unused. No evaluation or token
+/// construction occurs. The shared include consumes and undefines it.
+#define WATER_WAVE_STRIPS_DRAW_FUNCTION _waterDrawSecondWaveStrips
+/// Rebinds the second readable two-rectangle list with its own in-bounds terminator.
+///
+/// Same pointer contract as the first list; the preceding include undefined it.
+#define WATER_WAVE_STRIPS_SURFACES _gShelterB2SepticTankSecondWaterWaveSurfaces
+/// Rebinds the same signed world Y after the first include consumed it.
+#define WATER_WAVE_STRIPS_HEIGHT gShelterB2SepticTankWaterY
+/// Rebinds the same writable `u8*` cursor, appending after the first list.
+#define WATER_WAVE_STRIPS_PACKET_CURSOR _gShelterB2SepticTankWaterPacketCursor
 /// Rebinds the second surface list's seam displacement to -128..128 Y units.
 #define WATER_WAVE_STRIPS_AMPLITUDE_SHIFT 5
 /// Rebinds the second surface list to the same outer-edge-to-seam blue palette.
@@ -1379,7 +1409,7 @@ void func_shelter_b2_septic_tank_8017EA50(Task* task)
     TaskFunc states[2] = { func_shelter_b2_septic_tank_8017EAB8, func_shelter_b2_septic_tank_8017EAF8 };
 
     states[task->state](task);
-    gGameSession->waterY = D_shelter_b2_septic_tank_801832BC;
+    gGameSession->waterY = gShelterB2SepticTankWaterY;
 }
 
 /// Clears the session's `field_80` or `field_7E`, chosen by `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType`, and
@@ -1395,18 +1425,18 @@ static void func_shelter_b2_septic_tank_8017EAB8(Task* arg0)
 }
 
 /// The water task's drawing state: points the primitive cursor
-/// `D_shelter_b2_septic_tank_80187054` at the current buffer's 0xC000-byte
+/// `_gShelterB2SepticTankWaterPacketCursor` at the current buffer's 0xC000-byte
 /// slice of one of two primitive areas, chosen by `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType`, then draws both
 /// lists of water surfaces.
 static void func_shelter_b2_septic_tank_8017EAF8(Task* task)
 {
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType == 0) {
-        D_shelter_b2_septic_tank_80187054 = (u8*)Fs_ActorLoadBase2 + gDisplayState.otBuffer * 0xC000;
+        _gShelterB2SepticTankWaterPacketCursor = (u8*)Fs_ActorLoadBase2 + gDisplayState.otBuffer * 0xC000;
     } else {
-        D_shelter_b2_septic_tank_80187054 = (u8*)Fs_ActorLoadBase1 + gDisplayState.otBuffer * 0xC000;
+        _gShelterB2SepticTankWaterPacketCursor = (u8*)Fs_ActorLoadBase1 + gDisplayState.otBuffer * 0xC000;
     }
-    waterDrawWaveStrips(task);
-    waterDrawWaveStrips2(task);
+    _waterDrawWaveStrips(task);
+    _waterDrawSecondWaveStrips(task);
 }
 
 void func_shelter_b2_septic_tank_8017EB7C(Task* arg0)

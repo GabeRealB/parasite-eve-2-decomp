@@ -20,7 +20,8 @@ extern SVECTOR* D_shelter_b2_main_corridor_80182EEC[4];
 
 extern SVECTOR D_shelter_b2_main_corridor_80182EFC[12];
 
-extern s16 D_shelter_b2_main_corridor_80182E28;
+/// Undisplaced water-surface Y in signed world units, shared with the room's actors.
+extern s16 gShelterB2MainCorridorWaterY;
 
 extern AreaVariant D_shelter_b2_main_corridor_8018933C[22];
 

@@ -351,7 +351,7 @@ D_shelter_b4_reservoir_801851E4 = 0x801851E4; // absolute:True owner=shelter_b4_
 D_shelter_b4_reservoir_80184F80 = 0x80184F80; // absolute:True owner=shelter_b4_reservoir shared=rooms
 D_shelter_b2_septic_tank_801836A4 = 0x801836A4; // absolute:True owner=shelter_b2_septic_tank
 D_shelter_b2_septic_tank_801836B4 = 0x801836B4; // absolute:True owner=shelter_b2_septic_tank
-D_shelter_b2_septic_tank_801832BC = 0x801832BC; // absolute:True owner=shelter_b2_septic_tank
+gShelterB2SepticTankWaterY = 0x801832BC; // absolute:True owner=shelter_b2_septic_tank
 D_shelter_b4_upper_sewer_801866F8 = 0x801866F8; // absolute:True owner=shelter_b4_upper_sewer shared=rooms
 D_shelter_b4_upper_sewer_80186708 = 0x80186708; // absolute:True owner=shelter_b4_upper_sewer shared=rooms
 D_shelter_b4_upper_sewer_80186438 = 0x80186438; // absolute:True owner=shelter_b4_upper_sewer shared=rooms
@@ -371,7 +371,7 @@ D_neo_ark_island_80181CF8 = 0x80181CF8; // absolute:True owner=neo_ark_island
 D_neo_ark_island_80181C24 = 0x80181C24; // absolute:True owner=neo_ark_island
 D_shelter_b2_main_corridor_80182EEC = 0x80182EEC; // absolute:True owner=shelter_b2_main_corridor shared=rooms
 D_shelter_b2_main_corridor_80182EFC = 0x80182EFC; // absolute:True owner=shelter_b2_main_corridor
-D_shelter_b2_main_corridor_80182E28 = 0x80182E28; // absolute:True owner=shelter_b2_main_corridor shared=rooms
+gShelterB2MainCorridorWaterY = 0x80182E28; // absolute:True owner=shelter_b2_main_corridor shared=rooms
 D_shelter_b4_lower_sewer_8018210C = 0x8018210C; // absolute:True owner=shelter_b4_lower_sewer shared=rooms
 D_shelter_b4_lower_sewer_8018211C = 0x8018211C; // absolute:True owner=shelter_b4_lower_sewer shared=rooms
 D_shelter_b4_lower_sewer_80181E6C = 0x80181E6C; // absolute:True owner=shelter_b4_lower_sewer shared=rooms

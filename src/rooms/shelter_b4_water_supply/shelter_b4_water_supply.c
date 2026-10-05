@@ -75,14 +75,8 @@ extern TaskMessageEntry D_shelter_b4_water_supply_801825F0[];
 /// valve script has run.
 extern TaskDesc D_shelter_b4_water_supply_80182620[];
 
-/// Height of the water surfaces.
-extern s16 D_shelter_b4_water_supply_80182638;
-
 /// Tasks the room task's first state spawns.
 extern TaskDesc D_shelter_b4_water_supply_8018263C[];
-
-/// The room's water surfaces whose strips run along Z.
-extern RoomCompactWaterSurface D_shelter_b4_water_supply_80182648[];
 
 /// The room's water surfaces whose strips run along X.
 extern RoomCompactWaterSurface D_shelter_b4_water_supply_8018265C[];
@@ -106,14 +100,17 @@ extern RoomEventMsg D_shelter_b4_water_supply_80184E3C;
 /// The staged event block, read by the departure task.
 extern RoomDeparture gRoomDeparture;
 
-/// Cursor into the primitive area the water surface is written to.
-extern u8* D_shelter_b4_water_supply_80184E50;
+/// Next byte for mixed water quad and draw-mode packets in a borrowed actor-load buffer.
+///
+/// Reset once per frame to the current word-aligned 0xC000-byte half, then
+/// advanced by both the Z-running and X-running drawers (at most 0xC00 bytes
+/// together). The buffer stays reserved until the GPU finishes the ordering table.
+static u8* _gShelterB4WaterSupplyWaterPacketCursor;
 
 static void func_shelter_b4_water_supply_8017DB18(void);
 static void func_shelter_b4_water_supply_8017DD40(Task* arg0);
 static void func_shelter_b4_water_supply_8017DD9C(Task* task);
 static s32  func_shelter_b4_water_supply_8017DDFC(RoomEventMsg* in, RoomEventMsg* out);
-static void waterDrawWaveStrips(Task* task);
 static void func_shelter_b4_water_supply_8017E5D8(Task* task);
 static void func_shelter_b4_water_supply_8017ED90(Task* arg0);
 static void func_shelter_b4_water_supply_8017EDD0(Task* task);
@@ -145,13 +142,15 @@ TaskDesc D_shelter_b4_water_supply_80182620[2] = {
     { { { TASK_BODY_NONE, 32 } }, func_shelter_b4_water_supply_8017D7C0, { .value = 0 } },
 };
 
-s16 D_shelter_b4_water_supply_80182638 = -2500;
+/// Undisplaced Y of both water rectangles in signed world units, published to the session.
+static s16 _gShelterB4WaterSupplyWaterY = -2500;
 
 TaskDesc D_shelter_b4_water_supply_8018263C[1] = {
     { { { TASK_BODY_NONE, 96 } }, func_shelter_b4_water_supply_8017ED28, { .value = 0 } },
 };
 
-RoomCompactWaterSurface D_shelter_b4_water_supply_80182648[2] = {
+/// The Z-running water rectangle, followed by the compact descriptor's list end.
+static RoomCompactWaterSurface _gShelterB4WaterSupplyWaterWaveSurfaces[] = {
     { 9100, -0x364C, 1800, 0x2EE0, 0 },
     { 0, 0, 0, 0, WATER_SURFACE_LIST_END },
 };
@@ -753,8 +752,6 @@ RoomEventMsg D_shelter_b4_water_supply_80184E3C = { 0 };
 
 RoomDeparture gRoomDeparture = { 0 };
 
-u8* D_shelter_b4_water_supply_80184E50;
-
 #include "../../shared/room_event_departure_task.inc.c"
 
 /// The room task's state table, dispatched by
@@ -1000,9 +997,23 @@ static s32 func_shelter_b4_water_supply_8017DDFC(RoomEventMsg* in, RoomEventMsg*
 /// Captures no caller locals and adds no side effects. The shared strip
 /// include consumes and undefines this override; see its predicate contract.
 #define WATER_WAVE_STRIPS_IS_LIST_END(surface) ((surface)->listMarker == WATER_SURFACE_LIST_END)
-#define WATER_WAVE_STRIPS_SURFACES             D_shelter_b4_water_supply_80182648
-#define WATER_WAVE_STRIPS_HEIGHT               D_shelter_b4_water_supply_80182638
-#define WATER_WAVE_STRIPS_PRIM_CURSOR          D_shelter_b4_water_supply_80184E50
+/// Binds the readable Z-running rectangle list, including its in-bounds terminator.
+///
+/// Supplies a `RoomCompactWaterSurface*` without side effects or captured locals.
+/// The shared strip include consumes and undefines this binding.
+#define WATER_WAVE_STRIPS_SURFACES _gShelterB4WaterSupplyWaterWaveSurfaces
+/// Binds the undisplaced water Y in signed world units.
+///
+/// Read once per draw from the room's `s16`; no side effects or captured locals.
+/// The shared strip include consumes and undefines this binding.
+#define WATER_WAVE_STRIPS_HEIGHT _gShelterB4WaterSupplyWaterY
+/// Binds the writable byte cursor for mixed water quad and draw-mode packets.
+///
+/// A stable `u8*` lvalue, read and advanced repeatedly; requires word alignment
+/// and a borrowed arena reserved until GPU consumption. The shared strip
+/// include consumes and undefines this binding.
+/// The caller resets it once before both drawers, which append in draw order.
+#define WATER_WAVE_STRIPS_PACKET_CURSOR _gShelterB4WaterSupplyWaterPacketCursor
 /// Scales the seam's sine displacement to -64..64 world-coordinate Y units.
 ///
 /// Integer shift count for `water_wave_strips.inc.c`; see its configuration
@@ -1011,7 +1022,7 @@ static s32 func_shelter_b4_water_supply_8017DDFC(RoomEventMsg* in, RoomEventMsg*
 #include "../../shared/water_wave_strips.inc.c"
 
 /// Draws each surface in `D_shelter_b4_water_supply_8018265C` at height
-/// `D_shelter_b4_water_supply_80182638` as two strips of 16 semi-transparent
+/// `_gShelterB4WaterSupplyWaterY` as two strips of 16 semi-transparent
 /// Gouraud quads laid side by side along Z, projected through the view matrix.
 /// The seam between the strips is lifted by a sine wave that runs along X and
 /// scrolls with the display frame counter. The outer edges are coloured
@@ -1044,7 +1055,7 @@ static void func_shelter_b4_water_supply_8017E5D8(Task* task)
     actorRenderComposeCoord(&gGfxViewCoord);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_SetTransMatrix(&gGfxViewCoord.workm);
-    scratch->y = D_shelter_b4_water_supply_80182638;
+    scratch->y = _gShelterB4WaterSupplyWaterY;
     for (; surface->listMarker != WATER_SURFACE_LIST_END; surface++) {
         scratch->dx = surface->width / 16;
         scratch->dz = surface->depth / 2;
@@ -1067,8 +1078,8 @@ static void func_shelter_b4_water_supply_8017E5D8(Task* task)
             v3.vz            = scratch->z + scratch->dz;
             otz              = RotTransPers4(&v0, &v1, &v2, &v3, &sxy0, &sxy1, &sxy2, &sxy3, &p, &flag);
             if (flag >= 0) {
-                poly                               = (POLY_G4*)D_shelter_b4_water_supply_80184E50;
-                D_shelter_b4_water_supply_80184E50 = (u8*)(poly + 1);
+                poly                                    = (POLY_G4*)_gShelterB4WaterSupplyWaterPacketCursor;
+                _gShelterB4WaterSupplyWaterPacketCursor = (u8*)(poly + 1);
                 setlen(poly, 8);
                 setcode(poly, 0x3A);
                 GPU_PRIMITIVE_XY_WORD(poly, 0) = sxy0;
@@ -1089,8 +1100,8 @@ static void func_shelter_b4_water_supply_8017E5D8(Task* task)
                 poly->b3                       = 0x20;
                 addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                         poly);
-                dr                                 = (DR_MODE*)D_shelter_b4_water_supply_80184E50;
-                D_shelter_b4_water_supply_80184E50 = (u8*)(dr + 1);
+                dr                                      = (DR_MODE*)_gShelterB4WaterSupplyWaterPacketCursor;
+                _gShelterB4WaterSupplyWaterPacketCursor = (u8*)(dr + 1);
                 setlen(dr, 1);
                 dr->code[0] = 0xE100004A;
                 addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
@@ -1114,8 +1125,8 @@ static void func_shelter_b4_water_supply_8017E5D8(Task* task)
             v3.vz            = scratch->z + scratch->dz * 2;
             otz              = RotTransPers4(&v0, &v1, &v2, &v3, &sxy0, &sxy1, &sxy2, &sxy3, &p, &flag);
             if (flag >= 0) {
-                poly                               = (POLY_G4*)D_shelter_b4_water_supply_80184E50;
-                D_shelter_b4_water_supply_80184E50 = (u8*)(poly + 1);
+                poly                                    = (POLY_G4*)_gShelterB4WaterSupplyWaterPacketCursor;
+                _gShelterB4WaterSupplyWaterPacketCursor = (u8*)(poly + 1);
                 setlen(poly, 8);
                 setcode(poly, 0x3A);
                 GPU_PRIMITIVE_XY_WORD(poly, 0) = sxy0;
@@ -1136,8 +1147,8 @@ static void func_shelter_b4_water_supply_8017E5D8(Task* task)
                 poly->b1                       = 0x20;
                 addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                         poly);
-                dr                                 = (DR_MODE*)D_shelter_b4_water_supply_80184E50;
-                D_shelter_b4_water_supply_80184E50 = (u8*)(dr + 1);
+                dr                                      = (DR_MODE*)_gShelterB4WaterSupplyWaterPacketCursor;
+                _gShelterB4WaterSupplyWaterPacketCursor = (u8*)(dr + 1);
                 setlen(dr, 1);
                 dr->code[0] = 0xE100004A;
                 addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
@@ -1156,7 +1167,7 @@ void func_shelter_b4_water_supply_8017ED28(Task* task)
     TaskFunc states[2] = { func_shelter_b4_water_supply_8017ED90, func_shelter_b4_water_supply_8017EDD0 };
 
     states[task->state](task);
-    gGameSession->waterY = D_shelter_b4_water_supply_80182638;
+    gGameSession->waterY = _gShelterB4WaterSupplyWaterY;
 }
 
 /// The water task's opening state: clears the session's `field_80` or
@@ -1172,17 +1183,17 @@ static void func_shelter_b4_water_supply_8017ED90(Task* arg0)
 }
 
 /// The water task's drawing state: points the primitive cursor
-/// `D_shelter_b4_water_supply_80184E50` at the current buffer's 0xC000-byte
+/// `_gShelterB4WaterSupplyWaterPacketCursor` at the current buffer's 0xC000-byte
 /// slice of one of two primitive areas, chosen by `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType`, then draws both
 /// lists of water surfaces.
 static void func_shelter_b4_water_supply_8017EDD0(Task* task)
 {
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType == 0) {
-        D_shelter_b4_water_supply_80184E50 = (u8*)Fs_ActorLoadBase2 + gDisplayState.otBuffer * 0xC000;
+        _gShelterB4WaterSupplyWaterPacketCursor = (u8*)Fs_ActorLoadBase2 + gDisplayState.otBuffer * 0xC000;
     } else {
-        D_shelter_b4_water_supply_80184E50 = (u8*)Fs_ActorLoadBase1 + gDisplayState.otBuffer * 0xC000;
+        _gShelterB4WaterSupplyWaterPacketCursor = (u8*)Fs_ActorLoadBase1 + gDisplayState.otBuffer * 0xC000;
     }
-    waterDrawWaveStrips(task);
+    _waterDrawWaveStrips(task);
     func_shelter_b4_water_supply_8017E5D8(task);
 }
 

@@ -1,13 +1,13 @@
 // Overlay-local symbols for shelter_b2_septic_tank.
-D_shelter_b2_septic_tank_801832CC = 0x801832CC; // size:0x24 defined:True
-D_shelter_b2_septic_tank_801832F0 = 0x801832F0; // size:0x24 defined:True
+_gShelterB2SepticTankFirstWaterWaveSurfaces = 0x801832CC; // size:0x24 defined:True
+_gShelterB2SepticTankSecondWaterWaveSurfaces = 0x801832F0; // size:0x24 defined:True
 D_shelter_b2_septic_tank_80183314 = 0x80183314; // size:0x30 defined:True
 D_shelter_b2_septic_tank_80183344 = 0x80183344; // size:0x30 defined:True
 D_shelter_b2_septic_tank_80183374 = 0x80183374; // size:0x1A0 defined:True
 D_shelter_b2_septic_tank_80183514 = 0x80183514; // size:0x10 defined:True
 D_shelter_b2_septic_tank_80183524 = 0x80183524; // size:0x10 defined:True
 D_shelter_b2_septic_tank_80183534 = 0x80183534; // size:0x28 defined:True
-D_shelter_b2_septic_tank_801832BC = 0x801832BC; // size:0x2 defined:True
+gShelterB2SepticTankWaterY = 0x801832BC; // size:0x2 defined:True
 D_shelter_b2_septic_tank_801832C0 = 0x801832C0; // size:0xC defined:True
 D_shelter_b2_septic_tank_8018356C = 0x8018356C; // size:0x4 defined:True
 D_shelter_b2_septic_tank_80183570 = 0x80183570; // size:0x2 defined:True
@@ -89,7 +89,7 @@ D_shelter_b2_septic_tank_80187044 = 0x80187044; // size:0x1 defined:True
 D_shelter_b2_septic_tank_80187045 = 0x80187045; // size:0x1 defined:True
 D_shelter_b2_septic_tank_80187046 = 0x80187046; // size:0x2 defined:True
 gRoomEventLatched = 0x80187048; // size:0xC defined:True
-D_shelter_b2_septic_tank_80187054 = 0x80187054; // size:0x4 defined:True
+_gShelterB2SepticTankWaterPacketCursor = 0x80187054; // size:0x4 defined:True
 
 func_shelter_b2_septic_tank_8017EB7C = 0x8017EB7C; // type:func
 
@@ -112,5 +112,5 @@ waterDrawSpin = 0x8017F984; // type:func
 waterDrawTile = 0x8017FD70; // type:func
 roomEventStagedTask = 0x8017D614; // type:func
 glowDrawBitDisc = 0x8018083C; // type:func
-waterDrawWaveStrips = 0x8017DB68; // type:func
-waterDrawWaveStrips2 = 0x8017E2DC; // type:func
+_waterDrawWaveStrips = 0x8017DB68; // type:func
+_waterDrawSecondWaveStrips = 0x8017E2DC; // type:func

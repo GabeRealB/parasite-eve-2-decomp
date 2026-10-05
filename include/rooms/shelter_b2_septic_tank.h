@@ -20,7 +20,8 @@ extern SVECTOR* D_shelter_b2_septic_tank_801836A4[4];
 
 extern SVECTOR D_shelter_b2_septic_tank_801836B4[12];
 
-extern s16 D_shelter_b2_septic_tank_801832BC;
+/// Undisplaced water-surface Y in signed world units, shared with the room's actors.
+extern s16 gShelterB2SepticTankWaterY;
 
 extern AreaVariant D_shelter_b2_septic_tank_80186F40[22];
 
