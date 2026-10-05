@@ -1739,9 +1739,6 @@ static void Actor02100_Fn02924(Task* arg0, s32 arg1)
     DR_TPAGE*                   mode;
     LINE_F2*                    line;
     _Actor02100BeamDrawScratch* scratch;
-    u_long*                     quadSlot;
-    u_long*                     modeSlot;
-    u_long*                     lineSlot;
     s32                         next;
     s32                         offsetX0;
     s32                         offsetX1;
@@ -1847,12 +1844,7 @@ static void Actor02100_Fn02924(Task* arg0, s32 arg1)
                 quad->b3 = 0;
                 quad->b1 = blue;
                 corner  += 1;
-                setaddr(quad,
-                        getaddr((((u32)(scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK) +
-                                (u32)gGpuCurrentOt));
-                quadSlot = (u_long*)((((u32)(scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK) +
-                                     (u32)gGpuCurrentOt);
-                setaddr(quadSlot, quad);
+                addPrim(&gGpuCurrentOt[((u32)(scratch->depth << gDisplayState.otDepthShift) >> 4) & 0x3FF], quad);
             } while (corner < 2);
 
             line           = gGpuPrimCursor;
@@ -1872,18 +1864,13 @@ static void Actor02100_Fn02924(Task* arg0, s32 arg1)
                 line->g0 = (u8)Actor02100_D03D88[work->weapon].values[(arg1 * 3) + ACTOR_02100_WEAPON_PARAM_GREEN];
                 line->b0 = (u8)Actor02100_D03D88[work->weapon].values[(arg1 * 3) + ACTOR_02100_WEAPON_PARAM_BLUE];
             }
-            setaddr(line,
-                    getaddr((((u32)(scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK) + (u32)gGpuCurrentOt));
+            setaddr(line, getaddr(&gGpuCurrentOt[((u32)(scratch->depth << gDisplayState.otDepthShift) >> 4) & 0x3FF]));
             mode           = gGpuPrimCursor;
-            lineSlot       = (u_long*)((((u32)(scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK) + (u32)gGpuCurrentOt);
             gGpuPrimCursor = mode + 1;
-            setaddr(lineSlot, line);
+            setaddr(&gGpuCurrentOt[((u32)(scratch->depth << gDisplayState.otDepthShift) >> 4) & 0x3FF], line);
             setlen(mode, 1);
             mode->code[0] = 0xE1000620;
-            setaddr(mode,
-                    getaddr((((u32)(scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK) + (u32)gGpuCurrentOt));
-            modeSlot = (u_long*)((((u32)(scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK) + (u32)gGpuCurrentOt);
-            setaddr(modeSlot, mode);
+            addPrim(&gGpuCurrentOt[((u32)(scratch->depth << gDisplayState.otDepthShift) >> 4) & 0x3FF], mode);
         }
         segment += 1;
     } while (segment < 8);

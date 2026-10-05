@@ -147663,3 +147663,24 @@ Related, from three animation ticks (`oddStrangerDrive`, `desertChaserAnimTick`,
 its initialiser after the hoisted table address; subscripting
 `work->slots[seekIndex]` instead leaves that pointer to strength reduction,
 which emits it after the hoists as the target does.
+### Ordering-table slot held in a local flips the `addu`; pass it to `addPrim` inline (Actor02100_Fn02924, 2026-10-05)
+
+Problem: the link was written as `slot = (u_long*)(((u32)(depth << shift) >> 2 & 0xFFC) + (u32)gGpuCurrentOt); setaddr(slot, prim);`
+to get the target's offset-first `addu v0,v0,a1`.
+
+Symptom: `slot = &gGpuCurrentOt[((u32)(depth << shift) >> 4) & 0x3FF];` (or
+`index + gGpuCurrentOt`) keeps the same `srl 2` / `andi 0xFFC` but emits
+`addu a1,a1,v0` and moves the registers after it. Assigning the address to a
+local expands the `PLUS_EXPR` as `EXPAND_NORMAL`, base first (see "a MEM
+address puts the multiply first").
+
+Fix: no slot local. Give the subscript straight to the libgpu macros so every
+use is a memory reference's address:
+
+```c
+addPrim(&gGpuCurrentOt[((u32)(scratch->depth << gDisplayState.otDepthShift) >> 4) & 0x3FF], quad);
+```
+
+Where other statements sit between the two halves, write `setaddr(prim, getaddr(&ot[i]))`
+and `setaddr(&ot[i], prim)` separately with the subscript repeated. All three
+links in the function matched this way with no other change.
