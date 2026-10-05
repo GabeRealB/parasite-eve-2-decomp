@@ -2118,38 +2118,43 @@ static void _uiDrawUnderlinedLabel(const UiPanel* panel, s32 x, s32 y, const cha
     uiDrawHorizontalSeparator(panel, x - panel->contentOriginX.signedValue, request.x - panel->contentOriginX.signedValue, y + 7 - panel->contentOriginY.signedValue);
 }
 
-/// Selects the bottom-anchored animation rectangle for a panel label.
+/// Computes the animated outer bounds used to position a panel label.
 ///
-/// Opening accepts every positive scale; closing/hiding accept only 1..8.
-/// Other lifecycles copy full bounds, so visibility is the caller's concern.
-static inline void _uiComputePanelLabelRect(const UiPanel* panel, RECT* rect)
+/// Borrows a live `panel` and writes a separate, writable `animatedRect` for
+/// this call. Coordinates and extents are signed 16-bit screen-centered pixels.
+/// Animation retains full width and the bottom edge, with style-dependent
+/// height; intermediate stores also narrow to sixteen bits.
+/// Opening uses (nine - ticks) eighths, at least one, with no upper limit.
+/// Closing/hiding replace scales outside 1..8 with one. Other states copy full
+/// bounds, including hidden; the caller decides whether to draw the label.
+static inline void _uiComputePanelLabelRect(const UiPanel* panel, RECT* animatedRect)
 {
+    enum { USER_INTERFACE_PANEL_LABEL_MIN_SCALE_EIGHTHS = 1 };
     s32 scaleEighths;
 
     switch (panel->state) {
         case USER_INTERFACE_PANEL_OPENING:
             scaleEighths = USER_INTERFACE_PANEL_ANIMATION_TICKS - panel->animationTicks;
             if (scaleEighths <= 0) {
-                scaleEighths = 1;
+                scaleEighths = USER_INTERFACE_PANEL_LABEL_MIN_SCALE_EIGHTHS;
             }
-            _uiComputeScaledPanelRect(panel, rect, scaleEighths, 0);
+            _uiComputeScaledPanelRect(panel, animatedRect, scaleEighths, 0);
             break;
-        case USER_INTERFACE_PANEL_OPEN:
-            goto fullBounds;
         case USER_INTERFACE_PANEL_CLOSING:
         case USER_INTERFACE_PANEL_HIDING:
             scaleEighths = USER_INTERFACE_PANEL_ANIMATION_TICKS - panel->animationTicks;
-            if ((u32)(scaleEighths - 1) >= (u32)USER_INTERFACE_PANEL_SCALE_ONE) {
-                scaleEighths = 1;
+            // The unsigned range test rejects both nonpositive and oversize scales.
+            if ((u32)(scaleEighths - USER_INTERFACE_PANEL_LABEL_MIN_SCALE_EIGHTHS) >= (u32)USER_INTERFACE_PANEL_SCALE_ONE) {
+                scaleEighths = USER_INTERFACE_PANEL_LABEL_MIN_SCALE_EIGHTHS;
             }
-            _uiComputeScaledPanelRect(panel, rect, scaleEighths, 1);
+            _uiComputeScaledPanelRect(panel, animatedRect, scaleEighths, 1);
             break;
+        case USER_INTERFACE_PANEL_OPEN:
         default:
-        fullBounds:
-            rect->x = panel->bounds.rect.x;
-            rect->y = panel->bounds.rect.y;
-            rect->w = panel->bounds.rect.w;
-            rect->h = panel->bounds.rect.h;
+            animatedRect->x = panel->bounds.rect.x;
+            animatedRect->y = panel->bounds.rect.y;
+            animatedRect->w = panel->bounds.rect.w;
+            animatedRect->h = panel->bounds.rect.h;
             break;
     }
 }
