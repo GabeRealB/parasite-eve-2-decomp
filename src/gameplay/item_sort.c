@@ -52,32 +52,17 @@
 
 #include "rooms/shelter_r47.h"
 
-/// Address of one `InventoryConsumableStack`, as a pointer or the same four bytes.
-///
-/// Adding a byte count to `address` advances that many bytes from `row`.
-/// Callers scale an element index by `sizeof(InventoryConsumableStack)`. The
-/// value borrows the table that pointer already names and owns no rows of its own.
-typedef union {
-    InventoryConsumableStack* row;     // Row this address names.
-    u32                       address; // Same storage as `row`, used when adding a byte offset.
-} _InventoryConsumableStackAddress;
-STATIC_ASSERT_SIZEOF(_InventoryConsumableStackAddress, 4);
+/// The element an accessor was handed. An inlined function's argument is
+/// expanded as an address, scaled index first, which is the order the
+/// callers' element addresses have (see `gpAreaPlaceRef`).
+static inline InventoryConsumableStack* gpStackLimitRef(InventoryConsumableStack* row)
+{
+    return row;
+}
 
 /// Row `index` elements after `rows`.
-///
-/// Adds `index * sizeof(InventoryConsumableStack)` to the table address. The
-/// result borrows `rows`; `index` must name a row in that table.
-static inline InventoryConsumableStack* gpStackLimitAt(InventoryConsumableStack* rows, s32 index)
-{
-    _InventoryConsumableStackAddress base;
-    _InventoryConsumableStackAddress result;
-
-    // Byte offset first, then the table address.
-    base.row        = rows;
-    result.address  = index * sizeof(InventoryConsumableStack);
-    result.address += base.address;
-    return result.row;
-}
+/// The result borrows `rows`; `index` must name a row in that table.
+#define gpStackLimitAt(rows, index) gpStackLimitRef(&(rows)[index])
 
 /* Item table a scan window lies in. */
 static inline InventoryItemRow* _gpScanTable(InventoryItemRange* scan);
@@ -319,7 +304,10 @@ void Gp_SortItems(InventoryItemRange* arg0, s32 arg1)
     s32                        dummy6;
     s32                        dummy7;
 
-    InventoryItemRowAddress cursor;
+    union {
+        InventoryItemRow* row;
+        u32               address;
+    } cursor;
     i = 0;
     if ((arg0->rowCount - 1) > 0) {
         do {

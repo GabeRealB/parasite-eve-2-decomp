@@ -192,23 +192,16 @@ RECT D_80114BD0;
 
 ScreenFade D_80114BD8;
 
-/// Resolve a camera-record cursor within its loaded room resource.
-/// The address word uses the PS1 representation; the returned record is typed.
-static __inline__ ViewCamera* gpViewAt(ViewCamera* records, s32 index)
+/// The element an accessor was handed. An inlined function's argument is
+/// expanded as an address, scaled index first, which is the order the
+/// callers' element addresses have (see `gpAreaPlaceRef`).
+static inline ViewCamera* gpViewRef(ViewCamera* row)
 {
-    union {
-        ViewCamera* records;
-        u32         word;
-    } base;
-    union {
-        ViewCamera* record;
-        u32         word;
-    } result;
-    base.records = records;
-    result.word  = index * sizeof(ViewCamera);
-    result.word += base.word;
-    return result.record;
+    return row;
 }
+
+/// Resolve a camera-record cursor within its loaded room resource.
+#define gpViewAt(rows, index) gpViewRef(&(rows)[index])
 
 static void Gp_HudTrackEnemy(Enemy* arg0, HudTargetHpReadout* readout);
 

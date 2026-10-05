@@ -45,32 +45,17 @@ typedef struct {
 } ArmorStats;
 STATIC_ASSERT_SIZEOF(ArmorStats, 0x8);
 
-/// Address of one `InventoryItemRow`, as a pointer or the same four bytes.
-///
-/// Adding a byte count to `address` advances that many bytes from `row`.
-/// Callers scale an element index by `sizeof(InventoryItemRow)`. The value
-/// borrows the table that pointer already names and owns no rows of its own.
-typedef union {
-    InventoryItemRow* row;     // Row this address names.
-    u32               address; // Same storage as `row`, used when adding a byte offset.
-} InventoryItemRowAddress;
-STATIC_ASSERT_SIZEOF(InventoryItemRowAddress, 4);
+/// The element an accessor was handed. An inlined function's argument is
+/// expanded as an address, scaled index first, which is the order the
+/// callers' element addresses have (see `gpAreaPlaceRef`).
+static inline InventoryItemRow* gpItemRowRef(InventoryItemRow* row)
+{
+    return row;
+}
 
 /// Row `index` elements after `rows`.
-///
-/// Adds `index * sizeof(InventoryItemRow)` to the table address. The result
-/// borrows `rows`; `index` must name a row in that table.
-static inline InventoryItemRow* gpItemRowAt(InventoryItemRow* rows, s32 index)
-{
-    InventoryItemRowAddress base;
-    InventoryItemRowAddress result;
-
-    // Byte offset first, then the table address.
-    base.row        = rows;
-    result.address  = index * sizeof(InventoryItemRow);
-    result.address += base.address;
-    return result.row;
-}
+/// The result borrows `rows`; `index` must name a row in that table.
+#define gpItemRowAt(rows, index) gpItemRowRef(&(rows)[index])
 
 /// Inline form of `Gp_GetItemSlot`: weapon `item`'s entry in the save's
 /// per-weapon equipment table.
