@@ -120,8 +120,26 @@ void Mem_SetActiveAuxHeap(bool aux0);
 /// Alloc aux buffer and optionally MoveImage two VRAM strips (src/main/stream.c).
 void Mem_AllocAuxWithImages(s16 flags);
 
-/// Configure the aux heap from a Gfx image-slot table (implemented in boot.c).
-void Mem_ConfigureAuxHeap(s32 arg0, s32 arg1);
+/// Configures the image-memory region, GPU primitive reservation and auxiliary heaps.
+///
+/// `stageId` is in 0..5. Stage 0 or `DISPLAY_VIDEO_NORMAL` selects the default
+/// region [0x80179950, 0x801FD000), ignoring `areaId`. Otherwise the selected
+/// stage's map overlay must be loaded and `areaId` must select a nonempty
+/// image slot. Its word-aligned region must provide at least 0x10000 bytes
+/// before the resident image workspace. No index or extent checks are performed.
+///
+/// Reserves the first 0x10000 bytes for primitives and selects the following
+/// bytes up to 0x801D7000 as the active auxiliary heap. The saved whole region
+/// and saved auxiliary portion extend another 0x26000 bytes past the slot extent,
+/// through the resident image buffers and following storage to 0x801FD000.
+/// `Mem_SetActiveAuxHeap` can select either saved view later.
+/// Clears the primitive reservation's last ten bytes and records their address.
+///
+/// Previous allocations and GPU/image operations in repurposed storage must
+/// have ended. This only configures the regions: call `Mem_Init` or `Mem_InitAux`
+/// before using a nonempty auxiliary heap, and reset the primitive cursor before
+/// drawing. The fixed primary heap is independent of this layout.
+void memConfigureImageMemory(s32 stageId, s32 areaId);
 
 /// Copies the low 16 bits of a byte count from source to destination, advancing forward.
 ///

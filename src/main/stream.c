@@ -340,7 +340,7 @@ u16 Stream_RestoreAfterLoad(s32 arg0, s32 arg1)
             rect.h = 0x100;
             MoveImage2(&rect, 0x140, 0x100);
         }
-        Mem_ConfigureAuxHeap((s32)gGameSession->location.loc.stage, (s32)gGameSession->location.loc.area);
+        memConfigureImageMemory(gGameSession->location.loc.stage, gGameSession->location.loc.area);
         if ((arg0 & 0xFFFF) == 1) {
             Mem_SetActiveAuxHeap(1);
         }

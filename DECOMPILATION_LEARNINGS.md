@@ -16344,23 +16344,23 @@ only the first store in `do {} while (0)` forces that store first but can put
 before the subtraction restores the full sequence:
 
 ```c
-size_t size;
-size_t* pSize;
+size_t auxHeapBytes;
+size_t* activeHeapSizeSlot;
 
-imgBufSize = 0x25800; /* keep late pointer math constant live early in $a1 */
+capturedFrameBytes = sizeof(FsImgBuffers); /* keep late pointer math constant live early in $a1 */
 do {
-    Gpu_PrimHeapSize = 0x10000;
+    Gpu_PrimHeapSize = MEMORY_PRIMITIVE_HEAP_BYTES;
 } while (0);
-pSize  = &GActiveAuxHeapSize; /* lui %hi before subu */
-size   = 0x10000 - arg3;
-*pSize = size;
-D_800691F8   = 0x10000;
-GAuxHeapSize = size;
+activeHeapSizeSlot  = &GActiveAuxHeapSize; /* lui %hi before subu */
+auxHeapBytes       = MEMORY_PRIMITIVE_HEAP_BYTES - auxHeapOffsetBytes;
+*activeHeapSizeSlot = auxHeapBytes;
+Mem_AuxRegionBytes = MEMORY_PRIMITIVE_HEAP_BYTES;
+GAuxHeapSize       = auxHeapBytes;
 ```
 
-`Gfx_StoreImageSlot` is the pure example (VRAM `StoreImage` then aux-heap base/size
-setup). Sibling `Gfx_LoadImageSlot` is the matching `LoadImage` without heap work;
-note its `arg2` → `rect.y` polarity is the opposite of `Gfx_StoreImageSlot`.
+`gfxCaptureAreaFrame` is the pure example (VRAM `StoreImage` then aux-heap base/size
+setup). Sibling `gfxRestoreAreaFrame` is the matching `LoadImage` without heap work;
+note its `bufferIndex` → `frameRect.y` polarity is the opposite of `gfxCaptureAreaFrame`.
 
 ## `for (i = 0; i < p->count; i++)` shares one pseudo for `p` with the guard
 
@@ -20301,7 +20301,9 @@ temp = *pB - K;
 *pDst = *pA + temp;
 ```
 
-`Mem_ConfigureAuxHeap` is the pure example (`D_80068F98 = Gpu_PrimHeapBase + (Gpu_PrimHeapSize - 0xA)`).
+`memConfigureImageMemory` supplies this ordering through the inline boundary of
+`_memClearPrimitiveTrailer`; the helper's final assignment matches as the direct
+expression `Gpu_PrimHeapCanaryAddress = Gpu_PrimHeapBase + (Gpu_PrimHeapSize - MEMORY_PRIMITIVE_TRAILER_BYTES)`.
 
 ## Zero-tail loop: single index, `i & 0xFF`, increment at bottom
 
@@ -20332,7 +20334,7 @@ do {
 } while ((u32)(i & 0xFF) < 0xAU);
 ```
 
-`Mem_ConfigureAuxHeap` is the pure example.
+`memConfigureImageMemory` is the pure example.
 
 ## McWork direntry walk from McWork base (size@0x48, head@0x50)
 

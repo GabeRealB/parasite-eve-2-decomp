@@ -12,6 +12,7 @@
 #include "main/cdaudio.h"
 #include "cdaudio.h"
 #include "main/cdaudio_types.h"
+#include "main/areas.h"
 #include "main/display.h"
 #include "main/display_types.h"
 #include "fs.h"
@@ -113,42 +114,81 @@ static GfxImageSlot* Gfx_ImageSlotTables[] = {
     D_map_neo_ark_80179DB8,
 };
 
-void Mem_ConfigureAuxHeap(s32 arg0, s32 arg1)
-{
-    GfxImageSlot* entries;
-    s32           i;
-    u8**          p88;
-    size_t*       p90;
-    u8**          p98;
-    size_t        temp;
+/// Image-memory lengths in bytes; the full region ends at 0x801FD000.
+enum {
+    MEMORY_IMAGE_REGION_EXTENSION_BYTES = 0x26000, // Beyond the slot extent: image buffers and the following bytes up to 0x801FD000
+    MEMORY_IMAGE_DEFAULT_REGION_BYTES   = 0x836B0, // From the default base at 0x80179950 to the region's end
+    MEMORY_PRIMITIVE_TRAILER_BYTES      = 10,
+};
 
-    entries = Gfx_ImageSlotTables[arg0];
-    if ((gDisplayState.videoMode == DISPLAY_VIDEO_NORMAL) || (arg0 == 0)) {
-        Mem_AuxRegionBase  = MEM_AUX_REGION_DEFAULT_BASE;
-        Mem_AuxRegionBytes = 0x836B0;
-        Gpu_PrimHeapBase   = MEM_AUX_REGION_DEFAULT_BASE;
-        gMemActiveAuxHeap  = MEM_AUX_REGION_DEFAULT_BASE + 0x10000;
-        GActiveAuxHeapSize = 0x4D6B0;
-    } else {
-        Mem_AuxRegionBase  = entries[arg1].regionBase;
-        Mem_AuxRegionBytes = entries[arg1].byteExtent + 0x26000;
-        Gpu_PrimHeapBase   = entries[arg1].regionBase;
-        gMemActiveAuxHeap  = Gpu_PrimHeapBase + 0x10000;
-        GActiveAuxHeapSize = entries[arg1].byteExtent - 0x10000;
-    }
-    i                = 0;
-    Gpu_PrimHeapSize = 0x10000;
-    GAuxHeap         = gMemActiveAuxHeap;
-    GAuxHeapSize     = Mem_AuxRegionBytes - 0x10000;
+/// VRAM y coordinate of the second 320x240 frame, including the 32-line gap.
+enum {
+    GRAPHICS_AREA_FRAME_SECOND_Y = FILE_SYSTEM_IMAGE_HEIGHT + 32,
+};
+
+/// Clears the primitive reservation's last ten bytes and records their start.
+static __inline__ void _memClearPrimitiveTrailer(void)
+{
+    s32 trailerIndex;
+
+    trailerIndex = 0;
     do {
-        Gpu_PrimHeapBase[Gpu_PrimHeapSize - (i & 0xFF) - 1] = 0;
-        i                                                  += 1;
-    } while ((u32)(i & 0xFF) < 0xAU);
-    p98  = &Gpu_PrimHeapCanaryAddress;
-    p88  = &Gpu_PrimHeapBase;
-    p90  = &Gpu_PrimHeapSize;
-    temp = *p90 - 0xA;
-    *p98 = *p88 + temp;
+        Gpu_PrimHeapBase[Gpu_PrimHeapSize - (trailerIndex & 0xFF) - 1] = 0;
+        trailerIndex                                                  += 1;
+    } while ((u32)(trailerIndex & 0xFF) < (u32)MEMORY_PRIMITIVE_TRAILER_BYTES);
+    Gpu_PrimHeapCanaryAddress = Gpu_PrimHeapBase + (Gpu_PrimHeapSize - MEMORY_PRIMITIVE_TRAILER_BYTES);
+}
+
+/// Reserves a fixed workspace after the captured frame and saves its heap views.
+static __inline__ void _memConfigureCapturedFrameWorkspace(const GfxImageSlot* areaSlots, s32 areaId, s32 auxHeapOffsetBytes)
+{
+    u8*     workspaceBase;
+    size_t  auxHeapBytes;
+    size_t  capturedFrameBytes;
+    size_t* activeHeapSizeSlot;
+
+    capturedFrameBytes = sizeof(FsImgBuffers);
+    do {
+        Gpu_PrimHeapSize = MEMORY_PRIMITIVE_HEAP_BYTES;
+    } while (0);
+    activeHeapSizeSlot  = &GActiveAuxHeapSize;
+    auxHeapBytes        = MEMORY_PRIMITIVE_HEAP_BYTES - auxHeapOffsetBytes;
+    *activeHeapSizeSlot = auxHeapBytes;
+    Mem_AuxRegionBytes  = MEMORY_PRIMITIVE_HEAP_BYTES;
+    GAuxHeapSize        = auxHeapBytes;
+
+    workspaceBase     = areaSlots[areaId].regionBase + capturedFrameBytes;
+    Gpu_PrimHeapBase  = workspaceBase;
+    gMemActiveAuxHeap = workspaceBase + auxHeapOffsetBytes;
+    Mem_AuxRegionBase = workspaceBase;
+    GAuxHeap          = workspaceBase + auxHeapOffsetBytes;
+}
+
+void memConfigureImageMemory(s32 stageId, s32 areaId)
+{
+    const GfxImageSlot* areaSlots;
+
+    areaSlots = Gfx_ImageSlotTables[stageId];
+    // Initially keep the active heap below the resident image workspace.
+    if ((gDisplayState.videoMode == DISPLAY_VIDEO_NORMAL) || (stageId == GAME_STAGE_NONE)) {
+        Mem_AuxRegionBase  = MEM_AUX_REGION_DEFAULT_BASE;
+        Mem_AuxRegionBytes = MEMORY_IMAGE_DEFAULT_REGION_BYTES;
+        Gpu_PrimHeapBase   = MEM_AUX_REGION_DEFAULT_BASE;
+        gMemActiveAuxHeap  = MEM_AUX_REGION_DEFAULT_BASE + MEMORY_PRIMITIVE_HEAP_BYTES;
+        GActiveAuxHeapSize = MEMORY_IMAGE_DEFAULT_REGION_BYTES - MEMORY_IMAGE_REGION_EXTENSION_BYTES - MEMORY_PRIMITIVE_HEAP_BYTES;
+    } else {
+        Mem_AuxRegionBase  = areaSlots[areaId].regionBase;
+        Mem_AuxRegionBytes = areaSlots[areaId].byteExtent + MEMORY_IMAGE_REGION_EXTENSION_BYTES;
+        Gpu_PrimHeapBase   = areaSlots[areaId].regionBase;
+        gMemActiveAuxHeap  = Gpu_PrimHeapBase + MEMORY_PRIMITIVE_HEAP_BYTES;
+        GActiveAuxHeapSize = areaSlots[areaId].byteExtent - MEMORY_PRIMITIVE_HEAP_BYTES;
+    }
+
+    // Save the larger heap view that also reclaims the image workspace.
+    Gpu_PrimHeapSize = MEMORY_PRIMITIVE_HEAP_BYTES;
+    GAuxHeap         = gMemActiveAuxHeap;
+    GAuxHeapSize     = Mem_AuxRegionBytes - MEMORY_PRIMITIVE_HEAP_BYTES;
+    _memClearPrimitiveTrailer();
 }
 
 void Boot_LoadInitialFile(Task* task)
@@ -169,7 +209,7 @@ void Boot_LoadInitialFile(Task* task)
             Fs_ScanIsoDirectory(1);
             gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_STRIPS;
             CdCmd_Enqueue(CD_COMMAND_READ_STAGE_HEADER, NULL, NULL);
-            Mem_ConfigureAuxHeap(0, 0);
+            memConfigureImageMemory(GAME_STAGE_NONE, 0);
             while (queue->imageLoadStatus != CD_COMMAND_IMAGE_COMPLETE) {
                 CdCmd_StepVlcRebuild();
             }
@@ -244,59 +284,42 @@ void Boot_InitCdAudio(void)
     CdAudio_Init();
 }
 
-void Gfx_StoreImageSlot(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
+void gfxCaptureAreaFrame(s32 stageId, s32 areaId, s32 bufferIndex, s32 auxHeapOffsetBytes)
 {
-    RECT          rect;
-    GfxImageSlot* entries;
-    u8*           ptr;
-    size_t        size;
-    size_t        imgBufSize;
-    size_t*       pSize;
+    RECT                frameRect;
+    const GfxImageSlot* areaSlots;
 
-    entries = Gfx_ImageSlotTables[arg0];
-    rect.x  = 0;
-    if (arg2 != 0) {
-        rect.y = 0;
+    areaSlots   = Gfx_ImageSlotTables[stageId];
+    frameRect.x = 0;
+    if (bufferIndex != 0) {
+        frameRect.y = 0;
     } else {
-        rect.y = 0x110;
+        frameRect.y = GRAPHICS_AREA_FRAME_SECOND_Y;
     }
-    rect.w = 0x140;
-    rect.h = 0xF0;
-    StoreImage(&rect, (u_long*)entries[arg1].regionBase);
+    frameRect.w = FILE_SYSTEM_IMAGE_WIDTH;
+    frameRect.h = FILE_SYSTEM_IMAGE_HEIGHT;
+    // Finish the capture before moving the heaps beyond its pixels.
+    StoreImage(&frameRect, (u_long*)areaSlots[areaId].regionBase);
     DrawSync(0);
 
-    imgBufSize = 0x25800;
-    do {
-        Gpu_PrimHeapSize = 0x10000;
-    } while (0);
-    pSize              = &GActiveAuxHeapSize;
-    size               = 0x10000 - arg3;
-    *pSize             = size;
-    Mem_AuxRegionBytes = 0x10000;
-    GAuxHeapSize       = size;
-
-    ptr               = entries[arg1].regionBase + imgBufSize;
-    Gpu_PrimHeapBase  = ptr;
-    gMemActiveAuxHeap = ptr + arg3;
-    Mem_AuxRegionBase = ptr;
-    GAuxHeap          = ptr + arg3;
+    _memConfigureCapturedFrameWorkspace(areaSlots, areaId, auxHeapOffsetBytes);
 }
 
-void Gfx_LoadImageSlot(s32 arg0, s32 arg1, s32 arg2)
+void gfxRestoreAreaFrame(s32 stageId, s32 areaId, s32 bufferIndex)
 {
-    RECT          rect;
-    GfxImageSlot* entries;
+    RECT                frameRect;
+    const GfxImageSlot* areaSlots;
 
-    entries = Gfx_ImageSlotTables[arg0];
-    if (arg2 == 0) {
-        rect.y = 0;
+    areaSlots = Gfx_ImageSlotTables[stageId];
+    if (bufferIndex == 0) {
+        frameRect.y = 0;
     } else {
-        rect.y = 0x110;
+        frameRect.y = GRAPHICS_AREA_FRAME_SECOND_Y;
     }
-    rect.w = 0x140;
-    rect.h = 0xF0;
-    rect.x = 0;
-    LoadImage(&rect, (u_long*)entries[arg1].regionBase);
+    frameRect.w = FILE_SYSTEM_IMAGE_WIDTH;
+    frameRect.h = FILE_SYSTEM_IMAGE_HEIGHT;
+    frameRect.x = 0;
+    LoadImage(&frameRect, (u_long*)areaSlots[areaId].regionBase);
 }
 
 void Boot_InitCd(void)
@@ -355,7 +378,7 @@ void Boot_LoadTask(Task* task)
         case 1:
             if (CdCmd_IsIdle() != 0) {
                 SetDispMask(1);
-                Mem_ConfigureAuxHeap(0, 0);
+                memConfigureImageMemory(GAME_STAGE_NONE, 0);
                 taskSpawnFromTable(Title_TaskDescs, 0, 0, 0);
                 taskKill(task);
                 gDisplayState.debugMode = 0;

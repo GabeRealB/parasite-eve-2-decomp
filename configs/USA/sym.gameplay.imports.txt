@@ -2,7 +2,7 @@
 // splat 0.50: not in this binary, so they must be absolute.
 // Main-exe names must match configs/USA/sym.main.txt at the same address.
 
-Mem_ConfigureAuxHeap = 0x800144F8; // type:func absolute:True
+memConfigureImageMemory = 0x800144F8; // type:func absolute:True
 CdFlush = 0x80015AF4; // type:func absolute:True
 CdGetSector = 0x80015FD4; // type:func absolute:True
 ResetGraph = 0x8001791C; // type:func absolute:True

@@ -529,7 +529,7 @@ void Gp_MenuRootTask(Task* arg0)
                 d->control.flags.flipMode = DISPLAY_FLIP_HOLD;
                 Stage_ReleasePrimBuf();
             }
-            Mem_ConfigureAuxHeap(gGameSession->location.loc.stage, gGameSession->location.loc.area);
+            memConfigureImageMemory(gGameSession->location.loc.stage, gGameSession->location.loc.area);
             if (Gp_IsStateF0Active() == 0) {
                 Gp_EnqueueAttach7Cd();
             }

@@ -331,7 +331,7 @@ static void Display_ResetHeapFromSession(void)
     GameSession* temp;
 
     temp = gGameSession;
-    Mem_ConfigureAuxHeap(temp->location.loc.stage, temp->location.loc.area);
+    memConfigureImageMemory(temp->location.loc.stage, temp->location.loc.area);
     gDisplayState.displayOwner = DISPLAY_OWNER_GAME_LOOP;
     gDisplayState.pendingMode  = DISPLAY_MODE_NONE;
 }

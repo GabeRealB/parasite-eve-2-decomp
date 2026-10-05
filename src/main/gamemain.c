@@ -160,7 +160,7 @@ static void GameMain_Init(void)
 
     GameResetScratchHead();
     D_8005EC64++;
-    Mem_ConfigureAuxHeap(0, 0);
+    memConfigureImageMemory(GAME_STAGE_NONE, 0);
     Mem_Init();
     taskResetDefaultList();
     Tmd_InitLists();
@@ -216,7 +216,7 @@ void Display_FlipDraw(s32 bufferIndex)
         } else if (D_8006EC30 == DISPLAY_IMAGE_TRANSITION_STRIPS) {
             Display_LoadImageStrips(bufferIndex);
         } else if (D_8006EC30 == DISPLAY_IMAGE_ROOM_SLOT) {
-            Gfx_LoadImageSlot(gGameSession->location.loc.stage, gGameSession->location.loc.area, bufferIndex);
+            gfxRestoreAreaFrame(gGameSession->location.loc.stage, gGameSession->location.loc.area, bufferIndex);
         }
         if ((s8)D_80070E38 < DISPLAY_FLIP_SKIP_TASK_OT) {
             DrawOTag(Gpu_OrderingTables[bufferIndex].tag);

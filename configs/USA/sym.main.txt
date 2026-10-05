@@ -100,12 +100,12 @@ SetSp                       = 0x800144E8;
 //--------------------------------------------------------------------
 //--- PA: 0x04CF8   VA: 0x800144F8   subsegment: c, boot
 //--------------------------------------------------------------------
-Mem_ConfigureAuxHeap               = 0x800144F8; // type:func
+memConfigureImageMemory               = 0x800144F8; // type:func
 Boot_LoadInitialFile        = 0x80014650; // type:func
 Boot_WaitCdAudioReady             = 0x800148A0; // type:func
 Boot_InitCdAudio             = 0x800148EC; // type:func
-Gfx_StoreImageSlot               = 0x8001490C; // type:func
-Gfx_LoadImageSlot               = 0x800149E8; // type:func
+gfxCaptureAreaFrame               = 0x8001490C; // type:func
+gfxRestoreAreaFrame               = 0x800149E8; // type:func
 Boot_InitCd             = 0x80014A50; // type:func
 Boot_ResetCd             = 0x80014A98; // type:func
 Boot_LoadTask               = 0x80014B38; // type:func

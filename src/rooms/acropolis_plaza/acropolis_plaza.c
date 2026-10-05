@@ -4276,7 +4276,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
                 taskMessageDispatch(_acropolisPlazaFindPlacedEnemy(0x6C)->task, 0x7D7, 1, 0);
                 taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 2, 0);
                 Gpu_ResetGraphAndOt();
-                Mem_ConfigureAuxHeap(gGameSession->location.loc.stage, gGameSession->location.loc.area);
+                memConfigureImageMemory(gGameSession->location.loc.stage, gGameSession->location.loc.area);
                 Mem_SetActiveAuxHeap(1);
                 Tmd_AllocMissingBuffers();
                 SndEvt_EnqueueTypeB(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PLAZA, 5), 0x26);

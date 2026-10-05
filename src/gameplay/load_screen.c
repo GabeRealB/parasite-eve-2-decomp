@@ -373,7 +373,7 @@ void Gp_LoadState2(Task* task)
         sess = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc;
         Gp_InitStageVisit(sess);
         save = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
-        Mem_ConfigureAuxHeap(save->state.location.loc.stage, save->state.location.loc.area);
+        memConfigureImageMemory(save->state.location.loc.stage, save->state.location.loc.area);
         if ((GAME_LOCATION_WORD(save->state.location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(1, 5, 0, 0)) {
             Mem_SetActiveAuxHeap(true);
         }

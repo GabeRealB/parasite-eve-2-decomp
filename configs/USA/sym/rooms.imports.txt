@@ -6,7 +6,7 @@
 // same here as it does in main/ or gameplay/.
 
 // --- from main (182 symbols)
-Mem_ConfigureAuxHeap = 0x800144F8; // type:func absolute:True
+memConfigureImageMemory = 0x800144F8; // type:func absolute:True
 CdFlush = 0x80015AF4; // type:func absolute:True
 SetDispMask = 0x80017C00; // type:func absolute:True
 DrawSync = 0x80017C98; // type:func absolute:True

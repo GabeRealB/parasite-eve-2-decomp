@@ -5,6 +5,11 @@
 
 #include "types.h"
 
+/// Bytes reserved for GPU primitives when image memory is configured.
+enum {
+    MEMORY_PRIMITIVE_HEAP_BYTES = 0x10000,
+};
+
 /// Clears `size` bytes at `dst` one byte at a time, in place rather than
 /// through `memFillBytes`.
 #define MEM_CLEAR(dst, size)                             \
