@@ -14958,7 +14958,7 @@ if (flag == 0) {
 }
 ```
 
-`Snd_ApplyVolumeTable` (`D_80072311` → `sndOutputSetStereo`) is the pure `== 0` example.
+`midiApplyMusicVolume` (`D_80072311` → `sndOutputSetStereo`) is the pure `== 0` example.
 `GameFlow_WaitMenuDone` is the sibling `== 1` form (`sndOutputSetStereo(0)` vs `(1)`).
 
 ## Goto-forced block order for shared-default multi-way branch

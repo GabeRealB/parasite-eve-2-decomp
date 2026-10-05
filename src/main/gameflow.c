@@ -353,7 +353,7 @@ static void GameFlow_WaitMenuDone(Task* task)
         } else {
             sndOutputSetStereo(SOUND_OUTPUT_STEREO);
         }
-        Snd_ApplyVolumeTable(0);
+        midiApplyMusicVolume(MIDI_MUSIC_VOLUME_SAVED);
         task->killCountdown = 0xC;
         task->state         = task->state + 1;
     }

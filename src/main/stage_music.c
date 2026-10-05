@@ -266,7 +266,7 @@ static inline void Stage_ApplyEntry(Task* task, _StageMusicSelection* selection,
             }
         }
         SndEvt_EnqueueType1(entry->sequenceId, 0);
-        Snd_ApplyVolumeTable(0);
+        midiApplyMusicVolume(MIDI_MUSIC_VOLUME_SAVED);
     }
     gStageMusicLoadState = 0xFF;
     gStageCurrentSong    = selection->table[selection->index].sequenceId;
@@ -300,7 +300,7 @@ void Stage_RequestFromAreaTable(s32 arg0)
         if (entry[temp].startMode != STAGE_MUSIC_START_NEVER) {
             SndEvt_EnqueueType1(entry[temp].sequenceId, arg0 & 0xFFFF);
             gStageCurrentSong = entry[temp].sequenceId;
-            Snd_ApplyVolumeTable(0);
+            midiApplyMusicVolume(MIDI_MUSIC_VOLUME_SAVED);
         }
     }
 }

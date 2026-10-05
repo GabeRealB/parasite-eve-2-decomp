@@ -13,7 +13,29 @@ extern s16 D_800820E4;
 
 extern s16 D_800820E6;
 
-void Snd_ApplyVolumeTable(s32 arg0);
+/// Selects the saved music-volume option instead of an explicit gain override.
+enum { MIDI_MUSIC_VOLUME_SAVED = 0 };
+
+/// Applies a music gain override or the saved music-volume option, and saved output mode.
+///
+/// `volumeOverride` is a 16-bit level: zero (`MIDI_MUSIC_VOLUME_SAVED`)
+/// selects the live save's musicVolume option, which must be in 0..3 and maps
+/// to gains 100, 64, 32, 0. Otherwise only its low byte is sent: 0..127 is
+/// sequence gain (127 full), and a byte with bit 7 set requests 127.
+/// A nonzero override with a zero low byte requests silence. The level is
+/// cached as a signed halfword for event-script fades, even if the gain request
+/// fails. An explicit override leaves the music mute gate alone.
+///
+/// Saved option 3 enables the mute gate; other options release it. This happens
+/// before queueing the selected gain, after any gain request made by that gate
+/// change. The room song is selected when nonzero; zero addresses all sequences.
+/// Requests are deferred and may be dropped when the event pool is full;
+/// sequence 0x5A ignores the requested gain and gate. The matching loaded sequence
+/// must have an id in 0..99 when the request is processed.
+///
+/// Every call also applies the live save's soundMode (0 stereo, otherwise mono)
+/// to MIDI, sound scripts, streams and CD input.
+void midiApplyMusicVolume(u16 volumeOverride);
 
 /// Resident output selections; the setter consumes only the stereo bit.
 enum {

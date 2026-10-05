@@ -843,7 +843,7 @@ void Mc_InitBufferSlots(void)
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.soundMode    = 0;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.moveMode     = 0;
     sndOutputSetStereo(SOUND_OUTPUT_STEREO);
-    Snd_ApplyVolumeTable(0);
+    midiApplyMusicVolume(MIDI_MUSIC_VOLUME_SAVED);
 }
 
 /// Prompt + optional choice dialog (Mc_PromptTable[mode]).
@@ -2742,7 +2742,7 @@ void Mc_ResetSaveFlags(void)
     p->state.soundMode    = 0;
     p->state.moveMode     = 0;
     sndOutputSetStereo(SOUND_OUTPUT_STEREO);
-    Snd_ApplyVolumeTable(0);
+    midiApplyMusicVolume(MIDI_MUSIC_VOLUME_SAVED);
 }
 
 static void Mc_ClearWorkBuffers(void)

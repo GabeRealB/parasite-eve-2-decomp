@@ -650,7 +650,7 @@ void Gp_VolFadeTask(Task* arg0)
     switch (arg0->state) {
         case 0:
             if (fade->durationFrames == 0) {
-                Snd_ApplyVolumeTable(fade->targetVolume);
+                midiApplyMusicVolume(fade->targetVolume);
                 taskKill(arg0);
                 D_8010FBE4 = 0;
             } else {
@@ -662,7 +662,7 @@ void Gp_VolFadeTask(Task* arg0)
         case 1:
             D_801156C2++;
             volume = (D_801156C0 * (fade->durationFrames - D_801156C2) + fade->targetVolume * D_801156C2) / fade->durationFrames;
-            Snd_ApplyVolumeTable(volume & 0xFFFF);
+            midiApplyMusicVolume(volume);
             if (D_801156C2 == fade->durationFrames) {
                 taskKill(arg0);
                 D_8010FBE4 = 0;

@@ -264,38 +264,56 @@ static void Prim_DrawLoadingSprt(void)
     addPrim(gGpuCurrentOt - 0x10, dr);
 }
 
-void Snd_ApplyVolumeTable(s32 arg0)
+void midiApplyMusicVolume(u16 volumeOverride)
 {
-    _SndMusicVolumeTable sp10;
-    u8                   temp;
+    enum {
+        SOUND_OUTPUT_SAVED_STEREO   = 0,
+        MIDI_MUSIC_SAVED_VOLUME_OFF = 3,
+        MIDI_MUSIC_ALL_SEQUENCES    = 0
+    };
+    _SndMusicVolumeTable volumeTable;
+    u8                   savedVolume;
 
-    sp10 = D_80013F18;
-    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.soundMode == 0) {
+    /// Applies the saved music level, changing the mute gate before queuing that gain.
+    ///
+    /// `table` must be a side-effect-free `_SndMusicVolumeTable` expression
+    /// for saved options 0..3. It is evaluated again after the gate change
+    /// when no room song is selected.
+    /// Uses the live save, room song and music-level cache, the local selectors
+    /// and the local `savedVolume` temporary. Expands to a compound statement.
+#define MIDI_APPLY_SAVED_MUSIC_VOLUME(table)                                                                                              \
+    {                                                                                                                                     \
+        savedVolume = (table).volumes[(u8)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.musicVolume];                                          \
+        D_8007A396  = savedVolume;                                                                                                        \
+        /* Change the gate before the selected gain; unmuting queues the cached gain. */                                                  \
+        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.musicVolume == MIDI_MUSIC_SAVED_VOLUME_OFF) {                                        \
+            midiMuteMusic();                                                                                                              \
+        } else {                                                                                                                          \
+            midiUnmuteMusic();                                                                                                            \
+        }                                                                                                                                 \
+        if (gStageRoomSong != MIDI_MUSIC_ALL_SEQUENCES) {                                                                                 \
+            sndEvtRequestMidiVolume(gStageRoomSong, (u8)D_8007A396);                                                                      \
+        } else {                                                                                                                          \
+            sndEvtRequestMidiVolume(MIDI_MUSIC_ALL_SEQUENCES, (table).volumes[(u8)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.musicVolume]); \
+        }                                                                                                                                 \
+    }
+
+    volumeTable = D_80013F18;
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.soundMode == SOUND_OUTPUT_SAVED_STEREO) {
         sndOutputSetStereo(SOUND_OUTPUT_STEREO);
     } else {
         sndOutputSetStereo(SOUND_OUTPUT_MONO);
     }
-    if ((arg0 & 0xFFFF) != 0) {
-        D_8007A396 = arg0;
-        if (gStageRoomSong != 0) {
+    if (volumeOverride != MIDI_MUSIC_VOLUME_SAVED) {
+        D_8007A396 = volumeOverride;
+        if (gStageRoomSong != MIDI_MUSIC_ALL_SEQUENCES) {
             sndEvtRequestMidiVolume(gStageRoomSong, (u8)D_8007A396);
         } else {
-            sndEvtRequestMidiVolume(0, (u8)D_8007A396);
+            sndEvtRequestMidiVolume(MIDI_MUSIC_ALL_SEQUENCES, (u8)D_8007A396);
         }
-    } else {
-        temp       = sp10.volumes[(u8)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.musicVolume];
-        D_8007A396 = temp;
-        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.musicVolume == 3) {
-            midiMuteMusic();
-        } else {
-            midiUnmuteMusic();
-        }
-        if (gStageRoomSong != 0) {
-            sndEvtRequestMidiVolume(gStageRoomSong, (u8)D_8007A396);
-        } else {
-            sndEvtRequestMidiVolume(0, sp10.volumes[(u8)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.musicVolume]);
-        }
-    }
+    } else
+        MIDI_APPLY_SAVED_MUSIC_VOLUME(volumeTable);
+#undef MIDI_APPLY_SAVED_MUSIC_VOLUME
 }
 
 /// Music volume for each of the four volume settings, loudest first.

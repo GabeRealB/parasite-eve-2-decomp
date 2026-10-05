@@ -1481,7 +1481,7 @@ SetTile                     = 0x80042344;
 CdCmd_EnqueueLoadFile               = 0x80042364; // type:func
 LoadUi_PollDiskSwap               = 0x80042500; // type:func
 Prim_DrawLoadingSprt               = 0x80042838; // type:func
-Snd_ApplyVolumeTable               = 0x800429C8; // type:func
+midiApplyMusicVolume               = 0x800429C8; // type:func
 
 //--------------------------------------------------------------------
 //--- PA: 0x332E0   VA: 0x80042AE0   subsegment: o, libgpu/p01

@@ -288,7 +288,7 @@ static void func_options_801D42A8(UiList* arg0, UiObject* arg1)
     }
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.musicVolume = selected;
     if (saved != (s8)selected) {
-        Snd_ApplyVolumeTable(0);
+        midiApplyMusicVolume(MIDI_MUSIC_VOLUME_SAVED);
     }
     status = arg1->panel.control.word;
     if ((((status >> 0x10) == 1) || (status == 1)) && (arg0->selectedItemIndex == arg0->currentItemIndex)) {
