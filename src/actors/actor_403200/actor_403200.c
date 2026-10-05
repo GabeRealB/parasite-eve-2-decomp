@@ -3032,7 +3032,7 @@ s32 func_actor_403200_801341E8(Task* arg0, s16 arg1)
     s32       view;
     s32       flag;
 
-    view   = Gp_GetViewIndex() & 0xFF;
+    view   = viewGetMappedIndex() & 0xFF;
     vp     = &vec;
     coords = arg0->extra.tmd->coords;
     vp->vx = gPlayerStatus.coordMtx->t[0] - coords->coord.t[0];
@@ -3098,7 +3098,7 @@ s32 func_actor_403200_80134374(Task* arg0, s16 arg1)
     s32       view;
     s32       flag;
 
-    view   = Gp_GetViewIndex() & 0xFF;
+    view   = viewGetMappedIndex() & 0xFF;
     vp     = &vec;
     coords = arg0->extra.tmd->coords;
     vp->vx = gPlayerStatus.coordMtx->t[0] - coords->coord.t[0];
@@ -3151,7 +3151,7 @@ s32 func_actor_403200_801344C4(Task* arg0, s16 arg1)
     s32       view;
     s32       flag;
 
-    view   = Gp_GetViewIndex() & 0xFF;
+    view   = viewGetMappedIndex() & 0xFF;
     task   = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     vp     = &vec;
     coords = arg0->extra.tmd->coords;
@@ -3303,7 +3303,7 @@ s32 func_actor_403200_80134748(Task* arg0, s16 arg1)
     s32       view;
     s32       flag;
 
-    view   = Gp_GetViewIndex() & 0xFF;
+    view   = viewGetMappedIndex() & 0xFF;
     vp     = &vec;
     coords = arg0->extra.tmd->coords;
     vp->vx = gPlayerStatus.coordMtx->t[0] - coords->coord.t[0];
@@ -3379,7 +3379,7 @@ s32 func_actor_403200_80134900(Task* arg0, s16 arg1)
     s32       value;
     s32       view;
 
-    view   = Gp_GetViewIndex() & 0xFF;
+    view   = viewGetMappedIndex() & 0xFF;
     p      = &pos;
     coords = arg0->extra.tmd->coords;
     p->vx  = gPlayerStatus.coordMtx->t[0] - coords->coord.t[0];
@@ -3451,7 +3451,7 @@ s32 func_actor_403200_80134A14(Task* arg0, s16 arg1)
     s32                     view;
     s32                     flag;
 
-    view    = Gp_GetViewIndex() & 0xFF;
+    view    = viewGetMappedIndex() & 0xFF;
     obj     = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     anchors = D_actor_403200_80131E64;
     vec.vx  = obj->extra.tmd->coords->coord.t[0] - anchors.points[arg1].vx;
@@ -6456,7 +6456,7 @@ static void func_actor_403200_8013FB54(Enemy* arg0, Task* arg1)
         work->escorts[4]->task->extra.tmd->otOffset = 0;
     }
 
-    if (((Gp_GetViewIndex() & 0xFF) == 0x1E) || ((Gp_GetViewIndex() & 0xFF) == 0x1D)) {
+    if (((viewGetMappedIndex() & 0xFF) == 0x1E) || ((viewGetMappedIndex() & 0xFF) == 0x1D)) {
         vis                    = arg1->work;
         vis->freeCountdown     = 0;
         arg1->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -6675,7 +6675,7 @@ after_mode:
 
     if (work->viewLocked == 0 && work->state != 0) {
         scratch->view = D_actor_403200_8015E6E8[work->viewSelector](arg1, work->phase);
-        if (((Gp_GetViewIndex() & 0xFF) != scratch->view) &&
+        if (((viewGetMappedIndex() & 0xFF) != scratch->view) &&
             (arg1->spawnArg1.value >> 16) == 0) {
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = scratch->view;
         }
@@ -6918,7 +6918,7 @@ s32 func_actor_403200_801411A8(Task* arg0, s16 arg1)
     s32   value;
     s32   view;
 
-    view = Gp_GetViewIndex() & 0xFF;
+    view = viewGetMappedIndex() & 0xFF;
     task = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     if (view == 0x1E) {
         flag  = task->extra.tmd->coords->coord.t[0];

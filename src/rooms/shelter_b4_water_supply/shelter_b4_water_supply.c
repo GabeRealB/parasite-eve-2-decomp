@@ -1260,7 +1260,7 @@ void func_shelter_b4_water_supply_8017EE54(Task* arg0)
             D_shelter_b4_water_supply_801826E0[i].vz = part->workm.t[2];
         }
     }
-    switch ((u8)Gp_GetViewIndex()) {
+    switch ((u8)viewGetMappedIndex()) {
         case 4:
             glowDrawCone(&D_shelter_b4_water_supply_80182690[0], 0x200, 0);
             glowDrawCone(&D_shelter_b4_water_supply_80182690[4], 0x200, 0x800);

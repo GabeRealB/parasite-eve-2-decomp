@@ -4,7 +4,7 @@ void motelRoom6DrawGlow(Task* unused)
 {
     u8 view;
 
-    view = Gp_GetViewIndex();
+    view = viewGetMappedIndex();
     switch (view) {
         case 3:
         case 4:

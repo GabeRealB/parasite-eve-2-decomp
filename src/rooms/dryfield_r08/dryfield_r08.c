@@ -571,7 +571,7 @@ void func_dryfield_r08_8017D5F8(Task* task)
         task->state             = task->state + 1;
     }
 
-    view = Gp_GetViewIndex();
+    view = viewGetMappedIndex();
     switch (view) {
         case 2: {
             SVECTOR* q;

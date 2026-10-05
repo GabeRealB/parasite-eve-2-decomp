@@ -3351,7 +3351,7 @@ void func_dryfield_night_gas_station_80180E9C(Task* task)
     // started, and `angle` holds the 0..2 roll choosing an anchor's effect.
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
-    mask  = 1 << Gp_GetViewIndex();
+    mask  = 1 << viewGetMappedIndex();
     if (task->state == 0) {
         gRoomEffectFlashId               = EFFECT_DRYFIELD_NIGHT_GAS_STATION_FLASH;
         gRoomEffectTwinTrailId           = EFFECT_DRYFIELD_NIGHT_GAS_STATION_TWIN_TRAIL;

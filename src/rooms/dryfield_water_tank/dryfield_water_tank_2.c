@@ -1304,5 +1304,5 @@ void func_dryfield_water_tank_8017EFF4(s32 arg0)
 /// `dryfield_water_tower` carry the same body.
 void func_dryfield_water_tank_8017F084(Task* unused)
 {
-    gRoomEffectState->roomEffectMode = D_dryfield_water_tank_801868CC[(Gp_GetViewIndex() & 0xFF) - 1];
+    gRoomEffectState->roomEffectMode = D_dryfield_water_tank_801868CC[(viewGetMappedIndex() & 0xFF) - 1];
 }

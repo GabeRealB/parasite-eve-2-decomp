@@ -1958,7 +1958,7 @@ void func_mine_forked_tunnel_8017E78C(Task* unused)
     s32 idx;
 
     gRoomEffectState->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
-    idx                              = Gp_GetViewIndex() & 0xFF;
+    idx                              = viewGetMappedIndex() & 0xFF;
 
     switch (idx) {
         case 2:

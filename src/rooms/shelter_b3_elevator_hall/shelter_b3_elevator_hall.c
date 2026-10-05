@@ -303,7 +303,7 @@ void func_shelter_b3_elevator_hall_8017DE70(Task* arg0)
         gRoomEffectOrangeBurst2Id = EFFECT_SHELTER_B3_ELEVATOR_HALL_ORANGE_BURST_2;
         arg0->state               = 1;
     }
-    switch ((u8)Gp_GetViewIndex()) {
+    switch ((u8)viewGetMappedIndex()) {
         case 3: {
             SVECTOR* p = D_shelter_b3_elevator_hall_80182A74;
             glowDrawCapsule(&p[0], 0x180, 0x222);

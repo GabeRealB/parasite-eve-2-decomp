@@ -705,7 +705,7 @@ WorldCollisionSurfaceProperties* D_neo_ark_bridge_80184BD4[8] = {
 
 /// Bridge effect task tick. State 0 installs the five bridge effect ids
 /// (0x601E1, then 0x601FD / 0x60219 / 0x6017A / 0x6017B) and advances. State 1
-/// only acts while `Gp_GetViewIndex()` reports the two side views 5 or 6 and no
+/// only acts while `viewGetMappedIndex()` reports the two side views 5 or 6 and no
 /// state-1C flag is set: two LCG rolls each spawn effect 0x60070 at
 /// `D_neo_ark_bridge_80181F60` / `D_neo_ark_bridge_80181F68` on a 1-in-4, then
 /// the sprite at `D_neo_ark_bridge_80181F58` is drawn for 0x600 frames.
@@ -726,7 +726,7 @@ void func_neo_ark_bridge_8017E954(Task* arg0)
             arg0->state              = 1;
             /* fallthrough */
         case 1:
-            view = Gp_GetViewIndex() & 0xFF;
+            view = viewGetMappedIndex() & 0xFF;
             if (view < 7) {
                 if (view >= 5) {
                     if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {

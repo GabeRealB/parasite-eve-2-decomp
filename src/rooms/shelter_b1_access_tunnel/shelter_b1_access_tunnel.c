@@ -646,7 +646,7 @@ void func_shelter_b1_access_tunnel_8017DD60(Task* unused)
 {
     u8 view;
 
-    view = Gp_GetViewIndex();
+    view = viewGetMappedIndex();
     switch (view) {
         case 2: {
             SVECTOR* p;

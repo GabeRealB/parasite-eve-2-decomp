@@ -100,7 +100,7 @@ void func_shelter_b1_control_room_8017F150(Task* task)
         task->state               = 1;
     }
 
-    view = Gp_GetViewIndex();
+    view = viewGetMappedIndex();
     switch (view) {
         case 2:
             glowDrawCapsule(&D_shelter_b1_control_room_80181BD4[0], 0x100, 0x243);

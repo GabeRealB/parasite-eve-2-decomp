@@ -1476,7 +1476,7 @@ void func_shelter_b1_pod_access_tunnel_8017E7D4(Task* arg0)
         gRoomEffectSparkBurstId = EFFECT_SHELTER_B1_POD_ACCESS_TUNNEL_SPARK_BURST;
         arg0->state             = 1;
     }
-    view = Gp_GetViewIndex();
+    view = viewGetMappedIndex();
     switch (view) {
         case 2: {
             SVECTOR* p = D_shelter_b1_pod_access_tunnel_801839E4;

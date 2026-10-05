@@ -471,7 +471,7 @@ void func_dryfield_night_motel_loft_8017DB64(Task* arg0)
 {
     s32 i;
 
-    switch (Gp_GetViewIndex() & 0xFF) {
+    switch (viewGetMappedIndex() & 0xFF) {
         case 2:
         case 9:
             glowDrawFlareClipped(&D_dryfield_night_motel_loft_8017ED78[0], 0, 0x300);

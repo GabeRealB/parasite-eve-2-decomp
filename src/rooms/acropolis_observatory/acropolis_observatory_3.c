@@ -76,7 +76,7 @@ extern s16 D_acropolis_observatory_8017FE68[];
 
 /// Per-view spawn table for the observatory's ambient effect. Entry `i` of
 /// `D_acropolis_observatory_8017FEB8` is the bitmask of camera views that want
-/// effect `i`, tested against `1 << Gp_GetViewIndex()`; the matching entry of
+/// effect `i`, tested against `1 << viewGetMappedIndex()`; the matching entry of
 /// `D_acropolis_observatory_8017FE78` is the offset the effect is spawned at.
 extern SVECTOR D_acropolis_observatory_8017FE78[8];
 extern u16     D_acropolis_observatory_8017FEB8[8];
@@ -1164,7 +1164,7 @@ void func_acropolis_observatory_8017E6F8(Task* task)
     u16*      flags;
 
     coord = task->extra.coordBody->coord;
-    mask  = 1 << Gp_GetViewIndex();
+    mask  = 1 << viewGetMappedIndex();
     if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
         i     = 0;
         vec   = D_acropolis_observatory_8017FE78;

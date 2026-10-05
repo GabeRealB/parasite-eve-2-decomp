@@ -509,7 +509,7 @@ void func_shelter_b1_golem_freezer_1_8017DA7C(Task* unused)
             Gp_SpawnEff(EFFECT_GOLEM_FREEZER_FLOOR_MIST, NULL, (GOLEM_RAND() & 0x10FF) + 0x85400, &pos);
         }
     }
-    switch (Gp_GetViewIndex() & 0xFF) {
+    switch (viewGetMappedIndex() & 0xFF) {
         case 3:
             glowDrawDisc(D_shelter_b1_golem_freezer_1_8017E738, 0x200, 0x421);
             break;

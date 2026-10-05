@@ -1563,7 +1563,7 @@ void func_neo_ark_shrine_8017F8DC(Task* task)
         task->state             = 1;
     }
 
-    switch (Gp_GetViewIndex() & 0xFF) {
+    switch (viewGetMappedIndex() & 0xFF) {
         case 2: {
             SVECTOR* p = D_neo_ark_shrine_801826D4;
             func_neo_ark_shrine_8017FC14(&p[0], 1, 0x300);

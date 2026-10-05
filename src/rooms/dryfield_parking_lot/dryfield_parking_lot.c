@@ -508,5 +508,5 @@ void func_dryfield_parking_lot_8017DB54(Task* task)
 /// address.
 void func_dryfield_parking_lot_8017DBAC(Task* unused)
 {
-    gRoomEffectState->roomEffectMode = D_dryfield_parking_lot_8017DC34[(Gp_GetViewIndex() & 0xFF) - 1];
+    gRoomEffectState->roomEffectMode = D_dryfield_parking_lot_8017DC34[(viewGetMappedIndex() & 0xFF) - 1];
 }

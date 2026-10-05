@@ -1915,7 +1915,7 @@ void func_shelter_b3_garbage_incinerator_8018110C(Task* task)
         work->scale = 0x3C40;
     }
 
-    view = Gp_GetViewIndex();
+    view = viewGetMappedIndex();
     switch (view) {
         case 0x02:
         case 0x16:

@@ -564,7 +564,7 @@ void func_dryfield_back_street_8017D5D0(Task* task)
             return;
     }
 
-    switch (Gp_GetViewIndex()) {
+    switch (viewGetMappedIndex()) {
         case 3:
             vol = 0x1E;
             pan = 4;

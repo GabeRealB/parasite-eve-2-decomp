@@ -344,7 +344,7 @@ void func_shelter_b3_incinerator_control_room_8017FD10(Task* unused)
 {
     u8 view;
 
-    view = Gp_GetViewIndex();
+    view = viewGetMappedIndex();
     switch (view) {
         case 2:
         case 3:

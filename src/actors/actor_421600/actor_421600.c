@@ -3046,12 +3046,12 @@ static void func_actor_421600_8013903C(Task* arg0)
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     desertChaserAnimTick(arg0);
     if (((u16)ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT) == 0) {
-        view = Gp_GetViewIndex() & 0xFF;
+        view = viewGetMappedIndex() & 0xFF;
         if (view == 3) {
             work->state = view;
         }
     }
-    if ((((u16)ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT) == 1) && ((Gp_GetViewIndex() & 0xFF) == 8)) {
+    if ((((u16)ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT) == 1) && ((viewGetMappedIndex() & 0xFF) == 8)) {
         work->state = 3;
     }
     SCRATCH_STACK_CURSOR(SVECTOR) += 2;
@@ -4252,7 +4252,7 @@ static void                         func_actor_421600_8013D658(Enemy* enemy, Tas
     work                                   = actor->work;
     player                                 = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     config                                 = &gPlayerStatus;
-    view                                   = Gp_GetViewIndex() & 0xFF;
+    view                                   = viewGetMappedIndex() & 0xFF;
     states                                 = D_actor_421600_80131EFC;
     actor->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(actor->extra.tmd->coords);
@@ -4267,7 +4267,7 @@ static void                         func_actor_421600_8013D658(Enemy* enemy, Tas
                 limbShadowDrawSegment(actor, 1, 3, 0x12C, (s32)height, 0xFF);
                 limbShadowDrawSegment(actor, 3, 4, 0xC8, (s32)height, 0xFF);
                 limbShadowDrawSegment(actor, 1, 0xB, 0xFA, (s32)height, 0xFF);
-                if ((Gp_GetViewIndex() & 0xFF) == 0x13) {
+                if ((viewGetMappedIndex() & 0xFF) == 0x13) {
                     actor->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
                 } else {
                     actor->extra.tmd->flags = 0;
@@ -4280,7 +4280,7 @@ static void                         func_actor_421600_8013D658(Enemy* enemy, Tas
                 limbShadowDrawSegment(actor, 1, 3, 0x12C, (s32)height, 0xFF);
                 limbShadowDrawSegment(actor, 3, 4, 0xC8, (s32)height, 0xFF);
                 limbShadowDrawSegment(actor, 1, 0xB, 0xFA, (s32)height, 0xFF);
-                if ((Gp_GetViewIndex() & 0xFF) == 0x13) {
+                if ((viewGetMappedIndex() & 0xFF) == 0x13) {
                     actor->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
                 } else {
                     actor->extra.tmd->flags = 0;
@@ -4452,7 +4452,7 @@ static void                         func_actor_421600_8013D658(Enemy* enemy, Tas
     }
     states.handlers[work->state](actor);
     if (work->state == 1 && work->lastCommand.fields.command == 0) {
-        if ((Gp_GetViewIndex() & 0xFF) == 5)
+        if ((viewGetMappedIndex() & 0xFF) == 5)
             work->state = 2;
     }
     if (Actor421600_HasPlayerContact(work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts)) {

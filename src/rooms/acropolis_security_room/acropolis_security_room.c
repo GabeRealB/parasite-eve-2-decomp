@@ -3244,7 +3244,7 @@ void func_acropolis_security_room_801805A4(Task* task)
 
         case 1:
             work->index = D_acropolis_security_room_80183968[gameFlagGetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED)];
-            if ((Gp_GetViewIndex() & 0xFF) == 6) {
+            if ((viewGetMappedIndex() & 0xFF) == 6) {
                 u16* pal  = D_acropolis_security_room_80182918;
                 u16* base = D_acropolis_security_room_80182718;
                 u16* out  = D_acropolis_security_room_80183118;
@@ -3280,7 +3280,7 @@ void func_acropolis_security_room_801805A4(Task* task)
                 for (i = 0; i < 4; i++) {
                     Gp_SpawnEff(EFFECT_ACROPOLIS_SECURITY_MONITOR_FEED, coord, i, NULL);
                 }
-            } else if (((Gp_GetViewIndex() & 0xFF) != 8) && ((Gp_GetViewIndex() & 0xFF) != 0x10)) {
+            } else if (((viewGetMappedIndex() & 0xFF) != 8) && ((viewGetMappedIndex() & 0xFF) != 0x10)) {
                 for (i = 0; i < 4; i++) {
                     if ((work->index >> i) & 1) {
                         Gp_SpawnEff(EFFECT_ACROPOLIS_SECURITY_MONITOR_GLOW, coord, (s32)(D_acropolis_security_room_801839B8[i]),
@@ -3635,7 +3635,7 @@ static void func_acropolis_security_room_80182574(Task* task)
     enemy = task->spawnArg2.pointer;
     tmd   = task->extra.tmd;
     flag  = Gp_GetCurBit2Flag((u8)enemy->placeKey);
-    Gp_GetViewIndex();
+    viewGetMappedIndex();
     if (flag == 2) {
         tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     } else {

@@ -611,7 +611,7 @@ void func_shelter_b2_elevator_hall_8017DD60(Task* arg0)
         arg0->state               = 1;
     }
 
-    switch (Gp_GetViewIndex() & 0xFF) {
+    switch (viewGetMappedIndex() & 0xFF) {
         case 2: {
             SVECTOR* p;
             p = D_shelter_b2_elevator_hall_801837D8;

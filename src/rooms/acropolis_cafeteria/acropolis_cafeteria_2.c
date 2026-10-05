@@ -1305,7 +1305,7 @@ void func_acropolis_cafeteria_8017F390(Task* task)
             }
             work->scale = w;
             work->angle = 0x300;
-            if ((Gp_GetViewIndex() & 0xFF) == 7 && work->step == 0) {
+            if ((viewGetMappedIndex() & 0xFF) == 7 && work->step == 0) {
                 pan = (s8)worldCoordGetOriginAudioPan(coord);
                 sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_CAFETERIA, 6), pan, (s8)worldCoordGetOriginAudioDepth(coord));
                 work->step = 1;
@@ -1538,7 +1538,7 @@ void func_acropolis_cafeteria_801827C4(Task* task)
     } else {
         tmd->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
     }
-    switch (Gp_GetViewIndex() & 0xFF) {
+    switch (viewGetMappedIndex() & 0xFF) {
         case 0xC:
             tmd->otOffset = 7;
             break;
@@ -1559,7 +1559,7 @@ void func_acropolis_cafeteria_8018286C(Task* task)
     enemy = task->spawnArg2.pointer;
     tmd   = task->extra.tmd;
     flag  = Gp_GetCurBit2Flag((u8)enemy->placeKey);
-    if ((Gp_GetViewIndex() & 0xFF) != 9) {
+    if ((viewGetMappedIndex() & 0xFF) != 9) {
         tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
         return;
     }
@@ -1582,7 +1582,7 @@ static void func_acropolis_cafeteria_80182954(Task* task)
     TmdObject* tmd;
 
     tmd = task->extra.tmd;
-    if ((Gp_GetViewIndex() & 0xFF) != 9) {
+    if ((viewGetMappedIndex() & 0xFF) != 9) {
         tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
         return;
     }
@@ -1602,7 +1602,7 @@ static void func_acropolis_cafeteria_80182A08(Task* task)
     TmdObject* tmd;
 
     tmd = task->extra.tmd;
-    switch (Gp_GetViewIndex() & 0xFF) {
+    switch (viewGetMappedIndex() & 0xFF) {
         case 6:
         case 7:
         case 0xA:

@@ -615,7 +615,7 @@ void func_neo_ark_substation_8017D874(Task* unused)
 {
     u8 view;
 
-    view = Gp_GetViewIndex();
+    view = viewGetMappedIndex();
     switch (view) {
         case 2: {
             SVECTOR* p = D_neo_ark_substation_8017E310;

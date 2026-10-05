@@ -65,7 +65,7 @@ void Gp_LinkViewSprts(void)
     SpriteSource*          sources;
 
     sess          = &gGameSession->location.loc;
-    view          = Gp_GetViewIndex();
+    view          = viewGetMappedIndex();
     table         = Gp_SprtLists;
     ds            = &gDisplayState;
     Gp_SprtCursor = table[ds->drawBuffer];
@@ -149,7 +149,7 @@ static void Gp_SetSprtShadeBits(s32 arg0)
     u32                   i;
 
     sess          = &gGameSession->location.loc;
-    view          = Gp_GetViewIndex();
+    view          = viewGetMappedIndex();
     Gp_SprtCursor = Gp_SprtLists[gDisplayState.drawBuffer];
     tbl           = Gp_SprtTables[sess->stage - 1];
     recs          = tbl->areaViews[sess->area - 1];
@@ -195,7 +195,7 @@ void Gp_AllocSprtLists(void)
 
     sess          = &gGameSession->location.loc;
     count.address = 0;
-    view          = Gp_GetViewIndex();
+    view          = viewGetMappedIndex();
     recs          = Gp_SprtTables[sess->stage - 1]->areaViews[sess->area - 1];
     batch         = recs[view - 1].batches;
     sources       = recs[view - 1].sources.elements;
@@ -423,22 +423,20 @@ static void func_800AD024(void)
     }
 }
 
-s32 Gp_GetViewIndex(void)
+s32 viewGetMappedIndex(void)
 {
-    GameSession*     session;
-    GameLocationKey* sess;
-    ViewIndexTable*  viewIndexTable;
-    u8***            areaViewMaps;
-    u8**             roomViewMaps;
-    u8*              viewMap;
+    const GameSession*     session;
+    const GameLocationKey* location;
+    u8***                  areaViewMaps;
+    u8**                   roomViewMaps;
+    const u8*              viewMap;
 
-    session        = gGameSession;
-    sess           = &session->location.loc;
-    viewIndexTable = Gp_ViewIndexTables[sess->stage - 1];
-    areaViewMaps   = viewIndexTable->viewMaps;
-    roomViewMaps   = areaViewMaps[sess->area - 1];
-    viewMap        = roomViewMaps[sess->room - 1];
-    return viewMap[sess->view - 1];
+    session      = gGameSession;
+    location     = &session->location.loc;
+    areaViewMaps = Gp_ViewIndexTables[location->stage - 1]->viewMaps;
+    roomViewMaps = areaViewMaps[location->area - 1];
+    viewMap      = roomViewMaps[location->room - 1];
+    return viewMap[location->view - 1];
 }
 
 void* Gp_GetViewSprtExtra(void)

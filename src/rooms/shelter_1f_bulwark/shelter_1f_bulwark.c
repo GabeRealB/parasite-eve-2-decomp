@@ -565,7 +565,7 @@ void func_shelter_1f_bulwark_8017E2A4(Task* arg0)
         arg0->state             = 1;
     }
 
-    view = Gp_GetViewIndex();
+    view = viewGetMappedIndex();
     switch (view) {
         case 2: {
             SVECTOR* p = D_shelter_1f_bulwark_80180378;

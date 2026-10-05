@@ -1730,7 +1730,7 @@ void func_shelter_b4_reservoir_8017FB84(Task* task)
             }
         }
     }
-    if ((u8)Gp_GetViewIndex() == 10) {
+    if ((u8)viewGetMappedIndex() == 10) {
         D_shelter_b4_reservoir_8018509C[1].vy = D_shelter_b4_reservoir_80184F82;
         if ((RAND() & 1) == 0) {
             Gp_SpawnEff(gRoomEffectWaterSprayId, NULL, (RAND() & 0x1000) + 0x4A03600, &D_shelter_b4_reservoir_8018509C[0]);
@@ -1742,7 +1742,7 @@ void func_shelter_b4_reservoir_8017FB84(Task* task)
             Gp_SpawnEff(gRoomEffectWaterRippleId, NULL, (RAND() & 0x7F) | 0x80, &D_shelter_b4_reservoir_8018509C[1]);
         }
     }
-    switch ((u8)Gp_GetViewIndex()) {
+    switch ((u8)viewGetMappedIndex()) {
         case 2:
             glowDrawCapsule(&D_shelter_b4_reservoir_80185024[10], 0x200, 0x444);
             break;

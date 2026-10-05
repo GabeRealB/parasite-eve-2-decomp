@@ -523,7 +523,7 @@ void func_shelter_b4_lower_sewer_8017E400(Task* arg0)
         arg0->state = 1;
     }
 
-    switch (Gp_GetViewIndex() & 0xFF) {
+    switch (viewGetMappedIndex() & 0xFF) {
         case 2:
         case 6: {
             SVECTOR* p = D_shelter_b4_lower_sewer_80181F14;

@@ -748,7 +748,7 @@ WorldCollisionFootstepSounds D_neo_ark_power_plant_1_80181BA8 = {
 /// instead spawns effect 0x600E0 there on one frame in eight at random.
 void func_neo_ark_power_plant_1_8017DA18(Task* unused)
 {
-    switch (Gp_GetViewIndex() & 0xFF) {
+    switch (viewGetMappedIndex() & 0xFF) {
         case 2:
             glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[30], 0x200, 0x344);
             glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[32], 0x200, 0x344);

@@ -1177,9 +1177,9 @@ void func_dryfield_main_street_8017E4B0(Task* task)
         gRoomEffectSparkBurstId = EFFECT_DRYFIELD_MAIN_STREET_SPARK_BURST;
         task->state             = 1;
     }
-    gRoomEffectState->roomEffectMode = D_dryfield_main_street_80181B94[(Gp_GetViewIndex() & 0xFF) - 1];
-    if ((Gp_GetViewIndex() & 0xFF) == 8) {
-        if (task->spawnArg1.value != (Gp_GetViewIndex() & 0xFF)) {
+    gRoomEffectState->roomEffectMode = D_dryfield_main_street_80181B94[(viewGetMappedIndex() & 0xFF) - 1];
+    if ((viewGetMappedIndex() & 0xFF) == 8) {
+        if (task->spawnArg1.value != (viewGetMappedIndex() & 0xFF)) {
             for (i = 0; i < 0x30; i++) {
                 D_dryfield_main_street_80181BA4.vx = DRYFIELD_MAIN_STREET_RAND() % 300 - 0x4A1;
                 D_dryfield_main_street_80181BA4.vy = DRYFIELD_MAIN_STREET_RAND() % 600 - 0x4E7;
@@ -1195,7 +1195,7 @@ void func_dryfield_main_street_8017E4B0(Task* task)
                         &D_dryfield_main_street_80181BA4);
         }
     }
-    task->spawnArg1.value = Gp_GetViewIndex() & 0xFF;
+    task->spawnArg1.value = viewGetMappedIndex() & 0xFF;
 }
 
 #include "../../shared/main_street_puff_task.inc.c"

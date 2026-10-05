@@ -69,7 +69,7 @@ void Gp_ViewLoadImage(Task* task)
     q = &gCdCmdQueue;
     if (CdCmd_IsIdle() & 0xFFFF) {
         memFillBytes(&q->activeRequest, 0, sizeof(q->activeRequest));
-        view = Gp_GetViewIndex();
+        view = viewGetMappedIndex();
         for (i = 0; i < ARRAY_SIZE(D_8006C338); i++) {
             if (D_8006C338[i].kind == FILE_SYSTEM_RESOURCE_IMAGE) {
                 if (view - 1 == i) {

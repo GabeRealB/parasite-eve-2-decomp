@@ -94,7 +94,7 @@ void func_shelter_b2_breeding_room_8017D898(Task* arg0)
         arg0->state               = 1;
     }
 
-    switch (Gp_GetViewIndex() & 0xFF) {
+    switch (viewGetMappedIndex() & 0xFF) {
         case 2:
             glowDrawCapsule(&D_shelter_b2_breeding_room_80180470[0], 0x100, 0x142);
             glowDrawDisc(&D_shelter_b2_breeding_room_80180470[24], 0x200, 0x444);

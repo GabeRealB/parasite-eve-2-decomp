@@ -109,7 +109,7 @@ void func_shelter_b1_sleeping_quarters_8017D8E0(Task* arg0)
         arg0->state               = 1;
     }
 
-    switch (Gp_GetViewIndex() & 0xFF) {
+    switch (viewGetMappedIndex() & 0xFF) {
         case 3:
             glowDrawBeam(D_shelter_b1_sleeping_quarters_8018058C, 0x200, 0, 0x111);
         case 2:

@@ -1044,7 +1044,7 @@ void func_shelter_b2_operating_room_8017DDB8(Task* arg0)
         arg0->state               = 1;
     }
 
-    switch (Gp_GetViewIndex() & 0xFF) {
+    switch (viewGetMappedIndex() & 0xFF) {
         case 2:
             glowDrawCapsule(&D_shelter_b2_operating_room_80180B6C[0], 0x100, 0x444);
             glowDrawCapsule(&D_shelter_b2_operating_room_80180B6C[4], 0x100, 0x444);

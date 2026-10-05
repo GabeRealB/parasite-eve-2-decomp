@@ -392,7 +392,7 @@ WorldCollisionTrigger D_neo_ark_garden_801828D4[7] = {
 
 /// Garden ambience task tick. On its first tick it installs three effect ids
 /// and moves `state` to 1. `spawnArg1` holds the view seen on the previous
-/// tick; whenever `Gp_GetViewIndex()` differs from it, the sound delay held in
+/// tick; whenever `viewGetMappedIndex()` differs from it, the sound delay held in
 /// `EffectWork::scale` restarts at 4, and once it has run down the current
 /// view's pair of 0x550F0003 / 0x550F0004 loops is enqueued every tick. In
 /// views 2, 4 and 5 the first such tick with `state` still 1 also plays them
@@ -416,10 +416,10 @@ void func_neo_ark_garden_8017EA9C(Task* task)
         gRoomEffectFlyingSparkId  = EFFECT_NEO_ARK_GARDEN_FLYING_SPARK;
         gRoomEffectOrangeBurst2Id = EFFECT_NEO_ARK_GARDEN_ORANGE_BURST_2;
     }
-    if (task->spawnArg1.value != (Gp_GetViewIndex() & 0xFF)) {
+    if (task->spawnArg1.value != (viewGetMappedIndex() & 0xFF)) {
         work->scale = 4;
     }
-    switch (Gp_GetViewIndex() & 0xFF) {
+    switch (viewGetMappedIndex() & 0xFF) {
         case 2:
             if (work->scale == 0) {
                 if (task->state == 1) {
@@ -519,7 +519,7 @@ void func_neo_ark_garden_8017EA9C(Task* task)
             }
             break;
     }
-    task->spawnArg1.value = Gp_GetViewIndex() & 0xFF;
+    task->spawnArg1.value = viewGetMappedIndex() & 0xFF;
 }
 
 #include "../../shared/glow_draw_pulsing_star.inc.c"

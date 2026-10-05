@@ -1944,7 +1944,7 @@ void func_shelter_b2_main_corridor_8017EC34(Task* arg0)
             gRoomEffectWaterSprayId  = EFFECT_SHELTER_B2_MAIN_CORRIDOR_WATER_SPRAY;
             arg0->state              = 1;
         case 1:
-            switch (Gp_GetViewIndex() & 0xFF) {
+            switch (viewGetMappedIndex() & 0xFF) {
                 case 2: {
                     SVECTOR* p = D_shelter_b2_main_corridor_80182F7C;
                     glowDrawBeam(&p[0], 0x200, 0, 0x111);

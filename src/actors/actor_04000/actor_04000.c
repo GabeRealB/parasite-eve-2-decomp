@@ -2612,7 +2612,7 @@ static void Actor04000_Fn0522C(Enemy* arg0, Task* arg1)
     gfxRotMatrixX(&arg1->extra.tmd->coords->coord, 0x190, GRAPHICS_ROTATION_COMPOSE);
     arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     animDriverTick(arg1);
-    if ((u8)Gp_GetViewIndex() == 5) {
+    if ((u8)viewGetMappedIndex() == 5) {
         arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
         Gp_ClearNodeSlots(&(arg0)->node);
         return;

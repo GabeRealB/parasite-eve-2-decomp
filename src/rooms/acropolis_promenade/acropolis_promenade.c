@@ -1988,7 +1988,7 @@ static void func_acropolis_promenade_8017DB48(Task* task)
 
     obj   = task->extra.tmd;
     coord = obj->coords;
-    if (Gp_GetViewIndex() == 5) {
+    if (viewGetMappedIndex() == 5) {
         obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     } else {
         obj->flags = 0;
@@ -2133,7 +2133,7 @@ void func_acropolis_promenade_8017DFD4(Task* arg0)
 /// Per-frame effect spawner for the promenade. `D_acropolis_promenade_80181B74`
 /// / `_80181B76` and the twelve-entry mask table `_80181B78` are per-view bit
 /// masks: bit `view - 1` of an entry says whether that emitter is visible from
-/// the camera `Gp_GetViewIndex` reports, and the parallel twelve-entry
+/// the camera `viewGetMappedIndex` reports, and the parallel twelve-entry
 /// `_80181B14` array holds each emitter's offset from the room's coordinate
 /// frame. View 7 spawns nothing.
 void func_acropolis_promenade_8017E03C(Task* task)
@@ -2147,7 +2147,7 @@ void func_acropolis_promenade_8017E03C(Task* task)
 
     coord = task->extra.coordBody->coord;
     work  = task->spawnArg2.pointer;
-    view  = Gp_GetViewIndex();
+    view  = viewGetMappedIndex();
     if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
         return;
     }
@@ -2221,7 +2221,7 @@ void func_acropolis_promenade_8017E394(Task* task)
 
     work    = task->spawnArg2.pointer;
     bufferY = gDisplayState.drawBuffer * 0x110;
-    if ((u8)Gp_GetViewIndex() == task->spawnArg1.value) {
+    if ((u8)viewGetMappedIndex() == task->spawnArg1.value) {
         if (work->age == 0) {
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             work->move.vx   = (gRandomLcgState >> 16) % 240;

@@ -484,7 +484,7 @@ static void func_actor_312200_80163370(Enemy* enemy, Task* task)
         }
         if (gGameSession->viewReady != 0) {
             task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-            if ((Gp_GetViewIndex() == 0x10) && (work->command == 1)) {
+            if ((viewGetMappedIndex() == 0x10) && (work->command == 1)) {
                 pan = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
                 sndEvtRequestScriptStart(SOUND_ACROPOLIS_PATIO_STRANGER_DORMANT, pan,
                                          (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));

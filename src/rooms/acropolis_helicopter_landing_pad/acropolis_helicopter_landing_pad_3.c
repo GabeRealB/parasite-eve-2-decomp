@@ -796,7 +796,7 @@ static void func_acropolis_helicopter_landing_pad_8017F010(SVECTOR* pos, s16 ind
             lightSlot->framesLeft = WORLD_COORDINATE_TRANSIENT_LIGHT_INACTIVE;
         }
     } else {
-        mask = D_acropolis_helicopter_landing_pad_80184EE0[index] & (1 << ((Gp_GetViewIndex() & 0xFF) - 1));
+        mask = D_acropolis_helicopter_landing_pad_80184EE0[index] & (1 << ((viewGetMappedIndex() & 0xFF) - 1));
         if (mask == 0) {
             return;
         }
@@ -1513,7 +1513,7 @@ void func_acropolis_helicopter_landing_pad_801818F0(Task* arg0)
     s32         v;
     s32         level;
 
-    if ((Gp_GetViewIndex() & 0xFF) == 0x12) {
+    if ((viewGetMappedIndex() & 0xFF) == 0x12) {
         gRoomEffectState->groundShadowShade = ROOM_EFFECT_GROUND_SHADOW_DISABLED;
     } else {
         gRoomEffectState->groundShadowShade = ROOM_EFFECT_GROUND_SHADOW_UNMODULATED;
@@ -1552,7 +1552,7 @@ void func_acropolis_helicopter_landing_pad_801822B0(Task* task)
     enemy = task->spawnArg2.pointer;
     tmd   = task->extra.tmd;
     flag  = Gp_GetCurBit2Flag((u8)enemy->placeKey);
-    Gp_GetViewIndex();
+    viewGetMappedIndex();
     if (flag == 2) {
         tmd->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
     } else {

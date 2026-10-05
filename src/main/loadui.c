@@ -102,7 +102,7 @@ void CdCmd_EnqueueLoadFile(s32 arg0, s32 arg1, s32 arg2)
             if (D_800626E8 != 0) {
                 param1[3] = gGameSession->location.loc.stage;
                 param1[2] = gGameSession->location.loc.area;
-                param1[0] = Gp_GetViewIndex();
+                param1[0] = viewGetMappedIndex();
                 param2[0] = gGameSession->spriteVariant;
                 param2[1] = 1;
                 param2[3] = 0;

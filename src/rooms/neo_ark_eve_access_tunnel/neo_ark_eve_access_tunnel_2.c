@@ -200,7 +200,7 @@ void func_neo_ark_eve_access_tunnel_8017E15C(Task* unused)
 {
     u8 view;
 
-    view = Gp_GetViewIndex();
+    view = viewGetMappedIndex();
     switch (view) {
         case 2:
             glowDrawCapsule(&D_neo_ark_eve_access_tunnel_8017EB48[0], 0x180, 0x444);

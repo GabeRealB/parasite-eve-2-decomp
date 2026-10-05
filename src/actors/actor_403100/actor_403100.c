@@ -7412,7 +7412,7 @@ static void func_actor_403100_8013BA64(Task* arg0)
 
     D_actor_403100_80155808->previousStridePhase = (u16)D_actor_403100_80155808->stridePhase;
     handlers.funcs[D_actor_403100_80155808->walkStage](arg0);
-    if (((Gp_GetViewIndex() & 0xFF) == 7) || ((Gp_GetViewIndex() & 0xFF) == 8)) {
+    if (((viewGetMappedIndex() & 0xFF) == 7) || ((viewGetMappedIndex() & 0xFF) == 8)) {
         if ((s16)D_actor_403100_80155808->state == 6) {
             if (D_actor_403100_80155808->playerRegion == 2) {
                 coords->coord.t[0] += (-4000 - coords->coord.t[0]) >> 4;

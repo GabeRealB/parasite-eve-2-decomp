@@ -490,7 +490,7 @@ void func_shelter_b6_growth_room_8017D9D8(Task* task)
         Gp_SpawnEff(EFFECT_SHELTER_B6_GROWTH_ROOM_DRIFT_PUFF, NULL, 0x183280, &pos);
     }
     func_shelter_b6_growth_room_8017E448(task->spawnArg1.value, (task->spawnArg1.value >> 1) + 0x50);
-    switch (Gp_GetViewIndex() & 0xFF) {
+    switch (viewGetMappedIndex() & 0xFF) {
         case 2:
             glowDrawDisc(&D_shelter_b6_growth_room_8017F298[0], 0x180, 0x44);
             glowDrawDisc(&D_shelter_b6_growth_room_8017F298[1], 0x200, 0x400);

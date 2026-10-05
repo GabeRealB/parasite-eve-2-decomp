@@ -4104,7 +4104,7 @@ void func_shelter_b3_dumping_hole_80183F84(Task* task)
         task->state                        = 1;
     }
 
-    view = Gp_GetViewIndex();
+    view = viewGetMappedIndex();
     switch (view) {
         case 2:
             glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 32)[0], 0x300, 0x100);

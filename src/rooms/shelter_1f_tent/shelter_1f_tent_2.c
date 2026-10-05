@@ -624,7 +624,7 @@ void func_shelter_1f_tent_8017FE10(Task* unused)
 {
     u8 view;
 
-    view = Gp_GetViewIndex();
+    view = viewGetMappedIndex();
     switch (view) {
         case 2: {
             SVECTOR* p = D_shelter_1f_tent_80181D2C;

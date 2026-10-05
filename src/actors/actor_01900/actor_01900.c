@@ -2646,7 +2646,7 @@ static void Actor01900_Fn06B4C(Task* arg0)
         if ((u16)((gRandomLcgState >> 16) % 3) == 0) {
             sound = 0x51090008;
         }
-        switch ((u8)Gp_GetViewIndex()) {
+        switch ((u8)viewGetMappedIndex()) {
             case 2:
                 sndEvtRequestScriptStart(sound, 0x64, 0);
                 break;
@@ -2663,7 +2663,7 @@ static void Actor01900_Fn06B4C(Task* arg0)
         work->effectArg.coord      = arg0->extra.tmd->coords + 1;
         work->effectArg.spawnArgLo = 0x200;
         work->effectArg.spawnArgHi = 2;
-        if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(1, 3, 0, 0) || (u8)Gp_GetViewIndex() != 0x10) {
+        if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(1, 3, 0, 0) || (u8)viewGetMappedIndex() != 0x10) {
             func_800FDB18((u16)Gp_GetIdParam1(0x1001), arg0->extra.tmd->coords + 5, NULL, &work->effectArg);
         }
     }

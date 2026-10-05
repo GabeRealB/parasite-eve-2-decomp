@@ -832,12 +832,12 @@ MistParkingShopTalkState D_mist_parking_80195334 = { 0, 0, 0, 0 };
 
 RoomCutsceneRec D_mist_parking_8019533C = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 
-/// Draws the glow markers visible from the current view (`Gp_GetViewIndex`).
+/// Draws the glow markers visible from the current view (`viewGetMappedIndex`).
 void func_mist_parking_80184728(Task* unused)
 {
     u8 view;
 
-    view = Gp_GetViewIndex();
+    view = viewGetMappedIndex();
     switch (view) {
         case 2:
             glowDrawCapsule(&D_mist_parking_80191484[0], 0x200, 0x444);

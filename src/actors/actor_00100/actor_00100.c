@@ -1305,7 +1305,7 @@ s32 Actor00100_Fn00E58(Task* arg0, s32 arg1, ActorCommand* request, s32 arg3)
                     work->state = 0;
                     break;
                 case 1:
-                    view = Gp_GetViewIndex() & 0xFF;
+                    view = viewGetMappedIndex() & 0xFF;
                     switch (view) {
                         case 2:
                             value2          = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
@@ -3128,7 +3128,7 @@ static void Actor00100_Fn09CCC(Task* arg0)
             actorMoveForwardNonzero(arg0->extra.tmd->coords, ((s16)work->baseRate * 1300) / 192);
             timer = work->stateTimer;
             if (timer == 0xF) {
-                if ((Gp_GetViewIndex() & 0xFF) == 8) {
+                if ((viewGetMappedIndex() & 0xFF) == 8) {
                     sound = ((ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x54010005;
                     pan   = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
                     depth = worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords);
@@ -3326,7 +3326,7 @@ static void Actor00100_Fn0A288(Enemy* enemy, Task* actor)
                 if (work->playerMove.collisionRequests == (GAME_ACTOR_COLLISION_REQUEST_MASK << GAME_ACTOR_COLLISION_DISABLE_REQUEST_SHIFT)) {
                     TASK_MESSAGE_DISPATCH_POINTER(player, GAME_ACTOR_MESSAGE_MOVE_BY, &work->playerMove, 0);
                     if (work->playerAnimFrames == 0xF) {
-                        if ((Gp_GetViewIndex() & 0xFF) == 8) {
+                        if ((viewGetMappedIndex() & 0xFF) == 8) {
                             sound = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x54010004;
                             pan   = (s8)worldCoordGetOriginAudioPan(actor->extra.tmd->coords);
                             depth = worldCoordGetOriginAudioDepth(actor->extra.tmd->coords);

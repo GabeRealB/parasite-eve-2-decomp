@@ -1556,7 +1556,7 @@ void func_acropolis_fountain_8017E014(Task* task)
     // and a camera cut replaces that task.
     coord = task->extra.coordBody->coord;
     work  = task->spawnArg2.pointer;
-    view  = Gp_GetViewIndex();
+    view  = viewGetMappedIndex();
     switch (task->state) {
         case 0:
             Gp_SpawnEff(EFFECT_ACROPOLIS_FOUNTAIN_SPRAY, coord, 0, &D_acropolis_fountain_8017E7F0);

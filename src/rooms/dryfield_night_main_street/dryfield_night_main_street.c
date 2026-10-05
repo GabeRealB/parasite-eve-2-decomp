@@ -1682,7 +1682,7 @@ void func_dryfield_night_main_street_8017E484(Task* task)
     s32 mask;
     s32 i;
 
-    mask = 1 << (Gp_GetViewIndex() & 0xFF);
+    mask = 1 << (viewGetMappedIndex() & 0xFF);
     if (task->state == 0) {
         gRoomEffectMoteId         = EFFECT_DRYFIELD_NIGHT_MAIN_STREET_MOTE;
         gRoomEffectHaloId         = EFFECT_DRYFIELD_NIGHT_MAIN_STREET_HALO;
@@ -1714,9 +1714,9 @@ void func_dryfield_night_main_street_8017E484(Task* task)
             glowDrawFlare(&D_dryfield_night_main_street_801821A8[i], 1, 0x380);
         }
     }
-    gRoomEffectState->roomEffectMode = D_dryfield_night_main_street_80182178[(Gp_GetViewIndex() & 0xFF) - 1];
-    if ((Gp_GetViewIndex() & 0xFF) == 8 || (Gp_GetViewIndex() & 0xFF) == 0x13) {
-        if (task->spawnArg1.value != (Gp_GetViewIndex() & 0xFF)) {
+    gRoomEffectState->roomEffectMode = D_dryfield_night_main_street_80182178[(viewGetMappedIndex() & 0xFF) - 1];
+    if ((viewGetMappedIndex() & 0xFF) == 8 || (viewGetMappedIndex() & 0xFF) == 0x13) {
+        if (task->spawnArg1.value != (viewGetMappedIndex() & 0xFF)) {
             for (i = 0; i < 0x30; i++) {
                 D_dryfield_night_main_street_801821A8[16].vx = DRYFIELD_NIGHT_MAIN_STREET_RAND() % 300 - 0x4A1;
                 D_dryfield_night_main_street_801821A8[16].vy = DRYFIELD_NIGHT_MAIN_STREET_RAND() % 600 - 0x4E7;
@@ -1732,7 +1732,7 @@ void func_dryfield_night_main_street_8017E484(Task* task)
                         &D_dryfield_night_main_street_801821A8[16]);
         }
     }
-    task->spawnArg1.value = Gp_GetViewIndex() & 0xFF;
+    task->spawnArg1.value = viewGetMappedIndex() & 0xFF;
 }
 
 #include "../../shared/glow_draw_shaft.inc.c"

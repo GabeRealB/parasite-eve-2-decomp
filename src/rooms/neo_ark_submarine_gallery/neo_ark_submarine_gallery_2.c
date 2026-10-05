@@ -942,7 +942,7 @@ void func_neo_ark_submarine_gallery_8017EFEC(Task* arg0)
         gRoomEffectWaterSprayId  = EFFECT_NEO_ARK_SUBMARINE_GALLERY_WATER_SPRAY;
         arg0->state              = 1;
     }
-    view = Gp_GetViewIndex() & 0xFF;
+    view = viewGetMappedIndex() & 0xFF;
     switch (view) {
         case 2:
             glowDrawCapsule(&D_neo_ark_submarine_gallery_801818C8[0], 0x200, 0x444);

@@ -1108,7 +1108,7 @@ void func_shelter_b1_sterilization_room_8018188C(Task* task)
     coord = task->extra.coordBody->coord;
 
     if (task->state == 0) {
-        switch (Gp_GetViewIndex() & 0xFF) {
+        switch (viewGetMappedIndex() & 0xFF) {
             case 2:
                 glowDrawCapsule(&D_shelter_b1_sterilization_room_8018909C[0x44], 0x200, 0x222);
                 break;
@@ -1281,7 +1281,7 @@ void func_shelter_b1_sterilization_room_8018188C(Task* task)
                 } while (0);
         }
     } else {
-        switch (Gp_GetViewIndex() & 0xFF) {
+        switch (viewGetMappedIndex() & 0xFF) {
             case 14:
                 if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                     for (i = 8; i < 0x10; i += 4) {

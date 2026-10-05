@@ -540,7 +540,7 @@ void func_shelter_b1_armory_801807E4(Task* unused)
 {
     u8 view;
 
-    view = Gp_GetViewIndex();
+    view = viewGetMappedIndex();
     switch (view) {
         case 2:
             glowDrawBeam(&D_shelter_b1_armory_80182528[0], 0x200, 0, 0x10);

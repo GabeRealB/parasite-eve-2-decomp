@@ -3507,7 +3507,7 @@ ge2:
     }
     goto body;
 case0:
-    if ((Gp_GetViewIndex() & 0xFF) != D_actor_510900_80167CE4[0]) {
+    if ((viewGetMappedIndex() & 0xFF) != D_actor_510900_80167CE4[0]) {
         arg0->node.state.parts.flags = one;
         work->body.flags            &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->blast.flags           &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
@@ -4167,7 +4167,7 @@ static s32 func_actor_510900_8013C240(Task* task)
     work   = task->work;
     ctx    = task->spawnArg2.pointer;
     misses = 0;
-    view   = Gp_GetViewIndex();
+    view   = viewGetMappedIndex();
     for (i = 0; i < 3; i++) {
         if (view != D_actor_510900_80167CD8[work->lightIndex][i]) {
             misses++;

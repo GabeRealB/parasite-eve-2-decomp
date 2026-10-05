@@ -2132,7 +2132,7 @@ void func_shelter_r47_801858BC(Task* unused)
 {
     u8 view;
 
-    view = Gp_GetViewIndex();
+    view = viewGetMappedIndex();
     switch (view) {
         case 5:
             glowDrawDiamond(&D_shelter_r47_80187624[0], 0x60, 0xA0);

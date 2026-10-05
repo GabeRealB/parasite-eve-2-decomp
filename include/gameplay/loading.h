@@ -6,6 +6,7 @@
 #include "gameplay/area.h"
 #include "gameplay/room.h"
 #include "gameplay/sprites.h"
+#include "gameplay/view.h"
 
 #include "main/task_types.h"
 
@@ -46,8 +47,6 @@ void Gp_AllocSprtLists(void);
 /// 1-based index of `(u8)arg0` in the current room's `Gp_ViewIndexTables` byte
 /// list. Length is the `Gp_ViewCountTables` cell as an s16. Returns 0 if absent.
 s8 Gp_FindViewIndex(s32 arg0);
-
-s32 Gp_GetViewIndex(void);
 
 void* Gp_GetViewSprtExtra(void);
 

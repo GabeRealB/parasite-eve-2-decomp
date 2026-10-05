@@ -2220,7 +2220,7 @@ void func_mine_cavern_8017E474(Task* arg0)
         }
     }
 
-    switch (Gp_GetViewIndex() & 0xFF) {
+    switch (viewGetMappedIndex() & 0xFF) {
         case 2:
         case 3:
         case 9: {
@@ -2354,7 +2354,7 @@ static void func_mine_cavern_80181864(void)
     u16       y;
 
     flags = gameFlagGetNibble(GAME_FLAG_MINE_CAVERN_TARGETS_DESTROYED);
-    view  = Gp_GetViewIndex() & 0xFF;
+    view  = viewGetMappedIndex() & 0xFF;
     count = 0;
     for (j = 0; j < 4; j++) {
         if ((flags >> j) & 1) {
@@ -2567,7 +2567,7 @@ static void func_mine_cavern_80182184(void)
     s16      j;
     s16      k;
 
-    view  = Gp_GetViewIndex() & 0xFF;
+    view  = viewGetMappedIndex() & 0xFF;
     flags = gameFlagGetNibble(GAME_FLAG_MINE_CAVERN_TARGETS_DESTROYED);
     for (i = 0; i < 4 && gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) < 5; i++) {
         if (!((flags >> i) & 1)) {
@@ -2672,7 +2672,7 @@ static void func_mine_cavern_801825C8(s16 arg0)
     GfxCoord coord;
     s32      view;
 
-    view               = Gp_GetViewIndex() & 0xFF;
+    view               = viewGetMappedIndex() & 0xFF;
     coord.parent       = &gGfxViewCoord;
     coord.coord.t[0]   = D_mine_cavern_8018E39C[arg0].vx;
     coord.coord.t[1]   = D_mine_cavern_8018E39C[arg0].vy;

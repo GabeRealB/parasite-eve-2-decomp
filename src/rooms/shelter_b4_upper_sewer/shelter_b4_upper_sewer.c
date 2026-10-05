@@ -1211,7 +1211,7 @@ void func_shelter_b4_upper_sewer_8017E5F8(Task* arg0)
         arg0->state               = 1;
     }
 
-    switch (Gp_GetViewIndex() & 0xFF) {
+    switch (viewGetMappedIndex() & 0xFF) {
         case 3:
             glowDrawCapsule(D_shelter_b4_upper_sewer_801864F0, 0x200, 0x444);
             break;

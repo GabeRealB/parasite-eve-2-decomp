@@ -623,7 +623,7 @@ void func_dryfield_night_parking_lot_8017DC88(Task* unused)
 {
     u8 view;
 
-    view                             = Gp_GetViewIndex();
+    view                             = viewGetMappedIndex();
     gRoomEffectState->roomEffectMode = D_dryfield_night_parking_lot_8017EDBC[view - 1];
     switch (gGameSession->location.loc.view) {
         case 2: {

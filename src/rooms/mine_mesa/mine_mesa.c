@@ -3244,7 +3244,7 @@ void func_mine_mesa_8017ED08(Task* arg0)
         arg0->state                      = 1;
     }
 
-    switch (Gp_GetViewIndex() & 0xFF) {
+    switch (viewGetMappedIndex() & 0xFF) {
         case 2: {
             SVECTOR* p = D_mine_mesa_801864D0;
             glowDrawFlare(&p[0], 0, 0x300);
@@ -3423,7 +3423,7 @@ static void func_mine_mesa_80181358(Task* arg0)
         }
         enemy->workType                    = ENEMY_WORK_PLAIN;
         D_mine_mesa_80189B74[i]->placeKey |= i << ENEMY_PLACE_INDEX_SHIFT;
-        switch (Gp_GetViewIndex() & 0xFF) {
+        switch (viewGetMappedIndex() & 0xFF) {
             case 2:
                 pick = MINE_MESA_RAND() % 3 + 1;
                 break;

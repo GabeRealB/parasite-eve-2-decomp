@@ -88,7 +88,7 @@ void Gp_ViewBeginLoad(Task* task)
             } else {
                 param1[3] = sess->stage;
                 param1[2] = sess->area;
-                param1[0] = Gp_GetViewIndex();
+                param1[0] = viewGetMappedIndex();
                 param2[0] = 1;
                 param2[1] = 0;
                 param2[2] = 0;

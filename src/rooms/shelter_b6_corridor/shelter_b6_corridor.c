@@ -674,7 +674,7 @@ void func_shelter_b6_corridor_8017E238(Task* task)
         task->state                    = 1;
     }
 
-    view = Gp_GetViewIndex();
+    view = viewGetMappedIndex();
     switch (view) {
         case 2:
             glowDrawCapsule(&D_shelter_b6_corridor_8017F834[0], 0x140, 0x442);

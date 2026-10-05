@@ -1814,7 +1814,7 @@ void func_neo_ark_observatory_80180124(Task* task)
         task->state                    = 1;
     }
 
-    view = Gp_GetViewIndex();
+    view = viewGetMappedIndex();
     switch (view) {
         case 2:
             glowDrawDisc(&D_neo_ark_observatory_801814E4[0], 0x280, 0x444);

@@ -587,7 +587,7 @@ void func_shelter_b2_south_maintenance_walkway_8017DCC4(Task* task)
         task->state               = 1;
     }
 
-    view = Gp_GetViewIndex();
+    view = viewGetMappedIndex();
     switch (view) {
         case 2:
             glowDrawCone(&D_shelter_b2_south_maintenance_walkway_80182578[12], 0x200, 0);

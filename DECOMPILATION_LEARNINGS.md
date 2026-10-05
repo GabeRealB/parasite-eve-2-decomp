@@ -4954,7 +4954,7 @@ dump is the first one that shows a merge; a shared label present in `.jump2` and
 
 ## A view dispatcher's cases share their call tails; the shared label lands *inside* the case's block
 
-`func_neo_ark_eve_access_tunnel_8017E15C` is a `switch (Gp_GetViewIndex())` with
+`func_neo_ark_eve_access_tunnel_8017E15C` is a `switch (viewGetMappedIndex())` with
 cases 2..6, each drawing two adjacent emitters per call out of one of four
 `SVECTOR` runs. The target reads like a hand-written goto graph — one shared
 `Room_Draw01(p); Room_Draw01(p + 0x10)` pair that cases 3, 4, 5 and 6 all jump
@@ -26416,21 +26416,20 @@ one expression (or with only `viewIndexTable`) inverts `$v0`/`$v1` versus the 2-
 sibling (`Gp_GetViewCountLo`): each `lw` lands in the other register and the
 last `lw` schedules after the final `lbu`.
 
-Assign each pointer level to its own temp. If the last index lives on a
-`byte` (`signed char`) field whose address is also overlaid as `u8`, read
-it through the overlay so the load stays `lbu` (`GameSession.location.loc.view` is
-`byte`; `sess->field_0` is the same byte as `u8`):
+Assign each pointer level to its own temp. The last index must retain its
+unsigned byte load. Read the current session's logical view through
+`GameLocationKey::view`, whose declaration is now `u8`:
 
 ```c
-areaViewMaps = Gp_ViewIndexTables[sess->field_3 - 1]->viewMaps;
-roomViewMaps = areaViewMaps[sess->field_2 - 1];
-viewMap      = roomViewMaps[sess->field_1 - 1];
-return viewMap[sess->field_0 - 1]; /* not session->field_4 — that is `lb` */
+areaViewMaps = Gp_ViewIndexTables[location->stage - 1]->viewMaps;
+roomViewMaps = areaViewMaps[location->area - 1];
+viewMap      = roomViewMaps[location->room - 1];
+return viewMap[location->view - 1];
 ```
 
-`Gp_GetViewIndex` is the example. The one-liner stuck at 88% with only the
-register pair flipped. `session->field_4` matched in a scratch `u8` mock
-and became `lb` against the real `GameSession`.
+`viewGetMappedIndex` is the example. The one-liner stuck at 88% with only the
+register pair flipped. The session view byte matched in a scratch `u8` mock
+and became `lb` against the then-declared signed field in the real `GameSession`.
 
 ## Copy the table pointer so the NULL test uses `$v0` and the cursor stays in `$v1`
 
@@ -42341,7 +42340,7 @@ the `units` cut that moves the function to the start of its own `.rodata`.
 
 ## Several splat `dlabel`s in one data run are usually one C array
 
-`func_neo_ark_power_plant_1_8017DA18` is a `switch` on `Gp_GetViewIndex()` where
+`func_neo_ark_power_plant_1_8017DA18` is a `switch` on `viewGetMappedIndex()` where
 each arm calls the same helper with a list of `SVECTOR*`. m2c reported five
 different bases — `D_..._8017F110`, `D_..._8017F170`, `D_..._8017F1A0`,
 `D_..._8017F1B8`, `D_..._8017F020` — each with positive *and* negative byte
@@ -42488,7 +42487,7 @@ per state) and goes 79.6% -> 100% with nothing else changed.
 ## Room view dispatchers: index the global array, do not cache the base in a local
 
 `func_shelter_b2_laboratory_80180548` is the room family's per-view line-overlay
-dispatcher: `switch (Gp_GetViewIndex() & 0xFF)` with one case per camera view,
+dispatcher: `switch (viewGetMappedIndex() & 0xFF)` with one case per camera view,
 each case a run of `func_..._80180AB4(&points[n], size, color)` calls. Writing
 the obvious `seg = D_..._80182AA0;` at the head of each case and then `&seg[n]`
 costs 14 `regs` penalties and stalls at 99.798%: the cached local turns the
@@ -42903,7 +42902,7 @@ beqz  v0, join
 L304C: j join
  li   v0, 0x304c
 L3C40: li v0, 0x3c40
-join:  jal Gp_GetViewIndex
+join:  jal viewGetMappedIndex
  sh   v0, 0x24(s1)
 ```
 
@@ -43192,7 +43191,7 @@ temporary that carries the value between them defeats both CSE and cross-jumping
 
 ## View dispatcher: shared `Draw01` tail is a goto, not a cached base
 
-A `switch (Gp_GetViewIndex())` whose later case is `p = B; Draw01(B); Draw01(C)`
+A `switch (viewGetMappedIndex())` whose later case is `p = B; Draw01(B); Draw01(C)`
 and an earlier case does `p = A; Draw01(p)` then the same two draws will
 cross-jump the last two calls. The target keeps the later case's `lui s0, B`
 even though the merged tail rematerialises `B`/`C` with `lui a0`, and the
@@ -53123,7 +53122,7 @@ A state dispatcher that reads `task->state` into a *caller*-saved register
 
 ```c
 work = task->spawnArg2;
-view = Gp_GetViewIndex();
+view = viewGetMappedIndex();
 switch (task->state) { … }
 ```
 
@@ -57615,19 +57614,19 @@ the live ranges do not overlap.
 
 Where the byte mask on a function's return value is written decides where GCC
 2.8.1 schedules the `andi`. `func_acropolis_bridge_8017E04C` calls
-`Gp_GetViewIndex()` and then indexes a three-level sprite table with the low
+`viewGetMappedIndex()` and then indexes a three-level sprite table with the low
 byte; masking at the assignment leaves exactly one instruction misplaced
 (99.4%, `reorder=1`), because the `andi` becomes part of the call's own value
 computation and the scheduler emits it in the first slot after the `jal`:
 
 ```c
 /* andi lands immediately after the jal's delay slot */
-view = Gp_GetViewIndex() & 0xFF;
+view = viewGetMappedIndex() & 0xFF;
 rec  = Gp_SprtTables[...][...].areaViews[...];
 rec[view - 1].batches[35].hidden = 1;
 
 /* andi sinks into the table walk, as the target has */
-view = Gp_GetViewIndex();
+view = viewGetMappedIndex();
 rec  = Gp_SprtTables[...][...].areaViews[...];
 rec[(u8)view - 1].batches[35].hidden = 1;
 ```
@@ -57635,7 +57634,7 @@ rec[(u8)view - 1].batches[35].hidden = 1;
 With the cast at the use, the `andi` is an ordinary insn of the indexing
 expression and the scheduler is free to slide it in among the `lui`/`addiu` of
 the table base. This is the same shape `Gp_LinkViewSprts` in `gameplay/D4.c`
-already uses (`view = Gp_GetViewIndex();` … `recs[(u8)view - 1]`), so prefer
+already uses (`view = viewGetMappedIndex();` … `recs[(u8)view - 1]`), so prefer
 that idiom for every view-index lookup. The reverse also holds: if the target
 masks right after the `jal`, fold the `& 0xFF` into the assignment.
 
@@ -74880,7 +74879,7 @@ lw    s1, 0x1c(s3)              /* work = task->field_1C */
 
 Writing `cfg` and `work` as assignments after the declarations put both *after*
 the copy loop (98.9%, one extra insn because `&gPlayerStatus` then had to be
-re-materialised in `Gp_GetViewIndex`'s delay slot). Declaring them as C89
+re-materialised in `viewGetMappedIndex`'s delay slot). Declaring them as C89
 initialisers ahead of the array is what produces the target block (99.8%):
 
 ```c
@@ -89290,7 +89289,7 @@ two variables, inline load).
 
 ## A tail call after the `switch` makes the address's `%hi` temp `$v0`; the call written in each case puts it in the argument register
 
-`func_mine_forked_tunnel_8017E78C` switches `Gp_GetViewIndex() & 0xFF` and
+`func_mine_forked_tunnel_8017E78C` switches `viewGetMappedIndex() & 0xFF` and
 projects one of four anchors through `Room_Draw17(p, 1, 0x300)`, three of the
 arms ending in the same call. The obvious source shape - assign `p` per case,
 one call after the switch - reaches 99.49% with `regs=4` and nothing else: the
@@ -89421,7 +89420,7 @@ throughout — the flag is per-access, and the diagnostic names which access.
 ## m2c's `M2C_UNK` base pointer scales the index a second time - retype the table to the access width (func_dryfield_water_tank_8017F084, 2026-09-15)
 
 `M2C_UNK` is `s32` (`tools/m2c/m2c_macros.h`), so an m2c seed that scales an
-element index by hand — `((Gp_GetViewIndex() & 0xFF) - 1) * 2 + &D_x` — scales it
+element index by hand — `((viewGetMappedIndex() & 0xFF) - 1) * 2 + &D_x` — scales it
 again at the pointer addition: the `* 2` is multiplied by the base type's 4
 bytes, and the `- 1` is folded into the symbol's displacement.
 
@@ -89444,7 +89443,7 @@ once:
 
 ```c
 extern u16 D_dryfield_water_tank_801868CC[];
-    gRoomEffectState->roomEffectMode = D_dryfield_water_tank_801868CC[(Gp_GetViewIndex() & 0xFF) - 1];
+    gRoomEffectState->roomEffectMode = D_dryfield_water_tank_801868CC[(viewGetMappedIndex() & 0xFF) - 1];
 ```
 
 `lhu` at the read says 2 bytes, so `u16` — and 100.000% followed on the first
@@ -89917,7 +89916,7 @@ Inputs: `base.c` (listing order, 77.778%)
 
 ## An array subscript keeps its `- 1` on the index; pointer arithmetic folds it into the symbol (func_dryfield_water_tower_80180348, 2026-09-15)
 
-`gRoomEffectState->roomEffectMode = D_..._801827A0[(Gp_GetViewIndex() & 0xFF) - 1]` - one
+`gRoomEffectState->roomEffectMode = D_..._801827A0[(viewGetMappedIndex() & 0xFF) - 1]` - one
 call, one table read, one halfword store. The target keeps the subtraction on
 the *index*:
 
@@ -89936,7 +89935,7 @@ That shape is not reachable through pointer arithmetic. `D_[x - 1]` on an
 `TREE_CODE (TREE_TYPE (array)) == ARRAY_TYPE` branch (c-typeck.c:1406) and
 never calls `pointer_int_sum`, so the index tree reaches `expand_expr`
 untouched and the `* 2` is applied at expansion, on the far side of the
-subtract. `*(D_ + (Gp_GetViewIndex() & 0xFF) - 1)` instead parses as
+subtract. `*(D_ + (viewGetMappedIndex() & 0xFF) - 1)` instead parses as
 `pointer - 1`; `pointer_int_sum` scales that literal by the element size and
 buries it in the symbol - `addiu v1,v1,%lo(D_...-0x2)`, no `addiu v0,v0,-0x1`
 at all (90.789%). m2c's `M2C_FIELD`-style form, which writes the scale out by
@@ -89948,7 +89947,7 @@ ARRAY_REF's base expands before its index, so the address insns are born with
 *lower* RTL uids than the `andi`/`addiu` pair. Hoisting the index into a local -
 
 ```c
-view = (Gp_GetViewIndex() & 0xFF) - 1;
+view = (viewGetMappedIndex() & 0xFF) - 1;
 gRoomEffectState->roomEffectMode = D_...[view];
 ```
 
@@ -92455,7 +92454,7 @@ instead of 28, `branch=2 delete=3 insert=1 reorder=3`, 79.2%.
 Writing it as the switch it is
 
 ```c
-    view = Gp_GetViewIndex();
+    view = viewGetMappedIndex();
     switch (view) {
         case 3:
         case 4:  Room_Draw32(&D_x[0], 0x60, 0x60); break;
@@ -95695,14 +95694,14 @@ Input: `base_1.i`
 `c8221e0783cefa316b541c72c2e2da159d233b4618966f9a014c38fedc9e50cf`.
 ## m2c hoists a loop counter's init above the call, and that costs a callee-saved register
 
-`func_actor_510900_8013C240` loads three `Task` fields, calls `Gp_GetViewIndex`,
+`func_actor_510900_8013C240` loads three `Task` fields, calls `viewGetMappedIndex`,
 then runs a fixed three-iteration loop. m2c rendered the loop as a `do/while`
 with both inits above the call:
 
 ```c
 var_s1 = 0;              /* the accumulator */
 var_a0 = 0;              /* the loop counter  <- hoisted */
-temp_a1 = Gp_GetViewIndex() & 0xFF;
+temp_a1 = viewGetMappedIndex() & 0xFF;
 do { ... var_a0 += 1; } while (var_a0 < 3);
 ```
 
@@ -95718,7 +95717,7 @@ only `$s0`-`$s3`. The fix is purely where the initialization sits:
 
 ```c
 misses = 0;                       /* accumulated across the call: stays in $s1 */
-view   = Gp_GetViewIndex();
+view   = viewGetMappedIndex();
 for (i = 0; i < 3; i++) { ... }   /* i initialized after the call: gets $a0 */
 ```
 
@@ -111745,7 +111744,7 @@ the re-read.
 
 ## Per-view dispatchers: `flag = view;` then `(flag != V1) && (flag != V2)` is what makes jump threading collapse the pair (func_actor_403200_801344C4, 2026-09-16)
 
-**Symptom:** an actor's "which view do I go to" helper (`Gp_GetViewIndex() & 0xFF`, a distance
+**Symptom:** an actor's "which view do I go to" helper (`viewGetMappedIndex() & 0xFF`, a distance
 `SquareRoot0(dx*dx+dy*dy+dz*dz)`, then a per-view threshold ladder) matches everywhere except the
 case dispatch: the target tests one view per compare and *falls through* into the outside body
 (`beq v1,v0,<body>; li v0,4; beq v1,v0,<body>; li v0,0x22; j <tail>; slti v1,t0,0x2455`), while the
@@ -122157,7 +122156,7 @@ Inputs: `base_1.c` (100.000%, all penalties zero), `base_3.c` (99.286%,
 
 `func_dryfield_back_street_8017D5D0` is the warehouse ambience sibling
 (`func_dryfield_warehouse_8017D5E8`, "a switch's shared tail belongs after the
-switch") with one difference: the view it maps comes from `Gp_GetViewIndex()`
+switch") with one difference: the view it maps comes from `viewGetMappedIndex()`
 instead of `gGameSession->location.loc.view`, it also carries a stereo pan, and its two
 zeroes come from the `default:` case rather than from an assignment before the
 switch. Writing it the warehouse way - `vol = 0; pan = 0;` ahead of the
@@ -122170,7 +122169,7 @@ switch. Here the delay slot is a bare `nop` and no zeroing appears before the
 dispatch, so the zeros can only come from the default case:
 
 ```c
-    switch (Gp_GetViewIndex()) {
+    switch (viewGetMappedIndex()) {
         case 3:
             vol = 0x1E;
             pan = 4;
@@ -140221,7 +140220,7 @@ the multiply and the phases and loses (94.7%).
 
 ## A masked call result's local type decides whether it rides the next call's delay slot; a cast at the compare keeps cse from swapping a paired register (func_mine_cavern_80182184, 2026-09-23)
 
-**Symptom.** `view = Gp_GetViewIndex() & 0xFF;` followed by
+**Symptom.** `view = viewGetMappedIndex() & 0xFF;` followed by
 `flags = gameFlagGetNibble(0xE2);`: retail has `li a0,0xe2; jal; andi s8,v0,0xff`,
 an `s16 view` gives `andi; jal; li a0` (`reorder`).
 

@@ -1332,7 +1332,7 @@ void Gp_LoadStageView(void)
     sess        = &gGameSession->location.loc;
     cameraTable = Gp_ViewTables[sess->stage - 1];
     cameras     = cameraTable->cameras[sess->area - 1];
-    idx         = Gp_GetViewIndex();
+    idx         = viewGetMappedIndex();
 
     rot    = &gGfxViewRotCoord.coord;
     trans  = MATRIX_TRANS(&gGfxViewCoord.coord);
@@ -1471,7 +1471,7 @@ void Gp_SpawnViewTasks(void)
     sess        = &gGameSession->location.loc;
     cameraTable = Gp_ViewTables[sess->stage - 1];
     cameras     = cameraTable->cameras[sess->area - 1];
-    idx         = Gp_GetViewIndex();
+    idx         = viewGetMappedIndex();
     camera      = gpViewAt(cameras, idx);
     Task_SpawnPtr(0, 0xF, 0, (camera - 1));
     Task_Spawn(0, 0x17, 0, 0);
@@ -1485,7 +1485,7 @@ ViewCamera* Gp_GetStageView(GameLocationKey* arg0)
 
     cameraTable = Gp_ViewTables[arg0->stage - 1];
     cameras     = cameraTable->cameras[arg0->area - 1];
-    idx         = Gp_GetViewIndex();
+    idx         = viewGetMappedIndex();
     return &cameras[idx - 1];
 }
 
@@ -1554,7 +1554,7 @@ void Gp_SpawnCurView(s32 arg0)
     sess        = &gGameSession->location.loc;
     cameraTable = Gp_ViewTables[sess->stage - 1];
     cameras     = cameraTable->cameras[sess->area - 1];
-    idx         = Gp_GetViewIndex();
+    idx         = viewGetMappedIndex();
     camera      = gpViewAt(cameras, idx);
     Task_SpawnPtr(0, 0xF, 0, (camera - 1));
     if (arg0 == 0) {

@@ -2272,7 +2272,7 @@ void func_shelter_r48_8017E3B8(Task* task)
     s32 i;
     s32 j;
 
-    viewMask = 1 << Gp_GetViewIndex();
+    viewMask = 1 << viewGetMappedIndex();
     if (task->state == 0) {
         gRoomEffectState->groundTraceEnabled = false;
         for (i = 0; i < 6; i++) {

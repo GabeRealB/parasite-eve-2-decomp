@@ -466,7 +466,7 @@ void func_shelter_1f_vehicular_airlock_8017DAA0(Task* task)
         task->state             = 1;
     }
 
-    view = Gp_GetViewIndex();
+    view = viewGetMappedIndex();
     switch (view) {
         case 2: {
             SVECTOR* p = D_shelter_1f_vehicular_airlock_8018206C;

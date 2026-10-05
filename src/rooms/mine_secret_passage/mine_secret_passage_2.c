@@ -662,7 +662,7 @@ void func_mine_secret_passage_8017D9D4(Task* arg0)
         arg0->state               = 1;
     }
 
-    switch (Gp_GetViewIndex() & 0xFF) {
+    switch (viewGetMappedIndex() & 0xFF) {
         case 2: {
             SVECTOR* p = D_mine_secret_passage_80180EC8;
             glowDrawCapsule(&p[0], 0x200, 0x444);

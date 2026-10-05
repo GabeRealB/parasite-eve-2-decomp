@@ -448,7 +448,7 @@ void func_shelter_1f_airlock_8017D678(Task* task)
 
 void func_shelter_1f_airlock_8017D6D0(Task* unused)
 {
-    switch (Gp_GetViewIndex() & 0xFF) {
+    switch (viewGetMappedIndex() & 0xFF) {
         case 3:
             glowDrawFactorDisc(&D_shelter_1f_airlock_8017E4C4[0], 0x200, 0x111);
             glowDrawFactorDisc(&D_shelter_1f_airlock_8017E4C4[1], 0x200, 0x111);

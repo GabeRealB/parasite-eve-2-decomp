@@ -457,7 +457,7 @@ static void func_actor_311900_8016228C(Enemy* enemy, Task* task)
     work->animId        = 1;
     work->advanceFrames = 0;
     work->advancing     = 0;
-    if ((Gp_GetViewIndex() & 0xFF) == 0xA) {
+    if ((viewGetMappedIndex() & 0xFF) == 0xA) {
         obj->flags = 0;
     } else {
         obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -482,7 +482,7 @@ static void func_actor_311900_801623B0(Enemy* enemy, Task* task)
     work  = task->work;
     coord = obj->coords;
     func_actor_311900_80161E3C(task, 2, 0);
-    if ((Gp_GetViewIndex() & 0xFF) == 0xA) {
+    if ((viewGetMappedIndex() & 0xFF) == 0xA) {
         gameFlagSetNibble(GAME_FLAG_SECURITY_MONITOR_SCENES_SEEN, gameFlagGetNibble(GAME_FLAG_SECURITY_MONITOR_SCENES_SEEN) | 2);
         obj->flags      = 0;
         work->advancing = 1;
@@ -560,7 +560,7 @@ static void func_actor_311900_801625F0(Enemy* enemy, Task* task)
 
     obj = task->extra.tmd;
     func_actor_311900_80161E3C(task, 4, 2);
-    if ((Gp_GetViewIndex() & 0xFF) == 0xB) {
+    if ((viewGetMappedIndex() & 0xFF) == 0xB) {
         obj->flags = 0;
     } else {
         obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;

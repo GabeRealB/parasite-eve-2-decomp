@@ -592,7 +592,7 @@ void func_shelter_b2_pod_access_tunnel_8017DC6C(Task* arg0)
         arg0->state               = 1;
     }
 
-    switch (Gp_GetViewIndex() & 0xFF) {
+    switch (viewGetMappedIndex() & 0xFF) {
         case 2: {
             SVECTOR* p;
             p = D_shelter_b2_pod_access_tunnel_80183C08;

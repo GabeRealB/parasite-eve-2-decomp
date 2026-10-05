@@ -361,7 +361,7 @@ void func_shelter_b1_transfer_tunnel_8017D6D0(Task* arg0)
         gRoomEffectSparkBurstId   = EFFECT_SHELTER_B1_TRANSFER_TUNNEL_SPARK_BURST;
         arg0->state               = 1;
     }
-    view = Gp_GetViewIndex();
+    view = viewGetMappedIndex();
     switch (view) {
         case 2: {
             SVECTOR* p = D_shelter_b1_transfer_tunnel_801828E8;

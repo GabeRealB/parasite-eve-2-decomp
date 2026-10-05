@@ -893,7 +893,7 @@ void func_neo_ark_power_plant_2_8017D8AC(Task* arg0)
         gRoomEffectSparkBurstId = EFFECT_NEO_ARK_POWER_PLANT_2_SPARK_BURST;
         arg0->state             = 1;
     }
-    switch ((u8)Gp_GetViewIndex()) {
+    switch ((u8)viewGetMappedIndex()) {
         case 6:
             if (gameFlagGetNibble(GAME_FLAG_POWER_PLANT_2_GENERATOR_PART_DOWN) != 0) {
                 if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING && gameFlagGetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_2_CLEARED) == 0) {

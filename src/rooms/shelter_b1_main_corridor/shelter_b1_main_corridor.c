@@ -868,7 +868,7 @@ void func_shelter_b1_main_corridor_8017DDF0(Task* arg0)
         arg0->state               = 1;
     }
 
-    switch (Gp_GetViewIndex() & 0xFF) {
+    switch (viewGetMappedIndex() & 0xFF) {
         case 2:
         case 3: {
             SVECTOR* p;

@@ -155,7 +155,7 @@ void func_shelter_b1_control_room_access_tunnel_8017E1BC(Task* arg0)
         gRoomEffectOrangeBurst2Id = EFFECT_SHELTER_B1_CONTROL_ROOM_ACCESS_TUNNEL_ORANGE_BURST_2;
         arg0->state               = 1;
     }
-    view = Gp_GetViewIndex();
+    view = viewGetMappedIndex();
     switch (view) {
         case 2: {
             SVECTOR* p = D_shelter_b1_control_room_access_tunnel_80181E9C;

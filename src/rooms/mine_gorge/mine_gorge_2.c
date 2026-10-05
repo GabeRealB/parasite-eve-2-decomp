@@ -32,7 +32,7 @@
 #include "rooms/room_common.h"
 #include "../../shared/glow_draw.h"
 
-/// Per-view halfword table, indexed 1-based by `Gp_GetViewIndex()`. The value
+/// Per-view halfword table, indexed 1-based by `viewGetMappedIndex()`. The value
 /// the room publishes as its `gRoomEffectState->roomEffectMode` variant index.
 extern u16 D_mine_gorge_8017E760[];
 
@@ -1078,8 +1078,8 @@ WorldCollisionSurfaceProperties* D_mine_gorge_80183644[8] = {
 /// same call, which the compiler merges into one shared tail.
 void func_mine_gorge_8017D9F8(Task* unused)
 {
-    gRoomEffectState->roomEffectMode = D_mine_gorge_8017E760[(Gp_GetViewIndex() & 0xFF) - 1];
-    switch (Gp_GetViewIndex() & 0xFF) {
+    gRoomEffectState->roomEffectMode = D_mine_gorge_8017E760[(viewGetMappedIndex() & 0xFF) - 1];
+    switch (viewGetMappedIndex() & 0xFF) {
         case 2: {
             SVECTOR* p = D_mine_gorge_8017E798;
             glowDrawFlare(&p[0], 1, 0x300);

@@ -1079,13 +1079,13 @@ WorldCollisionSurfaceProperties* D_dryfield_night_motel_room_1_80180844[8] = {
 };
 
 /// Night motel room 1 draw: queues one of the room's two glowing discs for the
-/// camera `Gp_GetViewIndex` selects - views 2, 3, 8 and 9 the disc at
+/// camera `viewGetMappedIndex` selects - views 2, 3, 8 and 9 the disc at
 /// `D_...DA54` (texture cell 1, half-extent 0x200), 5 and 6 the one at
 /// `D_...DA5C` (cell 2, half-extent 0x180). Views outside the 2..9 span draw
 /// nothing. `jump.c` cross-jumps the two trailing sprite calls into one tail.
 void func_dryfield_night_motel_room_1_8017D9B0(Task* unused)
 {
-    switch (Gp_GetViewIndex() & 0xFF) {
+    switch (viewGetMappedIndex() & 0xFF) {
         case 2:
         case 3:
         case 8:

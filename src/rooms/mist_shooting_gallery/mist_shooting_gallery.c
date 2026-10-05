@@ -2533,7 +2533,7 @@ void func_mist_shooting_gallery_801811EC(Task* unused)
 {
     u8 view;
 
-    view = Gp_GetViewIndex();
+    view = viewGetMappedIndex();
     switch (view) {
         case 2:
             glowDrawCapsule(&D_mist_shooting_gallery_80185550[0], 0x200, 0x222);

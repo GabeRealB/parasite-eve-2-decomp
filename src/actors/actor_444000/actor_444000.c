@@ -6537,7 +6537,7 @@ static void func_actor_444000_801423C4(Enemy* enemy, Task* task)
     s16          i;
     s16          j;
 
-    view                                    = Gp_GetViewIndex() & 0xFF;
+    view                                    = viewGetMappedIndex() & 0xFF;
     task->extra.tmd->coords[0].composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(&task->extra.tmd->coords[0]);
 

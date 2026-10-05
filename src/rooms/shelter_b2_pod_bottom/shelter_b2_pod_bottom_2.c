@@ -293,7 +293,7 @@ void func_shelter_b2_pod_bottom_8017D760(Task* task)
         task->state                          = 1;
         gRoomEffectState->groundTraceEnabled = false;
     }
-    if ((Gp_GetViewIndex() & 0xFF) == 0xF) {
+    if ((viewGetMappedIndex() & 0xFF) == 0xF) {
         gRoomEffectState->groundShadowShade = ROOM_EFFECT_GROUND_SHADOW_DISABLED;
     } else {
         gRoomEffectState->groundShadowShade = ROOM_EFFECT_GROUND_SHADOW_UNMODULATED;

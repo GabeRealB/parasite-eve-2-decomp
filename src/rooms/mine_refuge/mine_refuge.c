@@ -1070,7 +1070,7 @@ void func_mine_refuge_80181454(Task* unused)
 {
     u8 view;
 
-    view = Gp_GetViewIndex();
+    view = viewGetMappedIndex();
     switch (view) {
         case 2:
             glowDrawFlare(&D_mine_refuge_801818D8[0], 1, 0x300);

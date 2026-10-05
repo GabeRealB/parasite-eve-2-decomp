@@ -477,7 +477,7 @@ void func_acropolis_hallway_8017E120(Task* task)
         tmd->otOffset = 0;
         task->state++;
     }
-    if (Gp_GetViewIndex() == 5) {
+    if (viewGetMappedIndex() == 5) {
         tmd->flags = TMD_OBJECT_FLAGGED_PASS;
     } else {
         tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -500,7 +500,7 @@ static void func_acropolis_hallway_8017E1C0(Task* task)
     enemy = task->spawnArg2.pointer;
     tmd   = task->extra.tmd;
     flag  = Gp_GetCurBit2Flag((u8)enemy->placeKey);
-    Gp_GetViewIndex();
+    viewGetMappedIndex();
     if (flag == 2) {
         tmd->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
     } else {

@@ -722,7 +722,7 @@ void Gp_EnqueueViewCd(Task* task)
     if (CdCmd_IsIdle() & 0xFFFF) {
         param1[3] = sess->stage;
         param1[2] = sess->area;
-        param1[0] = Gp_GetViewIndex();
+        param1[0] = viewGetMappedIndex();
         param2[0] = 1;
         param2[1] = 0;
         param2[2] = 0;
@@ -764,7 +764,7 @@ void Gp_LoadViewImages(void)
     u8 view;
     u8 i;
 
-    view = Gp_GetViewIndex();
+    view = viewGetMappedIndex();
     for (i = 0; i < ARRAY_SIZE(D_8006C338); i++) {
         if (D_8006C338[i].kind == FILE_SYSTEM_RESOURCE_IMAGE) {
             if (view - 1 == i) {
@@ -880,7 +880,7 @@ void Gp_LoadViewAndCd(u8 arg0)
     u8           param2[8];
     u8           param1[8];
 
-    view = Gp_GetViewIndex();
+    view = viewGetMappedIndex();
     for (i = 0; i < ARRAY_SIZE(D_8006C338); i++) {
         if (D_8006C338[i].kind == FILE_SYSTEM_RESOURCE_IMAGE) {
             if (view - 1 == i) {
@@ -893,7 +893,7 @@ void Gp_LoadViewAndCd(u8 arg0)
     session   = gGameSession;
     param1[3] = session->location.loc.stage;
     param1[2] = session->location.loc.area;
-    param1[0] = Gp_GetViewIndex();
+    param1[0] = viewGetMappedIndex();
     param2[0] = 1;
     if (arg0 != 0) {
         param2[1] = 4;

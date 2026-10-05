@@ -1671,7 +1671,7 @@ void func_acropolis_roof_garden_80180160(Task* task)
     enemy = task->spawnArg2.pointer;
     tmd   = task->extra.tmd;
     flag  = Gp_GetCurBit2Flag((u8)enemy->placeKey);
-    view  = Gp_GetViewIndex();
+    view  = viewGetMappedIndex();
     if (view >= 8) {
         tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     } else if (view < 5) {

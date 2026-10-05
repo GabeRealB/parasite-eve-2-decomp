@@ -2868,7 +2868,7 @@ static void func_acropolis_bridge_8017DB08(Task* task)
 
     extra = task->extra.tmd;
     coord = extra->coords;
-    if ((u32)(Gp_GetViewIndex() - 8) < 3U) {
+    if ((u32)(viewGetMappedIndex() - 8) < 3U) {
         extra->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     } else {
         extra->flags = 0;
@@ -3051,7 +3051,7 @@ static void func_acropolis_bridge_8017E04C(Task* task)
     work->code              = ACROPOLIS_BRIDGE_KEYPAD_CODE_BLANK;
     sess                    = &gGameSession->location.loc;
     task->state++;
-    view                                 = Gp_GetViewIndex();
+    view                                 = viewGetMappedIndex();
     rec                                  = Gp_SprtTables[sess->stage - 1][gGameSession->spriteVariant - 1].areaViews[sess->area - 1];
     rec[(u8)view - 1].batches[35].hidden = 1;
     gGameSession->cutsceneHold           = 1;
@@ -3148,7 +3148,7 @@ static void func_acropolis_bridge_8017E3A0(Task* task)
     s16                         tick;
     s32                         step;
 
-    view                                 = Gp_GetViewIndex();
+    view                                 = viewGetMappedIndex();
     rec                                  = Gp_SprtTables[sess->stage - 1][gGameSession->spriteVariant - 1].areaViews[sess->area - 1];
     rec[(u8)view - 1].batches[35].hidden = 0;
 
@@ -3196,7 +3196,7 @@ static void func_acropolis_bridge_8017E4FC(Task* task)
     s16                         tick;
     u8                          retry;
 
-    Gp_GetViewIndex();
+    viewGetMappedIndex();
     tick = work->timer;
     if (tick < ACROPOLIS_BRIDGE_KEYPAD_BLINK_PHASE_FRAMES) {
         func_acropolis_bridge_8017E81C();
@@ -3246,7 +3246,7 @@ static void func_acropolis_bridge_8017E60C(s32 digits, s32 hidePrompt)
     u8               mid;
     u8               lo;
 
-    Gp_GetViewIndex();
+    viewGetMappedIndex();
     batches = Gp_SprtTables[sess->stage - 1][gGameSession->spriteVariant - 1].areaViews[sess->area - 1][7].batches;
 
     if ((s16)hidePrompt != 0) {
@@ -3318,7 +3318,7 @@ static void func_acropolis_bridge_8017E81C(void)
     SpriteBatch*     batches;
     s32              i;
 
-    Gp_GetViewIndex();
+    viewGetMappedIndex();
     batches = Gp_SprtTables[sess->stage - 1][gGameSession->spriteVariant - 1].areaViews[sess->area - 1][7].batches;
 
     for (i = 0x15; i < 0x1F; i++) {
@@ -3596,7 +3596,7 @@ void func_acropolis_bridge_8017F788(Task* task)
 /// Each frame it re-spawns the effects the current camera can see: the two
 /// per-view bitmask tables (`D_acropolis_bridge_801899EC` /
 /// `D_acropolis_bridge_80189A1C`) say which of the placed emitters are visible
-/// from view `Gp_GetViewIndex()`, and each visible entry spawns its dust
+/// from view `viewGetMappedIndex()`, and each visible entry spawns its dust
 /// (0x600B1 / 0x600B2) or spark (0x600B3) at the matching `SVECTOR`. View 9
 /// lifts the dust 0x240 above the placed point.
 ///
@@ -3632,7 +3632,7 @@ void func_acropolis_bridge_8017F868(Task* task)
     coord = task->extra.coordBody->coord;
     owner = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     part  = owner->extra.tmd->coords;
-    view  = Gp_GetViewIndex();
+    view  = viewGetMappedIndex();
     if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
         return;
     }
@@ -3870,7 +3870,7 @@ void func_acropolis_bridge_80180320(Task* task)
 
     work    = task->spawnArg2.pointer;
     bufferY = gDisplayState.drawBuffer * 0x110;
-    if ((u8)Gp_GetViewIndex() == task->spawnArg1.value) {
+    if ((u8)viewGetMappedIndex() == task->spawnArg1.value) {
         if (work->age == 0) {
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             rnd             = gRandomLcgState >> 16;
@@ -3943,7 +3943,7 @@ void func_acropolis_bridge_8018063C(Task* task)
 
     work    = task->spawnArg2.pointer;
     bufferY = gDisplayState.drawBuffer * 0x110;
-    if ((u8)Gp_GetViewIndex() == task->spawnArg1.value) {
+    if ((u8)viewGetMappedIndex() == task->spawnArg1.value) {
         if (work->age == 0) {
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             rnd             = gRandomLcgState >> 16;
@@ -4017,7 +4017,7 @@ void func_acropolis_bridge_8018099C(Task* task)
 
     work    = task->spawnArg2.pointer;
     bufferY = gDisplayState.drawBuffer * 0x110;
-    if ((u8)Gp_GetViewIndex() == task->spawnArg1.value) {
+    if ((u8)viewGetMappedIndex() == task->spawnArg1.value) {
         if (work->age == 0) {
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             rnd             = gRandomLcgState >> 16;
@@ -4091,7 +4091,7 @@ void func_acropolis_bridge_80180CC0(Task* task)
 
     work    = task->spawnArg2.pointer;
     bufferY = gDisplayState.drawBuffer * 0x110;
-    if ((u8)Gp_GetViewIndex() == task->spawnArg1.value) {
+    if ((u8)viewGetMappedIndex() == task->spawnArg1.value) {
         if (work->age == 0) {
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             rnd             = gRandomLcgState >> 16;
@@ -4162,7 +4162,7 @@ void func_acropolis_bridge_80180FF0(Task* task)
 
     work    = task->spawnArg2.pointer;
     bufferY = gDisplayState.drawBuffer * 0x110;
-    if ((u8)Gp_GetViewIndex() == task->spawnArg1.value) {
+    if ((u8)viewGetMappedIndex() == task->spawnArg1.value) {
         if (work->age == 0) {
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             work->move.vy   = ((gRandomLcgState >> 16) & 0x7F) + 0x68;
@@ -5956,7 +5956,7 @@ running:
     state = (u16)work->state;
     if ((u32)(state - 6) >= 2U) {
         if (state != 0) {
-            view = Gp_GetViewIndex() & 0xFF;
+            view = viewGetMappedIndex() & 0xFF;
             switch (view) {
                 case 8:
                     if ((s32)work->syncedView == view) {
@@ -5982,7 +5982,7 @@ running:
                     break;
             }
         resync:
-            work->syncedView = Gp_GetViewIndex() & 0xFF;
+            work->syncedView = viewGetMappedIndex() & 0xFF;
         }
     }
     goto body;

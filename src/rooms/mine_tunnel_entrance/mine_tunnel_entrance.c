@@ -544,7 +544,7 @@ void func_mine_tunnel_entrance_8017D6BC(Task* task)
 void func_mine_tunnel_entrance_8017D720(Task* unused)
 {
     gRoomEffectState->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
-    switch (Gp_GetViewIndex() & 0xFF) {
+    switch (viewGetMappedIndex() & 0xFF) {
         case 2: {
             SVECTOR* p = D_mine_tunnel_entrance_8017DB18;
             glowDrawFlare(&p[0], 0, 0x300);

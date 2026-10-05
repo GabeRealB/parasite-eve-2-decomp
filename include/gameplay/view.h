@@ -70,6 +70,19 @@ typedef struct {
 } ViewIndexTable;
 STATIC_ASSERT_SIZEOF(ViewIndexTable, 4);
 
+/// Returns the current logical view's 1-based camera, image and sprite index.
+///
+/// Uses the live session's stage, area, room and view to select a byte from its
+/// `ViewIndexTable` map, promoted to `s32` (0..255). Valid views map to nonzero
+/// indices, and logical views may share an index. The active stage must
+/// be 1..5 and each remaining ID must be within its loaded directory or map;
+/// all selected pointers must be populated and their owning overlays loaded.
+/// This lookup does not validate IDs or return a missing-view sentinel. Its
+/// result must be within the selected area's resource arrays before indexing
+/// those arrays at result minus one. Mappings may change during play, so the
+/// result describes the current mapping rather than a permanent view ID.
+s32 viewGetMappedIndex(void);
+
 /// Camera orientation, origin and perspective distance for a gameplay view.
 ///
 /// `transform.m` rotates world axes into camera axes, with `ONE` (4096) for

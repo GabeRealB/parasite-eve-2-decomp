@@ -407,7 +407,7 @@ void func_shelter_b6_training_room_8017DDE8(Task* task)
         task->state = 1;
     }
 
-    switch (Gp_GetViewIndex() & 0xFF) {
+    switch (viewGetMappedIndex() & 0xFF) {
         case 2:
             glowDrawCapsule(&D_shelter_b6_training_room_80184334[10], 0x180, 0x210);
             break;

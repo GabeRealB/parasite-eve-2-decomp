@@ -1078,7 +1078,7 @@ void func_shelter_b6_nursery_801800A0(Task* task)
         D_shelter_b6_nursery_801879F0.sparkShowerScale = 0;
         task->state                                    = 1;
     }
-    switch (Gp_GetViewIndex() & 0xFF) {
+    switch (viewGetMappedIndex() & 0xFF) {
         case 3:
         case 8:
             if (D_shelter_b6_nursery_801879F0.fastGlintPulse != 0) {
@@ -1170,7 +1170,7 @@ void func_shelter_b6_nursery_80181314(Task* task)
     obj   = task->extra.tmd;
     work  = task->spawnArg2.pointer;
     coord = obj->coords;
-    if ((Gp_GetViewIndex() & 0xFF) != 0xC) {
+    if ((viewGetMappedIndex() & 0xFF) != 0xC) {
         effectKillTask(work, task);
         return;
     }

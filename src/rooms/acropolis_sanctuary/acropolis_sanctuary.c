@@ -2655,7 +2655,7 @@ void func_acropolis_sanctuary_80180264(Task* task)
     s32        view;
 
     flag = Gp_GetCurBit2Flag((u8)enemy->placeKey);
-    view = Gp_GetViewIndex();
+    view = viewGetMappedIndex();
     if (view == 0xB || view == 0xD || flag == 2) {
         tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     } else {
@@ -2676,7 +2676,7 @@ static void func_acropolis_sanctuary_801802E0(Task* task)
     enemy = task->spawnArg2.pointer;
     tmd   = task->extra.tmd;
     flag  = Gp_GetCurBit2Flag((u8)enemy->placeKey);
-    Gp_GetViewIndex();
+    viewGetMappedIndex();
     if (flag == 2) {
         tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     } else {

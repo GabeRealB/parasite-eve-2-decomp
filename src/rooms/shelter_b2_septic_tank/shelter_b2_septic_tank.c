@@ -1450,7 +1450,7 @@ void func_shelter_b2_septic_tank_8017EB7C(Task* arg0)
             gRoomEffectWaterSprayId  = EFFECT_SHELTER_B2_SEPTIC_TANK_WATER_SPRAY;
             arg0->state              = 1;
         case 1:
-            switch (Gp_GetViewIndex() & 0xFF) {
+            switch (viewGetMappedIndex() & 0xFF) {
                 case 2: {
                     SVECTOR* p = D_shelter_b2_septic_tank_80183314;
                     glowDrawBeam(&p[0], 0x200, 0x400, 0x111);

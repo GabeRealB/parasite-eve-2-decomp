@@ -2476,7 +2476,7 @@ void func_shelter_b1_underground_parking_80184A18(Task* unused)
 {
     u8 view;
 
-    view = Gp_GetViewIndex();
+    view = viewGetMappedIndex();
     switch (view) {
         case 2:
         case 10:
