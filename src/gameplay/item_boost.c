@@ -333,7 +333,6 @@ void Gp_UiBoostAttach(UiObject* arg0, Task* arg1)
     s32          y;
     s32          color;
     register s32 row asm("s1");
-    s32          one;
 
     item = gPlayerStatus.armor + 0x5F;
     if (arg1->state == 0) {
@@ -369,14 +368,13 @@ void Gp_UiBoostAttach(UiObject* arg0, Task* arg1)
     y = arg0->panel.contentTop.signedValue;
     uiDrawPanelLabel(&(arg0)->panel, Gp_StrNotice2);
     color = 0x606060;
-    one   = 1;
     row   = y + 0xF;
-    _gpDrawPromptItem(arg0, x, row, Gp_StrMore, item, color, one);
-    textDrawUiLine(arg0, x, y + 0x1E, Gp_StrAttachAvail, color, one, TEXT_ALIGNMENT_LEFT);
+    _gpDrawPromptItem(arg0, x, row, Gp_StrMore, item, color, 1);
+    textDrawUiLine(arg0, x, y + 0x1E, Gp_StrAttachAvail, color, 1, TEXT_ALIGNMENT_LEFT);
 
-    if (arg0->panel.control.word == one) {
+    if (arg0->panel.control.word == 1) {
         arg1->killCountdown--;
-        if ((arg1->killCountdown <= 0) || (padCheckButtons(0, one, Pad_MaskConfirm | Pad_MaskCancel) != 0)) {
+        if ((arg1->killCountdown <= 0) || (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm | Pad_MaskCancel) != 0)) {
             arg0->result        = USER_INTERFACE_RESULT_DISMISS;
             arg1->killCountdown = 0x7FFF;
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
