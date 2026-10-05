@@ -104,6 +104,13 @@ ONLY=""
 KINDS=""
 LIST_PROFILES=0
 KEEP_GOING=0
+# How often a session that exits non-zero is started again before its step is
+# failed and reverted (work_step).
+SESSION_RETRIES="${PE2_NAME_SESSION_RETRIES:-2}"
+RESUME_NOTE="NOTE: an earlier session on this step was interrupted before it finished (the provider or the
+connection failed; nothing was wrong with the step). Its uncommitted edits are still in this worktree, and its
+review report may be partly filled in. Start by reading \`git status\` and \`git diff\` to see what was done,
+check that work instead of assuming it is right, and continue from there. The task itself is unchanged:"
 REFRESH=1
 
 while [[ $# -gt 0 ]]; do
@@ -580,6 +587,25 @@ work_step() {
   local why="" rc
   rm -f "$log.build"
   run_agent "$dir" "$brief" "$log" "$term"; rc=$?
+  # A session that exits non-zero did not finish: the provider was at capacity,
+  # the connection dropped, the CLI crashed. None of that says anything about
+  # the step, and each CLI reports it in its own words, so the exit status is
+  # the only signal used. The session is started again on the tree as it was
+  # left, since the edits made so far are most of the cost and verification
+  # gates the result either way. A report that does not validate or a failed
+  # verification is a finished session whose work was wrong, and is not retried.
+  # Status 2 is this script refusing the CLI, 130 and 143 an interrupt.
+  local attempt=0 pause
+  while (( rc && rc != 2 && rc != 130 && rc != 143 && attempt < SESSION_RETRIES )); do
+    attempt=$((attempt + 1))
+    pause=$(( attempt == 1 ? 60 : 300 ))
+    echo "step $order: the agent session exited with status $rc; retry $attempt of $SESSION_RETRIES in ${pause}s" \
+      | tee -a "$log" >&2
+    sleep "$pause"
+    run_agent "$dir" "$RESUME_NOTE
+
+$brief" "$log" "$term"; rc=$?
+  done
   if (( rc )); then
     why="the agent session exited with status $rc"
   elif ! outcome=$(cd "$dir" && venv/bin/python3 tools/refactor/name_review.py validate \
