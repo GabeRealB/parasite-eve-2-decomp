@@ -488,7 +488,7 @@ void func_800D6334(Task* task)
         if (D_8010F884 >= Gp_GetModLevel(armor)) {
             D_8010F884 = 0;
         }
-        Ui_SpawnFromDesc(&D_8010F8B4, 0, 0, 0, panel);
+        uiSpawnObject(&D_8010F8B4, 0, 0, 0, panel);
         task->state++;
     }
     x = panel->panel.contentLeft.signedValue + 4;

@@ -375,15 +375,15 @@ static void _uiDrawUnderlinedLabel(const UiPanel* panel, s32 x, s32 y, const cha
 /// inline while accepting a complete union value with GCC 2.8.1.
 #define USER_INTERFACE_SPAWN_OBJECT(descriptorValue, payloadValue, panelModeValue, animationTicksValue, parentValue)                \
     ({                                                                                                                              \
-        UiObjectDesc* _uiSpawnDescriptor     = (descriptorValue);                                                                   \
-        TaskSpawnArg  _uiSpawnPayload        = (payloadValue);                                                                      \
-        s32           _uiSpawnPanelMode      = (panelModeValue);                                                                    \
-        s32           _uiSpawnAnimationTicks = (animationTicksValue);                                                               \
-        UiObject*     _uiSpawnParent         = (parentValue);                                                                       \
-        TaskDesc      _uiSpawnTaskDesc;                                                                                             \
-        Task*         _uiSpawnTask;                                                                                                 \
-        UiObject*     _uiSpawnResult;                                                                                               \
-        s32           _uiSpawnDescriptorArg;                                                                                        \
+        const UiObjectDesc* _uiSpawnDescriptor     = (descriptorValue);                                                             \
+        TaskSpawnArg        _uiSpawnPayload        = (payloadValue);                                                                \
+        s32                 _uiSpawnPanelMode      = (panelModeValue);                                                              \
+        s32                 _uiSpawnAnimationTicks = (animationTicksValue);                                                         \
+        UiObject*           _uiSpawnParent         = (parentValue);                                                                 \
+        TaskDesc            _uiSpawnTaskDesc;                                                                                       \
+        Task*               _uiSpawnTask;                                                                                           \
+        UiObject*           _uiSpawnResult;                                                                                         \
+        s32                 _uiSpawnDescriptorArg;                                                                                  \
                                                                                                                                     \
         _uiSpawnResult                          = NULL;                                                                             \
         _uiSpawnTaskDesc.header.fields.flags    = _uiSpawnDescriptor->taskFlags;                                                    \
@@ -2429,9 +2429,9 @@ void uiSizePanelForText(UiPanel* panel, const u8* text, s32 extraWidthPixels, s3
     panel->bounds.rect.y = -(panel->bounds.rect.h / 2) + USER_INTERFACE_TEXT_PANEL_CENTER_Y_PIXELS;
 }
 
-UiObject* Ui_SpawnFromDesc(UiObjectDesc* descriptor, TaskSpawnArg spawnArg1, s32 controlMode, s32 animationTicks, UiObject* parent)
+UiObject* uiSpawnObject(const UiObjectDesc* descriptor, TaskSpawnArg contentArg, s32 controlMode, s32 openingDelayTicks, UiObject* parent)
 {
-    return USER_INTERFACE_SPAWN_OBJECT(descriptor, spawnArg1, controlMode, animationTicks, parent);
+    return USER_INTERFACE_SPAWN_OBJECT(descriptor, contentArg, controlMode, openingDelayTicks, parent);
 }
 
 /// Detaches and starts closing every UI subtree in a task's child ring.

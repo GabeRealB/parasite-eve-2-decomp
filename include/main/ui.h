@@ -18,13 +18,29 @@ extern UiObject* D_80067634;
 
 UiObject* Ui_SpawnTextBlock(UiOptionDialogRequest* request, s32 unused2, s32 unused3, s32 unused4);
 
-/// Spawns a UI object and its task, optionally as a child of `parent`.
+/// Spawns a task-owned UI object from a read-only panel recipe.
 ///
-/// Copies `spawnArg1` into the task without copying pointed-to storage; that
-/// storage must live as long as the descriptor's callback uses it. `controlMode`
-/// initializes the panel's control state and `animationTicks` its signed 16-bit
-/// counter in frame ticks. Returns NULL if either allocation fails.
-UiObject* Ui_SpawnFromDesc(UiObjectDesc* descriptor, TaskSpawnArg spawnArg1, s32 controlMode, s32 animationTicks, UiObject* parent);
+/// Reads `descriptor` synchronously without retaining it or calling its content
+/// handler. Copies `contentArg` into the owner's first spawn argument; the
+/// handler defines its meaning and any pointed-to storage must remain live while
+/// used. The required content handler's code must remain loaded for the task.
+/// Bounds are screen-centered pixels; the OT seed selects a four-tag group.
+/// Its base and every drawing offset must fit the current ordering table.
+///
+/// `controlMode` seeds the full input/request word (0 inactive, 1 active, other
+/// values content-specific). `openingDelayTicks` narrows to s16: zero starts
+/// opening on the first update, positive values delay opening in nominal 60-Hz
+/// ticks, and negative values start hidden until content leaves control active.
+/// Positive delays must be at most 32758 to fit the nine-tick lifecycle bias.
+/// Layout and content updates begin when the owning task first runs.
+///
+/// The owner joins the selected execution list. A non-NULL, live `parent` also
+/// makes it a child of that object's owner. The task owns the zeroed UI object,
+/// stores it in its second spawn argument and initially uses `uiObjectTaskExit`
+/// to release it; `uiStartTreeClosing` requests animated teardown.
+/// Returns NULL if task/body or object allocation fails, tearing down any task
+/// already created. No descriptor or payload storage is released on failure.
+UiObject* uiSpawnObject(const UiObjectDesc* descriptor, TaskSpawnArg contentArg, s32 controlMode, s32 openingDelayTicks, UiObject* parent);
 
 /// Sizes a panel from encoded text and centers it twenty pixels above the screen center.
 ///

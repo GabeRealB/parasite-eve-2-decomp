@@ -207,7 +207,7 @@ static void func_map_akropolis_80179C50(UiList* arg0, UiObject* arg1)
     if (sel == 1) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-            Ui_SpawnFromDesc(&D_8010EFA0, item, 1, 1, arg1);
+            uiSpawnObject(&D_8010EFA0, item, 1, 1, arg1);
             arg1->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
             if (item == 0x10C) {
                 D_map_akropolis_8017A9A8 = sel;
@@ -268,7 +268,7 @@ static void func_map_akropolis_80179E8C(Task* task)
     if (task->state == 0) {
         Stage_InitPrimBufOnce();
         Gp_ClearPreviewItems();
-        obj = Ui_SpawnFromDesc(&D_map_akropolis_8017A9E4, task->spawnArg1, 1, 1, NULL);
+        obj = uiSpawnObject(&D_map_akropolis_8017A9E4, task->spawnArg1, 1, 1, NULL);
         if (obj == NULL) {
             return;
         }
@@ -628,7 +628,7 @@ static UiList D_map_akropolis_8017A9C0 = {
     0,
 };
 
-/// The panel `Ui_SpawnFromDesc` builds for the key-item view: 0xFF9C x 0xFFD8,
+/// The panel `uiSpawnObject` builds for the key-item view: 0xFF9C x 0xFFD8,
 /// 0xC8 x 0x3C, drawn by func_map_akropolis_80179D78.
 static UiObjectDesc D_map_akropolis_8017A9E4 = {
     USER_INTERFACE_PANEL_TITLE_STYLE,

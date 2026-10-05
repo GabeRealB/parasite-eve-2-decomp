@@ -314,7 +314,7 @@ static void Shop_ItemRow(UiList* prompt, UiObject* obj)
         textDrawString(&req, Shop_Data_80181A0C);
         if (prompt->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
             sndEvtRequestScriptStart(SOUND_SYSTEM_CONFIRM, 0, 0);
-            Ui_SpawnFromDesc(&Shop_Data_80181BD8, 0, 1, 1, obj);
+            uiSpawnObject(&Shop_Data_80181BD8, 0, 1, 1, obj);
             obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
         }
         return;
@@ -334,7 +334,7 @@ static void Shop_ItemRow(UiList* prompt, UiObject* obj)
         textDrawUiLine(obj, prompt->rowTextX.signedValue, prompt->rowTextY.signedValue, Shop_Data_80181A1C, prompt->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
         if (prompt->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE && blocked == 0 && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
             sndEvtRequestScriptStart(SOUND_SYSTEM_CONFIRM, 0, 0);
-            child = Ui_SpawnFromDesc(&Shop_Data_80181B84, itemId, 1, 1, obj);
+            child = uiSpawnObject(&Shop_Data_80181B84, itemId, 1, 1, obj);
             if (child != NULL) {
                 uiPositionRowDialog(&(child)->panel, prompt, &(obj)->panel);
                 obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
@@ -359,7 +359,7 @@ static void Shop_ItemRow(UiList* prompt, UiObject* obj)
     }
     if (prompt->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (blocked == 0 && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
-            child2 = Ui_SpawnFromDesc(&Shop_Data_80181B84, itemId, 1, 1, obj);
+            child2 = uiSpawnObject(&Shop_Data_80181B84, itemId, 1, 1, obj);
             if (child2 != NULL) {
                 sndEvtRequestScriptStart(SOUND_SYSTEM_CONFIRM, 0, 0);
                 uiPositionRowDialog(&(child2)->panel, prompt, &(obj)->panel);
@@ -367,7 +367,7 @@ static void Shop_ItemRow(UiList* prompt, UiObject* obj)
             }
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_TRIANGLE) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-            Ui_SpawnFromDesc(&D_8010EFA0, itemId, 1, 1, obj);
+            uiSpawnObject(&D_8010EFA0, itemId, 1, 1, obj);
             obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
         }
     }
@@ -590,7 +590,7 @@ static void Shop_ItemListTask(Task* task)
             uiSetListSystemCursorSound(&work->list, 1);
             obj->panel.bounds.unsignedRect.h += 8;
             work->list.topInset               = 8;
-            Ui_SpawnFromDesc(&Shop_Data_80181BF4, 0, 0, 0, obj);
+            uiSpawnObject(&Shop_Data_80181BF4, 0, 0, 0, obj);
             task->state += 1;
         }
     }
@@ -695,7 +695,7 @@ static void Shop_CategoryRow(UiList* prompt, UiObject* obj)
 
     if (prompt->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
         sndEvtRequestScriptStart(SOUND_SYSTEM_CONFIRM, 0, 0);
-        Ui_SpawnFromDesc(&Shop_Data_80181B4C, obj->owner->spawnArg1, 1, 1, obj);
+        uiSpawnObject(&Shop_Data_80181B4C, obj->owner->spawnArg1, 1, 1, obj);
         obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
     }
 }
@@ -721,8 +721,8 @@ static void Shop_CategoryListTask(Task* task)
     if (task->state == 0) {
         Gp_ClearPreviewItems();
         D_80067634 = NULL;
-        Ui_SpawnFromDesc(&Shop_Data_80181B68, task->spawnArg1, 0, 1, obj);
-        Ui_SpawnFromDesc(&D_8010D80C, 0, 0, 0, obj);
+        uiSpawnObject(&Shop_Data_80181B68, task->spawnArg1, 0, 1, obj);
+        uiSpawnObject(&D_8010D80C, 0, 0, 0, obj);
         list->itemCount                     = 5;
         list->visibleRowCount.unsignedValue = 5;
         uiFitPanelToList(list, &(obj)->panel);
@@ -851,13 +851,13 @@ static void Shop_BuyRow(UiList* prompt, UiObject* obj)
         if (cfg->bp >= price) {
             if (Gp_CanAddItem(scan, itemId) == 0) {
                 if ((u32)(itemId - 0xA0) < 0x20U && Gp_SumScanQty(scan, itemId) != 0) {
-                    Ui_SpawnFromDesc(&Shop_Data_80181BA0, 2, 1, 1, obj);
+                    uiSpawnObject(&Shop_Data_80181BA0, 2, 1, 1, obj);
                 } else {
-                    Ui_SpawnFromDesc(&Shop_Data_80181BA0, 1, 1, 1, obj);
+                    uiSpawnObject(&Shop_Data_80181BA0, 1, 1, 1, obj);
                 }
                 obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
             } else if ((obj->owner->parent->spawnArg1.value >> 16) == mode) {
-                child = Ui_SpawnFromDesc(&Shop_Data_80181C10, itemId, 1, 1, obj);
+                child = uiSpawnObject(&Shop_Data_80181C10, itemId, 1, 1, obj);
                 if (child != NULL) {
                     uiPositionRowDialog(&(child)->panel, prompt, &(obj)->panel);
                     obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
@@ -868,7 +868,7 @@ static void Shop_BuyRow(UiList* prompt, UiObject* obj)
                 obj->result = USER_INTERFACE_RESULT_CONFIRM;
             }
         } else {
-            Ui_SpawnFromDesc(&Shop_Data_80181BA0, 0, 1, 1, obj);
+            uiSpawnObject(&Shop_Data_80181BA0, 0, 1, 1, obj);
             obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
         }
     }
@@ -1251,7 +1251,7 @@ static void Shop_SessionTask(Task* task)
 
     if (task->state == 0) {
         Stage_InitPrimBufOnce();
-        obj = Ui_SpawnFromDesc(&Shop_Data_80181B30, task->spawnArg1, 1, 1, NULL);
+        obj = uiSpawnObject(&Shop_Data_80181B30, task->spawnArg1, 1, 1, NULL);
         if (obj == NULL) {
             return;
         }

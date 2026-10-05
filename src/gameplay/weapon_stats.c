@@ -529,22 +529,22 @@ void Gp_DrawAmmoRow(UiList* arg0, UiObject* obj)
                 sndEvtRequestScriptStart(SOUND_WEAPON_EQUIP, 0, 0);
                 Gp_EquipHeld(item);
                 Gp_ReloadMode = 0;
-                spawned       = Ui_SpawnFromDesc(&D_8010EF14, item | 0x10000, 1, 1, obj);
+                spawned       = uiSpawnObject(&D_8010EF14, item | 0x10000, 1, 1, obj);
                 if (spawned != NULL) {
                     uiPositionRowDialog(&(spawned)->panel, prompt, &(obj)->panel);
                 }
                 obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
             } else {
                 sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-                Ui_SpawnFromDesc(&D_8010EEF8, (item << 8) | spawnArg, 1, 1, obj);
+                uiSpawnObject(&D_8010EEF8, (item << 8) | spawnArg, 1, 1, obj);
                 obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
             }
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_TRIANGLE) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
             if (spawnArg != 0) {
-                Ui_SpawnFromDesc(&D_8010EFA0, item, 1, 1, obj);
+                uiSpawnObject(&D_8010EFA0, item, 1, 1, obj);
             } else {
-                Ui_SpawnFromDesc(&D_8010EFA0, item | 0x10000, 1, 1, obj);
+                uiSpawnObject(&D_8010EFA0, item | 0x10000, 1, 1, obj);
             }
             obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
         }
@@ -683,7 +683,7 @@ void Gp_SelectWeaponMenuTask(Task* arg0)
         parent     = arg0->parent;
         D_80114DD8 = -1;
         uiStartPanelHiding(parent->spawnArg2.pointer, parent);
-        Ui_SpawnFromDesc(&D_8010EC3C, 0, 0, 0x10, obj);
+        uiSpawnObject(&D_8010EC3C, 0, 0, 0x10, obj);
     }
     val = Gp_NthRelatedId(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, menu->selectedItemIndex, 0);
     if (((obj->panel.control.word >> 16) == USER_INTERFACE_PANEL_ACTIVE) || (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) || (val != cfg->weapon + 0x7F)) {
@@ -816,16 +816,16 @@ void Gp_DrawRemoveAmmoRow(UiList* prompt, UiObject* obj)
 
     if (prompt->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
-            Ui_SpawnFromDesc(&D_8010EEF8, (spawnArg << 8) | item, 1, 1, obj);
+            uiSpawnObject(&D_8010EEF8, (spawnArg << 8) | item, 1, 1, obj);
             obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
         } else if ((padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_TRIANGLE) != 0) && (item != 0)) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
             // Both arms open the same prompt; the ammo row's handler, which
             // this one follows, passes a different argument in each.
             if (spawnArg != 0) {
-                Ui_SpawnFromDesc(&D_8010EFA0, item | 0x10000, 1, 1, obj);
+                uiSpawnObject(&D_8010EFA0, item | 0x10000, 1, 1, obj);
             } else {
-                Ui_SpawnFromDesc(&D_8010EFA0, item | 0x10000, 1, 1, obj);
+                uiSpawnObject(&D_8010EFA0, item | 0x10000, 1, 1, obj);
             }
             obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
         }

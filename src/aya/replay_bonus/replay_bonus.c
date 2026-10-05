@@ -614,7 +614,7 @@ void func_replay_bonus_801166AC(Task* arg0)
         arg0->killCountdown = remaining;
         if ((remaining << 0x10) <= 0) {
             if (arg0->spawnArg1.value == 0) {
-                Ui_SpawnFromDesc(&D_replay_bonus_801191A8, 1, 1, 1, obj);
+                uiSpawnObject(&D_replay_bonus_801191A8, 1, 1, 1, obj);
                 obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
                 arg0->state             = arg0->state + 1;
             } else {

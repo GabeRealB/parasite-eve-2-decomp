@@ -401,7 +401,7 @@ void Gp_UiBoostMp(UiObject* arg0, Task* arg1)
         Gp_RecalcMaxMp();
         cfg->mp = cfg->mpMax;
         func_800B996C_RemoveItem(0, Gp_SelItemRec, 1);
-        Ui_SpawnFromDesc(&Gp_BoostPanelDesc, 0, 0, 1, arg0);
+        uiSpawnObject(&Gp_BoostPanelDesc, 0, 0, 1, arg0);
     }
     saved                 = arg1->spawnArg1.value;
     arg1->spawnArg1.value = 0x1D;
@@ -442,7 +442,7 @@ void Gp_UiBoostHp(UiObject* arg0, Task* arg1)
         }
         cfg->hp = cfg->hpMax;
         func_800B996C_RemoveItem(0, Gp_SelItemRec, 1);
-        Ui_SpawnFromDesc(&Gp_BoostPanelDesc, 0, 0, 1, arg0);
+        uiSpawnObject(&Gp_BoostPanelDesc, 0, 0, 1, arg0);
     }
     saved                 = arg1->spawnArg1.value;
     arg1->spawnArg1.value = 0x1C;

@@ -1039,7 +1039,7 @@ void func_mist_shooting_gallery_8017DE7C(UiList* arg0, UiObject* arg1)
             sndEvtRequestScriptStart(SOUND_SYSTEM_CONFIRM, 0, 0);
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_TRIANGLE) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-            Ui_SpawnFromDesc(&D_8010EFA0, item, 1, 1, arg1);
+            uiSpawnObject(&D_8010EFA0, item, 1, 1, arg1);
             arg1->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
         }
     }
@@ -1287,7 +1287,7 @@ void func_mist_shooting_gallery_8017E234(Task* task)
                     } else {
                         gameFlagSetNibble(flag, 1);
                     }
-                    Ui_SpawnFromDesc(&D_mist_shooting_gallery_8018501C, total, 1, 1, obj);
+                    uiSpawnObject(&D_mist_shooting_gallery_8018501C, total, 1, 1, obj);
                     obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
                 } else {
                     obj->result = USER_INTERFACE_RESULT_CONFIRM;
@@ -1428,9 +1428,9 @@ void func_mist_shooting_gallery_8017EAE0(Task* task)
         list->selectedItemIndex = 0;
         uiFitPanelToList(list, &(obj)->panel);
         list->flags = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
-        Ui_SpawnFromDesc(&D_mist_shooting_gallery_8018507C[0], 0, 0, 1, obj);
-        Ui_SpawnFromDesc(&D_mist_shooting_gallery_8018507C[1], 0, 0, 1, obj);
-        Ui_SpawnFromDesc(&D_mist_shooting_gallery_8018507C[2], 0, 0, 1, obj);
+        uiSpawnObject(&D_mist_shooting_gallery_8018507C[0], 0, 0, 1, obj);
+        uiSpawnObject(&D_mist_shooting_gallery_8018507C[1], 0, 0, 1, obj);
+        uiSpawnObject(&D_mist_shooting_gallery_8018507C[2], 0, 0, 1, obj);
         task->state = task->state + 1;
     }
     uiUpdateList(list, &obj->panel);
@@ -1726,7 +1726,7 @@ void func_mist_shooting_gallery_8017F6C8(Task* task)
     s32           exp;
 
     if (task->state == 0) {
-        obj = Ui_SpawnFromDesc(&D_mist_shooting_gallery_80185060, 0, 1, 1, NULL);
+        obj = uiSpawnObject(&D_mist_shooting_gallery_80185060, 0, 1, 1, NULL);
         if (obj != NULL) {
             D_mist_shooting_gallery_8018E0C0 = cfg->bp;
             D_mist_shooting_gallery_8018E0BC = cfg->exp;

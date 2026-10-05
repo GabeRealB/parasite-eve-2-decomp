@@ -77,9 +77,9 @@ void Gp_AreaEnterTask(Task* arg0)
         SndEvt_EnqueueType8(SOUND_COMMON(0x0D));
         Gp_EnqueueSndCd((Gp_GetAttachLevel(7) + 0x15) & 0xFF);
         if (stageAreaKey == GAME_LOCATION_KEY(1, 20, 0, 0)) {
-            arg0->spawnArg2.pointer = Ui_SpawnFromDesc(&D_mist_shooting_gallery_80185000, arg0->spawnArg1, 1, 4, NULL);
+            arg0->spawnArg2.pointer = uiSpawnObject(&D_mist_shooting_gallery_80185000, arg0->spawnArg1, 1, 4, NULL);
         } else {
-            arg0->spawnArg2.pointer = Ui_SpawnFromDesc(D_8010CA40, arg0->spawnArg1, 1, 1, NULL);
+            arg0->spawnArg2.pointer = uiSpawnObject(D_8010CA40, arg0->spawnArg1, 1, 1, NULL);
             if (arg0->spawnArg1.value == 0) {
                 // The battle is over: return the HUD to its out-of-battle state.
                 hud->battleStep = HUD_BATTLE_STEP_START;
@@ -96,9 +96,9 @@ void Gp_AreaEnterTask(Task* arg0)
                 Gp_ClearScanItems(scan);
                 arg0->status = Gp_GrantLocationItems(scan);
                 if (arg0->status != 0) {
-                    Ui_SpawnFromDesc(D_8010CA78, 1, 0, 0x11, arg0->spawnArg2.pointer);
+                    uiSpawnObject(D_8010CA78, 1, 0, 0x11, arg0->spawnArg2.pointer);
                     if (arg0->status == 2) {
-                        Ui_SpawnFromDesc(D_8010CA78 + 1, 2, 0, 0x21, arg0->spawnArg2.pointer);
+                        uiSpawnObject(D_8010CA78 + 1, 2, 0, 0x21, arg0->spawnArg2.pointer);
                     }
                 }
             } else {
@@ -135,7 +135,7 @@ void Gp_AreaEnterTask(Task* arg0)
                     uiStartTreeClosing(obj, obj->owner);
                     if (arg0->status != 0) {
                         Gp_PubItemLoc           = 0x700;
-                        arg0->spawnArg2.pointer = Ui_SpawnFromDesc(&D_8010D6D8, 1, 1, 1, NULL);
+                        arg0->spawnArg2.pointer = uiSpawnObject(&D_8010D6D8, 1, 1, 1, NULL);
                         arg0->state++;
                     } else {
                         arg0->killCountdown = 0xA;

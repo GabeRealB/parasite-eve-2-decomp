@@ -9,7 +9,7 @@ void jukeboxHostTask(Task* task)
 
     if (task->state == 0) {
         Stage_InitPrimBufOnce();
-        obj = Ui_SpawnFromDesc(&gJukeboxPanelDesc, task->spawnArg1, 1, 1, NULL);
+        obj = uiSpawnObject(&gJukeboxPanelDesc, task->spawnArg1, 1, 1, NULL);
         if (obj == NULL) {
             return;
         }

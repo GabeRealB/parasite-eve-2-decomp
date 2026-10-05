@@ -18,7 +18,7 @@ Naming: [`NAMING.md`](../NAMING.md) (`Task_` / `TaskDesc`).
 | Gameplay banks 6, 10 | `asm/USA/gameplay/data/data.data.s` (`D_8010FC2C`, `0x80114B34`) |
 | Title extras | `src/title/title.c`, `Title_TaskDescs` |
 | Enemies | `src/gameplay/scene_runtime.c` (`Gp_SpawnEnemy`, `Gp_SpawnEnemyFromTable`) |
-| UI stack descs | `src/main/ui.c` (`Ui_SpawnFromDesc`) |
+| UI stack descs | `src/main/ui.c` (`uiSpawnObject`) |
 
 **Coverage.** The scheduler is fully described. Bank 0 (system) and bank 9 (FX)
 can be catalogued. Banks 6–7 and most overlay-local tables are still an index
@@ -407,7 +407,7 @@ These are real actors too; they just skip `gTaskDescBanks`.
 | `Stage_Ctx->taskDesc` | Per-stage desc table; `Display_SpawnFromMode` spawns index 0 |
 | `D_80725C54` | Overlay desc, from `Task_KillMaybeSpawn` |
 | `D_8010D1FC`, `D_8010FB4C`, `D_80115D9C`, `D_80119218`, `D_8011922C`, `D_80113340`, `D_80183824`, … | Gameplay / save-slot / enemy tables (`1BC.c` `func_800B25B0` switches on `gMcSaveData`) |
-| Stack `TaskDesc` | `Ui_SpawnFromDesc` copies `UiObjectDesc.taskFlags`, `taskPriority` and `taskDataValue`; task callback dispatches the panel, which keeps `contentCallback` |
+| Stack `TaskDesc` | `uiSpawnObject` copies `UiObjectDesc.taskFlags`, `taskPriority` and `taskDataValue`; task callback dispatches the panel, which keeps `contentCallback` |
 
 `Task_GetDesc(bank, type)` is the typed way to hand a bank entry to
 `Display_InitModeObj` without spawning onto the current list.

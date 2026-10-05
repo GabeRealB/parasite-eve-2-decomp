@@ -257,7 +257,7 @@ void Gp_DrawRemoveArmorRow(UiList* prompt, UiObject* obj)
                 obj->result     = USER_INTERFACE_RESULT_DISMISS;
             } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_TRIANGLE) != 0) {
                 sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-                Ui_SpawnFromDesc(&D_8010EFA0, item | 0x10000, 1, 1, obj);
+                uiSpawnObject(&D_8010EFA0, item | 0x10000, 1, 1, obj);
                 obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
             }
         }
@@ -349,7 +349,7 @@ void Gp_EquipSelectMenuTask(Task* arg0)
         menu->firstVisibleItemIndex.unsignedValue = 0;
         parent                                    = arg0->parent;
         uiStartPanelHiding(parent->spawnArg2.pointer, parent);
-        Ui_SpawnFromDesc(&D_8010EC3C, 3, val, 0x10, obj);
+        uiSpawnObject(&D_8010EC3C, 3, val, 0x10, obj);
         arg0->state = arg0->state + 1;
     }
     uiDrawHorizontalSeparator(&(obj)->panel, obj->panel.contentLeft.signedValue, obj->panel.contentRight.signedValue, obj->panel.contentTop.signedValue + 0x4A);

@@ -96,41 +96,41 @@ static void func_replay_bonus_80117194(Task* arg0)
         uiStartTreeClosing(obj, owner);
         switch (arg0->state) {
             case 2:
-                arg0->spawnArg2.pointer = Ui_SpawnFromDesc(&D_replay_bonus_8011918C, 0, 1, 1, NULL);
+                arg0->spawnArg2.pointer = uiSpawnObject(&D_replay_bonus_8011918C, 0, 1, 1, NULL);
                 break;
             case 3:
                 if (D_replay_bonus_80119274.shopTier < 0) {
-                    arg0->spawnArg2.pointer = Ui_SpawnFromDesc(&D_replay_bonus_801191FC, 0, 1, 1, NULL);
+                    arg0->spawnArg2.pointer = uiSpawnObject(&D_replay_bonus_801191FC, 0, 1, 1, NULL);
                     arg0->state             = arg0->state + 2;
                 } else {
-                    arg0->spawnArg2.pointer = Ui_SpawnFromDesc(&D_replay_bonus_801191C4, 0, 1, 1, NULL);
+                    arg0->spawnArg2.pointer = uiSpawnObject(&D_replay_bonus_801191C4, 0, 1, 1, NULL);
                 }
                 break;
             case 4:
-                arg0->spawnArg2.pointer = Ui_SpawnFromDesc(&D_replay_bonus_801191E0, 1, 1, 1, NULL);
+                arg0->spawnArg2.pointer = uiSpawnObject(&D_replay_bonus_801191E0, 1, 1, 1, NULL);
                 break;
             case 5:
-                arg0->spawnArg2.pointer = Ui_SpawnFromDesc(&D_replay_bonus_801191C4, 2, 1, 1, NULL);
+                arg0->spawnArg2.pointer = uiSpawnObject(&D_replay_bonus_801191C4, 2, 1, 1, NULL);
                 break;
             case 6:
                 displaySetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
                 func_replay_bonus_80116EC0();
                 gDisplayState.gameMode  = DISPLAY_GAME_MODAL;
-                arg0->spawnArg2.pointer = Ui_SpawnFromDesc(&D_800611E4, 0, 1, 1, NULL);
+                arg0->spawnArg2.pointer = uiSpawnObject(&D_800611E4, 0, 1, 1, NULL);
                 break;
             case 7:
                 if (copied == 0x33) {
                     arg0->spawnArg2.pointer = Gp_SpawnItemPrompt(NULL, 0x11, 0, 1);
                     arg0->state             = arg0->state + 1;
                 } else {
-                    arg0->spawnArg2.pointer = Ui_SpawnFromDesc(&D_replay_bonus_80119170, 0, 1, 2, NULL);
+                    arg0->spawnArg2.pointer = uiSpawnObject(&D_replay_bonus_80119170, 0, 1, 2, NULL);
                 }
                 break;
             case 8:
                 if (copied == 0x33) {
                     arg0->spawnArg2.pointer = Gp_SpawnItemPrompt(NULL, 0xF, 0, 1);
                 } else {
-                    arg0->spawnArg2.pointer = Ui_SpawnFromDesc(&D_800611E4, 1, 1, 1, NULL);
+                    arg0->spawnArg2.pointer = uiSpawnObject(&D_800611E4, 1, 1, 1, NULL);
                     arg0->state             = arg0->state - 2;
                 }
                 break;
@@ -357,7 +357,7 @@ static void func_replay_bonus_801178C0(Task* arg0)
 {
     if (CdCmd_IsIdle() & 0xFFFF) {
         Text_LoadClutImages();
-        arg0->spawnArg2.pointer = Ui_SpawnFromDesc(&D_replay_bonus_80119154, 0, 1, 1, NULL);
+        arg0->spawnArg2.pointer = uiSpawnObject(&D_replay_bonus_80119154, 0, 1, 1, NULL);
         arg0->state             = (s32)(arg0->state + 1);
     }
 }

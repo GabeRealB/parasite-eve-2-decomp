@@ -98,7 +98,7 @@ static UiListRowCallback D_options_801D5ED4[1] = { func_options_801D4724 };
 /// That sub-list: one row of 0x0F pixels.
 static UiList D_options_801D5ED8 = { D_options_801D5ED4, 0x01, 0x01, 0x00, 0x0F };
 
-/// The options screen's own UI object, spawned by `Ui_SpawnFromDesc`.
+/// The options screen's own UI object, spawned by `uiSpawnObject`.
 static UiObjectDesc D_options_801D5EFC = {
     USER_INTERFACE_PANEL_TITLE_STYLE,
     { -140,
@@ -933,7 +933,7 @@ static void func_options_801D5954(UiList* arg0, UiObject* arg1)
     }
     if ((arg0->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) && (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0)) {
         sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-        Ui_SpawnFromDesc(&D_options_801D5EFC, 0, 1, 1, arg1);
+        uiSpawnObject(&D_options_801D5EFC, 0, 1, 1, arg1);
         arg1->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
     }
 }

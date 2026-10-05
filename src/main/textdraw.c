@@ -1500,7 +1500,7 @@ static void Text_UiTaskCallback(Task* task)
 
     if (task->state == 0) {
         Wip_UiHolder = NULL;
-        obj          = Ui_SpawnFromDesc(Ui_OverlayLoadingDesc, 1, 1, 2, 0);
+        obj          = uiSpawnObject(Ui_OverlayLoadingDesc, 1, 1, 2, 0);
         if (obj != NULL) {
             task->spawnArg2.pointer = obj;
             task->state             = task->state + 1;

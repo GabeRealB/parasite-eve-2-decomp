@@ -353,7 +353,7 @@ void Gp_SelectAmmoMenuTask(Task* arg0)
             parent                            = arg0->parent;
             D_80114DD8                        = -1;
             uiStartPanelHiding(parent->spawnArg2.pointer, parent);
-            Ui_SpawnFromDesc(&D_8010EC3C, 1, 0, 0x10, obj);
+            uiSpawnObject(&D_8010EC3C, 1, 0, 0x10, obj);
         }
         uiDrawHorizontalSeparator(&(obj)->panel, obj->panel.contentLeft.signedValue, obj->panel.contentRight.signedValue, obj->panel.contentTop.signedValue + 0x4A);
         val = Gp_AttachListIds[menu->selectedItemIndex];
@@ -440,11 +440,11 @@ void Gp_DrawArmorSelectRow(UiList* arg0, UiObject* arg1)
 
     if (arg0->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
-            Ui_SpawnFromDesc(&D_8010EF30, item, 1, 1, arg1);
+            uiSpawnObject(&D_8010EF30, item, 1, 1, arg1);
             arg1->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_TRIANGLE) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-            Ui_SpawnFromDesc(&D_8010EFA0, item | 0x10000, 1, 1, arg1);
+            uiSpawnObject(&D_8010EFA0, item | 0x10000, 1, 1, arg1);
             arg1->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
         }
     }
@@ -477,7 +477,7 @@ void Gp_SelectArmorMenuTask(Task* arg0)
         menu->firstVisibleItemIndex.unsignedValue = 0;
         parent                                    = arg0->parent;
         uiStartPanelHiding(parent->spawnArg2.pointer, parent);
-        Ui_SpawnFromDesc(&D_8010EC3C, 2, 0, 0x10, obj);
+        uiSpawnObject(&D_8010EC3C, 2, 0, 0x10, obj);
         arg0->state++;
     }
 
@@ -753,10 +753,10 @@ void Gp_DrawLoadCmd(UiList* arg0, UiObject* arg1)
             if ((u32)(val - 0x80) < 0x20U) {
                 Gp_ReloadMode = 0;
                 one           = 1;
-                obj           = Ui_SpawnFromDesc(&D_8010EF14, val, one, one, arg1);
+                obj           = uiSpawnObject(&D_8010EF14, val, one, one, arg1);
             } else if ((u32)(val - 0xA0) < 0x20U) {
                 one = 1;
-                obj = Ui_SpawnFromDesc(&D_8010EEDC, val, one, one, arg1);
+                obj = uiSpawnObject(&D_8010EEDC, val, one, one, arg1);
             } else {
                 return;
             }
@@ -795,13 +795,13 @@ void Gp_DrawExchangeCmd(UiList* arg0, UiObject* arg1)
             }
             if (((u32)(val - 0xA0) < 0x20U) || (val == 0)) {
                 one = 1;
-                obj = Ui_SpawnFromDesc(&D_8010ECC8, gPlayerStatus.weapon + 0x7F, one, 0x10, arg1);
+                obj = uiSpawnObject(&D_8010ECC8, gPlayerStatus.weapon + 0x7F, one, 0x10, arg1);
             } else if ((u32)(val - 0x80) < 0x20U) {
                 one = 1;
-                obj = Ui_SpawnFromDesc(&D_8010ECE4, 0, one, 0x10, arg1);
+                obj = uiSpawnObject(&D_8010ECE4, 0, one, 0x10, arg1);
             } else if ((u32)(val - 0x60) < 0x20U) {
                 one = 1;
-                obj = Ui_SpawnFromDesc(&D_8010ECAC, 0, one, 0x10, arg1);
+                obj = uiSpawnObject(&D_8010ECAC, 0, one, 0x10, arg1);
             } else {
                 return;
             }

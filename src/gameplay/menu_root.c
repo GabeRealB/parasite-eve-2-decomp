@@ -461,17 +461,17 @@ void Gp_MenuRootTask(Task* arg0)
             if (arg == 0x45) {
                 Wip_UiHolder = NULL;
                 CdCmd_EnqueueLoadFile(1, 0, 0);
-                obj = Ui_SpawnFromDesc(&D_8010EEA4, 1, 1, 2, 0);
+                obj = uiSpawnObject(&D_8010EEA4, 1, 1, 2, 0);
             } else if (arg == 0x44) {
-                obj = Ui_SpawnFromDesc(&D_mist_shooting_gallery_80184F70, 0, 1, 1, 0);
+                obj = uiSpawnObject(&D_mist_shooting_gallery_80184F70, 0, 1, 1, 0);
             } else if (arg == 0x43) {
-                obj = Ui_SpawnFromDesc(&D_8010F140, 0, 1, 8, 0);
+                obj = uiSpawnObject(&D_8010F140, 0, 1, 8, 0);
             } else if (arg == 0x42) {
                 disp->keepGraphics = 1;
-                obj                = Ui_SpawnFromDesc(&D_8010F898, 0, 1, 1, 0);
+                obj                = uiSpawnObject(&D_8010F898, 0, 1, 1, 0);
             } else {
                 disp->keepGraphics = 1;
-                obj                = Ui_SpawnFromDesc(D_8010EAB4, 0, 0, 2, 0);
+                obj                = uiSpawnObject(D_8010EAB4, 0, 0, 2, 0);
             }
             if (obj == NULL) {
                 break;

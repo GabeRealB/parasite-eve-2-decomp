@@ -88,7 +88,7 @@ void func_800B65B0(Task* task)
         } else {
             request->defaultPrompt = 1;
         }
-        spawned = Ui_SpawnFromDesc(desc, (s32)((s8)(request->defaultPrompt ^ 1)), 1, 1, NULL);
+        spawned = uiSpawnObject(desc, (s32)((s8)(request->defaultPrompt ^ 1)), 1, 1, NULL);
         if (spawned != NULL) {
             task->firstChild = spawned->owner;
             task->state++;

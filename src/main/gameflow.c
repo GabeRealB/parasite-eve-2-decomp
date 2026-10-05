@@ -329,7 +329,7 @@ static void GameFlow_SpawnMenu(Task* task)
     void* temp_v0;
 
     displaySetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
-    temp_v0                 = Ui_SpawnFromDesc(Mc_TaskDescriptors, 0, 1, 0, 0);
+    temp_v0                 = uiSpawnObject(Mc_TaskDescriptors, 0, 1, 0, 0);
     task->spawnArg2.pointer = temp_v0;
     if (temp_v0 != 0) {
         gDisplayState.gameMode = DISPLAY_GAME_MODAL;

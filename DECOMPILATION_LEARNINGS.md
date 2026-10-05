@@ -18003,7 +18003,7 @@ finish (reusing `$v0`), then `lui`/`lw $v1,descriptorData`/`addiu`/`sw callback`
 `volatile TaskDesc` restores halfword order but blocks the delay-slot store.
 The local-temp form matches both.
 
-`Ui_SpawnFromDesc` is the pure example.
+`uiSpawnObject` is the pure example.
 
 ## Reuse `obj = NULL` as the zero argument source
 
@@ -18027,7 +18027,7 @@ Literal `0` often becomes `move aN,zero` instead of `move aN,s0`, which also
 shifts later register assignment. Early `return` paths that need `v0 = 0`
 then reuse `move v0,s0` for free.
 
-`Ui_SpawnFromDesc` is the pure example.
+`uiSpawnObject` is the pure example.
 
 ## Ternary second arg schedules `arr[idx]` base-before-index
 
@@ -18406,7 +18406,7 @@ UiObject* childObject;
 
 childTask = task->firstChild;
 if (childTask == NULL) {
-    childObject = Ui_SpawnFromDesc(...);
+    childObject = uiSpawnObject(...);
     /* ... */
     return 0;
 }
@@ -19357,7 +19357,7 @@ flags_a2 = (u32)temp > 0;
 ## Keep `u16` fields that other TUs store with `sh`
 
 Narrowing `TaskDesc::header.fields.priority` from `u16` to `u8` made `_taskSpawnFromDesc`
-emit `lbu`, but broke already-matched `Ui_SpawnFromDesc` (`desc.header.fields.priority =
+emit `lbu`, but broke already-matched `uiSpawnObject` (`desc.header.fields.priority =
 arg0->taskPriority` became `lbu`/`sb` instead of `lhu`/`sh`). Keep the wider type
 and force the byte load where needed:
 
@@ -23962,7 +23962,7 @@ before the call setup:
 
 ```c
 arg3 <<= 16;
-Ui_SpawnFromDesc(&desc, arg3 | arg1, one, one, arg0);
+uiSpawnObject(&desc, arg3 | arg1, one, one, arg0);
 ```
 
 A `s32 packed = arg3 << 16` local can also work, but mutating the argument
@@ -31078,7 +31078,7 @@ A full `MATRIX` applied to a `VECTOR3` is `gte_SetRotMatrix` +
 
 ## Assign `firstChild` onto the spawn-result pointer so it stays in `$a0`
 
-A UI task that returns `Ui_SpawnFromDesc` into `spawned` colors that
+A UI task that returns `uiSpawnObject` into `spawned` colors that
 pointer `$a0` (`move a0, v0` / `beqz a0`). A later child poll wants
 the same coloring:
 
@@ -31429,7 +31429,7 @@ change the main header. `Gp_MenuRootTask` is the example.
 
 ## Per-arm 5-arg calls so `sw zero, 0x10(sp)` sinks and stays before `jal`
 
-A single `Ui_SpawnFromDesc(..., 0)` at the join of an if/else chain puts
+A single `uiSpawnObject(..., 0)` at the join of an if/else chain puts
 `sw zero, 0x10(sp)` in the `jal` delay slot. The target wants that store
 as the first instruction of two skip-join arms *and* as a labeled
 instruction immediately before `jal` / `nop` (so a third arm can jump to
@@ -31437,14 +31437,14 @@ the store). Write the call in each arm:
 
 ```c
 if (arg == 0x45) {
-    obj = Ui_SpawnFromDesc(desc, 1, 1, 2, 0);
+    obj = uiSpawnObject(desc, 1, 1, 2, 0);
 } else if (arg == 0x44) {
-    obj = Ui_SpawnFromDesc(desc, 0, 1, 1, 0);
+    obj = uiSpawnObject(desc, 0, 1, 1, 0);
 } else if (arg == 0x43) {
-    obj = Ui_SpawnFromDesc(desc, 0, 1, 8, 0);
+    obj = uiSpawnObject(desc, 0, 1, 8, 0);
 } else {
     /* 0x42 / default also set field_122 */
-    obj = Ui_SpawnFromDesc(desc, a1, a2, a3, 0);
+    obj = uiSpawnObject(desc, a1, a2, a3, 0);
 }
 ```
 
@@ -34661,7 +34661,7 @@ emits `li v0, K` on the fall-through. `Gp_EffCtlTask6E` is the example.
 After `if (x == 1)`, a `register ... asm("sN")` on `x` makes later `1`s copy
 from `$sN` (`move a1, s5`, `move extra, s5`, `move a2, s7`) instead of
 `li ..., 1` / `move ..., v0`. Unpin the flag so Pad's jal delay is `li a1, 1`
-and `Ui_SpawnFromDesc(..., one, one, ...)` is `move a2, v0` / `move a3, v0`.
+and `uiSpawnObject(..., one, one, ...)` is `move a2, v0` / `move a3, v0`.
 Pinning the flag to get the other `$s` coloring is what produces
 `move a3, a2`. `func_800BD6DC` is the example.
 
@@ -35030,7 +35030,7 @@ coalesce and can recover `shift` in `$a1` / `mask` in `$a2` / delayed
 `UiObject*` from `spawnArg2`, swapping `$t0`/`$a3` (obj vs off) and
 `$v0`/`$v1` (gGameSession vs `Gp_Bit2Banks`). Nested
 `register ... asm("a0")` (etc.) is function-wide in 2.8.1 and breaks
-the earlier `Ui_SpawnFromDesc` `xori a1, 1`. `func_800B65B0` is the
+the earlier `uiSpawnObject` `xori a1, 1`. `func_800B65B0` is the
 example; not fully matched.
 
 ## `i << 2` so the IV init is `move t3, t4` after the hoists
@@ -35803,7 +35803,7 @@ t = (s32)str;
 
 ## 4-arg cast so a C store fills the shared-`jal` jump delay
 
-Two `Ui_SpawnFromDesc(..., obj)` sites that share one `jal` want path 1
+Two `uiSpawnObject(..., obj)` sites that share one `jal` want path 1
 to be `j jal` / `sw s4, 0x10(sp)` and the `jal` delay to be `nop` (path 2
 already stored). A 5-arg call emits `sw` in the `jal` delay, so the jump
 gets `nop`. Cast to a 4-arg callee so GCC does not emit that store, then
@@ -35814,7 +35814,7 @@ write the 5th arg in C. Locals start at `0x18`; the outgoing slot is
 slot = (char*)&draw;
 slot = slot - 8;
 *(UiObject**)slot = obj;
-((void (*)(UiObjectDesc*, s32, s32, s32))Ui_SpawnFromDesc)(a0, a1, a2, a3);
+((void (*)(UiObjectDesc*, s32, s32, s32))uiSpawnObject)(a0, a1, a2, a3);
 ```
 
 Split `slot = (char*)&draw; slot = slot - 8` so the linter does not see
@@ -47133,7 +47133,7 @@ grep -rn 'jal *func_shelter_r47_8018337C' asm/USA/rooms/nonmatchings/shelter_r47
 
 A helper is reached only from its own family's dispatcher chain, so one caller
 is enough. (A third allocator, `memCalloc(0xC4)` in `func_shelter_r47_8017EA50`,
-belongs to a `Ui_SpawnFromDesc` task and is a different `Task` entirely — count
+belongs to a `uiSpawnObject` task and is a different `Task` entirely — count
 allocators per *family*, not per overlay.)
 
 Read each family's state-0 entry end to end before writing the struct: it is
@@ -146710,7 +146710,7 @@ fields (0x10, 0xC), with `rect.y` loaded before them. The tree reproduced that
 with `new_var = rect.y` hoisted above the other stores, a `dummy = 1` plus
 `USE_REG(dummy)` for the constant `1`, and a union of the spawn `TaskDesc`
 with the `RECT`. All three were the natural source: the spawn routine as a
-`static inline` helper shared with `Ui_SpawnFromDesc` (its constant arguments
+`static inline` helper shared with `uiSpawnObject` (its constant arguments
 give the `1` pseudo, its frame is a temp the block-scoped `RECT` reuses), and
 the layout block written in its usual order - `baseY` last among the six -
 before the grow step. Stores through one base register at disjoint offsets do
@@ -148114,7 +148114,7 @@ operand order but `top` is not the class head there and the copy dies again.
 
 ### A pseudo that dies where another is set inherits its register preferences: give the other branch its own local (Mc_PromptDialog and its three siblings, 2026-10-05)
 
-**Symptom.** `child = task->firstChild; if (child == NULL) { obj2 = Ui_SpawnFromDesc(...); ... return 0; } obj2 = child->spawnArg2.pointer; ... uiStartTreeClosing(obj2, ...)`.
+**Symptom.** `child = task->firstChild; if (child == NULL) { obj2 = uiSpawnObject(...); ... return 0; } obj2 = child->spawnArg2.pointer; ... uiStartTreeClosing(obj2, ...)`.
 The target keeps `child` in `$a0` (`lw a0,0xc(s2)` / `bnez a0` / `lw a0,0x20(a0)`),
 which lets `li v0,6` ride in the branch delay slot. Natural C put `child` in
 `$v0`; four functions held it with `register Task* childTask asm("a0")`.
@@ -148124,7 +148124,7 @@ a `REG_DEAD` note for B, where A and B do not conflict, each gets the other's
 hard-register preferences. `obj2 = child->spawnArg2.pointer` is such an insn,
 so `child` inherits what `obj2` prefers. `obj2` prefers `$a0` (it is the first
 argument of `uiStartTreeClosing`) **and `$v0`**, because the same variable also
-receives the return value of `Ui_SpawnFromDesc` in the other branch. `child`
+receives the return value of `uiSpawnObject` in the other branch. `child`
 conflicts with nothing, so it takes the lowest preferred register, `$v0`
 (`;; 84 preferences: 2 4` in `.greg`).
 
@@ -148135,7 +148135,7 @@ child = task->firstChild;
 if (child == NULL) {
     UiObject* spawned;
 
-    spawned = Ui_SpawnFromDesc(Mc_PromptDesc, 0, 1, 2, obj);
+    spawned = uiSpawnObject(Mc_PromptDesc, 0, 1, 2, obj);
     if (spawned != NULL) { ... }
     return 0;
 }

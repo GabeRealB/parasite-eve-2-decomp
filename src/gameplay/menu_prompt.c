@@ -106,35 +106,35 @@ void Gp_UiPromptDispatch(UiObject* arg0, Task* arg1)
     switch (arg0->resultValue) {
         case 5:
             desc = D_8010EAB4;
-            Ui_SpawnFromDesc(desc + 5, 0, 1, 8, arg0);
+            uiSpawnObject(desc + 5, 0, 1, 8, arg0);
             Ui_SetHolderParam(Gp_StrEmpty, 0, 0);
             uiStartPanelOpening(&(arg0)->panel, arg0->owner);
             break;
         case 0x14:
         case 0x19:
-            Ui_SpawnFromDesc(D_8010EAB4 + arg0->resultValue, 0, 1, 8, arg0);
+            uiSpawnObject(D_8010EAB4 + arg0->resultValue, 0, 1, 8, arg0);
             break;
         case 0x100:
             D_80114D88 = 1;
-            Ui_SpawnFromDesc(&D_8010F140, 0, 1, 8, arg0);
+            uiSpawnObject(&D_8010F140, 0, 1, 8, arg0);
             break;
         case 0x101:
             Display_SetDrawMode(1);
-            Ui_SpawnFromDesc(&D_8010EAD0, 0, 1, 8, arg0);
+            uiSpawnObject(&D_8010EAD0, 0, 1, 8, arg0);
             Ui_SetHolderParam(Gp_StrEmpty, 0, 0);
             uiStartPanelOpening(&(arg0)->panel, arg0->owner);
             break;
         case 6:
         case 0xC:
             Display_SetDrawMode(1);
-            Ui_SpawnFromDesc(D_8010EAB4 + arg0->resultValue, 0, 0, 8, arg0);
+            uiSpawnObject(D_8010EAB4 + arg0->resultValue, 0, 0, 8, arg0);
             Ui_SetHolderParam(Gp_StrEmpty, 0, 0);
             uiStartPanelOpening(&(arg0)->panel, arg0->owner);
             break;
         case 0x24:
         default:
             Display_SetDrawMode(1);
-            Ui_SpawnFromDesc(D_8010EAB4 + arg0->resultValue, 0, 1, 8, arg0);
+            uiSpawnObject(D_8010EAB4 + arg0->resultValue, 0, 1, 8, arg0);
             Ui_SetHolderParam(Gp_StrEmpty, 0, 0);
             uiStartPanelOpening(&(arg0)->panel, arg0->owner);
             break;
@@ -380,7 +380,7 @@ void Gp_StatusPanelTask(Task* arg0)
     menu = &D_8010E820;
     obj  = arg0->spawnArg2.pointer;
     if (arg0->state == 0) {
-        Ui_SpawnFromDesc(&D_8010EB08, 0, 0, 4, obj);
+        uiSpawnObject(&D_8010EB08, 0, 0, 4, obj);
         uiFitPanelToList(menu, &(obj)->panel);
         arg0->state = arg0->state + 1;
     } else {
@@ -672,7 +672,7 @@ void Gp_HpMpBarTask(Task* arg0)
 
     obj = arg0->spawnArg2.pointer;
     if (arg0->state == 0) {
-        Ui_SpawnFromDesc(&D_8010EB24, 0, 0, 0, obj);
+        uiSpawnObject(&D_8010EB24, 0, 0, 0, obj);
         cfg            = &gPlayerStatus;
         Gp_HpMpWork.hp = cfg->hp;
         Gp_HpMpWork.mp = cfg->mp;
@@ -1263,7 +1263,7 @@ void Gp_DrawItemOrderRow(UiList* arg0, UiObject* arg1)
             Gp_SelItemRec = sel;
             if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
                 sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-                obj = Ui_SpawnFromDesc(&D_8010EE6C, 0, 1, 1, arg1);
+                obj = uiSpawnObject(&D_8010EE6C, 0, 1, 1, arg1);
                 if (obj != NULL) {
                     uiPositionRowDialog(&(obj)->panel, arg0, &(arg1)->panel);
                     arg1->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
@@ -1453,7 +1453,7 @@ static void Gp_ItemListTask(Task* arg0)
         menu->flags                               = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
         menu->selectedItemIndex                   = 0;
         menu->firstVisibleItemIndex.unsignedValue = 0;
-        child                                     = Ui_SpawnFromDesc(&D_8010EB40, 0, 0, 1, obj);
+        child                                     = uiSpawnObject(&D_8010EB40, 0, 0, 1, obj);
         if (child != NULL) {
             child->panel.bounds.unsignedRect.y = obj->panel.bounds.unsignedRect.y + obj->panel.bounds.unsignedRect.h;
         }
@@ -1540,8 +1540,8 @@ void Gp_ItemDestCursorTask(Task* arg0)
         desc             = &D_8010EFD8;
         one              = 1;
         Gp_ItemCountShow = 0;
-        D_80114D98[0]    = Ui_SpawnFromDesc(desc, one, one, one, obj);
-        D_80114D98[1]    = Ui_SpawnFromDesc(desc + 1, one, 0, one, obj);
+        D_80114D98[0]    = uiSpawnObject(desc, one, one, one, obj);
+        D_80114D98[1]    = uiSpawnObject(desc + 1, one, 0, one, obj);
     }
     Gp_ItemListTask(arg0);
     if ((Gp_ItemCountShow == 1) && (uiIsPanelHidingOrHidden(obj) == 0)) {
@@ -1633,7 +1633,7 @@ void Gp_DrawWeaponSlotRow(UiList* prompt, UiObject* obj)
                 if (D_8010E9A4.itemCount >= 2U || (D_8010E9A4.itemCount == 1 && player->weapon == PLAYER_STATUS_EQUIPMENT_NONE)) {
                     UiObject* spawned;
                     sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-                    spawned = Ui_SpawnFromDesc(&D_8010ECE4, 0, 1, 0x10, obj);
+                    spawned = uiSpawnObject(&D_8010ECE4, 0, 1, 0x10, obj);
                     if (spawned != NULL) {
                         _gpSetSpawnOffset(spawned, -8, -0x5C);
                     }
@@ -1817,7 +1817,7 @@ void Gp_DrawWeaponSlotRow2(UiList* prompt, UiObject* obj)
                 s32 xOffset;
                 currentWeapon = gPlayerStatus.weapon + 0x7F;
                 sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-                child = Ui_SpawnFromDesc(&D_8010ECC8, currentWeapon, 1, 0x10, obj);
+                child = uiSpawnObject(&D_8010ECC8, currentWeapon, 1, 0x10, obj);
                 if (child != NULL) {
                     yOffset                            = -0x5C;
                     child->panel.bounds.unsignedRect.y = yOffset;
@@ -2158,7 +2158,7 @@ void func_800C41A4(UiList* prompt, UiObject* obj)
             if (rec == NULL) {
                 if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
                     sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-                    child = Ui_SpawnFromDesc(&D_8010ED00, 0, 1, 0x10, obj);
+                    child = uiSpawnObject(&D_8010ED00, 0, 1, 0x10, obj);
                     if (child != NULL) {
                         s32 yOffset;
                         s32 xOffset;
@@ -2174,7 +2174,7 @@ void func_800C41A4(UiList* prompt, UiObject* obj)
                 Gp_SelItemRec = rec;
                 if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
                     sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-                    dialog = Ui_SpawnFromDesc(&D_8010EE6C, 4, 1, 1, obj);
+                    dialog = uiSpawnObject(&D_8010EE6C, 4, 1, 1, obj);
                     if (dialog != NULL) {
                         uiPositionRowDialog(&(dialog)->panel, prompt, &(obj)->panel);
                         obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
@@ -2348,7 +2348,7 @@ void Gp_ArmorMenuTask(Task* arg0)
                                 if (D_8010E9F4.itemCount != 0) {
                                     UiObject* spawned;
                                     sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-                                    spawned = Ui_SpawnFromDesc(&D_8010ECAC, 0, 1, 0x10, obj);
+                                    spawned = uiSpawnObject(&D_8010ECAC, 0, 1, 0x10, obj);
                                     if (spawned != NULL) {
                                         s32 yOffset;
                                         s32 xOffset;

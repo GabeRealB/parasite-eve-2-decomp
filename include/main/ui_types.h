@@ -189,7 +189,7 @@ STATIC_ASSERT(OFFSET_OF(UiObject, owner) == 0x28, ui_object_owner_offset);
 
 /// Initial panel layout and owning-task seeds for a task-owned UI object.
 ///
-/// `Ui_SpawnFromDesc` reads this recipe synchronously and retains no pointer to
+/// `uiSpawnObject` reads this recipe synchronously and retains no pointer to
 /// it. Spawned entries require a non-NULL `contentCallback` whose code remains
 /// live for the task's lifetime. Empty descriptor-table rows must not be spawned.
 ///

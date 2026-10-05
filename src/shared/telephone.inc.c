@@ -454,7 +454,7 @@ static void Telephone_DrawUsageRow(UiList* arg0, UiObject* arg1)
     if (arg0->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_TRIANGLE) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-            Ui_SpawnFromDesc(&D_8010EFA0, item, 1, 1, arg1);
+            uiSpawnObject(&D_8010EFA0, item, 1, 1, arg1);
             arg1->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
         }
     }
@@ -675,7 +675,7 @@ static void Telephone_UsageTask(Task* task)
             return;
         }
         task->work = work;
-        Ui_SpawnFromDesc(&Telephone_Data_80181C90, 0, 0, 1, obj);
+        uiSpawnObject(&Telephone_Data_80181C90, 0, 0, 1, obj);
         if (task->spawnArg1.value == 0) {
             Telephone_BuildWeaponUsage(list, obj);
         } else {
@@ -733,7 +733,7 @@ static inline void Telephone_MenuTask(Task* task)
     if (ready == 0) {
         if (task->state == 0) {
             gGameSession->uiOpen = one;
-            Ui_SpawnFromDesc(&D_800611E4, 0, 0, 0, obj);
+            uiSpawnObject(&D_800611E4, 0, 0, 0, obj);
             obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
             obj->panel.style       |= USER_INTERFACE_PANEL_NO_FRAME;
             task->state             = task->state + 1;

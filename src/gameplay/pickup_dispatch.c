@@ -191,10 +191,10 @@ void Gp_ItemMenuInit(UiObject* arg0, Task* arg1)
         arg1->work = mem;
         if (gGameSession->cutsceneHold == 1) {
             Gp_ClearPreviewItems();
-            Ui_SpawnFromDesc(&D_8010EB94, 0, 1, 8, arg0);
+            uiSpawnObject(&D_8010EB94, 0, 1, 8, arg0);
             scale = 2;
         } else {
-            Ui_SpawnFromDesc(&D_8010EAD0, 0, 1, 8, arg0);
+            uiSpawnObject(&D_8010EAD0, 0, 1, 8, arg0);
             scale = 1;
         }
         uiSetPanelContentSize(&(arg0)->panel, 0, uiGetTextRowsHeight(scale) + 1);

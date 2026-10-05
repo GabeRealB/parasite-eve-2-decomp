@@ -815,10 +815,10 @@ void Gp_DrawCollectedRow(UiList* arg0, UiObject* arg1)
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
             if (gGameSession->cutsceneHold == flag) {
-                Ui_SpawnFromDesc(&D_8010EF84, 0, 1, 1, arg1);
+                uiSpawnObject(&D_8010EF84, 0, 1, 1, arg1);
                 arg1->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
             } else {
-                obj = Ui_SpawnFromDesc(&D_8010EF68, item, 1, 1, arg1);
+                obj = uiSpawnObject(&D_8010EF68, item, 1, 1, arg1);
                 if (obj != NULL) {
                     uiPositionRowDialog(&(obj)->panel, arg0, &(arg1)->panel);
                     arg1->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
@@ -826,7 +826,7 @@ void Gp_DrawCollectedRow(UiList* arg0, UiObject* arg1)
             }
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_TRIANGLE) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-            Ui_SpawnFromDesc(&D_8010EFA0, item, 1, 1, arg1);
+            uiSpawnObject(&D_8010EFA0, item, 1, 1, arg1);
             arg1->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
         }
     }
@@ -855,7 +855,7 @@ void Gp_KeyItemMenuTask(Task* arg0)
         menu->flags = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
         if (arg0->spawnArg1.value == 0) {
             uiSetPanelContentSize(&(obj)->panel, 0, uiGetTextRowsHeight(0xA) + 1);
-            Ui_SpawnFromDesc(&D_8010F868, 0, 0, 1, obj);
+            uiSpawnObject(&D_8010F868, 0, 0, 1, obj);
         }
         menu->selectedItemIndex                   = 0;
         menu->firstVisibleItemIndex.unsignedValue = 0;

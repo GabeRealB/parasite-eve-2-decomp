@@ -1122,10 +1122,10 @@ void Gp_PeListPanelTask(Task* arg0)
     uiDrawTitle(&(obj)->panel, Gp_StrPeList);
     if (arg0->state == 0) {
         desc = D_8010F718;
-        Ui_SpawnFromDesc(desc, 0, 1, 1, obj);
-        Ui_SpawnFromDesc(desc + 1, 1, 0, 1, obj);
-        Ui_SpawnFromDesc(desc + 2, 2, 0, 1, obj);
-        Ui_SpawnFromDesc(desc + 3, 3, 0, 1, obj);
+        uiSpawnObject(desc, 0, 1, 1, obj);
+        uiSpawnObject(desc + 1, 1, 0, 1, obj);
+        uiSpawnObject(desc + 2, 2, 0, 1, obj);
+        uiSpawnObject(desc + 3, 3, 0, 1, obj);
         arg0->state = arg0->state + 1;
     }
     color          = 0x606060;
@@ -1273,21 +1273,21 @@ void Gp_PickupTask(Task* arg0)
     obj->result = USER_INTERFACE_RESULT_NONE;
     if (arg0->state == 0) {
         desc = D_8010F02C;
-        Ui_SpawnFromDesc(desc, 0, 0, 1, obj);
+        uiSpawnObject(desc, 0, 0, 1, obj);
         if (arg0->spawnArg1.value != 0) {
             Gp_SetCollectedBit(Gp_PubItemLoc);
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
             one     = 1;
-            spawned = Ui_SpawnFromDesc(desc + 3, Gp_PubItemLoc | 0x10000, one, one, obj);
+            spawned = uiSpawnObject(desc + 3, Gp_PubItemLoc | 0x10000, one, one, obj);
             if (spawned != NULL) {
                 spawned->resultValue = 0x33;
             }
         } else if (Gp_CanAddItem(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, Gp_PubItemLoc) != 0) {
             one = 1;
-            Ui_SpawnFromDesc(desc + 1, 0, one, one, obj);
+            uiSpawnObject(desc + 1, 0, one, one, obj);
         } else {
             one = 1;
-            Ui_SpawnFromDesc(desc + 2, 0, one, one, obj);
+            uiSpawnObject(desc + 2, 0, one, one, obj);
         }
         arg0->state = arg0->state + 1;
     }
@@ -1398,7 +1398,7 @@ void Gp_PickupTitleTask(Task* arg0)
         uiDrawTitle(&(obj)->panel, Gp_StrKeyItem);
     }
     if (arg0->state == 0) {
-        spawned = Ui_SpawnFromDesc(&D_8010F09C, 0, 0, 1, obj);
+        spawned = uiSpawnObject(&D_8010F09C, 0, 0, 1, obj);
         uiSetPanelContentSize(&(obj)->panel, 0, uiGetTextRowsHeight(1) + 1);
         if (spawned != NULL) {
             spawned->panel.bounds.unsignedRect.y = obj->panel.bounds.unsignedRect.y + obj->panel.bounds.unsignedRect.h;
@@ -1443,7 +1443,7 @@ void Gp_PickupAskTask(Task* arg0)
     obj         = arg0->spawnArg2.pointer;
     obj->result = USER_INTERFACE_RESULT_NONE;
     if (arg0->state == 0) {
-        spawned = Ui_SpawnFromDesc(&D_8010EA98, 0, 1, 2, obj);
+        spawned = uiSpawnObject(&D_8010EA98, 0, 1, 2, obj);
         if (spawned != NULL) {
             spawned->panel.bounds.unsignedRect.x = (obj->panel.contentOriginX.unsignedValue + obj->panel.contentRight.unsignedValue + 0xA) - spawned->panel.bounds.unsignedRect.w;
             spawned->panel.bounds.unsignedRect.y = obj->panel.contentOriginY.unsignedValue + obj->panel.contentBottom.unsignedValue;
@@ -1477,7 +1477,7 @@ void Gp_PickupAskTask(Task* arg0)
                     }
                     obj->resultValue = childObj->resultValue;
                     if (obj->resultValue == 0x33) {
-                        Ui_SpawnFromDesc(&D_8010F080, (s32)(Gp_PubItemLoc), 1, 1, obj);
+                        uiSpawnObject(&D_8010F080, (s32)(Gp_PubItemLoc), 1, 1, obj);
                         obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
                         uiStartTreeClosing(childObj, childObj->owner);
                         arg0->state = arg0->state + 1;
@@ -1505,7 +1505,7 @@ void Gp_PickupFullTask(Task* arg0)
     uiDrawPanelLabelWithChildFocus(&(obj)->panel, Gp_StrWarning);
     obj->result = USER_INTERFACE_RESULT_NONE;
     if (arg0->state == 0) {
-        spawned = Ui_SpawnFromDesc(&D_8010EA98, 1, 1, 2, obj);
+        spawned = uiSpawnObject(&D_8010EA98, 1, 1, 2, obj);
         if (spawned != NULL) {
             spawned->panel.bounds.unsignedRect.x = (obj->panel.contentOriginX.unsignedValue + obj->panel.contentRight.unsignedValue + 0xA) - spawned->panel.bounds.unsignedRect.w;
             spawned->panel.bounds.unsignedRect.y = obj->panel.contentOriginY.unsignedValue + obj->panel.contentBottom.unsignedValue;
@@ -1574,7 +1574,7 @@ static UiObject* func_800CD704(UiObject* arg0)
 {
     UiObject* obj;
 
-    obj = Ui_SpawnFromDesc(&D_8010EA98, 1, 1, 2, arg0);
+    obj = uiSpawnObject(&D_8010EA98, 1, 1, 2, arg0);
     if (obj != NULL) {
         obj->panel.bounds.unsignedRect.x = (arg0->panel.contentOriginX.unsignedValue + arg0->panel.contentRight.unsignedValue + 0xA) - obj->panel.bounds.unsignedRect.w;
         obj->panel.bounds.unsignedRect.y = arg0->panel.contentOriginY.unsignedValue + arg0->panel.contentBottom.unsignedValue;
@@ -1588,7 +1588,7 @@ static UiObject* func_800CD78C(UiObject* arg0)
 {
     UiObject* obj;
 
-    obj = Ui_SpawnFromDesc(&D_8010EA98, 2, 1, 2, arg0);
+    obj = uiSpawnObject(&D_8010EA98, 2, 1, 2, arg0);
     if (obj != NULL) {
         obj->panel.bounds.unsignedRect.x = (arg0->panel.contentOriginX.unsignedValue + arg0->panel.contentRight.unsignedValue + 0xA) - obj->panel.bounds.unsignedRect.w;
         obj->panel.bounds.unsignedRect.y = arg0->panel.contentOriginY.unsignedValue + arg0->panel.contentBottom.unsignedValue;
@@ -1602,7 +1602,7 @@ UiObject* func_800CD814(UiObject* arg0)
 {
     UiObject* obj;
 
-    obj = Ui_SpawnFromDesc(&D_8010EA98, 0, 1, 2, arg0);
+    obj = uiSpawnObject(&D_8010EA98, 0, 1, 2, arg0);
     if (obj != NULL) {
         obj->panel.bounds.unsignedRect.x = (arg0->panel.contentOriginX.unsignedValue + arg0->panel.contentRight.unsignedValue + 0xA) - obj->panel.bounds.unsignedRect.w;
         obj->panel.bounds.unsignedRect.y = arg0->panel.contentOriginY.unsignedValue + arg0->panel.contentBottom.unsignedValue;
@@ -1616,7 +1616,7 @@ UiObject* func_800CD89C(UiObject* arg0)
 {
     UiObject* obj;
 
-    obj = Ui_SpawnFromDesc(&D_8010EA98, 3, 1, 2, arg0);
+    obj = uiSpawnObject(&D_8010EA98, 3, 1, 2, arg0);
     if (obj != NULL) {
         obj->panel.bounds.unsignedRect.x = (arg0->panel.contentOriginX.unsignedValue + arg0->panel.contentRight.unsignedValue + 0xA) - obj->panel.bounds.unsignedRect.w;
         obj->panel.bounds.unsignedRect.y = arg0->panel.contentOriginY.unsignedValue + arg0->panel.contentBottom.unsignedValue;
@@ -1774,7 +1774,7 @@ void Gp_CheckItemInfoButton(UiObject* arg0)
     if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_TRIANGLE) && (Gp_SelItemRec != NULL) && (Gp_SelItemRec->itemId != INVENTORY_ITEM_NONE)) {
         one = 1;
         sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-        Ui_SpawnFromDesc(&D_8010EFA0, (s32)Gp_SelItemRec->itemId, one, one, arg0);
+        uiSpawnObject(&D_8010EFA0, (s32)Gp_SelItemRec->itemId, one, one, arg0);
         arg0->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
     }
 }
@@ -1801,7 +1801,7 @@ void Gp_SpawnPickupUiTask(Task* arg0)
                 desc = &D_8010D6D8;
                 break;
         }
-        obj = Ui_SpawnFromDesc(desc, 0, 0, 0, NULL);
+        obj = uiSpawnObject(desc, 0, 0, 0, NULL);
         if (obj != NULL) {
             arg0->spawnArg1.pointer = obj;
             gGameSession->uiOpen    = 1;

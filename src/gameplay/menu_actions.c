@@ -400,8 +400,8 @@ void Gp_WeaponSummaryTask(Task* arg0)
     obj = arg0->spawnArg2.pointer;
     if (arg0->state == 0) {
         desc = &D_8010EBCC;
-        Ui_SpawnFromDesc(desc, 0, 0, 0, obj);
-        Ui_SpawnFromDesc(desc + 1, 0, 0, 0, obj);
+        uiSpawnObject(desc, 0, 0, 0, obj);
+        uiSpawnObject(desc + 1, 0, 0, 0, obj);
         arg0->state = arg0->state + 1;
     }
     obj->result = USER_INTERFACE_RESULT_NONE;
@@ -471,7 +471,7 @@ static UiObject* Gp_OpenItemCmdMenu(UiList* arg0, UiObject* arg1, InventoryItemR
     if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm)) {
         sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
         one = 1;
-        obj = Ui_SpawnFromDesc(&D_8010EE6C, arg3, one, one, arg1);
+        obj = uiSpawnObject(&D_8010EE6C, arg3, one, one, arg1);
         if (obj != NULL) {
             uiPositionRowDialog(&(obj)->panel, arg0, &(arg1)->panel);
             arg1->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
@@ -676,7 +676,7 @@ void Gp_DrawUseCmd(UiList* arg0, UiObject* arg1)
     if (arg0->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-            Ui_SpawnFromDesc(&D_8010EF84, 0, 1, 1, arg1);
+            uiSpawnObject(&D_8010EF84, 0, 1, 1, arg1);
             arg1->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
         }
     }
@@ -855,7 +855,7 @@ void Gp_DrawExchangeSlotCmd(UiList* arg0, UiObject* arg1)
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
             one = 1;
-            obj = Ui_SpawnFromDesc(&D_8010ED00, one, one, 0x10, arg1);
+            obj = uiSpawnObject(&D_8010ED00, one, one, 0x10, arg1);
             if (obj != NULL) {
                 y                                = -0x5C;
                 obj->panel.bounds.unsignedRect.y = y;
@@ -982,7 +982,7 @@ static void Gp_SpawnItemUsePrompt(UiList* arg0, UiObject* arg1)
     slot = &D_8010D3A0[id];
     if (*slot != NULL) {
         one = 1;
-        if (Ui_SpawnFromDesc(&D_8010EE88, (s32)(id), one, one, arg1) != NULL) {
+        if (uiSpawnObject(&D_8010EE88, (s32)(id), one, one, arg1) != NULL) {
             Gp_SetItemSeenBit(id, 1);
         }
         arg1->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
@@ -1068,7 +1068,7 @@ void Gp_MapTaskState2(Task* arg0)
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_TRIANGLE) != 0) {
             D_8010F13D = func_800E3FCC(0xA2);
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-            Ui_SpawnFromDesc(&D_8010F15C, 0, 1, 1, obj);
+            uiSpawnObject(&D_8010F15C, 0, 1, 1, obj);
             obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
         }
     }
@@ -1702,7 +1702,7 @@ void Gp_HelpPanelTask(Task* arg0)
             break;
         case 1:
             if (CdCmd_IsIdle() & 0xFFFF) {
-                Ui_SpawnFromDesc(&D_8010F178, 0, 0, 1, obj);
+                uiSpawnObject(&D_8010F178, 0, 0, 1, obj);
                 arg0->state = arg0->state + 1;
             }
             break;
@@ -1986,7 +1986,7 @@ void Gp_DrawReviveCmd(UiList* arg0, UiObject* arg1)
                 Gp_SpawnItemPrompt(arg1, item, 0, 0);
                 arg1->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
             } else {
-                Ui_SpawnFromDesc(&D_8010F7A4, flags, 1, 0xA, arg1);
+                uiSpawnObject(&D_8010F7A4, flags, 1, 0xA, arg1);
                 arg1->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
             }
         }
@@ -2186,7 +2186,7 @@ void Gp_DrawPeSlotRow(UiList* arg0, UiObject* arg1)
         Gp_SetPreviewItem(item, 0);
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
             one = 1;
-            obj = Ui_SpawnFromDesc(&D_8010F670, item, one, one, arg1);
+            obj = uiSpawnObject(&D_8010F670, item, one, one, arg1);
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
             if (obj != NULL) {
                 uiPositionRowDialog(&(obj)->panel, arg0, &(arg1)->panel);
@@ -2195,7 +2195,7 @@ void Gp_DrawPeSlotRow(UiList* arg0, UiObject* arg1)
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_TRIANGLE) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
             one = 1;
-            Ui_SpawnFromDesc(&D_8010F7F8, item, one, one, arg1);
+            uiSpawnObject(&D_8010F7F8, item, one, one, arg1);
             arg1->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
         }
     }
@@ -2442,7 +2442,7 @@ void Gp_PeUpgradePanelTask(Task* arg0)
             frame->panel.animationTicks         = obj->panel.animationTicks - 8;
             frame->panel.bounds.unsignedRect.y += 4;
         }
-        Ui_SpawnFromDesc(D_8010F7C0, id, 0, 1, obj);
+        uiSpawnObject(D_8010F7C0, id, 0, 1, obj);
         arg0->state = arg0->state + 1;
     }
 
@@ -2523,7 +2523,7 @@ void Gp_PeUpgradePanelTask(Task* arg0)
                         price = (price * 2) / 5;
                     }
                     if (cfg->exp < (price & 0xFFFF)) {
-                        Ui_SpawnFromDesc(&D_8010F788, 0xC, 1, 1, obj);
+                        uiSpawnObject(&D_8010F788, 0xC, 1, 1, obj);
                         uiStartTreeClosing(childObj, childObj->owner);
                     } else {
                         price = Gp_IdParamHi.rows[(row3 * 3 + col3) * 3 + lvl3].column.expCost;
@@ -2849,7 +2849,7 @@ void Gp_MapScreenTask(Task* arg0)
     obj = arg0->spawnArg2.pointer;
     if (arg0->state == 0) {
         one                     = 1;
-        obj                     = Ui_SpawnFromDesc(&D_8010F840, arg0->spawnArg1, one, one, NULL);
+        obj                     = uiSpawnObject(&D_8010F840, arg0->spawnArg1, one, one, NULL);
         arg0->spawnArg2.pointer = obj;
         if (obj != NULL) {
             obj->panel.bounds.unsignedRect.x = (u16)D_80114E8C;
@@ -3164,7 +3164,7 @@ UiObject* Gp_SpawnItemPrompt(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3)
 
     one    = 1;
     arg3 <<= 16;
-    return Ui_SpawnFromDesc(&D_8010F788, arg3 | arg1, one, one, arg0);
+    return uiSpawnObject(&D_8010F788, arg3 | arg1, one, one, arg0);
 }
 
 s32 func_800D4E78(s32 arg0, s32 arg1, s32 arg2)
@@ -3333,7 +3333,7 @@ void Gp_DrawDiscardCmd(UiList* arg0, UiObject* arg1)
     if (arg0->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-            Ui_SpawnFromDesc(&D_8010F6FC, 0, 1, 1, arg1);
+            uiSpawnObject(&D_8010F6FC, 0, 1, 1, arg1);
             arg1->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
         }
     }
@@ -3503,7 +3503,7 @@ void Gp_DrawItemCmd(UiList* arg0, UiObject* arg1)
     textDrawString(&req, Gp_StrItem2);
     if (arg0->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
-            Ui_SpawnFromDesc(&D_8010EFBC, 0, 1, 1, arg1);
+            uiSpawnObject(&D_8010EFBC, 0, 1, 1, arg1);
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
             uiStartPanelHiding(arg1, arg1->owner);
             arg1->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
