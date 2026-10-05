@@ -1,15 +1,18 @@
 /* Part of the Pyke flame library; see pyke_flame.h. */
 
-/// Exit callback: unlinks the `PykeFlameBody` at `Task::work`, if one was
-/// linked, and releases the `EffectWork` in `Task::spawnArg2`. `body` is the
-/// block's first member, so the pointer is that `WorldCollisionBody`.
-static void pykeFlameRelease(Task* task)
+/// Tears down a counted flying flame after unlinking its collision sphere.
+///
+/// `task` owns a `PykeFlameBody` in `work` (or NULL) and a
+/// separate `EffectWork` in `spawnArg2.pointer`. Default task teardown frees
+/// the collision block and releases the coordinate body and task. Call once;
+/// neither allocation nor the task may be used after teardown.
+static void _pykeFlameRelease(Task* task)
 {
-    WorldCollisionBody* body = task->work;
-    void*               mem  = task->spawnArg2.pointer;
+    PykeFlameBody* flame      = task->work;
+    EffectWork*    effectWork = task->spawnArg2.pointer;
 
-    if (body != NULL) {
-        worldCollisionUnlinkBody(body);
+    if (flame != NULL) {
+        worldCollisionUnlinkBody(&flame->body);
     }
-    effectKillTask(mem, task);
+    effectKillTask(effectWork, task);
 }

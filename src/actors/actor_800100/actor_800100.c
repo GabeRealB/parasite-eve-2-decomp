@@ -145,10 +145,6 @@ extern s16              D_actor_800100_80167218[];
 extern s16              D_actor_800100_80167224[];
 extern u8               D_actor_800100_80167230[];
 
-/// Draws one frame of the launched projectile's spinning sprite at `pos`:
-/// `frame` walks the twelve windows of `gEffectSpriteAtlasFrames`, `width` is the flare's
-/// half-width (divided down by the projected depth) and `ang` its spin, so the
-/// quad is a square rotated by `ang` rather than an axis-aligned sprite.
 static void func_actor_800100_80163214(Task* arg0);
 static void func_actor_800100_80163C04(Task* arg0);
 static void func_actor_800100_80163D54(Task* arg0);
@@ -1059,12 +1055,12 @@ void func_actor_800100_80161F20(Task* task)
                 case 1:
                     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
                         work->age--;
-                        pykeFlameDrawNozzle(
-                            MATRIX_TRANS(&coord->workm), work->age, 0x80);
+                        _pykeFlameDrawNozzle(
+                            MATRIX_TRANS(&coord->workm), work->age, PYKE_FLAME_NOZZLE_SIZE_SCALE);
                         break;
                     }
-                    pykeFlameDrawNozzle(
-                        MATRIX_TRANS(&coord->workm), work->age, 0x80);
+                    _pykeFlameDrawNozzle(
+                        MATRIX_TRANS(&coord->workm), work->age, PYKE_FLAME_NOZZLE_SIZE_SCALE);
                     lightSlot->framesLeft = 4;
                     slot->inner           = 0x80;
                     slot->outer           = 0x400;

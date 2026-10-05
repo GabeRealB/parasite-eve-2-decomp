@@ -50,7 +50,7 @@ func_actor_800100_80161F20 = 0x80161F20; // type:func
 
 func_actor_800100_801624F0 = 0x801624F0; // type:func
 _actor800100GetContactDistance = 0x8016709c; // type:func
-pykeFlameDrawNozzle = 0x80162264; // type:func
-pykeFlameDrawBlob = 0x80162A14; // type:func
-pykeFlameDrawSplash = 0x80162E90; // type:func
-pykeFlameRelease = 0x801631C8; // type:func
+_pykeFlameDrawNozzle = 0x80162264; // type:func
+_pykeFlameDrawBlob = 0x80162A14; // type:func
+_pykeFlameDrawSplash = 0x80162E90; // type:func
+_pykeFlameRelease = 0x801631C8; // type:func

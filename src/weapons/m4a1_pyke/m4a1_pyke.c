@@ -111,12 +111,12 @@ void func_m4a1_pyke_8011D1F8(Task* task)
                 case 1:
                     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
                         work->age--;
-                        pykeFlameDrawNozzle(
-                            MATRIX_TRANS(&coord->workm), work->age, 0x80);
+                        _pykeFlameDrawNozzle(
+                            MATRIX_TRANS(&coord->workm), work->age, PYKE_FLAME_NOZZLE_SIZE_SCALE);
                         break;
                     }
                     actorRenderComposeCoord(coord);
-                    pykeFlameDrawNozzle(MATRIX_TRANS(&coord->workm), work->age, 0x80);
+                    _pykeFlameDrawNozzle(MATRIX_TRANS(&coord->workm), work->age, PYKE_FLAME_NOZZLE_SIZE_SCALE);
                     lightSlot->framesLeft = 4;
                     slot->inner           = 0x80;
                     slot->outer           = 0x400;

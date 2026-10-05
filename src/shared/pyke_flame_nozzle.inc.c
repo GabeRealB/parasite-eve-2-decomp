@@ -1,77 +1,83 @@
 /* Part of the Pyke flame library; see pyke_flame.h. */
 
-/// Draws one frame of the Pyke's beam head at the world point `pos`. The point
-/// is projected through `GsWSMATRIX` by a single `RTPS` into a 0x18-byte
-/// scratchpad block; the sprite is dropped whole if that `RTPS` sets its
-/// `FLAG`. `frame` walks the six 0x20-wide sprite cells of the strip at
-/// `(v = 0x98..0xB7)`, and `brightness` scales the on-screen half-extent, which
-/// shrinks with distance as `brightness * 31 / depth`.
-void pykeFlameDrawNozzle(VECTOR3* pos, u16 frame, s32 brightness)
+/// Draws the animated, additive flame at the weapon nozzle as a billboard.
+///
+/// Borrows the three s32 world coordinates for this call, narrowing to s16.
+/// `animationFrame` wraps modulo six 32-texel cells. `sizeScale` controls the
+/// screen half-side in pixels as sizeScale * 31 / (SZ3 / 4 + 1); it does not
+/// modulate colour. A negative GTE FLAG rejects the projection. Requires space
+/// for one scratch block and one POLY_FT4 in the frame arena; the packet must
+/// remain live through GPU drawing.
+static void _pykeFlameDrawNozzle(const VECTOR3* worldPosition, u16 animationFrame, u16 sizeScale)
 {
-    u8*                  head;
-    EffectCentreScratch* block;
-    POLY_FT4*            prim;
-    SVECTOR*             vec;
-    s16                  x;
-    s16                  y;
-    u16                  uv;
-    s32                  u0;
-    s32                  u1;
-    u16                  vz;
+    enum { FRAME_COUNT = 6,
+           CELL_SHIFT  = 5,
+           UV_SPAN     = (1 << CELL_SHIFT) - 1,
+           TEXTURE_TOP = 0x98 };
 
-    head                                                                        = SCRATCH_STACK_CURSOR(u8);
-    ((EffectCentreScratch*)(head - sizeof(EffectCentreScratch)))->worldPoint.vx = (u16)pos->vx;
-    block                                                                       = (EffectCentreScratch*)(head - sizeof(EffectCentreScratch));
-    block->worldPoint.vy                                                        = (u16)pos->vy;
-    vz                                                                          = (u16)pos->vz;
-    SCRATCH_STACK_CURSOR(EffectCentreScratch)                                   = block;
-    block->worldPoint.vz                                                        = vz;
-    vec                                                                         = &block->worldPoint;
+    EffectCentreScratch* scratchEnd;
+    EffectCentreScratch* scratch;
+    POLY_FT4*            quad;
+    SVECTOR*             projectionPoint;
+    s16                  screenX;
+    s16                  screenY;
+    u16                  textureFrameIndex;
+    s32                  textureLeft;
+    s32                  textureRight;
+    u16                  worldZ;
+
+    // Project the nozzle centre, then size the square from its biased depth.
+    scratchEnd                                = SCRATCH_STACK_CURSOR(EffectCentreScratch);
+    (scratchEnd - 1)->worldPoint.vx           = (u16)worldPosition->vx;
+    scratch                                   = scratchEnd - 1;
+    scratch->worldPoint.vy                    = (u16)worldPosition->vy;
+    worldZ                                    = (u16)worldPosition->vz;
+    SCRATCH_STACK_CURSOR(EffectCentreScratch) = scratch;
+    scratch->worldPoint.vz                    = worldZ;
+    projectionPoint                           = &scratch->worldPoint;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(vec);
+    gte_ldv0(projectionPoint);
     gte_rtps();
-    gte_stsxy(&((EffectCentreScratch*)(head - sizeof(EffectCentreScratch)))->screenX);
-    gte_stflg(&((EffectCentreScratch*)(head - sizeof(EffectCentreScratch)))->projectionFlags);
-    if (block->projectionFlags >= 0) {
-        gte_stszotz(&((EffectCentreScratch*)(head - sizeof(EffectCentreScratch)))->depth);
-        block->depth++;
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setlen(prim, 9);
-        setcode(prim, 0x2F);
-        prim->tpage = 0x29;
-        prim->clut  = 0x430D;
-        prim->v0    = 0x98;
-        prim->v1    = 0x98;
-        prim->v2    = 0xB7;
-        prim->v3    = 0xB7;
-        /* The remainder has to land in a `u16` of its own: writing it back to
-           `frame` lets GCC fold the truncation into the shift, and taking the
-           `u0` / `u1` pair straight off `frame` costs the `$a0` / `$a1`
-           allocation the ROM has. */
-        uv                  = frame % 6;
-        u0                  = uv << 5;
-        u1                  = u0 + 0x1F;
-        prim->u0            = u0;
-        prim->u1            = u1;
-        prim->u2            = u0;
-        prim->u3            = u1;
-        block->screenExtent = ((u16)brightness * 31) / block->depth;
-        x                   = block->screenX - (u16)block->screenExtent;
-        prim->x2            = x;
-        prim->x0            = x;
-        x                   = block->screenX + (u16)block->screenExtent;
-        prim->x3            = x;
-        prim->x1            = x;
-        y                   = block->screenY - (u16)block->screenExtent;
-        prim->y1            = y;
-        prim->y0            = y;
-        y                   = block->screenY + (u16)block->screenExtent;
-        prim->y3            = y;
-        prim->y2            = y;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
+    gte_stsxy(&(scratchEnd - 1)->screenX);
+    gte_stflg(&(scratchEnd - 1)->projectionFlags);
+    if (scratch->projectionFlags >= 0) {
+        gte_stszotz(&(scratchEnd - 1)->depth);
+        scratch->depth++;
+        quad           = gGpuPrimCursor;
+        gGpuPrimCursor = quad + 1;
+        setPolyFT4(quad);
+        setSemiTrans(quad, 1);
+        setShadeTex(quad, 1);
+        quad->tpage = EFFECT_SPRITE_ATLAS_TEXTURE_PAGE;
+        quad->clut  = getClut(208, 268);
+        quad->v0    = TEXTURE_TOP;
+        quad->v1    = TEXTURE_TOP;
+        quad->v2    = TEXTURE_TOP + UV_SPAN;
+        quad->v3    = TEXTURE_TOP + UV_SPAN;
+        // Keep the wrapped frame in a halfword before forming byte UVs.
+        textureFrameIndex     = animationFrame % FRAME_COUNT;
+        textureLeft           = textureFrameIndex << CELL_SHIFT;
+        textureRight          = textureLeft + UV_SPAN;
+        quad->u0              = textureLeft;
+        quad->u1              = textureRight;
+        quad->u2              = textureLeft;
+        quad->u3              = textureRight;
+        scratch->screenExtent = (sizeScale * UV_SPAN) / scratch->depth;
+        screenX               = scratch->screenX - (u16)scratch->screenExtent;
+        quad->x2              = screenX;
+        quad->x0              = screenX;
+        screenX               = scratch->screenX + (u16)scratch->screenExtent;
+        quad->x3              = screenX;
+        quad->x1              = screenX;
+        screenY               = scratch->screenY - (u16)scratch->screenExtent;
+        quad->y1              = screenY;
+        quad->y0              = screenY;
+        screenY               = scratch->screenY + (u16)scratch->screenExtent;
+        quad->y3              = screenY;
+        quad->y2              = screenY;
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                quad);
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectCentreScratch);
 }

@@ -24,8 +24,11 @@
 #include "gameplay/world_collision_types.h"
 #include "main/task_types.h"
 
-void pykeFlameDrawNozzle(VECTOR3* pos, u16 frame, s32 brightness);
-void pykeFlameDrawBlob(VECTOR3* pos, u16 frame, u16 width, s16 ang);
+/// Sizing numerator for the nozzle billboard; projected half-side is 31 * scale / depth.
+enum { PYKE_FLAME_NOZZLE_SIZE_SCALE = 0x80 };
+
+static void _pykeFlameDrawNozzle(const VECTOR3* worldPosition, u16 animationFrame, u16 sizeScale);
+static void _pykeFlameDrawBlob(const VECTOR3* worldPosition, u16 animationFrame, u16 sizeScale, s16 spinAngle);
 
 /// Collision block of one flying flame, allocated on its first tick and kept
 /// at `Task::work`.
@@ -36,16 +39,15 @@ void pykeFlameDrawBlob(VECTOR3* pos, u16 frame, u16 width, s16 ang);
 /// category 2), and its centre stays the origin of the coordinate the flame
 /// flies on. The sphere takes pair tests. Room geometry is a separate segment
 /// test along the flight. An occupied contact whose key has category 3 in the
-/// high halfword (0x30000) ends the flame. The exit callback unlinks
-/// `Task::work` as a `WorldCollisionBody`, which addresses this block while
-/// `body` remains its first member.
+/// high halfword (0x30000) ends the flame. The exit callback unlinks `body`
+/// before default task teardown frees this block.
 typedef struct {
     WorldCollisionBody    body;        // Sphere linked on list 1; pair tests are enabled after the link
     WorldCollisionContact contacts[1]; // One-entry table `body` borrows. The entry is marked LAST; occupied contacts are cleared each flight frame
 } PykeFlameBody;
 STATIC_ASSERT_SIZEOF(PykeFlameBody, 0x38);
 
-static void pykeFlameDrawSplash(VECTOR3* pos, s32 width);
-static void pykeFlameRelease(Task* task);
+static void _pykeFlameDrawSplash(const VECTOR3* worldPosition, s32 halfSize);
+static void _pykeFlameRelease(Task* task);
 
 #endif /* SRC_SHARED_PYKE_FLAME_H */

@@ -6045,24 +6045,24 @@ UV live ranges without a volatile asm, which is what lets the swap stick.
 
 ## A `u16` temp for the divide result, plus `setUV4` store order, decides `$a0` vs `$a1`
 
-`func_m4a1_pyke_8011D548` writes a `POLY_FT4` whose `u` coordinates come from
-`frame % 6`, with `frame` a `u16` parameter. The ROM's code is
+`_pykeFlameDrawNozzle` writes a `POLY_FT4` whose `u` coordinates come from
+`animationFrame % 6`, with `animationFrame` a `u16` parameter. The ROM's code is
 
 ```
-subu   a0, a0, v0        # frame % 6
+subu   a0, a0, v0        # animationFrame % 6
 andi   a0, a0, 0xFFFF
 sll    a0, a0, 5         # u0
 addiu  v0, a0, 0x1F      # u1
-sb     a0, 0xC(a1)       # prim in $a1, frame in $a0
+sb     a0, 0xC(a1)       # prim in $a1, animationFrame in $a0
 ```
 
 and two independent choices are needed to reach it.
 
 **The remainder needs its own `u16` local.** Writing it back to the parameter
-(`frame %= 6; u0 = frame << 5;`) keeps the `andi` only while `u0` is 32-bit;
+(`animationFrame %= 6; u0 = animationFrame << 5;`) keeps the `andi` only while `u0` is 32-bit;
 declaring `u0` as `u16` lets combine fold `(u16)((u16)x << 5)` back to a single
 `sll` *and* turn `u1 = u0 + 0x1F` into `ori` (it can see the low five bits are
-zero). A separate `u16 uv = frame % 6; u0 = uv << 5;` with `u0`/`u1` as `s32`
+zero). A separate `u16 textureFrameIndex = animationFrame % 6; u0 = textureFrameIndex << 5;` with `u0`/`u1` as `s32`
 materialises the truncation and keeps the `addiu`, and — the reason it matters
 here — it also gives block 1 one more allocno, which pushes `prim` off `$a0`
 onto `$a1` so the parameter copy `move a0, a1` appears. Pinning
@@ -57029,7 +57029,7 @@ to the same arithmetic.
 
 ## `u16 % const` compiles to an *unsigned* magic multiply, not a signed one
 
-`func_m4a1_pyke_8011DCEC` indexes a twelve-frame sprite table and the ROM
+`_pykeFlameDrawBlob` indexes a twelve-frame sprite table and the ROM
 divides with `multu` against `0xAAAAAAAB`:
 
 ```
@@ -57040,7 +57040,7 @@ sll/addu/sll ; subu $a0, $a1, $v0   # a1 - (a1/12)*12
 andi  $a0, $a0, 0xFFFF        # zero-extend the remainder again
 ```
 
-`unsigned short` promotes to `int`, so `frame % 12` looks like it should be a
+`unsigned short` promotes to `int`, so `animationFrame % 12` looks like it should be a
 *signed* division (magic `0x2AAAAAAB` plus the sign-correction `srl 31`/`addu`
 tail). It is not, because `build_binary_op` shortens `TRUNC_DIV_EXPR` /
 `TRUNC_MOD_EXPR` when the left operand is unsigned or the right is a constant
@@ -57052,8 +57052,8 @@ type. Two things fall out of that, and both show up in the object dump:
 - the *result* is `unsigned short`, so using it as an array subscript costs a
   second `andi 0xFFFF` that looks redundant next to the first one.
 
-So plain `gEffectSpriteAtlasFrames[frame % 12]` with a `u16 frame` parameter reproduces the
-whole sequence. Do not reach for `(u32)frame % 12` to explain the `multu`, and
+So plain `gEffectSpriteAtlasFrames[animationFrame % 12]` with a `u16 animationFrame` parameter reproduces the
+whole sequence. Do not reach for `(u32)animationFrame % 12` to explain the `multu`, and
 do not chase the trailing `andi` with an extra local — the shortening produces
 both on its own. The same rule covers `/`, and it is why a `u16` numerator can
 divide without the `bnez`/`break 7` trap pair that a signed `div` needs.
@@ -57157,7 +57157,7 @@ a call, try the un-folded form first — it is one edit and needs no permuter ru
 
 ## A `short` parameter costs a prologue `sll`/`sra`; put the truncation at the call site
 
-`func_m4a1_pyke_8011E168` is called with `sll $a1, 16` / `sra $a1, 16` in the
+`_pykeFlameDrawSplash` is called with `sll $a1, 16` / `sra $a1, 16` in the
 delay slot, so the argument is plainly a `s16` — but the callee starts the loop
 with a bare `mult $v0, $a1` and no extension of its own. Declaring the parameter
 `s16` reproduces the caller and breaks the callee: GCC 2.8.1 treats a `short`
@@ -57176,9 +57176,9 @@ Give the *prototype* the promoted type and write the narrowing as an explicit
 cast in the caller:
 
 ```c
-void func_m4a1_pyke_8011E168(VECTOR3* pos, s32 width);   /* header */
+static void _pykeFlameDrawSplash(const VECTOR3* worldPosition, s32 halfSize);   /* header */
 
-func_m4a1_pyke_8011E168((VECTOR3*)ground.workm.t, (s16)((work->field_24 * 2) / 3));
+_pykeFlameDrawSplash(MATRIX_TRANS(&ground.workm), (s16)((work->scale * 2) / 3));
 ```
 
 The cast is the same conversion the prototype used to perform, so the caller is
@@ -110769,8 +110769,8 @@ Normalizing both target `.s` files and difflib-ing them is what says which
 edits the port needs. 329 instructions, 9 differing line groups, and every one
 traces to a source difference rather than an allocation one:
 
-- the callee names (`jal func_m4a1_pyke_8011DCEC` -> `..._80162A14` at three
-  call sites, `..._8011E168` -> `..._80162E90`)
+- the callee instances (`jal _pykeFlameDrawBlob` in `m4a1_pyke` -> its
+  `actor_800100` instance at three call sites; `_pykeFlameDrawSplash` likewise)
 - one immediate: `0x21C1E` -> `0x21C9E`
 - one **extra call**: this function's `fade != 0` early-return runs
   `actorRenderComposeCoord(coord)` before the draw call and the sibling's does not
@@ -110796,8 +110796,8 @@ copies should not be promoted to a shared lib unit just because a lookalike
 exists.
 
 **The best case is a diff with no instructions in it at all.**
-`func_actor_800100_80162264` (the same overlay, another flare drawer) is
-byte-identical to `func_m4a1_pyke_8011D548`: strip-and-diff leaves three
+`_pykeFlameDrawNozzle` in `actor_800100` (the same overlay, another flare drawer) is
+byte-identical to its `m4a1_pyke` instance: strip-and-diff leaves three
 differing lines, all of them `.L…` branch labels, 163 instructions each.
 `find` had said so already - `=` in that listing is byte equality, where `~` is
 the same body at a different link offset - so `=` against a `matched` sibling
@@ -110812,8 +110812,8 @@ layout is what the compiler sees.
 
 ### Byte-identical across two *families* still cannot be promoted
 
-`func_actor_800100_80162A14` is the third of that overlay's drawers to come
-from `m4a1_pyke`: `find` reported it against `func_m4a1_pyke_8011DCEC` as
+`_pykeFlameDrawBlob` in `actor_800100` is the third of that overlay's drawers to come
+from `m4a1_pyke`: `find` reported it against the `m4a1_pyke` instance as
 `identical bytes: 2`, so the `=` case above applied again and the port needed
 only the shared `EffectShapeScratch` - the 0x1C `worldPoint / depth / projectionFlags / extent / screenX / screenY`
 block, and the actor_510900 copy also uses that shared record. 100.000% on the first
@@ -110926,8 +110926,8 @@ call, or `otz = (s32)SZ3 >> 2;` in place of the call) doubles the shift and
 leaves the extra instruction unexplained.
 
 The macro is also a `"memory"` barrier, which makes the order of the
-statements around it observable. `func_m4a1_pyke_8011E168` and
-`func_actor_800100_80162E90` are the same splash drawer — same quad, same
+statements around it observable. The `m4a1_pyke` and
+`actor_800100` instances of `_pykeFlameDrawSplash` are the same splash drawer — same quad, same
 `POLY_FT4` constants — and differ in exactly that pair:
 
 ```c

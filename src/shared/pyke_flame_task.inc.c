@@ -49,8 +49,8 @@ static inline void pykeFlameTask(Task* task)
 #if PYKE_FLAME_REDRAW_UPDATES_COORD
         actorRenderComposeCoord(coord);
 #endif
-        pykeFlameDrawBlob(MATRIX_TRANS(&coord->workm),
-                          (work->age >> 1) + 1, work->scale, work->angle);
+        _pykeFlameDrawBlob(MATRIX_TRANS(&coord->workm),
+                           (work->age >> 1) + 1, work->scale, work->angle);
         return;
     }
     work->age = work->age + 1;
@@ -61,7 +61,7 @@ static inline void pykeFlameTask(Task* task)
                 work->age = 0;
                 return;
             }
-            task->exitCallback = pykeFlameRelease;
+            task->exitCallback = _pykeFlameRelease;
             /* The three halfwords are the SVECTOR `gte_rtv0` rotates in
                place, so `field_14` has to be cleared after the random pitch is
                written to `field_12`, not alongside `field_10`. */
@@ -104,14 +104,14 @@ static inline void pykeFlameTask(Task* task)
             after.vx = coord->workm.t[0];
             after.vy = coord->workm.t[1];
             after.vz = coord->workm.t[2];
-            pykeFlameDrawBlob(MATRIX_TRANS(&coord->workm),
-                              (work->age >> 1) + 1, work->scale,
-                              work->angle);
+            _pykeFlameDrawBlob(MATRIX_TRANS(&coord->workm),
+                               (work->age >> 1) + 1, work->scale,
+                               work->angle);
             ang2            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             gRandomLcgState = ang2;
             if ((u16)((ang2 >> 16) % 3) == 0 && gRoomEffectState->groundTraceEnabled != 0 &&
                 worldCollisionProjectGroundCoord(coord, &ground) == 1) {
-                pykeFlameDrawSplash(MATRIX_TRANS(&ground.workm), (s16)((work->scale * 2) / 3));
+                _pykeFlameDrawSplash(MATRIX_TRANS(&ground.workm), (s16)((work->scale * 2) / 3));
             }
             if (worldCollisionCountContactsByKind(flame->body.context.contacts, WORLD_COLLISION_CONTACT_ENEMY_BODY) != 0) {
                 worldCollisionUnlinkBody(&flame->body);
@@ -142,9 +142,9 @@ static inline void pykeFlameTask(Task* task)
             coord->coord.t[2]  += work->move.vz;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             actorRenderComposeCoord(coord);
-            pykeFlameDrawBlob(MATRIX_TRANS(&coord->workm),
-                              (work->age >> 1) + 1, work->scale,
-                              work->angle);
+            _pykeFlameDrawBlob(MATRIX_TRANS(&coord->workm),
+                               (work->age >> 1) + 1, work->scale,
+                               work->angle);
             if (work->age >= 0x15) {
                 effectKillTask(work, task);
             }
