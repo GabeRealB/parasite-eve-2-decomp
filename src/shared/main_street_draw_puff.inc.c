@@ -1,81 +1,92 @@
 /* Part of the Dryfield main street library; see main_street.h. */
 
-/// Projects the coordinate's world position through `GsWSMATRIX` and, when
-/// the GTE flag is non-negative and `depth` is at least 0x41, queues one
-/// semi-transparent shade-tex `POLY_FT4` (tpage 0x2B, clut 0x4383) rotated
-/// about the projected centre. `arg1` selects a 48-texel UV tile in a 5-wide
-/// grid: u = `(arg1 % 5) * 48`, v = `(arg1 / 5) * 48 - 0x80`. `arg2` is a
-/// signed half-extent; the on-screen radius is `(s16)arg2 * 47 / depth`.
-/// `arg3` is the spin angle, applied at `arg3` and `arg3 + 0x400` through
-/// `rsin`/`rcos`.
-void mainStreetDrawPuff(GfxCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
+/// Stores the rotated displacement from the puff's centre to one corner.
+///
+/// `projection` borrows the live scratch block, with positive SZ3 / 4 depth.
+/// The signed half-diagonal is truncated to integer pixels before Q12 rotation;
+/// the angle uses 4096 units per turn and rotation products must fit s32.
+/// Only the two corner offsets change; no storage or pointer is retained.
+static inline void _mainStreetComputePuffCornerOffset(EffectBillboardScratch* projection, s16 sizeFactor, s32 cornerAngle)
 {
-    void**                  scratch;
-    EffectBillboardScratch* scratchHead;
-    EffectBillboardScratch* block;
-    s32*                    depthOutput;
-    POLY_FT4*               prim;
-    s32                     ang;
-    s32                     ang2;
-    s32                     sine;
-    s32                     span;
-    s32                     u0;
-    s32                     v0;
-    s32                     u1;
-    s32                     v1;
-    u16                     vz;
-    u16                     tex;
+    q19_12 sine;
+    s32    scaledSize;
 
-    scratch              = SCRATCH_HEAD_ADDR;
-    scratchHead          = SCRATCH_HEAD_AT(scratch, EffectBillboardScratch);
-    block                = scratchHead - 1;
-    block->worldPoint.vx = (u16)arg0->workm.t[0];
-    block->worldPoint.vy = (u16)arg0->workm.t[1];
-    vz                   = (u16)arg0->workm.t[2];
-    depthOutput          = &block->depth;
-    *scratch             = block;
-    block->worldPoint.vz = vz;
-    tex                  = arg1;
+    sine                      = rsin(cornerAngle);
+    scaledSize                = sizeFactor * MAIN_STREET_PUFF_UV_SPAN;
+    projection->cornerOffsetX = ((scaledSize / projection->depth) * sine) >> MAIN_STREET_PUFF_TRIG_FRACTION_BITS;
+    projection->cornerOffsetY = ((scaledSize / projection->depth) * rcos(cornerAngle)) >> MAIN_STREET_PUFF_TRIG_FRACTION_BITS;
+}
+
+/// Queues one additive, unmodulated frame of the main street's rotating puff billboard.
+///
+/// `coord` borrows an already composed translation in the input space of
+/// `GsWSMATRIX`; only each component's low 16 bits reach the signed projection
+/// vector. `frame` is 0..9, selecting a 48-by-48 cell in the five-column sheet.
+/// The signed V origin wraps to byte 128 for row zero and 176 for row one.
+/// `sizeFactor * 47 / (SZ3 / 4)` is the signed screen half-diagonal in pixels,
+/// truncated toward zero before rotation. `angle` uses 4096 units per turn;
+/// for a positive size factor, zero puts the first corner above the centre
+/// and a quarter turn puts it to the right.
+///
+/// Requires initialized GTE projection settings, an initialized, word-aligned
+/// scratch-stack cursor with room for one `EffectBillboardScratch`, and room
+/// for one `POLY_FT4` in the current primitive arena. The packet is reserved
+/// even if a negative GTE FLAG or depth below 65 rejects it. Scratch storage
+/// is released before returning; queued packets remain borrowed by the GPU until the arena is
+/// reused. No coordinate or scratch pointer is retained.
+static void _mainStreetDrawPuff(const GfxCoord* coord, u16 frame, s16 sizeFactor, s16 angle)
+{
+    EffectBillboardScratch* projection;
+    POLY_FT4*               quad;
+    s32                     cornerAngle;
+    s32                     perpendicularAngle;
+    s32                     leftU;
+    s32                     topV;
+    s32                     rightU;
+    s32                     bottomV;
+
+    projection                = SCRATCH_STACK_RESERVE_BLOCK(EffectBillboardScratch);
+    projection->worldPoint.vx = coord->workm.t[0];
+    projection->worldPoint.vy = coord->workm.t[1];
+    projection->worldPoint.vz = coord->workm.t[2];
+    // Project the composed centre; the puff rotates in screen space.
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&block->worldPoint);
+    gte_ldv0(&projection->worldPoint);
     gte_rtps();
-    prim           = gGpuPrimCursor;
-    gGpuPrimCursor = prim + 1;
-    setlen(prim, 9);
-    setcode(prim, 0x2C);
-    gte_stsxy(&block->screenX);
-    gte_stflg(&block->projectionFlags);
-    if (block->projectionFlags >= 0) {
-        gte_stszotz(depthOutput);
-        if (block->depth >= 0x41) {
-            ang         = (s16)arg3;
-            prim->tpage = 0x2B;
-            prim->clut  = 0x4383;
-            prim->code |= 3;
-            u0          = (tex % 5) * 0x30;
-            v0          = (tex / 5) * 0x30;
-            u1          = u0 + 0x2F;
-            v1          = v0 - 0x51;
-            v0          = v0 - 0x80;
-            setUV4(prim, u0, v0, u1, v0, u0, v1, u1, v1);
-            sine                 = rsin(ang);
-            span                 = (s16)arg2 * 0x2F;
-            block->cornerOffsetX = ((span / block->depth) * sine) >> 12;
-            block->cornerOffsetY = ((span / block->depth) * rcos(ang)) >> 12;
-            prim->x0             = block->screenX + (u16)block->cornerOffsetX;
-            prim->x3             = block->screenX - (u16)block->cornerOffsetX;
-            prim->y0             = block->screenY - (u16)block->cornerOffsetY;
-            prim->y3             = block->screenY + (u16)block->cornerOffsetY;
-            ang2                 = ang + 0x400;
-            block->cornerOffsetX = ((span / block->depth) * rsin(ang2)) >> 12;
-            block->cornerOffsetY = ((span / block->depth) * rcos(ang2)) >> 12;
-            prim->x1             = block->screenX + (u16)block->cornerOffsetX;
-            prim->x2             = block->screenX - (u16)block->cornerOffsetX;
-            prim->y1             = block->screenY - (u16)block->cornerOffsetY;
-            prim->y2             = block->screenY + (u16)block->cornerOffsetY;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
+    quad           = gGpuPrimCursor;
+    gGpuPrimCursor = quad + 1;
+    setPolyFT4(quad);
+    gte_stsxy(&projection->screenX);
+    gte_stflg(&projection->projectionFlags);
+    if (projection->projectionFlags >= 0) {
+        gte_stszotz(&projection->depth);
+        if (projection->depth >= MAIN_STREET_PUFF_MIN_DEPTH) {
+            cornerAngle = angle;
+            quad->tpage = getTPage(0, GPU_BLEND_ADD, 704, 0);
+            quad->clut  = getClut(48, 270);
+            setSemiTrans(quad, 1);
+            setShadeTex(quad, 1);
+            leftU   = (frame % MAIN_STREET_PUFF_CELLS_PER_ROW) * MAIN_STREET_PUFF_CELL_WIDTH;
+            topV    = (frame / MAIN_STREET_PUFF_CELLS_PER_ROW) * MAIN_STREET_PUFF_CELL_WIDTH;
+            rightU  = leftU + MAIN_STREET_PUFF_UV_SPAN;
+            bottomV = topV + MAIN_STREET_PUFF_TOP_V + MAIN_STREET_PUFF_UV_SPAN;
+            topV   += MAIN_STREET_PUFF_TOP_V;
+            setUV4(quad, leftU, topV, rightU, topV, leftU, bottomV, rightU, bottomV);
+            // Two perpendicular half-diagonals supply the opposite corner pairs.
+            _mainStreetComputePuffCornerOffset(projection, sizeFactor, cornerAngle);
+            quad->x0           = projection->screenX + projection->cornerOffsetX;
+            quad->x3           = projection->screenX - projection->cornerOffsetX;
+            quad->y0           = projection->screenY - projection->cornerOffsetY;
+            quad->y3           = projection->screenY + projection->cornerOffsetY;
+            perpendicularAngle = cornerAngle + MAIN_STREET_PUFF_QUARTER_TURN;
+            _mainStreetComputePuffCornerOffset(projection, sizeFactor, perpendicularAngle);
+            quad->x1 = projection->screenX + projection->cornerOffsetX;
+            quad->x2 = projection->screenX - projection->cornerOffsetX;
+            quad->y1 = projection->screenY - projection->cornerOffsetY;
+            quad->y2 = projection->screenY + projection->cornerOffsetY;
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)projection->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                    quad);
         }
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectBillboardScratch);

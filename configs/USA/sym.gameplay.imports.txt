@@ -1169,7 +1169,7 @@ func_shelter_b2_operating_room_8017FEB4 = 0x8017FEB4; // type:func absolute:True
 
 shelterB2PodAccessTunnelEffectSpriteDriftTask = 0x8017E6E0; // type:func absolute:True owner=shelter_b2_pod_access_tunnel
 
-func_shelter_b2_pod_access_tunnel_8017F608 = 0x8017F608; // type:func absolute:True owner=shelter_b2_pod_access_tunnel shared=rooms
+func_shelter_b2_pod_access_tunnel_8017F608 = 0x8017F608; // type:func absolute:True owner=shelter_b2_pod_access_tunnel
 
 func_shelter_b2_pod_access_tunnel_80180350 = 0x80180350; // type:func absolute:True owner=shelter_b2_pod_access_tunnel shared=rooms
 

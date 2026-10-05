@@ -53,7 +53,7 @@ void mainStreetPuffTask(Task* task)
         gte_stsv(&work->move);
     }
 
-    mainStreetDrawPuff(coord, (u16)work->index, work->scale, work->angle);
+    _mainStreetDrawPuff(coord, work->index, work->scale, work->angle);
 
     coord->coord.t[0]  += work->move.vx;
     coord->coord.t[1]  += work->move.vy;

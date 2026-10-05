@@ -144,4 +144,4 @@ mainStreetResolveMsg = 0x8017DA6C; // type:func
 mainStreetPlayTimeTask = 0x8017DE78; // type:func
 mainStreetCapSoundCue = 0x8017DEF0; // type:func
 mainStreetTalkMsg = 0x8017DFC8; // type:func
-mainStreetDrawPuff = 0x8017F608; // type:func
+_mainStreetDrawPuff = 0x8017F608; // type:func
