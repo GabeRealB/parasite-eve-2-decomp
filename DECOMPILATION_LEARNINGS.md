@@ -147706,6 +147706,9 @@ end a basic block, so the index still crosses the two calls in `s0`.
 
 ### `&p->array[i]` always sums the member offset into the index; `(i + p) + off` has no typed spelling found (func_actor_511000_80132E6C, 2026-10-05)
 
+(Since found: pass the element address to an inline function - see "An inline
+function's argument is expanded as an address" below.)
+
 Target `addu s0,s1,s2` / `addiu s0,s0,0xC` (index plus struct pointer, then the
 member offset) inside a loop. `&work->palette[i]`, `work->palette + i`,
 `&i[work->palette]`, `&work->palette[0] + i` and an unsigned index all compile
@@ -147756,3 +147759,50 @@ not reuse that register (`addu v0,t1,12` / `addu v0,a0,v0`), but
 the sum whichever way round it is written, emits nothing for `slot`, and
 `next` is `addiu v0,v1,12`. Forming `slot` straight after the first read, in
 the same block, had failed.
+
+### An inline function's argument is expanded as an address: `f(&p->array[i])` gives `(i*size + p) + off`, offset first (Midi_InitSlot, 2026-10-05)
+
+`expand_inline_function` expands every actual with `EXPAND_SUM`
+(`integrate.c`, `arg_vals[i] = expand_expr (arg, NULL_RTX, mode, EXPAND_SUM)`),
+the modifier otherwise used only for the address of a memory operand. An
+ordinary `q = &a[i]` goes through `binop`, where `-O2`'s `flag_force_mem` loads
+the base into a register before `expand_binop` could swap it, so the base is
+always first. In `EXPAND_SUM` the `both_summands` code puts the multiplication
+first and reassociates a constant outwards, so an element address passed to an
+inline is `(plus (plus (mult i size) base) offset)`:
+
+```
+addu  a1,a3,s0        ; i*12 + song
+addiu a1,a1,1284      ; + offsetof(_MidiSong, voiceSlots)
+```
+
+That is the "(index + base) + memberOffset" shape, and the `addu rd, scaled,
+base` of a plain element pointer, that no assignment spells. Targets with a
+"clear/copy this element" loop whose pointer was formed that way were calls to
+an inline helper:
+
+```c
+static inline void Midi_ResetNoteSlot(_MidiNoteSlot* slot) { ...word loop...; slot->channel = FREE; slot->voice = FREE; }
+for (i = 0; (s32)i < ARRAY_SIZE(song->voiceSlots); i++) {
+    Midi_ResetNoteSlot(&song->voiceSlots[i]);
+}
+```
+
+Matched this way: `Midi_InitSlot`, `Pad_Init` (`Pad_ClearState(&gPadStates[i])`
+followed by `gPadStates[i].field = ...`; the byte-offset counter and the
+separate `state` pointer of the old source were both givs the loop pass made
+from one `i`), `Fs_BuildFolderTables` (byte copy of
+`&destinationStreams[j & 0xFFFF]`) and `Stage_ApplyTableEntryWhenIdle`, where
+the pointer is used across blocks. An inline that returns a flag the caller
+tests leaves `li v0,1` / `beqz v0` at the join, so put the code that follows
+inside the helper (or keep it `void`) rather than returning a status.
+
+A byte array has no multiplication to put first: `map[i]` through a pointer
+local stays base first even as an inline argument. There the fix was the other
+finding - name the global (`Snd_BankSlotsByType[entry->bankType]`), whose
+symbol is a constant and swaps to the end. Its `lui`/`addiu` is hoisted only
+out of a real loop: a `loop:`/`goto` body has no loop notes, so the address is
+rebuilt per iteration. `Snd_InitBanks` matched as a plain `for (i = 0; i < 2;
+i++)` over `Snd_BankInitTable[i]`, `Snd_BankSlotsByType[...]` and
+`&Snd_Banks[slot]` with no pointer locals; the early `i = 0`, the mid-body
+`i++` and the hoist order in the target were all the scheduler and loop pass.
