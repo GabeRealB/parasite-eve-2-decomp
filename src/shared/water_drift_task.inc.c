@@ -4,17 +4,21 @@
 
 /* Part of the water effects library; see water_effects.h. */
 
-/// Converts a water particle's direction into velocity at its selected speed.
+/// Sets a water-spray particle's launch velocity from its direction and speed.
 ///
-/// Borrows the live effect work. `move` is normalized in place to Q12, then
-/// multiplied by `step` in coordinate units per running update. Only its three
-/// signed halfword components change; no pointer is retained. Zero directions
-/// follow the SDK normalization without a special case. GTE state is overwritten.
+/// `particleWork` borrows a live, writable `EffectWork`. `move` holds the signed
+/// launch direction and `step` the speed in coordinate units per running update
+/// (0 stationary, otherwise 1..255). In-place Q12 normalization precedes GTE
+/// multiplication by `step` with a 12-bit right shift. The resulting signed
+/// halfword components are displacements in the coordinate's parent space.
+///
+/// Only `move.vx`, `move.vy` and `move.vz` change; the vector's pad, `step` and
+/// the rest of the work stay intact. No pointer is retained. Zero directions
+/// still reach `VectorNormalSS` without a guard. GTE state is overwritten.
 static inline void _waterDriftInitializeVelocity(EffectWork* particleWork)
 {
-    SVECTOR* velocity;
+    SVECTOR* velocity = &particleWork->move;
 
-    velocity = &particleWork->move;
     VectorNormalSS(velocity, velocity);
     gte_lddp(particleWork->step);
     gte_ldsv(velocity);
