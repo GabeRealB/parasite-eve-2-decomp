@@ -50,7 +50,17 @@ typedef struct {
 } _ApobiosisLevelParams;
 STATIC_ASSERT_SIZEOF(_ApobiosisLevelParams, 0x8);
 
-static void func_apobiosis_8012F808(s16 bright);
+static void _apobiosisDrawScreenFlash(s16 brightness);
+
+/// Spell-id level selection and colour variation used by apobiosis's drawers and shards.
+enum {
+    APOBIOSIS_LEVEL_ID_RADIX      = 10,
+    APOBIOSIS_LEVEL_THREE_ROW     = 2,
+    APOBIOSIS_ALT_COLOR_ROLL_MASK = 3, // One alternate colour in four draws at level 3
+    APOBIOSIS_FULL_TURN           = 4096,
+    APOBIOSIS_QUARTER_TURN        = APOBIOSIS_FULL_TURN / 4,
+    APOBIOSIS_TRIG_SHIFT          = 12, // rsin/rcos return Q12 values
+};
 
 /// Per-level tuning for the apobiosis pulse, one row per PE level 1-3,
 /// weakest first.
@@ -64,8 +74,8 @@ static _ApobiosisLevelParams D_apobiosis_80130B5C[] = {
 /// row, so the sound follows the cast's level like the burst does.
 static s32 D_apobiosis_80130B74[] = { 0xE0170001, 0xE01A0001, 0xE01D0001 };
 
-static void func_apobiosis_8013017C(GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg3);
-static void func_apobiosis_80130630(GfxCoord* arg0, SVECTOR* arg1, s16 arg2, s16 arg3);
+static void _apobiosisDrawShardSprite(const GfxCoord* coord, s16 textureFrame, s16 sizeScale, s16 screenAngle);
+static void _apobiosisDrawShardStrip(const GfxCoord* coord, const SVECTOR* endOffset, s16 textureFrame, s16 widthScale);
 
 /// Ring azimuths, two rows of up to eight. `func_apobiosis_8012EF4C` lays out
 /// `_ApobiosisLevelParams::stripCount * 2` of them at `(i << 10) + rand()` in state 0 and
@@ -140,12 +150,12 @@ void func_apobiosis_8012EF4C(Task* arg0)
                 if (mem->age == 4) {
                     Gp_StateC08.flags |= ATTACHMENT_FLAG_APPLY_STATS;
                 }
-                func_apobiosis_8012F808(mem->step);
+                _apobiosisDrawScreenFlash(mem->step);
                 rgb[0] = rgb[1]    = mem->step >> 2;
                 rgb[2]             = mem->step >> 1;
                 coord->workm.t[1] -= 0x400;
                 mem->scale         = mem->scale + D_apobiosis_80130B5C[mem->index].radiusStep;
-                func_apobiosis_8013017C(
+                _apobiosisDrawShardSprite(
                     &(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords[1], mem->age,
                     D_apobiosis_80130B5C[mem->index].playerSpriteScale, 0);
                 glowDrawHalo(coord, mem->scale, 0x80, rgb);
@@ -165,8 +175,8 @@ void func_apobiosis_8012EF4C(Task* arg0)
                             rcos(D_apobiosis_80130B80
                                      [i + D_apobiosis_80130B5C[mem->index].radiusStep]) >>
                         12;
-                    func_apobiosis_80130630(coord, &mem->pos, mem->age,
-                                            D_apobiosis_80130B5C[mem->index].stripScale);
+                    _apobiosisDrawShardStrip(coord, &mem->pos, mem->age,
+                                             D_apobiosis_80130B5C[mem->index].stripScale);
                 }
                 coord->workm.t[1] += 0x400;
                 if (mem->step >= 0x19) {
@@ -178,7 +188,7 @@ void func_apobiosis_8012EF4C(Task* arg0)
                 return;
             case 2:
                 actorRenderComposeCoord(coord);
-                func_apobiosis_8012F808(mem->step);
+                _apobiosisDrawScreenFlash(mem->step);
                 if (mem->step >= 0x41) {
                     mem->step = mem->step - 0x10;
                 }
@@ -200,7 +210,7 @@ void func_apobiosis_8012EF4C(Task* arg0)
                 }
                 return;
             case 3:
-                func_apobiosis_8012F808(mem->step);
+                _apobiosisDrawScreenFlash(mem->step);
                 if (mem->step >= 0x21) {
                     mem->step = mem->step - 0xC;
                 }
@@ -223,7 +233,7 @@ void func_apobiosis_8012EF4C(Task* arg0)
                 }
                 return;
             case 4:
-                func_apobiosis_8012F808(mem->step);
+                _apobiosisDrawScreenFlash(mem->step);
                 if (mem->step >= 9) {
                     mem->step = mem->step - 8;
                 }
@@ -241,7 +251,7 @@ void func_apobiosis_8012EF4C(Task* arg0)
                 }
                 return;
             case 5:
-                func_apobiosis_8012F808(mem->step);
+                _apobiosisDrawScreenFlash(mem->step);
                 if (mem->step >= 9) {
                     mem->step = mem->step - 8;
                     return;
@@ -254,114 +264,132 @@ void func_apobiosis_8012EF4C(Task* arg0)
     effectKillTask(mem, arg0);
 }
 
-/// Flashes a screen-filling `POLY_F4` over the whole 320x240 frame, offset by
-/// `gDisplayState.vramYOffset` so it tracks the active draw buffer. `bright`
-/// is the flash level: normally the quad is blue-tinted (red and green
-/// halved), but on stage `Gp_StateC08.attachId % 10 == 3` one draw in four
-/// comes out yellow instead (blue halved). The prim is linked at a fixed
-/// `otz` of 0x30, in front of the scene.
-static void func_apobiosis_8012F808(s16 bright)
+/// Queues the additive full-screen apobiosis flash at a fixed ordering depth.
+///
+/// `brightness` is an RGB intensity in 0-255. The flash is blue, with red and
+/// green halved; PE level 3 has a one-in-four chance of yellow instead. The
+/// random sequence advances only at level 3. Compensates the applied vertical
+/// screen shake and consumes a quad plus its blend-mode packet in the frame arena.
+static void _apobiosisDrawScreenFlash(s16 brightness)
 {
-    POLY_F4* prim;
+    enum {
+        APOBIOSIS_FLASH_HALF_WIDTH  = 160,
+        APOBIOSIS_FLASH_HALF_HEIGHT = 120,
+        APOBIOSIS_FLASH_DEPTH       = 48,
+    };
+    POLY_F4* quad;
 
-    prim           = gGpuPrimCursor;
-    gGpuPrimCursor = prim + 1;
-    setPolyF4(prim);
-    if ((u16)(Gp_StateC08.attachId % 10U) - 1 == 2 && (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 3) == 0) {
-        setRGB0(prim, bright, bright, bright >> 1);
+    quad           = gGpuPrimCursor;
+    gGpuPrimCursor = quad + 1;
+    setPolyF4(quad);
+    if ((u16)(Gp_StateC08.attachId % (u32)APOBIOSIS_LEVEL_ID_RADIX) - 1 == APOBIOSIS_LEVEL_THREE_ROW && (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & APOBIOSIS_ALT_COLOR_ROLL_MASK) == 0) {
+        setRGB0(quad, brightness, brightness, brightness >> 1);
     } else {
-        setRGB0(prim, bright >> 1, bright >> 1, bright);
+        setRGB0(quad, brightness >> 1, brightness >> 1, brightness);
     }
-    setXY4(prim, -0xA0, -0x78 - gDisplayState.vramYOffset, 0xA0,
-           -0x78 - gDisplayState.vramYOffset, -0xA0, 0x78 - gDisplayState.vramYOffset,
-           0xA0, 0x78 - gDisplayState.vramYOffset);
-    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(0x30 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-            prim);
-    gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, 0x30);
+    // Cancel the draw environment's shake offset so the flash covers the display.
+    setXY4(quad, -APOBIOSIS_FLASH_HALF_WIDTH, -APOBIOSIS_FLASH_HALF_HEIGHT - gDisplayState.vramYOffset, APOBIOSIS_FLASH_HALF_WIDTH,
+           -APOBIOSIS_FLASH_HALF_HEIGHT - gDisplayState.vramYOffset, -APOBIOSIS_FLASH_HALF_WIDTH, APOBIOSIS_FLASH_HALF_HEIGHT - gDisplayState.vramYOffset,
+           APOBIOSIS_FLASH_HALF_WIDTH, APOBIOSIS_FLASH_HALF_HEIGHT - gDisplayState.vramYOffset);
+    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(APOBIOSIS_FLASH_DEPTH << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            quad);
+    gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, APOBIOSIS_FLASH_DEPTH);
 }
 
 #define GLOW_DRAW_HALO_PULL 0x40
 #include "../../shared/glow_draw_halo.inc.c"
 
-/// One shard of the apobiosis burst. Every frame it ticks the shard's life
-/// counter `EffectWork.age` and bails out - handing the work block back -
-/// once the player is dying (`Gp_StateC08.effectPhase`), parasite-energy effects are
-/// cancelled (`gRoomEffectState->peEffectControl`)
-/// or the shard has outlived its state. State 0 reparents the shard onto the
-/// cast task and splits on `spawnArg1`: a non-zero arg pins the shard to the
-/// cast's coordinate at the origin (state 1), a zero arg gives it a random
-/// drift `move` and lets it fly (state 2). Either way the tail
-/// seeds the shard's `pos` offset, its radius `angle` and
-/// the intensity `step` that picks a `D_apobiosis_80130B5C` row. Both live
-/// states redraw the shard every other frame, at twice the row's radius while
-/// pinned and at the plain radius once free.
-void func_apobiosis_8012FE10(Task* arg0)
+/// Initializes a shard's world endpoint offset, fixed screen rotation and PE level row.
+static inline void _apobiosisInitShardAppearance(EffectWork* work)
 {
-    EffectWork* mem;
+    enum {
+        APOBIOSIS_SHARD_END_Y         = -4096,
+        APOBIOSIS_SHARD_INITIAL_SCALE = 128,
+        APOBIOSIS_SHARD_END_SPAN      = 4096,
+        APOBIOSIS_SHARD_END_HALF_SPAN = APOBIOSIS_SHARD_END_SPAN / 2,
+    };
+    // Replace the spawn offset with the strip's world-space endpoint offset.
+    work->pos.vy    = APOBIOSIS_SHARD_END_Y;
+    work->scale     = APOBIOSIS_SHARD_INITIAL_SCALE;
+    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    work->pos.vx    = APOBIOSIS_SHARD_END_HALF_SPAN - ((gRandomLcgState >> 16) & (APOBIOSIS_SHARD_END_SPAN - 1));
+    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    work->pos.vz    = APOBIOSIS_SHARD_END_HALF_SPAN - ((gRandomLcgState >> 16) & (APOBIOSIS_SHARD_END_SPAN - 1));
+    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    work->angle     = (gRandomLcgState >> 16) & (APOBIOSIS_FULL_TURN - 1);
+    work->step      = Gp_StateC08.attachId % APOBIOSIS_LEVEL_ID_RADIX - 1;
+}
+
+void apobiosisShardTask(Task* task)
+{
+    enum {
+        APOBIOSIS_SHARD_INIT            = 0,
+        APOBIOSIS_SHARD_PINNED          = 1,
+        APOBIOSIS_SHARD_DRIFTING        = 2,
+        APOBIOSIS_SHARD_PINNED_FRAMES   = 25,
+        APOBIOSIS_SHARD_DRIFTING_FRAMES = 17,
+        APOBIOSIS_SHARD_DRIFT_HALF_SPAN = 64,
+        APOBIOSIS_SHARD_DRIFT_MASK      = 127,
+    };
+    EffectWork* work;
     GfxCoord*   coord;
 
-    mem   = arg0->spawnArg2.pointer;
-    coord = arg0->extra.coordBody->coord;
+    work  = task->spawnArg2.pointer;
+    coord = task->extra.coordBody->coord;
     if ((Gp_StateC08.effectPhase != ATTACHMENT_EFFECT_HELD) && (gRoomEffectState->peEffectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
-        mem->age = mem->age + 1;
-        switch (arg0->state) {
-            case 0:
-                taskReparent(D_apobiosis_80130BA0, arg0);
-                if (arg0->spawnArg1.value != 0) {
-                    coord->parent       = mem->parent;
+        work->age = work->age + 1;
+        switch (task->state) {
+            case APOBIOSIS_SHARD_INIT:
+                // Join the live cast's task tree before choosing a pinned or drifting coordinate.
+                taskReparent(D_apobiosis_80130BA0, task);
+                if (task->spawnArg1.value != 0) {
+                    coord->parent       = work->parent;
                     coord->coord.t[0]   = 0;
                     coord->coord.t[1]   = 0;
                     coord->coord.t[2]   = 0;
                     coord->composeStamp = GRAPHICS_COORD_DIRTY;
                     actorRenderComposeCoord(coord);
-                    arg0->state = 1;
+                    task->state = APOBIOSIS_SHARD_PINNED;
                 } else {
-                    mem->move.vy    = 0;
+                    work->move.vy   = 0;
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    mem->move.vx    = 0x40 - ((gRandomLcgState >> 16) & 0x7F);
+                    work->move.vx   = APOBIOSIS_SHARD_DRIFT_HALF_SPAN - ((gRandomLcgState >> 16) & APOBIOSIS_SHARD_DRIFT_MASK);
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    mem->move.vz    = 0x40 - ((gRandomLcgState >> 16) & 0x7F);
-                    arg0->state     = 2;
+                    work->move.vz   = APOBIOSIS_SHARD_DRIFT_HALF_SPAN - ((gRandomLcgState >> 16) & APOBIOSIS_SHARD_DRIFT_MASK);
+                    task->state     = APOBIOSIS_SHARD_DRIFTING;
                 }
-                mem->pos.vy     = -0x1000;
-                mem->scale      = 0x80;
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->pos.vx     = 0x800 - ((gRandomLcgState >> 16) & 0xFFF);
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->pos.vz     = 0x800 - ((gRandomLcgState >> 16) & 0xFFF);
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->angle      = (gRandomLcgState >> 16) & 0xFFF;
-                mem->step       = Gp_StateC08.attachId % 10 - 1;
+                _apobiosisInitShardAppearance(work);
                 return;
-            case 1:
+            case APOBIOSIS_SHARD_PINNED:
+                // The work's step is the level row; index advances only on drawn frames.
                 actorRenderComposeCoord(coord);
-                if (mem->age & 1) {
-                    mem->index = mem->index + 1;
-                    func_apobiosis_8013017C(coord, mem->index,
-                                            D_apobiosis_80130B5C[mem->step].stripScale * 2,
-                                            mem->angle);
-                    func_apobiosis_80130630(coord, &mem->pos, mem->index,
-                                            D_apobiosis_80130B5C[mem->step].stripScale * 2);
+                if (work->age & 1) {
+                    work->index = work->index + 1;
+                    _apobiosisDrawShardSprite(coord, work->index,
+                                              D_apobiosis_80130B5C[work->step].stripScale * 2,
+                                              work->angle);
+                    _apobiosisDrawShardStrip(coord, &work->pos, work->index,
+                                             D_apobiosis_80130B5C[work->step].stripScale * 2);
                 }
-                if (mem->age < 0x19) {
+                if (work->age < APOBIOSIS_SHARD_PINNED_FRAMES) {
                     return;
                 }
                 break;
-            case 2:
-                coord->coord.t[0]  += mem->move.vx;
-                coord->coord.t[1]  += mem->move.vy;
-                coord->coord.t[2]  += mem->move.vz;
+            case APOBIOSIS_SHARD_DRIFTING:
+                coord->coord.t[0]  += work->move.vx;
+                coord->coord.t[1]  += work->move.vy;
+                coord->coord.t[2]  += work->move.vz;
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 actorRenderComposeCoord(coord);
-                if (mem->age & 1) {
-                    mem->index = mem->index + 1;
-                    func_apobiosis_8013017C(coord, mem->index,
-                                            D_apobiosis_80130B5C[mem->step].stripScale,
-                                            mem->angle);
-                    func_apobiosis_80130630(coord, &mem->pos, mem->index,
-                                            D_apobiosis_80130B5C[mem->step].stripScale);
+                if (work->age & 1) {
+                    work->index = work->index + 1;
+                    _apobiosisDrawShardSprite(coord, work->index,
+                                              D_apobiosis_80130B5C[work->step].stripScale,
+                                              work->angle);
+                    _apobiosisDrawShardStrip(coord, &work->pos, work->index,
+                                             D_apobiosis_80130B5C[work->step].stripScale);
                 }
-                if (mem->age < 0x11) {
+                if (work->age < APOBIOSIS_SHARD_DRIFTING_FRAMES) {
                     return;
                 }
                 break;
@@ -369,159 +397,195 @@ void func_apobiosis_8012FE10(Task* arg0)
                 return;
         }
     }
-    effectKillTask(mem, arg0);
+    effectKillTask(work, task);
 }
 
-/// One textured shard of the apobiosis burst. Projects `arg0`'s world
-/// position through `GsWSMATRIX` with a single `RTPS` and, when the flag comes
-/// back non-negative, queues one semi-transparent `POLY_FT4` at the projected
-/// point. `arg1 % 6` picks one of the six 0x28-wide frames on tpage 0x2A - the
-/// caller passes the shard's life counter, so the sprite animates - and `arg2`
-/// sizes it: the corners sit `arg2 * 0x27 / otz` from the centre along `arg3`
-/// and `arg3 + 0x400`, so the shard shrinks with depth and spins with `arg3`.
-/// The CLUT is 0x4293 except on the widest combo row
-/// (`Gp_StateC08.attachId % 10 - 1 == 2`), where one draw in four rolls the
-/// brighter 0x42C9 palette. Same shape as Combustion's and Pyrokinesis's flame
-/// quad (`func_combustion_8012FB14`), which uses a fixed CLUT and 0x20-wide
-/// frames.
-static void func_apobiosis_8013017C(GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
+/// Queues the rotating six-frame apobiosis sprite at a composed coordinate's world origin.
+///
+/// `textureFrame` is nonnegative and wraps every six draws. `sizeScale` is a
+/// signed perspective scale: the corner distance is `sizeScale * 39 / depth`
+/// pixels, with depth taken from SZ3 / 4 plus one. `screenAngle` uses 4096 units
+/// per turn. World translation components narrow to s16 before projection.
+/// Uses raw texture colour and additive blending; PE level 3 rolls an alternate
+/// palette once in four accepted projections. Rejects a negative GTE FLAG word.
+/// Borrows and releases one scratch block, consumes a GPU quad on success, and
+/// overwrites the GTE matrix and projection registers.
+static void _apobiosisDrawShardSprite(const GfxCoord* coord, s16 textureFrame, s16 sizeScale, s16 screenAngle)
 {
-    EffectShapeScratch* head;
-    EffectShapeScratch* block;
-    POLY_FT4*           prim;
-    s16                 frame;
-    s32                 u0;
-    s32                 u1;
-    s32                 ang2;
+    enum {
+        APOBIOSIS_SPRITE_FRAME_COUNT = 6,
+        APOBIOSIS_SPRITE_CELL_WIDTH  = 40,
+        APOBIOSIS_SPRITE_UV_SPAN     = APOBIOSIS_SPRITE_CELL_WIDTH - 1,
+        APOBIOSIS_SPRITE_TOP_V       = 56,
+        APOBIOSIS_SPRITE_BOTTOM_V    = APOBIOSIS_SPRITE_TOP_V + APOBIOSIS_SPRITE_UV_SPAN,
+        APOBIOSIS_SPRITE_DEPTH_BIAS  = 1,
+    };
+    EffectShapeScratch* scratch;
+    POLY_FT4*           quad;
+    s16                 cell;
+    s32                 uLeft;
+    s32                 uRight;
+    s32                 quarterTurnAngle;
 
-    head                       = SCRATCH_STACK_CURSOR(EffectShapeScratch);
-    (head - 1)->worldPoint.vx  = arg0->workm.t[0];
-    SCRATCH_STACK_CURSOR(void) = head - 1;
-    block                      = SCRATCH_STACK_CURSOR(EffectShapeScratch);
-    block->worldPoint.vy       = arg0->workm.t[1];
-    block->worldPoint.vz       = arg0->workm.t[2];
+    /// Resolves one perpendicular corner pair in signed pixels.
+    ///
+    /// Arguments must be side-effect-free: the scratch pointer is used four
+    /// times, and scale and angle twice. Captures the local UV span and Q12 shift.
+    /// Expands to two statements; use inside a braced block. Scoped to this drawer.
+#define APOBIOSIS_SPRITE_SET_CORNER_OFFSET(scratchBlock, scale, angle)                                                                          \
+    (scratchBlock)->extent.corner.x = ((((scale) * APOBIOSIS_SPRITE_UV_SPAN) / (scratchBlock)->depth) * rsin((angle))) >> APOBIOSIS_TRIG_SHIFT; \
+    (scratchBlock)->extent.corner.y = ((((scale) * APOBIOSIS_SPRITE_UV_SPAN) / (scratchBlock)->depth) * rcos((angle))) >> APOBIOSIS_TRIG_SHIFT
+
+    // Stage the low halves of the cached world origin, then project through the camera.
+    scratch                = SCRATCH_STACK_RESERVE_BLOCK(EffectShapeScratch);
+    scratch->worldPoint.vx = coord->workm.t[0];
+    scratch->worldPoint.vy = coord->workm.t[1];
+    scratch->worldPoint.vz = coord->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&block->worldPoint);
+    gte_ldv0(&scratch->worldPoint);
     gte_rtps();
-    gte_stsxy(&(head - 1)->screenX);
-    gte_stflg(&(head - 1)->projectionFlags);
-    if (block->projectionFlags >= 0) {
-        gte_stszotz(&(head - 1)->depth);
-        block->depth++;
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setPolyFT4(prim);
-        setSemiTrans(prim, 1);
-        setShadeTex(prim, 1);
-        prim->tpage = 0x2A;
-        if ((u16)(Gp_StateC08.attachId % 10) - 1 == 2) {
+    gte_stsxy(&scratch->screenX);
+    gte_stflg(&scratch->projectionFlags);
+    if (scratch->projectionFlags >= 0) {
+        gte_stszotz(&scratch->depth);
+        scratch->depth += APOBIOSIS_SPRITE_DEPTH_BIAS;
+        quad            = gGpuPrimCursor;
+        gGpuPrimCursor  = quad + 1;
+        setPolyFT4(quad);
+        setSemiTrans(quad, 1);
+        setShadeTex(quad, 1);
+        quad->tpage = getTPage(0, GPU_BLEND_ADD, 640, 0);
+        if ((u16)(Gp_StateC08.attachId % APOBIOSIS_LEVEL_ID_RADIX) - 1 == APOBIOSIS_LEVEL_THREE_ROW) {
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            if (((gRandomLcgState >> 16) & 3) == 0) {
-                prim->clut = 0x42C9;
+            if (((gRandomLcgState >> 16) & APOBIOSIS_ALT_COLOR_ROLL_MASK) == 0) {
+                quad->clut = getClut(144, 267);
             } else {
-                prim->clut = 0x4293;
+                quad->clut = getClut(304, 266);
             }
         } else {
-            prim->clut = 0x4293;
+            quad->clut = getClut(304, 266);
         }
-        frame = arg1 % 6;
-        u0    = frame * 0x28;
-        u1    = u0 + 0x27;
-        setUV4(prim, u0, 0x38, u1, 0x38, u0, 0x5F, u1, 0x5F);
-        block->extent.corner.x = (((arg2 * 0x27) / block->depth) * rsin(arg3)) >> 12;
-        block->extent.corner.y = (((arg2 * 0x27) / block->depth) * rcos(arg3)) >> 12;
-        prim->x0               = block->screenX + (u16)block->extent.corner.x;
-        prim->x3               = block->screenX - (u16)block->extent.corner.x;
-        prim->y0               = block->screenY - (u16)block->extent.corner.y;
-        prim->y3               = block->screenY + (u16)block->extent.corner.y;
-        ang2                   = arg3 + 0x400;
-        block->extent.corner.x = (((arg2 * 0x27) / block->depth) * rsin(ang2)) >> 12;
-        block->extent.corner.y = (((arg2 * 0x27) / block->depth) * rcos(ang2)) >> 12;
-        prim->x1               = block->screenX + (u16)block->extent.corner.x;
-        prim->x2               = block->screenX - (u16)block->extent.corner.x;
-        prim->y1               = block->screenY - (u16)block->extent.corner.y;
-        prim->y2               = block->screenY + (u16)block->extent.corner.y;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
+        cell   = textureFrame % APOBIOSIS_SPRITE_FRAME_COUNT;
+        uLeft  = cell * APOBIOSIS_SPRITE_CELL_WIDTH;
+        uRight = uLeft + APOBIOSIS_SPRITE_UV_SPAN;
+        setUV4(quad, uLeft, APOBIOSIS_SPRITE_TOP_V, uRight, APOBIOSIS_SPRITE_TOP_V, uLeft, APOBIOSIS_SPRITE_BOTTOM_V, uRight, APOBIOSIS_SPRITE_BOTTOM_V);
+        // Resolve two perpendicular corner pairs around the projected centre.
+        APOBIOSIS_SPRITE_SET_CORNER_OFFSET(scratch, sizeScale, screenAngle);
+        quad->x0         = scratch->screenX + scratch->extent.corner.x;
+        quad->x3         = scratch->screenX - scratch->extent.corner.x;
+        quad->y0         = scratch->screenY - scratch->extent.corner.y;
+        quad->y3         = scratch->screenY + scratch->extent.corner.y;
+        quarterTurnAngle = screenAngle + APOBIOSIS_QUARTER_TURN;
+        APOBIOSIS_SPRITE_SET_CORNER_OFFSET(scratch, sizeScale, quarterTurnAngle);
+        quad->x1 = scratch->screenX + scratch->extent.corner.x;
+        quad->x2 = scratch->screenX - scratch->extent.corner.x;
+        quad->y1 = scratch->screenY - scratch->extent.corner.y;
+        quad->y2 = scratch->screenY + scratch->extent.corner.y;
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                quad);
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);
 }
 
-/// Draws one apobiosis burst shard as a semi-transparent raw-tex `POLY_FT4`
-/// (tpage 0x28). The effect coordinate's world position and that position plus
-/// `arg1` are each projected through `GsWSMATRIX` with one `RTPS`; the quad is
-/// laid along the line joining the two projected points, `ratan2` of their
-/// screen delta giving the spin applied at that angle and at `+ 0x400`. `arg2`
-/// selects the 128-texel UV tile: u = `(arg2 & 1) * 128`, v =
-/// `((arg2 & 3) >> 1) * 24 - 0x30`. `arg3` is a signed half-extent, so the
-/// on-screen half-width is `arg3 * 23 / depth`. Clut is 0x4287, or 0x42C8 on
-/// one in four LCG rolls when the combo row is 2. Nothing is drawn if either
-/// projection sets a negative `gte_stflg`.
-static void func_apobiosis_80130630(GfxCoord* arg0, SVECTOR* arg1, s16 arg2, s16 arg3)
-{
-    EffectStripScratch* block;
-    POLY_FT4*           prim;
-    s32                 u0;
-    s32                 u1;
-    s32                 va;
-    s32                 vb;
-    s16                 ang;
+#undef APOBIOSIS_SPRITE_SET_CORNER_OFFSET
 
-    block              = SCRATCH_STACK_RESERVE_BLOCK(EffectStripScratch);
-    block->worldEnd.vx = block->worldStart.vx = arg0->workm.t[0];
-    block->worldEnd.vy = block->worldStart.vy = arg0->workm.t[1];
-    block->worldEnd.vz = block->worldStart.vz = arg0->workm.t[2];
-    block->worldEnd.vx                       += arg1->vx;
-    block->worldEnd.vy                       += arg1->vy;
-    block->worldEnd.vz                       += arg1->vz;
+/// Queues an additive apobiosis strip from a composed world origin to an offset endpoint.
+///
+/// `endOffset` is an XYZ displacement in world units, without the coordinate's
+/// rotation applied. Both world endpoints narrow to s16 before projection.
+/// `textureFrame` selects one of four 128-by-24 texture cells through its low
+/// two bits. The signed `widthScale` gives a screen half-width of
+/// `widthScale * 23 / (SZ3 / 4 + 1)` pixels using the start point's depth; that
+/// same depth sorts the whole strip. Rejects either negative GTE FLAG word.
+/// Uses raw texture colour; PE level 3 rolls an alternate palette once in four
+/// accepted strips. Borrows and releases one scratch block, consumes one GPU
+/// quad on success, and overwrites the GTE matrix and projection registers.
+static void _apobiosisDrawShardStrip(const GfxCoord* coord, const SVECTOR* endOffset, s16 textureFrame, s16 widthScale)
+{
+    enum {
+        APOBIOSIS_STRIP_DEPTH_BIAS  = 1,
+        APOBIOSIS_STRIP_CELL_WIDTH  = 128,
+        APOBIOSIS_STRIP_CELL_HEIGHT = 24,
+        APOBIOSIS_STRIP_COLUMN_MASK = 1,
+        APOBIOSIS_STRIP_FRAME_MASK  = 3,
+        APOBIOSIS_STRIP_TOP_V       = 208,
+    };
+    EffectStripScratch* scratch;
+    POLY_FT4*           quad;
+    s32                 uLeft;
+    s32                 uRight;
+    s32                 vTop;
+    s32                 vBottom;
+    s16                 screenAngle;
+
+    /// Projects an endpoint using the already-loaded GTE matrices, leaving SZ3 available.
+    ///
+    /// The complete SVECTOR and both output words are word-aligned live storage.
+    /// Writes signed screen pixels and the FLAG word. Each pointer expression
+    /// is evaluated once, in order; captures no caller identifiers. Expands to
+    /// four statements, so use in a braced block. Scoped to this drawer.
+#define APOBIOSIS_STRIP_PROJECT_POINT(worldPoint, screenPoint, projectionFlags) \
+    gte_ldv0((worldPoint));                                                     \
+    gte_rtps();                                                                 \
+    gte_stsxy((screenPoint));                                                   \
+    gte_stflg((projectionFlags))
+
+    // Stage the world-space segment before loading the camera matrices.
+    scratch              = SCRATCH_STACK_RESERVE_BLOCK(EffectStripScratch);
+    scratch->worldEnd.vx = scratch->worldStart.vx = coord->workm.t[0];
+    scratch->worldEnd.vy = scratch->worldStart.vy = coord->workm.t[1];
+    scratch->worldEnd.vz = scratch->worldStart.vz = coord->workm.t[2];
+    scratch->worldEnd.vx                         += endOffset->vx;
+    scratch->worldEnd.vy                         += endOffset->vy;
+    scratch->worldEnd.vz                         += endOffset->vz;
 
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&block->worldStart);
-    gte_rtps();
-    gte_stsxy(&block->screenStart);
-    gte_stflg(&block->projectionFlags);
-    if (block->projectionFlags >= 0) {
-        gte_stszotz(&block->depth);
-        block->depth++;
-        gte_ldv0(&block->worldEnd);
-        gte_rtps();
-        gte_stsxy(&block->screenEnd);
-        gte_stflg(&block->projectionFlags);
-        if (block->projectionFlags >= 0) {
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setlen(prim, 9);
-            setcode(prim, 0x2F);
-            prim->tpage = 0x28;
-            if ((u16)(Gp_StateC08.attachId % 10U) - 1 == 2 &&
-                (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 3) == 0) {
-                prim->clut = 0x42C8;
+    APOBIOSIS_STRIP_PROJECT_POINT(&scratch->worldStart, &scratch->screenStart, &scratch->projectionFlags);
+    if (scratch->projectionFlags >= 0) {
+        gte_stszotz(&scratch->depth);
+        scratch->depth += APOBIOSIS_STRIP_DEPTH_BIAS;
+        APOBIOSIS_STRIP_PROJECT_POINT(&scratch->worldEnd, &scratch->screenEnd, &scratch->projectionFlags);
+        if (scratch->projectionFlags >= 0) {
+            quad           = gGpuPrimCursor;
+            gGpuPrimCursor = quad + 1;
+            setPolyFT4(quad);
+            setSemiTrans(quad, 1);
+            setShadeTex(quad, 1);
+            quad->tpage = getTPage(0, GPU_BLEND_ADD, 512, 0);
+            if ((u16)(Gp_StateC08.attachId % (u32)APOBIOSIS_LEVEL_ID_RADIX) - 1 == APOBIOSIS_LEVEL_THREE_ROW &&
+                (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & APOBIOSIS_ALT_COLOR_ROLL_MASK) == 0) {
+                quad->clut = getClut(128, 267);
             } else {
-                prim->clut = 0x4287;
+                quad->clut = getClut(112, 266);
             }
-            u0 = (arg2 & 1) << 7;
-            u1 = u0 + 0x7F;
-            va = ((arg2 & 3) >> 1) * 24 - 0x30;
-            vb = ((arg2 & 3) >> 1) * 24 - 0x19;
-            setUV4(prim, u0, va, u1, va, u0, vb, u1, vb);
-            ang                  = ratan2(block->screenEnd.vy - block->screenStart.vy, block->screenEnd.vx - block->screenStart.vx);
-            block->cornerOffsetX = (((arg3 * 0x17) / block->depth) * rsin(ang)) >> 12;
-            block->cornerOffsetY = (((arg3 * 0x17) / block->depth) * rcos(ang)) >> 12;
-            prim->x0             = block->screenStart.vx + block->cornerOffsetX;
-            prim->x3             = block->screenEnd.vx - block->cornerOffsetX;
-            prim->y0             = block->screenStart.vy - block->cornerOffsetY;
-            prim->y3             = block->screenEnd.vy + block->cornerOffsetY;
-            block->cornerOffsetX = (((arg3 * 0x17) / block->depth) * rsin(ang + 0x400)) >> 12;
-            block->cornerOffsetY = (((arg3 * 0x17) / block->depth) * rcos(ang + 0x400)) >> 12;
-            prim->x1             = block->screenEnd.vx + block->cornerOffsetX;
-            prim->x2             = block->screenStart.vx - block->cornerOffsetX;
-            prim->y1             = block->screenEnd.vy - block->cornerOffsetY;
-            prim->y2             = block->screenStart.vy + block->cornerOffsetY;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
+            uLeft  = (textureFrame & APOBIOSIS_STRIP_COLUMN_MASK) * APOBIOSIS_STRIP_CELL_WIDTH;
+            uRight = uLeft + (APOBIOSIS_STRIP_CELL_WIDTH - 1);
+            // Keep V origins signed until the packet narrows them to bytes.
+            vTop    = ((textureFrame & APOBIOSIS_STRIP_FRAME_MASK) >> 1) * APOBIOSIS_STRIP_CELL_HEIGHT - (256 - APOBIOSIS_STRIP_TOP_V);
+            vBottom = ((textureFrame & APOBIOSIS_STRIP_FRAME_MASK) >> 1) * APOBIOSIS_STRIP_CELL_HEIGHT -
+                      (256 - APOBIOSIS_STRIP_TOP_V - (APOBIOSIS_STRIP_CELL_HEIGHT - 1));
+            setUV4(quad, uLeft, vTop, uRight, vTop, uLeft, vBottom, uRight, vBottom);
+            // Split the sprite's two corner pairs between the projected segment's ends.
+            screenAngle            = ratan2(scratch->screenEnd.vy - scratch->screenStart.vy, scratch->screenEnd.vx - scratch->screenStart.vx);
+            scratch->cornerOffsetX = (((widthScale * (APOBIOSIS_STRIP_CELL_HEIGHT - 1)) / scratch->depth) * rsin(screenAngle)) >> APOBIOSIS_TRIG_SHIFT;
+            scratch->cornerOffsetY = (((widthScale * (APOBIOSIS_STRIP_CELL_HEIGHT - 1)) / scratch->depth) * rcos(screenAngle)) >> APOBIOSIS_TRIG_SHIFT;
+            quad->x0               = scratch->screenStart.vx + scratch->cornerOffsetX;
+            quad->x3               = scratch->screenEnd.vx - scratch->cornerOffsetX;
+            quad->y0               = scratch->screenStart.vy - scratch->cornerOffsetY;
+            quad->y3               = scratch->screenEnd.vy + scratch->cornerOffsetY;
+            scratch->cornerOffsetX = (((widthScale * (APOBIOSIS_STRIP_CELL_HEIGHT - 1)) / scratch->depth) * rsin(screenAngle + APOBIOSIS_QUARTER_TURN)) >> APOBIOSIS_TRIG_SHIFT;
+            scratch->cornerOffsetY = (((widthScale * (APOBIOSIS_STRIP_CELL_HEIGHT - 1)) / scratch->depth) * rcos(screenAngle + APOBIOSIS_QUARTER_TURN)) >> APOBIOSIS_TRIG_SHIFT;
+            quad->x1               = scratch->screenEnd.vx + scratch->cornerOffsetX;
+            quad->x2               = scratch->screenStart.vx - scratch->cornerOffsetX;
+            quad->y1               = scratch->screenEnd.vy - scratch->cornerOffsetY;
+            quad->y2               = scratch->screenStart.vy + scratch->cornerOffsetY;
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                    quad);
         }
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectStripScratch);
 }
+
+#undef APOBIOSIS_STRIP_PROJECT_POINT

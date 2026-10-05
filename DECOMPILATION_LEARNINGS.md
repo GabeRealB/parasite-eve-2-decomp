@@ -5541,7 +5541,7 @@ t += (u16)arg1[0];
 explicit `addu` does not recolor the long-lived source. Non-volatile `addu`
 lets the copy float and wrecks coloring again. Related to "Earlyclobber empty
 asm copies an SI value": use that when the source is short-lived; use the
-emitting form when it is not. `func_apobiosis_80130630` is the example.
+emitting form when it is not. `_apobiosisDrawShardStrip` is the example.
 
 ## A 16-segment `POLY_FT4` tube with `arg3` picking fat/thin radii is `func_hypervelocity_8011DF34`
 
@@ -62146,7 +62146,7 @@ with a `move` between two registers you initialised independently.
 
 ## `SOFT_TOUCH_REG` in every branch to keep a narrow copy of a wide parameter
 
-`func_apobiosis_8012F808` writes a `POLY_F4`'s RGB from one `u32` parameter and
+An early `_apobiosisDrawScreenFlash` seed wrote a `POLY_F4`'s RGB from one `u32` parameter and
 the ROM keeps *two* copies of it alive:
 
 ```
@@ -145531,7 +145531,7 @@ Target: `lbu v1,4(s1); lw v0,0x10(s1); slt; bnez L; addiu v0,v1,-1; sw v0,0x10(s
 
 For `t = K - (s->x + s->w); if (t < 0) s->x += t;`, cse reuses the HImode `x` loaded for `t` inside the if, and combine splits it into an `lhu` that sched puts before the branch, with the `addu` in the delay slot. A store to another field of `s` between the two statements (`s->h += growth;`) makes cse reload `x` in the if body, which puts the store in the delay slot instead. The seed used a register pin and a `(u16)` pre-read to get the same shape. The fix was statement order: do the `h` update first, then compute `t`. sched still hoists the `x`/`w` loads above the `h` store.
 
-### A narrow parameter read in two registers is one condition written as nested ifs with a duplicated else (func_apobiosis_8012F808, 2026-09-26)
+### A narrow parameter read in two registers is one condition written as nested ifs with a duplicated else (_apobiosisDrawScreenFlash, 2026-09-26)
 
 Target: `move a3,a0; ... bne kind,2,L; move a2,a3`, then the `(s16)x >> 1` shifts read `a2` while one `srl` reads `a3`. For an `s16` parameter GCC makes an SI pseudo for the incoming register and an HI pseudo that is its subreg. Written as `if (kind == 2) { rng...; if (roll) A; else B; } else B;`, the outer else is a single-predecessor block on cse's follow-jumps path, so cse rewrites `(subreg:SI hi)` in its sign-extend to the SI pseudo and the second register disappears. The seed kept it with a `u16 level` copy and `SOFT_TOUCH_REG`. The source was one condition, `if (kind == 2 && ((gRandomLcgState = gRandomLcgState * 5 + K) >> 16 & 3) == 0) A; else B;`: `B` is then a join block cse cannot reach with the equivalence, and the parameter keeps both registers without any cast.
 
@@ -145598,9 +145598,9 @@ Dropping the local and naming the parameter `coord` matched on its own, with
 the head/block locals still in place: the copy's extra references were what
 raised its allocation priority. Try that before any other lever when a pinned
 local is only ever assigned from an argument.
-### A scratch push whose head store lands late: check that the other pointer arguments are really scalars (func_apobiosis_80130630, 2026-09-26)
+### A scratch push whose head store lands late: check that the other pointer arguments are really scalars (_apobiosisDrawShardStrip, 2026-09-26)
 
-Target: the usual push pair `addiu v0,head,-K` / `move s2,v0`, but `sw s2,0(scratch)` only after the reads of `value[0..2]`, and `move v0,v1` in place of a reload of a field just stored from `$v1`. The seed used `SOFT_TOUCH_REG` on the carve plus a late `SCRATCH_STACK_CURSOR = block`, and `TOUCH_REG` on a copy of the first coordinate. `block = SCRATCH_STACK_RESERVE_BLOCK(T)` gives the copy but pins the head store early. That store is a scalar MEM, and so were the `s16* arg1` reads, so sched1 kept them in order. The callers pass `&mem->pos`, so the parameter is an `SVECTOR*`. With `arg1->vx` the reads are in-struct MEMs, which cannot alias a scalar store, and sched1 sinks the store past them. With the store gone from between them, `block->v1.vx += arg1->vx` becomes `move v0,v1`: `reload_cse` sees `$v1` still holds the value stored at `8(s2)`. The other two fields are reloaded because their registers were reused.
+Target: the usual push pair `addiu v0,head,-K` / `move s2,v0`, but `sw s2,0(scratch)` only after the reads of `value[0..2]`, and `move v0,v1` in place of a reload of a field just stored from `$v1`. The seed used `SOFT_TOUCH_REG` on the carve plus a late `SCRATCH_STACK_CURSOR = scratch`, and `TOUCH_REG` on a copy of the first coordinate. `scratch = SCRATCH_STACK_RESERVE_BLOCK(T)` gives the copy but pins the head store early. That store is a scalar MEM, and so were the `s16* endOffset` reads, so sched1 kept them in order. The callers pass `&mem->pos`, so the parameter is a `const SVECTOR*`. With `endOffset->vx` the reads are in-struct MEMs, which cannot alias a scalar store, and sched1 sinks the store past them. With the store gone from between them, `scratch->worldEnd.vx += endOffset->vx` becomes `move v0,v1`: `reload_cse` sees `$v1` still holds the value stored at `8(s2)`. The other two fields are reloaded because their registers were reused.
 
 ### Nested `goto`s storing one field in several arms are a threshold ternary, and its orientation matters (func_acropolis_plaza_801802C0, 2026-09-26)
 

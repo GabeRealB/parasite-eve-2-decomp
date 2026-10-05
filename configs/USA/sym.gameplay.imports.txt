@@ -2037,7 +2037,7 @@ antibodyMoteTask = 0x8012F734; // type:func absolute:True owner=antibody
 
 func_pyrokinesis_801311B8 = 0x801311B8; // type:func absolute:True owner=pyrokinesis
 
-func_apobiosis_8012FE10 = 0x8012FE10; // type:func absolute:True owner=apobiosis
+apobiosisShardTask = 0x8012FE10; // type:func absolute:True owner=apobiosis
 
 func_energyball_8012F180 = 0x8012F180; // type:func absolute:True owner=energyball
 
