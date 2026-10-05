@@ -4,7 +4,21 @@
 #include "common.h"
 
 #include "main/coord.h"
+#include "main/task_types.h"
 #include "main/tmd_types.h"
+
+/// Reveals the loaded session from black and releases its display hold.
+///
+/// Bank 0, type 0x21 has no task body and uses no spawn arguments or work block.
+/// Start with state 0: three callback ticks hold full black, then nine ticks
+/// draw decreasing subtractive darkness, from 255 through 15 in steps of 30.
+/// `Task::killCountdown` holds the tick count, then the signed darkness value;
+/// it reaches -15 after the final overlay, without drawing a zero-darkness tick.
+/// If requested, completion clears the session's game-pause block before
+/// releasing one display hold and tearing down the task. Do not use the task
+/// after completion. Drawing requires the frame arena and ordering table that
+/// `fadeDrawOverlay` uses.
+void fadeResumeSessionTask(Task* task);
 
 /// `ScreenFade::blend`. Zero darkens the frame toward black. Any other value
 /// brightens it toward white.

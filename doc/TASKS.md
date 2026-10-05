@@ -306,7 +306,7 @@ This is the only bank we can describe entry-by-entry. Spawn with
 | `1E` | `F8` | `Gp_LoadWaitDispatch` | Load-wait. `D4.c` / stage fade spawn this |
 | `1F` | `10` | `Boot_LoadInitialFile` | Cold boot (`D_8005EC64 == 1`) |
 | `20` | `10` | `Boot_LoadTask` | Cold boot (otherwise). `GameMain_SpawnBootTask` |
-| `21` | `2F` | `Gp_FlashWhiteTask` | White fade-out, then continue (`D4.c`) |
+| `21` | `2F` | `fadeResumeSessionTask` | Hold black, reveal the loaded session, then release display/pause holds (`companion_load.c`) |
 | `22` | `F8` | NULL | Unused |
 | `23` | `C0` | `0x80701400` | Stage overlay — not in this tree |
 | `24` | `2F` | NULL | Unused |

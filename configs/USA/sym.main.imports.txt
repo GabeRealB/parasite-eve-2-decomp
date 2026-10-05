@@ -116,7 +116,7 @@ spriteViewTask = 0x800AD5B8; // type:func absolute:True
 Gp_LoadStateTask = 0x800AC25C; // type:func absolute:True
 func_800A77B4 = 0x800A77B4; // type:func absolute:True
 Gp_LoadWaitDispatch = 0x800A97DC; // type:func absolute:True
-Gp_FlashWhiteTask = 0x800AC344; // type:func absolute:True
+fadeResumeSessionTask = 0x800AC344; // type:func absolute:True
 viewCommitIndexTask = 0x800A9980; // type:func absolute:True
 loadingRestoreViewGraphicsTask = 0x800A99E0; // type:func absolute:True
 Title_Dispatch = 0x8009472C; // type:func absolute:True owner=title

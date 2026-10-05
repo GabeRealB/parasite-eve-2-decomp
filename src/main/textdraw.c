@@ -23,6 +23,7 @@
 
 #include "gameplay/area_transitions.h"
 #include "gameplay/companion_load.h"
+#include "gameplay/display.h"
 #include "gameplay/effect_tasks.h"
 #include "gameplay/hud_sprites.h"
 #include "gameplay/loading.h"
@@ -211,7 +212,7 @@ static TaskDesc D_8005EDA0[] = {
     { { { TASK_BODY_NONE, 0xF8 } }, Gp_LoadWaitDispatch },
     { { { TASK_BODY_NONE, 0x10 } }, Boot_LoadInitialFile },
     { { { TASK_BODY_NONE, 0x10 } }, Boot_LoadTask },
-    { { { TASK_BODY_NONE, 0x2F } }, Gp_FlashWhiteTask },
+    { { { TASK_BODY_NONE, 0x2F } }, fadeResumeSessionTask },
     { { { TASK_BODY_NONE, 0xF8 } }, NULL },
     { { { TASK_BODY_NONE, 0xC0 } }, func_80701400 },
     { { { TASK_BODY_NONE, 0x2F } }, NULL },

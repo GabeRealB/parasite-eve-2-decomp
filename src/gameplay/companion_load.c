@@ -5,6 +5,7 @@
 
 #include "gameplay/collision.h"
 #include "companion_load.h"
+#include "gameplay/display.h"
 #include "gameplay/hud_sprites.h"
 #include "loading.h"
 #include "gameplay/message.h"
@@ -91,6 +92,17 @@ extern u8 D_80114564[36];
 static void Gp_ClearFlagBank(s32 arg0);
 
 void func_80724E2C(void);
+
+/// Releases the session's pending pause block and display hold, then tears down its fade task.
+static inline void _fadeFinishSessionResume(Task* task, CdCmdQueue* queue)
+{
+    if ((s16)queue->releasePauseBlockAfterFade != 0) {
+        queue->releasePauseBlockAfterFade = 0;
+        queue->blockGamePause             = 0;
+    }
+    displayReleaseMenuHold();
+    taskKill(task);
+}
 
 _CompanionSchedule D_80114198[11] = {
     { NULL, GAME_STAGE_NONE },
@@ -395,38 +407,43 @@ void Gp_LoadStateTask(Task* task)
     sp.funcs[task->state](task);
 }
 
-void Gp_FlashWhiteTask(Task* task)
+void fadeResumeSessionTask(Task* task)
 {
+    enum {
+        FADE_RESUME_INIT          = 0,
+        FADE_RESUME_HOLD_BLACK    = 1,
+        FADE_RESUME_REVEAL        = 2,
+        FADE_RESUME_BLACK_TICKS   = 3,
+        FADE_RESUME_MAX_DARKNESS  = 255,
+        FADE_RESUME_DARKNESS_STEP = 30,
+    };
     CdCmdQueue* queue;
-    u8          fade;
+    u8          darkness;
 
     queue = &gCdCmdQueue;
     switch (task->state) {
-        case 0:
+        case FADE_RESUME_INIT:
             task->killCountdown = 0;
             task->state++;
-        case 1:
-            fadeDrawOverlay(0xFF, 0xFF, 0xFF, GPU_BLEND_SUBTRACT);
+            // Include the initialization tick in the full-black hold.
+        case FADE_RESUME_HOLD_BLACK:
+            fadeDrawOverlay(FADE_RESUME_MAX_DARKNESS, FADE_RESUME_MAX_DARKNESS, FADE_RESUME_MAX_DARKNESS, GPU_BLEND_SUBTRACT);
             task->killCountdown++;
-            if (task->killCountdown < 3) {
+            if (task->killCountdown < FADE_RESUME_BLACK_TICKS) {
                 return;
             }
-            task->killCountdown = 0xFF;
+            task->killCountdown = FADE_RESUME_MAX_DARKNESS;
             task->state++;
             break;
-        case 2:
-            fade = task->killCountdown;
-            fadeDrawOverlay(fade, fade, fade, GPU_BLEND_SUBTRACT);
-            task->killCountdown -= 0x1E;
+        case FADE_RESUME_REVEAL:
+            // Draw before stepping: the last overlay has darkness 15, then the counter crosses zero.
+            darkness = task->killCountdown;
+            fadeDrawOverlay(darkness, darkness, darkness, GPU_BLEND_SUBTRACT);
+            task->killCountdown -= FADE_RESUME_DARKNESS_STEP;
             if (task->killCountdown > 0) {
                 return;
             }
-            if ((s16)queue->releasePauseBlockAfterFade != 0) {
-                queue->releasePauseBlockAfterFade = 0;
-                queue->blockGamePause             = 0;
-            }
-            displayReleaseMenuHold();
-            taskKill(task);
+            _fadeFinishSessionResume(task, queue);
             break;
     }
 }
