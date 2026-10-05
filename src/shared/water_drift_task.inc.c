@@ -3,7 +3,7 @@
 /* Part of the water effects library; see water_effects.h. */
 
 /// Per-frame update of an effect task drawn with `_waterDrawSpin`
-/// (state 1) or `waterDrawTile` (state 2). State 0 seeds the
+/// (state 1) or `_waterDrawTile` (state 2). State 0 seeds the
 /// work from `spawnArg1` and, when `move` is zero, picks a random velocity
 /// scaled through the GTE. Later ticks draw, drift the coordinate by that velocity with `vy` growing by 6,
 /// and advance the frame every `period` ticks, releasing the task after
@@ -26,7 +26,7 @@ static inline void waterDriftTask(Task* task)
             if (task->state < 2) {
                 _waterDrawSpin(coord, work->index, work->scale, work->angle);
             } else {
-                waterDrawTile(coord, work->index, work->scale);
+                _waterDrawTile(coord, work->index, work->scale);
             }
             return;
         }
@@ -108,7 +108,7 @@ static inline void waterDriftTask(Task* task)
             _waterDrawSpin(coord, work->index, work->scale, work->angle);
             break;
         case 2:
-            waterDrawTile(coord, work->index, work->scale);
+            _waterDrawTile(coord, work->index, work->scale);
             break;
         default:
             return;

@@ -66,6 +66,7 @@
 #include "../../shared/water_effects.h"
 
 static void _waterDrawSpin(const GfxCoord* coord, s16 textureColumn, s16 radiusScale, s16 spinAngle);
+static void _waterDrawTile(const GfxCoord* coord, s16 frameIndex, s16 radiusScale);
 
 #define D_shelter_b4_upper_sewer_80186520 (D_shelter_b4_upper_sewer_801864F0 + 6)
 

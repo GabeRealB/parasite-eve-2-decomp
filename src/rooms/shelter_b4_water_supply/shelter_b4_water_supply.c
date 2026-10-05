@@ -62,6 +62,7 @@
 #include "../../shared/room_events.h"
 
 static void _waterDrawSpin(const GfxCoord* coord, s16 textureColumn, s16 radiusScale, s16 spinAngle);
+static void _waterDrawTile(const GfxCoord* coord, s16 frameIndex, s16 radiusScale);
 
 #define D_shelter_b4_water_supply_801826A0 (D_shelter_b4_water_supply_80182690 + 2)
 #define D_shelter_b4_water_supply_801826C0 (D_shelter_b4_water_supply_80182690 + 6)

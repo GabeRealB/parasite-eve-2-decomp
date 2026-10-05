@@ -66,6 +66,7 @@
 #include "../../shared/room_events.h"
 
 static void _waterDrawSpin(const GfxCoord* coord, s16 textureColumn, s16 radiusScale, s16 spinAngle);
+static void _waterDrawTile(const GfxCoord* coord, s16 frameIndex, s16 radiusScale);
 
 /// The room's message table, installed by its first task state.
 extern TaskMessageEntry D_shelter_b2_septic_tank_80182F4C[];

@@ -138,4 +138,4 @@ _roomVisualEffectsDrawFlyingBurstGroundQuad = 0x80185F58; // type:func
 _glowDrawCapsule = 0x8017F8CC; // type:func
 _waterDrawSplash = 0x8017EA0C; // type:func
 _waterDrawSpin = 0x8017F1FC; // type:func
-waterDrawTile = 0x8017F5E8; // type:func
+_waterDrawTile = 0x8017F5E8; // type:func

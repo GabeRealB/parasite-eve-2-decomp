@@ -44,6 +44,7 @@
 #include "../../shared/water_effects.h"
 
 static void _waterDrawSpin(const GfxCoord* coord, s16 textureColumn, s16 radiusScale, s16 spinAngle);
+static void _waterDrawTile(const GfxCoord* coord, s16 frameIndex, s16 radiusScale);
 
 /// Where the bridge effect task draws its pulsing marker and spawns its two
 /// sparks.

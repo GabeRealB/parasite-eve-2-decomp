@@ -143289,7 +143289,7 @@ That single reference is enough to swap two spill candidates: with it, `step`
 `n_refs` in `.lreg` before reaching for a pin: the missing reference is usually
 a constant that cse routed to a different register.
 
-## The 0x43D2 room sprite (`v+0x70` / `v-0x59` rows) is one `setUVWH`, not pinned UV locals (func_shelter_b4_reservoir_8018110C, 2026-09-26)
+## The 0x43D2 room sprite (`v+0x70` / `v-0x59` rows) is one `setUVWH`, not pinned UV locals (_waterDrawTile in shelter_b4_reservoir, 2026-09-26)
 
 The eight-frame sprite drawer copied across several rooms (`neo_ark_bridge`,
 `shelter_b2_septic_tank`, `shelter_b4_upper_sewer`, `shelter_b4_water_supply`, ...)
@@ -143299,7 +143299,7 @@ stores and a hand-written `vbase - 0x59`. All six go away together once the UVs
 are one macro call with the arithmetic inline:
 
 ```c
-setUVWH(prim, (arg1 % 4) * 0x38, (arg1 % 8) / 4 * 0x38 + 0x70, 0x37, 0x37);
+setUVWH(quad, (frameIndex % 4) * 0x38, (frameIndex % 8) / 4 * 0x38 + 0x70, 0x37, 0x37);
 ```
 
 The macro repeats the `_v0` expression rather than naming it, so `v0 + 0x37`
@@ -143308,11 +143308,11 @@ narrows to QImode and prints as `-0x59` (see "`addiu reg, 0xA7` vs `addiu reg,
 the old `s16 cell` locals imitated; and `u0` is stored before the `% 8` is
 computed because the macro stores it first. With the UVs right, the scratch
 head's `move v1,t1` copy and the rest of the prologue came out of a plain
-`block = SCRATCH_STACK_RESERVE_BLOCK(EffectCentreScratch)` with no further help: the prologue hacks
+`workspace = SCRATCH_STACK_RESERVE_BLOCK(EffectCentreScratch)` with no further help: the prologue hacks
 were compensating for allocation pressure the wrong UV code created. Try the
 macro before steering a quad's setup piecemeal.
 
-## A tile UV written as repeated `setUV4` expressions, not locals: the dividend outlives the division's copy (func_neo_ark_bridge_8017FCA0, 2026-09-26)
+## A tile UV written as repeated `setUV4` expressions, not locals: the dividend outlives the division's copy (_waterDrawTile in neo_ark_bridge, 2026-09-26)
 
 **Symptom.** A `POLY_FT4` picks a tile `(n % 4) * 0x38`, `(n % 8) / 4 * 0x38`.
 The target's `/ 4` keeps its dividend in `$a0`, copies it (`move v1,a0` in the
@@ -143341,7 +143341,7 @@ The statement order `i++; lineIndex++; code = index[i];` puts the other
 increment between the advance and the load, so only the load is cross-jumped.
 A surviving tail duplicate that is only partly merged shows where an extra
 statement stood in the original arm.
-## `bgez a0; move v1,a0; addiu v1,a0,3` - the dividend is read again after the `/ 4`, so write the division at every use (func_shelter_b2_septic_tank_8017FD70, 2026-09-26)
+## `bgez a0; move v1,a0; addiu v1,a0,3` - the dividend is read again after the `/ 4`, so write the division at every use (_waterDrawTile in shelter_b2_septic_tank, 2026-09-26)
 
 Symptom: a signed `/ 4` whose bias add reads the *dividend* into a separate
 temp (`move v1,a0` in the delay slot, `addiu v1,a0,3`), although the dividend
@@ -143355,14 +143355,14 @@ Fix: spell the texture coordinates out per corner, recomputing from the two
 `s16` cells each time:
 
 ```c
-col      = arg1 % 4;
-prim->u0 = col * 0x38;
-row      = arg1 % 8;
-prim->v0 = row / 4 * 0x38 + 0x70;
-prim->u1 = col * 0x38 + 0x37;
-prim->v1 = row / 4 * 0x38 + 0x70;
+col      = frameIndex % 4;
+quad->u0 = col * 0x38;
+row      = frameIndex % 8;
+quad->v0 = row / 4 * 0x38 + 0x70;
+quad->u1 = col * 0x38 + 0x37;
+quad->v1 = row / 4 * 0x38 + 0x70;
 ...
-prim->v3 = row / 4 * 0x38 + 0xA7;
+quad->v3 = row / 4 * 0x38 + 0xA7;
 ```
 
 CSE folds the repeats to one quotient, but `row`'s last mention (before CSE)
@@ -143372,14 +143372,14 @@ the temp. That is exactly what the `SOFT_USE_REG` imitated. The barriers were
 only there to hold the store order, and the per-corner form matches it with
 no help.
 
-Still open in the same function: the stores for `vec.vy`/`vec.vz`, `gte_ldv0`
+In that earlier form, the stores for `worldPoint.vy`/`worldPoint.vz`, `gte_ldv0`
 and the flag load go through a short-lived copy (`move v1,t1`) of the block
 pointer, while the carve `t1` is stored to the head and used in the `if`
-body. CSE turns every reader of a plain `p = block` copy into `block` (the
+body. CSE turns every reader of a plain `p = workspace` copy into `workspace` (the
 older register), and it cannot keep `p` as canonical without giving it the
-`if` body too. So two `SOFT_TOUCH_REG*` lines still keep the copy opaque.
+`if` body too. So two `SOFT_TOUCH_REG*` lines kept the copy opaque.
 Helpers, the compound push, a nested push and every ordering of
-`p`/`block`/`*scratch` fell short.
+`p`/`workspace`/`*scratch` fell short.
 ## A prologue `lw v0,X; move sN,v0` with nothing between is not an inline-parameter copy (func_actor_206100_8014C458, 2026-09-26)
 
 The target loads `task->extra.tmd` into `$v0` and copies it into the

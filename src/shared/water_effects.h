@@ -24,7 +24,6 @@
 #include "main/task_types.h"
 
 static void _waterDrawSplash(const GfxCoord* coord, s32 halfSize, s32 brightness);
-void        waterDrawTile(GfxCoord* arg0, s16 arg1, s16 arg2);
 /* WATER_SHARED_U16_DRAWERS is an empty presence flag. The including file
  * defines it, with no replacement list, before this header. defined() is the
  * only test. With WATER_OWN_U16_DRAWERS unset, the flag declares the shared

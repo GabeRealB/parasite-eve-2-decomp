@@ -1243,7 +1243,7 @@ func_shelter_b3_elevator_hall_80181370 = 0x80181370; // type:func absolute:True 
 
 func_shelter_b3_elevator_hall_80181FD0 = 0x80181FD0; // type:func absolute:True owner=shelter_b3_elevator_hall
 
-func_shelter_b3_garbage_incinerator_8018110C = 0x8018110C; // type:func absolute:True owner=shelter_b3_garbage_incinerator shared=rooms
+func_shelter_b3_garbage_incinerator_8018110C = 0x8018110C; // type:func absolute:True owner=shelter_b3_garbage_incinerator
 
 shelterB3GarbageIncineratorEffectSpriteDriftTaskAimed = 0x80182368; // type:func absolute:True owner=shelter_b3_garbage_incinerator
 
