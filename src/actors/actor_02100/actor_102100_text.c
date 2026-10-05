@@ -1070,7 +1070,6 @@ static void Actor02100_Fn00DCC(Task* arg0)
 static void Actor02100_Fn011C4(Task* arg0)
 {
     _Actor02100EnemyScanScratch* scratch;
-    Task*                        list;
     Task*                        head;
     Task*                        current;
     Enemy*                       enemy;
@@ -1079,14 +1078,13 @@ static void Actor02100_Fn011C4(Task* arg0)
     u32                          index;
     u32                          dist;
 
-    list  = gameGetTaskSlot(GAME_TASK_SLOT_SCENE);
+    head  = gameGetTaskSlot(GAME_TASK_SLOT_SCENE);
     coord = arg0->extra.tmd->coords;
-    head  = list->firstChild;
+    head  = head->firstChild;
     work  = arg0->work;
     if (head != NULL) {
         scratch = SCRATCH_STACK_RESERVE_BLOCK(_Actor02100EnemyScanScratch);
         current = head;
-        SOFT_TOUCH_REG(head);
         do {
             enemy = current->spawnArg2.pointer;
             index = enemy->place->entryId;
