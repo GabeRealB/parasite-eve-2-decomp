@@ -1990,10 +1990,19 @@ void effectDrawSpinningBillboard(const GfxCoord* coord, u16 frame, s16 size, u16
     SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);
 }
 
-/// Places an axis-aligned quad around a projected centre with an equal half-size on both axes.
+/// Sets the screen-space corners of a square effect billboard.
 ///
-/// Borrows a live scratch block and writable GPU packet. `screenExtent` is in
-/// pixels; final coordinates retain the GPU's signed 16-bit encodings.
+/// `scratch` supplies the raw projected `screenX`/`screenY` encodings and
+/// `screenExtent`, a signed half-size in integer pixels already scaled by the
+/// caller. For a nonnegative extent, corners 0/1 form the top row and 2/3 the
+/// bottom row; corners 0/2 form the left column and 1/3 the right column.
+/// Screen X increases rightward and screen Y downward.
+///
+/// Edge sums and differences must fit signed 32-bit arithmetic. Packet stores
+/// retain the low 16 bits as signed coordinates, without clipping or clamping.
+/// Borrows a live read-only scratch block and a writable `POLY_FT4`; only the
+/// three input fields need initialization. Writes all eight XY halfwords and
+/// retains neither pointer.
 static inline void _effectSetBillboardScreenBounds(POLY_FT4* quad, const EffectCentreScratch* scratch)
 {
     quad->x0 = quad->x2 = scratch->screenX - scratch->screenExtent;
