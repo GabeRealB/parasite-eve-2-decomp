@@ -4,6 +4,7 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
+#include <psyq/gtemac.h>
 #include <psyq/libgs.h>
 
 #include "common.h"
@@ -687,24 +688,25 @@ TmdObject* tmdCreateModel(TmdSource* source, s32 bufferFlags)
     return model;
 }
 
-/// Combines the model's light directions with inverse view rotation for the draw walk.
+/// Converts world-space light rows to view space for the TMD draw walk.
 ///
-/// Stores a 3x3 matrix with 12 fractional bits in the borrowed workspace.
-/// Each column uses GTE multiplication and saturation; translation is ignored.
-/// Leaves the model's light-direction matrix installed as GTE rotation.
-static inline void _tmdComposeViewLightRotation(TmdObject* model, TmdStreamWorkspace* workspace)
+/// Writes `model->lightMtx->m * transpose(gGfxViewCoord.workm.m)` to all nine
+/// `viewLightRotation` coefficients, for later multiplication by each part's
+/// local-to-view rotation. The composed view must already be current; its
+/// transpose undoes rotation only, with no translation or general inversion.
+/// Coefficients have 12 fractional bits. Each GTE column product shifts by 12
+/// and saturates to -32768..32767 before the next column is processed.
+///
+/// Borrows `model` and its readable, word-aligned light matrix plus a writable,
+/// halfword-aligned 3x3 array disjoint from the model, light and view matrices.
+/// Writes only the array's 18 bytes and retains no pointer. Leaves the light
+/// matrix in GTE rotation and the final column's results in IR1..3, MAC1..3
+/// and FLAG; GTE translation, light, colour and projection settings are preserved.
+static inline void _tmdComposeViewLightRotation(const TmdObject* model, s16 viewLightRotation[3][3])
 {
-    gte_TransposeMatrix(&gGfxViewCoord.workm, &workspace->viewLightRotation);
-    gte_SetRotMatrix(model->lightMtx);
-    gte_ldclmv(&workspace->viewLightRotation[0][0]);
-    gte_rtir();
-    gte_stclmv(&workspace->viewLightRotation[0][0]);
-    gte_ldclmv(&workspace->viewLightRotation[0][1]);
-    gte_rtir();
-    gte_stclmv(&workspace->viewLightRotation[0][1]);
-    gte_ldclmv(&workspace->viewLightRotation[0][2]);
-    gte_rtir();
-    gte_stclmv(&workspace->viewLightRotation[0][2]);
+    gte_TransposeMatrix(&gGfxViewCoord.workm, viewLightRotation);
+    // A completed column is never needed by a later product, so multiply in place.
+    gte_MulMatrix0(model->lightMtx, viewLightRotation, viewLightRotation);
 }
 
 /// Draws one model into its selected buffer half and the current ordering table.
@@ -769,7 +771,7 @@ static void _tmdDrawModel(TmdObject* model)
 
     objectFlags = model->flags;
     // Remove the view rotation before combining the light directions with each part.
-    _tmdComposeViewLightRotation(model, &scratch->workspace);
+    _tmdComposeViewLightRotation(model, scratch->workspace.viewLightRotation);
 
     tmdDrawModelStream(&scratch->workspace, objectFlags, stream, model);
 
