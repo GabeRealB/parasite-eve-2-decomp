@@ -800,251 +800,239 @@ void Gp_StepCdAudioCmd(void)
     s32         sector;
 
     p = &gCdCmdQueue;
-    {
-        s32 cmd;
-        cmd = p->entries[p->readIdx].cmd;
-        if (cmd == CD_COMMAND_EMPTY) {
-            goto end_check;
-        }
-        if (cmd < 0) {
-            goto end_check;
-        }
-        if (cmd >= CD_COMMAND_START_SCENE_AUDIO + 1) {
-            goto end_check;
-        }
-        if (cmd < CD_COMMAND_PLAY_SCENE_AUDIO) {
-            goto end_check;
-        }
+    switch (p->entries[p->readIdx].cmd) {
+        case CD_COMMAND_EMPTY:
+            break;
+        case CD_COMMAND_PLAY_SCENE_AUDIO:
+        case CD_COMMAND_START_SCENE_AUDIO:
+            switch (p->step) {
+                case 0:
+                    CdCmd_SetBusy();
+                    p->sceneAudioMode = CD_COMMAND_SCENE_STARTING_AUDIO;
+                    ret               = CdCmd_PollStatus(0, 0);
+                    if (ret != 1) {
+                        if (ret < 2) {
+                            if (ret == 0) {
+                                return;
+                            }
+                            break;
+                        }
+                        if (ret != 2) {
+                            break;
+                        }
+                        CdFlush();
+                    }
+                    if (p->sceneAudioStarted == 0) {
+                        p->step = p->step + 1;
+                        break;
+                    }
+                    p->step = 6;
+                    goto case6;
+                case 1:
+                case 2:
+                    p->step = p->step + 1;
+                    break;
+                case 3: {
+                    StreamSlot* sceneStream;
+
+                    sceneStream           = p->sceneStream;
+                    p->cdOperationPending = 1;
+                    if (sceneStream->control.scene.timingBufferKind != STREAM_TIMING_BUFFER_NONE) {
+                        sector = sceneStream->startSector;
+                        if ((sceneStream->data.scene.timingBytes - 1) / STREAM_CD_SECTOR_BYTES != 0) {
+                            sector += 1 + (sceneStream->data.scene.timingBytes - 1) / STREAM_CD_SECTOR_BYTES;
+                        }
+                        Fs_ReadSectorEx(p->sceneStream->startSector, sector, p->timingBuffer, 0);
+                        p->step = p->step + 1;
+                    } else {
+                        p->step = 5;
+                    }
+                    break;
+                }
+                case 4:
+                    if (Fs_CdOpStatus != 0xFF) {
+                        break;
+                    }
+                    ret = CdCmd_PollStatus(0, 0);
+                    if (ret != 1) {
+                        if (ret < 2) {
+                            if (ret == 0) {
+                                return;
+                            }
+                            break;
+                        }
+                        if (ret != 2) {
+                            break;
+                        }
+                        CdFlush();
+                        p->step = 3;
+                        break;
+                    }
+                    p->step = p->step + 1;
+                    break;
+                case 5: {
+                    StreamSlot*              sceneStream;
+                    s32                      bits;
+                    u16                      maskbits;
+                    _CdCmdSceneSoundBankBit* entry;
+
+                    sceneStream = p->sceneStream;
+                    sector      = sceneStream->startSector;
+                    if (sceneStream->control.scene.timingBufferKind != STREAM_TIMING_BUFFER_NONE) {
+                        sector += 1;
+                        sector += (sceneStream->data.scene.timingBytes - 1) / STREAM_CD_SECTOR_BYTES;
+                    }
+                    CdAudio_StartTrack(sector, p->sceneStream->control.scene.volumeIndex);
+                    i_s1     = 0;
+                    maskbits = p->sceneStream->data.scene.soundBankMask;
+                    if (Gp_SndMaskTable[0].mask != 0) {
+                        bits = maskbits;
+                        do {
+                            entry = &Gp_SndMaskTable[(u16)i_s1];
+                            if (bits & entry->mask) {
+                                sndEvtRequestScriptStop(entry->bankTypeId, SOUND_SCRIPT_STOP_NO_FADE);
+                                SndBank_SetEnableFlags(0, entry->bankTypeId);
+                            }
+                            i_s1++;
+                        } while (Gp_SndMaskTable[(u16)i_s1].mask != 0);
+                    }
+                    p->releasePauseBlockAfterFade = 0;
+                    p->blockGamePause             = 1;
+                    p->step                       = p->step + 1;
+                    break;
+                }
+                case 6:
+                case6: {
+                    s32 cmd;
+
+                    if (CdAudio_Phase.openStep != CD_AUDIO_OPEN_STEP_DONE) {
+                        break;
+                    }
+                    one                  = 1;
+                    p->sceneAudioStarted = one;
+                    cmd                  = p->entries[p->readIdx].cmd;
+                    if (cmd == CD_COMMAND_START_SCENE_AUDIO) {
+                        cdCmdSaveHeadRequest();
+                        CdCmd_AdvanceRead();
+                        break;
+                    }
+                    if (cmd != CD_COMMAND_PLAY_SCENE_AUDIO) {
+                        break;
+                    }
+                    save23            = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene;
+                    p->sceneAudioMode = one;
+                    if (save23 != 0) {
+                        sndEvtRequestScriptStart(0, 0, 0);
+                    }
+                    if (p->sceneStream->control.scene.timingBufferKind != STREAM_TIMING_BUFFER_NONE) {
+                        p->paceToSceneTiming = one;
+                    }
+                    p->timingElapsedLines = 0;
+                    CdAudio_RequestStopB();
+                    p->blockGamePause     = one;
+                    p->cdOperationPending = 0;
+                    p->step               = p->step + 1;
+                    break;
+                }
+                case 7: {
+                    StreamSlot*              sceneStream;
+                    s32                      i;
+                    s32                      bits;
+                    u16                      maskbits;
+                    _CdCmdSceneSoundBankBit* entry;
+
+                    if (CdAudio_Phase.playStep != CD_AUDIO_PLAY_STEP_DONE) {
+                        break;
+                    }
+                    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 0) {
+                        sndEvtRequestScriptStart(0, 0, 0);
+                    }
+                    memFillBytes(&p->activeRequest, 0, sizeof(p->activeRequest));
+                    sceneStream             = p->sceneStream;
+                    p->replacementEntry.cmd = CD_COMMAND_EMPTY;
+                    if (sceneStream->data.scene.resumeSectorOffset != 0) {
+                        CdAudio_JumpToSector(sceneStream->startSector + sceneStream->data.scene.resumeSectorOffset);
+                        p->cdOperationPending = 1;
+                        p->step               = p->step + 1;
+                        break;
+                    }
+                    i        = 0;
+                    maskbits = sceneStream->data.scene.soundBankMask;
+                    if (Gp_SndMaskTable[0].mask != 0) {
+                        bits = maskbits;
+                        do {
+                            entry = &Gp_SndMaskTable[(u16)i];
+                            if (bits & entry->mask) {
+                                SndBank_SetEnableFlags(1, entry->bankTypeId);
+                            }
+                            i++;
+                        } while (Gp_SndMaskTable[(u16)i].mask != 0);
+                    }
+                    {
+                        CdCmdQueue* q;
+                        s32         ff;
+                        q                        = &gCdCmdQueue;
+                        seed                     = q->savedRandSeed;
+                        ff                       = 0xFF;
+                        p->blockGamePause        = 0;
+                        p->sceneAudioMode        = CD_COMMAND_SCENE_INACTIVE;
+                        q->imageLoadStatus       = ff;
+                        q->sceneEnded            = 1;
+                        q->scenePayloadAvailable = 0;
+                        q->sceneAudioStarted     = 0;
+                        q->sceneBuffersNeeded    = 0;
+                        q->paceToSceneTiming     = 0;
+                        gRandomLcgState          = q->savedLcgState;
+                        srand(seed);
+                    }
+                    CdCmd_AdvanceRead();
+                    break;
+                }
+                case 8: {
+                    s32                      i;
+                    s32                      bits;
+                    u16                      maskbits;
+                    _CdCmdSceneSoundBankBit* entry;
+
+                    if (CdAudio_Phase.waveLoadStep != CD_AUDIO_WAVE_LOAD_STEP_DONE) {
+                        break;
+                    }
+                    i        = 0;
+                    maskbits = p->sceneStream->data.scene.soundBankMask;
+                    if (Gp_SndMaskTable[0].mask != 0) {
+                        bits = maskbits;
+                        do {
+                            entry = &Gp_SndMaskTable[(u16)i];
+                            if (bits & entry->mask) {
+                                SndBank_SetEnableFlags(1, entry->bankTypeId);
+                            }
+                            i++;
+                        } while (Gp_SndMaskTable[(u16)i].mask != 0);
+                    }
+                    {
+                        CdCmdQueue* q;
+                        s32         ff;
+                        q                        = &gCdCmdQueue;
+                        seed                     = q->savedRandSeed;
+                        ff                       = 0xFF;
+                        p->cdOperationPending    = 0;
+                        p->blockGamePause        = 0;
+                        p->sceneAudioMode        = CD_COMMAND_SCENE_INACTIVE;
+                        q->imageLoadStatus       = ff;
+                        q->sceneEnded            = 1;
+                        q->scenePayloadAvailable = 0;
+                        q->sceneAudioStarted     = 0;
+                        q->sceneBuffersNeeded    = 0;
+                        q->paceToSceneTiming     = 0;
+                        gRandomLcgState          = q->savedLcgState;
+                        srand(seed);
+                    }
+                    CdCmd_AdvanceRead();
+                    break;
+                }
+            }
+            break;
     }
-
-    switch (p->step) {
-        case 0:
-            CdCmd_SetBusy();
-            p->sceneAudioMode = CD_COMMAND_SCENE_STARTING_AUDIO;
-            ret               = CdCmd_PollStatus(0, 0);
-            if (ret != 1) {
-                if (ret < 2) {
-                    if (ret == 0) {
-                        return;
-                    }
-                    break;
-                }
-                if (ret != 2) {
-                    break;
-                }
-                CdFlush();
-            }
-            if (p->sceneAudioStarted == 0) {
-                p->step = p->step + 1;
-                break;
-            }
-            p->step = 6;
-            goto case6;
-        case 1:
-        case 2:
-            p->step = p->step + 1;
-            break;
-        case 3: {
-            StreamSlot* sceneStream;
-
-            sceneStream           = p->sceneStream;
-            p->cdOperationPending = 1;
-            if (sceneStream->control.scene.timingBufferKind != STREAM_TIMING_BUFFER_NONE) {
-                sector = sceneStream->startSector;
-                if ((sceneStream->data.scene.timingBytes - 1) / STREAM_CD_SECTOR_BYTES != 0) {
-                    sector += 1 + (sceneStream->data.scene.timingBytes - 1) / STREAM_CD_SECTOR_BYTES;
-                }
-                Fs_ReadSectorEx(p->sceneStream->startSector, sector, p->timingBuffer, 0);
-                p->step = p->step + 1;
-            } else {
-                p->step = 5;
-            }
-            break;
-        }
-        case 4:
-            if (Fs_CdOpStatus != 0xFF) {
-                break;
-            }
-            ret = CdCmd_PollStatus(0, 0);
-            if (ret != 1) {
-                if (ret < 2) {
-                    if (ret == 0) {
-                        return;
-                    }
-                    break;
-                }
-                if (ret != 2) {
-                    break;
-                }
-                CdFlush();
-                p->step = 3;
-                break;
-            }
-            p->step = p->step + 1;
-            break;
-        case 5: {
-            StreamSlot*              sceneStream;
-            s32                      bits;
-            u16                      maskbits;
-            _CdCmdSceneSoundBankBit* entry;
-
-            sceneStream = p->sceneStream;
-            sector      = sceneStream->startSector;
-            if (sceneStream->control.scene.timingBufferKind != STREAM_TIMING_BUFFER_NONE) {
-                sector += 1;
-                sector += (sceneStream->data.scene.timingBytes - 1) / STREAM_CD_SECTOR_BYTES;
-            }
-            CdAudio_StartTrack(sector, p->sceneStream->control.scene.volumeIndex);
-            i_s1     = 0;
-            maskbits = p->sceneStream->data.scene.soundBankMask;
-            if (Gp_SndMaskTable[0].mask != 0) {
-                bits = maskbits;
-                do {
-                    entry = &Gp_SndMaskTable[(u16)i_s1];
-                    if (bits & entry->mask) {
-                        sndEvtRequestScriptStop(entry->bankTypeId, SOUND_SCRIPT_STOP_NO_FADE);
-                        SndBank_SetEnableFlags(0, entry->bankTypeId);
-                    }
-                    i_s1++;
-                } while (Gp_SndMaskTable[(u16)i_s1].mask != 0);
-            }
-            p->releasePauseBlockAfterFade = 0;
-            p->blockGamePause             = 1;
-            p->step                       = p->step + 1;
-            break;
-        }
-        case 6:
-        case6: {
-            s32 cmd;
-
-            if (CdAudio_Phase.openStep != CD_AUDIO_OPEN_STEP_DONE) {
-                break;
-            }
-            one                  = 1;
-            p->sceneAudioStarted = one;
-            cmd                  = p->entries[p->readIdx].cmd;
-            if (cmd == CD_COMMAND_START_SCENE_AUDIO) {
-                cdCmdSaveHeadRequest();
-                CdCmd_AdvanceRead();
-                break;
-            }
-            if (cmd != CD_COMMAND_PLAY_SCENE_AUDIO) {
-                break;
-            }
-            save23            = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene;
-            p->sceneAudioMode = one;
-            if (save23 != 0) {
-                sndEvtRequestScriptStart(0, 0, 0);
-            }
-            if (p->sceneStream->control.scene.timingBufferKind != STREAM_TIMING_BUFFER_NONE) {
-                p->paceToSceneTiming = one;
-            }
-            p->timingElapsedLines = 0;
-            CdAudio_RequestStopB();
-            p->blockGamePause     = one;
-            p->cdOperationPending = 0;
-            p->step               = p->step + 1;
-            break;
-        }
-        case 7: {
-            StreamSlot*              sceneStream;
-            s32                      i;
-            s32                      bits;
-            u16                      maskbits;
-            _CdCmdSceneSoundBankBit* entry;
-
-            if (CdAudio_Phase.playStep != CD_AUDIO_PLAY_STEP_DONE) {
-                break;
-            }
-            if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 0) {
-                sndEvtRequestScriptStart(0, 0, 0);
-            }
-            memFillBytes(&p->activeRequest, 0, sizeof(p->activeRequest));
-            sceneStream             = p->sceneStream;
-            p->replacementEntry.cmd = CD_COMMAND_EMPTY;
-            if (sceneStream->data.scene.resumeSectorOffset != 0) {
-                CdAudio_JumpToSector(sceneStream->startSector + sceneStream->data.scene.resumeSectorOffset);
-                p->cdOperationPending = 1;
-                p->step               = p->step + 1;
-                break;
-            }
-            i        = 0;
-            maskbits = sceneStream->data.scene.soundBankMask;
-            if (Gp_SndMaskTable[0].mask != 0) {
-                bits = maskbits;
-                do {
-                    entry = &Gp_SndMaskTable[(u16)i];
-                    if (bits & entry->mask) {
-                        SndBank_SetEnableFlags(1, entry->bankTypeId);
-                    }
-                    i++;
-                } while (Gp_SndMaskTable[(u16)i].mask != 0);
-            }
-            {
-                CdCmdQueue* q;
-                s32         ff;
-                q                        = &gCdCmdQueue;
-                seed                     = q->savedRandSeed;
-                ff                       = 0xFF;
-                p->blockGamePause        = 0;
-                p->sceneAudioMode        = CD_COMMAND_SCENE_INACTIVE;
-                q->imageLoadStatus       = ff;
-                q->sceneEnded            = 1;
-                q->scenePayloadAvailable = 0;
-                q->sceneAudioStarted     = 0;
-                q->sceneBuffersNeeded    = 0;
-                q->paceToSceneTiming     = 0;
-                gRandomLcgState          = q->savedLcgState;
-                srand(seed);
-            }
-            CdCmd_AdvanceRead();
-            break;
-        }
-        case 8: {
-            s32                      i;
-            s32                      bits;
-            u16                      maskbits;
-            _CdCmdSceneSoundBankBit* entry;
-
-            if (CdAudio_Phase.waveLoadStep != CD_AUDIO_WAVE_LOAD_STEP_DONE) {
-                break;
-            }
-            i        = 0;
-            maskbits = p->sceneStream->data.scene.soundBankMask;
-            if (Gp_SndMaskTable[0].mask != 0) {
-                bits = maskbits;
-                do {
-                    entry = &Gp_SndMaskTable[(u16)i];
-                    if (bits & entry->mask) {
-                        SndBank_SetEnableFlags(1, entry->bankTypeId);
-                    }
-                    i++;
-                } while (Gp_SndMaskTable[(u16)i].mask != 0);
-            }
-            {
-                CdCmdQueue* q;
-                s32         ff;
-                q                        = &gCdCmdQueue;
-                seed                     = q->savedRandSeed;
-                ff                       = 0xFF;
-                p->cdOperationPending    = 0;
-                p->blockGamePause        = 0;
-                p->sceneAudioMode        = CD_COMMAND_SCENE_INACTIVE;
-                q->imageLoadStatus       = ff;
-                q->sceneEnded            = 1;
-                q->scenePayloadAvailable = 0;
-                q->sceneAudioStarted     = 0;
-                q->sceneBuffersNeeded    = 0;
-                q->paceToSceneTiming     = 0;
-                gRandomLcgState          = q->savedLcgState;
-                srand(seed);
-            }
-            CdCmd_AdvanceRead();
-            break;
-        }
-    }
-
-end_check:
     CdCmd_StepVlcRebuild();
 }
 
