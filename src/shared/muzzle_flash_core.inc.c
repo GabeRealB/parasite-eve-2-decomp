@@ -1,11 +1,21 @@
 /* Part of the muzzle flash library; see muzzle_flash.h. */
 
-/// Stores one screen-space corner offset at a 4096-unit angle around the centre.
-static inline void _muzzleFlashSetCoreCornerOffsets(OverlaySpriteScratch* block, s16 worldSize, s32 cornerAngle)
+/// Sets the pixel offsets for one opposite-corner pair of the muzzle-flash core.
+///
+/// `spriteScratch->otz` must contain the projected centre's SZ3 / 4 depth,
+/// at least `MUZZLE_FLASH_MIN_DEPTH`. `worldSize` is the nonnegative size
+/// scale supplied by the flash task (0..2559). Integer division first gives
+/// a pixel radius of worldSize * 55 / otz; Q12 sine/cosine then produce signed
+/// offsets without narrowing them to the packet's 16-bit coordinates.
+/// `cornerAngle` uses 4096 units per turn: zero points up, a quarter turn
+/// right. The caller adds/subtracts `cornerDx` along X and subtracts/adds
+/// `cornerDy` along screen Y, then repeats a quarter turn later for the other
+/// pair. Only those two scratch words are written; no address is retained.
+static inline void _muzzleFlashSetCoreCornerOffsets(OverlaySpriteScratch* spriteScratch, s16 worldSize, s32 cornerAngle)
 {
     enum { MUZZLE_FLASH_CORE_PROJECTION_SCALE = 55 };
-    block->cornerDx = (((worldSize * MUZZLE_FLASH_CORE_PROJECTION_SCALE) / block->otz) * rsin(cornerAngle)) >> MUZZLE_FLASH_TRIG_FRACTION_BITS;
-    block->cornerDy = (((worldSize * MUZZLE_FLASH_CORE_PROJECTION_SCALE) / block->otz) * rcos(cornerAngle)) >> MUZZLE_FLASH_TRIG_FRACTION_BITS;
+    spriteScratch->cornerDx = (((worldSize * MUZZLE_FLASH_CORE_PROJECTION_SCALE) / spriteScratch->otz) * rsin(cornerAngle)) >> MUZZLE_FLASH_TRIG_FRACTION_BITS;
+    spriteScratch->cornerDy = (((worldSize * MUZZLE_FLASH_CORE_PROJECTION_SCALE) / spriteScratch->otz) * rcos(cornerAngle)) >> MUZZLE_FLASH_TRIG_FRACTION_BITS;
 }
 
 /// Draws the additive textured core as a spinning camera-facing square.

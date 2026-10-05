@@ -2,24 +2,35 @@
 
 /* Part of the muzzle flash library; see muzzle_flash.h. */
 
-/// Starts the shared white point light at the effect's original spawn position.
-static inline void _muzzleFlashInitializeLight(const GfxCoord* spawnCoord, WorldCoordTransientPointLight* transientLight, WorldCoordPointLight* pointLight)
+/// Activates a transient white point light at the effect's initial position.
+///
+/// `spawnCoord` supplies its local translation in the light's parent frame;
+/// the flash calls this while both coordinates are parented to the view,
+/// before attaching the effect to the weapon's muzzle. The slot must already
+/// be initialized with that borrowed parent. Full Q12 white intensity extends
+/// to 4000 world units and falls to zero at 4800; the slot expires after four
+/// unpaused light updates. Placement invalidates its cached transform for the
+/// next composition pass. The slot is shared storage that another effect can
+/// overwrite; no pointer is retained by this helper.
+static inline void _muzzleFlashInitializeLight(const GfxCoord* spawnCoord, WorldCoordTransientPointLight* transientLight)
 {
     enum {
         MUZZLE_FLASH_LIGHT_INNER_RADIUS = 0xFA0,
         MUZZLE_FLASH_LIGHT_OUTER_RADIUS = 0x12C0,
         MUZZLE_FLASH_LIGHT_FRAME_COUNT  = 4
     };
-    pointLight->head.transform.coord.coord.t[0]             = spawnCoord->coord.t[0];
-    pointLight->head.transform.coord.coord.t[1]             = spawnCoord->coord.t[1];
-    pointLight->head.transform.coord.coord.t[2]             = spawnCoord->coord.t[2];
-    transientLight->light.head.transform.coord.composeStamp = GRAPHICS_COORD_DIRTY;
-    pointLight->head.color.r                                = ONE;
-    pointLight->head.color.g                                = ONE;
-    pointLight->head.color.b                                = ONE;
-    pointLight->inner                                       = MUZZLE_FLASH_LIGHT_INNER_RADIUS;
-    pointLight->outer                                       = MUZZLE_FLASH_LIGHT_OUTER_RADIUS;
-    transientLight->framesLeft                              = MUZZLE_FLASH_LIGHT_FRAME_COUNT;
+    WorldCoordPointLight* pointLight = &transientLight->light;
+
+    pointLight->head.transform.coord.coord.t[0]   = spawnCoord->coord.t[0];
+    pointLight->head.transform.coord.coord.t[1]   = spawnCoord->coord.t[1];
+    pointLight->head.transform.coord.coord.t[2]   = spawnCoord->coord.t[2];
+    pointLight->head.transform.coord.composeStamp = GRAPHICS_COORD_DIRTY;
+    pointLight->head.color.r                      = ONE;
+    pointLight->head.color.g                      = ONE;
+    pointLight->head.color.b                      = ONE;
+    pointLight->inner                             = MUZZLE_FLASH_LIGHT_INNER_RADIUS;
+    pointLight->outer                             = MUZZLE_FLASH_LIGHT_OUTER_RADIUS;
+    transientLight->framesLeft                    = MUZZLE_FLASH_LIGHT_FRAME_COUNT;
 }
 
 /// Advances the seven-update flash, its additive screen tint and its point light.
@@ -66,7 +77,7 @@ static inline void _muzzleFlashTask(Task* task)
     switch (task->state) {
         case MUZZLE_FLASH_STATE_INITIALIZE:
             // Start the light at the spawn position before applying the muzzle offset.
-            _muzzleFlashInitializeLight(muzzleCoord, transientLight, pointLight);
+            _muzzleFlashInitializeLight(muzzleCoord, transientLight);
 
             // Attach and compose once; normal coordinate updates refresh it thereafter.
             muzzleCoord->parent       = work->parent;
