@@ -1844,9 +1844,8 @@ void func_acropolis_square_801825DC(Task* task)
     u8                    cyan;
     s32                   z;
     s32                   shift;
-    u32                   otByteOffset;
+    u32                   shiftedDepth;
     u32                   tag;
-    u_long*               ot;
 
     coord = task->extra.coordBody->coord;
     mem   = task->spawnArg2.pointer;
@@ -1938,13 +1937,14 @@ void func_acropolis_square_801825DC(Task* task)
                     prim->x3     = blk->screenPos.vx + ((blk->innerRadius * D_acropolis_square_80183B68[i + 8]) >> 12);
                     prim->y3     = blk->screenPos.vy + ((blk->innerRadius * D_acropolis_square_80183B68[i + 4]) >> 12);
                     shift        = gDisplayState.otDepthShift;
-                    otByteOffset = (((u32)blk->otz << shift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK;
-                    __asm__("" : "+r"(otByteOffset) : "r"(shift), "m"(gDisplayState.otDepthShift));
-                    setaddr(prim, getaddr(((u_long*)((otByteOffset) + (uintptr)gGpuCurrentOt))));
-                    ot  = ((u_long*)((((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) + (uintptr)gGpuCurrentOt));
-                    tag = (*ot & GPU_DMA_PACKET_LENGTH_MASK) | ((u32)prim & GPU_DMA_LINK_ADDRESS_MASK);
-                    *ot = tag;
-                    z   = blk->otz;
+                    shiftedDepth = (u32)blk->otz << shift;
+                    __asm__("" : "+r"(shiftedDepth) : "r"(shift), "m"(gDisplayState.otDepthShift));
+                    setaddr(prim, getaddr(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((shiftedDepth >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)));
+                    tag = (*GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) & GPU_DMA_PACKET_LENGTH_MASK) |
+                          ((u32)prim & GPU_DMA_LINK_ADDRESS_MASK);
+                    *GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) = tag;
+
+                    z = blk->otz;
                     SOFT_TOUCH_REG(z);
                     SOFT_TOUCH_REG(z);
                     SOFT_TOUCH_REG_USE(z, tag);
