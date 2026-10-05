@@ -163,16 +163,6 @@ typedef struct {
 } _PlayerActorShortestTurnScratch;
 STATIC_ASSERT_SIZEOF(_PlayerActorShortestTurnScratch, 0xC);
 
-/// Scratch-stack reservation for the displacement used by a planar-distance query.
-///
-/// The complete 16-byte block is borrowed until the query returns. Only XYZ
-/// are accessed; the final four bytes have no established role.
-typedef struct {
-    VECTOR3 delta;      // First point minus second point, in their common coordinate frame
-    byte    field_C[4]; // Never accessed; role unproven
-} _PlayerActorPlanarDistanceScratch;
-STATIC_ASSERT_SIZEOF(_PlayerActorPlanarDistanceScratch, 0x10);
-
 /// Scratch-stack block for turning an actor's movement mode into its velocity for the frame.
 ///
 /// A moving actor travels along its model's forward axis at one unit vector
@@ -6168,28 +6158,28 @@ s32 playerActorPlanarLength(s32 x, s32 z)
 
 s32 playerActorPlanarDistance(const VECTOR3* firstPoint, const VECTOR3* secondPoint)
 {
-    _PlayerActorPlanarDistanceScratch* head;
-    _PlayerActorPlanarDistanceScratch* block;
-    s32                                zDifference;
-    s32                                zSquared;
-    s32                                xSquared;
-    s32                                distance;
+    PlayerActorPlanarDistanceScratch* head;
+    PlayerActorPlanarDistanceScratch* block;
+    s32                               zDifference;
+    s32                               zSquared;
+    s32                               xSquared;
+    s32                               distance;
 
-    head = SCRATCH_STACK_CURSOR(_PlayerActorPlanarDistanceScratch);
+    head = SCRATCH_STACK_CURSOR(PlayerActorPlanarDistanceScratch);
     // Stage XYZ before publishing the reservation to the nested square-root call.
-    head[-1].delta.vx                                       = firstPoint->vx - secondPoint->vx;
-    block                                                   = head - 1;
-    block->delta.vy                                         = firstPoint->vy - secondPoint->vy;
-    zDifference                                             = firstPoint->vz - secondPoint->vz;
-    zSquared                                                = ABS(zDifference);
-    block->delta.vz                                         = zDifference;
-    zSquared                                                = zSquared * zSquared;
-    xSquared                                                = head[-1].delta.vx;
-    xSquared                                                = ABS(xSquared);
-    xSquared                                                = xSquared * xSquared;
-    SCRATCH_STACK_CURSOR(_PlayerActorPlanarDistanceScratch) = block;
-    distance                                                = SquareRoot0(xSquared + zSquared);
-    SCRATCH_STACK_RELEASE_BLOCK(_PlayerActorPlanarDistanceScratch);
+    head[-1].delta.vx                                      = firstPoint->vx - secondPoint->vx;
+    block                                                  = head - 1;
+    block->delta.vy                                        = firstPoint->vy - secondPoint->vy;
+    zDifference                                            = firstPoint->vz - secondPoint->vz;
+    zSquared                                               = ABS(zDifference);
+    block->delta.vz                                        = zDifference;
+    zSquared                                               = zSquared * zSquared;
+    xSquared                                               = head[-1].delta.vx;
+    xSquared                                               = ABS(xSquared);
+    xSquared                                               = xSquared * xSquared;
+    SCRATCH_STACK_CURSOR(PlayerActorPlanarDistanceScratch) = block;
+    distance                                               = SquareRoot0(xSquared + zSquared);
+    SCRATCH_STACK_RELEASE_BLOCK(PlayerActorPlanarDistanceScratch);
     return distance;
 }
 

@@ -150,7 +150,7 @@ Gp_Script18Task = 0x800E9218; // type:func absolute:True
 padScriptBinaryMotorHoldTask = 0x800E93D4; // type:func absolute:True
 padScriptVariableMotorRampTask = 0x800E9498; // type:func absolute:True
 Gp_PlayerWorkTask = 0x801014E8; // type:func absolute:True
-func_8010B610 = 0x8010B610; // type:func absolute:True
+modelObjectChildTask = 0x8010B610; // type:func absolute:True
 
 // Overlay and dev-kit symbols main's task descriptor tables name.
 D_aya_10300_8011ACE8 = 0x8011ACE8; // absolute:True owner=aya_10300

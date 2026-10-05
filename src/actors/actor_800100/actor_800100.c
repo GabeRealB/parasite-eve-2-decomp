@@ -1520,7 +1520,7 @@ static void func_actor_800100_80163D54(Task* arg0)
     flag   = (GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 42, 0, 0);
     if (((GameActor*)arg0->work)->companionWork->decisionTimer <= 0) {
         companionSetDecisionDelay(arg0, 0xA, 0x1F);
-        dist = func_8010BC70(coord);
+        dist = companionGetPlayerPlanarDistance(coord);
         if ((dist >= 0x600 && (rand() & 0xFF) >= 0xF1) || (dist >= 0x400 && flag != 0)) {
             func_actor_800100_801656C8(arg0);
         } else {
@@ -1639,7 +1639,7 @@ static void func_actor_800100_80163F04(Task* arg0)
 /// keeps the old `state`, and the `companionWork` record's `scanClearance` /
 /// `scanAngle` are re-armed for the next sweep before the slot-1 child
 /// animation. Otherwise state 0 zeroes `stateTimer` and picks state 2 (with
-/// `movementMode` 3) or state 1 (with `movementMode` 1) from `func_8010BC70`'s
+/// `movementMode` 3) or state 1 (with `movementMode` 1) from `companionGetPlayerPlanarDistance`'s
 /// distance, states 1-3 only raise `movementSign`. The shared drive then resets
 /// the move when the target is within `0x301`, counts `stateTimer` up to `0xB4`
 /// before latching state 3 through the state-1 entry, and otherwise drops
@@ -1688,7 +1688,7 @@ static void func_actor_800100_80164184(Task* arg0)
             goto drive;
         case 0:
             actor->stateTimer = 0;
-            if (func_8010BC70(coord) >= 0x1600) {
+            if (companionGetPlayerPlanarDistance(coord) >= 0x1600) {
                 actor->statePhase   = 2;
                 actor->movementMode = 3;
                 arg                 = 4;
@@ -1703,9 +1703,9 @@ static void func_actor_800100_80164184(Task* arg0)
             playerActorPlayChildSlotsWithBlend(arg0, arg, 0, 5);
             actor->movementSign = 1;
         drive:
-            dist = func_8010BC70(coord);
+            dist = companionGetPlayerPlanarDistance(coord);
             if (dist < 0x301) {
-                Gp_ResetActorMove(arg0, 0);
+                companionEnterIdle(arg0, 0);
             } else if (actor->statePhase != 3) {
                 if (++actor->stateTimer == 0xB4) {
                     actor->statePhase = 3;
@@ -1787,7 +1787,7 @@ static void func_actor_800100_801643F4(Task* arg0)
                 val = -val;
             }
             if ((val < 0x81) || (actor->statePhase == 2)) {
-                Gp_ResetActorMove(arg0, 0);
+                companionEnterIdle(arg0, 0);
             }
             break;
     }
@@ -2292,7 +2292,7 @@ static void func_actor_800100_80165010(Task* arg0)
                     goto setFlag;
                 }
             }
-            Gp_ResetActorMove(arg0, 0);
+            companionEnterIdle(arg0, 0);
             break;
         setFlag:
             actor->movementSign = 1;
@@ -2388,13 +2388,13 @@ static void func_actor_800100_801652B0(Task* arg0)
             break;
         case 3:
             if (targetDist < 0x301 && targetDist != 0) {
-                Gp_ResetActorMove(arg0, 0);
+                companionEnterIdle(arg0, 0);
                 break;
             }
             val               = actor->stateTimer - 1;
             actor->stateTimer = val;
             if (val <= 0) {
-                Gp_ResetActorMove(arg0, 0);
+                companionEnterIdle(arg0, 0);
                 break;
             }
             actor->movementSign = flag;
@@ -2548,7 +2548,7 @@ static void func_actor_800100_80165818(Task* arg0)
 
     actor = arg0->work;
     if (actor->statePhase != 0) {
-        Gp_ResetActorMove(arg0, 0);
+        companionEnterIdle(arg0, 0);
     }
 }
 

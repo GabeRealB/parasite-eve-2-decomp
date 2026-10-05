@@ -1166,7 +1166,7 @@ static void func_actor_800200_80162750(Task* arg0)
                 goto do_65380;
         }
     } else {
-        if (func_8010BC70(coord) >= 0x600) {
+        if (companionGetPlayerPlanarDistance(coord) >= 0x600) {
         do_65380:
             func_actor_800200_80165380(arg0);
         } else {
@@ -1218,7 +1218,7 @@ static void func_actor_800200_80162990(Task* arg0)
                     func_actor_800200_801654EC(arg0, 0);
                     return;
                 }
-                if (func_8010BC70(coord) >= 0xE00 || (companion->waypointIndex == 2 && Gp_HasCollectedBit(0x114) == 0)) {
+                if (companionGetPlayerPlanarDistance(coord) >= 0xE00 || (companion->waypointIndex == 2 && Gp_HasCollectedBit(0x114) == 0)) {
                     actor->stateAux   = 2;
                     actor->stateTimer = 0;
                     actor->targetNode = NULL;
@@ -1235,7 +1235,7 @@ static void func_actor_800200_80162990(Task* arg0)
             func_actor_800200_80165408(arg0, mode);
             return;
         case 2:
-            if ((func_8010BC70(coord) < 0xC01 && companion->waypointIndex < 2) || (companion->waypointIndex == state && Gp_HasCollectedBit(0x114) != 0)) {
+            if ((companionGetPlayerPlanarDistance(coord) < 0xC01 && companion->waypointIndex < 2) || (companion->waypointIndex == state && Gp_HasCollectedBit(0x114) != 0)) {
                 companion->waypointIndex++;
                 actor->stateAux = 1;
                 return;
@@ -1283,7 +1283,7 @@ static void func_actor_800200_80162BFC(Task* arg0)
                     func_actor_800200_801654EC(arg0, 0);
                     return;
                 }
-                if (func_8010BC70(coord) >= 0xC00) {
+                if (companionGetPlayerPlanarDistance(coord) >= 0xC00) {
                     actor->stateAux   = 2;
                     actor->stateTimer = 0;
                     actor->targetNode = NULL;
@@ -1300,7 +1300,7 @@ static void func_actor_800200_80162BFC(Task* arg0)
             func_actor_800200_80165408(arg0, mode);
             return;
         case 2:
-            if (func_8010BC70(coord) < 0xB01 && companion->waypointIndex > 0) {
+            if (companionGetPlayerPlanarDistance(coord) < 0xB01 && companion->waypointIndex > 0) {
                 companion->waypointIndex++;
                 actor->stateAux = 1;
                 return;
@@ -1341,7 +1341,7 @@ static void func_actor_800200_80162E0C(Task* arg0)
                     func_actor_800200_80165408(arg0, 6);
                     return;
                 }
-                if (func_8010BC70(coord) >= 0xE00) {
+                if (companionGetPlayerPlanarDistance(coord) >= 0xE00) {
                     actor->stateAux   = 1;
                     actor->stateTimer = 0;
                     actor->targetNode = 0;
@@ -1353,7 +1353,7 @@ static void func_actor_800200_80162E0C(Task* arg0)
             func_actor_800200_80165408(arg0, 6);
             return;
         case 1:
-            if ((func_8010BC70(coord) < 0xA01) || (coord->coord.t[0] < target->coord.t[0])) {
+            if ((companionGetPlayerPlanarDistance(coord) < 0xA01) || (coord->coord.t[0] < target->coord.t[0])) {
                 companion->waypointIndex++;
                 actor->stateAux = 0;
                 return;
@@ -1458,7 +1458,7 @@ static void func_actor_800200_80163180(Task* arg0)
                     func_actor_800200_801654EC(arg0, 0);
                     return;
                 }
-                if (func_8010BC70(coord) >= 0xC00) {
+                if (companionGetPlayerPlanarDistance(coord) >= 0xC00) {
                     actor->stateAux   = 2;
                     actor->stateTimer = 0;
                     actor->targetNode = NULL;
@@ -1471,7 +1471,7 @@ static void func_actor_800200_80163180(Task* arg0)
             func_actor_800200_80165408(arg0, 6);
             return;
         case 2:
-            if (func_8010BC70(coord) < 0x801) {
+            if (companionGetPlayerPlanarDistance(coord) < 0x801) {
                 companion->waypointIndex++;
                 actor->stateAux = 1;
                 return;
@@ -1519,7 +1519,7 @@ static void func_actor_800200_8016337C(Task* arg0)
                     func_actor_800200_801654EC(arg0, 0);
                     return;
                 }
-                if (func_8010BC70(coord) >= 0xC00) {
+                if (companionGetPlayerPlanarDistance(coord) >= 0xC00) {
                     actor->stateAux   = 2;
                     actor->stateTimer = 0;
                     actor->targetNode = NULL;
@@ -1536,7 +1536,7 @@ static void func_actor_800200_8016337C(Task* arg0)
             func_actor_800200_80165408(arg0, mode);
             return;
         case 2:
-            if (func_8010BC70(coord) < 0x901) {
+            if (companionGetPlayerPlanarDistance(coord) < 0x901) {
                 companion->waypointIndex++;
                 actor->stateAux = 1;
                 return;
@@ -1588,7 +1588,7 @@ static void func_actor_800200_80163584(Task* arg0)
                     func_actor_800200_801654EC(arg0, 0);
                     return;
                 }
-                if (func_8010BC70(coord) >= 0xC00) {
+                if (companionGetPlayerPlanarDistance(coord) >= 0xC00) {
                     actor->stateAux   = 3;
                     actor->stateTimer = 0;
                     actor->targetNode = NULL;
@@ -1605,7 +1605,7 @@ static void func_actor_800200_80163584(Task* arg0)
             func_actor_800200_80165408(arg0, mode);
             return;
         case 3:
-            if (func_8010BC70(coord) < 0x901) {
+            if (companionGetPlayerPlanarDistance(coord) < 0x901) {
                 companion->waypointIndex++;
                 actor->stateAux = 1;
                 return;
@@ -1928,7 +1928,7 @@ static void func_actor_800200_80163F5C(Task* arg0)
     switch (actor->statePhase) {
         case 0:
             actor->stateTimer = 0;
-            if (func_8010BC70(coord) >= 0xE00) {
+            if (companionGetPlayerPlanarDistance(coord) >= 0xE00) {
                 mode                = 4;
                 actor->statePhase   = 2;
                 actor->movementMode = 6;
@@ -1945,9 +1945,9 @@ static void func_actor_800200_80163F5C(Task* arg0)
         case 1:
         case 2:
         case 3:
-            dist = func_8010BC70(coord);
+            dist = companionGetPlayerPlanarDistance(coord);
             if (dist < 0x301) {
-                Gp_ResetActorMove(arg0, 0);
+                companionEnterIdle(arg0, 0);
                 break;
             }
             if (actor->statePhase == 3) {
@@ -2035,7 +2035,7 @@ static void func_actor_800200_80164180(Task* arg0)
                     actor2->statePhase                  = 0;
                     actor2->attackControl.targetVariant = flag;
                 } else {
-                    Gp_ResetActorMove(arg0, 0);
+                    companionEnterIdle(arg0, 0);
                 }
             }
             break;
@@ -2114,7 +2114,7 @@ static void func_actor_800200_8016436C(Task* arg0)
                 count                                       = companion->activity.combat.repeatsRemaining - 1;
                 companion->activity.combat.repeatsRemaining = count;
                 if (count <= 0) {
-                    Gp_ResetActorMove(arg0, 0);
+                    companionEnterIdle(arg0, 0);
                 } else {
                     actor->statePhase = 0;
                 }
@@ -2175,7 +2175,7 @@ static void func_actor_800200_80164598(Task* arg0)
         case 2:
             if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < 0xC1 ||
                 playerActorHasWallContact(arg0) != 0) {
-                Gp_ResetActorMove(arg0, 0);
+                companionEnterIdle(arg0, 0);
             } else {
                 actor->movementSign = 1;
             }
@@ -2228,7 +2228,7 @@ static void func_actor_800200_801647A8(Task* arg0)
                     goto store;
                 }
             }
-            dist = func_8010BC70(coord);
+            dist = companionGetPlayerPlanarDistance(coord);
             dist = dist / 640;
             if (dist >= 8) {
                 dist = 7;
@@ -2350,7 +2350,7 @@ static void func_actor_800200_801649D8(Task* arg0)
 
         case 2:
             if (((distance < 0x341) && (distance != 0)) || (--actor->stateTimer <= 0)) {
-                Gp_ResetActorMove(arg0, 0);
+                companionEnterIdle(arg0, 0);
             } else {
                 actor->movementSign = 1;
             }
@@ -2989,14 +2989,14 @@ static void func_actor_800200_80165D44(Task* arg0)
             actor->statePhase    += 1;
             playerActorResetChildSlots(arg0, 9);
         case 2:
-            if ((func_8010BC70(coord) >= 0x500) || (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED)) {
+            if ((companionGetPlayerPlanarDistance(coord) >= 0x500) || (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED)) {
                 actor->animationState = 7;
                 actor->statePhase    += 1;
                 playerActorPlayChildSlotsWithBlend(arg0, 8, 0, 3);
             }
             break;
         case 4:
-            Gp_ResetActorMove(arg0, 0);
+            companionEnterIdle(arg0, 0);
             break;
         default:
         case 0:
@@ -3012,7 +3012,7 @@ static void func_actor_800200_80165E50(Task* arg0)
 
     if (state != 0) {
         if (state == 1) {
-            Gp_ResetActorMove(arg0, 0);
+            companionEnterIdle(arg0, 0);
         }
     }
 }

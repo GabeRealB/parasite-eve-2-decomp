@@ -246,7 +246,7 @@ NULL.
 | 4 | `D_800676A8` | 9 | Stubs + TMD / overlay |
 | 5 | `D_800626AC` | 5 | Stubs + `taskDebugLaunchCallback` + one overlay |
 | 6 | `D_8010FC2C` | **667** | Room-overlay actor catalog (gameplay data → `0x8017xxxx`) |
-| 7 | `D_800678F4` | 164 | Equipped TMD attaches (`func_8010B610` + per-item `data.model`) |
+| 7 | `D_800678F4` | 164 | Equipped TMD attaches (`modelObjectChildTask` + per-item `data.model`) |
 | 8 | `D_800626EC` | 6 | Stubs + shared `Gp_EffAttachTask37` |
 | 9 | `D_80067734` | 19 | FX / wait: shake, volume fade, sound fade, end-wait |
 | 10 | `0x80114B34` | 6 | Stubs + `Gp_EffAttachTask37` (splat-merged into `Gp_CollectedIds`) |
@@ -386,7 +386,7 @@ decompiling the overlay it points at.
 ### Bank 7 — equipped TMD attaches
 
 ~80 `taskKill` stubs; the rest are type 1, priority `0x50`/`0x52`, callback
-usually `func_8010B610` (gameplay-resident), `data.model` a `TmdSource*` in
+usually `modelObjectChildTask` (gameplay-resident), `data.model` a `TmdSource*` in
 weapon / actor overlay RAM (`0x8011xxxx`, `0x8016xxxx`, `0x8018xxxx`).
 
 `src/gameplay/player_actor.c` spawns these as `Task_Spawn(7, type, …)` when attaching

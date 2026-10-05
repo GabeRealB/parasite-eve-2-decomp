@@ -1950,7 +1950,7 @@ static void func_actor_800300_801628D0(Task* arg0)
     switch (actor->statePhase) {
         case 0:
             actor->stateTimer = 0;
-            if (func_8010BC70(coord) >= 0xE00) {
+            if (companionGetPlayerPlanarDistance(coord) >= 0xE00) {
                 arg                 = 4;
                 actor->statePhase   = 2;
                 actor->movementMode = 3;
@@ -1968,9 +1968,9 @@ static void func_actor_800300_801628D0(Task* arg0)
         case 2:
         case 3:
             actor->movementSign = 1;
-            dist                = func_8010BC70(coord);
+            dist                = companionGetPlayerPlanarDistance(coord);
             if (dist < 0x301) {
-                Gp_ResetActorMove(arg0, 0);
+                companionEnterIdle(arg0, 0);
                 break;
             }
             if (actor->statePhase == 3) {
@@ -2060,7 +2060,7 @@ static void func_actor_800300_80162A98(Task* arg0)
                 val = -val;
             }
             if ((val < 0x81) || (actor->statePhase == 2)) {
-                Gp_ResetActorMove(arg0, 0);
+                companionEnterIdle(arg0, 0);
             }
             break;
     }
@@ -2094,7 +2094,7 @@ static void func_actor_800300_80162C98(Task* arg0)
     target = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
     if (((GameActor*)arg0->work)->companionWork->decisionTimer <= 0) {
         companionSetDecisionDelay(arg0, 0x14, 0x3F);
-        if ((u32)(func_8010BC70(coord) - 0x581) < 0x87F) {
+        if ((u32)(companionGetPlayerPlanarDistance(coord) - 0x581) < 0x87F) {
             func_actor_800300_80163048(arg0);
         }
         val = func_8010BCF4(arg0, MATRIX_TRANS(&target->coord));
@@ -2148,8 +2148,8 @@ static void func_actor_800300_80162D74(Task* arg0)
             /* fallthrough */
         case 1:
             actor->movementSign = 1;
-            if (func_8010BC70(coord) < 0x601) {
-                Gp_ResetActorMove(arg0, 0);
+            if (companionGetPlayerPlanarDistance(coord) < 0x601) {
+                companionEnterIdle(arg0, 0);
             }
             break;
     }
@@ -2162,7 +2162,7 @@ static void func_actor_800300_80162D74(Task* arg0)
 static void func_actor_800300_80162EEC(Task* arg0)
 {
     if (((GameActor*)arg0->work)->statePhase == 1) {
-        Gp_ResetActorMove(arg0, 0);
+        companionEnterIdle(arg0, 0);
     }
 }
 

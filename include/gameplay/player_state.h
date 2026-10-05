@@ -22,7 +22,14 @@ void Gp_TriggerPeState(s32 arg0, s32 arg1);
 
 void Gp_BindActorD4(Task* arg0, SVECTOR3* arg1, s32 arg2);
 
-void Gp_ResetActorMove(Task* arg0, s16 arg1);
+/// Returns a companion to its normal idle behavior and selects idle animation set 1.
+///
+/// Stops movement and turning and clears the behavior phase, idle timer and
+/// action counter. Nonzero `resetAnimation` restarts the child slots directly;
+/// zero captures their prior poses and blends for four whole normal-rate frames.
+/// The live task's `GameActor` work and native animation resources must meet
+/// `playerActorResetChildSlots` / `playerActorPlayChildSlotsWithBlend` contracts.
+void companionEnterIdle(Task* task, s16 resetAnimation);
 
 void Gp_StopPlayerAnim(Task* arg0, s32 arg1);
 
@@ -68,11 +75,17 @@ s32 companionGetHealthBand(void);
 
 void func_8010C180(Task* arg0);
 
-void func_8010B610(Task* arg0);
-
 void func_8010ABD4(Task* arg0);
 
-s32 func_8010BC70(GfxCoord* arg0);
+/// Returns the XZ distance from a coordinate's local translation to the live player.
+///
+/// `coord` and the player model's root must use the same parent frame and signed
+/// game-coordinate units. Neither transform is composed or rotated; Y is ignored
+/// by the length calculation. The player task and its TMD body must be live.
+/// Differences, absolute values, squares and their sum must fit s32. Requires
+/// an initialized scratch stack with 16 free bytes, released before return;
+/// retains no pointers and performs no bounds or overflow checks.
+s32 companionGetPlayerPlanarDistance(const GfxCoord* coord);
 
 s32 func_8010BCF4(Task* arg0, VECTOR3* arg1);
 

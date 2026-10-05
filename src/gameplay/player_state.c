@@ -19,6 +19,7 @@
 #include "items.h"
 #include "loading.h"
 #include "gameplay/message.h"
+#include "gameplay/model_objects.h"
 #include "gameplay/object_fields.h"
 #include "gameplay/player_actor.h"
 #include "player_actor.h"
@@ -34,6 +35,7 @@
 #include "actors/companion.h"
 
 #include "main/display.h"
+#include "main/gfx.h"
 #include "main/mc.h"
 #include "main/mem.h"
 #include "main/scratch.h"
@@ -1200,12 +1202,12 @@ static void _modelObjectKillChildTask(Task* task)
     taskKill(task);
 }
 
-void func_8010B610(Task* arg0)
+void modelObjectChildTask(Task* task)
 {
     TaskFuncTable4 handlers;
 
     handlers = D_80097AB0;
-    handlers.funcs[arg0->state](arg0);
+    handlers.funcs[task->state](task);
 }
 
 void Gp_EndPlayerActorTask(Task* arg0)
@@ -1399,43 +1401,57 @@ have_actor:
     return task;
 }
 
-void Gp_ResetActorMove(Task* arg0, s16 arg1)
+/// Resets the companion's normal-mode idle state, motion selectors and counters.
+static inline void _companionResetIdleState(GameActor* actor)
 {
-    GameActor* inner;
+    enum {
+        COMPANION_IDLE_STATE                     = 0,
+        COMPANION_IDLE_MOVEMENT_STOPPED          = 0,
+        COMPANION_IDLE_TURN_DISABLED             = 0,
+        COMPANION_IDLE_ANIMATION_CONTROLLER_NONE = 0
+    };
 
-    inner                 = arg0->work;
-    inner->mode           = GAME_ACTOR_MODE_NORMAL;
-    inner->state          = 0;
-    inner->movementMode   = 0;
-    inner->turnRateIndex  = 0;
-    inner->animationState = 0;
-    inner->statePhase     = 0;
-    inner->idleTicks      = 0;
-    inner->actionValue    = 0;
-    inner->movementSign   = 0;
-    inner->turnSign       = 0;
-    if (arg1 != 0) {
-        playerActorResetChildSlots(arg0, 1);
+    actor->mode           = GAME_ACTOR_MODE_NORMAL;
+    actor->state          = COMPANION_IDLE_STATE;
+    actor->movementMode   = COMPANION_IDLE_MOVEMENT_STOPPED;
+    actor->turnRateIndex  = COMPANION_IDLE_TURN_DISABLED;
+    actor->animationState = COMPANION_IDLE_ANIMATION_CONTROLLER_NONE;
+    actor->statePhase     = 0;
+    actor->idleTicks      = 0;
+    actor->actionValue    = 0;
+    actor->movementSign   = 0;
+    actor->turnSign       = 0;
+}
+
+void companionEnterIdle(Task* task, s16 resetAnimation)
+{
+    enum {
+        COMPANION_IDLE_ANIMATION_SET = 1,
+        COMPANION_IDLE_BLEND_FRAMES  = 4
+    };
+    GameActor* actor;
+
+    actor = task->work;
+    _companionResetIdleState(actor);
+    if (resetAnimation != 0) {
+        playerActorResetChildSlots(task, COMPANION_IDLE_ANIMATION_SET);
     } else {
-        playerActorPlayChildSlotsWithBlend(arg0, 1, 0, 4);
+        playerActorPlayChildSlotsWithBlend(task, COMPANION_IDLE_ANIMATION_SET, 0, COMPANION_IDLE_BLEND_FRAMES);
     }
 }
 
-s32 func_8010BC70(GfxCoord* arg0)
+s32 companionGetPlayerPlanarDistance(const GfxCoord* coord)
 {
-    u8*        head;
-    VECTOR3*   vec;
-    TmdObject* extra;
-    s32        ret;
+    PlayerActorPlanarDistanceScratch* block;
+    TmdObject*                        playerModel;
+    s32                               distance;
 
-    extra                         = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd;
-    head                          = SCRATCH_STACK_CURSOR(u8);
-    vec                           = (VECTOR3*)(head - 0x10);
-    SCRATCH_STACK_CURSOR(VECTOR3) = vec;
-    playerActorGetPointDelta(arg0, (VECTOR3*)(extra->coords)->coord.t, vec);
-    ret = playerActorPlanarLength(((VECTOR3*)(head - 0x10))->vx, vec->vz);
-    SCRATCH_STACK_RELEASE_BYTES(0x10);
-    return ret;
+    playerModel = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd;
+    block       = SCRATCH_STACK_RESERVE_BLOCK(PlayerActorPlanarDistanceScratch);
+    playerActorGetPointDelta(coord, MATRIX_TRANS(&playerModel->coords->coord), &block->delta);
+    distance = playerActorPlanarLength(block->delta.vx, block->delta.vz);
+    SCRATCH_STACK_RELEASE_BLOCK(PlayerActorPlanarDistanceScratch);
+    return distance;
 }
 
 s32 func_8010BCF4(Task* arg0, VECTOR3* arg1)
@@ -1678,7 +1694,7 @@ s32 func_8010C30C(Task* arg0, s32 unusedMessageId, s32 unusedFirstArg, s32 unuse
     actor->pendingCollisionUpdates = GAME_ACTOR_COLLISION_REQUEST_MASK;
     actor->statePhase              = 0;
     actor->stateAux                = 0;
-    Gp_ResetActorMove(arg0, changed);
+    companionEnterIdle(arg0, changed);
     return 0;
 }
 

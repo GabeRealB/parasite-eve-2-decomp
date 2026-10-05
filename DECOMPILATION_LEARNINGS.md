@@ -75788,7 +75788,7 @@ beqz  v1,end          # state == 0 -> nothing
 li    v0,1
 bne   v1,v0,end       # state != 1 -> nothing
 nop
-jal   Gp_ResetActorMove
+jal   companionEnterIdle
 ```
 
 m2c renders that branch pair as `if ((v != 0) && (v == 1))`, and GCC 2.8.1
@@ -75811,7 +75811,7 @@ u16 state = arg0->actor->statePhase;
 
 if (state != 0) {
     if (state == 1) {
-        Gp_ResetActorMove(arg0, 0);
+        companionEnterIdle(arg0, 0);
     }
 }
 ```
@@ -76865,8 +76865,8 @@ back however the rest of the C is arranged.
 
 **Settle this from a matched sibling's own object, with no build.** A matched
 function's object *is* the original, so `build/USA/src/<overlay>/<unit>.c.o`
-answers a codegen question directly. `func_8010BC70` (`src/gameplay/3FB8.c`) is
-the same shape but `return ret;` after the release, so its result is unavoidably
+answers a codegen question directly. `companionGetPlayerPlanarDistance` (`src/gameplay/player_state.c`) is
+the same shape but `return distance;` after the release, so its result is unavoidably
 live across it; its tail there is `lw v1,0(s1)` / `nop` / `addiu v1,v1,0x10` /
 `sw v1,0(s1)`. `func_actor_107600_80134E5C`, with no live value at that point,
 reloads into `$v0` and fills the delay with an independent `lw`. Example:
@@ -106442,7 +106442,7 @@ literals, because the value its arm stores is also the constant a nearby test co
     arrived:
         ...
     }
-    if (func_8010BC70(coord) >= 0xC00) {
+    if (companionGetPlayerPlanarDistance(coord) >= 0xC00) {
         actor->stateAux = 2;
 ```
 
@@ -106594,7 +106594,7 @@ layout leftover, not a missing or extra statement. The target has the `>= 0xE00`
 falling through from `bnez`, with the resume-block after a `j`:
 
 ```c
-            if (func_8010BC70(coord) < 0xE00) {   /* 96.343%: then-block is the fall-through */
+            if (companionGetPlayerPlanarDistance(coord) < 0xE00) {   /* 96.343%: then-block is the fall-through */
             resume:
                 ...
             } else {
@@ -106604,7 +106604,7 @@ falling through from `bnez`, with the resume-block after a `j`:
             }
 ```
 ```c
-            if (func_8010BC70(coord) >= 0xE00) {  /* 100%: >= is the then, so it lands first */
+            if (companionGetPlayerPlanarDistance(coord) >= 0xE00) {  /* 100%: >= is the then, so it lands first */
                 mode             = 4;
                 actor->statePhase = 2;
                 actor->movementMode = 6;
@@ -110555,7 +110555,7 @@ against 156.
 Setting only the differing argument in each arm and calling once is exact:
 
 ```c
-            if (func_8010BC70(coord) >= 0x1600) {
+            if (companionGetPlayerPlanarDistance(coord) >= 0x1600) {
                 actor->statePhase = 2; actor->movementMode = 3; arg = 4;
             } else {
             enter:
@@ -123864,7 +123864,7 @@ compare-chain shape or the fallthrough shape as the target's layout requires:
         case 2:
         case 3:
             actor->movementSign = 1;
-            dist             = func_8010BC70(coord);
+            dist             = companionGetPlayerPlanarDistance(coord);
 ```
 
 Here that one change took the m2c baseline from 79.590% (`regs=44 branch=7
@@ -123883,7 +123883,7 @@ the `sb` in its delay slot:
     jal   playerActorPlayChildSlotsWithBlend     j     DRIVE
     li    v0,1                        sb    v0,0x973(s0)   ; case 1/2/3
     sb    v0,0x973(s0)          →     DRIVE:
-DRIVE:                                jal   func_8010BC70
+DRIVE:                                jal   companionGetPlayerPlanarDistance
 ```
 
 The same function also had m2c inventing a call argument: it renders the

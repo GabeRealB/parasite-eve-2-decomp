@@ -8,6 +8,16 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
+/// Dispatches the four-state lifecycle of a task-owned attached child model.
+///
+/// `task->state` must be 0..3: 0 invalidates the root transform and optionally
+/// clears model flags before entering state 1; 1 copies the parent's model flags
+/// and invalidates the root; 2 advances to state 3; 3 destroys the task and model.
+/// The root is parented by the spawner. States 0 and 1 require a live TMD body;
+/// state 1 also requires a live parent task with a TMD body and live coordinate
+/// ancestry. Dispatch performs no state-range check.
+void modelObjectChildTask(Task* task);
+
 /// Resident sentinel for attached task-owned coordinate bodies.
 ///
 /// `next` points to the first `ModelObjectCoordBody.link`, and `prev` to the
