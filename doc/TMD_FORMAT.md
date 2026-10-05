@@ -636,10 +636,10 @@ transform, a cull, a packet's filing and its ordering-table link.
 | `0xC4` | `gpXformStreamVertsUnlit` | — | — | the `0xC8` pre-pass with the lighting dropped; never seen in data — **solved**, §3.5 |
 | `0xC8` | `tmdXformStreamVerts` | 2 | 30262 | vertex transform + lighting pre-pass — **solved**, §3.5 |
 | `0x121` | `tmdDrawStreamPrimG3PreXform` | — | — | resolves to the same opaque `0x21` handler: both retain the corner RGB already written by the vertex pass and read only the three depth-cache offsets |
-| `0x122` | `D_8009E274` | — | — | ? |
+| `0x122` | `tmdDrawStreamPrimG3CornerColorsSemiTrans` | — | — | three vertex and three normal byte references, then three corner RGB/code words; lights a semitransparent G3 independently per corner. Construction skips this opcode, but drawing still consumes one packet slot per element |
 | `0x161` | `tmdDrawStreamPrimG4PreXform` | — | — | resolves to the same opaque `0x61` handler: both retain corner RGB already written by the projection pass and read only the four depth-cache offsets |
-| `0x162` | `gpDrawStreamPrimG4CornerColorsSemiTrans` | — | — | the `0x60` quad's record with the per-corner colour bit, in its semi-transparent form: a vertex, a normal and a colour per corner, so each corner is lit from the pair it names — read from the handler, never seen in data |
-| `0x40C8` | `D_8009AF90` | 2 | 1568 | `0xC8` with a different shading path |
+| `0x162` | `tmdDrawStreamPrimG4CornerColorsSemiTrans` | — | — | the `0x60` quad's record with the per-corner colour bit, in its semi-transparent form: a vertex, a normal and a colour per corner, so each corner is lit from the pair it names — read from the handler, never seen in data |
+| `0x40C8` | `tmdXformStreamVertsEnvLayer` | 2 | 1568 | vertex/normal references plus layer/base colour-group byte destinations; projects both corners, caches depth, lights both and supplies environment UVs and a temporary 0/1 page marker. Stage 2 area 16 resolves to the offset-layer pre-pass instead |
 | `0x200C8` | `D_801386EC` | 2 | 607 | `0xC8` with a different shading path |
 
 ---

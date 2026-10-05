@@ -57,6 +57,40 @@
 #include <psyq/memory.h>
 #include <psyq/rand.h>
 
+/// Geometry references are byte offsets into eight-byte SVECTOR entries.
+/// Low reference bits are discarded; their meaning is unproven for these records.
+enum {
+    TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK = 0xFFF8,
+    TMD_STREAM_VERTEX_INDEX_SHIFT        = 3,
+    TMD_FT3_RAW_OPAQUE_COMMAND           = 0x25,
+    TMD_FT4_RAW_OPAQUE_COMMAND           = 0x2D,
+    TMD_DRAW_OT_INDEX_SHIFT              = 4, // Display-scaled OTZ units to four-byte OT buckets
+    TMD_GT3_CORNER_COUNT                 = 3,
+    TMD_GT4_CORNER_COUNT                 = 4
+};
+
+/// Environment mapping uses fixed 320x240 screen centring and overlapping pages.
+/// Normal scaling is GPF12 with colorBlend >> 9; U/V stores truncate to bytes.
+enum {
+    TMD_ENV_SCREEN_CENTER_X        = 160,
+    TMD_ENV_SCREEN_CENTER_Y        = 120,
+    TMD_ENV_NORMAL_BLEND_SHIFT     = 9,
+    TMD_ENV_FIRST_PAGE_U_LIMIT     = 256,
+    TMD_ENV_PAGE_U_DISPLACEMENT    = 128,
+    TMD_ENV_SECOND_PAGE_U_LIMIT    = 192,
+    TMD_ENV_V_LIMIT                = 240,
+    TMD_ENV_FIRST_PAGE_MARKER      = 0,
+    TMD_ENV_SECOND_PAGE_MARKER     = 1,
+    TMD_ENV_FIRST_TEXTURE_PAGE     = getTPage(2, GPU_BLEND_ADD, 448, 256),
+    TMD_ENV_SECOND_TEXTURE_PAGE    = getTPage(2, GPU_BLEND_ADD, 576, 256),
+    TMD_ENV_V_TO_PAGE_MARKER_BYTES = OFFSET_OF(POLY_GT3, v0) - OFFSET_OF(POLY_GT3, code),
+    TMD_ENV_CORNER_STRIDE_BYTES    = OFFSET_OF(POLY_GT3, u1) - OFFSET_OF(POLY_GT3, u0)
+};
+STATIC_ASSERT(OFFSET_OF(POLY_GT4, v0) - OFFSET_OF(POLY_GT4, code) == TMD_ENV_V_TO_PAGE_MARKER_BYTES,
+              tmd_env_quad_marker_displacement);
+STATIC_ASSERT(OFFSET_OF(POLY_GT4, u1) - OFFSET_OF(POLY_GT4, u0) == TMD_ENV_CORNER_STRIDE_BYTES,
+              tmd_env_quad_corner_stride);
+
 /// Work block of the task that runs play.
 ///
 /// Each frame that task advances the play clock, watches for the death of the
@@ -723,6 +757,121 @@ static inline void _modelLightingInitGt3PreXformOffsetLayerTexture(POLY_GT3* tri
     triangle->clut   += (s8)layerClutRowByte * (1 << MODEL_LIGHTING_OFFSET_LAYER_CLUT_ROW_SHIFT);
 }
 
+/// Blends one environment-layer RGB word toward neutral grey.
+///
+/// Uses GPF12/GPL12 with the object's twelve-fraction-bit blend, reading the
+/// blend separately at both loads. Caller gates this at colorBlend < 4096.
+/// `colorCursor` is a writable pointer lvalue; `colorDestination` and the
+/// reference address select live word-aligned colour groups. Cursor assignment
+/// follows the first GTE weight load. Workspace is evaluated twice, destination
+/// and reference once; use simple side-effect-free arguments. Captures no caller
+/// locals. Clobbers GTE interpolation state and writes the destination RGB.
+/// This statement sequence must stand inside a compound block.
+#define TMD_BLEND_ENVIRONMENT_LAYER_COLOR(workspace, colorCursor, colorDestination, referenceColor) \
+    gte_lddp((workspace)->obj->shading.colorBlend);                                                 \
+    (colorCursor) = (colorDestination);                                                             \
+    gte_ldcv(colorCursor);                                                                          \
+    gte_gpf12();                                                                                    \
+    gte_lddp(TMD_OBJECT_COLOR_BLEND_ONE - (workspace)->obj->shading.colorBlend);                    \
+    gte_ldcv(referenceColor);                                                                       \
+    gte_gpl12();                                                                                    \
+    gte_stcv(colorCursor)
+
+/// Rebases unmarked environment U bytes for the second overlapping page.
+///
+/// The U/marker cursors must traverse three or four live packet corner groups,
+/// twelve bytes apart; the caller initializes cornerIndex to zero. Marker 0
+/// means first page and 1 second page. The signed-byte test selects U >= 128;
+/// adding 128 then storing to u8 subtracts 128 modulo 256. Smaller U clamps
+/// to zero; marked corners retain U. Both byte cursors advance past the last
+/// addressed group and the index ends at cornerCount. Arguments are evaluated
+/// repeatedly and must be simple cursor/index lvalues or a side-effect-free
+/// count, with no aliasing among the cursors. Captures no caller locals; does
+/// not use the GTE. This loop is a single do/while statement.
+#define TMD_FOLD_ENVIRONMENT_PAGE_U(pageMarker, textureU, cornerIndex, cornerCount) \
+    do {                                                                            \
+        if (*(pageMarker) == TMD_ENV_FIRST_PAGE_MARKER) {                           \
+            if ((s8) * (textureU) < 0) {                                            \
+                *(textureU) = *(textureU) + TMD_ENV_PAGE_U_DISPLACEMENT;            \
+            } else {                                                                \
+                *(textureU) = 0;                                                    \
+            }                                                                       \
+        }                                                                           \
+        (textureU) += TMD_ENV_CORNER_STRIDE_BYTES;                                  \
+        (cornerIndex)++;                                                            \
+        (pageMarker) += TMD_ENV_CORNER_STRIDE_BYTES;                                \
+    } while ((cornerIndex) < (cornerCount))
+
+/// Lights one corner from its material RGB and complete referenced normal.
+///
+/// Material RGB/code, a complete SVECTOR and the writable colour group must be
+/// word aligned and remain live for the operation. Each argument is evaluated
+/// once, in material/normal/destination order; no caller identifier is captured.
+/// Uses the caller's light/colour matrices and overwrites GTE lighting state.
+/// Expands to several statements: use only as a standalone sequence inside a
+/// compound block, never as an unbraced conditional or loop body.
+#define TMD_LIGHT_STREAM_CORNER(materialColor, normal, rgb) \
+    gte_ldrgb((materialColor));                             \
+    gte_ldv0((normal));                                     \
+    gte_nccs();                                             \
+    gte_strgb((rgb));
+
+/// Prepends layer then base, retaining GPU DMA address and length fields.
+///
+/// `packetPair` addresses two writable, aligned POLY_GT3 slots; the workspace's
+/// GTE result is their valid AVSZ3 OTZ. The display shift is normally 0..3 and
+/// every resulting masked bucket must fit the displaced OT. Address/length masks
+/// must be GPU_DMA_LINK_ADDRESS_MASK/GPU_DMA_PACKET_LENGTH_MASK. Packets and OT
+/// remain GPU-visible through consumption. Arguments are evaluated repeatedly:
+/// supply simple side-effect-free pointers/mask values. Captures no caller locals.
+/// This statement sequence requires an enclosing compound block; it cannot serve
+/// as an unbraced conditional or loop body. Neither GTE nor workspace scratch changes.
+#define TMD_LINK_OFFSET_LAYER_TRIANGLE_PAIR(packetPair, workspace, displayState, addressMask, lengthMask)                                                                                                                                                       \
+    (packetPair)[0].tag = ((packetPair)[0].tag & (lengthMask)) | ((workspace)->ot[((u32)(workspace)->gteResult << (displayState)->otDepthShift) >> TMD_DRAW_OT_INDEX_SHIFT & (GPU_ORDERING_TABLE_DEPTH_BYTE_MASK / sizeof(*(workspace)->ot))] & (addressMask)); \
+    (workspace)->ot[((u32)(workspace)->gteResult << (displayState)->otDepthShift) >> TMD_DRAW_OT_INDEX_SHIFT & (GPU_ORDERING_TABLE_DEPTH_BYTE_MASK / sizeof(*(workspace)->ot))] =                                                                               \
+        ((workspace)->ot[((u32)(workspace)->gteResult << (displayState)->otDepthShift) >> TMD_DRAW_OT_INDEX_SHIFT & (GPU_ORDERING_TABLE_DEPTH_BYTE_MASK / sizeof(*(workspace)->ot))] & (lengthMask)) | ((u32) & (packetPair)[0] & (addressMask));               \
+    (packetPair)[1].tag = ((packetPair)[1].tag & (lengthMask)) | ((workspace)->ot[((u32)(workspace)->gteResult << (displayState)->otDepthShift) >> TMD_DRAW_OT_INDEX_SHIFT & (GPU_ORDERING_TABLE_DEPTH_BYTE_MASK / sizeof(*(workspace)->ot))] & (addressMask)); \
+    (workspace)->ot[((u32)(workspace)->gteResult << (displayState)->otDepthShift) >> TMD_DRAW_OT_INDEX_SHIFT & (GPU_ORDERING_TABLE_DEPTH_BYTE_MASK / sizeof(*(workspace)->ot))] =                                                                               \
+        ((workspace)->ot[((u32)(workspace)->gteResult << (displayState)->otDepthShift) >> TMD_DRAW_OT_INDEX_SHIFT & (GPU_ORDERING_TABLE_DEPTH_BYTE_MASK / sizeof(*(workspace)->ot))] & (lengthMask)) | ((u32) & (packetPair)[1] & (addressMask));
+
+/// Maps a corner's screen pixels and rotated normal to environment texels.
+///
+/// Requires simple pointer/lvalue arguments with no side effects: arguments are
+/// evaluated repeatedly. Captures no caller identifiers. GPF12 overwrites
+/// rotated-normal scratch. Writes U, advances screen/texture cursors from X/U
+/// to Y/V, leaves the clamped V in `textureComponent`, and sets `secondPage`
+/// to 1 on U rebasing (the caller initializes it to 0). Expands to a statement
+/// sequence that requires an enclosing compound block; never use as an unbraced
+/// conditional or loop body. The caller stores V
+/// and the page marker in its required order. Normal coefficients have twelve
+/// fractional bits; colorBlend is normally 0..4096. GTE state is clobbered.
+#define TMD_CALCULATE_ENVIRONMENT_CORNER_UV(workspace, rotatedNormal, screenComponent, textureCoordinate, textureComponent, secondPage) \
+    gte_lddp((workspace)->obj->shading.colorBlend >> TMD_ENV_NORMAL_BLEND_SHIFT);                                                       \
+    gte_ldsv((rotatedNormal));                                                                                                          \
+    gte_gpf12();                                                                                                                        \
+    gte_stsv((rotatedNormal));                                                                                                          \
+    (textureComponent)  = *(screenComponent) + TMD_ENV_SCREEN_CENTER_X;                                                                 \
+    (textureComponent) -= (rotatedNormal)->vx;                                                                                          \
+    if ((textureComponent) < 0) {                                                                                                       \
+        (textureComponent) = 0;                                                                                                         \
+    } else if ((textureComponent) >= TMD_ENV_FIRST_PAGE_U_LIMIT) {                                                                      \
+        (textureComponent) -= TMD_ENV_PAGE_U_DISPLACEMENT;                                                                              \
+        (secondPage)        = TMD_ENV_SECOND_PAGE_MARKER;                                                                               \
+        if ((textureComponent) >= TMD_ENV_SECOND_PAGE_U_LIMIT) {                                                                        \
+            (textureComponent) = TMD_ENV_SECOND_PAGE_U_LIMIT - 1;                                                                       \
+        }                                                                                                                               \
+    }                                                                                                                                   \
+    *(textureCoordinate) = (textureComponent);                                                                                          \
+    (screenComponent)++;                                                                                                                \
+    (textureCoordinate)++;                                                                                                              \
+    (textureComponent)  = *(screenComponent) + TMD_ENV_SCREEN_CENTER_Y;                                                                 \
+    (textureComponent) -= (rotatedNormal)->vy;                                                                                          \
+    if ((textureComponent) < 0) {                                                                                                       \
+        (textureComponent) = 0;                                                                                                         \
+    } else if ((textureComponent) >= TMD_ENV_V_LIMIT) {                                                                                 \
+        (textureComponent) = TMD_ENV_V_LIMIT - 1;                                                                                       \
+    }
+
 /// Completes and links a projected, front-facing raw-texture triangle.
 ///
 /// The GTE must retain this triangle's screen XY and depths with valid ZSF3.
@@ -730,23 +879,25 @@ static inline void _modelLightingInitGt3PreXformOffsetLayerTexture(POLY_GT3* tri
 /// `gteResultDestination` addresses `workspace->gteResult`. Its OT and the
 /// packet must remain GPU-visible through consumption. The display shift is
 /// 0..3 in normal drawing; the wrapped bucket must fit the displaced OT base.
-static inline void _tmdLinkProjectedRawFt3(POLY_FT3* triangle, TmdStreamWorkspace* workspace,
-                                           s32* gteResultDestination, const DisplayState* displayState)
-{
-    enum {
-        TMD_FT3_RAW_TEXTURE_COMMAND = 0x25, // Opaque FT3, texture RGB bypasses colour modulation
-        TMD_FT3_OT_INDEX_SHIFT      = 4     // Sixteen scaled depth units per OT tag
-    };
-
-    gte_stsxy3_ft3(triangle);
-    gte_avsz3();
-    setlen(triangle, (sizeof(*triangle) - sizeof(triangle->tag)) / sizeof(u32));
-    setcode(triangle, TMD_FT3_RAW_TEXTURE_COMMAND);
-    gte_stotz(gteResultDestination);
-    addPrim(&workspace->ot[((u32)workspace->gteResult << displayState->otDepthShift) >> TMD_FT3_OT_INDEX_SHIFT &
-                           (GPU_ORDERING_TABLE_DEPTH_BYTE_MASK / sizeof(*workspace->ot))],
-            triangle);
-}
+/// `rawTextureCommand` is 0x25 (opaque) or 0x27 (semitransparent). Pointer
+/// arguments are evaluated repeatedly and must have no side effects; the command
+/// is evaluated once. Captures no caller locals. The do/while wrapper is one
+/// statement. GTE depth/result state and both DMA tags are updated.
+#define TMD_LINK_PROJECTED_RAW_FT3(triangle, workspace, gteResultDestination, displayState, rawTextureCommand)             \
+    do {                                                                                                                   \
+        enum {                                                                                                             \
+            TMD_FT3_OT_INDEX_SHIFT = 4 /* Sixteen scaled depth units per OT tag */                                         \
+        };                                                                                                                 \
+                                                                                                                           \
+        gte_stsxy3_ft3((triangle));                                                                                        \
+        gte_avsz3();                                                                                                       \
+        setlen((triangle), (sizeof(*(triangle)) - sizeof((triangle)->tag)) / sizeof(u32));                                 \
+        setcode((triangle), (rawTextureCommand));                                                                          \
+        gte_stotz((gteResultDestination));                                                                                 \
+        addPrim(&(workspace)->ot[((u32)(workspace)->gteResult << (displayState)->otDepthShift) >> TMD_FT3_OT_INDEX_SHIFT & \
+                                 (GPU_ORDERING_TABLE_DEPTH_BYTE_MASK / sizeof(*(workspace)->ot))],                         \
+                (triangle));                                                                                               \
+    } while (0)
 
 /// Completes and links a projected, front-facing raw-texture quad.
 ///
@@ -755,125 +906,100 @@ static inline void _tmdLinkProjectedRawFt3(POLY_FT3* triangle, TmdStreamWorkspac
 /// ZSF4 must be initialized. `gteResultDestination` is `&workspace->gteResult`.
 /// Texture fields persist. The wrapped display-scaled bucket must fit the
 /// displaced OT base; packet and OT storage must outlive GPU consumption.
-static inline void _tmdLinkProjectedRawFt4(POLY_FT4* quad, TmdStreamWorkspace* workspace,
-                                           s32* gteResultDestination, const DisplayState* displayState)
+/// `rawTextureCommand` is 0x2D (opaque) or 0x2F (semitransparent). Pointer
+/// arguments are evaluated repeatedly and must have no side effects; the command
+/// is evaluated once. Captures no caller locals. The do/while wrapper is one
+/// statement. GTE depth/result state and both DMA tags are updated.
+#define TMD_LINK_PROJECTED_RAW_FT4(quad, workspace, gteResultDestination, displayState, rawTextureCommand)                 \
+    do {                                                                                                                   \
+        enum {                                                                                                             \
+            TMD_FT4_OT_INDEX_SHIFT = 4                                                                                     \
+        };                                                                                                                 \
+                                                                                                                           \
+        gte_stsxy2(&(quad)->x3);                                                                                           \
+        gte_avsz4();                                                                                                       \
+        setlen((quad), (sizeof(*(quad)) - sizeof((quad)->tag)) / sizeof(u32));                                             \
+        setcode((quad), (rawTextureCommand));                                                                              \
+        gte_stotz((gteResultDestination));                                                                                 \
+        addPrim(&(workspace)->ot[((u32)(workspace)->gteResult << (displayState)->otDepthShift) >> TMD_FT4_OT_INDEX_SHIFT & \
+                                 (GPU_ORDERING_TABLE_DEPTH_BYTE_MASK / sizeof(*(workspace)->ot))],                         \
+                (quad));                                                                                                   \
+    } while (0)
+
+u32* tmdXformStreamVertsEnvLayer(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements)
 {
-    enum {
-        TMD_FT4_RAW_TEXTURE_COMMAND = 0x2D, // Opaque FT4, texture RGB bypasses colour modulation
-        TMD_FT4_OT_INDEX_SHIFT      = 4
-    };
+    s32        previousVertexRef;
+    s32        elementCount;
+    u32        vertexRef;
+    const u16* elementHalfwords;
+    CVECTOR    referenceColor;
+    u8*        textureCoordinate;
+    u8*        layerColor;
+    s16*       screenComponent;
+    SVECTOR*   rotatedNormal;
+    s32        colorBlend;
+    s32        secondPage;
+    s32        textureComponent;
 
-    gte_stsxy2(&quad->x3);
-    gte_avsz4();
-    setlen(quad, (sizeof(*quad) - sizeof(quad->tag)) / sizeof(u32));
-    setcode(quad, TMD_FT4_RAW_TEXTURE_COMMAND);
-    gte_stotz(gteResultDestination);
-    addPrim(&workspace->ot[((u32)workspace->gteResult << displayState->otDepthShift) >> TMD_FT4_OT_INDEX_SHIFT &
-                           (GPU_ORDERING_TABLE_DEPTH_BYTE_MASK / sizeof(*workspace->ot))],
-            quad);
-}
-
-u32* func_8009AF90(TmdStreamWorkspace* ws, s32 arg1, u32* arg2)
-{
-    s32      prev;
-    s32      count;
-    u32      idx;
-    u16*     rec;
-    CVECTOR  col;
-    u8*      dest;
-    u8*      rgb;
-    s16*     xy;
-    SVECTOR* sv;
-    s32      dp;
-    s32      flag;
-    s32      x;
-
-    col   = gGpColorGrey;
-    count = ws->elemCount;
-    if (count == 0) {
-        return arg2;
+    referenceColor = gGpColorGrey;
+    elementCount   = workspace->elemCount;
+    if (elementCount == 0) {
+        return elements;
     }
-    prev          = -1;
-    ws->elemCount = count + prev;
-    if (count > 0) {
+    previousVertexRef    = -1;
+    workspace->elemCount = elementCount + previousVertexRef;
+    if (elementCount > 0) {
         do {
-            rec = (u16*)arg2;
-            idx = rec[0];
-            if (idx != prev) {
-                gte_ldv0((u8*)ws->verts + (idx & 0xFFF8));
+            elementHalfwords = (const u16*)elements;
+            vertexRef        = elementHalfwords[0];
+            // Consecutive identical references reuse the GTE projection and cached depth.
+            if (vertexRef != previousVertexRef) {
+                gte_ldv0((const u8*)workspace->verts + (vertexRef & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK));
                 gte_rtps();
-                gte_stsz(&ws->gteResult);
-                gte_stflg(&ws->gteFlag);
-                if (ws->gteFlag & TMD_GTE_ERROR_FLAG) {
-                    ws->gteResult |= TMD_VERTEX_DEPTH_INVALID;
+                gte_stsz(&workspace->gteResult);
+                gte_stflg(&workspace->gteFlag);
+                if (workspace->gteFlag & TMD_GTE_ERROR_FLAG) {
+                    workspace->gteResult |= TMD_VERTEX_DEPTH_INVALID;
                 }
-                ws->szTable[*(u16*)arg2 >> 3] = ws->gteResult;
+                workspace->szTable[elementHalfwords[0] >> TMD_STREAM_VERTEX_INDEX_SHIFT] = workspace->gteResult;
             }
-            prev = rec[0];
-            gte_stsxy(ws->preXformWrite + rec[2] + 4);
-            gte_stsxy(ws->preXformWrite + rec[3] + 4);
-            gte_stsxy(&ws->texCoord);
-            gte_ldv0((u8*)ws->normals + (rec[1] & 0xFFF8));
+            previousVertexRef = elementHalfwords[0];
+            gte_stsxy(workspace->preXformWrite + elementHalfwords[2] + 4);
+            gte_stsxy(workspace->preXformWrite + elementHalfwords[3] + 4);
+            gte_stsxy(&workspace->texCoord);
+            gte_ldv0((const u8*)workspace->normals + (elementHalfwords[1] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK));
             gte_ldrgb(&D_80114BA4);
             gte_nccs();
-            gte_strgb(ws->preXformWrite + rec[2]);
+            gte_strgb(workspace->preXformWrite + elementHalfwords[2]);
             gte_ldrgb(&D_80114BA8);
             gte_nccs();
-            gte_strgb(ws->preXformWrite + rec[3]);
+            gte_strgb(workspace->preXformWrite + elementHalfwords[3]);
             gte_rtv0();
-            gte_stsv(&ws->elemNormal);
-            arg2 += ws->elemStride;
+            gte_stsv(&workspace->elemNormal);
+            elements += workspace->elemStride;
             // Weight the lit layer colour by the object's blend and the grey
             // reference by its complement below the full-colour endpoint.
-            dp = ws->obj->shading.colorBlend;
-            if (dp < TMD_OBJECT_COLOR_BLEND_ONE) {
-                gte_lddp(dp);
-                rgb = ws->preXformWrite + rec[2];
-                gte_ldcv(rgb);
+            colorBlend = workspace->obj->shading.colorBlend;
+            if (colorBlend < TMD_OBJECT_COLOR_BLEND_ONE) {
+                gte_lddp(colorBlend);
+                layerColor = workspace->preXformWrite + elementHalfwords[2];
+                gte_ldcv(layerColor);
                 gte_gpf12();
-                gte_lddp(TMD_OBJECT_COLOR_BLEND_ONE - dp);
-                gte_ldcv(&col);
+                gte_lddp(TMD_OBJECT_COLOR_BLEND_ONE - colorBlend);
+                gte_ldcv(&referenceColor);
                 gte_gpl12();
-                gte_stcv(rgb);
+                gte_stcv(layerColor);
             }
-            xy   = &ws->texCoord.vx;
-            flag = 0;
-            dest = ws->preXformWrite + rec[2] + 8;
-            sv   = &ws->elemNormal;
-            gte_lddp(ws->obj->shading.colorBlend >> 9);
-            gte_ldsv(sv);
-            gte_gpf12();
-            gte_stsv(sv);
-            // dest[8]/dest[9] are the U/V pair; dest[3] (dest[-6] once dest has
-            // been advanced onto the V byte) is the primitive's code byte, set
-            // when U had to be pulled back onto the second texture page. xy
-            // steps from the screen X to Y alongside dest.
-            x  = *xy + 0xA0;
-            x -= sv->vx;
-            if (x < 0) {
-                x = 0;
-            } else if (x >= 0x100) {
-                x   -= 0x80;
-                flag = 1;
-                if (x >= 0xC0) {
-                    x = 0xBF;
-                }
-            }
-            *dest = x;
-            xy++;
-            dest++;
-            x  = *xy + 0x78;
-            x -= sv->vy;
-            if (x < 0) {
-                x = 0;
-            } else if (x >= 0xF0) {
-                x = 0xEF;
-            }
-            *dest    = x;
-            dest[-6] = flag;
-        } while (ws->elemCount-- > 0);
+            screenComponent   = &workspace->texCoord.vx;
+            secondPage        = TMD_ENV_FIRST_PAGE_MARKER;
+            textureCoordinate = workspace->preXformWrite + elementHalfwords[2] + 8;
+            rotatedNormal     = &workspace->elemNormal;
+            TMD_CALCULATE_ENVIRONMENT_CORNER_UV(workspace, rotatedNormal, screenComponent, textureCoordinate, textureComponent, secondPage);
+            *textureCoordinate                                 = textureComponent;
+            textureCoordinate[-TMD_ENV_V_TO_PAGE_MARKER_BYTES] = secondPage;
+        } while (workspace->elemCount-- > 0);
     }
-    return arg2;
+    return elements;
 }
 
 u32* gpXformStreamVertsOffsetLayer(TmdStreamWorkspace* ws, s32 flags, u32* stream)
@@ -939,303 +1065,196 @@ u32* gpXformStreamVertsOffsetLayer(TmdStreamWorkspace* ws, s32 flags, u32* strea
     return stream;
 }
 
-u32* func_8009B500(TmdStreamWorkspace* ws, s32 arg1, u32* arg2)
+u32* tmdDrawStreamPrimGt3EnvLayer(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements)
 {
-    POLY_GT3* poly;
-    u16*      rec;
-    u8*       verts;
-    u8*       norms;
-    CVECTOR   col;
-    SVECTOR*  sv;
-    s16*      xy;
-    u8*       dest;
-    u8*       rgb;
-    u8*       pCode;
-    u8*       pU;
-    s32       combined;
-    s32       flag;
-    s32       x;
-    s32       i;
-    s32       len;
+    enum { TMD_GT3_OPAQUE_COMMAND     = 0x34,
+           TMD_GT3_SEMI_TRANS_COMMAND = 0x36 };
+    POLY_GT3*  packetPair;
+    const u16* elementHalfwords;
+    const u8*  vertexBytes;
+    const u8*  normalBytes;
+    CVECTOR    referenceColor;
+    SVECTOR*   rotatedNormal;
+    s16*       screenComponent;
+    u8*        textureCoordinate;
+    u8*        layerColor;
+    u8*        pageMarker;
+    u8*        textureU;
+    s32        anySecondPage;
+    s32        secondPage;
+    s32        textureComponent;
+    s32        cornerIndex;
+    s32        payloadWordCount;
 
-    poly = (POLY_GT3*)ws->primWrite;
-    col  = gGpColorGrey;
-    len  = 9;
-    if (ws->elemCount-- > 0) {
+    packetPair       = (POLY_GT3*)workspace->primWrite;
+    referenceColor   = gGpColorGrey;
+    payloadWordCount = sizeof(*packetPair) / sizeof(u32) - 1;
+    if (workspace->elemCount-- > 0) {
         do {
-            rec   = (u16*)arg2;
-            verts = (u8*)ws->verts;
-            gte_ldv3(verts + (rec[0] & 0xFFF8), verts + (rec[1] & 0xFFF8), verts + (rec[2] & 0xFFF8));
+            elementHalfwords = (const u16*)elements;
+            vertexBytes      = (const u8*)workspace->verts;
+            // Project packed byte references; packet slots are consumed even on rejection.
+            gte_ldv3(vertexBytes + (elementHalfwords[0] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), vertexBytes + (elementHalfwords[1] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), vertexBytes + (elementHalfwords[2] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK));
             gte_rtpt();
-            gte_stflg(&ws->gteFlag);
-            if (ws->gteFlag >= 0) {
+            gte_stflg(&workspace->gteFlag);
+            if (workspace->gteFlag >= 0) {
                 gte_nclip();
-                gte_stopz(&ws->gteResult);
-                if (ws->gteResult > 0) {
-                    gte_stsxy3_gt3(&poly[0]);
-                    gte_stsxy3_gt3(&poly[1]);
+                gte_stopz(&workspace->gteResult);
+                if (workspace->gteResult > 0) {
+                    gte_stsxy3_gt3(&packetPair[0]);
+                    gte_stsxy3_gt3(&packetPair[1]);
                     gte_avsz3();
-                    norms = (u8*)ws->normals;
-                    gte_ldv3(norms + (rec[3] & 0xFFF8), norms + (rec[4] & 0xFFF8), norms + (rec[5] & 0xFFF8));
+                    normalBytes = (const u8*)workspace->normals;
+                    gte_ldv3(normalBytes + (elementHalfwords[3] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), normalBytes + (elementHalfwords[4] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), normalBytes + (elementHalfwords[5] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK));
                     gte_ldrgb(&D_80114BA4);
                     gte_ncct();
-                    gte_strgb3_gt3(&poly[0]);
+                    gte_strgb3_gt3(&packetPair[0]);
                     gte_ldrgb(&D_80114BA8);
                     gte_ncct();
-                    gte_strgb3_gt3(&poly[1]);
-                    if (ws->obj->shading.colorBlend < TMD_OBJECT_COLOR_BLEND_ONE) {
-                        gte_lddp(ws->obj->shading.colorBlend);
-                        rgb = &poly[0].r0;
-                        gte_ldcv(rgb);
-                        gte_gpf12();
-                        gte_lddp(TMD_OBJECT_COLOR_BLEND_ONE - ws->obj->shading.colorBlend);
-                        gte_ldcv(&col);
-                        gte_gpl12();
-                        gte_stcv(rgb);
-                        gte_lddp(ws->obj->shading.colorBlend);
-                        rgb = &poly[0].r1;
-                        gte_ldcv(rgb);
-                        gte_gpf12();
-                        gte_lddp(TMD_OBJECT_COLOR_BLEND_ONE - ws->obj->shading.colorBlend);
-                        gte_ldcv(&col);
-                        gte_gpl12();
-                        gte_stcv(rgb);
-                        gte_lddp(ws->obj->shading.colorBlend);
-                        rgb = &poly[0].r2;
-                        gte_ldcv(rgb);
-                        gte_gpf12();
-                        gte_lddp(TMD_OBJECT_COLOR_BLEND_ONE - ws->obj->shading.colorBlend);
-                        gte_ldcv(&col);
-                        gte_gpl12();
-                        gte_stcv(rgb);
+                    gte_strgb3_gt3(&packetPair[1]);
+                    if (workspace->obj->shading.colorBlend < TMD_OBJECT_COLOR_BLEND_ONE) {
+                        TMD_BLEND_ENVIRONMENT_LAYER_COLOR(workspace, layerColor, &packetPair[0].r0, &referenceColor);
+                        TMD_BLEND_ENVIRONMENT_LAYER_COLOR(workspace, layerColor, &packetPair[0].r1, &referenceColor);
+                        TMD_BLEND_ENVIRONMENT_LAYER_COLOR(workspace, layerColor, &packetPair[0].r2, &referenceColor);
                     }
-
-                    /* Environment-map UVs: each vertex's rotated normal, scaled by the
-                     * blend value, offsets its screen position into the reflection
-                     * texture. xy steps from X to Y alongside the U/V destination.
-                     * A U past the first page wraps onto the second one and
-                     * is flagged in the pad byte after that vertex's colour. */
+                    // Map screen pixels minus scaled view-space normals into the environment texture.
                     gte_rtv0();
-                    gte_stsv(&ws->elemNormal);
-                    combined = 0;
-                    xy       = &poly[0].x0;
-                    dest     = &poly[0].u0;
-                    flag     = 0;
-                    sv       = &ws->elemNormal;
-                    gte_lddp(ws->obj->shading.colorBlend >> 9);
-                    gte_ldsv(sv);
-                    gte_gpf12();
-                    gte_stsv(sv);
-                    x  = *xy + 0xA0;
-                    x -= sv->vx;
-                    if (x < 0) {
-                        x = 0;
-                    } else if (x >= 0x100) {
-                        x   -= 0x80;
-                        flag = 1;
-                        if (x >= 0xC0) {
-                            x = 0xBF;
-                        }
-                    }
-                    *dest = x;
-                    xy++;
-                    dest++;
-                    x  = *xy + 0x78;
-                    x -= sv->vy;
-                    if (x < 0) {
-                        x = 0;
-                    } else if (x >= 0xF0) {
-                        x = 0xEF;
-                    }
-                    combined |= flag;
-                    *dest     = x;
-                    dest[-6]  = flag;
+                    gte_stsv(&workspace->elemNormal);
+                    anySecondPage     = 0;
+                    screenComponent   = &packetPair[0].x0;
+                    textureCoordinate = &packetPair[0].u0;
+                    secondPage        = TMD_ENV_FIRST_PAGE_MARKER;
+                    rotatedNormal     = &workspace->elemNormal;
+                    TMD_CALCULATE_ENVIRONMENT_CORNER_UV(workspace, rotatedNormal, screenComponent, textureCoordinate, textureComponent, secondPage);
+                    anySecondPage                                     |= secondPage;
+                    *textureCoordinate                                 = textureComponent;
+                    textureCoordinate[-TMD_ENV_V_TO_PAGE_MARKER_BYTES] = secondPage;
 
                     gte_rtv1();
-                    gte_stsv(&ws->elemNormal);
-                    xy   = &poly[0].x1;
-                    dest = &poly[0].u1;
-                    flag = 0;
-                    sv   = &ws->elemNormal;
-                    gte_lddp(ws->obj->shading.colorBlend >> 9);
-                    gte_ldsv(sv);
-                    gte_gpf12();
-                    gte_stsv(sv);
-                    x  = *xy + 0xA0;
-                    x -= sv->vx;
-                    if (x < 0) {
-                        x = 0;
-                    } else if (x >= 0x100) {
-                        x   -= 0x80;
-                        flag = 1;
-                        if (x >= 0xC0) {
-                            x = 0xBF;
-                        }
-                    }
-                    *dest = x;
-                    xy++;
-                    dest++;
-                    x  = *xy + 0x78;
-                    x -= sv->vy;
-                    if (x < 0) {
-                        x = 0;
-                    } else if (x >= 0xF0) {
-                        x = 0xEF;
-                    }
-                    combined |= flag;
-                    *dest     = x;
-                    dest[-6]  = flag;
+                    gte_stsv(&workspace->elemNormal);
+                    screenComponent   = &packetPair[0].x1;
+                    textureCoordinate = &packetPair[0].u1;
+                    secondPage        = TMD_ENV_FIRST_PAGE_MARKER;
+                    rotatedNormal     = &workspace->elemNormal;
+                    TMD_CALCULATE_ENVIRONMENT_CORNER_UV(workspace, rotatedNormal, screenComponent, textureCoordinate, textureComponent, secondPage);
+                    anySecondPage                                     |= secondPage;
+                    *textureCoordinate                                 = textureComponent;
+                    textureCoordinate[-TMD_ENV_V_TO_PAGE_MARKER_BYTES] = secondPage;
 
                     gte_rtv2();
-                    gte_stsv(&ws->elemNormal);
-                    xy   = &poly[0].x2;
-                    dest = &poly[0].u2;
-                    flag = 0;
-                    sv   = &ws->elemNormal;
-                    gte_lddp(ws->obj->shading.colorBlend >> 9);
-                    gte_ldsv(sv);
-                    gte_gpf12();
-                    gte_stsv(sv);
-                    x  = *xy + 0xA0;
-                    x -= sv->vx;
-                    if (x < 0) {
-                        x = 0;
-                    } else if (x >= 0x100) {
-                        x   -= 0x80;
-                        flag = 1;
-                        if (x >= 0xC0) {
-                            x = 0xBF;
-                        }
-                    }
-                    *dest = x;
-                    xy++;
-                    dest++;
-                    x  = *xy + 0x78;
-                    x -= sv->vy;
-                    if (x < 0) {
-                        x = 0;
-                    } else if (x >= 0xF0) {
-                        x = 0xEF;
-                    }
-                    combined |= flag;
-                    *dest     = x;
-                    dest[-6]  = flag;
+                    gte_stsv(&workspace->elemNormal);
+                    screenComponent   = &packetPair[0].x2;
+                    textureCoordinate = &packetPair[0].u2;
+                    secondPage        = TMD_ENV_FIRST_PAGE_MARKER;
+                    rotatedNormal     = &workspace->elemNormal;
+                    TMD_CALCULATE_ENVIRONMENT_CORNER_UV(workspace, rotatedNormal, screenComponent, textureCoordinate, textureComponent, secondPage);
+                    anySecondPage                                     |= secondPage;
+                    *textureCoordinate                                 = textureComponent;
+                    textureCoordinate[-TMD_ENV_V_TO_PAGE_MARKER_BYTES] = secondPage;
 
-                    if (combined == 0) {
-                        poly[0].tpage = 0x137;
+                    if (anySecondPage == 0) {
+                        packetPair[0].tpage = TMD_ENV_FIRST_TEXTURE_PAGE;
                     } else {
-                        /* The primitive samples the second page: a vertex that
-                         * did not wrap is shifted back 0x80, or clamped to 0. */
-                        pCode = &poly[0].code;
-                        i     = 0;
-                        pU    = &poly[0].u0;
-                        do {
-                            if (*pCode == 0) {
-                                if ((s8)*pU < 0) {
-                                    *pU = *pU + 0x80;
-                                } else {
-                                    *pU = 0;
-                                }
-                            }
-                            pU += 0xC;
-                            i++;
-                            pCode += 0xC;
-                        } while (i < 3);
-                        poly[0].tpage = 0x139;
+                        // Rebase unmarked U bytes when any corner selects the second page.
+                        pageMarker  = &packetPair[0].code;
+                        cornerIndex = 0;
+                        textureU    = &packetPair[0].u0;
+                        TMD_FOLD_ENVIRONMENT_PAGE_U(pageMarker, textureU, cornerIndex, TMD_GT3_CORNER_COUNT);
+                        packetPair[0].tpage = TMD_ENV_SECOND_TEXTURE_PAGE;
                     }
-                    setlen(&poly[0], len);
-                    setcode(&poly[0], 0x36);
-                    setlen(&poly[1], len);
-                    setcode(&poly[1], 0x34);
-                    gte_stotz(&ws->gteResult);
-                    addPrim((&ws->ot[(((((u32)ws->gteResult << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*ws->ot)]), &poly[0]);
-                    addPrim((&ws->ot[(((((u32)ws->gteResult << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*ws->ot)]), &poly[1]);
+                    setlen(&packetPair[0], payloadWordCount);
+                    setcode(&packetPair[0], TMD_GT3_SEMI_TRANS_COMMAND);
+                    setlen(&packetPair[1], payloadWordCount);
+                    setcode(&packetPair[1], TMD_GT3_OPAQUE_COMMAND);
+                    gte_stotz(&workspace->gteResult);
+                    addPrim((&workspace->ot[(((((u32)workspace->gteResult << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*workspace->ot)]), &packetPair[0]);
+                    addPrim((&workspace->ot[(((((u32)workspace->gteResult << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*workspace->ot)]), &packetPair[1]);
                 }
             }
-            poly += 2;
-            arg2 += ws->elemStride;
-        } while (ws->elemCount-- > 0);
+            packetPair += 2;
+            elements   += workspace->elemStride;
+        } while (workspace->elemCount-- > 0);
     }
-    ws->primWrite = (u8*)poly;
-    return arg2;
+    workspace->primWrite = (u8*)packetPair;
+    return elements;
 }
 
-u32* gpDrawStreamPrimGt3OffsetLayer(TmdStreamWorkspace* ws, s32 flags, u32* stream)
+u32* tmdDrawStreamPrimGt3OffsetLayer(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements)
 {
-    POLY_GT3*     poly;
-    s32*          opz;
-    DisplayState* ds;
-    u32           mask;
-    u32           maskHi;
-    u16*          rec;
-    u8*           verts;
-    u8*           norms;
-    CVECTOR       col;
-    CVECTOR       col2;
-    s32           len;
-    s32           code;
-    s32           val;
-    s32           inv;
+    enum { TMD_OFFSET_LAYER_COLOR_SHIFT       = 5,
+           TMD_OFFSET_LAYER_TPAGE_ABR_LOW_BIT = 1 << 5 };
+    enum { TMD_GT3_OPAQUE_COMMAND     = 0x34,
+           TMD_GT3_SEMI_TRANS_COMMAND = 0x36 };
+    POLY_GT3*           packetPair;
+    s32*                gteResultDestination;
+    const DisplayState* displayState;
+    u32                 addressMask;
+    u32                 lengthMask;
+    const u16*          elementHalfwords;
+    const u8*           vertexBytes;
+    const u8*           normalBytes;
+    CVECTOR             layerMaterial;
+    CVECTOR             baseMaterial;
+    s32                 payloadWordCount;
+    s32                 baseCommand;
+    s32                 layerIntensity;
+    s32                 baseIntensity;
 
-    poly   = (POLY_GT3*)ws->primWrite;
-    col    = gGpColorGrey;
-    col2   = gGpColorGrey;
-    val    = ws->obj->shading.colorBlend >> 5;
-    inv    = (TMD_OBJECT_COLOR_BLEND_ONE >> 5) - val;
-    col.b  = val;
-    col.g  = val;
-    col.r  = val;
-    col2.b = inv;
-    col2.g = inv;
-    col2.r = inv;
-    if (ws->elemCount-- > 0) {
-        opz    = &ws->gteResult;
-        len    = 9;
-        code   = 0x34;
-        ds     = &gDisplayState;
-        mask   = 0xFFFFFF;
-        maskHi = 0xFF000000;
+    packetPair      = (POLY_GT3*)workspace->primWrite;
+    layerMaterial   = gGpColorGrey;
+    baseMaterial    = gGpColorGrey;
+    layerIntensity  = workspace->obj->shading.colorBlend >> TMD_OFFSET_LAYER_COLOR_SHIFT;
+    baseIntensity   = (TMD_OBJECT_COLOR_BLEND_ONE >> TMD_OFFSET_LAYER_COLOR_SHIFT) - layerIntensity;
+    layerMaterial.b = layerIntensity;
+    layerMaterial.g = layerIntensity;
+    layerMaterial.r = layerIntensity;
+    baseMaterial.b  = baseIntensity;
+    baseMaterial.g  = baseIntensity;
+    baseMaterial.r  = baseIntensity;
+    if (workspace->elemCount-- > 0) {
+        gteResultDestination = &workspace->gteResult;
+        payloadWordCount     = sizeof(*packetPair) / sizeof(u32) - 1;
+        baseCommand          = TMD_GT3_OPAQUE_COMMAND;
+        displayState         = &gDisplayState;
+        addressMask          = GPU_DMA_LINK_ADDRESS_MASK;
+        lengthMask           = GPU_DMA_PACKET_LENGTH_MASK;
         do {
-            rec   = (u16*)stream;
-            verts = (u8*)ws->verts;
-            gte_ldv3(verts + (rec[0] & 0xFFF8), verts + (rec[1] & 0xFFF8), verts + (rec[2] & 0xFFF8));
+            elementHalfwords = (const u16*)elements;
+            vertexBytes      = (const u8*)workspace->verts;
+            // Project packed byte references; packet slots are consumed even on rejection.
+            gte_ldv3(vertexBytes + (elementHalfwords[0] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), vertexBytes + (elementHalfwords[1] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), vertexBytes + (elementHalfwords[2] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK));
             gte_rtpt();
-            gte_stflg(&ws->gteFlag);
-            if (ws->gteFlag >= 0) {
+            gte_stflg(&workspace->gteFlag);
+            if (workspace->gteFlag >= 0) {
                 gte_nclip();
-                gte_stopz(opz);
-                if (ws->gteResult > 0) {
-                    gte_stsxy3_gt3(&poly[0]);
-                    gte_stsxy3_gt3(&poly[1]);
+                gte_stopz(gteResultDestination);
+                if (workspace->gteResult > 0) {
+                    gte_stsxy3_gt3(&packetPair[0]);
+                    gte_stsxy3_gt3(&packetPair[1]);
                     gte_avsz3();
-                    norms = (u8*)ws->normals;
-                    gte_ldv3(norms + (rec[3] & 0xFFF8), norms + (rec[4] & 0xFFF8), norms + (rec[5] & 0xFFF8));
-                    gte_ldrgb(&col);
+                    normalBytes = (const u8*)workspace->normals;
+                    gte_ldv3(normalBytes + (elementHalfwords[3] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), normalBytes + (elementHalfwords[4] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), normalBytes + (elementHalfwords[5] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK));
+                    gte_ldrgb(&layerMaterial);
                     gte_ncct();
-                    gte_strgb3_gt3(&poly[0]);
-                    gte_ldrgb(&col2);
+                    gte_strgb3_gt3(&packetPair[0]);
+                    gte_ldrgb(&baseMaterial);
                     gte_ncct();
-                    gte_strgb3_gt3(&poly[1]);
-                    setlen(&poly[0], len);
-                    setcode(&poly[0], 0x36);
-                    setlen(&poly[1], len);
-                    setcode(&poly[1], code);
-                    poly[0].tpage |= 0x20;
-                    gte_stotz(opz);
-                    poly[0].tag = (poly[0].tag & maskHi) | (*(&ws->ot[(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*ws->ot)]) & mask);
-                    *(&ws->ot[(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*ws->ot)]) =
-                        (*(&ws->ot[(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*ws->ot)]) & maskHi) | ((u32)&poly[0] & mask);
-                    poly[1].tag = (poly[1].tag & maskHi) | (*(&ws->ot[(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*ws->ot)]) & mask);
-                    *(&ws->ot[(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*ws->ot)]) =
-                        (*(&ws->ot[(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*ws->ot)]) & maskHi) | ((u32)&poly[1] & mask);
+                    gte_strgb3_gt3(&packetPair[1]);
+                    setlen(&packetPair[0], payloadWordCount);
+                    setcode(&packetPair[0], TMD_GT3_SEMI_TRANS_COMMAND);
+                    setlen(&packetPair[1], payloadWordCount);
+                    setcode(&packetPair[1], baseCommand);
+                    packetPair[0].tpage |= TMD_OFFSET_LAYER_TPAGE_ABR_LOW_BIT;
+                    gte_stotz(gteResultDestination);
+                    TMD_LINK_OFFSET_LAYER_TRIANGLE_PAIR(packetPair, workspace, displayState, addressMask, lengthMask);
                 }
             }
-            poly   += 2;
-            stream += ws->elemStride;
-        } while (ws->elemCount-- > 0);
+            packetPair += 2;
+            elements   += workspace->elemStride;
+        } while (workspace->elemCount-- > 0);
     }
-    ws->primWrite = (u8*)poly;
-    return stream;
+    workspace->primWrite = (u8*)packetPair;
+    return elements;
 }
 
 u32* gpDrawStreamPrimGt4OffsetLayer(TmdStreamWorkspace* ws, s32 flags, u32* stream)
@@ -1339,362 +1358,222 @@ u32* gpDrawStreamPrimGt4OffsetLayer(TmdStreamWorkspace* ws, s32 flags, u32* stre
     return stream;
 }
 
-u32* func_8009C414(TmdStreamWorkspace* ws, s32 arg1, u32* arg2)
+u32* tmdDrawStreamPrimGt4EnvLayer(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements)
 {
-    POLY_GT4* poly;
-    s32*      opz;
-    s32*      flg;
-    u16*      rec;
-    u8*       verts;
-    u8*       norms;
-    CVECTOR   col;
-    SVECTOR*  sv;
-    s16*      xy;
-    s16*      xy3;
-    u8*       rgb3;
-    u8*       dest;
-    u8*       uv;
-    u8*       rgb;
-    u8*       codep;
-    s32       flag;
-    s32       anyflag;
-    s32       x;
-    s32       i;
-    s32       len;
+    enum { TMD_GT4_OPAQUE_COMMAND     = 0x3C,
+           TMD_GT4_SEMI_TRANS_COMMAND = 0x3E };
+    POLY_GT4*  packetPair;
+    s32*       gteResultDestination;
+    s32*       gteFlagDestination;
+    const u16* elementHalfwords;
+    const u8*  vertexBytes;
+    const u8*  normalBytes;
+    CVECTOR    referenceColor;
+    SVECTOR*   rotatedNormal;
+    s16*       screenComponent;
+    s16*       corner3ScreenPosition;
+    u8*        corner3LayerColor;
+    u8*        textureCoordinate;
+    u8*        textureU;
+    u8*        layerColor;
+    u8*        pageMarker;
+    s32        secondPage;
+    s32        anySecondPage;
+    s32        textureComponent;
+    s32        cornerIndex;
+    s32        payloadWordCount;
 
-    poly = (POLY_GT4*)ws->primWrite;
-    col  = gGpColorGrey;
-    if (ws->elemCount-- > 0) {
-        flg = &ws->gteFlag;
-        opz = &ws->gteResult;
+    packetPair     = (POLY_GT4*)workspace->primWrite;
+    referenceColor = gGpColorGrey;
+    if (workspace->elemCount-- > 0) {
+        gteFlagDestination   = &workspace->gteFlag;
+        gteResultDestination = &workspace->gteResult;
         do {
-            rec   = (u16*)arg2;
-            verts = (u8*)ws->verts;
-            gte_ldv3(verts + (rec[0] & 0xFFF8), verts + (rec[1] & 0xFFF8), verts + (rec[2] & 0xFFF8));
+            elementHalfwords = (const u16*)elements;
+            vertexBytes      = (const u8*)workspace->verts;
+            // Project packed byte references; packet slots are consumed even on rejection.
+            gte_ldv3(vertexBytes + (elementHalfwords[0] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), vertexBytes + (elementHalfwords[1] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), vertexBytes + (elementHalfwords[2] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK));
             gte_rtpt();
-            gte_stflg(flg);
-            if ((ws->gteFlag & TMD_GTE_ERROR_FLAG) == 0) {
+            gte_stflg(gteFlagDestination);
+            if ((workspace->gteFlag & TMD_GTE_ERROR_FLAG) == 0) {
                 gte_nclip();
-                gte_stopz(opz);
-                gte_stsxy3_gt4(&poly[0]);
-                gte_stsxy3_gt4(&poly[1]);
-                gte_ldv0((u8*)ws->verts + (rec[3] & 0xFFF8));
+                gte_stopz(gteResultDestination);
+                gte_stsxy3_gt4(&packetPair[0]);
+                gte_stsxy3_gt4(&packetPair[1]);
+                gte_ldv0((const u8*)workspace->verts + (elementHalfwords[3] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK));
                 gte_rtps();
-                gte_stflg(flg);
-                if ((ws->gteFlag & TMD_GTE_ERROR_FLAG) == 0) {
+                gte_stflg(gteFlagDestination);
+                if ((workspace->gteFlag & TMD_GTE_ERROR_FLAG) == 0) {
                     gte_nclip();
-                    gte_stsxy2(&poly[0].x3);
-                    gte_stsxy2(&poly[1].x3);
-                    if (ws->gteResult <= 0) {
-                        *(u_long*)&poly[0].x0 = *(u_long*)&poly[0].x1;
-                        *(u_long*)&poly[1].x0 = *(u_long*)&poly[1].x1;
-                        gte_stopz(opz);
-                        if (ws->gteResult >= 0) {
+                    gte_stsxy2(&packetPair[0].x3);
+                    gte_stsxy2(&packetPair[1].x3);
+                    // Collapse the rejected half into a repeated endpoint; retain AVSZ4 depths.
+                    if (workspace->gteResult <= 0) {
+                        *(u_long*)&packetPair[0].x0 = *(u_long*)&packetPair[0].x1;
+                        *(u_long*)&packetPair[1].x0 = *(u_long*)&packetPair[1].x1;
+                        gte_stopz(gteResultDestination);
+                        if (workspace->gteResult >= 0) {
                             goto skip;
                         }
                     } else {
-                        gte_stopz(opz);
-                        if (ws->gteResult >= 0) {
-                            *(u_long*)&poly[0].x3 = *(u_long*)&poly[0].x2;
-                            *(u_long*)&poly[1].x3 = *(u_long*)&poly[1].x2;
+                        gte_stopz(gteResultDestination);
+                        if (workspace->gteResult >= 0) {
+                            *(u_long*)&packetPair[0].x3 = *(u_long*)&packetPair[0].x2;
+                            *(u_long*)&packetPair[1].x3 = *(u_long*)&packetPair[1].x2;
                         }
                     }
                     gte_avsz4();
-                    norms = (u8*)ws->normals;
-                    gte_ldv3(norms + (rec[4] & 0xFFF8), norms + (rec[5] & 0xFFF8), norms + (rec[6] & 0xFFF8));
+                    normalBytes = (const u8*)workspace->normals;
+                    gte_ldv3(normalBytes + (elementHalfwords[4] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), normalBytes + (elementHalfwords[5] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), normalBytes + (elementHalfwords[6] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK));
                     gte_ldrgb(&D_80114BA4);
                     gte_ncct();
-                    gte_strgb3_gt4(&poly[0]);
+                    gte_strgb3_gt4(&packetPair[0]);
                     gte_ldrgb(&D_80114BA8);
                     gte_ncct();
-                    gte_strgb3_gt4(&poly[1]);
-
-                    /* Environment-map UVs: each vertex's rotated normal, scaled by the
-                     * blend value, offsets its screen position into the reflection
-                     * texture. xy steps from X to Y while dest steps from U to V, then
-                     * back to the pad byte after that vertex's colour, which records
-                     * whether U wrapped onto the second texture page. */
-
-                    /* vertex 0 */
+                    gte_strgb3_gt4(&packetPair[1]);
+                    // Map screen pixels minus scaled view-space normals into the environment texture.
                     gte_rtv0();
-                    gte_stsv(&ws->elemNormal);
-                    anyflag = 0;
-                    xy      = &poly[0].x0;
-                    dest    = &poly[0].u0;
-                    flag    = 0;
-                    sv      = &ws->elemNormal;
-                    gte_lddp(ws->obj->shading.colorBlend >> 9);
-                    gte_ldsv(sv);
-                    gte_gpf12();
-                    gte_stsv(sv);
-                    x  = *xy + 0xA0;
-                    x -= sv->vx;
-                    if (x < 0) {
-                        x = 0;
-                    } else if (x >= 0x100) {
-                        x   -= 0x80;
-                        flag = 1;
-                        if (x >= 0xC0) {
-                            x = 0xBF;
-                        }
-                    }
-                    *dest = x;
-                    xy++;
-                    dest++;
-                    x  = *xy + 0x78;
-                    x -= sv->vy;
-                    if (x < 0) {
-                        x = 0;
-                    } else if (x >= 0xF0) {
-                        x = 0xEF;
-                    }
-                    *dest    = x;
-                    dest    -= 6;
-                    *dest    = flag;
-                    anyflag |= flag;
-
-                    /* vertex 1 */
+                    gte_stsv(&workspace->elemNormal);
+                    anySecondPage     = 0;
+                    screenComponent   = &packetPair[0].x0;
+                    textureCoordinate = &packetPair[0].u0;
+                    secondPage        = TMD_ENV_FIRST_PAGE_MARKER;
+                    rotatedNormal     = &workspace->elemNormal;
+                    TMD_CALCULATE_ENVIRONMENT_CORNER_UV(workspace, rotatedNormal, screenComponent, textureCoordinate, textureComponent, secondPage);
+                    *textureCoordinate = textureComponent;
+                    textureCoordinate -= TMD_ENV_V_TO_PAGE_MARKER_BYTES;
+                    *textureCoordinate = secondPage;
+                    anySecondPage     |= secondPage;
                     gte_rtv1();
-                    gte_stsv(&ws->elemNormal);
-                    xy   = &poly[0].x1;
-                    dest = &poly[0].u1;
-                    flag = 0;
-                    sv   = &ws->elemNormal;
-                    gte_lddp(ws->obj->shading.colorBlend >> 9);
-                    gte_ldsv(sv);
-                    gte_gpf12();
-                    gte_stsv(sv);
-                    x  = *xy + 0xA0;
-                    x -= sv->vx;
-                    if (x < 0) {
-                        x = 0;
-                    } else if (x >= 0x100) {
-                        x   -= 0x80;
-                        flag = 1;
-                        if (x >= 0xC0) {
-                            x = 0xBF;
-                        }
-                    }
-                    *dest = x;
-                    xy++;
-                    dest++;
-                    x  = *xy + 0x78;
-                    x -= sv->vy;
-                    if (x < 0) {
-                        x = 0;
-                    } else if (x >= 0xF0) {
-                        x = 0xEF;
-                    }
-                    *dest    = x;
-                    dest    -= 6;
-                    *dest    = flag;
-                    anyflag |= flag;
-
-                    /* vertex 2 */
+                    gte_stsv(&workspace->elemNormal);
+                    screenComponent   = &packetPair[0].x1;
+                    textureCoordinate = &packetPair[0].u1;
+                    secondPage        = TMD_ENV_FIRST_PAGE_MARKER;
+                    rotatedNormal     = &workspace->elemNormal;
+                    TMD_CALCULATE_ENVIRONMENT_CORNER_UV(workspace, rotatedNormal, screenComponent, textureCoordinate, textureComponent, secondPage);
+                    *textureCoordinate = textureComponent;
+                    textureCoordinate -= TMD_ENV_V_TO_PAGE_MARKER_BYTES;
+                    *textureCoordinate = secondPage;
+                    anySecondPage     |= secondPage;
                     gte_rtv2();
-                    gte_stsv(&ws->elemNormal);
-                    xy   = &poly[0].x2;
-                    dest = &poly[0].u2;
-                    flag = 0;
-                    sv   = &ws->elemNormal;
-                    gte_lddp(ws->obj->shading.colorBlend >> 9);
-                    gte_ldsv(sv);
-                    gte_gpf12();
-                    gte_stsv(sv);
-                    x  = *xy + 0xA0;
-                    x -= sv->vx;
-                    if (x < 0) {
-                        x = 0;
-                    } else if (x >= 0x100) {
-                        x   -= 0x80;
-                        flag = 1;
-                        if (x >= 0xC0) {
-                            x = 0xBF;
-                        }
-                    }
-                    *dest = x;
-                    xy++;
-                    dest++;
-                    x  = *xy + 0x78;
-                    x -= sv->vy;
-                    if (x < 0) {
-                        x = 0;
-                    } else if (x >= 0xF0) {
-                        x = 0xEF;
-                    }
-                    *dest    = x;
-                    dest    -= 6;
-                    *dest    = flag;
-                    anyflag |= flag;
-
-                    /* vertex 3 */
-                    xy3 = &poly[0].x3;
-                    gte_ldv0((u8*)ws->normals + (rec[7] & 0xFFF8));
+                    gte_stsv(&workspace->elemNormal);
+                    screenComponent   = &packetPair[0].x2;
+                    textureCoordinate = &packetPair[0].u2;
+                    secondPage        = TMD_ENV_FIRST_PAGE_MARKER;
+                    rotatedNormal     = &workspace->elemNormal;
+                    TMD_CALCULATE_ENVIRONMENT_CORNER_UV(workspace, rotatedNormal, screenComponent, textureCoordinate, textureComponent, secondPage);
+                    *textureCoordinate    = textureComponent;
+                    textureCoordinate    -= TMD_ENV_V_TO_PAGE_MARKER_BYTES;
+                    *textureCoordinate    = secondPage;
+                    anySecondPage        |= secondPage;
+                    corner3ScreenPosition = &packetPair[0].x3;
+                    gte_ldv0((const u8*)workspace->normals + (elementHalfwords[7] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK));
                     gte_ldrgb(&D_80114BA4);
                     gte_nccs();
-                    gte_strgb(&poly[0].r3);
+                    gte_strgb(&packetPair[0].r3);
                     gte_ldrgb(&D_80114BA8);
                     gte_nccs();
-                    gte_strgb(&poly[1].r3);
+                    gte_strgb(&packetPair[1].r3);
                     gte_rtv0();
-                    gte_stsv(&ws->elemNormal);
-                    xy   = xy3;
-                    dest = &poly[0].u3;
-                    flag = 0;
-                    sv   = &ws->elemNormal;
-                    gte_lddp(ws->obj->shading.colorBlend >> 9);
-                    gte_ldsv(sv);
-                    gte_gpf12();
-                    gte_stsv(sv);
-                    x  = *xy + 0xA0;
-                    x -= sv->vx;
-                    if (x < 0) {
-                        x = 0;
-                    } else if (x >= 0x100) {
-                        x   -= 0x80;
-                        flag = 1;
-                        if (x >= 0xC0) {
-                            x = 0xBF;
-                        }
-                    }
-                    *dest = x;
-                    xy++;
-                    dest++;
-                    x  = *xy + 0x78;
-                    x -= sv->vy;
-                    if (x < 0) {
-                        x = 0;
-                    } else if (x >= 0xF0) {
-                        x = 0xEF;
-                    }
-                    *dest = x;
-                    dest -= 6;
-                    *dest = flag;
+                    gte_stsv(&workspace->elemNormal);
+                    screenComponent   = corner3ScreenPosition;
+                    textureCoordinate = &packetPair[0].u3;
+                    secondPage        = TMD_ENV_FIRST_PAGE_MARKER;
+                    rotatedNormal     = &workspace->elemNormal;
+                    TMD_CALCULATE_ENVIRONMENT_CORNER_UV(workspace, rotatedNormal, screenComponent, textureCoordinate, textureComponent, secondPage);
+                    *textureCoordinate = textureComponent;
+                    textureCoordinate -= TMD_ENV_V_TO_PAGE_MARKER_BYTES;
+                    *textureCoordinate = secondPage;
 
-                    anyflag |= flag;
-                    if (ws->obj->shading.colorBlend < TMD_OBJECT_COLOR_BLEND_ONE) {
-                        gte_lddp(ws->obj->shading.colorBlend);
-                        rgb = &poly[0].r0;
-                        gte_ldcv(rgb);
-                        gte_gpf12();
-                        gte_lddp(TMD_OBJECT_COLOR_BLEND_ONE - ws->obj->shading.colorBlend);
-                        gte_ldcv(&col);
-                        gte_gpl12();
-                        gte_stcv(rgb);
+                    anySecondPage |= secondPage;
+                    if (workspace->obj->shading.colorBlend < TMD_OBJECT_COLOR_BLEND_ONE) {
+                        TMD_BLEND_ENVIRONMENT_LAYER_COLOR(workspace, layerColor, &packetPair[0].r0, &referenceColor);
 
-                        gte_lddp(ws->obj->shading.colorBlend);
-                        rgb = &poly[0].r1;
-                        gte_ldcv(rgb);
-                        gte_gpf12();
-                        gte_lddp(TMD_OBJECT_COLOR_BLEND_ONE - ws->obj->shading.colorBlend);
-                        gte_ldcv(&col);
-                        gte_gpl12();
-                        gte_stcv(rgb);
+                        TMD_BLEND_ENVIRONMENT_LAYER_COLOR(workspace, layerColor, &packetPair[0].r1, &referenceColor);
 
-                        gte_lddp(ws->obj->shading.colorBlend);
-                        rgb = &poly[0].r2;
-                        gte_ldcv(rgb);
-                        gte_gpf12();
-                        gte_lddp(TMD_OBJECT_COLOR_BLEND_ONE - ws->obj->shading.colorBlend);
-                        gte_ldcv(&col);
-                        gte_gpl12();
-                        gte_stcv(rgb);
+                        TMD_BLEND_ENVIRONMENT_LAYER_COLOR(workspace, layerColor, &packetPair[0].r2, &referenceColor);
 
-                        gte_lddp(ws->obj->shading.colorBlend);
-                        rgb3 = &poly[0].r3;
-                        gte_ldcv(rgb3);
-                        gte_gpf12();
-                        gte_lddp(TMD_OBJECT_COLOR_BLEND_ONE - ws->obj->shading.colorBlend);
-                        gte_ldcv(&col);
-                        gte_gpl12();
-                        gte_stcv(rgb3);
+                        TMD_BLEND_ENVIRONMENT_LAYER_COLOR(workspace, corner3LayerColor, &packetPair[0].r3, &referenceColor);
                     }
 
-                    codep = &poly[0].code;
-                    if (anyflag == 0) {
-                        poly[0].tpage = 0x137;
+                    pageMarker = &packetPair[0].code;
+                    if (anySecondPage == 0) {
+                        packetPair[0].tpage = TMD_ENV_FIRST_TEXTURE_PAGE;
                     } else {
-                        i  = 0;
-                        uv = &poly[0].u0;
-                        do {
-                            if (*codep == 0) {
-                                if ((s8)*uv < 0) {
-                                    *uv = *uv + 0x80;
-                                } else {
-                                    *uv = 0;
-                                }
-                            }
-                            uv    += 0xC;
-                            i     += 1;
-                            codep += 0xC;
-                        } while (i < 4);
-                        poly[0].tpage = 0x139;
+                        cornerIndex = 0;
+                        textureU    = &packetPair[0].u0;
+                        TMD_FOLD_ENVIRONMENT_PAGE_U(pageMarker, textureU, cornerIndex, TMD_GT4_CORNER_COUNT);
+                        packetPair[0].tpage = TMD_ENV_SECOND_TEXTURE_PAGE;
                     }
 
-                    len = 0xC;
-                    setlen(&poly[0], len);
-                    setcode(&poly[0], 0x3E);
-                    setlen(&poly[1], len);
-                    setcode(&poly[1], 0x3C);
-                    gte_stotz(opz);
-                    addPrim((&ws->ot[(((((u32)ws->gteResult << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*ws->ot)]), &poly[0]);
-                    addPrim((&ws->ot[(((((u32)ws->gteResult << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*ws->ot)]), &poly[1]);
+                    payloadWordCount = sizeof(*packetPair) / sizeof(u32) - 1;
+                    setlen(&packetPair[0], payloadWordCount);
+                    setcode(&packetPair[0], TMD_GT4_SEMI_TRANS_COMMAND);
+                    setlen(&packetPair[1], payloadWordCount);
+                    setcode(&packetPair[1], TMD_GT4_OPAQUE_COMMAND);
+                    gte_stotz(gteResultDestination);
+                    addPrim((&workspace->ot[(((((u32)workspace->gteResult << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*workspace->ot)]), &packetPair[0]);
+                    addPrim((&workspace->ot[(((((u32)workspace->gteResult << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*workspace->ot)]), &packetPair[1]);
                 }
             }
         skip:
-            poly += 2;
-            arg2 += ws->elemStride;
-        } while (ws->elemCount-- > 0);
+            packetPair += 2;
+            elements   += workspace->elemStride;
+        } while (workspace->elemCount-- > 0);
     }
-    ws->primWrite = (u8*)poly;
-    return arg2;
+    workspace->primWrite = (u8*)packetPair;
+    return elements;
 }
 
-u32* gpDrawStreamPrimGt3ElemColor(TmdStreamWorkspace* ws, s32 flags, u32* stream)
+u32* tmdDrawStreamPrimGt3ElemColor(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements)
 {
-    POLY_GT3*     poly;
-    s32*          opz;
-    DisplayState* ds;
-    u16*          rec;
-    u8*           verts;
-    u8*           norms;
+    enum { TMD_GT3_ELEMENT_COLOR_WORD_INDEX = 3 };
+    enum { TMD_GT3_OPAQUE_COMMAND     = 0x34,
+           TMD_GT3_SEMI_TRANS_COMMAND = 0x36 };
+    POLY_GT3*           triangle;
+    s32*                gteResultDestination;
+    const DisplayState* displayState;
+    const u16*          elementHalfwords;
+    const u8*           vertexBytes;
+    const u8*           normalBytes;
 
-    poly = (POLY_GT3*)ws->primWrite;
-    if (ws->elemCount-- > 0) {
-        opz = &ws->gteResult;
-        ds  = &gDisplayState;
+    triangle = (POLY_GT3*)workspace->primWrite;
+    if (workspace->elemCount-- > 0) {
+        gteResultDestination = &workspace->gteResult;
+        displayState         = &gDisplayState;
         do {
-            rec   = (u16*)stream;
-            verts = (u8*)ws->verts;
-            gte_ldv3(verts + (rec[0] & 0xFFF8), verts + (rec[1] & 0xFFF8), verts + (rec[2] & 0xFFF8));
+            elementHalfwords = (const u16*)elements;
+            vertexBytes      = (const u8*)workspace->verts;
+            // Project packed byte references; packet slots are consumed even on rejection.
+            gte_ldv3(vertexBytes + (elementHalfwords[0] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), vertexBytes + (elementHalfwords[1] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), vertexBytes + (elementHalfwords[2] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK));
             gte_rtpt();
-            gte_stflg(&ws->gteFlag);
-            if (ws->gteFlag >= 0) {
+            gte_stflg(&workspace->gteFlag);
+            if (workspace->gteFlag >= 0) {
                 gte_nclip();
-                gte_stopz(opz);
-                if (ws->gteResult > 0) {
-                    gte_ldrgb(stream + 3);
-                    gte_stsxy3_gt3(poly);
+                gte_stopz(gteResultDestination);
+                if (workspace->gteResult > 0) {
+                    gte_ldrgb(elements + TMD_GT3_ELEMENT_COLOR_WORD_INDEX);
+                    gte_stsxy3_gt3(triangle);
                     gte_avsz3();
-                    norms = (u8*)ws->normals;
-                    gte_ldv3(norms + (rec[3] & 0xFFF8), norms + (rec[4] & 0xFFF8), norms + (rec[5] & 0xFFF8));
+                    normalBytes = (const u8*)workspace->normals;
+                    gte_ldv3(normalBytes + (elementHalfwords[3] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), normalBytes + (elementHalfwords[4] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), normalBytes + (elementHalfwords[5] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK));
                     gte_ncct();
-                    gte_strgb3_gt3(poly);
-                    setlen(poly, 9);
-                    setcode(poly, 0x34);
-                    if (ws->obj->flags & TMD_OBJECT_SEMI_TRANS) {
-                        setcode(poly, 0x36);
+                    gte_strgb3_gt3(triangle);
+                    setlen(triangle, sizeof(*triangle) / sizeof(u32) - 1);
+                    setcode(triangle, TMD_GT3_OPAQUE_COMMAND);
+                    if (workspace->obj->flags & TMD_OBJECT_SEMI_TRANS) {
+                        setcode(triangle, TMD_GT3_SEMI_TRANS_COMMAND);
                     }
-                    gte_stotz(opz);
-                    addPrim(&ws->ot[((u32)ws->gteResult << ds->otDepthShift) >> 4 & 0x3FF], poly);
+                    gte_stotz(gteResultDestination);
+                    addPrim(&workspace->ot[((u32)workspace->gteResult << displayState->otDepthShift) >> TMD_DRAW_OT_INDEX_SHIFT & (GPU_ORDERING_TABLE_DEPTH_BYTE_MASK / sizeof(*workspace->ot))], triangle);
                 }
             }
-            poly++;
-            stream += ws->elemStride;
-        } while (ws->elemCount-- > 0);
+            triangle++;
+            elements += workspace->elemStride;
+        } while (workspace->elemCount-- > 0);
     }
-    ws->primWrite = (u8*)poly;
-    return stream;
+    workspace->primWrite = (u8*)triangle;
+    return elements;
 }
 
 u32* gpDrawStreamPrimGt4ElemColor(TmdStreamWorkspace* ws, s32 flags, u32* stream)
@@ -1789,7 +1668,7 @@ u32* tmdDrawStreamPrimFt3(TmdStreamWorkspace* workspace, s32 objectFlags, u32* e
                 gte_nclip();
                 gte_stopz(gteResultDestination);
                 if (workspace->gteResult > 0) {
-                    _tmdLinkProjectedRawFt3(triangle, workspace, gteResultDestination, displayState);
+                    TMD_LINK_PROJECTED_RAW_FT3(triangle, workspace, gteResultDestination, displayState, TMD_FT3_RAW_OPAQUE_COMMAND);
                 }
             }
             // Rejected triangles consume their construction-reserved slots too.
@@ -1843,7 +1722,7 @@ u32* tmdDrawStreamPrimFt4(TmdStreamWorkspace* workspace, s32 objectFlags, u32* e
                     gte_stopz(gteResultDestination);
                     if (workspace->gteResult < 0) {
                     drawQuad:
-                        _tmdLinkProjectedRawFt4(quad, workspace, gteResultDestination, displayState);
+                        TMD_LINK_PROJECTED_RAW_FT4(quad, workspace, gteResultDestination, displayState, TMD_FT4_RAW_OPAQUE_COMMAND);
                     }
                 }
             }
@@ -1856,505 +1735,458 @@ u32* tmdDrawStreamPrimFt4(TmdStreamWorkspace* workspace, s32 objectFlags, u32* e
     return elements;
 }
 
-u32* func_8009D718(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2)
+u32* tmdDrawStreamPrimGt4Unlit(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements)
 {
-    TmdStreamWorkspace* ws;
-    POLY_GT4*           poly;
-    s32*                opz;
-    DisplayState*       ds;
-    u32                 clipMask;
-    s32*                flg;
-    u16*                rec;
-    u8*                 verts;
+    POLY_GT4*           quad;
+    s32*                gteResultDestination;
+    const DisplayState* displayState;
+    u32                 projectionErrorMask;
+    s32*                gteFlagDestination;
+    const u16*          elementHalfwords;
+    const u8*           vertexBytes;
 
-    ws   = arg0;
-    poly = (POLY_GT4*)ws->primWrite;
-    if (ws->elemCount-- > 0) {
-        flg      = &ws->gteFlag;
-        clipMask = TMD_GTE_ERROR_FLAG;
-        opz      = &ws->gteResult;
-        ds       = &gDisplayState;
+    quad = (POLY_GT4*)workspace->primWrite;
+    if (workspace->elemCount-- > 0) {
+        gteFlagDestination   = &workspace->gteFlag;
+        projectionErrorMask  = TMD_GTE_ERROR_FLAG;
+        gteResultDestination = &workspace->gteResult;
+        displayState         = &gDisplayState;
         do {
-            rec   = (u16*)arg2;
-            verts = (u8*)ws->verts;
-            gte_ldv3(verts + (rec[0] & 0xFFF8), verts + (rec[1] & 0xFFF8), verts + (rec[2] & 0xFFF8));
+            elementHalfwords = (const u16*)elements;
+            vertexBytes      = (const u8*)workspace->verts;
+            // Project packed byte references; packet slots are consumed even on rejection.
+            gte_ldv3(vertexBytes + (elementHalfwords[0] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), vertexBytes + (elementHalfwords[1] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), vertexBytes + (elementHalfwords[2] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK));
             gte_rtpt();
-            gte_stflg(flg);
-            if ((ws->gteFlag & clipMask) == 0) {
+            gte_stflg(gteFlagDestination);
+            if ((workspace->gteFlag & projectionErrorMask) == 0) {
                 gte_nclip();
-                gte_stopz(opz);
-                gte_stsxy3_gt4(poly);
-                gte_ldv0((u8*)ws->verts + (rec[3] & 0xFFF8));
+                gte_stopz(gteResultDestination);
+                gte_stsxy3_gt4(quad);
+                gte_ldv0((const u8*)workspace->verts + (elementHalfwords[3] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK));
                 gte_rtps();
-                gte_stflg(flg);
-                if ((ws->gteFlag & clipMask) == 0) {
-                    if (ws->gteResult > 0) {
+                gte_stflg(gteFlagDestination);
+                if ((workspace->gteFlag & projectionErrorMask) == 0) {
+                    if (workspace->gteResult > 0) {
                         goto draw;
                     }
                     gte_nclip();
-                    gte_stopz(opz);
-                    if (ws->gteResult < 0) {
+                    gte_stopz(gteResultDestination);
+                    if (workspace->gteResult < 0) {
                     draw:
-                        gte_stsxy2(&poly->x3);
+                        gte_stsxy2(&quad->x3);
                         gte_avsz4();
-                        gte_stotz(opz);
-                        addPrim(&ws->ot[((u32)ws->gteResult << ds->otDepthShift) >> 4 & 0x3FF], poly);
+                        gte_stotz(gteResultDestination);
+                        addPrim(&workspace->ot[((u32)workspace->gteResult << displayState->otDepthShift) >> TMD_DRAW_OT_INDEX_SHIFT & (GPU_ORDERING_TABLE_DEPTH_BYTE_MASK / sizeof(*workspace->ot))], quad);
                     }
                 }
             }
-            poly++;
-            arg2 += ws->elemStride;
-        } while (ws->elemCount-- > 0);
+            quad++;
+            elements += workspace->elemStride;
+        } while (workspace->elemCount-- > 0);
     }
-    ws->primWrite = (u8*)poly;
-    return arg2;
+    workspace->primWrite = (u8*)quad;
+    return elements;
 }
 
-u32* func_8009D900(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2)
+u32* tmdDrawStreamPrimF4(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements)
 {
-    TmdStreamWorkspace* ws;
-    POLY_F4*            poly;
-    s32*                opz;
-    DisplayState*       ds;
-    u32                 clipMask;
-    s32*                flg;
-    u16*                rec;
-    u8*                 verts;
+    enum { TMD_F4_OPAQUE_COMMAND = 0x28 };
+    POLY_F4*            quad;
+    s32*                gteResultDestination;
+    const DisplayState* displayState;
+    u32                 projectionErrorMask;
+    s32*                gteFlagDestination;
+    const u16*          elementHalfwords;
+    const u8*           vertexBytes;
 
-    ws   = arg0;
-    poly = (POLY_F4*)ws->primWrite;
-    if (ws->elemCount-- > 0) {
-        flg      = &ws->gteFlag;
-        clipMask = TMD_GTE_ERROR_FLAG;
-        opz      = &ws->gteResult;
-        ds       = &gDisplayState;
+    quad = (POLY_F4*)workspace->primWrite;
+    if (workspace->elemCount-- > 0) {
+        gteFlagDestination   = &workspace->gteFlag;
+        projectionErrorMask  = TMD_GTE_ERROR_FLAG;
+        gteResultDestination = &workspace->gteResult;
+        displayState         = &gDisplayState;
         do {
-            rec   = (u16*)arg2;
-            verts = (u8*)ws->verts;
-            gte_ldv3(verts + (rec[0] & 0xFFF8), verts + (rec[1] & 0xFFF8), verts + (rec[2] & 0xFFF8));
+            elementHalfwords = (const u16*)elements;
+            vertexBytes      = (const u8*)workspace->verts;
+            // Project packed byte references; packet slots are consumed even on rejection.
+            gte_ldv3(vertexBytes + (elementHalfwords[0] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), vertexBytes + (elementHalfwords[1] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), vertexBytes + (elementHalfwords[2] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK));
             gte_rtpt();
-            gte_stflg(flg);
-            if ((ws->gteFlag & clipMask) == 0) {
+            gte_stflg(gteFlagDestination);
+            if ((workspace->gteFlag & projectionErrorMask) == 0) {
                 gte_nclip();
-                gte_stopz(opz);
-                gte_stsxy3_f4(poly);
-                gte_ldv0((u8*)ws->verts + (rec[3] & 0xFFF8));
+                gte_stopz(gteResultDestination);
+                gte_stsxy3_f4(quad);
+                gte_ldv0((const u8*)workspace->verts + (elementHalfwords[3] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK));
                 gte_rtps();
-                gte_stflg(flg);
-                if ((ws->gteFlag & clipMask) == 0) {
-                    if (ws->gteResult > 0) {
+                gte_stflg(gteFlagDestination);
+                if ((workspace->gteFlag & projectionErrorMask) == 0) {
+                    if (workspace->gteResult > 0) {
                         goto draw;
                     }
                     gte_nclip();
-                    gte_stopz(opz);
-                    if (ws->gteResult < 0) {
+                    gte_stopz(gteResultDestination);
+                    if (workspace->gteResult < 0) {
                     draw:
-                        gte_stsxy2(&poly->x3);
+                        gte_stsxy2(&quad->x3);
                         gte_avsz4();
-                        setlen(poly, 5);
-                        setcode(poly, 0x28);
-                        gte_stotz(opz);
-                        addPrim(&ws->ot[((u32)ws->gteResult << ds->otDepthShift) >> 4 & 0x3FF], poly);
+                        setlen(quad, sizeof(*quad) / sizeof(u32) - 1);
+                        setcode(quad, TMD_F4_OPAQUE_COMMAND);
+                        gte_stotz(gteResultDestination);
+                        addPrim(&workspace->ot[((u32)workspace->gteResult << displayState->otDepthShift) >> TMD_DRAW_OT_INDEX_SHIFT & (GPU_ORDERING_TABLE_DEPTH_BYTE_MASK / sizeof(*workspace->ot))], quad);
                     }
                 }
             }
-            poly++;
-            arg2 += ws->elemStride;
-        } while (ws->elemCount-- > 0);
+            quad++;
+            elements += workspace->elemStride;
+        } while (workspace->elemCount-- > 0);
     }
-    ws->primWrite = (u8*)poly;
-    return arg2;
+    workspace->primWrite = (u8*)quad;
+    return elements;
 }
 
-u32* func_8009DB00(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2)
+u32* tmdDrawStreamPrimF3(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements)
 {
-    TmdStreamWorkspace* ws;
-    POLY_F3*            poly;
-    s32*                opz;
-    DisplayState*       ds;
-    u32                 clipMask;
-    s32*                flg;
-    u16*                rec;
-    u8*                 verts;
+    enum { TMD_F3_OPAQUE_COMMAND = 0x20 };
+    POLY_F3*            triangle;
+    s32*                gteResultDestination;
+    const DisplayState* displayState;
+    u32                 projectionErrorMask;
+    s32*                gteFlagDestination;
+    const u16*          elementHalfwords;
+    const u8*           vertexBytes;
 
-    ws   = arg0;
-    poly = (POLY_F3*)ws->primWrite;
-    if (ws->elemCount-- > 0) {
-        flg      = &ws->gteFlag;
-        clipMask = TMD_GTE_ERROR_FLAG;
-        opz      = &ws->gteResult;
-        ds       = &gDisplayState;
+    triangle = (POLY_F3*)workspace->primWrite;
+    if (workspace->elemCount-- > 0) {
+        gteFlagDestination   = &workspace->gteFlag;
+        projectionErrorMask  = TMD_GTE_ERROR_FLAG;
+        gteResultDestination = &workspace->gteResult;
+        displayState         = &gDisplayState;
         do {
-            rec   = (u16*)arg2;
-            verts = (u8*)ws->verts;
-            gte_ldv3(verts + (rec[0] & 0xFFF8), verts + (rec[1] & 0xFFF8), verts + (rec[2] & 0xFFF8));
+            elementHalfwords = (const u16*)elements;
+            vertexBytes      = (const u8*)workspace->verts;
+            // Project packed byte references; packet slots are consumed even on rejection.
+            gte_ldv3(vertexBytes + (elementHalfwords[0] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), vertexBytes + (elementHalfwords[1] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), vertexBytes + (elementHalfwords[2] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK));
             gte_rtpt();
-            gte_stflg(flg);
-            if ((ws->gteFlag & clipMask) == 0) {
+            gte_stflg(gteFlagDestination);
+            if ((workspace->gteFlag & projectionErrorMask) == 0) {
                 gte_nclip();
-                gte_stopz(opz);
-                if (ws->gteResult > 0) {
-                    gte_stsxy3_f3(poly);
-                    gte_stflg(flg);
-                    if ((ws->gteFlag & clipMask) == 0) {
+                gte_stopz(gteResultDestination);
+                if (workspace->gteResult > 0) {
+                    gte_stsxy3_f3(triangle);
+                    gte_stflg(gteFlagDestination);
+                    if ((workspace->gteFlag & projectionErrorMask) == 0) {
                         gte_avsz3();
-                        setlen(poly, 4);
-                        setcode(poly, 0x20);
-                        gte_stotz(opz);
-                        addPrim(&ws->ot[((u32)ws->gteResult << ds->otDepthShift) >> 4 & 0x3FF], poly);
+                        setlen(triangle, sizeof(*triangle) / sizeof(u32) - 1);
+                        setcode(triangle, TMD_F3_OPAQUE_COMMAND);
+                        gte_stotz(gteResultDestination);
+                        addPrim(&workspace->ot[((u32)workspace->gteResult << displayState->otDepthShift) >> TMD_DRAW_OT_INDEX_SHIFT & (GPU_ORDERING_TABLE_DEPTH_BYTE_MASK / sizeof(*workspace->ot))], triangle);
                     }
                 }
             }
-            poly++;
-            arg2 += ws->elemStride;
-        } while (ws->elemCount-- > 0);
+            triangle++;
+            elements += workspace->elemStride;
+        } while (workspace->elemCount-- > 0);
     }
-    ws->primWrite = (u8*)poly;
-    return arg2;
+    workspace->primWrite = (u8*)triangle;
+    return elements;
 }
 
-u32* func_8009DCB8(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2)
+u32* tmdDrawStreamPrimFt3SemiTrans(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements)
 {
-    TmdStreamWorkspace* ws;
-    POLY_FT3*           poly;
-    s32*                opz;
-    DisplayState*       ds;
-    u16*                rec;
-    u8*                 verts;
+    enum { TMD_FT3_RAW_SEMI_TRANS_COMMAND = 0x27 };
+    POLY_FT3*           triangle;
+    s32*                gteResultDestination;
+    const DisplayState* displayState;
+    const u16*          elementHalfwords;
+    const u8*           vertexBytes;
 
-    ws   = arg0;
-    poly = (POLY_FT3*)ws->primWrite;
-    if (ws->elemCount-- > 0) {
-        opz = &ws->gteResult;
-        ds  = &gDisplayState;
+    triangle = (POLY_FT3*)workspace->primWrite;
+    if (workspace->elemCount-- > 0) {
+        gteResultDestination = &workspace->gteResult;
+        displayState         = &gDisplayState;
         do {
-            rec   = (u16*)arg2;
-            verts = (u8*)ws->verts;
-            gte_ldv3(verts + (rec[0] & 0xFFF8), verts + (rec[1] & 0xFFF8), verts + (rec[2] & 0xFFF8));
+            elementHalfwords = (const u16*)elements;
+            vertexBytes      = (const u8*)workspace->verts;
+            // Project packed byte references; packet slots are consumed even on rejection.
+            gte_ldv3(vertexBytes + (elementHalfwords[0] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), vertexBytes + (elementHalfwords[1] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), vertexBytes + (elementHalfwords[2] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK));
             gte_rtpt();
-            gte_stflg(&ws->gteFlag);
-            if (ws->gteFlag >= 0) {
+            gte_stflg(&workspace->gteFlag);
+            if (workspace->gteFlag >= 0) {
                 gte_nclip();
-                gte_stopz(opz);
-                if (ws->gteResult > 0) {
-                    gte_stsxy3_ft3(poly);
-                    gte_avsz3();
-                    setlen(poly, 7);
-                    setcode(poly, 0x27);
-                    gte_stotz(opz);
-                    addPrim(&ws->ot[((u32)ws->gteResult << ds->otDepthShift) >> 4 & 0x3FF], poly);
+                gte_stopz(gteResultDestination);
+                if (workspace->gteResult > 0) {
+                    TMD_LINK_PROJECTED_RAW_FT3(triangle, workspace, gteResultDestination, displayState, TMD_FT3_RAW_SEMI_TRANS_COMMAND);
                 }
             }
-            poly++;
-            arg2 += ws->elemStride;
-        } while (ws->elemCount-- > 0);
+            triangle++;
+            elements += workspace->elemStride;
+        } while (workspace->elemCount-- > 0);
     }
-    ws->primWrite = (u8*)poly;
-    return arg2;
+    workspace->primWrite = (u8*)triangle;
+    return elements;
 }
 
-u32* func_8009DE48(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2)
+u32* tmdDrawStreamPrimFt4SemiTrans(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements)
 {
-    TmdStreamWorkspace* ws;
-    POLY_FT4*           poly;
-    s32*                opz;
-    DisplayState*       ds;
-    u32                 clipMask;
-    s32*                flg;
-    u16*                rec;
-    u8*                 verts;
+    enum { TMD_FT4_RAW_SEMI_TRANS_COMMAND = 0x2F };
+    POLY_FT4*           quad;
+    s32*                gteResultDestination;
+    const DisplayState* displayState;
+    u32                 projectionErrorMask;
+    s32*                gteFlagDestination;
+    const u16*          elementHalfwords;
+    const u8*           vertexBytes;
 
-    ws   = arg0;
-    poly = (POLY_FT4*)ws->primWrite;
-    if (ws->elemCount-- > 0) {
-        flg      = &ws->gteFlag;
-        clipMask = TMD_GTE_ERROR_FLAG;
-        opz      = &ws->gteResult;
-        ds       = &gDisplayState;
+    quad = (POLY_FT4*)workspace->primWrite;
+    if (workspace->elemCount-- > 0) {
+        gteFlagDestination   = &workspace->gteFlag;
+        projectionErrorMask  = TMD_GTE_ERROR_FLAG;
+        gteResultDestination = &workspace->gteResult;
+        displayState         = &gDisplayState;
         do {
-            rec   = (u16*)arg2;
-            verts = (u8*)ws->verts;
-            gte_ldv3(verts + (rec[0] & 0xFFF8), verts + (rec[1] & 0xFFF8), verts + (rec[2] & 0xFFF8));
+            elementHalfwords = (const u16*)elements;
+            vertexBytes      = (const u8*)workspace->verts;
+            // Project packed byte references; packet slots are consumed even on rejection.
+            gte_ldv3(vertexBytes + (elementHalfwords[0] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), vertexBytes + (elementHalfwords[1] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), vertexBytes + (elementHalfwords[2] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK));
             gte_rtpt();
-            gte_stflg(flg);
-            if ((ws->gteFlag & clipMask) == 0) {
+            gte_stflg(gteFlagDestination);
+            if ((workspace->gteFlag & projectionErrorMask) == 0) {
                 gte_nclip();
-                gte_stopz(opz);
-                gte_stsxy3_ft4(poly);
-                gte_ldv0((u8*)ws->verts + (rec[3] & 0xFFF8));
+                gte_stopz(gteResultDestination);
+                gte_stsxy3_ft4(quad);
+                gte_ldv0((const u8*)workspace->verts + (elementHalfwords[3] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK));
                 gte_rtps();
-                gte_stflg(flg);
-                if ((ws->gteFlag & clipMask) == 0) {
-                    if (ws->gteResult > 0) {
+                gte_stflg(gteFlagDestination);
+                if ((workspace->gteFlag & projectionErrorMask) == 0) {
+                    if (workspace->gteResult > 0) {
                         goto draw;
                     }
                     gte_nclip();
-                    gte_stopz(opz);
-                    if (ws->gteResult < 0) {
+                    gte_stopz(gteResultDestination);
+                    if (workspace->gteResult < 0) {
                     draw:
-                        gte_stsxy2(&poly->x3);
-                        gte_avsz4();
-                        setlen(poly, 9);
-                        setcode(poly, 0x2F);
-                        gte_stotz(opz);
-                        addPrim(&ws->ot[((u32)ws->gteResult << ds->otDepthShift) >> 4 & 0x3FF], poly);
+                        TMD_LINK_PROJECTED_RAW_FT4(quad, workspace, gteResultDestination, displayState, TMD_FT4_RAW_SEMI_TRANS_COMMAND);
                     }
                 }
             }
-            poly++;
-            arg2 += ws->elemStride;
-        } while (ws->elemCount-- > 0);
+            quad++;
+            elements += workspace->elemStride;
+        } while (workspace->elemCount-- > 0);
     }
-    ws->primWrite = (u8*)poly;
-    return arg2;
+    workspace->primWrite = (u8*)quad;
+    return elements;
 }
 
-u32* func_8009E048(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2)
+u32* tmdDrawStreamPrimG3CornerColors(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements)
 {
-    TmdStreamWorkspace* ws;
-    POLY_G3*            poly;
-    s32*                opz;
-    DisplayState*       ds;
-    u16*                rec;
-    u8*                 verts;
+    enum { TMD_CORNER_COLOR_WORD_INDEX = 3 };
+    enum { TMD_G3_OPAQUE_COMMAND = 0x30 };
+    POLY_G3*            triangle;
+    s32*                gteResultDestination;
+    const DisplayState* displayState;
+    const u16*          elementHalfwords;
+    const u8*           vertexBytes;
 
-    ws   = arg0;
-    poly = (POLY_G3*)ws->primWrite;
-    if (ws->elemCount-- > 0) {
-        opz = &ws->gteResult;
-        ds  = &gDisplayState;
+    triangle = (POLY_G3*)workspace->primWrite;
+    if (workspace->elemCount-- > 0) {
+        gteResultDestination = &workspace->gteResult;
+        displayState         = &gDisplayState;
         do {
-            rec   = (u16*)arg2;
-            verts = (u8*)ws->verts;
-            gte_ldv3(verts + (rec[0] & 0xFFF8), verts + (rec[1] & 0xFFF8), verts + (rec[2] & 0xFFF8));
+            elementHalfwords = (const u16*)elements;
+            vertexBytes      = (const u8*)workspace->verts;
+            // Project packed byte references; packet slots are consumed even on rejection.
+            gte_ldv3(vertexBytes + (elementHalfwords[0] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), vertexBytes + (elementHalfwords[1] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), vertexBytes + (elementHalfwords[2] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK));
             gte_rtpt();
-            gte_stflg(&ws->gteFlag);
-            if (ws->gteFlag >= 0) {
+            gte_stflg(&workspace->gteFlag);
+            if (workspace->gteFlag >= 0) {
                 gte_nclip();
-                gte_stopz(opz);
-                if (ws->gteResult > 0) {
-                    gte_stsxy3_g3(poly);
+                gte_stopz(gteResultDestination);
+                if (workspace->gteResult > 0) {
+                    gte_stsxy3_g3(triangle);
                     gte_avsz3();
-                    gte_ldrgb(arg2 + 3);
-                    gte_ldv0((u8*)ws->normals + (rec[3] & 0xFFF8));
-                    gte_nccs();
-                    gte_strgb(&poly->r0);
-                    gte_ldrgb(arg2 + 4);
-                    gte_ldv0((u8*)ws->normals + (rec[4] & 0xFFF8));
-                    gte_nccs();
-                    gte_strgb(&poly->r1);
-                    gte_ldrgb(arg2 + 5);
-                    gte_ldv0((u8*)ws->normals + (rec[5] & 0xFFF8));
-                    gte_nccs();
-                    gte_strgb(&poly->r2);
-                    setlen(poly, 6);
-                    setcode(poly, 0x30);
-                    gte_stotz(opz);
-                    addPrim(&ws->ot[((u32)ws->gteResult << ds->otDepthShift) >> 4 & 0x3FF], poly);
+                    TMD_LIGHT_STREAM_CORNER(elements + TMD_CORNER_COLOR_WORD_INDEX, (const u8*)workspace->normals + (elementHalfwords[3] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), &triangle->r0);
+                    TMD_LIGHT_STREAM_CORNER(elements + TMD_CORNER_COLOR_WORD_INDEX + 1, (const u8*)workspace->normals + (elementHalfwords[4] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), &triangle->r1);
+                    TMD_LIGHT_STREAM_CORNER(elements + TMD_CORNER_COLOR_WORD_INDEX + 2, (const u8*)workspace->normals + (elementHalfwords[5] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), &triangle->r2);
+                    setlen(triangle, sizeof(*triangle) / sizeof(u32) - 1);
+                    setcode(triangle, TMD_G3_OPAQUE_COMMAND);
+                    gte_stotz(gteResultDestination);
+                    addPrim(&workspace->ot[((u32)workspace->gteResult << displayState->otDepthShift) >> TMD_DRAW_OT_INDEX_SHIFT & (GPU_ORDERING_TABLE_DEPTH_BYTE_MASK / sizeof(*workspace->ot))], triangle);
                 }
             }
-            poly++;
-            arg2 += ws->elemStride;
-        } while (ws->elemCount-- > 0);
+            triangle++;
+            elements += workspace->elemStride;
+        } while (workspace->elemCount-- > 0);
     }
-    ws->primWrite = (u8*)poly;
-    return arg2;
+    workspace->primWrite = (u8*)triangle;
+    return elements;
 }
 
-u32* func_8009E274(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2)
+u32* tmdDrawStreamPrimG3CornerColorsSemiTrans(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements)
 {
-    TmdStreamWorkspace* ws;
-    POLY_G3*            poly;
-    s32*                opz;
-    DisplayState*       ds;
-    u16*                rec;
-    u8*                 verts;
+    enum { TMD_CORNER_COLOR_WORD_INDEX = 3 };
+    enum { TMD_G3_SEMI_TRANS_COMMAND = 0x32 };
+    POLY_G3*            triangle;
+    s32*                gteResultDestination;
+    const DisplayState* displayState;
+    const u16*          elementHalfwords;
+    const u8*           vertexBytes;
 
-    ws   = arg0;
-    poly = (POLY_G3*)ws->primWrite;
-    if (ws->elemCount-- > 0) {
-        opz = &ws->gteResult;
-        ds  = &gDisplayState;
+    triangle = (POLY_G3*)workspace->primWrite;
+    if (workspace->elemCount-- > 0) {
+        gteResultDestination = &workspace->gteResult;
+        displayState         = &gDisplayState;
         do {
-            rec   = (u16*)arg2;
-            verts = (u8*)ws->verts;
-            gte_ldv3(verts + (rec[0] & 0xFFF8), verts + (rec[1] & 0xFFF8), verts + (rec[2] & 0xFFF8));
+            elementHalfwords = (const u16*)elements;
+            vertexBytes      = (const u8*)workspace->verts;
+            // Project packed byte references; packet slots are consumed even on rejection.
+            gte_ldv3(vertexBytes + (elementHalfwords[0] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), vertexBytes + (elementHalfwords[1] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), vertexBytes + (elementHalfwords[2] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK));
             gte_rtpt();
-            gte_stflg(&ws->gteFlag);
-            if (ws->gteFlag >= 0) {
+            gte_stflg(&workspace->gteFlag);
+            if (workspace->gteFlag >= 0) {
                 gte_nclip();
-                gte_stopz(opz);
-                if (ws->gteResult > 0) {
-                    gte_stsxy3_g3(poly);
+                gte_stopz(gteResultDestination);
+                if (workspace->gteResult > 0) {
+                    gte_stsxy3_g3(triangle);
                     gte_avsz3();
-                    gte_ldrgb(arg2 + 3);
-                    gte_ldv0((u8*)ws->normals + (rec[3] & 0xFFF8));
-                    gte_nccs();
-                    gte_strgb(&poly->r0);
-                    gte_ldrgb(arg2 + 4);
-                    gte_ldv0((u8*)ws->normals + (rec[4] & 0xFFF8));
-                    gte_nccs();
-                    gte_strgb(&poly->r1);
-                    gte_ldrgb(arg2 + 5);
-                    gte_ldv0((u8*)ws->normals + (rec[5] & 0xFFF8));
-                    gte_nccs();
-                    gte_strgb(&poly->r2);
-                    setlen(poly, 6);
-                    setcode(poly, 0x32);
-                    gte_stotz(opz);
-                    addPrim(&ws->ot[((u32)ws->gteResult << ds->otDepthShift) >> 4 & 0x3FF], poly);
+                    TMD_LIGHT_STREAM_CORNER(elements + TMD_CORNER_COLOR_WORD_INDEX, (const u8*)workspace->normals + (elementHalfwords[3] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), &triangle->r0);
+                    TMD_LIGHT_STREAM_CORNER(elements + TMD_CORNER_COLOR_WORD_INDEX + 1, (const u8*)workspace->normals + (elementHalfwords[4] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), &triangle->r1);
+                    TMD_LIGHT_STREAM_CORNER(elements + TMD_CORNER_COLOR_WORD_INDEX + 2, (const u8*)workspace->normals + (elementHalfwords[5] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), &triangle->r2);
+                    setlen(triangle, sizeof(*triangle) / sizeof(u32) - 1);
+                    setcode(triangle, TMD_G3_SEMI_TRANS_COMMAND);
+                    gte_stotz(gteResultDestination);
+                    addPrim(&workspace->ot[((u32)workspace->gteResult << displayState->otDepthShift) >> TMD_DRAW_OT_INDEX_SHIFT & (GPU_ORDERING_TABLE_DEPTH_BYTE_MASK / sizeof(*workspace->ot))], triangle);
                 }
             }
-            poly++;
-            arg2 += ws->elemStride;
-        } while (ws->elemCount-- > 0);
+            triangle++;
+            elements += workspace->elemStride;
+        } while (workspace->elemCount-- > 0);
     }
-    ws->primWrite = (u8*)poly;
-    return arg2;
+    workspace->primWrite = (u8*)triangle;
+    return elements;
 }
 
-u32* func_8009E4A0(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2)
+u32* tmdDrawStreamPrimG4CornerColors(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements)
 {
-    TmdStreamWorkspace* ws;
-    POLY_G4*            poly;
-    s32*                opz;
-    DisplayState*       ds;
-    u32                 clipMask;
-    s32*                flg;
-    u16*                rec;
-    u8*                 verts;
+    enum { TMD_CORNER_COLOR_WORD_INDEX = 4 };
+    enum { TMD_G4_OPAQUE_COMMAND = 0x38 };
+    POLY_G4*            quad;
+    s32*                gteResultDestination;
+    const DisplayState* displayState;
+    u32                 projectionErrorMask;
+    s32*                gteFlagDestination;
+    const u16*          elementHalfwords;
+    const u8*           vertexBytes;
 
-    ws   = arg0;
-    poly = (POLY_G4*)ws->primWrite;
-    if (ws->elemCount-- > 0) {
-        flg      = &ws->gteFlag;
-        clipMask = TMD_GTE_ERROR_FLAG;
-        opz      = &ws->gteResult;
-        ds       = &gDisplayState;
+    quad = (POLY_G4*)workspace->primWrite;
+    if (workspace->elemCount-- > 0) {
+        gteFlagDestination   = &workspace->gteFlag;
+        projectionErrorMask  = TMD_GTE_ERROR_FLAG;
+        gteResultDestination = &workspace->gteResult;
+        displayState         = &gDisplayState;
         do {
-            rec   = (u16*)arg2;
-            verts = (u8*)ws->verts;
-            gte_ldv3(verts + (rec[0] & 0xFFF8), verts + (rec[1] & 0xFFF8), verts + (rec[2] & 0xFFF8));
+            elementHalfwords = (const u16*)elements;
+            vertexBytes      = (const u8*)workspace->verts;
+            // Project packed byte references; packet slots are consumed even on rejection.
+            gte_ldv3(vertexBytes + (elementHalfwords[0] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), vertexBytes + (elementHalfwords[1] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), vertexBytes + (elementHalfwords[2] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK));
             gte_rtpt();
-            gte_stflg(flg);
-            if ((ws->gteFlag & clipMask) == 0) {
+            gte_stflg(gteFlagDestination);
+            if ((workspace->gteFlag & projectionErrorMask) == 0) {
                 gte_nclip();
-                gte_stopz(opz);
-                gte_stsxy3_g4(poly);
-                gte_ldv0((u8*)ws->verts + (rec[3] & 0xFFF8));
+                gte_stopz(gteResultDestination);
+                gte_stsxy3_g4(quad);
+                gte_ldv0((const u8*)workspace->verts + (elementHalfwords[3] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK));
                 gte_rtps();
-                gte_stflg(flg);
-                if ((ws->gteFlag & clipMask) == 0) {
-                    if (ws->gteResult > 0) {
+                gte_stflg(gteFlagDestination);
+                if ((workspace->gteFlag & projectionErrorMask) == 0) {
+                    if (workspace->gteResult > 0) {
                         goto draw;
                     }
                     gte_nclip();
-                    gte_stopz(opz);
-                    if (ws->gteResult < 0) {
+                    gte_stopz(gteResultDestination);
+                    if (workspace->gteResult < 0) {
                     draw:
-                        gte_stsxy2(&poly->x3);
+                        gte_stsxy2(&quad->x3);
                         gte_avsz4();
-                        gte_ldrgb(arg2 + 4);
-                        gte_ldv0((u8*)ws->normals + (rec[4] & 0xFFF8));
-                        gte_nccs();
-                        gte_strgb(&poly->r0);
-                        gte_ldrgb(arg2 + 5);
-                        gte_ldv0((u8*)ws->normals + (rec[5] & 0xFFF8));
-                        gte_nccs();
-                        gte_strgb(&poly->r1);
-                        gte_ldrgb(arg2 + 6);
-                        gte_ldv0((u8*)ws->normals + (rec[6] & 0xFFF8));
-                        gte_nccs();
-                        gte_strgb(&poly->r2);
-                        gte_ldrgb(arg2 + 7);
-                        gte_ldv0((u8*)ws->normals + (rec[7] & 0xFFF8));
-                        gte_nccs();
-                        gte_strgb(&poly->r3);
-                        setlen(poly, 8);
-                        setcode(poly, 0x38);
-                        gte_stotz(opz);
-                        addPrim(&ws->ot[((u32)ws->gteResult << ds->otDepthShift) >> 4 & 0x3FF], poly);
+                        TMD_LIGHT_STREAM_CORNER(elements + TMD_CORNER_COLOR_WORD_INDEX, (const u8*)workspace->normals + (elementHalfwords[4] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), &quad->r0);
+                        TMD_LIGHT_STREAM_CORNER(elements + TMD_CORNER_COLOR_WORD_INDEX + 1, (const u8*)workspace->normals + (elementHalfwords[5] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), &quad->r1);
+                        TMD_LIGHT_STREAM_CORNER(elements + TMD_CORNER_COLOR_WORD_INDEX + 2, (const u8*)workspace->normals + (elementHalfwords[6] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), &quad->r2);
+                        TMD_LIGHT_STREAM_CORNER(elements + TMD_CORNER_COLOR_WORD_INDEX + 3, (const u8*)workspace->normals + (elementHalfwords[7] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), &quad->r3);
+                        setlen(quad, sizeof(*quad) / sizeof(u32) - 1);
+                        setcode(quad, TMD_G4_OPAQUE_COMMAND);
+                        gte_stotz(gteResultDestination);
+                        addPrim(&workspace->ot[((u32)workspace->gteResult << displayState->otDepthShift) >> TMD_DRAW_OT_INDEX_SHIFT & (GPU_ORDERING_TABLE_DEPTH_BYTE_MASK / sizeof(*workspace->ot))], quad);
                     }
                 }
             }
-            poly++;
-            arg2 += ws->elemStride;
-        } while (ws->elemCount-- > 0);
+            quad++;
+            elements += workspace->elemStride;
+        } while (workspace->elemCount-- > 0);
     }
-    ws->primWrite = (u8*)poly;
-    return arg2;
+    workspace->primWrite = (u8*)quad;
+    return elements;
 }
 
-u32* gpDrawStreamPrimG4CornerColorsSemiTrans(TmdStreamWorkspace* ws, s32 flags, u32* stream)
+u32* tmdDrawStreamPrimG4CornerColorsSemiTrans(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements)
 {
-    POLY_G4*      poly;
-    s32*          opz;
-    DisplayState* ds;
-    u32           clipMask;
-    s32*          flg;
-    u16*          rec;
-    u8*           verts;
+    enum { TMD_CORNER_COLOR_WORD_INDEX = 4 };
+    enum { TMD_G4_SEMI_TRANS_COMMAND = 0x3A };
+    POLY_G4*            quad;
+    s32*                gteResultDestination;
+    const DisplayState* displayState;
+    u32                 projectionErrorMask;
+    s32*                gteFlagDestination;
+    const u16*          elementHalfwords;
+    const u8*           vertexBytes;
 
-    poly = (POLY_G4*)ws->primWrite;
-    if (ws->elemCount-- > 0) {
-        flg      = &ws->gteFlag;
-        clipMask = TMD_GTE_ERROR_FLAG;
-        opz      = &ws->gteResult;
-        ds       = &gDisplayState;
+    quad = (POLY_G4*)workspace->primWrite;
+    if (workspace->elemCount-- > 0) {
+        gteFlagDestination   = &workspace->gteFlag;
+        projectionErrorMask  = TMD_GTE_ERROR_FLAG;
+        gteResultDestination = &workspace->gteResult;
+        displayState         = &gDisplayState;
         do {
-            rec   = (u16*)stream;
-            verts = (u8*)ws->verts;
-            gte_ldv3(verts + (rec[0] & 0xFFF8), verts + (rec[1] & 0xFFF8), verts + (rec[2] & 0xFFF8));
+            elementHalfwords = (const u16*)elements;
+            vertexBytes      = (const u8*)workspace->verts;
+            // Project packed byte references; packet slots are consumed even on rejection.
+            gte_ldv3(vertexBytes + (elementHalfwords[0] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), vertexBytes + (elementHalfwords[1] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), vertexBytes + (elementHalfwords[2] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK));
             gte_rtpt();
-            gte_stflg(flg);
-            if ((ws->gteFlag & clipMask) == 0) {
+            gte_stflg(gteFlagDestination);
+            if ((workspace->gteFlag & projectionErrorMask) == 0) {
                 gte_nclip();
-                gte_stopz(opz);
-                if (ws->gteResult > 0) {
-                    gte_stsxy3_g4(poly);
-                    gte_ldv0((u8*)ws->verts + (rec[3] & 0xFFF8));
+                gte_stopz(gteResultDestination);
+                if (workspace->gteResult > 0) {
+                    gte_stsxy3_g4(quad);
+                    gte_ldv0((const u8*)workspace->verts + (elementHalfwords[3] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK));
                     gte_rtps();
-                    gte_stflg(flg);
-                    if ((ws->gteFlag & clipMask) == 0) {
-                        if (ws->gteResult > 0) {
+                    gte_stflg(gteFlagDestination);
+                    if ((workspace->gteFlag & projectionErrorMask) == 0) {
+                        if (workspace->gteResult > 0) {
                             goto draw;
                         }
                         gte_nclip();
-                        gte_stopz(opz);
-                        if (ws->gteResult < 0) {
+                        gte_stopz(gteResultDestination);
+                        if (workspace->gteResult < 0) {
                         draw:
-                            gte_stsxy2(&poly->x3);
+                            gte_stsxy2(&quad->x3);
                             gte_avsz4();
-                            gte_ldrgb(stream + 4);
-                            gte_ldv0((u8*)ws->normals + (rec[4] & 0xFFF8));
-                            gte_nccs();
-                            gte_strgb(&poly->r0);
-                            gte_ldrgb(stream + 5);
-                            gte_ldv0((u8*)ws->normals + (rec[5] & 0xFFF8));
-                            gte_nccs();
-                            gte_strgb(&poly->r1);
-                            gte_ldrgb(stream + 6);
-                            gte_ldv0((u8*)ws->normals + (rec[6] & 0xFFF8));
-                            gte_nccs();
-                            gte_strgb(&poly->r2);
-                            gte_ldrgb(stream + 7);
-                            gte_ldv0((u8*)ws->normals + (rec[7] & 0xFFF8));
-                            gte_nccs();
-                            gte_strgb(&poly->r3);
-                            setlen(poly, 8);
-                            setcode(poly, 0x3A);
-                            gte_stotz(opz);
-                            addPrim(&ws->ot[((u32)ws->gteResult << ds->otDepthShift) >> 4 & 0x3FF], poly);
+                            TMD_LIGHT_STREAM_CORNER(elements + TMD_CORNER_COLOR_WORD_INDEX, (const u8*)workspace->normals + (elementHalfwords[4] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), &quad->r0);
+                            TMD_LIGHT_STREAM_CORNER(elements + TMD_CORNER_COLOR_WORD_INDEX + 1, (const u8*)workspace->normals + (elementHalfwords[5] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), &quad->r1);
+                            TMD_LIGHT_STREAM_CORNER(elements + TMD_CORNER_COLOR_WORD_INDEX + 2, (const u8*)workspace->normals + (elementHalfwords[6] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), &quad->r2);
+                            TMD_LIGHT_STREAM_CORNER(elements + TMD_CORNER_COLOR_WORD_INDEX + 3, (const u8*)workspace->normals + (elementHalfwords[7] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), &quad->r3);
+                            setlen(quad, sizeof(*quad) / sizeof(u32) - 1);
+                            setcode(quad, TMD_G4_SEMI_TRANS_COMMAND);
+                            gte_stotz(gteResultDestination);
+                            addPrim(&workspace->ot[((u32)workspace->gteResult << displayState->otDepthShift) >> TMD_DRAW_OT_INDEX_SHIFT & (GPU_ORDERING_TABLE_DEPTH_BYTE_MASK / sizeof(*workspace->ot))], quad);
                         }
                     }
                 }
             }
-            poly++;
-            stream += ws->elemStride;
-        } while (ws->elemCount-- > 0);
+            quad++;
+            elements += workspace->elemStride;
+        } while (workspace->elemCount-- > 0);
     }
-    ws->primWrite = (u8*)poly;
-    return stream;
+    workspace->primWrite = (u8*)quad;
+    return elements;
 }
 
 void func_8009EA50(s32 arg0)

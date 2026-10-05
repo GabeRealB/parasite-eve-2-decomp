@@ -34225,13 +34225,13 @@ if ((ws->gteFlag & clipMask) == 0) {
         if ((ws->gteFlag & clipMask) == 0) {
 ```
 
-`setlen` 4 / `setcode` 0x20 / poly size 0x14. `func_8009DB00` is the
-example. Same prologue is used by `tmdDrawStreamPrimFt4` / `func_8009D718` /
-`func_8009D900`.
+`setlen` 4 / `setcode` 0x20 / poly size 0x14. `tmdDrawStreamPrimF3` is the
+example. Same prologue is used by `tmdDrawStreamPrimFt4` / `tmdDrawStreamPrimGt4Unlit` /
+`tmdDrawStreamPrimF4`.
 
 ## Quad TMD: shared 4th-vertex draw, `gte_avsz4`, pin `mask` to `$t1`
 
-`func_8009D718` is the POLY_GT4 sibling of `func_8009DB00`. After the
+`tmdDrawStreamPrimGt4Unlit` is the POLY_GT4 sibling of `tmdDrawStreamPrimF3`. After the
 hoisted FLAG/clip/`opz` prologue it RTPT-clips the first three verts,
 `nclip`s, stores SXY into the GT4 (`gte_stsxy3_gt4`) unconditionally,
 then RTPS-clips vertex 3. The first `nclip` result is reused: if
@@ -34265,7 +34265,7 @@ draw:
 }
 ```
 
-`tmdDrawStreamPrimFt4` (POLY_FT4) / `func_8009D900` (POLY_F4) are the same
+`tmdDrawStreamPrimFt4` (POLY_FT4) / `tmdDrawStreamPrimF4` (POLY_F4) are the same
 shape with different SXY offsets and a live `poly+7`. Those
 `setlen`/`setcode` siblings already occupy `$t1` with `poly+7`, so
 unpinned coloring puts `opz` in `$t2` and `mask` in `$t3`. Pin the
@@ -34275,14 +34275,14 @@ mask to `$t2` instead so `opz` falls into `$t3`:
 register u32 mask asm("t2");
 ```
 
-`func_8009D900` is POLY_F4: `gte_stsxy3_f4`, `setlen` 5 / `setcode`
+`tmdDrawStreamPrimF4` is POLY_F4: `gte_stsxy3_f4`, `setlen` 5 / `setcode`
 0x28, stride 0x18, `gte_stsxy2` at `&poly->x3` (offset 0x14).
 
 ## Semi-trans POLY_G4 (0x3A): nclip-gate the 4th vertex before RTPS
 
-Opaque G4 (`func_8009E4A0`, `setcode` 0x38) always `gte_stsxy3_g4` /
+Opaque G4 (`tmdDrawStreamPrimG4CornerColors`, `setcode` 0x38) always `gte_stsxy3_g4` /
 RTPS vertex 3 after the first FLAG clip. Semi-trans G4
-(`gpDrawStreamPrimG4CornerColorsSemiTrans`, `setcode` 0x3A) wraps that
+(`tmdDrawStreamPrimG4CornerColorsSemiTrans`, `setcode` 0x3A) wraps that
 4th-vertex transform in `if (ws->gteResult > 0)` after the first
 `nclip`/`stopz`. Both share the second-nclip `goto draw` (`bgtz` / `bgez`)
 and pin `mask` to `$t2`.
@@ -35452,7 +35452,7 @@ norms = (u8*)ws->normals;
 gte_ldv3(norms + (rec[3] & 0xFFF8), norms + (rec[4] & 0xFFF8), norms + (rec[5] & 0xFFF8));
 ```
 
-`gpDrawStreamPrimGt3ElemColor` is the example. Same `$a1`/`$a0`/`$v1`/`$v0`
+`tmdDrawStreamPrimGt3ElemColor` is the example. Same `$a1`/`$a0`/`$v1`/`$v0`
 pattern as a single-`gte_ldv3` handler (`tmdDrawStreamPrimFt3`).
 
 ## Volatile `move` after a chained load so it does not fill the first delay
@@ -37918,7 +37918,7 @@ function is one instruction long. Adjust the allocation priority instead.
 
 ## Drop the `ws = index` local when a two-register pair comes out swapped
 
-`gpDrawStreamPrimGt3OffsetLayer` reached 98.98% with *every* instruction correct and only one
+`tmdDrawStreamPrimGt3OffsetLayer` reached 98.98% with *every* instruction correct and only one
 defect: the scratch pointer sat in `$a3` and the second-packet induction
 variable in `$t0`, while the target wants `$t0` / `$a3`. The C had the usual
 `ws = index;` copy that the neighbouring handlers use.
@@ -37977,11 +37977,11 @@ setcode(&poly[1], code);
 Assign these locals in the order the target's preheader sets them (here after
 `opz = &ws->gteResult` and before `ds = &gDisplayState`), since explicit
 assignments are emitted in source order while LICM appends its own hoists
-afterwards. `gpDrawStreamPrimGt3OffsetLayer` went 90.4% → 98.98% on this change alone.
+afterwards. `tmdDrawStreamPrimGt3OffsetLayer` went 90.4% → 98.98% on this change alone.
 
 ## Two packets per stream record: index one pointer, do not keep two
 
-`gpDrawStreamPrimGt3OffsetLayer` writes a `POLY_GT3` pair per record and advances by 0x50. Two
+`tmdDrawStreamPrimGt3OffsetLayer` writes a `POLY_GT3` pair per record and advances by 0x50. Two
 parallel pointers (`poly`, `poly2`, each `+= 2`) make the loop optimizer create
 *four* induction variables — one per address form, including the byte-field
 addresses used by `setlen`/`setcode` — and the extra pressure spills into
@@ -38152,7 +38152,7 @@ to 96% on this change alone.
 
 ## Pin a loop-invariant pointer with `asm("" : "+r"(p))` to lock its schedule slot and its register
 
-`func_8009AF90` copies `&ws->texCoord` into a local pointer at the top of the
+`tmdXformStreamVertsEnvLayer` copies `&ws->texCoord` into a local pointer at the top of the
 block that follows an `if`, and only reads `p->vy` many instructions later:
 
 ```c
@@ -38190,7 +38190,7 @@ The vendored `perm_pycparser` grammar has
 containing a cast or a binary operator — which is most of the `gte_*` macro call
 sites, e.g. `gte_stsxy(ws->preXformWrite + rec[2] + 4)` — makes the permuter bail with
 `Syntax error in base.c ... before: +`. Hoisting those operands into temporaries
-to work around it changes codegen (it cost ~5% on `func_8009AF90`), so for
+to work around it changes codegen (it cost ~5% on `tmdXformStreamVertsEnvLayer`), so for
 GTE-heavy functions treat the permuter as unavailable and iterate on the C by
 hand instead.
 
@@ -41032,7 +41032,7 @@ Two related details from the same function:
 
 ## Repeat `p->field` for GTE blend; pin the packet-header tail
 
-`func_8009B500` blends each GT3 vertex with `gte_gpf12` / `gte_gpl12`. Caching
+`tmdDrawStreamPrimGt3EnvLayer` blends each GT3 vertex with `gte_gpf12` / `gte_gpl12`. Caching
 `ws->obj->shading.colorBlend` in a local coalesces the second/third loads into `$v0`
 and drops the `move v0, s6` / `move v0, s7` the target keeps. Repeating the
 expression after `gte_stcv` (memory clobber) reloads into `$s6`/`$s7` and
@@ -41210,7 +41210,7 @@ i.e. two `P_TAG.addr` (`unsigned addr:24`) bitfield accesses. GCC materialises
 the same `and`/`and`/`or`/`sw` pair, re-evaluates the OT-slot expression once
 per `setaddr` (four times for two `addPrim`s — exactly what the target does),
 and only `0xFFFFFF` survives as a hoisted invariant; `0xFF000000` is
-rematerialised inside the loop. `func_8009C414` went from 91% to 98% on this
+rematerialised inside the loop. `tmdDrawStreamPrimGt4EnvLayer` went from 91% to 98% on this
 change alone. `src/gameplay/3FB8_7E28.c` shows the idiomatic call:
 
 ```c
@@ -41245,7 +41245,7 @@ It prints `giv reg N ... benefit B used U lifetime L replaceable`,
 `giv at X combined with giv at Y` and `giv of insn X not worth while, A vs B`.
 `-dg` similarly prints `;; N regs to allocate: <priority order>`, the conflict
 graph and the final `Register dispositions`, which is how the remaining
-register-naming differences in `func_8009C414` were tracked down.
+register-naming differences in `tmdDrawStreamPrimGt4EnvLayer` were tracked down.
 
 ## Reference count nudges from `__asm__ volatile("" : "+r"(v))`
 
@@ -41259,9 +41259,9 @@ use of `v`. That does three useful things:
   hard register;
 - it pins the value into a register across a following volatile asm.
 
-In `func_8009C414` one barrier on `poly` and one on `dest` (just before the
+In `tmdDrawStreamPrimGt4EnvLayer` one barrier on `poly` and one on `dest` (just before the
 `*dest = x` store) were what finally lined up `t0/t1/t3/t7` and `a1/a3` with
-the target. `func_8009AF90` / `func_8009AA5C` already use the same idiom.
+the target. `tmdXformStreamVertsEnvLayer` / `func_8009AA5C` already use the same idiom.
 
 ## Re-read a field instead of caching it when a "memory" clobber sits between
 
@@ -134892,7 +134892,7 @@ mapped, because what the element draws is the halves that survive:
 The copies go into both of the element's packets, so the pair stays consistent, and
 they are what trims the quad: the polygon then has two corners in the same place,
 so what it covers is the surviving triangle. `tmdDrawStreamPrimGt4PreXformEnvLayer`
-(`0x4079`) is the pre-transformed example and `func_8009C414` (`0x4078`) the
+(`0x4079`) is the pre-transformed example and `tmdDrawStreamPrimGt4EnvLayer` (`0x4078`) the
 transform-region one. The quad twin that takes the layer's page from the object
 instead (`tmdDrawStreamPrimGt4PreXformOffsetLayer`) keeps or drops the element on the same two tests but
 takes no copies, and the triangles of either family test one half only, having no
@@ -134991,7 +134991,7 @@ example. Its `RTPT` loads the three shared corners in the reverse of the order i
 stores them, which leaves the packet holding the corners in element order all the
 same (`SXY0` lands in the third corner's slot). It accepts `NCLIP(2,1,0) < 0`
 or, if that fails, `NCLIP(2,1,3) > 0`. The gameplay corner-colour handler
-`func_8009E4A0` accepts `NCLIP(0,1,2) > 0` or `NCLIP(1,2,3) < 0` instead.
+`tmdDrawStreamPrimG4CornerColors` accepts `NCLIP(0,1,2) > 0` or `NCLIP(1,2,3) < 0` instead.
 These are the same facing rule with different corner orders: both draw the quad
 when either half faces the viewer. That handler serves `0x160`, a distinct
 record with four normals and four colour words; it is not the `0x40` record's twin.
@@ -143197,7 +143197,7 @@ register address that may trap), so the target's `move t2,a0` copy of the
 count has to be written as `n = count`. The `li t3,1` in front of it then also
 needs an explicit `one = 1` before the copy, the form the seed had. The
 `for` loop gets both for free but the inits in the wrong order.
-## `li $s4,9` / `move $s5,$s4` feeding two stores is a constant local that got no register (func_8009B500, 2026-09-26)
+## `li $s4,9` / `move $s5,$s4` feeding two stores is a constant local that got no register (tmdDrawStreamPrimGt3EnvLayer, 2026-09-26)
 
 Two `setlen` stores in a loop body took their `9` from otherwise unused
 callee-saved registers, the second as a copy of the first:
@@ -143512,7 +143512,7 @@ the seed's 99.972%; `.combine` retains load 696 and copy 707, `.lreg` assigns
 model r273 to 2, and `.greg` gives task r252/r283 preferences `{2,4}`.
 Preprocessed SHA-256: `7501ef02377207ff2b33bcc580c23ce36852c3fe01c310ec224fd27c89bab6ab`.
 
-## `TOUCH_REG(p)` on a pointer that only feeds offsets is a pointer walk combine folded away (func_8009C414, 2026-09-26)
+## `TOUCH_REG(p)` on a pointer that only feeds offsets is a pointer walk combine folded away (tmdDrawStreamPrimGt4EnvLayer, 2026-09-26)
 
 An env-map UV block per vertex read `lh 2(t0)` and stored `sb 0(a1)` / `sb 0(a1)` /
 `sb -6(a1)`, and matched only with `TOUCH_REG(sxy)` (and one `TOUCH_REG(dest)`)
@@ -146442,7 +146442,7 @@ in a `u8` local the body loads QImode and nothing is skipped; an `s32` local
 gives the same `zero_extend:SI` as the test.
 
 **Fix.** `for (i = 0; recs[i].stage != AREA_APPLY_END; i++) { s32 stage = recs[i].stage; ... }`.
-## `p = &s->field; TOUCH_REG(p);` ahead of a two-component read: the pointer is stepped, `p++` (func_8009AF90, 2026-09-27)
+## `p = &s->field; TOUCH_REG(p);` ahead of a two-component read: the pointer is stepped, `p++` (tmdXformStreamVertsEnvLayer, 2026-09-27)
 
 **Symptom.** A loop-invariant address copy (`move t1,t8`) must open its block,
 where dbr steals it into the preceding branch's delay slot; without the pin
