@@ -1455,21 +1455,20 @@ void func_acropolis_west_elevator_hall_8017FE18(Task* task)
     DR_MOVE* mv;
     void*    mem;
     s32      otIndex;
-    s32      otByteOffset;
     s32      i;
     s32      base;
     s32      x;
     s32      y;
     s32      t;
 
-    mem     = task->spawnArg2.pointer;
-    base    = gDisplayState.drawBuffer * 0x110 + 0x50;
-    otIndex = 0x72;
+    mem  = task->spawnArg2.pointer;
+    base = gDisplayState.drawBuffer * 0x110 + 0x50;
 
     for (i = 0; i < 0x52; i++) {
-        y  = i;
-        y += base;
-        t  = 0x800 - rcos((gDisplayState.animFrame + i * 2) * 16);
+        otIndex = 0x72;
+        y       = i;
+        y      += base;
+        t       = 0x800 - rcos((gDisplayState.animFrame + i * 2) * 16);
         if (gDisplayState.animFrame & 0x80) {
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             x               = t / (s32)(((gRandomLcgState >> 16) & 0x3F) + 0xC0) + 0x50;
@@ -1485,12 +1484,7 @@ void func_acropolis_west_elevator_hall_8017FE18(Task* task)
         gGpuPrimCursor = mv + 1;
         SetDrawMove(mv, &rect, 0x50, i + base);
 
-        otByteOffset = otIndex << 2;
-        {
-            u_long* ot = ((u_long*)((otByteOffset) + (uintptr)gGpuCurrentOt));
-            setaddr(mv, getaddr(ot));
-            *ot = (*ot & GPU_DMA_PACKET_LENGTH_MASK) | ((u_long)mv & GPU_DMA_LINK_ADDRESS_MASK);
-        }
+        addPrim(&gGpuCurrentOt[otIndex], mv);
     }
 
     effectKillTask(mem, task);
