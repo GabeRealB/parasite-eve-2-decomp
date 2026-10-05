@@ -3178,7 +3178,7 @@ static void func_actor_400500_80135770(Task* arg0)
                 trans     = 0x400;
                 trans_y   = 0x1000;
             }
-            Gp_SetObjTrans(trans_obj, trans, trans_y, trans);
+            worldCoordSetModelAmbientColor(trans_obj, trans, trans_y, trans);
             pop_scratch(0x10);
             if (gGameSession->sceneUpdatesPaused != 0) {
                 func_actor_400500_80132AB0(arg0, -0xFA0, (u8)work->shadowShade);
@@ -5671,9 +5671,9 @@ static inline void _actor400500UpdateColor(Task* arg0, GfxCoord* coord, TmdObjec
     Gp_UpdateActorColor(arg0->spawnArg2.pointer, block, 0, 0);
     room = gGameSession->location.loc.room;
     if ((room == 1) || (room == 3) || (room == 5) || (room == 6)) {
-        Gp_SetObjTrans(obj, 0x200, 0x200, 0x200);
+        worldCoordSetModelAmbientColor(obj, 0x200, 0x200, 0x200);
     } else {
-        Gp_SetObjTrans(obj, 0x400, 0x1000, 0x400);
+        worldCoordSetModelAmbientColor(obj, 0x400, 0x1000, 0x400);
     }
     SCRATCH_STACK_RELEASE_BYTES(0x10);
 }

@@ -2843,7 +2843,7 @@ static __inline__ void Actor00400_UpdateColor(Task* arg0, GfxCoord* coord,
     SCRATCH_STACK_CURSOR(VECTOR) = block;
     Gp_UpdateActorColor(arg0->spawnArg2.pointer, block, 0, 0);
     if (work->ambientOff != 0) {
-        Gp_SetObjTrans(ctx, 0, 0, 0);
+        worldCoordSetModelAmbientColor(ctx, 0, 0, 0);
     }
     SCRATCH_STACK_RELEASE_BYTES(0x10);
 }

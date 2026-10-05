@@ -264,31 +264,28 @@ s32 D_80115264;
 /// Absolute import: pointer to the light-probe capture block.
 extern _WorldCoordLightProbeCapture* D_80760618;
 
-/// Re-evaluates each lit transient light slot against the view.
-static inline void _gpUpdateRoomCoordSlots(void);
+static inline void _worldCoordComposeTransientPointLights(void);
 
-static s32 Gp_LightPointRoom(WorldCoordPointLight* light, VECTOR3* pos);
+static s32 _worldCoordScoreRoomPointLight(WorldCoordPointLight* light, const VECTOR* samplePosition);
 
-static s32 Gp_LightPoint(WorldCoordPointLight* light, VECTOR3* pos);
+static s32 _worldCoordScoreTransientPointLight(WorldCoordPointLight* light, const VECTOR* samplePosition);
 
-static s32 Gp_LightCone(WorldCoordSpotLight* spot, VECTOR3* pos);
+static s32 _worldCoordScoreConeLight(WorldCoordSpotLight* coneLight, const VECTOR* samplePosition);
 
 /// Selects the nearest point or cone light to world position `arg0`, using
 /// squared distance after halving each coordinate difference. Initializes
-/// `nearestLight` to no selection even when `Gp_GetRoomCoordSet` returns 0.
+/// `nearestLight` to no selection even when `_worldCoordGetRoomLights` returns 0.
 static void func_800D78A4(VECTOR* arg0, _WorldCoordNearestRoomLight* nearestLight);
 
-static __inline__ void solve_func_800D9794(s32 arg0, WorldCoordLight* arg1, VECTOR* arg2, TmdObject* arg3);
+static __inline__ void _worldCoordWriteDirectionalLightMatrix(s32 lightIndex, const WorldCoordLight* light, const VECTOR* unusedObjectPosition, const TmdObject* model);
 
-static __inline__ void solve_func_800D98C4(s32 arg0, WorldCoordLight* arg1, VECTOR* arg2, TmdObject* arg3);
+static __inline__ void _worldCoordWritePositionalLightMatrix(s32 lightIndex, const WorldCoordLight* light, const VECTOR* objectPosition, const TmdObject* model);
 
-static __inline__ void solve_func_800D9A30(s32 arg0, WorldCoordLight* arg1, VECTOR* arg2, TmdObject* arg3);
+static __inline__ s32 _worldCoordScoreDirectionalLight(WorldCoordLight* light);
 
-static __inline__ s32 solve_luma(WorldCoordLight* arg0);
+static __inline__ void _worldCoordAdmitRankedLight(_WorldCoordRankedLight* rankedLights, s32 contributionScore, s32 sourceKind, WorldCoordLight* light, _WorldCoordRankedLight* cutoffLight);
 
-static __inline__ void solve_rank(_WorldCoordRankedLight* slots, s32 val, s32 kind, WorldCoordLight* obj, _WorldCoordRankedLight* last);
-
-static __inline__ void solve_rank0(_WorldCoordRankedLight* slots, s32 val, s32 kind, WorldCoordLight* obj, _WorldCoordLightQueryScratch* block);
+static __inline__ void _worldCoordAdmitDirectionalLight(_WorldCoordRankedLight* rankedLights, s32 contributionScore, s32 sourceKind, WorldCoordLight* light, _WorldCoordLightQueryScratch* lightQuery);
 
 static void Gp_DebugPanTask(Task* arg0);
 
@@ -305,9 +302,9 @@ static const WorldCoordRoomAmbientEntry* _worldCoordGetRoomAmbientEntry(const Ga
 
 static s32 Gp_CountRoomCoords(void);
 
-static WorldCoordRoomLights* Gp_GetRoomCoordSet(GameLocationKey* arg0);
+static WorldCoordRoomLights* _worldCoordGetRoomLights(const GameLocationKey* location);
 
-void Gp_InsertRankedSlot(_WorldCoordRankedLight* arg0, s32 arg1, s32 arg2, WorldCoordLight* arg3, s32 arg4);
+static void _worldCoordInsertRankedLight(_WorldCoordRankedLight* rankedLights, s32 contributionScore, s32 sourceKind, WorldCoordLight* light, s32 slotIndex);
 
 static void _worldCoordFillLightColorMatrixOutOfLine(MATRIX* colorMtx, s16 r, s16 g, s16 b);
 
@@ -330,6 +327,31 @@ static void Gp_BindDefaultMtx(Task* arg0);
         (colorMtx)->m[0][(lightIndex)] = (lightScratch)->result.color.r;                                \
         (colorMtx)->m[1][(lightIndex)] = (lightScratch)->result.color.g;                                \
         (colorMtx)->m[2][(lightIndex)] = (lightScratch)->result.color.b;                                \
+    }
+
+/// Applies the squared-distance fade shared by point and cone light scoring.
+///
+/// falloff is a side-effect-free pointer to either query scratch layout, with
+/// distanceSquared, outerLimit, innerRadiusSquared and attenuation initialized;
+/// the sample is inside outerLimit and attenuation is ONE. contributionScore
+/// is a separate s32 lvalue, overwritten here. Mutates the unsigned spans in
+/// four-bit steps, divides in Q12 and preserves the unsigned score multiply
+/// and logical shift. Arguments are evaluated repeatedly. Expands to a compound
+/// statement; use only as a standalone statement inside braces.
+#define WORLD_COORDINATE_APPLY_RADIAL_LIGHT_FADE(falloff, contributionScore)                                                                                             \
+    {                                                                                                                                                                    \
+        if ((falloff)->distanceSquared > (falloff)->innerRadiusSquared) {                                                                                                \
+            (falloff)->outerLimit      -= (falloff)->innerRadiusSquared;                                                                                                 \
+            (falloff)->distanceSquared -= (falloff)->innerRadiusSquared;                                                                                                 \
+            while ((falloff)->outerLimit > WORLD_COORDINATE_LIGHT_FALLOFF_MAX_SPAN) {                                                                                    \
+                (falloff)->outerLimit      >>= WORLD_COORDINATE_LIGHT_FALLOFF_REDUCTION_SHIFT;                                                                           \
+                (falloff)->distanceSquared >>= WORLD_COORDINATE_LIGHT_FALLOFF_REDUCTION_SHIFT;                                                                           \
+            }                                                                                                                                                            \
+            if ((falloff)->outerLimit != 0) {                                                                                                                            \
+                (falloff)->attenuation = (((falloff)->outerLimit - (falloff)->distanceSquared) << WORLD_COORDINATE_LIGHT_FALLOFF_FRACTION_BITS) / (falloff)->outerLimit; \
+                (contributionScore)    = ((falloff)->attenuation * (contributionScore)) >> WORLD_COORDINATE_LIGHT_FALLOFF_FRACTION_BITS;                                 \
+            }                                                                                                                                                            \
+        }                                                                                                                                                                \
     }
 
 /// The same lookup as `Gp_GetIdParam0`, returned at the tables' own width.
@@ -355,17 +377,18 @@ static __inline__ WorldCoordRoomLighting* _worldCoordLookupRoomLighting(const Ga
     return roomLighting;
 }
 
-/// Returns 1 if item `arg0` cannot be used, 0 if it can.
-/// `arg1` supplies `field_2` (capacity) for ammo ids 0xA0–0xBF.
-
-/// Re-evaluates each lit transient light slot against the view.
-static inline void _gpUpdateRoomCoordSlots(void)
+/// Composes active transient point lights relative to the current view.
+///
+/// Every slot with a nonzero lifetime is composed; this neither ages nor
+/// clears a slot. Its parent chain and the persistent view coordinate must be
+/// live. Called after the room lights have been composed; changes GTE state.
+static inline void _worldCoordComposeTransientPointLights(void)
 {
     WorldCoordTransientPointLight* slot;
-    s32                            i;
+    s32                            slotIndex;
 
     slot = gWorldCoordTransientPointLights;
-    for (i = 0; i < ARRAY_SIZE(gWorldCoordTransientPointLights); i++, slot++) {
+    for (slotIndex = 0; slotIndex < ARRAY_SIZE(gWorldCoordTransientPointLights); slotIndex++, slot++) {
         if (slot->framesLeft != WORLD_COORDINATE_TRANSIENT_LIGHT_INACTIVE) {
             actorRenderComposeCoordRelative(&slot->light.head.transform.coord, &gGfxViewCoord);
         }
@@ -374,7 +397,7 @@ static inline void _gpUpdateRoomCoordSlots(void)
 
 /// First-run init plus per-frame update of the current room's `WorldCoordRoomLights`
 /// coordinate arrays (parented to `gGfxViewCoord`) and the `gWorldCoordTransientPointLights` slots.
-/// Kills `arg0` when `Gp_GetRoomCoordSet` returns 0.
+/// Kills `arg0` when `_worldCoordGetRoomLights` returns 0.
 void Gp_UpdateRoomCoords(Task* task)
 {
     WorldCoordRoomLights* roomLights;
@@ -386,7 +409,7 @@ void Gp_UpdateRoomCoords(Task* task)
     s32                   i;
     s32                   j;
 
-    roomLights = Gp_GetRoomCoordSet(&gGameSession->location.loc);
+    roomLights = _worldCoordGetRoomLights(&gGameSession->location.loc);
     if (roomLights == NULL) {
         taskKill(task);
         return;
@@ -442,7 +465,7 @@ void Gp_UpdateRoomCoords(Task* task)
 
     actorRenderComposeCoord(&gGfxViewCoord);
 
-    _gpUpdateRoomCoordSlots();
+    _worldCoordComposeTransientPointLights();
 
     point = roomLights->pointLights;
     for (i = 0; i < roomLights->pointLightCount; i++, point++) {
@@ -467,23 +490,32 @@ void Gp_UpdateRoomCoords(Task* task)
     SCRATCH_STACK_RELEASE_BYTES(0x1C);
 }
 
-static s32 Gp_LightPointRoom(WorldCoordPointLight* light, VECTOR3* pos)
+/// Scores a room point light at a sample in the composed lighting frame.
+///
+/// `samplePosition` xyz and the light's composed translation use the same
+/// game-coordinate frame; only xyz are read. A view mismatch returns zero and
+/// preserves attenuation. Eligible lights store Q12 attenuation: ONE inside
+/// the inner radius, zero outside the outer radius, and a remaining squared-
+/// distance-span ratio between them. Returns the weighted signed RGB score
+/// scaled by attenuation. Equal radii retain full strength at their boundary.
+/// Requires 32 scratch bytes, released before return; changes no GTE state.
+static s32 _worldCoordScoreRoomPointLight(WorldCoordPointLight* light, const VECTOR* samplePosition)
 {
-    WorldCoordLight*                     base;
+    WorldCoordLight*                     header;
     _WorldCoordPointLightFalloffScratch* falloff;
-    s32                                  result;
-    s32                                  tooFar;
+    s32                                  contributionScore;
+    s32                                  outsideRadius;
     s16                                  viewId;
 
-    base   = &light->head;
-    viewId = base->transform.lighting.viewId;
+    header = &light->head;
+    viewId = header->transform.lighting.viewId;
     if (viewId != WORLD_COORDINATE_LIGHT_ALL_VIEWS && gGameSession->location.loc.view != viewId) {
         return 0;
     }
     falloff                = SCRATCH_STACK_RESERVE_BLOCK(_WorldCoordPointLightFalloffScratch);
-    falloff->halfOffset.vx = (base->transform.lighting.composed.t[0] - pos->vx) >> 1;
-    falloff->halfOffset.vy = (base->transform.lighting.composed.t[1] - pos->vy) >> 1;
-    falloff->halfOffset.vz = (base->transform.lighting.composed.t[2] - pos->vz) >> 1;
+    falloff->halfOffset.vx = (header->transform.lighting.composed.t[0] - samplePosition->vx) >> 1;
+    falloff->halfOffset.vy = (header->transform.lighting.composed.t[1] - samplePosition->vy) >> 1;
+    falloff->halfOffset.vz = (header->transform.lighting.composed.t[2] - samplePosition->vz) >> 1;
     falloff->outerLimit    = light->outer >> 1;
     falloff->attenuation   = 0;
     if (falloff->halfOffset.vx < 0) {
@@ -493,129 +525,119 @@ static s32 Gp_LightPointRoom(WorldCoordPointLight* light, VECTOR3* pos)
         falloff->halfOffset.vz = -falloff->halfOffset.vz;
     }
     // Rejects on the X and Z extents alone before paying for the squares.
-    tooFar = (u32)falloff->halfOffset.vx > falloff->outerLimit;
-    if (!tooFar) {
-        tooFar = (u32)falloff->halfOffset.vz > falloff->outerLimit;
-        if (!tooFar) {
+    outsideRadius = (u32)falloff->halfOffset.vx > falloff->outerLimit;
+    if (!outsideRadius) {
+        outsideRadius = (u32)falloff->halfOffset.vz > falloff->outerLimit;
+        if (!outsideRadius) {
             falloff->outerLimit      = (light->outer * light->outer) >> 2;
             falloff->distanceSquared = falloff->halfOffset.vx * falloff->halfOffset.vx + falloff->halfOffset.vy * falloff->halfOffset.vy + falloff->halfOffset.vz * falloff->halfOffset.vz;
-            tooFar                   = falloff->outerLimit < falloff->distanceSquared;
+            outsideRadius            = falloff->outerLimit < falloff->distanceSquared;
         }
     }
-    if (tooFar) {
-        result = 0;
+    if (outsideRadius) {
+        contributionScore = 0;
     } else {
         falloff->innerRadiusSquared = (light->inner * light->inner) >> 2;
-        result                      = ((light->head.color.r * 8 + light->head.color.g * 6 + light->head.color.b * 2) >> 8) + 0xF00;
+        contributionScore           = ((light->head.color.r * WORLD_COORDINATE_LIGHT_SCORE_RED_WEIGHT + light->head.color.g * WORLD_COORDINATE_LIGHT_SCORE_GREEN_WEIGHT + light->head.color.b * WORLD_COORDINATE_LIGHT_SCORE_BLUE_WEIGHT) >> WORLD_COORDINATE_LIGHT_SCORE_RGB_SHIFT) + WORLD_COORDINATE_LIGHT_SCORE_BASE;
         falloff->attenuation        = ONE;
         // Measure the fade interval from its inner edge and bound the Q12 numerator.
-        if (falloff->distanceSquared > falloff->innerRadiusSquared) {
-            falloff->outerLimit      -= falloff->innerRadiusSquared;
-            falloff->distanceSquared -= falloff->innerRadiusSquared;
-            while (falloff->outerLimit > WORLD_COORDINATE_LIGHT_FALLOFF_MAX_SPAN) {
-                falloff->outerLimit      >>= WORLD_COORDINATE_LIGHT_FALLOFF_REDUCTION_SHIFT;
-                falloff->distanceSquared >>= WORLD_COORDINATE_LIGHT_FALLOFF_REDUCTION_SHIFT;
-            }
-            if (falloff->outerLimit != 0) {
-                falloff->attenuation = ((falloff->outerLimit - falloff->distanceSquared) << WORLD_COORDINATE_LIGHT_FALLOFF_FRACTION_BITS) / falloff->outerLimit;
-                result               = (falloff->attenuation * result) >> WORLD_COORDINATE_LIGHT_FALLOFF_FRACTION_BITS;
-            }
-        }
+        WORLD_COORDINATE_APPLY_RADIAL_LIGHT_FADE(falloff, contributionScore);
     }
-    base->transform.lighting.attenuation = falloff->attenuation;
+    header->transform.lighting.attenuation = falloff->attenuation;
     SCRATCH_STACK_RELEASE_BLOCK(_WorldCoordPointLightFalloffScratch);
-    return result;
+    return contributionScore;
 }
 
-static s32 Gp_LightPoint(WorldCoordPointLight* light, VECTOR3* pos)
+/// Scores a transient point light without applying an authored view filter.
+///
+/// `samplePosition` xyz and the composed light translation use the same
+/// game-coordinate frame. Writes Q12 attenuation (ONE inside the inner radius,
+/// zero outside the outer radius, a remaining squared-distance-span ratio
+/// between them) and returns the attenuated weighted signed RGB score. Equal
+/// radii retain full strength at their boundary. Only sample xyz are read.
+/// Requires 32 scratch bytes, released before return; changes no GTE state.
+static s32 _worldCoordScoreTransientPointLight(WorldCoordPointLight* light, const VECTOR* samplePosition)
 {
     _WorldCoordPointLightFalloffScratch* falloff;
-    s32                                  result;
-    WorldCoordLight*                     base;
+    s32                                  contributionScore;
+    WorldCoordLight*                     header;
 
-    base                     = &light->head;
-    result                   = 0;
+    header                   = &light->head;
+    contributionScore        = 0;
     falloff                  = SCRATCH_STACK_RESERVE_BLOCK(_WorldCoordPointLightFalloffScratch);
-    falloff->halfOffset.vx   = (base->transform.lighting.composed.t[0] - pos->vx) >> 1;
-    falloff->halfOffset.vy   = (base->transform.lighting.composed.t[1] - pos->vy) >> 1;
-    falloff->halfOffset.vz   = (base->transform.lighting.composed.t[2] - pos->vz) >> 1;
+    falloff->halfOffset.vx   = (header->transform.lighting.composed.t[0] - samplePosition->vx) >> 1;
+    falloff->halfOffset.vy   = (header->transform.lighting.composed.t[1] - samplePosition->vy) >> 1;
+    falloff->halfOffset.vz   = (header->transform.lighting.composed.t[2] - samplePosition->vz) >> 1;
     falloff->distanceSquared = falloff->halfOffset.vx * falloff->halfOffset.vx + falloff->halfOffset.vy * falloff->halfOffset.vy + falloff->halfOffset.vz * falloff->halfOffset.vz;
     falloff->outerLimit      = (light->outer * light->outer) >> 2;
     falloff->attenuation     = 0;
     if (falloff->outerLimit >= falloff->distanceSquared) {
         falloff->innerRadiusSquared = (light->inner * light->inner) >> 2;
-        result                      = ((light->head.color.r * 8 + light->head.color.g * 6 + light->head.color.b * 2) >> 8) + 0xF00;
+        contributionScore           = ((light->head.color.r * WORLD_COORDINATE_LIGHT_SCORE_RED_WEIGHT + light->head.color.g * WORLD_COORDINATE_LIGHT_SCORE_GREEN_WEIGHT + light->head.color.b * WORLD_COORDINATE_LIGHT_SCORE_BLUE_WEIGHT) >> WORLD_COORDINATE_LIGHT_SCORE_RGB_SHIFT) + WORLD_COORDINATE_LIGHT_SCORE_BASE;
         falloff->attenuation        = ONE;
         // Measure the fade interval from its inner edge and bound the Q12 numerator.
-        if (falloff->distanceSquared > falloff->innerRadiusSquared) {
-            falloff->outerLimit      -= falloff->innerRadiusSquared;
-            falloff->distanceSquared -= falloff->innerRadiusSquared;
-            while (falloff->outerLimit > WORLD_COORDINATE_LIGHT_FALLOFF_MAX_SPAN) {
-                falloff->outerLimit      >>= WORLD_COORDINATE_LIGHT_FALLOFF_REDUCTION_SHIFT;
-                falloff->distanceSquared >>= WORLD_COORDINATE_LIGHT_FALLOFF_REDUCTION_SHIFT;
-            }
-            if (falloff->outerLimit != 0) {
-                falloff->attenuation = ((falloff->outerLimit - falloff->distanceSquared) << WORLD_COORDINATE_LIGHT_FALLOFF_FRACTION_BITS) / falloff->outerLimit;
-                result               = (falloff->attenuation * result) >> WORLD_COORDINATE_LIGHT_FALLOFF_FRACTION_BITS;
-            }
-        }
+        WORLD_COORDINATE_APPLY_RADIAL_LIGHT_FADE(falloff, contributionScore);
     }
-    base->transform.lighting.attenuation = falloff->attenuation;
+    header->transform.lighting.attenuation = falloff->attenuation;
     SCRATCH_STACK_RELEASE_BLOCK(_WorldCoordPointLightFalloffScratch);
-    return result;
+    return contributionScore;
 }
 
-static s32 Gp_LightCone(WorldCoordSpotLight* spot, VECTOR3* pos)
+/// Scores a view-eligible cone light at a sample in its composed frame.
+///
+/// Sample xyz and composed light translation use the same game-coordinate
+/// frame. A view mismatch returns zero and preserves attenuation; other
+/// rejection stores zero attenuation. The normalized sample-to-light vector
+/// is tested against the composed Z axis; the strict half-opening cosine test
+/// excludes the cone boundary. The opening angle uses 4096 units per turn.
+/// Accepted samples use point-light squared-distance falloff, including full
+/// strength at an equal-radius boundary. Returns the attenuated weighted
+/// signed RGB score. Requires 44 scratch bytes plus 24 for normalization,
+/// released before return; changes GTE state and reads only sample xyz.
+static s32 _worldCoordScoreConeLight(WorldCoordSpotLight* coneLight, const VECTOR* samplePosition)
 {
-    WorldCoordLight*             light;
-    _WorldCoordConeLightScratch* scratch;
-    s32                          result;
+    enum { WORLD_COORDINATE_CONE_AXIS_COSINE_FRACTION_BITS = 12 };
 
-    light  = &spot->head;
-    result = 0;
-    if (light->transform.lighting.viewId != WORLD_COORDINATE_LIGHT_ALL_VIEWS) {
-        if (gGameSession->location.loc.view != light->transform.lighting.viewId) {
-            return result;
+    WorldCoordLight*             header;
+    _WorldCoordConeLightScratch* falloff;
+    s32                          contributionScore;
+
+    header            = &coneLight->head;
+    contributionScore = 0;
+    if (header->transform.lighting.viewId != WORLD_COORDINATE_LIGHT_ALL_VIEWS) {
+        if (gGameSession->location.loc.view != header->transform.lighting.viewId) {
+            return contributionScore;
         }
     }
     SCRATCH_STACK_RESERVE_BLOCK(_WorldCoordConeLightScratch);
-    scratch                  = SCRATCH_STACK_CURSOR(_WorldCoordConeLightScratch);
-    scratch->halfOffset.vx   = (light->transform.lighting.composed.t[0] - pos->vx) >> 1;
-    scratch->halfOffset.vy   = (light->transform.lighting.composed.t[1] - pos->vy) >> 1;
-    scratch->halfOffset.vz   = (light->transform.lighting.composed.t[2] - pos->vz) >> 1;
-    scratch->distanceSquared = scratch->halfOffset.vx * scratch->halfOffset.vx + scratch->halfOffset.vy * scratch->halfOffset.vy + scratch->halfOffset.vz * scratch->halfOffset.vz;
-    scratch->outerLimit      = (spot->outer * spot->outer) >> 2;
-    scratch->attenuation     = 0;
-    if (scratch->outerLimit < scratch->distanceSquared) {
-        result = 0;
+    falloff                  = SCRATCH_STACK_CURSOR(_WorldCoordConeLightScratch);
+    falloff->halfOffset.vx   = (header->transform.lighting.composed.t[0] - samplePosition->vx) >> 1;
+    falloff->halfOffset.vy   = (header->transform.lighting.composed.t[1] - samplePosition->vy) >> 1;
+    falloff->halfOffset.vz   = (header->transform.lighting.composed.t[2] - samplePosition->vz) >> 1;
+    falloff->distanceSquared = falloff->halfOffset.vx * falloff->halfOffset.vx + falloff->halfOffset.vy * falloff->halfOffset.vy + falloff->halfOffset.vz * falloff->halfOffset.vz;
+    falloff->outerLimit      = (coneLight->outer * coneLight->outer) >> 2;
+    falloff->attenuation     = 0;
+    if (falloff->outerLimit < falloff->distanceSquared) {
+        contributionScore = 0;
     } else {
-        scratch->innerRadiusSquared = (spot->inner * spot->inner) >> 2;
-        gfxNormalizeLightDirection(&scratch->halfOffset, &scratch->direction);
-        // The normalized offset points toward the light, so negate the axis dot product.
-        scratch->axisCosine = -(scratch->direction.vx * light->transform.lighting.composed.m[0][2] + scratch->direction.vy * light->transform.lighting.composed.m[1][2] + scratch->direction.vz * light->transform.lighting.composed.m[2][2]) >> 12;
+        falloff->innerRadiusSquared = (coneLight->inner * coneLight->inner) >> 2;
+        gfxNormalizeLightDirection(&falloff->halfOffset, &falloff->direction);
+        // The normalized offset points toward the header, so negate the axis dot product.
+        falloff->axisCosine = -(falloff->direction.vx * header->transform.lighting.composed.m[0][2] + falloff->direction.vy * header->transform.lighting.composed.m[1][2] + falloff->direction.vz * header->transform.lighting.composed.m[2][2]) >> WORLD_COORDINATE_CONE_AXIS_COSINE_FRACTION_BITS;
         // Inside the cone when the sample is nearer the axis than half the opening.
-        if (rcos(spot->angle >> 1) < scratch->axisCosine) {
-            result               = ((spot->head.color.r * 8 + spot->head.color.g * 6 + spot->head.color.b * 2) >> 8) + 0xF00;
-            scratch->attenuation = ONE;
+        if (rcos(coneLight->angle >> 1) < falloff->axisCosine) {
+            contributionScore    = ((coneLight->head.color.r * WORLD_COORDINATE_LIGHT_SCORE_RED_WEIGHT + coneLight->head.color.g * WORLD_COORDINATE_LIGHT_SCORE_GREEN_WEIGHT + coneLight->head.color.b * WORLD_COORDINATE_LIGHT_SCORE_BLUE_WEIGHT) >> WORLD_COORDINATE_LIGHT_SCORE_RGB_SHIFT) + WORLD_COORDINATE_LIGHT_SCORE_BASE;
+            falloff->attenuation = ONE;
             // Measure the fade interval from its inner edge and bound the Q12 numerator.
-            if (scratch->distanceSquared > scratch->innerRadiusSquared) {
-                scratch->outerLimit      -= scratch->innerRadiusSquared;
-                scratch->distanceSquared -= scratch->innerRadiusSquared;
-                while (scratch->outerLimit > WORLD_COORDINATE_LIGHT_FALLOFF_MAX_SPAN) {
-                    scratch->outerLimit      >>= WORLD_COORDINATE_LIGHT_FALLOFF_REDUCTION_SHIFT;
-                    scratch->distanceSquared >>= WORLD_COORDINATE_LIGHT_FALLOFF_REDUCTION_SHIFT;
-                }
-                if (scratch->outerLimit != 0) {
-                    scratch->attenuation = ((scratch->outerLimit - scratch->distanceSquared) << WORLD_COORDINATE_LIGHT_FALLOFF_FRACTION_BITS) / scratch->outerLimit;
-                    result               = (scratch->attenuation * result) >> WORLD_COORDINATE_LIGHT_FALLOFF_FRACTION_BITS;
-                }
-            }
+            WORLD_COORDINATE_APPLY_RADIAL_LIGHT_FADE(falloff, contributionScore);
         }
     }
-    light->transform.lighting.attenuation = scratch->attenuation;
+    header->transform.lighting.attenuation = falloff->attenuation;
     SCRATCH_STACK_RELEASE_BLOCK(_WorldCoordConeLightScratch);
-    return result;
+    return contributionScore;
 }
+
+#undef WORLD_COORDINATE_APPLY_RADIAL_LIGHT_FADE
 
 /// Writes one model light row and RGB column from a source in its parent's frame.
 ///
@@ -663,7 +685,7 @@ static void _worldCoordWriteParentFrameLightMatrix(s32 lightIndex, const WorldCo
 
 /// Selects the nearest point or cone light to world position `arg0`, using
 /// squared distance after halving each coordinate difference. Initializes
-/// `nearestLight` to no selection even when `Gp_GetRoomCoordSet` returns 0.
+/// `nearestLight` to no selection even when `_worldCoordGetRoomLights` returns 0.
 static void func_800D78A4(VECTOR* arg0, _WorldCoordNearestRoomLight* nearestLight)
 {
     WorldCoordRoomLights* roomLights;
@@ -675,7 +697,7 @@ static void func_800D78A4(VECTOR* arg0, _WorldCoordNearestRoomLight* nearestLigh
     u32                   dist;
     s32                   i;
 
-    roomLights            = Gp_GetRoomCoordSet(&gGameSession->location.loc);
+    roomLights            = _worldCoordGetRoomLights(&gGameSession->location.loc);
     best                  = 0x7FFFFFFF;
     nearestLight->kind    = WORLD_COORDINATE_NEAREST_LIGHT_NONE;
     nearestLight->field_4 = 0;
@@ -717,132 +739,123 @@ static void func_800D78A4(VECTOR* arg0, _WorldCoordNearestRoomLight* nearestLigh
     }
 }
 
-static __inline__ void solve_func_800D9794(s32 arg0, WorldCoordLight* arg1, VECTOR* arg2, TmdObject* arg3)
+/// Writes one model light-direction row and RGB column from a composed directional source.
+///
+/// `lightIndex` is 0..2. `model` supplies writable lightMtx and colorMtx;
+/// their other rows/columns and translations are preserved. The RGB column
+/// scales signed Q12 colour by the source's previously computed attenuation.
+/// Normalizes the composed translation as a direction; its following word
+/// must be readable for the normalizer. `unusedObjectPosition` is ignored
+/// and may be NULL.
+/// Requires 28 scratch bytes plus 24 for normalization, released before
+/// return; changes GTE state. Inlined into the model-light selection query.
+static __inline__ void _worldCoordWriteDirectionalLightMatrix(s32 lightIndex, const WorldCoordLight* light, const VECTOR* unusedObjectPosition, const TmdObject* model)
 {
     _WorldCoordLightMatrixScratch* lightScratch;
-    MATRIX*                        dirMtx;
+    MATRIX*                        lightMtx;
     MATRIX*                        colorMtx;
 
     SCRATCH_STACK_RESERVE_BLOCK(_WorldCoordLightMatrixScratch);
     lightScratch = SCRATCH_STACK_CURSOR(_WorldCoordLightMatrixScratch);
-    dirMtx       = arg3->lightMtx;
-    colorMtx     = arg3->colorMtx;
-    gfxNormalizeLightDirection(arg1->transform.coord.workm.t, &lightScratch->result.direction);
+    lightMtx     = model->lightMtx;
+    colorMtx     = model->colorMtx;
+    gfxNormalizeLightDirection(light->transform.coord.workm.t, &lightScratch->result.direction);
 
-    dirMtx->m[arg0][0] = lightScratch->result.direction.vx;
-    dirMtx->m[arg0][1] = lightScratch->result.direction.vy;
-    dirMtx->m[arg0][2] = lightScratch->result.direction.vz;
+    lightMtx->m[lightIndex][0] = lightScratch->result.direction.vx;
+    lightMtx->m[lightIndex][1] = lightScratch->result.direction.vy;
+    lightMtx->m[lightIndex][2] = lightScratch->result.direction.vz;
 
     // Reuse the direction storage for the attenuated RGB column.
-    lightScratch->attenuation = arg1->transform.lighting.attenuation;
-    gte_lddp(lightScratch->attenuation);
-    gte_ldsv(&arg1->color);
-    gte_gpf12();
-    gte_stsv(&lightScratch->result.color);
-
-    colorMtx->m[0][arg0] = lightScratch->result.color.r;
-    colorMtx->m[1][arg0] = lightScratch->result.color.g;
-    colorMtx->m[2][arg0] = lightScratch->result.color.b;
+    WORLD_COORDINATE_WRITE_ATTENUATED_LIGHT_COLOR_COLUMN(lightIndex, light, lightScratch, colorMtx);
 
     SCRATCH_STACK_RELEASE_BLOCK(_WorldCoordLightMatrixScratch);
 }
 
-static __inline__ void solve_func_800D98C4(s32 arg0, WorldCoordLight* arg1, VECTOR* arg2, TmdObject* arg3)
+/// Writes one model light-direction row and RGB column from a composed positional source.
+///
+/// `lightIndex` is 0..2. `model` supplies writable lightMtx and colorMtx;
+/// their other rows/columns and translations are preserved. The RGB column
+/// scales signed Q12 colour by the source's previously computed attenuation.
+/// Sample xyz and source translation use the same game-coordinate frame.
+/// Normalizes object minus light, then negates it into the direction row.
+/// Point or cone eligibility and attenuation must already be evaluated;
+/// only the common light header is used. Requires 28 scratch bytes plus 24
+/// for normalization, released before return; changes GTE state. Inlined
+/// into the model-light selection query.
+static __inline__ void _worldCoordWritePositionalLightMatrix(s32 lightIndex, const WorldCoordLight* light, const VECTOR* objectPosition, const TmdObject* model)
 {
     _WorldCoordLightMatrixScratch* lightScratch;
-    MATRIX*                        dirMtx;
+    MATRIX*                        lightMtx;
     MATRIX*                        colorMtx;
 
     SCRATCH_STACK_RESERVE_BLOCK(_WorldCoordLightMatrixScratch);
     lightScratch                   = SCRATCH_STACK_CURSOR(_WorldCoordLightMatrixScratch);
-    dirMtx                         = arg3->lightMtx;
-    colorMtx                       = arg3->colorMtx;
-    lightScratch->lightToObject.vx = arg2->vx - arg1->transform.coord.workm.t[0];
-    lightScratch->lightToObject.vy = arg2->vy - arg1->transform.coord.workm.t[1];
-    lightScratch->lightToObject.vz = arg2->vz - arg1->transform.coord.workm.t[2];
+    lightMtx                       = model->lightMtx;
+    colorMtx                       = model->colorMtx;
+    lightScratch->lightToObject.vx = objectPosition->vx - light->transform.coord.workm.t[0];
+    lightScratch->lightToObject.vy = objectPosition->vy - light->transform.coord.workm.t[1];
+    lightScratch->lightToObject.vz = objectPosition->vz - light->transform.coord.workm.t[2];
     gfxNormalizeLightDirection(&lightScratch->lightToObject, &lightScratch->result.direction);
 
-    dirMtx->m[arg0][0] = -lightScratch->result.direction.vx;
-    dirMtx->m[arg0][1] = -lightScratch->result.direction.vy;
-    dirMtx->m[arg0][2] = -lightScratch->result.direction.vz;
+    lightMtx->m[lightIndex][0] = -lightScratch->result.direction.vx;
+    lightMtx->m[lightIndex][1] = -lightScratch->result.direction.vy;
+    lightMtx->m[lightIndex][2] = -lightScratch->result.direction.vz;
 
     // Reuse the direction storage for the attenuated RGB column.
-    lightScratch->attenuation = arg1->transform.lighting.attenuation;
-    gte_lddp(lightScratch->attenuation);
-    gte_ldsv(&arg1->color);
-    gte_gpf12();
-    gte_stsv(&lightScratch->result.color);
-
-    colorMtx->m[0][arg0] = lightScratch->result.color.r;
-    colorMtx->m[1][arg0] = lightScratch->result.color.g;
-    colorMtx->m[2][arg0] = lightScratch->result.color.b;
+    WORLD_COORDINATE_WRITE_ATTENUATED_LIGHT_COLOR_COLUMN(lightIndex, light, lightScratch, colorMtx);
 
     SCRATCH_STACK_RELEASE_BLOCK(_WorldCoordLightMatrixScratch);
 }
 
-static __inline__ void solve_func_800D9A30(s32 arg0, WorldCoordLight* arg1, VECTOR* arg2, TmdObject* arg3)
-{
-    _WorldCoordLightMatrixScratch* lightScratch;
-    MATRIX*                        dirMtx;
-    MATRIX*                        colorMtx;
-
-    SCRATCH_STACK_RESERVE_BLOCK(_WorldCoordLightMatrixScratch);
-    lightScratch                   = SCRATCH_STACK_CURSOR(_WorldCoordLightMatrixScratch);
-    dirMtx                         = arg3->lightMtx;
-    colorMtx                       = arg3->colorMtx;
-    lightScratch->lightToObject.vx = arg2->vx - arg1->transform.coord.workm.t[0];
-    lightScratch->lightToObject.vy = arg2->vy - arg1->transform.coord.workm.t[1];
-    lightScratch->lightToObject.vz = arg2->vz - arg1->transform.coord.workm.t[2];
-    gfxNormalizeLightDirection(&lightScratch->lightToObject, &lightScratch->result.direction);
-
-    dirMtx->m[arg0][0] = -lightScratch->result.direction.vx;
-    dirMtx->m[arg0][1] = -lightScratch->result.direction.vy;
-    dirMtx->m[arg0][2] = -lightScratch->result.direction.vz;
-
-    // Reuse the direction storage for the attenuated RGB column.
-    lightScratch->attenuation = arg1->transform.lighting.attenuation;
-    gte_lddp(lightScratch->attenuation);
-    gte_ldsv(&arg1->color);
-    gte_gpf12();
-    gte_stsv(&lightScratch->result.color);
-
-    colorMtx->m[0][arg0] = lightScratch->result.color.r;
-    colorMtx->m[1][arg0] = lightScratch->result.color.g;
-    colorMtx->m[2][arg0] = lightScratch->result.color.b;
-
-    SCRATCH_STACK_RELEASE_BLOCK(_WorldCoordLightMatrixScratch);
-}
-
-static __inline__ s32 solve_luma(WorldCoordLight* arg0)
+/// Scores a directional light admitted by the current room view.
+///
+/// An all-view or matching source gets attenuation ONE and its weighted
+/// signed Q12 RGB score plus the base score. A view mismatch returns zero and
+/// retains attenuation. Uses no coordinates, scratch storage or GTE state.
+/// Inlined into the model-light selection query.
+static __inline__ s32 _worldCoordScoreDirectionalLight(WorldCoordLight* light)
 {
     s16 viewId;
 
-    viewId = arg0->transform.lighting.viewId;
+    viewId = light->transform.lighting.viewId;
     if (viewId != WORLD_COORDINATE_LIGHT_ALL_VIEWS && gGameSession->location.loc.view != viewId) {
         return 0;
     }
     {
-        s32 r, g, b, lum;
-        r                                    = arg0->color.r;
-        g                                    = arg0->color.g;
-        b                                    = arg0->color.b;
-        arg0->transform.lighting.attenuation = ONE;
-        lum                                  = r * 8 + g * 6 + b * 2;
-        USE_REG3(lum, lum, lum);
-        return (lum >> 8) + 0xF00;
+        s32 r, g, b, weightedRgb;
+        r                                     = light->color.r;
+        g                                     = light->color.g;
+        b                                     = light->color.b;
+        light->transform.lighting.attenuation = ONE;
+        weightedRgb                           = r * WORLD_COORDINATE_LIGHT_SCORE_RED_WEIGHT + g * WORLD_COORDINATE_LIGHT_SCORE_GREEN_WEIGHT + b * WORLD_COORDINATE_LIGHT_SCORE_BLUE_WEIGHT;
+        // Keep the RGB sum in a register before the inlined admission test.
+        USE_REG3(weightedRgb, weightedRgb, weightedRgb);
+        return (weightedRgb >> WORLD_COORDINATE_LIGHT_SCORE_RGB_SHIFT) + WORLD_COORDINATE_LIGHT_SCORE_BASE;
     }
 }
 
-static __inline__ void solve_rank(_WorldCoordRankedLight* slots, s32 val, s32 kind, WorldCoordLight* obj, _WorldCoordRankedLight* last)
+/// Admits a positive contribution only when it outranks the ambient cutoff.
+///
+/// `rankedLights` addresses four descending entries and `cutoffLight` points
+/// to its last entry. `sourceKind` is one of the ranked-light source kinds;
+/// `light` is its borrowed common header, live through table consumption.
+/// Ties retain the earlier source. Insertion starts at entry 2.
+static __inline__ void _worldCoordAdmitRankedLight(_WorldCoordRankedLight* rankedLights, s32 contributionScore, s32 sourceKind, WorldCoordLight* light, _WorldCoordRankedLight* cutoffLight)
 {
-    if (val > 0 && last->rank < val) {
-        Gp_InsertRankedSlot(slots, val, kind, obj, WORLD_COORDINATE_RANKED_LIGHT_COUNT - 2);
+    if (contributionScore > 0 && cutoffLight->rank < contributionScore) {
+        _worldCoordInsertRankedLight(rankedLights, contributionScore, sourceKind, light, WORLD_COORDINATE_RANKED_LIGHT_COUNT - 2);
     }
 }
-static __inline__ void solve_rank0(_WorldCoordRankedLight* slots, s32 val, s32 kind, WorldCoordLight* obj, _WorldCoordLightQueryScratch* block)
+/// Admits a directional contribution against the query's ambient cutoff.
+///
+/// `rankedLights` must be `lightQuery->rankedLights` (four descending entries),
+/// `sourceKind` must be WORLD_COORDINATE_RANKED_LIGHT_DIRECTIONAL and `light`
+/// is a borrowed common header, live through consumption. Nonpositive scores
+/// and cutoff ties are ignored. Insertion starts at entry 2.
+static __inline__ void _worldCoordAdmitDirectionalLight(_WorldCoordRankedLight* rankedLights, s32 contributionScore, s32 sourceKind, WorldCoordLight* light, _WorldCoordLightQueryScratch* lightQuery)
 {
-    if (val > 0 && block->rankedLights[ARRAY_SIZE(block->rankedLights) - 1].rank < val) {
-        Gp_InsertRankedSlot(slots, val, kind, obj, WORLD_COORDINATE_RANKED_LIGHT_COUNT - 2);
+    if (contributionScore > 0 && lightQuery->rankedLights[ARRAY_SIZE(lightQuery->rankedLights) - 1].rank < contributionScore) {
+        _worldCoordInsertRankedLight(rankedLights, contributionScore, sourceKind, light, WORLD_COORDINATE_RANKED_LIGHT_COUNT - 2);
     }
 }
 void func_800D7A9C(TmdObject* extra, VECTOR* pos, s32 start, s32 count)
@@ -862,7 +875,7 @@ void func_800D7A9C(TmdObject* extra, VECTOR* pos, s32 start, s32 count)
     WorldCoordPointLight* light;
 
     startr     = start;
-    roomLights = Gp_GetRoomCoordSet(&gGameSession->location.loc);
+    roomLights = _worldCoordGetRoomLights(&gGameSession->location.loc);
     colorMtx   = extra->colorMtx;
     nOcc       = 0;
     if (roomLights == NULL) {
@@ -954,9 +967,9 @@ void func_800D7A9C(TmdObject* extra, VECTOR* pos, s32 start, s32 count)
         do {
             if (lightSlot->framesLeft != WORLD_COORDINATE_TRANSIENT_LIGHT_INACTIVE) {
                 light               = &lightSlot->light;
-                val                 = Gp_LightPoint(light, (VECTOR3*)&block->viewPosition);
+                val                 = _worldCoordScoreTransientPointLight(light, &block->viewPosition);
                 block->contribution = val;
-                solve_rank(block->rankedLights, val, WORLD_COORDINATE_RANKED_LIGHT_TRANSIENT_POINT, &light->head, last);
+                _worldCoordAdmitRankedLight(block->rankedLights, val, WORLD_COORDINATE_RANKED_LIGHT_TRANSIENT_POINT, &light->head, last);
             }
             pointIndex++;
             lightSlot++;
@@ -966,9 +979,9 @@ void func_800D7A9C(TmdObject* extra, VECTOR* pos, s32 start, s32 count)
     if (roomLights->pointLightCount > 0) {
         light = roomLights->pointLights;
         for (i = 0; i < roomLights->pointLightCount; i++, light++) {
-            val                 = Gp_LightPointRoom(light, (VECTOR3*)&block->viewPosition);
+            val                 = _worldCoordScoreRoomPointLight(light, &block->viewPosition);
             block->contribution = val;
-            solve_rank(block->rankedLights, val, WORLD_COORDINATE_RANKED_LIGHT_ROOM_POINT, &light->head, &block->rankedLights[ARRAY_SIZE(block->rankedLights) - 1]);
+            _worldCoordAdmitRankedLight(block->rankedLights, val, WORLD_COORDINATE_RANKED_LIGHT_ROOM_POINT, &light->head, &block->rankedLights[ARRAY_SIZE(block->rankedLights) - 1]);
         }
     }
 
@@ -980,10 +993,10 @@ void func_800D7A9C(TmdObject* extra, VECTOR* pos, s32 start, s32 count)
         i    = 0;
 
         for (; i < roomLights->coneLightCount;) {
-            val                 = Gp_LightCone(spot, (VECTOR3*)&block->viewPosition);
+            val                 = _worldCoordScoreConeLight(spot, &block->viewPosition);
             coneKind            = WORLD_COORDINATE_RANKED_LIGHT_CONE;
             block->contribution = val;
-            solve_rank(block->rankedLights, val, coneKind, &spot->head, &block->rankedLights[ARRAY_SIZE(block->rankedLights) - 1]);
+            _worldCoordAdmitRankedLight(block->rankedLights, val, coneKind, &spot->head, &block->rankedLights[ARRAY_SIZE(block->rankedLights) - 1]);
             i++;
             spot++;
         }
@@ -995,9 +1008,9 @@ void func_800D7A9C(TmdObject* extra, VECTOR* pos, s32 start, s32 count)
         directionalLight = roomLights->directionalLights;
         i                = 0;
         for (; i < roomLights->directionalLightCount;) {
-            val                 = solve_luma(directionalLight);
+            val                 = _worldCoordScoreDirectionalLight(directionalLight);
             block->contribution = val;
-            solve_rank0(block->rankedLights, val, WORLD_COORDINATE_RANKED_LIGHT_DIRECTIONAL, directionalLight, block);
+            _worldCoordAdmitDirectionalLight(block->rankedLights, val, WORLD_COORDINATE_RANKED_LIGHT_DIRECTIONAL, directionalLight, block);
             i++;
             directionalLight++;
         }
@@ -1059,13 +1072,13 @@ void func_800D7A9C(TmdObject* extra, VECTOR* pos, s32 start, s32 count)
                     switch (block->rankedLights[i].kind) {
                         case WORLD_COORDINATE_RANKED_LIGHT_ROOM_POINT:
                         case WORLD_COORDINATE_RANKED_LIGHT_TRANSIENT_POINT:
-                            solve_func_800D98C4(i, block->rankedLights[i].light, &block->viewPosition, extra);
+                            _worldCoordWritePositionalLightMatrix(i, block->rankedLights[i].light, &block->viewPosition, extra);
                             break;
                         case WORLD_COORDINATE_RANKED_LIGHT_CONE:
-                            solve_func_800D9A30(i, block->rankedLights[i].light, &block->viewPosition, extra);
+                            _worldCoordWritePositionalLightMatrix(i, block->rankedLights[i].light, &block->viewPosition, extra);
                             break;
                         default:
-                            solve_func_800D9794(i, block->rankedLights[i].light, &block->viewPosition, extra);
+                            _worldCoordWriteDirectionalLightMatrix(i, block->rankedLights[i].light, &block->viewPosition, extra);
                             break;
                     }
                 }
@@ -1615,14 +1628,17 @@ s32 worldCoordGetOriginAudioPan(const GfxCoord* coord)
     return -negativePan;
 }
 
-void Gp_SetOverrideVec(SVECTOR* arg0)
+void worldCoordSetAmbientColorOverride(const SVECTOR* ambientColor)
 {
-    if (arg0 == NULL) {
-        Gp_OverrideVecFlag = 0;
+    enum { WORLD_COORDINATE_AMBIENT_OVERRIDE_DISABLED = 0,
+           WORLD_COORDINATE_AMBIENT_OVERRIDE_ENABLED  = 1 };
+
+    if (ambientColor == NULL) {
+        Gp_OverrideVecFlag = WORLD_COORDINATE_AMBIENT_OVERRIDE_DISABLED;
         return;
     }
-    Gp_OverrideVecFlag = 1;
-    Gp_OverrideVec     = *arg0;
+    Gp_OverrideVecFlag = WORLD_COORDINATE_AMBIENT_OVERRIDE_ENABLED;
+    Gp_OverrideVec     = *ambientColor;
 }
 
 void worldCoordSetLightColorScaleOverride(const SVECTOR* colorScales)
@@ -1638,14 +1654,14 @@ void worldCoordSetLightColorScaleOverride(const SVECTOR* colorScales)
     Gp_OverrideVec2.inputVector = *colorScales;
 }
 
-void Gp_SetObjTrans(TmdObject* arg0, s16 arg1, s16 arg2, s16 arg3)
+void worldCoordSetModelAmbientColor(const TmdObject* model, s16 r, s16 g, s16 b)
 {
-    MATRIX* m;
+    MATRIX* colorMtx;
 
-    m       = arg0->colorMtx;
-    m->t[0] = arg1;
-    m->t[1] = arg2;
-    m->t[2] = arg3;
+    colorMtx       = model->colorMtx;
+    colorMtx->t[0] = r;
+    colorMtx->t[1] = g;
+    colorMtx->t[2] = b;
 }
 
 /// Borrows the minimum ambient-light entry for a room view, or the default entry.
@@ -1689,21 +1705,19 @@ static s32 Gp_CountRoomCoords(void)
     return count;
 }
 
-static WorldCoordRoomLights* Gp_GetRoomCoordSet(GameLocationKey* arg0)
+/// Borrows the authored light collection selected by stage, area and room.
+///
+/// `location` contains valid 1-based indices within the loaded tables. A null
+/// stage/area table or room light collection returns NULL. The collection and
+/// its source arrays must not be retained after their room overlay unloads.
+/// Does not compose lights, check view eligibility or allocate storage.
+static WorldCoordRoomLights* _worldCoordGetRoomLights(const GameLocationKey* location)
 {
-    WorldCoordRoomLighting** areaLightingTables;
-    WorldCoordRoomLighting*  roomLighting;
-    WorldCoordRoomLights*    roomLights;
+    WorldCoordRoomLighting* roomLighting;
+    WorldCoordRoomLights*   roomLights;
 
-    roomLights         = NULL;
-    areaLightingTables = Gp_RoomCoordTables[arg0->stage - 1];
-    roomLighting       = NULL;
-    if (areaLightingTables != NULL) {
-        roomLighting = areaLightingTables[arg0->area - 1];
-        if (roomLighting != NULL) {
-            roomLighting = &roomLighting[arg0->room - 1];
-        }
-    }
+    roomLights   = NULL;
+    roomLighting = _worldCoordLookupRoomLighting(location);
     if (roomLighting != NULL) {
         roomLights = roomLighting->lights;
     }
@@ -1851,32 +1865,41 @@ static void _worldCoordWriteConeLightMatrixOutOfLine(s32 lightIndex, const World
     SCRATCH_STACK_RELEASE_BLOCK(_WorldCoordLightMatrixScratch);
 }
 
-void Gp_InsertRankedSlot(_WorldCoordRankedLight* arg0, s32 arg1, s32 arg2, WorldCoordLight* arg3, s32 arg4)
+/// Inserts a positive light contribution into a descending four-entry table.
+///
+/// `slotIndex` is 0..3; admission helpers begin at 2, reserving entry 3 as the
+/// ambient cutoff. The table must already be ordered. Nonpositive scores are
+/// ignored; equal scores retain earlier sources first. Recursion walks toward
+/// entry 0, copying complete records to the next entry before insertion.
+/// `sourceKind` identifies the borrowed common header; the source must remain
+/// live through consumption. Does not change source attenuation or allocate.
+static void _worldCoordInsertRankedLight(_WorldCoordRankedLight* rankedLights, s32 contributionScore, s32 sourceKind, WorldCoordLight* light, s32 slotIndex)
 {
     _WorldCoordRankedLight* slot;
     _WorldCoordRankedLight* nextSlot;
 
-    if (arg1 <= 0) {
+    if (contributionScore <= 0) {
         return;
     }
 
-    slot = (_WorldCoordRankedLight*)(arg4 * sizeof(*arg0) + (s32)arg0);
-    if (slot->rank < arg1) {
-        if (arg4 < WORLD_COORDINATE_RANKED_LIGHT_COUNT - 1) {
+    // Keep the scaled index first to preserve the target addition operands.
+    slot = (_WorldCoordRankedLight*)(slotIndex * sizeof(*rankedLights) + (s32)rankedLights);
+    if (slot->rank < contributionScore) {
+        if (slotIndex < WORLD_COORDINATE_RANKED_LIGHT_COUNT - 1) {
             slot[1] = *slot;
         }
-        if (arg4 > 0) {
-            Gp_InsertRankedSlot(arg0, arg1, arg2, arg3, arg4 - 1);
+        if (slotIndex > 0) {
+            _worldCoordInsertRankedLight(rankedLights, contributionScore, sourceKind, light, slotIndex - 1);
         } else {
-            arg0->rank  = arg1;
-            arg0->kind  = arg2;
-            arg0->light = arg3;
+            rankedLights->rank  = contributionScore;
+            rankedLights->kind  = sourceKind;
+            rankedLights->light = light;
         }
-    } else if (arg4 < WORLD_COORDINATE_RANKED_LIGHT_COUNT - 1) {
+    } else if (slotIndex < WORLD_COORDINATE_RANKED_LIGHT_COUNT - 1) {
         nextSlot        = slot + 1;
-        nextSlot->rank  = arg1;
-        slot[1].kind    = arg2;
-        nextSlot->light = arg3;
+        nextSlot->rank  = contributionScore;
+        slot[1].kind    = sourceKind;
+        nextSlot->light = light;
     }
 }
 
@@ -1905,9 +1928,9 @@ static WorldCoordRoomLighting* _worldCoordGetRoomLighting(const GameLocationKey*
     return _worldCoordLookupRoomLighting(location);
 }
 
-void func_800D9CC8(Task* arg0)
+void taskRunExitCallbackTask(Task* task)
 {
-    taskCallExit(arg0);
+    taskCallExit(task);
 }
 
 /// Copies the complete default ambient-light entry into caller-owned storage.
@@ -1930,7 +1953,7 @@ static void Gp_BindDefaultMtx(Task* arg0)
     slot  = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     extra = slot->extra.tmd;
     if (slot != NULL) {
-        roomLights = Gp_GetRoomCoordSet(&gGameSession->location.loc);
+        roomLights = _worldCoordGetRoomLights(&gGameSession->location.loc);
         i          = 0;
         if (roomLights == 0) {
             taskKill(arg0);

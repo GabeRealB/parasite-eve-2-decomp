@@ -747,7 +747,7 @@ static void func_dryfield_breezeway_8017E464(Task* arg0)
         eventWork->lightMatrix.mat.m[2][2] = 0;
 
         eventObj->colorMtx = &eventWork->colorMatrix.mat;
-        Gp_SetObjTrans(eventObj, 0x800, 0x800, 0x800);
+        worldCoordSetModelAmbientColor(eventObj, 0x800, 0x800, 0x800);
     }
 }
 

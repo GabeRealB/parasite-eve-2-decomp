@@ -34982,7 +34982,7 @@ tooFar = (u32)sq < (u32)lum;
 
 `register s32 lum asm("v1")` then coalesces the compare into
 `sltu v1, v0, v1`. Leave `lum` unpinned so the dest stays `$v0`.
-`Gp_LightPoint` is the example.
+`_worldCoordScoreTransientPointLight` is the example.
 
 ## `three = 3` hoists into `$v1` and steals the `lhu` id; idx/off coalesce
 
@@ -36380,7 +36380,7 @@ own block, then pin the product to `$a0` in the multiply-add block:
 }
 ```
 
-`Gp_LightPointRoom` is the example.
+`_worldCoordScoreRoomPointLight` is the example.
 
 ## Split `%hi` into `$v0` so `%lo` can land in a different dest
 
@@ -36642,7 +36642,7 @@ asm volatile("" : "+r"(addr));
 
 A later `register VECTOR* light asm("a0"); light = (VECTOR*)block;`
 then restores `$a0` in the `mult` delay of the next call.
-`Gp_LightCone` is the example.
+`_worldCoordScoreConeLight` is the example.
 
 ## Emit signed `/ 7 * 4` by hand when `$v1` is reserved
 
@@ -38298,7 +38298,7 @@ vec.vx = cmd->arg0 * 16;   /* lw;  sll 4; sh  */
 ```
 
 Both fold to the same `ashift` tree, but the multiply form keeps the SImode load
-that the ROM has. In `Gp_ScriptTaskState1` the two `Gp_SetOverrideVec` cases build an
+that the ROM has. In `Gp_ScriptTaskState1` the two `worldCoordSetAmbientColorOverride` cases build an
 `SVECTOR` from three `s32` command arguments; writing `<< 4` cost six `lw`→`lhu`
 mismatches and, in the case that also *tests* the same field, split one `lw`
 into a `lw` for the branch plus a second `lhu` for the value. Switching to
@@ -76129,7 +76129,7 @@ inventing a local struct — an existing sender usually has the type already.
 delete=2`, and `.diagnosis.json` narrowed it to `opcode_delta: {"41:0": -2}` —
 the candidate emitted one `sh` where retail has three, all storing the same
 constant to `0x10($sp)`, `0x12($sp)` and `0x14($sp)` before a
-`Gp_SetOverrideVec(&vec)` call.
+`worldCoordSetAmbientColorOverride(&vec)` call.
 
 **Cause.** The same mechanism as the `AnimationPlayRequest` payload above: m2c declared the
 argument as three scalars, `s16 sp10; s16 sp12; s16 sp14;`, and only `&sp10`
@@ -76138,7 +76138,7 @@ escapes, so `sp12`/`sp14` are write-only. `.rtl` shows them as bare
 are already gone before `cse` — the front end's own dead-store removal.
 
 **Fix.** One object of the callee's real type — libgte's `SVECTOR`, which
-`Gp_SetOverrideVec(SVECTOR*)` takes and which every other caller in `src/` (the
+`worldCoordSetAmbientColorOverride(const SVECTOR*)` takes and which every other caller in `src/` (the
 room overlays, `3CD8_75C8`) already passes:
 
 ```c
@@ -76147,7 +76147,7 @@ room overlays, `3CD8_75C8`) already passes:
     vec.vx = 0x5A0;
     vec.vy = 0x5A0;
     vec.vz = 0x5A0;
-    Gp_SetOverrideVec(&vec);
+    worldCoordSetAmbientColorOverride(&vec);
 ```
 
 100%, all penalties zero. Read a `delete` count that equals an `opcode_delta`
@@ -79654,7 +79654,7 @@ block and no pass moves a load across the `jal`.
 `func_actor_402200_80137FB0` is the worked example (its body is now the shared
 `actor402200UpdateTint` in `include/actors/actor.h`). With the dispatch and the
 statement order already right, the build sat at `regs=11` with `$s0`/`$s1`
-swapped; writing `Gp_SetObjTrans(...)` and the state clear out in *both* arms
+swapped; writing `worldCoordSetModelAmbientColor(...)` and the state clear out in *both* arms
 took it to 0 differences, and the two instructions the target has and the build
 did not (`lw a0,0x2c` in each arm) came with it. The register swap follows from
 the same change: `REG_N_REFS` is counted before cross-jumping, so the doubled
@@ -133566,9 +133566,9 @@ if (session != 1) {
     SOFT_TOUCH_REG(extraCopy);
 }
 if (session == 1 || session == 3 || session == 5 || session == 6) {
-    Gp_SetObjTrans((GpObj20*)extraCopy, 0x200, 0x200, 0x200);
+    worldCoordSetModelAmbientColor((GpObj20*)extraCopy, 0x200, 0x200, 0x200);
 } else {
-    Gp_SetObjTrans((GpObj20*)extra2, 0x400, 0x1000, 0x400);
+    worldCoordSetModelAmbientColor((GpObj20*)extra2, 0x400, 0x1000, 0x400);
 }
 SOFT_USE_REG(extraCopy);
 ```
@@ -142762,7 +142762,7 @@ them. So a late store holding the copy's register does not by itself rule out
 the compound push: try it before an input-only `asm`. `bodyToRoom = &scratch->bodyToRoom`
 reproduced the separate `head - 0x20` register as well, and `func_800DE150`
 takes the same two lines in place of a saved head and a byte-offset cast.
-### A late head store of the copy's register is still the compound push: sched1 sinks it, local-alloc re-points it (Gp_LightCone, 2026-09-26)
+### A late head store of the copy's register is still the compound push: sched1 sinks it, local-alloc re-points it (_worldCoordScoreConeLight, 2026-09-26)
 
 **Symptom.** A scratch block is carved with `addiu a0,head,-K` / `move s0,a0`,
 the first field store goes through `-K(head)`, the rest through `s0`, and the
@@ -143657,7 +143657,7 @@ for `y`) makes `off` and `base` die twice, so they are global, local-alloc canno
 tie the add/sub result to the field load, and the chain keeps `v0`. Writing
 `off = base + off` instead flips the `addu` operands (expand swaps a commutative
 op whose second operand is the target).
-## `lui` of the scratch head *before* the parameter's `move tN,a0`: an alias of the parameter's first member (Gp_LightPoint, 2026-09-26)
+## `lui` of the scratch head *before* the parameter's `move tN,a0`: an alias of the parameter's first member (_worldCoordScoreTransientPointLight, 2026-09-26)
 
 Target opens `lui a3,0x1F80; move t1,a0; ori a3,...`; the natural body gives
 `move t1,a0` first. Both insns have sched2 priority 1, so the tie falls to RTL

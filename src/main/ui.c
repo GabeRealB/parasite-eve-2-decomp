@@ -412,7 +412,7 @@ TaskDesc D_800670D0[] = {
     { { { TASK_BODY_NONE, 0x70 } }, taskKill },
     { { { TASK_BODY_NONE, 0xC0 } }, func_800B65B0 },
     { { { TASK_BODY_NONE, 0xC0 } }, func_800B60C0 },
-    { { { TASK_BODY_NONE, 0xC0 } }, func_800D9CC8 },
+    { { { TASK_BODY_NONE, 0xC0 } }, taskRunExitCallbackTask },
     { { { TASK_BODY_NONE, 0xC0 } }, func_8070A6E8 },
     { { { TASK_BODY_NONE, 0xC0 } }, func_80708778 },
     { { { TASK_BODY_NONE, 0x2F } }, Gp_FadeWorkTask },

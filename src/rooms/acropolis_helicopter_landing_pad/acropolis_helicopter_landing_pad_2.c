@@ -1220,7 +1220,7 @@ void func_acropolis_helicopter_landing_pad_8017DA9C(Task* task)
             vec.vx                                                     = 0x4B0;
             vec.vy                                                     = 0x4B0;
             vec.vz                                                     = 0x610;
-            Gp_SetOverrideVec(&vec);
+            worldCoordSetAmbientColorOverride(&vec);
             break;
         case 1:
             if (gGameSession->viewReady != 0) {

@@ -4757,7 +4757,7 @@ void func_acropolis_plaza_80180054(Task* task)
             vec.vx = 0x370;
             vec.vy = 0x370;
             vec.vz = 0x370;
-            Gp_SetOverrideVec(&vec);
+            worldCoordSetAmbientColorOverride(&vec);
             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), CAP_CONTROL_MESSAGE_HIDE_HUD, 0, 0);
             work->sceneArg.skipStreamReset = 0;
             work->sceneArg.startFrame      = 0;

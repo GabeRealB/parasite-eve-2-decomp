@@ -731,7 +731,7 @@ default_body:
     func_actor_403600_801412D0(arg0, arg1);
     temp_a1 = work->ambientBoost;
     if (temp_a1 != 0) {
-        Gp_SetObjTrans(arg1->extra.tmd, temp_a1, temp_a1, temp_a1);
+        worldCoordSetModelAmbientColor(arg1->extra.tmd, temp_a1, temp_a1, temp_a1);
     }
     func_actor_403600_801414FC(arg1);
     func_actor_403600_8013F0C0(arg1);
@@ -1093,7 +1093,7 @@ static void func_actor_403600_801396F8(Task* arg0)
             }
             work->forwardSpeed  = 0;
             work->verticalSpeed = 0;
-            Gp_SetObjTrans(arg0->extra.tmd, 0x1F40, 0x1F40, 0x1F40);
+            worldCoordSetModelAmbientColor(arg0->extra.tmd, 0x1F40, 0x1F40, 0x1F40);
             return;
         case ACTOR_403600_MODE_SCENE_BRIGHTEN:
             work->forwardSpeed  = 0;
@@ -4542,7 +4542,7 @@ static void func_actor_403600_80140B4C(Enemy* enemy, Task* actor)
     _actor403600UpdateColor(enemy, actor);
     transparency = work->ambientBoost;
     if (transparency != 0) {
-        Gp_SetObjTrans(actor->extra.tmd, transparency, transparency, transparency);
+        worldCoordSetModelAmbientColor(actor->extra.tmd, transparency, transparency, transparency);
     }
     work->phaseFrame++;
 }

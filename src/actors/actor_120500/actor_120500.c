@@ -50,8 +50,8 @@
 /// Any other nonzero code is cleared without effect.
 enum {
     ACTOR_120500_PLAYER_REQUEST_NONE             = 0,
-    ACTOR_120500_PLAYER_REQUEST_FIRST_ANIMATION  = 2, // Raises the override vector and starts the first of the scene's player animations, then holds the player at the first placement every tick until another request replaces this one
-    ACTOR_120500_PLAYER_REQUEST_SECOND_ANIMATION = 3, // Fades in from black, drops the override vector, shows the player at the second placement and starts the second animation
+    ACTOR_120500_PLAYER_REQUEST_FIRST_ANIMATION  = 2, // Overrides ambient RGB and starts the first of the scene's player animations, then holds the player at the first placement every tick until another request replaces this one
+    ACTOR_120500_PLAYER_REQUEST_SECOND_ANIMATION = 3, // Fades in from black, disables the ambient RGB override, shows the player at the second placement and starts the second animation
     ACTOR_120500_PLAYER_REQUEST_THIRD_ANIMATION  = 4, // Blends into the third animation over 8 frames
     ACTOR_120500_PLAYER_REQUEST_HIDE_BODY        = 5, // Hides the actor's own model and keeps it from being given buffers again
     ACTOR_120500_PLAYER_REQUEST_WEAPON_ANIMATION = 6, // Returns the player to the equipped weapon's animation
@@ -446,7 +446,7 @@ static void func_actor_120500_80132028(Task* arg0)
                     vec.vx = 0x960;
                     vec.vy = 0x960;
                     vec.vz = 0x960;
-                    Gp_SetOverrideVec(&vec);
+                    worldCoordSetAmbientColorOverride(&vec);
                     firstAnimWork = arg0->work;
                     p             = &msg;
                     if (firstAnimWork->playerTask != NULL) {
@@ -468,7 +468,7 @@ static void func_actor_120500_80132028(Task* arg0)
         case ACTOR_120500_PLAYER_REQUEST_SECOND_ANIMATION:
             taskSpawnFromTable(D_actor_120500_80138418, 1, 8, 0);
             reloadedWork = arg0->work;
-            Gp_SetOverrideVec(NULL);
+            worldCoordSetAmbientColorOverride(NULL);
             taskMessageDispatch(reloadedWork->playerTask, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
             TASK_MESSAGE_DISPATCH_POINTER(reloadedWork->playerTask, GAME_ACTOR_MESSAGE_PLACE, &D_actor_120500_801380A8, 0);
             animWork = arg0->work;
@@ -740,7 +740,7 @@ void func_actor_120500_80132900(s16 arg0)
 /// three requests the setters above post. The player's task then
 /// gets animation set 2 of `D_actor_120500_8013807C` (message 0x3F4), message
 /// 0x3F3 with payload 1, and the placement record `D_actor_120500_801380A8`
-/// as message 0x3E9, with the override vector cleared in between.
+/// as message 0x3E9, with the ambient RGB override disabled in between.
 void func_actor_120500_80132920(void)
 {
     Task*                actor;
@@ -765,7 +765,7 @@ void func_actor_120500_80132920(void)
         TASK_MESSAGE_DISPATCH_POINTER(animWork->playerTask, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
     }
     work = actor->work;
-    Gp_SetOverrideVec(NULL);
+    worldCoordSetAmbientColorOverride(NULL);
     taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
     TASK_MESSAGE_DISPATCH_POINTER(work->playerTask, GAME_ACTOR_MESSAGE_PLACE, &D_actor_120500_801380A8, 0);
 }

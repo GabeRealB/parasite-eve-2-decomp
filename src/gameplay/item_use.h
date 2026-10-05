@@ -31,12 +31,12 @@ extern MATRIX D_80114ED8;
 
 extern MATRIX D_80114EF8;
 
-/// Flag set by `Gp_SetOverrideVec` when an override SVECTOR is stored at
+/// Flag set by `worldCoordSetAmbientColorOverride` when an override SVECTOR is stored at
 /// `Gp_OverrideVec`. Cleared when that function is called with NULL, and
 /// also by `Gp_BindDefaultMtx`.
 extern u8 Gp_OverrideVecFlag;
 
-/// Override SVECTOR copied by `Gp_SetOverrideVec` from its argument.
+/// Override SVECTOR copied by `worldCoordSetAmbientColorOverride` from its argument.
 extern SVECTOR Gp_OverrideVec;
 
 /// 8.8 fixed-point pair lerped toward projected screen coords by

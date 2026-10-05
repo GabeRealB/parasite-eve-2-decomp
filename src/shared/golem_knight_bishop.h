@@ -314,14 +314,14 @@ static __inline__ void golemKnightBishopUpdateTintInline(Task* task)
             r = 0;
             g = 0;
             b = 0x400;
-            Gp_SetObjTrans(task->extra.tmd, r, g, b);
+            worldCoordSetModelAmbientColor(task->extra.tmd, r, g, b);
             work->tintRequest = 0;
             break;
         case 2:
             r = 0xFFF;
             g = 0xFFF;
             b = 0xFFF;
-            Gp_SetObjTrans(task->extra.tmd, r, g, b);
+            worldCoordSetModelAmbientColor(task->extra.tmd, r, g, b);
             work->tintRequest = 0;
             break;
         case 0:

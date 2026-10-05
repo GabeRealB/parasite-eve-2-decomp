@@ -5684,7 +5684,7 @@ static void func_actor_560800_80135BD8(Task* arg0)
     vec.vx                  = 0x5A0;
     vec.vy                  = 0x5A0;
     vec.vz                  = 0x5A0;
-    Gp_SetOverrideVec(&vec);
+    worldCoordSetAmbientColorOverride(&vec);
 }
 
 void func_actor_560800_80135D54(Task* arg0)

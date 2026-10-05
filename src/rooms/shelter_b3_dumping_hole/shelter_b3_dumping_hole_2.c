@@ -3246,7 +3246,7 @@ static void func_shelter_b3_dumping_hole_8018098C(Task* task)
                     buf.vec[0].vx = 0x800;
                     buf.vec[0].vy = 0x800;
                     buf.vec[0].vz = 0x800;
-                    Gp_SetOverrideVec(&buf.vec[0]);
+                    worldCoordSetAmbientColorOverride(&buf.vec[0]);
                     taskMessageDispatch(work->placement0Actor, ACTOR_MESSAGE_SET_MODEL_DRAW, 2, 0);
                     taskMessageDispatch(task, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
                     work->pose.pos.vx = D_shelter_b3_dumping_hole_8018966C.pos.vx;
@@ -3366,7 +3366,7 @@ static void func_shelter_b3_dumping_hole_8018098C(Task* task)
             }
             return;
         case SHELTER_B3_DUMPING_HOLE_COLLAPSE_COMMAND_END_COLLAPSE:
-            Gp_SetOverrideVec(NULL);
+            worldCoordSetAmbientColorOverride(NULL);
             taskMessageDispatch(work->player, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
             taskMessageDispatch(work->placement0Actor, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
             taskMessageDispatch(task, ACTOR_MESSAGE_SET_MODEL_DRAW, 2, 0);
@@ -3455,7 +3455,7 @@ void func_shelter_b3_dumping_hole_80181430(void)
     s32*                                    p3;
 
     work = D_shelter_b3_dumping_hole_8018F4AC->work;
-    Gp_SetOverrideVec(NULL);
+    worldCoordSetAmbientColorOverride(NULL);
     if (work->framebufferBlend != NULL) {
         taskCallExit(work->framebufferBlend);
         work->framebufferBlend = NULL;

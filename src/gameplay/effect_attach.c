@@ -181,7 +181,7 @@ void Gp_EffAttachTask37(Task* arg0)
                 if (mem->period >= 0x41) {
                     trans       = mem->period - 0x40;
                     mem->period = trans;
-                    Gp_SetObjTrans(extra, trans, trans, trans);
+                    worldCoordSetModelAmbientColor(extra, trans, trans, trans);
                     return;
                 }
             }
@@ -204,7 +204,7 @@ void Gp_EffAttachTask37(Task* arg0)
             if (mem->period >= 0x81) {
                 trans       = mem->period - 0x80;
                 mem->period = trans;
-                Gp_SetObjTrans(extra, trans, trans, trans);
+                worldCoordSetModelAmbientColor(extra, trans, trans, trans);
             }
             if (mem->age == 8) {
                 Gp_SpawnEff(EFFECT_CORPSE_BURN, coord, mem->angle >= 0x100, 0);

@@ -518,7 +518,7 @@ static void Gp_ScriptTaskState1(Task* arg0)
                 vec.vx = work->command->operand0.value * EVENT_SCRIPT_LIGHT_VALUE_SCALE;
                 vec.vy = work->command->operand1.value * EVENT_SCRIPT_LIGHT_VALUE_SCALE;
                 vec.vz = work->command->operand2.value * EVENT_SCRIPT_LIGHT_VALUE_SCALE;
-                Gp_SetOverrideVec(&vec);
+                worldCoordSetAmbientColorOverride(&vec);
                 break;
 
             case EVENT_SCRIPT_OPCODE_SET_LIGHT_SCALE:
@@ -533,7 +533,7 @@ static void Gp_ScriptTaskState1(Task* arg0)
                 break;
 
             case EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB:
-                Gp_SetOverrideVec(NULL);
+                worldCoordSetAmbientColorOverride(NULL);
                 break;
 
             case EVENT_SCRIPT_OPCODE_FINISH_SCENE_STREAM:

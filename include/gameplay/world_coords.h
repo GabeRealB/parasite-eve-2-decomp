@@ -76,16 +76,35 @@ s32 worldCoordGetOriginAudioDepth(const GfxCoord* coord);
 /// projection results; it does not change the node or update its matrix.
 s32 worldCoordGetOriginAudioPan(const GfxCoord* coord);
 
-void Gp_SetOverrideVec(SVECTOR* arg0);
+/// Copies an ambient RGB override for subsequent model-light queries, or disables it.
+///
+/// `ambientColor` is a readable complete SVECTOR; vx/vy/vz are signed ambient
+/// RGB levels in the colour matrix's translation units. The entire eight-byte
+/// value is copied, including the unused final halfword; no pointer is retained.
+/// NULL disables the override and retains the stored value. This replaces both
+/// the cutoff-derived ambient colour and the room view's minimum levels, while
+/// leaving the directional colour coefficients unchanged. Room-light binding
+/// also disables the override. Storage lasts with the gameplay overlay.
+void worldCoordSetAmbientColorOverride(const SVECTOR* ambientColor);
 
-/// Sets the back colour a model is lit with: the translation of its colour
-/// matrix, which the lighting adds to every vertex as the ambient term.
-void Gp_SetObjTrans(TmdObject* arg0, s16 arg1, s16 arg2, s16 arg3);
+/// Sets the RGB ambient term added when lighting a model's vertices.
+///
+/// `model->colorMtx` must be writable and remain live. Signed 16-bit r/g/b
+/// values are extended into its translation; 0x1000 is full channel intensity.
+/// The nine directional colour coefficients are preserved. A later lighting
+/// query may replace this ambient term; the matrix remains caller-owned.
+void worldCoordSetModelAmbientColor(const TmdObject* model, s16 r, s16 g, s16 b);
 
 void Gp_UpdateRoomCoords(Task* task);
 
 void func_800D96C8(Task* arg0);
 
-void func_800D9CC8(Task* arg0);
+/// Runs a task's current exit callback as its frame handler.
+///
+/// `task` and its exit handler must be live, and the gameplay implementation
+/// must remain loaded. Teardown follows `taskCallExit`; a custom handler may
+/// retain the task or release it before returning. Registered in the resident
+/// task-descriptor table, so this entry has external linkage.
+void taskRunExitCallbackTask(Task* task);
 
 #endif // GAMEPLAY_WORLD_COORDS_H
