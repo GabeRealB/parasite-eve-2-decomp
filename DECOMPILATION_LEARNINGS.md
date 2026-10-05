@@ -147551,3 +147551,45 @@ the first one's 16-byte slot and `param1` reuses it again, while `param2`, with
 no free slot left, gets a new one after it. A lone table read at two sites does
 not therefore prove a named global: try the repeated local initializer before
 keeping a `static const`.
+
+## A loop-constant OT slot held in a register (`li s7, 0x1C8` ... `addu a0, s7, a0`): assign the index inside the loop (func_acropolis_west_elevator_hall_8017FE18, 2026-10-05)
+
+The target keeps the scaled slot in a callee-saved register and adds the table
+pointer to it, instead of folding it into `lw 0x1C8(a0)`. The matched source
+got there with `otByteOffset = otIndex << 2;` and
+`(u_long*)(otByteOffset + (uintptr)gGpuCurrentOt)`. With `otIndex = 0x72`
+set before the loop, every typed form fails the same way: `sll v0, s8, 2`
+stays in the loop and `lui 0xFF00` is hoisted in its place.
+
+`-dL` shows why. `loop.c` moves an invariant only when
+`threshold * savings * lifetime >= insn_count`, and the scale of an inline
+subscript is emitted by `memory_address` immediately before its `plus`, so its
+pseudo has `life 1`. The integer form passed only because the statement, a
+`NOTE_INSN_BLOCK_BEG` and the pointer load sat between the shift and the add
+(`life 4`; notes other than line numbers take a luid).
+
+Assign the index in the loop body, in an earlier basic block than its use:
+
+```c
+for (i = 0; i < 0x52; i++) {
+    otIndex = 0x72;
+    ...                                   /* an if/else, a call */
+    addPrim(&gGpuCurrentOt[otIndex], mv);
+}
+```
+
+The `li` is then a movable with a long life, its register dies in the shift,
+and `force_movables` makes the shift move with it whatever its own lifetime
+(`m->forces`); `cse2` folds the pair to `li s7, 0x1C8`. The join after the
+`if`/`else` is what keeps `cse1` from folding `0x72` into a displacement, so
+the assignment has to sit before it. The inline subscript also gives
+`(plus (mult idx 4) ptr)`, the offset-first `addu`; a pointer local
+(`ot = &gGpuCurrentOt[otIndex]`) goes through `expand_binop` and puts the
+pointer first.
+
+Two notes for the scratch loop. Compile with the build's `-gcoff`: without it
+`func_acropolis_fire_escape_80180B20` allocated a different frame, and a
+candidate that diffed clean failed the real build. And a `"+r"` asm on a byte
+offset blocks `combine` from seeing its low bits, so `off / 4` behind it costs
+`srl 2; sll 2`; move the asm up to the shifted depth and mask after it
+(`shiftedDepth = (u32)blk->otz << shift; asm; ...[(shiftedDepth >> 2 & 0xFFC) / 4]`).
