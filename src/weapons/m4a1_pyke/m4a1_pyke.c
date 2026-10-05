@@ -176,7 +176,7 @@ void func_m4a1_pyke_8011D1F8(Task* task)
 /// Per-frame task for one flame the Pyke throws (see pyke_flame.h).
 void func_m4a1_pyke_8011D7D4(Task* task)
 {
-    pykeFlameTask(task);
+    _pykeFlameTask(task);
 }
 
 #include "../../shared/pyke_flame_blob.inc.c"

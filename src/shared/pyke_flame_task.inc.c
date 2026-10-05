@@ -4,42 +4,68 @@
 #define PYKE_FLAME_REDRAW_UPDATES_COORD 0
 #endif
 
-/// Per-frame task for one flying flame. `Task::spawnArg2` is the
-/// `EffectWork` holding its velocity (`move`), age (`age`), width (`scale`)
-/// and spin (`angle`); `Task::extra` reaches the coordinate it flies on.
-/// Everything stops on cancellation (`gRoomEffectState->effectControl >=
-/// 4`); with nonzero control below that threshold the flame is only redrawn.
-///
-/// - State 0 allocates the `PykeFlameBody`, aims the flame by rotating
-///   `(0, spawnArg1 - rand(0..0x3F), 0)` through the coordinate's own matrix,
-///   seeds the width and spin, links the body and falls through.
-/// - State 1 flies the flame, redraws it, and on a random third of the frames
-///   traces the ground under it for a splash. A category-3 contact
-///   (`worldCollisionCountContactsByKind`, `WORLD_COLLISION_CONTACT_ENEMY_BODY`) or living past 0x14 frames
-///   releases it; hitting geometry (`worldCollisionProbeGridSegment`) switches to state 2
-///   with a fresh velocity.
-/// - State 2 coasts on that velocity with a fast-widening flame until it is
-///   0x15 frames old.
-static inline void pykeFlameTask(Task* task)
+/// Advances a flame in its parent frame and refreshes its composed transform.
+static inline void _pykeFlameAdvanceCoord(GfxCoord* coord, const EffectWork* work)
 {
-    GfxCoord       ground;
-    SVECTOR        after;
-    SVECTOR        before;
+    coord->coord.t[0]  += work->move.vx;
+    coord->coord.t[1]  += work->move.vy;
+    coord->coord.t[2]  += work->move.vz;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    actorRenderComposeCoord(coord);
+}
+
+/// Updates one Pyke flame's colliding flight and spreading drift after a geometry hit.
+///
+/// Requires a counted effect with an owned coordinate body and an `EffectWork`
+/// in `spawnArg2.pointer`, initially age/state zero and work NULL. The low u16
+/// of `spawnArg1.value` supplies launch speed in game units per running tick
+/// (the carriers pass 0x40..0x180) and the initial size numerator before a 0x180
+/// bias. Launch follows the coordinate's rotated positive Y axis, with 0..63
+/// units of speed jitter. `move` then holds signed-halfword displacements in
+/// the coordinate's parent frame; `scale` sizes the billboard and `angle` uses
+/// 4096 units per turn. The collision radius is fixed at half the initial size.
+///
+/// Owns a primary-heap `PykeFlameBody` in `work` after initialization. An enemy-body
+/// contact ends flight; a geometry hit unlinks its sphere and starts drift
+/// without resetting age. Expiry is checked at age 21, after drawing; the tick
+/// that enters drift returns before that check. Allocation failure retries
+/// initialization with age zero. Nonzero control below cancellation redraws
+/// without aging; the companion carrier also refreshes the coordinate then.
+/// Cancellation or expiry releases the task, coordinate body and owned work blocks.
+static inline void _pykeFlameTask(Task* task)
+{
+    enum {
+        PYKE_FLAME_STATE_INIT            = 0,
+        PYKE_FLAME_STATE_FLIGHT          = 1,
+        PYKE_FLAME_STATE_DRIFT           = 2,
+        PYKE_FLAME_LIFETIME_TICKS        = 21,
+        PYKE_FLAME_INITIAL_SIZE_BIAS     = 0x180,
+        PYKE_FLAME_FLIGHT_SIZE_STEP      = 0x10,
+        PYKE_FLAME_DRIFT_SIZE_STEP       = 0x40,
+        PYKE_FLAME_FLIGHT_Y_ACCELERATION = 8,
+        PYKE_FLAME_LAUNCH_JITTER_MASK    = 0x3F,
+        PYKE_FLAME_SPIN_ANGLE_MASK       = ONE - 1,
+        PYKE_FLAME_DRIFT_TRIG_SHIFT      = 8
+    };
+
+    GfxCoord       groundCoord;
+    SVECTOR        flightEnd;
+    SVECTOR        flightStart;
     GfxCoord*      coord;
     EffectWork*    work;
     PykeFlameBody* flame;
     s32            effectControl;
-    u32            ang0;
-    u32            ang1;
-    u32            ang2;
-    u32            ang3;
+    u32            launchRandom;
+    u32            spinRandom;
+    u32            splashRandom;
+    u32            driftRandom;
 
-    flame         = (PykeFlameBody*)task->work;
+    flame         = task->work;
     work          = task->spawnArg2.pointer;
     effectControl = gRoomEffectState->effectControl;
     coord         = task->extra.coordBody->coord;
     if (effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-        if (task->state != 0) {
+        if (task->state != PYKE_FLAME_STATE_INIT) {
             worldCollisionUnlinkBody(&flame->body);
         }
         effectKillTask(work, task);
@@ -55,97 +81,90 @@ static inline void pykeFlameTask(Task* task)
     }
     work->age = work->age + 1;
     switch (task->state) {
-        case 0:
-            flame = memCalloc(sizeof(PykeFlameBody), 0);
+        case PYKE_FLAME_STATE_INIT:
+            flame = memCalloc(sizeof(*flame), false);
             if (flame == NULL) {
                 work->age = 0;
                 return;
             }
             task->exitCallback = _pykeFlameRelease;
-            /* The three halfwords are the SVECTOR `gte_rtv0` rotates in
-               place, so `field_14` has to be cleared after the random pitch is
-               written to `field_12`, not alongside `field_10`. */
+            // Rotate the launch displacement into the coordinate's parent frame.
             work->move.vx   = 0;
-            ang0            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            gRandomLcgState = ang0;
-            work->move.vy   = (u16)task->spawnArg1.value - ((ang0 >> 16) & 0x3F);
+            launchRandom    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            gRandomLcgState = launchRandom;
+            work->move.vy   = (u16)task->spawnArg1.value - ((launchRandom >> 16) & PYKE_FLAME_LAUNCH_JITTER_MASK);
             work->move.vz   = 0;
             gte_SetRotMatrix(&coord->coord);
             gte_ldv0(&work->move);
             gte_rtv0();
             gte_stsv(&work->move);
-            work->scale                  = (u16)task->spawnArg1.value + 0x180;
-            ang1                         = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->angle                  = (ang1 >> 16) & 0xFFF;
-            task->state                  = 1;
+            work->scale                  = (u16)task->spawnArg1.value + PYKE_FLAME_INITIAL_SIZE_BIAS;
+            spinRandom                   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->angle                  = (spinRandom >> 16) & PYKE_FLAME_SPIN_ANGLE_MASK;
+            task->state                  = PYKE_FLAME_STATE_FLIGHT;
             task->work                   = flame;
             flame->body.coord            = coord;
             flame->body.context.contacts = flame->contacts;
             flame->body.key              = PYKE_FLAME_KEY;
             flame->body.radius           = work->scale >> 1;
-            gRandomLcgState              = ang1;
+            gRandomLcgState              = spinRandom;
             flame->body.flags            = WORLD_COLLISION_BODY_SPHERE;
             worldCollisionLinkBody(WORLD_COLLISION_LIST_PLAYER_ATTACKS, &flame->body);
             // The allocation already zeroed the entry; LAST terminates the table.
             flame->contacts[0].flags = WORLD_COLLISION_CONTACT_LAST;
             flame->body.flags       |= WORLD_COLLISION_BODY_PAIR_ENABLED;
             /* fallthrough */
-        case 1:
-            work->scale         = work->scale + 0x10;
-            work->move.vy       = work->move.vy + 8;
-            before.vx           = coord->workm.t[0];
-            before.vy           = coord->workm.t[1];
-            before.vz           = coord->workm.t[2];
-            coord->coord.t[0]  += work->move.vx;
-            coord->coord.t[1]  += work->move.vy;
-            coord->coord.t[2]  += work->move.vz;
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            actorRenderComposeCoord(coord);
-            after.vx = coord->workm.t[0];
-            after.vy = coord->workm.t[1];
-            after.vz = coord->workm.t[2];
+        case PYKE_FLAME_STATE_FLIGHT:
+            // Keep composed endpoints for the geometry probe; contact tests use the sphere.
+            work->scale    = work->scale + PYKE_FLAME_FLIGHT_SIZE_STEP;
+            work->move.vy  = work->move.vy + PYKE_FLAME_FLIGHT_Y_ACCELERATION;
+            flightStart.vx = coord->workm.t[0];
+            flightStart.vy = coord->workm.t[1];
+            flightStart.vz = coord->workm.t[2];
+            _pykeFlameAdvanceCoord(coord, work);
+            flightEnd.vx = coord->workm.t[0];
+            flightEnd.vy = coord->workm.t[1];
+            flightEnd.vz = coord->workm.t[2];
             _pykeFlameDrawBlob(MATRIX_TRANS(&coord->workm),
                                (work->age >> 1) + 1, work->scale,
                                work->angle);
-            ang2            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            gRandomLcgState = ang2;
-            if ((u16)((ang2 >> 16) % 3) == 0 && gRoomEffectState->groundTraceEnabled != 0 &&
-                worldCollisionProjectGroundCoord(coord, &ground) == 1) {
-                _pykeFlameDrawSplash(MATRIX_TRANS(&ground.workm), (s16)((work->scale * 2) / 3));
+            splashRandom    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            gRandomLcgState = splashRandom;
+            if ((u16)((splashRandom >> 16) % 3) == 0 && gRoomEffectState->groundTraceEnabled != 0 &&
+                worldCollisionProjectGroundCoord(coord, &groundCoord) == 1) {
+                // Only projected XYZ feed the splash; the temporary's rotation stays unspecified.
+                _pykeFlameDrawSplash(MATRIX_TRANS(&groundCoord.workm), (s16)((work->scale * 2) / 3));
             }
             if (worldCollisionCountContactsByKind(flame->body.context.contacts, WORLD_COLLISION_CONTACT_ENEMY_BODY) != 0) {
                 worldCollisionUnlinkBody(&flame->body);
                 effectKillTask(work, task);
                 return;
             }
-            if (worldCollisionProbeGridSegment(&after, &before, NULL, NULL) == 1) {
+            if (worldCollisionProbeGridSegment(&flightEnd, &flightStart, NULL, NULL) == 1) {
+                // Drift no longer takes contacts; unsigned trig scaling precedes s16 truncation.
                 worldCollisionUnlinkBody(&flame->body);
-                task->state     = 2;
-                work->move.vx   = (u32)rcos(work->angle) >> 8;
-                work->move.vy   = (u32)rsin(work->angle) >> 8;
-                ang3            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                gRandomLcgState = ang3;
-                work->move.vz   = (u32)rsin((ang3 >> 16) & 0xFFF) >> 8;
+                task->state     = PYKE_FLAME_STATE_DRIFT;
+                work->move.vx   = (u32)rcos(work->angle) >> PYKE_FLAME_DRIFT_TRIG_SHIFT;
+                work->move.vy   = (u32)rsin(work->angle) >> PYKE_FLAME_DRIFT_TRIG_SHIFT;
+                driftRandom     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                gRandomLcgState = driftRandom;
+                work->move.vz   = (u32)rsin((driftRandom >> 16) & PYKE_FLAME_SPIN_ANGLE_MASK) >> PYKE_FLAME_DRIFT_TRIG_SHIFT;
                 return;
             }
-            if (work->age >= 0x15) {
+            if (work->age >= PYKE_FLAME_LIFETIME_TICKS) {
                 worldCollisionUnlinkBody(&flame->body);
                 effectKillTask(work, task);
                 return;
             }
             worldCollisionClearContacts(flame->contacts);
             return;
-        case 2:
-            work->scale         = work->scale + 0x40;
-            coord->coord.t[0]  += work->move.vx;
-            coord->coord.t[1]  += work->move.vy;
-            coord->coord.t[2]  += work->move.vz;
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            actorRenderComposeCoord(coord);
+        case PYKE_FLAME_STATE_DRIFT:
+            work->scale = work->scale + PYKE_FLAME_DRIFT_SIZE_STEP;
+            _pykeFlameAdvanceCoord(coord, work);
             _pykeFlameDrawBlob(MATRIX_TRANS(&coord->workm),
                                (work->age >> 1) + 1, work->scale,
                                work->angle);
-            if (work->age >= 0x15) {
+            if (work->age >= PYKE_FLAME_LIFETIME_TICKS) {
                 effectKillTask(work, task);
             }
             break;

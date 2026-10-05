@@ -1119,7 +1119,7 @@ void func_actor_800100_80161F20(Task* task)
 /// Per-frame task for one flame actor_800100's Pyke throws (see pyke_flame.h).
 void func_actor_800100_801624F0(Task* task)
 {
-    pykeFlameTask(task);
+    _pykeFlameTask(task);
 }
 
 #include "../../shared/pyke_flame_blob.inc.c"

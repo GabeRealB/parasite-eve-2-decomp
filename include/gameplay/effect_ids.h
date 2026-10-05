@@ -814,8 +814,8 @@ enum {
     /// transient point light (mode 2 widens it and spawns 0x60181); spawned on the
     /// companion's weapon when companionVariant is 4.
     EFFECT_COMPANION_WEAPON_FLARE = EFFECT_ID(EFFECT_TASK_BANK, 0x180),
-    /// One flame thrown by the Pyke enemy (actor_800100), pykeFlameTask; spawned with a
-    /// growing size.
+    /// Flying flame of the companion's Pyke attachment (`_pykeFlameTask`), spawned
+    /// with increasing launch speed and size while the weapon emits its jet.
     EFFECT_ACTOR_800100_PYKE_FLAME = EFFECT_ID(EFFECT_TASK_BANK, 0x181),
     /// Spinning sprite flash with a short beam strip, drawn for 0x19 ticks at the hit
     /// point; spawned by the weapon hit dispatcher for the M4A1 Hammer (case 15, with

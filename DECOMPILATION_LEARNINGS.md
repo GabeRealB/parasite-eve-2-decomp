@@ -57196,7 +57196,7 @@ cast in the caller:
 ```c
 static void _pykeFlameDrawSplash(const VECTOR3* worldPosition, s32 halfSize);   /* header */
 
-_pykeFlameDrawSplash(MATRIX_TRANS(&ground.workm), (s16)((work->scale * 2) / 3));
+_pykeFlameDrawSplash(MATRIX_TRANS(&groundCoord.workm), (s16)((work->scale * 2) / 3));
 ```
 
 The cast is the same conversion the prototype used to perform, so the caller is
