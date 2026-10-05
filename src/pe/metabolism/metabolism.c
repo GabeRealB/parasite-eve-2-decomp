@@ -216,7 +216,7 @@ void func_metabolism_8012EF34(Task* arg0)
 /// Metabolism billboard. State 0 seeds the spin from the spawn argument and
 /// picks the draw path: the plain additive quad (state 1), or, one roll in
 /// three when the level's difficulty band allows it, the alternate
-/// `func_800EB6E8` quad that fades its colour by 0x18 a frame (state 2).
+/// `effectDrawModulatedBillboard` quad that fades its colour by 0x18 a frame (state 2).
 /// Both states lift the frame and draw on odd ticks until it runs out.
 void func_metabolism_8012F5A0(Task* arg0)
 {
@@ -281,8 +281,8 @@ void func_metabolism_8012F5A0(Task* arg0)
             }
             if (mem->index < 8) {
                 if (mem->age & 1) {
-                    func_800EB6E8(coord, mem->index, mem->angle,
-                                  mem->scale | mem->period);
+                    effectDrawModulatedBillboard(coord, mem->index, mem->angle,
+                                                 mem->scale | mem->period);
                     mem->scale = mem->scale - 0x18;
                     return;
                 }

@@ -1990,49 +1990,71 @@ void effectDrawSpinningBillboard(const GfxCoord* coord, u16 frame, s16 size, u16
     SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);
 }
 
-void func_800EB6E8(GfxCoord* arg0, u16 arg1, u16 arg2, u16 arg3)
+/// Places an axis-aligned quad around a projected centre with an equal half-size on both axes.
+///
+/// Borrows a live scratch block and writable GPU packet. `screenExtent` is in
+/// pixels; final coordinates retain the GPU's signed 16-bit encodings.
+static inline void _effectSetBillboardScreenBounds(POLY_FT4* quad, const EffectCentreScratch* scratch)
 {
-    EffectCentreScratch* block;
-    POLY_FT4*            prim;
-    u16                  bank;
-    u16                  clutIdx;
-    s32                  u0;
-    s32                  u1;
+    quad->x0 = quad->x2 = scratch->screenX - scratch->screenExtent;
+    quad->x1 = quad->x3 = scratch->screenX + scratch->screenExtent;
+    quad->y0 = quad->y1 = scratch->screenY - scratch->screenExtent;
+    quad->y2 = quad->y3 = scratch->screenY + scratch->screenExtent;
+}
 
-    block                = SCRATCH_STACK_RESERVE_BLOCK(EffectCentreScratch);
-    block->worldPoint.vx = arg0->workm.t[0];
-    block->worldPoint.vy = arg0->workm.t[1];
-    block->worldPoint.vz = arg0->workm.t[2];
+void effectDrawModulatedBillboard(const GfxCoord* coord, u16 frame, u16 packedSizeBank, u16 packedBrightnessPalette)
+{
+    enum {
+        EFFECT_MODULATED_BILLBOARD_FRAME_COUNT     = 4,
+        EFFECT_MODULATED_BILLBOARD_CELL_SIZE       = 24,
+        EFFECT_MODULATED_BILLBOARD_BANK_U_STRIDE   = EFFECT_MODULATED_BILLBOARD_FRAME_COUNT * EFFECT_MODULATED_BILLBOARD_CELL_SIZE,
+        EFFECT_MODULATED_BILLBOARD_UV_SPAN         = EFFECT_MODULATED_BILLBOARD_CELL_SIZE - 1,
+        EFFECT_MODULATED_BILLBOARD_SELECTOR_SHIFT  = 12,
+        EFFECT_MODULATED_BILLBOARD_SIZE_MASK       = 0xFFF,
+        EFFECT_MODULATED_BILLBOARD_BRIGHTNESS_MASK = 0xFF,
+        EFFECT_MODULATED_BILLBOARD_CLUT_Y          = 267,
+    };
+
+    EffectCentreScratch* scratch;
+    POLY_FT4*            quad;
+    u16                  textureBank;
+    u16                  paletteIndex;
+    s32                  leftU;
+    s32                  rightU;
+
+    // Project only the composed translation; the quad stays aligned to the screen axes.
+    scratch                = SCRATCH_STACK_RESERVE_BLOCK(EffectCentreScratch);
+    scratch->worldPoint.vx = coord->workm.t[0];
+    scratch->worldPoint.vy = coord->workm.t[1];
+    scratch->worldPoint.vz = coord->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&block->worldPoint);
+    gte_ldv0(&scratch->worldPoint);
     gte_rtps();
-    bank    = arg2 >> 12;
-    arg2   &= 0xFFF;
-    clutIdx = arg3 >> 12;
-    arg3   &= 0xFF;
-    gte_stsxy(&block->screenX);
-    gte_stflg(&block->projectionFlags);
-    if (block->projectionFlags >= 0) {
-        gte_stszotz(&block->depth);
-        block->depth++;
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setPolyFT4(prim);
-        setSemiTrans(prim, 1);
-        prim->tpage = 0x2A;
-        setRGB0(prim, arg3, arg3, arg3);
-        setClut(prim, D_80111EB4[clutIdx], 0x10B);
-        u0 = bank * 0x60 + (arg1 & 3) * 0x18;
-        u1 = u0 + 0x17;
-        setUV4(prim, u0, 0, u1, 0, u0, 0x17, u1, 0x17);
-        block->screenExtent = (arg2 * 23) / block->depth;
-        prim->x0 = prim->x2 = block->screenX - block->screenExtent;
-        prim->x1 = prim->x3 = block->screenX + block->screenExtent;
-        prim->y0 = prim->y1 = block->screenY - block->screenExtent;
-        prim->y2 = prim->y3 = block->screenY + block->screenExtent;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
+    // Extract selectors before masking the packed sizing and modulation values.
+    textureBank              = packedSizeBank >> EFFECT_MODULATED_BILLBOARD_SELECTOR_SHIFT;
+    packedSizeBank          &= EFFECT_MODULATED_BILLBOARD_SIZE_MASK;
+    paletteIndex             = packedBrightnessPalette >> EFFECT_MODULATED_BILLBOARD_SELECTOR_SHIFT;
+    packedBrightnessPalette &= EFFECT_MODULATED_BILLBOARD_BRIGHTNESS_MASK;
+    gte_stsxy(&scratch->screenX);
+    gte_stflg(&scratch->projectionFlags);
+    if (scratch->projectionFlags >= 0) {
+        gte_stszotz(&scratch->depth);
+        scratch->depth++;
+        quad           = gGpuPrimCursor;
+        gGpuPrimCursor = quad + 1;
+        setPolyFT4(quad);
+        setSemiTrans(quad, true);
+        quad->tpage = getTPage(GPU_EFFECT_TEXTURE_DEPTH_4BIT, GPU_BLEND_ADD, GPU_EFFECT_TEXTURE_PAGE_X, 0);
+        setRGB0(quad, packedBrightnessPalette, packedBrightnessPalette, packedBrightnessPalette);
+        setClut(quad, D_80111EB4[paletteIndex], EFFECT_MODULATED_BILLBOARD_CLUT_Y);
+        leftU  = textureBank * EFFECT_MODULATED_BILLBOARD_BANK_U_STRIDE + (frame & (EFFECT_MODULATED_BILLBOARD_FRAME_COUNT - 1)) * EFFECT_MODULATED_BILLBOARD_CELL_SIZE;
+        rightU = leftU + EFFECT_MODULATED_BILLBOARD_UV_SPAN;
+        setUV4(quad, leftU, 0, rightU, 0, leftU, EFFECT_MODULATED_BILLBOARD_UV_SPAN, rightU, EFFECT_MODULATED_BILLBOARD_UV_SPAN);
+        scratch->screenExtent = (packedSizeBank * EFFECT_MODULATED_BILLBOARD_UV_SPAN) / scratch->depth;
+        _effectSetBillboardScreenBounds(quad, scratch);
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                quad);
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectCentreScratch);
 }

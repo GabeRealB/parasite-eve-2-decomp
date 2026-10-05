@@ -36901,13 +36901,13 @@ RotMatrix(rot, (MATRIX*)coord);
 
 A 0x18 scratch billboard (`EffectCentreScratch`: `SVECTOR` + depth/projectionFlags/screenExtent/screenX/screenY) that `gte_SetTransMatrix`
 then `gte_SetRotMatrix` on `&GsWSMATRIX` reloads the matrix address for the
-second call. Copy `&block->worldPoint` after `*scratch = block` so `gte_ldv0` uses
-`$v0`. After `*clutp`, assign `clutIdx = u + 0x17` to reuse the table pointer
-as `u1`. After storing `u0`/`u2`, assign `u = (u16)size` so `andi v1, t0,
+second call. Copy `&scratch->worldPoint` after storing the reserved scratch pointer so `gte_ldv0` uses
+`$v0`. After `*clutp`, assign `paletteIndex = u + 0x17` to reuse the table pointer
+as `rightU`. After storing the packet's `u0`/`u2`, assign `u = (u16)size` so `andi v1, t0,
 0xffff` clobbers `u` and the `* 23 / depth` half-size uses `$v1` with the
 dividend in `$v0` and divisor in `$a0`.
 
-`func_800EB6E8` is the example (98.4%; remaining diffs are `lui`/`li` delay
+`effectDrawModulatedBillboard` is the example (98.4%; remaining diffs are `lui`/`li` delay
 slots around the POLY_FT4 XY stores).
 
 ## Regen objdiff expected objects after renaming functions
@@ -66543,11 +66543,11 @@ counter-derived angles, signed-load temporaries, and these ordering changes.
 
 ## A scheduling barrier can replace a keep-live use that changes register priority
 
-`func_800EB6E8` reached 99.803% with `regs=7` and all other penalties zero.
+`effectDrawModulatedBillboard` reached 99.803% with `regs=7` and all other penalties zero.
 The packed radius argument and its extracted texture bank occupied `$t2` and
 `$t0`; the target wanted the opposite pair. `.lreg` showed the radius pseudo
 used 4 times across 72 insns and the bank used 4 times across 37. The bank's
-extra reference came from `USE_REG(bank)` after `bank = arg2 >> 12`, added to
+extra reference came from `USE_REG(textureBank)` after `textureBank = packedSizeBank >> 12`, added to
 keep the shift ahead of the following masks and CLUT-index extraction.
 
 Replacing that helper with `SCHED_BARRIER()` preserved scheduling but removed
@@ -145195,16 +145195,16 @@ an argument setup, points to a duplicated tail after the call.
 
 ## A `u16` local is never "birthing": a narrow destination keeps sched1 in source order
 
-`func_800EB6E8` splits two `u16` parameters into a high nibble and a low field
-(`bank = arg2 >> 12; arg2 &= 0xFFF;`). Declared `s32`, each `srl` was sunk to
+`effectDrawModulatedBillboard` splits two `u16` parameters into a high nibble and a low field
+(`textureBank = packedSizeBank >> 12; packedSizeBank &= 0xFFF;`). Declared `s32`, each `srl` was sunk to
 the end of its block (95.1%, `regs=42`), and the tree held them in place with
-`SCHED_BARRIER()` and `USE_REG()`. Declaring `bank` and `clutIdx` as `u16`
+`SCHED_BARRIER()` and `USE_REG()`. Declaring `textureBank` and `paletteIndex` as `u16`
 matched with neither.
 
 `birthing_insn_p` only boosts an insn whose `SET_DEST` is a `REG`. A store into
 a `HImode` local is `(set (subreg:SI (reg:HI n) 0) ...)`, so it never qualifies,
 whatever its `REG_N_SETS`, and keeps its path priority and LUID order - the same
-reason the in-place `arg2 &= 0xFFF` on the `u16` parameter stayed put. When a
+reason the in-place `packedSizeBank &= 0xFFF` on the `u16` parameter stayed put. When a
 single-set `s32` result is sunk and the values fit, try the narrow type the
 operands already have before manufacturing a second set. `s16` did not work
 here: the shift then sets a fresh `SImode` temporary before the narrowing copy,

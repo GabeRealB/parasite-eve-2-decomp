@@ -1378,7 +1378,7 @@ void func_shelter_b6_training_room_801826E0(Task* task)
         if (mem->age < 60) {
             if (mem->age & 1) {
                 mem->index = (mem->index + 1) & 3;
-                func_800EB6E8(coord, mem->index, 0x300, 0x80);
+                effectDrawModulatedBillboard(coord, mem->index, 0x300, 0x80);
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 if (((gRandomLcgState >> 16) & 3) == 0) {
                     Gp_SpawnEff(EFFECT_1AD, coord, 0, NULL);

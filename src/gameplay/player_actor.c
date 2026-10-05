@@ -2531,8 +2531,8 @@ set_state_4:
 set_state:
     arg0->state = newState;
 draw:
-    func_800EB6E8(coord, mem->age, mem->angle | 0x1000,
-                  mem->period | 0x1000);
+    effectDrawModulatedBillboard(coord, mem->age, mem->angle | 0x1000,
+                                 mem->period | 0x1000);
     if (arg0->state == 4) {
         effectKillTask(mem, arg0);
     }

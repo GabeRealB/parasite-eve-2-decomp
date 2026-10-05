@@ -174,12 +174,24 @@ void effectDrawGouraudDisc(const GfxCoord* centreCoord, s32 radius, const u8* rg
 /// Inputs must stay clear of that storage; the packet lives through GPU drawing.
 void effectDrawSpinningBillboard(const GfxCoord* coord, u16 frame, s16 size, u16 packedAnglePalette);
 
-/// Draws a grayscale, semitransparent textured billboard at the projected
-/// world position. `arg1 & 3` selects the 24-pixel animation frame, `arg2`
-/// packs the texture bank in its top nibble and radius in its low 12 bits,
-/// and `arg3` packs the CLUT index in its top nibble and brightness in its
-/// low byte.
-void func_800EB6E8(GfxCoord* arg0, u16 arg1, u16 arg2, u16 arg3);
+/// Draws one additive, grayscale-modulated cell of a four-frame billboard strip.
+///
+/// `coord` supplies a composed translation in the input space of `GsWSMATRIX`;
+/// rotation is unused and XYZ narrows to signed 16-bit game-coordinate units.
+/// `frame` wraps modulo four. `packedSizeBank` holds a texture bank in bits
+/// 12..15 and an unsigned sizing numerator in bits 0..11. Each bank advances
+/// U by 96 texels; each frame spans 24 by 24 texels at V=0..23. UV bytes wrap
+/// modulo 256. `packedBrightnessPalette` holds a palette index 0..5 in bits
+/// 12..15 and an RGB modulation byte in bits 0..7; bits 8..11 are ignored.
+/// Modulation 128 preserves texture brightness; palette colours are retained.
+///
+/// The quad stays aligned to the screen axes, with half-size
+/// (packedSizeBank & 0xFFF) * 23 / (SZ3 / 4 + 1) pixels, truncated downward.
+/// A negative GTE FLAG drops the sprite. Borrows inputs for this call,
+/// reserves/releases scratch storage, and appends one `POLY_FT4` to the
+/// unchecked frame arena when accepted. Inputs must stay clear of that
+/// storage; the packet lives through GPU drawing.
+void effectDrawModulatedBillboard(const GfxCoord* coord, u16 frame, u16 packedSizeBank, u16 packedBrightnessPalette);
 
 /// Draws a raised additive band, coloured at its smaller ring and black at its wider rim.
 ///

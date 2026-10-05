@@ -243,8 +243,8 @@ void func_healing_8012F5E4(Task* arg0)
                 mem->scale = mem->scale - (D_healing_8012FC1C[mem->step].brightness >> 4);
             }
             if (mem->step < 2) {
-                func_800EB6E8(coord, mem->index, mem->angle,
-                              mem->scale);
+                effectDrawModulatedBillboard(coord, mem->index, mem->angle,
+                                             mem->scale);
             } else {
                 func_healing_8012F7FC(coord, mem->index, mem->angle, mem->scale);
             }

@@ -82,7 +82,7 @@ enum {
     /// Expanding, fading flame cone (glowDrawFlameCone) drawn at the pyrokinesis launch
     /// point; spawned once when the Pyrokinesis projectile is launched.
     EFFECT_PYROKINESIS_LAUNCH_CONE = EFFECT_ID(EFFECT_TASK_BANK, 0x011),
-    /// Spinning additive billboard quad (effectDrawSpinningBillboard, or the fading func_800EB6E8
+    /// Spinning additive billboard quad (effectDrawSpinningBillboard, or the fading effectDrawModulatedBillboard
     /// quad) that lifts and animates for a few frames; spawned repeatedly around the
     /// player by the Metabolism PE.
     EFFECT_METABOLISM_SPARKLE = EFFECT_ID(EFFECT_TASK_BANK, 0x013),
