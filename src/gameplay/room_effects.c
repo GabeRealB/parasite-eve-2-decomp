@@ -1731,22 +1731,37 @@ EffectWork* Gp_SpawnEff(s32 arg0, GfxCoord* arg1, TaskSpawnArg arg2, SVECTOR* ar
     return mem;
 }
 
-/// Enables primitive blending and prepends a dithered effect draw-mode command.
+/// Enables semitransparency and prepends the blend draw mode for an untextured effect primitive.
 ///
-/// The initialized primitive is already linked at the same display-scaled depth.
-/// Consumes one unchecked frame-arena DR_TPAGE and leaves draw mode active;
-/// the low blend bits select GPU_BLEND_* and the unused 4-bit page is (640, 0).
+/// `primitive` must be an initialized, writable packet already linked in the
+/// current ordering table at the same `sortingDepth`. This is the depth before
+/// `otDepthShift` scaling, not a tag index: the unsigned scaled depth is
+/// quantized and wrapped to one of the 1024 depth tags. The current table must
+/// contain that tag. The low two bits of `blendMode` select `GPU_BLEND_*`.
+/// Prepending the command makes its draw mode apply before the primitive.
+///
+/// Requires word-aligned space for `sizeof(DR_TPAGE)` at `gGpuPrimCursor` and
+/// advances it without a capacity check. Both packets must remain live until
+/// GPU drawing completes. The draw mode persists until replaced: dithering
+/// enabled, drawing into the displayed area disabled, and a fixed 4-bit
+/// texture page at VRAM (640, 0), unused by the untextured primitive.
 static inline void _gpuSetEffectPrimitiveBlendMode(void* primitive, s32 blendMode, s32 sortingDepth)
 {
+    enum {
+        GPU_EFFECT_DRAW_TO_DISPLAY_DISABLED   = 0,
+        GPU_EFFECT_DITHER_ENABLED             = 1,
+        GPU_EFFECT_TEXTURE_PAGE_Y             = 0,
+        GPU_EFFECT_DEPTH_TO_BYTE_OFFSET_SHIFT = 2,
+    };
     DR_TPAGE* blendCommand;
 
-    setSemiTrans(primitive, 1);
+    setSemiTrans(primitive, true);
     blendCommand   = gGpuPrimCursor;
     gGpuPrimCursor = blendCommand + 1;
-    setDrawTPage(blendCommand, false, true,
-                 getTPage(GPU_EFFECT_TEXTURE_DEPTH_4BIT, blendMode, GPU_EFFECT_TEXTURE_PAGE_X, 0));
+    setDrawTPage(blendCommand, GPU_EFFECT_DRAW_TO_DISPLAY_DISABLED, GPU_EFFECT_DITHER_ENABLED,
+                 getTPage(GPU_EFFECT_TEXTURE_DEPTH_4BIT, blendMode, GPU_EFFECT_TEXTURE_PAGE_X, GPU_EFFECT_TEXTURE_PAGE_Y));
     addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(
-                ((((u32)sortingDepth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                ((((u32)sortingDepth << gDisplayState.otDepthShift) >> GPU_EFFECT_DEPTH_TO_BYTE_OFFSET_SHIFT) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
             blendCommand);
 }
 
