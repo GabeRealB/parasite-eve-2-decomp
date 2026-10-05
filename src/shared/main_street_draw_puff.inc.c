@@ -1,20 +1,29 @@
 /* Part of the Dryfield main street library; see main_street.h. */
 
-/// Stores the rotated displacement from the puff's centre to one corner.
+/// Stores the rightward and upward pixel components of a puff's half-diagonal.
 ///
-/// `projection` borrows the live scratch block, with positive SZ3 / 4 depth.
-/// The signed half-diagonal is truncated to integer pixels before Q12 rotation;
-/// the angle uses 4096 units per turn and rotation products must fit s32.
-/// Only the two corner offsets change; no storage or pointer is retained.
+/// `projection` borrows a live, word-aligned scratch block whose `depth` is
+/// positive SZ3 / 4. `sizeFactor * 47 / depth` is the signed half-diagonal in
+/// integer pixels, truncated toward zero before multiplication by Q12 sine
+/// and cosine. Rotation products must fit s32; the arithmetic shift rounds
+/// down. This helper does not check depth or overflow.
+///
+/// `cornerAngle` uses 4096 units per turn without requiring normalization;
+/// for a positive half-diagonal, zero points up and a quarter turn points
+/// right. The caller subtracts `cornerOffsetY` from screen Y and negates both
+/// components for the opposite corner. Only `cornerOffsetX` and
+/// `cornerOffsetY` change; no storage is allocated or pointer retained.
 static inline void _mainStreetComputePuffCornerOffset(EffectBillboardScratch* projection, s16 sizeFactor, s32 cornerAngle)
 {
-    q19_12 sine;
-    s32    scaledSize;
+    q19_12 trigSample;
+    s32    halfDiagonalPixels;
 
-    sine                      = rsin(cornerAngle);
-    scaledSize                = sizeFactor * MAIN_STREET_PUFF_UV_SPAN;
-    projection->cornerOffsetX = ((scaledSize / projection->depth) * sine) >> MAIN_STREET_PUFF_TRIG_FRACTION_BITS;
-    projection->cornerOffsetY = ((scaledSize / projection->depth) * rcos(cornerAngle)) >> MAIN_STREET_PUFF_TRIG_FRACTION_BITS;
+    trigSample                = rsin(cornerAngle);
+    halfDiagonalPixels        = (sizeFactor * MAIN_STREET_PUFF_UV_SPAN) / projection->depth;
+    projection->cornerOffsetX = (halfDiagonalPixels * trigSample) >> MAIN_STREET_PUFF_TRIG_FRACTION_BITS;
+    trigSample                = rcos(cornerAngle);
+    halfDiagonalPixels        = (sizeFactor * MAIN_STREET_PUFF_UV_SPAN) / projection->depth;
+    projection->cornerOffsetY = (halfDiagonalPixels * trigSample) >> MAIN_STREET_PUFF_TRIG_FRACTION_BITS;
 }
 
 /// Queues one additive, unmodulated frame of the main street's rotating puff billboard.
