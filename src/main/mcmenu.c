@@ -90,10 +90,21 @@ static void _uiUpdateListWithCenteredCursor(UiList* list, UiPanel* panel)
     }
 }
 
-/// Updates load-file rows and draws the shared cursor at the active panel's center Y.
-static inline void _mcMenuUpdateLoadFileRows(UiList* fileList, UiPanel* panel)
+/// Updates an object's list and eases the shared cursor toward content-center Y.
+///
+/// Borrows a live `listObject` and mutable list under `uiUpdateList`'s callback,
+/// index, row-height and drawing contract. Row callbacks receive this object
+/// through its embedded panel; neither pointer is retained by this helper.
+/// After row updates, exactly active control requests an additional cursor
+/// update two pixels inside the content's left edge at content-relative Y zero,
+/// including for an empty list. Uses `uiEaseAndDrawCursor`'s shared position,
+/// signed coordinate bounds and drawing resources.
+static inline void _uiUpdateListAndCenterCursor(UiList* list, UiObject* listObject)
 {
-    uiUpdateList(fileList, panel);
+    UiPanel* panel;
+
+    panel = &listObject->panel;
+    uiUpdateList(list, panel);
     if (panel->control.word == USER_INTERFACE_PANEL_ACTIVE) {
         uiEaseAndDrawCursor(panel, panel->contentLeft.signedValue + 2, 0);
     }
@@ -121,15 +132,24 @@ void mcMenuUpdateLoadFileList(Task* owningTask)
         uiSetListSystemCursorSound(fileList, true);
         owningTask->state += MEMORY_CARD_MENU_LOAD_LIST_READY - MEMORY_CARD_MENU_LOAD_LIST_INITIAL;
     } else {
-        _mcMenuUpdateLoadFileRows(fileList, &listObject->panel);
+        _uiUpdateListAndCenterCursor(fileList, listObject);
     }
 }
 
-/// Plays a file-selection sound and publishes its directory index or cancellation.
+/// Requests a selection sound and publishes a save destination or cancellation.
 ///
-/// Borrows the live object and list. A true `acceptCurrentRow` reloads the row
-/// after requesting sound and narrows it through a signed byte; false publishes
-/// -1. Both outcomes use the confirm result code, even when sound cannot start.
+/// Borrows a writable live object and the list dispatched for its save dialog.
+/// True `acceptCurrentRow` reads `fileList->currentItemIndex` after the sound
+/// request and sign-extends that byte into `resultValue`. Valid rows are 0..14:
+/// indices below the directory count replace a file; the row at that count
+/// creates New Block when space remains. False ignores the list and publishes
+/// -1. Both outcomes publish `USER_INTERFACE_RESULT_CONFIRM`; the parent uses
+/// the signed value to distinguish acceptance from cancellation and closes
+/// the child. No pointer is retained.
+///
+/// `soundScriptId` uses `sndEvtRequestScriptStart`'s packed request-id format.
+/// Zero pan offset and attenuation retain the sound's base pan and gain. The
+/// selection is published even if sound admission or eventual playback fails.
 static inline void _mcMenuPublishFileSelection(UiObject* object, const UiList* fileList, bool acceptCurrentRow, s32 soundScriptId)
 {
     enum { MEMORY_CARD_MENU_FILE_SELECTION_CANCELLED = -1 };
