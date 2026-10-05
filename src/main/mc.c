@@ -361,7 +361,7 @@ static inline void _mcCloseChildUi(Task* task, s32 parentInputControl);
 
 static inline void _mcCopyFileName(s32 restoreSavedName);
 
-static inline void _mcCloseFileList(UiObject* listObject, UiObject* dialogObject);
+static inline void _mcCloseFileList(UiObject* listObject, UiPanel* dialogPanel);
 
 static void _mcStateSelectSaveFile(Task* dialogTask, McWork* dialogWork);
 
@@ -1607,14 +1607,18 @@ static inline void _mcCopyFileName(s32 restoreSavedName)
     }
 }
 
-/// Close a confirmed file list and reactivate its parent dialog.
+/// Start closing a memory-card file list and restore its parent dialog's input.
 ///
-/// Both objects must remain live while the child's tree starts closing.
-static inline void _mcCloseFileList(UiObject* listObject, UiObject* dialogObject)
+/// Called after the parent consumes either a selected row or Cancel. Borrows a
+/// live list node and owner, and the writable panel of its parent dialog.
+/// Disables list input before detaching and starting its subtree's closing
+/// animations. Dialog input resumes immediately; UI task updates release the
+/// closing objects later under `uiStartTreeClosing`'s lifetime contract.
+static inline void _mcCloseFileList(UiObject* listObject, UiPanel* dialogPanel)
 {
     listObject->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
     uiStartTreeClosing(listObject, listObject->owner);
-    dialogObject->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
+    dialogPanel->control.word = USER_INTERFACE_PANEL_ACTIVE;
 }
 
 /// Choose an existing save destination or the New Block row while probing the card.
@@ -1652,7 +1656,7 @@ static void _mcStateSelectSaveFile(Task* dialogTask, McWork* dialogWork)
         listObject = listTask->spawnArg2.pointer;
         if (listObject->result == USER_INTERFACE_RESULT_CONFIRM) {
             dialogObject->resultValue = listObject->resultValue;
-            _mcCloseFileList(listObject, dialogObject);
+            _mcCloseFileList(listObject, &dialogObject->panel);
             if (dialogObject->resultValue >= 0) {
                 if (dialogObject->resultValue < dialogWork->entryCount) {
                     const u8* directoryName;
@@ -2253,7 +2257,7 @@ static void _mcStateSelectLoadFile(Task* dialogTask, McWork* dialogWork)
         listObject = listTask->spawnArg2.pointer;
         if (listObject->result == USER_INTERFACE_RESULT_CONFIRM) {
             dialogObject->resultValue = listObject->resultValue;
-            _mcCloseFileList(listObject, dialogObject);
+            _mcCloseFileList(listObject, &dialogObject->panel);
             if (dialogObject->resultValue >= 0) {
                 directoryName  = (const u8*)dialogWork->directory[dialogObject->resultValue].name;
                 filenameCursor = Mc_FileName;
