@@ -17,6 +17,13 @@ extern struct WorldTargetNode* D_80115260;
 /// Reset to `0` on target change and when the list is empty.
 extern s32 D_80115264;
 
-void Gp_SetOverrideVec2(SVECTOR* arg0);
+/// Copies RGB multipliers for the model light-colour matrix, or disables the override.
+///
+/// `colorScales` supplies an entire readable SVECTOR: vx/vy/vz hold raw
+/// unsigned Q12 bits for red/green/blue (zero suppresses, ONE is unity). The
+/// full eight-byte value is copied, including its unused final halfword; no
+/// caller pointer is retained. NULL disables use of the stored value. Scaling
+/// affects the three colour rows and preserves the ambient translation.
+void worldCoordSetLightColorScaleOverride(const SVECTOR* colorScales);
 
 #endif // GAMEPLAY_PRIVATE_WORLD_COORDS_H

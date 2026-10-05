@@ -31366,7 +31366,7 @@ aspsx `gpf 1` assembles to `0x4B98003D` (bit 24 set), not the commonly
 cited `0x4A98003D`. Bare `inline_c.h`'s `gte_gpf12()` emits a DMPSX
 placeholder; include `gte.h` after it and `gte_gpf12()` emits `0x4B98003D`.
 
-`func_800D9794` then does `lh field_4A` / `move a2, v0` / `sw v0` /
+`_worldCoordWriteDirectionalLightMatrixOutOfLine` then does `lh field_4A` / `move a2, v0` / `sw v0` /
 `mtc2 a2, $8` / `gte_ldsv` / `gpf 1` / `gte_stsv`. Loading the scale
 straight into a pinned `$a2` drops the copy. Keep two registers:
 
@@ -31394,7 +31394,7 @@ be pinned to `$t0` instead:
 register s32 scale asm("t0");
 ```
 
-`func_800D9A30` is the example. It also writes `-lightScratch->result.direction` into the
+`_worldCoordWriteConeLightMatrixOutOfLine` is the example. It also writes `-lightScratch->result.direction` into the
 direction-matrix row (same as `Gfx_SetFlatLight`).
 
 ## Local `s32` prototype so `Display_SetFadeMax(0xFF)` can fill a delay slot
@@ -34671,7 +34671,7 @@ falloff->distanceSquared -= lum;
 
 The first barrier forces `lw` before `move` (move fills the load delay).
 The second redefines `lum` so it is not CSE-equivalent to `inner`, and
-`temp - inner` stays `subu ..., a0`. `Gp_LightFalloff` is the example.
+`temp - inner` stays `subu ..., a0`. `_worldCoordEvaluatePointLightAtParentOrigin` is the example.
 
 ## Pin a `$v0` temp so `lbu` does not land in the saved dest
 
@@ -68420,7 +68420,7 @@ the surviving insn can never cross the `gte_SetRotMatrix` block. Moving the
 statement - the usual fix for a split `%hi`/`%lo` - is powerless here.
 
 **Fix:** route the sequence through the TU's existing inline helper rather than
-writing it out. `func_800D759C` in `src/gameplay/3A34.c` matched at 100.000% with
+writing it out. `_worldCoordWriteParentFrameLightMatrix` in `src/gameplay/3A34.c` matched at 100.000% with
 zero penalties by calling `_gfxLoadRotSv(mtx, (SVECTOR*)(head - 0x2C))`, the same
 helper `func_800D7A9C` already used. The general lesson is that this shape -
 copy into a stack local, then hand its address to an asm - is one the original
@@ -144548,7 +144548,7 @@ A two-case `switch` over a child's flag inside a sibling-walk loop also accounts
 for the `-1`/`6`/`1` constants sitting in callee-saved registers across the
 loop: loop.c hoists them, so no constant locals are needed.
 
-## An address expression passed to an inline helper adds two refs to the pointer it copies (func_800D759C, 2026-09-26)
+## An address expression passed to an inline helper adds two refs to the pointer it copies (_worldCoordWriteParentFrameLightMatrix, 2026-09-26)
 
 Two callee-saved pins swapped `dirMtx`/`colorMtx` (`$s6`/`$s7`) with a scratch
 `dir` pointer that local-alloc ranked below them (4 refs over 114 half-insns
@@ -144578,7 +144578,7 @@ gives it `$s4`. After reload, jump2 cross-jumps the two identical arms, the
 `beq` then targets its own fall-through and is deleted, and the hoisted load
 is all that is left. Grouping `case 0xFF: default:` or writing `if/else`
 removes the compare before allocation and the `li` goes with it.
-## A `move aN,v0` into a GTE load in the first never-used register is a reloaded field, not a local (func_800D9794, 2026-09-26)
+## A `move aN,v0` into a GTE load in the first never-used register is a reloaded field, not a local (_worldCoordWriteDirectionalLightMatrixOutOfLine, 2026-09-26)
 
 Target: `lh v0,0x4A(s4); nop; move a2,v0; sw v0,0x18(s0); mtc2 a2,$8`, with
 `a2` otherwise unused by the function (a sibling with `arg2` live used `t0`).
@@ -145089,9 +145089,9 @@ body matched with `break`. The same function's `goto next` / `goto linkPrims`
 were cross-jumping: an `i++; continue;` at each skip site plus a trailing
 `i++` after an `if (visible) { draw }` all merge into the first site's block,
 and per-case `p->u0 = K; p->v0 = 0;` merge into one tail with `K` in `$v0`.
-## The reload copy into an asm input needs the `lightScratch = SCRATCH_STACK_CURSOR` copy between store and asm (func_800D9A30, 2026-09-26)
+## The reload copy into an asm input needs the `lightScratch = SCRATCH_STACK_CURSOR` copy between store and asm (_worldCoordWriteConeLightMatrixOutOfLine, 2026-09-26)
 
-Same `move t0,v0; sw v0,0x18(s0); mtc2 t0,$8` shape as func_800D9794, but the
+Same `move t0,v0; sw v0,0x18(s0); mtc2 t0,$8` shape as _worldCoordWriteDirectionalLightMatrixOutOfLine, but the
 target also stores `lightScratch->lightToObject` before the head is written back, which invites
 `lightScratch = SCRATCH_STACK_CURSOR(T) - 1; ...; SCRATCH_STACK_CURSOR(T) = lightScratch;`. That form scores
 one instruction short: `mtc2 v0,$8` with no copy. Reload's `find_equiv_reg`
@@ -145104,7 +145104,7 @@ its spill register, and post-reload CSE turns the load into the copy. sched1
 also moves the `lightScratch->lightToObject` stores ahead of the head store, because a constant
 scratch address does not alias the block, so push-first reproduces the
 target's store order too.
-## A scratch head store scheduled between the block's own stores is still `SCRATCH_STACK_RESERVE_BLOCK` first (func_800D98C4, 2026-09-26)
+## A scratch head store scheduled between the block's own stores is still `SCRATCH_STACK_RESERVE_BLOCK` first (_worldCoordWritePointLightMatrixOutOfLine, 2026-09-26)
 
 Target: `lw s4,head; addiu s0,s4,-0x1C; sw v0,-0x1C(s4); ... sw v0,4(s0); sw s0,head; sw v0,8(s0)`
 - the head store sits between the second and third field stores, so it had
@@ -145115,7 +145115,7 @@ value through the load's REG_EQUIV note and used `v0` directly. The typed idiom
 `SCRATCH_STACK_RESERVE_BLOCK(T); lightScratch = SCRATCH_STACK_CURSOR(T); ... SCRATCH_STACK_RELEASE_BLOCK(T);` with
 `&lightScratch->result.direction` matched outright: sched1 moves the head store down among the
 field stores, and the `lightScratch` copy it leaves between the field store and the
-asm stops reload's equivalence search, as in `func_800D9794`. A head store in
+asm stops reload's equivalence search, as in `_worldCoordWriteDirectionalLightMatrixOutOfLine`. A head store in
 the middle of the block's initialisation is not evidence for hand-computed
 offsets.
 ## `TOUCH_REG` on a walking pointer inside a loop stood for indexed source (func_800DF6AC, 2026-09-26)
@@ -146846,7 +146846,7 @@ The exact jump-chain traversal behind this order sensitivity was not traced.
 Controlled candidates: `base_2.i` SHA-256 `9a92e51cfad6495d2f9487d5c78e8253b19370330f64fa4ac0dc150a52ca1ffe`;
 `base_12.i` SHA-256 `26b9cf0d6055556c074d6a1a0813f04d4a085d240deccfa451150b02f801b140`. No new helper or assembly is needed.
 
-## Read a stored GTE scalar directly before pinning its scratch pointer (func_800D759C, 2026-09-27)
+## Read a stored GTE scalar directly before pinning its scratch pointer (_worldCoordWriteParentFrameLightMatrix, 2026-09-27)
 
 The remaining scratch-block pin disappears with `block->scale = light->transform.lighting.attenuation;
 gte_lddp(block->scale);`, removing the scalar local previously passed to
@@ -146860,7 +146860,7 @@ IR0 without adding a load. The scratch score returns to the seed's 99.948%
 (symbol spelling only); the unscoped build matches. Check whether a GTE scalar
 is already stored in the scratch struct before introducing a separate local.
 
-Evidence: `nonmatchings/func_800D759C-dehack/trace_base_6/REPORT.txt`; observed
+Evidence: `nonmatchings/_worldCoordWriteParentFrameLightMatrix-dehack/trace_base_6/REPORT.txt`; observed
 and ordinary assembly are identical. Preprocessed SHA-256: `base_1.i`
 `35eb958c10f0d0dba532e0890d17ed15cb040a677123e0991718ac133686e01a`, `base_6.i`
 `859e4dd8af3ae482eb922fadac7318ef685028ca19f68211385dfa79e35dd07b`.

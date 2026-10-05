@@ -13,8 +13,8 @@
 #include "main/mc_types.h"
 #include "main/task_types.h"
 
-/// Room bound standing in when a lookup fails: what `Gp_GetRoomBound` returns
-/// in place of a table entry, and what `Gp_CopyDefaultBound` copies out.
+/// Default ambient-light entry returned by `_worldCoordGetRoomAmbientEntry`
+/// when no view entry is available, and copied by `_worldCoordCopyDefaultRoomAmbient`.
 extern WorldCoordRoomAmbientEntry Gp_RoomBoundDefault;
 
 /// Default `MATRIX` installed at `TmdObject.lightMtx` by `Gp_BindDefaultMtx`.

@@ -526,9 +526,9 @@ static void Gp_ScriptTaskState1(Task* arg0)
                     vec.vx = work->command->operand0.value * EVENT_SCRIPT_LIGHT_VALUE_SCALE;
                     vec.vy = work->command->operand0.value * EVENT_SCRIPT_LIGHT_VALUE_SCALE;
                     vec.vz = work->command->operand0.value * EVENT_SCRIPT_LIGHT_VALUE_SCALE;
-                    Gp_SetOverrideVec2(&vec);
+                    worldCoordSetLightColorScaleOverride(&vec);
                 } else {
-                    Gp_SetOverrideVec2(NULL);
+                    worldCoordSetLightColorScaleOverride(NULL);
                 }
                 break;
 

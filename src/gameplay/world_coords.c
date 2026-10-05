@@ -86,6 +86,18 @@ typedef struct {
 } _WorldCoordNearestRoomLight;
 STATIC_ASSERT_SIZEOF(_WorldCoordNearestRoomLight, 0xC);
 
+/// RGB weights and base score used before distance attenuation of a light contribution.
+///
+/// With all three channels at ONE, the unattenuated score is ONE. The RGB
+/// sum is shifted arithmetically by eight before the base score is added.
+enum {
+    WORLD_COORDINATE_LIGHT_SCORE_RED_WEIGHT   = 8,
+    WORLD_COORDINATE_LIGHT_SCORE_GREEN_WEIGHT = 6,
+    WORLD_COORDINATE_LIGHT_SCORE_BLUE_WEIGHT  = 2,
+    WORLD_COORDINATE_LIGHT_SCORE_RGB_SHIFT    = 8,
+    WORLD_COORDINATE_LIGHT_SCORE_BASE         = 0xF00
+};
+
 /// Values written to the light-probe's ranked snapshot gate.
 enum {
     WORLD_COORDINATE_LIGHT_CAPTURE_DISABLED = 0,
@@ -261,8 +273,6 @@ static s32 Gp_LightPoint(WorldCoordPointLight* light, VECTOR3* pos);
 
 static s32 Gp_LightCone(WorldCoordSpotLight* spot, VECTOR3* pos);
 
-static void func_800D759C(s32 arg0, WorldCoordLight* arg1, VECTOR* arg2, TmdObject* arg3);
-
 /// Selects the nearest point or cone light to world position `arg0`, using
 /// squared distance after halving each coordinate difference. Initializes
 /// `nearestLight` to no selection even when `Gp_GetRoomCoordSet` returns 0.
@@ -291,39 +301,59 @@ static void Gp_DebugPanTask(Task* arg0);
 /// and clears the bit.
 static void Gp_RemapActorColor(Enemy* arg0, MATRIX* arg1, s32 arg2);
 
-static void Gp_LightFalloff(WorldCoordPointLight* light);
-
-static const WorldCoordRoomAmbientEntry* Gp_GetRoomBound(GameLocationKey* arg0);
+static const WorldCoordRoomAmbientEntry* _worldCoordGetRoomAmbientEntry(const GameLocationKey* location);
 
 static s32 Gp_CountRoomCoords(void);
 
 static WorldCoordRoomLights* Gp_GetRoomCoordSet(GameLocationKey* arg0);
 
-static s32 Gp_GetObjLuma(WorldCoordLight* arg0);
-
-/// World X of the object's position.
-static s32 Gp_GetObjTransX(GfxCoord* coord);
-
-static void func_800D9794(s32 arg0, WorldCoordLight* arg1, VECTOR* arg2, TmdObject* arg3);
-
-static void func_800D98C4(s32 arg0, WorldCoordLight* arg1, VECTOR* arg2, TmdObject* arg3);
-
-static void func_800D9A30(s32 arg0, WorldCoordLight* arg1, VECTOR* arg2, TmdObject* arg3);
-
 void Gp_InsertRankedSlot(_WorldCoordRankedLight* arg0, s32 arg1, s32 arg2, WorldCoordLight* arg3, s32 arg4);
 
 static void _worldCoordFillLightColorMatrixOutOfLine(MATRIX* colorMtx, s16 r, s16 g, s16 b);
 
-static WorldCoordRoomLighting* Gp_GetRoomCoordRec(GameLocationKey* arg0);
-
-static void Gp_CopyDefaultBound(WorldCoordRoomAmbientEntry* ambientEntry);
-
 static void Gp_BindDefaultMtx(Task* arg0);
 
-static __inline__ void Gp_ObjWorldPosInline(WorldCollisionBody* obj, VECTOR* pos);
+/// Writes a model RGB column from a light's signed Q12 colour and attenuation.
+///
+/// All arguments must be side-effect-free expressions. lightIndex is 0..2;
+/// colorMtx is writable. lightScratch points to either light-matrix scratch
+/// layout with attenuation and result.color members, overwritten here. Source,
+/// output and scratch must be disjoint. Changes GTE arithmetic state. Expands
+/// to a compound statement; use only as a standalone statement inside braces.
+#define WORLD_COORDINATE_WRITE_ATTENUATED_LIGHT_COLOR_COLUMN(lightIndex, light, lightScratch, colorMtx) \
+    {                                                                                                   \
+        (lightScratch)->attenuation = (light)->transform.lighting.attenuation;                          \
+        gte_lddp((lightScratch)->attenuation);                                                          \
+        gte_ldsv(&(light)->color);                                                                      \
+        gte_gpf12();                                                                                    \
+        gte_stsv(&(lightScratch)->result.color);                                                        \
+        (colorMtx)->m[0][(lightIndex)] = (lightScratch)->result.color.r;                                \
+        (colorMtx)->m[1][(lightIndex)] = (lightScratch)->result.color.g;                                \
+        (colorMtx)->m[2][(lightIndex)] = (lightScratch)->result.color.b;                                \
+    }
 
 /// The same lookup as `Gp_GetIdParam0`, returned at the tables' own width.
 static inline u16 _gpIdParam0(s32 id);
+
+/// Borrows a room-lighting descriptor through nullable stage and area tables.
+///
+/// The key must contain valid 1-based stage/area/room indices. The returned
+/// descriptor belongs to the loaded table's overlay and may be NULL.
+static __inline__ WorldCoordRoomLighting* _worldCoordLookupRoomLighting(const GameLocationKey* location)
+{
+    WorldCoordRoomLighting** areaLightingTables;
+    WorldCoordRoomLighting*  roomLighting;
+
+    areaLightingTables = Gp_RoomCoordTables[location->stage - 1];
+    roomLighting       = NULL;
+    if (areaLightingTables != NULL) {
+        roomLighting = areaLightingTables[location->area - 1];
+        if (roomLighting != NULL) {
+            roomLighting = &roomLighting[location->room - 1];
+        }
+    }
+    return roomLighting;
+}
 
 /// Returns 1 if item `arg0` cannot be used, 0 if it can.
 /// `arg1` supplies `field_2` (capacity) for ammo ids 0xA0–0xBF.
@@ -587,42 +617,46 @@ static s32 Gp_LightCone(WorldCoordSpotLight* spot, VECTOR3* pos)
     return result;
 }
 
-static void func_800D759C(s32 arg0, WorldCoordLight* arg1, VECTOR* arg2, TmdObject* arg3)
+/// Writes one model light row and RGB column from a source in its parent's frame.
+///
+/// `lightIndex` is 0..2. `model` borrows writable lightMtx and colorMtx matrices;
+/// their other rows/columns and translations are preserved. The light's parent
+/// must be live. The negated local translation is normalized, rotated by the
+/// parent's composed rotation with the view rotation undone, then negated into
+/// the light row. The colour column uses signed RGB intensities scaled by the
+/// source's previously computed Q12 attenuation. `unusedObjectPosition` is
+/// ignored and may be NULL. Requires 60 scratch bytes plus 24 for normalization,
+/// releases them before return, composes the parent and changes GTE state.
+///
+/// Retained out-of-line entry with no current call sites.
+static void _worldCoordWriteParentFrameLightMatrix(s32 lightIndex, const WorldCoordLight* light, const VECTOR* unusedObjectPosition, const TmdObject* model)
 {
     _WorldCoordParentFrameLightMatrixScratch* lightScratch;
     MATRIX*                                   dirMtx;
     MATRIX*                                   colorMtx;
 
     lightScratch = SCRATCH_STACK_RESERVE_BLOCK(_WorldCoordParentFrameLightMatrixScratch);
-    dirMtx       = arg3->lightMtx;
-    colorMtx     = arg3->colorMtx;
+    dirMtx       = model->lightMtx;
+    colorMtx     = model->colorMtx;
 
-    lightScratch->lightToParentOrigin.vx = -arg1->transform.lighting.local.t[0];
-    lightScratch->lightToParentOrigin.vy = -arg1->transform.lighting.local.t[1];
-    lightScratch->lightToParentOrigin.vz = -arg1->transform.lighting.local.t[2];
+    lightScratch->lightToParentOrigin.vx = -light->transform.lighting.local.t[0];
+    lightScratch->lightToParentOrigin.vy = -light->transform.lighting.local.t[1];
+    lightScratch->lightToParentOrigin.vz = -light->transform.lighting.local.t[2];
     gfxNormalizeLightDirection(&lightScratch->lightToParentOrigin, &lightScratch->result.direction);
 
     // Undo the view rotation in the parent's composed rotation, then turn the direction by it.
-    actorRenderComposeCoord(arg1->transform.lighting.parent);
+    actorRenderComposeCoord(light->transform.lighting.parent);
     TransposeMatrix(&gGfxViewCoord.workm, &lightScratch->parentRotation);
-    gte_MulMatrix0(&lightScratch->parentRotation, &arg1->transform.lighting.parent->workm, &lightScratch->parentRotation);
+    gte_MulMatrix0(&lightScratch->parentRotation, &light->transform.lighting.parent->workm, &lightScratch->parentRotation);
 
     _gfxRotateSv(&lightScratch->parentRotation, &lightScratch->result.direction);
 
-    dirMtx->m[arg0][0] = -lightScratch->result.direction.vx;
-    dirMtx->m[arg0][1] = -lightScratch->result.direction.vy;
-    dirMtx->m[arg0][2] = -lightScratch->result.direction.vz;
+    dirMtx->m[lightIndex][0] = -lightScratch->result.direction.vx;
+    dirMtx->m[lightIndex][1] = -lightScratch->result.direction.vy;
+    dirMtx->m[lightIndex][2] = -lightScratch->result.direction.vz;
 
     // Reuse the direction storage for the attenuated RGB column.
-    lightScratch->attenuation = arg1->transform.lighting.attenuation;
-    gte_lddp(lightScratch->attenuation);
-    gte_ldsv(&arg1->color);
-    gte_gpf12();
-    gte_stsv(&lightScratch->result.color);
-
-    colorMtx->m[0][arg0] = lightScratch->result.color.r;
-    colorMtx->m[1][arg0] = lightScratch->result.color.g;
-    colorMtx->m[2][arg0] = lightScratch->result.color.b;
+    WORLD_COORDINATE_WRITE_ATTENUATED_LIGHT_COLOR_COLUMN(lightIndex, light, lightScratch, colorMtx);
 
     SCRATCH_STACK_RELEASE_BLOCK(_WorldCoordParentFrameLightMatrixScratch);
 }
@@ -1050,7 +1084,7 @@ void func_800D7A9C(TmdObject* extra, VECTOR* pos, s32 start, s32 count)
     } else {
         const WorldCoordRoomAmbientEntry* ambientEntry;
 
-        ambientEntry = Gp_GetRoomBound(&gGameSession->location.loc);
+        ambientEntry = _worldCoordGetRoomAmbientEntry(&gGameSession->location.loc);
         if (colorMtx->t[0] < ambientEntry->color.r) {
             colorMtx->t[0] = ambientEntry->color.r;
         }
@@ -1397,41 +1431,65 @@ void Gp_UpdateActorColor(Enemy* arg0, VECTOR* arg1, s32 arg2, s32 arg3)
     }
 }
 
-static void Gp_LightFalloff(WorldCoordPointLight* light)
+/// Stores a point light's attenuation and contribution score at its parent's origin.
+///
+/// Samples the light's local translation in game-coordinate units, without a
+/// view-filter test or coordinate composition. Halved signed offsets supply
+/// squared distance; inner/outer radii use the same units. Attenuation is ONE
+/// within the inner radius, zero outside the outer radius and a Q12 remaining
+/// squared-distance-span ratio between them. The signed weighted RGB score is
+/// scaled by that attenuation and stored in composed.t[0], replacing cached X.
+/// Requires 32 free scratch-stack bytes, released before return. Equal radii
+/// retain full strength at their boundary; the reduction and truncation order
+/// are part of the retained calculation.
+static void _worldCoordEvaluatePointLightAtParentOrigin(WorldCoordPointLight* light)
 {
-    _WorldCoordPointLightFalloffScratch* falloff;
-    s32                                  result;
-    WorldCoordLight*                     base;
+/// Applies the inner-relative squared-distance fade to a point-light score.
+///
+/// falloff is a side-effect-free scratch pointer expression with all four
+/// scalars initialized, the sample inside outerLimit and attenuation ONE.
+/// contributionScore is a distinct s32 lvalue, overwritten with the result.
+/// Expands to a compound statement; use only as a standalone statement inside
+/// braces. Updates the scratch scalars using unsigned Q12 span arithmetic.
+#define WORLD_COORDINATE_APPLY_POINT_LIGHT_FADE(falloff, contributionScore)                                                                                              \
+    {                                                                                                                                                                    \
+        if ((falloff)->distanceSquared > (falloff)->innerRadiusSquared) {                                                                                                \
+            (falloff)->outerLimit      -= (falloff)->innerRadiusSquared;                                                                                                 \
+            (falloff)->distanceSquared -= (falloff)->innerRadiusSquared;                                                                                                 \
+            while ((falloff)->outerLimit > WORLD_COORDINATE_LIGHT_FALLOFF_MAX_SPAN) {                                                                                    \
+                (falloff)->outerLimit      >>= WORLD_COORDINATE_LIGHT_FALLOFF_REDUCTION_SHIFT;                                                                           \
+                (falloff)->distanceSquared >>= WORLD_COORDINATE_LIGHT_FALLOFF_REDUCTION_SHIFT;                                                                           \
+            }                                                                                                                                                            \
+            if ((falloff)->outerLimit != 0) {                                                                                                                            \
+                (falloff)->attenuation = (((falloff)->outerLimit - (falloff)->distanceSquared) << WORLD_COORDINATE_LIGHT_FALLOFF_FRACTION_BITS) / (falloff)->outerLimit; \
+                (contributionScore)    = ((falloff)->attenuation * (contributionScore)) >> WORLD_COORDINATE_LIGHT_FALLOFF_FRACTION_BITS;                                 \
+            }                                                                                                                                                            \
+        }                                                                                                                                                                \
+    }
 
-    base                     = &light->head;
-    result                   = 0;
+    _WorldCoordPointLightFalloffScratch* falloff;
+    s32                                  contributionScore;
+    WorldCoordLight*                     header;
+
+    header                   = &light->head;
+    contributionScore        = 0;
     falloff                  = SCRATCH_STACK_RESERVE_BLOCK(_WorldCoordPointLightFalloffScratch);
-    falloff->halfOffset.vx   = base->transform.lighting.local.t[0] >> 1;
-    falloff->halfOffset.vy   = base->transform.lighting.local.t[1] >> 1;
-    falloff->halfOffset.vz   = base->transform.lighting.local.t[2] >> 1;
+    falloff->halfOffset.vx   = header->transform.lighting.local.t[0] >> 1;
+    falloff->halfOffset.vy   = header->transform.lighting.local.t[1] >> 1;
+    falloff->halfOffset.vz   = header->transform.lighting.local.t[2] >> 1;
     falloff->distanceSquared = falloff->halfOffset.vx * falloff->halfOffset.vx + falloff->halfOffset.vy * falloff->halfOffset.vy + falloff->halfOffset.vz * falloff->halfOffset.vz;
     falloff->outerLimit      = (light->outer * light->outer) >> 2;
     falloff->attenuation     = 0;
     if (falloff->outerLimit >= falloff->distanceSquared) {
         falloff->innerRadiusSquared = (light->inner * light->inner) >> 2;
-        result                      = ((light->head.color.r * 8 + light->head.color.g * 6 + light->head.color.b * 2) >> 8) + 0xF00;
+        contributionScore           = ((light->head.color.r * WORLD_COORDINATE_LIGHT_SCORE_RED_WEIGHT + light->head.color.g * WORLD_COORDINATE_LIGHT_SCORE_GREEN_WEIGHT + light->head.color.b * WORLD_COORDINATE_LIGHT_SCORE_BLUE_WEIGHT) >> WORLD_COORDINATE_LIGHT_SCORE_RGB_SHIFT) + WORLD_COORDINATE_LIGHT_SCORE_BASE;
         falloff->attenuation        = ONE;
-        // Measure the fade interval from its inner edge and bound the Q12 numerator.
-        if (falloff->distanceSquared > falloff->innerRadiusSquared) {
-            falloff->outerLimit      -= falloff->innerRadiusSquared;
-            falloff->distanceSquared -= falloff->innerRadiusSquared;
-            while (falloff->outerLimit > WORLD_COORDINATE_LIGHT_FALLOFF_MAX_SPAN) {
-                falloff->outerLimit      >>= WORLD_COORDINATE_LIGHT_FALLOFF_REDUCTION_SHIFT;
-                falloff->distanceSquared >>= WORLD_COORDINATE_LIGHT_FALLOFF_REDUCTION_SHIFT;
-            }
-            if (falloff->outerLimit != 0) {
-                falloff->attenuation = ((falloff->outerLimit - falloff->distanceSquared) << WORLD_COORDINATE_LIGHT_FALLOFF_FRACTION_BITS) / falloff->outerLimit;
-                result               = (falloff->attenuation * result) >> WORLD_COORDINATE_LIGHT_FALLOFF_FRACTION_BITS;
-            }
-        }
+        WORLD_COORDINATE_APPLY_POINT_LIGHT_FADE(falloff, contributionScore);
+#undef WORLD_COORDINATE_APPLY_POINT_LIGHT_FADE
     }
-    base->transform.lighting.attenuation   = falloff->attenuation;
-    base->transform.lighting.composed.t[0] = result;
+    // Publish the attenuation and repurpose cached X as the contribution score.
+    header->transform.lighting.attenuation   = falloff->attenuation;
+    header->transform.lighting.composed.t[0] = contributionScore;
     SCRATCH_STACK_RELEASE_BLOCK(_WorldCoordPointLightFalloffScratch);
 }
 
@@ -1567,14 +1625,17 @@ void Gp_SetOverrideVec(SVECTOR* arg0)
     Gp_OverrideVec     = *arg0;
 }
 
-void Gp_SetOverrideVec2(SVECTOR* arg0)
+void worldCoordSetLightColorScaleOverride(const SVECTOR* colorScales)
 {
-    if (arg0 == NULL) {
-        Gp_OverrideVec2Flag = 0;
+    enum { WORLD_COORDINATE_LIGHT_COLOR_OVERRIDE_DISABLED = 0,
+           WORLD_COORDINATE_LIGHT_COLOR_OVERRIDE_ENABLED  = 1 };
+
+    if (colorScales == NULL) {
+        Gp_OverrideVec2Flag = WORLD_COORDINATE_LIGHT_COLOR_OVERRIDE_DISABLED;
         return;
     }
-    Gp_OverrideVec2Flag         = 1;
-    Gp_OverrideVec2.inputVector = *arg0;
+    Gp_OverrideVec2Flag         = WORLD_COORDINATE_LIGHT_COLOR_OVERRIDE_ENABLED;
+    Gp_OverrideVec2.inputVector = *colorScales;
 }
 
 void Gp_SetObjTrans(TmdObject* arg0, s16 arg1, s16 arg2, s16 arg3)
@@ -1587,27 +1648,27 @@ void Gp_SetObjTrans(TmdObject* arg0, s16 arg1, s16 arg2, s16 arg3)
     m->t[2] = arg3;
 }
 
-static const WorldCoordRoomAmbientEntry* Gp_GetRoomBound(GameLocationKey* arg0)
+/// Borrows the minimum ambient-light entry for a room view, or the default entry.
+///
+/// `location` supplies valid 1-based stage, area and room indices within their
+/// loaded tables, and normally a 1-based view. A missing stage/area room table,
+/// missing ambient table or view above its signed count returns the default.
+/// The retained zero-view case selects the table header when its count admits
+/// zero. Room entries must not outlive the loaded room overlay; the default
+/// entry lives with gameplay. No bounds are checked beyond the view count.
+static const WorldCoordRoomAmbientEntry* _worldCoordGetRoomAmbientEntry(const GameLocationKey* location)
 {
-    WorldCoordRoomLighting**          areaLightingTables;
     WorldCoordRoomLighting*           roomLighting;
     const WorldCoordRoomAmbientEntry* ambientEntry;
     const WorldCoordRoomAmbientEntry* ambientTable;
 
-    areaLightingTables = Gp_RoomCoordTables[arg0->stage - 1];
-    roomLighting       = NULL;
-    if (areaLightingTables != NULL) {
-        roomLighting = areaLightingTables[arg0->area - 1];
-        if (roomLighting != NULL) {
-            roomLighting = &roomLighting[arg0->room - 1];
-        }
-    }
+    roomLighting = _worldCoordLookupRoomLighting(location);
     ambientEntry = &Gp_RoomBoundDefault;
     if (roomLighting != NULL) {
         ambientTable = roomLighting->ambientTable;
         if (ambientTable != NULL) {
-            if (ambientTable->viewCount >= arg0->view) {
-                ambientEntry = &ambientTable[arg0->view];
+            if (ambientTable->viewCount >= location->view) {
+                ambientEntry = &ambientTable[location->view];
             }
         }
     }
@@ -1656,25 +1717,46 @@ void func_800D96C8(Task* arg0)
     funcs[arg0->state](arg0);
 }
 
-static s32 Gp_GetObjLuma(WorldCoordLight* arg0)
+/// Scores a directional light admitted by the current room view.
+///
+/// A matching view or WORLD_COORDINATE_LIGHT_ALL_VIEWS sets the light's Q12
+/// attenuation to ONE and returns its weighted RGB score plus the base score.
+/// A rejected view returns zero and retains the previous attenuation. Source
+/// RGB values are signed Q12 intensities; no coordinate or scratch state is used.
+static s32 _worldCoordScoreDirectionalLightOutOfLine(WorldCoordLight* light)
 {
     s16 viewId;
 
-    viewId = arg0->transform.lighting.viewId;
+    viewId = light->transform.lighting.viewId;
     if (viewId != WORLD_COORDINATE_LIGHT_ALL_VIEWS && gGameSession->location.loc.view != viewId) {
         return 0;
     }
-    arg0->transform.lighting.attenuation = ONE;
-    return ((arg0->color.r * 8 + arg0->color.g * 6 + arg0->color.b * 2) >> 8) + 0xF00;
+    light->transform.lighting.attenuation = ONE;
+    return ((light->color.r * WORLD_COORDINATE_LIGHT_SCORE_RED_WEIGHT + light->color.g * WORLD_COORDINATE_LIGHT_SCORE_GREEN_WEIGHT + light->color.b * WORLD_COORDINATE_LIGHT_SCORE_BLUE_WEIGHT) >> WORLD_COORDINATE_LIGHT_SCORE_RGB_SHIFT) + WORLD_COORDINATE_LIGHT_SCORE_BASE;
 }
 
-/// World X of the object's position.
-static s32 Gp_GetObjTransX(GfxCoord* coord)
+/// Returns a coordinate's cached local-origin X in its composition-root frame.
+///
+/// `coord->workm` must already be composed. The result is in game-coordinate
+/// units; the root may be the view or an explicitly excluded ancestor. This
+/// reads the cache without composing the coordinate or changing GTE state.
+static s32 _worldCoordGetOriginComposedX(const GfxCoord* coord)
 {
     return coord->workm.t[0];
 }
 
-static void func_800D9794(s32 arg0, WorldCoordLight* arg1, VECTOR* arg2, TmdObject* arg3)
+/// Writes one model light row and RGB column from a composed directional source.
+///
+/// `lightIndex` is 0..2; model lightMtx and colorMtx must be writable 3x3
+/// matrices. The source's composed translation is the direction in the model
+/// lighting frame and must have its following word readable for normalization.
+/// The colour column scales signed RGB intensities by the stored Q12
+/// attenuation. `unusedObjectPosition` is ignored and may be NULL. Other
+/// matrix rows/columns and translations are preserved. Requires 28 scratch
+/// bytes plus 24 for normalization, released before return; changes GTE state.
+///
+/// Retained out-of-line entry with no current call sites.
+static void _worldCoordWriteDirectionalLightMatrixOutOfLine(s32 lightIndex, const WorldCoordLight* light, const VECTOR* unusedObjectPosition, const TmdObject* model)
 {
     _WorldCoordLightMatrixScratch* lightScratch;
     MATRIX*                        dirMtx;
@@ -1682,29 +1764,32 @@ static void func_800D9794(s32 arg0, WorldCoordLight* arg1, VECTOR* arg2, TmdObje
 
     SCRATCH_STACK_RESERVE_BLOCK(_WorldCoordLightMatrixScratch);
     lightScratch = SCRATCH_STACK_CURSOR(_WorldCoordLightMatrixScratch);
-    dirMtx       = arg3->lightMtx;
-    colorMtx     = arg3->colorMtx;
-    gfxNormalizeLightDirection(arg1->transform.coord.workm.t, &lightScratch->result.direction);
+    dirMtx       = model->lightMtx;
+    colorMtx     = model->colorMtx;
+    gfxNormalizeLightDirection(light->transform.coord.workm.t, &lightScratch->result.direction);
 
-    dirMtx->m[arg0][0] = lightScratch->result.direction.vx;
-    dirMtx->m[arg0][1] = lightScratch->result.direction.vy;
-    dirMtx->m[arg0][2] = lightScratch->result.direction.vz;
+    dirMtx->m[lightIndex][0] = lightScratch->result.direction.vx;
+    dirMtx->m[lightIndex][1] = lightScratch->result.direction.vy;
+    dirMtx->m[lightIndex][2] = lightScratch->result.direction.vz;
 
     // Reuse the direction storage for the attenuated RGB column.
-    lightScratch->attenuation = arg1->transform.lighting.attenuation;
-    gte_lddp(lightScratch->attenuation);
-    gte_ldsv(&arg1->color);
-    gte_gpf12();
-    gte_stsv(&lightScratch->result.color);
-
-    colorMtx->m[0][arg0] = lightScratch->result.color.r;
-    colorMtx->m[1][arg0] = lightScratch->result.color.g;
-    colorMtx->m[2][arg0] = lightScratch->result.color.b;
+    WORLD_COORDINATE_WRITE_ATTENUATED_LIGHT_COLOR_COLUMN(lightIndex, light, lightScratch, colorMtx);
 
     SCRATCH_STACK_RELEASE_BLOCK(_WorldCoordLightMatrixScratch);
 }
 
-static void func_800D98C4(s32 arg0, WorldCoordLight* arg1, VECTOR* arg2, TmdObject* arg3)
+/// Writes one model light row and RGB column from a composed point source.
+///
+/// `lightIndex` is 0..2; model lightMtx and colorMtx must be writable 3x3
+/// matrices. `objectPosition` xyz and the light's composed translation use
+/// game-coordinate units in the same lighting frame. Normalizes object minus
+/// light, then negates it into the row. The RGB column uses the source's stored
+/// Q12 attenuation, computed before this call. Other rows/columns and matrix
+/// translations are preserved. Requires 28 scratch bytes plus 24 for
+/// normalization, released before return; changes GTE state.
+///
+/// Retained out-of-line entry with no current call sites.
+static void _worldCoordWritePointLightMatrixOutOfLine(s32 lightIndex, const WorldCoordLight* light, const VECTOR* objectPosition, const TmdObject* model)
 {
     _WorldCoordLightMatrixScratch* lightScratch;
     MATRIX*                        dirMtx;
@@ -1712,32 +1797,36 @@ static void func_800D98C4(s32 arg0, WorldCoordLight* arg1, VECTOR* arg2, TmdObje
 
     SCRATCH_STACK_RESERVE_BLOCK(_WorldCoordLightMatrixScratch);
     lightScratch                   = SCRATCH_STACK_CURSOR(_WorldCoordLightMatrixScratch);
-    dirMtx                         = arg3->lightMtx;
-    colorMtx                       = arg3->colorMtx;
-    lightScratch->lightToObject.vx = arg2->vx - arg1->transform.coord.workm.t[0];
-    lightScratch->lightToObject.vy = arg2->vy - arg1->transform.coord.workm.t[1];
-    lightScratch->lightToObject.vz = arg2->vz - arg1->transform.coord.workm.t[2];
+    dirMtx                         = model->lightMtx;
+    colorMtx                       = model->colorMtx;
+    lightScratch->lightToObject.vx = objectPosition->vx - light->transform.coord.workm.t[0];
+    lightScratch->lightToObject.vy = objectPosition->vy - light->transform.coord.workm.t[1];
+    lightScratch->lightToObject.vz = objectPosition->vz - light->transform.coord.workm.t[2];
     gfxNormalizeLightDirection(&lightScratch->lightToObject, &lightScratch->result.direction);
 
-    dirMtx->m[arg0][0] = -lightScratch->result.direction.vx;
-    dirMtx->m[arg0][1] = -lightScratch->result.direction.vy;
-    dirMtx->m[arg0][2] = -lightScratch->result.direction.vz;
+    dirMtx->m[lightIndex][0] = -lightScratch->result.direction.vx;
+    dirMtx->m[lightIndex][1] = -lightScratch->result.direction.vy;
+    dirMtx->m[lightIndex][2] = -lightScratch->result.direction.vz;
 
     // Reuse the direction storage for the attenuated RGB column.
-    lightScratch->attenuation = arg1->transform.lighting.attenuation;
-    gte_lddp(lightScratch->attenuation);
-    gte_ldsv(&arg1->color);
-    gte_gpf12();
-    gte_stsv(&lightScratch->result.color);
-
-    colorMtx->m[0][arg0] = lightScratch->result.color.r;
-    colorMtx->m[1][arg0] = lightScratch->result.color.g;
-    colorMtx->m[2][arg0] = lightScratch->result.color.b;
+    WORLD_COORDINATE_WRITE_ATTENUATED_LIGHT_COLOR_COLUMN(lightIndex, light, lightScratch, colorMtx);
 
     SCRATCH_STACK_RELEASE_BLOCK(_WorldCoordLightMatrixScratch);
 }
 
-static void func_800D9A30(s32 arg0, WorldCoordLight* arg1, VECTOR* arg2, TmdObject* arg3)
+/// Writes one model light row and RGB column from a composed cone source.
+///
+/// `lightIndex` is 0..2; model lightMtx and colorMtx must be writable 3x3
+/// matrices. `objectPosition` xyz and the light's composed translation use
+/// game-coordinate units in the same lighting frame. Normalizes object minus
+/// light, then negates it into the row. The cone's eligibility and Q12
+/// attenuation must already be evaluated; this call uses only its common
+/// header. Other rows/columns and matrix translations are preserved. Requires
+/// 28 scratch bytes plus 24 for normalization, released before return; changes
+/// GTE state.
+///
+/// Retained out-of-line entry with no current call sites.
+static void _worldCoordWriteConeLightMatrixOutOfLine(s32 lightIndex, const WorldCoordLight* light, const VECTOR* objectPosition, const TmdObject* model)
 {
     _WorldCoordLightMatrixScratch* lightScratch;
     MATRIX*                        dirMtx;
@@ -1745,27 +1834,19 @@ static void func_800D9A30(s32 arg0, WorldCoordLight* arg1, VECTOR* arg2, TmdObje
 
     SCRATCH_STACK_RESERVE_BLOCK(_WorldCoordLightMatrixScratch);
     lightScratch                   = SCRATCH_STACK_CURSOR(_WorldCoordLightMatrixScratch);
-    dirMtx                         = arg3->lightMtx;
-    colorMtx                       = arg3->colorMtx;
-    lightScratch->lightToObject.vx = arg2->vx - arg1->transform.coord.workm.t[0];
-    lightScratch->lightToObject.vy = arg2->vy - arg1->transform.coord.workm.t[1];
-    lightScratch->lightToObject.vz = arg2->vz - arg1->transform.coord.workm.t[2];
+    dirMtx                         = model->lightMtx;
+    colorMtx                       = model->colorMtx;
+    lightScratch->lightToObject.vx = objectPosition->vx - light->transform.coord.workm.t[0];
+    lightScratch->lightToObject.vy = objectPosition->vy - light->transform.coord.workm.t[1];
+    lightScratch->lightToObject.vz = objectPosition->vz - light->transform.coord.workm.t[2];
     gfxNormalizeLightDirection(&lightScratch->lightToObject, &lightScratch->result.direction);
 
-    dirMtx->m[arg0][0] = -lightScratch->result.direction.vx;
-    dirMtx->m[arg0][1] = -lightScratch->result.direction.vy;
-    dirMtx->m[arg0][2] = -lightScratch->result.direction.vz;
+    dirMtx->m[lightIndex][0] = -lightScratch->result.direction.vx;
+    dirMtx->m[lightIndex][1] = -lightScratch->result.direction.vy;
+    dirMtx->m[lightIndex][2] = -lightScratch->result.direction.vz;
 
     // Reuse the direction storage for the attenuated RGB column.
-    lightScratch->attenuation = arg1->transform.lighting.attenuation;
-    gte_lddp(lightScratch->attenuation);
-    gte_ldsv(&arg1->color);
-    gte_gpf12();
-    gte_stsv(&lightScratch->result.color);
-
-    colorMtx->m[0][arg0] = lightScratch->result.color.r;
-    colorMtx->m[1][arg0] = lightScratch->result.color.g;
-    colorMtx->m[2][arg0] = lightScratch->result.color.b;
+    WORLD_COORDINATE_WRITE_ATTENUATED_LIGHT_COLOR_COLUMN(lightIndex, light, lightScratch, colorMtx);
 
     SCRATCH_STACK_RELEASE_BLOCK(_WorldCoordLightMatrixScratch);
 }
@@ -1813,20 +1894,15 @@ static void _worldCoordFillLightColorMatrixOutOfLine(MATRIX* colorMtx, s16 r, s1
     _worldCoordFillLightColorMatrix(colorMtx, r, g, b);
 }
 
-static WorldCoordRoomLighting* Gp_GetRoomCoordRec(GameLocationKey* arg0)
+/// Borrows the lighting descriptor selected by stage, area and room.
+///
+/// `location` supplies valid 1-based indices within the loaded tables. A null
+/// stage or area room-table pointer returns NULL; otherwise the indexed room
+/// descriptor is returned even when its light and ambient pointers are null.
+/// The descriptor must not be retained after its owning overlay is unloaded.
+static WorldCoordRoomLighting* _worldCoordGetRoomLighting(const GameLocationKey* location)
 {
-    WorldCoordRoomLighting** areaLightingTables;
-    WorldCoordRoomLighting*  roomLighting;
-
-    areaLightingTables = Gp_RoomCoordTables[arg0->stage - 1];
-    roomLighting       = NULL;
-    if (areaLightingTables != NULL) {
-        roomLighting = areaLightingTables[arg0->area - 1];
-        if (roomLighting != NULL) {
-            roomLighting = &roomLighting[arg0->room - 1];
-        }
-    }
-    return roomLighting;
+    return _worldCoordLookupRoomLighting(location);
 }
 
 void func_800D9CC8(Task* arg0)
@@ -1834,7 +1910,11 @@ void func_800D9CC8(Task* arg0)
     taskCallExit(arg0);
 }
 
-static void Gp_CopyDefaultBound(WorldCoordRoomAmbientEntry* ambientEntry)
+/// Copies the complete default ambient-light entry into caller-owned storage.
+///
+/// `ambientEntry` must point to one writable WorldCoordRoomAmbientEntry. The
+/// eight-byte value is copied, so the destination has no borrowed lifetime.
+static void _worldCoordCopyDefaultRoomAmbient(WorldCoordRoomAmbientEntry* ambientEntry)
 {
     *ambientEntry = Gp_RoomBoundDefault;
 }
@@ -1874,21 +1954,32 @@ static void Gp_BindDefaultMtx(Task* arg0)
     }
 }
 
-static __inline__ void Gp_ObjWorldPosInline(WorldCollisionBody* obj, VECTOR* pos)
+/// Places a collision body's local centre/origin in its cached composition frame.
+///
+/// `body->coord->workm` must already be composed. Rotates the local SVECTOR
+/// offset and adds the cached translation, in game-coordinate units. Writes
+/// only position's xyz; its final word is untouched. Requires an initialized
+/// scratch stack with 48 free bytes, released before return; only the leading
+/// VECTOR is accessed. Replaces GTE rotation and arithmetic state, retains no
+/// pointer and does not compose or modify the body.
+static __inline__ void _worldCollisionGetBodyComposedPosition(const WorldCollisionBody* body, VECTOR* position)
 {
-    u8*     h;
-    VECTOR* vec;
-    h                          = SCRATCH_STACK_CURSOR(u8);
-    vec                        = (VECTOR*)(h - 0x30);
-    SCRATCH_STACK_CURSOR(void) = vec;
-    gte_SetRotMatrix(&obj->coord->workm);
-    gte_ldv0(&obj->pos);
+    // Only the leading VECTOR is accessed; the rest of the reservation is unproven.
+    enum { WORLD_COLLISION_BODY_POSITION_SCRATCH_BYTES = 0x30 };
+
+    u8*     scratchTop;
+    VECTOR* rotatedOffset;
+    scratchTop                 = SCRATCH_STACK_CURSOR(u8);
+    rotatedOffset              = (VECTOR*)(scratchTop - WORLD_COLLISION_BODY_POSITION_SCRATCH_BYTES);
+    SCRATCH_STACK_CURSOR(void) = rotatedOffset;
+    gte_SetRotMatrix(&body->coord->workm);
+    gte_ldv0(&body->pos);
     gte_rtv0();
-    gte_stlvnl(vec);
-    pos->vx = (obj->coord)->workm.t[0] + ((VECTOR*)(h - 0x30))->vx;
-    pos->vy = (obj->coord)->workm.t[1] + vec->vy;
-    pos->vz = (obj->coord)->workm.t[2] + vec->vz;
-    SCRATCH_STACK_RELEASE_BYTES(0x30);
+    gte_stlvnl(rotatedOffset);
+    position->vx = body->coord->workm.t[0] + rotatedOffset->vx;
+    position->vy = body->coord->workm.t[1] + rotatedOffset->vy;
+    position->vz = body->coord->workm.t[2] + rotatedOffset->vz;
+    SCRATCH_STACK_RELEASE_BYTES(WORLD_COLLISION_BODY_POSITION_SCRATCH_BYTES);
 }
 
 /// The same lookup as `Gp_GetIdParam0`, returned at the tables' own width.
