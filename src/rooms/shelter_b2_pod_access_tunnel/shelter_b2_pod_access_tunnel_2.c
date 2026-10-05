@@ -51,9 +51,6 @@
 #include "../../shared/room_visual_effects.h"
 #include "../../shared/glow_draw.h"
 #include "../../shared/room_events.h"
-// Exported instance: another image refers to this package's copy by name.
-#define effectSpriteDriftTask shelterB2PodAccessTunnelEffectSpriteDriftTask
-#include "../../shared/effect_sprite.h"
 
 static void _effectSpriteDrawBanked(const GfxCoord* coord, u16 frameAndPalette, s16 size, s16 angle);
 static void _effectSpriteDrawRotated(const GfxCoord* coord, u16 frameAndPalette, s16 size, s16 angle);
@@ -650,6 +647,12 @@ void func_shelter_b2_pod_access_tunnel_8017DC6C(Task* arg0)
 
 #include "../../shared/glow_draw_cone.inc.c"
 
+/// Names this room's externally linked drift-effect callback, declared in its public header.
+///
+/// Bind a function identifier with signature `void (Task*)` immediately before
+/// the drift fragment. It uses the name once for the definition and clears the
+/// binding afterwards; there are no arguments, captures or constructed tokens.
+#define EFFECT_SPRITE_DRIFT_TASK shelterB2PodAccessTunnelEffectSpriteDriftTask
 #include "../../shared/effect_sprite_drift.inc.c"
 
 #include "../../shared/effect_sprite_draw_banked.inc.c"

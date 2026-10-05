@@ -31,8 +31,7 @@
 
 #include "rooms/room.h"
 // Exported instance: another image refers to this package's copy by name.
-#define effectSpriteRiseTask  shelterB2PodBottomEffectSpriteRiseTask
-#define effectSpriteDriftTask shelterB2PodBottomEffectSpriteDriftTask
+#define effectSpriteRiseTask shelterB2PodBottomEffectSpriteRiseTask
 #include "../../shared/effect_sprite.h"
 
 static void _effectSpriteDrawBanked(const GfxCoord* coord, u16 frameAndPalette, s16 size, s16 angle);
@@ -301,6 +300,12 @@ void func_shelter_b2_pod_bottom_8017D760(Task* task)
     }
 }
 
+/// Names this room's externally linked drift-effect callback, declared in its public header.
+///
+/// Bind a function identifier with signature `void (Task*)` immediately before
+/// the drift fragment. It uses the name once for the definition and clears the
+/// binding afterwards; there are no arguments, captures or constructed tokens.
+#define EFFECT_SPRITE_DRIFT_TASK shelterB2PodBottomEffectSpriteDriftTask
 #include "../../shared/effect_sprite_drift.inc.c"
 
 #define EFFECT_SPRITE_BANKED_FIRST_TEXEL_ROW 112

@@ -1,17 +1,11 @@
 #include "main/random.h"
 
-/* Included drift-task implementation; declarations and the default contract
- * are in effect_sprite.h. Five room carriers instantiate this fragment.
+/* Included drift-task implementation; exported callback declarations and
+ * contracts are in the carriers' public headers. Five rooms instantiate it.
  * Drawer bindings are function identifiers, not expression-like macros. */
 
 #ifndef EFFECT_SPRITE_DRIFT_TASK
-/// Names the externally linked `void (Task*)` drift callback defined by this fragment.
-///
-/// Pod bottom and pod access tunnel use this default. Dryfield R08, pod service
-/// gantry and Shelter R48 bind their exported package callbacks before inclusion.
-/// The binding is used once as a definition name and cleared after inclusion;
-/// it has no arguments, captures, stringification or token pasting.
-#define EFFECT_SPRITE_DRIFT_TASK effectSpriteDriftTask
+#error "Bind EFFECT_SPRITE_DRIFT_TASK to the carrier's void (Task*) callback before inclusion"
 #endif
 #ifndef EFFECT_SPRITE_DRIFT_DRAW_BANKED
 /// Binds the twelve-frame drawer used by the drift task's banked state.
@@ -56,6 +50,19 @@ static __inline__ void _effectSpriteDriftInitializeVelocity(EffectWork* work)
     gte_ldsv(velocity);
     gte_gpf12();
     gte_stsv(velocity);
+}
+
+/// Moves the sprite by its signed-halfword velocity and invalidates the composed transform.
+///
+/// `coord` and `work` are borrowed from a live effect task. Velocity components
+/// are coordinate units per running update; translation uses signed 32-bit
+/// arithmetic. Acceleration and animation advancement remain with the caller.
+static __inline__ void _effectSpriteDriftMove(EffectWork* work, GfxCoord* coord)
+{
+    coord->coord.t[0]  += work->move.vx;
+    coord->coord.t[1]  += work->move.vy;
+    coord->coord.t[2]  += work->move.vz;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
 void EFFECT_SPRITE_DRIFT_TASK(Task* task)
@@ -206,10 +213,7 @@ void EFFECT_SPRITE_DRIFT_TASK(Task* task)
             // Draw the current cell before moving, accelerating, or retiring it.
             EFFECT_SPRITE_DRIFT_DRAW_BANKED(coord, work->index | work->pos.vx, work->scale, work->angle);
             if (work->step != 0) {
-                coord->coord.t[0]  += work->move.vx;
-                coord->coord.t[1]  += work->move.vy;
-                coord->coord.t[2]  += work->move.vz;
-                coord->composeStamp = GRAPHICS_COORD_DIRTY;
+                _effectSpriteDriftMove(work, coord);
 #if !EFFECT_SPRITE_DRIFT_FIXED_NEGATIVE_Y_ACCELERATION
                 if (((task->spawnArg1.value >> EFFECT_SPRITE_DRIFT_MOVEMENT_SHIFT) & EFFECT_SPRITE_DRIFT_MOVEMENT_MASK) == EFFECT_SPRITE_DRIFT_AGE_ACCELERATION) {
                     work->move.vy += work->age / 10;
@@ -229,10 +233,7 @@ void EFFECT_SPRITE_DRIFT_TASK(Task* task)
         case EFFECT_SPRITE_DRIFT_ALTERNATE:
             EFFECT_SPRITE_DRIFT_DRAW_ALTERNATE(coord, work->index | work->pos.vx, work->scale, work->angle);
             if (work->step != 0) {
-                coord->coord.t[0]  += work->move.vx;
-                coord->coord.t[1]  += work->move.vy;
-                coord->coord.t[2]  += work->move.vz;
-                coord->composeStamp = GRAPHICS_COORD_DIRTY;
+                _effectSpriteDriftMove(work, coord);
 #if !EFFECT_SPRITE_DRIFT_FIXED_NEGATIVE_Y_ACCELERATION
                 if (((task->spawnArg1.value >> EFFECT_SPRITE_DRIFT_MOVEMENT_SHIFT) & EFFECT_SPRITE_DRIFT_MOVEMENT_MASK) == EFFECT_SPRITE_DRIFT_AGE_ACCELERATION) {
                     work->move.vy += work->age / 10;
