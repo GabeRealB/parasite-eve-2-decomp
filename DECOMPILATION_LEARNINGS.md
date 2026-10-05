@@ -148434,3 +148434,70 @@ Not found: the natural second set. Tried: `s16 hp`, the difference
   the load to the top of the block instead). combine.c does not decrement
   `REG_N_REFS`, so a use that exists at flow time and is merged away later would
   still count; none was found here.
+
+### Unresolved, with the mechanism measured: the constant barriers of actor_560800's Kyle cue handler and the frame-0 window of the stalkers (2026-10-05)
+
+Three open cases whose asm statements hide a small constant from cse. None was
+removed; what each one stands for is now known.
+
+**A literal in `case 1:` is replaced by the switch operand (func_actor_560800_80134BFC).**
+`switch (step) { case 0: ...; step++; return; case 1: ... for (i = 1; i < n; i++)`
+compiles the loop's entry test as `sltu v0, <step reg>, n` instead of
+`li v0,1` / `sltu v0,v0,n`. cse follows the dispatch's taken `beq step, 1`
+into the case label (`cse_end_of_basic_block`: the label has one use and is
+preceded by a BARRIER), records `step == 1`, and the fresh `1` of the
+duplicated loop test then canonicalizes to the older pseudo, `step`. Measured
+in the dumps: cse1 leaves the test alone when a `do { } while (0)` sits before
+it (the path stops at `NOTE_INSN_LOOP_END` while `after_loop` is 0, which is
+what the `_actor560800ResetAnimHold` macro does), and cse2, which crosses the
+note, makes the replacement. The `__asm__("" : "=r"(first) : "0"((u16)1))`
+of `Actor560800_BlendSlotsFirst` and the two `SOFT_BARRIER`s exist to stop it.
+
+What stops it without asm is a path that cannot enter `case 1:` from the
+dispatch: the backward scan from the label has to meet something other than a
+BARRIER, and a `NOTE_INSN_LOOP_END` counts. Writing the three preceding
+`case 0:` tails as `do { [counter = 0;] step++; return; } while (0);` puts
+that note between the BARRIER and the label; with it the two
+`BlendSlotsFirst` calls become the existing `Actor560800_ReseedAnim`, the
+hand-expanded loop becomes `_ACTOR560800_BLEND_SLOTS(blend, 0x20, 5)`, and the
+image matches (scoped build). It was not committed: it trades four counted
+sites for three phony loops, and the wrapper is not a uniform macro - of the
+six other `step++; return;` tails in the function three accept it and three
+(`case 4` step 0, `case 20` step 1, `case 36` step 1) stop matching, the first
+because the target does use `step == 1` in the following case. `counter = 0`
+has to be inside the wrapper: the scheduler does not move the `lhu step` over
+a loop note, and the tail is then cross-jumped one insn longer. The original
+construct that ends those three case bodies is unknown.
+
+**`anim` copied from the pre-switch load (same function, `SOFT_TOUCH_REG(anim)`).**
+`ctx7 = kyle->work` is loaded before `switch (step)` and `case 0:` reloads the
+same pointer, which cse turns into a copy. Uses of the copy are rewritten to
+`ctx7` unless the copy becomes the class head, and `make_regs_eqv` requires
+the new register's last use to come after the old one's
+(`REGNO_LAST_UID(new) > REGNO_LAST_UID(firstr)`); `ctx7` is used in `case 1:`,
+textually later, so a fresh inline local never qualifies
+(`Actor560800_ReseedAnim(work->kyle, 3, ...)` stores through `ctx7`'s register
+and moves afterwards). Confirmed by giving `anim` a later use: hand-expanding
+`case 39` on the same local matches the site with no asm. That is not the
+answer either - the target's `case 39` pointer is in `$s0` and this one in
+`$s1`, so they are different pseudos - but it says what to look for: a later
+textual use of the copy, or no textual use of the pre-switch pointer after
+`case 0:`.
+
+**A zero in a register (`SOFT_MOVE_ZERO(start0)` in actor_400500 x3, actor_400600 x1).**
+The three computed bounds are `rate == 0 ? 0 : (u32)(n / rate) >> 4`; the
+first window's start is a register holding 0 (`addu s2,zero,zero` between the
+`lh frames` and its `bne`, no `andi` at either use, so not a `u8`). A fourth
+bound with `n` = 0 does give a register zero that cse cannot fold - through an
+inline (`static inline s32 f(Task*, s32 pos)`) integration folds `0 / rate`
+in both arms and the dead rate test survives until the last jump pass, which
+deletes it with its loads - but the `move` then sits in the dead test's block,
+ahead of the `lh`, and reorg takes it into the delay slot of the hit test's
+`beqz` (`beqz; move s2,zero; sh zero; lh; nop; bne` against the target's
+`beqz; nop; sh zero; lh; move s2,zero; bne`). Two hunks, 331 insns either way.
+Written as a macro in the caller (`0 / rate` folded by cse1 instead) both arms
+keep their own `move` and the test stays. Reading `frames` before the call
+(`frames == (start0 = f(arg0, 0))`) makes the frame value live across the dead
+test and it leaves `$v0`. 168 inline shapes (five bodies, two numerators,
+return / local / `start0` types) gave nothing closer. The target needs the zero
+set in the same block as the compare and after the `lh`, yet unknown to cse2.
