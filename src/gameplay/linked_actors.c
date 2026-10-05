@@ -719,7 +719,7 @@ void func_800A57B0(HudState* hud)
         if (cfg->statusFlags != 0) {
             rectMode = 4;
         }
-        Ui_DrawTextInRect(&rect, -1, rectMode, NULL);
+        uiDrawRectFrame(&rect, -1, rectMode, NULL);
     }
 
     if (cfg->statusFlags != 0) {

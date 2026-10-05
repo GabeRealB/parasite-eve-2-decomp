@@ -15292,7 +15292,7 @@ if (p->field_0 == (temp << 0x10)) {
 }
 ```
 
-Contrast with `Ui_DrawAndCallback`, where the target *does* keep the shifted value in
+Contrast with `_uiPanelOpening`, where the target *does* keep the shifted value in
 an s-reg — there `p->field_0 = temp << 0x10` is correct. `Ui_AnimCloseStep` is the
 reload form; pick based on whether the target reuses a shifted s-reg after the
 call or re-shifts from the original.
@@ -20034,8 +20034,8 @@ Do **not** also name a long-lived `RECT* arg2 = &sp18`: that steals `$s2` and
 changes the `bne` delay from `addiu s1,sp,0x10` to `addiu s2,sp,0x18`. Pass
 `&sp18` directly so each use is a fresh `addiu a2,sp,0x18`.
 
-`Ui_LayoutAndDraw` is the pure example (same shape as inlined `_uiComputeAnimatedPanelRect` +
-`uiUpdatePanelContentLayout` + `Ui_DrawPanel`).
+`_uiLayoutOpenPanel` is the pure example (same shape as inlined `_uiComputeDrawnPanelRect` +
+`_uiLayoutDrawnPanelContent` + `_uiDrawPanel`).
 
 ## Ring-buffer queue drain: non-volatile entry + split index advances
 
@@ -22424,7 +22424,7 @@ The `+r` barrier forces `li` to complete before any following `lui`, so delay-sl
 fill prefers the constant and the remaining schedule is `lui` / `sh` / …
 
 Pair with `register DR_AREA* p asm("s0")` when the same function's `addPrim`
-tails need `and s0, s0, a0` (mask in `$a0`). `Ui_DrawPanel` is the pure example.
+tails need `and s0, s0, a0` (mask in `$a0`). `_uiDrawPanel` is the pure example.
 
 ## Global array access for `addiu v0, base, off` form
 
@@ -22884,7 +22884,7 @@ end:
     return;
 ```
 
-`Ui_DrawWindowBorder` is the pure example. Pair with `register s32 y0r asm("v1")` if
+`_uiDrawPanelBackground` is the pure example. Pair with `register s32 y0r asm("v1")` if
 the second validity compare must load the right-hand operand first
 (`lh v1, y0; lh v0, y2; slt v0, v0, v1`).
 

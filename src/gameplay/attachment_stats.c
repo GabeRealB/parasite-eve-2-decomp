@@ -534,9 +534,9 @@ static void Gp_DrawItemPrompt(s32 arg0, s32 arg1)
     rect.y = y;
     rect.h = height;
     if (flag == 1) {
-        Ui_DrawTextInRect(&rect, -1, 0x40004, NULL);
+        uiDrawRectFrame(&rect, -1, 0x40004, NULL);
     } else {
-        Ui_DrawTextInRect(&rect, -1, 0x40002, NULL);
+        uiDrawRectFrame(&rect, -1, 0x40002, NULL);
     }
 }
 
@@ -891,7 +891,7 @@ static s32 func_800A2104(HudState* hud, s32 arg1, s32 arg2)
         rect.y = arg2 + 0x17;
         rect.w = 0x91;
         rect.h = 0x13;
-        Ui_DrawTextInRect(&rect, -1, 0x40002, NULL);
+        uiDrawRectFrame(&rect, -1, 0x40002, NULL);
 
         /* Spread the learned spells evenly round the wheel, turned by the
          * step still in progress; the unused points are retired. */

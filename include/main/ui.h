@@ -196,7 +196,20 @@ void uiDrawHorizontalSeparator(const UiPanel* panel, s32 left, s32 right, s32 ce
 /// writable signed panel OT base+2 tag. Retain the packet until GPU completion.
 void uiDrawVerticalSeparator(const UiPanel* panel, s32 top, s32 bottom, s32 centerX);
 
-void Ui_DrawTextInRect(RECT* rect, s32 arg1, s32 arg2, char* arg3);
+/// Queues a standalone textured panel frame and shaded interior.
+///
+/// `rect` is a writable outer rectangle in screen-centered pixels; width/height
+/// each grow by one, retaining sixteen bits. `otIndex - 3` must fit s32; its
+/// signed low halfword plus three selects the frame tag. HUD callers use -1
+/// and -10. Requires loaded UI atlas/palettes, a writable resulting tag and
+/// arena space for one SPRT_8, three SPRT-sized slots, four POLY_FT4 slots and
+/// two POLY_GT4 slots, plus two DR_MODE slots when the interior is drawable.
+/// Packets remain in the arena until GPU completion.
+///
+/// Supported callers pass NULL `title` and clear `USER_INTERFACE_PANEL_SCREEN_BRIGHTEN`.
+/// The retained title/screen-dimming paths read fields the temporary panel does
+/// not initialize, so neither path has a valid established drawing contract.
+void uiDrawRectFrame(RECT* rect, s32 otIndex, s32 style, const char* title);
 
 /// Queues an underlined title at the panel's animated upper-left edge.
 ///

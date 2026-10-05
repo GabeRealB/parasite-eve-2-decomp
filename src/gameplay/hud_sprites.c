@@ -130,7 +130,7 @@ STATIC_ASSERT_SIZEOF(_HudTargetHpReadoutScratch, 0x1C);
 /// most ten bytes: nine digits and a terminator. The request follows those
 /// sixteen bytes, clear of the text. When the maximum is negative,
 /// `hiddenAmount` draws the stand-in string from the bytes `digits` occupies.
-/// `frame.rect` is the outer rectangle passed to `Ui_DrawTextInRect` after
+/// `frame.rect` is the outer rectangle passed to `uiDrawRectFrame` after
 /// that text, on both paths, and it starts at the same byte as `value.request`.
 typedef union {
     UiObject uiObject;            // Content origin, ordering-table index and initial panel state
@@ -580,7 +580,7 @@ void Gp_DrawHudNumbers(s32 x, s32 y, s32 cur, s32 max, s32 kind)
     scratch.frame.rect.y = y;
     scratch.frame.rect.w = span + 0xA;
     scratch.frame.rect.h = 0x14;
-    Ui_DrawTextInRect(&scratch.frame.rect, -1, 0x40002, NULL);
+    uiDrawRectFrame(&scratch.frame.rect, -1, 0x40002, NULL);
 }
 
 static void Gp_HudTrackEnemy(Enemy* arg0, HudTargetHpReadout* readout)

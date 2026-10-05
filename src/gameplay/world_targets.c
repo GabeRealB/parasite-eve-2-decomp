@@ -584,7 +584,7 @@ static void Gp_UpdateLockSlots(void)
             rect.x = x - 8;
             rect.w = 0x18;
         }
-        Ui_DrawTextInRect(&rect, -0xA, 2, NULL);
+        uiDrawRectFrame(&rect, -0xA, 2, NULL);
 
         {
             s16 timer;

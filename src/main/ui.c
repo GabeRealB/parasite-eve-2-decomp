@@ -254,22 +254,67 @@ static void _taskNoOpCallback(Task* unusedTask);
 
 static inline u32 _uiGrey(s32 level);
 
-static void Ui_DrawWindowBorder(RECT* rect, s32 arg1, s32 arg2);
+static void _uiDrawPanelBackground(const RECT* rect, s32 style, s32 otIndex);
 
-/// Draws the textured frame and background for a panel's rectangles.
-static void Ui_DrawPanelFrame(UiPanel* panel, RECT* outer, RECT* inner, s32 unused4);
+static void _uiDrawPanelFrame(const UiPanel* panel, RECT* outer, const RECT* inner, s32 unusedClipFrame);
 
-static void Ui_DrawPanel(UiPanel* panel, RECT* arg1, RECT* arg2, s32 arg3);
+static void _uiDrawPanel(const UiPanel* panel, RECT* outerRect, const RECT* innerRect, s32 clipFrame);
 
 static void _uiLayoutHiddenPanel(UiPanel* panel);
 
 static void _uiComputeScaledPanelRect(const UiPanel* panel, RECT* rect, s32 scaleEighths, s32 unusedClosing);
 
-static void Ui_LayoutAndClip(UiPanel* panel);
+static void _uiLayoutOpeningPanel(UiPanel* panel);
 
-static void Ui_LayoutAndDraw(UiPanel* panel);
+static void _uiLayoutOpenPanel(UiPanel* panel);
 
-static void Ui_LayoutAndDrawAlt(UiPanel* panel);
+static void _uiLayoutShrinkingPanel(UiPanel* panel);
+
+/// Drawing layers, UI atlas encodings and framebuffer coordinates used by panels.
+enum {
+    USER_INTERFACE_FRAME_OT_OFFSET          = 3,
+    USER_INTERFACE_FRAME_ATLAS_TPAGE        = 0x1E,
+    USER_INTERFACE_FRAME_CLUT               = 0x3C03,
+    USER_INTERFACE_FRAME_ATLAS_TOP          = 0x50,
+    USER_INTERFACE_FRAME_CORNER_PIXELS      = 8,
+    USER_INTERFACE_PANEL_DRAW_VIEW_WIDTH    = 320,
+    USER_INTERFACE_PANEL_DRAW_VIEW_HEIGHT   = 240,
+    USER_INTERFACE_PANEL_DRAW_VIEW_CENTER_X = 160,
+    USER_INTERFACE_PANEL_DRAW_VIEW_CENTER_Y = 120,
+    USER_INTERFACE_PANEL_DRAW_BUFFER_STRIDE = 272,
+    USER_INTERFACE_PANEL_DITHERED_DRAW_MODE = 0xE1000200,
+    USER_INTERFACE_OPENING_CONTROL_SHIFT    = 16
+};
+
+/// Computes a nonzero pulsing grey using the caller's signed shade temporary.
+///
+/// GNU expression result is a u32 RGB word. `baseShadeValue` and `pulseValue`
+/// are evaluated once; `shadeValue` must be a side-effect-free s32 lvalue,
+/// distinct from the inputs. It is overwritten and evaluated repeatedly.
+/// Captures no identifiers; the caller retains the shade's lifetime.
+#define USER_INTERFACE_PULSING_BACKGROUND_COLOR(baseShadeValue, pulseValue, shadeValue) \
+    ({                                                                                  \
+        (shadeValue) = (baseShadeValue) - (pulseValue);                                 \
+        if ((shadeValue) <= 0) {                                                        \
+            (shadeValue) = 1;                                                           \
+        }                                                                               \
+        _uiGrey(shadeValue);                                                            \
+    })
+
+/// Saves input control, suspends opening input, then draws and runs content.
+///
+/// Standalone statement within a compound block. Panel/task arguments must be
+/// stable pointers without side effects; savedControlValue is a writable s32
+/// lvalue without side effects. Panel and saved-control arguments are used
+/// repeatedly; taskValue is used once. Captures no locals; the caller owns the
+/// saved value through the counter/restore phase.
+#define USER_INTERFACE_RUN_OPENING_PANEL_CONTENT(panelValue, taskValue, savedControlValue)        \
+    do {                                                                                          \
+        (savedControlValue)        = (panelValue)->control.word;                                  \
+        (panelValue)->control.word = (savedControlValue) << USER_INTERFACE_OPENING_CONTROL_SHIFT; \
+        _uiLayoutOpeningPanel(panelValue);                                                        \
+        (panelValue)->contentCallback(taskValue);                                                 \
+    } while (0)
 
 static void _uiQueueListDrawArea(const UiList* list, const UiPanel* panel, s32 fullScreen);
 
@@ -381,11 +426,11 @@ static void _uiComputeAnimatedPanelRect(const UiPanel* panel, RECT* rect);
 
 static void Ui_AnimOpenStep(UiPanel* panel, Task* task);
 
-static void Ui_DrawAndCallback(UiPanel* panel, Task* task);
+static void _uiPanelOpening(UiPanel* panel, Task* owningTask);
 
-static void Ui_LayoutDrawAndCallback(UiPanel* panel, Task* task);
+static void _uiPanelOpen(UiPanel* panel, Task* owningTask);
 
-static void Ui_TickAnimCounter(UiPanel* panel, Task* task);
+static void _uiPanelClosing(UiPanel* panel, Task* owningTask);
 
 static void Ui_AnimCloseStep(UiPanel* panel, Task* task);
 
@@ -562,9 +607,9 @@ UiObject*                Wip_UiHolder             = NULL;
 
 static const _UiPanelLifecycleFuncTable6 Ui_ObjectStates = { {
     Ui_AnimOpenStep,
-    [USER_INTERFACE_PANEL_OPENING] = Ui_DrawAndCallback,
-    [USER_INTERFACE_PANEL_OPEN]    = Ui_LayoutDrawAndCallback,
-    [USER_INTERFACE_PANEL_CLOSING] = Ui_TickAnimCounter,
+    [USER_INTERFACE_PANEL_OPENING] = _uiPanelOpening,
+    [USER_INTERFACE_PANEL_OPEN]    = _uiPanelOpen,
+    [USER_INTERFACE_PANEL_CLOSING] = _uiPanelClosing,
     [USER_INTERFACE_PANEL_HIDING]  = Ui_AnimCloseStep,
     _uiPanelHidden,
 } };
@@ -586,370 +631,389 @@ static inline u32 _uiGrey(s32 level)
     return (level << 16) | (level << 8) | level;
 }
 
-static void Ui_DrawWindowBorder(RECT* rect, s32 arg1, s32 arg2)
+/// Queues the shaded, repeating-texture interior of a panel at a signed OT tag.
+///
+/// `rect` is borrowed in screen-centered pixels; sixteen-bit vertex and eight-bit
+/// UV stores wrap without clamping. Dimmed style overrides pulsing greys; the
+/// low style nibble independently selects the palette. Needs two POLY_GT4 slots
+/// even when empty, and two DR_MODE slots when drawable, with a writable otIndex
+/// tag and loaded UI textures/palettes. Packets remain live until GPU completion.
+static void _uiDrawPanelBackground(const RECT* rect, s32 style, s32 otIndex)
 {
-    RECT      sp10;
-    POLY_GT4* p;
-    POLY_GT4* p2;
-    DR_MODE*  dr;
-    s32       val;
-    s32       t;
+    enum {
+        USER_INTERFACE_BACKGROUND_CLUT                       = 0x3C0F,
+        USER_INTERFACE_BACKGROUND_PULSING_CLUT               = 0x3C84,
+        USER_INTERFACE_BACKGROUND_UNRESTRICTED_WINDOW_PIXELS = 255,
+        USER_INTERFACE_BACKGROUND_REPEAT_PIXELS              = 32,
+        USER_INTERFACE_BACKGROUND_REPEAT_MASK                = USER_INTERFACE_BACKGROUND_REPEAT_PIXELS - 1,
+        USER_INTERFACE_BACKGROUND_PULSE_ANGLE_SHIFT          = 6,
+        USER_INTERFACE_BACKGROUND_SINE_ONE                   = 4096,
+        USER_INTERFACE_BACKGROUND_PULSE_SHADE_SHIFT          = 7,
+        USER_INTERFACE_BACKGROUND_BOTTOM_SPLIT_SHADE         = 176,
+        USER_INTERFACE_BACKGROUND_BOTTOM_EDGE_SHADE          = 128,
+        USER_INTERFACE_BACKGROUND_TOP_SPLIT_SHADE            = 64,
+        USER_INTERFACE_BACKGROUND_TOP_EDGE_SHADE             = 48
+    };
+    RECT      textureWindow;
+    POLY_GT4* leftQuad;
+    POLY_GT4* rightQuad;
+    DR_MODE*  windowCommand;
+    s32       pulse;
+    s32       shade;
 
-    p  = gGpuPrimCursor;
-    p2 = p + 1;
+    // Reserve both halves even when the narrowed rectangle has no drawable extent.
+    leftQuad  = gGpuPrimCursor;
+    rightQuad = leftQuad + 1;
 
-    p->x0 = p->x2 = rect->x;
-    p2->x0 = p2->x2 = rect->x + rect->w;
-    p->x1 = p->x3 = p2->x1 = p2->x3 = rect->w >> 1;
-    p2->y0 = p2->y1 = p->y0 = p->y1 = rect->y + rect->h;
-    p2->y2 = p2->y3 = p->y2 = p->y3 = rect->y;
+    leftQuad->x0 = leftQuad->x2 = rect->x;
+    rightQuad->x0 = rightQuad->x2 = rect->x + rect->w;
+    leftQuad->x1 = leftQuad->x3 = rightQuad->x1 = rightQuad->x3 = rect->w >> 1;
+    rightQuad->y0 = rightQuad->y1 = leftQuad->y0 = leftQuad->y1 = rect->y + rect->h;
+    rightQuad->y2 = rightQuad->y3 = leftQuad->y2 = leftQuad->y3 = rect->y;
 
-    gGpuPrimCursor = p + 2;
-    if (p->x0 >= p2->x0 || p->y0 <= p->y2) {
+    gGpuPrimCursor = leftQuad + 2;
+    if (leftQuad->x0 >= rightQuad->x0 || leftQuad->y0 <= leftQuad->y2) {
         return;
     }
 
-    dr             = gGpuPrimCursor;
-    gGpuPrimCursor = dr + 1;
+    windowCommand  = gGpuPrimCursor;
+    gGpuPrimCursor = windowCommand + 1;
 
-    sp10.w = sp10.h = 0xFF;
-    sp10.x = sp10.y = 0;
-    setTexWindow(dr, &sp10);
-    addPrim(gGpuCurrentOt + arg2, dr);
+    textureWindow.w = textureWindow.h = USER_INTERFACE_BACKGROUND_UNRESTRICTED_WINDOW_PIXELS;
+    textureWindow.x = textureWindow.y = 0;
+    setTexWindow(windowCommand, &textureWindow);
+    addPrim(gGpuCurrentOt + otIndex, windowCommand);
 
-    if ((arg1 & USER_INTERFACE_PANEL_STYLE_MASK) == USER_INTERFACE_PANEL_PULSING_STYLE) {
-        p->tpage  = 0x1E;
-        p2->tpage = 0x1E;
-        p->clut   = 0x3C84;
-        p2->clut  = 0x3C84;
+    if ((style & USER_INTERFACE_PANEL_STYLE_MASK) == USER_INTERFACE_PANEL_PULSING_STYLE) {
+        leftQuad->tpage  = USER_INTERFACE_FRAME_ATLAS_TPAGE;
+        rightQuad->tpage = USER_INTERFACE_FRAME_ATLAS_TPAGE;
+        leftQuad->clut   = USER_INTERFACE_BACKGROUND_PULSING_CLUT;
+        rightQuad->clut  = USER_INTERFACE_BACKGROUND_PULSING_CLUT;
     } else {
-        p->tpage  = 0x1E;
-        p2->tpage = 0x1E;
-        p->clut   = 0x3C0F;
-        p2->clut  = 0x3C0F;
+        leftQuad->tpage  = USER_INTERFACE_FRAME_ATLAS_TPAGE;
+        rightQuad->tpage = USER_INTERFACE_FRAME_ATLAS_TPAGE;
+        leftQuad->clut   = USER_INTERFACE_BACKGROUND_CLUT;
+        rightQuad->clut  = USER_INTERFACE_BACKGROUND_CLUT;
     }
 
-    if (arg1 & USER_INTERFACE_PANEL_DIMMED) {
-        GPU_PRIMITIVE_COLOR_WORD(p, 1)  = 0x606060;
-        GPU_PRIMITIVE_COLOR_WORD(p2, 1) = 0x606060;
-        GPU_PRIMITIVE_COLOR_WORD(p, 0)  = 0x505050;
-        GPU_PRIMITIVE_COLOR_WORD(p2, 0) = 0x505050;
-        GPU_PRIMITIVE_COLOR_WORD(p, 3)  = 0x808080;
-        GPU_PRIMITIVE_COLOR_WORD(p2, 3) = 0x808080;
-        GPU_PRIMITIVE_COLOR_WORD(p2, 2) = 0x707070;
-        GPU_PRIMITIVE_COLOR_WORD(p, 2)  = 0x707070;
-    } else if ((arg1 & USER_INTERFACE_PANEL_STYLE_MASK) == USER_INTERFACE_PANEL_PULSING_STYLE) {
-        val = (rsin(gDisplayState.animFrame << 6) + 0x1000) >> 7;
+    if (style & USER_INTERFACE_PANEL_DIMMED) {
+        GPU_PRIMITIVE_COLOR_WORD(leftQuad, 1)  = GPU_PACK_COLOR_WORD(0x60, 0x60, 0x60, 0);
+        GPU_PRIMITIVE_COLOR_WORD(rightQuad, 1) = GPU_PACK_COLOR_WORD(0x60, 0x60, 0x60, 0);
+        GPU_PRIMITIVE_COLOR_WORD(leftQuad, 0)  = GPU_PACK_COLOR_WORD(0x50, 0x50, 0x50, 0);
+        GPU_PRIMITIVE_COLOR_WORD(rightQuad, 0) = GPU_PACK_COLOR_WORD(0x50, 0x50, 0x50, 0);
+        GPU_PRIMITIVE_COLOR_WORD(leftQuad, 3)  = GPU_PACK_COLOR_WORD(0x80, 0x80, 0x80, 0);
+        GPU_PRIMITIVE_COLOR_WORD(rightQuad, 3) = GPU_PACK_COLOR_WORD(0x80, 0x80, 0x80, 0);
+        GPU_PRIMITIVE_COLOR_WORD(rightQuad, 2) = GPU_PACK_COLOR_WORD(0x70, 0x70, 0x70, 0);
+        GPU_PRIMITIVE_COLOR_WORD(leftQuad, 2)  = GPU_PACK_COLOR_WORD(0x70, 0x70, 0x70, 0);
+    } else if ((style & USER_INTERFACE_PANEL_STYLE_MASK) == USER_INTERFACE_PANEL_PULSING_STYLE) {
+        pulse = (rsin(gDisplayState.animFrame << USER_INTERFACE_BACKGROUND_PULSE_ANGLE_SHIFT) + USER_INTERFACE_BACKGROUND_SINE_ONE) >> USER_INTERFACE_BACKGROUND_PULSE_SHADE_SHIFT;
 
-        t = 0xB0 - val;
-        if (t <= 0) {
-            t = 1;
-        }
-        GPU_PRIMITIVE_COLOR_WORD(p2, 1) = GPU_PRIMITIVE_COLOR_WORD(p, 1) = _uiGrey(t);
+        GPU_PRIMITIVE_COLOR_WORD(rightQuad, 1) = GPU_PRIMITIVE_COLOR_WORD(leftQuad, 1) = USER_INTERFACE_PULSING_BACKGROUND_COLOR(USER_INTERFACE_BACKGROUND_BOTTOM_SPLIT_SHADE, pulse, shade);
 
-        t = 0x80 - val;
-        if (t <= 0) {
-            t = 1;
-        }
-        GPU_PRIMITIVE_COLOR_WORD(p2, 0) = GPU_PRIMITIVE_COLOR_WORD(p, 0) = _uiGrey(t);
+        GPU_PRIMITIVE_COLOR_WORD(rightQuad, 0) = GPU_PRIMITIVE_COLOR_WORD(leftQuad, 0) = USER_INTERFACE_PULSING_BACKGROUND_COLOR(USER_INTERFACE_BACKGROUND_BOTTOM_EDGE_SHADE, pulse, shade);
 
-        t = 0x40 - val;
-        if (t <= 0) {
-            t = 1;
-        }
-        GPU_PRIMITIVE_COLOR_WORD(p2, 3) = GPU_PRIMITIVE_COLOR_WORD(p, 3) = _uiGrey(t);
+        GPU_PRIMITIVE_COLOR_WORD(rightQuad, 3) = GPU_PRIMITIVE_COLOR_WORD(leftQuad, 3) = USER_INTERFACE_PULSING_BACKGROUND_COLOR(USER_INTERFACE_BACKGROUND_TOP_SPLIT_SHADE, pulse, shade);
 
-        t = 0x30 - val;
-        if (t <= 0) {
-            t = 1;
-        }
-        GPU_PRIMITIVE_COLOR_WORD(p, 2) = GPU_PRIMITIVE_COLOR_WORD(p2, 2) = _uiGrey(t);
+        GPU_PRIMITIVE_COLOR_WORD(leftQuad, 2) = GPU_PRIMITIVE_COLOR_WORD(rightQuad, 2) = USER_INTERFACE_PULSING_BACKGROUND_COLOR(USER_INTERFACE_BACKGROUND_TOP_EDGE_SHADE, pulse, shade);
     } else {
-        GPU_PRIMITIVE_COLOR_WORD(p, 1)  = 0xA8A8A8;
-        GPU_PRIMITIVE_COLOR_WORD(p2, 1) = 0xA8A8A8;
-        GPU_PRIMITIVE_COLOR_WORD(p, 0)  = 0x808080;
-        GPU_PRIMITIVE_COLOR_WORD(p2, 0) = 0x808080;
-        GPU_PRIMITIVE_COLOR_WORD(p, 3)  = 0x404040;
-        GPU_PRIMITIVE_COLOR_WORD(p2, 3) = 0x404040;
-        GPU_PRIMITIVE_COLOR_WORD(p2, 2) = 0x303030;
-        GPU_PRIMITIVE_COLOR_WORD(p, 2)  = 0x303030;
+        GPU_PRIMITIVE_COLOR_WORD(leftQuad, 1)  = GPU_PACK_COLOR_WORD(0xA8, 0xA8, 0xA8, 0);
+        GPU_PRIMITIVE_COLOR_WORD(rightQuad, 1) = GPU_PACK_COLOR_WORD(0xA8, 0xA8, 0xA8, 0);
+        GPU_PRIMITIVE_COLOR_WORD(leftQuad, 0)  = GPU_PACK_COLOR_WORD(0x80, 0x80, 0x80, 0);
+        GPU_PRIMITIVE_COLOR_WORD(rightQuad, 0) = GPU_PACK_COLOR_WORD(0x80, 0x80, 0x80, 0);
+        GPU_PRIMITIVE_COLOR_WORD(leftQuad, 3)  = GPU_PACK_COLOR_WORD(0x40, 0x40, 0x40, 0);
+        GPU_PRIMITIVE_COLOR_WORD(rightQuad, 3) = GPU_PACK_COLOR_WORD(0x40, 0x40, 0x40, 0);
+        GPU_PRIMITIVE_COLOR_WORD(rightQuad, 2) = GPU_PACK_COLOR_WORD(0x30, 0x30, 0x30, 0);
+        GPU_PRIMITIVE_COLOR_WORD(leftQuad, 2)  = GPU_PACK_COLOR_WORD(0x30, 0x30, 0x30, 0);
     }
 
-    p->v0 = p->v1 = 0;
-    p->v2 = p->v3 = rect->h;
-    p2->v0 = p2->v1 = 0;
-    p2->v2 = p2->v3 = rect->h;
+    leftQuad->v0 = leftQuad->v1 = 0;
+    leftQuad->v2 = leftQuad->v3 = rect->h;
+    rightQuad->v0 = rightQuad->v1 = 0;
+    rightQuad->v2 = rightQuad->v3 = rect->h;
 
-    if (p->x0 < 0) {
-        if (p2->x0 < 0) {
-            p->x1 = p->x3 = p2->x0;
+    // Split at screen X=0; keep eight-bit UV wrap and signed sixteen-bit vertices.
+    if (leftQuad->x0 < 0) {
+        if (rightQuad->x0 < 0) {
+            leftQuad->x1 = leftQuad->x3 = rightQuad->x0;
         } else {
-            p->x1 = p->x3 = 0;
+            leftQuad->x1 = leftQuad->x3 = 0;
         }
-        setPolyGT4(p);
-        p->u0 = p->u2 = 0;
-        p->u1 = p->u3 = p->x1 - p->x0;
-        addPrim(gGpuCurrentOt + arg2, p);
+        setPolyGT4(leftQuad);
+        leftQuad->u0 = leftQuad->u2 = 0;
+        leftQuad->u1 = leftQuad->u3 = leftQuad->x1 - leftQuad->x0;
+        addPrim(gGpuCurrentOt + otIndex, leftQuad);
     }
 
-    if (p2->x0 >= 0) {
-        if (p->x0 >= 0) {
-            p2->x1 = p2->x3 = p->x0;
-            p2->u1 = p2->u3 = 0;
+    if (rightQuad->x0 >= 0) {
+        if (leftQuad->x0 >= 0) {
+            rightQuad->x1 = rightQuad->x3 = leftQuad->x0;
+            rightQuad->u1 = rightQuad->u3 = 0;
         } else {
-            p2->x1 = p2->x3 = 0;
-            p2->u1 = p2->u3 = p->u1 & 0x1F;
+            rightQuad->x1 = rightQuad->x3 = 0;
+            rightQuad->u1 = rightQuad->u3 = leftQuad->u1 & USER_INTERFACE_BACKGROUND_REPEAT_MASK;
         }
-        setPolyGT4(p2);
-        p2->u0 = p2->u2 = p2->u1 + (p2->x0 - p2->x1);
-        addPrim(gGpuCurrentOt + arg2, p2);
+        setPolyGT4(rightQuad);
+        rightQuad->u0 = rightQuad->u2 = rightQuad->u1 + (rightQuad->x0 - rightQuad->x1);
+        addPrim(gGpuCurrentOt + otIndex, rightQuad);
     }
 
-    dr             = gGpuPrimCursor;
-    gGpuPrimCursor = dr + 1;
-    setRECT(&sp10, 0, 0, 0x20, 0x20);
-    setTexWindow(dr, &sp10);
-    addPrim(gGpuCurrentOt + arg2, dr);
+    windowCommand  = gGpuPrimCursor;
+    gGpuPrimCursor = windowCommand + 1;
+    // OT insertion reverses these commands: enable repeat before drawing, restore after.
+    setRECT(&textureWindow, 0, 0, USER_INTERFACE_BACKGROUND_REPEAT_PIXELS, USER_INTERFACE_BACKGROUND_REPEAT_PIXELS);
+    setTexWindow(windowCommand, &textureWindow);
+    addPrim(gGpuCurrentOt + otIndex, windowCommand);
 }
 
-static void Ui_DrawPanelFrame(UiPanel* panel, RECT* outer, RECT* inner, s32 unused4)
+/// Links one unmodulated 8x8 atlas corner at the panel's frame layer.
+///
+/// Coordinates and reservation are already set. textureU is a byte atlas
+/// coordinate. Requires the loaded atlas/palette and a writable signed base+3
+/// tag; does not move the arena cursor. Keep the corner packet live for the GPU.
+static inline void _uiQueuePanelFrameCorner(SPRT_8* corner, const UiPanel* panel, s32 textureU)
 {
-    union {
-        SPRT*   normal;
-        SPRT_8* small;
-    } packet;
-    POLY_FT4* p;
-    TILE*     tile;
-    DR_TPAGE* dr;
-    s16       t;
-    u16       x;
-    u16       y;
-    u8        color;
+    corner->u0   = textureU;
+    corner->v0   = USER_INTERFACE_FRAME_ATLAS_TOP;
+    corner->clut = USER_INTERFACE_FRAME_CLUT;
+    setSprt8(corner);
+    setShadeTex(corner, 1);
+    addPrim(gGpuCurrentOt + panel->otIndex.signedValue + USER_INTERFACE_FRAME_OT_OFFSET, corner);
+}
 
-    packet.small = gGpuPrimCursor;
+/// Links one unmodulated atlas strip between adjacent frame corners.
+///
+/// Coordinates/reservation are already set; texture endpoints are byte atlas
+/// coordinates. Requires loaded atlas/palette and a writable signed base+3 tag;
+/// leaves the cursor unchanged. Keep the edge packet live for the GPU.
+static inline void _uiQueuePanelFrameEdge(POLY_FT4* edge, const UiPanel* panel, s32 textureLeft, s32 textureRight, s32 textureBottom)
+{
+    setUV4(edge, textureLeft, USER_INTERFACE_FRAME_ATLAS_TOP, textureRight, USER_INTERFACE_FRAME_ATLAS_TOP, textureLeft, textureBottom, textureRight, textureBottom);
+    edge->tpage = USER_INTERFACE_FRAME_ATLAS_TPAGE;
+    edge->clut  = USER_INTERFACE_FRAME_CLUT;
+    setPolyFT4(edge);
+    setShadeTex(edge, 1);
+    addPrim(gGpuCurrentOt + panel->otIndex.signedValue + USER_INTERFACE_FRAME_OT_OFFSET, edge);
+}
+
+/// Queues a panel's textured corners, edges and shaded interior.
+///
+/// Increments the writable outer width/height by one with sixteen-bit wrapping;
+/// inner is a separate, borrowed interior rectangle computed before that growth.
+/// Reads style and signed OT base; the screen-dimming flag also needs animation
+/// ticks. The fourth argument is ignored. Requires loaded UI atlas/palettes and
+/// writable base+3 tags. Reserves one SPRT_8, three SPRT-sized corner slots, four
+/// POLY_FT4 slots and the background's slots even when some pieces are skipped;
+/// screen dimming adds a TILE and DR_TPAGE. Retain packets until GPU completion.
+static void _uiDrawPanelFrame(const UiPanel* panel, RECT* outer, const RECT* inner, s32 unusedClipFrame)
+{
+    enum { USER_INTERFACE_SCREEN_DIM_GREY_PER_TICK = 8 };
+    SPRT_8*   cornerSprite;
+    POLY_FT4* frameEdge;
+    TILE*     screenDimTile;
+    DR_TPAGE* blendCommand;
+    s16       edgeEnd;
+    u16       edgeLeft;
+    u16       edgeTop;
+    u8        screenDimLevel;
+
+    // Reserve the top-left corner tightly; the other corners retain SPRT-sized slots.
+    cornerSprite = gGpuPrimCursor;
     outer->w++;
     outer->h++;
-    gGpuPrimCursor     = packet.small + 1;
-    packet.small->x0   = outer->x;
-    packet.small->y0   = outer->y;
-    packet.small->u0   = 0;
-    packet.small->v0   = 0x50;
-    packet.small->clut = 0x3C03;
-    setlen(packet.small, 3);
-    setcode(packet.small, 0x75);
-    addPrim(gGpuCurrentOt + panel->otIndex.signedValue + 3, packet.small);
+    gGpuPrimCursor   = cornerSprite + 1;
+    cornerSprite->x0 = outer->x;
+    cornerSprite->y0 = outer->y;
+    _uiQueuePanelFrameCorner(cornerSprite, panel, 0);
 
-    packet.normal     = gGpuPrimCursor;
-    gGpuPrimCursor    = packet.normal + 1;
-    packet.normal->x0 = outer->x + outer->w - 8;
-    if (packet.normal->x0 > outer->x) {
-        packet.normal->y0   = outer->y;
-        packet.normal->u0   = 0x10;
-        packet.normal->v0   = 0x50;
-        packet.normal->clut = 0x3C03;
-        setlen(packet.normal, 3);
-        setcode(packet.normal, 0x75);
-        addPrim(gGpuCurrentOt + panel->otIndex.signedValue + 3, packet.normal);
+    cornerSprite     = gGpuPrimCursor;
+    gGpuPrimCursor   = (u8*)cornerSprite + sizeof(SPRT);
+    cornerSprite->x0 = outer->x + outer->w - USER_INTERFACE_FRAME_CORNER_PIXELS;
+    if (cornerSprite->x0 > outer->x) {
+        cornerSprite->y0 = outer->y;
+        _uiQueuePanelFrameCorner(cornerSprite, panel, 0x10);
     }
 
-    packet.normal     = gGpuPrimCursor;
-    gGpuPrimCursor    = packet.normal + 1;
-    packet.normal->x0 = outer->x;
-    packet.normal->y0 = outer->y + outer->h - 8;
-    if (outer->y < packet.normal->y0) {
-        packet.normal->u0   = 0x28;
-        packet.normal->v0   = 0x50;
-        packet.normal->clut = 0x3C03;
-        setlen(packet.normal, 3);
-        setcode(packet.normal, 0x75);
-        addPrim(gGpuCurrentOt + panel->otIndex.signedValue + 3, packet.normal);
+    cornerSprite     = gGpuPrimCursor;
+    gGpuPrimCursor   = (u8*)cornerSprite + sizeof(SPRT);
+    cornerSprite->x0 = outer->x;
+    cornerSprite->y0 = outer->y + outer->h - USER_INTERFACE_FRAME_CORNER_PIXELS;
+    if (outer->y < cornerSprite->y0) {
+        _uiQueuePanelFrameCorner(cornerSprite, panel, 0x28);
     }
 
-    packet.normal     = gGpuPrimCursor;
-    gGpuPrimCursor    = packet.normal + 1;
-    packet.normal->x0 = outer->x + outer->w - 8;
-    packet.normal->y0 = outer->y + outer->h - 8;
-    if (outer->y < packet.normal->y0 && packet.normal->x0 > outer->x) {
-        packet.normal->u0   = 0x38;
-        packet.normal->v0   = 0x50;
-        packet.normal->clut = 0x3C03;
-        setlen(packet.normal, 3);
-        setcode(packet.normal, 0x75);
-        addPrim(gGpuCurrentOt + panel->otIndex.signedValue + 3, packet.normal);
+    cornerSprite     = gGpuPrimCursor;
+    gGpuPrimCursor   = (u8*)cornerSprite + sizeof(SPRT);
+    cornerSprite->x0 = outer->x + outer->w - USER_INTERFACE_FRAME_CORNER_PIXELS;
+    cornerSprite->y0 = outer->y + outer->h - USER_INTERFACE_FRAME_CORNER_PIXELS;
+    if (outer->y < cornerSprite->y0 && cornerSprite->x0 > outer->x) {
+        _uiQueuePanelFrameCorner(cornerSprite, panel, 0x38);
     }
 
-    p              = gGpuPrimCursor;
-    gGpuPrimCursor = p + 1;
-    x              = outer->x + 8;
-    p->x2          = x;
-    p->x0          = x;
-    t              = outer->x + outer->w - 8;
-    p->x3          = t;
-    p->x1          = t;
-    y              = outer->y;
-    p->y1          = y;
-    p->y0          = y;
-    t              = outer->y + 8;
-    p->y3          = t;
-    p->y2          = t;
-    if (p->x0 < p->x1) {
-        setUV4(p, 0x8, 0x50, 0x10, 0x50, 0x8, 0x58, 0x10, 0x58);
-        p->tpage = 0x1E;
-        p->clut  = 0x3C03;
-        setPolyFT4(p);
-        setShadeTex(p, 1);
-        addPrim(gGpuCurrentOt + panel->otIndex.signedValue + 3, p);
+    // Queue the four stretched atlas strips between the corner sprites.
+    // Stretch the atlas strips only across the remaining span between corners.
+    frameEdge      = gGpuPrimCursor;
+    gGpuPrimCursor = frameEdge + 1;
+    edgeLeft       = outer->x + USER_INTERFACE_FRAME_CORNER_PIXELS;
+    frameEdge->x2  = edgeLeft;
+    frameEdge->x0  = edgeLeft;
+    edgeEnd        = outer->x + outer->w - USER_INTERFACE_FRAME_CORNER_PIXELS;
+    frameEdge->x3  = edgeEnd;
+    frameEdge->x1  = edgeEnd;
+    edgeTop        = outer->y;
+    frameEdge->y1  = edgeTop;
+    frameEdge->y0  = edgeTop;
+    edgeEnd        = outer->y + USER_INTERFACE_FRAME_CORNER_PIXELS;
+    frameEdge->y3  = edgeEnd;
+    frameEdge->y2  = edgeEnd;
+    if (frameEdge->x0 < frameEdge->x1) {
+        _uiQueuePanelFrameEdge(frameEdge, panel, 0x8, 0x10, 0x58);
     }
 
-    p              = gGpuPrimCursor;
-    gGpuPrimCursor = p + 1;
-    x              = outer->x + 8;
-    p->x2          = x;
-    p->x0          = x;
-    t              = outer->x + outer->w - 8;
-    p->x3          = t;
-    p->x1          = t;
-    y              = outer->y + outer->h - 8;
-    p->y1          = y;
-    p->y0          = y;
-    t              = outer->y + outer->h;
-    p->y3          = t;
-    p->y2          = t;
-    if (p->x0 < p->x1 && p->y0 > outer->y) {
-        setUV4(p, 0x30, 0x50, 0x38, 0x50, 0x30, 0x58, 0x38, 0x58);
-        p->tpage = 0x1E;
-        p->clut  = 0x3C03;
-        setPolyFT4(p);
-        setShadeTex(p, 1);
-        addPrim(gGpuCurrentOt + panel->otIndex.signedValue + 3, p);
+    frameEdge      = gGpuPrimCursor;
+    gGpuPrimCursor = frameEdge + 1;
+    edgeLeft       = outer->x + USER_INTERFACE_FRAME_CORNER_PIXELS;
+    frameEdge->x2  = edgeLeft;
+    frameEdge->x0  = edgeLeft;
+    edgeEnd        = outer->x + outer->w - USER_INTERFACE_FRAME_CORNER_PIXELS;
+    frameEdge->x3  = edgeEnd;
+    frameEdge->x1  = edgeEnd;
+    edgeTop        = outer->y + outer->h - USER_INTERFACE_FRAME_CORNER_PIXELS;
+    frameEdge->y1  = edgeTop;
+    frameEdge->y0  = edgeTop;
+    edgeEnd        = outer->y + outer->h;
+    frameEdge->y3  = edgeEnd;
+    frameEdge->y2  = edgeEnd;
+    if (frameEdge->x0 < frameEdge->x1 && frameEdge->y0 > outer->y) {
+        _uiQueuePanelFrameEdge(frameEdge, panel, 0x30, 0x38, 0x58);
     }
 
-    p              = gGpuPrimCursor;
-    gGpuPrimCursor = p + 1;
-    x              = outer->x;
-    p->x2          = x;
-    p->x0          = x;
-    t              = x + 8;
-    p->x3          = t;
-    p->x1          = t;
-    y              = outer->y + 8;
-    p->y1          = y;
-    p->y0          = y;
-    t              = outer->y + outer->h - 8;
-    p->y3          = t;
-    p->y2          = t;
-    if (p->y0 < p->y2) {
-        setUV4(p, 0x18, 0x50, 0x20, 0x50, 0x18, 0x57, 0x20, 0x57);
-        p->tpage = 0x1E;
-        p->clut  = 0x3C03;
-        setPolyFT4(p);
-        setShadeTex(p, 1);
-        addPrim(gGpuCurrentOt + panel->otIndex.signedValue + 3, p);
+    frameEdge      = gGpuPrimCursor;
+    gGpuPrimCursor = frameEdge + 1;
+    edgeLeft       = outer->x;
+    frameEdge->x2  = edgeLeft;
+    frameEdge->x0  = edgeLeft;
+    edgeEnd        = edgeLeft + USER_INTERFACE_FRAME_CORNER_PIXELS;
+    frameEdge->x3  = edgeEnd;
+    frameEdge->x1  = edgeEnd;
+    edgeTop        = outer->y + USER_INTERFACE_FRAME_CORNER_PIXELS;
+    frameEdge->y1  = edgeTop;
+    frameEdge->y0  = edgeTop;
+    edgeEnd        = outer->y + outer->h - USER_INTERFACE_FRAME_CORNER_PIXELS;
+    frameEdge->y3  = edgeEnd;
+    frameEdge->y2  = edgeEnd;
+    if (frameEdge->y0 < frameEdge->y2) {
+        _uiQueuePanelFrameEdge(frameEdge, panel, 0x18, 0x20, 0x57);
     }
 
-    p              = gGpuPrimCursor;
-    gGpuPrimCursor = p + 1;
-    t              = outer->x + outer->w;
-    x              = t - 8;
-    p->x2          = x;
-    p->x0          = x;
-    p->x3          = t;
-    p->x1          = t;
-    y              = outer->y + 8;
-    p->y1          = y;
-    p->y0          = y;
-    t              = outer->y + outer->h - 8;
-    p->y3          = t;
-    p->y2          = t;
-    if (p->x0 > outer->x && p->y0 < p->y2) {
-        setUV4(p, 0x20, 0x50, 0x28, 0x50, 0x20, 0x57, 0x28, 0x57);
-        p->tpage = 0x1E;
-        p->clut  = 0x3C03;
-        setPolyFT4(p);
-        setShadeTex(p, 1);
-        addPrim(gGpuCurrentOt + panel->otIndex.signedValue + 3, p);
+    frameEdge      = gGpuPrimCursor;
+    gGpuPrimCursor = frameEdge + 1;
+    edgeEnd        = outer->x + outer->w;
+    edgeLeft       = edgeEnd - USER_INTERFACE_FRAME_CORNER_PIXELS;
+    frameEdge->x2  = edgeLeft;
+    frameEdge->x0  = edgeLeft;
+    frameEdge->x3  = edgeEnd;
+    frameEdge->x1  = edgeEnd;
+    edgeTop        = outer->y + USER_INTERFACE_FRAME_CORNER_PIXELS;
+    frameEdge->y1  = edgeTop;
+    frameEdge->y0  = edgeTop;
+    edgeEnd        = outer->y + outer->h - USER_INTERFACE_FRAME_CORNER_PIXELS;
+    frameEdge->y3  = edgeEnd;
+    frameEdge->y2  = edgeEnd;
+    if (frameEdge->x0 > outer->x && frameEdge->y0 < frameEdge->y2) {
+        _uiQueuePanelFrameEdge(frameEdge, panel, 0x20, 0x28, 0x57);
     }
-    Ui_DrawWindowBorder(inner, panel->style, panel->otIndex.signedValue + 3);
+    _uiDrawPanelBackground(inner, panel->style, panel->otIndex.signedValue + USER_INTERFACE_FRAME_OT_OFFSET);
+    // Subtractive blending darkens the screen before this frame is drawn.
     if (panel->style & USER_INTERFACE_PANEL_SCREEN_BRIGHTEN) {
-        tile           = gGpuPrimCursor;
-        gGpuPrimCursor = tile + 1;
-        color          = (USER_INTERFACE_PANEL_ANIMATION_TICKS - panel->animationTicks) * 8;
-        tile->b0       = color;
-        tile->g0       = color;
-        tile->r0       = color;
-        tile->x0       = -0xA0;
-        tile->y0       = -0x78;
-        tile->w        = 0x140;
-        tile->h        = 0xF0;
-        setlen(tile, 3);
-        setcode(tile, 0x62);
-        addPrim(gGpuCurrentOt + panel->otIndex.signedValue + 3, tile);
-        dr             = gGpuPrimCursor;
-        gGpuPrimCursor = dr + 1;
-        setlen(dr, 1);
-        dr->code[0] = 0xE1000240;
-        addPrim(gGpuCurrentOt + panel->otIndex.signedValue + 3, dr);
+        screenDimTile     = gGpuPrimCursor;
+        gGpuPrimCursor    = screenDimTile + 1;
+        screenDimLevel    = (USER_INTERFACE_PANEL_ANIMATION_TICKS - panel->animationTicks) * USER_INTERFACE_SCREEN_DIM_GREY_PER_TICK;
+        screenDimTile->b0 = screenDimLevel;
+        screenDimTile->g0 = screenDimLevel;
+        screenDimTile->r0 = screenDimLevel;
+        screenDimTile->x0 = -USER_INTERFACE_PANEL_DRAW_VIEW_CENTER_X;
+        screenDimTile->y0 = -USER_INTERFACE_PANEL_DRAW_VIEW_CENTER_Y;
+        screenDimTile->w  = USER_INTERFACE_PANEL_DRAW_VIEW_WIDTH;
+        screenDimTile->h  = USER_INTERFACE_PANEL_DRAW_VIEW_HEIGHT;
+        setTile(screenDimTile);
+        setSemiTrans(screenDimTile, 1);
+        addPrim(gGpuCurrentOt + panel->otIndex.signedValue + USER_INTERFACE_FRAME_OT_OFFSET, screenDimTile);
+        blendCommand   = gGpuPrimCursor;
+        gGpuPrimCursor = blendCommand + 1;
+        setlen(blendCommand, 1);
+        blendCommand->code[0] = USER_INTERFACE_PANEL_DITHERED_DRAW_MODE | (GPU_BLEND_SUBTRACT << 5);
+        addPrim(gGpuCurrentOt + panel->otIndex.signedValue + USER_INTERFACE_FRAME_OT_OFFSET, blendCommand);
     }
 }
 
-static void Ui_DrawPanel(UiPanel* panel, RECT* arg1, RECT* arg2, s32 arg3)
+/// Draws a styled panel frame, optionally clips it, and dims its interior.
+///
+/// A negative style skips all drawing. The borrowed panel supplies style and
+/// signed OT base; frame drawing grows outerRect by one pixel in each extent.
+/// Nonzero clipFrame brackets the frame with inner/full-screen draw areas at
+/// base+3/base+1. Dimmed style adds a black averaging quad at base. Requires
+/// frame resources plus two DR_AREA slots when clipping and a POLY_F4/DR_TPAGE
+/// pair when dimmed, and writable base/base+1/base+3 tags. Retain GPU packets.
+static void _uiDrawPanel(const UiPanel* panel, RECT* outerRect, const RECT* innerRect, s32 clipFrame)
 {
-    RECT      sp10;
-    RECT      sp18;
-    POLY_F4*  poly;
-    DR_TPAGE* dr;
-    u16       x;
-    u16       y;
-    u16       t;
+    RECT      frameDrawArea;
+    RECT      fullScreenDrawArea;
+    POLY_F4*  dimQuad;
+    DR_TPAGE* blendCommand;
+    u16       innerLeft;
+    u16       innerTop;
+    u16       innerEnd;
 
     if (panel->style >= 0) {
-        if (arg3 != 0) {
-            DR_AREA* p;
+        // Higher OT tags execute first; restore the full view before content below +1.
+        if (clipFrame != 0) {
+            DR_AREA* areaCommand;
 
-            p              = gGpuPrimCursor;
-            gGpuPrimCursor = p + 1;
-            setRECT(&sp10, arg2->x + 0xA0, arg2->y + 0x78, arg2->w, arg2->h);
-            sp10.y += gDisplayState.drawBuffer * 0x110;
-            SetDrawArea(p, &sp10);
-            addPrim(gGpuCurrentOt + panel->otIndex.signedValue + 3, p);
+            areaCommand    = gGpuPrimCursor;
+            gGpuPrimCursor = areaCommand + 1;
+            setRECT(&frameDrawArea, innerRect->x + USER_INTERFACE_PANEL_DRAW_VIEW_CENTER_X, innerRect->y + USER_INTERFACE_PANEL_DRAW_VIEW_CENTER_Y, innerRect->w, innerRect->h);
+            frameDrawArea.y += gDisplayState.drawBuffer * USER_INTERFACE_PANEL_DRAW_BUFFER_STRIDE;
+            SetDrawArea(areaCommand, &frameDrawArea);
+            addPrim(gGpuCurrentOt + panel->otIndex.signedValue + USER_INTERFACE_FRAME_OT_OFFSET, areaCommand);
         }
-        Ui_DrawPanelFrame(panel, arg1, arg2, arg3);
-        if (arg3 != 0) {
-            DR_AREA* p;
+        _uiDrawPanelFrame(panel, outerRect, innerRect, clipFrame);
+        if (clipFrame != 0) {
+            DR_AREA* areaCommand;
 
-            p              = gGpuPrimCursor;
-            gGpuPrimCursor = p + 1;
-            setRECT(&sp18, 0, gDisplayState.drawBuffer * 0x110, 0x140, 0xF0);
-            SetDrawArea(p, &sp18);
-            addPrim(gGpuCurrentOt + panel->otIndex.signedValue + 1, p);
+            areaCommand    = gGpuPrimCursor;
+            gGpuPrimCursor = areaCommand + 1;
+            setRECT(&fullScreenDrawArea, 0, gDisplayState.drawBuffer * USER_INTERFACE_PANEL_DRAW_BUFFER_STRIDE, USER_INTERFACE_PANEL_DRAW_VIEW_WIDTH, USER_INTERFACE_PANEL_DRAW_VIEW_HEIGHT);
+            SetDrawArea(areaCommand, &fullScreenDrawArea);
+            addPrim(gGpuCurrentOt + panel->otIndex.signedValue + 1, areaCommand);
         }
+        // A translucent black quad at the base layer halves the finished interior.
         if (panel->style & USER_INTERFACE_PANEL_DIMMED) {
-            poly           = gGpuPrimCursor;
-            gGpuPrimCursor = poly + 1;
-            setlen(poly, 5);
-            setcode(poly, 0x2A);
-            poly->b0 = 0;
-            poly->g0 = 0;
-            poly->r0 = 0;
-            x        = arg2->x;
-            poly->x2 = x;
-            poly->x0 = x;
-            t        = arg2->x + arg2->w;
-            poly->x3 = t;
-            poly->x1 = t;
-            y        = arg2->y;
-            poly->y1 = y;
-            poly->y0 = y;
-            t        = arg2->y + arg2->h;
-            poly->y3 = t;
-            poly->y2 = t;
-            addPrim(gGpuCurrentOt + panel->otIndex.signedValue, poly);
+            dimQuad        = gGpuPrimCursor;
+            gGpuPrimCursor = dimQuad + 1;
+            setPolyF4(dimQuad);
+            setSemiTrans(dimQuad, 1);
+            dimQuad->b0 = 0;
+            dimQuad->g0 = 0;
+            dimQuad->r0 = 0;
+            innerLeft   = innerRect->x;
+            dimQuad->x2 = innerLeft;
+            dimQuad->x0 = innerLeft;
+            innerEnd    = innerRect->x + innerRect->w;
+            dimQuad->x3 = innerEnd;
+            dimQuad->x1 = innerEnd;
+            innerTop    = innerRect->y;
+            dimQuad->y1 = innerTop;
+            dimQuad->y0 = innerTop;
+            innerEnd    = innerRect->y + innerRect->h;
+            dimQuad->y3 = innerEnd;
+            dimQuad->y2 = innerEnd;
+            addPrim(gGpuCurrentOt + panel->otIndex.signedValue, dimQuad);
 
-            dr             = gGpuPrimCursor;
-            gGpuPrimCursor = dr + 1;
-            setlen(dr, 1);
-            dr->code[0] = 0xE1000200;
-            addPrim(gGpuCurrentOt + panel->otIndex.signedValue, dr);
+            blendCommand   = gGpuPrimCursor;
+            gGpuPrimCursor = blendCommand + 1;
+            setlen(blendCommand, 1);
+            blendCommand->code[0] = USER_INTERFACE_PANEL_DITHERED_DRAW_MODE;
+            addPrim(gGpuCurrentOt + panel->otIndex.signedValue, blendCommand);
         }
     }
 }
@@ -1029,196 +1093,105 @@ static void _uiComputeScaledPanelRect(const UiPanel* panel, RECT* rect, s32 scal
     }
 }
 
-static void Ui_LayoutAndClip(UiPanel* panel)
+/// Computes the lifecycle-dependent outer bounds for panel drawing.
+///
+/// Output is signed 16-bit screen-centered pixels. Opening keeps scales at
+/// least one eighth; closing/hiding replace values outside 1..8 with one.
+/// Other lifecycle values copy full bounds. Keeps intermediate halfword stores.
+static inline void _uiComputeDrawnPanelRect(const UiPanel* panel, RECT* rect)
 {
-    RECT sp10;
-    RECT sp18;
-    RECT sp20;
-    s32  var_a2;
+    s32 scaleEighths;
 
-    {
-        RECT* arg1;
-
-        arg1 = &sp10;
-        switch (panel->state) {
-            case USER_INTERFACE_PANEL_OPENING:
-                var_a2 = USER_INTERFACE_PANEL_ANIMATION_TICKS - panel->animationTicks;
-                if (var_a2 <= 0) {
-                    var_a2 = 1;
-                }
-                _uiComputeScaledPanelRect(panel, arg1, var_a2, 0);
-                goto after_fill;
-            case USER_INTERFACE_PANEL_OPEN:
-                break;
-            case USER_INTERFACE_PANEL_CLOSING:
-            case USER_INTERFACE_PANEL_HIDING:
-                var_a2 = USER_INTERFACE_PANEL_ANIMATION_TICKS - panel->animationTicks;
-                if ((u32)(var_a2 - 1) >= (u32)USER_INTERFACE_PANEL_SCALE_ONE) {
-                    var_a2 = 1;
-                }
-                _uiComputeScaledPanelRect(panel, arg1, var_a2, 1);
-                goto after_fill;
-        }
-        arg1->x = panel->bounds.rect.x;
-        arg1->y = panel->bounds.rect.y;
-        arg1->w = panel->bounds.rect.w;
-        arg1->h = panel->bounds.rect.h;
+    switch (panel->state) {
+        case USER_INTERFACE_PANEL_OPENING:
+            scaleEighths = USER_INTERFACE_PANEL_ANIMATION_TICKS - panel->animationTicks;
+            if (scaleEighths <= 0) {
+                scaleEighths = 1;
+            }
+            _uiComputeScaledPanelRect(panel, rect, scaleEighths, 0);
+            return;
+        case USER_INTERFACE_PANEL_OPEN:
+            break;
+        case USER_INTERFACE_PANEL_CLOSING:
+        case USER_INTERFACE_PANEL_HIDING:
+            scaleEighths = USER_INTERFACE_PANEL_ANIMATION_TICKS - panel->animationTicks;
+            if ((u32)(scaleEighths - 1) >= (u32)USER_INTERFACE_PANEL_SCALE_ONE) {
+                scaleEighths = 1;
+            }
+            _uiComputeScaledPanelRect(panel, rect, scaleEighths, 1);
+            return;
     }
-after_fill: {
-    RECT* arg1;
-
-    arg1 = &sp10;
-    _uiComputePanelInnerRect(panel, &panel->bounds.rect, &sp20);
-    if ((panel->style & USER_INTERFACE_PANEL_STYLE_MASK) == USER_INTERFACE_PANEL_TITLE_STYLE) {
-        sp20.y += 9;
-        sp20.h -= 0xB;
-        sp20.x += 2;
-        sp20.w -= 4;
-    } else {
-        sp20.y += 2;
-        sp20.h -= 4;
-        sp20.x += 2;
-        sp20.w -= 4;
-    }
-    panel->contentLeft.unsignedValue    = -(sp20.w >> 1);
-    panel->contentRight.unsignedValue   = panel->contentLeft.unsignedValue + sp20.w;
-    panel->contentTop.unsignedValue     = -(sp20.h >> 1);
-    panel->contentBottom.unsignedValue  = panel->contentTop.unsignedValue + sp20.h;
-    panel->contentOriginX.unsignedValue = sp20.x - panel->contentLeft.unsignedValue;
-    panel->contentOriginY.unsignedValue = sp20.y - panel->contentTop.unsignedValue;
-    if (arg1 != NULL) {
-        _uiComputePanelInnerRect(panel, arg1, &sp18);
-    }
-    Ui_DrawPanel(panel, &sp10, &sp18, 1);
-}
+    rect->x = panel->bounds.rect.x;
+    rect->y = panel->bounds.rect.y;
+    rect->w = panel->bounds.rect.w;
+    rect->h = panel->bounds.rect.h;
 }
 
-static void Ui_LayoutAndDraw(UiPanel* panel)
+/// Publishes full-bounds content coordinates and optionally insets the animated frame.
+///
+/// Coordinates are screen-centered pixels and unsigned halfword stores retain
+/// translation bits. Borrows a live mutable panel; non-NULL outerRect requires
+/// a separate writable innerRect. A NULL outerRect leaves innerRect untouched.
+static inline void _uiLayoutDrawnPanelContent(UiPanel* panel, const RECT* outerRect, RECT* innerRect)
 {
-    RECT sp10;
-    RECT sp18;
-    RECT sp20;
-    s32  var_a2;
+    RECT contentRect;
 
-    {
-        RECT* arg1;
-
-        arg1 = &sp10;
-        switch (panel->state) {
-            case USER_INTERFACE_PANEL_OPENING:
-                var_a2 = USER_INTERFACE_PANEL_ANIMATION_TICKS - panel->animationTicks;
-                if (var_a2 <= 0) {
-                    var_a2 = 1;
-                }
-                _uiComputeScaledPanelRect(panel, arg1, var_a2, 0);
-                goto after_fill;
-            case USER_INTERFACE_PANEL_OPEN:
-                break;
-            case USER_INTERFACE_PANEL_CLOSING:
-            case USER_INTERFACE_PANEL_HIDING:
-                var_a2 = USER_INTERFACE_PANEL_ANIMATION_TICKS - panel->animationTicks;
-                if ((u32)(var_a2 - 1) >= (u32)USER_INTERFACE_PANEL_SCALE_ONE) {
-                    var_a2 = 1;
-                }
-                _uiComputeScaledPanelRect(panel, arg1, var_a2, 1);
-                goto after_fill;
-        }
-        arg1->x = panel->bounds.rect.x;
-        arg1->y = panel->bounds.rect.y;
-        arg1->w = panel->bounds.rect.w;
-        arg1->h = panel->bounds.rect.h;
+    _uiComputePanelInnerRect(panel, &panel->bounds.rect, &contentRect);
+    USER_INTERFACE_CENTER_PANEL_CONTENT(panel, contentRect);
+    if (outerRect != NULL) {
+        _uiComputePanelInnerRect(panel, outerRect, innerRect);
     }
-after_fill: {
-    RECT* arg1;
-
-    arg1 = &sp10;
-    _uiComputePanelInnerRect(panel, &panel->bounds.rect, &sp20);
-    if ((panel->style & USER_INTERFACE_PANEL_STYLE_MASK) == USER_INTERFACE_PANEL_TITLE_STYLE) {
-        sp20.y += 9;
-        sp20.h -= 0xB;
-        sp20.x += 2;
-        sp20.w -= 4;
-    } else {
-        sp20.y += 2;
-        sp20.h -= 4;
-        sp20.x += 2;
-        sp20.w -= 4;
-    }
-    panel->contentLeft.unsignedValue    = -(sp20.w >> 1);
-    panel->contentRight.unsignedValue   = panel->contentLeft.unsignedValue + sp20.w;
-    panel->contentTop.unsignedValue     = -(sp20.h >> 1);
-    panel->contentBottom.unsignedValue  = panel->contentTop.unsignedValue + sp20.h;
-    panel->contentOriginX.unsignedValue = sp20.x - panel->contentLeft.unsignedValue;
-    panel->contentOriginY.unsignedValue = sp20.y - panel->contentTop.unsignedValue;
-    if (arg1 != NULL) {
-        _uiComputePanelInnerRect(panel, arg1, &sp18);
-    }
-    Ui_DrawPanel(panel, &sp10, &sp18, 0);
-}
 }
 
-static void Ui_LayoutAndDrawAlt(UiPanel* panel)
+/// Lays out opening content and draws its clipped animated frame.
+///
+/// Logical content stays centered in the full bounds while only the frame
+/// follows the lifecycle scale. Requires a live panel and `_uiDrawPanel`
+/// resources including the clipping pair.
+/// Publishes content edges/origin with unsigned halfword stores. Counter and
+/// control are unchanged; the caller runs content after the drawing setup.
+static void _uiLayoutOpeningPanel(UiPanel* panel)
 {
-    RECT sp10;
-    RECT sp18;
-    RECT sp20;
-    s32  var_a2;
+    RECT animatedRect;
+    RECT innerRect;
 
-    {
-        RECT* arg1;
-
-        arg1 = &sp10;
-        switch (panel->state) {
-            case USER_INTERFACE_PANEL_OPENING:
-                var_a2 = USER_INTERFACE_PANEL_ANIMATION_TICKS - panel->animationTicks;
-                if (var_a2 <= 0) {
-                    var_a2 = 1;
-                }
-                _uiComputeScaledPanelRect(panel, arg1, var_a2, 0);
-                goto after_fill;
-            case USER_INTERFACE_PANEL_OPEN:
-                break;
-            case USER_INTERFACE_PANEL_CLOSING:
-            case USER_INTERFACE_PANEL_HIDING:
-                var_a2 = USER_INTERFACE_PANEL_ANIMATION_TICKS - panel->animationTicks;
-                if ((u32)(var_a2 - 1) >= (u32)USER_INTERFACE_PANEL_SCALE_ONE) {
-                    var_a2 = 1;
-                }
-                _uiComputeScaledPanelRect(panel, arg1, var_a2, 1);
-                goto after_fill;
-        }
-        arg1->x = panel->bounds.rect.x;
-        arg1->y = panel->bounds.rect.y;
-        arg1->w = panel->bounds.rect.w;
-        arg1->h = panel->bounds.rect.h;
-    }
-after_fill: {
-    RECT* arg1;
-
-    arg1 = &sp10;
-    _uiComputePanelInnerRect(panel, &panel->bounds.rect, &sp20);
-    if ((panel->style & USER_INTERFACE_PANEL_STYLE_MASK) == USER_INTERFACE_PANEL_TITLE_STYLE) {
-        sp20.y += 9;
-        sp20.h -= 0xB;
-        sp20.x += 2;
-        sp20.w -= 4;
-    } else {
-        sp20.y += 2;
-        sp20.h -= 4;
-        sp20.x += 2;
-        sp20.w -= 4;
-    }
-    panel->contentLeft.unsignedValue    = -(sp20.w >> 1);
-    panel->contentRight.unsignedValue   = panel->contentLeft.unsignedValue + sp20.w;
-    panel->contentTop.unsignedValue     = -(sp20.h >> 1);
-    panel->contentBottom.unsignedValue  = panel->contentTop.unsignedValue + sp20.h;
-    panel->contentOriginX.unsignedValue = sp20.x - panel->contentLeft.unsignedValue;
-    panel->contentOriginY.unsignedValue = sp20.y - panel->contentTop.unsignedValue;
-    if (arg1 != NULL) {
-        _uiComputePanelInnerRect(panel, arg1, &sp18);
-    }
-    Ui_DrawPanel(panel, &sp10, &sp18, 1);
+    _uiComputeDrawnPanelRect(panel, &animatedRect);
+    _uiLayoutDrawnPanelContent(panel, &animatedRect, &innerRect);
+    _uiDrawPanel(panel, &animatedRect, &innerRect, 1);
 }
+
+/// Lays out open content and draws its frame without adding draw-area commands.
+///
+/// Logical content stays centered in the full bounds while only the frame
+/// follows the lifecycle scale. Requires a live panel and `_uiDrawPanel`
+/// resources; an existing draw area still applies.
+/// Publishes content edges/origin with unsigned halfword stores. Counter and
+/// control are unchanged; the caller runs content after the drawing setup.
+static void _uiLayoutOpenPanel(UiPanel* panel)
+{
+    RECT animatedRect;
+    RECT innerRect;
+
+    _uiComputeDrawnPanelRect(panel, &animatedRect);
+    _uiLayoutDrawnPanelContent(panel, &animatedRect, &innerRect);
+    _uiDrawPanel(panel, &animatedRect, &innerRect, 0);
+}
+
+/// Lays out closing or hiding content and draws its clipped animated frame.
+///
+/// Logical content stays centered in the full bounds while only the frame
+/// follows the lifecycle scale. Requires a live panel and `_uiDrawPanel`
+/// resources including the clipping pair.
+/// Publishes content edges/origin with unsigned halfword stores. Counter and
+/// control are unchanged; the caller runs content after the drawing setup.
+static void _uiLayoutShrinkingPanel(UiPanel* panel)
+{
+    RECT animatedRect;
+    RECT innerRect;
+
+    _uiComputeDrawnPanelRect(panel, &animatedRect);
+    _uiLayoutDrawnPanelContent(panel, &animatedRect, &innerRect);
+    _uiDrawPanel(panel, &animatedRect, &innerRect, 1);
 }
 
 /// Queues list or full-screen draw areas on the two row-drawing OT layers.
@@ -2276,70 +2249,57 @@ UiObject* Ui_SpawnTextBlock(UiOptionDialogRequest* request, s32 unused2, s32 unu
     return obj;
 }
 
-void Ui_DrawTextInRect(RECT* rect, s32 arg1, s32 arg2, char* arg3)
+/// Insets a standalone frame while retaining signed-halfword origin truncation.
+///
+/// Requires separate live rectangles. leadingInset is two screen pixels for
+/// the caller; the opposite inset is one pixel. Signed 16-bit origins are
+/// retained before computing extents; stores wrap without dimension checks.
+static inline void _uiInsetStandaloneFrame(const RECT* outerRect, RECT* innerRect, s32 leadingInset)
 {
-    UiPanel  sp18;
-    s32      pad[2];
-    RECT     sp48;
-    RECT     sp50;
-    UiPanel* self;
-    RECT*    r;
-    s32      var_a2;
-    s32      color;
-    s32      x;
-    s32      y;
-    s32      two;
-    s16      temp_t0;
-    s16      temp_t1;
+    s16 innerLeft;
+    s16 innerTop;
 
-    two                        = 2;
-    sp18.state                 = USER_INTERFACE_PANEL_OPEN;
-    sp18.otIndex.unsignedValue = arg1 - 3;
-    sp18.style                 = arg2;
-    temp_t0                    = rect->x + two;
-    sp48.x                     = temp_t0;
-    temp_t1                    = rect->y + two;
-    sp48.y                     = temp_t1;
-    sp48.w                     = ((rect->w + rect->x) - temp_t0) - 1;
-    sp48.h                     = ((rect->h + rect->y) - temp_t1) - 1;
-    Ui_DrawPanelFrame(&sp18, rect, &sp48, 0);
-    if (arg3 != NULL) {
-        color = 0x707060;
-        self  = &sp18;
-        r     = &sp50;
-        switch (self->state) {
-            case USER_INTERFACE_PANEL_OPENING:
-                var_a2 = USER_INTERFACE_PANEL_ANIMATION_TICKS - self->animationTicks;
-                if (var_a2 <= 0) {
-                    var_a2 = 1;
-                }
-                _uiComputeScaledPanelRect(self, r, var_a2, 0);
-                break;
-            case USER_INTERFACE_PANEL_OPEN:
-                goto block_default;
-            case USER_INTERFACE_PANEL_CLOSING:
-            case USER_INTERFACE_PANEL_HIDING:
-                var_a2 = USER_INTERFACE_PANEL_ANIMATION_TICKS - self->animationTicks;
-                if ((u32)(var_a2 - 1) >= (u32)USER_INTERFACE_PANEL_SCALE_ONE) {
-                    var_a2 = 1;
-                }
-                _uiComputeScaledPanelRect(self, r, var_a2, 1);
-                break;
-            default:
-            block_default:
-                r->x = self->bounds.rect.x;
-                r->y = self->bounds.rect.y;
-                r->w = self->bounds.rect.w;
-                r->h = self->bounds.rect.h;
-                break;
-        }
-        x                            = sp50.x;
-        y                            = sp50.y;
-        x                            = x + 1;
-        y                            = y + 1;
-        self->otIndex.unsignedValue -= 1;
-        _uiDrawUnderlinedLabel(self, x - self->contentOriginX.signedValue, y - self->contentOriginY.signedValue, arg3, color);
-        self->otIndex.unsignedValue += 1;
+    innerLeft    = outerRect->x + leadingInset;
+    innerRect->x = innerLeft;
+    innerTop     = outerRect->y + leadingInset;
+    innerRect->y = innerTop;
+    innerRect->w = ((outerRect->w + outerRect->x) - innerLeft) - 1;
+    innerRect->h = ((outerRect->h + outerRect->y) - innerTop) - 1;
+}
+
+void uiDrawRectFrame(RECT* rect, s32 otIndex, s32 style, const char* title)
+{
+    enum { USER_INTERFACE_STANDALONE_FRAME_LEADING_INSET = 2 };
+    UiPanel  framePanel;
+    s32      unusedStackWords[2];
+    RECT     innerRect;
+    RECT     labelRect;
+    UiPanel* labelPanel;
+    RECT*    labelBounds;
+    u32      colorRgb;
+    s32      labelLeft;
+    s32      labelTop;
+    s32      leadingInset;
+
+    leadingInset                     = USER_INTERFACE_STANDALONE_FRAME_LEADING_INSET;
+    framePanel.state                 = USER_INTERFACE_PANEL_OPEN;
+    framePanel.otIndex.unsignedValue = otIndex - USER_INTERFACE_FRAME_OT_OFFSET;
+    framePanel.style                 = style;
+    _uiInsetStandaloneFrame(rect, &innerRect, leadingInset);
+    _uiDrawPanelFrame(&framePanel, rect, &innerRect, 0);
+    // Retained title path requires uninitialized panel fields; supported calls use NULL.
+    if (title != NULL) {
+        colorRgb    = GPU_PACK_COLOR_WORD(96, 112, 112, 0);
+        labelPanel  = &framePanel;
+        labelBounds = &labelRect;
+        _uiComputeDrawnPanelRect(labelPanel, labelBounds);
+        labelLeft                          = labelRect.x;
+        labelTop                           = labelRect.y;
+        labelLeft                          = labelLeft + 1;
+        labelTop                           = labelTop + 1;
+        labelPanel->otIndex.unsignedValue -= 1;
+        _uiDrawUnderlinedLabel(labelPanel, labelLeft - labelPanel->contentOriginX.signedValue, labelTop - labelPanel->contentOriginY.signedValue, title, colorRgb);
+        labelPanel->otIndex.unsignedValue += 1;
     }
 }
 
@@ -2859,7 +2819,7 @@ static void Ui_AnimOpenStep(UiPanel* panel, Task* task)
     if (panel->animationTicks == 0) {
         panel->animationTicks = USER_INTERFACE_PANEL_ANIMATION_TICKS;
         panel->state         += USER_INTERFACE_PANEL_OPENING - USER_INTERFACE_PANEL_INITIAL;
-        Ui_DrawAndCallback(panel, task);
+        _uiPanelOpening(panel, task);
     } else {
         if (panel->animationTicks > 0) {
             panel->animationTicks += USER_INTERFACE_PANEL_ANIMATION_TICKS;
@@ -2869,15 +2829,21 @@ static void Ui_AnimOpenStep(UiPanel* panel, Task* task)
     }
 }
 
-static void Ui_DrawAndCallback(UiPanel* panel, Task* task)
+/// Updates the opening animation with content input temporarily suspended.
+///
+/// Borrows a live panel and its owning task; `contentCallback` must keep both live
+/// through return. Saves the control word, shifts its low half into the high
+/// half, draws/layouts, then runs content. Afterwards elapsed nominal 60-Hz ticks
+/// decrement the signed-halfword counter, clamping at zero. Only a callback
+/// that kept opening permits the open transition. Restores input only when
+/// content left the suspended word unchanged. Requires opening drawing resources.
+static void _uiPanelOpening(UiPanel* panel, Task* owningTask)
 {
-    s32 temp_s2;
+    s32 savedControl;
 
     // Suspend input during opening, preserving control changes from the callback.
-    temp_s2             = panel->control.word;
-    panel->control.word = temp_s2 << 0x10;
-    Ui_LayoutAndClip(panel);
-    panel->contentCallback(task);
+    USER_INTERFACE_RUN_OPENING_PANEL_CONTENT(panel, owningTask, savedControl);
+    // Content may change the lifecycle; only an unchanged opening state becomes open.
     panel->animationTicks -= gDisplayState.frameTicks;
     if (panel->animationTicks <= 0) {
         panel->animationTicks = 0;
@@ -2885,30 +2851,44 @@ static void Ui_DrawAndCallback(UiPanel* panel, Task* task)
             panel->state = USER_INTERFACE_PANEL_OPEN;
         }
     }
-    if (panel->control.word == (temp_s2 << 0x10)) {
-        panel->control.word = temp_s2;
+    if (panel->control.word == (savedControl << USER_INTERFACE_OPENING_CONTROL_SHIFT)) {
+        panel->control.word = savedControl;
     }
 }
 
-static void Ui_LayoutDrawAndCallback(UiPanel* panel, Task* task)
+/// Draws and dispatches content for a fully open panel.
+///
+/// Borrows a live panel and owning task and calls its required content callback
+/// after full-bounds layout/drawing. Leaves control, ticks and lifecycle alone;
+/// the callback may change them. Requires `_uiLayoutOpenPanel` resources.
+static void _uiPanelOpen(UiPanel* panel, Task* owningTask)
 {
-    Ui_LayoutAndDraw(panel);
-    panel->contentCallback(task);
+    _uiLayoutOpenPanel(panel);
+    panel->contentCallback(owningTask);
 }
 
-static void Ui_TickAnimCounter(UiPanel* panel, Task* task)
+/// Shrinks a closing panel until its owning task's exit callback is dispatched.
+///
+/// Nonnegative signed-halfword counters advance by elapsed nominal 60-Hz ticks.
+/// At nine ticks or any negative sentinel, stores nine and dispatches exit
+/// without drawing/content or later accesses; exit may release the panel/task.
+/// Otherwise sets inactive control, draws the shrinking frame and runs the
+/// required content callback, which must keep them live during that phase.
+/// Requires shrinking drawing resources and a live task with a live exit handler.
+static void _uiPanelClosing(UiPanel* panel, Task* owningTask)
 {
     if (panel->animationTicks >= 0) {
         panel->animationTicks += gDisplayState.frameTicks;
     }
+    // Negative sentinels also exceed the unsigned threshold; exit before drawing.
     if ((u16)panel->animationTicks >= (u32)USER_INTERFACE_PANEL_ANIMATION_TICKS) {
         panel->animationTicks = USER_INTERFACE_PANEL_ANIMATION_TICKS;
-        taskCallExit(task);
+        taskCallExit(owningTask);
         return;
     }
     panel->control.word = USER_INTERFACE_PANEL_INACTIVE;
-    Ui_LayoutAndDrawAlt(panel);
-    panel->contentCallback(task);
+    _uiLayoutShrinkingPanel(panel);
+    panel->contentCallback(owningTask);
 }
 
 static void Ui_AnimCloseStep(UiPanel* panel, Task* task)
@@ -2926,7 +2906,7 @@ static void Ui_AnimCloseStep(UiPanel* panel, Task* task)
         return;
     }
     panel->control.word <<= 0x10;
-    Ui_LayoutAndDrawAlt(panel);
+    _uiLayoutShrinkingPanel(panel);
     panel->contentCallback(task);
     if (panel->control.word == (temp_s1 << 0x10)) {
         panel->control.word = temp_s1;
