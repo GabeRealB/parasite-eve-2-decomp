@@ -3768,6 +3768,33 @@ static __inline__ s32 Actor421600_RouteZone(s32 x, s32 z)
     return D_actor_421600_801511D0[ix + (iz * 2)];
 }
 
+/// Pulls a position that left the arena back inside: X first, and Z only when
+/// X was in range.
+static __inline__ void Actor421600_ClampToArena(GfxCoord* coord)
+{
+    s32 x;
+    s32 z;
+
+    x = coord->coord.t[0];
+    if (x > 0) {
+        if (x >= 0xBEB) {
+            coord->coord.t[0] = 0xB54;
+            return;
+        }
+    } else if (x < -0xB22) {
+        coord->coord.t[0] = -0xA8C;
+        return;
+    }
+    z = coord->coord.t[2];
+    if (z > 0) {
+        if (z >= 0xB23) {
+            coord->coord.t[2] = 0xA8C;
+        }
+    } else if (z < -0xB22) {
+        coord->coord.t[2] = -0xA8C;
+    }
+}
+
 static void func_actor_421600_8013BA70(Task* arg0)
 {
     s32                           radius = 0x5DC;
@@ -3855,16 +3882,20 @@ static void func_actor_421600_8013BA70(Task* arg0)
         delta1                    = angle - ratan2((s32)-facing->coord.m[2][0], (s32)facing->coord.m[2][2]);
         wrapped                   = delta1;
         if (delta1 < 0) {
-        wrapNegative:
-            if (wrapped < -0x800) {
-                wrapped += 0x1000;
-                goto wrapNegative;
+            while (1) {
+                if (wrapped < -0x800) {
+                    wrapped += 0x1000;
+                    continue;
+                }
+                break;
             }
         } else {
-        wrapPositive:
-            if (wrapped >= 0x801) {
-                wrapped -= 0x1000;
-                goto wrapPositive;
+            while (1) {
+                if (wrapped >= 0x801) {
+                    wrapped -= 0x1000;
+                    continue;
+                }
+                break;
             }
         }
         work->lookYawTarget = wrapped;
@@ -3901,16 +3932,20 @@ static void func_actor_421600_8013BA70(Task* arg0)
         delta2   = angle2 - ratan2((s32)-facing2->coord.m[2][0], (s32)facing2->coord.m[2][2]);
         wrapped2 = delta2;
         if (delta2 < 0) {
-        wrapNegative2:
-            if (wrapped2 < -0x800) {
-                wrapped2 += 0x1000;
-                goto wrapNegative2;
+            while (1) {
+                if (wrapped2 < -0x800) {
+                    wrapped2 += 0x1000;
+                    continue;
+                }
+                break;
             }
         } else {
-        wrapPositive2:
-            if (wrapped2 >= 0x801) {
-                wrapped2 -= 0x1000;
-                goto wrapPositive2;
+            while (1) {
+                if (wrapped2 >= 0x801) {
+                    wrapped2 -= 0x1000;
+                    continue;
+                }
+                break;
             }
         }
         work->lookYawTarget = wrapped2;
@@ -3942,16 +3977,20 @@ static void func_actor_421600_8013BA70(Task* arg0)
     delta3   = angle3 - ratan2((s32)-facing3->coord.m[2][0], (s32)facing3->coord.m[2][2]);
     wrapped3 = delta3;
     if (delta3 < 0) {
-    wrapNegative3:
-        if (wrapped3 < -0x800) {
-            wrapped3 += 0x1000;
-            goto wrapNegative3;
+        while (1) {
+            if (wrapped3 < -0x800) {
+                wrapped3 += 0x1000;
+                continue;
+            }
+            break;
         }
     } else {
-    wrapPositive3:
-        if (wrapped3 >= 0x801) {
-            wrapped3 -= 0x1000;
-            goto wrapPositive3;
+        while (1) {
+            if (wrapped3 >= 0x801) {
+                wrapped3 -= 0x1000;
+                continue;
+            }
+            break;
         }
     }
     work->lookYawTarget = wrapped3;
@@ -3960,16 +3999,20 @@ static void func_actor_421600_8013BA70(Task* arg0)
     delta4              = angle4 - ratan2((s32)-facing4->coord.m[2][0], (s32)facing4->coord.m[2][2]);
     wrapped4            = delta4;
     if (delta4 < 0) {
-    wrapNegative4:
-        if (wrapped4 < -0x800) {
-            wrapped4 += 0x1000;
-            goto wrapNegative4;
+        while (1) {
+            if (wrapped4 < -0x800) {
+                wrapped4 += 0x1000;
+                continue;
+            }
+            break;
         }
     } else {
-    wrapPositive4:
-        if (wrapped4 >= 0x801) {
-            wrapped4 -= 0x1000;
-            goto wrapPositive4;
+        while (1) {
+            if (wrapped4 >= 0x801) {
+                wrapped4 -= 0x1000;
+                continue;
+            }
+            break;
         }
     }
     turnDelta         = wrapped4;
@@ -4031,27 +4074,30 @@ static void func_actor_421600_8013BA70(Task* arg0)
                     delta5   = angle5 - ratan2((s32)-facing5->coord.m[2][0], (s32)facing5->coord.m[2][2]);
                     wrapped5 = delta5;
                     if (delta5 < 0) {
-                    wrapNegative5:
-                        if (wrapped5 < -0x800) {
-                            wrapped5 += 0x1000;
-                            goto wrapNegative5;
+                        while (1) {
+                            if (wrapped5 < -0x800) {
+                                wrapped5 += 0x1000;
+                                continue;
+                            }
+                            break;
                         }
                     } else {
-                    wrapPositive5:
-                        if (wrapped5 >= 0x801) {
-                            wrapped5 -= 0x1000;
-                            goto wrapPositive5;
+                        while (1) {
+                            if (wrapped5 >= 0x801) {
+                                wrapped5 -= 0x1000;
+                                continue;
+                            }
+                            break;
                         }
                     }
                     finalDelta    = wrapped5;
                     scratch->turn = (s16)finalDelta;
                     finalDelta    = abs(finalDelta);
                     if (finalDelta < 0x300) {
-                        goto changeState;
+                        work->state = 0x1C;
                     }
                 }
             } else {
-            changeState:
                 work->state = 0x1C;
             }
             playerX                = -(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][0];
@@ -4060,16 +4106,20 @@ static void func_actor_421600_8013BA70(Task* arg0)
             wrappedYaw             = targetYaw;
             scratch->yawFromPlayer = targetYaw;
             if (targetYaw < 0) {
-            wrapYawNegative:
-                if (wrappedYaw < -0x800) {
-                    wrappedYaw += 0x1000;
-                    goto wrapYawNegative;
+                while (1) {
+                    if (wrappedYaw < -0x800) {
+                        wrappedYaw += 0x1000;
+                        continue;
+                    }
+                    break;
                 }
             } else {
-            wrapYawPositive:
-                if (wrappedYaw >= 0x801) {
-                    wrappedYaw -= 0x1000;
-                    goto wrapYawPositive;
+                while (1) {
+                    if (wrappedYaw >= 0x801) {
+                        wrappedYaw -= 0x1000;
+                        continue;
+                    }
+                    break;
                 }
             }
             finalYaw               = wrappedYaw;
@@ -4085,27 +4135,7 @@ static void func_actor_421600_8013BA70(Task* arg0)
             work->chaseHoldoff -= 1;
         }
     }
-    clampCoord = arg0->extra.tmd->coords;
-    x          = clampCoord->coord.t[0];
-    if (x > 0) {
-        if (x >= 0xBEB) {
-            clampCoord->coord.t[0] = 0xB54;
-        } else {
-            goto block_10;
-        }
-    } else if (x < -0xB22) {
-        clampCoord->coord.t[0] = -0xA8C;
-    } else {
-    block_10:
-        zClamp = clampCoord->coord.t[2];
-        if (zClamp > 0) {
-            if (zClamp >= 0xB23) {
-                clampCoord->coord.t[2] = 0xA8C;
-            }
-        } else if (zClamp < -0xB22) {
-            clampCoord->coord.t[2] = -0xA8C;
-        }
-    }
+    Actor421600_ClampToArena(arg0->extra.tmd->coords);
     SCRATCH_STACK_RELEASE_BLOCK(_Actor421600RouteRoamScratch);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
 }
