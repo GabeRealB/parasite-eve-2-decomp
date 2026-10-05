@@ -15853,7 +15853,7 @@ after the raw store, inline-asm zero-path with `D_800138C8`) but:
 
 ## Unsigned decimal itoa: keep raw digit store via reload-style mask
 
-Unsigned decimal itoa (`Text_ItoaUnsigned`) stores the raw quotient then overwrites
+Unsigned decimal itoa (`textItoaUnsigned`) stores the raw quotient then overwrites
 it with ASCII, interleaved with `place /= 10` (magic `0xCCCCCCCD` multu):
 
 ```
@@ -15888,13 +15888,14 @@ place /= 10;
 
 Also hoist `cmp = value < place` *before* the zero check so `sltu` lands in the
 delay slot of `bnez value` (result discarded on the zero path, reused after).
-Clamp overflow with a 10-byte `u8[10]` struct assign of `"999999999"`; zero path
-is a 2-byte `u8[2]` assign of `"0"` — both emit the unaligned lwl/lwr/lb
-sequence without register pins. Needs `--expand-div` (`textdraw.c`).
+Clamp overflow with a complete-string `__builtin_memcpy` of
+`sizeof("999999999")`; the zero path copies `sizeof("0")` bytes — both emit
+the unaligned lwl/lwr/lb sequence without register pins. Needs `--expand-div`
+(`textdraw.c`).
 
 ## Signed decimal itoa: do **not** pin `decimalPlace`/`destination`/`digitValue`
 
-Signed sibling `textItoaSigned` (same shape as unsigned `Text_ItoaUnsigned`, plus a
+Signed sibling `textItoaSigned` (same shape as unsigned `textItoaUnsigned`, plus a
 `'-'` / recurse prefix and signed `slt`/`blez`/`div`) needs natural regalloc:
 
 - Start `decimalPlace` at `0x989680` (10^7); clamp with a 9-byte copy of `"99999999"`.
@@ -21900,7 +21901,7 @@ already-matched functions that load the same field as `lhu` / cast through
 
 ## Zero-pad itoa: force magic-before-`'0'` load order
 
-Seconds zero-padding (`Text_FormatTime`) needs setup:
+Minutes zero-padding (`textFormatPlayTime`) needs setup:
 
 ```
 lui  a3, 0xcccc
@@ -21940,8 +21941,8 @@ do {
 } while ((u32)arg1 < place);
 ```
 
-`Text_FormatTime` is the pure example (minutes:seconds time string, same
-unsigned-decimal digit loop as `Text_ItoaUnsigned` for the minutes half).
+`textFormatPlayTime` is the pure example (hours:minutes time string, same
+unsigned-decimal digit loop as `textItoaUnsigned` for the hours half).
 
 ## s32 temp for QImode store of a loop-compared constant
 
@@ -51360,7 +51361,7 @@ leaves empty, and the constants shift up to `$s3/$s4/$s5`. 82.7% -> 90.2%.
 already scheduled into the prologue and the pseudo's live length covers the
 whole body. The global allocator sorts by references / live length, so a 10-ref
 pointer with an 80-insn range loses `$s6` to a 12-ref `obj` with an 83-insn one.
-Moving the assignment down to the statement before the `Text_ItoaUnsigned` that
+Moving the assignment down to the statement before the `textItoaUnsigned` that
 fills the buffer shortens the range enough to flip the order — and `sched2`
 still hoists the `addiu s6, sp, 0x40` back to the top, exactly as the target
 has it. 94.96% -> 99.92%. This is the mirror of "Lengthen a parameter's live
@@ -145450,7 +145451,7 @@ seed had pinned that local to `$v0`; the pin was unnecessary once the rest of
 the function was plain. `level /= 4` and a shared `vol = level / 4` did not
 work.
 
-### An unfilled `move v0,aN; jr ra; nop` after early `jr ra; move v0,aN` exits is one `if/else` chain with a single `return` (Text_ItoaUnsigned, 2026-09-26)
+### An unfilled `move v0,aN; jr ra; nop` after early `jr ra; move v0,aN` exits is one `if/else` chain with a single `return` (textItoaUnsigned, 2026-09-26)
 
 Target: the two special cases each end `jr ra; move v0,a0`, but the main path
 ends `sb zero,0(a3); move v0,a0; jr ra; nop` with the slot left empty. Early

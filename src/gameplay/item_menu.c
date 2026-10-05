@@ -1166,9 +1166,9 @@ void func_800BDF6C(Task* task)
     panelY      = obj->panel.contentTop.signedValue;
     splitWidth  = ((s32)(sourceQty * usableWidth) / (s32)(sourceQty + split->carriedQty)) + 1;
     textY       = panelY + 0x20;
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 0x20, textY, Text_ItoaUnsigned(buf, (u32)sourceQty), 0x606060, TEXT_DRAW_OUTLINED,
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 0x20, textY, textItoaUnsigned(buf, (u32)sourceQty), 0x606060, TEXT_DRAW_OUTLINED,
                    TEXT_ALIGNMENT_RIGHT);
-    textDrawUiLine(obj, obj->panel.contentRight.signedValue - 6, textY, Text_ItoaUnsigned(buf, (u32)split->carriedQty), color, TEXT_DRAW_OUTLINED,
+    textDrawUiLine(obj, obj->panel.contentRight.signedValue - 6, textY, textItoaUnsigned(buf, (u32)split->carriedQty), color, TEXT_DRAW_OUTLINED,
                    TEXT_ALIGNMENT_RIGHT);
     caretY    = panelY + 0x16;
     negWidth  = -width;

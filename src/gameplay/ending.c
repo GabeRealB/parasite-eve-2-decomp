@@ -347,7 +347,7 @@ void func_800A087C(Task* arg0)
         req3.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
         req3.alignment  = TEXT_ALIGNMENT_RIGHT;
         req3.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-        textDrawString(&req3, Text_ItoaUnsigned(buf, D_80114BE2));
+        textDrawString(&req3, textItoaUnsigned(buf, D_80114BE2));
         y -= 0xA;
     }
 
@@ -367,11 +367,11 @@ void func_800A087C(Task* arg0)
     req5.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
     req5.alignment  = TEXT_ALIGNMENT_RIGHT;
     req5.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-    textDrawString(&req5, Text_ItoaUnsigned(buf, D_80114BE0));
+    textDrawString(&req5, textItoaUnsigned(buf, D_80114BE0));
 
     if (D_80114BE4 > 0) {
         buf[0] = '+';
-        Text_ItoaUnsigned(&buf[1], D_80114BE4);
+        textItoaUnsigned(&buf[1], D_80114BE4);
         req6.x          = obj->panel.contentOriginX.unsignedValue + col;
         req6.y          = obj->panel.contentOriginY.unsignedValue + y;
         req6.otIndex    = obj->panel.otIndex.signedValue + 1;
@@ -409,7 +409,7 @@ void func_800A087C(Task* arg0)
         req7.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
         req7.alignment  = TEXT_ALIGNMENT_RIGHT;
         req7.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-        textDrawString(&req7, Text_ItoaUnsigned(buf, D_80114BDC));
+        textDrawString(&req7, textItoaUnsigned(buf, D_80114BDC));
     }
 
     y              -= step;
@@ -430,7 +430,7 @@ void func_800A087C(Task* arg0)
     req8.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
     req8.alignment  = TEXT_ALIGNMENT_RIGHT;
     req8.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-    textDrawString(&req8, Text_ItoaUnsigned(buf, D_80114BDE));
+    textDrawString(&req8, textItoaUnsigned(buf, D_80114BDE));
 
     y   = obj->panel.contentBottom.signedValue - 2;
     col = obj->panel.contentRight.signedValue - 2;
@@ -444,7 +444,7 @@ void func_800A087C(Task* arg0)
             req9.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
             req9.alignment  = TEXT_ALIGNMENT_RIGHT;
             req9.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-            textDrawString(&req9, Text_ItoaUnsigned(buf, cfg->hp));
+            textDrawString(&req9, textItoaUnsigned(buf, cfg->hp));
         }
         y -= step;
     }
@@ -456,7 +456,7 @@ void func_800A087C(Task* arg0)
         req9.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
         req9.alignment  = TEXT_ALIGNMENT_RIGHT;
         req9.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-        textDrawString(&req9, Text_ItoaUnsigned(buf, cfg->mp));
+        textDrawString(&req9, textItoaUnsigned(buf, cfg->mp));
     }
     y -= step;
     if (arg0->killCountdown >= 0x51) {
@@ -467,7 +467,7 @@ void func_800A087C(Task* arg0)
         req10.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
         req10.alignment  = TEXT_ALIGNMENT_RIGHT;
         req10.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-        textDrawString(&req10, Text_ItoaUnsigned(buf, cfg->bp));
+        textDrawString(&req10, textItoaUnsigned(buf, cfg->bp));
     }
     y -= step;
     if (arg0->killCountdown >= 0x33) {
@@ -478,7 +478,7 @@ void func_800A087C(Task* arg0)
         req11.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
         req11.alignment  = TEXT_ALIGNMENT_RIGHT;
         req11.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-        textDrawString(&req11, Text_ItoaUnsigned(buf, cfg->exp));
+        textDrawString(&req11, textItoaUnsigned(buf, cfg->exp));
     }
 
     if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {

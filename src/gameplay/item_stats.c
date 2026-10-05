@@ -480,7 +480,7 @@ void func_800C5F70(Task* arg0)
                 req80.colorRgb   = altColor;
                 req80.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
                 req80.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-                textDrawString(&req80, Text_ItoaUnsigned(buf40, Gp_GetModLevel(item)));
+                textDrawString(&req80, textItoaUnsigned(buf40, Gp_GetModLevel(item)));
                 req90.x          = obj->panel.contentOriginX.unsignedValue + x;
                 req90.y          = obj->panel.contentOriginY.unsignedValue + (y - 2);
                 req90.otIndex    = obj->panel.otIndex.signedValue + 1;

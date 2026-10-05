@@ -3055,7 +3055,7 @@ void Gp_TickPlayClock(Task* task)
         req.glyphTable = TEXT_GLYPH_TABLE_LARGE_ALTERNATE;
         req.alignment  = TEXT_ALIGNMENT_LEFT;
         req.drawMode   = one;
-        textDrawString(&req, Text_ItoaUnsigned(buf, work->hours));
+        textDrawString(&req, textItoaUnsigned(buf, work->hours));
         textDrawString(&req, ":");
         textDrawString(&req, textItoaPadded(buf, work->minutes, 2));
         textDrawString(&req, "'");

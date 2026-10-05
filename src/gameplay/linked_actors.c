@@ -407,7 +407,7 @@ static inline void _gpDrawHudValue(s32 x, s32 y, s32 color, s32 val)
     req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
     req.alignment  = TEXT_ALIGNMENT_RIGHT;
     req.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-    textDrawString(&req, Text_ItoaUnsigned(buf, val));
+    textDrawString(&req, textItoaUnsigned(buf, val));
 }
 
 /// Draws the "HP" and "MP" captions relative to `obj`'s origin and draw order.

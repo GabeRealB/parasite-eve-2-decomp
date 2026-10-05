@@ -1166,7 +1166,7 @@ static void Mc_BuildSaveTitle(McWork* work)
     }
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.saveNumber = number;
     title                                               = Mc_EncodeTitleLiteral("PE2 ", title);
-    title                                               = Mc_EncodeTitleText((s8*)Text_FormatTime(buffer, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.playTime), title);
+    title                                               = Mc_EncodeTitleText((s8*)textFormatPlayTime(buffer, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.playTime), title);
     title                                               = Mc_EncodeTitleLiteral(" ", title);
     Mc_DefaultChecksumSrc[0x43]                         = 0;
     Mc_DefaultChecksumSrc[0x42]                         = 0;
@@ -2497,7 +2497,7 @@ void Mc_DrawSlotDetails(UiObject* object, McWork* work, s32 slot, s32 arg3, s32 
         timeValueRequest.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
         timeValueRequest.alignment  = TEXT_ALIGNMENT_LEFT;
         timeValueRequest.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-        textDrawString(&timeValueRequest, Text_FormatTime(sp20.buf, save->playTime));
+        textDrawString(&timeValueRequest, textFormatPlayTime(sp20.buf, save->playTime));
         if (save->clearCount > 0) {
             x                   = (arg3 + object->panel.contentRight.signedValue) - 4;
             y                   = (arg4 + object->panel.contentBottom.signedValue) - 0xB;
@@ -2516,7 +2516,7 @@ void Mc_DrawSlotDetails(UiObject* object, McWork* work, s32 slot, s32 arg3, s32 
             detailRequest.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
             detailRequest.alignment  = TEXT_ALIGNMENT_RIGHT;
             detailRequest.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-            textDrawString(&detailRequest, Text_ItoaUnsigned(sp20.buf, save->clearCount));
+            textDrawString(&detailRequest, textItoaUnsigned(sp20.buf, save->clearCount));
             if ((s8)save->savePoint != MEMORY_CARD_SAVE_POINT_OPENING) {
                 statRequest.x          = object->panel.contentOriginX.unsignedValue + x;
                 statRequest.y          = object->panel.contentOriginY.unsignedValue + 8 + y;

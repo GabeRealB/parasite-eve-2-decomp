@@ -364,7 +364,13 @@ u8* textItoaSigned(u8* buffer, s32 value);
 /// without retaining it; the caller owns it and no capacity is checked.
 u8* textItoaSignPrefixed(u8* buffer, s32 value);
 
-u8* Text_ItoaUnsigned(u8* arg0, u32 arg1);
+/// Writes an unsigned decimal string, saturating at 999,999,999.
+///
+/// Every u32 input is accepted; zero is "0" and no leading zeros are added.
+/// A negative s32 argument converts to u32 and therefore saturates too.
+/// `buffer` needs up to ten writable bytes including NUL. Returns `buffer`;
+/// the caller owns it, no pointer is retained and no capacity is checked.
+u8* textItoaUnsigned(u8* buffer, u32 value);
 
 /// Writes a fixed-width, zero-padded unsigned decimal string and returns `buffer`.
 ///
@@ -382,6 +388,11 @@ u8* textItoaPadded(u8* buffer, u32 value, s32 digitCount);
 /// when `src` is empty. No capacity check or allocation is performed.
 u8* textAppendString(u8* dest, const u8* src);
 
-u8* Text_FormatTime(u8* arg0, u16 time);
+/// Writes play time in minutes as hours and two minute digits (`H:MM`).
+///
+/// Hours have no leading zeros; the display caps at "999:59" (59,999 minutes).
+/// `buffer` needs up to seven writable bytes including NUL. Returns `buffer`;
+/// the caller owns it, no pointer is retained and no capacity is checked.
+u8* textFormatPlayTime(u8* buffer, u16 totalMinutes);
 
 #endif // MAIN_TEXT_H

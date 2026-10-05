@@ -106,7 +106,7 @@ static void Telephone_DrawPlayDataRow(UiList* arg0, UiObject* arg1)
             req.alignment  = TEXT_ALIGNMENT_LEFT;
             req.drawMode   = TEXT_DRAW_OUTLINED;
             textDrawString(&req, Telephone_Data_80181A20);
-            Text_FormatTime(p, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.playTime);
+            textFormatPlayTime(p, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.playTime);
             textDrawUiLine(arg1, -arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, buf, arg0->colorRgb, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
             break;
         }
@@ -123,7 +123,7 @@ static void Telephone_DrawPlayDataRow(UiList* arg0, UiObject* arg1)
             req.alignment  = TEXT_ALIGNMENT_LEFT;
             req.drawMode   = TEXT_DRAW_OUTLINED;
             textDrawString(&req, Telephone_Data_80181A50);
-            Text_ItoaUnsigned(p, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.saveCount);
+            textItoaUnsigned(p, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.saveCount);
             textAppendString(p, Telephone_Data_80181A70);
             textDrawUiLine(arg1, -arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, buf, arg0->colorRgb, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
             break;
@@ -141,7 +141,7 @@ static void Telephone_DrawPlayDataRow(UiList* arg0, UiObject* arg1)
             req.alignment  = TEXT_ALIGNMENT_LEFT;
             req.drawMode   = TEXT_DRAW_OUTLINED;
             textDrawString(&req, Telephone_Data_80181A28);
-            Text_ItoaUnsigned(p, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.battlesWon);
+            textItoaUnsigned(p, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.battlesWon);
             textAppendString(p, Telephone_Data_80181A70);
             textDrawUiLine(arg1, -arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, buf, arg0->colorRgb, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
             break;
@@ -159,7 +159,7 @@ static void Telephone_DrawPlayDataRow(UiList* arg0, UiObject* arg1)
             req.alignment  = TEXT_ALIGNMENT_LEFT;
             req.drawMode   = TEXT_DRAW_OUTLINED;
             textDrawString(&req, Telephone_Data_80181A2C);
-            Text_ItoaUnsigned(p, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.battlesEscaped);
+            textItoaUnsigned(p, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.battlesEscaped);
             textAppendString(p, Telephone_Data_80181A70);
             textDrawUiLine(arg1, -arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, buf, arg0->colorRgb, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
             break;
@@ -190,7 +190,7 @@ static void Telephone_DrawPlayDataRow(UiList* arg0, UiObject* arg1)
             if (pct < 100) {
                 textItoaPadded(p, pct, 3);
             } else {
-                Text_ItoaUnsigned(p, pct);
+                textItoaUnsigned(p, pct);
             }
             n   = 2;
             q   = p;
@@ -243,7 +243,7 @@ static void Telephone_DrawPlayDataRow(UiList* arg0, UiObject* arg1)
             if (pct < 100) {
                 textItoaPadded(p, pct, 3);
             } else {
-                Text_ItoaUnsigned(p, pct);
+                textItoaUnsigned(p, pct);
             }
             n   = 2;
             q   = p;
@@ -280,7 +280,7 @@ static void Telephone_DrawPlayDataRow(UiList* arg0, UiObject* arg1)
             req.alignment  = TEXT_ALIGNMENT_LEFT;
             req.drawMode   = TEXT_DRAW_OUTLINED;
             textDrawString(&req, Telephone_Data_80181A58);
-            Text_ItoaUnsigned(p, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.clearCount);
+            textItoaUnsigned(p, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.clearCount);
             textAppendString(p, Telephone_Data_80181A70);
             textDrawUiLine(arg1, -arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, buf, arg0->colorRgb, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
             break;
@@ -298,7 +298,7 @@ static void Telephone_DrawPlayDataRow(UiList* arg0, UiObject* arg1)
             req.alignment  = TEXT_ALIGNMENT_LEFT;
             req.drawMode   = TEXT_DRAW_OUTLINED;
             textDrawString(&req, Telephone_Data_80181A60);
-            textDrawUiLine(arg1, -arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, Text_ItoaUnsigned(p, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.maxExp),
+            textDrawUiLine(arg1, -arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, textItoaUnsigned(p, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.maxExp),
                            arg0->colorRgb, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
             break;
         }
@@ -315,7 +315,7 @@ static void Telephone_DrawPlayDataRow(UiList* arg0, UiObject* arg1)
             req.alignment  = TEXT_ALIGNMENT_LEFT;
             req.drawMode   = TEXT_DRAW_OUTLINED;
             textDrawString(&req, Telephone_Data_80181A68);
-            textDrawUiLine(arg1, -arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, Text_ItoaUnsigned(p, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.maxBp),
+            textDrawUiLine(arg1, -arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, textItoaUnsigned(p, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.maxBp),
                            arg0->colorRgb, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
             break;
         }
@@ -389,7 +389,7 @@ static void Telephone_DrawUsageRow(UiList* arg0, UiObject* arg1)
         if (value < limit) {
             textItoaPadded(p, value, 3);
         } else {
-            Text_ItoaUnsigned(p, value);
+            textItoaUnsigned(p, value);
         }
         n   = 2;
         q   = p;

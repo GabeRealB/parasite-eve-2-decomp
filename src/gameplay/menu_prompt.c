@@ -548,7 +548,7 @@ void Gp_DrawHpMpStats(UiPanel* arg0, s32 arg1)
     req1.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
     req1.alignment  = TEXT_ALIGNMENT_LEFT;
     req1.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-    textDrawString(&req1, Text_ItoaUnsigned(buf, Gp_HpMpWork.hp));
+    textDrawString(&req1, textItoaUnsigned(buf, Gp_HpMpWork.hp));
 
     req2.x          = arg0->contentOriginX.unsignedValue + 0x32 + x;
     req2.y          = arg0->contentOriginY.unsignedValue + y;
@@ -566,7 +566,7 @@ void Gp_DrawHpMpStats(UiPanel* arg0, s32 arg1)
     req3.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
     req3.alignment  = TEXT_ALIGNMENT_LEFT;
     req3.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-    textDrawString(&req3, Text_ItoaUnsigned(buf, cfg->hpMax));
+    textDrawString(&req3, textItoaUnsigned(buf, cfg->hpMax));
 
     max  = cfg->hpMax;
     barX = xOff + 7;
@@ -580,7 +580,7 @@ void Gp_DrawHpMpStats(UiPanel* arg0, s32 arg1)
     req4.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
     req4.alignment  = TEXT_ALIGNMENT_LEFT;
     req4.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-    textDrawString(&req4, Text_ItoaUnsigned(buf, Gp_HpMpWork.mp));
+    textDrawString(&req4, textItoaUnsigned(buf, Gp_HpMpWork.mp));
 
     req5.x          = arg0->contentOriginX.unsignedValue + 0x32 + x;
     req5.y          = arg0->contentOriginY.unsignedValue + y2;
@@ -598,7 +598,7 @@ void Gp_DrawHpMpStats(UiPanel* arg0, s32 arg1)
     req6.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
     req6.alignment  = TEXT_ALIGNMENT_LEFT;
     req6.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-    textDrawString(&req6, Text_ItoaUnsigned(buf, cfg->mpMax));
+    textDrawString(&req6, textItoaUnsigned(buf, cfg->mpMax));
 
     max = cfg->mpMax;
     func_800C0E20(arg0, x, barX + ((max - 1) * 0x25) / 64, y + 0x17, max, Gp_HpMpWork.mp, 0x1741F);
@@ -611,7 +611,7 @@ void Gp_DrawHpMpStats(UiPanel* arg0, s32 arg1)
     req7.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
     req7.alignment  = TEXT_ALIGNMENT_LEFT;
     req7.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-    textDrawString(&req7, Text_ItoaUnsigned(buf, cfg->exp));
+    textDrawString(&req7, textItoaUnsigned(buf, cfg->exp));
 
     req8.x          = arg0->contentOriginX.unsignedValue + xOff + 0x72;
     req8.y          = arg0->contentOriginY.unsignedValue + y2;
@@ -620,7 +620,7 @@ void Gp_DrawHpMpStats(UiPanel* arg0, s32 arg1)
     req8.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
     req8.alignment  = TEXT_ALIGNMENT_LEFT;
     req8.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-    textDrawString(&req8, Text_ItoaUnsigned(buf, cfg->bp));
+    textDrawString(&req8, textItoaUnsigned(buf, cfg->bp));
 
     req8.x          = arg0->contentLeft.unsignedValue + (arg0->contentOriginX.unsignedValue + 2);
     req8.y          = arg0->contentOriginY.unsignedValue + (y - 2);

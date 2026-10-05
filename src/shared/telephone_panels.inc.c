@@ -63,7 +63,7 @@ static u8* Telephone_FormatPercentage(u8* buf, s32 value, s32 decimals)
     if (value < limit) {
         textItoaPadded(buf, value, decimals + 1);
     } else {
-        Text_ItoaUnsigned(buf, value);
+        textItoaUnsigned(buf, value);
     }
 
     n   = decimals;

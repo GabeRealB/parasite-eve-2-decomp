@@ -1148,7 +1148,7 @@ void Gp_PeListPanelTask(Task* arg0)
     req2.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
     req2.alignment  = TEXT_ALIGNMENT_LEFT;
     req2.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-    textDrawString(&req2, Text_ItoaUnsigned(buf, cfg->exp));
+    textDrawString(&req2, textItoaUnsigned(buf, cfg->exp));
     x               = xOff + 0x7A;
     req3.x          = obj->panel.contentOriginX.unsignedValue + x;
     req3.y          = obj->panel.contentOriginY.unsignedValue + (y - 2);
@@ -1232,9 +1232,9 @@ void Gp_ItemCountHeaderTask(Task* arg0)
     scan  = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
     cur   = Gp_CountScanItems(scan);
     cap   = Gp_GetScanCount(scan);
-    Text_ItoaUnsigned(buf, cur);
+    textItoaUnsigned(buf, cur);
     textAppendString(buf, (const u8*)Gp_StrSlash);
-    Text_ItoaUnsigned(buf2, cap);
+    textItoaUnsigned(buf2, cap);
     textAppendString(buf, buf2);
     x              = obj->panel.contentOriginX.unsignedValue - 2;
     req.x          = obj->panel.contentRight.unsignedValue + x;

@@ -378,7 +378,7 @@ static void Shop_ItemRow(UiList* prompt, UiObject* obj)
         scaled = itemId * 4;
         Gp_DrawQty(obj, prompt->rowTextX.signedValue, prompt->rowTextY.signedValue, gpItemStock(itemId)->packQty, prompt->colorRgb);
     }
-    Text_ItoaUnsigned(buf, price);
+    textItoaUnsigned(buf, price);
     textDrawUiLine(obj, -prompt->rowTextX.signedValue, prompt->rowTextY.signedValue, buf, prompt->colorRgb, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
 }
 
@@ -760,14 +760,14 @@ static void Shop_CategoryListTask(Task* task)
 /// caption with the carried item count over the inventory's row capacity.
 static void Shop_BalanceTask(Task* task)
 {
-    s8                  digits[0x20];
-    s8                  total[0x20];
+    u8                  digits[0x20];
+    u8                  total[0x20];
     TextDrawReq         req0;
     TextDrawReq         req1;
     UiObject*           obj;
     PlayerStatus*       cfg;
     InventoryItemRange* scan;
-    s8*                 p;
+    u8*                 p;
     s32                 x;
     s32                 y;
     s32                 y2;
@@ -790,8 +790,8 @@ static void Shop_BalanceTask(Task* task)
     req0.drawMode   = TEXT_DRAW_OUTLINED;
     textDrawString(&req0, Shop_Data_8017D6D8);
 
-    Text_ItoaUnsigned((u8*)digits, cfg->bp);
-    textDrawUiLine(obj, col, y + 0x19, (const u8*)digits, 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
+    textItoaUnsigned(digits, cfg->bp);
+    textDrawUiLine(obj, col, y + 0x19, digits, 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
 
     y2              = y + 0x28;
     req1.x          = obj->panel.contentOriginX.unsignedValue + x;
@@ -807,13 +807,13 @@ static void Shop_BalanceTask(Task* task)
     scan     = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
     count    = Gp_CountScanItems(scan);
     capacity = scan->rowCount;
-    Text_ItoaUnsigned((u8*)p, count);
-    while (*p != 0) {
+    textItoaUnsigned(p, count);
+    while (*(const s8*)p != 0) {
         p++;
     }
     *p = '/';
-    Text_ItoaUnsigned((u8*)(p + 1), capacity);
-    textDrawUiLine(obj, col, y2 + 0xA, (const u8*)total, 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
+    textItoaUnsigned(p + 1, capacity);
+    textDrawUiLine(obj, col, y2 + 0xA, total, 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
 }
 
 /// Row handler of the buy prompt. On confirm it checks the price against the

@@ -152,9 +152,7 @@ void func_80701400(Task* arg0);
 
 static s32 _textMeasureLineWidth(const TextDrawReq* request, const u8* text, const _FontGlyph* glyphTable);
 
-/// Writes `value` in decimal to `arg0` and terminates it; values past nine
-/// digits are written as all nines.
-static inline u8* _textItoaUnsigned(u8* arg0, u32 value);
+static inline u8* _textItoaUnsigned(u8* buffer, u32 value);
 
 static inline u8* _textItoaSigned(u8* buffer, s32 value);
 
@@ -926,39 +924,49 @@ void textDrawString(TextDrawReq* request, const u8* text)
     }
 }
 
-/// Writes `value` in decimal to `arg0` and terminates it; values past nine
-/// digits are written as all nines.
-static inline u8* _textItoaUnsigned(u8* arg0, u32 value)
+/// Writes the saturated unsigned decimal bytes shared by the public formatters.
+///
+/// Zero is "0"; values at or above 999,999,999 become nine nines. Every u32
+/// input is accepted. `buffer` supplies up to ten writable bytes including
+/// NUL and is returned without being retained. No capacity check is performed.
+static inline u8* _textItoaUnsigned(u8* buffer, u32 value)
 {
-    typedef struct {
-        u8 data[10];
-    } Bytes10;
-    typedef struct {
-        u8 data[2];
-    } Bytes2;
+    enum { TEXT_UNSIGNED_DECIMAL_MAX = 999999999 };
 
-    u8* dest;
-    u32 place;
+    u8* destination;
+    u32 decimalPlace;
 
-    place = 0x5F5E100;
-    if (value > 0x3B9AC9FEU) {
-        *(Bytes10*)arg0 = *(Bytes10*)Text_MaxNineDigits;
+    /// Writes one unsigned decimal digit, advancing its place and remainder.
+    ///
+    /// Arguments must be distinct simple lvalues with no side effects: they
+    /// are evaluated repeatedly. The nonzero place must give a quotient 0..9.
+    /// The byte store narrows the quotient before unsigned remainder math.
+#define TEXT_STEP_UNSIGNED_DECIMAL_DIGIT(destination, decimalPlace, value) \
+    do {                                                                   \
+        *(destination)      = (value) / (decimalPlace);                    \
+        (value)            -= *(destination) * (decimalPlace);             \
+        (decimalPlace)     /= 10;                                          \
+        *((destination)++) += '0';                                         \
+    } while (0)
+
+    decimalPlace = 100000000;
+    if (value >= TEXT_UNSIGNED_DECIMAL_MAX) {
+        __builtin_memcpy(buffer, Text_MaxNineDigits, sizeof("999999999"));
     } else if (value == 0) {
-        *(Bytes2*)arg0 = *(Bytes2*)Text_ZeroDigit;
+        __builtin_memcpy(buffer, Text_ZeroDigit, sizeof("0"));
     } else {
-        dest = arg0;
-        while (value < place) {
-            place /= 10;
+        // Skip leading zero places, then consume the remaining decimal digits.
+        destination = buffer;
+        while (value < decimalPlace) {
+            decimalPlace /= 10;
         }
-        while (place != 0) {
-            *dest    = value / place;
-            value   -= *dest * place;
-            place   /= 10;
-            *dest++ += '0';
+        while (decimalPlace != 0) {
+            TEXT_STEP_UNSIGNED_DECIMAL_DIGIT(destination, decimalPlace, value);
         }
-        *dest = 0;
+        *destination = '\0';
     }
-    return arg0;
+#undef TEXT_STEP_UNSIGNED_DECIMAL_DIGIT
+    return buffer;
 }
 
 /// Writes the saturated signed decimal bytes shared by the public formatters.
@@ -1063,31 +1071,32 @@ static inline u8* _textItoaPadded(u8* buffer, u32 value, s32 digitCount)
     return buffer;
 }
 
-/// Writes a play time given in minutes as `H:MM` to `arg0`, capping it at
-/// 999:59, and returns `arg0`.
-u8* Text_FormatTime(u8* arg0, u16 time)
+u8* textFormatPlayTime(u8* buffer, u16 totalMinutes)
 {
-    u8* ret;
+    enum { TEXT_PLAY_TIME_MAX_MINUTES = 59999 };
+
+    u8* start;
     s32 hours;
     s32 minutes;
 
-    ret = arg0;
-    if (time > 59999) {
-        time = 59999;
+    start = buffer;
+    if (totalMinutes > TEXT_PLAY_TIME_MAX_MINUTES) {
+        totalMinutes = TEXT_PLAY_TIME_MAX_MINUTES;
     }
-    hours   = time / 60;
-    minutes = time % 60;
-    _textItoaUnsigned(ret, hours);
+    hours   = totalMinutes / 60;
+    minutes = totalMinutes % 60;
+    _textItoaUnsigned(start, hours);
+    // Replace the hours terminator with the separator and two minute digits.
     if (hours >= 100) {
-        arg0 += 3;
+        buffer += 3;
     } else if (hours >= 10) {
-        arg0 += 2;
+        buffer += 2;
     } else {
-        arg0 += 1;
+        buffer += 1;
     }
-    *arg0++ = ':';
-    _textItoaPadded(arg0, minutes, 2);
-    return ret;
+    *buffer++ = ':';
+    _textItoaPadded(buffer, minutes, 2);
+    return start;
 }
 
 void textAlignLine(TextDrawReq* request, const u8* text)
@@ -1133,9 +1142,9 @@ u8* textItoaSigned(u8* buffer, s32 value)
     return _textItoaSigned(buffer, value);
 }
 
-u8* Text_ItoaUnsigned(u8* arg0, u32 arg1)
+u8* textItoaUnsigned(u8* buffer, u32 value)
 {
-    return _textItoaUnsigned(arg0, arg1);
+    return _textItoaUnsigned(buffer, value);
 }
 
 /// Writes signed-magnitude uppercase hexadecimal without a radix prefix.
