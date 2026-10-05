@@ -148847,3 +148847,85 @@ none needed a hack. The forms, by what the `goto` was standing for:
 - **A jump into the middle of a nested `if`** from a two-way state test
   (`func_actor_800100_80164710`) was `switch (phase) { case 0: ...; phase++;
   /* fallthrough */ case 1: ... }` with `break` for the early exits.
+## Removing `goto`: four compiler facts from a 15-function sample (2026-10-05)
+
+### A loop that is not rotated: `for (;;) { if (c) body; else break; }`
+
+Problem: a `while (c) body;` loop is rotated - `expand_end_loop` (stmt.c)
+moves the leading exit test to the bottom and jump.c duplicates it at the
+entry - but the image has the test once, at the top, and an unconditional
+jump back (`slti; beqz exit; ...; j top`). The sources spelled that as
+`label: if (c) { body; goto label; }`.
+
+Fix: `expand_end_loop` scans from the loop's start label for a conditional
+jump to the *exit* label and stops at the first `CODE_LABEL`, call or block
+note. With the `break` in the `else` arm, the first conditional jump goes to
+the else label, not the exit, and the scan stops at that label:
+
+```c
+for (;;) {
+    if (angle < -0x800) {
+        angle += 0x1000;
+    } else {
+        break;
+    }
+}
+```
+
+compiles to the unrotated loop. `overlayWrapAngle` (`include/overlay.h`) and
+the three in-line wraps of `Actor00100_Fn08E7C` are now this form; the whole
+project still matches.
+
+### A `goto` loop is not a loop to loop.c, and that leaks into its callers
+
+Symptom: `Actor04000_Fn03FB4` scans its contacts with an inline
+`FindHit` (`for` + `break` + `return key` from inside the loop). As a `for`
+the found-and-return block was moved out of the loop, to the middle of the
+inlined `actorWrapAngle` thirty insns later; the image keeps it in place.
+The scan had been written as a `goto` loop with the hoisted constants
+(`0xFFFF0000`, `0x20000`) in locals.
+
+Mechanism: `find_and_verify_loops` (loop.c) moves a block that ends in an
+unconditional jump out of the loop to the nearest `BARRIER` *at the jump
+target's loop level*. The backward `goto` of the old `overlayWrapAngle` left
+such a barrier at level -1. Written as a real loop, its barrier is inside
+that loop, nothing qualifies, and the block stays. So a goto-loop in one
+inline changed the layout of another loop in the same function. After the
+`overlayWrapAngle` change the plain `for` helper matches (argument order
+`(pos, records, count)`: arguments are expanded in order, and the image
+computes `pos` first).
+
+### Reading a switch back from its compare tree
+
+- `==1; <2 -> default; ==2; ==3; j default` is not three cases (three single
+  cases split at the middle: `==2` first). It is *four* nodes 0..3 where
+  case 0 shares the default's code: `case 0: default:`. Four cases still use
+  a tree (no `casesi` on MIPS, so the table threshold is 5); the pivot is the
+  second node, and the `==0 -> default` test is deleted because it is
+  followed by the jump to the same label (`Gp_RemapActorColor`).
+- `==0 -> end; <0 -> end; >=K+2 -> end; <K -> end` is
+  `switch (x) { case 0: break; case K: case K + 1: ... }`: two nodes, the
+  second a range (`group_case_nodes` merges consecutive cases with one
+  label). Written as `if (x != 0 && x >= 0 && x < K + 2 && x >= K)` fold
+  turns it into `(unsigned)(x - K) < 2` (`Gp_StepCdAudioCmd`; the room
+  stream tasks have the same test as nested `if`s).
+- `==1; >=2 -> L; ==0; j default; L: ==2; j default` is the plain three-case
+  tree. A case that must skip the code after the switch is that code
+  duplicated before a `return` in the case; cross-jumping merges it back
+  (`Actor03800_Fn031B8`, `func_actor_205200_8014B9D4`).
+
+### When a duplicated tail does and does not merge back
+
+`goto shared;` into another arm is usually the tail written twice:
+cross-jumping (jump.c) merges two identical insn runs that end at the same
+label, and deletes the *earlier* copy. It matched in `effectThrownModelTask`,
+`func_acropolis_cafeteria_8017E47C`, `func_dryfield_dilapidated_house_8017E2B0`.
+It fails in two ways:
+
+- the image keeps the *earlier* copy and jumps backward to it
+  (`Gp_PlayerMode2State3`: the later arm has a constant 1 in `$s5`, so the
+  surviving later copy stores `s5` where the image has `move v0,a1`);
+- cse makes the copies different: in `func_actor_800200_80163044` the
+  duplicated `routeComplete = 1` reuses the register that held 1 for an
+  earlier store, across a call (`li s4,1`), where the shared block reloads
+  it. A label with two users ends the cse path; a duplicated block does not.
