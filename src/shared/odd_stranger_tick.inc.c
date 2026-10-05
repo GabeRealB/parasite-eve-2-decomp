@@ -86,8 +86,8 @@ void oddStrangerTick(Enemy* enemy, Task* actor)
     } else {
         work->stateEntered = 0;
     }
-    work->prevState = (u16)work->state;
 #if ODD_STRANGER_VARIANT == 1
+    work->prevState = (u16)work->state;
     states.handlers[work->state](actor);
 
     state = work->state;
@@ -97,9 +97,12 @@ void oddStrangerTick(Enemy* enemy, Task* actor)
         work->hitBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     }
 #else
-    index = work->state;
-    SCHED_BARRIER();
-    stop = ODD_STRANGER_STATE_DEATH_BURN;
+    /* One local carries the state into `prevState` and then indexes the
+       table: set twice, it keeps the second read behind the store. */
+    index           = (u16)work->state;
+    work->prevState = index;
+    index           = work->state;
+    stop            = ODD_STRANGER_STATE_DEATH_BURN;
     states.handlers[index](actor);
     state = work->state;
     if ((state == ODD_STRANGER_STATE_AMBUSH) || (state == stop) || (state == ODD_STRANGER_STATE_HIDDEN) || (state == ODD_STRANGER_STATE_DEATH_BURST) || (state == ODD_STRANGER_STATE_DEATH_BURST_WALK)) {
