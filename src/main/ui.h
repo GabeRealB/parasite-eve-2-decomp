@@ -50,8 +50,34 @@ void mcMenuDrawSaveFileRow(UiList* list, UiObject* object);
 /// resources. The Select label is drawn on every call; no allocation is retained.
 void mcMenuUpdateLoadFileList(Task* owningTask);
 
-void McMenu_SelectListAlt(Task* task);
+/// Initializes and updates the memory-card save-destination selection panel.
+///
+/// `owningTask` owns the live `UiObject` in its second spawn argument and
+/// borrows the dialog's `McWork` in its first. The parent supplies the shared
+/// list's count: existing files plus New Block if space remains, at most 15 rows.
+/// Only one save listing may be live. State zero initializes the viewport,
+/// restores the remembered directory index (0..14), positions it at the bottom
+/// when it exceeds the visible rows, and enables the system cursor sound.
+/// Later calls draw rows and handle port-zero input. Active control also eases
+/// and draws the shared cursor two pixels inside the content's left edge at
+/// content-relative Y zero. The UI lifecycle supplies layout and drawing
+/// resources; the Select label is drawn on every call. No pointer is retained.
+void mcMenuUpdateSaveFileList(Task* owningTask);
 
-void McMenu_FileInformation(Task* task);
+/// Draws File Information and the highlighted memory-card file's cached preview.
+///
+/// `owningTask` owns the live `UiObject` in its second spawn argument. On state
+/// zero, the first argument's low 16 bits select the save list when equal to 1,
+/// otherwise the load list. This selector is retained in `killCountdown`, not
+/// decremented. The first argument is then replaced by the parent's borrowed
+/// `McWork` pointer, and the state advances to one. The parent and work must
+/// remain live; subsequent calls require the cached pointer and selector.
+///
+/// The corresponding shared list must have a nonnegative selected directory
+/// index: 0..entryCount-1 for a cached file, or entryCount for New Block when
+/// space remains. Its previews and drawing resources must satisfy
+/// `mcDrawFilePreview`'s contract. Draws at content-relative pixel origin (0, 0),
+/// without changing selection or handling input; neither borrowed object is freed.
+void mcMenuUpdateFileInformation(Task* owningTask);
 
 #endif // MAIN_PRIVATE_UI_H

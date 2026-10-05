@@ -716,8 +716,8 @@ static UiObjectDesc Mc_SaveListDesc[] = {
     { 0x80000 | USER_INTERFACE_PANEL_TITLE_STYLE, { -136, 10, 0x120, 0x3C }, 0x0C, 0, TASK_BODY_NONE, 0xC0, mcMenuUpdateLoadFileList, 0 },
 };
 static UiObjectDesc Mc_LoadListDescriptors[] = {
-    { 0x80000 | USER_INTERFACE_PANEL_TITLE_STYLE, { -136, 10, 0x120, 0x3C }, 0x0C, 0, TASK_BODY_NONE, 0xC0, McMenu_SelectListAlt, 0 },
-    { USER_INTERFACE_PANEL_TITLE_STYLE, { -60, 30, 0xC8, 0x3C }, 0x1C, 0, TASK_BODY_NONE, 0xC0, McMenu_FileInformation, 0 },
+    { 0x80000 | USER_INTERFACE_PANEL_TITLE_STYLE, { -136, 10, 0x120, 0x3C }, 0x0C, 0, TASK_BODY_NONE, 0xC0, mcMenuUpdateSaveFileList, 0 },
+    { USER_INTERFACE_PANEL_TITLE_STYLE, { -60, 30, 0xC8, 0x3C }, 0x1C, 0, TASK_BODY_NONE, 0xC0, mcMenuUpdateFileInformation, 0 },
 };
 
 /// Build a new card filename from the product prefix, directory index and random suffix.

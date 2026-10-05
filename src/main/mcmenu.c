@@ -21,6 +21,30 @@ enum {
     MEMORY_CARD_MENU_ANSWER_NO       = -1
 };
 
+/// Initialization phases and the retained list selector for File Information.
+enum {
+    MEMORY_CARD_MENU_FILE_INFORMATION_INITIAL   = 0,
+    MEMORY_CARD_MENU_FILE_INFORMATION_READY     = 1,
+    MEMORY_CARD_MENU_FILE_INFORMATION_SAVE_LIST = 1
+};
+
+/// Retains File Information's list selector and borrows its parent's dialog work.
+///
+/// Invoke once as a standalone statement with state zero and the original
+/// integer first spawn argument. The parent must borrow live `McWork` storage.
+/// `owningTaskValue` must be a stable Task pointer and `dialogWorkValue` a writable
+/// McWork* lvalue, both without side effects: each is evaluated repeatedly.
+/// Captures no locals. Keeps the payload's low 16 bits in callback-owned
+/// `killCountdown`, replaces that payload with the parent's work pointer and
+/// advances to state one. The caller retains the borrowed pointer's lifetime.
+#define MEMORY_CARD_MENU_INIT_FILE_INFORMATION(owningTaskValue, dialogWorkValue)                                                    \
+    do {                                                                                                                            \
+        (owningTaskValue)->killCountdown     = (u16)(owningTaskValue)->spawnArg1.value;                                             \
+        (dialogWorkValue)                    = (owningTaskValue)->parent->spawnArg1.pointer;                                        \
+        (owningTaskValue)->state            += MEMORY_CARD_MENU_FILE_INFORMATION_READY - MEMORY_CARD_MENU_FILE_INFORMATION_INITIAL; \
+        (owningTaskValue)->spawnArg1.pointer = (dialogWorkValue);                                                                   \
+    } while (0)
+
 static const char McText_Select[];
 
 static UiListRowCallback Mc_YesNoCallbacks[];
@@ -183,60 +207,63 @@ void mcMenuDrawSaveFileRow(UiList* list, UiObject* object)
     }
 }
 
-void McMenu_SelectListAlt(Task* task)
+void mcMenuUpdateSaveFileList(Task* owningTask)
 {
-    UiPanel* obj;
-    UiList*  menu;
-    McWork*  work;
-    s32      temp;
+    enum {
+        MEMORY_CARD_MENU_SAVE_LIST_INITIAL    = 0,
+        MEMORY_CARD_MENU_SAVE_LIST_READY      = 1,
+        MEMORY_CARD_MENU_SAVE_LIST_FIRST_FILE = 0
+    };
+    UiObject*     listObject;
+    UiList*       fileList;
+    const McWork* dialogWork;
+    s32           firstVisibleRow;
 
-    obj  = task->spawnArg2.pointer;
-    work = task->spawnArg1.pointer;
-    menu = &Mc_LoadSlotList;
-    uiDrawPanelLabel(obj, McText_Select);
-    if (task->state == 0) {
-        uiInitList(menu, obj);
-        menu->flags                               = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
-        menu->selectedItemIndex                   = work->selectedSlot;
-        temp                                      = (u8)menu->selectedItemIndex - menu->visibleRowCount.unsignedValue + 1;
-        menu->firstVisibleItemIndex.unsignedValue = temp;
-        if ((s8)temp < 0) {
-            menu->firstVisibleItemIndex.unsignedValue = 0;
+    listObject = owningTask->spawnArg2.pointer;
+    dialogWork = owningTask->spawnArg1.pointer;
+    fileList   = &Mc_LoadSlotList;
+    uiDrawPanelLabel(&listObject->panel, McText_Select);
+    if (owningTask->state == MEMORY_CARD_MENU_SAVE_LIST_INITIAL) {
+        uiInitList(fileList, &listObject->panel);
+        // Restore the remembered destination at the viewport's bottom, or start at zero.
+        fileList->flags                               = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
+        fileList->selectedItemIndex                   = dialogWork->selectedSlot;
+        firstVisibleRow                               = (u8)fileList->selectedItemIndex - fileList->visibleRowCount.unsignedValue + 1;
+        fileList->firstVisibleItemIndex.unsignedValue = firstVisibleRow;
+        if ((s8)firstVisibleRow < 0) {
+            fileList->firstVisibleItemIndex.unsignedValue = MEMORY_CARD_MENU_SAVE_LIST_FIRST_FILE;
         }
-        uiSetListSystemCursorSound(menu, 1);
-        task->state += 1;
+        uiSetListSystemCursorSound(fileList, true);
+        owningTask->state += MEMORY_CARD_MENU_SAVE_LIST_READY - MEMORY_CARD_MENU_SAVE_LIST_INITIAL;
     } else {
-        uiUpdateList(menu, obj);
-        if (obj->control.word == USER_INTERFACE_PANEL_ACTIVE) {
-            uiEaseAndDrawCursor(obj, obj->contentLeft.signedValue + 2, 0);
-        }
+        _uiUpdateListAndCenterCursor(fileList, listObject);
     }
 }
 
-void McMenu_FileInformation(Task* task)
+void mcMenuUpdateFileInformation(Task* owningTask)
 {
-    void*   obj;
-    McWork* work;
-    UiList* menu;
-    s32     slot;
+    UiObject* informationObject;
+    McWork*   dialogWork;
+    UiList*   fileList;
+    s32       directoryIndex;
 
-    obj = task->spawnArg2.pointer;
-    if (task->state == 0) {
-        task->killCountdown     = (u16)task->spawnArg1.value;
-        work                    = task->parent->spawnArg1.pointer;
-        task->state            += 1;
-        task->spawnArg1.pointer = work;
+    informationObject = owningTask->spawnArg2.pointer;
+    if (owningTask->state == MEMORY_CARD_MENU_FILE_INFORMATION_INITIAL) {
+        // Preserve the list selector before replacing its payload with borrowed dialog work.
+        MEMORY_CARD_MENU_INIT_FILE_INFORMATION(owningTask, dialogWork);
     }
-    work = task->spawnArg1.pointer;
-    uiDrawTitle(obj, "File Information");
-    if (task->killCountdown == 1) {
-        menu = &Mc_LoadSlotList;
+    dialogWork = owningTask->spawnArg1.pointer;
+    uiDrawTitle(&informationObject->panel, "File Information");
+    if (owningTask->killCountdown == MEMORY_CARD_MENU_FILE_INFORMATION_SAVE_LIST) {
+        fileList = &Mc_LoadSlotList;
     } else {
-        menu = &Mc_SaveSlotList;
+        fileList = &Mc_SaveSlotList;
     }
-    slot = menu->selectedItemIndex;
-    mcDrawFilePreview(obj, work, slot, 0, 0);
+    directoryIndex = fileList->selectedItemIndex;
+    mcDrawFilePreview(informationObject, dialogWork, directoryIndex, 0, 0);
 }
+
+#undef MEMORY_CARD_MENU_INIT_FILE_INFORMATION
 
 /// Requests a memory-card prompt's selection sound and publishes its answer.
 ///

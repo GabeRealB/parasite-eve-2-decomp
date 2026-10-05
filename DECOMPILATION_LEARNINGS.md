@@ -14450,7 +14450,7 @@ extern void func_800330D8(void* a0, s32 a1, s8 a2, s32 a3, s32 a4);
 extern void func_800330D8(void* a0, s32 a1, s32 a2, s32 a3, s32 a4);
 ```
 
-`McMenu_FileInformation` is the pure example: the header had `s8` for arg2, but the
+`mcMenuUpdateFileInformation` is the pure example: the header had `s8` for arg2, but the
 target always used `lw` of `UiList::selectedItemIndex`. Callers that pass an `s8`
 local still match after the widen (default argument promotion).
 
@@ -14476,7 +14476,7 @@ val = menu->selectedItemIndex;
 func_800330D8(obj, data, val, 0, 0);
 ```
 
-`McMenu_FileInformation` is the pure example.
+`mcMenuUpdateFileInformation` is the pure example.
 
 ## Advance a global pointer via a local after a store through it
 
