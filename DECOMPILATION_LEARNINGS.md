@@ -148591,3 +148591,79 @@ where it was. Reusing another local for the load (`placeIndex`, `hp`,
   still only reachable with the touch: `&coord[8]`, an inline taking the
   element, an inline incrementing its parameter, an inline returning the
   element and a re-read of `arg0->extra.tmd->coords` all fold to one `addiu`.
+
+### Unresolved, with the mechanism measured: five gameplay barriers, and how sched1 orders a block (2026-10-05)
+
+A dehack pass removed nothing from `Gp_EquipRelatedItem`, `func_800E5578`,
+`func_800C5F70`, `Gp_EffSprTask7C` and `_worldCoordScoreDirectionalLight`. What
+each barrier stands for is below; none of it is a fix.
+
+**sched1, as traced with `tools/trace_gcc.py` (it explains four of the five).**
+`adjust_priority` never sees a `REG_DEAD` note (the source says so), so every
+insn freed in the backward pass is tested by `birthing_insn_p`: a `SET` of a
+pseudo that is live and has `REG_N_SETS == 1` gets `max_priority`, which after a
+branch or call is `0x7F000001`. Everything else stays at 1: stores, hard-register
+argument sets, a set of a multi-set variable, and both halves of a split 32-bit
+constant (`lui`/`ori` set the same pseudo, so its `REG_N_SETS` is 2). The
+priority-1 insns are taken only when no launched insn is ready, in descending
+LUID, except that a load or store in the group wins on `potential_hazard`
+whatever its LUID. A load is queued for one cycle when its consumer is
+scheduled (cost 2), and the best ready insn fills that cycle. So: the leftovers
+pile up at the top of the block in source order; a `lui` of a constant sinks
+there while its `ori` stays where a load stall let it in; and a single-set
+address add is placed directly in front of the load that reads it.
+
+- `func_800C5F70`, `TOUCH_REG(desc)`: the target has `textColor`'s `lui` after
+  the `&Gp_ItemDescs[item]` add. The `lui` is a leftover, the add is launched by
+  the `lbu`, so the add always lands below it; sched2 keeps that order.
+  The asm makes `desc` two-set, which stops the launch. `desc = Gp_ItemDescs;
+  desc += item;` does the same and fixes the `lui`, but the base then shares
+  the result's register (`lui v0; sll v1; addu v0,v1,v0` for `lui v1; sll v0;
+  addu v0,v0,v1`). Needed: the add's result in a pseudo set twice, with the
+  base in another.
+- `func_800C5F70`, `SOFT_TOUCH_REG_USE(text, attr)`: `a1 = &Gp_StrAddHp` is the
+  highest-LUID leftover. `flags = attr->features` is a load, wins the first
+  leftover slot on hazard and launches the `attr` add, so `a1` ends above the
+  add with `a0`. The target has it between the add and the load; the asm does
+  that by making the `a1` set a second dependent of the add. Four statement
+  orders give identical code.
+- `func_800E5578`, the two asms in the `-2` handler: reload hands out
+  `t9,t3,t4` in insn order, so the block must reach reload as `lineIdx + 1`,
+  `next = body + off`, `lbu layout->vertical`. `next` is single-set and live, so
+  it is launched the moment the branch is scheduled and takes the `lbu`'s stall
+  cycle: `lbu` then `next`. It has to be unready at that point, i.e. the `lbu`
+  or the `lineIdx` store must depend on it; the asm reads `*next`. A two-set
+  `next` (not launched) reorders the caret stores as well and leaves `$a0`.
+- `_worldCoordScoreDirectionalLight`, `USE_REG3`: local-alloc priorities in
+  the block are g*3 chain 36/8, `ONE` 8/2, blue 24/6 = 4.0, red chain (load,
+  `<<3`, two sums, `>>8`) 80/22 = 3.64. Blue goes first and takes `$v1`; the
+  target has the red chain there. The asm adds six weighted references
+  (104/24). A tie would do (the chain is born first): one fewer insn inside
+  the chain's span, or `lh b` one insn earlier in sched1 (24/8). Twenty-nine
+  spellings (locals or not, `*=` steps, `+=` chain, the store before or after,
+  a block-local score) either keep 3.64 or move the instructions.
+
+**`Gp_EquipRelatedItem`, `asm("" : "=r"(arg3)); arg3 = 0;`.** cse1 deletes
+`arg3 = 0` in the arm reached by `beqz arg3` (a `switch` and an inline wrapper
+too), so the surviving `move s2,zero` is a set of a *different* pseudo that
+shares `$s2`. Global alloc only does that by exclusion: the result has to be
+born while `have` (`$s0`) and `slot` (`$s1`) are live, rank below `slot`
+(at most 7 refs over its 19 insns), and leave the parameter 8 refs so it still
+outranks `arg0`. `used = arg3; if (have < used) used = have;` gives 8 and 7 the
+wrong way round, because cse makes `used` the class head and the `slt` reads
+it. Writing the compare first does not help either: sched1 launches the `slt`
+next to its branch, the copy moves above it, and `optimize_reg_copy_1`
+(local-alloc.c) then rewrites the `slt`'s operand to the copy's destination.
+Only a compare result held in a multi-set local (`i = have < arg3; used = arg3;
+if (i) used = have;`) keeps the order; it matches all 177 insns except the
+flag's register (`$v1` for `$v0`), and is no better than the asm.
+`if (have >= arg3) used = arg3; else used = have;` ties `used` to `have`.
+
+**`Gp_EffSprTask7C`, `asm("" : "=r"(tmp) : "0"(col))`.** The target's
+`move v1,v0; andi s5,v1,0xff` needs a copy that cse does not fold (the copy
+must be the class head: first set before the block, last use after `col`'s),
+that combine does not merge into the `andi` (the copy's source changed in
+between, or the two in different blocks at combine time), and that global alloc
+cannot tie (source still live). Reusing the `mem->age` local for the copy
+meets the first and third and combine still merges; `u8`/`s8`/`s16`/`u16`
+colour, a `u8` intermediate, chained and read-back stores all give one `andi`.
