@@ -441,6 +441,11 @@ textures. Its interface is `src/shared/sprite_quad.h`; its configuration macros
 use `SPRITE_QUAD_`. The frame-type binding selects each static instance's 16-bit
 texture-frame argument, including its signedness.
 
+`pyroFlame` owns the included eight-frame additive flame billboard shared by
+Pyrokinesis and Combustion. Its interface is `src/shared/pyro_flame.h`; each
+carrier keeps a static drawer. `PYRO_FLAME_` constants describe its animation
+strip, perspective sizing and screen-space rotation.
+
 `beamStrip` owns the included additive textured parallelogram between a cached
 world translation and a world-space endpoint, used by Hammer's shock trails and
 the M.I.S.T. shooting-gallery tracer. Its interface is `src/shared/beam_strip.h`;

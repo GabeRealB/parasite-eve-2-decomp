@@ -304,7 +304,7 @@ enum {
     /// Ejected shotgun shell: a small TMD model (D_8011231C) thrown by effectThrownModelTask;
     /// spawned by the shotgun firing controller 0x600A1 (AS12, PA3, gunblade).
     EFFECT_SHOTGUN_SHELL_CASING = EFFECT_ID(EFFECT_TASK_BANK, 0x068),
-    /// A rising 8-frame flame sprite (pyroFlameDrawSprite) with random spin, spawned
+    /// A rising 8-frame flame sprite (`_pyroFlameDrawSprite`) with random spin, spawned
     /// along the Pyrokinesis projectile while it flies.
     EFFECT_PYROKINESIS_FLAME_PUFF = EFFECT_ID(EFFECT_TASK_BANK, 0x069),
     /// Gun muzzle flash without a flash model: lights the transient point light white
@@ -517,7 +517,7 @@ enum {
     /// Gp_EffCtlTaskA6.
     EFFECT_RISING_WISP = EFFECT_ID(EFFECT_TASK_BANK, 0x0A7),
     /// Combustion ember: a rising flame/ember sprite shed by a Combustion flame, drawn
-    /// with pyroFlameDrawSprite or smaller variants.
+    /// with `_pyroFlameDrawSprite` or smaller variants.
     EFFECT_COMBUSTION_EMBER = EFFECT_ID(EFFECT_TASK_BANK, 0x0A9),
     /// Drifting animated sprite spawned at the reservoir's configured burst points with
     /// a random chance per frame while an event enables them.

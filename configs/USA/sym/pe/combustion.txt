@@ -6,5 +6,5 @@ func_combustion_8012F2BC = 0x8012F2BC; // type:func
 func_combustion_8012F888 = 0x8012F888; // type:func
 
 func_combustion_801308E0 = 0x801308E0; // type:func
-pyroFlameDrawSprite = 0x8012FB14; // type:func
+_pyroFlameDrawSprite = 0x8012FB14; // type:func
 spriteQuadDrawFlicker = 0x80130184; // type:func

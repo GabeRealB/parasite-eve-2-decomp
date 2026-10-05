@@ -336,7 +336,7 @@ static void func_combustion_8012F5EC(GfxCoord* arg0, s16 arg1, s16 arg2)
 /// sizes the sprite as `kind * 0x100 + 0x300` in `angle`, and enters
 /// `spawnArg1 + 1` - or one state later on a coin flip when `kind >= 2`. Every
 /// later state lifts the coordinate by `move.vy` and redraws: state 1 steps
-/// `index` every other frame and draws the `pyroFlameDrawSprite` flame
+/// `index` every other frame and draws the `_pyroFlameDrawSprite` flame
 /// on the odd frames, state 2 draws `func_combustion_8012FF0C` and state 3 the
 /// small `func_combustion_8012F5EC`, each releasing the ember after eight (six
 /// for state 3) frames.
@@ -391,9 +391,9 @@ void func_combustion_8012F888(Task* arg0)
                 mem->index = mem->index + 1;
             }
             frame = mem->index;
-            if (frame < 8) {
+            if (frame < PYRO_FLAME_FRAME_COUNT) {
                 if (mem->age & 1) {
-                    pyroFlameDrawSprite(coord, frame, mem->angle, mem->scale);
+                    _pyroFlameDrawSprite(coord, frame, mem->angle, mem->scale);
                     return;
                 }
             } else {

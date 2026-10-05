@@ -576,7 +576,7 @@ void func_pyrokinesis_80130C54(Task* arg0)
     EffectWork* mem;
     GfxCoord*   coord;
     s16         flag;
-    s16         temp_a1;
+    s16         frame;
     s32         y;
 
     mem   = arg0->spawnArg2.pointer;
@@ -602,10 +602,10 @@ void func_pyrokinesis_80130C54(Task* arg0)
             if (!(mem->age & 1)) {
                 mem->index = mem->index + 1;
             }
-            temp_a1 = mem->index;
-            if (temp_a1 < 8) {
+            frame = mem->index;
+            if (frame < PYRO_FLAME_FRAME_COUNT) {
                 if (mem->age & 1) {
-                    pyroFlameDrawSprite(coord, temp_a1, 0x300, mem->scale);
+                    _pyroFlameDrawSprite(coord, frame, 0x300, mem->scale);
                 }
                 return;
             }
