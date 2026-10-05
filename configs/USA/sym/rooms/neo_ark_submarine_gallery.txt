@@ -66,7 +66,7 @@ func_neo_ark_submarine_gallery_8017EFEC = 0x8017EFEC; // type:func
 func_neo_ark_submarine_gallery_8017F288 = 0x8017F288; // type:func
 
 func_neo_ark_submarine_gallery_8017F710 = 0x8017F710; // type:func
-waterDrawSplash = 0x8017F3DC; // type:func
+_waterDrawSplash = 0x8017F3DC; // type:func
 waterDistortBandTask = 0x8017E2CC; // type:func
 waterRefractionTask = 0x8017D678; // type:func
 waterDrawSpinU16 = 0x8017FBCC; // type:func

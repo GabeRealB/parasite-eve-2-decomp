@@ -3,7 +3,7 @@
 /* Part of the water effects library; see water_effects.h. */
 
 /// Room-effect task drawing a growing, fading quad through
-/// `waterDrawSplash`. The first frame sets the brightness to
+/// `_waterDrawSplash`. The first frame sets the brightness to
 /// 0x40, takes the size from the spawn parameter's low 12 bits and turns the
 /// coordinate to a random Y rotation. Every frame then grows the size by
 /// 0x20, draws, and dims by 2, releasing the effect once the brightness falls
@@ -18,7 +18,7 @@ void waterRippleTaskFixedCoord(Task* task)
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
-        waterDrawSplash(coord, work->angle, work->scale);
+        _waterDrawSplash(coord, work->angle, work->scale);
         if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             effectKillTask(work, task);
         }
@@ -33,7 +33,7 @@ void waterRippleTaskFixedCoord(Task* task)
             task->state         = 1;
         }
         work->angle += 0x20;
-        waterDrawSplash(coord, work->angle, work->scale);
+        _waterDrawSplash(coord, work->angle, work->scale);
         work->scale -= 2;
         if (work->scale < 2) {
             effectKillTask(work, task);

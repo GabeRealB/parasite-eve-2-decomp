@@ -5,7 +5,7 @@
 /// Per-frame driver of an expanding, fading flash effect. While the room's
 /// event state is 0 it updates the task's coordinate, ticks the age counter
 /// `age` and draws the flash through
-/// `waterDrawSplash` at size `angle` and brightness
+/// `_waterDrawSplash` at size `angle` and brightness
 /// `scale`. The first frame sets the brightness to 0x40, takes the size from
 /// the spawn argument's low 12 bits and turns the coordinate about Y by a
 /// random angle; every frame then grows the size by 0x20 and dims the
@@ -20,7 +20,7 @@ static inline void waterRippleTask(Task* task)
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
-        waterDrawSplash(coord, work->angle, work->scale);
+        _waterDrawSplash(coord, work->angle, work->scale);
         if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             effectKillTask(work, task);
         }
@@ -36,7 +36,7 @@ static inline void waterRippleTask(Task* task)
             task->state         = 1;
         }
         work->angle += 0x20;
-        waterDrawSplash(coord, work->angle, work->scale);
+        _waterDrawSplash(coord, work->angle, work->scale);
         work->scale -= 2;
         if (work->scale < 2) {
             effectKillTask(work, task);

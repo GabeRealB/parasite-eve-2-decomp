@@ -86,7 +86,7 @@ func_neo_ark_woodland_path_8017EA08 = 0x8017EA08; // type:func
 func_neo_ark_woodland_path_8017F928 = 0x8017F928; // type:func
 
 func_neo_ark_woodland_path_8017ED00 = 0x8017ED00; // type:func
-waterDrawSplash = 0x8017F5F4; // type:func
+_waterDrawSplash = 0x8017F5F4; // type:func
 waterDistortBandTask = 0x8017E2E8; // type:func
 waterRefractionTask = 0x8017D694; // type:func
 _leafDraw = 0x8017F154; // type:func
