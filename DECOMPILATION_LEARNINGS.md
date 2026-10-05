@@ -147622,3 +147622,44 @@ A related operand-order note from the same file: an inline `base[index]`
 gives `addu v0,v0,base`; `p = &base[index]` then `*p` gives `addu v0,base,v0`,
 and `index = i + 1` in its own variable keeps the `+1` out of the displacement
 (`&base[i + 1]` folds it to `lw 4(..)`).
+
+## The order of the address loads before a loop is the order the loop first names them (func_actor_341700_8016C0F4, 2026-10-05)
+
+A loop preceded by `lui/addiu sN, table` pairs looks like explicit pointer locals
+(`indices = D_a; table = D_b; vecPtr = &vec;`), and writing it that way forces an
+integer cast for any element address the target adds offset first: with a `REG`
+base neither `expand_binop` nor `expand_expr`'s `both_summands` swaps the
+operands, so `addu a2, v0, s6` cannot come from `indices[...]` or `&indices[...]`.
+Only a base that is still a `SYMBOL_REF` at expand is swapped behind the index.
+
+Name the arrays directly in the loop and let `loop.c` hoist the addresses. It
+emits the hoisted sets in the order the loop body first mentions each one, so
+the pre-loop order is a statement-order question:
+
+```c
+/* target: s6 = indices, s5 = table, s3 = &vec, s2 = %hi(gRandomLcgState) */
+if (D_indices[work->stateFrame - 120][i] == 0) return;
+vec = D_table[D_indices[work->stateFrame - 120][i]];   /* names table, then &vec */
+rnd = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+```
+
+With the struct copy written after the `gRandomLcgState` store the `%hi` was
+hoisted second and the block before the loop scheduled two instructions longer.
+Moving the copy first costs nothing in the body: the table, the stack `vec` and
+`gRandomLcgState` have distinct bases, so sched1 still places the copy after the
+store, as the target has it. Three details of the same site: the `&vec` pseudo is
+made by the struct copy (the block move needs its destination address), not by
+the call that passes `&vec`; `vecPtr = &vec;` assigned *inside* the loop was not
+a substitute (it was not hoisted - its use is in a later basic block than the
+set, past conditional exits - and one saved register disappeared); and
+`D[row][i]` on a two-dimensional global keeps `i + row * 4` unfolded and in that
+order, where `indices[i + (frame - 120) * 4]` through a flat pointer local
+distributed the `- 480` into the displacement (`lbu v0, -480(a2)`).
+
+Related, from three animation ticks (`oddStrangerDrive`, `desertChaserAnimTick`,
+`func_actor_403000_80133AF8`): `(s8*)((to + from * 45) + (u32)table)` is
+`table[from][to]` on `s8 table[45][45]` named directly - `addu v0, a2, v0` /
+`addu v0, v0, s5`. A slot pointer local walked beside it (`seekSlot += 1`) put
+its initialiser after the hoisted table address; subscripting
+`work->slots[seekIndex]` instead leaves that pointer to strength reduction,
+which emits it after the hoists as the target does.
