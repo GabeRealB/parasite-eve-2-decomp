@@ -2938,20 +2938,16 @@ s32 func_actor_511000_80133554(Task* task, s32 arg1, s32 msg, s32 arg3)
 static void func_actor_511000_801336E0(Task* task, SVECTOR* rots, SVECTOR* trans, s32 index)
 {
     GfxCoord* coord;
-    SVECTOR*  rot;
-    SVECTOR*  pos;
-    s32       off;
+    s16       idx;
 
-    off                 = (index << 16) >> 13;
-    rot                 = (SVECTOR*)(off + (s32)rots);
+    idx                 = index;
     coord               = task->extra.tmd->coords;
-    coord->param.rot.vx = rot->vx;
-    coord->param.rot.vy = rot->vy;
-    pos                 = (SVECTOR*)(off + (s32)trans);
-    coord->param.rot.vz = rot->vz;
-    coord->coord.t[0]   = pos->vx;
-    coord->coord.t[1]   = pos->vy;
-    coord->coord.t[2]   = pos->vz;
+    coord->param.rot.vx = rots[idx].vx;
+    coord->param.rot.vy = rots[idx].vy;
+    coord->param.rot.vz = rots[idx].vz;
+    coord->coord.t[0]   = trans[idx].vx;
+    coord->coord.t[1]   = trans[idx].vy;
+    coord->coord.t[2]   = trans[idx].vz;
     RotMatrix(&coord->param.rot, &coord->coord);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
