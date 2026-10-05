@@ -1057,7 +1057,10 @@ static void func_actor_107600_80132514(Task* arg0)
             if (d != 0) {
                 if (wp->speed >= abs(d)) {
                     if (enemy->task->firstChild->spawnArg1.value & 0x40) {
-                        goto stop;
+                        work->step                                = ACTOR_107600_MOUNT_STEP_LEAVE;
+                        work->rotating                            = 0;
+                        enemy->task->firstChild->spawnArg1.value |= 0x40;
+                        return;
                     }
                     coord->coord.t[0] = wp->x;
                     work->waypoint++;
@@ -1071,7 +1074,10 @@ static void func_actor_107600_80132514(Task* arg0)
             if (d != 0) {
                 if (wp->speed >= abs(d)) {
                     if (enemy->task->firstChild->spawnArg1.value & 0x40) {
-                        goto stop;
+                        work->step                                = ACTOR_107600_MOUNT_STEP_LEAVE;
+                        work->rotating                            = 0;
+                        enemy->task->firstChild->spawnArg1.value |= 0x40;
+                        return;
                     }
                     coord->coord.t[2] = wp->z;
                     work->waypoint++;
