@@ -199,7 +199,7 @@ extern WorldCoordRoomLights       D_acropolis_square_80186468[1];
 
 static TaskDesc D_acropolis_square_80183468[2] = {
     { { { TASK_BODY_NONE, 112 } }, func_acropolis_square_8017F41C, { .value = 0 } },
-    { { { TASK_BODY_NONE, 112 } }, Reflection_HeldObjectTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 112 } }, _planarReflectionAttachmentTask, { .value = 0 } },
 };
 
 static inline TaskDesc* Reflection_GetTasks(void)

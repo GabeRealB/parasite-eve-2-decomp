@@ -57,7 +57,6 @@ STATIC_ASSERT_SIZEOF(_PlanarReflectionFrameScratch, 0x70);
 
 static void Reflection_InitPlayer(Task* task);
 static void Reflection_UpdatePlayer(Task* task);
-static void Reflection_HeldObjectTask(Task* task);
 
 #ifndef PLANAR_REFLECTION_DEFINE_SCALE_WITH_IMPLEMENTATION
 #error "Define PLANAR_REFLECTION_DEFINE_SCALE_WITH_IMPLEMENTATION as 0 or 1"
@@ -740,65 +739,87 @@ static void Reflection_UpdatePlayer(Task* task)
     }
 }
 
-/// Per-frame callback of a held-object reflection. `Task::spawnArg2` is the
-/// hall's mirror task and the parent is the held-object task being reflected.
-/// On the first frame it clones the parent's TMD source, parents the clone's
-/// root coordinate to the mirrored player's corresponding part, points the
-/// clone at the mirror's light and color matrices and negates the X
-/// translation, flipping the clone across X when `spawnArg1` is 2 or more;
-/// every frame it copies the mirror model's draw flags onto the clone.
-static void Reflection_HeldObjectTask(Task* task)
+/// Reflects an attachment's local offset across X and invalidates its composed transform.
+///
+/// Both root coordinates must be live. Translation is in signed game units;
+/// the caller supplies the reflected parent and any required rotation flip.
+static inline void _planarReflectionReflectAttachmentOffset(GfxCoord* reflectionRoot, GfxCoord* sourceRoot)
 {
-    Task*           mirror;
-    TmdObject*      mirrorExtra;
-    RoomMirrorWork* work;
-    GfxCoord*       mirrorPart;
-    TmdObject*      src;
-    GfxCoord*       srcParts;
-    TmdObject*      extra;
-    GfxCoord*       parts;
-    VECTOR          scale;
-    u16             flags;
+    reflectionRoot->coord.t[0]   = -sourceRoot->coord.t[0];
+    reflectionRoot->coord.t[1]   = sourceRoot->coord.t[1];
+    reflectionRoot->coord.t[2]   = sourceRoot->coord.t[2];
+    reflectionRoot->composeStamp = GRAPHICS_COORD_DIRTY;
+}
 
-    if (task->parent == NULL) {
-        taskCallExit(task);
+/// Creates and updates a reflected player attachment or equipment model.
+///
+/// `spawnArg1.value` is a slot in 0..3: 0/1 select attachment tasks, 2/3
+/// select equipment tasks. Slots 0/2 attach to reflected player part 12;
+/// slots 1/3 attach to part 8, so the player model must contain both parts.
+/// `spawnArg2.pointer` borrows the player-reflection task and its
+/// `RoomMirrorWork`; `parent` is the live source-model task. Both must outlive
+/// this task, including its borrowed coordinate parent and lighting matrices.
+/// The task starts bodyless in state 0 and owns the clone after attachment.
+/// Its initial root offset is reflected across X in game units; equipment
+/// also flips the root rotation with a Q12 (-1, +1, +1) scale. Later frames
+/// follow the player reflection's flags, clearing reverse culling for equipment.
+static void _planarReflectionAttachmentTask(Task* reflectionTask)
+{
+    enum {
+        PLANAR_REFLECTION_ATTACHMENT_STATE_INIT = 0,
+        PLANAR_REFLECTION_FIRST_EQUIPMENT_SLOT  = 2,
+        PLANAR_REFLECTION_ATTACHMENT_OT_OFFSET  = 31 // Ordering-table entries, matching the reflected player
+    };
+    Task*           playerReflection;
+    TmdObject*      playerReflectionModel;
+    RoomMirrorWork* mirrorWork;
+    GfxCoord*       reflectedPart;
+    TmdObject*      sourceModel;
+    GfxCoord*       sourceRoot;
+    TmdObject*      reflectionModel;
+    GfxCoord*       reflectionRoot;
+    VECTOR          xFlipScale;
+    u16             playerReflectionFlags;
+
+    if (reflectionTask->parent == NULL) {
+        taskCallExit(reflectionTask);
     }
-    mirror      = (Task*)task->spawnArg2.pointer;
-    mirrorPart  = &mirror->extra.tmd->coords[Reflection_Data_8017FC8C[task->spawnArg1.value]];
-    work        = (RoomMirrorWork*)mirror->work;
-    mirrorExtra = mirror->extra.tmd;
-    if (task->state == 0) {
-        src      = task->parent->extra.tmd;
-        srcParts = src->coords;
-        if (modelObjectAttachTmd(task, src->source) == NULL) {
-            taskCallExit(task);
+    playerReflection      = reflectionTask->spawnArg2.pointer;
+    reflectedPart         = &playerReflection->extra.tmd->coords[Reflection_Data_8017FC8C[reflectionTask->spawnArg1.value]];
+    mirrorWork            = playerReflection->work;
+    playerReflectionModel = playerReflection->extra.tmd;
+    if (reflectionTask->state == PLANAR_REFLECTION_ATTACHMENT_STATE_INIT) {
+        // Borrow the source geometry, but own a new model and both rebuilt packet halves.
+        sourceModel = reflectionTask->parent->extra.tmd;
+        sourceRoot  = sourceModel->coords;
+        if (modelObjectAttachTmd(reflectionTask, sourceModel->source) == NULL) {
+            taskCallExit(reflectionTask);
             return;
         }
-        extra                    = task->extra.tmd;
-        parts                    = extra->coords;
-        extra->texturePageOffset = src->texturePageOffset;
-        tmdBuildBufferHalf(extra);
-        tmdBuildBufferHalf(extra);
-        extra->flags    = TMD_OBJECT_REVERSE_CULLING;
-        extra->otOffset = 0x1F;
-        parts->parent   = mirrorPart;
-        extra->lightMtx = &work->light;
-        extra->colorMtx = &work->color;
-        if (task->spawnArg1.value >= 2) {
-            scale = Reflection_Data_8017D5C4;
-            ScaleMatrix(&parts->coord, &scale);
+        reflectionModel                    = reflectionTask->extra.tmd;
+        reflectionRoot                     = reflectionModel->coords;
+        reflectionModel->texturePageOffset = sourceModel->texturePageOffset;
+        tmdBuildBufferHalf(reflectionModel);
+        tmdBuildBufferHalf(reflectionModel);
+        reflectionModel->flags    = TMD_OBJECT_REVERSE_CULLING;
+        reflectionModel->otOffset = PLANAR_REFLECTION_ATTACHMENT_OT_OFFSET;
+        reflectionRoot->parent    = reflectedPart;
+        reflectionModel->lightMtx = &mirrorWork->light;
+        reflectionModel->colorMtx = &mirrorWork->color;
+        // Equipment needs another X flip within the already reflected player frame.
+        if (reflectionTask->spawnArg1.value >= PLANAR_REFLECTION_FIRST_EQUIPMENT_SLOT) {
+            xFlipScale = Reflection_Data_8017D5C4;
+            ScaleMatrix(&reflectionRoot->coord, &xFlipScale);
         }
-        parts->coord.t[0]   = -srcParts->coord.t[0];
-        parts->coord.t[1]   = srcParts->coord.t[1];
-        parts->coord.t[2]   = srcParts->coord.t[2];
-        parts->composeStamp = GRAPHICS_COORD_DIRTY;
-        task->state++;
+        _planarReflectionReflectAttachmentOffset(reflectionRoot, sourceRoot);
+        reflectionTask->state++;
     }
-    extra        = task->extra.tmd;
-    flags        = mirrorExtra->flags;
-    extra->flags = flags;
-    if (task->spawnArg1.value >= 2) {
-        extra->flags = flags & 0xFFEF;
+    // Follow mirror visibility while correcting facing for the extra equipment flip.
+    reflectionModel        = reflectionTask->extra.tmd;
+    playerReflectionFlags  = playerReflectionModel->flags;
+    reflectionModel->flags = playerReflectionFlags;
+    if (reflectionTask->spawnArg1.value >= PLANAR_REFLECTION_FIRST_EQUIPMENT_SLOT) {
+        reflectionModel->flags = playerReflectionFlags & (u16)~TMD_OBJECT_REVERSE_CULLING;
     }
 }
 

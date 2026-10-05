@@ -87,5 +87,5 @@ acropolisEastElevatorHallRedBeaconTask = 0x8017F77C; // type:func
 func_acropolis_east_elevator_hall_8017F2F8 = 0x8017F2F8; // type:func
 Reflection_InitPlayer = 0x8017D5F0; // type:func
 Reflection_UpdatePlayer = 0x8017D7A4; // type:func
-Reflection_HeldObjectTask = 0x8017F128; // type:func
+_planarReflectionAttachmentTask = 0x8017F128; // type:func
 Reflection_Data_8017D5C4 = 0x8017D5C4;

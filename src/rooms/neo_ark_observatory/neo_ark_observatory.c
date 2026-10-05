@@ -159,7 +159,7 @@ void func_neo_ark_observatory_8017FB1C(Task*);
 
 TaskDesc D_neo_ark_observatory_80180DBC[2] = {
     { { { TASK_BODY_NONE, 112 } }, func_neo_ark_observatory_8017F3FC, { .value = 0 } },
-    { { { TASK_BODY_NONE, 112 } }, Reflection_HeldObjectTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 112 } }, _planarReflectionAttachmentTask, { .value = 0 } },
 };
 
 static inline TaskDesc* Reflection_GetTasks(void)

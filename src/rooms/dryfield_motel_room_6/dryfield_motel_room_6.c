@@ -195,7 +195,7 @@ void                              func_dryfield_motel_room_6_80181A08(Task*);
 
 TaskDesc D_dryfield_motel_room_6_80182D0C[2] = {
     { { { TASK_BODY_NONE, 112 } }, func_dryfield_motel_room_6_80181184, { .value = 0 } },
-    { { { TASK_BODY_NONE, 112 } }, Reflection_HeldObjectTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 112 } }, _planarReflectionAttachmentTask, { .value = 0 } },
 };
 
 static inline TaskDesc* Reflection_GetTasks(void)

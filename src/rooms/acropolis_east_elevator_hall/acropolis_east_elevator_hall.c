@@ -125,7 +125,7 @@ void                         func_acropolis_east_elevator_hall_8017F450(void);
 
 static TaskDesc D_acropolis_east_elevator_hall_8017FC90[2] = {
     { { { TASK_BODY_NONE, 112 } }, func_acropolis_east_elevator_hall_8017F2F8, { .value = 0 } },
-    { { { TASK_BODY_NONE, 112 } }, Reflection_HeldObjectTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 112 } }, _planarReflectionAttachmentTask, { .value = 0 } },
 };
 
 static inline TaskDesc* Reflection_GetTasks(void)

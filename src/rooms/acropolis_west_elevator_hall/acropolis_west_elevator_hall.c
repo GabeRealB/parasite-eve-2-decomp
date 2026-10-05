@@ -169,7 +169,7 @@ extern WorldCoordRoomLights  D_acropolis_west_elevator_hall_801869E4[1];
 
 static TaskDesc D_acropolis_west_elevator_hall_801802A8[2] = {
     { { { TASK_BODY_NONE, 112 } }, func_acropolis_west_elevator_hall_8017F304, { .value = 0 } },
-    { { { TASK_BODY_NONE, 112 } }, Reflection_HeldObjectTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 112 } }, _planarReflectionAttachmentTask, { .value = 0 } },
 };
 
 static inline TaskDesc* Reflection_GetTasks(void)

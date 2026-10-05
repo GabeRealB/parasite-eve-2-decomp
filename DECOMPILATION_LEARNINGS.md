@@ -53304,28 +53304,28 @@ that instead; if both ends are pinned down by the target, stop and pin.
 
 ## A stray `move sN, aN` after a load means the C reads the field twice
 
-`func_acropolis_east_elevator_hall_8017F128` loads the mirror task's
+`_planarReflectionAttachmentTask` loads the mirror task's
 `TmdObject*` once and uses it twice - to index the mirrored model's part array
 before the state check, and to read the draw flags after two `jal`s. The
 target does it in two registers:
 
 ```
-lw    a1, 0x20(s2)      # mirror = task->spawnArg2
-lw    a0, 0x2c(a1)      # mirror->extra
+lw    a1, 0x20(s2)      # playerReflection = reflectionTask->spawnArg2.pointer
+lw    a0, 0x2c(a1)      # playerReflection->extra.tmd
 lw    s4, 0x1c(a1)
 ...
-lw    v1, 8(a0)         # ->field_8, still in the caller-saved copy
+lw    v1, 8(a0)         # ->coords, still in the caller-saved copy
 bnez  v0, ...
  move s6, a0            # the copy that survives the calls
 ```
 
-Hoisting the load into a local (`mirrorExtra = mirror->extra;` then using
-`mirrorExtra` in both places) gives one pseudo, `global_alloc` puts it straight
+Hoisting the load into a local (`playerReflectionModel = playerReflection->extra.tmd;` then using
+`playerReflectionModel` in both places) gives one pseudo, `global_alloc` puts it straight
 in `$s6`, and the `move` never appears - 95.4% with `insert=1 delete=2` and
 every later branch off by four bytes.
 
 Writing the field access **twice** is what produces it. CSE sees the second
-`mirror->extra` as an available expression, and GCC 2.8.1's CSE does not just
+`playerReflection->extra.tmd` as an available expression, and GCC 2.8.1's CSE does not just
 delete the reload: it inserts `(set p2 p1)` at the first computation and
 rewrites the later use to `p2`. `p1` now dies inside the entry block and
 `local_alloc` hands it a caller-saved register, while `p2` is live across the
@@ -53334,12 +53334,12 @@ calls and `global_alloc` gives it a callee-saved one - exactly the `lw $a0` +
 
 ```c
 /* one read: no move, function is one insn short */
-mirrorExtra = mirror->extra;
-mirrorPart  = &mirrorExtra->field_8[tbl[task->spawnArg1]];
+playerReflectionModel = playerReflection->extra.tmd;
+reflectedPart = &playerReflectionModel->coords[Reflection_Data_8017FC8C[reflectionTask->spawnArg1.value]];
 
 /* two reads: CSE emits the copy */
-mirrorPart  = &((TmdObject*)mirror->extra)->coords[tbl[task->spawnArg1]];
-mirrorExtra = mirror->extra;
+reflectedPart = &playerReflection->extra.tmd->coords[Reflection_Data_8017FC8C[reflectionTask->spawnArg1.value]];
+playerReflectionModel = playerReflection->extra.tmd;
 ```
 
 Put the redundant-looking second read last in its block and the copy lands in
@@ -134974,7 +134974,7 @@ triangle walks below differ in exactly one word.
 
 What sets the bit is the room mirror. `RoomsShared8017d5f0` attaches the player's
 own TMD source to a task of its own for the reflection and marks the object it
-gets back with `extra->flags = 0x10` (so does the held-object twin, and both also
+gets back with `extra->flags = 0x10` (so does `_planarReflectionAttachmentTask` during initialization, and both also
 set `otOffset = 0x1F`), and a mirroring transform reverses a model's faces - a
 reflected triangle is wound the other way round - so the reflection has to cull
 on the other sign of the same facing result. That is the whole of the bit's
