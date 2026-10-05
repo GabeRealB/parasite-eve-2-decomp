@@ -2611,24 +2611,38 @@ static void func_actor_511000_80132B14(Task* task, CVECTOR* col, s8* rgb)
     addPrim(ot, dr);
 }
 
+/// Blends one little-endian 15-bit colour: `src0` weighted by `inv` and `src1`
+/// by `fade` (4.12 fixed point), written to `dst` low byte first.
+static inline void _actor511000BlendPaletteColor(u8* dst, u8* src0, u8* src1, s32 inv, s32 fade)
+{
+    CVECTOR col[3];
+    s32     c;
+
+    c        = src0[0] | (src0[1] << 8);
+    col[0].r = ((u16)c >> 10) & 0x1F;
+    col[0].g = ((u16)c >> 5) & 0x1F;
+    col[0].b = c & 0x1F;
+    c        = src1[0] | (src1[1] << 8);
+    col[1].r = ((u16)c >> 10) & 0x1F;
+    col[1].g = ((u16)c >> 5) & 0x1F;
+    col[1].b = c & 0x1F;
+    LoadAverageCol(&col[0], &col[1], inv, fade, &col[2]);
+    c      = col[2].b + ((col[2].r << 10) + (col[2].g << 5));
+    dst[1] = (u32)c >> 8;
+    dst[0] = c;
+}
+
 /// Palette fade: steps `paletteFade` up by 0x555 per frame while the
 /// `paletteHold` counter is live (counting it down once the fade is full),
 /// otherwise snaps it back to 0 and re-arms the hold. Each of the 16
 /// little-endian 15-bit colours is then blended between
 /// `D_actor_511000_80147E84` and `D_actor_511000_80147EC4` by that weight into
 /// `palette`, which `D_actor_511000_80147EA4[0]` uploads.
-/// The destination is formed as `work + i` before the member offset so the
-/// `addu` keeps the index first and CSE cannot fold the 0xC into a store.
 static void func_actor_511000_80132E6C(_Actor511000HelicopterWork* work)
 {
-    CVECTOR col[3];
-    s32     i;
-    s32     c;
-    s32     inv;
-    s32     fade;
-    u8*     src0;
-    u8*     src1;
-    u8*     dst;
+    s32 i;
+    s32 inv;
+    s32 fade;
 
     if (work->paletteHold != 0) {
         work->paletteFade += 0x555;
@@ -2650,23 +2664,8 @@ static void func_actor_511000_80132E6C(_Actor511000HelicopterWork* work)
     inv  = ACTOR_511000_PALETTE_FADE_FULL - work->paletteFade;
     fade = work->paletteFade;
     do {
-        dst      = (u8*)(i + (s32)work);
-        dst      = ((_Actor511000HelicopterWork*)dst)->palette;
-        src0     = &D_actor_511000_80147E84[i];
-        src1     = &D_actor_511000_80147EC4[i];
-        c        = src0[0] | (src0[1] << 8);
-        col[0].r = ((u16)c >> 10) & 0x1F;
-        col[0].g = ((u16)c >> 5) & 0x1F;
-        col[0].b = c & 0x1F;
-        c        = src1[0] | (src1[1] << 8);
-        col[1].r = ((u16)c >> 10) & 0x1F;
-        col[1].g = ((u16)c >> 5) & 0x1F;
-        col[1].b = c & 0x1F;
-        LoadAverageCol(&col[0], &col[1], inv, fade, &col[2]);
-        c      = col[2].b + ((col[2].r << 10) + (col[2].g << 5));
-        dst[1] = (u32)c >> 8;
-        i     += 2;
-        dst[0] = c;
+        _actor511000BlendPaletteColor(&work->palette[i], &D_actor_511000_80147E84[i], &D_actor_511000_80147EC4[i], inv, fade);
+        i += 2;
     } while (i < ACTOR_511000_PALETTE_BYTES);
     Gp_LoadImages(&D_actor_511000_80147EA4[0]);
 }

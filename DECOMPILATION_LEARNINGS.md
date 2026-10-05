@@ -147715,8 +147715,14 @@ member offset) inside a loop. `&work->palette[i]`, `work->palette + i`,
 to `addiu s0,s1,12` / `addu s0,s2,s0`; `dst = work->palette; dst += i;` to
 `addiu s0,s2,12` / `addu s0,s0,s1`; inline `work->palette[i]` stores form
 `addu a0,s1,s2` at the store with the 12 in the displacement. Counting colours
-(`i < 16`, `[i * 2]`) strength-reduces all three pointers. Left as the
-integer form.
+(`i < 16`, `[i * 2]`) strength-reduces all three pointers.
+
+Matched since with the loop body as a `static inline` taking the three element
+addresses: `blend(&work->palette[i], &srcA[i], &srcB[i], inv, fade); i += 2;`.
+The member array's address comes out `(i + work) + 12` and the two global byte
+arrays' `i + base` (base hoisted), so a byte array does get the index first as
+an inline argument when it is a struct member or a named global; only a byte
+array reached through a pointer local stays base first.
 
 ### A byte-offset counter beside a loop index is a giv the loop pass could not extend: put `i + K` in a local (func_dryfield_trailer_coach_801826A0, 2026-10-05)
 
