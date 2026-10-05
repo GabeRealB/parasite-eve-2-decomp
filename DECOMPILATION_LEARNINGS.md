@@ -14928,7 +14928,7 @@ p++;
 p[1] = 0;
 ```
 
-`Mc_BuildFileName` is the pure example (memcard filename: product-code prefix +
+`_mcBuildSaveFileName` is the pure example (memcard filename: product-code prefix +
 selector char + 7 random chars + NUL).
 
 ## Dual same-function calls beat `sltiu` for boolean `0`/`1` args
@@ -16720,7 +16720,7 @@ arg1->confirmOverwrite = val; /* sw v0, 0x2c(a1) */
 ```
 
 Plain `value->confirmOverwrite = i` (or `= 1` CSEd with `i`) collapses to `sw tN`.
-`Mc_WriteSlotChecksumsEx` is the pure example.
+`_mcStatePrepareSaveSections` is the pure example.
 
 Same function also shows that a void-arg checksum sibling using
 `register u32 j asm("a0")` must switch to `asm("a1")` when `$a0` holds a live
@@ -19279,7 +19279,7 @@ the `bgez` delay, `addiu v0,v0,0x3f; sra v0,v0,0x6`) or keeps the shift in
 }
 ```
 
-`Mc_StateListDirectory` is the pure example (DIRENTRY.head / 64 → `blockOwners`, stored at 0xA23 + head/64).
+`_mcStateReadSaveDirectory` is the pure example (DIRENTRY.head / 64 → `blockOwners`, stored at 0xA23 + head/64).
 
 ## Indexed multiply form can SR and still leave `$a1` free for a later `li a1,1`
 
@@ -19312,7 +19312,7 @@ func(obj, 1);
 still strength-reduces to `move a1, base` / `addiu a1, a1, 0x28` under `-O2`,
 but schedules the walker init *after* both `blez`s so the hoisted `li a1,1`
 survives. Do not pin `i` to `$a0` here — that blocks the SR into `$a1`.
-`Mc_StateListDirectory` is the pure example.
+`_mcStateReadSaveDirectory` is the pure example.
 
 ## Goto dispatch for `beq`-to-handler type switches
 
@@ -21339,11 +21339,11 @@ before the call:
 {
     register u8* fn asm("a0");
     fn = Mc_FileName;
-    Mc_BuildFileName(fn, saved->field_2C);
+    _mcBuildSaveFileName(fn, saved->field_2C);
 }
 ```
 
-Plain `Mc_BuildFileName(Mc_FileName, saved->field_2C)` keeps the swapped order.
+Plain `_mcBuildSaveFileName(Mc_FileName, saved->field_2C)` keeps the swapped order.
 `Mc_StateFileSelect` is the pure example.
 
 ## Dual block pointers reuse angle `$s0` for scratch field access
