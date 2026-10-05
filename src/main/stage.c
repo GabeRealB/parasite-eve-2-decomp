@@ -888,14 +888,7 @@ static void Display_TaskLoadStep(Task* task)
     gDisplayState.control.flags.flipMode = DISPLAY_FLIP_HOLD;
     temp_v1                              = Stage_Ctx->entryMode;
     // Modes 1, 3 and 4 keep the room's current resources.
-    if (temp_v1 < 5U) {
-        if (temp_v1 < 3U) {
-            if (temp_v1 != STAGE_ENTRY_KEEP) {
-                goto block_3;
-            }
-        }
-    } else {
-    block_3:
+    if (temp_v1 >= 5U || (temp_v1 < 3U && temp_v1 != STAGE_ENTRY_KEEP)) {
         memConfigureImageMemory(gGameSession->location.loc.stage, gGameSession->location.loc.area);
         tmdResetAuxHeapAndRestoreBuffers();
         spriteAllocateViewCachedPackets();
