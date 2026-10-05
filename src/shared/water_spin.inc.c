@@ -10,17 +10,29 @@ enum {
     WATER_SPIN_PACKET_CODE        = 0x2F // Raw-texture, semi-transparent textured quad
 };
 
-/// Writes one corner's signed pixel offset from the projected sprite centre.
+/// Writes the signed pixel offsets for one corner of a rotated water sprite.
 ///
-/// `workspace` is a live scratch block with positive `depth` already stored.
-/// `radiusScale * 31 / depth` sets the half-diagonal before rotation. Division
-/// truncates toward zero, then the Q12 right shift rounds down. Sizing and
-/// rotated products must fit signed 32-bit arithmetic.
-/// `angle` uses 4096 units per turn. Only `extent.corner` is changed.
+/// `workspace` borrows a live scratch block with positive `depth` in SZ3 / 4
+/// units. Only `extent.corner` changes; no pointer is retained. The signed
+/// half-diagonal is `radiusScale * 31 / depth` pixels, truncated toward zero
+/// before rotation. Products must fit s32; the Q12 shift rounds down.
+///
+/// `angle` is an absolute corner bearing in 4096 units per turn, with X right
+/// and Y up. For a positive half-diagonal, zero points up and a quarter turn
+/// points right. The caller subtracts Y from screen Y and uses opposite signs
+/// for each corner pair, repeating a quarter turn later for the other pair.
+/// The angle stays 32-bit so the caller's quarter-turn addition is not narrowed.
 static inline void _waterSpinComputeCornerOffset(EffectShapeScratch* workspace, s16 radiusScale, s32 angle)
 {
-    workspace->extent.corner.x = (((radiusScale * WATER_SPIN_UV_SPAN_TEXELS) / workspace->depth) * rsin(angle)) >> WATER_SPIN_TRIG_FRACTION_BITS;
-    workspace->extent.corner.y = (((radiusScale * WATER_SPIN_UV_SPAN_TEXELS) / workspace->depth) * rcos(angle)) >> WATER_SPIN_TRIG_FRACTION_BITS;
+    s32 halfDiagonalPixels;
+    s32 trigSample;
+
+    trigSample                 = rsin(angle);
+    halfDiagonalPixels         = (radiusScale * WATER_SPIN_UV_SPAN_TEXELS) / workspace->depth;
+    workspace->extent.corner.x = (halfDiagonalPixels * trigSample) >> WATER_SPIN_TRIG_FRACTION_BITS;
+    trigSample                 = rcos(angle);
+    halfDiagonalPixels         = (radiusScale * WATER_SPIN_UV_SPAN_TEXELS) / workspace->depth;
+    workspace->extent.corner.y = (halfDiagonalPixels * trigSample) >> WATER_SPIN_TRIG_FRACTION_BITS;
 }
 
 /// Draws one rotated, camera-facing cell of the water-drift animation.
