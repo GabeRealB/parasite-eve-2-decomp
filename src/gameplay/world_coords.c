@@ -1430,6 +1430,21 @@ static void _worldCoordUpdatePlayerLighting(Task* unusedTask)
     }
 }
 
+/// The `ENEMY_COLOR_HIT_FLASH` flicker of `Gp_RemapActorColor`.
+static inline void Gp_FlickerActorColor(Enemy* arg0, MATRIX* arg1)
+{
+    s32 val;
+
+    val = rsin(gDisplayState.loopCount << 6) + 0x1800;
+    if ((gDisplayState.loopCount & 1) == 0) {
+        val >>= 1;
+    }
+    arg1->m[0][0] = arg1->m[0][1] = arg1->m[0][2] = 0x200;
+    arg1->m[1][0] = arg1->m[1][1] = arg1->m[1][2] = val;
+    arg1->m[2][0] = arg1->m[2][1] = arg1->m[2][2] = 0x200;
+    arg0->colorMode                              &= ENEMY_COLOR_HIT_FLASH_CLEAR;
+}
+
 /// Remaps a 3x3 color matrix (`MATRIX.m`) from lighting mode `arg2`
 /// (`colorMode` bits 0-1, or bits 2-3 when blending). Weighted mode
 /// collapses RGB as (7,6,3)/33 then *4/*2/*1. Black zeros the matrix. Tint
@@ -1440,74 +1455,59 @@ static void _worldCoordUpdatePlayerLighting(Task* unusedTask)
 static void Gp_RemapActorColor(Enemy* arg0, MATRIX* arg1, s32 arg2)
 {
     s32 i;
-    s32 val;
 
-    if (arg2 == ENEMY_COLOR_WEIGHTED) {
-        goto case1;
-    } else if (arg2 < ENEMY_COLOR_BLACK) {
-        goto def;
-    } else if (arg2 == ENEMY_COLOR_BLACK) {
-        goto case2;
-    } else if (arg2 == ENEMY_COLOR_TINT) {
-        goto case3;
-    } else {
-        goto def;
-    }
-
-case1: {
-    s32 t;
-    for (i = 0; i < 3; i++) {
-        t             = (arg1->m[0][i] * 7 + arg1->m[1][i] * 6 + arg1->m[2][i] * 3) / 33;
-        arg1->m[0][i] = t * 4;
-        arg1->m[1][i] = t * 2;
-        arg1->m[2][i] = t;
-    }
-}
-    return;
-
-case3:
-    if ((arg0->colorMode & ENEMY_COLOR_HIT_FLASH) && (arg0->spawnState == 0)) {
-        goto flicker;
-    }
-    arg1->m[0][0] = arg1->m[0][1] = arg1->m[0][2] = 0x180;
-    arg1->m[1][0] = arg1->m[1][1] = arg1->m[1][2] = 0x100;
-    arg1->m[2][0] = arg1->m[2][1] = arg1->m[2][2] = 0x100;
-    return;
-
-case2:
-    if ((arg0->colorMode & ENEMY_COLOR_HIT_FLASH) && (arg0->spawnState == 0)) {
-        goto flicker;
-    }
-    arg1->m[0][0] = 0;
-    arg1->m[0][1] = 0;
-    arg1->m[0][2] = 0;
-    arg1->m[1][0] = 0;
-    arg1->m[1][1] = 0;
-    arg1->m[1][2] = 0;
-    arg1->m[2][0] = 0;
-    arg1->m[2][1] = 0;
-    arg1->m[2][2] = 0;
-    return;
-
-def:
-    if ((arg0->colorMode & ENEMY_COLOR_HIT_FLASH) && (arg0->spawnState == 0)) {
-    flicker:
-        val = rsin(gDisplayState.loopCount << 6) + 0x1800;
-        if ((gDisplayState.loopCount & 1) == 0) {
-            val >>= 1;
+    switch (arg2) {
+        case ENEMY_COLOR_WEIGHTED: {
+            s32 t;
+            for (i = 0; i < 3; i++) {
+                t             = (arg1->m[0][i] * 7 + arg1->m[1][i] * 6 + arg1->m[2][i] * 3) / 33;
+                arg1->m[0][i] = t * 4;
+                arg1->m[1][i] = t * 2;
+                arg1->m[2][i] = t;
+            }
+            break;
         }
-        arg1->m[0][0] = arg1->m[0][1] = arg1->m[0][2] = 0x200;
-        arg1->m[1][0] = arg1->m[1][1] = arg1->m[1][2] = val;
-        arg1->m[2][0] = arg1->m[2][1] = arg1->m[2][2] = 0x200;
-        arg0->colorMode                              &= ENEMY_COLOR_HIT_FLASH_CLEAR;
-    } else if (arg0->reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME_BITS) {
-        s32 t;
-        for (i = 0; i < 3; i++) {
-            t             = (arg1->m[0][i] * 7 + arg1->m[1][i] * 6 + arg1->m[2][i] * 3) / 33;
-            arg1->m[0][i] = t * 3;
-            arg1->m[1][i] = t;
-            arg1->m[2][i] = t * 3;
-        }
+
+        case ENEMY_COLOR_TINT:
+            if ((arg0->colorMode & ENEMY_COLOR_HIT_FLASH) && (arg0->spawnState == 0)) {
+                Gp_FlickerActorColor(arg0, arg1);
+                break;
+            }
+            arg1->m[0][0] = arg1->m[0][1] = arg1->m[0][2] = 0x180;
+            arg1->m[1][0] = arg1->m[1][1] = arg1->m[1][2] = 0x100;
+            arg1->m[2][0] = arg1->m[2][1] = arg1->m[2][2] = 0x100;
+            break;
+
+        case ENEMY_COLOR_BLACK:
+            if ((arg0->colorMode & ENEMY_COLOR_HIT_FLASH) && (arg0->spawnState == 0)) {
+                Gp_FlickerActorColor(arg0, arg1);
+                break;
+            }
+            arg1->m[0][0] = 0;
+            arg1->m[0][1] = 0;
+            arg1->m[0][2] = 0;
+            arg1->m[1][0] = 0;
+            arg1->m[1][1] = 0;
+            arg1->m[1][2] = 0;
+            arg1->m[2][0] = 0;
+            arg1->m[2][1] = 0;
+            arg1->m[2][2] = 0;
+            break;
+
+        case ENEMY_COLOR_DEFAULT:
+        default:
+            if ((arg0->colorMode & ENEMY_COLOR_HIT_FLASH) && (arg0->spawnState == 0)) {
+                Gp_FlickerActorColor(arg0, arg1);
+            } else if (arg0->reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME_BITS) {
+                s32 t;
+                for (i = 0; i < 3; i++) {
+                    t             = (arg1->m[0][i] * 7 + arg1->m[1][i] * 6 + arg1->m[2][i] * 3) / 33;
+                    arg1->m[0][i] = t * 3;
+                    arg1->m[1][i] = t;
+                    arg1->m[2][i] = t * 3;
+                }
+            }
+            break;
     }
 }
 
