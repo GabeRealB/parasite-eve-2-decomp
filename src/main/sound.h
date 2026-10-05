@@ -191,10 +191,19 @@ void midiSetMasterVolume(s32 volume);
 /// channel and replaces the last-requested gain with zero; the previous gain
 /// is not saved. Sequence 0x5A ignores both the gate and the requested gain.
 /// The resident sequence must have a loaded id in 0..99 when the queued volume
-/// request is processed. `SndEvt_FlushType5Pending` clears the gate.
+/// request is processed. `midiUnmuteMusic` clears the gate.
 void midiMuteMusic(void);
 
-void SndEvt_FlushType5Pending(void);
+/// Releases MIDI music muting and requests the last queued gain for all sequences.
+///
+/// Does nothing when the output gate is already clear. Otherwise the gate is
+/// cleared before reserving an event, and stays clear even if the pool is full.
+/// The cached gain is the latest request, including zero queued by muting;
+/// no earlier gain is saved. A byte with bit 7 set requests full gain (127).
+/// A queued request refreshes every channel on processing; gate release alone
+/// does not mark channels for refresh. The resident sequence must have a loaded
+/// id in 0..99 when processed. Sequence 0x5A ignores the gate and requested gain.
+void midiUnmuteMusic(void);
 
 s32 SndLoad_ResolveSpuAddr(s32 arg0, s32 arg1);
 

@@ -2117,7 +2117,7 @@ void func_dryfield_night_saloon_g_r_8017E28C(Task* task)
         } else {
             if (CdCmd_IsIdle() & 0xFFFF) {
                 SndEvt_EnqueueType1(flags, 0);
-                SndEvt_EnqueueType5(flags, (u8)D_8007A396);
+                sndEvtRequestMidiVolume(flags, (u8)D_8007A396);
                 ready          = 1;
                 gStageRoomSong = flags;
             } else {

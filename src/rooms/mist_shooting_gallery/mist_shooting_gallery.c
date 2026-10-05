@@ -2243,7 +2243,7 @@ void func_mist_shooting_gallery_80180728(Task* task)
         } else {
             if (CdCmd_IsIdle() & 0xFFFF) {
                 SndEvt_EnqueueType1(flags, 0);
-                SndEvt_EnqueueType5(flags, (u8)D_8007A396);
+                sndEvtRequestMidiVolume(flags, (u8)D_8007A396);
                 ready          = 1;
                 gStageRoomSong = flags;
             } else {

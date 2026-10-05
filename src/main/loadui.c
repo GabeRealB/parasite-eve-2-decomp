@@ -278,9 +278,9 @@ void Snd_ApplyVolumeTable(s32 arg0)
     if ((arg0 & 0xFFFF) != 0) {
         D_8007A396 = arg0;
         if (gStageRoomSong != 0) {
-            SndEvt_EnqueueType5(gStageRoomSong, (u8)D_8007A396);
+            sndEvtRequestMidiVolume(gStageRoomSong, (u8)D_8007A396);
         } else {
-            SndEvt_EnqueueType5(0, (u8)D_8007A396);
+            sndEvtRequestMidiVolume(0, (u8)D_8007A396);
         }
     } else {
         temp       = sp10.volumes[(u8)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.musicVolume];
@@ -288,12 +288,12 @@ void Snd_ApplyVolumeTable(s32 arg0)
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.musicVolume == 3) {
             midiMuteMusic();
         } else {
-            SndEvt_FlushType5Pending();
+            midiUnmuteMusic();
         }
         if (gStageRoomSong != 0) {
-            SndEvt_EnqueueType5(gStageRoomSong, (u8)D_8007A396);
+            sndEvtRequestMidiVolume(gStageRoomSong, (u8)D_8007A396);
         } else {
-            SndEvt_EnqueueType5(0, sp10.volumes[(u8)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.musicVolume]);
+            sndEvtRequestMidiVolume(0, sp10.volumes[(u8)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.musicVolume]);
         }
     }
 }

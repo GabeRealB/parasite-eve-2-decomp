@@ -625,6 +625,10 @@ void SndEvt_Process(void)
 }
 
 /// Clears every reservation, payload and link in the resident sound-event pool.
+///
+/// Covers the complete fixed array with aligned 32-bit stores. All queued and
+/// unqueued reservations are invalidated; separately stored FIFO endpoints and
+/// the drain gate are left for the caller to reset before audio processing resumes.
 static inline void _sndEvtClearPool(void)
 {
     u32  wordIndex;
@@ -1053,28 +1057,39 @@ static s32 SndEvt_EnqueueType4(s32 arg0)
     return 0;
 }
 
-s32 SndEvt_EnqueueType5(s32 arg0, s32 arg1)
+/// Fills and queues a reserved MIDI volume event, then caches its requested gain.
+///
+/// `event` must be a reserved pool slot. Selector zero addresses all sequences;
+/// gain bytes above 127 become 127. Read the cache value from the slot after
+/// enqueueing to retain the ordering with audio-interrupt processing.
+static inline void _sndEvtQueueMidiVolume(SndEvt* event, u8 sequenceSelector, u8 volumeScale)
 {
-    SndEvt*         event;
-    SndEvtMidiArgs* args;
+    SndEvtMidiArgs* midiArgs;
 
-    if ((arg0 & 0xFF) == SOUND_EVENT_MIDI_INVALID_SEQUENCE) {
-        return -3;
+    event->command       = SOUND_EVENT_MIDI_SET_VOLUME;
+    midiArgs             = &event->args.midi;
+    midiArgs->sequenceId = sequenceSelector;
+    if ((s8)volumeScale >= 0) {
+        midiArgs->volumeScale = volumeScale;
+    } else {
+        midiArgs->volumeScale = SOUND_EVENT_MIDI_VOLUME_FULL;
+    }
+    sndEvtEnqueue(event);
+    D_800820E8 = midiArgs->volumeScale;
+}
+
+s32 sndEvtRequestMidiVolume(s32 sequenceSelector, s32 volumeScale)
+{
+    SndEvt* event;
+
+    if ((sequenceSelector & 0xFF) == SOUND_EVENT_MIDI_INVALID_SEQUENCE) {
+        return SOUND_EVENT_MIDI_VOLUME_INVALID_SEQUENCE;
     }
     event = sndEvtAlloc();
     if (event == NULL) {
-        return -2;
+        return SOUND_EVENT_MIDI_VOLUME_POOL_FULL;
     }
-    event->command   = SOUND_EVENT_MIDI_SET_VOLUME;
-    args             = &event->args.midi;
-    args->sequenceId = arg0;
-    if ((s8)arg1 >= 0) {
-        args->volumeScale = arg1;
-    } else {
-        args->volumeScale = SOUND_EVENT_MIDI_VOLUME_FULL;
-    }
-    sndEvtEnqueue(event);
-    D_800820E8 = args->volumeScale;
+    _sndEvtQueueMidiVolume(event, sequenceSelector, volumeScale);
     return 0;
 }
 
@@ -1250,27 +1265,19 @@ void midiMuteMusic(void)
     }
 }
 
-void SndEvt_FlushType5Pending(void)
+void midiUnmuteMusic(void)
 {
-    SndEvt*         event;
-    SndEvtMidiArgs* args;
-    u8              saved;
+    enum { MIDI_MUSIC_MUTE_DISABLED = 0 };
+    SndEvt* event;
+    u8      lastRequestedVolumeScale;
 
-    if (D_800820E9 != 0) {
-        saved      = D_800820E8;
-        D_800820E9 = 0;
-        event      = sndEvtAlloc();
+    if (D_800820E9 != MIDI_MUSIC_MUTE_DISABLED) {
+        // Release the gate even if the cached-gain request cannot be queued.
+        lastRequestedVolumeScale = D_800820E8;
+        D_800820E9               = MIDI_MUSIC_MUTE_DISABLED;
+        event                    = sndEvtAlloc();
         if (event != NULL) {
-            args             = &event->args.midi;
-            event->command   = SOUND_EVENT_MIDI_SET_VOLUME;
-            args->sequenceId = SOUND_EVENT_MIDI_ALL_SEQUENCES;
-            if ((s8)saved >= 0) {
-                args->volumeScale = saved;
-            } else {
-                args->volumeScale = SOUND_EVENT_MIDI_VOLUME_FULL;
-            }
-            sndEvtEnqueue(event);
-            D_800820E8 = args->volumeScale;
+            _sndEvtQueueMidiVolume(event, SOUND_EVENT_MIDI_ALL_SEQUENCES, lastRequestedVolumeScale);
         }
     }
 }

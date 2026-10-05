@@ -45,7 +45,27 @@ s32 Midi_IsBusy(s32 arg0);
 /// before the song's volume ramp is applied.
 s32 midiGetMasterVolume(void);
 
-s32 SndEvt_EnqueueType5(s32 arg0, s32 arg1);
+/// Admission failures returned by `sndEvtRequestMidiVolume`.
+enum {
+    SOUND_EVENT_MIDI_VOLUME_POOL_FULL        = -2,
+    SOUND_EVENT_MIDI_VOLUME_INVALID_SEQUENCE = -3
+};
+
+/// Queues a sequence gain change and returns zero, or an admission failure.
+///
+/// Only the low byte of `sequenceSelector` matters: zero selects all sequences,
+/// other ids select the matching loaded sequence, and 255 is rejected before
+/// reserving a slot. Only the low byte of `volumeScale` matters: 0..127 is the
+/// requested gain (0 silent, 127 full); a byte with bit 7 set requests 127.
+/// A full event pool drops the request and leaves the last-requested gain intact.
+///
+/// Dispatch multiplies the sequence's mix-table level by this gain and refreshes
+/// every channel; master gain and the fade ramp apply separately. The matching
+/// sequence must have a loaded id in 0..99 when processed, including for selector
+/// zero. Sequence 0x5A ignores this requested gain. Queueing updates the shared
+/// last-requested gain even if the selector matches no sequence; it does not
+/// release the music mute gate. Both arguments are copied into the event.
+s32 sndEvtRequestMidiVolume(s32 sequenceSelector, s32 volumeScale);
 
 void Snd_InitFromStage(s32 arg0, s32 arg1);
 

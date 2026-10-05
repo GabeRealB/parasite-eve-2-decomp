@@ -12187,7 +12187,7 @@ extern s8 D_800820E9;
 if (D_800820E9 != 0)      /* emits lb */
 ```
 
-`SndEvt_FlushType5Pending` / `Midi_UpdateVoiceVolumes` both `lb` `D_800820E9`; stores remain `sb`
+`midiUnmuteMusic` / `Midi_UpdateVoiceVolumes` both `lb` `D_800820E9`; stores remain `sb`
 either way.
 
 Declaring the *field* `s8` is necessary but not sufficient: the type of the
@@ -18174,7 +18174,7 @@ if ((s8)arg1[2] >= 0) {
 
 `if ((s8)x < 0)` inverts the polarity to `bgez` and swaps the store order.
 `Midi_Event3` (MIDI CC 6 data-entry path) is the pure example; same shape as
-`SndEvt_EnqueueType5` without the dual load.
+`sndEvtRequestMidiVolume` without the dual load.
 
 ## `s32 value = u8; if ((value & 0xFF) == K)` keeps load-delay `andi`
 
