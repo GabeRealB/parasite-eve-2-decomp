@@ -157,19 +157,12 @@ static s32 func_replay_bonus_801173A8(void)
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.shopTiers == 0x1FFF) {
         return -1;
     }
-    i = 0;
-    do {
-    loop:
+    for (i = 0; i < 0xD; i++, p++) {
         if (!(p->expCeiling < spend)) {
             idx = i;
             break;
         }
-        i++;
-        p++;
-        if (i < 0xD) {
-            goto loop;
-        }
-    } while (0);
+    }
 
     save = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
     idx += save->state.gameMode;
