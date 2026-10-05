@@ -134,10 +134,11 @@ extern u8               D_shelter_b4_reservoir_80184F7A;
 ///
 /// Each frame the room task ORs `halfExtent` into the low half of a spawn
 /// argument and fills the other fields from the three bytes that precede this
-/// object. `waterDriftTask` reads that layout: bits 0..11 are this half-extent,
-/// bits 12..15 the frame period, bits 16..23 the velocity level and bits 24..31
-/// the velocity kind. The initial half-extent is 640, so it occupies only the
-/// low 12 bits. The trailing bytes are zero; their role is unproven.
+/// object. `_waterDriftTask` reads that layout: bits 0..11 are this half-extent,
+/// bits 12..15 the frame period, bits 16..23 the speed and bits 24..27 the
+/// velocity kind; any set bit in 28..31 selects upright drawing. The initial
+/// half-extent is 640, so it occupies only the low 12 bits. The trailing bytes
+/// are zero; their role is unproven.
 typedef struct {
     s16 halfExtent; // Sprite half-extent in world units, bits 0..11 of the spawn argument
     u8  field_2[2]; // Zero bytes with no accesses; role unproven
@@ -1799,7 +1800,7 @@ void func_shelter_b4_reservoir_801803DC(Task* task)
 
 void func_shelter_b4_reservoir_80180864(Task* task)
 {
-    waterDriftTask(task);
+    _waterDriftTask(task);
 }
 
 #include "../../shared/water_spin.inc.c"

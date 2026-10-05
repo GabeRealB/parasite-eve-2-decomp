@@ -1305,7 +1305,7 @@ void func_shelter_b4_water_supply_8017F24C(Task* task)
 
 void func_shelter_b4_water_supply_8017F6D4(Task* task)
 {
-    waterDriftTask(task);
+    _waterDriftTask(task);
 }
 
 #include "../../shared/water_spin.inc.c"

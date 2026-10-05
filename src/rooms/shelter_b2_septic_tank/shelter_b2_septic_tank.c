@@ -1552,7 +1552,7 @@ void func_shelter_b2_septic_tank_8017F040(Task* task)
 
 void func_shelter_b2_septic_tank_8017F4C8(Task* task)
 {
-    waterDriftTask(task);
+    _waterDriftTask(task);
 }
 
 #include "../../shared/water_spin.inc.c"

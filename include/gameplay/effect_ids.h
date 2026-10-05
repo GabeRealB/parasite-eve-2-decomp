@@ -696,8 +696,8 @@ enum {
     /// _waterDrawSplash; stored in gRoomEffectWaterRippleId, which wading actors (companion, enemies)
     /// spawn at the water surface.
     EFFECT_DRYFIELD_WATER_HOLE_WATER_RIPPLE = EFFECT_ID(EFFECT_TASK_BANK, 0x0FD),
-    /// The dryfield_water_hole instance of the room-effect library's waterDriftTask /
-    /// waterDriftTaskU16: a water-library drift particle: a spinning (or upright)
+    /// The dryfield_water_hole instance of the water library's waterDriftTaskU16:
+    /// a water-library drift particle: a spinning (or upright)
     /// animated sprite thrown by the kind in spawnArg bits 24-27, falling under
     /// gravity, released after frame 7; the room stores it in slot gRoomEffectWaterSprayId, read
     /// wherever something breaks the water surface (actor_800100, actor_401300,
@@ -744,8 +744,8 @@ enum {
     /// _waterDrawSplash; stored in gRoomEffectWaterRippleId, which wading actors (companion, enemies)
     /// spawn at the water surface.
     EFFECT_SHELTER_B4_UPPER_SEWER_WATER_RIPPLE = EFFECT_ID(EFFECT_TASK_BANK, 0x170),
-    /// The shelter_b4_upper_sewer instance of the room-effect library's waterDriftTask
-    /// / waterDriftTaskU16: a water-library drift particle: a spinning (or upright)
+    /// The shelter_b4_upper_sewer instance of the water library's `_waterDriftTask`:
+    /// a water-library drift particle: a rotated (or upright)
     /// animated sprite thrown by the kind in spawnArg bits 24-27, falling under
     /// gravity, released after frame 7; the room stores it in slot gRoomEffectWaterSprayId, read
     /// wherever something breaks the water surface (actor_800100, actor_401300,
@@ -757,7 +757,7 @@ enum {
     /// water that grows and dims; the room stores it in slot gRoomEffectWaterRippleId, which water-
     /// dwelling actors (actor_01100, actor_400600, actor_401300, actor_800100) spawn.
     EFFECT_SHELTER_B4_RESERVOIR_WATER_RIPPLE = EFFECT_ID(EFFECT_TASK_BANK, 0x172),
-    /// Water particle (waterDriftTask) drawn as a spinning or upright sprite, thrown
+    /// Water particle (`_waterDriftTask`) drawn as a rotated or upright sprite, thrown
     /// with a velocity under gravity; stored in gRoomEffectWaterSprayId, which several actors spawn
     /// as splash drops.
     EFFECT_SHELTER_B4_RESERVOIR_WATER_SPRAY = EFFECT_ID(EFFECT_TASK_BANK, 0x173),
@@ -766,7 +766,7 @@ enum {
     /// ripple slot, spawned at the water surface by wading actors).
     EFFECT_SHELTER_B4_WATER_SUPPLY_WATER_RIPPLE = EFFECT_ID(EFFECT_TASK_BANK, 0x174),
     /// shelter_b4_water_supply's water splash droplet: an eight-frame sprite thrown
-    /// with gravity (waterDriftTask); stored in gRoomEffectWaterSprayId, which actors
+    /// with gravity (`_waterDriftTask`); stored in gRoomEffectWaterSprayId, which actors
     /// entering/leaving water spawn at the surface (ring of 16-32 on emergence).
     EFFECT_SHELTER_B4_WATER_SUPPLY_WATER_SPRAY = EFFECT_ID(EFFECT_TASK_BANK, 0x175),
     /// The neo_ark_pavilion instance of the room-effect library's _waterRippleTask /
@@ -791,8 +791,8 @@ enum {
     /// stored in gRoomEffectWaterRippleId, which wading actors (companion, enemies) spawn at the
     /// water surface.
     EFFECT_NEO_ARK_BRIDGE_WATER_RIPPLE = EFFECT_ID(EFFECT_TASK_BANK, 0x17A),
-    /// The neo_ark_bridge instance of the room-effect library's waterDriftTask /
-    /// waterDriftTaskU16: a water-library drift particle: a spinning (or upright)
+    /// The neo_ark_bridge instance of the water library's `_waterDriftTask`:
+    /// a water-library drift particle: a rotated (or upright)
     /// animated sprite thrown by the kind in spawnArg bits 24-27, falling under
     /// gravity, released after frame 7; the room stores it in slot gRoomEffectWaterSprayId, read
     /// wherever something breaks the water surface (actor_800100, actor_401300,
@@ -994,8 +994,8 @@ enum {
     /// Mist shooting gallery muzzle-flash/tracer beam with glow toward a random
     /// endpoint, fading out; spawned when a gallery target attacks.
     EFFECT_MIST_GALLERY_TRACER = EFFECT_ID(EFFECT_TASK_BANK, 0x1BD),
-    /// The shelter_b1_pod_gantry instance of the room-effect library's waterDriftTask /
-    /// waterDriftTaskU16: a water-library drift particle: a spinning (or upright)
+    /// The shelter_b1_pod_gantry instance of the water library's waterDriftTaskU16:
+    /// a water-library drift particle: a spinning (or upright)
     /// animated sprite thrown by the kind in spawnArg bits 24-27, falling under
     /// gravity, released after frame 7; the room stores it in slot gRoomEffectWaterSprayId, read
     /// wherever something breaks the water surface (actor_800100, actor_401300,

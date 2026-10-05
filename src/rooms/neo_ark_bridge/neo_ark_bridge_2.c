@@ -864,7 +864,7 @@ void func_neo_ark_bridge_8017EF70(Task* task)
 
 void func_neo_ark_bridge_8017F3F8(Task* task)
 {
-    waterDriftTask(task);
+    _waterDriftTask(task);
 }
 
 #include "../../shared/water_spin.inc.c"
