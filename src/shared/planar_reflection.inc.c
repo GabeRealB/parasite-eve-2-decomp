@@ -196,11 +196,18 @@ typedef struct {
 } _PlanarReflectionExtentScratch;
 STATIC_ASSERT_SIZEOF(_PlanarReflectionExtentScratch, 0x34);
 
-/// Chooses a Q12 coordinate-axis hint least aligned with the unit plane normal.
+/// Sets the Q12 basis hint to the positive coordinate axis least aligned with the plane normal.
 ///
-/// Writes `refAxis` and the three axis-selection fields in the borrowed scratch
-/// block. The normal must be nonzero and normalized to Q12 (`ONE` = 1.0).
-/// Equal component magnitudes prefer X, then Y, then Z.
+/// Borrows a live, word-aligned `frameScratch`. The normal's xyz may use any
+/// common scale, but must lie in -32767..32767 so their magnitudes fit the
+/// signed-halfword scratch fields. The hint uses the normal's coordinate frame
+/// and `ONE` (4096) for 1.0. Equal magnitudes prefer X, then Y, then Z; a zero
+/// normal selects X, though it cannot define a plane basis.
+///
+/// Writes `refAxis` xyz, the minimum magnitude to `leastAbs`, its axis index
+/// (0 X, 1 Y, 2 Z) to `leastAxis`, and the absolute Z component to `axisAbs`.
+/// Preserves the normal, `refAxis.pad` and the rest of the block. Reserves no
+/// scratch storage, changes no GTE state and retains no pointer.
 static inline void _planarReflectionChooseReferenceAxis(_PlanarReflectionFrameScratch* frameScratch)
 {
     enum {
@@ -209,6 +216,7 @@ static inline void _planarReflectionChooseReferenceAxis(_PlanarReflectionFrameSc
         PLANAR_REFLECTION_AXIS_Z = 2
     };
 
+    // Keep the first minimum so ties have a stable axis order.
     frameScratch->leastAbs = frameScratch->normal.vx;
     if (frameScratch->leastAbs < 0) {
         frameScratch->leastAbs = -frameScratch->leastAbs;
@@ -230,6 +238,7 @@ static inline void _planarReflectionChooseReferenceAxis(_PlanarReflectionFrameSc
         frameScratch->leastAbs  = frameScratch->axisAbs;
         frameScratch->leastAxis = PLANAR_REFLECTION_AXIS_Z;
     }
+    // The least-aligned axis gives the basis builder the largest cross product.
     frameScratch->refAxis.vx = 0;
     if (frameScratch->leastAxis == PLANAR_REFLECTION_AXIS_X) {
         frameScratch->refAxis.vx = ONE;
