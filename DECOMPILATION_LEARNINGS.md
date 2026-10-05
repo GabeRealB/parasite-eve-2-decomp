@@ -142857,6 +142857,12 @@ stripped, try an empty one at each statement boundary with a fast cc1-only
 diff before assuming reference weighting. If one position works, the original
 had some loop construct there. In this function no plausible macro was
 found, so the wrapper stayed.
+
+**Corrected 2026-10-05.** The wrapper was not in the original. The halved
+amplitude is an `s16` local; with that type the function matches with plain
+`addPrim` and no loop construct. The phony loop reproduced a hoisting
+decision by a different route. See "A hoisted mask next to an in-loop
+`lui`: count the moves loop.c makes before it".
 ### Pinned table pointers in `switch` arms are one variable assigned in every arm; the arm's index is its own block local (Fs_InitStage0TablesCb, 2026-09-26)
 
 **Symptom.** Inside a loop, each `case` appends to a different global table:
@@ -142906,6 +142912,12 @@ block-scoped second pointer or moving the colour temporaries.
 `.sched` ready lists whether they tie at the previous call's priority. Only
 a data dependence on something late moves one of them. Look for a
 plausible source expression that has one before reaching for a barrier.
+
+**Corrected 2026-10-05.** No barrier and no late dependence is needed here.
+The swapped argument moves were a consequence of the phony loop the
+candidate still carried; with the halved amplitude typed `s16` and no
+wrapper, the tie resolves the target's way. See "A hoisted mask next to an
+in-loop `lui`: count the moves loop.c makes before it".
 
 ## Low callee-saved registers on short temporaries mean the temporaries are block-local (func_shelter_b2_pod_bottom_8017F994, 2026-09-26)
 
@@ -147972,3 +147984,64 @@ takes `$s1` before it, so the `asm volatile("" : "+r"(bytes))` barrier and the
 integer address both go. The `register ... asm("s1")` on the typed pointer
 stays: a pseudo for the sum is block-local and local-alloc puts it and the
 half in `$v0`.
+
+### A hoisted mask next to an in-loop `lui`: count the moves loop.c makes before it, and check the type of the loop's invariant locals (func_acropolis_fire_escape_80180B20, 2026-10-05)
+
+**Symptom.** A loop body drawing two `POLY_G4` rays, a call after each. The
+target hoists the `0x00FFFFFF` link mask (`lui a3,0xff; ori` before the
+loop), but leaves `lui s3,0xff00` and `lui s6,%hi(gGpuCurrentOt)` inside it,
+each shared by both rays across the call in a callee-saved register. Natural
+C hoisted all three, which reshuffled the registers of the whole function
+(437 differing lines). The seed held it with a `do { } while (0)` around the
+first ray, an `addPrim` split by hand and seven empty-asm barriers; two
+earlier entries concluded the wrapper was original.
+
+**Mechanism.** `move_movables` moves an invariant when
+`threshold * savings * lifetime >= insn_count`. `threshold` starts at
+`1 + n_non_fixed_regs` (29 here, the loop has a call) and drops by 3 for
+*every* insn moved, in insn order. With 252 insns in the loop and lifetimes
+of 114 (`%hi(gGpuCurrentOt)`), 127 (`0xFFFFFF`) and 125 (`0xFF000000`), the
+target's pattern needs the threshold to be exactly 2 when the first of them
+is reached: `2*114 < 252` stays, `2*127 >= 252` moves, and the threshold is
+then -1 for the last. That is nine moves before it. The natural source made
+seven (`%hi(gGpuPrimCursor)`, the `8` and `0x38` of `setPolyG4`, the table
+address and `&gDisplayState` as `high` + `lo_sum` each), leaving 8.
+
+The two missing moves are a sign extension. The seed declared
+`s32 ampHalf = amp >> 1` before the loop. Declared `s16`, each use in
+`ampHalf * (flip ^ 1)` needs `ashift 16` / `ashiftrt 16` inside the loop,
+cse1 shares the pair, and loop.c hoists it (`regno 462 (life 9), savings 2
+moved`, `regno 461 ... cond forces 854 ... moved`). Combine then folds the
+hoisted pair into the `sll 16; sra 17` in front of the loop, so the final
+code shows no trace of it.
+
+The phony loop reached the same three verdicts by ending cse1's block, which
+shortened the lifetimes and added insns. It matched, so it looked original.
+
+**Fix.**
+
+```c
+s16 ampHalf;
+...
+ampHalf = amp >> 1;
+for (i = 2; i < 0x10; i += 8) {
+    ...
+    setRGB2(prim, ampHalf * (flip ^ 1), flip * ampHalf, flip * ampHalf);
+    ...
+    addPrim(..., prim);
+    gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, blk->otz);
+    ... /* second ray, same form */
+}
+```
+
+The same change removed an `ampSi = amp;` copy the first loop carried inside
+its body: `amp` used directly gives the same hoisted extension.
+`func_acropolis_square_801825DC` and `func_acropolis_roof_garden_8017E29C`
+take the same form.
+
+**Use.** When `.loop` shows a constant hoisted that the target keeps in the
+loop (or the reverse), list the `moved to` lines before it and compute the
+threshold at that insn. A count that is off by two is one narrow local: an
+`s16`/`s8` invariant used in arithmetic contributes a hoisted extension pair
+that is invisible in the output. Try the type of each invariant local before
+any construct that changes cse's blocks.
