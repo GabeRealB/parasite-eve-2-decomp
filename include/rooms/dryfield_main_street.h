@@ -30,6 +30,21 @@ extern SpriteView D_dryfield_main_street_80184308[];
 
 extern WorldCollisionSurfaceProperties* D_dryfield_main_street_801855EC[];
 
+/// Animates and drifts one daytime main street puff (effect 0x601B1).
+///
+/// Requires the counted effect task and zeroed `EffectWork` created by
+/// `Gp_SpawnEff`, with a live coordinate body and work in `spawnArg2.pointer`.
+/// `spawnArg1.value` packs size factor in bits 0-11 (0..4095), cell period in bits
+/// 12-14 (1..7 ticks), and speed in bits 16-23 (coordinate units per tick).
+/// A zero period nibble (bits 12-15) selects one tick; a zero speed byte selects
+/// 64. A nonzero period nibble must have nonzero bits 12-14; bit 15 alone
+/// decodes to zero and is invalid. Bits 24-31 are ignored.
+///
+/// Initializes a fixed random screen angle (4096 units per turn) and a drift
+/// with nonpositive local X, zero Y and signed Z. Draws before moving; cell zero
+/// lasts one tick and cells 1-9 each last the selected period. Releases its work
+/// and task after 1 + 9 * period ticks. Normal scheduling must compose the dirty
+/// coordinate between ticks; callers must discard the work pointer on release.
 void dryfieldMainStreetPuffTask(Task* task);
 
 void func_dryfield_main_street_8017EEE8(Task* task);

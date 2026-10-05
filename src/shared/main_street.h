@@ -7,7 +7,9 @@
  * frame of a 10-cell 48x48 sheet on tpage 0x2B that drifts on a random bearing.
  *
  * Include this header in the prologue and each fragment at its function's
- * position.
+ * position. A carrier of the puff task defines MAIN_STREET_PUFF_TASK as its
+ * public void (Task*) callback name before including this header; its public
+ * room header supplies the declaration.
  */
 
 #ifndef SRC_SHARED_MAIN_STREET_H
@@ -33,7 +35,6 @@ s32         mainStreetResolveMsg(Task* task, s32 msgId, RoomEventMsg* msg, RoomE
 void        mainStreetPlayTimeTask(Task* task);
 s32         mainStreetCapSoundCue(Task* task, s32 msgId, s32 arg2, s32 arg3);
 s32         mainStreetTalkMsg(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
-void        mainStreetPuffTask(Task* task);
 static void _mainStreetDrawPuff(const GfxCoord* coord, u16 frame, s16 sizeFactor, s16 angle);
 
 #endif /* SRC_SHARED_MAIN_STREET_H */

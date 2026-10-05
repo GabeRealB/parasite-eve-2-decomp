@@ -968,9 +968,9 @@ enum {
     /// A drifting smoke puff from a 10-cell 48x48 sheet; the Dryfield main street room
     /// task spawns them at random points (0x30 at once in view 8).
     EFFECT_DRYFIELD_MAIN_STREET_SMOKE_PUFF = EFFECT_ID(EFFECT_TASK_BANK, 0x1B1),
-    /// Ten-cell sheet sprite (mainStreetPuffTask) that drifts backward/sideways with a
-    /// random spin; the night main street task spawns 0x30 at random spots on entering
-    /// views 8/0x13 and one every other frame while there.
+    /// Ten-cell animated billboard (`dryfieldNightMainStreetPuffTask`) with a fixed
+    /// random rotation and nonpositive local-X drift. The night main street task
+    /// spawns 0x30 at random spots on entering views 8/0x13 and one every other frame while there.
     EFFECT_DRYFIELD_NIGHT_MAIN_STREET_PUFF = EFFECT_ID(EFFECT_TASK_BANK, 0x1B2),
     /// Unidentified. B1 pod service gantry copy of the animated sprite-drift effect
     /// (effect_sprite_drift: sprite with rolled velocity and gravity); spawned by

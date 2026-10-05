@@ -64,8 +64,9 @@
 // The latched-event symbol carries four unproven bytes after the event.
 #define ROOM_EVENT_LATCHED gRoomEventLatched.event
 #include "../../shared/room_events.h"
-// Exported instance: another image refers to this package's copy by name.
-#define mainStreetPuffTask dryfieldNightMainStreetPuffTask
+/// Binds the shared puff task to this package's public void (Task*) effect callback.
+/// Must precede main_street.h and remain defined through main_street_puff_task.inc.c.
+#define MAIN_STREET_PUFF_TASK dryfieldNightMainStreetPuffTask
 #include "../../shared/main_street.h"
 
 #define DRYFIELD_NIGHT_MAIN_STREET_RAND()     ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16)
