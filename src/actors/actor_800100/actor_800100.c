@@ -1164,8 +1164,8 @@ static void func_actor_800100_80163214(Task* arg0)
     RotMatrix(&actor->rotation, &coord->coord);
     func_8010BFCC(arg0);
     actor->animationRate = ANIMATION_RATE_ONE;
-    Gp_AnimResetChildSlots(arg0, actor->actionArgument);
-    Gp_AnimTickChildSlots(arg0);
+    playerActorResetChildSlots(arg0, actor->actionArgument);
+    playerActorTickChildSlots(arg0);
     recs                                       = actor->collisionContacts;
     obj                                        = &actor->collisionBodies[GAME_ACTOR_BODY_ROOT];
     actor->previousPosition.vx                 = coord->coord.t[0];
@@ -1625,7 +1625,7 @@ static void func_actor_800100_80163F04(Task* arg0)
         }
     }
     Gp_TickActorAnimState(arg0);
-    Gp_AnimTickChildSlots(arg0);
+    playerActorTickChildSlots(arg0);
     Gp_TurnPlayer(arg0);
     Gp_StepPlayerMove(arg0);
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionHp <= 0) {
@@ -1886,7 +1886,7 @@ static void func_actor_800100_80164710(Task* arg0)
     switch (actor->statePhase) {
         case 0:
             lock = actor->targetNode;
-            if ((lock == NULL) || (coord = arg0->extra.tmd->coords, Gp_GetLockPos(lock, &block->targetPoint), func_80103C74(coord, &block->targetPoint, &block->targetDelta), ((func_80103D8C(block->targetDelta.vx, block->targetDelta.vz) < 0x301) != 0))) {
+            if ((lock == NULL) || (coord = arg0->extra.tmd->coords, Gp_GetLockPos(lock, &block->targetPoint), playerActorGetPointDelta(coord, &block->targetPoint, &block->targetDelta), ((playerActorPlanarLength(block->targetDelta.vx, block->targetDelta.vz) < 0x301) != 0))) {
                 actor2                 = arg0->work;
                 actor2->mode           = GAME_ACTOR_MODE_NORMAL;
                 actor2->state          = 4;
@@ -2118,8 +2118,8 @@ static void func_actor_800100_80164B9C(Task* arg0)
             goto tail;
     }
     actor->movementSign = 1;
-    func_80103C74(coord, &block->targetPoint, &block->targetDelta);
-    distance = func_80103D8C(block->targetDelta.vx, block->targetDelta.vz);
+    playerActorGetPointDelta(coord, &block->targetPoint, &block->targetDelta);
+    distance = playerActorPlanarLength(block->targetDelta.vx, block->targetDelta.vz);
     if (actor->targetNode != NULL) {
         val = (rand() & 0x3FF) + 0xB00;
     } else {
@@ -2194,7 +2194,7 @@ static void func_actor_800100_80164E60(Task* arg0)
     }
 
     companion->activity.combat.attacksRemaining = D_actor_800100_80167230[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant];
-    if (rec != NULL && func_80105894(arg0, 1, 0, 0) == 0) {
+    if (rec != NULL && playerActorIsSlotAdvancingLinearly(arg0, 1, 0, 0) == 0) {
         target                 = arg0->work;
         target->mode           = GAME_ACTOR_MODE_NORMAL;
         target->state          = 4;
@@ -2568,7 +2568,7 @@ static void func_actor_800100_80165850(Task* arg0)
     handlers = D_actor_800100_80161E88;
     actor    = arg0->work;
     Gp_TickActorAnimState(arg0);
-    Gp_AnimTickChildSlots(arg0);
+    playerActorTickChildSlots(arg0);
     handlers.funcs[(u16)actor->hitRegion](arg0);
     Gp_TurnPlayer(arg0);
     Gp_StepPlayerMove(arg0);
@@ -2646,8 +2646,8 @@ static void func_actor_800100_801659EC(Task* arg0)
     actor->targetNode             = node;
     if (node != NULL) {
         Gp_GetLockPos(node, lock);
-        func_80103C74(coord, lock, lock);
-        kind = func_80103D8C(*(s32*)lock, lock->vz);
+        playerActorGetPointDelta(coord, lock, lock);
+        kind = playerActorPlanarLength(*(s32*)lock, lock->vz);
         mode = 2;
         if (kind >= 0x381) {
             if (kind < 0) {
@@ -2748,7 +2748,7 @@ static void func_actor_800100_80165C38(Task* arg0)
             /* fallthrough */
 
         case 2:
-            if (func_80105894(arg0, 8, 0, 0) == 0) {
+            if (playerActorIsSlotAdvancingLinearly(arg0, 8, 0, 0) == 0) {
                 actor->attackControl.cooldownTicks           = 0xA;
                 companion->activity.combat.repeatsRemaining -= 1;
                 func_actor_800100_80166DD0(arg0);
@@ -2790,7 +2790,7 @@ static void func_actor_800100_80165DE8(Task* arg0)
             }
             return;
         case 2:
-            if (func_80105894(arg0, 8, 0, 0) == 0) {
+            if (playerActorIsSlotAdvancingLinearly(arg0, 8, 0, 0) == 0) {
                 actor->attackControl.cooldownTicks           = 0x12;
                 companion->activity.combat.repeatsRemaining -= 1;
                 func_actor_800100_80166DD0(arg0);
@@ -2873,7 +2873,7 @@ static void func_actor_800100_80165F50(Task* arg0)
                     goto block_4;
                 }
             }
-            if (func_80105894(arg0, 8, 0, 0) == 0) {
+            if (playerActorIsSlotAdvancingLinearly(arg0, 8, 0, 0) == 0) {
                 func_actor_800100_80166DD0(arg0);
             }
             break;
@@ -2990,7 +2990,7 @@ static void func_actor_800100_80166190(Task* arg0)
             break;
 
         case 6:
-            if (func_80105894(arg0, 8, 0, 0) == 0) {
+            if (playerActorIsSlotAdvancingLinearly(arg0, 8, 0, 0) == 0) {
                 actor->attackControl.cooldownTicks          = 0xF;
                 companion->activity.combat.repeatsRemaining = (actor->attackButton == 1) ? companion->activity.combat.repeatsRemaining - 1 : 0;
                 func_actor_800100_80166DD0(arg0);
@@ -3024,14 +3024,14 @@ static void func_actor_800100_80166514(Task* arg0)
     blk->offset.vx = 0;
     blk->offset.vy = 0x120;
     blk->offset.vz = 0x20;
-    Gp_PlaceCoordOffset(&sp10, &blk->coord, &blk->offset);
+    actorRenderPlaceCoordOffset(&sp10, &blk->coord, &blk->offset);
     distance             = _actor800100GetContactDistance(&blk->coord, actor->aimContacts, NULL);
     blk->contactDistance = distance;
     func_actor_800100_8016666C(&blk->coord, distance);
     blk->offset.vx = 0;
     blk->offset.vz = 0;
     blk->offset.vy = blk->contactDistance + 0x38;
-    Gp_PlaceCoordOffset(&blk->coord, &blk->coord, &blk->offset);
+    actorRenderPlaceCoordOffset(&blk->coord, &blk->coord, &blk->offset);
     func_actor_800100_801668C0(&blk->coord);
     worldCollisionClearContacts(actor->aimContacts);
     SCRATCH_POP_AT(scratch, _Actor800100AimBeamScratch);
@@ -3354,7 +3354,7 @@ static s32 _actor800100GetContactDistance(GfxCoord* coord, WorldCollisionContact
     s32 distance;
 
     if (contact->key.value != 0) {
-        distance = func_80103D8C(coord->workm.t[0] - contact->point.vx, coord->workm.t[2] - contact->point.vz);
+        distance = playerActorPlanarLength(coord->workm.t[0] - contact->point.vx, coord->workm.t[2] - contact->point.vz);
         if (contactZY != NULL) {
             // Retain the original repeated first-halfword write.
             contactZY[0] = contact->point.vx;

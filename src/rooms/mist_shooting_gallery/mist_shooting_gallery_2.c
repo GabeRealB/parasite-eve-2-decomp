@@ -2334,7 +2334,7 @@ static void func_mist_shooting_gallery_80182B1C(Task* arg0)
 
     actor->weaponShape.ends[0].vz =
         (actor->weaponShape.ends[1].vz + D_80112F60[gPlayerStatus.weapon]) << 1;
-    func_801066DC(slot, 1);
+    playerActorEnterLocomotion(slot, 1);
 
     if (work->course < 3) {
         Gp_StateC08.flags |= ATTACHMENT_FLAG_SWAP_LOCK;

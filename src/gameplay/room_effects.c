@@ -762,7 +762,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_cellar_8017DAEC, { NULL } },                             // 0x0DF
     { { { TASK_BODY_COORD, 0x70 } }, effectSpriteTaskE0, { NULL } },                                        // 0x0E0
     { { { TASK_BODY_COORD, 0x70 } }, effectSpriteTaskE1, { NULL } },                                        // 0x0E1
-    { { { TASK_BODY_COORD, 0x70 } }, Gp_EffSprTaskE2, { NULL } },                                           // 0x0E2
+    { { { TASK_BODY_COORD, 0x70 } }, effectSpriteTaskE2, { NULL } },                                        // 0x0E2
     { { { TASK_BODY_COORD, 0x70 } }, Gp_EffCtlTaskE3, { NULL } },                                           // 0x0E3
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_night_back_street_8017F6DC, { NULL } },                  // 0x0E4
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_night_junk_yard_8017E5C8, { NULL } },                    // 0x0E5

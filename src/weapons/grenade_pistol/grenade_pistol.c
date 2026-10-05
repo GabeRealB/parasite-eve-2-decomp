@@ -95,7 +95,7 @@ void func_grenade_pistol_8011D1D4(Task* arg0)
             playerActorPlayChildSlotsWithBlend(arg0, 0xA, 0, 3);
             break;
         case 3:
-            if (func_80105894(arg0, D_80112E04[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId][1], 0, 0) == 0) {
+            if (playerActorIsSlotAdvancingLinearly(arg0, D_80112E04[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId][1], 0, 0) == 0) {
                 func_80106550(arg0);
             }
             break;

@@ -55,7 +55,7 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(PlayerActorWeaponImpactScratch, 0x68);
 
 /// 2-wide rows indexed by `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId`. `Gp_PlayerMode2StateB` passes
-/// `D_80112E04[field_22][1]` to `func_80105894`.
+/// `D_80112E04[field_22][1]` to `playerActorIsSlotAdvancingLinearly`.
 extern u8 D_80112E04[][2];
 
 /// u16 table indexed by `Gp_AttachActorObj` arg1: the reach a weapon of that
@@ -116,19 +116,60 @@ s32 func_80104E00(Task* arg0, s32 arg1, ActorTransform* transform, s32 unusedArg
 
 s32 Gp_PickNearestRec18(WorldCollisionContact* arg0, struct GfxCoord* arg1, struct GfxCoord* arg2);
 
-s32 func_80105894(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
+/// Reports whether a slot has neither settled at a boundary nor followed a control jump.
+///
+/// Returns 1 when both result flags are clear, otherwise 0. Reads the flags
+/// left by the most recent playback operation; it does not tick the slot or
+/// test its rate. `ANIMATION_SLOT_REACHED_END` alone does not change the result.
+/// `task->work` must be a live `GameActor`, and `slotIndex` must select a slot
+/// in its active prefix. No bounds are checked. The last two arguments are
+/// ignored and retained for the calling convention. No pointer is retained.
+s32 playerActorIsSlotAdvancingLinearly(Task* task, s32 slotIndex, s32 unusedFirstArg, s32 unusedSecondArg);
 
 void func_80106238(Task* arg0, s32 arg1, s32 arg2);
 
-void Gp_AnimResetChildSlots(Task* arg0, s32 arg1);
+/// Restarts a player or companion actor's child slots on a selected animation set.
+///
+/// Visits slots 1 through `animationSlotCount - 1`, leaving slot 0 intact;
+/// a count at most 1 performs no work. Each reset selects the same-numbered
+/// track and coordinate in the context's set table, clears boundary state and
+/// flags, then replaces normal rate with the actor's signed `animationRate`
+/// in sixteenths of a frame. Does not write a pose or capture a transition.
+///
+/// `task->work` must be a live `GameActor` with initialized animation context.
+/// The active prefix must fit its slots and the model's coordinates and tracks.
+/// `setIndex` must fit u16 and select a loaded set other than
+/// `ANIMATION_SET_BUFFERED_POSE`. The borrowed table, clips, model and actor
+/// storage must remain live during playback. Bounds and record requirements
+/// follow `animationResetSlot`; this wrapper performs no validation.
+void playerActorResetChildSlots(Task* task, s32 setIndex);
 
 void func_80106550(Task* arg0);
 
-void Gp_AnimTickChildSlots(Task* arg0);
+/// Advances the player or companion actor's child animation slots and applies their poses.
+///
+/// Visits slots 1 through `animationSlotCount - 1`, leaving slot 0 intact;
+/// a count at most 1 performs no work. Each slot consumes its own signed rate
+/// in sixteenths of a frame, with the death-playback adjustment. `task->work`
+/// must hold a live, initialized `GameActor`; the active prefix must fit its
+/// slot and pose arrays. Coordinate, track, record, encoding, scratch and GTE
+/// requirements follow `animationTickSlotPose`. Borrowed resources must remain
+/// live during playback; no bounds are checked and no pointer is retained here.
+void playerActorTickChildSlots(Task* task);
 
 s32 func_80106264(s32 arg0);
 
-void func_801066DC(Task* arg0, s16 arg1);
+/// Enters ordinary player locomotion using the current movement and turn inputs.
+///
+/// Selects idle, in-place turning, backward walking, forward walking or running.
+/// The saved walk/run preference, run button, run restriction and presence of
+/// the equipped weapon select the forward clip. Resets the normal-mode state,
+/// animation controller, phase and idle timer and sets movement/turn-rate indices;
+/// movement and turn signs are retained. `resetAnimation != 0` restarts child
+/// slots directly; zero captures their previous poses and blends for four whole
+/// normal-rate frames. The live actor and native animation resources must meet
+/// `playerActorResetChildSlots` / `playerActorPlayChildSlotsWithBlend` contracts.
+void playerActorEnterLocomotion(Task* task, s16 resetAnimation);
 
 s16 func_80103E7C(s16 arg0, s16 arg1);
 
@@ -140,11 +181,35 @@ void Gp_TurnPlayer(Task* arg0);
 
 s32 func_801060E0(Task* arg0);
 
-void func_80103C74(GfxCoord* arg0, VECTOR3* arg1, VECTOR3* arg2);
+/// Writes a point's displacement from a coordinate's local translation.
+///
+/// `point` must be in the node's parent frame, in signed game-coordinate units.
+/// Subtracts `coord->coord.t` without rotating or composing the node. Reads and
+/// writes exactly three 32-bit components; a fourth SDK vector word is neither
+/// required nor accessed. Inputs are borrowed for this call, and `delta` may be
+/// the same object as `point`. Component differences must fit s32.
+void playerActorGetPointDelta(const GfxCoord* coord, const VECTOR3* point, VECTOR3* delta);
 
-s32 func_80103D8C(s32 arg0, s32 arg1);
+/// Returns the planar length of two signed coordinate components using `SquareRoot0`.
+///
+/// Takes absolute values, squares X and Z and square-roots their sum. Inputs and
+/// result use the same game-coordinate units. The absolute values, squares and
+/// sum must fit s32; no overflow check or scale conversion is performed.
+s32 playerActorPlanarLength(s32 x, s32 z);
 
-void Gp_AnimPlayChildSlots(Task* arg0, s32 arg1, s32 arg2);
+/// Captures the prior child-slot poses and selects an animation set with zero blend time.
+///
+/// Visits slots 1 through `animationSlotCount - 1`, leaving slot 0 intact;
+/// a count at most 1 performs no work. Capture ticks at each slot's previous
+/// rate before the actor's `animationRate` is applied to the selected clip.
+/// Uses the actor's native `animationSets` table and retains the capture tick's
+/// flags and boundary latch. `unusedArgument` is ignored for ABI compatibility.
+///
+/// The low 16 bits of `setIndex` must select a loaded set other than
+/// `ANIMATION_SET_BUFFERED_POSE`. Actor, model, slot, pose-buffer, borrowed-table,
+/// record, encoding, scratch and GTE requirements are those of
+/// `playerActorPlayChildSlotsWithBlend`, with `blendFrames` fixed at zero.
+void playerActorPlayChildSlots(Task* task, s32 setIndex, s32 unusedArgument);
 
 void Gp_TickActorAnimState(Task* arg0);
 
@@ -167,9 +232,15 @@ void func_80105B74(VECTOR3* arg0);
 
 void Gp_PlayerWorkTask(Task* arg0);
 
-s32 func_80103DD4(VECTOR3* arg0, VECTOR3* arg1);
-
-void Gp_PlaceCoordOffset(GfxCoord* arg0, GfxCoord* arg1, SVECTOR* arg2);
+/// Returns the XZ distance between two points using `SquareRoot0`, ignoring Y.
+///
+/// Borrows two readable, word-aligned three-component points in one coordinate
+/// frame, in signed game-coordinate units. Stages all XYZ differences, then
+/// square-roots the sum of the squared absolute X/Z differences. Differences,
+/// absolute values, squares and their sum must fit s32. Reads exactly 12 bytes
+/// from each point; no fourth vector word is required. Needs a live scratch
+/// stack with 16 free bytes, released before return; no pointer is retained.
+s32 playerActorPlanarDistance(const VECTOR3* firstPoint, const VECTOR3* secondPoint);
 
 s32 func_80105ED4(Task* arg0);
 

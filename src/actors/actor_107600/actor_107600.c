@@ -849,7 +849,7 @@ static void func_actor_107600_80131F10(Task* arg0)
     block->vx                      = target->coord.t[0] - coord->coord.t[0];
     SCRATCH_HEAD_AT(scratch, void) = block;
     block->vz                      = target->coord.t[2] - coord->coord.t[2];
-    if ((!(arg0->spawnArg1.value & 0x40000000) && func_80103D8C(block->vx, block->vz) < 0x401) || (u8)arg0->spawnArg1.value == 0xFF) {
+    if ((!(arg0->spawnArg1.value & 0x40000000) && playerActorPlanarLength(block->vx, block->vz) < 0x401) || (u8)arg0->spawnArg1.value == 0xFF) {
     fail:
         if ((arg0->spawnArg1.value & 0xF000) != 0x2000) {
             ((MistShootingGalleryWork*)arg0->parent->work)->liveTargets--;
@@ -2333,7 +2333,7 @@ static void func_actor_107600_80134D9C(Task* arg0)
     block->vx = target->coord.t[0] - self->coord.t[0];
     block->vy = target->coord.t[1] - self->coord.t[1];
     block->vz = target->coord.t[2] - self->coord.t[2];
-    dist      = func_80103D8C(block->vx, block->vz);
+    dist      = playerActorPlanarLength(block->vx, block->vz);
     SCRATCH_POP_BYTES_AT(scratch, 0x10);
     work->playerDistance = dist;
 }

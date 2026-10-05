@@ -7692,7 +7692,7 @@ task  = Task_Spawn(7, table[arg2 + type] + arg3 * 2 + arg1, 0, 0);
 ## Split two `index->actor` reloads so they take `$a3` then `$v0`
 
 Reusing one local for both `actor = index->actor` reloads (across
-`animationInitContext` / `Gp_AnimResetChildSlots`) merges the live range. GCC then
+`animationInitContext` / `playerActorResetChildSlots`) merges the live range. GCC then
 parks it in `$t0` because the same name is still live after the first
 call. Overwriting the original saved `actor` puts the second reload in
 `$s0` instead.
@@ -7713,7 +7713,7 @@ sh    zero,0x954(v0)
 
 Use three distinct locals: keep the original actor in a saved register
 for the later `weaponEffectTask` kill, one local that dies at `animationInitContext`,
-and a third that exists only for the post-`Gp_AnimResetChildSlots` stores:
+and a third that exists only for the post-`playerActorResetChildSlots` stores:
 
 ```c
 actor = arg0->actor;
@@ -7722,7 +7722,7 @@ inner            = arg0->actor;
 inner->animationBankIndex = table[idx] + addend;
 inner->animationSets = ptrs[inner->animationBankIndex]->table.sets;
 animationInitContext(..., inner->poseBuffer, ...);
-Gp_AnimResetChildSlots(arg0, 1);
+playerActorResetChildSlots(arg0, 1);
 next            = arg0->actor;
 next->mode = 0;
 /* ... */
@@ -7781,7 +7781,7 @@ register GfxCoord* parts asm("v0");
 extra = task->extra.tmd;
 ...
 parts = extra->coords;
-Gp_PlaceCoordOffset(parts + 4, coord, offset);
+actorRenderPlaceCoordOffset(parts + 4, coord, offset);
 ```
 
 `func_8010BE5C` is the example. A separate `bone` stuck at 99.9% with
@@ -11334,7 +11334,7 @@ scores 76%, while hoisting the pointer matches at 100%:
     handlers = D_actor_800200_80161EB8;
     actor = arg0->actor;          /* must precede the two ticks */
     Gp_TickActorAnimState(arg0);
-    Gp_AnimTickChildSlots(arg0);
+    playerActorTickChildSlots(arg0);
     handlers.funcs[(u16)actor->hitRegion](arg0);
 ```
 
@@ -11712,7 +11712,7 @@ gte_rtir();     /* mvmva sf=1, mx=0 (rot), v=3 (IR), cv=3 (none), lm=0 → 0x4A4
 `gfxDotProduct` is the template: `gte_ldsvrtrow0` + `gte_ldv0` + custom
 command + `gte_stlvnl0`. Standard `gte_rtv0` is `mvmva 1,0,0,3,0`
 (`0x4A486012`); the sf=0 variant drops the 12-bit shift (`0x4A406012`).
-`gte_rtv0tr` (add TR) is `mvmva 1,0,0,0,0` (`0x4A480012`). `Gp_PlaceCoordOffset`
+`gte_rtv0tr` (add TR) is `mvmva 1,0,0,0,0` (`0x4A480012`). `actorRenderPlaceCoordOffset`
 is the template: `gte_SetRotMatrix` + `gte_SetTransMatrix` + `gte_ldv0` +
 that command + `gte_stlvnl`.
 
@@ -24207,7 +24207,7 @@ jal   SquareRoot0
 `bgez` delay with `sw ra` (~70–88%, even with an empty `asm volatile("")`
 after each abs). The PSY-Q `ABS()` macro (ternary `(x) >= 0 ? (x) : -(x)`)
 lets the scheduler sink `addiu`/`sw ra` after the second `mult` and leaves
-`nop` in both abs delay slots. `func_80103D8C` is the pure example:
+`nop` in both abs delay slots. `playerActorPlanarLength` is the pure example:
 
 ```c
 arg0 = ABS(arg0);
@@ -24839,7 +24839,7 @@ still assigns `saved` to `$s1` and `actor` to `$s2`.
 
 `GameActor` helpers walk the actor's animation slots (`GameActor.animationSlots`),
 each `sizeof(AnimationSlot)` past the one before, and then store through the
-slot's own field (`func_80105894` / `func_801058BC`).
+slot's own field (`playerActorIsSlotAdvancingLinearly` / `func_801058BC`).
 A 1-based walk that the target implements as
 
 ```
@@ -24901,7 +24901,7 @@ Casting the *struct* pointer instead and reading `animationSlots[0]` through it
 lands on the same byte, but states a view of the struct that does not exist;
 the array's address is the base to use.
 
-`func_80105894` is the example.
+`playerActorIsSlotAdvancingLinearly` is the example.
 
 ## Variable-shift bit test: `p += i/32` then `i %= 32` then `val = *p & (1 << i)`
 
@@ -25683,7 +25683,7 @@ if (i < obj->count) {
 ```
 
 GCC strength-reduces `i * sizeof(Slot) + 0x438` to a single offset IV
-starting at `0x460`. `func_80105B0C` is the example; sibling `Gp_AnimTickChildSlots`
+starting at `0x460`. `func_80105B0C` is the example; sibling `playerActorTickChildSlots`
 is the same loop with only the index passed through.
 
 ## Unsigned range-fail early return keeps `sltiu; beqz` fall-through
@@ -27638,12 +27638,12 @@ That computes the pointer first. Write the first field through the
 unadjusted head, then bind `vec`:
 
 ```c
-((VECTOR3*)(head - 0x10))->vx = arg0->vx - arg1->vx;
-vec                           = (VECTOR3*)(head - 0x10);
-vec->vy                       = arg0->vy - arg1->vy;
+head[-1].delta.vx = firstPoint->vx - secondPoint->vx;
+block            = head - 1;
+block->delta.vy  = firstPoint->vy - secondPoint->vy;
 ```
 
-`func_80103DD4` is the example. `vec = (VECTOR3*)(head - 0x10)` first
+`playerActorPlanarDistance` is the example. `block = head - 1` first
 stuck with `addiu` before the `vx` store.
 
 ## Assign `x = x * x` before `SquareRoot0(x + y)` so `mflo` stays in `$a0`
@@ -27661,11 +27661,11 @@ addu  a0, a0, v1
 ```
 
 ```c
-vx = vx * vx;
-vx = SquareRoot0(vx + absz);
+xSquared = xSquared * xSquared;
+distance = SquareRoot0(xSquared + zSquared);
 ```
 
-`func_80103DD4` is the example. The inlined `x * x` stuck at 99.762%
+`playerActorPlanarDistance` is the example. The inlined `x * x` stuck at 99.762%
 with only that `mflo` dest swapped.
 
 ## Pin an early `ABS` temp to `$v1` so it does not steal `$a0`
@@ -27678,19 +27678,19 @@ Keep the original `vz` in `$v0` for the store (`bgez v0; move v1, v0`)
 and pin the ABS dest:
 
 ```c
-register s32 absz asm("v1");
-register s32 vx asm("a0");
+register s32 zSquared asm("v1");
+register s32 xSquared asm("a0");
 
-absz = ABS(vz); /* move v1, v0 — vz stays in v0 for the store */
-vec->vz = vz;
-absz = absz * absz;
-vx = ((VECTOR3*)(head - 0x10))->vx; /* lw a0 */
-vx = ABS(vx);
-vx = vx * vx;
-vx = SquareRoot0(vx + absz);
+zSquared = ABS(zDifference); /* move v1, v0 — zDifference stays in v0 for the store */
+block->delta.vz = zDifference;
+zSquared = zSquared * zSquared;
+xSquared = head[-1].delta.vx; /* lw a0 */
+xSquared = ABS(xSquared);
+xSquared = xSquared * xSquared;
+distance = SquareRoot0(xSquared + zSquared);
 ```
 
-`func_80103DD4` is the example. Unconstrained `absz` stuck at 98.2%
+`playerActorPlanarDistance` is the example. Unconstrained `absz` stuck at 98.2%
 with `ABS(vz)` in `$a0` and the `vx` reload in `$v0`.
 
 ## Index a global array field by name so dest is `base+off` then scale
@@ -28267,7 +28267,7 @@ if (x != 0) {
 }
 ```
 
-`func_801066DC` is the example. The `== 0` / `else if == 1` form (used
+`playerActorEnterLocomotion` is the example. The `== 0` / `else if == 1` form (used
 by the similar `func_80108620`) stuck at 81% with the extra jump
 missing and `li a1,1` in the `beqz` delay slot.
 
@@ -28299,7 +28299,7 @@ if ((inner->padHeld & 0x40) && (temp != -1)) {
 }
 ```
 
-`func_801066DC` is the example. Two literal `= 1` stores stuck at 81%
+`playerActorEnterLocomotion` is the example. Two literal `= 1` stores stuck at 81%
 with `$v0` for both the constant and the `gMcSaveData` address.
 
 ## Pin `&body->field` in `$v1` so `$a0` can hold `ONE` then a global
@@ -30265,7 +30265,7 @@ vec->vz  = arg1->vz - arg0->vz;
 VectorNormal(vec, vec);
 ```
 
-`func_800E0308` is the example. This is the `func_80103DD4` store-first
+`func_800E0308` is the example. This is the `playerActorPlanarDistance` store-first
 alloc plus the `func_80103E7C` `+r` copy, needed when the scratch block
 is also `$a0` of a later call.
 
@@ -32633,7 +32633,7 @@ if (actor->targetNode != NULL) {
 ```
 
 Without the asm, GCC copies `tmp` into `$a1` (the upcoming
-`Gp_PlaceCoordOffset` dest) and only then into `$s1`. Independent
+`actorRenderPlaceCoordOffset` dest) and only then into `$s1`. Independent
 `block->originOffset = 0` stores written *before* the field walk emit first and
 leave `addiu a2, head, -0x14` in the jal delay. Name the first call
 argument so those loads exist, then write the zeros after that load:
@@ -32643,7 +32643,7 @@ src = actor->equipmentTasks[1]->extra.tmd->coords;
 block->originOffset.vx = 0;
 block->originOffset.vy = 0;
 block->originOffset.vz = 0;
-Gp_PlaceCoordOffset(src, (GfxCoord*)block, (SVECTOR*)(head - 0x14));
+actorRenderPlaceCoordOffset(src, (GfxCoord*)block, (SVECTOR*)(head - 0x14));
 ```
 
 `-fschedule-insns` lifts the three `sh zero` into the `equipmentTasks[1]` /
@@ -33041,7 +33041,7 @@ gRandomLcgState    = gRandomLcgState * 5 + 0x71357911;
 mem->field_26 = ((u32)gRandomLcgState >> 16) & 0xFFF;
 ```
 
-`Gp_EffSprTaskE2` is the example.
+`effectSpriteTaskE2` is the example.
 
 ## Literal `1` hoists into `$s1` among `%hi` `lui`s; a named `one` does not
 
@@ -37128,7 +37128,7 @@ Grepping the callee confirmed it: `_effectDrawSparkBurstBillboard` does `srl $a2
 it consumes the *upper* half of the argument — it cannot be `s16`.
 
 Widening the prototype to `s32` costs an explicit `(s16)` cast at the already
-matched `Gp_EffSprTaskE2` call site (`(s16)(mem->scale | mem->step)`),
+matched `effectSpriteTaskE2` call site (`(s16)(mem->scale | mem->step)`),
 which reproduces the `sll`/`sra` pair that function's target does have. When a
 callee is `/* Handwritten function */`, read its `.s` before trusting an
 inferred prototype.
@@ -47230,7 +47230,7 @@ coords          = &raw[3];
 register GfxCoord* parts asm("v0");
 parts = extra->coords;              // keep v0: an unbound second variable reloads from a0
 ...
-Gp_PlaceCoordOffset(parts + 4, coord, offset);
+actorRenderPlaceCoordOffset(parts + 4, coord, offset);
 ```
 
 The retained temporary and register choice are load-bearing. When a type change
@@ -76834,7 +76834,7 @@ Example: `func_actor_107600_80134EF4`.
 ## A live call result pushes the scratch-head reload from `$v0` into `$v1` - and that is what costs the `nop`
 
 **Symptom.** `func_actor_107600_80134D9C` carves a `VECTOR` off `SCRATCH_STACK_CURSOR_SLOT`,
-calls `func_80103D8C` for an XZ distance, then releases the block with
+calls `playerActorPlanarLength` for an XZ distance, then releases the block with
 `*scratch = (u8*)*scratch + 0x10;`. It scored 93.57% with `regs=3 insert=2
 delete=1`: the reload came out in `$v0`, which forced it *after* the store of
 the call's result, so the load-delay slot had nothing to fill it and a `nop`
@@ -76852,12 +76852,12 @@ assembly is the delay-slot filler, not the source order.
 **Fix.** Hold the call's result in a local and store it *after* the release:
 
 ```c
-dist = func_80103D8C(block->vx, block->vz);
+dist = playerActorPlanarLength(block->vx, block->vz);
 *scratch = (u8*)*scratch + 0x10;
 work->playerDistance = dist;
 ```
 
-Written the other way round - `work->playerDistance = func_80103D8C(...);` before the
+Written the other way round - `work->playerDistance = playerActorPlanarLength(...);` before the
 release - the reload is born after the store, takes `$v0`, and the `nop` comes
 back however the rest of the C is arranged.
 
@@ -106201,14 +106201,14 @@ switch's end - it lies *between* case 1's body and case 1's two inner sub-blocks
 ```c
     case 0:
         ...
-        if (func_80103DD4(...) < 0x401) {
+        if (playerActorPlanarDistance(...) < 0x401) {
             goto arrived;
         }
         func_actor_800200_80165534(arg0);
         return;
     case 1:
         ...
-        if (func_80103DD4(...) < 0x201) {
+        if (playerActorPlanarDistance(...) < 0x201) {
             if (companion->waypointIndex == 4) {
             arrived:
                 companion->routeComplete = 1;
@@ -106547,13 +106547,13 @@ Inputs: `base_6.i` (96.414%, one shared `val`), `base_7.i` (100%)
 then `bge`/`expand_inc`/`sra`. One statement still misses the target:
 
 ```c
-dist = func_80103D8C(...) / 1024;     /* `bgez v0`, no copy: op0 is the call's result pseudo */
+dist = playerActorPlanarLength(...) / 1024;     /* `bgez v0`, no copy: op0 is the call's result pseudo */
 ```
 
 versus the two-statement form that matches:
 
 ```c
-dist  = func_80103D8C(((VECTOR3*)(head - 0x10))->vx, vec->vz);
+dist  = playerActorPlanarLength(((VECTOR3*)(head - 0x10))->vx, vec->vz);
 dist /= 1024;
 ```
 
@@ -148243,7 +148243,7 @@ the `clutY` local was not needed.
 ### A temporary feeding `aN = temp + K` sits in `$aN` only once the parameter that arrived there is dead: read the parameter last (func_8010BE5C, 2026-10-05)
 
 **Target.** `lw v0,0x2c(a0)` / `lw s4,0x1c(a0)` ... `lw v0,8(v0)` ...
-`jal Gp_PlaceCoordOffset` / `addiu a0,v0,0x140`: the coordinate array is loaded
+`jal actorRenderPlaceCoordOffset` / `addiu a0,v0,0x140`: the coordinate array is loaded
 into `$v0` and the argument is formed from it in the delay slot. The source
 read `extra = task->extra.tmd; actor = task->work;` and later
 `parts = extra->coords;`, which gave `lw a0,8(v0)` / `addiu a0,a0,0x140`, and

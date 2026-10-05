@@ -583,7 +583,7 @@ void Gp_MenuRootTask(Task* arg0)
                 gTaskDeferModelBufferAllocation = true;
                 Gp_SpawnWeaponEff();
                 if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
-                    func_8010870C(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 5);
+                    playerActorEnterAim(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 5);
                 }
                 if (arg0->spawnArg1.value == 0x44) {
                     Gp_PlayerWeaponId(&D_8010E7F4.source.index);

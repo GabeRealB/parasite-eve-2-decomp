@@ -1592,7 +1592,7 @@ static void func_actor_800300_80161E80(Task* arg0)
     RotMatrix(&actor->rotation, &coord->coord);
     func_8010BFCC(arg0);
     actor->animationRate = ANIMATION_RATE_ONE;
-    Gp_AnimResetChildSlots(arg0, actor->actionArgument);
+    playerActorResetChildSlots(arg0, actor->actionArgument);
     recs                                       = actor->collisionContacts;
     obj                                        = &actor->collisionBodies[GAME_ACTOR_BODY_ROOT];
     actor->previousPosition.vx                 = coord->coord.t[0];
@@ -1926,7 +1926,7 @@ static void func_actor_800300_80162658(Task* arg0)
         }
     }
     Gp_TickActorAnimState(arg0);
-    Gp_AnimTickChildSlots(arg0);
+    playerActorTickChildSlots(arg0);
     Gp_TurnPlayer(arg0);
     Gp_StepPlayerMove(arg0);
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionHp <= 0) {
@@ -2180,7 +2180,7 @@ static void func_actor_800300_80162F24(Task* arg0)
             actor->statePhase  = flag;
             coord->coord.t[1] += 0xC0;
         case 1:
-            Gp_AnimTickChildSlots(arg0);
+            playerActorTickChildSlots(arg0);
             Gp_TurnPlayer(arg0);
             Gp_StepPlayerMove(arg0);
             break;

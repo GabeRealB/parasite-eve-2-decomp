@@ -741,7 +741,7 @@ void func_m4a1_javelin_8011F4E8(Task* arg0)
 /// before parking in state 7. States 5 and 6 run the flight timer and feed the
 /// tracked point to `func_m4a1_javelin_8011F4A4` (or clear it when nothing is
 /// in range) so the guide line is drawn. State 7 runs the recoil timer down and
-/// hands back to `func_80106550` once `func_80105894` is done or the timer has
+/// hands back to `func_80106550` once `playerActorIsSlotAdvancingLinearly` is done or the timer has
 /// run out.
 ///
 /// `gPlayerStatus.weaponSlotItem` is the low byte `func_801061F0` packs into
@@ -885,7 +885,7 @@ void func_m4a1_javelin_8011F5D4(Task* arg0)
             if (actor->attackCancelTicks != 0) {
                 actor->attackCancelTicks--;
             }
-            if (func_80105894(arg0, D_80112E04[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId][1], 0, 0) == 0 ||
+            if (playerActorIsSlotAdvancingLinearly(arg0, D_80112E04[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId][1], 0, 0) == 0 ||
                 ((actor->padHeld & actor->actionPadMask) != 0 && actor->attackCancelTicks == 0)) {
                 actor->attackControl.cooldownTicks = 0xC;
                 func_80106550(arg0);

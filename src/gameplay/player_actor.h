@@ -58,8 +58,6 @@ void Gp_EffCtlTaskE3(Task* arg0);
 
 void func_800FF710(Task* arg0);
 
-void Gp_EffSprTaskE2(Task* arg0);
-
 void func_801088D4(Task* arg0, s32 arg1, s32 arg2);
 
 s32 Gp_SetActorDest(Task* arg0, s32 arg1, ActorTransform* transform, GameActorMoveAnim* moveAnim);
@@ -73,7 +71,14 @@ void func_801061F0(void);
 /// Installs a borrowed set table and enters scripted player animation playback.
 s32 func_80104B54(Task* task, s32 msgId, AnimationPlayRequest* request, s32 unusedSecondArg);
 
-void func_8010870C(Task* arg0, s32 arg1);
+/// Enters the player's normal-mode aim-entry state and starts its child-slot clip.
+///
+/// Stops movement and turning, resets phase and attack cooldown and enables the
+/// controller that blends into the holding clip once all child slots settle.
+/// Zero `blendFrames` restarts clip 7 directly; a nonzero value blends from the
+/// captured poses for that many whole normal-rate frames (1..2047). The live
+/// actor and native clip table must meet the child-slot playback contracts.
+void playerActorEnterAim(Task* task, s32 blendFrames);
 
 void func_80108874(Task* arg0);
 

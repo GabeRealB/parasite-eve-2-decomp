@@ -163,6 +163,16 @@ typedef struct {
 } _PlayerActorShortestTurnScratch;
 STATIC_ASSERT_SIZEOF(_PlayerActorShortestTurnScratch, 0xC);
 
+/// Scratch-stack reservation for the displacement used by a planar-distance query.
+///
+/// The complete 16-byte block is borrowed until the query returns. Only XYZ
+/// are accessed; the final four bytes have no established role.
+typedef struct {
+    VECTOR3 delta;      // First point minus second point, in their common coordinate frame
+    byte    field_C[4]; // Never accessed; role unproven
+} _PlayerActorPlanarDistanceScratch;
+STATIC_ASSERT_SIZEOF(_PlayerActorPlanarDistanceScratch, 0x10);
+
 /// Scratch-stack block for turning an actor's movement mode into its velocity for the frame.
 ///
 /// A moving actor travels along its model's forward axis at one unit vector
@@ -1468,20 +1478,14 @@ static void Gp_DrawEffSprite81(Task* arg0)
     SCRATCH_STACK_RELEASE_BLOCK(EffectCentreScratch);
 }
 
-/// Draws an additive 56-texel ground decal in a composed coordinate's local XZ plane.
+/// Projects four staged decal corners through `GsWSMATRIX` into screen pixels.
 ///
-/// halfSize is the half-side in coordinate units. Corners are narrowed to s16
-/// after rotation and translation; sign products must fit s32. brightness supplies the low byte of each
-/// RGB channel (128 is neutral); palette selects CLUT X = 16 + 272 * palette
-/// on row 266. The coordinate is borrowed; no pointer survives this call.
-/// Only the final RTPT FLAG rejects the quad; ordering uses corner 3's SZ3 / 4
-/// plus 32. The caller supplies GTE projection settings and a live GPU arena.
-/// Projects the decal's four prepared world corners to screen pixels.
-///
-/// Borrows a live, word-aligned quadScratch with all XYZ components initialized
-/// in GPU strip order. The caller loads GsWSMATRIX translation and the GTE
-/// projection settings. Stores corner 0 before RTPT replaces the screen FIFO;
-/// only RTPT flags survive. Leaves corner 3 depth in SZ3 and depth untouched.
+/// `quadScratch` must be writable and word-aligned, with four initialized
+/// SVECTOR positions in GPU strip order and the input frame of `GsWSMATRIX`.
+/// The caller loads that matrix's translation and the GTE projection settings.
+/// Stores corner 0 before RTPT replaces the screen FIFO, then corners 1..3 and
+/// the RTPT FLAG word. Corner 3's depth remains in SZ3; the scratch depth is
+/// untouched. Borrows the block for this call and leaves GTE state changed.
 static inline void _effectProjectGroundDecalCorners(EffectQuadScratch* quadScratch)
 {
     gte_SetRotMatrix(&GsWSMATRIX);
@@ -1494,6 +1498,14 @@ static inline void _effectProjectGroundDecalCorners(EffectQuadScratch* quadScrat
     gte_stflg(&quadScratch->projectionFlags);
 }
 
+/// Draws an additive 56-texel ground decal in a composed coordinate's local XZ plane.
+///
+/// halfSize is the half-side in coordinate units. Corners are narrowed to s16
+/// after rotation and translation; sign products must fit s32. brightness supplies the low byte of each
+/// RGB channel (128 is neutral); palette selects CLUT X = 16 + 272 * palette
+/// on row 266. The coordinate is borrowed; no pointer survives this call.
+/// Only the final RTPT FLAG rejects the quad; ordering uses corner 3's SZ3 / 4
+/// plus 32. The caller supplies GTE projection settings and a live GPU arena.
 static void _effectDrawGroundDecal(const GfxCoord* coord, s32 halfSize, s16 brightness, u16 palette)
 {
     enum {
@@ -2519,9 +2531,12 @@ void func_800FAA14(Task* arg0)
 
 /// Places and composes the charge particle on its player-relative orbit.
 ///
-/// coord and its parent must be live; work supplies horizontal radius, height
-/// and bob phase. orbitAngle uses 4096 units per turn. The display frame drives
-/// the 96-unit vertical bob. Borrows both inputs and leaves work unchanged.
+/// `coord` and its acyclic parent chain must be writable and live. `work->move.vx`
+/// is the horizontal radius and `work->move.vy` the base height, in parent-space
+/// coordinate units. `orbitAngle` uses 4096 units per turn. The display frame
+/// plus `work->scale` drives a 96-unit vertical bob at 64 angle units per frame.
+/// Replaces the local translation and refreshes the full-chain cache, preserving
+/// local rotation and parent. Borrows both inputs for this call; changes GTE state.
 static inline void _effectPositionChargeParticle(GfxCoord* coord, const EffectWork* work, s16 orbitAngle)
 {
     enum { EFFECT_CHARGE_PARTICLE_BOB_AMPLITUDE = 96 };
@@ -2942,21 +2957,16 @@ void Gp_EffCtlTaskF3(Task* arg0)
                 mem->step | 0x8000, 0);
 }
 
-/// Draws randomized additive Gouraud rays around a composed coordinate's origin.
-///
-/// radius and rayCount narrow to signed 16 bits. Current callers pass positive
-/// radii and 4 or 6..8 rays; rayCount's signed low half must be in 1..4096.
-/// Each sector chooses a random angle, spanning 40 angle units either side,
-/// and joins two black outer vertices to the origin colored by three rgb bytes.
-/// The screen radius is radius * 128 / (SZ3 / 4 + 1) pixels. A negative FLAG
-/// drops the burst; otherwise it advances the global RNG once per ray.
-/// Inputs are borrowed for the call. Queued packets borrow the frame arena.
 /// Fills one Gouraud ray triangle within an angular sector.
 ///
-/// Borrows a projected scratch, writable packet and three readable RGB bytes.
-/// narrowRadius is the coordinate-space radius; angleStep must be positive,
-/// in 4096-unit turn angles. randomState supplies the upper-half random value.
-/// Updates scratch extent and fills the packet; the caller sets additive blend.
+/// Borrows writable `scratch` with a projected centre and positive depth,
+/// a word-aligned packet and three readable RGB bytes. `narrowRadius` is in
+/// coordinate units; screen radius is radius * 128 / depth pixels. `sectorAngle`
+/// and positive `angleStep` use 4096 units per turn; the state's upper half
+/// chooses a ray within that sector, narrowed to s16. Its black outer vertices
+/// lie 40 angle units either side. Products must fit s32; screen stores narrow
+/// to s16. Sets packet kind, length, colours and corners and updates scratch
+/// extent. The caller links the packet and selects blending; no RNG is advanced.
 static inline void _effectFillRadialTriangle(EffectCentreScratch* scratch, POLY_G3* triangle, const u8* rgb, s16 narrowRadius, s32 sectorAngle, u32 randomState, s16 angleStep)
 {
     enum { EFFECT_RADIAL_TRIANGLE_RADIUS_NUMERATOR = 128,
@@ -2976,6 +2986,15 @@ static inline void _effectFillRadialTriangle(EffectCentreScratch* scratch, POLY_
     triangle->y2          = scratch->screenY + ((scratch->screenExtent * rcos(rayAngle + EFFECT_RADIAL_TRIANGLE_HALF_ANGLE)) >> EFFECT_DRAW_FRACTION_BITS);
 }
 
+/// Draws randomized additive Gouraud rays around a composed coordinate's origin.
+///
+/// radius and rayCount narrow to signed 16 bits. Current callers pass positive
+/// radii and 4 or 6..8 rays; rayCount's signed low half must be in 1..4096.
+/// Each sector chooses a random angle, spanning 40 angle units either side,
+/// and joins two black outer vertices to the origin colored by three rgb bytes.
+/// The screen radius is radius * 128 / (SZ3 / 4 + 1) pixels. A negative FLAG
+/// drops the burst; otherwise it advances the global RNG once per ray.
+/// Inputs are borrowed for the call. Queued packets borrow the frame arena.
 static void _effectDrawRadialTriangles(const GfxCoord* coord, s32 radius, s32 rayCount, const u8* rgb)
 {
     EffectCentreScratch* scratch;
@@ -3942,17 +3961,19 @@ void Gp_EffCtlTaskE3(Task* arg0)
     }
 }
 
-/// Fills the additive puff's axis-aligned screen rectangle.
+/// Writes an axis-aligned, perspective-sized billboard's screen corners.
 ///
-/// Borrows projected scratch, writable quad and initialized work. period is
-/// current size; the half-side is size * 31 / depth pixels. Extent narrows to
-/// u16 before the signed screen coordinates narrow; scratch extent is updated.
-static inline void _effectSetAdditivePuffCorners(EffectCentreScratch* scratch, POLY_FT4* quad, const EffectWork* work)
+/// Borrows writable projected scratch and a quad for this call. sizeNumerator
+/// is coordinate-space size times the texture cell's side minus one (31 puff,
+/// 23 fire burst); that product must fit s32. scratch->depth must be positive.
+/// Stores numerator / depth in screenExtent, narrows it to u16 for centre
+/// arithmetic, then screen coordinates narrow to s16. Changes only scratch
+/// extent and quad X/Y, retaining all packet setup and linking fields.
+static inline void _effectSetPerspectiveBillboardCorners(EffectCentreScratch* scratch, POLY_FT4* quad, s32 sizeNumerator)
 {
-    enum { EFFECT_PUFF_CELL_SIZE = 32 };
     s16 screenX;
     s16 screenY;
-    scratch->screenExtent = (work->period * (EFFECT_PUFF_CELL_SIZE - 1)) / scratch->depth;
+    scratch->screenExtent = sizeNumerator / scratch->depth;
     screenX               = scratch->screenX - (u16)scratch->screenExtent;
     quad->x2              = screenX;
     quad->x0              = screenX;
@@ -4070,7 +4091,7 @@ void effectSpriteTask80(Task* task)
             frameAge    = work->age;
             quad->v3    = EFFECT_PUFF_TEXTURE_V + EFFECT_PUFF_CELL_SIZE - 1;
             quad->u3    = ((s16)((s16)frameAge % EFFECT_PUFF_FRAME_COUNT) * EFFECT_PUFF_CELL_SIZE) + EFFECT_PUFF_CELL_SIZE - 1;
-            _effectSetAdditivePuffCorners(scratch, quad, work);
+            _effectSetPerspectiveBillboardCorners(scratch, quad, work->period * (EFFECT_PUFF_CELL_SIZE - 1));
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     quad);
         }
@@ -4088,31 +4109,6 @@ void effectSpriteTask80(Task* task)
         }
     }
     effectKillTask(work, task);
-}
-
-/// Fills the fire burst's axis-aligned screen rectangle.
-///
-/// Borrows projected scratch, writable quad and initialized work. period is
-/// current size; the half-side is size * 23 / depth pixels. Extent narrows to
-/// u16 before the signed screen coordinates narrow; scratch extent is updated.
-static inline void _effectSetFireBurstCorners(EffectCentreScratch* scratch, POLY_FT4* quad, const EffectWork* work)
-{
-    enum { EFFECT_PUFF_CELL_SIZE = 24 };
-    s16 screenX;
-    s16 screenY;
-    scratch->screenExtent = (work->period * (EFFECT_PUFF_CELL_SIZE - 1)) / scratch->depth;
-    screenX               = scratch->screenX - (u16)scratch->screenExtent;
-    quad->x2              = screenX;
-    quad->x0              = screenX;
-    screenX               = scratch->screenX + (u16)scratch->screenExtent;
-    quad->x3              = screenX;
-    quad->x1              = screenX;
-    screenY               = scratch->screenY - (u16)scratch->screenExtent;
-    quad->y1              = screenY;
-    quad->y0              = screenY;
-    screenY               = scratch->screenY + (u16)scratch->screenExtent;
-    quad->y3              = screenY;
-    quad->y2              = screenY;
 }
 
 void effectSpriteTask8D(Task* task)
@@ -4205,7 +4201,7 @@ void effectSpriteTask8D(Task* task)
             frameAge    = work->age;
             quad->v3    = EFFECT_PUFF_TEXTURE_V + EFFECT_PUFF_CELL_SIZE - 1;
             quad->u3    = ((frameAge & (EFFECT_PUFF_FRAME_COUNT - 1)) * EFFECT_PUFF_CELL_SIZE) + EFFECT_PUFF_CELL_SIZE - 1;
-            _effectSetFireBurstCorners(scratch, quad, work);
+            _effectSetPerspectiveBillboardCorners(scratch, quad, work->period * (EFFECT_PUFF_CELL_SIZE - 1));
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     quad);
         }
@@ -4683,60 +4679,78 @@ void effectSpriteTaskE1(Task* task)
 #undef EFFECT_SPARK_FADE_SET_CORNERS
 }
 
-void Gp_EffSprTaskE2(Task* arg0)
+/// Installs the spark burst's identity-oriented, parent-relative spawn placement.
+///
+/// Borrows a writable coordinate and work with a live parent and local offset;
+/// refresh is deferred to the task after this initialization.
+static inline void _effectInitSparkBurstCoord(GfxCoord* coord, const EffectWork* work)
 {
-    EffectWork* mem;
-    GfxCoord*   coord;
-    GfxCoord*   parent;
-    MATRIX*     m;
-    s16         flag;
-    s32         one;
-    s32         temp;
+    GfxCoord* parent;
+    MATRIX*   localMatrix;
+    s32       fixedOne;
 
-    mem   = arg0->spawnArg2.pointer;
-    flag  = gRoomEffectState->effectControl;
-    coord = arg0->extra.coordBody->coord;
-    if (flag < ROOM_EFFECT_CONTROL_HIDDEN) {
-        if (arg0->state == 0) {
-            if (arg0->spawnArg1.value < 0) {
-                parent               = mem->parent;
-                one                  = ONE;
-                *(s32*)&coord->coord = one;
-                coord->parent        = parent;
-                m                    = &coord->coord;
-                MATRIX_PAIR(m, 0, 2) = 0;
-                MATRIX_PAIR(m, 1, 1) = one;
-                MATRIX_PAIR(m, 2, 0) = 0;
-                m->m[2][2]           = one;
-                coord->coord.t[0]    = mem->pos.vx;
-                coord->coord.t[1]    = mem->pos.vy;
-                coord->coord.t[2]    = mem->pos.vz;
-                coord->composeStamp  = GRAPHICS_COORD_DIRTY;
+    parent                           = work->parent;
+    fixedOne                         = ONE;
+    MATRIX_PAIR(&coord->coord, 0, 0) = fixedOne;
+    coord->parent                    = parent;
+    localMatrix                      = &coord->coord;
+    MATRIX_PAIR(localMatrix, 0, 2)   = 0;
+    MATRIX_PAIR(localMatrix, 1, 1)   = fixedOne;
+    MATRIX_PAIR(localMatrix, 2, 0)   = 0;
+    localMatrix->m[2][2]             = fixedOne;
+    coord->coord.t[0]                = work->pos.vx;
+    coord->coord.t[1]                = work->pos.vy;
+    coord->coord.t[2]                = work->pos.vz;
+    coord->composeStamp              = GRAPHICS_COORD_DIRTY;
+}
+
+void effectSpriteTaskE2(Task* task)
+{
+    enum {
+        EFFECT_SPARK_BURST_SIZE_JITTER_MASK = 0xFF,
+        EFFECT_SPARK_BURST_DRAW_AGE_MASK    = 1,
+        EFFECT_SPARK_BURST_FRAME_AGE_SHIFT  = 1,
+        EFFECT_SPARK_BURST_LIFETIME_TICKS   = 12,
+        EFFECT_SPARK_BURST_PALETTE_ZERO     = 0,
+    };
+    EffectWork* work;
+    GfxCoord*   coord;
+    s16         effectControl;
+    s32         baseSize;
+
+    work          = task->spawnArg2.pointer;
+    effectControl = gRoomEffectState->effectControl;
+    coord         = task->extra.coordBody->coord;
+    if (effectControl < ROOM_EFFECT_CONTROL_HIDDEN) {
+        if (task->state == EFFECT_DRAW_TASK_NEW) {
+            if (task->spawnArg1.value < 0) {
+                _effectInitSparkBurstCoord(coord, work);
             }
-            temp            = (u16)arg0->spawnArg1.value & 0xFFF;
-            mem->step       = 0;
+            baseSize        = (u16)task->spawnArg1.value & EFFECT_DRAW_SIZE_MASK;
+            work->step      = EFFECT_SPARK_BURST_PALETTE_ZERO;
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            mem->scale      = temp + ((gRandomLcgState >> 16) & 0xFF);
+            work->scale     = baseSize + ((gRandomLcgState >> 16) & EFFECT_SPARK_BURST_SIZE_JITTER_MASK);
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            mem->angle      = (gRandomLcgState >> 16) & 0xFFF;
-            arg0->state++;
+            work->angle     = (gRandomLcgState >> 16) & EFFECT_DRAW_ANGLE_MASK;
+            task->state++;
         }
         actorRenderComposeCoord(coord);
-        if (!(mem->age & 1)) {
-            _effectDrawSparkBurstBillboard(coord, (u16)(mem->age >> 1),
-                                           (s16)(mem->scale | mem->step), mem->angle);
+        // Blink on alternate running ages.
+        if (!(work->age & EFFECT_SPARK_BURST_DRAW_AGE_MASK)) {
+            _effectDrawSparkBurstBillboard(coord, (u16)(work->age >> EFFECT_SPARK_BURST_FRAME_AGE_SHIFT),
+                                           (s16)(work->scale | work->step), work->angle);
         }
         if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
             return;
         }
-        mem->age++;
-        if (mem->age < 0xC) {
+        work->age++;
+        if (work->age < EFFECT_SPARK_BURST_LIFETIME_TICKS) {
             return;
         }
-    } else if (flag < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
+    } else if (effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
         return;
     }
-    effectKillTask(mem, arg0);
+    effectKillTask(work, task);
 }
 
 /// Draws one raw additive, randomly oriented spark-burst animation cell.
@@ -5249,7 +5263,7 @@ void Gp_TickActorAnimState(Task* arg0)
             break;
         case 5:
             if (rec != NULL) {
-                if (func_80105894(arg0, 1, 0, 0) == 0) {
+                if (playerActorIsSlotAdvancingLinearly(arg0, 1, 0, 0) == 0) {
                     Gp_ResetActorAnimState(arg0, 3);
                 }
             }
@@ -5257,15 +5271,15 @@ void Gp_TickActorAnimState(Task* arg0)
         case 4:
         case 6:
             if (rec != NULL) {
-                if (func_80105894(arg0, 1, 0, 0) == 0) {
-                    func_801066DC(arg0, 0);
+                if (playerActorIsSlotAdvancingLinearly(arg0, 1, 0, 0) == 0) {
+                    playerActorEnterLocomotion(arg0, 0);
                 }
             }
             break;
         case 7:
         case 9:
             if (rec != NULL) {
-                if (func_80105894(arg0, 1, 0, 0) == 0) {
+                if (playerActorIsSlotAdvancingLinearly(arg0, 1, 0, 0) == 0) {
                     actor->statePhase++;
                 }
             }
@@ -5275,13 +5289,13 @@ void Gp_TickActorAnimState(Task* arg0)
                 flags = actor->animationSlots[1].status.fields.flags;
                 if ((flags & ANIMATION_SLOT_REACHED_BOUNDARY) || (flags & ANIMATION_SLOT_FOLLOWED_JUMP)) {
                     actor->statePhase++;
-                    func_801066DC(arg0, 0);
+                    playerActorEnterLocomotion(arg0, 0);
                 }
             }
             break;
         case 10:
             if (rec != NULL) {
-                if (func_80105894(arg0, 1, 0, 0) == 0) {
+                if (playerActorIsSlotAdvancingLinearly(arg0, 1, 0, 0) == 0) {
                     actor->statePhase = 0x3E8;
                 }
             }
@@ -5467,7 +5481,7 @@ static inline void _gpAimYawAt(GameActor* actor, _PlayerActorAimYawScratch* bloc
         block->originOffset.vx = offset->vx;
         block->originOffset.vy = offset->vy;
         block->originOffset.vz = offset->vz;
-        Gp_PlaceCoordOffset(src, &block->originCoord, &block->originOffset);
+        actorRenderPlaceCoordOffset(src, &block->originCoord, &block->originOffset);
         lock = &block->targetDelta;
         Gp_GetLockPos(actor->targetNode, lock);
         lock->vx -= block->originCoord.coord.t[0];
@@ -5514,7 +5528,7 @@ static inline void _gpAimPitchPlace(_PlayerActorAimPitchScratch* block, GfxCoord
     block->originOffset.vx = offset->vx;
     block->originOffset.vy = offset->vy;
     block->originOffset.vz = offset->vz;
-    Gp_PlaceCoordOffset(src, &block->originCoord, &block->originOffset);
+    actorRenderPlaceCoordOffset(src, &block->originCoord, &block->originOffset);
 }
 
 /// Stores the lock target's position relative to `block->originCoord` in
@@ -5555,7 +5569,7 @@ void Gp_AimPitchToLock(Task* arg0)
         block->originOffset.vx = 0;
         block->originOffset.vy = -0x400;
         block->originOffset.vz = 0;
-        Gp_PlaceCoordOffset(&src[2], &block->originCoord, &block->originOffset);
+        actorRenderPlaceCoordOffset(&src[2], &block->originCoord, &block->originOffset);
         block->groundDistance   = _gpAimPitchLockDelta(actor, block);
         block->targetDelta.vy >>= 1;
         block->pitch            = ratan2(-block->targetDelta.vy, block->groundDistance) / 7 * 4;
@@ -5600,7 +5614,7 @@ static void Gp_AimPitchToLockAlt(Task* arg0)
         block->originOffset.vx = 0;
         block->originOffset.vy = -0x400;
         block->originOffset.vz = 0;
-        Gp_PlaceCoordOffset(&src[2], &block->originCoord, &block->originOffset);
+        actorRenderPlaceCoordOffset(&src[2], &block->originCoord, &block->originOffset);
         block->groundDistance   = _gpAimPitchLockDelta(actor, block);
         block->targetDelta.vy >>= 1;
         block->pitch            = ratan2(-block->targetDelta.vy, block->groundDistance) / 7 * 4;
@@ -5672,7 +5686,7 @@ static void Gp_AimPitchDirect(Task* arg0)
         block->originOffset.vx = 0;
         block->originOffset.vy = 0;
         block->originOffset.vz = 0;
-        Gp_PlaceCoordOffset(src, &block->originCoord, &block->originOffset);
+        actorRenderPlaceCoordOffset(src, &block->originCoord, &block->originOffset);
         block->groundDistance = _gpAimPitchLockDelta(actor, block);
         block->pitch          = ratan2(-block->targetDelta.vy, block->groundDistance);
         block->pitch         -= actor->directAimPitch;
@@ -5901,7 +5915,7 @@ join_50:
     inner->animationSets          = Gp_PlayerAnimBlkTbl[inner->animationBankIndex]->table.sets;
     animationInitContext(&inner->animationContext, inner->animationSets, anim, inner->poseBuffer,
                          inner->animationSlots);
-    func_801066DC(work, 1);
+    playerActorEnterLocomotion(work, 1);
     actor->pendingCollisionUpdates                      = GAME_ACTOR_COLLISION_REQUEST_MASK;
     actor->collisionBodies[GAME_ACTOR_BODY_ROOT].flags |= WORLD_COLLISION_BODY_VIEW_TRIGGER_ENABLED;
     return actor->equipmentTasks[1];
@@ -5976,35 +5990,30 @@ static void Gp_BindActorAnim(Task* arg0)
                          actor->animationSlots);
 }
 
-void Gp_AnimResetChildSlots(Task* arg0, s32 arg1)
+void playerActorResetChildSlots(Task* task, s32 setIndex)
 {
+    enum { PLAYER_ACTOR_FIRST_CHILD_ANIMATION_SLOT = 1 };
     GameActor* actor;
-    s32        i;
+    s32        slotIndex;
 
-    actor = arg0->work;
-    i     = 1;
-    if (i < actor->animationSlotCount) {
-        do {
-            animationResetSlot(&actor->animationContext, i, arg1);
-            actor->animationSlots[i].rate = actor->animationRate;
-            i++;
-        } while (i < actor->animationSlotCount);
+    actor = task->work;
+    for (slotIndex = PLAYER_ACTOR_FIRST_CHILD_ANIMATION_SLOT; slotIndex < actor->animationSlotCount; slotIndex++) {
+        animationResetSlot(&actor->animationContext, slotIndex, setIndex);
+        actor->animationSlots[slotIndex].rate = actor->animationRate;
     }
 }
 
-void Gp_AnimPlayChildSlots(Task* arg0, s32 arg1, s32 arg2)
+void playerActorPlayChildSlots(Task* task, s32 setIndex, s32 unusedArgument)
 {
+    enum { PLAYER_ACTOR_FIRST_CHILD_ANIMATION_SLOT = 1 };
     GameActor* actor;
-    s32        i;
+    s32        slotIndex;
 
-    actor = arg0->work;
-    i     = 1;
-    if (i < actor->animationSlotCount) {
-        do {
-            animationPlaySlotWithBlend(&actor->animationContext, i, 0, arg1, 0, 0, 0, actor->animationSets);
-            actor->animationSlots[i].rate = actor->animationRate;
-            i++;
-        } while (i < actor->animationSlotCount);
+    actor = task->work;
+    for (slotIndex = PLAYER_ACTOR_FIRST_CHILD_ANIMATION_SLOT; slotIndex < actor->animationSlotCount; slotIndex++) {
+        // Capture the prior pose at its previous rate, then apply the actor's rate.
+        animationPlaySlotWithBlend(&actor->animationContext, slotIndex, NULL, setIndex, 0, 0, 0, actor->animationSets);
+        actor->animationSlots[slotIndex].rate = actor->animationRate;
     }
 }
 
@@ -6023,18 +6032,15 @@ void playerActorPlayChildSlotsWithBlend(Task* task, s32 setIndex, s32 unusedArgu
     }
 }
 
-void Gp_AnimTickChildSlots(Task* arg0)
+void playerActorTickChildSlots(Task* task)
 {
-    GameActor* inner;
-    s32        i;
+    enum { PLAYER_ACTOR_FIRST_CHILD_ANIMATION_SLOT = 1 };
+    GameActor* actor;
+    s32        slotIndex;
 
-    inner = arg0->work;
-    i     = 1;
-    if (i < inner->animationSlotCount) {
-        do {
-            animationTickSlot(&inner->animationContext, i);
-            i++;
-        } while (i < inner->animationSlotCount);
+    actor = task->work;
+    for (slotIndex = PLAYER_ACTOR_FIRST_CHILD_ANIMATION_SLOT; slotIndex < actor->animationSlotCount; slotIndex++) {
+        animationTickSlot(&actor->animationContext, slotIndex);
     }
 }
 
@@ -6098,11 +6104,11 @@ static s32 Gp_ApplyDirArg(Task* arg0, GameActorMoveBy* move)
     return actor->movementSign;
 }
 
-void func_80103C74(GfxCoord* arg0, VECTOR3* arg1, VECTOR3* arg2)
+void playerActorGetPointDelta(const GfxCoord* coord, const VECTOR3* point, VECTOR3* delta)
 {
-    arg2->vx = arg1->vx - arg0->coord.t[0];
-    arg2->vy = arg1->vy - arg0->coord.t[1];
-    arg2->vz = arg1->vz - arg0->coord.t[2];
+    delta->vx = point->vx - coord->coord.t[0];
+    delta->vy = point->vy - coord->coord.t[1];
+    delta->vz = point->vz - coord->coord.t[2];
 }
 
 static void func_80103CB4(GfxCoord* arg0, s32 arg1, VECTOR3* arg2, VECTOR3* arg3)
@@ -6123,38 +6129,40 @@ static void func_80103CB4(GfxCoord* arg0, s32 arg1, VECTOR3* arg2, VECTOR3* arg3
     arg3->vz = arg2->vz - (arg0->coord.t[2] + vec->vz);
 }
 
-s32 func_80103D8C(s32 arg0, s32 arg1)
+s32 playerActorPlanarLength(s32 x, s32 z)
 {
-    arg0 = ABS(arg0);
-    arg0 = arg0 * arg0;
-    arg1 = ABS(arg1);
-    arg1 = arg1 * arg1;
-    return SquareRoot0(arg0 + arg1);
+    x = ABS(x);
+    x = x * x;
+    z = ABS(z);
+    z = z * z;
+    return SquareRoot0(x + z);
 }
 
-s32 func_80103DD4(VECTOR3* arg0, VECTOR3* arg1)
+s32 playerActorPlanarDistance(const VECTOR3* firstPoint, const VECTOR3* secondPoint)
 {
-    u8*      head;
-    VECTOR3* vec;
-    s32      vz;
-    s32      absz;
-    s32      vx;
+    _PlayerActorPlanarDistanceScratch* head;
+    _PlayerActorPlanarDistanceScratch* block;
+    s32                                zDifference;
+    s32                                zSquared;
+    s32                                xSquared;
+    s32                                distance;
 
-    head                          = SCRATCH_STACK_CURSOR(u8);
-    ((VECTOR3*)(head - 0x10))->vx = arg0->vx - arg1->vx;
-    vec                           = (VECTOR3*)(head - 0x10);
-    vec->vy                       = arg0->vy - arg1->vy;
-    vz                            = arg0->vz - arg1->vz;
-    absz                          = ABS(vz);
-    vec->vz                       = vz;
-    absz                          = absz * absz;
-    vx                            = ((VECTOR3*)(head - 0x10))->vx;
-    vx                            = ABS(vx);
-    vx                            = vx * vx;
-    SCRATCH_STACK_CURSOR(VECTOR3) = vec;
-    vx                            = SquareRoot0(vx + absz);
-    SCRATCH_STACK_RELEASE_BYTES(0x10);
-    return vx;
+    head = SCRATCH_STACK_CURSOR(_PlayerActorPlanarDistanceScratch);
+    // Stage XYZ before publishing the reservation to the nested square-root call.
+    head[-1].delta.vx                                       = firstPoint->vx - secondPoint->vx;
+    block                                                   = head - 1;
+    block->delta.vy                                         = firstPoint->vy - secondPoint->vy;
+    zDifference                                             = firstPoint->vz - secondPoint->vz;
+    zSquared                                                = ABS(zDifference);
+    block->delta.vz                                         = zDifference;
+    zSquared                                                = zSquared * zSquared;
+    xSquared                                                = head[-1].delta.vx;
+    xSquared                                                = ABS(xSquared);
+    xSquared                                                = xSquared * xSquared;
+    SCRATCH_STACK_CURSOR(_PlayerActorPlanarDistanceScratch) = block;
+    distance                                                = SquareRoot0(xSquared + zSquared);
+    SCRATCH_STACK_RELEASE_BLOCK(_PlayerActorPlanarDistanceScratch);
+    return distance;
 }
 
 s16 func_80103E7C(s16 arg0, s16 arg1)
@@ -6223,23 +6231,25 @@ static GfxCoord* func_8010403C(s32 arg0)
     return &slot->extra.tmd->coords[idx];
 }
 
-void Gp_PlaceCoordOffset(GfxCoord* arg0, GfxCoord* arg1, SVECTOR* arg2)
+void actorRenderPlaceCoordOffset(GfxCoord* source, GfxCoord* placed, const SVECTOR* localOffset)
 {
-    MATRIX* world;
+    MATRIX* viewMatrix;
 
-    arg0->composeStamp = GRAPHICS_COORD_DIRTY;
-    actorRenderComposeCoord(arg0);
-    arg1->workm = arg0->workm;
-    gte_SetRotMatrix(&arg0->workm);
-    gte_SetTransMatrix(&arg0->workm);
-    gte_ldv0(arg2);
+    // Apply the source's complete transform to the local-space point.
+    source->composeStamp = GRAPHICS_COORD_DIRTY;
+    actorRenderComposeCoord(source);
+    placed->workm = source->workm;
+    gte_SetRotMatrix(&source->workm);
+    gte_SetTransMatrix(&source->workm);
+    gte_ldv0(localOffset);
     gte_rtv0tr();
-    gte_stlvnl(arg1->workm.t);
-    world = &gGfxViewCoord.workm;
-    gfxMakeRelativeTransform(world, &arg1->workm, &arg1->coord);
-    arg1->parent       = PARENT_OF(world, GfxCoord, workm);
-    arg1->composeStamp = GRAPHICS_COORD_DIRTY;
-    actorRenderComposeCoord(arg1);
+    gte_stlvnl(placed->workm.t);
+    // Express the composed placement beneath the view node.
+    viewMatrix = &gGfxViewCoord.workm;
+    gfxMakeRelativeTransform(viewMatrix, &placed->workm, &placed->coord);
+    placed->parent       = PARENT_OF(viewMatrix, GfxCoord, workm);
+    placed->composeStamp = GRAPHICS_COORD_DIRTY;
+    actorRenderComposeCoord(placed);
 }
 
 s32 func_801041B4(Task* arg0)
@@ -6425,7 +6435,7 @@ s32 func_80104508(Task* task, s32 msgId, AnimationPlayRequest* request, s32 unus
     }
     actor->animationRate = ANIMATION_RATE_ONE;
     if (request->blend == ANIMATION_BLEND_RESET) {
-        Gp_AnimResetChildSlots(task, request->animationId);
+        playerActorResetChildSlots(task, request->animationId);
     } else {
         playerActorPlayChildSlotsWithBlend(task, request->animationId, 0, request->blendFrames);
     }
@@ -6548,7 +6558,7 @@ s32 Gp_EnterActorMode2(Task* arg0, s32 arg1, s32 arg2, s32 unusedArg3)
         if (arg2 == mode) {
             Gp_ResetActorAnimState(arg0, 0);
         } else {
-            func_8010870C(arg0, 0);
+            playerActorEnterAim(arg0, 0);
         }
         return 0;
     }
@@ -6559,9 +6569,9 @@ s32 Gp_EnterActorMode2(Task* arg0, s32 arg1, s32 arg2, s32 unusedArg3)
     if (arg2 == 1) {
         animationInitContext(&actor->animationContext, actor->animationSets, extra, actor->poseBuffer,
                              actor->animationSlots);
-        func_801066DC(arg0, 1);
+        playerActorEnterLocomotion(arg0, 1);
     } else {
-        func_801066DC(arg0, 0);
+        playerActorEnterLocomotion(arg0, 0);
     }
     return 0;
 }
@@ -6649,7 +6659,7 @@ s32 func_80104B54(Task* task, s32 msgId, AnimationPlayRequest* request, s32 unus
     if (request->blend == ANIMATION_BLEND_RESET) {
         animationInitContext(&actor->animationContext, actor->animationSets, extra, actor->poseBuffer,
                              actor->animationSlots);
-        Gp_AnimResetChildSlots(task, request->animationId);
+        playerActorResetChildSlots(task, request->animationId);
     } else {
         playerActorPlayChildSlotsWithBlend(task, request->animationId, 0, request->blendFrames);
     }
@@ -6676,7 +6686,7 @@ s32 func_80104CAC(Task* task, s32 msgId, AnimationPlayRequest* request, s32 unus
     if (request->blend == ANIMATION_BLEND_RESET) {
         animationInitContext(&actor->animationContext, actor->animationSets, extra, actor->poseBuffer,
                              actor->animationSlots);
-        Gp_AnimResetChildSlots(task, request->animationId);
+        playerActorResetChildSlots(task, request->animationId);
     } else {
         playerActorPlayChildSlotsWithBlend(task, request->animationId, 0, request->blendFrames);
     }
@@ -6768,7 +6778,7 @@ s32 func_80104E00(Task* arg0, s32 arg1, ActorTransform* transform, s32 unusedArg
     if (val < 0) {
         mode = 5;
     }
-    Gp_AnimPlayChildSlots(arg0, mode, 0);
+    playerActorPlayChildSlots(arg0, mode, 0);
     SCRATCH_STACK_RELEASE_BYTES(0x10);
     return 0;
 }
@@ -6809,7 +6819,7 @@ s32 func_80104F5C(Task* arg0, s32 arg1, GameActorStairClimb* climb, s32 unusedSe
     if (climb->descend != 0) {
         mode = 0x25;
     }
-    Gp_AnimPlayChildSlots(arg0, mode, 0);
+    playerActorPlayChildSlots(arg0, mode, 0);
     return 0;
 }
 
@@ -7131,12 +7141,13 @@ s32 func_8010583C(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
     return ret;
 }
 
-s32 func_80105894(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+s32 playerActorIsSlotAdvancingLinearly(Task* task, s32 slotIndex, s32 unusedFirstArg, s32 unusedSecondArg)
 {
-    AnimationSlot* slot;
+    const GameActor*     actor;
+    const AnimationSlot* slot;
 
-    slot = &((GameActor*)arg0->work)->animationSlots[(u32)arg1];
-    // Inside a segment: not holding the boundary, and this tick followed no jump.
+    actor = task->work;
+    slot  = &actor->animationSlots[(u32)slotIndex];
     return (slot->status.fields.flags & (ANIMATION_SLOT_SETTLED | ANIMATION_SLOT_FOLLOWED_JUMP)) == 0;
 }
 
@@ -7615,10 +7626,10 @@ static void func_801065A8(Task* arg0)
     func_80109374(arg0);
     if (inner->aimControl & GAME_ACTOR_AIM_REQUEST_ENTER) {
         inner->aimTransitionPending = 1;
-        func_8010870C(arg0, 5);
+        playerActorEnterAim(arg0, 5);
     } else if (inner->movementSign != inner->previousMovementSign ||
                (inner->runButtonHeld != inner->previousRunButtonHeld && inner->movementSign == 1)) {
-        func_801066DC(arg0, 0);
+        playerActorEnterLocomotion(arg0, 0);
     } else if (inner->movementSign == 0 && inner->turnSign != inner->previousTurnSign) {
         func_80108620(arg0);
     } else if ((inner->padHeld & 0xF000) == 0) {
@@ -7631,66 +7642,95 @@ static void func_801065A8(Task* arg0)
     }
 }
 
-void func_801066DC(Task* arg0, s16 arg1)
+/// Selects the ordinary forward-walk clip while installing its movement index.
+///
+/// The caller supplies the walk index, preserving its live value for the actor
+/// stores; absence of an equipped weapon selects the unarmed native-bank clip.
+static inline s32 _playerActorSelectLocomotionWalkSet(GameActor* actor, s32 movementMode)
 {
-    GameActor* inner;
-    s32        mode;
-    s32        temp;
+    enum {
+        PLAYER_ACTOR_LOCOMOTION_SET_WALK         = 2,
+        PLAYER_ACTOR_LOCOMOTION_SET_UNARMED_WALK = 19,
+    };
+    s32 setIndex;
 
-    inner                 = arg0->work;
-    temp                  = inner->movementSign;
-    inner->state          = 0;
-    inner->animationState = 0;
-    if (temp == 0) {
-        if (inner->turnSign != 0) {
-            if (inner->turnSign == 1) {
-                mode = 6;
+    setIndex            = PLAYER_ACTOR_LOCOMOTION_SET_WALK;
+    actor->movementMode = movementMode;
+    if (actor->equipmentTasks[1] == NULL) {
+        setIndex = PLAYER_ACTOR_LOCOMOTION_SET_UNARMED_WALK;
+    }
+    return setIndex;
+}
+
+void playerActorEnterLocomotion(Task* task, s16 resetAnimation)
+{
+    enum {
+        PLAYER_ACTOR_LOCOMOTION_STATE             = 0,
+        PLAYER_ACTOR_LOCOMOTION_CONTROLLER        = 0,
+        PLAYER_ACTOR_LOCOMOTION_STOPPED           = 0,
+        PLAYER_ACTOR_LOCOMOTION_WALK              = 1,
+        PLAYER_ACTOR_LOCOMOTION_BACKWARD          = 2,
+        PLAYER_ACTOR_LOCOMOTION_RUN               = 3,
+        PLAYER_ACTOR_LOCOMOTION_TURN_MOVING       = 1,
+        PLAYER_ACTOR_LOCOMOTION_TURN_IDLE         = 3,
+        PLAYER_ACTOR_LOCOMOTION_SET_IDLE          = 1,
+        PLAYER_ACTOR_LOCOMOTION_SET_BACKWARD      = 3,
+        PLAYER_ACTOR_LOCOMOTION_SET_RUN           = 4,
+        PLAYER_ACTOR_LOCOMOTION_SET_NEGATIVE_TURN = 5,
+        PLAYER_ACTOR_LOCOMOTION_SET_POSITIVE_TURN = 6,
+        PLAYER_ACTOR_LOCOMOTION_BLEND_FRAMES      = 4,
+    };
+    GameActor* actor;
+    s32        setIndex;
+    s32        movement;
+
+    actor                 = task->work;
+    movement              = actor->movementSign;
+    actor->state          = PLAYER_ACTOR_LOCOMOTION_STATE;
+    actor->animationState = PLAYER_ACTOR_LOCOMOTION_CONTROLLER;
+    // Select a native-bank clip and the matching movement/turn-rate indices.
+    if (movement == 0) {
+        if (actor->turnSign != 0) {
+            if (actor->turnSign == 1) {
+                setIndex = PLAYER_ACTOR_LOCOMOTION_SET_POSITIVE_TURN;
             } else {
-                mode = 5;
+                setIndex = PLAYER_ACTOR_LOCOMOTION_SET_NEGATIVE_TURN;
             }
         } else {
-            mode = 1;
+            setIndex = PLAYER_ACTOR_LOCOMOTION_SET_IDLE;
         }
-        inner->movementMode  = 0;
-        inner->turnRateIndex = 3;
-    } else if ((inner->padHeld & 0x40) && (temp != -1)) {
-        temp                 = 1;
-        inner->turnRateIndex = temp;
-        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.moveMode == 0 && inner->restrictRunAndAim == 0) {
-            inner->movementMode = 3;
-            mode                = 4;
+        actor->movementMode  = PLAYER_ACTOR_LOCOMOTION_STOPPED;
+        actor->turnRateIndex = PLAYER_ACTOR_LOCOMOTION_TURN_IDLE;
+    } else if ((actor->padHeld & PAD_BUTTON_CROSS) && (movement != -1)) {
+        movement             = PLAYER_ACTOR_LOCOMOTION_WALK;
+        actor->turnRateIndex = movement;
+        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.moveMode == 0 && actor->restrictRunAndAim == 0) {
+            actor->movementMode = PLAYER_ACTOR_LOCOMOTION_RUN;
+            setIndex            = PLAYER_ACTOR_LOCOMOTION_SET_RUN;
         } else {
-            mode                = 2;
-            inner->movementMode = temp;
-            if (inner->equipmentTasks[1] == NULL) {
-                mode = 0x13;
-            }
+            setIndex = _playerActorSelectLocomotionWalkSet(actor, movement);
         }
     } else {
-        inner->turnRateIndex = 1;
-        if (inner->movementSign == 1) {
-            if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.moveMode != 0 && inner->restrictRunAndAim == 0) {
-                inner->movementMode = 3;
-                mode                = 4;
+        actor->turnRateIndex = PLAYER_ACTOR_LOCOMOTION_TURN_MOVING;
+        if (actor->movementSign == 1) {
+            if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.moveMode != 0 && actor->restrictRunAndAim == 0) {
+                actor->movementMode = PLAYER_ACTOR_LOCOMOTION_RUN;
+                setIndex            = PLAYER_ACTOR_LOCOMOTION_SET_RUN;
             } else {
-                inner->movementMode = 1;
-                mode                = 2;
-                if (inner->equipmentTasks[1] == NULL) {
-                    mode = 0x13;
-                }
+                setIndex = _playerActorSelectLocomotionWalkSet(actor, PLAYER_ACTOR_LOCOMOTION_WALK);
             }
         } else {
-            inner->movementMode = 2;
-            mode                = 3;
+            actor->movementMode = PLAYER_ACTOR_LOCOMOTION_BACKWARD;
+            setIndex            = PLAYER_ACTOR_LOCOMOTION_SET_BACKWARD;
         }
     }
-    inner->mode       = GAME_ACTOR_MODE_NORMAL;
-    inner->statePhase = 0;
-    inner->idleTicks  = 0;
-    if (arg1 != 0) {
-        Gp_AnimResetChildSlots(arg0, mode);
+    actor->mode       = GAME_ACTOR_MODE_NORMAL;
+    actor->statePhase = 0;
+    actor->idleTicks  = 0;
+    if (resetAnimation != 0) {
+        playerActorResetChildSlots(task, setIndex);
     } else {
-        playerActorPlayChildSlotsWithBlend(arg0, mode, 0, 4);
+        playerActorPlayChildSlotsWithBlend(task, setIndex, 0, PLAYER_ACTOR_LOCOMOTION_BLEND_FRAMES);
     }
 }
 
@@ -7762,7 +7802,7 @@ static void Gp_TickPlayerNormal(Task* arg0)
     func_80109FC4(arg0);
     Gp_PlayerStepSfx(arg0);
     Gp_TickActorAnimState(arg0);
-    Gp_AnimTickChildSlots(arg0);
+    playerActorTickChildSlots(arg0);
     Gp_TurnPlayer(arg0);
     Gp_StepPlayerMove(arg0);
     if (gPlayerStatus.hp <= 0) {
@@ -8148,7 +8188,7 @@ static inline void _gpEnterPlayerMode2(Task* task, s32 fade)
         mode                = 0xD;
     }
     if (fade == 0) {
-        Gp_AnimResetChildSlots(task, mode);
+        playerActorResetChildSlots(task, mode);
     } else {
         playerActorPlayChildSlotsWithBlend(task, mode, 0, fade);
     }
@@ -8190,7 +8230,7 @@ static void Gp_PlayerNormalState6(Task* arg0)
             } else {
                 mode = 0x2B;
             }
-            Gp_AnimResetChildSlots(arg0, mode);
+            playerActorResetChildSlots(arg0, mode);
         case 3:
             if (Gp_StateC08.duration == 0) {
                 actor->animationState = 9;
@@ -8207,7 +8247,7 @@ static void Gp_PlayerNormalState6(Task* arg0)
                 } else {
                     mode = 0x2C;
                 }
-                Gp_AnimResetChildSlots(arg0, mode);
+                playerActorResetChildSlots(arg0, mode);
                 break;
             }
         case 1:
@@ -8217,7 +8257,7 @@ static void Gp_PlayerNormalState6(Task* arg0)
             break;
         case 5:
             if (actor->stateAux == 0) {
-                func_801066DC(arg0, 0);
+                playerActorEnterLocomotion(arg0, 0);
                 break;
             }
             _gpEnterPlayerMode2(arg0, actor->stateAux == 1 ? 6 : 8);
@@ -8252,7 +8292,7 @@ static void func_8010771C(Task* arg0)
                 break;
             }
             if (actor->stateAux == 0) {
-                func_801066DC(arg0, 0);
+                playerActorEnterLocomotion(arg0, 0);
                 break;
             }
             inner               = arg0->work;
@@ -8402,7 +8442,7 @@ static void Gp_PlayerMode2State3(Task* arg0)
             }
             break;
     }
-    Gp_AnimTickChildSlots(arg0);
+    playerActorTickChildSlots(arg0);
     SCRATCH_STACK_RELEASE_BLOCK(_PlayerActorStairClimbScratch);
 }
 
@@ -8438,7 +8478,7 @@ void Gp_PlayerMode2State4(Task* arg0)
             if (block->turnStep < 0) {
                 mode = 5;
             }
-            Gp_AnimPlayChildSlots(arg0, mode, 1);
+            playerActorPlayChildSlots(arg0, mode, 1);
         case 1:
             if (block->turnStep == 0) {
                 actor->movementMode = 1;
@@ -8472,7 +8512,7 @@ void Gp_PlayerMode2State4(Task* arg0)
             func_80105ED4(arg0);
             break;
     }
-    Gp_AnimTickChildSlots(arg0);
+    playerActorTickChildSlots(arg0);
     SCRATCH_STACK_RELEASE_BLOCK(PlayerActorApproachScratch);
 }
 
@@ -8518,7 +8558,7 @@ static void Gp_PlayerMode2StateA(Task* arg0)
             }
         }
     }
-    Gp_AnimTickChildSlots(arg0);
+    playerActorTickChildSlots(arg0);
 }
 
 static void Gp_PlayerMode2StateB(Task* arg0)
@@ -8539,7 +8579,7 @@ static void Gp_PlayerMode2StateB(Task* arg0)
         case 1:
             if (animationGetCurrentRecord(&actor->animationContext, actor->animationSlots + 1) !=
                 NULL) {
-                if (func_80105894(arg0, D_80112E04[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId][1], 0, 0) == 0) {
+                if (playerActorIsSlotAdvancingLinearly(arg0, D_80112E04[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId][1], 0, 0) == 0) {
                     inner               = arg0->work;
                     inner->mode         = GAME_ACTOR_MODE_NORMAL;
                     inner->state        = 2;
@@ -8578,7 +8618,7 @@ static void Gp_PlayerMode2StateB(Task* arg0)
             }
             break;
     }
-    Gp_AnimTickChildSlots(arg0);
+    playerActorTickChildSlots(arg0);
     Gp_PlayerStepSfx(arg0);
 }
 
@@ -8656,7 +8696,7 @@ static void func_801085D0(Task* arg0)
     inner->movementSign = 0;
     func_80109374(arg0);
     if (inner->aimControl & GAME_ACTOR_AIM_REQUEST_ENTER) {
-        func_8010870C(arg0, 4);
+        playerActorEnterAim(arg0, 4);
     }
 }
 
@@ -8715,22 +8755,29 @@ static void func_80108684(Task* arg0)
     playerActorPlayChildSlotsWithBlend(arg0, mode, 0, 5);
 }
 
-void func_8010870C(Task* arg0, s32 arg1)
+void playerActorEnterAim(Task* task, s32 blendFrames)
 {
-    GameActor* inner;
+    enum {
+        PLAYER_ACTOR_AIM_ENTRY_STATE         = 1,
+        PLAYER_ACTOR_AIM_ENTRY_CONTROLLER    = 2,
+        PLAYER_ACTOR_AIM_ENTRY_SET           = 7,
+        PLAYER_ACTOR_AIM_ENTRY_STOPPED       = 0,
+        PLAYER_ACTOR_AIM_ENTRY_TURN_DISABLED = 0,
+    };
+    GameActor* actor;
 
-    inner                              = arg0->work;
-    inner->state                       = 1;
-    inner->mode                        = GAME_ACTOR_MODE_NORMAL;
-    inner->movementMode                = 0;
-    inner->turnRateIndex               = 0;
-    inner->animationState              = 2;
-    inner->statePhase                  = 0;
-    inner->attackControl.cooldownTicks = 0;
-    if (arg1 == 0) {
-        Gp_AnimResetChildSlots(arg0, 7);
+    actor                              = task->work;
+    actor->state                       = PLAYER_ACTOR_AIM_ENTRY_STATE;
+    actor->mode                        = GAME_ACTOR_MODE_NORMAL;
+    actor->movementMode                = PLAYER_ACTOR_AIM_ENTRY_STOPPED;
+    actor->turnRateIndex               = PLAYER_ACTOR_AIM_ENTRY_TURN_DISABLED;
+    actor->animationState              = PLAYER_ACTOR_AIM_ENTRY_CONTROLLER;
+    actor->statePhase                  = 0;
+    actor->attackControl.cooldownTicks = 0;
+    if (blendFrames == 0) {
+        playerActorResetChildSlots(task, PLAYER_ACTOR_AIM_ENTRY_SET);
     } else {
-        playerActorPlayChildSlotsWithBlend(arg0, 7, 0, arg1);
+        playerActorPlayChildSlotsWithBlend(task, PLAYER_ACTOR_AIM_ENTRY_SET, 0, blendFrames);
     }
 }
 
@@ -8774,7 +8821,7 @@ static void Gp_ResetActorAnimState(Task* arg0, s32 arg1)
         mode                = 0xD;
     }
     if (arg1 == 0) {
-        Gp_AnimResetChildSlots(arg0, mode);
+        playerActorResetChildSlots(arg0, mode);
     } else {
         playerActorPlayChildSlotsWithBlend(arg0, mode, 0, arg1);
     }
@@ -8898,7 +8945,7 @@ void Gp_PlayerMode2State0(Task* arg0)
 
 void Gp_PlayerMode2State1(Task* arg0)
 {
-    Gp_AnimTickChildSlots(arg0);
+    playerActorTickChildSlots(arg0);
     func_80105ED4(arg0);
 }
 
@@ -8936,7 +8983,7 @@ void Gp_PlayerMode2State2(Task* arg0)
         }
         inner->rotation.vy = ((u16)inner->rotation.vy + delta) & 0xFFF;
     }
-    Gp_AnimTickChildSlots(arg0);
+    playerActorTickChildSlots(arg0);
 }
 
 static void Gp_PlayerMode2State8(Task* arg0)
@@ -8978,7 +9025,7 @@ void Gp_PlayerMode2State6(Task* arg0)
     } else if (inner->padPressed & 0xF0F0) {
         inner->actionValue++;
     }
-    Gp_AnimTickChildSlots(arg0);
+    playerActorTickChildSlots(arg0);
 }
 
 /// Stores `arg1` as the actor's `targetNode` node, moving the `targeted` mark
@@ -9019,7 +9066,7 @@ static void Gp_TickPlayerMode1(Task* arg0)
     handlers = Gp_PlayerMode1States;
     handlers.funcs[(u16)((GameActor*)arg0->work)->hitRegion](arg0);
     Gp_TickActorAnimState(arg0);
-    Gp_AnimTickChildSlots(arg0);
+    playerActorTickChildSlots(arg0);
     Gp_TurnPlayer(arg0);
     Gp_StepPlayerMove(arg0);
 }
@@ -9103,7 +9150,7 @@ static void func_801090E8(Task* arg0)
     inner->movementSign = 0;
     func_80109374(arg0);
     if (inner->aimControl & GAME_ACTOR_AIM_REQUEST_ENTER) {
-        func_8010870C(arg0, 4);
+        playerActorEnterAim(arg0, 4);
     }
 }
 
@@ -9278,7 +9325,7 @@ static void Gp_PlayerMode2State5(Task* arg0)
             if (inner->stateTimer == 0) {
                 arg2 = 6;
             }
-            Gp_AnimPlayChildSlots(arg0, mode, arg2);
+            playerActorPlayChildSlots(arg0, mode, arg2);
         case 1:
             if (func_80105ED4(arg0) != 0) {
                 inner->actionValue--;
@@ -9293,7 +9340,7 @@ static void Gp_PlayerMode2State5(Task* arg0)
             }
             break;
     }
-    Gp_AnimTickChildSlots(arg0);
+    playerActorTickChildSlots(arg0);
 }
 
 static void func_801095BC(s32* arg0)
@@ -9336,9 +9383,9 @@ static void Gp_PlayerMode2State7(Task* arg0)
             if (inner->stateTimer != 0) {
                 mode = 0x21;
             }
-            Gp_AnimPlayChildSlots(arg0, mode, 1);
+            playerActorPlayChildSlots(arg0, mode, 1);
         case 1:
-            Gp_AnimTickChildSlots(arg0);
+            playerActorTickChildSlots(arg0);
             break;
     }
     Gp_PlayerStepSfx(arg0);
@@ -9346,7 +9393,7 @@ static void Gp_PlayerMode2State7(Task* arg0)
 
 static void Gp_PlayerMode2State9(Task* arg0)
 {
-    Gp_AnimTickChildSlots(arg0);
+    playerActorTickChildSlots(arg0);
 }
 
 static void func_80109720(Task* arg0)
@@ -9474,9 +9521,9 @@ static void func_80109844(Task* arg0)
             func_8010B210(arg0);
             inner2->recoveryTicks = 0x12;
             if (inner2->state != 0) {
-                func_8010870C(arg0, 0xC);
+                playerActorEnterAim(arg0, 0xC);
             } else {
-                func_801066DC(arg0, 0);
+                playerActorEnterLocomotion(arg0, 0);
             }
             break;
     }
@@ -9528,9 +9575,9 @@ static void func_80109A1C(Task* arg0)
             func_8010B210(arg0);
             inner->recoveryTicks = 0x12;
             if (inner->state != 0) {
-                func_8010870C(arg0, 0xC);
+                playerActorEnterAim(arg0, 0xC);
             } else {
-                func_801066DC(arg0, 0);
+                playerActorEnterLocomotion(arg0, 0);
             }
             break;
     }
@@ -9547,8 +9594,8 @@ static inline void _gpResumeBaseState(Task* arg0)
     func_8010B210(arg0);
     inner->recoveryTicks = 0x12;
     if (inner->state != 0) {
-        func_8010870C(arg0, 0xC);
+        playerActorEnterAim(arg0, 0xC);
     } else {
-        func_801066DC(arg0, 0);
+        playerActorEnterLocomotion(arg0, 0);
     }
 }

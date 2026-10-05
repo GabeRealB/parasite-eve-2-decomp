@@ -919,8 +919,8 @@ static void func_actor_800200_80162088(Task* arg0)
     RotMatrix(&actor->rotation, &coord->coord);
     func_8010BFCC(arg0);
     actor->animationRate = ANIMATION_RATE_ONE;
-    Gp_AnimResetChildSlots(arg0, actor->actionArgument);
-    Gp_AnimTickChildSlots(arg0);
+    playerActorResetChildSlots(arg0, actor->actionArgument);
+    playerActorTickChildSlots(arg0);
     recs                                       = actor->collisionContacts;
     obj                                        = &actor->collisionBodies[GAME_ACTOR_BODY_ROOT];
     actor->previousPosition.vx                 = coord->coord.t[0];
@@ -1142,8 +1142,8 @@ static void func_actor_800200_80162750(Task* arg0)
         actor->targetNode = lock;
         if (lock != NULL) {
             Gp_GetLockPos(lock, vec);
-            func_80103C74(coord, vec, vec);
-            dist  = func_80103D8C(((VECTOR3*)(head - 0x10))->vx, vec->vz);
+            playerActorGetPointDelta(coord, vec, vec);
+            dist  = playerActorPlanarLength(((VECTOR3*)(head - 0x10))->vx, vec->vz);
             dist /= 1024;
             if (dist >= 4) {
                 dist = 3;
@@ -1204,14 +1204,14 @@ static void func_actor_800200_80162990(Task* arg0)
             actor->destination.vx = D_actor_800200_80169FF8[3].x;
             actor->destination.vy = coord->coord.t[1];
             actor->destination.vz = D_actor_800200_80169FF8[3].z;
-            if (func_80103DD4(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x401) {
+            if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x401) {
                 goto arrived;
             }
         case 1:
             actor->destination.vx = D_actor_800200_80169FF8[companion->waypointIndex].x;
             actor->destination.vy = coord->coord.t[1];
             actor->destination.vz = D_actor_800200_80169FF8[companion->waypointIndex].z;
-            if (func_80103DD4(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x201) {
+            if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x201) {
                 if (companion->waypointIndex == 3) {
                 arrived:
                     companion->routeComplete = COMPANION_ROUTE_COMPLETE;
@@ -1269,14 +1269,14 @@ static void func_actor_800200_80162BFC(Task* arg0)
             actor->destination.vx = D_actor_800200_8016A020[3].x;
             actor->destination.vy = coord->coord.t[1];
             actor->destination.vz = D_actor_800200_8016A020[3].z;
-            if (func_80103DD4(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x401) {
+            if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x401) {
                 goto arrived;
             }
         case 1:
             actor->destination.vx = D_actor_800200_8016A020[companion->waypointIndex].x;
             actor->destination.vy = coord->coord.t[1];
             actor->destination.vz = D_actor_800200_8016A020[companion->waypointIndex].z;
-            if (func_80103DD4(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x201) {
+            if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x201) {
                 if (companion->waypointIndex == 3) {
                 arrived:
                     companion->routeComplete = COMPANION_ROUTE_COMPLETE;
@@ -1332,7 +1332,7 @@ static void func_actor_800200_80162E0C(Task* arg0)
             actor->destination.vx = D_actor_800200_80169FE0[companion->waypointIndex].x;
             actor->destination.vy = coord->coord.t[1];
             actor->destination.vz = D_actor_800200_80169FE0[companion->waypointIndex].z;
-            if (func_80103DD4(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x201) {
+            if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x201) {
                 if (companion->waypointIndex == 2) {
                     actor->stateAux       = 3;
                     actor->statePhase     = 0;
@@ -1374,7 +1374,7 @@ static void func_actor_800200_80162E0C(Task* arg0)
         case 4:
             actor->animationState = 0;
             actor->stateAux++;
-            Gp_AnimResetChildSlots(arg0, 9);
+            playerActorResetChildSlots(arg0, 9);
             return;
         default:
         case 2:
@@ -1402,14 +1402,14 @@ static void func_actor_800200_80163044(Task* arg0)
             actor->destination.vx = D_actor_800200_8016A048[1].x;
             actor->destination.vy = coord->coord.t[1];
             actor->destination.vz = D_actor_800200_8016A048[1].z;
-            if (func_80103DD4(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x401) {
+            if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x401) {
                 goto arrived;
             }
         case 1:
             actor->destination.vx = D_actor_800200_8016A048[companion->waypointIndex].x;
             actor->destination.vy = coord->coord.t[1];
             actor->destination.vz = D_actor_800200_8016A048[companion->waypointIndex].z;
-            if (func_80103DD4(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x201) {
+            if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x201) {
                 if (companion->waypointIndex == 1) {
                 arrived:
                     companion->routeComplete = COMPANION_ROUTE_COMPLETE;
@@ -1444,14 +1444,14 @@ static void func_actor_800200_80163180(Task* arg0)
             actor->destination.vx = D_actor_800200_8016A058[1].x;
             actor->destination.vy = coord->coord.t[1];
             actor->destination.vz = D_actor_800200_8016A058[1].z;
-            if (func_80103DD4(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x401) {
+            if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x401) {
                 goto arrived;
             }
         case 1:
             actor->destination.vx = D_actor_800200_8016A058[companion->waypointIndex].x;
             actor->destination.vy = coord->coord.t[1];
             actor->destination.vz = D_actor_800200_8016A058[companion->waypointIndex].z;
-            if (func_80103DD4(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x201) {
+            if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x201) {
                 if (companion->waypointIndex == 1) {
                 arrived:
                     companion->routeComplete = COMPANION_ROUTE_COMPLETE;
@@ -1505,14 +1505,14 @@ static void func_actor_800200_8016337C(Task* arg0)
             actor->destination.vx = D_actor_800200_8016A068[2].x;
             actor->destination.vy = coord->coord.t[1];
             actor->destination.vz = D_actor_800200_8016A068[2].z;
-            if (func_80103DD4(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x401) {
+            if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x401) {
                 goto arrived;
             }
         case 1:
             actor->destination.vx = D_actor_800200_8016A068[companion->waypointIndex].x;
             actor->destination.vy = coord->coord.t[1];
             actor->destination.vz = D_actor_800200_8016A068[companion->waypointIndex].z;
-            if (func_80103DD4(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x201) {
+            if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x201) {
                 if (companion->waypointIndex == 2) {
                 arrived:
                     companion->routeComplete = COMPANION_ROUTE_COMPLETE;
@@ -1570,7 +1570,7 @@ static void func_actor_800200_80163584(Task* arg0)
             actor->destination.vx = D_actor_800200_8016A080[1].x;
             actor->destination.vy = coord->coord.t[1];
             actor->destination.vz = D_actor_800200_8016A080[1].z;
-            if (func_80103DD4(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x401) {
+            if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x401) {
                 goto arrived;
             }
         case 1:
@@ -1581,7 +1581,7 @@ static void func_actor_800200_80163584(Task* arg0)
             actor->destination.vx = D_actor_800200_8016A080[companion->waypointIndex].x;
             actor->destination.vy = coord->coord.t[1];
             actor->destination.vz = D_actor_800200_8016A080[companion->waypointIndex].z;
-            if (func_80103DD4(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x201) {
+            if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x201) {
                 if (companion->waypointIndex == 1) {
                 arrived:
                     companion->routeComplete = COMPANION_ROUTE_COMPLETE;
@@ -1640,14 +1640,14 @@ static void func_actor_800200_801637B4(Task* arg0)
             actor->destination.vx = D_actor_800200_8016A098[2].x;
             actor->destination.vy = coord->coord.t[1];
             actor->destination.vz = D_actor_800200_8016A098[2].z;
-            if (func_80103DD4(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x401) {
+            if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x401) {
                 goto arrived;
             }
         case 1:
             actor->destination.vx = D_actor_800200_8016A098[companion->waypointIndex].x;
             actor->destination.vy = coord->coord.t[1];
             actor->destination.vz = D_actor_800200_8016A098[companion->waypointIndex].z;
-            if (func_80103DD4(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x201) {
+            if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x201) {
                 if (companion->waypointIndex == 2) {
                 arrived:
                     companion->routeComplete = COMPANION_ROUTE_COMPLETE;
@@ -1688,14 +1688,14 @@ static void func_actor_800200_8016390C(Task* arg0)
             actor->destination.vx = D_actor_800200_8016A0B0[2].x;
             actor->destination.vy = coord->coord.t[1];
             actor->destination.vz = D_actor_800200_8016A0B0[2].z;
-            if (func_80103DD4(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x401) {
+            if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x401) {
                 goto arrived;
             }
         case 1:
             actor->destination.vx = D_actor_800200_8016A0B0[companion->waypointIndex].x;
             actor->destination.vy = coord->coord.t[1];
             actor->destination.vz = D_actor_800200_8016A0B0[companion->waypointIndex].z;
-            if (func_80103DD4(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x201) {
+            if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x201) {
                 if (companion->waypointIndex == 2) {
                 arrived:
                     companion->routeComplete = COMPANION_ROUTE_COMPLETE;
@@ -1730,7 +1730,7 @@ static void func_actor_800200_80163A54(Task* arg0)
             actor->destination.vx = D_actor_800200_8016A0C8[2].x;
             actor->destination.vy = coord->coord.t[1];
             actor->destination.vz = D_actor_800200_8016A0C8[2].z;
-            if (func_80103DD4(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x401) {
+            if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x401) {
                 goto arrived;
             }
             func_actor_800200_80165534(arg0);
@@ -1739,7 +1739,7 @@ static void func_actor_800200_80163A54(Task* arg0)
             actor->destination.vx = D_actor_800200_8016A0C8[companion->waypointIndex].x;
             actor->destination.vy = coord->coord.t[1];
             actor->destination.vz = D_actor_800200_8016A0C8[companion->waypointIndex].z;
-            if (func_80103DD4(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x201) {
+            if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x201) {
                 if (companion->waypointIndex == 2) {
                 arrived:
                     companion->routeComplete = COMPANION_ROUTE_COMPLETE;
@@ -1774,7 +1774,7 @@ static void func_actor_800200_80163B90(Task* arg0)
             actor->destination.vx = D_actor_800200_8016A0E0[4].x;
             actor->destination.vy = coord->coord.t[1];
             actor->destination.vz = D_actor_800200_8016A0E0[4].z;
-            if (func_80103DD4(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x401) {
+            if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x401) {
                 goto arrived;
             }
             func_actor_800200_80165534(arg0);
@@ -1783,7 +1783,7 @@ static void func_actor_800200_80163B90(Task* arg0)
             actor->destination.vx = D_actor_800200_8016A0E0[companion->waypointIndex].x;
             actor->destination.vy = coord->coord.t[1];
             actor->destination.vz = D_actor_800200_8016A0E0[companion->waypointIndex].z;
-            if (func_80103DD4(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x201) {
+            if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x201) {
                 if (companion->waypointIndex == 4) {
                 arrived:
                     companion->routeComplete = COMPANION_ROUTE_COMPLETE;
@@ -1820,14 +1820,14 @@ static void func_actor_800200_80163CCC(Task* arg0)
             actor->destination.vx = D_actor_800200_8016A108[3].x;
             actor->destination.vy = coord->coord.t[1];
             actor->destination.vz = D_actor_800200_8016A108[3].z;
-            if (func_80103DD4(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x401) {
+            if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x401) {
                 goto arrived;
             }
         case 1:
             actor->destination.vx = D_actor_800200_8016A108[companion->waypointIndex].x;
             actor->destination.vy = coord->coord.t[1];
             actor->destination.vz = D_actor_800200_8016A108[companion->waypointIndex].z;
-            if (func_80103DD4(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x201) {
+            if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x201) {
                 if (companion->waypointIndex == 3) {
                 arrived:
                     companion->routeComplete = COMPANION_ROUTE_COMPLETE;
@@ -1865,14 +1865,14 @@ static void func_actor_800200_80163E14(Task* arg0)
             actor->destination.vx = D_actor_800200_8016A130[4].x;
             actor->destination.vy = coord->coord.t[1];
             actor->destination.vz = D_actor_800200_8016A130[4].z;
-            if (func_80103DD4(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x401) {
+            if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x401) {
                 goto arrived;
             }
         case 1:
             actor->destination.vx = D_actor_800200_8016A130[companion->waypointIndex].x;
             actor->destination.vy = coord->coord.t[1];
             actor->destination.vz = D_actor_800200_8016A130[companion->waypointIndex].z;
-            if (func_80103DD4(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x201) {
+            if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x201) {
                 if (companion->waypointIndex == 4) {
                 arrived:
                     companion->routeComplete = COMPANION_ROUTE_COMPLETE;
@@ -2098,12 +2098,12 @@ static void func_actor_800200_8016436C(Task* arg0)
         pan = (s8)worldCoordGetOriginAudioPan(coord);
         sndEvtRequestScriptStart(actor->attackControl.targetVariant + 0x40720009, pan, (s8)worldCoordGetOriginAudioDepth(coord));
     tick:
-        if (func_80105894(arg0, 1, 0, 0) == 0) {
+        if (playerActorIsSlotAdvancingLinearly(arg0, 1, 0, 0) == 0) {
             dist = func_8010BCF4(arg0, vec);
             if (dist < 0) {
                 dist = -dist;
             }
-            if ((dist >= 0x281) && (func_80103DD4(MATRIX_TRANS(&coord->coord), vec) >= 0x201)) {
+            if ((dist >= 0x281) && (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), vec) >= 0x201)) {
                 actor2                 = arg0->work;
                 actor2->mode           = GAME_ACTOR_MODE_NORMAL;
                 actor2->state          = 2;
@@ -2160,7 +2160,7 @@ static void func_actor_800200_80164598(Task* arg0)
             if (block->turnStep < 0) {
                 mode = 5;
             }
-            Gp_AnimPlayChildSlots(arg0, mode, 1);
+            playerActorPlayChildSlots(arg0, mode, 1);
         case 1:
             if (block->turnStep == 0) {
                 actor->movementMode = actor->stateTimer;
@@ -2173,7 +2173,7 @@ static void func_actor_800200_80164598(Task* arg0)
             }
             break;
         case 2:
-            if (func_80103DD4(MATRIX_TRANS(&coord->coord), &actor->destination) < 0xC1 ||
+            if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < 0xC1 ||
                 func_801041B4(arg0) != 0) {
                 Gp_ResetActorMove(arg0, 0);
             } else {
@@ -2219,7 +2219,7 @@ static void func_actor_800200_801647A8(Task* arg0)
                 actor->targetNode = node;
                 if ((node != NULL) && !(node->state.parts.flags & WORLD_TARGET_NOT_LOCKABLE)) {
                     Gp_GetLockPos(node, vec);
-                    dist = func_80103DD4(MATRIX_TRANS(&coord->coord), vec);
+                    dist = playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), vec);
                     dist = dist / 640;
                     if (dist >= 8) {
                         dist = 7;
@@ -2390,7 +2390,7 @@ static void func_actor_800200_80164C54(Task* arg0)
             if (block->turnStep < 0) {
                 mode = 5;
             }
-            Gp_AnimPlayChildSlots(arg0, mode, 1);
+            playerActorPlayChildSlots(arg0, mode, 1);
         case 1:
             if (block->turnStep == 0) {
                 actor->movementMode = 5;
@@ -2424,7 +2424,7 @@ static void func_actor_800200_80164C54(Task* arg0)
             func_80105ED4(arg0);
             break;
     }
-    Gp_AnimTickChildSlots(arg0);
+    playerActorTickChildSlots(arg0);
     SCRATCH_STACK_RELEASE_BLOCK(PlayerActorApproachScratch);
 }
 
@@ -2460,7 +2460,7 @@ static void func_actor_800200_80164EBC(Task* arg0)
             if (block->turnStep < 0) {
                 mode = 5;
             }
-            Gp_AnimPlayChildSlots(arg0, mode, 1);
+            playerActorPlayChildSlots(arg0, mode, 1);
         case 1:
             if (block->turnStep == 0) {
                 actor->movementMode = 6;
@@ -2489,7 +2489,7 @@ static void func_actor_800200_80164EBC(Task* arg0)
             Gp_StepPlayerMove(arg0);
             break;
     }
-    Gp_AnimTickChildSlots(arg0);
+    playerActorTickChildSlots(arg0);
     SCRATCH_STACK_RELEASE_BLOCK(PlayerActorApproachScratch);
 }
 
@@ -2841,7 +2841,7 @@ static void func_actor_800200_80165814(Task* arg0)
         actor->destination.vx = D_actor_800200_8016A018[companion->waypointIndex].x;
         actor->destination.vy = coord->coord.t[1];
         actor->destination.vz = D_actor_800200_8016A018[companion->waypointIndex].z;
-        if (func_80103DD4(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x401) {
+        if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x401) {
             companion->routeComplete = COMPANION_ROUTE_COMPLETE;
             func_actor_800200_801654EC(arg0, 0);
             return;
@@ -2867,7 +2867,7 @@ static void func_actor_800200_801658E0(Task* arg0)
         actor->destination.vx = D_actor_800200_8016A040[companion->waypointIndex].x;
         actor->destination.vy = coord->coord.t[1];
         actor->destination.vz = D_actor_800200_8016A040[companion->waypointIndex].z;
-        if (func_80103DD4(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x401) {
+        if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x401) {
             companion->routeComplete = COMPANION_ROUTE_COMPLETE;
             func_actor_800200_801654EC(arg0, 0);
             return;
@@ -2898,7 +2898,7 @@ static void func_actor_800200_801659CC(Task* arg0)
             actor->destination.vx = D_actor_800200_8016A090[companion->waypointIndex].x;
             actor->destination.vy = coord->coord.t[1];
             actor->destination.vz = D_actor_800200_8016A090[companion->waypointIndex].z;
-            if (func_80103DD4(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x401) {
+            if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x401) {
                 actor->stateAux++;
                 if (companion->routeComplete != COMPANION_ROUTE_COMPLETE) {
                     func_actor_800200_80165534(arg0);
@@ -2927,7 +2927,7 @@ static void func_actor_800200_80165ACC(Task* arg0)
         actor->destination.vx = D_actor_800200_8016A128[companion->waypointIndex].x;
         actor->destination.vy = coord->coord.t[1];
         actor->destination.vz = D_actor_800200_8016A128[companion->waypointIndex].z;
-        if (func_80103DD4(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x401) {
+        if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x401) {
             companion->routeComplete = COMPANION_ROUTE_COMPLETE;
             func_actor_800200_80165534(arg0);
             return;
@@ -2961,7 +2961,7 @@ static void func_actor_800200_80165B84(Task* arg0)
         }
     }
     Gp_TickActorAnimState(arg0);
-    Gp_AnimTickChildSlots(arg0);
+    playerActorTickChildSlots(arg0);
     Gp_TurnPlayer(arg0);
     Gp_StepPlayerMove(arg0);
 }
@@ -2987,7 +2987,7 @@ static void func_actor_800200_80165D44(Task* arg0)
         case 1:
             actor->animationState = 0;
             actor->statePhase    += 1;
-            Gp_AnimResetChildSlots(arg0, 9);
+            playerActorResetChildSlots(arg0, 9);
         case 2:
             if ((func_8010BC70(coord) >= 0x500) || (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED)) {
                 actor->animationState = 7;
@@ -3025,7 +3025,7 @@ static void func_actor_800200_80165E90(Task* arg0)
     handlers = D_actor_800200_80161EB8;
     actor    = arg0->work;
     Gp_TickActorAnimState(arg0);
-    Gp_AnimTickChildSlots(arg0);
+    playerActorTickChildSlots(arg0);
     handlers.funcs[(u16)actor->hitRegion](arg0);
     Gp_TurnPlayer(arg0);
     Gp_StepPlayerMove(arg0);
@@ -3089,7 +3089,7 @@ static void func_actor_800200_80165FF0(Task* arg0)
         actor->movementSign = 1;
         actor->rotation.vy  = ((u16)actor->rotation.vy + delta) & 0xFFF;
     }
-    Gp_AnimTickChildSlots(arg0);
+    playerActorTickChildSlots(arg0);
 }
 
 /// Planar distance from the coordinate origin to a nonempty contact, or 0.
@@ -3102,7 +3102,7 @@ static s32 _actor800200GetContactDistance(GfxCoord* coord, WorldCollisionContact
     s32 distance;
 
     if (contact->key.value != 0) {
-        distance = func_80103D8C(coord->workm.t[0] - contact->point.vx, coord->workm.t[2] - contact->point.vz);
+        distance = playerActorPlanarLength(coord->workm.t[0] - contact->point.vx, coord->workm.t[2] - contact->point.vz);
         if (contactZY != NULL) {
             // Retain the original repeated first-halfword write.
             contactZY[0] = contact->point.vx;

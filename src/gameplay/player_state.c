@@ -152,9 +152,9 @@ static inline void _gpResumeBaseState(Task* arg0)
     func_8010B210(arg0);
     inner->recoveryTicks = 0x12;
     if (inner->state != 0) {
-        func_8010870C(arg0, 0xC);
+        playerActorEnterAim(arg0, 0xC);
     } else {
-        func_801066DC(arg0, 0);
+        playerActorEnterLocomotion(arg0, 0);
     }
 }
 
@@ -724,7 +724,7 @@ void Gp_StopPlayerAnim(Task* arg0, s32 arg1)
     inner->statePhase     = 0;
     inner->hitRegion      = 3;
     if (arg1 == 0) {
-        Gp_AnimResetChildSlots(arg0, 0x12);
+        playerActorResetChildSlots(arg0, 0x12);
     } else {
         playerActorPlayChildSlotsWithBlend(arg0, 0x12, 0, arg1);
     }
@@ -772,9 +772,9 @@ void func_8010ABD4(Task* arg0)
             func_8010B210(arg0);
             inner->recoveryTicks = 0x12;
             if (inner->state != 0) {
-                func_8010870C(arg0, 0xC);
+                playerActorEnterAim(arg0, 0xC);
             } else {
-                func_801066DC(arg0, 0);
+                playerActorEnterLocomotion(arg0, 0);
             }
         }
     }
@@ -798,9 +798,9 @@ void func_8010AC54(Task* arg0)
             func_8010B210(arg0);
             inner2->recoveryTicks = 0x12;
             if (inner2->state != 0) {
-                func_8010870C(arg0, 0xC);
+                playerActorEnterAim(arg0, 0xC);
             } else {
-                func_801066DC(arg0, 0);
+                playerActorEnterLocomotion(arg0, 0);
             }
         } else {
             inner->stateTimer = 5;
@@ -1227,7 +1227,7 @@ void Gp_EndPlayerActorTask(Task* arg0)
         inner->animationSets      = Gp_AnimBlkTbl[inner->animationBankIndex]->table.sets;
         animationInitContext(&inner->animationContext, inner->animationSets, extra, inner->poseBuffer,
                              inner->animationSlots);
-        Gp_AnimResetChildSlots(arg0, 1);
+        playerActorResetChildSlots(arg0, 1);
         next                 = arg0->work;
         next->mode           = GAME_ACTOR_MODE_NORMAL;
         next->state          = 0;
@@ -1308,7 +1308,7 @@ Task* Gp_SetupAllyWeapon(void)
     next->actionValue    = 0;
     next->movementSign   = 0;
     next->turnSign       = 0;
-    Gp_AnimResetChildSlots(work, 1);
+    playerActorResetChildSlots(work, 1);
     ret                            = actor->equipmentTasks[1];
     actor->pendingCollisionUpdates = GAME_ACTOR_COLLISION_REQUEST_MASK;
     return ret;
@@ -1415,7 +1415,7 @@ void Gp_ResetActorMove(Task* arg0, s16 arg1)
     inner->movementSign   = 0;
     inner->turnSign       = 0;
     if (arg1 != 0) {
-        Gp_AnimResetChildSlots(arg0, 1);
+        playerActorResetChildSlots(arg0, 1);
     } else {
         playerActorPlayChildSlotsWithBlend(arg0, 1, 0, 4);
     }
@@ -1432,8 +1432,8 @@ s32 func_8010BC70(GfxCoord* arg0)
     head                          = SCRATCH_STACK_CURSOR(u8);
     vec                           = (VECTOR3*)(head - 0x10);
     SCRATCH_STACK_CURSOR(VECTOR3) = vec;
-    func_80103C74(arg0, (VECTOR3*)(extra->coords)->coord.t, vec);
-    ret = func_80103D8C(((VECTOR3*)(head - 0x10))->vx, vec->vz);
+    playerActorGetPointDelta(arg0, (VECTOR3*)(extra->coords)->coord.t, vec);
+    ret = playerActorPlanarLength(((VECTOR3*)(head - 0x10))->vx, vec->vz);
     SCRATCH_STACK_RELEASE_BYTES(0x10);
     return ret;
 }
@@ -1448,7 +1448,7 @@ s32 func_8010BCF4(Task* arg0, VECTOR3* arg1)
     coords = arg0->extra.tmd->coords;
     vec    = SCRATCH_STACK_RESERVE_BYTES(0x10);
     actor  = arg0->work;
-    func_80103C74(coords, arg1, vec);
+    playerActorGetPointDelta(coords, arg1, vec);
     ret = func_80103E7C(actor->rotation.vy, ratan2(vec->vx, vec->vz));
     SCRATCH_STACK_RELEASE_BYTES(0x10);
     return ret;
@@ -1464,7 +1464,7 @@ void func_8010BD88(Task* arg0, VECTOR3* arg1)
     extra = arg0->extra.tmd;
     block = SCRATCH_STACK_RESERVE_BLOCK(_PlayerActorTurnScratch);
     actor = arg0->work;
-    func_80103C74(extra->coords, arg1, &block->targetDelta);
+    playerActorGetPointDelta(extra->coords, arg1, &block->targetDelta);
     block->yaw = ratan2(block->targetDelta.vx, block->targetDelta.vz);
     val        = func_80103E7C(actor->rotation.vy, block->yaw);
     block->yaw = val;
@@ -1502,8 +1502,8 @@ void func_8010BE5C(Task* task, VECTOR3* targetPoint)
     block->originOffset.vx                               = 0;
     block->originOffset.vy                               = 0;
     block->originOffset.vz                               = 0;
-    Gp_PlaceCoordOffset(parts + 4, coord, offset);
-    func_80103C74(coord, targetPoint, &block->targetDelta);
+    actorRenderPlaceCoordOffset(parts + 4, coord, offset);
+    playerActorGetPointDelta(coord, targetPoint, &block->targetDelta);
     // Turn toward the target relative to body facing, preserving the strict aim limit.
     yawStep = ratan2(head[-1].targetDelta.vx, block->targetDelta.vz) - actor->rotation.vy;
     yawStep = func_80103E7C(actor->aimYaw, yawStep);
@@ -1734,7 +1734,7 @@ s32 func_8010C4F0(Task* task, s32 msgId, AnimationPlayRequest* request, s32 unus
     }
     actor->animationRate = ANIMATION_RATE_ONE;
     if (request->blend == ANIMATION_BLEND_RESET) {
-        Gp_AnimResetChildSlots(task, request->animationId);
+        playerActorResetChildSlots(task, request->animationId);
     } else {
         playerActorPlayChildSlotsWithBlend(task, request->animationId, 1, request->blendFrames);
     }

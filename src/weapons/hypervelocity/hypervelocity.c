@@ -950,7 +950,7 @@ void func_hypervelocity_8011F724(Task* arg0)
                     Gp_ConsumeSlotQty(0x95, 1);
                     sndEvtRequestScriptStop(SOUND_HYPERVELOCITY_CHARGE_LOOP, SOUND_SCRIPT_STOP_KEEP_RELEASE);
                     Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x20160007, 1);
-                    Gp_AnimResetChildSlots(arg0, 0xB);
+                    playerActorResetChildSlots(arg0, 0xB);
                 } else if (count == 0x3C) {
                     eff->spawnArg1.value |= 0x20;
                     sndEvtRequestScriptStop(SOUND_HYPERVELOCITY_CHARGE_START, SOUND_SCRIPT_STOP_KEEP_RELEASE);
@@ -991,7 +991,7 @@ void func_hypervelocity_8011F724(Task* arg0)
             }
             /* fallthrough */
         case 3:
-            if (func_80105894(arg0, D_80112E04[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId][1], 0, 0) == 0) {
+            if (playerActorIsSlotAdvancingLinearly(arg0, D_80112E04[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId][1], 0, 0) == 0) {
                 func_80106550(arg0);
             }
             break;

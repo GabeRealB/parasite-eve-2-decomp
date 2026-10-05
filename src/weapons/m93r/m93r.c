@@ -126,7 +126,7 @@ void func_m93r_8011D1C4(Task* arg0)
             if ((actor->padHeld & actor->actionPadMask) != 0) {
                 lockedOut = actor->attackCancelTicks == 0;
             }
-            if (func_80105894(arg0, D_80112E04[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId][1], 0, 0) == 0 || lockedOut) {
+            if (playerActorIsSlotAdvancingLinearly(arg0, D_80112E04[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId][1], 0, 0) == 0 || lockedOut) {
                 if (lockedOut) {
                     actor->attackControl.cooldownTicks = 0xA;
                 } else {

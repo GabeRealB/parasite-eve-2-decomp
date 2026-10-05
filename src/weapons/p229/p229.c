@@ -121,7 +121,7 @@ void func_p229_8011DDA0(Task* arg0)
                 Gp_SpawnEff(EFFECT_HANDGUN_MUZZLE_FLASH,
                             actor->equipmentTasks[1]->extra.tmd->coords, 5,
                             NULL);
-                Gp_AnimResetChildSlots(arg0, 0xA);
+                playerActorResetChildSlots(arg0, 0xA);
             } else {
                 actor->statePhase                                     = 4;
                 actor->attackCancelTicks                              = 6;
@@ -152,7 +152,7 @@ void func_p229_8011DDA0(Task* arg0)
             if (actor->attackCancelTicks != 0) {
                 actor->attackCancelTicks--;
             }
-            if (func_80105894(arg0, D_80112E04[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId][1], 0, 0) == 0 ||
+            if (playerActorIsSlotAdvancingLinearly(arg0, D_80112E04[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId][1], 0, 0) == 0 ||
                 ((actor->padHeld & actor->actionPadMask) != 0 && actor->attackCancelTicks == 0)) {
                 frames = 0x12;
                 if (actor->attackButton == 1) {

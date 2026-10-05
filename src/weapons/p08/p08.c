@@ -72,7 +72,7 @@ void func_p08_8011D1D8(Task* arg0)
             Gp_SpawnEff(P08_FLASH_EFFECT,
                         actor->equipmentTasks[1]->extra.tmd->coords,
                         P08_FLASH_WEAPON, NULL);
-            Gp_AnimResetChildSlots(arg0, 0xA);
+            playerActorResetChildSlots(arg0, 0xA);
             break;
         case 3:
             actor->statePhase++;
@@ -85,7 +85,7 @@ void func_p08_8011D1D8(Task* arg0)
             if (actor->attackCancelTicks != 0) {
                 actor->attackCancelTicks--;
             }
-            if (func_80105894(arg0, D_80112E04[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId][1], 0, 0) == 0 ||
+            if (playerActorIsSlotAdvancingLinearly(arg0, D_80112E04[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId][1], 0, 0) == 0 ||
                 ((actor->padHeld & actor->actionPadMask) != 0 && actor->attackCancelTicks == 0)) {
                 actor->attackControl.cooldownTicks = P08_FIELD_940;
                 func_80106550(arg0);

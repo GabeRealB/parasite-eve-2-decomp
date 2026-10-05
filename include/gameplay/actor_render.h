@@ -43,6 +43,22 @@ s32 actorRenderUploadTexture(Task* actorTask, GpuImageUpload* uploadList, const 
 /// nodes composed in another space. GTE working registers are clobbered.
 void actorRenderComposeCoord(GfxCoord* coord);
 
+/// Places a coordinate at a local-space offset with the source node's orientation.
+///
+/// Forces composition of `source`, copies its full-chain rotation, and applies
+/// that transform to `localOffset` (signed game-coordinate units). Converts the
+/// composed result back beneath `gGfxViewCoord`, installs that parent and refreshes
+/// the placed node's cache. Ordinary view-parented sources produce a world-space
+/// local matrix and a view-space cache. Stored Euler state is left intact.
+///
+/// Both nodes and the source's acyclic parent chain must be live and writable;
+/// `source` may equal `placed`. The offset is borrowed for this call. The view's
+/// cache must already be current, and the source cache must use the same
+/// composition root as that view. The placed node must remain outside the view's
+/// ancestor chain. GTE working registers are changed; no pointer is retained
+/// except the persistent view parent installed in `placed`.
+void actorRenderPlaceCoordOffset(GfxCoord* source, GfxCoord* placed, const SVECTOR* localOffset);
+
 /// Refreshes every coordinate for this frame, then draws the models the
 /// flagged pass draws.
 void Gp_DrawActorTmdFlagged(GsOT* arg0);

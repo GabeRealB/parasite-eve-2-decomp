@@ -309,4 +309,20 @@ void effectSpriteTaskE0(Task* task);
 /// effects wait and cancellation or the eighth cell releases the work and task.
 void effectSpriteTaskE1(Task* task);
 
+/// Blinks a six-cell additive spark burst on alternate running ticks.
+///
+/// Bank-6 slot 0xE2 borrows its coordinate body and owns counted `EffectWork`
+/// in `spawnArg2.pointer`, initialized with age zero. Spawn bits 0..11 give
+/// base size, enlarged by random 0..255; size narrows to s16 and then masks to
+/// 12 bits in the drawer. A negative spawn word attaches an identity-oriented
+/// local placement at `work->pos` under the borrowed `work->parent`, which must
+/// remain live. Otherwise the spawning placement is kept.
+///
+/// Draws cells 0..5 at ages 0,2,..10, at one random 4096-unit rotation and
+/// palette zero on page 0x2A. Visible paused effects draw only at even age and
+/// do not age; hidden effects wait. Twelve running ticks or cancellation
+/// release the counted work and task. Requires the drawer's GTE, scratch and
+/// frame-arena resources; queued packets remain live until GPU use ends.
+void effectSpriteTaskE2(Task* task);
+
 #endif // GAMEPLAY_PRIVATE_EFFECT_TASKS_H

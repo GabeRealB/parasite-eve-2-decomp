@@ -360,7 +360,7 @@ void func_tonfa_baton_8011DBFC(Task* arg0)
                 actor->actionValue = 1;
                 Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x20130003, 0);
             }
-            if (func_80105894(arg0, 1, 0, 0) == 0) {
+            if (playerActorIsSlotAdvancingLinearly(arg0, 1, 0, 0) == 0) {
                 actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                 if (actor->statePhase == 2) {
                     actor->statePhase = 3;
@@ -373,12 +373,12 @@ void func_tonfa_baton_8011DBFC(Task* arg0)
                     if (eff != NULL) {
                         taskReparent(actor->equipmentTasks[1], eff->task);
                     }
-                    Gp_AnimResetChildSlots(arg0, 0xB);
+                    playerActorResetChildSlots(arg0, 0xB);
                 } else {
                     actor->statePhase                         = 5;
                     actor->stateTimer                         = 0xA;
                     actor->equipmentTasks[1]->spawnArg1.value = 0;
-                    Gp_AnimResetChildSlots(arg0, 0xE);
+                    playerActorResetChildSlots(arg0, 0xE);
                 }
             }
             break;
@@ -412,7 +412,7 @@ void func_tonfa_baton_8011DBFC(Task* arg0)
                 actor->actionValue = 2;
                 Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x20130004, 0);
             }
-            if (func_80105894(arg0, 1, 0, 0) == 0) {
+            if (playerActorIsSlotAdvancingLinearly(arg0, 1, 0, 0) == 0) {
                 func_80106550(arg0);
             }
             break;
@@ -422,7 +422,7 @@ void func_tonfa_baton_8011DBFC(Task* arg0)
                 swinging            = 1;
                 actor->stateTimer   = actor->stateTimer - 1;
             }
-            if (func_80105894(arg0, 1, 0, 0) == 0) {
+            if (playerActorIsSlotAdvancingLinearly(arg0, 1, 0, 0) == 0) {
                 func_80106550(arg0);
             }
             break;
