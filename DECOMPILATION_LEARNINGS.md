@@ -148345,3 +148345,92 @@ source.
   barrier keeps the constant's `lui` first in the block so that its quantity
   is long enough (2 refs over 30 or more half-insns) to rank below
   `%hi(gRandomLcgState)` and take `$a2`.
+### A pin on a value merged in the call's delay slot was one inline called in every arm (func_actor_403100_8013CBE0, 2026-10-05)
+
+**Supersedes** "An earlier call argument can change sched1 birth promotion
+without adding an instruction" for this function: neither the second argument
+to `worldCoordGetOriginAudioPan` nor the later `register s32 soundId asm("a1")`
+with its `goto play_sound` was the source shape.
+
+**Symptom.** Three ways to pick a sound id (`9`, or `2`/`5` on a random bit)
+join at one tail that builds the place-keyed id and calls
+`sndEvtRequestScriptStart(sound, pan, depth / 2)`. Written with one id local and
+a shared tail, everything matches except the final `move a1,s1`, which lands
+after the depth conversion: `REG_N_SETS($a1)` is 1 in the whole function, so
+`birthing_insn_p` promotes that copy. The tell in the target is the
+per-arm constant (`beqz ; lui a1 / j ; ori a1,a1,2 / ori a1,a1,5`) feeding
+`or s0,s0,a1` in the first call's delay slot.
+
+**Fix.** The tail is a `static inline` taking `(Task*, s32 soundId)`, called
+once per arm with its constant. At flow time there are three
+`sndEvtRequestScriptStart` calls, so `$a1` is set three times and its copy is
+not a birth; jump2 then cross-jumps the three identical expansions into the one
+tail, leaving exactly the per-arm `lui`/`ori`. No pin, no `goto`, no split
+`0x401F0000 | n` constants, and `request == 1` / `next2 >= 0` in place of
+`request == state` / `(next2 << 16) >= 0`.
+
+The general reading: when a hard argument register's copy is placed as if it
+were not a birth, count the calls that set that register *before* cross-jumping,
+not the ones left in the listing.
+
+### Hand-expanded LCG steps were the file's rand inline; what the remaining hp pin stands for (func_actor_403600_8013EA04, 2026-10-05)
+
+The attack picker stepped `gRandomLcgState` by hand in five places with
+`temp_a0`/`temp_a1`/`var_v0` locals and ordered stores. All of it is
+`_actor403600Rand()`:
+
+- `if (_actor403600Rand() & 1) { a = X; } else { a = Y; }` gives the target's
+  `li a2,Y` after the state update; `a = Y; if (rand & 1) a = X;` puts the `li`
+  before the multiply.
+- `roll = _actor403600Rand() & 0xF` in zones 2 and 3, but
+  `roll = _actor403600Rand(); roll &= 0xF;` in zone 1. Only zone 1 later tests
+  `roll & 1`; with the unmasked draw in its own pseudo cse folds
+  `(x & 15) & 1` to `x & 1` and the `and` reads the `srl` result instead of
+  the masked register. Masking in place leaves no register holding the
+  unmasked value.
+- the summon arm is `work->actionParam = (_actor403600Rand() % 20) + 0x28;
+  work->summonCount++;` in that order.
+
+**Still pinned.** `register s32 hp asm("a0")` for `hp = enemy->hp` in zone 1.
+Unpinned, the `lh` is a single-set pseudo, so sched1 promotes it as a birth and
+it sinks beside the `slt` (and takes `$v1`, the roll taking `$a0`). Giving the
+variable a second set anywhere removes the promotion and zone 1 then matches
+without the pin - but one pseudo has one register, so the other set must also
+sit in `$a0`: reusing it for the two later `enemy->hp` compares moves those
+from `$v1` to `$a0`. Nothing else in the function holds a user value in `$a0`.
+Not found: the natural second set. Tried: `s16 hp`, the difference
+`hp - limit`, the compare result in a local, either operand order.
+
+### Unresolved, with the mechanism measured: three actor barriers (2026-10-05)
+
+- `func_actor_450900_8013207C` (`SCHED_BARRIER` after a counter increment).
+  Two separate things. (a) sched1 must keep `lw/addiu/sw` of the counter above
+  the next call's argument moves; plain C lets the low-priority argument moves
+  float above the load. A loop note does the same as the barrier
+  (`do { D++; } while (0);`), a statement-macro shape. (b) the counter value has
+  to be in `$v1` with the `%hi` in `$v0`. Any block-local value pseudo
+  (`D++`, `D += 1`, a block local) has the higher local priority and takes
+  `$v0`; only a pseudo that is global - the tree reuses the `switch` variable -
+  is allocated after the `%hi` and gets `$v1`. With (a) solved by the loop the
+  remaining diff is exactly that register swap, so the barrier was left.
+- `func_actor_403100_80136610` (`TOUCH_REG(kind)` on a `9`). The `li v0,9` must
+  not be a birth: it sits at the top of the block, above the next call's
+  `lui/addiu a1`, instead of beside its `sb`. A second set of the same variable
+  does it (`i = 9; flags = i;` with the loop counter places it correctly) but
+  then the value is in the counter's `$v1`. A `do { } while (0)` around the
+  store fences the `a1` setup out as well and is worse. The `flags` pointer
+  local and the `activeEnemy`/`hp` block were not needed: `obj->flags = 0` and
+  `D->hp = D->hpMax = table.hpMax` match.
+- `func_actor_403100_80138F88` (`SOFT_TOUCH_REG(work)`). Corrects the entry "A
+  `SOFT_TOUCH_REG` that only lifts a pointer's local-alloc priority...": the
+  two extra refs are only needed because the scalar `*translation++` stores
+  hold the pointer load early and lengthen its span. With plain
+  `coords->coord.t[i]` stores and either a `work` local or the global named at
+  every store, the pointer takes `$v0` with no touch, and the whole function
+  matches except three instructions: the load sinks below `li 6000 / sw t[2]`,
+  so that constant shares `$v0` instead of using `$v1`. The target has the load
+  between the `t[0]` and `t[2]` stores with its first use after both; no
+  natural statement order found puts it there (a second set of `work` floats
+  the load to the top of the block instead). combine.c does not decrement
+  `REG_N_REFS`, so a use that exists at flow time and is merged away later would
+  still count; none was found here.
