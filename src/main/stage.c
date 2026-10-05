@@ -771,17 +771,17 @@ void Display_SetDrawMode(s32 arg0)
         case 0:
             gDisplayState.control.flags.flipMode    = DISPLAY_FLIP_TASK_ONLY;
             gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_NONE;
-            Display_SetAutoClear(0, 0, 0);
+            displaySetClearColor(0, 0, 0);
             return;
         case 1:
             gDisplayState.control.flags.flipMode    = (u8)arg0;
             gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_ROOM_SLOT;
-            Display_SetAutoClear(-1, 0, 0);
+            displaySetClearColor(DISPLAY_CLEAR_DISABLED, 0, 0);
             return;
         case 2:
             gDisplayState.control.flags.flipMode    = DISPLAY_FLIP_TASK_ONLY;
             gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_TRANSITION_STRIPS;
-            Display_SetAutoClear(-1, 0, 0);
+            displaySetClearColor(DISPLAY_CLEAR_DISABLED, 0, 0);
             return;
         case 3:
             gDisplayState.control.flags.flipMode = DISPLAY_FLIP_HOLD;
@@ -917,7 +917,7 @@ static void Stage_FinishCdFollowUp(Task* task)
         gDisplayState.displayOwner              = DISPLAY_OWNER_GAME_LOOP;
         gDisplayState.pendingMode               = DISPLAY_MODE_NONE;
         gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_STRIPS;
-        Display_SetAutoClear(-1, 0, 0);
+        displaySetClearColor(DISPLAY_CLEAR_DISABLED, 0, 0);
         taskCallExit(task);
     }
 }

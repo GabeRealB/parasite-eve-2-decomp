@@ -2850,7 +2850,7 @@ void func_dryfield_dilapidated_house_8017E780(Task* arg0)
             if (D_dryfield_dilapidated_house_80189B6C & 1) {
                 var_a0 = -var_a0;
             }
-            displaySetShakeY((s8)var_a0);
+            displaySetShakeY(var_a0);
             temp_v0                               = D_dryfield_dilapidated_house_80189B6C - 1;
             D_dryfield_dilapidated_house_80189B6C = temp_v0;
             if (temp_v0 == 0) {

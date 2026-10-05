@@ -23,7 +23,16 @@ extern volatile u8 D_8006EC30;
 
 extern volatile u8 D_80070E38;
 
-void Display_SetAutoClear(s32 arg0, s32 arg1, s32 arg2);
+/// Negative red argument that disables automatic framebuffer clearing.
+enum { DISPLAY_CLEAR_DISABLED = -1 };
+
+/// Set the automatic framebuffer-clear colour for both draw buffers.
+///
+/// Any negative `red` disables clearing without changing the stored colour;
+/// callers use `DISPLAY_CLEAR_DISABLED`. Otherwise clearing is enabled and
+/// each channel stores the low byte of its argument (normally 0..255).
+/// The settings persist until changed here or by display-mode setup.
+void displaySetClearColor(s32 red, s32 green, s32 blue);
 
 void Gpu_InitOtSmall(void);
 

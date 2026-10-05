@@ -1342,7 +1342,7 @@ ratan2                      = 0x8003D9C8;
 //--- PA: 0x2E348   VA: 0x8003DB48   subsegment: c, 2E348
 //--------------------------------------------------------------------
 Display_SetMode               = 0x8003DB48; // type:func
-Display_SetAutoClear               = 0x8003DE14; // type:func
+displaySetClearColor               = 0x8003DE14; // type:func
 Display_SetModeDefault               = 0x8003DE58; // type:func
 displaySetShakeY               = 0x8003DE78; // type:func
 

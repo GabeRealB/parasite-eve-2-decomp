@@ -132,21 +132,21 @@ void Display_SetMode(s32 modeBits)
     }
 }
 
-void Display_SetAutoClear(s32 arg0, s32 arg1, s32 arg2)
+void displaySetClearColor(s32 red, s32 green, s32 blue)
 {
-    if (arg0 < 0) {
+    if (red < 0) {
         gDisplayState.drawEnv[1].isbg = 0;
         gDisplayState.drawEnv[0].isbg = 0;
         return;
     }
     gDisplayState.drawEnv[1].isbg = 1;
     gDisplayState.drawEnv[0].isbg = 1;
-    gDisplayState.drawEnv[1].r0   = arg0;
-    gDisplayState.drawEnv[0].r0   = arg0;
-    gDisplayState.drawEnv[1].g0   = arg1;
-    gDisplayState.drawEnv[0].g0   = arg1;
-    gDisplayState.drawEnv[1].b0   = arg2;
-    gDisplayState.drawEnv[0].b0   = arg2;
+    gDisplayState.drawEnv[1].r0   = red;
+    gDisplayState.drawEnv[0].r0   = red;
+    gDisplayState.drawEnv[1].g0   = green;
+    gDisplayState.drawEnv[0].g0   = green;
+    gDisplayState.drawEnv[1].b0   = blue;
+    gDisplayState.drawEnv[0].b0   = blue;
 }
 
 static void Display_SetModeDefault(void)
@@ -161,7 +161,7 @@ void displaySetShakeY(s8 offsetY)
     clampedY = offsetY;
     if (offsetY >= DISPLAY_SHAKE_MAX) {
         clampedY = DISPLAY_SHAKE_MAX;
-    } else if (offsetY < DISPLAY_SHAKE_MIN + 1) {
+    } else if (offsetY <= DISPLAY_SHAKE_MIN) {
         clampedY = DISPLAY_SHAKE_MIN;
     }
     gDisplayState.shakeY = clampedY;

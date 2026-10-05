@@ -149,9 +149,13 @@ void Gpu_ClearOTag(s16 tableIdx);
 /// options are DISPLAY_SETUP_* flags; zero low 16 bits selects the default.
 void Display_SetMode(s32 modeBits);
 
-/// Request vertical screen shake in signed pixels, clamped to [-8, 8].
+/// Set the persistent vertical screen-shake offset in pixels, clamped to [-8, 8].
 ///
-/// The game loop applies the request after presenting its current frame.
+/// Wider arguments narrow to a signed byte before clamping. Each request
+/// replaces the previous one and persists until another call or a display-state
+/// reset; zero clears the request. Positive offsets move drawing downward.
+/// The 240-line game loop applies the request to both draw origins and the
+/// background-image crop after presenting its current frame.
 void displaySetShakeY(s8 offsetY);
 
 Task* Display_SpawnWithOtSmall(s32 arg0, s32 arg1, TaskSpawnArg arg2, TaskSpawnArg arg3);

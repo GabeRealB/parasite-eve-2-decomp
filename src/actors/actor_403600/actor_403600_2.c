@@ -4643,7 +4643,7 @@ static void func_actor_403600_801414FC(Task* arg0)
         } else {
             brightness = rsin(gDisplayState.animFrame << 9) << 0xC;
         }
-        displaySetShakeY((s8)(brightness >> 0x18));
+        displaySetShakeY(brightness >> 0x18);
         countdown         = (u16)work->shakeFrames - 1;
         work->shakeFrames = countdown;
         if ((countdown << 0x10) <= 0) {

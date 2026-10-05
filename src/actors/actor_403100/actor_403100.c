@@ -4233,7 +4233,7 @@ static void func_actor_403100_801339EC(Task* arg0)
         } else {
             brightness = rsin(gDisplayState.animFrame << 9) << 12;
         }
-        displaySetShakeY((s8)(brightness >> 24));
+        displaySetShakeY(brightness >> 24);
         D_actor_403100_80155808->shakeFrames = (u16)D_actor_403100_80155808->shakeFrames - 1;
     } else {
         displaySetShakeY(0);
@@ -4647,7 +4647,7 @@ static void func_actor_403100_80134D50(Task* arg0)
         } else {
             brightness = rsin(gDisplayState.animFrame << 9) << 12;
         }
-        displaySetShakeY((s8)(brightness >> 24));
+        displaySetShakeY(brightness >> 24);
         D_actor_403100_80155808->shakeFrames = (u16)D_actor_403100_80155808->shakeFrames - 1;
     } else {
         displaySetShakeY(0);
