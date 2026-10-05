@@ -126,38 +126,45 @@ enum {
     GRAPHICS_AREA_FRAME_SECOND_Y = FILE_SYSTEM_IMAGE_HEIGHT + 32,
 };
 
-/// Clears the primitive reservation's last ten bytes and records their start.
+/// Clears the trailing ten bytes of the configured GPU primitive reservation.
+///
+/// `Gpu_PrimHeapBase` must address `Gpu_PrimHeapSize` writable bytes, with
+/// at least `MEMORY_PRIMITIVE_TRAILER_BYTES` bytes in the region. Stores their
+/// start in `Gpu_PrimHeapCanaryAddress`, which has no reader in the game.
 static __inline__ void _memClearPrimitiveTrailer(void)
 {
-    s32 trailerIndex;
+    u8 trailerIndex;
 
-    trailerIndex = 0;
-    do {
-        Gpu_PrimHeapBase[Gpu_PrimHeapSize - (trailerIndex & 0xFF) - 1] = 0;
-        trailerIndex                                                  += 1;
-    } while ((u32)(trailerIndex & 0xFF) < (u32)MEMORY_PRIMITIVE_TRAILER_BYTES);
+    for (trailerIndex = 0; trailerIndex < MEMORY_PRIMITIVE_TRAILER_BYTES; trailerIndex++) {
+        Gpu_PrimHeapBase[Gpu_PrimHeapSize - trailerIndex - 1] = 0;
+    }
     Gpu_PrimHeapCanaryAddress = Gpu_PrimHeapBase + (Gpu_PrimHeapSize - MEMORY_PRIMITIVE_TRAILER_BYTES);
 }
 
-/// Reserves a fixed workspace after the captured frame and saves its heap views.
-static __inline__ void _memConfigureCapturedFrameWorkspace(const GfxImageSlot* areaSlots, s32 areaId, s32 auxHeapOffsetBytes)
+/// Configures the primitive and auxiliary heap views after an area's captured frame.
+///
+/// `areaSlot` must be nonempty, with a word-aligned `regionBase` providing
+/// `sizeof(FsImgBuffers)` bytes of captured pixels followed by
+/// `MEMORY_PRIMITIVE_HEAP_BYTES` writable bytes. The slot's `byteExtent` is
+/// not the frame length. Previous allocations and GPU work in the workspace
+/// must have ended before it is repurposed.
+///
+/// `auxHeapOffsetBytes` is in [0, `MEMORY_PRIMITIVE_HEAP_BYTES`]. The active
+/// and saved auxiliary heap are the suffix beginning at that byte offset;
+/// the saved whole-region view and the primitive reservation both cover the
+/// full workspace. The auxiliary suffix overlaps primitives unless empty.
+/// These borrowed regions require separate heap3 and primitive-cursor setup.
+static __inline__ void _memConfigureCapturedFrameWorkspace(const GfxImageSlot* areaSlot, s32 auxHeapOffsetBytes)
 {
-    u8*     workspaceBase;
-    size_t  auxHeapBytes;
-    size_t  capturedFrameBytes;
-    size_t* activeHeapSizeSlot;
+    u8* workspaceBase;
 
-    capturedFrameBytes = sizeof(FsImgBuffers);
-    do {
-        Gpu_PrimHeapSize = MEMORY_PRIMITIVE_HEAP_BYTES;
-    } while (0);
-    activeHeapSizeSlot  = &GActiveAuxHeapSize;
-    auxHeapBytes        = MEMORY_PRIMITIVE_HEAP_BYTES - auxHeapOffsetBytes;
-    *activeHeapSizeSlot = auxHeapBytes;
-    Mem_AuxRegionBytes  = MEMORY_PRIMITIVE_HEAP_BYTES;
-    GAuxHeapSize        = auxHeapBytes;
+    // Save both the complete workspace and its auxiliary suffix for heap selection.
+    Gpu_PrimHeapSize   = MEMORY_PRIMITIVE_HEAP_BYTES;
+    GActiveAuxHeapSize = MEMORY_PRIMITIVE_HEAP_BYTES - auxHeapOffsetBytes;
+    Mem_AuxRegionBytes = MEMORY_PRIMITIVE_HEAP_BYTES;
+    GAuxHeapSize       = GActiveAuxHeapSize;
 
-    workspaceBase     = areaSlots[areaId].regionBase + capturedFrameBytes;
+    workspaceBase     = areaSlot->regionBase + sizeof(FsImgBuffers);
     Gpu_PrimHeapBase  = workspaceBase;
     gMemActiveAuxHeap = workspaceBase + auxHeapOffsetBytes;
     Mem_AuxRegionBase = workspaceBase;
@@ -302,7 +309,7 @@ void gfxCaptureAreaFrame(s32 stageId, s32 areaId, s32 bufferIndex, s32 auxHeapOf
     StoreImage(&frameRect, (u_long*)areaSlots[areaId].regionBase);
     DrawSync(0);
 
-    _memConfigureCapturedFrameWorkspace(areaSlots, areaId, auxHeapOffsetBytes);
+    _memConfigureCapturedFrameWorkspace(&areaSlots[areaId], auxHeapOffsetBytes);
 }
 
 void gfxRestoreAreaFrame(s32 stageId, s32 areaId, s32 bufferIndex)

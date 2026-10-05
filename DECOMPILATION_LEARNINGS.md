@@ -16340,23 +16340,22 @@ a natural `D_sizeA = 0x10000; size = 0x10000 - arg; D_sizeB = size;` schedules
 `subu` *before* the first `sw` (into the free slot after `lui v1`). Wrapping
 only the first store in `do {} while (0)` forces that store first but can put
 `subu` before the second `lui %hi`. Taking the address of the second global
-before the subtraction restores the full sequence:
+before the subtraction can restore the full sequence. In the inline helper
+`_memConfigureCapturedFrameWorkspace`, publishing the active extent directly
+and then copying it to the saved extent preserves the sequence without either
+device or an auxiliary-size temporary:
 
 ```c
-size_t auxHeapBytes;
-size_t* activeHeapSizeSlot;
-
-capturedFrameBytes = sizeof(FsImgBuffers); /* keep late pointer math constant live early in $a1 */
-do {
-    Gpu_PrimHeapSize = MEMORY_PRIMITIVE_HEAP_BYTES;
-} while (0);
-activeHeapSizeSlot  = &GActiveAuxHeapSize; /* lui %hi before subu */
-auxHeapBytes       = MEMORY_PRIMITIVE_HEAP_BYTES - auxHeapOffsetBytes;
-*activeHeapSizeSlot = auxHeapBytes;
+Gpu_PrimHeapSize   = MEMORY_PRIMITIVE_HEAP_BYTES;
+GActiveAuxHeapSize = MEMORY_PRIMITIVE_HEAP_BYTES - auxHeapOffsetBytes;
 Mem_AuxRegionBytes = MEMORY_PRIMITIVE_HEAP_BYTES;
-GAuxHeapSize       = auxHeapBytes;
+GAuxHeapSize       = GActiveAuxHeapSize;
+
+workspaceBase = areaSlot->regionBase + sizeof(FsImgBuffers);
 ```
 
+The late frame-size addition still makes the compiler load 0x25800 early in
+`$a1`; a separate frame-size local is unnecessary in this inline helper.
 `gfxCaptureAreaFrame` is the pure example (VRAM `StoreImage` then aux-heap base/size
 setup). Sibling `gfxRestoreAreaFrame` is the matching `LoadImage` without heap work;
 note its `bufferIndex` → `frameRect.y` polarity is the opposite of `gfxCaptureAreaFrame`.
@@ -20304,7 +20303,7 @@ temp = *pB - K;
 `_memClearPrimitiveTrailer`; the helper's final assignment matches as the direct
 expression `Gpu_PrimHeapCanaryAddress = Gpu_PrimHeapBase + (Gpu_PrimHeapSize - MEMORY_PRIMITIVE_TRAILER_BYTES)`.
 
-## Zero-tail loop: single index, `i & 0xFF`, increment at bottom
+## Zero-tail loop: single byte index, increment at bottom
 
 A 10-byte zero of `base[size - 1 - i]` that needs:
 
@@ -20322,18 +20321,20 @@ bnez  v0, loop
  andi a0, a1, 0xff
 ```
 
-matches with a single `s32 i` and the mask at the use site — **not** a separate
-`j = i & 0xFF` local (that steals `$a1` for `j` and puts the counter in `$a2`):
+matches with a single `u8` counter in a normal `for` loop. Its narrowing emits
+the masks without spelling them out:
 
 ```c
-i = 0;
-do {
-    *(u8*)((size - (i & 0xFF)) + base - 1) = 0;
-    i += 1;
-} while ((u32)(i & 0xFF) < 0xAU);
+u8 trailerIndex;
+
+for (trailerIndex = 0; trailerIndex < MEMORY_PRIMITIVE_TRAILER_BYTES; trailerIndex++) {
+    Gpu_PrimHeapBase[Gpu_PrimHeapSize - trailerIndex - 1] = 0;
+}
 ```
 
-`memConfigureImageMemory` is the pure example.
+A single `s32 i` explicitly masked at its uses also matches. A separate
+`j = i & 0xFF` local steals `$a1` for `j` and puts the counter in `$a2`.
+`memConfigureImageMemory` is the pure example, through `_memClearPrimitiveTrailer`.
 
 ## McWork direntry walk from McWork base (size@0x48, head@0x50)
 
