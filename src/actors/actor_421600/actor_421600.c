@@ -3801,8 +3801,6 @@ static void func_actor_421600_8013BA70(Task* arg0)
     DesertChaserWork*             work;
     Enemy*                        enemy;
     GfxCoord*                     zoneCoord;
-    GfxCoord*                     clampCoord;
-    s32                           x, zClamp;
     WorldCollisionContact*        record;
     GfxCoord*                     coord;
     GfxCoord*                     coord2;
