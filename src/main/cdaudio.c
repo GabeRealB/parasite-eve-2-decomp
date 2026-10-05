@@ -995,7 +995,7 @@ void CdAudio_Init(void)
     _gCdAudioState.playback.spuBase = 0x51010;
     Spu_SetVoiceRange(3, 0x16, 2);
     CdStream_Reset();
-    CdVol_SetMixMode(1);
+    sndOutputSetStereo(SOUND_OUTPUT_STEREO);
 }
 
 static u8 CdAudio_GetState(void)

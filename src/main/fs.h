@@ -135,8 +135,6 @@ void Fs_BootImageMachine(void* primaryTim, void* secondaryTim);
 /// CD ready callback used while streaming bank data (src/main/cdvol.c).
 void Fs_StreamReadyCb(u8 status, u8* result);
 
-u8 CdVol_GetMixMode(void);
-
 void CdVol_CacheFromSpu(void);
 
 void CdVol_ApplyFromTable(u16 index);

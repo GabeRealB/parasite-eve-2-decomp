@@ -5,7 +5,6 @@
 #include "common.h"
 
 #include "main/display.h"
-#include "main/fs.h"
 #include "main/mc.h"
 #include "main/mc_types.h"
 #include "main/pad.h"
@@ -212,12 +211,12 @@ static void func_options_801D404C(UiList* arg0, UiObject* arg1)
     if (saved != cur) {
         if (cur != 0) {
             if (cur != 1) {
-                CdVol_SetMixMode(1);
+                sndOutputSetStereo(SOUND_OUTPUT_STEREO);
             } else {
-                CdVol_SetMixMode(0);
+                sndOutputSetStereo(SOUND_OUTPUT_MONO);
             }
         } else {
-            CdVol_SetMixMode(1);
+            sndOutputSetStereo(SOUND_OUTPUT_STEREO);
         }
     }
     SOFT_BARRIER();

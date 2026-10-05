@@ -15,6 +15,22 @@ extern s16 D_800820E6;
 
 void Snd_ApplyVolumeTable(s32 arg0);
 
+/// Resident output selections; the setter consumes only the stereo bit.
+enum {
+    SOUND_OUTPUT_MONO   = 0,
+    SOUND_OUTPUT_STEREO = 1
+};
+
+/// Selects mono or stereo output for MIDI, sound scripts, streams and CD input.
+///
+/// Only bit zero of `enabled` matters: 0 selects mono and 1 selects stereo.
+/// Existing MIDI channels and eligible script voices are marked for remixing
+/// on their next volume update without changing their master gains. Streaming
+/// voices use the selection on setup or their next gain update. CD-input
+/// attenuation is applied immediately: mono uses four gains of 90; stereo
+/// uses gains 120, 0, 120, 0 in `CdlATV` order.
+void sndOutputSetStereo(s32 enabled);
+
 s32 LinInterp_Apply(LinInterp* ramp, s32 arg1);
 
 s32 SndEvt_EnqueueType1(s32 arg0, s32 arg1);

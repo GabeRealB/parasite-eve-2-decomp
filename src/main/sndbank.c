@@ -11,7 +11,6 @@
 #include "cdaudio.h"
 #include "main/display.h"
 #include "main/display_types.h"
-#include "fs.h"
 #include "main/sound_types.h"
 #include "sound_types.h"
 #include "main/task.h"
@@ -695,7 +694,7 @@ void Spu_ApplyPanVolume(s16* arg0, s16 arg1, s32 arg2)
     left  = (u32)(arg2 * Snd_PanGainTable[index]) >> 0xC;
     right = (u32)(arg2 * Snd_PanGainTable[0x7E - index]) >> 0xC;
 
-    if (!(CdVol_GetMixMode() & 0xFF)) {
+    if (!sndOutputIsStereo()) {
         right = (u32)((left + right) * Snd_PanGainTable[0x3F]) >> 0xC;
         left  = right;
     }

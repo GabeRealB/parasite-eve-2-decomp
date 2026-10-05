@@ -5905,7 +5905,7 @@ does not. Same function as the previous entry.
 
 The stereo/mono options prompt (`func_options_801D404C`) is the 2-choice
 sibling plus a stack copy of the old selection so it can call
-`CdVol_SetMixMode` only on change. That extra allocno is enough to stop the
+`sndOutputSetStereo` only on change. That extra allocno is enough to stop the
 `n2 = 2; two = n2` rematerialise-as-`$t0` trick above: `n2` steals `$s7`,
 `span` spills, wrap becomes `slt` against the register instead of `slti 2`.
 
@@ -5937,7 +5937,7 @@ cur = tmp >> 24;
 if (two != cur) { ... }
 ```
 
-The mix-mode call itself is three `CdVol_SetMixMode` sites
+The mix-mode call itself is three `sndOutputSetStereo` sites
 (`if (cur != 0) { if (cur != 1) f(1); else f(0); } else f(1);`) so
 cross-jumping produces `beqz` / `li a0,1` / `li v0,1` / `bne` / `move a0,0`
 into one `jal`. A `mix` local if-converts to `xor`/`sltu`.
@@ -8753,17 +8753,17 @@ prologue, assigning into a local and then storing is usually wrong:
 
 ```c
 /* Wrong schedule: andi into $s0, then later lui */
-flag = arg0 & 1;
-D_8006EBBA = flag;
+stereoEnabled = enabled & 1;
+D_8006EBBA = stereoEnabled;
 ```
 
 Force the address load first by writing the expression into the global and
-reloading it for the rest of the function (`CdVol_SetMixMode`):
+reloading it for the rest of the function (`sndOutputSetStereo`):
 
 ```c
 /* Matches: lui of D_8006EBBA, then sw $s0 / andi $s0 */
-D_8006EBBA = arg0 & 1;
-flag = D_8006EBBA;
+D_8006EBBA = enabled & 1;
+stereoEnabled = D_8006EBBA;
 ```
 
 CSE still reuses the masked value for later uses after the reload is combined,
@@ -14958,8 +14958,8 @@ if (flag == 0) {
 }
 ```
 
-`Snd_ApplyVolumeTable` (`D_80072311` → `CdVol_SetMixMode`) is the pure `== 0` example.
-`GameFlow_WaitMenuDone` is the sibling `== 1` form (`CdVol_SetMixMode(0)` vs `(1)`).
+`Snd_ApplyVolumeTable` (`D_80072311` → `sndOutputSetStereo`) is the pure `== 0` example.
+`GameFlow_WaitMenuDone` is the sibling `== 1` form (`sndOutputSetStereo(0)` vs `(1)`).
 
 ## Goto-forced block order for shared-default multi-way branch
 

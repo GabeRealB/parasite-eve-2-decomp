@@ -842,7 +842,7 @@ void Mc_InitBufferSlots(void)
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.cursorMode   = 0;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.soundMode    = 0;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.moveMode     = 0;
-    CdVol_SetMixMode(1);
+    sndOutputSetStereo(SOUND_OUTPUT_STEREO);
     Snd_ApplyVolumeTable(0);
 }
 
@@ -2741,7 +2741,7 @@ void Mc_ResetSaveFlags(void)
     p->state.cursorMode   = 0;
     p->state.soundMode    = 0;
     p->state.moveMode     = 0;
-    CdVol_SetMixMode(1);
+    sndOutputSetStereo(SOUND_OUTPUT_STEREO);
     Snd_ApplyVolumeTable(0);
 }
 

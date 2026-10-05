@@ -38,7 +38,7 @@ static void CdVol_RegisterCallbacks(void);
 
 static void CdVol_ClearCallbackSlot(AsyncCbEntry* unused);
 
-static s32 Cd_Flush(AsyncCbEntry* unused);
+static s32 _cdSyncCancelDiscInit(AsyncCbEntry* entry);
 
 static s32 CdVol_Get(void);
 
@@ -183,32 +183,49 @@ void Spu_ResetCommonAttr(void)
     D5B498_8006EBF0 = 0;
 }
 
-void CdVol_SetMixMode(s32 arg0)
+void sndOutputSetStereo(s32 enabled)
 {
-    CdlATV atv;
-    s32    flag;
+    enum {
+        SOUND_OUTPUT_CD_MONO_GAIN    = 90,
+        SOUND_OUTPUT_CD_STEREO_GAIN  = 120,
+        SOUND_OUTPUT_CD_ROUTE_SILENT = 0
+    };
+    CdlATV cdMix;
+    s32    stereoEnabled;
 
-    D_8006EBBA = arg0 & 1;
-    flag       = D_8006EBBA;
+    /// Configures and applies all four CD-input attenuator gains.
+    ///
+    /// `mix` must be a side-effect-free `CdlATV` lvalue: it is evaluated five
+    /// times. `stereo` is evaluated once; zero selects mono. Uses the gain
+    /// constants above and the SDK's `CdMix` declaration.
+#define SOUND_OUTPUT_APPLY_CD_MIX(mix, stereo)         \
+    do {                                               \
+        if ((stereo) == SOUND_OUTPUT_MONO) {           \
+            (mix).val0 = SOUND_OUTPUT_CD_MONO_GAIN;    \
+            (mix).val1 = SOUND_OUTPUT_CD_MONO_GAIN;    \
+            (mix).val2 = SOUND_OUTPUT_CD_MONO_GAIN;    \
+            (mix).val3 = SOUND_OUTPUT_CD_MONO_GAIN;    \
+        } else {                                       \
+            (mix).val0 = SOUND_OUTPUT_CD_STEREO_GAIN;  \
+            (mix).val1 = SOUND_OUTPUT_CD_ROUTE_SILENT; \
+            (mix).val2 = SOUND_OUTPUT_CD_STEREO_GAIN;  \
+            (mix).val3 = SOUND_OUTPUT_CD_ROUTE_SILENT; \
+        }                                              \
+        CdMix(&(mix));                                 \
+    } while (0)
+
+    // Publish the selection before requesting voice-volume refreshes.
+    D_8006EBBA    = enabled & SOUND_OUTPUT_STEREO;
+    stereoEnabled = D_8006EBBA;
     midiSetMasterVolume(midiGetMasterVolume() & 0xFF);
-    flag = (u8)flag;
+    stereoEnabled = (u8)stereoEnabled;
     sndScriptSetMasterVolume(sndScriptGetMasterVolume());
-    cdStreamSetMono(flag ^ 1);
-    if (flag == 0) {
-        atv.val0 = 0x5A;
-        atv.val1 = 0x5A;
-        atv.val2 = 0x5A;
-        atv.val3 = 0x5A;
-    } else {
-        atv.val0 = 0x78;
-        atv.val1 = 0;
-        atv.val2 = 0x78;
-        atv.val3 = 0;
-    }
-    CdMix(&atv);
+    cdStreamSetMono(stereoEnabled ^ SOUND_OUTPUT_STEREO);
+    SOUND_OUTPUT_APPLY_CD_MIX(cdMix, stereoEnabled);
+#undef SOUND_OUTPUT_APPLY_CD_MIX
 }
 
-u8 CdVol_GetMixMode(void)
+u8 sndOutputIsStereo(void)
 {
     return D_8006EBBA;
 }
@@ -226,7 +243,7 @@ static void CdVol_RegisterCallbacks(void)
     ptr         = &D_8006EBF2;
     sp.pollFn   = Cd_InitStateMachine;
     sp.doneFn   = CdVol_ClearCallbackSlot;
-    sp.cancelFn = Cd_Flush;
+    sp.cancelFn = _cdSyncCancelDiscInit;
     *ptr        = AsyncCb_Enqueue(&sp);
 }
 
@@ -235,10 +252,16 @@ static void CdVol_ClearCallbackSlot(AsyncCbEntry* unused)
     D_8006EBF2 = 0;
 }
 
-static s32 Cd_Flush(AsyncCbEntry* unused)
+/// Flushes CD library state when a disc-initialization job is cancelled.
+///
+/// `entry` is the queue-owned job and is unused. Returning zero completes
+/// cancellation in this poll, allowing the queue to retire the job.
+static s32 _cdSyncCancelDiscInit(AsyncCbEntry* entry)
 {
+    enum { CD_SYNC_CANCEL_COMPLETE = 0 };
+
     CdFlush();
-    return 0;
+    return CD_SYNC_CANCEL_COMPLETE;
 }
 
 static s32 CdVol_Get(void)

@@ -7,7 +7,6 @@
 #include "cdaudio.h"
 #include "main/display.h"
 #include "main/display_types.h"
-#include "fs.h"
 #include "main/sound_types.h"
 #include "sound_types.h"
 
@@ -1687,7 +1686,7 @@ static u8* Midi_Event3(s32 arg0, u8* arg1, _MidiSong* song, _MidiTrack* track)
             break;
 
         case MIDI_CHANNEL_CONTROL_PAN:
-            if (CdVol_GetMixMode() & 0xFF) {
+            if (sndOutputIsStereo()) {
                 song->channels.entries[channel].pan = arg1[2];
             } else {
                 song->channels.entries[channel].pan = MIDI_CHANNEL_PAN_CENTER;

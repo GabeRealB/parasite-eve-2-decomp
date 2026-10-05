@@ -164,8 +164,6 @@ void Fs_EnsureBootLoadStarted(void);
 
 u8* Fs_GetChunkPayload(void);
 
-void CdVol_SetMixMode(s32 stereo);
-
 /// Empty entry point called on scripted scene view changes; its intended role is unproven.
 void cdCmdSceneViewChangeNoOp(void);
 

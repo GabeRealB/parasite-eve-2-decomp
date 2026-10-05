@@ -271,9 +271,9 @@ void Snd_ApplyVolumeTable(s32 arg0)
 
     sp10 = D_80013F18;
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.soundMode == 0) {
-        CdVol_SetMixMode(1);
+        sndOutputSetStereo(SOUND_OUTPUT_STEREO);
     } else {
-        CdVol_SetMixMode(0);
+        sndOutputSetStereo(SOUND_OUTPUT_MONO);
     }
     if ((arg0 & 0xFFFF) != 0) {
         D_8007A396 = arg0;

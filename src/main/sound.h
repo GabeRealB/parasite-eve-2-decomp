@@ -103,6 +103,12 @@ void LinInterp_Step(LinInterp* ramp);
 
 void Spu_ApplyPanVolume(s16* arg0, s16 arg1, s32 arg2);
 
+/// Returns the resident output selection (0 mono, 1 stereo).
+///
+/// This is the selection used for voice panning and CD/stream routing, not
+/// the saved options-menu value, whose mono/stereo encoding is reversed.
+u8 sndOutputIsStereo(void);
+
 void AsyncCb_Cancel(s32 arg0);
 
 /// Queues asynchronous callbacks and returns a one-based cancellation handle, or zero when full.

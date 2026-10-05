@@ -349,9 +349,9 @@ static void GameFlow_WaitMenuDone(Task* task)
         gDisplayState.gameMode = DISPLAY_GAME_ACTIVE;
         gGameSession->uiOpen   = 0;
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.soundMode == 1) {
-            CdVol_SetMixMode(0);
+            sndOutputSetStereo(SOUND_OUTPUT_MONO);
         } else {
-            CdVol_SetMixMode(1);
+            sndOutputSetStereo(SOUND_OUTPUT_STEREO);
         }
         Snd_ApplyVolumeTable(0);
         task->killCountdown = 0xC;
