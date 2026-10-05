@@ -29,6 +29,9 @@
 /// slash covers per frame: 4096 / 136, about 30 coordinate units.
 enum { GUNBLADE_SPIN_ADVANCE_DIVISOR = 136 };
 
+/// One-based weapon index passed to the resident use counter.
+enum { GUNBLADE_WEAPON_ID = 23 };
+
 /// Scratch-stack block for the gunblade's attack handler.
 ///
 /// The handler reserves one block each frame and releases it before
@@ -137,7 +140,7 @@ void func_gunblade_8011E040(Task* arg0)
                 actor->stateTimer        = 0x12;
                 actor->actionValue       = 0;
                 actor->gunbladeSpinTicks = 0x39;
-                func_80106518(0x17);
+                weaponRecordUse(GUNBLADE_WEAPON_ID);
                 actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].key = 0x2171B;
                 {
                     u16 reach       = rec->ends[1].vz + D_80112F60[23];

@@ -350,12 +350,12 @@ extern u16 D_801132BC[33][2];
 static const TaskFuncTable3 Gp_EffTask07States;
 
 /// Four-entry `Task::state` dispatcher: `Gp_InitPlayerWork`, `Gp_PlayerWorkState1`,
-/// `Gp_PlayerWorkState2`, `Gp_TeardownSlot0`.
+/// `_playerActorWorkState2`, `Gp_TeardownSlot0`.
 static const TaskFuncTable4 Gp_PlayerWorkStates;
 
 /// Per-weapon handlers, indexed by `PlayerStatus::weapon` and copied by
 /// `func_8010615C`. Most live in the weapon overlay loaded at the time;
-/// `func_801065A0` serves the weapons with none.
+/// `_playerActorNoWeaponAttack` serves the weapons with none.
 static const _PlayerActorWeaponAttacks D_800978BC;
 
 /// `mode` dispatcher: `Gp_TickPlayerNormal`, `Gp_TickPlayerMode1`, `Gp_TickPlayerMode2`.
@@ -364,7 +364,7 @@ static const TaskFuncTable3 Gp_PlayerModeFns;
 /// `state` dispatcher copied by `Gp_TickPlayerNormal`.
 static const TaskFuncTable8 D_8009794C;
 
-/// `hitRegion` dispatcher: three slots of `Gp_PlayerMode1State0`, then `Gp_PlayerMode1State3`.
+/// `hitRegion` dispatcher: three slots of `Gp_PlayerMode1State0`, then `_playerActorDamageHitRegion3`.
 static const TaskFuncTable4 Gp_PlayerMode1States;
 
 /// `state` dispatcher copied by `Gp_TickPlayerMode2`.
@@ -390,7 +390,7 @@ static void Gp_EffTask07State1(Task* arg0);
 
 static void _effectDrawRadialTriangles(const GfxCoord* coord, s32 radius, s32 rayCount, const u8* rgb);
 
-static void Gp_EffTask07State0(Task* arg0);
+static void _effectControlTask07State0(Task* task);
 
 static void func_800FCD00(Task* arg0);
 
@@ -409,14 +409,11 @@ static void Gp_PlayerWorkState1(Task* arg0);
 
 static void func_8010133C(void);
 
-static void Gp_PlayerWorkState2(Task* arg0);
+static void _playerActorWorkState2(Task* task);
 
 static void Gp_TeardownSlot0(Task* arg0);
 
-/// Latches this frame's pad state into the actor of `arg0`: keeps the previous
-/// values of the per-frame bytes and of the held buttons, reads the session's
-/// pad, and derives the newly pressed and released buttons from the two.
-static inline void _gpCaptureActorPad(Task* arg0);
+static inline void _playerActorCapturePad(Task* task);
 
 static inline MATRIX* _playerActorInvalidatePartMatrix(Task* task, s32 partIndex);
 
@@ -449,7 +446,7 @@ static void Gp_CaptureActorPad(Task* arg0);
 
 static void Gp_BindActorAnim(Task* arg0);
 
-static s32 Gp_HpBand(void);
+static s32 _playerActorGetIdleHealthBand(void);
 
 static s32 Gp_ApplyDirArg(Task* arg0, GameActorMoveBy* move);
 
@@ -485,7 +482,7 @@ s32 Gp_CopyPlayerAnim(Task* arg0, s32 arg1, const AnimationBankCopyRequest* requ
 
 s32 Gp_ApplyPlayerDamage(Task* arg0, s32 arg1, s32 arg2, s32 unusedSecondArg);
 
-s32 func_80105A8C(Task* arg0, s32 arg1, s32 arg2, s32 unusedSecondArg);
+static s32 _playerActorSetRunMovement(Task* task, s32 unusedMessageId, s32 runEnabled, s32 unusedSecondArg);
 
 static void func_80105B0C(Task* arg0);
 
@@ -493,7 +490,7 @@ static void func_8010615C(Task* arg0);
 
 static s32 func_801062DC(Task* arg0, s32 arg1);
 
-static void func_801065A0(Task* task);
+static void _playerActorNoWeaponAttack(Task* unusedTask);
 
 static void func_801065A8(Task* arg0);
 
@@ -526,7 +523,7 @@ static void func_80108568(Task* arg0);
 
 static void func_801085D0(Task* arg0);
 
-static void func_80108620(Task* arg0);
+static void _playerActorUpdateIdleTurnAnimation(Task* task);
 
 static void func_80108684(Task* arg0);
 
@@ -554,7 +551,7 @@ static void func_80109138(Task* arg0);
 
 static void Gp_PlayerMode1State0(Task* arg0);
 
-static void Gp_PlayerMode1State3(Task* task);
+static void _playerActorDamageHitRegion3(Task* unusedTask);
 
 static void func_80109210(Task* arg0);
 
@@ -572,14 +569,13 @@ static void func_801095BC(s32* arg0);
 
 static void Gp_PlayerMode2State7(Task* arg0);
 
-static void Gp_PlayerMode2State9(Task* arg0);
+static void _playerActorScriptedState9(Task* task);
 
-static void func_80109720(Task* arg0);
+static void _playerActorUpdateTurnYawOffset(Task* task);
 
 static void func_80109818(Task* arg0);
 
-/// Caps a level at 2.
-static inline s32 _gpCapLevel(s32 level);
+static inline s32 _playerActorClampHitEffectLevel(s32 hitEffectLevel);
 
 static void func_80109844(Task* arg0);
 
@@ -1002,7 +998,7 @@ TaskMessageEntry Gp_PlayerMsgTable[28] = {
     { GAME_ACTOR_MESSAGE_APPLY_DAMAGE, Gp_ApplyPlayerDamage },
     { 1018, func_80105690 },
     { 1019, func_80105190 },
-    { 1020, func_80105A8C },
+    { GAME_ACTOR_MESSAGE_SET_RUN_MOVEMENT, _playerActorSetRunMovement },
     { ANIMATION_MESSAGE_SET_RATE, playerActorSetAnimationRate },
     { GAME_ACTOR_MESSAGE_MOVE_BY, Gp_MoveActorBy },
     { ANIMATION_MESSAGE_REPLACE_AND_PLAY, func_80104CAC },
@@ -2291,7 +2287,7 @@ void Gp_EffSprTask30(Task* arg0)
 }
 
 static const TaskFuncTable3 Gp_EffTask07States = { {
-    Gp_EffTask07State0,
+    _effectControlTask07State0,
     Gp_EffTask07State1,
     taskKill,
 } };
@@ -3205,11 +3201,12 @@ continue_fx:
                 0x10200, 0);
 }
 
-/// Installs the Berserker burst's identity transform at the player's part 8.
+/// Parents the Berserker shot burst at player part 8 with an identity local transform.
 ///
-/// Borrows the live player coordinate array, which must include part 8. The
-/// zero translation places the burst at that part's origin; composition follows
-/// in the task. Matrix pairs write adjacent 16-bit coefficients as one word.
+/// `coord` must be writable. `playerCoords` must contain at least nine live
+/// coordinates and remain live while the burst retains its parent. Zero local
+/// translation places the burst at the part's origin; the dirty stamp requests
+/// recomposition before its world transform is used.
 static inline void _effectInitStatusBurstCoord(GfxCoord* coord, GfxCoord* playerCoords)
 {
     enum { EFFECT_STATUS_BURST_PARENT_PART = 8 };
@@ -3283,9 +3280,10 @@ void Gp_PulseState1C80(void)
     gRoomEffectState->pendingCancelFlags |= ROOM_EFFECT_CANCEL_PE;
 }
 
-static void Gp_EffTask07State0(Task* arg0)
+/// Advances effect controller 07 from its initial state to its active dispatcher.
+static void _effectControlTask07State0(Task* task)
 {
-    arg0->state = arg0->state + 1;
+    task->state = task->state + 1;
 }
 
 void Gp_EffCtlTask07(Task* arg0)
@@ -3819,11 +3817,11 @@ void func_800FDB18(s32 arg0, GfxCoord* arg1, SVECTOR* arg2, EffectSpawnArg* arg3
 }
 
 /// Four-entry `Task::state` dispatcher: `Gp_InitPlayerWork`, `Gp_PlayerWorkState1`,
-/// `Gp_PlayerWorkState2`, `Gp_TeardownSlot0`.
+/// `_playerActorWorkState2`, `Gp_TeardownSlot0`.
 static const TaskFuncTable4 Gp_PlayerWorkStates = { {
     Gp_InitPlayerWork,
     Gp_PlayerWorkState1,
-    Gp_PlayerWorkState2,
+    _playerActorWorkState2,
     Gp_TeardownSlot0,
 } };
 
@@ -5096,9 +5094,11 @@ static void func_8010133C(void)
     SCRATCH_STACK_RELEASE_BLOCK(_PlayerActorTextGridScratch);
 }
 
-static void Gp_PlayerWorkState2(Task* arg0)
+/// Schedules player-task teardown for the next work-dispatch tick.
+static void _playerActorWorkState2(Task* task)
 {
-    arg0->state = 3;
+    enum { PLAYER_ACTOR_WORK_TEARDOWN_STATE = 3 };
+    task->state = PLAYER_ACTOR_WORK_TEARDOWN_STATE;
 }
 
 static void Gp_TeardownSlot0(Task* arg0)
@@ -5145,24 +5145,27 @@ void Gp_PlayerWorkTask(Task* arg0)
     handlers.funcs[arg0->state](arg0);
 }
 
-/// Latches this frame's pad state into the actor of `arg0`: keeps the previous
-/// values of the per-frame bytes and of the held buttons, reads the session's
-/// pad, and derives the newly pressed and released buttons from the two.
-static inline void _gpCaptureActorPad(Task* arg0)
+/// Captures the session's logical pad input and preserves the actor's previous input.
+///
+/// `task->work` must be a live player `GameActor`. Captures movement/turn signs,
+/// held buttons and the run button before deriving press and release edges.
+/// The logical Cross bit is the run input, independent of physical pad mapping.
+static inline void _playerActorCapturePad(Task* task)
 {
+    enum { PLAYER_ACTOR_RUN_BUTTON_SHIFT = 6 };
     GameActor* actor;
-    u16        buttons;
+    u16        heldButtons;
 
-    actor                        = arg0->work;
+    actor                        = task->work;
     actor->previousMovementSign  = actor->movementSign;
     actor->previousTurnSign      = actor->turnSign;
     actor->previousPadHeld       = actor->padHeld;
-    buttons                      = gGameSession->padHeld;
+    heldButtons                  = gGameSession->padHeld;
     actor->previousRunButtonHeld = actor->runButtonHeld;
-    actor->padHeld               = buttons;
+    actor->padHeld               = heldButtons;
     actor->padPressed            = actor->padHeld & ~actor->previousPadHeld;
     actor->padReleased           = actor->previousPadHeld & ~actor->padHeld;
-    actor->runButtonHeld         = (actor->padHeld >> 6) & 1;
+    actor->runButtonHeld         = (actor->padHeld >> PLAYER_ACTOR_RUN_BUTTON_SHIFT) & 1;
 }
 
 void Gp_UpdatePlayerMove(void)
@@ -5179,7 +5182,7 @@ void Gp_UpdatePlayerMove(void)
     SCRATCH_STACK_RESERVE_BLOCK(SVECTOR);
     vec   = SCRATCH_STACK_CURSOR(SVECTOR);
     coord = work->extra.tmd->coords;
-    _gpCaptureActorPad(work);
+    _playerActorCapturePad(work);
     gSceneCombatState.signals.bytes.actionFlags = 0;
     if (D_80115768 == 0) {
         Gp_TickPlayerActor(work);
@@ -6060,23 +6063,32 @@ void playerActorTickChildSlots(Task* task)
     }
 }
 
-static s32 Gp_HpBand(void)
+/// Returns the player's idle-clip band: 0 above half HP, 1 above a quarter, 2 otherwise.
+///
+/// Equality belongs to the lower band. Thresholds truncate by signed shifts of
+/// the maximum HP's low 16 bits; the normal maximum is nonnegative.
+static s32 _playerActorGetIdleHealthBand(void)
 {
-    PlayerStatus* p;
-    s32           temp;
-    s32           ret;
+    enum {
+        PLAYER_ACTOR_IDLE_HEALTH_ABOVE_HALF      = 0,
+        PLAYER_ACTOR_IDLE_HEALTH_ABOVE_QUARTER   = 1,
+        PLAYER_ACTOR_IDLE_HEALTH_AT_MOST_QUARTER = 2,
+    };
+    const PlayerStatus* playerStatus;
+    s32                 shiftedMaxHp;
+    s32                 healthBand;
 
-    p    = &gPlayerStatus;
-    temp = (u16)p->hpMax << 16;
-    if ((temp >> 17) < p->hp) {
-        ret = 0;
+    playerStatus = &gPlayerStatus;
+    shiftedMaxHp = (u16)playerStatus->hpMax << 16;
+    if ((shiftedMaxHp >> 17) < playerStatus->hp) {
+        healthBand = PLAYER_ACTOR_IDLE_HEALTH_ABOVE_HALF;
     } else {
-        ret = 1;
-        if ((temp >> 18) >= p->hp) {
-            ret = 2;
+        healthBand = PLAYER_ACTOR_IDLE_HEALTH_ABOVE_QUARTER;
+        if ((shiftedMaxHp >> 18) >= playerStatus->hp) {
+            healthBand = PLAYER_ACTOR_IDLE_HEALTH_AT_MOST_QUARTER;
         }
     }
-    return ret;
+    return healthBand;
 }
 
 void Gp_DetachLinkNode(Task* arg0)
@@ -6463,15 +6475,16 @@ s32 func_80104508(Task* task, s32 msgId, AnimationPlayRequest* request, s32 unus
     return 0;
 }
 
-/// Copies the parent's draw flags to an attachment and repeats its buffer operation.
+/// Copies parent draw flags to an attachment, then repeats the operation on the parent.
 ///
-/// The attachment task and parent model must be live. A selected operation
-/// targets `model` after copying flags; NULL copies flags alone.
-static inline void _playerActorApplyDrawToAttachment(Task* attachment, TmdObject* model, void (*bufferOperation)(TmdObject*))
+/// Both models must be live. A non-NULL `bufferOperation` receives `parentModel`
+/// after the flag copy, including when the operation was already applied to it.
+/// NULL only copies flags; the attachment's buffer is never the operation's target.
+static inline void _playerActorApplyDrawToAttachment(Task* attachment, TmdObject* parentModel, void (*bufferOperation)(TmdObject*))
 {
-    attachment->extra.tmd->flags = model->flags;
+    attachment->extra.tmd->flags = parentModel->flags;
     if (bufferOperation != NULL) {
-        bufferOperation(model);
+        bufferOperation(parentModel);
     }
 }
 
@@ -7251,15 +7264,23 @@ s32 playerActorAttachToCoord(Task* task, s32 unusedMessageId, GfxCoord* parent, 
     return 0;
 }
 
-s32 func_80105A8C(Task* arg0, s32 arg1, s32 arg2, s32 unusedSecondArg)
+/// Selects the player's walking or running movement speed for message 1020.
+///
+/// Zero `runEnabled` selects walk; every nonzero value selects run. Changes
+/// only the movement selector on the live actor and returns 0.
+static s32 _playerActorSetRunMovement(Task* task, s32 unusedMessageId, s32 runEnabled, s32 unusedSecondArg)
 {
-    GameActor* inner;
+    enum {
+        PLAYER_ACTOR_RUN_MOVEMENT_WALK = 1,
+        PLAYER_ACTOR_RUN_MOVEMENT_RUN  = 3,
+    };
+    GameActor* actor;
 
-    inner = arg0->work;
-    if (arg2 == 0) {
-        inner->movementMode = 1;
+    actor = task->work;
+    if (runEnabled == 0) {
+        actor->movementMode = PLAYER_ACTOR_RUN_MOVEMENT_WALK;
     } else {
-        inner->movementMode = 3;
+        actor->movementMode = PLAYER_ACTOR_RUN_MOVEMENT_RUN;
     }
     return 0;
 }
@@ -7309,14 +7330,14 @@ static void func_80105B0C(Task* arg0)
     }
 }
 
-void func_80105B74(VECTOR3* arg0)
+void playerActorSetPendingDisplacement(const VECTOR3* displacement)
 {
     GameActor* actor;
 
     actor                         = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->work;
-    actor->pendingDisplacement.vx = arg0->vx;
-    actor->pendingDisplacement.vy = arg0->vy;
-    actor->pendingDisplacement.vz = arg0->vz;
+    actor->pendingDisplacement.vx = displacement->vx;
+    actor->pendingDisplacement.vy = displacement->vy;
+    actor->pendingDisplacement.vz = displacement->vz;
 }
 
 s32 Gp_PickNearestRec18(WorldCollisionContact* arg0, GfxCoord* arg1, GfxCoord* arg2)
@@ -7482,19 +7503,19 @@ s8 playerActorReadAttackButton(Task* task)
 
 /// Per-weapon handlers, indexed by `PlayerStatus::weapon` and copied by
 /// `func_8010615C`. Most live in the weapon overlay loaded at the time;
-/// `func_801065A0` serves the weapons with none.
+/// `_playerActorNoWeaponAttack` serves the weapons with none.
 static const _PlayerActorWeaponAttacks D_800978BC = { {
-    func_801065A0,
+    _playerActorNoWeaponAttack,
     func_p08_snail_8011D1D8,
     func_m93r_8011D1C4,
     func_m950_8011D1DC,
     func_p08_8011D1D8,
     func_p229_8011DDA0,
-    func_801065A0,
-    func_801065A0,
-    func_801065A0,
+    _playerActorNoWeaponAttack,
+    _playerActorNoWeaponAttack,
+    _playerActorNoWeaponAttack,
     func_mongoose_8011D1D8,
-    func_801065A0,
+    _playerActorNoWeaponAttack,
     func_grenade_pistol_8011D1D4,
     func_mm1_8011D1D4,
     func_pa3_8011D1DC,
@@ -7502,13 +7523,13 @@ static const _PlayerActorWeaponAttacks D_800978BC = { {
     func_as12_8011D1DC,
     func_m4a1_8011D1C4,
     func_m249_8011D1DC,
-    func_801065A0,
+    _playerActorNoWeaponAttack,
     func_tonfa_baton_8011DBFC,
     func_m4a1_p1_8011D1C4,
     func_m4a1_p2_8011D1C4,
     func_hypervelocity_8011F724,
     func_gunblade_8011E040,
-    func_801065A0,
+    _playerActorNoWeaponAttack,
     func_m4a1_hammer_8011E710,
     func_m4a1_bayonet_8011DA34,
     func_m4a1_grenade_8011D1EC,
@@ -7632,11 +7653,16 @@ void Gp_PlayObjSfx(GfxCoord* coord, s32 sfx, s32 arg2)
     }
 }
 
-void func_80106518(s32 arg0)
+void weaponRecordUse(s32 weaponId)
 {
-    arg0--;
-    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponUseCounts[arg0] < 99999) {
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponUseCounts[arg0]++;
+    enum { WEAPON_USE_COUNT_MAX = 99999 };
+    register s32 incrementLimit asm("v0");
+    s32          useCountIndex;
+
+    incrementLimit = WEAPON_USE_COUNT_MAX - 1;
+    useCountIndex  = weaponId - 1;
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponUseCounts[useCountIndex] <= incrementLimit) {
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponUseCounts[useCountIndex]++;
     }
 }
 
@@ -7649,12 +7675,17 @@ void func_80106550(Task* arg0)
     }
 }
 
-static void func_801065A0(Task* task)
+/// Empty attack slot for no weapon and weapon packages without executable attack code.
+static void _playerActorNoWeaponAttack(Task* unusedTask)
 {
 }
 
 static void func_801065A8(Task* arg0)
 {
+    enum {
+        PLAYER_ACTOR_HEALTH_IDLE_SET_FIRST    = 23,
+        PLAYER_ACTOR_HEALTH_IDLE_BLEND_FRAMES = 5,
+    };
     GameActor* inner;
 
     inner = arg0->work;
@@ -7666,12 +7697,13 @@ static void func_801065A8(Task* arg0)
                (inner->runButtonHeld != inner->previousRunButtonHeld && inner->movementSign == 1)) {
         playerActorEnterLocomotion(arg0, 0);
     } else if (inner->movementSign == 0 && inner->turnSign != inner->previousTurnSign) {
-        func_80108620(arg0);
+        _playerActorUpdateIdleTurnAnimation(arg0);
     } else if ((inner->padHeld & 0xF000) == 0) {
         if (inner->idleTicks < 0x7FFF) {
             inner->idleTicks++;
             if (inner->idleTicks == 0x12C) {
-                playerActorPlayChildSlotsWithBlend(arg0, Gp_HpBand() + 0x17, 0, 5);
+                playerActorPlayChildSlotsWithBlend(arg0, _playerActorGetIdleHealthBand() + PLAYER_ACTOR_HEALTH_IDLE_SET_FIRST,
+                                                   0, PLAYER_ACTOR_HEALTH_IDLE_BLEND_FRAMES);
             }
         }
     }
@@ -8673,7 +8705,7 @@ static void Gp_TickPlayerActor(Task* arg0)
     }
     inner->usesPushbackDirection = 0;
     sp.funcs[inner->mode](arg0);
-    func_80109720(arg0);
+    _playerActorUpdateTurnYawOffset(arg0);
     func_801030CC(arg0);
 }
 
@@ -8693,7 +8725,7 @@ static void Gp_ArmLockOnState(Task* arg0)
             if (inner->aimTransitionPending != 0) {
                 inner->aimTransitionPending = 0;
                 if (node != NULL) {
-                    func_80108E0C(arg0, node);
+                    playerActorSetLockTarget(arg0, node);
                 }
             }
             Gp_ResetActorAnimState(arg0, 3);
@@ -8735,26 +8767,40 @@ static void func_801085D0(Task* arg0)
     }
 }
 
-static void func_80108620(Task* arg0)
+/// Blends the stationary player's child slots into idle or the selected turn clip.
+///
+/// Requires the native animation bank's clips 1, 5 and 6. Leaves the actor's
+/// current state index intact, stops movement, selects the idle turn rate and
+/// resets the animation controller, phase and idle timer. Blends for five frames.
+static void _playerActorUpdateIdleTurnAnimation(Task* task)
 {
-    GameActor* inner;
-    s32        mode;
+    enum {
+        PLAYER_ACTOR_IDLE_TURN_STOPPED      = 0,
+        PLAYER_ACTOR_IDLE_TURN_CONTROLLER   = 0,
+        PLAYER_ACTOR_IDLE_TURN_RATE_INDEX   = 3,
+        PLAYER_ACTOR_IDLE_TURN_SET_IDLE     = 1,
+        PLAYER_ACTOR_IDLE_TURN_SET_NEGATIVE = 5,
+        PLAYER_ACTOR_IDLE_TURN_SET_POSITIVE = 6,
+        PLAYER_ACTOR_IDLE_TURN_BLEND_FRAMES = 5,
+    };
+    GameActor* actor;
+    s32        setIndex;
 
-    inner                 = arg0->work;
-    inner->mode           = GAME_ACTOR_MODE_NORMAL;
-    inner->movementMode   = 0;
-    inner->turnRateIndex  = 3;
-    inner->animationState = 0;
-    inner->statePhase     = 0;
-    inner->idleTicks      = 0;
-    if (inner->turnSign == 0) {
-        mode = 1;
-    } else if (inner->turnSign == 1) {
-        mode = 6;
+    actor                 = task->work;
+    actor->mode           = GAME_ACTOR_MODE_NORMAL;
+    actor->movementMode   = PLAYER_ACTOR_IDLE_TURN_STOPPED;
+    actor->turnRateIndex  = PLAYER_ACTOR_IDLE_TURN_RATE_INDEX;
+    actor->animationState = PLAYER_ACTOR_IDLE_TURN_CONTROLLER;
+    actor->statePhase     = 0;
+    actor->idleTicks      = 0;
+    if (actor->turnSign == 0) {
+        setIndex = PLAYER_ACTOR_IDLE_TURN_SET_IDLE;
+    } else if (actor->turnSign == 1) {
+        setIndex = PLAYER_ACTOR_IDLE_TURN_SET_POSITIVE;
     } else {
-        mode = 5;
+        setIndex = PLAYER_ACTOR_IDLE_TURN_SET_NEGATIVE;
     }
-    playerActorPlayChildSlotsWithBlend(arg0, mode, 0, 5);
+    playerActorPlayChildSlotsWithBlend(task, setIndex, 0, PLAYER_ACTOR_IDLE_TURN_BLEND_FRAMES);
 }
 
 static void func_80108684(Task* arg0)
@@ -9091,17 +9137,17 @@ static inline void _playerActorSetTargetNode(Task* task, WorldTargetNode* target
     target->state.parts.targeted = 1;
 }
 
-void func_80108E0C(Task* arg0, WorldTargetNode* arg1)
+void playerActorSetLockTarget(Task* task, WorldTargetNode* target)
 {
-    _playerActorSetTargetNode(arg0, arg1);
+    _playerActorSetTargetNode(task, target);
 }
 
-/// `hitRegion` dispatcher: three slots of `Gp_PlayerMode1State0`, then `Gp_PlayerMode1State3`.
+/// `hitRegion` dispatcher: three slots of `Gp_PlayerMode1State0`, then `_playerActorDamageHitRegion3`.
 static const TaskFuncTable4 Gp_PlayerMode1States = { {
     Gp_PlayerMode1State0,
     Gp_PlayerMode1State0,
     Gp_PlayerMode1State0,
-    Gp_PlayerMode1State3,
+    _playerActorDamageHitRegion3,
 } };
 
 static void Gp_TickPlayerMode1(Task* arg0)
@@ -9127,7 +9173,7 @@ static const TaskFuncTable12 Gp_PlayerMode2States = { {
     playerActorMode2State6,
     Gp_PlayerMode2State7,
     Gp_PlayerMode2State8,
-    Gp_PlayerMode2State9,
+    _playerActorScriptedState9,
     Gp_PlayerMode2StateA,
     Gp_PlayerMode2StateB,
 } };
@@ -9171,7 +9217,7 @@ static void Gp_PlayerNormalState1(Task* arg0)
             if (inner->aimTransitionPending != 0) {
                 inner->aimTransitionPending = 0;
                 if (node != NULL) {
-                    func_80108E0C(arg0, node);
+                    playerActorSetLockTarget(arg0, node);
                 }
             }
             Gp_ResetActorAnimState(arg0, 3);
@@ -9238,7 +9284,10 @@ static void Gp_PlayerMode1State0(Task* arg0)
     }
 }
 
-static void Gp_PlayerMode1State3(Task* task)
+/// Empty damage-mode callback for hit-region selector 3.
+///
+/// The mode dispatcher still advances animation, turning and movement afterward.
+static void _playerActorDamageHitRegion3(Task* unusedTask)
 {
 }
 
@@ -9436,49 +9485,73 @@ static void Gp_PlayerMode2State7(Task* arg0)
     Gp_PlayerStepSfx(arg0);
 }
 
-static void Gp_PlayerMode2State9(Task* arg0)
+/// Advances only child animation slots in scripted player state 9.
+static void _playerActorScriptedState9(Task* task)
 {
-    playerActorTickChildSlots(arg0);
+    playerActorTickChildSlots(task);
 }
 
-static void func_80109720(Task* arg0)
+/// Updates model part 4's relative yaw from horizontal input and recenters it afterward.
+///
+/// Angles use 4096 units per turn. Normal-mode input steps by 32 within +/-416;
+/// left wins when both directions are held. Otherwise the offset decays by an
+/// eighth of itself, at least 64, and snaps to zero within 64. Requires live
+/// actor work and at least five model coordinates; dirties part 4 every call.
+static void _playerActorUpdateTurnYawOffset(Task* task)
 {
+    enum {
+        PLAYER_ACTOR_TURN_YAW_PART         = 4,
+        PLAYER_ACTOR_TURN_YAW_INPUT_STEP   = 32,
+        PLAYER_ACTOR_TURN_YAW_LIMIT        = 416,
+        PLAYER_ACTOR_TURN_YAW_RECENTER_MIN = 64,
+    };
     GameActor* actor;
-    GfxCoord*  coord;
-    u16        flags;
-    s16        delta;
-    s32        val;
-    s32        temp;
+    GfxCoord*  coords;
+    u16        heldButtons;
+    s16        yawStep;
 
-    coord                 = arg0->extra.tmd->coords;
-    actor                 = arg0->work;
-    coord[4].composeStamp = GRAPHICS_COORD_DIRTY;
-    flags                 = actor->padHeld;
-    if ((flags & 0xA000) && (actor->mode == GAME_ACTOR_MODE_NORMAL)) {
-        if (flags & 0x8000) {
-            delta = -0x20;
+    /// Recenters a nonzero relative turn yaw by an eighth, with a 64-unit minimum step.
+    ///
+    /// `actor` is a stable pointer to writable GameActor work; `yawStep` is a
+    /// writable s16 lvalue. Both arguments are evaluated repeatedly. Uses the
+    /// enclosing function's recenter constant; removed with #undef after this use.
+#define PLAYER_ACTOR_RECENTER_TURN_YAW(actor, yawStep)                       \
+    do {                                                                     \
+        s32 decayStep;                                                       \
+        s32 originalDecayStep;                                               \
+        decayStep         = (actor)->aimYaw >> 3;                            \
+        (yawStep)         = decayStep;                                       \
+        originalDecayStep = decayStep;                                       \
+        if (ABS(originalDecayStep) < PLAYER_ACTOR_TURN_YAW_RECENTER_MIN) {   \
+            decayStep = PLAYER_ACTOR_TURN_YAW_RECENTER_MIN;                  \
+            if (originalDecayStep < 0) {                                     \
+                decayStep = -PLAYER_ACTOR_TURN_YAW_RECENTER_MIN;             \
+            }                                                                \
+            (yawStep) = decayStep;                                           \
+        }                                                                    \
+        (actor)->aimYaw -= (yawStep);                                        \
+        if (ABS((actor)->aimYaw) < PLAYER_ACTOR_TURN_YAW_RECENTER_MIN + 1) { \
+            (actor)->aimYaw = 0;                                             \
+        }                                                                    \
+    } while (0)
+
+    coords                                          = task->extra.tmd->coords;
+    actor                                           = task->work;
+    coords[PLAYER_ACTOR_TURN_YAW_PART].composeStamp = GRAPHICS_COORD_DIRTY;
+    heldButtons                                     = actor->padHeld;
+    if ((heldButtons & (PAD_BUTTON_LEFT | PAD_BUTTON_RIGHT)) && (actor->mode == GAME_ACTOR_MODE_NORMAL)) {
+        if (heldButtons & PAD_BUTTON_LEFT) {
+            yawStep = -PLAYER_ACTOR_TURN_YAW_INPUT_STEP;
         } else {
-            delta = 0x20;
+            yawStep = PLAYER_ACTOR_TURN_YAW_INPUT_STEP;
         }
-        if (ABS(actor->aimYaw + delta) < 0x1A1) {
-            actor->aimYaw += delta;
+        if (ABS(actor->aimYaw + yawStep) < PLAYER_ACTOR_TURN_YAW_LIMIT + 1) {
+            actor->aimYaw += yawStep;
         }
     } else if (actor->aimYaw != 0) {
-        val   = actor->aimYaw >> 3;
-        delta = val;
-        temp  = val;
-        if (ABS(temp) < 0x40) {
-            val = 0x40;
-            if (temp < 0) {
-                val = -0x40;
-            }
-            delta = val;
-        }
-        actor->aimYaw -= delta;
-        if (ABS(actor->aimYaw) < 0x41) {
-            actor->aimYaw = 0;
-        }
+        PLAYER_ACTOR_RECENTER_TURN_YAW(actor, yawStep);
     }
+#undef PLAYER_ACTOR_RECENTER_TURN_YAW
 }
 
 static void func_80109818(Task* arg0)
@@ -9495,18 +9568,24 @@ static void func_80109818(Task* arg0)
     inner->rumblePosted   = 0;
 }
 
-/// Caps a level at 2.
-static inline s32 _gpCapLevel(s32 level)
+/// Caps the player's damage-derived hit-effect level at 2.
+///
+/// The reaction derives its nonnegative level as unsigned pending damage / 12;
+/// the capped value selects burst size and repetition count. Negative inputs
+/// are preserved by this signed helper.
+static inline s32 _playerActorClampHitEffectLevel(s32 hitEffectLevel)
 {
-    s32 capped = 2;
-    if (level < 3) {
-        capped = level;
+    enum { PLAYER_ACTOR_HIT_EFFECT_MAX_LEVEL = 2 };
+    s32 clampedLevel = PLAYER_ACTOR_HIT_EFFECT_MAX_LEVEL;
+    if (hitEffectLevel < PLAYER_ACTOR_HIT_EFFECT_MAX_LEVEL + 1) {
+        clampedLevel = hitEffectLevel;
     }
-    return capped;
+    return clampedLevel;
 }
 
 static void func_80109844(Task* arg0)
 {
+    enum { PLAYER_ACTOR_HIT_EFFECT_DAMAGE_STEP = 12 };
     u8*             head;
     SVECTOR*        vec;
     GameActor*      inner;
@@ -9514,31 +9593,31 @@ static void func_80109844(Task* arg0)
     EffectSpawnArg* params;
     GfxCoord*       coord;
     s32             idx;
-    s32             temp;
+    s32             hitEffectLevel;
     s32             val;
 
     inner                    = arg0->work;
-    temp                     = (u16)inner->pendingDamage / 12;
+    hitEffectLevel           = (u16)inner->pendingDamage / PLAYER_ACTOR_HIT_EFFECT_DAMAGE_STEP;
     head                     = SCRATCH_STACK_CURSOR(u8);
     params                   = &D_80113358;
     head                    -= 8;
     SCRATCH_STACK_CURSOR(u8) = head;
     vec                      = (SVECTOR*)head;
-    temp                     = _gpCapLevel(temp);
+    hitEffectLevel           = _playerActorClampHitEffectLevel(hitEffectLevel);
     switch (inner->statePhase) {
         case 0:
             inner->statePhase  = 1;
             coord              = ((s8)inner->hitBodyIndex + inner->collisionBodies)->coord;
-            params->spawnArgLo = (temp * 0x20) + 0x120;
-            params->spawnArgHi = temp + 1;
+            params->spawnArgLo = (hitEffectLevel * 0x20) + 0x120;
+            params->spawnArgHi = hitEffectLevel + 1;
             D_80113358.coord   = coord;
             inner->stateTimer  = 0;
-            inner->actionValue = temp;
+            inner->actionValue = hitEffectLevel;
             /* fallthrough */
         case 1:
             if (inner->stateTimer == 0) {
                 idx = 5;
-                if (temp < 3) {
+                if (hitEffectLevel < 3) {
                     idx = 6;
                 }
                 inner->actionValue--;

@@ -284,6 +284,10 @@ enum {
     GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES = 0x3F8,
     /// Applies damage to the receiver (`Gp_ApplyPlayerDamage`, `Gp_HurtAlly`).
     GAME_ACTOR_MESSAGE_APPLY_DAMAGE = 0x3F9,
+    /// Player: selects walking speed for zero first argument, running speed for
+    /// every nonzero value, without taking scripted control or changing the clip.
+    /// Returns 0. Companions bind this ID to their generic animation handler.
+    GAME_ACTOR_MESSAGE_SET_RUN_MOVEMENT = 0x3FC,
     /// Moves the receiver by a borrowed `GameActorMoveBy` displacement, taking
     /// scripted control unless the record keeps the receiver's own. The player
     /// returns 1 while it touches a non-floor grid contact, otherwise 0.

@@ -7375,7 +7375,7 @@ if (ABS(temp) < 0x40) {
 
 `if (temp >= 0) val = 0x40; else val = -0x40` flips to `bltz` with the
 constants swapped. Assigning the clamp to `temp` (already in `$v1`)
-emits `li v1` instead of `li v0`. `func_80109720` is the example.
+emits `li v1` instead of `li v0`. `_playerActorUpdateTurnYawOffset` is the example.
 
 ## `s16` divisor after `s32` `>> 3` and zero-clamp
 
@@ -23833,7 +23833,7 @@ if (arg2 == 0) {
 ```
 
 cc1 emits `bne` in reorder mode followed by a noreorder `j join; li 1`. aspsx
-then inserts the `nop` delay on the `bne`. `func_80105A8C` is the pure example.
+then inserts the `nop` delay on the `bne`. `_playerActorSetRunMovement` is the pure example.
 
 ## `mc.h` exports `D_8007216C` as `u8`; 268.c needs a word load of that symbol
 
@@ -24372,7 +24372,7 @@ if ((temp >> 17) < hp) {
 ```
 
 `(u16)s16_field << 16` is what produces the shared `lhu` / `sll 16` used by
-both `sra 17` and `sra 18`. `Gp_HpBand` is the pure example.
+both `sra 17` and `sra 18`. `_playerActorGetIdleHealthBand` is the pure example.
 
 ## Split-constant `lui v0` before a 1-based index
 
@@ -24402,7 +24402,7 @@ if (p->arr[idx] <= cap) {
 }
 ```
 
-`func_80106518` is the example.
+`weaponRecordUse` is the example.
 
 ## `cln(n << 12) / 2839` is integer log2
 
@@ -28269,7 +28269,7 @@ if (x != 0) {
 ```
 
 `playerActorEnterLocomotion` is the example. The `== 0` / `else if == 1` form (used
-by the similar `func_80108620`) stuck at 81% with the extra jump
+by the similar `_playerActorUpdateIdleTurnAnimation`) stuck at 81% with the extra jump
 missing and `li a1,1` in the `beqz` delay slot.
 
 ## Reassign the compared local to `1` so it stays in `$v1` for later stores
@@ -36884,7 +36884,7 @@ the already-copied `$s` work pointer. `Gp_TurnPlayer` is the example.
 `slti; beqz` delay. Set `flag = 1` in the outer `if (field != 0)` *before* the
 abs check. The scheduler puts `li s2, 1` in that delay slot, which is correct
 because the flag should be set whenever the field is nonzero (not only when
-the step was clamped). Same decay shape as `func_80109720`, plus the flag.
+the step was clamped). Same decay shape as `_playerActorUpdateTurnYawOffset`, plus the flag.
 
 ## Pin the first `RotMatrix` arg to `$a0` so `&svec` beats `ptr += 4`
 
@@ -50733,7 +50733,7 @@ sc->push.vx = sc->dir.vx;
 sc->push.vy = 0;
 sc->push.vz = sc->dir.vz;
 if (D_8007218B != 2 && D_8007218B != 0xA && actor->mode != 2) {
-    func_80105B74(&sc->push);
+    playerActorSetPendingDisplacement(&sc->push);
 }
 ```
 
@@ -74166,7 +74166,7 @@ helper read it again after:
 actor = work->work;          /* first read */
 SCRATCH_STACK_RESERVE_BLOCK(SVECTOR);
 vec = SCRATCH_STACK_CURSOR(SVECTOR);
-_gpCaptureActorPad(work);    /* reads work->work again, stores through it */
+_playerActorCapturePad(work);    /* reads work->work again, stores through it */
 ```
 
 **Why.** cse's `note_mem_written` sets `var` for *any* store, and

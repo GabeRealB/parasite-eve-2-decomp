@@ -22,6 +22,9 @@
 #include "main/wipsys.h"
 #include "main/wipsys_types.h"
 
+/// One-based weapon index passed to the resident use counter.
+enum { M4A1_BAYONET_WEAPON_ID = 26 };
+
 void func_m4a1_bayonet_8011DA34(Task* arg0);
 
 /// Per-frame firing state machine for the M4A1 bayonet. State 0 arms the shot
@@ -88,7 +91,7 @@ void func_m4a1_bayonet_8011DA34(Task* arg0)
                 actor->statePhase        = 5;
                 actor->attackCancelTicks = 0xA;
                 actor->actionValue       = 0x12;
-                func_80106518(0x1A);
+                weaponRecordUse(M4A1_BAYONET_WEAPON_ID);
                 actor->attackControl.cooldownTicks                    = 0x1C;
                 rec->ends[0].vz                                       = rec->ends[1].vz + 0x340;
                 actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].key    = 0x21A1D;

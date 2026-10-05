@@ -685,8 +685,8 @@ static void func_dryfield_gas_station_801803C0(Task* task)
                         TASK_MESSAGE_DISPATCH_POINTER(cur->player, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg.rec, 0);
                     }
                     taskMessageDispatch(work->player, ANIMATION_MESSAGE_SET_RATE, 8, 0);
-                    // Message 0x3FC sets the player's movement mode to 1.
-                    taskMessageDispatch(work->player, 0x3FC, 0, 0);
+                    // Use walking speed with the scripted walk clip.
+                    taskMessageDispatch(work->player, GAME_ACTOR_MESSAGE_SET_RUN_MOVEMENT, 0, 0);
                     work->walkFrames = 0;
                     work->commandStep++;
                     return;

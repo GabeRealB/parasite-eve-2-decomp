@@ -4872,7 +4872,7 @@ static void func_actor_444000_8013D96C(Task* arg0)
 /// picks how hard: `phasePull` is the phase's base strength and the frame divides
 /// `-(phasePull + 0x19)` by 1, 2, 3, 4, 6 or 2/3 before `gte_gpf12` scales the
 /// normalised direction by it. Frames outside 9..20 drop the pull and clear
-/// `hostExposed`. `func_80105B74` hands the result to the player actor unless the
+/// `hostExposed`. `playerActorSetPendingDisplacement` hands the result to the player actor unless the
 /// game is in mode 2 or 0xA or the player is already in mode 2.
 ///
 /// Alongside that: a script fires every `padScriptPeriod` ticks while the frame sits in
@@ -5124,7 +5124,7 @@ static void func_actor_444000_8013E058(Task* task)
         sc->displacement.vy = 0;
         sc->displacement.vz = sc->offset.vz;
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 2 && gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 0xA && actor->mode != GAME_ACTOR_MODE_SCRIPTED) {
-            func_80105B74(&sc->displacement);
+            playerActorSetPendingDisplacement(&sc->displacement);
         }
     }
 

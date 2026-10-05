@@ -4966,7 +4966,7 @@ static void func_actor_403200_8013B8C4(Task* arg0)
         sc->displacement.vx = sc->offset.vx;
         sc->displacement.vy = 0;
         sc->displacement.vz = sc->offset.vz;
-        func_80105B74(&sc->displacement);
+        playerActorSetPendingDisplacement(&sc->displacement);
     }
 
     if (work->hostRig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {

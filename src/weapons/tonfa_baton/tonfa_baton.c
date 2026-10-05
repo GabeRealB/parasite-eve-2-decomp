@@ -38,6 +38,9 @@
 /// strike carries the actor per frame: 4096 / 84, about 48 coordinate units.
 enum { TONFA_BATON_ATTACK_ADVANCE_DIVISOR = 84 };
 
+/// One-based weapon index passed to the resident use counter.
+enum { TONFA_BATON_WEAPON_ID = 19 };
+
 /// Scratch-stack block for the tonfa baton's attack handler.
 ///
 /// The handler reserves one block each frame and releases it before
@@ -326,7 +329,7 @@ void func_tonfa_baton_8011DBFC(Task* arg0)
             actor->animationState = 0;
             actor->stateTimer     = 8;
             actor->actionValue    = 0;
-            func_80106518(0x13);
+            weaponRecordUse(TONFA_BATON_WEAPON_ID);
             actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].key   = 0x21317;
             actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags = (actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags & 0xF7FF) | 0x400;
             playerActorPlayChildSlotsWithBlend(arg0, 0xA, 1, 3);
@@ -365,7 +368,7 @@ void func_tonfa_baton_8011DBFC(Task* arg0)
                 if (actor->statePhase == 2) {
                     actor->statePhase = 3;
                     actor->stateTimer = 0xC;
-                    func_80106518(0x13);
+                    weaponRecordUse(TONFA_BATON_WEAPON_ID);
                     actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].key = 0x21315;
                     eff                                                = Gp_SpawnEff(
                         EFFECT_TONFA_BATON_SWING_TRAIL, actor->equipmentTasks[1]->extra.tmd->coords, 1,

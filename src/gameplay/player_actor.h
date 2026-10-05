@@ -105,6 +105,11 @@ void Gp_AimPitchRec(Task* arg0, s32 arg1, s32 arg2);
 
 void Gp_DetachLinkNode(Task* arg0);
 
-void func_80108E0C(Task* arg0, WorldTargetNode* arg1);
+/// Selects an actor's lock target and transfers the targeted mark from its old node.
+///
+/// Requires live `GameActor` work and a non-NULL target. The target is borrowed
+/// and must remain live while selected; a distinct previous target must stay
+/// live through this call. Selecting the same node marks it targeted again.
+void playerActorSetLockTarget(Task* task, WorldTargetNode* target);
 
 #endif // GAMEPLAY_PRIVATE_PLAYER_ACTOR_H

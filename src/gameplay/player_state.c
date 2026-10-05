@@ -644,7 +644,7 @@ void func_8010A670(Task* arg0)
                     node = Gp_FindLockNode(arg0);
                     if (node != NULL) {
                         inner->aimTrackingState = mode;
-                        func_80108E0C(arg0, node);
+                        playerActorSetLockTarget(arg0, node);
                     }
                 }
             }

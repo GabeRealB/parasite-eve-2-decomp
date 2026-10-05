@@ -230,7 +230,13 @@ void Gp_TrackLockTarget(Task* arg0);
 
 Task* func_80104490(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
 
-void func_80106518(s32 arg0);
+/// Records one weapon use in the live save when its counter is below 99,999.
+///
+/// `weaponId` is the 1-based weapon index, 1..32 (item ID - 0x7F); no weapon
+/// index 0 is invalid. The saved counter is indexed by `weaponId - 1`. A counter
+/// already at or above the limit is unchanged. Cheat mode does not suppress this
+/// entry point. This call retains no arguments.
+void weaponRecordUse(s32 weaponId);
 
 Task* func_80104364(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
 
@@ -246,7 +252,14 @@ void Gp_PlayerMode2State4(Task* arg0);
 /// Message 1009; the fourth dispatch argument is unused.
 s32 Gp_EnterActorMode2(Task* arg0, s32 arg1, s32 arg2, s32 unusedArg3);
 
-void func_80105B74(VECTOR3* arg0);
+/// Replaces the player's queued XYZ displacement for the next movement update.
+///
+/// Requires a live player task. Borrows exactly three readable s32 components
+/// in the player's root-parent coordinate frame, in whole coordinate units.
+/// The movement update adds this displacement to the root translation and
+/// clears it; repeated calls before that update replace the earlier request.
+/// No pointer is retained.
+void playerActorSetPendingDisplacement(const VECTOR3* displacement);
 
 void Gp_PlayerWorkTask(Task* arg0);
 
