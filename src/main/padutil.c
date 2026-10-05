@@ -16,7 +16,10 @@ enum {
     PAD_SOFT_RESET_COMBO    = 0x90F,
 };
 
-/// Advances the shared vibration cursor, preserving its byte store before wrap.
+/// Advances the controller's shared vibration-request cursor past `slot`.
+///
+/// `pad` must point to writable controller state and `slot` must be in 0..7.
+/// Both eight-entry motor banks use this cursor; advancing past slot 7 wraps to 0.
 static inline void _padAdvanceVibrationSlot(PadState* pad, u8 slot)
 {
     slot                   = slot + 1;
