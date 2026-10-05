@@ -125,17 +125,11 @@ SceneCombatState gSceneCombatState;
 #include "gameplay/scene_combat.h"
 #include "gameplay/world_targets.h"
 
-static __inline__ void project_slot(s32* sxy, WorldTargetReadout* slot);
-
 static void* Gp_ScanLockNodes(Task* arg0, VECTOR3* out, s32 flag);
 
-static void Gp_UpdateLockSlots(void);
+static void _worldTargetDrawReadouts(void);
 
 static void* Gp_FindLockNodeAt(Task* arg0, VECTOR3* pos);
-
-static void Gp_ClearLockSlots(void);
-
-static s32 Gp_ProjectToSxy(WorldTargetNode* arg0, s32* sxy);
 
 /// Clears the player and companion actors' borrowed lock-on references to `node`.
 ///
@@ -182,23 +176,33 @@ static __inline__ void _gpuUploadImageEntry(RECT* scratchDestination, const GpuI
     LoadImage(scratchDestination, upload->pixels);
 }
 
-static __inline__ void project_slot(s32* sxy, WorldTargetReadout* slot)
+/// Updates a live readout's packed screen position from its target's body point.
+///
+/// The binding must have been found on the tracked list and belong to a live
+/// enemy with a coordinate whose working matrix is already composed. Body
+/// coordinates narrow to signed 16 bits before projection. Screen pixels use
+/// the screen center as origin, with Y downward; GTE errors are not filtered.
+/// Requires an initialized scratch stack with room for the projection block.
+/// Only the readout's screen word is changed; the scratch block is released
+/// before returning, and the GTE transform registers are left changed.
+static __inline__ void _worldTargetProjectReadout(WorldTargetReadout* readout)
 {
-    WorldTargetNode*               src;
+    s32*                           packedScreen;
+    const WorldTargetNode*         node;
     _WorldTargetProjectionScratch* projection;
 
-    // The caller has matched this binding to a target still on the tracked list.
-    src = slot->binding.node;
+    packedScreen = &readout->screen.packed;
+    node         = readout->binding.node;
     SCRATCH_STACK_RESERVE_BLOCK(_WorldTargetProjectionScratch);
     projection           = SCRATCH_STACK_CURSOR(_WorldTargetProjectionScratch);
-    projection->point.vx = GP_NODE_ENEMY(src)->bodyPos.vx;
-    projection->point.vy = GP_NODE_ENEMY(src)->bodyPos.vy;
-    projection->point.vz = GP_NODE_ENEMY(src)->bodyPos.vz;
-    gte_SetRotMatrix(&GP_NODE_ENEMY(src)->coord->workm);
-    gte_SetTransMatrix(&GP_NODE_ENEMY(src)->coord->workm);
+    projection->point.vx = GP_NODE_ENEMY(node)->bodyPos.vx;
+    projection->point.vy = GP_NODE_ENEMY(node)->bodyPos.vy;
+    projection->point.vz = GP_NODE_ENEMY(node)->bodyPos.vz;
+    gte_SetRotMatrix(&GP_NODE_ENEMY(node)->coord->workm);
+    gte_SetTransMatrix(&GP_NODE_ENEMY(node)->coord->workm);
     gte_ldv0(&projection->point);
     gte_rtps();
-    gte_stsxy(sxy);
+    gte_stsxy(packedScreen);
     gte_stdp(&projection->depthCue);
     gte_stflg(&projection->projectionFlags);
     gte_stszotz(&projection->orderingDepth);
@@ -220,7 +224,7 @@ void Gp_DrawTargetCursor(void)
     if (Pad_RemapState->hideHud != 0) {
         return;
     }
-    Gp_UpdateLockSlots();
+    _worldTargetDrawReadouts();
     sess = gGameSession;
     if (sess->sceneUpdatesPaused == 1) {
         return;
@@ -478,135 +482,189 @@ done:
     }
 }
 
-static void Gp_UpdateLockSlots(void)
+/// Draws and ages every floating damage/heal readout once.
+///
+/// The tracked list must be acyclic and its nodes must belong to live enemies
+/// with composed coordinate working matrices. A departed binding is compared
+/// only by its word and keeps its last projection. Occupied slots draw before
+/// their signed 16-bit countdown is decremented; expiry clears the binding,
+/// amount and countdown. Empty slots have their amount/countdown cleared too.
+/// Requires the scratch stack, small-font and UI-frame resources, writable OT
+/// entry -10 and sufficient primitive-arena space. Packets remain borrowed by
+/// the GPU until the frame is consumed. The caller controls HUD suppression;
+/// this pass counts calls rather than elapsed or unpaused gameplay frames.
+static void _worldTargetDrawReadouts(void)
 {
-    RECT                rect;
-    u8                  buf[16];
-    TextDrawReq         req;
-    s32                 i;
-    WorldTargetReadout* slot;
-    u8*                 bufp;
-    TextDrawReq*        reqp;
-    s32                 x;
-    s32                 y;
-    s32                 val;
-    s32                 x14;
-    s32                 ot;
-    void*               obj;
-    WorldTargetNode*    node;
-    s32                 found;
+    enum {
+        WORLD_TARGET_READOUT_DAMAGE_OFFSET_X      = 10,
+        WORLD_TARGET_READOUT_DAMAGE_OFFSET_Y      = 4,
+        WORLD_TARGET_READOUT_HEAL_OFFSET_X        = -10,
+        WORLD_TARGET_READOUT_HEAL_OFFSET_Y        = -16,
+        WORLD_TARGET_READOUT_LEFT_LIMIT_X         = -136,
+        WORLD_TARGET_READOUT_RIGHT_LIMIT_X        = 137,
+        WORLD_TARGET_READOUT_BOTTOM_LIMIT_Y       = 85,
+        WORLD_TARGET_READOUT_TOP_LIMIT_Y          = -100,
+        WORLD_TARGET_READOUT_LEFT_BAND_X          = -143,
+        WORLD_TARGET_READOUT_RIGHT_BAND_X         = 143,
+        WORLD_TARGET_READOUT_BOTTOM_BAND_Y        = 77,
+        WORLD_TARGET_READOUT_TOP_BAND_Y           = -93,
+        WORLD_TARGET_READOUT_EDGE_PHASE_MASK      = 7,
+        WORLD_TARGET_READOUT_OT_INDEX             = -10,
+        WORLD_TARGET_READOUT_DAMAGE_RGB           = GPU_PACK_COLOR_WORD(120, 122, 3, 0),
+        WORLD_TARGET_READOUT_HEAL_RGB             = GPU_PACK_COLOR_WORD(8, 128, 128, 0),
+        WORLD_TARGET_READOUT_TEXT_RIGHT_OFFSET_X  = 14,
+        WORLD_TARGET_READOUT_FRAME_TOP_INSET      = 8,
+        WORLD_TARGET_READOUT_FRAME_HEIGHT         = 12,
+        WORLD_TARGET_READOUT_FRAME_LEFT_3_DIGITS  = 16,
+        WORLD_TARGET_READOUT_FRAME_WIDTH_3_DIGITS = 32,
+        WORLD_TARGET_READOUT_FRAME_LEFT_4_DIGITS  = 24,
+        WORLD_TARGET_READOUT_FRAME_WIDTH_4_DIGITS = 40,
+        WORLD_TARGET_READOUT_FRAME_LEFT_2_DIGITS  = 8,
+        WORLD_TARGET_READOUT_FRAME_WIDTH_2_DIGITS = 24,
+        WORLD_TARGET_READOUT_4_DIGIT_MINIMUM      = 1000,
+        WORLD_TARGET_READOUT_3_DIGIT_MINIMUM      = 100
+    };
+    RECT                frameRect;
+    u8                  numberBuffer[16];
+    TextDrawReq         request;
+    s32                 readoutIndex;
+    WorldTargetReadout* readout;
+    u8*                 numberText;
+    TextDrawReq*        numberRequest;
+    s32                 frameX;
+    s32                 baselineY;
+    s32                 displayAmount;
+    s32                 rightEdgeX;
+    s32                 otIndex;
+    u32                 bindingWord;
+    WorldTargetNode*    listedNode;
+    s32                 targetListed;
 
-    slot = Gp_LockSlots;
-    i    = 0;
-    bufp = buf;
-    reqp = &req;
-    ot   = -0xA;
+    /// Places one readout beside its target, folding off-screen anchors into edge bands.
+    ///
+    /// The caller supplies the WORLD_TARGET_READOUT_* placement constants above.
+    /// `readout` is a side-effect-free pointer to a readable readout; `signedTotal`
+    /// receives its amount. The other outputs are frame X and text baseline Y in
+    /// screen-centered pixels. All writable arguments must be distinct s32 local
+    /// lvalues without side effects; arguments are repeated. Right/top bands
+    /// reverse the low-three-bit variation. Expands several statements: use only
+    /// as a standalone statement in a braced block. No readout changes.
+#define WORLD_TARGET_PLACE_READOUT(readout, signedTotal, frameX, baselineY)                                      \
+    (signedTotal) = (readout)->amount;                                                                           \
+    if ((signedTotal) >= 0) {                                                                                    \
+        (frameX)    = (readout)->screen.xy.vx + WORLD_TARGET_READOUT_DAMAGE_OFFSET_X;                            \
+        (baselineY) = (readout)->screen.xy.vy + WORLD_TARGET_READOUT_DAMAGE_OFFSET_Y;                            \
+    } else {                                                                                                     \
+        (frameX)    = (readout)->screen.xy.vx + WORLD_TARGET_READOUT_HEAL_OFFSET_X;                              \
+        (baselineY) = (readout)->screen.xy.vy + WORLD_TARGET_READOUT_HEAL_OFFSET_Y;                              \
+    }                                                                                                            \
+    if ((frameX) < WORLD_TARGET_READOUT_LEFT_LIMIT_X) {                                                          \
+        (frameX) = ((frameX) & WORLD_TARGET_READOUT_EDGE_PHASE_MASK) + WORLD_TARGET_READOUT_LEFT_BAND_X;         \
+    }                                                                                                            \
+    if ((frameX) >= WORLD_TARGET_READOUT_RIGHT_LIMIT_X) {                                                        \
+        (frameX) = -((frameX) & WORLD_TARGET_READOUT_EDGE_PHASE_MASK) + WORLD_TARGET_READOUT_RIGHT_BAND_X;       \
+    }                                                                                                            \
+    if ((baselineY) >= WORLD_TARGET_READOUT_BOTTOM_LIMIT_Y) {                                                    \
+        (baselineY) = ((baselineY) & WORLD_TARGET_READOUT_EDGE_PHASE_MASK) + WORLD_TARGET_READOUT_BOTTOM_BAND_Y; \
+    }                                                                                                            \
+    if ((baselineY) < WORLD_TARGET_READOUT_TOP_LIMIT_Y) {                                                        \
+        (baselineY) = -((baselineY) & WORLD_TARGET_READOUT_EDGE_PHASE_MASK) + WORLD_TARGET_READOUT_TOP_BAND_Y;   \
+    }
+
+    readout       = Gp_LockSlots;
+    readoutIndex  = 0;
+    numberText    = numberBuffer;
+    numberRequest = &request;
+    otIndex       = WORLD_TARGET_READOUT_OT_INDEX;
     do {
-        obj = slot->binding.node;
-        if (obj == NULL) {
-            goto empty;
+        bindingWord = readout->binding.word;
+        if (bindingWord == 0) {
+            goto emptyReadout;
         }
-        node  = gWorldTargetListHead;
-        found = 0;
-        if (node != NULL) {
+        // Validate the binding against live entries before interpreting it as a node.
+        listedNode   = gWorldTargetListHead;
+        targetListed = 0;
+        if (listedNode != NULL) {
             do {
-                if (obj == node) {
-                    found = 1;
-                    goto check_found;
+                if (bindingWord == (u32)listedNode) {
+                    targetListed = 1;
+                    goto bindingChecked;
                 }
-                node = node->next;
-            } while (node != NULL);
+                listedNode = listedNode->next;
+            } while (listedNode != NULL);
         }
-    check_found:
-        if (found != 0) {
-            // Project the bound target into this slot's screen position.
-            project_slot(&slot->screen.packed, slot);
+    bindingChecked:
+        if (targetListed != 0) {
+            _worldTargetProjectReadout(readout);
         } else {
-            // The target has left the tracked list. Keep the last projection until the countdown ends.
-            slot->binding.word = WORLD_TARGET_READOUT_DEPARTED;
+            // Keep the last projection after the target leaves, until the countdown ends.
+            readout->binding.word = WORLD_TARGET_READOUT_DEPARTED;
         }
 
-        val = slot->amount;
-        if (val >= 0) {
-            x = slot->screen.xy.vx + 0xA;
-            y = slot->screen.xy.vy + 4;
-        } else {
-            x = slot->screen.xy.vx - 0xA;
-            y = slot->screen.xy.vy - 0x10;
+        WORLD_TARGET_PLACE_READOUT(readout, displayAmount, frameX, baselineY);
+#undef WORLD_TARGET_PLACE_READOUT
+
+        rightEdgeX         = frameX + WORLD_TARGET_READOUT_TEXT_RIGHT_OFFSET_X;
+        request.x          = rightEdgeX;
+        request.y          = baselineY;
+        request.otIndex    = otIndex;
+        request.colorRgb   = WORLD_TARGET_READOUT_DAMAGE_RGB;
+        request.glyphTable = TEXT_GLYPH_TABLE_SMALL;
+        request.alignment  = TEXT_ALIGNMENT_RIGHT;
+        request.drawMode   = TEXT_DRAW_OUTLINED;
+
+        displayAmount = readout->amount;
+        if (displayAmount < 0) {
+            request.colorRgb = WORLD_TARGET_READOUT_HEAL_RGB;
+            displayAmount    = -displayAmount;
         }
-        if (x < -0x88) {
-            x = (x & 7) - 0x8F;
-        }
-        if (x >= 0x89) {
-            x = -(x & 7) + 0x8F;
-        }
-        if (y >= 0x55) {
-            y = (y & 7) + 0x4D;
-        }
-        if (y < -0x64) {
-            y = -(y & 7) - 0x5D;
+        if (displayAmount >= WORLD_TARGET_READOUT_DISPLAY_LIMIT) {
+            displayAmount = WORLD_TARGET_READOUT_DISPLAY_MAX;
         }
 
-        x14            = x + 0xE;
-        req.x          = x14;
-        req.y          = y;
-        req.otIndex    = ot;
-        req.colorRgb   = 0x37A78;
-        req.glyphTable = TEXT_GLYPH_TABLE_SMALL;
-        req.alignment  = TEXT_ALIGNMENT_RIGHT;
-        req.drawMode   = TEXT_DRAW_OUTLINED;
+        // The largest displayed value has four digits plus NUL, within numberBuffer.
+        request.x        = rightEdgeX;
+        request.drawMode = TEXT_DRAW_FILL_ONLY;
+        textDrawString(numberRequest, textItoaSigned(numberText, displayAmount));
+        // Restore the right anchor; prepend the outline so it executes before the fill.
+        request.x        = rightEdgeX;
+        request.drawMode = TEXT_DRAW_OUTLINE_ONLY;
+        textDrawString(numberRequest, textItoaSigned(numberText, displayAmount));
 
-        val = slot->amount;
-        if (val < 0) {
-            req.colorRgb = 0x808008;
-            val          = -val;
+        frameRect.x = frameX - WORLD_TARGET_READOUT_FRAME_LEFT_3_DIGITS;
+        frameRect.y = baselineY - WORLD_TARGET_READOUT_FRAME_TOP_INSET;
+        frameRect.w = WORLD_TARGET_READOUT_FRAME_WIDTH_3_DIGITS;
+        frameRect.h = WORLD_TARGET_READOUT_FRAME_HEIGHT;
+        if (displayAmount >= WORLD_TARGET_READOUT_4_DIGIT_MINIMUM) {
+            frameRect.x = frameX - WORLD_TARGET_READOUT_FRAME_LEFT_4_DIGITS;
+            frameRect.w = WORLD_TARGET_READOUT_FRAME_WIDTH_4_DIGITS;
+        } else if (displayAmount < WORLD_TARGET_READOUT_3_DIGIT_MINIMUM) {
+            frameRect.x = frameX - WORLD_TARGET_READOUT_FRAME_LEFT_2_DIGITS;
+            frameRect.w = WORLD_TARGET_READOUT_FRAME_WIDTH_2_DIGITS;
         }
-        if (val >= WORLD_TARGET_READOUT_DISPLAY_LIMIT) {
-            val = WORLD_TARGET_READOUT_DISPLAY_MAX;
-        }
-
-        req.x        = x14;
-        req.drawMode = TEXT_DRAW_FILL_ONLY;
-        textDrawString(reqp, textItoaSigned(bufp, val));
-        // Queue the outline after the fill so it executes first in the same OT entry.
-        req.x        = x14;
-        req.drawMode = TEXT_DRAW_OUTLINE_ONLY;
-        textDrawString(reqp, textItoaSigned(bufp, val));
-
-        rect.x = x - 0x10;
-        rect.y = y - 8;
-        rect.w = 0x20;
-        rect.h = 0xC;
-        if (val >= 0x3E8) {
-            rect.x = x - 0x18;
-            rect.w = 0x28;
-        } else if (val < 0x64) {
-            rect.x = x - 8;
-            rect.w = 0x18;
-        }
-        uiDrawRectFrame(&rect, -0xA, 2, NULL);
+        uiDrawRectFrame(&frameRect, WORLD_TARGET_READOUT_OT_INDEX, USER_INTERFACE_PANEL_TITLE_STYLE, NULL);
 
         {
-            s16 timer;
-            timer = slot->framesLeft;
-            timer--;
-            slot->framesLeft = timer;
-            if (timer > 0) {
-                goto next;
+            s16 framesLeft;
+            framesLeft = readout->framesLeft;
+            framesLeft--;
+            readout->framesLeft = framesLeft;
+            if (framesLeft > 0) {
+                goto nextReadout;
             }
         }
-        slot->amount       = 0;
-        slot->framesLeft   = 0;
-        slot->binding.node = NULL;
-        goto next;
+        readout->amount       = 0;
+        readout->framesLeft   = 0;
+        readout->binding.node = NULL;
+        goto nextReadout;
 
-    empty:
-        slot->amount     = 0;
-        slot->framesLeft = 0;
-    next:
-        i++;
-        slot++;
-    } while (i < 0x20);
+    emptyReadout:
+        readout->amount     = 0;
+        readout->framesLeft = 0;
+    nextReadout:
+        readoutIndex++;
+        readout++;
+    } while (readoutIndex < ARRAY_SIZE(Gp_LockSlots));
 }
 
 void worldTargetUnlinkNode(WorldTargetNode* node)
@@ -796,50 +854,63 @@ void Gp_GetLockPos(WorldTargetNode* arg0, VECTOR3* out)
     SCRATCH_STACK_RELEASE_BYTES(0x28);
 }
 
-static void Gp_ClearLockSlots(void)
+/// Empties every floating readout, retaining each slot's last screen position.
+static void _worldTargetClearReadouts(void)
 {
-    s32                 i;
-    WorldTargetReadout* p;
+    s32                 readoutIndex;
+    WorldTargetReadout* readout;
 
-    p = Gp_LockSlots;
-    i = 0;
+    readout      = Gp_LockSlots;
+    readoutIndex = 0;
     do {
-        i++;
-        p->binding.node = NULL;
-        p->amount       = 0;
-        p->framesLeft   = 0;
-        p++;
-    } while (i < 0x20);
+        readoutIndex++;
+        readout->binding.node = NULL;
+        readout->amount       = 0;
+        readout->framesLeft   = 0;
+        readout++;
+    } while (readoutIndex < ARRAY_SIZE(Gp_LockSlots));
 }
 
-void Gp_ResetLinkState(void)
+void worldTargetResetAreaTracking(void)
 {
+    enum { WORLD_TARGET_CURSOR_RESET_FIXED8 = 0xFFF00000 }; // -4096 pixels, eight fractional bits
+
     gWorldTargetListHead = NULL;
-    Gp_ClearLockSlots();
-    D_8010F9F0 = 0xFFF00000;
-    D_8010F9EC = 0xFFF00000;
+    _worldTargetClearReadouts();
+    D_8010F9F0 = WORLD_TARGET_CURSOR_RESET_FIXED8;
+    D_8010F9EC = WORLD_TARGET_CURSOR_RESET_FIXED8;
 }
 
-static s32 Gp_ProjectToSxy(WorldTargetNode* arg0, s32* sxy)
+/// Projects an enemy target's body point and returns its quarter-depth for ordering.
+///
+/// Retained standalone projection with no current caller. `node` must be a live
+/// enemy's embedded target entry; its coordinate's working matrix must already
+/// be composed. Body coordinates narrow to signed 16 bits. `packedScreen` must
+/// provide one writable, word-aligned s32 for the two signed screen pixels,
+/// centered on the screen with Y downward. GTE error flags are not filtered;
+/// the return is SZ3 >> 2 (0..16383). Requires an initialized scratch stack
+/// with space for the projection block, released before returning. No pointer
+/// is retained; the GTE transform registers are left changed.
+static s32 _worldTargetProjectBodyPoint(const WorldTargetNode* node, s32* packedScreen)
 {
     _WorldTargetProjectionScratch* projection;
-    s32                            ret;
+    s32                            orderingDepth;
 
     projection           = SCRATCH_STACK_RESERVE_BLOCK(_WorldTargetProjectionScratch);
-    projection->point.vx = GP_NODE_ENEMY(arg0)->bodyPos.vx;
-    projection->point.vy = GP_NODE_ENEMY(arg0)->bodyPos.vy;
-    projection->point.vz = GP_NODE_ENEMY(arg0)->bodyPos.vz;
-    gte_SetRotMatrix(&GP_NODE_ENEMY(arg0)->coord->workm);
-    gte_SetTransMatrix(&GP_NODE_ENEMY(arg0)->coord->workm);
+    projection->point.vx = GP_NODE_ENEMY(node)->bodyPos.vx;
+    projection->point.vy = GP_NODE_ENEMY(node)->bodyPos.vy;
+    projection->point.vz = GP_NODE_ENEMY(node)->bodyPos.vz;
+    gte_SetRotMatrix(&GP_NODE_ENEMY(node)->coord->workm);
+    gte_SetTransMatrix(&GP_NODE_ENEMY(node)->coord->workm);
     gte_ldv0(&projection->point);
     gte_rtps();
-    gte_stsxy(sxy);
+    gte_stsxy(packedScreen);
     gte_stdp(&projection->depthCue);
     gte_stflg(&projection->projectionFlags);
     gte_stszotz(&projection->orderingDepth);
-    ret = projection->orderingDepth;
+    orderingDepth = projection->orderingDepth;
     SCRATCH_STACK_RELEASE_BLOCK(_WorldTargetProjectionScratch);
-    return ret;
+    return orderingDepth;
 }
 
 void worldTargetClearActorTargetMarks(void)

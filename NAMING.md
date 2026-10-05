@@ -338,7 +338,7 @@ prefixes, choose the responsibility the symbol actually implements.
 | `worldCoord` | Room/world transforms and light queries | `world_coords.c` | `include/gameplay/world_coords.h`, `src/gameplay/world_coords.h` |
 | `gfx` | Transform composition and direction-facing rotations exported by gameplay | `hud_sprites.c`, `object_lists.c` | `include/gameplay/hud_sprites.h` |
 | `worldCollision` | Collision grids, object lists, contact dispatch and contact offsets | `world_collision.c`, `collision_grid.c`, `object_lists.c`, `scene_runtime.c` (contact offsets) | `include/gameplay/world_collision.h`, `include/gameplay/world_collision_types.h`, `include/gameplay/collision.h`, `include/gameplay/scene_runtime.h` (contact offsets), `src/gameplay/world_collision.h` |
-| `worldTarget` | Target tracking and lock-on | `world_targets.c` | `include/gameplay/world_targets.h`, `include/gameplay/world_targets_types.h`, `src/gameplay/world_targets.h` |
+| `worldTarget` | Target tracking, lock-on, reticle and floating damage/heal readouts | `world_targets.c` | `include/gameplay/world_targets.h`, `include/gameplay/world_targets_types.h`, `src/gameplay/world_targets.h` |
 | `objectField`, `objectTask` | Object properties and task/message control | `object_fields.c`, `object_task.c` | `include/gameplay/object_fields.h`, `include/gameplay/object_task.h`, `src/gameplay/object_task.h` |
 | `taskMessage` | Synchronous id-selected task messages and integer/address argument transport | `companion_load.c` (`taskMessageDispatch`) | `include/gameplay/message.h` (`TaskMessageArg`, `TaskMessageHandler`, `TaskMessageEntry`) |
 | `linkedActor` | Linked actor helpers | `linked_actors.c` | `src/gameplay/linked_actors.h` |

@@ -29937,7 +29937,7 @@ gets `0x0000007f` instead of RTPS.
 Include `gte.h` after `inline_c.h`; it redefines `gte_rtps()` to emit
 `0x4A180001`, so the SDK call matches as written.
 
-`Gp_ProjectToSxy` is the example (scratch `SVECTOR` + `gte_SetRotMatrix` /
+`_worldTargetProjectBodyPoint` is the example (scratch `SVECTOR` + `gte_SetRotMatrix` /
 `gte_SetTransMatrix` / `gte_ldv0` / RTPS / `gte_stsxy` / `gte_stdp` /
 `gte_stflg` / `gte_stszotz`).
 
@@ -36939,26 +36939,26 @@ so the checksum and the full build stay green either way. Delete the `rom:`
 line and re-split; the `.s` should read `%lo(sym + off)` where it read the
 numeric displacement. `Gp_LoadWaitAreaCd` is the worked example.
 
-## Request field order replaces a setup barrier (`Gp_UpdateLockSlots`, 2026-09-27)
+## Request field order replaces a setup barrier (`_worldTargetDrawReadouts`, 2026-09-27)
 
-The former `USE_REG3(color, x14, ot)` held the coordinate and ordering-index
-computations ahead of the color store. Plain C matches when `ot = -0xA` is
+The former `USE_REG3(color, rightEdgeX, otIndex)` held the coordinate and ordering-index
+computations ahead of the color store. Plain C matches when `otIndex = WORLD_TARGET_READOUT_OT_INDEX` is
 initialized before the slot loop and the request fields are assigned in this
 order: `x`, `y`, `otIndex`, `colorRgb`, `glyphTable`, `alignment`, `drawMode`.
 Assign the color literal directly at its store. Moving the coordinate/index
 stores earlier while leaving a separate color definition ahead of them made
 that constant's lifetime long enough for `.loop` to hoist it and cause a spill.
 Keeping the color definition at its use avoids that. In the controlled sequence,
-`base_16` puts x in the right place, `base_18` restores the rematerialized index
+`base_16` puts frameX in the right place, `base_18` restores the rematerialized index
 in t0, and `base_19` fixes the last y/index store-order difference (100%).
 
 The same function's pinned halfword pointer was a redundant induction variable.
 Merely unpinning `p6` made `.loop` retain it for `p6[0]` and derive another walk
-for `p6[-1]`, spilling a stack-object address (94.075%). Direct `slot->field_*`
-accesses let `.loop` combine the member addresses into one field_6-based walk,
-which naturally gets s4. A per-iteration `p6 = &slot->field_6` produced the same
+for `p6[-1]`, spilling a stack-object address (94.075%). Direct `readout->amount` / `readout->framesLeft`
+accesses let `.loop` combine the member addresses into one framesLeft-based walk,
+which naturally gets s4. A per-iteration `p6 = &readout->framesLeft` produced the same
 object as direct fields; an independently incremented p6 did not. Final
-`base_21` also uses a signed `s16` countdown with `timer > 0`, and matches
+`base_21` also uses a signed `s16` countdown with `framesLeft > 0`, and matches
 without either hack. Scratch preprocessed-input SHA-256:
 `04bd8704deef8777522a3cca20f498bf32f7e66e3714d31e45647f6a70852628`.
 
@@ -44724,9 +44724,9 @@ static __inline__ void update_actor_color(Actor01600Ctx* ctx, GfxCoord* attach)
 }
 ```
 
-`coordToRoot` / `project_slot` in `src/gameplay/` are the same trick; their
-`register … asm(…)` pins fix the registers, but the inlining is what
-rematerialises the address. Neither `volatile` on the pointed-to type nor a
+`coordToRoot` / `_worldTargetProjectReadout` in `src/gameplay/` are the same trick;
+the inlining rematerialises the scratch-stack cursor address at each use.
+Neither `volatile` on the pointed-to type nor a
 `COMPILER_BARRIER()` between the accesses stops the `cse` merge.
 
 The reverse holds too: the same source compiles to two different shapes

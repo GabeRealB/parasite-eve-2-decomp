@@ -15,7 +15,16 @@ extern WorldTargetNode* gWorldTargetListHead;
 
 void Gp_DrawTargetCursor(void);
 
-void Gp_ResetLinkState(void);
+/// Starts empty area target tracking, clears readouts and resets cursor coordinates.
+///
+/// Call before linking the new area's enemies. Previous tracked entries must
+/// have been unlinked, destroyed or abandoned with the old area; clearing the
+/// head does not change their links, membership bytes or actor locks. Any
+/// surviving entry must be made off-list before it can be linked again.
+/// Readout positions are retained, and both cursor accumulators become -4096
+/// screen pixels with eight fractional bits. Cursor target/easing state is
+/// retained; no node storage is freed.
+void worldTargetResetAreaTracking(void);
 
 /// Clears the target marks on the player and companion's current nodes.
 ///

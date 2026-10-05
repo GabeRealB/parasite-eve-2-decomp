@@ -3211,7 +3211,7 @@ void Gp_SpawnArea(GameLocationKey* location)
     s32             poseIndex;
 
     areaRecords = Gp_AreaTables[location->stage];
-    Gp_ResetLinkState();
+    worldTargetResetAreaTracking();
     if (areaRecords == NULL) {
         return;
     }
