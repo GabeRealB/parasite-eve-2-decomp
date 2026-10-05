@@ -11,7 +11,7 @@ void motelRoom6DrawGlow(Task* unused)
             glowDrawWideDiamond(&gMotelRoom6GlowPos[0], 0x60, 0x60);
             break;
         case 12:
-            glowDrawPulsingDisc(&gMotelRoom6GlowPos[0], 0x60, 0x80);
+            _glowDrawPulsingDisc(&gMotelRoom6GlowPos[0], 0x60, 0x80);
             break;
     }
 }

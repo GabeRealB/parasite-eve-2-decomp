@@ -1452,33 +1452,35 @@ RoomEventReq gRoomEventReq;
 
 #include "../../shared/glow_draw_shaft.inc.c"
 
+static void _glowDrawShaft(const SVECTOR worldPoints[2], s32 radiusScale);
+
 /// Draws the store's light beams for the current camera view
 /// `gGameSession->location.loc.view`. Each beam is a pair of world points handed to
-/// `glowDrawShaft` with a radius of 0x100: views
+/// `_glowDrawShaft` with a radius of 0x100: views
 /// 2, 3, 12 and 13 draw one beam each, and views 4 and 8 draw the beams of
 /// views 2 and 3 together.
 void func_dryfield_night_general_store_8017E6C8(Task* unused)
 {
     switch (gGameSession->location.loc.view) {
         case 2:
-            glowDrawShaft(&D_dryfield_night_general_store_8017E7EC[0], 0x100);
+            _glowDrawShaft(&D_dryfield_night_general_store_8017E7EC[0], 0x100);
             break;
         case 3:
-            glowDrawShaft(&D_dryfield_night_general_store_8017E7EC[2], 0x100);
+            _glowDrawShaft(&D_dryfield_night_general_store_8017E7EC[2], 0x100);
             break;
         case 4:
-            glowDrawShaft(&D_dryfield_night_general_store_8017E7EC[0], 0x100);
-            glowDrawShaft(&D_dryfield_night_general_store_8017E7EC[2], 0x100);
+            _glowDrawShaft(&D_dryfield_night_general_store_8017E7EC[0], 0x100);
+            _glowDrawShaft(&D_dryfield_night_general_store_8017E7EC[2], 0x100);
             break;
         case 8:
-            glowDrawShaft(&D_dryfield_night_general_store_8017E7EC[0], 0x100);
-            glowDrawShaft(&D_dryfield_night_general_store_8017E7EC[2], 0x100);
+            _glowDrawShaft(&D_dryfield_night_general_store_8017E7EC[0], 0x100);
+            _glowDrawShaft(&D_dryfield_night_general_store_8017E7EC[2], 0x100);
             break;
         case 12:
-            glowDrawShaft(D_dryfield_night_general_store_8017E80C, 0x100);
+            _glowDrawShaft(D_dryfield_night_general_store_8017E80C, 0x100);
             break;
         case 13:
-            glowDrawShaft(D_dryfield_night_general_store_8017E81C, 0x100);
+            _glowDrawShaft(D_dryfield_night_general_store_8017E81C, 0x100);
             break;
     }
 }

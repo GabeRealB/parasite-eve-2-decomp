@@ -1,6 +1,12 @@
 /* Part of the glow drawing library; see glow_draw.h. */
 
-/// Projects the four corners of one flame segment into its scratch record.
+/// Projects one flat ring segment's four world corners with the current GTE matrices.
+///
+/// `segmentIndex` must be 0..`EFFECT_BAND_SEGMENT_COUNT - 1`; the next index
+/// wraps to zero. Stores the inner pair then the outer pair in `sxy0`..`sxy3`.
+/// `projectionFlags` describes only the final three-corner RTPT, not the first
+/// RTPS. Leaves the last outer corner's depth in SZ3 for the caller to capture.
+/// Borrows the live scratch block for this call and reserves no storage.
 static inline void _glowProjectFlameRingSegment(EffectBandScratch* block, s32 segmentIndex)
 {
     s32 nextIndex;

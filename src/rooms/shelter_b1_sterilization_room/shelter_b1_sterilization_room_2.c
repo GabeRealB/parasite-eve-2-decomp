@@ -917,6 +917,9 @@ s32 D_shelter_b1_sterilization_room_8018C340 = 0;
 
 RoomCutsceneRec D_shelter_b1_sterilization_room_8018C344 = { 0 };
 
+static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 packedColor);
+static void _glowDrawDiamond(const SVECTOR* worldPoint, s32 pulseRate, s32 radiusScale);
+
 void func_shelter_b1_sterilization_room_801813A0(Task* arg0)
 {
     s32 temp_v1;
@@ -1110,10 +1113,10 @@ void func_shelter_b1_sterilization_room_8018188C(Task* task)
     if (task->state == 0) {
         switch (viewGetMappedIndex() & 0xFF) {
             case 2:
-                glowDrawCapsule(&D_shelter_b1_sterilization_room_8018909C[0x44], 0x200, 0x222);
+                _glowDrawCapsule(&D_shelter_b1_sterilization_room_8018909C[0x44], 0x200, 0x222);
                 break;
             case 3:
-                glowDrawCapsule(&D_shelter_b1_sterilization_room_8018909C[0x46], 0x200, 0x222);
+                _glowDrawCapsule(&D_shelter_b1_sterilization_room_8018909C[0x46], 0x200, 0x222);
                 break;
                 do {
                     case 6:
@@ -1124,7 +1127,7 @@ void func_shelter_b1_sterilization_room_8018188C(Task* task)
                         break;
                     case 8:
                         glowDrawDisc(&D_shelter_b1_sterilization_room_8018909C[0x50], 0x100, 0x440);
-                        glowDrawDiamond(&D_shelter_b1_sterilization_room_8018909C[0x4F], 0x60, 0x80);
+                        _glowDrawDiamond(&D_shelter_b1_sterilization_room_8018909C[0x4F], 0x60, 0x80);
                         break;
                     case 14:
                         task->state = 1;
@@ -1134,10 +1137,10 @@ void func_shelter_b1_sterilization_room_8018188C(Task* task)
                         func_shelter_b1_sterilization_room_80183B8C(&D_shelter_b1_sterilization_room_8018909C[0x4F], 0x60, 0x80);
                         break;
                     case 20:
-                        glowDrawCapsule(&D_shelter_b1_sterilization_room_8018909C[0x44], 0x200, 0x222);
-                        glowDrawCapsule(&D_shelter_b1_sterilization_room_8018909C[0x46], 0x200, 0x222);
-                        glowDrawCapsule(&D_shelter_b1_sterilization_room_8018909C[0x48], 0x200, 0x222);
-                        glowDrawCapsule(&D_shelter_b1_sterilization_room_8018909C[0x4A], 0x200, 0x222);
+                        _glowDrawCapsule(&D_shelter_b1_sterilization_room_8018909C[0x44], 0x200, 0x222);
+                        _glowDrawCapsule(&D_shelter_b1_sterilization_room_8018909C[0x46], 0x200, 0x222);
+                        _glowDrawCapsule(&D_shelter_b1_sterilization_room_8018909C[0x48], 0x200, 0x222);
+                        _glowDrawCapsule(&D_shelter_b1_sterilization_room_8018909C[0x4A], 0x200, 0x222);
                         task->spawnArg1.value = 1;
                         if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                             u32      rnd;
@@ -1192,7 +1195,7 @@ void func_shelter_b1_sterilization_room_8018188C(Task* task)
                         }
                         break;
                     case 22:
-                        glowDrawCapsule(&D_shelter_b1_sterilization_room_8018909C[0x46], 0x200, 0x222);
+                        _glowDrawCapsule(&D_shelter_b1_sterilization_room_8018909C[0x46], 0x200, 0x222);
                         task->spawnArg1.value = 1;
                         if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                             u32      rnd;
@@ -1217,7 +1220,7 @@ void func_shelter_b1_sterilization_room_8018188C(Task* task)
                         }
                         break;
                     case 23:
-                        glowDrawCapsule(&D_shelter_b1_sterilization_room_8018909C[0x44], 0x200, 0x222);
+                        _glowDrawCapsule(&D_shelter_b1_sterilization_room_8018909C[0x44], 0x200, 0x222);
                         task->spawnArg1.value = 1;
                         if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                             u32      rnd;
@@ -1248,7 +1251,7 @@ void func_shelter_b1_sterilization_room_8018188C(Task* task)
                         }
                         break;
                     case 24:
-                        glowDrawCapsule(&D_shelter_b1_sterilization_room_8018909C[0x46], 0x200, 0x222);
+                        _glowDrawCapsule(&D_shelter_b1_sterilization_room_8018909C[0x46], 0x200, 0x222);
                         task->spawnArg1.value = 1;
                         if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                             u32      rnd;

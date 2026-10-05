@@ -283,6 +283,8 @@ WorldCollisionSurfaceProperties* D_dryfield_night_r08_8018195C[8] = {
     D_dryfield_night_r08_8018193C,
 };
 
+static void _glowDrawBeam(const SVECTOR worldPoints[2], s32 radiusScale, s32 startAngle, s32 packedColor);
+
 /// On the task's first tick, stores three fixed ids into `gRoomEffectFlashId`,
 /// `gRoomEffectTwinTrailId` and `gRoomEffectSparkBurstId`, then draws the placements the current camera
 /// view shows with the beam and sprite drawers below. The placement names are
@@ -300,10 +302,10 @@ void func_dryfield_night_r08_8017D718(Task* arg0)
 
     switch (gGameSession->location.loc.view) {
         case 3:
-            glowDrawBeam(&D_dryfield_night_r08_801805BC[0], 0x200, 0x800, 0x10);
-            glowDrawBeam(&D_dryfield_night_r08_801805BC[2], 0x200, 0, 0x10);
-            glowDrawBeam(&D_dryfield_night_r08_801805BC[4], 0x200, 0, 0x10);
-            glowDrawBeam(&D_dryfield_night_r08_801805BC[6], 0x200, 0x800, 0x100);
+            _glowDrawBeam(&D_dryfield_night_r08_801805BC[0], 0x200, 0x800, 0x10);
+            _glowDrawBeam(&D_dryfield_night_r08_801805BC[2], 0x200, 0, 0x10);
+            _glowDrawBeam(&D_dryfield_night_r08_801805BC[4], 0x200, 0, 0x10);
+            _glowDrawBeam(&D_dryfield_night_r08_801805BC[6], 0x200, 0x800, 0x100);
             glowDrawFlareClipped(&D_dryfield_night_r08_801805BC[11], 1, 0x300);
             glowDrawFlareClipped(&D_dryfield_night_r08_801805BC[12], 1, 0x300);
             glowDrawFlareClipped(&D_dryfield_night_r08_801805BC[13], 1, 0x300);
@@ -315,24 +317,24 @@ void func_dryfield_night_r08_8017D718(Task* arg0)
             break;
         case 2:
         case 5:
-            glowDrawBeam(&D_dryfield_night_r08_8018056C[0], 0x200, 0x800, 0x111);
-            glowDrawBeam(&D_dryfield_night_r08_8018056C[2], 0x200, 0x800, 0x111);
-            glowDrawBeam(&D_dryfield_night_r08_8018056C[4], 0x200, 0, 0x111);
-            glowDrawBeam(&D_dryfield_night_r08_8018056C[6], 0x200, 0, 0x111);
+            _glowDrawBeam(&D_dryfield_night_r08_8018056C[0], 0x200, 0x800, 0x111);
+            _glowDrawBeam(&D_dryfield_night_r08_8018056C[2], 0x200, 0x800, 0x111);
+            _glowDrawBeam(&D_dryfield_night_r08_8018056C[4], 0x200, 0, 0x111);
+            _glowDrawBeam(&D_dryfield_night_r08_8018056C[6], 0x200, 0, 0x111);
             break;
         case 4:
-            glowDrawBeam(&D_dryfield_night_r08_801805BC[0], 0x200, 0x800, 0x10);
-            glowDrawBeam(&D_dryfield_night_r08_801805BC[4], 0x200, 0, 0x10);
-            glowDrawBeam(&D_dryfield_night_r08_801805BC[6], 0x200, 0x800, 0x100);
+            _glowDrawBeam(&D_dryfield_night_r08_801805BC[0], 0x200, 0x800, 0x10);
+            _glowDrawBeam(&D_dryfield_night_r08_801805BC[4], 0x200, 0, 0x10);
+            _glowDrawBeam(&D_dryfield_night_r08_801805BC[6], 0x200, 0x800, 0x100);
             glowDrawFlareClipped(&D_dryfield_night_r08_801805BC[14], 1, 0x300);
             glowDrawFlareClipped(&D_dryfield_night_r08_801805BC[20], 1, 0x300);
             glowDrawFlareClipped(&D_dryfield_night_r08_801805BC[21], 1, 0x300);
             break;
         case 6:
-            glowDrawBeam(&D_dryfield_night_r08_801805AC[0], 0x200, 0x800, 0x10);
-            glowDrawBeam(&D_dryfield_night_r08_801805AC[2], 0x200, 0x800, 0x10);
-            glowDrawBeam(&D_dryfield_night_r08_801805AC[6], 0x200, 0, 0x10);
-            glowDrawBeam(&D_dryfield_night_r08_801805AC[8], 0x200, 0x800, 0x100);
+            _glowDrawBeam(&D_dryfield_night_r08_801805AC[0], 0x200, 0x800, 0x10);
+            _glowDrawBeam(&D_dryfield_night_r08_801805AC[2], 0x200, 0x800, 0x10);
+            _glowDrawBeam(&D_dryfield_night_r08_801805AC[6], 0x200, 0, 0x10);
+            _glowDrawBeam(&D_dryfield_night_r08_801805AC[8], 0x200, 0x800, 0x100);
             glowDrawFlareClipped(&D_dryfield_night_r08_801805AC[13], 1, 0x300);
             glowDrawFlareClipped(&D_dryfield_night_r08_801805AC[14], 1, 0x300);
             glowDrawFlareClipped(&D_dryfield_night_r08_801805AC[15], 1, 0x300);
@@ -343,12 +345,12 @@ void func_dryfield_night_r08_8017D718(Task* arg0)
             glowDrawFlareClipped(&D_dryfield_night_r08_801805AC[23], 1, 0x300);
             break;
         case 7:
-            glowDrawBeam(D_dryfield_night_r08_801805AC, 0x200, 0x800, 0x10);
+            _glowDrawBeam(D_dryfield_night_r08_801805AC, 0x200, 0x800, 0x10);
             break;
         case 8:
-            glowDrawBeam(&D_dryfield_night_r08_801805CC[0], 0x200, 0, 0x10);
-            glowDrawBeam(&D_dryfield_night_r08_801805CC[2], 0x200, 0, 0x10);
-            glowDrawBeam(&D_dryfield_night_r08_801805CC[4], 0x200, 0x800, 0x100);
+            _glowDrawBeam(&D_dryfield_night_r08_801805CC[0], 0x200, 0, 0x10);
+            _glowDrawBeam(&D_dryfield_night_r08_801805CC[2], 0x200, 0, 0x10);
+            _glowDrawBeam(&D_dryfield_night_r08_801805CC[4], 0x200, 0x800, 0x100);
             glowDrawFlareClipped(&D_dryfield_night_r08_801805CC[9], 1, 0x300);
             glowDrawFlareClipped(&D_dryfield_night_r08_801805CC[10], 1, 0x300);
             glowDrawFlareClipped(&D_dryfield_night_r08_801805CC[11], 1, 0x300);
@@ -359,8 +361,8 @@ void func_dryfield_night_r08_8017D718(Task* arg0)
             glowDrawFlareClipped(&D_dryfield_night_r08_801805CC[19], 1, 0x300);
             break;
         case 9:
-            glowDrawBeam(&D_dryfield_night_r08_801805DC[0], 0x200, 0, 0x10);
-            glowDrawBeam(&D_dryfield_night_r08_801805DC[2], 0x200, 0x800, 0x100);
+            _glowDrawBeam(&D_dryfield_night_r08_801805DC[0], 0x200, 0, 0x10);
+            _glowDrawBeam(&D_dryfield_night_r08_801805DC[2], 0x200, 0x800, 0x100);
             glowDrawFlareClipped(&D_dryfield_night_r08_801805DC[10], 1, 0x300);
             glowDrawFlareClipped(D_dryfield_night_r08_80180664, 1, 0x300);
             break;

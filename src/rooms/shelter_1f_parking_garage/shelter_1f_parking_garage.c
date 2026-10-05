@@ -358,6 +358,8 @@ RoomLatchedEvent gRoomEventLatched;
 
 static __inline__ s32 _shelter1fParkingGarageStartEvent(RoomEventMsg* dst, RoomLatchedEvent* event);
 
+static void _glowDrawAngledCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 startAngle, s32 packedColor);
+
 /// Starts `event` for the outgoing message `dst` unless its flag says it has
 /// already happened (answering 1). Otherwise answers 2, and - unless
 /// `dst->queryOnly` asks for a dry run - latches the message and the event,
@@ -541,17 +543,17 @@ void func_shelter_1f_parking_garage_8017DF6C(Task* arg0)
     switch (view) {
         case 2: {
             SVECTOR* p = D_shelter_1f_parking_garage_80180BFC;
-            glowDrawAngledCapsule(&p[0], 0x200, 0x800, 0x210);
-            glowDrawAngledCapsule(&p[2], 0x200, 0x800, 0x210);
-            glowDrawAngledCapsule(&p[6], 0x200, 0, 0x210);
-            glowDrawAngledCapsule(&p[8], 0x200, 0, 0x210);
+            _glowDrawAngledCapsule(&p[0], 0x200, 0x800, 0x210);
+            _glowDrawAngledCapsule(&p[2], 0x200, 0x800, 0x210);
+            _glowDrawAngledCapsule(&p[6], 0x200, 0, 0x210);
+            _glowDrawAngledCapsule(&p[8], 0x200, 0, 0x210);
             break;
         }
         case 4: {
             SVECTOR* p = D_shelter_1f_parking_garage_80180C4C;
             glowDrawFactorDisc(&p[0], 0x300, 0x200);
-            glowDrawAngledCapsule(&p[-12], 0x200, 0x800, 0x210);
-            glowDrawAngledCapsule(&p[-6], 0x200, 0, 0x210);
+            _glowDrawAngledCapsule(&p[-12], 0x200, 0x800, 0x210);
+            _glowDrawAngledCapsule(&p[-6], 0x200, 0, 0x210);
             break;
         }
     }

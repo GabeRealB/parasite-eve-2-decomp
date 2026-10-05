@@ -59,6 +59,7 @@
 
 #include "../../shared/room_visual_effects.h"
 #include "../../shared/glow_draw.h"
+
 // The flag symbol carries seven unproven bytes after the flag.
 #define ROOM_EVENT_ACTIVE gRoomEventActive.eventStarted
 // The request symbol carries twelve unproven bytes after the request.
@@ -175,6 +176,8 @@ SVECTOR D_shelter_b1_main_corridor_80183144[18] = {
 #define ROOM_FX_HALO_STORAGE_TYPE        RoomFxHaloStorage
 #define ROOM_FX_HALO_STORAGE_BOUND
 #include "../../shared/room_visual_effects_halo_data.inc.c"
+
+static void _glowDrawBeam(const SVECTOR worldPoints[2], s32 radiusScale, s32 startAngle, s32 packedColor);
 
 /// Returns this overlay's three read-only halo tint rows for spawn indices 0..2.
 static inline const RoomFxShade* _roomVisualEffectsGetHaloShades(void)
@@ -874,15 +877,15 @@ void func_shelter_b1_main_corridor_8017DDF0(Task* arg0)
         case 3: {
             SVECTOR* p;
             p = D_shelter_b1_main_corridor_801830D4;
-            glowDrawBeam(&p[0], 0x200, 0x800, 0x111);
-            glowDrawBeam(&p[2], 0x200, 0x800, 0x111);
+            _glowDrawBeam(&p[0], 0x200, 0x800, 0x111);
+            _glowDrawBeam(&p[2], 0x200, 0x800, 0x111);
             break;
         }
         case 4: {
             SVECTOR* p;
             p = D_shelter_b1_main_corridor_80183114;
-            glowDrawBeam(&p[0], 0x200, 0x800, 0x10);
-            glowDrawBeam(&p[4], 0x200, 0, 0x10);
+            _glowDrawBeam(&p[0], 0x200, 0x800, 0x10);
+            _glowDrawBeam(&p[4], 0x200, 0, 0x10);
             glowDrawFlareClipped(&p[10], 1, 0x300);
             glowDrawFlareClipped(&p[11], 1, 0x300);
             glowDrawFlareClipped(&p[17], 1, 0x300);
@@ -890,17 +893,17 @@ void func_shelter_b1_main_corridor_8017DDF0(Task* arg0)
             break;
         }
         case 5:
-            glowDrawBeam(D_shelter_b1_main_corridor_80183134, 0x200, 0, 0x10);
+            _glowDrawBeam(D_shelter_b1_main_corridor_80183134, 0x200, 0, 0x10);
             break;
         case 6:
-            glowDrawBeam(D_shelter_b1_main_corridor_80183114, 0x200, 0x800, 0x10);
+            _glowDrawBeam(D_shelter_b1_main_corridor_80183114, 0x200, 0x800, 0x10);
             break;
         case 7: {
             SVECTOR* p;
             p = D_shelter_b1_main_corridor_80183124;
-            glowDrawBeam(&p[0], 0x200, 0x800, 0x10);
-            glowDrawBeam(&p[4], 0x200, 0, 0x10);
-            glowDrawBeam(&p[6], 0x200, 0x800, 0x100);
+            _glowDrawBeam(&p[0], 0x200, 0x800, 0x10);
+            _glowDrawBeam(&p[4], 0x200, 0, 0x10);
+            _glowDrawBeam(&p[6], 0x200, 0x800, 0x100);
             glowDrawFlareClipped(&p[13], 1, 0x300);
             glowDrawFlareClipped(&p[14], 1, 0x300);
             glowDrawFlareClipped(&p[20], 1, 0x300);
@@ -910,15 +913,15 @@ void func_shelter_b1_main_corridor_8017DDF0(Task* arg0)
         case 8: {
             SVECTOR* p;
             p = D_shelter_b1_main_corridor_80183124;
-            glowDrawBeam(&p[0], 0x200, 0x800, 0x10);
-            glowDrawBeam(&p[6], 0x200, 0x800, 0x100);
+            _glowDrawBeam(&p[0], 0x200, 0x800, 0x10);
+            _glowDrawBeam(&p[6], 0x200, 0x800, 0x100);
             break;
         }
         case 9:
-            glowDrawBeam(D_shelter_b1_main_corridor_80183144, 0x200, 0, 0x10);
+            _glowDrawBeam(D_shelter_b1_main_corridor_80183144, 0x200, 0, 0x10);
             break;
         case 10:
-            glowDrawBeam(D_shelter_b1_main_corridor_80183124, 0x200, 0x800, 0x10);
+            _glowDrawBeam(D_shelter_b1_main_corridor_80183124, 0x200, 0x800, 0x10);
             break;
     }
 }

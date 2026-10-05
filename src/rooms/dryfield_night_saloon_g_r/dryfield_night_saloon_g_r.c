@@ -1826,6 +1826,8 @@ RoomEventReq gRoomEventReq;
 static const TaskFuncTable3 D_dryfield_night_saloon_g_r_8017D5DC = {
     { func_dryfield_night_saloon_g_r_8017DF90, func_dryfield_night_saloon_g_r_8017E040, taskKill },
 };
+static void _glowDrawFlare(const SVECTOR* worldPoint, s32 textureIndex, s32 radiusScale);
+
 /// Room cutscene task: case 0 saves the view slot, forces `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view`
 /// to 0xC, raises the script halt flags and starts cap command 0x13; the
 /// following states wait for the cap to go idle, then start the jukebox task,
@@ -2176,12 +2178,12 @@ void func_dryfield_night_saloon_g_r_8017E6C8(Task* arg0)
     actorRenderComposeCoord(coord);
     for (i = 0; i < 6; i++) {
         if (mask & D_dryfield_night_saloon_g_r_80185154[i]) {
-            glowDrawFlare(&gSaloonLightPoints[i], 0, 0x200);
+            _glowDrawFlare(&gSaloonLightPoints[i], 0, 0x200);
         }
     }
     for (i = 6; i < 11; i++) {
         if (mask & D_dryfield_night_saloon_g_r_80185154[i]) {
-            glowDrawFlare(&gSaloonLightPoints[i], 1, 0x1C0);
+            _glowDrawFlare(&gSaloonLightPoints[i], 1, 0x1C0);
         }
     }
     if (mask & D_dryfield_night_saloon_g_r_80185154[12]) {
@@ -2193,12 +2195,12 @@ void func_dryfield_night_saloon_g_r_8017E6C8(Task* arg0)
     }
     for (i = 20; i < 23; i++) {
         if (mask & D_dryfield_night_saloon_g_r_80185154[i - 7]) {
-            glowDrawFlare(&gSaloonLightPoints[i], 0, 0x200);
+            _glowDrawFlare(&gSaloonLightPoints[i], 0, 0x200);
         }
     }
     for (i = 23; i < 28; i++) {
         if (mask & D_dryfield_night_saloon_g_r_80185154[i - 7]) {
-            glowDrawFlare(&gSaloonLightPoints[i], 0, 0x300);
+            _glowDrawFlare(&gSaloonLightPoints[i], 0, 0x300);
         }
     }
 }

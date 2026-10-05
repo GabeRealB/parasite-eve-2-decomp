@@ -60,6 +60,7 @@
 
 #include "rooms/room.h"
 #include "../../shared/glow_draw.h"
+
 /// Empty presence flag so `water_effects.h` declares the shared
 /// `waterDrawSpinU16` and `waterDrawTileU16`. This file includes their bodies.
 #define WATER_SHARED_U16_DRAWERS
@@ -1031,6 +1032,8 @@ static void func_dryfield_night_water_hole_8017D958(Task* arg0);
 
 #include "../../shared/room_event_departure_task.inc.c"
 
+static void _glowDrawShaft(const SVECTOR worldPoints[2], s32 radiusScale);
+
 /// Room entry task tick: publish the room's message table in `Task::msgTable`
 /// and claim game pointer slot 7. Progress nibble 0xB8 then picks the opening
 /// move: while it is clear the room's water task is spawned from
@@ -1212,7 +1215,7 @@ void waterHoleWaterStart(Task* arg0)
 /// below that model's root, spawns each effect at water level under each part
 /// with odds that grow with how far the part moved since last frame, then, once
 /// game-flag nibble 0x51 is 1, draws the glowing beams
-/// `glowDrawShaft` renders between the point pairs
+/// `_glowDrawShaft` renders between the point pairs
 /// the current view selects.
 void func_dryfield_night_water_hole_8017E6D0(Task* arg0)
 {
@@ -1278,16 +1281,16 @@ void func_dryfield_night_water_hole_8017E6D0(Task* arg0)
             }
             if (gameFlagGetNibble(GAME_FLAG_UNDERPASS_SWITCH_1) == 1) {
                 if (mask & 0x18) {
-                    glowDrawShaft(&D_dryfield_night_water_hole_80180994[0], 0x100);
-                    glowDrawShaft(&D_dryfield_night_water_hole_80180994[2], 0x100);
+                    _glowDrawShaft(&D_dryfield_night_water_hole_80180994[0], 0x100);
+                    _glowDrawShaft(&D_dryfield_night_water_hole_80180994[2], 0x100);
                 }
                 if (mask & 0xA50) {
-                    glowDrawShaft(&D_dryfield_night_water_hole_801809B4[0], 0x100);
-                    glowDrawShaft(&D_dryfield_night_water_hole_801809B4[2], 0x100);
+                    _glowDrawShaft(&D_dryfield_night_water_hole_801809B4[0], 0x100);
+                    _glowDrawShaft(&D_dryfield_night_water_hole_801809B4[2], 0x100);
                 }
                 if (mask & 0x80) {
-                    glowDrawShaft(&D_dryfield_night_water_hole_801809D4[0], 0x100);
-                    glowDrawShaft(&D_dryfield_night_water_hole_801809D4[2], 0x100);
+                    _glowDrawShaft(&D_dryfield_night_water_hole_801809D4[0], 0x100);
+                    _glowDrawShaft(&D_dryfield_night_water_hole_801809D4[2], 0x100);
                 }
             }
             break;

@@ -285,5 +285,5 @@ _roomVisualEffectsDrawHaloDisc = 0x8017FBF4; // type:func
 _roomVisualEffectsDrawHaloBurstGlow = 0x801804CC; // type:func
 _roomVisualEffectsDrawHaloBurstGroundQuad = 0x801809F8; // type:func
 _roomVisualEffectsDrawHaloStar = 0x80180D70; // type:func
-glowDrawCapsule = 0x8017E774; // type:func
-glowDrawFlare = 0x8017EFB8; // type:func
+_glowDrawCapsule = 0x8017E774; // type:func
+_glowDrawFlare = 0x8017EFB8; // type:func

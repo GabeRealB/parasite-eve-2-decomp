@@ -42,6 +42,7 @@
 
 #include "../../shared/room_visual_effects.h"
 #include "../../shared/glow_draw.h"
+
 // The latched-event symbol carries four unproven bytes after the event.
 #define ROOM_EVENT_LATCHED gRoomEventLatched.event
 #include "../../shared/room_events.h"
@@ -113,6 +114,8 @@ SVECTOR D_shelter_b2_north_maintenance_walkway_80183C30[1] = {
 #define ROOM_FX_HALO_STORAGE_BOUND
 #include "../../shared/room_visual_effects_halo_data.inc.c"
 
+static void _glowDrawTintedDisc(const SVECTOR* worldPoint, s32 radiusScale, s32 packedColor);
+
 /// Returns this overlay's three read-only halo tint rows for spawn indices 0..2.
 static inline const RoomFxShade* _roomVisualEffectsGetHaloShades(void)
 {
@@ -145,65 +148,65 @@ void func_shelter_b2_north_maintenance_walkway_8017DDE8(Task* arg0)
         case 2: {
             SVECTOR* p;
             if (gameFlagGetNibble(GAME_FLAG_OPERATING_ROOM_NORTH_DOOR_UNLOCKED) != 0) {
-                glowDrawTintedDisc(D_shelter_b2_north_maintenance_walkway_80183C28, 0x100, 0x504C);
+                _glowDrawTintedDisc(D_shelter_b2_north_maintenance_walkway_80183C28, 0x100, 0x504C);
             } else {
-                glowDrawTintedDisc(D_shelter_b2_north_maintenance_walkway_80183C30, 0x100, 0x5C40);
+                _glowDrawTintedDisc(D_shelter_b2_north_maintenance_walkway_80183C30, 0x100, 0x5C40);
             }
             p = D_shelter_b2_north_maintenance_walkway_80183B90;
-            glowDrawCone(&p[0], 0x200, 0);
-            glowDrawCone(&p[6], 0x200, -0x400);
+            glowDrawDimGreyCapsule(&p[0], 0x200, 0);
+            glowDrawDimGreyCapsule(&p[6], 0x200, -0x400);
             break;
         }
         case 3: {
             SVECTOR* p;
             p = D_shelter_b2_north_maintenance_walkway_80183C20;
             glowDrawRedDisc(p, 0x200);
-            glowDrawCone(&p[-18], 0x200, 0);
-            glowDrawCone(&p[-16], 0x200, 0);
-            glowDrawCone(&p[-14], 0x200, 0);
-            glowDrawCone(&p[-12], 0x200, 0x400);
-            glowDrawCone(&p[-10], 0x200, 0x400);
-            glowDrawCone(&p[-8], 0x200, 0x400);
-            glowDrawCone(&p[-4], 0x200, 0x800);
+            glowDrawDimGreyCapsule(&p[-18], 0x200, 0);
+            glowDrawDimGreyCapsule(&p[-16], 0x200, 0);
+            glowDrawDimGreyCapsule(&p[-14], 0x200, 0);
+            glowDrawDimGreyCapsule(&p[-12], 0x200, 0x400);
+            glowDrawDimGreyCapsule(&p[-10], 0x200, 0x400);
+            glowDrawDimGreyCapsule(&p[-8], 0x200, 0x400);
+            glowDrawDimGreyCapsule(&p[-4], 0x200, 0x800);
             break;
         }
         case 4: {
             SVECTOR* p;
             p = D_shelter_b2_north_maintenance_walkway_80183C20;
             glowDrawRedDisc(p, 0x200);
-            glowDrawCone(&p[-14], 0x200, 0);
-            glowDrawCone(&p[-8], 0x200, 0x400);
-            glowDrawCone(&p[-4], 0x200, 0x800);
+            glowDrawDimGreyCapsule(&p[-14], 0x200, 0);
+            glowDrawDimGreyCapsule(&p[-8], 0x200, 0x400);
+            glowDrawDimGreyCapsule(&p[-4], 0x200, 0x800);
             break;
         }
         case 5: {
             SVECTOR* p;
             p = D_shelter_b2_north_maintenance_walkway_80183C20;
             glowDrawRedDisc(p, 0x200);
-            glowDrawCone(&p[-14], 0x200, 0);
-            glowDrawCone(&p[-6], 0x200, 0x800);
-            glowDrawCone(&p[-4], 0x200, 0x400);
-            glowDrawCone(&p[-2], 0x200, -0x400);
+            glowDrawDimGreyCapsule(&p[-14], 0x200, 0);
+            glowDrawDimGreyCapsule(&p[-6], 0x200, 0x800);
+            glowDrawDimGreyCapsule(&p[-4], 0x200, 0x400);
+            glowDrawDimGreyCapsule(&p[-2], 0x200, -0x400);
             break;
         }
         case 6: {
             SVECTOR* p;
             p = D_shelter_b2_north_maintenance_walkway_80183C20;
             glowDrawRedDisc(p, 0x200);
-            glowDrawCone(&p[-14], 0x200, 0);
-            glowDrawCone(&p[-4], 0x200, 0x800);
-            glowDrawCone(&p[-2], 0x200, 0);
+            glowDrawDimGreyCapsule(&p[-14], 0x200, 0);
+            glowDrawDimGreyCapsule(&p[-4], 0x200, 0x800);
+            glowDrawDimGreyCapsule(&p[-2], 0x200, 0);
             break;
         }
         case 7:
             if (gameFlagGetNibble(GAME_FLAG_OPERATING_ROOM_NORTH_DOOR_UNLOCKED) != 0) {
-                glowDrawTintedDisc(D_shelter_b2_north_maintenance_walkway_80183C28, 0x100, 0x504C);
+                _glowDrawTintedDisc(D_shelter_b2_north_maintenance_walkway_80183C28, 0x100, 0x504C);
             } else {
-                glowDrawTintedDisc(D_shelter_b2_north_maintenance_walkway_80183C30, 0x100, 0x5C40);
+                _glowDrawTintedDisc(D_shelter_b2_north_maintenance_walkway_80183C30, 0x100, 0x5C40);
             }
             break;
         case 8:
-            glowDrawCone(D_shelter_b2_north_maintenance_walkway_80183BB0, 0x200, 0x400);
+            glowDrawDimGreyCapsule(D_shelter_b2_north_maintenance_walkway_80183BB0, 0x200, 0x400);
             break;
     }
 }

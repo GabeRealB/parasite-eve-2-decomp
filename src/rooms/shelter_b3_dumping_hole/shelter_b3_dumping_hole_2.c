@@ -2046,6 +2046,8 @@ static void       func_shelter_b3_dumping_hole_8017E7DC(Task* arg0);
 static void       func_shelter_b3_dumping_hole_8017FE10(s32 arg0);
 static void       func_shelter_b3_dumping_hole_8018098C(Task* task);
 
+static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 packedColor);
+
 /// Returns 1 when the screen position (`x`, `y`) lies outside the 320x240
 /// screen centred on the origin, 0 when it is on screen.
 static inline u16 _shelterB3DumpingHoleIsOffscreen(s16 x, s16 y)
@@ -4138,8 +4140,8 @@ void func_shelter_b3_dumping_hole_80183F84(Task* task)
             }
             break;
         case 15:
-            glowDrawCapsule(&D_shelter_b3_dumping_hole_8018B86C[0], 0x200, 0x444);
-            glowDrawCapsule(&D_shelter_b3_dumping_hole_8018B86C[2], 0x200, 0x444);
+            _glowDrawCapsule(&D_shelter_b3_dumping_hole_8018B86C[0], 0x200, 0x444);
+            _glowDrawCapsule(&D_shelter_b3_dumping_hole_8018B86C[2], 0x200, 0x444);
             glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[0x20], 0x300, 0x100);
             glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[0x21], 0x300, 0x200);
             glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[0x22], 0x300, 0x300);
@@ -4149,7 +4151,7 @@ void func_shelter_b3_dumping_hole_80183F84(Task* task)
             glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 36)[0], 0x300, 0x400);
             break;
         case 18:
-            glowDrawCapsule(&(D_shelter_b3_dumping_hole_8018B86C + 10)[0], 0x200, 0x444);
+            _glowDrawCapsule(&(D_shelter_b3_dumping_hole_8018B86C + 10)[0], 0x200, 0x444);
             glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 10)[0x12], 0x280, 0x444);
             glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 10)[0x13], 0x280, 0x444);
             glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 10)[0x19], 0x300, 0x400);
@@ -4168,7 +4170,7 @@ void func_shelter_b3_dumping_hole_80183F84(Task* task)
             glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 30)[1], 0x280, 0x40);
             break;
         case 23:
-            glowDrawCapsule(&D_shelter_b3_dumping_hole_8018B86C[0], 0x200, 0x444);
+            _glowDrawCapsule(&D_shelter_b3_dumping_hole_8018B86C[0], 0x200, 0x444);
             glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[0x20], 0x300, 0x400);
             break;
         case 26:
@@ -4188,11 +4190,11 @@ void func_shelter_b3_dumping_hole_80183F84(Task* task)
             glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 28)[3], 0x280, 0x40);
             break;
         case 31:
-            glowDrawCapsule(&D_shelter_b3_dumping_hole_8018B86C[0], 0x200, 0x444);
-            glowDrawCapsule(&D_shelter_b3_dumping_hole_8018B86C[2], 0x200, 0x444);
-            glowDrawCapsule(&D_shelter_b3_dumping_hole_8018B86C[4], 0x200, 0x444);
-            glowDrawCapsule(&D_shelter_b3_dumping_hole_8018B86C[12], 0x200, 0x444);
-            glowDrawCapsule(&D_shelter_b3_dumping_hole_8018B86C[14], 0x200, 0x444);
+            _glowDrawCapsule(&D_shelter_b3_dumping_hole_8018B86C[0], 0x200, 0x444);
+            _glowDrawCapsule(&D_shelter_b3_dumping_hole_8018B86C[2], 0x200, 0x444);
+            _glowDrawCapsule(&D_shelter_b3_dumping_hole_8018B86C[4], 0x200, 0x444);
+            _glowDrawCapsule(&D_shelter_b3_dumping_hole_8018B86C[12], 0x200, 0x444);
+            _glowDrawCapsule(&D_shelter_b3_dumping_hole_8018B86C[14], 0x200, 0x444);
             glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[24], 0x400, 0x444);
             glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[26], 0x400, 0x444);
             glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[32], 0x300, 0x200);
@@ -4218,13 +4220,13 @@ void func_shelter_b3_dumping_hole_80183F84(Task* task)
             break;
         case 13:
         case 37:
-            glowDrawCapsule(&D_shelter_b3_dumping_hole_8018B86C[0], 0x200, 0x444);
-            glowDrawCapsule(&D_shelter_b3_dumping_hole_8018B86C[2], 0x200, 0x444);
-            glowDrawCapsule(&D_shelter_b3_dumping_hole_8018B86C[4], 0x200, 0x444);
-            glowDrawCapsule(&D_shelter_b3_dumping_hole_8018B86C[6], 0x200, 0x444);
-            glowDrawCapsule(&D_shelter_b3_dumping_hole_8018B86C[12], 0x200, 0x444);
-            glowDrawCapsule(&D_shelter_b3_dumping_hole_8018B86C[14], 0x200, 0x444);
-            glowDrawCapsule(&D_shelter_b3_dumping_hole_8018B86C[16], 0x200, 0x444);
+            _glowDrawCapsule(&D_shelter_b3_dumping_hole_8018B86C[0], 0x200, 0x444);
+            _glowDrawCapsule(&D_shelter_b3_dumping_hole_8018B86C[2], 0x200, 0x444);
+            _glowDrawCapsule(&D_shelter_b3_dumping_hole_8018B86C[4], 0x200, 0x444);
+            _glowDrawCapsule(&D_shelter_b3_dumping_hole_8018B86C[6], 0x200, 0x444);
+            _glowDrawCapsule(&D_shelter_b3_dumping_hole_8018B86C[12], 0x200, 0x444);
+            _glowDrawCapsule(&D_shelter_b3_dumping_hole_8018B86C[14], 0x200, 0x444);
+            _glowDrawCapsule(&D_shelter_b3_dumping_hole_8018B86C[16], 0x200, 0x444);
             glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[24], 0x400, 0x444);
             glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[25], 0x400, 0x444);
             glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[26], 0x400, 0x444);

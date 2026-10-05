@@ -165,13 +165,13 @@ extern EvsCommand     D_dryfield_night_gas_station_801892E4[];
 extern EvsCommand     D_dryfield_night_gas_station_80189A7C[];
 
 /// The room's effect anchors, 8 bytes apart. Entries 0-9 are drawn in pairs by
-/// `glowDrawCapsule`, 10-18 one at a time by
-/// `glowDrawFlare`, and 19-20 are where the spawned
+/// `_glowDrawCapsule`, 10-18 one at a time by
+/// `_glowDrawFlare`, and 19-20 are where the spawned
 /// effects are scattered around.
 extern SVECTOR D_dryfield_night_gas_station_80189C8C[];
 
 /// Entries 21-24 of the anchor list, reached by name: two
-/// `glowDrawCapsule` pairs drawn together whenever
+/// `_glowDrawCapsule` pairs drawn together whenever
 /// one of views 2, 3, 13 or 14 is current.
 extern SVECTOR D_dryfield_night_gas_station_80189D34[];
 
@@ -2518,6 +2518,9 @@ static void func_dryfield_night_gas_station_801802EC(s32 arg0);
 
 #include "../../shared/telephone.inc.c"
 
+static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 packedColor);
+static void _glowDrawFlare(const SVECTOR* worldPoint, s32 textureIndex, s32 radiusScale);
+
 void func_dryfield_night_gas_station_8017E9F8(Task* task)
 {
     Telephone_MenuTask(task);
@@ -3360,16 +3363,16 @@ void func_dryfield_night_gas_station_80180E9C(Task* task)
     }
     for (i = 0; i < 10; i += 2) {
         if (mask & D_dryfield_night_gas_station_80189D54[i]) {
-            glowDrawCapsule(&D_dryfield_night_gas_station_80189C8C[i], 0x180, 0x222);
+            _glowDrawCapsule(&D_dryfield_night_gas_station_80189C8C[i], 0x180, 0x222);
         }
     }
     if (mask & 0x600C) {
-        glowDrawCapsule(&D_dryfield_night_gas_station_80189D34[0], 0x180, 0x444);
-        glowDrawCapsule(&D_dryfield_night_gas_station_80189D34[2], 0x180, 0x444);
+        _glowDrawCapsule(&D_dryfield_night_gas_station_80189D34[0], 0x180, 0x444);
+        _glowDrawCapsule(&D_dryfield_night_gas_station_80189D34[2], 0x180, 0x444);
     }
     for (i = 10; i < 19; i++) {
         if (mask & D_dryfield_night_gas_station_80189D54[i]) {
-            glowDrawFlare(&D_dryfield_night_gas_station_80189C8C[i], 0, 0x380);
+            _glowDrawFlare(&D_dryfield_night_gas_station_80189C8C[i], 0, 0x380);
         }
     }
     if (gameFlagGetNibble(GAME_FLAG_NIGHT_GAS_STATION_PROGRESS) == 0) {

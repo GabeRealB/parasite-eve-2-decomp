@@ -38,6 +38,7 @@
 
 #include "rooms/room_common.h"
 #include "../../shared/glow_draw.h"
+
 // The flag symbol is four bytes; the gate writes the first.
 #define ROOM_EVENT_ACTIVE gRoomEventActive.eventStarted
 #include "../../shared/room_events.h"
@@ -914,6 +915,9 @@ WorldCollisionSurfaceProperties* D_dryfield_night_water_tower_80182C30[8] = {
     D_dryfield_night_water_tower_80182C18,
 };
 
+static void _glowDrawFlare(const SVECTOR* worldPoint, s32 textureIndex, s32 radiusScale);
+static void _glowDrawShaft(const SVECTOR worldPoints[2], s32 radiusScale);
+
 /// The room's effect draw: sets the room effect mode to 2, then draws the
 /// glow sprites and light shafts at the tower's anchor points that the current
 /// view (`gGameSession->location.loc.view`) shows. Views 3 and 4 also draw the
@@ -923,24 +927,24 @@ void func_dryfield_night_water_tower_8017DB80(Task* unused)
     gRoomEffectState->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
     switch (gGameSession->location.loc.view) {
         case 2:
-            glowDrawFlare(&D_dryfield_night_water_tower_8017E71C[4], 2, 0x400);
+            _glowDrawFlare(&D_dryfield_night_water_tower_8017E71C[4], 2, 0x400);
             break;
         case 3:
-            glowDrawShaft(&D_dryfield_night_water_tower_8017E71C[0], 0x100);
-            glowDrawFlare(&D_dryfield_night_water_tower_8017E71C[2], 2, 0x400);
+            _glowDrawShaft(&D_dryfield_night_water_tower_8017E71C[0], 0x100);
+            _glowDrawFlare(&D_dryfield_night_water_tower_8017E71C[2], 2, 0x400);
             break;
         case 4:
-            glowDrawShaft(&D_dryfield_night_water_tower_8017E71C[0], 0x100);
-            glowDrawFlare(&D_dryfield_night_water_tower_8017E71C[2], 2, 0x400);
-            glowDrawFlare(&D_dryfield_night_water_tower_8017E71C[4], 2, 0x400);
+            _glowDrawShaft(&D_dryfield_night_water_tower_8017E71C[0], 0x100);
+            _glowDrawFlare(&D_dryfield_night_water_tower_8017E71C[2], 2, 0x400);
+            _glowDrawFlare(&D_dryfield_night_water_tower_8017E71C[4], 2, 0x400);
             break;
         case 5:
-            glowDrawFlare(&D_dryfield_night_water_tower_8017E71C[3], 2, 0x400);
+            _glowDrawFlare(&D_dryfield_night_water_tower_8017E71C[3], 2, 0x400);
             break;
         case 7:
         case 10:
-            glowDrawFlare(&D_dryfield_night_water_tower_8017E744, 2, 0x400);
-            glowDrawFlare(&D_dryfield_night_water_tower_8017E744, 2, 0x400);
+            _glowDrawFlare(&D_dryfield_night_water_tower_8017E744, 2, 0x400);
+            _glowDrawFlare(&D_dryfield_night_water_tower_8017E744, 2, 0x400);
             break;
     }
 }

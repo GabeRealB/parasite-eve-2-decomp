@@ -32,6 +32,7 @@
 
 #include "rooms/room_common.h"
 #include "../../shared/glow_draw.h"
+
 // The flag symbol is four bytes; the gate writes the first.
 #define ROOM_EVENT_ACTIVE gRoomEventActive.eventStarted
 #include "../../shared/room_events.h"
@@ -536,6 +537,9 @@ RoomEventActiveBytes gRoomEventActive = { 0, { 237, 62, 46 } };
 
 RoomEventReq gRoomEventReq;
 
+static void _glowDrawBeam(const SVECTOR worldPoints[2], s32 radiusScale, s32 startAngle, s32 packedColor);
+static void _glowDrawTintedDisc(const SVECTOR* worldPoint, s32 radiusScale, s32 packedColor);
+
 void func_shelter_b1_armory_801807E4(Task* unused)
 {
     u8 view;
@@ -543,27 +547,27 @@ void func_shelter_b1_armory_801807E4(Task* unused)
     view = viewGetMappedIndex();
     switch (view) {
         case 2:
-            glowDrawBeam(&D_shelter_b1_armory_80182528[0], 0x200, 0, 0x10);
-            glowDrawBeam(&D_shelter_b1_armory_80182528[2], 0x200, 0x800, 0x111);
-            glowDrawBeam(&D_shelter_b1_armory_80182528[4], 0x200, 0x800, 0x111);
+            _glowDrawBeam(&D_shelter_b1_armory_80182528[0], 0x200, 0, 0x10);
+            _glowDrawBeam(&D_shelter_b1_armory_80182528[2], 0x200, 0x800, 0x111);
+            _glowDrawBeam(&D_shelter_b1_armory_80182528[4], 0x200, 0x800, 0x111);
             break;
         case 3:
-            glowDrawBeam(&D_shelter_b1_armory_80182558[0], 0x200, 0, 0x111);
+            _glowDrawBeam(&D_shelter_b1_armory_80182558[0], 0x200, 0, 0x111);
             glowDrawBitDisc(&D_shelter_b1_armory_80182558[2], 0x300, 0x11);
             if (gameFlagGetNibble(GAME_FLAG_SHELTER_B1_ARMORY_UNLOCKED) != 0) {
-                glowDrawTintedDisc(&D_shelter_b1_armory_80182558[3], 0x100, 0x50C0);
+                _glowDrawTintedDisc(&D_shelter_b1_armory_80182558[3], 0x100, 0x50C0);
             } else {
-                glowDrawTintedDisc(&D_shelter_b1_armory_80182558[4], 0x100, 0x5C00);
+                _glowDrawTintedDisc(&D_shelter_b1_armory_80182558[4], 0x100, 0x5C00);
             }
             break;
         case 8:
-            glowDrawBeam(D_shelter_b1_armory_80182538, 0x200, 0x800, 0x111);
+            _glowDrawBeam(D_shelter_b1_armory_80182538, 0x200, 0x800, 0x111);
             break;
         case 9:
             if (gameFlagGetNibble(GAME_FLAG_SHELTER_B1_ARMORY_UNLOCKED) != 0) {
-                glowDrawTintedDisc(D_shelter_b1_armory_80182570, 0x60, 0x50C0);
+                _glowDrawTintedDisc(D_shelter_b1_armory_80182570, 0x60, 0x50C0);
             } else {
-                glowDrawTintedDisc(D_shelter_b1_armory_80182578, 0x60, 0x5C00);
+                _glowDrawTintedDisc(D_shelter_b1_armory_80182578, 0x60, 0x5C00);
             }
             break;
         case 13:

@@ -82,6 +82,8 @@ SVECTOR D_shelter_b2_breeding_room_80180450[32] = {
     { 2650, -2350, 620, 0 },
 };
 
+static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 packedColor);
+
 /// Room light task. Its first frame sets the effect ids in `gRoomEffectGlowDiscId`,
 /// `gRoomEffectFlyingSparkId` and `gRoomEffectOrangeBurst2Id`; every frame it draws the glows of the lights
 /// the current camera view shows, from the room's light position tables.
@@ -96,7 +98,7 @@ void func_shelter_b2_breeding_room_8017D898(Task* arg0)
 
     switch (viewGetMappedIndex() & 0xFF) {
         case 2:
-            glowDrawCapsule(&D_shelter_b2_breeding_room_80180470[0], 0x100, 0x142);
+            _glowDrawCapsule(&D_shelter_b2_breeding_room_80180470[0], 0x100, 0x142);
             glowDrawDisc(&D_shelter_b2_breeding_room_80180470[24], 0x200, 0x444);
             glowDrawDisc(&D_shelter_b2_breeding_room_80180470[25], 0x200, 0x444);
             glowDrawDisc(&D_shelter_b2_breeding_room_80180470[26], 0x200, 0x444);
@@ -105,7 +107,7 @@ void func_shelter_b2_breeding_room_8017D898(Task* arg0)
         case 3:
             glowDrawDisc(&D_shelter_b2_breeding_room_80180450[0], 0x200, 0x222);
             glowDrawDisc(&D_shelter_b2_breeding_room_80180450[1], 0x200, 0x222);
-            glowDrawCapsule(&D_shelter_b2_breeding_room_80180450[2], 0x200, 0x222);
+            _glowDrawCapsule(&D_shelter_b2_breeding_room_80180450[2], 0x200, 0x222);
             glowDrawDisc(&D_shelter_b2_breeding_room_80180450[12], 0x200, 0x333);
             glowDrawDisc(&D_shelter_b2_breeding_room_80180450[13], 0x200, 0x444);
             glowDrawDisc(&D_shelter_b2_breeding_room_80180450[16], 0x200, 0x333);
@@ -119,7 +121,7 @@ void func_shelter_b2_breeding_room_8017D898(Task* arg0)
             glowDrawDisc(&D_shelter_b2_breeding_room_801804C0[7], 0x200, 0x444);
             break;
         case 5:
-            glowDrawCapsule(&D_shelter_b2_breeding_room_80180480[0], 0x100, 0x444);
+            _glowDrawCapsule(&D_shelter_b2_breeding_room_80180480[0], 0x100, 0x444);
             glowDrawDisc(&D_shelter_b2_breeding_room_80180480[8], 0x200, 0x111);
             glowDrawDisc(&D_shelter_b2_breeding_room_80180480[9], 0x200, 0x111);
             glowDrawDisc(&D_shelter_b2_breeding_room_80180480[12], 0x200, 0x222);
@@ -130,9 +132,9 @@ void func_shelter_b2_breeding_room_8017D898(Task* arg0)
             glowDrawDisc(&D_shelter_b2_breeding_room_80180480[17], 0x200, 0x444);
             break;
         case 6:
-            glowDrawCapsule(&D_shelter_b2_breeding_room_80180480[0], 0x100, 0x444);
-            glowDrawCapsule(&D_shelter_b2_breeding_room_80180480[2], 0x100, 0x444);
-            glowDrawCapsule(&D_shelter_b2_breeding_room_80180480[4], 0x100, 0x142);
+            _glowDrawCapsule(&D_shelter_b2_breeding_room_80180480[0], 0x100, 0x444);
+            _glowDrawCapsule(&D_shelter_b2_breeding_room_80180480[2], 0x100, 0x444);
+            _glowDrawCapsule(&D_shelter_b2_breeding_room_80180480[4], 0x100, 0x142);
             glowDrawDisc(&D_shelter_b2_breeding_room_80180480[16], 0x200, 0x444);
             glowDrawDisc(&D_shelter_b2_breeding_room_80180480[17], 0x200, 0x444);
             glowDrawDisc(&D_shelter_b2_breeding_room_80180480[18], 0x200, 0x222);

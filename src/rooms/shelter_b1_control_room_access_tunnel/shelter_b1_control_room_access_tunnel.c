@@ -159,14 +159,14 @@ void func_shelter_b1_control_room_access_tunnel_8017E1BC(Task* arg0)
     switch (view) {
         case 2: {
             SVECTOR* p = D_shelter_b1_control_room_access_tunnel_80181E9C;
-            glowDrawCone(&p[0], 0x200, 0x400);
-            glowDrawCone(&p[4], 0x200, 0x400);
+            glowDrawDimGreyCapsule(&p[0], 0x200, 0x400);
+            glowDrawDimGreyCapsule(&p[4], 0x200, 0x400);
             glowDrawRedDisc(&p[8], 0x200);
         } break;
         case 3: {
             SVECTOR* p = D_shelter_b1_control_room_access_tunnel_80181EAC;
-            glowDrawCone(&p[0], 0x200, -0x400);
-            glowDrawCone(&p[4], 0x200, -0x400);
+            glowDrawDimGreyCapsule(&p[0], 0x200, -0x400);
+            glowDrawDimGreyCapsule(&p[4], 0x200, -0x400);
         } break;
     }
 }

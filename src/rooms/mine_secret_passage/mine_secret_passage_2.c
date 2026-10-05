@@ -122,6 +122,8 @@ SVECTOR D_mine_secret_passage_80180F08[16] = {
 #define ROOM_FX_HALO_STORAGE_BOUND
 #include "../../shared/room_visual_effects_halo_data.inc.c"
 
+static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 packedColor);
+
 /// Returns this overlay's three read-only halo tint rows for spawn indices 0..2.
 static inline const RoomFxShade* _roomVisualEffectsGetHaloShades(void)
 {
@@ -650,7 +652,7 @@ RoomFadeStorage D_mine_secret_passage_80183440;
 /// 0x60240-0x60243 in that order, the same slot order every other room uses -
 /// then draws the emitters the current camera view shows: a run of placements
 /// out of one of the passage's arrays, each drawn as a
-/// `glowDrawCapsule` glow (half-extent 0x200-0x280, colour
+/// `_glowDrawCapsule` glow (half-extent 0x200-0x280, colour
 /// 0x444 except view 6's 0x44) or a `glowDrawDisc` disc
 /// (half-extent 0x200 or 0x400, colour 0x421 or 0x444).
 void func_mine_secret_passage_8017D9D4(Task* arg0)
@@ -666,14 +668,14 @@ void func_mine_secret_passage_8017D9D4(Task* arg0)
     switch (viewGetMappedIndex() & 0xFF) {
         case 2: {
             SVECTOR* p = D_mine_secret_passage_80180EC8;
-            glowDrawCapsule(&p[0], 0x200, 0x444);
+            _glowDrawCapsule(&p[0], 0x200, 0x444);
             glowDrawDisc(&p[16], 0x200, 0x421);
             glowDrawDisc(&p[17], 0x200, 0x421);
             break;
         }
         case 3: {
             SVECTOR* p = D_mine_secret_passage_80180ED8;
-            glowDrawCapsule(&p[0], 0x200, 0x444);
+            _glowDrawCapsule(&p[0], 0x200, 0x444);
             glowDrawDisc(&p[14], 0x200, 0x421);
             glowDrawDisc(&p[15], 0x200, 0x421);
             glowDrawDisc(&p[16], 0x200, 0x421);
@@ -683,7 +685,7 @@ void func_mine_secret_passage_8017D9D4(Task* arg0)
         }
         case 4: {
             SVECTOR* p = D_mine_secret_passage_80180ED8;
-            glowDrawCapsule(&p[0], 0x200, 0x444);
+            _glowDrawCapsule(&p[0], 0x200, 0x444);
             glowDrawDisc(&p[16], 0x200, 0x421);
             glowDrawDisc(&p[18], 0x200, 0x421);
             glowDrawDisc(&p[19], 0x200, 0x421);
@@ -693,7 +695,7 @@ void func_mine_secret_passage_8017D9D4(Task* arg0)
         }
         case 5: {
             SVECTOR* p = D_mine_secret_passage_80180EE8;
-            glowDrawCapsule(&p[0], 0x200, 0x444);
+            _glowDrawCapsule(&p[0], 0x200, 0x444);
             glowDrawDisc(&p[6], 0x400, 0x444);
             glowDrawDisc(&p[7], 0x400, 0x444);
             glowDrawDisc(&p[8], 0x400, 0x444);
@@ -703,9 +705,9 @@ void func_mine_secret_passage_8017D9D4(Task* arg0)
         }
         case 6: {
             SVECTOR* p = D_mine_secret_passage_80180EE8;
-            glowDrawCapsule(&p[0], 0x200, 0x444);
-            glowDrawCapsule(&p[2], 0x200, 0x444);
-            glowDrawCapsule(&p[4], 0x280, 0x44);
+            _glowDrawCapsule(&p[0], 0x200, 0x444);
+            _glowDrawCapsule(&p[2], 0x200, 0x444);
+            _glowDrawCapsule(&p[4], 0x280, 0x44);
             glowDrawDisc(&p[9], 0x400, 0x444);
             glowDrawDisc(&p[10], 0x200, 0x421);
             glowDrawDisc(&p[11], 0x200, 0x421);
@@ -713,7 +715,7 @@ void func_mine_secret_passage_8017D9D4(Task* arg0)
         }
         case 7: {
             SVECTOR* p = D_mine_secret_passage_80180ED8;
-            glowDrawCapsule(&p[0], 0x200, 0x444);
+            _glowDrawCapsule(&p[0], 0x200, 0x444);
             glowDrawDisc(&p[16], 0x200, 0x421);
             glowDrawDisc(&p[18], 0x200, 0x421);
             glowDrawDisc(&p[20], 0x200, 0x421);
@@ -721,7 +723,7 @@ void func_mine_secret_passage_8017D9D4(Task* arg0)
         }
         case 8: {
             SVECTOR* p = D_mine_secret_passage_80180F08;
-            glowDrawCapsule(&p[0], 0x280, 0x44);
+            _glowDrawCapsule(&p[0], 0x280, 0x44);
             break;
         }
     }

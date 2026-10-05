@@ -109,7 +109,7 @@ extern WorldCollisionGrid D_mine_forked_tunnel_80181C5C;
 extern WorldCollisionGrid D_mine_forked_tunnel_80183D70;
 
 /// The tunnel's per-view effect anchors, projected by
-/// `func_mine_forked_tunnel_8017E78C` with `glowDrawFlare`
+/// `func_mine_forked_tunnel_8017E78C` with `_glowDrawFlare`
 /// (half-extent 0x300). Views 2 and 3 share the first anchor, view 4 draws the
 /// second and third (the tunnel fork's two arms) and view 5 the fourth.
 extern SVECTOR D_mine_forked_tunnel_80183614[];
@@ -1444,6 +1444,8 @@ WorldCollisionSurfaceProperties* D_mine_forked_tunnel_801855C0[8] = {
     D_mine_forked_tunnel_801855B0,
 };
 
+static void _glowDrawFlare(const SVECTOR* worldPoint, s32 textureIndex, s32 radiusScale);
+
 static void func_mine_forked_tunnel_8017D5E8(Task* arg0)
 {
     _MineForkedTunnelAreaObjectWork* work;
@@ -1963,14 +1965,14 @@ void func_mine_forked_tunnel_8017E78C(Task* unused)
     switch (idx) {
         case 2:
         case 3:
-            glowDrawFlare(D_mine_forked_tunnel_80183614, 1, 0x300);
+            _glowDrawFlare(D_mine_forked_tunnel_80183614, 1, 0x300);
             break;
         case 4:
-            glowDrawFlare(&D_mine_forked_tunnel_8018361C[0], 1, 0x300);
-            glowDrawFlare(&D_mine_forked_tunnel_8018361C[1], 1, 0x300);
+            _glowDrawFlare(&D_mine_forked_tunnel_8018361C[0], 1, 0x300);
+            _glowDrawFlare(&D_mine_forked_tunnel_8018361C[1], 1, 0x300);
             break;
         case 5:
-            glowDrawFlare(D_mine_forked_tunnel_8018362C, 1, 0x300);
+            _glowDrawFlare(D_mine_forked_tunnel_8018362C, 1, 0x300);
             break;
         default:
             return;

@@ -509,6 +509,8 @@ WorldCollisionSurfaceProperties* D_neo_ark_substation_80180328[8] = {
     D_neo_ark_substation_80180308,
 };
 
+static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 packedColor);
+
 /// Keeps the substation's looping ambience in step with the area the session is
 /// in: `gGameSession->location.loc.view` selects one of the room's nine `(panOffset, attenuation)`
 /// entries, and state 0 starts that loop with `sndEvtRequestScriptStart`. States 1
@@ -620,53 +622,53 @@ void func_neo_ark_substation_8017D874(Task* unused)
     switch (view) {
         case 2: {
             SVECTOR* p = D_neo_ark_substation_8017E310;
-            glowDrawCapsule(&p[0], 0x200, 0x444);
+            _glowDrawCapsule(&p[0], 0x200, 0x444);
             break;
         }
         case 3: {
             SVECTOR* p = D_neo_ark_substation_8017E310;
-            glowDrawCapsule(&p[0], 0x200, 0x444);
-            glowDrawCapsule(&p[2], 0x200, 0x444);
-            glowDrawCapsule(&p[4], 0x200, 0x444);
-            glowDrawCapsule(&p[6], 0x200, 0x444);
+            _glowDrawCapsule(&p[0], 0x200, 0x444);
+            _glowDrawCapsule(&p[2], 0x200, 0x444);
+            _glowDrawCapsule(&p[4], 0x200, 0x444);
+            _glowDrawCapsule(&p[6], 0x200, 0x444);
             break;
         }
         case 4: {
             SVECTOR* p = D_neo_ark_substation_8017E310;
-            glowDrawCapsule(&p[0], 0x200, 0x222);
-            glowDrawCapsule(&p[2], 0x200, 0x333);
-            glowDrawCapsule(&p[4], 0x200, 0x444);
-            glowDrawCapsule(&p[6], 0x200, 0x444);
-            glowDrawCapsule(&p[16], 0x200, 0x222);
-            glowDrawCapsule(&p[18], 0x200, 0x333);
+            _glowDrawCapsule(&p[0], 0x200, 0x222);
+            _glowDrawCapsule(&p[2], 0x200, 0x333);
+            _glowDrawCapsule(&p[4], 0x200, 0x444);
+            _glowDrawCapsule(&p[6], 0x200, 0x444);
+            _glowDrawCapsule(&p[16], 0x200, 0x222);
+            _glowDrawCapsule(&p[18], 0x200, 0x333);
             break;
         }
         case 5: {
             SVECTOR* p = D_neo_ark_substation_8017E330;
-            glowDrawCapsule(&p[0], 0x200, 0x444);
-            glowDrawCapsule(&p[2], 0x200, 0x333);
+            _glowDrawCapsule(&p[0], 0x200, 0x444);
+            _glowDrawCapsule(&p[2], 0x200, 0x333);
             break;
         }
         case 6: {
             SVECTOR* p = D_neo_ark_substation_8017E350;
-            glowDrawCapsule(&p[0], 0x200, 0x333);
-            glowDrawCapsule(&p[2], 0x200, 0x444);
-            glowDrawCapsule(&p[12], 0x200, 0x444);
+            _glowDrawCapsule(&p[0], 0x200, 0x333);
+            _glowDrawCapsule(&p[2], 0x200, 0x444);
+            _glowDrawCapsule(&p[12], 0x200, 0x444);
             break;
         }
         case 7: {
             SVECTOR* p = D_neo_ark_substation_8017E360;
-            glowDrawCapsule(&p[0], 0x200, 0x444);
-            glowDrawCapsule(&p[2], 0x200, 0x333);
-            glowDrawCapsule(&p[4], 0x200, 0x222);
-            glowDrawCapsule(&p[12], 0x200, 0x444);
-            glowDrawCapsule(&p[14], 0x200, 0x333);
-            glowDrawCapsule(&p[16], 0x200, 0x222);
+            _glowDrawCapsule(&p[0], 0x200, 0x444);
+            _glowDrawCapsule(&p[2], 0x200, 0x333);
+            _glowDrawCapsule(&p[4], 0x200, 0x222);
+            _glowDrawCapsule(&p[12], 0x200, 0x444);
+            _glowDrawCapsule(&p[14], 0x200, 0x333);
+            _glowDrawCapsule(&p[16], 0x200, 0x222);
             break;
         }
         case 8: {
             SVECTOR* p = D_neo_ark_substation_8017E380;
-            glowDrawCapsule(&p[0], 0x200, 0x444);
+            _glowDrawCapsule(&p[0], 0x200, 0x444);
             break;
         }
     }

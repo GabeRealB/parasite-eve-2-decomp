@@ -85,5 +85,5 @@ _roomVisualEffectsDrawFlashRing = 0x80180FBC; // type:func
 _roomVisualEffectsDrawFlashDisc = 0x801813E8; // type:func
 _roomVisualEffectsDrawTwinTrail = 0x80181C6C; // type:func
 _roomVisualEffectsDrawBurstStar = 0x801822EC; // type:func
-glowDrawCapsule = 0x8017DEB0; // type:func
+_glowDrawCapsule = 0x8017DEB0; // type:func
 shelterElevatorTask = 0x8017D620; // type:func

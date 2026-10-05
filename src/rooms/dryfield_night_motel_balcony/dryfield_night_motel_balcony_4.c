@@ -3174,6 +3174,9 @@ WorldCollisionSurfaceProperties* D_dryfield_night_motel_balcony_8018F2AC[8] = {
     D_dryfield_night_motel_balcony_8018F28C,
 };
 
+static void _glowDrawFlare(const SVECTOR* worldPoint, s32 textureIndex, s32 radiusScale);
+static void _glowDrawShaft(const SVECTOR worldPoints[2], s32 radiusScale);
+
 /// The room's ambient effect task. Each tick it draws the glows whose bit for
 /// the current view is set in the per-view mask table, turns two of them off
 /// for good once flag nibble 0x7F is set (spawning effect 0x60094 the first
@@ -3202,27 +3205,27 @@ void func_dryfield_night_motel_balcony_8017E554(Task* task)
         hi   = 1;
     }
     if (mask & D_dryfield_night_motel_balcony_80182D40[hi][0]) {
-        glowDrawShaft(&D_dryfield_night_motel_balcony_80182C60[0], 0x180);
+        _glowDrawShaft(&D_dryfield_night_motel_balcony_80182C60[0], 0x180);
     }
     if (mask & D_dryfield_night_motel_balcony_80182D40[hi][2]) {
-        glowDrawShaft(&D_dryfield_night_motel_balcony_80182C70, 0x180);
+        _glowDrawShaft(&D_dryfield_night_motel_balcony_80182C70, 0x180);
     }
     if (mask & D_dryfield_night_motel_balcony_80182D40[hi][4]) {
-        glowDrawShaft(&D_dryfield_night_motel_balcony_80182C80, 0x180);
+        _glowDrawShaft(&D_dryfield_night_motel_balcony_80182C80, 0x180);
     }
     if (mask & D_dryfield_night_motel_balcony_80182D40[hi][6]) {
-        glowDrawShaft(&D_dryfield_night_motel_balcony_80182C90, 0x180);
+        _glowDrawShaft(&D_dryfield_night_motel_balcony_80182C90, 0x180);
     }
     if (mask & D_dryfield_night_motel_balcony_80182D40[hi][8]) {
-        glowDrawShaft(&D_dryfield_night_motel_balcony_80182CA0, 0x180);
+        _glowDrawShaft(&D_dryfield_night_motel_balcony_80182CA0, 0x180);
     }
     for (i = 10; i < 18; i++) {
         if (mask & D_dryfield_night_motel_balcony_80182D40[hi][i]) {
-            glowDrawFlare(&D_dryfield_night_motel_balcony_80182C60[i], 1, 0x380);
+            _glowDrawFlare(&D_dryfield_night_motel_balcony_80182C60[i], 1, 0x380);
         }
     }
     if (mask & D_dryfield_night_motel_balcony_80182D40[hi][18]) {
-        glowDrawShaft(&D_dryfield_night_motel_balcony_80182CF0, 0x180);
+        _glowDrawShaft(&D_dryfield_night_motel_balcony_80182CF0, 0x180);
     }
     if (gameFlagGetNibble(GAME_FLAG_07F) == 1) {
         D_dryfield_night_motel_balcony_80182D40[0][3] = 0;

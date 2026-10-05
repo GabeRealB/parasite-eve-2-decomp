@@ -60,6 +60,7 @@
 
 #include "../../shared/room_visual_effects.h"
 #include "../../shared/glow_draw.h"
+
 // The latched-event symbol carries four unproven bytes after the event.
 #define ROOM_EVENT_LATCHED gRoomEventLatched.event
 #include "../../shared/room_events.h"
@@ -449,6 +450,9 @@ s32 D_dryfield_night_main_street_80182230[16] = {
 #define ROOM_FX_HALO_STORAGE_TYPE        RoomFxHaloStorage
 #define ROOM_FX_HALO_STORAGE_BOUND
 #include "../../shared/room_visual_effects_halo_data.inc.c"
+
+static void _glowDrawFlare(const SVECTOR* worldPoint, s32 textureIndex, s32 radiusScale);
+static void _glowDrawShaft(const SVECTOR worldPoints[2], s32 radiusScale);
 
 /// Returns this overlay's three read-only halo tint rows for spawn indices 0..2.
 static inline const RoomFxShade* _roomVisualEffectsGetHaloShades(void)
@@ -1696,23 +1700,23 @@ void func_dryfield_night_main_street_8017E484(Task* task)
         D_dryfield_night_main_street_80182230[2] = 0;
     }
     if (mask & D_dryfield_night_main_street_80182230[0]) {
-        glowDrawShaft(D_dryfield_night_main_street_801821A8, 0x180);
+        _glowDrawShaft(D_dryfield_night_main_street_801821A8, 0x180);
     }
     if (mask & D_dryfield_night_main_street_80182230[2]) {
-        glowDrawShaft(&D_dryfield_night_main_street_801821B8, 0x180);
+        _glowDrawShaft(&D_dryfield_night_main_street_801821B8, 0x180);
     }
     if (mask & D_dryfield_night_main_street_80182230[4]) {
-        glowDrawShaft(&D_dryfield_night_main_street_801821C8, 0x180);
+        _glowDrawShaft(&D_dryfield_night_main_street_801821C8, 0x180);
     }
     if (mask & D_dryfield_night_main_street_80182230[6]) {
-        glowDrawShaft(&D_dryfield_night_main_street_801821D8, 0x180);
+        _glowDrawShaft(&D_dryfield_night_main_street_801821D8, 0x180);
     }
     if (mask & D_dryfield_night_main_street_80182230[8]) {
-        glowDrawShaft(&D_dryfield_night_main_street_801821E8, 0x180);
+        _glowDrawShaft(&D_dryfield_night_main_street_801821E8, 0x180);
     }
     for (i = 10; i < 16; i++) {
         if (mask & D_dryfield_night_main_street_80182230[i]) {
-            glowDrawFlare(&D_dryfield_night_main_street_801821A8[i], 1, 0x380);
+            _glowDrawFlare(&D_dryfield_night_main_street_801821A8[i], 1, 0x380);
         }
     }
     gRoomEffectState->roomEffectMode = D_dryfield_night_main_street_80182178[(viewGetMappedIndex() & 0xFF) - 1];

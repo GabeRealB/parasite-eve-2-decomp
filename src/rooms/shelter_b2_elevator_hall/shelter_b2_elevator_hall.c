@@ -61,6 +61,7 @@
 
 #include "../../shared/room_visual_effects.h"
 #include "../../shared/glow_draw.h"
+
 // The flag symbol is four bytes; the gate writes the first.
 #define ROOM_EVENT_ACTIVE gRoomEventActive.eventStarted
 #include "../../shared/room_events.h"
@@ -171,6 +172,9 @@ SVECTOR D_shelter_b2_elevator_hall_801838B0[1] = {
 #define ROOM_FX_HALO_STORAGE_TYPE  RoomFxShade
 #define ROOM_FX_HALO_STORAGE_BOUND [3]
 #include "../../shared/room_visual_effects_halo_data.inc.c"
+
+static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 packedColor);
+static void _glowDrawTintedDisc(const SVECTOR* worldPoint, s32 radiusScale, s32 packedColor);
 
 /// Returns this overlay's three read-only halo tint rows for spawn indices 0..2.
 static inline const RoomFxShade* _roomVisualEffectsGetHaloShades(void)
@@ -616,53 +620,53 @@ void func_shelter_b2_elevator_hall_8017DD60(Task* arg0)
         case 2: {
             SVECTOR* p;
             p = D_shelter_b2_elevator_hall_801837D8;
-            glowDrawCapsule(&p[0], 0x180, 0x111);
-            glowDrawCapsule(&p[2], 0x180, 0x111);
-            glowDrawCapsule(&p[16], 0x180, 0x111);
-            glowDrawCapsule(&p[24], 0x200, 0x412);
+            _glowDrawCapsule(&p[0], 0x180, 0x111);
+            _glowDrawCapsule(&p[2], 0x180, 0x111);
+            _glowDrawCapsule(&p[16], 0x180, 0x111);
+            _glowDrawCapsule(&p[24], 0x200, 0x412);
             break;
         }
         case 3: {
             SVECTOR* p;
             p = D_shelter_b2_elevator_hall_801837F8;
-            glowDrawCapsule(&p[0], 0x180, 0x111);
-            glowDrawCapsule(&p[8], 0x180, 0x111);
-            glowDrawCapsule(&p[12], 0x180, 0x111);
-            glowDrawCapsule(&p[20], 0x200, 0x412);
+            _glowDrawCapsule(&p[0], 0x180, 0x111);
+            _glowDrawCapsule(&p[8], 0x180, 0x111);
+            _glowDrawCapsule(&p[12], 0x180, 0x111);
+            _glowDrawCapsule(&p[20], 0x200, 0x412);
             break;
         }
         case 4: {
             SVECTOR* p;
             p = D_shelter_b2_elevator_hall_80183808;
-            glowDrawCapsule(&p[0], 0x180, 0x111);
-            glowDrawCapsule(&p[8], 0x180, 0x111);
-            glowDrawCapsule(&p[12], 0x180, 0x111);
-            glowDrawCapsule(&p[16], 0x200, 0x412);
+            _glowDrawCapsule(&p[0], 0x180, 0x111);
+            _glowDrawCapsule(&p[8], 0x180, 0x111);
+            _glowDrawCapsule(&p[12], 0x180, 0x111);
+            _glowDrawCapsule(&p[16], 0x200, 0x412);
             break;
         }
         case 5: {
             SVECTOR* p;
             if (gameFlagGetNibble(GAME_FLAG_B2_HALL_SOUTH_WALKWAY_DOOR_UNLOCKED) != 0) {
-                glowDrawTintedDisc(D_shelter_b2_elevator_hall_801838A8, 0x100, 0x504C);
+                _glowDrawTintedDisc(D_shelter_b2_elevator_hall_801838A8, 0x100, 0x504C);
             } else {
-                glowDrawTintedDisc(D_shelter_b2_elevator_hall_801838B0, 0x100, 0x5C40);
+                _glowDrawTintedDisc(D_shelter_b2_elevator_hall_801838B0, 0x100, 0x5C40);
             }
             p = D_shelter_b2_elevator_hall_80183868;
-            glowDrawCapsule(&p[0], 0x180, 0x111);
-            glowDrawCapsule(&p[2], 0x200, 0x412);
-            glowDrawCapsule(&p[4], 0x200, 0x412);
+            _glowDrawCapsule(&p[0], 0x180, 0x111);
+            _glowDrawCapsule(&p[2], 0x200, 0x412);
+            _glowDrawCapsule(&p[4], 0x200, 0x412);
             break;
         }
         case 6: {
             SVECTOR* p;
             if (gameFlagGetNibble(GAME_FLAG_B2_HALL_SOUTH_WALKWAY_DOOR_UNLOCKED) != 0) {
-                glowDrawTintedDisc(D_shelter_b2_elevator_hall_801838A8, 0x100, 0x504C);
+                _glowDrawTintedDisc(D_shelter_b2_elevator_hall_801838A8, 0x100, 0x504C);
             } else {
-                glowDrawTintedDisc(D_shelter_b2_elevator_hall_801838B0, 0x100, 0x5C40);
+                _glowDrawTintedDisc(D_shelter_b2_elevator_hall_801838B0, 0x100, 0x5C40);
             }
             p = D_shelter_b2_elevator_hall_80183868;
-            glowDrawCapsule(&p[0], 0x180, 0x111);
-            glowDrawCapsule(&p[2], 0x200, 0x412);
+            _glowDrawCapsule(&p[0], 0x180, 0x111);
+            _glowDrawCapsule(&p[2], 0x200, 0x412);
             break;
         }
     }

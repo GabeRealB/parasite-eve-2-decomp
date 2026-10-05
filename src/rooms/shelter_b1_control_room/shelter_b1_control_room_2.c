@@ -81,6 +81,8 @@ SVECTOR D_shelter_b1_control_room_80181BD4[18] = {
 
 #include "../../shared/streamed_scene_play_then_hold.inc.c"
 
+static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 packedColor);
+
 void func_shelter_b1_control_room_8017F100(Task* arg0)
 {
     Display_SpawnWithOt(D_shelter_b1_control_room_80181BBC, 1, 0, 0);
@@ -103,21 +105,21 @@ void func_shelter_b1_control_room_8017F150(Task* task)
     view = viewGetMappedIndex();
     switch (view) {
         case 2:
-            glowDrawCapsule(&D_shelter_b1_control_room_80181BD4[0], 0x100, 0x243);
-            glowDrawCapsule(&D_shelter_b1_control_room_80181BD4[2], 0x100, 0x243);
-            glowDrawCapsule(&D_shelter_b1_control_room_80181BD4[4], 0x100, 0x243);
-            glowDrawCapsule(&D_shelter_b1_control_room_80181BD4[6], 0x100, 0x243);
-            glowDrawCapsule(&D_shelter_b1_control_room_80181BD4[8], 0x100, 0x243);
-            glowDrawCapsule(&D_shelter_b1_control_room_80181BD4[10], 0x100, 0x243);
+            _glowDrawCapsule(&D_shelter_b1_control_room_80181BD4[0], 0x100, 0x243);
+            _glowDrawCapsule(&D_shelter_b1_control_room_80181BD4[2], 0x100, 0x243);
+            _glowDrawCapsule(&D_shelter_b1_control_room_80181BD4[4], 0x100, 0x243);
+            _glowDrawCapsule(&D_shelter_b1_control_room_80181BD4[6], 0x100, 0x243);
+            _glowDrawCapsule(&D_shelter_b1_control_room_80181BD4[8], 0x100, 0x243);
+            _glowDrawCapsule(&D_shelter_b1_control_room_80181BD4[10], 0x100, 0x243);
             glowDrawDisc(&D_shelter_b1_control_room_80181BD4[12], 0x180, 0x421);
             break;
         case 3:
-            glowDrawCapsule(&D_shelter_b1_control_room_80181BD4[0], 0x100, 0x243);
-            glowDrawCapsule(&D_shelter_b1_control_room_80181BD4[2], 0x100, 0x243);
-            glowDrawCapsule(&D_shelter_b1_control_room_80181BD4[4], 0x100, 0x243);
-            glowDrawCapsule(&D_shelter_b1_control_room_80181BD4[6], 0x100, 0x243);
-            glowDrawCapsule(&D_shelter_b1_control_room_80181BD4[8], 0x100, 0x243);
-            glowDrawCapsule(&D_shelter_b1_control_room_80181BD4[10], 0x100, 0x243);
+            _glowDrawCapsule(&D_shelter_b1_control_room_80181BD4[0], 0x100, 0x243);
+            _glowDrawCapsule(&D_shelter_b1_control_room_80181BD4[2], 0x100, 0x243);
+            _glowDrawCapsule(&D_shelter_b1_control_room_80181BD4[4], 0x100, 0x243);
+            _glowDrawCapsule(&D_shelter_b1_control_room_80181BD4[6], 0x100, 0x243);
+            _glowDrawCapsule(&D_shelter_b1_control_room_80181BD4[8], 0x100, 0x243);
+            _glowDrawCapsule(&D_shelter_b1_control_room_80181BD4[10], 0x100, 0x243);
             glowDrawDisc(&D_shelter_b1_control_room_80181BD4[12], 0x180, 0x421);
             glowDrawDisc(&D_shelter_b1_control_room_80181BD4[14], 0x200, 0x23);
             glowDrawDisc(&D_shelter_b1_control_room_80181BD4[15], 0x200, 0x23);

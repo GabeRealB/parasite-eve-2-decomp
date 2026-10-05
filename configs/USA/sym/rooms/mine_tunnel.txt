@@ -60,4 +60,4 @@ _gMineTunnelAnimation009DCIndices = 0x8017DF74; // size:0x28 defined:True
 _gMineTunnelAnimation009DC = 0x8017DF9C; // size:0x28 defined:True
 
 func_mine_tunnel_8017D7D4 = 0x8017D7D4; // type:func
-glowDrawFlare = 0x8017D8CC; // type:func
+_glowDrawFlare = 0x8017D8CC; // type:func

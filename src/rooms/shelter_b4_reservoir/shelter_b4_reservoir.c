@@ -985,6 +985,8 @@ static void func_shelter_b4_reservoir_8017E8EC(Task* task);
 
 #include "../../shared/screen_wave.inc.c"
 
+static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 packedColor);
+
 void func_shelter_b4_reservoir_8017DE8C(Task* task)
 {
     switch (task->state) {
@@ -1746,12 +1748,12 @@ void func_shelter_b4_reservoir_8017FB84(Task* task)
     }
     switch ((u8)viewGetMappedIndex()) {
         case 2:
-            glowDrawCapsule(&D_shelter_b4_reservoir_80185024[10], 0x200, 0x444);
+            _glowDrawCapsule(&D_shelter_b4_reservoir_80185024[10], 0x200, 0x444);
             break;
         case 4:
-            glowDrawCapsule(&D_shelter_b4_reservoir_80185024[0], 0x200, 0x222);
-            glowDrawCapsule(&D_shelter_b4_reservoir_80185024[6], 0x200, 0x444);
-            glowDrawCapsule(&D_shelter_b4_reservoir_80185024[8], 0x200, 0x333);
+            _glowDrawCapsule(&D_shelter_b4_reservoir_80185024[0], 0x200, 0x222);
+            _glowDrawCapsule(&D_shelter_b4_reservoir_80185024[6], 0x200, 0x444);
+            _glowDrawCapsule(&D_shelter_b4_reservoir_80185024[8], 0x200, 0x333);
             if (gameFlagGetNibble(GAME_FLAG_B4_RESERVOIR_EVENT_DONE) != 0) {
                 glowDrawTintedDiscNoBias(&D_shelter_b4_reservoir_80185024[12], 0x100, 0x504C);
             } else {
@@ -1759,7 +1761,7 @@ void func_shelter_b4_reservoir_8017FB84(Task* task)
             }
             break;
         case 5:
-            glowDrawCapsule(&D_shelter_b4_reservoir_80185024[0], 0x200, 0x444);
+            _glowDrawCapsule(&D_shelter_b4_reservoir_80185024[0], 0x200, 0x444);
             if (gameFlagGetNibble(GAME_FLAG_B4_RESERVOIR_EVENT_DONE) != 0) {
                 glowDrawTintedDiscNoBias(&D_shelter_b4_reservoir_80185024[12], 0x100, 0x504C);
             } else {
@@ -1774,11 +1776,11 @@ void func_shelter_b4_reservoir_8017FB84(Task* task)
             }
             break;
         case 7:
-            glowDrawCapsule(&D_shelter_b4_reservoir_80185024[2], 0x200, 0x444);
+            _glowDrawCapsule(&D_shelter_b4_reservoir_80185024[2], 0x200, 0x444);
             break;
         case 3:
         case 9:
-            glowDrawCapsule(&D_shelter_b4_reservoir_80185024[4], 0x200, 0x444);
+            _glowDrawCapsule(&D_shelter_b4_reservoir_80185024[4], 0x200, 0x444);
             break;
     }
 }

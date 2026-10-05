@@ -843,6 +843,9 @@ Task* gRoomCutsceneSoundTask = NULL;
 
 RoomCutsceneRec D_dryfield_night_trailer_coach_8018C21C = { 0 };
 
+static void _glowDrawDiamond(const SVECTOR* worldPoint, s32 pulseRate, s32 radiusScale);
+static void _glowDrawPulsingDisc(const SVECTOR* worldPoint, s32 pulseRate, s32 radiusScale);
+
 void func_dryfield_night_trailer_coach_80182924(Task* unused)
 {
     SVECTOR* p;
@@ -878,14 +881,14 @@ void func_dryfield_night_trailer_coach_80182924(Task* unused)
         case 5:
         case 7:
             r = D_dryfield_night_trailer_coach_801893F8;
-            glowDrawDiamond(&r[0], 0x60, 0xA0);
+            _glowDrawDiamond(&r[0], 0x60, 0xA0);
             func_dryfield_night_trailer_coach_801838B4(&r[1], 0x100);
             func_dryfield_night_trailer_coach_801838B4(&r[3], 0x100);
             func_dryfield_night_trailer_coach_801838B4(&r[5], 0x100);
             func_dryfield_night_trailer_coach_801838B4(&r[7], 0x100);
             break;
         case 8:
-            glowDrawPulsingDisc(&D_dryfield_night_trailer_coach_801893F8[0], 0x60, 0x30);
+            _glowDrawPulsingDisc(&D_dryfield_night_trailer_coach_801893F8[0], 0x60, 0x30);
             break;
     }
 }

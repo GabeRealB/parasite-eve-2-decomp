@@ -51,5 +51,5 @@ _roomVisualEffectsDrawFlashRing = 0x8017E854; // type:func
 _roomVisualEffectsDrawFlashDisc = 0x8017EC80; // type:func
 _roomVisualEffectsDrawTwinTrail = 0x8017F504; // type:func
 _roomVisualEffectsDrawBurstStar = 0x8017FB84; // type:func
-glowDrawBeam = 0x8017DB4C; // type:func
+_glowDrawBeam = 0x8017DB4C; // type:func
 glowDrawFlareClipped = 0x8017E334; // type:func

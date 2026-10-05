@@ -618,6 +618,9 @@ Task* gRoomCutsceneSoundTask = NULL;
 
 RoomCutsceneRec D_shelter_1f_tent_801843C4 = { 0 };
 
+static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 packedColor);
+static void _glowDrawPulsingDisc(const SVECTOR* worldPoint, s32 pulseRate, s32 radiusScale);
+
 /// Draws the glows of the current camera view at the room's fixed world
 /// points; views without an entry draw nothing.
 void func_shelter_1f_tent_8017FE10(Task* unused)
@@ -628,7 +631,7 @@ void func_shelter_1f_tent_8017FE10(Task* unused)
     switch (view) {
         case 2: {
             SVECTOR* p = D_shelter_1f_tent_80181D2C;
-            glowDrawCapsule(&p[0], 0x200, 0x111);
+            _glowDrawCapsule(&p[0], 0x200, 0x111);
             glowDrawDisc(&p[-5], 0x280, 0x40);
             glowDrawDisc(&p[-4], 0x280, 0x444);
             glowDrawDisc(&p[-3], 0x180, 0x22);
@@ -648,7 +651,7 @@ void func_shelter_1f_tent_8017FE10(Task* unused)
         case 5: {
             SVECTOR* p = D_shelter_1f_tent_80181D0C;
             glowDrawDisc(&p[0], 0x280, 0x444);
-            glowDrawPulsingDisc(&p[6], 0x60, 0x80);
+            _glowDrawPulsingDisc(&p[6], 0x60, 0x80);
             break;
         }
         case 4:

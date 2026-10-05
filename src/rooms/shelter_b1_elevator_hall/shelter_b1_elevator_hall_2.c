@@ -121,6 +121,8 @@ SVECTOR D_shelter_b1_elevator_hall_80182CF4[28] = {
 #define ROOM_FX_HALO_STORAGE_BOUND
 #include "../../shared/room_visual_effects_halo_data.inc.c"
 
+static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 packedColor);
+
 /// Returns this overlay's three read-only halo tint rows for spawn indices 0..2.
 static inline const RoomFxShade* _roomVisualEffectsGetHaloShades(void)
 {
@@ -504,7 +506,7 @@ WorldCollisionSurfaceProperties* D_shelter_b1_elevator_hall_801849D0[8] = {
 RoomFadeStorage D_shelter_b1_elevator_hall_801849F0;
 
 /// On the task's first tick stores seven room-specific values into resident
-/// gameplay globals, then draws the `glowDrawCapsule`
+/// gameplay globals, then draws the `_glowDrawCapsule`
 /// placements the current camera view shows. Views 2 and 9 share their last
 /// placement, `D_shelter_b1_elevator_hall_80182CF4[26]`.
 void func_shelter_b1_elevator_hall_8017DC80(Task* arg0)
@@ -522,51 +524,51 @@ void func_shelter_b1_elevator_hall_8017DC80(Task* arg0)
 
     switch (viewGetMappedIndex() & 0xFF) {
         case 2:
-            glowDrawCapsule(&D_shelter_b1_elevator_hall_80182CF4[0], 0x180, 0x444);
-            glowDrawCapsule(&D_shelter_b1_elevator_hall_80182CF4[26], 0x180, 0x44);
+            _glowDrawCapsule(&D_shelter_b1_elevator_hall_80182CF4[0], 0x180, 0x444);
+            _glowDrawCapsule(&D_shelter_b1_elevator_hall_80182CF4[26], 0x180, 0x44);
             break;
         case 3: {
             SVECTOR* p;
             p = D_shelter_b1_elevator_hall_80182D04;
-            glowDrawCapsule(&p[0], 0x180, 0x444);
-            glowDrawCapsule(&p[18], 0x200, 0x421);
+            _glowDrawCapsule(&p[0], 0x180, 0x444);
+            _glowDrawCapsule(&p[18], 0x200, 0x421);
             break;
         }
         case 4: {
             SVECTOR* p;
             p = D_shelter_b1_elevator_hall_80182D14;
-            glowDrawCapsule(&p[0], 0x180, 0x444);
-            glowDrawCapsule(&p[8], 0x180, 0x444);
-            glowDrawCapsule(&p[16], 0x200, 0x421);
+            _glowDrawCapsule(&p[0], 0x180, 0x444);
+            _glowDrawCapsule(&p[8], 0x180, 0x444);
+            _glowDrawCapsule(&p[16], 0x200, 0x421);
             break;
         }
         case 5: {
             SVECTOR* p;
             p = D_shelter_b1_elevator_hall_80182D24;
-            glowDrawCapsule(&p[0], 0x180, 0x444);
-            glowDrawCapsule(&p[6], 0x180, 0x444);
-            glowDrawCapsule(&p[8], 0x180, 0x444);
-            glowDrawCapsule(&p[12], 0x180, 0x444);
-            glowDrawCapsule(&p[16], 0x200, 0x421);
+            _glowDrawCapsule(&p[0], 0x180, 0x444);
+            _glowDrawCapsule(&p[6], 0x180, 0x444);
+            _glowDrawCapsule(&p[8], 0x180, 0x444);
+            _glowDrawCapsule(&p[12], 0x180, 0x444);
+            _glowDrawCapsule(&p[16], 0x200, 0x421);
             break;
         }
         case 7: {
             SVECTOR* p;
             p = D_shelter_b1_elevator_hall_80182D84;
-            glowDrawCapsule(&p[0], 0x180, 0x444);
-            glowDrawCapsule(&p[6], 0x200, 0x421);
+            _glowDrawCapsule(&p[0], 0x180, 0x444);
+            _glowDrawCapsule(&p[6], 0x200, 0x421);
             break;
         }
         case 8: {
             SVECTOR* p;
             p = D_shelter_b1_elevator_hall_80182D34;
-            glowDrawCapsule(&p[0], 0x180, 0x444);
-            glowDrawCapsule(&p[2], 0x180, 0x444);
-            glowDrawCapsule(&p[14], 0x200, 0x421);
+            _glowDrawCapsule(&p[0], 0x180, 0x444);
+            _glowDrawCapsule(&p[2], 0x180, 0x444);
+            _glowDrawCapsule(&p[14], 0x200, 0x421);
             break;
         }
         case 9:
-            glowDrawCapsule(&D_shelter_b1_elevator_hall_80182CF4[26], 0x180, 0x44);
+            _glowDrawCapsule(&D_shelter_b1_elevator_hall_80182CF4[26], 0x180, 0x44);
             break;
     }
 }

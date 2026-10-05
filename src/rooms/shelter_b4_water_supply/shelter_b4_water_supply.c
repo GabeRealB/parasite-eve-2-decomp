@@ -1205,7 +1205,7 @@ static void func_shelter_b4_water_supply_8017EDD0(Task* task)
 /// that model's root, spawn each of two effects at water level under each part
 /// with odds that grow with how far the part moved since last frame. Every
 /// frame it then draws the light beams the current view selects, through
-/// `glowDrawCone`.
+/// `glowDrawDimGreyCapsule`.
 void func_shelter_b4_water_supply_8017EE54(Task* arg0)
 {
     Task*       ctl;
@@ -1264,29 +1264,29 @@ void func_shelter_b4_water_supply_8017EE54(Task* arg0)
     }
     switch ((u8)viewGetMappedIndex()) {
         case 4:
-            glowDrawCone(&D_shelter_b4_water_supply_80182690[0], 0x200, 0);
-            glowDrawCone(&D_shelter_b4_water_supply_80182690[4], 0x200, 0x800);
+            glowDrawDimGreyCapsule(&D_shelter_b4_water_supply_80182690[0], 0x200, 0);
+            glowDrawDimGreyCapsule(&D_shelter_b4_water_supply_80182690[4], 0x200, 0x800);
         case 2:
         case 3:
-            glowDrawCone(D_shelter_b4_water_supply_80182670, 0x200, 0x800);
+            glowDrawDimGreyCapsule(D_shelter_b4_water_supply_80182670, 0x200, 0x800);
             break;
         case 6:
-            glowDrawCone(D_shelter_b4_water_supply_801826A0, 0x200, 0);
+            glowDrawDimGreyCapsule(D_shelter_b4_water_supply_801826A0, 0x200, 0);
         case 5:
-            glowDrawCone(D_shelter_b4_water_supply_80182680, 0x200, 0x800);
+            glowDrawDimGreyCapsule(D_shelter_b4_water_supply_80182680, 0x200, 0x800);
             break;
         case 7:
-            glowDrawCone(D_shelter_b4_water_supply_801826A0, 0x200, 0);
+            glowDrawDimGreyCapsule(D_shelter_b4_water_supply_801826A0, 0x200, 0);
             break;
         case 8:
-            glowDrawCone(&D_shelter_b4_water_supply_80182690[0], 0x200, 0);
-            glowDrawCone(&D_shelter_b4_water_supply_80182690[4], 0x200, 0x800);
+            glowDrawDimGreyCapsule(&D_shelter_b4_water_supply_80182690[0], 0x200, 0);
+            glowDrawDimGreyCapsule(&D_shelter_b4_water_supply_80182690[4], 0x200, 0x800);
             break;
         case 9:
-            glowDrawCone(D_shelter_b4_water_supply_801826D0, 0x200, 0x800);
+            glowDrawDimGreyCapsule(D_shelter_b4_water_supply_801826D0, 0x200, 0x800);
         case 10:
         case 11:
-            glowDrawCone(D_shelter_b4_water_supply_801826C0, 0x200, 0x800);
+            glowDrawDimGreyCapsule(D_shelter_b4_water_supply_801826C0, 0x200, 0x800);
             break;
     }
 }

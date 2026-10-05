@@ -587,7 +587,7 @@ func_acropolis_helicopter_landing_pad_80180E40 = 0x80180E40; // type:func absolu
 
 func_acropolis_helicopter_landing_pad_80181064 = 0x80181064; // type:func absolute:True owner=acropolis_helicopter_landing_pad
 
-func_acropolis_helicopter_landing_pad_801818F0 = 0x801818F0; // type:func absolute:True owner=acropolis_helicopter_landing_pad shared=rooms
+func_acropolis_helicopter_landing_pad_801818F0 = 0x801818F0; // type:func absolute:True owner=acropolis_helicopter_landing_pad
 
 func_acropolis_observatory_8017E424 = 0x8017E424; // type:func absolute:True owner=acropolis_observatory shared=rooms
 
@@ -934,7 +934,7 @@ func_neo_ark_shrine_80180904 = 0x80180904; // type:func absolute:True owner=neo_
 
 func_neo_ark_south_promenade_8017E184 = 0x8017E184; // type:func absolute:True owner=neo_ark_south_promenade shared=rooms
 
-func_neo_ark_south_promenade_8017EA6C = 0x8017EA6C; // type:func absolute:True owner=neo_ark_south_promenade shared=rooms
+func_neo_ark_south_promenade_8017EA6C = 0x8017EA6C; // type:func absolute:True owner=neo_ark_south_promenade
 
 func_neo_ark_submarine_gallery_8017EFEC = 0x8017EFEC; // type:func absolute:True owner=neo_ark_submarine_gallery
 
@@ -1113,7 +1113,7 @@ func_shelter_b1_transfer_tunnel_80181390 = 0x80181390; // type:func absolute:Tru
 
 func_shelter_b1_transfer_tunnel_80181C78 = 0x80181C78; // type:func absolute:True owner=shelter_b1_transfer_tunnel
 
-func_shelter_b2_breeding_room_8017E774 = 0x8017E774; // type:func absolute:True owner=shelter_b2_breeding_room shared=rooms
+func_shelter_b2_breeding_room_8017E774 = 0x8017E774; // type:func absolute:True owner=shelter_b2_breeding_room
 
 func_shelter_b2_breeding_room_8017ECCC = 0x8017ECCC; // type:func absolute:True owner=shelter_b2_breeding_room shared=rooms
 
@@ -1165,7 +1165,7 @@ func_shelter_b2_operating_room_8017ECFC = 0x8017ECFC; // type:func absolute:True
 
 func_shelter_b2_operating_room_8017F254 = 0x8017F254; // type:func absolute:True owner=shelter_b2_operating_room shared=rooms
 
-func_shelter_b2_operating_room_8017FEB4 = 0x8017FEB4; // type:func absolute:True owner=shelter_b2_operating_room shared=rooms
+func_shelter_b2_operating_room_8017FEB4 = 0x8017FEB4; // type:func absolute:True owner=shelter_b2_operating_room
 
 shelterB2PodAccessTunnelEffectSpriteDriftTask = 0x8017E6E0; // type:func absolute:True owner=shelter_b2_pod_access_tunnel
 
@@ -1175,7 +1175,7 @@ func_shelter_b2_pod_access_tunnel_80180350 = 0x80180350; // type:func absolute:T
 
 func_shelter_b2_pod_access_tunnel_801806E8 = 0x801806E8; // type:func absolute:True owner=shelter_b2_pod_access_tunnel
 
-func_shelter_b2_pod_access_tunnel_80181AF8 = 0x80181AF8; // type:func absolute:True owner=shelter_b2_pod_access_tunnel shared=rooms
+func_shelter_b2_pod_access_tunnel_80181AF8 = 0x80181AF8; // type:func absolute:True owner=shelter_b2_pod_access_tunnel
 
 func_shelter_b2_pod_access_tunnel_80181C2C = 0x80181C2C; // type:func absolute:True owner=shelter_b2_pod_access_tunnel
 
@@ -1867,7 +1867,7 @@ func_shelter_b1_armory_801807E4 = 0x801807E4; // type:func absolute:True owner=s
 
 func_shelter_b1_access_tunnel_8017DD60 = 0x8017DD60; // type:func absolute:True owner=shelter_b1_access_tunnel shared=rooms
 
-func_shelter_b1_underground_parking_80184A18 = 0x80184A18; // type:func absolute:True owner=shelter_b1_underground_parking shared=rooms
+func_shelter_b1_underground_parking_80184A18 = 0x80184A18; // type:func absolute:True owner=shelter_b1_underground_parking
 
 func_shelter_b1_golem_freezer_1_8017DA7C = 0x8017DA7C; // type:func absolute:True owner=shelter_b1_golem_freezer_1 shared=rooms
 

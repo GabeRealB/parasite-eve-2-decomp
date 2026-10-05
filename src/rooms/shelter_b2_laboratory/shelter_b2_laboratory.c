@@ -166,9 +166,9 @@ extern Task* D_shelter_b2_laboratory_80182A68;
 extern s8 D_shelter_b2_laboratory_80182A90[];
 
 /// Glow positions `func_shelter_b2_laboratory_80180548` draws per view:
-/// `glowDrawCapsule` takes the pair `pt[n]`, `pt[n + 1]`;
+/// `_glowDrawCapsule` takes the pair `pt[n]`, `pt[n + 1]`;
 /// `func_shelter_b2_laboratory_801812F8` and
-/// `glowDrawPulsingDisc` a single point.
+/// `_glowDrawPulsingDisc` a single point.
 extern SVECTOR D_shelter_b2_laboratory_80182AA0[45];
 
 /// This room's cutscene sound-task slot. The runner uses `task`.
@@ -1054,6 +1054,9 @@ u16 D_shelter_b2_laboratory_80186540;
 
 #include "../../shared/telephone.inc.c"
 
+static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 packedColor);
+static void _glowDrawPulsingDisc(const SVECTOR* worldPoint, s32 pulseRate, s32 radiusScale);
+
 void func_shelter_b2_laboratory_8017EAB4(Task* task)
 {
     Telephone_MenuTask(task);
@@ -1320,40 +1323,40 @@ void func_shelter_b2_laboratory_80180548(Task* task)
 
     switch (viewGetMappedIndex() & 0xFF) {
         case 2:
-            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[0], 0x180, 0x222);
-            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[4], 0x180, 0x333);
-            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[6], 0x180, 0x333);
-            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[8], 0x180, 0x333);
-            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[10], 0x180, 0x333);
-            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[26], 0x200, 0x241);
-            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[30], 0x200, 0x222);
-            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[32], 0x200, 0x222);
-            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[34], 0x200, 0x124);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[0], 0x180, 0x222);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[4], 0x180, 0x333);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[6], 0x180, 0x333);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[8], 0x180, 0x333);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[10], 0x180, 0x333);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[26], 0x200, 0x241);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[30], 0x200, 0x222);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[32], 0x200, 0x222);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[34], 0x200, 0x124);
             break;
         case 3:
-            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[0], 0x180, 0x444);
-            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[2], 0x180, 0x444);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[0], 0x180, 0x444);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[2], 0x180, 0x444);
             break;
         case 4:
-            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[24], 0x200, 0x444);
-            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[28], 0x200, 0x241);
-            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[36], 0x200, 0x124);
-            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[38], 0x200, 0x222);
-            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[40], 0x200, 0x124);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[24], 0x200, 0x444);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[28], 0x200, 0x241);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[36], 0x200, 0x124);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[38], 0x200, 0x222);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[40], 0x200, 0x124);
             break;
         case 5:
-            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[0], 0x180, 0x222);
-            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[4], 0x180, 0x333);
-            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[6], 0x180, 0x333);
-            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[8], 0x180, 0x333);
-            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[10], 0x180, 0x333);
-            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[12], 0x180, 0x333);
-            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[14], 0x180, 0x333);
-            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[26], 0x200, 0x241);
-            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[30], 0x200, 0x222);
-            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[32], 0x200, 0x222);
-            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[34], 0x200, 0x124);
-            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[42], 0x180, 0x124);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[0], 0x180, 0x222);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[4], 0x180, 0x333);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[6], 0x180, 0x333);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[8], 0x180, 0x333);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[10], 0x180, 0x333);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[12], 0x180, 0x333);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[14], 0x180, 0x333);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[26], 0x200, 0x241);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[30], 0x200, 0x222);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[32], 0x200, 0x222);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[34], 0x200, 0x124);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[42], 0x180, 0x124);
             if (D_shelter_b2_laboratory_80186540 != 0) {
                 func_shelter_b2_laboratory_801812F8(&D_shelter_b2_laboratory_80182AA0[44], 0x180, 0x80);
             } else {
@@ -1361,37 +1364,37 @@ void func_shelter_b2_laboratory_80180548(Task* task)
             }
             break;
         case 6:
-            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[16], 0x180, 0x333);
-            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[18], 0x180, 0x333);
-            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[20], 0x180, 0x333);
-            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[22], 0x180, 0x333);
-            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[24], 0x180, 0x222);
-            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[36], 0x200, 0x124);
-            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[38], 0x200, 0x222);
-            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[40], 0x200, 0x124);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[16], 0x180, 0x333);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[18], 0x180, 0x333);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[20], 0x180, 0x333);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[22], 0x180, 0x333);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[24], 0x180, 0x222);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[36], 0x200, 0x124);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[38], 0x200, 0x222);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[40], 0x200, 0x124);
             break;
         case 7:
-            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[24], 0x180, 0x333);
-            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[36], 0x200, 0x124);
-            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[38], 0x200, 0x222);
-            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[40], 0x200, 0x124);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[24], 0x180, 0x333);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[36], 0x200, 0x124);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[38], 0x200, 0x222);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[40], 0x200, 0x124);
             break;
         case 8:
-            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[16], 0x180, 0x333);
-            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[18], 0x180, 0x333);
-            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[36], 0x200, 0x124);
-            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[38], 0x200, 0x222);
-            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[40], 0x200, 0x124);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[16], 0x180, 0x333);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[18], 0x180, 0x333);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[36], 0x200, 0x124);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[38], 0x200, 0x222);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[40], 0x200, 0x124);
             break;
         case 9:
-            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[42], 0x180, 0x124);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[42], 0x180, 0x124);
             break;
         case 10:
-            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[2], 0x180, 0x222);
-            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[4], 0x180, 0x333);
-            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[6], 0x180, 0x333);
-            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[28], 0x200, 0x241);
-            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[42], 0x180, 0x124);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[2], 0x180, 0x222);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[4], 0x180, 0x333);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[6], 0x180, 0x333);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[28], 0x200, 0x241);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[42], 0x180, 0x124);
             if (D_shelter_b2_laboratory_80186540 != 0) {
                 func_shelter_b2_laboratory_801812F8(&D_shelter_b2_laboratory_80182AA0[44], 0x180, 0x80);
             } else {
@@ -1399,12 +1402,12 @@ void func_shelter_b2_laboratory_80180548(Task* task)
             }
             break;
         case 12:
-            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[12], 0x180, 0x333);
-            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[14], 0x180, 0x333);
-            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[30], 0x200, 0x222);
-            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[32], 0x200, 0x222);
-            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[34], 0x200, 0x124);
-            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[42], 0x180, 0x124);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[12], 0x180, 0x333);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[14], 0x180, 0x333);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[30], 0x200, 0x222);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[32], 0x200, 0x222);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[34], 0x200, 0x124);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[42], 0x180, 0x124);
             if (D_shelter_b2_laboratory_80186540 != 0) {
                 func_shelter_b2_laboratory_801812F8(&D_shelter_b2_laboratory_80182AA0[44], 0x180, 0x80);
             } else {
@@ -1413,17 +1416,17 @@ void func_shelter_b2_laboratory_80180548(Task* task)
             break;
         case 13:
             if (D_shelter_b2_laboratory_80186540 != 0) {
-                glowDrawPulsingDisc(&D_shelter_b2_laboratory_80182AA0[44], 0x180, 0x80);
+                _glowDrawPulsingDisc(&D_shelter_b2_laboratory_80182AA0[44], 0x180, 0x80);
             } else {
-                glowDrawPulsingDisc(&D_shelter_b2_laboratory_80182AA0[44], 0x60, 0x80);
+                _glowDrawPulsingDisc(&D_shelter_b2_laboratory_80182AA0[44], 0x60, 0x80);
             }
             break;
         case 15:
-            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[26], 0x200, 0x241);
-            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[30], 0x200, 0x222);
-            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[32], 0x200, 0x222);
-            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[34], 0x200, 0x124);
-            glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[42], 0x180, 0x124);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[26], 0x200, 0x241);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[30], 0x200, 0x222);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[32], 0x200, 0x222);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[34], 0x200, 0x124);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[42], 0x180, 0x124);
             if (D_shelter_b2_laboratory_80186540 != 0) {
                 func_shelter_b2_laboratory_801812F8(&D_shelter_b2_laboratory_80182AA0[44], 0x180, 0x80);
             } else {

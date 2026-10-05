@@ -57,6 +57,7 @@
 #include "rooms/room_common.h"
 #include "../../shared/room_visual_effects.h"
 #include "../../shared/glow_draw.h"
+
 // The flag symbol carries seven unproven bytes after the flag.
 #define ROOM_EVENT_ACTIVE gRoomEventActive.eventStarted
 // The request symbol carries twelve unproven bytes after the request.
@@ -906,6 +907,8 @@ static void           func_shelter_b2_operating_room_8017DD58(Task* task);
 
 #include "../../shared/room_event_staged_task.inc.c"
 
+static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 packedColor);
+
 /// Starts `event` for the outgoing message `dst` unless its flag says it has
 /// already happened (answering 1). Otherwise answers 2, and - unless
 /// `dst->queryOnly` asks for a dry run - latches the message and the event,
@@ -1033,7 +1036,7 @@ void func_shelter_b2_operating_room_8017DD60(Task* task)
 /// words `gRoomEffectGlowDiscId`, `gRoomEffectFlyingSparkId` (the effect the halo task spawns) and
 /// `gRoomEffectOrangeBurst2Id`; every frame it
 /// draws the glows of the current view (views 2 to 7) at that view's points,
-/// as capsules through `glowDrawCapsule` and discs
+/// as capsules through `_glowDrawCapsule` and discs
 /// through `glowDrawDisc`.
 void func_shelter_b2_operating_room_8017DDB8(Task* arg0)
 {
@@ -1046,13 +1049,13 @@ void func_shelter_b2_operating_room_8017DDB8(Task* arg0)
 
     switch (viewGetMappedIndex() & 0xFF) {
         case 2:
-            glowDrawCapsule(&D_shelter_b2_operating_room_80180B6C[0], 0x100, 0x444);
-            glowDrawCapsule(&D_shelter_b2_operating_room_80180B6C[4], 0x100, 0x444);
-            glowDrawCapsule(&D_shelter_b2_operating_room_80180B6C[8], 0x100, 0x444);
+            _glowDrawCapsule(&D_shelter_b2_operating_room_80180B6C[0], 0x100, 0x444);
+            _glowDrawCapsule(&D_shelter_b2_operating_room_80180B6C[4], 0x100, 0x444);
+            _glowDrawCapsule(&D_shelter_b2_operating_room_80180B6C[8], 0x100, 0x444);
             break;
         case 3:
-            glowDrawCapsule(&D_shelter_b2_operating_room_80180B5C[0], 0x100, 0x444);
-            glowDrawCapsule(&D_shelter_b2_operating_room_80180B5C[8], 0x100, 0x444);
+            _glowDrawCapsule(&D_shelter_b2_operating_room_80180B5C[0], 0x100, 0x444);
+            _glowDrawCapsule(&D_shelter_b2_operating_room_80180B5C[8], 0x100, 0x444);
             break;
         case 4:
             glowDrawDisc(&D_shelter_b2_operating_room_80180B44[0], 0x380, 0x444);
@@ -1071,7 +1074,7 @@ void func_shelter_b2_operating_room_8017DDB8(Task* arg0)
             glowDrawDisc(&D_shelter_b2_operating_room_80180B44[-23], 0x200, 0x400);
             glowDrawDisc(&D_shelter_b2_operating_room_80180B44[-22], 0x200, 0x400);
             glowDrawDisc(&D_shelter_b2_operating_room_80180B44[-21], 0x200, 0x400);
-            glowDrawCapsule(&D_shelter_b2_operating_room_80180B44[-7], 0x100, 0x400);
+            _glowDrawCapsule(&D_shelter_b2_operating_room_80180B44[-7], 0x100, 0x400);
             break;
         case 5:
             glowDrawDisc(&D_shelter_b2_operating_room_801809BC[0], 0x200, 0x433);
@@ -1093,14 +1096,14 @@ void func_shelter_b2_operating_room_8017DDB8(Task* arg0)
             glowDrawDisc(&D_shelter_b2_operating_room_801809BC[31], 0x200, 0x400);
             break;
         case 6:
-            glowDrawCapsule(&D_shelter_b2_operating_room_80180ABC[0], 0x100, 0x444);
-            glowDrawCapsule(&D_shelter_b2_operating_room_80180ABC[2], 0x100, 0x444);
+            _glowDrawCapsule(&D_shelter_b2_operating_room_80180ABC[0], 0x100, 0x444);
+            _glowDrawCapsule(&D_shelter_b2_operating_room_80180ABC[2], 0x100, 0x444);
             break;
         case 7:
-            glowDrawCapsule(&D_shelter_b2_operating_room_80180ADC[0], 0x100, 0x444);
-            glowDrawCapsule(&D_shelter_b2_operating_room_80180ADC[2], 0x100, 0x444);
-            glowDrawCapsule(&D_shelter_b2_operating_room_80180ADC[4], 0x100, 0x444);
-            glowDrawCapsule(&D_shelter_b2_operating_room_80180ADC[8], 0x100, 0x444);
+            _glowDrawCapsule(&D_shelter_b2_operating_room_80180ADC[0], 0x100, 0x444);
+            _glowDrawCapsule(&D_shelter_b2_operating_room_80180ADC[2], 0x100, 0x444);
+            _glowDrawCapsule(&D_shelter_b2_operating_room_80180ADC[4], 0x100, 0x444);
+            _glowDrawCapsule(&D_shelter_b2_operating_room_80180ADC[8], 0x100, 0x444);
             break;
     }
 }

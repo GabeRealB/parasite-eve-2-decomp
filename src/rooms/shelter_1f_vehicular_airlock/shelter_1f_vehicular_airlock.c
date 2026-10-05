@@ -337,6 +337,8 @@ static __inline__ s32 _shelter1fVehicularAirlockStartEvent(RoomEventMsg* dst, Ro
 static void           func_shelter_1f_vehicular_airlock_8017D9FC(Task* task);
 static void           func_shelter_1f_vehicular_airlock_8017DA40(Task* task);
 
+static void _glowDrawAngledCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 startAngle, s32 packedColor);
+
 /// Sets bit 0x80 of the task's model flags while the 2-bit game flag its spawn
 /// argument names reads 2, and clears it otherwise.
 void func_shelter_1f_vehicular_airlock_8017D5E4(Task* task)
@@ -471,21 +473,21 @@ void func_shelter_1f_vehicular_airlock_8017DAA0(Task* task)
         case 2: {
             SVECTOR* p = D_shelter_1f_vehicular_airlock_8018206C;
 
-            glowDrawAngledCapsule(&p[0], 0x200, 0x800, 0x210);
-            glowDrawAngledCapsule(&p[2], 0x200, 0x800, 0x210);
-            glowDrawAngledCapsule(&p[6], 0x200, 0, 0x210);
-            glowDrawAngledCapsule(&p[8], 0x200, 0, 0x210);
+            _glowDrawAngledCapsule(&p[0], 0x200, 0x800, 0x210);
+            _glowDrawAngledCapsule(&p[2], 0x200, 0x800, 0x210);
+            _glowDrawAngledCapsule(&p[6], 0x200, 0, 0x210);
+            _glowDrawAngledCapsule(&p[8], 0x200, 0, 0x210);
             glowDrawFactorDisc(&p[12], 0x200, 0x200);
             break;
         }
         case 3: {
             SVECTOR* p = D_shelter_1f_vehicular_airlock_8018205C;
 
-            glowDrawAngledCapsule(&p[0], 0x200, 0x800, 0x210);
-            glowDrawAngledCapsule(&p[2], 0x200, 0x800, 0x210);
-            glowDrawAngledCapsule(&p[6], 0x200, 0, 0x210);
-            glowDrawAngledCapsule(&p[8], 0x200, 0, 0x210);
-            glowDrawAngledCapsule(&p[12], 0x200, 0, 0x111);
+            _glowDrawAngledCapsule(&p[0], 0x200, 0x800, 0x210);
+            _glowDrawAngledCapsule(&p[2], 0x200, 0x800, 0x210);
+            _glowDrawAngledCapsule(&p[6], 0x200, 0, 0x210);
+            _glowDrawAngledCapsule(&p[8], 0x200, 0, 0x210);
+            _glowDrawAngledCapsule(&p[12], 0x200, 0, 0x111);
             if (gameFlagGetNibble(GAME_FLAG_SHELTER_1F_BULWARK_UNLOCKED) == 1) {
                 func_shelter_1f_vehicular_airlock_8017E80C(&p[15], 0x804, 0x140, 0x21);
                 func_shelter_1f_vehicular_airlock_8017E80C(&p[16], 0xC0, 0x120, 0x210);

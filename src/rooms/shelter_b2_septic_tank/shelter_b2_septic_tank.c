@@ -1176,6 +1176,8 @@ static __inline__ s32 _shelterB2SepticTankStartEvent(RoomEventMsg* dst, RoomLatc
 static void           func_shelter_b2_septic_tank_8017DA18(Task* arg0);
 static void           func_shelter_b2_septic_tank_8017DA74(Task* task);
 
+static void _glowDrawBeam(const SVECTOR worldPoints[2], s32 radiusScale, s32 startAngle, s32 packedColor);
+
 /// Starts `event` for the outgoing message `dst` unless its flag says it has
 /// already happened (answering 1). Otherwise answers 2, and - unless
 /// `dst->queryOnly` asks for a dry run - latches the message and the event,
@@ -1455,33 +1457,33 @@ void func_shelter_b2_septic_tank_8017EB7C(Task* arg0)
             switch (viewGetMappedIndex() & 0xFF) {
                 case 2: {
                     SVECTOR* p = D_shelter_b2_septic_tank_80183314;
-                    glowDrawBeam(&p[0], 0x200, 0x400, 0x111);
-                    glowDrawBeam(&p[2], 0x200, 0x400, 0x111);
-                    glowDrawBeam(&p[14], 0x200, 0, 0x111);
-                    glowDrawBeam(&p[16], 0x200, 0, 0x111);
-                    glowDrawBeam(&p[60], 0x200, 0, 0x111);
-                    glowDrawBeam(&p[62], 0x200, 0, 0x111);
+                    _glowDrawBeam(&p[0], 0x200, 0x400, 0x111);
+                    _glowDrawBeam(&p[2], 0x200, 0x400, 0x111);
+                    _glowDrawBeam(&p[14], 0x200, 0, 0x111);
+                    _glowDrawBeam(&p[16], 0x200, 0, 0x111);
+                    _glowDrawBeam(&p[60], 0x200, 0, 0x111);
+                    _glowDrawBeam(&p[62], 0x200, 0, 0x111);
                     glowDrawBitDisc(&p[70], 0x300, 0x10);
                     glowDrawBitDisc(&p[72], 0x300, 0x100);
                     break;
                 }
                 case 3: {
                     SVECTOR* p = D_shelter_b2_septic_tank_80183314;
-                    glowDrawBeam(&p[0], 0x200, 0x400, 0x111);
-                    glowDrawBeam(&p[2], 0x200, 0x400, 0x111);
-                    glowDrawBeam(&p[4], 0x200, 0x400, 0x111);
-                    glowDrawBeam(&p[6], 0x200, 0x400, 0x111);
-                    glowDrawBeam(&p[14], 0x200, 0, 0x111);
-                    glowDrawBeam(&p[16], 0x200, 0, 0x111);
-                    glowDrawBeam(&p[18], 0x200, 0, 0x111);
-                    glowDrawBeam(&p[20], 0x200, 0, 0x111);
-                    glowDrawBeam(&p[28], 0x200, 0x800, 0x111);
-                    glowDrawBeam(&p[30], 0x200, 0x800, 0x111);
-                    glowDrawBeam(&p[44], 0x200, 0, 0x111);
-                    glowDrawBeam(&p[46], 0x200, 0, 0x111);
-                    glowDrawBeam(&p[48], 0x200, 0, 0x111);
-                    glowDrawBeam(&p[60], 0x200, 0, 0x111);
-                    glowDrawBeam(&p[62], 0x200, 0, 0x111);
+                    _glowDrawBeam(&p[0], 0x200, 0x400, 0x111);
+                    _glowDrawBeam(&p[2], 0x200, 0x400, 0x111);
+                    _glowDrawBeam(&p[4], 0x200, 0x400, 0x111);
+                    _glowDrawBeam(&p[6], 0x200, 0x400, 0x111);
+                    _glowDrawBeam(&p[14], 0x200, 0, 0x111);
+                    _glowDrawBeam(&p[16], 0x200, 0, 0x111);
+                    _glowDrawBeam(&p[18], 0x200, 0, 0x111);
+                    _glowDrawBeam(&p[20], 0x200, 0, 0x111);
+                    _glowDrawBeam(&p[28], 0x200, 0x800, 0x111);
+                    _glowDrawBeam(&p[30], 0x200, 0x800, 0x111);
+                    _glowDrawBeam(&p[44], 0x200, 0, 0x111);
+                    _glowDrawBeam(&p[46], 0x200, 0, 0x111);
+                    _glowDrawBeam(&p[48], 0x200, 0, 0x111);
+                    _glowDrawBeam(&p[60], 0x200, 0, 0x111);
+                    _glowDrawBeam(&p[62], 0x200, 0, 0x111);
                     glowDrawBitDisc(&p[70], 0x300, 0x10);
                     glowDrawBitDisc(&p[71], 0x300, 0x100);
                     glowDrawBitDisc(&p[72], 0x300, 0x100);
@@ -1489,43 +1491,43 @@ void func_shelter_b2_septic_tank_8017EB7C(Task* arg0)
                 }
                 case 4: {
                     SVECTOR* p = D_shelter_b2_septic_tank_80183344;
-                    glowDrawBeam(&p[0], 0x200, -0x400, 0x111);
-                    glowDrawBeam(&p[2], 0x200, -0x400, 0x111);
-                    glowDrawBeam(&p[4], 0x200, -0x400, 0x111);
-                    glowDrawBeam(&p[6], 0x200, -0x400, 0x111);
-                    glowDrawBeam(&p[14], 0x200, 0, 0x111);
-                    glowDrawBeam(&p[16], 0x200, 0, 0x111);
-                    glowDrawBeam(&p[18], 0x200, 0, 0x111);
-                    glowDrawBeam(&p[20], 0x200, 0, 0x111);
-                    glowDrawBeam(&p[34], 0x200, 0x800, 0x111);
-                    glowDrawBeam(&p[36], 0x200, 0x800, 0x111);
-                    glowDrawBeam(&p[48], 0x200, 0, 0x111);
-                    glowDrawBeam(&p[50], 0x200, 0, 0x111);
-                    glowDrawBeam(&p[52], 0x200, 0, 0x111);
-                    glowDrawBeam(D_shelter_b2_septic_tank_80183514, 0x200, 0x800, 0x111);
-                    glowDrawBeam(D_shelter_b2_septic_tank_80183524, 0x200, 0x800, 0x111);
-                    glowDrawBeam(D_shelter_b2_septic_tank_80183534, 0x200, 0x800, 0x100);
+                    _glowDrawBeam(&p[0], 0x200, -0x400, 0x111);
+                    _glowDrawBeam(&p[2], 0x200, -0x400, 0x111);
+                    _glowDrawBeam(&p[4], 0x200, -0x400, 0x111);
+                    _glowDrawBeam(&p[6], 0x200, -0x400, 0x111);
+                    _glowDrawBeam(&p[14], 0x200, 0, 0x111);
+                    _glowDrawBeam(&p[16], 0x200, 0, 0x111);
+                    _glowDrawBeam(&p[18], 0x200, 0, 0x111);
+                    _glowDrawBeam(&p[20], 0x200, 0, 0x111);
+                    _glowDrawBeam(&p[34], 0x200, 0x800, 0x111);
+                    _glowDrawBeam(&p[36], 0x200, 0x800, 0x111);
+                    _glowDrawBeam(&p[48], 0x200, 0, 0x111);
+                    _glowDrawBeam(&p[50], 0x200, 0, 0x111);
+                    _glowDrawBeam(&p[52], 0x200, 0, 0x111);
+                    _glowDrawBeam(D_shelter_b2_septic_tank_80183514, 0x200, 0x800, 0x111);
+                    _glowDrawBeam(D_shelter_b2_septic_tank_80183524, 0x200, 0x800, 0x111);
+                    _glowDrawBeam(D_shelter_b2_septic_tank_80183534, 0x200, 0x800, 0x100);
                     break;
                 }
                 case 5: {
                     SVECTOR* p = D_shelter_b2_septic_tank_80183374;
-                    glowDrawBeam(&p[0], 0x200, -0x400, 0x111);
-                    glowDrawBeam(&p[14], 0x200, 0, 0x111);
-                    glowDrawBeam(D_shelter_b2_septic_tank_80183514, 0x200, 0x800, 0x111);
-                    glowDrawBeam(D_shelter_b2_septic_tank_80183524, 0x200, 0x800, 0x111);
-                    glowDrawBeam(D_shelter_b2_septic_tank_80183534, 0x200, 0x800, 0x100);
+                    _glowDrawBeam(&p[0], 0x200, -0x400, 0x111);
+                    _glowDrawBeam(&p[14], 0x200, 0, 0x111);
+                    _glowDrawBeam(D_shelter_b2_septic_tank_80183514, 0x200, 0x800, 0x111);
+                    _glowDrawBeam(D_shelter_b2_septic_tank_80183524, 0x200, 0x800, 0x111);
+                    _glowDrawBeam(D_shelter_b2_septic_tank_80183534, 0x200, 0x800, 0x100);
                     break;
                 }
                 case 6: {
                     SVECTOR* p = D_shelter_b2_septic_tank_80183314;
-                    glowDrawBeam(&p[0], 0x200, 0x400, 0x111);
-                    glowDrawBeam(&p[2], 0x200, 0x400, 0x111);
-                    glowDrawBeam(&p[4], 0x200, 0x400, 0x111);
-                    glowDrawBeam(&p[14], 0x200, 0, 0x111);
-                    glowDrawBeam(&p[28], 0x200, 0x800, 0x111);
-                    glowDrawBeam(&p[30], 0x200, 0x800, 0x111);
-                    glowDrawBeam(&p[60], 0x200, 0, 0x111);
-                    glowDrawBeam(&p[62], 0x200, 0, 0x111);
+                    _glowDrawBeam(&p[0], 0x200, 0x400, 0x111);
+                    _glowDrawBeam(&p[2], 0x200, 0x400, 0x111);
+                    _glowDrawBeam(&p[4], 0x200, 0x400, 0x111);
+                    _glowDrawBeam(&p[14], 0x200, 0, 0x111);
+                    _glowDrawBeam(&p[28], 0x200, 0x800, 0x111);
+                    _glowDrawBeam(&p[30], 0x200, 0x800, 0x111);
+                    _glowDrawBeam(&p[60], 0x200, 0, 0x111);
+                    _glowDrawBeam(&p[62], 0x200, 0, 0x111);
                     glowDrawBitDisc(&p[70], 0x300, 0x10);
                     glowDrawBitDisc(&p[71], 0x300, 0x100);
                     glowDrawBitDisc(&p[72], 0x300, 0x100);

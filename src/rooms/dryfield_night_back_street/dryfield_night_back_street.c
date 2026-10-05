@@ -434,6 +434,9 @@ static void func_dryfield_night_back_street_8017D780(Task* task);
 
 #include "../../shared/back_street_event_msg.inc.c"
 
+static void _glowDrawFlare(const SVECTOR* worldPoint, s32 textureIndex, s32 radiusScale);
+static void _glowDrawShaft(const SVECTOR worldPoints[2], s32 radiusScale);
+
 s32 func_dryfield_night_back_street_8017D724(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
@@ -488,9 +491,9 @@ void func_dryfield_night_back_street_8017D788(Task* task)
 /// 0x60097 and 0x600E4 in three gameplay globals. Each run it sets
 /// `roomEffectMode` to 2 and draws the lights of the current camera view
 /// (`gGameSession->location.loc.view`): view 2 draws a sprite on each of its two
-/// glow points with `glowDrawFlare` and a shaft
+/// glow points with `_glowDrawFlare` and a shaft
 /// between each pair of shaft ends with
-/// `glowDrawShaft`; view 3 adds its own two glows
+/// `_glowDrawShaft`; view 3 adds its own two glows
 /// to view 2's set; views 4 and 5 draw their shared two glows; every other
 /// view draws nothing.
 void func_dryfield_night_back_street_8017D7E0(Task* arg0)
@@ -503,19 +506,19 @@ void func_dryfield_night_back_street_8017D7E0(Task* arg0)
     gRoomEffectState->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
     switch (gGameSession->location.loc.view) {
         case 3:
-            glowDrawFlare(&D_dryfield_night_back_street_8018037C[0], 1, 0x300);
-            glowDrawFlare(&D_dryfield_night_back_street_8018037C[1], 1, 0x300);
+            _glowDrawFlare(&D_dryfield_night_back_street_8018037C[0], 1, 0x300);
+            _glowDrawFlare(&D_dryfield_night_back_street_8018037C[1], 1, 0x300);
             /* fallthrough */
         case 2:
-            glowDrawFlare(&D_dryfield_night_back_street_8018036C[0], 0, 0x300);
-            glowDrawFlare(&D_dryfield_night_back_street_8018036C[1], 0, 0x300);
-            glowDrawShaft(&D_dryfield_night_back_street_8018036C[-4], 0x100);
-            glowDrawShaft(&D_dryfield_night_back_street_8018036C[-2], 0x100);
+            _glowDrawFlare(&D_dryfield_night_back_street_8018036C[0], 0, 0x300);
+            _glowDrawFlare(&D_dryfield_night_back_street_8018036C[1], 0, 0x300);
+            _glowDrawShaft(&D_dryfield_night_back_street_8018036C[-4], 0x100);
+            _glowDrawShaft(&D_dryfield_night_back_street_8018036C[-2], 0x100);
             break;
         case 4:
         case 5:
-            glowDrawFlare(&D_dryfield_night_back_street_8018038C[0], 1, 0x300);
-            glowDrawFlare(&D_dryfield_night_back_street_8018038C[1], 1, 0x300);
+            _glowDrawFlare(&D_dryfield_night_back_street_8018038C[0], 1, 0x300);
+            _glowDrawFlare(&D_dryfield_night_back_street_8018038C[1], 1, 0x300);
             break;
     }
 }

@@ -139643,7 +139643,7 @@ a sibling's spelling; an `addiu vN,aK,-off` means `head`, `lw x,off(sN)` means
 `block`. The sibling's `SOFT_TOUCH_REG` on the carve was not needed here - the
 plain `block = (T*)(*scratch = head - N);` form matched.
 
-The 0x14 sibling itself, `glowDrawPulsingDisc`, has since been rewritten with
+The 0x14 sibling itself, `_glowDrawPulsingDisc`, has since been rewritten with
 `SCRATCH_STACK_RESERVE_BLOCK(GlowCentreRadiiScratch)` and `block->` for every
 access, and it still matches in every carrier: there the `head - 0x14` re-casts
 were not load-bearing. Try the plain block form before copying `head`-relative

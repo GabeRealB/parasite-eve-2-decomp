@@ -1657,6 +1657,10 @@ static void       func_shelter_b1_underground_parking_80183B9C(void);
 
 #include "../../shared/telephone.inc.c"
 
+static void _glowDrawBeam(const SVECTOR worldPoints[2], s32 radiusScale, s32 startAngle, s32 packedColor);
+static void _glowDrawDiamond(const SVECTOR* worldPoint, s32 pulseRate, s32 radiusScale);
+static void _glowDrawPulsingDisc(const SVECTOR* worldPoint, s32 pulseRate, s32 radiusScale);
+
 void func_shelter_b1_underground_parking_8017EDE8(Task* task)
 {
     Telephone_MenuTask(task);
@@ -2482,58 +2486,58 @@ void func_shelter_b1_underground_parking_80184A18(Task* unused)
         case 2:
         case 10:
             if (D_shelter_b1_underground_parking_8018D78C != 0) {
-                glowDrawDiamond(D_shelter_b1_underground_parking_80187714, 0x180, 0xC0);
+                _glowDrawDiamond(D_shelter_b1_underground_parking_80187714, 0x180, 0xC0);
             } else {
-                glowDrawDiamond(D_shelter_b1_underground_parking_80187714, 0x60, 0xC0);
+                _glowDrawDiamond(D_shelter_b1_underground_parking_80187714, 0x60, 0xC0);
             }
             glowDrawBitDisc(D_shelter_b1_underground_parking_8018771C, 0x300, 0x10);
-            glowDrawBeam(&D_shelter_b1_underground_parking_8018771C[11], 0x200, 0, 0x111);
+            _glowDrawBeam(&D_shelter_b1_underground_parking_8018771C[11], 0x200, 0, 0x111);
             break;
         case 3:
         case 7:
         case 11:
         case 12:
             if (D_shelter_b1_underground_parking_8018D78C != 0) {
-                glowDrawDiamond(D_shelter_b1_underground_parking_80187714, 0x180, 0xC0);
+                _glowDrawDiamond(D_shelter_b1_underground_parking_80187714, 0x180, 0xC0);
             } else {
-                glowDrawDiamond(D_shelter_b1_underground_parking_80187714, 0x60, 0xC0);
+                _glowDrawDiamond(D_shelter_b1_underground_parking_80187714, 0x60, 0xC0);
             }
             glowDrawBitDisc(D_shelter_b1_underground_parking_8018771C, 0x300, 0x10);
-            glowDrawBeam(&D_shelter_b1_underground_parking_8018771C[11], 0x200, 0, 0x111);
+            _glowDrawBeam(&D_shelter_b1_underground_parking_8018771C[11], 0x200, 0, 0x111);
             break;
         case 8:
         case 13:
-            glowDrawBeam(D_shelter_b1_underground_parking_801877A4, 0x200, 0, 0x210);
+            _glowDrawBeam(D_shelter_b1_underground_parking_801877A4, 0x200, 0, 0x210);
         case 4:
         case 14:
-            glowDrawBeam(&(D_shelter_b1_underground_parking_8018771C + 1)[0], 0x200, -0x400, 0x111);
-            glowDrawBeam(&(D_shelter_b1_underground_parking_8018771C + 1)[2], 0x200, -0x400, 0x111);
-            glowDrawBeam(&(D_shelter_b1_underground_parking_8018771C + 1)[4], 0x200, 0x800, 0x111);
-            glowDrawBeam(&(D_shelter_b1_underground_parking_8018771C + 1)[6], 0x200, 0x800, 0x111);
-            glowDrawBeam(&(D_shelter_b1_underground_parking_8018771C + 1)[8], 0x200, 0, 0x111);
+            _glowDrawBeam(&(D_shelter_b1_underground_parking_8018771C + 1)[0], 0x200, -0x400, 0x111);
+            _glowDrawBeam(&(D_shelter_b1_underground_parking_8018771C + 1)[2], 0x200, -0x400, 0x111);
+            _glowDrawBeam(&(D_shelter_b1_underground_parking_8018771C + 1)[4], 0x200, 0x800, 0x111);
+            _glowDrawBeam(&(D_shelter_b1_underground_parking_8018771C + 1)[6], 0x200, 0x800, 0x111);
+            _glowDrawBeam(&(D_shelter_b1_underground_parking_8018771C + 1)[8], 0x200, 0, 0x111);
             break;
         case 9:
         case 15:
         case 22:
         case 24:
-            glowDrawBeam(&D_shelter_b1_underground_parking_80187784[0], 0x200, 0, 0x111);
-            glowDrawBeam(&D_shelter_b1_underground_parking_80187784[2], 0x200, 0x800, 0x111);
+            _glowDrawBeam(&D_shelter_b1_underground_parking_80187784[0], 0x200, 0, 0x111);
+            _glowDrawBeam(&D_shelter_b1_underground_parking_80187784[2], 0x200, 0x800, 0x111);
             break;
         case 16:
             glowDrawBitDisc(D_shelter_b1_underground_parking_8018771C, 0x300, 0x10);
             break;
         case 18:
             if (D_shelter_b1_underground_parking_8018D78C != 0) {
-                glowDrawDiamond(D_shelter_b1_underground_parking_80187714, 0x180, 0xC0);
+                _glowDrawDiamond(D_shelter_b1_underground_parking_80187714, 0x180, 0xC0);
             } else {
-                glowDrawDiamond(D_shelter_b1_underground_parking_80187714, 0x60, 0xC0);
+                _glowDrawDiamond(D_shelter_b1_underground_parking_80187714, 0x60, 0xC0);
             }
             break;
         case 20:
             if (D_shelter_b1_underground_parking_8018D78C != 0) {
-                glowDrawPulsingDisc(D_shelter_b1_underground_parking_80187714, 0x180, 0x80);
+                _glowDrawPulsingDisc(D_shelter_b1_underground_parking_80187714, 0x180, 0x80);
             } else {
-                glowDrawPulsingDisc(D_shelter_b1_underground_parking_80187714, 0x60, 0x80);
+                _glowDrawPulsingDisc(D_shelter_b1_underground_parking_80187714, 0x60, 0x80);
             }
             break;
     }

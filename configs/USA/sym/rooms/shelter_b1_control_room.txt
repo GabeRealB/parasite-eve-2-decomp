@@ -67,6 +67,6 @@ _roomVisualEffectsDrawFlyingRing = 0x80180980; // type:func
 _roomVisualEffectsDrawFlyingDisc = 0x80180DA4; // type:func
 _roomVisualEffectsDrawFlyingBurstGlow = 0x801812E4; // type:func
 _roomVisualEffectsDrawFlyingBurstGroundQuad = 0x80181810; // type:func
-glowDrawCapsule = 0x8017F39C; // type:func
+_glowDrawCapsule = 0x8017F39C; // type:func
 glowDrawDisc = 0x8017FBE0; // type:func
 streamedScenePlayThenHold = 0x8017EF24; // type:func

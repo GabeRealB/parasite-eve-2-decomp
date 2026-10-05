@@ -1070,8 +1070,10 @@ WorldCollisionSurfaceProperties* D_mine_gorge_80183644[8] = {
     D_mine_gorge_8018361C,
 };
 
+static void _glowDrawFlare(const SVECTOR* worldPoint, s32 textureIndex, s32 radiusScale);
+
 /// Publishes the variant index the current camera view maps to, then draws the
-/// gorge's props for that view: one `glowDrawFlare` quad per
+/// gorge's props for that view: one `_glowDrawFlare` quad per
 /// position, UV column 1 and half-extent 0x300. Views share runs of the same
 /// table, so `3` and `7` draw five positions from `E778` where `6` draws two,
 /// and `10`/`11` draw the single position at `E790`; every case ends on the
@@ -1082,47 +1084,47 @@ void func_mine_gorge_8017D9F8(Task* unused)
     switch (viewGetMappedIndex() & 0xFF) {
         case 2: {
             SVECTOR* p = D_mine_gorge_8017E798;
-            glowDrawFlare(&p[0], 1, 0x300);
-            glowDrawFlare(&p[1], 1, 0x300);
+            _glowDrawFlare(&p[0], 1, 0x300);
+            _glowDrawFlare(&p[1], 1, 0x300);
             break;
         }
         case 3:
         case 7: {
             SVECTOR* p = D_mine_gorge_8017E778;
-            glowDrawFlare(&p[0], 1, 0x300);
-            glowDrawFlare(&p[1], 1, 0x300);
-            glowDrawFlare(&p[2], 1, 0x300);
-            glowDrawFlare(&p[3], 1, 0x300);
-            glowDrawFlare(&p[4], 1, 0x300);
+            _glowDrawFlare(&p[0], 1, 0x300);
+            _glowDrawFlare(&p[1], 1, 0x300);
+            _glowDrawFlare(&p[2], 1, 0x300);
+            _glowDrawFlare(&p[3], 1, 0x300);
+            _glowDrawFlare(&p[4], 1, 0x300);
             break;
         }
         case 4:
         case 5:
         case 9: {
             SVECTOR* p = D_mine_gorge_8017E788;
-            glowDrawFlare(&p[0], 1, 0x300);
-            glowDrawFlare(&p[1], 1, 0x300);
-            glowDrawFlare(&p[2], 1, 0x300);
-            glowDrawFlare(&p[3], 1, 0x300);
+            _glowDrawFlare(&p[0], 1, 0x300);
+            _glowDrawFlare(&p[1], 1, 0x300);
+            _glowDrawFlare(&p[2], 1, 0x300);
+            _glowDrawFlare(&p[3], 1, 0x300);
             break;
         }
         case 6: {
             SVECTOR* p = D_mine_gorge_8017E778;
-            glowDrawFlare(&p[0], 1, 0x300);
-            glowDrawFlare(&p[1], 1, 0x300);
+            _glowDrawFlare(&p[0], 1, 0x300);
+            _glowDrawFlare(&p[1], 1, 0x300);
             break;
         }
         case 8: {
             SVECTOR* p = D_mine_gorge_8017E788;
-            glowDrawFlare(&p[0], 1, 0x300);
-            glowDrawFlare(&p[2], 1, 0x300);
-            glowDrawFlare(&p[3], 1, 0x300);
+            _glowDrawFlare(&p[0], 1, 0x300);
+            _glowDrawFlare(&p[2], 1, 0x300);
+            _glowDrawFlare(&p[3], 1, 0x300);
             break;
         }
         case 10:
         case 11: {
             SVECTOR* p = D_mine_gorge_8017E790;
-            glowDrawFlare(&p[0], 1, 0x300);
+            _glowDrawFlare(&p[0], 1, 0x300);
             break;
         }
     }

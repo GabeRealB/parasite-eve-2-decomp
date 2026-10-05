@@ -861,6 +861,9 @@ _ShelterB6NurseryEffectCues D_shelter_b6_nursery_801879F0;
 
 #include "../../shared/telephone.inc.c"
 
+static void _glowDrawDiamond(const SVECTOR* worldPoint, s32 pulseRate, s32 radiusScale);
+static void _glowDrawPulsingDisc(const SVECTOR* worldPoint, s32 pulseRate, s32 radiusScale);
+
 void func_shelter_b6_nursery_8017EAC4(Task* task)
 {
     Telephone_MenuTask(task);
@@ -1082,17 +1085,17 @@ void func_shelter_b6_nursery_801800A0(Task* task)
         case 3:
         case 8:
             if (D_shelter_b6_nursery_801879F0.fastGlintPulse != 0) {
-                glowDrawDiamond(D_shelter_b6_nursery_8018504C, 0x180, 0x80);
+                _glowDrawDiamond(D_shelter_b6_nursery_8018504C, 0x180, 0x80);
             } else {
-                glowDrawDiamond(D_shelter_b6_nursery_8018504C, 0x60, 0x80);
+                _glowDrawDiamond(D_shelter_b6_nursery_8018504C, 0x60, 0x80);
             }
             break;
         case 6:
         case 10:
             if (D_shelter_b6_nursery_801879F0.fastGlintPulse != 0) {
-                glowDrawPulsingDisc(D_shelter_b6_nursery_8018504C, 0x180, 0x80);
+                _glowDrawPulsingDisc(D_shelter_b6_nursery_8018504C, 0x180, 0x80);
             } else {
-                glowDrawPulsingDisc(D_shelter_b6_nursery_8018504C, 0x60, 0x80);
+                _glowDrawPulsingDisc(D_shelter_b6_nursery_8018504C, 0x60, 0x80);
             }
             break;
         case 12:
@@ -1132,7 +1135,7 @@ void func_shelter_b6_nursery_801800A0(Task* task)
             break;
         case 17:
             pos = D_shelter_b6_nursery_8018504C;
-            glowDrawDiamond(pos, 0x60, 0x80);
+            _glowDrawDiamond(pos, 0x60, 0x80);
             if (!(gDisplayState.animFrame & 1)) {
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 Gp_SpawnEff(EFFECT_1A4, NULL, ((gRandomLcgState >> 16) & 0x11FF) + 0x2303300, &D_shelter_b6_nursery_8018504C[4]);

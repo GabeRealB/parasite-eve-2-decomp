@@ -24,6 +24,7 @@
 #include "main/task_types.h"
 
 #include "rooms/room_common.h"
+#include "../../shared/glow_draw.h"
 #include "../../shared/room_variants.h"
 
 /// The room's message table, published at `Task::msgTable` by the room task.

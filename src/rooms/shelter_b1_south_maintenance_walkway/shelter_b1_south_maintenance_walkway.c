@@ -548,28 +548,28 @@ void func_shelter_b1_south_maintenance_walkway_8017DA8C(Task* task)
 
     switch (gGameSession->location.loc.view) {
         case 2:
-            glowDrawCone(&D_shelter_b1_south_maintenance_walkway_80182330[0], 0x200, 0);
-            glowDrawCone(&D_shelter_b1_south_maintenance_walkway_80182330[6], 0x200, 0x400);
+            glowDrawDimGreyCapsule(&D_shelter_b1_south_maintenance_walkway_80182330[0], 0x200, 0);
+            glowDrawDimGreyCapsule(&D_shelter_b1_south_maintenance_walkway_80182330[6], 0x200, 0x400);
             break;
         case 3:
-            glowDrawCone(&D_shelter_b1_south_maintenance_walkway_80182330[0], 0x200, 0);
-            glowDrawCone(&D_shelter_b1_south_maintenance_walkway_80182330[2], 0x200, 0);
-            glowDrawCone(&D_shelter_b1_south_maintenance_walkway_80182330[6], 0x200, 0x400);
-            glowDrawCone(&D_shelter_b1_south_maintenance_walkway_80182330[8], 0x200, 0x400);
+            glowDrawDimGreyCapsule(&D_shelter_b1_south_maintenance_walkway_80182330[0], 0x200, 0);
+            glowDrawDimGreyCapsule(&D_shelter_b1_south_maintenance_walkway_80182330[2], 0x200, 0);
+            glowDrawDimGreyCapsule(&D_shelter_b1_south_maintenance_walkway_80182330[6], 0x200, 0x400);
+            glowDrawDimGreyCapsule(&D_shelter_b1_south_maintenance_walkway_80182330[8], 0x200, 0x400);
             break;
         case 4:
             glowDrawRedDisc(&D_shelter_b1_south_maintenance_walkway_80182330[20], 0x200);
-            glowDrawCone(&D_shelter_b1_south_maintenance_walkway_80182330[4], 0x200, 0);
-            glowDrawCone(&D_shelter_b1_south_maintenance_walkway_80182330[10], 0x200, -0x400);
-            glowDrawCone(&D_shelter_b1_south_maintenance_walkway_80182330[14], 0x200, 0x800);
+            glowDrawDimGreyCapsule(&D_shelter_b1_south_maintenance_walkway_80182330[4], 0x200, 0);
+            glowDrawDimGreyCapsule(&D_shelter_b1_south_maintenance_walkway_80182330[10], 0x200, -0x400);
+            glowDrawDimGreyCapsule(&D_shelter_b1_south_maintenance_walkway_80182330[14], 0x200, 0x800);
             break;
         case 5:
             glowDrawRedDisc(&D_shelter_b1_south_maintenance_walkway_80182330[20], 0x200);
-            glowDrawCone(&D_shelter_b1_south_maintenance_walkway_80182330[4], 0x200, 0);
-            glowDrawCone(&D_shelter_b1_south_maintenance_walkway_80182330[12], 0x200, 0);
-            glowDrawCone(&D_shelter_b1_south_maintenance_walkway_80182330[14], 0x200, -0x400);
-            glowDrawCone(&D_shelter_b1_south_maintenance_walkway_80182330[16], 0x200, 0);
-            glowDrawCone(&D_shelter_b1_south_maintenance_walkway_80182330[18], 0x200, -0x400);
+            glowDrawDimGreyCapsule(&D_shelter_b1_south_maintenance_walkway_80182330[4], 0x200, 0);
+            glowDrawDimGreyCapsule(&D_shelter_b1_south_maintenance_walkway_80182330[12], 0x200, 0);
+            glowDrawDimGreyCapsule(&D_shelter_b1_south_maintenance_walkway_80182330[14], 0x200, -0x400);
+            glowDrawDimGreyCapsule(&D_shelter_b1_south_maintenance_walkway_80182330[16], 0x200, 0);
+            glowDrawDimGreyCapsule(&D_shelter_b1_south_maintenance_walkway_80182330[18], 0x200, -0x400);
             break;
     }
 }

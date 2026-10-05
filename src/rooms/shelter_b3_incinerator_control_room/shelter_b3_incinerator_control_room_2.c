@@ -338,6 +338,10 @@ Task* gRoomCutsceneSoundTask = NULL;
 
 RoomCutsceneRec D_shelter_b3_incinerator_control_room_80182A58;
 
+static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 packedColor);
+static void _glowDrawDiamond(const SVECTOR* worldPoint, s32 pulseRate, s32 radiusScale);
+static void _glowDrawPulsingDisc(const SVECTOR* worldPoint, s32 pulseRate, s32 radiusScale);
+
 /// Draws the glows of the current camera view at the room's fixed world
 /// points; views without an entry draw nothing.
 void func_shelter_b3_incinerator_control_room_8017FD10(Task* unused)
@@ -348,33 +352,33 @@ void func_shelter_b3_incinerator_control_room_8017FD10(Task* unused)
     switch (view) {
         case 2:
         case 3:
-            glowDrawCapsule(&D_shelter_b3_incinerator_control_room_80181868[0], 0x180, 0x111);
-            glowDrawCapsule(&D_shelter_b3_incinerator_control_room_80181868[2], 0x180, 0x111);
+            _glowDrawCapsule(&D_shelter_b3_incinerator_control_room_80181868[0], 0x180, 0x111);
+            _glowDrawCapsule(&D_shelter_b3_incinerator_control_room_80181868[2], 0x180, 0x111);
             break;
         case 4:
-            glowDrawCapsule(&D_shelter_b3_incinerator_control_room_80181888[0], 0x180, 0x111);
-            glowDrawCapsule(&D_shelter_b3_incinerator_control_room_80181888[4], 0x180, 0x111);
-            glowDrawCapsule(&D_shelter_b3_incinerator_control_room_80181888[8], 0x180, 0x111);
-            glowDrawCapsule(&D_shelter_b3_incinerator_control_room_80181888[10], 0x180, 0x111);
-            glowDrawDiamond(&D_shelter_b3_incinerator_control_room_80181888[18], 0x60, 0x80);
+            _glowDrawCapsule(&D_shelter_b3_incinerator_control_room_80181888[0], 0x180, 0x111);
+            _glowDrawCapsule(&D_shelter_b3_incinerator_control_room_80181888[4], 0x180, 0x111);
+            _glowDrawCapsule(&D_shelter_b3_incinerator_control_room_80181888[8], 0x180, 0x111);
+            _glowDrawCapsule(&D_shelter_b3_incinerator_control_room_80181888[10], 0x180, 0x111);
+            _glowDrawDiamond(&D_shelter_b3_incinerator_control_room_80181888[18], 0x60, 0x80);
             break;
         case 5:
-            glowDrawCapsule(&D_shelter_b3_incinerator_control_room_80181888[0], 0x180, 0x111);
-            glowDrawCapsule(&D_shelter_b3_incinerator_control_room_80181888[4], 0x180, 0x111);
-            glowDrawCapsule(&D_shelter_b3_incinerator_control_room_80181888[2], 0x180, 0x111);
-            glowDrawCapsule(&D_shelter_b3_incinerator_control_room_80181888[6], 0x180, 0x111);
-            glowDrawCapsule(&D_shelter_b3_incinerator_control_room_80181888[12], 0x180, 0x111);
-            glowDrawCapsule(&D_shelter_b3_incinerator_control_room_80181888[14], 0x180, 0x111);
-            glowDrawCapsule(&D_shelter_b3_incinerator_control_room_80181888[16], 0x180, 0x421);
+            _glowDrawCapsule(&D_shelter_b3_incinerator_control_room_80181888[0], 0x180, 0x111);
+            _glowDrawCapsule(&D_shelter_b3_incinerator_control_room_80181888[4], 0x180, 0x111);
+            _glowDrawCapsule(&D_shelter_b3_incinerator_control_room_80181888[2], 0x180, 0x111);
+            _glowDrawCapsule(&D_shelter_b3_incinerator_control_room_80181888[6], 0x180, 0x111);
+            _glowDrawCapsule(&D_shelter_b3_incinerator_control_room_80181888[12], 0x180, 0x111);
+            _glowDrawCapsule(&D_shelter_b3_incinerator_control_room_80181888[14], 0x180, 0x111);
+            _glowDrawCapsule(&D_shelter_b3_incinerator_control_room_80181888[16], 0x180, 0x421);
             break;
         case 6:
-            glowDrawCapsule(&D_shelter_b3_incinerator_control_room_801818E8[0], 0x180, 0x111);
-            glowDrawCapsule(&D_shelter_b3_incinerator_control_room_801818E8[2], 0x180, 0x111);
+            _glowDrawCapsule(&D_shelter_b3_incinerator_control_room_801818E8[0], 0x180, 0x111);
+            _glowDrawCapsule(&D_shelter_b3_incinerator_control_room_801818E8[2], 0x180, 0x111);
             break;
         case 8:
-            glowDrawCapsule(&D_shelter_b3_incinerator_control_room_80181888[0], 0x180, 0x111);
-            glowDrawCapsule(&D_shelter_b3_incinerator_control_room_80181888[4], 0x180, 0x111);
-            glowDrawPulsingDisc(&D_shelter_b3_incinerator_control_room_80181888[18], 0x60, 0x80);
+            _glowDrawCapsule(&D_shelter_b3_incinerator_control_room_80181888[0], 0x180, 0x111);
+            _glowDrawCapsule(&D_shelter_b3_incinerator_control_room_80181888[4], 0x180, 0x111);
+            _glowDrawPulsingDisc(&D_shelter_b3_incinerator_control_room_80181888[18], 0x60, 0x80);
             break;
     }
 }

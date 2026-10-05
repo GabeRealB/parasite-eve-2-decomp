@@ -50,6 +50,7 @@
 
 #include "rooms/room_common.h"
 #include "../../shared/glow_draw.h"
+
 // The flag symbol carries seven unproven bytes after the flag.
 #define ROOM_EVENT_ACTIVE gRoomEventActive.eventStarted
 // The request symbol carries twelve unproven bytes after the request.
@@ -527,6 +528,8 @@ static __inline__ s32 _accessTunnelStartEvent(RoomEventMsg* dst, RoomLatchedEven
 
 #include "../../shared/room_event_staged_task.inc.c"
 
+static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 packedColor);
+
 /// Starts `event` for the outgoing message `dst` unless its flag says it has
 /// already happened (answering 1). Otherwise answers 2, and - unless
 /// `dst->queryOnly` asks for a dry run - latches the message and the event,
@@ -651,35 +654,35 @@ void func_shelter_b1_access_tunnel_8017DD60(Task* unused)
         case 2: {
             SVECTOR* p;
             p = D_shelter_b1_access_tunnel_8017E744;
-            glowDrawCapsule(&p[0], 0x200, 0x334);
-            glowDrawCapsule(&p[2], 0x200, 0x334);
-            glowDrawCapsule(&p[4], 0x180, 0x444);
+            _glowDrawCapsule(&p[0], 0x200, 0x334);
+            _glowDrawCapsule(&p[2], 0x200, 0x334);
+            _glowDrawCapsule(&p[4], 0x180, 0x444);
             break;
         }
         case 3: {
             SVECTOR* p;
             p = D_shelter_b1_access_tunnel_8017E744;
-            glowDrawCapsule(&p[0], 0x200, 0x334);
-            glowDrawCapsule(&p[2], 0x200, 0x334);
-            glowDrawCapsule(&p[4], 0x180, 0x111);
-            glowDrawCapsule(&p[6], 0x180, 0x222);
-            glowDrawCapsule(&p[8], 0x180, 0x333);
-            glowDrawCapsule(&p[10], 0x180, 0x444);
+            _glowDrawCapsule(&p[0], 0x200, 0x334);
+            _glowDrawCapsule(&p[2], 0x200, 0x334);
+            _glowDrawCapsule(&p[4], 0x180, 0x111);
+            _glowDrawCapsule(&p[6], 0x180, 0x222);
+            _glowDrawCapsule(&p[8], 0x180, 0x333);
+            _glowDrawCapsule(&p[10], 0x180, 0x444);
             break;
         }
         case 4: {
             SVECTOR* p;
             p = D_shelter_b1_access_tunnel_8017E7D4;
-            glowDrawCapsule(&p[0], 0x200, 0x343);
-            glowDrawCapsule(&p[-8], 0x180, 0x444);
-            glowDrawCapsule(&p[-6], 0x180, 0x333);
+            _glowDrawCapsule(&p[0], 0x200, 0x343);
+            _glowDrawCapsule(&p[-8], 0x180, 0x444);
+            _glowDrawCapsule(&p[-6], 0x180, 0x333);
             break;
         }
         case 5: {
             SVECTOR* p;
             p = D_shelter_b1_access_tunnel_8017E7B4;
-            glowDrawCapsule(&p[0], 0x200, 0x344);
-            glowDrawCapsule(&p[2], 0x200, 0x344);
+            _glowDrawCapsule(&p[0], 0x200, 0x344);
+            _glowDrawCapsule(&p[2], 0x200, 0x344);
             break;
         }
     }

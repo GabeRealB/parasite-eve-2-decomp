@@ -925,6 +925,8 @@ WorldCollisionSurfaceProperties* D_neo_ark_submarine_gallery_801858EC[8] = {
     D_neo_ark_submarine_gallery_801858D4,
 };
 
+static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 packedColor);
+
 /// Per-view draw callback for the gallery's display cases. The first state
 /// latches the two effect ids the display cases animate with; every later run
 /// draws one fixed set of positions for the current camera view. Views 2 to 6
@@ -945,9 +947,9 @@ void func_neo_ark_submarine_gallery_8017EFEC(Task* arg0)
     view = viewGetMappedIndex() & 0xFF;
     switch (view) {
         case 2:
-            glowDrawCapsule(&D_neo_ark_submarine_gallery_801818C8[0], 0x200, 0x444);
-            glowDrawCapsule(&D_neo_ark_submarine_gallery_801818C8[2], 0x200, 0x444);
-            glowDrawCapsule(&D_neo_ark_submarine_gallery_801818C8[4], 0x200, 0x444);
+            _glowDrawCapsule(&D_neo_ark_submarine_gallery_801818C8[0], 0x200, 0x444);
+            _glowDrawCapsule(&D_neo_ark_submarine_gallery_801818C8[2], 0x200, 0x444);
+            _glowDrawCapsule(&D_neo_ark_submarine_gallery_801818C8[4], 0x200, 0x444);
             glowDrawDisc(&D_neo_ark_submarine_gallery_801818C8[16], 0x200, 0x444);
             glowDrawDisc(&D_neo_ark_submarine_gallery_801818C8[17], 0x200, 0x444);
             glowDrawDisc(&D_neo_ark_submarine_gallery_801818C8[18], 0x200, 0x444);
@@ -955,7 +957,7 @@ void func_neo_ark_submarine_gallery_8017EFEC(Task* arg0)
             func_neo_ark_submarine_gallery_80180E80(coord, 0x20);
             break;
         case 3:
-            glowDrawCapsule(&D_neo_ark_submarine_gallery_80181928[0], 0x200, 0x444);
+            _glowDrawCapsule(&D_neo_ark_submarine_gallery_80181928[0], 0x200, 0x444);
             glowDrawDisc(&D_neo_ark_submarine_gallery_80181928[4], 0x200, 0x444);
             glowDrawDisc(&D_neo_ark_submarine_gallery_80181928[5], 0x200, 0x444);
             glowDrawDisc(&D_neo_ark_submarine_gallery_80181928[14], 0x200, 0x444);
@@ -967,9 +969,9 @@ void func_neo_ark_submarine_gallery_8017EFEC(Task* arg0)
             glowDrawDisc(pos, 0x200, 0x444);
             break;
         case 4:
-            glowDrawCapsule(&D_neo_ark_submarine_gallery_801818F8[0], 0x200, 0x444);
-            glowDrawCapsule(&D_neo_ark_submarine_gallery_801818F8[2], 0x200, 0x444);
-            glowDrawCapsule(&D_neo_ark_submarine_gallery_801818F8[4], 0x200, 0x444);
+            _glowDrawCapsule(&D_neo_ark_submarine_gallery_801818F8[0], 0x200, 0x444);
+            _glowDrawCapsule(&D_neo_ark_submarine_gallery_801818F8[2], 0x200, 0x444);
+            _glowDrawCapsule(&D_neo_ark_submarine_gallery_801818F8[4], 0x200, 0x444);
             glowDrawDisc(&D_neo_ark_submarine_gallery_801818F8[18], 0x200, 0x444);
             glowDrawDisc(&D_neo_ark_submarine_gallery_801818F8[19], 0x200, 0x444);
             glowDrawDisc(&D_neo_ark_submarine_gallery_801818F8[20], 0x200, 0x444);
@@ -977,16 +979,16 @@ void func_neo_ark_submarine_gallery_8017EFEC(Task* arg0)
             glowDrawDisc(pos, 0x200, 0x444);
             break;
         case 5:
-            glowDrawCapsule(&D_neo_ark_submarine_gallery_801818D8[0], 0x200, 0x444);
-            glowDrawCapsule(&D_neo_ark_submarine_gallery_801818D8[2], 0x200, 0x444);
+            _glowDrawCapsule(&D_neo_ark_submarine_gallery_801818D8[0], 0x200, 0x444);
+            _glowDrawCapsule(&D_neo_ark_submarine_gallery_801818D8[2], 0x200, 0x444);
             pos = &D_neo_ark_submarine_gallery_801818D8[3];
-            glowDrawCapsule(pos, 0x200, 0x444);
+            _glowDrawCapsule(pos, 0x200, 0x444);
             break;
         case 6:
-            glowDrawCapsule(&D_neo_ark_submarine_gallery_801818F8[0], 0x200, 0x444);
-            glowDrawCapsule(&D_neo_ark_submarine_gallery_801818F8[2], 0x200, 0x444);
+            _glowDrawCapsule(&D_neo_ark_submarine_gallery_801818F8[0], 0x200, 0x444);
+            _glowDrawCapsule(&D_neo_ark_submarine_gallery_801818F8[2], 0x200, 0x444);
             pos = &D_neo_ark_submarine_gallery_801818F8[4];
-            glowDrawCapsule(pos, 0x200, 0x444);
+            _glowDrawCapsule(pos, 0x200, 0x444);
             break;
     }
 }

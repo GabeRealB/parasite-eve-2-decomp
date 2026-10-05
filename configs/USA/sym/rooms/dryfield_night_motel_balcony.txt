@@ -223,9 +223,9 @@ func_dryfield_night_motel_balcony_8018158C = 0x8018158C; // type:func
 func_dryfield_night_motel_balcony_8017DD0C = 0x8017DD0C; // type:func
 
 func_dryfield_night_motel_balcony_8017E554 = 0x8017E554; // type:func
-glowDrawShaft = 0x8017EC58; // type:func
+_glowDrawShaft = 0x8017EC58; // type:func
 roomEventGate = 0x8017D694; // type:func
 roomEventTask = 0x8017D7F8; // type:func
-glowDrawFlare = 0x8017F440; // type:func
+_glowDrawFlare = 0x8017F440; // type:func
 roomVariantMotelBalconyDoorsMsg = 0x8017D968; // type:func
 roomVariantMotelBalconySoundMsg = 0x8017DBC8; // type:func

@@ -1,6 +1,11 @@
 /* Part of the glow drawing library; see glow_draw.h. */
 
-/// Reserves a Gouraud quad with a coloured centre and a black rim.
+/// Reserves one half of a red pulsing diamond with a black rim.
+///
+/// Advances the current frame's packet cursor by one `POLY_G4`. Only vertex 2
+/// carries red; `redIntensity` is narrowed to its low byte (the pulse supplies
+/// 0..240). Coordinates, ordering-table linkage and semitransparency remain
+/// for the caller. The arena must have room, and the packet belongs to this frame.
 static inline POLY_G4* _glowAllocatePulsingStarHalf(s32 redIntensity)
 {
     POLY_G4* prim;

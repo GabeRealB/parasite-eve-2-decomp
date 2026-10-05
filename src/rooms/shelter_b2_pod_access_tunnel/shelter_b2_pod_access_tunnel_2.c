@@ -578,7 +578,7 @@ WorldCollisionOccluder D_shelter_b2_pod_access_tunnel_80185664[1] = {
 
 /// On the task's first tick stores seven room-specific values into resident
 /// gameplay globals, then draws the beams
-/// (`glowDrawCone`) the current camera view
+/// (`glowDrawDimGreyCapsule`) the current camera view
 /// shows.
 void func_shelter_b2_pod_access_tunnel_8017DC6C(Task* arg0)
 {
@@ -597,50 +597,50 @@ void func_shelter_b2_pod_access_tunnel_8017DC6C(Task* arg0)
         case 2: {
             SVECTOR* p;
             p = D_shelter_b2_pod_access_tunnel_80183C08;
-            glowDrawCone(&p[0], 0x200, 0x400);
-            glowDrawCone(&p[2], 0x200, 0x400);
-            glowDrawCone(&p[4], 0x200, 0x400);
-            glowDrawCone(&p[6], 0x200, 0x400);
-            glowDrawCone(&p[12], 0x200, 0);
-            glowDrawCone(&p[14], 0x200, 0);
-            glowDrawCone(&p[16], 0x200, 0);
-            glowDrawCone(&p[18], 0x200, 0);
-            glowDrawCone(&p[28], 0x200, 0x400);
-            glowDrawCone(&p[30], 0x200, 0x400);
-            glowDrawCone(&p[32], 0x200, 0x400);
-            glowDrawCone(&p[34], 0x200, 0x400);
-            glowDrawCone(&p[40], 0x200, 0);
-            glowDrawCone(&p[42], 0x200, 0);
-            glowDrawCone(&p[44], 0x200, 0);
-            glowDrawCone(&p[46], 0x200, 0);
+            glowDrawDimGreyCapsule(&p[0], 0x200, 0x400);
+            glowDrawDimGreyCapsule(&p[2], 0x200, 0x400);
+            glowDrawDimGreyCapsule(&p[4], 0x200, 0x400);
+            glowDrawDimGreyCapsule(&p[6], 0x200, 0x400);
+            glowDrawDimGreyCapsule(&p[12], 0x200, 0);
+            glowDrawDimGreyCapsule(&p[14], 0x200, 0);
+            glowDrawDimGreyCapsule(&p[16], 0x200, 0);
+            glowDrawDimGreyCapsule(&p[18], 0x200, 0);
+            glowDrawDimGreyCapsule(&p[28], 0x200, 0x400);
+            glowDrawDimGreyCapsule(&p[30], 0x200, 0x400);
+            glowDrawDimGreyCapsule(&p[32], 0x200, 0x400);
+            glowDrawDimGreyCapsule(&p[34], 0x200, 0x400);
+            glowDrawDimGreyCapsule(&p[40], 0x200, 0);
+            glowDrawDimGreyCapsule(&p[42], 0x200, 0);
+            glowDrawDimGreyCapsule(&p[44], 0x200, 0);
+            glowDrawDimGreyCapsule(&p[46], 0x200, 0);
             break;
         }
         case 3:
         case 6: {
             SVECTOR* p;
             p = D_shelter_b2_pod_access_tunnel_80183C48;
-            glowDrawCone(&p[0], 0x200, -0x400);
-            glowDrawCone(&p[2], 0x200, -0x400);
-            glowDrawCone(&p[10], 0x200, 0);
-            glowDrawCone(&p[12], 0x200, 0);
-            glowDrawCone(&p[14], 0x200, 0x800);
-            glowDrawCone(&p[16], 0x200, 0x800);
-            glowDrawCone(&p[28], 0x200, -0x400);
-            glowDrawCone(&p[30], 0x200, -0x400);
-            glowDrawCone(&p[38], 0x200, 0);
-            glowDrawCone(&p[40], 0x200, 0);
-            glowDrawCone(&p[42], 0x200, 0x800);
-            glowDrawCone(&p[44], 0x200, 0x800);
+            glowDrawDimGreyCapsule(&p[0], 0x200, -0x400);
+            glowDrawDimGreyCapsule(&p[2], 0x200, -0x400);
+            glowDrawDimGreyCapsule(&p[10], 0x200, 0);
+            glowDrawDimGreyCapsule(&p[12], 0x200, 0);
+            glowDrawDimGreyCapsule(&p[14], 0x200, 0x800);
+            glowDrawDimGreyCapsule(&p[16], 0x200, 0x800);
+            glowDrawDimGreyCapsule(&p[28], 0x200, -0x400);
+            glowDrawDimGreyCapsule(&p[30], 0x200, -0x400);
+            glowDrawDimGreyCapsule(&p[38], 0x200, 0);
+            glowDrawDimGreyCapsule(&p[40], 0x200, 0);
+            glowDrawDimGreyCapsule(&p[42], 0x200, 0x800);
+            glowDrawDimGreyCapsule(&p[44], 0x200, 0x800);
             break;
         }
         case 4:
         case 7: {
             SVECTOR* p;
             p = D_shelter_b2_pod_access_tunnel_80183CC8;
-            glowDrawCone(&p[0], 0x200, -0x400);
-            glowDrawCone(&p[2], 0x200, -0x400);
-            glowDrawCone(&p[28], 0x200, -0x400);
-            glowDrawCone(&p[30], 0x200, -0x400);
+            glowDrawDimGreyCapsule(&p[0], 0x200, -0x400);
+            glowDrawDimGreyCapsule(&p[2], 0x200, -0x400);
+            glowDrawDimGreyCapsule(&p[28], 0x200, -0x400);
+            glowDrawDimGreyCapsule(&p[30], 0x200, -0x400);
             break;
         }
     }

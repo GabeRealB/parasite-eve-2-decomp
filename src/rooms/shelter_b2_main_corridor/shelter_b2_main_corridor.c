@@ -61,6 +61,7 @@
 #include "rooms/room_common.h"
 #include "../../shared/room_visual_effects.h"
 #include "../../shared/glow_draw.h"
+
 /// Empty presence flag so `water_effects.h` declares the shared
 /// `waterDrawSpinU16` and `waterDrawTileU16`. This file includes their bodies.
 #define WATER_SHARED_U16_DRAWERS
@@ -1607,6 +1608,8 @@ RoomDeparture D_shelter_b2_main_corridor_80189684 = { 0, 0, 0, 0, 0, { 0, 0 }, 0
 
 #include "../../shared/room_event_staged_task.inc.c"
 
+static void _glowDrawBeam(const SVECTOR worldPoints[2], s32 radiusScale, s32 startAngle, s32 packedColor);
+
 s32 func_shelter_b2_main_corridor_8017D9C4(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     RoomLatchedEvent  staged;
@@ -1947,62 +1950,62 @@ void func_shelter_b2_main_corridor_8017EC34(Task* arg0)
             switch (viewGetMappedIndex() & 0xFF) {
                 case 2: {
                     SVECTOR* p = D_shelter_b2_main_corridor_80182F7C;
-                    glowDrawBeam(&p[0], 0x200, 0, 0x111);
-                    glowDrawBeam(&p[2], 0x200, 0, 0x111);
+                    _glowDrawBeam(&p[0], 0x200, 0, 0x111);
+                    _glowDrawBeam(&p[2], 0x200, 0, 0x111);
                     break;
                 }
                 case 3: {
                     SVECTOR* p = D_shelter_b2_main_corridor_80182FAC;
-                    glowDrawBeam(&p[0], 0x200, 0x800, 0x10);
-                    glowDrawBeam(&p[2], 0x200, 0, 0x10);
-                    glowDrawBeam(&p[4], 0x200, 0, 0x10);
-                    glowDrawBeam(&p[6], 0x200, 0x800, 0x100);
+                    _glowDrawBeam(&p[0], 0x200, 0x800, 0x10);
+                    _glowDrawBeam(&p[2], 0x200, 0, 0x10);
+                    _glowDrawBeam(&p[4], 0x200, 0, 0x10);
+                    _glowDrawBeam(&p[6], 0x200, 0x800, 0x100);
                     glowDrawFlareClipped(&p[14], 1, 0x300);
                     glowDrawFlareClipped(&p[21], 1, 0x300);
                     break;
                 }
                 case 4: {
                     SVECTOR* p = D_shelter_b2_main_corridor_80182F9C;
-                    glowDrawBeam(&p[0], 0x200, 0x800, 0x10);
-                    glowDrawBeam(&p[24], 0x200, 0x800, 0x111);
-                    glowDrawBeam(&p[28], 0x200, -0x400, 0x111);
-                    glowDrawBeam(&p[32], 0x200, 0x800, 0x111);
+                    _glowDrawBeam(&p[0], 0x200, 0x800, 0x10);
+                    _glowDrawBeam(&p[24], 0x200, 0x800, 0x111);
+                    _glowDrawBeam(&p[28], 0x200, -0x400, 0x111);
+                    _glowDrawBeam(&p[32], 0x200, 0x800, 0x111);
                     break;
                 }
                 case 5:
-                    glowDrawBeam(D_shelter_b2_main_corridor_80182FBC, 0x200, 0, 0x10);
+                    _glowDrawBeam(D_shelter_b2_main_corridor_80182FBC, 0x200, 0, 0x10);
                     break;
                 case 6:
-                    glowDrawBeam(D_shelter_b2_main_corridor_80182FAC, 0x200, 0x800, 0x10);
+                    _glowDrawBeam(D_shelter_b2_main_corridor_80182FAC, 0x200, 0x800, 0x10);
                 case 7: {
                     SVECTOR* p = D_shelter_b2_main_corridor_80182FCC;
-                    glowDrawBeam(&p[0], 0x200, 0, 0x10);
-                    glowDrawBeam(&p[2], 0x200, 0x800, 0x100);
+                    _glowDrawBeam(&p[0], 0x200, 0, 0x10);
+                    _glowDrawBeam(&p[2], 0x200, 0x800, 0x100);
                     break;
                 }
                 case 8: {
                     SVECTOR* p = D_shelter_b2_main_corridor_80182FAC;
-                    glowDrawBeam(&p[0], 0x200, 0x800, 0x10);
-                    glowDrawBeam(&p[24], 0x200, 0x800, 0x111);
-                    glowDrawBeam(&p[28], 0x200, -0x400, 0x111);
-                    glowDrawBeam(&p[32], 0x200, 0x800, 0x111);
+                    _glowDrawBeam(&p[0], 0x200, 0x800, 0x10);
+                    _glowDrawBeam(&p[24], 0x200, 0x800, 0x111);
+                    _glowDrawBeam(&p[28], 0x200, -0x400, 0x111);
+                    _glowDrawBeam(&p[32], 0x200, 0x800, 0x111);
                     break;
                 }
                 case 9:
-                    glowDrawBeam(D_shelter_b2_main_corridor_80182FCC, 0x200, 0, 0x10);
+                    _glowDrawBeam(D_shelter_b2_main_corridor_80182FCC, 0x200, 0, 0x10);
                     break;
                 case 10: {
                     SVECTOR* p = D_shelter_b2_main_corridor_8018305C;
-                    glowDrawBeam(&p[0], 0x200, 0x400, 0x111);
-                    glowDrawBeam(&p[4], 0x200, 0x800, 0x111);
-                    glowDrawBeam(&p[8], 0x200, 0x400, 0x111);
+                    _glowDrawBeam(&p[0], 0x200, 0x400, 0x111);
+                    _glowDrawBeam(&p[4], 0x200, 0x800, 0x111);
+                    _glowDrawBeam(&p[8], 0x200, 0x400, 0x111);
                     break;
                 }
                 case 11: {
                     SVECTOR* p = D_shelter_b2_main_corridor_8018306C;
-                    glowDrawBeam(&p[0], 0x200, 0x400, 0x111);
-                    glowDrawBeam(&p[4], 0x200, 0x800, 0x111);
-                    glowDrawBeam(&p[8], 0x200, 0x400, 0x111);
+                    _glowDrawBeam(&p[0], 0x200, 0x400, 0x111);
+                    _glowDrawBeam(&p[4], 0x200, 0x800, 0x111);
+                    _glowDrawBeam(&p[8], 0x200, 0x400, 0x111);
                     break;
                 }
             }

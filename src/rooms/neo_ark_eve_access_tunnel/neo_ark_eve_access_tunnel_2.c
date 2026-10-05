@@ -150,6 +150,8 @@ SpriteBatch D_neo_ark_eve_access_tunnel_8017F17C[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
+static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 packedColor);
+
 /// Hides or shows sprite commands of the area's views through their
 /// `SpriteBatch::hidden`: `arg0` 0 drives command 4 of view 2, `arg0` 1 command
 /// 3 of view 3 and command 2 of view 4. `arg1` 0 hides them and 1 shows them;
@@ -203,25 +205,25 @@ void func_neo_ark_eve_access_tunnel_8017E15C(Task* unused)
     view = viewGetMappedIndex();
     switch (view) {
         case 2:
-            glowDrawCapsule(&D_neo_ark_eve_access_tunnel_8017EB48[0], 0x180, 0x444);
-            glowDrawCapsule(&D_neo_ark_eve_access_tunnel_8017EB48[2], 0x180, 0x444);
-            glowDrawCapsule(&D_neo_ark_eve_access_tunnel_8017EB48[4], 0x180, 0x444);
+            _glowDrawCapsule(&D_neo_ark_eve_access_tunnel_8017EB48[0], 0x180, 0x444);
+            _glowDrawCapsule(&D_neo_ark_eve_access_tunnel_8017EB48[2], 0x180, 0x444);
+            _glowDrawCapsule(&D_neo_ark_eve_access_tunnel_8017EB48[4], 0x180, 0x444);
             break;
         case 3:
-            glowDrawCapsule(&D_neo_ark_eve_access_tunnel_8017EAE8[0], 0x180, 0x444);
-            glowDrawCapsule(&D_neo_ark_eve_access_tunnel_8017EAE8[2], 0x180, 0x444);
+            _glowDrawCapsule(&D_neo_ark_eve_access_tunnel_8017EAE8[0], 0x180, 0x444);
+            _glowDrawCapsule(&D_neo_ark_eve_access_tunnel_8017EAE8[2], 0x180, 0x444);
             break;
         case 4:
-            glowDrawCapsule(&D_neo_ark_eve_access_tunnel_8017EB08[0], 0x180, 0x444);
-            glowDrawCapsule(&D_neo_ark_eve_access_tunnel_8017EB08[2], 0x180, 0x444);
+            _glowDrawCapsule(&D_neo_ark_eve_access_tunnel_8017EB08[0], 0x180, 0x444);
+            _glowDrawCapsule(&D_neo_ark_eve_access_tunnel_8017EB08[2], 0x180, 0x444);
             /* fallthrough */
         case 5:
-            glowDrawCapsule(&D_neo_ark_eve_access_tunnel_8017EB28[0], 0x180, 0x444);
-            glowDrawCapsule(&D_neo_ark_eve_access_tunnel_8017EB28[2], 0x180, 0x444);
+            _glowDrawCapsule(&D_neo_ark_eve_access_tunnel_8017EB28[0], 0x180, 0x444);
+            _glowDrawCapsule(&D_neo_ark_eve_access_tunnel_8017EB28[2], 0x180, 0x444);
             break;
         case 6:
-            glowDrawCapsule(&D_neo_ark_eve_access_tunnel_8017EB48[0], 0x180, 0x444);
-            glowDrawCapsule(&D_neo_ark_eve_access_tunnel_8017EB48[2], 0x180, 0x444);
+            _glowDrawCapsule(&D_neo_ark_eve_access_tunnel_8017EB48[0], 0x180, 0x444);
+            _glowDrawCapsule(&D_neo_ark_eve_access_tunnel_8017EB48[2], 0x180, 0x444);
             break;
     }
 }

@@ -1,6 +1,11 @@
 /* Part of the glow drawing library; see glow_draw.h. */
 
-/// Reserves a Gouraud quad with a coloured centre and a black rim.
+/// Reserves a disc wedge packet with one coloured centre vertex and a black rim.
+///
+/// Advances the current frame's packet cursor by one `POLY_G4`. The returned
+/// quad has its command and four RGB groups initialized, with colour at vertex 2.
+/// Coordinates, ordering-table linkage and semitransparency remain for the caller.
+/// The arena must have room; the packet lives until the frame's GPU work finishes.
 static inline POLY_G4* _glowAllocateDiscWedge(u8 red, u8 green, u8 blue)
 {
     POLY_G4* prim;

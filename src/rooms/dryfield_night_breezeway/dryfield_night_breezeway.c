@@ -634,6 +634,9 @@ WorldCollisionSurfaceProperties* D_dryfield_night_breezeway_801804B8[8] = {
     D_dryfield_night_breezeway_801804A0,
 };
 
+static void _glowDrawFlare(const SVECTOR* worldPoint, s32 textureIndex, s32 radiusScale);
+static void _glowDrawShaft(const SVECTOR worldPoints[2], s32 radiusScale);
+
 /// The room's 0x13F1 message handler: answers 0 without looking at the
 /// message.
 s32 func_dryfield_night_breezeway_8017D5D0(Task* task, s32 msgId, s32 arg2, s32 arg3)
@@ -707,15 +710,15 @@ void func_dryfield_night_breezeway_8017E5BC(Task* unused)
     gRoomEffectState->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
     switch (gGameSession->location.loc.view) {
         case 2:
-            glowDrawFlare(&D_dryfield_night_breezeway_8017E6AC[0], 2, 0x400);
-            glowDrawShaft(&D_dryfield_night_breezeway_8017E6AC[5], 0x180);
+            _glowDrawFlare(&D_dryfield_night_breezeway_8017E6AC[0], 2, 0x400);
+            _glowDrawShaft(&D_dryfield_night_breezeway_8017E6AC[5], 0x180);
             break;
         case 3:
-            glowDrawShaft(&D_dryfield_night_breezeway_8017E6C4, 0x180);
+            _glowDrawShaft(&D_dryfield_night_breezeway_8017E6C4, 0x180);
             /* fallthrough */
         case 4:
             glowDrawPulsingStar(&D_dryfield_night_breezeway_8017E6A4[0], 0x600, 0x80);
-            glowDrawShaft(&D_dryfield_night_breezeway_8017E6A4[2], 0x180);
+            _glowDrawShaft(&D_dryfield_night_breezeway_8017E6A4[2], 0x180);
             break;
     }
 }

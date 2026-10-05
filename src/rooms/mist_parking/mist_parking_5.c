@@ -832,6 +832,10 @@ MistParkingShopTalkState D_mist_parking_80195334 = { 0, 0, 0, 0 };
 
 RoomCutsceneRec D_mist_parking_8019533C = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 
+static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 packedColor);
+static void _glowDrawDiamond(const SVECTOR* worldPoint, s32 pulseRate, s32 radiusScale);
+static void _glowDrawPulsingDisc(const SVECTOR* worldPoint, s32 pulseRate, s32 radiusScale);
+
 /// Draws the glow markers visible from the current view (`viewGetMappedIndex`).
 void func_mist_parking_80184728(Task* unused)
 {
@@ -840,71 +844,71 @@ void func_mist_parking_80184728(Task* unused)
     view = viewGetMappedIndex();
     switch (view) {
         case 2:
-            glowDrawCapsule(&D_mist_parking_80191484[0], 0x200, 0x444);
+            _glowDrawCapsule(&D_mist_parking_80191484[0], 0x200, 0x444);
             break;
         case 18:
-            glowDrawCapsule(&D_mist_parking_80191484[4], 0x200, 0x444);
-            glowDrawCapsule(&D_mist_parking_80191484[6], 0x200, 0x444);
-            glowDrawCapsule(&D_mist_parking_80191484[8], 0x200, 0x444);
+            _glowDrawCapsule(&D_mist_parking_80191484[4], 0x200, 0x444);
+            _glowDrawCapsule(&D_mist_parking_80191484[6], 0x200, 0x444);
+            _glowDrawCapsule(&D_mist_parking_80191484[8], 0x200, 0x444);
             break;
         case 7:
-            glowDrawCapsule(&D_mist_parking_80191484[12], 0x200, 0x444);
-            glowDrawCapsule(&D_mist_parking_80191484[14], 0x200, 0x444);
-            glowDrawCapsule(&D_mist_parking_80191484[18], 0x200, 0x444);
-            glowDrawCapsule(&D_mist_parking_80191484[20], 0x200, 0x444);
-            glowDrawDiamond(&D_mist_parking_80191484[26], 0x60, 0xE0);
+            _glowDrawCapsule(&D_mist_parking_80191484[12], 0x200, 0x444);
+            _glowDrawCapsule(&D_mist_parking_80191484[14], 0x200, 0x444);
+            _glowDrawCapsule(&D_mist_parking_80191484[18], 0x200, 0x444);
+            _glowDrawCapsule(&D_mist_parking_80191484[20], 0x200, 0x444);
+            _glowDrawDiamond(&D_mist_parking_80191484[26], 0x60, 0xE0);
             break;
         case 20:
-            glowDrawCapsule(&D_mist_parking_80191484[6], 0x200, 0x444);
-            glowDrawCapsule(&D_mist_parking_80191484[8], 0x200, 0x444);
+            _glowDrawCapsule(&D_mist_parking_80191484[6], 0x200, 0x444);
+            _glowDrawCapsule(&D_mist_parking_80191484[8], 0x200, 0x444);
             break;
         case 9:
-            glowDrawPulsingDisc(&D_mist_parking_80191484[26], 0x60, 0x40);
+            _glowDrawPulsingDisc(&D_mist_parking_80191484[26], 0x60, 0x40);
             break;
         case 10:
-            glowDrawCapsule(&D_mist_parking_80191484[4], 0x200, 0x444);
-            glowDrawCapsule(&D_mist_parking_80191484[6], 0x200, 0x444);
+            _glowDrawCapsule(&D_mist_parking_80191484[4], 0x200, 0x444);
+            _glowDrawCapsule(&D_mist_parking_80191484[6], 0x200, 0x444);
             break;
         case 11:
-            glowDrawCapsule(&D_mist_parking_80191484[4], 0x200, 0x444);
+            _glowDrawCapsule(&D_mist_parking_80191484[4], 0x200, 0x444);
             break;
         case 14:
-            glowDrawCapsule(&D_mist_parking_80191484[6], 0x200, 0x444);
-            glowDrawCapsule(&D_mist_parking_80191484[8], 0x200, 0x444);
-            glowDrawCapsule(&D_mist_parking_80191484[14], 0x200, 0x444);
+            _glowDrawCapsule(&D_mist_parking_80191484[6], 0x200, 0x444);
+            _glowDrawCapsule(&D_mist_parking_80191484[8], 0x200, 0x444);
+            _glowDrawCapsule(&D_mist_parking_80191484[14], 0x200, 0x444);
             break;
         case 15:
-            glowDrawCapsule(&D_mist_parking_80191484[0], 0x200, 0x444);
+            _glowDrawCapsule(&D_mist_parking_80191484[0], 0x200, 0x444);
             break;
         case 16:
-            glowDrawCapsule(&D_mist_parking_80191484[10], 0x200, 0x444);
-            glowDrawCapsule(&D_mist_parking_80191484[12], 0x200, 0x444);
-            glowDrawCapsule(&D_mist_parking_80191484[14], 0x200, 0x444);
-            glowDrawCapsule(&D_mist_parking_80191484[16], 0x200, 0x444);
-            glowDrawCapsule(&D_mist_parking_80191484[18], 0x200, 0x444);
-            glowDrawCapsule(&D_mist_parking_80191484[22], 0x200, 0x444);
-            glowDrawCapsule(&D_mist_parking_80191484[24], 0x200, 0x444);
+            _glowDrawCapsule(&D_mist_parking_80191484[10], 0x200, 0x444);
+            _glowDrawCapsule(&D_mist_parking_80191484[12], 0x200, 0x444);
+            _glowDrawCapsule(&D_mist_parking_80191484[14], 0x200, 0x444);
+            _glowDrawCapsule(&D_mist_parking_80191484[16], 0x200, 0x444);
+            _glowDrawCapsule(&D_mist_parking_80191484[18], 0x200, 0x444);
+            _glowDrawCapsule(&D_mist_parking_80191484[22], 0x200, 0x444);
+            _glowDrawCapsule(&D_mist_parking_80191484[24], 0x200, 0x444);
             break;
         case 5:
-            glowDrawCapsule(&D_mist_parking_80191484[4], 0x200, 0x444);
-            glowDrawCapsule(&D_mist_parking_80191484[6], 0x200, 0x444);
-            glowDrawCapsule(&D_mist_parking_80191484[8], 0x200, 0x444);
+            _glowDrawCapsule(&D_mist_parking_80191484[4], 0x200, 0x444);
+            _glowDrawCapsule(&D_mist_parking_80191484[6], 0x200, 0x444);
+            _glowDrawCapsule(&D_mist_parking_80191484[8], 0x200, 0x444);
             break;
         case 6:
         case 19:
-            glowDrawCapsule(&D_mist_parking_80191484[10], 0x200, 0x444);
-            glowDrawCapsule(&D_mist_parking_80191484[12], 0x200, 0x444);
-            glowDrawCapsule(&D_mist_parking_80191484[14], 0x200, 0x444);
-            glowDrawCapsule(&D_mist_parking_80191484[16], 0x200, 0x444);
-            glowDrawCapsule(&D_mist_parking_80191484[18], 0x200, 0x444);
-            glowDrawCapsule(&D_mist_parking_80191484[20], 0x200, 0x444);
-            glowDrawCapsule(&D_mist_parking_80191484[22], 0x200, 0x444);
-            glowDrawCapsule(&D_mist_parking_80191484[24], 0x200, 0x444);
-            glowDrawDiamond(&D_mist_parking_80191484[26], 0x60, 0x100);
+            _glowDrawCapsule(&D_mist_parking_80191484[10], 0x200, 0x444);
+            _glowDrawCapsule(&D_mist_parking_80191484[12], 0x200, 0x444);
+            _glowDrawCapsule(&D_mist_parking_80191484[14], 0x200, 0x444);
+            _glowDrawCapsule(&D_mist_parking_80191484[16], 0x200, 0x444);
+            _glowDrawCapsule(&D_mist_parking_80191484[18], 0x200, 0x444);
+            _glowDrawCapsule(&D_mist_parking_80191484[20], 0x200, 0x444);
+            _glowDrawCapsule(&D_mist_parking_80191484[22], 0x200, 0x444);
+            _glowDrawCapsule(&D_mist_parking_80191484[24], 0x200, 0x444);
+            _glowDrawDiamond(&D_mist_parking_80191484[26], 0x60, 0x100);
             break;
         case 8:
-            glowDrawCapsule(&D_mist_parking_80191484[6], 0x200, 0x444);
-            glowDrawCapsule(&D_mist_parking_80191484[8], 0x200, 0x444);
+            _glowDrawCapsule(&D_mist_parking_80191484[6], 0x200, 0x444);
+            _glowDrawCapsule(&D_mist_parking_80191484[8], 0x200, 0x444);
             break;
     }
 }

@@ -249,6 +249,8 @@ SVECTOR D_shelter_b4_upper_sewer_801864F0[14] = {
 #include "../../shared/room_visual_effects_trail_data.inc.c"
 #include "../../shared/room_visual_effects_disc_data.inc.c"
 
+static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 packedColor);
+
 /// Returns this overlay's three read-only halo tint rows for spawn indices 0..2.
 static inline const RoomFxShade* _roomVisualEffectsGetHaloShades(void)
 {
@@ -1189,7 +1191,7 @@ static void func_shelter_b4_upper_sewer_8017E59C(s32 arg0)
 
 /// Publishes the sewer's effect ids on the task's first tick - two extra ids
 /// only while `gameFlagGetNibble(0xB7)` is 1 - then draws the
-/// `glowDrawCapsule` capsules the current camera view
+/// `_glowDrawCapsule` capsules the current camera view
 /// shows. Views 4 and 13 both end on
 /// `D_shelter_b4_upper_sewer_801864F0[12]`, and writing that address off the
 /// array (rather than through its own symbol) is what keeps view 4's array
@@ -1216,50 +1218,50 @@ void func_shelter_b4_upper_sewer_8017E5F8(Task* arg0)
 
     switch (viewGetMappedIndex() & 0xFF) {
         case 3:
-            glowDrawCapsule(D_shelter_b4_upper_sewer_801864F0, 0x200, 0x444);
+            _glowDrawCapsule(D_shelter_b4_upper_sewer_801864F0, 0x200, 0x444);
             break;
         case 4:
-            glowDrawCapsule(&D_shelter_b4_upper_sewer_801864F0[0], 0x200, 0x222);
-            glowDrawCapsule(&D_shelter_b4_upper_sewer_801864F0[12], 0x200, 0x124);
+            _glowDrawCapsule(&D_shelter_b4_upper_sewer_801864F0[0], 0x200, 0x222);
+            _glowDrawCapsule(&D_shelter_b4_upper_sewer_801864F0[12], 0x200, 0x124);
             break;
         case 8: {
             SVECTOR* p = D_shelter_b4_upper_sewer_801864D0;
-            glowDrawCapsule(&p[0], 0x200, 0x444);
-            glowDrawCapsule(&p[2], 0x200, 0x444);
-            glowDrawCapsule(&p[4], 0x200, 0x222);
-            glowDrawCapsule(&p[6], 0x200, 0x444);
-            glowDrawCapsule(&p[16], 0x200, 0x124);
+            _glowDrawCapsule(&p[0], 0x200, 0x444);
+            _glowDrawCapsule(&p[2], 0x200, 0x444);
+            _glowDrawCapsule(&p[4], 0x200, 0x222);
+            _glowDrawCapsule(&p[6], 0x200, 0x444);
+            _glowDrawCapsule(&p[16], 0x200, 0x124);
             break;
         }
         case 9: {
             SVECTOR* p = D_shelter_b4_upper_sewer_801864D0;
-            glowDrawCapsule(&p[0], 0x200, 0x444);
-            glowDrawCapsule(&p[2], 0x200, 0x444);
-            glowDrawCapsule(&p[4], 0x200, 0x222);
-            glowDrawCapsule(&p[6], 0x200, 0x444);
-            glowDrawCapsule(&p[16], 0x200, 0x124);
+            _glowDrawCapsule(&p[0], 0x200, 0x444);
+            _glowDrawCapsule(&p[2], 0x200, 0x444);
+            _glowDrawCapsule(&p[4], 0x200, 0x222);
+            _glowDrawCapsule(&p[6], 0x200, 0x444);
+            _glowDrawCapsule(&p[16], 0x200, 0x124);
             break;
         }
         case 10: {
             SVECTOR* p = D_shelter_b4_upper_sewer_801864B0;
-            glowDrawCapsule(&p[0], 0x200, 0x444);
-            glowDrawCapsule(&p[2], 0x200, 0x444);
-            glowDrawCapsule(&p[18], 0x200, 0x343);
+            _glowDrawCapsule(&p[0], 0x200, 0x444);
+            _glowDrawCapsule(&p[2], 0x200, 0x444);
+            _glowDrawCapsule(&p[18], 0x200, 0x343);
             break;
         }
         case 11: {
             SVECTOR* p = D_shelter_b4_upper_sewer_80186490;
-            glowDrawCapsule(&p[0], 0x200, 0x444);
-            glowDrawCapsule(&p[6], 0x200, 0x444);
-            glowDrawCapsule(&p[18], 0x200, 0x444);
-            glowDrawCapsule(&p[20], 0x200, 0x343);
+            _glowDrawCapsule(&p[0], 0x200, 0x444);
+            _glowDrawCapsule(&p[6], 0x200, 0x444);
+            _glowDrawCapsule(&p[18], 0x200, 0x444);
+            _glowDrawCapsule(&p[20], 0x200, 0x343);
             break;
         }
         case 12:
-            glowDrawCapsule(D_shelter_b4_upper_sewer_80186520, 0x200, 0x444);
+            _glowDrawCapsule(D_shelter_b4_upper_sewer_80186520, 0x200, 0x444);
             break;
         case 13:
-            glowDrawCapsule(&D_shelter_b4_upper_sewer_801864F0[12], 0x200, 0x124);
+            _glowDrawCapsule(&D_shelter_b4_upper_sewer_801864F0[12], 0x200, 0x124);
             break;
     }
 }

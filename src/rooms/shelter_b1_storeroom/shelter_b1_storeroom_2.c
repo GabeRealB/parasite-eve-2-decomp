@@ -130,6 +130,8 @@ SVECTOR D_shelter_b1_storeroom_80184998[49] = {
 #include "../../shared/room_visual_effects_trail_data.inc.c"
 #include "../../shared/room_visual_effects_disc_data.inc.c"
 
+static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 packedColor);
+
 /// Returns this overlay's three read-only halo tint rows for spawn indices 0..2.
 static inline const RoomFxShade* _roomVisualEffectsGetHaloShades(void)
 {
@@ -641,58 +643,58 @@ void func_shelter_b1_storeroom_8017D7EC(Task* arg0)
 
     switch (viewGetMappedIndex() & 0xFF) {
         case 2:
-            glowDrawCapsule(&D_shelter_b1_storeroom_80184A38[0], 0x100, 0x222);
-            glowDrawCapsule(&D_shelter_b1_storeroom_80184A38[2], 0x100, 0x222);
-            glowDrawCapsule(&D_shelter_b1_storeroom_80184A38[8], 0x100, 0x222);
-            glowDrawCapsule(&D_shelter_b1_storeroom_80184A38[10], 0x100, 0x222);
-            glowDrawCapsule(&D_shelter_b1_storeroom_80184A38[16], 0x100, 0x444);
-            glowDrawCapsule(&D_shelter_b1_storeroom_80184A38[18], 0x100, 0x444);
+            _glowDrawCapsule(&D_shelter_b1_storeroom_80184A38[0], 0x100, 0x222);
+            _glowDrawCapsule(&D_shelter_b1_storeroom_80184A38[2], 0x100, 0x222);
+            _glowDrawCapsule(&D_shelter_b1_storeroom_80184A38[8], 0x100, 0x222);
+            _glowDrawCapsule(&D_shelter_b1_storeroom_80184A38[10], 0x100, 0x222);
+            _glowDrawCapsule(&D_shelter_b1_storeroom_80184A38[16], 0x100, 0x444);
+            _glowDrawCapsule(&D_shelter_b1_storeroom_80184A38[18], 0x100, 0x444);
             glowDrawDisc(&D_shelter_b1_storeroom_80184A38[26], 0x100, 0x222);
             glowDrawDisc(&D_shelter_b1_storeroom_80184A38[27], 0x100, 0x222);
             glowDrawDisc(&D_shelter_b1_storeroom_80184A38[28], 0x100, 0x222);
             break;
         case 3:
-            glowDrawCapsule(&D_shelter_b1_storeroom_80184A18[0], 0x100, 0x444);
-            glowDrawCapsule(&D_shelter_b1_storeroom_80184A18[2], 0x100, 0x444);
-            glowDrawCapsule(&D_shelter_b1_storeroom_80184A18[4], 0x100, 0x444);
-            glowDrawCapsule(&D_shelter_b1_storeroom_80184A18[6], 0x100, 0x444);
-            glowDrawCapsule(&D_shelter_b1_storeroom_80184A18[8], 0x100, 0x444);
-            glowDrawCapsule(&D_shelter_b1_storeroom_80184A18[10], 0x100, 0x444);
-            glowDrawCapsule(&D_shelter_b1_storeroom_80184A18[12], 0x100, 0x444);
-            glowDrawCapsule(&D_shelter_b1_storeroom_80184A18[14], 0x100, 0x444);
-            glowDrawCapsule(&D_shelter_b1_storeroom_80184A18[20], 0x100, 0x222);
-            glowDrawCapsule(&D_shelter_b1_storeroom_80184A18[22], 0x100, 0x222);
+            _glowDrawCapsule(&D_shelter_b1_storeroom_80184A18[0], 0x100, 0x444);
+            _glowDrawCapsule(&D_shelter_b1_storeroom_80184A18[2], 0x100, 0x444);
+            _glowDrawCapsule(&D_shelter_b1_storeroom_80184A18[4], 0x100, 0x444);
+            _glowDrawCapsule(&D_shelter_b1_storeroom_80184A18[6], 0x100, 0x444);
+            _glowDrawCapsule(&D_shelter_b1_storeroom_80184A18[8], 0x100, 0x444);
+            _glowDrawCapsule(&D_shelter_b1_storeroom_80184A18[10], 0x100, 0x444);
+            _glowDrawCapsule(&D_shelter_b1_storeroom_80184A18[12], 0x100, 0x444);
+            _glowDrawCapsule(&D_shelter_b1_storeroom_80184A18[14], 0x100, 0x444);
+            _glowDrawCapsule(&D_shelter_b1_storeroom_80184A18[20], 0x100, 0x222);
+            _glowDrawCapsule(&D_shelter_b1_storeroom_80184A18[22], 0x100, 0x222);
             break;
         case 4:
-            glowDrawCapsule(&D_shelter_b1_storeroom_80184A18[0], 0x100, 0x444);
-            glowDrawCapsule(&D_shelter_b1_storeroom_80184A18[8], 0x100, 0x444);
-            glowDrawCapsule(&D_shelter_b1_storeroom_80184A18[16], 0x100, 0x333);
-            glowDrawCapsule(&D_shelter_b1_storeroom_80184A18[18], 0x100, 0x333);
+            _glowDrawCapsule(&D_shelter_b1_storeroom_80184A18[0], 0x100, 0x444);
+            _glowDrawCapsule(&D_shelter_b1_storeroom_80184A18[8], 0x100, 0x444);
+            _glowDrawCapsule(&D_shelter_b1_storeroom_80184A18[16], 0x100, 0x333);
+            _glowDrawCapsule(&D_shelter_b1_storeroom_80184A18[18], 0x100, 0x333);
             glowDrawDisc(&D_shelter_b1_storeroom_80184A18[27], 0x100, 0x222);
             glowDrawDisc(&D_shelter_b1_storeroom_80184A18[28], 0x100, 0x222);
             glowDrawDisc(&D_shelter_b1_storeroom_80184A18[29], 0x100, 0x222);
             break;
         case 5:
-            glowDrawCapsule(&D_shelter_b1_storeroom_80184998[0], 0x100, 0x444);
-            glowDrawCapsule(&D_shelter_b1_storeroom_80184998[2], 0x100, 0x444);
-            glowDrawCapsule(&D_shelter_b1_storeroom_80184998[4], 0x100, 0x444);
-            glowDrawCapsule(&D_shelter_b1_storeroom_80184998[6], 0x100, 0x444);
-            glowDrawCapsule(&D_shelter_b1_storeroom_80184998[8], 0x100, 0x444);
-            glowDrawCapsule(&D_shelter_b1_storeroom_80184998[10], 0x100, 0x444);
-            glowDrawCapsule(&D_shelter_b1_storeroom_80184998[12], 0x100, 0x444);
-            glowDrawCapsule(&D_shelter_b1_storeroom_80184998[32], 0x100, 0x222);
-            glowDrawCapsule(&D_shelter_b1_storeroom_80184998[34], 0x100, 0x222);
+            _glowDrawCapsule(&D_shelter_b1_storeroom_80184998[0], 0x100, 0x444);
+            _glowDrawCapsule(&D_shelter_b1_storeroom_80184998[2], 0x100, 0x444);
+            _glowDrawCapsule(&D_shelter_b1_storeroom_80184998[4], 0x100, 0x444);
+            _glowDrawCapsule(&D_shelter_b1_storeroom_80184998[6], 0x100, 0x444);
+            _glowDrawCapsule(&D_shelter_b1_storeroom_80184998[8], 0x100, 0x444);
+            _glowDrawCapsule(&D_shelter_b1_storeroom_80184998[10], 0x100, 0x444);
+            _glowDrawCapsule(&D_shelter_b1_storeroom_80184998[12], 0x100, 0x444);
+            _glowDrawCapsule(&D_shelter_b1_storeroom_80184998[32], 0x100, 0x222);
+            _glowDrawCapsule(&D_shelter_b1_storeroom_80184998[34], 0x100, 0x222);
             break;
         case 6:
-            glowDrawCapsule(&D_shelter_b1_storeroom_80184AB8[0], 0x100, 0x444);
-            glowDrawCapsule(&D_shelter_b1_storeroom_80184AB8[2], 0x100, 0x444);
+            _glowDrawCapsule(&D_shelter_b1_storeroom_80184AB8[0], 0x100, 0x444);
+            _glowDrawCapsule(&D_shelter_b1_storeroom_80184AB8[2], 0x100, 0x444);
             glowDrawDisc(&D_shelter_b1_storeroom_80184AB8[4], 0x100, 0x222);
             glowDrawDisc(&D_shelter_b1_storeroom_80184AB8[5], 0x100, 0x222);
             glowDrawDisc(&D_shelter_b1_storeroom_80184AB8[6], 0x100, 0x222);
             break;
         case 7:
-            glowDrawCapsule(&D_shelter_b1_storeroom_80184A98[0], 0x100, 0x333);
-            glowDrawCapsule(&D_shelter_b1_storeroom_80184A98[2], 0x100, 0x333);
+            _glowDrawCapsule(&D_shelter_b1_storeroom_80184A98[0], 0x100, 0x333);
+            _glowDrawCapsule(&D_shelter_b1_storeroom_80184A98[2], 0x100, 0x333);
             break;
     }
 }

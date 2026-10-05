@@ -53,6 +53,7 @@
 
 #include "../../shared/room_visual_effects.h"
 #include "../../shared/glow_draw.h"
+
 // The flag symbol is four bytes; the gate writes the first.
 #define ROOM_EVENT_ACTIVE gRoomEventActive.eventStarted
 #include "../../shared/room_events.h"
@@ -137,6 +138,8 @@ SVECTOR D_shelter_b3_elevator_hall_80182AF4[8] = {
 #define ROOM_FX_HALO_STORAGE_TYPE        RoomFxHaloStorage
 #define ROOM_FX_HALO_STORAGE_BOUND
 #include "../../shared/room_visual_effects_halo_data.inc.c"
+
+static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 packedColor);
 
 /// Returns this overlay's three read-only halo tint rows for spawn indices 0..2.
 static inline const RoomFxShade* _roomVisualEffectsGetHaloShades(void)
@@ -307,24 +310,24 @@ void func_shelter_b3_elevator_hall_8017DE70(Task* arg0)
     switch ((u8)viewGetMappedIndex()) {
         case 3: {
             SVECTOR* p = D_shelter_b3_elevator_hall_80182A74;
-            glowDrawCapsule(&p[0], 0x180, 0x222);
-            glowDrawCapsule(&p[2], 0x180, 0x222);
-            glowDrawCapsule(&p[4], 0x180, 0x222);
-            glowDrawCapsule(&p[6], 0x180, 0x222);
+            _glowDrawCapsule(&p[0], 0x180, 0x222);
+            _glowDrawCapsule(&p[2], 0x180, 0x222);
+            _glowDrawCapsule(&p[4], 0x180, 0x222);
+            _glowDrawCapsule(&p[6], 0x180, 0x222);
         } break;
         case 4: {
             SVECTOR* p = D_shelter_b3_elevator_hall_80182AB4;
-            glowDrawCapsule(&p[0], 0x180, 0x222);
-            glowDrawCapsule(&p[2], 0x180, 0x222);
-            glowDrawCapsule(&p[4], 0x180, 0x222);
-            glowDrawCapsule(&p[6], 0x180, 0x222);
+            _glowDrawCapsule(&p[0], 0x180, 0x222);
+            _glowDrawCapsule(&p[2], 0x180, 0x222);
+            _glowDrawCapsule(&p[4], 0x180, 0x222);
+            _glowDrawCapsule(&p[6], 0x180, 0x222);
         } break;
         case 6: {
             SVECTOR* p = D_shelter_b3_elevator_hall_80182AF4;
-            glowDrawCapsule(&p[0], 0x180, 0x222);
-            glowDrawCapsule(&p[2], 0x180, 0x222);
-            glowDrawCapsule(&p[4], 0x180, 0x222);
-            glowDrawCapsule(&p[6], 0x180, 0x222);
+            _glowDrawCapsule(&p[0], 0x180, 0x222);
+            _glowDrawCapsule(&p[2], 0x180, 0x222);
+            _glowDrawCapsule(&p[4], 0x180, 0x222);
+            _glowDrawCapsule(&p[6], 0x180, 0x222);
         } break;
     }
 }

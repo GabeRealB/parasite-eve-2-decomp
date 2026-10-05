@@ -936,6 +936,8 @@ static s32  func_mist_shooting_gallery_8017FA38(s32 score);
 static void func_mist_shooting_gallery_8017FC2C(Task* arg0);
 static void func_mist_shooting_gallery_8017FD40(Task* task);
 
+static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 packedColor);
+
 void func_mist_shooting_gallery_8017DCAC(s32 mode)
 {
     InventoryItemRange* scan;
@@ -2535,32 +2537,32 @@ void func_mist_shooting_gallery_801811EC(Task* unused)
     view = viewGetMappedIndex();
     switch (view) {
         case 2:
-            glowDrawCapsule(&D_mist_shooting_gallery_80185550[0], 0x200, 0x222);
-            glowDrawCapsule(&D_mist_shooting_gallery_80185550[8], 0x200, 0x222);
-            glowDrawCapsule(&D_mist_shooting_gallery_80185550[10], 0x200, 0x222);
+            _glowDrawCapsule(&D_mist_shooting_gallery_80185550[0], 0x200, 0x222);
+            _glowDrawCapsule(&D_mist_shooting_gallery_80185550[8], 0x200, 0x222);
+            _glowDrawCapsule(&D_mist_shooting_gallery_80185550[10], 0x200, 0x222);
             break;
         case 3:
-            glowDrawCapsule(&D_mist_shooting_gallery_80185570[0], 0x200, 0x222);
-            glowDrawCapsule(&D_mist_shooting_gallery_80185570[2], 0x200, 0x222);
-            glowDrawCapsule(&D_mist_shooting_gallery_80185570[10], 0x200, 0x222);
-            glowDrawCapsule(&D_mist_shooting_gallery_80185570[12], 0x200, 0x222);
-            glowDrawCapsule(&D_mist_shooting_gallery_80185570[14], 0x200, 0x222);
+            _glowDrawCapsule(&D_mist_shooting_gallery_80185570[0], 0x200, 0x222);
+            _glowDrawCapsule(&D_mist_shooting_gallery_80185570[2], 0x200, 0x222);
+            _glowDrawCapsule(&D_mist_shooting_gallery_80185570[10], 0x200, 0x222);
+            _glowDrawCapsule(&D_mist_shooting_gallery_80185570[12], 0x200, 0x222);
+            _glowDrawCapsule(&D_mist_shooting_gallery_80185570[14], 0x200, 0x222);
             break;
         case 7:
-            glowDrawCapsule(&D_mist_shooting_gallery_801855C0[0], 0x200, 0x222);
-            glowDrawCapsule(&D_mist_shooting_gallery_801855C0[2], 0x200, 0x222);
-            glowDrawCapsule(&D_mist_shooting_gallery_801855C0[4], 0x200, 0x222);
-            glowDrawCapsule(&D_mist_shooting_gallery_801855C0[6], 0x200, 0x222);
+            _glowDrawCapsule(&D_mist_shooting_gallery_801855C0[0], 0x200, 0x222);
+            _glowDrawCapsule(&D_mist_shooting_gallery_801855C0[2], 0x200, 0x222);
+            _glowDrawCapsule(&D_mist_shooting_gallery_801855C0[4], 0x200, 0x222);
+            _glowDrawCapsule(&D_mist_shooting_gallery_801855C0[6], 0x200, 0x222);
             break;
         case 8:
-            glowDrawCapsule(&D_mist_shooting_gallery_80185610[0], 0x200, 0x222);
+            _glowDrawCapsule(&D_mist_shooting_gallery_80185610[0], 0x200, 0x222);
             break;
         case 9:
         case 18:
-            glowDrawCapsule(&D_mist_shooting_gallery_801855F0[0], 0x200, 0x222);
-            glowDrawCapsule(&D_mist_shooting_gallery_801855F0[2], 0x200, 0x222);
-            glowDrawCapsule(&D_mist_shooting_gallery_801855F0[6], 0x200, 0x222);
-            glowDrawCapsule(&D_mist_shooting_gallery_801855F0[8], 0x200, 0x222);
+            _glowDrawCapsule(&D_mist_shooting_gallery_801855F0[0], 0x200, 0x222);
+            _glowDrawCapsule(&D_mist_shooting_gallery_801855F0[2], 0x200, 0x222);
+            _glowDrawCapsule(&D_mist_shooting_gallery_801855F0[6], 0x200, 0x222);
+            _glowDrawCapsule(&D_mist_shooting_gallery_801855F0[8], 0x200, 0x222);
             glowDrawDisc(&D_mist_shooting_gallery_801855F0[16], 0x300, 0x111);
             glowDrawDisc(&D_mist_shooting_gallery_801856B0[0], 0x300, 0x111);
             break;

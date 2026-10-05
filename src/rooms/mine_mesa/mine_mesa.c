@@ -2576,6 +2576,8 @@ static void           func_mine_mesa_80181880(Task* arg0);
 
 #include "../../shared/room_event_staged_task.inc.c"
 
+static void _glowDrawFlare(const SVECTOR* worldPoint, s32 textureIndex, s32 radiusScale);
+
 static void func_mine_mesa_8017D808(Task* task)
 {
     u8  field9;
@@ -3231,7 +3233,7 @@ void func_mine_mesa_8017EB54(s32 arg0)
 
 /// Publishes the mesa's three effect ids as `gRoomEffectState->roomEffectMode` variant `2`
 /// on the task's first tick, then draws every emitter the current camera view
-/// shows: one `glowDrawFlare` quad per position, texture column 1
+/// shows: one `_glowDrawFlare` quad per position, texture column 1
 /// and half-extent 0x200, except the column-0, 0x300 positions of views 2 and
 /// 5.
 void func_mine_mesa_8017ED08(Task* arg0)
@@ -3247,66 +3249,66 @@ void func_mine_mesa_8017ED08(Task* arg0)
     switch (viewGetMappedIndex() & 0xFF) {
         case 2: {
             SVECTOR* p = D_mine_mesa_801864D0;
-            glowDrawFlare(&p[0], 0, 0x300);
-            glowDrawFlare(&p[1], 1, 0x200);
-            glowDrawFlare(&p[2], 1, 0x200);
-            glowDrawFlare(&p[3], 1, 0x200);
+            _glowDrawFlare(&p[0], 0, 0x300);
+            _glowDrawFlare(&p[1], 1, 0x200);
+            _glowDrawFlare(&p[2], 1, 0x200);
+            _glowDrawFlare(&p[3], 1, 0x200);
             break;
         }
         case 4: {
             SVECTOR* p = D_mine_mesa_801864F0;
-            glowDrawFlare(&p[0], 1, 0x200);
-            glowDrawFlare(&p[1], 1, 0x200);
-            glowDrawFlare(&p[2], 1, 0x200);
-            glowDrawFlare(&p[3], 1, 0x200);
-            glowDrawFlare(&p[6], 1, 0x200);
+            _glowDrawFlare(&p[0], 1, 0x200);
+            _glowDrawFlare(&p[1], 1, 0x200);
+            _glowDrawFlare(&p[2], 1, 0x200);
+            _glowDrawFlare(&p[3], 1, 0x200);
+            _glowDrawFlare(&p[6], 1, 0x200);
             break;
         }
         case 5: {
             SVECTOR* p = D_mine_mesa_801864C8;
-            glowDrawFlare(&p[0], 0, 0x300);
-            glowDrawFlare(&p[1], 0, 0x300);
-            glowDrawFlare(&p[5], 1, 0x200);
-            glowDrawFlare(&p[6], 1, 0x200);
-            glowDrawFlare(&p[8], 1, 0x200);
-            glowDrawFlare(&p[9], 1, 0x200);
+            _glowDrawFlare(&p[0], 0, 0x300);
+            _glowDrawFlare(&p[1], 0, 0x300);
+            _glowDrawFlare(&p[5], 1, 0x200);
+            _glowDrawFlare(&p[6], 1, 0x200);
+            _glowDrawFlare(&p[8], 1, 0x200);
+            _glowDrawFlare(&p[9], 1, 0x200);
             break;
         }
         case 6: {
             SVECTOR* p = D_mine_mesa_801864F0;
-            glowDrawFlare(&p[0], 1, 0x200);
-            glowDrawFlare(&p[1], 1, 0x200);
-            glowDrawFlare(&p[4], 1, 0x200);
-            glowDrawFlare(&p[5], 1, 0x200);
+            _glowDrawFlare(&p[0], 1, 0x200);
+            _glowDrawFlare(&p[1], 1, 0x200);
+            _glowDrawFlare(&p[4], 1, 0x200);
+            _glowDrawFlare(&p[5], 1, 0x200);
             break;
         }
         case 8: {
             SVECTOR* p = D_mine_mesa_801864F0;
-            glowDrawFlare(&p[0], 1, 0x200);
+            _glowDrawFlare(&p[0], 1, 0x200);
             break;
         }
         case 9: {
             SVECTOR* p = D_mine_mesa_80186508;
-            glowDrawFlare(&p[0], 1, 0x200);
-            glowDrawFlare(&p[1], 1, 0x200);
-            glowDrawFlare(&p[2], 1, 0x200);
+            _glowDrawFlare(&p[0], 1, 0x200);
+            _glowDrawFlare(&p[1], 1, 0x200);
+            _glowDrawFlare(&p[2], 1, 0x200);
             break;
         }
         case 10: {
             SVECTOR* p = D_mine_mesa_801864D8;
-            glowDrawFlare(&p[0], 1, 0x200);
-            glowDrawFlare(&p[2], 1, 0x200);
+            _glowDrawFlare(&p[0], 1, 0x200);
+            _glowDrawFlare(&p[2], 1, 0x200);
             break;
         }
         case 11: {
             SVECTOR* p = D_mine_mesa_801864F0;
-            glowDrawFlare(&p[0], 1, 0x200);
-            glowDrawFlare(&p[1], 1, 0x200);
-            glowDrawFlare(&p[2], 1, 0x200);
-            glowDrawFlare(&p[3], 1, 0x200);
-            glowDrawFlare(&p[4], 1, 0x200);
-            glowDrawFlare(&p[5], 1, 0x200);
-            glowDrawFlare(&p[6], 1, 0x200);
+            _glowDrawFlare(&p[0], 1, 0x200);
+            _glowDrawFlare(&p[1], 1, 0x200);
+            _glowDrawFlare(&p[2], 1, 0x200);
+            _glowDrawFlare(&p[3], 1, 0x200);
+            _glowDrawFlare(&p[4], 1, 0x200);
+            _glowDrawFlare(&p[5], 1, 0x200);
+            _glowDrawFlare(&p[6], 1, 0x200);
             break;
         }
     }

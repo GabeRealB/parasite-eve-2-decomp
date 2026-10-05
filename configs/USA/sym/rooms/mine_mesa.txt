@@ -223,5 +223,5 @@ _roomVisualEffectsDrawFlashDisc = 0x8017F900; // type:func
 _roomVisualEffectsDrawTwinTrail = 0x80180184; // type:func
 _roomVisualEffectsDrawBurstStar = 0x80180804; // type:func
 roomEventStagedTask = 0x8017D670; // type:func
-glowDrawFlare = 0x8017EFA8; // type:func
+_glowDrawFlare = 0x8017EFA8; // type:func
 streamedScenePlay = 0x8017DE38; // type:func

@@ -289,16 +289,16 @@ void func_shelter_b1_north_maintenance_walkway_8017DBC8(Task* arg0)
         case 2: {
             SVECTOR* p;
             p = D_shelter_b1_north_maintenance_walkway_80184B18;
-            glowDrawCone(&p[0], 0x200, 0x800);
-            glowDrawCone(&p[4], 0x200, -0x400);
+            glowDrawDimGreyCapsule(&p[0], 0x200, 0x800);
+            glowDrawDimGreyCapsule(&p[4], 0x200, -0x400);
             break;
         }
         case 3: {
             SVECTOR* p;
             p = D_shelter_b1_north_maintenance_walkway_80184B08;
-            glowDrawCone(&p[0], 0x200, 0x800);
-            glowDrawCone(&p[2], 0x200, 0x800);
-            glowDrawCone(&p[4], 0x200, -0x400);
+            glowDrawDimGreyCapsule(&p[0], 0x200, 0x800);
+            glowDrawDimGreyCapsule(&p[2], 0x200, 0x800);
+            glowDrawDimGreyCapsule(&p[4], 0x200, -0x400);
             break;
         }
         case 4:
@@ -306,20 +306,20 @@ void func_shelter_b1_north_maintenance_walkway_8017DBC8(Task* arg0)
             SVECTOR* p;
             p = D_shelter_b1_north_maintenance_walkway_80184B48;
             glowDrawRedDisc(&p[0], 0x200);
-            glowDrawCone(&p[-18], 0x200, 0);
-            glowDrawCone(&p[-16], 0x200, 0);
-            glowDrawCone(&p[-14], 0x200, 0);
-            glowDrawCone(&p[-12], 0x200, -0x400);
-            glowDrawCone(&p[-10], 0x200, -0x400);
-            glowDrawCone(&p[-8], 0x200, -0x400);
-            glowDrawCone(&p[-6], 0x200, 0x800);
+            glowDrawDimGreyCapsule(&p[-18], 0x200, 0);
+            glowDrawDimGreyCapsule(&p[-16], 0x200, 0);
+            glowDrawDimGreyCapsule(&p[-14], 0x200, 0);
+            glowDrawDimGreyCapsule(&p[-12], 0x200, -0x400);
+            glowDrawDimGreyCapsule(&p[-10], 0x200, -0x400);
+            glowDrawDimGreyCapsule(&p[-8], 0x200, -0x400);
+            glowDrawDimGreyCapsule(&p[-6], 0x200, 0x800);
             break;
         }
         case 5: {
             SVECTOR* p;
             p = D_shelter_b1_north_maintenance_walkway_80184AB8;
-            glowDrawCone(&p[0], 0x200, 0);
-            glowDrawCone(&p[6], 0x200, -0x400);
+            glowDrawDimGreyCapsule(&p[0], 0x200, 0);
+            glowDrawDimGreyCapsule(&p[6], 0x200, -0x400);
             break;
         }
     }

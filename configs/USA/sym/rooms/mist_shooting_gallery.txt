@@ -296,7 +296,7 @@ func_mist_shooting_gallery_8017FBD8 = 0x8017FBD8; // type:func
 func_mist_shooting_gallery_801811EC = 0x801811EC; // type:func
 
 func_mist_shooting_gallery_80182064 = 0x80182064; // type:func
-glowDrawCapsule = 0x80181480; // type:func
+_glowDrawCapsule = 0x80181480; // type:func
 glowDrawDisc = 0x80181CC4; // type:func
 jukeboxDrawRow = 0x8018055C; // type:func
 jukeboxHostTask = 0x80180A00; // type:func

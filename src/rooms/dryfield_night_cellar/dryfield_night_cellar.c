@@ -855,6 +855,8 @@ static void func_dryfield_night_cellar_8017D740(Task* task);
 
 #include "../../shared/cellar_cap_msg.inc.c"
 
+static void _glowDrawFlare(const SVECTOR* worldPoint, s32 textureIndex, s32 radiusScale);
+
 /// Message-table handler for message 0x13F1: does nothing and answers 0.
 s32 func_dryfield_night_cellar_8017D62C(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
@@ -910,11 +912,11 @@ void func_dryfield_night_cellar_8017DA28(Task* unused)
     if (gameFlagGetNibble(GAME_FLAG_UNDERPASS_SWITCH_2) == 1) {
         visit = gGameSession->location.loc.view;
         if (visit == 2) {
-            glowDrawFlare(&D_dryfield_night_cellar_8017DAD0[0], 1, 0x280);
-            glowDrawFlare(&D_dryfield_night_cellar_8017DAD0[1], 1, 0x280);
+            _glowDrawFlare(&D_dryfield_night_cellar_8017DAD0[0], 1, 0x280);
+            _glowDrawFlare(&D_dryfield_night_cellar_8017DAD0[1], 1, 0x280);
         } else if (visit == 3) {
-            glowDrawFlare(&D_dryfield_night_cellar_8017DAE0[0], 1, 0x280);
-            glowDrawFlare(&D_dryfield_night_cellar_8017DAE0[1], 1, 0x280);
+            _glowDrawFlare(&D_dryfield_night_cellar_8017DAE0[0], 1, 0x280);
+            _glowDrawFlare(&D_dryfield_night_cellar_8017DAE0[1], 1, 0x280);
         }
     }
 }

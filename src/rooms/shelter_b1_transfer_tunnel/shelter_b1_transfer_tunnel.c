@@ -366,19 +366,19 @@ void func_shelter_b1_transfer_tunnel_8017D6D0(Task* arg0)
     switch (view) {
         case 2: {
             SVECTOR* p = D_shelter_b1_transfer_tunnel_801828E8;
-            glowDrawCone(&p[0], 0x200, 0);
+            glowDrawDimGreyCapsule(&p[0], 0x200, 0);
             glowDrawRedDisc(&p[8], 0x200);
         } break;
         case 3: {
             SVECTOR* p = D_shelter_b1_transfer_tunnel_801828E8;
-            glowDrawCone(&p[0], 0x200, 0);
-            glowDrawCone(&p[4], 0x200, 0x800);
+            glowDrawDimGreyCapsule(&p[0], 0x200, 0);
+            glowDrawDimGreyCapsule(&p[4], 0x200, 0x800);
             glowDrawRedDisc(&p[8], 0x200);
         } break;
         case 4: {
             SVECTOR* p = D_shelter_b1_transfer_tunnel_801828F8;
-            glowDrawCone(&p[0], 0x200, 0);
-            glowDrawCone(&p[4], 0x200, 0x800);
+            glowDrawDimGreyCapsule(&p[0], 0x200, 0);
+            glowDrawDimGreyCapsule(&p[4], 0x200, 0x800);
         } break;
     }
 }

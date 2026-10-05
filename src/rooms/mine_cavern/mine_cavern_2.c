@@ -926,6 +926,9 @@ SVECTOR D_mine_cavern_80188FC4[1] = {
 #define ROOM_FX_HALO_STORAGE_BOUND
 #include "../../shared/room_visual_effects_halo_data.inc.c"
 
+static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 packedColor);
+static void _glowDrawFlare(const SVECTOR* worldPoint, s32 textureIndex, s32 radiusScale);
+
 /// Returns this overlay's three read-only halo tint rows for spawn indices 0..2.
 static inline const RoomFxShade* _roomVisualEffectsGetHaloShades(void)
 {
@@ -2226,72 +2229,72 @@ void func_mine_cavern_8017E474(Task* arg0)
         case 3:
         case 9: {
             SVECTOR* p = D_mine_cavern_80188F84;
-            glowDrawFlare(&p[0], 1, 0x300);
-            glowDrawFlare(&p[2], 1, 0x300);
+            _glowDrawFlare(&p[0], 1, 0x300);
+            _glowDrawFlare(&p[2], 1, 0x300);
             break;
         }
         case 4: {
             SVECTOR* p = D_mine_cavern_80188F7C;
-            glowDrawFlare(&p[0], 1, 0x300);
-            glowDrawFlare(&p[5], 1, 0x300);
+            _glowDrawFlare(&p[0], 1, 0x300);
+            _glowDrawFlare(&p[5], 1, 0x300);
             break;
         }
         case 5:
-            glowDrawFlare(D_mine_cavern_80188F8C, 1, 0x300);
+            _glowDrawFlare(D_mine_cavern_80188F8C, 1, 0x300);
         case 23: {
             SVECTOR* p = D_mine_cavern_80188F64;
-            glowDrawCapsule(&p[0], 0x180, 0x222);
-            glowDrawCapsule(&p[1], 0x180, 0x222);
-            glowDrawFlare(&p[3], 1, 0x300);
+            _glowDrawCapsule(&p[0], 0x180, 0x222);
+            _glowDrawCapsule(&p[1], 0x180, 0x222);
+            _glowDrawFlare(&p[3], 1, 0x300);
             break;
         }
         case 6: {
             SVECTOR* p = D_mine_cavern_80188F8C;
-            glowDrawFlare(&p[0], 1, 0x300);
-            glowDrawFlare(&p[2], 1, 0x300);
-            glowDrawFlare(&p[4], 1, 0x300);
+            _glowDrawFlare(&p[0], 1, 0x300);
+            _glowDrawFlare(&p[2], 1, 0x300);
+            _glowDrawFlare(&p[4], 1, 0x300);
             break;
         }
         case 7: {
             SVECTOR* p = D_mine_cavern_80188F84;
-            glowDrawFlare(&p[0], 1, 0x300);
-            glowDrawFlare(&p[2], 1, 0x300);
-            glowDrawFlare(&p[3], 1, 0x300);
+            _glowDrawFlare(&p[0], 1, 0x300);
+            _glowDrawFlare(&p[2], 1, 0x300);
+            _glowDrawFlare(&p[3], 1, 0x300);
             break;
         }
         case 8:
         case 20:
-            glowDrawFlare(D_mine_cavern_80188F94, 1, 0x300);
+            _glowDrawFlare(D_mine_cavern_80188F94, 1, 0x300);
             break;
         case 10:
-            glowDrawFlare(D_mine_cavern_80188FB4, 1, 0x300);
+            _glowDrawFlare(D_mine_cavern_80188FB4, 1, 0x300);
             break;
         case 11:
-            glowDrawFlare(D_mine_cavern_80188F8C, 1, 0x300);
+            _glowDrawFlare(D_mine_cavern_80188F8C, 1, 0x300);
         case 13: {
             SVECTOR* p = D_mine_cavern_80188F7C;
-            glowDrawFlare(&p[0], 1, 0x300);
-            glowDrawFlare(&p[5], 1, 0x300);
-            glowDrawFlare(&p[6], 1, 0x300);
+            _glowDrawFlare(&p[0], 1, 0x300);
+            _glowDrawFlare(&p[5], 1, 0x300);
+            _glowDrawFlare(&p[6], 1, 0x300);
             break;
         }
         case 14:
         case 16:
         case 21:
-            glowDrawFlare(D_mine_cavern_80188F8C, 1, 0x300);
+            _glowDrawFlare(D_mine_cavern_80188F8C, 1, 0x300);
             break;
         case 17:
-            glowDrawFlare(D_mine_cavern_80188F9C, 1, 0x300);
+            _glowDrawFlare(D_mine_cavern_80188F9C, 1, 0x300);
             break;
         case 24:
-            glowDrawFlare(D_mine_cavern_80188FC4, 1, 0x300);
+            _glowDrawFlare(D_mine_cavern_80188FC4, 1, 0x300);
         case 22:
-            glowDrawFlare(D_mine_cavern_80188F7C, 1, 0x300);
+            _glowDrawFlare(D_mine_cavern_80188F7C, 1, 0x300);
             break;
         case 25: {
             SVECTOR* p = D_mine_cavern_80188F7C;
-            glowDrawFlare(&p[0], 1, 0x300);
-            glowDrawFlare(&p[2], 1, 0x300);
+            _glowDrawFlare(&p[0], 1, 0x300);
+            _glowDrawFlare(&p[2], 1, 0x300);
             break;
         }
     }

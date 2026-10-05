@@ -63,9 +63,9 @@ gRoomEventTaskDesc = 0x8017E6E0; // size:0xC defined:True
 D_dryfield_night_water_tower_8017E6EC = 0x8017E6EC; // size:0x30 defined:True
 
 func_dryfield_night_water_tower_8017DB80 = 0x8017DB80; // type:func
-glowDrawShaft = 0x8017DC70; // type:func
+_glowDrawShaft = 0x8017DC70; // type:func
 roomEventGate = 0x8017D60C; // type:func
 roomEventTask = 0x8017D770; // type:func
-glowDrawFlare = 0x8017E458; // type:func
+_glowDrawFlare = 0x8017E458; // type:func
 waterTowerEventMsg = 0x8017D8E0; // type:func
 waterTowerSoundMsg = 0x8017DA4C; // type:func

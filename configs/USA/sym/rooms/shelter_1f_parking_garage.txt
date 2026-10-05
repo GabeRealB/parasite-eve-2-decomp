@@ -61,4 +61,4 @@ roomEventStagedTask = 0x8017D958; // type:func
 glowDrawFactorDisc = 0x8017E868; // type:func
 roomDepartureTask = 0x8017D7E8; // type:func
 roomVariantResolveShelter = 0x8017D6AC; // type:func
-glowDrawAngledCapsule = 0x8017E080; // type:func
+_glowDrawAngledCapsule = 0x8017E080; // type:func

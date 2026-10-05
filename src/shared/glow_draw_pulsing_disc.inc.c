@@ -1,130 +1,139 @@
 /* Part of the glow drawing library; see glow_draw.h. */
 
-/// Projects the world-space point `arg0` through `gGfxViewCoord.workm` and, when
-/// the GTE flag is non-negative, queues a sixteen-wedge gouraud disc plus two
-/// inner cross wedges around the projected centre. `arg2` is a signed
-/// half-extent; on-screen radii are `(s16)arg2 * 64 / otz` (outer) and
-/// `(s16)arg2 * 8 / otz` (inner). `arg1` scales `gDisplayState.animFrame` into
-/// `rsin` so the lit vertex pulses as `rsin(...) / 34 + 0x78` on green and
-/// blue.
-void glowDrawPulsingDisc(SVECTOR* arg0, s32 arg1, s32 arg2)
+/// Initializes an allocated glow quad's lit centre vertices and black rim.
+///
+/// Colour stores use the low byte. Coordinates, linkage and blend mode are
+/// supplied by the caller; this operation neither allocates nor links a packet.
+static inline void _glowInitPulsingDiscWedge(POLY_G4* prim, s32 intensity)
+{
+    setPolyG4(prim);
+    setRGB0(prim, 0, 0, 0);
+    setRGB1(prim, 0, 0, 0);
+    setRGB2(prim, 0, intensity, intensity);
+    setRGB3(prim, 0, 0, 0);
+}
+
+/// Draws layered pulsing cyan discs and four glow blades around a world point.
+///
+/// The signed low halfword of `radiusScale` gives outer and inner pixel radii
+/// of `radiusScale * 64 / depth` and `radiusScale * 8 / depth`, where depth is
+/// camera Z / 4. Eight half-bright outer wedges receive full-bright copies at
+/// half radius. Four half-bright blades overlay them, with alternating tips
+/// at the outer radius and twice it, with shoulders at half the inner radius
+/// on shorter blades.
+/// The signed low halfword of `pulseRate` is in 4096 angle units per animation
+/// frame; green and blue pulse as `rsin(animFrame * pulseRate) / 34 + 120`.
+/// Rejects negative GTE flags and requires nonzero depth. Borrows `worldPoint`
+/// for the call and queues twenty additive quads plus blend commands.
+static void _glowDrawPulsingDisc(const SVECTOR* worldPoint, s32 pulseRate, s32 radiusScale)
 {
     GlowCentreRadiiScratch* block;
     POLY_G4*                prim;
-    s32                     pulse;
-    s32                     color;
-    s32                     half;
-    s32                     size;
-    s32                     ang;
-    s32                     t;
-    s32                     t2;
-    s32                     u;
+    s32                     pulseSine;
+    s32                     intensity;
+    s32                     halfIntensity;
+    s32                     signedRadiusScale;
+    s32                     angle;
+    s32                     halfStepAngle;
+    s32                     nextAngle;
+    s32                     armAngle;
 
     block = SCRATCH_STACK_RESERVE_BLOCK(GlowCentreRadiiScratch);
 
+    // Project into the current view before deriving screen radii and sorting depths.
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
-    gte_ldv0(arg0);
+    gte_ldv0(worldPoint);
     gte_rtps();
     gte_stsxy(&block->sx);
     gte_stflg(&block->flag);
     if (block->flag >= 0) {
         gte_stszotz(&block->otz);
-        pulse              = rsin(gDisplayState.animFrame * (s16)arg1);
-        ang                = 0;
-        size               = (s16)arg2;
-        block->outerRadius = (size * 64) / block->otz;
-        color              = pulse / 34 + 0x78;
-        block->innerRadius = (size * 8) / block->otz;
+        pulseSine          = rsin(gDisplayState.animFrame * (s16)pulseRate);
+        angle              = 0;
+        signedRadiusScale  = (s16)radiusScale;
+        block->outerRadius = (signedRadiusScale * GLOW_RADIUS_SCALE) / block->otz;
+        intensity          = pulseSine / GLOW_PULSE_DIVISOR + GLOW_PULSE_BASE_INTENSITY;
+        block->innerRadius = (signedRadiusScale * GLOW_INNER_RADIUS_SCALE) / block->otz;
+        // Layer eight outer wedges with full-bright copies at half radius.
         do {
             prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
-            half = (s16)color >> 1;
+            halfIntensity = (s16)intensity >> 1;
             setRGB0(prim, 0, 0, 0);
             setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, 0, half, half);
+            setRGB2(prim, 0, halfIntensity, halfIntensity);
             setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx + ((block->outerRadius * rsin(ang)) >> 12);
-            t        = ang + 0x100;
-            prim->y0 = block->sy + ((block->outerRadius * rcos(ang)) >> 12);
-            prim->x1 = block->sx + ((block->outerRadius * rsin(t)) >> 12);
-            prim->y1 = block->sy + ((block->outerRadius * rcos(t)) >> 12);
-            t2       = ang + 0x200;
-            prim->x2 = block->sx;
-            prim->y2 = block->sy;
-            prim->x3 = block->sx + ((block->outerRadius * rsin(t2)) >> 12);
-            prim->y3 = block->sy + ((block->outerRadius * rcos(t2)) >> 12);
+            prim->x0      = block->sx + ((block->outerRadius * rsin(angle)) >> GLOW_TRIG_SHIFT);
+            halfStepAngle = angle + GLOW_SIXTEENTH_TURN;
+            prim->y0      = block->sy + ((block->outerRadius * rcos(angle)) >> GLOW_TRIG_SHIFT);
+            prim->x1      = block->sx + ((block->outerRadius * rsin(halfStepAngle)) >> GLOW_TRIG_SHIFT);
+            prim->y1      = block->sy + ((block->outerRadius * rcos(halfStepAngle)) >> GLOW_TRIG_SHIFT);
+            nextAngle     = angle + GLOW_EIGHTH_TURN;
+            prim->x2      = block->sx;
+            prim->y2      = block->sy;
+            prim->x3      = block->sx + ((block->outerRadius * rsin(nextAngle)) >> GLOW_TRIG_SHIFT);
+            prim->y3      = block->sy + ((block->outerRadius * rcos(nextAngle)) >> GLOW_TRIG_SHIFT);
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
             gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
 
             prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, 0, color, color);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx + ((block->outerRadius * rsin(ang)) >> 13);
-            prim->y0 = block->sy + ((block->outerRadius * rcos(ang)) >> 13);
-            prim->x1 = block->sx + ((block->outerRadius * rsin(t)) >> 13);
-            prim->y1 = block->sy + ((block->outerRadius * rcos(t)) >> 13);
+            _glowInitPulsingDiscWedge(prim, intensity);
+            prim->x0 = block->sx + ((block->outerRadius * rsin(angle)) >> (GLOW_TRIG_SHIFT + 1));
+            prim->y0 = block->sy + ((block->outerRadius * rcos(angle)) >> (GLOW_TRIG_SHIFT + 1));
+            prim->x1 = block->sx + ((block->outerRadius * rsin(halfStepAngle)) >> (GLOW_TRIG_SHIFT + 1));
+            prim->y1 = block->sy + ((block->outerRadius * rcos(halfStepAngle)) >> (GLOW_TRIG_SHIFT + 1));
             prim->x2 = block->sx;
             prim->y2 = block->sy;
-            prim->x3 = block->sx + ((block->outerRadius * rsin(t2)) >> 13);
-            prim->y3 = block->sy + ((block->outerRadius * rcos(t2)) >> 13);
-            ang      = t2;
+            prim->x3 = block->sx + ((block->outerRadius * rsin(nextAngle)) >> (GLOW_TRIG_SHIFT + 1));
+            prim->y3 = block->sy + ((block->outerRadius * rcos(nextAngle)) >> (GLOW_TRIG_SHIFT + 1));
+            angle    = nextAngle;
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
             gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
-        } while (ang < 0x1000);
+        } while (angle < GLOW_FULL_TURN);
 
-        color = half;
-        ang   = 0x200;
+        // Overlay four blades with alternating normal and doubled tips.
+        intensity = halfIntensity;
+        angle     = GLOW_EIGHTH_TURN;
         do {
             prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, 0, color, color);
-            setRGB3(prim, 0, 0, 0);
-            u        = ang - 0x400;
-            prim->x0 = block->sx + ((block->innerRadius * rsin(u)) >> 13);
-            prim->y0 = block->sy + ((block->innerRadius * rcos(u)) >> 13);
-            prim->x1 = block->sx + ((block->outerRadius * rsin(ang)) >> 12);
-            prim->y1 = block->sy + ((block->outerRadius * rcos(ang)) >> 12);
-            u        = ang + 0x400;
+            _glowInitPulsingDiscWedge(prim, intensity);
+            armAngle = angle - GLOW_QUARTER_TURN;
+            prim->x0 = block->sx + ((block->innerRadius * rsin(armAngle)) >> (GLOW_TRIG_SHIFT + 1));
+            prim->y0 = block->sy + ((block->innerRadius * rcos(armAngle)) >> (GLOW_TRIG_SHIFT + 1));
+            prim->x1 = block->sx + ((block->outerRadius * rsin(angle)) >> GLOW_TRIG_SHIFT);
+            prim->y1 = block->sy + ((block->outerRadius * rcos(angle)) >> GLOW_TRIG_SHIFT);
+            armAngle = angle + GLOW_QUARTER_TURN;
             prim->x2 = block->sx;
             prim->y2 = block->sy;
-            prim->x3 = block->sx + ((block->innerRadius * rsin(u)) >> 13);
-            prim->y3 = block->sy + ((block->innerRadius * rcos(u)) >> 13);
+            prim->x3 = block->sx + ((block->innerRadius * rsin(armAngle)) >> (GLOW_TRIG_SHIFT + 1));
+            prim->y3 = block->sy + ((block->innerRadius * rcos(armAngle)) >> (GLOW_TRIG_SHIFT + 1));
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
             gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
 
             prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, 0, color, color);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx + ((block->innerRadius * rsin(ang)) >> 12);
-            prim->y0 = block->sy + ((block->innerRadius * rcos(ang)) >> 12);
-            prim->x1 = block->sx + ((block->outerRadius * rsin(u)) >> 11);
-            prim->y1 = block->sy + ((block->outerRadius * rcos(u)) >> 11);
-            u        = ang + 0x800;
+            _glowInitPulsingDiscWedge(prim, intensity);
+            prim->x0 = block->sx + ((block->innerRadius * rsin(angle)) >> GLOW_TRIG_SHIFT);
+            prim->y0 = block->sy + ((block->innerRadius * rcos(angle)) >> GLOW_TRIG_SHIFT);
+            prim->x1 = block->sx + ((block->outerRadius * rsin(armAngle)) >> (GLOW_TRIG_SHIFT - 1));
+            prim->y1 = block->sy + ((block->outerRadius * rcos(armAngle)) >> (GLOW_TRIG_SHIFT - 1));
+            armAngle = angle + GLOW_HALF_TURN;
             prim->x2 = block->sx;
             prim->y2 = block->sy;
-            prim->x3 = block->sx + ((block->innerRadius * rsin(u)) >> 12);
-            prim->y3 = block->sy + ((block->innerRadius * rcos(u)) >> 12);
-            ang      = u;
+            prim->x3 = block->sx + ((block->innerRadius * rsin(armAngle)) >> GLOW_TRIG_SHIFT);
+            prim->y3 = block->sy + ((block->innerRadius * rcos(armAngle)) >> GLOW_TRIG_SHIFT);
+            angle    = armAngle;
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
             gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
-        } while (ang < 0x1000);
+        } while (angle < GLOW_FULL_TURN);
     }
     SCRATCH_STACK_RELEASE_BLOCK(GlowCentreRadiiScratch);
 }

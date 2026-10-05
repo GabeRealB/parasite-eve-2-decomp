@@ -8,9 +8,9 @@
  *
  * Include this header in the prologue and each glow_draw_<shape>.inc.c at the
  * position of that helper. A package includes only the helpers it carries. The
- * helpers have external linkage, since some packages call them from another of
- * their files. glowDrawPrism reads its corners from the package's
- * gGlowPrismCorners.
+ * TU-local drawers have static declarations in their carriers. Drawers called
+ * from other files in a package retain external linkage. glowDrawPrism reads
+ * its corners from the package's gGlowPrismCorners.
  */
 
 #ifndef SRC_SHARED_GLOW_DRAW_H
@@ -23,6 +23,31 @@
 #include "gameplay/effects.h"
 
 #include "main/coord.h"
+
+/// Projection, Q12 trigonometry, pulse and texture units of the included glow drawers.
+enum {
+    GLOW_MIN_DEPTH                 = 17, // Minimum accepted camera Z / 4 in depth-clipped drawers
+    GLOW_NEAR_DEPTH_CLAMP          = 16, // First end's minimum camera Z / 4 in fixed-angle beams
+    GLOW_TRIG_SHIFT                = 12, // rsin/rcos return Q12 values
+    GLOW_FULL_TURN                 = 0x1000,
+    GLOW_HALF_TURN                 = 0x800,
+    GLOW_QUARTER_TURN              = 0x400,
+    GLOW_EIGHTH_TURN               = 0x200,
+    GLOW_SIXTEENTH_TURN            = 0x100,
+    GLOW_RADIUS_SCALE              = 64, // Radius numerator divided by camera Z / 4
+    GLOW_INNER_RADIUS_SCALE        = 8,
+    GLOW_DIAMOND_RADIUS_SCALE      = 32,
+    GLOW_PULSE_DIVISOR             = 34,
+    GLOW_PULSE_BASE_INTENSITY      = 120,
+    GLOW_FLICKER_BASE_INTENSITY    = 32,
+    GLOW_FLICKER_INTENSITY_STEP    = 8,
+    GLOW_BRIGHT_FLICKER_SHIFT      = 4, // Odd frames add 16 in shafts and textured flares
+    GLOW_FLARE_TEXTURE_PAGE        = 0x2B,
+    GLOW_FLARE_PALETTE_BASE        = 0x4380,
+    GLOW_FLARE_PALETTE_OFFSET_MASK = 0x3F,
+    GLOW_FLARE_CELL_STRIDE         = 40, // Texels between columns
+    GLOW_FLARE_CELL_LAST_TEXEL     = 39, // Inclusive U/V extent and perspective half-extent multiplier
+};
 
 /// Scratch-block type `glowDrawDisc` reserves.
 ///
@@ -60,14 +85,28 @@
 /// require a nonzero resulting depth. Borrows the point for this call and
 /// queues four packets plus their additive blend commands in the current frame.
 void glowDrawDisc(const SVECTOR* worldPoint, s32 radiusScale, s32 packedColor);
-void glowDrawRedDisc(SVECTOR* arg0, s16 arg1);
-void glowDrawPulsingDisc(SVECTOR* arg0, s32 arg1, s32 arg2);
-void glowDrawTintedDisc(SVECTOR* arg0, s32 arg1, s32 arg2);
-void glowDrawDiamond(SVECTOR* arg0, s32 arg1, s32 arg2);
-void glowDrawCapsule(SVECTOR* arg0, s32 arg1, s32 arg2);
-void glowDrawShaft(SVECTOR* arg0, s32 arg1);
-void glowDrawCone(SVECTOR* arg0, s32 arg1, s32 arg2);
-void glowDrawBeam(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3);
+
+/// Draws a flickering red disc around a depth-clipped world point.
+///
+/// `radiusScale` is a signed scale giving a pixel radius of
+/// `radiusScale * 64 / depth`, where depth is camera Z / 4. Points below depth
+/// 17 emit no packets; GTE flags do not gate this drawer. Four Gouraud wedges
+/// fade from a centre intensity of 32 or 40 on alternating frames to a black
+/// rim. Borrows `worldPoint` for the call and queues four additive quads plus
+/// blend commands in the current frame.
+void glowDrawRedDisc(const SVECTOR* worldPoint, s16 radiusScale);
+
+/// Draws a dim grey capsule between two world points at a fixed screen angle.
+///
+/// `worldPoints` contains two consecutive points, borrowed during the call.
+/// The signed low halfword of `radiusScale` gives each pixel radius as
+/// `radiusScale * 64 / depth`, where depth is camera Z / 4. The second point
+/// must have depth at least 17; the first depth is clamped to 16.
+/// `startAngle` uses its signed low halfword, in 4096 units per turn, zero down.
+/// Centre intensity alternates between 32 and 40; rims are black. Queues six
+/// additive Gouraud quads plus blend commands, sorting the joining sides at
+/// the first point's depth. GTE flags do not gate this drawer.
+void glowDrawDimGreyCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 startAngle);
 
 /// Draws layered tinted discs and four glow blades at an unbiased world-point depth.
 ///
@@ -106,9 +145,16 @@ void glowDrawRayStar(GfxCoord* coord, SVECTOR* point, s32 rate, s32 arg3);
 /* glowDrawRingBeam's tables, the package's data at its own positions */
 extern s8 gGlowRingBeamQuads[16][4];
 extern u8 gGlowRingBeamColors[24][4];
-void      glowDrawFlare(SVECTOR* arg0, s32 arg1, s32 arg2);
-void      glowDrawFlareClipped(SVECTOR* arg0, s32 arg1, s32 arg2);
-void      glowDrawFlareLocal(GfxCoord* arg0, SVECTOR* arg1, s32 arg2, s32 arg3);
+/// Draws a flickering textured flare around a depth-clipped world point.
+///
+/// `textureIndex` uses its signed low halfword to select a 40-texel column and
+/// the low six palette-offset bits on texture page 0x2B; callers use 0..2.
+/// The signed low halfword of `radiusScale` gives a pixel half-extent of
+/// `radiusScale * 39 / depth`, where depth is camera Z / 4. Borrows `worldPoint`
+/// for the call. Reserves one packet even when depth is below 17; accepted
+/// points queue one semitransparent quad in the current frame, with RGB
+/// intensity 32 or 48 on alternating frames. GTE flags do not gate this drawer.
+void glowDrawFlareClipped(const SVECTOR* worldPoint, s32 textureIndex, s32 radiusScale);
 
 /// Draws an additive flame cone between a lit raised ring and a wider dark rim.
 ///
@@ -153,8 +199,6 @@ void glowDrawFlameRing(const GfxCoord* coord, s16 innerRadius, s32 width, s16 in
 void glowDrawGreyPrism(GfxCoord* coord, s16 arg1);
 
 void glowDrawStarLocal(GfxCoord* arg0, SVECTOR* arg1, s32 arg2, s32 arg3);
-
-void glowDrawAngledCapsule(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3);
 
 /// Draws a pulsing red diamond with two diagonals around a world point.
 ///

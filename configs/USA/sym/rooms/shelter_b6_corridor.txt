@@ -73,5 +73,5 @@ func_shelter_b6_corridor_8017EE08 = 0x8017EE08; // type:func
 func_shelter_b6_corridor_8017E238 = 0x8017E238; // type:func
 
 func_shelter_b6_corridor_8017ECA8 = 0x8017ECA8; // type:func
-glowDrawCapsule = 0x8017E360; // type:func
+_glowDrawCapsule = 0x8017E360; // type:func
 screenWaveGridTask = 0x8017D5D0; // type:func

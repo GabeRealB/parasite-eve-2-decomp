@@ -481,6 +481,8 @@ WorldCollisionSurfaceProperties* D_mine_tunnel_entrance_8017F3E8[8] = {
     D_mine_tunnel_entrance_8017F3D0,
 };
 
+static void _glowDrawFlare(const SVECTOR* worldPoint, s32 textureIndex, s32 radiusScale);
+
 s32 func_mine_tunnel_entrance_8017D5E8(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
@@ -538,7 +540,7 @@ void func_mine_tunnel_entrance_8017D6BC(Task* task)
 }
 
 /// Sets `gRoomEffectState->roomEffectMode` to 2, then draws the quads the current
-/// camera view shows, one `glowDrawFlare` call per
+/// camera view shows, one `_glowDrawFlare` call per
 /// position with UV column 0 or 1 and half-extent 0x300 (0x200 for view 6's
 /// second quad). Other views draw nothing.
 void func_mine_tunnel_entrance_8017D720(Task* unused)
@@ -547,34 +549,34 @@ void func_mine_tunnel_entrance_8017D720(Task* unused)
     switch (viewGetMappedIndex() & 0xFF) {
         case 2: {
             SVECTOR* p = D_mine_tunnel_entrance_8017DB18;
-            glowDrawFlare(&p[0], 0, 0x300);
-            glowDrawFlare(&p[1], 0, 0x300);
-            glowDrawFlare(&p[2], 1, 0x300);
-            glowDrawFlare(&p[5], 1, 0x300);
+            _glowDrawFlare(&p[0], 0, 0x300);
+            _glowDrawFlare(&p[1], 0, 0x300);
+            _glowDrawFlare(&p[2], 1, 0x300);
+            _glowDrawFlare(&p[5], 1, 0x300);
             break;
         }
         case 3: {
             SVECTOR* p = D_mine_tunnel_entrance_8017DB30;
-            glowDrawFlare(&p[0], 1, 0x300);
-            glowDrawFlare(&p[1], 1, 0x300);
-            glowDrawFlare(&p[2], 1, 0x300);
+            _glowDrawFlare(&p[0], 1, 0x300);
+            _glowDrawFlare(&p[1], 1, 0x300);
+            _glowDrawFlare(&p[2], 1, 0x300);
             break;
         }
         case 4: {
             SVECTOR* p = D_mine_tunnel_entrance_8017DB30;
-            glowDrawFlare(&p[0], 1, 0x300);
-            glowDrawFlare(&p[1], 1, 0x300);
+            _glowDrawFlare(&p[0], 1, 0x300);
+            _glowDrawFlare(&p[1], 1, 0x300);
             break;
         }
         case 5: {
             SVECTOR* p = D_mine_tunnel_entrance_8017DB38;
-            glowDrawFlare(&p[0], 1, 0x300);
+            _glowDrawFlare(&p[0], 1, 0x300);
             break;
         }
         case 6: {
             SVECTOR* p = D_mine_tunnel_entrance_8017DB48;
-            glowDrawFlare(&p[0], 1, 0x300);
-            glowDrawFlare(&p[1], 1, 0x200);
+            _glowDrawFlare(&p[0], 1, 0x300);
+            _glowDrawFlare(&p[1], 1, 0x200);
             break;
         }
     }

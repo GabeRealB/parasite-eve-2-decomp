@@ -54,6 +54,7 @@
 
 #include "overlay.h"
 #include "../../shared/glow_draw.h"
+
 /// This room's grid object continues four unread bytes past the quad array,
 /// so `screenWaveGridTask` indexes `quads` rather than the whole object.
 #define SCREEN_WAVE_GRID gScreenWaveGrid.quads
@@ -530,6 +531,8 @@ static void func_shelter_b6_corridor_8017E12C(Task* task);
 
 #include "../../shared/screen_wave_grid.inc.c"
 
+static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 packedColor);
+
 s32 func_shelter_b6_corridor_8017DEA8(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
@@ -677,21 +680,21 @@ void func_shelter_b6_corridor_8017E238(Task* task)
     view = viewGetMappedIndex();
     switch (view) {
         case 2:
-            glowDrawCapsule(&D_shelter_b6_corridor_8017F834[0], 0x140, 0x442);
-            glowDrawCapsule(&D_shelter_b6_corridor_8017F834[2], 0x140, 0x442);
-            glowDrawCapsule(&D_shelter_b6_corridor_8017F834[8], 0x140, 0x442);
-            glowDrawCapsule(&D_shelter_b6_corridor_8017F834[10], 0x140, 0x442);
+            _glowDrawCapsule(&D_shelter_b6_corridor_8017F834[0], 0x140, 0x442);
+            _glowDrawCapsule(&D_shelter_b6_corridor_8017F834[2], 0x140, 0x442);
+            _glowDrawCapsule(&D_shelter_b6_corridor_8017F834[8], 0x140, 0x442);
+            _glowDrawCapsule(&D_shelter_b6_corridor_8017F834[10], 0x140, 0x442);
             break;
         case 3:
-            glowDrawCapsule(&D_shelter_b6_corridor_8017F844[0], 0x140, 0x442);
-            glowDrawCapsule(&D_shelter_b6_corridor_8017F844[2], 0x140, 0x442);
-            glowDrawCapsule(&D_shelter_b6_corridor_8017F844[4], 0x140, 0x442);
-            glowDrawCapsule(&D_shelter_b6_corridor_8017F844[8], 0x140, 0x442);
-            glowDrawCapsule(&D_shelter_b6_corridor_8017F844[10], 0x140, 0x442);
-            glowDrawCapsule(&D_shelter_b6_corridor_8017F844[12], 0x140, 0x442);
+            _glowDrawCapsule(&D_shelter_b6_corridor_8017F844[0], 0x140, 0x442);
+            _glowDrawCapsule(&D_shelter_b6_corridor_8017F844[2], 0x140, 0x442);
+            _glowDrawCapsule(&D_shelter_b6_corridor_8017F844[4], 0x140, 0x442);
+            _glowDrawCapsule(&D_shelter_b6_corridor_8017F844[8], 0x140, 0x442);
+            _glowDrawCapsule(&D_shelter_b6_corridor_8017F844[10], 0x140, 0x442);
+            _glowDrawCapsule(&D_shelter_b6_corridor_8017F844[12], 0x140, 0x442);
             break;
         case 4:
-            glowDrawCapsule(&D_shelter_b6_corridor_8017F874[0], 0x140, 0x442);
+            _glowDrawCapsule(&D_shelter_b6_corridor_8017F874[0], 0x140, 0x442);
             break;
     }
 }

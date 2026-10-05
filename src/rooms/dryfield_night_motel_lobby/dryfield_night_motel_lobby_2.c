@@ -644,6 +644,9 @@ Task* D_dryfield_night_motel_lobby_801844CC = NULL;
 
 RoomCutsceneRec D_dryfield_night_motel_lobby_801844E0;
 
+static void _glowDrawDiamond(const SVECTOR* worldPoint, s32 pulseRate, s32 radiusScale);
+static void _glowDrawPulsingDisc(const SVECTOR* worldPoint, s32 pulseRate, s32 radiusScale);
+
 void func_dryfield_night_motel_lobby_801802A8(Task* task)
 {
     DryfieldNightMotelLobbyCashRegisterWork* work = task->work;
@@ -985,7 +988,7 @@ void func_dryfield_night_motel_lobby_801812F8(Task* unused)
 {
     switch (gGameSession->location.loc.view) {
         case 2:
-            glowDrawDiamond(&D_dryfield_night_motel_lobby_801828E0[0], 0x60, 0x60);
+            _glowDrawDiamond(&D_dryfield_night_motel_lobby_801828E0[0], 0x60, 0x60);
             func_dryfield_night_motel_lobby_80182200(&D_dryfield_night_motel_lobby_801828E0[1], 2, 0x300);
             func_dryfield_night_motel_lobby_80182200(&D_dryfield_night_motel_lobby_801828E0[2], 1, 0x300);
             func_dryfield_night_motel_lobby_80182200(&D_dryfield_night_motel_lobby_801828E0[3], 1, 0x300);
@@ -995,11 +998,11 @@ void func_dryfield_night_motel_lobby_801812F8(Task* unused)
             func_dryfield_night_motel_lobby_80182200(&D_dryfield_night_motel_lobby_801828E8[3], 1, 0x300);
             break;
         case 4:
-            glowDrawDiamond(&D_dryfield_night_motel_lobby_801828E0[0], 0x60, 0x60);
+            _glowDrawDiamond(&D_dryfield_night_motel_lobby_801828E0[0], 0x60, 0x60);
             func_dryfield_night_motel_lobby_80182200(&D_dryfield_night_motel_lobby_801828E0[1], 2, 0x300);
             break;
         case 5:
-            glowDrawPulsingDisc(&D_dryfield_night_motel_lobby_801828E0[0], 0x60, 0x30);
+            _glowDrawPulsingDisc(&D_dryfield_night_motel_lobby_801828E0[0], 0x60, 0x30);
             break;
     }
 }

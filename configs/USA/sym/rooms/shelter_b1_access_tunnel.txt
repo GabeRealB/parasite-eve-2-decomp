@@ -55,7 +55,7 @@ gRoomEventReq = 0x8017FF70; // size:0x20 defined:True
 gRoomEventLatched = 0x8017FF90; // size:0xC defined:True
 
 func_shelter_b1_access_tunnel_8017DD60 = 0x8017DD60; // type:func
-glowDrawCapsule = 0x8017DEC0; // type:func
+_glowDrawCapsule = 0x8017DEC0; // type:func
 roomEventGate = 0x8017D5FC; // type:func
 roomEventTask = 0x8017D760; // type:func
 roomEventStagedTask = 0x8017D8D0; // type:func

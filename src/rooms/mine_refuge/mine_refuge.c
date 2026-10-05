@@ -530,6 +530,8 @@ static void func_mine_refuge_80181094(SVECTOR* arg0, s32 arg1, s32 arg2);
 
 #include "../../shared/telephone.inc.c"
 
+static void _glowDrawFlare(const SVECTOR* worldPoint, s32 textureIndex, s32 radiusScale);
+
 void func_mine_refuge_8017EA78(Task* task)
 {
     Telephone_MenuTask(task);
@@ -1073,7 +1075,7 @@ void func_mine_refuge_80181454(Task* unused)
     view = viewGetMappedIndex();
     switch (view) {
         case 2:
-            glowDrawFlare(&D_mine_refuge_801818D8[0], 1, 0x300);
+            _glowDrawFlare(&D_mine_refuge_801818D8[0], 1, 0x300);
             func_mine_refuge_8018029C(&D_mine_refuge_801818D8[1], 0x60, 0x40);
             break;
         case 3:

@@ -389,6 +389,8 @@ WorldCollisionSurfaceProperties* D_shelter_1f_airlock_8017F84C[8] = {
 static void func_shelter_1f_airlock_8017D62C(Task* task);
 static void func_shelter_1f_airlock_8017D670(Task* task);
 
+static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 packedColor);
+
 s32 func_shelter_1f_airlock_8017D5D0(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     return 0;
@@ -452,28 +454,28 @@ void func_shelter_1f_airlock_8017D6D0(Task* unused)
         case 3:
             glowDrawFactorDisc(&D_shelter_1f_airlock_8017E4C4[0], 0x200, 0x111);
             glowDrawFactorDisc(&D_shelter_1f_airlock_8017E4C4[1], 0x200, 0x111);
-            glowDrawCapsule(&D_shelter_1f_airlock_8017E4C4[3], 0x180, 0x1011);
-            glowDrawCapsule(&D_shelter_1f_airlock_8017E4C4[5], 0x180, 0x1011);
-            glowDrawCapsule(&D_shelter_1f_airlock_8017E4C4[7], 0x180, 0x1011);
-            glowDrawCapsule(&D_shelter_1f_airlock_8017E4C4[9], 0x180, 0x1011);
-            glowDrawCapsule(&D_shelter_1f_airlock_8017E4C4[11], 0x180, 0x1011);
-            glowDrawCapsule(&D_shelter_1f_airlock_8017E4C4[17], 0x180, 0x1011);
+            _glowDrawCapsule(&D_shelter_1f_airlock_8017E4C4[3], 0x180, 0x1011);
+            _glowDrawCapsule(&D_shelter_1f_airlock_8017E4C4[5], 0x180, 0x1011);
+            _glowDrawCapsule(&D_shelter_1f_airlock_8017E4C4[7], 0x180, 0x1011);
+            _glowDrawCapsule(&D_shelter_1f_airlock_8017E4C4[9], 0x180, 0x1011);
+            _glowDrawCapsule(&D_shelter_1f_airlock_8017E4C4[11], 0x180, 0x1011);
+            _glowDrawCapsule(&D_shelter_1f_airlock_8017E4C4[17], 0x180, 0x1011);
             break;
         case 4:
             glowDrawFactorDisc(&D_shelter_1f_airlock_8017E4BC[0], 0x200, 0x111);
             glowDrawFactorDisc(&D_shelter_1f_airlock_8017E4BC[1], 0x200, 0x111);
-            glowDrawCapsule(&D_shelter_1f_airlock_8017E4BC[4], 0x180, 0x1011);
-            glowDrawCapsule(&D_shelter_1f_airlock_8017E4BC[6], 0x180, 0x1011);
-            glowDrawCapsule(&D_shelter_1f_airlock_8017E4BC[8], 0x180, 0x1011);
-            glowDrawCapsule(&D_shelter_1f_airlock_8017E4BC[10], 0x180, 0x1011);
-            glowDrawCapsule(&D_shelter_1f_airlock_8017E4BC[12], 0x180, 0x1011);
-            glowDrawCapsule(&D_shelter_1f_airlock_8017E4BC[14], 0x180, 0x1011);
-            glowDrawCapsule(&D_shelter_1f_airlock_8017E4BC[16], 0x180, 0x1011);
-            glowDrawCapsule(&D_shelter_1f_airlock_8017E4BC[18], 0x180, 0x1011);
-            glowDrawCapsule(&D_shelter_1f_airlock_8017E4BC[20], 0x180, 0x1011);
-            glowDrawCapsule(&D_shelter_1f_airlock_8017E4BC[22], 0x180, 0x1011);
-            glowDrawCapsule(&D_shelter_1f_airlock_8017E4BC[24], 0x180, 0x1011);
-            glowDrawCapsule(&D_shelter_1f_airlock_8017E4BC[26], 0x180, 0x1011);
+            _glowDrawCapsule(&D_shelter_1f_airlock_8017E4BC[4], 0x180, 0x1011);
+            _glowDrawCapsule(&D_shelter_1f_airlock_8017E4BC[6], 0x180, 0x1011);
+            _glowDrawCapsule(&D_shelter_1f_airlock_8017E4BC[8], 0x180, 0x1011);
+            _glowDrawCapsule(&D_shelter_1f_airlock_8017E4BC[10], 0x180, 0x1011);
+            _glowDrawCapsule(&D_shelter_1f_airlock_8017E4BC[12], 0x180, 0x1011);
+            _glowDrawCapsule(&D_shelter_1f_airlock_8017E4BC[14], 0x180, 0x1011);
+            _glowDrawCapsule(&D_shelter_1f_airlock_8017E4BC[16], 0x180, 0x1011);
+            _glowDrawCapsule(&D_shelter_1f_airlock_8017E4BC[18], 0x180, 0x1011);
+            _glowDrawCapsule(&D_shelter_1f_airlock_8017E4BC[20], 0x180, 0x1011);
+            _glowDrawCapsule(&D_shelter_1f_airlock_8017E4BC[22], 0x180, 0x1011);
+            _glowDrawCapsule(&D_shelter_1f_airlock_8017E4BC[24], 0x180, 0x1011);
+            _glowDrawCapsule(&D_shelter_1f_airlock_8017E4BC[26], 0x180, 0x1011);
             break;
         case 5:
             glowDrawFactorDisc(&D_shelter_1f_airlock_8017E4D4[0], 0x200, 0x200);

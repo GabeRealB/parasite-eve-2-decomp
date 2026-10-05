@@ -979,6 +979,8 @@ static __inline__ s32 _shelterB1PodAccessTunnelStartEvent(RoomEventMsg* dst, Roo
 
 #include "../../shared/room_event_staged_task.inc.c"
 
+static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 packedColor);
+
 static __inline__ s32 _shelterB1PodAccessTunnelStartEvent(RoomEventMsg* dst, RoomLatchedEvent* event)
 {
     D_shelter_b1_pod_access_tunnel_80184D0C_value = 0;
@@ -1480,21 +1482,21 @@ void func_shelter_b1_pod_access_tunnel_8017E7D4(Task* arg0)
     switch (view) {
         case 2: {
             SVECTOR* p = D_shelter_b1_pod_access_tunnel_801839E4;
-            glowDrawCapsule(&p[0], 0x180, 0x111);
-            glowDrawCapsule(&p[2], 0x180, 0x111);
+            _glowDrawCapsule(&p[0], 0x180, 0x111);
+            _glowDrawCapsule(&p[2], 0x180, 0x111);
         } break;
         case 3:
         case 7: {
             SVECTOR* p = D_shelter_b1_pod_access_tunnel_801839A4;
-            glowDrawCapsule(&p[0], 0x180, 0x111);
-            glowDrawCapsule(&p[2], 0x180, 0x111);
-            glowDrawCapsule(&p[4], 0x180, 0x111);
-            glowDrawCapsule(&p[6], 0x180, 0x111);
+            _glowDrawCapsule(&p[0], 0x180, 0x111);
+            _glowDrawCapsule(&p[2], 0x180, 0x111);
+            _glowDrawCapsule(&p[4], 0x180, 0x111);
+            _glowDrawCapsule(&p[6], 0x180, 0x111);
         } break;
         case 4: {
             SVECTOR* p = D_shelter_b1_pod_access_tunnel_801839A4;
-            glowDrawCapsule(&p[0], 0x180, 0x111);
-            glowDrawCapsule(&p[2], 0x180, 0x111);
+            _glowDrawCapsule(&p[0], 0x180, 0x111);
+            _glowDrawCapsule(&p[2], 0x180, 0x111);
         } break;
     }
 }

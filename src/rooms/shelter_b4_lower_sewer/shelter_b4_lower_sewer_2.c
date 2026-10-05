@@ -46,6 +46,7 @@
 #include "rooms/room_common.h"
 #include "../../shared/room_visual_effects.h"
 #include "../../shared/glow_draw.h"
+
 /// Empty presence flag so `water_effects.h` declares the shared
 /// `waterDrawSpinU16` and `waterDrawTileU16`. This file includes their bodies.
 #define WATER_SHARED_U16_DRAWERS
@@ -503,10 +504,12 @@ WorldCollisionSurfaceProperties* D_shelter_b4_lower_sewer_80183DF4[8] = {
 
 u8* D_shelter_b4_lower_sewer_80183E14 = NULL;
 
+static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 packedColor);
+
 /// Per-frame task drawing the room's glowing capsules. On its first tick it
 /// stores the values 0x600ED, 0x600EE and 0x600EF in three gameplay globals,
 /// and 0x6016E and 0x6016F in two more when GameFlag nibble 0xB7 is 1. Each
-/// tick it then draws, through `glowDrawCapsule`, the
+/// tick it then draws, through `_glowDrawCapsule`, the
 /// capsules visible from the current camera view, picked from the point-pair
 /// lists `D_shelter_b4_lower_sewer_80181EA4`, `D_shelter_b4_lower_sewer_80181F04`
 /// and `D_shelter_b4_lower_sewer_80181F14`.
@@ -527,66 +530,66 @@ void func_shelter_b4_lower_sewer_8017E400(Task* arg0)
         case 2:
         case 6: {
             SVECTOR* p = D_shelter_b4_lower_sewer_80181F14;
-            glowDrawCapsule(&p[0], 0x200, 0x222);
-            glowDrawCapsule(&p[2], 0x200, 0x222);
+            _glowDrawCapsule(&p[0], 0x200, 0x222);
+            _glowDrawCapsule(&p[2], 0x200, 0x222);
             break;
         }
         case 3: {
             SVECTOR* p = D_shelter_b4_lower_sewer_80181F04;
-            glowDrawCapsule(&p[0], 0x200, 0x222);
-            glowDrawCapsule(&p[2], 0x200, 0x222);
-            glowDrawCapsule(&p[4], 0x200, 0x222);
-            glowDrawCapsule(&p[6], 0x200, 0x222);
+            _glowDrawCapsule(&p[0], 0x200, 0x222);
+            _glowDrawCapsule(&p[2], 0x200, 0x222);
+            _glowDrawCapsule(&p[4], 0x200, 0x222);
+            _glowDrawCapsule(&p[6], 0x200, 0x222);
             break;
         }
         case 4: {
             SVECTOR* p = D_shelter_b4_lower_sewer_80181EA4;
-            glowDrawCapsule(&p[0], 0x200, 0x222);
-            glowDrawCapsule(&p[2], 0x200, 0x222);
-            glowDrawCapsule(&p[4], 0x200, 0x222);
-            glowDrawCapsule(&p[6], 0x200, 0x222);
-            glowDrawCapsule(&p[24], 0x200, 0x222);
-            glowDrawCapsule(&p[26], 0x200, 0x222);
-            glowDrawCapsule(&p[28], 0x200, 0x222);
+            _glowDrawCapsule(&p[0], 0x200, 0x222);
+            _glowDrawCapsule(&p[2], 0x200, 0x222);
+            _glowDrawCapsule(&p[4], 0x200, 0x222);
+            _glowDrawCapsule(&p[6], 0x200, 0x222);
+            _glowDrawCapsule(&p[24], 0x200, 0x222);
+            _glowDrawCapsule(&p[26], 0x200, 0x222);
+            _glowDrawCapsule(&p[28], 0x200, 0x222);
             break;
         }
         case 5: {
             SVECTOR* p = D_shelter_b4_lower_sewer_80181EA4;
-            glowDrawCapsule(&p[0], 0x200, 0x222);
-            glowDrawCapsule(&p[2], 0x200, 0x222);
-            glowDrawCapsule(&p[28], 0x200, 0x222);
+            _glowDrawCapsule(&p[0], 0x200, 0x222);
+            _glowDrawCapsule(&p[2], 0x200, 0x222);
+            _glowDrawCapsule(&p[28], 0x200, 0x222);
             break;
         }
         case 7: {
             SVECTOR* p = D_shelter_b4_lower_sewer_80181F04;
-            glowDrawCapsule(&p[0], 0x200, 0x222);
-            glowDrawCapsule(&p[2], 0x200, 0x222);
-            glowDrawCapsule(&p[4], 0x200, 0x222);
-            glowDrawCapsule(&p[6], 0x200, 0x222);
-            glowDrawCapsule(&p[8], 0x200, 0x222);
+            _glowDrawCapsule(&p[0], 0x200, 0x222);
+            _glowDrawCapsule(&p[2], 0x200, 0x222);
+            _glowDrawCapsule(&p[4], 0x200, 0x222);
+            _glowDrawCapsule(&p[6], 0x200, 0x222);
+            _glowDrawCapsule(&p[8], 0x200, 0x222);
             break;
         }
         case 8: {
             SVECTOR* p = D_shelter_b4_lower_sewer_80181EA4;
-            glowDrawCapsule(&p[0], 0x200, 0x222);
-            glowDrawCapsule(&p[2], 0x200, 0x222);
-            glowDrawCapsule(&p[4], 0x200, 0x222);
-            glowDrawCapsule(&p[6], 0x200, 0x222);
-            glowDrawCapsule(&p[8], 0x200, 0x222);
-            glowDrawCapsule(&p[22], 0x200, 0x222);
-            glowDrawCapsule(&p[24], 0x200, 0x222);
-            glowDrawCapsule(&p[26], 0x200, 0x222);
-            glowDrawCapsule(&p[28], 0x200, 0x222);
+            _glowDrawCapsule(&p[0], 0x200, 0x222);
+            _glowDrawCapsule(&p[2], 0x200, 0x222);
+            _glowDrawCapsule(&p[4], 0x200, 0x222);
+            _glowDrawCapsule(&p[6], 0x200, 0x222);
+            _glowDrawCapsule(&p[8], 0x200, 0x222);
+            _glowDrawCapsule(&p[22], 0x200, 0x222);
+            _glowDrawCapsule(&p[24], 0x200, 0x222);
+            _glowDrawCapsule(&p[26], 0x200, 0x222);
+            _glowDrawCapsule(&p[28], 0x200, 0x222);
             break;
         }
         case 9: {
             SVECTOR* p = D_shelter_b4_lower_sewer_80181EA4;
-            glowDrawCapsule(&p[0], 0x200, 0x222);
-            glowDrawCapsule(&p[2], 0x200, 0x222);
-            glowDrawCapsule(&p[4], 0x200, 0x222);
-            glowDrawCapsule(&p[24], 0x200, 0x222);
-            glowDrawCapsule(&p[26], 0x200, 0x222);
-            glowDrawCapsule(&p[28], 0x200, 0x222);
+            _glowDrawCapsule(&p[0], 0x200, 0x222);
+            _glowDrawCapsule(&p[2], 0x200, 0x222);
+            _glowDrawCapsule(&p[4], 0x200, 0x222);
+            _glowDrawCapsule(&p[24], 0x200, 0x222);
+            _glowDrawCapsule(&p[26], 0x200, 0x222);
+            _glowDrawCapsule(&p[28], 0x200, 0x222);
             break;
         }
     }

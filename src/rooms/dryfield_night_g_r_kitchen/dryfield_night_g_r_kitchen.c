@@ -43,6 +43,7 @@
 
 #include "rooms/room_common.h"
 #include "../../shared/glow_draw.h"
+
 // The flag symbol is four bytes; the gate writes the first.
 #define ROOM_EVENT_ACTIVE gRoomEventActive.eventStarted
 #include "../../shared/room_events.h"
@@ -286,6 +287,8 @@ static void func_dryfield_night_g_r_kitchen_8017D99C(Task* task);
 
 #include "../../shared/room_event_task.inc.c"
 
+static void _glowDrawShaft(const SVECTOR worldPoints[2], s32 radiusScale);
+
 /// The room's handler for message 0x13F1: answers 0.
 s32 func_dryfield_night_g_r_kitchen_8017D8BC(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
@@ -338,7 +341,7 @@ void func_dryfield_night_g_r_kitchen_8017D9A4(Task* task)
 
 #include "../../shared/glow_draw_shaft.inc.c"
 
-/// Picks the pair of light shafts `glowDrawShaft`
+/// Picks the pair of light shafts `_glowDrawShaft`
 /// draws from the current view index (`gGameSession->location.loc.view`, 2 or 3);
 /// any other view draws nothing.
 void func_dryfield_night_g_r_kitchen_8017E1E4(Task* unused)
@@ -347,10 +350,10 @@ void func_dryfield_night_g_r_kitchen_8017E1E4(Task* unused)
 
     view = gGameSession->location.loc.view;
     if (view == 2) {
-        glowDrawShaft(&D_dryfield_night_g_r_kitchen_8017E27C[0], 0x100);
-        glowDrawShaft(&D_dryfield_night_g_r_kitchen_8017E27C[2], 0x100);
+        _glowDrawShaft(&D_dryfield_night_g_r_kitchen_8017E27C[0], 0x100);
+        _glowDrawShaft(&D_dryfield_night_g_r_kitchen_8017E27C[2], 0x100);
     } else if (view == 3) {
-        glowDrawShaft(&D_dryfield_night_g_r_kitchen_8017E29C[0], 0x100);
-        glowDrawShaft(&D_dryfield_night_g_r_kitchen_8017E29C[2], 0x100);
+        _glowDrawShaft(&D_dryfield_night_g_r_kitchen_8017E29C[0], 0x100);
+        _glowDrawShaft(&D_dryfield_night_g_r_kitchen_8017E29C[2], 0x100);
     }
 }

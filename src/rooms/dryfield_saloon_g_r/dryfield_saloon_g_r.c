@@ -726,6 +726,8 @@ static const TaskFuncTable3 D_dryfield_saloon_g_r_8017D5DC = {
 
 #include "../../shared/room_variants_saloon.inc.c"
 
+static void _glowDrawFlareLocal(const GfxCoord* coord, const SVECTOR* localPoint, s32 textureIndex, s32 radiusScale);
+
 /// Handler for message 0x13F1 in the room's message table: the room takes no
 /// action and reports the message as not handled.
 s32 func_dryfield_saloon_g_r_8017D994(Task* task, s32 msgId, s32 arg2, s32 arg3)
@@ -789,12 +791,12 @@ void func_dryfield_saloon_g_r_8017DA70(Task* arg0)
     mask  = 1 << gGameSession->location.loc.view;
     for (i = 0; i < 6; i++) {
         if (mask & D_dryfield_saloon_g_r_8017ED84[i]) {
-            glowDrawFlareLocal(coord, &gSaloonLightPoints[i], 0, 0x200);
+            _glowDrawFlareLocal(coord, &gSaloonLightPoints[i], 0, 0x200);
         }
     }
     for (i = 6; i < 11; i++) {
         if (mask & D_dryfield_saloon_g_r_8017ED84[i]) {
-            glowDrawFlareLocal(coord, &gSaloonLightPoints[i], 2, 0x200);
+            _glowDrawFlareLocal(coord, &gSaloonLightPoints[i], 2, 0x200);
         }
     }
     if (mask & D_dryfield_saloon_g_r_8017ED84[12]) {

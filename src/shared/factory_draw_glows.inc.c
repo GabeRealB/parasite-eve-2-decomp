@@ -14,13 +14,13 @@ void factoryDrawGlows(Task* task)
     actorRenderComposeCoord(task->extra.coordBody->coord); /* the night build also refreshes the task's matrix */
 #endif
     if (gameFlagGetNibble(GAME_FLAG_FACTORY_POWER_ON) != 0 && (state & 0x15068) != 0) {
-        glowDrawTintedDisc(&gFactoryGlowPos48, 0x100, 0x3660);
+        _glowDrawTintedDisc(&gFactoryGlowPos48, 0x100, 0x3660);
     }
     if (state & 0xF26C4) {
         if (gameFlagGetNibble(GAME_FLAG_FACTORY_LAMP_PROGRESS) == 1) {
-            glowDrawTintedDisc(&gFactoryGlowPos4A1, 0x80, 0x5A00);
+            _glowDrawTintedDisc(&gFactoryGlowPos4A1, 0x80, 0x5A00);
         } else if (gameFlagGetNibble(GAME_FLAG_FACTORY_LAMP_PROGRESS) == 2) {
-            glowDrawTintedDisc(&gFactoryGlowPos4A2, 0x80, 0x50A0);
+            _glowDrawTintedDisc(&gFactoryGlowPos4A2, 0x80, 0x50A0);
         }
     }
 }

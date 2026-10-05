@@ -57,4 +57,4 @@ _roomVisualEffectsDrawTwinTrail = 0x8017FC10; // type:func
 _roomVisualEffectsDrawBurstStar = 0x80180290; // type:func
 roomEventStagedTask = 0x8017D644; // type:func
 glowDrawFactorDisc = 0x8017E468; // type:func
-glowDrawAngledCapsule = 0x8017DC80; // type:func
+_glowDrawAngledCapsule = 0x8017DC80; // type:func

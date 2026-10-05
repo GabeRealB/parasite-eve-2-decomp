@@ -1653,6 +1653,9 @@ RoomCutsceneRec D_shelter_r47_8018A698;
 
 static void func_shelter_r47_8018489C(ActionPromptRect* rect, u8 r, u8 g, u8 b);
 
+static void _glowDrawDiamond(const SVECTOR* worldPoint, s32 pulseRate, s32 radiusScale);
+static void _glowDrawPulsingDisc(const SVECTOR* worldPoint, s32 pulseRate, s32 radiusScale);
+
 /// State-0 entry of the map terminal. It allocates the `ShelterR47MapTerminalWork`
 /// work, spawns the companion task from `D_shelter_r47_8018760C`, picks the
 /// hotspot table by `spawnArg1` (`SHELTER_R47_MAP_MODE_TOUR` selects the
@@ -2135,7 +2138,7 @@ void func_shelter_r47_801858BC(Task* unused)
     view = viewGetMappedIndex();
     switch (view) {
         case 5:
-            glowDrawDiamond(&D_shelter_r47_80187624[0], 0x60, 0xA0);
+            _glowDrawDiamond(&D_shelter_r47_80187624[0], 0x60, 0xA0);
             glowDrawDisc(&D_shelter_r47_80187624[1], 0x280, 0x444);
             glowDrawDisc(&D_shelter_r47_80187624[2], 0x280, 0x444);
             glowDrawDisc(&D_shelter_r47_80187624[3], 0x280, 0x444);
@@ -2151,13 +2154,13 @@ void func_shelter_r47_801858BC(Task* unused)
             glowDrawDisc(&D_shelter_r47_80187624[9], 0x180, 0x344);
             break;
         case 14:
-            glowDrawDiamond(&D_shelter_r47_80187624[0], 0x60, 0xA0);
+            _glowDrawDiamond(&D_shelter_r47_80187624[0], 0x60, 0xA0);
             glowDrawDisc(&D_shelter_r47_80187624[6], 0x100, 0x344);
             glowDrawDisc(&D_shelter_r47_80187624[8], 0x280, 0x344);
             glowDrawDisc(&D_shelter_r47_80187624[9], 0x180, 0x344);
             break;
         case 44:
-            glowDrawPulsingDisc(&D_shelter_r47_80187624[0], 0x60, 0xA0);
+            _glowDrawPulsingDisc(&D_shelter_r47_80187624[0], 0x60, 0xA0);
             glowDrawDisc(&D_shelter_r47_80187624[6], 0x100, 0x344);
             break;
     }

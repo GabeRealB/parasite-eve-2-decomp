@@ -962,6 +962,8 @@ static const TaskFuncTable3 D_dryfield_night_driveway_8017D5D8 = {
 
 #include "../../shared/dryfield_driveway_cutscene.inc.c"
 
+static void _glowDrawShaft(const SVECTOR worldPoints[2], s32 radiusScale);
+
 /// Script callback: stores its argument into `gSceneCombatState.actor03700Wave`.
 void func_dryfield_night_driveway_8017DC6C(s32 arg0)
 {
@@ -1038,19 +1040,19 @@ void func_dryfield_night_driveway_8017E5CC(Task* unused)
     switch (gGameSession->location.loc.view) {
         case 2:
         case 9:
-            glowDrawShaft(&D_dryfield_night_driveway_801805B0[0], 0x180);
+            _glowDrawShaft(&D_dryfield_night_driveway_801805B0[0], 0x180);
             break;
         case 4:
         case 7:
-            glowDrawShaft(&D_dryfield_night_driveway_801805B0[2], 0x180);
+            _glowDrawShaft(&D_dryfield_night_driveway_801805B0[2], 0x180);
             break;
         case 5:
-            glowDrawShaft(&D_dryfield_night_driveway_801805B0[4], 0x180);
+            _glowDrawShaft(&D_dryfield_night_driveway_801805B0[4], 0x180);
             break;
         case 3:
         case 10:
-            glowDrawShaft(&D_dryfield_night_driveway_801805B0[0], 0x180);
-            glowDrawShaft(&D_dryfield_night_driveway_801805B0[2], 0x180);
+            _glowDrawShaft(&D_dryfield_night_driveway_801805B0[0], 0x180);
+            _glowDrawShaft(&D_dryfield_night_driveway_801805B0[2], 0x180);
             break;
     }
 }

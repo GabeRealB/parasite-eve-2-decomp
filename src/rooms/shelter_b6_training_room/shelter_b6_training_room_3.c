@@ -392,6 +392,8 @@ u16 D_shelter_b6_training_room_801843FC[4] = {
 
 _ShelterB6TrainingRoomBandShapeStorage D_shelter_b6_training_room_80184404 = { { { 256, 2048, 512 }, { 512, 1536, 768 }, { 768, 1024, 1024 } }, 0xF23F };
 
+static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 packedColor);
+
 void func_shelter_b6_training_room_8017DDE8(Task* task)
 {
     s32 i;
@@ -409,11 +411,11 @@ void func_shelter_b6_training_room_8017DDE8(Task* task)
 
     switch (viewGetMappedIndex() & 0xFF) {
         case 2:
-            glowDrawCapsule(&D_shelter_b6_training_room_80184334[10], 0x180, 0x210);
+            _glowDrawCapsule(&D_shelter_b6_training_room_80184334[10], 0x180, 0x210);
             break;
         case 3:
-            glowDrawCapsule(&D_shelter_b6_training_room_80184334[10], 0x180, 0x210);
-            glowDrawCapsule(&D_shelter_b6_training_room_80184334[8], 0x180, 0x210);
+            _glowDrawCapsule(&D_shelter_b6_training_room_80184334[10], 0x180, 0x210);
+            _glowDrawCapsule(&D_shelter_b6_training_room_80184334[8], 0x180, 0x210);
             glowDrawDisc(&D_shelter_b6_training_room_80184334[12], 0x280, 0x444);
             glowDrawDisc(&D_shelter_b6_training_room_80184334[13], 0x280, 0x444);
             glowDrawDisc(&D_shelter_b6_training_room_80184334[14], 0x280, 0x444);
@@ -434,7 +436,7 @@ void func_shelter_b6_training_room_8017DDE8(Task* task)
             glowDrawDisc(&D_shelter_b6_training_room_80184334[7], 0x200, 0x44);
             break;
         case 4:
-            glowDrawCapsule(&D_shelter_b6_training_room_80184334[8], 0x180, 0x210);
+            _glowDrawCapsule(&D_shelter_b6_training_room_80184334[8], 0x180, 0x210);
             glowDrawDisc(&D_shelter_b6_training_room_80184334[12], 0x280, 0x444);
             glowDrawDisc(&D_shelter_b6_training_room_80184334[13], 0x280, 0x444);
             glowDrawDisc(&D_shelter_b6_training_room_80184334[14], 0x280, 0x444);
@@ -451,7 +453,7 @@ void func_shelter_b6_training_room_8017DDE8(Task* task)
             glowDrawDisc(&D_shelter_b6_training_room_80184334[7], 0x200, 0x44);
             break;
         case 5:
-            glowDrawCapsule(&D_shelter_b6_training_room_80184334[8], 0x180, 0x210);
+            _glowDrawCapsule(&D_shelter_b6_training_room_80184334[8], 0x180, 0x210);
             glowDrawDisc(&D_shelter_b6_training_room_80184334[0], 0x180, 0x44);
             glowDrawDisc(&D_shelter_b6_training_room_80184334[1], 0x200, 0x44);
             glowDrawDisc(&D_shelter_b6_training_room_80184334[2], 0x100, 0x44);
@@ -472,7 +474,7 @@ void func_shelter_b6_training_room_8017DDE8(Task* task)
             glowDrawDisc(&D_shelter_b6_training_room_80184334[7], 0x200, 0x44);
             break;
         case 7:
-            glowDrawCapsule(&D_shelter_b6_training_room_80184334[10], 0x180, 0x210);
+            _glowDrawCapsule(&D_shelter_b6_training_room_80184334[10], 0x180, 0x210);
             glowDrawDisc(&D_shelter_b6_training_room_80184334[17], 0x280, 0x444);
             glowDrawDisc(&D_shelter_b6_training_room_80184334[23], 0x280, 0x444);
             break;

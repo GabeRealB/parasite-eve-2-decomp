@@ -700,6 +700,8 @@ static void func_dryfield_night_underpass_8017D954(Task* task);
 
 #include "../../shared/underpass_sound_msg.inc.c"
 
+static void _glowDrawFlare(const SVECTOR* worldPoint, s32 textureIndex, s32 radiusScale);
+
 /// Handler for message 0x13F1: does nothing and returns 0.
 s32 func_dryfield_night_underpass_8017D900(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
@@ -762,7 +764,7 @@ void func_dryfield_night_underpass_8017DC3C(Task* unused)
         flags = D_dryfield_night_underpass_8017DD60;
         do {
             if (mask & *flags) {
-                glowDrawFlare(vec, 0, 0x280);
+                _glowDrawFlare(vec, 0, 0x280);
             }
             vec++;
             i++;

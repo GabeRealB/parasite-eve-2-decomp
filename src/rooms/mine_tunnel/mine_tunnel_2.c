@@ -534,6 +534,8 @@ WorldCollisionSurfaceProperties* D_mine_tunnel_8018032C[8] = {
     D_mine_tunnel_8018031C,
 };
 
+static void _glowDrawFlare(const SVECTOR* worldPoint, s32 textureIndex, s32 radiusScale);
+
 /// Room effect tick: sets `gRoomEffectState->roomEffectMode` to 2 and draws the
 /// light anchors the current view index shows - anchor 2 in view 2, all five
 /// in view 3, anchors 2 and 3 in view 4, anchors 1 and 4 in view 5, none
@@ -547,22 +549,22 @@ void func_mine_tunnel_8017D7D4(Task* unused)
 
     switch (idx) {
         case 2:
-            glowDrawFlare(&D_mine_tunnel_8017E12C[2], 1, 0x300);
+            _glowDrawFlare(&D_mine_tunnel_8017E12C[2], 1, 0x300);
             break;
         case 3:
-            glowDrawFlare(&D_mine_tunnel_8017E12C[0], 1, 0x300);
-            glowDrawFlare(&D_mine_tunnel_8017E12C[1], 1, 0x300);
-            glowDrawFlare(&D_mine_tunnel_8017E12C[2], 1, 0x300);
-            glowDrawFlare(&D_mine_tunnel_8017E12C[3], 1, 0x300);
-            glowDrawFlare(&D_mine_tunnel_8017E12C[4], 1, 0x300);
+            _glowDrawFlare(&D_mine_tunnel_8017E12C[0], 1, 0x300);
+            _glowDrawFlare(&D_mine_tunnel_8017E12C[1], 1, 0x300);
+            _glowDrawFlare(&D_mine_tunnel_8017E12C[2], 1, 0x300);
+            _glowDrawFlare(&D_mine_tunnel_8017E12C[3], 1, 0x300);
+            _glowDrawFlare(&D_mine_tunnel_8017E12C[4], 1, 0x300);
             break;
         case 4:
-            glowDrawFlare(&D_mine_tunnel_8017E12C[2], 1, 0x300);
-            glowDrawFlare(&D_mine_tunnel_8017E12C[3], 1, 0x300);
+            _glowDrawFlare(&D_mine_tunnel_8017E12C[2], 1, 0x300);
+            _glowDrawFlare(&D_mine_tunnel_8017E12C[3], 1, 0x300);
             break;
         case 5:
-            glowDrawFlare(&D_mine_tunnel_8017E12C[1], 1, 0x300);
-            glowDrawFlare(&D_mine_tunnel_8017E12C[4], 1, 0x300);
+            _glowDrawFlare(&D_mine_tunnel_8017E12C[1], 1, 0x300);
+            _glowDrawFlare(&D_mine_tunnel_8017E12C[4], 1, 0x300);
             break;
         case 6:
             break;

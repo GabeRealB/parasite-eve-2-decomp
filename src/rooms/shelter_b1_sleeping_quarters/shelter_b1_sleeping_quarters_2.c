@@ -100,6 +100,8 @@ SVECTOR D_shelter_b1_sleeping_quarters_8018060C[8] = {
     { 0x2E7C, -2660, -30, 0 },
 };
 
+static void _glowDrawBeam(const SVECTOR worldPoints[2], s32 radiusScale, s32 startAngle, s32 packedColor);
+
 void func_shelter_b1_sleeping_quarters_8017D8E0(Task* arg0)
 {
     if (arg0->state == 0) {
@@ -111,55 +113,55 @@ void func_shelter_b1_sleeping_quarters_8017D8E0(Task* arg0)
 
     switch (viewGetMappedIndex() & 0xFF) {
         case 3:
-            glowDrawBeam(D_shelter_b1_sleeping_quarters_8018058C, 0x200, 0, 0x111);
+            _glowDrawBeam(D_shelter_b1_sleeping_quarters_8018058C, 0x200, 0, 0x111);
         case 2:
-            glowDrawBeam(D_shelter_b1_sleeping_quarters_8018054C, 0x200, 0, 0x10);
+            _glowDrawBeam(D_shelter_b1_sleeping_quarters_8018054C, 0x200, 0, 0x10);
             break;
         case 4: {
             SVECTOR* p;
             p = D_shelter_b1_sleeping_quarters_8018056C;
-            glowDrawBeam(&p[0], 0x200, 0x800, 0x111);
-            glowDrawBeam(&p[2], 0x200, 0x800, 0x111);
-            glowDrawBeam(&p[6], 0x200, -0x400, 0x111);
+            _glowDrawBeam(&p[0], 0x200, 0x800, 0x111);
+            _glowDrawBeam(&p[2], 0x200, 0x800, 0x111);
+            _glowDrawBeam(&p[6], 0x200, -0x400, 0x111);
             break;
         }
         case 5: {
             SVECTOR* p;
             p = D_shelter_b1_sleeping_quarters_8018059C;
-            glowDrawBeam(&p[0], 0x200, 0x800, 0x111);
-            glowDrawBeam(&p[6], 0x200, 0x800, 0x111);
-            glowDrawBeam(&p[8], 0x200, 0, 0x111);
+            _glowDrawBeam(&p[0], 0x200, 0x800, 0x111);
+            _glowDrawBeam(&p[6], 0x200, 0x800, 0x111);
+            _glowDrawBeam(&p[8], 0x200, 0, 0x111);
             break;
         }
         case 6: {
             SVECTOR* p;
             p = D_shelter_b1_sleeping_quarters_801805EC;
-            glowDrawBeam(&p[0], 0x200, 0x400, 0x111);
-            glowDrawBeam(&p[2], 0x200, 0x400, 0x111);
+            _glowDrawBeam(&p[0], 0x200, 0x400, 0x111);
+            _glowDrawBeam(&p[2], 0x200, 0x400, 0x111);
             break;
         }
         case 7: {
             SVECTOR* p;
             p = D_shelter_b1_sleeping_quarters_8018056C;
-            glowDrawBeam(&p[0], 0x200, -0x400, 0x111);
-            glowDrawBeam(&p[2], 0x200, 0, 0x111);
-            glowDrawBeam(&p[8], 0x200, 0x800, 0x111);
-            glowDrawBeam(&p[12], 0x200, 0x800, 0x111);
-            glowDrawBeam(&p[14], 0x200, 0, 0x111);
+            _glowDrawBeam(&p[0], 0x200, -0x400, 0x111);
+            _glowDrawBeam(&p[2], 0x200, 0, 0x111);
+            _glowDrawBeam(&p[8], 0x200, 0x800, 0x111);
+            _glowDrawBeam(&p[12], 0x200, 0x800, 0x111);
+            _glowDrawBeam(&p[14], 0x200, 0, 0x111);
             break;
         }
         case 8:
-            glowDrawBeam(D_shelter_b1_sleeping_quarters_801805BC, 0x200, 0x800, 0x111);
+            _glowDrawBeam(D_shelter_b1_sleeping_quarters_801805BC, 0x200, 0x800, 0x111);
         case 9:
             glowDrawBitDisc(D_shelter_b1_sleeping_quarters_8018055C, 0x300, 0x100);
             break;
         case 10: {
             SVECTOR* p;
             p = D_shelter_b1_sleeping_quarters_8018060C;
-            glowDrawBeam(&p[0], 0x200, 0x800, 0x111);
-            glowDrawBeam(&p[2], 0x200, 0x800, 0x111);
-            glowDrawBeam(&p[4], 0x200, 0x800, 0x111);
-            glowDrawBeam(&p[6], 0x200, 0x800, 0x111);
+            _glowDrawBeam(&p[0], 0x200, 0x800, 0x111);
+            _glowDrawBeam(&p[2], 0x200, 0x800, 0x111);
+            _glowDrawBeam(&p[4], 0x200, 0x800, 0x111);
+            _glowDrawBeam(&p[6], 0x200, 0x800, 0x111);
             break;
         }
     }

@@ -881,6 +881,8 @@ static void func_dryfield_cellar_8017D77C(Task* task);
 
 #include "../../shared/cellar_cap_msg.inc.c"
 
+static void _glowDrawFlareLocal(const GfxCoord* coord, const SVECTOR* localPoint, s32 textureIndex, s32 radiusScale);
+
 /// Message-table handler for message 0x13F1: does nothing and answers 0.
 s32 func_dryfield_cellar_8017D62C(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
@@ -949,11 +951,11 @@ void func_dryfield_cellar_8017DAEC(Task* arg0)
     coord = arg0->extra.coordBody->coord;
     if (gameFlagGetNibble(GAME_FLAG_UNDERPASS_SWITCH_2) == 1) {
         if (gGameSession->location.loc.view == 2) {
-            glowDrawFlareLocal(coord, D_dryfield_cellar_8017DBBC, 1, 0x280);
-            glowDrawFlareLocal(coord, D_dryfield_cellar_8017DBBC + 1, 1, 0x280);
+            _glowDrawFlareLocal(coord, D_dryfield_cellar_8017DBBC, 1, 0x280);
+            _glowDrawFlareLocal(coord, D_dryfield_cellar_8017DBBC + 1, 1, 0x280);
         } else if (gGameSession->location.loc.view == 3) {
-            glowDrawFlareLocal(coord, D_dryfield_cellar_8017DBCC, 1, 0x280);
-            glowDrawFlareLocal(coord, D_dryfield_cellar_8017DBCC + 1, 1, 0x280);
+            _glowDrawFlareLocal(coord, D_dryfield_cellar_8017DBCC, 1, 0x280);
+            _glowDrawFlareLocal(coord, D_dryfield_cellar_8017DBCC + 1, 1, 0x280);
         }
     }
 }
