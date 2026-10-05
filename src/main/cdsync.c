@@ -186,55 +186,53 @@ s32 CdCmd_SeekL(u8* loc, s32 unused)
     }
 }
 
+/// One poll of the drive's pending command: 0 while it is still running (or
+/// the disc is being recovered), 1 when it completed, 2 when it has to be
+/// issued again.
+static inline s16 CdCmd_SyncPoll(void)
+{
+    CdCmdQueue* state;
+
+    state = &gCdCmdQueue;
+    switch (state->syncRecoveryStep) {
+        case 0:
+            switch (CdSync(1, NULL)) {
+                case CdlComplete:
+                    state->diskError = 0;
+                    return 1;
+                case CdlNoIntr:
+                    break;
+                case CdlDiskError:
+                    state->diskError = 1;
+                    if (CdSync_IsShellOpenBitSet() != 0) {
+                        state->syncRecoveryStep += 1;
+                        break;
+                    }
+                    return 2;
+                default:
+                    return 2;
+            }
+            break;
+        case 1:
+            if (CdCmd_RecoverDisk() != 0) {
+                state->syncRecoveryStep = 0;
+                return 2;
+            }
+            break;
+        default:
+            return 0;
+    }
+    return 0;
+}
+
 s32 CdCmd_PausePoll(void)
 {
     CdCmdQueue* state;
-    CdCmdQueue* p;
-    s32         temp;
-    s32         status;
-    s32         one;
 
     state = &gCdCmdQueue;
     switch (state->pauseStep) {
         case CD_COMMAND_PAUSE_ISSUE:
-            switch (state->syncRecoveryStep) {
-                case 0:
-                    status = CdSync(1, NULL);
-                    switch (status) {
-                        case CdlComplete:
-                            state->diskError = 0;
-                            temp             = 1;
-                            goto join1;
-                        case CdlNoIntr:
-                            goto set0_1;
-                        case CdlDiskError:
-                            state->diskError = 1;
-                            if (CdSync_IsShellOpenBitSet() != 0) {
-                                state->syncRecoveryStep += 1;
-                                goto set0_1;
-                            }
-                            temp = 2;
-                            goto join1;
-                        default:
-                            temp = 2;
-                            goto join1;
-                    }
-                case 1:
-                    if (CdCmd_RecoverDisk() != 0) {
-                        state->syncRecoveryStep = 0;
-                        temp                    = 2;
-                        goto join1;
-                    }
-                    goto set0_1;
-                default:
-                    temp = 0;
-                    goto join1;
-            }
-        set0_1:
-            temp = 0;
-        join1:
-            status = temp;
-            switch (status) {
+            switch (CdCmd_SyncPoll()) {
                 case 0:
                     return 0;
                 case 2:
@@ -248,73 +246,25 @@ s32 CdCmd_PausePoll(void)
             }
             /* fallthrough */
         case CD_COMMAND_PAUSE_WAIT:
-            p = &gCdCmdQueue;
-            switch (p->syncRecoveryStep) {
+            switch (CdCmd_SyncPoll()) {
                 case 0:
-                    status = CdSync(1, NULL);
-                    switch (status) {
-                        case CdlComplete:
-                            p->diskError = 0;
-                            temp         = 1;
-                            goto join2;
-                        case CdlNoIntr:
-                            goto set0_2;
-                        case CdlDiskError:
-                            p->diskError = 1;
-                            if (CdSync_IsShellOpenBitSet() != 0) {
-                                p->syncRecoveryStep += 1;
-                                goto set0_2;
-                            }
-                            temp = 2;
-                            goto join2;
-                        default:
-                            temp = 2;
-                            goto join2;
-                    }
+                    return 0;
                 case 1:
-                    if (CdCmd_RecoverDisk() != 0) {
-                        p->syncRecoveryStep = 0;
-                        temp                = 2;
-                        goto join2;
-                    }
-                    goto set0_2;
-                default:
-                    temp = 0;
-                    goto join2;
+                    state->pauseStep = CD_COMMAND_PAUSE_ISSUE;
+                    state->diskError = 0;
+                    return 1;
+                case 2:
+                    state->pauseStep = CD_COMMAND_PAUSE_WAIT;
+                    CdFlush();
+                    CdControlF(CdlPause, NULL);
+                    return 0;
+                case 3:
+                    CdFlush();
+                    CdControlF(CdlPause, NULL);
+                    state->pauseStep = CD_COMMAND_PAUSE_WAIT;
+                    state->pauseRetryCount++;
+                    break;
             }
-        set0_2:
-            temp = 0;
-        join2:
-            status = temp;
-            one    = 1;
-            if (status == one) {
-                goto L_case1;
-            }
-            if (status < 2) {
-                goto L_ret0;
-            }
-            if (status == 2) {
-                goto L_case2;
-            }
-            if (status == 3) {
-                goto L_case3;
-            }
-            goto L_ret0;
-        L_case1:
-            state->pauseStep = CD_COMMAND_PAUSE_ISSUE;
-            state->diskError = 0;
-            return 1;
-        L_case2:
-            state->pauseStep = one;
-            CdFlush();
-            CdControlF(CdlPause, NULL);
-            return 0;
-        L_case3:
-            CdFlush();
-            CdControlF(CdlPause, NULL);
-            state->pauseStep = one;
-            state->pauseRetryCount++;
-        L_ret0:
             return 0;
         default:
             return 0;
