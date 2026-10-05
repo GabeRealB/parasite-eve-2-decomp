@@ -1,16 +1,15 @@
 /* Part of the rising spark library; see rising_spark.h. */
 
-/// Moves the spark along its coordinate parent's Y axis and refreshes its composed transform.
+/// Translates the spark along its parent's Y axis and refreshes its cached transform.
 ///
-/// Borrows the live coordinate for this call. `risePerTick` is a signed
-/// displacement in parent-coordinate units; the translation sum must fit s32.
-static inline void _risingSparkMoveCoord(GfxCoord* coord, s16 risePerTick)
+/// `parentDeltaY` is a signed displacement in the parent's game-coordinate
+/// units; adding it to the local Y translation must fit s32. `coord` must be
+/// non-NULL and writable, with a live, writable, acyclic parent chain for this
+/// call. Composition refreshes `workm` and clobbers GTE working registers.
+static inline void _risingSparkMoveCoord(GfxCoord* coord, s32 parentDeltaY)
 {
-    s32 nextY;
-
-    nextY               = coord->coord.t[1] + risePerTick;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    coord->coord.t[1]   = nextY;
+    coord->coord.t[1]  += parentDeltaY;
     actorRenderComposeCoord(coord);
 }
 
