@@ -23,40 +23,34 @@ s32 D_80071210;
 
 #include "gameplay/model_objects.h"
 
+/// Zeroes `state` through its byte representation.
+static inline void Pad_ClearState(PadState* state)
+{
+    u8* stateByte;
+    u32 stateByteIndex;
+
+    stateByte = (u8*)state;
+    for (stateByteIndex = 0; stateByteIndex < sizeof(*state); stateByteIndex++) {
+        *stateByte++ = 0;
+    }
+}
+
 void Pad_Init(void)
 {
-    u16                  half;
-    u8                   one;
-    volatile PadState*   states;
-    s32                  stateByteOffset;
-    volatile PadState*   state;
-    u8*                  stateByte;
-    u32                  stateByteIndex;
+    u32                  i;
     PadRawPort*          pad;
     volatile PadRawPort* vpad;
     u32                  j;
     u8                   ff;
-    uintptr              statesAddress;
 
-    half            = PAD_INPUT_FORMAT_UNAVAILABLE;
-    one             = 1;
-    states          = gPadStates;
-    statesAddress   = (uintptr)states;
-    state           = states;
-    stateByteOffset = 0;
-    do {
-        // Clear each complete state through its byte representation, then publish setup fields.
-        stateByte = (u8*)(stateByteOffset + statesAddress);
-        for (stateByteIndex = 0; stateByteIndex < sizeof(*state); stateByteIndex++) {
-            *stateByte++ = 0;
-        }
-        state->actuatorCommand[0] = 0;
-        state->actuatorCommand[1] = 0;
-        state->inputFormat        = half;
-        state->modeSetupPending   = one;
-        state++;
-        stateByteOffset += sizeof(*state);
-    } while (state < states + ARRAY_SIZE(gPadStates));
+    for (i = 0; i < ARRAY_SIZE(gPadStates); i++) {
+        // Clear each complete state, then publish setup fields.
+        Pad_ClearState(&gPadStates[i]);
+        gPadStates[i].actuatorCommand[0] = 0;
+        gPadStates[i].actuatorCommand[1] = 0;
+        gPadStates[i].inputFormat        = PAD_INPUT_FORMAT_UNAVAILABLE;
+        gPadStates[i].modeSetupPending   = 1;
+    }
 
     pad = Pad_RawPorts;
     PadInitDirect((u8*)pad, (u8*)(pad + 1));
