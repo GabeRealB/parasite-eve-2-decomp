@@ -1,5 +1,5 @@
 D_p229_8011E5E4 = 0x8011E5E4; // model named by a task descriptor
 
 func_p229_8011D1DC = 0x8011D1DC; // type:func
-muzzleFlashDrawCore = 0x8011D464; // type:func
-muzzleFlashDrawStreak = 0x8011D860; // type:func
+_muzzleFlashDrawCore = 0x8011D464; // type:func
+_muzzleFlashDrawStreak = 0x8011D860; // type:func

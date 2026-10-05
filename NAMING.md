@@ -662,6 +662,12 @@ Each weapon keeps eight frames of the blade base and tip and includes
 `BladeTrailScratch` is one quad's scratch block: four world corners, the
 ordering depth and the GTE FLAG word, plus one word the drawer never touches.
 
+`muzzleFlash` owns the included textured core, Gouraud streaks and short-lived
+flash task shared by the P229 and MP5A5 variants. Its interface is
+`src/shared/muzzle_flash.h`; constants use `MUZZLE_FLASH_`. Each carrier exports
+its own effect-table wrapper and keeps the shared functions private. Carriers
+supply the muzzle offset and four retained streak angles.
+
 `leaf` owns the included falling-leaf task and textured-square drawers shared
 by the Acropolis gardens and Neo Ark woodland rooms. Its implementation
 interface is `src/shared/falling_leaves.h`; `LEAF_` constants describe its

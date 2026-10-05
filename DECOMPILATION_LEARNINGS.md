@@ -55327,8 +55327,8 @@ pseudo and emits a genuine `mult`; CSE knows the value but cannot re-synthesise
 the multiply, and reload materialises the `li`.
 
 ```c
-s32 len = 0x600;
-blk->vertices[1].vx = (rsin(ang) * len) >> 12;
+s32 tipRadius = 0x600;
+block->vertices[1].vx = (rsin(cornerAngle) * tipRadius) >> 12;
 ```
 
 **Where you assign it decides its register.** The assignment's position sets the
@@ -55340,9 +55340,9 @@ live range, and that is what `global_alloc` ranks:
 - immediately before the multiply it is live only across the two `jal`s that
   need it, which is the short callee-saved range the ROM has (`$s1`).
 
-`WeaponsShared8011d864` (`func_mp5a5_8011D864`) is the worked example: 94.1%
+`_muzzleFlashDrawStreak` is the worked example: 94.1%
 with the literal, 99.0% with both constants assigned at the top, 100% with
-`len = 0x600` moved down to its first use and only the `-0x200` corner depth
+`tipRadius = 0x600` moved down to its first use and only the `-0x200` corner depth
 left at the top. Same reasoning applies to a `sh` of a constant that the ROM
 materialises in the prologue - that one *does* want the early assignment.
 
@@ -56823,9 +56823,9 @@ and field offsets against that list first. Use the canonical shared record when 
 `EffectShapeScratch` in `include/gameplay/effects.h`; a distinct layout needs its
 own declaration.
 
-## `setUV4` is not the same RTL as eight `prim->uN =` statements
+## `setUV4` is not the same RTL as eight `quad->uN =` statements
 
-`func_mp5a5_8011D468` (a `POLY_FT4` muzzle flash) stalled at 98.9% with the
+`_muzzleFlashDrawCore` (a `POLY_FT4` muzzle flash) stalled at 98.9% with the
 whole prim set-up in the right *store* order but two instructions transposed:
 
 ```
@@ -56846,8 +56846,8 @@ whole prim set-up in the right *store* order but two instructions transposed:
 ```
 
 Writing the eight UV bytes as separate statements — in any order, and with the
-`prim->code |= 3` moved anywhere in the block — always produced the second
-form. `setUV4(prim, 0x70, 0xC8, 0xA7, 0xC8, 0x70, 0xFF, 0xA7, 0xFF)` produced
+`quad->code |= 3` moved anywhere in the block — always produced the second
+form. `setUV4(quad, 0x70, 0xC8, 0xA7, 0xC8, 0x70, 0xFF, 0xA7, 0xFF)` produced
 the first and matched immediately.
 
 The macro is one comma expression, so `0x70` (shared by `u0` and `u2`) gets its
@@ -56866,7 +56866,7 @@ the same property.
 
 ## Promote a shared `.pe2pkg` body while the C is still fresh
 
-`overlay_dup_index.py find func_mp5a5_8011D468` reported four byte-identical
+`overlay_dup_index.py find _muzzleFlashDrawCore` reported four byte-identical
 copies (`mp5a5`, `mp5a5_p1`, `mp5a5_p2`, `p229`), and each of those overlays
 already carried a `weapons_shared_8011d864` cut *immediately after* the span.
 Adding the second cut is four one-line edits and matches four functions at

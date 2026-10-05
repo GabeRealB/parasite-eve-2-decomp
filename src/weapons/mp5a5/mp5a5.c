@@ -60,22 +60,8 @@ void func_mp5a5_8011DDA4(Task* arg0);
 /// The MP5A5 and its upgrades\'s muzzle-flash task, named by gameplay\'s effect table.
 void func_mp5a5_8011D1E0(Task* task)
 {
-    muzzleFlashTask(task);
+    _muzzleFlashTask(task);
 }
-
-/// Draws the core of a gun's muzzle flash: one semi-transparent, shade-blended
-/// `POLY_FT4` billboarded on `arg0`'s world position. `arg1` is the flash size
-/// (scaled down by the projected depth) and `arg2` its spin, so the quad is a
-/// square rotated by `arg2` rather than an axis-aligned sprite.
-/* `otzp` is a second name for the same block on purpose: `gte_stszotz` takes
-   its address in a register of its own, so the ROM keeps a `move` the single
-   pointer would have coalesced away. The `gte_ldv0` / `gte_stsxy` addresses
-   and every `otz` reload are spelled out from `head` for the same reason -
-   off `blk` they would reuse the block register instead. */
-
-/* Every scratch vector address is computed off `head`, not off `blk`, so the
-   loads and stores keep spelling the block out from `head` rather than reusing
-   the `blk` register the way CSE off `blk` would. */
 
 #include "../../shared/muzzle_flash_core.inc.c"
 

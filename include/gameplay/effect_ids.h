@@ -176,11 +176,11 @@ enum {
     /// A small drifting sprite particle with random velocity, spawned at random by the
     /// attached projectile sprite 0x60081 while it bursts.
     EFFECT_PROJECTILE_BURST_PARTICLE = EFFECT_ID(EFFECT_TASK_BANK, 0x03F),
-    /// The P229 pistol's muzzle-flash task (muzzleFlashTask); spawned when the P229
+    /// The P229 pistol's muzzle-flash task (_muzzleFlashTask); spawned when the P229
     /// fires.
     EFFECT_P229_MUZZLE_FLASH = EFFECT_ID(EFFECT_TASK_BANK, 0x040),
-    /// MP5A5 muzzle flash (shared muzzleFlashTask: white point light, spinning core,
-    /// screen fade and four streaks) used by the weapon's second firing branch, which
+    /// MP5A5 muzzle flash (shared _muzzleFlashTask: white point light, spinning core,
+    /// additive screen tint and four streaks) used by the weapon's second firing branch, which
     /// consumes ammo with the 0x101 flag.
     EFFECT_MP5A5_ALT_FIRE_MUZZLE_FLASH = EFFECT_ID(EFFECT_TASK_BANK, 0x041),
     /// Small rising puff sprite (tpage 9 row 0xB8, selectable blend) shed behind moving

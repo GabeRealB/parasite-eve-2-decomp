@@ -1,101 +1,109 @@
 /* Part of the muzzle flash library; see muzzle_flash.h. */
 
-/// Draws one streak of a gun's muzzle flash as a Gouraud quad: three corners on a 0x100
-/// circle around `arg1` (at `-0xC0`, `0`, `+0xC0`) and one tip 0x600 out and
-/// 0x200 towards the camera, all in the muzzle coordinate's frame. `arg2` is
-/// the flash brightness; only the corner along `arg1` is lit, with half of
-/// `arg2` in red and green and all of it in blue.
-void muzzleFlashDrawStreak(GfxCoord* arg0, s16 arg1, s16 arg2)
+/// Draws one additive blue-white streak in the muzzle's coordinate frame.
+///
+/// `muzzleCoord->workm` must be freshly composed through the view chain.
+/// Angles use 4096 units per turn. Three base corners have radius 256 around
+/// `directionAngle`, at offsets -192, 0 and +192; the tip has radius 1536 and
+/// local Z -512. The muzzle transform rotates that Z offset with the weapon.
+/// `brightness` is 0..255; only the centre base corner is lit, with half
+/// brightness in red/green and full brightness in blue. Positions narrow to
+/// signed 16-bit coordinates before projection. Requires initialized projection
+/// settings, one free scratch block and packet space for POLY_G4 plus its blend
+/// command. A rejected depth still consumes the quad packet.
+static void _muzzleFlashDrawStreak(const GfxCoord* muzzleCoord, s16 directionAngle, s16 brightness)
 {
-    EffectQuadCornersScratch* blk;
-    POLY_G4*                  prim;
-    MATRIX*                   wm;
-    s32                       ang;
-    s32                       back;
-    s32                       len;
-    s32                       depth;
+    enum {
+        MUZZLE_FLASH_STREAK_BASE_ANGLE_OFFSET = 0xC0,
+        MUZZLE_FLASH_STREAK_TIP_RADIUS        = 0x600,
+        MUZZLE_FLASH_STREAK_TIP_LOCAL_Z       = -0x200,
+        MUZZLE_FLASH_STREAK_BASE_TRIG_SHIFT   = 4 // 4096-amplitude trig to a radius of 256
+    };
+    EffectQuadCornersScratch* block;
+    POLY_G4*                  quad;
+    const MATRIX*             muzzleMatrix;
+    s32                       cornerAngle;
+    s32                       firstBaseAngle;
+    s32                       tipRadius;
+    s32                       tipLocalZ;
 
-    /* `len` and `depth` are locals rather than literals on purpose: as
-       constants GCC turns the `* 0x600` into a shift-and-add and drops the
-       `mult` the ROM keeps. */
-    depth = -0x200;
-    blk   = SCRATCH_STACK_RESERVE_BLOCK(EffectQuadCornersScratch);
+    /// Rotates one initialized local corner in place through the composed muzzle matrix.
+    ///
+    /// Both pointer arguments must be side-effect-free: corner is evaluated twice,
+    /// matrix once. Captures no C locals and clobbers GTE working registers.
+    /// Expands to four statements; use only as a standalone statement sequence.
+#define MUZZLE_FLASH_ROTATE_STREAK_CORNER(corner, matrix) \
+    gte_SetRotMatrix(matrix);                             \
+    gte_ldv0(corner);                                     \
+    gte_rtv0();                                           \
+    gte_stsv(corner)
+
+    // Keep the tip dimensions in locals at their first use: the target uses mult.
+    tipLocalZ = MUZZLE_FLASH_STREAK_TIP_LOCAL_Z;
+    block     = SCRATCH_STACK_RESERVE_BLOCK(EffectQuadCornersScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
-    ang = arg1;
+    cornerAngle = directionAngle;
 
-    /* Corner 0: on the small circle, 0xC0 behind the flash direction. */
-    back                = ang - 0xC0;
-    blk->vertices[0].vx = (u32)rsin(back) >> 4;
-    blk->vertices[0].vy = (u32)rcos(back) >> 4;
-    blk->vertices[0].vz = 0;
-    wm                  = &arg0->workm;
-    gte_SetRotMatrix(wm);
-    gte_ldv0(&blk->vertices[0]);
-    gte_rtv0();
-    gte_stsv(&blk->vertices[0]);
-    (u16) blk->vertices[0].vx = (u16)blk->vertices[0].vx + (u16)arg0->workm.t[0];
-    (u16) blk->vertices[0].vy = (u16)blk->vertices[0].vy + (u16)arg0->workm.t[1];
-    (u16) blk->vertices[0].vz = (u16)blk->vertices[0].vz + (u16)arg0->workm.t[2];
+    // Build local corners, then rotate and add translations modulo 16 bits.
+    // Unsigned addition preserves wrapping even for a full-width translation.
+    firstBaseAngle        = cornerAngle - MUZZLE_FLASH_STREAK_BASE_ANGLE_OFFSET;
+    block->vertices[0].vx = (u32)rsin(firstBaseAngle) >> MUZZLE_FLASH_STREAK_BASE_TRIG_SHIFT;
+    block->vertices[0].vy = (u32)rcos(firstBaseAngle) >> MUZZLE_FLASH_STREAK_BASE_TRIG_SHIFT;
+    block->vertices[0].vz = 0;
+    muzzleMatrix          = &muzzleCoord->workm;
+    MUZZLE_FLASH_ROTATE_STREAK_CORNER(&block->vertices[0], muzzleMatrix);
+    block->vertices[0].vx += (u32)muzzleCoord->workm.t[0];
+    block->vertices[0].vy += (u32)muzzleCoord->workm.t[1];
+    block->vertices[0].vz += (u32)muzzleCoord->workm.t[2];
 
-    /* Corner 1: the far tip, a full 0x600 out and 0x200 towards the camera. */
-    len                 = 0x600;
-    blk->vertices[1].vx = (rsin(ang) * len) >> 12;
-    blk->vertices[1].vy = (rcos(ang) * len) >> 12;
-    blk->vertices[1].vz = depth;
-    gte_SetRotMatrix(wm);
-    gte_ldv0(&blk->vertices[1]);
-    gte_rtv0();
-    gte_stsv(&blk->vertices[1]);
-    (u16) blk->vertices[1].vx = (u16)blk->vertices[1].vx + (u16)arg0->workm.t[0];
-    (u16) blk->vertices[1].vy = (u16)blk->vertices[1].vy + (u16)arg0->workm.t[1];
-    (u16) blk->vertices[1].vz = (u16)blk->vertices[1].vz + (u16)arg0->workm.t[2];
+    tipRadius             = MUZZLE_FLASH_STREAK_TIP_RADIUS;
+    block->vertices[1].vx = (rsin(cornerAngle) * tipRadius) >> MUZZLE_FLASH_TRIG_FRACTION_BITS;
+    block->vertices[1].vy = (rcos(cornerAngle) * tipRadius) >> MUZZLE_FLASH_TRIG_FRACTION_BITS;
+    block->vertices[1].vz = tipLocalZ;
+    MUZZLE_FLASH_ROTATE_STREAK_CORNER(&block->vertices[1], muzzleMatrix);
+    block->vertices[1].vx += (u32)muzzleCoord->workm.t[0];
+    block->vertices[1].vy += (u32)muzzleCoord->workm.t[1];
+    block->vertices[1].vz += (u32)muzzleCoord->workm.t[2];
 
-    /* Corner 2: on the small circle, straight along the flash direction. This
-       is the only lit corner. */
-    blk->vertices[2].vx = (u32)rsin(ang) >> 4;
-    blk->vertices[2].vy = (u32)rcos(ang) >> 4;
-    blk->vertices[2].vz = 0;
-    gte_SetRotMatrix(wm);
-    gte_ldv0(&blk->vertices[2]);
-    gte_rtv0();
-    gte_stsv(&blk->vertices[2]);
-    (u16) blk->vertices[2].vx = (u16)blk->vertices[2].vx + (u16)arg0->workm.t[0];
-    ang                       = ang + 0xC0;
-    (u16) blk->vertices[2].vy = (u16)blk->vertices[2].vy + (u16)arg0->workm.t[1];
-    (u16) blk->vertices[2].vz = (u16)blk->vertices[2].vz + (u16)arg0->workm.t[2];
+    block->vertices[2].vx = (u32)rsin(cornerAngle) >> MUZZLE_FLASH_STREAK_BASE_TRIG_SHIFT;
+    block->vertices[2].vy = (u32)rcos(cornerAngle) >> MUZZLE_FLASH_STREAK_BASE_TRIG_SHIFT;
+    block->vertices[2].vz = 0;
+    MUZZLE_FLASH_ROTATE_STREAK_CORNER(&block->vertices[2], muzzleMatrix);
+    block->vertices[2].vx += (u32)muzzleCoord->workm.t[0];
+    cornerAngle            = cornerAngle + MUZZLE_FLASH_STREAK_BASE_ANGLE_OFFSET;
+    block->vertices[2].vy += (u32)muzzleCoord->workm.t[1];
+    block->vertices[2].vz += (u32)muzzleCoord->workm.t[2];
 
-    /* Corner 3: on the small circle, 0xC0 ahead of the flash direction. */
-    blk->vertices[3].vx = (u32)rsin(ang) >> 4;
-    blk->vertices[3].vy = (u32)rcos(ang) >> 4;
-    blk->vertices[3].vz = 0;
-    gte_SetRotMatrix(wm);
-    gte_ldv0(&blk->vertices[3]);
-    gte_rtv0();
-    gte_stsv(&blk->vertices[3]);
-    (u16) blk->vertices[3].vx = (u16)blk->vertices[3].vx + (u16)arg0->workm.t[0];
-    (u16) blk->vertices[3].vy = (u16)blk->vertices[3].vy + (u16)arg0->workm.t[1];
-    (u16) blk->vertices[3].vz = (u16)blk->vertices[3].vz + (u16)arg0->workm.t[2];
+    block->vertices[3].vx = (u32)rsin(cornerAngle) >> MUZZLE_FLASH_STREAK_BASE_TRIG_SHIFT;
+    block->vertices[3].vy = (u32)rcos(cornerAngle) >> MUZZLE_FLASH_STREAK_BASE_TRIG_SHIFT;
+    block->vertices[3].vz = 0;
+    MUZZLE_FLASH_ROTATE_STREAK_CORNER(&block->vertices[3], muzzleMatrix);
+    block->vertices[3].vx += (u32)muzzleCoord->workm.t[0];
+    block->vertices[3].vy += (u32)muzzleCoord->workm.t[1];
+    block->vertices[3].vz += (u32)muzzleCoord->workm.t[2];
 
+    // Project corner 0 separately, then corners 1..3 into the packet.
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&blk->vertices[0]);
+    gte_ldv0(&block->vertices[0]);
     gte_rtps();
-    prim           = gGpuPrimCursor;
-    gGpuPrimCursor = prim + 1;
-    setPolyG4(prim);
-    gte_stsxy(&prim->x0);
-    gte_ldv3(&blk->vertices[1], &blk->vertices[2],
-             &blk->vertices[3]);
+    quad           = gGpuPrimCursor;
+    gGpuPrimCursor = quad + 1;
+    setPolyG4(quad);
+    gte_stsxy(&quad->x0);
+    gte_ldv3(&block->vertices[1], &block->vertices[2],
+             &block->vertices[3]);
     gte_rtpt();
-    gte_stsxy3(&prim->x1, &prim->x2, &prim->x3);
-    gte_stszotz(&blk->depth);
-    if (blk->depth >= 0x11) {
-        setRGB0(prim, 0, 0, 0);
-        setRGB1(prim, 0, 0, 0);
-        setRGB2(prim, arg2 >> 1, arg2 >> 1, arg2);
-        setRGB3(prim, 0, 0, 0);
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
-        gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, blk->depth);
+    gte_stsxy3(&quad->x1, &quad->x2, &quad->x3);
+    gte_stszotz(&block->depth);
+    if (block->depth >= MUZZLE_FLASH_MIN_DEPTH) {
+        setRGB0(quad, 0, 0, 0);
+        setRGB1(quad, 0, 0, 0);
+        setRGB2(quad, brightness >> 1, brightness >> 1, brightness);
+        setRGB3(quad, 0, 0, 0);
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                quad);
+        gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, block->depth);
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectQuadCornersScratch);
+#undef MUZZLE_FLASH_ROTATE_STREAK_CORNER
 }

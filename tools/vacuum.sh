@@ -523,7 +523,7 @@ fi
 # A promotion moves one body to src/lib/ and gives every overlay that
 # carries it a sym alias at its own address, so the per-overlay name stops
 # existing in src entirely. func_defined_in_src therefore reports it missing,
-# which is how func_p229_8011D464 kept being re-ported after 1160f3d0 had
+# which is how _muzzleFlashDrawCore kept being re-ported after 1160f3d0 had
 # already landed it for all four MP5A5/P229 overlays.
 func_promoted_alias() {
   local func=$1

@@ -1,4 +1,4 @@
 
 func_mp5a5_8011D1E0 = 0x8011D1E0; // type:func
-muzzleFlashDrawCore = 0x8011D468; // type:func
-muzzleFlashDrawStreak = 0x8011D864; // type:func
+_muzzleFlashDrawCore = 0x8011D468; // type:func
+_muzzleFlashDrawStreak = 0x8011D864; // type:func

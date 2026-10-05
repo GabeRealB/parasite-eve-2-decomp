@@ -51,22 +51,8 @@ void func_p229_8011DDA0(Task* arg0);
 /// The P229\'s muzzle-flash task, named by gameplay\'s effect table.
 void func_p229_8011D1DC(Task* task)
 {
-    muzzleFlashTask(task);
+    _muzzleFlashTask(task);
 }
-
-/// Draws the core of a gun's muzzle flash: one semi-transparent, shade-blended
-/// `POLY_FT4` billboarded on `arg0`'s world position. `arg1` is the flash size
-/// (scaled down by the projected depth) and `arg2` its spin, so the quad is a
-/// square rotated by `arg2` rather than an axis-aligned sprite.
-/* `otzp` is a second name for the same block on purpose: `gte_stszotz` takes
-   its address in a register of its own, so the ROM keeps a `move` the single
-   pointer would have coalesced away. The `gte_ldv0` / `gte_stsxy` addresses
-   and every `otz` reload are spelled out from `head` for the same reason -
-   off `blk` they would reuse the block register instead. */
-
-/* Every scratch vector address is computed off `head`, not off `blk`, so the
-   loads and stores keep spelling the block out from `head` rather than reusing
-   the `blk` register the way CSE off `blk` would. */
 
 #include "../../shared/muzzle_flash_core.inc.c"
 
@@ -1087,6 +1073,6 @@ AnimationBank D_p229_8012B51C = { { {
 } } };
 
 /// The four flash angles rolled on the frame the shot goes off, one per
-/// `muzzleFlashDrawStreak` quad. Each is a fixed quadrant (`i << 10`) plus a
+/// `_muzzleFlashDrawStreak` quad. Each is a fixed quadrant (`i << 10`) plus a
 /// 10-bit LCG jitter, so the four quads always fan out around the muzzle.
 s16 gMuzzleFlashAngles[4] = { 0, 0, 0, 0 };
