@@ -8,7 +8,7 @@
 
 struct WorldTargetNode;
 
-/// Current `gWorldTargetListHead` node whose lock-on reticle `Gp_DrawTargetCursor` is
+/// Current `gWorldTargetListHead` node whose lock-on reticle `worldTargetDrawOverlay` is
 /// drawing. Cleared when the walk finds no live target.
 extern struct WorldTargetNode* D_80115260;
 

@@ -4356,5 +4356,5 @@ void Gp_BindSlot4(Task* task)
 
 void func_800B6398(Task* task)
 {
-    Gp_DrawTargetCursor();
+    worldTargetDrawOverlay();
 }

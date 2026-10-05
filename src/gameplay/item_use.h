@@ -40,7 +40,7 @@ extern u8 Gp_OverrideVecFlag;
 extern SVECTOR Gp_OverrideVec;
 
 /// 8.8 fixed-point pair lerped toward projected screen coords by
-/// `Gp_DrawTargetCursor`. Reset to `0xFFF00000` by `worldTargetResetAreaTracking`.
+/// `worldTargetDrawOverlay`. Reset to `0xFFF00000` by `worldTargetResetAreaTracking`.
 extern s32 D_8010F9EC;
 
 extern s32 D_8010F9F0;

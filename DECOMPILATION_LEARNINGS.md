@@ -39936,7 +39936,7 @@ t1 = t1 & hi;
 t1 = t1 | paddr;        /* and v1,v1,a1; or v1,v1,a2 */
 ```
 
-`Gp_DrawTargetCursor` needed the split so the OT-link AND/OR reused `v1` instead
+`worldTargetDrawOverlay` needed the split so the OT-link AND/OR reused `v1` instead
 of clobbering the live `0xFF000000` in `a1`. Pair with a `mask` local
 pinned `asm("a2")` for the `0xFFFFFF` side so `addPrim`-style tag/`*ot`
 masking CSEs onto that register instead of emitting a second `lui/ori`.

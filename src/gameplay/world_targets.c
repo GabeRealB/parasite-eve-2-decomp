@@ -209,24 +209,80 @@ static __inline__ void _worldTargetProjectReadout(WorldTargetReadout* readout)
     SCRATCH_STACK_RELEASE_BLOCK(_WorldTargetProjectionScratch);
 }
 
-void Gp_DrawTargetCursor(void)
+void worldTargetDrawOverlay(void)
 {
-    WorldTargetNode*             node;
-    GameSession*                 sess;
+    enum {
+        WORLD_TARGET_CURSOR_FRACTION_BITS          = 8,
+        WORLD_TARGET_CURSOR_EASING_PASSES          = 5,
+        WORLD_TARGET_CURSOR_EASING_COMPLETE        = 0xFF,
+        WORLD_TARGET_CURSOR_HIDDEN_PAUSE_STATE     = 1,
+        WORLD_TARGET_CURSOR_FRAME_COUNT            = 8,
+        WORLD_TARGET_CURSOR_TICKS_PER_FRAME        = 3,
+        WORLD_TARGET_CURSOR_SMALL_HALF_SIZE        = 8,
+        WORLD_TARGET_CURSOR_FULL_HALF_SIZE         = 16,
+        WORLD_TARGET_CURSOR_CELL_SHIFT             = 5, // 32-pixel cells
+        WORLD_TARGET_CURSOR_COLUMN_SHIFT           = 2, // Four columns, two rows
+        WORLD_TARGET_CURSOR_TEXTURE_BASE_U         = 64,
+        WORLD_TARGET_CURSOR_TEXTURE_MODE_4BIT      = 0,
+        WORLD_TARGET_CURSOR_TEXTURE_PAGE_X         = 896,
+        WORLD_TARGET_CURSOR_TEXTURE_PAGE_Y         = 256,
+        WORLD_TARGET_CURSOR_CLUT_X                 = 16,
+        WORLD_TARGET_CURSOR_CLUT_Y                 = 242,
+        WORLD_TARGET_CURSOR_RAW_SEMITRANS_FT4_CODE = 0x2F // Unmodulated texture; packet RGB bytes are ignored
+    };
+    WorldTargetNode*             targetNode;
+    GameSession*                 session;
     WorldCoordProjectionScratch* projection;
-    POLY_FT4*                    prim;
-    s32                          easing;
-    s32                          frame;
-    s32                          u;
-    s32                          v;
+    POLY_FT4*                    cursorQuad;
+    s32                          cursorEasing;
+    s32                          cursorFrame;
+    s32                          textureU;
+    s32                          textureV;
 
-    node = gWorldTargetListHead;
+    /// Eases a changed target and marks this pass for the small reticle.
+    ///
+    /// The node and projection arguments must be side-effect-free live pointers;
+    /// the projection holds screen pixels before shake compensation. `easingActive`
+    /// is a distinct writable s32 local initialized to zero. Arguments repeat;
+    /// this macro captures and updates D_80115260, D_80115264, D_8010F9EC and
+    /// D_8010F9F0, using the WORLD_TARGET_CURSOR_ easing constants above.
+    /// Initial acquisition snaps. Changing targets halves displacement for at
+    /// most five passes; convergence still draws small on its final easing pass.
+    /// Expands multiple statements; use only standalone in a braced block.
+#define WORLD_TARGET_EASE_CURSOR(targetNode, projection, easingActive)                                    \
+    if (D_80115260 != (targetNode)) {                                                                     \
+        if (D_80115260 == NULL) {                                                                         \
+            D_80115264 = WORLD_TARGET_CURSOR_EASING_COMPLETE;                                             \
+        } else {                                                                                          \
+            D_80115264 = 0;                                                                               \
+        }                                                                                                 \
+        D_80115260 = (targetNode);                                                                        \
+    }                                                                                                     \
+    if (D_80115264 < WORLD_TARGET_CURSOR_EASING_PASSES) {                                                 \
+        D_8010F9EC += (((projection)->screen.vx << WORLD_TARGET_CURSOR_FRACTION_BITS) - D_8010F9EC) >> 1; \
+        D_8010F9F0 += (((projection)->screen.vy << WORLD_TARGET_CURSOR_FRACTION_BITS) - D_8010F9F0) >> 1; \
+        if ((projection)->screen.vx == (D_8010F9EC >> WORLD_TARGET_CURSOR_FRACTION_BITS) &&               \
+            (projection)->screen.vy == (D_8010F9F0 >> WORLD_TARGET_CURSOR_FRACTION_BITS)) {               \
+            D_80115264 = WORLD_TARGET_CURSOR_EASING_COMPLETE;                                             \
+        } else {                                                                                          \
+            D_80115264++;                                                                                 \
+        }                                                                                                 \
+        (easingActive)          = 1;                                                                      \
+        (projection)->screen.vx = D_8010F9EC >> WORLD_TARGET_CURSOR_FRACTION_BITS;                        \
+        (projection)->screen.vy = D_8010F9F0 >> WORLD_TARGET_CURSOR_FRACTION_BITS;                        \
+    } else {                                                                                              \
+        D_8010F9EC = (projection)->screen.vx << WORLD_TARGET_CURSOR_FRACTION_BITS;                        \
+        D_8010F9F0 = (projection)->screen.vy << WORLD_TARGET_CURSOR_FRACTION_BITS;                        \
+    }
+
+    targetNode = gWorldTargetListHead;
     if (Pad_RemapState->hideHud != 0) {
         return;
     }
+    // Readouts keep aging under the cursor-only gates below.
     _worldTargetDrawReadouts();
-    sess = gGameSession;
-    if (sess->sceneUpdatesPaused == 1) {
+    session = gGameSession;
+    if (session->sceneUpdatesPaused == WORLD_TARGET_CURSOR_HIDDEN_PAUSE_STATE) {
         return;
     }
     if (Gp_StateC08.mode == ATTACHMENT_MODE_ARMED || Gp_StateC08.mode == ATTACHMENT_MODE_CAST) {
@@ -235,76 +291,61 @@ void Gp_DrawTargetCursor(void)
     if (Gp_StateC08.mode == ATTACHMENT_MODE_WHEEL) {
         return;
     }
-    if (sess->eventState != 0) {
+    if (session->eventState != 0) {
         return;
     }
-    if (sess->hideHud != 0) {
+    if (session->hideHud != 0) {
         return;
     }
-    for (; node != NULL; node = node->next) {
-        if (node->state.parts.targeted != 0 && !(node->state.parts.flags & WORLD_TARGET_NOT_LOCKABLE)) {
-            easing               = 0;
+    for (; targetNode != NULL; targetNode = targetNode->next) {
+        if (targetNode->state.parts.targeted != 0 && !(targetNode->state.parts.flags & WORLD_TARGET_NOT_LOCKABLE)) {
+            // Project the first marked, lockable enemy's local body point.
+            cursorEasing         = 0;
             projection           = SCRATCH_STACK_RESERVE_BLOCK(WorldCoordProjectionScratch);
-            projection->point.vx = GP_NODE_ENEMY(node)->bodyPos.vx;
-            projection->point.vy = GP_NODE_ENEMY(node)->bodyPos.vy;
-            projection->point.vz = GP_NODE_ENEMY(node)->bodyPos.vz;
-            actorRenderComposeCoord(GP_NODE_ENEMY(node)->coord);
-            gte_SetRotMatrix(&GP_NODE_ENEMY(node)->coord->workm);
-            gte_SetTransMatrix(&GP_NODE_ENEMY(node)->coord->workm);
+            projection->point.vx = GP_NODE_ENEMY(targetNode)->bodyPos.vx;
+            projection->point.vy = GP_NODE_ENEMY(targetNode)->bodyPos.vy;
+            projection->point.vz = GP_NODE_ENEMY(targetNode)->bodyPos.vz;
+            actorRenderComposeCoord(GP_NODE_ENEMY(targetNode)->coord);
+            gte_SetRotMatrix(&GP_NODE_ENEMY(targetNode)->coord->workm);
+            gte_SetTransMatrix(&GP_NODE_ENEMY(targetNode)->coord->workm);
             gte_RotTransPers(&projection->point, &projection->screen, &projection->depthCue,
                              &projection->projectionFlags, &projection->orderingDepth);
-            if (D_80115260 != node) {
-                if (D_80115260 == NULL) {
-                    D_80115264 = 0xFF;
-                } else {
-                    D_80115264 = 0;
-                }
-                D_80115260 = node;
-            }
-            if (D_80115264 < 5) {
-                D_8010F9EC += ((projection->screen.vx << 8) - D_8010F9EC) >> 1;
-                D_8010F9F0 += ((projection->screen.vy << 8) - D_8010F9F0) >> 1;
-                if (projection->screen.vx == (D_8010F9EC >> 8) && projection->screen.vy == (D_8010F9F0 >> 8)) {
-                    D_80115264 = 0xFF;
-                } else {
-                    D_80115264++;
-                }
-                easing                = 1;
-                projection->screen.vx = D_8010F9EC >> 8;
-                projection->screen.vy = D_8010F9F0 >> 8;
-            } else {
-                D_8010F9EC = projection->screen.vx << 8;
-                D_8010F9F0 = projection->screen.vy << 8;
-            }
-            // Convert the eased projection to the cursor's display coordinates.
+            WORLD_TARGET_EASE_CURSOR(targetNode, projection, cursorEasing);
+#undef WORLD_TARGET_EASE_CURSOR
+            // Remove screen shake after easing; draw the eight-cell cursor animation.
             projection->screen.vy -= gDisplayState.vramYOffset;
-            frame                  = gDisplayState.animFrame % 24 / 3;
-            prim                   = gGpuPrimCursor;
-            gGpuPrimCursor         = prim + 1;
-            if (easing == 1) {
-                prim->x0 = prim->x2 = projection->screen.vx - 8;
-                prim->x1 = prim->x3 = projection->screen.vx + 8;
-                prim->y0 = prim->y1 = projection->screen.vy - 8;
-                prim->y2 = prim->y3 = projection->screen.vy + 8;
+            cursorFrame            = gDisplayState.animFrame % (WORLD_TARGET_CURSOR_FRAME_COUNT * WORLD_TARGET_CURSOR_TICKS_PER_FRAME) /
+                          WORLD_TARGET_CURSOR_TICKS_PER_FRAME;
+            cursorQuad     = gGpuPrimCursor;
+            gGpuPrimCursor = cursorQuad + 1;
+            if (cursorEasing == 1) {
+                cursorQuad->x0 = cursorQuad->x2 = projection->screen.vx - WORLD_TARGET_CURSOR_SMALL_HALF_SIZE;
+                cursorQuad->x1 = cursorQuad->x3 = projection->screen.vx + WORLD_TARGET_CURSOR_SMALL_HALF_SIZE;
+                cursorQuad->y0 = cursorQuad->y1 = projection->screen.vy - WORLD_TARGET_CURSOR_SMALL_HALF_SIZE;
+                cursorQuad->y2 = cursorQuad->y3 = projection->screen.vy + WORLD_TARGET_CURSOR_SMALL_HALF_SIZE;
             } else {
-                prim->x0 = prim->x2 = projection->screen.vx - 0x10;
-                prim->x1 = prim->x3 = projection->screen.vx + 0x10;
-                prim->y0 = prim->y1 = projection->screen.vy - 0x10;
-                prim->y2 = prim->y3 = projection->screen.vy + 0x10;
+                cursorQuad->x0 = cursorQuad->x2 = projection->screen.vx - WORLD_TARGET_CURSOR_FULL_HALF_SIZE;
+                cursorQuad->x1 = cursorQuad->x3 = projection->screen.vx + WORLD_TARGET_CURSOR_FULL_HALF_SIZE;
+                cursorQuad->y0 = cursorQuad->y1 = projection->screen.vy - WORLD_TARGET_CURSOR_FULL_HALF_SIZE;
+                cursorQuad->y2 = cursorQuad->y3 = projection->screen.vy + WORLD_TARGET_CURSOR_FULL_HALF_SIZE;
             }
-            u = (frame & 3) << 5;
-            v = (frame >> 2) << 5;
-            setUV4(prim, u + 0x40, v, u + 0x60, v, u + 0x40, v + 0x20, u + 0x60, v + 0x20);
-            prim->clut  = 0x3C81;
-            prim->tpage = 0x3E;
-            setlen(prim, 9);
-            setcode(prim, 0x2F);
-            addPrim(gGpuCurrentOt, prim);
+            textureU = (cursorFrame & ((1 << WORLD_TARGET_CURSOR_COLUMN_SHIFT) - 1)) << WORLD_TARGET_CURSOR_CELL_SHIFT;
+            textureV = (cursorFrame >> WORLD_TARGET_CURSOR_COLUMN_SHIFT) << WORLD_TARGET_CURSOR_CELL_SHIFT;
+            setUV4(cursorQuad, textureU + WORLD_TARGET_CURSOR_TEXTURE_BASE_U, textureV,
+                   textureU + WORLD_TARGET_CURSOR_TEXTURE_BASE_U + (1 << WORLD_TARGET_CURSOR_CELL_SHIFT), textureV,
+                   textureU + WORLD_TARGET_CURSOR_TEXTURE_BASE_U, textureV + (1 << WORLD_TARGET_CURSOR_CELL_SHIFT),
+                   textureU + WORLD_TARGET_CURSOR_TEXTURE_BASE_U + (1 << WORLD_TARGET_CURSOR_CELL_SHIFT), textureV + (1 << WORLD_TARGET_CURSOR_CELL_SHIFT));
+            cursorQuad->clut  = getClut(WORLD_TARGET_CURSOR_CLUT_X, WORLD_TARGET_CURSOR_CLUT_Y);
+            cursorQuad->tpage = getTPage(WORLD_TARGET_CURSOR_TEXTURE_MODE_4BIT, GPU_BLEND_ADD,
+                                         WORLD_TARGET_CURSOR_TEXTURE_PAGE_X, WORLD_TARGET_CURSOR_TEXTURE_PAGE_Y);
+            setlen(cursorQuad, (sizeof(*cursorQuad) - sizeof(cursorQuad->tag)) / sizeof(u_long));
+            setcode(cursorQuad, WORLD_TARGET_CURSOR_RAW_SEMITRANS_FT4_CODE);
+            addPrim(gGpuCurrentOt, cursorQuad);
             SCRATCH_STACK_RELEASE_BLOCK(WorldCoordProjectionScratch);
             break;
         }
     }
-    if (node == NULL) {
+    if (targetNode == NULL) {
         D_80115260 = NULL;
         D_80115264 = 0;
     }
