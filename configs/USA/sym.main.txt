@@ -993,7 +993,7 @@ _mcMenuYesRow               = 0x80036D98; // type:func
 _mcMenuOkRow               = 0x80036E78; // type:func
 _mcMenuCancelRow               = 0x80036F18; // type:func
 _mcMenuNoRow               = 0x80036FB8; // type:func
-McMenu_InitByMode               = 0x80037068; // type:func
+_mcMenuUpdatePromptChoices               = 0x80037068; // type:func
 
 //--------------------------------------------------------------------
 //--- PA: 0x27964   VA: 0x80037164   subsegment: o, libc2/rand

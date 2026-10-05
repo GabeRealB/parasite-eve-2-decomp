@@ -15014,7 +15014,7 @@ done:
 
 `if (mode >= 3) goto default` is what emits the `slti` / `beqz` pair; do not
 collapse the two default entries into one `else` if that reorders blocks.
-`McMenu_InitByMode` is the pure example (menu pointer select among three
+`_mcMenuUpdatePromptChoices` is the pure example (menu pointer select among three
 `UiList` data objects).
 
 ## Table index: `offset = 0` then `if (hi) offset = hi << 1`

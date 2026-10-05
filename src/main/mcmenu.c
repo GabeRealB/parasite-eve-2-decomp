@@ -45,7 +45,7 @@ static void _mcMenuCancelRow(UiList* list, UiObject* object);
 
 static void _mcMenuNoRow(UiList* list, UiObject* object);
 
-static void McMenu_InitByMode(Task* task);
+static void _mcMenuUpdatePromptChoices(Task* owningTask);
 
 static const char McText_Select[]      = "Select";
 const char        McText_Time[]        = "TIME";
@@ -66,7 +66,7 @@ static UiList            Mc_OkList           = { Mc_OkCallbacks, 1, 1, 0, 0x0F }
 static UiListRowCallback Mc_YesCallbacks[]   = { _mcMenuCancelRow };
 static UiList            Mc_YesList          = { Mc_YesCallbacks, 1, 1, 0, 0x0F };
 UiObjectDesc             Mc_PromptDesc[]     = {
-    { 0, { 0, 0, 0x4B, 0x20 }, 0x10, 0, TASK_BODY_NONE, 0xC0, McMenu_InitByMode, 0 },
+    { 0, { 0, 0, 0x4B, 0x20 }, 0x10, 0, TASK_BODY_NONE, 0xC0, _mcMenuUpdatePromptChoices, 0 },
 };
 
 void taskNoopBank0Slot12(Task* unusedTask)
@@ -279,43 +279,72 @@ static void _mcMenuNoRow(UiList* list, UiObject* object)
     }
 }
 
-static void McMenu_InitByMode(Task* task)
+/// Fits and vertically centers a prompt's choices, then seeds its selection.
+///
+/// Borrows the owning task, its live UI object and the selected shared list.
+/// Fitting clears navigation state and applies the saved cursor preference;
+/// the prompt mode then determines the initial row independently of that setting.
+static inline void _mcMenuInitPromptChoices(Task* owningTask, UiObject* promptObject, UiList* choiceList)
 {
-    UiPanel* obj;
-    UiList*  menu;
-    s32      mode;
+    enum { MEMORY_CARD_MENU_PROMPT_NO_ROW = 1 };
 
-    mode = task->spawnArg1.value;
-    obj  = task->spawnArg2.pointer;
-    if (mode == 2) {
-        goto block_2;
-    }
-    if (mode >= 3) {
-        goto block_default;
-    }
-    if (mode != 1) {
-        goto block_default;
-    }
-    menu = &Mc_OkList;
-    goto block_done;
-block_2:
-    menu = &Mc_YesList;
-    goto block_done;
-block_default:
-    menu = &Mc_YesNoList;
-block_done:
-    if (task->state == 0) {
-        uiFitPanelToList(menu, obj);
-        obj->bounds.rect.y -= obj->bounds.rect.h / 2;
-        if (task->spawnArg1.value != 3) {
-            menu->selectedItemIndex = 0;
-        } else {
-            menu->selectedItemIndex = 1;
-        }
-        menu->firstVisibleItemIndex.unsignedValue = 0;
-        uiSetListSystemCursorSound(menu, 1);
-        task->state += 1;
+    uiFitPanelToList(choiceList, &promptObject->panel);
+    promptObject->panel.bounds.rect.y -= promptObject->panel.bounds.rect.h / 2;
+    if (owningTask->spawnArg1.value != MEMORY_CARD_MENU_PROMPT_YES_NO_INITIAL_NO) {
+        choiceList->selectedItemIndex = 0;
     } else {
-        uiUpdateList(menu, obj);
+        choiceList->selectedItemIndex = MEMORY_CARD_MENU_PROMPT_NO_ROW;
+    }
+    choiceList->firstVisibleItemIndex.unsignedValue = 0;
+    uiSetListSystemCursorSound(choiceList, 1);
+}
+
+/// Initializes and updates the choices of a memory-card prompt.
+///
+/// `owningTask` owns the live `UiObject` in its second spawn argument. Its first
+/// argument must retain its `MEMORY_CARD_MENU_PROMPT_*` layout: OK, Cancel or Yes/No,
+/// with mode 3 initially selecting No. Other values initially select Yes.
+/// State zero fits the rows and centers the panel vertically in signed pixels;
+/// later calls draw and handle controller-port-zero input through `uiUpdateList`.
+///
+/// The three lists are shared mutable state: prompts using the same layout must
+/// run sequentially. The UI lifecycle supplies panel layout and drawing resources
+/// and suspends input during animation. Row callbacks publish the answer on the
+/// object; the parent closes it. This callback retains no additional allocation.
+static void _mcMenuUpdatePromptChoices(Task* owningTask)
+{
+    enum {
+        MEMORY_CARD_MENU_PROMPT_INITIAL = 0,
+        MEMORY_CARD_MENU_PROMPT_READY   = 1
+    };
+    UiObject* promptObject;
+    UiList*   choiceList;
+    s32       promptMode;
+
+    promptMode   = owningTask->spawnArg1.value;
+    promptObject = owningTask->spawnArg2.pointer;
+    if (promptMode == MEMORY_CARD_MENU_PROMPT_CANCEL) {
+        goto cancelChoices;
+    }
+    if (promptMode >= MEMORY_CARD_MENU_PROMPT_YES_NO_INITIAL_NO) {
+        goto yesNoChoices;
+    }
+    if (promptMode != MEMORY_CARD_MENU_PROMPT_OK) {
+        goto yesNoChoices;
+    }
+    choiceList = &Mc_OkList;
+    goto choicesSelected;
+cancelChoices:
+    choiceList = &Mc_YesList;
+    goto choicesSelected;
+yesNoChoices:
+    choiceList = &Mc_YesNoList;
+choicesSelected:
+    if (owningTask->state == MEMORY_CARD_MENU_PROMPT_INITIAL) {
+        // Override the saved cursor preference only after fitting the viewport.
+        _mcMenuInitPromptChoices(owningTask, promptObject, choiceList);
+        owningTask->state += MEMORY_CARD_MENU_PROMPT_READY - MEMORY_CARD_MENU_PROMPT_INITIAL;
+    } else {
+        uiUpdateList(choiceList, &promptObject->panel);
     }
 }

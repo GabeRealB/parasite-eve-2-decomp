@@ -946,7 +946,7 @@ static s32 Mc_PromptDialog(Task* task, s32 arg1, s32 unused3)
     if (child == NULL) {
         UiObject* spawned;
 
-        spawned = uiSpawnObject(Mc_PromptDesc, 1, 1, 2, obj);
+        spawned = uiSpawnObject(Mc_PromptDesc, MEMORY_CARD_MENU_PROMPT_OK, 1, 2, obj);
         if (spawned != NULL) {
             spawned->panel.bounds.unsignedRect.x = (obj->panel.contentOriginX.unsignedValue + obj->panel.contentRight.unsignedValue + 5) - spawned->panel.bounds.unsignedRect.w;
             spawned->panel.bounds.unsignedRect.y = obj->panel.contentOriginY.unsignedValue + obj->panel.contentBottom.unsignedValue + 8;
@@ -977,7 +977,7 @@ static s32 Mc_PromptDialogChoice(Task* task, s32 arg1, s32 unused3)
     if (child == NULL) {
         UiObject* spawned;
 
-        spawned = uiSpawnObject(Mc_PromptDesc, 0, 1, 2, obj);
+        spawned = uiSpawnObject(Mc_PromptDesc, MEMORY_CARD_MENU_PROMPT_YES_NO, 1, 2, obj);
         if (spawned != NULL) {
             spawned->panel.bounds.unsignedRect.x = (obj->panel.contentOriginX.unsignedValue + obj->panel.contentRight.unsignedValue + 5) - spawned->panel.bounds.unsignedRect.w;
             spawned->panel.bounds.unsignedRect.y = obj->panel.contentOriginY.unsignedValue + obj->panel.contentBottom.unsignedValue + 0x10;
@@ -1008,7 +1008,7 @@ static s32 Mc_PromptDialogSpawn(Task* task, s32 arg1, s32 unused3)
     if (child == NULL) {
         UiObject* spawned;
 
-        spawned = uiSpawnObject(Mc_PromptDesc, 3, 1, 2, obj);
+        spawned = uiSpawnObject(Mc_PromptDesc, MEMORY_CARD_MENU_PROMPT_YES_NO_INITIAL_NO, 1, 2, obj);
         if (spawned != NULL) {
             spawned->panel.bounds.unsignedRect.x = (obj->panel.contentOriginX.unsignedValue + obj->panel.contentRight.unsignedValue + 5) - spawned->panel.bounds.unsignedRect.w;
             spawned->panel.bounds.unsignedRect.y = obj->panel.contentOriginY.unsignedValue + obj->panel.contentBottom.unsignedValue + 0x10;
@@ -1039,7 +1039,7 @@ static s32 Mc_PromptDialogFile(Task* task, s32 arg1, s32 unused3)
     if (child == NULL) {
         UiObject* spawned;
 
-        spawned = uiSpawnObject(Mc_PromptDesc, 2, 1, 2, obj);
+        spawned = uiSpawnObject(Mc_PromptDesc, MEMORY_CARD_MENU_PROMPT_CANCEL, 1, 2, obj);
         if (spawned != NULL) {
             spawned->panel.bounds.unsignedRect.h = 0x12;
             spawned->panel.bounds.unsignedRect.x = (obj->panel.contentOriginX.unsignedValue + obj->panel.contentRight.unsignedValue + 5) - spawned->panel.bounds.unsignedRect.w;
