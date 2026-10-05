@@ -279,24 +279,38 @@ static void _mcMenuNoRow(UiList* list, UiObject* object)
     }
 }
 
-/// Fits and vertically centers a prompt's choices, then seeds its selection.
+/// Fits a memory-card prompt's choice panel and sets its initial answer row.
 ///
-/// Borrows the owning task, its live UI object and the selected shared list.
-/// Fitting clears navigation state and applies the saved cursor preference;
-/// the prompt mode then determines the initial row independently of that setting.
-static inline void _mcMenuInitPromptChoices(Task* owningTask, UiObject* promptObject, UiList* choiceList)
+/// Call once after laying out the live `promptPanel`. Borrows its task read-only;
+/// `spawnArg1.value` retains the `MEMORY_CARD_MENU_PROMPT_*` layout. `choiceList`
+/// must be the corresponding shared list, with positive pixel rowHeight and no
+/// concurrent prompt using it: two rows (Yes, No), or one row (OK or Cancel).
+/// Only `MEMORY_CARD_MENU_PROMPT_YES_NO_INITIAL_NO` selects No; every other mode
+/// selects the first row. The viewport starts at row zero, overriding saved
+/// cursor mode.
+///
+/// Fitting resets scrolling, flags and row input. The outer Y then moves up by
+/// half the fitted height in signed screen-centered pixels, truncating toward
+/// zero and narrowing to a halfword. The UI lifecycle refreshes content layout
+/// on its next update. Enables the system cursor sound without drawing rows.
+static inline void _mcMenuInitPromptChoices(const Task* owningTask, UiPanel* promptPanel, UiList* choiceList)
 {
-    enum { MEMORY_CARD_MENU_PROMPT_NO_ROW = 1 };
+    enum {
+        MEMORY_CARD_MENU_PROMPT_FIRST_ROW = 0,
+        MEMORY_CARD_MENU_PROMPT_NO_ROW    = 1
+    };
 
-    uiFitPanelToList(choiceList, &promptObject->panel);
-    promptObject->panel.bounds.rect.y -= promptObject->panel.bounds.rect.h / 2;
+    uiFitPanelToList(choiceList, promptPanel);
+    promptPanel->bounds.rect.y -= promptPanel->bounds.rect.h / 2;
+
+    // Seed the answer after fitting so saved cursor mode cannot override it.
     if (owningTask->spawnArg1.value != MEMORY_CARD_MENU_PROMPT_YES_NO_INITIAL_NO) {
-        choiceList->selectedItemIndex = 0;
+        choiceList->selectedItemIndex = MEMORY_CARD_MENU_PROMPT_FIRST_ROW;
     } else {
         choiceList->selectedItemIndex = MEMORY_CARD_MENU_PROMPT_NO_ROW;
     }
-    choiceList->firstVisibleItemIndex.unsignedValue = 0;
-    uiSetListSystemCursorSound(choiceList, 1);
+    choiceList->firstVisibleItemIndex.unsignedValue = MEMORY_CARD_MENU_PROMPT_FIRST_ROW;
+    uiSetListSystemCursorSound(choiceList, true);
 }
 
 /// Initializes and updates the choices of a memory-card prompt.
@@ -342,7 +356,7 @@ yesNoChoices:
 choicesSelected:
     if (owningTask->state == MEMORY_CARD_MENU_PROMPT_INITIAL) {
         // Override the saved cursor preference only after fitting the viewport.
-        _mcMenuInitPromptChoices(owningTask, promptObject, choiceList);
+        _mcMenuInitPromptChoices(owningTask, &promptObject->panel, choiceList);
         owningTask->state += MEMORY_CARD_MENU_PROMPT_READY - MEMORY_CARD_MENU_PROMPT_INITIAL;
     } else {
         uiUpdateList(choiceList, &promptObject->panel);
