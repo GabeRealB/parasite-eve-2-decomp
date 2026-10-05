@@ -15789,7 +15789,7 @@ example (pad for `jtbl_80012FCC` / `CdCmd_EnqueueFollowUp`).
 
 ## Hex digit loop: `asm("")` after the raw-digit store
 
-Unsigned hex itoa (`Text_ItoaHex`) stores the raw nibble then overwrites it
+Unsigned hex itoa (`_textItoaHex`) stores the raw nibble then overwrites it
 with ASCII. With `-fschedule-insns2`, GCC freely moves the first `sb` after
 `andi`/`mult` (starting the mult early). The target keeps:
 
@@ -15836,18 +15836,18 @@ asm volatile(
     : "=r"(src), "=r"(hi));
 ```
 
-`Text_ItoaHex` is the pure example. Power-of-two / no-div TUs do not need
+`_textItoaHex` is the pure example. Power-of-two / no-div TUs do not need
 `--expand-div`; this one does (`textdraw.c`).
 
-Signed hex sibling `Text_ItoaHexSigned` reuses the same digit-loop tricks (`asm("")`
+Signed hex sibling `_textItoaHexSigned` reuses the same digit-loop tricks (`asm("")`
 after the raw store, inline-asm zero-path with `D_800138C8`) but:
 
-- Prefixes `'-'` and recurses on `-value` when `arg1 < 0` (return value is the
+- Prefixes `'-'` and recurses on `-value` when `value < 0` (return value is the
   original buffer, held in `$s0`).
 - Uses **signed** place math: `sra` / `slt` / `blez`/`bgtz` instead of
   `srl` / `sltu` / `beqz`/`bnez`, and `div` instead of `divu`.
-- Saves `index` in `$s0`, so `place` can live in `$a0` and `dest` in `$a2`
-  (unsigned keeps `index` in `$a0`, so `place`/`dest` are `$a2`/`$a3`).
+- Saves `buffer` in `$s0`, so `hexPlace` can live in `$a0` and `destination` in `$a2`
+  (unsigned keeps `buffer` in `$a0`, so `hexPlace`/`destination` are `$a2`/`$a3`).
 - Zero-path pins differ: `src` in `$t2`, loads into `$a3`/`$t0`.
 
 ## Unsigned decimal itoa: keep raw digit store via reload-style mask
@@ -15891,22 +15891,22 @@ Clamp overflow with a 10-byte `u8[10]` struct assign of `"999999999"`; zero path
 is a 2-byte `u8[2]` assign of `"0"` — both emit the unaligned lwl/lwr/lb
 sequence without register pins. Needs `--expand-div` (`textdraw.c`).
 
-## Signed decimal itoa: do **not** pin `place`/`dest`/`digit`
+## Signed decimal itoa: do **not** pin `decimalPlace`/`destination`/`digitValue`
 
-Signed sibling `Text_ItoaSigned` (same shape as unsigned `Text_ItoaUnsigned`, plus a
+Signed sibling `textItoaSigned` (same shape as unsigned `Text_ItoaUnsigned`, plus a
 `'-'` / recurse prefix and signed `slt`/`blez`/`div`) needs natural regalloc:
 
-- Start `place` at `0x989680` (10^7); clamp with a 9-byte copy of `"99999999"`.
-- Same digit-loop pattern as unsigned (`temp = *dest & 0xFF`, hoist `cmp` before
-  the zero check, `place > 0` for the digit loop).
+- Start `decimalPlace` at `0x989680` (10^7); clamp with a 9-byte copy of `"99999999"`.
+- Same digit-loop pattern as unsigned (`digitValue = *destination & 0xFF`, hoist `belowLeadingPlace` before
+  the zero check, `decimalPlace > 0` for the digit loop).
 - **Do not** `register ... asm("a2"/"a3"/"v1")`. Pins push the signed `/10`
-  magic (`0x66666667`) into `$v1` and force `sra place, place, 31` instead of
-  the target's `lui a0, magic` / `sra v0, place, 31` / `sra v1, hi, 2` form.
-  Unpinned, GCC picks `$a0` for magic and `$v1` for digit exactly as in the ROM.
-- The empty `if (!index) {}` delay-slot trick is **not** needed once pins are
+  magic (`0x66666667`) into `$v1` and force `sra decimalPlace, decimalPlace, 31` instead of
+  the target's `lui a0, magic` / `sra v0, decimalPlace, 31` / `sra v1, hi, 2` form.
+  Unpinned, GCC picks `$a0` for magic and `$v1` for digitValue exactly as in the ROM.
+- The empty `if (!buffer) {}` delay-slot trick is **not** needed once pins are
   gone — the overflow `beqz` fills with `lui %hi(D_800138BC)` on its own.
 
-`Text_ItoaSigned` is the pure example. Needs `--expand-div` (`textdraw.c`).
+`textItoaSigned` is the pure example. Needs `--expand-div` (`textdraw.c`).
 
 ## Loop-invariant QImode constants: `s8` temp + widen via `s32`
 
@@ -19539,9 +19539,9 @@ if (arg1 >= 0) {
 *arg0 = sign;
 ```
 
-The body is otherwise the signed counterpart of `Text_ItoaSigned` (leading
+The body is otherwise the signed counterpart of `textItoaSigned` (leading
 `+`/`-`, digits written at `index + 1`, negatives hand off to
-`Text_ItoaSigned(index + 2, -value)`). `Text_ItoaSignedPlus` is the pure example.
+`textItoaSigned(buffer + 2, -value)`). `textItoaSignPrefixed` is the pure example.
 
 Note: TUs that need `--expand-div` (e.g. `textdraw.c`) must pass that flag in the
 scratch `build.sh` as well, or local scores omit the `break` checks and look
@@ -32316,7 +32316,7 @@ addiu t4, v1, %lo(gPlayerStatus)
 `cfg = &gPlayerStatus` emits `lui v0` / `addiu t4, v0`. Occupying `$v0`
 with the upcoming `lbu` of a scan field spills other incoming args.
 Pin `cfg` to the dest register and emit the split pair (same form as
-`Text_ItoaHex` / `Fs_CopyWorkEntries`):
+`_textItoaHex` / `Fs_CopyWorkEntries`):
 
 ```c
 register PlayerStatus* cfg asm("t4");
@@ -33838,7 +33838,7 @@ li     v0, 5
 sb     v0, 0x2C(a0)      # req.glyphTable via buf
 sw     v1, 0x28(a0)      # req.colorRgb
 sb     v0, 0x2D(a0)      # req.alignment
-jal    Text_ItoaSigned
+jal    textItoaSigned
  sb    zero, 0x56(sp)    # req.drawMode via $sp
 ```
 
@@ -51611,12 +51611,12 @@ same body.
 ## An arithmetic insn that reads the call-argument register (`addu t0,t0,a1`) wants the statement written *after* the call
 
 A results loop computed `subtotal = kills * points`, printed it with
-`func_8002E53C(&req, Text_ItoaSigned(buf, subtotal))`, and accumulated
+`func_8002E53C(&req, textItoaSigned(buf, subtotal))`, and accumulated
 `total += subtotal`. Everything matched except one operand: the target's add
 read the argument register, ours read the callee-saved home of `subtotal`:
 
 ```
-move  a1,s0             # the Text_ItoaSigned argument copy, hoisted by sched2
+move  a1,s0             # the textItoaSigned argument copy, hoisted by sched2
 ...
 addu  t0,t0,a1          # target: total += <the copy>
 addu  t0,t0,s0          # ours:   total += subtotal
@@ -51642,7 +51642,7 @@ both `jal`s (its pseudos cross calls, so nothing pins it below them), the
 tie-break now puts it after the copy, and local-alloc substitutes `$a1`:
 
 ```c
-func_8002E53C(&req4, Text_ItoaSigned(buf, subtotal));
+func_8002E53C(&req4, textItoaSigned(buf, subtotal));
 total += subtotal;
 y     += 0xB;
 ```
@@ -144729,16 +144729,16 @@ jump2; reorg then steals the join's first insn into that jump's slot and
 retargets it one insn on. Without a default, or with an empty one, the arm
 falls through. Removing the preset instead (setting -1 only in the arms that
 need it) changes allocation throughout.
-### `move v0,aN; jr ra; nop` after a filled early return is one `return` after an if/else (Text_ItoaHex, 2026-09-26)
+### `move v0,aN; jr ra; nop` after a filled early return is one `return` after an if/else (_textItoaHex, 2026-09-26)
 
 Target: the early path ends `jr ra` / `addu v0,a0,zero` in the slot, while the
-final path ends `move v0,a0; jr ra; nop`. Writing `return index;` in both places
-fills both slots; `ret = index; SOFT_TOUCH_REG(ret)` was the carrier. The
-original has a single exit: `if (x == 0) { ...; } else { ...; } return index;`.
+final path ends `move v0,a0; jr ra; nop`. Writing `return buffer;` in both places
+fills both slots; `ret = buffer; SOFT_TOUCH_REG(ret)` was the carrier. The
+original has a single exit: `if (value == 0) { ...; } else { ...; } return buffer;`.
 Jump threading still gives the short arm its own filled `jr`, but the fall-through
 return keeps its move out of the delay slot. In the same body, a digit stored and
-then masked (`sb v0; andi v1,v0,0xFF`) is `*dest = q; digit = *dest;` with a
-`u32 digit` - no barrier between the store and the mask is needed.
+then masked (`sb v0; andi v1,v0,0xFF`) is `*destination = value / hexPlace; digitValue = *destination;` with a
+`u32 digitValue` - no barrier between the store and the mask is needed.
 ## Three matching hacks that were a parameter copy, a narrowed shift and a stolen else-arm (func_8002E53C, 2026-09-26)
 
 - **Prologue moves pushed ahead of the first load** (`SOFT_TOUCH_REG3` after
@@ -146633,10 +146633,10 @@ The same function's `(flags & 0x100) != 0` is folded to `srl 8; andi 1`; the
 target's `andi 0x100; sltu` also comes out of the flag-building spelling
 `f = 0; if (flags & 0x100) f = 1; if (g) f |= 2;`, which reads more naturally
 than the two-step temp in the entry above.
-## A leading barrier before a sibling's whole body is that sibling inlined behind a prefix (Text_ItoaSignedPlus, 2026-09-27)
+## A leading barrier before a sibling's whole body is that sibling inlined behind a prefix (textItoaSignPrefixed, 2026-09-27)
 
-`Text_ItoaSignedPlus` stores a sign byte, then repeats `Text_ItoaSigned`'s
-body at `index + 1` - including its recursive `jal Text_ItoaSigned`. The tree
+`textItoaSignPrefixed` stores a sign byte, then repeats `textItoaSigned`'s
+body at `buffer + 1` - including its recursive `jal textItoaSigned`. The tree
 had the body spelled out with a `SOFT_COMPILER_BARRIER()` in front. Moving the
 body into a `static inline _textItoaSigned` that both public functions call
 matched without it: the inline's own parameters and block are what the barrier

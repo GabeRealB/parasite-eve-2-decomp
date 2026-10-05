@@ -2473,7 +2473,7 @@ void Gp_PeUpgradePanelTask(Task* arg0)
     } else if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.clearCount > 0) {
         cost = (cost * 2) / 5;
     }
-    textDrawUiLine(obj, x + 0x30, y, Text_ItoaSigned(str, cost & 0xFFFF), 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
+    textDrawUiLine(obj, x + 0x30, y, textItoaSigned(str, cost & 0xFFFF), 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
 
     y += 0xF;
 
@@ -2499,7 +2499,7 @@ void Gp_PeUpgradePanelTask(Task* arg0)
     row2     = ((id + 1) & 0x30) >> 4;
     col2     = ((id + 1) & 0xC) >> 2;
     lvl2     = (id + 1) & 3;
-    textDrawUiLine(obj, x + 0x30, y, Text_ItoaSigned(str, Gp_IdParamHi.rows[(row2 * 3 + col2) * 3 + lvl2].value[bonusIdx]),
+    textDrawUiLine(obj, x + 0x30, y, textItoaSigned(str, Gp_IdParamHi.rows[(row2 * 3 + col2) * 3 + lvl2].value[bonusIdx]),
                    0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
 
     if (arg0->firstChild != NULL) {
@@ -2642,7 +2642,7 @@ static void func_800D3660(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4
         loc.req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
         loc.req.alignment  = TEXT_ALIGNMENT_LEFT;
         loc.req.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-        textDrawString(&loc.req, Text_ItoaSigned(loc.buf, prev));
+        textDrawString(&loc.req, textItoaSigned(loc.buf, prev));
         if (prev < val) {
             s32 y;
 
@@ -2688,7 +2688,7 @@ static void func_800D3660(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4
         loc.req2.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
         loc.req2.alignment  = TEXT_ALIGNMENT_LEFT;
         loc.req2.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-        textDrawString(&loc.req2, Text_ItoaSigned(loc.buf, val));
+        textDrawString(&loc.req2, textItoaSigned(loc.buf, val));
     } else {
         if (arg5 == 1) {
             loc.req2.x          = arg0->panel.contentOriginX.unsignedValue + x;
@@ -2699,7 +2699,7 @@ static void func_800D3660(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4
             loc.req2.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
             loc.req2.alignment  = TEXT_ALIGNMENT_LEFT;
             loc.req2.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-            text                = Text_ItoaSignedPlus(loc.buf, val);
+            text                = textItoaSignPrefixed(loc.buf, val);
         } else {
             loc.req2.x          = arg0->panel.contentOriginX.unsignedValue + x;
             textY2              = arg0->panel.contentOriginY.unsignedValue - 6;
@@ -2709,7 +2709,7 @@ static void func_800D3660(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4
             loc.req2.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
             loc.req2.alignment  = TEXT_ALIGNMENT_LEFT;
             loc.req2.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-            text                = Text_ItoaSigned(loc.buf, val);
+            text                = textItoaSigned(loc.buf, val);
         }
         textDrawString(&loc.req2, text);
         if (val > 0) {

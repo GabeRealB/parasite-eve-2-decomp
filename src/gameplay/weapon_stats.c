@@ -268,7 +268,7 @@ void func_800C7DA8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3)
                 valReq.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
                 valReq.alignment  = two;
                 valReq.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-                textDrawString(&valReq, Text_ItoaSignedPlus(buf, *pItem));
+                textDrawString(&valReq, textItoaSignPrefixed(buf, *pItem));
             } else {
                 {
                     s32 vx;
@@ -281,7 +281,7 @@ void func_800C7DA8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3)
                 valReq.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
                 valReq.alignment  = two;
                 valReq.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-                textDrawString(&valReq, Text_ItoaSigned(buf, *pItem));
+                textDrawString(&valReq, textItoaSigned(buf, *pItem));
             }
             y     += 0x18;
             pItem += 1;
@@ -767,7 +767,7 @@ void Gp_DrawRemoveAmmoRow(UiList* prompt, UiObject* obj)
             draw.count.req.glyphTable = TEXT_GLYPH_TABLE_SMALL;
             draw.count.req.alignment  = TEXT_ALIGNMENT_RIGHT;
             draw.count.req.drawMode   = TEXT_DRAW_FILL_ONLY;
-            textDrawString(&draw.count.req, Text_ItoaSigned(draw.count.buf, qty));
+            textDrawString(&draw.count.req, textItoaSigned(draw.count.buf, qty));
             uiDrawRecessedRect(&obj->panel, (x + 0x69), (y - 8), 0x1B, 7,
                                0x102010);
         }

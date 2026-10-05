@@ -347,9 +347,22 @@ void Text_LoadClutImages(void);
 /// commands can switch it to queued drawing during the call.
 void textDrawString(TextDrawReq* request, const u8* text);
 
-u8* Text_ItoaSigned(u8* arg0, s32 arg1);
+/// Writes a signed decimal string, saturating its magnitude at 99,999,999.
+///
+/// Negative values receive one minus sign; zero is "0". `value` must be
+/// -2,147,483,647..2,147,483,647 because the negative path negates it as s32.
+/// `buffer` needs up to ten writable bytes including NUL. Returns `buffer`;
+/// the caller owns it, no pointer is retained and no capacity is checked.
+u8* textItoaSigned(u8* buffer, s32 value);
 
-u8* Text_ItoaSignedPlus(u8* arg0, s32 arg1);
+/// Prepends a sign byte to a saturated signed decimal string.
+///
+/// Nonnegative values produce "+0", "+1", etc. Negative values keep the
+/// decimal formatter's minus as well as the prefix: -1 produces "--1".
+/// Magnitudes above 99,999,999 saturate. `value` has `textItoaSigned`'s range;
+/// `buffer` needs up to eleven writable bytes including NUL. Returns `buffer`
+/// without retaining it; the caller owns it and no capacity is checked.
+u8* textItoaSignPrefixed(u8* buffer, s32 value);
 
 u8* Text_ItoaUnsigned(u8* arg0, u32 arg1);
 

@@ -400,7 +400,7 @@ void func_800A087C(Task* arg0)
         req7.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
         req7.alignment  = TEXT_ALIGNMENT_RIGHT;
         req7.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-        textDrawString(&req7, Text_ItoaSigned(buf, D_80114BDC));
+        textDrawString(&req7, textItoaSigned(buf, D_80114BDC));
     } else {
         req7.x          = obj->panel.contentOriginX.unsignedValue + col;
         req7.y          = obj->panel.contentOriginY.unsignedValue + y;

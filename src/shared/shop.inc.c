@@ -1060,7 +1060,7 @@ static void Shop_PreviewTask(Task* task)
         textDrawString(&req, Shop_Data_80181AC4);
         count = 0;
         count = Shop_AddItemCount(item, count);
-        textDrawUiLine(obj, obj->panel.contentRight.signedValue - 2, y + 0xA, Text_ItoaSigned(buf, count), 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED,
+        textDrawUiLine(obj, obj->panel.contentRight.signedValue - 2, y + 0xA, textItoaSigned(buf, count), 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED,
                        TEXT_ALIGNMENT_RIGHT);
     }
 }
@@ -1137,7 +1137,7 @@ static void Shop_QuantityTask(Task* task)
 
     count = task->extraState.value;
     textDrawUiLine(obj, left + 0x98, y, Shop_Data_80181AD0, 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
-    textDrawUiLine(obj, -x, y, Text_ItoaSigned(buf, count), 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
+    textDrawUiLine(obj, -x, y, textItoaSigned(buf, count), 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
     uiDrawHorizontalSeparator(&(obj)->panel, left, -x + 2, top + 0x12);
 
     req.x          = obj->panel.contentOriginX.unsignedValue - x;
@@ -1150,7 +1150,7 @@ static void Shop_QuantityTask(Task* task)
     req.drawMode   = TEXT_DRAW_OUTLINED;
     textDrawString(&req, Shop_Data_8017D6D8);
 
-    textDrawUiLine(obj, -x, top + 0x2B, Text_ItoaSigned(buf, count * price), 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
+    textDrawUiLine(obj, -x, top + 0x2B, textItoaSigned(buf, count * price), 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
 
     if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         parentObj = task->parent->spawnArg2.pointer;

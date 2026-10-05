@@ -594,7 +594,7 @@ void func_replay_bonus_801166AC(Task* arg0)
         value = D_replay_bonus_80119274.nextExp;
     }
     negX = -xOff;
-    textDrawUiLine(obj, negX, -2, Text_ItoaSigned(buf, value), color, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
+    textDrawUiLine(obj, negX, -2, textItoaSigned(buf, value), color, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
     req2.x          = obj->panel.contentOriginX.unsignedValue + xOff;
     req2.y          = obj->panel.contentOriginY.unsignedValue + 0xB;
     ot2             = obj->panel.otIndex.signedValue;
@@ -608,7 +608,7 @@ void func_replay_bonus_801166AC(Task* arg0)
     if (arg0->spawnArg1.value == 1) {
         value = D_replay_bonus_80119274.nextBp;
     }
-    textDrawUiLine(obj, negX, 0x11, Text_ItoaSigned(buf, value), color, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
+    textDrawUiLine(obj, negX, 0x11, textItoaSigned(buf, value), color, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
     if (arg0->state == 1) {
         remaining           = (u16)arg0->killCountdown - 1;
         arg0->killCountdown = remaining;
@@ -792,7 +792,7 @@ void func_replay_bonus_80116D68(Task* arg0)
     req.drawMode   = TEXT_DRAW_OUTLINED;
     req.otIndex    = ot + 1;
     textDrawString(&req, D_replay_bonus_801157C8);
-    textDrawUiLine(obj, -xOff, 6, Text_ItoaSigned(buf, bonus), color, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
+    textDrawUiLine(obj, -xOff, 6, textItoaSigned(buf, bonus), color, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
     remaining           = (u16)arg0->killCountdown - 1;
     arg0->killCountdown = remaining;
     if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {

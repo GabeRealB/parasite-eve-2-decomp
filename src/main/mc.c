@@ -1172,7 +1172,7 @@ static void Mc_BuildSaveTitle(McWork* work)
     Mc_DefaultChecksumSrc[0x42]                         = 0;
     title                                               = (u16*)Mc_CopyTitleBytes(Mc_LocationTitleLabels[(s8)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.savePoint], (u8*)title);
     title                                               = Mc_EncodeTitleLiteral("(", title);
-    title                                               = Mc_EncodeTitleText((s8*)Text_ItoaSigned(buffer, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.saveNumber), title);
+    title                                               = Mc_EncodeTitleText((s8*)textItoaSigned(buffer, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.saveNumber), title);
     title                                               = Mc_EncodeTitleLiteral((s8*)McText_CloseParen, title);
     *title                                              = 0;
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.saveCount == 0xFF) {
@@ -2533,7 +2533,7 @@ void Mc_DrawSlotDetails(UiObject* object, McWork* work, s32 slot, s32 arg3, s32 
         textDrawUiLine(object, x, y, Mc_LocationLabels[(s8)save->savePoint], color, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
         sp60.buf[0] = 0;
         textAppendString(sp60.buf, McText_OpenParen);
-        textAppendString(sp60.buf, Text_ItoaSigned(sp20.buf, save->saveNumber));
+        textAppendString(sp60.buf, textItoaSigned(sp20.buf, save->saveNumber));
         textAppendString(sp60.buf, McText_CloseParen);
         detailRequest.x          = object->panel.contentOriginX.unsignedValue + (x + textMeasureLineWidth(Mc_LocationLabels[(s8)save->savePoint]));
         detailRequest.y          = object->panel.contentOriginY.unsignedValue + (y - 3);
@@ -2563,7 +2563,7 @@ void Mc_DrawSlotDetails(UiObject* object, McWork* work, s32 slot, s32 arg3, s32 
             statRequest.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
             statRequest.alignment  = TEXT_ALIGNMENT_LEFT;
             statRequest.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-            textDrawString(&statRequest, Text_ItoaSigned(sp20.buf, save->playerExp));
+            textDrawString(&statRequest, textItoaSigned(sp20.buf, save->playerExp));
         } else {
             statRequest.x          = object->panel.contentOriginX.unsignedValue + x;
             statRequest.y          = object->panel.contentOriginY.unsignedValue + y;
@@ -2591,7 +2591,7 @@ void Mc_DrawSlotDetails(UiObject* object, McWork* work, s32 slot, s32 arg3, s32 
             bpValueRequest.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
             bpValueRequest.alignment  = TEXT_ALIGNMENT_LEFT;
             bpValueRequest.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-            textDrawString(&bpValueRequest, Text_ItoaSigned(sp20.buf, save->playerBp));
+            textDrawString(&bpValueRequest, textItoaSigned(sp20.buf, save->playerBp));
         } else {
             bpValueRequest.x          = object->panel.contentOriginX.unsignedValue + 0x1E + x;
             bpValueRequest.y          = object->panel.contentOriginY.unsignedValue + y;

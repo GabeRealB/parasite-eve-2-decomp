@@ -156,15 +156,13 @@ static s32 _textMeasureLineWidth(const TextDrawReq* request, const u8* text, con
 /// digits are written as all nines.
 static inline u8* _textItoaUnsigned(u8* arg0, u32 value);
 
-/// Writes `arg1` in decimal to `arg0`, with a leading '-' when negative, and
-/// terminates it; values past nine digits are written as all nines.
-static inline u8* _textItoaSigned(u8* arg0, s32 arg1);
+static inline u8* _textItoaSigned(u8* buffer, s32 value);
 
 static inline u8* _textItoaPadded(u8* buffer, u32 value, s32 digitCount);
 
-static u8* Text_ItoaHexSigned(u8* arg0, s32 arg1);
+static u8* _textItoaHexSigned(u8* buffer, s32 value);
 
-static u8* Text_ItoaHex(u8* arg0, u32 arg1);
+static u8* _textItoaHex(u8* buffer, u32 value);
 
 static void _textDrawGlyphImmediate(TextDrawReq* request, const _FontGlyph* glyph, s32 colorRgb);
 
@@ -963,58 +961,69 @@ static inline u8* _textItoaUnsigned(u8* arg0, u32 value)
     return arg0;
 }
 
-/// Writes `arg1` in decimal to `arg0`, with a leading '-' when negative, and
-/// terminates it; values past nine digits are written as all nines.
-static inline u8* _textItoaSigned(u8* arg0, s32 arg1)
+/// Writes the saturated signed decimal bytes shared by the public formatters.
+///
+/// Magnitudes above 99,999,999 become eight nines; negatives receive '-'.
+/// `value` must exclude the s32 minimum because it is negated before recursion.
+/// `buffer` supplies up to ten writable bytes including NUL and is returned
+/// without being retained. No allocation or capacity check is performed.
+static inline u8* _textItoaSigned(u8* buffer, s32 value)
 {
-    typedef struct {
-        u8 data[9];
-    } Bytes9;
-    typedef struct {
-        u8 data[2];
-    } Bytes2;
+    enum { TEXT_SIGNED_DECIMAL_MAX = 99999999 };
 
-    u8* dest;
-    s32 place;
-    s32 digit;
-    s32 temp;
-    s32 cmp;
+    u8* destination;
+    s32 decimalPlace;
+    s32 belowLeadingPlace;
 
-    place = 0x989680;
-    if (arg1 < 0) {
-        *arg0 = 0x2D;
-        Text_ItoaSigned(arg0 + 1, -arg1);
-        return arg0;
+    /// Writes one decimal digit, advances its place and consumes its value.
+    ///
+    /// Arguments must be distinct simple lvalues, with no side effects: they
+    /// are evaluated repeatedly. The nonzero place must give a quotient 0..9.
+#define TEXT_STEP_SIGNED_DECIMAL_DIGIT(destination, decimalPlace, value) \
+    do {                                                                 \
+        s32 quotient;                                                    \
+        s32 digitValue;                                                  \
+        s32 consumedValue;                                               \
+        quotient        = (value) / (decimalPlace);                      \
+        *(destination)  = quotient;                                      \
+        digitValue      = *(destination) & 0xFF;                         \
+        consumedValue   = digitValue * (decimalPlace);                   \
+        (decimalPlace) /= 10;                                            \
+        *(destination)  = digitValue + '0';                              \
+        (destination)++;                                                 \
+        (value) -= consumedValue;                                        \
+    } while (0)
+
+    decimalPlace = 10000000;
+    if (value < 0) {
+        *buffer = '-';
+        textItoaSigned(buffer + 1, -value);
+        return buffer;
     }
-    if (arg1 > 0x5F5E0FF) {
-        *(Bytes9*)arg0 = *(Bytes9*)Text_MaxEightDigits;
-        return arg0;
+    if (value > TEXT_SIGNED_DECIMAL_MAX) {
+        __builtin_memcpy(buffer, Text_MaxEightDigits, sizeof("99999999"));
+        return buffer;
     }
-    cmp = arg1 < place;
-    if (arg1 == 0) {
-        *(Bytes2*)arg0 = *(Bytes2*)Text_ZeroDigit;
-        return arg0;
+    belowLeadingPlace = value < decimalPlace;
+    if (value == 0) {
+        __builtin_memcpy(buffer, Text_ZeroDigit, sizeof("0"));
+        return buffer;
     }
-    dest = arg0;
-    if (cmp) {
+    // Skip leading zero places, then consume the remaining decimal digits.
+    destination = buffer;
+    if (belowLeadingPlace) {
         do {
-            place /= 10;
-        } while (arg1 < place);
+            decimalPlace /= 10;
+        } while (value < decimalPlace);
     }
-    if (place > 0) {
+    if (decimalPlace > 0) {
         do {
-            digit  = arg1 / place;
-            *dest  = digit;
-            temp   = *dest & 0xFF;
-            digit  = temp * place;
-            place /= 10;
-            *dest  = temp + 0x30;
-            dest++;
-            arg1 -= digit;
-        } while (place > 0);
+            TEXT_STEP_SIGNED_DECIMAL_DIGIT(destination, decimalPlace, value);
+        } while (decimalPlace > 0);
     }
-    *dest = 0;
-    return arg0;
+#undef TEXT_STEP_SIGNED_DECIMAL_DIGIT
+    *destination = '\0';
+    return buffer;
 }
 
 /// Writes a saturated unsigned decimal value in exactly `digitCount` digits.
@@ -1111,16 +1120,17 @@ void textAlignLine(TextDrawReq* request, const u8* text)
     }
 }
 
-u8* Text_ItoaSignedPlus(u8* arg0, s32 arg1)
+u8* textItoaSignPrefixed(u8* buffer, s32 value)
 {
-    *arg0 = arg1 >= 0 ? '+' : '-';
-    _textItoaSigned(arg0 + 1, arg1);
-    return arg0;
+    *buffer = value >= 0 ? '+' : '-';
+    // Pass the signed value through, retaining its own minus after the prefix.
+    _textItoaSigned(buffer + 1, value);
+    return buffer;
 }
 
-u8* Text_ItoaSigned(u8* arg0, s32 arg1)
+u8* textItoaSigned(u8* buffer, s32 value)
 {
-    return _textItoaSigned(arg0, arg1);
+    return _textItoaSigned(buffer, value);
 }
 
 u8* Text_ItoaUnsigned(u8* arg0, u32 arg1)
@@ -1128,92 +1138,98 @@ u8* Text_ItoaUnsigned(u8* arg0, u32 arg1)
     return _textItoaUnsigned(arg0, arg1);
 }
 
-static u8* Text_ItoaHexSigned(u8* arg0, s32 arg1)
+/// Writes signed-magnitude uppercase hexadecimal without a radix prefix.
+///
+/// Zero is "0" and negatives receive '-'. `value` must exclude the s32
+/// minimum because recursion negates it as s32. `buffer` supplies up to ten
+/// writable bytes including NUL and is returned without being retained.
+/// The caller owns the buffer; no allocation or capacity check is performed.
+static u8* _textItoaHexSigned(u8* buffer, s32 value)
 {
-    typedef struct {
-        u8 data[2];
-    } Bytes2;
+    u8* destination;
+    s32 hexPlace;
+    s32 quotient;
+    s32 digitValue;
+    s32 consumedValue;
+    s32 belowLeadingPlace;
 
-    u8* dest;
-    s32 place;
-    s32 digit;
-    s32 temp;
-    s32 cmp;
-
-    place = 0x10000000;
-    if (arg1 < 0) {
-        *arg0 = 0x2D;
-        Text_ItoaHexSigned(arg0 + 1, -arg1);
-        return arg0;
+    hexPlace = 0x10000000;
+    if (value < 0) {
+        *buffer = '-';
+        _textItoaHexSigned(buffer + 1, -value);
+        return buffer;
     }
-    cmp = arg1 < place;
-    if (arg1 == 0) {
-        *(Bytes2*)arg0 = *(Bytes2*)Text_ZeroDigit;
-        return arg0;
+    belowLeadingPlace = value < hexPlace;
+    if (value == 0) {
+        __builtin_memcpy(buffer, Text_ZeroDigit, sizeof("0"));
+        return buffer;
     }
-    dest = arg0;
-    if (cmp) {
+    // Skip leading zero nibbles, then consume the magnitude in base sixteen.
+    destination = buffer;
+    if (belowLeadingPlace) {
         do {
-            place >>= 4;
-        } while (arg1 < place);
+            hexPlace >>= 4;
+        } while (value < hexPlace);
     }
-    if (place > 0) {
+    if (hexPlace > 0) {
         do {
-            digit   = arg1 / place;
-            *dest   = digit;
-            temp    = *dest & 0xFF;
-            digit   = temp * place;
-            place >>= 4;
-            arg1   -= digit;
-            if (temp >= 10U) {
-                *dest = temp + 0x37;
+            quotient      = value / hexPlace;
+            *destination  = quotient;
+            digitValue    = *destination & 0xFF;
+            consumedValue = digitValue * hexPlace;
+            hexPlace    >>= 4;
+            value        -= consumedValue;
+            if (digitValue >= 10U) {
+                *destination = digitValue + ('A' - 10);
             } else {
-                *dest = temp + 0x30;
+                *destination = digitValue + '0';
             }
-            dest++;
-        } while (place > 0);
+            destination++;
+        } while (hexPlace > 0);
     }
-    *dest = 0;
-    return arg0;
+    *destination = '\0';
+    return buffer;
 }
 
-static u8* Text_ItoaHex(u8* arg0, u32 arg1)
+/// Writes unsigned uppercase hexadecimal without leading zeros or a radix prefix.
+///
+/// Accepts every u32 value, including zero as "0". `buffer` supplies up to
+/// nine writable bytes including NUL and is returned without being retained.
+/// The caller owns the buffer; no allocation or capacity check is performed.
+static u8* _textItoaHex(u8* buffer, u32 value)
 {
-    typedef struct {
-        u8 data[2];
-    } Bytes2;
+    u8* destination;
+    u32 hexPlace;
+    u32 digitValue;
 
-    u8* dest;
-    u32 place;
-    u32 digit;
-
-    place = 0x10000000;
-    if (arg1 == 0) {
-        *(Bytes2*)arg0 = *(Bytes2*)Text_ZeroDigit;
+    hexPlace = 0x10000000;
+    if (value == 0) {
+        __builtin_memcpy(buffer, Text_ZeroDigit, sizeof("0"));
     } else {
-        dest = arg0;
-        if (arg1 < place) {
+        // Skip leading zero nibbles, then consume all remaining nibbles.
+        destination = buffer;
+        if (value < hexPlace) {
             do {
-                place >>= 4;
-            } while (arg1 < place);
+                hexPlace >>= 4;
+            } while (value < hexPlace);
         }
-        if (place != 0) {
+        if (hexPlace != 0) {
             do {
-                *dest   = arg1 / place;
-                digit   = *dest;
-                arg1   -= digit * place;
-                place >>= 4;
-                if (digit >= 10) {
-                    *dest = digit + 0x37;
+                *destination = value / hexPlace;
+                digitValue   = *destination;
+                value       -= digitValue * hexPlace;
+                hexPlace   >>= 4;
+                if (digitValue >= 10) {
+                    *destination = digitValue + ('A' - 10);
                 } else {
-                    *dest = digit + 0x30;
+                    *destination = digitValue + '0';
                 }
-                dest++;
-            } while (place != 0);
+                destination++;
+            } while (hexPlace != 0);
         }
-        *dest = 0;
+        *destination = '\0';
     }
-    return arg0;
+    return buffer;
 }
 
 u8* textItoaPadded(u8* buffer, u32 value, s32 digitCount)

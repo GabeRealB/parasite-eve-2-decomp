@@ -216,7 +216,7 @@ void Gp_DrawRemoveArmorRow(UiList* prompt, UiObject* obj)
                 req.glyphTable = TEXT_GLYPH_TABLE_SMALL;
                 req.alignment  = TEXT_ALIGNMENT_RIGHT;
                 req.drawMode   = TEXT_DRAW_FILL_ONLY;
-                textDrawString(&req, Text_ItoaSigned(buf, qty));
+                textDrawString(&req, textItoaSigned(buf, qty));
                 uiDrawRecessedRect(&obj->panel, x + 0x69, y - 8, 0x1B, 7, 0x102010);
             }
         }

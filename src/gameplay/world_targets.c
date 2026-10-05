@@ -549,11 +549,11 @@ static void Gp_UpdateLockSlots(void)
 
         req.x        = x14;
         req.drawMode = TEXT_DRAW_FILL_ONLY;
-        textDrawString(reqp, Text_ItoaSigned(bufp, val));
+        textDrawString(reqp, textItoaSigned(bufp, val));
         // Queue the outline after the fill so it executes first in the same OT entry.
         req.x        = x14;
         req.drawMode = TEXT_DRAW_OUTLINE_ONLY;
-        textDrawString(reqp, Text_ItoaSigned(bufp, val));
+        textDrawString(reqp, textItoaSigned(bufp, val));
 
         rect.x = x - 0x10;
         rect.y = y - 8;

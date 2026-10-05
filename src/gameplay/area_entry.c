@@ -197,7 +197,7 @@ void Gp_AreaEnterTask(Task* arg0)
         req.x          = obj.panel.contentOriginX.unsignedValue + 0x94;         \
         req.y          = (obj.panel.contentOriginY.unsignedValue + 9) + (line); \
         req.otIndex    = obj.panel.otIndex.signedValue + 1;                     \
-        textDrawString(&req, Text_ItoaSigned(buf, (count)));                    \
+        textDrawString(&req, textItoaSigned(buf, (count)));                     \
         if ((count) == 0) {                                                     \
             flag = 1;                                                           \
         }                                                                       \

@@ -1165,7 +1165,7 @@ void Gp_PeListPanelTask(Task* arg0)
     req4.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
     req4.alignment  = TEXT_ALIGNMENT_LEFT;
     req4.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-    textDrawString(&req4, Text_ItoaSigned(buf, cfg->mp));
+    textDrawString(&req4, textItoaSigned(buf, cfg->mp));
     req5.x          = obj->panel.contentOriginX.unsignedValue + 0x25 + x;
     req5.y          = obj->panel.contentOriginY.unsignedValue + y;
     req5.otIndex    = obj->panel.otIndex.signedValue + 1;
@@ -1181,7 +1181,7 @@ void Gp_PeListPanelTask(Task* arg0)
     req6.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
     req6.alignment  = TEXT_ALIGNMENT_LEFT;
     req6.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-    textDrawString(&req6, Text_ItoaSigned(buf, cfg->mpMax));
+    textDrawString(&req6, textItoaSigned(buf, cfg->mpMax));
     head = arg0->firstChild;
     if (head != NULL) {
         child = head;
@@ -1373,7 +1373,7 @@ static inline void _gpDrawQty(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 
     req.glyphTable = TEXT_GLYPH_TABLE_SMALL;
     req.alignment  = TEXT_ALIGNMENT_RIGHT;
     req.drawMode   = TEXT_DRAW_FILL_ONLY;
-    textDrawString(&req, Text_ItoaSigned(buf, arg3));
+    textDrawString(&req, textItoaSigned(buf, arg3));
     uiDrawRecessedRect(&arg0->panel, (arg1 + 0x69), (arg2 - 8), 0x1B, 7, 0x102010);
 }
 
@@ -1708,7 +1708,7 @@ void Gp_DrawStackLeft(UiObject* arg0, s32 arg1, s32 arg2, InventoryItemRow* arg3
             req.glyphTable = TEXT_GLYPH_TABLE_SMALL;
             req.alignment  = TEXT_ALIGNMENT_RIGHT;
             req.drawMode   = TEXT_DRAW_FILL_ONLY;
-            textDrawString(&req, Text_ItoaSigned(buf, count));
+            textDrawString(&req, textItoaSigned(buf, count));
             uiDrawRecessedRect(&arg0->panel, (arg1 + 0x69), (arg2 - 8), 0x1B, 7, 0x102010);
         }
     }

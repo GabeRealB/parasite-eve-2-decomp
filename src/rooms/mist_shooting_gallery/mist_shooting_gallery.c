@@ -1170,7 +1170,7 @@ void func_mist_shooting_gallery_8017E234(Task* task)
             req2.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
             req2.alignment  = TEXT_ALIGNMENT_RIGHT;
             req2.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-            textDrawString(&req2, Text_ItoaSigned(buf, points));
+            textDrawString(&req2, textItoaSigned(buf, points));
 
             req3.x          = obj->panel.contentOriginX.unsignedValue + 0x91 + xOff;
             req3.y          = obj->panel.contentOriginY.unsignedValue + y;
@@ -1179,7 +1179,7 @@ void func_mist_shooting_gallery_8017E234(Task* task)
             req3.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
             req3.alignment  = TEXT_ALIGNMENT_RIGHT;
             req3.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-            textDrawString(&req3, Text_ItoaSigned(buf, kills));
+            textDrawString(&req3, textItoaSigned(buf, kills));
             subtotal = kills * points;
 
             req4.x          = obj->panel.contentOriginX.unsignedValue - 5 - xOff;
@@ -1189,7 +1189,7 @@ void func_mist_shooting_gallery_8017E234(Task* task)
             req4.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
             req4.alignment  = TEXT_ALIGNMENT_RIGHT;
             req4.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-            textDrawString(&req4, Text_ItoaSigned(buf, subtotal));
+            textDrawString(&req4, textItoaSigned(buf, subtotal));
             total += subtotal;
             y     += 0xB;
         }
@@ -1216,7 +1216,7 @@ void func_mist_shooting_gallery_8017E234(Task* task)
     req2.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
     req2.alignment  = TEXT_ALIGNMENT_RIGHT;
     req2.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-    textDrawString(&req2, Text_ItoaSigned(buf, total));
+    textDrawString(&req2, textItoaSigned(buf, total));
 
     uiDrawHorizontalSeparator(&(obj)->panel, xOff, -xOff, obj->panel.contentTop.signedValue + 0xA);
 
@@ -1365,7 +1365,7 @@ void func_mist_shooting_gallery_8017E854(Task* task)
     req2.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
     req2.alignment  = TEXT_ALIGNMENT_RIGHT;
     req2.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-    textDrawString(&req2, Text_ItoaSigned(buf, score));
+    textDrawString(&req2, textItoaSigned(buf, score));
 
     uiDrawHorizontalSeparator(&(obj)->panel, xOff, -xOff, top + 0x1B);
 
@@ -1386,7 +1386,7 @@ void func_mist_shooting_gallery_8017E854(Task* task)
     req4.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
     req4.alignment  = TEXT_ALIGNMENT_RIGHT;
     req4.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-    textDrawString(&req4, Text_ItoaSigned(buf, func_mist_shooting_gallery_80184470(score)));
+    textDrawString(&req4, textItoaSigned(buf, func_mist_shooting_gallery_80184470(score)));
 
     if ((obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) && (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm | Pad_MaskCancel) != 0)) {
         obj->result = USER_INTERFACE_RESULT_CONFIRM;
@@ -1480,7 +1480,7 @@ void func_mist_shooting_gallery_8017EC58(Task* task)
     req1.alignment  = TEXT_ALIGNMENT_LEFT;
     req1.drawMode   = TEXT_DRAW_OUTLINED;
     textDrawString(&req1, "HP");
-    textDrawUiLine(obj, -xOff, y, Text_ItoaSigned(buf, val), color, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
+    textDrawUiLine(obj, -xOff, y, textItoaSigned(buf, val), color, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
 
     y     = top + 0x1E;
     val   = Gp_StatRows[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode].baseMp;
@@ -1497,7 +1497,7 @@ void func_mist_shooting_gallery_8017EC58(Task* task)
     req2.alignment  = TEXT_ALIGNMENT_LEFT;
     req2.drawMode   = TEXT_DRAW_OUTLINED;
     textDrawString(&req2, "MP");
-    textDrawUiLine(obj, -xOff, y, Text_ItoaSigned(buf, val), color, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
+    textDrawUiLine(obj, -xOff, y, textItoaSigned(buf, val), color, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
 
     y      = top + 0x2D;
     rawExp = D_mist_shooting_gallery_8018E0BC;
@@ -1529,7 +1529,7 @@ void func_mist_shooting_gallery_8017EC58(Task* task)
     req3.alignment  = TEXT_ALIGNMENT_LEFT;
     req3.drawMode   = TEXT_DRAW_OUTLINED;
     textDrawString(&req3, "EXP");
-    textDrawUiLine(obj, -xOff, y, Text_ItoaSigned(buf, val), 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
+    textDrawUiLine(obj, -xOff, y, textItoaSigned(buf, val), 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
 
     y    += 0xF;
     rawBp = D_mist_shooting_gallery_8018E0C0;
@@ -1561,7 +1561,7 @@ void func_mist_shooting_gallery_8017EC58(Task* task)
     req4.alignment  = TEXT_ALIGNMENT_LEFT;
     req4.drawMode   = TEXT_DRAW_OUTLINED;
     textDrawString(&req4, "BP");
-    textDrawUiLine(obj, -xOff, y, Text_ItoaSigned(buf, val), 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
+    textDrawUiLine(obj, -xOff, y, textItoaSigned(buf, val), 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
 }
 static const _MistShootingGalleryModeTexts D_mist_shooting_gallery_8017D708 = { { D_mist_shooting_gallery_80184DD4, D_mist_shooting_gallery_80184E24, D_mist_shooting_gallery_80184E70, D_mist_shooting_gallery_80184EC4 } };
 

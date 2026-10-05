@@ -431,7 +431,7 @@ void func_800C5F70(Task* arg0)
                     req60.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
                     req60.alignment  = TEXT_ALIGNMENT_RIGHT;
                     req60.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-                    textDrawString(&req60, Text_ItoaSignedPlus(buf40, attr->hpBonus));
+                    textDrawString(&req60, textItoaSignPrefixed(buf40, attr->hpBonus));
                 }
                 y += 0xF;
 
@@ -460,7 +460,7 @@ void func_800C5F70(Task* arg0)
                     req70.colorRgb   = altColor;
                     req70.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
                     req70.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-                    textDrawString(&req70, Text_ItoaSignedPlus(buf40, attr->mpBonus));
+                    textDrawString(&req70, textItoaSignPrefixed(buf40, attr->mpBonus));
                 }
                 y += 0xF;
 
@@ -541,7 +541,7 @@ void func_800C5F70(Task* arg0)
                     recBase  = Gp_IdParamLo;
                     recIndex = item - 0x9F;
                     rec      = recBase + recIndex;
-                    Text_ItoaSigned(bufC0, rec->amount);
+                    textItoaSigned(bufC0, rec->amount);
                     y                 = baseY + 0x2D;
                     req100.x          = obj->panel.contentOriginX.unsignedValue + 2;
                     req100.y          = obj->panel.contentOriginY.unsignedValue + (y - 2);
@@ -559,8 +559,8 @@ void func_800C5F70(Task* arg0)
                     req110.alignment  = TEXT_ALIGNMENT_LEFT;
                     req110.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
                     textDrawString(&req110, bufC0);
-                    Text_ItoaSigned(bufC0, Gp_ScanStackQty(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, item));
-                    Text_ItoaSigned(bufE0, Gp_StackLimits[idx].maxHeld);
+                    textItoaSigned(bufC0, Gp_ScanStackQty(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, item));
+                    textItoaSigned(bufE0, Gp_StackLimits[idx].maxHeld);
                     textAppendString(bufC0, Gp_StrSlash);
                     textAppendString(bufC0, bufE0);
                     y                 = baseY + 0x3C;
