@@ -3573,7 +3573,7 @@ static void func_acropolis_plaza_8017DE24(s32 arg0)
             }
             break;
     }
-    Gp_ApplyView(view);
+    viewApplyCamera(view);
 }
 
 /// Recomputes `fwd` and `back` from `relX`.
@@ -4731,7 +4731,7 @@ void func_acropolis_plaza_80180054(Task* task)
     switch (task->state) {
         case 0:
             func_800E9BDC(3, 0x9DF);
-            Gp_ApplyView(D_acropolis_plaza_801838B8[0]);
+            viewApplyCamera(D_acropolis_plaza_801838B8[0]);
             newWork    = memMalloc(sizeof(*newWork), false);
             task->work = newWork;
             if (newWork == NULL) {

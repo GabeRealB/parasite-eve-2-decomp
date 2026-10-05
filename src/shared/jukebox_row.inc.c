@@ -19,7 +19,7 @@ void jukeboxDrawRow(UiList* prompt, UiObject* obj)
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.clearCount != 0) {
         list = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode;
     }
-    if (Gp_IsDebugAttachRoom() == 0) {
+    if (attachmentIsTrainingMode() == 0) {
         list += 5;
     }
 

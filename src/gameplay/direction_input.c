@@ -146,7 +146,7 @@ void func_800AD6BC(void)
     slot  = gameGetTaskSlot(GAME_TASK_SLOT_VIEW_GATE);
     if (slot != NULL) {
         if (slot->spawnArg1.value != gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view) {
-            func_800A7F24();
+            viewChangeStub();
             D_80114D08 = 0xA;
         }
     }

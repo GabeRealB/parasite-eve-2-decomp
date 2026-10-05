@@ -25,6 +25,7 @@
 #include "gameplay/enemy.h"
 #include "gameplay/geometry.h"
 #include "gameplay/hud_sprites.h"
+#include "gameplay/player_state.h"
 #include "gameplay/light.h"
 #include "gameplay/loading.h"
 #include "gameplay/message.h"
@@ -1685,7 +1686,7 @@ static void Actor00300_Fn00E54(Task* arg0)
     if (work->drainContacts[0].flags & WORLD_COLLISION_CONTACT_OCCUPIED) {
         work->drainBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         worldCollisionClearContacts(work->drainContacts);
-        Gp_SpendMp(ACTOR_00300_MP_DRAINED);
+        playerStateSpendMp(ACTOR_00300_MP_DRAINED);
         work->mp        += ACTOR_00300_MP_DRAINED;
         scratch->from.vx = -0x1F4;
         scratch->from.vy = 0x1F4;

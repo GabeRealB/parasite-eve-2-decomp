@@ -6,6 +6,8 @@
 
 #include "common.h"
 
+#include "main/task_types.h"
+
 /// Number of unsigned byte entries in `gViewIdentityMap`.
 ///
 /// Its capacity covers 1-based logical views 1 through this value; each room
@@ -104,6 +106,32 @@ typedef struct {
     u32    screenDistance; // Projection-plane distance in pixels; GTE H and DisplayState retain the low 16 bits
 } ViewCamera;
 STATIC_ASSERT_SIZEOF(ViewCamera, 0x24);
+
+/// Applies a camera's transform and perspective distance to the active view.
+///
+/// Copies the nine rotation coefficients and three translation words into
+/// the separate view nodes, clears the outer XYZ offset, and invalidates all
+/// three composition caches. Uses the low 16 bits of `screenDistance` for
+/// the display and GTE projection distance, with the screen offset at (0, 0).
+/// `camera` must be a readable record disjoint from the active view nodes;
+/// it is borrowed only during the call. Changes GTE projection state.
+void viewApplyCamera(const ViewCamera* camera);
+
+/// Applies the borrowed camera of a bank-0 slot-0x0F task, then releases the task.
+///
+/// `task->spawnArg2.pointer` must hold a live `ViewCamera` until dispatch.
+/// Has the same view/projection effects as `viewApplyCamera` and retains no
+/// camera pointer. The task has no coordinate body or owned camera allocation.
+void viewApplyCameraTask(Task* task);
+
+/// Applies a bank-0 slot-0x0E task's coordinate and outer offset, then releases it.
+///
+/// `task->extra.coordBody->coord` supplies a live local camera transform:
+/// rotation and translation go to the separate active view nodes. The task
+/// owns a `VECTOR` at `work`, whose XYZ sets the outer offset in game units.
+/// Invalidates the three view caches; projection distance and screen offset
+/// are preserved. Task release frees its body and work allocation.
+void viewApplyCoordTask(Task* task);
 
 /// A stage's directory of per-area camera arrays.
 ///

@@ -30,7 +30,8 @@ void Gp_LoadStageView(void);
 
 s32 Gp_IsStateF0Active(void);
 
-void func_800A7F24(void);
+/// Empty hook called when the view gate differs from the live save's view.
+void viewChangeStub(void);
 
 void func_800A7E4C(void);
 

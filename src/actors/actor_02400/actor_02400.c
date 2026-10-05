@@ -20,6 +20,7 @@
 #include "gameplay/effects.h"
 #include "gameplay/enemy.h"
 #include "gameplay/hud_sprites.h"
+#include "gameplay/player_state.h"
 #include "gameplay/light.h"
 #include "gameplay/loading.h"
 #include "gameplay/object_fields.h"
@@ -670,7 +671,7 @@ move_done:
         work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         worldCollisionClearContacts(work->attackContacts);
         work->attackLanded = 1;
-        Gp_SpendMp(Actor02400_D045D8[work->variant]);
+        playerStateSpendMp(Actor02400_D045D8[work->variant]);
     }
     if (work->staggerWindow != 0) {
         work->staggerWindow--;

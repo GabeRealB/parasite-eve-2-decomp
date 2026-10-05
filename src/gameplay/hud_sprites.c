@@ -192,27 +192,28 @@ RECT D_80114BD0;
 
 ScreenFade D_80114BD8;
 
-/// The element an accessor was handed. An inlined function's argument is
-/// expanded as an address, scaled index first, which is the order the
-/// callers' element addresses have (see `gpAreaPlaceRef`).
-static inline ViewCamera* gpViewRef(ViewCamera* row)
+/// Preserves the camera cursor supplied by the area-table accessor.
+///
+/// The cursor uses a mapped 1-based index; users step back to the selected
+/// record before reading it. The inline boundary preserves scaled-index-first
+/// address evaluation required by the callers' matching instruction order.
+static inline ViewCamera* _viewCameraCursorRef(ViewCamera* cursor)
 {
-    return row;
+    return cursor;
 }
 
 /// Resolve a camera-record cursor within its loaded room resource.
-#define gpViewAt(rows, index) gpViewRef(&(rows)[index])
+#define gpViewAt(rows, index) _viewCameraCursorRef(&(rows)[index])
 
 static void Gp_HudTrackEnemy(Enemy* arg0, HudTargetHpReadout* readout);
 
-/// Rotates `v` in place by `m` on the GTE, reading it through a copy.
-static inline void _gpRotateVector(MATRIX* m, SVECTOR* v);
+static inline void _worldTargetRotatePosition(const MATRIX* rotation, SVECTOR* position);
 
 static void Gp_StartPadReplay(void);
 
-static s32 Gp_IsStateF0AltClear(void);
+static s32 _sceneIsBattleEndDelayClear(void);
 
-static s32 func_800A7AE4(s32 arg0, s32 arg1);
+static s32 _attachmentMakeTextId(s32 abilityIndex, s32 level);
 
 static s32 Gp_StepAttachSlot(s32 arg0, s32 arg1);
 
@@ -222,28 +223,73 @@ static s32 Gp_CdIdleIfF0Active(void);
 
 static s32 func_800A7E5C(s32 arg0);
 
-static s32 func_800A7F2C(s32 arg0);
+static s32 func_800A7F2C(s32 value);
 
-/// Updates both coordinate frames and writes the transform from `arg0` to
-/// `root` into `result->coord`, using the transposed root rotation to rotate
-/// the orientation and translation delta.
-static __inline__ void coordToRoot(GfxCoord* arg0, GfxCoord* root, GfxCoord* result);
+static __inline__ void _gfxCoordToReference(GfxCoord* coord, GfxCoord* reference, GfxCoord* outCoord);
 
-/// Points the active view at `arg0`: the transposed rotation goes to
-/// `gGfxViewRotCoord.coord` and the negated translation to `gGfxViewCoord.coord.t`, with
-/// `arg1` (optional) stored as the world offset in `Gfx_ViewOffsetCoord.coord.t`.
-/// Coordinates that are not direct children of the root are first folded to
-/// root space with `coordToRoot`.
-static void Gp_SetViewFromCoord(GfxCoord* arg0, VECTOR* arg1);
+/// Writes the translation component of a reference-relative transform.
+///
+/// The input origins share a containing frame. Computes
+/// `out->t = scratch->transposedRotation.m * (target->t - reference->t)`
+/// with GTE long-vector arithmetic, preserving signed 32-bit coordinate units.
+/// The caller must supply the reference rotation's transpose in
+/// `scratch->transposedRotation`, with `ONE` (4096) representing 1.0.
+/// The transpose gives an inverse frame conversion for orthonormal rotations.
+///
+/// All pointers must be word-aligned and the caller-owned workspace disjoint
+/// from the matrices. Overwrites `scratch->originDelta` XYZ; its fourth word
+/// is unused. Saves all three differences before storing the three `out->t`
+/// words, so `out` may equal either input matrix. Leaves the output rotation
+/// and alignment bytes untouched. Changes GTE rotation and arithmetic state;
+/// retains no pointers and does not reserve or release the workspace.
+static __inline__ void _gfxWriteRelativeTranslation(const MATRIX* reference, const MATRIX* target, MATRIX* out,
+                                                    _GfxRelativeTransformScratch* scratch)
+{
+    scratch->originDelta.vx = target->t[0] - reference->t[0];
+    scratch->originDelta.vy = target->t[1] - reference->t[1];
+    scratch->originDelta.vz = target->t[2] - reference->t[2];
+    // The SDK output view writes XYZ only, without a VECTOR's fourth word.
+    ApplyMatrixLV(&scratch->transposedRotation, &scratch->originDelta, (VECTOR*)out->t);
+}
+
+static void _viewSetFromCoord(GfxCoord* cameraCoord, const VECTOR* offset);
 
 /// Spawns the type-0xE view task and points its coordinate at the inverse of
 /// `arg0` (transposed rotation, negated translation). `arg1` is the optional
 /// world offset stored in the task's 0x10-byte payload.
 static s32 Gp_SpawnViewCoordTask(GfxCoord* arg0, VECTOR* arg1);
 
-static void Gp_ResetView(void);
+static void _viewResetTransform(void);
 
 static void func_800A8D5C(void);
+
+/// Copies one camera into the split view nodes and updates projection state.
+static __inline__ void _viewWriteCameraState(const ViewCamera* camera)
+{
+    GfxCoord* viewOffset;
+    MATRIX*   viewRotation;
+    VECTOR3*  viewTranslation;
+
+    viewRotation    = &gGfxViewRotCoord.coord;
+    viewTranslation = MATRIX_TRANS(&gGfxViewCoord.coord);
+    viewOffset      = &Gfx_ViewOffsetCoord;
+
+    // Keep rotation and translation in their separate camera coordinate nodes.
+    *(_ViewRotation*)viewRotation->m = *(const _ViewRotation*)camera->transform.m;
+    *viewTranslation                 = *(const VECTOR3*)camera->transform.t;
+
+    viewOffset->coord.t[0] = 0;
+    viewOffset->coord.t[1] = 0;
+    viewOffset->coord.t[2] = 0;
+
+    gDisplayState.screenDistance = camera->screenDistance;
+    gte_SetGeomScreen(camera->screenDistance);
+    gte_SetGeomOffset(0, 0);
+
+    Gfx_ViewOffsetCoord.composeStamp                            = GRAPHICS_COORD_DIRTY;
+    PARENT_OF(viewRotation, GfxCoord, coord)->composeStamp      = GRAPHICS_COORD_DIRTY;
+    PARENT_OF(viewTranslation, GfxCoord, coord.t)->composeStamp = GRAPHICS_COORD_DIRTY;
+}
 
 #undef DRAW_PROMPT_LABEL
 #undef DRAW_PROMPT_COUNT
@@ -617,13 +663,18 @@ static void Gp_HudTrackEnemy(Enemy* arg0, HudTargetHpReadout* readout)
     SCRATCH_STACK_RELEASE_BLOCK(_HudTargetHpReadoutScratch);
 }
 
-/// Rotates `v` in place by `m` on the GTE, reading it through a copy.
-static inline void _gpRotateVector(MATRIX* m, SVECTOR* v)
+/// Rotates a tracked position in place with GTE signed-halfword saturation.
+///
+/// `rotation` uses ONE (4096) for 1.0; translation is ignored. Reads the
+/// complete eight-byte position through a snapshot and replaces XYZ only,
+/// preserving its pad. Changes GTE rotation, vector and arithmetic state.
+/// The matrix must be word-aligned and the position halfword-aligned.
+static inline void _worldTargetRotatePosition(const MATRIX* rotation, SVECTOR* position)
 {
-    SVECTOR tmp;
+    SVECTOR inputPosition;
 
-    tmp = *v;
-    gte_ApplyMatrixSV(m, &tmp, v);
+    inputPosition = *position;
+    gte_ApplyMatrixSV(rotation, &inputPosition, position);
 }
 
 void Gp_UpdateLinkXforms(void)
@@ -648,14 +699,14 @@ void Gp_UpdateLinkXforms(void)
         block->position.vx = GP_NODE_ENEMY(node)->bodyPos.vx;
         block->position.vy = GP_NODE_ENEMY(node)->bodyPos.vy;
         block->position.vz = GP_NODE_ENEMY(node)->bodyPos.vz;
-        _gpRotateVector(&GP_NODE_ENEMY(node)->coord->workm, &block->position);
+        _worldTargetRotatePosition(&GP_NODE_ENEMY(node)->coord->workm, &block->position);
         block->position.vx += GP_NODE_ENEMY(node)->coord->workm.t[0];
         block->position.vy += GP_NODE_ENEMY(node)->coord->workm.t[1];
         block->position.vz += GP_NODE_ENEMY(node)->coord->workm.t[2];
         block->position.vx -= player->workm.t[0];
         block->position.vy -= player->workm.t[1];
         block->position.vz -= player->workm.t[2];
-        _gpRotateVector(&block->playerInverseRotation, &block->position);
+        _worldTargetRotatePosition(&block->playerInverseRotation, &block->position);
         GP_NODE_ENEMY(node)->playerRelPos.vx = block->position.vx;
         GP_NODE_ENEMY(node)->playerRelPos.vy = block->position.vy;
         GP_NODE_ENEMY(node)->playerRelPos.vz = block->position.vz;
@@ -713,15 +764,17 @@ u8* Gp_GetAttachLevels(void)
     return Gp_DebugAttachLevels;
 }
 
-s32 Gp_IsDebugAttachRoom(void)
+s32 attachmentIsTrainingMode(void)
 {
-    PlayerStatus* p;
+    enum { ATTACHMENT_TRAINING_RESOURCE_VARIANT = 4 };
+    PlayerStatus* player;
 
-    p = &gPlayerStatus;
-    if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(1, 20, 0, 0)) {
+    player = &gPlayerStatus;
+    if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) !=
+        GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_MIST_SHOOTING_GALLERY, 0, 0)) {
         return 0;
     }
-    return p->resourceVariant == 4;
+    return player->resourceVariant == ATTACHMENT_TRAINING_RESOURCE_VARIANT;
 }
 
 s32 Gp_IsStateF0Active(void)
@@ -873,7 +926,8 @@ void Gp_HudTrackSlot0(HudTargetHpReadout* readout)
     }
 }
 
-static s32 Gp_IsStateF0AltClear(void)
+/// Returns whether the scene's post-battle hold has no frames remaining.
+static s32 _sceneIsBattleEndDelayClear(void)
 {
     return gSceneCombatState.signals.bytes.endDelayFrames == 0;
 }
@@ -930,9 +984,16 @@ void Gp_TriggerPeIfArmed(void)
     }
 }
 
-static s32 func_800A7AE4(s32 arg0, s32 arg1)
+/// Packs an ability index and level into its Parasite Energy text identifier.
+///
+/// Ability indices 0..17 occupy groups of three in bits 4 and above, with
+/// the within-group index in bits 2..3. Level 0..3 occupies bits 0..1;
+/// text lookup treats level 0 as level 1. Inputs are not checked or masked.
+static s32 _attachmentMakeTextId(s32 abilityIndex, s32 level)
 {
-    return (arg0 / 3) * 16 + (arg0 % 3) * 4 + arg1 + 0x300;
+    enum { ATTACHMENT_TEXT_ID_BASE = 0x300 };
+
+    return (abilityIndex / 3) * 16 + (abilityIndex % 3) * 4 + level + ATTACHMENT_TEXT_ID_BASE;
 }
 
 s32 Gp_GetAttachLevel(s32 arg0)
@@ -1127,98 +1188,109 @@ static s32 func_800A7E5C(s32 arg0)
     return 0;
 }
 
-void func_800A7F24(void)
+void viewChangeStub(void)
 {
 }
 
-static s32 func_800A7F2C(s32 arg0)
+/// Subtracts 16 from a signed value; its domain and purpose are unproven.
+static s32 func_800A7F2C(s32 value)
 {
-    return arg0 - 0x10;
+    return value - 0x10;
 }
 
-s32 Gp_SpendMp(s32 arg0)
+s32 playerStateSpendMp(s32 amount)
 {
-    PlayerStatus* p;
-    s32           ret;
+    PlayerStatus* player;
+    s32           fullyPaid;
 
-    p   = &gPlayerStatus;
-    ret = 1;
-    if (p->mp >= arg0) {
-        p->mp -= arg0;
+    player    = &gPlayerStatus;
+    fullyPaid = 1;
+    if (player->mp >= amount) {
+        player->mp -= amount;
     } else {
-        p->mp = 0;
-        ret   = 0;
+        player->mp = 0;
+        fullyPaid  = 0;
     }
-    return ret;
+    return fullyPaid;
 }
 
-/// Updates both coordinate frames and writes the transform from `arg0` to
-/// `root` into `result->coord`, using the transposed root rotation to rotate
-/// the orientation and translation delta.
-static __inline__ void coordToRoot(GfxCoord* arg0, GfxCoord* root, GfxCoord* result)
+/// Writes a coordinate's transform relative to another composed coordinate.
+///
+/// Refreshes `coord` then `reference` through their live, acyclic parent chains.
+/// Their caches must compose into the same frame. Writes only `outCoord->coord`
+/// rotation and translation: transpose(reference.workm.m) times coord.workm.m
+/// and the origin difference. The transpose inverts an orthonormal rotation;
+/// coefficients use ONE (4096), translations signed game-coordinate units.
+/// Other output fields and matrix alignment bytes remain untouched. The output
+/// local matrix must be disjoint from both input cached matrices and scratch;
+/// `outCoord` may be either input node. The caller invalidates its composition
+/// stamp when needed. Requires one 48-byte scratch block, released before return;
+/// changes GTE rotation and arithmetic state and retains no pointers.
+static __inline__ void _gfxCoordToReference(GfxCoord* coord, GfxCoord* reference, GfxCoord* outCoord)
 {
     _GfxRelativeTransformScratch* scratch;
-    MATRIX*                       rootm;
-    MATRIX*                       world;
-    MATRIX*                       out;
+    MATRIX*                       referenceMatrix;
+    MATRIX*                       coordMatrix;
+    MATRIX*                       outMatrix;
 
-    actorRenderComposeCoord(arg0);
-    actorRenderComposeCoord(root);
+    actorRenderComposeCoord(coord);
+    actorRenderComposeCoord(reference);
 
-    rootm   = &root->workm;
-    world   = &arg0->workm;
-    scratch = SCRATCH_STACK_RESERVE_BLOCK(_GfxRelativeTransformScratch);
-    out     = &result->coord;
+    referenceMatrix = &reference->workm;
+    coordMatrix     = &coord->workm;
+    scratch         = SCRATCH_STACK_RESERVE_BLOCK(_GfxRelativeTransformScratch);
+    outMatrix       = &outCoord->coord;
 
-    gte_TransposeMatrix(rootm, &scratch->transposedRotation);
+    gte_TransposeMatrix(referenceMatrix, &scratch->transposedRotation);
 
-    gte_MulMatrix0(&scratch->transposedRotation, world, out);
+    gte_MulMatrix0(&scratch->transposedRotation, coordMatrix, outMatrix);
 
-    scratch->originDelta.vx = world->t[0] - rootm->t[0];
-    scratch->originDelta.vy = world->t[1] - rootm->t[1];
-    scratch->originDelta.vz = world->t[2] - rootm->t[2];
-    // The SDK writes only XYZ into the matrix's three-word translation.
-    ApplyMatrixLV(&scratch->transposedRotation, &scratch->originDelta, (VECTOR*)out->t);
+    _gfxWriteRelativeTranslation(referenceMatrix, coordMatrix, outMatrix, scratch);
 
     SCRATCH_STACK_RELEASE_BLOCK(_GfxRelativeTransformScratch);
 }
 
-/// Points the active view at `arg0`: the transposed rotation goes to
-/// `gGfxViewRotCoord.coord` and the negated translation to `gGfxViewCoord.coord.t`, with
-/// `arg1` (optional) stored as the world offset in `Gfx_ViewOffsetCoord.coord.t`.
-/// Coordinates that are not direct children of the root are first folded to
-/// root space with `coordToRoot`.
-static void Gp_SetViewFromCoord(GfxCoord* arg0, VECTOR* arg1)
+/// Sets the active view from a camera coordinate and an optional outer offset.
+///
+/// The view applies negated origin before transposed rotation, in signed game
+/// units and ONE-scaled coefficients. A direct child of `gGfxViewCoord` uses
+/// its local transform; other coordinates are composed relative to that node.
+/// The latter path requires a live acyclic chain and 48 free scratch bytes.
+/// `offset` supplies XYZ after rotation, or NULL clears it. Invalidates the
+/// source and all three view caches; projection settings and parents survive.
+/// Input storage must be disjoint from the active view nodes and scratch stack.
+static void _viewSetFromCoord(GfxCoord* cameraCoord, const VECTOR* offset)
 {
-    GfxCoord* root;
-    GfxCoord* parent;
-    GfxCoord  rel;
+    GfxCoord* viewOrigin;
+    GfxCoord* cameraParent;
+    GfxCoord  relative;
 
-    if (arg1 != NULL) {
-        Gfx_ViewOffsetCoord.coord.t[0] = arg1->vx;
-        Gfx_ViewOffsetCoord.coord.t[1] = arg1->vy;
-        Gfx_ViewOffsetCoord.coord.t[2] = arg1->vz;
+    if (offset != NULL) {
+        Gfx_ViewOffsetCoord.coord.t[0] = offset->vx;
+        Gfx_ViewOffsetCoord.coord.t[1] = offset->vy;
+        Gfx_ViewOffsetCoord.coord.t[2] = offset->vz;
     } else {
         Gfx_ViewOffsetCoord.coord.t[0] = 0;
         Gfx_ViewOffsetCoord.coord.t[1] = 0;
         Gfx_ViewOffsetCoord.coord.t[2] = 0;
     }
 
-    parent = arg0->parent;
-    root   = &gGfxViewCoord;
-    if (parent == root) {
-        gte_TransposeMatrix(&arg0->coord, &gGfxViewRotCoord.coord);
-        root->coord.t[0] = -arg0->coord.t[0];
-        root->coord.t[1] = -arg0->coord.t[1];
-        root->coord.t[2] = -arg0->coord.t[2];
+    // A direct child already expresses its camera pose in the required frame.
+    cameraParent = cameraCoord->parent;
+    viewOrigin   = &gGfxViewCoord;
+    if (cameraParent == viewOrigin) {
+        gte_TransposeMatrix(&cameraCoord->coord, &gGfxViewRotCoord.coord);
+        viewOrigin->coord.t[0] = -cameraCoord->coord.t[0];
+        viewOrigin->coord.t[1] = -cameraCoord->coord.t[1];
+        viewOrigin->coord.t[2] = -cameraCoord->coord.t[2];
     } else {
-        coordToRoot(arg0, root, &rel);
-        gte_TransposeMatrix(&rel.coord, &gGfxViewRotCoord.coord);
-        root->coord.t[0] = -rel.coord.t[0];
-        root->coord.t[1] = -rel.coord.t[1];
-        root->coord.t[2] = -rel.coord.t[2];
+        _gfxCoordToReference(cameraCoord, viewOrigin, &relative);
+        gte_TransposeMatrix(&relative.coord, &gGfxViewRotCoord.coord);
+        viewOrigin->coord.t[0] = -relative.coord.t[0];
+        viewOrigin->coord.t[1] = -relative.coord.t[1];
+        viewOrigin->coord.t[2] = -relative.coord.t[2];
     }
-    arg0->composeStamp = GRAPHICS_COORD_DIRTY;
+    cameraCoord->composeStamp = GRAPHICS_COORD_DIRTY;
 
     Gfx_ViewOffsetCoord.composeStamp = GRAPHICS_COORD_DIRTY;
     gGfxViewRotCoord.composeStamp    = GRAPHICS_COORD_DIRTY;
@@ -1266,7 +1338,7 @@ static s32 Gp_SpawnViewCoordTask(GfxCoord* arg0, VECTOR* arg1)
         coord->coord.t[1] = -arg0->coord.t[1];
         coord->coord.t[2] = -arg0->coord.t[2];
     } else {
-        coordToRoot(arg0, root, &rel);
+        _gfxCoordToReference(arg0, root, &rel);
         gte_TransposeMatrix(&rel.coord, &coord->coord);
         coord->coord.t[0] = -rel.coord.t[0];
         coord->coord.t[1] = -rel.coord.t[1];
@@ -1275,35 +1347,36 @@ static s32 Gp_SpawnViewCoordTask(GfxCoord* arg0, VECTOR* arg1)
     return 1;
 }
 
-void func_800A8654(Task* task)
+void viewApplyCoordTask(Task* task)
 {
-    VECTOR*               vec;
-    GfxCoord*             src;
-    GfxCoord*             c1;
-    GfxCoord*             c3;
+    const VECTOR*         offset;
+    const GfxCoord*       cameraCoord;
+    GfxCoord*             viewOffset;
+    GfxCoord*             viewOrigin;
     ModelObjectCoordBody* body;
-    s32                   i;
-    s32                   j;
+    s32                   row;
+    s32                   column;
 
-    i              = 0;
-    c1             = &Gfx_ViewOffsetCoord;
-    body           = task->extra.coordBody;
-    vec            = (VECTOR*)task->work;
-    src            = body->coord;
-    c1->coord.t[0] = vec->vx;
-    c1->coord.t[1] = vec->vy;
-    c1->coord.t[2] = vec->vz;
+    row                    = 0;
+    viewOffset             = &Gfx_ViewOffsetCoord;
+    body                   = task->extra.coordBody;
+    offset                 = task->work;
+    cameraCoord            = body->coord;
+    viewOffset->coord.t[0] = offset->vx;
+    viewOffset->coord.t[1] = offset->vy;
+    viewOffset->coord.t[2] = offset->vz;
 
-    for (; i < 3; i++) {
-        for (j = 0; j < 3; j++) {
-            gGfxViewRotCoord.coord.m[i][j] = src->coord.m[i][j];
+    // Transfer only the nine coefficients; the origin belongs to its own node.
+    for (; row < (s32)ARRAY_SIZE(gGfxViewRotCoord.coord.m); row++) {
+        for (column = 0; column < (s32)ARRAY_SIZE(gGfxViewRotCoord.coord.m[row]); column++) {
+            gGfxViewRotCoord.coord.m[row][column] = cameraCoord->coord.m[row][column];
         }
     }
 
-    c3             = &gGfxViewCoord;
-    c3->coord.t[0] = src->coord.t[0];
-    c3->coord.t[1] = src->coord.t[1];
-    c3->coord.t[2] = src->coord.t[2];
+    viewOrigin             = &gGfxViewCoord;
+    viewOrigin->coord.t[0] = cameraCoord->coord.t[0];
+    viewOrigin->coord.t[1] = cameraCoord->coord.t[1];
+    viewOrigin->coord.t[2] = cameraCoord->coord.t[2];
 
     Gfx_ViewOffsetCoord.composeStamp = GRAPHICS_COORD_DIRTY;
     gGfxViewRotCoord.composeStamp    = GRAPHICS_COORD_DIRTY;
@@ -1351,31 +1424,6 @@ void Gp_LoadStageView(void)
     PARENT_OF(trans, GfxCoord, coord.t)->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
-/// Writes the translation component of a reference-relative transform.
-///
-/// The input origins share a containing frame. Computes
-/// `out->t = scratch->transposedRotation.m * (target->t - reference->t)`
-/// with GTE long-vector arithmetic, preserving signed 32-bit coordinate units.
-/// The caller must supply the reference rotation's transpose in
-/// `scratch->transposedRotation`, with `ONE` (4096) representing 1.0.
-/// The transpose gives an inverse frame conversion for orthonormal rotations.
-///
-/// All pointers must be word-aligned and the caller-owned workspace disjoint
-/// from the matrices. Overwrites `scratch->originDelta` XYZ; its fourth word
-/// is unused. Saves all three differences before storing the three `out->t`
-/// words, so `out` may equal either input matrix. Leaves the output rotation
-/// and alignment bytes untouched. Changes GTE rotation and arithmetic state;
-/// retains no pointers and does not reserve or release the workspace.
-static __inline__ void _gfxWriteRelativeTranslation(const MATRIX* reference, const MATRIX* target, MATRIX* out,
-                                                    _GfxRelativeTransformScratch* scratch)
-{
-    scratch->originDelta.vx = target->t[0] - reference->t[0];
-    scratch->originDelta.vy = target->t[1] - reference->t[1];
-    scratch->originDelta.vz = target->t[2] - reference->t[2];
-    // The SDK output view writes XYZ only, without a VECTOR's fourth word.
-    ApplyMatrixLV(&scratch->transposedRotation, &scratch->originDelta, (VECTOR*)out->t);
-}
-
 void gfxMakeRelativeTransform(const MATRIX* reference, const MATRIX* target, MATRIX* out)
 {
     _GfxRelativeTransformScratch* scratch;
@@ -1395,62 +1443,40 @@ s32 Gp_TrySpawnViewTask(ViewCamera* camera)
     return Task_Spawn(0, 0xF, 0, camera) != NULL;
 }
 
-void Gp_ApplyView(ViewCamera* camera)
+void viewApplyCamera(const ViewCamera* camera)
 {
-    GfxCoord* c1;
-    MATRIX*   rot;
-    VECTOR3*  trans;
-
-    rot   = &gGfxViewRotCoord.coord;
-    trans = MATRIX_TRANS(&gGfxViewCoord.coord);
-    c1    = &Gfx_ViewOffsetCoord;
-
-    // Keep rotation and translation in their separate camera coordinate nodes.
-    *(_ViewRotation*)rot->m = *(_ViewRotation*)camera->transform.m;
-    *trans                  = *MATRIX_TRANS(&camera->transform);
-
-    c1->coord.t[0] = 0;
-    c1->coord.t[1] = 0;
-    c1->coord.t[2] = 0;
-
-    gDisplayState.screenDistance = camera->screenDistance;
-    gte_SetGeomScreen(camera->screenDistance);
-    gte_SetGeomOffset(0, 0);
-
-    Gfx_ViewOffsetCoord.composeStamp                  = GRAPHICS_COORD_DIRTY;
-    PARENT_OF(rot, GfxCoord, coord)->composeStamp     = GRAPHICS_COORD_DIRTY;
-    PARENT_OF(trans, GfxCoord, coord.t)->composeStamp = GRAPHICS_COORD_DIRTY;
+    _viewWriteCameraState(camera);
 }
 
-static void Gp_ResetView(void)
+/// Restores identity view rotation and zero origin with outer Z at ONE (4096 game units).
+///
+/// Invalidates the three caches while preserving their parent links and all
+/// projection settings.
+static void _viewResetTransform(void)
 {
-    MATRIX*            m;
-    volatile GfxCoord* c1;
-    GfxCoord*          c2;
-    GfxCoord*          c3;
-    s32                one;
+    MATRIX*   rotation;
+    GfxCoord* viewOffset;
+    GfxCoord* viewRotation;
+    GfxCoord* viewOrigin;
+    s32       one;
 
-    c1             = &Gfx_ViewOffsetCoord;
-    one            = ONE;
-    c1->coord.t[0] = 0;
-    c1->coord.t[1] = 0;
-    c1->coord.t[2] = one;
+    viewOffset             = &Gfx_ViewOffsetCoord;
+    one                    = ONE;
+    viewOffset->coord.t[0] = 0;
+    viewOffset->coord.t[1] = 0;
+    viewOffset->coord.t[2] = one;
 
-    *(volatile s32*)&gGfxViewRotCoord.coord = one;
-    m                                       = &gGfxViewRotCoord.coord;
-    c2                                      = PARENT_OF(m, GfxCoord, coord);
-    MATRIX_PAIR(m, 1, 1)                    = one;
-    m->m[2][2]                              = one;
+    rotation     = &gGfxViewRotCoord.coord;
+    viewRotation = PARENT_OF(rotation, GfxCoord, coord);
+    gfxSetRotIdentity(rotation);
 
-    c3                   = &gGfxViewCoord;
-    MATRIX_PAIR(m, 0, 2) = 0;
-    MATRIX_PAIR(m, 2, 0) = 0;
-    c3->coord.t[0]       = 0;
-    c3->coord.t[1]       = 0;
-    c3->coord.t[2]       = 0;
-    c1->composeStamp     = GRAPHICS_COORD_DIRTY;
-    c2->composeStamp     = GRAPHICS_COORD_DIRTY;
-    c3->composeStamp     = GRAPHICS_COORD_DIRTY;
+    viewOrigin                 = &gGfxViewCoord;
+    viewOrigin->coord.t[0]     = 0;
+    viewOrigin->coord.t[1]     = 0;
+    viewOrigin->coord.t[2]     = 0;
+    viewOffset->composeStamp   = GRAPHICS_COORD_DIRTY;
+    viewRotation->composeStamp = GRAPHICS_COORD_DIRTY;
+    viewOrigin->composeStamp   = GRAPHICS_COORD_DIRTY;
 }
 
 void Gp_SpawnViewTasks(void)
@@ -1482,33 +1508,12 @@ ViewCamera* Gp_GetStageView(GameLocationKey* arg0)
     return &cameras[idx - 1];
 }
 
-void Gp_ApplyViewTask(Task* task)
+void viewApplyCameraTask(Task* task)
 {
-    GfxCoord*   c1;
-    MATRIX*     rot;
-    VECTOR3*    trans;
-    ViewCamera* camera;
+    const ViewCamera* camera;
 
-    rot    = &gGfxViewRotCoord.coord;
-    trans  = MATRIX_TRANS(&gGfxViewCoord.coord);
-    c1     = &Gfx_ViewOffsetCoord;
     camera = task->spawnArg2.pointer;
-
-    // Keep rotation and translation in their separate camera coordinate nodes.
-    *(_ViewRotation*)rot->m = *(_ViewRotation*)camera->transform.m;
-    *trans                  = *MATRIX_TRANS(&camera->transform);
-
-    c1->coord.t[0] = 0;
-    c1->coord.t[1] = 0;
-    c1->coord.t[2] = 0;
-
-    gDisplayState.screenDistance = camera->screenDistance;
-    gte_SetGeomScreen(camera->screenDistance);
-    gte_SetGeomOffset(0, 0);
-
-    Gfx_ViewOffsetCoord.composeStamp                  = GRAPHICS_COORD_DIRTY;
-    PARENT_OF(rot, GfxCoord, coord)->composeStamp     = GRAPHICS_COORD_DIRTY;
-    PARENT_OF(trans, GfxCoord, coord.t)->composeStamp = GRAPHICS_COORD_DIRTY;
+    _viewWriteCameraState(camera);
     taskKill(task);
 }
 

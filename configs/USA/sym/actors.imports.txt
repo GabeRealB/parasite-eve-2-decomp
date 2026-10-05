@@ -153,7 +153,7 @@ gPlayerStatus = 0x80073B88; // absolute:True
 // --- from gameplay (216 symbols)
 actorRenderComposeCoord = 0x80098F58; // type:func absolute:True
 modelLightingSetLayerMaterials = 0x8009EA50; // type:func absolute:True
-Gp_SpendMp = 0x800A7F34; // type:func absolute:True
+playerStateSpendMp = 0x800A7F34; // type:func absolute:True
 gfxMakeRelativeTransform = 0x800A8864; // type:func absolute:True
 Gp_TrySpawnViewTask = 0x800A8A1C; // type:func absolute:True
 Gp_SpawnViewTasks = 0x800A8B6C; // type:func absolute:True

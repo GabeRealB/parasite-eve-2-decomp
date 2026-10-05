@@ -11,8 +11,6 @@
 #include "main/session_types.h"
 #include "main/task_types.h"
 
-s32 Gp_IsDebugAttachRoom(void);
-
 void Gp_TriggerPeIfArmed(void);
 
 /// Expresses a target transform relative to a reference transform.
@@ -52,22 +50,14 @@ void gfxBuildDirectionRotation(const VECTOR* direction, MATRIX* out, s32 roll);
 
 s32 Gp_TrySpawnViewTask(ViewCamera* camera);
 
-void Gp_ApplyView(ViewCamera* camera);
-
 void Gp_SpawnViewTasks(void);
 
 ViewCamera* Gp_GetStageView(GameLocationKey* arg0);
 
 void Gp_SpawnCurView(s32 arg0);
 
-s32 Gp_SpendMp(s32 arg0);
-
-void Gp_ApplyViewTask(Task* task);
-
 void Gp_ViewGateTask(Task* task);
 
 void func_800A77B4(Task* arg0);
-
-void func_800A8654(Task* task);
 
 #endif // GAMEPLAY_HUD_SPRITES_H

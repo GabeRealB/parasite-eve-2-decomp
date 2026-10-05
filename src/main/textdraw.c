@@ -28,6 +28,7 @@
 #include "gameplay/loading.h"
 #include "gameplay/model_objects.h"
 #include "gameplay/room_effects.h"
+#include "gameplay/view.h"
 
 #include "title/title.h"
 
@@ -191,8 +192,8 @@ static TaskDesc D_8005EDA0[] = {
     { { { TASK_BODY_NONE, 0x10 } }, Mc_DispatchStateTable26 },
     { { { TASK_BODY_NONE, 0xC0 } }, taskNoopBank0Slot12 },
     { { { TASK_BODY_NONE, 0x10 } }, Text_BootTask },
-    { { { TASK_BODY_COORD, 0x2F } }, func_800A8654 },
-    { { { TASK_BODY_NONE, 0x2F } }, Gp_ApplyViewTask },
+    { { { TASK_BODY_COORD, 0x2F } }, viewApplyCoordTask },
+    { { { TASK_BODY_NONE, 0x2F } }, viewApplyCameraTask },
     { { { TASK_BODY_NONE, 0x40 } }, func_800AD50C },
     { { { TASK_BODY_NONE, 0x28 } }, func_800AC0F0 },
     { { { TASK_BODY_NONE, 0x10 } }, Mc_DispatchStateTable },

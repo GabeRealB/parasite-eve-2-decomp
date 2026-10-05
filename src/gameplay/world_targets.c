@@ -1122,7 +1122,7 @@ void Gp_InitStateF0(void)
     combat->actor00300AttackAlert               = 0;
     combat->golemPawnRookDeathAlert             = 0;
     combat->field_2A                            = 0;
-    if (Gp_IsDebugAttachRoom() == 1) {
+    if (attachmentIsTrainingMode() == 1) {
         combat->difficulty = SCENE_COMBAT_DIFFICULTY_NORMAL;
     } else {
         save               = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];

@@ -14,6 +14,7 @@
 #include "gameplay/display.h"
 #include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
+#include "gameplay/attachments.h"
 #include "gameplay/area.h"
 #include "gameplay/captions.h"
 #include "gameplay/collision.h"
@@ -2071,7 +2072,7 @@ void func_dryfield_night_saloon_g_r_8017E28C(Task* task)
     uiDrawPanelLabel(&(obj)->panel, D_dryfield_night_saloon_g_r_8017D898);
     if (task->state == 0) {
         task->spawnArg1.value = -1;
-        if (Gp_IsDebugAttachRoom() == 0) {
+        if (attachmentIsTrainingMode() == 0) {
             menu->itemCount = 4;
         } else {
             menu->itemCount = 3;
@@ -2088,7 +2089,7 @@ void func_dryfield_night_saloon_g_r_8017E28C(Task* task)
         uiSetListSystemCursorSound(menu, 1);
         obj->panel.bounds.unsignedRect.x = -((s16)obj->panel.bounds.unsignedRect.w / 2);
         obj->panel.bounds.unsignedRect.y = -((s16)obj->panel.bounds.unsignedRect.h / 2);
-        if (Gp_IsDebugAttachRoom() == 0) {
+        if (attachmentIsTrainingMode() == 0) {
             task->status = 0xFF;
         } else {
             task->status = 0xFE;
@@ -2128,7 +2129,7 @@ void func_dryfield_night_saloon_g_r_8017E28C(Task* task)
             if (ready == 1) {
                 task->state  = 1;
                 task->status = 0xFF;
-                if (Gp_IsDebugAttachRoom() == 0) {
+                if (attachmentIsTrainingMode() == 0) {
                     gGameSession->flowFlags |= (GAME_SESSION_FLOW_SKIP_ENDING_MUSIC | GAME_SESSION_FLOW_SKIP_AREA_MUSIC);
                 }
                 if (obj->panel.control.word != USER_INTERFACE_PANEL_ACTIVE) {

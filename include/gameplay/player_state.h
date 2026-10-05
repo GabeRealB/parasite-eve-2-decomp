@@ -10,6 +10,14 @@
 #include "main/session_types.h"
 #include "main/task_types.h"
 
+/// Subtracts `amount` MP from the player, draining the remainder when it is insufficient.
+///
+/// `amount` is a nonnegative count of Parasite Energy points. Returns 1 when
+/// all points were available (including a zero request), otherwise sets MP
+/// to zero and returns 0. Used for hostile drains as well as spending;
+/// changes neither maximum MP nor HP and retains no pointers.
+s32 playerStateSpendMp(s32 amount);
+
 void Gp_TriggerPeState(s32 arg0, s32 arg1);
 
 void Gp_BindActorD4(Task* arg0, SVECTOR3* arg1, s32 arg2);

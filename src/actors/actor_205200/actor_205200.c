@@ -14,6 +14,7 @@
 #include "gameplay/effects.h"
 #include "gameplay/enemy.h"
 #include "gameplay/hud_sprites.h"
+#include "gameplay/player_state.h"
 #include "gameplay/message.h"
 #include "gameplay/object_fields.h"
 #include "gameplay/pad_script.h"
@@ -455,7 +456,7 @@ static void func_actor_205200_8014AB98(Task* arg0)
                 D_actor_205200_8015B458.state = pulseState;
                 work->pulseTimer              = D_actor_205200_8014C9CC[work->partCount];
                 work->pulseState              = ACTOR_205200_PULSE_WAITING;
-                Gp_SpendMp(1);
+                playerStateSpendMp(1);
                 work->pendingWavePhase = 0;
             }
             break;

@@ -7,6 +7,14 @@
 
 // Attachment parameters, combination state and menu support.
 
+/// Returns 1 in the shooting gallery's alternate Parasite Energy training mode.
+///
+/// Requires Acropolis's M.I.S.T. shooting-gallery area and player resource
+/// variant 4; room and view do not affect the test. This mode uses the
+/// separate training ability levels and disables the ordinary PE release menu.
+/// Returns 0 everywhere else and does not change session or player state.
+s32 attachmentIsTrainingMode(void);
+
 extern AttachmentLevelTable Gp_IdParamHi;
 
 extern u8 Gp_DebugAttachLevels[18];

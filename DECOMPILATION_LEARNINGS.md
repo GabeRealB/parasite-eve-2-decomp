@@ -42,17 +42,17 @@ extra loop instructions. Evidence: `Actor00700_Fn00334-dehack/base_1`,
 `base_5`, and `base_6` dumps; winning preprocessed-input SHA-256
 `835510e5afcef7cd644147aa3ce90f148b3239a3c669f863bd6509e8b432a411`.
 
-## Let an inline helper select the destination member (coordToRoot, 2026-09-27)
+## Let an inline helper select the destination member (_gfxCoordToReference, 2026-09-27)
 
 An inline helper's parameter can expose a member address too early. After
-removing `coordToRoot`'s two matrix-pointer pins and `TOUCH_REG3`, the pointers
+removing `_gfxCoordToReference`'s two matrix-pointer pins and `TOUCH_REG3`, the pointers
 already had the target `a3`/`a2` homes, but the caller's `&rel.coord` address
 was scheduled before them. Passing `&rel` as a `GfxCoord*` and selecting
-`out = &result->coord` inside the helper after scratch allocation moved that
+`outMatrix = &outCoord->coord` inside the helper after scratch allocation moved that
 definition after the matrix-pointer definitions in scheduled RTL. Its `s0`
 setup then filled the scratch-head load delay slot as required.
 
-Scratch `Gp_SetViewFromCoord-dehack/base_1.c` scored 99.718%; this interface
+Scratch `_viewSetFromCoord-dehack/base_1.c` scored 99.718%; this interface
 change in `base_4.c` restored the seed's 99.906% (four symbol-name differences).
 Typed scratch allocation and `&scratch->originDelta` also preserve the match. The
 unscoped build passes for both callers. The custom `gte_TransposeMatrix` asm
@@ -7466,8 +7466,8 @@ layout of `GameLoc` (`_SndMusicVolumeTable` is the 4-byte case with no
 remainder) - but it hides that the bytes are the nine coefficients.
 A word-aligned `MATRIX` assignment uses `lw`/`sw` instead of `lwl`/`lwr`.
 
-`Gp_ApplyView` is the example (rotation to `Gfx_ViewRotMtx`, then a separate
-`VECTOR3` assign of `mtx.t` to `D_80070F28`).
+`viewApplyCamera` is the example (rotation to `gGfxViewRotCoord.coord`, then a separate
+`VECTOR3` assign of `transform.t` to `gGfxViewCoord.coord.t`).
 
 ## 0x50-byte `GfxCoord` assign needs word alignment
 
@@ -8260,7 +8260,7 @@ return x;
 ```
 
 `if (cond) { return x; } return y;` flips to `bnez` and swaps the two
-tails. `Gp_GetAttachLevels` is the example; `Gp_IsDebugAttachRoom` is the same
+tails. `Gp_GetAttachLevels` is the example; `attachmentIsTrainingMode` is the same
 predicate returned as the `s32` itself.
 
 ## Comma-assign so `li sN,K` lands only on the else path
@@ -26021,11 +26021,11 @@ s32 one = ONE;
 c1->coord.t[0] = 0;
 c1->coord.t[1] = 0;
 c1->coord.t[2] = one;
-*(volatile s32*)&Gfx_ViewRotMtx = one; /* must stay volatile */
-m = &Gfx_ViewRotMtx;
+*(volatile s32*)&gGfxViewRotCoord.coord = one; /* must stay volatile */
+m = &gGfxViewRotCoord.coord;
 ```
 
-`Gp_ResetView` is the example. A bare `*(s32*)&Gfx_ViewRotMtx = one` after the
+An earlier `_viewResetTransform` implementation is the example. A bare `*(s32*)&gGfxViewRotCoord.coord = one` after the
 `t[]` stores stuck at 95% with only those two stores swapped.
 
 ## Initialize the typed payload before the child-ring walk
@@ -37919,9 +37919,9 @@ falls through and is consumed as the function name.
 
 ## A barrier inside a shared `static __inline__` changes the *caller's* register allocation
 
-`coordToRoot` in `src/gameplay/gameplay.c` ended with an
+`_gfxCoordToReference` in `src/gameplay/gameplay.c` ended with an
 `__asm__ volatile("" ::"r"(index));` that a previous match (`Gp_SpawnViewCoordTask`)
-needed. When `Gp_SetViewFromCoord` was written against the same helper, the inlined
+needed. When `_viewSetFromCoord` was written against the same helper, the inlined
 copy of that barrier counted as one extra reference to *its* `index`, which
 pushed the parameter ahead of the `root = &gGfxViewCoord;` local in
 `global_alloc`'s priority order. Every instruction matched, but `index` landed
@@ -44750,7 +44750,7 @@ static __inline__ void update_actor_color(Actor01600Ctx* ctx, GfxCoord* attach)
 }
 ```
 
-`coordToRoot` / `_worldTargetProjectReadout` in `src/gameplay/` are the same trick;
+`_gfxCoordToReference` / `_worldTargetProjectReadout` in `src/gameplay/` are the same trick;
 the inlining rematerialises the scratch-stack cursor address at each use.
 Neither `volatile` on the pointed-to type nor a
 `COMPILER_BARRIER()` between the accesses stops the `cse` merge.
@@ -49876,7 +49876,7 @@ stored value is an `s32`:
 
 ```c
 count = 3;
-if (Gp_IsDebugAttachRoom() == 0) { count = 4; }
+if (attachmentIsTrainingMode() == 0) { count = 4; }
 list->itemCount = count;
 if (list->itemCount >= 0xB) { ... }   /* sltiu on the count register, no load */
 ```
@@ -49887,7 +49887,7 @@ survives — and the constant lands in `$v0` instead of a callee-saved register
 because its live range no longer starts before the call:
 
 ```c
-if (Gp_IsDebugAttachRoom() == 0) { list->itemCount = 4; } else { list->itemCount = 3; }
+if (attachmentIsTrainingMode() == 0) { list->itemCount = 4; } else { list->itemCount = 3; }
 if (list->itemCount >= 0xB) { list->visibleRowCount.unsignedValue = 0xA; } else { list->visibleRowCount.unsignedValue = list->itemCount; }
 ```
 
@@ -124476,7 +124476,7 @@ potential of eliminating the most insns". So the first `sh`/`lhu` through the
 pointer comes out as `-8(head)`, which keeps `head` alive in a second register
 and takes the schedule with it. `TOUCH_REG(sv)` right after the pointer is
 stored stops the fold - an empty asm with a `"+r"` operand gives the pseudo a
-new, unknown value - exactly as `coordToRoot` / `Gp_SetViewFromCoord` do with
+new, unknown value - exactly as `_gfxCoordToReference` / `_viewSetFromCoord` do with
 `TOUCH_REG3(tmp, rootm, head)`. That one line was 75.50% -> 91.16%.
 
 Three smaller ones from the same function:
@@ -147801,12 +147801,12 @@ a struct member reached that way leaves the member offset in the displacement
 (`addiu t0,a1,-124` / `lw v0,124(v0)`), which is when the pointer local is
 needed.
 
-### `dst->m[i][j] = src->m[i][j]` wanting offset-first on one side only: name the global on that side (func_800A8654, 2026-10-05)
+### `dst->m[i][j] = src->m[i][j]` wanting offset-first on one side only: name the global on that side (viewApplyCoordTask, 2026-10-05)
 
 Target `addu v1,a0,t1` (offset + destination) and `addu v0,t0,a0` (source +
 offset) in a 3x3 copy. Through two pointer locals both come out base first.
-Dropping the local for the destination, `gGfxViewRotCoord.coord.m[i][j] =
-src->coord.m[i][j]`, gives the static object's address plus the offset with the
+Dropping the local for the destination, `gGfxViewRotCoord.coord.m[row][column] =
+cameraCoord->coord.m[row][column]`, gives the static object's address plus the offset with the
 offset first, and its `lui`/`addiu` is still hoisted to where the local's
 assignment had put it.
 

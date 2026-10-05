@@ -241,7 +241,7 @@ void Gp_DrawPeEnergyCmd(UiList* arg0, UiObject* arg1)
     s32         one;
 
     textColorRgb = arg0->colorRgb;
-    if (Gp_IsDebugAttachRoom() != 0) {
+    if (attachmentIsTrainingMode() != 0) {
         textColorRgb = uiGetTextColor(arg1, USER_INTERFACE_TEXT_COLOR_DIMMED);
     } else {
         status = arg1->panel.control.word;
@@ -263,7 +263,7 @@ void Gp_DrawPeEnergyCmd(UiList* arg0, UiObject* arg1)
     textDrawString(&req, Gp_StrPEnergy);
 
     if (arg0->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
-        if (Gp_IsDebugAttachRoom() != 0) {
+        if (attachmentIsTrainingMode() != 0) {
             arg0->actionResult = USER_INTERFACE_LIST_ACTION_SKIP_ROW;
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
