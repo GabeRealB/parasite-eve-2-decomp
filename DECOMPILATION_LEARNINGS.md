@@ -15181,7 +15181,7 @@ if (ok) {
 obj = p->field_20;
 ```
 
-`Mc_StateOpenDirEntry` is the pure example (with `register asm` pins for `s0`/`s1`/`s2`).
+`_mcStateOpenLoadPreview` is the pure example (with `register asm` pins for `s0`/`s1`/`s2`).
 
 ## `u32` switch discriminator for `sltiu` range split
 
@@ -15406,7 +15406,7 @@ Hold the discriminator in a `u32` so the range check is `sltiu` (see also
 routing through an intermediate then storing once can pick the wrong register
 for the case immediates (`v1` vs target `v0`).
 
-`Mc_StateCreateFile` is the pure example (MemCardCreateFile status → UI state).
+`_mcStateCreateSaveFile` is the pure example (MemCardCreateFile status → UI state).
 Remember to hand the jtbl's address range to the C file via a `.rodata`
 subsegment in `configs/USA/main.yaml` (split surrounding asm tables into
 `mc_1` / `mc_2` style siblings).
@@ -15640,11 +15640,11 @@ store:
 
 ## Reload pointer into a0 with halfword temp for dual end stores
 
-When the target ends like Mc_StateCloseReturn but also copies a halfword from
+When the target ends like _mcStateCloseLoadFile but also copies a halfword from
 a second arg before setting `result = -1`:
 
 ```
-lw    a0, 0x20(s3)       /* reload Task::field_20 */
+lw    a0, 0x20(s3)       /* reload Task::spawnArg2.pointer */
 li    v0, K
 beqz  a0, end
  sw   v0, 0x30(s3)
@@ -15659,20 +15659,20 @@ scrambles s-regs). Declare a fresh pointer plus an `s16` temp, load the
 halfword first inside the `if`, then store:
 
 ```c
-UiObject* flag;
-s16       val;
+UiObject* closingObject;
+s16       closeAnswer;
 
-arg0->field_30 = K;
-flag = arg0->field_20;
-if (flag != NULL) {
-    val            = arg1->closeAnswer; /* s32→s16 emits lhu */
-    flag->result = -1;
-    flag->resultValue = val;
+task->state = K;
+closingObject = task->spawnArg2.pointer;
+if (closingObject != NULL) {
+    closeAnswer = work->closeAnswer; /* s32→s16 emits lhu */
+    closingObject->result = USER_INTERFACE_RESULT_CANCEL;
+    closingObject->resultValue = closeAnswer;
 }
 ```
 
-Cast-only double loads of `index->field_20` (as in Mc_StateCloseReturn) reload
-twice and miss the `lhu`/`sh` pairing. `Mc_StateClosePrompt` is the pure example.
+Cast-only double loads of `task->spawnArg2.pointer` reload
+twice and miss the `lhu`/`sh` pairing. `_mcStateCloseSaveFile` is the pure example.
 
 ## `s16` first arg forces `$a2`/`$a3` dual copies of the promoted value
 
@@ -17735,8 +17735,8 @@ the pinned arg regs are what force the `move`s to complete first.
 Also pair with `register s32 temp asm("s2")` when a long-lived work pointer
 must occupy `$s2` (otherwise it steals `$s1` and flips the arg colors).
 
-`Mc_StateSaveSlotUi` is the pure example (checksum gate + confirm/cancel pad path
-over `McWork::previews[slot]`).
+`_mcDrawLoadFileRow` is the pure example (checksum gate + confirm/cancel pad path
+over `work->previews[directoryIndex]`).
 
 ## Force `(idx << k) + C` before base add for `addiu`/`addu` order
 
@@ -17749,11 +17749,12 @@ addiu  v0, v0, 0x294
 addu   a2, s2, v0
 ```
 
-compute the scaled offset first:
+load the directory index before the work pointer, then form the typed preview sum:
 
 ```c
-previewByteOffset = (arg0->currentItemIndex << 7) + 0x294;
-save = (McSavePreview*)((u8*)work + previewByteOffset);
+directoryIndex = list->currentItemIndex;
+work = object->owner->spawnArg1.pointer;
+preview = work->previews + directoryIndex;
 ```
 
 ## `if (x >= K)` for `slti`/`bnez` fall-through compute + `j` join
@@ -18295,7 +18296,7 @@ work = arg1;
 arg1 = 0; /* kills a1; CSE can put K in a1 and load promptTimer from s2 */
 if (work->confirmOverwrite == 1) {
     work->promptId = 0x11;
-    status = Mc_PromptDialogSpawn(arg0, 0x11, work->promptTimer);
+    status = _mcUpdateYesNoPromptInitialNo(arg0, 0x11, work->promptTimer);
     ...
 }
 ```
@@ -144726,7 +144727,7 @@ entry test, whereas a local assigned before the loop sits in the entry block
 and pushes the bound's load after the preceding `sb`, so `reload_cse` can no
 longer turn it into `andi` of the stored register.
 
-### A `u16` checksum accumulator: `lbu`+sign-extend with no copy, where `s16` needs a pin (Mc_StateSaveSlotUi, 2026-09-26)
+### A `u16` checksum accumulator: `lbu`+sign-extend with no copy, where `s16` needs a pin (_mcDrawLoadFileRow, 2026-09-26)
 
 In a byte-sum loop compared against a stored `u16` checksum, an `s16 sum` gives
 the `lbu`/`sll 24`/`sra 24` load but adds into a second register and copies it
@@ -148116,7 +148117,7 @@ local-alloc hands the first one `$s0` before `x` is considered.
 the operands swapped. `top = menu->selectedItemIndex = t + top` keeps the
 operand order but `top` is not the class head there and the copy dies again.
 
-### A pseudo that dies where another is set inherits its register preferences: give the other branch its own local (Mc_PromptDialog and its three siblings, 2026-10-05)
+### A pseudo that dies where another is set inherits its register preferences: give the other branch its own local (_mcUpdateOkPrompt and its three siblings, 2026-10-05)
 
 **Symptom.** `child = task->firstChild; if (child == NULL) { obj2 = uiSpawnObject(...); ... return 0; } obj2 = child->spawnArg2.pointer; ... uiStartTreeClosing(obj2, ...)`.
 The target keeps `child` in `$a0` (`lw a0,0xc(s2)` / `bnez a0` / `lw a0,0x20(a0)`),
@@ -148135,21 +148136,22 @@ conflicts with nothing, so it takes the lowest preferred register, `$v0`
 **Fix.** The spawned panel is a block local of the `NULL` branch:
 
 ```c
-child = task->firstChild;
-if (child == NULL) {
-    UiObject* spawned;
+choiceTask = dialogTask->firstChild;
+if (choiceTask == NULL) {
+    UiObject* spawnedChoice;
 
-    spawned = uiSpawnObject(Mc_PromptDesc, 0, 1, 2, obj);
-    if (spawned != NULL) { ... }
-    return 0;
+    spawnedChoice = uiSpawnObject(Mc_PromptDesc, MEMORY_CARD_MENU_PROMPT_OK,
+        USER_INTERFACE_PANEL_ACTIVE, MEMORY_CARD_CHOICE_OPEN_DELAY_TICKS, dialogObject);
+    if (spawnedChoice != NULL) { ... }
+    return MEMORY_CARD_PROMPT_ANSWER_PENDING;
 }
-childObject = child->spawnArg2.pointer;
+choiceObject = choiceTask->spawnArg2.pointer;
 ```
 
-`childObject` then prefers only `$a0`, `child` inherits only `$a0`, and
-`spawned` still lands in `$a0` because `$v0`/`$v1` are taken by temporaries.
+`choiceObject` then prefers only `$a0`, `choiceTask` inherits only `$a0`, and
+`spawnedChoice` still lands in `$a0` because `$v0`/`$v1` are taken by temporaries.
 The same four functions also carried `one = 1; base = Mc_PromptTable;` locals
-and a hand-expanded prompt; they are `_mcDrawPrompt(task, promptId)`, the
+and a hand-expanded prompt; they are `_mcDrawPrompt(dialogTask, promptId)`, the
 inline the state functions already use, defined above them (GCC 2.8.1 only
 inlines a function defined before its caller).
 

@@ -242,7 +242,7 @@ segments:
       - [0x1e574, o, libapi/free3] # free3
       - [0x1e6c4, c, textdraw] # font glyph dual-SPRT text draw
       - [0x201e0, c, textutil] # multi-line text measure/draw helpers
-      - [0x208ec, c, mc] # save-buffer setup, Mc_PromptDialog, the memcard state machine and its helpers
+      - [0x208ec, c, mc] # save-buffer setup, _mcUpdateOkPrompt, the memcard state machine and its helpers
       - [0x2721c, c, mcmenu] # memcard UI list / menu handlers
       - [0x27964, o, libc2/rand] # rand, srand
       - [0x279a4, o, libmcrd/init] # MemCardInit, MemCardEnd

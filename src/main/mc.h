@@ -146,9 +146,17 @@ extern const char McText_Bounty[];
 
 extern const char McText_Replay[];
 
-/// Render the selected memory-card slot and its saved statistics.
-/// Draws the selected slot's place, play time, clear count and saved statistics.
-void Mc_DrawSlotDetails(struct UiObject* obj, McWork* work, s32 slot, s32 x, s32 y);
+/// Draw a card file's cached preview, corrupt notice or New Block placeholder.
+///
+/// Borrows a live panel object and its dialog work. `directoryIndex` must be
+/// nonnegative: values below `entryCount` select its cached preview (0..14),
+/// while a free-block row at `entryCount` draws New Block. Origins are integer
+/// pixel offsets relative to the panel content origin and must fit the signed
+/// text-coordinate range after layout additions. Existing previews require
+/// `gameMode` in 0..3; the header check validates only the place index and sum.
+/// Opening previews omit the run mode and show unavailable EXP/BP. All scratch
+/// requests and strings are consumed during the call.
+void mcDrawFilePreview(struct UiObject* panelObject, const McWork* work, s32 directoryIndex, s32 originX, s32 originY);
 
 void Mc_DispatchStateTable(Task* task);
 

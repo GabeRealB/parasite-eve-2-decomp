@@ -121,7 +121,7 @@ void McMenu_ConfirmWithRender(UiList* list, UiObject* object)
 
     slot = list->currentItemIndex;
     work = object->owner->spawnArg1.pointer;
-    Mc_DrawSlotDetails(object, work, slot, 0, list->rowTextY.signedValue + 7);
+    mcDrawFilePreview(object, work, slot, 0, list->rowTextY.signedValue + 7);
     if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
             sndEvtRequestScriptStart(SOUND_SYSTEM_CONFIRM, 0, 0);
@@ -191,7 +191,7 @@ void McMenu_FileInformation(Task* task)
         menu = &Mc_SaveSlotList;
     }
     slot = menu->selectedItemIndex;
-    Mc_DrawSlotDetails(obj, work, slot, 0, 0);
+    mcDrawFilePreview(obj, work, slot, 0, 0);
 }
 
 /// Requests a memory-card prompt's selection sound and publishes its answer.
