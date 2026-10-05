@@ -21,6 +21,7 @@
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
+#include "main/gfx.h"
 #include "main/random.h"
 #include "main/gfx_types.h"
 #include "main/scratch.h"
@@ -73,7 +74,7 @@ static s32 D_antibody_80130C00[] = { 0xE0290001, 0xE02C0001, 0xE02F0001 };
 /// `pos` is the effect coordinate, `frame` selects the mote cell, `size` is
 /// the perspective numerator and `angle` is the spin in 4096 units per turn.
 static void spriteQuadDrawMote(const GfxCoord* pos, s16 frame, s16 size, s16 angle);
-static void func_antibody_80130428(GfxCoord* arg0, s16 arg1, s16 arg2);
+static void _antibodyDrawMoteStrip(const GfxCoord* coord, s16 textureFrame, s16 widthScale);
 
 /// Sixteen wedge yaws, refilled once per cast by `func_antibody_8012EF34`.
 /// Entry `i` is `i * (0x1000 / wedgeCount)` plus a 9-bit `gRandomLcgState` draw;
@@ -270,137 +271,125 @@ release:
     effectKillTask(mem, arg0);
 }
 
-/// Runs one frame of an antibody mote. State 0 re-bases the effect coordinate
-/// on the `EffectWork.parent` parent with an identity rotation and the work
-/// block's `pos` offset, then GPF-scales that offset by 0x100
-/// (a sixteenth) into `move` as the per-frame step, and seeds
-/// the intensity `index` from the combo counter, the draw parameter
-/// `scale` from that row's `moteSpawnSize` and the phase `angle` from
-/// `gRandomLcgState`. State 1 walks the coordinate back down that step every frame
-/// and draws with `spriteQuadDrawMote`; past tick 0x10 it parks a `-0x80`
-/// Y drift in `move.vy` and moves to state 2, and one frame in sixteen it
-/// jumps straight to state 3 instead. State 2 applies that Y drift and keeps
-/// drawing; state 3 draws the larger `spriteQuadDraw` /
-/// `func_antibody_80130428` pair. All three re-roll `scale` / `angle`
-/// from the row's `moteRerollSizeBase` one frame in eight, and states 2 and 3 release the
-/// effect at tick 0x15.
-void func_antibody_8012F734(Task* arg0)
+void antibodyMoteTask(Task* task)
 {
-    EffectWork*       mem;
-    GfxCoord*         coord;
-    GfxRotationWords* rot;
-    s32               rng0;
-    s32               rng1a;
-    s32               rng1b;
-    s32               rng1c;
-    s32               rng1d;
-    s32               rng2a;
-    s32               rng2b;
-    s32               rng2c;
-    s32               rng3a;
-    s32               rng3b;
-    s32               rng3c;
-    s16               idx;
+    enum {
+        ANTIBODY_MOTE_INITIALIZE       = 0,
+        ANTIBODY_MOTE_CONVERGE         = 1,
+        ANTIBODY_MOTE_RISE             = 2,
+        ANTIBODY_MOTE_PLAYER_FLASH     = 3,
+        ANTIBODY_MOTE_INWARD_FRAMES    = 16,
+        ANTIBODY_MOTE_LAST_FRAME       = 21,
+        ANTIBODY_MOTE_RISE_STEP        = -128,
+        ANTIBODY_MOTE_FLASH_MASK       = 15,    // One roll in sixteen freezes an inward mote
+        ANTIBODY_MOTE_REROLL_MASK      = 7,     // One roll in eight changes size and spin
+        ANTIBODY_MOTE_SIZE_JITTER_MASK = 0x1FF, // Add 0..511 to the level's size base
+        ANTIBODY_MOTE_ANGLE_MASK       = 0xFFF  // 4096 angle units per turn
+    };
+    EffectWork* work;
+    GfxCoord*   coord;
+    s32         seedRng;
+    s32         flashRng;
+    s16         levelIndex;
 
-    mem                 = arg0->spawnArg2.pointer;
-    coord               = arg0->extra.coordBody->coord;
-    mem->age            = mem->age + 1;
+    /// Occasionally rerolls the current mote's size and spin in shared random draw order.
+    ///
+    /// Captures this function's `work`, the level table, random state and masks.
+    /// `sizeMultiplier` must be the signed integer constant 1 (mote) or 2
+    /// (player-linked flash); it is evaluated once, only when the check succeeds.
+    /// Consumes one check draw, then separate size and angle draws on success.
+    /// Local random values belong to each expansion; store size before drawing
+    /// the angle. A single statement with no control flow into its caller;
+    /// defined only for this function and undefined immediately after its body.
+#define ANTIBODY_MOTE_REROLL_APPEARANCE(sizeMultiplier)                                                \
+    do {                                                                                               \
+        s32 rerollRng;                                                                                 \
+        s32 sizeRng;                                                                                   \
+        s32 angleRng;                                                                                  \
+                                                                                                       \
+        rerollRng       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;              \
+        gRandomLcgState = rerollRng;                                                                   \
+        if ((((u32)rerollRng >> 16) & ANTIBODY_MOTE_REROLL_MASK) == 0) {                               \
+            sizeRng         = rerollRng * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;                \
+            gRandomLcgState = sizeRng;                                                                 \
+            work->scale     = D_antibody_80130BD4[work->index].moteRerollSizeBase * (sizeMultiplier) + \
+                          (((u32)sizeRng >> 16) & ANTIBODY_MOTE_SIZE_JITTER_MASK);                     \
+            angleRng        = sizeRng * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;                  \
+            gRandomLcgState = angleRng;                                                                \
+            work->angle     = ((u32)angleRng >> 16) & ANTIBODY_MOTE_ANGLE_MASK;                        \
+        }                                                                                              \
+    } while (0)
+
+    work                = task->spawnArg2.pointer;
+    coord               = task->extra.coordBody->coord;
+    work->age           = work->age + 1;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    switch (arg0->state) {
-        case 0:
-            rot           = (GfxRotationWords*)&coord->coord;
-            coord->parent = mem->parent;
-            rot->m00M01   = ONE;
-            rot->m02M10   = 0;
-            rot->m11M12   = ONE;
-            rot->m20M21   = 0;
-            rot->m22      = ONE;
+    switch (task->state) {
+        case ANTIBODY_MOTE_INITIALIZE:
+            // Keep the parent's rotation; the mote's local transform starts at its spawn offset.
+            coord->parent = work->parent;
+            gfxSetRotIdentity(&coord->coord);
 
-            coord->coord.t[0] = mem->pos.vx;
-            coord->coord.t[1] = mem->pos.vy;
-            coord->coord.t[2] = mem->pos.vz;
+            coord->coord.t[0] = work->pos.vx;
+            coord->coord.t[1] = work->pos.vy;
+            coord->coord.t[2] = work->pos.vz;
 
-            gte_lddp(0x100);
-            gte_ldsv(&mem->pos);
+            // Q12 scaling derives a constant inward step; each signed component truncates in the GTE.
+            gte_lddp(ONE / ANTIBODY_MOTE_INWARD_FRAMES);
+            gte_ldsv(&work->pos);
             gte_gpf12();
-            gte_stsv(&mem->move);
+            gte_stsv(&work->move);
 
-            arg0->state     = 1;
-            rng0            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            gRandomLcgState = rng0;
-            idx             = Gp_StateC08.attachId % 10 - 1;
-            mem->index      = idx;
-            mem->scale      = D_antibody_80130BD4[idx].moteSpawnSize;
-            mem->angle      = ((u32)rng0 >> 16) & 0xFFF;
+            task->state     = ANTIBODY_MOTE_CONVERGE;
+            seedRng         = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            gRandomLcgState = seedRng;
+            levelIndex      = Gp_StateC08.attachId % 10 - 1;
+            work->index     = levelIndex;
+            work->scale     = D_antibody_80130BD4[levelIndex].moteSpawnSize;
+            work->angle     = ((u32)seedRng >> 16) & ANTIBODY_MOTE_ANGLE_MASK;
             /* fallthrough */
-        case 1:
-            rng1a           = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            gRandomLcgState = rng1a;
-            if ((((u32)rng1a >> 16) & 7) == 0) {
-                rng1b           = rng1a * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                gRandomLcgState = rng1b;
-                mem->scale =
-                    D_antibody_80130BD4[mem->index].moteRerollSizeBase + (((u32)rng1b >> 16) & 0x1FF);
-                rng1c           = rng1b * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                gRandomLcgState = rng1c;
-                mem->angle      = ((u32)rng1c >> 16) & 0xFFF;
-            }
-            coord->coord.t[0]  -= mem->move.vx;
-            coord->coord.t[1]  -= mem->move.vy;
-            coord->coord.t[2]  -= mem->move.vz;
+        case ANTIBODY_MOTE_CONVERGE:
+            ANTIBODY_MOTE_REROLL_APPEARANCE(1);
+            coord->coord.t[0]  -= work->move.vx;
+            coord->coord.t[1]  -= work->move.vy;
+            coord->coord.t[2]  -= work->move.vz;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             actorRenderComposeCoord(coord);
-            spriteQuadDrawMote(coord, mem->age, mem->scale, mem->angle);
-            if (mem->age >= 0x10) {
-                mem->move.vy = -0x80;
-                arg0->state  = 2;
+            spriteQuadDrawMote(coord, work->age, work->scale, work->angle);
+            if (work->age >= ANTIBODY_MOTE_INWARD_FRAMES) {
+                work->move.vy = ANTIBODY_MOTE_RISE_STEP;
+                task->state   = ANTIBODY_MOTE_RISE;
                 return;
             }
-            rng1d           = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            gRandomLcgState = rng1d;
-            if ((((u32)rng1d >> 16) & 0xF) == 0) {
-                arg0->state = 3;
+            flashRng        = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            gRandomLcgState = flashRng;
+            if ((((u32)flashRng >> 16) & ANTIBODY_MOTE_FLASH_MASK) == 0) {
+                task->state = ANTIBODY_MOTE_PLAYER_FLASH;
             }
             return;
-        case 2:
-            rng2a           = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            gRandomLcgState = rng2a;
-            if ((((u32)rng2a >> 16) & 7) == 0) {
-                rng2b           = rng2a * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                gRandomLcgState = rng2b;
-                mem->scale =
-                    D_antibody_80130BD4[mem->index].moteRerollSizeBase + (((u32)rng2b >> 16) & 0x1FF);
-                rng2c           = rng2b * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                gRandomLcgState = rng2c;
-                mem->angle      = ((u32)rng2c >> 16) & 0xFFF;
-            }
-            coord->coord.t[1]  += mem->move.vy;
+        case ANTIBODY_MOTE_RISE:
+            ANTIBODY_MOTE_REROLL_APPEARANCE(1);
+            coord->coord.t[1]  += work->move.vy;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             actorRenderComposeCoord(coord);
-            spriteQuadDrawMote(coord, mem->age, mem->scale, mem->angle);
-            goto check;
-        case 3:
-            rng3a           = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            gRandomLcgState = rng3a;
-            if ((((u32)rng3a >> 16) & 7) == 0) {
-                rng3b           = rng3a * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                gRandomLcgState = rng3b;
-                mem->scale      = D_antibody_80130BD4[mem->index].moteRerollSizeBase * 2 +
-                             (((u32)rng3b >> 16) & 0x1FF);
-                rng3c           = rng3b * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                gRandomLcgState = rng3c;
-                mem->angle      = ((u32)rng3c >> 16) & 0xFFF;
-            }
+            spriteQuadDrawMote(coord, work->age, work->scale, work->angle);
+            goto checkLifetime;
+        case ANTIBODY_MOTE_PLAYER_FLASH:
+            // Freeze the local position, then draw the larger sprite and its link to the player.
+            ANTIBODY_MOTE_REROLL_APPEARANCE(2);
             actorRenderComposeCoord(coord);
-            spriteQuadDraw(coord, mem->age, mem->scale, mem->angle);
-            func_antibody_80130428(coord, mem->age, mem->scale);
-        check:
-            if (mem->age >= 0x15) {
-                effectKillTask(mem, arg0);
+            spriteQuadDraw(coord, work->age, work->scale, work->angle);
+            _antibodyDrawMoteStrip(coord, work->age, work->scale);
+        checkLifetime:
+            // Both final phases emit their last frame before retiring the counted effect.
+            if (work->age >= ANTIBODY_MOTE_LAST_FRAME) {
+                effectKillTask(work, task);
             }
             break;
     }
 }
+
+#undef ANTIBODY_MOTE_REROLL_APPEARANCE
 
 /// Defines the mote instance. The next inclusion is unbound and becomes `spriteQuadDraw`.
 #define SPRITE_QUAD_FUNC spriteQuadDrawMote
@@ -440,79 +429,114 @@ void func_antibody_8012F734(Task* arg0)
 #define SPRITE_QUAD_SCALE (SPRITE_QUAD_CELL_WIDTH - 1)
 #include "../../shared/sprite_quad_draw.inc.c"
 
-/// Draws the antibody arc between the effect and the player as one
-/// semi-transparent raw-tex `POLY_FT4` (tpage 0x28, clut 0x42C8). The effect
-/// coordinate's world position and the player's second part coordinate are
-/// each projected through `GsWSMATRIX` with one `RTPS`; the quad is laid
-/// along the line joining the two projected points, `ratan2` of their screen
-/// delta giving the spin applied at that angle and at `+ 0x400`. `arg1`
-/// selects the 128-texel UV tile: u = `(arg1 & 1) * 128`, v =
-/// `((arg1 & 3) >> 1) * 24 - 0x30`. `arg2` is a signed half-extent, so the
-/// on-screen half-width is `arg2 * 23 / depth`. Nothing is drawn if either
-/// projection sets a negative `gte_stflg`.
-static void func_antibody_80130428(GfxCoord* arg0, s16 arg1, s16 arg2)
+/// Queues an additive textured strip from an Antibody mote to the player's second model coordinate.
+///
+/// `coord` is borrowed read-only; its cached translation and the player's
+/// `coords[1].workm.t` must already be composed in `GsWSMATRIX` input space.
+/// Each component is narrowed to s16 before projection. The player task must
+/// own a live model with at least two coordinates. A negative GTE FLAG after
+/// either projection rejects the strip. Its sizing and sorting depth is the
+/// start's SZ3 / 4 plus one; the end contributes no depth.
+///
+/// `textureFrame` repeats modulo four over two columns of 128 texels and two
+/// rows of 24. `widthScale` is a signed perspective numerator: the corner
+/// offset length is `widthScale * 23 / depth` pixels before Q12 rotation.
+/// Opposite corners use the screen segment's angle and then a quarter turn;
+/// GPU coordinate fields keep the low 16 bits of each sum.
+///
+/// Requires one free `EffectStripScratch` block and space for one `POLY_FT4`
+/// in the current frame's primitive arena and ordering table. The scratch
+/// block is released on every path; a queued packet lasts through GPU use.
+/// Overwrites the GTE matrix, vector and projection registers.
+static void _antibodyDrawMoteStrip(const GfxCoord* coord, s16 textureFrame, s16 widthScale)
 {
-    EffectStripScratch* block;
-    POLY_FT4*           prim;
-    GfxCoord*           player;
-    s32                 u0;
-    s32                 u1;
-    s32                 va;
-    s32                 vb;
-    s16                 ang;
+    enum {
+        ANTIBODY_STRIP_PLAYER_PART  = 1,
+        ANTIBODY_STRIP_DEPTH_BIAS   = 1,
+        ANTIBODY_STRIP_CELL_WIDTH   = 128,
+        ANTIBODY_STRIP_CELL_HEIGHT  = 24,
+        ANTIBODY_STRIP_COLUMN_MASK  = 1,
+        ANTIBODY_STRIP_FRAME_MASK   = 3,
+        ANTIBODY_STRIP_TOP_V        = 208,   // Second row begins at V=232
+        ANTIBODY_STRIP_QUARTER_TURN = 0x400, // 4096 angle units per turn
+        ANTIBODY_STRIP_TRIG_SHIFT   = 12     // rsin/rcos: 4096 represents 1.0
+    };
+    EffectStripScratch* scratch;
+    POLY_FT4*           quad;
+    const GfxCoord*     playerCoord;
+    s32                 uLeft;
+    s32                 uRight;
+    s32                 vTop;
+    s32                 vBottom;
+    s16                 screenAngle;
 
-    player               = &(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords[1];
-    block                = SCRATCH_STACK_RESERVE_BLOCK(EffectStripScratch);
-    block->worldStart.vx = arg0->workm.t[0];
-    block->worldStart.vy = arg0->workm.t[1];
-    block->worldStart.vz = arg0->workm.t[2];
-    block->worldEnd.vx   = player->workm.t[0];
-    block->worldEnd.vy   = player->workm.t[1];
-    block->worldEnd.vz   = player->workm.t[2];
+    /// Projects one endpoint with the already-loaded GTE matrices, leaving SZ3 available.
+    ///
+    /// Inputs and outputs are word-aligned; the complete SVECTOR is readable.
+    /// Writes signed screen pixels and the complete FLAG word for rejection.
+    /// Each pointer argument is evaluated once, in order; captures no caller
+    /// identifiers. Expands to several statements, so invoke in a braced block.
+    /// Defined only around this drawer and undefined immediately after its body.
+#define ANTIBODY_STRIP_PROJECT_POINT(worldPoint, screenPoint, projectionFlags) \
+    gte_ldv0((worldPoint));                                                    \
+    gte_rtps();                                                                \
+    gte_stsxy((screenPoint));                                                  \
+    gte_stflg((projectionFlags))
+
+    // Stage both cached translations' low halves before loading the camera matrices.
+    playerCoord            = &gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords[ANTIBODY_STRIP_PLAYER_PART];
+    scratch                = SCRATCH_STACK_RESERVE_BLOCK(EffectStripScratch);
+    scratch->worldStart.vx = coord->workm.t[0];
+    scratch->worldStart.vy = coord->workm.t[1];
+    scratch->worldStart.vz = coord->workm.t[2];
+    scratch->worldEnd.vx   = playerCoord->workm.t[0];
+    scratch->worldEnd.vy   = playerCoord->workm.t[1];
+    scratch->worldEnd.vz   = playerCoord->workm.t[2];
 
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&block->worldStart);
-    gte_rtps();
-    gte_stsxy(&block->screenStart);
-    gte_stflg(&block->projectionFlags);
-    if (block->projectionFlags >= 0) {
-        gte_stszotz(&block->depth);
-        block->depth++;
-        gte_ldv0(&block->worldEnd);
-        gte_rtps();
-        gte_stsxy(&block->screenEnd);
-        gte_stflg(&block->projectionFlags);
-        if (block->projectionFlags >= 0) {
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setlen(prim, 9);
-            setcode(prim, 0x2F);
-            prim->tpage = 0x28;
-            prim->clut  = 0x42C8;
-            u0          = (arg1 & 1) << 7;
-            u1          = u0 + 0x7F;
-            va          = ((arg1 & 3) >> 1) * 24 - 0x30;
-            vb          = ((arg1 & 3) >> 1) * 24 - 0x19;
-            setUV4(prim, u0, va, u1, va, u0, vb, u1, vb);
-            ang                  = ratan2(block->screenEnd.vy - block->screenStart.vy, block->screenEnd.vx - block->screenStart.vx);
-            block->cornerOffsetX = (((arg2 * 0x17) / block->depth) * rsin(ang)) >> 12;
-            block->cornerOffsetY = (((arg2 * 0x17) / block->depth) * rcos(ang)) >> 12;
-            prim->x0             = block->screenStart.vx + block->cornerOffsetX;
-            prim->x3             = block->screenEnd.vx - block->cornerOffsetX;
-            prim->y0             = block->screenStart.vy - block->cornerOffsetY;
-            prim->y3             = block->screenEnd.vy + block->cornerOffsetY;
-            block->cornerOffsetX = (((arg2 * 0x17) / block->depth) * rsin(ang + 0x400)) >> 12;
-            block->cornerOffsetY = (((arg2 * 0x17) / block->depth) * rcos(ang + 0x400)) >> 12;
-            prim->x1             = block->screenEnd.vx + block->cornerOffsetX;
-            prim->x2             = block->screenStart.vx - block->cornerOffsetX;
-            prim->y1             = block->screenEnd.vy - block->cornerOffsetY;
-            prim->y2             = block->screenStart.vy + block->cornerOffsetY;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
+    ANTIBODY_STRIP_PROJECT_POINT(&scratch->worldStart, &scratch->screenStart, &scratch->projectionFlags);
+    if (scratch->projectionFlags >= 0) {
+        gte_stszotz(&scratch->depth);
+        scratch->depth += ANTIBODY_STRIP_DEPTH_BIAS;
+        ANTIBODY_STRIP_PROJECT_POINT(&scratch->worldEnd, &scratch->screenEnd, &scratch->projectionFlags);
+        if (scratch->projectionFlags >= 0) {
+            quad           = gGpuPrimCursor;
+            gGpuPrimCursor = quad + 1;
+            // Raw texture colour with additive blending for texels whose colour has bit 15 set.
+            setPolyFT4(quad);
+            setSemiTrans(quad, 1);
+            setShadeTex(quad, 1);
+            quad->tpage = getTPage(0, GPU_BLEND_ADD, 512, 0);
+            quad->clut  = getClut(128, 267);
+            uLeft       = (textureFrame & ANTIBODY_STRIP_COLUMN_MASK) * ANTIBODY_STRIP_CELL_WIDTH;
+            uRight      = uLeft + (ANTIBODY_STRIP_CELL_WIDTH - 1);
+            // Subtract wrapped V origins; packet bytes retain inclusive endpoints.
+            vTop    = ((textureFrame & ANTIBODY_STRIP_FRAME_MASK) >> 1) * ANTIBODY_STRIP_CELL_HEIGHT - (256 - ANTIBODY_STRIP_TOP_V);
+            vBottom = ((textureFrame & ANTIBODY_STRIP_FRAME_MASK) >> 1) * ANTIBODY_STRIP_CELL_HEIGHT -
+                      (256 - ANTIBODY_STRIP_TOP_V - (ANTIBODY_STRIP_CELL_HEIGHT - 1));
+            setUV4(quad, uLeft, vTop, uRight, vTop, uLeft, vBottom, uRight, vBottom);
+            // Resolve perpendicular and longitudinal offsets against the projected segment.
+            screenAngle            = ratan2(scratch->screenEnd.vy - scratch->screenStart.vy, scratch->screenEnd.vx - scratch->screenStart.vx);
+            scratch->cornerOffsetX = (((widthScale * (ANTIBODY_STRIP_CELL_HEIGHT - 1)) / scratch->depth) * rsin(screenAngle)) >> ANTIBODY_STRIP_TRIG_SHIFT;
+            scratch->cornerOffsetY = (((widthScale * (ANTIBODY_STRIP_CELL_HEIGHT - 1)) / scratch->depth) * rcos(screenAngle)) >> ANTIBODY_STRIP_TRIG_SHIFT;
+            quad->x0               = scratch->screenStart.vx + scratch->cornerOffsetX;
+            quad->x3               = scratch->screenEnd.vx - scratch->cornerOffsetX;
+            quad->y0               = scratch->screenStart.vy - scratch->cornerOffsetY;
+            quad->y3               = scratch->screenEnd.vy + scratch->cornerOffsetY;
+            scratch->cornerOffsetX = (((widthScale * (ANTIBODY_STRIP_CELL_HEIGHT - 1)) / scratch->depth) * rsin(screenAngle + ANTIBODY_STRIP_QUARTER_TURN)) >> ANTIBODY_STRIP_TRIG_SHIFT;
+            scratch->cornerOffsetY = (((widthScale * (ANTIBODY_STRIP_CELL_HEIGHT - 1)) / scratch->depth) * rcos(screenAngle + ANTIBODY_STRIP_QUARTER_TURN)) >> ANTIBODY_STRIP_TRIG_SHIFT;
+            quad->x1               = scratch->screenEnd.vx + scratch->cornerOffsetX;
+            quad->x2               = scratch->screenStart.vx - scratch->cornerOffsetX;
+            quad->y1               = scratch->screenEnd.vy - scratch->cornerOffsetY;
+            quad->y2               = scratch->screenStart.vy + scratch->cornerOffsetY;
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                    quad);
         }
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectStripScratch);
 }
+
+#undef ANTIBODY_STRIP_PROJECT_POINT
 
 #include "../../shared/glow_draw_wedge.inc.c"

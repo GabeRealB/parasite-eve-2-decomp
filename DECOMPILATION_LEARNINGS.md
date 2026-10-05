@@ -62413,15 +62413,15 @@ intermediate value is that reference, so put it where it belongs:
 ```c
 rng2          = rng1 * 5 + 0x71357911;
 gRandomLcgState   = rng2;
-mem->field_24 = Table[mem->field_20].field_8 + (((u32)rng2 >> 16) & 0x1FF);
+work->scale   = D_antibody_80130BD4[work->index].moteRerollSizeBase + (((u32)rng2 >> 16) & 0x1FF);
 rng3          = rng2 * 5 + 0x71357911;
 gRandomLcgState   = rng3;
-mem->field_26 = ((u32)rng3 >> 16) & 0xFFF;
+work->angle   = ((u32)rng3 >> 16) & 0xFFF;
 ```
 
 The scheduler then hoists both `sw`s back together ahead of the loads, which is
 what the target looks like, and the pair of `sh`s lands in source order.
-`func_antibody_8012F734` went 84% -> 88.5% on this one change; giving each
+`antibodyMoteTask` went 84% -> 88.5% on this one change; giving each
 `rng` value its own local (rather than reusing one `rng` across all switch
 arms) took the same function from 88.5% to 99.4%.
 
@@ -62432,12 +62432,12 @@ switch statement. If the target's dispatch jumps straight to the epilogue for
 an unhandled value, a shared tail written *after* the switch is wrong:
 
 ```c
-switch (arg0->state) {
+switch (task->state) {
     …
     case 3: …; break;
 }
-if (mem->field_22 >= 0x15) {        /* default reaches this - the target's does not */
-    effectKillTask(mem, arg0);
+if (work->age >= 0x15) {        /* default reaches this - the target's does not */
+    effectKillTask(work, task);
 }
 ```
 

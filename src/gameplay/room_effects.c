@@ -781,7 +781,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b4_upper_sewer_80183A80, { NULL } },                      // 0x0F2
     { { { TASK_BODY_COORD, 0x70 } }, Gp_EffCtlTaskF3, { NULL } },                                           // 0x0F3
     { { { TASK_BODY_COORD, 0x70 } }, effectSpriteTaskF4, { NULL } },                                        // 0x0F4
-    { { { TASK_BODY_COORD, 0x70 } }, func_antibody_8012F734, { NULL } },                                    // 0x0F5
+    { { { TASK_BODY_COORD, 0x70 } }, antibodyMoteTask, { NULL } },                                          // 0x0F5
     { { { TASK_BODY_COORD, 0x70 } }, func_pyrokinesis_801311B8, { NULL } },                                 // 0x0F6
     { { { TASK_BODY_COORD, 0x70 } }, func_apobiosis_8012FE10, { NULL } },                                   // 0x0F7
     { { { TASK_BODY_COORD, 0x70 } }, func_energyball_8012F180, { NULL } },                                  // 0x0F8
