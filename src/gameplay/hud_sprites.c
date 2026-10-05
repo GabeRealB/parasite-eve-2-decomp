@@ -1287,7 +1287,6 @@ void func_800A8654(Task* task)
     VECTOR*               vec;
     GfxCoord*             src;
     GfxCoord*             c1;
-    GfxCoord*             c2;
     GfxCoord*             c3;
     ModelObjectCoordBody* body;
     s32                   i;
@@ -1299,13 +1298,12 @@ void func_800A8654(Task* task)
     vec            = (VECTOR*)task->work;
     src            = body->coord;
     c1->coord.t[0] = vec->vx;
-    c2             = &gGfxViewRotCoord;
     c1->coord.t[1] = vec->vy;
     c1->coord.t[2] = vec->vz;
 
     for (; i < 3; i++) {
         for (j = 0; j < 3; j++) {
-            *(s16*)((i * 6 + j * 2) + (s32)c2->coord.m) = src->coord.m[i][j];
+            gGfxViewRotCoord.coord.m[i][j] = src->coord.m[i][j];
         }
     }
 
