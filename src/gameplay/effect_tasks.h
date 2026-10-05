@@ -27,7 +27,16 @@ extern TmdSource D_8011231C;
 
 extern TmdSource D_801124B8;
 
-void Gp_EffPolyTask9C(Task* arg0);
+/// Expands and fades the critical-hit ring, with optional randomized radial spikes.
+///
+/// spawnArg1 selects style 0..5. work->period holds its packed colour and
+/// spike flag, step its radius increment, angle its current radius and scale
+/// its brightness. Eight visible ticks advance before drawing, from radius
+/// 32 and brightness 16, reducing brightness by two each tick. The outer
+/// screen radius is radius * 256 / (SZ3 / 4 + 1) pixels; the inner is half.
+/// Paused effects still advance; hidden effects wait. Completion or ordinary
+/// effect cancellation releases the counted work and coordinate task.
+void effectPolyTask9C(Task* task);
 
 void Gp_EffCtlTask2B(Task* arg0);
 
@@ -113,7 +122,16 @@ void Gp_EffSprTask5C(Task* arg0);
 
 void func_800F289C(Task* arg0);
 
-void Gp_EffSprTask76(Task* arg0);
+/// Draws the four-frame raw additive impact flash at a fixed screen-space rotation.
+///
+/// spawnArg1 bits 0..11 give size (zero selects 512). The first accepted
+/// projection stores size in work->scale and a random rotation in work->angle,
+/// in 4096 units per turn. Each frame's inclusive UV span (55 or 31 texels)
+/// also scales the half-diagonal: span * size / (SZ3 / 4 + 1) pixels.
+/// Age advances on every call, including rejected projections and paused or
+/// hidden effects. Four calls release the counted work and coordinate task;
+/// ordinary effectControl cancellation does not shorten this lifetime.
+void effectSpriteTask76(Task* task);
 
 /// Moves and spins a six-frame additive spark, fading during its last seven ticks.
 ///

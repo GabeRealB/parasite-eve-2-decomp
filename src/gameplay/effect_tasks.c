@@ -248,11 +248,14 @@ static __inline__ void _effectProjectGroundShadow(EffectQuadScratch* quadScratch
     gte_stflg(&quadScratch->projectionFlags);
 }
 
-/// Chooses a sideways ejection direction using the spawning coordinate's local rotation.
+/// Seeds and rotates a randomized sideways model-ejection vector.
 ///
-/// Consumes three consecutive LCG values and writes work->move. The caller
-/// normalizes it after selecting its launch profile; work->parent must be
-/// live with the intended launch rotation in its local matrix.
+/// Before rotation, XYZ range over 96..159, -111..16 and 0..127, respectively.
+/// Uses exactly three consecutive shared LCG draws. `work` must be writable
+/// and its borrowed `parent` live with the intended local Q12 rotation.
+/// Only `move`'s XYZ are written; its fourth halfword is untouched. The result
+/// is not a unit vector: the caller normalizes it to Q12 before applying speed.
+/// Changes the GTE rotation and working registers; no translation is applied.
 static __inline__ void _effectChooseThrownModelDirection(EffectWork* work)
 {
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
@@ -267,12 +270,18 @@ static __inline__ void _effectChooseThrownModelDirection(EffectWork* work)
     gte_stsv(&work->move);
 }
 
-/// Projects the bouncing spark's staged view position onto its screen centre.
+/// Projects a staged effect centre through the current screen matrix.
 ///
-/// scratch is a live block with XYZ initialized in signed halfword coordinate
-/// units. Writes screenX/Y and projectionFlags even on rejection, leaving
-/// depth untouched and SZ3 ready to read before another GTE transform.
-static __inline__ void _effectProjectBouncingSpark(EffectShapeScratch* scratch)
+/// `scratch` must be a live, word-aligned `EffectShapeScratch` with XYZ staged
+/// in `worldPoint` in `GsWSMATRIX`'s input space, in signed 16-bit coordinate
+/// units. These task coordinates compose through the view before staging.
+/// Requires the current GTE projection settings. Loads the screen rotation
+/// and translation and writes raw `screenX`/`screenY` halfwords with one word
+/// store, then `projectionFlags`, even when FLAG bit 31 rejects the point.
+/// Leaves `depth` and `extent` untouched and SZ3 ready for the caller's depth
+/// read before another depth-changing GTE command. Borrows the block only
+/// for this call and does not allocate or queue a GPU packet.
+static __inline__ void _effectProjectShapeCentre(EffectShapeScratch* scratch)
 {
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
@@ -282,32 +291,37 @@ static __inline__ void _effectProjectBouncingSpark(EffectShapeScratch* scratch)
     gte_stflg(&scratch->projectionFlags);
 }
 
-/// Places the bouncing spark's two opposite corner pairs around its screen centre.
-///
-/// scratch has a positive biased depth and projected centre; work supplies
-/// the size numerator and angle in 4096-unit turns. The half-diagonal uses
-/// the 15-texel UV span.
-/// Reuses scratch's corner words for each pair, retaining the unsigned
-/// halfword narrowing before addition to the packet's signed pixel fields.
-static __inline__ void _effectSetBouncingSparkCorners(POLY_FT4* quad, EffectShapeScratch* scratch, const EffectWork* work)
-{
-    enum {
-        EFFECT_BOUNCING_SPARK_TRIG_FRACTION_BITS = 12,
-    };
+/// Fractional bits returned by the sine and cosine tables used for sprite rotation.
+enum { EFFECT_ROTATED_SPRITE_TRIG_FRACTION_BITS = 12 };
 
-    scratch->extent.corner.x = (((work->scale * EFFECT_BOUNCING_SPARK_UV_SPAN) / scratch->depth) * rsin(work->angle)) >> EFFECT_BOUNCING_SPARK_TRIG_FRACTION_BITS;
-    scratch->extent.corner.y = (((work->scale * EFFECT_BOUNCING_SPARK_UV_SPAN) / scratch->depth) * rcos(work->angle)) >> EFFECT_BOUNCING_SPARK_TRIG_FRACTION_BITS;
-    quad->x0                 = scratch->screenX + (u16)scratch->extent.corner.x;
-    quad->x3                 = scratch->screenX - (u16)scratch->extent.corner.x;
-    quad->y0                 = scratch->screenY - (u16)scratch->extent.corner.y;
-    quad->y3                 = scratch->screenY + (u16)scratch->extent.corner.y;
-    scratch->extent.corner.x = (((work->scale * EFFECT_BOUNCING_SPARK_UV_SPAN) / scratch->depth) * rsin(work->angle + EFFECT_DRAW_QUARTER_TURN)) >> EFFECT_BOUNCING_SPARK_TRIG_FRACTION_BITS;
-    scratch->extent.corner.y = (((work->scale * EFFECT_BOUNCING_SPARK_UV_SPAN) / scratch->depth) * rcos(work->angle + EFFECT_DRAW_QUARTER_TURN)) >> EFFECT_BOUNCING_SPARK_TRIG_FRACTION_BITS;
-    quad->x1                 = scratch->screenX + (u16)scratch->extent.corner.x;
-    quad->x2                 = scratch->screenX - (u16)scratch->extent.corner.x;
-    quad->y1                 = scratch->screenY - (u16)scratch->extent.corner.y;
-    quad->y2                 = scratch->screenY + (u16)scratch->extent.corner.y;
-}
+/// Places a rotated sprite quad around its projected centre.
+///
+/// `quad`, `scratch` and `work` are side-effect-free pointer expressions to
+/// POLY_FT4, EffectShapeScratch and const EffectWork storage, respectively.
+/// `uvSpan` is a side-effect-free inclusive texture-cell span in 1..55 texels;
+/// work->scale supplies size in 0..4095 and work->angle rotation in 4096-unit
+/// turns. Arguments are evaluated repeatedly and no caller locals are captured.
+/// Scratch must contain a projected centre and positive depth (SZ3 / 4 + 1).
+/// The half-diagonal is size * uvSpan / depth pixels, divided before Q12
+/// rotation. Writes all quad XY fields and reuses extent.corner for the two
+/// opposite pairs, leaving the quarter-turn pair on return. Packet coordinates
+/// narrow to signed 16 bits. All storage is borrowed for this statement.
+/// Expands to several statements; use only within a braced block. Keeping
+/// the sequence in its caller lets the compiler fold constant spans and
+/// schedule packet submission between the final coordinate stores.
+#define EFFECT_SET_ROTATED_SPRITE_CORNERS(quad, scratch, work, uvSpan)                                                                                                           \
+    (scratch)->extent.corner.x = ((((uvSpan) * (work)->scale) / (scratch)->depth) * rsin((work)->angle)) >> EFFECT_ROTATED_SPRITE_TRIG_FRACTION_BITS;                            \
+    (scratch)->extent.corner.y = ((((uvSpan) * (work)->scale) / (scratch)->depth) * rcos((work)->angle)) >> EFFECT_ROTATED_SPRITE_TRIG_FRACTION_BITS;                            \
+    (quad)->x0                 = (scratch)->screenX + (scratch)->extent.corner.x;                                                                                                \
+    (quad)->x3                 = (scratch)->screenX - (scratch)->extent.corner.x;                                                                                                \
+    (quad)->y0                 = (scratch)->screenY - (scratch)->extent.corner.y;                                                                                                \
+    (quad)->y3                 = (scratch)->screenY + (scratch)->extent.corner.y;                                                                                                \
+    (scratch)->extent.corner.x = ((((uvSpan) * (work)->scale) / (scratch)->depth) * rsin((work)->angle + EFFECT_DRAW_QUARTER_TURN)) >> EFFECT_ROTATED_SPRITE_TRIG_FRACTION_BITS; \
+    (scratch)->extent.corner.y = ((((uvSpan) * (work)->scale) / (scratch)->depth) * rcos((work)->angle + EFFECT_DRAW_QUARTER_TURN)) >> EFFECT_ROTATED_SPRITE_TRIG_FRACTION_BITS; \
+    (quad)->x1                 = (scratch)->screenX + (scratch)->extent.corner.x;                                                                                                \
+    (quad)->x2                 = (scratch)->screenX - (scratch)->extent.corner.x;                                                                                                \
+    (quad)->y1                 = (scratch)->screenY - (scratch)->extent.corner.y;                                                                                                \
+    (quad)->y2                 = (scratch)->screenY + (scratch)->extent.corner.y;
 
 EffectUnitQuadCorner D_80111E38[4] = {
     { -1, 1 },
@@ -2249,79 +2263,71 @@ void func_800F289C(Task* arg0)
     effectKillTask(mem, arg0);
 }
 
-void Gp_EffSprTask76(Task* arg0)
+void effectSpriteTask76(Task* task)
 {
-    EffectShapeScratch* block;
+    enum {
+        EFFECT_IMPACT_FLASH_DEFAULT_SIZE = 512,
+        EFFECT_IMPACT_FLASH_FRAME_COUNT  = 4,
+        EFFECT_IMPACT_FLASH_PACKET_FLAGS = 3, // Raw texture and semitransparency
+    };
+    EffectShapeScratch* scratch;
     GfxCoord*           coord;
-    EffectWork*         mem;
-    POLY_FT4*           prim;
-    u16                 uvSpan;
-    s16                 scale;
-    s32                 rng;
+    EffectWork*         work;
+    POLY_FT4*           quad;
+    s16                 uvSpan;
+    s16                 size;
+    s32                 randomState;
 
-    coord = arg0->extra.coordBody->coord;
-    block = SCRATCH_STACK_RESERVE_BLOCK(EffectShapeScratch);
-    mem   = arg0->spawnArg2.pointer;
+    coord   = task->extra.coordBody->coord;
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(EffectShapeScratch);
+    work    = task->spawnArg2.pointer;
+    // Stage the composed view position before attempting this frame.
     actorRenderComposeCoord(coord);
-    block->worldPoint.vx = coord->workm.t[0];
-    block->worldPoint.vy = coord->workm.t[1];
-    block->worldPoint.vz = coord->workm.t[2];
-    gte_SetTransMatrix(&GsWSMATRIX);
-    gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&block->worldPoint);
-    gte_rtps();
-    gte_stsxy(&block->screenX);
-    gte_stflg(&block->projectionFlags);
-    if (block->projectionFlags >= 0) {
-        gte_stszotz(&block->depth);
-        block->depth   = block->depth + 1;
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setlen(prim, 9);
-        setcode(prim, 0x2C);
-        uvSpan = Gp_EffSprRecs[mem->age].uvSpan;
-        if (arg0->state == 0) {
-            if (arg0->spawnArg1.value & 0xFFF) {
-                scale = arg0->spawnArg1.halves.low & 0xFFF;
+    scratch->worldPoint.vx = coord->workm.t[0];
+    scratch->worldPoint.vy = coord->workm.t[1];
+    scratch->worldPoint.vz = coord->workm.t[2];
+    _effectProjectShapeCentre(scratch);
+    if (scratch->projectionFlags >= 0) {
+        gte_stszotz(&scratch->depth);
+        scratch->depth = scratch->depth + 1;
+        quad           = gGpuPrimCursor;
+        gGpuPrimCursor = quad + 1;
+        setlen(quad, EFFECT_DRAW_TEXTURED_QUAD_PACKET_WORDS);
+        setcode(quad, EFFECT_DRAW_RAW_ADDITIVE_TEXTURED_QUAD & ~EFFECT_IMPACT_FLASH_PACKET_FLAGS);
+        uvSpan = Gp_EffSprRecs[work->age].uvSpan;
+        // Initialize size and rotation only after an accepted projection.
+        if (task->state == EFFECT_DRAW_TASK_NEW) {
+            if (task->spawnArg1.value & EFFECT_DRAW_SIZE_MASK) {
+                size = task->spawnArg1.halves.low & EFFECT_DRAW_SIZE_MASK;
             } else {
-                scale = 0x200;
+                size = EFFECT_IMPACT_FLASH_DEFAULT_SIZE;
             }
-            mem->scale      = scale;
-            rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            gRandomLcgState = rng;
-            mem->angle      = ((u32)rng >> 16) & 0xFFF;
-            arg0->state     = 1;
+            work->scale     = size;
+            randomState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            gRandomLcgState = randomState;
+            work->angle     = ((u32)randomState >> 16) & EFFECT_DRAW_ANGLE_MASK;
+            task->state     = EFFECT_DRAW_TASK_ACTIVE;
         }
-        prim->code            |= 3;
-        prim->tpage            = getTPage(0, 1, Gp_EffSprRecs[mem->age].tpageX, 0);
-        prim->clut             = getClut(Gp_EffSprRecs[mem->age].clutX, Gp_EffSprRecs[mem->age].clutY);
-        prim->u0               = Gp_EffSprRecs[mem->age].u;
-        prim->v0               = Gp_EffSprRecs[mem->age].v;
-        prim->u1               = Gp_EffSprRecs[mem->age].u + uvSpan;
-        prim->v1               = Gp_EffSprRecs[mem->age].v;
-        prim->u2               = Gp_EffSprRecs[mem->age].u;
-        prim->v2               = Gp_EffSprRecs[mem->age].v + uvSpan;
-        prim->u3               = Gp_EffSprRecs[mem->age].u + uvSpan;
-        prim->v3               = Gp_EffSprRecs[mem->age].v + uvSpan;
-        block->extent.corner.x = ((((s16)uvSpan * mem->scale) / block->depth) * rsin(mem->angle)) >> 12;
-        block->extent.corner.y = ((((s16)uvSpan * mem->scale) / block->depth) * rcos(mem->angle)) >> 12;
-        prim->x0               = block->screenX + (u16)block->extent.corner.x;
-        prim->x3               = block->screenX - (u16)block->extent.corner.x;
-        prim->y0               = block->screenY - (u16)block->extent.corner.y;
-        prim->y3               = block->screenY + (u16)block->extent.corner.y;
-        block->extent.corner.x = ((((s16)uvSpan * mem->scale) / block->depth) * rsin(mem->angle + 0x400)) >> 12;
-        block->extent.corner.y = ((((s16)uvSpan * mem->scale) / block->depth) * rcos(mem->angle + 0x400)) >> 12;
-        prim->x1               = block->screenX + (u16)block->extent.corner.x;
-        prim->x2               = block->screenX - (u16)block->extent.corner.x;
-        prim->y1               = block->screenY - (u16)block->extent.corner.y;
-        prim->y2               = block->screenY + (u16)block->extent.corner.y;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
+        quad->code |= EFFECT_IMPACT_FLASH_PACKET_FLAGS;
+        quad->tpage = getTPage(0, GPU_BLEND_ADD, Gp_EffSprRecs[work->age].tpageX, 0);
+        quad->clut  = getClut(Gp_EffSprRecs[work->age].clutX, Gp_EffSprRecs[work->age].clutY);
+        quad->u0    = Gp_EffSprRecs[work->age].u;
+        quad->v0    = Gp_EffSprRecs[work->age].v;
+        quad->u1    = Gp_EffSprRecs[work->age].u + uvSpan;
+        quad->v1    = Gp_EffSprRecs[work->age].v;
+        quad->u2    = Gp_EffSprRecs[work->age].u;
+        quad->v2    = Gp_EffSprRecs[work->age].v + uvSpan;
+        quad->u3    = Gp_EffSprRecs[work->age].u + uvSpan;
+        quad->v3    = Gp_EffSprRecs[work->age].v + uvSpan;
+        EFFECT_SET_ROTATED_SPRITE_CORNERS(quad, scratch, work, uvSpan);
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                quad);
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);
-    mem->age++;
-    if (mem->age >= 4) {
-        effectKillTask(mem, arg0);
+    // Offscreen frames still expire, independently of ordinary effect control.
+    work->age++;
+    if (work->age >= EFFECT_IMPACT_FLASH_FRAME_COUNT) {
+        effectKillTask(work, task);
     }
 }
 
@@ -2395,7 +2401,7 @@ void effectSpriteTask7C(Task* task)
     block->worldPoint.vx = coord->workm.t[0];
     block->worldPoint.vy = coord->workm.t[1];
     block->worldPoint.vz = coord->workm.t[2];
-    _effectProjectBouncingSpark(block);
+    _effectProjectShapeCentre(block);
     if (block->projectionFlags >= 0) {
         gte_stszotz(&block->depth);
         block->depth   = block->depth + 1;
@@ -2425,7 +2431,7 @@ void effectSpriteTask7C(Task* task)
         quad->v2   = EFFECT_BOUNCING_SPARK_TEXTURE_V + EFFECT_BOUNCING_SPARK_CELL_SIZE - 1;
         quad->u3   = ((work->age / work->period) % EFFECT_BOUNCING_SPARK_FRAME_COUNT) * EFFECT_BOUNCING_SPARK_CELL_SIZE + (EFFECT_BOUNCING_SPARK_CELL_SIZE - 1);
         quad->v3   = EFFECT_BOUNCING_SPARK_TEXTURE_V + EFFECT_BOUNCING_SPARK_CELL_SIZE - 1;
-        _effectSetBouncingSparkCorners(quad, block, work);
+        EFFECT_SET_ROTATED_SPRITE_CORNERS(quad, block, work, EFFECT_BOUNCING_SPARK_UV_SPAN);
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 quad);
     }
@@ -2457,6 +2463,8 @@ void effectSpriteTask7C(Task* task)
         work->move.vz      = work->move.vz >> 1;
     }
 }
+
+#undef EFFECT_SET_ROTATED_SPRITE_CORNERS
 
 void func_800F4308(Task* arg0)
 {
@@ -2799,37 +2807,44 @@ void effectLineTask92(Task* task)
     }
 }
 
-void Gp_EffPolyTask9C(Task* arg0)
+void effectPolyTask9C(Task* task)
 {
-    EffectWork* mem;
+    enum {
+        EFFECT_CRITICAL_HIT_INITIAL_BRIGHTNESS = 16,
+        EFFECT_CRITICAL_HIT_INITIAL_RADIUS     = 32,
+        EFFECT_CRITICAL_HIT_BRIGHTNESS_STEP    = 2,
+        EFFECT_CRITICAL_HIT_TICKS              = 8,
+    };
+    EffectWork* work;
     GfxCoord*   coord;
-    s16         flag;
+    s16         effectControl;
 
-    mem   = arg0->spawnArg2.pointer;
-    flag  = gRoomEffectState->effectControl;
-    coord = arg0->extra.coordBody->coord;
-    if (flag < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-        if (flag < ROOM_EFFECT_CONTROL_HIDDEN) {
-            if (arg0->state == 0) {
-                mem->scale  = 0x10;
-                mem->angle  = 0x20;
-                mem->period = D_8011291C[arg0->spawnArg1.value].color;
-                mem->step   = D_8011291C[arg0->spawnArg1.value].radiusStep;
-                arg0->state++;
+    work          = task->spawnArg2.pointer;
+    effectControl = gRoomEffectState->effectControl;
+    coord         = task->extra.coordBody->coord;
+    if (effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
+        if (effectControl < ROOM_EFFECT_CONTROL_HIDDEN) {
+            if (task->state == EFFECT_DRAW_TASK_NEW) {
+                work->scale  = EFFECT_CRITICAL_HIT_INITIAL_BRIGHTNESS;
+                work->angle  = EFFECT_CRITICAL_HIT_INITIAL_RADIUS;
+                work->period = D_8011291C[task->spawnArg1.value].color;
+                work->step   = D_8011291C[task->spawnArg1.value].radiusStep;
+                task->state++;
             }
             actorRenderComposeCoord(coord);
-            mem->scale -= 2;
-            mem->angle += mem->step;
-            _effectDrawCriticalHitBurst(coord, mem->angle, mem->scale, mem->period);
-            mem->age++;
-            if (mem->age < 8) {
+            // Advance before drawing: brightness runs from 14 down to zero.
+            work->scale -= EFFECT_CRITICAL_HIT_BRIGHTNESS_STEP;
+            work->angle += work->step;
+            _effectDrawCriticalHitBurst(coord, work->angle, work->scale, work->period);
+            work->age++;
+            if (work->age < EFFECT_CRITICAL_HIT_TICKS) {
                 return;
             }
         } else {
             return;
         }
     }
-    effectKillTask(mem, arg0);
+    effectKillTask(work, task);
 }
 
 /// Draws the additive critical-hit ring and optional four radial spikes.
