@@ -10042,7 +10042,7 @@ offers to promote it. It cannot be: each copy does
 `raw` differs for every copy and each `refs` entry names its own overlay. Check
 `refs` before promoting; if each copy names its own `D_`, land it in the
 overlay's own `.c` like the rest of the family
-(`func_tonfa_baton_8011DB98` and its `grenade_pistol` / `mm1` / `m4a1_grenade`
+(`tonfaBatonModelTask` and its `grenade_pistol` / `mm1` / `m4a1_grenade`
 siblings). Promotion works when the shared body references only *imports* or
 nothing at all, which is the `WeaponsShared8011db78` case one level down.
 The text span is file offset of the first instruction through the byte after
@@ -10539,19 +10539,19 @@ chain first, both bodies after it, and lets the fall-out land on the shared
 tail:
 
 ```c
-mode = arg0->spawnArg1 & 0xF;
-switch (mode) {          /* beqz v1 / li v0,1 / beq v1,v0 / j tail */
-    case 0:
+poseMode = task->spawnArg1.value & TONFA_BATON_POSE_MODE_MASK;
+switch (poseMode) {      /* beqz v1 / li v0,1 / beq v1,v0 / j tail */
+    case TONFA_BATON_POSE_REST:
         ...
         break;
-    case 1:
+    case TONFA_BATON_POSE_STRIKE:
         ...
         break;
 }
-gfxRotMatrixZ(&coord->coord, coord->param.rot.vz, GRAPHICS_ROTATION_REPLACE);
+gfxRotMatrixZ(&rootCoord->coord, rootCoord->param.rot.vz, GRAPHICS_ROTATION_REPLACE);
 ```
 
-`func_tonfa_baton_8011DA74` is the minimal example: identical C bodies, 89% as
+`_tonfaBatonUpdateModelPose` is the minimal example: identical C bodies, 89% as
 an else-if chain (`branch=2 insert=2 delete=4`) and 100% as the switch. This is
 the regular-index counterpart of the goto form above — reach for the goto shape
 only when the case labels are not a contiguous run from 0.
@@ -13131,14 +13131,14 @@ array emits the identical multi-load/multi-store and lets GCC place the table
 itself:
 
 ```c
-void func_tonfa_baton_8011DB98(Task* arg0)
+void tonfaBatonModelTask(Task* task)
 {
-    TaskFunc states[4] = {
-        func_tonfa_baton_8011DA48, func_tonfa_baton_8011DA74,
-        func_tonfa_baton_8011DB6C, WeaponsShared8011db78,
+    TaskFunc stateHandlers[] = {
+        _tonfaBatonInitModelTask, _tonfaBatonUpdateModelPose,
+        _tonfaBatonDeferModelTaskRemoval, _tonfaBatonKillModelTask,
     };
 
-    states[arg0->state](arg0);
+    stateHandlers[task->state](task);
 }
 ```
 

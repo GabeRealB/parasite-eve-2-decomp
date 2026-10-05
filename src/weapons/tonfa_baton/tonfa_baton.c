@@ -15,6 +15,7 @@
 #include "gameplay/actor_render.h"
 #include "gameplay/effects.h"
 #include "gameplay/hud_sprites.h"
+#include "gameplay/message.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
@@ -66,11 +67,13 @@ static SVECTOR D_tonfa_baton_8011E0F0[1] = { { 0, 0x0080, 0, 0 } };
 /// to its own address - so it has to be a separate object, not element 1.
 static SVECTOR D_tonfa_baton_8011E0F8 = { 0, -0x0200, 0, 0 };
 
-static void func_tonfa_baton_8011DB78(Task* task);
+// Pose requests shared by the argument reset and the angle step.
+enum {
+    TONFA_BATON_POSE_REST   = 0,
+    TONFA_BATON_POSE_STRIKE = 1
+};
 
-static void func_tonfa_baton_8011DA48(Task* task);
-static void func_tonfa_baton_8011DA74(Task* arg0);
-static void func_tonfa_baton_8011DB6C(Task* arg0);
+static void _tonfaBatonKillModelTask(Task* task);
 void        func_tonfa_baton_8011DBFC(Task* arg0);
 
 void func_tonfa_baton_8011D1EC(Task* task)
@@ -167,79 +170,112 @@ void func_tonfa_baton_8011D1EC(Task* task)
 
 #include "../../shared/blade_trail_draw.inc.c"
 
-static void func_tonfa_baton_8011DA48(Task* task)
+/// Starts the attached baton model's pose updates and installs default teardown.
+///
+/// State 0 requires a live TMD body with an initialized root coordinate whose
+/// parent was supplied by the spawner. Clears the model flags on this first
+/// dispatch; the next dispatch mirrors the player's flags.
+static void _tonfaBatonInitModelTask(Task* task)
 {
-    TmdObject* extra;
-    GfxCoord*  coord;
+    TmdObject* model;
+    GfxCoord*  rootCoord;
 
-    extra               = task->extra.tmd;
-    coord               = extra->coords;
-    task->state         = task->state + 1;
-    task->exitCallback  = func_tonfa_baton_8011DB78;
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    extra->flags        = 0;
+    model     = task->extra.tmd;
+    rootCoord = model->coords;
+    task->state++;
+    task->exitCallback      = _tonfaBatonKillModelTask;
+    rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+    model->flags            = 0;
 }
 
-static void func_tonfa_baton_8011DA74(Task* arg0)
+/// Steps the baton's stored Z angle and replaces its local rotation.
+///
+/// Angles use 4096 units per turn. Mode 0 returns toward zero by 256 units;
+/// mode 1 advances toward a half turn by 448 units; other modes hold the angle.
+/// Both steps retain signed-halfword truncation and may cross the target.
+static inline void _tonfaBatonStepModelPose(GfxCoord* rootCoord, s32 poseMode)
 {
-    TmdObject* extra;
-    GfxCoord*  coord;
-    GameActor* actor;
-    s32        mode;
+    enum {
+        TONFA_BATON_POSE_RETURN_STEP = 0x100,
+        TONFA_BATON_POSE_STRIKE_STEP = 0x1C0
+    };
 
-    extra               = arg0->extra.tmd;
-    coord               = extra->coords;
-    actor               = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->work;
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    extra->flags        = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->flags;
-
-    coord->coord.t[0] = 0;
-    coord->coord.t[1] = 0x60;
-    coord->coord.t[2] = 0;
-
-    if (*(u32*)&actor->mode != 0x40000) {
-        arg0->spawnArg1.value = 0;
-    }
-
-    mode = arg0->spawnArg1.value & 0xF;
-    switch (mode) {
-        case 0:
-            if (coord->param.rot.vz > 0) {
-                coord->param.rot.vz = coord->param.rot.vz - 0x100;
+    switch (poseMode) {
+        case TONFA_BATON_POSE_REST:
+            if (rootCoord->param.rot.vz > 0) {
+                rootCoord->param.rot.vz -= TONFA_BATON_POSE_RETURN_STEP;
             }
             break;
-        case 1:
-            if (coord->param.rot.vz < 0x800) {
-                coord->param.rot.vz = coord->param.rot.vz + 0x1C0;
+        case TONFA_BATON_POSE_STRIKE:
+            if (rootCoord->param.rot.vz < ACTOR_TRANSFORM_ANGLE_HALF_TURN) {
+                rootCoord->param.rot.vz += TONFA_BATON_POSE_STRIKE_STEP;
             }
             break;
     }
-    gfxRotMatrixZ(&coord->coord, coord->param.rot.vz, GRAPHICS_ROTATION_REPLACE);
+    gfxRotMatrixZ(&rootCoord->coord, rootCoord->param.rot.vz, GRAPHICS_ROTATION_REPLACE);
 }
 
-static void func_tonfa_baton_8011DB6C(Task* arg0)
+/// Updates the baton's grip offset, player display flags and requested strike pose.
+///
+/// State 1 requires live player task/work/model storage and the baton's TMD
+/// root coordinate. The low nibble of `spawnArg1.value` requests the pose
+/// (0 rest, 1 strike, others hold); leaving the player's normal-mode attack
+/// state clears the entire argument and starts returning to rest.
+static void _tonfaBatonUpdateModelPose(Task* task)
 {
-    arg0->state = 3;
+    enum {
+        TONFA_BATON_PLAYER_ATTACK_STATE = 4,
+        TONFA_BATON_POSE_MODE_MASK      = 0xF,
+        TONFA_BATON_GRIP_OFFSET_Y       = 0x60
+    };
+
+    TmdObject* model;
+    GfxCoord*  rootCoord;
+    GameActor* playerActor;
+    s32        poseMode;
+
+    model                   = task->extra.tmd;
+    rootCoord               = model->coords;
+    playerActor             = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->work;
+    rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+    model->flags            = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->flags;
+
+    rootCoord->coord.t[0] = 0;
+    rootCoord->coord.t[1] = TONFA_BATON_GRIP_OFFSET_Y;
+    rootCoord->coord.t[2] = 0;
+
+    if (playerActor->mode != GAME_ACTOR_MODE_NORMAL || playerActor->state != TONFA_BATON_PLAYER_ATTACK_STATE) {
+        task->spawnArg1.value = TONFA_BATON_POSE_REST;
+    }
+
+    poseMode = task->spawnArg1.value & TONFA_BATON_POSE_MODE_MASK;
+    _tonfaBatonStepModelPose(rootCoord, poseMode);
 }
 
-/// Exit callback: kills the task.
-static void func_tonfa_baton_8011DB78(Task* task)
+/// Advances state 2 to teardown on the next model-task dispatch.
+static void _tonfaBatonDeferModelTaskRemoval(Task* task)
+{
+    enum { TONFA_BATON_MODEL_STATE_KILL = 3 };
+
+    task->state = TONFA_BATON_MODEL_STATE_KILL;
+}
+
+/// Hands the live baton model task to default teardown, as state 3 or on exit.
+static void _tonfaBatonKillModelTask(Task* task)
 {
     taskKill(task);
 }
 
-/// Per-frame entry point: runs the weapon task's current state. The table is a
-/// local, so GCC copies it from `.rodata` onto the stack every frame.
-void func_tonfa_baton_8011DB98(Task* arg0)
+void tonfaBatonModelTask(Task* task)
 {
-    TaskFunc states[4] = {
-        func_tonfa_baton_8011DA48,
-        func_tonfa_baton_8011DA74,
-        func_tonfa_baton_8011DB6C,
-        func_tonfa_baton_8011DB78,
+    TaskFunc stateHandlers[] = {
+        _tonfaBatonInitModelTask,
+        _tonfaBatonUpdateModelPose,
+        _tonfaBatonDeferModelTaskRemoval,
+        _tonfaBatonKillModelTask,
     };
 
-    states[arg0->state](arg0);
+    stateHandlers[task->state](task);
 }
 
 /// Per-frame swing state machine for the tonfa baton. Its tail is common to

@@ -5,3 +5,8 @@ D_tonfa_baton_8011E5EC = 0x8011E5EC; // model named by a task descriptor
 
 func_tonfa_baton_8011D1EC = 0x8011D1EC; // type:func
 _bladeTrailDraw = 0x8011D6B0; // type:func
+_tonfaBatonKillModelTask = 0x8011db78; // type:func
+_tonfaBatonInitModelTask = 0x8011da48; // type:func
+_tonfaBatonUpdateModelPose = 0x8011da74; // type:func
+_tonfaBatonDeferModelTaskRemoval = 0x8011db6c; // type:func
+tonfaBatonModelTask = 0x8011db98; // type:func
