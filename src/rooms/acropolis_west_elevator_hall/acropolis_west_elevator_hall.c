@@ -1536,11 +1536,15 @@ void acropolisWestElevatorHallScanlineDistortionTask(Task* task)
     effectKillTask(effectWork, task);
 }
 
-/// Sets the light billboard's square screen bounds around its projected centre.
+/// Sets the hall light's square billboard coordinates around its projected centre.
 ///
-/// Borrows both records for the call. Centre and half-extent count pixels;
-/// each result narrows to a signed 16-bit packet coordinate. Vertices are
-/// top-left, top-right, bottom-left and bottom-right in GPU strip order.
+/// Borrows a writable `glowQuad` and a read-only `glowScratch` for this call.
+/// Only `screenPos` and `halfExtent` need initialization in the scratch record;
+/// both count pixels, with a nonnegative half-extent (the caller supplies
+/// 1..1551). Centre plus/minus half-extent must fit signed 32-bit arithmetic;
+/// each result narrows to a signed 16-bit packet coordinate. Vertex indices
+/// 0..3 are top-left, top-right, bottom-left and bottom-right, respectively.
+/// Writes only the eight coordinate halfwords, preserving other packet fields.
 static inline void _acropolisWestElevatorHallSetLightGlowBounds(POLY_FT4* glowQuad, const RoomGlowSpriteScratch* glowScratch)
 {
     glowQuad->x0 = glowQuad->x2 = glowScratch->screenPos.vx - glowScratch->halfExtent;
