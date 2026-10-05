@@ -1,12 +1,20 @@
 /* Part of the water effects library; see water_effects.h. */
 
-/// Places the four screen corners of an upright water sprite.
+/// Places an upright water quad around its projected lower-quarter anchor.
 ///
-/// `projection` supplies raw 16-bit centre coordinates and the signed pixel
-/// half-width `screenExtent`. The top is r + (r >> 1) pixels above the centre
-/// and the bottom (r >> 1) below it. Arithmetic shifts retain odd and negative
-/// rounding; GPU stores keep the low 16 bits. Only `quad`'s coordinates change.
-/// Both objects are borrowed live storage; no pointer is retained.
+/// `projection` supplies `screenX`/`screenY`, the raw 16-bit encodings of the
+/// signed screen anchor, and `screenExtent`, the signed pixel half-width r.
+/// The left/right offsets are -r/+r;
+/// top/bottom offsets are -r-(r>>1) and r>>1. Positive even r puts the anchor
+/// a quarter of the height above the bottom; odd r shortens the height by one
+/// pixel. The arithmetic shift rounds negative r down, retaining reversed
+/// corners for negative widths. The additions and subtractions must fit s32;
+/// packet coordinates keep their low 16 bits, without clipping.
+///
+/// Borrow a writable complete `POLY_FT4` and a distinct live projection block
+/// with those three fields initialized. Only the quad's eight coordinate
+/// halfwords change; texture, colour and linkage stay intact. No pointer is
+/// retained, and neither GTE state nor the scratch-stack cursor changes.
 static inline void _waterSetUprightSpriteCorners(POLY_FT4* quad, const EffectCentreScratch* projection)
 {
     quad->x0 = quad->x2 = projection->screenX - projection->screenExtent;
