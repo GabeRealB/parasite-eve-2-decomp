@@ -2271,36 +2271,22 @@ static void Actor03800_Fn0315C(Task* arg0)
 static void Actor03800_Fn031B8(Enemy* arg0, Task* arg1)
 {
     _Actor03800Work* work;
-    s32              state;
-    s32              one;
 
-    state = gSceneCombatState.actorControl;
-    one   = 1;
-    work  = arg1->work;
-    if (state == one) {
-        goto case1;
+    work = arg1->work;
+    switch (gSceneCombatState.actorControl) {
+        case 0:
+            arg1->extra.tmd->flags       = 0;
+            arg0->node.state.parts.flags = 0;
+            break;
+        case 2:
+            arg1->extra.tmd->flags       = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            arg0->node.state.parts.flags = 1;
+            return;
+        case 1:
+            Actor03800_Fn036EC(arg1);
+            Actor03800_Fn03744(arg1);
+            return;
     }
-    if (state >= 2) {
-        goto ge2;
-    }
-    if (state == 0) {
-        goto case0;
-    }
-    goto default_body;
-ge2:
-    if (state == 2) {
-        goto case2;
-    }
-    goto default_body;
-case0:
-    arg1->extra.tmd->flags       = 0;
-    arg0->node.state.parts.flags = 0;
-    goto default_body;
-case2:
-    arg1->extra.tmd->flags       = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    arg0->node.state.parts.flags = one;
-    return;
-default_body:
     if (arg0->reactionFlags != 0) {
         Actor03800_Fn00974(arg1);
     }
@@ -2316,7 +2302,6 @@ default_body:
     Actor03800_Fn03628(arg1);
     work->rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(work->rootCoord);
-case1:
     Actor03800_Fn036EC(arg1);
     Actor03800_Fn03744(arg1);
 }
