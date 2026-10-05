@@ -1575,7 +1575,7 @@ static void            func_neo_ark_observatory_8017FD7C(Task* task);
 
 static void func_neo_ark_observatory_8017F3FC(Task* task)
 {
-    Reflection_PlayerTask(task);
+    _planarReflectionPlayerTask(task);
 }
 
 #undef PLANAR_REFLECTION_DEFINE_SCALE_WITH_IMPLEMENTATION

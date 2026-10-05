@@ -1204,7 +1204,7 @@ Task* D_acropolis_west_elevator_hall_80186AE4[2] = { 0 };
 
 void func_acropolis_west_elevator_hall_8017F304(Task* task)
 {
-    Reflection_PlayerTask(task);
+    _planarReflectionPlayerTask(task);
 }
 
 #undef PLANAR_REFLECTION_DEFINE_SCALE_WITH_IMPLEMENTATION

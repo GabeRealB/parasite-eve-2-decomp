@@ -1366,7 +1366,7 @@ static void func_acropolis_square_8018345C(void);
 
 void func_acropolis_square_8017F41C(Task* task)
 {
-    Reflection_PlayerTask(task);
+    _planarReflectionPlayerTask(task);
 }
 
 #undef PLANAR_REFLECTION_DEFINE_SCALE_WITH_IMPLEMENTATION

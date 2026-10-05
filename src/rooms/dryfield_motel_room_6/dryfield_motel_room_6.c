@@ -1999,7 +1999,7 @@ void func_dryfield_motel_room_6_8017EA58(Task* task)
 
 void func_dryfield_motel_room_6_80181184(Task* task)
 {
-    Reflection_PlayerTask(task);
+    _planarReflectionPlayerTask(task);
 }
 
 #undef PLANAR_REFLECTION_DEFINE_SCALE_WITH_IMPLEMENTATION

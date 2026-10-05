@@ -6,12 +6,14 @@
 #include <psyq/libgpu.h>
 #include <psyq/gtemac.h>
 
+#include "common.h"
 #include "gte.h"
 #include "types.h"
 
 #include "gameplay/actor_render.h"
 #include "gameplay/model_objects.h"
 
+#include "main/areas.h"
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/gfx.h"
@@ -55,8 +57,19 @@ typedef struct {
 } _PlanarReflectionFrameScratch;
 STATIC_ASSERT_SIZEOF(_PlanarReflectionFrameScratch, 0x70);
 
-static void Reflection_InitPlayer(Task* task);
-static void Reflection_UpdatePlayer(Task* task);
+/// Player-reflection phases, spawnArg1 modes and shared render settings.
+enum {
+    PLANAR_REFLECTION_PLAYER_STATE_INIT   = 0,
+    PLANAR_REFLECTION_PLAYER_STATE_UPDATE = 1,
+    PLANAR_REFLECTION_MODE_FLOOR          = 0,
+    PLANAR_REFLECTION_MODE_PLANE          = 1,
+    PLANAR_REFLECTION_MODE_COUNT          = 2,
+    PLANAR_REFLECTION_COPY_IDLE           = 0,
+    PLANAR_REFLECTION_COPY_REQUESTED      = 1,
+    PLANAR_REFLECTION_PLAYER_OT_OFFSET    = 31 // Ordering-table entries
+};
+
+static void _planarReflectionUpdatePlayer(Task* reflectionTask);
 
 #ifndef PLANAR_REFLECTION_DEFINE_SCALE_WITH_IMPLEMENTATION
 #error "Define PLANAR_REFLECTION_DEFINE_SCALE_WITH_IMPLEMENTATION as 0 or 1"
@@ -66,72 +79,79 @@ static void Reflection_UpdatePlayer(Task* task);
 #include "planar_reflection_rodata.inc.c"
 #endif
 
-/// State 0 of the hall's mirror task. Re-attaches the player's own TMD source
-/// to this task so the reflection draws the same model, allocates the
-/// `RoomMirrorWork` block holding the reflection's coordinate frame and
-/// matrices, and reparents the task under the player task so it dies with it.
-/// `spawnArg1` must be 0 or 1, otherwise the task kills itself; 0 also raises
-/// `GameSession::field_4E`. For each held-object task the player has
-/// (`GameActor::attachmentTasks`) it spawns a reflection task and
-/// hangs it under that held object, then runs the first per-frame update.
-static void Reflection_InitPlayer(Task* task)
+/// Creates a player-model reflection and its attachment reflections, then updates it immediately.
+///
+/// Requires a live player task with a TMD body. The reflection starts bodyless
+/// in state 0; spawnArg1.value selects floor mode (0) or room-plane mode (1).
+/// Other values, model-attachment failure or work-allocation failure kill it.
+/// It owns the cloned body and primary-heap `RoomMirrorWork`, borrows the
+/// player's geometry, and becomes a child of the player for teardown.
+/// Attachment reflections are children of their live source tasks and borrow
+/// this reflection's frame and lighting, so those sources must not outlive it.
+/// Success advances to state 1 and calls `_planarReflectionUpdatePlayer`.
+static void _planarReflectionInitPlayer(Task* reflectionTask)
 {
-    Task*           owner;
-    GameActor*      actor;
-    TmdObject*      extra;
-    GfxCoord*       parts;
-    RoomMirrorWork* work;
-    Task*           child;
-    Task*           spawned;
-    s32             i;
+    enum {
+        PLANAR_REFLECTION_PLAYER_TEXTURE_PAGE_OFFSET = 6, // Encoded texture-page displacement, not pixels
+        PLANAR_REFLECTION_CACHE_UNSET                = -1 // Forces the first view and weapon refresh
+    };
+    Task*           playerTask;
+    GameActor*      playerActor;
+    TmdObject*      reflectionModel;
+    GfxCoord*       reflectionRoot;
+    RoomMirrorWork* mirrorWork;
+    Task*           sourceAttachment;
+    Task*           attachmentReflection;
+    s32             attachmentIndex;
 
-    owner = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    if (modelObjectAttachTmd(task, owner->extra.tmd->source) == NULL) {
-        taskKill(task);
+    playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    if (modelObjectAttachTmd(reflectionTask, playerTask->extra.tmd->source) == NULL) {
+        taskKill(reflectionTask);
         return;
     }
-    extra = task->extra.tmd;
-    parts = extra->coords;
-    if ((u32)task->spawnArg1.value >= 2U) {
-        taskKill(task);
+    reflectionModel = reflectionTask->extra.tmd;
+    reflectionRoot  = reflectionModel->coords;
+    if ((u32)reflectionTask->spawnArg1.value >= (u32)PLANAR_REFLECTION_MODE_COUNT) {
+        taskKill(reflectionTask);
         return;
     }
-    work = memCalloc(sizeof(RoomMirrorWork), 0);
-    if (work == NULL) {
-        taskKill(task);
+    mirrorWork = memCalloc(sizeof(RoomMirrorWork), 0);
+    if (mirrorWork == NULL) {
+        taskKill(reflectionTask);
         return;
     }
-    task->work               = work;
-    extra->texturePageOffset = 6;
-    tmdBuildBufferHalf(extra);
-    tmdBuildBufferHalf(extra);
-    extra->flags    = TMD_OBJECT_REVERSE_CULLING;
-    extra->otOffset = 0x1F;
-    if (task->spawnArg1.value == 0) {
+    reflectionTask->work = mirrorWork;
+    // Refresh both packet halves after moving the clone's encoded texture pages.
+    reflectionModel->texturePageOffset = PLANAR_REFLECTION_PLAYER_TEXTURE_PAGE_OFFSET;
+    tmdBuildBufferHalf(reflectionModel);
+    tmdBuildBufferHalf(reflectionModel);
+    reflectionModel->flags    = TMD_OBJECT_REVERSE_CULLING;
+    reflectionModel->otOffset = PLANAR_REFLECTION_PLAYER_OT_OFFSET;
+    if (reflectionTask->spawnArg1.value == PLANAR_REFLECTION_MODE_FLOOR) {
         gGameSession->field_4E = 1;
     }
-    parts->parent   = &work->coord;
-    extra->lightMtx = &work->light;
-    extra->colorMtx = &work->color;
-    taskReparent(owner, task);
-    task->state++;
-    work->viewRebuildStamp = gGfxViewCoord.composeStamp & GRAPHICS_COORD_STAMP_MASK;
-    work->copyPending      = 1;
-    work->equippedWeapon   = -1;
-    extra->flags          |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    work->copyPending      = 0;
-    work->viewRebuildStamp = -1;
-    actor                  = (GameActor*)owner->work;
-    for (i = 0; i < 2; i++) {
-        child = actor->attachmentTasks[i];
-        if (child != NULL) {
-            spawned = taskSpawnFromTable(_planarReflectionGetTaskTable(), PLANAR_REFLECTION_TASK_ATTACHMENT, i, task);
-            if (spawned != NULL) {
-                taskReparent(child, spawned);
+    reflectionRoot->parent    = &mirrorWork->coord;
+    reflectionModel->lightMtx = &mirrorWork->light;
+    reflectionModel->colorMtx = &mirrorWork->color;
+    taskReparent(playerTask, reflectionTask);
+    reflectionTask->state++;
+    mirrorWork->viewRebuildStamp = gGfxViewCoord.composeStamp & GRAPHICS_COORD_STAMP_MASK;
+    mirrorWork->copyPending      = PLANAR_REFLECTION_COPY_REQUESTED;
+    mirrorWork->equippedWeapon   = PLANAR_REFLECTION_CACHE_UNSET;
+    reflectionModel->flags      |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    mirrorWork->copyPending      = PLANAR_REFLECTION_COPY_IDLE;
+    mirrorWork->viewRebuildStamp = PLANAR_REFLECTION_CACHE_UNSET;
+    playerActor                  = playerTask->work;
+    for (attachmentIndex = 0; attachmentIndex < ARRAY_SIZE(playerActor->attachmentTasks); attachmentIndex++) {
+        sourceAttachment = playerActor->attachmentTasks[attachmentIndex];
+        if (sourceAttachment != NULL) {
+            attachmentReflection = taskSpawnFromTable(_planarReflectionGetTaskTable(), PLANAR_REFLECTION_TASK_ATTACHMENT, attachmentIndex, reflectionTask);
+            if (attachmentReflection != NULL) {
+                taskReparent(sourceAttachment, attachmentReflection);
             }
         }
     }
-    Reflection_UpdatePlayer(task);
+    _planarReflectionUpdatePlayer(reflectionTask);
 }
 
 /// Scratch-stack block for where a planar reflection lands on screen.
@@ -176,139 +196,226 @@ typedef struct {
 } _PlanarReflectionExtentScratch;
 STATIC_ASSERT_SIZEOF(_PlanarReflectionExtentScratch, 0x34);
 
-/// State 1 of the hall's mirror task, run every frame after
-/// `Reflection_InitPlayer` has set the mirror up.
+/// Builds a reflected view frame from a normalized Q12 plane normal and a point on the plane.
 ///
-/// When the player's equipped weapon changes it spawns reflection tasks for
-/// the player's two held-object tasks. When the view moves it rebuilds the
-/// reflection's coordinate frame: mirror 0 copies the view matrix with its
-/// second row negated and applies location-specific corrections, any other
-/// mirror reflects through a plane chosen by the current stage, area and view.
-/// On the frame after mirror 0 rebuilds, it queues packets that copy the frame
-/// buffer into the off-screen strip at x = `width`. In stages 1 and 5 it
-/// projects the reflected body to find its screen rectangle and, where that
-/// overlaps the mirror's clip rectangle, draws quads sampling that strip;
-/// otherwise the reflection is hidden. Every frame it copies the player's pose
-/// and light matrices onto the reflection.
-static void Reflection_UpdatePlayer(Task* task)
+/// Both pointers borrow live work/scratch storage. Translation uses integer
+/// game coordinates. The scratch plane point is rotated in place, and the
+/// GTE rotation state is overwritten. All three copied translations are
+/// replaced by the view translation plus the original point minus its rotation.
+static inline void _planarReflectionBuildPlaneFrame(RoomMirrorWork* mirrorWork, _PlanarReflectionFrameScratch* frame)
 {
-    RoomMirrorWork*                 work;
-    PlayerStatus*                   status;
-    TmdObject*                      extra;
-    TmdObject*                      model;
-    Task*                           owner;
-    GameActor*                      actor;
-    Task*                           child;
-    Task*                           spawned;
+    frame->leastAbs = frame->normal.vx;
+    if (frame->leastAbs < 0) {
+        frame->leastAbs = -frame->leastAbs;
+    }
+    frame->leastAxis = 0;
+    frame->axisAbs   = frame->normal.vy;
+    if (frame->axisAbs < 0) {
+        frame->axisAbs = -frame->axisAbs;
+    }
+    if (frame->leastAbs > frame->axisAbs) {
+        frame->leastAbs  = frame->axisAbs;
+        frame->leastAxis = 1;
+    }
+    frame->axisAbs = frame->normal.vz;
+    if (frame->axisAbs < 0) {
+        frame->axisAbs = -frame->axisAbs;
+    }
+    if (frame->leastAbs > frame->axisAbs) {
+        frame->leastAbs  = frame->axisAbs;
+        frame->leastAxis = 2;
+    }
+    frame->refAxis.vx = 0;
+    if (frame->leastAxis == 0) {
+        frame->refAxis.vx = ONE;
+    }
+    frame->refAxis.vy = 0;
+    if (frame->leastAxis == 1) {
+        frame->refAxis.vy = ONE;
+    }
+    frame->refAxis.vz = 0;
+    if (frame->leastAxis == 2) {
+        frame->refAxis.vz = ONE;
+    }
+    gfxBuildOrthonormalBasis(&frame->basis, &frame->normal, &frame->refAxis);
+    gte_TransposeMatrix(&frame->basis, &frame->reflect);
+    frame->reflect.m[2][0] = -frame->reflect.m[2][0];
+    frame->reflect.m[2][1] = -frame->reflect.m[2][1];
+    frame->reflect.m[2][2] = -frame->reflect.m[2][2];
+    gte_MulMatrix0(&frame->basis, &frame->reflect, &frame->reflect);
+    mirrorWork->coord.coord      = frame->reflect;
+    mirrorWork->coord.coord.t[0] = gGfxViewCoord.coord.t[0] + frame->planePoint.vx;
+    mirrorWork->coord.coord.t[1] = gGfxViewCoord.coord.t[1] + frame->planePoint.vy;
+    mirrorWork->coord.coord.t[2] = gGfxViewCoord.coord.t[2] + frame->planePoint.vz;
+    _gfxRotateSv(&frame->reflect, &frame->planePoint);
+    mirrorWork->coord.coord.t[0] -= frame->planePoint.vx;
+    mirrorWork->coord.coord.t[1] -= frame->planePoint.vy;
+    mirrorWork->coord.coord.t[2] -= frame->planePoint.vz;
+}
+
+/// Updates the player's reflected frame, visible pose, lighting and framebuffer compositing.
+///
+/// Requires a successfully initialized reflection and a live player with the
+/// same borrowed TMD source. Weapon changes create equipment reflections with
+/// spawnArg1 selectors 2/3; the source equipment tasks own their teardown.
+/// A changed view stamp rebuilds the floor or room-plane frame and visibility.
+/// Floor mode can queue a 320x240, 16-bit framebuffer copy in that same call;
+/// it remains pending while the view or a display-mode request blocks copying.
+/// The copy starts at VRAM (320, 256) in Shelter/Neo Ark, otherwise (448, 256).
+/// In Acropolis and Shelter/Neo Ark, the screen extent gates drawing and blend quads.
+/// Pose copying pauses with scene updates; lighting follows the player every
+/// call. The shared source must have at least two parts, and attachment users
+/// require parts 8 and 12. GPU packet storage and the current OT are borrowed
+/// for the frame. Blend packets use wrapped depth indices 0..1023 plus 16,
+/// requiring the normal OT's reserved tail through base-relative index 1039.
+static void _planarReflectionUpdatePlayer(Task* reflectionTask)
+{
+    enum {
+        PLANAR_REFLECTION_CAPTURE_X                = 448,
+        PLANAR_REFLECTION_NEO_ARK_CAPTURE_X        = 320,
+        PLANAR_REFLECTION_CAPTURE_Y                = 256,
+        PLANAR_REFLECTION_SCREEN_WIDTH             = 320,
+        PLANAR_REFLECTION_SCREEN_HEIGHT            = 240,
+        PLANAR_REFLECTION_SCREEN_HALF_WIDTH        = 160,
+        PLANAR_REFLECTION_SCREEN_HALF_HEIGHT       = 120,
+        PLANAR_REFLECTION_FRAMEBUFFER_Y_STRIDE     = 272,
+        PLANAR_REFLECTION_FRAMEBUFFER_PAGE_Y_SHIFT = 8, // Buffer 1's page begins at VRAM Y = 256
+        PLANAR_REFLECTION_FRAMEBUFFER_V_SHIFT      = 4, // Its framebuffer begins 16 pixels into that page
+        PLANAR_REFLECTION_TEXTURE_16_BIT           = 2,
+        PLANAR_REFLECTION_COPY_RIGHT_PAGE_X        = 128,
+        PLANAR_REFLECTION_COPY_RIGHT_U             = 32,  // Right half begins at source X = 160
+        PLANAR_REFLECTION_CAPTURE_CLEAR_COLOR      = 2,
+        PLANAR_REFLECTION_NEUTRAL_TEXTURE_COLOR    = 128, // RGB modulation factor 1.0
+        PLANAR_REFLECTION_FORCE_MASK_BIT           = 1,
+        PLANAR_REFLECTION_NORMAL_MASK_BIT          = 0,
+        PLANAR_REFLECTION_COPY_OT_INDEX            = 1023,
+        PLANAR_REFLECTION_OT_DEPTH_MASK            = 0x3FFF, // Shifted quarter-depth window before the four-bit reduction
+        PLANAR_REFLECTION_BLEND_DEPTH_BIAS         = 15,     // OT entries subtracted from the model's offset
+        PLANAR_REFLECTION_MAX_QUAD_HALF_WIDTH      = 95,
+        PLANAR_REFLECTION_FIRST_EQUIPMENT_SLOT     = 2,
+        PLANAR_REFLECTION_NEO_ARK_FLOOR_Y_OFFSET   = 155, // Game coordinate units
+        PLANAR_REFLECTION_ACROPOLIS_FLOOR_Y_OFFSET = 105,
+        PLANAR_REFLECTION_SQUARE_NO_COPY_VIEW      = 15
+    };
+    RoomMirrorWork*                 mirrorWork;
+    PlayerStatus*                   playerStatus;
+    TmdObject*                      reflectionModel;
+    Task*                           playerTask;
+    GameActor*                      playerActor;
+    Task*                           sourceEquipment;
+    Task*                           equipmentReflection;
     _PlanarReflectionFrameScratch*  frame;
     _PlanarReflectionExtentScratch* extent;
-    GfxCoord*                       parts;
-    GfxCoord*                       refPart;
-    DR_AREA*                        drArea;
-    DR_STP*                         drStp;
-    DR_OFFSET*                      drOffset;
-    SPRT*                           sprt;
-    DR_TPAGE*                       tpage;
-    TILE*                           tile;
-    POLY_FT4*                       poly;
+    GfxCoord*                       reflectionParts;
+    GfxCoord*                       eventSamplePart;
+    DR_AREA*                        drawArea;
+    DR_STP*                         maskBitMode;
+    DR_OFFSET*                      drawOffset;
+    SPRT*                           copySprite;
+    DR_TPAGE*                       copyTexturePage;
+    TILE*                           captureClear;
+    POLY_FT4*                       blendQuad;
     s32                             stage;
     s32                             area;
     s32                             view;
-    s32                             width;
+    s32                             captureX;
     s32                             viewRebuildStamp;
     s32                             copyPending;
     s32                             halfWidth;
-    s32                             texX;
-    s32                             i;
-    s32                             layer;
-    u32                             j;
+    s32                             textureX;
+    s32                             equipmentIndex;
+    s32                             blendMode;
+    u32                             partIndex;
 
-    width  = 0x1C0;
-    work   = task->work;
-    extra  = task->extra.tmd;
-    stage  = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage;
-    area   = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area;
-    view   = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
-    status = &gPlayerStatus;
-    if (stage == 5) {
-        width = 0x140;
+    captureX        = PLANAR_REFLECTION_CAPTURE_X;
+    mirrorWork      = reflectionTask->work;
+    reflectionModel = reflectionTask->extra.tmd;
+    stage           = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage;
+    area            = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area;
+    view            = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
+    playerStatus    = &gPlayerStatus;
+    if (stage == GAME_STAGE_SHELTER_NEO_ARK) {
+        captureX = PLANAR_REFLECTION_NEO_ARK_CAPTURE_X;
     }
-    if (work->equippedWeapon != status->weapon) {
-        actor                = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->work;
-        work->equippedWeapon = status->weapon;
-        for (i = 0; i < 2; i++) {
-            child = actor->equipmentTasks[i];
-            if (child != NULL) {
-                spawned = taskSpawnFromTable(_planarReflectionGetTaskTable(), PLANAR_REFLECTION_TASK_ATTACHMENT, i + 2, task);
-                if (spawned != NULL) {
-                    taskReparent(child, spawned);
+    if (mirrorWork->equippedWeapon != playerStatus->weapon) {
+        // Equipment replacements keep their reflections under the live source tasks.
+        playerActor                = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->work;
+        mirrorWork->equippedWeapon = playerStatus->weapon;
+        for (equipmentIndex = 0; equipmentIndex < ARRAY_SIZE(playerActor->equipmentTasks); equipmentIndex++) {
+            sourceEquipment = playerActor->equipmentTasks[equipmentIndex];
+            if (sourceEquipment != NULL) {
+                equipmentReflection = taskSpawnFromTable(_planarReflectionGetTaskTable(), PLANAR_REFLECTION_TASK_ATTACHMENT,
+                                                         equipmentIndex + PLANAR_REFLECTION_FIRST_EQUIPMENT_SLOT, reflectionTask);
+                if (equipmentReflection != NULL) {
+                    taskReparent(sourceEquipment, equipmentReflection);
                 }
             }
         }
     }
-    extra->flags    |= TMD_OBJECT_REVERSE_CULLING;
-    viewRebuildStamp = gGfxViewCoord.composeStamp & GRAPHICS_COORD_STAMP_MASK;
-    if (work->viewRebuildStamp != viewRebuildStamp) {
+    reflectionModel->flags |= TMD_OBJECT_REVERSE_CULLING;
+    viewRebuildStamp        = gGfxViewCoord.composeStamp & GRAPHICS_COORD_STAMP_MASK;
+    if (mirrorWork->viewRebuildStamp != viewRebuildStamp) {
         GfxCoord* viewParent;
 
-        work->viewRebuildStamp   = viewRebuildStamp;
-        viewParent               = gGfxViewCoord.parent;
-        work->clipLeft           = -0xA0;
-        work->clipRight          = 0xA0;
-        work->coord.composeStamp = GRAPHICS_COORD_DIRTY;
-        work->clipTop            = -0x78;
-        work->clipBottom         = 0x78;
-        frame                    = SCRATCH_STACK_RESERVE_BLOCK(_PlanarReflectionFrameScratch);
-        work->coord.parent       = viewParent;
-        if (task->spawnArg1.value == 0) {
-            work->copyPending  = 1;
-            work->coord.coord  = gGfxViewCoord.coord;
-            frame->viewYRow.vx = work->coord.coord.m[1][0];
-            frame->viewYRow.vy = work->coord.coord.m[1][1];
-            frame->viewYRow.vz = work->coord.coord.m[1][2];
-            gte_lddp(-0x1000);
+        // Rebuild only when the view changes; the cached flags survive per-frame clipping.
+        mirrorWork->viewRebuildStamp   = viewRebuildStamp;
+        viewParent                     = gGfxViewCoord.parent;
+        mirrorWork->clipLeft           = -PLANAR_REFLECTION_SCREEN_HALF_WIDTH;
+        mirrorWork->clipRight          = PLANAR_REFLECTION_SCREEN_HALF_WIDTH;
+        mirrorWork->coord.composeStamp = GRAPHICS_COORD_DIRTY;
+        mirrorWork->clipTop            = -PLANAR_REFLECTION_SCREEN_HALF_HEIGHT;
+        mirrorWork->clipBottom         = PLANAR_REFLECTION_SCREEN_HALF_HEIGHT;
+        frame                          = SCRATCH_STACK_RESERVE_BLOCK(_PlanarReflectionFrameScratch);
+        mirrorWork->coord.parent       = viewParent;
+        if (reflectionTask->spawnArg1.value == PLANAR_REFLECTION_MODE_FLOOR) {
+            mirrorWork->copyPending = PLANAR_REFLECTION_COPY_REQUESTED;
+            mirrorWork->coord.coord = gGfxViewCoord.coord;
+            frame->viewYRow.vx      = mirrorWork->coord.coord.m[1][0];
+            frame->viewYRow.vy      = mirrorWork->coord.coord.m[1][1];
+            frame->viewYRow.vz      = mirrorWork->coord.coord.m[1][2];
+            gte_lddp(-ONE);
             gte_ldsv(&frame->viewYRow);
             gte_gpf12();
             gte_stsv(&frame->viewYRow);
-            work->coord.coord.m[1][0] = frame->viewYRow.vx;
-            work->coord.coord.m[1][1] = frame->viewYRow.vy;
-            work->coord.coord.m[1][2] = frame->viewYRow.vz;
-            if (stage == 5) {
-                if (area == 7) {
+            mirrorWork->coord.coord.m[1][0] = frame->viewYRow.vx;
+            mirrorWork->coord.coord.m[1][1] = frame->viewYRow.vy;
+            mirrorWork->coord.coord.m[1][2] = frame->viewYRow.vz;
+            if (stage == GAME_STAGE_SHELTER_NEO_ARK) {
+                if (area == GAME_AREA_NEO_ARK_OBSERVATORY) {
                     if (view >= 6 && view < 12 && gGameSession->location.loc.room == 2) {
-                        work->coord.coord.t[1] += 0x9B;
-                        extra->flags           &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-                        work->firstBlendMode    = GPU_BLEND_AVERAGE;
+                        mirrorWork->coord.coord.t[1] += PLANAR_REFLECTION_NEO_ARK_FLOOR_Y_OFFSET;
+                        reflectionModel->flags       &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+                        mirrorWork->firstBlendMode    = GPU_BLEND_AVERAGE;
                     } else {
-                        work->copyPending = 0;
-                        extra->flags     |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+                        mirrorWork->copyPending = PLANAR_REFLECTION_COPY_IDLE;
+                        reflectionModel->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
                     }
                 }
-            } else if (area == 1) {
-                extra->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            } else if (area == GAME_AREA_ACROPOLIS_SQUARE) {
+                reflectionModel->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
                 if (view == 9) {
-                    work->copyPending = 0;
+                    mirrorWork->copyPending = PLANAR_REFLECTION_COPY_IDLE;
                 }
             } else {
-                if (area != 0x11) {
-                    work->coord.coord.t[1] += 0x69;
+                if (area != GAME_AREA_ACROPOLIS_WEST_ELEVATOR_HALL) {
+                    mirrorWork->coord.coord.t[1] += PLANAR_REFLECTION_ACROPOLIS_FLOOR_Y_OFFSET;
                 }
-                work->firstBlendMode = GPU_BLEND_ADD;
-                if ((area == 0x11 && view == 5) || (area == 2 && (view == 7 || view == 5))) {
-                    extra->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+                mirrorWork->firstBlendMode = GPU_BLEND_ADD;
+                if ((area == GAME_AREA_ACROPOLIS_WEST_ELEVATOR_HALL && view == 5) || (area == GAME_AREA_ACROPOLIS_EAST_ELEVATOR_HALL && (view == 7 || view == 5))) {
+                    reflectionModel->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
                 } else {
-                    extra->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+                    reflectionModel->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
                 }
             }
         } else {
-            model         = task->extra.tmd;
-            model->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            if (stage == 1) {
+            TmdObject* planeModel = reflectionTask->extra.tmd;
+            planeModel->flags    &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            if (stage == GAME_STAGE_ACROPOLIS) {
                 switch (area) {
-                    case 0x11:
+                    case GAME_AREA_ACROPOLIS_WEST_ELEVATOR_HALL:
                         switch (view) {
                             case 2:
-                                frame->normal.vx = -0x1000;
+                                frame->normal.vx = -ONE;
                                 frame->normal.vy = 0;
                                 frame->normal.vz = 0;
                                 VectorNormalSS(&frame->normal, &frame->normal);
@@ -326,55 +433,55 @@ static void Reflection_UpdatePlayer(Task* task)
                                 frame->planePoint.vz = -0x640;
                                 break;
                             case 4:
-                                work->clipLeft   = -0x14;
-                                work->clipRight  = 0x14;
-                                frame->normal.vx = -0x1000;
-                                frame->normal.vy = 0;
-                                frame->normal.vz = 0;
+                                mirrorWork->clipLeft  = -0x14;
+                                mirrorWork->clipRight = 0x14;
+                                frame->normal.vx      = -ONE;
+                                frame->normal.vy      = 0;
+                                frame->normal.vz      = 0;
                                 VectorNormalSS(&frame->normal, &frame->normal);
                                 frame->planePoint.vx = 0x1644;
                                 frame->planePoint.vy = 0;
                                 frame->planePoint.vz = 0;
                                 break;
                             default:
-                                model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+                                planeModel->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
                                 break;
                         }
                         break;
-                    case 1:
+                    case GAME_AREA_ACROPOLIS_SQUARE:
                         switch (view) {
                             case 6:
-                                work->clipRight  = 0x64;
-                                work->clipLeft   = 0;
-                                frame->normal.vx = -0x1000;
-                                frame->normal.vy = 0;
-                                frame->normal.vz = 0;
+                                mirrorWork->clipRight = 0x64;
+                                mirrorWork->clipLeft  = 0;
+                                frame->normal.vx      = -ONE;
+                                frame->normal.vy      = 0;
+                                frame->normal.vz      = 0;
                                 VectorNormalSS(&frame->normal, &frame->normal);
                                 frame->planePoint.vx = 0x1AF4;
                                 frame->planePoint.vy = 0;
                                 frame->planePoint.vz = 0;
-                                model->otOffset      = 0x1F;
+                                planeModel->otOffset = PLANAR_REFLECTION_PLAYER_OT_OFFSET;
                                 break;
                             case 7:
                             case 8:
                                 frame->normal.vx = 0;
                                 frame->normal.vy = 0;
-                                frame->normal.vz = 0x1000;
+                                frame->normal.vz = ONE;
                                 VectorNormalSS(&frame->normal, &frame->normal);
                                 frame->planePoint.vx = 0;
                                 frame->planePoint.vy = 0;
                                 frame->planePoint.vz = 0x14B4;
                                 break;
                             default:
-                                model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+                                planeModel->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
                                 break;
                         }
                         break;
-                    case 2:
+                    case GAME_AREA_ACROPOLIS_EAST_ELEVATOR_HALL:
                         switch (view) {
                             case 2:
                             case 5:
-                                frame->normal.vx = -0x1000;
+                                frame->normal.vx = -ONE;
                                 frame->normal.vy = 0;
                                 frame->normal.vz = 0;
                                 VectorNormalSS(&frame->normal, &frame->normal);
@@ -383,7 +490,7 @@ static void Reflection_UpdatePlayer(Task* task)
                                 frame->planePoint.vz = 0;
                                 break;
                             case 4:
-                                frame->normal.vx = -0x1000;
+                                frame->normal.vx = -ONE;
                                 frame->normal.vy = 0;
                                 frame->normal.vz = 0;
                                 VectorNormalSS(&frame->normal, &frame->normal);
@@ -401,16 +508,16 @@ static void Reflection_UpdatePlayer(Task* task)
                                 frame->planePoint.vz = -0x640;
                                 break;
                             default:
-                                model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+                                planeModel->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
                                 break;
                         }
                         break;
                     default:
-                        model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+                        planeModel->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
                         break;
                 }
             } else if (view == 8 || view == 1) {
-                frame->normal.vx = -0x1000;
+                frame->normal.vx = -ONE;
                 frame->normal.vy = 0;
                 frame->normal.vz = 0;
                 VectorNormalSS(&frame->normal, &frame->normal);
@@ -418,183 +525,139 @@ static void Reflection_UpdatePlayer(Task* task)
                 frame->planePoint.vy = 0;
                 frame->planePoint.vz = 0;
             } else {
-                model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+                planeModel->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             }
-            if (!(model->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
+            if (!(planeModel->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
                 // The axis least aligned with the normal completes the frame. Translation is the
                 // view translation plus the shift that makes the reflection fix planePoint.
-                frame->leastAbs = frame->normal.vx;
-                if (frame->leastAbs < 0) {
-                    frame->leastAbs = -frame->leastAbs;
-                }
-                frame->leastAxis = 0;
-                frame->axisAbs   = frame->normal.vy;
-                if (frame->axisAbs < 0) {
-                    frame->axisAbs = -frame->axisAbs;
-                }
-                if (frame->leastAbs > frame->axisAbs) {
-                    frame->leastAbs  = frame->axisAbs;
-                    frame->leastAxis = 1;
-                }
-                frame->axisAbs = frame->normal.vz;
-                if (frame->axisAbs < 0) {
-                    frame->axisAbs = -frame->axisAbs;
-                }
-                if (frame->leastAbs > frame->axisAbs) {
-                    frame->leastAbs  = frame->axisAbs;
-                    frame->leastAxis = 2;
-                }
-                frame->refAxis.vx = 0;
-                if (frame->leastAxis == 0) {
-                    frame->refAxis.vx = 0x1000;
-                }
-                frame->refAxis.vy = 0;
-                if (frame->leastAxis == 1) {
-                    frame->refAxis.vy = 0x1000;
-                }
-                frame->refAxis.vz = 0;
-                if (frame->leastAxis == 2) {
-                    frame->refAxis.vz = 0x1000;
-                }
-                gfxBuildOrthonormalBasis(&frame->basis, &frame->normal, &frame->refAxis);
-                gte_TransposeMatrix(&frame->basis, &frame->reflect);
-                frame->reflect.m[2][0] = -frame->reflect.m[2][0];
-                frame->reflect.m[2][1] = -frame->reflect.m[2][1];
-                frame->reflect.m[2][2] = -frame->reflect.m[2][2];
-                gte_MulMatrix0(&frame->basis, &frame->reflect, &frame->reflect);
-                work->coord.coord      = frame->reflect;
-                work->coord.coord.t[0] = gGfxViewCoord.coord.t[0] + frame->planePoint.vx;
-                work->coord.coord.t[1] = gGfxViewCoord.coord.t[1] + frame->planePoint.vy;
-                work->coord.coord.t[2] = gGfxViewCoord.coord.t[2] + frame->planePoint.vz;
-                _gfxRotateSv(&frame->reflect, &frame->planePoint);
-                work->coord.coord.t[0] -= frame->planePoint.vx;
-                work->coord.coord.t[1] -= frame->planePoint.vy;
-                work->coord.coord.t[2] -= frame->planePoint.vz;
-                work->firstBlendMode    = GPU_BLEND_ADD;
+                _planarReflectionBuildPlaneFrame(mirrorWork, frame);
+                mirrorWork->firstBlendMode = GPU_BLEND_ADD;
             }
         }
-        work->objectFlags = extra->flags;
+        mirrorWork->objectFlags = reflectionModel->flags;
         SCRATCH_STACK_RELEASE_BLOCK(_PlanarReflectionFrameScratch);
     }
 
-    copyPending = work->copyPending;
-    if (copyPending == 1 && task->spawnArg1.value == 0 && !(area == 1 && view == 0xF) && gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
-        u16  ofs[2];
-        RECT rect;
+    copyPending = mirrorWork->copyPending;
+    if (copyPending == PLANAR_REFLECTION_COPY_REQUESTED && reflectionTask->spawnArg1.value == PLANAR_REFLECTION_MODE_FLOOR && !(area == GAME_AREA_ACROPOLIS_SQUARE && view == PLANAR_REFLECTION_SQUARE_NO_COPY_VIEW) && gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
+        u16  drawOrigin[2];
+        RECT drawRect;
 
-        work->copyPending = 0;
-        drArea            = gGpuPrimCursor;
-        gGpuPrimCursor    = (u8*)gGpuPrimCursor + sizeof(DR_AREA);
-        rect.x            = 0;
-        rect.y            = gDisplayState.drawBuffer * 0x110;
-        rect.w            = 0x140;
-        rect.h            = 0xF0;
-        SetDrawArea(drArea, &rect);
-        addPrim(&gGpuCurrentOt[0x3FF], drArea);
+        // OT insertion reverses this sequence: capture off-screen with bit 15 set,
+        // then restore the framebuffer draw area and origin. Each sprite copies 160 pixels.
+        mirrorWork->copyPending = PLANAR_REFLECTION_COPY_IDLE;
+        drawArea                = gGpuPrimCursor;
+        gGpuPrimCursor          = (u8*)gGpuPrimCursor + sizeof(DR_AREA);
+        drawRect.x              = 0;
+        drawRect.y              = gDisplayState.drawBuffer * PLANAR_REFLECTION_FRAMEBUFFER_Y_STRIDE;
+        drawRect.w              = PLANAR_REFLECTION_SCREEN_WIDTH;
+        drawRect.h              = PLANAR_REFLECTION_SCREEN_HEIGHT;
+        SetDrawArea(drawArea, &drawRect);
+        addPrim(&gGpuCurrentOt[PLANAR_REFLECTION_COPY_OT_INDEX], drawArea);
 
-        drStp          = gGpuPrimCursor;
+        maskBitMode    = gGpuPrimCursor;
         gGpuPrimCursor = (u8*)gGpuPrimCursor + sizeof(DR_STP);
-        SetDrawStp(drStp, 0);
-        addPrim(&gGpuCurrentOt[0x3FF], drStp);
+        SetDrawStp(maskBitMode, PLANAR_REFLECTION_NORMAL_MASK_BIT);
+        addPrim(&gGpuCurrentOt[PLANAR_REFLECTION_COPY_OT_INDEX], maskBitMode);
 
-        drOffset       = gGpuPrimCursor;
+        drawOffset     = gGpuPrimCursor;
         gGpuPrimCursor = (u8*)gGpuPrimCursor + sizeof(DR_OFFSET);
-        ofs[0]         = 0xA0;
-        ofs[1]         = gDisplayState.drawBuffer * 0x110 + 0x78;
-        SetDrawOffset(drOffset, ofs);
-        addPrim(&gGpuCurrentOt[0x3FF], drOffset);
+        drawOrigin[0]  = PLANAR_REFLECTION_SCREEN_HALF_WIDTH;
+        drawOrigin[1]  = gDisplayState.drawBuffer * PLANAR_REFLECTION_FRAMEBUFFER_Y_STRIDE + PLANAR_REFLECTION_SCREEN_HALF_HEIGHT;
+        SetDrawOffset(drawOffset, drawOrigin);
+        addPrim(&gGpuCurrentOt[PLANAR_REFLECTION_COPY_OT_INDEX], drawOffset);
 
-        sprt           = gGpuPrimCursor;
+        copySprite     = gGpuPrimCursor;
         gGpuPrimCursor = (u8*)gGpuPrimCursor + sizeof(SPRT);
-        sprt->x0       = -0xA0;
-        sprt->y0       = -0x78;
-        sprt->w        = 0xA0;
-        sprt->h        = 0xF0;
-        sprt->u0       = 0;
-        sprt->v0       = gDisplayState.drawBuffer << 4;
-        setlen(sprt, 4);
-        setcode(sprt, 0x65);
-        addPrim(&gGpuCurrentOt[0x3FF], sprt);
+        copySprite->x0 = -PLANAR_REFLECTION_SCREEN_HALF_WIDTH;
+        copySprite->y0 = -PLANAR_REFLECTION_SCREEN_HALF_HEIGHT;
+        copySprite->w  = PLANAR_REFLECTION_SCREEN_HALF_WIDTH;
+        copySprite->h  = PLANAR_REFLECTION_SCREEN_HEIGHT;
+        copySprite->u0 = 0;
+        copySprite->v0 = gDisplayState.drawBuffer << PLANAR_REFLECTION_FRAMEBUFFER_V_SHIFT;
+        setSprt(copySprite);
+        setShadeTex(copySprite, 1);
+        addPrim(&gGpuCurrentOt[PLANAR_REFLECTION_COPY_OT_INDEX], copySprite);
 
-        tpage          = gGpuPrimCursor;
-        gGpuPrimCursor = (u8*)gGpuPrimCursor + sizeof(DR_TPAGE);
-        setDrawTPage(tpage, 1, 1, getTPage(2, 0, 0, gDisplayState.drawBuffer << 8));
-        addPrim(&gGpuCurrentOt[0x3FF], tpage);
+        copyTexturePage = gGpuPrimCursor;
+        gGpuPrimCursor  = (u8*)gGpuPrimCursor + sizeof(DR_TPAGE);
+        setDrawTPage(copyTexturePage, 1, 1, getTPage(PLANAR_REFLECTION_TEXTURE_16_BIT, GPU_BLEND_AVERAGE, 0, gDisplayState.drawBuffer << PLANAR_REFLECTION_FRAMEBUFFER_PAGE_Y_SHIFT));
+        addPrim(&gGpuCurrentOt[PLANAR_REFLECTION_COPY_OT_INDEX], copyTexturePage);
 
-        sprt           = gGpuPrimCursor;
+        copySprite     = gGpuPrimCursor;
         gGpuPrimCursor = (u8*)gGpuPrimCursor + sizeof(SPRT);
-        sprt->x0       = 0;
-        sprt->y0       = -0x78;
-        sprt->w        = 0xA0;
-        sprt->h        = 0xF0;
-        sprt->u0       = 0x20;
-        sprt->v0       = gDisplayState.drawBuffer << 4;
-        setlen(sprt, 4);
-        setcode(sprt, 0x65);
-        addPrim(&gGpuCurrentOt[0x3FF], sprt);
+        copySprite->x0 = 0;
+        copySprite->y0 = -PLANAR_REFLECTION_SCREEN_HALF_HEIGHT;
+        copySprite->w  = PLANAR_REFLECTION_SCREEN_HALF_WIDTH;
+        copySprite->h  = PLANAR_REFLECTION_SCREEN_HEIGHT;
+        copySprite->u0 = PLANAR_REFLECTION_COPY_RIGHT_U;
+        copySprite->v0 = gDisplayState.drawBuffer << PLANAR_REFLECTION_FRAMEBUFFER_V_SHIFT;
+        setSprt(copySprite);
+        setShadeTex(copySprite, 1);
+        addPrim(&gGpuCurrentOt[PLANAR_REFLECTION_COPY_OT_INDEX], copySprite);
 
-        tpage          = gGpuPrimCursor;
-        gGpuPrimCursor = (u8*)gGpuPrimCursor + sizeof(DR_TPAGE);
-        setDrawTPage(tpage, 1, 1, getTPage(2, 0, 0x80, gDisplayState.drawBuffer << 8));
-        addPrim(&gGpuCurrentOt[0x3FF], tpage);
+        copyTexturePage = gGpuPrimCursor;
+        gGpuPrimCursor  = (u8*)gGpuPrimCursor + sizeof(DR_TPAGE);
+        setDrawTPage(copyTexturePage, 1, 1, getTPage(PLANAR_REFLECTION_TEXTURE_16_BIT, GPU_BLEND_AVERAGE, PLANAR_REFLECTION_COPY_RIGHT_PAGE_X, gDisplayState.drawBuffer << PLANAR_REFLECTION_FRAMEBUFFER_PAGE_Y_SHIFT));
+        addPrim(&gGpuCurrentOt[PLANAR_REFLECTION_COPY_OT_INDEX], copyTexturePage);
 
-        tile           = gGpuPrimCursor;
+        captureClear   = gGpuPrimCursor;
         gGpuPrimCursor = (u8*)gGpuPrimCursor + sizeof(TILE);
-        setlen(tile, 3);
-        setcode(tile, 0x60);
-        tile->x0 = -0xA0;
-        tile->y0 = -0x78;
-        tile->r0 = tile->g0 = 2;
-        tile->b0            = 2;
-        tile->w             = 0x140;
-        tile->h             = 0xF0;
-        addPrim(&gGpuCurrentOt[0x3FF], tile);
+        setTile(captureClear);
+        captureClear->x0 = -PLANAR_REFLECTION_SCREEN_HALF_WIDTH;
+        captureClear->y0 = -PLANAR_REFLECTION_SCREEN_HALF_HEIGHT;
+        captureClear->r0 = captureClear->g0 = PLANAR_REFLECTION_CAPTURE_CLEAR_COLOR;
+        captureClear->b0                    = PLANAR_REFLECTION_CAPTURE_CLEAR_COLOR;
+        captureClear->w                     = PLANAR_REFLECTION_SCREEN_WIDTH;
+        captureClear->h                     = PLANAR_REFLECTION_SCREEN_HEIGHT;
+        addPrim(&gGpuCurrentOt[PLANAR_REFLECTION_COPY_OT_INDEX], captureClear);
 
-        drStp          = gGpuPrimCursor;
+        maskBitMode    = gGpuPrimCursor;
         gGpuPrimCursor = (u8*)gGpuPrimCursor + sizeof(DR_STP);
-        SetDrawStp(drStp, 1);
-        addPrim(&gGpuCurrentOt[0x3FF], drStp);
+        SetDrawStp(maskBitMode, PLANAR_REFLECTION_FORCE_MASK_BIT);
+        addPrim(&gGpuCurrentOt[PLANAR_REFLECTION_COPY_OT_INDEX], maskBitMode);
 
-        drOffset       = gGpuPrimCursor;
+        drawOffset     = gGpuPrimCursor;
         gGpuPrimCursor = (u8*)gGpuPrimCursor + sizeof(DR_OFFSET);
-        ofs[0]         = width + 0xA0;
-        ofs[1]         = 0x178;
-        SetDrawOffset(drOffset, ofs);
-        addPrim(&gGpuCurrentOt[0x3FF], drOffset);
+        drawOrigin[0]  = captureX + PLANAR_REFLECTION_SCREEN_HALF_WIDTH;
+        drawOrigin[1]  = PLANAR_REFLECTION_CAPTURE_Y + PLANAR_REFLECTION_SCREEN_HALF_HEIGHT;
+        SetDrawOffset(drawOffset, drawOrigin);
+        addPrim(&gGpuCurrentOt[PLANAR_REFLECTION_COPY_OT_INDEX], drawOffset);
 
-        drArea         = gGpuPrimCursor;
+        drawArea       = gGpuPrimCursor;
         gGpuPrimCursor = (u8*)gGpuPrimCursor + sizeof(DR_AREA);
-        rect.x         = width;
-        rect.y         = 0x100;
-        rect.w         = 0x140;
-        rect.h         = 0xF0;
-        SetDrawArea(drArea, &rect);
-        addPrim(&gGpuCurrentOt[0x3FF], drArea);
+        drawRect.x     = captureX;
+        drawRect.y     = PLANAR_REFLECTION_CAPTURE_Y;
+        drawRect.w     = PLANAR_REFLECTION_SCREEN_WIDTH;
+        drawRect.h     = PLANAR_REFLECTION_SCREEN_HEIGHT;
+        SetDrawArea(drawArea, &drawRect);
+        addPrim(&gGpuCurrentOt[PLANAR_REFLECTION_COPY_OT_INDEX], drawArea);
     }
 
-    extra->flags = work->objectFlags;
-    if (!(extra->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) && gGameSession->sceneUpdatesPaused == 0) {
-        parts   = task->extra.tmd->coords;
-        owner   = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-        refPart = &parts[1];
-        if (owner != NULL) {
-            TmdObject* src       = owner->extra.tmd;
-            GfxCoord*  srcCoords = src->coords;
+    reflectionModel->flags = mirrorWork->objectFlags;
+    if (!(reflectionModel->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) && gGameSession->sceneUpdatesPaused == 0) {
+        // Both models share a source, so copy exactly the source's local part matrices.
+        reflectionParts = reflectionTask->extra.tmd->coords;
+        playerTask      = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+        eventSamplePart = &reflectionParts[1];
+        if (playerTask != NULL) {
+            TmdObject* sourceModel = playerTask->extra.tmd;
+            GfxCoord*  sourceParts = sourceModel->coords;
 
-            parts->composeStamp = GRAPHICS_COORD_DIRTY;
-            j                   = 0;
-            if (src->partCount != 0) {
-                MATRIX* from = &srcCoords->coord;
-                MATRIX* to   = &parts->coord;
+            reflectionParts->composeStamp = GRAPHICS_COORD_DIRTY;
+            partIndex                     = 0;
+            if (sourceModel->partCount != 0) {
+                MATRIX* sourceMatrix     = &sourceParts->coord;
+                MATRIX* reflectionMatrix = &reflectionParts->coord;
 
                 do {
-                    *to  = *from;
-                    to   = &PARENT_OF(to, GfxCoord, coord)[1].coord;
-                    from = &PARENT_OF(from, GfxCoord, coord)[1].coord;
-                } while (++j < src->partCount);
+                    *reflectionMatrix = *sourceMatrix;
+                    reflectionMatrix  = &PARENT_OF(reflectionMatrix, GfxCoord, coord)[1].coord;
+                    sourceMatrix      = &PARENT_OF(sourceMatrix, GfxCoord, coord)[1].coord;
+                } while (++partIndex < sourceModel->partCount);
             }
         }
-        if (stage == 1 || stage == 5) {
+        if (stage == GAME_STAGE_ACROPOLIS || stage == GAME_STAGE_SHELTER_NEO_ARK) {
             enum {
                 /// Local-Y distance from part 1 to each sample during a scripted event, in game coordinates.
                 PLANAR_REFLECTION_EVENT_SAMPLE_DISTANCE = 0x3E8,
@@ -608,11 +671,12 @@ static void Reflection_UpdatePlayer(Task* task)
                 PLANAR_REFLECTION_TEXTURE_PAGE_MASK = 0xFFC0
             };
 
+            // Project upper/lower samples in reflected model space before clipping the blend quads.
             extent = SCRATCH_STACK_RESERVE_BLOCK(_PlanarReflectionExtentScratch);
             if (gGameSession->eventState != 0) {
-                actorRenderComposeCoord(refPart);
-                gte_SetTransMatrix(&refPart->workm);
-                gte_SetRotMatrix(&refPart->workm);
+                actorRenderComposeCoord(eventSamplePart);
+                gte_SetTransMatrix(&eventSamplePart->workm);
+                gte_SetRotMatrix(&eventSamplePart->workm);
                 extent->point.vx = 0;
                 extent->point.vy = -PLANAR_REFLECTION_EVENT_SAMPLE_DISTANCE;
                 extent->point.vz = 0;
@@ -624,9 +688,9 @@ static void Reflection_UpdatePlayer(Task* task)
                 gte_RotTransPers(&extent->point, &extent->screenFoot, &extent->depthCue, &extent->projectionFlags,
                                  &extent->orderingDepthFoot);
             } else {
-                actorRenderComposeCoord(parts);
-                gte_SetTransMatrix(&parts->workm);
-                gte_SetRotMatrix(&parts->workm);
+                actorRenderComposeCoord(reflectionParts);
+                gte_SetTransMatrix(&reflectionParts->workm);
+                gte_SetRotMatrix(&reflectionParts->workm);
                 extent->point.vx = 0;
                 extent->point.vy = PLANAR_REFLECTION_ROOT_HEAD_OFFSET;
                 extent->point.vz = 0;
@@ -648,94 +712,97 @@ static void Reflection_UpdatePlayer(Task* task)
             extent->screenHead.vy += PLANAR_REFLECTION_SCREEN_EDGE_PAD;
             // Half the padded vertical span, clamped to 95, is the quad's half-width about the foot's screen X.
             halfWidth = (extent->screenHead.vy - extent->screenFoot.vy) >> 1;
-            if (halfWidth >= 0x60) {
-                halfWidth = 0x5F;
+            if (halfWidth >= PLANAR_REFLECTION_MAX_QUAD_HALF_WIDTH + 1) {
+                halfWidth = PLANAR_REFLECTION_MAX_QUAD_HALF_WIDTH;
             }
             // Area 2, view 5: mirror 0 forces that maximum; any other mirror orders from the head sample.
             if ((GAME_LOCATION_WORD(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc) & GAME_LOCATION_AREA_VIEW_MASK) == GAME_LOCATION_KEY(0, 2, 0, 5)) {
-                if (task->spawnArg1.value == 0) {
-                    halfWidth = 0x5F;
+                if (reflectionTask->spawnArg1.value == PLANAR_REFLECTION_MODE_FLOOR) {
+                    halfWidth = PLANAR_REFLECTION_MAX_QUAD_HALF_WIDTH;
                 } else {
                     extent->orderingDepthFoot = extent->orderingDepthHead + PLANAR_REFLECTION_ORDERING_DEPTH_BIAS;
                 }
             }
             extent->left = extent->screenFoot.vx - halfWidth;
-            if (extent->left < -0xA0) {
-                extent->left = -0xA0;
+            if (extent->left < -PLANAR_REFLECTION_SCREEN_HALF_WIDTH) {
+                extent->left = -PLANAR_REFLECTION_SCREEN_HALF_WIDTH;
             }
             extent->right = extent->screenFoot.vx + halfWidth;
-            if (extent->right > 0xA0) {
-                extent->right = 0xA0;
+            if (extent->right > PLANAR_REFLECTION_SCREEN_HALF_WIDTH) {
+                extent->right = PLANAR_REFLECTION_SCREEN_HALF_WIDTH;
             }
             extent->top = extent->screenFoot.vy;
-            if (extent->top < -0x78) {
-                extent->top = -0x78;
+            if (extent->top < -PLANAR_REFLECTION_SCREEN_HALF_HEIGHT) {
+                extent->top = -PLANAR_REFLECTION_SCREEN_HALF_HEIGHT;
             }
             extent->bottom = extent->screenHead.vy;
-            if (extent->bottom > 0x78) {
-                extent->bottom = 0x78;
+            if (extent->bottom > PLANAR_REFLECTION_SCREEN_HALF_HEIGHT) {
+                extent->bottom = PLANAR_REFLECTION_SCREEN_HALF_HEIGHT;
             }
-            if (extent->top < work->clipBottom && work->clipTop < extent->bottom && extent->left < work->clipRight &&
-                work->clipLeft < extent->right) {
-                DR_TPAGE* mode;
+            if (extent->top < mirrorWork->clipBottom && mirrorWork->clipTop < extent->bottom && extent->left < mirrorWork->clipRight &&
+                mirrorWork->clipLeft < extent->right) {
+                DR_TPAGE* textureMode;
 
-                mode                 = gGpuPrimCursor;
-                texX                 = extent->left + (u16)(width + 0xA0);
-                extent->texturePageX = texX & PLANAR_REFLECTION_TEXTURE_PAGE_MASK;
+                textureMode          = gGpuPrimCursor;
+                textureX             = extent->left + (u16)(captureX + PLANAR_REFLECTION_SCREEN_HALF_WIDTH);
+                extent->texturePageX = textureX & PLANAR_REFLECTION_TEXTURE_PAGE_MASK;
                 gGpuPrimCursor       = (u8*)gGpuPrimCursor + sizeof(DR_TPAGE);
-                setDrawTPage(mode, 0, 1, 0);
-                addPrim(&gGpuCurrentOt[(((extent->orderingDepthFoot << gDisplayState.otDepthShift) & 0x3FFF) >> 4) + extra->otOffset - 15],
-                        mode);
-                for (layer = work->firstBlendMode; layer < GPU_BLEND_ADD_QUARTER; layer++) {
-                    poly           = gGpuPrimCursor;
+                setDrawTPage(textureMode, 0, 1, 0);
+                addPrim(&gGpuCurrentOt[(((extent->orderingDepthFoot << gDisplayState.otDepthShift) & PLANAR_REFLECTION_OT_DEPTH_MASK) >> 4) + reflectionModel->otOffset - PLANAR_REFLECTION_BLEND_DEPTH_BIAS],
+                        textureMode);
+                // The 190-pixel maximum span fits a 256-texel page even after X alignment.
+                // Same-depth packets run in reverse insertion order, including the blend layers.
+                for (blendMode = mirrorWork->firstBlendMode; blendMode < GPU_BLEND_ADD_QUARTER; blendMode++) {
+                    blendQuad      = gGpuPrimCursor;
                     gGpuPrimCursor = (u8*)gGpuPrimCursor + sizeof(POLY_FT4);
-                    setPolyFT4(poly);
-                    setSemiTrans(poly, 1);
-                    if (work->firstBlendMode == GPU_BLEND_ADD) {
-                        setShadeTex(poly, 0);
-                        poly->r0 = poly->g0 = poly->b0 = 0x80;
+                    setPolyFT4(blendQuad);
+                    setSemiTrans(blendQuad, 1);
+                    if (mirrorWork->firstBlendMode == GPU_BLEND_ADD) {
+                        setShadeTex(blendQuad, 0);
+                        blendQuad->r0 = blendQuad->g0 = blendQuad->b0 = PLANAR_REFLECTION_NEUTRAL_TEXTURE_COLOR;
                     } else {
-                        setShadeTex(poly, 1);
+                        setShadeTex(blendQuad, 1);
                     }
-                    poly->x0 = poly->x2 = extent->left;
-                    poly->x1 = poly->x3 = extent->right;
-                    poly->y0 = poly->y1 = extent->top;
-                    poly->y2 = poly->y3 = extent->bottom;
-                    poly->tpage         = getTPage(2, layer, extent->texturePageX, 0x100);
-                    poly->u0 = poly->u2 = poly->x0 + 0xA0 + width - extent->texturePageX;
-                    poly->u1 = poly->u3 = poly->x1 + 0xA0 + width - extent->texturePageX;
-                    poly->v0 = poly->v1 = poly->y0 + 0x78;
-                    poly->v2 = poly->v3 = poly->y2 + 0x78;
-                    addPrim(&gGpuCurrentOt[(((extent->orderingDepthFoot << gDisplayState.otDepthShift) & 0x3FFF) >> 4) + extra->otOffset - 15],
-                            poly);
+                    blendQuad->x0 = blendQuad->x2 = extent->left;
+                    blendQuad->x1 = blendQuad->x3 = extent->right;
+                    blendQuad->y0 = blendQuad->y1 = extent->top;
+                    blendQuad->y2 = blendQuad->y3 = extent->bottom;
+                    blendQuad->tpage              = getTPage(PLANAR_REFLECTION_TEXTURE_16_BIT, blendMode, extent->texturePageX, PLANAR_REFLECTION_CAPTURE_Y);
+                    blendQuad->u0 = blendQuad->u2 = blendQuad->x0 + PLANAR_REFLECTION_SCREEN_HALF_WIDTH + captureX - extent->texturePageX;
+                    blendQuad->u1 = blendQuad->u3 = blendQuad->x1 + PLANAR_REFLECTION_SCREEN_HALF_WIDTH + captureX - extent->texturePageX;
+                    blendQuad->v0 = blendQuad->v1 = blendQuad->y0 + PLANAR_REFLECTION_SCREEN_HALF_HEIGHT;
+                    blendQuad->v2 = blendQuad->v3 = blendQuad->y2 + PLANAR_REFLECTION_SCREEN_HALF_HEIGHT;
+                    addPrim(&gGpuCurrentOt[(((extent->orderingDepthFoot << gDisplayState.otDepthShift) & PLANAR_REFLECTION_OT_DEPTH_MASK) >> 4) + reflectionModel->otOffset - PLANAR_REFLECTION_BLEND_DEPTH_BIAS],
+                            blendQuad);
                 }
-                mode           = gGpuPrimCursor;
+                textureMode    = gGpuPrimCursor;
                 gGpuPrimCursor = (u8*)gGpuPrimCursor + sizeof(DR_TPAGE);
-                setDrawTPage(mode, 0, 0, 0);
-                addPrim(&gGpuCurrentOt[(((extent->orderingDepthFoot << gDisplayState.otDepthShift) & 0x3FFF) >> 4) + extra->otOffset - 15],
-                        mode);
+                setDrawTPage(textureMode, 0, 0, 0);
+                addPrim(&gGpuCurrentOt[(((extent->orderingDepthFoot << gDisplayState.otDepthShift) & PLANAR_REFLECTION_OT_DEPTH_MASK) >> 4) + reflectionModel->otOffset - PLANAR_REFLECTION_BLEND_DEPTH_BIAS],
+                        textureMode);
             } else {
-                extra->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+                reflectionModel->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             }
             SCRATCH_STACK_RELEASE_BLOCK(_PlanarReflectionExtentScratch);
         }
     }
 
     {
-        GfxCoord*  ownerParts;
-        TmdObject* ownerBody;
-        GfxCoord*  ownParts;
-        MATRIX     mtx;
+        GfxCoord*  playerParts;
+        TmdObject* playerModel;
+        GfxCoord*  reflectionRoot;
+        MATRIX     lightingRotation;
 
-        ownerParts  = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords;
-        ownerBody   = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd;
-        ownParts    = task->extra.tmd->coords;
-        work->light = *ownerBody->lightMtx;
-        work->color = *ownerBody->colorMtx;
-        actorRenderComposeCoord(ownParts);
-        gte_TransposeMatrix(&ownParts->workm, &mtx);
-        gte_MulMatrix0(&ownerParts->workm, &mtx, &mtx);
-        gte_MulMatrix0(&work->light, &mtx, &work->light);
+        // Rotate the player's lighting into the reflection root's orientation, even while paused.
+        playerParts       = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords;
+        playerModel       = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd;
+        reflectionRoot    = reflectionTask->extra.tmd->coords;
+        mirrorWork->light = *playerModel->lightMtx;
+        mirrorWork->color = *playerModel->colorMtx;
+        actorRenderComposeCoord(reflectionRoot);
+        gte_TransposeMatrix(&reflectionRoot->workm, &lightingRotation);
+        gte_MulMatrix0(&playerParts->workm, &lightingRotation, &lightingRotation);
+        gte_MulMatrix0(&mirrorWork->light, &lightingRotation, &mirrorWork->light);
     }
 }
 
@@ -825,14 +892,19 @@ static void _planarReflectionAttachmentTask(Task* reflectionTask)
     }
 }
 
-/// Runs the hall's mirror task: state 0 sets the mirror up, state 1 is its
-/// per-frame update.
-static inline void Reflection_PlayerTask(Task* task)
+/// Dispatches the player reflection's initialization and per-frame states.
+///
+/// The including overlay supplies the ordinary task entry point. The task's
+/// state must be 0 (initialize) or 1 (update); dispatch does not check bounds.
+/// Initialization advances the state and performs the first update immediately.
+/// Callback entries have the resident `TaskFunc` signature and remain private
+/// to the including translation unit.
+static inline void _planarReflectionPlayerTask(Task* reflectionTask)
 {
-    TaskFunc states[2] = {
-        Reflection_InitPlayer,
-        Reflection_UpdatePlayer,
+    TaskFunc stateHandlers[PLANAR_REFLECTION_PLAYER_STATE_UPDATE + 1] = {
+        _planarReflectionInitPlayer,
+        _planarReflectionUpdatePlayer,
     };
 
-    states[task->state](task);
+    stateHandlers[reflectionTask->state](reflectionTask);
 }

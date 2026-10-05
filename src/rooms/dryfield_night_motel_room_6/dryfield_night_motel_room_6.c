@@ -876,7 +876,7 @@ void func_dryfield_night_motel_room_6_8017EA74(Task* task)
 
 void func_dryfield_night_motel_room_6_801811A0(Task* task)
 {
-    Reflection_PlayerTask(task);
+    _planarReflectionPlayerTask(task);
 }
 
 #undef PLANAR_REFLECTION_DEFINE_SCALE_WITH_IMPLEMENTATION

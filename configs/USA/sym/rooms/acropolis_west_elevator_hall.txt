@@ -77,7 +77,7 @@ func_acropolis_west_elevator_hall_8017F990 = 0x8017F990; // type:func
 func_acropolis_west_elevator_hall_8017F304 = 0x8017F304; // type:func
 
 func_acropolis_west_elevator_hall_8017F7D4 = 0x8017F7D4; // type:func
-Reflection_InitPlayer = 0x8017D5FC; // type:func
-Reflection_UpdatePlayer = 0x8017D7B0; // type:func
+_planarReflectionInitPlayer = 0x8017D5FC; // type:func
+_planarReflectionUpdatePlayer = 0x8017D7B0; // type:func
 _planarReflectionAttachmentTask = 0x8017F134; // type:func
 Reflection_Data_8017D5C4 = 0x8017D5C4;

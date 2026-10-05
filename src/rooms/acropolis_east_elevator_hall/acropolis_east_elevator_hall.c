@@ -738,7 +738,7 @@ void func_acropolis_east_elevator_hall_8017FAAC(Task* arg0);
 
 void func_acropolis_east_elevator_hall_8017F2F8(Task* task)
 {
-    Reflection_PlayerTask(task);
+    _planarReflectionPlayerTask(task);
 }
 
 #undef PLANAR_REFLECTION_DEFINE_SCALE_WITH_IMPLEMENTATION
