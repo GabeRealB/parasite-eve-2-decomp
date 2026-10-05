@@ -2842,7 +2842,7 @@ static void func_actor_450800_80132160(Enemy* enemy, Task* task)
     vec.vx        = coord->workm.t[0];
     vec.vy        = coord->workm.t[1] - 0x320;
     vec.vz        = coord->workm.t[2];
-    func_800D7A9C(obj, &vec, 0, 3);
+    worldCoordSetModelLighting(obj, &vec, 0, 3);
     animationInitContext(&work->rig.anim, (AnimationSet**)D_actor_450800_8014ACC4, obj, work->rig.poses,
                          work->rig.slots);
     work->st.animId = 1;
@@ -2949,7 +2949,7 @@ static void func_actor_450800_80132868(Task* task)
 /// State handler of one of the actor's model tasks: the spawn tick hangs this
 /// task's own coordinate frame off part `spawnArg1` of the actor's model and
 /// every later tick hands that part's world translation, dropped by 0x320 in y,
-/// to `func_800D7A9C` for the part colour matrix. The parts come from
+/// to `worldCoordSetModelLighting` for the part colour matrix. The parts come from
 /// `task->parent`, the actor task that spawned this one
 /// (`func_actor_450800_80132160`, which also tests the same halfword on itself).
 ///
@@ -2976,7 +2976,7 @@ void func_actor_450800_80132958(Task* task)
             vec.vx = parts->workm.t[0];
             vec.vy = parts->workm.t[1] - 0x320;
             vec.vz = parts->workm.t[2];
-            func_800D7A9C(extra, &vec, 0, 3);
+            worldCoordSetModelLighting(extra, &vec, 0, 3);
             break;
     }
 }

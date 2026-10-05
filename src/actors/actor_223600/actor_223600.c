@@ -1382,7 +1382,7 @@ static const EnemyTaskFuncTable3 D_actor_223600_80149E4C = {
 /// turns the animation latch `func_actor_223600_8014B464` raises into a
 /// `sndEvtRequestScriptStart` cue -- the top nibble of the enemy's `placeKey` in
 /// bits 8-11, with the model's pan and depth -- and finally relights the model
-/// through `func_800D7A9C` while `relightPending` is set, setting
+/// through `worldCoordSetModelLighting` while `relightPending` is set, setting
 /// `relightPending` again when the session's `viewReady` or the state handler
 /// left the root coordinate dirty.
 static void func_actor_223600_8014CA00(Enemy* enemy, Task* task)
@@ -1429,8 +1429,8 @@ static void func_actor_223600_8014CA00(Enemy* enemy, Task* task)
             (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
     }
     if (work->relightPending != 0) {
-        func_800D7A9C(task->extra.tmd,
-                      (VECTOR*)task->extra.tmd->coords->workm.t, 0, 3);
+        worldCoordSetModelLighting(task->extra.tmd,
+                                   (VECTOR*)task->extra.tmd->coords->workm.t, 0, 3);
     }
     if (gGameSession->viewReady != 0) {
         task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;

@@ -1361,7 +1361,7 @@ void func_actor_136100_801320E0(Task* task)
         vec.vx = task->extra.tmd->coords->workm.t[0];
         vec.vy = task->extra.tmd->coords->workm.t[1];
         vec.vz = task->extra.tmd->coords->workm.t[2];
-        func_800D7A9C(obj, &vec, 0, 3);
+        worldCoordSetModelLighting(obj, &vec, 0, 3);
     }
 }
 
@@ -1404,7 +1404,7 @@ void func_actor_136100_80132284(Task* arg0)
         vec.vx = arg0->extra.tmd->coords->workm.t[0];
         vec.vy = arg0->extra.tmd->coords->workm.t[1];
         vec.vz = arg0->extra.tmd->coords->workm.t[2];
-        func_800D7A9C(obj, &vec, 0, 3);
+        worldCoordSetModelLighting(obj, &vec, 0, 3);
     }
 }
 
@@ -2172,7 +2172,7 @@ static inline s16 func_actor_136100_TakeStartCue(u16* evtId, u8* evtKind, u8* ev
         TASK_MESSAGE_DISPATCH_POINTER(msgWork->playerTask, ANIMATION_MESSAGE_COPY_BANK_EXTENSION, &(record), 0); \
     }
 
-/// Refresh the shadow coordinate and hand its translation to `func_800D7A9C`.
+/// Refresh the shadow coordinate and hand its translation to `worldCoordSetModelLighting`.
 /// `vec` is a parameter rather than a local so the caller's buffer address
 /// stays out of the CSE class of the `Gp_DrawFloorQuad` argument that follows.
 static inline void func_actor_136100_UpdateShadow(Task* arg0, VECTOR* vec)
@@ -2183,7 +2183,7 @@ static inline void func_actor_136100_UpdateShadow(Task* arg0, VECTOR* vec)
     vec->vx = arg0->extra.tmd->coords[1].workm.t[0];
     vec->vy = arg0->extra.tmd->coords[1].workm.t[1];
     vec->vz = arg0->extra.tmd->coords[1].workm.t[2];
-    func_800D7A9C(obj, vec, 0, 3);
+    worldCoordSetModelLighting(obj, vec, 0, 3);
 }
 
 /// Main tick of the cutscene actor.  State 0 allocates the work block, picks

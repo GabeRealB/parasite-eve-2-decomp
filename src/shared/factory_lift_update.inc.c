@@ -3,7 +3,7 @@
 /// Runs the factory model for the bit of game flag 0x49 the task last saw: bit
 /// 1 picks the first handler pair and bit 0 the second of the pair, the frame
 /// counter at `FactoryLiftWork::moveFrames` is bumped, and the model's coordinate
-/// is rebuilt and handed to `func_800D7A9C` together with its translation.
+/// is rebuilt before `worldCoordSetModelLighting` lights the model at its world position.
 void factoryLiftUpdate(Task* task)
 {
     GfxCoord*        coord;
@@ -47,5 +47,5 @@ void factoryLiftUpdate(Task* task)
     work->moveFrames++;
     factoryLiftSyncCollision(task, 0, flag & FACTORY_LIFT_POSITION_TURNED);
     actorRenderComposeCoord(coord);
-    func_800D7A9C(obj, (VECTOR*)coord->workm.t, 0, 3);
+    worldCoordSetModelLighting(obj, coord->workm.t, 0, 3);
 }

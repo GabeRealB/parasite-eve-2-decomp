@@ -1371,7 +1371,7 @@ void Gp_ItemPickupTilt(Task* arg0)
             extra->lightMtx = mem;
             extra->colorMtx = mem + 1;
             actorRenderComposeCoord(arg0->extra.tmd->coords);
-            func_800D7A9C(extra, &vec, 0, 3);
+            worldCoordSetModelLighting(extra, &vec, 0, 3);
             arg0->work = mem;
         }
         arg0->msgTable = D_8010D828;
@@ -1516,7 +1516,7 @@ void Gp_ItemPickupTilt(Task* arg0)
     }
     vec2 = D_80093DB0;
     actorRenderComposeCoord(arg0->extra.tmd->coords);
-    func_800D7A9C(extra, &vec2, 0, 3);
+    worldCoordSetModelLighting(extra, &vec2, 0, 3);
 }
 
 static void Gp_ForEachUiChild(UiObject* arg0, UiObjectTaskFunc arg1)

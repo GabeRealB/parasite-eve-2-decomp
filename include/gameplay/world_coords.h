@@ -37,9 +37,32 @@ enum { WORLD_COORDINATE_TRANSIENT_LIGHT_COUNT = 8 };
 /// each record for the next writer.
 extern WorldCoordTransientPointLight gWorldCoordTransientPointLights[WORLD_COORDINATE_TRANSIENT_LIGHT_COUNT];
 
-void func_800D7A9C(TmdObject* arg0, VECTOR* arg1, s32 arg2, s32 arg3);
+/// Rebuilds a model's lighting from room and active transient lights at a world position.
+///
+/// `worldPosition` supplies three readable, word-aligned signed 32-bit xyz values
+/// in world units, such as a VECTOR/VECTOR3 or a MATRIX translation. Reads exactly
+/// 12 bytes and retains no pointer. `model` borrows writable lightMtx and colorMtx
+/// matrices; source transforms and the current view must already be composed.
+/// The view-relative offset is narrowed to signed 16 bits before rotation.
+///
+/// Use firstLightIndex = 0 and lightCount = 3 for the full query. Nonnegative
+/// indices must satisfy firstLightIndex + lightCount <= 3. The coefficient loops
+/// visit [firstLightIndex, lightCount), preserving the original nonzero-start
+/// behavior. A missing room collection, zero count or an end outside 0..3 returns
+/// without writes. Otherwise all nine colour coefficients are cleared, and the
+/// request is reduced recursively until enough room/active transient sources
+/// exist; zero sources leave that clear but retain the previous ambient term.
+/// Only selected direction rows are replaced; other direction rows are retained.
+///
+/// Positive contributions are ranked by RGB score and falloff. The cutoff source
+/// supplies ambient when firstLightIndex is zero, followed by the ambient override
+/// or the current view's RGB minima. Optional Q12 RGB scales affect coefficient
+/// rows alone. Queries update source attenuation and may capture diagnostic ranks.
+/// Requires 124 scratch bytes plus up to 68 nested bytes, released before return;
+/// changes GTE state. Output matrices and input must be disjoint from scratch.
+void worldCoordSetModelLighting(const TmdObject* model, const void* worldPosition, s32 firstLightIndex, s32 lightCount);
 
-/// Rebuilds the actor color matrix via `func_800D7A9C`, then remaps it
+/// Rebuilds the actor color matrix via `worldCoordSetModelLighting`, then remaps it
 /// from `colorMode` (`Gp_RemapActorColor`). While `colorBlend` is
 /// a positive blend timer, GPF/GPL-interpolates the previous mode
 /// (`colorMode` bits 2-3) toward the current mode (bits 0-1). Skips work

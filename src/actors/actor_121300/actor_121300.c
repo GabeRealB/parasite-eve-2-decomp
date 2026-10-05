@@ -2002,7 +2002,7 @@ void func_actor_121300_8013293C(Task* arg0)
     pos.vx = tail->coords->workm.t[0];
     pos.vy = arg0->extra.tmd->coords->workm.t[1];
     pos.vz = arg0->extra.tmd->coords->workm.t[2];
-    func_800D7A9C(tail, &pos, 0, 3);
+    worldCoordSetModelLighting(tail, &pos, 0, 3);
 }
 
 /// Spawns the fifteen debris variants for one lamp, then releases this task.
@@ -2468,7 +2468,7 @@ static void func_actor_121300_80133BFC(Task* task)
 /// compiler cross-jumps the three copies, so it appears once, after state 2's
 /// body.  Every path but state 3 also steps the actor through
 /// `func_actor_121300_80133854` and hands the model's part-1 translation to
-/// `func_800D7A9C`.
+/// `worldCoordSetModelLighting`.
 void func_actor_121300_80133D98(Task* arg0)
 {
     TmdObject* extra;
@@ -2535,7 +2535,7 @@ void func_actor_121300_80133D98(Task* arg0)
         pos.vx = extra->coords[1].workm.t[0];
         pos.vy = arg0->extra.tmd->coords[1].workm.t[1];
         pos.vz = arg0->extra.tmd->coords[1].workm.t[2];
-        func_800D7A9C(extra, &pos, 0, 3);
+        worldCoordSetModelLighting(extra, &pos, 0, 3);
     }
     D_actor_121300_8013CC00 += 1;
 }

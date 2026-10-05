@@ -4199,7 +4199,7 @@ static void func_actor_510900_8013C338(Task* arg0, GfxCoord* arg1)
     pos.vx = arg1->workm.t[0];
     pos.vy = arg1->workm.t[1];
     pos.vz = arg1->workm.t[2];
-    func_800D7A9C(arg0->extra.tmd, &pos, 0, 3);
+    worldCoordSetModelLighting(arg0->extra.tmd, &pos, 0, 3);
 }
 
 static void func_actor_510900_8013C380(Task* arg0)

@@ -517,7 +517,7 @@ static void func_actor_521100_80135DDC(Enemy* spawnArg2, Task* task)
     vec.vy                           = coord->workm.t[1] - 0x320;
     D_actor_521100_8016A3DC          = task;
     vec.vz                           = coord->workm.t[2];
-    func_800D7A9C(obj, &vec, 0, 3);
+    worldCoordSetModelLighting(obj, &vec, 0, 3);
     Gp_AnimInitCtx(&D_actor_521100_8016A3D8->rig.anim, D_actor_521100_8016A3A0, obj, D_actor_521100_8016A3D8->rig.poses);
     D_actor_521100_8016A3D8->st.animId = ACTOR_521100_ANMC_WOMAN_ANIM_WALK;
     D_actor_521100_8016A3D8->st.state  = ACTOR_ENEMY_ANIM_RESET;
@@ -753,7 +753,7 @@ static void func_actor_521100_80136680(Enemy* arg0, Task* task)
     vec.vx = coord->workm.t[0];
     vec.vy = coord->workm.t[1] - 0x320;
     vec.vz = coord->workm.t[2];
-    func_800D7A9C(obj, &vec, 0, 3);
+    worldCoordSetModelLighting(obj, &vec, 0, 3);
     func_actor_521100_80135F2C(task);
 }
 

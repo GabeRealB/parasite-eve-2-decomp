@@ -531,7 +531,7 @@ static void func_actor_323300_80161FE8(Task* arg0)
         Gp_ClearRec18Occupied(&work->contact);
         arg0->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
         actorRenderComposeCoord(&arg0->extra.tmd->coords[1]);
-        func_800D7A9C(extra, (VECTOR*)arg0->extra.tmd->coords[1].workm.t, 0, 3);
+        worldCoordSetModelLighting(extra, arg0->extra.tmd->coords[1].workm.t, 0, 3);
     }
     if (work->freeCountdown >= 0) {
         if (work->freeCountdown == 0) {
@@ -970,7 +970,7 @@ static void func_actor_323300_80162DF0(Task* arg0)
 
     coord         = &arg0->extra.tmd->coords[6];
     coord->parent = &work->unscaledParts[2];
-    func_800D7A9C(extra, (VECTOR*)coord->workm.t, 0, 3);
+    worldCoordSetModelLighting(extra, coord->workm.t, 0, 3);
 
     work->transformCountdown -= ACTOR_323300_TRANSFORM_STEP;
     if (work->transformCountdown < 0) {
@@ -1056,7 +1056,7 @@ static void func_actor_323300_80163510(Task* arg0)
 
     coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(&coords[1]);
-    func_800D7A9C(extra, (VECTOR*)coords[1].workm.t, 0, 3);
+    worldCoordSetModelLighting(extra, coords[1].workm.t, 0, 3);
 }
 
 /// Re-aims the per-part coordinate nodes at index 5 and index 2 from one turn

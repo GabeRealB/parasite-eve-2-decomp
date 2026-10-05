@@ -2152,7 +2152,7 @@ static void func_actor_511000_80131E78(Task* arg0)
     if (gGameSession->viewReady != 0) {
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
         actorRenderComposeCoord(coord);
-        func_800D7A9C(extra, (VECTOR*)coord->workm.t, 0, 3);
+        worldCoordSetModelLighting(extra, coord->workm.t, 0, 3);
     }
     func_actor_511000_80132048(arg0);
     if (work->freeCountdown >= 0) {
@@ -2298,7 +2298,7 @@ static void func_actor_511000_801325A4(Task* task)
     extra->colorMtx        = &work->color;
     coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(&coords[1]);
-    func_800D7A9C(extra, (VECTOR*)coords[1].workm.t, 0, 3);
+    worldCoordSetModelLighting(extra, coords[1].workm.t, 0, 3);
 }
 
 /// Animation message handler: when the source index in the payload changes,
@@ -2721,7 +2721,7 @@ static void func_actor_511000_801330F0(Task* task)
 
     if (!(obj->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
         actorRenderComposeCoord(coord);
-        func_800D7A9C(obj, (VECTOR*)coord->workm.t, 0, 3);
+        worldCoordSetModelLighting(obj, coord->workm.t, 0, 3);
         func_actor_511000_80132E6C(task->work);
     }
     if (gGameSession->location.loc.view == 0x18) {
@@ -2990,7 +2990,7 @@ static void func_actor_511000_801337F0(Task* task)
     extra->colorMtx     = &work->color;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(coord);
-    func_800D7A9C(extra, (VECTOR*)coord->workm.t, 0, 3);
+    worldCoordSetModelLighting(extra, coord->workm.t, 0, 3);
 }
 
 void func_actor_511000_80133850(Task* task)

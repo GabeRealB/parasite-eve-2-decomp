@@ -1356,7 +1356,7 @@ static void func_actor_335800_80162844(Task* task)
     if (gGameSession->viewReady != 0) {
         work->lightState = ACTOR_335800_GARY_DOUGLAS_LIGHT_FULL;
         actorRenderComposeCoord(&task->extra.tmd->coords[1]);
-        func_800D7A9C(ext, (VECTOR*)task->extra.tmd->coords[1].workm.t, 0, 3);
+        worldCoordSetModelLighting(ext, task->extra.tmd->coords[1].workm.t, 0, 3);
     }
     if (work->freeCountdown >= 0) {
         if (work->freeCountdown == 0) {
@@ -1413,7 +1413,7 @@ static void func_actor_335800_80162F9C(Task* arg0)
     ext           = arg0->extra.tmd;
     ext->lightMtx = &work->model.light;
     ext->colorMtx = &work->model.color;
-    func_800D7A9C(ext, (VECTOR*)arg0->extra.tmd->coords[1].workm.t, 0, 3);
+    worldCoordSetModelLighting(ext, arg0->extra.tmd->coords[1].workm.t, 0, 3);
     work->lightState = ACTOR_335800_GARY_DOUGLAS_LIGHT_FULL;
 }
 
@@ -1549,7 +1549,7 @@ static void func_actor_335800_80163568(Task* task)
             Gp_DrawEffGroundQuad(&pos, 0x200, gRoomEffectState->groundShadowShade);
         }
         actorRenderComposeCoord(&task->extra.tmd->coords[1]);
-        func_800D7A9C(ext, (VECTOR*)task->extra.tmd->coords[1].workm.t, 0, 3);
+        worldCoordSetModelLighting(ext, task->extra.tmd->coords[1].workm.t, 0, 3);
     }
     if (work->freeCountdown >= 0) {
         if (work->freeCountdown == 0) {

@@ -102,7 +102,7 @@ extern s32 D_actor_310100_801798A8[];
 static s32 func_actor_310100_80161E24(Task* task);
 
 /// State handler for the display model spawned by `func_actor_310100_80162C64`:
-/// the spawn tick seeds the tracker from the model's part-1 coordinate frame and
+/// the spawn tick lights the model at its part-1 coordinate's world position and
 /// steps to state 1, and every later tick draws the floor quad until the display
 /// state goes non-zero.
 void func_actor_310100_801631B0(Task* task);
@@ -112,7 +112,7 @@ void func_actor_310100_801631B0(Task* task);
 /// the model to `func_actor_310100_80162414` with display id 0x6C and steps to
 /// state 1, and every later tick draws the floor quad at the model's part-1
 /// frame, runs `func_actor_310100_80161F80` while the display state is 1 and
-/// hands that frame's translation to `func_800D7A9C`. Display state 2, the
+/// hands that frame's translation to `worldCoordSetModelLighting`. Display state 2, the
 /// freeze parked by `func_actor_310100_80162CDC`, returns before either.
 void func_actor_310100_80162F88(Task* task);
 
@@ -121,12 +121,12 @@ void func_actor_310100_80162F88(Task* task);
 /// the model to `func_actor_310100_80162414` with display id 0x6D and steps to
 /// state 1, and every later tick draws the floor quad at the model's part-1
 /// frame, runs `func_actor_310100_80161F80` while the display state is 1 and
-/// hands that frame's translation to `func_800D7A9C`. Display state 2, the
+/// hands that frame's translation to `worldCoordSetModelLighting`. Display state 2, the
 /// freeze parked by `func_actor_310100_80162CDC`, returns before either.
 void func_actor_310100_8016309C(Task* task);
 
-/// The other display-model state handler (message 0x6D): the spawn tick seeds
-/// the tracker from the model's part-1 coordinate frame and steps to state 1,
+/// The other display-model state handler (message 0x6D): the spawn tick lights
+/// the model at its part-1 coordinate's world position and steps to state 1,
 /// and every later tick draws the floor quad while the display state is still
 /// below 2.
 void func_actor_310100_801632B0(Task* task);
@@ -1297,7 +1297,7 @@ s32 func_actor_310100_80162F34(Task* task, s32 msgId, s32 arg2, s32 arg3)
 /// the model to `func_actor_310100_80162414` with display id 0x6C and steps to
 /// state 1, and every later tick draws the floor quad at the model's part-1
 /// frame, runs `func_actor_310100_80161F80` while the display state is 1 and
-/// hands that frame's translation to `func_800D7A9C`. Display state 2, the
+/// hands that frame's translation to `worldCoordSetModelLighting`. Display state 2, the
 /// freeze parked by `func_actor_310100_80162CDC`, returns before either.
 void func_actor_310100_80162F88(Task* task)
 {
@@ -1331,7 +1331,7 @@ void func_actor_310100_80162F88(Task* task)
             vec.vx = extra->coords[1].workm.t[0];
             vec.vy = task->extra.tmd->coords[1].workm.t[1];
             vec.vz = task->extra.tmd->coords[1].workm.t[2];
-            func_800D7A9C(extra, &vec, 0, 3);
+            worldCoordSetModelLighting(extra, &vec, 0, 3);
             break;
     }
 }
@@ -1341,7 +1341,7 @@ void func_actor_310100_80162F88(Task* task)
 /// the model to `func_actor_310100_80162414` with display id 0x6D and steps to
 /// state 1, and every later tick draws the floor quad at the model's part-1
 /// frame, runs `func_actor_310100_80161F80` while the display state is 1 and
-/// hands that frame's translation to `func_800D7A9C`. Display state 2, the
+/// hands that frame's translation to `worldCoordSetModelLighting`. Display state 2, the
 /// freeze parked by `func_actor_310100_80162CDC`, returns before either.
 void func_actor_310100_8016309C(Task* task)
 {
@@ -1375,7 +1375,7 @@ void func_actor_310100_8016309C(Task* task)
             vec.vx = extra->coords[1].workm.t[0];
             vec.vy = task->extra.tmd->coords[1].workm.t[1];
             vec.vz = task->extra.tmd->coords[1].workm.t[2];
-            func_800D7A9C(extra, &vec, 0, 3);
+            worldCoordSetModelLighting(extra, &vec, 0, 3);
             break;
     }
 }
@@ -1393,7 +1393,7 @@ static inline void _actor310100LightOfficerModel(Task* task)
     position.vx = model->coords[1].workm.t[0];
     position.vy = task->extra.tmd->coords[1].workm.t[1];
     position.vz = task->extra.tmd->coords[1].workm.t[2];
-    func_800D7A9C(model, &position, 0, 3);
+    worldCoordSetModelLighting(model, &position, 0, 3);
 }
 
 /// Draws an officer model's ground shadow: a square in the XZ plane of its
@@ -1409,7 +1409,7 @@ static inline void _actor310100DrawOfficerShadow(Task* task)
 }
 
 /// State handler for the display model spawned by `func_actor_310100_80162C64`:
-/// the spawn tick seeds the tracker from the model's part-1 coordinate frame and
+/// the spawn tick lights the model at its part-1 coordinate's world position and
 /// steps to state 1, and every later tick draws the floor quad until the display
 /// state goes non-zero.
 void func_actor_310100_801631B0(Task* task)
@@ -1432,8 +1432,8 @@ void func_actor_310100_801631B0(Task* task)
     }
 }
 
-/// The other display-model state handler (message 0x6D): the spawn tick seeds
-/// the tracker from the model's part-1 coordinate frame and steps to state 1,
+/// The other display-model state handler (message 0x6D): the spawn tick lights
+/// the model at its part-1 coordinate's world position and steps to state 1,
 /// and every later tick draws the floor quad while the display state is still
 /// below 2.
 void func_actor_310100_801632B0(Task* task)

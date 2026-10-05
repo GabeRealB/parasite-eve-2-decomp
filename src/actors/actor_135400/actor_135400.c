@@ -684,8 +684,8 @@ static void func_actor_135400_80132064(Task* arg0)
 /// Per-frame tick of the actor's main task: ticks the twenty animation slots
 /// once `model.ticking` has latched, and while the model is not hidden (flag 0x80
 /// of `TmdObject::flags`) draws its ground shadow from the second
-/// part's translation, recomputes that part's world matrix, re-ranks it
-/// through `func_800D7A9C`, ramps the head-turn weight `turnWeight` and finally
+/// part's translation, recomputes that part's world matrix, relights the model
+/// through `worldCoordSetModelLighting`, ramps the head-turn weight `turnWeight` and finally
 /// turns the head toward the slot-3 skeleton with `func_800B0928`.
 static void func_actor_135400_801322A8(Task* task)
 {
@@ -707,7 +707,7 @@ static void func_actor_135400_801322A8(Task* task)
             Gp_DrawEffGroundQuad(&pos, 0x300, gRoomEffectState->groundShadowShade);
         }
         actorRenderComposeCoord(&task->extra.tmd->coords[1]);
-        func_800D7A9C(ext, (VECTOR*)task->extra.tmd->coords[1].workm.t, 0, 3);
+        worldCoordSetModelLighting(ext, task->extra.tmd->coords[1].workm.t, 0, 3);
         if (work->turnWeightRising != 0) {
             rate             = work->turnWeight + 0x100;
             work->turnWeight = rate;

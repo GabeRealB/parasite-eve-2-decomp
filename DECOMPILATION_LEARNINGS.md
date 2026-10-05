@@ -241,9 +241,9 @@ A switch on an unsigned halfword that includes `case 0:` (even empty, shared wit
 
 ## Two `&vec` takes across a call CSE into `$s2` and bump `index` to `$s3` (func_actor_120300_801337C4, 2026-09-21)
 
-`func_800D7A9C(tmd, &vec, …)` then `ScaleMatrix(tmd->colorMtx, &vec)` CSE the stack address into one pseudo that crosses the call. Local-alloc homes that pseudo in `$s2`; `index` then conflicts with `$s2` and takes `$s3`. Target rematerializes `addiu $a1, $sp, 0x18` and keeps `index` in `$s2`.
+`worldCoordSetModelLighting(tmd, &vec, …)` then `ScaleMatrix(tmd->colorMtx, &vec)` CSE the stack address into one pseudo that crosses the call. Local-alloc homes that pseudo in `$s2`; `index` then conflicts with `$s2` and takes `$s3`. Target rematerializes `addiu $a1, $sp, 0x18` and keeps `index` in `$s2`.
 
-Same split `func_actor_136100_UpdateShadow` already uses: pass `VECTOR* vec` into an inline that uses it only for `func_800D7A9C`. The caller's later `&vec` is a different CSE class and rematerializes. A function-wide `VECTOR *p = &vec` also frees `$s2` but saves `$s4`. Declaring the VECTOR first rematerializes too, but moves the slot to `0x10`.
+Same split `func_actor_136100_UpdateShadow` already uses: pass `VECTOR* vec` into an inline that uses it only for `worldCoordSetModelLighting`. The caller's later `&vec` is a different CSE class and rematerializes. A function-wide `VECTOR *p = &vec` also frees `$s2` but saves `$s4`. Declaring the VECTOR first rematerializes too, but moves the slot to `0x10`.
 
 An independent `D_8007272D = 2` next to `index->state += 1` is overlapped by sched1 (`lw` of state before `sb` of 2). `SCHED_BARRIER()` between them restores `li $v0, 2; sb; lw $v0, 0x30($s2); nop`.
 
@@ -253,7 +253,7 @@ static inline void fill(Task* arg0, TmdObject* tmd, VECTOR* vec)
     vec->vx = tmd->coords[1].workm.t[0];
     vec->vy = ((TmdObject*)arg0->extra)->coords[1].workm.t[1];
     vec->vz = ((TmdObject*)arg0->extra)->coords[1].workm.t[2];
-    func_800D7A9C(tmd, vec, 0, 3);
+    worldCoordSetModelLighting(tmd, vec, 0, 3);
 }
 /* caller: fill(arg0, tmd, &vec); ScaleMatrix(tmd->colorMtx, &vec); */
 ```
@@ -8832,7 +8832,7 @@ does not.
 
 When the target is signed `slti`/`bnez` (not `sltiu`) and the body also
 increments a second counter, a pointer `p++` plus `i++` still becomes
-`li N-1; bgez`. Index the typed array instead (`Gp_CountRoomCoords`):
+`li N-1; bgez`. Index the typed array instead (`_worldCoordCountActiveTransientPointLights`):
 
 ```c
 count = 0;
@@ -52549,7 +52549,7 @@ the struct-assignment shape plus padding is 100%.
 When the dead aggregate is the *first* local, it sits at `sp+0x10` - the
 outgoing-argument area - and m2c misreads the stores as stack arguments of
 the next call instead of dropping them: `func_actor_503500_8013223C` came out
-as `func_800D7A9C(ext, &coord->workm.t, 0, 3, /* extra? */ t[0], t[1], t[2])`,
+as `worldCoordSetModelLighting(ext, &coord->workm.t, 0, 3, /* extra? */ t[0], t[1], t[2])`,
 which fails to compile against the 4-argument prototype. `/* extra? */`
 arguments to a known-arity callee mean a local struct filled right before the
 call; `VECTOR pos; pos.vx = ...; pos.vy = ...; pos.vz = ...;` followed by the
@@ -54114,11 +54114,11 @@ other way, and the existing "Merge a dead local into a later counter to claim
 its callee-saved register" entry is the neighbouring case.
 
 The same lever explains a `SOFT_USE_REG(x)` that only lifts `x` above a loop
-pointer. In `func_800D7A9C` a per-iteration `light = &p->light` lost
-`$s0` to its loop pointer `p` (6 refs over 16 insns against 9 over 33) until
+pointer. In `worldCoordSetModelLighting` a per-iteration `pointLight = &transientSlot->light` lost
+`$s0` to its loop pointer `transientSlot` (6 refs over 16 insns against 9 over 33) until
 an empty-asm use added two weighted refs. The real source used one
-`WorldCoordPointLight* light` for that loop *and* the next loop over another light
-array of the same type; the merged pseudo outranks `p` with no asm at all.
+`WorldCoordPointLight* pointLight` for that loop *and* the next loop over another light
+array of the same type; the merged pseudo outranks `transientSlot` with no asm at all.
 When a use-hack's only job is priority, look for a later loop whose pointer
 has the same type and lands in the same register.
 
@@ -68422,7 +68422,7 @@ statement - the usual fix for a split `%hi`/`%lo` - is powerless here.
 **Fix:** route the sequence through the TU's existing inline helper rather than
 writing it out. `_worldCoordWriteParentFrameLightMatrix` in `src/gameplay/3A34.c` matched at 100.000% with
 zero penalties by calling `_gfxLoadRotSv(mtx, (SVECTOR*)(head - 0x2C))`, the same
-helper `func_800D7A9C` already used. The general lesson is that this shape -
+helper `worldCoordSetModelLighting` already used. The general lesson is that this shape -
 copy into a stack local, then hand its address to an asm - is one the original
 sources factored into a helper, and reproducing the helper is what reproduces the
 schedule. Before fighting an address-formation `reorder`, grep the TU for a
@@ -69816,7 +69816,7 @@ sitting in a saved register. Match it by referencing the chain inline at that
 one use, `((TmdObject*)index->extra)->flags = 0;`, and keeping the cached
 `extra` local for the uses that *do* reuse `s2`.
 
-The same function's `func_800D7A9C(extra, (VECTOR*)coord->workm.t, 0, 3)` tail
+The same function's `worldCoordSetModelLighting(extra, coord->workm.t, 0, 3)` tail
 is not a direct pass: retail copies `coord->workm.t[0..2]` into a stack `VECTOR`
 and passes `&v`, reloading `index->extra->coords` for each element (each stack
 store kills the CSE of the next load) while the *first* reload's `a0` is shared
@@ -75510,7 +75510,7 @@ local's type. Declare whichever the source reads better as. What matters is only
 that the three writes share one addressable object. `func_actor_510900_8013BC38`.
 
 The next function in that TU, `func_actor_510900_8013C338`, is the same body with
-a different callee (`func_800D7A9C(obj, &pos, 0, 3)`) and shows the same numbers:
+a different callee (`worldCoordSetModelLighting(obj, &pos, 0, 3)`) and shows the same numbers:
 63.3% with `delete=5` from m2c's three scalars, 100% from the single `VECTOR`.
 
 `func_actor_146300_80132B1C` is a third instance, and the one that shows the
@@ -76065,7 +76065,7 @@ or a pin.
 **Problem.** `func_actor_341900_80162200` sat at 93.618% with the tail's three
 loads of `index->extra` correct but the register wrong: retail loads it into
 `$a0` and that one value serves both the first `pos.v` statement and the
-`func_800D7A9C` argument, while ours loaded into `$s1` and copied at the call
+`worldCoordSetModelLighting` argument, while ours loaded into `$s1` and copied at the call
 (`move a0,s1`), with a stray `nop` and `li a3` out of place
 (`regs=5 insert=2 delete=2`).
 
@@ -76088,7 +76088,7 @@ register:
     pos.vx = ((TmdObject*)arg0->extra)->coords->workm.t[0];
     pos.vy = ((TmdObject*)arg0->extra)->coords->workm.t[1];
     pos.vz = ((TmdObject*)arg0->extra)->coords->workm.t[2];
-    func_800D7A9C(mdl, &pos, 0, 3);     /* a0 already holds it: no copy */
+    worldCoordSetModelLighting(mdl, &pos, 0, 3);     /* a0 already holds it: no copy */
 ```
 
 100%, all penalties zero.
@@ -76098,7 +76098,7 @@ before the registers. Assigned immediately before the first use of the same
 expression, the two memory reads are adjacent with no store between them, so
 CSE merges them: three loads of `0x2c($s2)`, the first shared by the first
 statement and the call. Writing the call argument as its own expression instead
-(`func_800D7A9C((TmdObject*)index->extra, &pos, 0, 3)`) puts the preceding
+(`worldCoordSetModelLighting((TmdObject*)index->extra, &pos, 0, 3)`) puts the preceding
 `pos.vz` store in between, which invalidates the CSE entry for `index->extra`,
 and the tail emits four loads — the shape that was stuck at 93.1%.
 
@@ -81411,7 +81411,7 @@ block's `coord` has 2 and the `spawnArg1` block's 4 -- so the tail and the
         TmdObject* obj = arg0->extra;            /* NOT `tmd = index->extra;` */
         actorRenderComposeCoord(obj->field_8);
         ...
-        func_800D7A9C(obj, &vec, 0, 3);
+        worldCoordSetModelLighting(obj, &vec, 0, 3);
     }
 ```
 
@@ -82311,7 +82311,7 @@ the real signature `(Task*, s32 msgId, s32 arg2)`.
 ## Count a field's loads to count the source's mentions — a temp hides on the call's argument register
 
 `func_actor_310100_801631B0`'s spawn tick reads the model's part-1 frame three
-times and hands the model to `func_800D7A9C`. Written the plain way, five
+times and hands the model to `worldCoordSetModelLighting`. Written the plain way, five
 `lw 0x2C($s0)` (the `task->extra` chain, once per mention) reach the object and
 the call comes out as `lw a0,0x2C(s0)` / `jal`, with the argument setup rotated
 — 91.864%, `regs=3 reorder=2 insert=3 delete=1`. The target has four:
@@ -82325,7 +82325,7 @@ lw    v0,0x2c(s0)      ; vy: its own load
 ...
 lw    v0,0x2c(s0)      ; vz: its own load
 ...
-jal   func_800D7A9C    ; $a0 still holds the value from 80163200
+jal   worldCoordSetModelLighting    ; $a0 still holds the value from 80163200
 ```
 
 `$a0` is written once at 80163200 and never re-written before the `jal`: the
@@ -82351,7 +82351,7 @@ other two in the long form:
         pos.vec.vx = extra->coords[1].workm.t[0];
         pos.vec.vy = ((TmdObject*)task->extra)->coords[1].workm.t[1];
         pos.vec.vz = ((TmdObject*)task->extra)->coords[1].workm.t[2];
-        func_800D7A9C(extra, &pos.vec, 0, 3);
+        worldCoordSetModelLighting(extra, &pos.vec, 0, 3);
 ```
 
 100.000%, unchanged everywhere else.
@@ -82654,7 +82654,7 @@ then rendered the byte offsets the disassembly showed as *element* arithmetic:
 ```c
 temp_s1 = temp_s0->field_8;
 actorRenderComposeCoord(temp_s1 + 0x50);                    /* 0x50 * sizeof(GfxCoord) */
-func_800D7A9C(temp_s0, temp_s1 + 0x88, 0, 3);      /* 0x88 * 0x50 = 0x2A80 */
+worldCoordSetModelLighting(temp_s0, temp_s1 + 0x88, 0, 3);      /* 0x88 * 0x50 = 0x2A80 */
 ```
 
 `GfxCoord` is 0x50 bytes (`composeStamp`, two `MATRIX`, `param`, `super`, `sub`), so
@@ -82671,7 +82671,7 @@ of the typed form exactly:
 ```c
 coords[1].composeStamp = 0;
 actorRenderComposeCoord(&coords[1]);
-func_800D7A9C(extra, (VECTOR*)coords[1].workm.t, 0, 3);
+worldCoordSetModelLighting(extra, coords[1].workm.t, 0, 3);
 ```
 
 `coords[1]` is 0x50, and `workm.t` is 0x50 + 0x38 = 0x88 — because `MATRIX` is
@@ -84405,7 +84405,7 @@ lw    $v0, 0x2C($a0)      ; <- second load
 li    $a3, 3
 lw    $a1, 0x8($v0)
 move  $a0, $v1
-jal   func_800D7A9C
+jal   worldCoordSetModelLighting
 addiu $a1, $a1, 0x88
 ```
 
@@ -87587,7 +87587,7 @@ Inputs: `base_1.i` `d8c3158cdcb2cd2a9a9e10b9c28c8c74916baf0d75a10e6ef0ccfe479691
 
 `func_neo_ark_shrine_8017F86C` is 23 insns that load three words from a
 `GfxCoord`'s `workm.t[]`, bias the middle one by `-0x320`, and hand them to
-`func_800D7A9C` as its `VECTOR*`. m2c renders that as three unrelated locals and
+`worldCoordSetModelLighting` as its three-word position input. m2c renders that as three unrelated locals and
 one address-taken:
 
 ```c
@@ -87595,7 +87595,7 @@ one address-taken:
     sp10 = M2C_FIELD(temp_s0, s32 *, 0x38);
     sp14 = M2C_FIELD(temp_s0, s32 *, 0x3C) - 0x320;
     sp18 = M2C_FIELD(temp_s0, s32 *, 0x40);
-    func_800D7A9C(temp_s1, &sp10, 0, 3);
+    worldCoordSetModelLighting(temp_s1, &sp10, 0, 3);
 ```
 
 Only `sp10`'s address escapes, so the other two are ordinary dead stores: GCC
@@ -87616,7 +87616,7 @@ three fields:
     vec.vx = coord->workm.t[0];
     vec.vy = coord->workm.t[1] - 0x320;
     vec.vz = coord->workm.t[2];
-    func_800D7A9C(obj, &vec, 0, 3);
+    worldCoordSetModelLighting(obj, &vec, 0, 3);
 ```
 
 100% with all-zero penalties on the first body rewrite, frame back to 0x30.
@@ -98021,7 +98021,7 @@ s32 sp10, sp14, sp18;                     /* m2c seed, 60.245% */
 sp10 = *(s32 *)((u8 *)parts + 0x38);
 sp14 = *(s32 *)((u8 *)parts + 0x3C) - 0x320;
 sp18 = *(s32 *)((u8 *)parts + 0x40);
-func_800D7A9C(extra, (VECTOR *)&sp10, 0, 3);
+worldCoordSetModelLighting(extra, (VECTOR *)&sp10, 0, 3);
 ```
 
 Only `sp10`'s address escapes (into the call); `sp14` and `sp18` are never read
@@ -98041,7 +98041,7 @@ VECTOR vec;
 vec.vx = parts->workm.t[0];
 vec.vy = parts->workm.t[1] - 0x320;
 vec.vz = parts->workm.t[2];
-func_800D7A9C(extra, &vec, 0, 3);
+worldCoordSetModelLighting(extra, &vec, 0, 3);
 ```
 
 100% with every penalty zero, preprocessed input `base_1.i`.
@@ -98224,7 +98224,7 @@ stored, drop the local and read the global.
 
 The earlier step of the same function repeats the corpus entry "m2c's scalar
 stack locals for an address-taken struct lose their dead stores": the seed's
-three `s32` locals for the `func_800D7A9C` position vector scored 87.5% with
+three `s32` locals for the `worldCoordSetModelLighting` position vector scored 87.5% with
 `delete=6` and a 0x30 frame, and one `VECTOR vec;` restored the two
 `lw`/`sw` pairs, the `addiu -0x320` and the 0x38 frame (93.62%).
 
@@ -103093,7 +103093,7 @@ differences, with `case 0` added).
 A 40-instruction two-state handler recurs across the model actors. State 0
 clears the task's own root coordinate frame and the model's `field_C` and parents
 that root to a part of the actor's model, then bumps `task->state`; state 1 hands
-the actor model's root translation, y dropped by 0x320, to `func_800D7A9C`:
+the actor model's root translation, y dropped by 0x320, to `worldCoordSetModelLighting`:
 
 ```c
 void func_actor_420700_801323D8(Task* task)
@@ -103115,13 +103115,13 @@ void func_actor_420700_801323D8(Task* task)
             vec.vx = parts->workm.t[0];
             vec.vy = parts->workm.t[1] - 0x320;
             vec.vz = parts->workm.t[2];
-            func_800D7A9C(extra, &vec, 0, 3);
+            worldCoordSetModelLighting(extra, &vec, 0, 3);
             break;
     }
 }
 ```
 
-102 unmatched actor functions call `func_800D7A9C` and 58 of them carry the
+102 unmatched actor functions call `worldCoordSetModelLighting` and 58 of them carry the
 `-0x320` drop, so this whole family is copy-and-substitute work. Matched
 carriers to read: `func_actor_461800_80132B74` (fields score 0.95, cflow 1.00)
 and `func_actor_450800_80132958`. The copies vary in exactly two places:
@@ -111727,7 +111727,7 @@ source `base_1.c` `fac96ecef6e0d3c08d6dd8d81dafc0096a66cdf1e068c40f2f88eeca3c291
 
 The seed also carried both classic m2c type errors, each worth ~2 instructions
 of the 76: `TmdObject::coords` is a `GfxCoord*`, so
-`func_800D7A9C(obj, (VECTOR*)coord->workm.t, 0, 3)` gives `addiu a1,s2,0x38`
+`worldCoordSetModelLighting(obj, coord->workm.t, 0, 3)` gives `addiu a1,s2,0x38`
 (the seed's `s32*` plus `0x38` gave `+0xE0`), and the view table
 `D_actor_511000_80147EE4` is a `ViewCamera[]`, so
 `&D_actor_511000_80147EE4[task->killCountdown]` scales by 0x24 (`sll 3`/`addu`/
@@ -118204,7 +118204,7 @@ Before committing, count `bodies_of()` across the files to make sure none were l
 ## Frame-offset buffer address merged into a callee-saved pseudo across a call
 
 **Problem:** one function-scope buffer passed by address to two consecutive calls
-(`func_800D7A9C(obj, &buf.vec, ...)` then `Gp_DrawFloorQuad(..., &buf.rot)`).
+(`worldCoordSetModelLighting(obj, &buf.vec, ...)` then `Gp_DrawFloorQuad(..., &buf.rot)`).
 The target reloads `addiu a2,sp,0x18` for the second call; ours emitted
 `addiu s0,sp,0x18` before the first call and `move a2,s0` afterwards.
 
@@ -124040,7 +124040,7 @@ groups swapped -- 88.79% -> 100.00% in one edit, `stack` never penalised.
 
 **Second worked example, and the tell is not always the frame.**
 `func_actor_143900_801328D4` had the same seed shape (`s32 sp18; s32 sp1C;
-s32 sp20;` handed to `func_800D7A9C` as a `VECTOR*`), but the deleted stores did
+s32 sp20;` handed to `worldCoordSetModelLighting` as a three-word position), but the deleted stores did
 not show up as a `stack` penalty: `.diagnosis.json` reported the *instruction
 count* 5 short (2 `lw`, 2 `sw`, 1 `addiu`) with `regs: 40` on the remaining
 register work, which reads like an allocation problem. A `VECTOR vec;` local
@@ -124240,7 +124240,7 @@ tails.
 
 `func_actor_120300_80132004` is `func_actor_120300_801321C8` - the next function
 in the same TU, same `0x38` frame, same `memMalloc`/`memFillBytes`/
-`tmdAllocPrimitiveBuffer` prologue, same `func_800D7A9C` + `ScaleMatrix` tail - with one
+`tmdAllocPrimitiveBuffer` prologue, same `worldCoordSetModelLighting` + `ScaleMatrix` tail - with one
 constant changed and one block inserted before the state step. m2c's rendering
 of it scored 73.549% (`branch=4 regs=41 reorder=3 insert=6 delete=20`, 113 insns
 against the target's 99). Copying the matched sibling's C body and splicing the
@@ -124355,7 +124355,7 @@ s32 sp10, sp14, sp18;
 sp10 = extra->coords->workm.t[0];    /* 0x10(sp) */
 sp14 = extra->coords->workm.t[1];    /* 0x14(sp) */
 sp18 = extra->coords->workm.t[2];    /* 0x18(sp) */
-func_800D7A9C(extra, &sp10, 0, 3);
+worldCoordSetModelLighting(extra, &sp10, 0, 3);
 ```
 
 `sp14` / `sp18` are never read and their addresses are never taken, so they are
@@ -124380,7 +124380,7 @@ VECTOR pos;
 pos.vx = ((TmdObject*)arg0->extra)->coords->workm.t[0];
 pos.vy = ((TmdObject*)arg0->extra)->coords->workm.t[1];
 pos.vz = ((TmdObject*)arg0->extra)->coords->workm.t[2];
-func_800D7A9C(mdl, &pos, 0, 3);
+worldCoordSetModelLighting(mdl, &pos, 0, 3);
 ```
 
 Every assignment is now a live store, nothing is dead, all three chains reach
@@ -125042,7 +125042,7 @@ own `VECTOR` - is what keeps every store:
     pos.vx = coord->workm.t[0];
     pos.vy = coord->workm.t[1] - 0x320;
     pos.vz = coord->workm.t[2];
-    func_800D7A9C(obj, &pos, 0, 3);
+    worldCoordSetModelLighting(obj, &pos, 0, 3);
 ```
 
 Each store is now `(set (mem:SI (plus:SI (reg) (const_int 16))) (reg))`, whose
@@ -126748,9 +126748,9 @@ after it, but each carrier compiles its own handler. The sym files say so -
 overlay-local callee" - and eleven actor overlays define it at eleven addresses
 in six sizes, sharing almost no code:
 
-    USA/actors/actor_110300  0x68   jal func_actor_110300_801320C4, func_800D7A9C
-    USA/actors/actor_146300  0x7C   jal actorRenderComposeCoord, func_800D7A9C, func_actor_146300_801327CC
-    USA/actors/actor_260400  0x84   jal actorRenderComposeCoord, func_800D7A9C, func_actor_260400_8014A200, ...
+    USA/actors/actor_110300  0x68   jal func_actor_110300_801320C4, worldCoordSetModelLighting
+    USA/actors/actor_146300  0x7C   jal actorRenderComposeCoord, worldCoordSetModelLighting, func_actor_146300_801327CC
+    USA/actors/actor_260400  0x84   jal actorRenderComposeCoord, worldCoordSetModelLighting, func_actor_260400_8014A200, ...
     USA/actors/actor_110800  0x304  jal func_actor_110800_80132368, sndEvtRequestScriptStart (x7), ...
 
 The scratch env for the actor_110300 body that day was handed
@@ -127023,7 +127023,7 @@ only the three scalar locals replaced by one aggregate:
 ```c
 s32 sp18; s32 sp1C; s32 sp20;               ->  VECTOR vec;
 sp18 = M2C_FIELD(temp_s0, s32 *, 0x38);     ->  vec.vx = M2C_FIELD(temp_s0, s32 *, 0x38);
-func_800D7A9C(..., (VECTOR *)&sp18, 0, 3);  ->  func_800D7A9C(..., &vec, 0, 3);
+worldCoordSetModelLighting(..., (VECTOR *)&sp18, 0, 3);  ->  worldCoordSetModelLighting(..., &vec, 0, 3);
 ```
 
 It scores 100.000% with assembly hash `1dcb3e52…`, identical to the ported
@@ -128622,7 +128622,7 @@ Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5f
 `ActorsShared80131f9cSub0` (actor_143900) scored 90.225% from the m2c seed with
 `delete=5` and `regs=38`, and the missing five were not a scheduling or
 allocation problem at all: two `lw`, one `addiu` and two `sw` never reached the
-object. The seed wrote the vector it hands `func_800D7A9C` as three scalars:
+object. The seed wrote the vector it hands `worldCoordSetModelLighting` as three scalars:
 
 ```c
     s32 sp18; s32 sp1C; s32 sp20;
@@ -128630,7 +128630,7 @@ object. The seed wrote the vector it hands `func_800D7A9C` as three scalars:
     sp18 = temp_s1->workm.t[0];
     sp1C = temp_s1->workm.t[1] - 0x320;
     sp20 = temp_s1->workm.t[2];
-    func_800D7A9C(temp_s0, (VECTOR *) &sp18, 0, 3);
+    worldCoordSetModelLighting(temp_s0, (VECTOR *) &sp18, 0, 3);
 ```
 
 Only `sp18` has its address taken, so only it needs a stack home. `sp1C` and
@@ -128663,7 +128663,7 @@ scan's `GET_CODE (SET_DEST (set)) == REG` test cannot match.
     vec.vx = coord->workm.t[0];
     vec.vy = coord->workm.t[1] - 0x320;
     vec.vz = coord->workm.t[2];
-    func_800D7A9C(obj, &vec, 0, 3);
+    worldCoordSetModelLighting(obj, &vec, 0, 3);
 ```
 
 100.000%, all penalties zero, frame back to 0x40. Recognize the shape by the
@@ -129084,7 +129084,7 @@ behind labels with `goto`s, in the order the target has them.
 ## Two payloads that never overlap share one stack slot: declare each in its own block (func_actor_120500_8013241C, 2026-09-17)
 
 State 0 fills a 0x14-byte `AnimationPlayRequest` for message 0x3E8 and the epilogue fills a
-0x10-byte `VECTOR` for `func_800D7A9C`; the target's frame has one 0x14 slot
+0x10-byte `VECTOR` for `worldCoordSetModelLighting`; the target's frame has one 0x14 slot
 carrying both. Two locals declared at function scope never share a slot, and
 that form adds 0x10 to the frame and a saved register with it. Two locals of
 *disjoint blocks* do share one: `expand_decl` gives an addressable local an
@@ -129105,7 +129105,7 @@ translation a local of a block around the epilogue:
         VECTOR pos;
 
         pos.vx = ...;
-        func_800D7A9C(mdl, &pos, 0, 3);
+        worldCoordSetModelLighting(mdl, &pos, 0, 3);
     }
 ```
 
@@ -129363,7 +129363,7 @@ s32 sp18, sp1C, sp20;
     sp18 = coord->workm.t[0];
     sp1C = coord->workm.t[1] - 0x320;
     sp20 = coord->workm.t[2];
-    func_800D7A9C(obj, (VECTOR *) &sp18, 0, 3);
+    worldCoordSetModelLighting(obj, (VECTOR *) &sp18, 0, 3);
 ```
 
 `&sp18` makes `sp18` addressable, not its neighbours, and neither `sp1C` nor
@@ -129378,7 +129378,7 @@ VECTOR vec;
     vec.vx = coord->workm.t[0];
     vec.vy = coord->workm.t[1] - 0x320;
     vec.vz = coord->workm.t[2];
-    func_800D7A9C(obj, &vec, 0, 3);
+    worldCoordSetModelLighting(obj, &vec, 0, 3);
 ```
 
 That is worth reaching for before reading anything else in such a seed: the

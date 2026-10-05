@@ -1360,7 +1360,7 @@ static void func_acropolis_west_elevator_hall_8017F6F0(Task* task)
     pos.vx = coord->workm.t[0];
     pos.vy = coord->workm.t[1];
     pos.vz = coord->workm.t[2];
-    func_800D7A9C(extra, &pos, 0, 3);
+    worldCoordSetModelLighting(extra, &pos, 0, 3);
 }
 
 /// Third state of the elevator task: on the two session phases that use it,

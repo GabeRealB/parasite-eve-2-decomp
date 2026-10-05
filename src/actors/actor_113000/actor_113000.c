@@ -1260,7 +1260,7 @@ static void func_actor_113000_80132070(Task* task)
         coords                 = task->extra.tmd->coords;
         coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
         actorRenderComposeCoord(&coords[1]);
-        func_800D7A9C(extra, (VECTOR*)coords[1].workm.t, 0, 3);
+        worldCoordSetModelLighting(extra, coords[1].workm.t, 0, 3);
     }
     func_actor_113000_80131E30(task);
     if (work->freeCountdown >= 0) {
@@ -1287,7 +1287,7 @@ static void func_actor_113000_801321A8(Task* task)
     extra->colorMtx        = &work->color;
     coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(&coords[1]);
-    func_800D7A9C(extra, (VECTOR*)coords[1].workm.t, 0, 3);
+    worldCoordSetModelLighting(extra, coords[1].workm.t, 0, 3);
 }
 
 /// Start-preset handler: a preset bank the work block is not already on

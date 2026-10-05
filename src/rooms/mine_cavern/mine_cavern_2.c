@@ -2921,7 +2921,7 @@ void func_mine_cavern_80182DC8(Task* arg0)
 /// `Gp_LinkObj`: a small one (kind 2) with four contact records and flag 0x8000
 /// set, and a wide one (kind 1) with a single record and flag 0x8000 cleared.
 /// The enemy takes its hit points and parameters from `D_mine_cavern_8018EAE4`,
-/// the model is republished through `func_800D7A9C`, and the enemy's node is
+/// `worldCoordSetModelLighting` lights the model at that position, and the enemy's node is
 /// linked with its flags set to 1.
 ///
 /// The wide body's x and y offset are read from a structure at address 0. The
@@ -2985,7 +2985,7 @@ static void func_mine_cavern_80182E34(Enemy* arg0, Task* arg1)
     vec.vx = arg1->extra.tmd->coords->workm.t[0];
     vec.vy = arg1->extra.tmd->coords->workm.t[1];
     vec.vz = arg1->extra.tmd->coords->workm.t[2];
-    func_800D7A9C(arg1->extra.tmd, &vec, 0, 3);
+    worldCoordSetModelLighting(arg1->extra.tmd, &vec, 0, 3);
     arg0->bodyPos.vx = 0;
     arg0->bodyPos.vy = -0x320;
     arg0->bodyPos.vz = 0;
@@ -3055,7 +3055,7 @@ static void func_mine_cavern_801830F0(Enemy* arg0, Task* arg1)
     blk->vec.vx = arg1->extra.tmd->coords->workm.t[0];
     blk->vec.vy = arg1->extra.tmd->coords->workm.t[1];
     blk->vec.vz = arg1->extra.tmd->coords->workm.t[2];
-    func_800D7A9C(arg1->extra.tmd, &blk->vec, 0, 3);
+    worldCoordSetModelLighting(arg1->extra.tmd, &blk->vec, 0, 3);
     arg1->extra.tmd->flags = 0;
 
     dst      = &blk->offset;
@@ -3132,8 +3132,8 @@ found:
 /// dispatches it). It allocates the work block, parks it at `Task::work` and
 /// hands its two matrices to the model, then seats the model on the spawn spot
 /// `Task::spawnArg1` names: the block's own coordinate adopts that spot with the
-/// model's coordinate hung under it, and the model is republished through
-/// `func_800D7A9C`.
+/// model's coordinate hung under it, and the model is lit at that position through
+/// `worldCoordSetModelLighting`.
 ///
 /// `mem` and `work` are the same block: the original build tests and parks the
 /// allocation through `mem` and reaches the block through `work` afterwards,
@@ -3163,7 +3163,7 @@ static void func_mine_cavern_801836D0(Enemy* arg0, Task* arg1)
     vec.vx = arg1->extra.tmd->coords->workm.t[0];
     vec.vy = arg1->extra.tmd->coords->workm.t[1];
     vec.vz = arg1->extra.tmd->coords->workm.t[2];
-    func_800D7A9C(arg1->extra.tmd, &vec, 0, 3);
+    worldCoordSetModelLighting(arg1->extra.tmd, &vec, 0, 3);
     arg1->state++;
 }
 
@@ -3281,8 +3281,8 @@ void func_mine_cavern_80183A68(Task* arg0)
 }
 
 /// Third state handler of `D_mine_cavern_8017D7F8` (`func_mine_cavern_80183A68`
-/// dispatches it). It republishes the model's world position through
-/// `func_800D7A9C`, then settles the work block's `centerCoord`: when the
+/// dispatches it). It rebuilds the model's lighting at its world position through
+/// `worldCoordSetModelLighting`, then settles the work block's `centerCoord`: when the
 /// `gameFlagGetNibble(0xE2)` bit selected by `Task::spawnArg1` is set the
 /// coordinate is reset to an identity rotation parked at (0, -0x320, 0) under
 /// the model's own coordinate, `work->frame` ticks, and the model's `field_C` is
@@ -3305,7 +3305,7 @@ static void func_mine_cavern_80183AD4(Enemy* enemy, Task* task)
     vec.vx = task->extra.tmd->coords->workm.t[0];
     vec.vy = task->extra.tmd->coords->workm.t[1];
     vec.vz = task->extra.tmd->coords->workm.t[2];
-    func_800D7A9C(task->extra.tmd, &vec, 0, 3);
+    worldCoordSetModelLighting(task->extra.tmd, &vec, 0, 3);
 
     if (!((gameFlagGetNibble(GAME_FLAG_MINE_CAVERN_TARGETS_DESTROYED) >> (u16)task->spawnArg1.value) & 1)) {
         task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;

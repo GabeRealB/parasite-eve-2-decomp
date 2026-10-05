@@ -1065,7 +1065,7 @@ static void func_actor_420700_80131E24(Enemy* enemy, Task* task)
     vec.vy                  = coord->workm.t[1] - 0x320;
     D_actor_420700_8013EFF4 = 0x96;
     vec.vz                  = coord->workm.t[2];
-    func_800D7A9C(obj, &vec, 0, 3);
+    worldCoordSetModelLighting(obj, &vec, 0, 3);
     animationInitContext(&gScriptedWalkWork->rig.anim, (AnimationSet**)D_actor_420700_8013EF8C, obj,
                          gScriptedWalkWork->rig.poses, gScriptedWalkWork->rig.slots);
     gScriptedWalkWork->st.animId = 5;
@@ -1191,7 +1191,7 @@ static void func_actor_420700_8013239C(Task* arg0)
 /// coordinate's `composeStamp` and the model's flags, which leaves it visible, and hangs
 /// the root off frame 4 of the actor's own model, stepping to state 1; every
 /// later tick hands the actor model's root translation, dropped by 0x320 in y,
-/// to `func_800D7A9C` for the model's colour matrix.
+/// to `worldCoordSetModelLighting` for the model's colour matrix.
 void func_actor_420700_801323D8(Task* task)
 {
     TmdObject* extra = task->extra.tmd;
@@ -1211,7 +1211,7 @@ void func_actor_420700_801323D8(Task* task)
             vec.vx = parts->workm.t[0];
             vec.vy = parts->workm.t[1] - 0x320;
             vec.vz = parts->workm.t[2];
-            func_800D7A9C(extra, &vec, 0, 3);
+            worldCoordSetModelLighting(extra, &vec, 0, 3);
             break;
     }
 }
@@ -1376,7 +1376,7 @@ void func_actor_420700_801327EC(Task* task)
             vec.vx = parts->workm.t[0];
             vec.vy = parts->workm.t[1] - 0x320;
             vec.vz = parts->workm.t[2];
-            func_800D7A9C(extra, &vec, 0, 3);
+            worldCoordSetModelLighting(extra, &vec, 0, 3);
             break;
     }
 }

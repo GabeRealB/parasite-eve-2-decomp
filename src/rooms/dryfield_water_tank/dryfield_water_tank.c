@@ -1194,7 +1194,7 @@ static s32 func_dryfield_water_tank_8017DB98(Task* arg0)
 /// light/colour matrix pair for the task's `TmdObject` and reparents the task
 /// to the script driver, state 1 idles, and state 2 waits for
 /// `func_dryfield_water_tank_8017DB98` to report the model finished. Every
-/// frame it hands the model part's translation to `func_800D7A9C`, which turns
+/// frame it hands the model part's translation to `worldCoordSetModelLighting`, which turns
 /// it into the light/colour matrices.
 void func_dryfield_water_tank_8017DD20(Task* arg0)
 {
@@ -1238,7 +1238,7 @@ void func_dryfield_water_tank_8017DD20(Task* arg0)
     pos.vx = arg0->extra.tmd->coords->workm.t[0];
     pos.vy = arg0->extra.tmd->coords->workm.t[1];
     pos.vz = arg0->extra.tmd->coords->workm.t[2];
-    func_800D7A9C(mdl, &pos, 0, 3);
+    worldCoordSetModelLighting(mdl, &pos, 0, 3);
 }
 
 /// Per-frame driver of the water tank's prop scene. It is the task parked in

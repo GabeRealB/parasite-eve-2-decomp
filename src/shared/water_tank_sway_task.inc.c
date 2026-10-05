@@ -7,8 +7,8 @@
 /// `y`:
 /// an occasional roll re-picks the target yaw, the step moves toward it 0x100
 /// at a time, and the velocity follows 19/20 of the way to that step. Either
-/// way the frame ends by publishing the model's `workm` translation as a
-/// `VECTOR` to `func_800D7A9C`, rebuilding the coordinate's yaw matrix from the
+/// way the frame ends by lighting the model at its `workm` translation through
+/// `worldCoordSetModelLighting`, rebuilding the coordinate's yaw matrix from the
 /// accumulated angle, and clearing `composeStamp` so the parent recomputes the world
 /// matrix next frame.
 ///
@@ -61,7 +61,7 @@ void waterTankSwayTask(Task* arg0)
     vec.vx = coord->workm.t[0];
     vec.vy = coord->workm.t[1];
     vec.vz = coord->workm.t[2];
-    func_800D7A9C(obj, &vec, 0, 3);
+    worldCoordSetModelLighting(obj, &vec, 0, 3);
     gfxRotMatrixY(&coord->coord, gWaterTankYaw >> 8, 1);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
 }

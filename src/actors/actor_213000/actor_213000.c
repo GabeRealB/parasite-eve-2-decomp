@@ -729,7 +729,7 @@ void func_actor_213000_8014A578(Task* task)
 
 /// Per-frame tick: ticks the work block's animation slots once a preset has
 /// started them, and once the view is ready rebuilds model part 1's world
-/// matrix and hands its translation to `func_800D7A9C`. `freeCountdown` then
+/// matrix and hands its translation to `worldCoordSetModelLighting`. `freeCountdown` then
 /// frees the model's buffers as it reaches zero.
 static void func_actor_213000_8014A5D0(Task* task)
 {
@@ -749,7 +749,7 @@ static void func_actor_213000_8014A5D0(Task* task)
     if (gGameSession->viewReady != 0) {
         coords->composeStamp = GRAPHICS_COORD_DIRTY;
         actorRenderComposeCoord(coords);
-        func_800D7A9C(extra, (VECTOR*)coords->workm.t, 0, 3);
+        worldCoordSetModelLighting(extra, coords->workm.t, 0, 3);
     }
     if (work->freeCountdown >= 0) {
         if (work->freeCountdown == 0) {
@@ -761,7 +761,7 @@ static void func_actor_213000_8014A5D0(Task* task)
 
 /// Points the model's light and colour matrices at the work block's own pair,
 /// then rebuilds model part 1's world matrix and hands its translation to
-/// `func_800D7A9C`.
+/// `worldCoordSetModelLighting`.
 static void func_actor_213000_8014A6AC(Task* task)
 {
     _Actor213000EricBaldwinWork* work;
@@ -775,7 +775,7 @@ static void func_actor_213000_8014A6AC(Task* task)
     extra->colorMtx        = &work->color;
     coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(&coords[1]);
-    func_800D7A9C(extra, (VECTOR*)coords[1].workm.t, 0, 3);
+    worldCoordSetModelLighting(extra, coords[1].workm.t, 0, 3);
 }
 
 /// Applies the requested animation bank and clip to this actor's rig.

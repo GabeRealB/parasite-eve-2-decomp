@@ -1504,7 +1504,7 @@ static void func_mine_forked_tunnel_8017D724(Task* arg0)
             Gp_DrawEffGroundQuad(&vec, 0x200, gRoomEffectState->groundShadowShade);
         }
         actorRenderComposeCoord(arg0->extra.tmd->coords);
-        func_800D7A9C(ext, (VECTOR*)arg0->extra.tmd->coords->workm.t, 0, 3);
+        worldCoordSetModelLighting(ext, arg0->extra.tmd->coords->workm.t, 0, 3);
     }
 
     if (((_MineForkedTunnelAreaObjectWork*)arg0->work)->freeCountdown >= 0) {

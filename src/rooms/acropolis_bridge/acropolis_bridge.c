@@ -4956,7 +4956,7 @@ static __inline__ void _acropolisBridgeInitWalkerScale(BossStrangerWalker* walke
 }
 
 /// Recomputes `coord`'s world matrix and hands the model's root translation to
-/// `func_800D7A9C`, staged in the scratch `VECTOR` on top of the stack, which
+/// `worldCoordSetModelLighting`, staged in the scratch `VECTOR` on top of the stack, which
 /// it then releases.
 static __inline__ void _acropolisBridgeLightModel(Task* task, GfxCoord* coord)
 {
@@ -4967,7 +4967,7 @@ static __inline__ void _acropolisBridgeLightModel(Task* task, GfxCoord* coord)
     vec->vx = task->extra.tmd->coords->workm.t[0];
     vec->vy = task->extra.tmd->coords->workm.t[1];
     vec->vz = task->extra.tmd->coords->workm.t[2];
-    func_800D7A9C(task->extra.tmd, vec, 0, 3);
+    worldCoordSetModelLighting(task->extra.tmd, vec, 0, 3);
     SCRATCH_STACK_RELEASE_BLOCK(VECTOR);
 }
 
@@ -4980,7 +4980,7 @@ static __inline__ void _acropolisBridgeLightModel(Task* task, GfxCoord* coord)
 /// `D_acropolis_bridge_80191720` holds for this spawn variant, and the scale
 /// matrix is rebuilt from `scale` through a `VECTOR` borrowed from the scratch
 /// arena -- the same block is then reused for the world position handed to
-/// `func_800D7A9C` before it is released. The model starts sunk 0x5DC
+/// `worldCoordSetModelLighting` before it is released. The model starts sunk 0x5DC
 /// (`sinkDepth`) below the root height it spawned at (`baseHeight`). In the
 /// third visit (`gGameSession->location.loc.room == 2`) the three known variants start
 /// in state 8 at a fixed position instead of state 1.
@@ -6065,7 +6065,7 @@ s32 func_acropolis_bridge_80187BD0(Task* task, s32 arg1, s32 flags, s32 arg3)
 
 /// Relights the bridge enemy's model. Borrows a `VECTOR` from the scratchpad
 /// arena, optionally refreshes the TMD's root coordinate first (`arg1 == 1`),
-/// then feeds that part's world translation to `func_800D7A9C` so the object's
+/// then feeds that part's world translation to `worldCoordSetModelLighting` so the object's
 /// colour matrix is rebuilt for its current position, and releases the scratch.
 static void func_acropolis_bridge_80187C10(Task* task, s16 arg1)
 {
@@ -6084,7 +6084,7 @@ static void func_acropolis_bridge_80187C10(Task* task, s16 arg1)
     ((VECTOR*)(head - 0x10))->vx = task->extra.tmd->coords->workm.t[0];
     pos->vy                      = task->extra.tmd->coords->workm.t[1];
     pos->vz                      = task->extra.tmd->coords->workm.t[2];
-    func_800D7A9C(task->extra.tmd, pos, 0, 3);
+    worldCoordSetModelLighting(task->extra.tmd, pos, 0, 3);
     SCRATCH_POP_BYTES_AT(scratch, 0x10);
 }
 

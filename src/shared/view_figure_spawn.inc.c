@@ -41,7 +41,7 @@ void viewFigureSpawnState(Enemy* enemy, Task* task)
     vec.vx = coord->workm.t[0];
     vec.vy = coord->workm.t[1];
     vec.vz = coord->workm.t[2];
-    func_800D7A9C(obj, &vec, 0, 3);
+    worldCoordSetModelLighting(obj, &vec, 0, 3);
     gViewFigureWork->st.field_6++;
     task->msgTable = gViewFigureMessages;
     task->state++;

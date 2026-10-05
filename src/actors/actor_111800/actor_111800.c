@@ -516,7 +516,7 @@ void func_actor_111800_8013251C(Task* task)
     ((VECTOR*)&mtx)->vx = obj->coords[1].workm.t[0];
     ((VECTOR*)&mtx)->vy = task->extra.tmd->coords[1].workm.t[1];
     ((VECTOR*)&mtx)->vz = task->extra.tmd->coords[1].workm.t[2];
-    func_800D7A9C(obj, (VECTOR*)&mtx, 0, 3);
+    worldCoordSetModelLighting(obj, &mtx, 0, 3);
     ((VECTOR*)&mtx)->vz = 0x555;
     ((VECTOR*)&mtx)->vy = 0x555;
     ((VECTOR*)&mtx)->vx = 0x555;

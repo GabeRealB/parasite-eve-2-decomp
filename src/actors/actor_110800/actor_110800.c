@@ -287,7 +287,7 @@ static void func_actor_110800_80131F9C(Enemy* enemy, Task* task);
 /// footstep cue:
 /// run the body the actor's step selects, cue the sound the running
 /// animation's frame table asks for, then refresh the model root as step 0 did
-/// by feeding its world translation to `func_800D7A9C` (the light solve)
+/// by feeding its world translation to `worldCoordSetModelLighting` (the light solve)
 /// against the model object itself.
 ///
 /// The two animation ids this actor plays carry a frame table each: id 4
@@ -362,7 +362,7 @@ static void func_actor_110800_80131F9C(Enemy* enemy, Task* task)
     vec.vx = coord->workm.t[0];
     vec.vy = coord->workm.t[1];
     vec.vz = coord->workm.t[2];
-    func_800D7A9C(obj, &vec, 0, 3);
+    worldCoordSetModelLighting(obj, &vec, 0, 3);
 }
 
 /// The actor's task entry: a two-state dispatcher whose handler table is built

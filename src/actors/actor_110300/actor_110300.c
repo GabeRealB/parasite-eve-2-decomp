@@ -313,7 +313,7 @@ void func_actor_110300_80131FF8(Task* arg0)
 
 /// Step 1 of the `func_actor_110300_80131F9C` dispatcher: run the body the
 /// actor's step selects, then refresh the model root as step 0 did by feeding
-/// its world translation to `func_800D7A9C` (the light solve) against the
+/// its world translation to `worldCoordSetModelLighting` (the light solve) against the
 /// model object itself.
 ///
 /// The body reaches the task through the second argument, so the incoming `$a1`
@@ -332,7 +332,7 @@ static void func_actor_110300_80132020(Enemy* enemy, Task* task)
     vec.vx = coord->workm.t[0];
     vec.vy = coord->workm.t[1];
     vec.vz = coord->workm.t[2];
-    func_800D7A9C(obj, &vec, 0, 3);
+    worldCoordSetModelLighting(obj, &vec, 0, 3);
 }
 
 /// Exit callback the step-0 handler installs: kills the helper task, then

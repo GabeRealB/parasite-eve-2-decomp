@@ -14,7 +14,7 @@ static void walkerFrame(Enemy* enemy, Task* task)
     pos.vx = coord->workm.t[0];
     pos.vy = coord->workm.t[1] - 0x320;
     pos.vz = coord->workm.t[2];
-    func_800D7A9C(obj, &pos, 0, 3);
+    worldCoordSetModelLighting(obj, &pos, 0, 3);
     walkerUpdate(task);
     walkerDrawShadow(task);
 }

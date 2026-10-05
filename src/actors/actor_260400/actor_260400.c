@@ -1072,7 +1072,7 @@ static void func_actor_260400_80149FE0(Enemy* enemy, Task* task)
     vec.vy                           = coord->workm.t[1] - 0x320;
     D_actor_260400_80154C74          = task;
     vec.vz                           = coord->workm.t[2];
-    func_800D7A9C(obj, &vec, 0, 3);
+    worldCoordSetModelLighting(obj, &vec, 0, 3);
     animationInitContext(&gScriptedWalkWork->rig.anim, (AnimationSet**)D_actor_260400_80154C30, obj,
                          gScriptedWalkWork->rig.poses, gScriptedWalkWork->rig.slots);
     gScriptedWalkWork->st.animId = 1;
@@ -1150,7 +1150,7 @@ void func_actor_260400_8014A6F8(Task* task)
             vec.vx = parts->workm.t[0];
             vec.vy = parts->workm.t[1] - 0x320;
             vec.vz = parts->workm.t[2];
-            func_800D7A9C(extra, &vec, 0, 3);
+            worldCoordSetModelLighting(extra, &vec, 0, 3);
             break;
     }
 }

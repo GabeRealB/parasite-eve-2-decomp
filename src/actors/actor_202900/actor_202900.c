@@ -288,7 +288,7 @@ static void func_actor_202900_80149E24(Enemy* enemy, Task* task)
     vec.vx        = coord->workm.t[0];
     vec.vy        = coord->workm.t[1] - 0x320;
     vec.vz        = coord->workm.t[2];
-    func_800D7A9C(obj, &vec, 0, 3);
+    worldCoordSetModelLighting(obj, &vec, 0, 3);
     Gp_AnimInitCtx(&D_actor_202900_80156E54->rig.anim, D_actor_202900_80156E3C, obj,
                    D_actor_202900_80156E54->rig.poses);
     D_actor_202900_80156E54->st.animId    = 4;
@@ -333,7 +333,7 @@ void func_actor_202900_8014A088(Task* arg0)
 }
 
 /// Per-frame handler, state 1 of the actor's update: passes the model and a
-/// point 0x320 above its origin to `func_800D7A9C`, runs the step dispatcher,
+/// point 0x320 above its origin to `worldCoordSetModelLighting`, runs the step dispatcher,
 /// and while animation 1 plays enqueues a sound event each time the second
 /// animation slot reaches frame 0x15.
 static void func_actor_202900_8014A0B4(Enemy* enemy, Task* task)
@@ -347,7 +347,7 @@ static void func_actor_202900_8014A0B4(Enemy* enemy, Task* task)
     pos.vx = coord->workm.t[0];
     pos.vy = coord->workm.t[1] - 0x320;
     pos.vz = coord->workm.t[2];
-    func_800D7A9C(obj, &pos, 0, 3);
+    worldCoordSetModelLighting(obj, &pos, 0, 3);
     func_actor_202900_8014A194(task);
     if (D_actor_202900_80156E54->st.animId == 1 && (func_actor_202900_8014A394() & 0xFF)) {
         sndEvtRequestScriptStart(SOUND_ACROPOLIS_CAFETERIA_WOMAN_CUE, 0, 0);

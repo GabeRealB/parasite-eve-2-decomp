@@ -386,7 +386,7 @@ static void func_actor_317000_80161E68(Task* task)
     if (gGameSession->viewReady != 0) {
         task->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
         actorRenderComposeCoord(&task->extra.tmd->coords[1]);
-        func_800D7A9C(ext, (VECTOR*)&task->extra.tmd->coords[1].workm.t, 0, 3);
+        worldCoordSetModelLighting(ext, task->extra.tmd->coords[1].workm.t, 0, 3);
     }
     if (work->turnWeightRising != 0) {
         work->turnWeight += 0x40;

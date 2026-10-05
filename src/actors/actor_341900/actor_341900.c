@@ -534,7 +534,7 @@ void func_actor_341900_80162200(Task* arg0)
     pos.vx = arg0->extra.tmd->coords->workm.t[0];
     pos.vy = arg0->extra.tmd->coords->workm.t[1];
     pos.vz = arg0->extra.tmd->coords->workm.t[2];
-    func_800D7A9C(mdl, &pos, 0, 3);
+    worldCoordSetModelLighting(mdl, &pos, 0, 3);
 }
 
 /// Shared first tick of the actor's three parts, selected by `spawnArg1`:
@@ -638,7 +638,7 @@ void func_actor_341900_801625B4(Task* arg0)
     pos.vx = arg0->extra.tmd->coords[1].workm.t[0];
     pos.vy = arg0->extra.tmd->coords[1].workm.t[1];
     pos.vz = arg0->extra.tmd->coords[1].workm.t[2];
-    func_800D7A9C(mdl, &pos, 0, 3);
+    worldCoordSetModelLighting(mdl, &pos, 0, 3);
 }
 
 /// Per-state body of the actor task. State 0 publishes the part's draw
@@ -691,7 +691,7 @@ void func_actor_341900_80162708(Task* arg0)
     pos.vx = arg0->extra.tmd->coords[1].workm.t[0];
     pos.vy = arg0->extra.tmd->coords[1].workm.t[1];
     pos.vz = arg0->extra.tmd->coords[1].workm.t[2];
-    func_800D7A9C(mdl, &pos, 0, 3);
+    worldCoordSetModelLighting(mdl, &pos, 0, 3);
 }
 
 /// Performs the pending `_Actor341900EventWork::playerAction` on the player

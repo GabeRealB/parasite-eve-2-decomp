@@ -519,7 +519,7 @@ void func_actor_342000_8016201C(Task* arg0)
     pos.vx = arg0->extra.tmd->coords->workm.t[0];
     pos.vy = arg0->extra.tmd->coords->workm.t[1];
     pos.vz = arg0->extra.tmd->coords->workm.t[2];
-    func_800D7A9C(mdl, &pos, 0, 3);
+    worldCoordSetModelLighting(mdl, &pos, 0, 3);
 }
 
 /// Parents the work block's own coordinate to `_Actor342000GluttonModelWork::parentCoord`,
@@ -640,7 +640,7 @@ static void func_actor_342000_80162158(Task* arg0)
 /// `Task::spawnArg1` selects; state 1 resets the work block's coordinate to
 /// identity and scales each column by the parent's `_Actor342000GluttonModelWork::scale`.
 /// Every tick then mirrors the parent model's `TmdObject::flags` and hands the
-/// second part translation to `func_800D7A9C`.
+/// second part translation to `worldCoordSetModelLighting`.
 void func_actor_342000_801625D8(Task* arg0)
 {
     _Actor342000GluttonModelWork* work;
@@ -680,7 +680,7 @@ void func_actor_342000_801625D8(Task* arg0)
     pos.vx                 = arg0->extra.tmd->coords[1].workm.t[0];
     pos.vy                 = arg0->extra.tmd->coords[1].workm.t[1];
     pos.vz                 = arg0->extra.tmd->coords[1].workm.t[2];
-    func_800D7A9C(extra, &pos, 0, 3);
+    worldCoordSetModelLighting(extra, &pos, 0, 3);
 }
 
 /// Display handler of the actor itself. The spawn tick initialises the work
@@ -689,7 +689,7 @@ void func_actor_342000_801625D8(Task* arg0)
 /// then Z), and every column scaled by the matching component of
 /// `_Actor342000GluttonModelWork::scale`. Every later tick ticks the actor's own
 /// animation bank and the two child tasks and hands the model's second part
-/// translation to `func_800D7A9C`.
+/// translation to `worldCoordSetModelLighting`.
 void func_actor_342000_801628C8(Task* arg0)
 {
     _Actor342000GluttonModelWork* work;
@@ -730,7 +730,7 @@ void func_actor_342000_801628C8(Task* arg0)
             pos.vx = arg0->extra.tmd->coords[1].workm.t[0];
             pos.vy = arg0->extra.tmd->coords[1].workm.t[1];
             pos.vz = arg0->extra.tmd->coords[1].workm.t[2];
-            func_800D7A9C(extra, &pos, 0, 3);
+            worldCoordSetModelLighting(extra, &pos, 0, 3);
     }
 }
 

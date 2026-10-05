@@ -1154,7 +1154,7 @@ void func_actor_160900_80132A14(Task* arg0)
         pos.vx = obj->coords->workm.t[0];
         pos.vy = arg0->extra.tmd->coords->workm.t[1];
         pos.vz = arg0->extra.tmd->coords->workm.t[2];
-        func_800D7A9C(obj, &pos, 0, 3);
+        worldCoordSetModelLighting(obj, &pos, 0, 3);
     }
 }
 
@@ -1228,7 +1228,7 @@ void func_actor_160900_80132C08(Task* task)
     pos.vx = obj2->coords->workm.t[0];
     pos.vy = task->extra.tmd->coords->workm.t[1];
     pos.vz = task->extra.tmd->coords->workm.t[2];
-    func_800D7A9C(obj2, &pos, 0, 3);
+    worldCoordSetModelLighting(obj2, &pos, 0, 3);
 }
 
 void func_actor_160900_80132E80(Task* task)

@@ -1741,7 +1741,7 @@ static void func_actor_110600_80134AB4(Enemy* enemy, Task* task)
     world.vx = coord->workm.t[0];
     world.vy = coord->workm.t[1];
     world.vz = coord->workm.t[2];
-    func_800D7A9C(task->extra.tmd, &world, 0, 3);
+    worldCoordSetModelLighting(task->extra.tmd, &world, 0, 3);
     work->walker.coord      = coord;
     work->walker.recs       = savedRecs;
     work->walker.recCount   = ARRAY_SIZE(work->gridContacts);

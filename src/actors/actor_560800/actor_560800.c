@@ -4452,7 +4452,7 @@ void func_actor_560800_801326C4(Task* arg0)
         pos.vx = obj->coords->workm.t[0];
         pos.vy = arg0->extra.tmd->coords->workm.t[1];
         pos.vz = arg0->extra.tmd->coords->workm.t[2];
-        func_800D7A9C(obj, &pos, 0, 3);
+        worldCoordSetModelLighting(obj, &pos, 0, 3);
     }
 }
 
@@ -4525,7 +4525,7 @@ void func_actor_560800_80132A14(Task* arg0)
         pos.vx = obj->coords->workm.t[0];
         pos.vy = arg0->extra.tmd->coords->workm.t[1];
         pos.vz = arg0->extra.tmd->coords->workm.t[2];
-        func_800D7A9C(obj, &pos, 0, 3);
+        worldCoordSetModelLighting(obj, &pos, 0, 3);
     }
 }
 
@@ -4615,7 +4615,7 @@ void func_actor_560800_80132C60(Task* arg0)
         pos.vx = obj->coords->workm.t[0];
         pos.vy = arg0->extra.tmd->coords->workm.t[1];
         pos.vz = arg0->extra.tmd->coords->workm.t[2];
-        func_800D7A9C(obj, &pos, 0, 3);
+        worldCoordSetModelLighting(obj, &pos, 0, 3);
     }
 }
 
@@ -4696,7 +4696,7 @@ void func_actor_560800_80132F64(Task* arg0)
         pos.vx = obj->coords->workm.t[0];
         pos.vy = arg0->extra.tmd->coords->workm.t[1];
         pos.vz = arg0->extra.tmd->coords->workm.t[2];
-        func_800D7A9C(obj, &pos, 0, 3);
+        worldCoordSetModelLighting(obj, &pos, 0, 3);
     }
 }
 
@@ -4713,7 +4713,7 @@ void func_actor_560800_80133204(void)
         pos.vx = obj->coords->workm.t[0];
         pos.vy = task->extra.tmd->coords->workm.t[1];
         pos.vz = task->extra.tmd->coords->workm.t[2];
-        func_800D7A9C(obj, &pos, 0, 3);
+        worldCoordSetModelLighting(obj, &pos, 0, 3);
     }
     task = work->kyle;
     if (task != NULL) {
@@ -4722,7 +4722,7 @@ void func_actor_560800_80133204(void)
         pos.vx = obj->coords->workm.t[0];
         pos.vy = task->extra.tmd->coords->workm.t[1];
         pos.vz = task->extra.tmd->coords->workm.t[2];
-        func_800D7A9C(obj, &pos, 0, 3);
+        worldCoordSetModelLighting(obj, &pos, 0, 3);
     }
     task = work->kyleGunHand;
     if (task != NULL) {
@@ -4731,7 +4731,7 @@ void func_actor_560800_80133204(void)
         pos.vx = obj->coords->workm.t[0];
         pos.vy = task->extra.tmd->coords->workm.t[1];
         pos.vz = task->extra.tmd->coords->workm.t[2];
-        func_800D7A9C(obj, &pos, 0, 3);
+        worldCoordSetModelLighting(obj, &pos, 0, 3);
     }
     task = work->kyleFreeHand;
     if (task != NULL) {
@@ -4740,7 +4740,7 @@ void func_actor_560800_80133204(void)
         pos.vx = obj->coords->workm.t[0];
         pos.vy = task->extra.tmd->coords->workm.t[1];
         pos.vz = task->extra.tmd->coords->workm.t[2];
-        func_800D7A9C(obj, &pos, 0, 3);
+        worldCoordSetModelLighting(obj, &pos, 0, 3);
     }
     task = work->kyleGun;
     if (task != NULL) {
@@ -4749,7 +4749,7 @@ void func_actor_560800_80133204(void)
         pos.vx = obj->coords->workm.t[0];
         pos.vy = task->extra.tmd->coords->workm.t[1];
         pos.vz = task->extra.tmd->coords->workm.t[2];
-        func_800D7A9C(obj, &pos, 0, 3);
+        worldCoordSetModelLighting(obj, &pos, 0, 3);
     }
     task = work->no9;
     if (task != NULL) {
@@ -4758,7 +4758,7 @@ void func_actor_560800_80133204(void)
         pos.vx = obj->coords->workm.t[0];
         pos.vy = task->extra.tmd->coords->workm.t[1];
         pos.vz = task->extra.tmd->coords->workm.t[2];
-        func_800D7A9C(obj, &pos, 0, 3);
+        worldCoordSetModelLighting(obj, &pos, 0, 3);
     }
     task = work->no9Gunblade;
     if (task != NULL) {
@@ -4767,7 +4767,7 @@ void func_actor_560800_80133204(void)
         pos.vx = obj->coords->workm.t[0];
         pos.vy = task->extra.tmd->coords->workm.t[1];
         pos.vz = task->extra.tmd->coords->workm.t[2];
-        func_800D7A9C(obj, &pos, 0, 3);
+        worldCoordSetModelLighting(obj, &pos, 0, 3);
     }
     if (work->chainGroup != NULL) {
         _Actor560800CutsceneWork* w = D_actor_560800_8017578C->work;
@@ -6591,7 +6591,7 @@ void func_actor_560800_80137BEC(Task* task)
     vec.vx = extra->coords->workm.t[0];
     vec.vy = task->extra.tmd->coords->workm.t[1];
     vec.vz = task->extra.tmd->coords->workm.t[2];
-    func_800D7A9C(extra, &vec, 0, 3);
+    worldCoordSetModelLighting(extra, &vec, 0, 3);
 }
 
 /// Placement handler of the chain group, which loads a pose table into all
@@ -6760,7 +6760,7 @@ void func_actor_560800_801384EC(Task* task, s32 msgId, ActorCommand* msg, s32 ar
                     vec.vx = extra->coords->workm.t[0];
                     vec.vy = part->extra.tmd->coords->workm.t[1];
                     vec.vz = part->extra.tmd->coords->workm.t[2];
-                    func_800D7A9C(extra, &vec, 0, 3);
+                    worldCoordSetModelLighting(extra, &vec, 0, 3);
                 }
                 i += 1;
             } while ((u32)(i & 0xFFFF) < ARRAY_SIZE(work->chains));
@@ -6926,7 +6926,7 @@ void func_actor_560800_80138A4C(Task* task, s32 msgId, ActorCommand* msg, s32 ar
             vec.vx = extra->coords->workm.t[0];
             vec.vy = task->extra.tmd->coords->workm.t[1];
             vec.vz = task->extra.tmd->coords->workm.t[2];
-            func_800D7A9C(extra, &vec, 0, 3);
+            worldCoordSetModelLighting(extra, &vec, 0, 3);
             break;
         case 1:
             task->state = 1;

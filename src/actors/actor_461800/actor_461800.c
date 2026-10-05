@@ -1079,7 +1079,7 @@ static void func_actor_461800_80132390(Enemy* enemy, Task* task)
     vec.vy                           = coord->workm.t[1] - 0x320;
     D_actor_461800_80143898          = task;
     vec.vz                           = coord->workm.t[2];
-    func_800D7A9C(obj, &vec, 0, 3);
+    worldCoordSetModelLighting(obj, &vec, 0, 3);
     animationInitContext(&gScriptedWalkWork->rig.anim, D_actor_461800_80139FB0, obj,
                          gScriptedWalkWork->rig.poses, gScriptedWalkWork->rig.slots);
     gScriptedWalkWork->st.animId = 1;
@@ -1146,7 +1146,7 @@ static void func_actor_461800_80132A90(Task* task)
 /// State handler of the actor's model task: the spawn tick hangs the task's own
 /// coordinate frame off the actor's part `spawnArg1` and steps to state 1, and
 /// every later tick hands that part's world translation, dropped by 0x320 in y,
-/// to `func_800D7A9C` for the part colour matrix.
+/// to `worldCoordSetModelLighting` for the part colour matrix.
 void func_actor_461800_80132B74(Task* task)
 {
     TmdObject* extra = task->extra.tmd;
@@ -1166,7 +1166,7 @@ void func_actor_461800_80132B74(Task* task)
             vec.vx = parts->workm.t[0];
             vec.vy = parts->workm.t[1] - 0x320;
             vec.vz = parts->workm.t[2];
-            func_800D7A9C(extra, &vec, 0, 3);
+            worldCoordSetModelLighting(extra, &vec, 0, 3);
             break;
     }
 }

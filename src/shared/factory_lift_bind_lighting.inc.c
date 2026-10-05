@@ -15,5 +15,5 @@ void factoryLiftBindLighting(Task* task)
     extra->colorMtx     = &work->color;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(coord);
-    func_800D7A9C(extra, (VECTOR*)coord->workm.t, 0, 3);
+    worldCoordSetModelLighting(extra, coord->workm.t, 0, 3);
 }

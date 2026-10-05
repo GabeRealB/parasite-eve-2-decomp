@@ -37,7 +37,7 @@ void pairWalkSpawn(Enemy* enemy, Task* task)
     vec.vx         = coord->workm.t[0];
     vec.vy         = coord->workm.t[1] - 0x320;
     vec.vz         = coord->workm.t[2];
-    func_800D7A9C(obj, &vec, 0, 3);
+    worldCoordSetModelLighting(obj, &vec, 0, 3);
     animationInitContext(&work->rig.anim, (AnimationSet**)gPairWalkAnimParams, obj,
                          work->rig.poses, work->rig.slots);
     work->st.animId = 1;

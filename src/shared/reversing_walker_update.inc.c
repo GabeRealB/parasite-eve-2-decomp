@@ -40,7 +40,7 @@ void reverseWalkUpdate(Task* arg0)
         }
         arg0->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
         actorRenderComposeCoord(&arg0->extra.tmd->coords[1]);
-        func_800D7A9C(ext, (VECTOR*)arg0->extra.tmd->coords[1].workm.t, 0, 3);
+        worldCoordSetModelLighting(ext, arg0->extra.tmd->coords[1].workm.t, 0, 3);
     }
     if (work->freeCountdown >= 0) {
         if (work->freeCountdown == 0) {

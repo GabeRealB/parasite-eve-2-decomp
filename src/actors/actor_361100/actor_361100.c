@@ -1723,7 +1723,7 @@ s32 func_actor_361100_801630D4(Task* task, s32 arg1, ActorCommand* msg, s32 arg3
 /// fractions -- runs the `moveFrames` countdown that zeroes `velocity` while it
 /// is at 1, ticks the animation slots once `model.ticking` has latched, and
 /// while the part is visible draws its ground shadow, rebuilds the second
-/// part's world matrix from it and re-ranks it through `func_800D7A9C`.
+/// part's world matrix from it and relights the model through `worldCoordSetModelLighting`.
 /// `freeCountdown` counts the model's buffers down to the free. Every use of
 /// the second part's coordinate (`TmdObject::coords[1]`) is re-read from
 /// `task`, not cached.
@@ -1765,7 +1765,7 @@ static void func_actor_361100_801631C4(Task* task)
         }
         task->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
         actorRenderComposeCoord(&task->extra.tmd->coords[1]);
-        func_800D7A9C(ext, (VECTOR*)task->extra.tmd->coords[1].workm.t, 0, 3);
+        worldCoordSetModelLighting(ext, task->extra.tmd->coords[1].workm.t, 0, 3);
     }
     if (work->freeCountdown >= 0) {
         if (work->freeCountdown == 0) {

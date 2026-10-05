@@ -1595,7 +1595,7 @@ static void func_actor_260500_80149FB0(Enemy* enemy, Task* task)
     vec.vy                           = coord->workm.t[1] - 0x320;
     D_actor_260500_80159E50          = task;
     vec.vz                           = coord->workm.t[2];
-    func_800D7A9C(obj, &vec, 0, 3);
+    worldCoordSetModelLighting(obj, &vec, 0, 3);
     animationInitContext(&gFootstepWalkWork->rig.anim, (AnimationSet**)D_actor_260500_80159DBC, obj,
                          gFootstepWalkWork->rig.poses, gFootstepWalkWork->rig.slots);
     gFootstepWalkWork->st.animId  = 4;

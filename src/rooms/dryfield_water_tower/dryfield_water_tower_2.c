@@ -1967,7 +1967,7 @@ static inline void _dryfieldWaterTowerLightCap(Task* task)
     position.vx = model->coords->workm.t[0];
     position.vy = task->extra.tmd->coords->workm.t[1];
     position.vz = task->extra.tmd->coords->workm.t[2];
-    func_800D7A9C(model, &position, 0, 3);
+    worldCoordSetModelLighting(model, &position, 0, 3);
 }
 
 /// Draws the cap's ground shadow, a square in the XZ plane of the cap's frame.
@@ -2004,7 +2004,7 @@ static inline void _dryfieldWaterTowerDrawCapShadow(Task* task, GfxCoord* coord)
 /// `func_dryfield_water_tower_8017DFAC` until it reports the cap has arrived,
 /// which drops back to state 1. Every state that falls through, and the whole
 /// body when the machine is skipped, stages the cap's `workm` translation and
-/// hands it to `func_800D7A9C`.
+/// hands it to `worldCoordSetModelLighting`.
 ///
 /// `_DryfieldWaterTowerPropSceneWork::shadowEnabled` gates the shadow: the script opcode
 /// `func_dryfield_water_tower_8017FA5C` raises it, and it is read here as the
@@ -2245,7 +2245,7 @@ static s32 func_dryfield_water_tower_8017E5B0(Task* arg0)
 /// `func_dryfield_water_tower_8017E428` and `func_dryfield_water_tower_8017E5B0`,
 /// each dropping back to state 1 once its body reports arrival. Every frame
 /// that gets past the gates then hands the cap's `workm` translation to
-/// `func_800D7A9C`.
+/// `worldCoordSetModelLighting`.
 ///
 /// The gate byte is read as a member of `Gp_StateC08`, not as a bare scalar:
 /// `true_dependence` lets the scheduler lift a scalar load above the preceding
@@ -2309,7 +2309,7 @@ void func_dryfield_water_tower_8017E764(Task* arg0)
     vec.vx = model->coords->workm.t[0];
     vec.vy = arg0->extra.tmd->coords->workm.t[1];
     vec.vz = arg0->extra.tmd->coords->workm.t[2];
-    func_800D7A9C(model, &vec, 0, 3);
+    worldCoordSetModelLighting(model, &vec, 0, 3);
 }
 
 /// The cap script's command dispatcher, run once per frame on the task that

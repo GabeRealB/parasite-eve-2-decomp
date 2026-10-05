@@ -563,7 +563,7 @@ s32 func_actor_210600_8014B770(Task* task, s32 msgId, ActorCommand* msg, s32 arg
 /// animation context is started from `D_actor_210600_8015A4B4` and restarted
 /// on animation 1, the message table is installed, and the model root is parented to
 /// `gGfxViewCoord` and rebuilt once before its world position is handed to
-/// `func_800D7A9C`. Advances the task to the next state.
+/// `worldCoordSetModelLighting`. Advances the task to the next state.
 static void func_actor_210600_8014B8C8(Enemy* enemy, Task* task)
 {
     VECTOR            vec;
@@ -607,7 +607,7 @@ static void func_actor_210600_8014B8C8(Enemy* enemy, Task* task)
     vec.vx = coord->workm.t[0];
     vec.vy = coord->workm.t[1];
     vec.vz = coord->workm.t[2];
-    func_800D7A9C(task->extra.tmd, &vec, 0, 3);
+    worldCoordSetModelLighting(task->extra.tmd, &vec, 0, 3);
     task->state++;
 }
 

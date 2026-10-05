@@ -1592,7 +1592,7 @@ static void Actor01200_Fn036B0(Enemy* arg0, Task* arg1)
         sndEvtRequestScriptStart(snd, pan, (s8)worldCoordGetOriginAudioDepth(arg1->extra.tmd->coords));
     }
     if (work->field_3D8 != 0) {
-        func_800D7A9C(arg1->extra.tmd, (VECTOR*)arg1->extra.tmd->coords->workm.t, 0, 3);
+        worldCoordSetModelLighting(arg1->extra.tmd, arg1->extra.tmd->coords->workm.t, 0, 3);
     }
     if (gGameSession->viewReady != 0) {
         arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;

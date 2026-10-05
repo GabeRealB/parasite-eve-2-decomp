@@ -2620,7 +2620,7 @@ static void func_actor_443500_801321F0(Task* task)
         }
         if (gGameSession->viewReady != 0) {
             actorRenderComposeCoord(&task->extra.tmd->coords[1]);
-            func_800D7A9C(extra, (VECTOR*)task->extra.tmd->coords[1].workm.t, 0, 3);
+            worldCoordSetModelLighting(extra, task->extra.tmd->coords[1].workm.t, 0, 3);
         }
     }
     if (work->freeCountdown >= 0) {

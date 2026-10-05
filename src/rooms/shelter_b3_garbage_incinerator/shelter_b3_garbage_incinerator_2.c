@@ -792,7 +792,7 @@ static s16 func_shelter_b3_garbage_incinerator_8017DF24(Task* arg0)
 /// rest pose's height, and once the view changes sets the room to 3 (or 6).
 /// State 5 runs `func_shelter_b3_garbage_incinerator_8017DF24` until it
 /// finishes, then applies the room's area records and ends the task. Every
-/// frame the model is re-placed when the session room changes. Nothing runs
+/// frame the model is relit when the session room changes. Nothing runs
 /// while any of the four flags tested on entry is set.
 void func_shelter_b3_garbage_incinerator_8017E158(Task* task)
 {
@@ -945,7 +945,7 @@ void func_shelter_b3_garbage_incinerator_8017E158(Task* task)
         pos.vx = tail->coords->workm.t[0];
         pos.vy = task->extra.tmd->coords->workm.t[1];
         pos.vz = task->extra.tmd->coords->workm.t[2];
-        func_800D7A9C(tail, &pos, 0, 3);
+        worldCoordSetModelLighting(tail, &pos, 0, 3);
         work->litRoom = gGameSession->location.loc.room;
     }
 }

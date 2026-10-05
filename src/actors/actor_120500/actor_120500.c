@@ -585,7 +585,7 @@ static void func_actor_120500_801322A0(Task* task)
 /// black and `ACTOR_120500_SCREEN_REQUEST_PLAY_MOVIE` hides the player's model,
 /// spawns the streamed sequence, raises `gDisplayState.control.flags.flipMode`
 /// and spawns the view tasks. The model's part-1 translation goes to
-/// `func_800D7A9C` last.
+/// `worldCoordSetModelLighting` last.
 ///
 /// The screen request dispatch is written with gotos: the labels reproduce
 /// retail's block layout, where the three clear sites sit at the end of their
@@ -699,7 +699,7 @@ screen_request_done:
     pos.vx = arg0->extra.tmd->coords[1].workm.t[0];
     pos.vy = arg0->extra.tmd->coords[1].workm.t[1];
     pos.vz = arg0->extra.tmd->coords[1].workm.t[2];
-    func_800D7A9C(mdl, &pos, 0, 3);
+    worldCoordSetModelLighting(mdl, &pos, 0, 3);
 }
 }
 

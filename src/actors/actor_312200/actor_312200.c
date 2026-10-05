@@ -375,8 +375,8 @@ static void func_actor_312200_80162FB4(Task* task)
 /// as `coord`, and the collision sphere built in place at `body` gets the
 /// block's `contacts` table and the model's fourth part coordinate.
 /// The model coordinate is parented to `gGfxViewCoord` and rebuilt once before
-/// its translation is propagated over the three part coordinates
-/// (`func_800D7A9C`, start 0, count 3).
+/// `worldCoordSetModelLighting` rebuilds the model's three light contributions
+/// at that coordinate's world position.
 static void func_actor_312200_80163178(Enemy* enemy, Task* task)
 {
     VECTOR              vec;
@@ -436,7 +436,7 @@ static void func_actor_312200_80163178(Enemy* enemy, Task* task)
     vec.vx = coord->workm.t[0];
     vec.vy = coord->workm.t[1];
     vec.vz = coord->workm.t[2];
-    func_800D7A9C(task->extra.tmd, &vec, 0, 3);
+    worldCoordSetModelLighting(task->extra.tmd, &vec, 0, 3);
     work->state     = ACTOR_312200_STATE_HIDDEN;
     work->prevState = -1;
     task->state++;
@@ -480,7 +480,7 @@ static void func_actor_312200_80163370(Enemy* enemy, Task* task)
         }
         if (work->relightPending != 0) {
             obj = task->extra.tmd;
-            func_800D7A9C(obj, (VECTOR*)obj->coords->workm.t, 0, 3);
+            worldCoordSetModelLighting(obj, obj->coords->workm.t, 0, 3);
         }
         if (gGameSession->viewReady != 0) {
             task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;

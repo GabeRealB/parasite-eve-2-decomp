@@ -1317,7 +1317,7 @@ static void        func_actor_120300_80132C60(Task* arg0);
 static s32         func_actor_120300_801334A4(Task* arg0);
 static void        func_actor_120300_801335D8(Task* task);
 
-/// Fill part-1 translation and hand it to `func_800D7A9C`. `vec` is a
+/// Fill part-1 translation and hand it to `worldCoordSetModelLighting`. `vec` is a
 /// parameter rather than a local so its address stays out of the CSE class of
 /// the `ScaleMatrix` argument that follows.
 static inline void func_actor_120300_FillLight(Task* arg0, TmdObject* tmd, VECTOR* vec)
@@ -1325,7 +1325,7 @@ static inline void func_actor_120300_FillLight(Task* arg0, TmdObject* tmd, VECTO
     vec->vx = tmd->coords[1].workm.t[0];
     vec->vy = arg0->extra.tmd->coords[1].workm.t[1];
     vec->vz = arg0->extra.tmd->coords[1].workm.t[2];
-    func_800D7A9C(tmd, vec, 0, 3);
+    worldCoordSetModelLighting(tmd, vec, 0, 3);
 }
 
 /// Ticks slots 1..19 of a task's animation context and, if every one of them
@@ -1406,7 +1406,7 @@ static inline s16 _actor120300InitChild(Task* arg0, s32 part)
 /// stepping to state 1. The texture page / CLUT row then come from the
 /// placement record at the nested area table's `field_0` list with resource-entry ID 0x6A (or the end record if that ID is absent). Every tick after that reads
 /// the parent work block's `scale` and primes the colour matrix with the
-/// root coordinate's own translation through `func_800D7A9C`, then replaces
+/// root coordinate's own translation through `worldCoordSetModelLighting`, then replaces
 /// that translation with the parent scale broadcast over all three axes and
 /// folds it in with `ScaleMatrix`.
 void func_actor_120300_80132004(Task* task)
@@ -1440,7 +1440,7 @@ void func_actor_120300_80132004(Task* task)
     vec.vx   = tmd2->coords->workm.t[0];
     vec.vy   = task->extra.tmd->coords->workm.t[1];
     vec.vz   = task->extra.tmd->coords->workm.t[2];
-    func_800D7A9C(tmd2, &vec, 0, 3);
+    worldCoordSetModelLighting(tmd2, &vec, 0, 3);
     scale  = scaleRaw;
     vec.vz = scale;
     vec.vy = scale;
@@ -1456,7 +1456,7 @@ void func_actor_120300_80132004(Task* task)
 /// kills the task rather than stepping to state 1.
 /// Every later tick reads the parent work block's `scale` and primes the
 /// colour matrix with the root coordinate's own translation through
-/// `func_800D7A9C`, then replaces that translation with the parent scale
+/// `worldCoordSetModelLighting`, then replaces that translation with the parent scale
 /// broadcast over all three axes and folds it in with `ScaleMatrix`.
 void func_actor_120300_801321C8(Task* arg0)
 {
@@ -1477,7 +1477,7 @@ void func_actor_120300_801321C8(Task* arg0)
     vec.vx   = tmd2->coords->workm.t[0];
     vec.vy   = arg0->extra.tmd->coords->workm.t[1];
     vec.vz   = arg0->extra.tmd->coords->workm.t[2];
-    func_800D7A9C(tmd2, &vec, 0, 3);
+    worldCoordSetModelLighting(tmd2, &vec, 0, 3);
     scale  = scaleRaw;
     vec.vz = scale;
     vec.vy = scale;

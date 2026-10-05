@@ -94,7 +94,7 @@ void Gp_EffAttachTask37(Task* arg0)
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             actorRenderComposeCoord(coord);
             arg0->state = 1;
-            func_800D7A9C(extra, (VECTOR*)coord->workm.t, 0, 3);
+            worldCoordSetModelLighting(extra, coord->workm.t, 0, 3);
             return;
         case 1:
             mtx = &coord->coord;
@@ -138,7 +138,7 @@ void Gp_EffAttachTask37(Task* arg0)
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 actorRenderComposeCoord(coord);
                 if (!(mem->age & 3)) {
-                    func_800D7A9C(extra, (VECTOR*)coord->workm.t, 0, 3);
+                    worldCoordSetModelLighting(extra, coord->workm.t, 0, 3);
                 }
                 Gp_SpawnEff(EFFECT_HIT_PUFF, coord, mem->angle + 0x12200, 0);
                 gte_lddp(0x800);
@@ -165,7 +165,7 @@ void Gp_EffAttachTask37(Task* arg0)
             }
             actorRenderComposeCoord(coord);
             if (!(mem->age & 3)) {
-                func_800D7A9C(extra, (VECTOR*)coord->workm.t, 0, 3);
+                worldCoordSetModelLighting(extra, coord->workm.t, 0, 3);
             }
             mem->move.vy   += 0x10000 / mem->scale;
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
@@ -189,7 +189,7 @@ void Gp_EffAttachTask37(Task* arg0)
         case 2:
             actorRenderComposeCoord(coord);
             if (!(mem->age & 3)) {
-                func_800D7A9C(extra, (VECTOR*)coord->workm.t, 0, 3);
+                worldCoordSetModelLighting(extra, coord->workm.t, 0, 3);
             }
             if (mem->age >= 0x10) {
                 goto release;

@@ -397,7 +397,7 @@ static void func_actor_213100_80149E3C(Task* task);
 /// started, and while the model is shown samples the child part's
 /// translation through `func_800EA1A8` and draws the ground shadow where it
 /// hits. Once the view is ready, rebuilds that part's world matrix, hands its
-/// translation to `func_800D7A9C`, and shows or hides this model and the
+/// translation to `worldCoordSetModelLighting`, and shows or hides this model and the
 /// child's together from the per-view table. `freeCountdown` then frees the
 /// model's buffers as it reaches zero.
 static void func_actor_213100_80149E3C(Task* task)
@@ -423,7 +423,7 @@ static void func_actor_213100_80149E3C(Task* task)
     if (gGameSession->viewReady != 0) {
         task->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
         actorRenderComposeCoord(&task->extra.tmd->coords[1]);
-        func_800D7A9C(extra, (VECTOR*)task->extra.tmd->coords[1].workm.t, 0, 3);
+        worldCoordSetModelLighting(extra, task->extra.tmd->coords[1].workm.t, 0, 3);
         child = work->heldModelTask->extra.tmd;
         if (D_actor_213100_801521E0[gGameSession->location.loc.view] != 0) {
             extra->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;

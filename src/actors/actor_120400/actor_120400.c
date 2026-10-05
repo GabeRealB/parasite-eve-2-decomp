@@ -973,7 +973,7 @@ static void func_actor_120400_80131E5C(Task* arg0)
 /// (bit 0x80 of `TmdObject::flags`), the second coordinate's work matrix
 /// feeds `func_800EA1A8` and a non-zero result draws the ground-effect quad;
 /// when `gGameSession->viewReady` is set the same coordinate is flagged stale,
-/// updated and re-ranked through `func_800D7A9C`. The body ends decrementing
+/// updated and re-ranked through `worldCoordSetModelLighting`. The body ends decrementing
 /// the `freeCountdown` teardown timer, freeing the model's buffers on the frame it
 /// reaches zero.
 static void func_actor_120400_80132050(Task* arg0)
@@ -1010,7 +1010,7 @@ static void func_actor_120400_80132050(Task* arg0)
     if (gGameSession->viewReady != 0) {
         arg0->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
         actorRenderComposeCoord(&arg0->extra.tmd->coords[1]);
-        func_800D7A9C(ext, (VECTOR*)arg0->extra.tmd->coords[1].workm.t, 0, 3);
+        worldCoordSetModelLighting(ext, arg0->extra.tmd->coords[1].workm.t, 0, 3);
     }
     if (work->freeCountdown >= 0) {
         if (work->freeCountdown == 0) {

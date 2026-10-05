@@ -1185,7 +1185,7 @@ static void func_actor_210700_80149F90(Task* task)
 /// Tick state: while an animation is running ticks slots 1..0x13 and draws
 /// the ground shadow under the model's second part. While the game session's
 /// view is ready it invalidates and rebuilds that part's coordinate and hands
-/// it to `func_800D7A9C`. It then runs the blink and counts `freeCountdown`
+/// it to `worldCoordSetModelLighting`. It then runs the blink and counts `freeCountdown`
 /// down, freeing the model buffers on the tick that finds it at 0.
 static void func_actor_210700_8014A0AC(Task* task)
 {
@@ -1207,7 +1207,7 @@ static void func_actor_210700_8014A0AC(Task* task)
     if (gGameSession->viewReady != 0) {
         task->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
         actorRenderComposeCoord(&task->extra.tmd->coords[1]);
-        func_800D7A9C(ext, (VECTOR*)task->extra.tmd->coords[1].workm.t, 0, 3);
+        worldCoordSetModelLighting(ext, task->extra.tmd->coords[1].workm.t, 0, 3);
     }
     func_actor_210700_80149E30(task);
     if (work->freeCountdown >= 0) {

@@ -1532,8 +1532,8 @@ static void func_neo_ark_shrine_8017F738(Task* task)
 #include "../../shared/action_prompt_reset.inc.c"
 
 /// Tail every falling-prop handler runs: clears the prop's root coordinate
-/// flag, rebuilds its world matrix, and republishes the translation in
-/// `func_800D7A9C`'s format, lowered by 0x320 so the prop draws on the floor.
+/// flag, rebuilds its world matrix, and rebuilds its lighting through
+/// `worldCoordSetModelLighting` at a sample position 0x320 below its world origin.
 static void func_neo_ark_shrine_8017F86C(Task* task)
 {
     TmdObject* obj;
@@ -1547,7 +1547,7 @@ static void func_neo_ark_shrine_8017F86C(Task* task)
     vec.vx = coord->workm.t[0];
     vec.vy = coord->workm.t[1] - 0x320;
     vec.vz = coord->workm.t[2];
-    func_800D7A9C(obj, &vec, 0, 3);
+    worldCoordSetModelLighting(obj, &vec, 0, 3);
 }
 
 /// On the task's first tick stores three ids (0x601DF, 0x601FB, 0x60217) into

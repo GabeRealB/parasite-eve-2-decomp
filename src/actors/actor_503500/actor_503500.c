@@ -912,7 +912,7 @@ static void func_actor_503500_8013223C(Task* arg0)
         pos.vx = coord->workm.t[0];
         pos.vy = coord->workm.t[1];
         pos.vz = coord->workm.t[2];
-        func_800D7A9C(ext, (VECTOR*)coord->workm.t, 0, 3);
+        worldCoordSetModelLighting(ext, coord->workm.t, 0, 3);
     }
     if (work->freeCountdown >= 0) {
         if (work->freeCountdown == 0) {

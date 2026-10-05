@@ -2438,7 +2438,7 @@ static void func_shelter_b3_dumping_hole_8017E7DC(Task* arg0)
     v.vx = e2->coords->workm.t[0];
     v.vy = arg0->extra.tmd->coords->workm.t[1];
     v.vz = arg0->extra.tmd->coords->workm.t[2];
-    func_800D7A9C(e2, &v, 0, 3);
+    worldCoordSetModelLighting(e2, &v, 0, 3);
 }
 
 /// Debris thrown from the hole. Once the room signals, the piece is projected
@@ -3540,7 +3540,7 @@ void func_shelter_b3_dumping_hole_80181560(Task* task)
     desc[0] = tail->coords->workm.t[0];
     desc[1] = task->extra.tmd->coords->workm.t[1];
     desc[2] = task->extra.tmd->coords->workm.t[2];
-    func_800D7A9C(tail, (VECTOR*)desc, 0, 3);
+    worldCoordSetModelLighting(tail, desc, 0, 3);
 }
 
 #include "../../shared/actor_messages_draw_mode.inc.c"
