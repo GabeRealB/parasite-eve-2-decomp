@@ -20,7 +20,7 @@ void effectSpriteDebrisTask(Task* task)
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
-        effectSpriteDrawChip(coord, work->index, work->scale, work->angle);
+        _effectSpriteDrawChip(coord, work->index, work->scale, work->angle);
         if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             effectKillTask(work, task);
         }
@@ -97,10 +97,10 @@ void effectSpriteDebrisTask(Task* task)
             }
             return;
         case 1:
-            effectSpriteDrawChip(coord, work->index, work->scale, work->angle);
+            _effectSpriteDrawChip(coord, work->index, work->scale, work->angle);
             break;
         case 2:
-            effectSpriteDrawBillboard(coord, (u16)work->index, work->scale);
+            _effectSpriteDrawBillboard(coord, (u16)work->index, work->scale);
             break;
         default:
             return;

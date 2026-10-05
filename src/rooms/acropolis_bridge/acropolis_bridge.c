@@ -179,7 +179,7 @@ STATIC_ASSERT_SIZEOF(_AcropolisBridgeQuadScratch, 0x2C);
 
 /// Scratch-stack workspace for one upright debris billboard.
 ///
-/// `effectSpriteDrawBillboard` reserves one block and copies the piece's
+/// `_effectSpriteDrawBillboard` reserves one block and copies the piece's
 /// world translation into `worldPoint`, narrowed to 16 bits. One perspective
 /// transform through `GsWSMATRIX` supplies the screen centre, the GTE flag
 /// word and SZ3 / 4. A negative flag word drops the piece. Otherwise `depth`
@@ -269,7 +269,7 @@ extern s32   D_acropolis_bridge_801917A0;
 
 static void func_acropolis_bridge_8017D98C(Task* task);
 static void func_acropolis_bridge_8017D9FC(Task* task);
-static void func_acropolis_bridge_8017DB08(Task* task);
+static void _acropolisBridgeUpdateModelVisibility(Task* task);
 static void func_acropolis_bridge_8017DB60(Task* task);
 static void func_acropolis_bridge_8017DBA0(Task* task);
 static void func_acropolis_bridge_8017DC1C(Task* task);
@@ -284,13 +284,13 @@ static void func_acropolis_bridge_8017E1D0(Task* task);
 static void func_acropolis_bridge_8017E3A0(Task* task);
 static void func_acropolis_bridge_8017E4FC(Task* task);
 static void func_acropolis_bridge_8017E81C(void);
-void        func_acropolis_bridge_8017F2D0(s32 flags);
+static void _acropolisBridgeSetArrivalSpritesHidden(s32 arrivalSceneSeen);
 static void func_acropolis_bridge_8017F404(Task* task);
 static void func_acropolis_bridge_8017F460(Task* task);
 static void func_acropolis_bridge_8017F4CC(Task* task);
 static void func_acropolis_bridge_8017F544(Task* task);
 static void func_acropolis_bridge_8017F658(Task* task);
-static void func_acropolis_bridge_801827EC(GfxCoord* coord, s32 arg1, s16 arg2);
+static void _acropolisBridgeDrawWaterRipple(const GfxCoord* coord, s32 halfSize, s16 brightness);
 static void func_acropolis_bridge_8018581C(Task* task);
 static void func_acropolis_bridge_80185988(Enemy* enemy, Task* task);
 static void func_acropolis_bridge_80187850(Enemy* enemy, Task* task);
@@ -369,7 +369,6 @@ extern WorldCoordRoomLights      D_acropolis_bridge_80190A0C[1];
 extern PadScriptCmd              D_acropolis_bridge_80190BBC[6];
 extern PadScriptVibrationSegment D_acropolis_bridge_80190BD4[5];
 void                             func_acropolis_bridge_8017D954(void);
-void                             func_acropolis_bridge_8017F2D0(s32);
 void                             func_acropolis_bridge_8017F358(s32);
 
 static SVECTOR _gAcropolisBridgeModel0AD9CVerts[171];
@@ -478,7 +477,7 @@ EvsCommand D_acropolis_bridge_80188EBC[26] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_acropolis_bridge_8017F2D0 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _acropolisBridgeSetArrivalSpritesHidden }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RESTORE_VIEW, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_FINISH_SCENE_STREAM, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -491,7 +490,7 @@ EvsCommand D_acropolis_bridge_8018912C[11] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RESTORE_VIEW, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_acropolis_bridge_8017F358 }, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_acropolis_bridge_8017F2D0 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _acropolisBridgeSetArrivalSpritesHidden }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -2713,12 +2712,19 @@ static __inline__ void walkerStep(BossStrangerWalker* walker, BossStrangerTickSc
 static __inline__ void bridge_set_obj_pos(WorldCollisionBody* obj, SVECTOR3* pos);
 static __inline__ void _acropolisBridgeInitWalkerScale(BossStrangerWalker* walker);
 static __inline__ void _acropolisBridgeLightModel(Task* task, GfxCoord* coord);
-static __inline__ void bridge_reset_scale_mtx_entry(_AcropolisBridgeEnemyWork* work);
-static __inline__ void bridge_reset_scale_mtx_shrink(_AcropolisBridgeEnemyWork* work);
+static __inline__ void _acropolisBridgeResetEnemyScaleOnEntry(_AcropolisBridgeEnemyWork* work);
+static __inline__ void _acropolisBridgeResetEnemyScaleDuringShrink(_AcropolisBridgeEnemyWork* work);
 static __inline__ void bridge_scale_up(_AcropolisBridgeEnemyWork* work);
 static __inline__ s16  _acropolisBridgeWasHit(Task* task);
-static __inline__ s32  bridge_rec_kind1(WorldCollisionContact* recs);
-static __inline__ void bridge_play_snd(Task* task, Enemy* enemy, s32 base);
+static __inline__ s32  _acropolisBridgeEnemyHasPlayerContact(const WorldCollisionContact* contacts);
+/// Base requests for the bridge enemy's fall animation and player-body contact.
+/// The positional helper adds the placement index in the sound instance byte.
+enum {
+    ACROPOLIS_BRIDGE_ENEMY_CONTACT_SOUND        = SOUND_CHARACTER(0x29, 2),
+    ACROPOLIS_BRIDGE_ENEMY_FALL_ANIMATION_SOUND = SOUND_CHARACTER(0x29, 3)
+};
+
+static __inline__ void _acropolisBridgePlayEnemySound(Task* task, Enemy* enemy, s32 baseSoundId);
 static void            func_acropolis_bridge_801876A8(Task* task, u32 attackId);
 static void            func_acropolis_bridge_80187C10(Task* task, s16 arg1);
 
@@ -2787,7 +2793,7 @@ static const TaskFuncTable3 D_acropolis_bridge_8017D5C4 = {
 
 /// State handlers of the bridge model task.
 static const TaskFuncTable3 D_acropolis_bridge_8017D5D0 = {
-    { bridgeModelSetup, func_acropolis_bridge_8017DB08, taskKill }
+    { bridgeModelSetup, _acropolisBridgeUpdateModelVisibility, taskKill }
 };
 
 /// Three-state dispatcher of the bridge model task: setup, per-frame update,
@@ -2838,7 +2844,7 @@ static void func_acropolis_bridge_8017D98C(Task* arg0)
     gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     D_acropolis_bridge_80191794 = taskSpawnFromTable(D_acropolis_bridge_80188E7C, 0, 0, 0);
     arg0->state                 = (s32)(arg0->state + 1);
-    func_acropolis_bridge_8017F2D0(gameFlagGetNibble(GAME_FLAG_BRIDGE_ARRIVAL_SCENE_SEEN) & 0xFF);
+    _acropolisBridgeSetArrivalSpritesHidden(gameFlagGetNibble(GAME_FLAG_BRIDGE_ARRIVAL_SCENE_SEEN) & 0xFF);
 }
 
 static void func_acropolis_bridge_8017D9FC(Task* task)
@@ -2858,20 +2864,23 @@ void func_acropolis_bridge_8017DA0C(Task* task)
 
 #include "../../shared/bridge_model_setup.inc.c"
 
-/// Per-frame state of the bridge model task: raises bit 0x80 of the object's
-/// flags on camera views 8..10 and clears them elsewhere, then clears the root
-/// coordinate's `composeStamp` so its world matrix is rebuilt this frame.
-static void func_acropolis_bridge_8017DB08(Task* task)
+/// Hides the bridge model on mapped camera views 8..10 and invalidates its root transform.
+///
+/// Replaces the object's flags with the active-draw skip bit or zero. The model
+/// and root coordinate belong to the live model `task` and remain writable.
+static void _acropolisBridgeUpdateModelVisibility(Task* task)
 {
-    TmdObject* extra;
+    enum { ACROPOLIS_BRIDGE_MODEL_HIDDEN_FIRST_VIEW = 8,
+           ACROPOLIS_BRIDGE_MODEL_HIDDEN_VIEW_COUNT = 3 };
+    TmdObject* model;
     GfxCoord*  coord;
 
-    extra = task->extra.tmd;
-    coord = extra->coords;
-    if ((u32)(viewGetMappedIndex() - 8) < 3U) {
-        extra->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    model = task->extra.tmd;
+    coord = model->coords;
+    if ((u32)(viewGetMappedIndex() - ACROPOLIS_BRIDGE_MODEL_HIDDEN_FIRST_VIEW) < (u32)ACROPOLIS_BRIDGE_MODEL_HIDDEN_VIEW_COUNT) {
+        model->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     } else {
-        extra->flags = 0;
+        model->flags = 0;
     }
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
@@ -2964,7 +2973,7 @@ static void func_acropolis_bridge_8017DDEC(Task* arg0)
 
 static void func_acropolis_bridge_8017DE94(Task* arg0)
 {
-    func_acropolis_bridge_8017F2D0(gameFlagGetNibble(GAME_FLAG_BRIDGE_ARRIVAL_SCENE_SEEN) & 0xFF);
+    _acropolisBridgeSetArrivalSpritesHidden(gameFlagGetNibble(GAME_FLAG_BRIDGE_ARRIVAL_SCENE_SEEN) & 0xFF);
     gGameSession->hideHud = 0;
     arg0->state           = (s32)(arg0->state + 1);
 }
@@ -3408,28 +3417,29 @@ void func_acropolis_bridge_8017F280(Task* task)
     states[task->state](task);
 }
 
-/// Repaints the two bridge sprites that game flag nibble 0x10 governs: one
-/// sprite command in view 2 of this room's sprite record and one in view 5.
-/// `spriteLinkViewCachedPackets` reads `field_4` to decide whether to skip OT-linking a
-/// command's prims, so a zero nibble draws both and a non-zero one hides them.
-void func_acropolis_bridge_8017F2D0(s32 flags)
+/// Hides the two arrival-scene sprite batches when the argument's low byte is nonzero.
+///
+/// The active session selects this room's loaded sprite views. View-array
+/// elements 1 and 4 require batch elements 11 and 16 respectively. A zero
+/// low byte shows both batches; only their visibility changes.
+static void _acropolisBridgeSetArrivalSpritesHidden(s32 arrivalSceneSeen)
 {
-    GameSession*     g    = gGameSession;
-    GameLocationKey* sess = &g->location.loc;
-    SpriteView*      rec;
+    GameSession*     session  = gGameSession;
+    GameLocationKey* location = &session->location.loc;
+    SpriteView*      views;
     SpriteBatch*     batches;
 
-    rec = Gp_SprtTables[sess->stage - 1][g->spriteVariant - 1].areaViews[sess->area - 1];
+    views = Gp_SprtTables[location->stage - 1][session->spriteVariant - 1].areaViews[location->area - 1];
 
-    batches = rec[1].batches;
-    if ((flags & 0xFF) == 0) {
+    batches = views[1].batches;
+    if ((arrivalSceneSeen & 0xFF) == 0) {
         batches[11].hidden = 0;
     } else {
         batches[11].hidden = 1;
     }
 
-    batches = rec[4].batches;
-    if ((flags & 0xFF) == 0) {
+    batches = views[4].batches;
+    if ((arrivalSceneSeen & 0xFF) == 0) {
         batches[16].hidden = 0;
     } else {
         batches[16].hidden = 1;
@@ -3842,357 +3852,304 @@ void func_acropolis_bridge_8017F868(Task* task)
     work->scale = view;
 }
 
-/// The wide variant of the bridge's falling dust streak: same one-pixel `DR_MOVE`
-/// smear as `func_acropolis_bridge_80180FF0`, rolled over the whole drop height
-/// instead of the upper band. The first frame rolls the streak out of
-/// `gRandomLcgState`: `move.vy` is the row it starts on (0x60..0xEF),
-/// `scale` the lifetime in frames, `angle` the width and `period` the
-/// number of frames each row of fall takes. The column window widens with the
-/// starting row - it runs from `0x40 - (vy - 0x60) / 3` to `0xD0 + spread`,
-/// where `spread` is half the drop from 0x60 capped at 0x20 - so streaks that
-/// begin higher up stay nearer the middle of the screen.
-/// `gDisplayState.drawBuffer` picks the buffer half, and the OT slot is the row
-/// scaled into the 0x800-deep range so a streak sorts against the room behind
-/// it. The task releases itself once the camera turns away, the lifetime runs
-/// out, or the streak falls off the bottom of the screen.
-void func_acropolis_bridge_80180320(Task* task)
+/// Seeds a strip's lifetime, pixel width and frames per row, then advances its state.
+///
+/// `task` and `work` borrow live writable objects. Consumes three shared LCG draws
+/// and retains u16-to-u32 widening for the lifetime roll; no pointer is retained.
+static __inline__ void _acropolisBridgeInitializeStreakLifetime(Task* task, EffectWork* work)
 {
+    enum { ACROPOLIS_BRIDGE_STREAK_MIN_LIFETIME_FRAMES   = 30,
+           ACROPOLIS_BRIDGE_STREAK_LIFETIME_RANGE_FRAMES = 90,
+           ACROPOLIS_BRIDGE_STREAK_MIN_WIDTH_PIXELS      = 16,
+           ACROPOLIS_BRIDGE_STREAK_WIDTH_RANGE_PIXELS    = 64,
+           ACROPOLIS_BRIDGE_STREAK_MAX_FRAMES_PER_ROW    = 4 };
+    u16 randomBits;
+    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    randomBits      = gRandomLcgState >> 16;
+    work->scale     = (u32)randomBits % ACROPOLIS_BRIDGE_STREAK_LIFETIME_RANGE_FRAMES + ACROPOLIS_BRIDGE_STREAK_MIN_LIFETIME_FRAMES;
+    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    work->angle     = ((gRandomLcgState >> 16) & (ACROPOLIS_BRIDGE_STREAK_WIDTH_RANGE_PIXELS - 1)) + ACROPOLIS_BRIDGE_STREAK_MIN_WIDTH_PIXELS;
+    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    work->period    = ((gRandomLcgState >> 16) & (ACROPOLIS_BRIDGE_STREAK_MAX_FRAMES_PER_ROW - 1)) + 1;
+    task->state++;
+}
+
+void acropolisBridgeFallingStreakTask(Task* task)
+{
+    enum {
+        ACROPOLIS_BRIDGE_DRAW_BUFFER_STRIDE_PIXELS = 272,
+        ACROPOLIS_BRIDGE_STREAK_LAST_SOURCE_ROW    = 239
+    };
     EffectWork* work;
     RECT        rect;
-    DR_MOVE*    mv;
-    u16         rnd;
-    s32         rndx;
-    s32         range;
+    DR_MOVE*    movePacket;
+    u16         randomBits;
+    s32         randomColumn;
+    s32         columnSpan;
     s32         bufferY;
     s32         x;
     s32         y;
     s32         depth;
 
     work    = task->spawnArg2.pointer;
-    bufferY = gDisplayState.drawBuffer * 0x110;
+    bufferY = gDisplayState.drawBuffer * ACROPOLIS_BRIDGE_DRAW_BUFFER_STRIDE_PIXELS;
     if ((u8)viewGetMappedIndex() == task->spawnArg1.value) {
+        // Seed a screen-space strip; its fields hold pixels and frame counts.
         if (work->age == 0) {
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            rnd             = gRandomLcgState >> 16;
-            work->move.vy   = (u32)rnd % 144 + 0x60;
+            randomBits      = gRandomLcgState >> 16;
+            work->move.vy   = (u32)randomBits % 144 + 0x60;
             /* x and y double as the drift and spread of the column window here */
             x               = (work->move.vy - 0x60) / 3;
             y               = work->move.vy < 0xA0 ? (work->move.vy - 0x60) / 2 : 0x20;
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            rndx            = gRandomLcgState >> 16;
-            range           = y + 0x90;
-            work->move.vx   = rndx % (x + range) + (0x40 - x);
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            rnd             = gRandomLcgState >> 16;
-            work->scale     = (u32)rnd % 90 + 0x1E;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->angle     = ((gRandomLcgState >> 16) & 0x3F) + 0x10;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->period    = ((gRandomLcgState >> 16) & 3) + 1;
-            task->state++;
+            randomColumn    = gRandomLcgState >> 16;
+            columnSpan      = y + 0x90;
+            work->move.vx   = randomColumn % (x + columnSpan) + (0x40 - x);
+            _acropolisBridgeInitializeStreakLifetime(task, work);
         }
+        // Copy the current buffer row down by one pixel at the row-derived depth.
         y     = work->move.vy + work->age / work->period;
         x     = work->move.vx;
         depth = 0x840 - (y - 0x60) * 8;
-        if (y < 0xEF) {
+        if (y < ACROPOLIS_BRIDGE_STREAK_LAST_SOURCE_ROW) {
             rect.x                      = x;
             rect.y                      = y + bufferY;
             rect.w                      = work->angle;
             rect.h                      = 1;
-            mv                          = D_acropolis_bridge_801917AC;
-            D_acropolis_bridge_801917AC = mv + 1;
-            SetDrawMove(mv, &rect, x, y + bufferY + 1);
-            addPrim(gGpuCurrentOt + (depth >> 4), mv);
+            movePacket                  = D_acropolis_bridge_801917AC;
+            D_acropolis_bridge_801917AC = movePacket + 1;
+            SetDrawMove(movePacket, &rect, x, y + bufferY + 1);
+            addPrim(gGpuCurrentOt + (depth >> 4), movePacket);
         }
         work->age++;
-        if (work->age <= work->scale && y < 0xEF) {
+        if (work->age <= work->scale && y < ACROPOLIS_BRIDGE_STREAK_LAST_SOURCE_ROW) {
             return;
         }
     }
     effectKillTask(work, task);
 }
 
-/// The mid variant of the bridge's falling dust streak: the same one-pixel
-/// `DR_MOVE` smear as `func_acropolis_bridge_80180FF0`, rolled over the whole
-/// drop height and sorted by a squared depth ramp like
-/// `func_acropolis_bridge_80180CC0`, but nearer the camera. The first frame
-/// rolls the streak out of `gRandomLcgState`: `move.vy` is the row it starts on
-/// (0x48..0xEF), `scale` the lifetime in frames, `angle` the width and
-/// `period` the number of frames each row of fall takes. The column window
-/// widens with the starting row - it runs from `0x58 - drift` to
-/// `0xA0 + spread`, where `drift` is the whole drop from 0x48 capped at 0x58
-/// and `spread` five thirds of it capped at 0x50 - so streaks that begin higher
-/// up stay nearer the middle of the screen. `gDisplayState.drawBuffer` picks the
-/// buffer half, and the OT slot grows with the *square* of the distance left to
-/// fall, so a streak near the bottom of the screen sorts sharply in front of
-/// one still high up. The task releases itself once the camera turns away, the
-/// lifetime runs out, or the streak falls off the bottom of the screen.
-void func_acropolis_bridge_8018063C(Task* task)
+void acropolisBridgeMidDustStreakTask(Task* task)
 {
+    enum {
+        ACROPOLIS_BRIDGE_DRAW_BUFFER_STRIDE_PIXELS = 272,
+        ACROPOLIS_BRIDGE_STREAK_LAST_SOURCE_ROW    = 239
+    };
     EffectWork* work;
     RECT        rect;
-    DR_MOVE*    mv;
-    u16         rnd;
-    s32         rndx;
-    s32         col;
-    s32         range;
+    DR_MOVE*    movePacket;
+    u16         randomBits;
+    s32         randomColumn;
+    s32         column;
+    s32         columnSpan;
     s32         bufferY;
     s32         x;
     s32         y;
     s32         depth;
 
     work    = task->spawnArg2.pointer;
-    bufferY = gDisplayState.drawBuffer * 0x110;
+    bufferY = gDisplayState.drawBuffer * ACROPOLIS_BRIDGE_DRAW_BUFFER_STRIDE_PIXELS;
     if ((u8)viewGetMappedIndex() == task->spawnArg1.value) {
+        // Seed a screen-space strip; its fields hold pixels and frame counts.
         if (work->age == 0) {
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            rnd             = gRandomLcgState >> 16;
-            work->move.vy   = (u32)rnd % 168 + 0x48;
+            randomBits      = gRandomLcgState >> 16;
+            work->move.vy   = (u32)randomBits % 168 + 0x48;
             /* x and y double as the drift and spread of the column window here */
             x               = work->move.vy < 0xA0 ? work->move.vy - 0x48 : 0x58;
             y               = work->move.vy < 0x78 ? (work->move.vy - 0x48) * 5 / 3 : 0x50;
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            rndx            = gRandomLcgState >> 16;
-            range           = y + 0x48;
-            col             = rndx % (x + range) + 0x58;
-            col            -= x;
-            work->move.vx   = col;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            rnd             = gRandomLcgState >> 16;
-            work->scale     = (u32)rnd % 90 + 0x1E;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->angle     = ((gRandomLcgState >> 16) & 0x3F) + 0x10;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->period    = ((gRandomLcgState >> 16) & 3) + 1;
-            task->state++;
+            randomColumn    = gRandomLcgState >> 16;
+            columnSpan      = y + 0x48;
+            column          = randomColumn % (x + columnSpan) + 0x58;
+            column         -= x;
+            work->move.vx   = column;
+            _acropolisBridgeInitializeStreakLifetime(task, work);
         }
+        // Copy the current buffer row down by one pixel at the row-derived depth.
         y     = work->move.vy + work->age / work->period;
         x     = work->move.vx;
         depth = (0xF0 - y) * (0xF0 - y) / 15 + 0x2C0;
-        if (y < 0xEF) {
+        if (y < ACROPOLIS_BRIDGE_STREAK_LAST_SOURCE_ROW) {
             rect.x                      = x;
             rect.y                      = y + bufferY;
             rect.w                      = work->angle;
             rect.h                      = 1;
-            mv                          = D_acropolis_bridge_801917AC;
-            D_acropolis_bridge_801917AC = mv + 1;
-            SetDrawMove(mv, &rect, x, y + bufferY + 1);
-            addPrim(gGpuCurrentOt + (depth >> 4), mv);
+            movePacket                  = D_acropolis_bridge_801917AC;
+            D_acropolis_bridge_801917AC = movePacket + 1;
+            SetDrawMove(movePacket, &rect, x, y + bufferY + 1);
+            addPrim(gGpuCurrentOt + (depth >> 4), movePacket);
         }
         work->age++;
-        if (work->age <= work->scale && y < 0xEF) {
+        if (work->age <= work->scale && y < ACROPOLIS_BRIDGE_STREAK_LAST_SOURCE_ROW) {
             return;
         }
     }
     effectKillTask(work, task);
 }
 
-/// The narrow variant of the bridge's falling dust streak: the same one-pixel
-/// `DR_MOVE` smear as `func_acropolis_bridge_80180FF0`, but rolled over the
-/// lower part of the drop and sorted nearer the camera. The first frame rolls
-/// the streak out of `gRandomLcgState`: `move.vy` is the row it starts on
-/// (0x68..0xEF), `scale` the lifetime in frames, `angle` the width and
-/// `period` the number of frames each row of fall takes. The column window
-/// widens with the starting row - it runs from `0x20 - drift` to
-/// `0x60 + spread`, where `drift` is twice and `spread` nine times the drop
-/// from 0x68, both capped once the streak starts at 0x78 or below - so streaks
-/// that begin higher up stay nearer the middle of the screen.
-/// `gDisplayState.drawBuffer` picks the buffer half, and the OT slot is the row
-/// scaled into the 0x600-deep range so a streak sorts against the room behind
-/// it. The task releases itself once the camera turns away, the lifetime runs
-/// out, or the streak falls off the bottom of the screen.
-void func_acropolis_bridge_8018099C(Task* task)
+void acropolisBridgeLowDustStreakTask(Task* task)
 {
+    enum {
+        ACROPOLIS_BRIDGE_DRAW_BUFFER_STRIDE_PIXELS = 272,
+        ACROPOLIS_BRIDGE_STREAK_LAST_SOURCE_ROW    = 239
+    };
     EffectWork* work;
     RECT        rect;
-    DR_MOVE*    mv;
-    u16         rnd;
-    s32         rndx;
-    s32         col;
-    s32         range;
+    DR_MOVE*    movePacket;
+    u16         randomBits;
+    s32         randomColumn;
+    s32         column;
+    s32         columnSpan;
     s32         bufferY;
     s32         x;
     s32         y;
     s32         depth;
 
     work    = task->spawnArg2.pointer;
-    bufferY = gDisplayState.drawBuffer * 0x110;
+    bufferY = gDisplayState.drawBuffer * ACROPOLIS_BRIDGE_DRAW_BUFFER_STRIDE_PIXELS;
     if ((u8)viewGetMappedIndex() == task->spawnArg1.value) {
+        // Seed a screen-space strip; its fields hold pixels and frame counts.
         if (work->age == 0) {
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            rnd             = gRandomLcgState >> 16;
-            work->move.vy   = (u32)rnd % 136 + 0x68;
+            randomBits      = gRandomLcgState >> 16;
+            work->move.vy   = (u32)randomBits % 136 + 0x68;
             /* x and y double as the drift and spread of the column window here */
             x               = work->move.vy < 0x78 ? (work->move.vy - 0x68) * 2 : 0x20;
             y               = work->move.vy < 0x78 ? (work->move.vy - 0x68) * 9 : 0x90;
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            rndx            = gRandomLcgState >> 16;
-            range           = y + 0x40;
-            col             = rndx % (x + range) + 0x20;
-            col            -= x;
-            work->move.vx   = col;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            rnd             = gRandomLcgState >> 16;
-            work->scale     = (u32)rnd % 90 + 0x1E;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->angle     = ((gRandomLcgState >> 16) & 0x3F) + 0x10;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->period    = ((gRandomLcgState >> 16) & 3) + 1;
-            task->state++;
+            randomColumn    = gRandomLcgState >> 16;
+            columnSpan      = y + 0x40;
+            column          = randomColumn % (x + columnSpan) + 0x20;
+            column         -= x;
+            work->move.vx   = column;
+            _acropolisBridgeInitializeStreakLifetime(task, work);
         }
+        // Copy the current buffer row down by one pixel at the row-derived depth.
         y     = work->move.vy + work->age / work->period;
         x     = work->move.vx;
         depth = 0x600 - (y - 0x68) * 8;
-        if (y < 0xEF) {
+        if (y < ACROPOLIS_BRIDGE_STREAK_LAST_SOURCE_ROW) {
             rect.x                      = x;
             rect.y                      = y + bufferY;
             rect.w                      = work->angle;
             rect.h                      = 1;
-            mv                          = D_acropolis_bridge_801917AC;
-            D_acropolis_bridge_801917AC = mv + 1;
-            SetDrawMove(mv, &rect, x, y + bufferY + 1);
-            addPrim(gGpuCurrentOt + (depth >> 4), mv);
+            movePacket                  = D_acropolis_bridge_801917AC;
+            D_acropolis_bridge_801917AC = movePacket + 1;
+            SetDrawMove(movePacket, &rect, x, y + bufferY + 1);
+            addPrim(gGpuCurrentOt + (depth >> 4), movePacket);
         }
         work->age++;
-        if (work->age <= work->scale && y < 0xEF) {
+        if (work->age <= work->scale && y < ACROPOLIS_BRIDGE_STREAK_LAST_SOURCE_ROW) {
             return;
         }
     }
     effectKillTask(work, task);
 }
 
-/// The tallest variant of the bridge's falling dust streak: the same one-pixel
-/// `DR_MOVE` smear as `func_acropolis_bridge_80180FF0`, but rolled over the
-/// whole screen height and sorted by a squared depth ramp. The first frame
-/// rolls the streak out of `gRandomLcgState`: `move.vy` is the row it starts on
-/// (0x48..0xEF), `scale` the lifetime in frames, `angle` the width and
-/// `period` the number of frames each row of fall takes. The column window
-/// widens with the starting row - it runs from `0x58 - drift` to
-/// `0xA0 + spread`, where `drift` is a third and `spread` a half of the drop
-/// from 0x48 - so streaks that begin higher up stay nearer the middle of the
-/// screen. `gDisplayState.drawBuffer` picks the buffer half, and the OT slot
-/// grows with the *square* of the distance left to fall, so a streak near the
-/// bottom of the screen sorts sharply in front of one still high up. The task
-/// releases itself once the camera turns away, the lifetime runs out, or the
-/// streak falls off the bottom of the screen.
-void func_acropolis_bridge_80180CC0(Task* task)
+void acropolisBridgeTallDustStreakTask(Task* task)
 {
+    enum {
+        ACROPOLIS_BRIDGE_DRAW_BUFFER_STRIDE_PIXELS = 272,
+        ACROPOLIS_BRIDGE_STREAK_LAST_SOURCE_ROW    = 239
+    };
     EffectWork* work;
     RECT        rect;
-    DR_MOVE*    mv;
-    u16         rnd;
-    s32         rndx;
-    s32         col;
-    s32         range;
+    DR_MOVE*    movePacket;
+    u16         randomBits;
+    s32         randomColumn;
+    s32         column;
+    s32         columnSpan;
     s32         bufferY;
     s32         x;
     s32         y;
     s32         depth;
 
     work    = task->spawnArg2.pointer;
-    bufferY = gDisplayState.drawBuffer * 0x110;
+    bufferY = gDisplayState.drawBuffer * ACROPOLIS_BRIDGE_DRAW_BUFFER_STRIDE_PIXELS;
     if ((u8)viewGetMappedIndex() == task->spawnArg1.value) {
+        // Seed a screen-space strip; its fields hold pixels and frame counts.
         if (work->age == 0) {
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            rnd             = gRandomLcgState >> 16;
-            work->move.vy   = (u32)rnd % 168 + 0x48;
+            randomBits      = gRandomLcgState >> 16;
+            work->move.vy   = (u32)randomBits % 168 + 0x48;
             /* x and y double as the drift and spread of the column window here */
             x               = (work->move.vy - 0x48) / 3;
             y               = (work->move.vy - 0x48) / 2;
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            rndx            = gRandomLcgState >> 16;
-            range           = y + 0x48;
-            col             = rndx % (x + range) + 0x58;
-            col            -= x;
-            work->move.vx   = col;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            rnd             = gRandomLcgState >> 16;
-            work->scale     = (u32)rnd % 90 + 0x1E;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->angle     = ((gRandomLcgState >> 16) & 0x3F) + 0x10;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->period    = ((gRandomLcgState >> 16) & 3) + 1;
-            task->state++;
+            randomColumn    = gRandomLcgState >> 16;
+            columnSpan      = y + 0x48;
+            column          = randomColumn % (x + columnSpan) + 0x58;
+            column         -= x;
+            work->move.vx   = column;
+            _acropolisBridgeInitializeStreakLifetime(task, work);
         }
+        // Copy the current buffer row down by one pixel at the row-derived depth.
         y     = work->move.vy + work->age / work->period;
         x     = work->move.vx;
         depth = (0xF0 - y) * (0xF0 - y) / 15 + 0x400;
-        if (y < 0xEF) {
+        if (y < ACROPOLIS_BRIDGE_STREAK_LAST_SOURCE_ROW) {
             rect.x                      = x;
             rect.y                      = y + bufferY;
             rect.w                      = work->angle;
             rect.h                      = 1;
-            mv                          = D_acropolis_bridge_801917AC;
-            D_acropolis_bridge_801917AC = mv + 1;
-            SetDrawMove(mv, &rect, x, y + bufferY + 1);
-            addPrim(gGpuCurrentOt + (depth >> 4), mv);
+            movePacket                  = D_acropolis_bridge_801917AC;
+            D_acropolis_bridge_801917AC = movePacket + 1;
+            SetDrawMove(movePacket, &rect, x, y + bufferY + 1);
+            addPrim(gGpuCurrentOt + (depth >> 4), movePacket);
         }
         work->age++;
-        if (work->age <= work->scale && y < 0xEF) {
+        if (work->age <= work->scale && y < ACROPOLIS_BRIDGE_STREAK_LAST_SOURCE_ROW) {
             return;
         }
     }
     effectKillTask(work, task);
 }
 
-/// One falling dust streak on the bridge, drawn as a `DR_MOVE` that smears a
-/// one-pixel-tall strip of the frame buffer down by a pixel. The first frame
-/// rolls the whole streak out of `gRandomLcgState`: `move.vy` is the row it
-/// starts on (0x68..0xE7), `move.vx` the column, `scale` the lifetime in
-/// frames, `angle` the width and `period` the number of frames each row of
-/// fall takes. The column is drawn from a range that widens with the starting
-/// row - `(vy - 0x58) * 6`, capped at the full 240-pixel width once the streak
-/// starts at 0x80 or below the horizon - so streaks that begin higher up stay
-/// nearer the middle of the screen. `gDisplayState.drawBuffer` picks the buffer
-/// half, and the OT slot is the row scaled into the 0x800-deep range so a
-/// streak sorts against the room behind it. The task releases itself once the
-/// camera turns away, the lifetime runs out, or the streak falls off the bottom
-/// of the screen.
-void func_acropolis_bridge_80180FF0(Task* task)
+void acropolisBridgeParticleStreakTask(Task* task)
 {
+    enum {
+        ACROPOLIS_BRIDGE_DRAW_BUFFER_STRIDE_PIXELS = 272,
+        ACROPOLIS_BRIDGE_STREAK_LAST_SOURCE_ROW    = 239
+    };
     EffectWork* work;
     RECT        rect;
-    DR_MOVE*    mv;
-    u16         rnd;
-    s32         rndx;
+    DR_MOVE*    movePacket;
+    s32         randomColumn;
     s32         bufferY;
     s32         x;
     s32         y;
     s32         depth;
 
     work    = task->spawnArg2.pointer;
-    bufferY = gDisplayState.drawBuffer * 0x110;
+    bufferY = gDisplayState.drawBuffer * ACROPOLIS_BRIDGE_DRAW_BUFFER_STRIDE_PIXELS;
     if ((u8)viewGetMappedIndex() == task->spawnArg1.value) {
+        // Seed a screen-space strip; its fields hold pixels and frame counts.
         if (work->age == 0) {
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             work->move.vy   = ((gRandomLcgState >> 16) & 0x7F) + 0x68;
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            rndx            = gRandomLcgState >> 16;
-            work->move.vx   = work->move.vy < 0x80 ? rndx % ((work->move.vy - 0x58) * 6) : rndx % 240;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            rnd             = gRandomLcgState >> 16;
-            work->scale     = (u32)rnd % 90 + 0x1E;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->angle     = ((gRandomLcgState >> 16) & 0x3F) + 0x10;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->period    = ((gRandomLcgState >> 16) & 3) + 1;
-            task->state++;
+            randomColumn    = gRandomLcgState >> 16;
+            work->move.vx   = work->move.vy < 0x80 ? randomColumn % ((work->move.vy - 0x58) * 6) : randomColumn % 240;
+            _acropolisBridgeInitializeStreakLifetime(task, work);
         }
+        // Copy the current buffer row down by one pixel at the row-derived depth.
         y     = work->move.vy + work->age / work->period;
         x     = work->move.vx;
         depth = 0x800 - (y - 0x68) * 8;
-        if (y < 0xEF) {
+        if (y < ACROPOLIS_BRIDGE_STREAK_LAST_SOURCE_ROW) {
             rect.x                      = x;
             rect.y                      = y + bufferY;
             rect.w                      = work->angle;
             rect.h                      = 1;
-            mv                          = D_acropolis_bridge_801917AC;
-            D_acropolis_bridge_801917AC = mv + 1;
-            SetDrawMove(mv, &rect, x, y + bufferY + 1);
-            addPrim(gGpuCurrentOt + (depth >> 4), mv);
+            movePacket                  = D_acropolis_bridge_801917AC;
+            D_acropolis_bridge_801917AC = movePacket + 1;
+            SetDrawMove(movePacket, &rect, x, y + bufferY + 1);
+            addPrim(gGpuCurrentOt + (depth >> 4), movePacket);
         }
         work->age++;
-        if (work->age <= work->scale && y < 0xEF) {
+        if (work->age <= work->scale && y < ACROPOLIS_BRIDGE_STREAK_LAST_SOURCE_ROW) {
             return;
         }
     }
@@ -4335,14 +4292,13 @@ s32 func_acropolis_bridge_801820A0(Task* task, s32 msgId, s32 arg2, s32 arg3)
     return 0;
 }
 
-/// One falling mote of the bridge's ambient dust: drifts the task's coordinate
-/// frame by the per-mote velocity in `EffectWork::move`, projects the
-/// result through `GsWSMATRIX` with a single `RTPS`, and links a 1x1 tile into
-/// the OT at the resulting depth. The velocity and the grey level are rolled
-/// once, on the first tick (`age == 0`); the mote is released after 0x1F
-/// ticks or once it has fallen past y = -0x1D.
-void func_acropolis_bridge_80182394(Task* task)
+void acropolisBridgeDustMoteTask(Task* task)
 {
+    enum {
+        ACROPOLIS_BRIDGE_DUST_MOTE_LIFETIME_FRAMES    = 31,
+        ACROPOLIS_BRIDGE_DUST_MOTE_END_Y              = -29,
+        ACROPOLIS_BRIDGE_DUST_MOTE_GRAVITY_PER_UPDATE = 6
+    };
     EffectPointTileScratch* tileScratch;
     TILE_1*                 prim;
     GfxCoord*               coord;
@@ -4367,7 +4323,8 @@ void func_acropolis_bridge_80182394(Task* task)
     coord->coord.t[1]  += work->move.vy;
     coord->coord.t[2]  += work->move.vz;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    // Project the cached view position; screen coordinates go straight into the tile.
+    // Draw the composition cached before this update's local movement.
+    // Only an accepted depth accelerates the mote; keep that ordering.
     tileScratch->viewPoint.vx = coord->workm.t[0];
     tileScratch->viewPoint.vy = coord->workm.t[1];
     tileScratch->viewPoint.vz = coord->workm.t[2];
@@ -4386,43 +4343,54 @@ void func_acropolis_bridge_80182394(Task* task)
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)tileScratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
         gpuSetPrimitiveBlendMode(prim, GPU_BLEND_AVERAGE, tileScratch->depth);
-        work->move.vy += 6;
+        work->move.vy += ACROPOLIS_BRIDGE_DUST_MOTE_GRAVITY_PER_UPDATE;
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectPointTileScratch);
     work->age++;
-    if (work->age >= 0x1F || coord->coord.t[1] >= -0x1D) {
+    if (work->age >= ACROPOLIS_BRIDGE_DUST_MOTE_LIFETIME_FRAMES || coord->coord.t[1] >= ACROPOLIS_BRIDGE_DUST_MOTE_END_Y) {
         effectKillTask(work, task);
     }
 }
 
-void func_acropolis_bridge_80182694(Task* task)
+void acropolisBridgeWaterRippleTask(Task* task)
 {
+    enum {
+        ACROPOLIS_BRIDGE_RIPPLE_STATE_NEW           = 0,
+        ACROPOLIS_BRIDGE_RIPPLE_STATE_ACTIVE        = 1,
+        ACROPOLIS_BRIDGE_RIPPLE_INITIAL_BRIGHTNESS  = 64,
+        ACROPOLIS_BRIDGE_RIPPLE_SPAWN_SIZE_MASK     = 0xFFF,
+        ACROPOLIS_BRIDGE_RIPPLE_GROWTH_PER_UPDATE   = 32,
+        ACROPOLIS_BRIDGE_RIPPLE_FADE_PER_UPDATE     = 2,
+        ACROPOLIS_BRIDGE_RIPPLE_MIN_FADE_BRIGHTNESS = 3
+    };
     EffectWork* work;
     GfxCoord*   coord;
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
-        func_acropolis_bridge_801827EC(coord, work->angle, work->scale);
+        // Frozen and cancelled updates draw the retained ripple once.
+        _acropolisBridgeDrawWaterRipple(coord, work->angle, work->scale);
         if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             effectKillTask(work, task);
         }
     } else {
         work->age++;
         switch (task->state) {
-            case 0:
-                work->scale     = 0x40;
-                work->angle     = task->spawnArg1.halves.low & 0xFFF;
+            case ACROPOLIS_BRIDGE_RIPPLE_STATE_NEW:
+                // Initialization leaves workm cached; the caller controls composition.
+                work->scale     = ACROPOLIS_BRIDGE_RIPPLE_INITIAL_BRIGHTNESS;
+                work->angle     = task->spawnArg1.halves.low & ACROPOLIS_BRIDGE_RIPPLE_SPAWN_SIZE_MASK;
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                gfxRotMatrixY(&coord->coord, (gRandomLcgState >> 16) & 0xFFF, 1);
+                gfxRotMatrixY(&coord->coord, (gRandomLcgState >> 16) & ACTOR_TRANSFORM_ANGLE_MASK, GRAPHICS_ROTATION_REPLACE);
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
-                task->state         = 1;
+                task->state         = ACROPOLIS_BRIDGE_RIPPLE_STATE_ACTIVE;
                 /* fallthrough */
-            case 1:
-                work->angle += 0x20;
-                func_acropolis_bridge_801827EC(coord, work->angle, work->scale);
-                if (work->scale >= 3) {
-                    work->scale -= 2;
+            case ACROPOLIS_BRIDGE_RIPPLE_STATE_ACTIVE:
+                work->angle += ACROPOLIS_BRIDGE_RIPPLE_GROWTH_PER_UPDATE;
+                _acropolisBridgeDrawWaterRipple(coord, work->angle, work->scale);
+                if (work->scale >= ACROPOLIS_BRIDGE_RIPPLE_MIN_FADE_BRIGHTNESS) {
+                    work->scale -= ACROPOLIS_BRIDGE_RIPPLE_FADE_PER_UPDATE;
                 } else {
                     effectKillTask(work, task);
                 }
@@ -4431,218 +4399,245 @@ void func_acropolis_bridge_80182694(Task* task)
     }
 }
 
-/// Draws the flash the bridge collapse throws off as a screen-facing quad: the
-/// unit quad `D_80111E38` scaled to `arg1` half-size, rotated by the task's own
-/// `GfxCoord` (`workm`) and then projected through `GsWSMATRIX` into a
-/// 0x28-byte scratch stack block. The first corner goes through `rtps` and
-/// the other three through `rtpt`; a GTE error (`gte_stflg` sign bit) drops the
-/// quad rather than drawing it. The `POLY_FT4` is the 0x38x0x38 cell at
-/// `(0, 0x38)` of tpage 0x2B, modulated by the grey `arg2` and drawn
-/// semi-transparent, and links into the OT at the projected depth.
-static void func_acropolis_bridge_801827EC(GfxCoord* coord, s32 arg1, s16 arg2)
+/// Draws an additive water-ripple square in the composed coordinate's local X/Z plane.
+///
+/// `halfSize` is the half-side in coordinate units; running tasks use 32..5119.
+/// Sign products, rotations and translations retain their low 16 bits as GTE
+/// coordinates. `brightness` supplies each GPU colour byte (128 is neutral).
+/// `coord` is borrowed with `workm` already composed in `GsWSMATRIX`'s input space.
+///
+/// Projects one corner, then three, directly into a `POLY_FT4`. A nonnegative
+/// final GTE flag links the packet at SZ3/4 plus one. The packet arena must have
+/// room even when projection fails. One complete `OverlayFlaggedQuadScratch` is
+/// reserved and released; GTE state changes and no pointer is retained.
+static void _acropolisBridgeDrawWaterRipple(const GfxCoord* coord, s32 halfSize, s16 brightness)
 {
-    OverlayFlaggedQuadScratch* blk;
-    POLY_FT4*                  prim;
-    SVECTOR*                   sv;
-    s32                        i;
+    enum {
+        ACROPOLIS_BRIDGE_RIPPLE_TEXTURE_TOP         = 56,
+        ACROPOLIS_BRIDGE_RIPPLE_TEXTURE_SPAN        = 55,
+        ACROPOLIS_BRIDGE_RIPPLE_MODULATED_QUAD_CODE = 0x2C
+    };
+    OverlayFlaggedQuadScratch* quadScratch;
+    POLY_FT4*                  quad;
+    SVECTOR*                   corner;
+    s32                        cornerIndex;
 
-    blk = SCRATCH_STACK_RESERVE_BLOCK(OverlayFlaggedQuadScratch);
+    quadScratch = SCRATCH_STACK_RESERVE_BLOCK(OverlayFlaggedQuadScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
-    for (i = 0; i < ARRAY_SIZE(D_80111E38); i++) {
-        blk->corners[i].vx = (u16)D_80111E38[i].axis0Sign * arg1;
-        /* Spelled as an offset rather than `&blk->corners[i]`, which is the same
+    for (cornerIndex = 0; cornerIndex < ARRAY_SIZE(D_80111E38); cornerIndex++) {
+        quadScratch->corners[cornerIndex].vx = (u16)D_80111E38[cornerIndex].axis0Sign * halfSize;
+        /* Spelled as an offset rather than `&quadScratch->corners[cornerIndex]`, which is the same
            address: the member form lets CSE share one register with the GTE
-           macros' `&blk->corners[i]`, and the original keeps two. */
-        sv     = (SVECTOR*)((u8*)blk + i * sizeof(SVECTOR) + OFFSET_OF(OverlayFlaggedQuadScratch, corners));
-        sv->vy = 0;
-        sv->vz = (u16)D_80111E38[i].axis1Sign * arg1;
+           macros' `&quadScratch->corners[cornerIndex]`, and the original keeps two. */
+        corner     = (SVECTOR*)((u8*)quadScratch + cornerIndex * sizeof(SVECTOR) + OFFSET_OF(OverlayFlaggedQuadScratch, corners));
+        corner->vy = 0;
+        corner->vz = (u16)D_80111E38[cornerIndex].axis1Sign * halfSize;
         gte_SetRotMatrix(&coord->workm);
-        gte_ldv0(&blk->corners[i]);
+        gte_ldv0(&quadScratch->corners[cornerIndex]);
         gte_rtv0();
-        gte_stsv(&blk->corners[i]);
-        blk->corners[i].vx += coord->workm.t[0];
-        sv->vy             += coord->workm.t[1];
-        sv->vz             += coord->workm.t[2];
+        gte_stsv(&quadScratch->corners[cornerIndex]);
+        quadScratch->corners[cornerIndex].vx += coord->workm.t[0];
+        corner->vy                           += coord->workm.t[1];
+        corner->vz                           += coord->workm.t[2];
     }
 
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&blk->corners[0]);
+    gte_ldv0(&quadScratch->corners[0]);
     gte_rtps();
-    prim           = gGpuPrimCursor;
-    gGpuPrimCursor = prim + 1;
-    setlen(prim, 9);
-    setcode(prim, 0x2C);
-    gte_stsxy(&prim->x0);
-    gte_ldv3(&blk->corners[1], &blk->corners[2], &blk->corners[3]);
+    quad           = gGpuPrimCursor;
+    gGpuPrimCursor = quad + 1;
+    setlen(quad, sizeof(*quad) / sizeof(u32) - 1);
+    setcode(quad, ACROPOLIS_BRIDGE_RIPPLE_MODULATED_QUAD_CODE);
+    gte_stsxy(&quad->x0);
+    gte_ldv3(&quadScratch->corners[1], &quadScratch->corners[2], &quadScratch->corners[3]);
     gte_rtpt();
-    setUV4(prim, 0, 0x38, 0x37, 0x38, 0, 0x6F, 0x37, 0x6F);
-    gte_stsxy3(&prim->x1, &prim->x2, &prim->x3);
-    gte_stflg(&blk->flag);
-    if (blk->flag >= 0) {
-        gte_stszotz(&blk->otz);
-        blk->otz++;
-        prim->tpage = 0x2B;
-        setRGB0(prim, arg2, arg2, arg2);
-        prim->clut = 0x43D1;
-        setSemiTrans(prim, 1);
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
+    setUV4(quad, 0, ACROPOLIS_BRIDGE_RIPPLE_TEXTURE_TOP, ACROPOLIS_BRIDGE_RIPPLE_TEXTURE_SPAN, ACROPOLIS_BRIDGE_RIPPLE_TEXTURE_TOP, 0, ACROPOLIS_BRIDGE_RIPPLE_TEXTURE_TOP + ACROPOLIS_BRIDGE_RIPPLE_TEXTURE_SPAN, ACROPOLIS_BRIDGE_RIPPLE_TEXTURE_SPAN, ACROPOLIS_BRIDGE_RIPPLE_TEXTURE_TOP + ACROPOLIS_BRIDGE_RIPPLE_TEXTURE_SPAN);
+    gte_stsxy3(&quad->x1, &quad->x2, &quad->x3);
+    gte_stflg(&quadScratch->flag);
+    if (quadScratch->flag >= 0) {
+        gte_stszotz(&quadScratch->otz);
+        quadScratch->otz++;
+        quad->tpage = getTPage(0, GPU_BLEND_ADD, 704, 0);
+        setRGB0(quad, brightness, brightness, brightness);
+        quad->clut = getClut(272, 271);
+        setSemiTrans(quad, 1);
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)quadScratch->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                quad);
     }
     SCRATCH_STACK_RELEASE_BLOCK(OverlayFlaggedQuadScratch);
 }
 
 #include "../../shared/effect_sprite_debris.inc.c"
 
-/// Draws one piece of the bridge's blown debris as a screen-facing quad. The
-/// piece's world position is copied out of `coord->workm.t` and projected
-/// through `GsWSMATRIX` with a single `RTPS`; a GTE error (`gte_stflg` sign
-/// bit) drops the piece rather than drawing it. The `POLY_FT4` is centred on
-/// the projected point, its two diagonals `size * 31 / depth` long and turned by
-/// `angle` and `angle + 0x400`, so the quad shrinks with distance and spins
-/// with the piece. `frame` picks the animation cell: the texture window is the
-/// 0x1F-wide column starting at `frame * 0x20` on rows 0xE0..0xFF of tpage
-/// 0x2B. The primitive is semi-transparent with texture blending off
-/// (`code |= 3`) and links into the OT at the projected depth.
-void effectSpriteDrawChip(GfxCoord* coord, u16 frame, s16 size, s16 angle)
+/// Draws a spinning raw-texture debris cell at a composed coordinate's translation.
+///
+/// `coord` is borrowed read-only with `workm` in `GsWSMATRIX`'s input space; its
+/// translation is narrowed to signed 16-bit coordinates. `frame` selects a 32x32
+/// cell in the eight-cell row at V=224; callers use 0..7 and UV stores wrap to
+/// bytes without a `frame` check. `size` is a signed perspective numerator: the
+/// half-diagonal is `size` * 31 / (SZ3/4 + 1) pixels. `angle` uses 4096 units per
+/// turn; Q12 rotated products round down when negative.
+///
+/// Allocates one `POLY_FT4` even on a rejected projection. Accepted packets use
+/// raw texture and additive semitransparency. Requires a live packet arena and
+/// initialized scratch stack; releases one `EffectBillboardScratch` on every
+/// path. GTE state is overwritten and no pointer is retained.
+static void _effectSpriteDrawChip(const GfxCoord* coord, u16 frame, s16 size, s16 angle)
 {
-    void**                  scratch;
-    EffectBillboardScratch* scratchHead;
+    enum {
+        EFFECT_SPRITE_CHIP_CELL_PITCH_TEXELS        = 32,
+        EFFECT_SPRITE_CHIP_UV_SPAN_TEXELS           = EFFECT_SPRITE_CHIP_CELL_PITCH_TEXELS - 1,
+        EFFECT_SPRITE_CHIP_FIRST_TEXEL_ROW          = 224,
+        EFFECT_SPRITE_CHIP_LAST_TEXEL_ROW           = 255,
+        EFFECT_SPRITE_CHIP_QUARTER_TURN             = ONE / 4,
+        EFFECT_SPRITE_CHIP_TRIG_FRACTION_BITS       = 12,
+        EFFECT_SPRITE_CHIP_MODULATED_QUAD_CODE      = 0x2C,
+        EFFECT_SPRITE_CHIP_RAW_SEMITRANSPARENT_BITS = 3
+    };
+    void**                  scratchSlot;
+    EffectBillboardScratch* scratchEnd;
     EffectBillboardScratch* block;
     s32*                    depthOutput;
-    POLY_FT4*               prim;
-    s32                     ang;
-    s32                     u;
-    s32                     uu;
+    POLY_FT4*               quad;
+    s32                     cornerAngle;
+    s32                     uLeft;
+    s32                     uRight;
 
-    scratch     = SCRATCH_STACK_CURSOR_SLOT;
-    scratchHead = *scratch;
-    block       = scratchHead - 1;
+    scratchSlot = SCRATCH_STACK_CURSOR_SLOT;
+    scratchEnd  = *scratchSlot;
+    block       = scratchEnd - 1;
     depthOutput = &block->depth;
 
     block->worldPoint.vx = (u16)coord->workm.t[0];
     block->worldPoint.vy = (u16)coord->workm.t[1];
     block->worldPoint.vz = (u16)coord->workm.t[2];
-    *scratch             = block;
+    *scratchSlot         = block;
 
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->worldPoint);
     gte_rtps();
 
-    prim           = gGpuPrimCursor;
-    gGpuPrimCursor = prim + 1;
-    setlen(prim, 9);
-    setcode(prim, 0x2C);
+    quad           = gGpuPrimCursor;
+    gGpuPrimCursor = quad + 1;
+    setlen(quad, sizeof(*quad) / sizeof(u32) - 1);
+    setcode(quad, EFFECT_SPRITE_CHIP_MODULATED_QUAD_CODE);
     gte_stsxy(&block->screenX);
     gte_stflg(&block->projectionFlags);
 
     if (block->projectionFlags >= 0) {
         gte_stszotz(depthOutput);
         block->depth++;
-        prim->tpage = 0x2B;
-        prim->clut  = 0x43D3;
-        u           = frame << 5;
-        uu          = u + 0x1F;
-        setUV4(prim, u, 0xE0, uu, 0xE0, u, 0xFF, uu, 0xFF);
-        setcode(prim, getcode(prim) | 3);
+        quad->tpage = getTPage(0, GPU_BLEND_ADD, 704, 0);
+        quad->clut  = getClut(304, 271);
+        uLeft       = frame * EFFECT_SPRITE_CHIP_CELL_PITCH_TEXELS;
+        uRight      = uLeft + EFFECT_SPRITE_CHIP_UV_SPAN_TEXELS;
+        setUV4(quad, uLeft, EFFECT_SPRITE_CHIP_FIRST_TEXEL_ROW, uRight, EFFECT_SPRITE_CHIP_FIRST_TEXEL_ROW, uLeft, EFFECT_SPRITE_CHIP_LAST_TEXEL_ROW, uRight, EFFECT_SPRITE_CHIP_LAST_TEXEL_ROW);
+        setcode(quad, getcode(quad) | EFFECT_SPRITE_CHIP_RAW_SEMITRANSPARENT_BITS);
 
-        ang                  = angle;
-        block->cornerOffsetX = (size * 31 / block->depth * rsin(ang)) >> 12;
-        block->cornerOffsetY = (size * 31 / block->depth * rcos(ang)) >> 12;
-        prim->x0             = block->screenX + (u16)block->cornerOffsetX;
-        prim->x3             = block->screenX - (u16)block->cornerOffsetX;
-        prim->y0             = block->screenY - (u16)block->cornerOffsetY;
-        prim->y3             = block->screenY + (u16)block->cornerOffsetY;
+        cornerAngle          = angle;
+        block->cornerOffsetX = (size * EFFECT_SPRITE_CHIP_UV_SPAN_TEXELS / block->depth * rsin(cornerAngle)) >> EFFECT_SPRITE_CHIP_TRIG_FRACTION_BITS;
+        block->cornerOffsetY = (size * EFFECT_SPRITE_CHIP_UV_SPAN_TEXELS / block->depth * rcos(cornerAngle)) >> EFFECT_SPRITE_CHIP_TRIG_FRACTION_BITS;
+        quad->x0             = block->screenX + (u16)block->cornerOffsetX;
+        quad->x3             = block->screenX - (u16)block->cornerOffsetX;
+        quad->y0             = block->screenY - (u16)block->cornerOffsetY;
+        quad->y3             = block->screenY + (u16)block->cornerOffsetY;
 
-        ang                 += 0x400;
-        block->cornerOffsetX = (size * 31 / block->depth * rsin(ang)) >> 12;
-        block->cornerOffsetY = (size * 31 / block->depth * rcos(ang)) >> 12;
-        prim->x1             = block->screenX + (u16)block->cornerOffsetX;
-        prim->x2             = block->screenX - (u16)block->cornerOffsetX;
-        prim->y1             = block->screenY - (u16)block->cornerOffsetY;
-        prim->y2             = block->screenY + (u16)block->cornerOffsetY;
+        cornerAngle         += EFFECT_SPRITE_CHIP_QUARTER_TURN;
+        block->cornerOffsetX = (size * EFFECT_SPRITE_CHIP_UV_SPAN_TEXELS / block->depth * rsin(cornerAngle)) >> EFFECT_SPRITE_CHIP_TRIG_FRACTION_BITS;
+        block->cornerOffsetY = (size * EFFECT_SPRITE_CHIP_UV_SPAN_TEXELS / block->depth * rcos(cornerAngle)) >> EFFECT_SPRITE_CHIP_TRIG_FRACTION_BITS;
+        quad->x1             = block->screenX + (u16)block->cornerOffsetX;
+        quad->x2             = block->screenX - (u16)block->cornerOffsetX;
+        quad->y1             = block->screenY - (u16)block->cornerOffsetY;
+        quad->y2             = block->screenY + (u16)block->cornerOffsetY;
 
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
+                quad);
     }
-    SCRATCH_POP_BYTES_AT(scratch, sizeof(*block));
+    SCRATCH_POP_BYTES_AT(scratchSlot, sizeof(*block));
 }
 
-/// Draws one piece of the bridge's blown debris as an upright screen-facing
-/// quad, the unrotated counterpart of `effectSpriteDrawChip`. The piece's
-/// world position is copied out of `coord->workm.t` and projected through
-/// `GsWSMATRIX` with one perspective transform. A negative GTE flag word
-/// drops the piece. The `POLY_FT4` is a square whose half-side is
-/// `size * 55 / depth`, shifted up so the projected point sits three quarters
-/// of the way down it. The quad stays axis-aligned and shrinks with distance.
+/// Draws an upright raw-texture debris billboard at a composed coordinate's translation.
 ///
-/// `frame` picks the animation cell from a 4-by-2 grid of 0x38 by 0x38 cells
-/// on tpage 0x2B: bits 0-1 pick the column and bit 2 the row, and the cell's
-/// texture V is that row plus 0x70. The primitive is semi-transparent with
-/// texture blending off (`code |= 3`) and links into the ordering table at
-/// the projected depth.
-void effectSpriteDrawBillboard(GfxCoord* coord, u16 frame, s16 size)
+/// `coord` is borrowed read-only with `workm` in `GsWSMATRIX`'s input space; translation
+/// is narrowed to signed 16-bit coordinates. `frame` bits 0..2 select a 4x2 grid
+/// of 56x56 cells beginning at V=112. `size` is a signed perspective numerator:
+/// the half-side is `size` * 55 / (SZ3/4 + 1) pixels. The anchor lies three
+/// quarters down the square. Screen-coordinate and UV stores retain low bits.
+///
+/// Allocates one `POLY_FT4` even on a rejected projection. Accepted packets use
+/// raw texture and additive semitransparency. Requires a live packet arena and
+/// initialized scratch stack; releases one `_AcropolisBridgeBillboardScratch`
+/// on every path. GTE state is overwritten and no pointer is retained.
+static void _effectSpriteDrawBillboard(const GfxCoord* coord, u16 frame, s16 size)
 {
-    void**                            scratch;
-    u8*                               head;
+    enum {
+        EFFECT_SPRITE_BILLBOARD_CELL_PITCH_TEXELS        = 56,
+        EFFECT_SPRITE_BILLBOARD_UV_SPAN_TEXELS           = EFFECT_SPRITE_BILLBOARD_CELL_PITCH_TEXELS - 1,
+        EFFECT_SPRITE_BILLBOARD_COLUMN_MASK              = 3,
+        EFFECT_SPRITE_BILLBOARD_FRAME_MASK               = 7,
+        EFFECT_SPRITE_BILLBOARD_ROW_SHIFT                = 2,
+        EFFECT_SPRITE_BILLBOARD_FIRST_TEXEL_ROW          = 112,
+        EFFECT_SPRITE_BILLBOARD_MODULATED_QUAD_CODE      = 0x2C,
+        EFFECT_SPRITE_BILLBOARD_RAW_SEMITRANSPARENT_BITS = 3
+    };
+    void**                            scratchSlot;
+    _AcropolisBridgeBillboardScratch* scratchEnd;
     _AcropolisBridgeBillboardScratch* block;
-    POLY_FT4*                         prim;
-    _AcropolisBridgeBillboardScratch* depthOut;
-    u32                               cell;
-    s32                               u;
-    s32                               v;
-    s8                                vTop;
-    s8                                vBot;
+    POLY_FT4*                         quad;
+    s32*                              depthOutput;
+    u32                               cellBits;
+    s32                               uLeft;
+    s32                               rowV;
+    s8                                vTopBits;
+    s8                                vBottomBits;
 
-    scratch  = SCRATCH_STACK_CURSOR_SLOT;
-    head     = *scratch;
-    block    = (_AcropolisBridgeBillboardScratch*)(head - sizeof(_AcropolisBridgeBillboardScratch));
-    depthOut = block;
+    scratchSlot = SCRATCH_STACK_CURSOR_SLOT;
+    scratchEnd  = *scratchSlot;
+    block       = scratchEnd - 1;
+    depthOutput = &block->depth;
 
     block->worldPoint.vx = (u16)coord->workm.t[0];
     block->worldPoint.vy = (u16)coord->workm.t[1];
     block->worldPoint.vz = (u16)coord->workm.t[2];
-    *scratch             = block;
+    *scratchSlot         = block;
 
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    // The vector, screen position and flag word are addressed from the cursor
-    // saved in `head`, as are the depth increment and the ordering-table read.
-    // The depth store goes through `depthOut`.
-    gte_ldv0(&((_AcropolisBridgeBillboardScratch*)(head - sizeof(_AcropolisBridgeBillboardScratch)))->worldPoint);
+    gte_ldv0(&(scratchEnd - 1)->worldPoint);
     gte_rtps();
 
-    prim           = gGpuPrimCursor;
-    gGpuPrimCursor = prim + 1;
-    setlen(prim, 9);
-    setcode(prim, 0x2C);
-    gte_stsxy(&((_AcropolisBridgeBillboardScratch*)(head - sizeof(_AcropolisBridgeBillboardScratch)))->screenX);
-    gte_stflg(&((_AcropolisBridgeBillboardScratch*)(head - sizeof(_AcropolisBridgeBillboardScratch)))->projectionFlags);
+    quad           = gGpuPrimCursor;
+    gGpuPrimCursor = quad + 1;
+    setlen(quad, sizeof(*quad) / sizeof(u32) - 1);
+    setcode(quad, EFFECT_SPRITE_BILLBOARD_MODULATED_QUAD_CODE);
+    gte_stsxy(&(scratchEnd - 1)->screenX);
+    gte_stflg(&(scratchEnd - 1)->projectionFlags);
 
     if (block->projectionFlags >= 0) {
-        gte_stszotz(&depthOut->depth);
-        ((_AcropolisBridgeBillboardScratch*)(head - sizeof(_AcropolisBridgeBillboardScratch)))->depth++;
-        prim->tpage = 0x2B;
-        prim->clut  = 0x43D2;
-        cell        = frame;
-        u           = (cell & 3) * 0x38;
-        v           = ((cell & 7) >> 2) * 0x38;
-        vTop        = v + 0x70;
-        vBot        = v + 0x70 + 0x37;
-        setUV4(prim, u, vTop, u + 0x37, vTop, u, vBot, u + 0x37, vBot);
-        setcode(prim, getcode(prim) | 3);
+        gte_stszotz(depthOutput);
+        (scratchEnd - 1)->depth++;
+        quad->tpage = getTPage(0, GPU_BLEND_ADD, 704, 0);
+        quad->clut  = getClut(288, 271);
+        cellBits    = frame;
+        uLeft       = (cellBits & EFFECT_SPRITE_BILLBOARD_COLUMN_MASK) * EFFECT_SPRITE_BILLBOARD_CELL_PITCH_TEXELS;
+        rowV        = ((cellBits & EFFECT_SPRITE_BILLBOARD_FRAME_MASK) >> EFFECT_SPRITE_BILLBOARD_ROW_SHIFT) * EFFECT_SPRITE_BILLBOARD_CELL_PITCH_TEXELS;
+        vTopBits    = rowV + EFFECT_SPRITE_BILLBOARD_FIRST_TEXEL_ROW;
+        vBottomBits = rowV + EFFECT_SPRITE_BILLBOARD_FIRST_TEXEL_ROW + EFFECT_SPRITE_BILLBOARD_UV_SPAN_TEXELS;
+        setUV4(quad, uLeft, vTopBits, uLeft + EFFECT_SPRITE_BILLBOARD_UV_SPAN_TEXELS, vTopBits, uLeft, vBottomBits, uLeft + EFFECT_SPRITE_BILLBOARD_UV_SPAN_TEXELS, vBottomBits);
+        setcode(quad, getcode(quad) | EFFECT_SPRITE_BILLBOARD_RAW_SEMITRANSPARENT_BITS);
 
-        block->screenExtent = size * 55 / ((_AcropolisBridgeBillboardScratch*)(head - sizeof(_AcropolisBridgeBillboardScratch)))->depth;
+        block->screenExtent = size * EFFECT_SPRITE_BILLBOARD_UV_SPAN_TEXELS / (scratchEnd - 1)->depth;
 
-        prim->x0 = prim->x2 = block->screenX - (u16)block->screenExtent;
-        prim->x1 = prim->x3 = block->screenX + (u16)block->screenExtent;
-        prim->y0 = prim->y1 = block->screenY - (u16)block->screenExtent - (block->screenExtent >> 1);
-        prim->y2 = prim->y3 = block->screenY + (block->screenExtent >> 1);
+        quad->x0 = quad->x2 = block->screenX - (u16)block->screenExtent;
+        quad->x1 = quad->x3 = block->screenX + (u16)block->screenExtent;
+        quad->y0 = quad->y1 = block->screenY - (u16)block->screenExtent - (block->screenExtent >> 1);
+        quad->y2 = quad->y3 = block->screenY + (block->screenExtent >> 1);
 
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)((_AcropolisBridgeBillboardScratch*)(head - sizeof(_AcropolisBridgeBillboardScratch)))->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)(scratchEnd - 1)->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                quad);
     }
-    SCRATCH_POP_BYTES_AT(scratch, sizeof(_AcropolisBridgeBillboardScratch));
+    SCRATCH_POP_BYTES_AT(scratchSlot, sizeof(_AcropolisBridgeBillboardScratch));
 }
 
 /// Debug message the walker's route search prints when no candidate beat its
@@ -5128,64 +5123,66 @@ static void func_acropolis_bridge_80185988(Enemy* enemy, Task* task)
     task->state++;
 }
 
-/// Resets the walker's scale matrix to a uniform `walker->scale` scale, through
-/// a `VECTOR` borrowed from the scratch arena and released again. Identity is
-/// left in place at the two ends of the ramp (0 and full size), where scaling
-/// would be a no-op anyway. `func_acropolis_bridge_80185F28` and
-/// `func_acropolis_bridge_801863A8` both inline it on their first frame, where
-/// the scratch block is taken and released around the whole matrix reset, and
-/// the shrink variant below once per frame of the shrink, where the diagonal is
-/// written before the block is taken.
-static __inline__ void bridge_reset_scale_mtx_entry(_AcropolisBridgeEnemyWork* work)
+/// Rebuilds the enemy walker's uniform scale matrix during state entry.
+///
+/// Clears translation and off-diagonal entries, then uses `walker.scale` in Q12
+/// units (`ONE` is full scale). Zero and `ONE` both leave identity; the zero case
+/// is retained behavior. Borrows one `VECTOR` from the initialized scratch stack
+/// and releases it before returning. The two reset helpers retain the ordering
+/// of the entry and shrinking updates.
+static __inline__ void _acropolisBridgeResetEnemyScaleOnEntry(_AcropolisBridgeEnemyWork* work)
 {
     BossStrangerWalker* walker;
-    u8*                 head;
-    VECTOR*             scale;
-    s32                 amount;
+    VECTOR*             scratchEnd;
+    VECTOR*             scaleVector;
+    s32                 scaleAmount;
 
-    head                         = SCRATCH_STACK_CURSOR(u8);
+    scratchEnd                   = SCRATCH_STACK_CURSOR(VECTOR);
     walker                       = &work->walker;
-    amount                       = walker->scale;
-    scale                        = (VECTOR*)(head - 0x10);
-    SCRATCH_STACK_CURSOR(VECTOR) = scale;
+    scaleAmount                  = walker->scale;
+    scaleVector                  = scratchEnd - 1;
+    SCRATCH_STACK_CURSOR(VECTOR) = scaleVector;
     walker->scaleMtx.m[2][1]     = 0;
     walker->scaleMtx.m[2][0]     = 0;
     walker->scaleMtx.m[1][2]     = 0;
     walker->scaleMtx.m[1][0]     = 0;
     walker->scaleMtx.m[0][2]     = 0;
     walker->scaleMtx.m[0][1]     = 0;
-    walker->scaleMtx.m[2][2]     = 0x1000;
-    walker->scaleMtx.m[1][1]     = 0x1000;
-    walker->scaleMtx.m[0][0]     = 0x1000;
+    walker->scaleMtx.m[2][2]     = ONE;
+    walker->scaleMtx.m[1][1]     = ONE;
+    walker->scaleMtx.m[0][0]     = ONE;
     walker->scaleMtx.t[2]        = 0;
     walker->scaleMtx.t[1]        = 0;
     walker->scaleMtx.t[0]        = 0;
-    if (amount != 0 && amount != 0x1000) {
-        scale->vz                    = amount;
-        scale->vy                    = amount;
-        ((VECTOR*)(head - 0x10))->vx = amount;
-        ScaleMatrix(&work->walker.scaleMtx, scale);
+    if (scaleAmount != 0 && scaleAmount != ONE) {
+        scaleVector->vz        = scaleAmount;
+        scaleVector->vy        = scaleAmount;
+        ((scratchEnd - 1))->vx = scaleAmount;
+        ScaleMatrix(&work->walker.scaleMtx, scaleVector);
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x10);
+    SCRATCH_STACK_RELEASE_BLOCK(VECTOR);
 }
 
-/// The same matrix reset as `bridge_reset_scale_mtx_entry`, in the statement
-/// order the shrink halves of `func_acropolis_bridge_80185F28` and
-/// `func_acropolis_bridge_801863A8` use (and the one `bridge_scale_up` uses for
-/// the spawn ramp).
-static __inline__ void bridge_reset_scale_mtx_shrink(_AcropolisBridgeEnemyWork* work)
+/// Rebuilds the enemy walker's uniform scale matrix during shrinking.
+///
+/// Clears translation and off-diagonal entries, then uses `walker.scale` in Q12
+/// units (`ONE` is full scale). Zero and `ONE` both leave identity; the zero case
+/// is retained behavior. Borrows one `VECTOR` from the initialized scratch stack
+/// and releases it before returning. The two reset helpers retain the ordering
+/// of the entry and shrinking updates.
+static __inline__ void _acropolisBridgeResetEnemyScaleDuringShrink(_AcropolisBridgeEnemyWork* work)
 {
     BossStrangerWalker* walker;
-    u8*                 head;
-    VECTOR*             scale;
-    s32                 amount;
+    VECTOR*             scratchEnd;
+    VECTOR*             scaleVector;
+    s32                 scaleAmount;
 
     walker                   = &work->walker;
-    head                     = SCRATCH_STACK_CURSOR(u8);
-    walker->scaleMtx.m[2][2] = 0x1000;
-    walker->scaleMtx.m[1][1] = 0x1000;
-    walker->scaleMtx.m[0][0] = 0x1000;
-    amount                   = walker->scale;
+    scratchEnd               = SCRATCH_STACK_CURSOR(VECTOR);
+    walker->scaleMtx.m[2][2] = ONE;
+    walker->scaleMtx.m[1][1] = ONE;
+    walker->scaleMtx.m[0][0] = ONE;
+    scaleAmount              = walker->scale;
     walker->scaleMtx.m[2][1] = 0;
     walker->scaleMtx.m[2][0] = 0;
     walker->scaleMtx.m[1][2] = 0;
@@ -5195,16 +5192,16 @@ static __inline__ void bridge_reset_scale_mtx_shrink(_AcropolisBridgeEnemyWork* 
     walker->scaleMtx.t[2]    = 0;
     walker->scaleMtx.t[1]    = 0;
     walker->scaleMtx.t[0]    = 0;
-    scale                    = (VECTOR*)(head - 0x10);
+    scaleVector              = (scratchEnd - 1);
 
-    SCRATCH_STACK_CURSOR(VECTOR) = scale;
-    if (amount != 0 && amount != 0x1000) {
-        scale->vz                    = amount;
-        scale->vy                    = amount;
-        ((VECTOR*)(head - 0x10))->vx = amount;
-        ScaleMatrix(&work->walker.scaleMtx, scale);
+    SCRATCH_STACK_CURSOR(VECTOR) = scaleVector;
+    if (scaleAmount != 0 && scaleAmount != ONE) {
+        scaleVector->vz        = scaleAmount;
+        scaleVector->vy        = scaleAmount;
+        ((scratchEnd - 1))->vx = scaleAmount;
+        ScaleMatrix(&work->walker.scaleMtx, scaleVector);
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x10);
+    SCRATCH_STACK_RELEASE_BLOCK(VECTOR);
 }
 
 /// Runs the bridge enemy's approach state. On the first frame (work block still
@@ -5232,7 +5229,7 @@ void func_acropolis_bridge_80185F28(Task* task)
         work->walker.routeData.cursor = 0;
         work->attack.flags           &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->body.flags             |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-        bridge_reset_scale_mtx_entry(work);
+        _acropolisBridgeResetEnemyScaleOnEntry(work);
         work->walker.turnLimit = 0x60;
         walker                 = &work->walker;
         walker->speedTarget    = 0x20;
@@ -5256,7 +5253,7 @@ void func_acropolis_bridge_80185F28(Task* task)
     }
     if (work->walker.scale >= 0x801) {
         work->walker.scale -= 0x33;
-        bridge_reset_scale_mtx_shrink(work);
+        _acropolisBridgeResetEnemyScaleDuringShrink(work);
     } else {
         enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
     }
@@ -5397,7 +5394,7 @@ void func_acropolis_bridge_801863A8(Task* task)
         work->walker.state            = BOSS_STRANGER_WALKER_PATROL;
         work->walker.routeData.cursor = 0;
         work->attack.flags           &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        bridge_reset_scale_mtx_entry(work);
+        _acropolisBridgeResetEnemyScaleOnEntry(work);
         work->walker.turnLimit = 0x200;
         walker                 = &work->walker;
         walker->speedTarget    = 0x20;
@@ -5415,7 +5412,7 @@ void func_acropolis_bridge_801863A8(Task* task)
     }
     if (work->walker.scale >= 0x500) {
         work->walker.scale -= 0x46;
-        bridge_reset_scale_mtx_shrink(work);
+        _acropolisBridgeResetEnemyScaleDuringShrink(work);
     } else if (enemy->node.state.parts.flags == 0) {
         enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
     }
@@ -5430,37 +5427,42 @@ void func_acropolis_bridge_801863A8(Task* task)
     }
 }
 
-/// Reports whether the bridge enemy is standing on a kind-1 surface: the first
-/// three collision records are scanned in order and the scan stops at the first
-/// empty one, so an occupied record whose `key` high halfword is 1 has to
-/// come before any gap in the table.
-static __inline__ s32 bridge_rec_kind1(WorldCollisionContact* recs)
+/// Returns whether the enemy's three-entry contact prefix contains a player body.
+///
+/// Player and companion bodies share this key category. Scanning stops at the
+/// first zero key, so entries beyond a gap are deliberately ignored. The caller
+/// borrows the live `bodyContacts` array; no entries or pointers are changed.
+static __inline__ s32 _acropolisBridgeEnemyHasPlayerContact(const WorldCollisionContact* contacts)
 {
-    s16 i;
+    enum { ACROPOLIS_BRIDGE_ENEMY_BODY_CONTACT_COUNT = 3 };
+    s16 contactIndex;
 
-    for (i = 0; i < 3; i++) {
-        if (recs[i].key.value == 0) {
+    for (contactIndex = 0; contactIndex < ACROPOLIS_BRIDGE_ENEMY_BODY_CONTACT_COUNT; contactIndex++) {
+        if (contacts[contactIndex].key.value == 0) {
             return 0;
         }
-        if ((recs[i].key.value & 0xFFFF0000) == 0x10000) {
+        if ((contacts[contactIndex].key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == WORLD_COLLISION_CONTACT_PLAYER_BODY) {
             return 1;
         }
     }
     return 0;
 }
 
-/// Plays one of the bridge enemy's positional sounds. The spawn variant in the
-/// enemy's `field_8` high nibble picks the bank, so the event id is that nibble
-/// shifted into byte 1 of `base`, and the pan and depth come from the model's
-/// root coordinate.
-static __inline__ void bridge_play_snd(Task* task, Enemy* enemy, s32 base)
+/// Queues a positional sound with the enemy's placement index as its instance tag.
+///
+/// `baseSoundId` supplies the packed bank and entry, with a zero instance byte.
+/// The three bridge placements OR their index into that byte. Pan and attenuation
+/// come from the model root and retain their signed-byte narrowing. Sound
+/// resources and the live `task`/model must remain valid for the request.
+static __inline__ void _acropolisBridgePlayEnemySound(Task* task, Enemy* enemy, s32 baseSoundId)
 {
-    s32 snd;
-    s32 pan;
+    enum { ACROPOLIS_BRIDGE_SOUND_INSTANCE_SHIFT = 8 };
+    s32 soundId;
+    s32 panOffset;
 
-    snd = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | base;
-    pan = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
-    sndEvtRequestScriptStart(snd, pan,
+    soundId   = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << ACROPOLIS_BRIDGE_SOUND_INSTANCE_SHIFT) | baseSoundId;
+    panOffset = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
+    sndEvtRequestScriptStart(soundId, panOffset,
                              (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
 }
 
@@ -5544,7 +5546,7 @@ void func_acropolis_bridge_80186618(Task* task)
         work->animId != 4) {
         work->animRequest = 2;
         work->animId      = 4;
-        bridge_play_snd(task, enemy, 0x40290003);
+        _acropolisBridgePlayEnemySound(task, enemy, ACROPOLIS_BRIDGE_ENEMY_FALL_ANIMATION_SOUND);
     }
     if (work->animId == 4) {
         if (task->extra.tmd->coords->coord.t[1] >= -0x3DD &&
@@ -5554,7 +5556,7 @@ void func_acropolis_bridge_80186618(Task* task)
                 work->animRate    = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) * 2) + ANIMATION_RATE_ONE;
                 work->animRequest = 2;
                 work->animId      = 4;
-                bridge_play_snd(task, enemy, 0x40290003);
+                _acropolisBridgePlayEnemySound(task, enemy, ACROPOLIS_BRIDGE_ENEMY_FALL_ANIMATION_SOUND);
             }
         }
     }
@@ -5566,7 +5568,7 @@ void func_acropolis_bridge_80186618(Task* task)
                 work->animRate    = ANIMATION_RATE_ONE;
                 work->animRequest = 2;
                 work->animId      = 4;
-                bridge_play_snd(task, enemy, 0x40290003);
+                _acropolisBridgePlayEnemySound(task, enemy, ACROPOLIS_BRIDGE_ENEMY_FALL_ANIMATION_SOUND);
             }
         }
     }
@@ -5575,9 +5577,9 @@ void func_acropolis_bridge_80186618(Task* task)
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         work->yaw       = gRandomLcgState >> 16;
     }
-    if (bridge_rec_kind1(work->bodyContacts) != 0) {
+    if (_acropolisBridgeEnemyHasPlayerContact(work->bodyContacts) != 0) {
         if (work->hp > 0) {
-            bridge_play_snd(task, enemy, 0x40290002);
+            _acropolisBridgePlayEnemySound(task, enemy, ACROPOLIS_BRIDGE_ENEMY_CONTACT_SOUND);
         }
         work->state = 7;
     }
@@ -5637,7 +5639,7 @@ void func_acropolis_bridge_80186BBC(Task* task)
         work->animId != 4) {
         work->animRequest = 2;
         work->animId      = 4;
-        bridge_play_snd(task, enemy, 0x40290003);
+        _acropolisBridgePlayEnemySound(task, enemy, ACROPOLIS_BRIDGE_ENEMY_FALL_ANIMATION_SOUND);
     }
     if (work->animId == 4) {
         if (task->extra.tmd->coords->coord.t[1] >= -0x3DD &&
@@ -5647,7 +5649,7 @@ void func_acropolis_bridge_80186BBC(Task* task)
                 work->animRate    = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) * 2) + ANIMATION_RATE_ONE;
                 work->animRequest = 2;
                 work->animId      = 4;
-                bridge_play_snd(task, enemy, 0x40290003);
+                _acropolisBridgePlayEnemySound(task, enemy, ACROPOLIS_BRIDGE_ENEMY_FALL_ANIMATION_SOUND);
             }
         }
     }
@@ -5659,7 +5661,7 @@ void func_acropolis_bridge_80186BBC(Task* task)
                 work->animRate    = ANIMATION_RATE_ONE;
                 work->animRequest = 2;
                 work->animId      = 4;
-                bridge_play_snd(task, enemy, 0x40290003);
+                _acropolisBridgePlayEnemySound(task, enemy, ACROPOLIS_BRIDGE_ENEMY_FALL_ANIMATION_SOUND);
             }
         }
     }
@@ -5668,9 +5670,9 @@ void func_acropolis_bridge_80186BBC(Task* task)
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         work->yaw       = gRandomLcgState >> 16;
     }
-    if (bridge_rec_kind1(work->bodyContacts) != 0) {
+    if (_acropolisBridgeEnemyHasPlayerContact(work->bodyContacts) != 0) {
         if (work->hp > 0) {
-            bridge_play_snd(task, enemy, 0x40290002);
+            _acropolisBridgePlayEnemySound(task, enemy, ACROPOLIS_BRIDGE_ENEMY_CONTACT_SOUND);
         }
         work->state = 7;
     }
@@ -5713,7 +5715,7 @@ void func_acropolis_bridge_80187078(Task* task)
     task->extra.tmd->coords->coord.t[1] = work->baseHeight + work->sinkDepth;
     task->extra.tmd->coords->coord.t[1] +=
         rsin((gDisplayState.animFrame << 5) + task->extra.tmd->coords->coord.t[0]) >> 6;
-    if (bridge_rec_kind1(work->bodyContacts) != 0) {
+    if (_acropolisBridgeEnemyHasPlayerContact(work->bodyContacts) != 0) {
         coord  = task->extra.tmd->coords;
         dir.vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
         d      = &dir;

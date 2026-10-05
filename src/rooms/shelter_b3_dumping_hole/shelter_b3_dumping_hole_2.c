@@ -4253,8 +4253,8 @@ void func_shelter_b3_dumping_hole_80183F84(Task* task)
 #include "../../shared/effect_sprite_draw_rotated.inc.c"
 
 /// Per-frame update of an effect task drawn with
-/// `effectSpriteDrawChip` (state 1) or
-/// `effectSpriteDrawBillboard` (state 2). State 0 seeds the work from
+/// `_effectSpriteDrawChip` (state 1) or
+/// `_effectSpriteDrawBillboard` (state 2). State 0 seeds the work from
 /// `spawnArg1` and, when `move` is zero, picks a random velocity scaled
 /// through the GTE. Later ticks draw, drift the coordinate by that velocity
 /// with `vy` growing by 6, and advance the frame every `period` ticks,
@@ -4275,9 +4275,9 @@ void func_shelter_b3_dumping_hole_80186218(Task* task)
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             if (task->state < 2) {
-                effectSpriteDrawChip(coord, work->index, work->scale, work->angle);
+                _effectSpriteDrawChip(coord, work->index, work->scale, work->angle);
             } else {
-                effectSpriteDrawBillboard(coord, (u16)work->index, work->scale);
+                _effectSpriteDrawBillboard(coord, (u16)work->index, work->scale);
             }
             return;
         }
@@ -4355,10 +4355,10 @@ void func_shelter_b3_dumping_hole_80186218(Task* task)
             }
             return;
         case 1:
-            effectSpriteDrawChip(coord, work->index, work->scale, work->angle);
+            _effectSpriteDrawChip(coord, work->index, work->scale, work->angle);
             break;
         case 2:
-            effectSpriteDrawBillboard(coord, (u16)work->index, work->scale);
+            _effectSpriteDrawBillboard(coord, (u16)work->index, work->scale);
             break;
         default:
             return;
@@ -4392,7 +4392,7 @@ void func_shelter_b3_dumping_hole_80186D4C(Task* arg0)
     mem   = (EffectWork*)arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
-        effectSpriteDrawBillboard(coord, (mem->age / 2) & 0xFFFF, 0x380);
+        _effectSpriteDrawBillboard(coord, (mem->age / 2) & 0xFFFF, 0x380);
         if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             effectKillTask(mem, arg0);
         }
@@ -4420,7 +4420,7 @@ void func_shelter_b3_dumping_hole_80186D4C(Task* arg0)
             arg0->spawnArg1.value = 1;
             return;
         case 1:
-            effectSpriteDrawBillboard(coord, (mem->age / 2) & 0xFFFF, 0x380);
+            _effectSpriteDrawBillboard(coord, (mem->age / 2) & 0xFFFF, 0x380);
             if (!(mem->age & 1)) {
                 Gp_SpawnEff(EFFECT_GLUTTON_RAIN_PARTICLE, coord, 0x1001400, NULL);
             }

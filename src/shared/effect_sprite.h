@@ -1,10 +1,9 @@
-/* Drawing of the Shelter rooms' animated effect sprites as camera-facing
- * textured quads at a coordinate's world position, rotated and scaled by depth.
- * effectSpriteRiseTask is the plainer rising sprite of the pod rooms: eight
- * cells drawn through gameplay's effectDrawSpinningBillboard in one of six random CLUTs.
+/* Room sprite effects: animated debris, drifting sprites and rising sprites,
+ * with camera-facing chip and upright-billboard drawers. Included fragments
+ * provide each carrier's local implementations and texture layouts.
  *
  * Include this header in the prologue and each fragment at its function's
- * position.
+ * position. Select the billboard signature before the first inclusion.
  */
 
 #ifndef SRC_SHARED_EFFECT_SPRITE_H
@@ -14,14 +13,15 @@
 
 #include "main/coord.h"
 
-void effectSpriteDrawChip(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
-
 // Select the carrier's billboard signature before the first inclusion: either
 // halfword (u16, s16) or word (s32, s32) arguments. Drift-only rooms define neither.
+#if defined(EFFECT_SPRITE_BILLBOARD_HALFWORD_ARGUMENTS) || defined(EFFECT_SPRITE_BILLBOARD_WORD_ARGUMENTS)
+static void _effectSpriteDrawChip(const GfxCoord* coord, u16 frame, s16 size, s16 angle);
+#endif
 #ifdef EFFECT_SPRITE_BILLBOARD_HALFWORD_ARGUMENTS
-void effectSpriteDrawBillboard(GfxCoord* coord, u16 frame, s16 size);
+static void _effectSpriteDrawBillboard(const GfxCoord* coord, u16 frame, s16 size);
 #elif defined(EFFECT_SPRITE_BILLBOARD_WORD_ARGUMENTS)
-void effectSpriteDrawBillboard(GfxCoord* arg0, s32 arg1, s32 arg2);
+static void _effectSpriteDrawBillboard(const GfxCoord* coord, s32 frame, s32 size);
 #endif
 
 void effectSpriteDriftTaskAimed(Task* task);

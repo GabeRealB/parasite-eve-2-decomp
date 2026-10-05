@@ -37850,7 +37850,7 @@ col -= drift;                          /* addiu t2,t2,0x20; subu t2,t2,t4 */
 w->field_10.vx = col;
 ```
 
-Seen while matching `func_acropolis_bridge_8018099C` (rooms): 99.58% → 100%.
+Seen while matching `acropolisBridgeLowDustStreakTask` (rooms): 99.58% → 100%.
 
 ## Caching `p->field` in a local vs. repeating it changes the caller-save temp
 
@@ -57674,7 +57674,7 @@ single tail block and reaches it with a `j`. Which arm of the local `if` gets
 that `j` — and therefore the branch polarity — follows the source: the *then*
 arm falls through, the *else* arm is the one merged into the shared tail.
 
-`func_acropolis_bridge_80182694` ends its state-1 case with a decrement or a
+`acropolisBridgeWaterRippleTask` ends its state-1 case with a decrement or a
 `effectKillTask` that the early `gRoomEffectState->effectControl >= 4` path also
 reaches. Writing the release as the *then* arm inlines the `jal` in the middle
 of the function (`branch=1 insert=6 delete=5`, 84%):
@@ -58495,7 +58495,7 @@ slot far from either use — is not a colouring accident to be pinned away. GCC
 overlap, so a surviving `move` between two callee-saved registers means the
 source held the same value in two variables that are *both* live afterwards.
 
-`func_acropolis_bridge_80182394` takes a 0xC-byte block off the scratchpad and
+`acropolisBridgeDustMoteTask` takes a 0xC-byte block off the scratchpad and
 uses it twice: the `SVECTOR` stores go through one pointer and
 `gte_stszotz(&block->depth)` through another. One local scores 96.9% with
 `regs=26`; adding the second, assigned right where the copy appears, is 100%:
@@ -59026,7 +59026,7 @@ fix a constant's `li`, even when the store it feeds is not the one that moved.
 
 ## A flag used twice becomes an extra `move`; re-test the expression instead
 
-`func_acropolis_bridge_80180FF0` guards a draw block on a screen-bounds test and
+`acropolisBridgeParticleStreakTask` guards a draw block on a screen-bounds test and
 then re-uses the same answer in the release check after the call, so the flag has
 to survive in a callee-saved register. Written the obvious way,
 
@@ -59071,7 +59071,7 @@ whatever `base.c` produced on the first run.
 
 ## Two values in one hard register means one local in the C, not two
 
-`func_acropolis_bridge_80180320` sat at 99.80% with `regs=8` and every other
+`acropolisBridgeFallingStreakTask` sat at 99.80% with `regs=8` and every other
 penalty at zero: two live ranges were coloured `$a0`/`$t0` where the target used
 `$a3`/`$t4`. The permuter ran 12k iterations without improving on it, which is
 the tell that this is not a scheduling or shortening problem.
@@ -145578,7 +145578,7 @@ jump2 cross-jump the first copy's stores into the second (95.9%). Making the
 helper return the handler result (`return 1` inside it) and calling it as
 `return helper(in, out);` changes the jumps' targets, so jump2 picks the
 partners the target shows and it matches with no barrier.
-### A pin on a copy of a parameter usually means the original used the parameter itself (func_acropolis_bridge_801827EC, 2026-09-26)
+### A pin on a copy of a parameter usually means the original used the parameter itself (_acropolisBridgeDrawWaterRipple, 2026-09-26)
 
 `register GfxCoord* coord asm("t7"); coord = index; SOFT_TOUCH_REG(coord);` held
 the incoming pointer in `$t7`, the last free register after the GTE macros'
@@ -147154,23 +147154,23 @@ follow:
   splat refuses the duplicate, and `owner=` on the absolute one, or
   `check_symbols.py` reports the name as naming two things.
 
-## `&blk->arr[i]` and a store to `blk->arr[i].f` associate the same address differently (func_acropolis_bridge_801827EC, 2026-10-03)
+## `&blk->arr[i]` and a store to `blk->arr[i].f` associate the same address differently (_acropolisBridgeDrawWaterRipple, 2026-10-03)
 
 **Problem.** A loop over a scratch block's `SVECTOR corners[4]` at +8 keeps two
-address registers in the target: `addiu a0,a3,8` with `a3 = blk + i*8` for the
-plain halfword stores, and `addu v0,t1,t2` with `t2 = i*8 + 8` for the GTE
+address registers in the target: `addiu a0,a3,8` with `a3 = quadScratch + cornerIndex*8` for the
+plain halfword stores, and `addu v0,t1,t2` with `t2 = cornerIndex*8 + 8` for the GTE
 macros' pointer operand.
 
-**Symptom.** Any typed pointer to the element - `&blk->corners[i]`,
-`blk->corners + i`, `&blk->corners[0] + i`, `sv = blk->corners; sv += i`,
-`(SVECTOR*)&blk->corners[i].vx` - folds to `blk + (i*8 + 8)`, the macros' form,
+**Symptom.** Any typed pointer to the element - `&quadScratch->corners[cornerIndex]`,
+`quadScratch->corners + cornerIndex`, `&quadScratch->corners[0] + cornerIndex`, `corner = quadScratch->corners; corner += cornerIndex`,
+`(SVECTOR*)&quadScratch->corners[cornerIndex].vx` - folds to `quadScratch + (cornerIndex*8 + 8)`, the macros' form,
 so CSE shares one register and the function fails. A member store
-`blk->corners[i].vx = x` is the other association, `(blk + i*8) + 8`, emitted
+`quadScratch->corners[cornerIndex].vx = x` is the other association, `(quadScratch + cornerIndex*8) + 8`, emitted
 as `sh x,8(a3)`.
 
 **Fix.** None typed so far. Only a spelling that adds the member offset last
-matches: `(SVECTOR*)((u8*)blk + i * sizeof(SVECTOR) + OFFSET_OF(T, corners))`,
-or `&((T*)((SVECTOR*)blk + i))->corners[0]`. When a match needs the offset
+matches: `(SVECTOR*)((u8*)quadScratch + cornerIndex * sizeof(SVECTOR) + OFFSET_OF(T, corners))`,
+or `&((T*)((SVECTOR*)quadScratch + cornerIndex))->corners[0]`. When a match needs the offset
 form, read which association each use has in the target before trying more
 typed aliases; they all land on the address-of one.
 

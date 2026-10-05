@@ -718,15 +718,15 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_bridge_801812F4, { NULL } },                            // 0x0B1
     { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_bridge_801819C8, { NULL } },                            // 0x0B2
     { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_bridge_80181D28, { NULL } },                            // 0x0B3
-    { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_bridge_80180320, { NULL } },                            // 0x0B4
-    { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_bridge_8018063C, { NULL } },                            // 0x0B5
-    { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_bridge_8018099C, { NULL } },                            // 0x0B6
-    { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_bridge_80180CC0, { NULL } },                            // 0x0B7
-    { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_bridge_80180FF0, { NULL } },                            // 0x0B8
-    { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_bridge_80182694, { NULL } },                            // 0x0B9
+    { { { TASK_BODY_COORD, 0x70 } }, acropolisBridgeFallingStreakTask, { NULL } },                          // 0x0B4
+    { { { TASK_BODY_COORD, 0x70 } }, acropolisBridgeMidDustStreakTask, { NULL } },                          // 0x0B5
+    { { { TASK_BODY_COORD, 0x70 } }, acropolisBridgeLowDustStreakTask, { NULL } },                          // 0x0B6
+    { { { TASK_BODY_COORD, 0x70 } }, acropolisBridgeTallDustStreakTask, { NULL } },                         // 0x0B7
+    { { { TASK_BODY_COORD, 0x70 } }, acropolisBridgeParticleStreakTask, { NULL } },                         // 0x0B8
+    { { { TASK_BODY_COORD, 0x70 } }, acropolisBridgeWaterRippleTask, { NULL } },                            // 0x0B9
     { { { TASK_BODY_COORD, 0x70 } }, acropolisBridgeEffectSpriteDebrisTask, { NULL } },                     // 0x0BA
     { { { TASK_BODY_COORD, 0x70 } }, func_8011D1E0, { NULL } },                                             // 0x0BB
-    { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_bridge_80182394, { NULL } },                            // 0x0BC
+    { { { TASK_BODY_COORD, 0x70 } }, acropolisBridgeDustMoteTask, { NULL } },                               // 0x0BC
     { { { TASK_BODY_COORD, 0x70 } }, func_8011D1E0, { NULL } },                                             // 0x0BD
     { { { TASK_BODY_COORD, 0x70 } }, func_inferno_8012EF88, { NULL } },                                     // 0x0BE
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_underpass_8017DE30, { NULL } },                          // 0x0BF

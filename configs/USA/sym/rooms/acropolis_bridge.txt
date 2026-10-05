@@ -156,21 +156,21 @@ func_acropolis_bridge_801819C8 = 0x801819C8; // type:func
 
 func_acropolis_bridge_80181D28 = 0x80181D28; // type:func
 
-func_acropolis_bridge_80180320 = 0x80180320; // type:func
+acropolisBridgeFallingStreakTask = 0x80180320; // type:func
 
-func_acropolis_bridge_8018063C = 0x8018063C; // type:func
+acropolisBridgeMidDustStreakTask = 0x8018063C; // type:func
 
-func_acropolis_bridge_8018099C = 0x8018099C; // type:func
+acropolisBridgeLowDustStreakTask = 0x8018099C; // type:func
 
-func_acropolis_bridge_80180CC0 = 0x80180CC0; // type:func
+acropolisBridgeTallDustStreakTask = 0x80180CC0; // type:func
 
-func_acropolis_bridge_80180FF0 = 0x80180FF0; // type:func
+acropolisBridgeParticleStreakTask = 0x80180FF0; // type:func
 
-func_acropolis_bridge_80182694 = 0x80182694; // type:func
+acropolisBridgeWaterRippleTask = 0x80182694; // type:func
 
 acropolisBridgeEffectSpriteDebrisTask = 0x80182AF8; // type:func
 
-func_acropolis_bridge_80182394 = 0x80182394; // type:func
+acropolisBridgeDustMoteTask = 0x80182394; // type:func
 
 func_acropolis_bridge_8017DC68 = 0x8017DC68; // type:func
 actionPromptOutlineRect = 0x8017E908; // type:func
@@ -179,8 +179,8 @@ actionPromptDrawCursor = 0x8017F198; // type:func
 actionPromptHitTest = 0x8017F6D4; // type:func
 actionPromptReset = 0x8017F808; // type:func
 glowDrawTintedDiscNoBias = 0x80183654; // type:func
-effectSpriteDrawChip = 0x80182F8C; // type:func
-effectSpriteDrawBillboard = 0x801833A0; // type:func
+_effectSpriteDrawChip = 0x80182F8C; // type:func
+_effectSpriteDrawBillboard = 0x801833A0; // type:func
 bossStrangerArrived = 0x80184024; // type:func
 bossStrangerFollowRoute = 0x80184208; // type:func
 bossStrangerNodeNearestActor = 0x801843A0; // type:func
@@ -191,3 +191,6 @@ bossStrangerAvoidContacts = 0x80184B94; // type:func
 bossStrangerTurnToward = 0x80185104; // type:func
 bossStrangerTick = 0x8018532C; // type:func
 bridgeModelSetup = 0x8017DA64; // type:func
+_acropolisBridgeUpdateModelVisibility = 0x8017db08; // type:func
+_acropolisBridgeSetArrivalSpritesHidden = 0x8017f2d0; // type:func
+_acropolisBridgeDrawWaterRipple = 0x801827ec; // type:func
