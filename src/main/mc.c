@@ -908,168 +908,150 @@ void mcResetSaveData(void)
     _mcRestoreOptionDefaults();
 }
 
+/// Draw one memory-card prompt on the dialog task's panel and clear its UI result.
+///
+/// `task->spawnArg2.pointer` must borrow a live `UiObject`; `promptId` must index
+/// `Mc_PromptTable`. Draws the title and both prompt lines in the normal text
+/// color, with outlines and left alignment.
+static inline void _mcDrawPrompt(Task* task, s32 promptId)
+{
+    u32           textColorRgb;
+    UiObject*     panelObject;
+    McPromptPair* prompt;
+    McPromptPair* prompts;
+
+    panelObject         = task->spawnArg2.pointer;
+    textColorRgb        = uiGetTextColor(panelObject, USER_INTERFACE_TEXT_COLOR_NORMAL);
+    panelObject->result = USER_INTERFACE_RESULT_NONE;
+    uiDrawTitle(&(panelObject)->panel, Mc_StrMemoryCard);
+    prompts = Mc_PromptTable;
+    prompt  = &prompts[promptId];
+    textDrawUiLine(panelObject, panelObject->panel.contentLeft.signedValue + 2, -2, prompt->upperLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(panelObject, panelObject->panel.contentLeft.signedValue + 2, 0xF, prompt->lowerLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+}
+
 /// Prompt + optional choice dialog (Mc_PromptTable[mode]).
 static s32 Mc_PromptDialog(Task* task, s32 arg1, s32 unused3)
 {
-    u32            textColorRgb;
-    s32            one;
-    UiObject*      obj;
-    register Task* childTask asm("a0");
-    UiObject*      childObject;
-    McPromptPair*  entry;
-    McPromptPair*  base;
+    UiObject* obj;
+    Task*     child;
+    UiObject* childObject;
 
-    obj          = task->spawnArg2.pointer;
-    textColorRgb = uiGetTextColor(obj, USER_INTERFACE_TEXT_COLOR_NORMAL);
-    obj->result  = USER_INTERFACE_RESULT_NONE;
-    uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
-    one   = 1;
-    base  = Mc_PromptTable;
-    entry = &base[arg1];
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, textColorRgb, one, TEXT_ALIGNMENT_LEFT);
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, textColorRgb, one, TEXT_ALIGNMENT_LEFT);
+    obj = task->spawnArg2.pointer;
+    _mcDrawPrompt(task, arg1);
 
-    childTask = task->firstChild;
-    if (childTask == NULL) {
-        childObject = Ui_SpawnFromDesc(Mc_PromptDesc, one, one, 2, obj);
-        if (childObject != NULL) {
-            childObject->panel.bounds.unsignedRect.x = (obj->panel.contentOriginX.unsignedValue + obj->panel.contentRight.unsignedValue + 5) - childObject->panel.bounds.unsignedRect.w;
-            childObject->panel.bounds.unsignedRect.y = obj->panel.contentOriginY.unsignedValue + obj->panel.contentBottom.unsignedValue + 8;
-            obj->resultValue                         = 0;
-            obj->panel.control.word                  = USER_INTERFACE_PANEL_INACTIVE;
+    child = task->firstChild;
+    if (child == NULL) {
+        UiObject* spawned;
+
+        spawned = Ui_SpawnFromDesc(Mc_PromptDesc, 1, 1, 2, obj);
+        if (spawned != NULL) {
+            spawned->panel.bounds.unsignedRect.x = (obj->panel.contentOriginX.unsignedValue + obj->panel.contentRight.unsignedValue + 5) - spawned->panel.bounds.unsignedRect.w;
+            spawned->panel.bounds.unsignedRect.y = obj->panel.contentOriginY.unsignedValue + obj->panel.contentBottom.unsignedValue + 8;
+            obj->resultValue                     = 0;
+            obj->panel.control.word              = USER_INTERFACE_PANEL_INACTIVE;
         }
         return 0;
     }
-    // Borrow the child task's separate UI object until closing begins.
-    childObject = childTask->spawnArg2.pointer;
+    childObject = child->spawnArg2.pointer;
     if (childObject->result == USER_INTERFACE_RESULT_CONFIRM) {
         obj->resultValue = childObject->resultValue;
         uiStartTreeClosing(childObject, childObject->owner);
-        obj->panel.control.word = one;
+        obj->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
     }
     return obj->resultValue;
 }
 
 static s32 Mc_PromptDialogChoice(Task* task, s32 arg1, s32 unused3)
 {
-    u32            textColorRgb;
-    s32            one;
-    UiObject*      obj;
-    register Task* childTask asm("a0");
-    UiObject*      childObject;
-    McPromptPair*  entry;
-    McPromptPair*  base;
+    UiObject* obj;
+    Task*     child;
+    UiObject* childObject;
 
-    obj          = task->spawnArg2.pointer;
-    textColorRgb = uiGetTextColor(obj, USER_INTERFACE_TEXT_COLOR_NORMAL);
-    obj->result  = USER_INTERFACE_RESULT_NONE;
-    uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
-    one   = 1;
-    base  = Mc_PromptTable;
-    entry = &base[arg1];
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, textColorRgb, one, TEXT_ALIGNMENT_LEFT);
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, textColorRgb, one, TEXT_ALIGNMENT_LEFT);
+    obj = task->spawnArg2.pointer;
+    _mcDrawPrompt(task, arg1);
 
-    childTask = task->firstChild;
-    if (childTask == NULL) {
-        childObject = Ui_SpawnFromDesc(Mc_PromptDesc, 0, one, 2, obj);
-        if (childObject != NULL) {
-            childObject->panel.bounds.unsignedRect.x = (obj->panel.contentOriginX.unsignedValue + obj->panel.contentRight.unsignedValue + 5) - childObject->panel.bounds.unsignedRect.w;
-            childObject->panel.bounds.unsignedRect.y = obj->panel.contentOriginY.unsignedValue + obj->panel.contentBottom.unsignedValue + 0x10;
-            obj->resultValue                         = 0;
-            obj->panel.control.word                  = USER_INTERFACE_PANEL_INACTIVE;
+    child = task->firstChild;
+    if (child == NULL) {
+        UiObject* spawned;
+
+        spawned = Ui_SpawnFromDesc(Mc_PromptDesc, 0, 1, 2, obj);
+        if (spawned != NULL) {
+            spawned->panel.bounds.unsignedRect.x = (obj->panel.contentOriginX.unsignedValue + obj->panel.contentRight.unsignedValue + 5) - spawned->panel.bounds.unsignedRect.w;
+            spawned->panel.bounds.unsignedRect.y = obj->panel.contentOriginY.unsignedValue + obj->panel.contentBottom.unsignedValue + 0x10;
+            obj->resultValue                     = 0;
+            obj->panel.control.word              = USER_INTERFACE_PANEL_INACTIVE;
         }
         return 0;
     }
-    // Borrow the child task's separate UI object until closing begins.
-    childObject = childTask->spawnArg2.pointer;
+    childObject = child->spawnArg2.pointer;
     if (childObject->result == USER_INTERFACE_RESULT_CONFIRM) {
         obj->resultValue = childObject->resultValue;
         uiStartTreeClosing(childObject, childObject->owner);
-        obj->panel.control.word = one;
+        obj->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
     }
     return obj->resultValue;
 }
 
 static s32 Mc_PromptDialogSpawn(Task* task, s32 arg1, s32 unused3)
 {
-    u32            textColorRgb;
-    s32            one;
-    UiObject*      obj;
-    register Task* childTask asm("a0");
-    UiObject*      childObject;
-    McPromptPair*  entry;
-    McPromptPair*  base;
+    UiObject* obj;
+    Task*     child;
+    UiObject* childObject;
 
-    obj          = task->spawnArg2.pointer;
-    textColorRgb = uiGetTextColor(obj, USER_INTERFACE_TEXT_COLOR_NORMAL);
-    obj->result  = USER_INTERFACE_RESULT_NONE;
-    uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
-    one   = 1;
-    base  = Mc_PromptTable;
-    entry = &base[arg1];
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, textColorRgb, one, TEXT_ALIGNMENT_LEFT);
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, textColorRgb, one, TEXT_ALIGNMENT_LEFT);
+    obj = task->spawnArg2.pointer;
+    _mcDrawPrompt(task, arg1);
 
-    childTask = task->firstChild;
-    if (childTask == NULL) {
-        childObject = Ui_SpawnFromDesc(Mc_PromptDesc, 3, one, 2, obj);
-        if (childObject != NULL) {
-            childObject->panel.bounds.unsignedRect.x = (obj->panel.contentOriginX.unsignedValue + obj->panel.contentRight.unsignedValue + 5) - childObject->panel.bounds.unsignedRect.w;
-            childObject->panel.bounds.unsignedRect.y = obj->panel.contentOriginY.unsignedValue + obj->panel.contentBottom.unsignedValue + 0x10;
-            obj->resultValue                         = 0;
-            obj->panel.control.word                  = USER_INTERFACE_PANEL_INACTIVE;
+    child = task->firstChild;
+    if (child == NULL) {
+        UiObject* spawned;
+
+        spawned = Ui_SpawnFromDesc(Mc_PromptDesc, 3, 1, 2, obj);
+        if (spawned != NULL) {
+            spawned->panel.bounds.unsignedRect.x = (obj->panel.contentOriginX.unsignedValue + obj->panel.contentRight.unsignedValue + 5) - spawned->panel.bounds.unsignedRect.w;
+            spawned->panel.bounds.unsignedRect.y = obj->panel.contentOriginY.unsignedValue + obj->panel.contentBottom.unsignedValue + 0x10;
+            obj->resultValue                     = 0;
+            obj->panel.control.word              = USER_INTERFACE_PANEL_INACTIVE;
         }
         return 0;
     }
-    // Borrow the child task's separate UI object until closing begins.
-    childObject = childTask->spawnArg2.pointer;
+    childObject = child->spawnArg2.pointer;
     if (childObject->result == USER_INTERFACE_RESULT_CONFIRM) {
         obj->resultValue = childObject->resultValue;
         uiStartTreeClosing(childObject, childObject->owner);
-        obj->panel.control.word = one;
+        obj->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
     }
     return obj->resultValue;
 }
 
 static s32 Mc_PromptDialogFile(Task* task, s32 arg1, s32 unused3)
 {
-    u32            textColorRgb;
-    s32            one;
-    UiObject*      obj;
-    register Task* childTask asm("a0");
-    UiObject*      childObject;
-    McPromptPair*  entry;
-    McPromptPair*  base;
+    UiObject* obj;
+    Task*     child;
+    UiObject* childObject;
 
-    obj          = task->spawnArg2.pointer;
-    textColorRgb = uiGetTextColor(obj, USER_INTERFACE_TEXT_COLOR_NORMAL);
-    obj->result  = USER_INTERFACE_RESULT_NONE;
-    uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
-    one   = 1;
-    base  = Mc_PromptTable;
-    entry = &base[arg1];
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, textColorRgb, one, TEXT_ALIGNMENT_LEFT);
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, textColorRgb, one, TEXT_ALIGNMENT_LEFT);
+    obj = task->spawnArg2.pointer;
+    _mcDrawPrompt(task, arg1);
 
-    childTask = task->firstChild;
-    if (childTask == NULL) {
-        childObject = Ui_SpawnFromDesc(Mc_PromptDesc, 2, one, 2, obj);
-        if (childObject != NULL) {
-            childObject->panel.bounds.unsignedRect.h = 0x12;
-            childObject->panel.bounds.unsignedRect.x = (obj->panel.contentOriginX.unsignedValue + obj->panel.contentRight.unsignedValue + 5) - childObject->panel.bounds.unsignedRect.w;
-            childObject->panel.bounds.unsignedRect.y = obj->panel.contentOriginY.unsignedValue + obj->panel.contentBottom.unsignedValue + 8;
-            obj->resultValue                         = 0;
-            obj->panel.control.word                  = USER_INTERFACE_PANEL_INACTIVE;
+    child = task->firstChild;
+    if (child == NULL) {
+        UiObject* spawned;
+
+        spawned = Ui_SpawnFromDesc(Mc_PromptDesc, 2, 1, 2, obj);
+        if (spawned != NULL) {
+            spawned->panel.bounds.unsignedRect.h = 0x12;
+            spawned->panel.bounds.unsignedRect.x = (obj->panel.contentOriginX.unsignedValue + obj->panel.contentRight.unsignedValue + 5) - spawned->panel.bounds.unsignedRect.w;
+            spawned->panel.bounds.unsignedRect.y = obj->panel.contentOriginY.unsignedValue + obj->panel.contentBottom.unsignedValue + 8;
+            obj->resultValue                     = 0;
+            obj->panel.control.word              = USER_INTERFACE_PANEL_INACTIVE;
         }
         return 0;
     }
-    // Borrow the child task's separate UI object until closing begins.
-    childObject = childTask->spawnArg2.pointer;
+    childObject = child->spawnArg2.pointer;
     if (childObject->result == USER_INTERFACE_RESULT_CONFIRM) {
         obj->resultValue = childObject->resultValue;
         uiStartTreeClosing(childObject, childObject->owner);
-        obj->panel.control.word = one;
+        obj->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
     }
     return obj->resultValue;
 }
@@ -1437,28 +1419,6 @@ static void Mc_StateListDirectory(Task* task, McWork* work)
     entry = &base[idx];
     textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, textColorRgb, one, TEXT_ALIGNMENT_LEFT);
     textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, textColorRgb, one, TEXT_ALIGNMENT_LEFT);
-}
-
-/// Draw one memory-card prompt on the dialog task's panel and clear its UI result.
-///
-/// `task->spawnArg2.pointer` must borrow a live `UiObject`; `promptId` must index
-/// `Mc_PromptTable`. Draws the title and both prompt lines in the normal text
-/// color, with outlines and left alignment.
-static inline void _mcDrawPrompt(Task* task, s32 promptId)
-{
-    u32           textColorRgb;
-    UiObject*     panelObject;
-    McPromptPair* prompt;
-    McPromptPair* prompts;
-
-    panelObject         = task->spawnArg2.pointer;
-    textColorRgb        = uiGetTextColor(panelObject, USER_INTERFACE_TEXT_COLOR_NORMAL);
-    panelObject->result = USER_INTERFACE_RESULT_NONE;
-    uiDrawTitle(&(panelObject)->panel, Mc_StrMemoryCard);
-    prompts = Mc_PromptTable;
-    prompt  = &prompts[promptId];
-    textDrawUiLine(panelObject, panelObject->panel.contentLeft.signedValue + 2, -2, prompt->upperLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    textDrawUiLine(panelObject, panelObject->panel.contentLeft.signedValue + 2, 0xF, prompt->lowerLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
 }
 
 /// Start closing the first child panel and set the parent panel's input control.
