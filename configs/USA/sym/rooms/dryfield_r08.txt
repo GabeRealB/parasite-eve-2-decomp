@@ -38,15 +38,17 @@ D_dryfield_r08_80180BFC = 0x80180BFC; // size:0x8 defined:True
 D_dryfield_r08_80180C04 = 0x80180C04; // size:0x20 defined:True
 D_dryfield_r08_80180C24 = 0x80180C24; // size:0x4 defined:True
 
-func_dryfield_r08_8017F334 = 0x8017F334; // type:func
+dryfieldR08SetShatteredLampCount = 0x8017F334; // type:func
 
-func_dryfield_r08_8017F340 = 0x8017F340; // type:func
+dryfieldR08SetLampSpritesHidden = 0x8017F340; // type:func
 
-func_dryfield_r08_8017F438 = 0x8017F438; // type:func
+dryfieldR08SelectLightingBank = 0x8017F438; // type:func
 
-func_dryfield_r08_8017D5F8 = 0x8017D5F8; // type:func
+dryfieldR08LampGlowTask = 0x8017D5F8; // type:func
 
 dryfieldR08SpriteDriftTask = 0x8017D8B4; // type:func
 glowDrawDisc = 0x8017E7C8; // type:func
 _dryfieldR08DrawBankedDriftSprite = 0x8017defc; // type:func
 _dryfieldR08DrawAlternateDriftSprite = 0x8017e36c; // type:func
+_dryfieldR08DrawLampGlow = 0x8017eb68; // type:func
+_dryfieldR08SetViewSpriteBatchHidden = 0x8017f3b8; // type:func

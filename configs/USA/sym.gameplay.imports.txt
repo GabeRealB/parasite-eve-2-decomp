@@ -1929,7 +1929,7 @@ func_shelter_1f_tent_8017FE10 = 0x8017FE10; // type:func absolute:True owner=she
 
 func_mist_shooting_gallery_801811EC = 0x801811EC; // type:func absolute:True owner=mist_shooting_gallery shared=rooms
 
-func_dryfield_r08_8017D5F8 = 0x8017D5F8; // type:func absolute:True owner=dryfield_r08 shared=rooms
+dryfieldR08LampGlowTask = 0x8017D5F8; // type:func absolute:True owner=dryfield_r08 shared=rooms
 
 func_neo_ark_pyramid_8017DBF0 = 0x8017DBF0; // type:func absolute:True owner=neo_ark_pyramid shared=rooms
 

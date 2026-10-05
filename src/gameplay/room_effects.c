@@ -974,7 +974,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, shelterB2PodBottomEffectSpriteDriftTask, { NULL } },                   // 0x1B3
     { { { TASK_BODY_COORD, 0x70 } }, shelterB1PodServiceGantrySpriteDriftTask, { NULL } },                  // 0x1B4
     { { { TASK_BODY_COORD, 0x70 } }, shelterB2PodAccessTunnelEffectSpriteDriftTask, { NULL } },             // 0x1B5
-    { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_r08_8017D5F8, { NULL } },                                // 0x1B6
+    { { { TASK_BODY_COORD, 0x70 } }, dryfieldR08LampGlowTask, { NULL } },                                   // 0x1B6
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldR08SpriteDriftTask, { NULL } },                                // 0x1B7
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldR08SpriteDriftTask, { NULL } },                                // 0x1B8
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b2_pod_bottom_80181B48, { NULL } },                       // 0x1B9

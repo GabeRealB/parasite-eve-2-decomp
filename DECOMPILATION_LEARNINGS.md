@@ -95244,9 +95244,9 @@ expression as a unit and only then shifts it, so the `- 1` survives. Write the
 lookup as an array index on the real type rather than as byte arithmetic:
 
 ```c
-rec = Gp_SprtTables[sess->field_3 - 1]->areaViews[sess->field_2 - 1];   /* 100% */
-rec = (*(SpriteAreaTable**)((s8*)Gp_SprtTables + (sess->field_3 - 1) * 4))
-          ->areaViews[sess->field_2 - 1];                              /* 96.2% */
+views = Gp_SprtTables[location->stage - 1]->areaViews[location->area - 1];   /* 100% */
+views = (*(SpriteAreaTable**)((s8*)Gp_SprtTables + (location->stage - 1) * 4))
+            ->areaViews[location->area - 1];                             /* 96.2% */
 ```
 
 The two sources differ in nothing else, yet the byte-arithmetic form also costs
@@ -95256,7 +95256,7 @@ the target's `$v0` to `$a1` (`regs=3` where the array form has `regs=0`). So
 "the address came out right" does not mean the index arithmetic is
 codegen-neutral — check the decrement and the mask's home together.
 
-Example: `func_dryfield_r08_8017F3B8`. Inputs: `base_1.i`
+Example: `_dryfieldR08SetViewSpriteBatchHidden`. Inputs: `base_1.i`
 `a52724021c0d0dda203a0eeb4f64bfd499c6166bfff7ef0f670c12663c891609`, `base_2.i`
 `903b36038e9083a05163d6128012ef49c9a553305e84a96d80c5821b10de87f4`.
 
@@ -95274,15 +95274,15 @@ landing at displacement 0xC addresses the *next* record's `hidden` off a base
 of `cmd`:
 
 ```c
-cmd = Gp_SprtTables[sess->field_3 - 1]->areaViews[sess->field_2 - 1][3].batches;
-cmd[arg0 + 1].hidden = 1;   /* sll v0,a0,3 ; addu v0,v0,a1 ; sb ...,0xC(v0) */
+batches = Gp_SprtTables[location->stage - 1]->areaViews[location->area - 1][3].batches;
+batches[lampSpriteIndex + 1].hidden = true;   /* sll v0,a0,3 ; addu v0,v0,a1 ; sb ...,0xC(v0) */
 ```
 
 `cmd[index].hidden` is the same shape at displacement 4 - read the
 displacement together with the scale before deciding the index is off by one.
 
-Example: `func_dryfield_r08_8017F340`, whose sibling `func_dryfield_r08_8017F3B8`
-in the same unit establishes the stride with `rec[1]` / `rec[2]` reads.
+Example: `dryfieldR08SetLampSpritesHidden`, whose sibling `_dryfieldR08SetViewSpriteBatchHidden`
+in the same unit establishes the stride with `views[1]` / `views[2]` reads.
 Input: `base_1.i`
 `3b9e12d4e068e1b36349f777ea5aaba2be5d2267460ab7294e24a6fa77ea6e4c`.
 ## A matched function's `.s` is often the only carrier of its rodata, so matching it drops those bytes (func_dryfield_dilapidated_house_8017E014, 2026-09-16)
@@ -121141,7 +121141,7 @@ Inputs: `base_4.i` SHA256 `f0b9e7eda1392817d7ec48d7a3644c15db0edb150b46e6b5bff00
 (96.629%), `base_6.i` SHA256 `2aa329fd9d3044830a2a735caf5275e1ffca77258a5ff86a0555b3632becfaae`
 (0 differences); `target.s` SHA256 `51ce14d617120b89c2cc71bb2287ab0c2b5381ccabb7074baa682d1721ad9f7c`.
 Scratch `nonmatchings/func_mine_forked_tunnel_8017D8EC-vacuum`.
-## A field re-read keeps `+ 1` a computation only when a store invalidates the tested load (func_dryfield_r08_8017D5F8, 2026-09-17)
+## A field re-read keeps `+ 1` a computation only when a store invalidates the tested load (dryfieldR08LampGlowTask, 2026-09-17)
 
 The `x == 0` jump-equivalence fold above (`func_actor_341300_80163A10`) has a
 narrow escape that the task-init idiom lands on by accident. `if (task->state ==
@@ -121178,8 +121178,8 @@ value, and sched1 keeps that order (all priorities equal in the block). Move the
 index into the loop and let `loop.c` build the biv's initial value instead:
 
 ```c
-for (i = D_dryfield_r08_80180C24; i < 12; i++) {
-    func_dryfield_r08_8017EB68(&D_dryfield_r08_8017F464[i], 0xA0, 0x3888);
+for (lampIndex = D_dryfield_r08_80180C24; lampIndex < (s32)ARRAY_SIZE(D_dryfield_r08_8017F464); lampIndex++) {
+    _dryfieldR08DrawLampGlow(&D_dryfield_r08_8017F464[lampIndex], DRYFIELD_R08_LAMP_GLOW_SIZE, DRYFIELD_R08_LAMP_GLOW_TINT);
 }
 ```
 
@@ -121197,7 +121197,7 @@ plus an explicit zero word (`const u32 D_dryfield_r08_8017D5D8
 SECTION(".rodata") = 0;`) after the generated table - the `actor_401000` shape
 above, the pad being the one the target keeps ahead of
 `dryfieldR08SpriteDriftTask`'s still-asm table. Scratch
-`nonmatchings/func_dryfield_r08_8017D5F8-vacuum`.
+`nonmatchings/dryfieldR08LampGlowTask-vacuum`.
 ## A per-arm memory store is what keeps a conditional's value in `$v0` - if-conversion rewrites the if/else that uses a local (func_dryfield_night_water_hole_8017DADC, 2026-09-17)
 
 The handler picks a command byte from a `gameFlagGetNibble` result and stores

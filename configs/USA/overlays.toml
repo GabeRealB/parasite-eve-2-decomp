@@ -1520,7 +1520,7 @@ objects = [
 ]
 
 [rooms.overlays.dryfield_r08]
-label = "cutscene or one-off room; no map names it; the overlay id word is 0x0..0x4 and the jump table of func_dryfield_r08_8017D5F8 - the overlay's first function - starts at 0x4, so the head must be its own object or the table's .align 3 pads it onto 0x8"
+label = "cutscene or one-off room; no map names it; the overlay id word is 0x0..0x4 and the jump table of dryfieldR08LampGlowTask - the overlay's first function - starts at 0x4, so the head must be its own object or the table's .align 3 pads it onto 0x8"
 id = 313
 objects = [
   { kind = "packageId" },

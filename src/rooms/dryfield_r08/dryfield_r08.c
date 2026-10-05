@@ -56,7 +56,7 @@ extern WorldCoordRoomLights D_dryfield_r08_80180B58;
 
 static void _dryfieldR08DrawBankedDriftSprite(const GfxCoord* coord, u16 frameAndPalette, s16 size, s16 angle);
 static void _dryfieldR08DrawAlternateDriftSprite(const GfxCoord* coord, u16 frameAndPalette, s16 size, s16 angle);
-static void func_dryfield_r08_8017EB68(SVECTOR* arg0, s32 arg1, s32 arg2);
+static void _dryfieldR08DrawLampGlow(const SVECTOR* worldPoint, s32 radiusScale, s32 packedTint);
 
 extern WorldCollisionGrid D_dryfield_r08_8017FB98[1];
 
@@ -559,71 +559,79 @@ WorldCollisionSurfaceProperties* D_dryfield_r08_80180C04[8] = {
 
 s32 D_dryfield_r08_80180C24 = 0;
 
-static void func_dryfield_r08_8017F3B8(u8 arg0, u8 arg1);
-
-void func_dryfield_r08_8017D5F8(Task* task)
+void dryfieldR08LampGlowTask(Task* task)
 {
-    s32 i;
-    u8  view;
+    enum {
+        DRYFIELD_R08_GLOW_TASK_INITIALIZE = 0,
+        DRYFIELD_R08_ROOM_GLOW_SIZE       = 0x200,
+        DRYFIELD_R08_LAMP_GLOW_SIZE       = 0xA0,
+        DRYFIELD_R08_ROOM_GLOW_WHITE      = 0x444,
+        DRYFIELD_R08_ROOM_GLOW_RED        = 0x400,
+        DRYFIELD_R08_ROOM_GLOW_WARM       = 0x433,
+        DRYFIELD_R08_LAMP_GLOW_TINT       = 0x3888
+    };
+    s32 lampIndex;
+    u8  mappedView;
 
-    if (task->state == 0) {
+    // Reset the shared shattering cutoff before this task's first draw.
+    if (task->state == DRYFIELD_R08_GLOW_TASK_INITIALIZE) {
         D_dryfield_r08_80180C24 = 0;
         task->state             = task->state + 1;
     }
 
-    view = viewGetMappedIndex();
-    switch (view) {
+    mappedView = viewGetMappedIndex();
+    switch (mappedView) {
         case 2: {
-            SVECTOR* q;
+            const SVECTOR* roomGlowPoints;
 
-            q = D_dryfield_r08_8017F4C4;
-            glowDrawDisc(&q[0], 0x200, 0x444);
-            glowDrawDisc(&q[2], 0x200, 0x444);
-            glowDrawDisc(&q[3], 0x200, 0x444);
-            glowDrawDisc(&q[6], 0x200, 0x444);
-            glowDrawDisc(&q[14], 0x200, 0x444);
-            glowDrawDisc(&q[15], 0x200, 0x444);
-            glowDrawDisc(&q[16], 0x200, 0x444);
-            glowDrawDisc(&q[17], 0x200, 0x444);
+            roomGlowPoints = D_dryfield_r08_8017F4C4;
+            glowDrawDisc(&roomGlowPoints[0], DRYFIELD_R08_ROOM_GLOW_SIZE, DRYFIELD_R08_ROOM_GLOW_WHITE);
+            glowDrawDisc(&roomGlowPoints[2], DRYFIELD_R08_ROOM_GLOW_SIZE, DRYFIELD_R08_ROOM_GLOW_WHITE);
+            glowDrawDisc(&roomGlowPoints[3], DRYFIELD_R08_ROOM_GLOW_SIZE, DRYFIELD_R08_ROOM_GLOW_WHITE);
+            glowDrawDisc(&roomGlowPoints[6], DRYFIELD_R08_ROOM_GLOW_SIZE, DRYFIELD_R08_ROOM_GLOW_WHITE);
+            glowDrawDisc(&roomGlowPoints[14], DRYFIELD_R08_ROOM_GLOW_SIZE, DRYFIELD_R08_ROOM_GLOW_WHITE);
+            glowDrawDisc(&roomGlowPoints[15], DRYFIELD_R08_ROOM_GLOW_SIZE, DRYFIELD_R08_ROOM_GLOW_WHITE);
+            glowDrawDisc(&roomGlowPoints[16], DRYFIELD_R08_ROOM_GLOW_SIZE, DRYFIELD_R08_ROOM_GLOW_WHITE);
+            glowDrawDisc(&roomGlowPoints[17], DRYFIELD_R08_ROOM_GLOW_SIZE, DRYFIELD_R08_ROOM_GLOW_WHITE);
             break;
         }
         case 3:
-            for (i = D_dryfield_r08_80180C24; i < 12; i++) {
-                func_dryfield_r08_8017EB68(&D_dryfield_r08_8017F464[i], 0xA0, 0x3888);
+            for (lampIndex = D_dryfield_r08_80180C24; lampIndex < (s32)ARRAY_SIZE(D_dryfield_r08_8017F464); lampIndex++) {
+                _dryfieldR08DrawLampGlow(&D_dryfield_r08_8017F464[lampIndex], DRYFIELD_R08_LAMP_GLOW_SIZE, DRYFIELD_R08_LAMP_GLOW_TINT);
             }
             break;
         case 4:
-            for (i = D_dryfield_r08_80180C24; i < 12; i++) {
-                func_dryfield_r08_8017EB68(&D_dryfield_r08_8017F464[i], 0xA0, 0x3888);
+            for (lampIndex = D_dryfield_r08_80180C24; lampIndex < (s32)ARRAY_SIZE(D_dryfield_r08_8017F464); lampIndex++) {
+                _dryfieldR08DrawLampGlow(&D_dryfield_r08_8017F464[lampIndex], DRYFIELD_R08_LAMP_GLOW_SIZE, DRYFIELD_R08_LAMP_GLOW_TINT);
             }
             break;
         case 5: {
-            SVECTOR* q;
+            const SVECTOR* roomGlowPoints;
 
-            q = D_dryfield_r08_8017F4C4;
-            glowDrawDisc(&q[0], 0x200, 0x444);
-            glowDrawDisc(&q[1], 0x200, 0x444);
-            glowDrawDisc(&q[2], 0x200, 0x444);
-            glowDrawDisc(&q[7], 0x200, 0x444);
-            glowDrawDisc(&q[8], 0x200, 0x444);
-            glowDrawDisc(&q[21], 0x200, 0x400);
-            glowDrawDisc(&q[22], 0x200, 0x400);
-            glowDrawDisc(&q[23], 0x200, 0x400);
-            glowDrawDisc(&q[29], 0x200, 0x400);
+            roomGlowPoints = D_dryfield_r08_8017F4C4;
+            glowDrawDisc(&roomGlowPoints[0], DRYFIELD_R08_ROOM_GLOW_SIZE, DRYFIELD_R08_ROOM_GLOW_WHITE);
+            glowDrawDisc(&roomGlowPoints[1], DRYFIELD_R08_ROOM_GLOW_SIZE, DRYFIELD_R08_ROOM_GLOW_WHITE);
+            glowDrawDisc(&roomGlowPoints[2], DRYFIELD_R08_ROOM_GLOW_SIZE, DRYFIELD_R08_ROOM_GLOW_WHITE);
+            glowDrawDisc(&roomGlowPoints[7], DRYFIELD_R08_ROOM_GLOW_SIZE, DRYFIELD_R08_ROOM_GLOW_WHITE);
+            glowDrawDisc(&roomGlowPoints[8], DRYFIELD_R08_ROOM_GLOW_SIZE, DRYFIELD_R08_ROOM_GLOW_WHITE);
+            glowDrawDisc(&roomGlowPoints[21], DRYFIELD_R08_ROOM_GLOW_SIZE, DRYFIELD_R08_ROOM_GLOW_RED);
+            glowDrawDisc(&roomGlowPoints[22], DRYFIELD_R08_ROOM_GLOW_SIZE, DRYFIELD_R08_ROOM_GLOW_RED);
+            glowDrawDisc(&roomGlowPoints[23], DRYFIELD_R08_ROOM_GLOW_SIZE, DRYFIELD_R08_ROOM_GLOW_RED);
+            glowDrawDisc(&roomGlowPoints[29], DRYFIELD_R08_ROOM_GLOW_SIZE, DRYFIELD_R08_ROOM_GLOW_RED);
             break;
         }
         case 6: {
-            SVECTOR* q;
+            const SVECTOR* roomGlowPoints;
 
-            q = D_dryfield_r08_8017F4C4;
-            glowDrawDisc(&q[0], 0x200, 0x433);
-            glowDrawDisc(&q[2], 0x200, 0x433);
-            glowDrawDisc(&q[3], 0x200, 0x433);
-            glowDrawDisc(&q[6], 0x200, 0x433);
-            glowDrawDisc(&q[14], 0x200, 0x433);
-            glowDrawDisc(&q[15], 0x200, 0x433);
-            glowDrawDisc(&q[16], 0x200, 0x433);
-            glowDrawDisc(&q[17], 0x200, 0x433);
+            roomGlowPoints = D_dryfield_r08_8017F4C4;
+            glowDrawDisc(&roomGlowPoints[0], DRYFIELD_R08_ROOM_GLOW_SIZE, DRYFIELD_R08_ROOM_GLOW_WARM);
+            glowDrawDisc(&roomGlowPoints[2], DRYFIELD_R08_ROOM_GLOW_SIZE, DRYFIELD_R08_ROOM_GLOW_WARM);
+            glowDrawDisc(&roomGlowPoints[3], DRYFIELD_R08_ROOM_GLOW_SIZE, DRYFIELD_R08_ROOM_GLOW_WARM);
+            glowDrawDisc(&roomGlowPoints[6], DRYFIELD_R08_ROOM_GLOW_SIZE, DRYFIELD_R08_ROOM_GLOW_WARM);
+            glowDrawDisc(&roomGlowPoints[14], DRYFIELD_R08_ROOM_GLOW_SIZE, DRYFIELD_R08_ROOM_GLOW_WARM);
+            glowDrawDisc(&roomGlowPoints[15], DRYFIELD_R08_ROOM_GLOW_SIZE, DRYFIELD_R08_ROOM_GLOW_WARM);
+            glowDrawDisc(&roomGlowPoints[16], DRYFIELD_R08_ROOM_GLOW_SIZE, DRYFIELD_R08_ROOM_GLOW_WARM);
+            glowDrawDisc(&roomGlowPoints[17], DRYFIELD_R08_ROOM_GLOW_SIZE, DRYFIELD_R08_ROOM_GLOW_WARM);
             break;
         }
     }
@@ -908,185 +916,195 @@ static void _dryfieldR08DrawAlternateDriftSprite(const GfxCoord* coord, u16 fram
 
 #include "../../shared/glow_draw_disc.inc.c"
 
-/// Projects the world-space point `arg0` through `gGfxViewCoord.workm` and, when
-/// the GTE flag is non-negative, queues an eight-wedge gouraud disc plus four
-/// inner cross wedges around the projected centre. `arg1` is a
-/// signed half-extent; on-screen radii are `(s16)arg1 * 64 / otz` (outer) and
-/// `(s16)arg1 * 8 / otz` (inner). `arg2` packs the colour one nibble per
-/// channel - bits 8..11 red, 4..7 green, 0..3 blue, each scaled to 8 bits -
-/// with bits 12..15 giving the shift for a `gDisplayState.animFrame & 1`
-/// flicker added to every channel. The outer disc uses the full colour and
-/// the inner cross half of it.
-static void func_dryfield_r08_8017EB68(SVECTOR* arg0, s32 arg1, s32 arg2)
+/// Initializes a lamp-glow wedge with a coloured centre and black rim.
+///
+/// Borrows one writable `POLY_G4`; colour arguments are stored as low bytes.
+/// Sets the packet length and Gouraud command. Coordinates, ordering-table
+/// linkage and additive blend commands are supplied by the drawer.
+static inline void _dryfieldR08InitLampGlowWedge(POLY_G4* wedge, s32 red, s32 green, s32 blue)
 {
-    RoomDiscScratch* block;
-    POLY_G4*         prim;
-    s32              ang;
-    s32              t;
-    s32              t2;
-    s32              ua;
-    s32              ub;
-    s32              uc;
-    s32              frame;
-    s32              packed;
-    s32              blend;
-    s32              r;
-    s32              g;
-    s32              b;
-    s32              outer;
-    s32              inner;
+    setPolyG4(wedge);
+    setRGB0(wedge, 0, 0, 0);
+    setRGB1(wedge, 0, 0, 0);
+    setRGB2(wedge, red, green, blue);
+    setRGB3(wedge, 0, 0, 0);
+}
 
-    block = SCRATCH_STACK_RESERVE_BLOCK(RoomDiscScratch);
+/// Draws a flickering additive lamp disc with four overlaid cross rays.
+///
+/// Borrows a world point for one view-matrix projection. The signed low
+/// halfword of `radiusScale` gives outer and inner pixel radii of size * 64 /
+/// depth and size * 8 / depth, with depth equal to camera Z / 4. Rejects
+/// negative GTE flags; an accepted projection must have nonzero depth.
+/// `packedTint` bits 8..11, 4..7 and 0..3 are RGB nibbles scaled by 16;
+/// bits 12..15 select an odd-frame addition of 1 << shift, with shift 0..7.
+/// Colour bytes wrap before halving for the rays. Alternating ray tips extend
+/// to the outer radius and twice it; all shoulders use the inner radius.
+/// Requires initialized scratch and frame packet/ordering-table space for
+/// twelve quads plus additive blend commands; queued packets live through GPU use.
+static void _dryfieldR08DrawLampGlow(const SVECTOR* worldPoint, s32 radiusScale, s32 packedTint)
+{
+    RoomDiscScratch* projection;
+    POLY_G4*         wedge;
+    s32              signedRadiusScale;
+    s32              angle;
+    s32              halfStepAngle;
+    s32              nextAngle;
+    s32              previousShoulderAngle;
+    s32              nextShoulderAngle;
+    s32              oppositeAngle;
+    s32              animationFrame;
+    s32              shiftedTint;
+    s32              flickerBoost;
+    s32              red;
+    s32              green;
+    s32              blue;
+    s32              outerRadiusPixels;
+    s32              innerRadiusPixels;
 
+    projection = SCRATCH_STACK_RESERVE_BLOCK(RoomDiscScratch);
+
+    // Project once; every wedge shares the centre and unbiased sorting depth.
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
-    gte_ldv0(arg0);
+    gte_ldv0(worldPoint);
     gte_rtps();
-    gte_stsxy(&block->sx);
-    gte_stflg(&block->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&block->otz);
-        arg1             <<= 16;
-        arg1             >>= 16;
-        outer              = (arg1 * 64) / block->otz;
-        frame              = gDisplayState.animFrame;
-        block->outerRadius = outer;
-        inner              = (arg1 * 8) / block->otz;
-        ang                = 0;
-        packed             = arg2 << 16;
-        blend              = (frame & 1) << (packed >> 28);
-        r                  = blend + ((packed >> 20) & 0xF0);
-        g                  = blend + ((packed >> 16) & 0xF0);
-        b                  = blend + ((arg2 & 0xF) << 4);
-        block->innerRadius = inner;
+    gte_stsxy(&projection->sx);
+    gte_stflg(&projection->flag);
+    if (projection->flag >= 0) {
+        gte_stszotz(&projection->otz);
+        signedRadiusScale       = (s16)radiusScale;
+        outerRadiusPixels       = (signedRadiusScale * GLOW_RADIUS_SCALE) / projection->otz;
+        animationFrame          = gDisplayState.animFrame;
+        projection->outerRadius = outerRadiusPixels;
+        innerRadiusPixels       = (signedRadiusScale * GLOW_INNER_RADIUS_SCALE) / projection->otz;
+        angle                   = 0;
+        shiftedTint             = packedTint << 16;
+        flickerBoost            = (animationFrame & 1) << (shiftedTint >> 28);
+        red                     = flickerBoost + ((shiftedTint >> 20) & 0xF0);
+        green                   = flickerBoost + ((shiftedTint >> 16) & 0xF0);
+        blue                    = flickerBoost + ((packedTint & 0xF) << 4);
+        projection->innerRadius = innerRadiusPixels;
+        // Build an eight-wedge disc with a full-bright centre and black rim.
         do {
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, r, g, b);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx + ((block->outerRadius * rsin(ang)) >> 12);
-            t        = ang + 0x100;
-            prim->y0 = block->sy + ((block->outerRadius * rcos(ang)) >> 12);
-            prim->x1 = block->sx + ((block->outerRadius * rsin(t)) >> 12);
-            prim->y1 = block->sy + ((block->outerRadius * rcos(t)) >> 12);
-            t2       = ang + 0x200;
-            prim->x2 = block->sx;
-            prim->y2 = block->sy;
-            prim->x3 = block->sx + ((block->outerRadius * rsin(t2)) >> 12);
-            prim->y3 = block->sy + ((block->outerRadius * rcos(t2)) >> 12);
-            ang      = t2;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
-        } while (ang < 0x1000);
+            wedge          = gGpuPrimCursor;
+            gGpuPrimCursor = wedge + 1;
+            _dryfieldR08InitLampGlowWedge(wedge, red, green, blue);
+            wedge->x0     = projection->sx + ((projection->outerRadius * rsin(angle)) >> GLOW_TRIG_SHIFT);
+            halfStepAngle = angle + GLOW_SIXTEENTH_TURN;
+            wedge->y0     = projection->sy + ((projection->outerRadius * rcos(angle)) >> GLOW_TRIG_SHIFT);
+            wedge->x1     = projection->sx + ((projection->outerRadius * rsin(halfStepAngle)) >> GLOW_TRIG_SHIFT);
+            wedge->y1     = projection->sy + ((projection->outerRadius * rcos(halfStepAngle)) >> GLOW_TRIG_SHIFT);
+            nextAngle     = angle + GLOW_EIGHTH_TURN;
+            wedge->x2     = projection->sx;
+            wedge->y2     = projection->sy;
+            wedge->x3     = projection->sx + ((projection->outerRadius * rsin(nextAngle)) >> GLOW_TRIG_SHIFT);
+            wedge->y3     = projection->sy + ((projection->outerRadius * rcos(nextAngle)) >> GLOW_TRIG_SHIFT);
+            angle         = nextAngle;
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)projection->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                    wedge);
+            gpuSetPrimitiveBlendMode(wedge, GPU_BLEND_ADD, projection->otz);
+        } while (angle < GLOW_FULL_TURN);
 
-        r   = (u8)r >> 1;
-        g   = (u8)g >> 1;
-        b   = (u8)b >> 1;
-        ang = 0x200;
+        // Overlay four half-bright rays with alternating normal and doubled tips.
+        red   = (u8)red >> 1;
+        green = (u8)green >> 1;
+        blue  = (u8)blue >> 1;
+        angle = GLOW_EIGHTH_TURN;
         do {
-            ua             = ang - 0x400;
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, r, g, b);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx + ((block->innerRadius * rsin(ua)) >> 12);
-            prim->y0 = block->sy + ((block->innerRadius * rcos(ua)) >> 12);
-            prim->x1 = block->sx + ((block->outerRadius * rsin(ang)) >> 12);
-            prim->y1 = block->sy + ((block->outerRadius * rcos(ang)) >> 12);
-            ub       = ang + 0x400;
-            prim->x2 = block->sx;
-            prim->y2 = block->sy;
-            prim->x3 = block->sx + ((block->innerRadius * rsin(ub)) >> 12);
-            prim->y3 = block->sy + ((block->innerRadius * rcos(ub)) >> 12);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
+            previousShoulderAngle = angle - GLOW_QUARTER_TURN;
+            wedge                 = gGpuPrimCursor;
+            gGpuPrimCursor        = wedge + 1;
+            _dryfieldR08InitLampGlowWedge(wedge, red, green, blue);
+            wedge->x0         = projection->sx + ((projection->innerRadius * rsin(previousShoulderAngle)) >> GLOW_TRIG_SHIFT);
+            wedge->y0         = projection->sy + ((projection->innerRadius * rcos(previousShoulderAngle)) >> GLOW_TRIG_SHIFT);
+            wedge->x1         = projection->sx + ((projection->outerRadius * rsin(angle)) >> GLOW_TRIG_SHIFT);
+            wedge->y1         = projection->sy + ((projection->outerRadius * rcos(angle)) >> GLOW_TRIG_SHIFT);
+            nextShoulderAngle = angle + GLOW_QUARTER_TURN;
+            wedge->x2         = projection->sx;
+            wedge->y2         = projection->sy;
+            wedge->x3         = projection->sx + ((projection->innerRadius * rsin(nextShoulderAngle)) >> GLOW_TRIG_SHIFT);
+            wedge->y3         = projection->sy + ((projection->innerRadius * rcos(nextShoulderAngle)) >> GLOW_TRIG_SHIFT);
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)projection->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                    wedge);
+            gpuSetPrimitiveBlendMode(wedge, GPU_BLEND_ADD, projection->otz);
 
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, r, g, b);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx + ((block->innerRadius * rsin(ang)) >> 12);
-            prim->y0 = block->sy + ((block->innerRadius * rcos(ang)) >> 12);
-            prim->x1 = block->sx + ((block->outerRadius * rsin(ub)) >> 11);
-            prim->y1 = block->sy + ((block->outerRadius * rcos(ub)) >> 11);
-            uc       = ang + 0x800;
-            prim->x2 = block->sx;
-            prim->y2 = block->sy;
-            prim->x3 = block->sx + ((block->innerRadius * rsin(uc)) >> 12);
-            prim->y3 = block->sy + ((block->innerRadius * rcos(uc)) >> 12);
-            ang      = uc;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
-        } while (ang < 0x1000);
+            wedge          = gGpuPrimCursor;
+            gGpuPrimCursor = wedge + 1;
+            _dryfieldR08InitLampGlowWedge(wedge, red, green, blue);
+            wedge->x0     = projection->sx + ((projection->innerRadius * rsin(angle)) >> GLOW_TRIG_SHIFT);
+            wedge->y0     = projection->sy + ((projection->innerRadius * rcos(angle)) >> GLOW_TRIG_SHIFT);
+            wedge->x1     = projection->sx + ((projection->outerRadius * rsin(nextShoulderAngle)) >> (GLOW_TRIG_SHIFT - 1));
+            wedge->y1     = projection->sy + ((projection->outerRadius * rcos(nextShoulderAngle)) >> (GLOW_TRIG_SHIFT - 1));
+            oppositeAngle = angle + GLOW_HALF_TURN;
+            wedge->x2     = projection->sx;
+            wedge->y2     = projection->sy;
+            wedge->x3     = projection->sx + ((projection->innerRadius * rsin(oppositeAngle)) >> GLOW_TRIG_SHIFT);
+            wedge->y3     = projection->sy + ((projection->innerRadius * rcos(oppositeAngle)) >> GLOW_TRIG_SHIFT);
+            angle         = oppositeAngle;
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)projection->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                    wedge);
+            gpuSetPrimitiveBlendMode(wedge, GPU_BLEND_ADD, projection->otz);
+        } while (angle < GLOW_FULL_TURN);
     }
     SCRATCH_STACK_RELEASE_BLOCK(RoomDiscScratch);
 }
 
-void func_dryfield_r08_8017F334(s32 arg0)
+void dryfieldR08SetShatteredLampCount(s32 shatteredLampCount)
 {
-    D_dryfield_r08_80180C24 = arg0;
+    D_dryfield_r08_80180C24 = shatteredLampCount;
 }
 
-/// Sets the skip-OT-link byte (`SpriteBatch.hidden`) of command record
-/// `arg0` + 1 in this room's sprite-table command list: non-zero leaves that
-/// record's prims out of the ordering table. `arg0` is a view index below
-/// 0xB; the record the table yields is larger than its `SpriteView` prefix,
-/// so `[3].field_4` reaches the command list its tail holds there.
-void func_dryfield_r08_8017F340(u8 arg0, u8 arg1)
+void dryfieldR08SetLampSpritesHidden(u8 lampSpriteIndex, u8 hidden)
 {
-    GameLocationKey* sess;
+    // Exclude the leading empty batch and the terminal batch from lamp indices.
+    enum { DRYFIELD_R08_LAMP_SPRITE_COUNT = ARRAY_SIZE(D_dryfield_r08_80180588) - 2 };
+    GameLocationKey* location;
     SpriteBatch*     batches;
 
-    sess = &gGameSession->location.loc;
-    if ((u32)(arg0 & 0xFF) < 0xBU) {
-        batches = Gp_SprtTables[sess->stage - 1]->areaViews[sess->area - 1][3].batches;
-        if (arg1 & 0xFF) {
-            batches[arg0 + 1].hidden = 1;
+    location = &gGameSession->location.loc;
+    if (lampSpriteIndex < DRYFIELD_R08_LAMP_SPRITE_COUNT) {
+        batches = Gp_SprtTables[location->stage - 1]->areaViews[location->area - 1][3].batches;
+        if (hidden) {
+            batches[lampSpriteIndex + 1].hidden = true;
             return;
         }
-        batches[arg0 + 1].hidden = 0;
+        batches[lampSpriteIndex + 1].hidden = false;
     }
 }
 
-static void func_dryfield_r08_8017F3B8(u8 arg0, u8 arg1)
+/// Shows or hides batch 1 in one of the room's second and third sprite views.
+///
+/// Selector 0 uses view array entry 1; selectors 1 and 2 use entry 2; values
+/// 3..255 do nothing. Zero `hidden` shows the batch; every nonzero byte hides
+/// it. Requires the current stage/area directory to select loaded Dryfield R08
+/// view records. Mutates their borrowed batch list; no pointers are retained.
+static void _dryfieldR08SetViewSpriteBatchHidden(u8 viewSelector, u8 hidden)
 {
-    GameLocationKey* sess;
-    SpriteView*      rec;
+    enum { DRYFIELD_R08_SPRITE_VIEW_SELECTOR_COUNT = 3 };
+    GameLocationKey* location;
+    SpriteView*      views;
     SpriteBatch*     batches;
 
-    sess = &gGameSession->location.loc;
-    if ((u32)(arg0 & 0xFF) < 3U) {
-        rec = Gp_SprtTables[sess->stage - 1]->areaViews[sess->area - 1];
-        if ((u32)(arg0 & 0xFF) == 0U) {
-            batches = rec[1].batches;
+    location = &gGameSession->location.loc;
+    if (viewSelector < DRYFIELD_R08_SPRITE_VIEW_SELECTOR_COUNT) {
+        views = Gp_SprtTables[location->stage - 1]->areaViews[location->area - 1];
+        if (viewSelector == 0) {
+            batches = views[1].batches;
         } else {
-            batches = rec[2].batches;
+            batches = views[2].batches;
         }
-        if (arg1 & 0xFF) {
-            batches[1].hidden = 1;
+        if (hidden) {
+            batches[1].hidden = true;
             return;
         }
-        batches[1].hidden = 0;
+        batches[1].hidden = false;
     }
 }
 
-/// Publishes one of the room's two data banks as the active one: bank 0 for a
-/// zero argument, bank 1 otherwise.
-void func_dryfield_r08_8017F438(s16 arg0)
+void dryfieldR08SelectLightingBank(s16 useAlternate)
 {
-    if (arg0 == 0) {
+    if (useAlternate == 0) {
         D_dryfield_r08_8017F708[0].lights = &D_dryfield_r08_801809C0;
         return;
     }

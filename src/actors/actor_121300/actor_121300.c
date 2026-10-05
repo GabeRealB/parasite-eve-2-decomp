@@ -2228,8 +2228,8 @@ static void func_actor_121300_80133580(Task* arg0, s16 arg1)
 
 /// Lamp shattering: while the `_Actor121300AyaBreaWork::lampCursor` record of
 /// `D_actor_121300_8013CC20` is a lamp, counts three ticks, then hides the
-/// next lamp's sprites through `func_dryfield_r08_8017F340`, tells the room
-/// through `func_dryfield_r08_8017F334` how many lamps are out and spawns the
+/// next lamp's sprites through `dryfieldR08SetLampSpritesHidden`, tells the room
+/// through `dryfieldR08SetShatteredLampCount` how many lamps are out and spawns the
 /// `D_actor_121300_8013D390[3]` child that scatters that lamp's debris.
 static void func_actor_121300_80133730(Task* arg0)
 {
@@ -2247,11 +2247,11 @@ static void func_actor_121300_80133730(Task* arg0)
                 if (++work->shatterFrames >= ACTOR_121300_SHATTER_INTERVAL) {
                     // Hide the lamp's sprite batch in the room's view; the seventh lamp has none.
                     if (work->lampsShattered < 6) {
-                        func_dryfield_r08_8017F340(work->lampsShattered, 1);
+                        dryfieldR08SetLampSpritesHidden(work->lampsShattered, 1);
                     } else if (work->lampsShattered >= 7) {
-                        func_dryfield_r08_8017F340(work->lampsShattered - 1, 1);
+                        dryfieldR08SetLampSpritesHidden(work->lampsShattered - 1, 1);
                     }
-                    func_dryfield_r08_8017F334(work->lampsShattered + 1);
+                    dryfieldR08SetShatteredLampCount(work->lampsShattered + 1);
                     taskSpawnFromTable(D_actor_121300_8013D390, 3, (s32)work->lampsShattered, 0);
                     work->shatterFrames = 0;
                     work->lampsShattered++;
@@ -2349,7 +2349,7 @@ static void func_actor_121300_80133854(Task* arg0)
                         animationResetSlot(&slotsWork->rig.anim, (u16)i, 1);
                     }
                 }
-                func_dryfield_r08_8017F438(1);
+                dryfieldR08SelectLightingBank(1);
             }
             func_actor_121300_8013343C(arg0, 0);
             func_actor_121300_80133580(arg0, 0);
