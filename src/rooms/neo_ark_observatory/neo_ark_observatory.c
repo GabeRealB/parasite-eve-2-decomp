@@ -136,10 +136,29 @@ extern s16           D_neo_ark_observatory_80187A3C;
 ///
 /// 1 lets `planar_reflection.inc.c` include `planar_reflection_rodata.inc.c`.
 #define PLANAR_REFLECTION_DEFINE_SCALE_WITH_IMPLEMENTATION 1
-static void func_neo_ark_observatory_8017F3FC(Task* task);
+static void _neoArkObservatoryPlayerReflectionTask(Task* reflectionTask);
 #include "../../shared/planar_reflection.h"
 
-static void func_neo_ark_observatory_80180534(SVECTOR* v, s32 arg1, s16 arg2, s16 arg3);
+static void _neoArkObservatoryDrawLightBeam(const SVECTOR ringCenters[2], s32 outerRadius, s16 baseIntensity, s16 segmentCount);
+
+/// Projects four initialized beam corners, retaining screen positions and GTE flags.
+///
+/// Uses the composed view rotation and the translation already loaded by the
+/// drawer. Only the final RTPT flags are retained; corner 0 flags are discarded.
+/// Leaves corner 3 depth in GTE SZ3 for the drawer to read before another projection.
+static inline void _neoArkObservatoryProjectBeamSegment(EffectQuadScratch* quadScratch)
+{
+    gte_SetRotMatrix(&gGfxViewCoord.workm);
+    gte_ldv0(&quadScratch->vertices[0]);
+    gte_rtps();
+    gte_stsxy(&quadScratch->screenCorners[0]);
+    gte_ldv3(&quadScratch->vertices[1], &quadScratch->vertices[2], &quadScratch->vertices[3]);
+    gte_rtpt();
+    gte_stsxy3(&quadScratch->screenCorners[1], &quadScratch->screenCorners[2], &quadScratch->screenCorners[3]);
+    gte_stflg(&quadScratch->projectionFlags);
+}
+
+enum { NEO_ARK_OBSERVATORY_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
 extern WorldCollisionGrid     gFollowCollisionGrid;
 extern WorldCollisionOccluder D_neo_ark_observatory_801878D4[4];
@@ -148,17 +167,17 @@ extern WorldCollisionTrigger  D_neo_ark_observatory_8018742C[14];
 extern WorldCoordRoomLights   D_neo_ark_observatory_80186844[1];
 extern WorldCoordRoomLights   D_neo_ark_observatory_80186EBC[1];
 
-s32 func_neo_ark_observatory_8017F6F8(Task* task, s32 msgId, const void* firstArg, s32);
-s32 func_neo_ark_observatory_8017FBE0(Task*, s32, s32, s32);
-s32 func_neo_ark_observatory_8017FBE8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_neo_ark_observatory_8017FCA0(Task*, s32, s32, s32);
+s32        func_neo_ark_observatory_8017F6F8(Task* task, s32 msgId, const void* firstArg, s32);
+static s32 _neoArkObservatoryRejectKeyItemMessage(Task* task, s32 messageId, s32 itemId, s32 secondArg);
+s32        func_neo_ark_observatory_8017FBE8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32        func_neo_ark_observatory_8017FCA0(Task*, s32, s32, s32);
 
 void func_neo_ark_observatory_8017FB1C(Task*);
 
 #include "../../shared/planar_reflection_data.inc.c"
 
 TaskDesc D_neo_ark_observatory_80180DBC[2] = {
-    { { { TASK_BODY_NONE, 112 } }, func_neo_ark_observatory_8017F3FC, { .value = 0 } },
+    { { { TASK_BODY_NONE, 112 } }, _neoArkObservatoryPlayerReflectionTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 112 } }, _planarReflectionAttachmentTask, { .value = 0 } },
 };
 
@@ -200,7 +219,7 @@ TaskDesc D_neo_ark_observatory_801811AC = { { { TASK_BODY_NONE, 192 } }, func_ne
 
 TaskMessageEntry D_neo_ark_observatory_801811B8[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_observatory_8017FBE8 },
-    { 5105, func_neo_ark_observatory_8017FBE0 },
+    { NEO_ARK_OBSERVATORY_MESSAGE_USE_KEY_ITEM, _neoArkObservatoryRejectKeyItemMessage },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_neo_ark_observatory_8017F6F8 },
     { ROOM_MESSAGE_COMMAND, func_neo_ark_observatory_8017FCA0 },
     { TASK_MESSAGE_TABLE_END, NULL },
@@ -1573,9 +1592,15 @@ static void            func_neo_ark_observatory_8017FD7C(Task* task);
 
 #include "../../shared/planar_reflection.inc.c"
 
-static void func_neo_ark_observatory_8017F3FC(Task* task)
+/// Runs this room's player reflection, including its attachment reflections.
+///
+/// Starts bodyless in state 0 with a live player model; spawnArg1.value selects
+/// a floor reflection (0) or the room's mirror plane (1). State 1 updates the
+/// cloned model and reflected view. The task owns its clone and mirror work
+/// and is torn down with the player; dispatch requires state 0 or 1.
+static void _neoArkObservatoryPlayerReflectionTask(Task* reflectionTask)
 {
-    _planarReflectionPlayerTask(task);
+    _planarReflectionPlayerTask(reflectionTask);
 }
 
 #undef PLANAR_REFLECTION_DEFINE_SCALE_WITH_IMPLEMENTATION
@@ -1720,7 +1745,11 @@ void func_neo_ark_observatory_8017FB1C(Task* task)
     }
 }
 
-s32 func_neo_ark_observatory_8017FBE0(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Rejects key-item use in this room with result 0 and no side effects.
+///
+/// All four callback arguments are unused. The key-item menu interprets zero
+/// as an unavailable use and leaves the item in inventory.
+static s32 _neoArkObservatoryRejectKeyItemMessage(Task* task, s32 messageId, s32 itemId, s32 secondArg)
 {
     return 0;
 }
@@ -1763,7 +1792,7 @@ static void func_neo_ark_observatory_8017FCE0(Task* arg0)
         func_neo_ark_observatory_8017FA98(0);
     }
     if (gameFlagGetNibble(GAME_FLAG_0E1) != 0) {
-        func_neo_ark_observatory_80180DAC(0xA0);
+        neoArkObservatorySetLightBeamIntensity(0xA0);
     }
     arg0->state = arg0->state + 1;
 }
@@ -1810,207 +1839,227 @@ void func_neo_ark_observatory_8017FDDC(Task* task)
 
 #include "../../shared/follow_collision_rebuild.inc.c"
 
-void func_neo_ark_observatory_80180124(Task* task)
+void neoArkObservatoryGlowTask(Task* effectTask)
 {
-    u8 view;
+    enum {
+        NEO_ARK_OBSERVATORY_GLOW_STATE_INIT   = 0,
+        NEO_ARK_OBSERVATORY_GLOW_STATE_DRAW   = 1,
+        NEO_ARK_OBSERVATORY_GLOW_DISC_BRIGHT  = 0x444, // Packed RGB nibbles
+        NEO_ARK_OBSERVATORY_GLOW_DISC_MEDIUM  = 0x333,
+        NEO_ARK_OBSERVATORY_GLOW_DISC_DIM     = 0x222,
+        NEO_ARK_OBSERVATORY_GLOW_HIGH_RADIUS  = 0x280, // Projected radius numerator
+        NEO_ARK_OBSERVATORY_GLOW_LOW_RADIUS   = 0x200,
+        NEO_ARK_OBSERVATORY_BEAM_SMALL_RADIUS = 0x400, // World-coordinate units
+        NEO_ARK_OBSERVATORY_BEAM_LARGE_RADIUS = 0x600,
+    };
+    u8 mappedView;
 
-    if (task->state == 0) {
+    if (effectTask->state == NEO_ARK_OBSERVATORY_GLOW_STATE_INIT) {
         D_neo_ark_observatory_80187A3C = 0;
-        task->state                    = 1;
+        effectTask->state              = NEO_ARK_OBSERVATORY_GLOW_STATE_DRAW;
     }
 
-    view = viewGetMappedIndex();
-    switch (view) {
+    // Select the lights visible in the mapped camera, including alternate room views.
+    // Retained offsets span light-position storage split into separate array symbols.
+    mappedView = viewGetMappedIndex();
+    switch (mappedView) {
         case 2:
-            glowDrawDisc(&D_neo_ark_observatory_801814E4[0], 0x280, 0x444);
+            glowDrawDisc(&D_neo_ark_observatory_801814E4[0], NEO_ARK_OBSERVATORY_GLOW_HIGH_RADIUS, NEO_ARK_OBSERVATORY_GLOW_DISC_BRIGHT);
             break;
         case 3: {
-            SVECTOR* p;
-            p = D_neo_ark_observatory_801814F4;
-            glowDrawDisc(&p[0], 0x280, 0x444);
-            glowDrawDisc(&p[1], 0x280, 0x444);
+            const SVECTOR* glowPoints;
+            glowPoints = D_neo_ark_observatory_801814F4;
+            glowDrawDisc(&glowPoints[0], NEO_ARK_OBSERVATORY_GLOW_HIGH_RADIUS, NEO_ARK_OBSERVATORY_GLOW_DISC_BRIGHT);
+            glowDrawDisc(&glowPoints[1], NEO_ARK_OBSERVATORY_GLOW_HIGH_RADIUS, NEO_ARK_OBSERVATORY_GLOW_DISC_BRIGHT);
             break;
         }
         case 4:
         case 16: {
-            SVECTOR* p;
-            p = D_neo_ark_observatory_801814FC;
-            glowDrawDisc(&p[0], 0x280, 0x444);
-            glowDrawDisc(&p[1], 0x280, 0x444);
-            glowDrawDisc(&p[2], 0x280, 0x333);
-            glowDrawDisc(&p[3], 0x280, 0x222);
+            const SVECTOR* glowPoints;
+            glowPoints = D_neo_ark_observatory_801814FC;
+            glowDrawDisc(&glowPoints[0], NEO_ARK_OBSERVATORY_GLOW_HIGH_RADIUS, NEO_ARK_OBSERVATORY_GLOW_DISC_BRIGHT);
+            glowDrawDisc(&glowPoints[1], NEO_ARK_OBSERVATORY_GLOW_HIGH_RADIUS, NEO_ARK_OBSERVATORY_GLOW_DISC_BRIGHT);
+            glowDrawDisc(&glowPoints[2], NEO_ARK_OBSERVATORY_GLOW_HIGH_RADIUS, NEO_ARK_OBSERVATORY_GLOW_DISC_MEDIUM);
+            glowDrawDisc(&glowPoints[3], NEO_ARK_OBSERVATORY_GLOW_HIGH_RADIUS, NEO_ARK_OBSERVATORY_GLOW_DISC_DIM);
             break;
         }
         case 5:
         case 17: {
-            SVECTOR* p;
-            p = D_neo_ark_observatory_8018150C;
-            glowDrawDisc(&p[0], 0x280, 0x444);
-            glowDrawDisc(&p[1], 0x280, 0x444);
+            const SVECTOR* glowPoints;
+            glowPoints = D_neo_ark_observatory_8018150C;
+            glowDrawDisc(&glowPoints[0], NEO_ARK_OBSERVATORY_GLOW_HIGH_RADIUS, NEO_ARK_OBSERVATORY_GLOW_DISC_BRIGHT);
+            glowDrawDisc(&glowPoints[1], NEO_ARK_OBSERVATORY_GLOW_HIGH_RADIUS, NEO_ARK_OBSERVATORY_GLOW_DISC_BRIGHT);
             break;
         }
         case 6:
         case 18:
-            glowDrawDisc(&D_neo_ark_observatory_8018151C[0], 0x200, 0x444);
+            glowDrawDisc(&D_neo_ark_observatory_8018151C[0], NEO_ARK_OBSERVATORY_GLOW_LOW_RADIUS, NEO_ARK_OBSERVATORY_GLOW_DISC_BRIGHT);
             break;
         case 7: {
-            SVECTOR* p;
-            p = D_neo_ark_observatory_80181434;
-            func_neo_ark_observatory_80180534(&p[0], 0x400, D_neo_ark_observatory_80187A3C, 8);
-            func_neo_ark_observatory_80180534(&p[2], 0x400, D_neo_ark_observatory_80187A3C, 0xC);
-            func_neo_ark_observatory_80180534(&p[4], 0x400, D_neo_ark_observatory_80187A3C, 8);
+            const SVECTOR* beamCenters;
+            beamCenters = D_neo_ark_observatory_80181434;
+            _neoArkObservatoryDrawLightBeam(&beamCenters[0], NEO_ARK_OBSERVATORY_BEAM_SMALL_RADIUS, D_neo_ark_observatory_80187A3C, 8);
+            _neoArkObservatoryDrawLightBeam(&beamCenters[2], NEO_ARK_OBSERVATORY_BEAM_SMALL_RADIUS, D_neo_ark_observatory_80187A3C, 0xC);
+            _neoArkObservatoryDrawLightBeam(&beamCenters[4], NEO_ARK_OBSERVATORY_BEAM_SMALL_RADIUS, D_neo_ark_observatory_80187A3C, 8);
         }
+            // View 7 also draws the glow discs used by mapped view 19.
             /* fallthrough */
         case 19: {
-            SVECTOR* p;
-            p = D_neo_ark_observatory_8018151C;
-            glowDrawDisc(&p[0], 0x200, 0x444);
-            glowDrawDisc(&p[2], 0x200, 0x222);
-            glowDrawDisc(&p[6], 0x200, 0x222);
-            glowDrawDisc(&p[7], 0x200, 0x333);
-            glowDrawDisc(&p[8], 0x200, 0x444);
-            glowDrawDisc(&p[9], 0x200, 0x444);
+            const SVECTOR* glowPoints;
+            glowPoints = D_neo_ark_observatory_8018151C;
+            glowDrawDisc(&glowPoints[0], NEO_ARK_OBSERVATORY_GLOW_LOW_RADIUS, NEO_ARK_OBSERVATORY_GLOW_DISC_BRIGHT);
+            glowDrawDisc(&glowPoints[2], NEO_ARK_OBSERVATORY_GLOW_LOW_RADIUS, NEO_ARK_OBSERVATORY_GLOW_DISC_DIM);
+            glowDrawDisc(&glowPoints[6], NEO_ARK_OBSERVATORY_GLOW_LOW_RADIUS, NEO_ARK_OBSERVATORY_GLOW_DISC_DIM);
+            glowDrawDisc(&glowPoints[7], NEO_ARK_OBSERVATORY_GLOW_LOW_RADIUS, NEO_ARK_OBSERVATORY_GLOW_DISC_MEDIUM);
+            glowDrawDisc(&glowPoints[8], NEO_ARK_OBSERVATORY_GLOW_LOW_RADIUS, NEO_ARK_OBSERVATORY_GLOW_DISC_BRIGHT);
+            glowDrawDisc(&glowPoints[9], NEO_ARK_OBSERVATORY_GLOW_LOW_RADIUS, NEO_ARK_OBSERVATORY_GLOW_DISC_BRIGHT);
             break;
         }
         case 8:
         case 20: {
-            SVECTOR* p;
-            p = D_neo_ark_observatory_80181564;
-            glowDrawDisc(&p[0], 0x200, 0x444);
-            glowDrawDisc(&p[1], 0x200, 0x444);
-            glowDrawDisc(&p[2], 0x200, 0x444);
-            func_neo_ark_observatory_80180534(&p[-32], 0x400, D_neo_ark_observatory_80187A3C, 8);
-            func_neo_ark_observatory_80180534(&p[-30], 0x400, D_neo_ark_observatory_80187A3C, 8);
-            func_neo_ark_observatory_80180534(&p[-28], 0x400, D_neo_ark_observatory_80187A3C, 8);
+            const SVECTOR* glowPoints;
+            glowPoints = D_neo_ark_observatory_80181564;
+            glowDrawDisc(&glowPoints[0], NEO_ARK_OBSERVATORY_GLOW_LOW_RADIUS, NEO_ARK_OBSERVATORY_GLOW_DISC_BRIGHT);
+            glowDrawDisc(&glowPoints[1], NEO_ARK_OBSERVATORY_GLOW_LOW_RADIUS, NEO_ARK_OBSERVATORY_GLOW_DISC_BRIGHT);
+            glowDrawDisc(&glowPoints[2], NEO_ARK_OBSERVATORY_GLOW_LOW_RADIUS, NEO_ARK_OBSERVATORY_GLOW_DISC_BRIGHT);
+            _neoArkObservatoryDrawLightBeam(&glowPoints[-32], NEO_ARK_OBSERVATORY_BEAM_SMALL_RADIUS, D_neo_ark_observatory_80187A3C, 8);
+            _neoArkObservatoryDrawLightBeam(&glowPoints[-30], NEO_ARK_OBSERVATORY_BEAM_SMALL_RADIUS, D_neo_ark_observatory_80187A3C, 8);
+            _neoArkObservatoryDrawLightBeam(&glowPoints[-28], NEO_ARK_OBSERVATORY_BEAM_SMALL_RADIUS, D_neo_ark_observatory_80187A3C, 8);
             break;
         }
         case 9: {
-            SVECTOR* p;
-            p = D_neo_ark_observatory_80181574;
-            glowDrawDisc(&p[0], 0x200, 0x444);
-            glowDrawDisc(&p[1], 0x200, 0x444);
-            glowDrawDisc(&p[2], 0x200, 0x333);
-            glowDrawDisc(&p[3], 0x200, 0x222);
-            glowDrawDisc(&p[-6], 0x200, 0x222);
-            glowDrawDisc(&p[-8], 0x200, 0x333);
-            func_neo_ark_observatory_80180534(&p[-28], 0x400, D_neo_ark_observatory_80187A3C, 8);
-            func_neo_ark_observatory_80180534(&p[-26], 0x400, D_neo_ark_observatory_80187A3C, 0xC);
-            func_neo_ark_observatory_80180534(&p[-24], 0x400, D_neo_ark_observatory_80187A3C, 8);
+            const SVECTOR* glowPoints;
+            glowPoints = D_neo_ark_observatory_80181574;
+            glowDrawDisc(&glowPoints[0], NEO_ARK_OBSERVATORY_GLOW_LOW_RADIUS, NEO_ARK_OBSERVATORY_GLOW_DISC_BRIGHT);
+            glowDrawDisc(&glowPoints[1], NEO_ARK_OBSERVATORY_GLOW_LOW_RADIUS, NEO_ARK_OBSERVATORY_GLOW_DISC_BRIGHT);
+            glowDrawDisc(&glowPoints[2], NEO_ARK_OBSERVATORY_GLOW_LOW_RADIUS, NEO_ARK_OBSERVATORY_GLOW_DISC_MEDIUM);
+            glowDrawDisc(&glowPoints[3], NEO_ARK_OBSERVATORY_GLOW_LOW_RADIUS, NEO_ARK_OBSERVATORY_GLOW_DISC_DIM);
+            glowDrawDisc(&glowPoints[-6], NEO_ARK_OBSERVATORY_GLOW_LOW_RADIUS, NEO_ARK_OBSERVATORY_GLOW_DISC_DIM);
+            glowDrawDisc(&glowPoints[-8], NEO_ARK_OBSERVATORY_GLOW_LOW_RADIUS, NEO_ARK_OBSERVATORY_GLOW_DISC_MEDIUM);
+            _neoArkObservatoryDrawLightBeam(&glowPoints[-28], NEO_ARK_OBSERVATORY_BEAM_SMALL_RADIUS, D_neo_ark_observatory_80187A3C, 8);
+            _neoArkObservatoryDrawLightBeam(&glowPoints[-26], NEO_ARK_OBSERVATORY_BEAM_SMALL_RADIUS, D_neo_ark_observatory_80187A3C, 0xC);
+            _neoArkObservatoryDrawLightBeam(&glowPoints[-24], NEO_ARK_OBSERVATORY_BEAM_SMALL_RADIUS, D_neo_ark_observatory_80187A3C, 8);
             break;
         }
         case 10: {
-            SVECTOR* p;
-            p = D_neo_ark_observatory_80181524;
-            glowDrawDisc(&p[0], 0x200, 0x444);
-            glowDrawDisc(&p[1], 0x200, 0x444);
-            glowDrawDisc(&p[5], 0x200, 0x444);
-            glowDrawDisc(&p[6], 0x200, 0x333);
-            glowDrawDisc(&p[7], 0x200, 0x222);
-            func_neo_ark_observatory_80180534(&p[-12], 0x600, D_neo_ark_observatory_80187A3C, 0x10);
+            const SVECTOR* glowPoints;
+            glowPoints = D_neo_ark_observatory_80181524;
+            glowDrawDisc(&glowPoints[0], NEO_ARK_OBSERVATORY_GLOW_LOW_RADIUS, NEO_ARK_OBSERVATORY_GLOW_DISC_BRIGHT);
+            glowDrawDisc(&glowPoints[1], NEO_ARK_OBSERVATORY_GLOW_LOW_RADIUS, NEO_ARK_OBSERVATORY_GLOW_DISC_BRIGHT);
+            glowDrawDisc(&glowPoints[5], NEO_ARK_OBSERVATORY_GLOW_LOW_RADIUS, NEO_ARK_OBSERVATORY_GLOW_DISC_BRIGHT);
+            glowDrawDisc(&glowPoints[6], NEO_ARK_OBSERVATORY_GLOW_LOW_RADIUS, NEO_ARK_OBSERVATORY_GLOW_DISC_MEDIUM);
+            glowDrawDisc(&glowPoints[7], NEO_ARK_OBSERVATORY_GLOW_LOW_RADIUS, NEO_ARK_OBSERVATORY_GLOW_DISC_DIM);
+            _neoArkObservatoryDrawLightBeam(&glowPoints[-12], NEO_ARK_OBSERVATORY_BEAM_LARGE_RADIUS, D_neo_ark_observatory_80187A3C, 0x10);
             break;
         }
         case 11: {
-            SVECTOR* p;
-            p = D_neo_ark_observatory_8018157C;
-            glowDrawDisc(&p[0], 0x200, 0x222);
-            glowDrawDisc(&p[1], 0x200, 0x333);
-            glowDrawDisc(&p[2], 0x200, 0x444);
-            glowDrawDisc(&p[-7], 0x200, 0x444);
-            glowDrawDisc(&p[-8], 0x200, 0x444);
-            func_neo_ark_observatory_80180534(&p[-21], 0x600, D_neo_ark_observatory_80187A3C, 0x10);
+            const SVECTOR* glowPoints;
+            glowPoints = D_neo_ark_observatory_8018157C;
+            glowDrawDisc(&glowPoints[0], NEO_ARK_OBSERVATORY_GLOW_LOW_RADIUS, NEO_ARK_OBSERVATORY_GLOW_DISC_DIM);
+            glowDrawDisc(&glowPoints[1], NEO_ARK_OBSERVATORY_GLOW_LOW_RADIUS, NEO_ARK_OBSERVATORY_GLOW_DISC_MEDIUM);
+            glowDrawDisc(&glowPoints[2], NEO_ARK_OBSERVATORY_GLOW_LOW_RADIUS, NEO_ARK_OBSERVATORY_GLOW_DISC_BRIGHT);
+            glowDrawDisc(&glowPoints[-7], NEO_ARK_OBSERVATORY_GLOW_LOW_RADIUS, NEO_ARK_OBSERVATORY_GLOW_DISC_BRIGHT);
+            glowDrawDisc(&glowPoints[-8], NEO_ARK_OBSERVATORY_GLOW_LOW_RADIUS, NEO_ARK_OBSERVATORY_GLOW_DISC_BRIGHT);
+            _neoArkObservatoryDrawLightBeam(&glowPoints[-21], NEO_ARK_OBSERVATORY_BEAM_LARGE_RADIUS, D_neo_ark_observatory_80187A3C, 0x10);
             break;
         }
         case 12:
         case 14: {
-            SVECTOR* p;
-            p = D_neo_ark_observatory_801814E4;
-            glowDrawDisc(&p[0], 0x280, 0x444);
-            glowDrawDisc(&p[2], 0x280, 0x444);
+            const SVECTOR* glowPoints;
+            glowPoints = D_neo_ark_observatory_801814E4;
+            glowDrawDisc(&glowPoints[0], NEO_ARK_OBSERVATORY_GLOW_HIGH_RADIUS, NEO_ARK_OBSERVATORY_GLOW_DISC_BRIGHT);
+            glowDrawDisc(&glowPoints[2], NEO_ARK_OBSERVATORY_GLOW_HIGH_RADIUS, NEO_ARK_OBSERVATORY_GLOW_DISC_BRIGHT);
             break;
         }
         case 21: {
-            SVECTOR* p;
-            p = D_neo_ark_observatory_80181564;
-            glowDrawDisc(&p[0], 0x200, 0x444);
-            glowDrawDisc(&p[1], 0x200, 0x444);
+            const SVECTOR* glowPoints;
+            glowPoints = D_neo_ark_observatory_80181564;
+            glowDrawDisc(&glowPoints[0], NEO_ARK_OBSERVATORY_GLOW_LOW_RADIUS, NEO_ARK_OBSERVATORY_GLOW_DISC_BRIGHT);
+            glowDrawDisc(&glowPoints[1], NEO_ARK_OBSERVATORY_GLOW_LOW_RADIUS, NEO_ARK_OBSERVATORY_GLOW_DISC_BRIGHT);
             break;
         }
     }
 }
 
-/// Draws a rotating ring of gouraud `POLY_G4` segments between two circles in
-/// the XZ plane: an inner circle of radius `(s16)arg1 / 2` around `v[0]` and an
-/// outer one of radius `(s16)arg1` around `v[1]`. `arg3` segments cover the
-/// full turn, starting at a phase that advances with the frame counter. The
-/// inner edge is lit at `arg2` plus a small pulse, fading to half at the far
-/// corner and to black on the outer edge; nothing is drawn while that level
-/// is negative.
-static void func_neo_ark_observatory_80180534(SVECTOR* v, s32 arg1, s16 arg2, s16 arg3)
+/// Draws an additive grey light beam between two horizontal world-space rings.
+///
+/// Borrows two centres for this call: ring 0 has half the signed low-halfword
+/// outerRadius, ring 1 has the full radius, both in world-coordinate units.
+/// segmentCount must be 1..4096; room callers use 8, 12 or 16. Angles use 4096
+/// units per turn, advancing one unit per animation frame. Integer division
+/// truncates the angle step when the count does not divide a turn exactly.
+///
+/// A four-frame sine pulse adds -4..4 to baseIntensity, narrowed to s16.
+/// Negative results draw nothing; nonnegative intensities narrow to RGB bytes.
+/// The first ring fades from full to half intensity per segment, and the
+/// second ring is black. Each accepted projection queues one quad and an
+/// additive blend command, at the last corner's camera depth / 4 plus one.
+/// Requires the composed view matrix, scratch stack and current frame arena.
+static void _neoArkObservatoryDrawLightBeam(const SVECTOR ringCenters[2], s32 outerRadius, s16 baseIntensity, s16 segmentCount)
 {
-    EffectQuadScratch* quadScratch;
-    POLY_G4*           prim;
-    SVECTOR*           outer;
-    DisplayState*      ds;
-    s16                start;
-    s16                step;
-    s32                angle;
-    s32                next;
-    s16                innerRadius;
-    s16                level;
+    enum {
+        NEO_ARK_OBSERVATORY_BEAM_PULSE_ANGLE_SHIFT = 10, // Quarter-turn per animation frame
+        NEO_ARK_OBSERVATORY_BEAM_PULSE_LEVEL_SHIFT = 10, // Q12 sine to -4..4 intensity
+    };
+    EffectQuadScratch*  quadScratch;
+    POLY_G4*            quad;
+    const SVECTOR*      outerCenter;
+    const DisplayState* display;
+    s16                 startAngle;
+    s16                 angleStep;
+    s32                 angle;
+    s32                 nextAngle;
+    s16                 innerRadius;
+    s16                 intensity;
 
-    step        = 0x1000 / arg3;
-    outer       = v + 1;
-    innerRadius = (s16)arg1 >> 1;
-    start       = gDisplayState.animFrame & 0xFFF;
-    level       = arg2 + (rsin(gDisplayState.animFrame << 10) >> 10);
-    if (level >= 0) {
+    angleStep   = GLOW_FULL_TURN / segmentCount;
+    outerCenter = ringCenters + 1;
+    innerRadius = (s16)outerRadius >> 1;
+    startAngle  = gDisplayState.animFrame & (GLOW_FULL_TURN - 1);
+    intensity   = baseIntensity + (rsin(gDisplayState.animFrame << NEO_ARK_OBSERVATORY_BEAM_PULSE_ANGLE_SHIFT) >> NEO_ARK_OBSERVATORY_BEAM_PULSE_LEVEL_SHIFT);
+    if (intensity >= 0) {
         SCRATCH_STACK_RESERVE_BLOCK(EffectQuadScratch);
         quadScratch = SCRATCH_STACK_CURSOR(EffectQuadScratch);
         gte_SetTransMatrix(&gGfxViewCoord.workm);
-        for (angle = start; angle < start + step * arg3; angle = next) {
-            quadScratch->vertices[0].vx = v->vx + ((rsin(angle) * innerRadius) >> 12);
-            quadScratch->vertices[0].vy = v->vy;
-            quadScratch->vertices[0].vz = v->vz + ((rcos(angle) * innerRadius) >> 12);
-            next                        = angle + step;
-            quadScratch->vertices[1].vx = v->vx + ((rsin(next) * innerRadius) >> 12);
-            quadScratch->vertices[1].vy = v->vy;
-            quadScratch->vertices[1].vz = v->vz + ((rcos(next) * innerRadius) >> 12);
-            quadScratch->vertices[2].vx = outer->vx + ((rsin(angle) * (s16)arg1) >> 12);
-            quadScratch->vertices[2].vy = outer->vy;
-            quadScratch->vertices[2].vz = outer->vz + ((rcos(angle) * (s16)arg1) >> 12);
-            quadScratch->vertices[3].vx = outer->vx + ((rsin(next) * (s16)arg1) >> 12);
-            quadScratch->vertices[3].vy = outer->vy;
-            quadScratch->vertices[3].vz = outer->vz + ((rcos(next) * (s16)arg1) >> 12);
-            gte_SetRotMatrix(&gGfxViewCoord.workm);
-            gte_ldv0(&quadScratch->vertices[0]);
-            gte_rtps();
-            gte_stsxy(&quadScratch->screenCorners[0]);
-            gte_ldv3(&quadScratch->vertices[1], &quadScratch->vertices[2], &quadScratch->vertices[3]);
-            gte_rtpt();
-            gte_stsxy3(&quadScratch->screenCorners[1], &quadScratch->screenCorners[2], &quadScratch->screenCorners[3]);
-            gte_stflg(&quadScratch->projectionFlags);
+        // Build adjoining XZ ring edges, then project each strip segment through the view.
+        for (angle = startAngle; angle < startAngle + angleStep * segmentCount; angle = nextAngle) {
+            quadScratch->vertices[0].vx = ringCenters->vx + ((rsin(angle) * innerRadius) >> GLOW_TRIG_SHIFT);
+            quadScratch->vertices[0].vy = ringCenters->vy;
+            quadScratch->vertices[0].vz = ringCenters->vz + ((rcos(angle) * innerRadius) >> GLOW_TRIG_SHIFT);
+            nextAngle                   = angle + angleStep;
+            quadScratch->vertices[1].vx = ringCenters->vx + ((rsin(nextAngle) * innerRadius) >> GLOW_TRIG_SHIFT);
+            quadScratch->vertices[1].vy = ringCenters->vy;
+            quadScratch->vertices[1].vz = ringCenters->vz + ((rcos(nextAngle) * innerRadius) >> GLOW_TRIG_SHIFT);
+            quadScratch->vertices[2].vx = outerCenter->vx + ((rsin(angle) * (s16)outerRadius) >> GLOW_TRIG_SHIFT);
+            quadScratch->vertices[2].vy = outerCenter->vy;
+            quadScratch->vertices[2].vz = outerCenter->vz + ((rcos(angle) * (s16)outerRadius) >> GLOW_TRIG_SHIFT);
+            quadScratch->vertices[3].vx = outerCenter->vx + ((rsin(nextAngle) * (s16)outerRadius) >> GLOW_TRIG_SHIFT);
+            quadScratch->vertices[3].vy = outerCenter->vy;
+            quadScratch->vertices[3].vz = outerCenter->vz + ((rcos(nextAngle) * (s16)outerRadius) >> GLOW_TRIG_SHIFT);
+            _neoArkObservatoryProjectBeamSegment(quadScratch);
             if (quadScratch->projectionFlags >= 0) {
+                // Use the final projected corner for ordering, with a one-entry bias.
                 gte_stszotz(&quadScratch->depth);
                 quadScratch->depth++;
-                ds             = &gDisplayState;
-                prim           = gGpuPrimCursor;
-                gGpuPrimCursor = prim + 1;
-                setPolyG4(prim);
-                setRGB0(prim, level, level, level);
-                setRGB1(prim, level >> 1, level >> 1, level >> 1);
-                setRGB2(prim, 0, 0, 0);
-                setRGB3(prim, 0, 0, 0);
-                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(quadScratch->depth << ds->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                        prim);
-                prim->x0 = quadScratch->screenCorners[0].vx;
-                prim->y0 = quadScratch->screenCorners[0].vy;
-                prim->x1 = quadScratch->screenCorners[1].vx;
-                prim->y1 = quadScratch->screenCorners[1].vy;
-                prim->x2 = quadScratch->screenCorners[2].vx;
-                prim->y2 = quadScratch->screenCorners[2].vy;
-                prim->x3 = quadScratch->screenCorners[3].vx;
-                prim->y3 = quadScratch->screenCorners[3].vy;
-                gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, quadScratch->depth);
+                display        = &gDisplayState;
+                quad           = gGpuPrimCursor;
+                gGpuPrimCursor = quad + 1;
+                setPolyG4(quad);
+                setRGB0(quad, intensity, intensity, intensity);
+                setRGB1(quad, intensity >> 1, intensity >> 1, intensity >> 1);
+                setRGB2(quad, 0, 0, 0);
+                setRGB3(quad, 0, 0, 0);
+                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(quadScratch->depth << display->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                        quad);
+                quad->x0 = quadScratch->screenCorners[0].vx;
+                quad->y0 = quadScratch->screenCorners[0].vy;
+                quad->x1 = quadScratch->screenCorners[1].vx;
+                quad->y1 = quadScratch->screenCorners[1].vy;
+                quad->x2 = quadScratch->screenCorners[2].vx;
+                quad->y2 = quadScratch->screenCorners[2].vy;
+                quad->x3 = quadScratch->screenCorners[3].vx;
+                quad->y3 = quadScratch->screenCorners[3].vy;
+                gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, quadScratch->depth);
             }
         }
         SCRATCH_STACK_RELEASE_BLOCK(EffectQuadScratch);
@@ -2019,7 +2068,7 @@ static void func_neo_ark_observatory_80180534(SVECTOR* v, s32 arg1, s16 arg2, s1
 
 #include "../../shared/glow_draw_disc.inc.c"
 
-void func_neo_ark_observatory_80180DAC(s32 arg0)
+void neoArkObservatorySetLightBeamIntensity(s32 intensity)
 {
-    D_neo_ark_observatory_80187A3C = arg0;
+    D_neo_ark_observatory_80187A3C = intensity;
 }

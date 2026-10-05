@@ -884,7 +884,7 @@ func_neo_ark_north_promenade_80180838 = 0x80180838; // type:func absolute:True o
 
 func_neo_ark_north_promenade_80181120 = 0x80181120; // type:func absolute:True owner=neo_ark_north_promenade
 
-func_neo_ark_observatory_80180124 = 0x80180124; // type:func absolute:True owner=neo_ark_observatory
+neoArkObservatoryGlowTask = 0x80180124; // type:func absolute:True owner=neo_ark_observatory
 
 neoArkPavilionWaterRippleTaskFixedCoord = 0x8017EC4C; // type:func absolute:True owner=neo_ark_pavilion
 

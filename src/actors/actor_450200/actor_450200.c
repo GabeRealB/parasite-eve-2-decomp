@@ -1510,7 +1510,7 @@ void func_actor_450200_80132538(Task* task)
             if ((u32)(level & 0xFFFF) >= 0xA0U) {
                 level = 0xA0;
             }
-            func_neo_ark_observatory_80180DAC(level & 0xFFFF);
+            neoArkObservatorySetLightBeamIntensity(level & 0xFFFF);
             task->killCountdown = (u16)task->killCountdown - 4;
             break;
     }
@@ -1525,7 +1525,7 @@ void func_actor_450200_80132848(s32 arg0)
 
 void func_actor_450200_80132880(s32 arg0)
 {
-    func_neo_ark_observatory_80180DAC(arg0 & 0xFFFF);
+    neoArkObservatorySetLightBeamIntensity(arg0 & 0xFFFF);
 }
 
 void func_actor_450200_801328A0(u8 arg0)

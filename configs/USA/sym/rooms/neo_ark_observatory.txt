@@ -100,11 +100,11 @@ D_neo_ark_observatory_801811B8 = 0x801811B8; // size:0x28 defined:True
 D_neo_ark_observatory_801811E0 = 0x801811E0; // size:0xE0 defined:True
 D_neo_ark_observatory_80187A3C = 0x80187A3C; // size:0x2 defined:True
 
-func_neo_ark_observatory_80180DAC = 0x80180DAC; // type:func
+neoArkObservatorySetLightBeamIntensity = 0x80180DAC; // type:func
 
 func_neo_ark_observatory_8017FA98 = 0x8017FA98; // type:func
 
-func_neo_ark_observatory_80180124 = 0x80180124; // type:func
+neoArkObservatoryGlowTask = 0x80180124; // type:func
 _planarReflectionInitPlayer = 0x8017D6F4; // type:func
 _planarReflectionUpdatePlayer = 0x8017D8A8; // type:func
 _planarReflectionAttachmentTask = 0x8017F22C; // type:func
@@ -113,3 +113,6 @@ glowDrawDisc = 0x80180A0C; // type:func
 roomDepartureTask = 0x8017F588; // type:func
 roomVariantResolveShelter = 0x8017F44C; // type:func
 followCollisionRebuild = 0x8017FE34; // type:func
+_neoArkObservatoryPlayerReflectionTask = 0x8017f3fc; // type:func
+_neoArkObservatoryRejectKeyItemMessage = 0x8017fbe0; // type:func
+_neoArkObservatoryDrawLightBeam = 0x80180534; // type:func

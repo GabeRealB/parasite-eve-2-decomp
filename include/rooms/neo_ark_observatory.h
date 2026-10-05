@@ -32,11 +32,23 @@ extern SpriteView D_neo_ark_observatory_801860E8[];
 
 extern WorldCollisionSurfaceProperties* D_neo_ark_observatory_80187A08[];
 
-void func_neo_ark_observatory_80180DAC(s32 arg0);
+/// Sets the base grey intensity of the observatory's light beams.
+///
+/// Stores the signed low halfword without clamping; room entry and scenes use
+/// 0..160. The drawer adds a four-frame pulse of -4..4 and skips negative
+/// results. This changes beams only; the view's glow discs retain their colours.
+/// The room overlay must be loaded. The glow task resets the value on its first tick.
+void neoArkObservatorySetLightBeamIntensity(s32 intensity);
 
 void func_neo_ark_observatory_8017FA98(s32 arg0);
 
-void func_neo_ark_observatory_80180124(Task* task);
+/// Draws the observatory's glow discs and light beams for the mapped camera view.
+///
+/// Effect-table slot 0x14E resets beam intensity once in state 0, then draws
+/// each tick in state 1. Requires the room overlay, composed view matrices,
+/// initialized scratch stack, and the current frame's packet arena and ordering
+/// table. It retains no pointers into those frame resources.
+void neoArkObservatoryGlowTask(Task* effectTask);
 
 void func_neo_ark_observatory_8017FDDC(Task* task);
 
