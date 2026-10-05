@@ -519,7 +519,7 @@ static void func_actor_521100_80135DDC(Enemy* spawnArg2, Task* task)
     D_actor_521100_8016A3DC          = task;
     vec.vz                           = coord->workm.t[2];
     worldCoordSetModelLighting(obj, &vec, 0, 3);
-    Gp_AnimInitCtx(&D_actor_521100_8016A3D8->rig.anim, D_actor_521100_8016A3A0, obj, D_actor_521100_8016A3D8->rig.poses);
+    animationBindModelContext(&D_actor_521100_8016A3D8->rig.anim, D_actor_521100_8016A3A0, obj, D_actor_521100_8016A3D8->rig.poses);
     D_actor_521100_8016A3D8->st.animId = ACTOR_521100_ANMC_WOMAN_ANIM_WALK;
     D_actor_521100_8016A3D8->st.state  = ACTOR_ENEMY_ANIM_RESET;
     task->msgTable                     = D_actor_521100_8016A358;

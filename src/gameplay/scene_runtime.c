@@ -334,7 +334,7 @@ extern _CdCmdSceneSoundBankBit Gp_SndMaskTable[];
 /// Printed when an enemy's work block cannot be allocated.
 static const char Gp_StrNewEnemyNull[];
 
-/// Three-entry dispatcher table: `Gp_EnemyWaitStart`, `_enemyWaitTick`, `enemyDestroy`.
+/// Three-entry dispatcher table: `_enemyStartTeardownDelay`, `_enemyWaitTick`, `enemyDestroy`.
 static const EnemyTaskFuncTable3 Gp_EnemyWaitFuncs;
 
 static const TaskFuncTable3 Gp_StageLoadStates;
@@ -413,7 +413,7 @@ static Enemy* Gp_SpawnEnemy(s32 bank, s32 type, s32 arg2, Enemy* parent);
 
 static Enemy* Gp_AllocEnemy(Task* task, Enemy* parent);
 
-static void Gp_EnemyWaitStart(Enemy* enemy, Task* task);
+static void _enemyStartTeardownDelay(Enemy* enemy, Task* task);
 
 static void _enemyWaitTick(Enemy* enemy, Task* task);
 
@@ -431,7 +431,7 @@ static void _fadeTickPulse(Task* task);
 
 static void _gpuBlendRgb555(const u16* first, const u16* second, s32 firstWeight, u16* destination);
 
-static void Gp_BlendRgb555ClutMasked(u16* arg0, u16* arg1, s32 arg2, u16* arg3, s32 arg4);
+static void _gpuBlendRgb555ClutRowMasked(const u16* first, const u16* second, s32 firstWeight, u16* destination, s32 entryMask);
 
 static void _fadeStartPulse(Task* task);
 
@@ -443,19 +443,19 @@ static void Gp_AnimAdvanceSlot(AnimationContext* context, s32 arg1);
 
 static inline void _animationSeekSlotWithBlend(AnimationContext* context, s32 slotIndex, u16 setIndex, s32 trackRecordOffset, s32 blendFrames);
 
-static void Gp_AnimSeekSlotEx(AnimationContext* context, s32 arg1, s32 arg2, s32 arg3);
+static void _animationSeekSlotWithRecordDuration(AnimationContext* context, s32 slotIndex, s32 setIndex, s32 trackRecordOffset);
 
-static void Gp_AnimTickSlot3(AnimationContext* context, AnimationSlot* arg1);
+static void _animationTickDirectSlot(AnimationContext* context, AnimationSlot* slot);
 
-static void func_800B3E74(AnimationContext* context, AnimationSlot* arg1, s32 arg2, s32 arg3);
+static void _animationStartDirectTrack(AnimationContext* context, AnimationSlot* slot, s32 partIndex, s32 setIndex);
 
-static void func_800B3EE8(AnimationContext* context, AnimationSlot* arg1, s32 arg2, s32 arg3, s32 arg4);
+static void _animationStartDirectRecord(AnimationContext* context, AnimationSlot* slot, s32 partIndex, s32 setIndex, s32 trackRecordOffset);
 
-static void Gp_AnimSeekSlot(AnimationContext* context, s32 arg1, s32 arg2);
+static void _animationSeekTrackStart(AnimationContext* context, s32 slotIndex, s32 setIndex);
 
-static void func_800B46A4(AnimationContext* unusedContext, AnimationSlot* arg1, u16 arg2, u16 arg3);
+static void _animationSelectNextPoseRecord(const AnimationContext* unusedContext, AnimationSlot* slot, u16 setIndex, u16 recordIndex);
 
-static void func_800B4754(AnimationContext* unusedContext, AnimationSlot* arg1, u16 arg2, u16 arg3);
+static void _animationSelectCurrentPoseRecord(const AnimationContext* unusedContext, AnimationSlot* slot, u16 setIndex, u16 recordIndex);
 
 static void _displayRedrawPreviousFrame(Task* task);
 
@@ -488,7 +488,7 @@ static inline s16 _gpScanHeldQty(InventoryItemRow* table, InventoryItemRange* sc
 
 void Gp_BindSlot4(Task* task);
 
-void func_800B6398(Task* task);
+static void _worldTargetDrawOverlayTask(Task* unusedTask);
 
 extern TaskDesc D_aya_20900_80115D9C[];
 
@@ -1116,9 +1116,9 @@ s32 func_800B0118(s32 arg0, s32 arg1)
     return 0;
 }
 
-void Gp_SetStreamBuf(void* arg0)
+void streamSetExternalScenePayloadBuffer(u8* payloadBuffer)
 {
-    gCdCmdQueue.externalScenePayloadBuffer = arg0;
+    gCdCmdQueue.externalScenePayloadBuffer = payloadBuffer;
 }
 
 static Enemy* Gp_SpawnEnemy(s32 bank, s32 type, s32 arg2, Enemy* parent)
@@ -1239,7 +1239,11 @@ static Enemy* Gp_AllocEnemy(Task* task, Enemy* parent)
     return enemy;
 }
 
-static void Gp_EnemyWaitStart(Enemy* enemy, Task* task)
+/// Starts the 120-frame delay before a bodyless enemy is destroyed.
+///
+/// `enemy` is the task's live work object. Sets its countdown and advances
+/// the task from initialization to the countdown state; neither object is freed.
+static void _enemyStartTeardownDelay(Enemy* enemy, Task* task)
 {
     enemy->waitTicks = ENEMY_WAIT_FRAMES;
     task->state++;
@@ -2171,17 +2175,26 @@ void gpuBlendRgb555ClutRow(const u16* first, const u16* second, s32 firstWeight,
     }
 }
 
-static void Gp_BlendRgb555ClutMasked(u16* arg0, u16* arg1, s32 arg2, u16* arg3, s32 arg4)
+/// Interpolates the selected entries of a sixteen-colour RGB555 CLUT row.
+///
+/// Bit i of `entryMask` selects entry i; bits above 15 are ignored and other
+/// destination entries remain unchanged. `firstWeight` uses 1/4096 units,
+/// normally 0..`ONE`, with second weight `ONE - firstWeight`. Selected outputs keep
+/// bit 15 when either source has it. Both source rows must contain sixteen live
+/// halfwords and the destination sixteen writable halfwords, without overlap
+/// with either source. Requires initialized scratch and GTE state, as does the
+/// per-colour blend; no pointers are retained.
+static void _gpuBlendRgb555ClutRowMasked(const u16* first, const u16* second, s32 firstWeight, u16* destination, s32 entryMask)
 {
-    s32 i;
+    s32 entryIndex;
 
-    for (i = 0; i < 0x10; i++) {
-        if ((1 << i) & arg4) {
-            _gpuBlendRgb555(arg0, arg1, arg2, arg3);
+    for (entryIndex = 0; entryIndex < GPU_RGB555_CLUT_ROW_COLORS; entryIndex++) {
+        if ((1 << entryIndex) & entryMask) {
+            _gpuBlendRgb555(first, second, firstWeight, destination);
         }
-        arg0++;
-        arg1++;
-        arg3++;
+        first++;
+        second++;
+        destination++;
     }
 }
 
@@ -2793,16 +2806,28 @@ static inline void _animationSeekSlotWithBlend(AnimationContext* context, s32 sl
     slot->usesBufferedPose          = 0;
 }
 
-static void Gp_AnimSeekSlotEx(AnimationContext* context, s32 arg1, s32 arg2, s32 arg3)
+/// Captures a slot's pose and blends toward a track-relative record for its own duration.
+///
+/// Performs `_animationSeekSlotWithBlend`'s capture and control walk, then
+/// replaces both time fields with the resolved keyframe's duration in
+/// sixteenths of a frame. The duration is 1..255 whole normal-rate frames.
+/// `setIndex` must fit the slot table as s32 and u16, excluding the buffered
+/// sentinel: the duration lookup uses the full argument, while the seek narrows
+/// it. Slot/buffer capacities, borrowed lifetimes, target encoding, terminating
+/// control chains and scratch/GTE requirements follow the capture helper.
+static void _animationSeekSlotWithRecordDuration(AnimationContext* context, s32 slotIndex, s32 setIndex, s32 trackRecordOffset)
 {
+    enum { ANIMATION_PROVISIONAL_BLEND_FRAMES = 1 };
+
     AnimationSlot*         slot;
-    const AnimationRecord* recs;
+    const AnimationRecord* records;
     u16                    segmentTime;
 
-    slot = &context->slots[arg1];
-    recs = slot->sets[arg2]->records;
-    _animationSeekSlotWithBlend(context, arg1, arg2, arg3, 1);
-    segmentTime    = recs[slot->nextPose.indices.recordIndex].durationFrames << ANIMATION_TIME_FRACTION_BITS;
+    slot    = &context->slots[slotIndex];
+    records = slot->sets[setIndex]->records;
+    _animationSeekSlotWithBlend(context, slotIndex, setIndex, trackRecordOffset, ANIMATION_PROVISIONAL_BLEND_FRAMES);
+    // The resolved keyframe determines the final transition duration.
+    segmentTime    = records[slot->nextPose.indices.recordIndex].durationFrames << ANIMATION_TIME_FRACTION_BITS;
     slot->timeSpan = segmentTime;
     slot->timeLeft = segmentTime;
 }
@@ -2863,12 +2888,13 @@ void animationStartDirectSlot(AnimationContext* context, AnimationSlot* directSl
     }
 }
 
-void Gp_AnimInitCtx(AnimationContext* ctx, void* sets, TmdObject* model, void* poses)
+void animationBindModelContext(AnimationContext* context, AnimationSet** setTable, TmdObject* model,
+                               u8 (*poseBuffer)[ANIMATION_POSE_BUFFER_BYTES])
 {
-    ctx->sets       = sets;
-    ctx->coords     = PARENT_OF(model, TmdAllocation, object)->coords;
-    ctx->poseBuffer = poses;
-    ctx->partCount  = model->partCount;
+    context->sets       = setTable;
+    context->coords     = PARENT_OF(model, TmdAllocation, object)->coords;
+    context->poseBuffer = poseBuffer;
+    context->partCount  = model->partCount;
 }
 
 void animationInitDirectSlot(AnimationContext* context, AnimationSlot* slot, s32 partIndex, s32 setIndex)
@@ -2903,46 +2929,74 @@ void animationTickDirectSlot(AnimationContext* context, AnimationSlot* slot)
     animationTickSlotPose(context, slotIndex, NULL, NULL);
 }
 
-void Gp_AnimTickSlot2(AnimationContext* context, AnimationSlot* arg1)
+void animationTickPlayerSlot(AnimationContext* context, AnimationSlot* slot)
 {
-    u8 idx;
+    u8 slotIndex;
 
-    idx            = arg1->trackIndex;
-    context->slots = arg1 - idx;
-    animationTickSlotPose(context, idx, 0, 0);
+    slotIndex      = slot->trackIndex;
+    context->slots = slot - slotIndex;
+    animationTickSlotPose(context, slotIndex, NULL, NULL);
 }
 
-static void Gp_AnimTickSlot3(AnimationContext* context, AnimationSlot* arg1)
+/// Ticks a directly supplied slot into its model coordinate, retaining the recovered array base.
+///
+/// `slot->trackIndex` must equal its playback-array index. The live array must
+/// extend back to slot - slot->trackIndex, which replaces context->slots.
+/// No unpacked or encoded output is requested. Index, buffer, borrowed-storage,
+/// scratch and GTE requirements are those of `animationTickSlotPose`.
+static void _animationTickDirectSlot(AnimationContext* context, AnimationSlot* slot)
 {
-    u8 idx;
+    u8 slotIndex;
 
-    idx            = arg1->trackIndex;
-    context->slots = arg1 - idx;
-    animationTickSlotPose(context, idx, 0, 0);
+    slotIndex      = slot->trackIndex;
+    context->slots = slot - slotIndex;
+    animationTickSlotPose(context, slotIndex, NULL, NULL);
 }
 
-static void func_800B3E74(AnimationContext* context, AnimationSlot* arg1, s32 arg2, s32 arg3)
+/// Starts a direct slot at its track start, replacing its span with the selected record's duration.
+///
+/// Uses `animationStartDirectSlot`'s demo capture or ordinary initialization,
+/// then installs the selected next record's duration (1..255 normal-rate frames)
+/// in both time fields. The record array is borrowed from the slot's pre-call
+/// sets[setIndex], even if ordinary initialization rebinds the slot to the
+/// context table. That original table index and final record index must be valid;
+/// set zero is looked up unchanged here even though ordinary setup selects set 1.
+/// All other index, lifetime, buffer and GTE requirements follow the starter.
+static void _animationStartDirectTrack(AnimationContext* context, AnimationSlot* slot, s32 partIndex, s32 setIndex)
 {
-    const AnimationRecord* recs;
+    enum { ANIMATION_PROVISIONAL_BLEND_FRAMES = 8 };
+
+    const AnimationRecord* records;
     u16                    segmentTime;
 
-    recs = arg1->sets[arg3]->records;
-    animationStartDirectSlot(context, arg1, arg2, arg3, 0, 8);
-    segmentTime    = recs[arg1->nextPose.indices.recordIndex].durationFrames << ANIMATION_TIME_FRACTION_BITS;
-    arg1->timeSpan = segmentTime;
-    arg1->timeLeft = segmentTime;
+    records = slot->sets[setIndex]->records;
+    animationStartDirectSlot(context, slot, partIndex, setIndex, 0, ANIMATION_PROVISIONAL_BLEND_FRAMES);
+    segmentTime    = records[slot->nextPose.indices.recordIndex].durationFrames << ANIMATION_TIME_FRACTION_BITS;
+    slot->timeSpan = segmentTime;
+    slot->timeLeft = segmentTime;
 }
 
-static void func_800B3EE8(AnimationContext* context, AnimationSlot* arg1, s32 arg2, s32 arg3, s32 arg4)
+/// Starts a direct slot and uses its resolved next record's duration for the transition.
+///
+/// `trackRecordOffset` counts records from the selected track start in demo
+/// scene 1; ordinary initialization ignores it. The final span is 1..255
+/// normal-rate frames, read from the slot's pre-call sets[setIndex] record array,
+/// even if initialization rebinds that table. The original set index is not
+/// normalized for this lookup, and the resolved next index must fit that array.
+/// Other bounds, capture behavior and borrowed lifetimes follow
+/// `animationStartDirectSlot`. Does not perform an additional pose tick.
+static void _animationStartDirectRecord(AnimationContext* context, AnimationSlot* slot, s32 partIndex, s32 setIndex, s32 trackRecordOffset)
 {
-    const AnimationRecord* recs;
+    enum { ANIMATION_PROVISIONAL_BLEND_FRAMES = 8 };
+
+    const AnimationRecord* records;
     u16                    segmentTime;
 
-    recs = arg1->sets[arg3]->records;
-    animationStartDirectSlot(context, arg1, arg2, arg3, arg4, 8);
-    segmentTime    = recs[arg1->nextPose.indices.recordIndex].durationFrames << ANIMATION_TIME_FRACTION_BITS;
-    arg1->timeSpan = segmentTime;
-    arg1->timeLeft = segmentTime;
+    records = slot->sets[setIndex]->records;
+    animationStartDirectSlot(context, slot, partIndex, setIndex, trackRecordOffset, ANIMATION_PROVISIONAL_BLEND_FRAMES);
+    segmentTime    = records[slot->nextPose.indices.recordIndex].durationFrames << ANIMATION_TIME_FRACTION_BITS;
+    slot->timeSpan = segmentTime;
+    slot->timeLeft = segmentTime;
 }
 
 void animationBindContext(AnimationContext* context, AnimationSet** setTable, TmdObject* model,
@@ -3019,9 +3073,14 @@ void animationResetRemappedSlot(AnimationContext* context, s32 slotIndex, s32 se
     slot->poseEncoding                 = recordFlags & ANIMATION_RECORD_POSE_ENCODING_MASK;
 }
 
-static void Gp_AnimSeekSlot(AnimationContext* context, s32 arg1, s32 arg2)
+/// Captures a slot's pose and blends to its track start using the resolved record's duration.
+///
+/// Selects track-relative offset zero; control records may redirect that start.
+/// Bounds, retained flags, storage lifetimes and scratch/GTE requirements are
+/// those of `_animationSeekSlotWithRecordDuration`.
+static void _animationSeekTrackStart(AnimationContext* context, s32 slotIndex, s32 setIndex)
 {
-    Gp_AnimSeekSlotEx(context, arg1, arg2, 0);
+    _animationSeekSlotWithRecordDuration(context, slotIndex, setIndex, 0);
 }
 
 void animationSeekSlotWithBlend(AnimationContext* context, s32 slotIndex, s32 setIndex, s32 trackRecordOffset, s32 blendFrames)
@@ -3029,46 +3088,35 @@ void animationSeekSlotWithBlend(AnimationContext* context, s32 slotIndex, s32 se
     _animationSeekSlotWithBlend(context, slotIndex, (u16)setIndex, trackRecordOffset, blendFrames);
 }
 
-void Gp_AnimWritePoseBlend(AnimationContext* context, s32 arg1, AnimationPose* arg2, AnimationPose* arg3, s32 arg4,
-                           s32 arg5)
+void animationApplyBlendedPose(AnimationContext* context, s32 slotIndex, const AnimationPose* firstPose, const AnimationPose* secondPose, s32 firstWeight,
+                               s32 secondWeight)
 {
-    void**         scratch;
-    AnimationPose* head;
-    AnimationSlot* slot;
-    GfxCoord*      dest;
-    SVECTOR*       trans;
-    SVECTOR*       rot;
-    s32            idx;
+    AnimationPose*       scratchEnd;
+    const AnimationSlot* slot;
+    GfxCoord*            destinationCoord;
+    SVECTOR*             blendedTranslation;
+    SVECTOR*             blendedRotation;
+    s32                  coordIndex;
 
-    scratch                        = SCRATCH_HEAD_ADDR;
-    slot                           = &context->slots[arg1];
-    head                           = SCRATCH_HEAD_AT(scratch, AnimationPose);
-    idx                            = slot->coordIndex;
-    SCRATCH_HEAD_AT(scratch, void) = head - 1;
-    dest                           = &context->coords[idx];
-    trans                          = &head[-1].translation;
+    slot                                = &context->slots[slotIndex];
+    scratchEnd                          = SCRATCH_STACK_CURSOR(AnimationPose);
+    coordIndex                          = slot->coordIndex;
+    SCRATCH_STACK_CURSOR(AnimationPose) = scratchEnd - 1;
+    destinationCoord                    = &context->coords[coordIndex];
+    blendedTranslation                  = &scratchEnd[-1].translation;
+    // Only translation-and-rotation tracks replace the local translation.
     if (slot->poseEncoding == ANIMATION_POSE_TRANSLATION_ROTATION) {
-        gte_lddp(arg4);
-        gte_ldsv(&arg2->translation);
-        gte_gpf12();
-        gte_lddp(arg5);
-        gte_ldsv(&arg3->translation);
-        gte_gpl12();
-        gte_stsv(trans);
-        dest->coord.t[0] = trans->vx;
-        dest->coord.t[1] = trans->vy;
-        dest->coord.t[2] = trans->vz;
+        gte_LoadAverageShort12(&firstPose->translation, &secondPose->translation, firstWeight, secondWeight,
+                               blendedTranslation);
+        destinationCoord->coord.t[0] = blendedTranslation->vx;
+        destinationCoord->coord.t[1] = blendedTranslation->vy;
+        destinationCoord->coord.t[2] = blendedTranslation->vz;
     }
-    gte_lddp(arg4);
-    gte_ldsv(&arg2->rotation);
-    gte_gpf12();
-    gte_lddp(arg5);
-    gte_ldsv(&arg3->rotation);
-    gte_gpl12();
-    rot = &head[-1].rotation;
-    gte_stsv(rot);
-    RotMatrix_gte(rot, &dest->coord);
-    dest->composeStamp = GRAPHICS_COORD_DIRTY;
+    // Blend Euler components before constructing and invalidating the coordinate.
+    gte_LoadAverageShort12(&firstPose->rotation, &secondPose->rotation, firstWeight, secondWeight,
+                           blendedRotation = &scratchEnd[-1].rotation);
+    RotMatrix_gte(blendedRotation, &destinationCoord->coord);
+    destinationCoord->composeStamp = GRAPHICS_COORD_DIRTY;
     SCRATCH_STACK_RELEASE_BLOCK(AnimationPose);
 }
 
@@ -3104,28 +3152,22 @@ void animationTickSlot(AnimationContext* context, s32 slotIndex)
     animationTickSlotPose(context, slotIndex, NULL, NULL);
 }
 
-void func_800B4538(AnimationContext* context, s32 arg1, AnimationPose* arg2, u16 arg3, s32 arg4, s32 arg5, s32 arg6)
+/// Resolves the captured-pose transition's next record without clearing tick flags.
+///
+/// `recordIndex` is an absolute u16 element index into borrowed `records`.
+/// Jumps install their absolute `wordOffset` and add `ANIMATION_SLOT_FOLLOWED_JUMP`;
+/// a return to the slot's prior next index also adds `ANIMATION_SLOT_REACHED_BOUNDARY`.
+/// A stop retains that prior next index and adds only `ANIMATION_SLOT_REACHED_BOUNDARY`.
+/// Installs the next record index, leaving its set to the caller. Every visited
+/// index and the stop fallback must fit this array; control chains must terminate.
+static inline void _animationSelectCapturedRecord(AnimationSlot* slot, const AnimationRecord* records, u16 recordIndex)
 {
-    AnimationSlot*         slot;
-    AnimationSet*          set;
-    const AnimationRecord* recs;
-    const AnimationRecord* rec;
-    u16                    recordIndex;
-    u16                    blendTime;
-    u8(*bufferedPose)[ANIMATION_POSE_BUFFER_BYTES];
+    const AnimationRecord* controlRecord;
 
-    // Capture this slot's encoded blend before replacing its destination keyframe.
-    bufferedPose = context->poseBuffer + arg1;
-    slot         = &context->slots[arg1];
-    animationTickSlotPose(context, arg1, arg2, bufferedPose);
-    slot->currentPose.indices.setIndex = ANIMATION_SET_BUFFERED_POSE;
-    set                                = slot->sets[arg3];
-    recs                               = set->records;
-    recordIndex                        = set->trackStartIndices[slot->trackIndex] + arg4;
-    while ((s8)recs[recordIndex].flags < 0) {
-        rec = recs - -(s32)recordIndex;
-        if (rec->flags < ANIMATION_RECORD_END_THRESHOLD) {
-            recordIndex = rec->wordOffset;
+    while ((s8)records[recordIndex].flags < 0) {
+        controlRecord = records - -(s32)recordIndex;
+        if (controlRecord->flags < ANIMATION_RECORD_END_THRESHOLD) {
+            recordIndex = controlRecord->wordOffset;
             if (recordIndex == slot->nextPose.indices.recordIndex) {
                 slot->status.fields.flags |= ANIMATION_SLOT_REACHED_BOUNDARY;
             }
@@ -3137,11 +3179,32 @@ void func_800B4538(AnimationContext* context, s32 arg1, AnimationPose* arg2, u16
         }
     }
     slot->nextPose.indices.recordIndex = recordIndex;
-    slot->nextPose.indices.setIndex    = arg3;
-    blendTime                          = arg6 << ANIMATION_TIME_FRACTION_BITS;
-    slot->timeSpan                     = blendTime;
-    slot->timeLeft                     = blendTime;
-    slot->usesBufferedPose             = 0;
+}
+
+void animationCaptureSlotWithBlend(AnimationContext* context, s32 slotIndex, AnimationPose* unpackedDestination, u16 setIndex, s32 trackRecordOffset, s32 unusedArgument, s32 blendFrames)
+{
+    AnimationSlot*         slot;
+    AnimationSet*          set;
+    const AnimationRecord* records;
+    u16                    recordIndex;
+    u16                    blendTime;
+    u8(*bufferedPose)[ANIMATION_POSE_BUFFER_BYTES];
+
+    // Capture this slot's encoded blend before replacing its destination keyframe.
+    bufferedPose = context->poseBuffer + slotIndex;
+    slot         = &context->slots[slotIndex];
+    animationTickSlotPose(context, slotIndex, unpackedDestination, bufferedPose);
+    slot->currentPose.indices.setIndex = ANIMATION_SET_BUFFERED_POSE;
+    set                                = slot->sets[setIndex];
+    records                            = set->records;
+    recordIndex                        = set->trackStartIndices[slot->trackIndex] + trackRecordOffset;
+    // Preserve the capture tick's flags while resolving controls in the new track.
+    _animationSelectCapturedRecord(slot, records, recordIndex);
+    slot->nextPose.indices.setIndex = setIndex;
+    blendTime                       = blendFrames << ANIMATION_TIME_FRACTION_BITS;
+    slot->timeSpan                  = blendTime;
+    slot->timeLeft                  = blendTime;
+    slot->usesBufferedPose          = 0;
 }
 
 const AnimationRecord* animationGetCurrentRecord(const AnimationContext* unusedContext, const AnimationSlot* slot)
@@ -3158,41 +3221,60 @@ const AnimationRecord* animationGetCurrentRecord(const AnimationContext* unusedC
     return record;
 }
 
-static void func_800B46A4(AnimationContext* unusedContext, AnimationSlot* arg1, u16 arg2, u16 arg3)
+/// Selects a bank-backed next endpoint by following absolute record jumps and stops.
+///
+/// Accumulates flags without clearing them. Jumps add `ANIMATION_SLOT_FOLLOWED_JUMP`;
+/// a jump to the prior next index also adds `ANIMATION_SLOT_REACHED_BOUNDARY`.
+/// A stop retains that index in the requested set and adds only the boundary flag.
+/// Does not tick, change timing, clear the boundary latch or update the pose-buffer cache.
+/// `setIndex` must select a loaded slot set, excluding the buffer sentinel;
+/// track controls and the fallback record must fit it and the chain must
+/// terminate. The slot is writable and clip storage remains borrowed.
+/// `unusedContext` is ignored and may be NULL.
+static void _animationSelectNextPoseRecord(const AnimationContext* unusedContext, AnimationSlot* slot, u16 setIndex, u16 recordIndex)
 {
-    const AnimationRecord* recs;
-    const AnimationRecord* rec;
+    const AnimationRecord* records;
+    const AnimationRecord* controlRecord;
 
-    recs = arg1->sets[arg2]->records;
-    while ((s8)recs[arg3].flags < 0) {
-        rec = recs - -(s32)arg3;
-        if (rec->flags < ANIMATION_RECORD_END_THRESHOLD) {
-            arg3 = rec->wordOffset;
-            if (arg3 == arg1->nextPose.indices.recordIndex) {
-                arg1->status.fields.flags |= ANIMATION_SLOT_REACHED_BOUNDARY;
+    records = slot->sets[setIndex]->records;
+    while ((s8)records[recordIndex].flags < 0) {
+        controlRecord = records - -(s32)recordIndex;
+        if (controlRecord->flags < ANIMATION_RECORD_END_THRESHOLD) {
+            recordIndex = controlRecord->wordOffset;
+            if (recordIndex == slot->nextPose.indices.recordIndex) {
+                slot->status.fields.flags |= ANIMATION_SLOT_REACHED_BOUNDARY;
             }
-            arg1->status.fields.flags |= ANIMATION_SLOT_FOLLOWED_JUMP;
+            slot->status.fields.flags |= ANIMATION_SLOT_FOLLOWED_JUMP;
         } else {
-            arg3                       = arg1->nextPose.indices.recordIndex;
-            arg1->status.fields.flags |= ANIMATION_SLOT_REACHED_BOUNDARY;
+            recordIndex                = slot->nextPose.indices.recordIndex;
+            slot->status.fields.flags |= ANIMATION_SLOT_REACHED_BOUNDARY;
             break;
         }
     }
-    arg1->nextPose.indices.recordIndex = arg3;
-    arg1->nextPose.indices.setIndex    = arg2;
+    slot->nextPose.indices.recordIndex = recordIndex;
+    slot->nextPose.indices.setIndex    = setIndex;
 }
 
-static void func_800B4754(AnimationContext* unusedContext, AnimationSlot* arg1, u16 arg2, u16 arg3)
+/// Selects the current bank endpoint, clamping an absolute index to its track start.
+///
+/// An index below the start becomes the start and adds `ANIMATION_SLOT_REACHED_BOUNDARY` to
+/// existing flags. Installs the requested set unchanged; does not follow control
+/// records, tick or change timing, boundary hold or buffer-cache state.
+/// `setIndex` must select a loaded slot set (not the buffer sentinel), and
+/// trackIndex must fit its start table. The selected record must be a valid
+/// endpoint for later playback. The slot is writable and the table borrowed.
+/// `unusedContext` is ignored and may be NULL.
+static void _animationSelectCurrentPoseRecord(const AnimationContext* unusedContext, AnimationSlot* slot, u16 setIndex, u16 recordIndex)
 {
-    u16 limit;
+    u16 trackStartIndex;
 
-    limit = arg1->sets[arg2]->trackStartIndices[arg1->trackIndex];
-    if (arg3 < limit) {
-        arg3                       = limit;
-        arg1->status.fields.flags |= ANIMATION_SLOT_REACHED_BOUNDARY;
+    trackStartIndex = slot->sets[setIndex]->trackStartIndices[slot->trackIndex];
+    if (recordIndex < trackStartIndex) {
+        recordIndex                = trackStartIndex;
+        slot->status.fields.flags |= ANIMATION_SLOT_REACHED_BOUNDARY;
     }
-    arg1->currentPose.indices.recordIndex = arg3;
-    arg1->currentPose.indices.setIndex    = arg2;
+    slot->currentPose.indices.recordIndex = recordIndex;
+    slot->currentPose.indices.setIndex    = setIndex;
 }
 
 /// Selects a play-with-blend's next record, following controls without clearing flags.
@@ -3971,7 +4053,7 @@ void Gp_SetAreaFlag0(GameLocationKey* location)
 
 void func_800B5DB8(Task* arg0)
 {
-    TaskFunc funcs[2] = { Gp_BindSlot4, func_800B6398 };
+    TaskFunc funcs[2] = { Gp_BindSlot4, _worldTargetDrawOverlayTask };
 
     funcs[arg0->state](arg0);
 }
@@ -4189,23 +4271,24 @@ void worldCollisionCalcContactWorldOffset(const SVECTOR* position, const WorldCo
     SCRATCH_STACK_RELEASE_BLOCK(_WorldCollisionContactViewOffsetScratch);
 }
 
-void Gp_FreeSlot4TmdBuffers(void)
+void sceneFreeActorPrimitiveBuffers(void)
 {
+    Task*      firstChild;
     Task*      child;
-    Task*      iter;
-    TmdObject* obj;
+    TmdObject* model;
 
-    child = (gameGetTaskSlot(GAME_TASK_SLOT_SCENE))->firstChild;
-    if (child != NULL) {
-        iter = child;
+    firstChild = gameGetTaskSlot(GAME_TASK_SLOT_SCENE)->firstChild;
+    if (firstChild != NULL) {
+        child = firstChild;
         do {
-            if (iter->bodyKind == TASK_BODY_TMD) {
-                obj         = iter->extra.tmd;
-                obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-                tmdFreePrimitiveBuffer(obj);
+            if (child->bodyKind == TASK_BODY_TMD) {
+                model = child->extra.tmd;
+                // Keep drawing from recreating the buffer while movie decoding uses the heap.
+                model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+                tmdFreePrimitiveBuffer(model);
             }
-            iter = iter->nextSibling;
-        } while (iter != child);
+            child = child->nextSibling;
+        } while (child != firstChild);
     }
 }
 
@@ -4304,9 +4387,9 @@ static inline s16 _gpScanHeldQty(InventoryItemRow* table, InventoryItemRange* sc
 /// Printed when an enemy's work block cannot be allocated.
 static const char Gp_StrNewEnemyNull[] = "new_enemy ---> NULL\n";
 
-/// Three-entry dispatcher table: `Gp_EnemyWaitStart`, `_enemyWaitTick`, `enemyDestroy`.
+/// Three-entry dispatcher table: `_enemyStartTeardownDelay`, `_enemyWaitTick`, `enemyDestroy`.
 static const EnemyTaskFuncTable3 Gp_EnemyWaitFuncs = { {
-    Gp_EnemyWaitStart,
+    _enemyStartTeardownDelay,
     _enemyWaitTick,
     enemyDestroy,
 } };
@@ -4354,7 +4437,11 @@ void Gp_BindSlot4(Task* task)
     task->state++;
 }
 
-void func_800B6398(Task* task)
+/// Draws and updates the world-target overlay during the scene manager's running state.
+///
+/// `unusedTask` is ignored; target, view, scratch and GPU state requirements are
+/// those of `worldTargetDrawOverlay`. Advances no task state and frees no storage.
+static void _worldTargetDrawOverlayTask(Task* unusedTask)
 {
     worldTargetDrawOverlay();
 }

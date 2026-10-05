@@ -18,7 +18,13 @@ void func_800B25B0(void);
 
 void Gp_EnqueueSndCd(u8 arg0);
 
-void Gp_AnimTickSlot2(AnimationContext* context, AnimationSlot* arg1);
+/// Ticks a directly supplied player slot into its model coordinate.
+///
+/// `slot->trackIndex` must equal its index in a live playback array extending
+/// back to slot - slot->trackIndex. Replaces and retains context->slots with
+/// that base, then calls `animationTickSlotPose` with both optional outputs NULL.
+/// Index, buffer, lifetime, scratch and GTE requirements follow that tick.
+void animationTickPlayerSlot(AnimationContext* context, AnimationSlot* slot);
 
 /// Captures a slot's current pose and starts a timed blend, optionally rebinding its clip table.
 ///
@@ -72,6 +78,14 @@ void Gp_SetAreaFlag2(s32 useSavedPoses, GameLocationKey* key);
 
 void Gp_SetAreaFlag0(GameLocationKey* location);
 
-void Gp_FreeSlot4TmdBuffers(void);
+/// Releases primitive buffers of the scene manager's direct TMD children for movie decoding.
+///
+/// The registered scene task and its circular child list must be live and stable,
+/// each TMD child must own a live model, and GPU consumption must have finished.
+/// Frees both primitive-buffer halves and suppresses automatic buffer recreation;
+/// other body kinds and descendants are untouched. Models, coordinates and tasks
+/// remain live. Empty child lists are a no-op; models can be enabled and allocated
+/// again after movie decoding releases the auxiliary heap.
+void sceneFreeActorPrimitiveBuffers(void);
 
 #endif // GAMEPLAY_PRIVATE_SCENE_RUNTIME_H

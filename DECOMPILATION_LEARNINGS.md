@@ -7305,7 +7305,7 @@ was already incremented).
 
 ## Independent `= 0` store last so it fills a stack-arg load delay
 
-A late `lw` of a stack argument (`arg6 << 4` into two halfwords) wants an
+A late `lw` of a stack argument (`blendFrames << 4` into two halfwords) wants an
 independent `sb zero` in its load delay slot:
 
 ```
@@ -7316,19 +7316,19 @@ sh    v0, 0xe(s1)
 sh    v0, 0xc(s1)
 ```
 
-Writing `slot->usesBufferedPose = 0` *before* `val = arg6 << 4` lets GCC hoist the
+Writing `slot->usesBufferedPose = 0` *before* `blendTime = blendFrames << 4` lets GCC hoist the
 constant store and leaves `lw / nop / sll`. Write the zero store *after*
 the uses of that stack arg; `-fschedule-insns` lifts `sb zero` into the
 load delay and keeps the two `sh`s together.
 
 ```c
-val            = arg6 << 4;
-slot->timeSpan = val;
-slot->timeLeft = val;
+blendTime      = blendFrames << 4;
+slot->timeSpan = blendTime;
+slot->timeLeft = blendTime;
 slot->usesBufferedPose  = 0;
 ```
 
-`func_800B4538` is the example. The same tail is in `animationSeekSlotWithBlend` /
+`animationCaptureSlotWithBlend` is the example. The same tail is in `animationSeekSlotWithBlend` /
 `animationPlaySlotWithBlend`.
 
 
@@ -31105,7 +31105,7 @@ if (spawned != NULL) {
 ## Pin two stack args and assign them in the desired `lw` order
 
 A sibling that only keeps one stack addend live across `jal` loads it
-naturally (`func_800B4538`: `lw s0, 0x30(sp)`). Adding another live
+naturally (`animationCaptureSlotWithBlend`: `lw s0, 0x30(sp)`). Adding another live
 pointer (`index` plus a last-arg table) makes GCC rematerialize the
 addend after the call (`lhu` / `lw 0x38(sp)` / `addu`) and, if the
 addend is then pinned, still emit the two pre-`jal` loads in first-use
@@ -32844,7 +32844,7 @@ asm volatile("" : "+r"(one));
 val = one << 4;
 ```
 
-`Gp_AnimSeekSlotEx` is the example.
+`_animationSeekSlotWithRecordDuration` is the example.
 
 ## Calculate the typed pose-buffer entry early so its address add stays in the `jal` delay
 
@@ -32868,11 +32868,11 @@ animationTickSlotPose(ctx, i, 0, bufferedPose);
 ```
 
 A `register s32 raw asm("a2")` plus `asm volatile("" : "+r"(raw))` after
-saving `arg2` keeps the first `slot->sets` index as `sll v1, a2, 2` instead
+saving `setIndex` keeps the first `slot->sets` index as `sll v1, a2, 2` instead
 of the saved `$s2` copy.
 
-`Gp_AnimSeekSlotEx` is the example. `slot->sets[arg2]` loads `sets`
-first; `(arg2 << 2) + (s32)slot->sets` is what puts the shift before
+`_animationSeekSlotWithRecordDuration` is the example. `slot->sets[setIndex]` loads `sets`
+first; `(setIndex << 2) + (s32)slot->sets` is what puts the shift before
 the load.
 
 ## Do not hoist `one = 1` across a toast if/else
@@ -33784,7 +33784,7 @@ dest = &arg0->coords[idx];
 ```
 
 `+r`(off) instead of `"r"(off)` copies `v0` to `v1` so the `lw` can take
-`$v0`. `Gp_AnimWritePoseBlend` is the example.
+`$v0`. `animationApplyBlendedPose` is the example.
 
 ## Pin scratch `head` to `$t1` and the `head-N` block to `$t0` when both stay live
 
@@ -33811,7 +33811,7 @@ trans = (SVECTOR*)((u8*)head - 0x10);
 *scratch = trans;
 ```
 
-`Gp_AnimWritePoseBlend` is the example.
+`animationApplyBlendedPose` is the example.
 
 ## `gte_stsv` dest in `$a0` copy-props into later field reads; split the SSA
 
@@ -33835,7 +33835,7 @@ dest->mtx.t[1] = trans->vy;
 dest->mtx.t[2] = trans->vz;
 ```
 
-`Gp_AnimWritePoseBlend` is the example.
+`animationApplyBlendedPose` is the example.
 
 ## Combined `buf[0x20]` + `TextDrawReq` so later stores go through `$a0`
 
@@ -92692,7 +92692,7 @@ back:
 ```c
 arg0->field_24 = &D_dryfield_night_r08_80180544;
 gameSetTaskSlot(arg0, 7);                        /* addiu $a1,$zero,0x7 */
-Gp_SetStreamBuf((u8*)D_8005C370 + 0x20000);
+streamSetExternalScenePayloadBuffer((u8*)Fs_ActorLoadBase1 + 0x20000);
 ```
 
 Scoring 97.97% (`regs=1 reorder=1`) → 100.000%. Two things are worth keeping:
@@ -92709,7 +92709,7 @@ Scoring 97.97% (`regs=1 reorder=1`) → 100.000%. Two things are worth keeping:
 - **The family already had the answer.** Every room-entry task in the `rooms`
   overlays calls `gameSetTaskSlot(task, 7)`; `func_shelter_r49_8017D648`
   (`src/rooms/shelter_r49/shelter_r49.c`) is the same body minus the
-  `Gp_SetStreamBuf` call, is already matched, and reproduces `addiu $a1,$zero,0x7`
+  `streamSetExternalScenePayloadBuffer` call, is already matched, and reproduces `addiu $a1,$zero,0x7`
   byte for byte. When a similar matched sibling exists, copy its argument list
   before reconstructing one from the RTL.
 
@@ -143427,7 +143427,7 @@ form actor_323400 uses, with the two stack-address locals assigned vector
 first: their order is what decides which one dbr steals into the switch's
 delay slots.
 
-## `li 1; sll 4` left unfolded is an inlined helper's constant argument (Gp_AnimSeekSlotEx)
+## `li 1; sll 4` left unfolded is an inlined helper's constant argument (_animationSeekSlotWithRecordDuration)
 
 **Symptom.** `addiu $v0,$zero,1; sll $v0,$v0,4` where plain C `1 << 4` folds to
 `li 16`; the seed pinned a `one` local with `TOUCH_REG` to keep the shift, plus
@@ -144434,7 +144434,7 @@ it into a logical shift. The seed held `sra` with `SOFT_TOUCH_REG(price)`.
   parameter passed as an expression (`helper(prompt, obj, *p)`), and the
   `addu base,idx` operand order came from a `p = &list->itemIds[i]` local.
 
-### `bne …; move a0,t0` feeding only a GTE store in the taken block: take the pointer before the `if` (Gp_AnimWritePoseBlend, 2026-09-26)
+### `bne …; move a0,t0` feeding only a GTE store in the taken block: take the pointer before the `if` (animationApplyBlendedPose, 2026-09-26)
 
 **Symptom.** A conditional block blends into a scratch vector with `gte_stsv`
 through `a0`, a copy of the carve register placed in the branch's delay slot,
@@ -144449,7 +144449,7 @@ The pass stops at a jump, so when the copy sits *before* the `if` the reads
 inside the block keep the carve, the copy serves the asm operand alone, and dbr
 moves it into the branch delay slot.
 
-**Fix.** `trans = &head[-1].translation;` just above `if (slot->poseEncoding == ANIMATION_POSE_TRANSLATION_ROTATION)`, no
+**Fix.** `blendedTranslation = &scratchEnd[-1].translation;` just above `if (slot->poseEncoding == ANIMATION_POSE_TRANSLATION_ROTATION)`, no
 pins. This also settled a scheduling difference the seed held with `USE_REG`.
 
 ## `addiu sB,sH,-N; move sV,sB` at entry with the head store reading `sB`: `SCRATCH_STACK_RESERVE_BLOCK` first, member pointer second (worldCollisionCalcContactWorldOffset, 2026-09-26)

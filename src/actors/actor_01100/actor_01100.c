@@ -1991,7 +1991,7 @@ static void Actor01100_Fn02960(Enemy* enemy, Task* task, _Actor01100Work* work, 
                 }
                 slot = 1;
                 do {
-                    func_800B4538(&work->flinchRig.anim, slot, &scratch->poses[1], animId, 0, 0, 0);
+                    animationCaptureSlotWithBlend(&work->flinchRig.anim, slot, &scratch->poses[1], animId, 0, 0, 0);
                     slot++;
                 } while (slot < ARRAY_SIZE(work->flinchRig.slots));
                 work->flinchPhase++;
@@ -2030,14 +2030,14 @@ static void Actor01100_Fn02960(Enemy* enemy, Task* task, _Actor01100Work* work, 
             }
             if (restart != 0) {
                 if ((u32)(work->reaction - 2) >= 0xE) {
-                    func_800B4538(&work->rig.anim, slot, pose, work->motion, 0, 0, randBit + 8);
+                    animationCaptureSlotWithBlend(&work->rig.anim, slot, pose, work->motion, 0, 0, randBit + 8);
                 } else if ((u32)((u8)work->motion - 0x15) < 2) {
                     pose = 0;
                     animationResetSlot(&work->rig.anim, slot, work->motion);
                 } else if ((slot != 6) && (slot != 0xA)) {
-                    func_800B4538(&work->rig.anim, slot, pose, work->motion, 0, 0, 1);
+                    animationCaptureSlotWithBlend(&work->rig.anim, slot, pose, work->motion, 0, 0, 1);
                 } else {
-                    func_800B4538(&work->rig.anim, slot, pose, work->motion, 3, 0, 0x1E);
+                    animationCaptureSlotWithBlend(&work->rig.anim, slot, pose, work->motion, 3, 0, 0x1E);
                 }
             } else {
                 animationTickSlotPose(&work->rig.anim, slot, pose, 0);
@@ -2045,8 +2045,8 @@ static void Actor01100_Fn02960(Enemy* enemy, Task* task, _Actor01100Work* work, 
             if (pose != 0) {
                 blend = work->flinchWeight << 5;
                 animationTickSlotPose(&work->flinchRig.anim, slot, &scratch->poses[1], 0);
-                Gp_AnimWritePoseBlend(&work->rig.anim, slot, &scratch->poses[0],
-                                      &scratch->poses[1], 0x1000 - blend, blend);
+                animationApplyBlendedPose(&work->rig.anim, slot, &scratch->poses[0],
+                                          &scratch->poses[1], 0x1000 - blend, blend);
             }
             slot++;
         } while (slot < ARRAY_SIZE(work->rig.slots));

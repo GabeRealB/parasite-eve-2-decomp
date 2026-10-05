@@ -6911,7 +6911,7 @@ static void func_80105B0C(Task* arg0)
     i     = 1;
     if (i < inner->animationSlotCount) {
         do {
-            Gp_AnimTickSlot2(&inner->animationContext, inner->animationSlots + i);
+            animationTickPlayerSlot(&inner->animationContext, inner->animationSlots + i);
             i++;
         } while (i < inner->animationSlotCount);
     }

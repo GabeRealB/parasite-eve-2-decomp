@@ -67,14 +67,14 @@ s32 func_dryfield_night_r08_8017D628(Task* task, s32 msgId, s32 arg2, s32 arg3)
 }
 
 /// The room task's set-up state: publishes the room's message table, claims
-/// pointer slot 7, places the stream buffer 0x20000 bytes into `Fs_ActorLoadBase1`
+/// pointer slot 7, publishes borrowed scene payload storage 0x20000 bytes past `Fs_ActorLoadBase1`
 /// and, unless `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene` is 9, passes `D_actor_535700_80133898` and `D_actor_535700_801341E0` to
 /// `func_800E8634`. Then advances to the idle state.
 static void func_dryfield_night_r08_8017D630(Task* arg0)
 {
     arg0->msgTable = D_dryfield_night_r08_80180544;
     gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
-    Gp_SetStreamBuf((u8*)Fs_ActorLoadBase1 + 0x20000);
+    streamSetExternalScenePayloadBuffer((u8*)Fs_ActorLoadBase1 + 0x20000);
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 9) {
         func_800E8634(D_actor_535700_80133898, 0, D_actor_535700_801341E0);
     }

@@ -73,7 +73,7 @@ void Gp_ViewBeginLoad(Task* task)
         } else {
             D_80114C40 = streamFindMovieSlot(&gGameSession->location.loc, 0, 1);
             if (D_80114C40 >= 0) {
-                Gp_FreeSlot4TmdBuffers();
+                sceneFreeActorPrimitiveBuffers();
                 q->viewMovieSelected = 1;
             } else {
                 if (q->viewMovieSelected != 0) {

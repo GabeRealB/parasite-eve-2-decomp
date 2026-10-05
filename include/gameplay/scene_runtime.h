@@ -125,12 +125,20 @@ void gpuBlendRgb555ClutRow(const u16* first, const u16* second, s32 firstWeight,
 /// Capture and GTE requirements are those of `animationTickSlotPose`.
 void animationStartDirectSlot(AnimationContext* context, AnimationSlot* directSlot, s32 partIndex, s32 requestedSetIndex, s32 trackRecordOffset, s32 blendFrames);
 
-/// Binds an animation context to a model allocation's coordinate tail and caller-owned playback data.
+/// Binds a model's coordinates, set table and encoded pose buffer without binding slots.
 ///
-/// `model` must be the object returned by `tmdCreateModel`; the context borrows its
-/// `partCount` coordinates and the caller's set table and pose buffer. All stay
-/// live while the context is used. Playback slots are bound separately.
-void Gp_AnimInitCtx(AnimationContext* ctx, void* sets, TmdObject* model, void* poses);
+/// `model` is a live, non-NULL object returned by `tmdCreateModel`; its allocation
+/// supplies `partCount` coordinates. `setTable` is a word-aligned native pointer
+/// table with a loaded set for each index playback uses. `poseBuffer` provides
+/// a writable, word-aligned entry of `ANIMATION_POSE_BUFFER_BYTES` for each slot
+/// index whose transition pose is captured or reused. Entries contain encoded
+/// poses, not unpacked `AnimationPose` values. Capacities are not stored or checked
+/// and need not equal the model's coordinate count.
+/// The context borrows these objects and the clip data for the lifetime of
+/// playback. Leaves `context->slots` and all playback/buffer contents untouched;
+/// initialize the slots separately, and bind their array before indexed ticking.
+void animationBindModelContext(AnimationContext* context, AnimationSet** setTable, TmdObject* model,
+                               u8 (*poseBuffer)[ANIMATION_POSE_BUFFER_BYTES]);
 
 /// Initializes a directly supplied playback slot at a model-part track's first keyframe.
 ///
@@ -171,8 +179,21 @@ void animationTickDirectSlot(AnimationContext* context, AnimationSlot* slot);
 /// helper that reconstructs the array from the track index.
 void animationResetRemappedSlot(AnimationContext* context, s32 slotIndex, s32 setIndex, s32 trackIndex, s32 coordIndex);
 
-void Gp_AnimWritePoseBlend(AnimationContext* context, s32 arg1, AnimationPose* arg2, AnimationPose* arg3, s32 arg4,
-                           s32 arg5);
+/// Applies a weighted blend of two unpacked poses to a slot's model coordinate.
+///
+/// `slotIndex` must select a live context slot whose `coordIndex` fits the model
+/// coordinates. Encoding 1 blends both local translations; all other encodings
+/// retain the coordinate's translation. Rotations always blend as signed Euler
+/// components, in 4096 units per turn, without wrap correction. Both weights
+/// use 1/4096 units, normally 0..`ONE` and summing to `ONE`. Translation uses model
+/// integer units; the GTE blend saturates output components to signed halfwords.
+/// Both poses remain readable through the call and may be the same pose.
+/// Writes the local rotation matrix and marks the coordinate dirty; playback
+/// state is unchanged. Requires initialized scratch with one free AnimationPose
+/// plus nested matrix-conversion capacity, and clobbers GTE state. All scratch
+/// reservations are released and no input pointer is retained.
+void animationApplyBlendedPose(AnimationContext* context, s32 slotIndex, const AnimationPose* firstPose,
+                               const AnimationPose* secondPose, s32 firstWeight, s32 secondWeight);
 
 /// Applies one pose's translation and a weighted blend of two poses' rotations.
 ///
@@ -186,8 +207,33 @@ void Gp_AnimWritePoseBlend(AnimationContext* context, s32 arg1, AnimationPose* a
 void animationApplyPoseWithBlendedRotation(AnimationContext* context, s32 slotIndex, const AnimationPose* sourcePose, const AnimationPose* rotationPose, s32 sourceWeight,
                                            s32 rotationWeight);
 
-void func_800B4538(AnimationContext* context, s32 arg1, AnimationPose* arg2, u16 arg3, s32 arg4, s32 arg5,
-                   s32 arg6);
+/// Captures a slot's ticked pose and starts a timed blend to a track-relative record.
+///
+/// Advances the old playback and writes its encoded pose-buffer entry.
+/// `unpackedDestination` optionally receives that tick's unpacked pose; when
+/// NULL the tick updates the model coordinate instead. Skipped capture writes
+/// follow `animationTickSlotPose`, but the buffer still becomes the current
+/// endpoint, retaining its record index. Retains rate, encoding, boundary hold
+/// and capture flags; control jumps may add flags, and a stop retains the old
+/// next-record index within the selected set. The next buffered blend refreshes
+/// its cached rotation delta. Neither the context nor slot set table is replaced.
+///
+/// `slotIndex` must fit the writable slot and word-aligned encoded-buffer arrays.
+/// `setIndex` selects a loaded slot set, excluding `ANIMATION_SET_BUFFERED_POSE`.
+/// `trackRecordOffset` counts records from its start for the slot's existing
+/// track; the s32 sum must be representable and narrows to u16 before following
+/// controls. Track, coordinate, visited record, fallback index and complete pose
+/// reads must fit their arrays. The control chain must terminate and the target
+/// bank must support the slot's existing encoding. Keep borrowed data and the
+/// buffer live while an endpoint refers to them. Scratch/GTE and optional-output
+/// requirements are those of `animationTickSlotPose`; no bounds are checked.
+///
+/// `blendFrames` counts whole normal-rate frames. Its signed shift into sixteenths
+/// narrows through u16 into both time fields; 0..2047 keeps signed remaining time
+/// nonnegative, and zero starts with no transition time. `unusedArgument` is
+/// ignored and has no established original role.
+void animationCaptureSlotWithBlend(AnimationContext* context, s32 slotIndex, AnimationPose* unpackedDestination,
+                                   u16 setIndex, s32 trackRecordOffset, s32 unusedArgument, s32 blendFrames);
 
 /// Borrows the current keyframe record of a playback slot.
 ///
@@ -282,7 +328,17 @@ void worldCollisionCalcContactWorldOffset(const SVECTOR* position, const WorldCo
 
 Task* func_800B2968(void);
 
-void Gp_SetStreamBuf(void* arg0);
+/// Publishes caller-owned byte storage for external scene-image payloads.
+///
+/// Scene headers with `STREAM_SCENE_BUFFER_EXTERNAL` load their payload here,
+/// after stripping the first sector's header; offsets are relative to this base.
+/// The storage must be word-aligned and cover each selected payload's complete
+/// sector transfer and decoded offset accesses. Its capacity is not supplied or
+/// checked. Keep it live and unmodified while loading, decoding or cached reuse
+/// can refer to it; replacing the pointer neither invalidates a cache nor releases
+/// the old buffer. NULL is only usable while no external payload is selected.
+/// This setter allocates, clears and frees no storage.
+void streamSetExternalScenePayloadBuffer(u8* payloadBuffer);
 
 /// Blends a model's part-4 head rotation toward another model's accumulated chain position.
 ///

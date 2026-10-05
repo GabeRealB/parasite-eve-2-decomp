@@ -11,7 +11,7 @@ only meaningful while its own package is loaded, so an entry whose pointers all
 fall inside a given package is that package's entry - validating in-range picks
 the right block per package on its own.
 
-Layout, from ``Gp_AnimInitCtx`` / ``animationResetSlot`` in ``src/gameplay/scene_runtime.c``:
+Layout, from ``animationBindModelContext`` / ``animationResetSlot`` in ``src/gameplay/scene_runtime.c``:
 
     table entry                    -> AnimationSet*[] (slot 0 unused)
     AnimationSet.records           -> read-only AnimationRecord[]; track end

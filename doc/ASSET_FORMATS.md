@@ -645,7 +645,7 @@ meaningful while *that weapon's* package is loaded. Two consequences:
 
 ### 9.2 Animation blocks
 
-Layout, from `Gp_AnimInitCtx` / `animationResetSlot` / `animationResetRemappedSlot` in
+Layout, from `animationBindModelContext` / `animationResetSlot` / `animationResetRemappedSlot` in
 `src/gameplay/scene_runtime.c`:
 
 ```text

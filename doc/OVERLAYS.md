@@ -597,7 +597,7 @@ live in the actor overlay** (`D_80136224`, `D_8013700C`, … at
 
 ### 6.3 Animation split
 
-Playback is one system in gameplay (`Gp_AnimInitCtx` … `func_800B4754`,
+Playback is one system in gameplay (`animationBindModelContext` … `_animationSelectCurrentPoseRecord`,
 `AnimationContext` / `AnimationSlot` / `AnimationSet`). What it *points at* depends on
 who is moving:
 

@@ -49,7 +49,7 @@ STATIC_ASSERT_SIZEOF(_Actor202900Work, 0x564);
 
 extern TaskMessageEntry D_actor_202900_80156E0C[3];
 extern TaskDesc         D_actor_202900_80156E24[];
-extern u8               D_actor_202900_80156E3C[];
+extern AnimationSet*    D_actor_202900_80156E3C[6];
 
 /// The actor's work block, published so the overlay's functions can reach it
 /// without the task in hand.
@@ -220,31 +220,13 @@ TaskDesc D_actor_202900_80156E24[2] = {
     { { { TASK_BODY_TMD, 192 } }, func_actor_202900_8014A088, { .model = &_gActor202900Model0BC44 } },
 };
 
-u8 D_actor_202900_80156E3C[24] = {
-    0,
-    0,
-    0,
-    0,
-    212,
-    107,
-    21,
-    128,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    228,
-    109,
-    21,
-    128,
-    0,
-    0,
-    0,
-    0,
+AnimationSet* D_actor_202900_80156E3C[6] = {
+    NULL,
+    &_gActor202900Animation0CDB4,
+    NULL,
+    NULL,
+    &_gActor202900Animation0CFC4,
+    NULL,
 };
 
 _Actor202900Work* D_actor_202900_80156E54 = NULL;
@@ -289,8 +271,8 @@ static void func_actor_202900_80149E24(Enemy* enemy, Task* task)
     vec.vy        = coord->workm.t[1] - 0x320;
     vec.vz        = coord->workm.t[2];
     worldCoordSetModelLighting(obj, &vec, 0, 3);
-    Gp_AnimInitCtx(&D_actor_202900_80156E54->rig.anim, D_actor_202900_80156E3C, obj,
-                   D_actor_202900_80156E54->rig.poses);
+    animationBindModelContext(&D_actor_202900_80156E54->rig.anim, D_actor_202900_80156E3C, obj,
+                              D_actor_202900_80156E54->rig.poses);
     D_actor_202900_80156E54->st.animId    = 4;
     D_actor_202900_80156E54->st.state     = ACTOR_ENEMY_ANIM_RESET;
     D_actor_202900_80156E54->st.cueRecord = 0;
