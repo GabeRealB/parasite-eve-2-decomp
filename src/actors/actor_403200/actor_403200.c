@@ -6752,7 +6752,7 @@ static void func_actor_403200_801408D8(Task* task, s16 scale, s16 drop, s16 inde
     SVECTOR* d;
 
     gfxReadMatrixZAxis(&task->extra.tmd->coords->coord, &normal);
-    Gfx_MatrixCol0(&task->extra.tmd->coords->coord, &dir);
+    gfxReadMatrixXAxis(&task->extra.tmd->coords->coord, &dir);
     d = &dir;
     VectorNormalSS(d, d);
     VectorNormalSS(&normal, &normal);

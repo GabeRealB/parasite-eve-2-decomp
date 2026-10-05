@@ -23,7 +23,7 @@ static ACTOR_CONTACT_STEER_RESULT ActorContact_Steer(GfxCoord* coord, WorldColli
     pos->vy    = 0;
     pos->vx    = 0;
 
-    Gfx_MatrixCol1(&coord->workm, &s->dir);
+    gfxReadMatrixYAxis(&coord->workm, &s->dir);
     VectorNormalSS(&s->dir, &s->dir);
 
     if (ABS(s->dir.vz) < 0x818) {

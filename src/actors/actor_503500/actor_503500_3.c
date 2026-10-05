@@ -4042,7 +4042,7 @@ static void func_actor_503500_8013A470(SVECTOR* pts, GfxCoord* coords, s32 phase
         gte_rtv0();
         gte_stlvnl(&s->localSegment);
         VectorNormalS(&s->localSegment, &s->direction);
-        Gfx_OrthonormalBasis(&s->basis, &s->direction, &s->up);
+        gfxBuildOrthonormalBasis(&s->basis, &s->direction, &s->up);
         MatrixNormal(&s->basis, &coords[j].coord);
         if (i != 0) {
             coords[j].coord.t[0] = (s->localSegment.vx * scale) >> 12;

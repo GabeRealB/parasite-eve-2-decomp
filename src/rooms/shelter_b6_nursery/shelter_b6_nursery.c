@@ -1201,7 +1201,7 @@ void func_shelter_b6_nursery_80181314(Task* task)
                 task->state++;
                 return;
             }
-            Gfx_RotMatrixXYZ(&coord->coord, &work->pos, 0);
+            gfxRotMatrixXYZ(&coord->coord, &work->pos, GRAPHICS_ROTATION_COMPOSE);
             MatrixNormal(&coord->coord, &coord->coord);
             gte_lddp(work->scale);
             gte_ldsv(&work->move);
@@ -1515,7 +1515,7 @@ void func_shelter_b6_nursery_80182730(Task* task)
             task->state++;
             return;
         }
-        Gfx_RotMatrixXYZ(&coord->coord, &work->pos, 0);
+        gfxRotMatrixXYZ(&coord->coord, &work->pos, GRAPHICS_ROTATION_COMPOSE);
         MatrixNormal(&coord->coord, &coord->coord);
         gte_lddp(work->scale);
         gte_ldsv(&work->move);

@@ -425,7 +425,7 @@ void func_shelter_b1_control_room_8017D7B8(Task* task)
                 if (scratch->leastAxis == SHELTER_B1_CONTROL_ROOM_MIRROR_AXIS_Z) {
                     scratch->refAxis.vz = ONE;
                 }
-                Gfx_OrthonormalBasis(&scratch->basis, &cfg->normal, &scratch->refAxis);
+                gfxBuildOrthonormalBasis(&scratch->basis, &cfg->normal, &scratch->refAxis);
                 gte_TransposeMatrix(&scratch->basis, &scratch->reflect);
                 scratch->reflect.m[2][0] = -scratch->reflect.m[2][0];
                 scratch->reflect.m[2][1] = -scratch->reflect.m[2][1];

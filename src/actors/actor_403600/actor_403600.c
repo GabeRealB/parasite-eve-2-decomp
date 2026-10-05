@@ -1471,7 +1471,7 @@ void func_actor_403600_80132E40(Task* arg0, Actor403600Work* work, Actor403600Fx
                 scratch->segment.vx = -scratch->segment.vx;
                 scratch->segment.vy = -scratch->segment.vy;
                 scratch->segment.vz = -scratch->segment.vz;
-                Gfx_OrthonormalBasis(&scratch->basis, &scratch->segment, &scratch->aux);
+                gfxBuildOrthonormalBasis(&scratch->basis, &scratch->segment, &scratch->aux);
                 gte_MulMatrix0(&scratch->rot, &segment->workm, &scratch->rot);
                 gte_MulMatrix0(&scratch->basis, &scratch->rot, &scratch->rot);
                 gte_MulMatrix0(&center->workm, &scratch->rot, &scratch->rot);
@@ -1522,7 +1522,7 @@ void func_actor_403600_80132E40(Task* arg0, Actor403600Work* work, Actor403600Fx
                 scratch->aux.vx = 0;
                 scratch->aux.vy = 0;
                 scratch->aux.vz = 0x1000;
-                Gfx_OrthonormalBasis(&scratch->basis, &scratch->segment, &scratch->aux);
+                gfxBuildOrthonormalBasis(&scratch->basis, &scratch->segment, &scratch->aux);
                 gte_ReadMatrixColumn(&scratch->basis, 2, &scratch->aux);
 
                 scratch->basis.m[0][0] = -scratch->basis.m[0][0];

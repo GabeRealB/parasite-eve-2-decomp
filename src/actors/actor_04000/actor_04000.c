@@ -1620,7 +1620,7 @@ static void Actor04000_Fn0168C(Enemy* arg0, Task* arg1)
                     TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &Actor04000_D0C530, 0);
                     work->state         = ACTOR_04000_STATE_LATCHED;
                     work->holdingPlayer = 1;
-                    Gfx_MatrixCol0(&player->extra.tmd->coords->coord, &scratch->delta);
+                    gfxReadMatrixXAxis(&player->extra.tmd->coords->coord, &scratch->delta);
                     scratch->delta.vy = 0;
                     VectorNormalSS(&scratch->delta, &scratch->delta);
                     if (scratch->turn < 0) {
@@ -1727,7 +1727,7 @@ static void Actor04000_Fn01E1C(Enemy* arg0, Task* arg1)
         work->stateFrame = 0;
     }
     if (work->stateFrame < 0x13) {
-        Gfx_MatrixCol0(&arg1->extra.tmd->coords->coord, &dir);
+        gfxReadMatrixXAxis(&arg1->extra.tmd->coords->coord, &dir);
         d      = &dir;
         dir.vy = 0;
         VectorNormalSS(d, d);
@@ -2653,7 +2653,7 @@ static void Actor04000_Fn055C8(Enemy* arg0, Task* arg1)
         work->fallSpeed                       = 0;
         work->stateFrame                      = 0;
         work->field_8                         = 0;
-        Gfx_MatrixCol0(&arg1->extra.tmd->coords->coord, &work->slideDir);
+        gfxReadMatrixXAxis(&arg1->extra.tmd->coords->coord, &work->slideDir);
         VectorNormalSS(&work->slideDir, &work->slideDir);
     }
     work->stateFrame++;

@@ -3152,10 +3152,10 @@ static s32 func_actor_403600_8013DFE0(Task* arg0)
         scratch->angles.vx = 0;
         scratch->angles.vy = ONE;
         scratch->angles.vz = 0;
-        Gfx_OrthonormalBasis(&scratch->basis, &scratch->direction, &scratch->angles);
+        gfxBuildOrthonormalBasis(&scratch->basis, &scratch->direction, &scratch->angles);
         gfxMatrixToEuler(&scratch->basis, &scratch->angles);
         scratch->angles.vz += work->roll;
-        Gfx_RotMatrixXYZ(&work->worldCoord.coord, &scratch->angles, 1);
+        gfxRotMatrixXYZ(&work->worldCoord.coord, &scratch->angles, GRAPHICS_ROTATION_REPLACE);
         gfxReadMatrixZAxis(&work->worldCoord.coord, &scratch->angles);
     } else {
         gfxSetRotIdentity(&scratch->basis);
@@ -3163,7 +3163,7 @@ static s32 func_actor_403600_8013DFE0(Task* arg0)
         scratch->angles.vx = 0;
         scratch->angles.vy = ONE;
         scratch->angles.vz = 0;
-        Gfx_OrthonormalBasis(&scratch->basis, &scratch->direction, &scratch->angles);
+        gfxBuildOrthonormalBasis(&scratch->basis, &scratch->direction, &scratch->angles);
         gfxMatrixToEuler(&scratch->basis, &scratch->angles);
         // The direction is spent: its slot takes the boss's own angles, which
         // step toward the basis's one axis at a time.
@@ -3231,7 +3231,7 @@ static s32 func_actor_403600_8013DFE0(Task* arg0)
             scratch->direction.vz = stepped;
         }
         scratch->direction.vz += work->roll;
-        Gfx_RotMatrixXYZ(&work->worldCoord.coord, &scratch->direction, 1);
+        gfxRotMatrixXYZ(&work->worldCoord.coord, &scratch->direction, GRAPHICS_ROTATION_REPLACE);
         work->yaw = scratch->direction.vy;
         gfxReadMatrixZAxis(&work->worldCoord.coord, &scratch->angles);
     }

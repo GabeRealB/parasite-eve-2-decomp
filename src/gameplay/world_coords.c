@@ -441,7 +441,7 @@ void Gp_UpdateRoomCoords(Task* task)
                 vec->vy = -spot->axis.vx;
                 vec->vz = 0;
             }
-            Gfx_OrthonormalBasis(&coord->coord, &spot->axis, vec);
+            gfxBuildOrthonormalBasis(&coord->coord, &spot->axis, vec);
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
         }
 

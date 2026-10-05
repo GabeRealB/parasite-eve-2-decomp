@@ -362,7 +362,7 @@ Preprocessed inputs: `base_2.c`
 `vec = (SVECTOR*)&arg->pad_0[0x10]` was taken before `if (player == NULL)`, so the
 pseudo spanned the branch (`local home None`) and went to global alloc. Local
 alloc then gave the short-lived `actorCoords` `$a0`. Global alloc put `vec` in
-`$a1`, and `Gfx_ApplyMatrixNoSf(vec, vec)` emitted `move $a0, $a1` instead of
+`$a1`, and `gfxDotProduct(vec, vec)` emitted `move $a0, $a1` instead of
 the target's `move $a1, $a0`.
 
 Moving the assignment into the else made `vec` a local quantity with the call's
@@ -11708,7 +11708,7 @@ gte_rtv0_sf0(); /* mvmva sf=0, mx=0 (rot), v=0 (V0), cv=3 (none), lm=0 → 0x4A4
 gte_rtir();     /* mvmva sf=1, mx=0 (rot), v=3 (IR), cv=3 (none), lm=0 → 0x4A49E012 */
 ```
 
-`Gfx_ApplyMatrixNoSf` is the template: `gte_ldsvrtrow0` + `gte_ldv0` + custom
+`gfxDotProduct` is the template: `gte_ldsvrtrow0` + `gte_ldv0` + custom
 command + `gte_stlvnl0`. Standard `gte_rtv0` is `mvmva 1,0,0,3,0`
 (`0x4A486012`); the sf=0 variant drops the 12-bit shift (`0x4A406012`).
 `gte_rtv0tr` (add TR) is `mvmva 1,0,0,0,0` (`0x4A480012`). `Gp_PlaceCoordOffset`
@@ -19596,7 +19596,7 @@ not swap `$s2`/`$s3` with the saved `index`.
 
 ## GTE outer product (SV) + destroy head base across a call
 
-`Gfx_OrthonormalBasis` builds a normal matrix from two SVECTORs via GTE outer product
+`gfxBuildOrthonormalBasis` builds a normal matrix from two SVECTORs via GTE outer product
 on the scratch arena, then transposes into the output. Matching pieces:
 
 **1. Real `op12` opcode.** `gte_op12()` from bare `inline_c.h` is a DMPSX
@@ -19611,22 +19611,22 @@ gte_ldopv1SV(v0); gte_ldopv2SV(v1); gte_op12(); gte_stsv(out);
 
 Load/store helpers `gte_ldopv1SV` / `gte_ldopv2SV` / `gte_stsv` match as-is.
 
-**2. Overwrite the head pointer so `mat` cannot be recomputed after a call.**
-Allocate `mat = head - 0x20`, then later `head = head - 0x1A` for the second
-temp SVECTOR. If the original `head` stays live, GCC rebuilds `mat` as
+**2. Overwrite the head pointer so `basisRows` cannot be recomputed after a call.**
+Allocate `basisRows = head - 0x20`, then later `head = head - 0x1A` for the second
+temp SVECTOR. If the original `head` stays live, GCC rebuilds `basisRows` as
 `head - 0x20` after `MatrixNormal_2` (`lhu t4, -0x20(sN)` plus an extra s-reg
-for the head). Updating `head` in place destroys that base and keeps `mat` in
+for the head). Updating `head` in place destroys that base and keeps `basisRows` in
 `$s0` across the call:
 
 ```c
-mat      = (MATRIX*)(head - 0x20);
+basisRows      = (MATRIX*)(head - 0x20);
 /* … */
 head     = head - 0x1A;   /* reuses v1; original head is gone */
-*scratch = mat;
+*scratch = basisRows;
 gte_ldopv1SV(head);
 /* … */
-MatrixNormal_2(mat, mat);
-t4 = mat->m[0][0];        /* lhu t4, 0(s0) — not -0x20(head) */
+MatrixNormal_2(basisRows, basisRows);
+t4 = basisRows->m[0][0];        /* lhu t4, 0(s0) — not -0x20(head) */
 ```
 
 **3. Unaligned 8-byte arg copy at `head - 0x1A`.** That offset is only
@@ -22303,7 +22303,7 @@ Making *both* volatile keeps the body order correct but parks `lui` after
 `Tmd_SetupDraw` loads `index->field_20` (color MATRIX, often `D_80074080`) with
 `gte_SetColorMatrix`, then ambient from `t[]` via `gte_ldbkdir(t[0],t[1],t[2])`
 (not `gte_SetBackColor` — no `<<4`). It then transpose-copies `Gfx_ViewWorldMtx` into
-scratch (same `t4/t5/t6` halfword pattern as `Gfx_TransposeRot`), `gte_SetRotMatrix`
+scratch (same `t4/t5/t6` halfword pattern as `_gfxTransposeRotation`), `gte_SetRotMatrix`
 on `index->field_1C` (light dir, often `GsLIGHTWSMATRIX`), and in-place column
 RTIR via `gte_ldclmv` + `gte_rtir()` (`0x4A49E012` with `gte.h` included) +
 `gte_stclmv` three times.
@@ -22715,12 +22715,12 @@ When the target opens a scratch-arena function as:
 lw    s3, 0(v1)          # head = *SCRATCH_STACK_CURSOR_SLOT
 lh    a0, 0(s0)          # first call arg
 addiu v0, s3, -0x34      # p = head - size
-move  s2, v0             # block = p
+move  s2, v0             # scratch = p
 jal   rsin
  sw   v0, 0(v1)          # delay: *SCRATCH_STACK_CURSOR_SLOT = p
 ```
 
-a single `block = head - size; *s = block` coalesces into `addiu s2,...` /
+a single `scratch = head - size; *s = scratch` coalesces into `addiu s2,...` /
 `sw s2,...` and often puts the scratch address in `$v0` instead of `$v1`.
 
 Force the intermediate in `$v0` and assign both ways:
@@ -22729,17 +22729,17 @@ Force the intermediate in `$v0` and assign both ways:
 void** s = SCRATCH_STACK_CURSOR_SLOT;
 u8* head = (u8*)*s;
 register void* p asm("v0");
-_GfxEulerRotationScratch* block;
+_GfxEulerRotationScratch* scratch;
 
 p = head - 0x34;
-block = p;
+scratch = p;
 *s = p;
-block->sinX = rsin(angles->vx); /* sw v0 fills the jal delay */
+scratch->sinX = rsin(angles->vx); /* sw v0 fills the jal delay */
 ```
 
-Reload `SCRATCH_STACK_CURSOR_SLOT` in a nested block at the end (do **not** keep `s`
+Reload `SCRATCH_STACK_CURSOR_SLOT` in a nested scratch at the end (do **not** keep `s`
 live) so the epilogue re-materialises it in `$v1` rather than pinning a
-callee-saved reg. `Gfx_RotMatrixXYZ` is the pure example.
+callee-saved reg. `gfxRotMatrixXYZ` is the pure example.
 
 ## Keep a live halfword across GTE with `move` + empty asm (no copy-prop)
 
@@ -22752,7 +22752,7 @@ sh   v1, 0x30(s2)
 sh   v0, 0x2c(s2)
 ```
 
-plain `block->column.vz = cos_y` emits `sh a2, ...` (copy-prop kills the move).
+plain `scratch->column.vz = cos_y` emits `sh a2, ...` (copy-prop kills the move).
 Assign through a pinned temp and barrier both the new load and the copy so
 the scheduler cannot reorder them:
 
@@ -22761,12 +22761,12 @@ register u16 cos_y asm("a2"); /* loaded earlier, still live */
 register u16 sy asm("v0");
 register u16 cy asm("v1");
 
-sy = block->sinY;
+sy = scratch->sinY;
 __asm__ volatile("" : "+r"(sy));       /* pin load before move */
 cy = cos_y;
 __asm__ volatile("" : "+r"(cy) : "r"(cos_y));
-block->column.vz = cy;
-block->column.vx = sy;
+scratch->column.vz = cy;
+scratch->column.vx = sy;
 ```
 
 Same family as the sin/cos `negu` barriers on `gfxMatrixToEuler`, but for a
@@ -22776,24 +22776,24 @@ pipeline gap.
 
 ## Euler RotMatrix via `gte_ldsv` columns (not `gte_ldclmv`)
 
-`Gfx_RotMatrixXYZ` builds `RotX * RotY * RotZ` on the scratch pad by:
+`gfxRotMatrixXYZ` builds `RotX * RotY * RotZ` on the scratch pad by:
 
 1. Writing RotX into a scratch `MATRIX`, with the next rotation's column packed
-   as an `SVECTOR` at the end of the block (`gte_ldsv` offsets 0/2/4).
+   as an `SVECTOR` at the end of the scratch (`gte_ldsv` offsets 0/2/4).
 2. `gte_SetRotMatrix` + `gte_ldsv` + `gte_rtir()` + prep next column +
    `gte_stclmv` (matrix column offsets 0/6/12) — twice for RotY (col0, col2;
    col1 of RotX is already `(0,1,0)`-compatible), then again for RotZ (col0,
    col1).
-3. `flag != 0`: word-copy the 5 halfword-pairs of the rotation into `out`.
-   `flag == 0`: `gte_MulMatrix0(out, block, out)`.
+3. `replace != 0`: word-copy four halfword-pairs and the final halfword of the rotation into `matrix`.
+   `replace == 0`: `gte_MulMatrix0(matrix, &scratch->rotation, matrix)`.
 
 Do **not** feed those temp columns through `gte_ldclmv` — they are contiguous
 `SVECTOR`s, not matrix columns. `gte_ldsv` is the matching load helper.
 
-## Euler RotMatrix ZYX (`Gfx_RotMatrixZYX`) — 0x44 scratch, dual cos store
+## Euler RotMatrix ZYX (`_gfxRotMatrixZYX`) — 0x44 scratch, dual cos store
 
-Sibling of `Gfx_RotMatrixXYZ` / `Gfx_RotMatrixYXZ` that builds `RotZ * RotY * RotX`.
-Needs a larger scratch block (`_GfxZyxRotationScratch`, 0x44) with three `SVECTOR`s
+Sibling of `gfxRotMatrixXYZ` / `gfxRotMatrixYXZ` that builds `RotZ * RotY * RotX`.
+Needs a larger scratch scratch (`_GfxZyxRotationScratch`, 0x44) with three `SVECTOR`s
 (`columns[0]` / `columns[1]` / `columns[2]` at 0x2C / 0x34 / 0x3C) because both Y and X contribute
 two non-trivial columns.
 
@@ -22803,16 +22803,16 @@ Two codegen details that stall at ~98% without them:
    `sh v0, m[0][0]` from the return register. Write:
 
    ```c
-   block->cosZ = rcos(angles->vz);
-   *(s16*)(head - 0x44) = block->cosZ; /* CSE keeps v0 for both sh */
+   scratch->cosZ = rcos(angles->vz);
+   *(s16*)(head - 0x44) = scratch->cosZ; /* CSE keeps v0 for both sh */
    ```
 
 2. **`ONE` into `m[2][2]` must stay before the four halfword reloads.** A plain
-   `block->rotation.m[2][2] = ONE` sinks below the `lhu`s (~98%). Store through the
+   `scratch->rotation.m[2][2] = ONE` sinks below the `lhu`s (~98%). Store through the
    `volatile _GfxZyxRotationScratch*`:
 
    ```c
-   vblock = block;
+   vblock = scratch;
    vblock->rotation.m[2][2] = ONE;
    sin_z = vblock->sinZ; /* … cosZ, cosY, sinY */
    ```
@@ -33174,7 +33174,7 @@ the example.
 
 ## Two scratch aliases: halfword `+r` first, then `+r` the block pointer
 
-A 0x28 scratch that is both an `SVECTOR*` (field stores, `Gfx_ApplyMatrixNoSf`,
+A 0x28 scratch that is both an `SVECTOR*` (field stores, `gfxDotProduct`,
 GTE) and the allocation pointer (`*scratch = p`, `VectorNormalSS`) wants:
 
 ```
@@ -34296,7 +34296,7 @@ and pin `mask` to `$t2`.
 
 `gfxMakeRelativeTransform` is `out = inverse(reference) * target` for rigid transforms:
 transpose the reference rotation into scratch (same `t4`/`t5`/`t6` halfword
-pattern as `Gfx_TransposeRot`), `gte_MulMatrix0` into `out`, then
+pattern as `_gfxTransposeRotation`), `gte_MulMatrix0` into `out`, then
 `ApplyMatrixLV` of `target.t - reference.t`. Splat tags it "Handwritten"
 because of COP2; the C is still GCC 2.8.1.
 
@@ -36745,7 +36745,7 @@ The last compare can still use the return in `$v0` directly
 ## GTE outer product of two `VECTOR`s
 
 `gte_ldopv1SV` / `gte_ldopv2SV` / `gte_stsv` are the `SVECTOR` form
-(`Gfx_OrthonormalBasis`). For `VECTOR` rows use the long-word helpers
+(`gfxBuildOrthonormalBasis`). For `VECTOR` rows use the long-word helpers
 plus `gte_op12()` (the real `0x4B78000C` with `gte.h` included):
 
 ```c
@@ -143146,12 +143146,12 @@ extra->flags = (gDisplayState.animFrame & 1) ? extra->flags & 0xFF7F
 
 Check it in `.flow` by counting `(set (mem … (reg/v N)))` at the field's offset.
 
-## `SCRATCH_STACK_RESERVE_BLOCK(T)` versus `SCRATCH_STACK_CURSOR(T) - 1` then a store: the push's copy lengthens the head's quantity by one insn (Gfx_OrthonormalBasis, 2026-09-26)
+## `SCRATCH_STACK_RESERVE_BLOCK(T)` versus `SCRATCH_STACK_CURSOR(T) - 1` then a store: the push's copy lengthens the head's quantity by one insn (gfxBuildOrthonormalBasis, 2026-09-26)
 
 Both forms load the scratch head once and emit the same `lw / addiu / sw`, but
-`mat = SCRATCH_STACK_RESERVE_BLOCK(MATRIX)` assigns through the cursor assignment's own
-temporary and then copies it to `mat`. That copy survives to `.lreg` inside the
-loaded head's range. In `Gfx_OrthonormalBasis` the head quantity (8 refs, tied
+`basisRows = SCRATCH_STACK_RESERVE_BLOCK(MATRIX)` assigns through the cursor assignment's own
+temporary and then copies it to `basisRows`. That copy survives to `.lreg` inside the
+loaded head's range. In `gfxBuildOrthonormalBasis` the head quantity (8 refs, tied
 to the `head - 0x1A` pointer it dies into) and the first `lhu` temp tied at
 exactly 10000 (`3*8/24` against `1*2/2`); the head was born first, so it took
 `$v0`. The push's extra insn gives `3*8/26` = 9230, the temp takes `$v0` and the

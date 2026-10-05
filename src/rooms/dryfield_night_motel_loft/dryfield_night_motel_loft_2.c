@@ -591,7 +591,7 @@ void func_dryfield_night_motel_loft_8017E090(Task* task)
                     task->state         = 1;
                     break;
                 case 1:
-                    Gfx_RotMatrixXYZ(&coord->coord, &work->pos, GRAPHICS_ROTATION_COMPOSE);
+                    gfxRotMatrixXYZ(&coord->coord, &work->pos, GRAPHICS_ROTATION_COMPOSE);
                     MatrixNormal(&coord->coord, &coord->coord);
                     gte_lddp((u16)work->scale);
                     gte_ldsv(&work->move);
@@ -619,7 +619,7 @@ void func_dryfield_night_motel_loft_8017E090(Task* task)
                     if (work->period < 5) {
                         goto release;
                     }
-                    Gfx_RotMatrixXYZ(&coord->coord, &work->pos, GRAPHICS_ROTATION_COMPOSE);
+                    gfxRotMatrixXYZ(&coord->coord, &work->pos, GRAPHICS_ROTATION_COMPOSE);
                     MatrixNormal(&coord->coord, &coord->coord);
                     gte_lddp((u16)work->scale);
                     gte_ldsv(&work->move);

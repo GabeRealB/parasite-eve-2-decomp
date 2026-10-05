@@ -3873,7 +3873,7 @@ static void func_actor_403000_801384E8(Task* arg0)
     if (work->stateEntered != 0) {
         enemy            = arg0->spawnArg2.pointer;
         work->stateFrame = 0;
-        Gfx_MatrixCol0(&arg0->extra.tmd->coords->coord, &scratch->offset);
+        gfxReadMatrixXAxis(&arg0->extra.tmd->coords->coord, &scratch->offset);
         VectorNormalSS(&scratch->offset, &scratch->offset);
         gte_lddp(0x55);
         gte_ldsv(&scratch->offset);
@@ -4218,7 +4218,7 @@ static void func_actor_403000_80138DB0(Task* arg0)
         D_actor_403000_80158DB0.push.displacement.vx = scratch->offset.vx;
         D_actor_403000_80158DB0.push.displacement.vy = 0;
         D_actor_403000_80158DB0.push.displacement.vz = scratch->offset.vz;
-        Gfx_MatrixCol0(&arg0->extra.tmd->coords->coord, t4);
+        gfxReadMatrixXAxis(&arg0->extra.tmd->coords->coord, t4);
         VectorNormalSS(t4, t4);
         Actor403000_ScaleVec(t4, 0x7D);
         D_actor_403000_80158DB0.push.displacement.vx  += scratch->offset.vx;
@@ -4920,7 +4920,7 @@ static void func_actor_403000_8013B238(Task* arg0)
         if (scratch->turn < 0) {
             scratch->turn += 0x1000;
         }
-        Gfx_MatrixCol0(&arg0->extra.tmd->coords->coord, &scratch->offset);
+        gfxReadMatrixXAxis(&arg0->extra.tmd->coords->coord, &scratch->offset);
         VectorNormalSS(&scratch->offset, &scratch->offset);
         gte_lddp(0x1B);
         gte_ldsv(&scratch->offset);

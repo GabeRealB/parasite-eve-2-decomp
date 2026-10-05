@@ -1571,7 +1571,7 @@ void Gp_EffModelTask(Task* arg0)
         gfxRotMatrixX(&coord->coord, 0x800, GRAPHICS_ROTATION_COMPOSE);
         return;
     }
-    Gfx_RotMatrixXYZ(&coord->coord, &mem->pos, 0);
+    gfxRotMatrixXYZ(&coord->coord, &mem->pos, GRAPHICS_ROTATION_COMPOSE);
     MatrixNormal(&coord->coord, &coord->coord);
     gte_lddp(mem->scale);
     vel = &mem->move;

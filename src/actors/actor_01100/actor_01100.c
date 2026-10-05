@@ -2414,7 +2414,7 @@ static __inline__ s32 _actor01100DistSqToPlayer(GfxCoord* self)
     vec->vx = other->workm.t[0] - self->workm.t[0];
     vec->vy = other->workm.t[1] - self->workm.t[1];
     vec->vz = other->workm.t[2] - self->workm.t[2];
-    dist    = Gfx_ApplyMatrixNoSf(vec, vec);
+    dist    = gfxDotProduct(vec, vec);
     SCRATCH_STACK_RELEASE_BLOCK(SVECTOR);
     return dist;
 }
@@ -2594,7 +2594,7 @@ static const VECTOR Actor01100_D000CC = { 0x10, 0x10, 0x10, 0 };
 /// motion 6, zeroes `stateCounter` and steps the latch. If actor slot 3 is live
 /// it rotates `(0x12C, 0, 0)` through model part 10's `workm`, adds the
 /// player-part-1 versus part-10 translation, and maps
-/// `SquareRoot0(Gfx_ApplyMatrixNoSf)` into `stretchGoal` — 0 inside 0x384,
+/// `SquareRoot0(gfxDotProduct)` into `stretchGoal` — 0 inside 0x384,
 /// 0x2000 past 0xA8C, otherwise `((dist - 0x384) << 9) / 100`.
 ///
 /// Every later frame increments the countdown, asks `Actor01100_Fn039D0` for
@@ -2648,7 +2648,7 @@ static void Actor01100_Fn04410(Enemy* enemy, Task* task, _Actor01100Work* work, 
             scratch->shortVector.vx += (u16)playerPart->workm.t[0] - (u16)actorPart->workm.t[0];
             scratch->shortVector.vy += (u16)playerPart->workm.t[1] - (u16)actorPart->workm.t[1];
             scratch->shortVector.vz += (u16)playerPart->workm.t[2] - (u16)actorPart->workm.t[2];
-            dist                     = SquareRoot0(Gfx_ApplyMatrixNoSf(vec, vec));
+            dist                     = SquareRoot0(gfxDotProduct(vec, vec));
             if (dist < 0x384) {
                 work->stretchGoal = 0;
             } else if (dist >= 0xA8D) {
@@ -2736,7 +2736,7 @@ static void Actor01100_Fn04410(Enemy* enemy, Task* task, _Actor01100Work* work, 
 /// motion 7, zeroes `stateCounter` and steps the latch. If actor slot 3 is live
 /// it rotates `(0x12C, 0, 0)` through model part 6's `workm`, adds the
 /// player-part-1 versus part-6 translation, and maps
-/// `SquareRoot0(Gfx_ApplyMatrixNoSf)` into `stretchGoal` — 0 inside 0x384,
+/// `SquareRoot0(gfxDotProduct)` into `stretchGoal` — 0 inside 0x384,
 /// 0x2000 past 0xA8C, otherwise `((dist - 0x384) << 9) / 100`.
 ///
 /// Every frame then asks `Actor01100_Fn039D0` for `playerBearing` and turns the
@@ -2791,7 +2791,7 @@ static void Actor01100_Fn048C8(Enemy* enemy, Task* task, _Actor01100Work* work, 
             scratch->shortVector.vx += (u16)playerPart->workm.t[0] - (u16)actorPart->workm.t[0];
             scratch->shortVector.vy += (u16)playerPart->workm.t[1] - (u16)actorPart->workm.t[1];
             scratch->shortVector.vz += (u16)playerPart->workm.t[2] - (u16)actorPart->workm.t[2];
-            dist                     = SquareRoot0(Gfx_ApplyMatrixNoSf(vec, vec));
+            dist                     = SquareRoot0(gfxDotProduct(vec, vec));
             if (dist < 0x384) {
                 work->stretchGoal = 0;
             } else if (dist >= 0xA8D) {
@@ -2996,7 +2996,7 @@ static __inline__ void Actor104900_ScratchWrite(u8* p)
             vec->vy = (u16)coord->workm.t[1] - (u16)arg0->workm.t[1]; \
             Actor104900_ScratchWrite((u8*)vec);                       \
             vec->vz = (u16)coord->workm.t[2] - (u16)arg0->workm.t[2]; \
-            out     = Gfx_ApplyMatrixNoSf(vec, vec);                  \
+            out     = gfxDotProduct(vec, vec);                        \
             Actor104900_ScratchWrite(Actor104900_ScratchRead() + 8);  \
         }                                                             \
     }
@@ -3747,7 +3747,7 @@ static s32 Actor01100_Fn06954(GfxCoord* arg0, s32 arg1)
 
 /// Squared distance from `arg0` to the slot-3 (player) task's root part coord,
 /// or `0x7FFFFFFF` when that task is gone. The delta is staged in an `SVECTOR`
-/// carved off the scratchpad stack and squared with `Gfx_ApplyMatrixNoSf`.
+/// carved off the scratchpad stack and squared with `gfxDotProduct`.
 static s32 Actor01100_Fn06AC8(GfxCoord* arg0)
 {
     void**    scratch;
@@ -3767,7 +3767,7 @@ static s32 Actor01100_Fn06AC8(GfxCoord* arg0)
         vec->vy                        = (u16)coord->workm.t[1] - (u16)arg0->workm.t[1];
         SCRATCH_HEAD_AT(scratch, void) = vec;
         vec->vz                        = (u16)coord->workm.t[2] - (u16)arg0->workm.t[2];
-        ret                            = Gfx_ApplyMatrixNoSf(vec, vec);
+        ret                            = gfxDotProduct(vec, vec);
         SCRATCH_POP_BYTES_AT(scratch, 8);
     } else {
         ret = 0x7FFFFFFF;

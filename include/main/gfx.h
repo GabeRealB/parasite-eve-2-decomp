@@ -41,9 +41,35 @@ extern GfxCoord gGfxViewCoord;
 
 void Gfx_SetFlatLight(s32 id, GsF_LIGHT* light, MATRIX* dirMtx, MATRIX* colorMtx);
 
-void Gfx_RotMatrixXYZ(MATRIX* out, SVECTOR* angles, s32 flag);
+/// Builds Rx(x) * Ry(y) * Rz(z) and replaces or composes `matrix`'s rotation.
+///
+/// `angles` contains signed X, Y and Z angles in 4096 units per turn; its
+/// fourth halfword is not read. Matrix elements use `ONE` (4096) for 1.0.
+/// Nonzero `replace` (`GRAPHICS_ROTATION_REPLACE`) installs the product;
+/// zero (`GRAPHICS_ROTATION_COMPOSE`) computes matrix * product. Only the
+/// nine rotation elements are written; alignment bytes and translation stay.
+/// Composition requires the current rotation to be initialized.
+///
+/// Requires a writable, word-aligned matrix, halfword-aligned readable angles,
+/// and an initialized scratch stack with 0x34 free bytes. Inputs and output
+/// must be disjoint from that reservation, released before return. Changes
+/// GTE rotation and arithmetic state; retains no pointer. The caller manages
+/// any containing coordinate's dirty stamp.
+void gfxRotMatrixXYZ(MATRIX* matrix, const SVECTOR* angles, s32 replace);
 
-void Gfx_RotMatrixYXZ(MATRIX* out, SVECTOR* angles, s32 flag);
+/// Builds Ry(y) * Rx(x) * Rz(z) and replaces or composes `matrix`'s rotation.
+///
+/// X, Y and Z angles are `angles`' signed xyz, in 4096 units per turn; its
+/// fourth halfword is not read. The product's elements use `ONE` for 1.0.
+/// Nonzero `replace` installs the product, zero computes matrix * product;
+/// composition requires initialized rotation elements. Alignment bytes and
+/// translation are preserved.
+///
+/// Requires a writable, word-aligned matrix, halfword-aligned readable angles,
+/// and 0x34 free bytes on the initialized scratch stack, disjoint from both
+/// objects and released before return. Changes GTE rotation and arithmetic
+/// state; retains no pointer. The caller manages the coordinate's dirty stamp.
+void gfxRotMatrixYXZ(MATRIX* matrix, const SVECTOR* angles, s32 replace);
 
 /// Canonical values for replacing a rotation or composing it on the right.
 ///
@@ -104,13 +130,29 @@ void gfxRotMatrixZ(MATRIX* matrix, s32 angle, s32 replace);
 ///
 /// `angles->vx`, `vy` and `vz` are the X, Y and Z angles, signed, with 4096
 /// units per turn, for the product Rx(x) * Ry(y) * Rz(z) built by
-/// `Gfx_RotMatrixXYZ`, `RotMatrix` and `RotMatrix_gte`. The fourth halfword
+/// `gfxRotMatrixXYZ`, `RotMatrix` and `RotMatrix_gte`. The fourth halfword
 /// is not written. Translation is not read.
 void gfxMatrixToEuler(MATRIX* matrix, SVECTOR* angles);
 
-void Gfx_MatrixCol0(MATRIX* matrix, SVECTOR* vector);
+/// Copies the matrix's local X axis (its first column) into `xAxis`.
+///
+/// Copies m[0][0], m[1][0] and m[2][0] to signed xyz without normalization;
+/// the matrix's scale and destination frame are retained (`ONE` = 1.0 for
+/// conventional rotations). Translation and the vector's pad are untouched.
+/// Requires three readable matrix elements and writable vector xyz, both
+/// halfword-aligned. Overlap is allowed: all reads precede all stores.
+/// Borrows both objects for the call; uses no scratch space or GTE state.
+void gfxReadMatrixXAxis(const MATRIX* matrix, SVECTOR* xAxis);
 
-void Gfx_MatrixCol1(MATRIX* matrix, SVECTOR* vector);
+/// Copies the matrix's local Y axis (its second column) into `yAxis`.
+///
+/// Copies m[0][1], m[1][1] and m[2][1] to signed xyz without normalization;
+/// the matrix's scale and destination frame are retained (`ONE` = 1.0 for
+/// conventional rotations). Translation and the vector's pad are untouched.
+/// Requires three readable matrix elements and writable vector xyz, both
+/// halfword-aligned. Overlap is allowed: all reads precede all stores.
+/// Borrows both objects for the call; uses no scratch space or GTE state.
+void gfxReadMatrixYAxis(const MATRIX* matrix, SVECTOR* yAxis);
 
 /// Copies the matrix's local Z axis (its third column) into `zAxis`.
 ///
@@ -144,9 +186,35 @@ void gfxReadMatrixZAxis(const MATRIX* matrix, SVECTOR* zAxis);
 /// GTE arithmetic and leading-sign-bit-count state; retains no caller pointer.
 void gfxNormalizeLightDirection(const void* direction, SVECTOR* normalizedDirection);
 
-void Gfx_OrthonormalBasis(MATRIX* out, SVECTOR* arg1, SVECTOR* arg2);
+/// Builds an orthonormal rotation around a Z direction and a Y-axis hint.
+///
+/// `zAxis` supplies the Z direction and `yHint` the preferred Y direction in
+/// the same coordinate frame, conventionally scaled by `ONE` (4096). X starts
+/// as yHint cross zAxis; X and Y are rebuilt perpendicular to Z and all three
+/// axes normalized to approximately `ONE`, then written as matrix columns.
+/// A useful frame requires nonzero Z and a nonparallel hint with cross products
+/// that survive the GTE's 12-bit shift and signed-halfword saturation. Degenerate
+/// inputs have no fallback. Matrix alignment bytes and translation are preserved.
+///
+/// Both inputs and the writable matrix require halfword alignment. Reads xyz
+/// from `zAxis` and all eight bytes of `yHint`, including its ignored pad; a
+/// six-byte hint is insufficient. Inputs may overlap each other or the output.
+/// Requires an initialized scratch stack with sizeof(MATRIX) free bytes,
+/// disjoint from all caller objects and released before return. Changes GTE
+/// arithmetic and rotation state; retains no pointer.
+void gfxBuildOrthonormalBasis(MATRIX* matrix, const SVECTOR* zAxis, const SVECTOR* yHint);
 
-s32 Gfx_ApplyMatrixNoSf(SVECTOR* arg0, SVECTOR* arg1);
+/// Returns the signed xyz dot product without a fixed-point fraction shift.
+///
+/// Each component is a signed halfword; the result has the product of the input
+/// units (squared coordinate units when both arguments are the same vector).
+/// Returns the low signed 32 bits of the GTE accumulator without saturation;
+/// callers needing a nonnegative squared distance must keep that sum in range.
+/// Both inputs must be word-aligned, readable eight-byte SVECTORs. Their pads
+/// are loaded but do not affect the returned component. Inputs may alias.
+/// Changes GTE rotation, vector, accumulator, IR and flag state; uses no scratch
+/// stack and retains no pointer.
+s32 gfxDotProduct(const SVECTOR* left, const SVECTOR* right);
 
 /// Sets the nine rotation entries of `matrix` to the GTE fixed-point identity.
 ///

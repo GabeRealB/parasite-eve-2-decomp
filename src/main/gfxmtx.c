@@ -4,6 +4,7 @@
 #include <psyq/libgte.h>
 #include <psyq/gtemac.h>
 #include <psyq/inline_c.h>
+#include <psyq/memory.h>
 
 #include "gte.h"
 #include "types.h"
@@ -104,10 +105,6 @@ STATIC_ASSERT_SIZEOF(_GfxZyxRotationScratch, 0x44);
         (rotation)->m[2][2] = ONE;                              \
     } while (0)
 
-static void Gfx_RotMatrixZYX(MATRIX* out, SVECTOR* angles, s32 flag);
-
-static void Gfx_TransposeRot(MATRIX* arg0, MATRIX* arg1);
-
 /// Reduces a copied light direction for safe signed sum-of-squares normalization.
 ///
 /// `scratch` is a live, writable workspace with `direction`'s xyz initialized. Its
@@ -152,201 +149,239 @@ static __inline__ void _gfxReduceLightDirection(_GfxLightDirectionScratch* scrat
     }
 }
 
-void Gfx_RotMatrixXYZ(MATRIX* out, SVECTOR* angles, s32 flag)
+/// Installs an Euler product or multiplies it into the current rotation.
+///
+/// The two word-aligned matrices must be disjoint, with the product initialized;
+/// composition (zero replace) also requires an initialized destination rotation.
+/// Writes only the nine rotation entries and changes GTE state on composition.
+static __inline__ void _gfxApplyEulerRotation(MATRIX* matrix, const MATRIX* rotation, s32 replace)
 {
-    _GfxEulerRotationScratch* block;
-
-    block = SCRATCH_STACK_RESERVE_BLOCK(_GfxEulerRotationScratch);
-
-    block->sinX = rsin(angles->vx);
-    block->sinY = rsin(angles->vy);
-    block->sinZ = rsin(angles->vz);
-    block->cosX = rcos(angles->vx);
-    block->cosY = rcos(angles->vy);
-    block->cosZ = rcos(angles->vz);
-
-    block->rotation.m[0][0] = ONE;
-    block->rotation.m[0][1] = 0;
-    block->rotation.m[0][2] = 0;
-    block->rotation.m[1][0] = 0;
-    block->rotation.m[1][1] = block->cosX;
-    block->rotation.m[1][2] = -block->sinX;
-    block->rotation.m[2][0] = 0;
-    block->rotation.m[2][1] = block->sinX;
-    block->rotation.m[2][2] = block->cosX;
-
-    block->column.vx = block->cosY;
-    block->column.vy = 0;
-    block->column.vz = -block->sinY;
-
-    gte_SetRotMatrix(&block->rotation);
-    gte_ldsv(&block->column);
-    gte_rtir();
-    block->column.vx = block->sinY;
-    block->column.vz = block->cosY;
-    gte_stclmv(&block->rotation.m[0][0]);
-
-    gte_ldsv(&block->column);
-    gte_rtir();
-    block->column.vx = block->cosZ;
-    block->column.vy = block->sinZ;
-    block->column.vz = 0;
-    gte_stclmv(&block->rotation.m[0][2]);
-
-    gte_SetRotMatrix(&block->rotation);
-    gte_ldsv(&block->column);
-    gte_rtir();
-    block->column.vx = -block->sinZ;
-    block->column.vy = block->cosZ;
-    gte_stclmv(&block->rotation.m[0][0]);
-
-    gte_ldsv(&block->column);
-    gte_rtir();
-    gte_stclmv(&block->rotation.m[0][1]);
-
-    if (flag != 0) {
-        MATRIX_PAIR(out, 0, 0) = MATRIX_PAIR(&block->rotation, 0, 0);
-        MATRIX_PAIR(out, 0, 2) = MATRIX_PAIR(&block->rotation, 0, 2);
-        MATRIX_PAIR(out, 1, 1) = MATRIX_PAIR(&block->rotation, 1, 1);
-        MATRIX_PAIR(out, 2, 0) = MATRIX_PAIR(&block->rotation, 2, 0);
-        out->m[2][2]           = block->rotation.m[2][2];
+    if (replace != 0) {
+        MATRIX_PAIR(matrix, 0, 0) = MATRIX_PAIR(rotation, 0, 0);
+        MATRIX_PAIR(matrix, 0, 2) = MATRIX_PAIR(rotation, 0, 2);
+        MATRIX_PAIR(matrix, 1, 1) = MATRIX_PAIR(rotation, 1, 1);
+        MATRIX_PAIR(matrix, 2, 0) = MATRIX_PAIR(rotation, 2, 0);
+        matrix->m[2][2]           = rotation->m[2][2];
     } else {
-        gte_MulMatrix0(out, &block->rotation, out);
+        gte_MulMatrix0(matrix, rotation, matrix);
     }
+}
+
+/// Builds the first X factor of an Euler rotation in its scratch workspace.
+///
+/// Reads sinX/cosX scaled by ONE and writes only the nine rotation entries.
+static __inline__ void _gfxBuildEulerXFactor(_GfxEulerRotationScratch* scratch)
+{
+    scratch->rotation.m[0][0] = ONE;
+    scratch->rotation.m[0][1] = 0;
+    scratch->rotation.m[0][2] = 0;
+    scratch->rotation.m[1][0] = 0;
+    scratch->rotation.m[1][1] = scratch->cosX;
+    scratch->rotation.m[1][2] = -scratch->sinX;
+    scratch->rotation.m[2][0] = 0;
+    scratch->rotation.m[2][1] = scratch->sinX;
+    scratch->rotation.m[2][2] = scratch->cosX;
+}
+
+/// Builds the first Y factor of an Euler rotation in its scratch workspace.
+///
+/// Reads sinY/cosY scaled by ONE and writes only the nine rotation entries.
+static __inline__ void _gfxBuildEulerYFactor(_GfxEulerRotationScratch* scratch)
+{
+    scratch->rotation.m[0][0] = scratch->cosY;
+    scratch->rotation.m[0][1] = 0;
+    scratch->rotation.m[0][2] = scratch->sinY;
+    scratch->rotation.m[1][0] = 0;
+    scratch->rotation.m[1][1] = ONE;
+    scratch->rotation.m[1][2] = 0;
+    scratch->rotation.m[2][0] = -scratch->sinY;
+    scratch->rotation.m[2][1] = 0;
+    scratch->rotation.m[2][2] = scratch->cosY;
+}
+
+void gfxRotMatrixXYZ(MATRIX* matrix, const SVECTOR* angles, s32 replace)
+{
+    _GfxEulerRotationScratch* scratch;
+
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(_GfxEulerRotationScratch);
+
+    scratch->sinX = rsin(angles->vx);
+    scratch->sinY = rsin(angles->vy);
+    scratch->sinZ = rsin(angles->vz);
+    scratch->cosX = rcos(angles->vx);
+    scratch->cosY = rcos(angles->vy);
+    scratch->cosZ = rcos(angles->vz);
+
+    // Build RX; the other factors are applied on the right by their columns.
+    _gfxBuildEulerXFactor(scratch);
+
+    // Apply RY, preserving the column along its own axis.
+    scratch->column.vx = scratch->cosY;
+    scratch->column.vy = 0;
+    scratch->column.vz = -scratch->sinY;
+
+    gte_SetRotMatrix(&scratch->rotation);
+    gte_ldsv(&scratch->column);
+    gte_rtir();
+    scratch->column.vx = scratch->sinY;
+    scratch->column.vz = scratch->cosY;
+    gte_stclmv(&scratch->rotation.m[0][0]);
+
+    gte_ldsv(&scratch->column);
+    gte_rtir();
+    // Stage RZ in the GTE pipeline gap, then transform its two columns.
+    scratch->column.vx = scratch->cosZ;
+    scratch->column.vy = scratch->sinZ;
+    scratch->column.vz = 0;
+    gte_stclmv(&scratch->rotation.m[0][2]);
+
+    gte_SetRotMatrix(&scratch->rotation);
+    gte_ldsv(&scratch->column);
+    gte_rtir();
+    scratch->column.vx = -scratch->sinZ;
+    scratch->column.vy = scratch->cosZ;
+    gte_stclmv(&scratch->rotation.m[0][0]);
+
+    gte_ldsv(&scratch->column);
+    gte_rtir();
+    gte_stclmv(&scratch->rotation.m[0][1]);
+
+    // Install only the 3x3, or right-multiply the caller's existing rotation.
+    _gfxApplyEulerRotation(matrix, &scratch->rotation, replace);
 
     SCRATCH_STACK_RELEASE_BLOCK(_GfxEulerRotationScratch);
 }
 
-void Gfx_RotMatrixYXZ(MATRIX* out, SVECTOR* angles, s32 flag)
+void gfxRotMatrixYXZ(MATRIX* matrix, const SVECTOR* angles, s32 replace)
 {
-    _GfxEulerRotationScratch* block;
+    _GfxEulerRotationScratch* scratch;
 
-    block = SCRATCH_STACK_RESERVE_BLOCK(_GfxEulerRotationScratch);
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(_GfxEulerRotationScratch);
 
-    block->sinX = rsin(angles->vx);
-    block->sinY = rsin(angles->vy);
-    block->sinZ = rsin(angles->vz);
-    block->cosX = rcos(angles->vx);
-    block->cosY = rcos(angles->vy);
-    block->cosZ = rcos(angles->vz);
+    scratch->sinX = rsin(angles->vx);
+    scratch->sinY = rsin(angles->vy);
+    scratch->sinZ = rsin(angles->vz);
+    scratch->cosX = rcos(angles->vx);
+    scratch->cosY = rcos(angles->vy);
+    scratch->cosZ = rcos(angles->vz);
 
-    block->rotation.m[0][0] = block->cosY;
-    block->rotation.m[0][1] = 0;
-    block->rotation.m[0][2] = block->sinY;
-    block->rotation.m[1][0] = 0;
-    block->rotation.m[1][1] = ONE;
-    block->rotation.m[1][2] = 0;
-    block->rotation.m[2][0] = -block->sinY;
-    block->rotation.m[2][1] = 0;
-    block->rotation.m[2][2] = block->cosY;
+    // Build RY; the other factors are applied on the right by their columns.
+    _gfxBuildEulerYFactor(scratch);
 
-    block->column.vx = 0;
-    block->column.vy = block->cosX;
-    block->column.vz = block->sinX;
+    // Apply RX, preserving the column along its own axis.
+    scratch->column.vx = 0;
+    scratch->column.vy = scratch->cosX;
+    scratch->column.vz = scratch->sinX;
 
-    gte_SetRotMatrix(&block->rotation);
-    gte_ldsv(&block->column);
+    gte_SetRotMatrix(&scratch->rotation);
+    gte_ldsv(&scratch->column);
     gte_rtir();
-    block->column.vx = 0;
-    block->column.vy = -block->sinX;
-    block->column.vz = block->cosX;
-    gte_stclmv(&block->rotation.m[0][1]);
+    scratch->column.vx = 0;
+    scratch->column.vy = -scratch->sinX;
+    scratch->column.vz = scratch->cosX;
+    gte_stclmv(&scratch->rotation.m[0][1]);
 
-    gte_ldsv(&block->column);
+    gte_ldsv(&scratch->column);
     gte_rtir();
-    block->column.vx = block->cosZ;
-    block->column.vy = block->sinZ;
-    block->column.vz = 0;
-    gte_stclmv(&block->rotation.m[0][2]);
+    // Stage RZ in the GTE pipeline gap, then transform its two columns.
+    scratch->column.vx = scratch->cosZ;
+    scratch->column.vy = scratch->sinZ;
+    scratch->column.vz = 0;
+    gte_stclmv(&scratch->rotation.m[0][2]);
 
-    gte_SetRotMatrix(&block->rotation);
-    gte_ldsv(&block->column);
+    gte_SetRotMatrix(&scratch->rotation);
+    gte_ldsv(&scratch->column);
     gte_rtir();
-    block->column.vx = -block->sinZ;
-    block->column.vy = block->cosZ;
-    block->column.vz = 0;
-    gte_stclmv(&block->rotation.m[0][0]);
+    scratch->column.vx = -scratch->sinZ;
+    scratch->column.vy = scratch->cosZ;
+    scratch->column.vz = 0;
+    gte_stclmv(&scratch->rotation.m[0][0]);
 
-    gte_ldsv(&block->column);
+    gte_ldsv(&scratch->column);
     gte_rtir();
-    gte_stclmv(&block->rotation.m[0][1]);
+    gte_stclmv(&scratch->rotation.m[0][1]);
 
-    if (flag != 0) {
-        MATRIX_PAIR(out, 0, 0) = MATRIX_PAIR(&block->rotation, 0, 0);
-        MATRIX_PAIR(out, 0, 2) = MATRIX_PAIR(&block->rotation, 0, 2);
-        MATRIX_PAIR(out, 1, 1) = MATRIX_PAIR(&block->rotation, 1, 1);
-        MATRIX_PAIR(out, 2, 0) = MATRIX_PAIR(&block->rotation, 2, 0);
-        out->m[2][2]           = block->rotation.m[2][2];
-    } else {
-        gte_MulMatrix0(out, &block->rotation, out);
-    }
+    // Install only the 3x3, or right-multiply the caller's existing rotation.
+    _gfxApplyEulerRotation(matrix, &scratch->rotation, replace);
 
     SCRATCH_STACK_RELEASE_BLOCK(_GfxEulerRotationScratch);
 }
 
-static void Gfx_RotMatrixZYX(MATRIX* out, SVECTOR* angles, s32 flag)
+/// Builds the first Z factor of a ZYX rotation in its scratch workspace.
+///
+/// Reads sinZ/cosZ scaled by ONE and writes only the nine rotation entries.
+static __inline__ void _gfxBuildZyxZFactor(_GfxZyxRotationScratch* scratch)
 {
-    _GfxZyxRotationScratch* block;
+    scratch->rotation.m[0][0] = scratch->cosZ;
+    scratch->rotation.m[0][1] = -scratch->sinZ;
+    scratch->rotation.m[0][2] = 0;
+    scratch->rotation.m[1][0] = scratch->sinZ;
+    scratch->rotation.m[1][1] = scratch->cosZ;
+    scratch->rotation.m[1][2] = 0;
+    scratch->rotation.m[2][0] = 0;
+    scratch->rotation.m[2][1] = 0;
+    scratch->rotation.m[2][2] = ONE;
+}
 
-    block = SCRATCH_STACK_RESERVE_BLOCK(_GfxZyxRotationScratch);
+/// Builds Rz(z) * Ry(y) * Rx(x), preserving matrix translation and alignment bytes.
+///
+/// Signed xyz angles use 4096 units per turn; pad is not read. Nonzero `replace`
+/// installs the product, zero right-multiplies the initialized current rotation.
+/// Requires a writable word-aligned matrix, halfword-aligned readable angles,
+/// and 0x44 free scratch-stack bytes disjoint from both objects. Releases that
+/// reservation before return, changes GTE rotation and arithmetic state, and
+/// retains no pointer.
+static void _gfxRotMatrixZYX(MATRIX* matrix, const SVECTOR* angles, s32 replace)
+{
+    _GfxZyxRotationScratch* scratch;
 
-    block->sinX = rsin(angles->vx);
-    block->sinY = rsin(angles->vy);
-    block->sinZ = rsin(angles->vz);
-    block->cosX = rcos(angles->vx);
-    block->cosY = rcos(angles->vy);
-    block->cosZ = rcos(angles->vz);
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(_GfxZyxRotationScratch);
 
-    block->rotation.m[0][0] = block->cosZ;
-    block->rotation.m[0][1] = -block->sinZ;
-    block->rotation.m[0][2] = 0;
-    block->rotation.m[1][0] = block->sinZ;
-    block->rotation.m[1][1] = block->cosZ;
-    block->rotation.m[1][2] = 0;
-    block->rotation.m[2][0] = 0;
-    block->rotation.m[2][1] = 0;
-    block->rotation.m[2][2] = ONE;
+    scratch->sinX = rsin(angles->vx);
+    scratch->sinY = rsin(angles->vy);
+    scratch->sinZ = rsin(angles->vz);
+    scratch->cosX = rcos(angles->vx);
+    scratch->cosY = rcos(angles->vy);
+    scratch->cosZ = rcos(angles->vz);
 
-    block->columns[0].vx = block->cosY;
-    block->columns[0].vy = 0;
-    block->columns[0].vz = -block->sinY;
+    // Build RZ; the other factors are applied on the right by their columns.
+    _gfxBuildZyxZFactor(scratch);
 
-    gte_SetRotMatrix(&block->rotation);
-    gte_ldsv(&block->columns[0]);
+    // Apply RY, preserving the column along its own axis.
+    scratch->columns[0].vx = scratch->cosY;
+    scratch->columns[0].vy = 0;
+    scratch->columns[0].vz = -scratch->sinY;
+
+    gte_SetRotMatrix(&scratch->rotation);
+    gte_ldsv(&scratch->columns[0]);
     gte_rtir();
-    block->columns[2].vx = block->sinY;
-    block->columns[2].vy = 0;
-    block->columns[2].vz = block->cosY;
-    gte_stclmv(&block->rotation.m[0][0]);
+    scratch->columns[2].vx = scratch->sinY;
+    scratch->columns[2].vy = 0;
+    scratch->columns[2].vz = scratch->cosY;
+    gte_stclmv(&scratch->rotation.m[0][0]);
 
-    gte_ldsv(&block->columns[2]);
+    gte_ldsv(&scratch->columns[2]);
     gte_rtir();
-    block->columns[1].vx = 0;
-    block->columns[1].vy = block->cosX;
-    block->columns[1].vz = block->sinX;
-    gte_stclmv(&block->rotation.m[0][2]);
+    // Stage RX in the GTE pipeline gap, then transform its two columns.
+    scratch->columns[1].vx = 0;
+    scratch->columns[1].vy = scratch->cosX;
+    scratch->columns[1].vz = scratch->sinX;
+    gte_stclmv(&scratch->rotation.m[0][2]);
 
-    gte_SetRotMatrix(&block->rotation);
-    gte_ldsv(&block->columns[1]);
+    gte_SetRotMatrix(&scratch->rotation);
+    gte_ldsv(&scratch->columns[1]);
     gte_rtir();
-    block->columns[2].vx = 0;
-    block->columns[2].vy = -block->sinX;
-    block->columns[2].vz = block->cosX;
-    gte_stclmv(&block->rotation.m[0][1]);
+    scratch->columns[2].vx = 0;
+    scratch->columns[2].vy = -scratch->sinX;
+    scratch->columns[2].vz = scratch->cosX;
+    gte_stclmv(&scratch->rotation.m[0][1]);
 
-    gte_ldsv(&block->columns[2]);
+    gte_ldsv(&scratch->columns[2]);
     gte_rtir();
-    gte_stclmv(&block->rotation.m[0][2]);
+    gte_stclmv(&scratch->rotation.m[0][2]);
 
-    if (flag != 0) {
-        MATRIX_PAIR(out, 0, 0) = MATRIX_PAIR(&block->rotation, 0, 0);
-        MATRIX_PAIR(out, 0, 2) = MATRIX_PAIR(&block->rotation, 0, 2);
-        MATRIX_PAIR(out, 1, 1) = MATRIX_PAIR(&block->rotation, 1, 1);
-        MATRIX_PAIR(out, 2, 0) = MATRIX_PAIR(&block->rotation, 2, 0);
-        out->m[2][2]           = block->rotation.m[2][2];
-    } else {
-        gte_MulMatrix0(out, &block->rotation, out);
-    }
+    // Install only the 3x3, or right-multiply the caller's existing rotation.
+    _gfxApplyEulerRotation(matrix, &scratch->rotation, replace);
 
     SCRATCH_STACK_RELEASE_BLOCK(_GfxZyxRotationScratch);
 }
@@ -387,19 +422,25 @@ void gfxMatrixToEuler(MATRIX* matrix, SVECTOR* angles)
     SCRATCH_STACK_RELEASE_BYTES(GRAPHICS_EULER_SCRATCH_BYTES);
 }
 
-static void Gfx_TransposeRot(MATRIX* arg0, MATRIX* arg1)
+/// Transposes the nine rotation entries, preserving destination translation.
+///
+/// Source rotation must be initialized and destination rotation writable, both
+/// halfword-aligned and disjoint: columns are copied one at a time, so this is
+/// not an in-place transpose. Alignment bytes are untouched. Borrows the matrices
+/// only for the call and uses no scratch space or GTE state.
+static void _gfxTransposeRotation(const MATRIX* source, MATRIX* destination)
 {
-    gte_TransposeMatrix(arg0, arg1);
+    gte_TransposeMatrix(source, destination);
 }
 
-void Gfx_MatrixCol0(MATRIX* matrix, SVECTOR* vector)
+void gfxReadMatrixXAxis(const MATRIX* matrix, SVECTOR* xAxis)
 {
-    gte_ReadMatrixColumn(matrix, 0, vector);
+    gte_ReadMatrixColumn(matrix, 0, xAxis);
 }
 
-void Gfx_MatrixCol1(MATRIX* matrix, SVECTOR* vector)
+void gfxReadMatrixYAxis(const MATRIX* matrix, SVECTOR* yAxis)
 {
-    gte_ReadMatrixColumn(matrix, 1, vector);
+    gte_ReadMatrixColumn(matrix, 1, yAxis);
 }
 
 void gfxReadMatrixZAxis(const MATRIX* matrix, SVECTOR* zAxis)
@@ -525,40 +566,41 @@ void gfxNormalizeLightDirection(const void* direction, SVECTOR* normalizedDirect
     SCRATCH_STACK_RELEASE_BLOCK(_GfxLightDirectionScratch);
 }
 
-/// Builds a rotation from two axes: `arg2` and `arg1` become rows 1 and 2 of a
-/// scratch matrix, their cross product row 0, and the transposed, normalized
-/// result is written to `out`.
-void Gfx_OrthonormalBasis(MATRIX* out, SVECTOR* arg1, SVECTOR* arg2)
+void gfxBuildOrthonormalBasis(MATRIX* matrix, const SVECTOR* zAxis, const SVECTOR* yHint)
 {
-    MATRIX*  mat;
-    SVECTOR* row;
+    MATRIX*   basisRows;
+    SVECTOR3* zRow;
 
-    mat                  = SCRATCH_STACK_RESERVE_BLOCK(MATRIX);
-    *(SVECTOR*)mat->m[1] = *arg2;
-    row                  = (SVECTOR*)mat->m[2];
-    row->vx              = arg1->vx;
-    row->vy              = arg1->vy;
-    row->vz              = arg1->vz;
+    // The eight-byte hint copy temporarily covers row 2's first halfword.
+    // The following Z stores replace it before any row is used.
+    basisRows = SCRATCH_STACK_RESERVE_BLOCK(MATRIX);
+    memcpy(basisRows->m[1], yHint, sizeof(*yHint));
+    zRow     = (SVECTOR3*)basisRows->m[2];
+    zRow->vx = zAxis->vx;
+    zRow->vy = zAxis->vy;
+    zRow->vz = zAxis->vz;
 
-    gte_ldopv1SV(mat->m[1]);
-    gte_ldopv2SV(row);
+    // Seed X from Y cross Z. The GTE helpers access only each row's xyz.
+    gte_ldopv1SV(basisRows->m[1]);
+    gte_ldopv2SV(zRow);
     gte_op12();
-    gte_stsv(mat->m[0]);
+    gte_stsv(basisRows->m[0]);
 
-    MatrixNormal_2(mat, mat);
+    // Rebuild Y from Z cross X, then X from Y cross Z, and normalize all rows.
+    MatrixNormal_2(basisRows, basisRows);
 
-    gte_TransposeMatrix(mat, out);
+    gte_TransposeMatrix(basisRows, matrix);
 
     SCRATCH_STACK_RELEASE_BLOCK(MATRIX);
 }
 
-s32 Gfx_ApplyMatrixNoSf(SVECTOR* arg0, SVECTOR* arg1)
+s32 gfxDotProduct(const SVECTOR* left, const SVECTOR* right)
 {
-    s32 result;
+    s32 dotProduct;
 
-    gte_ldsvrtrow0(arg0);
-    gte_ldv0(arg1);
+    gte_ldsvrtrow0(left);
+    gte_ldv0(right);
     gte_rtv0_sf0();
-    gte_stlvnl0(&result);
-    return result;
+    gte_stlvnl0(&dotProduct);
+    return dotProduct;
 }

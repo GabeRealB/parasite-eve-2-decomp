@@ -1262,7 +1262,7 @@ static void func_actor_223600_8014BBF4(Enemy* enemy, Task* task)
                 task->extra.tmd->coords->coord.t[2] += vec->vz;
             }
             if (work->stateFrame >= 5 && work->stateFrame < 0xE) {
-                Gfx_MatrixCol1(&task->extra.tmd->coords->coord, vec);
+                gfxReadMatrixYAxis(&task->extra.tmd->coords->coord, vec);
                 VectorNormalSS(vec, vec);
                 gte_lddp(-0x14);
                 gte_ldsv(gte);
@@ -1276,7 +1276,7 @@ static void func_actor_223600_8014BBF4(Enemy* enemy, Task* task)
             }
             if ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) == 0) {
                 if (work->stateFrame >= 0xE && work->stateFrame < 0x25) {
-                    Gfx_MatrixCol1(&task->extra.tmd->coords->coord, vec);
+                    gfxReadMatrixYAxis(&task->extra.tmd->coords->coord, vec);
                     VectorNormalSS(vec, vec);
                     gte_lddp(0xB);
                     gte_ldsv(gte);
@@ -1285,7 +1285,7 @@ static void func_actor_223600_8014BBF4(Enemy* enemy, Task* task)
                     task->extra.tmd->coords->coord.t[0] += head[-1].step.vx;
                     task->extra.tmd->coords->coord.t[1] += vec->vy;
                     task->extra.tmd->coords->coord.t[2] += vec->vz;
-                    Gfx_MatrixCol0(&task->extra.tmd->coords->coord, vec);
+                    gfxReadMatrixXAxis(&task->extra.tmd->coords->coord, vec);
                     VectorNormalSS(vec, vec);
                     gte_lddp(-0x1D);
                     gte_ldsv(gte);
@@ -1322,7 +1322,7 @@ static void func_actor_223600_8014BBF4(Enemy* enemy, Task* task)
                 }
             } else {
                 if (work->stateFrame >= 0xE && work->stateFrame < 0x1E) {
-                    Gfx_MatrixCol1(&task->extra.tmd->coords->coord, vec);
+                    gfxReadMatrixYAxis(&task->extra.tmd->coords->coord, vec);
                     VectorNormalSS(vec, vec);
                     gte_lddp(0xB);
                     gte_ldsv(gte);
@@ -1331,7 +1331,7 @@ static void func_actor_223600_8014BBF4(Enemy* enemy, Task* task)
                     task->extra.tmd->coords->coord.t[0] += head[-1].step.vx;
                     task->extra.tmd->coords->coord.t[1] += vec->vy;
                     task->extra.tmd->coords->coord.t[2] += vec->vz;
-                    Gfx_MatrixCol0(&task->extra.tmd->coords->coord, vec);
+                    gfxReadMatrixXAxis(&task->extra.tmd->coords->coord, vec);
                     VectorNormalSS(vec, vec);
                     gte_lddp(-0x1D);
                     gte_ldsv(gte);

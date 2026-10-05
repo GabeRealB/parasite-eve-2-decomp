@@ -3105,7 +3105,7 @@ static void func_actor_110600_80137AF4(Task* arg0)
         enemy->node.state.parts.flags = WORLD_TARGET_HIDE_HP;
         D_actor_110600_80148688.step  = 0;
     }
-    Gfx_MatrixCol0(&arg0->extra.tmd->coords->coord, &vec);
+    gfxReadMatrixXAxis(&arg0->extra.tmd->coords->coord, &vec);
     VectorNormalSS(&vec, &vec);
     switch (D_actor_110600_80148688.step) {
         case 0:

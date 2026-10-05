@@ -26,7 +26,7 @@ void gluttonBuildWall(Task* task, s16 scale, s16 drop, s16 index)
     face.surfaceClass     = 3;
 
     gfxReadMatrixZAxis(&task->extra.tmd->coords->coord, normal);
-    Gfx_MatrixCol0(&task->extra.tmd->coords->coord, &dir);
+    gfxReadMatrixXAxis(&task->extra.tmd->coords->coord, &dir);
     d = &dir;
     VectorNormalSS(d, d);
     VectorNormalSS(normal, normal);

@@ -457,7 +457,7 @@ static void Reflection_UpdatePlayer(Task* task)
                 if (frame->leastAxis == 2) {
                     frame->refAxis.vz = 0x1000;
                 }
-                Gfx_OrthonormalBasis(&frame->basis, &frame->normal, &frame->refAxis);
+                gfxBuildOrthonormalBasis(&frame->basis, &frame->normal, &frame->refAxis);
                 gte_TransposeMatrix(&frame->basis, &frame->reflect);
                 frame->reflect.m[2][0] = -frame->reflect.m[2][0];
                 frame->reflect.m[2][1] = -frame->reflect.m[2][1];

@@ -4014,7 +4014,7 @@ void worldCollisionCalcContactViewOffset(SVECTOR* position, WorldCollisionContac
     delta->vy = contact->point.vy - position->vy;
     delta->vz = contact->point.vz - position->vz;
     viewCoord = &gGfxViewCoord;
-    scale     = SquareRoot0(Gfx_ApplyMatrixNoSf(delta, delta)) - contact->distance;
+    scale     = SquareRoot0(gfxDotProduct(delta, delta)) - contact->distance;
     if (scale >= 0) {
         scale = -scale;
     }

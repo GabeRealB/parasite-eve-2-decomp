@@ -1276,20 +1276,20 @@ SetColorMatrix              = 0x8003B930;
 //--------------------------------------------------------------------
 //--- PA: 0x2C160   VA: 0x8003B960   subsegment: c, 2C160
 //--------------------------------------------------------------------
-Gfx_RotMatrixXYZ               = 0x8003B960; // type:func
-Gfx_RotMatrixYXZ               = 0x8003BD34; // type:func
-Gfx_RotMatrixZYX               = 0x8003C110; // type:func
+gfxRotMatrixXYZ               = 0x8003B960; // type:func
+gfxRotMatrixYXZ               = 0x8003BD34; // type:func
+_gfxRotMatrixZYX               = 0x8003C110; // type:func
 gfxMatrixToEuler               = 0x8003C4F0; // type:func
-Gfx_TransposeRot               = 0x8003C6D8; // type:func
-Gfx_MatrixCol0               = 0x8003C728; // type:func
-Gfx_MatrixCol1               = 0x8003C748; // type:func
+_gfxTransposeRotation               = 0x8003C6D8; // type:func
+gfxReadMatrixXAxis               = 0x8003C728; // type:func
+gfxReadMatrixYAxis               = 0x8003C748; // type:func
 gfxReadMatrixZAxis               = 0x8003C768; // type:func
 gfxRotMatrixX               = 0x8003C788; // type:func
 gfxRotMatrixY               = 0x8003C98C; // type:func
 gfxRotMatrixZ               = 0x8003CB80; // type:func
 gfxNormalizeLightDirection               = 0x8003CD78; // type:func
-Gfx_OrthonormalBasis               = 0x8003CEC4; // type:func
-Gfx_ApplyMatrixNoSf               = 0x8003D000; // type:func
+gfxBuildOrthonormalBasis               = 0x8003CEC4; // type:func
+gfxDotProduct               = 0x8003D000; // type:func
 
 //--------------------------------------------------------------------
 //--- PA: 0x2D838   VA: 0x8003D038   subsegment: o, libgte/geo_00

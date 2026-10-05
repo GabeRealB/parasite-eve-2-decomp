@@ -3745,7 +3745,7 @@ static void func_actor_503500_80141448(Task* arg0)
 /// `worldRotation` starts as the world rotation of the chain root's parent and
 /// accumulates each link's local rotation; the segment `pts[i + 1] - pts[i]` is taken into that
 /// frame, and the resulting direction becomes the next link's basis
-/// (`Gfx_OrthonormalBasis`, up hint +Y) with the local segment as its
+/// (`gfxBuildOrthonormalBasis`, up hint +Y) with the local segment as its
 /// translation. Works in an `Actor503500ChainScratch` on the scratchpad stack.
 static void func_actor_503500_8014176C(SVECTOR* pts, GfxCoord* coords)
 {
@@ -3782,7 +3782,7 @@ static void func_actor_503500_8014176C(SVECTOR* pts, GfxCoord* coords)
         gte_rtv0();
         gte_stlvnl(&s->localSegment);
         VectorNormalS(&s->localSegment, dir);
-        Gfx_OrthonormalBasis(&coords[j].coord, dir, &s->up);
+        gfxBuildOrthonormalBasis(&coords[j].coord, dir, &s->up);
         coords[j].coord.t[0] = s->localSegment.vx;
         coords[j].coord.t[1] = s->localSegment.vy;
         coords[j].coord.t[2] = s->localSegment.vz;

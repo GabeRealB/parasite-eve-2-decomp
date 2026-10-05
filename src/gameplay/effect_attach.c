@@ -99,7 +99,7 @@ void Gp_EffAttachTask37(Task* arg0)
         case 1:
             mtx = &coord->coord;
             rot = &mem->pos;
-            Gfx_RotMatrixXYZ(mtx, rot, 0);
+            gfxRotMatrixXYZ(mtx, rot, GRAPHICS_ROTATION_COMPOSE);
             MatrixNormal(mtx, mtx);
             gte_lddp(mem->scale);
             gte_ldsv(&mem->move);

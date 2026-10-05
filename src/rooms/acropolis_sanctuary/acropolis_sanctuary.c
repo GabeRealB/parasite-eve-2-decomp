@@ -2330,7 +2330,7 @@ void func_acropolis_sanctuary_8017E338(Task* arg0)
         coord->coord.t[0] += mem->move.vx;
         coord->coord.t[1] += mem->move.vy;
         coord->coord.t[2] += mem->move.vz;
-        Gfx_RotMatrixYXZ(&coord->coord, &mem->pos, 0);
+        gfxRotMatrixYXZ(&coord->coord, &mem->pos, GRAPHICS_ROTATION_COMPOSE);
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
         mem->move.vy        = mem->move.vy + 3;
         if (mem->scale == 0) {
@@ -2503,7 +2503,7 @@ void func_acropolis_sanctuary_8017EC90(Task* arg0)
     coord->coord.t[1] += mem->move.vy;
     SCRATCH_STACK_RELEASE_BLOCK(_AcropolisSanctuaryMosaicShardScratch);
     coord->coord.t[2] += mem->move.vz;
-    Gfx_RotMatrixYXZ(&coord->coord, &mem->pos, 0);
+    gfxRotMatrixYXZ(&coord->coord, &mem->pos, GRAPHICS_ROTATION_COMPOSE);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     mem->move.vy        = mem->move.vy + 3;
     if (coord->coord.t[0] < -0x2740 && coord->coord.t[1] >= -0xED7) {

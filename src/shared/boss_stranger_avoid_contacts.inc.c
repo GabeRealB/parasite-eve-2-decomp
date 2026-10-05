@@ -20,7 +20,7 @@ void bossStrangerAvoidContacts(BossStrangerWalker* work)
 
     s = SCRATCH_STACK_RESERVE_BLOCK(ActorContactSteerScratch);
 
-    Gfx_MatrixCol1(&work->coord->workm, &s->dir);
+    gfxReadMatrixYAxis(&work->coord->workm, &s->dir);
     VectorNormalSS(&s->dir, &s->dir);
 
     if (ABS(s->dir.vz) < 0x818) {
