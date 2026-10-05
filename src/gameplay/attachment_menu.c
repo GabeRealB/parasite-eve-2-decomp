@@ -427,7 +427,7 @@ void Gp_DrawArmorSelectRow(UiList* arg0, UiObject* arg1)
         req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
         req.alignment  = TEXT_ALIGNMENT_LEFT;
         req.drawMode   = TEXT_DRAW_OUTLINED;
-        Text_DrawString(&req, Gp_GetItemText(item, 0, 0));
+        textDrawString(&req, Gp_GetItemText(item, 0, 0));
         func_800C22D8(arg1, x, y, item, one);
         temp = item - 0xF;
         if ((u32)temp < 0x24U) {
@@ -743,7 +743,7 @@ void Gp_DrawLoadCmd(UiList* arg0, UiObject* arg1)
     req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
     req.alignment  = TEXT_ALIGNMENT_LEFT;
     req.drawMode   = TEXT_DRAW_OUTLINED;
-    Text_DrawString(&req, Gp_StrLoad);
+    textDrawString(&req, Gp_StrLoad);
     if (arg0->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
             val = Gp_SelItemRec->itemId;
@@ -783,7 +783,7 @@ void Gp_DrawExchangeCmd(UiList* arg0, UiObject* arg1)
     req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
     req.alignment  = TEXT_ALIGNMENT_LEFT;
     req.drawMode   = TEXT_DRAW_OUTLINED;
-    Text_DrawString(&req, Gp_StrExchange);
+    textDrawString(&req, Gp_StrExchange);
     if (arg0->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);

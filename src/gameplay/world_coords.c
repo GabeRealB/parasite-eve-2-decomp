@@ -1265,7 +1265,7 @@ static void Gp_DebugPanTask(Task* arg0)
             req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
             req.alignment  = TEXT_ALIGNMENT_CENTER;
             req.drawMode   = TEXT_DRAW_FILL_ONLY;
-            Text_DrawString(&req, (u8*)D_8009745C);
+            textDrawString(&req, (const u8*)D_8009745C);
         }
         SCRATCH_STACK_RELEASE_BLOCK(WorldCoordProjectionScratch);
     } else {

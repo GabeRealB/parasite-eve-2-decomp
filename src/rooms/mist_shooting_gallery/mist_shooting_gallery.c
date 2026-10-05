@@ -1161,7 +1161,7 @@ void func_mist_shooting_gallery_8017E234(Task* task)
             req1.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
             req1.alignment  = TEXT_ALIGNMENT_LEFT;
             req1.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-            Text_DrawString(&req1, D_mist_shooting_gallery_80184F98[i].name);
+            textDrawString(&req1, D_mist_shooting_gallery_80184F98[i].name);
 
             req2.x          = obj->panel.contentOriginX.unsignedValue + 0x6E + xOff;
             req2.y          = obj->panel.contentOriginY.unsignedValue + y;
@@ -1170,7 +1170,7 @@ void func_mist_shooting_gallery_8017E234(Task* task)
             req2.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
             req2.alignment  = TEXT_ALIGNMENT_RIGHT;
             req2.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-            Text_DrawString(&req2, Text_ItoaSigned(buf, points));
+            textDrawString(&req2, Text_ItoaSigned(buf, points));
 
             req3.x          = obj->panel.contentOriginX.unsignedValue + 0x91 + xOff;
             req3.y          = obj->panel.contentOriginY.unsignedValue + y;
@@ -1179,7 +1179,7 @@ void func_mist_shooting_gallery_8017E234(Task* task)
             req3.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
             req3.alignment  = TEXT_ALIGNMENT_RIGHT;
             req3.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-            Text_DrawString(&req3, Text_ItoaSigned(buf, kills));
+            textDrawString(&req3, Text_ItoaSigned(buf, kills));
             subtotal = kills * points;
 
             req4.x          = obj->panel.contentOriginX.unsignedValue - 5 - xOff;
@@ -1189,7 +1189,7 @@ void func_mist_shooting_gallery_8017E234(Task* task)
             req4.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
             req4.alignment  = TEXT_ALIGNMENT_RIGHT;
             req4.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-            Text_DrawString(&req4, Text_ItoaSigned(buf, subtotal));
+            textDrawString(&req4, Text_ItoaSigned(buf, subtotal));
             total += subtotal;
             y     += 0xB;
         }
@@ -1206,7 +1206,7 @@ void func_mist_shooting_gallery_8017E234(Task* task)
     req1.glyphTable = TEXT_GLYPH_TABLE_SMALL;
     req1.alignment  = TEXT_ALIGNMENT_RIGHT;
     req1.drawMode   = TEXT_DRAW_OUTLINED;
-    Text_DrawString(&req1, D_mist_shooting_gallery_8017D65C);
+    textDrawString(&req1, D_mist_shooting_gallery_8017D65C);
 
     req2.x          = obj->panel.contentOriginX.unsignedValue - 5 - xOff;
     bottom2         = obj->panel.contentOriginY.unsignedValue - 4;
@@ -1216,7 +1216,7 @@ void func_mist_shooting_gallery_8017E234(Task* task)
     req2.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
     req2.alignment  = TEXT_ALIGNMENT_RIGHT;
     req2.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-    Text_DrawString(&req2, Text_ItoaSigned(buf, total));
+    textDrawString(&req2, Text_ItoaSigned(buf, total));
 
     uiDrawHorizontalSeparator(&(obj)->panel, xOff, -xOff, obj->panel.contentTop.signedValue + 0xA);
 
@@ -1228,7 +1228,7 @@ void func_mist_shooting_gallery_8017E234(Task* task)
     req3.glyphTable = TEXT_GLYPH_TABLE_SMALL;
     req3.alignment  = TEXT_ALIGNMENT_CENTER;
     req3.drawMode   = TEXT_DRAW_OUTLINED;
-    Text_DrawString(&req3, "NMC");
+    textDrawString(&req3, "NMC");
 
     req4.x          = obj->panel.contentOriginX.unsignedValue + 0x73 + xOff;
     req4.y          = obj->panel.contentOriginY.unsignedValue + y;
@@ -1237,7 +1237,7 @@ void func_mist_shooting_gallery_8017E234(Task* task)
     req4.glyphTable = TEXT_GLYPH_TABLE_SMALL;
     req4.alignment  = TEXT_ALIGNMENT_RIGHT;
     req4.drawMode   = TEXT_DRAW_OUTLINED;
-    Text_DrawString(&req4, "SCORE");
+    textDrawString(&req4, "SCORE");
 
     req5.x          = obj->panel.contentOriginX.unsignedValue + 0x96 + xOff;
     req5.y          = obj->panel.contentOriginY.unsignedValue + y;
@@ -1246,7 +1246,7 @@ void func_mist_shooting_gallery_8017E234(Task* task)
     req5.glyphTable = TEXT_GLYPH_TABLE_SMALL;
     req5.alignment  = TEXT_ALIGNMENT_RIGHT;
     req5.drawMode   = TEXT_DRAW_OUTLINED;
-    Text_DrawString(&req5, "KILL");
+    textDrawString(&req5, "KILL");
 
     req6.x          = obj->panel.contentOriginX.unsignedValue - xOff;
     req6.y          = obj->panel.contentOriginY.unsignedValue + y;
@@ -1255,7 +1255,7 @@ void func_mist_shooting_gallery_8017E234(Task* task)
     req6.glyphTable = TEXT_GLYPH_TABLE_SMALL;
     req6.alignment  = TEXT_ALIGNMENT_RIGHT;
     req6.drawMode   = TEXT_DRAW_OUTLINED;
-    Text_DrawString(&req6, "TOTAL");
+    textDrawString(&req6, "TOTAL");
 
     obj->result = USER_INTERFACE_RESULT_NONE;
     Ui_DrawText(&(obj)->panel, "Result");
@@ -1356,7 +1356,7 @@ void func_mist_shooting_gallery_8017E854(Task* task)
     req1.glyphTable = TEXT_GLYPH_TABLE_SMALL;
     req1.alignment  = TEXT_ALIGNMENT_LEFT;
     req1.drawMode   = TEXT_DRAW_OUTLINED;
-    Text_DrawString(&req1, D_mist_shooting_gallery_8017D65C);
+    textDrawString(&req1, D_mist_shooting_gallery_8017D65C);
 
     req2.x          = obj->panel.contentOriginX.unsignedValue - xOff;
     req2.y          = obj->panel.contentOriginY.unsignedValue + y;
@@ -1365,7 +1365,7 @@ void func_mist_shooting_gallery_8017E854(Task* task)
     req2.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
     req2.alignment  = TEXT_ALIGNMENT_RIGHT;
     req2.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-    Text_DrawString(&req2, Text_ItoaSigned(buf, score));
+    textDrawString(&req2, Text_ItoaSigned(buf, score));
 
     uiDrawHorizontalSeparator(&(obj)->panel, xOff, -xOff, top + 0x1B);
 
@@ -1377,7 +1377,7 @@ void func_mist_shooting_gallery_8017E854(Task* task)
     req3.glyphTable = TEXT_GLYPH_TABLE_SMALL;
     req3.alignment  = TEXT_ALIGNMENT_LEFT;
     req3.drawMode   = TEXT_DRAW_OUTLINED;
-    Text_DrawString(&req3, "BONUS BP");
+    textDrawString(&req3, "BONUS BP");
 
     req4.x          = obj->panel.contentOriginX.unsignedValue - xOff;
     req4.y          = obj->panel.contentOriginY.unsignedValue + y;
@@ -1386,7 +1386,7 @@ void func_mist_shooting_gallery_8017E854(Task* task)
     req4.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
     req4.alignment  = TEXT_ALIGNMENT_RIGHT;
     req4.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-    Text_DrawString(&req4, Text_ItoaSigned(buf, func_mist_shooting_gallery_80184470(score)));
+    textDrawString(&req4, Text_ItoaSigned(buf, func_mist_shooting_gallery_80184470(score)));
 
     if ((obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) && (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm | Pad_MaskCancel) != 0)) {
         obj->result = USER_INTERFACE_RESULT_CONFIRM;
@@ -1479,7 +1479,7 @@ void func_mist_shooting_gallery_8017EC58(Task* task)
     req1.glyphTable = TEXT_GLYPH_TABLE_SMALL;
     req1.alignment  = TEXT_ALIGNMENT_LEFT;
     req1.drawMode   = TEXT_DRAW_OUTLINED;
-    Text_DrawString(&req1, "HP");
+    textDrawString(&req1, "HP");
     Text_DrawPrompt(obj, -xOff, y, Text_ItoaSigned(buf, val), color, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
 
     y     = top + 0x1E;
@@ -1496,7 +1496,7 @@ void func_mist_shooting_gallery_8017EC58(Task* task)
     req2.glyphTable = TEXT_GLYPH_TABLE_SMALL;
     req2.alignment  = TEXT_ALIGNMENT_LEFT;
     req2.drawMode   = TEXT_DRAW_OUTLINED;
-    Text_DrawString(&req2, "MP");
+    textDrawString(&req2, "MP");
     Text_DrawPrompt(obj, -xOff, y, Text_ItoaSigned(buf, val), color, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
 
     y      = top + 0x2D;
@@ -1528,7 +1528,7 @@ void func_mist_shooting_gallery_8017EC58(Task* task)
     req3.glyphTable = TEXT_GLYPH_TABLE_SMALL;
     req3.alignment  = TEXT_ALIGNMENT_LEFT;
     req3.drawMode   = TEXT_DRAW_OUTLINED;
-    Text_DrawString(&req3, "EXP");
+    textDrawString(&req3, "EXP");
     Text_DrawPrompt(obj, -xOff, y, Text_ItoaSigned(buf, val), 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
 
     y    += 0xF;
@@ -1560,7 +1560,7 @@ void func_mist_shooting_gallery_8017EC58(Task* task)
     req4.glyphTable = TEXT_GLYPH_TABLE_SMALL;
     req4.alignment  = TEXT_ALIGNMENT_LEFT;
     req4.drawMode   = TEXT_DRAW_OUTLINED;
-    Text_DrawString(&req4, "BP");
+    textDrawString(&req4, "BP");
     Text_DrawPrompt(obj, -xOff, y, Text_ItoaSigned(buf, val), 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
 }
 static const _MistShootingGalleryModeTexts D_mist_shooting_gallery_8017D708 = { { D_mist_shooting_gallery_80184DD4, D_mist_shooting_gallery_80184E24, D_mist_shooting_gallery_80184E70, D_mist_shooting_gallery_80184EC4 } };
@@ -1632,7 +1632,7 @@ void func_mist_shooting_gallery_8017F128(Task* task)
     label0.glyphTable = TEXT_GLYPH_TABLE_SMALL;
     label0.alignment  = TEXT_ALIGNMENT_LEFT;
     label0.drawMode   = TEXT_DRAW_OUTLINED;
-    Text_DrawString(&label0, D_mist_shooting_gallery_8017D828);
+    textDrawString(&label0, D_mist_shooting_gallery_8017D828);
 
     value0.x          = obj->panel.contentOriginX.unsignedValue + 0x41;
     value0.y          = (s16)(obj->panel.contentOriginY.unsignedValue - 3) + y;
@@ -1641,7 +1641,7 @@ void func_mist_shooting_gallery_8017F128(Task* task)
     value0.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
     value0.alignment  = TEXT_ALIGNMENT_RIGHT;
     value0.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-    Text_DrawString(&value0, rating->name);
+    textDrawString(&value0, rating->name);
     Text_DrawPrompt(obj, 0x46, y, gaugeByLevel[rating->level], 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_LEFT);
     uiDrawHorizontalSeparator(&(obj)->panel, col + 6, -x + 5, row + 0xD);
 
@@ -1654,7 +1654,7 @@ void func_mist_shooting_gallery_8017F128(Task* task)
     label1.glyphTable = TEXT_GLYPH_TABLE_SMALL;
     label1.alignment  = TEXT_ALIGNMENT_LEFT;
     label1.drawMode   = TEXT_DRAW_OUTLINED;
-    Text_DrawString(&label1, D_mist_shooting_gallery_8017D838);
+    textDrawString(&label1, D_mist_shooting_gallery_8017D838);
 
     value1.x          = obj->panel.contentOriginX.unsignedValue + 0x41;
     value1.y          = (s16)(obj->panel.contentOriginY.unsignedValue - 3) + y;
@@ -1663,7 +1663,7 @@ void func_mist_shooting_gallery_8017F128(Task* task)
     value1.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
     value1.alignment  = TEXT_ALIGNMENT_RIGHT;
     value1.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-    Text_DrawString(&value1, rating->name);
+    textDrawString(&value1, rating->name);
     Text_DrawPrompt(obj, 0x46, y, gaugeByLevel[rating->level], 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_LEFT);
 
     y                 = row + 0x2D;
@@ -1675,7 +1675,7 @@ void func_mist_shooting_gallery_8017F128(Task* task)
     label2.glyphTable = TEXT_GLYPH_TABLE_SMALL;
     label2.alignment  = TEXT_ALIGNMENT_LEFT;
     label2.drawMode   = TEXT_DRAW_OUTLINED;
-    Text_DrawString(&label2, D_mist_shooting_gallery_8017D844);
+    textDrawString(&label2, D_mist_shooting_gallery_8017D844);
 
     value2.x          = obj->panel.contentOriginX.unsignedValue + 0x41;
     value2.y          = (s16)(obj->panel.contentOriginY.unsignedValue - 3) + y;
@@ -1684,7 +1684,7 @@ void func_mist_shooting_gallery_8017F128(Task* task)
     value2.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
     value2.alignment  = TEXT_ALIGNMENT_RIGHT;
     value2.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-    Text_DrawString(&value2, rating->name);
+    textDrawString(&value2, rating->name);
     Text_DrawPrompt(obj, 0x46, y, gaugeByLevel[rating->level], 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_LEFT);
 
     y                 = row + 0x3C;
@@ -1696,7 +1696,7 @@ void func_mist_shooting_gallery_8017F128(Task* task)
     label3.glyphTable = TEXT_GLYPH_TABLE_SMALL;
     label3.alignment  = TEXT_ALIGNMENT_LEFT;
     label3.drawMode   = TEXT_DRAW_OUTLINED;
-    Text_DrawString(&label3, D_mist_shooting_gallery_8017D850);
+    textDrawString(&label3, D_mist_shooting_gallery_8017D850);
 
     value3.x          = obj->panel.contentOriginX.unsignedValue + 0x41;
     value3.y          = (s16)(obj->panel.contentOriginY.unsignedValue - 3) + y;
@@ -1705,7 +1705,7 @@ void func_mist_shooting_gallery_8017F128(Task* task)
     value3.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
     value3.alignment  = TEXT_ALIGNMENT_RIGHT;
     value3.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-    Text_DrawString(&value3, rating->name);
+    textDrawString(&value3, rating->name);
     Text_DrawPrompt(obj, 0x46, y, gaugeByLevel[rating->level], 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_LEFT);
 }
 /// Task handler for the gallery's closing sequence. State 0 spawns the results

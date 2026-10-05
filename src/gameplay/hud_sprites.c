@@ -46,7 +46,7 @@
         req.glyphTable = TEXT_GLYPH_TABLE_SMALL;                                \
         req.alignment  = TEXT_ALIGNMENT_LEFT;                                   \
         req.drawMode   = TEXT_DRAW_OUTLINED;                                    \
-        Text_DrawString(&req, (str));                                           \
+        textDrawString(&req, (str));                                            \
     }
 
 /// Draws a quantity right-aligned on line `line`; an empty count sets `flag`.
@@ -59,7 +59,7 @@
         req.x          = obj.panel.contentOriginX.unsignedValue + 0x94;         \
         req.y          = (obj.panel.contentOriginY.unsignedValue + 9) + (line); \
         req.otIndex    = obj.panel.otIndex.signedValue + 1;                     \
-        Text_DrawString(&req, Text_ItoaSigned(buf, (count)));                   \
+        textDrawString(&req, Text_ItoaSigned(buf, (count)));                    \
         if ((count) == 0) {                                                     \
             flag = 1;                                                           \
         }                                                                       \
@@ -459,7 +459,7 @@ void Gp_DrawHudNumbers(s32 x, s32 y, s32 cur, s32 max, s32 kind)
     req.glyphTable = TEXT_GLYPH_TABLE_SMALL;
     req.alignment  = TEXT_ALIGNMENT_LEFT;
     req.drawMode   = TEXT_DRAW_OUTLINED;
-    Text_DrawString(&req, Gp_StrHP);
+    textDrawString(&req, Gp_StrHP);
 
     if (max >= 0) {
         s32 val = cur;
@@ -478,7 +478,7 @@ void Gp_DrawHudNumbers(s32 x, s32 y, s32 cur, s32 max, s32 kind)
             scratch.value.request.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
             scratch.value.request.alignment  = TEXT_ALIGNMENT_RIGHT;
             scratch.value.request.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-            Text_DrawString(&scratch.value.request, Text_ItoaUnsigned(scratch.value.digits, val));
+            textDrawString(&scratch.value.request, Text_ItoaUnsigned(scratch.value.digits, val));
         } else {
             s32 tx = x + 0x33;
             s32 ty = y + 0xA;
@@ -493,7 +493,7 @@ void Gp_DrawHudNumbers(s32 x, s32 y, s32 cur, s32 max, s32 kind)
             scratch.value.request.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
             scratch.value.request.alignment  = TEXT_ALIGNMENT_RIGHT;
             scratch.value.request.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-            Text_DrawString(&scratch.value.request, Text_ItoaUnsigned(scratch.value.digits, val));
+            textDrawString(&scratch.value.request, Text_ItoaUnsigned(scratch.value.digits, val));
             span = 0x2D;
         }
 
@@ -571,7 +571,7 @@ void Gp_DrawHudNumbers(s32 x, s32 y, s32 cur, s32 max, s32 kind)
         scratch.hiddenAmount.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
         scratch.hiddenAmount.alignment  = TEXT_ALIGNMENT_RIGHT;
         scratch.hiddenAmount.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-        Text_DrawString(&scratch.hiddenAmount, D_800938AC);
+        textDrawString(&scratch.hiddenAmount, D_800938AC);
         span = 0x2D;
     }
 

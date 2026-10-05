@@ -28,7 +28,7 @@ enum {
     TEXT_LINE_END = -1,
 };
 
-static s32 _textParseLine(u8** cursor, u8* line);
+static s32 _textParseLine(const u8** cursor, u8* line);
 
 /// One line of Text_DrawMultiLine or Text_DrawMultiLineScroll: relative to obj's origin, or at an absolute
 /// position when obj is NULL; skipped when `obj->panel.state` is `USER_INTERFACE_PANEL_HIDDEN`.
@@ -101,13 +101,13 @@ GameFlagStageHeader* Gp_FlagBanks[] = {
 /// with the immediately following byte. That byte is not tested as a terminator
 /// or escape, need not be a valid trail byte, and must be readable. Every other
 /// byte, including 0xA1..0xDF, is copied alone.
-static s32 _textParseLine(u8** cursor, u8* line)
+static s32 _textParseLine(const u8** cursor, u8* line)
 {
-    s32 lineEnd;
-    u8* source;
-    u8* atByte;
-    u8  byte;
-    u8  following;
+    s32       lineEnd;
+    const u8* source;
+    const u8* atByte;
+    u8        byte;
+    u8        following;
 
     lineEnd = 0;
     do {
@@ -197,7 +197,7 @@ static inline void _textDrawLine(UiObject* obj, s32 x, s32 y, u8* text, s32 arg4
             req.glyphTable = TEXT_GLYPH_TABLE_LARGE;
             req.alignment  = arg6;
             req.drawMode   = arg5;
-            Text_DrawString(&req, text);
+            textDrawString(&req, text);
         }
     } else {
         req2.x          = x;
@@ -207,17 +207,17 @@ static inline void _textDrawLine(UiObject* obj, s32 x, s32 y, u8* text, s32 arg4
         req2.glyphTable = TEXT_GLYPH_TABLE_LARGE;
         req2.alignment  = arg6;
         req2.drawMode   = arg5;
-        Text_DrawString(&req2, text);
+        textDrawString(&req2, text);
     }
 }
 
-s32 Text_DrawMultiLine(UiObject* object, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 arg5, s32 arg6)
+s32 Text_DrawMultiLine(UiObject* object, s32 arg1, s32 arg2, const u8* arg3, s32 arg4, s32 arg5, s32 arg6)
 {
-    u8  buf[0x40];
-    u8* cur;
-    s32 x;
-    s32 y;
-    s32 ret;
+    u8        buf[0x40];
+    const u8* cur;
+    s32       x;
+    s32       y;
+    s32       ret;
 
     x   = arg1;
     y   = arg2;
@@ -255,7 +255,7 @@ s32 Text_MeasureMultiLine(u8* arg0)
     s32          height;
     TextDrawReq* requestPtr;
     u8*          buf;
-    u8*          cur;
+    const u8*    cur;
     s32          ret;
     s32          tmp;
     s8           c;
@@ -293,7 +293,7 @@ s32 Text_MeasureMultiLine(u8* arg0)
     return (height << 16) | maxWidth;
 }
 
-s32 Text_DrawPrompt(UiObject* object, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 arg5, s32 arg6)
+s32 Text_DrawPrompt(UiObject* object, s32 arg1, s32 arg2, const u8* arg3, s32 arg4, s32 arg5, s32 arg6)
 {
     TextDrawReq panelRequest;
     TextDrawReq absoluteRequest;
@@ -311,7 +311,7 @@ s32 Text_DrawPrompt(UiObject* object, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s3
         absoluteRequest.glyphTable = TEXT_GLYPH_TABLE_LARGE;
         absoluteRequest.alignment  = arg6;
         absoluteRequest.drawMode   = arg5;
-        Text_DrawString(&absoluteRequest, arg3);
+        textDrawString(&absoluteRequest, arg3);
         return arg1;
     }
     panelRequest.x          = object->panel.contentOriginX.unsignedValue + arg1;
@@ -322,7 +322,7 @@ s32 Text_DrawPrompt(UiObject* object, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s3
     panelRequest.alignment  = arg6;
     panelRequest.drawMode   = arg5;
     panelRequest.otIndex    = temp + 1;
-    Text_DrawString(&panelRequest, arg3);
+    textDrawString(&panelRequest, arg3);
     return panelRequest.x - object->panel.contentOriginX.signedValue;
 }
 
@@ -334,12 +334,12 @@ static void Text_DrawPromptCompat(UiObject* object, s32 arg1, s32 arg2, u8* arg3
 static s32 Text_DrawMultiLineScroll(UiObject* object, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 arg5, s32 arg6,
                                     s32 arg7, s32 arg8)
 {
-    u8  buf[0x40];
-    u8* cur;
-    s32 x;
-    s32 y;
-    s32 ret;
-    s32 result;
+    u8        buf[0x40];
+    const u8* cur;
+    s32       x;
+    s32       y;
+    s32       ret;
+    s32       result;
 
     x      = arg1;
     y      = arg2;
@@ -351,7 +351,7 @@ static s32 Text_DrawMultiLineScroll(UiObject* object, s32 arg1, s32 arg2, u8* ar
     }
     arg8 >>= 4;
     if (arg8 != 0) {
-        cur = Text_SkipLines(arg3, arg8);
+        cur = textSkipLines(arg3, arg8);
     }
     do {
         ret = _textParseLine(&cur, buf);

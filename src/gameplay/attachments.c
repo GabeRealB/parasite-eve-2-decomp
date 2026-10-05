@@ -146,7 +146,7 @@ u16 Gp_GetAttachParam(s32 arg0)
         req.glyphTable = TEXT_GLYPH_TABLE_SMALL;                                \
         req.alignment  = TEXT_ALIGNMENT_LEFT;                                   \
         req.drawMode   = TEXT_DRAW_OUTLINED;                                    \
-        Text_DrawString(&req, (str));                                           \
+        textDrawString(&req, (str));                                            \
     }
 
 /// Draws a quantity right-aligned on line `line`; an empty count sets `flag`.
@@ -159,7 +159,7 @@ u16 Gp_GetAttachParam(s32 arg0)
         req.x          = obj.panel.contentOriginX.unsignedValue + 0x94;         \
         req.y          = (obj.panel.contentOriginY.unsignedValue + 9) + (line); \
         req.otIndex    = obj.panel.otIndex.signedValue + 1;                     \
-        Text_DrawString(&req, Text_ItoaSigned(buf, (count)));                   \
+        textDrawString(&req, Text_ItoaSigned(buf, (count)));                    \
         if ((count) == 0) {                                                     \
             flag = 1;                                                           \
         }                                                                       \

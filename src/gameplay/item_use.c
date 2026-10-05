@@ -519,7 +519,7 @@ void func_800D6334(Task* task)
             name.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
             name.alignment  = TEXT_ALIGNMENT_LEFT;
             name.drawMode   = TEXT_DRAW_OUTLINED;
-            Text_DrawString(&name, (u8*)Gp_GetItemText(item, 0, 0));
+            textDrawString(&name, (const u8*)Gp_GetItemText(item, 0, 0));
             Gp_DrawStackLeft(panel, x - 15, y + 16, selected, 0x606060, 0);
         } else {
             item = 0;
@@ -566,7 +566,7 @@ void func_800D6334(Task* task)
     label.glyphTable = TEXT_GLYPH_TABLE_SMALL;
     label.alignment  = TEXT_ALIGNMENT_LEFT;
     label.drawMode   = TEXT_DRAW_OUTLINED;
-    Text_DrawString(&label, (u8*)D_80097448);
+    textDrawString(&label, (const u8*)D_80097448);
     if (panel->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm)) {
             if (usable == 1) {

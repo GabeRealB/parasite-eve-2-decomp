@@ -327,7 +327,7 @@ static void GameMain_ShowLoading(s32 arg0)
             req.alignment  = TEXT_ALIGNMENT_CENTER;
             req.drawMode   = TEXT_DRAW_IMMEDIATE;
             req.y          = 6 - gDisplayState.vramYOffset;
-            Text_DrawString(&req, GameMain_PauseText);
+            textDrawString(&req, GameMain_PauseText);
 
             buf = gDisplayState.drawBuffer ^ 1;
             PutDrawEnv(&gDisplayState.drawEnv[buf]);

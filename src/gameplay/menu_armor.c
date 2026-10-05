@@ -138,7 +138,7 @@ static inline void _gpDrawItemNameAt(UiObject* obj, s32 x, s32 y, s32 color, s32
         req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
         req.alignment  = TEXT_ALIGNMENT_LEFT;
         req.drawMode   = TEXT_DRAW_OUTLINED;
-        Text_DrawString(&req, Gp_GetItemText(item, 0, 0));
+        textDrawString(&req, Gp_GetItemText(item, 0, 0));
         func_800C22D8(obj, x, y, item, mode);
         temp = item - 0xF;
         if ((u32)temp < 0x24U) {
@@ -216,7 +216,7 @@ void Gp_DrawRemoveArmorRow(UiList* prompt, UiObject* obj)
                 req.glyphTable = TEXT_GLYPH_TABLE_SMALL;
                 req.alignment  = TEXT_ALIGNMENT_RIGHT;
                 req.drawMode   = TEXT_DRAW_FILL_ONLY;
-                Text_DrawString(&req, Text_ItoaSigned(buf, qty));
+                textDrawString(&req, Text_ItoaSigned(buf, qty));
                 Ui_LayoutWithMode0(obj, x + 0x69, y - 8, 0x1B, 7, 0x102010);
             }
         }
@@ -277,7 +277,7 @@ void Gp_DrawRemoveArmorRow(UiList* prompt, UiObject* obj)
             req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
             req.alignment  = TEXT_ALIGNMENT_LEFT;
             req.drawMode   = TEXT_DRAW_OUTLINED;
-            Text_DrawString(&req, Gp_StrRemoveArmor);
+            textDrawString(&req, Gp_StrRemoveArmor);
         }
         if (prompt->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
             if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {

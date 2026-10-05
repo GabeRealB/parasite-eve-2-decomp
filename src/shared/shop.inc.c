@@ -312,7 +312,7 @@ static void Shop_ItemRow(UiList* prompt, UiObject* obj)
         req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
         req.alignment  = TEXT_ALIGNMENT_LEFT;
         req.drawMode   = TEXT_DRAW_OUTLINED;
-        Text_DrawString(&req, Shop_Data_80181A0C);
+        textDrawString(&req, Shop_Data_80181A0C);
         if (prompt->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
             sndEvtRequestScriptStart(SOUND_SYSTEM_CONFIRM, 0, 0);
             Ui_SpawnFromDesc(&Shop_Data_80181BD8, 0, 1, 1, obj);
@@ -608,7 +608,7 @@ static void Shop_ItemListTask(Task* task)
     req.glyphTable = TEXT_GLYPH_TABLE_SMALL;
     req.alignment  = TEXT_ALIGNMENT_RIGHT;
     req.drawMode   = TEXT_DRAW_OUTLINED;
-    Text_DrawString(&req, Shop_Data_8017D6D8);
+    textDrawString(&req, Shop_Data_8017D6D8);
 
     if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
@@ -789,7 +789,7 @@ static void Shop_BalanceTask(Task* task)
     req0.glyphTable = TEXT_GLYPH_TABLE_SMALL;
     req0.alignment  = TEXT_ALIGNMENT_LEFT;
     req0.drawMode   = TEXT_DRAW_OUTLINED;
-    Text_DrawString(&req0, Shop_Data_8017D6D8);
+    textDrawString(&req0, Shop_Data_8017D6D8);
 
     Text_ItoaUnsigned((u8*)digits, cfg->bp);
     Text_DrawPrompt(obj, col, y + 0x19, (u8*)digits, 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
@@ -802,7 +802,7 @@ static void Shop_BalanceTask(Task* task)
     req1.glyphTable = TEXT_GLYPH_TABLE_SMALL;
     req1.alignment  = TEXT_ALIGNMENT_LEFT;
     req1.drawMode   = TEXT_DRAW_OUTLINED;
-    Text_DrawString(&req1, (char*)Shop_Data_8017D6E4);
+    textDrawString(&req1, Shop_Data_8017D6E4);
 
     p        = total;
     scan     = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
@@ -841,7 +841,7 @@ static void Shop_BuyRow(UiList* prompt, UiObject* obj)
     req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
     req.alignment  = TEXT_ALIGNMENT_LEFT;
     req.drawMode   = TEXT_DRAW_OUTLINED;
-    Text_DrawString(&req, Shop_Data_801819F0);
+    textDrawString(&req, Shop_Data_801819F0);
 
     mode = prompt->rowInputEnabled;
     if (mode == 1 && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
@@ -1057,7 +1057,7 @@ static void Shop_PreviewTask(Task* task)
         req.colorRgb   = 0x606060;
         req.alignment  = TEXT_ALIGNMENT_LEFT;
         req.drawMode   = TEXT_DRAW_OUTLINED;
-        Text_DrawString(&req, Shop_Data_80181AC4);
+        textDrawString(&req, Shop_Data_80181AC4);
         count = 0;
         count = Shop_AddItemCount(item, count);
         Text_DrawPrompt(obj, obj->panel.contentRight.signedValue - 2, y + 0xA, Text_ItoaSigned(buf, count), 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED,
@@ -1148,7 +1148,7 @@ static void Shop_QuantityTask(Task* task)
     req.glyphTable = TEXT_GLYPH_TABLE_SMALL;
     req.alignment  = TEXT_ALIGNMENT_RIGHT;
     req.drawMode   = TEXT_DRAW_OUTLINED;
-    Text_DrawString(&req, Shop_Data_8017D6D8);
+    textDrawString(&req, Shop_Data_8017D6D8);
 
     Text_DrawPrompt(obj, -x, top + 0x2B, Text_ItoaSigned(buf, count * price), 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
 
@@ -1190,7 +1190,7 @@ static void Shop_MessageRow(UiList* prompt, UiObject* obj)
     req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
     req.alignment  = TEXT_ALIGNMENT_LEFT;
     req.drawMode   = TEXT_DRAW_OUTLINED;
-    Text_DrawString(&req, Shop_Data_80181A04);
+    textDrawString(&req, Shop_Data_80181A04);
 
     if (prompt->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
         sndEvtRequestScriptStart(SOUND_SYSTEM_CONFIRM, 0, 0);

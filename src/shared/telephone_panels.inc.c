@@ -61,7 +61,7 @@ static u8* Telephone_FormatPercentage(u8* buf, s32 value, s32 decimals)
     }
 
     if (value < limit) {
-        Text_ItoaPadded(buf, value, decimals + 1);
+        textItoaPadded(buf, value, decimals + 1);
     } else {
         Text_ItoaUnsigned(buf, value);
     }
@@ -85,7 +85,7 @@ static u8* Telephone_FormatPercentage(u8* buf, s32 value, s32 decimals)
         p[1] = '.';
     }
 
-    Text_Strcat(buf, Telephone_Data_80181A78);
+    textAppendString(buf, Telephone_Data_80181A78);
     return buf;
 }
 

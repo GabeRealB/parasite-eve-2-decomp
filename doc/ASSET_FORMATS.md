@@ -496,7 +496,7 @@ Atlas `v` (texel Y in the chrome page):
 
 Glyph metrics are **not** a CDF chunk. They live in `SLUS_010.42`:
 
-| Table | VA | Count | `glyphTable` | `vBias` (`Text_DrawString`) |
+| Table | VA | Count | `glyphTable` | `vBias` (`textDrawString`) |
 |---|---|---|---|---|
 | `_gFontGlyphsMedium` | `0x8005EFB0` | 224 (`0x20`…`0xFF`) | 0 (`TEXT_GLYPH_TABLE_MEDIUM`) | 38 (`TEXT_GLYPH_V_BIAS_MEDIUM`) |
 | `_gFontGlyphsLarge` | `0x8005FA30` | 224 (`0x20`…`0xFF`) | any value other than `TEXT_GLYPH_TABLE_MEDIUM` (0) and `TEXT_GLYPH_TABLE_SMALL` (5) | `-128` (byte `0x80`) |
@@ -531,7 +531,7 @@ pen by 2 pixels, or by 1 when `glyphTable` is `TEXT_GLYPH_TABLE_SMALL`.
 | `D_80060910` | 64 entries (4×16) | `(0x100, 0xF3)` = `(256, 243)`, `w=0x40`, `h=1` | fill rows at that origin |
 | `D_800609B0` | 48 entries (3×16) | `(0x3D0, 0x1FF)`, `w=0x30`, `h=1` | `0x7FFD` / `0x7FFE` / `0x7FFF` |
 
-UI strings (`Text_DrawGlyphImmediate` / `Queued`) use **`0x7FFD` only**.
+Opaque UI glyph fills (`_textDrawGlyphImmediate` / `_textDrawGlyphFill`) use **`0x7FFD` only**.
 Indices 0–10 are transparent; 11–15 are the letter. Dual SPRT (`0x7FFD` +
 `0x7FFF`) is a second layer (`0x64` + `0x67`). Index 5 in the 4bpp page is
 cell padding: the TIM/fill clut at `(256, 243)` maps it to mid-grey (one

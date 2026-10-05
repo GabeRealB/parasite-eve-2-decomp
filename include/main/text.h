@@ -49,7 +49,7 @@ enum {
     TEXT_ALIGNMENT_LEFT = 0,
     /// Centers a measured UI-text line on the request's initial X coordinate.
     ///
-    /// Stored in `TextDrawReq::alignment`. `Text_DrawString` and
+    /// Stored in `TextDrawReq::alignment`. `textDrawString` and
     /// `textAlignLine` subtract `width >> 1` pixels from X, so odd
     /// nonnegative widths use their rounded-down half. Measurement uses the
     /// initial glyph table and kerning even when inline commands change the
@@ -148,7 +148,7 @@ enum {
 
 /// Mutable placement and style for one encoded UI-text line.
 ///
-/// `textAlignLine` adjusts X for alignment; `Text_DrawString` also
+/// `textAlignLine` adjusts X for alignment; `textDrawString` also
 /// advances the X/Y pen and lets inline commands change drawMode and vBias.
 /// Reinitialize placement before drawing an independent line. Drawing initializes
 /// vBias, so callers need not set it. The request is borrowed only during a call.
@@ -255,7 +255,7 @@ STATIC_ASSERT_SIZEOF(PrimDrawParams, 0x14);
 /// pixels: center subtracts the measured width shifted right by one, right
 /// subtracts the full width, and other selectors skip measurement and leave X
 /// unchanged. The result narrows to signed 16-bit X; the selector stays set.
-/// Restore the anchor before another alignment call or `Text_DrawString`, which
+/// Restore the anchor before another alignment call or `textDrawString`, which
 /// applies alignment again. No other request field or text byte is changed.
 ///
 /// Width is the offset to the final glyph's rightmost pixel, including pair
@@ -273,21 +273,53 @@ STATIC_ASSERT_SIZEOF(PrimDrawParams, 0x14);
 /// for the small face or 0x20..0xFF otherwise; there is no range check.
 void textAlignLine(TextDrawReq* request, const u8* text);
 
-u8* Text_SkipLines(u8* arg0, s32 arg1);
+/// Returns the borrowed suffix after up to `lineCount` encoded line breaks.
+///
+/// Counts LF and N/n immediately preceded by a backslash; CR is not a break.
+/// Stops at NUL and returns its address when fewer breaks remain. A nonpositive
+/// count returns `text` without reading it. The source is never modified.
+/// The source must be readable through NUL or the requested break. If its first
+/// byte is N/n, the byte before `text` must also be readable: this scanner tests
+/// the preceding byte without tracking whether it has advanced yet.
+const u8* textSkipLines(const u8* text, s32 lineCount);
 
-s32 Text_DrawMultiLine(UiObject* object, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 arg5, s32 arg6);
+s32 Text_DrawMultiLine(UiObject* object, s32 arg1, s32 arg2, const u8* arg3, s32 arg4, s32 arg5, s32 arg6);
 
 s32 Text_MeasureWidth(u8* arg0);
 
-s32 Text_DrawPrompt(UiObject* object, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 arg5, s32 arg6);
+s32 Text_DrawPrompt(UiObject* object, s32 arg1, s32 arg2, const u8* arg3, s32 arg4, s32 arg5, s32 arg6);
 
 /// EXE palettes over the title font clut dests. Text_FillClutPixels (64) → (256, 243);
 /// Text_OutlineClutPixels (48) → (0x3D0, 0x1FF) = clut 0x7FFD/E/F. TIM pe2clut_0 row 0 is
 /// empty; UI text uses 0x7FFD (indices 0–10 skip). Called from Title_InitTask.
 void Text_LoadClutImages(void);
 
-/// Draws encoded text using the request's glyph table, placement and style.
-void Text_DrawString(TextDrawReq* request, u8* text);
+/// Draws one encoded UI-text line and advances the request's pixel pen.
+///
+/// Borrows both arguments for the call. Reads unsigned text bytes without
+/// modifying them; updates X/Y, initializes vBias and lets inline commands
+/// change vBias and drawMode. Color commands affect only this call's live RGB.
+/// Reinitialize the placement before drawing an independent line.
+/// Alignment and pair-tightening scale use the initial glyphTable even after
+/// a font command changes the live metrics. Center/right alignment has the
+/// measurement contract of `textAlignLine`, including width -4 for no glyphs.
+///
+/// Drawing ends at NUL, LF, CR or a case-insensitive \\n command. Other bytes
+/// below space are skipped. Commands (either letter case) are \\C plus a color
+/// letter (W/Y/O/G/H/C/R), \\S plus a face (S/M/L), \\W plus mode 0/1,
+/// \\U/\\D plus a decimal digit moving Y up/down, and \\B plus a digit setting
+/// X to eight times that digit. Each operand and the byte after it must be
+/// readable, even if the operand is NUL. Unknown operands leave the setting;
+/// unknown commands discard only the backslash. Adjacent backslashes continue
+/// the command scan. Glyph bytes must be 0x20..0x7A while small metrics are
+/// active, or 0x20..0xFF otherwise; there is no upper-bound check.
+///
+/// Font textures and palettes must be resident. Queued modes require writable
+/// OT entries and sufficient word-aligned primitive storage as described by
+/// `TEXT_DRAW_*`; retain packets until GPU completion. Immediate drawing uses
+/// reusable private packets and the active draw environment. Inline mode
+/// commands can switch it to queued drawing during the call.
+void textDrawString(TextDrawReq* request, const u8* text);
 
 u8* Text_ItoaSigned(u8* arg0, s32 arg1);
 
@@ -295,10 +327,21 @@ u8* Text_ItoaSignedPlus(u8* arg0, s32 arg1);
 
 u8* Text_ItoaUnsigned(u8* arg0, u32 arg1);
 
-/// Formats a decimal integer with the requested minimum width.
-u8* Text_ItoaPadded(u8* buffer, s32 value, s32 width);
+/// Writes a fixed-width, zero-padded unsigned decimal string and returns `buffer`.
+///
+/// `digitCount` must be 1..9 and `buffer` must provide digitCount + 1 writable
+/// bytes, including NUL. Values above 10^digitCount - 1 become all nines.
+/// A signed negative argument converts to u32 and therefore saturates too.
+/// The caller owns the buffer; no pointer is retained and no capacity is checked.
+u8* textItoaPadded(u8* buffer, u32 value, s32 digitCount);
 
-u8* Text_Strcat(u8* dest, u8* src);
+/// Appends a NUL-terminated byte string and returns the new terminator's address.
+///
+/// `dest` must already be terminated and have space for both strings and NUL.
+/// `src` is read-only and must be terminated; the source and destination regions
+/// must not overlap. The returned pointer is borrowed from `dest`, including
+/// when `src` is empty. No capacity check or allocation is performed.
+u8* textAppendString(u8* dest, const u8* src);
 
 u8* Text_FormatTime(u8* arg0, u16 time);
 

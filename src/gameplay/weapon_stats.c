@@ -110,7 +110,7 @@ static inline void _gpDrawItemNameAt(UiObject* obj, s32 x, s32 y, s32 color, s32
         req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
         req.alignment  = TEXT_ALIGNMENT_LEFT;
         req.drawMode   = TEXT_DRAW_OUTLINED;
-        Text_DrawString(&req, Gp_GetItemText(item, 0, 0));
+        textDrawString(&req, Gp_GetItemText(item, 0, 0));
         func_800C22D8(obj, x, y, item, mode);
         temp = item - 0xF;
         if ((u32)temp < 0x24U) {
@@ -232,7 +232,7 @@ void func_800C7DA8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3)
             nameReq.glyphTable = TEXT_GLYPH_TABLE_SMALL;
             nameReq.alignment  = TEXT_ALIGNMENT_LEFT;
             nameReq.drawMode   = TEXT_DRAW_OUTLINED;
-            Text_DrawString(&nameReq, D_80114D80[i]);
+            textDrawString(&nameReq, D_80114D80[i]);
             swap = 0;
             if (i == two) {
                 swap = list == &D_8010E9A4;
@@ -268,7 +268,7 @@ void func_800C7DA8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3)
                 valReq.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
                 valReq.alignment  = two;
                 valReq.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-                Text_DrawString(&valReq, Text_ItoaSignedPlus(buf, *pItem));
+                textDrawString(&valReq, Text_ItoaSignedPlus(buf, *pItem));
             } else {
                 {
                     s32 vx;
@@ -281,7 +281,7 @@ void func_800C7DA8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3)
                 valReq.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
                 valReq.alignment  = two;
                 valReq.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-                Text_DrawString(&valReq, Text_ItoaSigned(buf, *pItem));
+                textDrawString(&valReq, Text_ItoaSigned(buf, *pItem));
             }
             y     += 0x18;
             pItem += 1;
@@ -480,7 +480,7 @@ static inline void _gpDrawItemNameUnmarkedAt(UiObject* obj, s32 x, s32 y, s32 co
         req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
         req.alignment  = TEXT_ALIGNMENT_LEFT;
         req.drawMode   = TEXT_DRAW_OUTLINED;
-        Text_DrawString(&req, Gp_GetItemText(item, 0, 0));
+        textDrawString(&req, Gp_GetItemText(item, 0, 0));
         temp = item - 0xF;
         if ((u32)temp < 0x24U) {
             func_800C2538(obj, x, y, temp % 3 + 1, color);
@@ -767,7 +767,7 @@ void Gp_DrawRemoveAmmoRow(UiList* prompt, UiObject* obj)
             draw.count.req.glyphTable = TEXT_GLYPH_TABLE_SMALL;
             draw.count.req.alignment  = TEXT_ALIGNMENT_RIGHT;
             draw.count.req.drawMode   = TEXT_DRAW_FILL_ONLY;
-            Text_DrawString(&draw.count.req, Text_ItoaSigned(draw.count.buf, qty));
+            textDrawString(&draw.count.req, Text_ItoaSigned(draw.count.buf, qty));
             Ui_LayoutWithMode0(obj, (x + 0x69), (y - 8), 0x1B, 7,
                                0x102010);
         }
@@ -788,7 +788,7 @@ void Gp_DrawRemoveAmmoRow(UiList* prompt, UiObject* obj)
                 draw.req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
                 draw.req.alignment  = TEXT_ALIGNMENT_LEFT;
                 draw.req.drawMode   = TEXT_DRAW_OUTLINED;
-                Text_DrawString(&draw.req, Gp_GetItemText(item, 0, 0));
+                textDrawString(&draw.req, Gp_GetItemText(item, 0, 0));
                 temp = item - 0xF;
                 if ((u32)temp < 0x24U) {
                     func_800C2538(obj, x, y, temp % 3 + 1, color);
@@ -807,7 +807,7 @@ void Gp_DrawRemoveAmmoRow(UiList* prompt, UiObject* obj)
         draw.req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
         draw.req.alignment  = TEXT_ALIGNMENT_LEFT;
         draw.req.drawMode   = TEXT_DRAW_OUTLINED;
-        Text_DrawString(&draw.req, Gp_StrRemoveAmmo);
+        textDrawString(&draw.req, Gp_StrRemoveAmmo);
     }
 
     if (prompt->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {

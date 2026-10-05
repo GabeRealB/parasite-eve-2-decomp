@@ -124,7 +124,7 @@ STATIC_ASSERT(FONT_GLYPH_MEDIUM_COUNT * sizeof(_FontGlyph) == 0xA80, fontGlyphsM
 STATIC_ASSERT(FONT_GLYPH_LARGE_COUNT * sizeof(_FontGlyph) == 0xA80, fontGlyphsLargeBytes);
 STATIC_ASSERT(FONT_GLYPH_SMALL_COUNT * sizeof(_FontGlyph) == 0x444, fontGlyphsSmallBytes);
 
-/// Immediate-mode SPRT scratch used by Text_DrawGlyphImmediate.
+/// Immediate-mode SPRT scratch used by _textDrawGlyphImmediate.
 static SPRT D_80071710;
 
 static DR_TPAGE D_80071728;
@@ -160,15 +160,13 @@ static inline u8* _textItoaUnsigned(u8* arg0, u32 value);
 /// terminates it; values past nine digits are written as all nines.
 static inline u8* _textItoaSigned(u8* arg0, s32 arg1);
 
-/// Writes `value` in decimal to `arg0` as exactly `width` digits, padded with
-/// leading zeros and clamped to the largest value that fits, and terminates it.
-static inline u8* _textItoaPadded(u8* arg0, u32 value, s32 width);
+static inline u8* _textItoaPadded(u8* buffer, u32 value, s32 digitCount);
 
 static u8* Text_ItoaHexSigned(u8* arg0, s32 arg1);
 
 static u8* Text_ItoaHex(u8* arg0, u32 arg1);
 
-static void Text_DrawGlyphImmediate(TextDrawReq* request, const _FontGlyph* glyph, s32 arg2);
+static void _textDrawGlyphImmediate(TextDrawReq* request, const _FontGlyph* glyph, s32 colorRgb);
 
 static void _textDrawGlyphFill(TextDrawReq* request, const _FontGlyph* glyph, s32 colorRgb);
 
@@ -244,7 +242,7 @@ TaskDesc* gTaskDescBanks[15] = {
 
 /// Medium UI-font glyph metrics, one record per character byte from ' ' through 0xFF.
 ///
-/// `Text_DrawString` and `textAlignLine` select this face when
+/// `textDrawString` and `textAlignLine` select this face when
 /// `glyphTable` is `TEXT_GLYPH_TABLE_MEDIUM`. Drawing also selects it for an
 /// `\sM` command, in either letter's case, and adds `TEXT_GLYPH_V_BIAS_MEDIUM`
 /// to each record's texture V. The initializer is the embedded `font_glyphs0`
@@ -255,7 +253,7 @@ static _FontGlyph _gFontGlyphsMedium[FONT_GLYPH_MEDIUM_COUNT] = {
 
 /// Large UI-font glyph metrics, one record per character byte from ' ' through 0xFF.
 ///
-/// `Text_DrawString` and `textAlignLine` select this face when
+/// `textDrawString` and `textAlignLine` select this face when
 /// `glyphTable` is neither `TEXT_GLYPH_TABLE_MEDIUM` nor
 /// `TEXT_GLYPH_TABLE_SMALL`. Named callers use `TEXT_GLYPH_TABLE_LARGE` and
 /// `TEXT_GLYPH_TABLE_LARGE_ALTERNATE`; any other selector takes this face too.
@@ -269,7 +267,7 @@ static _FontGlyph _gFontGlyphsLarge[FONT_GLYPH_LARGE_COUNT] = {
 
 /// Small UI-font glyph metrics, one record per character byte from ' ' through 0x7A.
 ///
-/// `Text_DrawString` and `textAlignLine` select this face when
+/// `textDrawString` and `textAlignLine` select this face when
 /// `glyphTable` is `TEXT_GLYPH_TABLE_SMALL`. Drawing also selects it for an
 /// `\sS` command, in either letter's case, and adds `TEXT_GLYPH_V_BIAS_SMALL`
 /// to each record's texture V. The initializer is the embedded `font_glyphs2`
@@ -673,25 +671,55 @@ static void _textDrawGlyphOutlinedSingleEntry(TextDrawReq* request, const _FontG
     addPrim(gGpuCurrentOt + request->otIndex, page);
 }
 
-void Text_DrawString(TextDrawReq* request, u8* text)
+/// Applies the initial face's pair tightening to the mutable drawing pen.
+///
+/// The class sum is kept as s32 until its low byte is tested. Inline face
+/// changes do not change the one-pixel versus two-pixel selection here.
+static inline void _textApplyDrawKerning(TextDrawReq* request, s32 previousRightClass, const _FontGlyph* glyph)
 {
-    u8*               ptr;
+    s32 kerningPairSum;
+
+    kerningPairSum = previousRightClass + glyph->leftKerningClass + 1;
+    if ((u8)kerningPairSum >= 3) {
+        if (request->glyphTable == TEXT_GLYPH_TABLE_SMALL) {
+            request->x -= 1;
+        } else {
+            request->x -= 2;
+        }
+    }
+}
+
+void textDrawString(TextDrawReq* request, const u8* text)
+{
+    enum {
+        TEXT_LINE_COLOR_WHITE          = 0x606060,
+        TEXT_LINE_COLOR_YELLOW         = 0x037A78,
+        TEXT_LINE_COLOR_ORANGE         = 0x0D287F,
+        TEXT_LINE_COLOR_GREEN          = 0x01741F,
+        TEXT_LINE_COLOR_H              = 0x38443C,
+        TEXT_LINE_COLOR_CYAN           = 0x808008,
+        TEXT_LINE_COLOR_RED            = 0x001666,
+        TEXT_LINE_FONT_PAGE_COMMAND    = _get_mode(false, true, getTPage(0, GPU_BLEND_ADD, 0x3C0, 0x100)),
+        TEXT_LINE_OUTLINE_PAGE_COMMAND = _get_mode(false, true, getTPage(0, GPU_BLEND_SUBTRACT, 0x3C0, 0x100)),
+    };
+
+    const u8*         cursor;
     const _FontGlyph* table;
     const _FontGlyph* glyph;
-    void              (*draw)(TextDrawReq*, const _FontGlyph*, s32);
-    s32               color;
+    void              (*drawGlyph)(TextDrawReq* request, const _FontGlyph* glyph, s32 colorRgb);
+    s32               colorRgb;
     s32               previousRightKerningClass;
     s32               width;
-    u8                c;
-    s32               end_flag;
-    s32               idx;
-    s32               temp;
-    DR_TPAGE*         dr;
+    u8                byte;
+    s32               endLine;
+    s32               glyphIndex;
+    DR_TPAGE*         texturePage;
 
-    ptr                       = text;
+    cursor                    = text;
     previousRightKerningClass = FONT_KERNING_CLASS_NEUTRAL;
-    color                     = request->colorRgb;
-    request->vBias            = 0;
+    colorRgb                  = request->colorRgb;
+    request->vBias            = TEXT_GLYPH_V_BIAS_SMALL;
+    // Alignment keeps the initial metrics; inline face changes affect drawing only.
     switch (request->glyphTable) {
         case TEXT_GLYPH_TABLE_MEDIUM:
             table          = _gFontGlyphsMedium;
@@ -718,74 +746,75 @@ void Text_DrawString(TextDrawReq* request, u8* text)
     }
     switch (request->drawMode) {
         case TEXT_DRAW_OUTLINED:
-            draw = _textDrawGlyphOutlined;
+            drawGlyph = _textDrawGlyphOutlined;
             break;
         case TEXT_DRAW_OUTLINED_SINGLE_ENTRY:
-            draw = _textDrawGlyphOutlinedSingleEntry;
+            drawGlyph = _textDrawGlyphOutlinedSingleEntry;
             break;
         case TEXT_DRAW_TRANSLUCENT_OUTLINED:
-            draw = _textDrawGlyphTranslucentOutlined;
+            drawGlyph = _textDrawGlyphTranslucentOutlined;
             break;
         case TEXT_DRAW_OUTLINE_ONLY:
-            draw = _textDrawGlyphOutline;
+            drawGlyph = _textDrawGlyphOutline;
             break;
         case TEXT_DRAW_IMMEDIATE:
-            dr = &D_80071728;
-            setlen(dr, 1);
-            dr->code[0] = 0xE100023F;
-            DrawPrim(dr);
-            draw = Text_DrawGlyphImmediate;
+            texturePage = &D_80071728;
+            setlen(texturePage, ARRAY_SIZE(texturePage->code));
+            texturePage->code[0] = TEXT_LINE_FONT_PAGE_COMMAND;
+            DrawPrim(texturePage);
+            drawGlyph = _textDrawGlyphImmediate;
             break;
         case TEXT_DRAW_FILL_ONLY:
         default:
-            draw = _textDrawGlyphFill;
+            drawGlyph = _textDrawGlyphFill;
             break;
     }
-    while ((c = *ptr) != 0 && c != '\n' && c != '\r') {
-        end_flag = 0;
-        if (c == '\\') {
+    // Commands update live styling; pair tightening keeps the initial selector.
+    while ((byte = *cursor) != 0 && byte != '\n' && byte != '\r') {
+        endLine = 0;
+        if (byte == '\\') {
             do {
-                ptr++;
-                switch (*ptr) {
+                cursor++;
+                switch (*cursor) {
                     case 'C':
                     case 'c':
-                        ptr++;
-                        switch (*ptr) {
+                        cursor++;
+                        switch (*cursor) {
                             case 'W':
                             case 'w':
-                                color = 0x606060;
+                                colorRgb = TEXT_LINE_COLOR_WHITE;
                                 break;
                             case 'Y':
                             case 'y':
-                                color = 0x037A78;
+                                colorRgb = TEXT_LINE_COLOR_YELLOW;
                                 break;
                             case 'O':
                             case 'o':
-                                color = 0x0D287F;
+                                colorRgb = TEXT_LINE_COLOR_ORANGE;
                                 break;
                             case 'G':
                             case 'g':
-                                color = 0x01741F;
+                                colorRgb = TEXT_LINE_COLOR_GREEN;
                                 break;
                             case 'H':
                             case 'h':
-                                color = 0x38443C;
+                                colorRgb = TEXT_LINE_COLOR_H;
                                 break;
                             case 'C':
                             case 'c':
-                                color = 0x808008;
+                                colorRgb = TEXT_LINE_COLOR_CYAN;
                                 break;
                             case 'R':
                             case 'r':
-                                color = 0x001666;
+                                colorRgb = TEXT_LINE_COLOR_RED;
                                 break;
                         }
-                        ptr++;
+                        cursor++;
                         break;
                     case 'S':
                     case 's':
-                        ptr++;
-                        switch (*ptr) {
+                        cursor++;
+                        switch (*cursor) {
                             case 'S':
                             case 's':
                                 table          = _gFontGlyphsSmall;
@@ -802,100 +831,94 @@ void Text_DrawString(TextDrawReq* request, u8* text)
                                 request->vBias = TEXT_GLYPH_V_BIAS_LARGE;
                                 break;
                         }
-                        ptr++;
+                        cursor++;
                         break;
                     case 'W':
                     case 'w':
-                        ptr++;
-                        switch (*ptr) {
+                        cursor++;
+                        switch (*cursor) {
                             case '0':
                                 request->drawMode = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-                                draw              = _textDrawGlyphTranslucentOutlined;
+                                drawGlyph         = _textDrawGlyphTranslucentOutlined;
                                 break;
                             case '1':
                                 request->drawMode = TEXT_DRAW_OUTLINED;
-                                draw              = _textDrawGlyphOutlined;
+                                drawGlyph         = _textDrawGlyphOutlined;
                                 break;
                         }
-                        ptr++;
+                        cursor++;
                         break;
                     case 'U':
                     case 'u':
-                        ptr++;
-                        if ((u32)(*ptr - '0') < 10) {
-                            request->y -= *ptr - '0';
+                        cursor++;
+                        if ((u32)(*cursor - '0') < 10) {
+                            request->y -= *cursor - '0';
                         }
-                        ptr++;
+                        cursor++;
                         break;
                     case 'D':
                     case 'd':
-                        ptr++;
-                        if ((u32)(*ptr - '0') < 10) {
-                            request->y += *ptr - '0';
+                        cursor++;
+                        if ((u32)(*cursor - '0') < 10) {
+                            request->y += *cursor - '0';
                         }
-                        ptr++;
+                        cursor++;
                         break;
                     case 'B':
                     case 'b':
-                        ptr++;
-                        if ((u32)(*ptr - '0') < 10) {
-                            request->x = (*ptr - '0') << 3;
+                        cursor++;
+                        if ((u32)(*cursor - '0') < 10) {
+                            request->x = (*cursor - '0') << 3;
                         }
-                        ptr++;
+                        cursor++;
                         break;
                     case 'N':
                     case 'n':
-                        end_flag = 1;
+                        endLine = 1;
                         break;
                 }
-                if (*ptr == 0 || *ptr == '\n' || *ptr == '\r') {
-                    end_flag = 1;
+                if (*cursor == 0 || *cursor == '\n' || *cursor == '\r') {
+                    endLine = 1;
                 }
-            } while (*ptr == '\\');
+            } while (*cursor == '\\');
         }
-        if (end_flag != 0) {
+        if (endLine != 0) {
             break;
         }
-        if (*ptr < ' ') {
-            ptr++;
+        if (*cursor < ' ') {
+            cursor++;
             continue;
         }
-        idx   = *ptr - ' ';
-        glyph = &table[idx];
-        temp  = previousRightKerningClass + glyph->leftKerningClass + 1;
-        if ((u8)temp >= 3) {
-            if (request->glyphTable == TEXT_GLYPH_TABLE_SMALL) {
-                request->x -= 1;
-            } else {
-                request->x -= 2;
-            }
-        }
+        glyphIndex = *cursor - ' ';
+        glyph      = &table[glyphIndex];
+        _textApplyDrawKerning(request, previousRightKerningClass, glyph);
         previousRightKerningClass = glyph->rightKerningClass;
-        draw(request, glyph, color);
-        ptr++;
+        drawGlyph(request, glyph, colorRgb);
+        cursor++;
         request->x += glyph->widthMinusOne + glyph->advanceExtraX + glyph->xOffset;
         request->y += glyph->advanceY;
     }
+    // Prepend page commands after the sprites so each OT entry executes them first.
     if (request->drawMode == TEXT_DRAW_OUTLINED || request->drawMode == TEXT_DRAW_TRANSLUCENT_OUTLINED) {
-        dr             = gGpuPrimCursor;
-        gGpuPrimCursor = dr + 1;
-        dr->code[0]    = _get_mode(false, true, getTPage(0, GPU_BLEND_SUBTRACT, 0x3C0, 0x100));
-        setlen(dr, 1);
-        addPrim(gGpuCurrentOt + request->otIndex + 1, dr);
+        texturePage          = gGpuPrimCursor;
+        gGpuPrimCursor       = texturePage + 1;
+        texturePage->code[0] = TEXT_LINE_OUTLINE_PAGE_COMMAND;
+        setlen(texturePage, ARRAY_SIZE(texturePage->code));
+        addPrim(gGpuCurrentOt + request->otIndex + 1, texturePage);
     }
     if (request->drawMode != TEXT_DRAW_IMMEDIATE) {
         if (request->drawMode == TEXT_DRAW_OUTLINE_ONLY) {
-            dr             = gGpuPrimCursor;
-            gGpuPrimCursor = dr + 1;
-            dr->code[0]    = _get_mode(false, true, getTPage(0, GPU_BLEND_SUBTRACT, 0x3C0, 0x100));
-            setlen(dr, 1);
-            addPrim(gGpuCurrentOt + request->otIndex, dr);
+            texturePage          = gGpuPrimCursor;
+            gGpuPrimCursor       = texturePage + 1;
+            texturePage->code[0] = TEXT_LINE_OUTLINE_PAGE_COMMAND;
+            setlen(texturePage, ARRAY_SIZE(texturePage->code));
+            addPrim(gGpuCurrentOt + request->otIndex, texturePage);
         } else {
-            dr             = gGpuPrimCursor;
-            gGpuPrimCursor = dr + 1;
-            dr->code[0]    = 0xE100023F;
-            setlen(dr, 1);
-            addPrim(gGpuCurrentOt + request->otIndex, dr);
+            texturePage          = gGpuPrimCursor;
+            gGpuPrimCursor       = texturePage + 1;
+            texturePage->code[0] = TEXT_LINE_FONT_PAGE_COMMAND;
+            setlen(texturePage, ARRAY_SIZE(texturePage->code));
+            addPrim(gGpuCurrentOt + request->otIndex, texturePage);
         }
     }
 }
@@ -989,38 +1012,41 @@ static inline u8* _textItoaSigned(u8* arg0, s32 arg1)
     return arg0;
 }
 
-/// Writes `value` in decimal to `arg0` as exactly `width` digits, padded with
-/// leading zeros and clamped to the largest value that fits, and terminates it.
-static inline u8* _textItoaPadded(u8* arg0, u32 value, s32 width)
+/// Writes a saturated unsigned decimal value in exactly `digitCount` digits.
+///
+/// `digitCount` must be 1..9 so the decimal limit fits u32. `buffer` supplies
+/// digitCount + 1 writable bytes; leading zeros and NUL are included. Returns
+/// the original buffer without retaining it. There is no capacity check.
+static inline u8* _textItoaPadded(u8* buffer, u32 value, s32 digitCount)
 {
-    u8* p;
-    u32 place;
-    s32 count;
-    u32 limit;
+    u8* destination;
+    u32 decimalPlace;
+    s32 remainingPlaces;
+    u32 maximumValue;
 
-    place = 1;
-    count = width - 1;
-    while (count > 0) {
-        place *= 10;
-        count--;
+    decimalPlace    = 1;
+    remainingPlaces = digitCount - 1;
+    while (remainingPlaces > 0) {
+        decimalPlace *= 10;
+        remainingPlaces--;
     }
-    limit = place * 10 - 1;
-    if (limit < value) {
-        value = limit;
+    maximumValue = decimalPlace * 10 - 1;
+    if (maximumValue < value) {
+        value = maximumValue;
     }
-    p = arg0;
-    while (value < place) {
-        place /= 10;
-        *p++   = '0';
+    destination = buffer;
+    while (value < decimalPlace) {
+        decimalPlace  /= 10;
+        *destination++ = '0';
     }
-    while (place != 0) {
-        *p     = value / place;
-        value -= *p * place;
-        place /= 10;
-        *p++  += '0';
+    while (decimalPlace != 0) {
+        *destination    = value / decimalPlace;
+        value          -= *destination * decimalPlace;
+        decimalPlace   /= 10;
+        *destination++ += '0';
     }
-    *p = 0;
-    return arg0;
+    *destination = 0;
+    return buffer;
 }
 
 /// Writes a play time given in minutes as `H:MM` to `arg0`, capping it at
@@ -1185,82 +1211,109 @@ static u8* Text_ItoaHex(u8* arg0, u32 arg1)
     return arg0;
 }
 
-u8* Text_ItoaPadded(u8* buffer, s32 value, s32 width)
+u8* textItoaPadded(u8* buffer, u32 value, s32 digitCount)
 {
-    return _textItoaPadded(buffer, value, width);
+    return _textItoaPadded(buffer, value, digitCount);
 }
 
-u8* Text_SkipLines(u8* arg0, s32 arg1)
+const u8* textSkipLines(const u8* text, s32 lineCount)
 {
-    u8 temp;
+    u8 byte;
 
-    if (arg1 > 0) {
-        s32 c_nl = 0xA;
-        s32 c_N  = 0x4E;
-        s32 c_n  = 0x6E;
-        s32 c_bs = 0x5C;
-    loop:
-        temp = *arg0;
-        if (temp == 0) {
-            goto end;
+    if (lineCount > 0) {
+        s32 lineFeed       = '\n';
+        s32 upperLineBreak = 'N';
+        s32 lowerLineBreak = 'n';
+        s32 escapePrefix   = '\\';
+    scan:
+        byte = *text;
+        if (byte == '\0') {
+            goto done;
         }
-        if (temp == c_nl) {
-            arg1 -= 1;
-        } else if (temp == c_N || temp == c_n) {
-            if (arg0[-1] == c_bs) {
-                arg1 -= 1;
+        if (byte == lineFeed) {
+            lineCount -= 1;
+        } else if (byte == upperLineBreak || byte == lowerLineBreak) {
+            if (text[-1] == escapePrefix) {
+                lineCount -= 1;
             }
         }
-        arg0 += 1;
-        if (arg1 > 0) {
-            goto loop;
+        text += 1;
+        if (lineCount > 0) {
+            goto scan;
         }
     }
-end:
-    return arg0;
+done:
+    return text;
 }
 
-u8* Text_Strcat(u8* dest, u8* src)
+u8* textAppendString(u8* dest, const u8* src)
 {
-    u8 c;
+    u8 byte;
 
     if (*dest != 0) {
         while (*++dest != 0) {
         }
     }
 
-    c = *src;
-    if (c != 0) {
+    byte = *src;
+    if (byte != 0) {
         do {
             src++;
-            *dest = c;
-            c     = *src;
+            *dest = byte;
+            byte  = *src;
             dest++;
-        } while (c != 0);
+        } while (byte != 0);
     }
 
     *dest = 0;
     return dest;
 }
 
-static void Text_DrawGlyphImmediate(TextDrawReq* request, const _FontGlyph* glyph, s32 arg2)
+/// Initializes the reusable opaque sprite for an immediate UI glyph.
+///
+/// Borrows one writable, word-aligned packet and read-only pen/metrics. RGB's
+/// high byte is replaced by the modulated, opaque sprite command. The fill
+/// palette is the first 16-color block at VRAM X=976, Y=511. The packet is
+/// submitted separately; this operation does not advance the pen.
+static inline void _textInitImmediateGlyphSprite(SPRT* fill, const TextDrawReq* request,
+                                                 const _FontGlyph* glyph, s32 colorRgb)
 {
-    SPRT* p;
-    s32   temp;
+    enum {
+        TEXT_IMMEDIATE_GLYPH_FILL_CLUT      = getClut(976, 511),
+        TEXT_IMMEDIATE_GLYPH_SPRITE_COMMAND = 0x64,
+    };
 
-    p = &D_80071710;
-    setlen(p, 4);
-    GPU_PRIMITIVE_COLOR_WORD(p, 0) = arg2;
-    setcode(p, 0x64);
-    p->x0   = request->x + glyph->xOffset;
-    p->y0   = (request->y - glyph->heightMinusOne) + glyph->yOffset;
-    p->u0   = glyph->u;
-    p->v0   = glyph->v + request->vBias;
-    p->w    = glyph->widthMinusOne + 1;
-    temp    = glyph->heightMinusOne;
-    p->clut = 0x7FFD;
-    p->h    = temp + 1;
-    DrawPrim(p);
+    s32 heightMinusOne;
+
+    setlen(fill, (sizeof(*fill) - sizeof(fill->tag)) / sizeof(u32));
+    GPU_PRIMITIVE_COLOR_WORD(fill, 0) = colorRgb;
+    setcode(fill, TEXT_IMMEDIATE_GLYPH_SPRITE_COMMAND);
+    fill->x0       = request->x + glyph->xOffset;
+    fill->y0       = (request->y - glyph->heightMinusOne) + glyph->yOffset;
+    fill->u0       = glyph->u;
+    fill->v0       = glyph->v + request->vBias;
+    fill->w        = glyph->widthMinusOne + 1;
+    heightMinusOne = glyph->heightMinusOne;
+    fill->clut     = TEXT_IMMEDIATE_GLYPH_FILL_CLUT;
+    fill->h        = heightMinusOne + 1;
+}
+
+/// Submits one opaque, RGB-modulated UI-glyph fill in the active draw environment.
+///
+/// Borrows `request` and `glyph` without modifying or retaining them or moving
+/// the pen. The matching drawer signature supplies RGB in bits 0..23 (red low);
+/// the sprite command replaces its high byte. Coordinates are draw-environment
+/// pixels, U/V and dimensions are texels; X/Y narrow to s16 and V wraps to u8.
+/// Requires the 4bpp font page and fill palette to be resident and selected.
+/// Reuses the private sprite for each synchronous `DrawPrim` submission, so
+/// no primitive-arena space or OT entry is consumed. Calls must not overlap.
+static void _textDrawGlyphImmediate(TextDrawReq* request, const _FontGlyph* glyph, s32 colorRgb)
+{
+    SPRT* fill;
+
+    fill = &D_80071710;
+    _textInitImmediateGlyphSprite(fill, request, glyph, colorRgb);
+    DrawPrim(fill);
 }
 
 /// Initializes an opaque, RGB-modulated UI-glyph fill packet at the text pen.

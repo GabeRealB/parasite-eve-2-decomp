@@ -12451,33 +12451,33 @@ materialize only on the taken path, and use a goto-based loop (not `do`/`while`)
 to keep the first iteration un-peeled:
 
 ```c
-if (arg1 > 0) {
-    s32 c_nl = 0xA;
-    s32 c_N = 0x4E;
-    s32 c_n = 0x6E;
-    s32 c_bs = 0x5C;
-loop:
-    temp = *arg0;
-    if (temp == 0) {
-        goto end;
+if (lineCount > 0) {
+    s32 lineFeed = '\n';
+    s32 upperLineBreak = 'N';
+    s32 lowerLineBreak = 'n';
+    s32 escapePrefix = '\\';
+scan:
+    byte = *text;
+    if (byte == '\0') {
+        goto done;
     }
-    if (temp == c_nl) {
-        arg1 -= 1;
-    } else if (temp == c_N || temp == c_n) {
-        if (arg0[-1] == c_bs) {
-            arg1 -= 1;
+    if (byte == lineFeed) {
+        lineCount -= 1;
+    } else if (byte == upperLineBreak || byte == lowerLineBreak) {
+        if (text[-1] == escapePrefix) {
+            lineCount -= 1;
         }
     }
-    arg0 += 1;
-    if (arg1 > 0) {
-        goto loop;
+    text += 1;
+    if (lineCount > 0) {
+        goto scan;
     }
 }
-end:
-return arg0;
+done:
+return text;
 ```
 
-`Text_SkipLines` is the pure example. A plain `do { ... } while (value > 0)` with
+`textSkipLines` is the pure example. A plain `do { ... } while (value > 0)` with
 the same locals peels the null check and reintroduces `andi` masks.
 
 ## "Dead" `andi reg, 0xffff` before `jr` is often a u16 return
@@ -16316,13 +16316,13 @@ Fix: load the next source into a temporary *before* the independent store so
 the constant has nowhere to sit between A's load and store:
 
 ```c
-p->w = src->w + 1;
-temp = src->h;       /* pins the next load here */
-p->clut = 0x7FFD;    /* independent store lands after w, before h+1 */
-p->h = temp + 1;
+fill->w = glyph->widthMinusOne + 1;
+heightMinusOne = glyph->heightMinusOne; /* pins the next load here */
+fill->clut = TEXT_IMMEDIATE_GLYPH_FILL_CLUT; /* after w, before h+1 */
+fill->h = heightMinusOne + 1;
 ```
 
-`Text_DrawGlyphImmediate` is the pure example (SPRT setup: w, then clut 0x7FFD, then h).
+`_textDrawGlyphImmediate` is the pure example (SPRT setup: w, then clut 0x7FFD, then h).
 
 ## `do {} while (0)` + address-of global for store/`subu` interleave
 
@@ -27590,22 +27590,22 @@ if (arg0 == 0) {
 `Gp_TriggerPeState` is the example. `flags = value; ... &= ~flags` stuck at
 99.969% with only that `nor` source swapped.
 
-## Split `spawnArg1` (`s32 val`) from the `Text_SkipLines` result
+## Split `spawnArg1` (`s32 val`) from the `textSkipLines` result
 
-A two-line prompt (`Text_DrawPrompt` / `Text_SkipLines` / `Text_DrawPrompt`)
-that keeps the string in one `u8* text` — assign from `spawnArg1`, then
-`text = Text_SkipLines(text, one)` — is 98.9% with only `$s2`/`$s3` swapped:
+A two-line prompt (`Text_DrawPrompt` / `textSkipLines` / `Text_DrawPrompt`)
+that keeps the string in one `const u8* text` — assign from `spawnArg1`, then
+`text = textSkipLines(text, one)` — is 98.9% with only `$s2`/`$s3` swapped:
 the `UiObject*` lands in `$s3` and the string in `$s2`. The target wants the
 object in `$s2` and the string in `$s3`.
 
 Keep `spawnArg1` as an `s32 val` used only through the first draw + skip, and
-a separate `u8* text` for the skip result (same shape as `Gp_DrawPromptLines`):
+a separate `const u8* text` for the skip result (same shape as `Gp_DrawPromptLines`):
 
 ```c
 val = arg0->spawnArg1;
 if (val != 0) {
     Text_DrawPrompt(..., (u8*)val, ...);
-    text = Text_SkipLines((u8*)val, one);
+    text = textSkipLines((const u8*)val, one);
     Text_DrawPrompt(..., text, ...);
 }
 ```
@@ -28042,7 +28042,7 @@ update:
 form stuck at 75% with only that control-flow shape different. The
 first search also needs a goto-back loop (not `do`/`while`) so the
 first `lw 0(p)` is not peeled off `&Gp_LockSlots` — same anti-peel
-trick as `Text_SkipLines`.
+trick as `textSkipLines`.
 
 ## Pin the table to `$v0` inside the `if` so session `lui` takes `$v1`
 

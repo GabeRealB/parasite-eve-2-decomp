@@ -3055,11 +3055,11 @@ void Gp_TickPlayClock(Task* task)
         req.glyphTable = TEXT_GLYPH_TABLE_LARGE_ALTERNATE;
         req.alignment  = TEXT_ALIGNMENT_LEFT;
         req.drawMode   = one;
-        Text_DrawString(&req, Text_ItoaUnsigned(buf, work->hours));
-        Text_DrawString(&req, ":");
-        Text_DrawString(&req, Text_ItoaPadded(buf, work->minutes, 2));
-        Text_DrawString(&req, "'");
-        Text_DrawString(&req, Text_ItoaPadded(buf, D_8005ED68 / 60, 2));
+        textDrawString(&req, Text_ItoaUnsigned(buf, work->hours));
+        textDrawString(&req, ":");
+        textDrawString(&req, textItoaPadded(buf, work->minutes, 2));
+        textDrawString(&req, "'");
+        textDrawString(&req, textItoaPadded(buf, D_8005ED68 / 60, 2));
         padCheckButtons(one, one, PAD_BUTTON_SELECT);
     }
 

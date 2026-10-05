@@ -31,7 +31,7 @@
         req.glyphTable = TEXT_GLYPH_TABLE_SMALL;                                \
         req.alignment  = TEXT_ALIGNMENT_LEFT;                                   \
         req.drawMode   = TEXT_DRAW_OUTLINED;                                    \
-        Text_DrawString(&req, (str));                                           \
+        textDrawString(&req, (str));                                            \
     }
 
 /// Draws a quantity right-aligned on line `line`; an empty count sets `flag`.
@@ -44,7 +44,7 @@
         req.x          = obj.panel.contentOriginX.unsignedValue + 0x94;         \
         req.y          = (obj.panel.contentOriginY.unsignedValue + 9) + (line); \
         req.otIndex    = obj.panel.otIndex.signedValue + 1;                     \
-        Text_DrawString(&req, Text_ItoaSigned(buf, (count)));                   \
+        textDrawString(&req, Text_ItoaSigned(buf, (count)));                    \
         if ((count) == 0) {                                                     \
             flag = 1;                                                           \
         }                                                                       \
@@ -408,7 +408,7 @@ static inline void _gpDrawHudValue(s32 x, s32 y, s32 color, s32 val)
     req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
     req.alignment  = TEXT_ALIGNMENT_RIGHT;
     req.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-    Text_DrawString(&req, Text_ItoaUnsigned(buf, val));
+    textDrawString(&req, Text_ItoaUnsigned(buf, val));
 }
 
 /// Draws the "HP" and "MP" captions relative to `obj`'s origin and draw order.
@@ -424,7 +424,7 @@ static inline void _gpDrawHudLabels(UiObject* obj, s32 x, s32 y, s32 color)
     hpReq.glyphTable = TEXT_GLYPH_TABLE_SMALL;
     hpReq.alignment  = TEXT_ALIGNMENT_LEFT;
     hpReq.drawMode   = TEXT_DRAW_OUTLINED;
-    Text_DrawString(&hpReq, Gp_StrHP);
+    textDrawString(&hpReq, Gp_StrHP);
 
     mpReq.x          = obj->panel.contentOriginX.unsignedValue + 0x2E + x;
     mpReq.y          = obj->panel.contentOriginY.unsignedValue + 8 + y;
@@ -433,7 +433,7 @@ static inline void _gpDrawHudLabels(UiObject* obj, s32 x, s32 y, s32 color)
     mpReq.glyphTable = TEXT_GLYPH_TABLE_SMALL;
     mpReq.alignment  = TEXT_ALIGNMENT_LEFT;
     mpReq.drawMode   = TEXT_DRAW_OUTLINED;
-    Text_DrawString(&mpReq, Gp_StrMP);
+    textDrawString(&mpReq, Gp_StrMP);
 }
 
 void func_800A57B0(HudState* hud)

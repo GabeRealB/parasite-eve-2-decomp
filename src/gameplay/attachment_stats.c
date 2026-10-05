@@ -423,7 +423,7 @@ void Gp_ApplyAttachStats(s32 arg0, HudState* hud)
         req.glyphTable = TEXT_GLYPH_TABLE_SMALL;                                \
         req.alignment  = TEXT_ALIGNMENT_LEFT;                                   \
         req.drawMode   = TEXT_DRAW_OUTLINED;                                    \
-        Text_DrawString(&req, (str));                                           \
+        textDrawString(&req, (str));                                            \
     }
 
 /// Draws a quantity right-aligned on line `line`; an empty count sets `flag`.
@@ -436,7 +436,7 @@ void Gp_ApplyAttachStats(s32 arg0, HudState* hud)
         req.x          = obj.panel.contentOriginX.unsignedValue + 0x94;         \
         req.y          = (obj.panel.contentOriginY.unsignedValue + 9) + (line); \
         req.otIndex    = obj.panel.otIndex.signedValue + 1;                     \
-        Text_DrawString(&req, Text_ItoaSigned(buf, (count)));                   \
+        textDrawString(&req, Text_ItoaSigned(buf, (count)));                    \
         if ((count) == 0) {                                                     \
             flag = 1;                                                           \
         }                                                                       \
@@ -880,7 +880,7 @@ static s32 func_800A2104(HudState* hud, s32 arg1, s32 arg2)
         scratch.text.nameRequest.glyphTable    = TEXT_GLYPH_TABLE_MEDIUM;
         scratch.text.nameRequest.alignment     = TEXT_ALIGNMENT_LEFT;
         scratch.text.nameRequest.drawMode      = TEXT_DRAW_OUTLINED;
-        Text_DrawString(&scratch.text.nameRequest, Gp_GetItemText(item, 0, 0));
+        textDrawString(&scratch.text.nameRequest, Gp_GetItemText(item, 0, 0));
 
         ret   = getAttachWheelLevel(Gp_StateC08.wheelIndex);
         color = 0x606060;

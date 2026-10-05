@@ -1926,7 +1926,7 @@ static void Ui_DrawTextUnderline(UiPanel* panel, s32 x, s32 y, char* arg3, s32 a
     req.glyphTable = TEXT_GLYPH_TABLE_SMALL;
     req.alignment  = TEXT_ALIGNMENT_LEFT;
     req.drawMode   = TEXT_DRAW_FILL_ONLY;
-    Text_DrawString(&req, (u8*)arg3);
+    textDrawString(&req, (const u8*)arg3);
 
     p     = gGpuPrimCursor;
     p->x0 = p->x2 = x;
@@ -2508,7 +2508,7 @@ static void Ui_DrawTextAtLayout(UiPanel* panel, s32 arg1, s32 arg2, u8* arg3, s3
         request.alignment             = (s8)arg6;
         request.otIndex               = temp + 1;
         request.drawMode              = (s8)arg5;
-        Text_DrawString(&request, arg3);
+        textDrawString(&request, arg3);
         panel->otIndex.unsignedValue += 1;
     }
 }

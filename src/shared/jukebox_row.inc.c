@@ -31,7 +31,7 @@ void jukeboxDrawRow(UiList* prompt, UiObject* obj)
     work.req.glyphTable = TEXT_GLYPH_TABLE_LARGE;
     work.req.drawMode   = TEXT_DRAW_OUTLINED;
     work.req.alignment  = TEXT_ALIGNMENT_LEFT;
-    Text_DrawString(&work.req, track->name);
+    textDrawString(&work.req, track->name);
 
     mode = prompt->rowInputEnabled;
     if (mode == 1) {

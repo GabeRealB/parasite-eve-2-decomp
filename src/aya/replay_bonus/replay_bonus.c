@@ -509,7 +509,7 @@ void func_replay_bonus_80115ED0(Task* arg0)
     req.alignment  = TEXT_ALIGNMENT_LEFT;
     req.drawMode   = TEXT_DRAW_OUTLINED;
     req.otIndex    = ot + 1;
-    Text_DrawString(&req, D_replay_bonus_80115784);
+    textDrawString(&req, D_replay_bonus_80115784);
 
     req2.x          = obj->panel.contentOriginX.unsignedValue - xOff;
     req2.y          = obj->panel.contentOriginY.unsignedValue - 4;
@@ -520,7 +520,7 @@ void func_replay_bonus_80115ED0(Task* arg0)
     req2.alignment  = TEXT_ALIGNMENT_RIGHT;
     req2.drawMode   = TEXT_DRAW_OUTLINED;
     req2.otIndex    = ot2 + 1;
-    Text_DrawString(&req2, D_replay_bonus_80115790);
+    textDrawString(&req2, D_replay_bonus_80115790);
 
     t    = obj->panel.contentBottom.signedValue;
     yOff = t - 1;
@@ -535,7 +535,7 @@ void func_replay_bonus_80115ED0(Task* arg0)
     req3.alignment  = TEXT_ALIGNMENT_RIGHT;
     req3.drawMode   = TEXT_DRAW_OUTLINED;
     req3.otIndex    = ot3 + 1;
-    Text_DrawString(&req3, D_replay_bonus_8011579C);
+    textDrawString(&req3, D_replay_bonus_8011579C);
 
     sum = _replayBonusTotalBp(list, obj);
     Text_DrawPrompt(obj, -xOff, yOff, Text_ItoaUnsigned(buf, (u32)sum), 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
@@ -588,7 +588,7 @@ void func_replay_bonus_801166AC(Task* arg0)
     req.alignment  = TEXT_ALIGNMENT_LEFT;
     req.drawMode   = TEXT_DRAW_OUTLINED;
     req.otIndex    = ot + 1;
-    Text_DrawString(&req, D_replay_bonus_801157C4);
+    textDrawString(&req, D_replay_bonus_801157C4);
     value = cfg->exp;
     if (arg0->spawnArg1.value == 1) {
         value = D_replay_bonus_80119274.nextExp;
@@ -603,7 +603,7 @@ void func_replay_bonus_801166AC(Task* arg0)
     req2.alignment  = TEXT_ALIGNMENT_LEFT;
     req2.drawMode   = TEXT_DRAW_OUTLINED;
     req2.otIndex    = ot2 + 1;
-    Text_DrawString(&req2, D_replay_bonus_801157C8);
+    textDrawString(&req2, D_replay_bonus_801157C8);
     value = D_replay_bonus_80119274.totalBp;
     if (arg0->spawnArg1.value == 1) {
         value = D_replay_bonus_80119274.nextBp;
@@ -791,7 +791,7 @@ void func_replay_bonus_80116D68(Task* arg0)
     req.alignment  = TEXT_ALIGNMENT_LEFT;
     req.drawMode   = TEXT_DRAW_OUTLINED;
     req.otIndex    = ot + 1;
-    Text_DrawString(&req, D_replay_bonus_801157C8);
+    textDrawString(&req, D_replay_bonus_801157C8);
     Text_DrawPrompt(obj, -xOff, 6, Text_ItoaSigned(buf, bonus), color, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
     remaining           = (u16)arg0->killCountdown - 1;
     arg0->killCountdown = remaining;

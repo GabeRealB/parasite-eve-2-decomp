@@ -121,7 +121,7 @@ static inline void _gpDrawItemNameUnmarkedInto(UiObject* obj, TextDrawReq* req, 
         req->glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
         req->alignment  = TEXT_ALIGNMENT_LEFT;
         req->drawMode   = TEXT_DRAW_OUTLINED;
-        Text_DrawString(req, Gp_GetItemText(item, 0, 0));
+        textDrawString(req, Gp_GetItemText(item, 0, 0));
         temp = item - 0xF;
         if ((u32)temp < 0x24U) {
             func_800C2538(obj, x, y, temp % 3 + 1, color);
@@ -158,7 +158,7 @@ void func_800C5F70(Task* arg0)
     s32              altColor;
     s32              state;
     s32              lines;
-    u8*              p;
+    const u8*        p;
     u8*              payload;
     s32              y;
     s32              i;
@@ -237,7 +237,7 @@ void func_800C5F70(Task* arg0)
     parse:
         if (CdCmd_IsIdle() & 0xFFFF) {
             lines = 0;
-            p     = Text_SkipLines(Fs_GetChunkPayload(), 5);
+            p     = textSkipLines(Fs_GetChunkPayload(), 5);
             while (*p != 0) {
                 if (*p == '\\') {
                     p++;
@@ -294,10 +294,10 @@ void func_800C5F70(Task* arg0)
                 req20.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
                 req20.alignment  = TEXT_ALIGNMENT_LEFT;
                 req20.drawMode   = TEXT_DRAW_OUTLINED;
-                Text_DrawString(&req20, Text_SkipLines(payload, i));
+                textDrawString(&req20, textSkipLines(payload, i));
             }
             if (item >= 0x500) {
-                Text_DrawMultiLine(obj, obj->panel.contentLeft.signedValue + 2, 0x34, Text_SkipLines(payload, 5),
+                Text_DrawMultiLine(obj, obj->panel.contentLeft.signedValue + 2, 0x34, textSkipLines(payload, 5),
                                    0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_LEFT);
             } else {
                 saved                   = obj->panel.control.word;
@@ -396,7 +396,7 @@ void func_800C5F70(Task* arg0)
                 req30.colorRgb   = 0x606060;
                 req30.alignment  = TEXT_ALIGNMENT_LEFT;
                 req30.drawMode   = TEXT_DRAW_OUTLINED;
-                Text_DrawString(&req30, Gp_StrOperation);
+                textDrawString(&req30, Gp_StrOperation);
             } else if ((u32)(item - 0x60) < 0x20U) {
                 attr      = &Gp_ModStatAttrs[(item)-0x60];
                 featCount = 0;
@@ -413,7 +413,7 @@ void func_800C5F70(Task* arg0)
                 req30.colorRgb   = 0x606060;
                 req30.alignment  = TEXT_ALIGNMENT_LEFT;
                 req30.drawMode   = TEXT_DRAW_OUTLINED;
-                Text_DrawString(&req30, text);
+                textDrawString(&req30, text);
                 if (attr->hpBonus == 0) {
                     req60.x          = obj->panel.contentOriginX.unsignedValue + 0x78;
                     req60.y          = obj->panel.contentOriginY.unsignedValue + y;
@@ -422,7 +422,7 @@ void func_800C5F70(Task* arg0)
                     req60.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
                     req60.alignment  = TEXT_ALIGNMENT_RIGHT;
                     req60.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-                    Text_DrawString(&req60, D_8009707C);
+                    textDrawString(&req60, D_8009707C);
                 } else {
                     req60.x          = obj->panel.contentOriginX.unsignedValue + 0x7A;
                     req60.y          = obj->panel.contentOriginY.unsignedValue + y;
@@ -431,7 +431,7 @@ void func_800C5F70(Task* arg0)
                     req60.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
                     req60.alignment  = TEXT_ALIGNMENT_RIGHT;
                     req60.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-                    Text_DrawString(&req60, Text_ItoaSignedPlus(buf40, attr->hpBonus));
+                    textDrawString(&req60, Text_ItoaSignedPlus(buf40, attr->hpBonus));
                 }
                 y += 0xF;
 
@@ -442,7 +442,7 @@ void func_800C5F70(Task* arg0)
                 req60.colorRgb   = 0x606060;
                 req60.alignment  = TEXT_ALIGNMENT_LEFT;
                 req60.drawMode   = TEXT_DRAW_OUTLINED;
-                Text_DrawString(&req60, Gp_StrAddMp);
+                textDrawString(&req60, Gp_StrAddMp);
                 if (attr->mpBonus == 0) {
                     req70.x          = obj->panel.contentOriginX.unsignedValue + 0x76 + x;
                     req70.y          = obj->panel.contentOriginY.unsignedValue + y;
@@ -451,7 +451,7 @@ void func_800C5F70(Task* arg0)
                     req70.colorRgb   = 0x606060;
                     req70.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
                     req70.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-                    Text_DrawString(&req70, D_8009707C);
+                    textDrawString(&req70, D_8009707C);
                 } else {
                     req70.x          = obj->panel.contentOriginX.unsignedValue + 0x78 + x;
                     req70.y          = obj->panel.contentOriginY.unsignedValue + y;
@@ -460,7 +460,7 @@ void func_800C5F70(Task* arg0)
                     req70.colorRgb   = altColor;
                     req70.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
                     req70.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-                    Text_DrawString(&req70, Text_ItoaSignedPlus(buf40, attr->mpBonus));
+                    textDrawString(&req70, Text_ItoaSignedPlus(buf40, attr->mpBonus));
                 }
                 y += 0xF;
 
@@ -471,7 +471,7 @@ void func_800C5F70(Task* arg0)
                 req70.glyphTable = TEXT_GLYPH_TABLE_SMALL;
                 req70.alignment  = TEXT_ALIGNMENT_LEFT;
                 req70.drawMode   = TEXT_DRAW_OUTLINED;
-                Text_DrawString(&req70, Gp_StrAttachments3);
+                textDrawString(&req70, Gp_StrAttachments3);
                 featIndex        = 0;
                 req80.x          = obj->panel.contentOriginX.unsignedValue + 0x78 + x;
                 req80.y          = obj->panel.contentOriginY.unsignedValue + y;
@@ -481,7 +481,7 @@ void func_800C5F70(Task* arg0)
                 req80.colorRgb   = altColor;
                 req80.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
                 req80.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-                Text_DrawString(&req80, Text_ItoaUnsigned(buf40, Gp_GetModLevel(item)));
+                textDrawString(&req80, Text_ItoaUnsigned(buf40, Gp_GetModLevel(item)));
                 req90.x          = obj->panel.contentOriginX.unsignedValue + x;
                 req90.y          = obj->panel.contentOriginY.unsignedValue + (y - 2);
                 req90.otIndex    = obj->panel.otIndex.signedValue + 1;
@@ -490,7 +490,7 @@ void func_800C5F70(Task* arg0)
                 req90.glyphTable = TEXT_GLYPH_TABLE_SMALL;
                 req90.alignment  = TEXT_ALIGNMENT_LEFT;
                 req90.drawMode   = TEXT_DRAW_OUTLINED;
-                Text_DrawString(&req90, Gp_StrSpecialFeat);
+                textDrawString(&req90, Gp_StrSpecialFeat);
                 names = Gp_FeatNameTbl;
                 do {
                     if (flags & 1) {
@@ -501,7 +501,7 @@ void func_800C5F70(Task* arg0)
                         reqA0.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
                         reqA0.alignment  = TEXT_ALIGNMENT_LEFT;
                         reqA0.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-                        Text_DrawString(&reqA0, *names);
+                        textDrawString(&reqA0, *names);
                         featCount++;
                         y += 0xB;
                         if (featCount >= 2) {
@@ -520,7 +520,7 @@ void func_800C5F70(Task* arg0)
                 reqB0.colorRgb   = 0x606060;
                 reqB0.alignment  = TEXT_ALIGNMENT_LEFT;
                 reqB0.drawMode   = TEXT_DRAW_OUTLINED;
-                Text_DrawString(&reqB0, Gp_StrSpecialFeat);
+                textDrawString(&reqB0, Gp_StrSpecialFeat);
             } else {
                 idx = item - 0xA0;
                 if ((u32)idx < 0x20U) {
@@ -537,7 +537,7 @@ void func_800C5F70(Task* arg0)
                     reqB0.colorRgb   = textColor;
                     reqB0.alignment  = TEXT_ALIGNMENT_LEFT;
                     reqB0.drawMode   = TEXT_DRAW_OUTLINED;
-                    Text_DrawString(&reqB0, Gp_CaliberNameTbl[caliber]);
+                    textDrawString(&reqB0, Gp_CaliberNameTbl[caliber]);
                     recBase  = Gp_IdParamLo;
                     recIndex = item - 0x9F;
                     rec      = recBase + recIndex;
@@ -550,7 +550,7 @@ void func_800C5F70(Task* arg0)
                     req100.colorRgb   = textColor;
                     req100.alignment  = TEXT_ALIGNMENT_LEFT;
                     req100.drawMode   = TEXT_DRAW_OUTLINED;
-                    Text_DrawString(&req100, Gp_StrPowerCaps);
+                    textDrawString(&req100, Gp_StrPowerCaps);
                     req110.x          = obj->panel.contentOriginX.unsignedValue + 0x4C;
                     req110.y          = obj->panel.contentOriginY.unsignedValue + y;
                     req110.otIndex    = obj->panel.otIndex.signedValue + 1;
@@ -558,11 +558,11 @@ void func_800C5F70(Task* arg0)
                     req110.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
                     req110.alignment  = TEXT_ALIGNMENT_LEFT;
                     req110.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-                    Text_DrawString(&req110, bufC0);
+                    textDrawString(&req110, bufC0);
                     Text_ItoaSigned(bufC0, Gp_ScanStackQty(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, item));
                     Text_ItoaSigned(bufE0, Gp_StackLimits[idx].maxHeld);
-                    Text_Strcat(bufC0, Gp_StrSlash);
-                    Text_Strcat(bufC0, bufE0);
+                    textAppendString(bufC0, Gp_StrSlash);
+                    textAppendString(bufC0, bufE0);
                     y                 = baseY + 0x3C;
                     req120.x          = obj->panel.contentOriginX.unsignedValue + 2;
                     req120.y          = obj->panel.contentOriginY.unsignedValue + (y - 2);
@@ -571,7 +571,7 @@ void func_800C5F70(Task* arg0)
                     req120.colorRgb   = textColor;
                     req120.alignment  = TEXT_ALIGNMENT_LEFT;
                     req120.drawMode   = TEXT_DRAW_OUTLINED;
-                    Text_DrawString(&req120, Gp_StrCapacity);
+                    textDrawString(&req120, Gp_StrCapacity);
                     req130.x          = obj->panel.contentOriginX.unsignedValue + 0x4C;
                     req130.y          = obj->panel.contentOriginY.unsignedValue + y;
                     req130.otIndex    = obj->panel.otIndex.signedValue + 1;
@@ -579,7 +579,7 @@ void func_800C5F70(Task* arg0)
                     req130.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
                     req130.alignment  = TEXT_ALIGNMENT_LEFT;
                     req130.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-                    Text_DrawString(&req130, bufC0);
+                    textDrawString(&req130, bufC0);
                     y = baseY + 0x4B;
                     if (rec->hitReaction != 0) {
                         req140.x          = obj->panel.contentOriginX.unsignedValue + 2;
@@ -589,7 +589,7 @@ void func_800C5F70(Task* arg0)
                         req140.colorRgb   = textColor;
                         req140.alignment  = TEXT_ALIGNMENT_LEFT;
                         req140.drawMode   = TEXT_DRAW_OUTLINED;
-                        Text_DrawString(&req140, Gp_StrSpecial);
+                        textDrawString(&req140, Gp_StrSpecial);
                         req150.x          = obj->panel.contentOriginX.unsignedValue + 0x4C;
                         req150.y          = obj->panel.contentOriginY.unsignedValue + y;
                         req150.otIndex    = obj->panel.otIndex.signedValue + 1;
@@ -597,7 +597,7 @@ void func_800C5F70(Task* arg0)
                         req150.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
                         req150.alignment  = TEXT_ALIGNMENT_LEFT;
                         req150.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-                        Text_DrawString(&req150, D_8010E7C0[rec->hitReaction]);
+                        textDrawString(&req150, D_8010E7C0[rec->hitReaction]);
                     }
                     x                 = obj->panel.contentLeft.signedValue + 2;
                     req140.x          = obj->panel.contentOriginX.unsignedValue + x;
@@ -607,7 +607,7 @@ void func_800C5F70(Task* arg0)
                     req140.colorRgb   = textColor;
                     req140.alignment  = TEXT_ALIGNMENT_LEFT;
                     req140.drawMode   = TEXT_DRAW_OUTLINED;
-                    Text_DrawString(&req140, Gp_StrApplicableWpn);
+                    textDrawString(&req140, Gp_StrApplicableWpn);
                 }
             }
         } else {
@@ -779,7 +779,7 @@ void Gp_DrawCollectedRow(UiList* arg0, UiObject* arg1)
         req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
         req.alignment  = TEXT_ALIGNMENT_LEFT;
         req.drawMode   = TEXT_DRAW_OUTLINED;
-        Text_DrawString(&req, Gp_GetItemText(item, 0, 0));
+        textDrawString(&req, Gp_GetItemText(item, 0, 0));
         temp = item - 0xF;
         if ((u32)temp < 0x24U) {
             func_800C2538(arg1, x, y, temp % 3 + 1, color);

@@ -621,7 +621,7 @@ void Gp_MenuRootTask(Task* arg0)
 static void Gp_UiPromptUpdate(UiObject* arg0, Task* arg1)
 {
     Task*        childTask;
-    u8*          text;
+    const u8*    text;
     s32          color;
     s32          one;
     TaskSpawnArg val;
@@ -636,7 +636,7 @@ static void Gp_UiPromptUpdate(UiObject* arg0, Task* arg1)
             color = Ui_LookupTable(arg0, 1);
             one   = 1;
             Text_DrawPrompt(arg0, arg0->panel.contentLeft.signedValue + 2, arg0->panel.contentTop.signedValue + 0xF, val.pointer, color, one, TEXT_ALIGNMENT_LEFT);
-            text = Text_SkipLines(val.pointer, one);
+            text = textSkipLines(val.pointer, one);
             Text_DrawPrompt(arg0, arg0->panel.contentLeft.signedValue + 2, arg0->panel.contentTop.signedValue + 0x1E, text, color, one, TEXT_ALIGNMENT_LEFT);
         } else if ((u32)(val.value - 0x300) < 0x100U) {
             Gp_DrawCastCostLines(arg0, val.value);

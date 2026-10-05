@@ -621,7 +621,7 @@ static void func_options_801D4D0C(Task* task)
     req0.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
     req0.alignment  = TEXT_ALIGNMENT_LEFT;
     req0.drawMode   = one2;
-    Text_DrawString(&req0, D_options_801D5BD4);
+    textDrawString(&req0, D_options_801D5BD4);
 
     req1.x          = obj->panel.contentOriginX.unsignedValue + x;
     req1.y          = obj->panel.contentOriginY.unsignedValue + y;
@@ -631,7 +631,7 @@ static void func_options_801D4D0C(Task* task)
     req1.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
     req1.alignment  = TEXT_ALIGNMENT_LEFT;
     req1.drawMode   = one2;
-    Text_DrawString(&req1, D_options_801D5BD4);
+    textDrawString(&req1, D_options_801D5BD4);
 
     req2.x          = obj->panel.contentOriginX.unsignedValue + x;
     req2.y          = obj->panel.contentOriginY.unsignedValue + y;
@@ -641,7 +641,7 @@ static void func_options_801D4D0C(Task* task)
     req2.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
     req2.alignment  = TEXT_ALIGNMENT_LEFT;
     req2.drawMode   = one2;
-    Text_DrawString(&req2, D_options_801D5BD0);
+    textDrawString(&req2, D_options_801D5BD0);
 
     req3.x          = obj->panel.contentOriginX.unsignedValue + x;
     req3.y          = obj->panel.contentOriginY.unsignedValue + y;
@@ -651,7 +651,7 @@ static void func_options_801D4D0C(Task* task)
     req3.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
     req3.alignment  = TEXT_ALIGNMENT_LEFT;
     req3.drawMode   = one2;
-    Text_DrawString(&req3, D_options_801D5BDC);
+    textDrawString(&req3, D_options_801D5BDC);
 
     req4.x          = obj->panel.contentOriginX.unsignedValue + x;
     req4.y          = obj->panel.contentOriginY.unsignedValue + y;
@@ -661,7 +661,7 @@ static void func_options_801D4D0C(Task* task)
     req4.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
     req4.alignment  = TEXT_ALIGNMENT_LEFT;
     req4.drawMode   = one2;
-    Text_DrawString(&req4, D_options_801D5BE4);
+    textDrawString(&req4, D_options_801D5BE4);
 
     req5.x          = obj->panel.contentOriginX.unsignedValue + x;
     req5.y          = obj->panel.contentOriginY.unsignedValue + y;
@@ -672,7 +672,7 @@ static void func_options_801D4D0C(Task* task)
     req5.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
     req5.alignment  = TEXT_ALIGNMENT_LEFT;
     req5.drawMode   = one2;
-    Text_DrawString(&req5, D_options_801D5BF0);
+    textDrawString(&req5, D_options_801D5BF0);
 
     /* Middle column: run / walk assignments. */
     Text_DrawPrompt(obj, x, y, D_options_801D5C54, color, one2, TEXT_ALIGNMENT_LEFT);
@@ -685,7 +685,7 @@ static void func_options_801D4D0C(Task* task)
         req6.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
         req6.alignment  = TEXT_ALIGNMENT_LEFT;
         req6.drawMode   = one2;
-        Text_DrawString(&req6, D_options_801D5BFC);
+        textDrawString(&req6, D_options_801D5BFC);
     } else {
         req6.x          = obj->panel.contentOriginX.unsignedValue + x;
         req6.y          = obj->panel.contentOriginY.unsignedValue + y;
@@ -694,7 +694,7 @@ static void func_options_801D4D0C(Task* task)
         req6.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
         req6.alignment  = TEXT_ALIGNMENT_LEFT;
         req6.drawMode   = one2;
-        Text_DrawString(&req6, runWalk);
+        textDrawString(&req6, runWalk);
     }
 
     y += 0xF;
@@ -706,7 +706,7 @@ static void func_options_801D4D0C(Task* task)
         req6.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
         req6.alignment  = TEXT_ALIGNMENT_LEFT;
         req6.drawMode   = TEXT_DRAW_OUTLINED;
-        Text_DrawString(&req6, runWalk);
+        textDrawString(&req6, runWalk);
     } else {
         req6.x          = obj->panel.contentOriginX.unsignedValue + x;
         req6.y          = obj->panel.contentOriginY.unsignedValue + y;
@@ -715,7 +715,7 @@ static void func_options_801D4D0C(Task* task)
         req6.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
         req6.alignment  = TEXT_ALIGNMENT_LEFT;
         req6.drawMode   = TEXT_DRAW_OUTLINED;
-        Text_DrawString(&req6, D_options_801D5BFC);
+        textDrawString(&req6, D_options_801D5BFC);
     }
 
     y              += 0xF;
@@ -728,7 +728,7 @@ static void func_options_801D4D0C(Task* task)
     req6.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
     req6.alignment  = TEXT_ALIGNMENT_CENTER;
     req6.drawMode   = TEXT_DRAW_OUTLINED;
-    Text_DrawString(&req6, D_options_801D5C08);
+    textDrawString(&req6, D_options_801D5C08);
 
     two = 2;
     if (type == two) {
@@ -739,7 +739,7 @@ static void func_options_801D4D0C(Task* task)
         req6.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
         req6.alignment  = TEXT_ALIGNMENT_LEFT;
         req6.drawMode   = TEXT_DRAW_OUTLINED;
-        Text_DrawString(&req6, D_options_801D5BFC);
+        textDrawString(&req6, D_options_801D5BFC);
 
         y              += 0xF;
         req7.x          = obj->panel.contentOriginX.unsignedValue + x;
@@ -749,7 +749,7 @@ static void func_options_801D4D0C(Task* task)
         req7.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
         req7.alignment  = TEXT_ALIGNMENT_LEFT;
         req7.drawMode   = TEXT_DRAW_OUTLINED;
-        Text_DrawString(&req7, D_options_801D5BFC);
+        textDrawString(&req7, D_options_801D5BFC);
     }
 
     /* Right column: per-scheme labels, right-aligned. */
@@ -774,7 +774,7 @@ static void func_options_801D4D0C(Task* task)
     req8.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
     req8.alignment  = textAlignment;
     req8.drawMode   = TEXT_DRAW_OUTLINED;
-    Text_DrawString(&req8, str);
+    textDrawString(&req8, str);
 
     if (type == 0) {
         str = D_options_801D5BD4;
@@ -791,7 +791,7 @@ static void func_options_801D4D0C(Task* task)
     req9.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
     req9.alignment  = textAlignment;
     req9.drawMode   = TEXT_DRAW_OUTLINED;
-    Text_DrawString(&req9, str);
+    textDrawString(&req9, str);
 
     if (type == 2) {
         req10.x          = obj->panel.contentOriginX.unsignedValue + x;
@@ -801,7 +801,7 @@ static void func_options_801D4D0C(Task* task)
         req10.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
         req10.alignment  = textAlignment;
         req10.drawMode   = TEXT_DRAW_OUTLINED;
-        Text_DrawString(&req10, D_options_801D5C40);
+        textDrawString(&req10, D_options_801D5C40);
     } else {
         req10.x          = obj->panel.contentOriginX.unsignedValue + ((obj->panel.contentRight.signedValue + 0x60 + obj->panel.contentLeft.signedValue) / 2);
         req10.y          = obj->panel.contentOriginY.unsignedValue + y;
@@ -810,7 +810,7 @@ static void func_options_801D4D0C(Task* task)
         req10.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
         req10.alignment  = TEXT_ALIGNMENT_CENTER;
         req10.drawMode   = TEXT_DRAW_OUTLINED;
-        Text_DrawString(&req10, D_options_801D5C2C);
+        textDrawString(&req10, D_options_801D5C2C);
     }
 
     y += 0xF;
@@ -829,7 +829,7 @@ static void func_options_801D4D0C(Task* task)
     req10.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
     req10.alignment  = textAlignment;
     req10.drawMode   = TEXT_DRAW_OUTLINED;
-    Text_DrawString(&req10, str);
+    textDrawString(&req10, str);
 
     if (type != 2) {
         sharedSlot.labelRequest.x          = obj->panel.contentOriginX.unsignedValue + x;
@@ -839,7 +839,7 @@ static void func_options_801D4D0C(Task* task)
         sharedSlot.labelRequest.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
         sharedSlot.labelRequest.alignment  = textAlignment;
         sharedSlot.labelRequest.drawMode   = TEXT_DRAW_OUTLINED;
-        Text_DrawString(&sharedSlot.labelRequest, D_options_801D5C40);
+        textDrawString(&sharedSlot.labelRequest, D_options_801D5C40);
     } else {
         sharedSlot.labelRequest.x          = obj->panel.contentOriginX.unsignedValue + ((obj->panel.contentRight.signedValue + 0x60 + obj->panel.contentLeft.signedValue) / 2);
         sharedSlot.labelRequest.y          = obj->panel.contentOriginY.unsignedValue + y;
@@ -848,7 +848,7 @@ static void func_options_801D4D0C(Task* task)
         sharedSlot.labelRequest.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
         sharedSlot.labelRequest.alignment  = TEXT_ALIGNMENT_CENTER;
         sharedSlot.labelRequest.drawMode   = TEXT_DRAW_OUTLINED;
-        Text_DrawString(&sharedSlot.labelRequest, D_options_801D5C2C);
+        textDrawString(&sharedSlot.labelRequest, D_options_801D5C2C);
     }
 
     /* Key icons down the left edge: four 15x15 buttons, then three 15x8. */

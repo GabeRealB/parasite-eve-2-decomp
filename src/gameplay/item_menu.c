@@ -733,7 +733,7 @@ void func_800BD6DC(UiList* arg0, UiObject* arg1)
     req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
     req.alignment  = TEXT_ALIGNMENT_LEFT;
     req.drawMode   = TEXT_DRAW_OUTLINED;
-    Text_DrawString(&req, Gp_StrMove2);
+    textDrawString(&req, Gp_StrMove2);
     selected = arg0->rowInputEnabled;
     if ((selected == 1) && (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0)) {
         prompt    = -1;
@@ -816,7 +816,7 @@ void Gp_ItemActionConfirm(UiList* arg0, UiObject* arg1)
     req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
     req.alignment  = TEXT_ALIGNMENT_LEFT;
     req.drawMode   = TEXT_DRAW_OUTLINED;
-    Text_DrawString(&req, Gp_StrSwitch);
+    textDrawString(&req, Gp_StrSwitch);
 
     selected = arg0->rowInputEnabled;
     if (selected == 1) {
@@ -1617,7 +1617,7 @@ void Gp_HolderPromptTask(Task* arg0)
     u8*       val;
     s32       color;
     s32       one;
-    u8*       text;
+    const u8* text;
 
     obj         = arg0->spawnArg2.pointer;
     obj->result = USER_INTERFACE_RESULT_NONE;
@@ -1630,7 +1630,7 @@ void Gp_HolderPromptTask(Task* arg0)
         color = 0x606060;
         one   = 1;
         Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, val, color, one, TEXT_ALIGNMENT_LEFT);
-        text = Text_SkipLines(val, one);
+        text = textSkipLines(val, one);
         Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0x1E, text, color, one, TEXT_ALIGNMENT_LEFT);
     }
 }

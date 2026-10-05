@@ -261,7 +261,7 @@ void Gp_DrawPeEnergyCmd(UiList* arg0, UiObject* arg1)
     req.glyphTable = TEXT_GLYPH_TABLE_SMALL;
     req.alignment  = TEXT_ALIGNMENT_LEFT;
     req.drawMode   = TEXT_DRAW_FILL_ONLY;
-    Text_DrawString(&req, Gp_StrPEnergy);
+    textDrawString(&req, Gp_StrPEnergy);
 
     if (arg0->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (Gp_IsDebugAttachRoom() != 0) {
@@ -289,7 +289,7 @@ void Gp_DrawOptionCmd(UiList* arg0, UiObject* arg1)
     req.glyphTable = TEXT_GLYPH_TABLE_SMALL;
     req.alignment  = TEXT_ALIGNMENT_LEFT;
     req.drawMode   = TEXT_DRAW_FILL_ONLY;
-    Text_DrawString(&req, Gp_StrOption);
+    textDrawString(&req, Gp_StrOption);
 
     status = arg1->panel.control.word;
     one    = 1;
@@ -329,7 +329,7 @@ void Gp_DrawExitCmd(UiList* arg0, UiObject* arg1)
     req.glyphTable = TEXT_GLYPH_TABLE_SMALL;
     req.alignment  = TEXT_ALIGNMENT_LEFT;
     req.drawMode   = TEXT_DRAW_FILL_ONLY;
-    Text_DrawString(&req, Gp_StrExit);
+    textDrawString(&req, Gp_StrExit);
 
     status = arg1->panel.control.word;
     one    = 1;
@@ -634,9 +634,9 @@ s32 Gp_GetPreviewItem(void)
 
 void Gp_DrawItemDescLine(UiList* arg0, UiObject* arg1)
 {
-    u8* text;
-    s8  idx;
-    s32 id;
+    const u8* text;
+    s8        idx;
+    s32       id;
 
     idx = arg0->currentItemIndex;
     id  = (u16)arg1->owner->spawnArg1.value;
@@ -644,7 +644,7 @@ void Gp_DrawItemDescLine(UiList* arg0, UiObject* arg1)
         text = Gp_GetItemText(id, idx + 1, 1);
         Text_DrawPrompt(arg1, arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, text, 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_LEFT);
     } else {
-        text = Text_SkipLines(Fs_GetChunkPayload(), arg0->currentItemIndex + 5);
+        text = textSkipLines(Fs_GetChunkPayload(), arg0->currentItemIndex + 5);
         Text_DrawPrompt(arg1, arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, text, 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_LEFT);
     }
 }
@@ -673,7 +673,7 @@ void Gp_DrawUseCmd(UiList* arg0, UiObject* arg1)
     req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
     req.alignment  = TEXT_ALIGNMENT_LEFT;
     req.drawMode   = TEXT_DRAW_OUTLINED;
-    Text_DrawString(&req, Gp_StrUse);
+    textDrawString(&req, Gp_StrUse);
     if (arg0->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
@@ -806,7 +806,7 @@ void Gp_DrawUsePrompt(UiList* arg0, UiObject* arg1)
     req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
     req.alignment  = TEXT_ALIGNMENT_LEFT;
     req.drawMode   = TEXT_DRAW_OUTLINED;
-    Text_DrawString(&req, Gp_StrUse);
+    textDrawString(&req, Gp_StrUse);
     if (arg0->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
@@ -827,7 +827,7 @@ void Gp_DrawMovePrompt(UiList* arg0, UiObject* arg1)
     req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
     req.alignment  = TEXT_ALIGNMENT_LEFT;
     req.drawMode   = TEXT_DRAW_OUTLINED;
-    Text_DrawString(&req, Gp_StrMove);
+    textDrawString(&req, Gp_StrMove);
     if (arg0->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
@@ -851,7 +851,7 @@ void Gp_DrawExchangeSlotCmd(UiList* arg0, UiObject* arg1)
     req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
     req.alignment  = TEXT_ALIGNMENT_LEFT;
     req.drawMode   = TEXT_DRAW_OUTLINED;
-    Text_DrawString(&req, Gp_StrExchange);
+    textDrawString(&req, Gp_StrExchange);
     if (arg0->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
@@ -1759,7 +1759,7 @@ void Gp_DrawMapName(Task* arg0)
         req2.glyphTable = TEXT_GLYPH_TABLE_LARGE;
         req2.alignment  = TEXT_ALIGNMENT_LEFT;
         req2.drawMode   = TEXT_DRAW_OUTLINED;
-        Text_DrawString(&req2, text);
+        textDrawString(&req2, text);
     }
 }
 
@@ -1965,7 +1965,7 @@ void Gp_DrawReviveCmd(UiList* arg0, UiObject* arg1)
         req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
         req.alignment  = TEXT_ALIGNMENT_LEFT;
         req.drawMode   = TEXT_DRAW_OUTLINED;
-        Text_DrawString(&req, Gp_StrStrengthen);
+        textDrawString(&req, Gp_StrStrengthen);
     } else {
         req.x          = arg1->panel.contentOriginX.unsignedValue + arg0->rowTextX.unsignedValue;
         req.y          = arg1->panel.contentOriginY.unsignedValue + arg0->rowTextY.unsignedValue;
@@ -1974,7 +1974,7 @@ void Gp_DrawReviveCmd(UiList* arg0, UiObject* arg1)
         req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
         req.alignment  = TEXT_ALIGNMENT_LEFT;
         req.drawMode   = TEXT_DRAW_OUTLINED;
-        Text_DrawString(&req, Gp_StrRevive);
+        textDrawString(&req, Gp_StrRevive);
     }
     if (arg0->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
@@ -2354,7 +2354,7 @@ void Gp_DrawCastCostLines(UiObject* arg0, s32 arg1)
         req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
         req.alignment  = TEXT_ALIGNMENT_LEFT;
         req.drawMode   = TEXT_DRAW_OUTLINED;
-        Text_DrawString(&req, Gp_StrCastCost);
+        textDrawString(&req, Gp_StrCastCost);
         func_800D3660(arg0, arg1, 0, 0x34, y + 0x1A, ATTACHMENT_LEVEL_CAST_COST);
     }
 }
@@ -2453,7 +2453,7 @@ void Gp_PeUpgradePanelTask(Task* arg0)
     req.glyphTable = TEXT_GLYPH_TABLE_SMALL;
     req.alignment  = TEXT_ALIGNMENT_RIGHT;
     req.drawMode   = TEXT_DRAW_OUTLINED;
-    Text_DrawString(&req, D_8009720C);
+    textDrawString(&req, D_8009720C);
 
     req2.x          = obj->panel.contentOriginX.unsignedValue + x;
     req2.y          = (s16)(obj->panel.contentOriginY.unsignedValue - 2) + y;
@@ -2462,7 +2462,7 @@ void Gp_PeUpgradePanelTask(Task* arg0)
     req2.glyphTable = TEXT_GLYPH_TABLE_SMALL;
     req2.alignment  = TEXT_ALIGNMENT_RIGHT;
     req2.drawMode   = TEXT_DRAW_OUTLINED;
-    Text_DrawString(&req2, Gp_StrCost);
+    textDrawString(&req2, Gp_StrCost);
 
     row  = ((id + 1) & 0x30) >> 4;
     col  = ((id + 1) & 0xC) >> 2;
@@ -2484,7 +2484,7 @@ void Gp_PeUpgradePanelTask(Task* arg0)
     req3.glyphTable = TEXT_GLYPH_TABLE_SMALL;
     req3.alignment  = TEXT_ALIGNMENT_RIGHT;
     req3.drawMode   = TEXT_DRAW_OUTLINED;
-    Text_DrawString(&req3, Gp_StrBonus);
+    textDrawString(&req3, Gp_StrBonus);
 
     req4.x          = obj->panel.contentOriginX.unsignedValue + x;
     req4.y          = (s16)(obj->panel.contentOriginY.unsignedValue - 2) + y;
@@ -2493,7 +2493,7 @@ void Gp_PeUpgradePanelTask(Task* arg0)
     req4.glyphTable = TEXT_GLYPH_TABLE_SMALL;
     req4.alignment  = TEXT_ALIGNMENT_RIGHT;
     req4.drawMode   = TEXT_DRAW_OUTLINED;
-    Text_DrawString(&req4, D_80097220);
+    textDrawString(&req4, D_80097220);
 
     bonusIdx = ATTACHMENT_LEVEL_MP_BONUS;
     row2     = ((id + 1) & 0x30) >> 4;
@@ -2642,7 +2642,7 @@ static void func_800D3660(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4
         loc.req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
         loc.req.alignment  = TEXT_ALIGNMENT_LEFT;
         loc.req.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-        Text_DrawString(&loc.req, Text_ItoaSigned(loc.buf, prev));
+        textDrawString(&loc.req, Text_ItoaSigned(loc.buf, prev));
         if (prev < val) {
             s32 y;
 
@@ -2688,7 +2688,7 @@ static void func_800D3660(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4
         loc.req2.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
         loc.req2.alignment  = TEXT_ALIGNMENT_LEFT;
         loc.req2.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-        Text_DrawString(&loc.req2, Text_ItoaSigned(loc.buf, val));
+        textDrawString(&loc.req2, Text_ItoaSigned(loc.buf, val));
     } else {
         if (arg5 == 1) {
             loc.req2.x          = arg0->panel.contentOriginX.unsignedValue + x;
@@ -2711,7 +2711,7 @@ static void func_800D3660(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4
             loc.req2.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
             text                = Text_ItoaSigned(loc.buf, val);
         }
-        Text_DrawString(&loc.req2, text);
+        textDrawString(&loc.req2, text);
         if (val > 0) {
             Ui_LayoutWithMode1(arg0, x, (arg4 - 3), ((span * val) / max), 3, 0x1741F);
         }
@@ -2759,7 +2759,7 @@ static void func_800D3D98(UiObject* arg0, s32 arg1, s32 arg2)
     req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
     req.alignment  = TEXT_ALIGNMENT_LEFT;
     req.drawMode   = TEXT_DRAW_OUTLINED;
-    Text_DrawString(&req, text);
+    textDrawString(&req, text);
 
     if (CdCmd_IsIdle() & 0xFFFF) {
         func_800C7AE8(arg0, x, y, 0x200);
@@ -2779,7 +2779,7 @@ static void func_800D3D98(UiObject* arg0, s32 arg1, s32 arg2)
     req2.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
     req2.alignment  = TEXT_ALIGNMENT_LEFT;
     req2.drawMode   = TEXT_DRAW_OUTLINED;
-    Text_DrawString(&req2, text);
+    textDrawString(&req2, text);
     func_800D3660(arg0, arg1, arg2, x, y, ATTACHMENT_LEVEL_CAST_COST);
 
     req3.x          = arg0->panel.contentOriginX.unsignedValue + 1 + x;
@@ -2789,7 +2789,7 @@ static void func_800D3D98(UiObject* arg0, s32 arg1, s32 arg2)
     req3.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
     req3.alignment  = TEXT_ALIGNMENT_LEFT;
     req3.drawMode   = TEXT_DRAW_OUTLINED;
-    Text_DrawString(&req3, Gp_StrAtpLoss);
+    textDrawString(&req3, Gp_StrAtpLoss);
     y = temp + 0x58;
     func_800D3660(arg0, arg1, arg2, x, y, ATTACHMENT_LEVEL_ATP_LOSS);
 }
@@ -3191,7 +3191,7 @@ void Gp_DrawUseAttachCmd(UiList* arg0, UiObject* arg1)
     req.glyphTable = TEXT_GLYPH_TABLE_SMALL;
     req.alignment  = TEXT_ALIGNMENT_LEFT;
     req.drawMode   = TEXT_DRAW_FILL_ONLY;
-    Text_DrawString(&req, Gp_StrUse2);
+    textDrawString(&req, Gp_StrUse2);
 
     status = arg1->panel.control.word;
     one    = 1;
@@ -3223,7 +3223,7 @@ void Gp_DrawKeyItemCmd(UiList* arg0, UiObject* arg1)
     req.glyphTable = TEXT_GLYPH_TABLE_SMALL;
     req.alignment  = TEXT_ALIGNMENT_LEFT;
     req.drawMode   = TEXT_DRAW_FILL_ONLY;
-    Text_DrawString(&req, Gp_StrKeyItem2);
+    textDrawString(&req, Gp_StrKeyItem2);
 
     status = arg1->panel.control.word;
     one    = 1;
@@ -3274,7 +3274,7 @@ void Gp_DrawPeSlotCmd(UiList* arg0, UiObject* arg1)
     req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
     req.alignment  = TEXT_ALIGNMENT_LEFT;
     req.drawMode   = TEXT_DRAW_OUTLINED;
-    Text_DrawString(&req, Gp_StrCancel2);
+    textDrawString(&req, Gp_StrCancel2);
     if (arg0->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
@@ -3296,7 +3296,7 @@ void Gp_DrawMapCmd(UiList* arg0, UiObject* arg1)
     req.glyphTable = TEXT_GLYPH_TABLE_SMALL;
     req.alignment  = TEXT_ALIGNMENT_LEFT;
     req.drawMode   = TEXT_DRAW_FILL_ONLY;
-    Text_DrawString(&req, Gp_StrMap);
+    textDrawString(&req, Gp_StrMap);
 
     status = arg1->panel.control.word;
     one    = 1;
@@ -3326,7 +3326,7 @@ void Gp_DrawDiscardCmd(UiList* arg0, UiObject* arg1)
     req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
     req.alignment  = TEXT_ALIGNMENT_LEFT;
     req.drawMode   = TEXT_DRAW_OUTLINED;
-    Text_DrawString(&req, Gp_StrDiscard2);
+    textDrawString(&req, Gp_StrDiscard2);
     if (arg0->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
@@ -3425,7 +3425,7 @@ void Gp_DrawSpecsCmd(Task* arg0)
 {
     UiObject* obj;
     s32       spawnArg;
-    u8*       text;
+    const u8* text;
 
     obj         = arg0->spawnArg2.pointer;
     spawnArg    = arg0->spawnArg1.value;
@@ -3436,7 +3436,7 @@ void Gp_DrawSpecsCmd(Task* arg0)
     }
     func_800D3D98(obj, spawnArg, 0);
     if (CdCmd_IsIdle() & 0xFFFF) {
-        text = Text_SkipLines(Fs_GetChunkPayload(), 4);
+        text = textSkipLines(Fs_GetChunkPayload(), 4);
         Text_DrawMultiLine(obj, obj->panel.contentLeft.signedValue + 2, 0x14, text, 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_LEFT);
     }
     if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
@@ -3467,7 +3467,7 @@ void Gp_DrawExaminePushCmd(UiList* arg0, UiObject* arg1)
     req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
     req.alignment  = TEXT_ALIGNMENT_LEFT;
     req.drawMode   = one;
-    Text_DrawString(&req, text);
+    textDrawString(&req, text);
     confirm = arg0->rowInputEnabled;
     if (confirm == one) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
@@ -3489,7 +3489,7 @@ void Gp_DrawItemCmd(UiList* arg0, UiObject* arg1)
     req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
     req.alignment  = TEXT_ALIGNMENT_LEFT;
     req.drawMode   = TEXT_DRAW_OUTLINED;
-    Text_DrawString(&req, Gp_StrItem2);
+    textDrawString(&req, Gp_StrItem2);
     if (arg0->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
             Ui_SpawnFromDesc(&D_8010EFBC, 0, 1, 1, arg1);
