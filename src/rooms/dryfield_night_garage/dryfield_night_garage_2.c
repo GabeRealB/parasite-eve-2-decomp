@@ -1222,7 +1222,7 @@ void func_dryfield_night_garage_80180B20(Task* arg0)
                 return;
             }
             taskKill(task);
-            Display_ResetHeapWrapper();
+            displayResumeGameLoop();
     }
 }
 

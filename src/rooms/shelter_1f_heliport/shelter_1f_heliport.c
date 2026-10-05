@@ -709,7 +709,7 @@ s32 func_shelter_1f_heliport_80180334(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
             gGameSession->hideHud    = 1;
             gGameSession->eventState = 1;
             gameFlagSetNibble(GAME_FLAG_COMPANION_2_SCHEDULE, 9);
-            Task_SpawnOnDefaultList(&D_actor_161500_80136CDC, 0, 0, 0);
+            taskSpawnFromTableOnDefaultList(&D_actor_161500_80136CDC, 0, 0, 0);
             return 1;
         }
     }

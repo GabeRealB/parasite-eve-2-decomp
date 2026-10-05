@@ -66,7 +66,15 @@ static __inline__ Task* Task_SpawnPtr(s32 bank, s32 type, s32 arg2, const void* 
     return Task_Spawn(bank, type, arg2, data);
 }
 
-Task* Task_SpawnOnDefaultList(TaskDesc* table, s32 idx, TaskSpawnArg arg2, TaskSpawnArg arg3);
+/// Spawns an indexed descriptor onto the default execution list, restoring the selected list.
+///
+/// `gTaskDefaultList` must be initialized. `table[index]` and both payload words
+/// follow `taskSpawnFromTable`'s bounds, lifetime and ownership contract; the
+/// signed element index is unchecked. Payload interpretation belongs to the
+/// callback. Returns the new task or NULL on allocation or body-attachment
+/// failure, restoring the previous list selection in either case. The callback
+/// can run in a later default-list walk, or this walk if insertion follows its cursor.
+Task* taskSpawnFromTableOnDefaultList(TaskDesc* table, s32 index, TaskSpawnArg spawnArg1, TaskSpawnArg spawnArg2);
 
 Task* Task_SpawnOnDefaultListA(s32 bank, TaskSpawnArg type, TaskSpawnArg arg2, TaskSpawnArg arg3);
 

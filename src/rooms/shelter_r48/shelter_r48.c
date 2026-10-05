@@ -2125,7 +2125,7 @@ s32 func_shelter_r48_8017DF50(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
             if (found != 0) {
                 gGameSession->eventState = 1;
                 D_80115768               = 1;
-                Task_SpawnOnDefaultList(&D_actor_503500_8014B958, 0, 0, 0);
+                taskSpawnFromTableOnDefaultList(&D_actor_503500_8014B958, 0, 0, 0);
                 gameFlagSetNibble(GAME_FLAG_100, 2);
                 gameFlagSetNibble(GAME_FLAG_SHELTER_R48_SCENE_STATE, 4);
                 ret = 1;

@@ -2054,7 +2054,7 @@ s32 func_shelter_b1_underground_parking_80183284(Task* arg0, s32 arg1, s32 arg2,
             found = 0;
         check:
             if (found != 0) {
-                Task_SpawnOnDefaultList(D_shelter_b1_underground_parking_8018726C, 2, 0, 0);
+                taskSpawnFromTableOnDefaultList(D_shelter_b1_underground_parking_8018726C, 2, 0, 0);
                 gGameSession->hideHud    = 1;
                 gGameSession->eventState = 1;
                 return 1;

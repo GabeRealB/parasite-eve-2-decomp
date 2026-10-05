@@ -2578,7 +2578,7 @@ s32 func_dryfield_night_gas_station_8017F7E0(Task* arg0, s32 arg1, s32 arg2, s32
         if (found != 0) {
             gGameSession->eventState = 1;
             gGameSession->hideHud    = 1;
-            Task_SpawnOnDefaultList(D_dryfield_night_gas_station_8018406C, 0, 0, 0);
+            taskSpawnFromTableOnDefaultList(D_dryfield_night_gas_station_8018406C, 0, 0, 0);
             return 1;
         }
     }

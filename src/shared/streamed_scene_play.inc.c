@@ -72,5 +72,5 @@ L_case5:
         return;
     }
     taskKill(task);
-    Display_ResetHeapWrapper();
+    displayResumeGameLoop();
 }

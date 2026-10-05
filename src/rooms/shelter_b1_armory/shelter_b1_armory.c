@@ -311,9 +311,9 @@ check:
         if (arg2 == 0x105) {
             gGameSession->eventState = 1;
             if (gameFlagGetNibble(GAME_FLAG_SHELTER_B1_ARMORY_UNLOCKED) != 0) {
-                Task_SpawnOnDefaultList(D_shelter_b1_armory_801824E8, 0, 0x170003, 0);
+                taskSpawnFromTableOnDefaultList(D_shelter_b1_armory_801824E8, 0, 0x170003, 0);
             } else {
-                Task_SpawnOnDefaultList(D_shelter_b1_armory_801824E8, 0, 0x180002, 0);
+                taskSpawnFromTableOnDefaultList(D_shelter_b1_armory_801824E8, 0, 0x180002, 0);
                 gameFlagSetNibble(GAME_FLAG_SHELTER_B1_ARMORY_UNLOCKED, 1);
             }
             return 1;
@@ -321,9 +321,9 @@ check:
         if (arg2 == 0x121 || arg2 == 0x122) {
             gGameSession->eventState = 1;
             if (gameFlagGetNibble(GAME_FLAG_SHELTER_B1_ARMORY_UNLOCKED) != 0) {
-                Task_SpawnOnDefaultList(D_shelter_b1_armory_801824E8, 0, 0x170003, 0);
+                taskSpawnFromTableOnDefaultList(D_shelter_b1_armory_801824E8, 0, 0x170003, 0);
             } else {
-                Task_SpawnOnDefaultList(D_shelter_b1_armory_801824E8, 0, 0x190001, 0);
+                taskSpawnFromTableOnDefaultList(D_shelter_b1_armory_801824E8, 0, 0x190001, 0);
             }
             return 1;
         }

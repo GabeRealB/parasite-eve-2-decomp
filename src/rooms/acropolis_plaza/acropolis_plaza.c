@@ -3459,7 +3459,7 @@ void func_acropolis_plaza_8017DBFC(Task* task)
         case 6:
             if (Stream_RestoreAfterLoad(1, 0) & 0xFFFF) {
                 taskKill(task);
-                Display_ResetHeapWrapper();
+                displayResumeGameLoop();
             }
             break;
     }

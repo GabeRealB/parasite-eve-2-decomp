@@ -550,7 +550,7 @@ void func_neo_ark_altar_8017DA40(Task* task)
         case 5:
             if (Stream_RestoreAfterLoad(0, 1)) {
                 taskKill(task);
-                Display_ResetHeapWrapper();
+                displayResumeGameLoop();
             }
             break;
     }

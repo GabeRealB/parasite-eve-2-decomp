@@ -523,7 +523,7 @@ L_case5:
         return;
     }
     taskKill(task);
-    Display_ResetHeapWrapper();
+    displayResumeGameLoop();
 }
 
 void func_shelter_1f_bulwark_8017DE04(Task* arg0)

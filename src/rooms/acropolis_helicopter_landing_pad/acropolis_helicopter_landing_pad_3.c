@@ -668,7 +668,7 @@ L_case5:
     memFillBytes(Fs_ImgBuffers, 0, sizeof(*Fs_ImgBuffers));
     SetDispMask(1);
     taskKill(task);
-    Display_ResetHeapWrapper();
+    displayResumeGameLoop();
 }
 
 void func_acropolis_helicopter_landing_pad_8017ED00(Task* arg0)

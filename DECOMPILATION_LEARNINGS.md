@@ -3509,14 +3509,14 @@ if (task->spawnArg1 == 0) {
     do {
         mode = 0x6D;              /* depth 1: def counts 2 */
     } while (0);
-    work->modelTask = Task_SpawnOnDefaultList(&D_actor_310100_80179920, 2, 5, 0);
+    work->modelTask = taskSpawnFromTableOnDefaultList(&D_actor_310100_80179920, 2, 5, 0);
 } else if (task->spawnArg1 == 1) {
     do {
         do {
             mode = 0x6C;          /* depth 2: def counts 3 */
         } while (0);
     } while (0);
-    work->modelTask = Task_SpawnOnDefaultList(&D_actor_310100_801798FC, 2, 7, 0);
+    work->modelTask = taskSpawnFromTableOnDefaultList(&D_actor_310100_801798FC, 2, 7, 0);
 }
 ```
 
@@ -82526,7 +82526,7 @@ block or dies more than once. In either event, we can't do anything with it."*
 | source form | RTL at `.lreg` | emitted |
 |---|---|---|
 | `desc = &D_…9920;` / `desc = &D_…98FC;` in each branch, one call at the join | `(set (reg 96) (high …))`, `(set (reg 4 a0) (lo_sum (reg 96) …))`, **no** `REG_DEAD (reg 96)` on the `lo_sum` | `lui $v0` / `addiu $a0,$v0` |
-| `Task_SpawnOnDefaultList(&D_…9920, …)` written **in each branch** (the call duplicated, `jump2` merges the identical tails afterwards) | same shape plus `REG_DEAD (reg:SI 96)` on the `lo_sum` | `lui $a0` / `addiu $a0,$a0` |
+| `taskSpawnFromTableOnDefaultList(&D_…9920, …)` written **in each branch** (the call duplicated, `jump2` merges the identical tails afterwards) | same shape plus `REG_DEAD (reg:SI 96)` on the `lo_sum` | `lui $a0` / `addiu $a0,$a0` |
 
 An address assigned to a variable that is *used at the join* crosses a basic
 block, so `reg_qty` is -1 and nothing can be tied into it. Passing `&symbol`
@@ -82547,10 +82547,10 @@ each extra constant-false loop around a single set is worth one more reference:
 ```c
 if (task->spawnArg1 == 0) {
     do { mode = 0x6D; } while (0);                                   /* depth 2 -> +2 */
-    work->modelTask = Task_SpawnOnDefaultList(&D_actor_310100_80179920, 1, work->bodyAnimationId, 0);
+    work->modelTask = taskSpawnFromTableOnDefaultList(&D_actor_310100_80179920, 1, work->bodyAnimationId, 0);
 } else if (task->spawnArg1 == 1) {
     do { do { mode = 0x6C; } while (0); } while (0);                 /* depth 3 -> +3 */
-    work->modelTask = Task_SpawnOnDefaultList(&D_actor_310100_801798FC, 1, work->bodyAnimationId, 0);
+    work->modelTask = taskSpawnFromTableOnDefaultList(&D_actor_310100_801798FC, 1, work->bodyAnimationId, 0);
 } else {
     goto skip;
 }

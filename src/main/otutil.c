@@ -52,7 +52,7 @@ static void Display_FlipOt(void);
 /// Resolves special display modes to their effective frame-hold state.
 static s32 Display_GetHoldMode(void);
 
-static void Display_ResetHeapFromSession(void);
+static void _displayResumeGameLoop(void);
 
 static void Display_FlipOtAlt(void);
 
@@ -196,21 +196,21 @@ Task* Task_SpawnOnDefaultListA(s32 arg0, TaskSpawnArg arg1, TaskSpawnArg arg2, T
     return ret;
 }
 
-Task* Task_SpawnOnDefaultList(TaskDesc* descriptor, s32 arg1, TaskSpawnArg arg2, TaskSpawnArg arg3)
+Task* taskSpawnFromTableOnDefaultList(TaskDesc* table, s32 index, TaskSpawnArg spawnArg1, TaskSpawnArg spawnArg2)
 {
     TaskNode* previousList;
-    Task*     ret;
+    Task*     spawnedTask;
 
     previousList = taskGetActiveList();
     taskSetActiveList(&gTaskDefaultList);
-    ret = taskSpawnFromTable(descriptor, arg1, arg2, arg3);
+    spawnedTask = taskSpawnFromTable(table, index, spawnArg1, spawnArg2);
     taskSetActiveList(previousList);
-    return ret;
+    return spawnedTask;
 }
 
-void Display_ResetHeapWrapper(void)
+void displayResumeGameLoop(void)
 {
-    Display_ResetHeapFromSession();
+    _displayResumeGameLoop();
 }
 
 static void Display_FlipOt(void)
@@ -321,12 +321,13 @@ s32 Display_DispatchModeId(s32 arg0)
     return 0;
 }
 
-static void Display_ResetHeapFromSession(void)
+/// Restores session image memory and returns presentation to the game loop.
+static void _displayResumeGameLoop(void)
 {
-    GameSession* temp;
+    GameSession* session;
 
-    temp = gGameSession;
-    memConfigureImageMemory(temp->location.loc.stage, temp->location.loc.area);
+    session = gGameSession;
+    memConfigureImageMemory(session->location.loc.stage, session->location.loc.area);
     gDisplayState.displayOwner = DISPLAY_OWNER_GAME_LOOP;
     gDisplayState.pendingMode  = DISPLAY_MODE_NONE;
 }

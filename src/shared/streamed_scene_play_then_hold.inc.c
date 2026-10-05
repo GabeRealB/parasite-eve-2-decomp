@@ -6,7 +6,7 @@
 /// until the CD is idle or the pad check aborts it, which is recorded in
 /// `spawnArg1`. After the stream state is restored an aborted scene kills the
 /// task at once, and a finished one after 0x3D more ticks; either way the
-/// display heap is reset.
+/// session image memory is restored and presentation returns to the game loop.
 void streamedScenePlayThenHold(Task* arg0)
 {
     u8          slotParam[4];
@@ -96,5 +96,5 @@ L_case6:
     }
 kill:
     taskKill(task);
-    Display_ResetHeapWrapper();
+    displayResumeGameLoop();
 }

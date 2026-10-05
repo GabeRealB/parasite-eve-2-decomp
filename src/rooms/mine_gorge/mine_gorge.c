@@ -194,7 +194,7 @@ s32 func_mine_gorge_8017D5F8(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
         check:
             if (found != 0) {
                 gameFlagSetNibble(GAME_FLAG_MINE_GORGE_TRIGGER_EVENT_DONE, 1);
-                Task_SpawnOnDefaultList(D_mine_gorge_8017E2B0, 0, 0, 0);
+                taskSpawnFromTableOnDefaultList(D_mine_gorge_8017E2B0, 0, 0, 0);
                 gGameSession->location.loc.room = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 2);
                 gGameSession->hideHud           = (gGameSession->roomObjsDirty = 1);
                 gGameSession->eventState        = 1;

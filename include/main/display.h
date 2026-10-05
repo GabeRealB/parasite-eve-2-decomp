@@ -175,8 +175,15 @@ void Gpu_ResetGraphAndOt(void);
 /// Source offsets are bytes and remain word-aligned for the GPU transfer.
 void Display_LoadImageStrips(s32 bufferIndex);
 
-/// Mem heap reset via session (otutil.c wrapper around Display_ResetHeapFromSession).
-void Display_ResetHeapWrapper(void);
+/// Returns presentation to the game loop using the current session's image-memory layout.
+///
+/// Call after task-owned presentation has finished. Requires a live `gGameSession`
+/// whose stage and area satisfy `memConfigureImageMemory`'s layout preconditions;
+/// operations and allocations using repurposed storage must have ended.
+/// Reconfigures image memory, selects `DISPLAY_OWNER_GAME_LOOP` and clears the
+/// pending mode request. Auxiliary-heap initialization remains the caller's
+/// responsibility; the game loop resets the primitive cursor on its next frame.
+void displayResumeGameLoop(void);
 
 /// Acquire a display hold that blocks normal menu-mode requests.
 void Display_AcquireRef(void);

@@ -2397,7 +2397,8 @@ static u8 _gDryfieldNightDilapidatedHouseUnreferencedData[] = {
 /// shows the display once the queue's `field_1FA` is set, and blanks it again
 /// when the CD goes idle - or, on the pad's 0x800 flag, early, activating CD
 /// phase 1. Once the CD is idle it restores the stream state, clears the
-/// image buffers, shows the display again, kills itself and resets the heap.
+/// image buffers, shows the display again, kills itself and restores session
+/// image memory and game-loop presentation.
 void func_dryfield_night_dilapidated_house_8017DB20(Task* task)
 {
     u8          slotParam[4];
@@ -2458,7 +2459,7 @@ void func_dryfield_night_dilapidated_house_8017DB20(Task* task)
             memFillBytes(Fs_ImgBuffers, 0, sizeof(*Fs_ImgBuffers));
             SetDispMask(1);
             taskKill(task);
-            Display_ResetHeapWrapper();
+            displayResumeGameLoop();
             return;
     }
 }

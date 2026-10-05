@@ -12,7 +12,7 @@ Naming: [`NAMING.md`](../NAMING.md) (`Task_` / `TaskDesc`).
 | Area | Code / data |
 |------|-------------|
 | Types + APIs | `include/main/task.h`, `src/main/task.c` |
-| Extra lists / OT spawn | `src/main/otutil.c` (`Display_SpawnWithOt*`, `Task_SpawnOnDefaultList*`) |
+| Extra lists / OT spawn | `src/main/otutil.c` (`Display_SpawnWithOt*`, `taskSpawnFromTableOnDefaultList`, `Task_SpawnOnDefaultListA`) |
 | Frame tick | `src/main/gamemain.c` (`GameMain_Loop` → `taskExecDefaultList`) |
 | Bank tables | `asm/USA/main/data/task.data.s` (`gTaskDescBanks`), plus `52E8C` / `578D0` / `57EA8` / `57F34` / `58028` / `59184.data.s` |
 | Gameplay banks 6, 10 | `asm/USA/gameplay/data/data.data.s` (`D_8010FC2C`, `0x80114B34`) |
@@ -208,7 +208,7 @@ the request and then calls `exitCallback`.
 | `_gTaskActiveList` | Private borrowed pointer selecting the head used for spawning and tail unlinking |
 | `gTaskDisplayList` | Side list with its own small OT. `Display_SpawnWithOt` / `Display_SpawnWithOtSmall` init it, spawn onto it, then restore `_gTaskActiveList` |
 
-`Task_SpawnOnDefaultList` / `Task_SpawnOnDefaultListA` temporarily switch
+`taskSpawnFromTableOnDefaultList` / `Task_SpawnOnDefaultListA` temporarily switch
 `_gTaskActiveList` to the default list so a spawn from inside another list
 still lands on the main frame walk.
 

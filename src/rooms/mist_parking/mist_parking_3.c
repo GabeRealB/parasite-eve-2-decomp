@@ -264,7 +264,7 @@ void func_mist_parking_801837B8(Task* task)
             memFillBytes(Fs_ImgBuffers, 0, sizeof(*Fs_ImgBuffers));
             SetDispMask(1);
             taskKill(task);
-            Display_ResetHeapWrapper();
+            displayResumeGameLoop();
             return;
     }
 }

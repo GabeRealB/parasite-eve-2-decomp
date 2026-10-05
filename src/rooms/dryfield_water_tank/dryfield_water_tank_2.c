@@ -1012,8 +1012,8 @@ void func_dryfield_water_tank_8017E568(Task* task)
             memFillBytes(Fs_ImgBuffers, 0, sizeof(*Fs_ImgBuffers));
             SetDispMask(1);
             taskKill(task);
-            Task_SpawnOnDefaultList(D_dryfield_water_tank_80180764, 2, 8, 0);
-            Display_ResetHeapWrapper();
+            taskSpawnFromTableOnDefaultList(D_dryfield_water_tank_80180764, 2, 8, 0);
+            displayResumeGameLoop();
             return;
     }
 }

@@ -4192,7 +4192,7 @@ void func_actor_560800_801321A0(Task* task)
         case 5:
             if (Stream_RestoreAfterLoad(0, 1)) {
                 taskKill(task);
-                Display_ResetHeapWrapper();
+                displayResumeGameLoop();
             }
             break;
     }
@@ -5994,8 +5994,8 @@ void func_actor_560800_80136678(s32 arg0)
 /// the hand-off. That hand-off copies a 64x256 VRAM strip from (0x380, 0) to
 /// (0x200, 0x100), the same shape `func_actor_560800_80136548` uses for the
 /// other strip, then re-loads the chunk at `D_8006C338[36].data` with
-/// `D5B498_8006C234` at 8 for the duration, kills this task, resets the
-/// display heap and spawns `D_actor_560800_801718F0` index 0xB into the work
+/// `D5B498_8006C234` at 8 for the duration, kills this task, restores session
+/// image memory and game-loop presentation, and spawns `D_actor_560800_801718F0` index 0xB into the work
 /// block's `eve`. Like `func_actor_310100_801620FC`, state 3 hands the
 /// finished work over rather than leaving the task alive.
 void func_actor_560800_801366B0(Task* arg0)
@@ -6022,8 +6022,8 @@ void func_actor_560800_801366B0(Task* arg0)
             Fs_LoadImageChunk(D_8006C338[36].data, 1);
             D5B498_8006C234 = 0;
             taskKill(arg0);
-            Display_ResetHeapWrapper();
-            work->eve = Task_SpawnOnDefaultList(D_actor_560800_801718F0, 0xB, 1, D_actor_560800_8017578C);
+            displayResumeGameLoop();
+            work->eve = taskSpawnFromTableOnDefaultList(D_actor_560800_801718F0, 0xB, 1, D_actor_560800_8017578C);
             break;
     }
 }
@@ -6132,7 +6132,7 @@ void func_actor_560800_801369E0(Task* arg0)
 {
     if (CdCmd_IsIdle() & 0xFFFF) {
         taskKill(arg0);
-        Display_ResetHeapWrapper();
+        displayResumeGameLoop();
     }
 }
 

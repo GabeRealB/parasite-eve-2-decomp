@@ -783,7 +783,7 @@ void Gp_FinishLoadWait(Task* task)
         Stage_RequestSpecialFlag(1);
         gGameSession->viewDirty = 0;
         taskKill(task);
-        Display_ResetHeapWrapper();
+        displayResumeGameLoop();
     } else {
         if (task->spawnArg1.value == 1) {
             gDisplayState.control.flags.flipMode = DISPLAY_FLIP_TASK_ONLY;
@@ -869,7 +869,7 @@ void Gp_SetupSprtDisplay(Task* task)
     }
     Gp_AllocSprtLists();
     taskKill(task);
-    Display_ResetHeapWrapper();
+    displayResumeGameLoop();
 }
 
 void Gp_LoadViewAndCd(u8 arg0)

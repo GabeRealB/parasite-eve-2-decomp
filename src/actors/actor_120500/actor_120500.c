@@ -403,11 +403,11 @@ void func_actor_120500_80131E58(Task* arg0)
             if ((Stream_RestoreAfterLoad(0, 1) & 0xFFFF) == 0) {
                 return;
             }
-            Task_SpawnOnDefaultList(D_actor_120500_80138418, 1, 8, 0);
+            taskSpawnFromTableOnDefaultList(D_actor_120500_80138418, 1, 8, 0);
             memFillBytes(Fs_ImgBuffers, 0, sizeof(*Fs_ImgBuffers));
             SetDispMask(1);
             taskKill(task);
-            Display_ResetHeapWrapper();
+            displayResumeGameLoop();
             return;
     }
 }

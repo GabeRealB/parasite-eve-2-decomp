@@ -603,7 +603,7 @@ void Gp_MenuRootTask(Task* arg0)
                 Stage_BeginTransitionKind7(gGameSession->location.loc.view);
             }
             Task_SpawnOnDefaultListA(1, 0x27, 2, 0);
-            if (Task_SpawnOnDefaultList(&D_8010E7E8, 0, 0, 0) != NULL) {
+            if (taskSpawnFromTableOnDefaultList(&D_8010E7E8, 0, 0, 0) != NULL) {
                 Display_AcquireRef();
             }
             Gp_MenuLockDelay = 8;

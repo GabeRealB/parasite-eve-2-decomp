@@ -2409,7 +2409,7 @@ void func_mist_shooting_gallery_80180B64(Task* arg0)
         case 5:
             gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_NONE;
             taskKill(arg0);
-            Display_ResetHeapWrapper();
+            displayResumeGameLoop();
             return;
 
         default:
@@ -2491,7 +2491,7 @@ L_case5:
     gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_STRIPS;
     memFillBytes(Fs_ImgBuffers, 0, sizeof(*Fs_ImgBuffers));
     taskKill(task);
-    Display_ResetHeapWrapper();
+    displayResumeGameLoop();
 }
 
 void func_mist_shooting_gallery_801810D8(Task* task)

@@ -667,7 +667,7 @@ s32 func_dryfield_driveway_8017DCC0(Task* task, s32 msgId, s32 arg2, s32 arg3)
         check:
             if (found != 0) {
                 gameFlagSetNibble(GAME_FLAG_DRIVEWAY_PROGRESS, 2);
-                Task_SpawnOnDefaultList(gDrivewayCutsceneTasks, 0, 0, 0);
+                taskSpawnFromTableOnDefaultList(gDrivewayCutsceneTasks, 0, 0, 0);
                 gGameSession->location.loc.room = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 2);
                 gGameSession->hideHud           = 1;
                 gGameSession->eventState        = 1;

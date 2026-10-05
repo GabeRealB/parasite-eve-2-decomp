@@ -117,8 +117,8 @@ L_case5:
     }
     memFillBytes(Fs_ImgBuffers, 0, sizeof(*Fs_ImgBuffers));
     taskKill(task);
-    Task_SpawnOnDefaultList(D_dryfield_gas_station_80181E7C, 2, 8, 0);
-    Display_ResetHeapWrapper();
+    taskSpawnFromTableOnDefaultList(D_dryfield_gas_station_80181E7C, 2, 8, 0);
+    displayResumeGameLoop();
 }
 
 #include "../../shared/screen_fade_in.inc.c"

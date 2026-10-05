@@ -273,7 +273,7 @@ L_case6:
         return;
     }
     taskKill(task);
-    Display_ResetHeapWrapper();
+    displayResumeGameLoop();
 }
 
 void func_shelter_r49_8017D8D8(Task* arg0)

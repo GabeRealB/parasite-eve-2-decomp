@@ -969,7 +969,7 @@ L_case5:
         Stage_RequestFromAreaTable(0);
     }
     taskKill(task);
-    Display_ResetHeapWrapper();
+    displayResumeGameLoop();
 }
 
 /// Fades the screen to white, four steps of the kill countdown per frame, and

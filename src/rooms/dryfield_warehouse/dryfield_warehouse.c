@@ -237,7 +237,7 @@ s32 func_dryfield_warehouse_8017D764(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
         if (found != 0) {
             gameFlagSetNibble(GAME_FLAG_WAREHOUSE_EVENT_SEEN, 1);
             gGameSession->eventState = 1;
-            Task_SpawnOnDefaultList(D_dryfield_warehouse_8017F56C, 0, 0, 0);
+            taskSpawnFromTableOnDefaultList(D_dryfield_warehouse_8017F56C, 0, 0, 0);
             return 1;
         }
     }

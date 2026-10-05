@@ -510,7 +510,7 @@ void Title_DemoStreamTask(Task* task)
         case 7:
             if (Stream_RestoreAfterLoad(0, 0)) {
                 taskKill(task);
-                Display_ResetHeapWrapper();
+                displayResumeGameLoop();
             }
             break;
     }

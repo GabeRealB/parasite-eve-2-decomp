@@ -797,14 +797,14 @@ void func_actor_310100_801620FC(Task* task)
                 do {
                     mode = ACTOR_310100_PLACEMENT_OFFICER_2;
                 } while (0);
-                work->modelTask = Task_SpawnOnDefaultList(D_actor_310100_80179920, 1, (s32)(work->bodyAnimationId), 0);
+                work->modelTask = taskSpawnFromTableOnDefaultList(D_actor_310100_80179920, 1, (s32)work->bodyAnimationId, 0);
             } else if (task->spawnArg1.value == 1) {
                 do {
                     do {
                         mode = ACTOR_310100_PLACEMENT_OFFICER_1;
                     } while (0);
                 } while (0);
-                work->modelTask = Task_SpawnOnDefaultList(D_actor_310100_801798FC, 1, (s32)(work->bodyAnimationId), 0);
+                work->modelTask = taskSpawnFromTableOnDefaultList(D_actor_310100_801798FC, 1, (s32)work->bodyAnimationId, 0);
             } else {
                 goto skip;
             }
@@ -823,7 +823,7 @@ void func_actor_310100_801620FC(Task* task)
             display            = (_Actor310100PoliceOfficerWork*)work->modelTask->work;
             display->playState = ACTOR_310100_PLAY_STATE_POSED;
             taskKill(task);
-            Display_ResetHeapWrapper();
+            displayResumeGameLoop();
             break;
     }
 }
@@ -861,14 +861,14 @@ void func_actor_310100_80162284(Task* task)
                 do {
                     mode = ACTOR_310100_PLACEMENT_OFFICER_2;
                 } while (0);
-                work->modelTask = Task_SpawnOnDefaultList(D_actor_310100_80179920, 2, 5, 0);
+                work->modelTask = taskSpawnFromTableOnDefaultList(D_actor_310100_80179920, 2, 5, 0);
             } else if (task->spawnArg1.value == 1) {
                 do {
                     do {
                         mode = ACTOR_310100_PLACEMENT_OFFICER_1;
                     } while (0);
                 } while (0);
-                work->modelTask = Task_SpawnOnDefaultList(D_actor_310100_801798FC, 2, 7, 0);
+                work->modelTask = taskSpawnFromTableOnDefaultList(D_actor_310100_801798FC, 2, 7, 0);
             } else {
                 goto skip;
             }
@@ -887,7 +887,7 @@ void func_actor_310100_80162284(Task* task)
             display            = (_Actor310100PoliceOfficerWork*)work->modelTask->work;
             display->playState = ACTOR_310100_PLAY_STATE_POSED;
             taskKill(task);
-            Display_ResetHeapWrapper();
+            displayResumeGameLoop();
             break;
     }
 }
