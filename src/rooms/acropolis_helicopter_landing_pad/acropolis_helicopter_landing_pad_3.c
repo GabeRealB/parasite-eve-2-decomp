@@ -794,16 +794,17 @@ void func_acropolis_helicopter_landing_pad_8017EF8C(Task* arg0)
     states[arg0->state](arg0);
 }
 
-/// Initializes an allocated red Gouraud wedge with a bright centre and black edges.
+/// Sets a Gouraud glow wedge's packet header and red-to-black vertex colors.
 ///
-/// The signed halfword brightness narrows to a byte at vertex 2. Allocation, geometry, ordering and
-/// the additive blend command remain with the perimeter-light drawer.
-static inline void _acropolisHelicopterLandingPadInitGlowWedge(POLY_G4* wedge, s16 brightness)
+/// Borrows writable storage for one `POLY_G4`. `centerRed` is the byte intensity
+/// at vertex 2; vertices 0, 1 and 3 are black. The caller supplies coordinates
+/// and ordering links and enables additive blending after initialization.
+static inline void _acropolisHelicopterLandingPadInitGlowWedge(POLY_G4* wedge, u8 centerRed)
 {
     setPolyG4(wedge);
     setRGB0(wedge, 0, 0, 0);
     setRGB1(wedge, 0, 0, 0);
-    setRGB2(wedge, brightness, 0, 0);
+    setRGB2(wedge, centerRed, 0, 0);
     setRGB3(wedge, 0, 0, 0);
 }
 
