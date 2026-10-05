@@ -17,8 +17,6 @@ void oddStrangerDrive(Task* arg0)
     OddStrangerWork* work;
     Enemy*           enemy;
     s32              animation;
-    s32              index;
-    u32              table;
     s16              state;
     s32              seekIndex;
     s32              resetIndex;
@@ -47,14 +45,12 @@ void oddStrangerDrive(Task* arg0)
         seekWork = arg0->work;
         if (work->appliedAnim != (s16)work->animId) {
             seekIndex = 1;
-            table     = (u32)&gOddStrangerTransitions;
             do {
                 seekSlotIndex                   = seekIndex;
                 work->rig.slots[seekIndex].rate = seekWork->animRate;
                 animation                       = (s16)seekWork->animId;
-                index                           = seekWork->appliedAnim * 0x2D;
                 animationSeekSlotWithBlend(&seekWork->rig.anim, seekSlotIndex, (s16)(animation), 0,
-                                           (s32) * (s8*)((animation + index) + table));
+                                           gOddStrangerTransitions[seekWork->appliedAnim][animation]);
                 seekIndex += 1;
             } while (seekIndex < 0x13);
             seekWork->appliedAnim = (s16)seekWork->animId;
