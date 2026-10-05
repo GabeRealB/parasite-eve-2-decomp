@@ -149,54 +149,81 @@ static __inline__ void _gfxReduceLightDirection(_GfxLightDirectionScratch* scrat
     }
 }
 
-/// Installs an Euler product or multiplies it into the current rotation.
+/// Replaces a matrix's rotation with an Euler product or composes it on the right.
 ///
-/// The two word-aligned matrices must be disjoint, with the product initialized;
-/// composition (zero replace) also requires an initialized destination rotation.
-/// Writes only the nine rotation entries and changes GTE state on composition.
+/// `rotation` contains an initialized 3x3 product scaled by `ONE` (4096).
+/// Nonzero `replace` (`GRAPHICS_ROTATION_REPLACE`) copies it into `matrix`;
+/// zero (`GRAPHICS_ROTATION_COMPOSE`) computes matrix * rotation with the GTE
+/// and requires an initialized destination rotation. Both matrices must be live,
+/// word-aligned and disjoint, and the destination writable.
+///
+/// Writes exactly the nine signed halfwords, preserving alignment bytes and
+/// translation. Copies the four packed words and final halfword individually:
+/// a whole `GfxRotationWords` copy would overwrite the alignment bytes too.
+/// Composition changes GTE rotation and arithmetic state; replacement changes
+/// no GTE state. Uses no scratch-stack reservation and retains no pointer.
 static __inline__ void _gfxApplyEulerRotation(MATRIX* matrix, const MATRIX* rotation, s32 replace)
 {
-    if (replace != 0) {
-        MATRIX_PAIR(matrix, 0, 0) = MATRIX_PAIR(rotation, 0, 0);
-        MATRIX_PAIR(matrix, 0, 2) = MATRIX_PAIR(rotation, 0, 2);
-        MATRIX_PAIR(matrix, 1, 1) = MATRIX_PAIR(rotation, 1, 1);
-        MATRIX_PAIR(matrix, 2, 0) = MATRIX_PAIR(rotation, 2, 0);
-        matrix->m[2][2]           = rotation->m[2][2];
+    if (replace != GRAPHICS_ROTATION_COMPOSE) {
+        GfxRotationWords*       destinationRotation = (GfxRotationWords*)matrix;
+        const GfxRotationWords* sourceRotation      = (const GfxRotationWords*)rotation;
+
+        destinationRotation->m00M01 = sourceRotation->m00M01;
+        destinationRotation->m02M10 = sourceRotation->m02M10;
+        destinationRotation->m11M12 = sourceRotation->m11M12;
+        destinationRotation->m20M21 = sourceRotation->m20M21;
+        destinationRotation->m22    = sourceRotation->m22;
     } else {
         gte_MulMatrix0(matrix, rotation, matrix);
     }
 }
 
-/// Builds the first X factor of an Euler rotation in its scratch workspace.
+/// Initializes the X-axis factor that starts an XYZ Euler product.
 ///
-/// Reads sinX/cosX scaled by ONE and writes only the nine rotation entries.
-static __inline__ void _gfxBuildEulerXFactor(_GfxEulerRotationScratch* scratch)
+/// `scratch` supplies only `sinX` and `cosX` for the same angle, scaled by
+/// `ONE` (4096) and in [-ONE, ONE]. The resulting 3x3 is
+/// {{ONE, 0, 0}, {0, cosX, -sinX}, {0, sinX, cosX}}.
+/// `rotation` must be a live, writable, halfword-aligned matrix, either disjoint
+/// from `scratch` or exactly `&scratch->rotation`; it need not be initialized.
+///
+/// Writes only its nine signed rotation halfwords; alignment bytes, translation
+/// and coefficients are unchanged. The caller owns both objects; no scratch-stack
+/// reservation or GTE state is changed, and no pointer is retained.
+static __inline__ void _gfxBuildEulerXFactor(MATRIX* rotation, const _GfxEulerRotationScratch* scratch)
 {
-    scratch->rotation.m[0][0] = ONE;
-    scratch->rotation.m[0][1] = 0;
-    scratch->rotation.m[0][2] = 0;
-    scratch->rotation.m[1][0] = 0;
-    scratch->rotation.m[1][1] = scratch->cosX;
-    scratch->rotation.m[1][2] = -scratch->sinX;
-    scratch->rotation.m[2][0] = 0;
-    scratch->rotation.m[2][1] = scratch->sinX;
-    scratch->rotation.m[2][2] = scratch->cosX;
+    rotation->m[0][0] = ONE;
+    rotation->m[0][1] = 0;
+    rotation->m[0][2] = 0;
+    rotation->m[1][0] = 0;
+    rotation->m[1][1] = scratch->cosX;
+    rotation->m[1][2] = -scratch->sinX;
+    rotation->m[2][0] = 0;
+    rotation->m[2][1] = scratch->sinX;
+    rotation->m[2][2] = scratch->cosX;
 }
 
-/// Builds the first Y factor of an Euler rotation in its scratch workspace.
+/// Initializes the Y-axis factor that starts a YXZ Euler product.
 ///
-/// Reads sinY/cosY scaled by ONE and writes only the nine rotation entries.
-static __inline__ void _gfxBuildEulerYFactor(_GfxEulerRotationScratch* scratch)
+/// `scratch` supplies only `sinY` and `cosY` for the same angle, scaled by
+/// `ONE` (4096) and in [-ONE, ONE]. The resulting 3x3 is
+/// {{cosY, 0, sinY}, {0, ONE, 0}, {-sinY, 0, cosY}}.
+/// `rotation` must be a live, writable, halfword-aligned matrix, either disjoint
+/// from `scratch` or exactly `&scratch->rotation`; it need not be initialized.
+///
+/// Writes only its nine signed rotation halfwords; alignment bytes, translation
+/// and coefficients are unchanged. The caller owns both objects; no scratch-stack
+/// reservation or GTE state is changed, and no pointer is retained.
+static __inline__ void _gfxBuildEulerYFactor(MATRIX* rotation, const _GfxEulerRotationScratch* scratch)
 {
-    scratch->rotation.m[0][0] = scratch->cosY;
-    scratch->rotation.m[0][1] = 0;
-    scratch->rotation.m[0][2] = scratch->sinY;
-    scratch->rotation.m[1][0] = 0;
-    scratch->rotation.m[1][1] = ONE;
-    scratch->rotation.m[1][2] = 0;
-    scratch->rotation.m[2][0] = -scratch->sinY;
-    scratch->rotation.m[2][1] = 0;
-    scratch->rotation.m[2][2] = scratch->cosY;
+    rotation->m[0][0] = scratch->cosY;
+    rotation->m[0][1] = 0;
+    rotation->m[0][2] = scratch->sinY;
+    rotation->m[1][0] = 0;
+    rotation->m[1][1] = ONE;
+    rotation->m[1][2] = 0;
+    rotation->m[2][0] = -scratch->sinY;
+    rotation->m[2][1] = 0;
+    rotation->m[2][2] = scratch->cosY;
 }
 
 void gfxRotMatrixXYZ(MATRIX* matrix, const SVECTOR* angles, s32 replace)
@@ -213,7 +240,7 @@ void gfxRotMatrixXYZ(MATRIX* matrix, const SVECTOR* angles, s32 replace)
     scratch->cosZ = rcos(angles->vz);
 
     // Build RX; the other factors are applied on the right by their columns.
-    _gfxBuildEulerXFactor(scratch);
+    _gfxBuildEulerXFactor(&scratch->rotation, scratch);
 
     // Apply RY, preserving the column along its own axis.
     scratch->column.vx = scratch->cosY;
@@ -266,7 +293,7 @@ void gfxRotMatrixYXZ(MATRIX* matrix, const SVECTOR* angles, s32 replace)
     scratch->cosZ = rcos(angles->vz);
 
     // Build RY; the other factors are applied on the right by their columns.
-    _gfxBuildEulerYFactor(scratch);
+    _gfxBuildEulerYFactor(&scratch->rotation, scratch);
 
     // Apply RX, preserving the column along its own axis.
     scratch->column.vx = 0;
@@ -307,20 +334,28 @@ void gfxRotMatrixYXZ(MATRIX* matrix, const SVECTOR* angles, s32 replace)
     SCRATCH_STACK_RELEASE_BLOCK(_GfxEulerRotationScratch);
 }
 
-/// Builds the first Z factor of a ZYX rotation in its scratch workspace.
+/// Initializes the Z-axis factor that starts a ZYX Euler product.
 ///
-/// Reads sinZ/cosZ scaled by ONE and writes only the nine rotation entries.
-static __inline__ void _gfxBuildZyxZFactor(_GfxZyxRotationScratch* scratch)
+/// `scratch` supplies only `sinZ` and `cosZ` for the same angle, scaled by
+/// `ONE` (4096) and in [-ONE, ONE]. The resulting 3x3 is
+/// {{cosZ, -sinZ, 0}, {sinZ, cosZ, 0}, {0, 0, ONE}}.
+/// `rotation` must be a live, writable, halfword-aligned matrix, either disjoint
+/// from `scratch` or exactly `&scratch->rotation`; it need not be initialized.
+///
+/// Writes only its nine signed rotation halfwords; alignment bytes, translation
+/// and coefficients are unchanged. The caller owns both objects; no scratch-stack
+/// reservation or GTE state is changed, and no pointer is retained.
+static __inline__ void _gfxBuildZyxZFactor(MATRIX* rotation, const _GfxZyxRotationScratch* scratch)
 {
-    scratch->rotation.m[0][0] = scratch->cosZ;
-    scratch->rotation.m[0][1] = -scratch->sinZ;
-    scratch->rotation.m[0][2] = 0;
-    scratch->rotation.m[1][0] = scratch->sinZ;
-    scratch->rotation.m[1][1] = scratch->cosZ;
-    scratch->rotation.m[1][2] = 0;
-    scratch->rotation.m[2][0] = 0;
-    scratch->rotation.m[2][1] = 0;
-    scratch->rotation.m[2][2] = ONE;
+    rotation->m[0][0] = scratch->cosZ;
+    rotation->m[0][1] = -scratch->sinZ;
+    rotation->m[0][2] = 0;
+    rotation->m[1][0] = scratch->sinZ;
+    rotation->m[1][1] = scratch->cosZ;
+    rotation->m[1][2] = 0;
+    rotation->m[2][0] = 0;
+    rotation->m[2][1] = 0;
+    rotation->m[2][2] = ONE;
 }
 
 /// Builds Rz(z) * Ry(y) * Rx(x), preserving matrix translation and alignment bytes.
@@ -345,7 +380,7 @@ static void _gfxRotMatrixZYX(MATRIX* matrix, const SVECTOR* angles, s32 replace)
     scratch->cosZ = rcos(angles->vz);
 
     // Build RZ; the other factors are applied on the right by their columns.
-    _gfxBuildZyxZFactor(scratch);
+    _gfxBuildZyxZFactor(&scratch->rotation, scratch);
 
     // Apply RY, preserving the column along its own axis.
     scratch->columns[0].vx = scratch->cosY;
