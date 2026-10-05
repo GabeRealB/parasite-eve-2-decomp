@@ -3371,27 +3371,17 @@ static s32 func_actor_403600_8013E7D4(Task* arg0, u16 arg1)
 
 static void func_actor_403600_8013EA04(Task* arg0)
 {
-    s32              index;
-    u32              temp_a0_3;
-    s32              temp_lo;
-    s32              temp_lo_3;
-    s32              temp_s0;
-    s32              temp_s0_2;
-    register s32     temp_threshold asm("a0");
-    s32              temp_work_limit;
+    s32 index;
+    s32 temp_lo;
+    s32 temp_lo_3;
+    s32 temp_s0;
+    s32 temp_s0_2;
+    // Matching constraint: the load must not be a single-set pseudo, or sched1
+    // promotes it as a register birth and moves it down beside the compare.
+    register s32     hp asm("a0");
     s32              temp_v0_3;
-    s32              temp_v1;
-    s32              temp_v1_2;
-    s32              temp_v1_3;
-    s32              temp_v1_4;
+    s32              playerY;
     s32              delta;
-    u32              temp_a0;
-    u32              temp_a0_2;
-    u32              temp_a0_4;
-    u32              temp_a1;
-    u32              temp_v0;
-    u32              temp_v0_2;
-    u32              var_v0;
     u32              var_v1;
     s32              temp_lo_2;
     s32              temp_lo_4;
@@ -3404,79 +3394,74 @@ static void func_actor_403600_8013EA04(Task* arg0)
     var_a2           = 0;
     work->playerZone = 0;
     if (work->childEnemy != 0) {
-        var_v0          = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-        var_a2          = 3;
-        gRandomLcgState = var_v0;
-        if ((var_v0 >> 0x10) & 1) {
+        if (_actor403600Rand() & 1) {
             var_a2 = 2;
+        } else {
+            var_a2 = 3;
         }
     } else {
-        temp_v1 = gPlayerStatus.coordMtx->t[1];
-        if (temp_v1 >= -0x7D0) {
-            temp_a0          = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+        playerY = gPlayerStatus.coordMtx->t[1];
+        if (playerY >= -0x7D0) {
+            s32 roll;
+
             work->playerZone = 2;
-            temp_v1_2        = (temp_a0 >> 0x10) & 0xF;
-            gRandomLcgState  = temp_a0;
-            if (temp_v1_2 < 3) {
+            roll             = _actor403600Rand() & 0xF;
+            if (roll < 3) {
                 var_a2 = 2;
-            } else if (temp_v1_2 < 6) {
+            } else if (roll < 6) {
                 var_a2 = 3;
-            } else if (temp_v1_2 < 0xB) {
+            } else if (roll < 0xB) {
                 var_a2 = 5;
             } else {
-                temp_v0         = (temp_a0 * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-                gRandomLcgState = temp_v0;
-                var_a2          = 4;
-                if ((temp_v0 >> 0x10) & 1) {
+                if (_actor403600Rand() & 1) {
                     var_a2 = 6;
+                } else {
+                    var_a2 = 4;
                 }
             }
-        } else if (temp_v1 >= -0x1004) {
+        } else if (playerY >= -0x1004) {
             if (((u32)(gPlayerStatus.coordMtx->t[0] - 0xFA0) < 0x1F41U) &&
                 ((u32)(gPlayerStatus.coordMtx->t[2] - 0xBB8) < 0x1F41U)) {
-                temp_a1          = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                s32 roll;
+
                 work->playerZone = 1;
-                temp_threshold   = temp_t0->hp;
-                temp_v1_3        = temp_a1 >> 0x10;
-                temp_v1_3       &= 0xF;
-                temp_work_limit  = work->hpAt60Percent;
-                gRandomLcgState  = temp_a1;
-                if (temp_work_limit < temp_threshold) {
+                hp               = temp_t0->hp;
+                roll             = _actor403600Rand();
+                roll            &= 0xF;
+                if (work->hpAt60Percent < hp) {
                     var_a2 = 1;
-                    if (temp_v1_3 & 1) {
+                    if (roll & 1) {
                         var_a2 = 4;
                     }
                 } else {
-                    if (temp_v1_3 < 2) {
+                    if (roll < 2) {
                         var_a2 = 4;
-                    } else if (temp_v1_3 < 6) {
+                    } else if (roll < 6) {
                         var_a2 = 3;
                     } else {
-                        temp_v0_2       = (temp_a1 * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-                        gRandomLcgState = temp_v0_2;
-                        var_a2          = 1;
-                        if ((temp_v0_2 >> 0x10) & 1) {
+                        if (_actor403600Rand() & 1) {
                             var_a2 = 2;
+                        } else {
+                            var_a2 = 1;
                         }
                     }
                 }
             } else {
-                temp_a0_2        = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                s32 roll;
+
                 work->playerZone = 3;
-                temp_v1_4        = (temp_a0_2 >> 0x10) & 0xF;
-                gRandomLcgState  = temp_a0_2;
-                if (temp_v1_4 < 2) {
+                roll             = _actor403600Rand() & 0xF;
+                if (roll < 2) {
                     var_a2 = 3;
-                } else if (temp_v1_4 < 5) {
+                } else if (roll < 5) {
                     var_a2 = 6;
-                } else if (temp_v1_4 < 8) {
+                } else if (roll < 8) {
                     var_a2 = 4;
                 } else {
-                    var_v0          = (temp_a0_2 * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-                    gRandomLcgState = var_v0;
-                    var_a2          = 5;
-                    if ((var_v0 >> 0x10) & 1) {
+                    if (_actor403600Rand() & 1) {
                         var_a2 = 2;
+                    } else {
+                        var_a2 = 5;
                     }
                 }
             }
@@ -3571,15 +3556,11 @@ static void func_actor_403600_8013EA04(Task* arg0)
             func_actor_403600_8013CCEC(arg0, 1);
             return;
         case 4:
-            temp_a0_3         = gRandomLcgState * RANDOM_LCG_MULTIPLIER;
-            temp_a0_4         = temp_a0_3 + RANDOM_LCG_INCREMENT;
             work->aimMode     = ACTOR_403600_AIM_PLAYER;
             work->animId      = 2;
             work->action      = ACTOR_403600_ACTION_SUMMON;
-            temp_lo_2         = (s16)((u16)work->summonCount + 1);
-            gRandomLcgState   = temp_a0_4;
-            work->summonCount = temp_lo_2;
-            work->actionParam = (s16)(((temp_a0_4 >> 0x10) % 0x14) + 0x28);
+            work->actionParam = (_actor403600Rand() % 20) + 0x28;
+            work->summonCount++;
             return;
         case 5:
             work->animId        = 2;
