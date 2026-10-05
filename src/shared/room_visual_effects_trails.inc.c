@@ -1,9 +1,17 @@
 /* Continue room_visual_effects.inc.c after the preceding overlay wrappers. */
 
-/// Stores a composed endpoint as a trail frame parented to the current view.
+/// Stores an endpoint snapshot in world space, independent of its moving anchor.
 ///
-/// The frames must be distinct. Captures the world transform, loads the GTE
-/// rotation and translation, and computes the view-relative local transform.
+/// `endpoint->workm` and `gGfxViewCoord.workm` must be current transforms into
+/// the same view space, with an orthonormal view rotation. The distinct,
+/// word-aligned coordinates remain caller-owned. Copies the view-space cache
+/// and removes the view transform to obtain a world-space local matrix,
+/// parented to the persistent `gGfxViewCoord`.
+///
+/// Leaves `composeStamp` and `param` untouched: the caller must mark the frame
+/// dirty before composing it again. Retains no endpoint pointer. Loads the
+/// endpoint's GTE rotation and translation before rebasing; requires 48 free
+/// scratch-stack bytes, released before return.
 static inline void _roomVisualEffectsStoreTrailFrame(GfxCoord* historyFrame, const GfxCoord* endpoint)
 {
     historyFrame->parent = &gGfxViewCoord;

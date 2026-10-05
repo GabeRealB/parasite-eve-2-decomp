@@ -199,96 +199,117 @@ static void _roomVisualEffectsDrawHaloDisc(const GfxCoord* coord, s16 radius, co
     SCRATCH_STACK_RELEASE_BLOCK(RoomFxFanScratch);
 }
 
-/// An expanding halo. The first tick parents the effect frame to its anchor
-/// at the spawn position and splits the spawn argument into a palette index
-/// and a frame count. While the count runs down, the level and the angle grow
-/// by 0x100 / count each tick, drawing the halo (plus a half-bright echo on odd
-/// ticks) tinted by the palette and a black-edged ring shrinking in from 0x300.
-/// It then fades from full level through the afterglow, 0x10 a tick, and
-/// releases its work block. It pauses while the room's event state is set and
-/// releases the block when that state reaches 4.
-static inline void RoomFx_HaloTask(Task* arg0)
+/// Runs an expanding tinted halo and shrinking ring, followed by a fading star.
+///
+/// The task needs a coordinate body and an owned, zero-initialized `EffectWork`
+/// in `spawnArg2.pointer`. Its borrowed parent must stay live; `pos` is the
+/// local offset in game coordinate units. The signed halves of `spawnArg1`
+/// supply a positive expansion duration (low) and a tint-row index 0..2 (high).
+/// Initialization replaces that word with the remaining expansion ticks.
+/// Brightness and disc radius grow by integer 256 / duration per active tick;
+/// the star starts at brightness 255, fading by 16 while its radius grows by 32.
+/// State 3 requests release. Nonzero room effect control below four pauses
+/// every phase, including that request; four or above cancels immediately.
+/// Completion releases the work allocation and task.
+static inline void _roomVisualEffectsHaloTask(Task* task)
 {
-    u8                rgb[3];
-    EffectWork*       mem;
-    GfxCoord*         coord;
-    GfxRotationWords* rot;
-    s16               flag;
-    s32               shift;
+    /// Sets three colour bytes from the halo work's brightness and selected tint row.
+    ///
+    /// Both arguments are evaluated repeatedly and must have no side effects.
+    /// The three-byte destination must not overlap the work; use as a standalone
+    /// statement list with a terminating semicolon.
+#define ROOM_VISUAL_EFFECTS_SET_HALO_TINT(rgb, work)                                     \
+    (rgb)[0] = (work)->scale >> _roomVisualEffectsGetHaloShades()[(work)->index].rShift; \
+    (rgb)[1] = (work)->scale >> _roomVisualEffectsGetHaloShades()[(work)->index].gShift; \
+    (rgb)[2] = (work)->scale >> _roomVisualEffectsGetHaloShades()[(work)->index].bShift
 
-    mem   = arg0->spawnArg2.pointer;
-    flag  = gRoomEffectState->effectControl;
-    coord = arg0->extra.coordBody->coord;
-    if (flag != ROOM_EFFECT_CONTROL_RUNNING) {
-        if (flag < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
+    enum { HALO_INITIALIZE,
+           HALO_EXPAND,
+           HALO_FADE,
+           HALO_RELEASE,
+           HALO_EXPANSION_TARGET    = 0x100,
+           HALO_ECHO_RADIUS_DELTA   = 0x100,
+           HALO_INITIAL_RING_RADIUS = 0x300,
+           HALO_RING_TINT_DELTA     = 0x80,
+           HALO_FULL_BRIGHTNESS     = 0xFF,
+           HALO_FADE_STEP           = 0x10,
+           HALO_STAR_RADIUS_SCALE   = 4,
+           HALO_FADE_RADIUS_STEP    = 8 };
+
+    u8          rgb[3];
+    EffectWork* work;
+    GfxCoord*   coord;
+    s16         effectControl;
+    s32         tintIndex;
+
+    work          = task->spawnArg2.pointer;
+    effectControl = gRoomEffectState->effectControl;
+    coord         = task->extra.coordBody->coord;
+    if (effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+        if (effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             return;
         }
         goto kill;
     } else {
-        mem->age++;
-        switch (arg0->state) {
-            case 0:
-                rot                 = (GfxRotationWords*)&coord->coord;
-                coord->parent       = mem->parent;
-                rot->m00M01         = ONE;
-                rot->m02M10         = 0;
-                rot->m11M12         = ONE;
-                rot->m20M21         = 0;
-                rot->m22            = ONE;
-                coord->coord.t[0]   = mem->pos.vx;
-                coord->coord.t[1]   = mem->pos.vy;
-                coord->coord.t[2]   = mem->pos.vz;
+        work->age++;
+        switch (task->state) {
+            case HALO_INITIALIZE:
+                // Attach at the spawn offset and unpack the tint and expansion duration.
+                coord->parent = work->parent;
+                gfxSetRotIdentity(&coord->coord);
+                coord->coord.t[0]   = work->pos.vx;
+                coord->coord.t[1]   = work->pos.vy;
+                coord->coord.t[2]   = work->pos.vz;
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 actorRenderComposeCoord(coord);
-                shift                 = arg0->spawnArg1.halves.high;
-                mem->index            = shift;
-                arg0->spawnArg1.value = arg0->spawnArg1.halves.low;
-                arg0->state           = 1;
-                mem->step             = 0x100 / arg0->spawnArg1.value;
+                tintIndex             = task->spawnArg1.halves.high;
+                work->index           = tintIndex;
+                task->spawnArg1.value = task->spawnArg1.halves.low;
+                task->state           = HALO_EXPAND;
+                work->step            = HALO_EXPANSION_TARGET / task->spawnArg1.value;
                 return;
-            case 1:
+            case HALO_EXPAND:
+                // scale holds brightness; angle holds the radius in world units.
                 actorRenderComposeCoord(coord);
-                mem->scale            += mem->step;
-                mem->angle            += mem->step;
-                arg0->spawnArg1.value -= 1;
-                rgb[0]                 = mem->scale >> _roomVisualEffectsGetHaloShades()[mem->index].rShift;
-                rgb[1]                 = mem->scale >> _roomVisualEffectsGetHaloShades()[mem->index].gShift;
-                rgb[2]                 = mem->scale >> _roomVisualEffectsGetHaloShades()[mem->index].bShift;
-                _roomVisualEffectsDrawHaloDisc(coord, mem->angle, rgb);
+                work->scale           += work->step;
+                work->angle           += work->step;
+                task->spawnArg1.value -= 1;
+                ROOM_VISUAL_EFFECTS_SET_HALO_TINT(rgb, work);
+                _roomVisualEffectsDrawHaloDisc(coord, work->angle, rgb);
                 rgb[0] = rgb[0] >> 1;
                 rgb[1] = rgb[1] >> 1;
                 rgb[2] = rgb[2] >> 1;
-                if (mem->age & 1) {
-                    _roomVisualEffectsDrawHaloDisc(coord, (s16)(mem->angle + 0x100), rgb);
+                if (work->age & 1) {
+                    _roomVisualEffectsDrawHaloDisc(coord, (s16)(work->angle + HALO_ECHO_RADIUS_DELTA), rgb);
                 }
-                _roomVisualEffectsDrawHaloRing(coord, (s16)(0x300 - (u16)mem->angle * 2), 0x80, rgb);
-                if (arg0->spawnArg1.value == 0) {
-                    mem->scale  = 0xFF;
-                    arg0->state = 2;
+                _roomVisualEffectsDrawHaloRing(coord, (s16)(HALO_INITIAL_RING_RADIUS - (u16)work->angle * 2), HALO_RING_TINT_DELTA, rgb);
+                if (task->spawnArg1.value == 0) {
+                    work->scale = HALO_FULL_BRIGHTNESS;
+                    task->state = HALO_FADE;
                     return;
                 }
                 return;
-            case 2:
+            case HALO_FADE:
+                // Replace the disc and ring with a larger star until its tint is dark.
                 actorRenderComposeCoord(coord);
-                if (mem->scale >= 0x11) {
-                    rgb[0] = mem->scale >> _roomVisualEffectsGetHaloShades()[mem->index].rShift;
-                    rgb[1] = mem->scale >> _roomVisualEffectsGetHaloShades()[mem->index].gShift;
-                    rgb[2] = mem->scale >> _roomVisualEffectsGetHaloShades()[mem->index].bShift;
-                    _roomVisualEffectsDrawHaloStar(coord, (u16)mem->angle * 4, rgb);
-                    mem->scale -= 0x10;
-                    mem->angle += 8;
+                if (work->scale >= HALO_FADE_STEP + 1) {
+                    ROOM_VISUAL_EFFECTS_SET_HALO_TINT(rgb, work);
+                    _roomVisualEffectsDrawHaloStar(coord, (u16)work->angle * HALO_STAR_RADIUS_SCALE, rgb);
+                    work->scale -= HALO_FADE_STEP;
+                    work->angle += HALO_FADE_RADIUS_STEP;
                     return;
                 }
                 /* fallthrough */
-            case 3:
+            case HALO_RELEASE:
                 goto kill;
             default:
                 return;
         }
     }
 kill:
-    effectKillTask(mem, arg0);
+    effectKillTask(work, task);
 }
+#undef ROOM_VISUAL_EFFECTS_SET_HALO_TINT
 
 /// Runs the halo-section orange burst: growing disc and layered glow inside a fading ring.
 ///

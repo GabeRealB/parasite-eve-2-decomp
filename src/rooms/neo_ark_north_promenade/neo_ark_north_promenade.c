@@ -479,7 +479,7 @@ void func_neo_ark_north_promenade_8017D7B0(Task* task)
 
 void func_neo_ark_north_promenade_8017E4F8(Task* arg0)
 {
-    RoomFx_HaloTask(arg0);
+    _roomVisualEffectsHaloTask(arg0);
 }
 
 void func_neo_ark_north_promenade_8017E890(Task* arg0)

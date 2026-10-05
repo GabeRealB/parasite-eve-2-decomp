@@ -586,7 +586,7 @@ void func_shelter_b1_elevator_hall_8017E6F4(Task* task)
 
 void func_shelter_b1_elevator_hall_8017F43C(Task* arg0)
 {
-    RoomFx_HaloTask(arg0);
+    _roomVisualEffectsHaloTask(arg0);
 }
 
 void func_shelter_b1_elevator_hall_8017F7D4(Task* arg0)

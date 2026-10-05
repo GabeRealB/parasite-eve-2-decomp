@@ -2315,7 +2315,7 @@ void func_mine_cavern_8017F240(Task* task)
 
 void func_mine_cavern_8017FF88(Task* arg0)
 {
-    RoomFx_HaloTask(arg0);
+    _roomVisualEffectsHaloTask(arg0);
 }
 
 void func_mine_cavern_80180320(Task* arg0)

@@ -1218,7 +1218,7 @@ void func_dryfield_motel_balcony_8017DCB8(Task* task)
 
 void func_dryfield_motel_balcony_8017EA00(Task* arg0)
 {
-    RoomFx_HaloTask(arg0);
+    _roomVisualEffectsHaloTask(arg0);
 }
 
 void dryfieldMotelBalconyRoomVisualEffectsHaloOrangeBurstTask(Task* task)

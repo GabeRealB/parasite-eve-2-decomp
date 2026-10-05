@@ -361,7 +361,7 @@ void func_shelter_b1_north_maintenance_walkway_8017E8B8(Task* task)
 
 void func_shelter_b1_north_maintenance_walkway_8017F600(Task* arg0)
 {
-    RoomFx_HaloTask(arg0);
+    _roomVisualEffectsHaloTask(arg0);
 }
 
 void func_shelter_b1_north_maintenance_walkway_8017F998(Task* arg0)

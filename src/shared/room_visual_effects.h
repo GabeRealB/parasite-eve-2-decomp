@@ -102,7 +102,7 @@ static void _roomVisualEffectsDrawFlyingBurstGroundQuad(const GfxCoord* coord, s
 
 static inline void RoomFx_MoteTask(Task* task);
 
-static inline void RoomFx_HaloTask(Task* arg0);
+static inline void _roomVisualEffectsHaloTask(Task* task);
 
 static inline void _roomVisualEffectsHaloOrangeBurstTask(Task* task);
 

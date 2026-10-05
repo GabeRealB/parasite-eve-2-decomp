@@ -1759,7 +1759,7 @@ void func_dryfield_night_main_street_8017FA68(Task* task)
 
 void func_dryfield_night_main_street_801807B0(Task* arg0)
 {
-    RoomFx_HaloTask(arg0);
+    _roomVisualEffectsHaloTask(arg0);
 }
 
 void func_dryfield_night_main_street_80180B48(Task* arg0)

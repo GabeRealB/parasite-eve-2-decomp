@@ -744,7 +744,7 @@ void func_mine_secret_passage_8017E868(Task* task)
 
 void func_mine_secret_passage_8017F5B0(Task* arg0)
 {
-    RoomFx_HaloTask(arg0);
+    _roomVisualEffectsHaloTask(arg0);
 }
 
 void func_mine_secret_passage_8017F948(Task* arg0)

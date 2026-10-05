@@ -1622,10 +1622,10 @@ enum {
     /// an expanding ring), stored in gRoomEffectOrangeBurstId, which the Brain Stinger's fireball
     /// spawns when it expires or hits.
     EFFECT_MINE_SECRET_PASSAGE_ORANGE_BURST = EFFECT_ID(EFFECT_TASK_BANK, 0x240),
-    /// The mine_secret_passage instance of the room-effect library's RoomFx_HaloTask:
-    /// an expanding tinted halo with a black-edged ring shrinking in from 0x300, then
-    /// an afterglow fade; the room stores it in slot gRoomEffectHaloId, read by actor_00300
-    /// (fireball library) during its casting states, which reparents/holds the task.
+    /// mine_secret_passage's expanding tinted halo and shrinking ring, followed by a fading star.
+    ///
+    /// The room selects this `_roomVisualEffectsHaloTask` instance through
+    /// `gRoomEffectHaloId` for the Brain Stinger's charge and MP-drain effects.
     EFFECT_MINE_SECRET_PASSAGE_HALO = EFFECT_ID(EFFECT_TASK_BANK, 0x241),
     /// mine_secret_passage's copy of the RoomFx drifting mote: a small textured square
     /// that rises or flies and fades out; the room stores it in slot gRoomEffectMoteId, which
@@ -1693,63 +1693,65 @@ enum {
     /// brightens and fades), stored in gRoomEffectMoteId, which the Brain Stinger spawns as
     /// fireball embers and which the spark emitter (gRoomEffectSparkEmitterId) sprays.
     EFFECT_NEO_ARK_NORTH_PROMENADE_MOTE = EFFECT_ID(EFFECT_TASK_BANK, 0x24F),
-    /// The mine_cavern instance of the room-effect library's RoomFx_HaloTask: an
-    /// expanding tinted halo with a black-edged ring shrinking in from 0x300, then an
-    /// afterglow fade; the room stores it in slot gRoomEffectHaloId, read by actor_00300
-    /// (fireball library) during its casting states, which reparents/holds the task.
+    /// mine_cavern's expanding tinted halo and shrinking ring, followed by a fading star.
+    ///
+    /// The room selects this `_roomVisualEffectsHaloTask` instance through
+    /// `gRoomEffectHaloId` for the Brain Stinger's charge and MP-drain effects.
     EFFECT_MINE_CAVERN_HALO = EFFECT_ID(EFFECT_TASK_BANK, 0x250),
-    /// shelter_b1_elevator_hall's copy of the RoomFx expanding halo: a tinted disc with
-    /// a half-bright echo and a ring shrinking in, then an afterglow fade; the room
-    /// stores it in slot gRoomEffectHaloId, which actor_00300 spawns (e.g. when its touch
-    /// drains 0x14 MP).
+    /// shelter_b1_elevator_hall's expanding tinted halo and shrinking ring, followed by a fading star.
+    ///
+    /// The room selects this `_roomVisualEffectsHaloTask` instance through
+    /// `gRoomEffectHaloId` for the Brain Stinger's charge and MP-drain effects.
     EFFECT_SHELTER_B1_ELEVATOR_HALL_HALO = EFFECT_ID(EFFECT_TASK_BANK, 0x251),
-    /// Expanding tinted halo with a shrinking black-edged ring and afterglow
-    /// (RoomFx_HaloTask); stored in gRoomEffectHaloId, which actor_00300 spawns (e.g. when it
-    /// spends MP).
+    /// shelter_b1_storeroom's expanding tinted halo and shrinking ring, followed by a fading star.
+    ///
+    /// The room selects this `_roomVisualEffectsHaloTask` instance through
+    /// `gRoomEffectHaloId` for the Brain Stinger's charge and MP-drain effects.
     EFFECT_SHELTER_B1_STOREROOM_HALO = EFFECT_ID(EFFECT_TASK_BANK, 0x252),
-    /// shelter_b1_north_maintenance_walkway's copy of the shared expanding halo
-    /// (RoomFx_HaloTask): tinted halo disc plus a black-edged ring shrinking in, then
-    /// an afterglow fade; the room stores it in gRoomEffectHaloId (halo slot, read by
-    /// actor_00300).
+    /// shelter_b1_north_maintenance_walkway's expanding tinted halo and shrinking ring, followed by a fading star.
+    ///
+    /// The room selects this `_roomVisualEffectsHaloTask` instance through
+    /// `gRoomEffectHaloId` for the Brain Stinger's charge and MP-drain effects.
     EFFECT_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_HALO = EFFECT_ID(EFFECT_TASK_BANK, 0x253),
-    /// shelter_b1_main_corridor's copy of RoomFx_HaloTask (an expanding palette-tinted
-    /// halo with a shrinking black-edged ring), stored in gRoomEffectHaloId, which the Brain
-    /// Stinger spawns during its attack states and on its child when it drains 0x14 MP.
+    /// shelter_b1_main_corridor's expanding tinted halo and shrinking ring, followed by a fading star.
+    ///
+    /// The room selects this `_roomVisualEffectsHaloTask` instance through
+    /// `gRoomEffectHaloId` for the Brain Stinger's charge and MP-drain effects.
     EFFECT_SHELTER_B1_MAIN_CORRIDOR_HALO = EFFECT_ID(EFFECT_TASK_BANK, 0x254),
-    /// The shelter_b1_transfer_tunnel instance of the room-effect library's
-    /// RoomFx_HaloTask: an expanding tinted halo with a black-edged ring shrinking in
-    /// from 0x300, then an afterglow fade; the room stores it in slot gRoomEffectHaloId, read
-    /// by actor_00300 (fireball library) during its casting states, which
-    /// reparents/holds the task.
+    /// shelter_b1_transfer_tunnel's expanding tinted halo and shrinking ring, followed by a fading star.
+    ///
+    /// The room selects this `_roomVisualEffectsHaloTask` instance through
+    /// `gRoomEffectHaloId` for the Brain Stinger's charge and MP-drain effects.
     EFFECT_SHELTER_B1_TRANSFER_TUNNEL_HALO = EFFECT_ID(EFFECT_TASK_BANK, 0x255),
-    /// shelter_b2_elevator_hall's copy of the RoomFx expanding halo: a tinted disc with
-    /// a half-bright echo and a ring shrinking in, then an afterglow fade; the room
-    /// stores it in slot gRoomEffectHaloId, which actor_00300 spawns (e.g. when its touch
-    /// drains 0x14 MP).
+    /// shelter_b2_elevator_hall's expanding tinted halo and shrinking ring, followed by a fading star.
+    ///
+    /// The room selects this `_roomVisualEffectsHaloTask` instance through
+    /// `gRoomEffectHaloId` for the Brain Stinger's charge and MP-drain effects.
     EFFECT_SHELTER_B2_ELEVATOR_HALL_HALO = EFFECT_ID(EFFECT_TASK_BANK, 0x256),
-    /// Expanding tinted halo with a shrinking black-edged ring and afterglow
-    /// (RoomFx_HaloTask); stored in gRoomEffectHaloId, which actor_00300 spawns (e.g. when it
-    /// spends MP).
+    /// shelter_b2_north_maintenance_walkway's expanding tinted halo and shrinking ring, followed by a fading star.
+    ///
+    /// The room selects this `_roomVisualEffectsHaloTask` instance through
+    /// `gRoomEffectHaloId` for the Brain Stinger's charge and MP-drain effects.
     EFFECT_SHELTER_B2_NORTH_MAINTENANCE_WALKWAY_HALO = EFFECT_ID(EFFECT_TASK_BANK, 0x257),
-    /// shelter_b2_pod_access_tunnel's copy of the shared expanding halo
-    /// (RoomFx_HaloTask): tinted halo disc plus a black-edged ring shrinking in, then
-    /// an afterglow fade; the room stores it in gRoomEffectHaloId (halo slot, read by
-    /// actor_00300).
+    /// shelter_b2_pod_access_tunnel's expanding tinted halo and shrinking ring, followed by a fading star.
+    ///
+    /// The room selects this `_roomVisualEffectsHaloTask` instance through
+    /// `gRoomEffectHaloId` for the Brain Stinger's charge and MP-drain effects.
     EFFECT_SHELTER_B2_POD_ACCESS_TUNNEL_HALO = EFFECT_ID(EFFECT_TASK_BANK, 0x258),
-    /// shelter_b3_elevator_hall's copy of RoomFx_HaloTask (an expanding palette-tinted
-    /// halo with a shrinking black-edged ring), stored in gRoomEffectHaloId, which the Brain
-    /// Stinger spawns during its attack states and on its child when it drains 0x14 MP.
+    /// shelter_b3_elevator_hall's expanding tinted halo and shrinking ring, followed by a fading star.
+    ///
+    /// The room selects this `_roomVisualEffectsHaloTask` instance through
+    /// `gRoomEffectHaloId` for the Brain Stinger's charge and MP-drain effects.
     EFFECT_SHELTER_B3_ELEVATOR_HALL_HALO = EFFECT_ID(EFFECT_TASK_BANK, 0x259),
-    /// The shelter_b4_upper_sewer instance of the room-effect library's
-    /// RoomFx_HaloTask: an expanding tinted halo with a black-edged ring shrinking in
-    /// from 0x300, then an afterglow fade; the room stores it in slot gRoomEffectHaloId, read
-    /// by actor_00300 (fireball library) during its casting states, which
-    /// reparents/holds the task.
+    /// shelter_b4_upper_sewer's expanding tinted halo and shrinking ring, followed by a fading star.
+    ///
+    /// The room selects this `_roomVisualEffectsHaloTask` instance through
+    /// `gRoomEffectHaloId` for the Brain Stinger's charge and MP-drain effects.
     EFFECT_SHELTER_B4_UPPER_SEWER_HALO = EFFECT_ID(EFFECT_TASK_BANK, 0x25A),
-    /// neo_ark_north_promenade's copy of the RoomFx expanding halo: a tinted disc with
-    /// a half-bright echo and a ring shrinking in, then an afterglow fade; the room
-    /// stores it in slot gRoomEffectHaloId, which actor_00300 spawns (e.g. when its touch
-    /// drains 0x14 MP).
+    /// neo_ark_north_promenade's expanding tinted halo and shrinking ring, followed by a fading star.
+    ///
+    /// The room selects this `_roomVisualEffectsHaloTask` instance through
+    /// `gRoomEffectHaloId` for the Brain Stinger's charge and MP-drain effects.
     EFFECT_NEO_ARK_NORTH_PROMENADE_HALO = EFFECT_ID(EFFECT_TASK_BANK, 0x25B),
     /// Orange burst (_roomVisualEffectsHaloOrangeBurstTask): disc and glow growing inside an expanding
     /// ring, then fading; stored in gRoomEffectOrangeBurstId, which actor_00300 spawns where its
@@ -1928,10 +1930,10 @@ enum {
     /// fireball_ember.inc.c (fireballSpawnEmber), actor_00300/actor_105100 ember sprays
     /// and the room SPARK_EMITTER task.
     EFFECT_DRYFIELD_MOTEL_BALCONY_MOTE = EFFECT_ID(EFFECT_TASK_BANK, 0x282),
-    /// dryfield_motel_balcony's copy of the RoomFx expanding halo: a tinted disc with a
-    /// half-bright echo and a ring shrinking in, then an afterglow fade; the room
-    /// stores it in slot gRoomEffectHaloId, which actor_00300 spawns (e.g. when its touch
-    /// drains 0x14 MP).
+    /// dryfield_motel_balcony's expanding tinted halo and shrinking ring, followed by a fading star.
+    ///
+    /// The room selects this `_roomVisualEffectsHaloTask` instance through
+    /// `gRoomEffectHaloId` for the Brain Stinger's charge and MP-drain effects.
     EFFECT_DRYFIELD_MOTEL_BALCONY_HALO = EFFECT_ID(EFFECT_TASK_BANK, 0x283),
     /// Orange burst (_roomVisualEffectsHaloOrangeBurstTask): disc and glow growing inside an expanding
     /// ring, then fading; stored in gRoomEffectOrangeBurstId, which actor_00300 spawns where its
@@ -1946,11 +1948,10 @@ enum {
     /// brightens and fades), stored in gRoomEffectMoteId, which the Brain Stinger spawns as
     /// fireball embers and which the spark emitter (gRoomEffectSparkEmitterId) sprays.
     EFFECT_DRYFIELD_NIGHT_MAIN_STREET_MOTE = EFFECT_ID(EFFECT_TASK_BANK, 0x286),
-    /// The dryfield_night_main_street instance of the room-effect library's
-    /// RoomFx_HaloTask: an expanding tinted halo with a black-edged ring shrinking in
-    /// from 0x300, then an afterglow fade; the room stores it in slot gRoomEffectHaloId, read
-    /// by actor_00300 (fireball library) during its casting states, which
-    /// reparents/holds the task.
+    /// dryfield_night_main_street's expanding tinted halo and shrinking ring, followed by a fading star.
+    ///
+    /// The room selects this `_roomVisualEffectsHaloTask` instance through
+    /// `gRoomEffectHaloId` for the Brain Stinger's charge and MP-drain effects.
     EFFECT_DRYFIELD_NIGHT_MAIN_STREET_HALO = EFFECT_ID(EFFECT_TASK_BANK, 0x287),
     /// dryfield_night_main_street's copy of the RoomFx orange burst (halo section): a
     /// growing disc and glow with an expanding, fading ring; the room stores it in slot

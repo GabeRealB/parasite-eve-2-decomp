@@ -1300,7 +1300,7 @@ void func_shelter_b4_upper_sewer_80180110(Task* task)
 
 void func_shelter_b4_upper_sewer_80180E58(Task* arg0)
 {
-    RoomFx_HaloTask(arg0);
+    _roomVisualEffectsHaloTask(arg0);
 }
 
 void func_shelter_b4_upper_sewer_801811F0(Task* arg0)

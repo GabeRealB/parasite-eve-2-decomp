@@ -398,7 +398,7 @@ void func_shelter_b1_transfer_tunnel_8017E308(Task* task)
 
 void func_shelter_b1_transfer_tunnel_8017F050(Task* arg0)
 {
-    RoomFx_HaloTask(arg0);
+    _roomVisualEffectsHaloTask(arg0);
 }
 
 void func_shelter_b1_transfer_tunnel_8017F3E8(Task* arg0)
