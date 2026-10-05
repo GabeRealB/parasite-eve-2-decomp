@@ -688,7 +688,7 @@ static s32 func_actor_310100_80161E24(Task* task)
 
     work = (_Actor310100PoliceOfficerWork*)task->work;
     obj  = task->extra.tmd->coords;
-    rec  = Gp_AnimGetRec(&work->rig.anim, &work->rig.slots[1]);
+    rec  = animationGetCurrentRecord(&work->rig.anim, &work->rig.slots[1]);
     if (rec != work->lastCueRecord) {
         if (rec != NULL) {
             if (work->placementId == ACTOR_310100_PLACEMENT_OFFICER_1) {

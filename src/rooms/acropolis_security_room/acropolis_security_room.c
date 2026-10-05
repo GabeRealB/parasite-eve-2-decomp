@@ -3219,23 +3219,23 @@ void func_acropolis_security_room_801805A4(Task* task)
             u16* pal  = D_acropolis_security_room_80182918;
             u16* out  = D_acropolis_security_room_80183118;
 
-            for (i = 0; i < 0x100; i += 0x10) {
-                Gp_BlendRgb555Clut(&pal[i], &base[i], 0, &out[i]);
+            for (i = 0; i < 0x100; i += GPU_RGB555_CLUT_ROW_COLORS) {
+                gpuBlendRgb555ClutRow(&pal[i], &base[i], 0, &out[i]);
             }
             pal = D_acropolis_security_room_80182B18;
             out = D_acropolis_security_room_80183318;
-            for (i = 0; i < 0x100; i += 0x10) {
-                Gp_BlendRgb555Clut(&pal[i], &base[i], 0, &out[i]);
+            for (i = 0; i < 0x100; i += GPU_RGB555_CLUT_ROW_COLORS) {
+                gpuBlendRgb555ClutRow(&pal[i], &base[i], 0, &out[i]);
             }
             pal = D_acropolis_security_room_80182D18;
             out = D_acropolis_security_room_80183518;
-            for (i = 0; i < 0x100; i += 0x10) {
-                Gp_BlendRgb555Clut(&pal[i], &base[i], 0, &out[i]);
+            for (i = 0; i < 0x100; i += GPU_RGB555_CLUT_ROW_COLORS) {
+                gpuBlendRgb555ClutRow(&pal[i], &base[i], 0, &out[i]);
             }
             pal = D_acropolis_security_room_80182F18;
             out = D_acropolis_security_room_80183718;
-            for (i = 0; i < 0x100; i += 0x10) {
-                Gp_BlendRgb555Clut(&pal[i], &base[i], 0, &out[i]);
+            for (i = 0; i < 0x100; i += GPU_RGB555_CLUT_ROW_COLORS) {
+                gpuBlendRgb555ClutRow(&pal[i], &base[i], 0, &out[i]);
             }
             gpuUploadImages(D_acropolis_security_room_80183918);
             task->state = task->state + 1;
@@ -3257,23 +3257,23 @@ void func_acropolis_security_room_801805A4(Task* task)
                 work->period = (work->index & 4) ? ((work->period < limit) ? work->period + 0x200 : limit) : 0;
                 work->step   = (work->index & 8) ? ((work->step < limit) ? work->step + 0x200 : limit) : 0;
 
-                for (i = 0; i < 0x100; i += 0x10) {
-                    Gp_BlendRgb555Clut(&pal[i], &base[i], work->scale, &out[i]);
+                for (i = 0; i < 0x100; i += GPU_RGB555_CLUT_ROW_COLORS) {
+                    gpuBlendRgb555ClutRow(&pal[i], &base[i], work->scale, &out[i]);
                 }
                 pal = D_acropolis_security_room_80182B18;
                 out = D_acropolis_security_room_80183318;
-                for (i = 0; i < 0x100; i += 0x10) {
-                    Gp_BlendRgb555Clut(&pal[i], &base[i], work->angle, &out[i]);
+                for (i = 0; i < 0x100; i += GPU_RGB555_CLUT_ROW_COLORS) {
+                    gpuBlendRgb555ClutRow(&pal[i], &base[i], work->angle, &out[i]);
                 }
                 pal = D_acropolis_security_room_80182D18;
                 out = D_acropolis_security_room_80183518;
-                for (i = 0; i < 0x100; i += 0x10) {
-                    Gp_BlendRgb555Clut(&pal[i], &base[i], work->period, &out[i]);
+                for (i = 0; i < 0x100; i += GPU_RGB555_CLUT_ROW_COLORS) {
+                    gpuBlendRgb555ClutRow(&pal[i], &base[i], work->period, &out[i]);
                 }
                 pal = D_acropolis_security_room_80182F18;
                 out = D_acropolis_security_room_80183718;
-                for (i = 0; i < 0x100; i += 0x10) {
-                    Gp_BlendRgb555Clut(&pal[i], &base[i], work->step, &out[i]);
+                for (i = 0; i < 0x100; i += GPU_RGB555_CLUT_ROW_COLORS) {
+                    gpuBlendRgb555ClutRow(&pal[i], &base[i], work->step, &out[i]);
                 }
                 gpuUploadImages(D_acropolis_security_room_80183918);
 

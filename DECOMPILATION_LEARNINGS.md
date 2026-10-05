@@ -7299,7 +7299,7 @@ if (t->spawnArg2 == 0) {
 }
 ```
 
-`func_800B1EFC` is the example; `Display_StepFadeOverlay` uses the same
+`_fadeTickPulse` is the example; `Display_StepFadeOverlay` uses the same
 shape (its branch delay is a shared `lui 0xE100` because `gGpuPrimCursor`
 was already incremented).
 
@@ -24589,7 +24589,7 @@ ret += slot->currentPose.indices.recordIndex; /* pointer stays in $v0; idx loads
 return ret;
 ```
 
-`Gp_AnimGetRec` is the example. A sentinel `switch (idx) { case 0x7FFF:
+`animationGetCurrentRecord` is the example. A sentinel `switch (idx) { case 0x7FFF:
 return NULL; default: ... }` is what emits `beq` to the trailing
 `jr ra; move v0,zero` instead of an inverted `bne` early-out.
 
@@ -26018,30 +26018,34 @@ m = &Gfx_ViewRotMtx;
 `Gp_ResetView` is the example. A bare `*(s32*)&Gfx_ViewRotMtx = one` after the
 `t[]` stores stuck at 95% with only those two stores swapped.
 
-## Assign the sibling walk onto unused `value` and the payload back onto `index`
+## Initialize the typed payload before the child-ring walk
 
 A circular `firstChild` / `nextSibling` search that early-returns `-1` when
 the list is empty wants the iterator in `$a1` and the `spawnArg2` payload
-in `$a0` (`lw a0, 0x20(a1)` then `lhu` off `$a0`). A local `cur` / `obj`
+in `$a0` (`lw a0, 0x20(a1)` then `lhu` off `$a0`). An uninitialized local `cur` / `obj`
 pair swaps those registers (~99% with only `a0`/`a1` flipped).
 
-`value` is otherwise unused, so assign the head to it and reuse `index` as
-the payload pointer:
+Initialize the typed work cursor to NULL before assigning the child cursor.
+That preserves the allocation without reusing the task receiver as enemy work;
+the unused message-ID parameter stays an integer:
 
 ```c
-arg1 = child;
+Enemy* enemy = NULL;
+Task* child;
+/* ... */
+child = head;
 do {
-    arg0 = arg1->spawnArg2.pointer;
-    if (((((Enemy*)arg0)->workType >> 8) == 9) && (((Enemy*)arg0)->placeKey == arg2)) {
-        *arg3 = arg1;
-        ret   = 0;
+    enemy = child->spawnArg2.pointer;
+    if ((enemy->workType >> SCENE_ACTOR_BANK_SHIFT) == SCENE_PLACED_ACTOR_BANK && enemy->placeKey == placeKey) {
+        *reply = child;
+        result = SCENE_CHILD_LOOKUP_FOUND;
         break;
     }
-    arg1 = arg1->nextSibling;
-} while (arg1 != child);
+    child = child->nextSibling;
+} while (child != head);
 ```
 
-`Gp_FindChildType9` is the example. The same early `if (child == NULL) return ret;`
+`_sceneFindPlacedActor` is the example. The same early `if (head == NULL) return result;`
 is what emits `bnez` + `jr` instead of `beqz` to a shared tail.
 
 ## Same-offset `lhu` vs `lbu`: try a `(u8)` cast before a union
@@ -26054,10 +26058,10 @@ the key emits `lbu` and matches (2026-10-03), so the field keeps its single
 `u16` type and the byte view lives at the one use site:
 
 ```c
-if (((((Enemy*)arg0)->workType >> 8) != 9) && ((u8)((Enemy*)arg0)->placeKey == arg2)) {
+if ((enemy->workType >> SCENE_ACTOR_BANK_SHIFT) != SCENE_PLACED_ACTOR_BANK && (u8)enemy->placeKey == childId) {
 ```
 
-`Gp_FindChildType9` compares `placeKey` whole; `Gp_FindChildExceptType9` compares
+`_sceneFindPlacedActor` compares `placeKey` whole; `_sceneFindOtherChild` compares
 its low byte and inverts the work-type test (`!= 9` instead of `== 9`).
 
 **When not to reach for the union.** The remedy above reshapes the field, so it
@@ -26132,7 +26136,7 @@ return 0;
 The early `if (child == NULL) return 0;` is what puts `move v0, zero` at the
 *start* of the shared epilogue. A trailing-only `return 0` after
 `if (child != NULL) { ... }` schedules it after the callee-saved restores
-(~98%). `Gp_ExitChildrenType9` is the example.
+(~98%). `_sceneExitPlacedActors` is the example.
 
 ## Pin a join-crossing `field & 0xFE` load to `$v0`
 
@@ -26582,7 +26586,7 @@ if (head != NULL) {
 }
 ```
 
-`Gp_FindWorkById` is the example.
+`sceneFindEnemyByPlaceKey` is the example.
 
 ## Index the table through the stored `u16` so `addiu %lo` splits around `sh`
 
@@ -29853,7 +29857,7 @@ RotMatrixZYX(&in, &mtx);
 
 Declare the two `SVECTOR`s before the local `MATRIX` so they sit at
 `sp+0x10` / `sp+0x18` and `&in` rematerializes (`addiu rx, sp, 0x10`)
-instead of taking a fifth saved register. `Gp_MtxToEuler` is the
+instead of taking a fifth saved register. `gfxExtractEulerAngles` is the
 example. `vx, vz, vy` stuck at 99.3% with only that `sh zero` early.
 
 ## `s16 / 12` clamp: `u16` divide, signed compare, copy back so `$a0` is the call arg
@@ -31509,7 +31513,7 @@ idx  = slot->coordIndex; /* lbu */
 dest = &arr[idx];      /* sll / addu, no andi */
 ```
 
-`Gp_AnimWritePoseCopy` is the example.
+`animationApplyPoseWithBlendedRotation` is the example.
 
 ## Pin the switch-wide record pointer to `$s2` so the accumulator takes `$s1`
 
@@ -33534,7 +33538,7 @@ packed = (packed << 5) | ((out->r >> 7) & 0x1F);
 
 The STP bit is `if ((s16)*src0 < 0 || (s16)*src1 < 0) *dst = packed |
 0x8000;` — GCC puts `ori packed, 0x8000` in both compare delay slots.
-`Gp_BlendRgb555` is the example.
+`_gpuBlendRgb555` is the example.
 
 ## Memory barrier after stores so `li` fills the `beqz` delay, not `sh`
 
@@ -34893,7 +34897,7 @@ tmp.vy = *(u16*)&arg0->coord.t[1];
 tmp.vz = *(u16*)&arg0->coord.t[2];
 ```
 
-`Gp_ComposeParentWorld` is the example.
+`gfxComposeNodeWorldTransform` is the example.
 
 ## Repeat a global load so `%hi` stays in `$a1`; don't stash it in a local
 
@@ -52036,7 +52040,7 @@ rather than between two of them.
 **Problem.** `func_acropolis_security_room_801805A4` runs four `for (i = 0; i <
 0x100; i += 0x10)` loops in a row, each blending one CLUT against the same
 unlit palette. Written with the arrays named directly —
-`Gp_BlendRgb555Clut(&D_80182918[i], &D_80182718[i], 0, &D_80183118[i])` — every
+`gpuBlendRgb555ClutRow(&D_80182918[i], &D_80182718[i], 0, &D_80183118[i])` — every
 loop preheader re-materialises `&D_80182718` with its own `lui` / `addiu`
 (75.8%). The target computes it once and starts each preheader with
 `move $s2, $s4`.
@@ -52058,12 +52062,12 @@ u16* pal  = D_acropolis_security_room_80182918;
 u16* out  = D_acropolis_security_room_80183118;
 
 for (i = 0; i < 0x100; i += 0x10) {
-    Gp_BlendRgb555Clut(&pal[i], &base[i], 0, &out[i]);
+    gpuBlendRgb555ClutRow(&pal[i], &base[i], 0, &out[i]);
 }
 pal = D_acropolis_security_room_80182B18;
 out = D_acropolis_security_room_80183318;
 for (i = 0; i < 0x100; i += 0x10) {
-    Gp_BlendRgb555Clut(&pal[i], &base[i], 0, &out[i]);
+    gpuBlendRgb555ClutRow(&pal[i], &base[i], 0, &out[i]);
 }
 ```
 
@@ -66878,9 +66882,9 @@ load, reaching 100% without pins or asm helpers. Delaying `SCRATCH_STACK_CURSOR(
 until after the input loads had folded the pointer calculation directly into
 `s0` and changed entry scheduling.
 
-## func_800B51F4: a hoisted `li` that allocates like an expression is `zero + K` folded by combine
+## _displayRedrawPreviousFrame: a hoisted `li` that allocates like an expression is `zero + K` folded by combine
 
-The loop preheader of `func_800B51F4` holds `li s1, 0x9f` for the second
+The loop preheader of `_displayRedrawPreviousFrame` holds `li s1, 0x9f` for the second
 poly's right edge, and the seed's `right = x + 0x9F` reached 99.3% with one
 diff: `addiu s1, s4, 0x9f`. Writing `right = 0x9F` produced the `li` and fell
 to 98.1%, because the register allocation moved: `0x9F` went to `$s3`, `y` to
@@ -70052,7 +70056,7 @@ original order (`rank_for_schedule` falls back to `INSN_LUID`). Passing the
 address directly and assigning the pointer afterwards matches:
 
 ```c
-Gp_ComposeParentWorld(&coord[8], &m, &pos);
+gfxComposeNodeWorldTransform(&coord[8], &m, &pos);
 src = (s32*)&m;          /* CSE reuses the a1 temp, now set after a0 */
 ...
 for (i = 0; i < 4; i++) *out++ = *src++;
@@ -77391,7 +77395,7 @@ larger object: `GfxCoord` leads with `composeStamp` and puts `coord` at +4 insid
 the 0x50 element, so `0x194` is `5 * 0x50 + 4` and the pointer is
 `&coords[5].coord`. `func_actor_403100_8013D770` is the same function on part
 6 (`addiu $s0, $s2, 0x1E4`) and is the ready-made source for the whole body:
-identity-splat the local matrix, `Gp_MtxToEuler(dest, &rot)`, add the yaw
+identity-splat the local matrix, `gfxExtractEulerAngles(dest, &rot)`, add the yaw
 offset, `RotMatrix`, then nine halfword copies back into `dest`.
 
 The m2c baseline scored 80.8% with `insert=1 delete=9` and *matching structure*
@@ -80460,7 +80464,7 @@ Same shape here as `Actor02000_D15DEC[work->soundSet * 2 - 1]` in
 copy of this body turns up in another actor overlay.
 
 The same seed also lost the animation slot argument: m2c emitted
-`Gp_AnimGetRec(work, work + 0x3C)` as `addiu a1, s2, 0x4B0` because its `void *`
+`animationGetCurrentRecord(work, work + 0x3C)` as `addiu a1, s2, 0x4B0` because its `void *`
 work had no `AnimationContext`. Giving the work block the real head -
 `AnimationContext ctx; byte slots[19][0x28];` - makes `&work->slots[1]` land at
 0x3C and removes the penalty outright. `overlay_dup_index.py promote` refuses
@@ -90442,17 +90446,17 @@ usually means it is overcounting.
 The seed for this one-argument function came out two-argument:
 
 ```c
-Task **Gp_FindWorkById(s32, GameSession *);
-/* ... */ Gp_FindWorkById(/* id */, gGameSession);
+Task **sceneFindEnemyByPlaceKey(s32, GameSession *);
+/* ... */ sceneFindEnemyByPlaceKey(/* id */, gGameSession);
 ```
 
 because the target loads `gGameSession` once into `$a1`, reads `location.loc.area`
-and `location.loc.stage` through it, and reaches `jal Gp_FindWorkById` with `$a1` still
+and `location.loc.stage` through it, and reaches `jal sceneFindEnemyByPlaceKey` with `$a1` still
 holding it. That is not an argument setup: the pointer's live range ends at the
 call, so the allocator picks `$a1` for it unprompted, and no delay-slot store is
 involved.
 
-The real prototype is `Enemy* Gp_FindWorkById(u16 index)`
+The real prototype is `Enemy* sceneFindEnemyByPlaceKey(u16 placeKey)`
 (`include/gameplay/scene_runtime.h`). The natural one-argument body written against it
 compiles byte-identically - 100.000%, same 19 instructions, same block count -
 so the seed was not wrong enough to fail, only misleading. An argument register
@@ -90734,7 +90738,7 @@ Inputs: `base_2.i`
 
 ## A `u16` parameter expands the whole argument in HImode, so it reassociates an `IOR` chain inside it
 
-`Gp_FindWorkById` takes `u16`. Passing an `int` expression makes the front end
+`sceneFindEnemyByPlaceKey` takes `u16`. Passing an `int` expression makes the front end
 convert the *whole* argument, and `expand_expr` then expands that tree in
 HImode - the `.jump` dump shows `zero_extend:HI` byte loads and `subreg:HI`
 wrappers around every operand. The RTL comes out `ior(shifted_byte, 0x1000)`
@@ -90757,9 +90761,9 @@ and only the *variable* is narrowed at the call:
 s32 id;
 ...
 id                          = gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8);
-work->stagedSucklerTasks[0] = (Task*)Gp_FindWorkById(id)->field_0;
+work->stagedSucklerTasks[0] = sceneFindEnemyByPlaceKey(id)->task;
 id                          = ((gGameSession->location.loc.stage << 8) | 0x1000) | gGameSession->location.loc.area;
-work->stagedSucklerTasks[1] = (Task*)Gp_FindWorkById(id)->field_0;
+work->stagedSucklerTasks[1] = sceneFindEnemyByPlaceKey(id)->task;
 ```
 
 The same shape appears with `(idx << 12) | (field_3 << 8) | field_2` in
@@ -94716,7 +94720,7 @@ tree — the shape the target wants — and the function matched at 100% on the
 first build. The sibling `func_dryfield_motel_room_1_8017DC2C` is already
 matched with exactly this spelling for its 0x1000/0x2000/0x3000 lookups and
 carries the identical instruction sequence, so it is the form to copy whenever
-a room builds a `Gp_FindWorkById` key.
+a room builds a `sceneFindEnemyByPlaceKey` key.
 
 Generalisation: when a fold rewrites an expression into a shape you cannot
 express directly, the fix is usually a *positional* respelling of the same
@@ -101346,7 +101350,7 @@ frame slot across a call that clobbers memory, so the round trip survives by
 construction. 63.603% -> 100.000% on the next build. Note the read is a
 halfword load (`lhu`), not `coord.t[n]` as a `long` - the low half of each
 `t[]` word, written `*(u16*)&`, which is how the gameplay twin of this walk,
-`Gp_ComposeParentWorld`, reads it too.
+`gfxComposeNodeWorldTransform`, reads it too.
 
 Same decision as "m2c's scalar locals for a copied table become callee-saved
 registers across a call", different trigger: there the scalars are dead copies
@@ -110145,7 +110149,7 @@ chase it.
 Three m2c artefacts in one function, all read off the object diff rather than a
 dump (`func_actor_800100_80164E60`):
 
-- An argument m2c typed as a byte pointer — `Gp_AnimGetRec(temp_s0 + 0x424, …)`
+- An argument m2c typed as a byte pointer — `animationGetCurrentRecord(temp_s0 + 0x424, …)`
   — compiles to `lui`/`ori` plus `addu`, because m2c prints a *typed* pointer
   plus a byte offset and the offset is then scaled by `sizeof(*temp_s0)`. The
   target's bare `addiu $a0, $s0, 0x424` is the tell: a two-instruction constant
@@ -111110,7 +111114,7 @@ against three nodes and a range (a tree). Compiled side by side from one file:
 
 `actor_421600`'s `func_actor_421600_80133B30` is the same 17-slot pose-blend
 loop as `actor_400100`'s `Actor00100_Fn01D74` -- same `AnimationContext` pair, same
-`Gp_AnimWritePoseCopy` tail -- but the first dispatches through compares and the
+`animationApplyPoseWithBlendedRotation` tail -- but the first dispatches through compares and the
 second through a five-word table (`Actor00100_Jt00044`). The table's source
 repeats a body per case; the tree's groups the labels. When the target's blend
 select is compares, write `case 3: case 4: case 5:` over one body.
@@ -119273,7 +119277,7 @@ Inputs: `base_5.i` (scalar `sxy` + shift, 100.000%)
 
 ## The identity-matrix block keeps a `MATRIX *` local, with its first store spelled on the variable (func_dryfield_night_gas_station_801802EC, 2026-09-17)
 
-**Symptom.** `Gp_ComposeParentWorld`'s first arm (`*(s32*)m = ONE; *(s32*)&m->m[0][2] = 0; …`,
+**Symptom.** `gfxComposeNodeWorldTransform`'s first arm (`*(s32*)m = ONE; *(s32*)&m->m[0][2] = 0; …`,
 `src/gameplay/1BC.c`) hand-expanded onto a local `MATRIX mtx` compiles to five
 frame-relative stores (`sw v0,0x10(sp)`, `sw zero,0x14(sp)`, …) and a fresh
 `addiu a1,sp,0x10` at the call. The target materialises the address once
@@ -119294,7 +119298,7 @@ leave the *first* store spelled on the variable, which is what the retail body d
     m->m[2][2]         = one;
 ```
 
-`m` is the matrix argument to the `Gp_ComposeParentWorld` call; the `ApplyMatrixSV` calls
+`m` is the matrix argument to the `gfxComposeNodeWorldTransform` call; the `ApplyMatrixSV` calls
 after it keep `&mtx`, as the target does.
 
 Inputs: `base_6.i` (100.000%) `db58f1bd357d142b`, `base_5.i` (`&mtx` everywhere, 96.025%)
@@ -124679,7 +124683,7 @@ pins, no empty asm, no permuter run. Scratch
 
 `m2c` declares every stack temporary as `M2C_UNK`, which is 4 bytes. When the real
 function passes two 0x10-byte `AnimationPose` locals to `animationTickSlotPose` and
-`Gp_AnimWritePoseCopy`, the seed's frame comes out one pose short
+`animationApplyPoseWithBlendedRotation`, the seed's frame comes out one pose short
 (`addiu sp,sp,-0x48` against a target `-0x58`) and the two poses sit at
 `sp+0x18` / `sp+0x1c` instead of the target's `sp+0x18` / `sp+0x28`.
 
@@ -136266,7 +136270,7 @@ computing the entire expression at full width first:
 s32 stageAreaId;
 /* ... */
 stageAreaId = (gGameSession->location.loc.stage << 8) | gGameSession->location.loc.area;
-found = (Enemy*)Gp_FindWorkById(stageAreaId);
+found = sceneFindEnemyByPlaceKey(stageAreaId);
 ```
 
 Both fields are u8, so the full value fits u16 and the later truncation vanishes
@@ -144365,7 +144369,7 @@ source position and overlaps the live LCG load, which forces `a0`. Every
 statement order (630), every block-scope declaration order (168), and the
 helper shape plateau at one of the two halves - `a0` with the load two slots
 early, or the load in place in `v1`.
-## A constant held in one register for a store and a later `K - x` is a read-modify-write of the stored field (func_800B1EFC, 2026-09-26)
+## A constant held in one register for a store and a later `K - x` is a read-modify-write of the stored field (_fadeTickPulse, 2026-09-26)
 
 **Symptom.** `li a0,-0x78; sh a0,0xa(p)` early, then later `subu a0,a0,v1;
 sh a0,0xa(p)` - the same register reused for the subtraction. Written as

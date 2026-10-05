@@ -1319,7 +1319,7 @@ static void func_actor_113100_80132104(Task* task)
             for (i = 1; i < 0x14; i++) {
                 animationTickSlot(&work->rig.anim, i);
             }
-            rec = Gp_AnimGetRec(&work->rig.anim, &work->rig.slots[1]);
+            rec = animationGetCurrentRecord(&work->rig.anim, &work->rig.slots[1]);
             if (rec != NULL) {
                 if (rec->flags & ANIMATION_RECORD_CUE_2) {
                     snd = 0x5113000F;

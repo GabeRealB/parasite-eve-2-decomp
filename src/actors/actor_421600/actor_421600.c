@@ -1684,7 +1684,7 @@ void desertChaserBlendTick(Task* arg0)
             work->rig.slots[index].rate   = (work->animRate - 3);
             animationTickSlotPose(&work->rig.anim, index, &pose, 0);
             animationTickSlotPose(&work->blend.anim, index, &blendPose, 0);
-            Gp_AnimWritePoseCopy(&work->rig.anim, index, &pose, &blendPose, blend, invBlend);
+            animationApplyPoseWithBlendedRotation(&work->rig.anim, index, &pose, &blendPose, blend, invBlend);
         } else {
             work->rig.slots[index].rate = (work->animRate - 3);
             animationTickSlot(&work->rig.anim, index);
@@ -2868,11 +2868,11 @@ static void func_actor_421600_801369A0(Task* arg0)
         case 0:
             hi    = gGameSession->location.loc.stage << 8;
             id    = gGameSession->location.loc.area | 0x1000;
-            found = Gp_FindWorkById(id | hi);
+            found = sceneFindEnemyByPlaceKey(id | hi);
             break;
         case 1:
             stageAreaId = (gGameSession->location.loc.stage << 8) | gGameSession->location.loc.area;
-            found       = Gp_FindWorkById(stageAreaId);
+            found       = sceneFindEnemyByPlaceKey(stageAreaId);
             break;
     }
     if (found != NULL) {

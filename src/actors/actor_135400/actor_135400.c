@@ -585,7 +585,7 @@ static void func_actor_135400_801329B0(Task* task);
 /// dispatched by `func_actor_135400_801324D4`): a three-phase machine run off
 /// `Task::spawnArg1`, the slot the part's state-0 handler read as the part
 /// index and sets to 2 for the second part. Phase 1 bakes the part's
-/// parent-relative coordinate into world space with `Gp_ComposeParentWorld` and
+/// parent-relative coordinate into world space with `gfxComposeNodeWorldTransform` and
 /// reparents it to `gGfxViewCoord`. Phases 2 and 3 share a body -- 2 only
 /// reaches it while the session's `eventState` is clear -- which resets the
 /// coordinate to a `-0x38E` yaw (`RotMatrixY`, `RotMatrixY`) at the fixed
@@ -600,7 +600,7 @@ static void func_actor_135400_80131EB4(Task* task)
     switch (task->spawnArg1.value) {
         case 1:
             coord = task->extra.tmd->coords;
-            Gp_ComposeParentWorld(coord, &rot.mat, &sv);
+            gfxComposeNodeWorldTransform(coord, &rot.mat, &sv);
             coord->coord           = rot.mat;
             coord->coord.t[0]      = sv.vx;
             coord->coord.t[1]      = sv.vy;

@@ -2801,7 +2801,7 @@ static void Actor00300_Fn03A1C(Task* arg0)
 
     work  = arg0->work;
     coord = arg0->extra.tmd->coords;
-    rec   = Gp_AnimGetRec(&work->rig.anim, &work->rig.slots[1]);
+    rec   = animationGetCurrentRecord(&work->rig.anim, &work->rig.slots[1]);
     if (rec != NULL) {
         if (!(rec->flags & ANIMATION_RECORD_CUE_2) && (work->lastCueFlags & ANIMATION_RECORD_CUE_2)) {
             sound = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40030001;

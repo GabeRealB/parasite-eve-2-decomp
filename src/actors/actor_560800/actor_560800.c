@@ -6903,10 +6903,10 @@ void func_actor_560800_801386D4(Task* task)
     w = task->work;
     if (w->targetEntryId == ACTOR_560800_CHAIN_TARGET_EVE) {
         c = ((_Actor560800CutsceneWork*)w->cutscene->work)->eve->extra.tmd->coords;
-        Gp_ComposeParentWorld(&c[9], &w->targetWorld, &pos);
+        gfxComposeNodeWorldTransform(&c[9], &w->targetWorld, &pos);
     } else if (w->targetEntryId == ACTOR_560800_CHAIN_TARGET_NO9) {
         c = ((_Actor560800CutsceneWork*)w->cutscene->work)->no9->extra.tmd->coords;
-        Gp_ComposeParentWorld(&c[9], &w->targetWorld, &pos);
+        gfxComposeNodeWorldTransform(&c[9], &w->targetWorld, &pos);
     }
     w->targetWorld.t[0] = pos.vx;
     w->targetWorld.t[1] = pos.vy - 0x78;

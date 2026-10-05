@@ -1598,7 +1598,7 @@ static void func_actor_401300_80133324(Task* arg0)
             do {
                 animationTickSlotPose(&work->rig.anim, i, &pose, 0);
                 animationTickSlotPose(&work->blend.anim, i, &blendPose, 0);
-                Gp_AnimWritePoseCopy(&work->rig.anim, i, &pose, &blendPose, weight, 0x1000 - weight);
+                animationApplyPoseWithBlendedRotation(&work->rig.anim, i, &pose, &blendPose, weight, 0x1000 - weight);
             } while (0);
         } else {
             work->rig.slots[i].rate = (work->animRate - 3);

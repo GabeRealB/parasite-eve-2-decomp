@@ -1609,7 +1609,7 @@ void desertChaserBlendTick(Task* arg0)
             work->rig.slots[index].rate   = work->animRate - 3;
             animationTickSlotPose(anim, (s32)index, &pose, 0);
             animationTickSlotPose(&work->blend.anim, (s32)index, &otherPose, 0);
-            Gp_AnimWritePoseCopy(anim, (s32)index, &pose, &otherPose, blend, invBlend);
+            animationApplyPoseWithBlendedRotation(anim, (s32)index, &pose, &otherPose, blend, invBlend);
         } else {
             work->rig.slots[index].rate = work->animRate - 3;
             animationTickSlot(&work->rig.anim, (s32)index);

@@ -3055,7 +3055,7 @@ static void func_dryfield_water_tower_8017FBE8(Task* task)
 /// zero it, park the slot-3 task in `playerTask` and the room task itself in
 /// `D_dryfield_water_tower_801876AC`, and resolve `firstActorTask` / `secondActorTask` from
 /// the session id: the base id, then the id with the 0x1000 index of
-/// `Gp_FindWorkById`'s search key.
+/// `sceneFindEnemyByPlaceKey`'s search key.
 ///
 /// State 1 starts the room's cutscene pair and state 2 kills the task once the
 /// scene is over, exactly as the actors' `func_actor_560800_80135D54` pairs
@@ -3098,9 +3098,9 @@ void func_dryfield_water_tower_8017FD64(Task* task)
                 work->playerTask                = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                 D_dryfield_water_tower_801876AC = task;
                 id                              = gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8);
-                work->firstActorTask            = Gp_FindWorkById(id)->task;
+                work->firstActorTask            = sceneFindEnemyByPlaceKey(id)->task;
                 id                              = ((gGameSession->location.loc.stage << 8) | 0x1000) | gGameSession->location.loc.area;
-                work->secondActorTask           = Gp_FindWorkById(id)->task;
+                work->secondActorTask           = sceneFindEnemyByPlaceKey(id)->task;
             }
             task->state++;
             break;

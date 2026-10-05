@@ -2546,7 +2546,7 @@ static void func_actor_511000_80132B14(Task* task, CVECTOR* col, s8* rgb)
     DVECTOR*  pt;
     DVECTOR*  src;
 
-    Gp_ComposeParentWorld(task->extra.tmd->coords, &mtx, &pos);
+    gfxComposeNodeWorldTransform(task->extra.tmd->coords, &mtx, &pos);
     SetRotMatrix(&gGfxViewCoord.workm);
     SetTransMatrix(&gGfxViewCoord.workm);
     otz   = RotTransPers(&pos, &sxy, &p, &flag);

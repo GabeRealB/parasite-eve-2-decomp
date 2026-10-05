@@ -1139,7 +1139,7 @@ void func_actor_342000_8016382C(Task* arg0)
                 memFillBytes(alloc, 0U, sizeof(*alloc));
                 alloc->player           = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                 D_actor_342000_80165070 = arg0;
-                alloc->firstPlacedActor = Gp_FindWorkById(gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8))->task;
+                alloc->firstPlacedActor = sceneFindEnemyByPlaceKey(gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8))->task;
             }
             work = arg0->work;
             if (gGameSession->skipEventIntro == 0) {

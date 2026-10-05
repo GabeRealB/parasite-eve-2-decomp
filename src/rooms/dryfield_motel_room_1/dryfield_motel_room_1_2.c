@@ -1161,13 +1161,13 @@ static void func_dryfield_motel_room_1_8017DC2C(Task* arg0)
     work->playerTask                 = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     D_dryfield_motel_room_1_8018159C = arg0;
     id                               = gGameSession->location.loc.area | (gGameSession->location.loc.stage << ENEMY_PLACE_STAGE_SHIFT);
-    work->stagedSucklerTasks[0]      = Gp_FindWorkById(id)->task;
+    work->stagedSucklerTasks[0]      = sceneFindEnemyByPlaceKey(id)->task;
     id                               = ((gGameSession->location.loc.stage << ENEMY_PLACE_STAGE_SHIFT) | (1 << ENEMY_PLACE_INDEX_SHIFT)) | gGameSession->location.loc.area;
-    work->stagedSucklerTasks[1]      = Gp_FindWorkById(id)->task;
+    work->stagedSucklerTasks[1]      = sceneFindEnemyByPlaceKey(id)->task;
     id                               = ((gGameSession->location.loc.stage << ENEMY_PLACE_STAGE_SHIFT) | (2 << ENEMY_PLACE_INDEX_SHIFT)) | gGameSession->location.loc.area;
-    work->enemySucklerTasks[0]       = Gp_FindWorkById(id)->task;
+    work->enemySucklerTasks[0]       = sceneFindEnemyByPlaceKey(id)->task;
     id                               = ((gGameSession->location.loc.stage << ENEMY_PLACE_STAGE_SHIFT) | (3 << ENEMY_PLACE_INDEX_SHIFT)) | gGameSession->location.loc.area;
-    work->enemySucklerTasks[1]       = Gp_FindWorkById(id)->task;
+    work->enemySucklerTasks[1]       = sceneFindEnemyByPlaceKey(id)->task;
 }
 void func_dryfield_motel_room_1_8017DD3C(Task* arg0)
 {

@@ -2910,7 +2910,7 @@ static void func_dryfield_night_gas_station_801802EC(s32 arg0)
     MATRIX_PAIR(m, 2, 0) = 0;
     m->m[2][2]           = one;
     coord                = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION)->extra.tmd->coords;
-    Gp_ComposeParentWorld(&coord[8], m, &pos);
+    gfxComposeNodeWorldTransform(&coord[8], m, &pos);
     ApplyMatrixSV(&mtx, &off, &p0);
     p0.vx  += pos.vx;
     p0.vy  += pos.vy;
@@ -2957,7 +2957,7 @@ void func_dryfield_night_gas_station_80180604(s32 arg0)
     GfxCoord* coord;
     SVECTOR   offset;
 
-    enemy = Gp_FindWorkById(gGameSession->location.loc.area | ((gGameSession->location.loc.stage << 8) | 0x2000));
+    enemy = sceneFindEnemyByPlaceKey(gGameSession->location.loc.area | ((gGameSession->location.loc.stage << 8) | 0x2000));
     if (enemy != NULL) {
         coord = enemy->task->extra.tmd->coords;
         switch (arg0) {

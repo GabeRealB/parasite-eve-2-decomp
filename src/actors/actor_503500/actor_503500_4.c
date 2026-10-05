@@ -835,7 +835,7 @@ static void func_actor_503500_8013AF60(Task* arg0, WorldCollisionBody* arg1, Wor
             continue;
         }
         src = gPlayerActorTasks[(id >> 7) & 1]->extra.tmd->coords;
-        Gp_ComposeParentWorld(coord, &mtx, &pos);
+        gfxComposeNodeWorldTransform(coord, &mtx, &pos);
         d.vx = src->coord.t[0] - pos.vx;
         d.vy = src->coord.t[1] - pos.vy;
         d.vz = src->coord.t[2] - pos.vz;
@@ -972,7 +972,7 @@ static void func_actor_503500_8013B60C(Task* arg0, s32 side, s32 arg2)
     src  = arg0->extra.tmd->coords;
     task = taskSpawnFromTable(D_actor_503500_8016E9F0, 1, 0, 0xA00000);
     if (task != NULL) {
-        Gp_ComposeParentWorld(src, &m, &pos);
+        gfxComposeNodeWorldTransform(src, &m, &pos);
         coord  = task->extra.tmd->coords;
         ofs.vx = vx = D_actor_503500_8016F108[arg2].vx;
         ofs.vy      = D_actor_503500_8016F108[arg2].vy;
@@ -1331,7 +1331,7 @@ static void func_actor_503500_8013C088(Task* arg0, WorldCollisionBody* arg1, Wor
             continue;
         }
         src = gPlayerActorTasks[(id >> 7) & 1]->extra.tmd->coords;
-        Gp_ComposeParentWorld(coord, &mtx, &pos);
+        gfxComposeNodeWorldTransform(coord, &mtx, &pos);
         d.vx = src->coord.t[0] - pos.vx;
         d.vy = src->coord.t[1] - pos.vy;
         d.vz = src->coord.t[2] - pos.vz;
@@ -1683,7 +1683,7 @@ static void func_actor_503500_8013CCBC(Task* arg0, WorldCollisionBody* arg1, Wor
             continue;
         }
         src = gPlayerActorTasks[(id >> 7) & 1]->extra.tmd->coords;
-        Gp_ComposeParentWorld(coord, &mtx, &pos);
+        gfxComposeNodeWorldTransform(coord, &mtx, &pos);
         d.vx = src->coord.t[0] - pos.vx;
         d.vy = src->coord.t[1] - pos.vy;
         d.vz = src->coord.t[2] - pos.vz;
@@ -1795,7 +1795,7 @@ static void func_actor_503500_8013D1CC(Task* arg0)
             }
             task = taskSpawnFromTable(D_actor_503500_8016E9F0, 1, 1, 0xC00000);
             if (task != NULL) {
-                Gp_ComposeParentWorld(coord, &m, &pos);
+                gfxComposeNodeWorldTransform(coord, &m, &pos);
                 dst    = task->extra.tmd->coords;
                 ofs.vx = D_actor_503500_8016F258.vx;
                 ofs.vy = D_actor_503500_8016F258.vy;
@@ -2230,7 +2230,7 @@ static void func_actor_503500_8013DEB4(Task* arg0, WorldCollisionBody* arg1, Wor
             continue;
         }
         src = gPlayerActorTasks[(id >> 7) & 1]->extra.tmd->coords;
-        Gp_ComposeParentWorld(coord, &mtx, &pos);
+        gfxComposeNodeWorldTransform(coord, &mtx, &pos);
         d.vx = src->coord.t[0] - pos.vx;
         d.vy = src->coord.t[1] - pos.vy;
         d.vz = src->coord.t[2] - pos.vz;
@@ -2340,7 +2340,7 @@ static void func_actor_503500_8013E384(Task* arg0)
             arg  = (D_actor_503500_8016F2E0[idx] << 12) + (-gPlayerStatus.coordMtx->t[1] << 24) / 1000;
             task = taskSpawnFromTable(D_actor_503500_8016E9F0, 0, 1, arg);
             if (task != NULL) {
-                Gp_ComposeParentWorld(coord, &m, &pos);
+                gfxComposeNodeWorldTransform(coord, &m, &pos);
                 dst    = task->extra.tmd->coords;
                 ofs.vy = 0x190;
                 ofs.vx = 0;
@@ -2678,7 +2678,7 @@ static void func_actor_503500_8013EE5C(Task* arg0, WorldCollisionBody* arg1, Wor
             continue;
         }
         src = gPlayerActorTasks[(id >> 7) & 1]->extra.tmd->coords;
-        Gp_ComposeParentWorld(coord, &mtx, &pos);
+        gfxComposeNodeWorldTransform(coord, &mtx, &pos);
         d.vx = src->coord.t[0] - pos.vx;
         d.vy = src->coord.t[1] - pos.vy;
         d.vz = src->coord.t[2] - pos.vz;
@@ -3204,7 +3204,7 @@ static void func_actor_503500_801400A4(Task* arg0)
             work->lungeTarget.vx = gPlayerStatus.coordMtx->t[0];
             work->lungeTarget.vy = gPlayerStatus.coordMtx->t[1];
             work->lungeTarget.vz = gPlayerStatus.coordMtx->t[2];
-            Gp_ComposeParentWorld(coord->parent, &mtx, &pos);
+            gfxComposeNodeWorldTransform(coord->parent, &mtx, &pos);
             v.vx = work->lungeTarget.vx - pos.vx;
             v.vy = work->lungeTarget.vy - pos.vy - 5000;
             v.vz = work->lungeTarget.vz - pos.vz;
@@ -3222,7 +3222,7 @@ static void func_actor_503500_801400A4(Task* arg0)
                 work->curlWeight = 0x2000;
             }
             if (work->tipArrived != 0 && work->swayPhase[ACTOR_503500_LUNGING_CHAIN_TIP_PART] > 2000) {
-                Gp_ComposeParentWorld(coord->parent, &mtx, &pos);
+                gfxComposeNodeWorldTransform(coord->parent, &mtx, &pos);
                 v.vx = work->lungeTarget.vx - pos.vx;
                 v.vy = work->lungeTarget.vy - pos.vy + 500;
                 v.vz = work->lungeTarget.vz - pos.vz;
@@ -3363,7 +3363,7 @@ static void func_actor_503500_80140654(Task* arg0)
             break;
         case 1:
             if (work->tipArrived != 0) {
-                Gp_ComposeParentWorld(coord, &m, &rot);
+                gfxComposeNodeWorldTransform(coord, &m, &rot);
                 coord->coord        = m;
                 coord->coord.t[0]   = rot.vx;
                 coord->coord.t[1]   = rot.vy;
@@ -3541,7 +3541,7 @@ static void func_actor_503500_80140D38(Task* arg0, WorldCollisionBody* arg1, Wor
         if (work->hitCooldown != 0) {
             continue;
         }
-        Gp_ComposeParentWorld(coord, &mtx, &pos);
+        gfxComposeNodeWorldTransform(coord, &mtx, &pos);
         src  = gPlayerActorTasks[(id >> 7) & 1]->extra.tmd->coords;
         d.vx = src->coord.t[0] - pos.vx;
         d.vy = src->coord.t[1] - pos.vy;
@@ -3691,7 +3691,7 @@ static void func_actor_503500_80141448(Task* arg0)
 
     coord = arg0->extra.tmd->coords;
     work  = arg0->work;
-    Gp_ComposeParentWorld(coord, &m, &ctrl[0]);
+    gfxComposeNodeWorldTransform(coord, &m, &ctrl[0]);
     work->linkPoints[0].vx = ctrl[0].vx;
     work->linkPoints[0].vy = ctrl[0].vy;
     work->linkPoints[0].vz = ctrl[0].vz;
@@ -3711,7 +3711,7 @@ static void func_actor_503500_80141448(Task* arg0)
     ctrl[1].vx += ctrl[0].vx;
     ctrl[1].vy += ctrl[0].vy;
     ctrl[1].vz += ctrl[0].vz;
-    Gp_ComposeParentWorld(coord->parent, &m, &tmp);
+    gfxComposeNodeWorldTransform(coord->parent, &m, &tmp);
     gte_SetRotMatrix(&m);
     gte_ldv0(&work->tipPosition);
     gte_rtv0();
@@ -3759,7 +3759,7 @@ static void func_actor_503500_8014176C(SVECTOR* pts, GfxCoord* coords)
     s->up.vx = 0;
     s->up.vy = 0x1000;
     s->up.vz = 0;
-    Gp_ComposeParentWorld(coords->parent, &s->worldRotation, &s->parentTranslation);
+    gfxComposeNodeWorldTransform(coords->parent, &s->worldRotation, &s->parentTranslation);
     for (i = 0, j = 1; i < 8; i++, j++) {
         s->segment.vx = pts[j].vx - pts[i].vx;
         s->segment.vy = pts[j].vy - pts[i].vy;
@@ -4342,7 +4342,7 @@ static void func_actor_503500_80142980(Task* arg0)
                     param2[3] = 2;
                 }
                 work->loadCommandSlot = cdCmdEnqueue(CD_COMMAND_LOAD_FILE, param1, param2);
-                Gp_ComposeParentWorld(coord, &m.mat, &rot);
+                gfxComposeNodeWorldTransform(coord, &m.mat, &rot);
                 // Copy the nine coefficients as four words and a halfword; preserve the alignment halfword.
                 in  = (s32*)&m;
                 out = (s32*)&coord->coord;
@@ -4531,7 +4531,7 @@ static void func_actor_503500_801431EC(Task* arg0, WorldCollisionBody* arg1, Wor
             continue;
         }
         src = gPlayerActorTasks[(id >> 7) & 1]->extra.tmd->coords;
-        Gp_ComposeParentWorld(coord, &mtx, &pos);
+        gfxComposeNodeWorldTransform(coord, &mtx, &pos);
         d.vx = src->coord.t[0] - pos.vx;
         d.vy = src->coord.t[1] - pos.vy;
         d.vz = src->coord.t[2] - pos.vz;
@@ -4659,7 +4659,7 @@ static void func_actor_503500_801437D0(Task* arg0, WorldCollisionContact* rec, s
                     RotMatrixY(-0x5DC, &work->knockbackRotation);
                     coord = &arg0->parent->extra.tmd->coords[11];
                 }
-                Gp_ComposeParentWorld(coord, &world, &vec);
+                gfxComposeNodeWorldTransform(coord, &world, &vec);
                 gte_TransposeMatrix(&pcoord->coord, &rot);
                 gte_SetRotMatrix(&rot);
                 gte_ldv0(&vec);

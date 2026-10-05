@@ -4873,7 +4873,7 @@ void Gp_TickActorAnimState(Task* arg0)
     u16                    flags;
 
     actor = arg0->work;
-    rec   = Gp_AnimGetRec(&actor->animationContext, actor->animationSlots + 1);
+    rec   = animationGetCurrentRecord(&actor->animationContext, actor->animationSlots + 1);
     switch (actor->animationState) {
         case 0:
         case 1:
@@ -4964,8 +4964,8 @@ void Gp_StepPlayerMove(Task* arg0)
         case 5:
         case 6:
         case 7:
-            if (Gp_AnimGetRec(&actor->animationContext,
-                              actor->animationSlots + 1) == NULL) {
+            if (animationGetCurrentRecord(&actor->animationContext,
+                                          actor->animationSlots + 1) == NULL) {
                 actor->velocity.vx = 0;
                 actor->velocity.vy = 0;
                 actor->velocity.vz = 0;
@@ -7011,7 +7011,7 @@ s32 func_80105ED4(Task* arg0)
     sound = WORLD_COLLISION_FOOTSTEP_SILENT;
     actor = arg0->work;
     obj   = arg0->extra.tmd->coords + 1;
-    rec   = Gp_AnimGetRec(&actor->animationContext, actor->animationSlots + 1);
+    rec   = animationGetCurrentRecord(&actor->animationContext, actor->animationSlots + 1);
     if (rec != NULL && rec != actor->lastCueRecord) {
         actor->lastCueRecord = rec;
         switch (cueBits = rec->flags & ANIMATION_RECORD_CUE_MASK) {
@@ -7447,7 +7447,7 @@ static void Gp_PlayerNormalState2(Task* arg0)
         }
         Gp_UpdateLockTarget(arg0);
         if ((s8)func_801060E0(arg0) != 0 &&
-            Gp_AnimGetRec(&actor->animationContext, actor->animationSlots + 1) != NULL &&
+            animationGetCurrentRecord(&actor->animationContext, actor->animationSlots + 1) != NULL &&
             actor->attackControl.cooldownTicks == 0) {
             dir = D_80112EF8[gPlayerStatus.weapon] != 0 ? actor->attackButton : 1;
             res = func_80106264(dir);
@@ -7544,7 +7544,7 @@ static void Gp_PlayerNormalState5(Task* arg0)
     switch (gPlayerStatus.weapon) {
         case 3:
         case 17:
-            rec = Gp_AnimGetRec(&actor->animationContext, actor->animationSlots + 1);
+            rec = animationGetCurrentRecord(&actor->animationContext, actor->animationSlots + 1);
             if (rec != NULL && rec != actor->lastCueRecord) {
                 actor->lastCueRecord = rec;
                 if ((rec->flags & ANIMATION_RECORD_CUE_MASK) == ANIMATION_RECORD_CUE_MASK) {
@@ -7578,8 +7578,8 @@ static void Gp_PlayerNormalState5(Task* arg0)
                     break;
                 case 2:
                 case 0x64:
-                    rec = Gp_AnimGetRec(&actor->animationContext,
-                                        actor->animationSlots + 1);
+                    rec = animationGetCurrentRecord(&actor->animationContext,
+                                                    actor->animationSlots + 1);
                     if (rec != NULL && rec != actor->lastCueRecord) {
                         actor->lastCueRecord = rec;
                         if ((rec->flags & ANIMATION_RECORD_CUE_MASK) == ANIMATION_RECORD_CUE_MASK) {
@@ -7598,8 +7598,8 @@ static void Gp_PlayerNormalState5(Task* arg0)
                 flags             = 0x20000002;
                 Gp_PlayObjSfx(arg0->extra.tmd->coords, base | (variant | flags), 0);
             } else {
-                rec = Gp_AnimGetRec(&actor->animationContext,
-                                    actor->animationSlots + 1);
+                rec = animationGetCurrentRecord(&actor->animationContext,
+                                                actor->animationSlots + 1);
                 if (rec != NULL && rec != actor->lastCueRecord) {
                     actor->lastCueRecord = rec;
                     if ((rec->flags & ANIMATION_RECORD_CUE_MASK) == ANIMATION_RECORD_CUE_MASK) {
@@ -7619,7 +7619,7 @@ static void Gp_PlayerNormalState5(Task* arg0)
                     Gp_SpawnEff(EFFECT_RELOAD_EMITTER, coord, (s32)gPlayerStatus.weapon, NULL);
                 }
             }
-            rec = Gp_AnimGetRec(&actor->animationContext, actor->animationSlots + 1);
+            rec = animationGetCurrentRecord(&actor->animationContext, actor->animationSlots + 1);
             if (rec != NULL && rec != actor->lastCueRecord) {
                 actor->lastCueRecord = rec;
                 if ((rec->flags & ANIMATION_RECORD_CUE_MASK) == ANIMATION_RECORD_CUE_MASK) {
@@ -7634,7 +7634,7 @@ static void Gp_PlayerNormalState5(Task* arg0)
         case 13:
         case 14:
         case 23:
-            rec = Gp_AnimGetRec(&actor->animationContext, actor->animationSlots + 1);
+            rec = animationGetCurrentRecord(&actor->animationContext, actor->animationSlots + 1);
             if (rec != NULL && rec != actor->lastCueRecord) {
                 actor->lastCueRecord = rec;
                 if ((rec->flags & ANIMATION_RECORD_CUE_MASK) == ANIMATION_RECORD_CUE_MASK) {
@@ -7651,7 +7651,7 @@ static void Gp_PlayerNormalState5(Task* arg0)
             }
             break;
         case 15:
-            rec = Gp_AnimGetRec(&actor->animationContext, actor->animationSlots + 1);
+            rec = animationGetCurrentRecord(&actor->animationContext, actor->animationSlots + 1);
             if (rec != NULL && rec != actor->lastCueRecord) {
                 actor->lastCueRecord = rec;
                 if ((rec->flags & ANIMATION_RECORD_CUE_MASK) == ANIMATION_RECORD_CUE_MASK) {
@@ -7682,7 +7682,7 @@ static void Gp_PlayerNormalState5(Task* arg0)
         case 26:
         case 28:
         case 29:
-            rec = Gp_AnimGetRec(&actor->animationContext, actor->animationSlots + 1);
+            rec = animationGetCurrentRecord(&actor->animationContext, actor->animationSlots + 1);
             if (rec != NULL && rec != actor->lastCueRecord) {
                 actor->lastCueRecord = rec;
                 if ((rec->flags & ANIMATION_RECORD_CUE_MASK) == ANIMATION_RECORD_CUE_MASK) {
@@ -7700,7 +7700,7 @@ static void Gp_PlayerNormalState5(Task* arg0)
         case 19:
             break;
         case 27:
-            rec = Gp_AnimGetRec(&actor->animationContext, actor->animationSlots + 1);
+            rec = animationGetCurrentRecord(&actor->animationContext, actor->animationSlots + 1);
             if (rec != NULL && rec != actor->lastCueRecord) {
                 actor->lastCueRecord = rec;
                 if ((rec->flags & ANIMATION_RECORD_CUE_MASK) == ANIMATION_RECORD_CUE_MASK) {
@@ -7736,8 +7736,8 @@ static void Gp_PlayerNormalState5(Task* arg0)
                 actor->statePhase = 1;
                 Gp_PlayObjSfx(arg0->extra.tmd->coords, base | 0x20000002, 0);
             } else {
-                rec = Gp_AnimGetRec(&actor->animationContext,
-                                    actor->animationSlots + 1);
+                rec = animationGetCurrentRecord(&actor->animationContext,
+                                                actor->animationSlots + 1);
                 if (rec != NULL && rec != actor->lastCueRecord) {
                     actor->lastCueRecord = rec;
                     if ((rec->flags & ANIMATION_RECORD_CUE_MASK) == ANIMATION_RECORD_CUE_MASK) {
@@ -8152,8 +8152,8 @@ static void Gp_PlayerMode2StateA(Task* arg0)
             playerActorPlayChildSlotsWithBlend(arg0, 8, 0, 6);
             Gp_DetachLinkNode(arg0);
         } else if ((s8)func_801060E0(arg0) != 0 &&
-                   Gp_AnimGetRec(&actor->animationContext,
-                                 actor->animationSlots + 1) != NULL &&
+                   animationGetCurrentRecord(&actor->animationContext,
+                                             actor->animationSlots + 1) != NULL &&
                    actor->attackControl.cooldownTicks == 0) {
             dir = D_80112EF8[gPlayerStatus.weapon] != 0 ? (s8)actor->attackButton : 1;
             res = func_80106264(dir);
@@ -8191,7 +8191,7 @@ static void Gp_PlayerMode2StateB(Task* arg0)
             playerActorPlayChildSlotsWithBlend(arg0, 0x28, 0, 6);
             break;
         case 1:
-            if (Gp_AnimGetRec(&actor->animationContext, actor->animationSlots + 1) !=
+            if (animationGetCurrentRecord(&actor->animationContext, actor->animationSlots + 1) !=
                 NULL) {
                 if (func_80105894(arg0, D_80112E04[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId][1], 0, 0) == 0) {
                     inner               = arg0->work;

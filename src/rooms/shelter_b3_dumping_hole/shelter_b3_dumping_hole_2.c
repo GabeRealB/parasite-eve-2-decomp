@@ -2229,7 +2229,7 @@ void func_shelter_b3_dumping_hole_8017DF90(Task* arg0)
     switch (arg0->state) {
         case 0:
             coord->parent = &gGfxViewCoord;
-            Gp_ComposeParentWorld(arg0->spawnArg2.pointer, &coord->coord, &vec);
+            gfxComposeNodeWorldTransform(arg0->spawnArg2.pointer, &coord->coord, &vec);
             coord->coord.t[0] = vec.vx + work->offset.vx;
             coord->coord.t[1] = vec.vy + work->offset.vy;
             coord->coord.t[2] = vec.vz + work->offset.vz;
@@ -2322,7 +2322,7 @@ void func_shelter_b3_dumping_hole_8017E440(Task* arg0)
     switch (arg0->state) {
         case 0:
             coord->parent = &gGfxViewCoord;
-            Gp_ComposeParentWorld(arg0->spawnArg2.pointer, &coord->coord, &vec);
+            gfxComposeNodeWorldTransform(arg0->spawnArg2.pointer, &coord->coord, &vec);
             coord->coord.t[0] = vec.vx;
             coord->coord.t[1] = vec.vy;
             coord->coord.t[2] = vec.vz;
@@ -2816,8 +2816,8 @@ void func_shelter_b3_dumping_hole_8017F820(Task* arg0)
                 memFillBytes(work, 0, sizeof(*work));
                 work->player                       = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                 D_shelter_b3_dumping_hole_8018F4A8 = arg0;
-                work->placement0Actor              = Gp_FindWorkById(gGameSession->location.loc.area | (gGameSession->location.loc.stage << ENEMY_PLACE_STAGE_SHIFT))->task;
-                work->placement1Actor              = Gp_FindWorkById((gGameSession->location.loc.stage << ENEMY_PLACE_STAGE_SHIFT) | (u16)(gGameSession->location.loc.area | (1 << ENEMY_PLACE_INDEX_SHIFT)))->task;
+                work->placement0Actor              = sceneFindEnemyByPlaceKey(gGameSession->location.loc.area | (gGameSession->location.loc.stage << ENEMY_PLACE_STAGE_SHIFT))->task;
+                work->placement1Actor              = sceneFindEnemyByPlaceKey((gGameSession->location.loc.stage << ENEMY_PLACE_STAGE_SHIFT) | (u16)(gGameSession->location.loc.area | (1 << ENEMY_PLACE_INDEX_SHIFT)))->task;
                 work->debrisSpriteSignal           = SHELTER_B3_DUMPING_HOLE_DEBRIS_SPRITES_WAIT;
                 work->debrisModelSignal            = SHELTER_B3_DUMPING_HOLE_DEBRIS_MODELS_WAIT;
                 work->field_4A                     = 0;
@@ -3086,7 +3086,7 @@ void func_shelter_b3_dumping_hole_8018005C(Task* arg0)
             work          = arg0->work;
             coord->parent = &gGfxViewCoord;
             memFillBytes(arg0->work, 0, SHELTER_B3_DUMPING_HOLE_SHARD_WORK_BYTES);
-            Gp_ComposeParentWorld(spawn->emitter, &coord->coord, &ofs);
+            gfxComposeNodeWorldTransform(spawn->emitter, &coord->coord, &ofs);
             coord->coord.t[0] = ofs.vx + spawn->offset.vx;
             coord->coord.t[1] = ofs.vy + spawn->offset.vy;
             coord->coord.t[2] = ofs.vz + spawn->offset.vz;
@@ -3507,7 +3507,7 @@ void func_shelter_b3_dumping_hole_80181560(Task* task)
                 memFillBytes(work, 0, sizeof(*work));
                 work->player                       = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                 D_shelter_b3_dumping_hole_8018F4AC = task;
-                work->placement0Actor              = Gp_FindWorkById(gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8))->task;
+                work->placement0Actor              = sceneFindEnemyByPlaceKey(gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8))->task;
                 obj->lightMtx                      = &work->lightMtx;
                 obj->colorMtx                      = &work->colorMtx;
                 task->msgTable                     = D_shelter_b3_dumping_hole_8018965C;

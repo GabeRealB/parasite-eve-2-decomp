@@ -2067,8 +2067,8 @@ static void func_actor_303600_80162850(Task* task)
 
 /// Message 0x7DB handler, listed in `D_actor_303600_8016E480` -- the table
 /// `func_actor_303600_801626C0` installs at `Task::msgTable`.  The payload is
-/// the 0x7DA record `Gp_SendMsgType9` forwards back to the slot-4 task's
-/// type-9 children, so the halfword switched on here is the sender's selector:
+/// the borrowed actor command `_sceneBroadcastToPlacedActors` forwards to the scene
+/// manager's placed children, so the halfword switched on here is the sender's selector:
 /// 0 sets the shaft's scroll speed to 384.0 (16.16 world units a frame) and
 /// ramps it by +8.0 a frame toward 768.0, 1 ramps whatever speed it has by
 /// -6.0 a frame toward -768.0, and every other selector exits the task

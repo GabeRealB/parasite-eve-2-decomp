@@ -2068,7 +2068,7 @@ static void func_actor_403000_801336B4(Task* arg0)
             work->slots[i].rate      = (work->animRate - 3);
             animationTickSlotPose(anim, i, &pose, 0);
             animationTickSlotPose(&work->blendAnim, i, &blendPose, 0);
-            Gp_AnimWritePoseCopy(anim, i, &pose, &blendPose, weight, 0x1000 - weight);
+            animationApplyPoseWithBlendedRotation(anim, i, &pose, &blendPose, weight, 0x1000 - weight);
         } else {
             work->slots[i].rate = (work->animRate - 3);
             animationTickSlot(&work->anim, i);

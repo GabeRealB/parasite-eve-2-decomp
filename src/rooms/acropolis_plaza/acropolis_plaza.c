@@ -3992,7 +3992,7 @@ static inline Enemy* _acropolisPlazaFindPlacedEnemy(u8 entryId)
         }
     }
 found:
-    return Gp_FindWorkById((index << ENEMY_PLACE_INDEX_SHIFT) | (sessionKey->stage << ENEMY_PLACE_STAGE_SHIFT) | sessionKey->area);
+    return sceneFindEnemyByPlaceKey((index << ENEMY_PLACE_INDEX_SHIFT) | (sessionKey->stage << ENEMY_PLACE_STAGE_SHIFT) | sessionKey->area);
 }
 
 /// Plays `animationId` from the player's bank for the equipped weapon, off the

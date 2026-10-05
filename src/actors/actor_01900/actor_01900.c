@@ -935,7 +935,7 @@ static __inline__ void Actor01900_ResetYaw(GfxCoord* coord)
 #include "../../shared/player_detection_sight.inc.c"
 
 /// Advances the actor's animation one tick. Joints 1-10 are sampled from both
-/// the main and the blend animation and passed to `Gp_AnimWritePoseCopy` with
+/// the main and the blend animation and passed to `animationApplyPoseWithBlendedRotation` with
 /// weights `blendWeight` and 0x1000 - `blendWeight`; joints 11-18 tick the main
 /// animation alone. The per-joint rates come from `animRate` and `blendRate`.
 static void Actor01900_Fn01950(Task* arg0)
@@ -956,7 +956,7 @@ static void Actor01900_Fn01950(Task* arg0)
             work->rig.slots[i].rate   = (work->animRate - 3);
             animationTickSlotPose(anim, i, &pose, 0);
             animationTickSlotPose(&work->blend.anim, i, &blendPose, 0);
-            Gp_AnimWritePoseCopy(anim, i, &pose, &blendPose, weight, 0x1000 - weight);
+            animationApplyPoseWithBlendedRotation(anim, i, &pose, &blendPose, weight, 0x1000 - weight);
         } else {
             work->rig.slots[i].rate = (work->animRate - 3);
             animationTickSlot(&work->rig.anim, i);

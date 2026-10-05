@@ -1160,8 +1160,8 @@ static void func_actor_206100_8014B0AC(Task* task, u8 arg1)
                     base[3].composeStamp = GRAPHICS_COORD_DIRTY;
                     base[4].composeStamp = GRAPHICS_COORD_DIRTY;
                     actorRenderComposeCoord(c4);
-                    Gp_MtxToEuler(&c2->coord, &work->lowerNeckAngles);
-                    Gp_MtxToEuler(&c3->coord, &work->upperNeckAngles);
+                    gfxExtractEulerAngles(&c2->coord, &work->lowerNeckAngles);
+                    gfxExtractEulerAngles(&c3->coord, &work->upperNeckAngles);
                     work->neckPhase = ACTOR_206100_NECK_STRAIGHTEN;
                     work->neckScale = 0x1000;
                     /* fallthrough */
@@ -1205,7 +1205,7 @@ static void func_actor_206100_8014B0AC(Task* task, u8 arg1)
                     GfxRotationWords* ic;
                     GfxRotationWords* ir;
 
-                    Gp_MtxToEuler(&c4->coord, &euler);
+                    gfxExtractEulerAngles(&c4->coord, &euler);
                     work->neckScale         = (u16)work->neckScale + ((0x2AA - work->neckScale) >> 3);
                     ia                      = &ma.rotationWords;
                     ma.rotationWords.m00M01 = ONE;
@@ -1270,7 +1270,7 @@ static void func_actor_206100_8014B0AC(Task* task, u8 arg1)
                 GfxRotationWords* ic;
                 GfxRotationWords* ir;
 
-                Gp_MtxToEuler(&c4->coord, &euler);
+                gfxExtractEulerAngles(&c4->coord, &euler);
                 work->neckScale         = (u16)work->neckScale + ((0x1000 - work->neckScale) >> 2);
                 ia                      = &ma.rotationWords;
                 ma.rotationWords.m00M01 = ONE;
@@ -3051,9 +3051,9 @@ static void func_actor_206100_8014E228(Task* task)
     mc.rotationWords.m20M21 = 0;
     ic->m22                 = ONE;
 
-    Gp_MtxToEuler(m2, &rot1);
+    gfxExtractEulerAngles(m2, &rot1);
     m3 = &c3->coord;
-    Gp_MtxToEuler(&c3->coord, &rot2);
+    gfxExtractEulerAngles(&c3->coord, &rot2);
     RotMatrixX(rot1.vx + (s16)(work->recoilPitch / 3), &ma.mat);
     RotMatrixX(rot2.vx + (s16)(work->recoilPitch / 3), &mb.mat);
     c2->coord.m[0][0] = ma.mat.m[0][0];
@@ -3238,7 +3238,7 @@ static void func_actor_206100_8014EB60(Task* task)
     matrix.rotationWords.m20M21 = 0;
     mtx->m[2][2]                = 0x1000;
 
-    Gp_MtxToEuler(dest, &rot);
+    gfxExtractEulerAngles(dest, &rot);
     rot.vx += work->part5Pitch;
     RotMatrix(&rot, &matrix.mat);
     dest->m[0][0] = matrix.mat.m[0][0];

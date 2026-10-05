@@ -139,7 +139,7 @@ enum {
     /// the charge ends; up to 32 are spawned by the PE charge task func_800FAA14 while
     /// a Parasite Energy is charging.
     EFFECT_PE_CHARGE_PARTICLE = EFFECT_ID(EFFECT_TASK_BANK, 0x032),
-    /// Ramps the lift bay CLUT from its unlit to its lit palette (Gp_BlendRgb555Clut)
+    /// Ramps the lift bay CLUT from its unlit to its lit palette (gpuBlendRgb555ClutRow)
     /// and keeps it lit only in session phase 5; spawned by a west-elevator-hall
     /// message handler.
     EFFECT_ACROPOLIS_WEST_ELEVATOR_BAY_LIGHTS = EFFECT_ID(EFFECT_TASK_BANK, 0x033),

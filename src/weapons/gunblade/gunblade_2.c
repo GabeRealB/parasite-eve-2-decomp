@@ -126,7 +126,7 @@ void func_gunblade_8011E040(Task* arg0)
             actor->movementMode = 0;
             break;
         case 1:
-            if (Gp_AnimGetRec(&actor->animationContext, actor->animationSlots + 1) !=
+            if (animationGetCurrentRecord(&actor->animationContext, actor->animationSlots + 1) !=
                 NULL) {
                 actor->statePhase++;
             }

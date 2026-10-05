@@ -1134,7 +1134,7 @@ Task* func_dryfield_night_garage_80180A64(s32 arg0)
     Enemy* enemy;
     Task*  task;
 
-    enemy = Gp_FindWorkById(gGameSession->location.loc.area | ((arg0 << ENEMY_PLACE_INDEX_SHIFT) | (gGameSession->location.loc.stage << ENEMY_PLACE_STAGE_SHIFT)));
+    enemy = sceneFindEnemyByPlaceKey(gGameSession->location.loc.area | ((arg0 << ENEMY_PLACE_INDEX_SHIFT) | (gGameSession->location.loc.stage << ENEMY_PLACE_STAGE_SHIFT)));
     task  = NULL;
     if (enemy != NULL) {
         task = enemy->task;

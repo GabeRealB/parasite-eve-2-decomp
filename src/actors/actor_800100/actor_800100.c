@@ -2154,7 +2154,7 @@ static void func_actor_800100_80164E60(Task* arg0)
 
     actor     = arg0->work;
     companion = actor->companionWork;
-    rec       = Gp_AnimGetRec(&actor->animationContext, actor->animationSlots + 1);
+    rec       = animationGetCurrentRecord(&actor->animationContext, actor->animationSlots + 1);
     coord     = actor->equipmentTasks[1]->extra.tmd->coords;
     sel       = D_actor_800100_80167218[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant];
 
@@ -2913,8 +2913,8 @@ static void func_actor_800100_80166190(Task* arg0)
             break;
 
         case 1:
-            if (Gp_AnimGetRec(&actor->animationContext,
-                              actor->animationSlots + 1) != NULL) {
+            if (animationGetCurrentRecord(&actor->animationContext,
+                                          actor->animationSlots + 1) != NULL) {
                 actor->stateAux += 1;
             }
             break;

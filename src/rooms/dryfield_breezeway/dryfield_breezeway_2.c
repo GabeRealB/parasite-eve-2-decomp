@@ -516,9 +516,9 @@ void func_dryfield_breezeway_8017E010(Task* arg0)
                 D_dryfield_breezeway_801843C0 = arg0;
                 // The placed actors are found by place key: the session's stage and area with the placement index.
                 id                         = gGameSession->location.loc.area | (gGameSession->location.loc.stage << ENEMY_PLACE_STAGE_SHIFT);
-                work->desertChaserTasks[0] = Gp_FindWorkById(id)->task;
+                work->desertChaserTasks[0] = sceneFindEnemyByPlaceKey(id)->task;
                 id                         = ((gGameSession->location.loc.stage << ENEMY_PLACE_STAGE_SHIFT) | (1 << ENEMY_PLACE_INDEX_SHIFT)) | gGameSession->location.loc.area;
-                work->desertChaserTasks[1] = Gp_FindWorkById(id)->task;
+                work->desertChaserTasks[1] = sceneFindEnemyByPlaceKey(id)->task;
             }
             arg0->state += 1;
             return;
@@ -566,9 +566,9 @@ void func_dryfield_breezeway_8017E114(Task* arg0)
                 D_dryfield_breezeway_801843C0 = arg0;
                 // The placed actors are found by place key: the session's stage and area with the placement index.
                 id                         = gGameSession->location.loc.area | (gGameSession->location.loc.stage << ENEMY_PLACE_STAGE_SHIFT);
-                work->desertChaserTasks[0] = Gp_FindWorkById(id)->task;
+                work->desertChaserTasks[0] = sceneFindEnemyByPlaceKey(id)->task;
                 id                         = ((gGameSession->location.loc.stage << ENEMY_PLACE_STAGE_SHIFT) | (1 << ENEMY_PLACE_INDEX_SHIFT)) | gGameSession->location.loc.area;
-                work->desertChaserTasks[1] = Gp_FindWorkById(id)->task;
+                work->desertChaserTasks[1] = sceneFindEnemyByPlaceKey(id)->task;
             }
             id                       = gPlayerStatus.weapon;
             buf.source.index         = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? id + 1 : id + 0x22;

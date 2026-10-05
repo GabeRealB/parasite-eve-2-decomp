@@ -1059,7 +1059,7 @@ void func_dryfield_main_street_8017E1C0(Task* task)
 
     player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     actor  = (GameActor*)player->work;
-    enemy  = Gp_FindWorkById(gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8));
+    enemy  = sceneFindEnemyByPlaceKey(gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8));
     if ((enemy != NULL) && (gGameSession->eventState != 0)) {
         self      = player->extra.tmd->coords;
         target    = &enemy->task->extra.tmd->coords[1];
@@ -1147,7 +1147,7 @@ void func_dryfield_main_street_8017E3A8(Task* task)
                     task->killCountdown = 0;
                 }
             }
-            enemy = Gp_FindWorkById(gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8));
+            enemy = sceneFindEnemyByPlaceKey(gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8));
             func_800B0928(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), enemy->task, 0x300, 0x200, task->killCountdown);
         } else {
             taskKill(task);

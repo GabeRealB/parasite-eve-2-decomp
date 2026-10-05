@@ -81,7 +81,7 @@ void func_pa3_8011D1DC(Task* arg0)
             actor->movementMode = 0;
             /* fallthrough */
         case 1:
-            if (Gp_AnimGetRec(&actor->animationContext, actor->animationSlots + 1) !=
+            if (animationGetCurrentRecord(&actor->animationContext, actor->animationSlots + 1) !=
                 NULL) {
                 actor->statePhase++;
             }

@@ -110,7 +110,7 @@ void func_m4a1_grenade_8011D1EC(Task* arg0)
             actor->movementMode = 0;
             break;
         case 1:
-            if (Gp_AnimGetRec(&actor->animationContext, actor->animationSlots + 1) !=
+            if (animationGetCurrentRecord(&actor->animationContext, actor->animationSlots + 1) !=
                 NULL) {
                 actor->statePhase++;
             }
@@ -177,7 +177,7 @@ void func_m4a1_grenade_8011D1EC(Task* arg0)
             }
             /* fallthrough */
         case 5:
-            rec = Gp_AnimGetRec(&actor->animationContext, actor->animationSlots + 1);
+            rec = animationGetCurrentRecord(&actor->animationContext, actor->animationSlots + 1);
             if (rec != NULL && rec != actor->lastCueRecord) {
                 actor->lastCueRecord = rec;
                 if ((rec->flags & ANIMATION_RECORD_CUE_MASK) == ANIMATION_RECORD_CUE_MASK) {

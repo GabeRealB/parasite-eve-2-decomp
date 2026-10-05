@@ -2582,7 +2582,7 @@ static s32 func_actor_800200_80165104(Task* arg0)
     sound = WORLD_COLLISION_FOOTSTEP_SILENT;
     actor = arg0->work;
     obj   = arg0->extra.tmd->coords;
-    rec   = Gp_AnimGetRec(&actor->animationContext, actor->animationSlots + 1);
+    rec   = animationGetCurrentRecord(&actor->animationContext, actor->animationSlots + 1);
     if (rec != NULL && rec != actor->lastCueRecord) {
         actor->lastCueRecord = rec;
         switch (cueBits = rec->flags & ANIMATION_RECORD_CUE_MASK) {

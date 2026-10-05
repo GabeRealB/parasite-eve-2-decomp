@@ -466,7 +466,7 @@ void func_actor_341300_80162278(Task* task)
 
     player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     actor  = (GameActor*)player->work;
-    enemy  = Gp_FindWorkById(gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8));
+    enemy  = sceneFindEnemyByPlaceKey(gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8));
     if ((enemy != NULL) && (gGameSession->eventState != 0)) {
         self      = player->extra.tmd->coords;
         target    = &D_actor_341300_80165330.pos;

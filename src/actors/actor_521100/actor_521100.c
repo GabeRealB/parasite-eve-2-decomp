@@ -3126,7 +3126,7 @@ done:
 /// animation record the cue body reads has dropped `flags` bit 0x20 (or 0x10)
 /// while `Actor521100Work::lastCueFlags` still holds it, panned and
 /// depth-attenuated from the actor's display coordinate. The record is the one
-/// `Gp_AnimGetRec` returns for the slot at 0x3C - the second of the 0x28-byte
+/// `animationGetCurrentRecord` returns for the slot at 0x3C - the second of the 0x28-byte
 /// slots the actor work blocks lay out from 0x14, the same one the other actor
 /// overlays' cue bodies play from. The cue id is the `Enemy` work id's bits
 /// 12+ placed in bits 8-11 with the overlay's 0x401C tag, 1 for the 0x20 foot
@@ -3143,7 +3143,7 @@ static void func_actor_521100_80134D88(Task* arg0)
 
     work  = arg0->work;
     coord = arg0->extra.tmd->coords;
-    rec   = Gp_AnimGetRec(&work->rig.anim, &work->rig.slots[1]);
+    rec   = animationGetCurrentRecord(&work->rig.anim, &work->rig.slots[1]);
     if (rec != NULL) {
         if (!(rec->flags & ANIMATION_RECORD_CUE_2) && (work->lastCueFlags & ANIMATION_RECORD_CUE_2)) {
             snd = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401C0001;

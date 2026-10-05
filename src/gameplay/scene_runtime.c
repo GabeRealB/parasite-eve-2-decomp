@@ -331,7 +331,7 @@ extern _CdCmdSceneSoundBankBit Gp_SndMaskTable[];
 /// Printed when an enemy's work block cannot be allocated.
 static const char Gp_StrNewEnemyNull[];
 
-/// Three-entry dispatcher table: `Gp_EnemyWaitStart`, `Gp_EnemyWaitTick`, `enemyDestroy`.
+/// Three-entry dispatcher table: `Gp_EnemyWaitStart`, `_enemyWaitTick`, `enemyDestroy`.
 static const EnemyTaskFuncTable3 Gp_EnemyWaitFuncs;
 
 static const TaskFuncTable3 Gp_StageLoadStates;
@@ -344,20 +344,65 @@ static const char _gAnimationUnsupportedPoseDiagnostic[24];
 
 static const TaskFuncTable3 D_80093A5C;
 
+/// Pixel extent of the fixed gameplay screen effects.
+enum { DISPLAY_EFFECT_WIDTH  = 320,
+       DISPLAY_EFFECT_HEIGHT = 240 };
+
+/// Fixed pulse counter and the shift from counter steps to byte intensity.
+enum { FADE_PULSE_STEPS           = 32,
+       FADE_PULSE_LAST_STEP       = FADE_PULSE_STEPS - 1,
+       FADE_PULSE_INTENSITY_SHIFT = 3 };
+
+/// Previous-frame redraw modes and optional fade timing in task ticks.
+enum { DISPLAY_FRAME_REDRAW_FADE            = 1,
+       DISPLAY_FRAME_REDRAW_DOUBLE_PASS     = 16,
+       DISPLAY_FRAME_REDRAW_FADE_DELAY      = 60,
+       DISPLAY_FRAME_REDRAW_FADE_STEP       = 8,
+       DISPLAY_FRAME_REDRAW_SUPPRESSED_DEMO = 1,
+       DISPLAY_FRAME_REDRAW_MASK_OT_TAG     = 1023,
+       DISPLAY_FRAME_REDRAW_TEXTURE_DEPTH   = 2,
+       DISPLAY_FRAME_REDRAW_RIGHT_PAGE_X    = 128,
+       DISPLAY_FRAME_REDRAW_RIGHT_U         = 32,
+       DISPLAY_FRAME_REDRAW_LOWER_BUFFER_V  = 16 };
+
+/// GPU packet commands used by the fixed screen effects.
+///
+/// Draw modes retain dithering; the redraw modes additionally permit drawing to display.
+enum { GPU_SCREEN_SEMITRANSPARENT_TILE     = 0x62,
+       GPU_SCREEN_RAW_SEMITRANSPARENT_QUAD = 0x2F,
+       GPU_SCREEN_DRAW_MODE_SUBTRACT       = 0xE1000200 | (GPU_BLEND_SUBTRACT << 5),
+       GPU_SCREEN_DRAW_MODE_ADD            = 0xE1000200 | (GPU_BLEND_ADD << 5),
+       GPU_SCREEN_DRAW_MODE_DITHER_DISPLAY = 0xE1000600,
+       GPU_SCREEN_DRAW_MODE_DISPLAY        = 0xE1000400 };
+
+/// RGB555 format masks and the channel scale used by the GTE blend.
+enum { GPU_RGB555_CHANNEL_MASK      = 0x1F,
+       GPU_RGB555_GTE_CHANNEL_SHIFT = 7,
+       GPU_RGB555_GTE_CHANNEL_MASK  = GPU_RGB555_CHANNEL_MASK << GPU_RGB555_GTE_CHANNEL_SHIFT,
+       GPU_RGB555_STP_MASK          = 0x8000 };
+
+/// Scene-child query results.
+enum { SCENE_CHILD_LOOKUP_FOUND     = 0,
+       SCENE_CHILD_LOOKUP_NOT_FOUND = -1 };
+
+/// Fractional bits of the Q12 unit vectors used for Euler extraction.
+enum { GRAPHICS_FIXED_FRACTION_BITS = 12 };
+
 /// High byte of `Enemy::workType` for an actor the scene manager placed.
 enum {
-    SCENE_PLACED_ACTOR_BANK = 9,
+    SCENE_ACTOR_BANK_SHIFT  = 8,
+    SCENE_PLACED_ACTOR_BANK = ENEMY_WORK_PLAIN >> SCENE_ACTOR_BANK_SHIFT,
 };
 
 extern TaskMessageEntry Gp_Slot4MsgTable[5];
 
-s32 Gp_FindChildType9(Task* scene, s32 messageId, s32 selector, Task** reply);
+static s32 _sceneFindPlacedActor(Task* scene, s32 messageId, s32 placeKey, Task** reply);
 
-s32 Gp_FindChildExceptType9(Task* scene, s32 messageId, s32 selector, Task** reply);
+static s32 _sceneFindOtherChild(Task* scene, s32 messageId, s32 childId, Task** reply);
 
-s32 Gp_ExitChildrenType9(Task* scene, s32 messageId, s32 firstArg, s32 secondArg);
+static s32 _sceneExitPlacedActors(Task* scene, s32 messageId, s32 firstArg, s32 secondArg);
 
-s32 Gp_SendMsgType9(Task* scene, s32 messageId, s32 payload, s32 childMessage);
+static s32 _sceneBroadcastToPlacedActors(Task* scene, s32 messageId, s32 payload, s32 childMessage);
 
 static void Gp_ApplySndMasks(u16 arg0);
 
@@ -367,7 +412,7 @@ static Enemy* Gp_AllocEnemy(Task* task, Enemy* parent);
 
 static void Gp_EnemyWaitStart(Enemy* enemy, Task* task);
 
-static void Gp_EnemyWaitTick(Enemy* enemy, Task* task);
+static void _enemyWaitTick(Enemy* enemy, Task* task);
 
 static s32 Gp_TryEnqueueSndCd(s32 arg0);
 
@@ -379,16 +424,13 @@ static void Gp_FinishStageLoad(Task* task);
 
 static void Gp_StageLoadState2(Task* task);
 
-static void func_800B1EFC(Task* t);
+static void _fadeTickPulse(Task* task);
 
-/// Unpacks two RGB555 colors, GPF/GPL-blends them by `arg2` / `0x1000 -
-/// arg2`, packs the result into `*arg3`, and copies the STP bit if
-/// either source has it set.
-static void Gp_BlendRgb555(u16* arg0, u16* arg1, s32 arg2, u16* arg3);
+static void _gpuBlendRgb555(const u16* first, const u16* second, s32 firstWeight, u16* destination);
 
 static void Gp_BlendRgb555ClutMasked(u16* arg0, u16* arg1, s32 arg2, u16* arg3, s32 arg4);
 
-static void func_800B28E0(Task* task);
+static void _fadeStartPulse(Task* task);
 
 static void _animationBlendTranslationRotation(const _AnimationBlendRequest* request, GfxCoord* coord, AnimationSlot* slot);
 
@@ -412,7 +454,7 @@ static void func_800B46A4(AnimationContext* unusedContext, AnimationSlot* arg1, 
 
 static void func_800B4754(AnimationContext* unusedContext, AnimationSlot* arg1, u16 arg2, u16 arg3);
 
-static void func_800B51F4(Task* task);
+static void _displayRedrawPreviousFrame(Task* task);
 
 static void Gp_SetCurAreaFlag2(s32 useSavedPoses);
 
@@ -426,7 +468,7 @@ static void Gp_KillSlot4Children(void);
 
 static void func_800B6014(void);
 
-static void func_800B6094(Task* task);
+static void _displayStartPreviousFrameRedraw(Task* task);
 
 /// The 2-bit state of entry `arg0` in the current stage's `Gp_Bit2Banks` flags.
 static inline s32 _gpGetCurBit2Flag(s32 arg0);
@@ -1074,7 +1116,11 @@ static void Gp_EnemyWaitStart(Enemy* enemy, Task* task)
     task->state++;
 }
 
-static void Gp_EnemyWaitTick(Enemy* enemy, Task* task)
+/// Counts down one frame of an enemy's bodyless teardown delay.
+///
+/// Requires a positive `waitTicks` set by the preceding state. Reaching zero
+/// advances the task to its destruction state; this tick frees no storage.
+static void _enemyWaitTick(Enemy* enemy, Task* task)
 {
     enemy->waitTicks--;
     if (enemy->waitTicks == 0) {
@@ -1280,7 +1326,7 @@ void func_800B0928(Task* arg0, Task* arg1, s32 arg2, s32 arg3, s32 arg4)
 
     base = arg0->extra.tmd->coords;
     rec  = base + 4;
-    Gp_MtxToEuler(&base[4].coord, &euler);
+    gfxExtractEulerAngles(&base[4].coord, &euler);
 
     ang.vx     = euler.vx + (ang.vx - euler.vx) * arg4 / 4096;
     ang.vy     = euler.vy + (ang.vy - euler.vy) * arg4 / 4096;
@@ -1360,7 +1406,7 @@ void func_800B0CF4(Task* arg0, GfxCoord* arg1, s32 arg2, s32 arg3, s32 arg4)
     angles.vy = ratan2(position.vx, position.vz);
     angles.vz = 0;
     part      = &arg0->extra.tmd->coords[4];
-    Gp_MtxToEuler(&part->coord, &current);
+    gfxExtractEulerAngles(&part->coord, &current);
     angles.vx  = current.vx + (angles.vx - current.vx) * arg4 / 4096;
     angles.vy  = current.vy + (angles.vy - current.vy) * arg4 / 4096;
     angles.vz  = current.vz;
@@ -1389,36 +1435,38 @@ void func_800B0CF4(Task* arg0, GfxCoord* arg1, s32 arg2, s32 arg3, s32 arg4)
     RotMatrix(&angles, outMtx);
 }
 
-void Gp_MtxToEuler(MATRIX* arg0, SVECTOR* arg1)
+void gfxExtractEulerAngles(const MATRIX* matrix, SVECTOR* angles)
 {
-    SVECTOR in;
-    SVECTOR out;
-    MATRIX  mtx;
-    s32     one;
-    s16     len;
+    SVECTOR axis;
+    SVECTOR rotatedAxis;
+    MATRIX  rotation;
+    s32     unitScale;
+    s16     yzLength;
 
-    mtx      = *arg0;
-    one      = 0x1000;
-    mtx.t[2] = 0;
-    mtx.t[1] = 0;
-    mtx.t[0] = 0;
-    in.vx    = 0;
-    in.vy    = 0;
-    in.vz    = one;
-    ApplyMatrixSV(&mtx, &in, &out);
-    arg1->vx = -ratan2(out.vy, out.vz);
-    len      = SquareRoot12((out.vz * out.vz + out.vy * out.vy) >> 12);
-    arg1->vy = ratan2(out.vx, len);
-    in.vx    = 0;
-    in.vy    = one;
-    in.vz    = 0;
-    ApplyMatrixSV(&mtx, &in, &out);
-    in.vx = -arg1->vx;
-    in.vy = -arg1->vy;
-    in.vz = 0;
-    RotMatrixZYX(&in, &mtx);
-    ApplyMatrixSV(&mtx, &out, &in);
-    arg1->vz = -ratan2(in.vx, in.vy);
+    rotation      = *matrix;
+    unitScale     = ONE;
+    rotation.t[2] = 0;
+    rotation.t[1] = 0;
+    rotation.t[0] = 0;
+    // The transformed +Z axis determines pitch and yaw.
+    axis.vx = 0;
+    axis.vy = 0;
+    axis.vz = unitScale;
+    ApplyMatrixSV(&rotation, &axis, &rotatedAxis);
+    angles->vx = -ratan2(rotatedAxis.vy, rotatedAxis.vz);
+    yzLength   = SquareRoot12((rotatedAxis.vz * rotatedAxis.vz + rotatedAxis.vy * rotatedAxis.vy) >> GRAPHICS_FIXED_FRACTION_BITS);
+    angles->vy = ratan2(rotatedAxis.vx, yzLength);
+    // Cancel pitch and yaw from transformed +Y to recover roll.
+    axis.vx = 0;
+    axis.vy = unitScale;
+    axis.vz = 0;
+    ApplyMatrixSV(&rotation, &axis, &rotatedAxis);
+    axis.vx = -angles->vx;
+    axis.vy = -angles->vy;
+    axis.vz = 0;
+    RotMatrixZYX(&axis, &rotation);
+    ApplyMatrixSV(&rotation, &rotatedAxis, &axis);
+    angles->vz = -ratan2(axis.vx, axis.vy);
 }
 
 SVECTOR* gfxExtractSmallestEuler(SVECTOR* angles, const MATRIX* matrix)
@@ -1694,144 +1742,163 @@ void func_800B17D4(Task* arg0, Task* arg1, AnimationHeadAim* arg2)
     rec->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
-void Gp_ComposeParentWorld(GfxCoord* arg0, MATRIX* arg1, SVECTOR* arg2)
+/// Appends a node's local rotation to the parent rotation already loaded in the GTE.
+///
+/// Writes the three destination columns independently; translation is untouched.
+static inline void _gfxComposeNodeRotation(const GfxCoord* node, MATRIX* worldRotation)
 {
-    SVECTOR tmp;
-    MATRIX* m;
-    s32     one;
+    gte_ldclmv(&node->coord);
+    gte_rtir();
+    gte_stclmv(worldRotation);
+    gte_ldclmv(&node->coord.m[0][1]);
+    gte_rtir();
+    gte_stclmv(&worldRotation->m[0][1]);
+    gte_ldclmv(&node->coord.m[0][2]);
+    gte_rtir();
+    gte_stclmv(&worldRotation->m[0][2]);
+}
 
-    if (arg0->parent != &gGfxViewCoord) {
-        Gp_ComposeParentWorld(arg0->parent, arg1, arg2);
+void gfxComposeNodeWorldTransform(const GfxCoord* node, MATRIX* worldRotation, SVECTOR* worldTranslation)
+{
+    SVECTOR localTranslation;
+    s32     unitScale;
+
+    if (node->parent != &gGfxViewCoord) {
+        gfxComposeNodeWorldTransform(node->parent, worldRotation, worldTranslation);
     } else {
-        one                  = ONE;
-        m                    = arg1;
-        *(s32*)m             = one;
-        MATRIX_PAIR(m, 0, 2) = 0;
-        MATRIX_PAIR(m, 1, 1) = one;
-        MATRIX_PAIR(m, 2, 0) = 0;
-        m->m[2][2]           = one;
-        arg2->vx             = 0;
-        arg2->vy             = 0;
-        arg2->vz             = 0;
+        unitScale                        = ONE;
+        MATRIX_PAIR(worldRotation, 0, 0) = unitScale;
+        MATRIX_PAIR(worldRotation, 0, 2) = 0;
+        MATRIX_PAIR(worldRotation, 1, 1) = unitScale;
+        MATRIX_PAIR(worldRotation, 2, 0) = 0;
+        worldRotation->m[2][2]           = unitScale;
+        worldTranslation->vx             = 0;
+        worldTranslation->vy             = 0;
+        worldTranslation->vz             = 0;
     }
 
-    tmp.vx = (u16)arg0->coord.t[0];
-    tmp.vy = (u16)arg0->coord.t[1];
-    tmp.vz = (u16)arg0->coord.t[2];
-    gte_SetRotMatrix(arg1);
-    gte_ldv0(&tmp);
+    // Each hierarchy level truncates translations to signed halfwords.
+    localTranslation.vx = (u16)node->coord.t[0];
+    localTranslation.vy = (u16)node->coord.t[1];
+    localTranslation.vz = (u16)node->coord.t[2];
+    gte_SetRotMatrix(worldRotation);
+    gte_ldv0(&localTranslation);
     gte_rtv0();
-    gte_stsv(&tmp);
-    arg2->vx += tmp.vx;
-    arg2->vy += tmp.vy;
-    arg2->vz += tmp.vz;
-    gte_ldclmv(&arg0->coord);
-    gte_rtir();
-    gte_stclmv(arg1);
-    gte_ldclmv(&arg0->coord.m[0][1]);
-    gte_rtir();
-    gte_stclmv(&arg1->m[0][1]);
-    gte_ldclmv(&arg0->coord.m[0][2]);
-    gte_rtir();
-    gte_stclmv(&arg1->m[0][2]);
+    gte_stsv(&localTranslation);
+    worldTranslation->vx += localTranslation.vx;
+    worldTranslation->vy += localTranslation.vy;
+    worldTranslation->vz += localTranslation.vz;
+    _gfxComposeNodeRotation(node, worldRotation);
 }
 
-static void func_800B1EFC(Task* t)
+/// Emits a screen-pulse tile and its add/subtract draw mode at tag 0.
+///
+/// Borrows two packets from the current frame arena; screen shake offsets the tile.
+static inline void _fadeDrawPulse(Task* task, u8 intensity)
 {
-    TILE*     p;
-    DR_TPAGE* dr;
-    u8        color;
+    TILE*     tile;
+    DR_TPAGE* blendCommand;
 
-    if (t->spawnArg1.value > 0) {
-        if (t->killCountdown > 0) {
-            t->killCountdown--;
-            color = ~(t->killCountdown << 3);
+    tile           = gGpuPrimCursor;
+    gGpuPrimCursor = tile + 1;
+    setlen(tile, 3);
+    setcode(tile, GPU_SCREEN_SEMITRANSPARENT_TILE);
+    setXY0(tile, -DISPLAY_EFFECT_WIDTH / 2, -DISPLAY_EFFECT_HEIGHT / 2);
+    tile->y0 -= gDisplayState.vramYOffset;
+    tile->b0  = intensity;
+    tile->g0  = intensity;
+    tile->r0  = intensity;
+    setWH(tile, DISPLAY_EFFECT_WIDTH, DISPLAY_EFFECT_HEIGHT);
+
+    blendCommand   = gGpuPrimCursor;
+    gGpuPrimCursor = blendCommand + 1;
+    if (task->spawnArg2.value == SCREEN_FADE_SUBTRACT) {
+        setlen(blendCommand, 1);
+        blendCommand->code[0] = GPU_SCREEN_DRAW_MODE_SUBTRACT;
+    } else {
+        setlen(blendCommand, 1);
+        blendCommand->code[0] = GPU_SCREEN_DRAW_MODE_ADD;
+    }
+    addPrim(gGpuCurrentOt, tile);
+    addPrim(gGpuCurrentOt, blendCommand);
+}
+
+/// Draws one frame of a timed full-screen colour pulse.
+///
+/// `spawnArg1.value` is the remaining peak hold in frames. While it is positive,
+/// `killCountdown` falls toward zero to raise the intensity; after the hold it
+/// rises to 31 to end the pulse. Intensity truncates to a byte after complementing
+/// the counter shifted by three. A zero `spawnArg2.value` subtracts toward black;
+/// any other value adds toward white. The tile compensates vertical screen shake.
+/// Packets borrow the current frame arena and are linked at ordering-table tag 0.
+static void _fadeTickPulse(Task* task)
+{
+    u8 intensity;
+
+    if (task->spawnArg1.value > 0) {
+        if (task->killCountdown > 0) {
+            task->killCountdown--;
+            intensity = ~(task->killCountdown << FADE_PULSE_INTENSITY_SHIFT);
         } else {
-            t->spawnArg1.value--;
-            color = 0xFF;
+            task->spawnArg1.value--;
+            intensity = 0xFF;
         }
     } else {
-        t->killCountdown++;
-        color = ~(t->killCountdown << 3);
-        if (t->killCountdown >= 0x1F) {
-            t->state++;
+        task->killCountdown++;
+        intensity = ~(task->killCountdown << FADE_PULSE_INTENSITY_SHIFT);
+        if (task->killCountdown >= FADE_PULSE_LAST_STEP) {
+            task->state++;
         }
     }
 
-    p              = gGpuPrimCursor;
-    gGpuPrimCursor = p + 1;
-    setlen(p, 3);
-    setcode(p, 0x62);
-    setXY0(p, -0xA0, -0x78);
-    p->y0 -= gDisplayState.vramYOffset;
-    p->b0  = color;
-    p->g0  = color;
-    p->r0  = color;
-    setWH(p, 0x140, 0xF0);
-
-    dr             = gGpuPrimCursor;
-    gGpuPrimCursor = dr + 1;
-    if (t->spawnArg2.pointer == 0) {
-        setlen(dr, 1);
-        dr->code[0] = 0xE1000240;
-    } else {
-        setlen(dr, 1);
-        dr->code[0] = 0xE1000220;
-    }
-    addPrim(gGpuCurrentOt, p);
-    addPrim(gGpuCurrentOt, dr);
+    _fadeDrawPulse(task, intensity);
 }
 
-/// Unpacks two RGB555 colors, GPF/GPL-blends them by `arg2` / `0x1000 -
-/// arg2`, packs the result into `*arg3`, and copies the STP bit if
-/// either source has it set.
-static void Gp_BlendRgb555(u16* arg0, u16* arg1, s32 arg2, u16* arg3)
+/// Expands RGB555 channels into the short-vector scale used by the Q12 GTE blend.
+static inline void _gpuUnpackRgb555(u16 color, _Rgb555Scratch* channels)
 {
-    u8*             head;
+    channels->b = color;
+    channels->g = color;
+    channels->r = (color & GPU_RGB555_CHANNEL_MASK) << GPU_RGB555_GTE_CHANNEL_SHIFT;
+    channels->g = (channels->g << 2) & GPU_RGB555_GTE_CHANNEL_MASK;
+    channels->b = (channels->b >> 3) & GPU_RGB555_GTE_CHANNEL_MASK;
+}
+
+/// Interpolates one RGB555 colour and preserves either source's STP bit.
+///
+/// `firstWeight` is in 1/4096 units (0 selects `second`, `ONE` selects `first`).
+/// Both source halfwords must remain live and distinct from `destination`.
+/// Uses and releases three scratch-stack short vectors; no pointer is retained.
+static void _gpuBlendRgb555(const u16* first, const u16* second, s32 firstWeight, u16* destination)
+{
+    u8*             scratchEnd;
     _Rgb555Scratch* firstColor;
     _Rgb555Scratch* secondColor;
     _Rgb555Scratch* blendedColor;
-    u16             color;
     u16             packed;
 
     // Three slots below the saved cursor: first source, second source, result.
-    head                                 = SCRATCH_STACK_CURSOR(u8);
-    firstColor                           = (_Rgb555Scratch*)(head - 3 * sizeof(_Rgb555Scratch));
+    scratchEnd                           = SCRATCH_STACK_CURSOR(u8);
+    firstColor                           = (_Rgb555Scratch*)(scratchEnd - 3 * sizeof(_Rgb555Scratch));
     SCRATCH_STACK_CURSOR(_Rgb555Scratch) = firstColor;
 
     // Place each 5-bit channel in bits 7..11.
-    color         = *arg0;
-    firstColor->b = color;
-    firstColor->g = color;
-    firstColor->r = (color & 0x1F) << 7;
-    firstColor->g = (firstColor->g << 2) & 0xF80;
-    firstColor->b = (firstColor->b >> 3) & 0xF80;
+    _gpuUnpackRgb555(*first, firstColor);
 
-    secondColor    = (_Rgb555Scratch*)(head - 2 * sizeof(_Rgb555Scratch));
-    color          = *arg1;
-    secondColor->b = color;
-    secondColor->g = color;
-    secondColor->r = (color & 0x1F) << 7;
-    secondColor->g = (secondColor->g << 2) & 0xF80;
-    secondColor->b = (secondColor->b >> 3) & 0xF80;
+    secondColor = (_Rgb555Scratch*)(scratchEnd - 2 * sizeof(_Rgb555Scratch));
+    _gpuUnpackRgb555(*second, secondColor);
 
     // Weight the first colour by the factor, then add the second by its complement.
-    gte_lddp(arg2);
-    gte_ldsv(firstColor);
-    gte_gpf12();
-    gte_lddp(ONE - arg2);
-    gte_ldsv(secondColor);
-    gte_gpl12();
-    blendedColor = (_Rgb555Scratch*)(head - sizeof(_Rgb555Scratch));
-    gte_stsv(blendedColor);
+    gte_LoadAverageShort12(firstColor, secondColor, firstWeight, ONE - firstWeight,
+                           blendedColor = (_Rgb555Scratch*)(scratchEnd - sizeof(_Rgb555Scratch)));
 
     // Stage blue in bits 5..9, then shift green and blue into place and insert red.
-    packed = ((blendedColor->b >> 2) & 0x3E0) | ((blendedColor->g >> 7) & 0x1F);
-    packed = (packed << 5) | ((blendedColor->r >> 7) & 0x1F);
-    *arg3  = packed;
+    packed       = ((blendedColor->b >> 2) & 0x3E0) | ((blendedColor->g >> GPU_RGB555_GTE_CHANNEL_SHIFT) & GPU_RGB555_CHANNEL_MASK);
+    packed       = (packed << 5) | ((blendedColor->r >> GPU_RGB555_GTE_CHANNEL_SHIFT) & GPU_RGB555_CHANNEL_MASK);
+    *destination = packed;
     // Bit 15 is semi-transparency. Either source sets it on the packed result.
-    if ((s16)*arg0 < 0 || (s16)*arg1 < 0) {
-        *arg3 = packed | 0x8000;
+    if ((s16)*first < 0 || (s16)*second < 0) {
+        *destination = packed | GPU_RGB555_STP_MASK;
     }
     SCRATCH_STACK_RELEASE_BYTES(3 * sizeof(_Rgb555Scratch));
 }
@@ -1989,15 +2056,15 @@ void func_800B25B0(void)
     }
 }
 
-void Gp_BlendRgb555Clut(u16* arg0, u16* arg1, s32 arg2, u16* arg3)
+void gpuBlendRgb555ClutRow(const u16* first, const u16* second, s32 firstWeight, u16* destination)
 {
-    s32 i;
+    s32 entryIndex;
 
-    for (i = 0; i < 0x10; i++) {
-        Gp_BlendRgb555(arg0, arg1, arg2, arg3);
-        arg0++;
-        arg1++;
-        arg3++;
+    for (entryIndex = 0; entryIndex < GPU_RGB555_CLUT_ROW_COLORS; entryIndex++) {
+        _gpuBlendRgb555(first, second, firstWeight, destination);
+        first++;
+        second++;
+        destination++;
     }
 }
 
@@ -2007,7 +2074,7 @@ static void Gp_BlendRgb555ClutMasked(u16* arg0, u16* arg1, s32 arg2, u16* arg3, 
 
     for (i = 0; i < 0x10; i++) {
         if ((1 << i) & arg4) {
-            Gp_BlendRgb555(arg0, arg1, arg2, arg3);
+            _gpuBlendRgb555(arg0, arg1, arg2, arg3);
         }
         arg0++;
         arg1++;
@@ -2015,11 +2082,16 @@ static void Gp_BlendRgb555ClutMasked(u16* arg0, u16* arg1, s32 arg2, u16* arg3, 
     }
 }
 
-static void func_800B28E0(Task* task)
+/// Starts the fixed 32-step screen pulse and draws its first frame immediately.
+///
+/// The task's first spawn word is the peak hold in frames; its second selects
+/// subtract (zero) or add (nonzero). Nonpositive holds retain the immediate
+/// return-path behavior of `_fadeTickPulse`. The next state ticks the pulse.
+static void _fadeStartPulse(Task* task)
 {
-    task->killCountdown = 0x20;
+    task->killCountdown = FADE_PULSE_STEPS;
     task->state++;
-    func_800B1EFC(task);
+    _fadeTickPulse(task);
 }
 
 void func_800B2910(Task* arg0)
@@ -2928,37 +3000,30 @@ void Gp_AnimWritePoseBlend(AnimationContext* context, s32 arg1, AnimationPose* a
     SCRATCH_STACK_RELEASE_BLOCK(AnimationPose);
 }
 
-void Gp_AnimWritePoseCopy(AnimationContext* context, s32 arg1, AnimationPose* arg2, AnimationPose* arg3, s32 arg4,
-                          s32 arg5)
+void animationApplyPoseWithBlendedRotation(AnimationContext* context, s32 slotIndex, const AnimationPose* sourcePose, const AnimationPose* rotationPose, s32 sourceWeight,
+                                           s32 rotationWeight)
 {
-    void**         scratch;
-    AnimationPose* head;
-    AnimationSlot* slot;
-    GfxCoord*      dest;
-    SVECTOR*       rot;
-    s32            idx;
+    AnimationPose*       scratchEnd;
+    const AnimationSlot* slot;
+    GfxCoord*            destinationCoord;
+    SVECTOR*             blendedRotation;
+    s32                  coordIndex;
 
-    scratch                        = SCRATCH_HEAD_ADDR;
-    slot                           = &context->slots[arg1];
-    head                           = SCRATCH_HEAD_AT(scratch, AnimationPose);
-    idx                            = slot->coordIndex;
-    SCRATCH_HEAD_AT(scratch, void) = head - 1;
-    dest                           = &context->coords[idx];
+    slot                                = &context->slots[slotIndex];
+    scratchEnd                          = SCRATCH_STACK_CURSOR(AnimationPose);
+    coordIndex                          = slot->coordIndex;
+    SCRATCH_STACK_CURSOR(AnimationPose) = scratchEnd - 1;
+    destinationCoord                    = &context->coords[coordIndex];
+    // Translation comes only from the source pose; blend both rotations below.
     if (slot->poseEncoding == ANIMATION_POSE_TRANSLATION_ROTATION) {
-        dest->coord.t[0] = arg2->translation.vx;
-        dest->coord.t[1] = arg2->translation.vy;
-        dest->coord.t[2] = arg2->translation.vz;
+        destinationCoord->coord.t[0] = sourcePose->translation.vx;
+        destinationCoord->coord.t[1] = sourcePose->translation.vy;
+        destinationCoord->coord.t[2] = sourcePose->translation.vz;
     }
-    gte_lddp(arg4);
-    gte_ldsv(&arg2->rotation);
-    gte_gpf12();
-    gte_lddp(arg5);
-    gte_ldsv(&arg3->rotation);
-    gte_gpl12();
-    rot = &head[-1].rotation;
-    gte_stsv(rot);
-    RotMatrix_gte(rot, &dest->coord);
-    dest->composeStamp = GRAPHICS_COORD_DIRTY;
+    gte_LoadAverageShort12(&sourcePose->rotation, &rotationPose->rotation, sourceWeight, rotationWeight,
+                           blendedRotation = &scratchEnd[-1].rotation);
+    RotMatrix_gte(blendedRotation, &destinationCoord->coord);
+    destinationCoord->composeStamp = GRAPHICS_COORD_DIRTY;
     SCRATCH_STACK_RELEASE_BLOCK(AnimationPose);
 }
 
@@ -3007,7 +3072,7 @@ void func_800B4538(AnimationContext* context, s32 arg1, AnimationPose* arg2, u16
     slot->usesBufferedPose             = 0;
 }
 
-const AnimationRecord* Gp_AnimGetRec(AnimationContext* unusedContext, AnimationSlot* slot)
+const AnimationRecord* animationGetCurrentRecord(const AnimationContext* unusedContext, const AnimationSlot* slot)
 {
     u16                    setIndex;
     const AnimationRecord* record;
@@ -3404,133 +3469,152 @@ void Gp_DrawFloorQuad(GfxCoord* arg0, u32 arg1, SVECTOR* arg2)
     SCRATCH_STACK_RELEASE_BLOCK(_ActorRenderGroundShadowScratch);
 }
 
-static void func_800B51F4(Task* task)
+/// Selects both raw 16-bit texture halves from the framebuffer opposite the draw buffer.
+///
+/// The two framebuffer origins are VRAM rows 0 and 272; the right half starts at X=160.
+static inline void _displaySetPreviousFrameTextures(POLY_FT4* leftQuad, POLY_FT4* rightQuad, u16 drawBufferHalfword)
 {
-    s32       count;
-    s32       i;
-    s32       x;
-    s32       cx;
-    s32       y;
-    s32       mode;
-    u8        flag;
-    u16       flag2;
-    s32       color;
-    s32       right;
-    TILE*     tile;
-    DR_TPAGE* dr;
-    DR_TPAGE* fadeDr;
-    DR_STP*   stp;
-    POLY_FT4* p0;
-    POLY_FT4* p1;
-
-    mode  = gDisplayState.drawBuffer;
-    count = 1;
-    x     = 0;
-    y     = 0;
-    cx    = 0;
-    if (task->spawnArg1.value == 0x10) {
-        count = 2;
+    if (drawBufferHalfword) {
+        leftQuad->tpage = getTPage(DISPLAY_FRAME_REDRAW_TEXTURE_DEPTH, GPU_BLEND_AVERAGE, 0, 0);
+        leftQuad->u0 = leftQuad->u2 = 0;
+        leftQuad->u1 = leftQuad->u3 = DISPLAY_EFFECT_WIDTH / 2;
+        leftQuad->v0 = leftQuad->v1 = 0;
+        leftQuad->v2 = leftQuad->v3 = DISPLAY_EFFECT_HEIGHT - 1;
+        rightQuad->tpage            = getTPage(DISPLAY_FRAME_REDRAW_TEXTURE_DEPTH, GPU_BLEND_AVERAGE, DISPLAY_FRAME_REDRAW_RIGHT_PAGE_X, 0);
+        rightQuad->u0 = rightQuad->u2 = DISPLAY_FRAME_REDRAW_RIGHT_U;
+        rightQuad->u1 = rightQuad->u3 = DISPLAY_FRAME_REDRAW_RIGHT_U + DISPLAY_EFFECT_WIDTH / 2 - 1;
+        rightQuad->v0 = rightQuad->v1 = 0;
+        rightQuad->v2 = rightQuad->v3 = DISPLAY_EFFECT_HEIGHT - 1;
+    } else {
+        leftQuad->tpage = getTPage(DISPLAY_FRAME_REDRAW_TEXTURE_DEPTH, GPU_BLEND_AVERAGE, 0, 256);
+        leftQuad->u0 = leftQuad->u2 = 0;
+        leftQuad->u1 = leftQuad->u3 = DISPLAY_EFFECT_WIDTH / 2;
+        leftQuad->v0 = leftQuad->v1 = DISPLAY_FRAME_REDRAW_LOWER_BUFFER_V;
+        leftQuad->v2 = leftQuad->v3 = DISPLAY_FRAME_REDRAW_LOWER_BUFFER_V + DISPLAY_EFFECT_HEIGHT - 1;
+        rightQuad->tpage            = getTPage(DISPLAY_FRAME_REDRAW_TEXTURE_DEPTH, GPU_BLEND_AVERAGE, DISPLAY_FRAME_REDRAW_RIGHT_PAGE_X, 256);
+        rightQuad->u0 = rightQuad->u2 = DISPLAY_FRAME_REDRAW_RIGHT_U;
+        rightQuad->u1 = rightQuad->u3 = DISPLAY_FRAME_REDRAW_RIGHT_U + DISPLAY_EFFECT_WIDTH / 2 - 1;
+        rightQuad->v0 = rightQuad->v1 = DISPLAY_FRAME_REDRAW_LOWER_BUFFER_V;
+        rightQuad->v2 = rightQuad->v3 = DISPLAY_FRAME_REDRAW_LOWER_BUFFER_V + DISPLAY_EFFECT_HEIGHT - 1;
     }
-    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene == 1) {
+}
+
+/// Blends the previous framebuffer over the current 320 by 240 frame.
+///
+/// The opposite of `drawBuffer` supplies two raw, semitransparent 16-bit texture
+/// quads. `spawnArg1.value == 16` draws the pair twice; bit 0 enables a black fade
+/// after 60 ticks, adding eight intensity units per tick and saturating at 255.
+/// Saved demo scene 1 suppresses all drawing and the fade counter. This state
+/// runs until its owner exits it; it never advances the task state.
+/// The frame arena must fit the packets and the ordering table tags 0, 1 and 1023.
+static void _displayRedrawPreviousFrame(Task* task)
+{
+    s32       passCount;
+    s32       passIndex;
+    s32       centerX;
+    s32       rightEdgeBase;
+    s32       borderSize;
+    s32       drawBuffer;
+    u8        drawBufferByte;
+    u16       drawBufferHalfword;
+    s32       fadeIntensity;
+    s32       rightEdge;
+    TILE*     fadeTile;
+    DR_TPAGE* drawCommand;
+    DR_TPAGE* fadeCommand;
+    DR_STP*   maskCommand;
+    POLY_FT4* leftQuad;
+    POLY_FT4* rightQuad;
+
+    drawBuffer    = gDisplayState.drawBuffer;
+    passCount     = 1;
+    centerX       = 0;
+    borderSize    = 0;
+    rightEdgeBase = 0;
+    if (task->spawnArg1.value == DISPLAY_FRAME_REDRAW_DOUBLE_PASS) {
+        passCount = 2;
+    }
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene == DISPLAY_FRAME_REDRAW_SUPPRESSED_DEMO) {
         return;
     }
 
-    if (task->spawnArg1.value & 1) {
+    // Darken the feedback after its initial hold when the fade mode is enabled.
+    if (task->spawnArg1.value & DISPLAY_FRAME_REDRAW_FADE) {
         task->killCountdown++;
-        if (task->killCountdown >= 0x3D) {
-            color          = task->killCountdown - 0x3C;
-            color         *= 8;
-            tile           = gGpuPrimCursor;
-            gGpuPrimCursor = tile + 1;
-            setlen(tile, 3);
-            setcode(tile, 0x62);
-            if (color >= 0x100) {
-                color = 0xFF;
+        if (task->killCountdown > DISPLAY_FRAME_REDRAW_FADE_DELAY) {
+            fadeIntensity  = task->killCountdown - DISPLAY_FRAME_REDRAW_FADE_DELAY;
+            fadeIntensity *= DISPLAY_FRAME_REDRAW_FADE_STEP;
+            fadeTile       = gGpuPrimCursor;
+            gGpuPrimCursor = fadeTile + 1;
+            setlen(fadeTile, 3);
+            setcode(fadeTile, GPU_SCREEN_SEMITRANSPARENT_TILE);
+            if (fadeIntensity >= 0x100) {
+                fadeIntensity = 0xFF;
             }
-            tile->x0 = -0xA0;
-            tile->y0 = -0x78;
-            tile->w  = 0x140;
-            tile->h  = 0xF0;
-            tile->b0 = color;
-            tile->g0 = color;
-            tile->r0 = color;
-            addPrim(&gGpuCurrentOt[1], tile);
+            fadeTile->x0 = -DISPLAY_EFFECT_WIDTH / 2;
+            fadeTile->y0 = -DISPLAY_EFFECT_HEIGHT / 2;
+            fadeTile->w  = DISPLAY_EFFECT_WIDTH;
+            fadeTile->h  = DISPLAY_EFFECT_HEIGHT;
+            fadeTile->b0 = fadeIntensity;
+            fadeTile->g0 = fadeIntensity;
+            fadeTile->r0 = fadeIntensity;
+            addPrim(&gGpuCurrentOt[1], fadeTile);
 
-            fadeDr         = gGpuPrimCursor;
-            gGpuPrimCursor = fadeDr + 1;
-            setlen(fadeDr, 1);
-            fadeDr->code[0] = 0xE1000240;
-            addPrim(&gGpuCurrentOt[1], fadeDr);
+            fadeCommand    = gGpuPrimCursor;
+            gGpuPrimCursor = fadeCommand + 1;
+            setlen(fadeCommand, 1);
+            fadeCommand->code[0] = GPU_SCREEN_DRAW_MODE_SUBTRACT;
+            addPrim(&gGpuCurrentOt[1], fadeCommand);
         }
     }
 
-    stp            = gGpuPrimCursor;
-    gGpuPrimCursor = stp + 1;
-    SetDrawStp(stp, 0);
-    addPrim(&gGpuCurrentOt[0], stp);
+    // Mark scene pixels for the next texture blend, restoring the mask at the foreground end.
+    maskCommand    = gGpuPrimCursor;
+    gGpuPrimCursor = maskCommand + 1;
+    SetDrawStp(maskCommand, 0);
+    addPrim(&gGpuCurrentOt[0], maskCommand);
 
-    dr             = gGpuPrimCursor;
-    gGpuPrimCursor = dr + 1;
-    setlen(dr, 1);
-    dr->code[0] = 0xE1000600;
-    addPrim(&gGpuCurrentOt[0], dr);
+    drawCommand    = gGpuPrimCursor;
+    gGpuPrimCursor = drawCommand + 1;
+    setlen(drawCommand, 1);
+    drawCommand->code[0] = GPU_SCREEN_DRAW_MODE_DITHER_DISPLAY;
+    addPrim(&gGpuCurrentOt[0], drawCommand);
 
-    for (i = 0; i < count; i++) {
-        p0             = gGpuPrimCursor;
-        p1             = p0 + 1;
-        gGpuPrimCursor = p0 + 2;
-        setlen(p0, 9);
-        setcode(p0, 0x2F);
-        setlen(p1, 9);
-        setcode(p1, 0x2F);
-        p0->x0 = p0->x2 = x - (0xA0 + y);
-        p0->x1 = p0->x3 = x;
-        p0->y0 = p0->y1 = -0x78 - y;
-        p0->y2 = p0->y3 = y + 0x77;
-        right           = cx + 0x9F;
-        p1->x0 = p1->x2 = x;
-        p1->x1 = p1->x3 = right;
-        flag            = mode;
-        flag2           = flag;
-        p1->y0 = p1->y1 = -0x78 - y;
-        p1->y2 = p1->y3 = y + 0x77;
-        if (flag2) {
-            p0->tpage = 0x100;
-            p0->u0 = p0->u2 = 0;
-            p0->u1 = p0->u3 = 0xA0;
-            p0->v0 = p0->v1 = 0;
-            p0->v2 = p0->v3 = 0xEF;
-            p1->tpage       = 0x102;
-            p1->u0 = p1->u2 = 0x20;
-            p1->u1 = p1->u3 = 0xBF;
-            p1->v0 = p1->v1 = 0;
-            p1->v2 = p1->v3 = 0xEF;
-        } else {
-            p0->tpage = 0x110;
-            p0->u0 = p0->u2 = 0;
-            p0->u1 = p0->u3 = 0xA0;
-            p0->v0 = p0->v1 = 0x10;
-            p0->v2 = p0->v3 = 0xFF;
-            p1->tpage       = 0x112;
-            p1->u0 = p1->u2 = 0x20;
-            p1->u1 = p1->u3 = 0xBF;
-            p1->v0 = p1->v1 = 0x10;
-            p1->v2 = p1->v3 = 0xFF;
-        }
-        addPrim(&gGpuCurrentOt[0], p0);
-        addPrim(&gGpuCurrentOt[0], p1);
+    // Redraw the opposite framebuffer in two horizontal texture-page spans.
+    for (passIndex = 0; passIndex < passCount; passIndex++) {
+        leftQuad       = gGpuPrimCursor;
+        rightQuad      = leftQuad + 1;
+        gGpuPrimCursor = leftQuad + 2;
+        setlen(leftQuad, 9);
+        setcode(leftQuad, GPU_SCREEN_RAW_SEMITRANSPARENT_QUAD);
+        setlen(rightQuad, 9);
+        setcode(rightQuad, GPU_SCREEN_RAW_SEMITRANSPARENT_QUAD);
+        leftQuad->x0 = leftQuad->x2 = centerX - (DISPLAY_EFFECT_WIDTH / 2 + borderSize);
+        leftQuad->x1 = leftQuad->x3 = centerX;
+        leftQuad->y0 = leftQuad->y1 = -DISPLAY_EFFECT_HEIGHT / 2 - borderSize;
+        leftQuad->y2 = leftQuad->y3 = borderSize + DISPLAY_EFFECT_HEIGHT / 2 - 1;
+        rightEdge                   = rightEdgeBase + DISPLAY_EFFECT_WIDTH / 2 - 1;
+        rightQuad->x0 = rightQuad->x2 = centerX;
+        rightQuad->x1 = rightQuad->x3 = rightEdge;
+        drawBufferByte                = drawBuffer;
+        drawBufferHalfword            = drawBufferByte;
+        rightQuad->y0 = rightQuad->y1 = -DISPLAY_EFFECT_HEIGHT / 2 - borderSize;
+        rightQuad->y2 = rightQuad->y3 = borderSize + DISPLAY_EFFECT_HEIGHT / 2 - 1;
+        _displaySetPreviousFrameTextures(leftQuad, rightQuad, drawBufferHalfword);
+        addPrim(&gGpuCurrentOt[0], leftQuad);
+        addPrim(&gGpuCurrentOt[0], rightQuad);
     }
 
-    dr             = gGpuPrimCursor;
-    gGpuPrimCursor = dr + 1;
-    setlen(dr, 1);
-    dr->code[0] = 0xE1000400;
-    addPrim(&gGpuCurrentOt[0], dr);
+    drawCommand    = gGpuPrimCursor;
+    gGpuPrimCursor = drawCommand + 1;
+    setlen(drawCommand, 1);
+    drawCommand->code[0] = GPU_SCREEN_DRAW_MODE_DISPLAY;
+    addPrim(&gGpuCurrentOt[0], drawCommand);
 
-    stp            = gGpuPrimCursor;
-    gGpuPrimCursor = stp + 1;
-    SetDrawStp(stp, 1);
-    addPrim(&gGpuCurrentOt[0x3FF], stp);
+    maskCommand    = gGpuPrimCursor;
+    gGpuPrimCursor = maskCommand + 1;
+    SetDrawStp(maskCommand, 1);
+    addPrim(&gGpuCurrentOt[DISPLAY_FRAME_REDRAW_MASK_OT_TAG], maskCommand);
 }
 
 void Gp_ApplyAreaTmdFlags(void)
@@ -3606,7 +3690,7 @@ void Gp_ReparentCoord(GfxCoord* arg0, GfxCoord* arg1)
     }
 }
 
-Enemy* Gp_FindWorkById(u16 arg0)
+Enemy* sceneFindEnemyByPlaceKey(u16 placeKey)
 {
     Task*  head;
     Task*  iter;
@@ -3614,22 +3698,18 @@ Enemy* Gp_FindWorkById(u16 arg0)
     s32    key;
 
     enemy = NULL;
-    head  = (gameGetTaskSlot(GAME_TASK_SLOT_SCENE))->firstChild;
+    head  = gameGetTaskSlot(GAME_TASK_SLOT_SCENE)->firstChild;
     if (head != NULL) {
-        iter  = head;
-        enemy = iter->spawnArg2.pointer;
-        key   = arg0;
-        if (enemy->placeKey != key) {
-        loop:
+        iter = head;
+        key  = placeKey;
+        do {
+            enemy = iter->spawnArg2.pointer;
+            if (enemy->placeKey == key) {
+                break;
+            }
             iter  = iter->nextSibling;
             enemy = NULL;
-            if (iter != head) {
-                enemy = iter->spawnArg2.pointer;
-                if (enemy->placeKey != key) {
-                    goto loop;
-                }
-            }
-        }
+        } while (iter != head);
     }
     return enemy;
 }
@@ -3834,28 +3914,32 @@ void func_800B5DB8(Task* arg0)
     funcs[arg0->state](arg0);
 }
 
-/// Finds the placed actor whose `placeKey` equals the selector.
+/// Finds the scene child in the placed-actor bank with the complete placement key.
 ///
-/// The message ID is not read. The walk follows the scene task's child ring.
-s32 Gp_FindChildType9(Task* scene, s32 messageId, s32 selector, Task** reply)
+/// `placeKey` packs area (bits 0..7), stage (8..11) and instance (12..15).
+/// `reply` must address one writable `Task*`; it receives the borrowed child or
+/// NULL. Returns 0 on a match and -1 otherwise. The message ID is ignored.
+/// Every child must publish a live `Enemy` through `spawnArg2.pointer`.
+static s32 _sceneFindPlacedActor(Task* scene, s32 messageId, s32 placeKey, Task** reply)
 {
-    Task* head;
-    Task* child;
-    s32   result;
+    Enemy* enemy = NULL;
+    Task*  head;
+    Task*  child;
+    s32    result;
 
     *reply = NULL;
     head   = scene->firstChild;
-    result = -1;
+    result = SCENE_CHILD_LOOKUP_NOT_FOUND;
     if (head == NULL) {
         return result;
     }
     child = head;
     do {
         // The child publishes its enemy work through spawnArg2.
-        scene = child->spawnArg2.pointer;
-        if ((((Enemy*)scene)->workType >> 8) == SCENE_PLACED_ACTOR_BANK && ((Enemy*)scene)->placeKey == selector) {
+        enemy = child->spawnArg2.pointer;
+        if ((enemy->workType >> SCENE_ACTOR_BANK_SHIFT) == SCENE_PLACED_ACTOR_BANK && enemy->placeKey == placeKey) {
             *reply = child;
-            result = 0;
+            result = SCENE_CHILD_LOOKUP_FOUND;
             break;
         }
         child = child->nextSibling;
@@ -3863,28 +3947,32 @@ s32 Gp_FindChildType9(Task* scene, s32 messageId, s32 selector, Task** reply)
     return result;
 }
 
-/// Finds a child outside the placed-actor bank whose id byte equals the selector.
+/// Finds a scene child outside the placed-actor bank by its low placement-key byte.
 ///
-/// The id is the low byte of `placeKey`. The message ID is not read.
-s32 Gp_FindChildExceptType9(Task* scene, s32 messageId, s32 selector, Task** reply)
+/// `childId` is an integer byte ID (0..255); it is compared without truncating
+/// that argument. `reply` must address one writable `Task*`; it receives the
+/// borrowed child or NULL. Returns 0 on a match and -1 otherwise. The message ID
+/// is ignored. Every child must publish a live `Enemy` through `spawnArg2.pointer`.
+static s32 _sceneFindOtherChild(Task* scene, s32 messageId, s32 childId, Task** reply)
 {
-    Task* head;
-    Task* child;
-    s32   result;
+    Enemy* enemy = NULL;
+    Task*  head;
+    Task*  child;
+    s32    result;
 
     *reply = NULL;
     head   = scene->firstChild;
-    result = -1;
+    result = SCENE_CHILD_LOOKUP_NOT_FOUND;
     if (head == NULL) {
         return result;
     }
     child = head;
     do {
         // The child publishes its enemy work through spawnArg2.
-        scene = child->spawnArg2.pointer;
-        if ((((Enemy*)scene)->workType >> 8) != SCENE_PLACED_ACTOR_BANK && (u8)((Enemy*)scene)->placeKey == selector) {
+        enemy = child->spawnArg2.pointer;
+        if ((enemy->workType >> SCENE_ACTOR_BANK_SHIFT) != SCENE_PLACED_ACTOR_BANK && (u8)enemy->placeKey == childId) {
             *reply = child;
-            result = 0;
+            result = SCENE_CHILD_LOOKUP_FOUND;
             break;
         }
         child = child->nextSibling;
@@ -3894,9 +3982,11 @@ s32 Gp_FindChildExceptType9(Task* scene, s32 messageId, s32 selector, Task** rep
 
 /// Runs the exit routine of every placed actor among the scene task's children.
 ///
-/// The message ID and both argument words are not read. A child's exit routine
-/// may unlink it, so the next sibling is taken before that call.
-s32 Gp_ExitChildrenType9(Task* scene, s32 messageId, s32 firstArg, s32 secondArg)
+/// All message words are ignored. Children publish live `Enemy` work through
+/// `spawnArg2.pointer`. Save the next sibling before exit can unlink the child;
+/// exit callbacks must leave that saved sibling and the traversal boundary usable.
+/// Returns 0, including for an empty ring.
+static s32 _sceneExitPlacedActors(Task* scene, s32 messageId, s32 firstArg, s32 secondArg)
 {
     Task*  head;
     Task*  child;
@@ -3911,7 +4001,7 @@ s32 Gp_ExitChildrenType9(Task* scene, s32 messageId, s32 firstArg, s32 secondArg
     child = head;
     do {
         enemy = child->spawnArg2.pointer;
-        bank  = enemy->workType >> 8;
+        bank  = enemy->workType >> SCENE_ACTOR_BANK_SHIFT;
         next  = child->nextSibling;
         if (bank == SCENE_PLACED_ACTOR_BANK) {
             taskCallExit(child);
@@ -3921,13 +4011,15 @@ s32 Gp_ExitChildrenType9(Task* scene, s32 messageId, s32 firstArg, s32 secondArg
     return 0;
 }
 
-/// Forwards one message to every placed actor among the scene task's children.
+/// Forwards a message and its first payload to every placed actor in the scene.
 ///
-/// The message ID is not read. The second word is the message sent to each
-/// child and the first word is that message's payload; the child's own second
-/// argument is zero. A handler may unlink the child, so the next sibling is
-/// taken before the send. Returns 0.
-s32 Gp_SendMsgType9(Task* scene, s32 messageId, s32 payload, s32 childMessage)
+/// The incoming message ID is ignored. `childMessage` selects each child's
+/// handler; `payload` carries its first integer or address word, with zero as
+/// its second word. Borrowed payloads must stay live through synchronous dispatch.
+/// Children publish live `Enemy` work. Save the next sibling before dispatch can
+/// unlink the child; callbacks must leave it and the traversal boundary usable.
+/// Returns 0 and discards child results.
+static s32 _sceneBroadcastToPlacedActors(Task* scene, s32 messageId, s32 payload, s32 childMessage)
 {
     Task*  head;
     Task*  child;
@@ -3942,7 +4034,7 @@ s32 Gp_SendMsgType9(Task* scene, s32 messageId, s32 payload, s32 childMessage)
     child = head;
     do {
         enemy = child->spawnArg2.pointer;
-        bank  = enemy->workType >> 8;
+        bank  = enemy->workType >> SCENE_ACTOR_BANK_SHIFT;
         next  = child->nextSibling;
         if (bank == SCENE_PLACED_ACTOR_BANK) {
             taskMessageDispatch(child, childMessage, payload, 0);
@@ -3984,9 +4076,13 @@ void areaSyncLocationVariant(GameLocationKey* key)
     key->variant = areaState->variant;
 }
 
-static void func_800B6094(Task* task)
+/// Enters the previous-frame redraw state, clearing its optional fade timer.
+///
+/// Only spawn-word bit 0 requests the timer reset. Other modes leave that field
+/// untouched; the redraw state does not use it unless the fade is enabled.
+static void _displayStartPreviousFrameRedraw(Task* task)
 {
-    if (task->spawnArg1.value & 1) {
+    if (task->spawnArg1.value & DISPLAY_FRAME_REDRAW_FADE) {
         task->killCountdown = 0;
     }
     task->state++;
@@ -4146,10 +4242,10 @@ static inline s16 _gpScanHeldQty(InventoryItemRow* table, InventoryItemRange* sc
 /// Printed when an enemy's work block cannot be allocated.
 static const char Gp_StrNewEnemyNull[] = "new_enemy ---> NULL\n";
 
-/// Three-entry dispatcher table: `Gp_EnemyWaitStart`, `Gp_EnemyWaitTick`, `enemyDestroy`.
+/// Three-entry dispatcher table: `Gp_EnemyWaitStart`, `_enemyWaitTick`, `enemyDestroy`.
 static const EnemyTaskFuncTable3 Gp_EnemyWaitFuncs = { {
     Gp_EnemyWaitStart,
-    Gp_EnemyWaitTick,
+    _enemyWaitTick,
     enemyDestroy,
 } };
 
@@ -4162,8 +4258,8 @@ static const TaskFuncTable3 Gp_StageLoadStates = { {
 static const VECTOR D_80093A28 = { 0, -100, 0, 0 };
 
 static const TaskFuncTable3 D_80093A38 = { {
-    func_800B28E0,
-    func_800B1EFC,
+    _fadeStartPulse,
+    _fadeTickPulse,
     taskCallExit,
 } };
 
@@ -4174,17 +4270,17 @@ static const TaskFuncTable3 D_80093A38 = { {
 static const char _gAnimationUnsupportedPoseDiagnostic[24] = "ERROR: ex_pdriver_2\n\0\xB7\xB0\x34";
 
 static const TaskFuncTable3 D_80093A5C = { {
-    func_800B6094,
-    func_800B51F4,
+    _displayStartPreviousFrameRedraw,
+    _displayRedrawPreviousFrame,
     taskCallExit,
 } };
 
 /// Message table the scene task installs while it is the scene manager.
 TaskMessageEntry Gp_Slot4MsgTable[5] = {
-    { SCENE_MESSAGE_FIND_PLACED_ACTOR, Gp_FindChildType9 },
-    { SCENE_MESSAGE_FIND_OTHER_CHILD, Gp_FindChildExceptType9 },
-    { SCENE_MESSAGE_EXIT_PLACED_ACTORS, Gp_ExitChildrenType9 },
-    { SCENE_MESSAGE_BROADCAST_TO_ACTORS, Gp_SendMsgType9 },
+    { SCENE_MESSAGE_FIND_PLACED_ACTOR, _sceneFindPlacedActor },
+    { SCENE_MESSAGE_FIND_OTHER_CHILD, _sceneFindOtherChild },
+    { SCENE_MESSAGE_EXIT_PLACED_ACTORS, _sceneExitPlacedActors },
+    { SCENE_MESSAGE_BROADCAST_TO_ACTORS, _sceneBroadcastToPlacedActors },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 AreaObjectStage Gp_Bit2Banks[6] = { { NULL, NULL }, { D_map_akropolis_8017A7FC, GameFlag_AcropolisBanks[0].header.objectStates }, { D_map_dryfield_8017A564, GameFlag_DryfieldBanks[0].header.objectStates }, { D_map_dryfield_full_8017A46C, GameFlag_DryfieldBanks[0].header.objectStates }, { D_map_shelter_8017A998, GameFlag_ShelterBanks[0].header.objectStates }, { D_map_neo_ark_8017A6EC, GameFlag_NeoArkBanks[0].header.objectStates } };

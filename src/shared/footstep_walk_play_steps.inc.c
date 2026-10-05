@@ -15,7 +15,7 @@ void footstepWalkPlaySteps(Task* task)
 
     work = task->work;
     obj  = task->extra.tmd->coords + 1;
-    rec  = Gp_AnimGetRec(&work->rig.anim, &work->rig.slots[1]);
+    rec  = animationGetCurrentRecord(&work->rig.anim, &work->rig.slots[1]);
     if (rec == NULL || rec == work->stepRecord) {
         return;
     }

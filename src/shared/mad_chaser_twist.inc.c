@@ -24,7 +24,7 @@ void madChaserTwistSpine(Task* arg0)
     mtx.rotationWords.m20M21 = 0;
     ident->m22               = ONE;
     m5                       = &coords[5].coord;
-    Gp_MtxToEuler(m5, &rot);
+    gfxExtractEulerAngles(m5, &rot);
     rot.vy = (u16)rot.vy + work->spineYaw / 3;
     RotMatrix(&rot, &mtx.mat);
     m5->m[0][0]            = (u16)mtx.mat.m[0][0];
@@ -44,7 +44,7 @@ void madChaserTwistSpine(Task* arg0)
     mtx.rotationWords.m20M21 = 0;
     ident->m22               = ONE;
     m4                       = &coords[4].coord;
-    Gp_MtxToEuler(m4, &rot);
+    gfxExtractEulerAngles(m4, &rot);
     rot.vy = (u16)rot.vy + work->spineYaw / 3;
     RotMatrix(&rot, &mtx.mat);
     m4->m[0][0]            = (u16)mtx.mat.m[0][0];
@@ -64,7 +64,7 @@ void madChaserTwistSpine(Task* arg0)
     mtx.rotationWords.m20M21 = 0;
     ident->m22               = ONE;
     m3                       = &coords[3].coord;
-    Gp_MtxToEuler(m3, &rot);
+    gfxExtractEulerAngles(m3, &rot);
     rot.vy = (u16)rot.vy + work->spineYaw / 3;
     RotMatrix(&rot, &mtx.mat);
     m3->m[0][0]            = (u16)mtx.mat.m[0][0];

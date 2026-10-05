@@ -831,7 +831,7 @@ void func_shelter_b3_garbage_incinerator_8017E158(Task* task)
                 D_shelter_b3_garbage_incinerator_8018FC34 = task;
                 obj->lightMtx                             = &work->lightMtx;
                 task->msgTable                            = D_shelter_b3_garbage_incinerator_80185B40;
-                work->carriedActor                        = Gp_FindWorkById(gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8))->task;
+                work->carriedActor                        = sceneFindEnemyByPlaceKey(gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8))->task;
             }
             if (gGameSession->incineratorExitPhase != GAME_SESSION_INCINERATOR_EXIT_NONE) {
                 func_shelter_b3_garbage_incinerator_8018507C();

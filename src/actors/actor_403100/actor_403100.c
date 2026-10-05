@@ -3721,7 +3721,7 @@ static void func_actor_403100_80132528(Task* arg0)
     pos.vz = 0x220;
     coordLocalToWorld(joint, &pos);
     func_actor_403100_8013D2F4(joint, &matrix);
-    Gp_MtxToEuler(&matrix, &rotation);
+    gfxExtractEulerAngles(&matrix, &rotation);
     player->rotation.vx = rotation.vx;
     player->rotation.vy = rotation.vy;
     player->rotation.vz = rotation.vz;
@@ -5321,7 +5321,7 @@ static inline void _actor403100TurnPart6(Task* task)
     dest                 = &coords->coord;
     coords->composeStamp = GRAPHICS_COORD_DIRTY;
     gfxSetRotIdentity(&rotation);
-    Gp_MtxToEuler(dest, &angles);
+    gfxExtractEulerAngles(dest, &angles);
     angles.vz += D_actor_403100_80155808->forearmTurn.vz;
     angles.vy += D_actor_403100_80155808->forearmTurn.vy;
     angles.vx += D_actor_403100_80155808->forearmTurn.vx;
@@ -5350,7 +5350,7 @@ static inline void _actor403100PitchArms(Task* task)
     coords = task->extra.tmd->coords;
     gfxSetRotIdentity(&rotation);
     dest = &coords[4].coord;
-    Gp_MtxToEuler(dest, &angles);
+    gfxExtractEulerAngles(dest, &angles);
     angles.vx += D_actor_403100_80155808->jawPitchOffset;
     RotMatrix(&angles, &rotation);
     dest->m[0][0] = rotation.m[0][0];
@@ -5366,7 +5366,7 @@ static inline void _actor403100PitchArms(Task* task)
     coords = task->extra.tmd->coords;
     gfxSetRotIdentity(&rotation);
     dest = &coords[3].coord;
-    Gp_MtxToEuler(dest, &angles);
+    gfxExtractEulerAngles(dest, &angles);
     angles.vx += D_actor_403100_80155808->headPitchOffset;
     RotMatrix(&angles, &rotation);
     dest->m[0][0] = rotation.m[0][0];
@@ -7251,15 +7251,15 @@ static void func_actor_403100_8013B5E0(Task* arg0, s16 arg1)
         func_actor_403100_8013D06C();
         RotMatrixZXY(&D_actor_403100_80155808->headAim, &scratch->aim);
     } else if (arg1 == ACTOR_403100_AIM_YAW_ONLY) {
-        Gp_MtxToEuler(&coords[part].coord, &headRotation);
+        gfxExtractEulerAngles(&coords[part].coord, &headRotation);
         D_actor_403100_80155808->headAim.vx += ((s32)(((u16)headRotation.vx - (u16)D_actor_403100_80155808->headAim.vx) << 20) >> 23);
         D_actor_403100_80155808->headAim.vz += ((s32)(((u16)headRotation.vz - (u16)D_actor_403100_80155808->headAim.vz) << 20) >> 23);
         func_actor_403100_8013CF60(angles, 8, 4, 1, 4);
         RotMatrixZXY(&D_actor_403100_80155808->headAim, &scratch->aim);
     } else if (arg1 == ACTOR_403100_AIM_ANIMATED) {
-        Gp_MtxToEuler(&coords[part].coord, &headRotation);
-        Gp_MtxToEuler(&coords[2].coord, &middleRotation);
-        Gp_MtxToEuler(&coords[1].coord, &lowerRotation);
+        gfxExtractEulerAngles(&coords[part].coord, &headRotation);
+        gfxExtractEulerAngles(&coords[2].coord, &middleRotation);
+        gfxExtractEulerAngles(&coords[1].coord, &lowerRotation);
         sum                                  = (u16)headRotation.vx + ((u16)middleRotation.vx + (u16)lowerRotation.vx);
         headRotation.vx                      = sum;
         headRotation.vy                      = (u16)headRotation.vy + ((u16)middleRotation.vy + (u16)lowerRotation.vy);
@@ -7274,7 +7274,7 @@ static void func_actor_403100_8013B5E0(Task* arg0, s16 arg1)
         func_actor_403100_8013D06C();
         RotMatrixZXY(&D_actor_403100_80155808->headAim, &scratch->aim);
     } else if (arg1 == ACTOR_403100_AIM_YAW_ONLY_FAST) {
-        Gp_MtxToEuler(&coords[part].coord, &headRotation);
+        gfxExtractEulerAngles(&coords[part].coord, &headRotation);
         D_actor_403100_80155808->headAim.vx += ((s32)(((u16)headRotation.vx - (u16)D_actor_403100_80155808->headAim.vx) << 20) >> 23);
         D_actor_403100_80155808->headAim.vz += ((s32)(((u16)headRotation.vz - (u16)D_actor_403100_80155808->headAim.vz) << 20) >> 23);
         func_actor_403100_8013CF60(angles, 0x10, 4, 2, 8);

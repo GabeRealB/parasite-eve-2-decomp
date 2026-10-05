@@ -15,7 +15,7 @@ void golemPawnRookPlayAnimCues(Task* arg0)
     work = arg0->work;
     self = arg0->extra.tmd->coords;
     if (work->soundSet != 0) {
-        rec = Gp_AnimGetRec(&work->rig.anim, &work->rig.slots[1]);
+        rec = animationGetCurrentRecord(&work->rig.anim, &work->rig.slots[1]);
         if (rec != NULL) {
             if (!(rec->flags & ANIMATION_RECORD_CUE_2) && (work->prevCueFlags & ANIMATION_RECORD_CUE_2)) {
                 snd = gGolemPawnRookVoiceCues[work->soundSet * 2 - 1] |

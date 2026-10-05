@@ -1327,7 +1327,7 @@ s32 func_actor_110600_80134040(Task* arg0, s32 arg1, ActorCommand* arg2, s32 arg
 /// Per-tick animation pass: for each clip id 1..0x12, the first ten (`i < 0xB`)
 /// seed their slot's `rate` from the two work bytes and tick the primary and
 /// blend contexts through `animationTickSlotPose`, then hand both poses to
-/// `Gp_AnimWritePoseCopy` with `blendWeight` and its complement; the rest
+/// `animationApplyPoseWithBlendedRotation` with `blendWeight` and its complement; the rest
 /// only rewrite the primary slot and `animationTickSlot` it. Same body as
 /// `func_actor_403000_801336B4`, which walks 24 slots instead of 19.
 static void func_actor_110600_80134438(Task* arg0)
@@ -1348,7 +1348,7 @@ static void func_actor_110600_80134438(Task* arg0)
             work->rig.slots[i].rate      = (work->animRate - 3);
             animationTickSlotPose(anim, i, &pose, 0);
             animationTickSlotPose(&work->blendRig.anim, i, &blendPose, 0);
-            Gp_AnimWritePoseCopy(anim, i, &pose, &blendPose, weight, 0x1000 - weight);
+            animationApplyPoseWithBlendedRotation(anim, i, &pose, &blendPose, weight, 0x1000 - weight);
         } else {
             work->rig.slots[i].rate = (work->animRate - 3);
             animationTickSlot(&work->rig.anim, i);

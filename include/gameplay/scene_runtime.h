@@ -37,7 +37,13 @@ Enemy* Gp_SpawnEnemyFromTable(TaskDesc* table, s32 idx, s32 arg2, Enemy* parent)
 /// Returns `arg0` (or NULL).
 Task* Gp_CopyCoordOffset(Task* arg0, GfxCoord* arg1, SVECTOR* arg2);
 
-void Gp_MtxToEuler(MATRIX* arg0, SVECTOR* arg1);
+/// Extracts one XYZ Euler solution by cancelling the transformed +Z and +Y axes.
+///
+/// `matrix` supplies a Q12 rotation and is not modified; translation is ignored.
+/// `angles` receives signed X, Y and Z angles in 4096 units per turn. Its fourth
+/// halfword is untouched. +Z gives pitch/yaw; inverse `RotMatrixZYX` cancellation
+/// of that pair from +Y gives roll. Uses no scratch-stack reservation.
+void gfxExtractEulerAngles(const MATRIX* matrix, SVECTOR* angles);
 
 /// Writes the smaller-magnitude XYZ Euler angles of `matrix` into `angles`.
 ///
@@ -60,13 +66,27 @@ SVECTOR* gfxExtractSmallestEuler(SVECTOR* angles, const MATRIX* matrix);
 /// reconstructs the missing row.
 void Gp_LerpOrthonormal(MATRIX* arg0, MATRIX* arg1, MATRIX* arg2, s32 arg3);
 
-/// Walks `arg0->parent` up to world (`gGfxViewCoord`), composing each node's
-/// `coord` rotation into `arg1` and accumulating the rotated translation
-/// into `arg2`. The world parent initializes `arg1` to identity and
-/// `arg2` to zero.
-void Gp_ComposeParentWorld(GfxCoord* arg0, MATRIX* arg1, SVECTOR* arg2);
+/// Composes a coordinate node and its ancestors into world rotation and translation.
+///
+/// `node` must be a non-world node in an acyclic chain ending at `gGfxViewCoord`.
+/// The world node itself is excluded. `worldRotation` receives only the Q12 3x3
+/// rotation; its translation and padding are untouched. `worldTranslation`
+/// receives xyz in integer coordinate units; its fourth halfword is untouched.
+/// Each local translation is truncated to signed halfwords before rotation, and
+/// accumulation truncates at each hierarchy level. No composed cache is updated.
+void gfxComposeNodeWorldTransform(const GfxCoord* node, MATRIX* worldRotation, SVECTOR* worldTranslation);
 
-void Gp_BlendRgb555Clut(u16* arg0, u16* arg1, s32 arg2, u16* arg3);
+/// Number of packed colours processed by one CLUT-row interpolation.
+enum { GPU_RGB555_CLUT_ROW_COLORS = 16 };
+
+/// Interpolates sixteen RGB555 colours from `second` toward `first`.
+///
+/// `firstWeight` is in 1/4096 units, normally 0..`ONE`; the second weight is
+/// `ONE - firstWeight`. Each output keeps bit 15 when either source has it.
+/// Both inputs must contain sixteen live halfwords and the destination sixteen
+/// writable halfwords, without overlapping either input. Uses temporary scratch
+/// storage per colour and retains no pointers.
+void gpuBlendRgb555ClutRow(const u16* first, const u16* second, s32 firstWeight, u16* destination);
 
 void func_800B3AA4(AnimationContext* context, AnimationSlot* arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5);
 
@@ -86,19 +106,29 @@ void Gp_AnimResetSlotEx(AnimationContext* context, s32 arg1, s32 arg2, s32 arg3,
 void Gp_AnimWritePoseBlend(AnimationContext* context, s32 arg1, AnimationPose* arg2, AnimationPose* arg3, s32 arg4,
                            s32 arg5);
 
-void Gp_AnimWritePoseCopy(AnimationContext* context, s32 arg1, AnimationPose* arg2, AnimationPose* arg3, s32 arg4,
-                          s32 arg5);
+/// Applies one pose's translation and a weighted blend of two poses' rotations.
+///
+/// `slotIndex` must address a live context slot, whose `coordIndex` selects a live
+/// model coordinate. Encoding 1 copies `sourcePose.translation`; all other
+/// encodings leave the coordinate's translation unchanged. `rotationPose` is
+/// read only for rotation. Angles use 4096 units per turn and weights 1/4096 units,
+/// normally complementary weights summing to `ONE`. Angles blend as signed
+/// components without wrap correction. Both borrowed poses must remain live
+/// through this call. Marks the coordinate dirty and releases its scratch pose.
+void animationApplyPoseWithBlendedRotation(AnimationContext* context, s32 slotIndex, const AnimationPose* sourcePose, const AnimationPose* rotationPose, s32 sourceWeight,
+                                           s32 rotationWeight);
 
 void func_800B4538(AnimationContext* context, s32 arg1, AnimationPose* arg2, u16 arg3, s32 arg4, s32 arg5,
                    s32 arg6);
 
-/// Returns the current keyframe record, or `NULL` when the slot uses a buffered pose (set 0x7FFF).
+/// Borrows the current keyframe record of a playback slot.
 ///
-/// `slot` must have a valid current set and record index. The returned pointer
-/// borrows the set's record array and remains valid while that resource is loaded;
-/// callers may compare it across ticks to detect a new keyframe. `unusedContext`
-/// is ignored and may be `NULL`.
-const AnimationRecord* Gp_AnimGetRec(AnimationContext* unusedContext, AnimationSlot* slot);
+/// A buffered current pose (`ANIMATION_SET_BUFFERED_POSE`) has no record and
+/// returns NULL. Otherwise the current set and absolute record index must be
+/// valid in the slot's loaded set table. The pointer stays valid while that
+/// resource is loaded; callers may compare its identity to gate keyframe cues.
+/// This query changes no playback state. `unusedContext` is ignored and may be NULL.
+const AnimationRecord* animationGetCurrentRecord(const AnimationContext* unusedContext, const AnimationSlot* slot);
 
 /// Records an enemy's state and world pose under its packed placement key.
 ///
@@ -110,7 +140,13 @@ void Gp_SaveEnemyPose(Enemy* enemy);
 /// Spawns the placement/resource layout selected by stage, area and variant.
 void Gp_SpawnArea(GameLocationKey* location);
 
-Enemy* Gp_FindWorkById(u16 arg0);
+/// Returns the first scene child's enemy work with the packed placement key, or NULL.
+///
+/// `placeKey` packs area (bits 0..7), stage (8..11), and instance index (12..15).
+/// Requires a live scene manager and live `Enemy` work on every child; no work-bank
+/// filter is applied. The result is borrowed and becomes invalid when that child
+/// exits or releases its enemy work. Does not create or retain a reference.
+Enemy* sceneFindEnemyByPlaceKey(u16 placeKey);
 
 void Gp_SetTmdBytes(TmdObject* arg0, s32 arg1, s32 arg2);
 

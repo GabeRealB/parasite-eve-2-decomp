@@ -19,7 +19,7 @@ void gluttonTickBlended(Task* arg0)
             work->hostRig.slots[i].rate      = work->animRate - 3;
             animationTickSlotPose(&work->hostRig.anim, i, &pose0, 0);
             animationTickSlotPose(&work->hostBlendRig.anim, i, &pose1, 0);
-            Gp_AnimWritePoseCopy(&work->hostRig.anim, i, &pose0, &pose1, blend, invBlend);
+            animationApplyPoseWithBlendedRotation(&work->hostRig.anim, i, &pose0, &pose1, blend, invBlend);
         } else {
             work->hostRig.slots[i].rate = work->animRate - 3;
             animationTickSlot(&work->hostRig.anim, i);
@@ -31,7 +31,7 @@ void gluttonTickBlended(Task* arg0)
         work->escort0Rig.slots[i].rate      = work->animRate - 3;
         animationTickSlotPose(&work->escort0Rig.anim, i, &pose0, 0);
         animationTickSlotPose(&work->escort0BlendRig.anim, i, &pose1, 0);
-        Gp_AnimWritePoseCopy(&work->escort0Rig.anim, i, &pose0, &pose1, blend, invBlend);
+        animationApplyPoseWithBlendedRotation(&work->escort0Rig.anim, i, &pose0, &pose1, blend, invBlend);
     }
 
     for (i = 0; i < 4; i++) {
@@ -39,6 +39,6 @@ void gluttonTickBlended(Task* arg0)
         work->escort1Rig.slots[i].rate      = work->animRate - 3;
         animationTickSlotPose(&work->escort1Rig.anim, i, &pose0, 0);
         animationTickSlotPose(&work->escort1BlendRig.anim, i, &pose1, 0);
-        Gp_AnimWritePoseCopy(&work->escort1Rig.anim, i, &pose0, &pose1, blend, invBlend);
+        animationApplyPoseWithBlendedRotation(&work->escort1Rig.anim, i, &pose0, &pose1, blend, invBlend);
     }
 }

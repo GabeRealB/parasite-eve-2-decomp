@@ -1429,19 +1429,19 @@ void func_acropolis_west_elevator_hall_8017F990(Task* task)
     }
 
     if (blend != 0) {
-        for (i = 0; i < 0x100; i += 0x10) {
-            Gp_BlendRgb555Clut(&D_acropolis_west_elevator_hall_80184C04[i],
-                               &D_acropolis_west_elevator_hall_80184A04[i], work->scale,
-                               &D_acropolis_west_elevator_hall_80184E04[i]);
+        for (i = 0; i < 0x100; i += GPU_RGB555_CLUT_ROW_COLORS) {
+            gpuBlendRgb555ClutRow(&D_acropolis_west_elevator_hall_80184C04[i],
+                                  &D_acropolis_west_elevator_hall_80184A04[i], work->scale,
+                                  &D_acropolis_west_elevator_hall_80184E04[i]);
         }
         gpuUploadImages(D_acropolis_west_elevator_hall_80185004);
     }
 
     if (gGameSession->location.loc.view != 5) {
-        for (i = 0; i < 0x100; i += 0x10) {
-            Gp_BlendRgb555Clut(&D_acropolis_west_elevator_hall_80184C04[i],
-                               &D_acropolis_west_elevator_hall_80184A04[i], 0,
-                               &D_acropolis_west_elevator_hall_80184E04[i]);
+        for (i = 0; i < 0x100; i += GPU_RGB555_CLUT_ROW_COLORS) {
+            gpuBlendRgb555ClutRow(&D_acropolis_west_elevator_hall_80184C04[i],
+                                  &D_acropolis_west_elevator_hall_80184A04[i], 0,
+                                  &D_acropolis_west_elevator_hall_80184E04[i]);
         }
         gpuUploadImages(D_acropolis_west_elevator_hall_80185004);
         effectKillTask(work, task);

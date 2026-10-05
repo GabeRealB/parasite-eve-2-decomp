@@ -1592,9 +1592,9 @@ static void Actor00400_Fn016A4(Task* arg0, s32 arg1)
     mc.rotationWords.m20M21 = 0;
     ic->m22                 = ONE;
 
-    Gp_MtxToEuler(m2, &rot1);
+    gfxExtractEulerAngles(m2, &rot1);
     m3 = &c3->coord;
-    Gp_MtxToEuler(m3, &rot2);
+    gfxExtractEulerAngles(m3, &rot2);
     RotMatrixX(rot1.vx, &ma.mat);
     RotMatrixX(rot2.vx, &mb.mat);
     Actor00400_Fn08A1C(&ma.mat, m2);
@@ -2067,8 +2067,8 @@ static void Actor00400_Fn02648(Task* arg0, s32 arg1)
                 base[3].composeStamp = GRAPHICS_COORD_DIRTY;
                 base[4].composeStamp = GRAPHICS_COORD_DIRTY;
                 actorRenderComposeCoord(c4);
-                Gp_MtxToEuler(&base[2].coord, &work->lowerNeckAngles);
-                Gp_MtxToEuler(&base[3].coord, &work->upperNeckAngles);
+                gfxExtractEulerAngles(&base[2].coord, &work->lowerNeckAngles);
+                gfxExtractEulerAngles(&base[3].coord, &work->upperNeckAngles);
                 work->neckPhase = ACTOR_00400_NECK_STRAIGHTEN;
                 work->neckScale = ONE;
                 /* fallthrough */
@@ -2112,7 +2112,7 @@ static void Actor00400_Fn02648(Task* arg0, s32 arg1)
                 GfxRotationWords* ic;
                 GfxRotationWords* ir;
 
-                Gp_MtxToEuler(&c4->coord, &euler2);
+                gfxExtractEulerAngles(&c4->coord, &euler2);
                 work->neckScale         = (u16)work->neckScale + ((0x2AA - work->neckScale) >> 3);
                 ia                      = &ma.rotationWords;
                 ma.rotationWords.m00M01 = ONE;
@@ -2176,7 +2176,7 @@ static void Actor00400_Fn02648(Task* arg0, s32 arg1)
             GfxRotationWords* ic;
             GfxRotationWords* ir;
 
-            Gp_MtxToEuler(&c4->coord, &euler2);
+            gfxExtractEulerAngles(&c4->coord, &euler2);
             work->neckScale         = (u16)work->neckScale + ((0x1000 - work->neckScale) >> 3);
             ia                      = &ma.rotationWords;
             ma.rotationWords.m00M01 = ONE;
@@ -2226,9 +2226,9 @@ static void Actor00400_Fn02648(Task* arg0, s32 arg1)
             MATRIX*           m3;
 
             m2 = &base[2].coord;
-            Gp_MtxToEuler(m2, &euler0);
+            gfxExtractEulerAngles(m2, &euler0);
             m3 = &base[3].coord;
-            Gp_MtxToEuler(m3, &euler1);
+            gfxExtractEulerAngles(m3, &euler1);
             work->lowerNeckAngles.vx = (u16)work->lowerNeckAngles.vx + ((euler0.vx - work->lowerNeckAngles.vx) >> 1);
             work->lowerNeckAngles.vy = (u16)work->lowerNeckAngles.vy + ((euler0.vy - work->lowerNeckAngles.vy) >> 1);
             work->lowerNeckAngles.vz = (u16)work->lowerNeckAngles.vz + ((euler0.vz - work->lowerNeckAngles.vz) >> 1);

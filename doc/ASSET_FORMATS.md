@@ -798,7 +798,7 @@ Angles use `4096` for a full turn and the rotation order is PsyQ's `RotMatrix`
   [`TMD_FORMAT.md` §5](TMD_FORMAT.md#5-opcode-reference) with what is still
   missing in [§6](TMD_FORMAT.md#6-what-is-still-open).
 - **The `flags` cue bits.** `0x10` and `0x20` appear on some keyframes and
-  are not decoded; a frame handler reads them off the record `Gp_AnimGetRec`
+  are not decoded; a frame handler reads them off the record `animationGetCurrentRecord`
   hands it, so what each one means is the handler's own.
 - **Pose banks.** The per-model bone count is now available — it is the number
   of `0xFFFFFFFE`-delimited parts in the model stream

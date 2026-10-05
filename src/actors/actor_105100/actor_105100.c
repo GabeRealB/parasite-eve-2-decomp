@@ -1738,7 +1738,7 @@ static void func_actor_105100_80134130(Task* arg0)
 
     work = arg0->work;
     self = arg0->extra.tmd->coords;
-    rec  = Gp_AnimGetRec(&work->rig.anim, &work->rig.slots[1]);
+    rec  = animationGetCurrentRecord(&work->rig.anim, &work->rig.slots[1]);
     if (rec != NULL) {
         if (!(rec->flags & ANIMATION_RECORD_CUE_2) && (work->animCues & ANIMATION_RECORD_CUE_2)) {
             snd = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40330001;
