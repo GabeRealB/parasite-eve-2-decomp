@@ -861,24 +861,35 @@ static __inline__ void _worldCoordAdmitDirectionalLight(_WorldCoordRankedLight* 
         _worldCoordInsertRankedLight(rankedLights, contributionScore, sourceKind, light, WORLD_COORDINATE_RANKED_LIGHT_COUNT - 2);
     }
 }
-/// Scales one RGB channel's three light coefficients through the query workspace.
+/// Scales one RGB channel's three model-light coefficients in place.
 ///
-/// `colorRow` borrows three writable signed Q12 coefficients; `channelScale`
-/// borrows one unsigned Q12 multiplier, loaded after the row is staged.
-/// Overwrites `lightQuery->viewOffset` xyz and the GTE arithmetic state.
-static inline void _worldCoordScaleLightColorRow(s16 colorRow[3], const u16* channelScale, _WorldCoordLightQueryScratch* lightQuery)
+/// `colorRow` borrows three writable signed Q12 coefficients in light-slot
+/// order. `channelScale` borrows one raw scale halfword: it is loaded unsigned
+/// after staging the row, then interpreted as signed Q12 by GTE IR0 (zero
+/// suppresses, `ONE` is unity). GPF12 arithmetically shifts each product by 12
+/// and saturates to -32768..32767.
+///
+/// `coefficientScratch` must be the `viewOffset` member of a live
+/// `_WorldCoordLightQueryScratch`, disjoint from the row and scale. Its xyz
+/// stage the coefficients; its final halfword and all other query bytes are
+/// untouched. All storage is borrowed until return. Allocates no scratch
+/// storage; changes GTE IR0..3, MAC1..3, RGB FIFO and FLAG.
+static inline void _worldCoordScaleLightColorRow(s16 colorRow[3], const u16* channelScale, SVECTOR* coefficientScratch)
 {
-    // Gather one channel's three light coefficients for GTE scaling.
-    lightQuery->viewOffset.vx = colorRow[0];
-    lightQuery->viewOffset.vy = colorRow[1];
-    lightQuery->viewOffset.vz = colorRow[2];
+    _WorldCoordLightQueryScratch* queryScratch;
+
+    // Keep scalar accesses relative to the query while GTE uses its vector member.
+    queryScratch                = PARENT_OF(coefficientScratch, _WorldCoordLightQueryScratch, viewOffset);
+    queryScratch->viewOffset.vx = colorRow[0];
+    queryScratch->viewOffset.vy = colorRow[1];
+    queryScratch->viewOffset.vz = colorRow[2];
     gte_lddp(*channelScale);
-    gte_ldsv(&lightQuery->viewOffset);
+    gte_ldsv(coefficientScratch);
     gte_gpf12();
-    gte_stsv(&lightQuery->viewOffset);
-    colorRow[0] = lightQuery->viewOffset.vx;
-    colorRow[1] = lightQuery->viewOffset.vy;
-    colorRow[2] = lightQuery->viewOffset.vz;
+    gte_stsv(coefficientScratch);
+    colorRow[0] = queryScratch->viewOffset.vx;
+    colorRow[1] = queryScratch->viewOffset.vy;
+    colorRow[2] = queryScratch->viewOffset.vz;
 }
 
 /// Applies the stored RGB scales to a model's light-colour coefficients.
@@ -905,7 +916,7 @@ static inline void _worldCoordApplyModelLightColorScales(MATRIX* colorMtx, _Worl
     channelIndex = 0;
     colorRows    = colorMtx->m;
     do {
-        _worldCoordScaleLightColorRow(colorRows[channelIndex], channelScale, lightQuery);
+        _worldCoordScaleLightColorRow(colorRows[channelIndex], channelScale, &lightQuery->viewOffset);
         channelIndex++;
         channelScale++;
     } while (channelIndex < (s32)ARRAY_SIZE(Gp_OverrideVec2.channelScales));
