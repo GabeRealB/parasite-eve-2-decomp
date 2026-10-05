@@ -1073,33 +1073,28 @@ void func_acropolis_cafeteria_8017E89C(Task* task)
     work->scale = gGameSession->location.loc.view;
 }
 
-/// Selects one 48-texel cell of the cafeteria puff's five-column texture sheet.
+/// Sets the puff quad's UVs to its current 48 x 48 texel animation cell.
 ///
-/// The work must have a positive cell period and select a cell in 0..9.
-/// Only the quad's UV bytes change; work and quad are borrowed live objects.
+/// `work->age` is elapsed active ticks and `work->step` is ticks per cell.
+/// The period must be positive, with 0 <= age < 10 * period. Cells 0..9 run
+/// left to right across five columns, then continue on the second row.
+/// UV endpoints include the last texel (origin + 47), so U stays in 0..239
+/// and V in 0..95. The quad and work are distinct borrowed live objects;
+/// only the eight UV bytes are written, without advancing the animation.
 static inline void _acropolisCafeteriaSetPuffCellUvs(POLY_FT4* quad, const EffectWork* work)
 {
     enum { PUFF_SHEET_COLUMNS = 5,
            PUFF_CELL_TEXELS   = 48,
            PUFF_UV_SPAN       = PUFF_CELL_TEXELS - 1 };
-    s32 cellIndex;
 
-    cellIndex = work->age / work->step;
-    quad->u0  = (cellIndex % PUFF_SHEET_COLUMNS) * PUFF_CELL_TEXELS;
-    cellIndex = work->age / work->step;
-    quad->v0  = (cellIndex / PUFF_SHEET_COLUMNS) * PUFF_CELL_TEXELS;
-    cellIndex = work->age / work->step;
-    quad->u1  = (cellIndex % PUFF_SHEET_COLUMNS) * PUFF_CELL_TEXELS + PUFF_UV_SPAN;
-    cellIndex = work->age / work->step;
-    quad->v1  = (cellIndex / PUFF_SHEET_COLUMNS) * PUFF_CELL_TEXELS;
-    cellIndex = work->age / work->step;
-    quad->u2  = (cellIndex % PUFF_SHEET_COLUMNS) * PUFF_CELL_TEXELS;
-    cellIndex = work->age / work->step;
-    quad->v2  = (cellIndex / PUFF_SHEET_COLUMNS) * PUFF_CELL_TEXELS + PUFF_UV_SPAN;
-    cellIndex = work->age / work->step;
-    quad->u3  = (cellIndex % PUFF_SHEET_COLUMNS) * PUFF_CELL_TEXELS + PUFF_UV_SPAN;
-    cellIndex = work->age / work->step;
-    quad->v3  = (cellIndex / PUFF_SHEET_COLUMNS) * PUFF_CELL_TEXELS + PUFF_UV_SPAN;
+    quad->u0 = ((work->age / work->step) % PUFF_SHEET_COLUMNS) * PUFF_CELL_TEXELS;
+    quad->v0 = ((work->age / work->step) / PUFF_SHEET_COLUMNS) * PUFF_CELL_TEXELS;
+    quad->u1 = ((work->age / work->step) % PUFF_SHEET_COLUMNS) * PUFF_CELL_TEXELS + PUFF_UV_SPAN;
+    quad->v1 = ((work->age / work->step) / PUFF_SHEET_COLUMNS) * PUFF_CELL_TEXELS;
+    quad->u2 = ((work->age / work->step) % PUFF_SHEET_COLUMNS) * PUFF_CELL_TEXELS;
+    quad->v2 = ((work->age / work->step) / PUFF_SHEET_COLUMNS) * PUFF_CELL_TEXELS + PUFF_UV_SPAN;
+    quad->u3 = ((work->age / work->step) % PUFF_SHEET_COLUMNS) * PUFF_CELL_TEXELS + PUFF_UV_SPAN;
+    quad->v3 = ((work->age / work->step) / PUFF_SHEET_COLUMNS) * PUFF_CELL_TEXELS + PUFF_UV_SPAN;
 }
 
 void acropolisCafeteriaPuffTask(Task* task)
