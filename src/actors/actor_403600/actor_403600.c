@@ -1585,7 +1585,6 @@ void func_actor_403600_80134398(Task* arg0)
     s32*                   gteValue4;
     s32*                   gteValue5;
     s32*                   gteValue6;
-    s32                    gteValue7;
     SVECTOR                sp10;
     SVECTOR                sp18;
     SVECTOR*               firstVector;
@@ -1929,6 +1928,9 @@ block_22:
         var_s4 = var_fp;
         if (var_s4 < ARRAY_SIZE(work->trail)) {
             ds = &gDisplayState;
+            /* This loop is at the size limit (261 insns at the loop pass) below
+             * which the `2` the three status tests compare with is still moved
+             * out of it; one more temporary in the body changes the allocation. */
             do {
                 shared                  = D_actor_403600_8016069C;
                 D_actor_403600_8016069C = (u8*)shared + sizeof(POLY_FT4);
@@ -1984,7 +1986,7 @@ block_22:
                             ((POLY_FT4*)shared)->code = 0x2E;
                             ((POLY_FT4*)shared)->u3   = temp_v1_12;
                             ((POLY_FT4*)shared)->u1   = temp_v1_12;
-                            addPrim(((u_long*)((((((u32)scratch->otz << ds->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) + (uintptr)gGpuCurrentOt)),
+                            addPrim(&gGpuCurrentOt[((u32)scratch->otz << ds->otDepthShift) >> 4 & 0x3FF],
                                     (POLY_FT4*)shared);
                         }
                     } else if (var_s4 >= (var_fp - 4)) {
@@ -1999,8 +2001,7 @@ block_22:
                             } else if (arg0->status == 4) {
                                 var_a0 *= 2;
                             }
-                            gteValue7 = (var_a0 * ds->screenDistance) / scratch->otz;
-                            gte_lddp(gteValue7);
+                            gte_lddp((var_a0 * ds->screenDistance) / scratch->otz);
                             temp_v0_4 = &scratch->cornerOffset;
                             gte_ldsv(temp_v0_4);
                             gte_gpf12();
@@ -2014,7 +2015,8 @@ block_22:
                         ((POLY_FT4*)shared)->y2    = (s16)((u16)scratch->sxy.vy + (u16)scratch->cornerOffset.vx);
                         ((POLY_FT4*)shared)->x3    = (s16)((u16)scratch->sxy.vx - (u16)scratch->cornerOffset.vx);
                         ((POLY_FT4*)shared)->y3    = (s16)((u16)scratch->sxy.vy - (u16)scratch->cornerOffset.vy);
-                        temp_v1_13                 = (u8)(u16)point->pad & 0x20;
+                        temp_v1_13                 = (u8)point->pad;
+                        temp_v1_13                &= 0x20;
                         ((POLY_FT4*)shared)->v1    = 0x18;
                         ((POLY_FT4*)shared)->v0    = 0x18;
                         ((POLY_FT4*)shared)->v3    = 0x37;
