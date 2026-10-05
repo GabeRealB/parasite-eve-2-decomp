@@ -486,7 +486,7 @@ static inline s32 _gpRelatedQty(s32 item, s32 bank);
 /// stackable ids (0xA0 and up), otherwise 1 if any row carries it and 0 if not.
 static inline s16 _gpScanHeldQty(InventoryItemRow* table, InventoryItemRange* scan, s32 item);
 
-void Gp_BindSlot4(Task* task);
+static void _sceneInitializeManager(Task* sceneTask);
 
 static void _worldTargetDrawOverlayTask(Task* unusedTask);
 
@@ -2210,12 +2210,11 @@ static void _fadeStartPulse(Task* task)
     _fadeTickPulse(task);
 }
 
-void func_800B2910(Task* arg0)
+void fadePulseTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    const TaskFuncTable3 stateHandlers = D_80093A38;
 
-    sp = D_80093A38;
-    sp.funcs[arg0->state](arg0);
+    stateHandlers.funcs[task->state](task);
 }
 
 Task* func_800B2968(void)
@@ -3152,20 +3151,23 @@ void animationTickSlot(AnimationContext* context, s32 slotIndex)
     animationTickSlotPose(context, slotIndex, NULL, NULL);
 }
 
-/// Resolves the captured-pose transition's next record without clearing tick flags.
+/// Selects a captured-pose transition's next record while retaining tick flags.
 ///
-/// `recordIndex` is an absolute u16 element index into borrowed `records`.
-/// Jumps install their absolute `wordOffset` and add `ANIMATION_SLOT_FOLLOWED_JUMP`;
-/// a return to the slot's prior next index also adds `ANIMATION_SLOT_REACHED_BOUNDARY`.
-/// A stop retains that prior next index and adds only `ANIMATION_SLOT_REACHED_BOUNDARY`.
-/// Installs the next record index, leaving its set to the caller. Every visited
-/// index and the stop fallback must fit this array; control chains must terminate.
+/// `recordIndex` is an absolute unsigned 16-bit element index in borrowed
+/// `records`. Control flags 0x80..0xBF jump to their absolute `wordOffset` index
+/// and add `ANIMATION_SLOT_FOLLOWED_JUMP`; a jump to the prior next index also
+/// adds `ANIMATION_SLOT_REACHED_BOUNDARY`, without comparing set indices.
+/// Flags 0xC0..0xFF stop at that prior index and add only the boundary flag.
+/// Every visited index and the fallback must fit the requested set's records,
+/// and jump chains must reach a keyframe or stop. The caller installs the set.
+/// Changes no timing, decoded pose, boundary latch or buffered-rotation cache; all
+/// preexisting status bits survive. Retains no pointer and uses no scratch or GTE.
 static inline void _animationSelectCapturedRecord(AnimationSlot* slot, const AnimationRecord* records, u16 recordIndex)
 {
     const AnimationRecord* controlRecord;
 
     while ((s8)records[recordIndex].flags < 0) {
-        controlRecord = records - -(s32)recordIndex;
+        controlRecord = records - -recordIndex;
         if (controlRecord->flags < ANIMATION_RECORD_END_THRESHOLD) {
             recordIndex = controlRecord->wordOffset;
             if (recordIndex == slot->nextPose.indices.recordIndex) {
@@ -4051,11 +4053,19 @@ void Gp_SetAreaFlag0(GameLocationKey* location)
     }
 }
 
-void func_800B5DB8(Task* arg0)
+void sceneManagerTask(Task* sceneTask)
 {
-    TaskFunc funcs[2] = { Gp_BindSlot4, _worldTargetDrawOverlayTask };
+    enum {
+        SCENE_MANAGER_STATE_INITIALIZE = 0,
+        SCENE_MANAGER_STATE_RUNNING    = 1,
+        SCENE_MANAGER_STATE_COUNT
+    };
+    const TaskFunc stateHandlers[SCENE_MANAGER_STATE_COUNT] = {
+        [SCENE_MANAGER_STATE_INITIALIZE] = _sceneInitializeManager,
+        [SCENE_MANAGER_STATE_RUNNING]    = _worldTargetDrawOverlayTask
+    };
 
-    funcs[arg0->state](arg0);
+    stateHandlers[sceneTask->state](sceneTask);
 }
 
 /// Finds the scene child in the placed-actor bank with the complete placement key.
@@ -4232,12 +4242,11 @@ static void _displayStartPreviousFrameRedraw(Task* task)
     task->state++;
 }
 
-void func_800B60C0(Task* arg0)
+void displayBlendPreviousFrameTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    const TaskFuncTable3 stateHandlers = D_80093A5C;
 
-    sp = D_80093A5C;
-    sp.funcs[arg0->state](arg0);
+    stateHandlers.funcs[task->state](task);
 }
 
 void worldCollisionCalcContactWorldOffset(const SVECTOR* position, const WorldCollisionContact* contact, SVECTOR* offset)
@@ -4430,11 +4439,17 @@ TaskMessageEntry Gp_Slot4MsgTable[5] = {
 };
 AreaObjectStage Gp_Bit2Banks[6] = { { NULL, NULL }, { D_map_akropolis_8017A7FC, GameFlag_AcropolisBanks[0].header.objectStates }, { D_map_dryfield_8017A564, GameFlag_DryfieldBanks[0].header.objectStates }, { D_map_dryfield_full_8017A46C, GameFlag_DryfieldBanks[0].header.objectStates }, { D_map_shelter_8017A998, GameFlag_ShelterBanks[0].header.objectStates }, { D_map_neo_ark_8017A6EC, GameFlag_NeoArkBanks[0].header.objectStates } };
 
-void Gp_BindSlot4(Task* task)
+/// Registers the scene manager and its actor-message routes, then enters running state.
+///
+/// Requires a live task in state 0. Publishes its borrowed pointer in
+/// `GAME_TASK_SLOT_SCENE` and installs the scene message table, then
+/// advances to state 1. The scene owner keeps the task live while the slot is used.
+/// Allocates no storage and preserves its children, body, work and spawn words.
+static void _sceneInitializeManager(Task* sceneTask)
 {
-    gameSetTaskSlot(task, GAME_TASK_SLOT_SCENE);
-    task->msgTable = Gp_Slot4MsgTable;
-    task->state++;
+    gameSetTaskSlot(sceneTask, GAME_TASK_SLOT_SCENE);
+    sceneTask->msgTable = Gp_Slot4MsgTable;
+    sceneTask->state++;
 }
 
 /// Draws and updates the world-target overlay during the scene manager's running state.

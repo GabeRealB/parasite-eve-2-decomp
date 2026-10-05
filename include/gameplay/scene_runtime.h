@@ -388,10 +388,39 @@ void Gp_EnemyDispatch(Task* arg0);
 
 void Gp_FadeWorkTask(Task* arg0);
 
-void func_800B2910(Task* arg0);
+/// Runs the event-script full-screen pulse task (bank 1, type 0x19).
+///
+/// Requires a live task with state 0 (start), 1 (pulse) or 2 (exit); dispatch
+/// performs no bounds check. Start draws the first frame immediately. A positive
+/// `spawnArg1.value` holds the peak for that many frames between the fixed ramps;
+/// a nonpositive value takes the return path immediately and advances to exit
+/// after the first draw. Zero `spawnArg2.value` subtracts toward black; nonzero
+/// adds toward white. The pulse consumes the hold word and `killCountdown`.
+/// Requires the current frame's GPU arena and ordering table. Exit invokes the
+/// task's teardown callback, which may release the task. Gameplay must stay loaded.
+void fadePulseTask(Task* task);
 
-void func_800B5DB8(Task* arg0);
+/// Runs scene-manager registration and per-frame world-target drawing (bank 1, type 0x23).
+///
+/// Requires a live task with state 0 (initialize) or 1 (running); dispatch
+/// performs no bounds check. Initialize registers `GAME_TASK_SLOT_SCENE`, installs
+/// actor-message routing and advances to running. Running draws and updates the
+/// world-target overlay without advancing state. Its view, target, scratch and
+/// GPU requirements are those of `worldTargetDrawOverlay`. The owner keeps the
+/// registered task live while scene children and slot consumers use it.
+void sceneManagerTask(Task* sceneTask);
 
-void func_800B60C0(Task* arg0);
+/// Runs previous-frame blending over the current frame (bank 1, type 0x2D).
+///
+/// Requires a live task with state 0 (initialize), 1 (redraw) or 2 (exit); dispatch
+/// performs no bounds check. `spawnArg1.value` exactly equal to 16 redraws twice;
+/// other values redraw once. Bit 0 independently enables a black fade after 60
+/// redraw ticks, adding eight intensity units per tick up to 255. Initialize
+/// clears `killCountdown` only for that fade mode and starts redraw on the next
+/// task tick. Saved demo scene 1 suppresses redraw and the fade counter.
+/// Redraw remains in state 1 until the owner exits it. Requires initialized
+/// framebuffers, the current GPU arena and ordering table. Exit invokes the
+/// task's teardown callback, which may release it. Gameplay must stay loaded.
+void displayBlendPreviousFrameTask(Task* task);
 
 #endif // GAMEPLAY_SCENE_RUNTIME_H
