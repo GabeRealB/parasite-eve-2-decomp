@@ -864,8 +864,8 @@ void Gp_SetupSprtDisplay(Task* task)
     flag                       = ds->keepGraphics;
     ds->control.flags.flipMode = DISPLAY_FLIP_HOLD;
     if (flag == 0) {
-        Gpu_ResetGraphAndOt();
-        Tmd_AllocMissingBuffers();
+        gpuResetAndInvalidateModelBuffers();
+        tmdResetAuxHeapAndRestoreBuffers();
     }
     Gp_AllocSprtLists();
     taskKill(task);

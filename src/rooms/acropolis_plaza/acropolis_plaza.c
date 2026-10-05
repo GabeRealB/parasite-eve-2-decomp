@@ -4147,8 +4147,8 @@ void func_acropolis_plaza_8017E9A8(Task* task)
 /// (`_acropolisPlazaFindPlacedEnemy`).
 /// State 6 releases slot 3 (msg 0x3F1), re-places the player at
 /// (0x3DE, 0, 0x439E) and has that enemy play an animation; state 8 sends it 0x7D7
-/// and rebuilds the graphics state (`Gpu_ResetGraphAndOt`, the aux heap from
-/// `GameSession::location.loc.stage` / `location.loc.area`, `Tmd_AllocMissingBuffers`). State 7
+/// and rebuilds the graphics state (`gpuResetAndInvalidateModelBuffers`, the aux heap from
+/// `GameSession::location.loc.stage` / `location.loc.area`, `tmdResetAuxHeapAndRestoreBuffers`). State 7
 /// waits 0x3D frames, playing 0x51050003 at frame 0x1E and spawning table entry
 /// 7 at the end.
 ///
@@ -4275,10 +4275,10 @@ void func_acropolis_plaza_8017ECF8(Task* task)
             if (CdCmd_IsIdle() != 0) {
                 taskMessageDispatch(_acropolisPlazaFindPlacedEnemy(0x6C)->task, 0x7D7, 1, 0);
                 taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 2, 0);
-                Gpu_ResetGraphAndOt();
+                gpuResetAndInvalidateModelBuffers();
                 memConfigureImageMemory(gGameSession->location.loc.stage, gGameSession->location.loc.area);
                 memSelectAuxHeapRegion(true);
-                Tmd_AllocMissingBuffers();
+                tmdResetAuxHeapAndRestoreBuffers();
                 SndEvt_EnqueueTypeB(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PLAZA, 5), 0x26);
                 task->state = task->state + 1;
                 return;

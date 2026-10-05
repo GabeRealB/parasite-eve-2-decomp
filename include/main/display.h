@@ -194,7 +194,17 @@ void Display_SetDrawMode(s32 arg0);
 /// Queues a mode transition; the task is spawned asynchronously, so returns NULL.
 Task* Display_InitModeObj(TaskDesc* descriptor, s32 arg1, TaskSpawnArg arg2, s32 arg3);
 
-void Gpu_ResetGraphAndOt(void);
+/// Resets queued GPU work and forgets attached-model buffers before image-memory reuse.
+///
+/// Uses the command-queue reset mode and clears both resident frame ordering
+/// tables. Every attached model's buffer pointer becomes NULL, regardless of
+/// its draw or automatic-allocation flags; no heap block is individually freed.
+/// Models, coordinates, sources, list links and half selectors stay intact.
+/// Retire other users of the discarded buffers and reset or repurpose their
+/// auxiliary storage before allocating replacements. This does not initialize
+/// a heap or restore buffers; `tmdResetAuxHeapAndRestoreBuffers` performs those
+/// steps after the desired image-memory region has been selected.
+void gpuResetAndInvalidateModelBuffers(void);
 
 /// Upload the room background into buffer 0 or 1, cropped by the applied shake.
 ///

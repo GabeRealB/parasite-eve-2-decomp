@@ -923,43 +923,43 @@ void Tmd_DispatchTask(Task* task)
     sp.funcs[task->state](task);
 }
 
-void Gpu_ResetGraphAndOt(void)
+void gpuResetAndInvalidateModelBuffers(void)
 {
-    TmdObject* node;
+    enum { GPU_RESET_COMMAND_QUEUE = 1 };
+    TmdObject* model;
 
-    node = PARENT_OF(gTmdList.next, TmdObject, link);
-    ResetGraph(1);
+    model = PARENT_OF(gTmdList.next, TmdObject, link);
+    ResetGraph(GPU_RESET_COMMAND_QUEUE);
     gpuClearFrameOrderingTable(0);
     gpuClearFrameOrderingTable(1);
-    while (node != NULL) {
-        if (node->buffer != NULL) {
-            node->buffer = NULL;
+    // Forget buffers before their auxiliary storage is reset or used for images.
+    while (model != NULL) {
+        if (model->buffer != NULL) {
+            model->buffer = NULL;
         }
-        node = PARENT_OF(node->link.next, TmdObject, link);
+        model = PARENT_OF(model->link.next, TmdObject, link);
     }
 }
 
-void Tmd_AllocMissingBuffers(void)
+void tmdResetAuxHeapAndRestoreBuffers(void)
 {
-    TmdObject* node;
-    void*      mem;
+    TmdObject* model;
+    void*      buffer;
 
-    node = PARENT_OF(gTmdList.next, TmdObject, link);
+    model = PARENT_OF(gTmdList.next, TmdObject, link);
+    // Reserve playback storage before models can consume the reset heap.
     memInitAuxHeap();
     cdCmdReservePlaybackBuffers();
-    while (node != NULL) {
-        if (node->buffer == NULL) {
-            if (!(node->flags & TMD_OBJECT_SKIP_AUTO_BUFFER)) {
-                mem = memCalloc(node->source->bufferHalfBytes * TMD_BUFFER_HALF_COUNT, 1);
-                if (mem != NULL) {
-                    node->buffer         = mem;
-                    node->nextBufferHalf = 0;
-                    tmdBuildBufferHalf(node);
-                    tmdBuildBufferHalf(node);
-                }
+    while (model != NULL) {
+        if (model->buffer == NULL && !(model->flags & TMD_OBJECT_SKIP_AUTO_BUFFER)) {
+            buffer = memCalloc(model->source->bufferHalfBytes * TMD_BUFFER_HALF_COUNT, true);
+            if (buffer != NULL) {
+                model->buffer         = buffer;
+                model->nextBufferHalf = 0;
+                _tmdInitializeBufferHalves(model);
             }
         }
-        node = PARENT_OF(node->link.next, TmdObject, link);
+        model = PARENT_OF(model->link.next, TmdObject, link);
     }
 }
 

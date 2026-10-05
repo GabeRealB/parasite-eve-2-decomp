@@ -595,7 +595,7 @@ void Gp_MenuRootTask(Task* arg0)
             displaySetFrameTiming(DISPLAY_TIMING_TWO_VBLANKS);
             gDisplayState.keepGraphics = 0;
             gGameSession->uiOpen       = 0;
-            Gpu_ResetGraphAndOt();
+            gpuResetAndInvalidateModelBuffers();
             if (Stage_GetModeByte12() == 0) {
                 Stage_SetEndingFlag();
             } else {

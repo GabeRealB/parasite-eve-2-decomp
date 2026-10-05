@@ -343,7 +343,7 @@ u16 Stream_RestoreAfterLoad(s32 arg0, s32 arg1)
         if ((arg0 & 0xFFFF) == 1) {
             memSelectAuxHeapRegion(true);
         }
-        Tmd_AllocMissingBuffers();
+        tmdResetAuxHeapAndRestoreBuffers();
         if (gDisplayState.videoMode == DISPLAY_VIDEO_STREAMING) {
             cdCmdPrepareViewMovie();
             CdCmd_SelectMdecBuffer();
@@ -986,7 +986,7 @@ void Mem_AllocAuxWithImages(s16 arg0)
     CdCmdQueue* p;
 
     p = &gCdCmdQueue;
-    Gpu_ResetGraphAndOt();
+    gpuResetAndInvalidateModelBuffers();
     memSelectAuxHeapRegion(false);
     memInitAuxHeap();
     if (gDisplayState.videoMode == DISPLAY_VIDEO_NORMAL) {

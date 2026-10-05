@@ -415,7 +415,7 @@ static Task* Display_SpawnFromMode(void)
 
 block_default:
     ed = &gGameSession->location.loc;
-    Gpu_ResetGraphAndOt();
+    gpuResetAndInvalidateModelBuffers();
     gfxCaptureAreaFrame(ed->stage, ed->area, gDisplayState.drawBuffer, MEMORY_PRIMITIVE_HEAP_BYTES);
     if (Stage_Ctx->entryMode == STAGE_ENTRY_GRAY_CAPTURE) {
         Display_InvertFramebufferGray();
@@ -472,7 +472,7 @@ static void Display_TransitionTask(Task* task)
                     gGameSession->viewReady = 0;
                     Task_Spawn(0, 0x1E, 2, 0);
                 } else {
-                    Tmd_AllocMissingBuffers();
+                    tmdResetAuxHeapAndRestoreBuffers();
                     gGameSession->viewReady = 1;
                 }
                 Stage_Ctx->transitionStep = Stage_Ctx->transitionStep + 1;
@@ -508,7 +508,7 @@ static void Display_TransitionTask(Task* task)
                 gDisplayState.control.flags.flipMode = DISPLAY_FLIP_HOLD;
                 task->killCountdown                  = task->killCountdown - 1;
                 if (task->killCountdown == 0) {
-                    Gpu_ResetGraphAndOt();
+                    gpuResetAndInvalidateModelBuffers();
                     gfxCaptureAreaFrame(gGameSession->location.loc.stage, gGameSession->location.loc.area,
                                         gDisplayState.frameBuffer, MEMORY_PRIMITIVE_HEAP_BYTES);
                     memInitAuxHeap();
@@ -897,7 +897,7 @@ static void Display_TaskLoadStep(Task* task)
     } else {
     block_3:
         memConfigureImageMemory(gGameSession->location.loc.stage, gGameSession->location.loc.area);
-        Tmd_AllocMissingBuffers();
+        tmdResetAuxHeapAndRestoreBuffers();
         Gp_AllocSprtLists();
     }
     CdCmd_EnqueueLoadFile(0, 0, 4);
@@ -1027,7 +1027,7 @@ static __inline__ void mdecFinishDecode(void)
     CdCmdQueue* q = &gCdCmdQueue;
 
     if (gDisplayState.keepGraphics == 0) {
-        Tmd_AllocMissingBuffers();
+        tmdResetAuxHeapAndRestoreBuffers();
     }
     q->imageLoadStatus      = CD_COMMAND_IMAGE_COMPLETE;
     q->imageDecodePending   = 0;
@@ -1053,7 +1053,7 @@ static void Mdec_ProcessDecode(void)
             Mdec_ResolveStreamBuffer(&gGameSession->location.loc.view);
             if ((u32)++D_8007A358 >= 0x5B) {
                 D_8007A358 = 0;
-                Gpu_ResetGraphAndOt();
+                gpuResetAndInvalidateModelBuffers();
                 if (Stage_CdEntry->bufferKind == STREAM_SCENE_BUFFER_DECODE) {
                     p->decodeBufferBytes = p->nextDecodeBufferBytes;
                 }
@@ -1061,7 +1061,7 @@ static void Mdec_ProcessDecode(void)
             }
             break;
         case CD_COMMAND_IMAGE_START:
-            Gpu_ResetGraphAndOt();
+            gpuResetAndInvalidateModelBuffers();
             p->mdecOutputPending = 1;
             if (p->sceneVlcTableMode == STREAM_SCENE_VLC_IMAGE_BUFFER) {
                 DecDCTvlcBuild((u16*)((u8*)Fs_ImgBuffers + FILE_SYSTEM_IMAGE_VLC_OFFSET));
@@ -1127,7 +1127,7 @@ static void Mdec_ProcessDecode(void)
                 mdecFinishDecode();
             } else if ((u32)++D_8007A358 >= 0x5B) {
                 D_8007A358 = 0;
-                Gpu_ResetGraphAndOt();
+                gpuResetAndInvalidateModelBuffers();
                 if (Stage_CdEntry->bufferKind == STREAM_SCENE_BUFFER_DECODE) {
                     p->decodeBufferBytes = p->nextDecodeBufferBytes;
                 }
@@ -1149,7 +1149,7 @@ static void Mdec_DecodeToVram(void)
     p = &gCdCmdQueue;
     switch ((s16)p->imageDecodeStep) {
         case CD_COMMAND_IMAGE_START:
-            Gpu_ResetGraphAndOt();
+            gpuResetAndInvalidateModelBuffers();
             p->mdecOutputPending = 1;
             DecDCTReset(0);
             DecDCTvlcSize2(0);
@@ -1193,7 +1193,7 @@ static void Mdec_DecodeToVram(void)
                 p->imageLayout = FILE_SYSTEM_IMAGE_CONTIGUOUS;
                 q              = &gCdCmdQueue;
                 if (gDisplayState.keepGraphics == 0) {
-                    Tmd_AllocMissingBuffers();
+                    tmdResetAuxHeapAndRestoreBuffers();
                 }
                 q->imageLoadStatus      = CD_COMMAND_IMAGE_COMPLETE;
                 q->imageDecodePending   = 0;

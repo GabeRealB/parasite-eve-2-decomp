@@ -502,8 +502,8 @@ static void Gp_ScriptTaskState1(Task* arg0)
                 break;
 
             case EVENT_SCRIPT_OPCODE_REBUILD_TMD_BUFFERS:
-                Gpu_ResetGraphAndOt();
-                Tmd_AllocMissingBuffers();
+                gpuResetAndInvalidateModelBuffers();
+                tmdResetAuxHeapAndRestoreBuffers();
                 break;
 
             case EVENT_SCRIPT_OPCODE_PLAY_SCENE_AUDIO:

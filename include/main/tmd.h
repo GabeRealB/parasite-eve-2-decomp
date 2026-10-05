@@ -92,7 +92,27 @@ TmdObject* tmdCreateModel(TmdSource* source, s32 bufferFlags);
 /// keep the buffer alive and avoid changing packets still in use by the GPU.
 void tmdBuildBufferHalf(TmdObject* model);
 
-void Tmd_AllocMissingBuffers(void);
+/// Resets the auxiliary heap, reserves playback storage and restores missing model buffers.
+///
+/// Requires the desired nonempty auxiliary region to be configured and all
+/// prior uses of its allocations to have ended. Reset invalidates every
+/// allocation in that region, even when the attached-model list is empty.
+/// Clear model pointers into discarded storage first, normally with
+/// `gpuResetAndInvalidateModelBuffers`; non-NULL pointers are otherwise left
+/// untouched and must still denote live buffers outside the reset region.
+/// Playback descriptors and borrowed storage must satisfy
+/// `cdCmdReservePlaybackBuffers`'s requirements; its reservations precede models.
+///
+/// For each attached model with a NULL buffer and without
+/// `TMD_OBJECT_SKIP_AUTO_BUFFER`, allocates two source-sized halves from the
+/// auxiliary heap, clears the requested bytes and builds both halves. The
+/// source's half capacity is in bytes (0..65535) and must agree with the model's
+/// cache; see `tmdBuildBufferHalf` for stream and scratch requirements.
+/// Success leaves the half selector zero. A failed or zero-sized request leaves
+/// the buffer NULL and the previous selector intact, and the sweep continues.
+/// Draw flags, list membership and model/coordinate ownership are unchanged;
+/// new buffers belong to their models until released or the heap is reset.
+void tmdResetAuxHeapAndRestoreBuffers(void);
 
 /// Allocates and initializes both primitive-buffer halves when the model has none.
 ///
