@@ -5290,16 +5290,20 @@ static void func_actor_403000_8013C2D4(Task* arg0)
     coord               = arg0->extra.tmd->coords;
     angle               = ratan2(scratch->offset.vx, scratch->offset.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     if (angle < 0) {
-    loop_neg:
-        if (angle < -0x800) {
-            angle += 0x1000;
-            goto loop_neg;
+        while (1) {
+            if (angle < -0x800) {
+                angle += 0x1000;
+                continue;
+            }
+            break;
         }
     } else {
-    loop_pos:
-        if (angle > 0x800) {
-            angle -= 0x1000;
-            goto loop_pos;
+        while (1) {
+            if (angle > 0x800) {
+                angle -= 0x1000;
+                continue;
+            }
+            break;
         }
     }
     mag                 = angle;
