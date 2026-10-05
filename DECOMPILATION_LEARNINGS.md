@@ -139858,13 +139858,13 @@ That gives `departureYaw` `a1` and `randomIncrement` `a2`. The `.greg` conflict 
 if the arm-crossing pseudo lists a hard register that only a local constant
 occupies, making the constant global is the lever.
 
-### Duplicated arm stores that cross-jump still count as refs: they decide a callee-saved swap (func_acropolis_cafeteria_8017EA90, 2026-09-23)
+### Duplicated arm stores that cross-jump still count as refs: they decide a callee-saved swap (acropolisCafeteriaPuffTask, 2026-09-23)
 
-Symptom: 99.9% with only `regs`, two long-lived pointers (`block`, a scratchpad
-block, and `prim`, a `POLY_FT4*`) on swapped `$s1`/`$s2`. Final instruction
+Symptom: 99.9% with only `regs`, two long-lived pointers (`scratch`, a scratchpad
+block, and `quad`, a `POLY_FT4*`) on swapped `$s1`/`$s2`. Final instruction
 counts for both were identical to the target, so the difference was not in the
-emitted code. `tools/trace_gcc.py` gave the global priorities: `block` refs=32
-span=297 -> 5387, `prim` refs=30 span=293 -> 4095. `floor_log2(refs)` jumps from
+emitted code. `tools/trace_gcc.py` gave the global priorities: `scratch` refs=32
+span=297 -> 5387, `quad` refs=30 span=293 -> 4095. `floor_log2(refs)` jumps from
 4 to 5 at 32 refs, so two refs decide the order. `REG_N_REFS` is counted in
 `flow`, **before** jump2 cross-jumping. So code that is later merged away still
 counts. The target's
@@ -139877,13 +139877,13 @@ L: sb v0,4(s1); sb v0,5(s1); sb v0,6(s1)
 came from the colour stores written in **both** arms:
 
 ```c
-if (work->age < 10) { shade = work->age * 4; setRGB0(prim, shade, shade, shade); }
-else                { shade = 40;            setRGB0(prim, shade, shade, shade); }
+if (work->age < 10) { shade = work->age * 4; setRGB0(quad, shade, shade, shade); }
+else                { shade = 40;            setRGB0(quad, shade, shade, shade); }
 ```
 
-The stored value must be a local. `setRGB0(prim, work->age * 4, ...)` re-reads
+The stored value must be a local. `setRGB0(quad, work->age * 4, ...)` re-reads
 `age` after each byte store and the tails stop being identical. The permuter found
-the same +2 refs with a nonsense split (`prim->v2 = q / 5; prim->v2 = prim->v2 * 48 + 47;`).
+the same +2 refs with a nonsense split (`quad->v2 = q / 5; quad->v2 = quad->v2 * 48 + 47;`).
 When it proposes an edit like that, look for a natural source of the same extra
 refs.
 

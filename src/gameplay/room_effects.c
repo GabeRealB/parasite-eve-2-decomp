@@ -633,7 +633,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_helicopter_landing_pad_80181064, { NULL } },            // 0x05E
     { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_helicopter_landing_pad_80180E40, { NULL } },            // 0x05F
     { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_cafeteria_8017E708, { NULL } },                         // 0x060
-    { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_cafeteria_8017EA90, { NULL } },                         // 0x061
+    { { { TASK_BODY_COORD, 0x70 } }, acropolisCafeteriaPuffTask, { NULL } },                                // 0x061
     { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_promenade_8017F0BC, { NULL } },                         // 0x062
     { { { TASK_BODY_NONE, 0x70 } }, taskKill, { NULL } },                                                   // 0x063
     { { { TASK_BODY_TMD, 0x70 } }, acropolisCafeteriaModelWanderTask, { &gAcropolisCafeteriaModel077D8 } }, // 0x064

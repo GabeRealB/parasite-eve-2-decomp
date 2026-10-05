@@ -87,9 +87,28 @@ void acropolisCafeteriaRoomVisualEffectsTwinTrailTask(Task* task);
 
 void func_acropolis_cafeteria_80180C94(Task* task);
 
-void func_acropolis_cafeteria_8017EA90(Task* task);
+/// Animates the cafeteria's ten-cell drifting puff billboard.
+///
+/// Requires a coordinate body and counted `EffectWork` from `Gp_SpawnEff`.
+/// Active in session view 9 while the room's puff gate is set. `spawnArg1`
+/// bits 0..11 supply the perspective size factor; bit 12 starts age at ten
+/// ticks, past the fade-in.
+/// At age zero, projected depth above 16 seeds rotation (4096 units per turn),
+/// Y/Z drift (4..19 world units per tick) and the cell period (3..6 ticks).
+/// Drawing has no depth guard: the projected depth must be nonzero, and the
+/// period must be positive before cell selection. `EffectWork::scale` holds
+/// rotation, `angle` size, `step` cell period and `age` elapsed ticks.
+/// Releases the work and task after all ten cells, or when the gate/view ends.
+void acropolisCafeteriaPuffTask(Task* task);
 
-void func_acropolis_cafeteria_80181E70(Task* task);
+/// Runs one state of a cafeteria loose prop that sinks, hops and slides on contact.
+///
+/// Requires a TMD task and the cafeteria overlay to remain loaded. `state`
+/// must be 0 (initialize near the live player), 1 (update motion),
+/// 2 (request exit) or 3 (unlink the sphere and kill the task). Initialization
+/// owns collision work in `Task::work` and installs the sphere-unlinking exit
+/// callback; the task releases that work during teardown.
+void acropolisCafeteriaLoosePropTask(Task* task);
 
 void func_acropolis_cafeteria_8017E424(Task* task);
 

@@ -1759,7 +1759,7 @@ func_mist_parking_80184728 = 0x80184728; // type:func absolute:True owner=mist_p
 
 func_acropolis_fire_escape_8017FF7C = 0x8017FF7C; // type:func absolute:True owner=acropolis_fire_escape shared=rooms
 
-func_acropolis_cafeteria_8017EA90 = 0x8017EA90; // type:func absolute:True owner=acropolis_cafeteria shared=rooms
+acropolisCafeteriaPuffTask = 0x8017EA90; // type:func absolute:True owner=acropolis_cafeteria shared=rooms
 
 func_acropolis_hallway_8017D828 = 0x8017D828; // type:func absolute:True owner=acropolis_hallway shared=rooms
 

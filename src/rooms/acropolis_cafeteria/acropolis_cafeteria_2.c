@@ -1073,51 +1073,88 @@ void func_acropolis_cafeteria_8017E89C(Task* task)
     work->scale = gGameSession->location.loc.view;
 }
 
-/// While the room's effect gate is set and the session view is mode 9, draws
-/// the effect as a semi-transparent billboard animated through a 5-column
-/// sheet of 48-pixel cells, one cell every `step` frames. The first frame it
-/// projects in front of the camera seeds a random spin, drift and frame
-/// period; spawn flag `0x1000` starts it ten frames in. Each frame it drifts
-/// along Z until Z reaches `0xB00` and along Y after that. The effect is
-/// released once it has shown all ten cells, or as soon as the gate or the
-/// view mode no longer hold.
-void func_acropolis_cafeteria_8017EA90(Task* task)
+/// Selects one 48-texel cell of the cafeteria puff's five-column texture sheet.
+///
+/// The work must have a positive cell period and select a cell in 0..9.
+/// Only the quad's UV bytes change; work and quad are borrowed live objects.
+static inline void _acropolisCafeteriaSetPuffCellUvs(POLY_FT4* quad, const EffectWork* work)
 {
+    enum { PUFF_SHEET_COLUMNS = 5,
+           PUFF_CELL_TEXELS   = 48,
+           PUFF_UV_SPAN       = PUFF_CELL_TEXELS - 1 };
+    s32 cellIndex;
+
+    cellIndex = work->age / work->step;
+    quad->u0  = (cellIndex % PUFF_SHEET_COLUMNS) * PUFF_CELL_TEXELS;
+    cellIndex = work->age / work->step;
+    quad->v0  = (cellIndex / PUFF_SHEET_COLUMNS) * PUFF_CELL_TEXELS;
+    cellIndex = work->age / work->step;
+    quad->u1  = (cellIndex % PUFF_SHEET_COLUMNS) * PUFF_CELL_TEXELS + PUFF_UV_SPAN;
+    cellIndex = work->age / work->step;
+    quad->v1  = (cellIndex / PUFF_SHEET_COLUMNS) * PUFF_CELL_TEXELS;
+    cellIndex = work->age / work->step;
+    quad->u2  = (cellIndex % PUFF_SHEET_COLUMNS) * PUFF_CELL_TEXELS;
+    cellIndex = work->age / work->step;
+    quad->v2  = (cellIndex / PUFF_SHEET_COLUMNS) * PUFF_CELL_TEXELS + PUFF_UV_SPAN;
+    cellIndex = work->age / work->step;
+    quad->u3  = (cellIndex % PUFF_SHEET_COLUMNS) * PUFF_CELL_TEXELS + PUFF_UV_SPAN;
+    cellIndex = work->age / work->step;
+    quad->v3  = (cellIndex / PUFF_SHEET_COLUMNS) * PUFF_CELL_TEXELS + PUFF_UV_SPAN;
+}
+
+void acropolisCafeteriaPuffTask(Task* task)
+{
+    enum {
+        PUFF_ACTIVE_VIEW        = 9,
+        PUFF_SEED_MIN_DEPTH     = 16,
+        PUFF_ROTATION_MASK      = 0xFFF,
+        PUFF_SPAWN_SIZE_MASK    = 0xFFF,
+        PUFF_SPAWN_SKIP_FADE    = 0x1000,
+        PUFF_SKIP_FADE_AGE      = 10,
+        PUFF_FADE_IN_TICKS      = 10,
+        PUFF_MAX_SHADE          = 40,
+        PUFF_CELL_TEXELS        = 48,
+        PUFF_UV_SPAN            = PUFF_CELL_TEXELS - 1,
+        PUFF_CELL_COUNT         = 10,
+        PUFF_QUARTER_TURN       = 0x400,
+        PUFF_TRIG_FRACTION_BITS = 12,
+        PUFF_DRIFT_Z_LIMIT      = 0xB00
+    };
     EffectWork*           work;
     GfxCoord*             coord;
-    OverlaySpriteScratch* head;
-    OverlaySpriteScratch* block;
-    POLY_FT4*             prim;
-    u8                    mode;
+    OverlaySpriteScratch* scratchEnd;
+    OverlaySpriteScratch* scratch;
+    POLY_FT4*             quad;
+    u8                    view;
     u8                    shade;
-    s32                   quot;
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
     if (D_acropolis_cafeteria_80184CFC != 0) {
-        mode = gGameSession->location.loc.view;
-        if (mode == 9) {
+        view = gGameSession->location.loc.view;
+        if (view == PUFF_ACTIVE_VIEW) {
+            // Project the centre once; the billboard's rotation is in screen space.
             actorRenderComposeCoord(coord);
-            head = SCRATCH_STACK_CURSOR(OverlaySpriteScratch);
+            scratchEnd = SCRATCH_STACK_CURSOR(OverlaySpriteScratch);
             SCRATCH_STACK_RESERVE_BLOCK(OverlaySpriteScratch);
-            block              = SCRATCH_STACK_CURSOR(OverlaySpriteScratch);
-            block->worldPos.vx = coord->workm.t[0];
-            block->worldPos.vy = coord->workm.t[1];
-            block->worldPos.vz = coord->workm.t[2];
+            scratch              = SCRATCH_STACK_CURSOR(OverlaySpriteScratch);
+            scratch->worldPos.vx = coord->workm.t[0];
+            scratch->worldPos.vy = coord->workm.t[1];
+            scratch->worldPos.vz = coord->workm.t[2];
             gte_SetTransMatrix(&GsWSMATRIX);
             gte_SetRotMatrix(&GsWSMATRIX);
-            gte_ldv0(&head[-1].worldPos);
+            gte_ldv0(&scratchEnd[-1].worldPos);
             gte_rtps();
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setcode(prim, 0x2C);
-            setlen(prim, mode);
-            gte_stsxy(&head[-1].screenPos);
-            gte_stszotz(&block->otz);
-            if (head[-1].otz > 16 && work->age == 0) {
+            quad           = gGpuPrimCursor;
+            gGpuPrimCursor = quad + 1;
+            setPolyFT4(quad);
+            gte_stsxy(&scratchEnd[-1].screenPos);
+            gte_stszotz(&scratch->otz);
+            // Depth gates seeding only; drawing and division below always proceed.
+            if (scratchEnd[-1].otz > PUFF_SEED_MIN_DEPTH && work->age == 0) {
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->scale     = (gRandomLcgState >> 16) & 0xFFF;
-                work->angle     = task->spawnArg1.halves.low & 0xFFF;
+                work->scale     = (gRandomLcgState >> 16) & PUFF_ROTATION_MASK;
+                work->angle     = task->spawnArg1.halves.low & PUFF_SPAWN_SIZE_MASK;
                 work->move.vx   = 0;
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 work->move.vy   = ((gRandomLcgState >> 16) & 0xF) + 4;
@@ -1125,59 +1162,45 @@ void func_acropolis_cafeteria_8017EA90(Task* task)
                 work->move.vz   = -((gRandomLcgState >> 16) & 0xF) - 4;
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 work->step      = ((gRandomLcgState >> 16) & 3) + 3;
-                if (task->spawnArg1.value & 0x1000) {
-                    work->age = 10;
+                if (task->spawnArg1.value & PUFF_SPAWN_SKIP_FADE) {
+                    work->age = PUFF_SKIP_FADE_AGE;
                 }
             }
-            if (work->age < 10) {
+            if (work->age < PUFF_FADE_IN_TICKS) {
                 shade = work->age * 4;
-                setRGB0(prim, shade, shade, shade);
+                setRGB0(quad, shade, shade, shade);
             } else {
-                shade = 40;
-                setRGB0(prim, shade, shade, shade);
+                shade = PUFF_MAX_SHADE;
+                setRGB0(quad, shade, shade, shade);
             }
-            prim->tpage = 0x2B;
-            prim->clut  = 0x4380;
-            setSemiTrans(prim, 1);
-            quot            = work->age / work->step;
-            prim->u0        = (quot % 5) * 48;
-            quot            = work->age / work->step;
-            prim->v0        = (quot / 5) * 48;
-            quot            = work->age / work->step;
-            prim->u1        = (quot % 5) * 48 + 47;
-            quot            = work->age / work->step;
-            prim->v1        = (quot / 5) * 48;
-            quot            = work->age / work->step;
-            prim->u2        = (quot % 5) * 48;
-            quot            = work->age / work->step;
-            prim->v2        = (quot / 5) * 48 + 47;
-            quot            = work->age / work->step;
-            prim->u3        = (quot % 5) * 48 + 47;
-            quot            = work->age / work->step;
-            prim->v3        = (quot / 5) * 48 + 47;
-            block->cornerDx = (((work->angle * 47) / block->otz) * rsin(work->scale)) >> 12;
-            block->cornerDy = (((work->angle * 47) / block->otz) * rcos(work->scale)) >> 12;
-            prim->x0        = block->screenPos.vx + block->cornerDx;
-            prim->x3        = block->screenPos.vx - block->cornerDx;
-            prim->y0        = block->screenPos.vy - block->cornerDy;
-            prim->y3        = block->screenPos.vy + block->cornerDy;
-            block->cornerDx = (((work->angle * 47) / block->otz) * rsin(work->scale + 0x400)) >> 12;
-            block->cornerDy = (((work->angle * 47) / block->otz) * rcos(work->scale + 0x400)) >> 12;
-            prim->x1        = block->screenPos.vx + block->cornerDx;
-            prim->x2        = block->screenPos.vx - block->cornerDx;
-            prim->y1        = block->screenPos.vy - block->cornerDy;
-            prim->y2        = block->screenPos.vy + block->cornerDy;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
+            quad->tpage = getTPage(0, GPU_BLEND_ADD, 704, 0);
+            quad->clut  = getClut(0, 270);
+            setSemiTrans(quad, 1);
+            _acropolisCafeteriaSetPuffCellUvs(quad, work);
+            scratch->cornerDx = (((work->angle * PUFF_UV_SPAN) / scratch->otz) * rsin(work->scale)) >> PUFF_TRIG_FRACTION_BITS;
+            scratch->cornerDy = (((work->angle * PUFF_UV_SPAN) / scratch->otz) * rcos(work->scale)) >> PUFF_TRIG_FRACTION_BITS;
+            quad->x0          = scratch->screenPos.vx + scratch->cornerDx;
+            quad->x3          = scratch->screenPos.vx - scratch->cornerDx;
+            quad->y0          = scratch->screenPos.vy - scratch->cornerDy;
+            quad->y3          = scratch->screenPos.vy + scratch->cornerDy;
+            scratch->cornerDx = (((work->angle * PUFF_UV_SPAN) / scratch->otz) * rsin(work->scale + PUFF_QUARTER_TURN)) >> PUFF_TRIG_FRACTION_BITS;
+            scratch->cornerDy = (((work->angle * PUFF_UV_SPAN) / scratch->otz) * rcos(work->scale + PUFF_QUARTER_TURN)) >> PUFF_TRIG_FRACTION_BITS;
+            quad->x1          = scratch->screenPos.vx + scratch->cornerDx;
+            quad->x2          = scratch->screenPos.vx - scratch->cornerDx;
+            quad->y1          = scratch->screenPos.vy - scratch->cornerDy;
+            quad->y2          = scratch->screenPos.vy + scratch->cornerDy;
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                    quad);
             SCRATCH_STACK_RELEASE_BLOCK(OverlaySpriteScratch);
-            if (coord->coord.t[2] > 0xB00) {
+            // Move toward the Z boundary first, then descend along positive Y.
+            if (coord->coord.t[2] > PUFF_DRIFT_Z_LIMIT) {
                 coord->coord.t[2] += work->move.vz;
             } else {
                 coord->coord.t[1] += work->move.vy;
             }
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             work->age++;
-            if (work->age <= work->step * 10 - 1) {
+            if (work->age <= work->step * PUFF_CELL_COUNT - 1) {
                 return;
             }
         }
@@ -1546,9 +1569,7 @@ static const TaskFuncTable4 D_acropolis_cafeteria_8017D69C = { {
     _acropolisCafeteriaLoosePropExit,
 } };
 
-/// Runs the task's current state through a stack copy of the room's
-/// four-entry state table.
-void func_acropolis_cafeteria_80181E70(Task* task)
+void acropolisCafeteriaLoosePropTask(Task* task)
 {
     TaskFuncTable4 states;
 

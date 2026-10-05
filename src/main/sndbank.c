@@ -340,10 +340,10 @@ TaskDesc D_800678F4[] = {
     { { { TASK_BODY_TMD, 0x50 } }, func_8010B610, { &D_kyle_800103_8016DE3C } },
     { { { TASK_BODY_TMD, 0x50 } }, func_8010B610, { &D_kyle_800104_8016E568 } },
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
-    { { { TASK_BODY_TMD, 0x50 } }, func_acropolis_cafeteria_80181E70, { &gAcropolisCafeteriaModel07CA8 } },
-    { { { TASK_BODY_TMD, 0x50 } }, func_acropolis_cafeteria_80181E70, { &gAcropolisCafeteriaModel08638 } },
-    { { { TASK_BODY_TMD, 0x50 } }, func_acropolis_cafeteria_80181E70, { &gAcropolisCafeteriaModel09090 } },
-    { { { TASK_BODY_TMD, 0x50 } }, func_acropolis_cafeteria_80181E70, { &gAcropolisCafeteriaModel09A20 } },
+    { { { TASK_BODY_TMD, 0x50 } }, acropolisCafeteriaLoosePropTask, { &gAcropolisCafeteriaModel07CA8 } },
+    { { { TASK_BODY_TMD, 0x50 } }, acropolisCafeteriaLoosePropTask, { &gAcropolisCafeteriaModel08638 } },
+    { { { TASK_BODY_TMD, 0x50 } }, acropolisCafeteriaLoosePropTask, { &gAcropolisCafeteriaModel09090 } },
+    { { { TASK_BODY_TMD, 0x50 } }, acropolisCafeteriaLoosePropTask, { &gAcropolisCafeteriaModel09A20 } },
 };
 
 static u8 D_800680A4             = 0;
