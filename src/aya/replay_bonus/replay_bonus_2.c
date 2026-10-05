@@ -691,7 +691,6 @@ static void func_replay_bonus_801183B8(s32 y, ReplayBonusStfCommand* cmds)
     u8                   idx;
     s32                  tpageX;
     s32                  clut;
-    s32                  clutY;
     s32                  gh;
     s32                  pixelMode;
     u16                  page;
@@ -836,8 +835,7 @@ static void func_replay_bonus_801183B8(s32 y, ReplayBonusStfCommand* cmds)
                     gu        = D_replay_bonus_8011929C[idx].u;
                     gv        = D_replay_bonus_8011929C[idx].v;
                     gh        = D_replay_bonus_8011929C[idx].height;
-                    clutY     = D_replay_bonus_8011929C[idx].clutY << 6;
-                    clut      = clutY | ((D_replay_bonus_8011929C[idx].clutX >> 4) & 0x3F);
+                    clut      = getClut(D_replay_bonus_8011929C[idx].clutX, D_replay_bonus_8011929C[idx].clutY);
                     pixelMode = D_replay_bonus_8011929C[idx].pixelMode;
                     switch (pixelMode) {
                         case 1:
