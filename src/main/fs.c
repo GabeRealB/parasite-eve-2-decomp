@@ -1014,6 +1014,20 @@ void Fs_PrepareFolderLoad(s32 arg0, s32 arg1, s32 arg2)
     _fsStartRead(sector, sector, Fs_CdSector.bytes, 0);
 }
 
+/// Copies one stream descriptor byte by byte.
+static inline void Fs_CopyStreamSlot(StreamSlot* destination, StreamSlot* source)
+{
+    s32 k;
+    u8* src;
+    u8* dst;
+
+    src = (u8*)source;
+    dst = (u8*)destination;
+    for (k = 0; (u16)k < sizeof(*destination); k++) {
+        dst[k & 0xFFFF] = src[k & 0xFFFF];
+    }
+}
+
 void Fs_BuildFolderTables(s32 arg0, s32 arg1, s32 arg2)
 {
     enum { FILE_SYSTEM_FOLDER_STREAM_TABLE_OFFSET = 0x514 };
@@ -1030,9 +1044,6 @@ void Fs_BuildFolderTables(s32 arg0, s32 arg1, s32 arg2)
     _FsCdfFolder* folder;
     StreamSlot*   sourceStreams;
     StreamSlot*   destinationStreams;
-    s32           k;
-    u8*           src;
-    u8*           dst;
 
     i        = 0;
     folderId = ((u8)arg1 * 100) + (u8)arg2;
@@ -1081,11 +1092,7 @@ loop_files:
 loop_streams:
     if (sourceStreams[j & 0xFFFF].key.word != STREAM_KEY_TERMINATOR) {
         sourceStreams[j & 0xFFFF].startSector += files.folder->sectorOffset + *table;
-        src                                    = (u8*)&sourceStreams[j & 0xFFFF];
-        dst                                    = (u8*)(((j & 0xFFFF) * (s32)sizeof(*destinationStreams)) + (s32)destinationStreams);
-        for (k = 0; (u16)k < sizeof(*destinationStreams); k++) {
-            dst[k & 0xFFFF] = src[k & 0xFFFF];
-        }
+        Fs_CopyStreamSlot(&destinationStreams[j & 0xFFFF], &sourceStreams[j & 0xFFFF]);
         j += 1;
         goto loop_streams;
     }
