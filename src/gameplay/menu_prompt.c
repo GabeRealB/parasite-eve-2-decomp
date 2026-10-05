@@ -1547,10 +1547,10 @@ void Gp_ItemDestCursorTask(Task* arg0)
         D_80114D98[1]    = Ui_SpawnFromDesc(desc + 1, one, 0, one, obj);
     }
     Gp_ItemListTask(arg0);
-    if ((Gp_ItemCountShow == 1) && (Ui_IsStateDone(obj) == 0)) {
+    if ((Gp_ItemCountShow == 1) && (uiIsPanelHidingOrHidden(obj) == 0)) {
         uiStartPanelHiding(obj, obj->owner);
-    } else if ((Gp_ItemCountShow == 0) && (Ui_IsStateDone(obj) == 1)) {
-        Ui_ClampAnimOrClose(&(obj)->panel, obj->owner, 0x10);
+    } else if ((Gp_ItemCountShow == 0) && (uiIsPanelHidingOrHidden(obj) == 1)) {
+        uiLimitHiddenDelayOrOpen(&(obj)->panel, obj->owner, 0x10);
     }
     if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_LEFT) != 0) {
@@ -1903,10 +1903,10 @@ void Gp_WeaponMenuTask(Task* arg0)
     _gpWeaponMenuSetRows(menu);
     Ui_ComputeVisibleRows(menu, &(obj)->panel);
     Ui_UpdateListNoAnim(menu, obj);
-    if ((Gp_ItemCountShow == 1) && (Ui_IsStateDone(obj) == 0)) {
+    if ((Gp_ItemCountShow == 1) && (uiIsPanelHidingOrHidden(obj) == 0)) {
         uiStartPanelHiding(obj, obj->owner);
-    } else if ((Gp_ItemCountShow == 0) && (Ui_IsStateDone(obj) == 1)) {
-        Ui_ClampAnimOrClose(&(obj)->panel, obj->owner, 0x10);
+    } else if ((Gp_ItemCountShow == 0) && (uiIsPanelHidingOrHidden(obj) == 1)) {
+        uiLimitHiddenDelayOrOpen(&(obj)->panel, obj->owner, 0x10);
     }
     status = obj->panel.control.word;
     if (status == 1) {
@@ -2293,10 +2293,10 @@ void Gp_ArmorMenuTask(Task* arg0)
         menu->flags    = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
     }
 
-    if ((Gp_ItemCountShow == 1) && (Ui_IsStateDone(obj) == 0)) {
+    if ((Gp_ItemCountShow == 1) && (uiIsPanelHidingOrHidden(obj) == 0)) {
         uiStartPanelHiding(obj, obj->owner);
-    } else if ((Gp_ItemCountShow == 0) && (Ui_IsStateDone(obj) == 1)) {
-        Ui_ClampAnimOrClose(&(obj)->panel, obj->owner, 0x10);
+    } else if ((Gp_ItemCountShow == 0) && (uiIsPanelHidingOrHidden(obj) == 1)) {
+        uiLimitHiddenDelayOrOpen(&(obj)->panel, obj->owner, 0x10);
     }
 
     color = Ui_LookupTable(obj, 1);

@@ -14048,7 +14048,7 @@ case 4:
 *out = p->field_C;
 ```
 
-`Ui_ComputeAnimRect` is the pure example.
+`_uiComputeAnimatedPanelRect` is the pure example.
 
 ## Dual large constants: call in both if/else arms for shared `lui` + `j`
 
@@ -15081,7 +15081,7 @@ func(&sp, arg3);            /* drawMode often lands in the jal delay slot */
 Pair with `u16` fields that the target loads via `lhu` for unsigned arithmetic
 (`field_14 - 1` / `+ 1`) and `(s16)` only where the target uses `lh`.
 
-`Ui_DrawTextAtLayout` is the pure example.
+`_uiDrawOpenPanelText` is the pure example.
 
 ## `s32` save temp forces `lb` for pure byte save/restore
 
@@ -17249,7 +17249,7 @@ func(x - (s16)arg0->field_20, y - (s16)arg0->field_22);
 ```
 
 Changing the struct field to `s16` would break other matches that expect `lhu`
-(e.g. `Ui_DrawTextAtLayout` on `UiPanel::contentOriginX.unsignedValue`).
+(e.g. `_uiDrawOpenPanelText` on `UiPanel::contentOriginX.unsignedValue`).
 `UiPanel` now expresses both promotions through `UiHalf`, so `uiDrawTitle`
 uses `contentOriginX.signedValue` and `contentOriginY.signedValue` directly.
 
@@ -18615,7 +18615,7 @@ tv0 = p->x1;                          /* kills live y in $v0 */
 tv1 = ((volatile POLY_F3*)p)->y0;     /* must lhu, not reuse live y */
 ```
 
-`Ui_DrawFlatCaret` needs this so the if/else arms start with `lhu x1; lhu y0`
+`uiDrawFlatCaret` needs this so the if/else arms start with `lhu x1; lhu y0`
 exactly as the target (register-asm on `$v0`/`$v1` alone is not enough when y
 is still live in `$v1` from the prologue).
 
@@ -18646,7 +18646,7 @@ ot[(s16)idx + 1] = (ot[(s16)idx + 1] & mask_hi) | ((u32)p & mask);
 ```
 
 Assign `ot` before `mask_hi` so the `lui %hi(gGpuCurrentOt)` precedes
-`lui a1,0xFF00`. `Ui_DrawFlatCaret` is the pure example.
+`lui a1,0xFF00`. `uiDrawFlatCaret` is the pure example.
 
 Do **not** also pin an earlier mid-function temporary to `asm("a1")` (e.g. a
 live `y = contentOriginY.unsignedValue` that the target keeps in `$a1` across a branch). Pinning
@@ -18654,7 +18654,7 @@ both forces the early value elsewhere and emits `lui a1,0xFF00` too early.
 Leave the early temp unpinned: with `mask_hi` reserved for the epilogue, GCC
 still naturally places the live-across-branch value in free `$a1`, and the late
 `mask_hi` assignment keeps the correct `lui` schedule. `Ui_DrawCaret` is the
-example (shares the dual-use OT pattern with `Ui_DrawFlatCaret`).
+example (shares the dual-use OT pattern with `uiDrawFlatCaret`).
 
 ## Oversize prim advance using the reservation's size
 
@@ -20031,7 +20031,7 @@ Do **not** also name a long-lived `RECT* arg2 = &sp18`: that steals `$s2` and
 changes the `bne` delay from `addiu s1,sp,0x10` to `addiu s2,sp,0x18`. Pass
 `&sp18` directly so each use is a fresh `addiu a2,sp,0x18`.
 
-`Ui_LayoutAndDraw` is the pure example (same shape as inlined `Ui_ComputeAnimRect` +
+`Ui_LayoutAndDraw` is the pure example (same shape as inlined `_uiComputeAnimatedPanelRect` +
 `Ui_InsetLayout` + `Ui_DrawPanel`).
 
 ## Ring-buffer queue drain: non-volatile entry + split index advances
@@ -63941,7 +63941,7 @@ the loop it is older than every invariant and gets the higher one.
 
 ## `f(a - b)`: the operand born last takes the argument register
 
-For `Ui_DrawFlatCaret(obj, (fC + f10) - (baseX + 5), ...)` the target is
+For `uiDrawFlatCaret(obj, (fC + f10) - (baseX + 5), ...)` the target is
 
 ```
 lh   $v0, 0xC($s2)
@@ -63965,10 +63965,10 @@ the shorter span and the register:
 ```c
 l1 = (s16)obj->field_C + (s16)obj->field_10;
 r1 = (s16)obj->baseX + 5;
-Ui_DrawFlatCaret(&obj->panel, l1 - r1, y1, 0x606060, 0);
+uiDrawFlatCaret(&obj->panel, l1 - r1, y1, 0x606060, 0);
 l2 = (s16)obj->field_C + (s16)obj->field_10;
 r2 = (s16)obj->baseX + 5;
-Ui_DrawFlatCaret(&obj->panel, l2 - r2, y, 0x606060, one);
+uiDrawFlatCaret(&obj->panel, l2 - r2, y, 0x606060, one);
 ```
 
 Related: `obj` here takes `$s2` although `$s1` is free at function entry,

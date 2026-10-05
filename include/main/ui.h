@@ -68,7 +68,12 @@ void uiObjectTaskExit(Task* task);
 /// remain live for its task updates; `unusedOwningTask` is not read.
 void uiStartPanelHiding(UiObject* object, Task* unusedOwningTask);
 
-s32 Ui_IsStateDone(UiObject* object);
+/// Reports whether a UI object's panel is hiding or retained hidden.
+///
+/// Returns 1 for lifecycle indices 4 and 5, and 0 for indices 0..3. Hiding
+/// includes an unfinished shrink animation. The signed >= comparison is
+/// retained; `object` must be live and its lifecycle index must be in 0..5.
+s32 uiIsPanelHidingOrHidden(const UiObject* object);
 
 void Ui_DrawTextColored(UiPanel* panel, char* arg1);
 
@@ -91,7 +96,18 @@ void Ui_SetHolderParam(u8* arg0, s32 unused2, s32 unused3);
 /// Set a numeric item id (0x300..0x3FF) for the PE cost prompt.
 void Ui_SetHolderParamAlt(s32 arg0, s32 unused2, s32 unused3);
 
-void Ui_ClampAnimOrClose(UiPanel* panel, Task* task, s32 arg2);
+/// Limits a hidden panel's reopening delay, or begins opening an earlier state.
+///
+/// A nonzero `delayTicks` at state >= hidden replaces a negative counter or
+/// caps a longer counter at delayTicks + nine; zero and shorter counters stay
+/// unchanged. Otherwise delegates to `uiStartPanelOpening`, including when
+/// delayTicks is zero. State and input control are preserved on the delay path.
+///
+/// Delays are nominal 60-Hz ticks. Use 0..32758 so the nine-tick bias fits the
+/// signed 16-bit counter; the addition is signed s32 and the store narrows to
+/// s16 without validation. `panel` must be live with lifecycle index 0..5.
+/// `owningTask` is forwarded to the opening helper, which does not inspect it.
+void uiLimitHiddenDelayOrOpen(UiPanel* panel, Task* owningTask, s32 delayTicks);
 
 /// Begins a panel's opening transition unless the panel is already open.
 ///
@@ -215,6 +231,23 @@ void uiDrawRaisedRect(const UiPanel* panel, s32 left, s32 top, s32 width, s32 he
 
 void Ui_WaitCdThenOverlay(Task* task);
 
-void Ui_DrawFlatCaret(UiPanel* panel, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+/// Direction flags accepted by `uiDrawFlatCaret`; any nonzero value points down.
+enum {
+    USER_INTERFACE_CARET_UP   = 0,
+    USER_INTERFACE_CARET_DOWN = 1
+};
+
+/// Queues a flat triangular caret at a panel-relative tip position.
+///
+/// `tipX`/`tipY` are content pixels, narrowed through unsigned halfwords after
+/// adding the panel origin. Up has base offsets (-4,+5) and (+5,+5); down has
+/// (-3,-4) and (+4,-4). The 24-bit RGB word (R low byte) is doubled as a whole
+/// before the GPU command byte is set, retaining carries between channels.
+///
+/// Borrows the live panel without testing its state or changing it. Requires
+/// word-aligned arena space for a POLY_G3-sized reservation and a writable
+/// signed panel OT base+1 tag. Writes a POLY_F3; the unused reservation tail
+/// and packet must remain intact until the GPU consumes the ordering table.
+void uiDrawFlatCaret(const UiPanel* panel, s32 tipX, s32 tipY, u32 colorRgb, s32 pointsDown);
 
 #endif // MAIN_UI_H

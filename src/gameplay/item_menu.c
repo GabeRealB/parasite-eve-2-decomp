@@ -1176,8 +1176,8 @@ void func_800BDF6C(Task* task)
     halfWidth = (s32)(negWidth + ((u32)negWidth >> 0x1F)) >> 1;
     caretX    = halfWidth + splitWidth;
     half      = halfWidth;
-    Ui_DrawFlatCaret(&(obj)->panel, caretX, caretY, 0x606060, 1);
-    Ui_DrawFlatCaret(&(obj)->panel, caretX, panelY + 0x1E, 0x606060, 0);
+    uiDrawFlatCaret(&(obj)->panel, caretX, caretY, 0x606060, USER_INTERFACE_CARET_DOWN);
+    uiDrawFlatCaret(&(obj)->panel, caretX, panelY + 0x1E, 0x606060, USER_INTERFACE_CARET_UP);
     line                              = gGpuPrimCursor;
     gGpuPrimCursor                    = line + 1;
     GPU_PRIMITIVE_COLOR_WORD(line, 0) = GPU_PACK_COLOR_WORD(0x60, 0x60, 0x60, 0);

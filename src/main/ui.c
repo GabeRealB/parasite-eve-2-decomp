@@ -340,11 +340,11 @@ static void _uiDrawUnderlinedLabel(const UiPanel* panel, s32 x, s32 y, const cha
 
 static void Ui_ComputeVisibleRowsEx(UiList* list, UiPanel* panel, s32 arg2);
 
-static void Ui_DrawTextAtLayout(UiPanel* panel, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 arg5, s32 arg6);
+static void _uiDrawOpenPanelText(UiPanel* panel, s32 x, s32 y, const u8* text, u32 colorRgb, s32 drawMode, s32 alignment);
 
 static void _uiComputePanelInnerRect(const UiPanel* unusedPanel, const RECT* outerRect, RECT* innerRect);
 
-static void Ui_ComputeAnimRect(UiPanel* panel, RECT* rect);
+static void _uiComputeAnimatedPanelRect(const UiPanel* panel, RECT* rect);
 
 static void Ui_AnimOpenStep(UiPanel* panel, Task* task);
 
@@ -1973,27 +1973,36 @@ void uiDrawVerticalSeparator(const UiPanel* panel, s32 top, s32 bottom, s32 cent
     }
 }
 
-/// Queues the sloped seven-pixel backing plate behind a label's final text pen.
+/// Queues a seven-pixel-high backing plate ending at a label's final text pen.
 ///
-/// Coordinates are screen-centered pixels. The flat packet retains a
-/// POLY_FT4-sized reservation; the request supplies only the final pen X.
-static inline void _uiQueueLabelBacking(s32 left, s32 top, const TextDrawReq* request, s32 otIndex)
+/// Coordinates are screen-centered pixels and stores retain sixteen bits.
+/// `labelEndX` borrows the final signed-halfword text pen for this call. Its
+/// value supplies the bottom right edge; the top overhangs it by three pixels.
+/// The pen is read after storing the plate's left edge.
+/// Requires word-aligned arena space for a POLY_FT4-sized reservation and a
+/// writable `otIndex` tag. Writes a POLY_F4; retain the packet and unused
+/// reservation tail until the GPU consumes the ordering table.
+static inline void _uiQueueLabelBacking(s32 left, s32 top, const s16* labelEndX, s32 otIndex)
 {
-    enum { USER_INTERFACE_LABEL_BACKING_COLOR = GPU_PACK_COLOR_WORD(0x02, 0x10, 0x02, 0) };
+    enum {
+        USER_INTERFACE_LABEL_BACKING_COLOR           = GPU_PACK_COLOR_WORD(0x02, 0x10, 0x02, 0),
+        USER_INTERFACE_LABEL_BACKING_HEIGHT_PIXELS   = 7,
+        USER_INTERFACE_LABEL_BACKING_OVERHANG_PIXELS = 3
+    };
     POLY_F4* backing;
-    s16      textEndX;
+    s16      rightEdge;
 
     backing     = gGpuPrimCursor;
     backing->x0 = backing->x2 = left;
-    textEndX                  = request->x;
+    rightEdge                 = *labelEndX;
     // The original reservation is larger than the flat packet written here.
     gGpuPrimCursor                       = (u8*)backing + sizeof(POLY_FT4);
     GPU_PRIMITIVE_COLOR_WORD(backing, 0) = USER_INTERFACE_LABEL_BACKING_COLOR;
-    backing->y2 = backing->y3 = top + 7;
+    backing->y2 = backing->y3 = top + USER_INTERFACE_LABEL_BACKING_HEIGHT_PIXELS;
     setPolyF4(backing);
     backing->y0 = backing->y1 = top;
-    backing->x3               = textEndX;
-    backing->x1               = textEndX + 3;
+    backing->x3               = rightEdge;
+    backing->x1               = rightEdge + USER_INTERFACE_LABEL_BACKING_OVERHANG_PIXELS;
     addPrim(gGpuCurrentOt + otIndex, backing);
 }
 
@@ -2025,7 +2034,7 @@ static void _uiDrawUnderlinedLabel(const UiPanel* panel, s32 x, s32 y, const cha
     request.drawMode   = TEXT_DRAW_FILL_ONLY;
     textDrawString(&request, (const u8*)text);
 
-    _uiQueueLabelBacking(x, y, &request, otIndex);
+    _uiQueueLabelBacking(x, y, &request.x, otIndex);
 
     uiDrawHorizontalSeparator(panel, x - panel->contentOriginX.signedValue, request.x - panel->contentOriginX.signedValue, y + 7 - panel->contentOriginY.signedValue);
 }
@@ -2315,17 +2324,21 @@ UiObject* Ui_SpawnFromDesc(UiObjectDesc* descriptor, TaskSpawnArg spawnArg1, s32
     return USER_INTERFACE_SPAWN_OBJECT(descriptor, spawnArg1, controlMode, animationTicks, parent);
 }
 
-/// Starts closing each child UI object, re-reading the ring head after detachment.
+/// Detaches and starts closing every UI subtree in a task's child ring.
+///
+/// `owner` and its circular child ring must remain live. Every child owns a
+/// live UiObject in spawnArg2. An already-closing node must be detached;
+/// otherwise the closing request would leave the head in place indefinitely.
+/// Objects keep their counters and resources for later closing/exit updates.
 static inline void _uiStartChildObjectsClosing(Task* owner)
 {
     Task* child;
 
     child = owner->firstChild;
-    if (child != NULL) {
-        do {
-            uiStartTreeClosing(child->spawnArg2.pointer, child);
-            child = owner->firstChild;
-        } while (child != NULL);
+    while (child != NULL) {
+        uiStartTreeClosing(child->spawnArg2.pointer, child);
+        // Closing detaches the head; its former sibling link no longer walks the ring.
+        child = owner->firstChild;
     }
 }
 
@@ -2355,17 +2368,17 @@ void uiStartPanelHiding(UiObject* object, Task* unusedOwningTask)
     object->panel.state = USER_INTERFACE_PANEL_HIDING;
 }
 
-void Ui_ClampAnimOrClose(UiPanel* panel, Task* task, s32 arg2)
+void uiLimitHiddenDelayOrOpen(UiPanel* panel, Task* owningTask, s32 delayTicks)
 {
-    s16 temp_v1;
+    s16 currentTicks;
 
-    if ((arg2 != 0) && (panel->state >= USER_INTERFACE_PANEL_HIDDEN)) {
-        temp_v1 = panel->animationTicks;
-        if ((temp_v1 < 0) || ((arg2 + USER_INTERFACE_PANEL_ANIMATION_TICKS) < temp_v1)) {
-            panel->animationTicks = (s16)(arg2 + USER_INTERFACE_PANEL_ANIMATION_TICKS);
+    if ((delayTicks != 0) && (panel->state >= USER_INTERFACE_PANEL_HIDDEN)) {
+        currentTicks = panel->animationTicks;
+        if ((currentTicks < 0) || ((delayTicks + USER_INTERFACE_PANEL_ANIMATION_TICKS) < currentTicks)) {
+            panel->animationTicks = (s16)(delayTicks + USER_INTERFACE_PANEL_ANIMATION_TICKS);
         }
     } else {
-        uiStartPanelOpening(panel, task);
+        uiStartPanelOpening(panel, owningTask);
     }
 }
 
@@ -2588,22 +2601,36 @@ void uiDrawTitle(UiPanel* panel, const char* title)
     panel->otIndex.unsignedValue += 1;
 }
 
-static void Ui_DrawTextAtLayout(UiPanel* panel, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 arg5, s32 arg6)
+/// Draws a medium-face encoded text line only while the panel is fully open.
+///
+/// X and baseline Y are content-relative pixels with no baseline correction;
+/// unsigned panel origins are added before signed 16-bit pen stores. RGB is
+/// packed in bits 0..23 (R low byte). Mode/alignment narrow to signed bytes
+/// selecting TEXT_DRAW_* / TEXT_ALIGNMENT_*. Text follows `textDrawString`'s
+/// stream, glyph-range, font-storage and primitive-capacity contract.
+///
+/// Borrows a live panel and read-only text. The OT halfword is temporarily
+/// decremented before signed promotion and restored after drawing; the usual
+/// text entry is the original base, with the following tag for outlined modes.
+/// All resulting tags must fit the current ordering table. Other states do
+/// nothing, including no access to text.
+static void _uiDrawOpenPanelText(UiPanel* panel, s32 x, s32 y, const u8* text, u32 colorRgb, s32 drawMode, s32 alignment)
 {
+    enum { USER_INTERFACE_OPEN_PANEL_TEXT_OT_OFFSET = 1 };
     TextDrawReq request;
-    s32         temp;
+    s32         adjustedOtIndex;
 
     if (panel->state == USER_INTERFACE_PANEL_OPEN) {
         panel->otIndex.unsignedValue -= 1;
-        request.x                     = panel->contentOriginX.unsignedValue + arg1;
-        request.y                     = panel->contentOriginY.unsignedValue + arg2;
-        temp                          = panel->otIndex.signedValue;
-        request.colorRgb              = arg4;
+        request.x                     = panel->contentOriginX.unsignedValue + x;
+        request.y                     = panel->contentOriginY.unsignedValue + y;
+        adjustedOtIndex               = panel->otIndex.signedValue;
+        request.colorRgb              = colorRgb;
         request.glyphTable            = TEXT_GLYPH_TABLE_MEDIUM;
-        request.alignment             = (s8)arg6;
-        request.otIndex               = temp + 1;
-        request.drawMode              = (s8)arg5;
-        textDrawString(&request, arg3);
+        request.alignment             = (s8)alignment;
+        request.otIndex               = adjustedOtIndex + USER_INTERFACE_OPEN_PANEL_TEXT_OT_OFFSET;
+        request.drawMode              = (s8)drawMode;
+        textDrawString(&request, text);
         panel->otIndex.unsignedValue += 1;
     }
 }
@@ -2642,7 +2669,7 @@ void Ui_SizeFromTextWide(UiPanel* panel, u8* arg1)
     Ui_SizeFromText(panel, arg1, 0x20, 0);
 }
 
-s32 Ui_IsStateDone(UiObject* object)
+s32 uiIsPanelHidingOrHidden(const UiObject* object)
 {
     return object->panel.state >= USER_INTERFACE_PANEL_HIDING;
 }
@@ -2740,27 +2767,35 @@ void Ui_InsetLayout(UiPanel* panel, RECT* arg1, RECT* arg2, s32 unused4)
     }
 }
 
-static void Ui_ComputeAnimRect(UiPanel* panel, RECT* rect)
+/// Computes a panel's outer drawing rectangle for its current lifecycle.
+///
+/// Borrows a live panel and writes a live RECT in screen-centered pixels.
+/// Opening uses (nine - ticks) eighths with a minimum of one and no upper cap;
+/// closing/hiding accept only scales 1..8 and replace other values with one.
+/// Animation is bottom-anchored at full width with style-dependent height.
+/// Other states copy full bounds, including hidden: this does not test visibility.
+/// Stores retain sixteen bits, including the scaled helper's intermediate writes.
+static void _uiComputeAnimatedPanelRect(const UiPanel* panel, RECT* rect)
 {
-    s32 var_a2;
+    s32 scaleEighths;
 
     switch (panel->state) {
         case USER_INTERFACE_PANEL_OPENING:
-            var_a2 = USER_INTERFACE_PANEL_ANIMATION_TICKS - panel->animationTicks;
-            if (var_a2 <= 0) {
-                var_a2 = 1;
+            scaleEighths = USER_INTERFACE_PANEL_ANIMATION_TICKS - panel->animationTicks;
+            if (scaleEighths <= 0) {
+                scaleEighths = 1;
             }
-            _uiComputeScaledPanelRect(panel, rect, var_a2, 0);
+            _uiComputeScaledPanelRect(panel, rect, scaleEighths, 0);
             return;
         case USER_INTERFACE_PANEL_OPEN:
             break;
         case USER_INTERFACE_PANEL_CLOSING:
         case USER_INTERFACE_PANEL_HIDING:
-            var_a2 = USER_INTERFACE_PANEL_ANIMATION_TICKS - panel->animationTicks;
-            if ((u32)(var_a2 - 1) >= (u32)USER_INTERFACE_PANEL_SCALE_ONE) {
-                var_a2 = 1;
+            scaleEighths = USER_INTERFACE_PANEL_ANIMATION_TICKS - panel->animationTicks;
+            if ((u32)(scaleEighths - 1) >= (u32)USER_INTERFACE_PANEL_SCALE_ONE) {
+                scaleEighths = 1;
             }
-            _uiComputeScaledPanelRect(panel, rect, var_a2, 1);
+            _uiComputeScaledPanelRect(panel, rect, scaleEighths, 1);
             return;
     }
     rect->x = panel->bounds.rect.x;
@@ -2904,41 +2939,53 @@ s32 Ui_GetCursorFixed(void)
     return sp.word;
 }
 
-void Ui_DrawFlatCaret(UiPanel* panel, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
+/// Spreads a flat caret's base vertices from three vertices initialized at its tip.
+///
+/// Base coordinates retain sixteen bits. Zero points up with a wider base;
+/// every nonzero value points down.
+static inline void _uiSetFlatCaretBase(POLY_F3* caret, s32 pointsDown)
 {
-    POLY_F3* p;
-    u16      t;
-    u_long*  ot;
+    u16 baseY;
 
-    p     = gGpuPrimCursor;
-    t     = panel->contentOriginX.unsignedValue + arg1;
-    p->x2 = t;
-    p->x1 = t;
-    p->x0 = t;
-    // Keep the original gouraud-sized reservation for this flat packet.
-    gGpuPrimCursor = (u8*)p + sizeof(POLY_G3);
-    t              = panel->contentOriginY.unsignedValue + arg2;
-    p->y2          = t;
-    p->y1          = t;
-    p->y0          = t;
-    if (arg4 == 0) {
-        p->x1 = p->x1 - 4;
-        t     = p->y0 + 5;
-        p->x2 = p->x2 + 5;
-        p->y2 = t;
-        p->y1 = t;
+    if (pointsDown == USER_INTERFACE_CARET_UP) {
+        caret->x1 = caret->x1 - 4;
+        baseY     = caret->y0 + 5;
+        caret->x2 = caret->x2 + 5;
+        caret->y2 = baseY;
+        caret->y1 = baseY;
     } else {
-        p->x1 = p->x1 - 3;
-        t     = p->y0 - 4;
-        p->x2 = p->x2 + 4;
-        p->y2 = t;
-        p->y1 = t;
+        caret->x1 = caret->x1 - 3;
+        baseY     = caret->y0 - 4;
+        caret->x2 = caret->x2 + 4;
+        caret->y2 = baseY;
+        caret->y1 = baseY;
     }
-    GPU_PRIMITIVE_COLOR_WORD(p, 0) = arg3 * 2;
-    setlen(p, 4);
-    setcode(p, 0x20);
-    ot = gGpuCurrentOt;
-    addPrim(&ot[panel->otIndex.signedValue + 1], p);
+}
+
+void uiDrawFlatCaret(const UiPanel* panel, s32 tipX, s32 tipY, u32 colorRgb, s32 pointsDown)
+{
+    enum { USER_INTERFACE_CARET_OT_OFFSET = 1 };
+    POLY_F3* caret;
+    u16      screenX;
+    u16      screenY;
+    u_long*  orderingTable;
+
+    caret     = gGpuPrimCursor;
+    screenX   = panel->contentOriginX.unsignedValue + tipX;
+    caret->x2 = screenX;
+    caret->x1 = screenX;
+    caret->x0 = screenX;
+    // Keep the original gouraud-sized reservation for this flat packet.
+    gGpuPrimCursor = (u8*)caret + sizeof(POLY_G3);
+    screenY        = panel->contentOriginY.unsignedValue + tipY;
+    caret->y2      = screenY;
+    caret->y1      = screenY;
+    caret->y0      = screenY;
+    _uiSetFlatCaretBase(caret, pointsDown);
+    GPU_PRIMITIVE_COLOR_WORD(caret, 0) = colorRgb * 2;
+    setPolyF3(caret);
+    orderingTable = gGpuCurrentOt;
+    addPrim(&orderingTable[panel->otIndex.signedValue + USER_INTERFACE_CARET_OT_OFFSET], caret);
 }
 
 void Ui_WaitCdThenOverlay(Task* task)

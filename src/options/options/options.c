@@ -586,10 +586,10 @@ static void func_options_801D4D0C(Task* task)
     xRight = edge - 0x3B;
     l1     = (s16)obj->panel.bounds.unsignedRect.x + (s16)obj->panel.bounds.unsignedRect.w;
     r1     = obj->panel.contentOriginX.signedValue + 5;
-    Ui_DrawFlatCaret(&(obj)->panel, l1 - r1, y1, 0x606060, 0);
+    uiDrawFlatCaret(&(obj)->panel, l1 - r1, y1, 0x606060, USER_INTERFACE_CARET_UP);
     l2 = (s16)obj->panel.bounds.unsignedRect.x + (s16)obj->panel.bounds.unsignedRect.w;
     r2 = obj->panel.contentOriginX.signedValue + 5;
-    Ui_DrawFlatCaret(&(obj)->panel, l2 - r2, y, 0x606060, one);
+    uiDrawFlatCaret(&(obj)->panel, l2 - r2, y, 0x606060, USER_INTERFACE_CARET_DOWN);
     textDrawUiLine(obj, xRight, y, labels[type], 0x606060, one, TEXT_ALIGNMENT_LEFT);
     status = obj->panel.control.word;
     if (((status >> 16) == one) || (status == one)) {

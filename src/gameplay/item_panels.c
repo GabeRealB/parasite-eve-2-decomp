@@ -1220,10 +1220,10 @@ void Gp_ItemCountHeaderTask(Task* arg0)
 
     obj         = arg0->spawnArg2.pointer;
     obj->result = USER_INTERFACE_RESULT_NONE;
-    if ((Gp_ItemCountShow == 1) && (Ui_IsStateDone(obj) == 0)) {
+    if ((Gp_ItemCountShow == 1) && (uiIsPanelHidingOrHidden(obj) == 0)) {
         uiStartPanelHiding(obj, obj->owner);
-    } else if ((Gp_ItemCountShow == 0) && (Ui_IsStateDone(obj) == 1)) {
-        Ui_ClampAnimOrClose(&(obj)->panel, obj->owner, 0x10);
+    } else if ((Gp_ItemCountShow == 0) && (uiIsPanelHidingOrHidden(obj) == 1)) {
+        uiLimitHiddenDelayOrOpen(&(obj)->panel, obj->owner, 0x10);
     }
     yOff   = obj->panel.contentTop.signedValue + 0xD;
     buf[0] = D_800971A4;
