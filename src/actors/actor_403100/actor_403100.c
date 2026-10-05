@@ -5136,7 +5136,6 @@ static void func_actor_403100_80136610(Task* arg0)
     TmdObject*       obj;
     Enemy*           enemy;
     s32              i;
-    u16*             flags;
     s32              kind;
     GfxCoord*        coord;
 
@@ -5168,8 +5167,7 @@ static void func_actor_403100_80136610(Task* arg0)
     D_actor_403100_8015580C->param                  = &D_actor_403100_8014762C;
     D_actor_403100_8015580C->recs                   = D_actor_403100_80155808->hitContacts;
     D_actor_403100_80155630.coord                   = arg0->extra.tmd->coords;
-    flags                                           = &obj->flags;
-    *flags                                          = 0;
+    obj->flags                                      = 0;
     D_actor_403100_80155808->bufferReleaseDelay     = -1;
     animationInitContext(&D_actor_403100_80155808->rig.anim, D_actor_403100_8015572C, obj, D_actor_403100_80155808->rig.poses, D_actor_403100_80155808->rig.slots);
     D_actor_403100_80155808->animationRate    = ANIMATION_RATE_ONE;
@@ -5183,16 +5181,11 @@ static void func_actor_403100_80136610(Task* arg0)
     }
     func_dryfield_night_motel_balcony_8017E4B8();
     func_dryfield_night_motel_balcony_8017E3C8();
-    D_actor_403100_80155810 = 0;
-    {
-        Enemy* activeEnemy = D_actor_403100_8015580C;
-        u16    hp          = D_actor_403100_8014762C.hpMax;
-        activeEnemy->hpMax = hp;
-        activeEnemy->hp    = (s16)hp;
-    }
-    arg0->state                       = 1;
-    D_actor_403100_80155808->state    = 0;
-    D_actor_403100_80155808->subState = 0;
+    D_actor_403100_80155810     = 0;
+    D_actor_403100_8015580C->hp = D_actor_403100_8015580C->hpMax = D_actor_403100_8014762C.hpMax;
+    arg0->state                                                  = 1;
+    D_actor_403100_80155808->state                               = 0;
+    D_actor_403100_80155808->subState                            = 0;
 }
 /// Steps of the behaviour mode `func_actor_403100_8013E96C`, indexed by `subState`.
 static const TaskFuncTable3 D_actor_403100_80131EB0 = {
