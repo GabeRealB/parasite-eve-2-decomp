@@ -176,25 +176,28 @@ extern RoomCutsceneRec gMotelRoom6CutsceneRec;
 #include "../../shared/planar_reflection.h"
 
 static void func_dryfield_motel_room_6_80181AC4(Task* task);
-static void func_dryfield_motel_room_6_80181B10(Task* task);
+static void _dryfieldMotelRoom6IdleTask(Task* unusedTask);
 
 extern WorldCollisionGrid         D_dryfield_motel_room_6_8018381C[1];
 extern WorldCollisionTrigger      D_dryfield_motel_room_6_8018575C[10];
 extern WorldCollisionTrigger      D_dryfield_motel_room_6_80185A54[15];
 extern WorldCoordRoomAmbientEntry D_dryfield_motel_room_6_801866D8[13];
 extern WorldCoordRoomLights       D_dryfield_motel_room_6_801866C0[1];
-s32                               func_dryfield_motel_room_6_80181918(Task*, s32, s32, s32);
+static s32                        _dryfieldMotelRoom6RejectKeyItemMessage(Task* receiver, s32 messageId, s32 itemId, s32 unusedSecondArg);
 s32                               func_dryfield_motel_room_6_80181920(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32                               func_dryfield_motel_room_6_801819A8(Task* task, s32 msgId, const void* firstArg, s32 arg3);
-s32                               func_dryfield_motel_room_6_80181A00(Task*, s32, s32, s32);
+static s32                        _dryfieldMotelRoom6IgnoreSoundMessage(Task* receiver, s32 messageId, s32 soundCommand, s32 unusedSecondArg);
 void                              func_dryfield_motel_room_6_80181A08(Task*);
+
+/// Key-item use request sent to the room task by the inventory menu.
+enum { DRYFIELD_MOTEL_ROOM_6_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
 #include "../../shared/telephone_data.inc.c"
 
 #include "../../shared/planar_reflection_data.inc.c"
 
 TaskDesc D_dryfield_motel_room_6_80182D0C[2] = {
-    { { { TASK_BODY_NONE, 112 } }, func_dryfield_motel_room_6_80181184, { .value = 0 } },
+    { { { TASK_BODY_NONE, 112 } }, dryfieldMotelRoom6PlayerReflectionTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 112 } }, _planarReflectionAttachmentTask, { .value = 0 } },
 };
 
@@ -216,9 +219,9 @@ TaskDesc gRoomCutsceneTaskDescs[3] = {
 
 TaskMessageEntry D_dryfield_motel_room_6_80182D48[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_motel_room_6_80181920 },
-    { 5105, func_dryfield_motel_room_6_80181918 },
+    { DRYFIELD_MOTEL_ROOM_6_MESSAGE_USE_KEY_ITEM, _dryfieldMotelRoom6RejectKeyItemMessage },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_motel_room_6_801819A8 },
-    { ROOM_MESSAGE_SOUND, func_dryfield_motel_room_6_80181A00 },
+    { ROOM_MESSAGE_SOUND, _dryfieldMotelRoom6IgnoreSoundMessage },
     { ROOM_MESSAGE_COMMAND, motelRoom6CutsceneMsg },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
@@ -1997,9 +2000,9 @@ void func_dryfield_motel_room_6_8017EA58(Task* task)
 
 #include "../../shared/planar_reflection.inc.c"
 
-void func_dryfield_motel_room_6_80181184(Task* task)
+void dryfieldMotelRoom6PlayerReflectionTask(Task* reflectionTask)
 {
-    _planarReflectionPlayerTask(task);
+    _planarReflectionPlayerTask(reflectionTask);
 }
 
 #undef PLANAR_REFLECTION_DEFINE_SCALE_WITH_IMPLEMENTATION
@@ -2011,7 +2014,7 @@ void func_dryfield_motel_room_6_80181184(Task* task)
 static const TaskFuncTable3 D_dryfield_motel_room_6_8017D6B4 = {
     {
         func_dryfield_motel_room_6_80181AC4,
-        func_dryfield_motel_room_6_80181B10,
+        _dryfieldMotelRoom6IdleTask,
         taskKill,
     },
 };
@@ -2026,9 +2029,15 @@ void motelRoom6ActionMsg(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
 }
 
-s32 func_dryfield_motel_room_6_80181918(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Refuses every key-item use request in this room without consuming the item.
+///
+/// `itemId` is the collected inventory item's ID. All arguments are ignored;
+/// returns 0 so the inventory menu reports that the item cannot be used here.
+static s32 _dryfieldMotelRoom6RejectKeyItemMessage(Task* receiver, s32 messageId, s32 itemId, s32 unusedSecondArg)
 {
-    return 0;
+    enum { DRYFIELD_MOTEL_ROOM_6_KEY_ITEM_RESULT_REFUSED = 0 };
+
+    return DRYFIELD_MOTEL_ROOM_6_KEY_ITEM_RESULT_REFUSED;
 }
 
 /// Handler for a message `0x14` request: copies the incoming record to the
@@ -2072,7 +2081,11 @@ s32 func_dryfield_motel_room_6_801819A8(Task* arg0, s32 arg1, const void* firstA
     return 1;
 }
 
-s32 func_dryfield_motel_room_6_80181A00(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores room sound commands in daytime motel room 6 and returns zero.
+///
+/// `soundCommand` is the command selected by CAP dialogue or a scene object.
+/// All arguments are ignored; no sound event is started and no state is changed.
+static s32 _dryfieldMotelRoom6IgnoreSoundMessage(Task* receiver, s32 messageId, s32 soundCommand, s32 unusedSecondArg)
 {
     return 0;
 }
@@ -2111,9 +2124,10 @@ static void func_dryfield_motel_room_6_80181AC4(Task* arg0)
     D_80115598  = 1;
 }
 
-/// Idle state of the room entry task: does nothing, so the task stays alive
-/// holding the room's message table.
-static void func_dryfield_motel_room_6_80181B10(Task* task)
+/// Keeps the room task alive to receive messages after initialization.
+///
+/// State 1's idle callback leaves the task, its state and its message table intact.
+static void _dryfieldMotelRoom6IdleTask(Task* unusedTask)
 {
 }
 

@@ -961,7 +961,7 @@ void func_800CFD78(Task* arg0)
             func_acropolis_west_elevator_hall_8017F304(arg0);
             break;
         case GAME_LOCATION_KEY(2, 30, 0, 0):
-            func_dryfield_motel_room_6_80181184(arg0);
+            dryfieldMotelRoom6PlayerReflectionTask(arg0);
             break;
         case GAME_LOCATION_KEY(3, 30, 0, 0):
             func_dryfield_night_motel_room_6_801811A0(arg0);

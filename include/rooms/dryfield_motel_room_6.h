@@ -34,7 +34,14 @@ extern WorldCollisionSurfaceProperties* D_dryfield_motel_room_6_80186808[];
 
 void func_dryfield_motel_room_6_8017EA58(Task* task);
 
-void func_dryfield_motel_room_6_80181184(Task* task);
+/// Initializes and updates the player's reflection in daytime motel room 6.
+///
+/// State must be 0 (start bodyless) or 1 (initialized model and work).
+/// `spawnArg1.value` selects the floor (0) or room mirror plane (1).
+/// Requires a live player with a TMD body. The task owns its cloned model and
+/// work, borrows the player's geometry, and is parented to the player.
+/// Keep this overlay loaded while the reflection and its attachment tasks live.
+void dryfieldMotelRoom6PlayerReflectionTask(Task* reflectionTask);
 void motelRoom6DayDrawGlow(Task* unused);
 
 void func_dryfield_motel_room_6_80181B18(Task* task);

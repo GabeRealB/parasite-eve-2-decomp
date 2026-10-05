@@ -100,7 +100,7 @@ D_map_dryfield_8017BB74 = 0x8017BB74; // absolute:True owner=map_dryfield
 
 func_dryfield_motel_room_6_8017EA58 = 0x8017EA58; // type:func
 
-func_dryfield_motel_room_6_80181184 = 0x80181184; // type:func
+dryfieldMotelRoom6PlayerReflectionTask = 0x80181184; // type:func
 
 motelRoom6DayDrawGlow = 0x80182978; // type:func
 Telephone_DrawPlayDataRow = 0x8017D6C0; // type:func
@@ -132,3 +132,6 @@ roomCutsceneTask = 0x801811D4; // type:func
 roomCutsceneSoundTask = 0x80181880; // type:func
 motelRoom6CutsceneMsg = 0x80181740; // type:func
 motelRoom6ActionMsg = 0x80181910; // type:func
+_dryfieldMotelRoom6IdleTask = 0x80181b10; // type:func
+_dryfieldMotelRoom6RejectKeyItemMessage = 0x80181918; // type:func
+_dryfieldMotelRoom6IgnoreSoundMessage = 0x80181a00; // type:func
