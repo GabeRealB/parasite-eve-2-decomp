@@ -7,7 +7,15 @@
 
 void Gp_ApplyPadReplay(s32 arg0, u16* arg1);
 
-void func_8009EA50(s32 arg0);
+/// Sets the shared material greys used by environment-layer model drawing.
+///
+/// `layerIntensity` is clamped to 0..255 and copied to the layer's three RGB
+/// bytes. Nonpositive input sets the base RGB to neutral 128; positive input
+/// sets it to floor((255 - clamped intensity) / 2). Material code bytes are
+/// preserved. These are material inputs to lighting, not final packet colours.
+/// The state is shared by all environment-layer draws and persists until the
+/// next call; callers update it for the cloak/translucency state being drawn.
+void modelLightingSetLayerMaterials(s32 layerIntensity);
 
 /// Projects and lights layered corners, deriving the environment layer's texture coordinates.
 ///
@@ -39,34 +47,32 @@ void func_8009EA50(s32 arg0);
 /// a positive count is consumed to -1. `objectFlags` is ignored. No storage is retained.
 u32* tmdXformStreamVertsEnvLayer(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements);
 
-/// Handler of a stream's layered transform records (`0x40C8`): each element
-/// projects the vertex it names into one corner of both primitives of a layered
-/// pair, and lights the normal it names into the colour each of those two
-/// corners draws with.
+/// Projects and lights paired corners for an offset-texture layer and its base.
 ///
-/// The record is `tmdXformStreamVerts`'s with the `0x4000` bit set, and the two
-/// destinations an element names are what that bit changes: the unlayered pass
-/// writes the corner of one primitive, where this one writes that same corner in
-/// the base primitive and in the semi-transparent layer drawn over it. The rest
-/// is the unlayered pass's — the vertex is projected, its depth cached per
-/// vertex, the projection reused where consecutive elements name the same
-/// vertex, and a vertex whose transform reported an error stored with its sign
-/// bit set — and both corners take the one projection the element produced.
+/// Draw resolution selects this pre-pass for `0x40C8` in stage 2 area 16.
+/// Each element has two words: vertex/normal u16 byte references, then layer
+/// and base u16 byte offsets from `preXformWrite` to corner colour groups.
+/// Masked geometry references must select complete eight-byte SVECTORs in
+/// the borrowed arrays. The vertex reference >> 3 must fit the 1024-entry
+/// depth cache; consecutive identical references reuse screen XY and cached Z.
+/// `TMD_GTE_ERROR_FLAG` marks fresh screen Z with `TMD_VERTEX_DEPTH_INVALID`.
 ///
-/// The colour is where the record's two handlers part company. This one splits
-/// the neutral material grey between the pair by the object's lighting level, the
-/// layer taking the share the level sets and the base the remainder, so at either
-/// end of the level one of the two is left black. It writes no texture coordinate
-/// and no colour code of its own, which is what a layer textured from the record
-/// needs: this is the handler the record resolves to in the areas whose layered
-/// draws take their layer's page and CLUT from the object. The other handler
-/// serves a layer that has a page of its own, and derives that layer's texture
-/// coordinates from the projected vertices. The projection and the normal the
-/// lighting rotates are both kept in the frame's scratch either way, and this
-/// handler reads neither.
+/// Both destinations receive a four-byte RGB/code word and four-byte pixel XY
+/// immediately after it; each must be aligned and provide eight writable bytes
+/// in the first packet region. Lighting uses complementary material greys:
+/// layer = colorBlend >> 5, base = 128 - layer, where the object's expected
+/// `colorBlend` range is 0..4096 (twelve fractional bits). There is no clamp;
+/// RGB stores truncate to bytes. Material code bytes come from the neutral
+/// constants. Texture fields are preserved. The workspace also saves screen XY
+/// in `texCoord` and the rotated normal in `elemNormal`; no UVs are calculated.
 ///
-/// The record has no variant for `flags` to select, so it goes unread.
-u32* gpXformStreamVertsOffsetLayer(TmdStreamWorkspace* ws, s32 flags, u32* stream);
+/// The caller supplies GTE projection/lighting, borrowed geometry and depth
+/// cache, and the writable packet region. Capacities are unchecked. `elements`
+/// starts after the three-word header; count is 0..65535 and stride is in u32
+/// words, at least two for a nonempty record. Returns the cursor after count *
+/// stride words without advancing either packet cursor. Zero count stays zero;
+/// positive count ends at -1. `objectFlags` is ignored; no storage is retained.
+u32* tmdXformStreamVertsOffsetLayer(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements);
 
 /// Projects and lights environment/base Gouraud triangle pairs from layered TMD records.
 ///
@@ -144,32 +150,36 @@ u32* tmdDrawStreamPrimGt3EnvLayer(TmdStreamWorkspace* workspace, s32 objectFlags
 /// no pointer is retained.
 u32* tmdDrawStreamPrimGt3OffsetLayer(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements);
 
-/// The draw pass's handler for a stream's layered textured-quad records
-/// (`0x4078`) whose semi-transparent layer takes its texture page from the
-/// object: each element contributes two quads to the buffer half's second region
-/// — the opaque base the model is drawn from and the semi-transparent layer drawn
-/// over it — projected and lit into the slots the process pass laid out for them,
-/// and linked into the ordering table at the depth their four corners average to.
+/// Projects and lights an offset-texture layer/base pair of Gouraud textured quads.
 ///
-/// The element is the `0x78` quad's — a vertex and a normal per corner, and the
-/// element's own texture words — and the `0x4000` bit is the whole of what makes
-/// it two primitives rather than one. Both primitives' texture words, page and
-/// CLUT are the process pass's: it wrote the element's words into each, and biased
-/// their page and CLUT — the base's by the model's, the layer's by the object's
-/// extra page and CLUT offsets (`tmdBuildStreamGt4OffsetLayer`, whose cursor this
-/// handler stays in step with) — so nothing is textured here. The record's other
-/// draw handler is the one that textures the layer itself, from the corners'
-/// normals and a page of its own.
+/// Draw resolution selects this callback for `0x4078` in stage 2 area 16.
+/// Words 0..3 pack four vertex u16 byte references followed by four normal
+/// references. Construction requires at least seven words and seeds both
+/// packets' texture fields with independent layer/base page and CLUT offsets.
+/// Masked geometry references must select complete eight-byte SVECTORs in the
+/// borrowed arrays; their full extents and the low reference bits are unproven.
 ///
-/// The two primitives are lit from the same normals under complementary greys:
-/// the layer at the object's light level scaled to the colour range, the base at
-/// that range less the level, so the pair trades brightness between them as the
-/// level moves. Three corners are lit in one step and the fourth in a step of its
-/// own. A corner the GTE reports off screen, or a quad of which neither half faces
-/// the camera, keeps its packets out of the ordering table — the room is consumed
-/// either way, since the process pass reserved it for every element of the record.
-/// The record has no variant for `flags` to select, so it goes unread.
-u32* gpDrawStreamPrimGt4OffsetLayer(TmdStreamWorkspace* ws, s32 flags, u32* stream);
+/// `TMD_GTE_ERROR_FLAG` rejects either projection. After both succeed, the quad
+/// is accepted if NCLIP(0,1,2) > 0, or otherwise NCLIP(1,2,3) < 0. Earlier XY
+/// stores can remain in rejected packets. Both packets are lit from the same
+/// corner normals under complementary greys: layer = colorBlend >> 5, base =
+/// 128 - layer, for expected `colorBlend` 0..4096. RGB stores truncate without
+/// clamping. Accepted packets receive twelve payload words, layer command 0x3E
+/// and opaque base command 0x3C. Texture fields persist. `objectFlags` and the
+/// object's semi-transparency/reverse-culling flags do not select variants here.
+///
+/// `elements` starts after the three-word header; count is 0..65535 and stride
+/// counts u32 words. The caller supplies GTE projection/lighting and ZSF4, and
+/// `primWrite` provides two aligned, writable 52-byte POLY_GT4 slots per element
+/// in the second region. Each full element stride must be readable. Capacities
+/// are unchecked. AVSZ4 selects `(((u32)OTZ << gDisplayState.otDepthShift) >> 4)
+/// & 1023` in the displaced OT; normal shifts are 0..3 and buckets must fit it.
+/// Layer then base are prepended, so GPU traversal draws base before layer.
+/// DMA links retain 24 address bits; packets and OT stay GPU-visible until used.
+/// Advances `primWrite` by two slots even on rejection and returns the cursor
+/// after count * stride words, leaving the next marker. Count ends at -1,
+/// including on empty input. `preXformWrite` is unchanged. No storage is retained.
+u32* tmdDrawStreamPrimGt4OffsetLayer(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements);
 
 /// Projects and lights environment/base Gouraud quad pairs from layered TMD records.
 ///
@@ -243,33 +253,33 @@ u32* tmdDrawStreamPrimGt4EnvLayer(TmdStreamWorkspace* workspace, s32 objectFlags
 /// no pointer is retained.
 u32* tmdDrawStreamPrimGt3ElemColor(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements);
 
-/// The draw pass's handler for a stream's colour-carrying textured-quad records
-/// (`0x70`): each element contributes one `POLY_GT4` to the buffer half's second
-/// region, projected, lit and linked into the ordering table at the depth its
-/// corners average to.
+/// Projects and lights a Gouraud textured quad from one element material colour.
 ///
-/// The record is the one whose element carries a colour of its own — the material
-/// its quad is lit from — and a normal per corner, so the corners are lit against
-/// normals of their own, three of them in one step and the fourth in a step of
-/// its own, all from that one colour. Its twin is `tmdDrawStreamGt4`, which
-/// completes the same primitive from a record that carries no colour and is lit
-/// from a fixed one.
+/// Draw resolution selects this callback for `0x70`. Words 0..3 pack four
+/// vertex u16 byte references followed by four normal references; word 4 is
+/// the material RGB/code word used to light all four corners. Construction
+/// requires at least eight words and seeds the texture suffix in words 5..7.
+/// Masked geometry references must select complete eight-byte SVECTORs in the
+/// borrowed arrays; their full extents and the low reference bits are unproven.
 ///
-/// The GTE projects three vertices at a time, so the element's fourth corner is
-/// projected in a step of its own, after the other three; the quad's facing is
-/// tested on the first three corners and again on the last three. A corner the
-/// GTE reports off screen, or a quad the facing tests reject, is not drawn,
-/// though the packet's room is passed over either way, so the primitives stay in
-/// step with the elements that named them.
+/// `TMD_GTE_ERROR_FLAG` rejects either projection. After both succeed, the quad
+/// is accepted if NCLIP(0,1,2) > 0, or otherwise NCLIP(1,2,3) < 0. Earlier XY
+/// stores can remain in rejected packets. Accepted packets receive all four
+/// pixel XY and lit RGB values, twelve payload words and command 0x3C, or 0x3E
+/// when the object's `TMD_OBJECT_SEMI_TRANS` is set. Texture fields persist.
+/// `objectFlags` is ignored, including reverse-culling flags.
 ///
-/// What it writes is what the transform decides: the projected corners, the four
-/// corner colours, the packet's length and primitive code — `0x3C`, or `0x3E`
-/// where the object's flags call for the blended form — and the ordering-table
-/// link. The primitive itself, texture words included, was written when the
-/// stream was compiled into the buffer, so this command completes it in place.
-/// `flags` selects nothing: the blended form is the object's to ask for rather
-/// than the record's, so the parameter goes unread.
-u32* gpDrawStreamPrimGt4ElemColor(TmdStreamWorkspace* ws, s32 flags, u32* stream);
+/// `elements` starts after the three-word header; count is 0..65535 and stride
+/// counts u32 words. The caller supplies GTE projection/lighting and ZSF4, and
+/// `primWrite` provides one aligned, writable 52-byte POLY_GT4 slot per element
+/// in the second region. Each full element stride must be readable. Capacities
+/// are unchecked. AVSZ4 selects `(((u32)OTZ << gDisplayState.otDepthShift) >> 4)
+/// & 1023` in the displaced OT; normal shifts are 0..3 and buckets must fit it.
+/// DMA links retain 24 address bits; packets and OT stay GPU-visible until used.
+/// Advances `primWrite` by one slot even on rejection and returns the cursor
+/// after count * stride words, leaving the next marker. Count ends at -1,
+/// including on empty input. `preXformWrite` is unchanged. No storage is retained.
+u32* tmdDrawStreamPrimGt4ElemColor(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements);
 
 /// Projects, culls and links opaque raw-texture triangles from TMD stream records.
 ///
@@ -618,25 +628,31 @@ u32* tmdDrawStreamPrimG4CornerColors(TmdStreamWorkspace* workspace, s32 objectFl
 /// no pointer is retained.
 u32* tmdDrawStreamPrimG4CornerColorsSemiTrans(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements);
 
-/// Handler of a stream's unlit transform pre-pass records (`0xC4`): each element
-/// projects the vertex it names into the buffer half, and the record writes no
-/// colour and builds no primitive.
+/// Projects unlit stream vertices into packet XY fields and the depth cache.
 ///
-/// The record is `tmdXformStreamVerts`'s with the lighting dropped, which is the
-/// `0x04` bit's meaning in a transform pass: an element names a vertex and the
-/// place in the buffer half its projection goes, while the normal the lit passes
-/// light a colour from goes unread, so nothing is written into the packet's
-/// colour word and no colour is loaded into the GTE. What the record keeps is
-/// what the commands drawing from that buffer depend on — the vertex is
-/// transformed into screen coordinates, its depth cached in the per-vertex table,
-/// the projection reused where consecutive elements name the same vertex, and the
-/// cached depth marked failed with the sign bit where the frame's flag word reads
-/// as failed. That word is read as the record finds it, not refreshed from the
-/// transform it has just run, so the mark describes the last transform that
-/// stored one.
+/// Draw resolution selects this callback for `0xC4`. Each element supplies a
+/// u16 vertex byte reference and a u16 byte destination offset in its first
+/// word; later words are unread. The vertex offset masked with 0xFFF8 must
+/// select a complete eight-byte SVECTOR and the unmasked reference >> 3 must
+/// fit the 1024-entry depth cache. Consecutive identical references reuse the
+/// current GTE screen XY and cached screen Z. Each destination is relative to
+/// `preXformWrite` and must provide an aligned writable four-byte pixel XY word
+/// in the first packet region. Colours, texture fields and normals are untouched.
 ///
-/// The record has no variant for `flags` to select, so it goes unread.
-u32* gpXformStreamVertsUnlit(TmdStreamWorkspace* ws, s32 flags, u32* stream);
+/// The handler does not save hardware FLAG after RTPS: `TMD_GTE_ERROR_FLAG` in
+/// the incoming `workspace->gteFlag` marks every newly cached screen Z with
+/// `TMD_VERTEX_DEPTH_INVALID`, preserving its low sixteen bits. The caller must
+/// supply that saved word as well as GTE projection and the borrowed geometry,
+/// depth cache and packet region. Normal draw setup does not initialize this
+/// word; which earlier command's decision this opcode should inherit is unproven.
+///
+/// `elements` starts after the three-word header; count is 0..65535 and stride
+/// counts u32 words, at least one for a nonempty record. Full strides and all
+/// destination/geometry extents must be valid; bounds are unchecked. Returns
+/// the cursor after count * stride words without advancing either packet cursor.
+/// Zero count stays zero; positive count ends at -1. `objectFlags` is ignored;
+/// no storage is retained.
+u32* tmdXformStreamVertsUnlit(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements);
 
 /// Initializes persistent texture fields for a record of pre-transformed Gouraud textured triangles.
 ///

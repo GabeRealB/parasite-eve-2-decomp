@@ -473,22 +473,22 @@ constant on `0xC8`. The byte a packet draws with is not either of those: the
 handler that completes a pre-transformed record (`0x39`, `0x79`) runs after the
 pre-pass and writes its own code over the first corner's.
 
-`0xC4`'s handler is decompiled C (`gpXformStreamVertsUnlit` in
+`0xC4`'s handler is decompiled C (`tmdXformStreamVertsUnlit` in
 `src/gameplay/model_lighting.c`). The handwritten pre-passes do this depth
 update from a fresh FLAG read (`cfc2` $31, then `bgez`); this handler tests
 the saved `gteFlag` word as the walk left it:
 
 ```c
-idx = rec[0];
-if (idx != prev) {                                  // the caching branch
-    gte_ldv0((u8*)ws->verts + (idx & 0xFFF8));    // vertex array, 8-byte aligned
-    gte_rtps_real();
-    gte_stsz(&ws->gteResult);                        // keep Z
-    if (ws->gteFlag & TMD_GTE_ERROR_FLAG)
-        ws->gteResult |= TMD_VERTEX_DEPTH_INVALID;   // reject using the saved FLAG
-    ws->szTable[*(u16*)arg2 >> 3] = ws->gteResult;  // cache[vertex index]
+vertexRef = elementHalfwords[0];
+if (vertexRef != previousVertexRef) {                                  // the caching branch
+    gte_ldv0((const u8*)workspace->verts + (vertexRef & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK));    // vertex array, 8-byte aligned
+    gte_rtps();
+    gte_stsz(&workspace->gteResult);                        // keep Z
+    if (workspace->gteFlag & TMD_GTE_ERROR_FLAG)
+        workspace->gteResult |= TMD_VERTEX_DEPTH_INVALID;   // reject using the saved FLAG
+    workspace->szTable[elementHalfwords[0] >> TMD_STREAM_VERTEX_INDEX_SHIFT] = workspace->gteResult;  // cache[vertex index]
 }
-gte_stsxy(ws->preXformWrite + rec[1]);                    // screen XY into the prim
+gte_stsxy(workspace->preXformWrite + elementHalfwords[1]);                    // screen XY into the prim
 ```
 
 Three things fall out of it:
@@ -633,7 +633,7 @@ transform, a cull, a packet's filing and its ordering-table link.
 | `0x61` | `tmdDrawStreamPrimG4PreXform` | — | — | pre-transformed opaque `POLY_G4`: four u16 byte offsets address the depth cache. Facing requires `NCLIP(0,1,2) > 0` or `NCLIP(1,2,3) < 0`; all four depths must lack `TMD_VERTEX_DEPTH_INVALID` for an `AVSZ4` OT link. Every element consumes 36 packet bytes; object blend/reverse-culling flags are ignored — **solved**, §3.2 |
 | `0x62` | `tmdDrawStreamPrimG4CornerNormals` | 5 | 26 | per-corner-lit `POLY_G4`: four u16 vertex byte offsets, four u16 normal byte offsets, then one RGB/code word; shares the `0x60` draw body. The material command byte supplies blending. Drawing consumes 36 packet bytes per element despite skipped construction, including rejected quads |
 | `0xC0` | `tmdXformStreamVertsElemColor` | 3 | 6 | vertex transform + lighting pre-pass, colour per element — **solved**, §3.5 |
-| `0xC4` | `gpXformStreamVertsUnlit` | — | — | the `0xC8` pre-pass with the lighting dropped; never seen in data — **solved**, §3.5 |
+| `0xC4` | `tmdXformStreamVertsUnlit` | — | — | the `0xC8` pre-pass with the lighting dropped; never seen in data — **solved**, §3.5 |
 | `0xC8` | `tmdXformStreamVerts` | 2 | 30262 | vertex transform + lighting pre-pass — **solved**, §3.5 |
 | `0x121` | `tmdDrawStreamPrimG3PreXform` | — | — | resolves to the same opaque `0x21` handler: both retain the corner RGB already written by the vertex pass and read only the three depth-cache offsets |
 | `0x122` | `tmdDrawStreamPrimG3CornerColorsSemiTrans` | — | — | three vertex and three normal byte references, then three corner RGB/code words; lights a semitransparent G3 independently per corner. Construction skips this opcode, but drawing still consumes one packet slot per element |

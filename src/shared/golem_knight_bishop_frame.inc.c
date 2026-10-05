@@ -7,7 +7,7 @@
 /// Then, in a room that has `regions`, the frame runs: the hit handler, the
 /// sequence dispatch, the step forward, the animation reseed, the vocal cue,
 /// the coordinate refresh, the tint and shadow, the projection at depth +0xC,
-/// the fade and `func_8009EA50` with `translucency`.
+/// the fade and `modelLightingSetLayerMaterials` with `translucency`.
 void golemKnightBishopFrameState(Enemy* arg0, Task* arg1)
 {
     GolemKnightBishopWork* temp_s1;
@@ -64,6 +64,6 @@ default_body:
         golemKnightBishopDrawShadow(arg1);
         golemKnightBishopQueueFrameCapture(&arg1->extra.tmd->coords[3], 0xC);
         golemKnightBishopTranslucencyFade(arg1);
-        func_8009EA50(temp_s1->translucency);
+        modelLightingSetLayerMaterials(temp_s1->translucency);
     }
 }

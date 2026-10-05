@@ -2905,7 +2905,7 @@ if (mode == 1 || mode == 3 || mode == 5 || mode == 6) {
 }
 work->hideHoldFrames = val;
 SOFT_BARRIER();
-func_8009EA50(work->cloakLevel);
+modelLightingSetLayerMaterials(work->cloakLevel);
 ```
 
 The first else assignment (`0x1000`) fills the `bne` delay; each arm's last
@@ -6562,8 +6562,8 @@ col = Gp_ColorOrange;
 gte_ldrgb(&col);
 ```
 
-`func_8009AA5C` is the example. Same `+r` pin as `gpXformStreamVertsUnlit`'s
-`prev = -1`.
+`func_8009AA5C` is the example. Same `+r` pin as `tmdXformStreamVertsUnlit`'s
+`previousVertexRef = TMD_PREVIOUS_VERTEX_REF_NONE`.
 
 ## An m2c `ws = index` needs no pin when another variable wants `$a0`
 
@@ -6579,8 +6579,8 @@ whose `sz` is pinned to `$a0`.
 
 So the shape is load-bearing only where something pins *it* — `TOUCH_REG(ws)` or
 `asm volatile("" : "+r"(ws))`, as `func_8009AA5C` above — and m2c residue where
-the pinned register belongs to another variable: `gpXformStreamVertsUnlit` pins
-its `prev` with `+r` (so `prev` takes `$a0`), and naming the parameter and
+the pinned register belongs to another variable: `tmdXformStreamVertsUnlit` pins
+its `previousVertexRef` with `+r` (so `previousVertexRef` takes `$a0`), and naming the parameter and
 deleting the local declaration and the assignment left the body byte-identical
 there too.
 
@@ -25146,7 +25146,7 @@ The target stores b, g, then r as `%lo(symbol)(hi)`. Chained assignment
 evaluates right-to-left and matches:
 
 ```c
-D_80114BA4.r = D_80114BA4.g = D_80114BA4.b = arg0;
+D_80114BA4.r = D_80114BA4.g = D_80114BA4.b = layerIntensity;
 ```
 
 Chaining also collapses the *loads*, which matters when the destination is a
@@ -25160,7 +25160,7 @@ Write the `<= 0` clamp arm first so the compiler emits `bgtz` to the
 positive path (`slti` in the delay slot) instead of `blez` to the zero
 arm.
 
-`func_8009EA50` is the example.
+`modelLightingSetLayerMaterials` is the example.
 
 ## `asm("")` so `andi` wins the `bnez` delay slot over `addiu`
 
@@ -30098,9 +30098,9 @@ __asm__ volatile("" : "+r"(prev));
 ws->elemCount = count + prev;
 ```
 
-Reload the halfword as `*(u16*)stream` for the depth-table store so it
-takes `$v0` and `>> 3` is `srl`. Reusing the first `idx` local leaves
-it in `$v1` and emits `sra`. `gpXformStreamVertsUnlit` is the example.
+Reload the halfword as `elementHalfwords[0]` for the depth-table store so it
+takes `$v0` and `>> 3` is `srl`. Reusing the first `vertexRef` local leaves
+it in `$v1` and emits `sra`. `tmdXformStreamVertsUnlit` is the example.
 
 ## Assign an `s16` to `s32` before `& mask` so the load is `lh`
 
@@ -39799,7 +39799,7 @@ Do not instead replace the named temps with literals: that drops the live
 pseudos, lowers register pressure, and the prologue stops saving the `s`
 registers the target saves (here `s5`/`s4`/`s3`, two of them unused in the body).
 Keep the variables, just move where they are assigned. Worth 99.8% → 100% on
-`gpDrawStreamPrimGt4OffsetLayer`.
+`tmdDrawStreamPrimGt4OffsetLayer`.
 
 ## `u16` flag local so its `1` cannot be CSE'd into later `+ 1` / compares
 
@@ -71341,7 +71341,7 @@ if (mode == 1 || mode == 3 || mode == 5 || mode == 6) {
 }
 work->hideHoldFrames = val;
 SOFT_BARRIER();
-func_8009EA50(work->cloakLevel);
+modelLightingSetLayerMaterials(work->cloakLevel);
 ```
 
 The first else assignment (`0x1000`) fills the `bne` delay; each arm's last
@@ -134563,7 +134563,7 @@ none, its draw twin loading the fixed `0x808080` instead.
 
 The build handler never reads that word — it only starts its texture copy one
 word later — so an unidentified handler of the family is settled by its draw
-twin's `ldrgb`: `gpDrawStreamPrimGt4ElemColor` (`0x70`, a `POLY_GT4`) loads the
+twin's `ldrgb`: `tmdDrawStreamPrimGt4ElemColor` (`0x70`, a `POLY_GT4`) loads the
 element's word for `NCCT`, where `tmdDrawStreamGt4` (`0x78`, the same primitive)
 loads `0x3C808080` before its loop. That is what makes the twins' words come out
 at `5,6,7` and `4,5,6` respectively (`tmdBuildStreamGt4ElemColor` against

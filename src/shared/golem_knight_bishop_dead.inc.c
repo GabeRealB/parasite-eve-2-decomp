@@ -71,7 +71,7 @@ void golemKnightBishopDeadState(Enemy* arg0, Task* arg1)
         case 2:
             golemKnightBishopQueueFrameCapture(&arg1->extra.tmd->coords[3], 0xC);
             golemKnightBishopTranslucencyFade(arg1);
-            func_8009EA50(work->translucency);
+            modelLightingSetLayerMaterials(work->translucency);
             work->step = 3;
             break;
     }

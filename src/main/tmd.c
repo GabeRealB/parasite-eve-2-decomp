@@ -196,7 +196,7 @@ static void Tmd_InitSourceStream(TmdSource* src)
                     handler = tmdXformStreamVertsElemColor;
                     break;
                 case 0xC4:
-                    handler = gpXformStreamVertsUnlit;
+                    handler = tmdXformStreamVertsUnlit;
                     break;
                 case 5:
                     handler = tmdDrawStreamPrimF3PreXform;
@@ -251,7 +251,7 @@ static void Tmd_InitSourceStream(TmdSource* src)
                 case 0x40C8:
                     handler = tmdXformStreamVertsEnvLayer;
                     if (flag != 0) {
-                        handler = gpXformStreamVertsOffsetLayer;
+                        handler = tmdXformStreamVertsOffsetLayer;
                     }
                     break;
                 case 0x200C8:
@@ -312,7 +312,7 @@ static void Tmd_InitSourceStream(TmdSource* src)
                 case 0x4078:
                     handler = tmdDrawStreamPrimGt4EnvLayer;
                     if (flag != 0) {
-                        handler = gpDrawStreamPrimGt4OffsetLayer;
+                        handler = tmdDrawStreamPrimGt4OffsetLayer;
                     }
                     break;
                 case 0x4038:
@@ -352,7 +352,7 @@ static void Tmd_InitSourceStream(TmdSource* src)
                     handler = tmdDrawStreamPrimGt3CornerColors;
                     break;
                 case 0x70:
-                    handler = gpDrawStreamPrimGt4ElemColor;
+                    handler = tmdDrawStreamPrimGt4ElemColor;
                     break;
                 case 0x170:
                     handler = tmdDrawStreamPrimGt4CornerColors;

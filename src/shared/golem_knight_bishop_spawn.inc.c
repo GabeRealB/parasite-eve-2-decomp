@@ -50,7 +50,7 @@ void golemKnightBishopSpawn(Enemy* arg0, Task* arg1)
         case 0:
             work->translucency      = 0xFF;
             obj->shading.colorBlend = 0;
-            func_8009EA50(work->translucency);
+            modelLightingSetLayerMaterials(work->translucency);
             work->shadowShade = -1;
             arg0->field_4     = &coord->coord;
             arg0->field_48    = 0;
@@ -182,7 +182,7 @@ void golemKnightBishopSpawn(Enemy* arg0, Task* arg1)
             arg1->state             = 2;
             work->translucency      = 0;
             obj->shading.colorBlend = TMD_OBJECT_COLOR_BLEND_ONE;
-            func_8009EA50(work->translucency);
+            modelLightingSetLayerMaterials(work->translucency);
             work->shadowShade = 0x80;
             break;
         case 2:
@@ -191,7 +191,7 @@ void golemKnightBishopSpawn(Enemy* arg0, Task* arg1)
             arg1->state             = kind;
             work->translucency      = 0;
             obj->shading.colorBlend = TMD_OBJECT_COLOR_BLEND_ONE;
-            func_8009EA50(work->translucency);
+            modelLightingSetLayerMaterials(work->translucency);
             work->shadowShade = 0x80;
             break;
     }

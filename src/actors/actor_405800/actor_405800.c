@@ -1572,7 +1572,7 @@ static void func_actor_405800_80132FE0(Task* arg0)
     work->colorBlend          = (u16)work->colorBlend + ((s16)(-(u16)work->colorBlend) >> 4);
     work->shadowShade         = (u16)work->shadowShade + (-work->shadowShade >> 2);
     model->shading.colorBlend = work->colorBlend;
-    func_8009EA50(work->cloakLevel);
+    modelLightingSetLayerMaterials(work->cloakLevel);
     work->corpseScaleY -= 0x30;
     scale.vx            = ONE;
     scale.vy            = work->corpseScaleY;
@@ -1671,7 +1671,7 @@ static void func_actor_405800_8013315C(Task* arg0)
                         }
                     }
                 block_32:
-                    func_8009EA50(work->cloakLevel);
+                    modelLightingSetLayerMaterials(work->cloakLevel);
                     break;
             }
         }
@@ -1802,7 +1802,7 @@ static void func_actor_405800_801334B8(Task* arg0)
     w4->colorBlend     = 0;
     w4->shadowShade    = 0;
     w4->hideHoldFrames = 0x10;
-    func_8009EA50(w4->cloakLevel);
+    modelLightingSetLayerMaterials(w4->cloakLevel);
     extra->shading.colorBlend = w4->colorBlend;
     w3                        = (_Actor405800IvoryStalkerWork*)arg0->work;
     arg0->state               = 1;
@@ -3823,7 +3823,7 @@ static void func_actor_405800_80138B50(Task* task)
         work->cloakLevel  = 0;
         work->colorBlend  = TMD_OBJECT_COLOR_BLEND_ONE;
         work->shadowShade = 0xFF;
-        func_8009EA50(work->cloakLevel);
+        modelLightingSetLayerMaterials(work->cloakLevel);
         ext->shading.colorBlend = work->colorBlend;
         work->stateFrames       = 0;
         work->state             = work->state + 1;

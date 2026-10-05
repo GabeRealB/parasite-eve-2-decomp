@@ -91,6 +91,27 @@ STATIC_ASSERT(OFFSET_OF(POLY_GT4, v0) - OFFSET_OF(POLY_GT4, code) == TMD_ENV_V_T
 STATIC_ASSERT(OFFSET_OF(POLY_GT4, u1) - OFFSET_OF(POLY_GT4, u0) == TMD_ENV_CORNER_STRIDE_BYTES,
               tmd_env_quad_corner_stride);
 
+/// Lights the layer/base colour groups of one offset-layer corner and saves its rotated normal.
+///
+/// Destination halfwords 2/3 are byte offsets into aligned writable CVECTOR
+/// groups in the first packet region; halfword 1 references a complete normal
+/// SVECTOR after masking its low bits. The caller configures GTE lighting and
+/// supplies the layer/base material RGB/code words. GTE lighting registers and
+/// workspace normal scratch change; packet cursors and counts do not.
+/// Arguments are evaluated repeatedly: supply side-effect-free pointers.
+/// Captures no caller identifiers. Expands to several statements: use only
+/// inside an enclosing compound block, never as an unbraced conditional body.
+#define TMD_LIGHT_OFFSET_LAYER_CORNER(workspace, elementHalfwords, layerMaterial, baseMaterial)                 \
+    gte_ldv0((const u8*)(workspace)->normals + ((elementHalfwords)[1] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK)); \
+    gte_ldrgb((layerMaterial));                                                                                 \
+    gte_nccs();                                                                                                 \
+    gte_strgb((workspace)->preXformWrite + (elementHalfwords)[2]);                                              \
+    gte_ldrgb((baseMaterial));                                                                                  \
+    gte_nccs();                                                                                                 \
+    gte_strgb((workspace)->preXformWrite + (elementHalfwords)[3]);                                              \
+    gte_rtv0();                                                                                                 \
+    gte_stsv(&(workspace)->elemNormal);
+
 /// Work block of the task that runs play.
 ///
 /// Each frame that task advances the play clock, watches for the death of the
@@ -118,10 +139,6 @@ extern CVECTOR D_80114BA8;
 
 /// Unreferenced nonzero word before the stored BSS.
 extern u32 D_80114BAC;
-
-static u32* func_8009FCDC(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2);
-
-static u32* func_8009FD28(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2);
 
 void func_807150F8(s32 arg0);
 
@@ -244,6 +261,44 @@ u32 D_80114BAC = 0x10FF2220;
     :                                            \
     : "r"(r1), "r"(r2)                           \
     : "$12", "$13", "$14", "$15", "$16", "memory")
+
+/// Lights all four quad corners from their normals and the GTE's current material.
+///
+/// The caller has loaded the element RGB/code word and configured the GTE's
+/// light/colour matrices. Eight readable element halfwords pack four vertex
+/// references followed by four normal byte references. Each masked normal
+/// reference must select a complete SVECTOR. The aligned writable quad receives
+/// RGB/code words; GTE lighting state changes, with no cursor/count update.
+static inline void _tmdLightGt4ElementNormals(POLY_GT4* quad, TmdStreamWorkspace* workspace, const u16* elementHalfwords)
+{
+    enum { TMD_GT4_NORMAL_REF_HALFWORD_INDEX = TMD_GT4_CORNER_COUNT };
+    const u8* normalBytes;
+
+    normalBytes = (const u8*)workspace->normals;
+    gte_ldv3(normalBytes + (elementHalfwords[TMD_GT4_NORMAL_REF_HALFWORD_INDEX + 0] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), normalBytes + (elementHalfwords[TMD_GT4_NORMAL_REF_HALFWORD_INDEX + 1] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), normalBytes + (elementHalfwords[TMD_GT4_NORMAL_REF_HALFWORD_INDEX + 2] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK));
+    gte_ncct();
+    gte_strgb3_gt4(quad);
+    gte_ldv0((const u8*)workspace->normals + (elementHalfwords[TMD_GT4_NORMAL_REF_HALFWORD_INDEX + 3] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK));
+    gte_nccs();
+    gte_strgb(&quad->r3);
+}
+
+/// Prepends an offset-layer quad pair in layer-then-base order, preserving DMA lengths.
+///
+/// The aligned writable pair and displaced OT remain GPU-visible until consumed.
+/// `workspace->gteResult` holds AVSZ4 OTZ; the display shift is normally 0..3.
+/// Every selected masked bucket must fit the OT. Masks are
+/// GPU_DMA_LINK_ADDRESS_MASK and GPU_DMA_PACKET_LENGTH_MASK. The pointer casts
+/// encode GPU link addresses, retaining their low 24 bits. No GTE state changes.
+static inline void _tmdLinkOffsetLayerQuadPair(POLY_GT4* packetPair, TmdStreamWorkspace* workspace, const DisplayState* displayState, u32 addressMask, u32 lengthMask)
+{
+    packetPair[0].tag = (packetPair[0].tag & lengthMask) | (workspace->ot[((u32)workspace->gteResult << displayState->otDepthShift) >> TMD_DRAW_OT_INDEX_SHIFT & (GPU_ORDERING_TABLE_DEPTH_BYTE_MASK / sizeof(*workspace->ot))] & addressMask);
+    workspace->ot[((u32)workspace->gteResult << displayState->otDepthShift) >> TMD_DRAW_OT_INDEX_SHIFT & (GPU_ORDERING_TABLE_DEPTH_BYTE_MASK / sizeof(*workspace->ot))] =
+        (workspace->ot[((u32)workspace->gteResult << displayState->otDepthShift) >> TMD_DRAW_OT_INDEX_SHIFT & (GPU_ORDERING_TABLE_DEPTH_BYTE_MASK / sizeof(*workspace->ot))] & lengthMask) | ((u32)&packetPair[0] & addressMask);
+    packetPair[1].tag = (packetPair[1].tag & lengthMask) | (workspace->ot[((u32)workspace->gteResult << displayState->otDepthShift) >> TMD_DRAW_OT_INDEX_SHIFT & (GPU_ORDERING_TABLE_DEPTH_BYTE_MASK / sizeof(*workspace->ot))] & addressMask);
+    workspace->ot[((u32)workspace->gteResult << displayState->otDepthShift) >> TMD_DRAW_OT_INDEX_SHIFT & (GPU_ORDERING_TABLE_DEPTH_BYTE_MASK / sizeof(*workspace->ot))] =
+        (workspace->ot[((u32)workspace->gteResult << displayState->otDepthShift) >> TMD_DRAW_OT_INDEX_SHIFT & (GPU_ORDERING_TABLE_DEPTH_BYTE_MASK / sizeof(*workspace->ot))] & lengthMask) | ((u32)&packetPair[1] & addressMask);
+}
 
 /// Initializes one flat textured triangle's persistent texture coordinates and GPU addresses.
 ///
@@ -1002,67 +1057,62 @@ u32* tmdXformStreamVertsEnvLayer(TmdStreamWorkspace* workspace, s32 objectFlags,
     return elements;
 }
 
-u32* gpXformStreamVertsOffsetLayer(TmdStreamWorkspace* ws, s32 flags, u32* stream)
+u32* tmdXformStreamVertsOffsetLayer(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements)
 {
-    s32     prev;
-    s32     count;
-    u32     idx;
-    u16*    rec;
-    CVECTOR col;
-    CVECTOR col2;
-    u8*     dest;
-    s32     val;
-    s32     inv;
+    enum { TMD_OFFSET_LAYER_COLOR_SHIFT = 5 };
+    enum { TMD_PREVIOUS_VERTEX_REF_NONE = -1 };
+    s32        previousVertexRef;
+    s32        elementCount;
+    u32        vertexRef;
+    const u16* elementHalfwords;
+    CVECTOR    layerMaterial;
+    CVECTOR    baseMaterial;
+    u8*        screenDestination;
+    s32        layerIntensity;
+    s32        baseIntensity;
 
-    col    = gGpColorWhite;
-    col2   = gGpColorGrey;
-    val    = ws->obj->shading.colorBlend >> 5;
-    inv    = (TMD_OBJECT_COLOR_BLEND_ONE >> 5) - val;
-    col.b  = val;
-    col.g  = val;
-    col.r  = val;
-    col2.b = inv;
-    col2.g = inv;
-    col2.r = inv;
-    count  = ws->elemCount;
-    if (count == 0) {
-        return stream;
+    layerMaterial   = gGpColorWhite;
+    baseMaterial    = gGpColorGrey;
+    layerIntensity  = workspace->obj->shading.colorBlend >> TMD_OFFSET_LAYER_COLOR_SHIFT;
+    baseIntensity   = (TMD_OBJECT_COLOR_BLEND_ONE >> TMD_OFFSET_LAYER_COLOR_SHIFT) - layerIntensity;
+    layerMaterial.b = layerIntensity;
+    layerMaterial.g = layerIntensity;
+    layerMaterial.r = layerIntensity;
+    baseMaterial.b  = baseIntensity;
+    baseMaterial.g  = baseIntensity;
+    baseMaterial.r  = baseIntensity;
+    elementCount    = workspace->elemCount;
+    if (elementCount == 0) {
+        return elements;
     }
-    prev          = -1;
-    ws->elemCount = count + prev;
-    if (count > 0) {
+    previousVertexRef    = TMD_PREVIOUS_VERTEX_REF_NONE;
+    workspace->elemCount = elementCount + previousVertexRef;
+    if (elementCount > 0) {
         do {
-            rec = (u16*)stream;
-            idx = rec[0];
-            if (idx != prev) {
-                gte_ldv0((u8*)ws->verts + (idx & 0xFFF8));
+            elementHalfwords = (const u16*)elements;
+            vertexRef        = elementHalfwords[0];
+            // Reuse screen XY and cached Z only for consecutive identical references.
+            if (vertexRef != previousVertexRef) {
+                gte_ldv0((const u8*)workspace->verts + (vertexRef & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK));
                 gte_rtps();
-                gte_stsz(&ws->gteResult);
-                gte_stflg(&ws->gteFlag);
-                if (ws->gteFlag & TMD_GTE_ERROR_FLAG) {
-                    ws->gteResult |= TMD_VERTEX_DEPTH_INVALID;
+                gte_stsz(&workspace->gteResult);
+                gte_stflg(&workspace->gteFlag);
+                if (workspace->gteFlag & TMD_GTE_ERROR_FLAG) {
+                    workspace->gteResult |= TMD_VERTEX_DEPTH_INVALID;
                 }
-                ws->szTable[*(u16*)stream >> 3] = ws->gteResult;
+                workspace->szTable[elementHalfwords[0] >> TMD_STREAM_VERTEX_INDEX_SHIFT] = workspace->gteResult;
             }
-            prev = rec[0];
-            dest = ws->preXformWrite + rec[2] + 4;
-            gte_stsxy(dest);
-            dest = ws->preXformWrite + rec[3] + 4;
-            gte_stsxy(dest);
-            gte_stsxy(&ws->texCoord);
-            gte_ldv0((u8*)ws->normals + (rec[1] & 0xFFF8));
-            gte_ldrgb(&col);
-            gte_nccs();
-            gte_strgb(ws->preXformWrite + rec[2]);
-            gte_ldrgb(&col2);
-            gte_nccs();
-            gte_strgb(ws->preXformWrite + rec[3]);
-            gte_rtv0();
-            gte_stsv(&ws->elemNormal);
-            stream += ws->elemStride;
-        } while (ws->elemCount-- > 0);
+            previousVertexRef = elementHalfwords[0];
+            screenDestination = workspace->preXformWrite + elementHalfwords[2] + sizeof(CVECTOR);
+            gte_stsxy(screenDestination);
+            screenDestination = workspace->preXformWrite + elementHalfwords[3] + sizeof(CVECTOR);
+            gte_stsxy(screenDestination);
+            gte_stsxy(&workspace->texCoord);
+            TMD_LIGHT_OFFSET_LAYER_CORNER(workspace, elementHalfwords, &layerMaterial, &baseMaterial);
+            elements += workspace->elemStride;
+        } while (workspace->elemCount-- > 0);
     }
-    return stream;
+    return elements;
 }
 
 u32* tmdDrawStreamPrimGt3EnvLayer(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements)
@@ -1257,105 +1307,105 @@ u32* tmdDrawStreamPrimGt3OffsetLayer(TmdStreamWorkspace* workspace, s32 objectFl
     return elements;
 }
 
-u32* gpDrawStreamPrimGt4OffsetLayer(TmdStreamWorkspace* ws, s32 flags, u32* stream)
+u32* tmdDrawStreamPrimGt4OffsetLayer(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements)
 {
-    POLY_GT4*     poly;
-    s32*          opz;
-    DisplayState* ds;
-    u32           mask;
-    u32           maskHi;
-    u32           clipMask;
-    s32*          flg;
-    u16*          rec;
-    u8*           verts;
-    u8*           norms;
-    CVECTOR       col;
-    CVECTOR       col2;
-    s32           len;
-    s32           code;
-    s32           val;
-    s32           inv;
+    enum { TMD_GT4_OPAQUE_COMMAND     = 0x3C,
+           TMD_GT4_SEMI_TRANS_COMMAND = 0x3E };
+    enum { TMD_OFFSET_LAYER_COLOR_SHIFT = 5 };
+    POLY_GT4*           packetPair;
+    s32*                gteResultDestination;
+    const DisplayState* displayState;
+    u32                 addressMask;
+    u32                 lengthMask;
+    u32                 projectionErrorMask;
+    s32*                gteFlagDestination;
+    const u16*          elementHalfwords;
+    const u8*           vertexBytes;
+    const u8*           normalBytes;
+    CVECTOR             layerMaterial;
+    CVECTOR             baseMaterial;
+    s32                 payloadWordCount;
+    s32                 baseCommand;
+    s32                 layerIntensity;
+    s32                 baseIntensity;
 
-    poly   = (POLY_GT4*)ws->primWrite;
-    col    = gGpColorGrey;
-    col2   = gGpColorGrey;
-    val    = ws->obj->shading.colorBlend >> 5;
-    inv    = (TMD_OBJECT_COLOR_BLEND_ONE >> 5) - val;
-    col.b  = val;
-    col.g  = val;
-    col.r  = val;
-    col2.b = inv;
-    col2.g = inv;
-    col2.r = inv;
-    if (ws->elemCount-- > 0) {
-        flg      = &ws->gteFlag;
-        clipMask = TMD_GTE_ERROR_FLAG;
-        opz      = &ws->gteResult;
+    packetPair      = (POLY_GT4*)workspace->primWrite;
+    layerMaterial   = gGpColorGrey;
+    baseMaterial    = gGpColorGrey;
+    layerIntensity  = workspace->obj->shading.colorBlend >> TMD_OFFSET_LAYER_COLOR_SHIFT;
+    baseIntensity   = (TMD_OBJECT_COLOR_BLEND_ONE >> TMD_OFFSET_LAYER_COLOR_SHIFT) - layerIntensity;
+    layerMaterial.b = layerIntensity;
+    layerMaterial.g = layerIntensity;
+    layerMaterial.r = layerIntensity;
+    baseMaterial.b  = baseIntensity;
+    baseMaterial.g  = baseIntensity;
+    baseMaterial.r  = baseIntensity;
+    if (workspace->elemCount-- > 0) {
+        gteFlagDestination   = &workspace->gteFlag;
+        projectionErrorMask  = TMD_GTE_ERROR_FLAG;
+        gteResultDestination = &workspace->gteResult;
         do {
-            rec   = (u16*)stream;
-            verts = (u8*)ws->verts;
-            gte_ldv3(verts + (rec[0] & 0xFFF8), verts + (rec[1] & 0xFFF8), verts + (rec[2] & 0xFFF8));
+            elementHalfwords = (const u16*)elements;
+            vertexBytes      = (const u8*)workspace->verts;
+            // Projection errors reject the packet; facing is tested separately below.
+            gte_ldv3(vertexBytes + (elementHalfwords[0] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), vertexBytes + (elementHalfwords[1] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), vertexBytes + (elementHalfwords[2] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK));
             gte_rtpt();
-            gte_stflg(flg);
-            if ((ws->gteFlag & clipMask) == 0) {
+            gte_stflg(gteFlagDestination);
+            if ((workspace->gteFlag & projectionErrorMask) == 0) {
                 gte_nclip();
-                gte_stopz(opz);
-                gte_stsxy3_gt4(&poly[0]);
-                gte_stsxy3_gt4(&poly[1]);
-                gte_ldv0((u8*)ws->verts + (rec[3] & 0xFFF8));
+                gte_stopz(gteResultDestination);
+                gte_stsxy3_gt4(&packetPair[0]);
+                gte_stsxy3_gt4(&packetPair[1]);
+                gte_ldv0((const u8*)workspace->verts + (elementHalfwords[3] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK));
                 gte_rtps();
-                gte_stflg(flg);
-                if ((ws->gteFlag & clipMask) == 0) {
-                    if (ws->gteResult > 0) {
+                gte_stflg(gteFlagDestination);
+                if ((workspace->gteFlag & projectionErrorMask) == 0) {
+                    // Draw if NCLIP(0,1,2) > 0, or otherwise NCLIP(1,2,3) < 0.
+                    if (workspace->gteResult > 0) {
                         goto draw;
                     }
                     gte_nclip();
-                    gte_stopz(opz);
-                    if (ws->gteResult < 0) {
+                    gte_stopz(gteResultDestination);
+                    if (workspace->gteResult < 0) {
                     draw:
-                        gte_stsxy2(&poly[0].x3);
-                        gte_stsxy2(&poly[1].x3);
+                        gte_stsxy2(&packetPair[0].x3);
+                        gte_stsxy2(&packetPair[1].x3);
                         gte_avsz4();
-                        norms = (u8*)ws->normals;
-                        gte_ldv3(norms + (rec[4] & 0xFFF8), norms + (rec[5] & 0xFFF8), norms + (rec[6] & 0xFFF8));
-                        gte_ldrgb(&col);
+                        normalBytes = (const u8*)workspace->normals;
+                        gte_ldv3(normalBytes + (elementHalfwords[4] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), normalBytes + (elementHalfwords[5] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), normalBytes + (elementHalfwords[6] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK));
+                        gte_ldrgb(&layerMaterial);
                         gte_ncct();
-                        gte_strgb3_gt4(&poly[0]);
-                        gte_ldrgb(&col2);
+                        gte_strgb3_gt4(&packetPair[0]);
+                        gte_ldrgb(&baseMaterial);
                         gte_ncct();
-                        gte_strgb3_gt4(&poly[1]);
-                        gte_ldv0((u8*)ws->normals + (rec[7] & 0xFFF8));
-                        gte_ldrgb(&col);
+                        gte_strgb3_gt4(&packetPair[1]);
+                        gte_ldv0((const u8*)workspace->normals + (elementHalfwords[7] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK));
+                        gte_ldrgb(&layerMaterial);
                         gte_nccs();
-                        gte_strgb(&poly[0].r3);
-                        gte_ldrgb(&col2);
+                        gte_strgb(&packetPair[0].r3);
+                        gte_ldrgb(&baseMaterial);
                         gte_nccs();
-                        gte_strgb(&poly[1].r3);
-                        len    = 0xC;
-                        code   = 0x3C;
-                        ds     = &gDisplayState;
-                        mask   = 0xFFFFFF;
-                        maskHi = 0xFF000000;
-                        setlen(&poly[0], len);
-                        setcode(&poly[0], 0x3E);
-                        setlen(&poly[1], len);
-                        setcode(&poly[1], code);
-                        gte_stotz(opz);
-                        poly[0].tag = (poly[0].tag & maskHi) | (*(&ws->ot[(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*ws->ot)]) & mask);
-                        *(&ws->ot[(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*ws->ot)]) =
-                            (*(&ws->ot[(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*ws->ot)]) & maskHi) | ((u32)&poly[0] & mask);
-                        poly[1].tag = (poly[1].tag & maskHi) | (*(&ws->ot[(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*ws->ot)]) & mask);
-                        *(&ws->ot[(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*ws->ot)]) =
-                            (*(&ws->ot[(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*ws->ot)]) & maskHi) | ((u32)&poly[1] & mask);
+                        gte_strgb(&packetPair[1].r3);
+                        payloadWordCount = sizeof(*packetPair) / sizeof(u32) - 1;
+                        baseCommand      = TMD_GT4_OPAQUE_COMMAND;
+                        displayState     = &gDisplayState;
+                        addressMask      = GPU_DMA_LINK_ADDRESS_MASK;
+                        lengthMask       = GPU_DMA_PACKET_LENGTH_MASK;
+                        setlen(&packetPair[0], payloadWordCount);
+                        setcode(&packetPair[0], TMD_GT4_SEMI_TRANS_COMMAND);
+                        setlen(&packetPair[1], payloadWordCount);
+                        setcode(&packetPair[1], baseCommand);
+                        gte_stotz(gteResultDestination);
+                        _tmdLinkOffsetLayerQuadPair(packetPair, workspace, displayState, addressMask, lengthMask);
                     }
                 }
             }
-            poly   += 2;
-            stream += ws->elemStride;
-        } while (ws->elemCount-- > 0);
+            packetPair += 2;
+            elements   += workspace->elemStride;
+        } while (workspace->elemCount-- > 0);
     }
-    ws->primWrite = (u8*)poly;
-    return stream;
+    workspace->primWrite = (u8*)packetPair;
+    return elements;
 }
 
 u32* tmdDrawStreamPrimGt4EnvLayer(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements)
@@ -1576,70 +1626,68 @@ u32* tmdDrawStreamPrimGt3ElemColor(TmdStreamWorkspace* workspace, s32 objectFlag
     return elements;
 }
 
-u32* gpDrawStreamPrimGt4ElemColor(TmdStreamWorkspace* ws, s32 flags, u32* stream)
+u32* tmdDrawStreamPrimGt4ElemColor(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements)
 {
-    POLY_GT4*     poly;
-    s32*          opz;
-    DisplayState* ds;
-    u32           clipMask;
-    s32*          flg;
-    u16*          rec;
-    u8*           verts;
-    u8*           norms;
+    enum { TMD_GT4_ELEMENT_COLOR_WORD_INDEX = 4 };
+    enum { TMD_GT4_OPAQUE_COMMAND     = 0x3C,
+           TMD_GT4_SEMI_TRANS_COMMAND = 0x3E };
+    POLY_GT4*           quad;
+    s32*                gteResultDestination;
+    const DisplayState* displayState;
+    u32                 projectionErrorMask;
+    s32*                gteFlagDestination;
+    const u16*          elementHalfwords;
+    const u8*           vertexBytes;
 
-    poly = (POLY_GT4*)ws->primWrite;
-    if (ws->elemCount-- > 0) {
-        flg      = &ws->gteFlag;
-        clipMask = TMD_GTE_ERROR_FLAG;
-        opz      = &ws->gteResult;
-        ds       = &gDisplayState;
+    quad = (POLY_GT4*)workspace->primWrite;
+    if (workspace->elemCount-- > 0) {
+        gteFlagDestination   = &workspace->gteFlag;
+        projectionErrorMask  = TMD_GTE_ERROR_FLAG;
+        gteResultDestination = &workspace->gteResult;
+        displayState         = &gDisplayState;
         do {
-            rec   = (u16*)stream;
-            verts = (u8*)ws->verts;
-            gte_ldv3(verts + (rec[0] & 0xFFF8), verts + (rec[1] & 0xFFF8), verts + (rec[2] & 0xFFF8));
+            elementHalfwords = (const u16*)elements;
+            vertexBytes      = (const u8*)workspace->verts;
+            // Projection errors reject the packet; facing is tested separately below.
+            gte_ldv3(vertexBytes + (elementHalfwords[0] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), vertexBytes + (elementHalfwords[1] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), vertexBytes + (elementHalfwords[2] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK));
             gte_rtpt();
-            gte_stflg(flg);
-            if ((ws->gteFlag & clipMask) == 0) {
+            gte_stflg(gteFlagDestination);
+            if ((workspace->gteFlag & projectionErrorMask) == 0) {
                 gte_nclip();
-                gte_stopz(opz);
-                gte_ldrgb(stream + 4);
-                gte_stsxy3_gt4(poly);
-                gte_ldv0((u8*)ws->verts + (rec[3] & 0xFFF8));
+                gte_stopz(gteResultDestination);
+                gte_ldrgb(elements + TMD_GT4_ELEMENT_COLOR_WORD_INDEX);
+                gte_stsxy3_gt4(quad);
+                gte_ldv0((const u8*)workspace->verts + (elementHalfwords[3] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK));
                 gte_rtps();
-                gte_stflg(flg);
-                if ((ws->gteFlag & clipMask) == 0) {
-                    if (ws->gteResult > 0) {
+                gte_stflg(gteFlagDestination);
+                if ((workspace->gteFlag & projectionErrorMask) == 0) {
+                    // Draw if NCLIP(0,1,2) > 0, or otherwise NCLIP(1,2,3) < 0.
+                    if (workspace->gteResult > 0) {
                         goto draw;
                     }
                     gte_nclip();
-                    gte_stopz(opz);
-                    if (ws->gteResult < 0) {
+                    gte_stopz(gteResultDestination);
+                    if (workspace->gteResult < 0) {
                     draw:
-                        gte_stsxy2(&poly->x3);
+                        gte_stsxy2(&quad->x3);
                         gte_avsz4();
-                        norms = (u8*)ws->normals;
-                        gte_ldv3(norms + (rec[4] & 0xFFF8), norms + (rec[5] & 0xFFF8), norms + (rec[6] & 0xFFF8));
-                        gte_ncct();
-                        gte_strgb3_gt4(poly);
-                        gte_ldv0((u8*)ws->normals + (rec[7] & 0xFFF8));
-                        gte_nccs();
-                        gte_strgb(&poly->r3);
-                        setlen(poly, 0xC);
-                        setcode(poly, 0x3C);
-                        if (ws->obj->flags & TMD_OBJECT_SEMI_TRANS) {
-                            setcode(poly, 0x3E);
+                        _tmdLightGt4ElementNormals(quad, workspace, elementHalfwords);
+                        setlen(quad, sizeof(*quad) / sizeof(u32) - 1);
+                        setcode(quad, TMD_GT4_OPAQUE_COMMAND);
+                        if (workspace->obj->flags & TMD_OBJECT_SEMI_TRANS) {
+                            setcode(quad, TMD_GT4_SEMI_TRANS_COMMAND);
                         }
-                        gte_stotz(opz);
-                        addPrim(&ws->ot[((u32)ws->gteResult << ds->otDepthShift) >> 4 & 0x3FF], poly);
+                        gte_stotz(gteResultDestination);
+                        addPrim(&workspace->ot[((u32)workspace->gteResult << displayState->otDepthShift) >> TMD_DRAW_OT_INDEX_SHIFT & (GPU_ORDERING_TABLE_DEPTH_BYTE_MASK / sizeof(*workspace->ot))], quad);
                     }
                 }
             }
-            poly++;
-            stream += ws->elemStride;
-        } while (ws->elemCount-- > 0);
+            quad++;
+            elements += workspace->elemStride;
+        } while (workspace->elemCount-- > 0);
     }
-    ws->primWrite = (u8*)poly;
-    return stream;
+    workspace->primWrite = (u8*)quad;
+    return elements;
 }
 
 u32* tmdDrawStreamPrimFt3(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements)
@@ -2189,56 +2237,61 @@ u32* tmdDrawStreamPrimG4CornerColorsSemiTrans(TmdStreamWorkspace* workspace, s32
     return elements;
 }
 
-void func_8009EA50(s32 arg0)
+void modelLightingSetLayerMaterials(s32 layerIntensity)
 {
-    s32 temp;
+    enum { MODEL_LIGHTING_LAYER_INTENSITY_MAX    = 255,
+           MODEL_LIGHTING_BASE_NEUTRAL_INTENSITY = 128 };
+    s32 baseIntensity;
 
-    if (arg0 <= 0) {
-        arg0 = 0;
-        temp = 0x80;
+    if (layerIntensity <= 0) {
+        layerIntensity = 0;
+        baseIntensity  = MODEL_LIGHTING_BASE_NEUTRAL_INTENSITY;
     } else {
-        if (arg0 >= 0x100) {
-            arg0 = 0xFF;
+        if (layerIntensity >= MODEL_LIGHTING_LAYER_INTENSITY_MAX + 1) {
+            layerIntensity = MODEL_LIGHTING_LAYER_INTENSITY_MAX;
         }
-        temp = (0xFF - arg0) >> 1;
+        baseIntensity = (MODEL_LIGHTING_LAYER_INTENSITY_MAX - layerIntensity) >> 1;
     }
 
-    D_80114BA4.r = D_80114BA4.g = D_80114BA4.b = arg0;
-    D_80114BA8.r = D_80114BA8.g = D_80114BA8.b = temp;
+    D_80114BA4.r = D_80114BA4.g = D_80114BA4.b = layerIntensity;
+    D_80114BA8.r = D_80114BA8.g = D_80114BA8.b = baseIntensity;
 }
 
-u32* gpXformStreamVertsUnlit(TmdStreamWorkspace* ws, s32 flags, u32* stream)
+u32* tmdXformStreamVertsUnlit(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements)
 {
-    s32  prev;
-    s32  count;
-    u32  idx;
-    u16* rec;
+    enum { TMD_PREVIOUS_VERTEX_REF_NONE = -1 };
+    s32        previousVertexRef;
+    s32        elementCount;
+    u32        vertexRef;
+    const u16* elementHalfwords;
 
-    count = ws->elemCount;
-    if (count == 0) {
-        return stream;
+    elementCount = workspace->elemCount;
+    if (elementCount == 0) {
+        return elements;
     }
-    prev          = -1;
-    ws->elemCount = count + prev;
-    if (count > 0) {
+    previousVertexRef    = TMD_PREVIOUS_VERTEX_REF_NONE;
+    workspace->elemCount = elementCount + previousVertexRef;
+    if (elementCount > 0) {
         do {
-            rec = (u16*)stream;
-            idx = rec[0];
-            if (idx != prev) {
-                gte_ldv0((u8*)ws->verts + (idx & 0xFFF8));
+            elementHalfwords = (const u16*)elements;
+            vertexRef        = elementHalfwords[0];
+            // Reuse screen XY and cached Z only for consecutive identical references.
+            if (vertexRef != previousVertexRef) {
+                gte_ldv0((const u8*)workspace->verts + (vertexRef & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK));
                 gte_rtps();
-                gte_stsz(&ws->gteResult);
-                if (ws->gteFlag & TMD_GTE_ERROR_FLAG) {
-                    ws->gteResult |= TMD_VERTEX_DEPTH_INVALID;
+                gte_stsz(&workspace->gteResult);
+                // Retain the incoming saved FLAG decision rather than publishing this RTPS's FLAG.
+                if (workspace->gteFlag & TMD_GTE_ERROR_FLAG) {
+                    workspace->gteResult |= TMD_VERTEX_DEPTH_INVALID;
                 }
-                ws->szTable[*(u16*)stream >> 3] = ws->gteResult;
+                workspace->szTable[elementHalfwords[0] >> TMD_STREAM_VERTEX_INDEX_SHIFT] = workspace->gteResult;
             }
-            prev = rec[0];
-            gte_stsxy(ws->preXformWrite + rec[1]);
-            stream += ws->elemStride;
-        } while (ws->elemCount-- > 0);
+            previousVertexRef = elementHalfwords[0];
+            gte_stsxy(workspace->preXformWrite + elementHalfwords[1]);
+            elements += workspace->elemStride;
+        } while (workspace->elemCount-- > 0);
     }
-    return stream;
+    return elements;
 }
 
 u32* tmdBuildStreamGt3PreXform(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements)
@@ -2776,38 +2829,60 @@ u32* modelLightingReserveStreamPrimG3(TmdStreamWorkspace* workspace, s32 objectF
     return elements;
 }
 
-static u32* func_8009FCDC(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2)
+/// Reserves one untouched 20-byte packet slot per stream element in the second region.
+///
+/// This callback-shaped function has no known callers. Its packet kind is
+/// unproven; a 20-byte stride alone does not establish a POLY_F3 or a sprite.
+/// The caller must supply initial count 0..65535, a stride in u32 words,
+/// readable complete element strides and enough second-region storage.
+/// Bounds are unchecked. Returns elements + initial count * elemStride and
+/// advances primWrite by 20 * count bytes without accessing either payload.
+/// Count ends at -1, even for empty input; preXformWrite is unchanged.
+/// objectFlags is ignored. No allocation occurs and no storage is retained.
+static u32* _tmdReserveStreamPackets20(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements)
 {
-    u8* prims;
-    s32 stride;
+    enum { TMD_PACKET_SLOT_BYTES = 20 };
+    u8* packetCursor;
+    s32 elementStrideWords;
 
-    prims = arg0->primWrite;
-    if (arg0->elemCount-- > 0) {
-        stride = arg0->elemStride;
+    packetCursor = workspace->primWrite;
+    if (workspace->elemCount-- > 0) {
+        elementStrideWords = workspace->elemStride;
         do {
-            arg2  += stride;
-            prims += 0x14;
-        } while (arg0->elemCount-- > 0);
+            elements     += elementStrideWords;
+            packetCursor += TMD_PACKET_SLOT_BYTES;
+        } while (workspace->elemCount-- > 0);
     }
-    arg0->primWrite = prims;
-    return arg2;
+    workspace->primWrite = packetCursor;
+    return elements;
 }
 
-static u32* func_8009FD28(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2)
+/// Reserves one untouched 24-byte packet slot per stream element in the second region.
+///
+/// This callback-shaped function has no known callers. Its packet kind is
+/// unproven; the 24-byte stride does not by itself establish a POLY_F4.
+/// The caller must supply initial count 0..65535, a stride in u32 words,
+/// readable complete element strides and enough second-region storage.
+/// Bounds are unchecked. Returns elements + initial count * elemStride and
+/// advances primWrite by 24 * count bytes without accessing either payload.
+/// Count ends at -1, even for empty input; preXformWrite is unchanged.
+/// objectFlags is ignored. No allocation occurs and no storage is retained.
+static u32* _tmdReserveStreamPackets24(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements)
 {
-    u8* prims;
-    s32 stride;
+    enum { TMD_PACKET_SLOT_BYTES = 24 };
+    u8* packetCursor;
+    s32 elementStrideWords;
 
-    prims = arg0->primWrite;
-    if (arg0->elemCount-- > 0) {
-        stride = arg0->elemStride;
+    packetCursor = workspace->primWrite;
+    if (workspace->elemCount-- > 0) {
+        elementStrideWords = workspace->elemStride;
         do {
-            arg2  += stride;
-            prims += 0x18;
-        } while (arg0->elemCount-- > 0);
+            elements     += elementStrideWords;
+            packetCursor += TMD_PACKET_SLOT_BYTES;
+        } while (workspace->elemCount-- > 0);
     }
-    arg0->primWrite = prims;
-    return arg2;
+    workspace->primWrite = packetCursor;
+    return elements;
 }
 
 void Gp_ApplyPadReplay(s32 arg0, u16* arg1)

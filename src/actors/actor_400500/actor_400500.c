@@ -2018,7 +2018,7 @@ static void func_actor_400500_80132E94(Task* arg0)
                         work->cloakTimer = 0;
                         work->cloakPhase = (u8)work->cloakPhase + 1;
                     }
-                    func_8009EA50(work->cloakLevel);
+                    modelLightingSetLayerMaterials(work->cloakLevel);
                     break;
                 case 1:
                     work->cloakTimer = (u16)work->cloakTimer + 1;
@@ -2075,7 +2075,7 @@ static void func_actor_400500_80132E94(Task* arg0)
                             work->hideCooldown = (u16)work->hideCooldownReset;
                         }
                     }
-                    func_8009EA50(work->cloakLevel);
+                    modelLightingSetLayerMaterials(work->cloakLevel);
                     break;
             }
         }
@@ -2927,7 +2927,7 @@ static void func_actor_400500_80135414(Task* arg0)
         work5->cloakLevel     = 0;
         work5->hideHoldFrames = 0x2000;
     }
-    func_8009EA50(work5->cloakLevel);
+    modelLightingSetLayerMaterials(work5->cloakLevel);
     extra2->shading.colorBlend = work5->colorBlend;
     func_actor_400500_80132000(arg0);
     func_actor_400500_8013226C(arg0);
@@ -5818,7 +5818,7 @@ static void func_actor_400500_8013ABE4(Task* arg0)
     work->colorBlend          = (u16)work->colorBlend + ((s16) - (u16)work->colorBlend >> 4);
     work->shadowShade         = (u16)work->shadowShade + (-work->shadowShade >> 4);
     model->shading.colorBlend = work->colorBlend;
-    func_8009EA50(work->cloakLevel);
+    modelLightingSetLayerMaterials(work->cloakLevel);
 
     work->shrinkScaleY = (u16)work->shrinkScaleY - 0x30;
     scale.vx           = 0x1000;
@@ -7534,7 +7534,7 @@ static void func_actor_400500_8013D958(Task* arg0)
         work->cloakLevel  = 0;
         work->colorBlend  = TMD_OBJECT_COLOR_BLEND_ONE;
         work->shadowShade = 0xFF;
-        func_8009EA50(work->cloakLevel);
+        modelLightingSetLayerMaterials(work->cloakLevel);
         model->shading.colorBlend = work->colorBlend;
         work->stateFrames         = 0;
         work->state               = work->state + 1;
