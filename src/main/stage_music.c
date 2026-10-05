@@ -249,32 +249,37 @@ static void Stage_LoadOrCountdownTask(Task* task)
     }
 }
 
+/// Starts `entry`, the entry `selection` names, unless its start mode holds it
+/// back, then records the song and ends the task. A deferred entry leaves the
+/// task running until the view is ready.
+static inline void Stage_ApplyEntry(Task* task, _StageMusicSelection* selection, StageMusicEntry* entry)
+{
+    u8 startMode;
+
+    startMode = entry->startMode;
+    if (startMode != STAGE_MUSIC_START_NEVER) {
+        if (startMode != STAGE_MUSIC_START_IMMEDIATE) {
+            if (task->spawnArg1.value == 0) {
+                if (gGameSession->viewReady != 1) {
+                    return;
+                }
+            }
+        }
+        SndEvt_EnqueueType1(entry->sequenceId, 0);
+        Snd_ApplyVolumeTable(0);
+    }
+    gStageMusicLoadState = 0xFF;
+    gStageCurrentSong    = selection->table[selection->index].sequenceId;
+    taskKill(task);
+}
+
 static void Stage_ApplyTableEntryWhenIdle(Task* task)
 {
     _StageMusicSelection* selection;
-    StageMusicEntry*      entry;
-    u8                    startMode;
 
     selection = task->work;
     if (CdCmd_IsIdle() != 0) {
-        // Added as integers: `&selection->table[selection->index]` compiles the
-        // same address with the addition's operands swapped.
-        entry     = (StageMusicEntry*)(selection->index * sizeof(StageMusicEntry) + (u32)selection->table);
-        startMode = entry->startMode;
-        if (startMode != STAGE_MUSIC_START_NEVER) {
-            if (startMode != STAGE_MUSIC_START_IMMEDIATE) {
-                if (task->spawnArg1.value == 0) {
-                    if (gGameSession->viewReady != 1) {
-                        return;
-                    }
-                }
-            }
-            SndEvt_EnqueueType1(entry->sequenceId, 0);
-            Snd_ApplyVolumeTable(0);
-        }
-        gStageMusicLoadState = 0xFF;
-        gStageCurrentSong    = selection->table[selection->index].sequenceId;
-        taskKill(task);
+        Stage_ApplyEntry(task, selection, &selection->table[selection->index]);
     }
 }
 
