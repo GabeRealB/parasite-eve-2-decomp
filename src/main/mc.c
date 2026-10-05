@@ -1,6 +1,7 @@
 #include "mc.h"
 
 #include <psyq/sys/types.h>
+#include <psyq/sys/file.h>
 #include <psyq/kernel.h>
 #include <psyq/libmcrd.h>
 #include <psyq/memory.h>
@@ -9,6 +10,7 @@
 
 #include "common.h"
 
+#include "main/areas.h"
 #include "main/display.h"
 #include "main/display_types.h"
 #include "main/fs.h"
@@ -35,6 +37,32 @@ enum {
     MEMORY_CARD_CHECKSUM_MASK              = 0xFFFF,
     MEMORY_CARD_SAVE_POINT_COUNT           = 16,
     MEMORY_CARD_SAVE_POINT_OPENING         = 15,
+};
+
+/// Byte used to distinguish uninitialized backup records from cleared live records.
+enum { MEMORY_CARD_BACKUP_FILL_BYTE = 0xFF };
+
+/// Shift from 128-byte card-sector positions to SDK byte offsets.
+enum { MEMORY_CARD_SECTOR_BYTE_SHIFT = 7 };
+
+/// Destination states in the save dialog's `Mc_PromptStates` table.
+enum {
+    MEMORY_CARD_SAVE_STATE_ACCEPT_CARD       = 2,
+    MEMORY_CARD_SAVE_STATE_CONFIRM_CREATE    = 7,
+    MEMORY_CARD_SAVE_STATE_CONFIRM_SAVE      = 0xE,
+    MEMORY_CARD_SAVE_STATE_PREPARE_SECTION   = 0xF,
+    MEMORY_CARD_SAVE_STATE_NO_CARD           = 0x14,
+    MEMORY_CARD_SAVE_STATE_ACCESS_FAILED     = 0x18,
+    MEMORY_CARD_SAVE_STATE_CONFIRM_OVERWRITE = 0x1A,
+    MEMORY_CARD_SAVE_STATE_WRITE_FAILED      = 0x2A,
+};
+
+/// Destination states in the load dialog's `Mc_FileSelectStates` table.
+enum {
+    MEMORY_CARD_LOAD_STATE_FAILED          = 6,
+    MEMORY_CARD_LOAD_STATE_NO_DATA         = 0xB,
+    MEMORY_CARD_LOAD_STATE_PREPARE_SECTION = 0xE,
+    MEMORY_CARD_LOAD_STATE_OPEN_PREVIEW    = 0x14,
 };
 
 /// The two text lines of one memory-card prompt, drawn one above the other.
@@ -268,7 +296,7 @@ static const _McFileSelectStateTable Mc_FileSelectStates;
 
 static void Mc_BuildFileName(u8* arg0, s32 arg1);
 
-static void Mc_InitDualBankBuffers(void);
+static void _mcSeedNewGameRecords(void);
 
 static inline void _mcWriteBlockChecksum(u8* recordBytes, s32 recordByteCount);
 
@@ -311,7 +339,7 @@ static inline s32 _mcGetSectionWriteMask(void);
 
 static void Mc_StateCompareBuffers(Task* task, McWork* work);
 
-static void Mc_StateOpenRead(Task* task, McWork* work);
+static void _mcStateOpenSaveFileForWrite(Task* task, McWork* work);
 
 static void Mc_StateCreateFile(Task* task, McWork* work);
 
@@ -325,7 +353,7 @@ static inline void _mcWriteSectionChecksumSummary(void);
 
 static void Mc_StateBackupBuffers(Task* task, McWork* work);
 
-static void Mc_StateFreeBuffer(Task* task, McWork* work);
+static void _mcStateFinishSectionWrite(Task* task, McWork* work);
 
 static void Mc_StateFormat(Task* task, McWork* work);
 
@@ -333,7 +361,7 @@ static void Mc_StateSyncFileSelect(Task* task, McWork* work);
 
 static void Mc_StateBlankFileName(Task* task, McWork* work);
 
-static void Mc_StateSyncOpen(Task* task, McWork* work);
+static void _mcStateOpenSaveFileForRead(Task* task, McWork* work);
 
 static inline s32 _mcVerifySaveSectionChecksums(void);
 
@@ -345,7 +373,7 @@ static void Mc_StateVerifyFinish(Task* task, McWork* work);
 
 static inline void _mcWriteReadCardHeaderChecksum(McWork* work);
 
-static void Mc_StateFinishWrite(Task* task, McWork* work);
+static void _mcStateFinishSectionRead(Task* task, McWork* work);
 
 static inline s32 _mcVerifySavePreviewChecksum(const McSavePreview* preview);
 
@@ -364,7 +392,7 @@ static s32 _mcVerifySaveHeaderChecksum(const McSaveData* save);
 /// Out-of-line form of `_mcWriteBlockChecksum`. Nothing calls it.
 static void Mc_WriteBlockChecksum(u8* data, s32 size);
 
-static void Mc_ClearWorkBuffers(void);
+static void _mcResetStageFlagRecords(void);
 
 /// Whether a buffer's header holds the sum of its payload, as
 /// `Mc_WriteBlockChecksum` stores it. Only the sum is compared, not its
@@ -410,11 +438,11 @@ static void Mc_StateDrawPrompt4(Task* task, McWork* work);
 
 static void Mc_StateEnterDialog4(Task* task, McWork* work);
 
-static void Mc_StateWriteFile(Task* task, McWork* work);
+static void _mcStateWriteFileHeader(Task* task, McWork* work);
 
 static void Mc_StatePromptChoiceGeneric(Task* task, McWork* work);
 
-static void Mc_StateWriteData(Task* task, McWork* work);
+static void _mcStateWriteSection(Task* task, McWork* work);
 
 static void Mc_StateClosePrompt(Task* task, McWork* work);
 
@@ -438,15 +466,15 @@ static void Mc_StateCountdownPrompt4(Task* task, McWork* work);
 
 static void Mc_StateDrawPrompt1Advance(Task* task, McWork* work);
 
-static void Mc_StateOpenSelected(Task* task, McWork* work);
+static void _mcStateOpenSavePreview(Task* task, McWork* work);
 
 static void Mc_StateReadHeader(Task* task, McWork* work);
 
 static void Mc_StateOpenNext(Task* task, McWork* work);
 
-static void Mc_StateUiCountdown2(Task* task, McWork* work);
+static void _mcStateDelaySaveRetry(Task* task, McWork* work);
 
-static void Mc_StateUiCountdownE(Task* task, McWork* work);
+static void _mcStateDelaySaveConfirmation(Task* task, McWork* work);
 
 static void Mc_StateUiCountdownF(Task* task, McWork* work);
 
@@ -476,7 +504,7 @@ static void Mc_StateSyncPromptA(Task* task, McWork* work);
 
 static void Mc_StateDrawCurrentPrompt(Task* task, McWork* work);
 
-static void Mc_StateReadData(Task* task, McWork* work);
+static void _mcStateReadSection(Task* task, McWork* work);
 
 static void Mc_StateDrawPrompt1(Task* task, McWork* work);
 
@@ -486,7 +514,7 @@ static void Mc_StateOpenDirEntry(Task* task, McWork* work);
 
 static void Mc_StateReadSlot(Task* task, McWork* work);
 
-static void Mc_StateWalkDirectory(Task* task, McWork* work);
+static void _mcStateAdvanceLoadPreview(Task* task, McWork* work);
 
 static void Mc_StateEnterPrompt17(Task* task, McWork* work);
 
@@ -716,55 +744,106 @@ static void Mc_BuildFileName(u8* arg0, s32 arg1)
     arg0[1] = 0;
 }
 
-static void Mc_InitDualBankBuffers(void)
+/// Zero the five live stage-flag records and fill each adjacent backup with 0xFF.
+static inline void _mcResetStageFlagCopies(void)
 {
     GameFlagAcropolisBank*     acropolisBanks;
-    GameFlagDryfieldBank*      b;
+    GameFlagDryfieldBank*      dryfieldBanks;
     GameFlagDryfieldNightBank* dryfieldNightBanks;
-    GameFlagMineShelterBank*   d;
+    GameFlagMineShelterBank*   mineShelterBanks;
     GameFlagNeoArkBank*        neoArkBanks;
-    McSaveData*                p;
-    s32                        one;
-    s32                        two;
-    s32                        idx;
-
-    memFillBytes(&gPlayerStatus, 0, PLAYER_STATUS_SAVE_RECORD_BYTES);
-    memFillBytes(gPlayerStatus.saveBackup, 0xFF, sizeof(gPlayerStatus.saveBackup));
-    memFillBytes(&gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_LIVE], 0, sizeof(gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_LIVE]));
-    memFillBytes(&gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_BACKUP], 0xFF, sizeof(gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_BACKUP]));
 
     acropolisBanks = GameFlag_AcropolisBanks;
     memFillBytes(acropolisBanks, 0, sizeof(*acropolisBanks));
+    dryfieldBanks = GameFlag_DryfieldBanks;
+    memFillBytes(dryfieldBanks, 0, sizeof(*dryfieldBanks));
+    dryfieldNightBanks = GameFlag_DryfieldFullBanks;
+    memFillBytes(dryfieldNightBanks, 0, sizeof(*dryfieldNightBanks));
+    mineShelterBanks = GameFlag_ShelterBanks;
+    memFillBytes(mineShelterBanks, 0, sizeof(*mineShelterBanks));
+    neoArkBanks = GameFlag_NeoArkBanks;
+    memFillBytes(neoArkBanks, 0, sizeof(*neoArkBanks));
+    memFillBytes(acropolisBanks + 1, MEMORY_CARD_BACKUP_FILL_BYTE, sizeof(*acropolisBanks));
+    memFillBytes(dryfieldBanks + 1, MEMORY_CARD_BACKUP_FILL_BYTE, sizeof(*dryfieldBanks));
+    memFillBytes(dryfieldNightBanks + 1, MEMORY_CARD_BACKUP_FILL_BYTE, sizeof(*dryfieldNightBanks));
+    memFillBytes(mineShelterBanks + 1, MEMORY_CARD_BACKUP_FILL_BYTE, sizeof(*mineShelterBanks));
+    memFillBytes(neoArkBanks + 1, MEMORY_CARD_BACKUP_FILL_BYTE, sizeof(*neoArkBanks));
+}
+
+/// Restore option bytes in the live save and immediately apply the audio defaults.
+static inline void _mcRestoreOptionDefaults(void)
+{
+    enum {
+        MEMORY_CARD_OPTION_VIBRATION_ON      = 0,
+        MEMORY_CARD_OPTION_BUTTON_LAYOUT_A   = 0,
+        MEMORY_CARD_OPTION_MUSIC_FULL_VOLUME = 0,
+        MEMORY_CARD_OPTION_CURSOR_MEMORY     = 0,
+        MEMORY_CARD_OPTION_MOVEMENT_WALK     = 0,
+        MEMORY_CARD_OPTION_SOUND_STEREO      = 0,
+    };
+
+    McSaveData* save;
+
+    save                     = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
+    save->state.vibration    = MEMORY_CARD_OPTION_VIBRATION_ON;
+    save->state.buttonLayout = MEMORY_CARD_OPTION_BUTTON_LAYOUT_A;
+    save->state.musicVolume  = MEMORY_CARD_OPTION_MUSIC_FULL_VOLUME;
+    save->state.cursorMode   = MEMORY_CARD_OPTION_CURSOR_MEMORY;
+    save->state.soundMode    = MEMORY_CARD_OPTION_SOUND_STEREO;
+    save->state.moveMode     = MEMORY_CARD_OPTION_MOVEMENT_WALK;
+    sndOutputSetStereo(SOUND_OUTPUT_STEREO);
+    midiApplyMusicVolume(MIDI_MUSIC_VOLUME_SAVED);
+}
+
+/// Reset player and game-flag record pairs, then seed the opening player state.
+///
+/// Live records are zeroed and backups filled with 0xFF, without recomputing
+/// checksums. The live save must already have been cleared. Sets the opening
+/// shooting-gallery location and primary character, then seeds player stats.
+/// The character index read after seeding is zero: the seeder leaves it at 1.
+static void _mcSeedNewGameRecords(void)
+{
+    enum {
+        MEMORY_CARD_NEW_GAME_VIEW        = 1,
+        MEMORY_CARD_NEW_GAME_ROOM        = 1,
+        MEMORY_CARD_NEW_GAME_WARP        = 7,
+        MEMORY_CARD_NEW_GAME_VARIANT     = 1,
+        MEMORY_CARD_NEW_GAME_SCENE_EVENT = 2,
+        MEMORY_CARD_NEW_GAME_CHARACTER   = 1,
+        MEMORY_CARD_NEW_GAME_WEAPON_M93R = 2,
+    };
+
+    McSaveData* openingSave;
+    s32         initialStage;
+    s32         initialSceneEvent;
+    s32         starterWeapon;
+    s32         characterIndex;
+
+    memFillBytes(&gPlayerStatus, 0, PLAYER_STATUS_SAVE_RECORD_BYTES);
+    memFillBytes(gPlayerStatus.saveBackup, MEMORY_CARD_BACKUP_FILL_BYTE, sizeof(gPlayerStatus.saveBackup));
+    memFillBytes(&gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_LIVE], 0, sizeof(gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_LIVE]));
+    memFillBytes(&gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_BACKUP], MEMORY_CARD_BACKUP_FILL_BYTE, sizeof(gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_BACKUP]));
+
+    // Reset every record pair before seeding the opening location and player.
     do {
-        b = GameFlag_DryfieldBanks;
-        memFillBytes(b, 0, sizeof(*b));
-        dryfieldNightBanks = GameFlag_DryfieldFullBanks;
-        memFillBytes(dryfieldNightBanks, 0, sizeof(*dryfieldNightBanks));
-        d = GameFlag_ShelterBanks;
-        memFillBytes(d, 0, sizeof(*d));
-        neoArkBanks = GameFlag_NeoArkBanks;
-        memFillBytes(neoArkBanks, 0, sizeof(*neoArkBanks));
-        memFillBytes(acropolisBanks + 1, 0xFF, sizeof(*acropolisBanks));
-        memFillBytes(b + 1, 0xFF, sizeof(*b));
-        memFillBytes(dryfieldNightBanks + 1, 0xFF, sizeof(*dryfieldNightBanks));
-        memFillBytes(d + 1, 0xFF, sizeof(*d));
-        memFillBytes(neoArkBanks + 1, 0xFF, sizeof(*neoArkBanks));
-        p = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
+        _mcResetStageFlagCopies();
+        openingSave = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
     } while (0);
 
-    one                           = 1;
-    p->state.location.loc.area    = 0x14;
-    two                           = 2;
-    p->state.location.loc.stage   = one;
-    p->state.location.loc.view    = one;
-    p->state.location.loc.room    = one;
-    p->state.location.loc.warp    = 7;
-    p->state.location.loc.variant = one;
-    p->state.sceneEvent           = two;
-    p->state.characterId          = one;
+    initialStage                            = GAME_STAGE_ACROPOLIS;
+    openingSave->state.location.loc.area    = GAME_AREA_MIST_SHOOTING_GALLERY;
+    initialSceneEvent                       = MEMORY_CARD_NEW_GAME_SCENE_EVENT;
+    starterWeapon                           = MEMORY_CARD_NEW_GAME_WEAPON_M93R;
+    openingSave->state.location.loc.stage   = initialStage;
+    openingSave->state.location.loc.view    = MEMORY_CARD_NEW_GAME_VIEW;
+    openingSave->state.location.loc.room    = MEMORY_CARD_NEW_GAME_ROOM;
+    openingSave->state.location.loc.warp    = MEMORY_CARD_NEW_GAME_WARP;
+    openingSave->state.location.loc.variant = MEMORY_CARD_NEW_GAME_VARIANT;
+    openingSave->state.sceneEvent           = initialSceneEvent;
+    openingSave->state.characterId          = MEMORY_CARD_NEW_GAME_CHARACTER;
     playerSeedNewGameStatus();
-    idx                          = p->state.characterId - 1;
-    (&gPlayerStatus)[idx].weapon = two;
+    characterIndex                          = openingSave->state.characterId - 1;
+    (&gPlayerStatus)[characterIndex].weapon = starterWeapon;
 }
 
 /// Write the signed-byte payload sum and its complement into a save record.
@@ -794,42 +873,39 @@ static inline void _mcWriteBlockChecksum(u8* recordBytes, s32 recordByteCount)
     block->checksumComplement = ~sum;
 }
 
-void Mc_InitBufferSlots(void)
+void mcResetSaveData(void)
 {
-    _McSaveSection* base;
-    _McSaveSection* slot;
-    u8*             ptr;
-    u32             size;
-    u32             i;
-    s32             fill;
+    enum { MEMORY_CARD_DEFAULT_SPRITE_VARIANT = 1,
+           MEMORY_CARD_BACKUP_ALL_BITS        = -1 };
 
-    fill = -1;
-    base = Mc_BufferSlots;
-    slot = base + 1;
+    _McSaveSection* sections;
+    _McSaveSection* section;
+    u8*             recordByte;
+    u32             bytesPerCopy;
+    u32             byteIndex;
+    s32             backupFill;
+
+    // Section zero is the title and icon header; only record pairs are reset.
+    backupFill = MEMORY_CARD_BACKUP_ALL_BITS;
+    sections   = Mc_BufferSlots;
+    section    = sections + 1;
     do {
-        size = slot->bytesPerCopy;
-        ptr  = slot->buffer;
-        for (i = 0; i < size; i++) {
-            *ptr++ = 0;
+        bytesPerCopy = section->bytesPerCopy;
+        recordByte   = section->buffer;
+        for (byteIndex = 0; byteIndex < bytesPerCopy; byteIndex++) {
+            *recordByte++ = 0;
         }
-        for (i = 0; i < size; i++) {
-            *ptr++ = fill;
+        for (byteIndex = 0; byteIndex < bytesPerCopy; byteIndex++) {
+            *recordByte++ = backupFill;
         }
-        _mcWriteBlockChecksum(slot->buffer, size);
-        slot++;
-    } while (slot < base + 9);
+        _mcWriteBlockChecksum(section->buffer, bytesPerCopy);
+        section++;
+    } while (section < sections + ARRAY_SIZE(Mc_BufferSlots));
 
-    gDisplayState.spriteVariant = 1;
-    Mc_InitDualBankBuffers();
+    gDisplayState.spriteVariant = MEMORY_CARD_DEFAULT_SPRITE_VARIANT;
+    _mcSeedNewGameRecords();
 
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.vibration    = 0;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.buttonLayout = 0;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.musicVolume  = 0;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.cursorMode   = 0;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.soundMode    = 0;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.moveMode     = 0;
-    sndOutputSetStereo(SOUND_OUTPUT_STEREO);
-    midiApplyMusicVolume(MIDI_MUSIC_VOLUME_SAVED);
+    _mcRestoreOptionDefaults();
 }
 
 /// Prompt + optional choice dialog (Mc_PromptTable[mode]).
@@ -1199,19 +1275,19 @@ static const _McSaveStateTable Mc_PromptStates = { {
     _mcStatePollCardAdvance,
     Mc_StateCompareBuffers,
     Mc_StateDrawPromptAdvance,
-    Mc_StateOpenRead,
+    _mcStateOpenSaveFileForWrite,
     Mc_StatePromptChoiceB,
     Mc_StateDrawPrompt4,
     Mc_StateCreateFile,
     Mc_StateEnterDialog4,
-    Mc_StateWriteFile,
+    _mcStateWriteFileHeader,
     _mcStatePollCardAdvance,
     Mc_StatePadFileName,
     Mc_StatePromptChoiceGeneric,
     Mc_StateBackupBuffers,
-    Mc_StateWriteData,
+    _mcStateWriteSection,
     _mcStatePollCardAdvance,
-    Mc_StateFreeBuffer,
+    _mcStateFinishSectionWrite,
     Mc_StateClosePrompt,
     Mc_StateSyncPromptFile3,
     Mc_StatePromptChoice9,
@@ -1227,14 +1303,14 @@ static const _McSaveStateTable Mc_PromptStates = { {
     Mc_StateDrawPrompt1Advance,
     Mc_StateScanDirFlags,
     Mc_StateListDirectory,
-    Mc_StateOpenSelected,
+    _mcStateOpenSavePreview,
     Mc_StateReadHeader,
     _mcStatePollCardAdvance,
     Mc_StateOpenNext,
     Mc_StateFileSelect,
-    Mc_StateUiCountdown2,
+    _mcStateDelaySaveRetry,
     Mc_StateUiCountdownF,
-    Mc_StateUiCountdownE,
+    _mcStateDelaySaveConfirmation,
     Mc_StateEnterPromptE,
     Mc_StateEnterPromptD,
 } };
@@ -1618,54 +1694,46 @@ static void Mc_StateCompareBuffers(Task* task, McWork* work)
     textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, textColorRgb, one, TEXT_ALIGNMENT_LEFT);
 }
 
-static void Mc_StateOpenRead(Task* task, McWork* work)
+/// Open the named save file for writing when the card settle timer reaches zero.
+///
+/// Requires a positive `cardTimer` and a valid filename. Existing files proceed
+/// to overwrite confirmation; missing files to creation; other SDK errors to
+/// the access-failed prompt. Keeps drawing the current prompt while waiting.
+static void _mcStateOpenSaveFileForWrite(Task* task, McWork* work)
 {
-    u32           textColorRgb;
-    u32           status;
-    s32           idx;
-    UiObject*     obj;
-    McPromptPair* entry;
-    McPromptPair* base;
+    u32 openResult;
 
     work->cardTimer -= 1;
     if (work->cardTimer == 0) {
         MemCardClose();
-        status           = MemCardOpen(work->channel, Mc_FileName, 2);
-        work->syncResult = status;
-        switch (status) {
-            case 0:
-                task->state = 0x1A;
+        openResult       = MemCardOpen(work->channel, (char*)Mc_FileName, O_WRONLY);
+        work->syncResult = openResult;
+        switch (openResult) {
+            case McErrNone:
+                task->state = MEMORY_CARD_SAVE_STATE_CONFIRM_OVERWRITE;
                 break;
-            case 1:
-                task->state = 0x18;
+            case McErrCardNotExist:
+                task->state = MEMORY_CARD_SAVE_STATE_ACCESS_FAILED;
                 break;
-            case 2:
-                task->state = 0x18;
+            case McErrCardInvalid:
+                task->state = MEMORY_CARD_SAVE_STATE_ACCESS_FAILED;
                 break;
-            case 3:
-                task->state = 0x18;
+            case McErrNewCard:
+                task->state = MEMORY_CARD_SAVE_STATE_ACCESS_FAILED;
                 break;
-            case 4:
-                task->state = 0x18;
+            case McErrNotFormat:
+                task->state = MEMORY_CARD_SAVE_STATE_ACCESS_FAILED;
                 break;
-            case 5:
-                task->state = 0x7;
+            case McErrFileNotExist:
+                task->state = MEMORY_CARD_SAVE_STATE_CONFIRM_CREATE;
                 break;
             default:
-                task->state = 0x18;
+                task->state = MEMORY_CARD_SAVE_STATE_ACCESS_FAILED;
                 break;
         }
     }
 
-    obj          = task->spawnArg2.pointer;
-    idx          = work->promptId;
-    textColorRgb = uiGetTextColor(obj, USER_INTERFACE_TEXT_COLOR_NORMAL);
-    obj->result  = USER_INTERFACE_RESULT_NONE;
-    uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
-    base  = Mc_PromptTable;
-    entry = &base[idx];
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    _mcDrawPrompt(task, work->promptId);
 }
 
 static void Mc_StateCreateFile(Task* task, McWork* work)
@@ -1918,67 +1986,77 @@ static void Mc_StateBackupBuffers(Task* task, McWork* work)
     _mcDrawPrompt(task, MEMORY_CARD_PROMPT_SAVING);
 }
 
-static void Mc_StateFreeBuffer(Task* task, McWork* work)
+/// Invalidate both remembered card filenames while retaining their product prefix.
+///
+/// Writes underscores to bytes 12..19 and a terminator to byte 20. Each array
+/// must hold at least 21 bytes; the remaining bytes are kept unchanged.
+static inline void _mcInvalidateFileNameSuffixes(void)
 {
-    u32           textColorRgb;
-    u32           status;
-    s32           idx;
-    s32           i;
-    s32           ch;
-    u8*           ptr1;
-    u8*           ptr0;
-    UiObject*     obj;
-    McPromptPair* entry;
-    McPromptPair* base;
+    enum {
+        MEMORY_CARD_FILENAME_PREFIX_BYTES = 0xC,
+        MEMORY_CARD_FILENAME_BYTES        = 0x14,
+        MEMORY_CARD_FILENAME_UNUSED_CHAR  = '_',
+    };
 
-    status = work->syncResult;
-    switch (status) {
-        case 0:
+    u8* filenameByte;
+    u8* savedFilenameByte;
+    s32 filenameByteIndex;
+    s32 unusedChar;
+
+    filenameByte      = Mc_FileName;
+    savedFilenameByte = Mc_FileNameBuf;
+    filenameByteIndex = 0;
+    unusedChar        = MEMORY_CARD_FILENAME_UNUSED_CHAR;
+    do {
+        if (filenameByteIndex >= MEMORY_CARD_FILENAME_PREFIX_BYTES) {
+            *savedFilenameByte = unusedChar;
+            *filenameByte      = unusedChar;
+        }
+        filenameByte++;
+        filenameByteIndex++;
+        savedFilenameByte++;
+    } while (filenameByteIndex < MEMORY_CARD_FILENAME_BYTES);
+    *savedFilenameByte = 0;
+    *filenameByte      = 0;
+}
+
+/// Interpret a completed section write, choose the next save state and free its buffer.
+///
+/// Preparation has decremented `slotsRemaining`; success advances the sector
+/// offset past that section and resumes the save walk. No card closes the file
+/// and shows the insert-card prompt. A changed card invalidates both filename
+/// suffixes, closes the file and retries card acceptance. Other errors show save
+/// failure. Every path releases and clears the transfer allocation.
+static void _mcStateFinishSectionWrite(Task* task, McWork* work)
+{
+    u32 writeResult;
+
+    writeResult = work->syncResult;
+    switch (writeResult) {
+        case McErrNone:
             work->sectorOffset += Mc_BufferSlots[MEMORY_CARD_BUFFER_SLOT_COUNT - 1 - work->slotsRemaining].cardSectors;
-            task->state         = 0xF;
+            task->state         = MEMORY_CARD_SAVE_STATE_PREPARE_SECTION;
             break;
-        case 1:
+        case McErrCardNotExist:
             MemCardClose();
-            task->state = 0x14;
+            task->state = MEMORY_CARD_SAVE_STATE_NO_CARD;
             break;
-        case 3:
-            ptr1 = Mc_FileName;
-            ptr0 = Mc_FileNameBuf;
-            i    = 0;
-            ch   = 0x5F;
-            do {
-                if (i >= 0xC) {
-                    *ptr0 = ch;
-                    *ptr1 = ch;
-                }
-                ptr1++;
-                i++;
-                ptr0++;
-            } while (i < 0x14);
-            *ptr0 = 0;
-            *ptr1 = 0;
+        case McErrNewCard:
+            _mcInvalidateFileNameSuffixes();
             MemCardClose();
-            task->state = 0x2;
+            task->state = MEMORY_CARD_SAVE_STATE_ACCEPT_CARD;
             break;
-        case 2:
-        case 4:
-        case 5:
+        case McErrCardInvalid:
+        case McErrNotFormat:
+        case McErrFileNotExist:
         default:
-            task->state = 0x2A;
+            task->state = MEMORY_CARD_SAVE_STATE_WRITE_FAILED;
             break;
     }
     memFree(work->buffer);
-    work->buffer = 0;
+    work->buffer = NULL;
 
-    obj          = task->spawnArg2.pointer;
-    idx          = work->promptId;
-    textColorRgb = uiGetTextColor(obj, USER_INTERFACE_TEXT_COLOR_NORMAL);
-    obj->result  = USER_INTERFACE_RESULT_NONE;
-    uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
-    base  = Mc_PromptTable;
-    entry = &base[idx];
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    _mcDrawPrompt(task, work->promptId);
 }
 
 static void Mc_StateFormat(Task* task, McWork* work)
@@ -2086,17 +2164,17 @@ static const _McFileSelectStateTable Mc_FileSelectStates = { {
     Mc_StateSyncPrompt3,
     Mc_StateSyncPromptA,
     Mc_StateDrawCurrentPrompt,
-    Mc_StateSyncOpen,
+    _mcStateOpenSaveFileForRead,
     Mc_StateVerifyFinish,
-    Mc_StateReadData,
+    _mcStateReadSection,
     _mcStatePollCardAdvance,
-    Mc_StateFinishWrite,
+    _mcStateFinishSectionRead,
     Mc_StateDrawPrompt1,
     Mc_StateGetDirentry,
     Mc_StateOpenDirEntry,
     Mc_StateReadSlot,
     _mcStatePollCardAdvance,
-    Mc_StateWalkDirectory,
+    _mcStateAdvanceLoadPreview,
     Mc_StateSyncFileSelect,
     Mc_StateEnterPrompt17,
 } };
@@ -2158,44 +2236,54 @@ static void Mc_StateBlankFileName(Task* task, McWork* work)
     textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
 }
 
-static void Mc_StateSyncOpen(Task* task, McWork* work)
+/// Wait for the card probe and settle timer, then open the chosen save for loading.
+///
+/// Idle SDK polling starts a presence probe. Only a completed operation steps
+/// the positive timer toward zero. On a successful open, starts the section
+/// walk at sector zero; a missing file shows the no-data prompt, other errors
+/// the load-failed prompt. A probe error still steps the timer and may open.
+static void _mcStateOpenSaveFileForRead(Task* task, McWork* work)
 {
-    s32   syncResult;
-    u32   status;
+    enum { MEMORY_CARD_SYNC_IDLE     = -1,
+           MEMORY_CARD_SYNC_COMPLETE = 1,
+           MEMORY_CARD_SYNC_POLL     = 1 };
+
+    s32   syncState;
+    u32   openResult;
     char* fileName;
 
     _mcDrawPrompt(task, work->promptId);
 
-    syncResult = MemCardSync(1, &work->syncCommand, &work->syncResult);
-    if (syncResult != -1) {
-        if (syncResult == 1) {
-            if (work->syncCommand == syncResult) {
-                if (work->syncResult != 0) {
-                    task->state = 6;
+    syncState = MemCardSync(MEMORY_CARD_SYNC_POLL, &work->syncCommand, &work->syncResult);
+    if (syncState != MEMORY_CARD_SYNC_IDLE) {
+        if (syncState == MEMORY_CARD_SYNC_COMPLETE) {
+            if (work->syncCommand == McFuncExist) {
+                if (work->syncResult != McErrNone) {
+                    task->state = MEMORY_CARD_LOAD_STATE_FAILED;
                 }
             }
             work->cardTimer -= 1;
             if (work->cardTimer == 0) {
-                fileName = Mc_FileName;
+                fileName = (char*)Mc_FileName;
                 MemCardClose();
-                status           = MemCardOpen(work->channel, fileName, 1);
-                work->syncResult = status;
-                switch (status) {
-                    case 0:
+                openResult       = MemCardOpen(work->channel, fileName, O_RDONLY);
+                work->syncResult = openResult;
+                switch (openResult) {
+                    case McErrNone:
                         work->sectorOffset = 0;
-                        task->state        = 0xE;
+                        task->state        = MEMORY_CARD_LOAD_STATE_PREPARE_SECTION;
                         break;
-                    case 1:
-                    case 2:
-                        task->state = 6;
+                    case McErrCardNotExist:
+                    case McErrCardInvalid:
+                        task->state = MEMORY_CARD_LOAD_STATE_FAILED;
                         break;
-                    case 5:
-                        task->state = 0xB;
+                    case McErrFileNotExist:
+                        task->state = MEMORY_CARD_LOAD_STATE_NO_DATA;
                         break;
-                    case 3:
-                    case 4:
+                    case McErrNewCard:
+                    case McErrNotFormat:
                     default:
-                        task->state = 6;
+                        task->state = MEMORY_CARD_LOAD_STATE_FAILED;
                         break;
                 }
             }
@@ -2321,7 +2409,7 @@ static void Mc_StateVerifyFinish(Task* task, McWork* work)
             gDisplayState.control.flags.pendingPlayerPos = 1;
             task->state                                  = 3;
         } else {
-            Mc_InitBufferSlots();
+            mcResetSaveData();
             task->state = 0x19;
         }
     } else if (work->slotWriteMask & 1) {
@@ -2381,54 +2469,47 @@ static inline void _mcWriteReadCardHeaderChecksum(McWork* work)
     PARENT_OF(checksum, McWork, checksum)->checksumComplement = ~sum;
 }
 
-static void Mc_StateFinishWrite(Task* task, McWork* work)
+/// Consume a completed section read, advance the load walk and release its buffer.
+///
+/// `slotsRemaining` has already been decremented by preparation, so
+/// `8 - slotsRemaining` must index sections 0..8. Section zero computes the
+/// file-header checksum in dialog work; other sections copy both live and
+/// backup records into resident storage. Sector rounding bytes are not copied.
+/// Any SDK error invalidates both filename suffixes and shows load failure;
+/// the transfer allocation is freed and cleared on every path.
+static void _mcStateFinishSectionRead(Task* task, McWork* work)
 {
-    u32 status;
-    s32 slotIdx;
-    s32 size;
-    s32 i;
-    s32 ch;
-    u8* ptr1;
-    u8* ptr0;
+    enum { MEMORY_CARD_FILE_HEADER_SECTION = 0 };
 
-    status = work->syncResult;
-    if (status < 4U) {
-        if (status == 0) {
-            slotIdx = MEMORY_CARD_BUFFER_SLOT_COUNT - 1 - work->slotsRemaining;
-            if (slotIdx == 0) {
+    u32 readResult;
+    s32 sectionIndex;
+    s32 recordPairBytes;
+
+    readResult = work->syncResult;
+    if (readResult < (u32)McErrNotFormat) {
+        if (readResult == McErrNone) {
+            // The file header is checksummed; other sections restore both resident copies.
+            sectionIndex = MEMORY_CARD_BUFFER_SLOT_COUNT - 1 - work->slotsRemaining;
+            if (sectionIndex == MEMORY_CARD_FILE_HEADER_SECTION) {
                 _mcWriteReadCardHeaderChecksum(work);
             } else {
-                size   = Mc_BufferSlots[slotIdx].bytesPerCopy;
-                size <<= 1;
-                memcpy(Mc_BufferSlots[slotIdx].buffer, work->buffer, size);
+                recordPairBytes   = Mc_BufferSlots[sectionIndex].bytesPerCopy;
+                recordPairBytes <<= 1;
+                memcpy(Mc_BufferSlots[sectionIndex].buffer, work->buffer, recordPairBytes);
             }
             work->sectorOffset += Mc_BufferSlots[MEMORY_CARD_BUFFER_SLOT_COUNT - 1 - work->slotsRemaining].cardSectors;
-            task->state         = 0xE;
+            task->state         = MEMORY_CARD_LOAD_STATE_PREPARE_SECTION;
         } else {
-            goto pad;
+            goto invalidateFilename;
         }
     } else {
-    pad:
-        ptr1 = Mc_FileName;
-        ptr0 = Mc_FileNameBuf;
-        i    = 0;
-        ch   = 0x5F;
-        do {
-            if (i >= 0xC) {
-                *ptr0 = ch;
-                *ptr1 = ch;
-            }
-            ptr1++;
-            i++;
-            ptr0++;
-        } while (i < 0x14);
-        *ptr0       = 0;
-        *ptr1       = 0;
-        task->state = 6;
+    invalidateFilename:
+        _mcInvalidateFileNameSuffixes();
+        task->state = MEMORY_CARD_LOAD_STATE_FAILED;
     }
 
     memFree(work->buffer);
-    work->buffer = 0;
+    work->buffer = NULL;
     _mcDrawPrompt(task, work->promptId);
 }
 
@@ -2777,52 +2858,27 @@ static void Mc_WriteBlockChecksum(u8* data, s32 size)
     block->checksumComplement = ~sum;
 }
 
-void Mc_ResetSaveFlags(void)
+void mcResetOptions(void)
 {
-    McSaveData* p;
-
-    p                     = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
-    p->state.vibration    = 0;
-    p->state.buttonLayout = 0;
-    p->state.musicVolume  = 0;
-    p->state.cursorMode   = 0;
-    p->state.soundMode    = 0;
-    p->state.moveMode     = 0;
-    sndOutputSetStereo(SOUND_OUTPUT_STEREO);
-    midiApplyMusicVolume(MIDI_MUSIC_VOLUME_SAVED);
+    _mcRestoreOptionDefaults();
 }
 
-static void Mc_ClearWorkBuffers(void)
+/// Reset the five stage-flag record pairs without seeding a player or save image.
+///
+/// Live records are zeroed and backups filled with 0xFF. Does not recompute
+/// checksums or reset the nibble bank. Retained unused entry point.
+static void _mcResetStageFlagRecords(void)
 {
-    GameFlagAcropolisBank*     acropolisBanks;
-    GameFlagDryfieldBank*      b;
-    GameFlagDryfieldNightBank* dryfieldNightBanks;
-    GameFlagMineShelterBank*   d;
-    GameFlagNeoArkBank*        neoArkBanks;
-
-    acropolisBanks = GameFlag_AcropolisBanks;
-    memFillBytes(acropolisBanks, 0, sizeof(*acropolisBanks));
-    b = GameFlag_DryfieldBanks;
-    memFillBytes(b, 0, sizeof(*b));
-    dryfieldNightBanks = GameFlag_DryfieldFullBanks;
-    memFillBytes(dryfieldNightBanks, 0, sizeof(*dryfieldNightBanks));
-    d = GameFlag_ShelterBanks;
-    memFillBytes(d, 0, sizeof(*d));
-    neoArkBanks = GameFlag_NeoArkBanks;
-    memFillBytes(neoArkBanks, 0, sizeof(*neoArkBanks));
-    memFillBytes(acropolisBanks + 1, 0xFF, sizeof(*acropolisBanks));
-    memFillBytes(b + 1, 0xFF, sizeof(*b));
-    memFillBytes(dryfieldNightBanks + 1, 0xFF, sizeof(*dryfieldNightBanks));
-    memFillBytes(d + 1, 0xFF, sizeof(*d));
-    memFillBytes(neoArkBanks + 1, 0xFF, sizeof(*neoArkBanks));
+    _mcResetStageFlagCopies();
 }
 
-// TODO
-void Mc_InitLib(void)
+void mcInit(void)
 {
-    MemCardInit(0); // 0 = No control routine
+    enum { MEMORY_CARD_AUTOMATIC_CONTROL_DISABLED = 0 };
+
+    MemCardInit(MEMORY_CARD_AUTOMATIC_CONTROL_DISABLED);
     MemCardStart();
-    Mc_InitBufferSlots();
+    mcResetSaveData();
 }
 
 /// Whether a buffer's header holds the sum of its payload, as
@@ -3164,30 +3220,23 @@ static void Mc_StateEnterDialog4(Task* task, McWork* work)
     textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
 }
 
-static void Mc_StateWriteFile(Task* task, McWork* work)
+/// Submit the complete 512-byte card file header by filename and draw the prompt.
+///
+/// Retries while the SDK refuses the request, counting refused frames in
+/// `cardTimer`. Acceptance advances to the sync state; it does not mean the
+/// write has finished. The resident header stays available through completion.
+/// The SDK word-pointer view addresses the same word-aligned header bytes.
+static void _mcStateWriteFileHeader(Task* task, McWork* work)
 {
-    u32           textColorRgb;
-    UiObject*     obj;
-    McPromptPair* entry;
-    McPromptPair* base;
-    s32           idx;
 
-    if (MemCardWriteFile(work->channel, Mc_FileName, (unsigned long*)Mc_DefaultChecksumSrc, 0,
-                         0x200) != 0) {
+    if (MemCardWriteFile(work->channel, (char*)Mc_FileName, (unsigned long*)Mc_DefaultChecksumSrc, 0,
+                         sizeof(Mc_DefaultChecksumSrc)) != 0) {
         work->cardTimer = 0;
         task->state     = task->state + 1;
     } else {
         work->cardTimer = work->cardTimer + 1;
     }
-    idx          = work->promptId;
-    obj          = task->spawnArg2.pointer;
-    textColorRgb = uiGetTextColor(obj, USER_INTERFACE_TEXT_COLOR_NORMAL);
-    obj->result  = USER_INTERFACE_RESULT_NONE;
-    uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
-    base  = Mc_PromptTable;
-    entry = &base[idx];
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    _mcDrawPrompt(task, work->promptId);
 }
 
 static void Mc_StatePromptChoiceGeneric(Task* task, McWork* work)
@@ -3215,29 +3264,22 @@ static void Mc_StatePromptChoiceGeneric(Task* task, McWork* work)
     }
 }
 
-static void Mc_StateWriteData(Task* task, McWork* work)
+/// Submit the prepared section write and draw the current prompt until accepted.
+///
+/// `buffer` must own at least `transferBytes` bytes; `sectorOffset` counts
+/// 128-byte sectors, while the SDK takes a byte offset. Acceptance advances to
+/// polling; refusal increments `cardTimer`. The buffer remains owned by the
+/// dialog until the completion handler frees it.
+static void _mcStateWriteSection(Task* task, McWork* work)
 {
-    u32           textColorRgb;
-    UiObject*     obj;
-    McPromptPair* entry;
-    McPromptPair* base;
-    s32           idx;
 
-    if (MemCardWriteData(work->buffer, work->sectorOffset << 7, work->transferBytes) != 0) {
+    if (MemCardWriteData(work->buffer, work->sectorOffset << MEMORY_CARD_SECTOR_BYTE_SHIFT, work->transferBytes) != 0) {
         work->cardTimer = 0;
         task->state     = task->state + 1;
     } else {
         work->cardTimer = work->cardTimer + 1;
     }
-    idx          = work->promptId;
-    obj          = task->spawnArg2.pointer;
-    textColorRgb = uiGetTextColor(obj, USER_INTERFACE_TEXT_COLOR_NORMAL);
-    obj->result  = USER_INTERFACE_RESULT_NONE;
-    uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
-    base  = Mc_PromptTable;
-    entry = &base[idx];
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    _mcDrawPrompt(task, work->promptId);
 }
 
 static void Mc_StateClosePrompt(Task* task, McWork* work)
@@ -3524,20 +3566,25 @@ static void Mc_StateDrawPrompt1Advance(Task* task, McWork* work)
     task->state = task->state + 1;
 }
 
-static void Mc_StateOpenSelected(Task* task, McWork* work)
+/// Open the current directory entry to read its preview for the save-file list.
+///
+/// `currentSlot` must index the populated directory, bounded by `entryCount`.
+/// Closes the previous file first; success advances to the preview read, and
+/// an open error enters the save dialog's access-failed prompt.
+static void _mcStateOpenSavePreview(Task* task, McWork* work)
 {
-    s32 openIdx;
+    s32 directoryIndex;
     s32 openResult;
 
-    openIdx = work->currentSlot;
+    directoryIndex = work->currentSlot;
     MemCardClose();
-    openResult       = MemCardOpen(work->channel, work->directory[openIdx].name, 1);
+    openResult       = MemCardOpen(work->channel, work->directory[directoryIndex].name, O_RDONLY);
     work->syncResult = openResult;
-    if (openResult == 0) {
+    if (openResult == McErrNone) {
         work->cardTimer = 0;
         task->state     = task->state + 1;
     } else {
-        task->state = 0x18;
+        task->state = MEMORY_CARD_SAVE_STATE_ACCESS_FAILED;
     }
     _mcDrawPrompt(task, work->promptId);
 }
@@ -3604,50 +3651,32 @@ static void Mc_StateOpenNext(Task* task, McWork* work)
     textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
 }
 
-static void Mc_StateUiCountdown2(Task* task, McWork* work)
+/// Keep drawing the save prompt until the task countdown allows a card retry.
+///
+/// Decrements the task's signed frame count once per run and returns to card
+/// acceptance at zero or below. The task remains alive throughout this delay.
+static void _mcStateDelaySaveRetry(Task* task, McWork* work)
 {
-    u32           textColorRgb;
-    UiObject*     obj;
-    McPromptPair* entry;
-    McPromptPair* base;
-    s32           idx;
 
     task->killCountdown -= 1;
     if (task->killCountdown <= 0) {
-        task->state = 2;
+        task->state = MEMORY_CARD_SAVE_STATE_ACCEPT_CARD;
     }
-    obj          = task->spawnArg2.pointer;
-    idx          = work->promptId;
-    textColorRgb = uiGetTextColor(obj, USER_INTERFACE_TEXT_COLOR_NORMAL);
-    obj->result  = USER_INTERFACE_RESULT_NONE;
-    uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
-    base  = Mc_PromptTable;
-    entry = &base[idx];
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    _mcDrawPrompt(task, work->promptId);
 }
 
-static void Mc_StateUiCountdownE(Task* task, McWork* work)
+/// Keep drawing the save prompt until the task countdown returns to confirmation.
+///
+/// Decrements the task's signed frame count once per run and returns to the
+/// save-game question at zero or below. The task remains alive during the wait.
+static void _mcStateDelaySaveConfirmation(Task* task, McWork* work)
 {
-    u32           textColorRgb;
-    UiObject*     obj;
-    McPromptPair* entry;
-    McPromptPair* base;
-    s32           idx;
 
     task->killCountdown -= 1;
     if (task->killCountdown <= 0) {
-        task->state = 0xE;
+        task->state = MEMORY_CARD_SAVE_STATE_CONFIRM_SAVE;
     }
-    obj          = task->spawnArg2.pointer;
-    idx          = work->promptId;
-    textColorRgb = uiGetTextColor(obj, USER_INTERFACE_TEXT_COLOR_NORMAL);
-    obj->result  = USER_INTERFACE_RESULT_NONE;
-    uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
-    base  = Mc_PromptTable;
-    entry = &base[idx];
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    _mcDrawPrompt(task, work->promptId);
 }
 
 static void Mc_StateUiCountdownF(Task* task, McWork* work)
@@ -3960,29 +3989,22 @@ static void Mc_StateDrawCurrentPrompt(Task* task, McWork* work)
     task->state = task->state + 1;
 }
 
-static void Mc_StateReadData(Task* task, McWork* work)
+/// Submit the prepared section read and draw the current prompt until accepted.
+///
+/// `buffer` must own at least `transferBytes` bytes; `sectorOffset` counts
+/// 128-byte sectors, while the SDK takes a byte offset. Acceptance advances to
+/// polling; refusal increments `cardTimer`. The buffer remains owned by the
+/// dialog until the completion handler frees it.
+static void _mcStateReadSection(Task* task, McWork* work)
 {
-    u32           textColorRgb;
-    UiObject*     obj;
-    McPromptPair* entry;
-    McPromptPair* base;
-    s32           idx;
 
-    if (MemCardReadData(work->buffer, work->sectorOffset << 7, work->transferBytes) != 0) {
+    if (MemCardReadData(work->buffer, work->sectorOffset << MEMORY_CARD_SECTOR_BYTE_SHIFT, work->transferBytes) != 0) {
         work->cardTimer = 0;
         task->state     = task->state + 1;
     } else {
         work->cardTimer = work->cardTimer + 1;
     }
-    obj          = task->spawnArg2.pointer;
-    idx          = work->promptId;
-    textColorRgb = uiGetTextColor(obj, USER_INTERFACE_TEXT_COLOR_NORMAL);
-    obj->result  = USER_INTERFACE_RESULT_NONE;
-    uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
-    base  = Mc_PromptTable;
-    entry = &base[idx];
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    _mcDrawPrompt(task, work->promptId);
 }
 
 static void Mc_StateDrawPrompt1(Task* task, McWork* work)
@@ -4083,40 +4105,29 @@ static void Mc_StateReadSlot(Task* task, McWork* work)
     textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
 }
 
-static void Mc_StateWalkDirectory(Task* task, McWork* work)
+/// Finish a load-list preview read and advance to the next directory entry.
+///
+/// Called after polling the read. On success, closes the file, increments
+/// `currentSlot`, and opens another entry while it is below `entryCount`;
+/// otherwise advances to file selection. A read error shows load failure.
+/// The directory contains at most fifteen entries; previews borrow work storage.
+static void _mcStateAdvanceLoadPreview(Task* task, McWork* work)
 {
-    McWork*       a1;
-    Task*         a0;
-    UiObject*     obj;
-    s32           modeIdx;
-    u32           textColorRgb;
-    s32           temp_v0;
-    McPromptPair* entry;
-    McPromptPair* base;
+    s32 nextDirectoryIndex;
 
-    a1 = work;
-    a0 = task;
-    if (a1->syncResult == 0) {
+    if (work->syncResult == McErrNone) {
         MemCardClose();
-        temp_v0         = a1->currentSlot + 1;
-        a1->currentSlot = temp_v0;
-        if (temp_v0 < a1->entryCount) {
-            a0->state = 0x14;
+        nextDirectoryIndex = work->currentSlot + 1;
+        work->currentSlot  = nextDirectoryIndex;
+        if (nextDirectoryIndex < work->entryCount) {
+            task->state = MEMORY_CARD_LOAD_STATE_OPEN_PREVIEW;
         } else {
-            a0->state = a0->state + 1;
+            task->state = task->state + 1;
         }
     } else {
-        a0->state = 0x6;
+        task->state = MEMORY_CARD_LOAD_STATE_FAILED;
     }
-    obj          = a0->spawnArg2.pointer;
-    modeIdx      = a1->promptId;
-    textColorRgb = uiGetTextColor(obj, USER_INTERFACE_TEXT_COLOR_NORMAL);
-    obj->result  = USER_INTERFACE_RESULT_NONE;
-    uiDrawTitle(&(obj)->panel, Mc_StrMemoryCard);
-    base  = Mc_PromptTable;
-    entry = &base[modeIdx];
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, -2, entry->upperLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, 0xF, entry->lowerLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    _mcDrawPrompt(task, work->promptId);
 }
 
 static void Mc_StateEnterPrompt17(Task* task, McWork* work)

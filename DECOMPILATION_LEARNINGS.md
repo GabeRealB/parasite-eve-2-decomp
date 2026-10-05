@@ -15125,7 +15125,7 @@ a plain sequential write is often reordered so the `lw` fills the slot and the
 pins the store first:
 
 ```c
-Mc_InitBufferSlots();
+mcResetSaveData();
 do {
     D_80072189 = saved;
 } while (0);
@@ -15440,7 +15440,7 @@ default: arg0->field_30 = 0x18; break;
 }
 ```
 
-`Mc_StateOpenRead` is the pure example (MemCardOpen status → UI state).
+`_mcStateOpenSaveFileForWrite` is the pure example (MemCardOpen status → UI state).
 
 ## `register s32 idx asm("v1")` for `andi v1,a1,0xff` + delay-slot `-1`
 
@@ -16957,7 +16957,7 @@ cond = size;
 if (cond != 0) { /* 0xFF-fill */ }
 ```
 
-`Mc_InitBufferSlots` is the pure example (`Mc_BufferSlots[1..8]` dual fill + checksum).
+`mcResetSaveData` is the pure example (`Mc_BufferSlots[1..8]` live/backup fill + checksum).
 
 ## `asm("")` pins independent zero-init after a load
 
@@ -16995,7 +16995,7 @@ sum = sum + tmp;   /* not sum += (s8)*cptr */
 
 `sum += (s8)*cptr` alone gives the shift pair but the wrong `addu` operand
 order; a non-volatile `tmp = (s8)*ptr; sum = sum + tmp` gives the right `addu`
-but collapses to `lb`. Both together match. `Mc_InitBufferSlots` was matched
+but collapses to `lb`. Both together match. `mcResetSaveData` was matched
 this way once; it no longer needs it (see "A byte walk that loses its register
 to a counter may be walking the parameter itself").
 
@@ -17964,7 +17964,7 @@ j   common
  sw v1, field_1C
 ```
 
-`Mc_StateFreeBuffer` is the pure example — ~98% with `next`, 100% with per-case stores.
+`_mcStateFinishSectionWrite` is the pure example — ~98% with `next`, 100% with per-case stores.
 
 The same shape shows up again when a call follows the switch. With a shared
 temp, the store and the call's argument move sit in one block during sched1,
@@ -20936,7 +20936,7 @@ if (slotIdx == 0) {
 }
 ```
 
-`Mc_StateFinishWrite` needs this so the checksum loop counter stays in `$a0` with an
+`_mcStateFinishSectionRead` needs this so the checksum loop counter stays in `$a0` with an
 explicit zeroing instruction matching the target.
 
 ## `register asm` for memcpy arg load order
@@ -20964,7 +20964,7 @@ register colouring on the sibling branch (e.g. a checksum loop that also wants
 `lui %hi(table)` in the `bnez` delay slot and finishes with
 `addiu v0, v0, %lo(table)` on the memcpy path.
 
-`Mc_StateFinishWrite` is the pure example.
+`_mcStateFinishSectionRead` is the pure example.
 
 ## Place absolute jtbl consts after the C function that owns the preceding slot
 
@@ -143964,12 +143964,12 @@ The same body carried a register copy on the step (`move v0,v1` before its
 `rgb[i] >>= 1`. Both were only the plain statements `mem->angle += mem->step
 << 3;` and `rgb[0] >>= 1; rgb[1] >>= 1; rgb[2] >>= 1;`, the way the sibling pe
 overlays write them; check the siblings' spelling before steering.
-## A byte walk that loses its register to a counter may be walking the parameter itself (Mc_InitBufferSlots, 2026-09-26)
+## A byte walk that loses its register to a counter may be walking the parameter itself (mcResetSaveData, 2026-09-26)
 
 **Symptom.** The Mc checksum body (`sum += (s8)*p` over `size - 4` bytes past a
 4-byte header) wants the walking pointer allocated before the count and the
 counter. Written with a local pointer (`ptr = block->payload`), it loses: inlined
-into `Mc_InitBufferSlots` the count and the pointer swap `$a0`/`$v1`, standalone
+into `mcResetSaveData` the count and the pointer swap `$a0`/`$v1`, standalone
 (`Mc_WriteBlockChecksum`, `Mc_VerifyBlockChecksum`) the pointer and `i` swap.
 Every earlier match carried a `register u8* ptr asm(...)` pin for it, and one
 shared inline helper could not serve both inlined callers with one pin.
@@ -144009,7 +144009,7 @@ static inline void _mcWriteBlockChecksum(u8* recordBytes, s32 recordByteCount)
 ```
 
 The same body, with no pin, matches the helper inlined into both
-`Mc_InitBufferSlots` and `Mc_StateBackupBuffers`, and the two standalone
+`mcResetSaveData` and `Mc_StateBackupBuffers`, and the two standalone
 functions. A local `u8* ptr`, a `_McChecksumBlock*` parameter with a local
 walker, `count = size - 4`, `*ptr++`, `for`/`while` forms and statement order
 all keep the swap. When a pinned walker is the only thing left in a loop over a
@@ -144735,7 +144735,7 @@ load to `lb`. Declaring the accumulator `u16` and comparing directly,
 asm("v1")` plus a `volatile u8*` walker in such a loop stands for this. The
 loop counter compares against a `limit` local (`slt` with a register), since a
 literal bound lets loop.c reverse it into a `bgez` countdown.
-## A call argument loaded too late: `size <<= 1` as its own statement drops sched1's launch boost (Mc_StateFinishWrite, 2026-09-26)
+## A call argument loaded too late: `size <<= 1` as its own statement drops sched1's launch boost (_mcStateFinishSectionRead, 2026-09-26)
 
 **Symptom:** `memcpy(slots[i].field_0, src, slots[i].field_4 << 1)` came out
 `lw a0,0(v1); lw a2,4(v1)` where the target loads the size first. `.sched`
@@ -145344,7 +145344,7 @@ if (--*timer > 0) break; /* fallthrough */ default: ret = 1; break; }`. The
 same body written with a second `ret = 1` in its own arm turns into a
 store-flag (`slti`) and loses the callee-saved local altogether.
 
-## Identical case bodies each count a reference to the pointer they store through; fallthrough labels remove them (Mc_StateSyncOpen, 2026-09-26)
+## Identical case bodies each count a reference to the pointer they store through; fallthrough labels remove them (_mcStateOpenSaveFileForRead, 2026-09-26)
 
 A `MemCardOpen` status switch wrote `index->state = 6;` in five separate cases.
 `jump2` later merges the bodies into one table target, but flow counts the

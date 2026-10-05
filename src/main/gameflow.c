@@ -215,7 +215,7 @@ void GameFlow_StateByField34(Task* task)
             p->releasePauseBlockAfterFade                = 1;
             p->blockGamePause                            = 1;
             Wip_SysFlags.skipTitleIntro                  = 1;
-            Mc_InitBufferSlots();
+            mcResetSaveData();
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.vibration = saved;
             task->state                                        = task->state + 1;
         } else {
@@ -317,7 +317,7 @@ static void Game_ResetSessionAndBuffers(Task* task)
     p->releasePauseBlockAfterFade                = 1;
     p->blockGamePause                            = 1;
     Wip_SysFlags.skipTitleIntro                  = 1;
-    Mc_InitBufferSlots();
+    mcResetSaveData();
     do {
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.vibration = saved;
     } while (0);

@@ -672,7 +672,7 @@ void GameMain(void)
     ResetCallback();
     SetVideoMode(MODE_NTSC);
     Spu_Init();
-    Mc_InitLib();
+    mcInit();
     Pad_Init();
     Boot_InitCd();
     memFillBytes(&Wip_SysFlags, 0, sizeof(Wip_SysFlags));

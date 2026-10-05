@@ -952,6 +952,6 @@ static void func_options_801D5A4C(UiList* arg0, UiObject* arg1)
     }
     if ((arg0->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) && (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0)) {
         sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-        Mc_ResetSaveFlags();
+        mcResetOptions();
     }
 }

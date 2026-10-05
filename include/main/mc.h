@@ -14,9 +14,19 @@
 /// A save-header check reads the live image through its `preview` member.
 extern McSaveData gMcSaveData[MEMORY_CARD_SAVE_COUNT];
 
-void Mc_ResetSaveFlags(void);
+/// Restore the saved option defaults and apply stereo output and music volume.
+///
+/// Selects vibration on, key layout A, full music volume, cursor memory,
+/// stereo sound and walking as the default movement.
+void mcResetOptions(void);
 
-/// Init Mc_BufferSlots[1..8] dual-bank buffers and related save state.
-void Mc_InitBufferSlots(void);
+/// Reset the resident save records for a new game and apply the default options.
+///
+/// Clears each live record, fills its adjacent backup with 0xFF and writes the
+/// live record's checksum before seeding player status and the opening location.
+/// Seeding and option writes change the payloads after those initial checksums;
+/// saving computes fresh checksums. The card file header is kept intact.
+/// Also selects display resource variant 1 and applies stereo and music volume.
+void mcResetSaveData(void);
 
 #endif // MAIN_MC_H

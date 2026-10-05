@@ -817,7 +817,7 @@ void func_replay_bonus_80116EC0(void)
 
     cfg  = &gPlayerStatus;
     copy = gMcSaveData[MEMORY_CARD_SAVE_LIVE];
-    Mc_InitBufferSlots();
+    mcResetSaveData();
     dst                     = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
     dst->state.clearCount   = copy.state.clearCount;
     dst->state.vibration    = copy.state.vibration;

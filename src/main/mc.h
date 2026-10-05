@@ -152,7 +152,11 @@ void Mc_DrawSlotDetails(struct UiObject* obj, McWork* work, s32 slot, s32 x, s32
 
 void Mc_DispatchStateTable(Task* task);
 
-void Mc_InitLib(void);
+/// Initialize and start card I/O, then reset the resident save records and options.
+///
+/// The SDK's automatic card control routine is disabled; dialog tasks submit
+/// and poll card operations themselves.
+void mcInit(void);
 
 void Mc_DispatchStateTable26(Task* task);
 
