@@ -23,7 +23,6 @@
 
 #include "main/display.h"
 #include "main/fs.h"
-#include "main/gamemain.h"
 #include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/session.h"
@@ -393,7 +392,7 @@ void Gp_MenuRootTask(Task* arg0)
         case 0: {
             PlayerStatus* cfg;
 
-            GameMain_SetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
+            displaySetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
             D_80114D88 = 0;
             SndEvt_EnqueueTypeD();
             Gp_ClearPreviewItems();
@@ -593,7 +592,7 @@ void Gp_MenuRootTask(Task* arg0)
                 gTaskDeferModelBufferAllocation = false;
                 taskSetActiveList(previousList);
             }
-            GameMain_SetFrameTiming(DISPLAY_TIMING_TWO_VBLANKS);
+            displaySetFrameTiming(DISPLAY_TIMING_TWO_VBLANKS);
             gDisplayState.keepGraphics = 0;
             gGameSession->uiOpen       = 0;
             Gpu_ResetGraphAndOt();
@@ -655,7 +654,7 @@ static void Gp_UiPromptUpdate(UiObject* arg0, Task* arg1)
             uiStartPanelHiding(arg0, arg0->owner);
             arg1->killCountdown = 0x10;
             *map                = 0;
-            GameMain_SetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
+            displaySetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
             arg1->state = arg1->state + 1;
             if (arg0->resultValue == 0x101) {
                 sndEvtRequestScriptStart(SOUND_MENU_CANCEL, 0, 0);

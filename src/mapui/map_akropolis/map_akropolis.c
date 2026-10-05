@@ -20,7 +20,6 @@
 #include "main/fs.h"
 #include "main/fs_types.h"
 #include "main/gameflag_ids.h"
-#include "main/gamemain.h"
 #include "main/gfx_types.h"
 #include "main/pad.h"
 #include "main/session.h"
@@ -273,7 +272,7 @@ static void func_map_akropolis_80179E8C(Task* task)
         if (obj == NULL) {
             return;
         }
-        GameMain_SetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
+        displaySetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
         gGameSession->uiOpen    = 1;
         task->spawnArg2.pointer = obj;
         task->state            += 1;
@@ -292,7 +291,7 @@ static void func_map_akropolis_80179E8C(Task* task)
     if (task->state == 2) {
         task->killCountdown -= 1;
         if (task->killCountdown <= 0) {
-            GameMain_SetFrameTiming(DISPLAY_TIMING_TWO_VBLANKS);
+            displaySetFrameTiming(DISPLAY_TIMING_TWO_VBLANKS);
             gGameSession->uiOpen = 0;
             taskKill(task);
             Stage_ReleasePrimBuf();

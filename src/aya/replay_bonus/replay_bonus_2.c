@@ -16,7 +16,6 @@
 #include "main/display_types.h"
 #include "main/fs.h"
 #include "main/fs_types.h"
-#include "main/gamemain.h"
 #include "main/mc.h"
 #include "main/mc_types.h"
 #include "main/mem.h"
@@ -114,7 +113,7 @@ static void func_replay_bonus_80117194(Task* arg0)
                 arg0->spawnArg2.pointer = Ui_SpawnFromDesc(&D_replay_bonus_801191C4, 2, 1, 1, NULL);
                 break;
             case 6:
-                GameMain_SetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
+                displaySetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
                 func_replay_bonus_80116EC0();
                 gDisplayState.gameMode  = DISPLAY_GAME_MODAL;
                 arg0->spawnArg2.pointer = Ui_SpawnFromDesc(&D_800611E4, 0, 1, 1, NULL);
@@ -348,7 +347,7 @@ static void func_replay_bonus_80117848(Task* arg0)
     arg0->killCountdown = timer;
     if ((s16)timer >= 0x78) {
         gGameSession->uiOpen = 1;
-        GameMain_SetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
+        displaySetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
         CdCmd_EnqueueLoadFile(1, 0x3E, 3);
         arg0->state = arg0->state + 1;
     }
@@ -423,7 +422,7 @@ void func_replay_bonus_80117A08(Task* arg0)
             D_replay_bonus_80119225           = 0;
             D_replay_bonus_801192BC->vlcTable = temp_v0;
             func_replay_bonus_80118F00(0);
-            GameMain_SetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
+            displaySetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
             SetDispMask(1);
             Display_SetMode(DISPLAY_SETUP_INTERLACED_640X480);
             rect.x = REPLAY_BONUS_PICTURE_VRAM_X;

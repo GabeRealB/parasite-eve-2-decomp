@@ -43,7 +43,18 @@ void gfxCaptureAreaFrame(s32 stageId, s32 areaId, s32 bufferIndex, s32 auxHeapOf
 /// the GPU transfer finishes. Heap configuration is unchanged.
 void gfxRestoreAreaFrame(s32 stageId, s32 areaId, s32 bufferIndex);
 
-void Gfx_InitCoordinateTrees(void);
+/// Restores the default view chain and perspective projection distance.
+///
+/// Links `gGfxViewCoord` through `gGfxViewRotCoord` to the parentless
+/// `Gfx_ViewOffsetCoord`. All three local rotations become the fixed-point
+/// identity; translations become zero except for the root's +32768 game-unit
+/// Z offset. All three composition stamps are cleared, so cached matrices must
+/// be recomposed before use. Cached matrices and optional node state are retained.
+///
+/// Sets the GTE projection distance to 1024 and the rotation of `GsWSMATRIX`
+/// to identity, retaining its translation. Call after geometry initialization;
+/// this resets resident nodes in place without allocating or changing lights.
+void gfxResetView(void);
 
 void Gpu_InitDefaultLights(void);
 

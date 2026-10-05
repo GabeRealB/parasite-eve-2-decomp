@@ -20,7 +20,6 @@
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
-#include "main/gamemain.h"
 #include "main/mc.h"
 #include "main/pad.h"
 #include "main/session.h"
@@ -220,7 +219,7 @@ void func_800C5F70(Task* arg0)
             Ui_DrawText(&(obj)->panel, Gp_StrSpecs);
         }
         if (obj->panel.state == USER_INTERFACE_PANEL_OPEN) {
-            GameMain_SetFrameTiming(DISPLAY_TIMING_TWO_VBLANKS);
+            displaySetFrameTiming(DISPLAY_TIMING_TWO_VBLANKS);
         }
         state = arg0->state;
         if (state == 2) {
@@ -619,10 +618,10 @@ void func_800C5F70(Task* arg0)
                 if (!(arg0->spawnArg1.value & 0x20000)) {
                     sndEvtRequestScriptStart(SOUND_MENU_CANCEL, 0, 0);
                 }
-                GameMain_SetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
+                displaySetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
                 obj->result = USER_INTERFACE_RESULT_CONFIRM;
             } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
-                GameMain_SetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
+                displaySetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
                 obj->result = USER_INTERFACE_RESULT_CANCEL;
             }
         }

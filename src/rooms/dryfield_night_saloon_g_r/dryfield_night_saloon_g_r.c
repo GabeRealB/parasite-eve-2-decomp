@@ -37,7 +37,6 @@
 #include "main/display_types.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
-#include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/loadui.h"
 #include "main/mc.h"

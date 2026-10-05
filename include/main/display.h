@@ -149,6 +149,27 @@ void Gpu_ClearOTag(s16 tableIdx);
 /// options are DISPLAY_SETUP_* flags; zero low 16 bits selects the default.
 void Display_SetMode(s32 modeBits);
 
+/// Selectors for one-, two- and three-vblank nominal frame timing.
+enum {
+    DISPLAY_TIMING_EVERY_VBLANK  = 0,
+    DISPLAY_TIMING_TWO_VBLANKS   = 1,
+    DISPLAY_TIMING_THREE_VBLANKS = 2,
+};
+
+/// Selects the animation step and pacing budget for subsequent frames.
+///
+/// `timingMode` is a `DISPLAY_TIMING_*` selector. The modes set `frameTicks`
+/// to 1, 2 or 3 nominal 60-Hz animation ticks, VSync waits to 0 (next blank),
+/// 2 or 3, and scanline budgets to 262, 525 or 787 respectively. These budgets
+/// are fixed NTSC counts; the video region does not change them. Other values
+/// leave all three settings unchanged.
+///
+/// Both paced presentation paths use the wait and budget; 480-line game-loop
+/// presentation always waits for the next blank. The game-loop play-clock step
+/// is separate (1, 2 or 2 ticks respectively). This changes settings without
+/// waiting, presenting a frame or resetting any clock.
+void displaySetFrameTiming(s32 timingMode);
+
 /// Set the persistent vertical screen-shake offset in pixels, clamped to [-8, 8].
 ///
 /// Wider arguments narrow to a signed byte before clamping. Each request

@@ -13,8 +13,8 @@
 #include "scene_runtime.h"
 #include "world_targets.h"
 
+#include "main/display.h"
 #include "main/fs.h"
-#include "main/gamemain.h"
 #include "main/mc.h"
 #include "main/session.h"
 #include "main/sound.h"
@@ -108,7 +108,7 @@ void Gp_AreaEnterTask(Task* arg0)
                 }
             }
         }
-        GameMain_SetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
+        displaySetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
         arg0->state++;
     } else if (arg0->state == 1) {
         session = gGameSession;
@@ -163,7 +163,7 @@ void Gp_AreaEnterTask(Task* arg0)
     if (arg0->state >= 0x11) {
         if (gStageMusicLoadState == 0xFF) {
             if (CdCmd_IsIdle() & 0xFFFF) {
-                GameMain_SetFrameTiming(DISPLAY_TIMING_TWO_VBLANKS);
+                displaySetFrameTiming(DISPLAY_TIMING_TWO_VBLANKS);
                 SndEvt_EnqueueType9(SOUND_COMMON(0x0D));
                 taskKill(arg0);
                 Stage_ReleasePrimBuf();

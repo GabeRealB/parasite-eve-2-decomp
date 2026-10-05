@@ -23,7 +23,6 @@
 #define GAME_LOCATION_STAGE_AREA_VIEW_MASK GAME_LOCATION_KEY(0xFF, 0xFF, 0, 0xFF)
 
 #include "main/display.h"
-#include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/mc.h"
 #include "main/mem.h"
@@ -1674,7 +1673,7 @@ void Gp_PublishItemObj(Task* arg0)
         Gp_PubItemReady = 1;
         Gp_PubItemQty   = count;
     }
-    GameMain_SetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
+    displaySetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
     Wip_UiHolder        = NULL;
     arg0->killCountdown = 1;
     arg0->state         = arg0->state + 1;
@@ -1695,7 +1694,7 @@ void Gp_FadeTileTask(Task* arg0)
     flag = 0;
     if (arg0->state == 0) {
         if (arg0->spawnArg1.value == 0) {
-            GameMain_SetFrameTiming(DISPLAY_TIMING_TWO_VBLANKS);
+            displaySetFrameTiming(DISPLAY_TIMING_TWO_VBLANKS);
             gDisplayState.control.flags.flipMode = DISPLAY_FLIP_FULL;
             arg0->killCountdown                  = 7;
         } else if ((arg0->spawnArg1.value == 2) || (arg0->spawnArg1.value == 4)) {
@@ -1710,7 +1709,7 @@ void Gp_FadeTileTask(Task* arg0)
         if (gDisplayState.control.flags.imageSource == DISPLAY_IMAGE_TRANSITION_STRIPS) {
             arg0->killCountdown--;
         } else {
-            GameMain_SetFrameTiming(DISPLAY_TIMING_TWO_VBLANKS);
+            displaySetFrameTiming(DISPLAY_TIMING_TWO_VBLANKS);
         }
     } else if ((arg0->spawnArg1.value == 0) || (arg0->spawnArg1.value == 2)) {
         flag = 0;
@@ -1759,7 +1758,7 @@ void Gp_FadeTileTask(Task* arg0)
 
     if ((flag == 0) && (arg0->killCountdown <= 0)) {
         if (arg0->spawnArg1.value == 4) {
-            GameMain_SetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
+            displaySetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
         }
         taskKill(arg0);
     } else if (flag == 1) {
@@ -1768,7 +1767,7 @@ void Gp_FadeTileTask(Task* arg0)
                 gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_NONE;
             } else {
                 gDisplayState.control.flags.flipMode = flag;
-                GameMain_SetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
+                displaySetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
             }
             taskKill(arg0);
         }

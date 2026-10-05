@@ -2978,7 +2978,7 @@ void Gp_InitPlayClock(Task* task)
         return;
     }
     Gp_ResetHudFx(&work->hud);
-    GameMain_SetFrameTiming(DISPLAY_TIMING_TWO_VBLANKS);
+    displaySetFrameTiming(DISPLAY_TIMING_TWO_VBLANKS);
     task->work         = work;
     work->hours        = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.playTime / 60;
     work->minutes      = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.playTime % 60;

@@ -13,7 +13,6 @@
 #include "main/display_types.h"
 #include "main/fs_types.h"
 #include "fs_types.h"
-#include "main/gamemain.h"
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/session_types.h"
@@ -321,7 +320,7 @@ void Fs_BeginBootLoad(u8* arg0, s16 arg1)
     D5B498_8006ACC0            = arg1;
 
     memFillBytes(Fs_ImgBuffers, 0, sizeof(*Fs_ImgBuffers));
-    GameMain_SetFrameTiming(DISPLAY_TIMING_TWO_VBLANKS);
+    displaySetFrameTiming(DISPLAY_TIMING_TWO_VBLANKS);
     Fs_BootLoadPhase = 0;
 }
 

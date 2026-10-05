@@ -33,7 +33,6 @@
 #include "main/fs.h"
 #include "main/fs_types.h"
 #include "main/gameflag.h"
-#include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/loadui.h"
 #include "main/mc.h"
@@ -1729,7 +1728,7 @@ void func_mist_shooting_gallery_8017F6C8(Task* task)
         if (obj != NULL) {
             D_mist_shooting_gallery_8018E0C0 = cfg->bp;
             D_mist_shooting_gallery_8018E0BC = cfg->exp;
-            GameMain_SetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
+            displaySetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
             task->spawnArg2.pointer = obj;
             task->state             = task->state + 1;
         }
@@ -1789,7 +1788,7 @@ void func_mist_shooting_gallery_8017F6C8(Task* task)
         task->killCountdown = task->killCountdown - 1;
         if (task->killCountdown < 0) {
             taskCallExit(task);
-            GameMain_SetFrameTiming(DISPLAY_TIMING_TWO_VBLANKS);
+            displaySetFrameTiming(DISPLAY_TIMING_TWO_VBLANKS);
             Wip_UiHolder = NULL;
             Stage_SetEndingFlag();
         }

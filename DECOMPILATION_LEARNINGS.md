@@ -6673,7 +6673,7 @@ worldCollisionLinkBody(zero, obj);
 A fade-in/fade-out overlay that sets `flag = 0` on the way down and `flag = 1`
 on the way up wants the incomplete fade-in (`flag == 0 && count > 0`) to land
 on the `else if (flag == 1)` compare (`bgtz` delay `li v0, 1` / `bne s1, v0`),
-and the completed fade-in to share `GameMain_SetFrameTiming` / `taskKill`
+and the completed fade-in to share `displaySetFrameTiming` / `taskKill`
 with the fade-out tail (`beq spawnArg, 4` / `j kill`). Nested
 
 ```c
@@ -6690,7 +6690,7 @@ gate as one `&&` so both `flag != 0` and `count > 0` are “else”:
 ```c
 if ((flag == 0) && (count <= 0)) {
     if (arg == 4) {
-        GameMain_SetFrameTiming(0);
+        displaySetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
     }
     taskKill(arg0);
 } else if (flag == 1) {
@@ -17474,11 +17474,13 @@ m->m[2][2] = one;
 The word stores through `*(s32*)&m->m[r][c]` match the target's packed
 halfword pairs; individual halfword assigns usually do not.
 
-`Gfx_InitCoordinateTrees` also derives the parent `GfxCoord*` as
-`(GfxCoord*)((u8*)m - OFFSET_OF(GfxCoord, coord))` so `parent` /
-`coord.t[]` / `composeStamp` use `off($a2)` while the matrix body stays on `$v0`
-(including `sw zero, -4($v0)` for `composeStamp`). Naming a separate base symbol
-(`&Gfx_ViewOffsetCoord`) reloads with a fresh `lui` and breaks the match.
+`gfxResetView` pairs `gfxSetRotIdentity(&Gfx_ViewOffsetCoord.coord)` with
+direct `Gfx_ViewOffsetCoord.parent`, `Gfx_ViewOffsetCoord.coord.t[]` and
+`Gfx_ViewOffsetCoord.composeStamp` stores. The identity helper's word-struct
+accesses let the compiler derive the containing coordinate address from the
+matrix address: `parent` / `coord.t[]` use `off($a2)` while the matrix stays
+on `$v0`, including `sw zero, -4($v0)` for `composeStamp`. The source uses the
+coordinate itself; the back-offset address calculation is compiler-generated.
 
 ## Store stack-derived field before unrelated prim color word
 
@@ -25497,7 +25499,7 @@ if (flags & 4) {
 ## Pin `ONE` in `$v0` before a global `lui`, then mix SP / pointer matrix stores
 
 A stack `GfxCoord` whose `coord` is an identity matrix (same shape as
-`Gfx_InitCoordinateTrees`) needs `li v0,0x1000` *before* `lui` of the parent
+`gfxResetView`) needs `li v0,0x1000` *before* `lui` of the parent
 (`gGfxViewCoord`) and a `MATRIX*` in `$v1` used for only two of the stores
 (`sw one, 8(v1)` / `sh one, 0x10(v1)`). The rest stay SP-relative.
 
@@ -141957,7 +141959,7 @@ helper (a finishing sequence shared with another function, whose own
 loop that must call the same function twice per iteration - GCC never
 duplicates a loop test containing a call, so both calls are in the source.
 
-## A matrix identity was an inline helper writing through a word struct (Gfx_InitCoordinateTrees, 2026-09-25)
+## A matrix identity was an inline helper writing through a word struct (gfxResetView, 2026-09-25)
 
 Identity stores that looked interleaved with unrelated statements, sometimes
 out of order, and sometimes needed `volatile`, all match as one call to

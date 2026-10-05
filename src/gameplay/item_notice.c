@@ -11,7 +11,6 @@
 #include "scene_runtime.h"
 
 #include "main/display.h"
-#include "main/gamemain.h"
 #include "main/mc.h"
 #include "main/session.h"
 #include "main/stage.h"
@@ -42,7 +41,7 @@ void func_800B65B0(Task* task)
 
     request = task->spawnArg2.pointer;
     if (task->state == 0) {
-        GameMain_SetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
+        displaySetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
         if (Gp_LookupBit2Item(request->actionId) == 0) {
             request->accepted = 0;
             request->done     = 1;
@@ -138,7 +137,7 @@ void func_800B65B0(Task* task)
         task->state++;
     } else if (task->state == 0x11) {
         if (--task->killCountdown <= 0) {
-            GameMain_SetFrameTiming(DISPLAY_TIMING_TWO_VBLANKS);
+            displaySetFrameTiming(DISPLAY_TIMING_TWO_VBLANKS);
             request->done          = 1;
             gDisplayState.gameMode = DISPLAY_GAME_ACTIVE;
             Stage_ReleasePrimBuf();

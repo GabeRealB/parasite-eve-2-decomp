@@ -17,8 +17,8 @@
 #include "items.h"
 #include "gameplay/map.h"
 
+#include "main/display.h"
 #include "main/fs.h"
-#include "main/gamemain.h"
 #include "main/mc.h"
 #include "main/mem.h"
 #include "main/pad.h"
@@ -1847,7 +1847,7 @@ void func_800CE188(Task* arg0)
 {
     arg0->killCountdown--;
     if (arg0->killCountdown <= 0) {
-        GameMain_SetFrameTiming(DISPLAY_TIMING_TWO_VBLANKS);
+        displaySetFrameTiming(DISPLAY_TIMING_TWO_VBLANKS);
         arg0->killCountdown = 1;
         arg0->state         = arg0->state + 1;
     }

@@ -179,7 +179,7 @@ static void GameMain_Init(void)
     gDisplayState.vsyncCount                     = 0;
     gDisplayState.loopTicks                      = 0;
     gDisplayState.loopCount                      = 0;
-    GameMain_SetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
+    displaySetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
 
     Display_PendingFlip = 0;
     Gpu_ClearOTag(0);
@@ -482,30 +482,35 @@ static void GameMain_Loop(void)
     }
 }
 
-void Gfx_InitCoordinateTrees(void)
+void gfxResetView(void)
 {
-    gfxSetRotIdentity(&Gfx_ViewOffsetCoord.coord);
-    Gfx_ViewOffsetCoord.parent       = NULL;
-    Gfx_ViewOffsetCoord.coord.t[0]   = 0;
-    Gfx_ViewOffsetCoord.coord.t[1]   = 0;
-    Gfx_ViewOffsetCoord.coord.t[2]   = 0x8000;
-    Gfx_ViewOffsetCoord.composeStamp = GRAPHICS_COORD_DIRTY;
+    enum {
+        GRAPHICS_DEFAULT_VIEW_OFFSET_Z       = 0x8000,
+        GRAPHICS_DEFAULT_PROJECTION_DISTANCE = 0x400,
+    };
 
-    gfxSetRotIdentity(&gGfxViewRotCoord.coord);
-    gGfxViewRotCoord.parent       = &Gfx_ViewOffsetCoord;
-    gGfxViewRotCoord.coord.t[0]   = 0;
-    gGfxViewRotCoord.coord.t[1]   = 0;
-    gGfxViewRotCoord.coord.t[2]   = 0;
-    gGfxViewRotCoord.composeStamp = GRAPHICS_COORD_DIRTY;
+    /// Resets a view node's local transform and parent, and invalidates its cache.
+    ///
+    /// `node` is a writable GfxCoord lvalue without side effects, used repeatedly.
+    /// `parentCoord` and `offsetZ` are evaluated once; the parent is borrowed and
+    /// the signed Z offset counts game-coordinate units. X and Y become zero.
+    /// Uses `gfxSetRotIdentity` and `GRAPHICS_COORD_DIRTY`; captures no locals.
+    /// Expands to several statements; use only at these standalone call sites.
+#define GRAPHICS_RESET_VIEW_COORD(node, parentCoord, offsetZ) \
+    gfxSetRotIdentity(&(node).coord);                         \
+    (node).parent       = (parentCoord);                      \
+    (node).coord.t[0]   = 0;                                  \
+    (node).coord.t[1]   = 0;                                  \
+    (node).coord.t[2]   = (offsetZ);                          \
+    (node).composeStamp = GRAPHICS_COORD_DIRTY
 
-    gfxSetRotIdentity(&gGfxViewCoord.coord);
-    gGfxViewCoord.parent       = &gGfxViewRotCoord;
-    gGfxViewCoord.coord.t[0]   = 0;
-    gGfxViewCoord.coord.t[1]   = 0;
-    gGfxViewCoord.coord.t[2]   = 0;
-    gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
+    // World nodes inherit view translation, then view rotation, then the root offset.
+    GRAPHICS_RESET_VIEW_COORD(Gfx_ViewOffsetCoord, NULL, GRAPHICS_DEFAULT_VIEW_OFFSET_Z);
+    GRAPHICS_RESET_VIEW_COORD(gGfxViewRotCoord, &Gfx_ViewOffsetCoord, 0);
+    GRAPHICS_RESET_VIEW_COORD(gGfxViewCoord, &gGfxViewRotCoord, 0);
+#undef GRAPHICS_RESET_VIEW_COORD
 
-    gte_SetGeomScreen(0x400);
+    gte_SetGeomScreen(GRAPHICS_DEFAULT_PROJECTION_DISTANCE);
 
     gfxSetRotIdentity(&GsWSMATRIX);
 }
@@ -571,7 +576,7 @@ void Display_LoadImageStrips(s32 bufferIndex)
     }
 }
 
-void GameMain_SetFrameTiming(s32 timingMode)
+void displaySetFrameTiming(s32 timingMode)
 {
     enum {
         DISPLAY_FRAME_LINES_ONE   = 262,
@@ -579,6 +584,7 @@ void GameMain_SetFrameTiming(s32 timingMode)
         DISPLAY_FRAME_LINES_THREE = 787,
     };
 
+    // Keep animation ticks, the SDK wait argument and scanline budgets distinct.
     if (timingMode == DISPLAY_TIMING_EVERY_VBLANK) {
         gDisplayState.frameTicks = 1;
         D_8005EC68               = 0;
@@ -631,7 +637,7 @@ static void Gfx_InitGraph(void)
     otCtx[1].org    = (GsOT_TAG*)(ot + GPU_ORDERING_TABLE_BUFFER_ENTRIES);
     otCtx[1].tag    = (GsOT_TAG*)(ot + 2 * GPU_ORDERING_TABLE_BUFFER_ENTRIES - 1);
     GameMain_SpawnBootTask();
-    Gfx_InitCoordinateTrees();
+    gfxResetView();
     Gpu_InitDefaultLights();
     gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_NONE;
 }

@@ -12,7 +12,6 @@
 #include "main/fs.h"
 #include "main/fs_types.h"
 #include "gameflow.h"
-#include "main/gamemain.h"
 #include "main/loadui.h"
 #include "main/mc.h"
 #include "main/mc_types.h"
@@ -329,7 +328,7 @@ static void GameFlow_SpawnMenu(Task* task)
 {
     void* temp_v0;
 
-    GameMain_SetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
+    displaySetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
     temp_v0                 = Ui_SpawnFromDesc(Mc_TaskDescriptors, 0, 1, 0, 0);
     task->spawnArg2.pointer = temp_v0;
     if (temp_v0 != 0) {

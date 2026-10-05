@@ -13,7 +13,7 @@ void jukeboxHostTask(Task* task)
         if (obj == NULL) {
             return;
         }
-        GameMain_SetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
+        displaySetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
         gGameSession->uiOpen    = 1;
         task->spawnArg2.pointer = obj;
         task->state++;
@@ -31,7 +31,7 @@ void jukeboxHostTask(Task* task)
     if (task->state == 2) {
         task->killCountdown--;
         if (task->killCountdown <= 0) {
-            GameMain_SetFrameTiming(DISPLAY_TIMING_TWO_VBLANKS);
+            displaySetFrameTiming(DISPLAY_TIMING_TWO_VBLANKS);
             gGameSession->uiOpen = 0;
             taskKill(task);
             Stage_ReleasePrimBuf();

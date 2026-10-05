@@ -11,7 +11,6 @@
 
 #include "main/display.h"
 #include "main/fs.h"
-#include "main/gamemain.h"
 #include "main/mc.h"
 #include "main/mc_types.h"
 #include "main/mem.h"
@@ -1256,7 +1255,7 @@ static void Shop_SessionTask(Task* task)
         if (obj == NULL) {
             return;
         }
-        GameMain_SetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
+        displaySetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
         gGameSession->uiOpen    = 1;
         task->spawnArg2.pointer = obj;
         task->state++;
@@ -1274,7 +1273,7 @@ static void Shop_SessionTask(Task* task)
     if (task->state == 2) {
         task->killCountdown--;
         if (task->killCountdown <= 0) {
-            GameMain_SetFrameTiming(DISPLAY_TIMING_TWO_VBLANKS);
+            displaySetFrameTiming(DISPLAY_TIMING_TWO_VBLANKS);
             gGameSession->uiOpen = 0;
             taskKill(task);
             Stage_ReleasePrimBuf();
