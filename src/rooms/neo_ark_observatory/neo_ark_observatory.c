@@ -141,14 +141,22 @@ static void _neoArkObservatoryPlayerReflectionTask(Task* reflectionTask);
 
 static void _neoArkObservatoryDrawLightBeam(const SVECTOR ringCenters[2], s32 outerRadius, s16 baseIntensity, s16 segmentCount);
 
-/// Projects four initialized beam corners, retaining screen positions and GTE flags.
+/// Projects one beam segment's four world-space corners to screen pixels.
 ///
-/// Uses the composed view rotation and the translation already loaded by the
-/// drawer. Only the final RTPT flags are retained; corner 0 flags are discarded.
-/// Leaves corner 3 depth in GTE SZ3 for the drawer to read before another projection.
+/// Borrows a live, word-aligned `quadScratch` block for this call. All four
+/// vertices' XYZ components must be initialized as signed 16-bit world
+/// coordinates in GPU quad strip order. Loads `gGfxViewCoord.workm`'s rotation;
+/// the caller must load its translation and configure GTE projection first.
+///
+/// Writes all four `screenCorners` and the final RTPT `projectionFlags`, even
+/// on rejection. Corner 0's RTPS flags are discarded; the caller rejects a
+/// negative final FLAG. Leaves `vertices` and `depth` untouched, with corner
+/// 3's depth in GTE SZ3 for reading before another depth-changing GTE command.
+/// GTE state is not restored. Reserves no storage and retains no pointer.
 static inline void _neoArkObservatoryProjectBeamSegment(EffectQuadScratch* quadScratch)
 {
     gte_SetRotMatrix(&gGfxViewCoord.workm);
+    // Save corner 0 before the triple transform replaces the screen FIFO.
     gte_ldv0(&quadScratch->vertices[0]);
     gte_rtps();
     gte_stsxy(&quadScratch->screenCorners[0]);
