@@ -269,15 +269,28 @@ static inline void _spriteInitCachedDrawModePacket(SpriteDrawModePacket* drawPac
     MargePrim(drawPacket, &spritePacket->sprt);
 }
 
+/// The cached packets that start at `word` of the allocation's GPU words.
+static inline SpriteDrawModePacket* _spriteCachedPacketsAtWord(u32* word)
+{
+    return (SpriteDrawModePacket*)word;
+}
+
 void spriteAllocateViewCachedPackets(void)
 {
-    enum { SPRITE_CACHED_INITIAL_COLOR_WORD = GPU_PACK_COLOR_WORD(0, 0x80, 0, 0) };
+    enum {
+        SPRITE_CACHED_INITIAL_COLOR_WORD = GPU_PACK_COLOR_WORD(0, 0x80, 0, 0),
+        /// GPU words in one cached packet.
+        SPRITE_CACHED_PACKET_WORDS = sizeof(SpriteDrawModePacket) / sizeof(u32),
+        /// log2 of the bytes the allocation spends per word of one buffer: two
+        /// buffers of four-byte words.
+        SPRITE_CACHED_BYTES_PER_BUFFER_WORD_SHIFT = 3
+    };
 
     const GameLocationKey* location;
     u8                     mappedViewIndex;
     u32                    spriteCount;
     u32                    allocationBytes;
-    u32                    bufferBytes;
+    u32*                   words;
     s32                    spriteIndex;
     const SpriteView*      areaViews;
     const SpriteBatch*     batch;
@@ -299,28 +312,25 @@ void spriteAllocateViewCachedPackets(void)
         batch++;
     }
     // Reserve both buffers, including unused capacity for excluded batches.
-    allocationBytes  = spriteCount;
-    allocationBytes *= ARRAY_SIZE(bufferCursors) * sizeof(*bufferCursors[0]);
-    // Keep the byte count live through the allocation guard and heap call.
-    asm volatile("" : "+r"(allocationBytes));
+    allocationBytes = (spriteCount * SPRITE_CACHED_PACKET_WORDS) << SPRITE_CACHED_BYTES_PER_BUFFER_WORD_SHIFT;
     if (allocationBytes == 0) {
         Gp_SprtLists[0] = NULL;
         return;
     }
-    Gp_SprtLists[0] = memCalloc(allocationBytes, true);
-    if (Gp_SprtLists[0] == NULL) {
+    words           = memCalloc(allocationBytes, true);
+    Gp_SprtLists[0] = _spriteCachedPacketsAtWord(words);
+    if (words == NULL) {
         return;
     }
-    bufferBytes = allocationBytes >> 1;
-    // Form the second buffer address from the unsigned byte displacement.
+    // The second buffer starts halfway through the words. Its address is an
+    // inline's argument so that the word offset is the sum's first operand.
     {
-        register u32 secondBufferAddress asm("s1");
+        register SpriteDrawModePacket* secondBuffer asm("s1");
 
-        secondBufferAddress  = bufferBytes;
-        secondBufferAddress += (u32)Gp_SprtLists[0];
-        Gp_SprtLists[1]      = (SpriteDrawModePacket*)secondBufferAddress;
-        bufferCursors[0]     = Gp_SprtLists[0];
-        bufferCursors[1]     = (SpriteDrawModePacket*)secondBufferAddress;
+        secondBuffer     = _spriteCachedPacketsAtWord(&words[allocationBytes >> SPRITE_CACHED_BYTES_PER_BUFFER_WORD_SHIFT]);
+        Gp_SprtLists[1]  = secondBuffer;
+        bufferCursors[0] = Gp_SprtLists[0];
+        bufferCursors[1] = secondBuffer;
     }
     for (batch = areaViews[mappedViewIndex - 1].batches; batch->firstSprite != SPRITE_BATCH_END; batch++) {
         if (batch->skipCachedPackets != 0) {
