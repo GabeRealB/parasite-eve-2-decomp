@@ -23,7 +23,11 @@ s32 SndEvt_EnqueueType2(s32 arg0, s32 arg1);
 
 s32 Midi_IsBusy(s32 arg0);
 
-s32 Midi_GetMasterVolume(void);
+/// Returns the resident MIDI master gain (0 silent, 127 full).
+///
+/// The stored byte is zero-extended to `s32` and scales sequence gain by 1/127
+/// before the song's volume ramp is applied.
+s32 midiGetMasterVolume(void);
 
 s32 SndEvt_EnqueueType5(s32 arg0, s32 arg1);
 

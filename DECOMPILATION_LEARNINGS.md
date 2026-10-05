@@ -11660,15 +11660,15 @@ j     end
 Hold the address in a local first:
 
 ```c
-u8* flag = &D_8007F2F0;
-if ((s8)arg0 >= 0) {
-    *flag = arg0;
+u8* masterVolume = &D_8007F2F0;
+if ((s8)volume >= 0) {
+    *masterVolume = volume;
 } else {
-    *flag = 0x7F;
+    *masterVolume = SOUND_EVENT_MIDI_VOLUME_FULL;
 }
 ```
 
-`Midi_SetMasterVolume` needs this so both stores share one `lui v1, %hi(D_8007F2F0)`.
+`midiSetMasterVolume` needs this so both stores share one `lui v1, %hi(D_8007F2F0)`.
 
 ## One-iteration `for (i = 0; i <= 0; i++)` + array stride
 
@@ -13652,8 +13652,7 @@ if (all_banks) {
 ```
 
 Use a `volatile` cast on the store when the target keeps `sb` *before* the
-following `bnez` (delay slot holds the next `lui`, not the store). The project
-already uses `register … asm("reg")` elsewhere (`Midi_ReadVlq`, heap init).
+following `bnez` (delay slot holds the next `lui`, not the store).
 
 `SndBank_SetEnableFlags` is the pure example: dual-purpose `flag` (loop fill value vs
 bank-table base) needs `asm("v1")` for the address load form.

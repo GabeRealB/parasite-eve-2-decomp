@@ -341,10 +341,9 @@ static u8 D_800689F0[];
 
 extern s32 func_map_neo_ark_80179BE4(u32 arg0, u8 arg1, LinInterp* ramp);
 
-static void SndEvt_Free(SndEvt* event);
+static void _sndEvtRelease(SndEvt* event);
 
-/// Ignores reserved sound-event opcodes.
-static void SndEvt_HandleNoOp(SndEvt* unused);
+static void _sndEvtHandleNoOp(SndEvt* event);
 
 static void SndEvt_HandleInitSequence(SndEvt* event);
 
@@ -400,7 +399,7 @@ static void Midi_InitSlot(s32 arg0);
  * whose data pointer must already be set. */
 static u8* Midi_ResolveTrackData(_MidiSong* song, s32 arg1, u8* arg2);
 
-static void Midi_ResetTrackFlags(_MidiSong* song);
+static void _midiEndTracks(_MidiSong* song);
 
 static void Midi_KeyOffVoices(_MidiSong* song);
 
@@ -417,17 +416,15 @@ static u8* Midi_Event1(s32 arg0, u8* arg1, _MidiSong* song, _MidiTrack* unused);
 
 static u8* Midi_Event3(s32 arg0, u8* arg1, _MidiSong* song, _MidiTrack* track);
 
-/* Decodes the variable-length quantity at `p`, storing how many bytes it
- * took in `*len`. */
-static inline s32 _midiReadVlq(u8* p, u8* len);
+static inline s32 _midiReadVlq(const u8* data, u8* byteCount);
 
 static u8* Midi_HandleMetaSysex(s32 unused1, u8* arg1, _MidiSong* song, _MidiTrack* track);
 
-static s32 Midi_ReadVlq(u8* arg0, u8* arg1);
+static s32 _midiReadDeltaTime(const u8* data, u8* byteCount);
 
 static void Midi_InitChannelTable(_MidiChannelTable* channels);
 
-static u8* Midi_IncPtr(s32 unused1, u8* arg1, _MidiSong* unusedSong, _MidiTrack* unusedTrack);
+static u8* _midiHandleUnsupportedPressure(s32 status, u8* event, _MidiSong* song, _MidiTrack* track);
 
 static u8* Midi_KeyOffChannel(s32 arg0, u8* arg1, _MidiSong* song, _MidiTrack* unused);
 
@@ -437,9 +434,7 @@ static u8* Midi_PitchBend(s32 arg0, u8* arg1, _MidiSong* song, _MidiTrack* unuse
 
 static s32 SndBank_SetupFromLoad(SndLoadState* load);
 
-/// Turn the waveform addresses of the first `count` sample layers of `bank` from
-/// offsets into its waveform data into absolute SPU RAM addresses.
-static inline void _sndBankRebaseNotes(SndBank* bank, s32 count);
+static inline void _sndBankRebaseLayerWaveAddresses(SndBank* bank, s32 layerCount);
 
 static s32 SndLoad_Complete(SndLoadState* load);
 
@@ -452,7 +447,7 @@ static void SndLoad_Init(s32 arg0, void* arg1);
 static s32 SndBank_FreeById(u16 arg0, s32 arg1);
 
 void (*SndEvt_Handlers[])(SndEvt*) = {
-    SndEvt_HandleNoOp,            // SOUND_EVENT_NO_OP
+    _sndEvtHandleNoOp,            // SOUND_EVENT_NO_OP
     SndEvt_HandleInitSequence,    // SOUND_EVENT_MIDI_START
     SndEvt_HandleStartFadeOut,    // SOUND_EVENT_MIDI_STOP
     SndEvt_HandleFadeOn,          // SOUND_EVENT_MIDI_MUTE
@@ -464,7 +459,7 @@ void (*SndEvt_Handlers[])(SndEvt*) = {
     SndEvt_HandleFadeMatchingOff, // SOUND_EVENT_SCRIPT_UNMUTE
     SndEvt_HandlePanRamp,         // SOUND_EVENT_SCRIPT_SET_PAN_ATTENUATION
     SndEvt_HandleVolumeRamp,      // SOUND_EVENT_SCRIPT_SET_VOLUME
-    SndEvt_HandleNoOp,            // SOUND_EVENT_RESERVED_NO_OP
+    _sndEvtHandleNoOp,            // SOUND_EVENT_RESERVED_NO_OP
     SndEvt_HandleRefCountInc,     // SOUND_EVENT_SCRIPT_DUCK_ACQUIRE
     SndEvt_HandleRefCountDec,     // SOUND_EVENT_SCRIPT_DUCK_RELEASE
     SndEvt_HandleKeyOffMatching,  // SOUND_EVENT_SCRIPT_KEY_OFF
@@ -473,10 +468,10 @@ void (*SndEvt_Handlers[])(SndEvt*) = {
 static _MidiEventHandler Midi_EventFns[] = {
     Midi_KeyOffChannel,
     Midi_Event1,
-    Midi_IncPtr,
+    _midiHandleUnsupportedPressure,
     Midi_Event3,
     Midi_SetProgram,
-    Midi_IncPtr,
+    _midiHandleUnsupportedPressure,
     Midi_PitchBend,
     Midi_HandleMetaSysex,
 };
@@ -620,7 +615,7 @@ void SndEvt_Process(void)
         SndEvt_Handlers[event->command](event);
         event     = _gSndEvtHead;
         nextEvent = event->next;
-        SndEvt_Free(event);
+        _sndEvtRelease(event);
         if (nextEvent == NULL) {
             _gSndEvtTail = NULL;
             _gSndEvtHead = NULL;
@@ -630,19 +625,24 @@ void SndEvt_Process(void)
     } while (nextEvent != NULL);
 }
 
-void SndEvt_Reset(void)
+/// Clears every reservation, payload and link in the resident sound-event pool.
+static inline void _sndEvtClearPool(void)
 {
-    u32  i;
+    u32  wordIndex;
     s32* poolWord;
 
-    // Clear reservations, payloads and queue links through a whole-pool word view.
-    poolWord = (s32*)_gSndEvtPool;
-    i        = 0;
+    poolWord  = (s32*)_gSndEvtPool;
+    wordIndex = 0;
     do {
         *poolWord = 0;
-        i++;
+        wordIndex++;
         poolWord++;
-    } while (i < sizeof(_gSndEvtPool) / sizeof(*poolWord));
+    } while (wordIndex < sizeof(_gSndEvtPool) / sizeof(*poolWord));
+}
+
+void sndEvtReset(void)
+{
+    _sndEvtClearPool();
     _gSndEvtHead           = NULL;
     _gSndEvtTail           = NULL;
     _gSndEvtProcessEnabled = true;
@@ -689,7 +689,12 @@ void sndEvtEnqueue(SndEvt* event)
     }
 }
 
-static void SndEvt_Free(SndEvt* event)
+/// Releases a sound-event pool reservation, retaining its command and arguments.
+///
+/// `event` is a processed pool slot, or `NULL`, which is ignored. The caller
+/// saves any queue link it needs and updates the queue endpoints separately.
+/// Clearing the slot's links and allocation marker makes it reusable immediately.
+static void _sndEvtRelease(SndEvt* event)
 {
     if (event != NULL) {
         event->allocated = SOUND_EVENT_SLOT_FREE;
@@ -698,7 +703,12 @@ static void SndEvt_Free(SndEvt* event)
     }
 }
 
-static void SndEvt_HandleNoOp(SndEvt* unused)
+/// Ignores the default-reservation and reserved sound-event no-op opcodes.
+///
+/// Dispatch slots `SOUND_EVENT_NO_OP` (0) and `SOUND_EVENT_RESERVED_NO_OP` (12)
+/// share this handler; slot 0 is the default assigned to new reservations.
+/// `event` is unused and remains reserved until the dispatcher releases it.
+static void _sndEvtHandleNoOp(SndEvt* event)
 {
 }
 
@@ -867,7 +877,7 @@ static s32 Midi_InitSequence(u8 arg0, u16 arg1)
                         if ((trackPtr < D_8007F8E0) || (trackPtr >= (u8*)&D_800820E0)) {
                             return -1;
                         }
-                        track->ticksUntilEvent = Midi_ReadVlq(trackPtr, &len);
+                        track->ticksUntilEvent = _midiReadDeltaTime(trackPtr, &len);
                         track->eventCursor    += len;
                         track->tickFraction    = MIDI_TRACK_INITIAL_TICK_FRACTION;
                         j++;
@@ -950,7 +960,7 @@ s32 Midi_Tick(s32* unused)
                 break;
             case MIDI_SONG_STOPPING:
             stop:
-                Midi_ResetTrackFlags(song);
+                _midiEndTracks(song);
                 Midi_KeyOffVoices(song);
                 song->status = MIDI_SONG_IDLE;
                 break;
@@ -1165,27 +1175,28 @@ static void Midi_SetVolumeScale(u8 arg0, u8 arg1)
     }
 }
 
-void Midi_SetMasterVolume(s32 arg0)
+void midiSetMasterVolume(s32 volume)
 {
-    s32 i;
-    s32 val;
-    u8* flag;
+    s32 songIndex;
+    s32 dirtyChannels;
+    u8* masterVolume;
 
-    flag = &D_8007F2F0;
-    if ((s8)arg0 >= 0) {
-        *flag = arg0;
+    masterVolume = &D_8007F2F0;
+    if ((s8)volume >= 0) {
+        *masterVolume = volume;
     } else {
-        *flag = 0x7F;
+        *masterVolume = SOUND_EVENT_MIDI_VOLUME_FULL;
     }
 
-    i   = 0;
-    val = MIDI_SONG_ALL_CHANNELS_DIRTY;
-    for (; i <= 0; i++) {
-        (&Midi_Song)[i].volumeDirtyChannels = val;
+    // Refresh every channel of the resident song on the next volume update.
+    songIndex     = 0;
+    dirtyChannels = MIDI_SONG_ALL_CHANNELS_DIRTY;
+    for (; songIndex <= 0; songIndex++) {
+        (&Midi_Song)[songIndex].volumeDirtyChannels = dirtyChannels;
     }
 }
 
-s32 Midi_GetMasterVolume(void)
+s32 midiGetMasterVolume(void)
 {
     return D_8007F2F0;
 }
@@ -1193,7 +1204,7 @@ s32 Midi_GetMasterVolume(void)
 static _MidiSong* Midi_GetSlot(s32 unused)
 {
     if (Midi_Song.status != MIDI_SONG_IDLE) {
-        Midi_ResetTrackFlags(&Midi_Song);
+        _midiEndTracks(&Midi_Song);
         Midi_Song.status = MIDI_SONG_STOPPING;
     }
     return &Midi_Song;
@@ -1326,12 +1337,16 @@ static u8* Midi_ResolveTrackData(_MidiSong* song, s32 arg1, u8* arg2)
     return arg2 + 8 + len + 8;
 }
 
-static void Midi_ResetTrackFlags(_MidiSong* song)
+/// Marks every active track ended so the song's tracks stop advancing.
+///
+/// `song->trackCount` must fit its track array. Cursors and timing are retained;
+/// releasing the playing voices is a separate operation.
+static void _midiEndTracks(_MidiSong* song)
 {
-    s32 i;
+    s32 trackIndex;
 
-    for (i = 0; i < song->trackCount; i++) {
-        song->tracks[i].ended = true;
+    for (trackIndex = 0; trackIndex < song->trackCount; trackIndex++) {
+        song->tracks[trackIndex].ended = true;
     }
 }
 
@@ -1415,7 +1430,7 @@ static void Midi_DriveTrack(_MidiSong* song, _MidiTrack* track)
                 song->status        = MIDI_SONG_STOPPING;
                 return;
             }
-            track->ticksUntilEvent = Midi_ReadVlq(track->eventCursor, &len);
+            track->ticksUntilEvent = _midiReadDeltaTime(track->eventCursor, &len);
             track->eventCursor    += len;
         } while (track->ticksUntilEvent == 0);
     }
@@ -1450,9 +1465,9 @@ static void Midi_UpdateVoiceVolumes(_MidiSong* song)
     if (song->sequenceId == 0x4F && D_80082120 == 5) {
         volume = func_map_neo_ark_80179BE4((u16)song->volumeScale, D_80082136, interp);
     } else if (song->sequenceId == 0x5A) {
-        volume = LinInterp_Apply(interp, (u32)((Midi_GetMasterVolume() & 0xFF) * ((D_800689F0[0x5A] * 3) << 5)) / 127U);
+        volume = LinInterp_Apply(interp, (u32)((midiGetMasterVolume() & 0xFF) * ((D_800689F0[0x5A] * 3) << 5)) / 127U);
     } else {
-        volume = LinInterp_Apply(interp, (u32)((Midi_GetMasterVolume() & 0xFF) * (u16)song->volumeScale) / 127U);
+        volume = LinInterp_Apply(interp, (u32)((midiGetMasterVolume() & 0xFF) * (u16)song->volumeScale) / 127U);
     }
     i    = 0;
     slot = song->voiceSlots;
@@ -1712,19 +1727,28 @@ static u8* Midi_Event3(s32 arg0, u8* arg1, _MidiSong* song, _MidiTrack* track)
     return arg1 + 3;
 }
 
-/* Decodes the variable-length quantity at `p`, storing how many bytes it
- * took in `*len`. */
-static inline s32 _midiReadVlq(u8* p, u8* len)
+/// Decodes a MIDI variable-length quantity and reports its encoded byte length.
+///
+/// `data` borrows a readable stream containing a terminating byte; `byteCount`
+/// supplies one writable byte. Valid MIDI quantities occupy one to four bytes
+/// and return 0..0x0FFFFFFF. No stream bound or length limit is checked, and the
+/// stored count retains byte truncation for longer input.
+static inline s32 _midiReadVlq(const u8* data, u8* byteCount)
 {
+    enum {
+        MIDI_VLQ_PAYLOAD_BITS = 7,
+        MIDI_VLQ_PAYLOAD_MASK = 0x7F,
+        MIDI_VLQ_CONTINUATION = 0x80
+    };
     s32 result;
 
-    result = 0;
-    *len   = 0;
+    result     = 0;
+    *byteCount = 0;
     do {
-        result <<= 7;
-        result  |= *p & 0x7F;
-        *len     = *len + 1;
-    } while (*p++ & 0x80);
+        result   <<= MIDI_VLQ_PAYLOAD_BITS;
+        result    |= *data & MIDI_VLQ_PAYLOAD_MASK;
+        *byteCount = *byteCount + 1;
+    } while (*data++ & MIDI_VLQ_CONTINUATION);
     return result;
 }
 
@@ -1815,9 +1839,13 @@ static u8* Midi_HandleMetaSysex(s32 unused1, u8* arg1, _MidiSong* song, _MidiTra
     return var_t0;
 }
 
-static s32 Midi_ReadVlq(u8* arg0, u8* arg1)
+/// Reads a track delta in MIDI ticks and writes its encoded byte count.
+///
+/// `data` borrows the loaded sequence image; it and `byteCount` must satisfy
+/// `_midiReadVlq`'s readable-stream and writable-output requirements.
+static s32 _midiReadDeltaTime(const u8* data, u8* byteCount)
 {
-    return _midiReadVlq(arg0, arg1);
+    return _midiReadVlq(data, byteCount);
 }
 
 static void Midi_InitChannelTable(_MidiChannelTable* channels)
@@ -1842,9 +1870,15 @@ static void Midi_InitChannelTable(_MidiChannelTable* channels)
     }
 }
 
-static u8* Midi_IncPtr(s32 unused1, u8* arg1, _MidiSong* unusedSong, _MidiTrack* unusedTrack)
+/// Advances past only the status byte of an unsupported MIDI pressure event.
+///
+/// Handles classes 0xA (polyphonic pressure) and 0xD (channel pressure).
+/// `event` borrows the sequence image and addresses the status byte. Returns
+/// `event + 1` without consuming pressure data; the driver reads its next delta
+/// there. `status`, `song` and `track` are unused.
+static u8* _midiHandleUnsupportedPressure(s32 status, u8* event, _MidiSong* song, _MidiTrack* track)
 {
-    return arg1 + 1;
+    return event + 1;
 }
 
 static u8* Midi_KeyOffChannel(s32 arg0, u8* arg1, _MidiSong* song, _MidiTrack* unused)
@@ -2132,16 +2166,20 @@ static s32 SndBank_SetupFromLoad(SndLoadState* load)
     return 0;
 }
 
-/// Turn the waveform addresses of the first `count` sample layers of `bank` from
-/// offsets into its waveform data into absolute SPU RAM addresses.
-static inline void _sndBankRebaseNotes(SndBank* bank, s32 count)
+/// Converts a bank's sample-layer offsets to absolute SPU byte addresses.
+///
+/// `layerCount` is a nonnegative element count within the initialized layer
+/// table (the load header supplies it). Apply once, before playback, while
+/// `waveAddr` still holds offsets from `bank->spuAddr`. A zero count touches no
+/// layer; the descriptor and its table must remain live throughout the call.
+static inline void _sndBankRebaseLayerWaveAddresses(SndBank* bank, s32 layerCount)
 {
-    u32           base      = bank->spuAddr;
-    SndBankLayer* bankLayer = bank->layers;
+    u32           spuBaseAddr = bank->spuAddr;
+    SndBankLayer* layer       = bank->layers;
 
-    while (--count != -1) {
-        bankLayer->waveAddr += base;
-        bankLayer++;
+    while (--layerCount != -1) {
+        layer->waveAddr += spuBaseAddr;
+        layer++;
     }
 }
 
@@ -2170,7 +2208,7 @@ static s32 SndLoad_Complete(SndLoadState* load)
                     song->sequenceData  = load->imageBuffer;
                     song->bank          = bank;
                     song->waveBytes     = load->payload.header.waveBytes;
-                    _sndBankRebaseNotes(bank, load->payload.header.layerCount);
+                    _sndBankRebaseLayerWaveAddresses(bank, load->payload.header.layerCount);
                     Snd_BuildGroupIndex(song->bank);
                     ret               = 0;
                     gSndLoadBankId    = SOUND_LOAD_BANK_NONE;

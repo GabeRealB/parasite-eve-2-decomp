@@ -879,7 +879,7 @@ void Snd_SetMutedVolumes(s32 arg0)
         SndVoice_ApplyMasterVolume(0x28);
         var_a0 = 0;
     }
-    Midi_SetMasterVolume(var_a0);
+    midiSetMasterVolume(var_a0);
 }
 
 s32 Snd_InitBanks(u32 unused)

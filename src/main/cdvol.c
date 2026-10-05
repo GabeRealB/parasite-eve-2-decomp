@@ -190,7 +190,7 @@ void CdVol_SetMixMode(s32 arg0)
 
     D_8006EBBA = arg0 & 1;
     flag       = D_8006EBBA;
-    Midi_SetMasterVolume(Midi_GetMasterVolume() & 0xFF);
+    midiSetMasterVolume(midiGetMasterVolume() & 0xFF);
     flag = (u8)flag;
     SndVoice_ApplyMasterVolume(SndVoice_GetMasterVolume());
     CdStream_SetMono(flag ^ 1);

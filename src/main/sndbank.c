@@ -388,7 +388,7 @@ unknown:
 
 setup_events:
     SndHeap_Reset();
-    SndEvt_Reset();
+    sndEvtReset();
     AsyncCb_Reset();
     Spu_ConfigReverb(3);
     Spu_InitVoices();

@@ -171,7 +171,12 @@ s32 Midi_IsChannelFree(u8 arg0);
 /// does not run the command handler.
 void sndEvtEnqueue(SndEvt* event);
 
-void Midi_SetMasterVolume(s32 arg0);
+/// Sets the resident MIDI master gain and schedules every channel's volume refresh.
+///
+/// Only the low byte of `volume` matters: 0..127 stores that gain, and a byte
+/// with bit 7 set stores full gain (127). Existing voices receive the new gain
+/// on the next volume update; this also refreshes mix-mode dependent pan.
+void midiSetMasterVolume(s32 volume);
 
 void SndEvt_EnqueueType5Pending(void);
 
@@ -238,7 +243,12 @@ void Spu_InitVoices(void);
 
 s32 AudioTick_Insert(AudioTickPoll poll, AudioTickOnRemove onRemove, u16 id, s32* arg);
 
-void SndEvt_Reset(void);
+/// Discards all sound-event reservations and commands, then enables queue draining.
+///
+/// Clears the complete pool, including payloads and unqueued reservations,
+/// and empties both queue endpoints. Previously held slots cease to be reserved.
+/// Call with event producers and the audio drain quiescent.
+void sndEvtReset(void);
 
 s32 Midi_InitSystem(u32);
 

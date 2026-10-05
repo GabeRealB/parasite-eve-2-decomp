@@ -181,7 +181,7 @@ s32 func_map_neo_ark_80179BE4(u32 arg0, u8 arg1, LinInterp* ramp)
             D_800820E6 = 0;
             D_800820E0 = arg0 >> 1;
         }
-        temp   = Midi_GetMasterVolume() & 0xFF;
+        temp   = midiGetMasterVolume() & 0xFF;
         temp   = temp * D_800820E0;
         volume = LinInterp_Apply(ramp, temp / 127U);
     } else if (arg1 == 0x10) {
@@ -198,11 +198,11 @@ s32 func_map_neo_ark_80179BE4(u32 arg0, u8 arg1, LinInterp* ramp)
             D_800820E6 = 0xFF;
             D_800820E0 = arg0;
         }
-        temp   = Midi_GetMasterVolume() & 0xFF;
+        temp   = midiGetMasterVolume() & 0xFF;
         temp   = temp * D_800820E0;
         volume = LinInterp_Apply(ramp, temp / 127U);
     } else {
-        temp       = Midi_GetMasterVolume() & 0xFF;
+        temp       = midiGetMasterVolume() & 0xFF;
         temp       = temp * arg0;
         volume     = LinInterp_Apply(ramp, temp / 127U);
         D_800820E4 = 0;
