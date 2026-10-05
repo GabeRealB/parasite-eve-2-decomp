@@ -53,8 +53,10 @@ void glowDrawRayStar(GfxCoord* coord, SVECTOR* point, s32 rate, s32 arg3)
         size               = (s16)arg3;
         block->outerRadius = (size * 64) / block->otz;
 #if GLOW_DRAW_RAY_STAR_HALF_FIRST
-        /* `work` carries the intensity and later the scratch-head address;
-           sharing it keeps the halving shift on the intensity's own register */
+        /* the shifts stay on `work`, not on its copy `color`, for two reasons:
+           `work` is named again after the loops (the size released below), so
+           cse does not prefer `color`; and `work <<= 16` sets it, so
+           local-alloc does not move its death up to the copy */
         work   = pulse / 34 + 0x78;
         color  = work;
         work <<= 16;
@@ -163,8 +165,8 @@ void glowDrawRayStar(GfxCoord* coord, SVECTOR* point, s32 rate, s32 arg3)
         } while (ang < 0x1000);
     }
 #if GLOW_DRAW_RAY_STAR_HALF_FIRST
-    work = (s32)SCRATCH_STACK_CURSOR_SLOT;
-    SCRATCH_POP_BYTES_AT(work, sizeof(RoomGlowRadiiScratch));
+    work = sizeof(RoomGlowRadiiScratch);
+    SCRATCH_POP_BYTES_AT(SCRATCH_STACK_CURSOR_SLOT, work);
 #else
     SCRATCH_STACK_RELEASE_BLOCK(RoomGlowRadiiScratch);
 #endif
