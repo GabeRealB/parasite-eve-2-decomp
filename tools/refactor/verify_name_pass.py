@@ -82,6 +82,11 @@ def verify(root, logs, jobs, objdiff=False):
     decls = run([python, "tools/refactor/check_decls.py", "--across-images", "--strict", "--jobs", str(jobs)],
                 "declarations.log")
     check_declarations(decls.read_text(), aliases(root, {"taskExecDefaultList"}))
+    # Making a shared fragment's copies private leaves one image starting a
+    # symbol where several did, and the reference that named one of them with
+    # `shared=` is then simply that image's. The owner does not change, so the
+    # annotation is brought up to date here rather than failing the step.
+    run([python, "tools/check_symbols.py", "--drop-stale-shared"], "symbols-settle.log")
     run([python, "tools/check_symbols.py", "--strict"], "symbols.log")
     if not objdiff:
         print("Naming verification passed (build, declarations, symbols)", flush=True)

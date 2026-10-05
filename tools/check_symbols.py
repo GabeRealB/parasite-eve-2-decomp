@@ -298,6 +298,9 @@ def main() -> None:
     ap.add_argument('--assign-owners', action='store_true',
                     help='write owner=IMAGE onto every unowned reference that has exactly one candidate '
                          'and already carries that candidate\'s name')
+    ap.add_argument('--drop-stale-shared', action='store_true',
+                    help='rewrite `owner=X shared=F` to `owner=X` where X has become the only image starting '
+                         'a symbol at the address (the other copies were made private); the owner is unchanged')
     ap.add_argument('--renames', metavar='FILE',
                     help='write the unowned references whose one candidate spells the name differently, '
                          'as `old new owner where` lines, for a rename before --assign-owners')
@@ -429,6 +432,7 @@ def main() -> None:
     unowned: dict[tuple, dict] = {}
     for image, cfg in configs.items():
         by_image[image] = parse_decls(root, image, cfg['syms'])
+    stale_shared = []
     for image, ds in by_image.items():
         for d in ds:
             explicit_owner = d.attrs.get('owner')
@@ -447,9 +451,12 @@ def main() -> None:
                            f'{d.where}: {d.name} has no matching definition in owner={explicit_owner}')
                     d.owner = None
                 elif len(entries) < 2:
-                    report('ownership', [image, explicit_owner],
-                           f'{d.where}: {d.name} is owner={explicit_owner} shared={shared}, but only that image '
-                           f'starts a symbol at 0x{d.addr:08X}; drop shared=')
+                    if a.drop_stale_shared:
+                        stale_shared.append(d.where)
+                    else:
+                        report('ownership', [image, explicit_owner],
+                               f'{d.where}: {d.name} is owner={explicit_owner} shared={shared}, but only that image '
+                               f'starts a symbol at 0x{d.addr:08X}; drop shared=')
                     d.owner = explicit_owner
                 elif fams != '+'.join(sorted(shared.split('+'))):
                     report('ownership', [image], f'{d.where}: {d.name} is shared={shared}, but the images that start '
@@ -529,6 +536,18 @@ def main() -> None:
         report('owner', u['images'], f'{w}: {name} = 0x{addr:08X} has no owner; {what}')
     if a.renames:
         Path(a.renames).write_text(''.join(f'{old} {new} {owner} {w}\n' for w, old, new, owner in renames))
+    if stale_shared:
+        edits = defaultdict(set)
+        for w in stale_shared:
+            f, n = w.rsplit(':', 1)
+            edits[f].add(int(n))
+        for f, lines in edits.items():
+            text = (root / f).read_text().splitlines(keepends=True)
+            for n in lines:
+                text[n - 1] = re.sub(r' shared=[A-Za-z0-9_+]+', '', text[n - 1])
+            (root / f).write_text(''.join(text))
+        print(f'dropped shared= from {len(set(stale_shared))} reference(s) whose owner is now the only image '
+              f'starting a symbol there')
     if a.assign_owners:
         edits = defaultdict(dict)
         for w, name, _, owner in assign:
