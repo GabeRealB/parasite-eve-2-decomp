@@ -147593,3 +147593,32 @@ candidate that diffed clean failed the real build. And a `"+r"` asm on a byte
 offset blocks `combine` from seeing its low bits, so `off / 4` behind it costs
 `srl 2; sll 2`; move the asm up to the shifted depth and mask after it
 (`shiftedDepth = (u32)blk->otz << shift; asm; ...[(shiftedDepth >> 2 & 0xFFC) / 4]`).
+
+## An OT index form that changes code far from the `addPrim`: the scale insn pushed the loop over a hoist threshold (func_actor_403600_80134398, 2026-10-05)
+
+**Symptom.** Replacing `(u_long*)((x >> 2 & 0xFFC) + (uintptr)gGpuCurrentOt)` with
+`&gGpuCurrentOt[x >> 4 & 0x3FF]` left the `addPrim` itself identical, but three
+`status == 2` tests elsewhere in the loop changed from `li t2,2; beq v0,t2`
+(with later `sllv ..,t2` shifts) to `li v0,2; beq v1,v0` and plain `sll ..,2`.
+
+**Cause.** `-dL` shows `Loop ...: 261 real insns` against `263`. The subscript
+costs one `ashift 2` insn per evaluation of the macro argument until `combine`
+folds it, and the loop pass runs before `combine`. The three `2`s are one
+movable (`savings 3`, `life 3`), moved only while
+`threshold * savings * lifetime >= insn_count` - here `29 * 9 = 261`. Hoisted,
+the pseudo gets no hard register, reload re-loads it at each use into a reload
+register, and `reload_cse` then rewrites nearby constant shifts to `sllv`.
+
+**Fix.** Give the loop its insns back somewhere `cse1` does not already do it:
+drop a temporary that is only copied into an asm operand
+(`gte_lddp((a * b) / c)` instead of `v = ...; gte_lddp(v)`, -1), and split a
+narrowed mask so the load extends directly (`t = (u8)p->pad; t &= 0x20;`
+instead of `t = (u8)(u16)p->pad & 0x20;`, -1). Changing a `s16` call-argument
+temporary to `s32` saved nothing. `addPrim` and a hand-written tag-link macro
+differ by one insn and by which mask constant is met first, which moves the
+order of the hoisted `lui`s, so keep each site's macro.
+
+A related operand-order note from the same file: an inline `base[index]`
+gives `addu v0,v0,base`; `p = &base[index]` then `*p` gives `addu v0,base,v0`,
+and `index = i + 1` in its own variable keeps the `+1` out of the displacement
+(`&base[i + 1]` folds it to `lw 4(..)`).
