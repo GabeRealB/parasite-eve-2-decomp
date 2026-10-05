@@ -156,7 +156,4 @@ void Mc_InitLib(void);
 
 void Mc_DispatchStateTable26(Task* task);
 
-/// Reserved memory-card task callback with no runtime work.
-void McMenu_NoOpTask(Task* unused);
-
 #endif // MAIN_PRIVATE_MC_H

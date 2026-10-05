@@ -983,16 +983,16 @@ Mc_DispatchStateTable26               = 0x80036968; // type:func
 //--------------------------------------------------------------------
 //--- PA: 0x2721C   VA: 0x80036A1C   subsegment: c, mcmenu
 //--------------------------------------------------------------------
-McMenu_NoOpTask               = 0x80036A1C; // type:func
-McMenu_UpdateListCursor               = 0x80036A2C; // type:func
+taskNoopBank0Slot12               = 0x80036A1C; // type:func
+_uiUpdateListWithCenteredCursor               = 0x80036A2C; // type:func
 McMenu_SelectList               = 0x80036A70; // type:func
 McMenu_ConfirmWithRender               = 0x80036B2C; // type:func
 McMenu_SelectListAlt               = 0x80036C04; // type:func
 McMenu_FileInformation               = 0x80036CF0; // type:func
-McMenu_ConfirmDialog               = 0x80036D98; // type:func
-McMenu_ConfirmDialogAlt               = 0x80036E78; // type:func
-McMenu_ConfirmYes               = 0x80036F18; // type:func
-McMenu_ConfirmNo               = 0x80036FB8; // type:func
+_mcMenuYesRow               = 0x80036D98; // type:func
+_mcMenuOkRow               = 0x80036E78; // type:func
+_mcMenuCancelRow               = 0x80036F18; // type:func
+_mcMenuNoRow               = 0x80036FB8; // type:func
 McMenu_InitByMode               = 0x80037068; // type:func
 
 //--------------------------------------------------------------------

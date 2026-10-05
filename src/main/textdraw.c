@@ -189,7 +189,7 @@ static TaskDesc D_8005EDA0[] = {
     { { { TASK_BODY_NONE, 0x18 } }, GameFlow_DispatchTable },
     { { { TASK_BODY_NONE, 0x10 } }, Mc_DispatchStateTable },
     { { { TASK_BODY_NONE, 0x10 } }, Mc_DispatchStateTable26 },
-    { { { TASK_BODY_NONE, 0xC0 } }, McMenu_NoOpTask },
+    { { { TASK_BODY_NONE, 0xC0 } }, taskNoopBank0Slot12 },
     { { { TASK_BODY_NONE, 0x10 } }, Text_BootTask },
     { { { TASK_BODY_COORD, 0x2F } }, func_800A8654 },
     { { { TASK_BODY_NONE, 0x2F } }, Gp_ApplyViewTask },

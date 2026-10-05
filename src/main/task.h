@@ -71,6 +71,12 @@ void taskExecListForPriority(TaskNode* listHead, s32 priority);
 /// suppresses repeated teardown. The caller owns task and resource release.
 void taskNoopCallback(Task* unusedTask);
 
+/// Inert callback for resident task bank 0, slot 12.
+///
+/// `unusedTask` is ignored and may be NULL. The callback retains the `TaskFunc`
+/// interface without changing task state or releasing resources.
+void taskNoopBank0Slot12(Task* unusedTask);
+
 /// Counts down a task and, on reaching zero, releases its body and marks it for collection.
 ///
 /// Every dispatch decrements the signed `killCountdown`. The releasing dispatch
