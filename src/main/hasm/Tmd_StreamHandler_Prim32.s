@@ -11,7 +11,7 @@
  * triangle records: one body with a second entry, the two differing only in the
  * packet code byte they stamp. Prim32 stamps the blended form (0x32), the alabel
  * tmdDrawStreamPrimG3PreXform the opaque one (0x30).
- * Tmd_InitSourceStream resolves an entry into a stream beside its opcode and
+ * _tmdResolveSourceDrawHandlers resolves an entry into a stream beside its opcode and
  * Tmd_DispatchStream jalr's it (documented in include/main/tmd.h).
  * Early-image placement (linker_section_order: .rodata).
  */

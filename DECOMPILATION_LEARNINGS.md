@@ -47153,13 +47153,13 @@ for months because every access was through explicit casts. The tie-breaker is
 never "which field list looks more complete" — it is the one allocation site:
 
 ```
-Tmd_Create:  memCalloc(partCount * 0x50 + 0x34, 0)
-             sw (obj + 0x34), 0x8(obj)      # coords = the trailing array
-             sh 0x80, 0xC(obj) / sw partCount, 0x30(obj)
+tmdCreateModel:  memCalloc(partCount * 0x50 + 0x34, 0)
+             sw (model + 0x34), 0x8(model)      # coords = the trailing array
+             sh 0x80, 0xC(model) / sw partCount, 0x30(model)
 ```
 
 That single `memCalloc` says the object is 0x34 bytes followed by
-`partCount` × `GfxCoord` (0x50), and that `obj->coords` points at its own tail.
+`partCount` × `GfxCoord` (0x50), and that `model->coords` points at its own tail.
 `Gp_AttachTmd` stores that pointer into `Task::extra` and sets
 `Task::bodyKind = TASK_BODY_TMD`, and `taskKill`'s type-1 branch pokes `field_C` on the
 same pointer — so "`Task::extra`" and "TMD model node" were never two things.
@@ -65540,18 +65540,18 @@ and delay-slot filling (94.098%); the `.lreg` dump shows its live length became
 does not introduce that local. The final source is scratch `base_6.c`.
 
 
-## Tmd_Create: an intervening field store changes pointer CSE and scheduling
+## tmdCreateModel: an intervening field store changes pointer CSE and scheduling
 
 The unpinned typed implementation reached 98.170% with only `regs=5` and
-`reorder=3`. The permuter found that moving `obj->nextBufferHalf = 0` between
-`obj->coords = allocation->coords` and `coord = obj->coords` fixes both.
-In `.cse2`, the derived loop pointer changes from `obj + 0x80` to
+`reorder=3`. The permuter found that moving `model->nextBufferHalf = 0` between
+`model->coords = allocation->coords` and `coord = model->coords` fixes both.
+In `.cse2`, the derived loop pointer changes from `model + 0x80` to
 `coord + 0x4C`; initialization also keeps the field store before the pointer
 copy and gives the source part count `$v1`. No pins or empty asm are needed.
 The permuter's additional unused assignment in a call argument was removable.
 
-Initializing the later auxiliary-buffer local as `void* mem = NULL` before
-`Tmd_InitSourceStream` is also significant. Compared with the uninitialized
+Initializing the later auxiliary-buffer local as `void* buffer = NULL` before
+`_tmdResolveSourceDrawHandlers` is also significant. Compared with the uninitialized
 local, `.lreg` records two call crossings and `.greg` assigns it `$s1`. GCC
 reuses its known zero for the first allocation's second argument and the loop
 index initialization, then reuses `$s1` for the auxiliary allocation result.
@@ -133440,7 +133440,7 @@ config's `name:` before deciding which case a unit is in.
 A model's packet stream is dispatched twice: `tmdBuildBufferHalf` (main) switches
 on the opcode and calls the C bodies in the gameplay overlay that lay each
 record's packet into the buffer, while the draw path takes the handler out of the
-record's slot — the one `Tmd_InitSourceStream` patched — and `Tmd_DispatchStream`
+record's slot — the one `_tmdResolveSourceDrawHandlers` patched — and `Tmd_DispatchStream`
 jalrs it as it walks, so the slot and not the opcode picks a draw handler. That is
 why the handwritten handlers in `src/main/hasm/Tmd_StreamHandlers_Ops.s` are the
 per-frame half even though the init pass is what names them. An unidentified
@@ -134864,7 +134864,7 @@ texture words into the buffer half when a model's buffer is allocated; the draw 
 - `Tmd_SetupDraw` to `tmdDrawModelStream` to `Tmd_DispatchStream` - runs per frame,
 takes each element's triangle to screen space, lights and culls it and links its
 packet into the ordering table. Only the second jalrs the handler a record carries,
-which is the one `Tmd_InitSourceStream` stored there at init, so the handlers in
+which is the one `_tmdResolveSourceDrawHandlers` stored there at init, so the handlers in
 `src/main/hasm/Tmd_StreamHandlers_Ops.s` are the per-frame drawing code.
 
 `doc/TMD_FORMAT.md` labels the two sets the other way round - the handwritten
@@ -135222,14 +135222,14 @@ name, the occurrence is splat's own.
 ## The two stream switches pair their variant arms, not their conditions
 
 A model's packet stream is walked twice, by the opcode switch in
-`Tmd_InitSourceStream` (the draw pass, which writes the resolved handler's
+`_tmdResolveSourceDrawHandlers` (the resolution pass, which writes the draw handler's
 address into the record) and by the one in `tmdBuildBufferHalf` (the pass that
 builds the primitives). Every record family that has a second, layered form
 appears in both as
 
 ```c
 handler = <first>;
-if (flag != 0) {
+if (useOffsetLayer != 0) {
     handler = <second>;
 }
 ```
@@ -135237,8 +135237,8 @@ if (flag != 0) {
 and the two switches' *conditions* are not the same expression - one accepts a
 place the other rejects - so an area exists where the passes pick different
 forms of the same record. Do not derive one switch's arm from the other's
-condition; pair the arms. The `if (flag != 0)` arm of one switch is the same
-form of the record as the `if (flag != 0)` arm of the other, and the form's role
+condition; pair the arms. The `if (useOffsetLayer != 0)` arm of one switch is the same
+form of the record as the `if (useOffsetLayer != 0)` arm of the other, and the form's role
 can then be read off whichever side is named. The pass that builds the
 primitives is decompiled and named (`gpStreamPrim*`), so an unnamed draw handler
 takes its sibling's suffix: a family split into a `...FixedLayer` and a

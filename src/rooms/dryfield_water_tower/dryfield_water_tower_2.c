@@ -1995,7 +1995,7 @@ static inline void _dryfieldWaterTowerDrawCapShadow(Task* task, GfxCoord* coord)
 /// task at its `playerTask`, parents the model's coordinate to `gGfxViewCoord`,
 /// rebuilds the model's buffers and points its light and colour matrices
 /// (`field_1C` / `field_20`) at the block, so the cap is lit by the room's own
-/// state rather than by the default pair a `Tmd_Create` model starts with. It
+/// state rather than by the default pair a `tmdCreateModel` model starts with. It
 /// then hangs the room's script table off `Task::msgTable`.
 ///
 /// State 1 kills the prop `fallingPropTask` holds -- the lowering prop the script

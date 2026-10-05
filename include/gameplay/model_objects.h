@@ -57,7 +57,7 @@ void modelObjectUnlinkTmd(TmdListNode* node);
 
 /// Releases a detached task-owned model and any primitive buffer it owns.
 ///
-/// `model` is the live object `Tmd_Create` returned, including one attached by
+/// `model` is the live object `tmdCreateModel` returned, including one attached by
 /// `Gp_AttachTmd` or `Gp_AttachTmdFlags`. It is not `NULL`. That address is the
 /// primary-heap allocation, so releasing it also ends the owned coordinate
 /// tail. Borrowed source geometry and the light and colour matrices stay with

@@ -169,7 +169,7 @@ u32* tmdDrawStreamPrimG4PreXform(TmdStreamWorkspace* workspace, s32 objectFlags,
 
 // Draw-pass handlers, one per record family: the early image's in
 // Tmd_StreamHandlers_Ops.s, the gameplay overlay's in that overlay's own units.
-// `Tmd_InitSourceStream` patches each into a model's stream for the opcodes it
+// `_tmdResolveSourceDrawHandlers` patches each into a model's stream for the opcodes it
 // answers to, and the draw walk jalrs it. Each is named for the opcode it serves
 // or for the command it serves where that has been read.
 //

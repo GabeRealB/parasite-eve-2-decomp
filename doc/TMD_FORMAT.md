@@ -15,7 +15,7 @@ and animation sit together.
 
 | Area | Code / tools |
 |------|----------------|
-| Stream walk + opcode switches | `src/main/tmd.c` (`Tmd_InitSourceStream`, `tmdBuildBufferHalf`) |
+| Stream walk + opcode switches | `src/main/tmd.c` (`_tmdResolveSourceDrawHandlers`, `tmdBuildBufferHalf`) |
 | Early-image handlers | `src/main/hasm/Tmd_StreamHandlers_Ops.s` |
 | Container types | `include/main/tmd_types.h` (`TmdSource`, `TmdObject`) |
 | Attach path | `src/gameplay/model_objects.c` (`Gp_AttachTmd`), `src/main/task.c` |
@@ -93,13 +93,13 @@ repeated:
   u32 payload[stride * count]
 ```
 
-`Tmd_InitSourceStream` advances by `(dims >> 16) * (dims & 0xFFFF)` words. The
+`_tmdResolveSourceDrawHandlers` advances by `(dims >> 16) * (dims & 0xFFFF)` words. The
 product is symmetric, so **delimiting** a stream works with the halves either
 way round, but **parsing elements** does not: the high half is the count, the
 low half the stride. The giveaway in real data is a CLUT-looking word recurring
 at the stride interval — every 7 words in an `0x78` packet, not every 20.
 
-`Tmd_InitSourceStream` resolves each `id` to a handler and **writes the pointer
+`_tmdResolveSourceDrawHandlers` resolves each `id` to a handler and **writes the pointer
 into `handler_slot`**, so a stream that has run once no longer matches its
 on-disc form. Decode from the extracted file, never from a RAM dump.
 
@@ -171,7 +171,7 @@ Two consequences:
   `TmdBone.local` is a `MATRIX` — a 3x3 rest rotation (identity on disc,
   `4096` = 1.0) and a `t[3]` translating from the parent — followed by the
   `s32` `TmdBone.parentIndex`. Every index is in `[0, partCount)`; a root names
-  its own index and initially attaches to the view coordinate. `Tmd_Create`
+  its own index and initially attaches to the view coordinate. `tmdCreateModel`
   copies the matrices into `TmdObject.coords`, so animation changes the runtime
   pose while the source skeleton remains unchanged.
   The `partVertexCounts` table describes the part-local vertex groups (352
@@ -530,7 +530,7 @@ different jobs:
 
 | Switch | Handlers | What it does |
 |---|---|---|
-| `Tmd_InitSourceStream` | main, `Tmd_StreamHandler_*` at `0x80010A90` | one-shot, guarded by `TmdSource.handlersResolved`. Resolves 61 opcodes to 53 handlers and **writes the pointer into the packet's slot word**. These are the transform/light/cull routines: they read vertices, run `RTPT`/`NCLIP`/`AVSZ`, and store screen XY and lit RGB. |
+| `_tmdResolveSourceDrawHandlers` | draw callbacks in the early image, gameplay and actor403600 overlays | one-shot while `TmdSource.handlersResolved` is zero. Resolves 61 supported opcodes, with five location-dependent alternates, and **writes each callback into the command's slot word**; it invokes none. Unknown combinations resolve to `tmdSkipStreamRecord`. Later creations reuse the cached choices. Offset-layer callbacks are selected only in Dryfield by day's toilet; actor callbacks require the actor403600 overlay at draw time. |
 | `tmdBuildBufferHalf` | the loaded overlay, `0x8009xxxx`, decompiled in `src/gameplay/model_objects.c` and `src/gameplay/model_lighting.c` | walks the stream when a model's primitives are built, and again when the model's texture page or CLUT changes: it lays the primitives out and fills their **static** fields — UV, CLUT, tpage. It picks the handler from the record's own opcode and steps over the slot word, which is the draw pass's to read. |
 
 For supported untextured Gouraud records, construction reserves space without
@@ -631,7 +631,7 @@ the `clut` (in `u0`) or `tpage` (in `u1`) halfword, exactly as `POLY_GT3` /
 
 `tmdBuildBufferHalf` — the pass that lays a record's packets out — has no entry for
 these opcodes, so it walks past their elements and builds nothing for them. That
-says nothing about what a frame draws from the record: `Tmd_InitSourceStream`
+says nothing about what a frame draws from the record: `_tmdResolveSourceDrawHandlers`
 still resolves a handler into it, and the draw walk (`Tmd_DispatchStream`) runs
 that handler every frame like any other. So each of these opcodes does draw, and
 what it draws is its own handler's to say; the work is per-frame by nature — a
@@ -681,7 +681,7 @@ What remains is narrower.
   each record decodes and that its model object is exactly the arrays and stream
   it points at. A record may point at a stream that opens with one or more
   `TMD_STREAM_GROUP_END` words (`0xFFFFFFFE`), closing empty groups -
-  `Tmd_InitSourceStream` steps over them - so the stream's
+  `_tmdResolveSourceDrawHandlers` steps over them - so the stream's
   first packet can sit past the address the record declares; the Kyle body mesh
   declares `0x15D4` and its first packet is at `0x15D8`. The streams an old
   opcode walk found without a record were 35, and none is open: 29 are models

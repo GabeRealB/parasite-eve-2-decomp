@@ -7,7 +7,7 @@
  * TMD early-image stream handlers  (VRAM 0x80010A90 / ROM 0x1290)
  * ------------------------------------------------------------
  * Permanent handwritten assembly (splat type: hasm).
- * One body per stream opcode: Tmd_InitSourceStream resolves the body into the
+ * One body per stream opcode: _tmdResolveSourceDrawHandlers resolves the body into the
  * stream beside the opcode, and Tmd_DispatchStream jalr's it. Each body is
  * labelled for the command it serves (documented in include/main/tmd.h).
  * Dual-entry alternates use alabel (e.g.

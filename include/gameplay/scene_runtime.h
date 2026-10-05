@@ -72,7 +72,7 @@ void func_800B3AA4(AnimationContext* context, AnimationSlot* arg1, s32 arg2, s32
 
 /// Binds an animation context to a model allocation's coordinate tail and caller-owned playback data.
 ///
-/// `model` must be the object returned by `Tmd_Create`; the context borrows its
+/// `model` must be the object returned by `tmdCreateModel`; the context borrows its
 /// `partCount` coordinates and the caller's set table and pose buffer. All stay
 /// live while the context is used. Playback slots are bound separately.
 void Gp_AnimInitCtx(AnimationContext* ctx, void* sets, TmdObject* model, void* poses);

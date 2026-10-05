@@ -29,19 +29,34 @@ extern s32 D_80071210;
 
 void Tmd_InitLists(void);
 
-/// Creates a model excluded from active drawing, with a mutable source-skeleton copy.
+/// Creates an unlinked model with owned part coordinates, initially excluded from active drawing.
 ///
-/// The object owns its per-part coordinate array and borrows `src`, which must
-/// remain alive until the object is released. The skeleton is read only during
-/// creation: each local matrix is copied and each parent index becomes a link,
-/// with self-parented roots initially linked to the view coordinate.
+/// `source` is a non-NULL borrowed descriptor with a writable, word-aligned,
+/// complete stream; creation resolves its draw slots before either allocation.
+/// A resolved source retains its first location-dependent callback choices.
+/// Keep the descriptor, geometry and stream alive and its part count and buffer
+/// capacities unchanged while the model lives. Require a nonnegative part count,
+/// partCount initial skeleton entries, parent indices in [0, partCount), and
+/// parent chains reaching a self-parented root. Local matrices are copied into
+/// the owned coordinates; roots initially attach to `gGfxViewCoord`.
 ///
-/// Zero `bufferFlags` allocates and initializes both buffer halves. Nonzero
-/// values defer allocation; bit 0 also disables missing-buffer recovery for
-/// the object. These flags do not exempt an existing buffer from release.
-/// Returns NULL if the object allocation fails. A buffer allocation failure
-/// leaves a valid object with a NULL buffer for later allocation.
-TmdObject* Tmd_Create(TmdSource* src, s32 bufferFlags);
+/// The primary heap supplies `TmdAllocation` and its coordinate tail together;
+/// their byte size must fit the allocator's request range. The returned object
+/// owns this block and, when present, a separate auxiliary-heap primitive block.
+/// A half must satisfy 0 <= preXformRegionBytes <= bufferHalfBytes <= 65535, and
+/// both construction and drawing must fit its declared regions. See
+/// `tmdBuildBufferHalf` for command and buffer requirements.
+///
+/// Zero `bufferFlags` allocates and builds both halves, leaving the half selector
+/// zero. Every nonzero value defers that allocation; bit 0 additionally sets
+/// `TMD_OBJECT_SKIP_AUTO_BUFFER`, suppressing automatic missing-buffer recovery.
+/// These signed s32 creation options are separate from `TmdObject.flags`.
+/// Returns NULL only when the primary allocation fails. Auxiliary allocation
+/// failure leaves a valid model with a NULL buffer, eligible for later recovery.
+/// Creation does not attach the model or enable active drawing. Unlink any later
+/// attachment and end coordinate borrowers before freeing the primary block;
+/// finish GPU use and release the separate buffer with `tmdFreePrimitiveBuffer`.
+TmdObject* tmdCreateModel(TmdSource* source, s32 bufferFlags);
 
 /// Initializes persistent primitive data in the model's selected buffer half.
 ///

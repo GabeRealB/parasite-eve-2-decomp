@@ -18,7 +18,7 @@ TMD playback in `src/main/tmd.c` / `include/main/tmd.h`; animation player in
 | CD file lookup | `src/main/fs.c` (`Fs_LoadFile`, `Fs_InitStage0TablesCb`) |
 | Room enter | `src/main/stage.c` (`Display_TaskLoadStep`), `src/main/loadui.c` (`CdCmd_EnqueueLoadFile`) |
 | Inflated bodies | `assets/USA/pe2pkg/` (LZSS-decoded); on-disc in `raw/pe2pkg/` |
-| Model stream | `Tmd_InitSourceStream` / `tmdBuildBufferHalf` |
+| Model stream | `_tmdResolveSourceDrawHandlers` / `tmdBuildBufferHalf` |
 | Anim player | `AnimationContext` / `AnimationSlot` / `AnimationSet` (`scene_runtime.c`) |
 
 The formats themselves are documented in
@@ -576,7 +576,7 @@ If it walks or shoots, its mesh is in a stage-0 overlay at `0x80115770` /
 ### 6.2 Custom TMD-like stream (not retail `ID_TMD`)
 
 Retail TMD magic `0x00000041` is not the container. The game walks its own
-stream (`Tmd_InitSourceStream`):
+stream (`_tmdResolveSourceDrawHandlers`):
 
 ```text
 opcode, handler-slot, dims, payload words…
@@ -590,7 +590,7 @@ opcode, handler-slot, dims, payload words…
 `0x7A`. Some (`0x8038`, `0x10038`, `0x20038`, …) jal into **handlers that
 live in the actor overlay** (`D_80136224`, `D_8013700C`, … at
 `0x80136xxx`), which is why those packages mix code and mesh.
-`Tmd_InitSourceStream` patches the handler-slot word in place.
+`_tmdResolveSourceDrawHandlers` patches the handler-slot word in place.
 
 `TmdSource` (`tmd.h`) points at this stream via `stream`. Type-1
 `TaskDesc.data.model` is a `TmdSource*` (`Task_SpawnFromDesc`).

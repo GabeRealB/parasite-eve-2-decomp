@@ -114,7 +114,7 @@ STATIC_ASSERT_SIZEOF(AnimationSet, 0x28);
 
 /// Binds an animation context to a model and caller-owned playback storage.
 ///
-/// `model` must be a live, non-NULL object returned by `Tmd_Create`. The context
+/// `model` must be a live, non-NULL object returned by `tmdCreateModel`. The context
 /// borrows the allocation's coordinate tail and copies the model's part count.
 /// `setTable` supplies a loaded set pointer for every set index playback uses;
 /// slot setup copies this table pointer into the slot.
@@ -131,7 +131,7 @@ void animationBindContext(AnimationContext* context, AnimationSet** setTable, Tm
 
 /// Initializes a context's borrowed model and playback-storage bindings.
 ///
-/// `model` must be a live, non-NULL object returned by `Tmd_Create`.
+/// `model` must be a live, non-NULL object returned by `tmdCreateModel`.
 /// `setTable` is a word-aligned native pointer table with a loaded set for every
 /// set index playback uses. `slots` must provide every playback index used.
 /// `poseBuffer` must provide a writable, word-aligned entry for every index whose

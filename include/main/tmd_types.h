@@ -144,7 +144,7 @@ typedef struct {
 } TmdObject;
 STATIC_ASSERT_SIZEOF(TmdObject, 0x34);
 
-/// Established `TmdObject.flags` bits; these do not describe Tmd_Create's flags.
+/// Established `TmdObject.flags` bits; these do not describe tmdCreateModel's flags.
 enum {
     TMD_OBJECT_SEMI_TRANS      = 0x02, // Select semi-transparent forms in handlers that test the object flags
     TMD_OBJECT_FLAGGED_PASS    = 0x08, // Select the flagged draw pass independently of active-pass exclusion
@@ -194,7 +194,7 @@ enum { TMD_OBJECT_COLOR_BLEND_ONE = 0x1000 };
 
 /// Primary-heap model allocation containing a runtime object and its part coordinates.
 ///
-/// The object is the first member, so the pointer returned by `Tmd_Create`
+/// The object is the first member, so the pointer returned by `tmdCreateModel`
 /// also addresses the complete allocation for release. Allocate
 /// `sizeof(TmdAllocation) + partCount * sizeof(GfxCoord)` bytes, where the
 /// nonnegative source part count remains unchanged while the object lives.

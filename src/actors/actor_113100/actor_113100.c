@@ -1503,7 +1503,7 @@ static void func_actor_113100_8013264C(Task* task)
 /// return the dispatch expects. All four modes lift the 0x8000 bit the setup
 /// handler raised on the work block's collision `body` and then rewrite the
 /// actor's own `TmdObject::flags`, whose `TMD_OBJECT_SKIP_ACTIVE_DRAW` bit
-/// excludes active drawing and whose 0x4 is the flag `Tmd_Create` seeds from `flags & 1`:
+/// excludes active drawing and whose 0x4 is the flag `tmdCreateModel` seeds from `flags & 1`:
 /// mode 0 shows the model and clears 0x4; mode 1 hides it, hands the object to
 /// `tmdAllocPrimitiveBuffer` and clears 0x4; mode 2 hides it, latches 2 into
 /// `freeCountdown` -- the countdown `func_actor_113100_80132104` walks down to

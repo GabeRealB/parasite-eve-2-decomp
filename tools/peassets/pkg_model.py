@@ -1,6 +1,6 @@
 """Locate and delimit TMD model streams inside the overlay packages.
 
-The model format is a packet stream, read out of ``Tmd_InitSourceStream``
+The model format is a packet stream, read out of ``_tmdResolveSourceDrawHandlers``
 (``src/main/tmd.c``)::
 
     [id][handler slot][dims][payload ...]   repeated
@@ -18,7 +18,7 @@ marker merges every limb into one frame, which piles them on top of each
 other. Each packet therefore carries its group index in ``part``.
 
 The handler slot is why this must be read from the file rather than from RAM:
-``Tmd_InitSourceStream`` resolves each id to a function pointer and **writes it
+``_tmdResolveSourceDrawHandlers`` resolves each id to a function pointer and **writes it
 back into the stream**, so a stream that has been through the game once no
 longer looks like the on-disc form.
 
@@ -41,7 +41,7 @@ import struct
 import sys
 from pathlib import Path
 
-# Opcodes accepted by the Tmd_InitSourceStream switch, in source order of value.
+# Opcodes accepted by the _tmdResolveSourceDrawHandlers switch, in source order of value.
 TMD_OPCODES = frozenset(
     (
         0x0, 0x4, 0x5, 0x18, 0x1A, 0x1C, 0x1E, 0x20, 0x21, 0x22, 0x30, 0x31,
@@ -82,7 +82,7 @@ def walk_stream(data: bytes, off: int) -> tuple[list[dict], int] | None:
         if idv not in TMD_OPCODES or off + HEADER_WORDS * 4 > n:
             return None
         (dims,) = struct.unpack_from("<I", data, off + 8)
-        # Tmd_InitSourceStream advances by (dims >> 16) * (dims & 0xFFFF) words.
+        # _tmdResolveSourceDrawHandlers advances by (dims >> 16) * (dims & 0xFFFF) words.
         # That product is symmetric, so delimiting works either way round, but
         # parsing elements needs the right one: the high half is the element
         # count and the low half the stride in words. Confirmed against the
@@ -170,7 +170,7 @@ def _skip_leading_skips(data: bytes, base: int, va: int) -> int:
 
     A source can point at a stream that opens with one or more
     ``TMD_STREAM_GROUP_END`` words, each closing an empty group -
-    ``Tmd_InitSourceStream`` steps over them before reading the first id - so
+    ``_tmdResolveSourceDrawHandlers`` steps over them before reading the first id - so
     the address in the record is not always the address of the first packet.
     The walker starts at the packet, so the two disagree by those words and
     an exact comparison loses the source. The 41-packet body mesh in every
@@ -185,7 +185,7 @@ def _skip_leading_skips(data: bytes, base: int, va: int) -> int:
     return base + off
 
 
-SRC_INIT_FLAG = 0x00   # Tmd_InitSourceStream tests == 0, so 0 on disc
+SRC_INIT_FLAG = 0x00   # _tmdResolveSourceDrawHandlers tests == 0, so 0 on disc
 MAX_PARTS = 128
 
 

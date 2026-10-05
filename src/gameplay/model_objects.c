@@ -399,7 +399,7 @@ TmdObject* Gp_AttachTmd(Task* task, TmdSource* src)
     TmdListNode* last;
     TmdListNode* list;
 
-    node = Tmd_Create(src, 0);
+    node = tmdCreateModel(src, 0);
     if (node != NULL) {
         list            = &gTmdList;
         last            = list->prev;
@@ -454,7 +454,7 @@ TmdObject* Gp_AttachTmdFlags(Task* task, TmdSource* src, s32 flags)
     TmdListNode* last;
     TmdListNode* list;
 
-    node = Tmd_Create(src, flags);
+    node = tmdCreateModel(src, flags);
     if (node != NULL) {
         list            = &gTmdList;
         last            = list->prev;

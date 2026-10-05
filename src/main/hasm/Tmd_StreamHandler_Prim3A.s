@@ -7,12 +7,12 @@
  * Tmd_StreamHandler_Prim3A  (VRAM 0x800106f0 / ROM 0xef0)
  * ------------------------------------------------------------
  * Permanent handwritten assembly (splat type: hasm).
- * TMD stream handler (function pointer from Tmd_InitSourceStream).
+ * TMD stream handler (function pointer from _tmdResolveSourceDrawHandlers).
  * Early-image placement (linker_section_order: .rodata).
  *
  * Two entries onto one body, one per primitive code the body stamps: the
  * opaque quad, tmdDrawStreamPrimG4PreXform (0x38), and the blended one,
- * Tmd_StreamHandler_Prim3A (0x3A). Tmd_InitSourceStream resolves the opaque
+ * Tmd_StreamHandler_Prim3A (0x3A). _tmdResolveSourceDrawHandlers resolves the opaque
  * entry for records 0x61/0x161; no opcode resolves the blended entry, and
  * nothing else in the image references it either.
  */
