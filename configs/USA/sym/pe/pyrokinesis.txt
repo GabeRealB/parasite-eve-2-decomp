@@ -8,8 +8,8 @@ func_pyrokinesis_80130C54 = 0x80130C54; // type:func
 func_pyrokinesis_801311B8 = 0x801311B8; // type:func
 
 func_pyrokinesis_8012FAC8 = 0x8012FAC8; // type:func
-glowDrawFlameBand = 0x8012FC34; // type:func
-glowDrawFlameStar = 0x80130130; // type:func
+glowDrawFlameCone = 0x8012FC34; // type:func
+glowDrawFlameDisc = 0x80130130; // type:func
 glowDrawFlameRing = 0x801312B4; // type:func
 pyroFlameDrawSprite = 0x80130DC0; // type:func
 spriteQuadDraw = 0x80130848; // type:func

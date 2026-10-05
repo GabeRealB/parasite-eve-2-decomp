@@ -5554,7 +5554,7 @@ latch into `rimRad`/`hubRad`, `rot = &coord->workm`, and
 Two TU-local differences from the weapon original are load-bearing:
 
 - Allocate through `SCRATCH_STACK_CURSOR_SLOT` with `register u8* head asm("v0")` (the
-  same pin as `func_pyrokinesis_801312B4` in this TU). Unpinned coalesces to
+  same pin as `glowDrawFlameRing` in this TU). Unpinned coalesces to
   `addiu s3, v0, -0x118` / `sw s3` and scores 99.67% with
   `branch=4 regs=2 delete=1`. The hypervelocity original's
   `SCRATCH_SP -= sizeof(...)` does not need the pin.
@@ -56917,7 +56917,7 @@ chaining `u1 = u0 + 0x37`, and read `coord->workm.t[i]` through
 The previous entry's "scratch size is the strongest fingerprint" rule has one
 more entry worth writing down: a `- 0x118` off `SCRATCH_STACK_CURSOR_SLOT` is the
 `EffectBandScratch` two-ring band, and the matched example is `Gp_DrawBandEx`
-(gameplay `3CD8_9CC8.c`). `func_pyrokinesis_801312B4` is that function with the
+(gameplay `3CD8_9CC8.c`). `glowDrawFlameRing` is that function with the
 colour source swapped and the trailing `DR_TPAGE` replaced by
 `gpuSetPrimitiveBlendMode`; porting the sibling and changing only those two things
 scored 100% on the first attempt, with the m2c seed never compiled.
@@ -56934,9 +56934,9 @@ Two details from the sibling are load-bearing and must be copied verbatim:
   still reaches 99.63%, but with `branch=3 regs=2 delete=1` — the pin is what
   the ROM's allocation needs, and this is the documented exception to
   "unpin first".
-- `op = &block->topRing[i] + 16;` as a second alias for `&block->bottomRing[i]`.
+- `outerVertex = (SVECTOR*)((u8*)block + segmentIndex * sizeof(SVECTOR) + sizeof(block->topRing));` as a second alias for `&block->bottomRing[segmentIndex]`.
   GCC 2.8.1 emits the `bottomRing[i].vx` store off the `topRing` base (`sh v0,
-  0x80($s2)`) and the `vy`/`vz` stores off `op`; writing all three through
+  0x80($s2)`) and the `vy`/`vz` stores off `outerVertex`; writing all three through
   `bottomRing[i]` re-derives the pointer.
 
 
@@ -62006,30 +62006,30 @@ nothing else.
 
 ## Overwrite the angle local instead of taking a second one to un-swap `$s2`/`$s3`
 
-`func_lifedrain_801305C0` (Antibody and Energy Shot carry the same body) builds a fan
-wedge at `arg2 - 0x20` and `arg2 + 0x20`. Spelling the second offset as its own
+`glowDrawWedge` (Antibody and Energy Shot carry the same body) builds a fan
+wedge at `angle - 0x20` and `angle + 0x20`. Spelling the second offset as its own
 local left every instruction correct with `regs` as the only penalty, the
 scratch-block pointer and the offset trading `$s2` for `$s3` throughout:
 
 ```c
-ang  = (s16)arg2;
-ang2 = ang - 0x20;   /* rsin/rcos */
-ang2 = ang + 0x20;   /* rsin/rcos - a second live value */
+rimAngle      = (s16)angle;
+firstRimAngle = rimAngle - 0x20;   /* rsin/rcos */
+firstRimAngle = rimAngle + 0x20;   /* rsin/rcos - a second live value */
 ```
 
-The fix is to consume `ang` rather than keep it alive next to `ang2`:
+The fix is to consume `rimAngle` rather than keep it alive next to `firstRimAngle`:
 
 ```c
-ang  = (s16)arg2;
-ang2 = ang - 0x20;
-ang += 0x20;
+rimAngle      = (s16)angle;
+firstRimAngle = rimAngle - 0x20;
+rimAngle     += 0x20;
 ```
 
 `.greg` explains it. With two surviving angle values the `+ 0x20` one is a
 global allocno (`used 6/20`) that `global_alloc` colours *after* the block
 pointer, so the pointer takes `$s2` and it gets `$s3`. Folding the second value
-back into `ang` drops that allocno entirely: `local_alloc` now hands `$s2` to
-the short `ang - 0x20` value before `global_alloc` runs, the pointer sees `$s2`
+back into `rimAngle` drops that allocno entirely: `local_alloc` now hands `$s2` to
+the short `rimAngle - 0x20` value before `global_alloc` runs, the pointer sees `$s2`
 in its hard-conflict list and lands in `$s3`.
 
 So when the diff is a clean pairwise swap of two callee-saved registers with
@@ -62162,8 +62162,8 @@ delay-slot pass can reach it.
 
 ## `sh aN, off($sp)` + `lbu` from the same slot is an address-taken narrow local
 
-`func_pyrokinesis_80130130` draws eight `POLY_G4` blades whose only coloured
-vertex is the `arg2` ramp `(arg2, arg2 >> 1, arg2 >> 2)`, and the ROM spells the
+`glowDrawFlameDisc` draws eight `POLY_G4` blades whose only coloured
+vertex is the `intensity` ramp `(intensity, intensity >> 1, intensity >> 2)`, and the ROM spells the
 first component through memory:
 
 ```
@@ -62171,11 +62171,11 @@ sh    a2, 0x10(sp)      /* once, in the preamble */
 ...
 lbu   t1, 0x10(sp)      /* every iteration */
 sb    t1, 0x14(s0)      /* prim->r2 */
-sb    v0, 0x15(s0)      /* (s16)arg2 >> 1 */
-sb    fp, 0x16(s0)      /* (s16)arg2 >> 2 */
+sb    v0, 0x15(s0)      /* (s16)intensity >> 1 */
+sb    fp, 0x16(s0)      /* (s16)intensity >> 2 */
 ```
 
-The plain `setRGB2(prim, arg2, arg2 >> 1, arg2 >> 2)` on an `s16` parameter
+The plain `setRGB2(prim, intensity, intensity >> 1, intensity >> 2)` on an `s16` parameter
 already produces this store-and-reload — GCC 2.8.1 gives the parameter a stack
 home because one use wants its low byte — so the instruction *sequence* matches
 on the first try. What it gets wrong is *where* the `sh` lands: as a parameter
@@ -62189,16 +62189,16 @@ target stores it:
 ```c
 u16 red;
 ...
-block->vec.vz = vz;
-red           = arg2;                                   /* sh a2,0x10(sp) here */
+block->worldPoint.vz = vz;
+red           = intensity;                                   /* sh a2,0x10(sp) here */
 ...
-setRGB2(prim, *(u8*)&red, arg2 >> 1, arg2 >> 2);        /* lbu 0x10(sp) */
+setRGB2(prim, *(u8*)&red, intensity >> 1, intensity >> 2);        /* lbu 0x10(sp) */
 ```
 
 Now the `sh` is an ordinary store to a local whose address escapes, so GCC's
 alias analysis will not float it past the stores through `block`, and it stays
 in source order. The shifted components keep reading the parameter register
-directly, which is what puts `(s16)arg2 >> 1` and `>> 2` in registers rather
+directly, which is what puts `(s16)intensity >> 1` and `>> 2` in registers rather
 than re-loading the slot.
 
 The general rule: a narrow store to the frame *plus* a reload of part of it is
@@ -62418,12 +62418,12 @@ GCC leaves in the `beqz` of the case-dispatch tree, and took the function from
 
 An `(u16)` cast applied to a value already in a register expands to
 `andi $x, 0xffff` at RTL-expand time, so combine folds the following shift into
-`andi` + `srl 1`. The target of `func_pyrokinesis_8012FC34` instead shares one
+`andi` + `srl 1`. The target of `glowDrawFlameCone` instead shares one
 `sll $v1, $a2, 16` between `srl $a3, $v1, 17` and `srl $v1, $v1, 18` - the
 zero-extension is done with shifts, which the cast form can never produce:
 
 ```c
-grn = (u16)arg2 >> 1;   /* andi $v1,$a2,0xffff ; srl $a3,$v1,1  - wrong */
+green = (u16)intensity >> 1;   /* andi $v1,$a2,0xffff ; srl $a3,$v1,1  - wrong */
 ```
 
 Write the shift up explicitly and let CSE share it. Only the halves need it;
@@ -62431,13 +62431,13 @@ taking the low byte back out of the shifted value re-introduces a `srl 16`, so
 read the byte straight off the argument:
 
 ```c
-ramp = (u32)arg2 << 16;
-red  = arg2;            /* NOT ramp >> 16 - that emits its own srl */
-grn  = ramp >> 17;
-blu  = ramp >> 18;
+shiftedIntensity = (u32)intensity << 16;
+red              = intensity; /* NOT shiftedIntensity >> 16 - that emits its own srl */
+green            = shiftedIntensity >> 17;
+blue             = shiftedIntensity >> 18;
 ```
 
-The signed sibling is unremarkable: a plain `s16 arg3` with `arg3 >> 1` already
+The signed sibling is unremarkable: a plain `s16 intensity` with `intensity >> 1` already
 compiles to `sll 16` + `sra 17`, because the sign-extension of a `HImode`
 parameter has no single-instruction form to fold into. Only the *unsigned*
 halving needs to be written out.
@@ -62454,7 +62454,7 @@ Reading it as three separate `u8` locals, assigned before the first loop,
 matters beyond the naming - it is what puts them under enough pressure to be
 spilled at all. Passing the expressions inline to `setRGB0` / `setRGB1` let
 GCC keep two of them in `$s5` / `$s1` across the loop and spill only the
-`s16` source as a halfword, which cost 8.5% of `func_pyrokinesis_8012FC34`.
+`s16` source as a halfword, which cost 8.5% of `glowDrawFlameCone`.
 
 
 ## A `&Global` pointer local pins the whole address; plain member access shares only the `%hi`

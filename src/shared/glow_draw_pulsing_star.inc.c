@@ -1,87 +1,98 @@
 /* Part of the glow drawing library; see glow_draw.h. */
 
-/// Draws a pulsing red star at the world point `arg0`, projected through
-/// `gGfxViewCoord.workm`; nothing is drawn when the projection flags an error.
-/// Two gouraud `POLY_G4` halves of a diamond and two `LINE_G3` diagonals
-/// surround the projected point, with radius `(s16)arg2 * 32` over its depth.
-/// The lit vertices take a red of `rsin(animFrame * arg1) / 34 + 0x78`, so
-/// `arg1` sets the pulse rate. The work block lives on the scratchpad stack.
-void glowDrawPulsingStar(SVECTOR* arg0, s16 arg1, s32 arg2)
+/// Reserves a Gouraud quad with a coloured centre and a black rim.
+static inline POLY_G4* _glowAllocatePulsingStarHalf(s32 redIntensity)
 {
+    POLY_G4* prim;
+
+    prim           = gGpuPrimCursor;
+    gGpuPrimCursor = prim + 1;
+    setPolyG4(prim);
+    setRGB0(prim, 0, 0, 0);
+    setRGB1(prim, 0, 0, 0);
+    setRGB2(prim, redIntensity, 0, 0);
+    setRGB3(prim, 0, 0, 0);
+    return prim;
+}
+
+void glowDrawPulsingStar(const SVECTOR* worldPoint, s16 pulseRate, s32 radiusScale)
+{
+    enum {
+        GLOW_PULSING_STAR_RADIUS_SCALE  = 32,
+        GLOW_PULSING_STAR_PULSE_DIVISOR = 34,
+        GLOW_PULSING_STAR_BASE_RED      = 0x78,
+    };
+
     GlowCentreScratch* block;
     POLY_G4*           prim;
     LINE_G3*           line;
-    s32                sine;
-    s32                pulse;
-    s32                radius;
-    s32                i;
-    s32                t1;
-    s32                t2;
-    s32                twice;
-    u16                sx;
-    u16                sy;
+    s32                pulseSine;
+    s32                redIntensity;
+    s32                screenRadius;
+    s32                partIndex;
+    s32                xRadiusMultiple;
+    s32                yRadiusMultiple;
+    s32                verticalSide;
+    u16                screenX;
+    u16                screenY;
 
     block = SCRATCH_STACK_RESERVE_BLOCK(GlowCentreScratch);
 
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
-    gte_ldv0(arg0);
+    gte_ldv0(worldPoint);
     gte_rtps();
     gte_stsxy(&block->sx);
     gte_stflg(&block->flag);
     if (block->flag >= 0) {
         gte_stszotz(&block->otz);
-        sine          = rsin(gDisplayState.animFrame * arg1);
-        radius        = ((s16)arg2 * 32) / block->otz;
-        i             = 0;
-        pulse         = sine / 34 + 0x78;
-        block->radius = radius;
+        pulseSine     = rsin(gDisplayState.animFrame * pulseRate);
+        screenRadius  = ((s16)radiusScale * GLOW_PULSING_STAR_RADIUS_SCALE) / block->otz;
+        partIndex     = 0;
+        redIntensity  = pulseSine / GLOW_PULSING_STAR_PULSE_DIVISOR + GLOW_PULSING_STAR_BASE_RED;
+        block->radius = screenRadius;
+        // Two triangular halves fill the diamond.
         do {
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, pulse, 0, 0);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx - block->radius;
-            sx       = block->sx;
-            prim->x2 = sx;
-            prim->x1 = sx;
-            prim->x3 = block->sx + block->radius;
-            sy       = block->sy;
-            prim->y3 = sy;
-            prim->y2 = sy;
-            prim->y0 = sy;
-            twice    = i * 2;
-            prim->y1 = (block->sy - block->radius) + (block->radius * twice);
+            prim         = _glowAllocatePulsingStarHalf(redIntensity);
+            prim->x0     = block->sx - block->radius;
+            screenX      = block->sx;
+            prim->x2     = screenX;
+            prim->x1     = screenX;
+            prim->x3     = block->sx + block->radius;
+            screenY      = block->sy;
+            prim->y3     = screenY;
+            prim->y2     = screenY;
+            prim->y0     = screenY;
+            verticalSide = partIndex * 2;
+            prim->y1     = (block->sy - block->radius) + (block->radius * verticalSide);
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
             gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
-            i++;
-        } while (i < 2);
+            partIndex++;
+        } while (partIndex < 2);
 
-        i = 0;
+        // The second diagonal extends twice as far as the diamond.
+        partIndex = 0;
         do {
             line           = gGpuPrimCursor;
             gGpuPrimCursor = line + 1;
             setLineG3(line);
             setRGB0(line, 0, 0, 0);
-            setRGB1(line, pulse, 0, 0);
+            setRGB1(line, redIntensity, 0, 0);
             setRGB2(line, 0, 0, 0);
-            t1       = i * 3 - 1;
-            t2       = i + 1;
-            line->x0 = block->sx + (block->radius * t1);
-            line->y0 = block->sy - (block->radius * t2);
-            line->x1 = block->sx;
-            line->y1 = block->sy;
-            line->x2 = block->sx - (block->radius * t1);
-            line->y2 = block->sy + (block->radius * t2);
-            addPrim((&gGpuCurrentOt[((u32)block->otz << gDisplayState.otDepthShift) >> 4 & 0x3FF]),
+            xRadiusMultiple = partIndex * 3 - 1;
+            yRadiusMultiple = partIndex + 1;
+            line->x0        = block->sx + (block->radius * xRadiusMultiple);
+            line->y0        = block->sy - (block->radius * yRadiusMultiple);
+            line->x1        = block->sx;
+            line->y1        = block->sy;
+            line->x2        = block->sx - (block->radius * xRadiusMultiple);
+            line->y2        = block->sy + (block->radius * yRadiusMultiple);
+            addPrim((&gGpuCurrentOt[((u32)block->otz << gDisplayState.otDepthShift) >> 4 & (GPU_ORDERING_TABLE_DEPTH_BYTE_MASK >> 2)]),
                     line);
             gpuSetPrimitiveBlendMode(line, GPU_BLEND_ADD, block->otz);
-            i = t2;
-        } while (i < 2);
+            partIndex = yRadiusMultiple;
+        } while (partIndex < 2);
     }
     SCRATCH_STACK_RELEASE_BLOCK(GlowCentreScratch);
 }

@@ -1,79 +1,87 @@
 /* Part of the glow drawing library; see glow_draw.h. */
 
-/// Draws the pyrokinesis flame cone: a 16-vertex inner ring of radius `arg1`
-/// at depth `0x100` and an outer ring of radius `arg1 + 0x100` at depth 0 are
-/// built in the XY plane by `rsin` / `rcos`, rotated by `arg0`'s `workm` and
-/// offset by its translation, then each of the 16 segments is projected
-/// through `GsWSMATRIX` as one `POLY_G4`. The inner edge carries the `arg2`
-/// ramp `(arg2, arg2 >> 1, arg2 >> 2)` and the outer edge fades to black; a
-/// negative `gte_stflg` drops the segment.
-void glowDrawFlameBand(GfxCoord* arg0, s16 arg1, s16 arg2)
+/// Projects the four corners of one flame segment into its scratch record.
+static inline void _glowProjectFlameConeSegment(EffectBandScratch* block, s32 segmentIndex)
 {
-    EffectBandScratch* block;
-    SVECTOR*           op;
-    POLY_G4*           prim;
-    s32                i;
-    s32                next;
-    s32                ang;
-    s16                r0;
-    s16                r1;
-    u32                ramp;
-    u8                 red;
-    u8                 grn;
-    u8                 blu;
+    s32 nextIndex;
 
-    /* The ramp halves are unsigned: writing them as `(u16)arg2 >> 1` folds the
-     * widening into an `andi`, where the ROM shifts the value up and back. */
-    ramp  = (u32)arg2 << 16;
-    red   = arg2;
-    grn   = ramp >> 17;
-    blu   = ramp >> 18;
-    r1    = arg1 + 0x100;
-    block = SCRATCH_STACK_RESERVE_BLOCK(EffectBandScratch);
+    gte_ldv0(&block->topRing[segmentIndex]);
+    gte_rtps();
+    gte_stsxy(&block->sxy0);
+    nextIndex = (segmentIndex + 1) & (EFFECT_BAND_SEGMENT_COUNT - 1);
+    gte_ldv3(&block->topRing[nextIndex], &block->bottomRing[segmentIndex], &block->bottomRing[nextIndex]);
+    gte_rtpt();
+    gte_stsxy3(&block->sxy1, &block->sxy2, &block->sxy3);
+    gte_stflg(&block->projectionFlags);
+}
+
+void glowDrawFlameCone(const GfxCoord* coord, s16 innerRadius, s16 intensity)
+{
+    enum {
+        GLOW_FLAME_CONE_TRIG_SHIFT      = 12,
+        GLOW_FLAME_CONE_RING_STEP_SHIFT = 8,
+        GLOW_FLAME_CONE_SPAN            = 0x100,
+    };
+
+    EffectBandScratch* block;
+    SVECTOR*           outerVertex;
+    POLY_G4*           prim;
+    s32                segmentIndex;
+    s32                angle;
+    s16                ringRadius;
+    s16                outerRadius;
+    u32                shiftedIntensity;
+    u8                 red;
+    u8                 green;
+    u8                 blue;
+
+    // Widen before halving so green and blue use the unsigned low halfword.
+    shiftedIntensity = (u32)intensity << 16;
+    red              = intensity;
+    green            = shiftedIntensity >> 17;
+    blue             = shiftedIntensity >> 18;
+    outerRadius      = innerRadius + GLOW_FLAME_CONE_SPAN;
+    block            = SCRATCH_STACK_RESERVE_BLOCK(EffectBandScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
-    r0 = arg1;
-    for (i = 0; i < EFFECT_BAND_SEGMENT_COUNT; i++) {
-        ang                  = i << 8;
-        block->topRing[i].vx = (rsin(ang) * r0) >> 12;
-        block->topRing[i].vy = (rcos(ang) * r0) >> 12;
-        block->topRing[i].vz = 0x100;
-        gte_SetRotMatrix(&arg0->workm);
-        gte_ldv0(&block->topRing[i]);
+    ringRadius = innerRadius;
+    // Build the lit raised ring and the wider dark rim in world coordinates.
+    for (segmentIndex = 0; segmentIndex < EFFECT_BAND_SEGMENT_COUNT; segmentIndex++) {
+        angle                           = segmentIndex << GLOW_FLAME_CONE_RING_STEP_SHIFT;
+        block->topRing[segmentIndex].vx = (rsin(angle) * ringRadius) >> GLOW_FLAME_CONE_TRIG_SHIFT;
+        block->topRing[segmentIndex].vy = (rcos(angle) * ringRadius) >> GLOW_FLAME_CONE_TRIG_SHIFT;
+        block->topRing[segmentIndex].vz = GLOW_FLAME_CONE_SPAN;
+        gte_SetRotMatrix(&coord->workm);
+        gte_ldv0(&block->topRing[segmentIndex]);
         gte_rtv0();
-        gte_stsv(&block->topRing[i]);
-        block->topRing[i].vx    = (u16)block->topRing[i].vx + (u16)arg0->workm.t[0];
-        block->topRing[i].vy    = (u16)block->topRing[i].vy + (u16)arg0->workm.t[1];
-        block->topRing[i].vz    = (u16)block->topRing[i].vz + (u16)arg0->workm.t[2];
-        block->bottomRing[i].vx = (rsin(ang) * r1) >> 12;
-        op                      = &block->topRing[i] + EFFECT_BAND_SEGMENT_COUNT;
-        op->vy                  = (rcos(ang) * r1) >> 12;
-        op->vz                  = 0;
-        gte_SetRotMatrix(&arg0->workm);
-        gte_ldv0(&block->bottomRing[i]);
+        gte_stsv(&block->topRing[segmentIndex]);
+        block->topRing[segmentIndex].vx    = (u16)block->topRing[segmentIndex].vx + (u16)coord->workm.t[0];
+        block->topRing[segmentIndex].vy    = (u16)block->topRing[segmentIndex].vy + (u16)coord->workm.t[1];
+        block->topRing[segmentIndex].vz    = (u16)block->topRing[segmentIndex].vz + (u16)coord->workm.t[2];
+        block->bottomRing[segmentIndex].vx = (rsin(angle) * outerRadius) >> GLOW_FLAME_CONE_TRIG_SHIFT;
+        // Address the outer vertex through a byte view of the complete scratch block.
+        outerVertex     = (SVECTOR*)((u8*)block + segmentIndex * sizeof(SVECTOR) + sizeof(block->topRing));
+        outerVertex->vy = (rcos(angle) * outerRadius) >> GLOW_FLAME_CONE_TRIG_SHIFT;
+        outerVertex->vz = 0;
+        gte_SetRotMatrix(&coord->workm);
+        gte_ldv0(&block->bottomRing[segmentIndex]);
         gte_rtv0();
-        gte_stsv(&block->bottomRing[i]);
-        block->bottomRing[i].vx = (u16)block->bottomRing[i].vx + (u16)arg0->workm.t[0];
-        op->vy                  = (u16)op->vy + (u16)arg0->workm.t[1];
-        op->vz                  = (u16)op->vz + (u16)arg0->workm.t[2];
+        gte_stsv(&block->bottomRing[segmentIndex]);
+        block->bottomRing[segmentIndex].vx = (u16)block->bottomRing[segmentIndex].vx + (u16)coord->workm.t[0];
+        outerVertex->vy                    = (u16)outerVertex->vy + (u16)coord->workm.t[1];
+        outerVertex->vz                    = (u16)outerVertex->vz + (u16)coord->workm.t[2];
     }
+    // Project and queue each segment separately; rejected segments emit no packets.
     gte_SetRotMatrix(&GsWSMATRIX);
-    for (i = 0; i < EFFECT_BAND_SEGMENT_COUNT; i++) {
-        gte_ldv0(&block->topRing[i]);
-        gte_rtps();
-        gte_stsxy(&block->sxy0);
-        next = (i + 1) & (EFFECT_BAND_SEGMENT_COUNT - 1);
-        gte_ldv3(&block->topRing[next], &block->bottomRing[i], &block->bottomRing[next]);
-        gte_rtpt();
-        gte_stsxy3(&block->sxy1, &block->sxy2, &block->sxy3);
-        gte_stflg(&block->projectionFlags);
+    for (segmentIndex = 0; segmentIndex < EFFECT_BAND_SEGMENT_COUNT; segmentIndex++) {
+        _glowProjectFlameConeSegment(block, segmentIndex);
         if (block->projectionFlags >= 0) {
             gte_stszotz(&block->otz);
             block->otz++;
             prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
-            setRGB0(prim, red, grn, blu);
-            setRGB1(prim, red, grn, blu);
+            setRGB0(prim, red, green, blue);
+            setRGB1(prim, red, green, blue);
             setRGB2(prim, 0, 0, 0);
             setRGB3(prim, 0, 0, 0);
             prim->x0 = (u16)block->sxy0.vx;

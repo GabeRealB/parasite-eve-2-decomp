@@ -79,7 +79,7 @@ enum {
     /// with a collision pair, burst into 0x600F6 flames on a hit and fade on a wall;
     /// spawned by the pyrokinesis entry task.
     EFFECT_PYROKINESIS_CAST = EFFECT_ID(EFFECT_TASK_BANK, 0x010),
-    /// Expanding, fading flame cone (glowDrawFlameBand) drawn at the pyrokinesis launch
+    /// Expanding, fading flame cone (glowDrawFlameCone) drawn at the pyrokinesis launch
     /// point; spawned once when the Pyrokinesis projectile is launched.
     EFFECT_PYROKINESIS_LAUNCH_CONE = EFFECT_ID(EFFECT_TASK_BANK, 0x011),
     /// Spinning additive billboard quad (Gp_DrawFxQuad, or the fading func_800EB6E8
@@ -1850,15 +1850,15 @@ enum {
     /// the gRoomEffectMoteId mote outwards), stored in gRoomEffectSparkEmitterId, which the Brain Stinger
     /// spawns when it restores 0x64 HP.
     EFFECT_NEO_ARK_NORTH_PROMENADE_SPARK_EMITTER = EFFECT_ID(EFFECT_TASK_BANK, 0x272),
-    /// Fire blast: orange fade quad, an orange point light, a flame star and a ring of
+    /// Fire blast: orange fade quad, an orange point light, a flame disc and a ring of
     /// 0x60275 flames plus 0x60274; actor_521100 spawns it at the player's part 12
     /// during its grab attack.
     EFFECT_DILAPIDATED_HOUSE_FIRE_BLAST = EFFECT_ID(EFFECT_TASK_BANK, 0x273),
-    /// Expanding, fading flame cone (glowDrawFlameBand), the dilapidated house's copy
+    /// Expanding, fading flame cone (glowDrawFlameCone), the dilapidated house's copy
     /// of the pyrokinesis cone; spawned by the room's fire blast 0x60273 with a
     /// ring of 0x60275 flames.
     EFFECT_DRYFIELD_DILAPIDATED_HOUSE_FLAME_CONE = EFFECT_ID(EFFECT_TASK_BANK, 0x274),
-    /// Flame band (glowDrawFlameRing) that spins 0x80 and shrinks 8 per frame until
+    /// Flame ring (glowDrawFlameRing) that expands 0x80 and fades 8 per frame until
     /// gone; a ring of them is spawned and reparented by the room's flame burst
     /// 0x60273, which actor_521100 fires on the player.
     EFFECT_DILAPIDATED_HOUSE_FLAME_RING = EFFECT_ID(EFFECT_TASK_BANK, 0x275),

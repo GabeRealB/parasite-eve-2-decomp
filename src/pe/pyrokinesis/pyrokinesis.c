@@ -208,7 +208,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
             Gp_DrawFadeQuad(rgb, 1);
             arg0->state = 1;
             spriteQuadDraw(coord, mem->age, mem->angle, mem->period);
-            glowDrawFlameStar(coord, mem->angle, (s16)((u16)mem->scale << 16 >> 17));
+            glowDrawFlameDisc(coord, mem->angle, (s16)((u16)mem->scale << 16 >> 17));
             if (worldCollisionCountContactsByKind(work->damageBody.context.contacts, WORLD_COLLISION_CONTACT_ENEMY_BODY) != 0) {
                 worldCollisionUnlinkBody(&work->damageBody);
                 radius     = (mem->index << 9) + 0x380;
@@ -253,7 +253,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
             coord->composeStamp     = GRAPHICS_COORD_DIRTY;
             actorRenderComposeCoord(coord);
             spriteQuadDraw(coord, mem->age, mem->angle, mem->period);
-            glowDrawFlameStar(coord, mem->angle, (s16)((u16)mem->scale << 16 >> 17));
+            glowDrawFlameDisc(coord, mem->angle, (s16)((u16)mem->scale << 16 >> 17));
             if (arg0->spawnArg1.value != 0) {
                 jetConeDraw(coord, mem->age, mem->angle, 0);
                 jetConeDraw(coord, mem->age, mem->angle, 1);
@@ -331,7 +331,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
             mem->angle              = radius;
             work->damageBody.radius = radius;
             spriteQuadDraw(coord, mem->age, mem->angle, mem->period);
-            glowDrawFlameStar(coord, mem->angle, (s16)((u16)mem->scale << 16 >> 17));
+            glowDrawFlameDisc(coord, mem->angle, (s16)((u16)mem->scale << 16 >> 17));
             if (mem->angle >= 0x81) {
                 spawned = Gp_SpawnEff(EFFECT_PYROKINESIS_FLAME_PUFF, coord, 0, NULL);
                 if (spawned != NULL) {
@@ -372,8 +372,8 @@ void func_pyrokinesis_8012EF48(Task* arg0)
             }
             actorRenderComposeCoord(coord);
             spriteQuadDraw(coord, mem->age, mem->angle, mem->period);
-            glowDrawFlameStar(coord, mem->angle, (s16)((u16)mem->scale << 16 >> 17));
-            glowDrawFlameStar(coord, (s16)((u16)mem->angle * 2),
+            glowDrawFlameDisc(coord, mem->angle, (s16)((u16)mem->scale << 16 >> 17));
+            glowDrawFlameDisc(coord, (s16)((u16)mem->angle * 2),
                               (s16)((u16)mem->scale << 16 >> 17));
             mem->angle = mem->angle + 0x40;
             if (mem->angle > ((mem->index << 9) + 0x580)) {
@@ -394,8 +394,8 @@ void func_pyrokinesis_8012EF48(Task* arg0)
             }
             actorRenderComposeCoord(coord);
             spriteQuadDraw(coord, mem->age, mem->angle, mem->period);
-            glowDrawFlameStar(coord, mem->angle, (s16)((u16)mem->scale << 16 >> 17));
-            glowDrawFlameStar(coord, (s16)((u16)mem->angle * 2),
+            glowDrawFlameDisc(coord, mem->angle, (s16)((u16)mem->scale << 16 >> 17));
+            glowDrawFlameDisc(coord, (s16)((u16)mem->angle * 2),
                               (s16)((u16)mem->scale << 16 >> 17));
             mem->angle = mem->angle + 0x40;
             if (mem->angle > ((mem->index << 9) + 0x580)) {
@@ -686,7 +686,7 @@ void func_pyrokinesis_80131CE4(Task* arg0)
                 arg0->state = 1;
             }
             actorRenderComposeCoord(coord);
-            glowDrawFlameBand(arg0->extra.coordBody->coord, mem->angle, mem->scale);
+            glowDrawFlameCone(arg0->extra.coordBody->coord, mem->angle, mem->scale);
             angle      = (u16)mem->angle;
             scale      = (u16)mem->scale;
             angle     += 0x40;

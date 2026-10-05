@@ -4187,7 +4187,7 @@ void func_dryfield_dilapidated_house_80182744(Task* task)
             lightSlot->light.head.transform.coord.composeStamp = GRAPHICS_COORD_DIRTY;
             i                                                  = 0;
             spriteQuadDrawFlicker(coord, work->age, work->angle, work->period);
-            glowDrawFlameStar(coord, work->angle, work->scale >> 1);
+            glowDrawFlameDisc(coord, work->angle, work->scale >> 1);
             work->angle = 0x380;
             do {
                 eff = Gp_SpawnEff(EFFECT_DILAPIDATED_HOUSE_FLAME_RING, coord, i, NULL);
@@ -4207,8 +4207,8 @@ void func_dryfield_dilapidated_house_80182744(Task* task)
                 return;
             }
             spriteQuadDrawFlicker(coord, tick1, work->angle, work->period);
-            glowDrawFlameStar(coord, work->angle, work->scale >> 1);
-            glowDrawFlameStar(coord, (u16)work->angle * 2, work->scale >> 1);
+            glowDrawFlameDisc(coord, work->angle, work->scale >> 1);
+            glowDrawFlameDisc(coord, (u16)work->angle * 2, work->scale >> 1);
             work->angle += 0x40;
             if (work->angle >= 0x581) {
                 effectKillTask(work, task);
@@ -4256,9 +4256,9 @@ void func_dryfield_dilapidated_house_80183BF8(Task* arg0)
 
 /// Per-frame handler that runs the flame cone effect's `EffectWork` one step further:
 /// an early out while `gRoomEffectState->effectControl` is not running. It counts frames in `age`,
-/// seeds the 0xC0 / 0x100 scale/angle pair on the first frame, feeds the pair to
-/// `glowDrawFlameBand` and then steps the scale by -0x10
-/// and the angle by +0x40. Once the scale falls below 0x10 - and immediately
+/// seeds intensity 0xC0 in `scale` and inner radius 0x100 in `angle` on the first
+/// frame, passes that radius and intensity to `glowDrawFlameCone`, then fades
+/// the intensity by 0x10 and expands the radius by 0x40. Once the scale falls below 0x10 - and immediately
 /// when effect control has reached cancellation - it releases the work block.
 void func_dryfield_dilapidated_house_80183C8C(Task* arg0)
 {
@@ -4280,7 +4280,7 @@ void func_dryfield_dilapidated_house_80183C8C(Task* arg0)
         mem->angle  = 0x100;
         arg0->state = 1;
     }
-    glowDrawFlameBand(arg0->extra.coordBody->coord, mem->angle, mem->scale);
+    glowDrawFlameCone(arg0->extra.coordBody->coord, mem->angle, mem->scale);
     mem->angle += 0x40;
     mem->scale -= 0x10;
     if (mem->scale < 0x10) {
@@ -4292,8 +4292,8 @@ void func_dryfield_dilapidated_house_80183C8C(Task* arg0)
 /// `task->spawnArg2.pointer`. While `gRoomEffectState->effectControl` is running it
 /// seeds the ramp (0x80 / 0x100) on the first frame and then, every frame,
 /// clears the task coordinate's update flag, refreshes the coordinate and feeds
-/// the angle/scale pair to `glowDrawFlameRing`, stepping
-/// the scale by -8 and the angle by +0x80. Once the scale drops below 9 - and
+/// the radius and intensity held in `angle` and `scale` to `glowDrawFlameRing`,
+/// expanding the radius by 0x80 and fading the intensity by 8. Once the scale drops below 9 - and
 /// immediately when effect control has reached cancellation - it releases the work
 /// block through `effectKillTask`.
 void func_dryfield_dilapidated_house_80183D5C(Task* arg0)
