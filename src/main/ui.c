@@ -560,7 +560,7 @@ TaskDesc D_800670D0[] = {
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
     { { { TASK_BODY_NONE, 0x0 } }, NULL },
     { { { TASK_BODY_NONE, 0x0 } }, NULL },
-    { { { TASK_BODY_NONE, 0xC0 } }, Tmd_DispatchTask },
+    { { { TASK_BODY_NONE, 0xC0 } }, tmdReleaseAttachedBuffersTask },
     { { { TASK_BODY_NONE, 0xC0 } }, tmdRestoreAttachedBuffersTask },
     { { { TASK_BODY_NONE, 0x60 } }, sceneManagerTask },
     { { { TASK_BODY_NONE, 0xC0 } }, _taskNoOpCallback },

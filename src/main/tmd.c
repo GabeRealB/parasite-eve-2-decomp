@@ -904,7 +904,7 @@ static void _tmdEnableSourceLayeredTextures(const TmdSource* source)
 
 /// Hides every attached model, then advances the buffer-release task to its next state.
 ///
-/// State 0 of Tmd_DispatchTask sets only active-pass exclusion. Buffers and
+/// State 0 of tmdReleaseAttachedBuffersTask sets only active-pass exclusion. Buffers and
 /// flagged-pass selection remain intact until the subsequent release state.
 static void _tmdHideAttachedModelsTask(Task* task)
 {
@@ -937,12 +937,11 @@ static void _tmdFreeAttachedBuffersTask(Task* task)
     task->state++;
 }
 
-void Tmd_DispatchTask(Task* task)
+void tmdReleaseAttachedBuffersTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    const TaskFuncTable3 releaseStates = Tmd_TaskStates;
 
-    sp = Tmd_TaskStates;
-    sp.funcs[task->state](task);
+    releaseStates.funcs[task->state](task);
 }
 
 void gpuResetAndInvalidateModelBuffers(void)

@@ -359,9 +359,15 @@ The other payload structs live with their sole consumers: `_EvsMusicVolumeFade` 
 
 Named / matched: `enemyTeardownDelayTask` (`0xB`), `worldCoordUpdateRoomLightsTask` (`0xF`, room lights),
 `worldCoordPlayerLightingTask` (`0x10`, player/companion lights),
-`Tmd_DispatchTask` (`0x21`), `tmdRestoreAttachedBuffersTask` (`0x22`),
+`tmdReleaseAttachedBuffersTask` (`0x21`), `tmdRestoreAttachedBuffersTask` (`0x22`),
 `fadeDisplayTransitionTask` (`0x27`). The rest is `taskKill`, `func_*`, or
 `0x807xxxxx` (many type-1 with `data.model = 0x8075BED4`).
+
+`tmdReleaseAttachedBuffersTask` runs one of three states per dispatch: hide
+attached models from active drawing (0), release their primitive buffers (1),
+then kill the bodyless task (2). The first two states each advance once and
+walk the current attached-model list independently. Models and coordinates stay
+attached; buffer users, including the GPU, must finish before state 1 runs.
 
 `Gp_SpawnEnemy(bank, type, arg, parent)` is `Task_Spawn` plus a primary-heap
 `Enemy` allocation in `spawnArg2.pointer` (`Gp_AllocEnemy`). `enemyTaskExit`

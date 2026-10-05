@@ -48,11 +48,21 @@ void tmdDrawModelStream(TmdStreamWorkspace* workspace, u32 objectFlags, u32* str
 /// not test that marker, so a terminator in the opcode position is not a stop.
 u32* Tmd_DispatchStream(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
-// The per-frame callback of the task that holds the models' buffers, and the
-// states it runs in sequence. The hide and buffer-release states walk the
-// current `gTmdList`; drawing and other buffer passes use the same sentinel
-// independently of this task.
-void Tmd_DispatchTask(struct Task* task);
+/// Releases attached-model primitive buffers over successive task dispatches.
+///
+/// `task` must be live with `state` in 0..2: 0 excludes attached models from
+/// active drawing, 1 frees their non-NULL auxiliary-heap primitive buffers and
+/// clears the pointers, and 2 kills the task. Normal spawning starts at zero.
+/// Each call runs only one state; hiding and releasing each advance the state
+/// once, even for an empty list. The two passes independently visit the current
+/// `gTmdList`, leaving model and coordinate allocations attached. Hiding preserves
+/// flagged-pass selection; it does not stop every drawing pass.
+///
+/// Buffer users, including the GPU, must have finished before the release call;
+/// this callback performs no synchronization. The auxiliary heap must still own
+/// every non-NULL buffer being released. The task needs no body or payload, and
+/// its state is not bounds-checked.
+void tmdReleaseAttachedBuffersTask(struct Task* task);
 
 /// Restores missing attached-model buffers, activates successful allocations and kills the task.
 ///
