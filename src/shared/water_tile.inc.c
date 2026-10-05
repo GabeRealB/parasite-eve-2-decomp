@@ -1,16 +1,29 @@
 /* Part of the water effects library; see water_effects.h. */
 
-/// Places the water tile's corners around its projected lower-quarter anchor.
+/// Sets an upright water tile's screen corners with its anchor near the bottom.
 ///
-/// `workspace` supplies the raw screen-coordinate halves and signed pixel
-/// half-extent. Shifts round down; packet coordinates retain their low 16 bits.
-/// Both pointers are borrowed, and only the quad's screen coordinates change.
-static inline void _waterTileSetScreenCorners(POLY_FT4* quad, const EffectCentreScratch* workspace)
+/// `projection` supplies raw 16-bit GTE screen coordinates and `screenExtent`,
+/// the signed horizontal half-width in pixels. For half-width r, the top edge
+/// is r + (r >> 1) pixels above the anchor and the bottom (r >> 1) below it.
+/// The arithmetic shift rounds down, including for odd or negative extents;
+/// packet stores retain the low 16 bits of each resulting coordinate.
+/// Both pointers borrow separate live objects; only `quad`'s coordinates change,
+/// and neither pointer is retained.
+static inline void _waterTileSetScreenCorners(POLY_FT4* quad, const EffectCentreScratch* projection)
 {
-    quad->x0 = quad->x2 = workspace->screenX - workspace->screenExtent;
-    quad->x1 = quad->x3 = workspace->screenX + workspace->screenExtent;
-    quad->y0 = quad->y1 = workspace->screenY - workspace->screenExtent - (workspace->screenExtent >> 1);
-    quad->y2 = quad->y3 = workspace->screenY + (workspace->screenExtent >> 1);
+    s16 leftX;
+    s16 rightX;
+    s16 topY;
+    s16 bottomY;
+
+    leftX    = projection->screenX - projection->screenExtent;
+    quad->x0 = quad->x2 = leftX;
+    rightX              = projection->screenX + projection->screenExtent;
+    quad->x1 = quad->x3 = rightX;
+    topY                = projection->screenY - projection->screenExtent - (projection->screenExtent >> 1);
+    quad->y0 = quad->y1 = topY;
+    bottomY             = projection->screenY + (projection->screenExtent >> 1);
+    quad->y2 = quad->y3 = bottomY;
 }
 
 /// Draws one upright, camera-facing tile of the water-drift animation.
