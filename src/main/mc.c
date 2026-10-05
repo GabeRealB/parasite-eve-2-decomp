@@ -2281,7 +2281,7 @@ static void Mc_StateVerifyFinish(Task* task, McWork* work)
 
     if (work->slotsRemaining == 0) {
         if (_mcVerifySlotChecksums() && _mcVerifyFirstByteChecksum()) {
-            Game_ClearEd68();
+            playClockResetMinuteTicks();
             gDisplayState.control.flags.pendingPlayerPos = 1;
             task->state                                  = 3;
         } else {

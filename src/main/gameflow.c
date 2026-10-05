@@ -419,7 +419,7 @@ static void GameFlow_EnqueueDefaultLoad(Task* task)
     }
 }
 
-void Game_ClearEd68(void)
+void playClockResetMinuteTicks(void)
 {
     D_8005ED68 = 0;
 }
