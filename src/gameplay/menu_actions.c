@@ -1707,7 +1707,7 @@ void Gp_HelpPanelTask(Task* arg0)
             }
             break;
         case 2:
-            Text_DrawMultiLine(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0x14, Fs_GetChunkPayload(), 0x606060, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+            textDrawUiLines(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0x14, Fs_GetChunkPayload(), 0x606060, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
             status = obj->panel.control.word;
             if (status == 1) {
                 if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel | PAD_BUTTON_TRIANGLE) != 0) {
@@ -2098,7 +2098,7 @@ void Gp_DiscardWarnTask(Task* arg0)
         arg0->state += 1;
     }
     uiDrawPanelLabelWithChildFocus(&(obj)->panel, Gp_StrAttention2);
-    Text_DrawMultiLine(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, text, 0x606060, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLines(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, text, 0x606060, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
 
     child = arg0->firstChild;
     if (child != NULL) {
@@ -2379,7 +2379,11 @@ void Gp_NoticePanelTask(Task* arg0)
     }
 
     one = 1;
-    Text_DrawMultiLine(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, text, color, one, TEXT_ALIGNMENT_LEFT);
+    {
+        s32 drawMode = one;
+
+        textDrawUiLines(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, text, color, drawMode, TEXT_ALIGNMENT_LEFT);
+    }
 
     arg0->killCountdown--;
     if (obj->panel.control.word == one) {
@@ -3346,7 +3350,11 @@ static void Gp_DrawExamineCmd(UiObject* arg0, Task* arg1, u8* arg2, s32 arg3)
     }
 
     one = 1;
-    Text_DrawMultiLine(arg0, arg0->panel.contentLeft.signedValue + 2, arg0->panel.contentTop.signedValue + 0xF, arg2, arg3, one, TEXT_ALIGNMENT_LEFT);
+    {
+        s32 drawMode = one;
+
+        textDrawUiLines(arg0, arg0->panel.contentLeft.signedValue + 2, arg0->panel.contentTop.signedValue + 0xF, arg2, arg3, drawMode, TEXT_ALIGNMENT_LEFT);
+    }
 
     arg1->killCountdown--;
     if (arg0->panel.control.word == one) {
@@ -3375,7 +3383,11 @@ static void Gp_DrawPushCmd(UiObject* arg0, Task* arg1)
     }
 
     one = 1;
-    Text_DrawMultiLine(arg0, arg0->panel.contentLeft.signedValue + 2, arg0->panel.contentTop.signedValue + 0xF, text, color, one, TEXT_ALIGNMENT_LEFT);
+    {
+        s32 drawMode = one;
+
+        textDrawUiLines(arg0, arg0->panel.contentLeft.signedValue + 2, arg0->panel.contentTop.signedValue + 0xF, text, color, drawMode, TEXT_ALIGNMENT_LEFT);
+    }
 
     arg1->killCountdown--;
     if (arg0->panel.control.word == one) {
@@ -3436,7 +3448,7 @@ void Gp_DrawSpecsCmd(Task* arg0)
     func_800D3D98(obj, spawnArg, 0);
     if (CdCmd_IsIdle() & 0xFFFF) {
         text = textSkipLines(Fs_GetChunkPayload(), 4);
-        Text_DrawMultiLine(obj, obj->panel.contentLeft.signedValue + 2, 0x14, text, 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_LEFT);
+        textDrawUiLines(obj, obj->panel.contentLeft.signedValue + 2, 0x14, text, 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_LEFT);
     }
     if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm | Pad_MaskCancel | PAD_BUTTON_TRIANGLE) != 0) {

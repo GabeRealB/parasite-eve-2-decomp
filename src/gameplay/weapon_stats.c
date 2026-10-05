@@ -640,7 +640,11 @@ void Gp_AmmoListTask(Task* arg0)
         return;
     }
     uiDrawPanelLabel(&(obj)->panel, Gp_StrAttention);
-    Text_DrawMultiLine(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, Gp_StrNoWeaponEq, 0x606060, one, TEXT_ALIGNMENT_LEFT);
+    {
+        s32 drawMode = one;
+
+        textDrawUiLines(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, Gp_StrNoWeaponEq, 0x606060, drawMode, TEXT_ALIGNMENT_LEFT);
+    }
     arg0->killCountdown--;
     if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
         obj->result = USER_INTERFACE_RESULT_CANCEL;

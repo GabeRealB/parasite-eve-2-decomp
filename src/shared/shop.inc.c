@@ -904,7 +904,7 @@ static void Shop_NoticeTask(Task* task)
         task->killCountdown = 0xBC;
         task->state        += 1;
     }
-    Text_DrawMultiLine(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, text, 0x606060, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLines(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, text, 0x606060, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     task->killCountdown -= gDisplayState.frameTicks;
     if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {

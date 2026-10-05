@@ -1846,7 +1846,7 @@ void func_mist_shooting_gallery_8017FAE8(Task* task)
         obj->panel.bounds.unsignedRect.y = 0x68 - obj->panel.bounds.unsignedRect.h;
         task->state                      = task->state + 1;
     }
-    Text_DrawMultiLine(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, modeDescriptions.byMode[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode], 0x606060, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLines(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, (const u8*)modeDescriptions.byMode[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode], 0x606060, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
 }
 void func_mist_shooting_gallery_8017FBD8(void)
 {

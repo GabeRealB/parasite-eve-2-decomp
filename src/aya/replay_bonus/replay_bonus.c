@@ -666,7 +666,7 @@ void func_replay_bonus_80116964(Task* arg0)
         }
     }
     color = 0x606060;
-    Text_DrawMultiLine(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, D_replay_bonus_80119014, color, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLines(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, D_replay_bonus_80119014, color, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     child = arg0->firstChild;
     if (child != NULL) {
         childObj = child->spawnArg2.pointer;

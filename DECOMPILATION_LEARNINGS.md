@@ -15941,7 +15941,7 @@ li v1,4` order.
 An empty `do {} while (0);` inside a nearby `if` can also be required to lock
 that schedule (same role as other `do {} while (0)` notes in this file).
 
-`Text_MeasureMultiLine` is the pure example (multi-line text measure).
+`textMeasureUiTextSize` is the pure example (packed UI-text size).
 
 ## Pointer init order swaps callee-saved assignment (`s3`/`s4`)
 
@@ -15950,23 +15950,23 @@ When two long-lived pointers are captured once in the prologue
 controls which gets `$s3` vs `$s4`. Target:
 
 ```
-move  s4, zero        /* maxWidth first */
-move  s2, s4          /* height = maxWidth */
-addiu s1, sp, 0x50    /* p */
-addiu s3, sp, 0x10    /* buf */
+move  s4, zero        /* maxWidthPixels first */
+move  s2, s4          /* heightPixels = maxWidthPixels */
+addiu s1, sp, 0x50    /* measureRequest */
+addiu s3, sp, 0x10    /* lineText */
 ```
 
-With `buf = sp10; cur = index` the allocator often puts `buf` in `$s4` and the
+With `lineText = lineBuffer; cursor = text` the allocator often puts `lineText` in `$s4` and the
 accumulator in `$s3`. Swapping to:
 
 ```c
-cur = arg0;
-buf = sp10;
+cursor = text;
+lineText = lineBuffer;
 ```
 
-(after `p = &sp50` and the zero init of the accumulators) flips `buf` into
+(after `measureRequest = &request` and the zero init of the accumulators) flips `lineText` into
 `$s3` and the max-width accumulator into `$s4` without changing semantics.
-`Text_MeasureMultiLine` needs this together with the `s8`/`s32` constant trick above.
+`textMeasureUiTextSize` needs this together with the `s8`/`s32` constant trick above.
 
 The lever is the *defining statement's* position, not pointers specifically: a
 group of independent loads read into locals is the same knob. In
@@ -18795,7 +18795,7 @@ Also for multi-line loops over text (`_textParseLine` + `func_8002E53C`):
 - Reload the x formal from its home at the end of each iteration
   (`x = value`) so the target's `lw s2, 0xA4(sp)` matches.
 
-`Text_DrawMultiLine` is the pure example (multi-line sibling of single-line
+`textDrawUiLines` is the pure example (multi-line sibling of single-line
 `textDrawUiLine`).
 
 ## Scratch-head 8-byte alloc: pin `v1`/`a3`/`v0` for `move s1,v0`
@@ -19944,7 +19944,7 @@ obj = arg0;        /* late assign → prologue still does sw s4; move s4,a0 firs
 p = sp50;
 ```
 
-`Text_DrawMultiLineScroll` needed `$s4` (obj) saved before `$s3` (x); early `obj = index`
+`_textDrawUiLinesScrolled` needed `$s4` (obj) saved before `$s3` (x); early `obj = index`
 kept putting `$s3` first, while the late assign matched the target prologue.
 
 ## Volatile flags: force reload + delay-slot `lui`
@@ -28323,8 +28323,8 @@ different.
 
 ## Join timeout + confirm with `||` so `one` stays in `$s0`
 
-`one = 1` is saved in `$s0` for `Text_DrawMultiLine(..., one, 0)` and
-`status == one`. The first `padCheckButtons(0, one, mask)` should reuse
+`one = 1` is saved in `$s0` for `textDrawUiLines(..., drawMode, 0)`, where
+`drawMode` aliases `one`, and `status == one`. The first `padCheckButtons(0, one, mask)` should reuse
 that register (`move a1,s0`). Splitting the timeout and confirm into
 separate `if` / `else if` arms with the same body rematerializes the
 constant (`li a1,1`).
@@ -28333,7 +28333,10 @@ Write them as one `||` so `one` stays live into the call:
 
 ```c
 one = 1;
-Text_DrawMultiLine(obj, x, y, text, color, one, 0);
+{
+    s32 drawMode = one;
+    textDrawUiLines(obj, x, y, text, color, drawMode, 0);
+}
 task->killCountdown--;
 if (obj->status == one) {
     if ((task->killCountdown <= 0) ||

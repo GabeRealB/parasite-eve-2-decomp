@@ -34,6 +34,12 @@ enum {
     TEXT_UI_LINE_PANEL_BASELINE_OFFSET = 3,
 };
 
+/// Copied-line storage includes NUL; successive large UI lines are 15 pixels apart.
+enum {
+    TEXT_UI_LINE_BUFFER_BYTES   = 64,
+    TEXT_UI_LINE_ADVANCE_PIXELS = 15,
+};
+
 static s32 _textParseLine(const u8** cursor, u8* line);
 
 /// Initializes large UI metrics, packed RGB and byte-narrowed line selectors.
@@ -49,9 +55,6 @@ static s32 _textParseLine(const u8** cursor, u8* line);
 static inline void _textDrawLine(const UiObject* object, s32 x, s32 y, const u8* text, u32 colorRgb, s32 drawMode, s32 alignment);
 
 static void _textDrawUiLineVoid(const UiObject* object, s32 x, s32 y, const u8* text, u32 colorRgb, s32 drawMode, s32 alignment);
-
-static s32 Text_DrawMultiLineScroll(UiObject* object, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 arg5, s32 arg6,
-                                    s32 arg7, s32 arg8);
 
 /// Fill palettes (64 entries) for Text_LoadClutImages → (256, 243).
 static u_long Text_FillClutPixels[] = {
@@ -225,23 +228,24 @@ static inline void _textDrawLine(const UiObject* object, s32 x, s32 y, const u8*
     }
 }
 
-s32 Text_DrawMultiLine(UiObject* object, s32 arg1, s32 arg2, const u8* arg3, s32 arg4, s32 arg5, s32 arg6)
+s32 textDrawUiLines(const UiObject* object, s32 startX, s32 startY, const u8* text, u32 colorRgb, s32 drawMode, s32 alignment)
 {
-    u8        buf[0x40];
-    const u8* cur;
-    s32       x;
-    s32       y;
-    s32       ret;
+    u8        lineBuffer[TEXT_UI_LINE_BUFFER_BYTES];
+    const u8* cursor;
+    s32       lineX;
+    s32       lineY;
+    s32       lineEnd;
 
-    x   = arg1;
-    y   = arg2;
-    cur = arg3;
+    lineX  = startX;
+    lineY  = startY;
+    cursor = text;
+    // Each copied line gets a fresh style and the same horizontal anchor.
     do {
-        ret = _textParseLine(&cur, buf);
-        _textDrawLine(object, x, y, buf, arg4, arg5, arg6);
-        x  = arg1;
-        y += 0xF;
-    } while (ret != TEXT_LINE_END);
+        lineEnd = _textParseLine(&cursor, lineBuffer);
+        _textDrawLine(object, lineX, lineY, lineBuffer, colorRgb, drawMode, alignment);
+        lineX  = startX;
+        lineY += TEXT_UI_LINE_ADVANCE_PIXELS;
+    } while (lineEnd != TEXT_LINE_END);
 
     return 0;
 }
@@ -262,50 +266,67 @@ s32 textMeasureLineWidth(const u8* text)
     return -request.x;
 }
 
-s32 Text_MeasureMultiLine(u8* arg0)
+u32 textMeasureUiTextSize(const u8* text)
 {
-    u8           sp10[0x40];
-    TextDrawReq  request;
-    s32          maxWidth;
-    s32          height;
-    TextDrawReq* requestPtr;
-    u8*          buf;
-    const u8*    cur;
-    s32          ret;
-    s32          tmp;
-    s8           c;
+    /// The packed size stores width in the low halfword and height in the high halfword.
+    enum { TEXT_UI_SIZE_HEIGHT_SHIFT = 16 };
 
-    maxWidth   = 0;
-    height     = maxWidth;
-    requestPtr = &request;
-    cur        = arg0;
-    buf        = sp10;
+    /// Initializes a zero-anchor, large-face request for width measurement.
+    ///
+    /// `requestValue` is a TextDrawReq lvalue; `requestAddress` points at that
+    /// same object. `byteSelector` and `glyphSelector` are distinct s8 and s32
+    /// staging lvalues. Arguments are evaluated repeatedly and must have no
+    /// side effects. Expands to statements requiring a braced caller block,
+    /// with no captured locals. Sets all fields except the unused vBias.
+    /// Byte-to-word staging in the caller's scope preserves store scheduling.
+#define TEXT_INIT_UI_MEASURE_REQUEST(requestValue, requestAddress, byteSelector, glyphSelector) \
+    (byteSelector)               = TEXT_GLYPH_TABLE_LARGE;                                      \
+    (requestValue).x             = 0;                                                           \
+    (requestValue).y             = 0;                                                           \
+    (requestValue).otIndex       = 0;                                                           \
+    (requestValue).colorRgb      = 0;                                                           \
+    (glyphSelector)              = (byteSelector);                                              \
+    (requestAddress)->glyphTable = (glyphSelector);                                             \
+    (byteSelector)               = TEXT_ALIGNMENT_RIGHT;                                        \
+    (requestAddress)->alignment  = (byteSelector);                                              \
+    (requestValue).drawMode      = TEXT_DRAW_FILL_ONLY
+
+    u8           lineBuffer[TEXT_UI_LINE_BUFFER_BYTES];
+    TextDrawReq  request;
+    s32          maxWidthPixels;
+    s32          heightPixels;
+    TextDrawReq* measureRequest;
+    const u8*    lineText;
+    const u8*    cursor;
+    s32          lineEnd;
+    s32          glyphTableValue;
+    s8           selectorByte;
+
+    maxWidthPixels = 0;
+    heightPixels   = maxWidthPixels;
+    measureRequest = &request;
+    cursor         = text;
+    lineText       = lineBuffer;
 
     do {
-        ret = _textParseLine(&cur, sp10);
+        lineEnd = _textParseLine(&cursor, lineBuffer);
 
-        c                      = TEXT_GLYPH_TABLE_LARGE;
-        request.x              = 0;
-        request.y              = 0;
-        request.otIndex        = 0;
-        request.colorRgb       = 0;
-        tmp                    = c;
-        requestPtr->glyphTable = tmp;
-        c                      = TEXT_ALIGNMENT_RIGHT;
-        requestPtr->alignment  = c;
-        request.drawMode       = TEXT_DRAW_FILL_ONLY;
-        textAlignLine(requestPtr, buf);
+        TEXT_INIT_UI_MEASURE_REQUEST(request, measureRequest, selectorByte, glyphTableValue);
+#undef TEXT_INIT_UI_MEASURE_REQUEST
+        textAlignLine(measureRequest, lineText);
 
-        if (maxWidth < -request.x) {
+        if (maxWidthPixels < -request.x) {
+            // Keep selector initialization scheduled inside the parse loop.
             do {
             } while (0);
-            maxWidth = -request.x;
+            maxWidthPixels = -request.x;
         }
-        height += 0xF;
-        cur     = buf;
-    } while (ret != TEXT_LINE_END);
+        heightPixels += TEXT_UI_LINE_ADVANCE_PIXELS;
+        // Retained traversal: reparse the copy in place, discarding the source suffix.
+        cursor = lineText;
+    } while (lineEnd != TEXT_LINE_END);
 
-    return (height << 16) | maxWidth;
+    return (heightPixels << TEXT_UI_SIZE_HEIGHT_SHIFT) | maxWidthPixels;
 }
 
 s32 textDrawUiLine(const UiObject* object, s32 x, s32 y, const u8* text, u32 colorRgb, s32 drawMode, s32 alignment)
@@ -347,41 +368,63 @@ static void _textDrawUiLineVoid(const UiObject* object, s32 x, s32 y, const u8* 
     textDrawUiLine(object, x, y, text, colorRgb, drawMode, alignment);
 }
 
-static s32 Text_DrawMultiLineScroll(UiObject* object, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 arg5, s32 arg6,
-                                    s32 arg7, s32 arg8)
+/// Draws a line-limited, scrolled suffix of large encoded UI text.
+///
+/// Borrows both inputs, with placement, style, 63-content-byte line capacity
+/// and drawing resources as in `textDrawUiLines`. `scrollPosition` is encoded
+/// as (skipped lines << 4) | upward pixel offset (0..15), for nonnegative values;
+/// drawn lines remain 15 pixels apart. Negative values retain the signed shift:
+/// the resulting nonpositive skip count leaves the source unchanged.
+/// Skipping uses `textSkipLines`, so it counts LF and \\n, ignores CR and \\z,
+/// and requires a readable preceding byte if the source starts with N/n.
+///
+/// A nonzero pixel offset adds one to `lineLimit` to include the partial line.
+/// At least one line is parsed even with a nonpositive limit. The effective
+/// limit must allow its increment/decrement without s32 overflow. No clipping
+/// is installed. Returns 1 only when text ends before the effective limit is
+/// exhausted; exhaustion returns 0 even if the last drawn line ends the text.
+static s32 _textDrawUiLinesScrolled(const UiObject* object, s32 startX, s32 startY, const u8* text, u32 colorRgb, s32 drawMode, s32 alignment,
+                                    s32 lineLimit, s32 scrollPosition)
 {
-    u8        buf[0x40];
-    const u8* cur;
-    s32       x;
-    s32       y;
-    s32       ret;
-    s32       result;
+    /// Low bits encode pixels within a scroll step; the remaining bits count lines.
+    enum {
+        TEXT_UI_SCROLL_LINE_SHIFT = 4,
+        TEXT_UI_SCROLL_PIXEL_MASK = (1 << TEXT_UI_SCROLL_LINE_SHIFT) - 1,
+    };
 
-    x      = arg1;
-    y      = arg2;
-    result = 1;
-    cur    = arg3;
-    if ((arg8 & 0xF) != 0) {
-        arg7 += 1;
-        y    -= arg8 & 0xF;
+    u8        lineBuffer[TEXT_UI_LINE_BUFFER_BYTES];
+    const u8* cursor;
+    s32       lineX;
+    s32       lineY;
+    s32       lineEnd;
+    s32       endedBeforeLimit;
+
+    lineX            = startX;
+    lineY            = startY;
+    endedBeforeLimit = 1;
+    cursor           = text;
+    // Include the partial first line before advancing to the requested source suffix.
+    if ((scrollPosition & TEXT_UI_SCROLL_PIXEL_MASK) != 0) {
+        lineLimit += 1;
+        lineY     -= scrollPosition & TEXT_UI_SCROLL_PIXEL_MASK;
     }
-    arg8 >>= 4;
-    if (arg8 != 0) {
-        cur = textSkipLines(arg3, arg8);
+    scrollPosition >>= TEXT_UI_SCROLL_LINE_SHIFT;
+    if (scrollPosition != 0) {
+        cursor = textSkipLines(text, scrollPosition);
     }
     do {
-        ret = _textParseLine(&cur, buf);
-        _textDrawLine(object, x, y, buf, arg4, arg5, arg6);
-        arg7 -= 1;
-        if (arg7 <= 0) {
-            result = 0;
+        lineEnd = _textParseLine(&cursor, lineBuffer);
+        _textDrawLine(object, lineX, lineY, lineBuffer, colorRgb, drawMode, alignment);
+        lineLimit -= 1;
+        if (lineLimit <= 0) {
+            endedBeforeLimit = 0;
             break;
         }
-        x  = arg1;
-        y += 0xF;
-    } while (ret != TEXT_LINE_END);
+        lineX  = startX;
+        lineY += TEXT_UI_LINE_ADVANCE_PIXELS;
+    } while (lineEnd != TEXT_LINE_END);
 
-    return result;
+    return endedBeforeLimit;
 }
 
 void Text_LoadClutImages(void)

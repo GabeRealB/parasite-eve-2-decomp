@@ -283,7 +283,23 @@ void textAlignLine(TextDrawReq* request, const u8* text);
 /// the preceding byte without tracking whether it has advanced yet.
 const u8* textSkipLines(const u8* text, s32 lineCount);
 
-s32 Text_DrawMultiLine(UiObject* object, s32 arg1, s32 arg2, const u8* arg3, s32 arg4, s32 arg5, s32 arg6);
+/// Draws all encoded UI-text lines with the large face, 15 pixels apart.
+///
+/// `startX` is each line's alignment anchor; `startY` places the first line.
+/// Placement, packed RGB, byte-narrowed `TEXT_DRAW_*`/`TEXT_ALIGNMENT_*`
+/// selectors and drawing resources follow `textDrawUiLine`. Each line starts
+/// with the supplied style. A hidden panel suppresses drawing but still parses
+/// the entire text. Neither the object nor text is modified or retained.
+///
+/// LF, CR, CR+LF and case-insensitive \\n split lines; NUL and \\z end text.
+/// Doubled backslashes collapse to one in the copy. Each copied line must fit
+/// in 64 bytes (at most 63 content bytes plus NUL); capacity is not checked.
+/// Source bytes must be readable through the terminator, including the byte
+/// following each Shift-JIS lead. Copied commands and glyphs must satisfy
+/// `textDrawString`'s operand-readability and glyph-index requirements.
+/// At least one line is parsed, including for empty text, and a final break
+/// produces an empty last line. No clipping is installed. Always returns zero.
+s32 textDrawUiLines(const UiObject* object, s32 startX, s32 startY, const u8* text, u32 colorRgb, s32 drawMode, s32 alignment);
 
 /// Measures one encoded UI-text line with the large face, in pixels.
 ///

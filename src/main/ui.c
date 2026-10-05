@@ -2307,7 +2307,7 @@ void Ui_SizeFromText(UiPanel* panel, u8* arg1, s32 arg2, s32 arg3)
 {
     struct {
         union {
-            s32 as32;
+            u32 as32;
             struct {
                 u16 w;
                 u16 h;
@@ -2319,7 +2319,7 @@ void Ui_SizeFromText(UiPanel* panel, u8* arg1, s32 arg2, s32 arg3)
     s32 t;
     s32 u;
 
-    sp.dims.as32 = Text_MeasureMultiLine(arg1);
+    sp.dims.as32 = textMeasureUiTextSize(arg1);
     _uiComputePanelInnerRect(panel, &panel->bounds.rect, &sp.rect);
     if ((panel->style & USER_INTERFACE_PANEL_STYLE_MASK) == USER_INTERFACE_PANEL_TITLE_STYLE) {
         sp.rect.y += 9;

@@ -297,8 +297,10 @@ void Gp_AttachListTask(Task* task)
         return;
     }
     if (state == 2) {
+        s32 drawMode = one;
+
         uiDrawPanelLabel(&(obj)->panel, Gp_StrNotice);
-        Text_DrawMultiLine(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, Gp_StrWrongAmmo2, 0x606060, one, TEXT_ALIGNMENT_LEFT);
+        textDrawUiLines(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, Gp_StrWrongAmmo2, 0x606060, drawMode, TEXT_ALIGNMENT_LEFT);
     } else {
         uiDrawPanelLabel(&(obj)->panel, Gp_StrEquip);
         func_800CF6E8(obj, val);

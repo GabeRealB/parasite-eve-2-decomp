@@ -867,12 +867,12 @@ Text_BootTask               = 0x8002F98C; // type:func
 //--- PA: 0x201E0   VA: 0x8002F9E0   subsegment: c, 201E0
 //--------------------------------------------------------------------
 _textParseLine               = 0x8002F9E0; // type:func
-Text_DrawMultiLine               = 0x8002FB84; // type:func
+textDrawUiLines               = 0x8002FB84; // type:func
 textMeasureLineWidth               = 0x8002FCBC; // type:func
-Text_MeasureMultiLine               = 0x8002FD08; // type:func
+textMeasureUiTextSize               = 0x8002FD08; // type:func
 textDrawUiLine               = 0x8002FDCC; // type:func
 _textDrawUiLineVoid               = 0x8002FEAC; // type:func
-Text_DrawMultiLineScroll               = 0x8002FEE0; // type:func
+_textDrawUiLinesScrolled               = 0x8002FEE0; // type:func
 Text_LoadClutImages               = 0x80030074; // type:func
 Mc_BuildFileName               = 0x800300EC; // type:func
 Mc_InitDualBankBuffers               = 0x800301FC; // type:func

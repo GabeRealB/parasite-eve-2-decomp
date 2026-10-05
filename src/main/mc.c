@@ -2477,7 +2477,7 @@ void Mc_DrawSlotDetails(UiObject* object, McWork* work, s32 slot, s32 arg3, s32 
                 textDrawUiLine(object, x, y, McText_LoadAbortedCorrupted, 0x606060, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
                 return;
             }
-            Text_DrawMultiLine(object, x, y, McText_LoadAbortedCorrupted, 0x37A78, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+            textDrawUiLines(object, x, y, McText_LoadAbortedCorrupted, 0x37A78, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
             return;
         }
         x                           = arg3 + object->panel.contentLeft.signedValue + 2;
