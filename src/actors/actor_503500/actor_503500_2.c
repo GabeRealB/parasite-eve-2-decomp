@@ -1894,7 +1894,7 @@ void func_actor_503500_80132D90(s32 arg0)
 
 void func_actor_503500_80132DB4(s32 arg0)
 {
-    func_shelter_r48_8017E27C(arg0 & 0xFF);
+    shelterR48SetBackgroundSpritesVisible(arg0 & 0xFF);
 }
 
 void func_actor_503500_80132DD4(void)

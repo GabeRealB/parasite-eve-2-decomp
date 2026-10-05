@@ -72,7 +72,7 @@ D_shelter_r48_80182F88 = 0x80182F88; // size:0x24 defined:True
 D_shelter_r48_80182FAC = 0x80182FAC; // size:0xC defined:True
 D_shelter_r48_8018BE30 = 0x8018BE30; // size:0x24 defined:True
 
-func_shelter_r48_8017E27C = 0x8017E27C; // type:func
+shelterR48SetBackgroundSpritesVisible = 0x8017E27C; // type:func
 
 func_shelter_r48_8017E3B8 = 0x8017E3B8; // type:func
 
@@ -80,7 +80,7 @@ func_shelter_r48_8017E4C4 = 0x8017E4C4; // type:func
 
 func_shelter_r48_8017EC18 = 0x8017EC18; // type:func
 
-func_shelter_r48_8017F6C0 = 0x8017F6C0; // type:func
+shelterR48WaterDriftTaskU16 = 0x8017F6C0; // type:func
 
 shelterR48SpriteDriftTask = 0x80180210; // type:func
 
@@ -88,14 +88,20 @@ func_shelter_r48_8017E704 = 0x8017E704; // type:func
 
 func_shelter_r48_8017E9B8 = 0x8017E9B8; // type:func
 
-func_shelter_r48_8017EFD8 = 0x8017EFD8; // type:func
+shelterR48RingWallTask = 0x8017EFD8; // type:func
 
 func_shelter_r48_801810B0 = 0x801810B0; // type:func
 
-func_shelter_r48_8018147C = 0x8018147C; // type:func
+shelterR48ShockwaveRingsTask = 0x8018147C; // type:func
 
-func_shelter_r48_80181704 = 0x80181704; // type:func
+shelterR48PinkRingFlashTask = 0x80181704; // type:func
 _waterDrawSpinU16 = 0x8017FB7C; // type:func
 _waterDrawTileU16 = 0x8017FF74; // type:func
 _shelterR48DrawBankedDriftSprite = 0x80180804; // type:func
 _shelterR48DrawAlternateDriftSprite = 0x80180c5c; // type:func
+_shelterR48DrawRingBand = 0x8017f124; // type:func
+_shelterR48DrawGlowBeam = 0x80181c14; // type:func
+_shelterR48DrawRoomGlow = 0x8018258c; // type:func
+_shelterR48WaterRefractionTask = 0x8017d660; // type:func
+_shelterR48IgnoreRoomCommand = 0x8017e088; // type:func
+_shelterR48RoomIdleState = 0x8017e214; // type:func

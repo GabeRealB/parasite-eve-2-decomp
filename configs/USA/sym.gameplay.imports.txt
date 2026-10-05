@@ -1363,17 +1363,17 @@ func_shelter_r48_8017E9B8 = 0x8017E9B8; // type:func absolute:True owner=shelter
 
 func_shelter_r48_8017EC18 = 0x8017EC18; // type:func absolute:True owner=shelter_r48
 
-func_shelter_r48_8017EFD8 = 0x8017EFD8; // type:func absolute:True owner=shelter_r48
+shelterR48RingWallTask = 0x8017EFD8; // type:func absolute:True owner=shelter_r48
 
-func_shelter_r48_8017F6C0 = 0x8017F6C0; // type:func absolute:True owner=shelter_r48
+shelterR48WaterDriftTaskU16 = 0x8017F6C0; // type:func absolute:True owner=shelter_r48
 
 shelterR48SpriteDriftTask = 0x80180210; // type:func absolute:True owner=shelter_r48
 
 func_shelter_r48_801810B0 = 0x801810B0; // type:func absolute:True owner=shelter_r48
 
-func_shelter_r48_8018147C = 0x8018147C; // type:func absolute:True owner=shelter_r48 shared=rooms
+shelterR48ShockwaveRingsTask = 0x8018147C; // type:func absolute:True owner=shelter_r48 shared=rooms
 
-func_shelter_r48_80181704 = 0x80181704; // type:func absolute:True owner=shelter_r48
+shelterR48PinkRingFlashTask = 0x80181704; // type:func absolute:True owner=shelter_r48
 
 D_acropolis_bridge_80189A9C = 0x80189A9C; // absolute:True owner=acropolis_bridge shared=rooms
 

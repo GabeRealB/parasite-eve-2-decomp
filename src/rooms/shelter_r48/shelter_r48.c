@@ -95,12 +95,12 @@ extern u8              D_shelter_r48_8018BE54[6][16];
 extern EffectBandShape D_shelter_r48_80182FE8[];
 
 static void func_shelter_r48_8017E1A4(Task* arg0);
-static void func_shelter_r48_8017E214(Task* task);
-static void func_shelter_r48_8017F124(EffectWork* work, GfxCoord* coord, s32 part);
-static void func_shelter_r48_8018258C(SVECTOR* arg0, s32 arg1, s32 arg2);
+static void _shelterR48RoomIdleState(Task* task);
+static void _shelterR48DrawRingBand(const EffectWork* work, const GfxCoord* coord, s32 bandIndex);
+static void _shelterR48DrawRoomGlow(const SVECTOR* worldPoint, s32 radiusScale, s32 packedColor);
 static void _shelterR48DrawBankedDriftSprite(const GfxCoord* coord, u16 frameAndPalette, s16 size, s16 angle);
 static void _shelterR48DrawAlternateDriftSprite(const GfxCoord* coord, u16 frameAndPalette, s16 size, s16 angle);
-static void func_shelter_r48_80181C14(GfxCoord* coord, s16 size, s32 yaw, s32 color);
+static void _shelterR48DrawGlowBeam(const GfxCoord* coord, s16 radiusScale, s32 yaw, s32 packedColor);
 
 extern AreaResource D_shelter_r48_8018BB30[3];
 extern AreaResource D_shelter_r48_8018BB54[3];
@@ -113,12 +113,12 @@ extern WorldCollisionTrigger D_shelter_r48_8018BC78[5];
 extern WorldCoordRoomLights  D_shelter_r48_8018B658[1];
 s32                          func_shelter_r48_8017DF50(Task*, s32, s32, s32);
 s32                          func_shelter_r48_8017E044(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32                          func_shelter_r48_8017E088(Task*, s32, s32, s32);
+static s32                   _shelterR48IgnoreRoomCommand(Task* task, s32 messageId, s32 firstArg, s32 secondArg);
 s32                          func_shelter_r48_8017E090(Task*, s32, RoomEventMsg*, s32);
 s32                          func_shelter_r48_8017E0EC(Task*, s32, s32, s32);
 
 extern TmdBone D_shelter_r48_8018BE30[1];
-void           func_shelter_r48_8017D660(Task*);
+static void    _shelterR48WaterRefractionTask(Task* task);
 
 u32 D_shelter_r48_80182F7C[3] = {
     TMD_STREAM_GROUP_END,
@@ -130,13 +130,13 @@ TmdSource D_shelter_r48_80182F88[1] = {
     { 0, 0x4000, 0, 1, NULL, NULL, NULL, D_shelter_r48_8018BE30, D_shelter_r48_80182F7C },
 };
 
-TaskDesc D_shelter_r48_80182FAC = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_shelter_r48_8017D660, { .model = D_shelter_r48_80182F88 } };
+TaskDesc D_shelter_r48_80182FAC = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _shelterR48WaterRefractionTask, { .model = D_shelter_r48_80182F88 } };
 
 TaskMessageEntry D_shelter_r48_80182FB8[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_r48_8017E044 },
     { 5105, func_shelter_r48_8017DF50 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_r48_8017E090 },
-    { ROOM_MESSAGE_COMMAND, func_shelter_r48_8017E088 },
+    { ROOM_MESSAGE_COMMAND, _shelterR48IgnoreRoomCommand },
     { ROOM_MESSAGE_ACTOR_EVENT, func_shelter_r48_8017E0EC },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
@@ -1754,350 +1754,385 @@ TmdBone D_shelter_r48_8018BE30[1] = { 0 };
 
 u8 D_shelter_r48_8018BE54[6][16] = { 0 };
 
-void func_shelter_r48_8017D660(Task* arg0)
+/// Prepares scanline back-projection onto the water plane, overwriting GTE rotation.
+static inline void _shelterR48PrepareWaterProjection(WaterRefractionScratch* scratch, const DisplayState* display, s32 planeY)
 {
-    DisplayState*           disp;
-    TmdObject*              tmd;
-    WaterRefractionScratch* block;
-    POLY_FT4*               prim;
-    u8*                     ptr;
-    s32                     otBuf;
-    s32                     view;
-    s32                     mode;
-    s32                     shift;
-    s32                     ang2;
-    s32                     ang;
-    s32                     y;
-    s32                     yTop;
-    s32                     x0;
-    s32                     x1;
-    s32                     nprims;
-    s32                     clip;
-    s32                     otOff;
-    s32                     fade;
-    s32                     scale;
-    s32                     xNeg;
-    s32                     wave;
-    s32                     wave1;
-    s32                     start;
-    s32                     end;
-    s32                     dist;
-    s32                     z;
-    s32                     otz;
-    s32                     i;
-    s32                     yOff;
-    s32                     fadeLen;
-    s32                     xMin;
-    s32                     xMax;
-    s32                     xLeft;
-    s32                     xRight;
-    s32                     xL;
-    s32                     xR;
-    s32                     v;
-    s32                     edge;
+    TransposeMatrix(&gGfxViewCoord.workm, &scratch->transposedView);
+    scratch->viewTranslation.vx = gGfxViewCoord.workm.t[0];
+    scratch->viewTranslation.vy = gGfxViewCoord.workm.t[1];
+    scratch->viewTranslation.vz = gGfxViewCoord.workm.t[2];
+    _gfxRotateSv(&scratch->transposedView, &scratch->viewTranslation);
+    scratch->depth        = scratch->viewTranslation.vy + planeY;
+    scratch->depth       *= display->screenDistance;
+    scratch->screenRow.vx = 0;
+    scratch->screenRow.vz = display->screenDistance;
+    gte_SetRotMatrix(&scratch->transposedView);
+}
+
+/// Redraws the visible water surface as displaced scanlines of the current framebuffer.
+///
+/// Requires the room's TMD-body task and its source's two 0x4000-byte packet
+/// halves. GAME_FLAG_100 must be nonzero, and only views 2, 3, 4, 6, 7, 8 and
+/// 18 draw. At most 48 rows split at screen X=0 consume 96 POLY_FT4 packets
+/// (3840 bytes per half). The initial active update allocates the buffer;
+/// allocation must succeed. Task teardown releases the TMD and its buffer.
+/// `killCountdown` holds a wrapping 16-bit wave phase, advanced by 32 only
+/// while actor control is running. Screen positions are pixels centred on
+/// (160,120); phases use 4096 units per turn. Requires scratch-stack space
+/// and the current framebuffer and ordering table; overwrites GTE state.
+static void _shelterR48WaterRefractionTask(Task* task)
+{
+    enum {
+        SHELTER_R48_REFRACTION_BUFFER_HALF_BYTES = 0x4000,
+        SHELTER_R48_REFRACTION_PLANE_Y           = 0xD02,
+        SHELTER_R48_REFRACTION_PHASE_STEP        = 0x20,
+        SHELTER_R48_REFRACTION_HALF_WIDTH        = 160,
+        SHELTER_R48_REFRACTION_HALF_HEIGHT       = 120,
+        SHELTER_R48_REFRACTION_FADE_ROWS         = 8,
+        SHELTER_R48_REFRACTION_TRIG_SHIFT        = 12,
+        SHELTER_R48_REFRACTION_QUAD_WORDS        = 9,
+        SHELTER_R48_REFRACTION_RAW_QUAD_CODE     = 0x2D,
+        SHELTER_R48_REFRACTION_RIGHT_PAGE_U_BIAS = 32,
+        SHELTER_R48_REFRACTION_MAX_DEPTH         = 0x3FFF,
+        SHELTER_R48_REFRACTION_SORT_DEPTH_MASK   = 0x3FFF,
+        SHELTER_R48_REFRACTION_STATE_NEW         = 0
+    };
+    DisplayState*           display;
+    TmdObject*              model;
+    WaterRefractionScratch* scratch;
+    POLY_FT4*               quad;
+    u8*                     bufferBytes;
+    s32                     displayBuffer;
+    s32                     viewId;
+    s32                     clipMode;
+    s32                     wrapShift;
+    s32                     primaryPhase;
+    s32                     secondaryPhase;
+    s32                     row;
+    s32                     centredRow;
+    s32                     leftX;
+    s32                     rightX;
+    s32                     spanCount;
+    s32                     clipRow;
+    s32                     sortBias;
+    s32                     waveWeight;
+    s32                     waveScale;
+    s32                     screenLeft;
+    s32                     waveOffset;
+    s32                     sampleOffset;
+    s32                     firstRow;
+    s32                     endRow;
+    s32                     rowsFromStart;
+    s32                     rowDepth;
+    s32                     sortIndex;
+    s32                     spanIndex;
+    s32                     wrapFadeRow;
+    s32                     fadeRows;
+    s32                     viewLeftX;
+    s32                     viewRightX;
+    s32                     clipLeftX;
+    s32                     clipRightX;
+    s32                     rightPageLeftX;
+    s32                     leftPageRightX;
+    s32                     sampleRow;
+    s32                     wrappedEdge;
     s32                     sine;
     s32                     cosine;
 
-    tmd   = arg0->extra.tmd;
-    otBuf = gDisplayState.otBuffer;
-    view  = gGameSession->location.loc.view;
+    model         = task->extra.tmd;
+    displayBuffer = gDisplayState.otBuffer;
+    viewId        = gGameSession->location.loc.view;
     if (gameFlagGetNibble(GAME_FLAG_100) == 0) {
         return;
     }
-    shift = 0;
-    switch (view) {
+    wrapShift = 0;
+    switch (viewId) {
         case 2:
-            start = 0xC3;
-            end   = 0xF0;
-            xMin  = 1;
-            xMax  = 0xA0;
+            firstRow   = 0xC3;
+            endRow     = 0xF0;
+            viewLeftX  = 1;
+            viewRightX = SHELTER_R48_REFRACTION_HALF_WIDTH;
             break;
         case 3:
-            start = 0x68;
-            end   = 0x88;
-            xMin  = 0;
-            xMax  = 0x44;
+            firstRow   = 0x68;
+            endRow     = 0x88;
+            viewLeftX  = 0;
+            viewRightX = 0x44;
             break;
         case 4:
-            start = 0x84;
-            end   = 0xAA;
-            xMin  = -0xB;
-            xMax  = 0x3E;
+            firstRow   = 0x84;
+            endRow     = 0xAA;
+            viewLeftX  = -0xB;
+            viewRightX = 0x3E;
             break;
         case 6:
-            start = 0xC2;
-            end   = 0xF0;
-            xMin  = 4;
-            xMax  = 0xA0;
+            firstRow   = 0xC2;
+            endRow     = 0xF0;
+            viewLeftX  = 4;
+            viewRightX = SHELTER_R48_REFRACTION_HALF_WIDTH;
             break;
         case 7:
         case 18:
-            start = 0x6A;
-            end   = 0x8A;
-            xMin  = -5;
-            xMax  = 0x46;
+            firstRow   = 0x6A;
+            endRow     = 0x8A;
+            viewLeftX  = -5;
+            viewRightX = 0x46;
             break;
         case 8:
-            start = 0x7B;
-            end   = 0xAB;
-            xMin  = -0x11;
-            xMax  = 0x78;
+            firstRow   = 0x7B;
+            endRow     = 0xAB;
+            viewLeftX  = -0x11;
+            viewRightX = 0x78;
             break;
         default:
             return;
     }
-    mode    = 0;
-    clip    = 0;
-    scale   = 0x1000;
-    fade    = 0x1000;
-    otOff   = 0;
-    yOff    = 0;
-    fadeLen = 8;
-    xLeft   = -0xA0;
-    xRight  = 0xA0;
-    if (arg0->state == 0) {
-        tmd->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
-        tmdAllocPrimitiveBuffer(tmd);
-        arg0->state++;
+    clipMode    = 0;
+    clipRow     = 0;
+    waveScale   = ONE;
+    waveWeight  = ONE;
+    sortBias    = 0;
+    wrapFadeRow = 0;
+    fadeRows    = SHELTER_R48_REFRACTION_FADE_ROWS;
+    clipLeftX   = -SHELTER_R48_REFRACTION_HALF_WIDTH;
+    clipRightX  = SHELTER_R48_REFRACTION_HALF_WIDTH;
+    if (task->state == SHELTER_R48_REFRACTION_STATE_NEW) {
+        model->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
+        tmdAllocPrimitiveBuffer(model);
+        task->state++;
     }
-    disp = &gDisplayState;
-    ptr  = tmd->buffer;
-    if (disp->otBuffer != 0) {
-        ptr += 0x4000;
+    display     = &gDisplayState;
+    bufferBytes = model->buffer;
+    if (display->otBuffer != 0) {
+        bufferBytes += SHELTER_R48_REFRACTION_BUFFER_HALF_BYTES;
     }
-    prim = (POLY_FT4*)ptr - 1;
+    // Preincrement packet traversal is retained to preserve the instruction schedule.
+    quad = (POLY_FT4*)bufferBytes - 1;
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
-        arg0->killCountdown = (u16)arg0->killCountdown + 0x20;
+        task->killCountdown = (u16)task->killCountdown + SHELTER_R48_REFRACTION_PHASE_STEP;
     }
-    ang2 = arg0->killCountdown * 2;
-    ang  = arg0->killCountdown;
+    primaryPhase   = task->killCountdown * 2;
+    secondaryPhase = task->killCountdown;
     SCRATCH_STACK_RESERVE_BLOCK(WaterRefractionScratch);
-    block = SCRATCH_STACK_CURSOR(WaterRefractionScratch);
-    TransposeMatrix(&gGfxViewCoord.workm, &block->transposedView);
-    block->viewTranslation.vx = gGfxViewCoord.workm.t[0];
-    block->viewTranslation.vy = gGfxViewCoord.workm.t[1];
-    block->viewTranslation.vz = gGfxViewCoord.workm.t[2];
-    _gfxRotateSv(&block->transposedView, &block->viewTranslation);
-    block->depth        = block->viewTranslation.vy + 0xD02;
-    block->depth       *= disp->screenDistance;
-    block->screenRow.vx = 0;
-    block->screenRow.vz = disp->screenDistance;
-    gte_SetRotMatrix(&block->transposedView);
-    for (y = start; y < end; y++) {
-        yTop                = y - 0x78;
-        block->screenRow.vy = yTop;
-        gte_ldv0(&block->screenRow);
+    scratch = SCRATCH_STACK_CURSOR(WaterRefractionScratch);
+    // Back-project each scanline onto the horizontal water plane for sorting.
+    _shelterR48PrepareWaterProjection(scratch, display, SHELTER_R48_REFRACTION_PLANE_Y);
+    for (row = firstRow; row < endRow; row++) {
+        centredRow            = row - SHELTER_R48_REFRACTION_HALF_HEIGHT;
+        scratch->screenRow.vy = centredRow;
+        gte_ldv0(&scratch->screenRow);
         gte_rtv0();
-        x0     = xMin;
-        x1     = xMax;
-        nprims = 1;
-        if (clip > 0) {
-            if (y < clip + 8) {
-                x0 = xLeft;
-                if (shift > 0) {
-                    x1 = x0 + shift;
+        leftX     = viewLeftX;
+        rightX    = viewRightX;
+        spanCount = 1;
+        if (clipRow > 0) {
+            if (row < clipRow + 8) {
+                leftX = clipLeftX;
+                if (wrapShift > 0) {
+                    rightX = leftX + wrapShift;
                 } else {
-                    x1 = xRight;
-                    x0 = x1 + shift;
+                    rightX = clipRightX;
+                    leftX  = rightX + wrapShift;
                 }
-                if (clip < y) {
-                    nprims = 2;
+                if (clipRow < row) {
+                    spanCount = 2;
                 }
             }
-        } else if ((clip < 0) && (-clip < y)) {
-            x0 = xLeft;
-            if (shift > 0) {
-                x1 = x0 + shift;
+        } else if ((clipRow < 0) && (-clipRow < row)) {
+            leftX = clipLeftX;
+            if (wrapShift > 0) {
+                rightX = leftX + wrapShift;
             } else {
-                x1 = xRight;
-                x0 = x1 + shift;
+                rightX = clipRightX;
+                leftX  = rightX + wrapShift;
             }
         }
-        sine    = rsin(ang2);
-        cosine  = rcos(ang + 0x134);
-        sine   += 0x2000;
-        wave1   = cosine + sine;
-        wave1 >>= 9;
-        if (fade == 0) {
-            wave1 = (wave1 * scale) >> 12;
+        sine           = rsin(primaryPhase);
+        cosine         = rcos(secondaryPhase + 0x134);
+        sine          += 0x2000;
+        sampleOffset   = cosine + sine;
+        sampleOffset >>= 9;
+        if (waveWeight == 0) {
+            sampleOffset = (sampleOffset * waveScale) >> SHELTER_R48_REFRACTION_TRIG_SHIFT;
         }
-        wave  = wave1;
-        wave1 = wave + 1;
-        if (start != 1) {
-            dist = y - start;
-            if (dist < fadeLen) {
+        waveOffset   = sampleOffset;
+        sampleOffset = waveOffset + 1;
+        if (firstRow != 1) {
+            rowsFromStart = row - firstRow;
+            if (rowsFromStart < fadeRows) {
                 do {
                     do {
                         do {
                             do {
-                                wave1  = wave >> ((fadeLen - dist) >> 1);
-                                wave1 += 1;
+                                sampleOffset  = waveOffset >> ((fadeRows - rowsFromStart) >> 1);
+                                sampleOffset += 1;
                             } while (0);
                         } while (0);
                     } while (0);
                 } while (0);
             }
         }
-        gte_stsv(&block->rotatedRow);
-        if (block->rotatedRow.vy > 0) {
-            otz   = block->depth / block->rotatedRow.vy;
-            otz >>= 2;
+        gte_stsv(&scratch->rotatedRow);
+        if (scratch->rotatedRow.vy > 0) {
+            sortIndex   = scratch->depth / scratch->rotatedRow.vy;
+            sortIndex >>= 2;
         } else {
-            otz = 0x3FFF;
+            sortIndex = SHELTER_R48_REFRACTION_MAX_DEPTH;
         }
-        v    = yTop + 0x78 + wave1;
-        z    = otz;
-        otz  = ((z << gDisplayState.otDepthShift) & 0x3FFF) >> 4;
-        otz += otOff;
-        if (v >= 0xEF) {
-            v = 0x1DC - v;
+        sampleRow  = centredRow + SHELTER_R48_REFRACTION_HALF_HEIGHT + sampleOffset;
+        rowDepth   = sortIndex;
+        sortIndex  = ((rowDepth << gDisplayState.otDepthShift) & SHELTER_R48_REFRACTION_SORT_DEPTH_MASK) >> 4;
+        sortIndex += sortBias;
+        if (sampleRow >= 0xEF) {
+            sampleRow = 0x1DC - sampleRow;
         }
-        if (mode == 1) {
-            xNeg = -0xA0;
-            if (y < 0x7D) {
-                x0 = xNeg;
-                x1 = 0xA0;
+        if (clipMode == 1) {
+            screenLeft = -SHELTER_R48_REFRACTION_HALF_WIDTH;
+            if (row < 0x7D) {
+                leftX  = screenLeft;
+                rightX = SHELTER_R48_REFRACTION_HALF_WIDTH;
             } else {
-                x0 = xNeg;
-                if (y < 0xB3) {
-                    nprims = 2;
+                leftX = screenLeft;
+                if (row < 0xB3) {
+                    spanCount = 2;
                 }
-                x1 = -0x59;
+                rightX = -0x59;
             }
-        } else if (mode == 2) {
-            if (y < 0x83) {
-                x0 = xNeg;
-                x1 = 0xA0;
+        } else if (clipMode == 2) {
+            if (row < 0x83) {
+                leftX  = screenLeft;
+                rightX = SHELTER_R48_REFRACTION_HALF_WIDTH;
             } else {
-                if (y < 0xB7) {
-                    nprims = 2;
-                    x0     = 0x57;
+                if (row < 0xB7) {
+                    spanCount = 2;
+                    leftX     = 0x57;
                 } else {
-                    x0 = 0x57;
+                    leftX = 0x57;
                 }
-                x1 = 0xA0;
+                rightX = SHELTER_R48_REFRACTION_HALF_WIDTH;
             }
-        } else if (mode == 3) {
-            nprims = 1;
-            if (y < 0x43) {
-                x0 = xNeg;
-                x1 = 0xA0;
+        } else if (clipMode == 3) {
+            spanCount = 1;
+            if (row < 0x43) {
+                leftX  = screenLeft;
+                rightX = SHELTER_R48_REFRACTION_HALF_WIDTH;
             } else {
-                nprims = 2;
+                spanCount = 2;
             }
         }
-        i = 0;
-        if (nprims != 0) {
+        spanIndex = 0;
+        if (spanCount != 0) {
             do {
-                if (mode == 1) {
-                    if (i != 0) {
-                        x0 = 0x3C;
-                        x1 = 0xA0;
+                if (clipMode == 1) {
+                    if (spanIndex != 0) {
+                        leftX  = 0x3C;
+                        rightX = SHELTER_R48_REFRACTION_HALF_WIDTH;
                     }
-                } else if (mode == 2) {
-                    if (i == 1) {
-                        x0 = xNeg;
-                        x1 = -0x69;
+                } else if (clipMode == 2) {
+                    if (spanIndex == 1) {
+                        leftX  = screenLeft;
+                        rightX = -0x69;
                     }
-                } else if (mode == 3) {
-                    if (i == 0) {
-                        if (y < 0x43) {
-                            x0 = xNeg;
-                            x1 = 0xA0;
+                } else if (clipMode == 3) {
+                    if (spanIndex == 0) {
+                        if (row < 0x43) {
+                            leftX  = screenLeft;
+                            rightX = SHELTER_R48_REFRACTION_HALF_WIDTH;
                         } else {
-                            x0 = xNeg;
-                            x1 = -0x57;
+                            leftX  = screenLeft;
+                            rightX = -0x57;
                         }
                     } else {
-                        if (y < 0xC1) {
-                            x0 = 0x5D;
-                            x1 = 0xA0;
+                        if (row < 0xC1) {
+                            leftX  = 0x5D;
+                            rightX = SHELTER_R48_REFRACTION_HALF_WIDTH;
                         } else {
-                            x0 = 0x2A;
-                            x1 = 0xA0;
+                            leftX  = 0x2A;
+                            rightX = SHELTER_R48_REFRACTION_HALF_WIDTH;
                         }
                     }
-                } else if (i == 1) {
-                    if (y - yOff < fadeLen) {
-                        wave1 = wave >> ((fadeLen - (y - yOff)) >> 1);
-                        v     = yTop + 0x79 + wave1;
-                        if (v >= 0xEF) {
-                            v = 0x1DC - v;
+                } else if (spanIndex == 1) {
+                    if (row - wrapFadeRow < fadeRows) {
+                        sampleOffset = waveOffset >> ((fadeRows - (row - wrapFadeRow)) >> 1);
+                        sampleRow    = centredRow + 0x79 + sampleOffset;
+                        if (sampleRow >= 0xEF) {
+                            sampleRow = 0x1DC - sampleRow;
                         }
                     }
-                    edge = shift - 0x140;
-                    if (shift <= 0) {
-                        edge = shift + 0x140;
+                    wrappedEdge = wrapShift - 0x140;
+                    if (wrapShift <= 0) {
+                        wrappedEdge = wrapShift + 0x140;
                     }
-                    x0 = xLeft;
-                    if (edge > 0) {
-                        x1 = edge + x0;
+                    leftX = clipLeftX;
+                    if (wrappedEdge > 0) {
+                        rightX = wrappedEdge + leftX;
                     } else {
-                        x1 = xRight;
-                        x0 = edge + x1;
+                        rightX = clipRightX;
+                        leftX  = wrappedEdge + rightX;
                     }
                 }
-                if (x1 > 0) {
-                    prim++;
-                    prim->y1    = yTop;
-                    prim->y0    = yTop;
-                    prim->y3    = yTop + 1;
-                    prim->y2    = yTop + 1;
-                    prim->tpage = getTPage(2, 0, 0x80, otBuf << 8);
-                    xL          = x0;
-                    if (x0 < 0) {
-                        xL = 0;
+                // Split at X=0 because the framebuffer spans two texture pages.
+                if (rightX > 0) {
+                    quad++;
+                    quad->y1       = centredRow;
+                    quad->y0       = centredRow;
+                    quad->y3       = centredRow + 1;
+                    quad->y2       = centredRow + 1;
+                    quad->tpage    = getTPage(2, 0, 0x80, displayBuffer << 8);
+                    rightPageLeftX = leftX;
+                    if (leftX < 0) {
+                        rightPageLeftX = 0;
                     }
-                    prim->x2 = xL;
-                    prim->x0 = xL;
-                    prim->u2 = xL + 0x20;
-                    prim->u0 = xL + 0x20;
-                    prim->x3 = x1;
-                    prim->x1 = x1;
-                    prim->u3 = x1 + 0x20;
-                    prim->u1 = x1 + 0x20;
-                    prim->v1 = v + (otBuf << 4);
-                    prim->v0 = v + (otBuf << 4);
-                    prim->v3 = v + (otBuf << 4) + 1;
-                    prim->v2 = v + (otBuf << 4) + 1;
-                    setlen(prim, 9);
-                    setcode(prim, 0x2D);
-                    addPrim(&gGpuCurrentOt[otz], prim);
+                    quad->x2 = rightPageLeftX;
+                    quad->x0 = rightPageLeftX;
+                    quad->u2 = rightPageLeftX + SHELTER_R48_REFRACTION_RIGHT_PAGE_U_BIAS;
+                    quad->u0 = rightPageLeftX + SHELTER_R48_REFRACTION_RIGHT_PAGE_U_BIAS;
+                    quad->x3 = rightX;
+                    quad->x1 = rightX;
+                    quad->u3 = rightX + SHELTER_R48_REFRACTION_RIGHT_PAGE_U_BIAS;
+                    quad->u1 = rightX + SHELTER_R48_REFRACTION_RIGHT_PAGE_U_BIAS;
+                    quad->v1 = sampleRow + (displayBuffer << 4);
+                    quad->v0 = sampleRow + (displayBuffer << 4);
+                    quad->v3 = sampleRow + (displayBuffer << 4) + 1;
+                    quad->v2 = sampleRow + (displayBuffer << 4) + 1;
+                    setlen(quad, SHELTER_R48_REFRACTION_QUAD_WORDS);
+                    setcode(quad, SHELTER_R48_REFRACTION_RAW_QUAD_CODE);
+                    addPrim(&gGpuCurrentOt[sortIndex], quad);
                 }
-                if (x0 <= 0) {
-                    prim++;
-                    prim->y1    = yTop;
-                    prim->y0    = yTop;
-                    prim->y2    = (prim->y3 = yTop + 1);
-                    prim->tpage = getTPage(2, 0, 0, otBuf << 8);
-                    xR          = x1;
-                    if (x1 > 0) {
-                        xR = 0;
+                if (leftX <= 0) {
+                    quad++;
+                    quad->y1       = centredRow;
+                    quad->y0       = centredRow;
+                    quad->y2       = (quad->y3 = centredRow + 1);
+                    quad->tpage    = getTPage(2, 0, 0, displayBuffer << 8);
+                    leftPageRightX = rightX;
+                    if (rightX > 0) {
+                        leftPageRightX = 0;
                     }
-                    prim->u2 = x0 - 0x60;
-                    prim->u0 = x0 - 0x60;
-                    prim->u3 = (x0 - 0x60) + (xR - x0);
-                    prim->u1 = (x0 - 0x60) + (xR - x0);
-                    prim->x2 = x0;
-                    prim->x0 = x0;
-                    prim->x3 = xR;
-                    prim->x1 = xR;
-                    prim->v1 = v + (otBuf << 4);
-                    prim->v0 = v + (otBuf << 4);
-                    prim->v3 = v + (otBuf << 4) + 1;
-                    prim->v2 = v + (otBuf << 4) + 1;
-                    setlen(prim, 9);
-                    setcode(prim, 0x2D);
-                    addPrim(&gGpuCurrentOt[otz], prim);
+                    quad->u2 = leftX - 0x60;
+                    quad->u0 = leftX - 0x60;
+                    quad->u3 = (leftX - 0x60) + (leftPageRightX - leftX);
+                    quad->u1 = (leftX - 0x60) + (leftPageRightX - leftX);
+                    quad->x2 = leftX;
+                    quad->x0 = leftX;
+                    quad->x3 = leftPageRightX;
+                    quad->x1 = leftPageRightX;
+                    quad->v1 = sampleRow + (displayBuffer << 4);
+                    quad->v0 = sampleRow + (displayBuffer << 4);
+                    quad->v3 = sampleRow + (displayBuffer << 4) + 1;
+                    quad->v2 = sampleRow + (displayBuffer << 4) + 1;
+                    setlen(quad, SHELTER_R48_REFRACTION_QUAD_WORDS);
+                    setcode(quad, SHELTER_R48_REFRACTION_RAW_QUAD_CODE);
+                    addPrim(&gGpuCurrentOt[sortIndex], quad);
                 }
-                i += 1;
-            } while (i < nprims);
+                spanIndex += 1;
+            } while (spanIndex < spanCount);
         }
-        ang2 += 0x1F;
-        if (z >= 0x301) {
-            ang += 0xC5 + (z - 0x300) / 4;
+        primaryPhase += 0x1F;
+        if (rowDepth >= 0x301) {
+            secondaryPhase += 0xC5 + (rowDepth - 0x300) / 4;
         } else {
-            ang += 0xC5;
+            secondaryPhase += 0xC5;
         }
     }
     SCRATCH_STACK_RELEASE_BLOCK(WaterRefractionScratch);
@@ -2138,7 +2173,7 @@ s32 func_shelter_r48_8017DF50(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 /// State handlers of the room task `func_shelter_r48_8017E224` runs: its
 /// setup, an idle state, and `taskKill`.
 static const TaskFuncTable3 D_shelter_r48_8017D608 = {
-    { func_shelter_r48_8017E1A4, func_shelter_r48_8017E214, taskKill }
+    { func_shelter_r48_8017E1A4, _shelterR48RoomIdleState, taskKill }
 };
 
 /// Message-table handler for message 0x13EE: copies the incoming record onto
@@ -2150,8 +2185,11 @@ s32 func_shelter_r48_8017E044(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventM
     return 1;
 }
 
-/// Message-table handler for message 0x13F0: does nothing and answers 0.
-s32 func_shelter_r48_8017E088(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores the room-command message and returns zero.
+///
+/// Installed for ROOM_MESSAGE_COMMAND on the room task. Neither payload word
+/// is inspected, and the receiver and message ID are unused.
+static s32 _shelterR48IgnoreRoomCommand(Task* task, s32 messageId, s32 firstArg, s32 secondArg)
 {
     return 0;
 }
@@ -2196,10 +2234,10 @@ static void func_shelter_r48_8017E1A4(Task* arg0)
     arg0->state = (s32)(arg0->state + 1);
 }
 
-/// The room task's idle state. It reserves a stack frame it never uses.
-static void func_shelter_r48_8017E214(Task* task)
+/// Leaves the initialized room task idle until another state is selected.
+static void _shelterR48RoomIdleState(Task* task)
 {
-    char pad[0x10];
+    char stackReservation[0x10]; // Unused storage retained for the callback's stack adjustment.
 }
 
 /// Runs one tick of the room task through the three-state table
@@ -2213,54 +2251,58 @@ void func_shelter_r48_8017E224(Task* task)
     sp.funcs[task->state](task);
 }
 
-void func_shelter_r48_8017E27C(u8 arg0)
+void shelterR48SetBackgroundSpritesVisible(u8 visible)
 {
-    GameLocationKey* loc = &gGameSession->location.loc;
-    SpriteView*      rec = Gp_SprtTables[loc->stage - 1]->areaViews[loc->area - 1];
+    enum {
+        SHELTER_R48_BACKGROUND_SPRITES_HIDE = 0,
+        SHELTER_R48_BACKGROUND_SPRITES_SHOW = 1
+    };
+    GameLocationKey* location = &gGameSession->location.loc;
+    SpriteView*      views    = Gp_SprtTables[location->stage - 1]->areaViews[location->area - 1];
     SpriteBatch*     batches;
 
-    if (arg0 == 0) {
-        batches           = rec[1].batches;
+    if (visible == SHELTER_R48_BACKGROUND_SPRITES_HIDE) {
+        batches           = views[1].batches;
         batches[1].hidden = 1;
         batches[3].hidden = 1;
-        batches           = rec[2].batches;
+        batches           = views[2].batches;
         batches[1].hidden = 1;
         batches[4].hidden = 1;
-        batches           = rec[3].batches;
+        batches           = views[3].batches;
         batches[1].hidden = 1;
         batches[4].hidden = 1;
-        batches           = rec[5].batches;
+        batches           = views[5].batches;
         batches[2].hidden = 1;
         batches[3].hidden = 1;
-        batches           = rec[6].batches;
+        batches           = views[6].batches;
         batches[1].hidden = 1;
         batches[4].hidden = 1;
-        batches           = rec[7].batches;
+        batches           = views[7].batches;
         batches[1].hidden = 1;
         batches[5].hidden = 1;
-        batches           = rec[17].batches;
+        batches           = views[17].batches;
         batches[1].hidden = 1;
         batches[5].hidden = 1;
-    } else if (arg0 == 1) {
-        batches           = rec[1].batches;
+    } else if (visible == SHELTER_R48_BACKGROUND_SPRITES_SHOW) {
+        batches           = views[1].batches;
         batches[1].hidden = 0;
         batches[3].hidden = 0;
-        batches           = rec[2].batches;
+        batches           = views[2].batches;
         batches[1].hidden = 0;
         batches[4].hidden = 0;
-        batches           = rec[3].batches;
+        batches           = views[3].batches;
         batches[1].hidden = 0;
         batches[4].hidden = 0;
-        batches           = rec[5].batches;
+        batches           = views[5].batches;
         batches[2].hidden = 0;
         batches[3].hidden = 0;
-        batches           = rec[6].batches;
+        batches           = views[6].batches;
         batches[1].hidden = 0;
         batches[4].hidden = 0;
-        batches           = rec[7].batches;
+        batches           = views[7].batches;
         batches[1].hidden = 0;
         batches[5].hidden = 0;
-        batches           = rec[17].batches;
+        batches           = views[17].batches;
         batches[1].hidden = 0;
         batches[5].hidden = 0;
     }
@@ -2284,9 +2326,9 @@ void func_shelter_r48_8017E3B8(Task* task)
     }
     if (viewMask & 0x401D8) {
         if (gameFlagGetNibble(GAME_FLAG_100) == 1) {
-            func_shelter_r48_8018258C(&D_shelter_r48_8018300C, 0x100, 0x5C40);
+            _shelterR48DrawRoomGlow(&D_shelter_r48_8018300C, 0x100, 0x5C40);
         } else if (gameFlagGetNibble(GAME_FLAG_100) == 2) {
-            func_shelter_r48_8018258C(&D_shelter_r48_8018300C, 0x100, 0x504C);
+            _shelterR48DrawRoomGlow(&D_shelter_r48_8018300C, 0x100, 0x504C);
         }
     }
 }
@@ -2542,125 +2584,166 @@ void func_shelter_r48_8017EC18(Task* task)
     effectKillTask(work, task);
 }
 
-void func_shelter_r48_8017EFD8(Task* task)
+void shelterR48RingWallTask(Task* task)
 {
+    enum {
+        SHELTER_R48_RING_WALL_STATE_NEW          = 0,
+        SHELTER_R48_RING_WALL_STATE_FADING       = 1,
+        SHELTER_R48_RING_WALL_INITIAL_BRIGHTNESS = 128,
+        SHELTER_R48_RING_WALL_FADE_STEP          = 8,
+        SHELTER_R48_RING_WALL_RADIUS_STEP        = 512,
+        SHELTER_R48_RING_WALL_SPREAD_STEP        = 256
+    };
     EffectWork* work;
     GfxCoord*   coord;
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
-        func_shelter_r48_8017F124(work, coord, 0);
-        func_shelter_r48_8017F124(work, coord, 1);
-        func_shelter_r48_8017F124(work, coord, 2);
+        _shelterR48DrawRingBand(work, coord, 0);
+        _shelterR48DrawRingBand(work, coord, 1);
+        _shelterR48DrawRingBand(work, coord, 2);
         if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             return;
         }
     } else {
         work->age++;
-        if (task->state == 0) {
+        if (task->state == SHELTER_R48_RING_WALL_STATE_NEW) {
             work->age   = 1;
-            work->scale = 0x80;
-            task->state = 1;
+            work->scale = SHELTER_R48_RING_WALL_INITIAL_BRIGHTNESS;
+            task->state = SHELTER_R48_RING_WALL_STATE_FADING;
         }
-        if (work->scale >= 9) {
-            work->scale -= 8;
-            work->angle += 0x200;
-            work->step  += 0x100;
-            func_shelter_r48_8017F124(work, coord, 0);
-            func_shelter_r48_8017F124(work, coord, 1);
-            func_shelter_r48_8017F124(work, coord, 2);
+        if (work->scale >= SHELTER_R48_RING_WALL_FADE_STEP + 1) {
+            work->scale -= SHELTER_R48_RING_WALL_FADE_STEP;
+            work->angle += SHELTER_R48_RING_WALL_RADIUS_STEP;
+            work->step  += SHELTER_R48_RING_WALL_SPREAD_STEP;
+            _shelterR48DrawRingBand(work, coord, 0);
+            _shelterR48DrawRingBand(work, coord, 1);
+            _shelterR48DrawRingBand(work, coord, 2);
             return;
         }
     }
     effectKillTask(work, task);
 }
 
-/// Draws one of the ring bands of the effect as sixteen textured `POLY_FT4`
-/// segments. Builds an inner and an outer 16-vertex ring in the XZ plane from
-/// the work's radii plus the band's `D_shelter_r48_80182FE8` offsets, moves them
-/// into world space through `coord`, then projects each segment and picks its
-/// texture cell from the band's `D_shelter_r48_8018BE54` row and the work's age.
-static void func_shelter_r48_8017F124(EffectWork* work, GfxCoord* coord, s32 part)
+/// Projects one of sixteen ring segments and selects its animated texture cell.
+///
+/// Requires initialized rings, bandIndex 0..5 and segmentIndex 0..15, with
+/// GsWSMATRIX already loaded. Writes four screen positions and final flags;
+/// keeps the final depth in the GTE. The unsigned return preserves frame
+/// narrowing before the caller uses it as a texture-cell index.
+static inline u16 _shelterR48ProjectRingSegment(EffectBandScratch* scratch, const EffectWork* work, s32 bandIndex, s32 segmentIndex)
 {
-    EffectBandScratch* block;
-    SVECTOR*           op;
-    POLY_FT4*          prim;
-    EffectBandShape*   row;
-    s32                i;
-    s32                next;
-    s32                ang;
-    s32                u;
-    u16                idx;
-    s16                r0;
-    s16                r1;
-    u16                y;
-    u16                f28;
+    enum { SHELTER_R48_RING_FRAME_COUNT = 6 };
+    s32 nextSegmentIndex;
+    u16 textureFrame;
+    gte_ldv0(&scratch->topRing[segmentIndex]);
+    gte_rtps();
+    gte_stsxy(&scratch->sxy0);
+    nextSegmentIndex = (segmentIndex + 1) & (EFFECT_BAND_SEGMENT_COUNT - 1);
+    gte_ldv3(&scratch->topRing[nextSegmentIndex], &scratch->bottomRing[segmentIndex], &scratch->bottomRing[nextSegmentIndex]);
+    gte_rtpt();
+    textureFrame = (D_shelter_r48_8018BE54[bandIndex][segmentIndex] + work->age) % SHELTER_R48_RING_FRAME_COUNT;
+    gte_stsxy3(&scratch->sxy1, &scratch->sxy2, &scratch->sxy3);
+    gte_stflg(&scratch->projectionFlags);
+    return textureFrame;
+}
 
-    row   = &D_shelter_r48_80182FE8[part];
-    f28   = work->period;
-    r1    = work->angle;
-    y     = f28 + row->lift;
-    r1   += row->baseRadius;
-    r0    = r1 + work->step + row->spread;
-    block = SCRATCH_STACK_RESERVE_BLOCK(EffectBandScratch);
+/// Draws one animated textured band between a base rim and a raised rim.
+///
+/// `bandIndex` is 0..5 in both the shape and per-segment phase tables. Each
+/// rim has 16 vertices: angle/step give base radius/spread and period gives
+/// lift, all in local coordinate units with halfword wrapping. `coord` is
+/// borrowed with workm composed for GsWSMATRIX. Age selects one of six
+/// 40-texel texture cells; scale's low byte modulates RGB. Bands 0..2 and
+/// 3..5 use different palettes. The caller initializes the phase table.
+/// Queues at most 16 semitransparent quads, rejecting negative final GTE
+/// flags. Requires scratch space and primitive capacity; retains no pointer.
+static void _shelterR48DrawRingBand(const EffectWork* work, const GfxCoord* coord, s32 bandIndex)
+{
+    enum {
+        SHELTER_R48_RING_FRAME_TEXELS  = 40,
+        SHELTER_R48_RING_TOP_V         = 96,
+        SHELTER_R48_RING_BOTTOM_V      = 135,
+        SHELTER_R48_RING_PALETTE_SPLIT = 3,
+        SHELTER_R48_RING_WALL_CLUT     = 0x42C6,
+        SHELTER_R48_SHOCKWAVE_CLUT     = 0x4282,
+        SHELTER_R48_RING_TEXTURE_PAGE  = 0x2A,
+        SHELTER_R48_RING_QUAD_CODE     = 0x2E,
+        SHELTER_R48_RING_QUAD_WORDS    = 9,
+        SHELTER_R48_RING_TRIG_SHIFT    = 12
+    };
+    EffectBandScratch* scratch;
+    SVECTOR*           baseVertex;
+    POLY_FT4*          quad;
+    EffectBandShape*   shape;
+    s32                segmentIndex;
+    s32                angle;
+    s32                leftU;
+    u16                textureFrame;
+    s16                raisedRadius;
+    s16                baseRadius;
+    u16                lift;
+    u16                animatedLift;
+
+    shape        = &D_shelter_r48_80182FE8[bandIndex];
+    animatedLift = work->period;
+    baseRadius   = work->angle;
+    lift         = animatedLift + shape->lift;
+    baseRadius  += shape->baseRadius;
+    raisedRadius = baseRadius + work->step + shape->spread;
+    scratch      = SCRATCH_STACK_RESERVE_BLOCK(EffectBandScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
-    for (i = 0; i < EFFECT_BAND_SEGMENT_COUNT; i++) {
-        ang                  = i << 8;
-        block->topRing[i].vx = (rsin(ang) * r0) >> 12;
-        block->topRing[i].vy = -y;
-        block->topRing[i].vz = (rcos(ang) * r0) >> 12;
+    // Build the two rims in local space, then retain their wrapped world positions.
+    for (segmentIndex = 0; segmentIndex < EFFECT_BAND_SEGMENT_COUNT; segmentIndex++) {
+        angle                             = segmentIndex << 8;
+        scratch->topRing[segmentIndex].vx = (rsin(angle) * raisedRadius) >> SHELTER_R48_RING_TRIG_SHIFT;
+        scratch->topRing[segmentIndex].vy = -lift;
+        scratch->topRing[segmentIndex].vz = (rcos(angle) * raisedRadius) >> SHELTER_R48_RING_TRIG_SHIFT;
         gte_SetRotMatrix(&coord->workm);
-        gte_ldv0(&block->topRing[i]);
+        gte_ldv0(&scratch->topRing[segmentIndex]);
         gte_rtv0();
-        gte_stsv(&block->topRing[i]);
-        block->topRing[i].vx    = (u16)block->topRing[i].vx + (u16)coord->workm.t[0];
-        block->topRing[i].vy    = (u16)block->topRing[i].vy + (u16)coord->workm.t[1];
-        block->topRing[i].vz    = (u16)block->topRing[i].vz + (u16)coord->workm.t[2];
-        block->bottomRing[i].vx = (rsin(ang) * r1) >> 12;
-        op                      = &block->topRing[i] + EFFECT_BAND_SEGMENT_COUNT;
-        op->vy                  = 0;
-        op->vz                  = (rcos(ang) * r1) >> 12;
+        gte_stsv(&scratch->topRing[segmentIndex]);
+        scratch->topRing[segmentIndex].vx    = (u16)scratch->topRing[segmentIndex].vx + (u16)coord->workm.t[0];
+        scratch->topRing[segmentIndex].vy    = (u16)scratch->topRing[segmentIndex].vy + (u16)coord->workm.t[1];
+        scratch->topRing[segmentIndex].vz    = (u16)scratch->topRing[segmentIndex].vz + (u16)coord->workm.t[2];
+        scratch->bottomRing[segmentIndex].vx = (rsin(angle) * baseRadius) >> SHELTER_R48_RING_TRIG_SHIFT;
+        baseVertex                           = (SVECTOR*)((u8*)scratch + segmentIndex * sizeof(SVECTOR) + sizeof(scratch->topRing));
+        baseVertex->vy                       = 0;
+        baseVertex->vz                       = (rcos(angle) * baseRadius) >> SHELTER_R48_RING_TRIG_SHIFT;
         gte_SetRotMatrix(&coord->workm);
-        gte_ldv0(&block->bottomRing[i]);
+        gte_ldv0(&scratch->bottomRing[segmentIndex]);
         gte_rtv0();
-        gte_stsv(&block->bottomRing[i]);
-        block->bottomRing[i].vx = (u16)block->bottomRing[i].vx + (u16)coord->workm.t[0];
-        op->vy                  = (u16)op->vy + (u16)coord->workm.t[1];
-        op->vz                  = (u16)op->vz + (u16)coord->workm.t[2];
+        gte_stsv(&scratch->bottomRing[segmentIndex]);
+        scratch->bottomRing[segmentIndex].vx = (u16)scratch->bottomRing[segmentIndex].vx + (u16)coord->workm.t[0];
+        baseVertex->vy                       = (u16)baseVertex->vy + (u16)coord->workm.t[1];
+        baseVertex->vz                       = (u16)baseVertex->vz + (u16)coord->workm.t[2];
     }
+    // Projection rejection consumes no primitive packet.
     gte_SetRotMatrix(&GsWSMATRIX);
-    for (i = 0; i < EFFECT_BAND_SEGMENT_COUNT; i++) {
-        gte_ldv0(&block->topRing[i]);
-        gte_rtps();
-        gte_stsxy(&block->sxy0);
-        next = (i + 1) & (EFFECT_BAND_SEGMENT_COUNT - 1);
-        gte_ldv3(&block->topRing[next], &block->bottomRing[i], &block->bottomRing[next]);
-        gte_rtpt();
-        idx = (D_shelter_r48_8018BE54[part][i] + work->age) % 6;
-        gte_stsxy3(&block->sxy1, &block->sxy2, &block->sxy3);
-        gte_stflg(&block->projectionFlags);
-        if (block->projectionFlags >= 0) {
-            gte_stszotz(&block->otz);
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setlen(prim, 9);
-            prim->code = 0x2E;
-            setRGB0(prim, *(u8*)&work->scale, *(u8*)&work->scale, *(u8*)&work->scale);
-            prim->tpage = 0x2A;
-            prim->clut  = part < 3 ? 0x42C6 : 0x4282;
-            u           = idx * 0x28;
-            setUV4(prim, u, 0x60, u + 0x27, 0x60, u, 0x87, u + 0x27, 0x87);
-            prim->x0 = (u16)block->sxy0.vx;
-            prim->y0 = (u16)block->sxy0.vy;
-            prim->x1 = (u16)block->sxy1.vx;
-            prim->y1 = (u16)block->sxy1.vy;
-            prim->x2 = (u16)block->sxy2.vx;
-            prim->y2 = (u16)block->sxy2.vy;
-            prim->x3 = (u16)block->sxy3.vx;
-            prim->y3 = (u16)block->sxy3.vy;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
+    for (segmentIndex = 0; segmentIndex < EFFECT_BAND_SEGMENT_COUNT; segmentIndex++) {
+        textureFrame = _shelterR48ProjectRingSegment(scratch, work, bandIndex, segmentIndex);
+        if (scratch->projectionFlags >= 0) {
+            gte_stszotz(&scratch->otz);
+            quad           = gGpuPrimCursor;
+            gGpuPrimCursor = quad + 1;
+            setlen(quad, SHELTER_R48_RING_QUAD_WORDS);
+            quad->code = SHELTER_R48_RING_QUAD_CODE;
+            setRGB0(quad, *(const u8*)&work->scale, *(const u8*)&work->scale, *(const u8*)&work->scale);
+            quad->tpage = SHELTER_R48_RING_TEXTURE_PAGE;
+            quad->clut  = bandIndex < SHELTER_R48_RING_PALETTE_SPLIT ? SHELTER_R48_RING_WALL_CLUT : SHELTER_R48_SHOCKWAVE_CLUT;
+            leftU       = textureFrame * SHELTER_R48_RING_FRAME_TEXELS;
+            setUV4(quad, leftU, SHELTER_R48_RING_TOP_V, leftU + SHELTER_R48_RING_FRAME_TEXELS - 1, SHELTER_R48_RING_TOP_V, leftU, SHELTER_R48_RING_BOTTOM_V, leftU + SHELTER_R48_RING_FRAME_TEXELS - 1, SHELTER_R48_RING_BOTTOM_V);
+            quad->x0 = (u16)scratch->sxy0.vx;
+            quad->y0 = (u16)scratch->sxy0.vy;
+            quad->x1 = (u16)scratch->sxy1.vx;
+            quad->y1 = (u16)scratch->sxy1.vy;
+            quad->x2 = (u16)scratch->sxy2.vx;
+            quad->y2 = (u16)scratch->sxy2.vy;
+            quad->x3 = (u16)scratch->sxy3.vx;
+            quad->y3 = (u16)scratch->sxy3.vy;
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                    quad);
         }
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectBandScratch);
@@ -2668,7 +2751,7 @@ static void func_shelter_r48_8017F124(EffectWork* work, GfxCoord* coord, s32 par
 
 #include "../../shared/water_drift_task_u16.inc.c"
 
-void func_shelter_r48_8017F6C0(Task* task)
+void shelterR48WaterDriftTaskU16(Task* task)
 {
     _waterDriftTaskU16(task);
 }
@@ -3187,66 +3270,82 @@ void func_shelter_r48_801810B0(Task* task)
     effectKillTask(work, task);
 }
 
-void func_shelter_r48_8018147C(Task* task)
+/// Attaches the effect's identity local transform to its borrowed parent and composes it.
+static inline void _shelterR48AttachShockwaveCoord(GfxCoord* coord, const EffectWork* work)
 {
+    MATRIX* localMatrix;
+    localMatrix                      = &coord->coord;
+    coord->parent                    = work->parent;
+    MATRIX_PAIR(&coord->coord, 0, 0) = ONE;
+    MATRIX_PAIR(localMatrix, 0, 2)   = 0;
+    MATRIX_PAIR(localMatrix, 1, 1)   = ONE;
+    MATRIX_PAIR(localMatrix, 2, 0)   = 0;
+    localMatrix->m[2][2]             = ONE;
+    coord->coord.t[2]                = 0;
+    coord->coord.t[1]                = 0;
+    coord->coord.t[0]                = 0;
+    coord->composeStamp              = GRAPHICS_COORD_DIRTY;
+    actorRenderComposeCoord(coord);
+}
+
+void shelterR48ShockwaveRingsTask(Task* task)
+{
+    enum {
+        SHELTER_R48_SHOCKWAVE_STATE_NEW          = 0,
+        SHELTER_R48_SHOCKWAVE_STATE_EXPANDING    = 1,
+        SHELTER_R48_SHOCKWAVE_STATE_FADING       = 2,
+        SHELTER_R48_SHOCKWAVE_INITIAL_BRIGHTNESS = 128,
+        SHELTER_R48_SHOCKWAVE_FADE_AGE           = 49,
+        SHELTER_R48_SHOCKWAVE_GROWTH_STEP        = 16,
+        SHELTER_R48_SHOCKWAVE_FADE_STEP          = 16
+    };
     EffectWork* work;
     GfxCoord*   coord;
-    MATRIX*     m;
     u8          rgb[3];
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
-        func_shelter_r48_8017F124(work, coord, 3);
-        func_shelter_r48_8017F124(work, coord, 4);
-        func_shelter_r48_8017F124(work, coord, 5);
+        _shelterR48DrawRingBand(work, coord, 3);
+        _shelterR48DrawRingBand(work, coord, 4);
+        _shelterR48DrawRingBand(work, coord, 5);
         if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             return;
         }
     } else {
         work->age++;
+        // Attach the effect to its parent before starting the expansion.
         switch (task->state) {
-            case 0:
-                m                                = &coord->coord;
-                coord->parent                    = work->parent;
-                MATRIX_PAIR(&coord->coord, 0, 0) = 0x1000;
-                MATRIX_PAIR(m, 0, 2)             = 0;
-                MATRIX_PAIR(m, 1, 1)             = 0x1000;
-                MATRIX_PAIR(m, 2, 0)             = 0;
-                m->m[2][2]                       = 0x1000;
-                coord->coord.t[2]                = 0;
-                coord->coord.t[1]                = 0;
-                coord->coord.t[0]                = 0;
-                coord->composeStamp              = GRAPHICS_COORD_DIRTY;
-                actorRenderComposeCoord(coord);
+            case SHELTER_R48_SHOCKWAVE_STATE_NEW:
+                _shelterR48AttachShockwaveCoord(coord, work);
                 work->age   = 1;
-                work->scale = 0x80;
-                task->state = 1;
+                work->scale = SHELTER_R48_SHOCKWAVE_INITIAL_BRIGHTNESS;
+                task->state = SHELTER_R48_SHOCKWAVE_STATE_EXPANDING;
                 return;
-            case 1:
-                func_shelter_r48_8017F124(work, coord, 3);
-                func_shelter_r48_8017F124(work, coord, 4);
-                func_shelter_r48_8017F124(work, coord, 5);
-                work->angle  += 0x10;
-                work->period += 0x10;
-                work->step   += 0x10;
+            case SHELTER_R48_SHOCKWAVE_STATE_EXPANDING:
+                _shelterR48DrawRingBand(work, coord, 3);
+                _shelterR48DrawRingBand(work, coord, 4);
+                _shelterR48DrawRingBand(work, coord, 5);
+                work->angle  += SHELTER_R48_SHOCKWAVE_GROWTH_STEP;
+                work->period += SHELTER_R48_SHOCKWAVE_GROWTH_STEP;
+                work->step   += SHELTER_R48_SHOCKWAVE_GROWTH_STEP;
                 rgb[0]        = work->scale;
                 rgb[1]        = work->scale >> 1;
                 rgb[2]        = work->scale >> 2;
                 effectDrawScreenTint(rgb, GPU_BLEND_ADD);
-                if (work->age >= 0x31) {
-                    task->state = 2;
+                if (work->age >= SHELTER_R48_SHOCKWAVE_FADE_AGE) {
+                    task->state = SHELTER_R48_SHOCKWAVE_STATE_FADING;
                 }
                 return;
-            case 2:
-                if (work->scale >= 0x11) {
-                    work->scale  -= 0x10;
-                    work->angle  += 0x10;
-                    work->period += 0x10;
-                    work->step   += 0x10;
-                    func_shelter_r48_8017F124(work, coord, 3);
-                    func_shelter_r48_8017F124(work, coord, 4);
-                    func_shelter_r48_8017F124(work, coord, 5);
+            case SHELTER_R48_SHOCKWAVE_STATE_FADING:
+                if (work->scale >= SHELTER_R48_SHOCKWAVE_FADE_STEP + 1) {
+                    work->scale  -= SHELTER_R48_SHOCKWAVE_FADE_STEP;
+                    work->angle  += SHELTER_R48_SHOCKWAVE_GROWTH_STEP;
+                    work->period += SHELTER_R48_SHOCKWAVE_GROWTH_STEP;
+                    work->step   += SHELTER_R48_SHOCKWAVE_GROWTH_STEP;
+                    _shelterR48DrawRingBand(work, coord, 3);
+                    _shelterR48DrawRingBand(work, coord, 4);
+                    _shelterR48DrawRingBand(work, coord, 5);
                     rgb[0] = work->scale;
                     rgb[1] = work->scale >> 1;
                     rgb[2] = work->scale >> 2;
@@ -3261,110 +3360,143 @@ void func_shelter_r48_8018147C(Task* task)
     effectKillTask(work, task);
 }
 
-void func_shelter_r48_80181704(Task* task)
+/// Attaches the effect's identity local transform to its borrowed parent and composes it.
+static inline void _shelterR48AttachPinkFlashCoord(GfxCoord* coord, const EffectWork* work)
 {
+    MATRIX* localMatrix;
+    localMatrix                      = &coord->coord;
+    coord->parent                    = work->parent;
+    MATRIX_PAIR(&coord->coord, 0, 0) = ONE;
+    MATRIX_PAIR(localMatrix, 0, 2)   = 0;
+    MATRIX_PAIR(localMatrix, 1, 1)   = ONE;
+    MATRIX_PAIR(localMatrix, 2, 0)   = 0;
+    localMatrix->m[2][2]             = ONE;
+    coord->coord.t[2]                = 0;
+    coord->coord.t[1]                = 0;
+    coord->coord.t[0]                = 0;
+    coord->composeStamp              = GRAPHICS_COORD_DIRTY;
+    actorRenderComposeCoord(coord);
+}
+
+void shelterR48PinkRingFlashTask(Task* task)
+{
+    /// Draws both charging discs and bands, halving RGB for the outer band.
+    ///
+    /// Arguments must be live initialized object pointers and a writable
+    /// three-byte RGB array. They are expanded repeatedly; pass simple
+    /// variables without side effects. Requires composed drawing coordinates
+    /// and the charge geometry constants below. Expands to a compound statement.
+#define SHELTER_R48_DRAW_PINK_CHARGE(work, coord, task, rgb)                                                                  \
+    {                                                                                                                         \
+        (rgb)[0] = (work)->scale;                                                                                             \
+        (rgb)[1] = (work)->scale >> 2;                                                                                        \
+        (rgb)[2] = (work)->scale >> 1;                                                                                        \
+        effectDrawGouraudDisc((coord), (work)->angle, (rgb));                                                                 \
+        effectDrawGouraudDisc((coord), (s16)((u16)(work)->angle * 2), (rgb));                                                 \
+        effectDrawOuterGlowBand((coord), (s16)((u16)(task)->spawnArg1.value * 16 + SHELTER_R48_PINK_FLASH_INNER_BAND_RADIUS), \
+                                SHELTER_R48_PINK_FLASH_INNER_BAND_WIDTH, (rgb));                                              \
+        (rgb)[0] >>= 1;                                                                                                       \
+        (rgb)[1] >>= 1;                                                                                                       \
+        (rgb)[2] >>= 1;                                                                                                       \
+        effectDrawOuterGlowBand((coord), (s16)((u16)(task)->spawnArg1.value * 32 + SHELTER_R48_PINK_FLASH_OUTER_BAND_RADIUS), \
+                                SHELTER_R48_PINK_FLASH_OUTER_BAND_WIDTH, (rgb));                                              \
+    }
+    enum {
+        SHELTER_R48_PINK_FLASH_STATE_NEW           = 0,
+        SHELTER_R48_PINK_FLASH_STATE_CHARGING      = 1,
+        SHELTER_R48_PINK_FLASH_STATE_FLASH         = 2,
+        SHELTER_R48_PINK_FLASH_STATE_SPREADING     = 3,
+        SHELTER_R48_PINK_FLASH_STATE_SHRINKING     = 4,
+        SHELTER_R48_PINK_FLASH_CHARGE_UPDATES      = 30,
+        SHELTER_R48_PINK_FLASH_FULL_BRIGHTNESS     = 255,
+        SHELTER_R48_PINK_FLASH_FADE_STEP           = 16,
+        SHELTER_R48_PINK_FLASH_BEAM_RADIUS         = 1536,
+        SHELTER_R48_PINK_FLASH_BEAM_YAW_LIMIT      = 512,
+        SHELTER_R48_PINK_FLASH_BEAM_YAW_STEP       = 16,
+        SHELTER_R48_PINK_FLASH_BEAM_COLOR          = 0xC36,
+        SHELTER_R48_PINK_FLASH_INITIAL_DISC_RADIUS = 256,
+        SHELTER_R48_PINK_FLASH_BRIGHTNESS_RAMP     = 256,
+        SHELTER_R48_PINK_FLASH_DISC_SHRINK_STEP    = 96,
+        SHELTER_R48_PINK_FLASH_BEAM_SPREAD_SHRINK  = 24,
+        SHELTER_R48_PINK_FLASH_BEAM_FINAL_SHRINK   = 48,
+        SHELTER_R48_PINK_FLASH_INNER_BAND_RADIUS   = 2048,
+        SHELTER_R48_PINK_FLASH_INNER_BAND_WIDTH    = 256,
+        SHELTER_R48_PINK_FLASH_OUTER_BAND_RADIUS   = 3072,
+        SHELTER_R48_PINK_FLASH_OUTER_BAND_WIDTH    = 192
+    };
     EffectWork* work;
     GfxCoord*   coord;
-    MATRIX*     m;
     u8          rgb[3];
-    s32         step;
-    s16         scale;
+    s32         brightnessStep;
+    s16         brightness;
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
     if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
         work->age++;
         switch (task->state) {
-            case 0:
-                m                                = &coord->coord;
-                coord->parent                    = work->parent;
-                MATRIX_PAIR(&coord->coord, 0, 0) = 0x1000;
-                MATRIX_PAIR(m, 0, 2)             = 0;
-                MATRIX_PAIR(m, 1, 1)             = 0x1000;
-                MATRIX_PAIR(m, 2, 0)             = 0;
-                m->m[2][2]                       = 0x1000;
-                coord->coord.t[2]                = 0;
-                coord->coord.t[1]                = 0;
-                coord->coord.t[0]                = 0;
-                coord->composeStamp              = GRAPHICS_COORD_DIRTY;
-                actorRenderComposeCoord(coord);
-                task->state           = 1;
-                task->spawnArg1.value = 0x1E;
+            case SHELTER_R48_PINK_FLASH_STATE_NEW:
+                _shelterR48AttachPinkFlashCoord(coord, work);
+                task->state           = SHELTER_R48_PINK_FLASH_STATE_CHARGING;
+                task->spawnArg1.value = SHELTER_R48_PINK_FLASH_CHARGE_UPDATES;
                 work->scale           = 0;
-                work->angle           = 0x100;
-                work->step            = 0x100 / task->spawnArg1.value;
-            case 1:
+                work->angle           = SHELTER_R48_PINK_FLASH_INITIAL_DISC_RADIUS;
+                work->step            = SHELTER_R48_PINK_FLASH_BRIGHTNESS_RAMP / task->spawnArg1.value;
+            case SHELTER_R48_PINK_FLASH_STATE_CHARGING:
                 if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
-                    rgb[0] = work->scale;
-                    rgb[1] = work->scale >> 2;
-                    rgb[2] = work->scale >> 1;
-                    effectDrawGouraudDisc(coord, work->angle, rgb);
-                    effectDrawGouraudDisc(coord, (s16)((u16)work->angle * 2), rgb);
-                    effectDrawOuterGlowBand(coord, (s16)((u16)task->spawnArg1.value * 16 + 0x800), 0x100, rgb);
-                    rgb[0] >>= 1;
-                    rgb[1] >>= 1;
-                    rgb[2] >>= 1;
-                    effectDrawOuterGlowBand(coord, (s16)((u16)task->spawnArg1.value * 32 + 0xC00), 0xC0, rgb);
+                    SHELTER_R48_DRAW_PINK_CHARGE(work, coord, task, rgb);
                     return;
                 }
-                scale        = work->scale;
-                step         = (u16)work->step;
-                work->scale  = scale + step;
-                work->angle += (u16)work->step * 8;
+                brightness     = work->scale;
+                brightnessStep = (u16)work->step;
+                work->scale    = brightness + brightnessStep;
+                work->angle   += (u16)work->step * 8;
                 task->spawnArg1.value--;
-                rgb[0] = work->scale;
-                rgb[1] = work->scale >> 2;
-                rgb[2] = work->scale >> 1;
-                effectDrawGouraudDisc(coord, work->angle, rgb);
-                effectDrawGouraudDisc(coord, (s16)((u16)work->angle * 2), rgb);
-                effectDrawOuterGlowBand(coord, (s16)((u16)task->spawnArg1.value * 16 + 0x800), 0x100, rgb);
-                rgb[0] >>= 1;
-                rgb[1] >>= 1;
-                rgb[2] >>= 1;
-                effectDrawOuterGlowBand(coord, (s16)((u16)task->spawnArg1.value * 32 + 0xC00), 0xC0, rgb);
+                SHELTER_R48_DRAW_PINK_CHARGE(work, coord, task, rgb);
                 if (task->spawnArg1.value == 0) {
-                    work->scale  = 0xFF;
-                    task->state  = 2;
-                    work->period = 0x600;
+                    work->scale  = SHELTER_R48_PINK_FLASH_FULL_BRIGHTNESS;
+                    task->state  = SHELTER_R48_PINK_FLASH_STATE_FLASH;
+                    work->period = SHELTER_R48_PINK_FLASH_BEAM_RADIUS;
                     work->step   = 0;
                 }
                 return;
-            case 2:
-                if (work->scale >= 0x11) {
+            // The screen flash fades before the two capsules separate and shrink.
+            case SHELTER_R48_PINK_FLASH_STATE_FLASH:
+                if (work->scale >= SHELTER_R48_PINK_FLASH_FADE_STEP + 1) {
                     rgb[0] = work->scale;
                     rgb[1] = work->scale >> 2;
                     rgb[2] = work->scale >> 1;
                     effectDrawGouraudDisc(coord, work->angle, rgb);
                     effectDrawGouraudDisc(coord, (s16)((u16)work->angle * 2), rgb);
                     if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
-                        work->scale -= 0x10;
-                        work->angle -= 0x60;
+                        work->scale -= SHELTER_R48_PINK_FLASH_FADE_STEP;
+                        work->angle -= SHELTER_R48_PINK_FLASH_DISC_SHRINK_STEP;
                     }
                     effectDrawScreenTint(rgb, GPU_BLEND_ADD);
                 } else {
-                    task->state = 3;
+                    task->state = SHELTER_R48_PINK_FLASH_STATE_SPREADING;
                 }
-                func_shelter_r48_80181C14(coord, work->period, work->step, 0xC36);
-                func_shelter_r48_80181C14(coord, work->period, (s16)-work->step, 0xC36);
+                _shelterR48DrawGlowBeam(coord, work->period, work->step, SHELTER_R48_PINK_FLASH_BEAM_COLOR);
+                _shelterR48DrawGlowBeam(coord, work->period, (s16)-work->step, SHELTER_R48_PINK_FLASH_BEAM_COLOR);
                 return;
-            case 3:
-                func_shelter_r48_80181C14(coord, work->period, work->step, 0xC36);
-                func_shelter_r48_80181C14(coord, work->period, (s16)-work->step, 0xC36);
+            case SHELTER_R48_PINK_FLASH_STATE_SPREADING:
+                _shelterR48DrawGlowBeam(coord, work->period, work->step, SHELTER_R48_PINK_FLASH_BEAM_COLOR);
+                _shelterR48DrawGlowBeam(coord, work->period, (s16)-work->step, SHELTER_R48_PINK_FLASH_BEAM_COLOR);
                 if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
-                    if (work->step < 0x200) {
-                        work->period -= 0x18;
-                        work->step   += 0x10;
+                    if (work->step < SHELTER_R48_PINK_FLASH_BEAM_YAW_LIMIT) {
+                        work->period -= SHELTER_R48_PINK_FLASH_BEAM_SPREAD_SHRINK;
+                        work->step   += SHELTER_R48_PINK_FLASH_BEAM_YAW_STEP;
                     } else {
-                        task->state = 4;
+                        task->state = SHELTER_R48_PINK_FLASH_STATE_SHRINKING;
                     }
                 }
                 return;
-            case 4:
+            case SHELTER_R48_PINK_FLASH_STATE_SHRINKING:
                 if (work->period > 0) {
-                    func_shelter_r48_80181C14(coord, work->period, work->step, 0xC36);
-                    func_shelter_r48_80181C14(coord, work->period, (s16)-work->step, 0xC36);
+                    _shelterR48DrawGlowBeam(coord, work->period, work->step, SHELTER_R48_PINK_FLASH_BEAM_COLOR);
+                    _shelterR48DrawGlowBeam(coord, work->period, (s16)-work->step, SHELTER_R48_PINK_FLASH_BEAM_COLOR);
                     if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
-                        work->period -= 0x30;
+                        work->period -= SHELTER_R48_PINK_FLASH_BEAM_FINAL_SHRINK;
                     }
                     return;
                 }
@@ -3374,148 +3506,165 @@ void func_shelter_r48_80181704(Task* task)
         }
     }
     effectKillTask(work, task);
+#undef SHELTER_R48_DRAW_PINK_CHARGE
 }
 
-/// Offsets a point (0, 0x800, 0x1400) from `coord`, turned by `yaw` about Y
-/// and then by the coordinate's world matrix, and projects both the
-/// coordinate's world position and that tip through `GsWSMATRIX`. When both
-/// project, it draws two passes of gouraud `POLY_G4` wedges, with radii of
-/// `size * 64` and `size * 128` over each end's depth: every 0x400 step
-/// across the half-turn facing along the screen-space line between the points
-/// queues a fan at the tip, a fan at the base and a quad joining them. `color`
-/// packs `0xRGB` nibbles, each shifted into its channel's high nibble, with
-/// `gDisplayState.animFrame & 1` shifted into bit 4 of every channel.
-static void func_shelter_r48_80181C14(GfxCoord* coord, s16 size, s32 yaw, s32 color)
+/// Initializes a black-rim Gouraud wedge with the supplied centre colour bytes.
+///
+/// Borrows one writable packet, setting its length, command and four colours.
+/// Coordinates, ordering-table linkage and blend mode remain the caller's work.
+static inline void _shelterR48InitBeamCap(POLY_G4* quad, u8 red, u8 green, u8 blue)
 {
-    MATRIX           m;
-    RoomBeamScratch* block;
-    POLY_G4*         prim;
-    s32              pass;
-    u8               r;
-    u8               g;
-    u8               b;
-    s32              limit;
-    s32              angStart;
-    s32              scaled;
-    s32              ang;
-    s32              next;
-    s32              mid;
-    s32              blend;
-    s32              tr;
-    s32              tg;
+    setPolyG4(quad);
+    setRGB0(quad, 0, 0, 0);
+    setRGB1(quad, 0, 0, 0);
+    setRGB2(quad, red, green, blue);
+    setRGB3(quad, 0, 0, 0);
+}
 
-    block            = SCRATCH_STACK_RESERVE_BLOCK(RoomBeamScratch);
-    block->point1.vy = 0x800;
-    block->point1.vx = 0;
-    block->point1.vz = 0x1400;
-    gfxRotMatrixY(&m, (s16)yaw, 1);
-    ang = color;
-    gte_SetRotMatrix(&m);
-    gte_ldv0(&block->point1);
+/// Draws a two-layer glow capsule from an effect origin to a yawed local tip.
+///
+/// Borrows composed `coord`; the tip starts at (0,2048,5120), rotates by the
+/// signed low halfword of `yaw` (4096 units per turn), then by workm. Both
+/// endpoints narrow to signed halfword positions before GsWSMATRIX projection.
+/// `radiusScale` sets the two pixel radii as scale * 64/depth and * 128/depth;
+/// both accepted depths (camera Z/4) must be nonzero. `packedColor` is 0xRGB,
+/// with each nibble scaled by 16 and odd frames adding 16 to each colour byte.
+/// Negative GTE flags reject either endpoint. Queues twelve additive quads
+/// plus blend commands; joining quads sort at the tip depth. Requires scratch
+/// and primitive space, overwrites GTE state, and retains no pointer.
+static void _shelterR48DrawGlowBeam(const GfxCoord* coord, s16 radiusScale, s32 yaw, s32 packedColor)
+{
+    enum {
+        SHELTER_R48_GLOW_TRIG_SHIFT         = 12,
+        SHELTER_R48_GLOW_HALF_TURN          = 2048,
+        SHELTER_R48_GLOW_QUARTER_TURN       = 1024,
+        SHELTER_R48_GLOW_EIGHTH_TURN        = 512,
+        SHELTER_R48_BEAM_LOCAL_TIP_Y        = 2048,
+        SHELTER_R48_BEAM_LOCAL_TIP_Z        = 5120,
+        SHELTER_R48_BEAM_RADIUS_SCALE_SHIFT = 6
+    };
+    MATRIX           yawMatrix;
+    RoomBeamScratch* scratch;
+    POLY_G4*         quad;
+    s32              radiusPass;
+    u8               red;
+    u8               green;
+    u8               blue;
+    s32              sweepLimit;
+    s32              sweepStart;
+    s32              radiusNumerator;
+    s32              sweepAngle;
+    s32              nextSweepAngle;
+    s32              sideAngle;
+    s32              flicker;
+    s32              redBase;
+    s32              greenBase;
+
+    // Form both world endpoints before deriving their projected capsule radii.
+    scratch            = SCRATCH_STACK_RESERVE_BLOCK(RoomBeamScratch);
+    scratch->point1.vy = SHELTER_R48_BEAM_LOCAL_TIP_Y;
+    scratch->point1.vx = 0;
+    scratch->point1.vz = SHELTER_R48_BEAM_LOCAL_TIP_Z;
+    gfxRotMatrixY(&yawMatrix, (s16)yaw, 1);
+    sweepAngle = packedColor;
+    gte_SetRotMatrix(&yawMatrix);
+    gte_ldv0(&scratch->point1);
     gte_rtv0();
-    gte_stsv(&block->point1);
+    gte_stsv(&scratch->point1);
     gte_SetRotMatrix(&coord->workm);
-    gte_ldv0(&block->point1);
+    gte_ldv0(&scratch->point1);
     gte_rtv0();
-    gte_stsv(&block->point1);
-    block->point0.vx  = coord->workm.t[0];
-    block->point0.vy  = coord->workm.t[1];
-    block->point0.vz  = coord->workm.t[2];
-    block->point1.vx += block->point0.vx;
-    block->point1.vy += block->point0.vy;
-    block->point1.vz += block->point0.vz;
+    gte_stsv(&scratch->point1);
+    scratch->point0.vx  = coord->workm.t[0];
+    scratch->point0.vy  = coord->workm.t[1];
+    scratch->point0.vz  = coord->workm.t[2];
+    scratch->point1.vx += scratch->point0.vx;
+    scratch->point1.vy += scratch->point0.vy;
+    scratch->point1.vz += scratch->point0.vz;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&block->point0);
+    gte_ldv0(&scratch->point0);
     gte_rtps();
-    gte_stsxy(&block->pair.sx0);
-    gte_stflg(&block->pair.flag);
-    if (block->pair.flag >= 0) {
-        gte_stszotz(&block->pair.otz0);
-        gte_ldv0(&block->point1);
+    gte_stsxy(&scratch->pair.sx0);
+    gte_stflg(&scratch->pair.flag);
+    if (scratch->pair.flag >= 0) {
+        gte_stszotz(&scratch->pair.otz0);
+        gte_ldv0(&scratch->point1);
         gte_rtps();
-        gte_stsxy(&block->pair.sx1);
-        gte_stflg(&block->pair.flag);
-        gte_stszotz(&block->pair.otz1);
-        if (block->pair.flag >= 0) {
-            tr    = (((u16)ang >> 8) & 0xF) << 4;
-            tg    = (((u16)ang >> 4) & 0xF) << 4;
-            blend = ((u8)gDisplayState.animFrame & 1) << 4;
-            r     = tr + blend;
-            g     = tg + blend;
-            // Dead: never read before the loop sets it, but it has to be
-            // here for `b` to read `color` rather than the copy in `ang`.
-            ang = 0;
-            b   = ((color & 0xF) << 4) + blend;
-            for (pass = 1; pass < 3; pass++) {
-                scaled              = size * (pass << 6);
-                block->pair.radius0 = scaled / block->pair.otz0;
-                block->pair.radius1 = scaled / block->pair.otz1;
-                ang                 = (s16)ratan2((s16)block->pair.sy1 - (s16)block->pair.sy0, (s16)block->pair.sx0 - (s16)block->pair.sx1);
-                if (ang < ang + 0x800) {
-                    angStart = ang;
-                    limit    = ang + 0x800;
+        gte_stsxy(&scratch->pair.sx1);
+        gte_stflg(&scratch->pair.flag);
+        gte_stszotz(&scratch->pair.otz1);
+        if (scratch->pair.flag >= 0) {
+            redBase   = (((u16)sweepAngle >> 8) & 0xF) << 4;
+            greenBase = (((u16)sweepAngle >> 4) & 0xF) << 4;
+            flicker   = ((u8)gDisplayState.animFrame & 1) << 4;
+            red       = redBase + flicker;
+            green     = greenBase + flicker;
+            // Preserve the packed-colour read before reusing its register as an angle.
+            sweepAngle = 0;
+            blue       = ((packedColor & 0xF) << 4) + flicker;
+            for (radiusPass = 1; radiusPass < 3; radiusPass++) {
+                radiusNumerator       = radiusScale * (radiusPass << SHELTER_R48_BEAM_RADIUS_SCALE_SHIFT);
+                scratch->pair.radius0 = radiusNumerator / scratch->pair.otz0;
+                scratch->pair.radius1 = radiusNumerator / scratch->pair.otz1;
+                sweepAngle            = (s16)ratan2((s16)scratch->pair.sy1 - (s16)scratch->pair.sy0, (s16)scratch->pair.sx0 - (s16)scratch->pair.sx1);
+                if (sweepAngle < sweepAngle + SHELTER_R48_GLOW_HALF_TURN) {
+                    sweepStart = sweepAngle;
+                    sweepLimit = sweepAngle + SHELTER_R48_GLOW_HALF_TURN;
                     do {
-                        prim           = gGpuPrimCursor;
-                        gGpuPrimCursor = prim + 1;
-                        setPolyG4(prim);
-                        setRGB0(prim, 0, 0, 0);
-                        setRGB1(prim, 0, 0, 0);
-                        setRGB2(prim, r, g, b);
-                        setRGB3(prim, 0, 0, 0);
-                        prim->x0 = block->pair.sx1 + ((block->pair.radius1 * rsin(ang + 0x800)) >> 12);
-                        prim->y0 = block->pair.sy1 + ((block->pair.radius1 * rcos(ang + 0x800)) >> 12);
-                        prim->x1 = block->pair.sx1 + ((block->pair.radius1 * rsin(ang + 0xA00)) >> 12);
-                        prim->y1 = block->pair.sy1 + ((block->pair.radius1 * rcos(ang + 0xA00)) >> 12);
-                        prim->x2 = block->pair.sx1;
-                        prim->y2 = block->pair.sy1;
-                        prim->x3 = block->pair.sx1 + ((block->pair.radius1 * rsin(ang + 0xC00)) >> 12);
-                        prim->y3 = block->pair.sy1 + ((block->pair.radius1 * rcos(ang + 0xC00)) >> 12);
-                        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->pair.otz1 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                                prim);
-                        gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->pair.otz1);
+                        quad           = gGpuPrimCursor;
+                        gGpuPrimCursor = quad + 1;
+                        _shelterR48InitBeamCap(quad, red, green, blue);
+                        quad->x0 = scratch->pair.sx1 + ((scratch->pair.radius1 * rsin(sweepAngle + SHELTER_R48_GLOW_HALF_TURN)) >> SHELTER_R48_GLOW_TRIG_SHIFT);
+                        quad->y0 = scratch->pair.sy1 + ((scratch->pair.radius1 * rcos(sweepAngle + SHELTER_R48_GLOW_HALF_TURN)) >> SHELTER_R48_GLOW_TRIG_SHIFT);
+                        quad->x1 = scratch->pair.sx1 + ((scratch->pair.radius1 * rsin(sweepAngle + SHELTER_R48_GLOW_HALF_TURN + SHELTER_R48_GLOW_EIGHTH_TURN)) >> SHELTER_R48_GLOW_TRIG_SHIFT);
+                        quad->y1 = scratch->pair.sy1 + ((scratch->pair.radius1 * rcos(sweepAngle + SHELTER_R48_GLOW_HALF_TURN + SHELTER_R48_GLOW_EIGHTH_TURN)) >> SHELTER_R48_GLOW_TRIG_SHIFT);
+                        quad->x2 = scratch->pair.sx1;
+                        quad->y2 = scratch->pair.sy1;
+                        quad->x3 = scratch->pair.sx1 + ((scratch->pair.radius1 * rsin(sweepAngle + SHELTER_R48_GLOW_HALF_TURN + SHELTER_R48_GLOW_QUARTER_TURN)) >> SHELTER_R48_GLOW_TRIG_SHIFT);
+                        quad->y3 = scratch->pair.sy1 + ((scratch->pair.radius1 * rcos(sweepAngle + SHELTER_R48_GLOW_HALF_TURN + SHELTER_R48_GLOW_QUARTER_TURN)) >> SHELTER_R48_GLOW_TRIG_SHIFT);
+                        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->pair.otz1 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                                quad);
+                        gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, scratch->pair.otz1);
 
-                        prim           = gGpuPrimCursor;
-                        gGpuPrimCursor = prim + 1;
-                        setPolyG4(prim);
-                        setRGB0(prim, 0, 0, 0);
-                        setRGB1(prim, 0, 0, 0);
-                        setRGB2(prim, r, g, b);
-                        setRGB3(prim, 0, 0, 0);
-                        prim->x0 = block->pair.sx0 + ((block->pair.radius0 * rsin(ang)) >> 12);
-                        prim->y0 = block->pair.sy0 + ((block->pair.radius0 * rcos(ang)) >> 12);
-                        prim->x1 = block->pair.sx0 + ((block->pair.radius0 * rsin(ang + 0x200)) >> 12);
-                        prim->y1 = block->pair.sy0 + ((block->pair.radius0 * rcos(ang + 0x200)) >> 12);
-                        next     = ang + 0x400;
-                        prim->x2 = block->pair.sx0;
-                        prim->y2 = block->pair.sy0;
-                        prim->x3 = block->pair.sx0 + ((block->pair.radius0 * rsin(next)) >> 12);
-                        prim->y3 = block->pair.sy0 + ((block->pair.radius0 * rcos(next)) >> 12);
-                        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->pair.otz0 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                                prim);
-                        gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->pair.otz0);
+                        quad           = gGpuPrimCursor;
+                        gGpuPrimCursor = quad + 1;
+                        _shelterR48InitBeamCap(quad, red, green, blue);
+                        quad->x0       = scratch->pair.sx0 + ((scratch->pair.radius0 * rsin(sweepAngle)) >> SHELTER_R48_GLOW_TRIG_SHIFT);
+                        quad->y0       = scratch->pair.sy0 + ((scratch->pair.radius0 * rcos(sweepAngle)) >> SHELTER_R48_GLOW_TRIG_SHIFT);
+                        quad->x1       = scratch->pair.sx0 + ((scratch->pair.radius0 * rsin(sweepAngle + SHELTER_R48_GLOW_EIGHTH_TURN)) >> SHELTER_R48_GLOW_TRIG_SHIFT);
+                        quad->y1       = scratch->pair.sy0 + ((scratch->pair.radius0 * rcos(sweepAngle + SHELTER_R48_GLOW_EIGHTH_TURN)) >> SHELTER_R48_GLOW_TRIG_SHIFT);
+                        nextSweepAngle = sweepAngle + SHELTER_R48_GLOW_QUARTER_TURN;
+                        quad->x2       = scratch->pair.sx0;
+                        quad->y2       = scratch->pair.sy0;
+                        quad->x3       = scratch->pair.sx0 + ((scratch->pair.radius0 * rsin(nextSweepAngle)) >> SHELTER_R48_GLOW_TRIG_SHIFT);
+                        quad->y3       = scratch->pair.sy0 + ((scratch->pair.radius0 * rcos(nextSweepAngle)) >> SHELTER_R48_GLOW_TRIG_SHIFT);
+                        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->pair.otz0 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                                quad);
+                        gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, scratch->pair.otz0);
 
-                        prim           = gGpuPrimCursor;
-                        mid            = angStart + (ang - angStart) * 2;
-                        gGpuPrimCursor = prim + 1;
-                        setPolyG4(prim);
-                        setRGB0(prim, 0, 0, 0);
-                        setRGB1(prim, 0, 0, 0);
-                        setRGB2(prim, r, g, b);
-                        setRGB3(prim, r, g, b);
-                        prim->x0 = block->pair.sx0 + ((block->pair.radius0 * rsin(mid)) >> 12);
-                        prim->y0 = block->pair.sy0 + ((block->pair.radius0 * rcos(mid)) >> 12);
-                        prim->x1 = block->pair.sx1 + ((block->pair.radius1 * rsin(mid)) >> 12);
-                        prim->y1 = block->pair.sy1 + ((block->pair.radius1 * rcos(mid)) >> 12);
-                        prim->x2 = block->pair.sx0;
-                        prim->y2 = block->pair.sy0;
-                        prim->x3 = block->pair.sx1;
-                        prim->y3 = block->pair.sy1;
-                        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->pair.otz1 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                                prim);
-                        gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->pair.otz1);
-                        ang = next;
-                    } while (ang < limit);
+                        quad           = gGpuPrimCursor;
+                        sideAngle      = sweepStart + (sweepAngle - sweepStart) * 2;
+                        gGpuPrimCursor = quad + 1;
+                        setPolyG4(quad);
+                        setRGB0(quad, 0, 0, 0);
+                        setRGB1(quad, 0, 0, 0);
+                        setRGB2(quad, red, green, blue);
+                        setRGB3(quad, red, green, blue);
+                        quad->x0 = scratch->pair.sx0 + ((scratch->pair.radius0 * rsin(sideAngle)) >> SHELTER_R48_GLOW_TRIG_SHIFT);
+                        quad->y0 = scratch->pair.sy0 + ((scratch->pair.radius0 * rcos(sideAngle)) >> SHELTER_R48_GLOW_TRIG_SHIFT);
+                        quad->x1 = scratch->pair.sx1 + ((scratch->pair.radius1 * rsin(sideAngle)) >> SHELTER_R48_GLOW_TRIG_SHIFT);
+                        quad->y1 = scratch->pair.sy1 + ((scratch->pair.radius1 * rcos(sideAngle)) >> SHELTER_R48_GLOW_TRIG_SHIFT);
+                        quad->x2 = scratch->pair.sx0;
+                        quad->y2 = scratch->pair.sy0;
+                        quad->x3 = scratch->pair.sx1;
+                        quad->y3 = scratch->pair.sy1;
+                        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->pair.otz1 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                                quad);
+                        gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, scratch->pair.otz1);
+                        sweepAngle = nextSweepAngle;
+                    } while (sweepAngle < sweepLimit);
                 }
             }
         }
@@ -3523,157 +3672,175 @@ static void func_shelter_r48_80181C14(GfxCoord* coord, s16 size, s32 yaw, s32 co
     SCRATCH_STACK_RELEASE_BLOCK(RoomBeamScratch);
 }
 
-/// Projects `arg0` through `gGfxViewCoord.workm` and, when the GTE flag is
-/// non-negative, queues a glow of gouraud `POLY_G4` wedges around the projected
-/// point: an outer ring pairing a half-brightness wedge at full radius with a
-/// full-brightness one at half radius, then four inner cross wedges in the
-/// half-brightness colour. The depth is pulled 0xC0 towards the camera (clamped
-/// at 16) before it sizes the radii and sorts the primitives. `arg1` is the
-/// signed half-extent, and `arg2` packs `[flicker shift][r][g][b]` nibbles,
-/// with `gDisplayState.animFrame & 1` shifted by the top nibble added to every
-/// channel.
-static void func_shelter_r48_8018258C(SVECTOR* arg0, s32 arg1, s32 arg2)
+/// Initializes a black-rim Gouraud wedge with the supplied centre colour bytes.
+///
+/// Borrows one writable packet, setting its length, command and four colours.
+/// Coordinates, ordering-table linkage and blend mode remain the caller's work.
+static inline void _shelterR48InitRoomGlowWedge(POLY_G4* quad, s32 red, s32 green, s32 blue)
 {
-    GlowCentreRadiiScratch* block;
-    POLY_G4*                prim;
-    s32                     ang;
-    s32                     t;
-    s32                     t2;
-    s32                     ua;
-    s32                     ub;
-    s32                     uc;
-    s32                     frame;
-    s32                     packed;
-    s32                     blend;
-    s32                     r;
-    s32                     g;
-    s32                     b;
-    s32                     outer;
-    s32                     inner;
-    s32                     hr;
-    s32                     hg;
-    s32                     hb;
+    setPolyG4(quad);
+    setRGB0(quad, 0, 0, 0);
+    setRGB1(quad, 0, 0, 0);
+    setRGB2(quad, red, green, blue);
+    setRGB3(quad, 0, 0, 0);
+}
 
-    block = SCRATCH_STACK_RESERVE_BLOCK(GlowCentreRadiiScratch);
+/// Draws a tinted disc and four glow blades around a fixed room point.
+///
+/// Borrows `worldPoint` in world coordinates. After view projection, camera
+/// Z/4 is reduced by 192 and clamped to 16 for sizing and sorting. The signed
+/// low halfword of `radiusScale` gives outer/inner radii of scale * 64/depth
+/// and scale * 8/depth. `packedColor` contains RGB nibbles in bits 8..11,
+/// 4..7 and 0..3, scaled by 16; bits 12..15 give the odd-frame flicker shift
+/// (0..7 required). Colour bytes wrap before halving. Negative GTE flags
+/// reject the point. Queues twenty additive quads plus blend commands, using
+/// scratch space and the frame's primitive allocator; retains no pointer.
+static void _shelterR48DrawRoomGlow(const SVECTOR* worldPoint, s32 radiusScale, s32 packedColor)
+{
+    enum {
+        SHELTER_R48_ROOM_GLOW_DEPTH_PULL = 192,
+        SHELTER_R48_ROOM_GLOW_MIN_DEPTH  = 16
+    };
+    enum {
+        SHELTER_R48_GLOW_TRIG_SHIFT         = 12,
+        SHELTER_R48_GLOW_FULL_TURN          = 4096,
+        SHELTER_R48_GLOW_HALF_TURN          = 2048,
+        SHELTER_R48_GLOW_QUARTER_TURN       = 1024,
+        SHELTER_R48_GLOW_EIGHTH_TURN        = 512,
+        SHELTER_R48_GLOW_SIXTEENTH_TURN     = 256,
+        SHELTER_R48_GLOW_RADIUS_SCALE       = 64,
+        SHELTER_R48_GLOW_INNER_RADIUS_SCALE = 8
+    };
+    GlowCentreRadiiScratch* scratch;
+    POLY_G4*                quad;
+    s32                     angle;
+    s32                     halfStepAngle;
+    s32                     nextAngle;
+    s32                     previousShoulderAngle;
+    s32                     nextShoulderAngle;
+    s32                     oppositeAngle;
+    s32                     frameCounter;
+    s32                     shiftedColor;
+    s32                     flicker;
+    s32                     red;
+    s32                     green;
+    s32                     blue;
+    s32                     outerRadius;
+    s32                     innerRadius;
+    s32                     halfRed;
+    s32                     halfGreen;
+    s32                     halfBlue;
+
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(GlowCentreRadiiScratch);
 
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
-    gte_ldv0(arg0);
+    gte_ldv0(worldPoint);
     gte_rtps();
-    gte_stsxy(&block->sx);
-    gte_stflg(&block->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&block->otz);
-        block->otz -= 0xC0;
-        if (block->otz < 0x10) {
-            block->otz = 0x10;
+    gte_stsxy(&scratch->sx);
+    gte_stflg(&scratch->flag);
+    if (scratch->flag >= 0) {
+        gte_stszotz(&scratch->otz);
+        scratch->otz -= SHELTER_R48_ROOM_GLOW_DEPTH_PULL;
+        if (scratch->otz < SHELTER_R48_ROOM_GLOW_MIN_DEPTH) {
+            scratch->otz = SHELTER_R48_ROOM_GLOW_MIN_DEPTH;
         }
-        arg1             <<= 16;
-        arg1             >>= 16;
-        outer              = (arg1 * 64) / block->otz;
-        frame              = gDisplayState.animFrame;
-        block->outerRadius = outer;
-        inner              = (arg1 * 8) / block->otz;
-        ang                = 0;
-        packed             = arg2 << 16;
-        blend              = (frame & 1) << (packed >> 28);
-        r                  = blend + ((packed >> 20) & 0xF0);
-        g                  = blend + ((packed >> 16) & 0xF0);
-        b                  = blend + ((arg2 & 0xF) << 4);
-        block->innerRadius = inner;
+        radiusScale        <<= 16;
+        radiusScale        >>= 16;
+        outerRadius          = (radiusScale * SHELTER_R48_GLOW_RADIUS_SCALE) / scratch->otz;
+        frameCounter         = gDisplayState.animFrame;
+        scratch->outerRadius = outerRadius;
+        innerRadius          = (radiusScale * SHELTER_R48_GLOW_INNER_RADIUS_SCALE) / scratch->otz;
+        angle                = 0;
+        shiftedColor         = packedColor << 16;
+        flicker              = (frameCounter & 1) << (shiftedColor >> 28);
+        red                  = flicker + ((shiftedColor >> 20) & 0xF0);
+        green                = flicker + ((shiftedColor >> 16) & 0xF0);
+        blue                 = flicker + ((packedColor & 0xF) << 4);
+        scratch->innerRadius = innerRadius;
+        // Layer eight full-radius wedges with bright half-radius copies.
         do {
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            hr = (u8)r >> 1;
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            hg = (u8)g >> 1;
-            hb = (u8)b >> 1;
-            setRGB2(prim, hr, hg, hb);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx + ((block->outerRadius * rsin(ang)) >> 12);
-            t        = ang + 0x100;
-            prim->y0 = block->sy + ((block->outerRadius * rcos(ang)) >> 12);
-            prim->x1 = block->sx + ((block->outerRadius * rsin(t)) >> 12);
-            prim->y1 = block->sy + ((block->outerRadius * rcos(t)) >> 12);
-            t2       = ang + 0x200;
-            prim->x2 = block->sx;
-            prim->y2 = block->sy;
-            prim->x3 = block->sx + ((block->outerRadius * rsin(t2)) >> 12);
-            prim->y3 = block->sy + ((block->outerRadius * rcos(t2)) >> 12);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
+            quad           = gGpuPrimCursor;
+            gGpuPrimCursor = quad + 1;
+            setPolyG4(quad);
+            halfRed = (u8)red >> 1;
+            setRGB0(quad, 0, 0, 0);
+            setRGB1(quad, 0, 0, 0);
+            halfGreen = (u8)green >> 1;
+            halfBlue  = (u8)blue >> 1;
+            setRGB2(quad, halfRed, halfGreen, halfBlue);
+            setRGB3(quad, 0, 0, 0);
+            quad->x0      = scratch->sx + ((scratch->outerRadius * rsin(angle)) >> SHELTER_R48_GLOW_TRIG_SHIFT);
+            halfStepAngle = angle + SHELTER_R48_GLOW_SIXTEENTH_TURN;
+            quad->y0      = scratch->sy + ((scratch->outerRadius * rcos(angle)) >> SHELTER_R48_GLOW_TRIG_SHIFT);
+            quad->x1      = scratch->sx + ((scratch->outerRadius * rsin(halfStepAngle)) >> SHELTER_R48_GLOW_TRIG_SHIFT);
+            quad->y1      = scratch->sy + ((scratch->outerRadius * rcos(halfStepAngle)) >> SHELTER_R48_GLOW_TRIG_SHIFT);
+            nextAngle     = angle + SHELTER_R48_GLOW_EIGHTH_TURN;
+            quad->x2      = scratch->sx;
+            quad->y2      = scratch->sy;
+            quad->x3      = scratch->sx + ((scratch->outerRadius * rsin(nextAngle)) >> SHELTER_R48_GLOW_TRIG_SHIFT);
+            quad->y3      = scratch->sy + ((scratch->outerRadius * rcos(nextAngle)) >> SHELTER_R48_GLOW_TRIG_SHIFT);
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                    quad);
+            gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, scratch->otz);
 
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, r, g, b);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx + ((block->outerRadius * rsin(ang)) >> 13);
-            prim->y0 = block->sy + ((block->outerRadius * rcos(ang)) >> 13);
-            prim->x1 = block->sx + ((block->outerRadius * rsin(t)) >> 13);
-            prim->y1 = block->sy + ((block->outerRadius * rcos(t)) >> 13);
-            prim->x2 = block->sx;
-            prim->y2 = block->sy;
-            prim->x3 = block->sx + ((block->outerRadius * rsin(t2)) >> 13);
-            prim->y3 = block->sy + ((block->outerRadius * rcos(t2)) >> 13);
-            ang      = t2;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
-        } while (ang < 0x1000);
+            quad           = gGpuPrimCursor;
+            gGpuPrimCursor = quad + 1;
+            _shelterR48InitRoomGlowWedge(quad, red, green, blue);
+            quad->x0 = scratch->sx + ((scratch->outerRadius * rsin(angle)) >> (SHELTER_R48_GLOW_TRIG_SHIFT + 1));
+            quad->y0 = scratch->sy + ((scratch->outerRadius * rcos(angle)) >> (SHELTER_R48_GLOW_TRIG_SHIFT + 1));
+            quad->x1 = scratch->sx + ((scratch->outerRadius * rsin(halfStepAngle)) >> (SHELTER_R48_GLOW_TRIG_SHIFT + 1));
+            quad->y1 = scratch->sy + ((scratch->outerRadius * rcos(halfStepAngle)) >> (SHELTER_R48_GLOW_TRIG_SHIFT + 1));
+            quad->x2 = scratch->sx;
+            quad->y2 = scratch->sy;
+            quad->x3 = scratch->sx + ((scratch->outerRadius * rsin(nextAngle)) >> (SHELTER_R48_GLOW_TRIG_SHIFT + 1));
+            quad->y3 = scratch->sy + ((scratch->outerRadius * rcos(nextAngle)) >> (SHELTER_R48_GLOW_TRIG_SHIFT + 1));
+            angle    = nextAngle;
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                    quad);
+            gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, scratch->otz);
+        } while (angle < SHELTER_R48_GLOW_FULL_TURN);
 
-        ang = 0x200;
-        r   = (u8)hr;
-        g   = (u8)hg;
-        b   = (u8)hb;
+        // Add four alternating blades with black rims.
+        angle = SHELTER_R48_GLOW_EIGHTH_TURN;
+        red   = (u8)halfRed;
+        green = (u8)halfGreen;
+        blue  = (u8)halfBlue;
         do {
-            ua             = ang - 0x400;
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, r, g, b);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx + ((block->innerRadius * rsin(ua)) >> 13);
-            prim->y0 = block->sy + ((block->innerRadius * rcos(ua)) >> 13);
-            prim->x1 = block->sx + ((block->outerRadius * rsin(ang)) >> 12);
-            prim->y1 = block->sy + ((block->outerRadius * rcos(ang)) >> 12);
-            ub       = ang + 0x400;
-            prim->x2 = block->sx;
-            prim->y2 = block->sy;
-            prim->x3 = block->sx + ((block->innerRadius * rsin(ub)) >> 13);
-            prim->y3 = block->sy + ((block->innerRadius * rcos(ub)) >> 13);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
+            previousShoulderAngle = angle - SHELTER_R48_GLOW_QUARTER_TURN;
+            quad                  = gGpuPrimCursor;
+            gGpuPrimCursor        = quad + 1;
+            _shelterR48InitRoomGlowWedge(quad, red, green, blue);
+            quad->x0          = scratch->sx + ((scratch->innerRadius * rsin(previousShoulderAngle)) >> (SHELTER_R48_GLOW_TRIG_SHIFT + 1));
+            quad->y0          = scratch->sy + ((scratch->innerRadius * rcos(previousShoulderAngle)) >> (SHELTER_R48_GLOW_TRIG_SHIFT + 1));
+            quad->x1          = scratch->sx + ((scratch->outerRadius * rsin(angle)) >> SHELTER_R48_GLOW_TRIG_SHIFT);
+            quad->y1          = scratch->sy + ((scratch->outerRadius * rcos(angle)) >> SHELTER_R48_GLOW_TRIG_SHIFT);
+            nextShoulderAngle = angle + SHELTER_R48_GLOW_QUARTER_TURN;
+            quad->x2          = scratch->sx;
+            quad->y2          = scratch->sy;
+            quad->x3          = scratch->sx + ((scratch->innerRadius * rsin(nextShoulderAngle)) >> (SHELTER_R48_GLOW_TRIG_SHIFT + 1));
+            quad->y3          = scratch->sy + ((scratch->innerRadius * rcos(nextShoulderAngle)) >> (SHELTER_R48_GLOW_TRIG_SHIFT + 1));
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                    quad);
+            gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, scratch->otz);
 
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, r, g, b);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx + ((block->innerRadius * rsin(ang)) >> 12);
-            prim->y0 = block->sy + ((block->innerRadius * rcos(ang)) >> 12);
-            prim->x1 = block->sx + ((block->outerRadius * rsin(ub)) >> 11);
-            prim->y1 = block->sy + ((block->outerRadius * rcos(ub)) >> 11);
-            uc       = ang + 0x800;
-            prim->x2 = block->sx;
-            prim->y2 = block->sy;
-            prim->x3 = block->sx + ((block->innerRadius * rsin(uc)) >> 12);
-            prim->y3 = block->sy + ((block->innerRadius * rcos(uc)) >> 12);
-            ang      = uc;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
-        } while (ang < 0x1000);
+            quad           = gGpuPrimCursor;
+            gGpuPrimCursor = quad + 1;
+            _shelterR48InitRoomGlowWedge(quad, red, green, blue);
+            quad->x0      = scratch->sx + ((scratch->innerRadius * rsin(angle)) >> SHELTER_R48_GLOW_TRIG_SHIFT);
+            quad->y0      = scratch->sy + ((scratch->innerRadius * rcos(angle)) >> SHELTER_R48_GLOW_TRIG_SHIFT);
+            quad->x1      = scratch->sx + ((scratch->outerRadius * rsin(nextShoulderAngle)) >> (SHELTER_R48_GLOW_TRIG_SHIFT - 1));
+            quad->y1      = scratch->sy + ((scratch->outerRadius * rcos(nextShoulderAngle)) >> (SHELTER_R48_GLOW_TRIG_SHIFT - 1));
+            oppositeAngle = angle + SHELTER_R48_GLOW_HALF_TURN;
+            quad->x2      = scratch->sx;
+            quad->y2      = scratch->sy;
+            quad->x3      = scratch->sx + ((scratch->innerRadius * rsin(oppositeAngle)) >> SHELTER_R48_GLOW_TRIG_SHIFT);
+            quad->y3      = scratch->sy + ((scratch->innerRadius * rcos(oppositeAngle)) >> SHELTER_R48_GLOW_TRIG_SHIFT);
+            angle         = oppositeAngle;
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                    quad);
+            gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, scratch->otz);
+        } while (angle < SHELTER_R48_GLOW_FULL_TURN);
     }
     SCRATCH_STACK_RELEASE_BLOCK(GlowCentreRadiiScratch);
 }

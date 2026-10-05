@@ -140748,25 +140748,25 @@ HI mem of `scale` is not loaded until the add, after `step`'s assignment has
 already been emitted, so the two `lhu`s come out swapped. Embedding the
 assignment (`work->scale += (step = ...)`, either operand order) does not help.
 
-### A copy that crosses no call but lands in a callee-saved register is a reused long-lived variable (func_shelter_r48_80181C14, 2026-09-23)
+### A copy that crosses no call but lands in a callee-saved register is a reused long-lived variable (_shelterR48DrawGlowBeam, 2026-09-23)
 
 The target copied a parameter (`move s4,s2`) after the last call before its use,
-then read it once (`andi a1,s4,0xffff`) before the loop. A fresh `u16 col = arg3`
+then read it once (`andi a1,s4,0xffff`) before the loop. A fresh `u16 col = packedColor`
 there took `$a3`: global-alloc gives a pseudo that crosses no call the lowest
 free register, and nothing conflicted with `$a3`. `$s4` was the later loop angle's
-home, so the copy was *that* variable reused: `ang = arg3;` (s32), `(u16)ang`
-for the reads, then `ang = (s16)ratan2(...)` in the loop. One pseudo, so it
+home, so the copy was *that* variable reused: `sweepAngle = packedColor;` (s32), `(u16)sweepAngle`
+for the reads, then `sweepAngle = (s16)ratan2(...)` in the loop. One pseudo, so it
 crosses the loop's calls.
 
 Reusing it brings back the cse trap in "A dead store keeps `x` (not `y`)
-the cse-canonical name": `ang` outlives `arg3`, so becomes canonical, and a
-later `(arg3 & 0xF)` read `$s4` too. The fix was a dead `ang = 0;` between
-the last `(u16)ang` read and the `arg3` read.
+the cse-canonical name": `sweepAngle` outlives `packedColor`, so becomes canonical, and a
+later `(packedColor & 0xF)` read `$s4` too. The fix was a dead `sweepAngle = 0;` between
+the last `(u16)sweepAngle` read and the `packedColor` read.
 
 The same function also depended on which loop temporaries local-alloc sees (see
-"local-alloc only sees single-death pseudos"). One `t` reused for every
-`rsin(t)/rcos(t)` angle has several deaths, so it goes to global-alloc. Writing
-the angles inline (`rsin(ang + 0x800)`) gives single-death CSE temporaries, which
+"local-alloc only sees single-death pseudos"). One `sampleAngle` reused for every
+`rsin(sampleAngle)/rcos(sampleAngle)` angle has several deaths, so it goes to global-alloc. Writing
+the angles inline (`rsin(sweepAngle + 0x800)`) gives single-death CSE temporaries, which
 local-alloc places first. That moved the `POLY_G4*` cursor from `$s1` to the
 target's `$s2`, and every other callee-saved register fell into place: 94% to 98.8%.
 
@@ -141592,34 +141592,34 @@ Inputs: `base_7.i` `e44ad76ab7968cfb55649883e6dabbb3d3a6f103989904ff4be48c07d696
 (match), label probe `base_5.i`
 `cae185cdd1f37583be625a47f8fbdd591600e07abbe643f8c808796aa8d23e39` (99.64%).
 
-### Buy `do{}while(0)` ref weight on a *use* in a later block, not on the join that sets the pseudo (func_shelter_r48_8017D660, 2026-09-24)
+### Buy `do{}while(0)` ref weight on a *use* in a later block, not on the join that sets the pseudo (_shelterR48WaterRefractionTask, 2026-09-24)
 
-A spilled `wave` needed 11 loop-weighted refs to rank between two other
-allocnos in `global.c`. Wrapping the join assignment `wave = wave1; wave1 =
-wave + 1;` in latches gave the right allocation but serialised the join block
+A spilled `waveOffset` needed 11 loop-weighted refs to rank between two other
+allocnos in `global.c`. Wrapping the join assignment `waveOffset = sampleOffset; sampleOffset =
+waveOffset + 1;` in latches gave the right allocation but serialised the join block
 in sched2: `sched.c` (`sched_analyze_insn`, "LOOP_BEG/END note in the middle of
 a basic block") attaches the notes to the next insn and makes it a full
-barrier, so the `start` reload stayed after the `wave` spill store (target has
-`lw start; sw wave`). Duplicating the assignment into both `if` arms does not
+barrier, so the `firstRow` reload stayed after the `waveOffset` spill store (target has
+`lw firstRow; sw waveOffset`). Duplicating the assignment into both `if` arms does not
 help either: cross-jumping is jump2 (`toplev.c`, after sched2), so the arms are
 still separate blocks when sched2 runs.
 
 Fix: keep the join assignment plain and put the latches around a *use* of
-`wave` in a later block, whose notes sit behind that block's own compare:
+`waveOffset` in a later block, whose notes sit behind that block's own compare:
 
 ```c
-if (start != 1) {
-    dist = y - start;
-    if (dist < fadeLen) {
+if (firstRow != 1) {
+    rowsFromStart = row - firstRow;
+    if (rowsFromStart < fadeRows) {
         do { do { do { do {          /* each level: +1 weight on this use */
-            wave1  = wave >> ((fadeLen - dist) >> 1);
-            wave1 += 1;
+            sampleOffset  = waveOffset >> ((fadeRows - rowsFromStart) >> 1);
+            sampleOffset += 1;
         } while (0); } while (0); } while (0); } while (0);
     }
 }
 ```
 
-Putting the same latch on a use inside an inner loop (`i`-loop) changed loop.c's
+Putting the same latch on a use inside an inner loop (`spanIndex`-loop) changed loop.c's
 invariant hoisting there, so pick a use outside nested loops. To size the ref
 count, compute `floor_log2(n) * n / live_length` for the neighbours from the
 `.lreg` "Register N used X times across Y insns" lines.

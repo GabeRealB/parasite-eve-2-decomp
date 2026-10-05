@@ -933,17 +933,17 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_dilapidated_house_80181F08, { NULL } },                  // 0x188
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_r48_8017E4C4, { NULL } },                                 // 0x189
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_r48_8017EC18, { NULL } },                                 // 0x18A
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_r48_8017F6C0, { NULL } },                                 // 0x18B
+    { { { TASK_BODY_COORD, 0x70 } }, shelterR48WaterDriftTaskU16, { NULL } },                               // 0x18B
     { { { TASK_BODY_COORD, 0x70 } }, shelterR48SpriteDriftTask, { NULL } },                                 // 0x18C
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_r48_8017E704, { NULL } },                                 // 0x18D
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_r48_8017E9B8, { NULL } },                                 // 0x18E
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_r48_8017EFD8, { NULL } },                                 // 0x18F
+    { { { TASK_BODY_COORD, 0x70 } }, shelterR48RingWallTask, { NULL } },                                    // 0x18F
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_r48_801810B0, { NULL } },                                 // 0x190
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_r48_8018147C, { NULL } },                                 // 0x191
+    { { { TASK_BODY_COORD, 0x70 } }, shelterR48ShockwaveRingsTask, { NULL } },                              // 0x191
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_submarine_gallery_8017EFEC, { NULL } },                   // 0x192
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_submarine_gallery_8017F288, { NULL } },                   // 0x193
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_submarine_gallery_8017F710, { NULL } },                   // 0x194
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_r48_80181704, { NULL } },                                 // 0x195
+    { { { TASK_BODY_COORD, 0x70 } }, shelterR48PinkRingFlashTask, { NULL } },                               // 0x195
     { { { TASK_BODY_COORD, 0x70 } }, shelterB3GarbageIncineratorEffectSpriteDriftTaskAimed, { NULL } },     // 0x196
     { { { TASK_BODY_COORD, 0x70 } }, func_pepper_spray_8012EF34, { NULL } },                                // 0x197
     { { { TASK_BODY_COORD, 0x70 } }, ofudaEffectTask, { NULL } },                                           // 0x198
