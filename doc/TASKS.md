@@ -327,11 +327,11 @@ Several `func_*` rows are already matched C and only lack a role name.
 | `00`–`05`, `09`–`0A`, `0F`–`10` | `C0`/`20` | `taskKill` or NULL | Unused |
 | `06` | `80` | `func_800E7570` | Unnamed |
 | `07` | `20` | `func_800E8830` | Spawned from fade setup (`Task_Spawn(9, 7, …)`) |
-| `08` | `80` | `func_800E8888` | Live pointer `D_801156B8` |
+| `08` | `80` | `capHudSlideTask` | CAP demo-scene HP/MP slide; `spawnArg1.value` is -1 to hide, +1 to return; live handle `D_801156B8` |
 | `0B` | `80` | `Gp_EndWaitTask` | `spawnArg2` is `CapActionRequest*`; non-zero `done` sets the ending flag and kills |
-| `0C` | `20` | `Gp_ShakeTask` | Camera shake |
-| `0D` | `20` | `Gp_VolFadeTask` | `spawnArg2` is `_EvsMusicVolumeFade*` (music volume: target level + duration) |
-| `0E` | `20` | `Gp_SndFadeTask` | `spawnArg2` is `_EvsSoundAttenuationFade*` (one sound's attenuation: target + duration) |
+| `0C` | `20` | `evsScreenShakeTask` | Vertical display shake; packed `spawnArg2.value` holds signed amplitude above bit 7 and half-duration (1..255) in the low byte |
+| `0D` | `20` | `evsMusicVolumeFadeTask` | `spawnArg2` is `_EvsMusicVolumeFade*` (music volume: target level + duration) |
+| `0E` | `20` | `evsSoundAttenuationFadeTask` | `spawnArg2` is `_EvsSoundAttenuationFade*` (one sound's attenuation: target + duration) |
 | `11` | `20` | `func_800E4028` | Unnamed |
 | `12` | `20` | NULL, `flags = 0xFFFF` | Sentinel |
 

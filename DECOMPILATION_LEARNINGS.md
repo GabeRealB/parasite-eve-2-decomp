@@ -29714,7 +29714,7 @@ holds `(u32)gRandomLcgState >> 16`:
 register s32 tmp asm("v0");
 register s32 hi asm("v1");
 
-tmp    = ABS(arg0->spawnArg1);
+tmp    = ABS(task->spawnArg1.value);
 hi     = lo - tmp;
 tmp    = packed >> 8; /* sra v0, a0, 8 — not in-place on packed */
 scaled = hi * tmp;
@@ -29733,7 +29733,7 @@ The unpinned dest keeps `sll a0, v1, 24`. Odd path is `val = ABS(val)`;
 even is `tmp = ABS(val); val = -tmp` so even stays copy-abs
 (`move v0, v1; negu v0; negu v1, v0`).
 
-`Gp_ShakeTask` is the example. A one-liner multiply stuck at 95% with
+`evsScreenShakeTask` is the example. A one-liner multiply stuck at 95% with
 only that hoist and `mult` operand order different. Needs `--expand-div`
 (scratch `build.sh` and the TU).
 
@@ -52616,7 +52616,7 @@ whether the target has it.
 ### A ported matched body scoring far below m2c: check that `ABS` is a macro, not a `jal`
 
 `func_acropolis_helicopter_landing_pad_8017E81C` is a byte-for-byte copy of
-gameplay's matched `Gp_ShakeTask`. Pasting that body into the m2c scratch seed
+gameplay's matched `evsScreenShakeTask`. Pasting that body into the m2c scratch seed
 scored **68%**, below the 90% m2c baseline, with `regs=40 insert=15`. The
 object dump had `jal ABS` three times: the seed's include list (`common.h`,
 `gameplay/*.h`, `main/task.h`) does not pull in `psyq/abs.h`, so GCC 2.8.1
@@ -128995,7 +128995,7 @@ the conversion whenever the low byte provably sign-extends to the whole value, a
 shapes that fold are exactly the common ones: `x >> 24` becomes a bare `sra a0,v0,24`,
 `x & 1` a bare `andi a0,a0,0x1` (both seen in matched `actor_403100` / `actor_503500` bodies),
 and a constant folds outright. A genuine conversion therefore only ever appears on a
-*computed* value, as here and in `Gp_ShakeTask` / `actor_335800_80162588`.
+*computed* value, as here and in `evsScreenShakeTask` / `actor_335800_80162588`.
 
 Fix, when the target has no conversion and the header cannot be relaxed (here `display.h` is
 pulled in by `gameplay/D4.h`, which needs `gDisplayState`, and narrowing the shared prototype

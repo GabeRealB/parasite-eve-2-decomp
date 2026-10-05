@@ -641,63 +641,74 @@ static void Gp_ScriptTaskState1(Task* arg0)
     }
 }
 
-void Gp_VolFadeTask(Task* arg0)
+void evsMusicVolumeFadeTask(Task* task)
 {
-    _EvsMusicVolumeFade* fade;
-    s32                  volume;
+    enum {
+        EVENT_SCRIPT_MUSIC_FADE_INITIALIZE = 0,
+        EVENT_SCRIPT_MUSIC_FADE_UPDATE     = 1
+    };
+    const _EvsMusicVolumeFade* fade;
+    s32                        musicLevel;
 
-    fade = arg0->spawnArg2.pointer;
-    switch (arg0->state) {
-        case 0:
+    fade = task->spawnArg2.pointer;
+    switch (task->state) {
+        case EVENT_SCRIPT_MUSIC_FADE_INITIALIZE:
             if (fade->durationFrames == 0) {
                 midiApplyMusicVolume(fade->targetVolume);
-                taskKill(arg0);
-                D_8010FBE4 = 0;
+                taskKill(task);
+                D_8010FBE4 = NULL;
             } else {
                 D_801156C2 = 0;
                 D_801156C0 = D_8007A396;
             }
-            arg0->state++;
+            task->state++;
             break;
-        case 1:
+        case EVENT_SCRIPT_MUSIC_FADE_UPDATE:
+            // Count fade updates after initialization, applying the target on the last one.
             D_801156C2++;
-            volume = (D_801156C0 * (fade->durationFrames - D_801156C2) + fade->targetVolume * D_801156C2) / fade->durationFrames;
-            midiApplyMusicVolume(volume);
+            musicLevel = (D_801156C0 * (fade->durationFrames - D_801156C2) + fade->targetVolume * D_801156C2) / fade->durationFrames;
+            midiApplyMusicVolume(musicLevel);
             if (D_801156C2 == fade->durationFrames) {
-                taskKill(arg0);
-                D_8010FBE4 = 0;
+                taskKill(task);
+                D_8010FBE4 = NULL;
             }
             break;
     }
 }
 
-void Gp_SndFadeTask(Task* arg0)
+void evsSoundAttenuationFadeTask(Task* task)
 {
+    enum {
+        EVENT_SCRIPT_SOUND_FADE_INITIALIZE      = 0,
+        EVENT_SCRIPT_SOUND_FADE_UPDATE          = 1,
+        EVENT_SCRIPT_SOUND_FADE_BASE_PAN_OFFSET = 0
+    };
     _EvsSoundAttenuationFade* fade;
-    s32                       volume;
+    s32                       attenuation;
 
-    fade = arg0->spawnArg2.pointer;
-    switch (arg0->state) {
-        case 0:
+    fade = task->spawnArg2.pointer;
+    switch (task->state) {
+        case EVENT_SCRIPT_SOUND_FADE_INITIALIZE:
             if (fade->durationFrames == 0) {
-                sndEvtRequestScriptMix(fade->soundId, 0, (s8)fade->targetAttenuation);
+                sndEvtRequestScriptMix(fade->soundId, EVENT_SCRIPT_SOUND_FADE_BASE_PAN_OFFSET, (s8)fade->targetAttenuation);
                 fade->attenuation = fade->targetAttenuation;
-                taskKill(arg0);
-                D_8010FBE8 = 0;
+                taskKill(task);
+                D_8010FBE8 = NULL;
             } else {
                 D_801156C6 = 0;
                 D_801156C4 = fade->attenuation;
             }
-            arg0->state++;
+            task->state++;
             break;
-        case 1:
+        case EVENT_SCRIPT_SOUND_FADE_UPDATE:
+            // Retain the halfword level while the sound request consumes its signed low byte.
             D_801156C6++;
-            volume = (D_801156C4 * (fade->durationFrames - D_801156C6) + fade->targetAttenuation * D_801156C6) / fade->durationFrames;
-            sndEvtRequestScriptMix(fade->soundId, 0, (s8)volume);
-            fade->attenuation = volume;
+            attenuation = (D_801156C4 * (fade->durationFrames - D_801156C6) + fade->targetAttenuation * D_801156C6) / fade->durationFrames;
+            sndEvtRequestScriptMix(fade->soundId, EVENT_SCRIPT_SOUND_FADE_BASE_PAN_OFFSET, (s8)attenuation);
+            fade->attenuation = attenuation;
             if (D_801156C6 == fade->durationFrames) {
-                taskKill(arg0);
-                D_8010FBE8 = 0;
+                taskKill(task);
+                D_8010FBE8 = NULL;
             }
             break;
     }
@@ -774,68 +785,94 @@ void func_800E8830(Task* arg0)
     sp.funcs[arg0->state](arg0);
 }
 
-void func_800E8888(Task* arg0)
+void capHudSlideTask(Task* task)
 {
-    s16 tmp;
+    enum {
+        CAP_HUD_SLIDE_INITIALIZE            = 0,
+        CAP_HUD_SLIDE_UPDATE                = 1,
+        CAP_HUD_SLIDE_HIDE                  = -1,
+        CAP_HUD_SLIDE_MAX_STEP              = 8,
+        CAP_HUD_SLIDE_OFFSET_UNITS_PER_STEP = 2
+    };
+    s16 slideStep;
 
-    switch (arg0->state) {
-        case 0:
-            arg0->killCountdown   = 0;
-            arg0->spawnArg1.value = -1;
-            arg0->state++;
+    switch (task->state) {
+        case CAP_HUD_SLIDE_INITIALIZE:
+            task->killCountdown   = 0;
+            task->spawnArg1.value = CAP_HUD_SLIDE_HIDE;
+            task->state++;
             break;
-        case 1:
-            arg0->killCountdown = (u16)arg0->killCountdown - (u16)arg0->spawnArg1.value;
-            if (arg0->killCountdown >= 9) {
-                arg0->killCountdown = 8;
+        case CAP_HUD_SLIDE_UPDATE:
+            // CAP reverses the direction to return from the held hidden position.
+            task->killCountdown -= task->spawnArg1.value;
+            if (task->killCountdown >= CAP_HUD_SLIDE_MAX_STEP + 1) {
+                task->killCountdown = CAP_HUD_SLIDE_MAX_STEP;
             }
-            tmp = arg0->killCountdown;
-            if (tmp < 0) {
+            slideStep = task->killCountdown;
+            if (slideStep < 0) {
                 gGameSession->hudShakeY = 0;
-                taskKill(arg0);
+                taskKill(task);
             } else {
-                gGameSession->hudShakeY = tmp * 2;
+                gGameSession->hudShakeY = slideStep * CAP_HUD_SLIDE_OFFSET_UNITS_PER_STEP;
             }
             break;
     }
 }
 
-/// Screen-shake task. `spawnArg2` is a packed s32: low byte is the
-/// duration bound (counter runs `-lo` .. `+lo`); `>> 8` is amplitude.
-/// Each frame an LCG (`gRandomLcgState`) scales the remaining count into
-/// `displaySetShakeY`, flipping sign on `spawnArg1` parity.
-void Gp_ShakeTask(Task* arg0)
+void evsScreenShakeTask(Task* task)
 {
-    s32 packed;
-    s32 lo;
-    s32 scaled;
-    s32 val;
+    enum {
+        EVENT_SCRIPT_SHAKE_INITIALIZE           = 0,
+        EVENT_SCRIPT_SHAKE_UPDATE               = 1,
+        EVENT_SCRIPT_SHAKE_DURATION_MASK        = 0xFF,
+        EVENT_SCRIPT_SHAKE_AMPLITUDE_SHIFT      = 8,
+        EVENT_SCRIPT_SHAKE_RANDOM_FRACTION_BITS = 16
+    };
+    s32 packedShake;
+    s32 halfDurationFrames;
+    s32 envelopeAmplitude;
+    s32 shakeSample;
 
-    packed = arg0->spawnArg2.value;
-    lo     = packed & 0xFF;
+    /// Samples the triangular shake envelope and alternates sign with the task cursor.
+    ///
+    /// `packed` contains the signed pixel amplitude above bit 7; `halfDuration`
+    /// must be nonzero. `sample` and `weightedAmplitude` must be distinct s32
+    /// local lvalues that do not alias the input arguments. All argument
+    /// evaluations must be side-effect-free. Re-reads the task
+    /// cursor after advancing `gRandomLcgState`. Uses the local packing and
+    /// fractional-bit constants and shared random state; expands to a compound statement.
+#define EVENT_SCRIPT_SAMPLE_SCREEN_SHAKE(shakeTask, packed, halfDuration, sample, weightedAmplitude)                                                                                 \
+    {                                                                                                                                                                                \
+        (sample)            = (halfDuration) - ABS((shakeTask)->spawnArg1.value);                                                                                                    \
+        (weightedAmplitude) = (sample) * ((packed) >> EVENT_SCRIPT_SHAKE_AMPLITUDE_SHIFT);                                                                                           \
+        gRandomLcgState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;                                                                                        \
+        (sample)            = ((weightedAmplitude) * (s32)(gRandomLcgState >> EVENT_SCRIPT_SHAKE_RANDOM_FRACTION_BITS)) / (halfDuration) >> EVENT_SCRIPT_SHAKE_RANDOM_FRACTION_BITS; \
+        if ((shakeTask)->spawnArg1.value & 1) {                                                                                                                                      \
+            (sample) = ABS(sample);                                                                                                                                                  \
+        } else {                                                                                                                                                                     \
+            (sample) = -ABS(sample);                                                                                                                                                 \
+        }                                                                                                                                                                            \
+    }
 
-    switch (arg0->state) {
-        case 0:
-            arg0->spawnArg1.value = -lo;
-            arg0->state++;
+    packedShake        = task->spawnArg2.value;
+    halfDurationFrames = packedShake & EVENT_SCRIPT_SHAKE_DURATION_MASK;
+
+    switch (task->state) {
+        case EVENT_SCRIPT_SHAKE_INITIALIZE:
+            task->spawnArg1.value = -halfDurationFrames;
+            task->state++;
             break;
-        case 1:
-            if (lo < arg0->spawnArg1.value) {
+        case EVENT_SCRIPT_SHAKE_UPDATE:
+            if (halfDurationFrames < task->spawnArg1.value) {
                 displaySetShakeY(0);
-                taskKill(arg0);
+                taskKill(task);
             } else {
-                val             = lo - ABS(arg0->spawnArg1.value);
-                scaled          = val * (packed >> 8);
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                val             = (scaled * (s32)(gRandomLcgState >> 16)) / lo >> 16;
-                if (arg0->spawnArg1.value & 1) {
-                    val = ABS(val);
-                } else {
-                    val = -ABS(val);
-                }
-                displaySetShakeY(val);
-                arg0->spawnArg1.value++;
+                // Grow and decay the envelope around the middle frame.
+                EVENT_SCRIPT_SAMPLE_SCREEN_SHAKE(task, packedShake, halfDurationFrames, shakeSample, envelopeAmplitude);
+                displaySetShakeY(shakeSample);
+                task->spawnArg1.value++;
             }
             break;
     }
+#undef EVENT_SCRIPT_SAMPLE_SCREEN_SHAKE
 }
