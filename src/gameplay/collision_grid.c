@@ -285,7 +285,7 @@ void func_800DD940(WorldCollisionBody* arg0)
     for (i = 0; i < Gp_GridParams->faceCount; i++) {
         if (D_80115450[i] &&
             Gp_GridParams->normals[Gp_GridParams->faces[i].normalIndex].vy < -0xDDA &&
-            func_800DD324(i, scratch->endpoints, scratch->ray, arg0)) {
+            worldCollisionIntersectGridFace(i, scratch->endpoints, scratch->ray, arg0)) {
             slot  = arg0->context.motion->contacts;
             flags = slot->flags;
             if (flags & WORLD_COLLISION_CONTACT_OCCUPIED) {
@@ -358,7 +358,7 @@ void func_800DDDF8(WorldCollisionBody* obj)
     func_800DEC80(obj, scratch->endpoints, scratch->ray, 1);
 
     for (i = 0; i < Gp_GridParams->faceCount; i++) {
-        if (D_80115450[i] != 0 && func_800DD324(i, scratch->endpoints, scratch->ray, obj) != 0) {
+        if (D_80115450[i] != 0 && worldCollisionIntersectGridFace(i, scratch->endpoints, scratch->ray, obj) != 0) {
             slot = obj->context.capsule->contacts;
             if (obj->flags & WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT) {
                 if (Gp_RoomParamTables[gGameSession->location.loc.stage - 1][gGameSession->location.loc.area - 1]
@@ -580,7 +580,7 @@ s32 func_800DE7CC(SVECTOR* arg0, SVECTOR* arg1, SVECTOR* arg2, SVECTOR* arg3)
                                   ->probePassThrough != WORLD_COLLISION_SURFACE_BLOCK_PROBES) {
             continue;
         }
-        if (func_800DD324(i, scratch->endpoints, scratch->ray, 0) == 0) {
+        if (worldCollisionIntersectGridFace(i, scratch->endpoints, scratch->ray, NULL) == 0) {
             continue;
         }
         if (arg2 != NULL) {

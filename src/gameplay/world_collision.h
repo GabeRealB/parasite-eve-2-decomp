@@ -29,7 +29,32 @@ void Gp_CollideObjGrid(WorldCollisionBody* arg0);
 
 void Gp_CollideObjGridDir(WorldCollisionBody* arg0);
 
-s32 func_800DD324(s32 faceId, VECTOR* seg, SVECTOR* ray, WorldCollisionBody* arg3);
+/// Tests a directed segment against one active-grid triangle or quad.
+///
+/// `faceIndex` is in [0, Gp_GridParams->faceCount); the grid, its valid mesh
+/// indices and its composed `viewCoord->workm` must be live. `endpoints` holds
+/// two query-space positions in game units. `directionAndHit[0]` is endpoint 0
+/// minus endpoint 1, normalized with 4096 per unit in the same frame. A hit
+/// requires endpoint 1 on the positive side of the face and a strictly negative
+/// distance along that reversed direction from endpoint 0 to its plane.
+/// Parallel and opposite-direction queries are rejected. The ray direction
+/// must be nonzero; the face must have a unit normal and nonzero-length edges.
+/// Edge deltas must fit signed halfwords with squared length in 1..0x7FFFFFFF,
+/// as required by the SDK's GTE normalization.
+///
+/// Returns 1 when the plane hit passes every outward edge plane, else 0.
+/// A non-NULL `bodyQuery` selects 10 game units of edge tolerance; NULL selects
+/// 5 for a standalone probe. The body is never dereferenced. The face-plane
+/// offset and edge distances are truncated to signed halfwords. The candidate
+/// hit XYZ is written to `directionAndHit[1]`, also as signed halfwords, before
+/// edge rejection, so a 0 result can leave a candidate hit. Its pad halfword,
+/// the direction and the endpoints are untouched.
+///
+/// The output must not overlap the endpoints or mesh. All live query storage
+/// must be disjoint from the initialized scratch stack's 112-byte reservation.
+/// Releases that block on every exit, changes GTE rotation and arithmetic state,
+/// and retains no pointers.
+s32 worldCollisionIntersectGridFace(s32 faceIndex, const VECTOR endpoints[2], SVECTOR directionAndHit[2], const WorldCollisionBody* bodyQuery);
 
 extern WorldCollisionTrigger* Gp_Obj4CList;
 

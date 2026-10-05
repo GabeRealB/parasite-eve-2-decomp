@@ -58,7 +58,7 @@ extern InventoryBattleReward* D_8010F9F4[];
 extern InventoryBattleReward* D_8010FA0C[];
 
 /// Face edge endpoint pairs walked by the grid collision helpers
-/// (`Gp_CollideObjGrid` / `Gp_CollideObjGridDir` / `func_800DD324` / `func_800DFCCC`).
+/// (`Gp_CollideObjGrid` / `Gp_CollideObjGridDir` / `worldCollisionIntersectGridFace` / `func_800DFCCC`).
 extern WorldCollisionFaceEdge Gp_FaceEdgePairs[5];
 
 extern const char D_8009745C[];

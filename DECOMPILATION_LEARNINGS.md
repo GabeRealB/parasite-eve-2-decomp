@@ -40868,9 +40868,9 @@ the real outer-product word `0x4B78000C` (`gte_ldopv1` / `gte_ldopv2` /
 When every temp in a function is one register off the target (`$t2/$t1/$t0`
 where the target has `$t1/$t0/$a3`), the cause is usually a single pseudo that
 was still live — or already dead — at the *first* load, not a hundred bad
-allocations. In `func_800DD324` the culprit was `face = &Gp_GridParams->faces[faceId]`.
+allocations. In `worldCollisionIntersectGridFace` the culprit was `face = &Gp_GridParams->faces[faceIndex]`.
 Written directly after the scratch-head bookkeeping, the pre-reload scheduler
-hoisted the whole `faceId * 12` chain (`sll`/`addu`/`sll`) into the prologue's
+hoisted the whole `faceIndex * 12` chain (`sll`/`addu`/`sll`) into the prologue's
 `sw` delay slots, so `$a0` was dead by the time `Gp_GridParams` was loaded and
 the global took `$a0` instead of `$a1`. That freed `$a1` for the face pointer,
 which then no longer needed a callee-saved register, and the shift cascaded
@@ -40883,7 +40883,7 @@ assignment of the scratch pointer — left `addu v0, v0, a0` after the
 ```c
     scratchEnd                = SCRATCH_STACK_CURSOR(_WorldCollisionGridRayScratch);
     SCRATCH_STACK_CURSOR(void) = scratchEnd - 1;
-    face                      = &Gp_GridParams->faces[faceId];   /* not before, not after */
+    face                      = &Gp_GridParams->faces[faceIndex];   /* not before, not after */
     scratch                   = scratchEnd - 1;
 ```
 
@@ -134685,7 +134685,7 @@ typedef struct { s16 endCornerIndex; s16 startCornerIndex; } WorldCollisionFaceE
 ```
 
 The corner-index table is the case: `Gp_CollideObjGrid`, `Gp_CollideObjGridDir` and
-`func_800DD324` index it through the signed type and compile `lh`, while
+`worldCollisionIntersectGridFace` index it through the signed type and compile `lh`, while
 `func_800DEF80`, `func_800DF6AC` and `func_800DFCCC` reach the same table
 through unsigned scalar casts and compile `lhu`. `DamageAttack` only shares this
 layout; it is an attack record, not the corner-index table. The unsigned

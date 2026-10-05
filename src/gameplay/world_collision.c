@@ -258,6 +258,25 @@ WorldCollisionPairRule D_8010FA4C[4][4] = {
       { WORLD_COLLISION_PAIR_HANDLER_SPHERES, false } },
 };
 
+/// Builds one grid-face edge's outward Q12 plane normal in the query scratch.
+///
+/// `polygonIndex` selects a valid entry in `Gp_FaceEdgePairs`; both indexed
+/// corners and `faceNormal` must be initialized. Replaces `edgeWork`'s game-unit
+/// displacement with the cross product after normalizing it into `edgeDirection`.
+/// Edge deltas must fit signed halfwords, with squared length in 1..0x7FFFFFFF.
+/// Changes GTE arithmetic state; writes XYZ only and retains no pointers.
+static __inline__ void _worldCollisionBuildGridRayEdgePlane(_WorldCollisionGridRayScratch* scratch, s32 polygonIndex)
+{
+    scratch->edgeWork.vx = scratch->corners[Gp_FaceEdgePairs[polygonIndex].endCornerIndex].vx - scratch->corners[Gp_FaceEdgePairs[polygonIndex].startCornerIndex].vx;
+    scratch->edgeWork.vy = scratch->corners[Gp_FaceEdgePairs[polygonIndex].endCornerIndex].vy - scratch->corners[Gp_FaceEdgePairs[polygonIndex].startCornerIndex].vy;
+    scratch->edgeWork.vz = scratch->corners[Gp_FaceEdgePairs[polygonIndex].endCornerIndex].vz - scratch->corners[Gp_FaceEdgePairs[polygonIndex].startCornerIndex].vz;
+    VectorNormal(&scratch->edgeWork, &scratch->edgeDirection);
+    gte_ldopv1(&scratch->faceNormal);
+    gte_ldopv2(&scratch->edgeDirection);
+    gte_op12();
+    gte_stlvnl(&scratch->edgeWork);
+}
+
 void Gp_TickWorldCollision(Task* unused)
 {
     if (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER) != NULL) {
@@ -890,23 +909,30 @@ done:
     SCRATCH_STACK_RELEASE_BYTES(sizeof(_WorldCollisionGridSphereScratch));
 }
 
-s32 func_800DD324(s32 faceId, VECTOR* seg, SVECTOR* ray, WorldCollisionBody* arg3)
+s32 worldCollisionIntersectGridFace(s32 faceIndex, const VECTOR endpoints[2], SVECTOR directionAndHit[2], const WorldCollisionBody* bodyQuery)
 {
+    // Direction/normal products use Q12; edge tolerances use game units.
+    enum {
+        WORLD_COLLISION_GRID_FACE_FRACTION_BITS        = 12,
+        WORLD_COLLISION_GRID_FACE_PROBE_EDGE_TOLERANCE = 5,
+        WORLD_COLLISION_GRID_FACE_BODY_EDGE_TOLERANCE  = 10,
+        WORLD_COLLISION_GRID_FACE_TRIANGLE_CORNERS     = 3
+    };
     _WorldCollisionGridRayScratch* scratchEnd;
     _WorldCollisionGridRayScratch* scratch;
-    WorldCollisionGridFace*        face;
-    s32                            i;
-    s32                            n;
-    s16                            faceDot;
-    s32                            denom;
-    s32                            t;
-    s32                            edgeDot;
-    s32                            val;
-    s32                            limit;
+    const WorldCollisionGridFace*  face;
+    s32                            polygonIndex;
+    s32                            cornerCount;
+    s16                            facePlaneOffset;
+    s32                            directionNormalDot;
+    s32                            distanceAlongReverseDirection;
+    s32                            edgePlaneOffset;
+    s32                            edgeDistance;
+    s32                            edgeTolerance;
 
     scratchEnd                 = SCRATCH_STACK_CURSOR(_WorldCollisionGridRayScratch);
     SCRATCH_STACK_CURSOR(void) = scratchEnd - 1;
-    face                       = &Gp_GridParams->faces[faceId];
+    face                       = &Gp_GridParams->faces[faceIndex];
     scratch                    = scratchEnd - 1;
 
     // Transform the face into the segment's query space.
@@ -922,67 +948,63 @@ s32 func_800DD324(s32 faceId, VECTOR* seg, SVECTOR* ray, WorldCollisionBody* arg
     gte_rtv0();
     gte_stlvnl(&scratch->faceNormal);
 
-    faceDot = (scratch->faceNormal.vx * scratch->corners[0].vx + scratch->faceNormal.vy * scratch->corners[0].vy +
-               scratch->faceNormal.vz * scratch->corners[0].vz) >>
-              12;
-    denom = (scratch->faceNormal.vx * ray[0].vx + scratch->faceNormal.vy * ray[0].vy + scratch->faceNormal.vz * ray[0].vz) >> 12;
+    // Accept only a crossing from the negative side towards the face normal.
+    facePlaneOffset = (scratch->faceNormal.vx * scratch->corners[0].vx + scratch->faceNormal.vy * scratch->corners[0].vy +
+                       scratch->faceNormal.vz * scratch->corners[0].vz) >>
+                      WORLD_COLLISION_GRID_FACE_FRACTION_BITS;
+    directionNormalDot = (scratch->faceNormal.vx * directionAndHit[0].vx + scratch->faceNormal.vy * directionAndHit[0].vy + scratch->faceNormal.vz * directionAndHit[0].vz) >> WORLD_COLLISION_GRID_FACE_FRACTION_BITS;
 
-    if (denom >= 0) {
+    if (directionNormalDot >= 0) {
         SCRATCH_STACK_RELEASE_BLOCK(_WorldCollisionGridRayScratch);
         return 0;
     }
-    if ((((scratch->faceNormal.vx * seg[1].vx + scratch->faceNormal.vy * seg[1].vy + scratch->faceNormal.vz * seg[1].vz) >> 12) -
-         faceDot) <= 0) {
+    if ((((scratch->faceNormal.vx * endpoints[1].vx + scratch->faceNormal.vy * endpoints[1].vy + scratch->faceNormal.vz * endpoints[1].vz) >> WORLD_COLLISION_GRID_FACE_FRACTION_BITS) -
+         facePlaneOffset) <= 0) {
         SCRATCH_STACK_RELEASE_BLOCK(_WorldCollisionGridRayScratch);
         return 0;
     }
-    t = -(((((scratch->faceNormal.vx * seg[0].vx + scratch->faceNormal.vy * seg[0].vy + scratch->faceNormal.vz * seg[0].vz) >> 12) -
-            faceDot)
-           << 12)) /
-        denom;
-    if (t >= 0) {
+    distanceAlongReverseDirection = -(((((scratch->faceNormal.vx * endpoints[0].vx + scratch->faceNormal.vy * endpoints[0].vy + scratch->faceNormal.vz * endpoints[0].vz) >> WORLD_COLLISION_GRID_FACE_FRACTION_BITS) -
+                                        facePlaneOffset)
+                                       << WORLD_COLLISION_GRID_FACE_FRACTION_BITS)) /
+                                    directionNormalDot;
+    if (distanceAlongReverseDirection >= 0) {
         SCRATCH_STACK_RELEASE_BLOCK(_WorldCollisionGridRayScratch);
         return 0;
     }
 
-    ray[1].vx = seg[0].vx + ((ray[0].vx * t) >> 12);
-    ray[1].vy = seg[0].vy + ((ray[0].vy * t) >> 12);
-    ray[1].vz = seg[0].vz + ((ray[0].vz * t) >> 12);
+    // Publish the halfword-truncated plane hit before the edge tests can reject it.
+    directionAndHit[1].vx = endpoints[0].vx + ((directionAndHit[0].vx * distanceAlongReverseDirection) >> WORLD_COLLISION_GRID_FACE_FRACTION_BITS);
+    directionAndHit[1].vy = endpoints[0].vy + ((directionAndHit[0].vy * distanceAlongReverseDirection) >> WORLD_COLLISION_GRID_FACE_FRACTION_BITS);
+    directionAndHit[1].vz = endpoints[0].vz + ((directionAndHit[0].vz * distanceAlongReverseDirection) >> WORLD_COLLISION_GRID_FACE_FRACTION_BITS);
 
-    n = (face->vertexIndices[3] == WORLD_COLLISION_GRID_FACE_NO_VERTEX) ? 3 : (s32)ARRAY_SIZE(scratch->corners);
+    cornerCount = (face->vertexIndices[WORLD_COLLISION_GRID_FACE_TRIANGLE_CORNERS] == WORLD_COLLISION_GRID_FACE_NO_VERTEX) ? WORLD_COLLISION_GRID_FACE_TRIANGLE_CORNERS : (s32)ARRAY_SIZE(scratch->corners);
 
     gte_SetRotMatrix(&Gp_GridParams->viewCoord->workm);
-    for (i = 1; i < n; i++) {
-        gte_ldv0(&Gp_GridParams->vertices[face->vertexIndices[i]]);
+    for (polygonIndex = 1; polygonIndex < cornerCount; polygonIndex++) {
+        gte_ldv0(&Gp_GridParams->vertices[face->vertexIndices[polygonIndex]]);
         gte_rtv0();
-        gte_stlvnl(&scratch->corners[i]);
-        scratch->corners[i].vx += Gp_GridParams->viewCoord->workm.t[0];
-        scratch->corners[i].vy += Gp_GridParams->viewCoord->workm.t[1];
-        scratch->corners[i].vz += Gp_GridParams->viewCoord->workm.t[2];
+        gte_stlvnl(&scratch->corners[polygonIndex]);
+        scratch->corners[polygonIndex].vx += Gp_GridParams->viewCoord->workm.t[0];
+        scratch->corners[polygonIndex].vy += Gp_GridParams->viewCoord->workm.t[1];
+        scratch->corners[polygonIndex].vz += Gp_GridParams->viewCoord->workm.t[2];
     }
 
-    // Reuse the displacement slot for each edge's outward Q12 plane normal.
-    for (i = n - 3; i < n * 2 - 3; i++) {
-        scratch->edgeWork.vx = scratch->corners[Gp_FaceEdgePairs[i].endCornerIndex].vx - scratch->corners[Gp_FaceEdgePairs[i].startCornerIndex].vx;
-        scratch->edgeWork.vy = scratch->corners[Gp_FaceEdgePairs[i].endCornerIndex].vy - scratch->corners[Gp_FaceEdgePairs[i].startCornerIndex].vy;
-        scratch->edgeWork.vz = scratch->corners[Gp_FaceEdgePairs[i].endCornerIndex].vz - scratch->corners[Gp_FaceEdgePairs[i].startCornerIndex].vz;
-        VectorNormal(&scratch->edgeWork, &scratch->edgeDirection);
-        gte_ldopv1(&scratch->faceNormal);
-        gte_ldopv2(&scratch->edgeDirection);
-        gte_op12();
-        gte_stlvnl(&scratch->edgeWork);
+    // Triangle and quad edge ranges share the corner-pair table.
+    // Distances past each outward plane are deliberately truncated to halfwords.
+    for (polygonIndex = cornerCount - WORLD_COLLISION_GRID_FACE_TRIANGLE_CORNERS; polygonIndex < cornerCount * 2 - WORLD_COLLISION_GRID_FACE_TRIANGLE_CORNERS; polygonIndex++) {
+        _worldCollisionBuildGridRayEdgePlane(scratch, polygonIndex);
 
-        edgeDot = (scratch->edgeWork.vx * scratch->corners[Gp_FaceEdgePairs[i].endCornerIndex].vx +
-                   scratch->edgeWork.vy * scratch->corners[Gp_FaceEdgePairs[i].endCornerIndex].vy +
-                   scratch->edgeWork.vz * scratch->corners[Gp_FaceEdgePairs[i].endCornerIndex].vz) >>
-                  12;
-        limit = 5;
-        val   = ((scratch->edgeWork.vx * ray[1].vx + scratch->edgeWork.vy * ray[1].vy + scratch->edgeWork.vz * ray[1].vz) >> 12) -
-              edgeDot;
-        if (arg3 != 0) {
-            limit = 10;
+        edgePlaneOffset = (scratch->edgeWork.vx * scratch->corners[Gp_FaceEdgePairs[polygonIndex].endCornerIndex].vx +
+                           scratch->edgeWork.vy * scratch->corners[Gp_FaceEdgePairs[polygonIndex].endCornerIndex].vy +
+                           scratch->edgeWork.vz * scratch->corners[Gp_FaceEdgePairs[polygonIndex].endCornerIndex].vz) >>
+                          WORLD_COLLISION_GRID_FACE_FRACTION_BITS;
+        edgeTolerance = WORLD_COLLISION_GRID_FACE_PROBE_EDGE_TOLERANCE;
+        edgeDistance  = ((scratch->edgeWork.vx * directionAndHit[1].vx + scratch->edgeWork.vy * directionAndHit[1].vy + scratch->edgeWork.vz * directionAndHit[1].vz) >> WORLD_COLLISION_GRID_FACE_FRACTION_BITS) -
+                       edgePlaneOffset;
+        if (bodyQuery != NULL) {
+            edgeTolerance = WORLD_COLLISION_GRID_FACE_BODY_EDGE_TOLERANCE;
         }
-        if ((s16)val - limit > 0) {
+        if ((s16)edgeDistance - edgeTolerance > 0) {
             SCRATCH_STACK_RELEASE_BLOCK(_WorldCollisionGridRayScratch);
             return 0;
         }
