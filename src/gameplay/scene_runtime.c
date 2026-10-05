@@ -1998,27 +1998,36 @@ static void _gpuBlendRgb555(const u16* first, const u16* second, s32 firstWeight
     SCRATCH_STACK_RELEASE_BYTES(3 * sizeof(_Rgb555Scratch));
 }
 
-/// Links a fade tile behind its blend command at the requested screen ordering tag.
+/// Links a full-screen fade's blend command and tile into one ordering-table tag.
 ///
-/// Borrows the current ordering table and the two writable frame packets.
-/// A nonzero task tag index must be in bounds. Zero chooses a presentation-table
-/// root or the foreground tag ten entries before the offset current pointer.
-/// The command is prepended last so it executes before the tile.
-static inline void _fadeLinkScreenPackets(Task* task, TILE* tile, DR_TPAGE* blendCommand)
+/// `otTagOffset` borrows a signed word, live and unchanged during this call.
+/// Its value counts four-byte tags from `gGpuCurrentOt`. Nonzero offsets must
+/// address a live tag in that table. Zero selects tag 0 at either
+/// `Gpu_OrderingTables` root; otherwise it selects tag -10, requiring ten live
+/// tags before the current base. The normal frame base has 32 reserved tags.
+///
+/// Both packets must be initialized, distinct, word-aligned and writable, and
+/// must remain live until this frame is drawn. Only their DMA links and the
+/// selected tag's link change. Prepending the command last makes it execute
+/// before the tile; neither packet nor the borrowed table is allocated or freed.
+static inline void _fadeLinkScreenPackets(const s32* otTagOffset, TILE* tile, DR_TPAGE* blendCommand)
 {
-    enum { FADE_SCREEN_FOREGROUND_OT_INDEX = -10 };
+    enum {
+        FADE_SCREEN_AUTO_OT_OFFSET      = 0,
+        FADE_SCREEN_FOREGROUND_OT_INDEX = -10
+    };
 
-    // Prepending the draw mode after the tile makes it execute first.
-    if (task->spawnArg1.value != 0) {
+    if (*otTagOffset != FADE_SCREEN_AUTO_OT_OFFSET) {
         u_long* orderingTable;
 
         orderingTable = gGpuCurrentOt;
-        addPrim(&orderingTable[task->spawnArg1.value], tile);
-        addPrim(&orderingTable[task->spawnArg1.value], blendCommand);
+        addPrim(&orderingTable[*otTagOffset], tile);
+        addPrim(&orderingTable[*otTagOffset], blendCommand);
     } else {
         u_long* orderingTable;
 
         orderingTable = gGpuCurrentOt;
+        // Presentation starts at tag zero; the frame depth base follows its foreground tags.
         if ((orderingTable == (u_long*)Gpu_OrderingTables[0].org) || (orderingTable == (u_long*)Gpu_OrderingTables[1].org)) {
             addPrim(orderingTable, tile);
             addPrim(orderingTable, blendCommand);
@@ -2089,7 +2098,7 @@ void fadeScreenTask(Task* task)
         blendCommand->code[0] = GPU_SCREEN_DRAW_MODE_ADD;
     }
 
-    _fadeLinkScreenPackets(task, tile, blendCommand);
+    _fadeLinkScreenPackets(&task->spawnArg1.value, tile, blendCommand);
 
     switch (task->state) {
         case FADE_SCREEN_STATE_RAMP_UP:

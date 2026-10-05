@@ -37591,8 +37591,9 @@ was to *break* a cross-jump, here it is to *feed* one. 97.6% -> 99.3%.
 
 ## One `orderingTable` local per mutually exclusive branch, not one for the whole function
 
-`fadeScreenTask` sorts its two prims into `gGpuCurrentOt[spawnArg1]` or, when
-`spawnArg1 == 0`, into the current OT head. A single function-scope
+`fadeScreenTask`'s inlined `_fadeLinkScreenPackets` sorts its two prims into
+`gGpuCurrentOt[*otTagOffset]` or, when `*otTagOffset == 0`, into the current OT
+head or reserved foreground tag. A single function-scope
 `u_long* orderingTable` reloaded in both arms is allocated one register for the whole
 function ($t0 in both), which also shifts every other pointer down a register
 and reorders the `lui %hi(Gpu_OrderingTables)` / `lw gGpuCurrentOt` pair. The
@@ -37600,10 +37601,10 @@ target gives each arm its own register ($a3 in the indexed arm, $a2 in the
 head arm), so declare the pointer at block scope inside each arm:
 
 ```c
-if (task->spawnArg1.value != 0) {
+if (*otTagOffset != FADE_SCREEN_AUTO_OT_OFFSET) {
     u_long* orderingTable = gGpuCurrentOt;
-    addPrim(&orderingTable[task->spawnArg1.value], tile);
-    addPrim(&orderingTable[task->spawnArg1.value], blendCommand);
+    addPrim(&orderingTable[*otTagOffset], tile);
+    addPrim(&orderingTable[*otTagOffset], blendCommand);
 } else {
     u_long* orderingTable = gGpuCurrentOt;
     ...
