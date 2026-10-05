@@ -36,8 +36,13 @@ void CdStream_SetVolume(s16 volume);
 
 s32 CdStream_IsBusy(void);
 
-/// When enabled, mix both input channels equally into both outputs.
-void CdStream_SetMono(s32 enabled);
+/// Selects mono or stereo mixing for subsequent stream gain updates.
+///
+/// A nonzero low byte of `enabled` selects mono; a zero low byte selects stereo.
+/// Stream setup and `CdStream_SetVolume` apply the selection: mono sends each
+/// channel to both outputs at 181/256 of its gain; stereo sends the left channel
+/// to the left output and the right channel to the right output at full gain.
+void cdStreamSetMono(s32 enabled);
 
 void CdStream_Start(CdStreamParams* params);
 

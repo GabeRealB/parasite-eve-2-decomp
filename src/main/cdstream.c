@@ -422,16 +422,13 @@ static void CdStream_FinishQueueEntry(_CdReadyEntry* entry);
 
 static void CdReady_Cancel(s16 arg0);
 
-static void CdStream_ClearReadySlot(void);
+static void _cdStreamClearReadySlot(void);
 
 static void CdStream_MarkEnding(AsyncCbEntry* unused);
 
-static s32 CdStream_Flush(AsyncCbEntry* unused);
+static s32 _cdStreamCancelDiscInit(AsyncCbEntry* entry);
 
 static void CdStream_ConfigureSpuIrq(s32 arg0, u32 arg1);
-
-/// Unused stream-module entry point; retained for the original image layout.
-static void CdStream_UnusedStub(void);
 
 /* The second byte of D_80068B5C and of D_80068B64 is written as the first
  * symbol's address plus one. Declaring either pair as a struct or an array
@@ -1469,7 +1466,7 @@ static void CdStream_TickPlayback(void)
         }
         if (nextChunk < CdStream_Runtime.state.chunkCount) {
             entry.pollFn   = CdStream_PollMtsRead;
-            entry.doneFn   = CdStream_ClearReadySlot;
+            entry.doneFn   = _cdStreamClearReadySlot;
             entry.cancelFn = CdStream_AbortPhase;
             if ((u16)CdStream_Runtime.state.readySlot != 0) {
                 slot  = CdStream_Runtime.state.readySlot;
@@ -1562,7 +1559,7 @@ static void CdStream_CompleteChunkRead(void)
             }
             if (position < CdStream_Runtime.state.chunkCount) {
                 entry.pollFn   = CdStream_PollMtsRead;
-                entry.doneFn   = CdStream_ClearReadySlot;
+                entry.doneFn   = _cdStreamClearReadySlot;
                 entry.cancelFn = CdStream_AbortPhase;
                 if ((u16)CdStream_Runtime.state.readySlot != 0) {
                     slot  = (u16)CdStream_Runtime.state.readySlot;
@@ -1844,7 +1841,7 @@ static s32 CdStream_PollMtsRead(_CdReadyEntry* entry)
             }
             sp.entry.pollFn                   = CdStream_InitDisc;
             sp.entry.doneFn                   = CdStream_MarkEnding;
-            sp.entry.cancelFn                 = CdStream_Flush;
+            sp.entry.cancelFn                 = _cdStreamCancelDiscInit;
             CdStream_Runtime.state.reinitSlot = AsyncCb_Enqueue(&sp.entry);
         }
     }
@@ -2627,17 +2624,23 @@ s32 CdStream_IsBusy(void)
     return (CdReady_Queue.writeIdx != CdReady_Queue.readIdx) ? 1 : (CdStream_Runtime.state.reinitSlot != 0);
 }
 
-static void CdStream_ClearReadySlot(void)
+/// Clears the live stream's queued-read handle when a chunk-read job finishes.
+///
+/// The handle is a 1-based CD-ready queue slot; zero means no outstanding read.
+/// The queue retires the completed entry after invoking this callback.
+static void _cdStreamClearReadySlot(void)
 {
-    CdStream_Runtime.state.readySlot = 0;
+    enum { CD_STREAM_READY_SLOT_NONE = 0 };
+
+    CdStream_Runtime.state.readySlot = CD_STREAM_READY_SLOT_NONE;
 }
 
-void CdStream_SetMono(s32 enabled)
+void cdStreamSetMono(s32 enabled)
 {
     if ((s8)enabled) {
-        CdStream_Runtime.state.flags = CdStream_Runtime.state.flags | CD_STREAM_MONO;
+        CdStream_Runtime.state.flags |= CD_STREAM_MONO;
     } else {
-        CdStream_Runtime.state.flags = CdStream_Runtime.state.flags & CD_STREAM_CLEAR_MONO;
+        CdStream_Runtime.state.flags &= CD_STREAM_CLEAR_MONO;
     }
 }
 
@@ -2648,10 +2651,16 @@ static void CdStream_MarkEnding(AsyncCbEntry* unused)
     CdStream_Runtime.state.reinitSlot = 0;
 }
 
-static s32 CdStream_Flush(AsyncCbEntry* unused)
+/// Flushes CD library state when a disc-reinitialization job is cancelled.
+///
+/// `entry` is the queue-owned job and is unused. Returning zero finishes
+/// cancellation immediately, allowing the asynchronous queue to retire the job.
+static s32 _cdStreamCancelDiscInit(AsyncCbEntry* entry)
 {
+    enum { CD_STREAM_CANCEL_COMPLETE = 0 };
+
     CdFlush();
-    return 0;
+    return CD_STREAM_CANCEL_COMPLETE;
 }
 
 static void CdStream_ConfigureSpuIrq(s32 arg0, u32 arg1)
@@ -2672,6 +2681,7 @@ static void CdStream_ConfigureSpuIrq(s32 arg0, u32 arg1)
     }
 }
 
-static void CdStream_UnusedStub(void)
+/// Unreferenced no-op retained for the original image layout.
+static void _cdStreamUnusedStub(void)
 {
 }

@@ -2248,12 +2248,12 @@ CdStream_AbortPhase         = 0x8005B968; // type:func
 CdStream_FinishQueueEntry   = 0x8005BA8C; // type:func
 CdReady_Cancel              = 0x8005BAEC; // type:func
 CdStream_IsBusy             = 0x8005BB4C; // type:func
-CdStream_ClearReadySlot     = 0x8005BB9C; // type:func
-CdStream_SetMono     = 0x8005BBB0; // type:func
+_cdStreamClearReadySlot     = 0x8005BB9C; // type:func
+cdStreamSetMono     = 0x8005BBB0; // type:func
 CdStream_MarkEnding         = 0x8005BBF4; // type:func
-CdStream_Flush              = 0x8005BC28; // type:func
+_cdStreamCancelDiscInit              = 0x8005BC28; // type:func
 CdStream_ConfigureSpuIrq    = 0x8005BC48; // type:func
-CdStream_UnusedStub               = 0x8005BCF8; // type:func
+_cdStreamUnusedStub               = 0x8005BCF8; // type:func
 
 //--------------------------------------------------------------------
 //--- PA: 0x4C500   VA: 0x8005BD00   subsegment: o, libspu/s_si
