@@ -492,7 +492,7 @@ Gp_FlagBanks = 0x80060A30; // absolute:True size:0x18
 
 func_dryfield_night_motel_loft_8017E090 = 0x8017E090; // type:func absolute:True owner=dryfield_night_motel_loft shared=rooms
 
-func_shelter_b6_nursery_80182730 = 0x80182730; // type:func absolute:True owner=shelter_b6_nursery shared=rooms
+shelterB6NurserySparkShowerShardTask = 0x80182730; // type:func absolute:True owner=shelter_b6_nursery shared=rooms
 
 D_shelter_b2_breeding_room_80183EEC = 0x80183EEC; // absolute:True owner=shelter_b2_breeding_room shared=rooms
 
@@ -1326,11 +1326,11 @@ func_shelter_b6_nursery_801800A0 = 0x801800A0; // type:func absolute:True owner=
 
 func_shelter_b6_nursery_80181314 = 0x80181314; // type:func absolute:True owner=shelter_b6_nursery
 
-func_shelter_b6_nursery_80181820 = 0x80181820; // type:func absolute:True owner=shelter_b6_nursery
+shelterB6NurseryAnimatedParticleTask = 0x80181820; // type:func absolute:True owner=shelter_b6_nursery
 
-func_shelter_b6_nursery_80182D28 = 0x80182D28; // type:func absolute:True owner=shelter_b6_nursery
+shelterB6NurseryRoomVisualEffectsFlashTask = 0x80182D28; // type:func absolute:True owner=shelter_b6_nursery
 
-func_shelter_b6_nursery_8018378C = 0x8018378C; // type:func absolute:True owner=shelter_b6_nursery
+shelterB6NurseryRoomVisualEffectsTwinTrailTask = 0x8018378C; // type:func absolute:True owner=shelter_b6_nursery
 
 func_shelter_b6_nursery_80184074 = 0x80184074; // type:func absolute:True owner=shelter_b6_nursery
 

@@ -198,9 +198,9 @@ extern _ShelterB6NurseryEffectCues D_shelter_b6_nursery_801879F0;
 #include "../../shared/sprite_quad.h"
 
 static void func_shelter_b6_nursery_8017FEC4(Task* task);
-static void func_shelter_b6_nursery_8017FF8C(Task* task);
-static void func_shelter_b6_nursery_80181EDC(GfxCoord* coord, u16 arg1, s16 arg2, s16 arg3);
-static void func_shelter_b6_nursery_801829E4(GfxCoord* coord, s16 scale, s16 shade);
+static void _shelterB6NurseryMessageIdle(Task* task);
+static void _shelterB6NurseryDrawParticleFrame(const GfxCoord* coord, u16 animationFrame, s16 halfDiagonal, s16 rotation);
+static void _shelterB6NurseryDrawSparkShowerShard(const GfxCoord* coord, s16 radius, s16 shade);
 
 void func_shelter_b6_nursery_8017FBC0(Task*);
 
@@ -215,13 +215,16 @@ TaskDesc gRoomCutsceneTaskDescs[3] = {
 TaskDesc D_shelter_b6_nursery_80185000 = { { { TASK_BODY_NONE, 32 } }, func_shelter_b6_nursery_8017FBC0, { .value = 0 } };
 
 s32 func_shelter_b6_nursery_8017FA54(Task*, s32, s32, s32);
-s32 func_shelter_b6_nursery_8017FDCC(Task*, s32, s32, s32);
-s32 func_shelter_b6_nursery_8017FDD4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_shelter_b6_nursery_8017FE3C(Task* task, s32 msgId, DirectionActionRequest* msg, s32);
+/// Room message carrying an inventory key-item ID in its first argument word.
+enum { SHELTER_B6_NURSERY_MESSAGE_USE_KEY_ITEM = 0x13F1 };
+
+static s32 _shelterB6NurseryRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unused);
+s32        func_shelter_b6_nursery_8017FDD4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32        func_shelter_b6_nursery_8017FE3C(Task* task, s32 msgId, DirectionActionRequest* msg, s32);
 
 TaskMessageEntry D_shelter_b6_nursery_8018500C[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b6_nursery_8017FDD4 },
-    { 5105, func_shelter_b6_nursery_8017FDCC },
+    { SHELTER_B6_NURSERY_MESSAGE_USE_KEY_ITEM, _shelterB6NurseryRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b6_nursery_8017FE3C },
     { ROOM_MESSAGE_COMMAND, func_shelter_b6_nursery_8017FA54 },
     { TASK_MESSAGE_TABLE_END, NULL },
@@ -880,7 +883,7 @@ void func_shelter_b6_nursery_8017EAC4(Task* task)
 static const TaskFuncTable3 D_shelter_b6_nursery_8017D6A4 = {
     {
         func_shelter_b6_nursery_8017FEC4,
-        func_shelter_b6_nursery_8017FF8C,
+        _shelterB6NurseryMessageIdle,
         taskKill,
     },
 };
@@ -974,10 +977,12 @@ void func_shelter_b6_nursery_8017FBC0(Task* arg0)
 
 #include "../../shared/room_cutscene_sound_task.inc.c"
 
-/// Always answers 0.
-s32 func_shelter_b6_nursery_8017FDCC(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Refuses every key-item-use request to this room, returning 0 without consuming the item.
+static s32 _shelterB6NurseryRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unused)
 {
-    return 0;
+    enum { KEY_ITEM_USE_REFUSED = 0 };
+
+    return KEY_ITEM_USE_REFUSED;
 }
 
 s32 func_shelter_b6_nursery_8017FDD4(Task* task, s32 msgId, RoomEventMsg* src, RoomEventMsg* dst)
@@ -1022,11 +1027,11 @@ static void func_shelter_b6_nursery_8017FEC4(Task* arg0)
     arg0->state++;
 }
 
-/// Idle state of the room's message task: does nothing. The unused local
-/// reproduces the original's stack frame.
-static void func_shelter_b6_nursery_8017FF8C(Task* task)
+/// Keeps the room message task alive while it waits for messages.
+static void _shelterB6NurseryMessageIdle(Task* task)
 {
-    char pad[0x10];
+    // Retain the original idle state's otherwise unused 16-byte stack frame.
+    char unusedStackFrame[0x10];
 }
 
 /// Runs the room's message task: calls the state handler `task->state` selects
@@ -1047,20 +1052,21 @@ void func_shelter_b6_nursery_8017FFF4(void)
     }
 }
 
-/// Sets the second sprite command's skip-link flag in view 13 for the current
-/// room in the first stage table. Only low-byte values 0 and 1 change the flag.
-void func_shelter_b6_nursery_80180038(s32 arg0)
+void shelterB6NurserySetView13SpriteHidden(u8 hidden)
 {
-    GameLocationKey* sess = &gGameSession->location.loc;
-    SpriteBatch*     batches;
-    s32              mode;
+    enum { VIEW_INDEX     = 12,
+           BATCH_INDEX    = 1,
+           SPRITE_VISIBLE = 0,
+           SPRITE_HIDDEN  = 1 };
 
-    batches = Gp_SprtTables[sess->stage - 1][0].areaViews[sess->area - 1][12].batches;
-    mode    = arg0 & 0xFF;
-    if (mode == 0) {
-        batches[1].hidden = 0;
-    } else if (mode == 1) {
-        batches[1].hidden = 1;
+    const GameLocationKey* location = &gGameSession->location.loc;
+    SpriteBatch*           view13Batches;
+
+    view13Batches = Gp_SprtTables[location->stage - 1]->areaViews[location->area - 1][VIEW_INDEX].batches;
+    if (hidden == SPRITE_VISIBLE) {
+        view13Batches[BATCH_INDEX].hidden = SPRITE_VISIBLE;
+    } else if (hidden == SPRITE_HIDDEN) {
+        view13Batches[BATCH_INDEX].hidden = SPRITE_HIDDEN;
     }
 }
 
@@ -1257,42 +1263,87 @@ void func_shelter_b6_nursery_80181314(Task* task)
     }
 }
 
-void func_shelter_b6_nursery_80181820(Task* task)
+/// Moves an active particle before applying its next frame's vertical acceleration.
+static inline void _shelterB6NurseryAdvanceParticle(Task* task, EffectWork* work, GfxCoord* coord, s32 negativeYAcceleration)
 {
+    enum { PARTICLE_MOTION_PARENT_JET = 7,
+           PARTICLE_MOTION_SHIFT      = 24,
+           PARTICLE_MOTION_MASK       = 0xF };
+
+    if (work->step != 0) {
+        coord->coord.t[0]  += work->move.vx;
+        coord->coord.t[1]  += work->move.vy;
+        coord->coord.t[2]  += work->move.vz;
+        coord->composeStamp = GRAPHICS_COORD_DIRTY;
+        if (((task->spawnArg1.value >> PARTICLE_MOTION_SHIFT) & PARTICLE_MOTION_MASK) == PARTICLE_MOTION_PARENT_JET) {
+            work->move.vy += work->age / 10;
+        } else {
+            work->move.vy -= negativeYAcceleration;
+        }
+    }
+}
+
+void shelterB6NurseryAnimatedParticleTask(Task* task)
+{
+    enum { PARTICLE_INITIALIZE,
+           PARTICLE_LARGE_STRIP,
+           PARTICLE_SMALL_STRIP,
+           PARTICLE_LARGE_FRAME_COUNT     = 10,
+           PARTICLE_SMALL_FRAME_COUNT     = 8,
+           PARTICLE_FRAME_PERIOD_DEFAULT  = 1,
+           PARTICLE_SPEED_DEFAULT         = 0x40,
+           PARTICLE_MOTION_STATIONARY     = 0,
+           PARTICLE_MOTION_NEGATIVE_Y_FAN = 1,
+           PARTICLE_MOTION_SCATTER        = 2,
+           PARTICLE_MOTION_NEGATIVE_Y_JET = 3,
+           PARTICLE_MOTION_SPAWN_VECTOR   = 5,
+           PARTICLE_MOTION_XZ_SCATTER     = 6,
+           PARTICLE_MOTION_PARENT_JET     = 7,
+           PARTICLE_HALF_DIAGONAL_MASK    = 0xFFF,
+           PARTICLE_PERIOD_SELECT_MASK    = 0xF000,
+           PARTICLE_PERIOD_SHIFT          = 12,
+           PARTICLE_PERIOD_MASK           = 7,
+           PARTICLE_SPEED_SELECT_MASK     = 0xFF0000,
+           PARTICLE_SPEED_SHIFT           = 16,
+           PARTICLE_SPEED_MASK            = 0xFF,
+           PARTICLE_MOTION_SHIFT          = 24,
+           PARTICLE_MOTION_MASK           = 0xF };
+
     EffectWork* work;
     GfxCoord*   coord;
-    SVECTOR*    vec;
-    s32         step;
-    s32         level;
+    SVECTOR*    velocity;
+    s32         framePeriod;
+    s32         initialSpeed;
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
     work->age++;
     switch (task->state) {
-        case 0:
-            work->scale     = task->spawnArg1.value & 0xFFF;
+        case PARTICLE_INITIALIZE:
+            // Decode the two texture strips, frame cadence and initial motion from the spawn word.
+            work->scale     = task->spawnArg1.value & PARTICLE_HALF_DIAGONAL_MASK;
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->angle     = (gRandomLcgState >> 16) & 0xFFF;
-            if (task->spawnArg1.value & 0xF000) {
-                step = (task->spawnArg1.value >> 12) & 7;
+            work->angle     = (gRandomLcgState >> 16) & ACTOR_TRANSFORM_ANGLE_MASK;
+            if (task->spawnArg1.value & PARTICLE_PERIOD_SELECT_MASK) {
+                framePeriod = (task->spawnArg1.value >> PARTICLE_PERIOD_SHIFT) & PARTICLE_PERIOD_MASK;
             } else {
-                step = 1;
+                framePeriod = PARTICLE_FRAME_PERIOD_DEFAULT;
             }
-            work->period = step;
+            work->period = framePeriod;
             work->age    = 0;
-            task->state  = task->spawnArg1.value < 0 ? 2 : 1;
+            task->state  = task->spawnArg1.value < 0 ? PARTICLE_SMALL_STRIP : PARTICLE_LARGE_STRIP;
             if ((work->move.vx | work->move.vy | work->move.vz) == 0) {
-                if (task->spawnArg1.value & 0xFF0000) {
-                    level = (task->spawnArg1.value >> 16) & 0xFF;
+                if (task->spawnArg1.value & PARTICLE_SPEED_SELECT_MASK) {
+                    initialSpeed = (task->spawnArg1.value >> PARTICLE_SPEED_SHIFT) & PARTICLE_SPEED_MASK;
                 } else {
-                    level = 0x40;
+                    initialSpeed = PARTICLE_SPEED_DEFAULT;
                 }
-                work->step = level;
-                switch ((task->spawnArg1.value >> 24) & 0xF) {
-                    case 0:
+                work->step = initialSpeed;
+                switch ((task->spawnArg1.value >> PARTICLE_MOTION_SHIFT) & PARTICLE_MOTION_MASK) {
+                    case PARTICLE_MOTION_STATIONARY:
                         work->step = 0;
                         break;
-                    case 1:
+                    case PARTICLE_MOTION_NEGATIVE_Y_FAN:
                         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                         work->move.vx   = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
                         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
@@ -1300,7 +1351,7 @@ void func_shelter_b6_nursery_80181820(Task* task)
                         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                         work->move.vz   = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
                         break;
-                    case 2:
+                    case PARTICLE_MOTION_SCATTER:
                         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                         work->move.vx   = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
                         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
@@ -1308,7 +1359,7 @@ void func_shelter_b6_nursery_80181820(Task* task)
                         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                         work->move.vz   = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
                         break;
-                    case 3:
+                    case PARTICLE_MOTION_NEGATIVE_Y_JET:
                         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                         work->move.vx   = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
                         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
@@ -1316,19 +1367,19 @@ void func_shelter_b6_nursery_80181820(Task* task)
                         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                         work->move.vz   = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
                         break;
-                    case 5:
+                    case PARTICLE_MOTION_SPAWN_VECTOR:
                         work->move.vx = work->pos.vx;
                         work->move.vy = work->pos.vy;
                         work->move.vz = work->pos.vz;
                         break;
-                    case 6:
+                    case PARTICLE_MOTION_XZ_SCATTER:
                         work->move.vy   = 0;
                         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                         work->move.vx   = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
                         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                         work->move.vz   = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
                         break;
-                    case 7:
+                    case PARTICLE_MOTION_PARENT_JET:
                         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                         work->move.vx   = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
                         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
@@ -1341,52 +1392,32 @@ void func_shelter_b6_nursery_80181820(Task* task)
                         gte_stsv(&work->move);
                         break;
                 }
-                vec = &work->move;
-                VectorNormalSS(vec, vec);
+                velocity = &work->move;
+                VectorNormalSS(velocity, velocity);
                 gte_lddp(work->step);
-                gte_ldsv(vec);
+                gte_ldsv(velocity);
                 gte_gpf12();
-                gte_stsv(vec);
+                gte_stsv(velocity);
             } else {
-                work->step = 0x40;
+                work->step = PARTICLE_SPEED_DEFAULT;
             }
             break;
-        case 1:
-            func_shelter_b6_nursery_80181EDC(coord, work->index, work->scale, work->angle);
-            if (work->step != 0) {
-                coord->coord.t[0]  += work->move.vx;
-                coord->coord.t[1]  += work->move.vy;
-                coord->coord.t[2]  += work->move.vz;
-                coord->composeStamp = GRAPHICS_COORD_DIRTY;
-                if (((task->spawnArg1.value >> 24) & 0xF) == 7) {
-                    work->move.vy += work->age / 10;
-                } else {
-                    work->move.vy -= 2;
-                }
-            }
+        case PARTICLE_LARGE_STRIP:
+            _shelterB6NurseryDrawParticleFrame(coord, work->index, work->scale, work->angle);
+            _shelterB6NurseryAdvanceParticle(task, work, coord, 2);
             if ((work->age % work->period) == 0) {
                 work->index++;
-                if (work->index >= 10) {
+                if (work->index >= PARTICLE_LARGE_FRAME_COUNT) {
                     effectKillTask(work, task);
                 }
             }
             break;
-        case 2:
+        case PARTICLE_SMALL_STRIP:
             spriteQuadDraw(coord, work->index, work->scale, work->angle);
-            if (work->step != 0) {
-                coord->coord.t[0]  += work->move.vx;
-                coord->coord.t[1]  += work->move.vy;
-                coord->coord.t[2]  += work->move.vz;
-                coord->composeStamp = GRAPHICS_COORD_DIRTY;
-                if (((task->spawnArg1.value >> 24) & 0xF) == 7) {
-                    work->move.vy += work->age / 10;
-                } else {
-                    work->move.vy -= 1;
-                }
-            }
+            _shelterB6NurseryAdvanceParticle(task, work, coord, 1);
             if ((work->age % work->period) == 0) {
                 work->index++;
-                if (work->index >= 8) {
+                if (work->index >= PARTICLE_SMALL_FRAME_COUNT) {
                     effectKillTask(work, task);
                 }
             }
@@ -1394,67 +1425,80 @@ void func_shelter_b6_nursery_80181820(Task* task)
     }
 }
 
-static void func_shelter_b6_nursery_80181EDC(GfxCoord* coord, u16 arg1, s16 arg2, s16 arg3)
+/// Computes one rotated corner offset in pixels using the ten-frame strip's perspective scale.
+static inline void _shelterB6NurserySetParticleCornerOffset(EffectShapeScratch* projection, s16 halfDiagonal, s32 cornerAngle)
 {
-    void**              scratch;
-    EffectShapeScratch* head;
-    EffectShapeScratch* block;
-    POLY_FT4*           prim;
-    SVECTOR*            vec;
+    enum { PARTICLE_PROJECTION_SCALE   = 47,
+           PARTICLE_TRIG_FRACTION_BITS = 12 };
+
+    projection->extent.corner.x = (((halfDiagonal * PARTICLE_PROJECTION_SCALE) / projection->depth) * rsin(cornerAngle)) >> PARTICLE_TRIG_FRACTION_BITS;
+    projection->extent.corner.y = (((halfDiagonal * PARTICLE_PROJECTION_SCALE) / projection->depth) * rcos(cornerAngle)) >> PARTICLE_TRIG_FRACTION_BITS;
+}
+
+/// Draws one raw additive frame of the nursery's ten-cell particle animation.
+///
+/// `animationFrame` is 0..9. The cached centre must be current; `halfDiagonal`
+/// is scaled by 47 / (SZ3 / 4) to pixels, then rotated by `rotation` in
+/// 4096 units per turn. Uses 28 scratch-stack bytes and allocates a textured
+/// quad before rejecting negative projection flags or depths below 65.
+/// Packets borrow the frame arena until GPU drawing completes.
+static void _shelterB6NurseryDrawParticleFrame(const GfxCoord* coord, u16 animationFrame, s16 halfDiagonal, s16 rotation)
+{
+    enum { PARTICLE_CELLS_PER_ROW = 5,
+           PARTICLE_CELL_TEXELS   = 48,
+           PARTICLE_TOP_V         = 0x28,
+           PARTICLE_MIN_DEPTH     = 0x41,
+           PARTICLE_QUARTER_TURN  = ACTOR_TRANSFORM_ANGLE_TURN / 4 };
+
+    EffectShapeScratch* projection;
+    POLY_FT4*           quad;
     s32                 u0;
     s32                 v0;
-    s32                 ang;
-    s32                 ang2;
-    u16                 vz;
-    u16                 col;
-    u16                 row;
+    s32                 cornerAngle;
+    s32                 nextCornerAngle;
+    u16                 textureColumn;
+    u16                 textureRow;
 
-    scratch                   = SCRATCH_STACK_CURSOR_SLOT;
-    head                      = *scratch;
-    (head - 1)->worldPoint.vx = (u16)coord->workm.t[0];
-    block                     = head - 1;
-    block->worldPoint.vy      = (u16)coord->workm.t[1];
-    vz                        = (u16)coord->workm.t[2];
-    *scratch                  = block;
-    block->worldPoint.vz      = vz;
-    vec                       = &block->worldPoint;
+    // Stage the cached centre's low 16 bits, preserving packet allocation before culling.
+    projection                = SCRATCH_STACK_RESERVE_BLOCK(EffectShapeScratch);
+    projection->worldPoint.vx = (u16)coord->workm.t[0];
+    projection->worldPoint.vy = (u16)coord->workm.t[1];
+    projection->worldPoint.vz = (u16)coord->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(vec);
+    gte_ldv0(&projection->worldPoint);
     gte_rtps();
-    prim           = gGpuPrimCursor;
-    gGpuPrimCursor = prim + 1;
-    setlen(prim, 9);
-    setcode(prim, 0x2C);
-    gte_stsxy(&(head - 1)->screenX);
-    gte_stflg(&(head - 1)->projectionFlags);
-    if (block->projectionFlags >= 0) {
-        gte_stszotz(&(head - 1)->depth);
-        if (block->depth >= 0x41) {
-            prim->tpage = 0x2B;
-            prim->clut  = 0x4384;
-            prim->code |= 3;
-            col         = arg1 % 5;
-            row         = arg1 / 5;
-            u0          = col * 48;
-            v0          = row * 48;
-            setUV4(prim, u0, v0 + 0x28, u0 + 0x2F, v0 + 0x28, u0, v0 + 0x57, u0 + 0x2F, v0 + 0x57);
-            ang                    = arg3;
-            block->extent.corner.x = (((arg2 * 47) / block->depth) * rsin(ang)) >> 12;
-            block->extent.corner.y = (((arg2 * 47) / block->depth) * rcos(ang)) >> 12;
-            prim->x0               = block->screenX + (u16)block->extent.corner.x;
-            prim->x3               = block->screenX - (u16)block->extent.corner.x;
-            prim->y0               = block->screenY - (u16)block->extent.corner.y;
-            ang2                   = ang + 0x400;
-            prim->y3               = block->screenY + (u16)block->extent.corner.y;
-            block->extent.corner.x = (((arg2 * 47) / block->depth) * rsin(ang2)) >> 12;
-            block->extent.corner.y = (((arg2 * 47) / block->depth) * rcos(ang2)) >> 12;
-            prim->x1               = block->screenX + (u16)block->extent.corner.x;
-            prim->x2               = block->screenX - (u16)block->extent.corner.x;
-            prim->y1               = block->screenY - (u16)block->extent.corner.y;
-            prim->y2               = block->screenY + (u16)block->extent.corner.y;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
+    quad           = gGpuPrimCursor;
+    gGpuPrimCursor = quad + 1;
+    setPolyFT4(quad);
+    gte_stsxy(&projection->screenX);
+    gte_stflg(&projection->projectionFlags);
+    if (projection->projectionFlags >= 0) {
+        gte_stszotz(&projection->depth);
+        if (projection->depth >= PARTICLE_MIN_DEPTH) {
+            quad->tpage = getTPage(0, GPU_BLEND_ADD, 704, 0);
+            quad->clut  = getClut(64, 270);
+            setSemiTrans(quad, 1);
+            setShadeTex(quad, 1);
+            textureColumn = animationFrame % PARTICLE_CELLS_PER_ROW;
+            textureRow    = animationFrame / PARTICLE_CELLS_PER_ROW;
+            u0            = textureColumn * PARTICLE_CELL_TEXELS;
+            v0            = textureRow * PARTICLE_CELL_TEXELS;
+            setUV4(quad, u0, v0 + PARTICLE_TOP_V, u0 + PARTICLE_CELL_TEXELS - 1, v0 + PARTICLE_TOP_V, u0, v0 + PARTICLE_TOP_V + PARTICLE_CELL_TEXELS - 1, u0 + PARTICLE_CELL_TEXELS - 1, v0 + PARTICLE_TOP_V + PARTICLE_CELL_TEXELS - 1);
+            cornerAngle = rotation;
+            _shelterB6NurserySetParticleCornerOffset(projection, halfDiagonal, cornerAngle);
+            quad->x0        = projection->screenX + (u16)projection->extent.corner.x;
+            quad->x3        = projection->screenX - (u16)projection->extent.corner.x;
+            quad->y0        = projection->screenY - (u16)projection->extent.corner.y;
+            nextCornerAngle = cornerAngle + PARTICLE_QUARTER_TURN;
+            quad->y3        = projection->screenY + (u16)projection->extent.corner.y;
+            _shelterB6NurserySetParticleCornerOffset(projection, halfDiagonal, nextCornerAngle);
+            quad->x1 = projection->screenX + (u16)projection->extent.corner.x;
+            quad->x2 = projection->screenX - (u16)projection->extent.corner.x;
+            quad->y1 = projection->screenY - (u16)projection->extent.corner.y;
+            quad->y2 = projection->screenY + (u16)projection->extent.corner.y;
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)projection->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                    quad);
         }
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);
@@ -1480,9 +1524,32 @@ static void func_shelter_b6_nursery_80181EDC(GfxCoord* coord, u16 arg1, s16 arg2
 #define SPRITE_QUAD_MIN_OTZ  0x41
 #include "../../shared/sprite_quad_draw.inc.c"
 
-void func_shelter_b6_nursery_80182730(Task* task)
+void shelterB6NurserySparkShowerShardTask(Task* task)
 {
-    SVECTOR     step;
+    /// Spins one shard and advances it by its scaled Q12 direction.
+    ///
+    /// Arguments must be side-effect-free pointers, evaluated repeatedly; the
+    /// output vector receives coordinate units. Requires distinct live coordinate,
+    /// work and output storage. The macro is undefined after this callback.
+#define SHELTER_B6_NURSERY_ADVANCE_SHARD(coordNode, effectWork, displacementOut)             \
+    do {                                                                                     \
+        gfxRotMatrixXYZ(&(coordNode)->coord, &(effectWork)->pos, GRAPHICS_ROTATION_COMPOSE); \
+        MatrixNormal(&(coordNode)->coord, &(coordNode)->coord);                              \
+        gte_lddp((effectWork)->scale);                                                       \
+        gte_ldsv(&(effectWork)->move);                                                       \
+        gte_gpf12();                                                                         \
+        gte_stsv(displacementOut);                                                           \
+        (coordNode)->coord.t[0]  += (displacementOut)->vx;                                   \
+        (coordNode)->coord.t[1]  += (displacementOut)->vy;                                   \
+        (coordNode)->coord.t[2]  += (displacementOut)->vz;                                   \
+        (coordNode)->composeStamp = GRAPHICS_COORD_DIRTY;                                    \
+    } while (0)
+
+    enum { SHARD_INITIALIZE  = 0,
+           SHARD_RADIUS_MASK = 0xFFF,
+           SHARD_GRAVITY_Q12 = 0x180 };
+
+    SVECTOR     displacement;
     EffectWork* work;
     GfxCoord*   coord;
     s16         effectControl;
@@ -1495,7 +1562,7 @@ void func_shelter_b6_nursery_80182730(Task* task)
             effectKillTask(work, task);
         }
     } else {
-        if (task->state == 0) {
+        if (task->state == SHARD_INITIALIZE) {
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             work->move.vx   = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
@@ -1504,7 +1571,7 @@ void func_shelter_b6_nursery_80182730(Task* task)
             work->move.vz   = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             work->scale     = ((gRandomLcgState >> 16) & 0x3F) + 0x40;
-            work->angle     = task->spawnArg1.value & 0xFFF;
+            work->angle     = task->spawnArg1.value & SHARD_RADIUS_MASK;
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             work->period    = ((gRandomLcgState >> 16) & 0x7F) + 0x40;
             VectorNormalSS(&work->move, &work->move);
@@ -1518,70 +1585,77 @@ void func_shelter_b6_nursery_80182730(Task* task)
             task->state++;
             return;
         }
-        gfxRotMatrixXYZ(&coord->coord, &work->pos, GRAPHICS_ROTATION_COMPOSE);
-        MatrixNormal(&coord->coord, &coord->coord);
-        gte_lddp(work->scale);
-        gte_ldsv(&work->move);
-        gte_gpf12();
-        gte_stsv(&step);
-        coord->coord.t[0]  += step.vx;
-        coord->coord.t[1]  += step.vy;
-        coord->coord.t[2]  += step.vz;
-        coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        func_shelter_b6_nursery_801829E4(coord, work->angle, work->period);
+        SHELTER_B6_NURSERY_ADVANCE_SHARD(coord, work, &displacement);
+        _shelterB6NurseryDrawSparkShowerShard(coord, work->angle, work->period);
+        // The release plane is Y=0 in the coordinate's parent frame.
         if (coord->coord.t[1] > 0) {
             effectKillTask(work, task);
         } else {
-            work->move.vy += 0x180;
+            work->move.vy += SHARD_GRAVITY_Q12;
         }
     }
 }
 
-/// Draws one flat grey triangle at `coord`: three corners at 120-degree steps
-/// on a circle of radius `scale` in the coordinate's YZ plane, transformed by
-/// its world matrix, projected with `GsWSMATRIX` and linked into the ordering
-/// table at the triangle's depth with shade `shade`.
-static void func_shelter_b6_nursery_801829E4(GfxCoord* coord, s16 scale, s16 shade)
-{
-    _ShelterB6NurseryTriScratch* blk;
-    SVECTOR*                     p;
-    POLY_F3*                     prim;
-    s32                          i;
+#undef SHELTER_B6_NURSERY_ADVANCE_SHARD
 
-    blk = SCRATCH_STACK_RESERVE_BLOCK(_ShelterB6NurseryTriScratch);
+/// Scales one local corner and narrows its transformed position to the GTE's s16 input.
+static inline void _shelterB6NurseryTransformShardCorner(SVECTOR* corner, const GfxCoord* coord, s16 radius)
+{
+    gte_lddp(radius);
+    gte_ldsv(corner);
+    gte_gpf12();
+    gte_stsv(corner);
+    gte_SetRotMatrix(&coord->workm);
+    gte_ldv0(corner);
+    gte_rtv0();
+    gte_stsv(corner);
+    corner->vx = (u16)corner->vx + (u16)coord->workm.t[0];
+    corner->vy = (u16)corner->vy + (u16)coord->workm.t[1];
+    corner->vz = (u16)corner->vz + (u16)coord->workm.t[2];
+}
+
+/// Draws a rotating spark-shower shard as a grey triangle in the coordinate's YZ plane.
+///
+/// `radius` is in local coordinate units; `shade` supplies the low byte of each
+/// RGB channel. Requires a current cached matrix. Transforms three corners
+/// through it, narrows their positions to s16, and projects with `GsWSMATRIX`.
+/// Reserves 32 scratch-stack bytes and one `POLY_F3` before culling; visible
+/// triangles also consume a blend packet, selecting average or additive blending
+/// at random. Packets remain in the frame arena until GPU drawing completes.
+static void _shelterB6NurseryDrawSparkShowerShard(const GfxCoord* coord, s16 radius, s16 shade)
+{
+    enum { SHARD_CORNER_ANGLE_STEP = 0x555 }; // One third of a 4096-unit turn, truncated.
+
+    _ShelterB6NurseryTriScratch* projection;
+    SVECTOR*                     corner;
+    POLY_F3*                     triangle;
+    s32                          cornerIndex;
+
+    projection = SCRATCH_STACK_RESERVE_BLOCK(_ShelterB6NurseryTriScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
-    for (i = 0; i < 3; i++) {
-        p     = &blk->corners[i];
-        p->vx = 0;
-        p->vy = rsin(i * 0x555);
-        p->vz = rcos(i * 0x555);
-        gte_lddp(scale);
-        gte_ldsv(p);
-        gte_gpf12();
-        gte_stsv(p);
-        gte_SetRotMatrix(&coord->workm);
-        gte_ldv0(p);
-        gte_rtv0();
-        gte_stsv(p);
-        p->vx = (u16)p->vx + (u16)coord->workm.t[0];
-        p->vy = (u16)p->vy + (u16)coord->workm.t[1];
-        p->vz = (u16)p->vz + (u16)coord->workm.t[2];
+    // Scale the local corners, then transform and narrow them for one RTPT.
+    for (cornerIndex = 0; cornerIndex < ARRAY_SIZE(projection->corners); cornerIndex++) {
+        corner     = &projection->corners[cornerIndex];
+        corner->vx = 0;
+        corner->vy = rsin(cornerIndex * SHARD_CORNER_ANGLE_STEP);
+        corner->vz = rcos(cornerIndex * SHARD_CORNER_ANGLE_STEP);
+        _shelterB6NurseryTransformShardCorner(corner, coord, radius);
     }
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv3(&blk->corners[0], &blk->corners[1], &blk->corners[2]);
+    gte_ldv3(&projection->corners[0], &projection->corners[1], &projection->corners[2]);
     gte_rtpt();
-    prim           = gGpuPrimCursor;
-    gGpuPrimCursor = prim + 1;
-    setPolyF3(prim);
-    gte_stsxy3(&prim->x0, &prim->x1, &prim->x2);
-    gte_stflg(&blk->projectionFlags);
-    if (blk->projectionFlags >= 0) {
-        gte_stszotz(&blk->otz);
-        setRGB0(prim, shade, shade, shade);
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
+    triangle       = gGpuPrimCursor;
+    gGpuPrimCursor = triangle + 1;
+    setPolyF3(triangle);
+    gte_stsxy3(&triangle->x0, &triangle->x1, &triangle->x2);
+    gte_stflg(&projection->projectionFlags);
+    if (projection->projectionFlags >= 0) {
+        gte_stszotz(&projection->otz);
+        setRGB0(triangle, shade, shade, shade);
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(projection->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                triangle);
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        gpuSetPrimitiveBlendMode(prim, (gRandomLcgState >> 16) & 1, blk->otz);
+        gpuSetPrimitiveBlendMode(triangle, (gRandomLcgState >> 16) & 1, projection->otz);
     }
     SCRATCH_STACK_RELEASE_BLOCK(_ShelterB6NurseryTriScratch);
 }
@@ -1596,14 +1670,14 @@ void func_shelter_b6_nursery_80182D14(s32 arg0, s32 arg1)
 
 #include "../../shared/room_visual_effects_flash_task.inc.c"
 
-void func_shelter_b6_nursery_80182D28(Task* arg0)
+void shelterB6NurseryRoomVisualEffectsFlashTask(Task* task)
 {
-    _roomVisualEffectsFlashTask(arg0);
+    _roomVisualEffectsFlashTask(task);
 }
 
 #include "../../shared/room_visual_effects_trails.inc.c"
 
-void func_shelter_b6_nursery_8018378C(Task* task)
+void shelterB6NurseryRoomVisualEffectsTwinTrailTask(Task* task)
 {
 #include "../../shared/room_visual_effects_trail_task.inc.c"
 }

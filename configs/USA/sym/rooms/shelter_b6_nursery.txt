@@ -106,7 +106,7 @@ D_shelter_b6_nursery_801879A0 = 0x801879A0; // size:0x50 defined:True
 D_shelter_b6_nursery_801879F0 = 0x801879F0; // size:0x4 defined:True
 RoomFx_TrailOffsets = 0x801852F4; // size:0x10 defined:True
 
-func_shelter_b6_nursery_80182730 = 0x80182730; // type:func
+shelterB6NurserySparkShowerShardTask = 0x80182730; // type:func
 
 func_shelter_b6_nursery_80182D14 = 0x80182D14; // type:func
 
@@ -114,11 +114,11 @@ func_shelter_b6_nursery_801800A0 = 0x801800A0; // type:func
 
 func_shelter_b6_nursery_80181314 = 0x80181314; // type:func
 
-func_shelter_b6_nursery_80181820 = 0x80181820; // type:func
+shelterB6NurseryAnimatedParticleTask = 0x80181820; // type:func
 
-func_shelter_b6_nursery_80182D28 = 0x80182D28; // type:func
+shelterB6NurseryRoomVisualEffectsFlashTask = 0x80182D28; // type:func
 
-func_shelter_b6_nursery_8018378C = 0x8018378C; // type:func
+shelterB6NurseryRoomVisualEffectsTwinTrailTask = 0x8018378C; // type:func
 
 func_shelter_b6_nursery_80184074 = 0x80184074; // type:func
 
@@ -151,3 +151,8 @@ _glowDrawDiamond = 0x80180518; // type:func
 roomCutsceneTask = 0x8017F4E8; // type:func
 roomCutsceneSoundTask = 0x8017FD3C; // type:func
 spriteQuadDraw = 0x80182330; // type:func
+_shelterB6NurseryRejectKeyItemUse = 0x8017fdcc; // type:func
+_shelterB6NurseryMessageIdle = 0x8017ff8c; // type:func
+shelterB6NurserySetView13SpriteHidden = 0x80180038; // type:func
+_shelterB6NurseryDrawParticleFrame = 0x80181edc; // type:func
+_shelterB6NurseryDrawSparkShowerShard = 0x801829e4; // type:func

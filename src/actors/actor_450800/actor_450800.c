@@ -2765,7 +2765,7 @@ void func_actor_450800_80132080(void)
 
 void func_actor_450800_801320E8(s32 arg0)
 {
-    func_shelter_b6_nursery_80180038(arg0 & 0xFF);
+    shelterB6NurserySetView13SpriteHidden(arg0 & 0xFF);
 }
 
 void func_actor_450800_80132108(void)

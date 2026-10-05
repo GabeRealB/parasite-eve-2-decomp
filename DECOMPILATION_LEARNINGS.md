@@ -92121,7 +92121,7 @@ and does not distribute, so the `addiu` stays. Same rule as "A table address
 that is not CSE'd with an identical earlier one: `&other[x - K]` folded into the
 symbol", reached from the other end: there the fold renamed the symbol, here it
 only drops an instruction, so the whole symptom is the missing `-1`.
-`func_shelter_b6_nursery_80180038` (the 0.90-shape sibling) is the same chain
+`shelterB6NurserySetView13SpriteHidden` (the 0.90-shape sibling) is the same chain
 instruction for instruction and the template to copy - 100% on the first typed
 attempt, all-zero penalties.
 
@@ -95714,7 +95714,7 @@ either matches, and neither is the "fix" for the other. Do not rewrite the
 store to the variable because the `sb` names it.
 
 What differs between such near-copies is only the index and the displacement:
-the brief's "Similar matched bodies" put `func_shelter_b6_nursery_80180038` at
+the brief's "Similar matched bodies" put `shelterB6NurserySetView13SpriteHidden` at
 shape 1.00 - the same 26 instructions with `0x94`/`0xC` where this one has
 `0x40`/`0x14` (`rec[12].batches` / `cmd[1].hidden` against `rec[5].batches` /
 `cmd[2].hidden`). Porting that already-matched body's source form, indices
