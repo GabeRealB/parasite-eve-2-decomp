@@ -196,61 +196,91 @@ typedef struct {
 } _PlanarReflectionExtentScratch;
 STATIC_ASSERT_SIZEOF(_PlanarReflectionExtentScratch, 0x34);
 
-/// Builds a reflected view frame from a normalized Q12 plane normal and a point on the plane.
+/// Chooses a Q12 coordinate-axis hint least aligned with the unit plane normal.
 ///
-/// Both pointers borrow live work/scratch storage. Translation uses integer
-/// game coordinates. The scratch plane point is rotated in place, and the
-/// GTE rotation state is overwritten. All three copied translations are
-/// replaced by the view translation plus the original point minus its rotation.
-static inline void _planarReflectionBuildPlaneFrame(RoomMirrorWork* mirrorWork, _PlanarReflectionFrameScratch* frame)
+/// Writes `refAxis` and the three axis-selection fields in the borrowed scratch
+/// block. The normal must be nonzero and normalized to Q12 (`ONE` = 1.0).
+/// Equal component magnitudes prefer X, then Y, then Z.
+static inline void _planarReflectionChooseReferenceAxis(_PlanarReflectionFrameScratch* frameScratch)
 {
-    frame->leastAbs = frame->normal.vx;
-    if (frame->leastAbs < 0) {
-        frame->leastAbs = -frame->leastAbs;
+    enum {
+        PLANAR_REFLECTION_AXIS_X = 0,
+        PLANAR_REFLECTION_AXIS_Y = 1,
+        PLANAR_REFLECTION_AXIS_Z = 2
+    };
+
+    frameScratch->leastAbs = frameScratch->normal.vx;
+    if (frameScratch->leastAbs < 0) {
+        frameScratch->leastAbs = -frameScratch->leastAbs;
     }
-    frame->leastAxis = 0;
-    frame->axisAbs   = frame->normal.vy;
-    if (frame->axisAbs < 0) {
-        frame->axisAbs = -frame->axisAbs;
+    frameScratch->leastAxis = PLANAR_REFLECTION_AXIS_X;
+    frameScratch->axisAbs   = frameScratch->normal.vy;
+    if (frameScratch->axisAbs < 0) {
+        frameScratch->axisAbs = -frameScratch->axisAbs;
     }
-    if (frame->leastAbs > frame->axisAbs) {
-        frame->leastAbs  = frame->axisAbs;
-        frame->leastAxis = 1;
+    if (frameScratch->leastAbs > frameScratch->axisAbs) {
+        frameScratch->leastAbs  = frameScratch->axisAbs;
+        frameScratch->leastAxis = PLANAR_REFLECTION_AXIS_Y;
     }
-    frame->axisAbs = frame->normal.vz;
-    if (frame->axisAbs < 0) {
-        frame->axisAbs = -frame->axisAbs;
+    frameScratch->axisAbs = frameScratch->normal.vz;
+    if (frameScratch->axisAbs < 0) {
+        frameScratch->axisAbs = -frameScratch->axisAbs;
     }
-    if (frame->leastAbs > frame->axisAbs) {
-        frame->leastAbs  = frame->axisAbs;
-        frame->leastAxis = 2;
+    if (frameScratch->leastAbs > frameScratch->axisAbs) {
+        frameScratch->leastAbs  = frameScratch->axisAbs;
+        frameScratch->leastAxis = PLANAR_REFLECTION_AXIS_Z;
     }
-    frame->refAxis.vx = 0;
-    if (frame->leastAxis == 0) {
-        frame->refAxis.vx = ONE;
+    frameScratch->refAxis.vx = 0;
+    if (frameScratch->leastAxis == PLANAR_REFLECTION_AXIS_X) {
+        frameScratch->refAxis.vx = ONE;
     }
-    frame->refAxis.vy = 0;
-    if (frame->leastAxis == 1) {
-        frame->refAxis.vy = ONE;
+    frameScratch->refAxis.vy = 0;
+    if (frameScratch->leastAxis == PLANAR_REFLECTION_AXIS_Y) {
+        frameScratch->refAxis.vy = ONE;
     }
-    frame->refAxis.vz = 0;
-    if (frame->leastAxis == 2) {
-        frame->refAxis.vz = ONE;
+    frameScratch->refAxis.vz = 0;
+    if (frameScratch->leastAxis == PLANAR_REFLECTION_AXIS_Z) {
+        frameScratch->refAxis.vz = ONE;
     }
-    gfxBuildOrthonormalBasis(&frame->basis, &frame->normal, &frame->refAxis);
-    gte_TransposeMatrix(&frame->basis, &frame->reflect);
-    frame->reflect.m[2][0] = -frame->reflect.m[2][0];
-    frame->reflect.m[2][1] = -frame->reflect.m[2][1];
-    frame->reflect.m[2][2] = -frame->reflect.m[2][2];
-    gte_MulMatrix0(&frame->basis, &frame->reflect, &frame->reflect);
-    mirrorWork->coord.coord      = frame->reflect;
-    mirrorWork->coord.coord.t[0] = gGfxViewCoord.coord.t[0] + frame->planePoint.vx;
-    mirrorWork->coord.coord.t[1] = gGfxViewCoord.coord.t[1] + frame->planePoint.vy;
-    mirrorWork->coord.coord.t[2] = gGfxViewCoord.coord.t[2] + frame->planePoint.vz;
-    _gfxRotateSv(&frame->reflect, &frame->planePoint);
-    mirrorWork->coord.coord.t[0] -= frame->planePoint.vx;
-    mirrorWork->coord.coord.t[1] -= frame->planePoint.vy;
-    mirrorWork->coord.coord.t[2] -= frame->planePoint.vz;
+}
+
+/// Builds a plane-reflection transform with the current view translation.
+///
+/// `frameScratch->normal` must be nonzero and normalized to Q12 (`ONE` = 1.0).
+/// It and `frameScratch->planePoint` use the view parent's coordinate frame; the point and
+/// translation use integer game coordinates. The output rotation is
+/// B * diag(1, 1, -1) * transpose(B), where B's Z axis is the plane normal.
+/// Translation is view.t + point - reflectedPoint. The reflected point is
+/// rounded down and saturated to signed halfwords by the GTE.
+///
+/// Borrows live, word-aligned work and scratch blocks, disjoint from each other
+/// and the view matrix. Overwrites the scratch axis-selection
+/// fields, reference axis, basis, reflection rotation and plane-point xyz;
+/// preserves the normal. Requires an initialized scratch stack with another
+/// sizeof(MATRIX) bytes free for the basis calculation. Clobbers GTE arithmetic
+/// and rotation state; retains no pointers. The caller manages the containing
+/// coordinate's parent and composition stamp. Only `mirrorWork->coord.coord`
+/// is written in the work block.
+static inline void _planarReflectionBuildPlaneFrame(RoomMirrorWork* mirrorWork, _PlanarReflectionFrameScratch* frameScratch)
+{
+    _planarReflectionChooseReferenceAxis(frameScratch);
+
+    // Reflect the normal-aligned Z axis, then return to the view parent's axes.
+    gfxBuildOrthonormalBasis(&frameScratch->basis, &frameScratch->normal, &frameScratch->refAxis);
+    gte_TransposeMatrix(&frameScratch->basis, &frameScratch->reflect);
+    frameScratch->reflect.m[2][0] = -frameScratch->reflect.m[2][0];
+    frameScratch->reflect.m[2][1] = -frameScratch->reflect.m[2][1];
+    frameScratch->reflect.m[2][2] = -frameScratch->reflect.m[2][2];
+    gte_MulMatrix0(&frameScratch->basis, &frameScratch->reflect, &frameScratch->reflect);
+    // Offset the reflection to keep the plane fixed, then add the view translation.
+    mirrorWork->coord.coord      = frameScratch->reflect;
+    mirrorWork->coord.coord.t[0] = gGfxViewCoord.coord.t[0] + frameScratch->planePoint.vx;
+    mirrorWork->coord.coord.t[1] = gGfxViewCoord.coord.t[1] + frameScratch->planePoint.vy;
+    mirrorWork->coord.coord.t[2] = gGfxViewCoord.coord.t[2] + frameScratch->planePoint.vz;
+    _gfxRotateSv(&frameScratch->reflect, &frameScratch->planePoint);
+    mirrorWork->coord.coord.t[0] -= frameScratch->planePoint.vx;
+    mirrorWork->coord.coord.t[1] -= frameScratch->planePoint.vy;
+    mirrorWork->coord.coord.t[2] -= frameScratch->planePoint.vz;
 }
 
 /// Updates the player's reflected frame, visible pose, lighting and framebuffer compositing.
@@ -528,8 +558,6 @@ static void _planarReflectionUpdatePlayer(Task* reflectionTask)
                 planeModel->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             }
             if (!(planeModel->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
-                // The axis least aligned with the normal completes the frame. Translation is the
-                // view translation plus the shift that makes the reflection fix planePoint.
                 _planarReflectionBuildPlaneFrame(mirrorWork, frame);
                 mirrorWork->firstBlendMode = GPU_BLEND_ADD;
             }
