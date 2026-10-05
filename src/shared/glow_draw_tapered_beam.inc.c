@@ -1,16 +1,19 @@
 /* Part of the glow drawing library; see glow_draw.h. */
 
-/// Initializes an allocated grey wedge with vertex 2 lit and the rim black.
+/// Prepares a Gouraud quad that fades from a grey beam-cap centre to its rim.
 ///
-/// Borrows one writable packet; brightness narrows to a byte. The caller
-/// supplies allocation, geometry, ordering-table link and blend command.
-static inline void _glowInitTaperedBeamWedge(POLY_G4* prim, s32 brightness)
+/// Borrows one writable `POLY_G4`. Vertex 2 receives `centreIntensity`
+/// (0..255) in all three RGB channels; rim vertices 0, 1 and 3 are black.
+/// Sets the packet length and opaque, untextured Gouraud-quad command.
+/// The caller supplies screen coordinates, the ordering-table link and
+/// semitransparency with its blend draw mode before GPU submission.
+static inline void _glowInitTaperedBeamWedge(POLY_G4* wedge, u8 centreIntensity)
 {
-    setPolyG4(prim);
-    setRGB0(prim, 0, 0, 0);
-    setRGB1(prim, 0, 0, 0);
-    setRGB2(prim, brightness, brightness, brightness);
-    setRGB3(prim, 0, 0, 0);
+    setPolyG4(wedge);
+    setRGB0(wedge, 0, 0, 0);
+    setRGB1(wedge, 0, 0, 0);
+    setRGB2(wedge, centreIntensity, centreIntensity, centreIntensity);
+    setRGB3(wedge, 0, 0, 0);
 }
 
 /// Draws an additive grey beam between two local-space endpoints.
