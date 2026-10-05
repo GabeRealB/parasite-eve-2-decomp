@@ -1878,57 +1878,55 @@ static void func_actor_800100_80164710(Task* arg0)
     GfxCoord*                  coord;
     _Actor800100TargetScratch* block;
     s32                        dist;
-    u16                        state;
 
     actor     = arg0->work;
     block     = SCRATCH_STACK_RESERVE_BLOCK(_Actor800100TargetScratch);
     companion = actor->companionWork;
     Gp_TrackAllyLockTarget(arg0, 3);
-    state = actor->statePhase;
-    if (state != 0) {
-        if (state == 1) {
-            goto block_10;
-        }
-    } else {
-        lock = actor->targetNode;
-        if ((lock == NULL) || (coord = arg0->extra.tmd->coords, Gp_GetLockPos(lock, &block->targetPoint), func_80103C74(coord, &block->targetPoint, &block->targetDelta), ((func_80103D8C(block->targetDelta.vx, block->targetDelta.vz) < 0x301) != 0))) {
-            actor2                 = arg0->work;
-            actor2->mode           = GAME_ACTOR_MODE_NORMAL;
-            actor2->state          = 4;
-            actor2->animationState = 0;
-            actor2->statePhase     = 0;
-            actor2->movementSign   = 0;
-            actor2->turnSign       = 0;
-            playerActorPlayChildSlotsWithBlend(arg0, 9, 0, 6);
-        } else {
+    switch (actor->statePhase) {
+        case 0:
+            lock = actor->targetNode;
+            if ((lock == NULL) || (coord = arg0->extra.tmd->coords, Gp_GetLockPos(lock, &block->targetPoint), func_80103C74(coord, &block->targetPoint, &block->targetDelta), ((func_80103D8C(block->targetDelta.vx, block->targetDelta.vz) < 0x301) != 0))) {
+                actor2                 = arg0->work;
+                actor2->mode           = GAME_ACTOR_MODE_NORMAL;
+                actor2->state          = 4;
+                actor2->animationState = 0;
+                actor2->statePhase     = 0;
+                actor2->movementSign   = 0;
+                actor2->turnSign       = 0;
+                playerActorPlayChildSlotsWithBlend(arg0, 9, 0, 6);
+                break;
+            }
             dist = func_8010BCF4(arg0, &block->targetPoint);
             if (dist < 0) {
                 dist = -dist;
             }
-            if (dist < 0x181) {
-                actor->statePhase += 1;
-            block_10:
-                if (((s8)companion->activity.combat.repeatsRemaining <= 0) || (node = actor->targetNode, node == NULL) || (node->state.parts.flags & WORLD_TARGET_NOT_LOCKABLE)) {
-                    // Stored through a plain pointer: the member-access spelling schedules differently.
-                    *&actor->targetNode                                   = NULL;
-                    actor->aimTrackingState                               = GAME_ACTOR_AIM_TRACKING_DECAY;
-                    actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-                    if ((u8)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant == 4) {
-                        func_80106350(arg0, D_actor_800100_80167218[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant], 0);
-                    }
-                    actor3                 = arg0->work;
-                    actor3->mode           = GAME_ACTOR_MODE_NORMAL;
-                    actor3->state          = 4;
-                    actor3->animationState = 0;
-                    actor3->statePhase     = 0;
-                    actor3->movementSign   = 0;
-                    actor3->turnSign       = 0;
-                    playerActorPlayChildSlotsWithBlend(arg0, 9, 0, 6);
-                } else if (actor->attackControl.cooldownTicks == 0) {
-                    func_actor_800100_80166EE8(arg0);
-                }
+            if (dist >= 0x181) {
+                break;
             }
-        }
+            actor->statePhase += 1;
+            /* fallthrough */
+        case 1:
+            if (((s8)companion->activity.combat.repeatsRemaining <= 0) || (node = actor->targetNode, node == NULL) || (node->state.parts.flags & WORLD_TARGET_NOT_LOCKABLE)) {
+                // Stored through a plain pointer: the member-access spelling schedules differently.
+                *&actor->targetNode                                   = NULL;
+                actor->aimTrackingState                               = GAME_ACTOR_AIM_TRACKING_DECAY;
+                actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
+                if ((u8)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant == 4) {
+                    func_80106350(arg0, D_actor_800100_80167218[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant], 0);
+                }
+                actor3                 = arg0->work;
+                actor3->mode           = GAME_ACTOR_MODE_NORMAL;
+                actor3->state          = 4;
+                actor3->animationState = 0;
+                actor3->statePhase     = 0;
+                actor3->movementSign   = 0;
+                actor3->turnSign       = 0;
+                playerActorPlayChildSlotsWithBlend(arg0, 9, 0, 6);
+            } else if (actor->attackControl.cooldownTicks == 0) {
+                func_actor_800100_80166EE8(arg0);
+            }
+            break;
     }
     SCRATCH_STACK_RELEASE_BLOCK(_Actor800100TargetScratch);
 }
