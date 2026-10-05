@@ -19436,9 +19436,9 @@ if (work->syncResult != 0) {
 child = task->field_c; /* lw a0, 0xc(s6) again */
 ```
 
-`Mc_StateSyncFileSelect` is the pure example. Pair with `register s32 syncResult
-asm("s1")` so `flag->field_0 = syncResult` emits `sw s1,0(s0)` instead of
-substituting a live `li`/constant register after `syncResult == one`.
+`_mcStateSelectLoadFile` is the pure example. Pair with `register s32 syncState
+asm("s1")` so `parentPanel->panel.control.word = syncState` emits `sw s1,0(s0)` instead of
+substituting a live `li`/constant register after `syncState == one`.
 
 ## `volatile u16*` blocks strength-reduction of mid-struct halfwords
 
@@ -21339,12 +21339,12 @@ before the call:
 {
     register u8* fn asm("a0");
     fn = Mc_FileName;
-    _mcBuildSaveFileName(fn, saved->field_2C);
+    _mcBuildSaveFileName(fn, dialogObject->resultValue);
 }
 ```
 
-Plain `_mcBuildSaveFileName(Mc_FileName, saved->field_2C)` keeps the swapped order.
-`Mc_StateFileSelect` is the pure example.
+Plain `_mcBuildSaveFileName(Mc_FileName, dialogObject->resultValue)` keeps the swapped order.
+`_mcStateSelectSaveFile` is the pure example.
 
 ## Dual block pointers reuse angle `$s0` for scratch field access
 
@@ -21585,7 +21585,7 @@ Symptom: first loop matches after pins, second loop has the right shape but
 wrong registers (or vice versa).
 
 Fix: give the second loop its own counter/sum/pointer locals and pin each set
-independently. `Mc_StateVerifyFinish` is the pure example — block-checksum walk then
+independently. `_mcStatePrepareSectionRead` is the pure example — block-checksum walk then
 first-byte sum over `Mc_BufferSlots[1..8]`.
 
 ## Reuse a pointer var across phases to force shared hard registers
@@ -144709,7 +144709,7 @@ the sector-header check and the directory walk each get their own local
 local initialised with its index. A `lui; addiu %lo(SYM); addiu +0x800` pair
 stored to a global came from `g = SYM.bytes; g += 0x800;` - the first store is
 dead and dropped, and the add is not folded back into the `%lo`.
-## A `register … asm` pin on a loop counter can stand for `while` written as `if/do-while` (Mc_StateVerifyFinish, 2026-09-26)
+## A `register … asm` pin on a loop counter can stand for `while` written as `if/do-while` (_mcStatePrepareSectionRead, 2026-09-26)
 
 **Symptom:** a byte-sum loop `j = 0; if (count != 0) do { j += 1; … } while (j < count);`
 swaps the counter and its bound between `a0` and `a1`; the seed pinned `j` to `a0`.

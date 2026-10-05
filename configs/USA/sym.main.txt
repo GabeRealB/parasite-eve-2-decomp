@@ -888,7 +888,7 @@ _mcUpdateCancelPrompt               = 0x8003092C; // type:func
 _mcBuildCardFileTitle               = 0x80030AB0; // type:func
 _mcStateScanCardBlocks               = 0x80031118; // type:func
 _mcStateReadSaveDirectory               = 0x800312DC; // type:func
-Mc_StateFileSelect               = 0x800314D0; // type:func
+_mcStateSelectSaveFile               = 0x800314D0; // type:func
 
 //--------------------------------------------------------------------
 //--- PA: 0x21FDC   VA: 0x800317DC   subsegment: c, mc
@@ -901,10 +901,10 @@ _mcStateConfirmSaveOverwrite               = 0x80031DA4; // type:func
 _mcStatePrepareSectionWrite               = 0x80031F94; // type:func
 _mcStateFinishSectionWrite               = 0x800322B0; // type:func
 _mcStateFormatCard              = 0x8003245C; // type:func
-Mc_StateSyncFileSelect               = 0x80032578; // type:func
+_mcStateSelectLoadFile               = 0x80032578; // type:func
 _mcStateResolveLoadCardProbe               = 0x800327A4; // type:func
 _mcStateOpenSaveFileForRead               = 0x800328FC; // type:func
-Mc_StateVerifyFinish               = 0x80032AB0; // type:func
+_mcStatePrepareSectionRead               = 0x80032AB0; // type:func
 _mcStateFinishSectionRead               = 0x80032D54; // type:func
 _mcDrawLoadFileRow               = 0x80032F5C; // type:func
 mcDrawFilePreview               = 0x800330D8; // type:func
@@ -969,7 +969,7 @@ _mcStateKillLoadDialogIfRequested               = 0x80035E18; // type:func
 _mcStateAcknowledgeLoadFailure               = 0x80035E48; // type:func
 _mcStateAcceptLoadCard               = 0x80035ED4; // type:func
 _mcStateWaitLoadCardInsertion               = 0x80035FD8; // type:func
-Mc_StateSyncPromptA               = 0x800360C8; // type:func
+_mcStateWaitNoDataCardRemoval               = 0x800360C8; // type:func
 _mcStateBeginSectionLoad               = 0x800361C0; // type:func
 _mcStateReadSection               = 0x800362A4; // type:func
 _mcStateBeginLoadDirectory               = 0x800363AC; // type:func

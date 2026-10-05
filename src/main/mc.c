@@ -45,6 +45,9 @@ enum { MEMORY_CARD_BACKUP_FILL_BYTE = 0xFF };
 /// Shift from 128-byte card-sector positions to SDK byte offsets.
 enum { MEMORY_CARD_SECTOR_BYTE_SHIFT = 7 };
 
+/// File-list child delay before opening, in nominal 60-Hz UI ticks.
+enum { MEMORY_CARD_FILE_LIST_OPENING_DELAY_TICKS = 2 };
+
 /// Destination states in the save dialog's `Mc_PromptStates` table.
 enum {
     MEMORY_CARD_SAVE_STATE_DISMISSED         = -1,
@@ -358,7 +361,9 @@ static inline void _mcCloseChildUi(Task* task, s32 parentInputControl);
 
 static inline void _mcCopyFileName(s32 restoreSavedName);
 
-static void Mc_StateFileSelect(Task* task, McWork* work);
+static inline void _mcCloseFileList(UiObject* listObject, UiObject* dialogObject);
+
+static void _mcStateSelectSaveFile(Task* dialogTask, McWork* dialogWork);
 
 static inline s32 _mcGetSectionWriteMask(void);
 
@@ -382,7 +387,7 @@ static void _mcStateFinishSectionWrite(Task* task, McWork* work);
 
 static void _mcStateFormatCard(Task* task, McWork* work);
 
-static void Mc_StateSyncFileSelect(Task* task, McWork* work);
+static void _mcStateSelectLoadFile(Task* dialogTask, McWork* dialogWork);
 
 static void _mcStateResolveLoadCardProbe(Task* task, McWork* work);
 
@@ -394,7 +399,7 @@ static inline void _mcWriteSaveSectionChecksums(void);
 
 static inline s32 _mcVerifySectionChecksumSummary(void);
 
-static void Mc_StateVerifyFinish(Task* task, McWork* work);
+static void _mcStatePrepareSectionRead(Task* dialogTask, McWork* dialogWork);
 
 static inline void _mcWriteReadCardHeaderChecksum(McWork* work);
 
@@ -520,7 +525,7 @@ static void _mcStateAcceptLoadCard(Task* task, McWork* work);
 
 static void _mcStateWaitLoadCardInsertion(Task* task, McWork* work);
 
-static void Mc_StateSyncPromptA(Task* task, McWork* work);
+static void _mcStateWaitNoDataCardRemoval(Task* dialogTask, McWork* dialogWork);
 
 static void _mcStateBeginSectionLoad(Task* task, McWork* work);
 
@@ -1429,7 +1434,7 @@ static const _McSaveStateTable Mc_PromptStates = { {
     _mcStateReadSavePreview,
     _mcStatePollCardAdvance,
     _mcStateAdvanceSavePreview,
-    Mc_StateFileSelect,
+    _mcStateSelectSaveFile,
     _mcStateDelaySaveRetry,
     _mcStateDelaySectionWrite,
     _mcStateDelaySaveConfirmation,
@@ -1602,82 +1607,100 @@ static inline void _mcCopyFileName(s32 restoreSavedName)
     }
 }
 
-static void Mc_StateFileSelect(Task* task, McWork* work)
+/// Close a confirmed file list and reactivate its parent dialog.
+///
+/// Both objects must remain live while the child's tree starts closing.
+static inline void _mcCloseFileList(UiObject* listObject, UiObject* dialogObject)
 {
-    UiObject* obj;
-    UiObject* childObj;
-    Task*     child;
-    s32       syncResult;
-    s32       i;
+    listObject->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
+    uiStartTreeClosing(listObject, listObject->owner);
+    dialogObject->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
+}
 
-    obj            = task->spawnArg2.pointer;
-    work->promptId = MEMORY_CARD_PROMPT_SELECT;
-    _mcDrawPrompt(task, MEMORY_CARD_PROMPT_SELECT);
+/// Choose an existing save destination or the New Block row while probing the card.
+///
+/// Borrows a live dialog object and the cached directory/preview work until its
+/// list child closes. The directory has 0..15 files; New Block is offered at
+/// `entryCount` only when an unoccupied card block remains. Restores the remembered
+/// save cursor. A changed destination forces every section to be written; Cancel
+/// returns to the save question. A confirmed choice wins over card polling that run.
+static void _mcStateSelectSaveFile(Task* dialogTask, McWork* dialogWork)
+{
+    UiObject* dialogObject;
+    UiObject* listObject;
+    Task*     listTask;
+    s32       syncState;
+    s32       filenameByteIndex;
 
-    child = task->firstChild;
-    if (child == NULL) {
-        if (uiSpawnObject(Mc_LoadListDescriptors, work, 1, 2, obj) != 0) {
-            Mc_LoadSlotList.itemCount = work->entryCount;
-            if (work->entryCount < MEMORY_CARD_BLOCK_COUNT - work->foreignBlockCount) {
+    dialogObject         = dialogTask->spawnArg2.pointer;
+    dialogWork->promptId = MEMORY_CARD_PROMPT_SELECT;
+    _mcDrawPrompt(dialogTask, MEMORY_CARD_PROMPT_SELECT);
+
+    listTask = dialogTask->firstChild;
+    if (listTask == NULL) {
+        if (uiSpawnObject(Mc_LoadListDescriptors, dialogWork, USER_INTERFACE_PANEL_ACTIVE,
+                          MEMORY_CARD_FILE_LIST_OPENING_DELAY_TICKS, dialogObject) != NULL) {
+            Mc_LoadSlotList.itemCount = dialogWork->entryCount;
+            if (dialogWork->entryCount < MEMORY_CARD_BLOCK_COUNT - dialogWork->foreignBlockCount) {
                 Mc_LoadSlotList.itemCount++;
             }
-            Mc_LoadSlotList.selectedItemIndex = work->selectedSlot;
-            obj->resultValue                  = 0;
-            obj->panel.control.word           = USER_INTERFACE_PANEL_INACTIVE;
+            Mc_LoadSlotList.selectedItemIndex = dialogWork->selectedSlot;
+            dialogObject->resultValue         = 0;
+            dialogObject->panel.control.word  = USER_INTERFACE_PANEL_INACTIVE;
         }
     } else {
-        childObj = child->spawnArg2.pointer;
-        if (childObj->result == USER_INTERFACE_RESULT_CONFIRM) {
-            obj->resultValue             = childObj->resultValue;
-            childObj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
-            uiStartTreeClosing(childObj, childObj->owner);
-            obj->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
-            if (obj->resultValue >= 0) {
-                if (obj->resultValue < work->entryCount) {
-                    u8* src;
-                    u8* name;
-                    s32 matchCount;
+        listObject = listTask->spawnArg2.pointer;
+        if (listObject->result == USER_INTERFACE_RESULT_CONFIRM) {
+            dialogObject->resultValue = listObject->resultValue;
+            _mcCloseFileList(listObject, dialogObject);
+            if (dialogObject->resultValue >= 0) {
+                if (dialogObject->resultValue < dialogWork->entryCount) {
+                    const u8* directoryName;
+                    u8*       filenameCursor;
+                    s32       differingByteCount;
 
-                    src        = (u8*)work->directory[obj->resultValue].name;
-                    name       = Mc_FileName;
-                    matchCount = 0x14;
-                    _mcCopyFileName(0);
-                    for (i = 0; i < 0x14; i++) {
-                        if (*name == *src) {
-                            matchCount--;
+                    // Remember the old name before replacing the full SDK filename field.
+                    directoryName      = (const u8*)dialogWork->directory[dialogObject->resultValue].name;
+                    filenameCursor     = Mc_FileName;
+                    differingByteCount = sizeof(dialogWork->directory[0].name);
+                    _mcCopyFileName(false);
+                    for (filenameByteIndex = 0; filenameByteIndex < (s32)sizeof(dialogWork->directory[0].name); filenameByteIndex++) {
+                        if (*filenameCursor == *directoryName) {
+                            differingByteCount--;
                         }
-                        *name = *src;
-                        name++;
-                        src++;
+                        *filenameCursor = *directoryName;
+                        filenameCursor++;
+                        directoryName++;
                     }
-                    *name = 0;
-                    if (matchCount != 0) {
+                    *filenameCursor = 0;
+                    if (differingByteCount != 0) {
                         // A different file transfers every slot, and the next listing starts at slot 0.
-                        work->slotWriteMask = MEMORY_CARD_SLOT_WRITE_ALL;
+                        dialogWork->slotWriteMask = MEMORY_CARD_SLOT_WRITE_ALL;
                     }
-                    work->promptId = MEMORY_CARD_PROMPT_CHECKING;
-                    task->state    = 5;
+                    dialogWork->promptId = MEMORY_CARD_PROMPT_CHECKING;
+                    dialogTask->state    = MEMORY_CARD_SAVE_STATE_BEGIN_OPEN_FILE;
                 } else {
-                    _mcCopyFileName(0);
-                    _mcBuildSaveFileName(Mc_FileName, obj->resultValue);
-                    work->promptId = MEMORY_CARD_PROMPT_CHECKING;
-                    task->state    = 5;
+                    _mcCopyFileName(false);
+                    _mcBuildSaveFileName(Mc_FileName, dialogObject->resultValue);
+                    dialogWork->promptId = MEMORY_CARD_PROMPT_CHECKING;
+                    dialogTask->state    = MEMORY_CARD_SAVE_STATE_BEGIN_OPEN_FILE;
                 }
             } else {
-                task->state = 0x29;
+                dialogTask->state = MEMORY_CARD_SAVE_STATE_DELAY_CONFIRMATION;
             }
             return;
         }
     }
 
-    syncResult = MemCardSync(1, &work->syncCommand, &work->syncResult);
-    if (syncResult != -1) {
-        if (syncResult == 1 && work->syncResult != 0) {
-            task->state = 2;
-            _mcCloseChildUi(task, syncResult);
+    // A completed presence error closes the list before restarting card acceptance.
+    syncState = MemCardSync(MEMORY_CARD_SYNC_POLL, &dialogWork->syncCommand, &dialogWork->syncResult);
+    if (syncState != MEMORY_CARD_SYNC_IDLE) {
+        if (syncState == MEMORY_CARD_SYNC_COMPLETE && dialogWork->syncResult != McErrNone) {
+            dialogTask->state = MEMORY_CARD_SAVE_STATE_ACCEPT_CARD;
+            _mcCloseChildUi(dialogTask, syncState);
         }
     } else {
-        MemCardExist(work->channel);
+        MemCardExist(dialogWork->channel);
     }
 }
 
@@ -2185,52 +2208,62 @@ static void _mcStateFormatCard(Task* task, McWork* work)
     _mcDrawPrompt(task, work->promptId);
 }
 
-static void Mc_StateSyncFileSelect(Task* task, McWork* work)
+/// Choose a cached save file for loading, restarting acceptance on a card-probe error.
+///
+/// Borrows a live dialog object and directory/preview work until the list child
+/// closes. Entry requires 1..15 files; the row callback accepts only a valid
+/// preview and publishes an index below `entryCount`, or -1 for Cancel. A probe
+/// error takes priority over the list result. Selection copies twenty filename
+/// bytes plus NUL and enters the section-load delay; Cancel closes the load file.
+static void _mcStateSelectLoadFile(Task* dialogTask, McWork* dialogWork)
 {
-    UiObject* obj;
-    s32       syncResult;
-    s32       i;
-    Task*     child;
-    UiObject* childObj;
-    u8*       src;
-    u8*       dst;
+    enum {
+        MEMORY_CARD_LOAD_STATE_ACCEPT_CARD   = 7,
+        MEMORY_CARD_LOAD_STATE_BEGIN_SECTION = 0xC,
+    };
+    UiObject* dialogObject;
+    s32       syncState;
+    s32       filenameByteIndex;
+    Task*     listTask;
+    UiObject* listObject;
+    const u8* directoryName;
+    u8*       filenameCursor;
 
-    obj            = task->spawnArg2.pointer;
-    work->promptId = MEMORY_CARD_PROMPT_SELECT;
-    _mcDrawPrompt(task, MEMORY_CARD_PROMPT_SELECT);
+    dialogObject         = dialogTask->spawnArg2.pointer;
+    dialogWork->promptId = MEMORY_CARD_PROMPT_SELECT;
+    _mcDrawPrompt(dialogTask, MEMORY_CARD_PROMPT_SELECT);
 
-    syncResult = MemCardSync(1, &work->syncCommand, &work->syncResult);
-    if (syncResult == -1) {
-        MemCardExist(work->channel);
-    } else if (syncResult == 1 && work->syncResult != 0) {
-        task->state = 7;
-        _mcCloseChildUi(task, syncResult);
+    syncState = MemCardSync(MEMORY_CARD_SYNC_POLL, &dialogWork->syncCommand, &dialogWork->syncResult);
+    if (syncState == MEMORY_CARD_SYNC_IDLE) {
+        MemCardExist(dialogWork->channel);
+    } else if (syncState == MEMORY_CARD_SYNC_COMPLETE && dialogWork->syncResult != McErrNone) {
+        dialogTask->state = MEMORY_CARD_LOAD_STATE_ACCEPT_CARD;
+        _mcCloseChildUi(dialogTask, syncState);
         return;
     }
-    child = task->firstChild;
-    if (child == NULL) {
-        if (uiSpawnObject(Mc_SaveListDesc, work, 1, 2, obj) != 0) {
-            Mc_SaveSlotList.itemCount = work->entryCount;
-            obj->resultValue          = 0;
-            obj->panel.control.word   = USER_INTERFACE_PANEL_INACTIVE;
+    listTask = dialogTask->firstChild;
+    if (listTask == NULL) {
+        if (uiSpawnObject(Mc_SaveListDesc, dialogWork, USER_INTERFACE_PANEL_ACTIVE,
+                          MEMORY_CARD_FILE_LIST_OPENING_DELAY_TICKS, dialogObject) != NULL) {
+            Mc_SaveSlotList.itemCount        = dialogWork->entryCount;
+            dialogObject->resultValue        = 0;
+            dialogObject->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
         }
     } else {
-        childObj = child->spawnArg2.pointer;
-        if (childObj->result == USER_INTERFACE_RESULT_CONFIRM) {
-            obj->resultValue             = childObj->resultValue;
-            childObj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
-            uiStartTreeClosing(childObj, childObj->owner);
-            obj->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
-            if (obj->resultValue >= 0) {
-                src = (u8*)work->directory[obj->resultValue].name;
-                dst = Mc_FileName;
-                for (i = 0; i < 0x14; i++) {
-                    *dst++ = *src++;
+        listObject = listTask->spawnArg2.pointer;
+        if (listObject->result == USER_INTERFACE_RESULT_CONFIRM) {
+            dialogObject->resultValue = listObject->resultValue;
+            _mcCloseFileList(listObject, dialogObject);
+            if (dialogObject->resultValue >= 0) {
+                directoryName  = (const u8*)dialogWork->directory[dialogObject->resultValue].name;
+                filenameCursor = Mc_FileName;
+                for (filenameByteIndex = 0; filenameByteIndex < (s32)sizeof(dialogWork->directory[0].name); filenameByteIndex++) {
+                    *filenameCursor++ = *directoryName++;
                 }
-                *dst        = 0;
-                task->state = 0xC;
+                *filenameCursor   = 0;
+                dialogTask->state = MEMORY_CARD_LOAD_STATE_BEGIN_SECTION;
             } else {
-                task->state = 3;
+                dialogTask->state = MEMORY_CARD_LOAD_STATE_CLOSE_FILE;
             }
         }
     }
@@ -2249,10 +2282,10 @@ static const _McFileSelectStateTable Mc_FileSelectStates = { {
     _mcStatePollCardAdvance,
     _mcStateResolveLoadCardProbe,
     _mcStateWaitLoadCardInsertion,
-    Mc_StateSyncPromptA,
+    _mcStateWaitNoDataCardRemoval,
     _mcStateBeginSectionLoad,
     _mcStateOpenSaveFileForRead,
-    Mc_StateVerifyFinish,
+    _mcStatePrepareSectionRead,
     _mcStateReadSection,
     _mcStatePollCardAdvance,
     _mcStateFinishSectionRead,
@@ -2262,7 +2295,7 @@ static const _McFileSelectStateTable Mc_FileSelectStates = { {
     _mcStateReadLoadPreview,
     _mcStatePollCardAdvance,
     _mcStateAdvanceLoadPreview,
-    Mc_StateSyncFileSelect,
+    _mcStateSelectLoadFile,
     _mcStateAcknowledgeCorruptLoad,
 } };
 
@@ -2462,46 +2495,59 @@ static inline s32 _mcVerifySectionChecksumSummary(void)
     return (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.bufferChecksum ^ (sum & MEMORY_CARD_CHECKSUM_MASK)) == 0;
 }
 
-static void Mc_StateVerifyFinish(Task* task, McWork* work)
+/// Allocate the next selected section read, or validate the restored live records.
+///
+/// Entry requires `slotsRemaining` in 0..9 and no owned transfer buffer. Before
+/// decrementing, `9 - slotsRemaining` indexes the section. Reads both copies,
+/// rounded up to a 128-byte sector; completion owns the allocation until it frees
+/// it. Allocation failure retries, and a clear mask bit skips the section's
+/// sector extent. At the end, valid live checksums arm player-position restoration
+/// and close the file; a mismatch resets save data and shows the corruption notice.
+static void _mcStatePrepareSectionRead(Task* dialogTask, McWork* dialogWork)
 {
-    s32   size;
-    void* mem;
+    enum {
+        MEMORY_CARD_CURRENT_SECTION_SELECTED = 1 << 0,
+        MEMORY_CARD_LOAD_STATE_CORRUPTED     = 0x19,
+    };
+    s32   transferBytes;
+    void* transferBuffer;
 
-    if (work->slotsRemaining == 0) {
+    if (dialogWork->slotsRemaining == 0) {
         if (_mcVerifySaveSectionChecksums() && _mcVerifySectionChecksumSummary()) {
             playClockResetMinuteTicks();
             gDisplayState.control.flags.pendingPlayerPos = 1;
-            task->state                                  = 3;
+            dialogTask->state                            = MEMORY_CARD_LOAD_STATE_CLOSE_FILE;
         } else {
             mcResetSaveData();
-            task->state = 0x19;
+            dialogTask->state = MEMORY_CARD_LOAD_STATE_CORRUPTED;
         }
-    } else if (work->slotWriteMask & 1) {
-        size                = Mc_BufferSlots[MEMORY_CARD_BUFFER_SLOT_COUNT - work->slotsRemaining].bytesPerCopy;
-        size              <<= 1;
-        size               -= 1;
-        size                = (u32)size >> 7;
-        size               += 1;
-        size              <<= 7;
-        work->transferBytes = size;
-        mem                 = memMalloc(size, false);
-        work->buffer        = mem;
-        if (mem != 0) {
-            work->cardTimer      = 0;
-            task->state          = task->state + 1;
-            work->slotsRemaining = work->slotsRemaining - 1;
-            work->slotWriteMask  = (u32)work->slotWriteMask >> 1;
+    } else if (dialogWork->slotWriteMask & MEMORY_CARD_CURRENT_SECTION_SELECTED) {
+        // Preserve unsigned sector rounding of the two-copy byte extent.
+        transferBytes             = Mc_BufferSlots[MEMORY_CARD_BUFFER_SLOT_COUNT - dialogWork->slotsRemaining].bytesPerCopy;
+        transferBytes           <<= 1;
+        transferBytes            -= 1;
+        transferBytes             = (u32)transferBytes >> MEMORY_CARD_SECTOR_BYTE_SHIFT;
+        transferBytes            += 1;
+        transferBytes           <<= MEMORY_CARD_SECTOR_BYTE_SHIFT;
+        dialogWork->transferBytes = transferBytes;
+        transferBuffer            = memMalloc(transferBytes, false);
+        dialogWork->buffer        = transferBuffer;
+        if (transferBuffer != NULL) {
+            dialogWork->cardTimer      = 0;
+            dialogTask->state          = dialogTask->state + 1;
+            dialogWork->slotsRemaining = dialogWork->slotsRemaining - 1;
+            dialogWork->slotWriteMask  = (u32)dialogWork->slotWriteMask >> 1;
         } else {
-            work->cardTimer = work->cardTimer + 1;
+            dialogWork->cardTimer = dialogWork->cardTimer + 1;
         }
     } else {
-        work->sectorOffset   = work->sectorOffset + Mc_BufferSlots[MEMORY_CARD_BUFFER_SLOT_COUNT - work->slotsRemaining].cardSectors;
-        work->slotsRemaining = work->slotsRemaining - 1;
-        work->slotWriteMask  = (u32)work->slotWriteMask >> 1;
+        dialogWork->sectorOffset   = dialogWork->sectorOffset + Mc_BufferSlots[MEMORY_CARD_BUFFER_SLOT_COUNT - dialogWork->slotsRemaining].cardSectors;
+        dialogWork->slotsRemaining = dialogWork->slotsRemaining - 1;
+        dialogWork->slotWriteMask  = (u32)dialogWork->slotWriteMask >> 1;
     }
 
-    work->promptId = MEMORY_CARD_PROMPT_LOADING;
-    _mcDrawPrompt(task, MEMORY_CARD_PROMPT_LOADING);
+    dialogWork->promptId = MEMORY_CARD_PROMPT_LOADING;
+    _mcDrawPrompt(dialogTask, MEMORY_CARD_PROMPT_LOADING);
 }
 
 /// Store the read card file header's signed-byte sum and complement in dialog work.
@@ -3825,39 +3871,36 @@ static void _mcStateWaitLoadCardInsertion(Task* task, McWork* work)
     }
 }
 
-static void Mc_StateSyncPromptA(Task* task, McWork* work)
+/// Wait for removal of a card with no loadable game data, or Cancel the load dialog.
+///
+/// Polls nonblocking card presence, submitting a probe while the SDK is idle.
+/// Only a completed no-card result closes the Cancel child, restores parent input
+/// and enters insertion recovery. Other completed results keep the no-data notice.
+/// The task and any first child must borrow live dialog/choice objects.
+static void _mcStateWaitNoDataCardRemoval(Task* dialogTask, McWork* dialogWork)
 {
-    s32       syncResult;
-    s32       rslt;
-    Task*     child;
-    UiObject* obj;
-    UiObject* flag;
+    enum { MEMORY_CARD_LOAD_STATE_NO_CARD = 0xA };
+    s32 syncState;
+    s32 presenceResult;
 
-    work->promptId = MEMORY_CARD_PROMPT_NO_DATA;
-    if (_mcUpdateCancelPrompt(task, MEMORY_CARD_PROMPT_NO_DATA, work->promptTimer) != 0) {
-        task->state = 3;
+    dialogWork->promptId = MEMORY_CARD_PROMPT_NO_DATA;
+    if (_mcUpdateCancelPrompt(dialogTask, MEMORY_CARD_PROMPT_NO_DATA, dialogWork->promptTimer) != 0) {
+        dialogTask->state = MEMORY_CARD_LOAD_STATE_CLOSE_FILE;
         return;
     }
-    syncResult = MemCardSync(1, &work->syncCommand, &work->syncResult);
-    switch (syncResult) {
-        case -1:
-            MemCardExist(work->channel);
+    syncState = MemCardSync(MEMORY_CARD_SYNC_POLL, &dialogWork->syncCommand, &dialogWork->syncResult);
+    switch (syncState) {
+        case MEMORY_CARD_SYNC_IDLE:
+            MemCardExist(dialogWork->channel);
             return;
-        case 1:
-            rslt = work->syncResult;
-            if (rslt == syncResult) {
-                child = task->firstChild;
-                if (child != NULL) {
-                    obj                     = child->spawnArg2.pointer;
-                    flag                    = task->spawnArg2.pointer;
-                    obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
-                    uiStartTreeClosing(obj, obj->owner);
-                    flag->panel.control.word = rslt;
-                }
-                task->state = 0xA;
+        case MEMORY_CARD_SYNC_COMPLETE:
+            presenceResult = dialogWork->syncResult;
+            if (presenceResult == McErrCardNotExist) {
+                _mcCloseChildUi(dialogTask, presenceResult);
+                dialogTask->state = MEMORY_CARD_LOAD_STATE_NO_CARD;
             }
             return;
-        case 0:
+        case MEMORY_CARD_SYNC_PENDING:
             return;
     }
 }
