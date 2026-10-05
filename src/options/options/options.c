@@ -156,7 +156,6 @@ static void func_options_801D404C(UiList* arg0, UiObject* arg1)
 {
     u8*  labels[2] = { D_options_801D5B68, D_options_801D5B70 };
     u8** p;
-    u8*  title;
     s32  i;
     s32  y;
     s32  x;
@@ -166,16 +165,14 @@ static void func_options_801D404C(UiList* arg0, UiObject* arg1)
     u32  textColorRgb;
     s32  status;
     s32  saved;
-    s32  cur;
     s32  columnCount;
 
     columnCount = 2;
-    title       = D_options_801D5B60;
-    textDrawUiLine(arg1, arg1->panel.contentLeft.signedValue + 6, arg0->rowTextY.signedValue, title, arg0->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(arg1, arg1->panel.contentLeft.signedValue + 6, arg0->rowTextY.signedValue, D_options_801D5B60, arg0->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     i        = 0;
     p        = labels;
     saved    = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.soundMode;
-    y        = i;
+    y        = 0;
     selected = saved;
     x        = arg1->panel.contentLeft.signedValue + 0x78;
     span     = arg1->panel.contentRight.signedValue - x;
@@ -186,10 +183,10 @@ static void func_options_801D404C(UiList* arg0, UiObject* arg1)
             textColorRgb = uiGetTextColor(arg1, USER_INTERFACE_TEXT_COLOR_NORMAL);
         }
         one = 1;
-        textDrawUiLine(arg1, x + y / columnCount, arg0->rowTextY.signedValue, *p, textColorRgb, one, TEXT_ALIGNMENT_LEFT);
+        textDrawUiLine(arg1, x + y / columnCount, arg0->rowTextY.signedValue, *p, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
         p++;
         y += span;
-        i += one;
+        i++;
     } while (i < 2);
     if (arg0->rowInputEnabled == one) {
         if (padCheckButtons(0, one, PAD_BUTTON_RIGHT) != 0) {
@@ -207,19 +204,19 @@ static void func_options_801D404C(UiList* arg0, UiObject* arg1)
         }
     }
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.soundMode = selected;
-    cur                                                = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.soundMode;
-    if (saved != cur) {
-        if (cur != 0) {
-            if (cur != 1) {
+    if (saved != gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.soundMode) {
+        switch (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.soundMode) {
+            case 0:
                 sndOutputSetStereo(SOUND_OUTPUT_STEREO);
-            } else {
+                break;
+            case 1:
                 sndOutputSetStereo(SOUND_OUTPUT_MONO);
-            }
-        } else {
-            sndOutputSetStereo(SOUND_OUTPUT_STEREO);
+                break;
+            default:
+                sndOutputSetStereo(SOUND_OUTPUT_STEREO);
+                break;
         }
     }
-    SOFT_BARRIER();
     status = arg1->panel.control.word;
     if ((((status >> 0x10) == 1) || (status == 1)) && (arg0->selectedItemIndex == arg0->currentItemIndex)) {
         Ui_SetHolderParam(D_options_801D5C7C, 0, 0);
