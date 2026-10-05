@@ -1384,34 +1384,32 @@ u16 D_acropolis_fountain_80183BB2 = 8192;
 
 Task* D_acropolis_fountain_80183BB4 = NULL;
 
-/// Applies the fountain spray's texture cell and grayscale modulation to a quad.
+/// Sets the fountain spray quad's texture region and additive grayscale modulation.
 ///
-/// The packet header must already describe a `POLY_FT4`; corners and the GPU
-/// link are filled by the drawer. Brightness is an unsigned-byte GPU level.
-static inline void _acropolisFountainInitSprayQuad(POLY_FT4* sprite, s32 brightness)
+/// `quad` borrows a writable `POLY_FT4` initialized by `setPolyFT4`. Its screen
+/// corners and ordering-table link are filled by the caller; no pointer is retained.
+/// The 40-by-40-texel region uses 4-bit indices and the palette at VRAM (32, 270).
+/// `modulation` is an unsigned-byte RGB multiplier, with 128 neutral; the spray
+/// drawer supplies 64 or 80 on alternating frames.
+static inline void _acropolisFountainInitSprayQuad(POLY_FT4* quad, u8 modulation)
 {
     enum {
-        ACROPOLIS_FOUNTAIN_SPRAY_TPAGE   = 0x2B,
-        ACROPOLIS_FOUNTAIN_SPRAY_CLUT    = 0x4382,
+        ACROPOLIS_FOUNTAIN_SPRAY_TPAGE   = getTPage(0, GPU_BLEND_ADD, 704, 0), // 4-bit page; VRAM X is in words, Y in scanlines
+        ACROPOLIS_FOUNTAIN_SPRAY_CLUT    = getClut(32, 270),
         ACROPOLIS_FOUNTAIN_SPRAY_U_FIRST = 0x50,
         ACROPOLIS_FOUNTAIN_SPRAY_U_LAST  = 0x77,
+        ACROPOLIS_FOUNTAIN_SPRAY_V_FIRST = 0,
         ACROPOLIS_FOUNTAIN_SPRAY_V_LAST  = 0x27
     };
 
-    sprite->tpage = ACROPOLIS_FOUNTAIN_SPRAY_TPAGE;
-    sprite->clut  = ACROPOLIS_FOUNTAIN_SPRAY_CLUT;
-    sprite->u0    = ACROPOLIS_FOUNTAIN_SPRAY_U_FIRST;
-    sprite->v0    = 0;
-    sprite->u1    = ACROPOLIS_FOUNTAIN_SPRAY_U_LAST;
-    sprite->v1    = 0;
-    sprite->u2    = ACROPOLIS_FOUNTAIN_SPRAY_U_FIRST;
-    sprite->v2    = ACROPOLIS_FOUNTAIN_SPRAY_V_LAST;
-    sprite->u3    = ACROPOLIS_FOUNTAIN_SPRAY_U_LAST;
-    sprite->v3    = ACROPOLIS_FOUNTAIN_SPRAY_V_LAST;
-    sprite->r0    = brightness;
-    sprite->g0    = brightness;
-    sprite->b0    = brightness;
-    setSemiTrans(sprite, 1);
+    quad->tpage = ACROPOLIS_FOUNTAIN_SPRAY_TPAGE;
+    quad->clut  = ACROPOLIS_FOUNTAIN_SPRAY_CLUT;
+    setUV4(quad, ACROPOLIS_FOUNTAIN_SPRAY_U_FIRST, ACROPOLIS_FOUNTAIN_SPRAY_V_FIRST,
+           ACROPOLIS_FOUNTAIN_SPRAY_U_LAST, ACROPOLIS_FOUNTAIN_SPRAY_V_FIRST,
+           ACROPOLIS_FOUNTAIN_SPRAY_U_FIRST, ACROPOLIS_FOUNTAIN_SPRAY_V_LAST,
+           ACROPOLIS_FOUNTAIN_SPRAY_U_LAST, ACROPOLIS_FOUNTAIN_SPRAY_V_LAST);
+    setRGB0(quad, modulation, modulation, modulation);
+    setSemiTrans(quad, true);
 }
 
 void func_acropolis_fountain_8017DA1C(void)
