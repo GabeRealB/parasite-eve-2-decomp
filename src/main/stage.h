@@ -1,7 +1,7 @@
 #ifndef MAIN_PRIVATE_STAGE_H
 #define MAIN_PRIVATE_STAGE_H
 
-#include "main/task_types.h"
+#include "types.h"
 
 /// Selects the scene-event column within each area's stage music row.
 ///
@@ -17,7 +17,5 @@
 s32 stageMusicSelectColumn(s32 stage, s32 sceneEvent, s32 sceneEventBase);
 
 void Stage_InitOtAndSpawn(void);
-
-void Stage_TaskExit(Task* task);
 
 #endif // MAIN_PRIVATE_STAGE_H

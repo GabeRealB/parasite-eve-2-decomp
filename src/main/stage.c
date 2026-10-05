@@ -50,7 +50,7 @@ enum {
     STAGE_ENTRY_KEEP         = 1,     // Keep resources; full flip and image strips
     STAGE_ENTRY_HOLD         = 3,     // Keep resources; hold the flip and draw no image
     STAGE_ENTRY_DRAW_ACTORS  = 4,     // Keep resources, draw active actors, flip during a view transition
-    STAGE_ENTRY_GRAY_CAPTURE = 0x100, // Reload path, then invert the stored framebuffer to grey
+    STAGE_ENTRY_GRAY_CAPTURE = 0x100, // Reload path, then invert the captured RAM image to grey
 };
 
 /// Ordering-table contents while a mode task owns the frame.
@@ -168,7 +168,7 @@ static void Display_TransitionTask(Task* task);
 
 static void Display_FlipOtAndDispatch(s32 unused);
 
-static void Display_InvertFramebufferGray(void);
+static void _gfxInvertCapturedFrameGray(void);
 
 static s32 Stage_BeginTransitionKind3(void);
 
@@ -418,7 +418,7 @@ block_default:
     gpuResetAndInvalidateModelBuffers();
     gfxCaptureAreaFrame(ed->stage, ed->area, gDisplayState.drawBuffer, MEMORY_PRIMITIVE_HEAP_BYTES);
     if (Stage_Ctx->entryMode == STAGE_ENTRY_GRAY_CAPTURE) {
-        Display_InvertFramebufferGray();
+        _gfxInvertCapturedFrameGray();
     }
     memInitAuxHeap();
     gDisplayState.control.flags.flipMode    = DISPLAY_FLIP_TASK_ONLY;
@@ -582,52 +582,75 @@ static void Display_FlipOtAndDispatch(s32 unused)
     gGpuCurrentOt = saved;
 }
 
-static void Display_InvertFramebufferGray(void)
+/// Replaces four RGB555 pixels in two writable words with inverted grey, clearing bit 15.
+static __inline__ void _gfxInvertFourRgb555PixelsGray(u32* firstWord, u32* secondWord)
 {
-    s32  i;
-    u32* p0;
-    u32* p1;
-    u32  hi;
-    u32  lo;
-    u32  gray;
-    u32  t;
+    // RGB555 channel masks and the 3:4:1 weighting of red, green and blue.
+    enum {
+        GRAPHICS_GRAY_PIXEL_PAIR_CHANNELS = 0x001F001F,
+        GRAPHICS_GRAY_PIXEL_PAIR_GREEN    = GRAPHICS_GRAY_PIXEL_PAIR_CHANNELS << 5,
+        GRAPHICS_GRAY_FOUR_BYTE_CHANNELS  = 0x1F1F1F1F,
+        GRAPHICS_GRAY_ODD_BYTE_CHANNELS   = 0x1F001F00,
+        GRAPHICS_GRAY_RED_WEIGHT          = 3,
+        GRAPHICS_GRAY_GREEN_WEIGHT        = 4,
+        GRAPHICS_GRAY_WEIGHT_SHIFT        = 3,
+    };
+    u32 secondPixels;
+    u32 firstPixels;
+    u32 grayChannels;
+    u32 packedChannels;
 
-    /* The 320x240 15-bit screen capture sits directly below the primitive
-     * heap. Each pass converts four pixels (two words) at once: the red,
-     * green and blue channels of all four are packed into the bytes of one
-     * word, weighted 3:4:1 into a grey level, inverted, and written back as
-     * grey pixels. */
-    p0 = (u32*)(Gpu_PrimHeapBase - 0x25800);
-    p1 = p0 + 1;
-    for (i = 0; i < 0x4B00; i++) {
-        hi    = *p1;
-        lo    = *p0;
-        t     = hi & 0x001F001F;
-        t   <<= 8;
-        t    |= lo & 0x001F001F;
-        gray  = t * 3;
-        t     = hi & 0x03E003E0;
-        t   <<= 3;
-        lo  >>= 5;
-        t    |= lo & 0x001F001F;
-        gray += t * 4;
-        hi  >>= 2;
-        t     = hi & 0x1F001F00;
-        lo  >>= 5;
-        t    |= lo & 0x001F001F;
-        gray += t;
-        gray  = (gray >> 3) & 0x1F1F1F1F;
-        gray  = 0x1F1F1F1F - gray;
+    // Each byte holds one pixel's floor((3R + 4G + B) / 8), then 31 minus that value.
+    secondPixels     = *secondWord;
+    firstPixels      = *firstWord;
+    packedChannels   = secondPixels & GRAPHICS_GRAY_PIXEL_PAIR_CHANNELS;
+    packedChannels <<= 8;
+    packedChannels  |= firstPixels & GRAPHICS_GRAY_PIXEL_PAIR_CHANNELS;
+    grayChannels     = packedChannels * GRAPHICS_GRAY_RED_WEIGHT;
+    packedChannels   = secondPixels & GRAPHICS_GRAY_PIXEL_PAIR_GREEN;
+    packedChannels <<= 3;
+    firstPixels    >>= 5;
+    packedChannels  |= firstPixels & GRAPHICS_GRAY_PIXEL_PAIR_CHANNELS;
+    grayChannels    += packedChannels * GRAPHICS_GRAY_GREEN_WEIGHT;
+    secondPixels   >>= 2;
+    packedChannels   = secondPixels & GRAPHICS_GRAY_ODD_BYTE_CHANNELS;
+    firstPixels    >>= 5;
+    packedChannels  |= firstPixels & GRAPHICS_GRAY_PIXEL_PAIR_CHANNELS;
+    grayChannels    += packedChannels;
+    grayChannels     = (grayChannels >> GRAPHICS_GRAY_WEIGHT_SHIFT) & GRAPHICS_GRAY_FOUR_BYTE_CHANNELS;
+    grayChannels     = GRAPHICS_GRAY_FOUR_BYTE_CHANNELS - grayChannels;
 
-        lo   = gray & 0x001F001F;
-        lo  |= (lo << 10) | (lo << 5);
-        hi   = gray & 0x1F001F00;
-        hi >>= 8;
-        hi  |= (hi << 10) | (hi << 5);
-        *p0  = lo;
-        *p1  = hi;
-        p1  += 2;
-        p0  += 2;
+    // Replicate each five-bit grey channel into R, G and B; the mask bit stays clear.
+    firstPixels    = grayChannels & GRAPHICS_GRAY_PIXEL_PAIR_CHANNELS;
+    firstPixels   |= (firstPixels << 10) | (firstPixels << 5);
+    secondPixels   = grayChannels & GRAPHICS_GRAY_ODD_BYTE_CHANNELS;
+    secondPixels >>= 8;
+    secondPixels  |= (secondPixels << 10) | (secondPixels << 5);
+    *firstWord     = firstPixels;
+    *secondWord    = secondPixels;
+}
+
+/// Converts the area's captured RAM frame to inverted grey in place.
+///
+/// Call after `gfxCaptureAreaFrame` has completed its GPU readback and placed
+/// `Gpu_PrimHeapBase` immediately after the word-aligned 320x240 RGB555 frame.
+/// Processes every pixel, clearing its mask bit; frame storage must remain
+/// writable and unavailable for other transfers throughout the conversion.
+static void _gfxInvertCapturedFrameGray(void)
+{
+    // Keep the signed loop comparison while deriving its complete frame extent.
+    enum { GRAPHICS_CAPTURE_PIXEL_GROUP_COUNT = (s32)(sizeof(FsImgBuffers) / (2 * sizeof(u32))) };
+
+    s32  pixelGroup;
+    u32* firstWord;
+    u32* secondWord;
+
+    firstWord  = (u32*)(Gpu_PrimHeapBase - sizeof(FsImgBuffers));
+    secondWord = firstWord + 1;
+    for (pixelGroup = 0; pixelGroup < GRAPHICS_CAPTURE_PIXEL_GROUP_COUNT; pixelGroup++) {
+        _gfxInvertFourRgb555PixelsGray(firstWord, secondWord);
+        secondWord += 2;
+        firstWord  += 2;
     }
 }
 
@@ -1229,9 +1252,9 @@ void Mdec_BeginDecode(void* arg0)
     D_8007A358            = 0;
 }
 
-void CdCmd_RequestVlcRebuild(void)
+void mdecRequestImageVlcRebuild(void)
 {
-    gCdCmdQueue.rebuildImageVlcTable = 1;
+    gCdCmdQueue.rebuildImageVlcTable = true;
 }
 
 static void Mdec_StripCallback(void)
@@ -1250,7 +1273,7 @@ static void Mdec_StripCallback(void)
     }
 }
 
-void Stage_TaskExit(Task* task)
+void taskExitCallback(Task* task)
 {
     taskCallExit(task);
 }

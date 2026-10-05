@@ -698,7 +698,7 @@ static u8 Fs_ProcessChunkHeader(void)
         case FILE_SYSTEM_CHUNK_BACKGROUND: {
             u8* buf;
             if (Fs_ChunkMode != 3) {
-                CdCmd_RequestVlcRebuild();
+                mdecRequestImageVlcRebuild();
                 buf = (u8*)Fs_ImgBuffers;
                 for (D_8006ADF8 = 0; (u32)D_8006ADF8 < sizeof(Fs_CdSector.chunk.data.bytes); D_8006ADF8++) {
                     buf[D_8006ADF8] = Fs_CdSector.chunk.data.bytes[D_8006ADF8];
@@ -1418,7 +1418,7 @@ restart:
             D5B498_8006D858 = 1;
             D_8006C4D4      = Fs_CdSector.bytes;
             D_8006C4D4     += FS_SECTOR_BYTE_SIZE;
-            CdCmd_RequestVlcRebuild();
+            mdecRequestImageVlcRebuild();
 
             _fsStartRead(initBsSector, initBsSector + initBsCount, NULL, 5);
             while (Fs_CdOpStatus != 0xFF) {

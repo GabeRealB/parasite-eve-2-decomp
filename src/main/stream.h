@@ -7,6 +7,15 @@ extern u16 D_8006AC58;
 
 void Mdec_BeginDecode(void* arg0);
 
+/// Requests a rebuild of the VLC lookup table in the shared image workspace.
+///
+/// Call when a background load reuses the image storage. Sets a pending flag
+/// without building the table or accessing the buffer; repeated requests coalesce.
+/// `CdCmd_StepVlcRebuild` rebuilds it before the next standalone image decode,
+/// once no scene payload is available. The image workspace must then be writable.
+/// A scene decode using that workspace can also satisfy the request.
+void mdecRequestImageVlcRebuild(void);
+
 /// Initializes a stream slot and its display buffers before playback.
 u32 Stream_InitializePlayback(u32 slotIndex);
 

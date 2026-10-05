@@ -13,7 +13,6 @@
 #include "gameflow.h"
 #include "mc.h"
 #include "session.h"
-#include "stage.h"
 #include "main/task.h"
 #include "task.h"
 #include "main/task_types.h"
@@ -203,7 +202,7 @@ static TaskDesc D_8005EDA0[] = {
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
     { { { TASK_BODY_NONE, 0x30 } }, Gp_ViewGateTask },
     { { { TASK_BODY_NONE, 0x2F } }, spriteAllocateViewCachedPacketsTask },
-    { { { TASK_BODY_NONE, 0xC0 } }, Stage_TaskExit },
+    { { { TASK_BODY_NONE, 0xC0 } }, taskExitCallback },
     { { { TASK_BODY_NONE, 0xC0 } }, func_807011D8 },
     { { { TASK_BODY_NONE, 0xE0 } }, modelObjectDrawTemporaryListsTask },
     { { { TASK_BODY_NONE, 0xD0 } }, spriteViewTask },

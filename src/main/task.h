@@ -77,6 +77,15 @@ void taskNoopCallback(Task* unusedTask);
 /// interface without changing task state or releasing resources.
 void taskNoopBank0Slot12(Task* unusedTask);
 
+/// Frame callback that dispatches the task's current exit handler.
+///
+/// Resident bank 0, slot 0x18 uses this callback. Requires a live non-NULL
+/// `task` with a non-NULL exit handler whose code remains loaded; the handler
+/// must not be this callback. Follows `taskCallExit`'s lifetime contract:
+/// cleanup is entirely the handler's responsibility, and it may release the
+/// task before returning.
+void taskExitCallback(Task* task);
+
 /// Counts down a task and, on reaching zero, releases its body and marks it for collection.
 ///
 /// Every dispatch decrements the signed `killCountdown`. The releasing dispatch

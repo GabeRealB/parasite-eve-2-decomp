@@ -57,8 +57,6 @@ u16 CdCmd_ActivatePhase2(void);
 
 u16 CdCmd_EnqueueFollowUp(void);
 
-void CdCmd_RequestVlcRebuild(void);
-
 /// Polls a seek; callers supply a second argument that the routine ignores.
 s32 CdCmd_SeekL(u8* loc, s32 unused);
 

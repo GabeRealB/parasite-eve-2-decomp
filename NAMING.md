@@ -313,7 +313,7 @@ in a row identify different responsibilities in the same source group.
 | `midi`, `sndEvt` | Music sequencing and sound events | `sndevt.c` | `include/main/sound.h`, `include/main/sound_types.h`, `src/main/sound.h` |
 | `sndLoad`, `sndScript`, `sndVoice`, `sndBank`, `sndBankSlot` | Sound loading, scripts, voices and banks | `sndscript.c`, `sndbank.c` | `include/main/sound.h`, `src/main/sound.h`, `src/main/sound_types.h` |
 | `sndHeap`, `linInterp`, `audioTick`, `spu`, `asyncCb` | Sound heap, ramps, audio ticks, SPU control and callbacks | `sndbank.c`, `spu.c` | `include/main/sound.h`, `src/main/sound.h` |
-| `stream`, `mdec` | Stream slots and movie decoding | `stream.c` | `include/main/stream.h`, `include/main/stream_types.h`, `src/main/stream.h` |
+| `stream`, `mdec` | Stream slots and MDEC movie/image decoding | `stream.c`, `stage.c` (image decoding) | `include/main/stream.h`, `include/main/stream_types.h`, `src/main/stream.h` |
 | `tmd` | TMD model streams and primitive dispatch | `tmd.c`, `hasm/` | `include/main/tmd.h`, `include/main/tmd_types.h`, `src/main/tmd.h` |
 | `gameFlag` | Packed game flags | `gameflag.c` | `include/main/gameflag.h`, `include/main/gameflag_types.h` |
 | `game`, `player` | Resident session and saved player state | `task.c`, `gameflow.c`, `wipsyscfg.c` | `include/main/session.h`, `include/main/session_types.h`, `include/main/wipsys.h`, `include/main/wipsys_types.h` |
