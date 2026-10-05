@@ -36,10 +36,8 @@ void grenadeShellFly(Task* arg0)
     _GrenadeShellFlightScratch*      scratch;
     WeaponGrenadeWork*               work;
     GfxCoord*                        coord;
-    WorldCollisionContact*           rec;
     WorldCollisionSurfaceProperties* surface;
     s32                              idx;
-    s32                              count;
     s32                              clip;
     s32                              step;
     s32                              sfxarg;
@@ -85,22 +83,18 @@ void grenadeShellFly(Task* arg0)
         return;
     }
 
-    /* `rec` is picked after each count, not before: assigning it first would
-       make it cross the call and cost a call-saved register. */
-    count = worldCollisionCountContactsByKind(work->capsuleContacts, WORLD_COLLISION_CONTACT_GRID);
-    rec   = work->capsuleContacts;
-    if (count == 0) {
+    /* Each contact list classifies its own contact: the two call pairs are
+       written out, and cross-jumping merges them into the one the image has.
+       The list that is tried second sits after the surface tests and joins
+       them at `classified`, which is why the class is read back from `idx`'s
+       stack slot there. Both pairs address the delta off `head`, not
+       `scratch`. */
+    if (worldCollisionCountContactsByKind(work->capsuleContacts, WORLD_COLLISION_CONTACT_GRID) == 0) {
         goto trySphereContacts;
     }
-check:
-    /* `&(head - 1)->delta` is `&scratch->delta`; spelling it off `head` is what
-       keeps the two scratch pointers apart, and the reference count is what wins
-       `head` the lower of the two call-saved registers. */
-    SOFT_USE_REG2(head, head);
-    func_800E0FEC(rec, &(head - 1)->delta, 1, &idx);
+    func_800E0FEC(work->capsuleContacts, &(head - 1)->delta, 1, &idx);
     idx = worldCollisionSurfaceClassFromMask((const u8*)&idx);
-    // Preserve the index reload after the contact paths converge.
-    SOFT_COMPILER_BARRIER();
+classified:
     surface = Gp_RoomParamTables[gGameSession->location.loc.stage - 1][gGameSession->location.loc.area - 1][idx];
     if (surface->probePassThrough == WORLD_COLLISION_SURFACE_BLOCK_PROBES) {
         if (surface->weaponImpactEnabled != WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS) {
@@ -114,10 +108,10 @@ check:
     }
     goto move;
 trySphereContacts:
-    count = worldCollisionCountContactsByKind(work->sphereContacts, WORLD_COLLISION_CONTACT_GRID);
-    rec   = work->sphereContacts;
-    if (count != 0) {
-        goto check;
+    if (worldCollisionCountContactsByKind(work->sphereContacts, WORLD_COLLISION_CONTACT_GRID) != 0) {
+        func_800E0FEC(work->sphereContacts, &(head - 1)->delta, 1, &idx);
+        idx = worldCollisionSurfaceClassFromMask((const u8*)&idx);
+        goto classified;
     }
 move:
     scratch->delta.vector.vx = work->dir.vx / work->flightTimer.halves.integer;
