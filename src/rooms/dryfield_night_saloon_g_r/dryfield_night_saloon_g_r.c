@@ -123,7 +123,7 @@ extern TaskDesc D_dryfield_night_saloon_g_r_80185068;
 /// The room's effect positions in the model's local space. The frame hook
 /// draws a quad at each of 0-10 and 20-27; 12 and 13 are the two ends
 /// `func_dryfield_night_saloon_g_r_8017F0A4` is handed; 14-19 are the two
-/// light shafts of `glowDrawTwinShafts`.
+/// light shafts of `_glowDrawTwinShafts`.
 
 /// One view bitmask per effect, tested against `1 << view`. Entries 0-10 gate
 /// positions 0-10, entries 11 and 12 the two helper effects, and entries 13-20
@@ -2187,7 +2187,7 @@ void func_dryfield_night_saloon_g_r_8017E6C8(Task* arg0)
         }
     }
     if (mask & D_dryfield_night_saloon_g_r_80185154[12]) {
-        glowDrawTwinShafts(coord);
+        _glowDrawTwinShafts(coord);
     }
     if (mask & D_dryfield_night_saloon_g_r_80185154[11]) {
         func_dryfield_night_saloon_g_r_8017F0A4(coord, &gSaloonLightPoints[13],

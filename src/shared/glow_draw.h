@@ -140,7 +140,8 @@ static void _glowDrawTaperedBeam(const GfxCoord* coord, const SVECTOR* startPoin
 void glowDrawWedge(const GfxCoord* coord, s32 radiusScale, s32 angle, const u8 rgb[3]);
 void glowDrawHalo(GfxCoord* coord, s32 inner, s32 width, u8* rgb);
 void glowDrawRingBeam(Task* task, SVECTOR* points, s32 otz);
-void glowDrawRayStar(GfxCoord* coord, SVECTOR* point, s32 rate, s32 arg3);
+
+static void _glowDrawRayStar(GfxCoord* coord, const SVECTOR* localPoint, s16 pulseRate, s16 radiusScale);
 
 /* glowDrawRingBeam's tables, the package's data at its own positions */
 extern s8 gGlowRingBeamQuads[16][4];
@@ -213,6 +214,6 @@ void glowDrawPulsingStar(const SVECTOR* worldPoint, s16 pulseRate, s32 radiusSca
 
 static void _glowDrawGreyCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 startAngle);
 
-void glowDrawTwinShafts(GfxCoord* coord);
+static void _glowDrawTwinShafts(const GfxCoord* coord);
 
 #endif /* SRC_SHARED_GLOW_DRAW_H */

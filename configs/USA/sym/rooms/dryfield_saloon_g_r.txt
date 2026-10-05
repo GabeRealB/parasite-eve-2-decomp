@@ -65,4 +65,4 @@ roomEventTask = 0x8017D74C; // type:func
 _glowDrawFlareLocal = 0x8017DBB4; // type:func
 _glowDrawTaperedBeam = 0x8017E430; // type:func
 roomVariantSaloonMsg = 0x8017D8BC; // type:func
-glowDrawTwinShafts = 0x8017DEC4; // type:func
+_glowDrawTwinShafts = 0x8017DEC4; // type:func

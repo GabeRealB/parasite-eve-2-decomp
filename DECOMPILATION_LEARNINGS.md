@@ -147905,41 +147905,41 @@ slot for `page`); the inline called from each arm (duplicates the body);
 `vtx` to `$a0`) or in one arm (no preference for `page`, but the swap shows
 and `seed` takes `$a0`); 30,770 permuter iterations from the typed base.
 
-### A copy whose source keeps the next shift: cse needs the source named later, local-alloc needs it set (glowDrawRayStar, 2026-10-05)
+### A copy whose source keeps the next shift: cse needs the source named later, local-alloc needs it set (_glowDrawRayStar, 2026-10-05)
 
 Target: `addiu v1,v1,120` / `move s6,v1` / `sll v1,v1,16` / `sra s7,v1,17` -
-the sum is copied into the call-saved `color` and the halving shifts stay on
-the temporary. `color = sum; half = (s16)color >> 1;` and every spelling with
+the sum is copied into the call-saved `intensity` and the halving shifts stay on
+the temporary. `intensity = sum; halfIntensity = (s16)intensity >> 1;` and every spelling with
 a single-set temporary gave `addiu s6,v1,120` / `sll v0,s6,16`. Two passes each
 move the shift onto the copy, and the old source defeated both by reusing the
 integer for the scratch-head address at the end of the function:
 
 ```c
-work   = pulse / 34 + 0x78;
-color  = work;
-work <<= 16;                      /* (b) sets work */
-half   = work >> 17;
-...loops using color...
-work = sizeof(RoomGlowRadiiScratch);                    /* (a) names work after color's last use */
-SCRATCH_POP_BYTES_AT(SCRATCH_STACK_CURSOR_SLOT, work);
+intensityWork   = pulseSine / GLOW_PULSE_DIVISOR + GLOW_PULSE_BASE_INTENSITY;
+intensity  = intensityWork;
+intensityWork <<= 16;                      /* (b) sets intensityWork */
+halfIntensity   = intensityWork >> 17;
+...loops using intensity...
+intensityWork = sizeof(RoomGlowRadiiScratch);                    /* (a) names intensityWork after intensity's last use */
+SCRATCH_POP_BYTES_AT(SCRATCH_STACK_CURSOR_SLOT, intensityWork);
 ```
 
-(a) `cse.c:make_regs_eqv`: at `color = work` the new register replaces the old
+(a) `cse.c:make_regs_eqv`: at `intensity = intensityWork` the new register replaces the old
 one as the class's canonical register when it lives past the block and its last
 reference (`regno_last_uid`, stream order, taken by `reg_scan` before cse) is
-later than the old one's. `color` is used in the loops, so it wins and
-`work <<= 16` becomes `sll work,color,16` unless `work` is *mentioned* later
-than `color`'s last use. Any mention counts, a set included, and it need not
-survive: `work = 24` is constant-propagated into the pop and deleted by flow.
+later than the old one's. `intensity` is used in the loops, so it wins and
+`intensityWork <<= 16` becomes `sll intensityWork,intensity,16` unless `intensityWork` is *mentioned* later
+than `intensity`'s last use. Any mention counts, a set included, and it need not
+survive: `intensityWork = 24` is constant-propagated into the pop and deleted by flow.
 The address the old source parked there was only such a mention.
 
 (b) `local-alloc.c:optimize_reg_copy_1`: after a copy `dest = src`, if `src`
 dies later in the block with neither register set in between, the uses of
 `src` are rewritten to `dest` so that `src` dies at the copy. Writing the shift
-first (`high = level << 16; color = level; half = high >> 17;`) gets past cse,
+first (`high = level << 16; intensity = level; halfIntensity = high >> 17;`) gets past cse,
 and sched1 even moves the copy above the shift (the single-set shift result is
 a `birthing_insn_p` launch that stays glued to its consumer), but then this
-rewrite turns the shift into `sll v0,s6,16`. `work <<= 16` stops the scan at
+rewrite turns the shift into `sll v0,s6,16`. `intensityWork <<= 16` stops the scan at
 `reg_set_p (src, p)`.
 
 Reading: a `move sN,vK` followed by more arithmetic on `vK` means the source

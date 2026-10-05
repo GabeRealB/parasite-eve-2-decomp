@@ -151,4 +151,4 @@ roomCutsceneSoundTask = 0x8017FCBC; // type:func
 _glowDrawStarLocal = 0x80180B4C; // type:func
 roomVariantGasStationMsg = 0x8017FA20; // type:func
 gasStationCueSoundMsg = 0x8017FB94; // type:func
-glowDrawRayStar = 0x80181058; // type:func
+_glowDrawRayStar = 0x80181058; // type:func

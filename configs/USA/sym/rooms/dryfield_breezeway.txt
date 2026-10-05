@@ -85,4 +85,4 @@ actionPromptReset = 0x8017FF1C; // type:func
 roomEventGate = 0x8017D638; // type:func
 roomEventTask = 0x8017D79C; // type:func
 actionPromptEventEnd = 0x8017FE90; // type:func
-glowDrawRayStar = 0x80180858; // type:func
+_glowDrawRayStar = 0x80180858; // type:func

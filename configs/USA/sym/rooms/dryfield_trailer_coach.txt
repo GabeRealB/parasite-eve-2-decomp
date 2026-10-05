@@ -318,4 +318,4 @@ roomCutsceneTask = 0x80181D88; // type:func
 roomCutsceneSoundTask = 0x801824E8; // type:func
 _glowDrawStarLocal = 0x801829A8; // type:func
 trailerCoachSetDepthShift = 0x8018291C; // type:func
-glowDrawRayStar = 0x80182EB4; // type:func
+_glowDrawRayStar = 0x80182EB4; // type:func

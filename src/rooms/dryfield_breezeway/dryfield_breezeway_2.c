@@ -1354,7 +1354,7 @@ void func_dryfield_breezeway_8017FF7C(Task* task)
     if (mask & 0x18) {
         func_dryfield_breezeway_8018034C(coord, &D_dryfield_breezeway_80183164, 0x600, 0x80);
     } else if (mask & 0x20) {
-        glowDrawRayStar(coord, &D_dryfield_breezeway_80183164, 0x600, 0x10);
+        _glowDrawRayStar(coord, &D_dryfield_breezeway_80183164, 0x600, 0x10);
     }
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         return;
