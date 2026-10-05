@@ -1221,7 +1221,7 @@ void func_shelter_b6_nursery_80181314(Task* task)
             pos.vx += base.vx;
             pos.vy += base.vy;
             pos.vz += base.vz;
-            if (func_800DE7CC(&pos, &base, &pos, &base) == 1) {
+            if (worldCollisionProbeGridSegment(&pos, &base, &pos, &base) == 1) {
                 coord->coord.t[0] -= step.vx;
                 coord->coord.t[1] -= step.vy;
                 coord->coord.t[2] -= step.vz;

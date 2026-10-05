@@ -2057,7 +2057,7 @@ void Gp_EffSprTask30(Task* arg0)
             dir.vx += wpos.vx;
             dir.vy += wpos.vy;
             dir.vz += wpos.vz;
-            ret     = func_800DE7CC(&dir, &wpos, &dir, &wpos);
+            ret     = worldCollisionProbeGridSegment(&dir, &wpos, &dir, &wpos);
             if (ret == 1) {
                 coord->coord.t[0] -= vec.vx;
                 coord->coord.t[1] -= vec.vy;

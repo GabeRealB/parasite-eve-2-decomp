@@ -24,9 +24,37 @@ extern WorldCollisionGrid* Gp_GridParams;
 
 extern WorldCollisionOccluder* D_80115550;
 
-s32 func_800DE7CC(SVECTOR* arg0, SVECTOR* arg1, SVECTOR* arg2, SVECTOR* arg3);
+/// Probes from `start` toward `target` against blocking faces of the active room grid.
+///
+/// Inputs and optional `hitPoint` use view-space game coordinates. The optional
+/// `surfaceNormal` receives the grid's unrotated room-space normal, 4096 per unit.
+/// Returns 1 on a hit, else 0, including when no grid is active. Successive hits
+/// clip the target end while retaining the original direction and fixed start.
+/// Outputs may alias inputs; only XYZ are written, pad halfwords are untouched,
+/// and a no-hit result leaves both outputs unchanged.
+///
+/// A live grid must fit the 256-face candidate mask and have valid cell lists,
+/// mesh indices, unit normals and a composed view transform. Supply a nonzero
+/// segment whose delta fits signed halfwords and squared length in 1..0x7FFFFFFF;
+/// mesh edges must meet the same SDK normalization bounds. Query storage must
+/// stay clear of the initialized scratch stack's 176-byte peak reservation.
+/// Clears the shared candidate mask, changes GTE state and retains no pointers.
+s32 worldCollisionProbeGridSegment(const SVECTOR* target, const SVECTOR* start, SVECTOR* hitPoint, SVECTOR* surfaceNormal);
 
-s32 func_800DFCCC(WorldCollisionOccluder* occluder, SVECTOR* arg1, SVECTOR* arg2, VECTOR* arg3);
+/// Returns 1 when a segment crosses an occluder quad, else 0.
+///
+/// `start` and `end` are view-space positions in game units; `direction` is
+/// end minus start normalized with 4096 per unit. The current composed view
+/// matrix places the room-space quad. Both crossing directions are accepted;
+/// endpoint intersections and parallel segments are rejected, while intersections
+/// on quad edges are accepted. The occluder's enable flag and radius are not tested.
+/// Plane and edge offsets narrow to signed halfwords; retained signed word
+/// arithmetic and division determine the intersection. Inputs are unchanged.
+///
+/// All inputs and transforms must be live and clear of the initialized scratch
+/// stack's 128-byte reservation. Releases the block on every exit, changes GTE
+/// state and retains no pointers.
+s32 worldCollisionTestOccluderSegment(const WorldCollisionOccluder* occluder, const SVECTOR* start, const SVECTOR* end, const VECTOR* direction);
 
 extern WorldCollisionTrigger* Gp_PendingObj4C;
 

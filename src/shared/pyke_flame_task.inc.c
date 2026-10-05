@@ -16,7 +16,7 @@
 /// - State 1 flies the flame, redraws it, and on a random third of the frames
 ///   traces the ground under it for a splash. A category-3 contact
 ///   (`Gp_CountRec18Hi`, high halfword 0x30000) or living past 0x14 frames
-///   releases it; hitting geometry (`func_800DE7CC`) switches to state 2
+///   releases it; hitting geometry (`worldCollisionProbeGridSegment`) switches to state 2
 ///   with a fresh velocity.
 /// - State 2 coasts on that velocity with a fast-widening flame until it is
 ///   0x15 frames old.
@@ -118,7 +118,7 @@ static inline void pykeFlameTask(Task* task)
                 effectKillTask(work, task);
                 return;
             }
-            if (func_800DE7CC(&after, &before, NULL, NULL) == 1) {
+            if (worldCollisionProbeGridSegment(&after, &before, NULL, NULL) == 1) {
                 worldCollisionUnlinkBody(&flame->body);
                 task->state     = 2;
                 work->move.vx   = (u32)rcos(work->angle) >> 8;

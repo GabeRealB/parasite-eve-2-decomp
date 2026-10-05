@@ -471,7 +471,7 @@ forget_difficult_entry() {
   # VACUUM_DIFFICULT_FILE. Otherwise a match removes the name from the override
   # file and leaves it in tools/difficult_functions, where it keeps advertising
   # a give-up for a function that is now matched - func_800E06AC and
-  # func_800DE150 both landed from a near-miss pass and stayed listed at 99.167%
+  # _worldCollisionMarkCapsuleGridCandidates both landed from a near-miss pass and stayed listed at 99.167%
   # and 99.565%.
   if [[ "$DIFFICULT_FUNCTIONS" != "tools/difficult_functions" ]] \
      && [[ -f tools/difficult_functions ]]; then

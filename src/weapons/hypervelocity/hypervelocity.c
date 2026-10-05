@@ -350,7 +350,7 @@ void func_hypervelocity_8011D1E8(Task* task)
 ///   claims room-light slot 0.
 /// - State 1 flies the round, draws the ring plus both trail halves, traces the
 ///   ground under it for a splash, and until frame 0x15 keeps spawning sparks.
-///   It then re-aims the room light and asks `func_800DE7CC` whether the step
+///   It then re-aims the room light and asks `worldCollisionProbeGridSegment` whether the step
 ///   crossed geometry: a hit unlinks the body and switches to state 2, and
 ///   living past frame 0x15 unlinks it and releases the pool block. Otherwise
 ///   the body's occupied contacts are cleared unread, so the round is not
@@ -502,7 +502,7 @@ void func_hypervelocity_8011D830(Task* task)
             slot->head.color.r    = (u16)slot->head.color.b >> 1;
             lightSlot->framesLeft = 4;
             slot->head.color.g    = slot->head.color.b >> 1;
-            if (func_800DE7CC(&after, &before, NULL, NULL) == 1) {
+            if (worldCollisionProbeGridSegment(&after, &before, NULL, NULL) == 1) {
                 worldCollisionUnlinkBody(&roundBody->body);
                 task->state = 2;
                 return;

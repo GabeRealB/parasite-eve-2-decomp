@@ -258,7 +258,7 @@ s32 func_800E0308(SVECTOR* arg0, SVECTOR* arg1)
     VectorNormal(vec, vec);
     for (; node != NULL; node = node->next) {
         if (node->flags & WORLD_COLLISION_OCCLUDER_ENABLED) {
-            ret = func_800DFCCC(node, arg0, arg1, vec);
+            ret = worldCollisionTestOccluderSegment(node, arg0, arg1, vec);
             if (ret == 1) {
                 break;
             }
@@ -371,7 +371,7 @@ void func_800E06AC(WorldCollisionBody* node, s32 mask, s32 match)
         if ((node->flags & msk) == mch) {
             for (; other != NULL; other = other->next) {
                 if (other->flags & WORLD_COLLISION_TRIGGER_ENABLED) {
-                    func_800DF6AC(node, other, &actor->previousPosition);
+                    worldCollisionTestViewBoundarySphere(node, other, &actor->previousPosition);
                 }
             }
         }

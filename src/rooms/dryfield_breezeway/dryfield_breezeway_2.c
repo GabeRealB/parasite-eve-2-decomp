@@ -1508,7 +1508,7 @@ static void func_dryfield_breezeway_8018034C(GfxCoord* coord, SVECTOR* data, s32
 /// rotation, rolls a frame period, start frame, angle and spin from the LCG,
 /// picks a random direction in `move` when none was supplied, and
 /// normalises it. Afterwards it steps along `move` at speed `scale`
-/// and tests the step with `func_800DE7CC`; a hit undoes the step, blends the
+/// and tests the step with `worldCollisionProbeGridSegment`; a hit undoes the step, blends the
 /// direction with the returned vector, halves speed and spin, and spawns
 /// effect 0x60054 while the particle is young, settling into state 2 once hits
 /// come close together at low speed. A miss adds `0x5000 / scale` to the
@@ -1594,7 +1594,7 @@ void func_dryfield_breezeway_80181264(Task* task)
                 dir.vx += pos.vx;
                 dir.vy += pos.vy;
                 dir.vz += pos.vz;
-                if (func_800DE7CC(&dir, &pos, &dir, &pos) == 1) {
+                if (worldCollisionProbeGridSegment(&dir, &pos, &dir, &pos) == 1) {
                     coord->coord.t[0] -= delta.vx;
                     coord->coord.t[1] -= delta.vy;
                     coord->coord.t[2] -= delta.vz;

@@ -3375,7 +3375,7 @@ void func_dryfield_night_motel_balcony_8017F6C8(s32 arg0, s16 arg1, s16 arg2, s1
 /// 0x20..0x11F in y; otherwise about +-0x80 on every axis) and turns it into
 /// `parent`'s frame. `spawnArg1` is then replaced by two bits of its upper half.
 /// Later frames step `pos.vz`, advance `index` once per period and move the
-/// coordinate by the drift scaled to `scale`. When `func_800DE7CC` reports a hit
+/// coordinate by the drift scaled to `scale`. When `worldCollisionProbeGridSegment` reports a hit
 /// along the view-space step, the move is undone, the drift is bent halfway
 /// towards the vector it returns, speed and step are halved and the coordinate moves
 /// again; a hit within eight ticks of the previous one at a speed below 0x20
@@ -3475,7 +3475,7 @@ void func_dryfield_night_motel_balcony_8017F84C(Task* task)
                 dir.vx += pos.vx;
                 dir.vy += pos.vy;
                 dir.vz += pos.vz;
-                if (func_800DE7CC(&dir, &pos, &dir, &pos) == 1) {
+                if (worldCollisionProbeGridSegment(&dir, &pos, &dir, &pos) == 1) {
                     coord->coord.t[0] -= delta.vx;
                     coord->coord.t[1] -= delta.vy;
                     coord->coord.t[2] -= delta.vz;

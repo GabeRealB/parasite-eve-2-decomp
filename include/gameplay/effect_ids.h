@@ -166,7 +166,7 @@ enum {
     /// emitter in views 2/3.
     EFFECT_DRYFIELD_BREEZEWAY_BOUNCING_PARTICLE = EFFECT_ID(EFFECT_TASK_BANK, 0x03C),
     /// Dryfield night motel balcony debris chunk: an animated piece thrown with drift
-    /// that bounces off collision (func_800DE7CC) losing speed; sprayed by the
+    /// that bounces off collision (worldCollisionProbeGridSegment) losing speed; sprayed by the
     /// balcony's break bursts and ambient task.
     EFFECT_DRYFIELD_NIGHT_MOTEL_BALC_DEBRIS = EFFECT_ID(EFFECT_TASK_BANK, 0x03D),
     /// M4A1 bayonet blade trail: records tip and hilt frames in an 8-slot ring each

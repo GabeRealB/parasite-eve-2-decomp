@@ -1592,7 +1592,7 @@ void Gp_EffModelTask(Task* arg0)
     dir.vx += pos.vx;
     dir.vy += pos.vy;
     dir.vz += pos.vz;
-    if (func_800DE7CC(&dir, &pos, &dir, &pos) == 1) {
+    if (worldCollisionProbeGridSegment(&dir, &pos, &dir, &pos) == 1) {
         coord->coord.t[0] -= delta.vx;
         coord->coord.t[1] -= delta.vy;
         coord->coord.t[2] -= delta.vz;

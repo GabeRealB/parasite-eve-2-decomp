@@ -119,7 +119,7 @@ void Gp_EffAttachTask37(Task* arg0)
             dir.vx += pos.vx;
             dir.vy += pos.vy;
             dir.vz += pos.vz;
-            if (func_800DE7CC(&dir, &pos, &dir, &pos) == state) {
+            if (worldCollisionProbeGridSegment(&dir, &pos, &dir, &pos) == state) {
                 coord->coord.t[0] -= delta.vx;
                 coord->coord.t[1] -= delta.vy;
                 coord->coord.t[2] -= delta.vz;

@@ -1499,7 +1499,7 @@ s32 Gp_TraceGroundCoord(GfxCoord* arg0, GfxCoord* arg1)
     scratch->endpoint.vy += scratch->origin.vy;
     scratch->endpoint.vz += scratch->origin.vz;
     // The collision query replaces the endpoint with its accepted intersection.
-    ret = func_800DE7CC(endpoint, &scratch->origin, endpoint, NULL);
+    ret = worldCollisionProbeGridSegment(endpoint, &scratch->origin, endpoint, NULL);
     if (ret == 1) {
         world            = &gGfxViewCoord.workm;
         arg1->workm.t[0] = scratch->endpoint.vx;
@@ -1542,7 +1542,7 @@ s32 func_800EA1A8(VECTOR3* arg0, VECTOR3* arg1)
     scratch->endpoint.vy += scratch->origin.vy;
     scratch->endpoint.vz += scratch->origin.vz;
     // The collision query replaces the endpoint with its accepted intersection.
-    ret = func_800DE7CC(endpoint, &scratch->origin, endpoint, NULL);
+    ret = worldCollisionProbeGridSegment(endpoint, &scratch->origin, endpoint, NULL);
     if (ret == 1) {
         arg1->vx = scratch->endpoint.vx;
         arg1->vy = scratch->endpoint.vy;

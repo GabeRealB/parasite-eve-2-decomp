@@ -7143,7 +7143,7 @@ p = Gp_GridParams;
 Also pass `scratch->gridEndpoints` so the follow-up
 call is `addiu a0, s1, -0x20` from the original scratch head. Write the
 independent `scratch->gridEndpoints[0].vy = 0` *after* the `scratch->gridEndpoints[0].vx` store so `-fschedule-insns`
-lifts `sw zero` between `addu` and `subu`. `func_800DEAFC` is the example.
+lifts `sw zero` between `addu` and `subu`. `_worldCollisionMarkViewSegmentCandidates` is the example.
 
 ## Keep the raw table pointer so it stays in `$a1` until after the NULL check
 
@@ -32374,7 +32374,7 @@ After `gte_ldv0` / `gte_rtv0()` / `gte_stsv` on
 same `endpoint` pointer emits `lhu -8(scratchEnd)` / `lhu 2(a0)` and delays
 `move a1, origin` until the last component. Adding
 through the 0x10-byte scratch block keeps `8(s1)` / `0xa(s1)` / `0xc(s1)`
-and lets GCC schedule the `func_800DE7CC` args and preload `origin.vy` /
+and lets GCC schedule the `worldCollisionProbeGridSegment` args and preload `origin.vy` /
 `origin.vz` during the `vx` add:
 
 ```c
@@ -32385,7 +32385,7 @@ gte_stsv(endpoint);
 scratch->endpoint.vx += scratchEnd[-1].origin.vx;
 scratch->endpoint.vy += scratch->origin.vy;
 scratch->endpoint.vz += scratch->origin.vz;
-ret = func_800DE7CC(endpoint, &scratch->origin, endpoint, NULL);
+ret = worldCollisionProbeGridSegment(endpoint, &scratch->origin, endpoint, NULL);
 ```
 
 `origin.vx` must be reloaded via `scratchEnd[-1]` (one
@@ -34164,7 +34164,7 @@ x += prod >> 12;
 scratch->localEndpoints[0].vx = x;
 ```
 
-`func_800DDC2C` is the example.
+`_worldCollisionMarkMotionSphereGridCandidates` is the example.
 
 ## Pin a loop `%hi` with volatile `lui` so it sits between `i = 0` and the other inits
 
@@ -34197,7 +34197,7 @@ asm("lw %0, %%lo(Gp_GridParams)(%2)\n\tlw %1, 68(%3)"
 
 The paired `lw 68(scratch)` is `scratch->bodyToRoom.t[0]` (offset 0x44). Volatile
 `lui` plus `memory` keeps it from sinking below `out` / `off`.
-`func_800DDC2C` is the example.
+`_worldCollisionMarkMotionSphereGridCandidates` is the example.
 
 ## Hoist `&field_24` and AND `TMD_GTE_ERROR_FLAG` for TMD FLAG clip (not `>= 0`)
 
@@ -50886,23 +50886,23 @@ parameters of one call end up with different widths.
 
 ## Index the scratch arrays by the loop counter to get the sibling's pinned shape without pins
 
-`func_800DE150` is `func_800DDC2C` with the two source `SVECTOR`s read from
-`obj->field_C` instead of computed. The matched sibling reaches the target's
+`_worldCollisionMarkCapsuleGridCandidates` is `_worldCollisionMarkMotionSphereGridCandidates` with the two source `SVECTOR`s read from
+`body->context.capsule->ends` instead of computed. The matched sibling reaches the target's
 loop with eight `register … asm("")` pins, a `TOUCH_REG` and a hand-written
 `lw %lo(Gp_GridParams)` asm. None of that is needed: the loop matches unpinned
 if every scratch access is written as an *indexed* element of the block (`scratch`),
 
 ```c
-for (i = 0; i < 2; i++) {
-    scratch->localEndpoints[i].vx = (u16)src[i].vx + (u16)arg0->field_10;
-    scratch->localEndpoints[i].vy = 0;
-    scratch->localEndpoints[i].vz = (u16)src[i].vz + (u16)arg0->field_14;
-    gte_ldv0(&scratch->localEndpoints[i]);
+for (endpointIndex = 0; endpointIndex < (s32)ARRAY_SIZE(scratch->localEndpoints); endpointIndex++) {
+    scratch->localEndpoints[endpointIndex].vx = (u16)endOffsets[endpointIndex].vx + (u16)body->pos.vx;
+    scratch->localEndpoints[endpointIndex].vy = 0;
+    scratch->localEndpoints[endpointIndex].vz = (u16)endOffsets[endpointIndex].vz + (u16)body->pos.vz;
+    gte_ldv0(&scratch->localEndpoints[endpointIndex]);
     gte_rtv0();
-    gte_stlvnl(&scratch->gridEndpoints[i]);
-    scratch->gridEndpoints[i].vx = scratch->gridEndpoints[i].vx + scratch->bodyToRoom.t[0] + Gp_GridParams->xBias;
-    scratch->gridEndpoints[i].vy = 0;
-    scratch->gridEndpoints[i].vz = scratch->gridEndpoints[i].vz + scratch->bodyToRoom.t[2] + Gp_GridParams->zBias;
+    gte_stlvnl(&scratch->gridEndpoints[endpointIndex]);
+    scratch->gridEndpoints[endpointIndex].vx = scratch->gridEndpoints[endpointIndex].vx + scratch->bodyToRoom.t[0] + Gp_GridParams->xBias;
+    scratch->gridEndpoints[endpointIndex].vy = 0;
+    scratch->gridEndpoints[endpointIndex].vz = scratch->gridEndpoints[endpointIndex].vz + scratch->bodyToRoom.t[2] + Gp_GridParams->zBias;
 }
 ```
 
@@ -50910,7 +50910,7 @@ Strength reduction then produces exactly the target's register set: the
 `sh` stores get a walking copy of `scratch` with the `0x20/0x22/0x24` field
 offsets folded into the displacement (`move a3, s2` … `sh zero, 0x22(a3)`),
 the `gte_ldv0` operand gets a separate `i * 8 + 0x20` giv added to `scratch` at
-each use (`li t0, 0x20` … `addu v0, s2, t0`), and `scratch->gridEndpoints[i]` is one giv
+each use (`li t0, 0x20` … `addu v0, s2, t0`), and `scratch->gridEndpoints[endpointIndex]` is one giv
 shared by the `swc2` operand and the `lw/sw` stores. Walking pointers
 (`dst++`, `out++`) instead split *each field* into its own induction register
 (`sh zero, -0x2(s1)` / `sh v0, 0(s0)` / `sw zero, -0x4(a2)`), which was the
@@ -57110,7 +57110,7 @@ with an `s32* otz0 = &sc->otz0;` alias.
 
 ```c
 lim = 5;
-if (func_800DE7CC(&qb, &pb, &qb, NULL) == 1) {
+if (worldCollisionProbeGridSegment(&qb, &pb, &qb, NULL) == 1) {
     lim = 6;
 }
 ```
@@ -57136,7 +57136,7 @@ later in RTL, is then free to sink below it.
 emitted after the call sequence rather than before it:
 
 ```c
-if (func_800DE7CC(&qb, &pb, &qb, NULL) == 1) {
+if (worldCollisionProbeGridSegment(&qb, &pb, &qb, NULL) == 1) {
     lim = 6;
 } else {
     lim = 5;
@@ -66604,7 +66604,7 @@ used to block the hoist, but it also blocked the cross-jump.
 
 ## A two-set result local is scheduled ahead of every parameter copy in the entry block
 
-`func_800DE7CC` sat at 99.8% with one prologue difference: the target zeroes
+`worldCollisionProbeGridSegment` sat at 99.8% with one prologue difference: the target zeroes
 the result register *after* saving the last two arguments (`move s4,a2; move
 s5,a3; move s6,zero`), the seed zeroed it first. The seed copied every
 parameter into a local:
@@ -66805,7 +66805,7 @@ reused text-color local. The eligible unpinned variant was also run through the
 permuter before the final manual register fix.
 
 
-## `func_800DFCCC`: remove pins, reuse the loop counter, preserve the scratch copy
+## `worldCollisionTestOccluderSegment`: remove pins, reuse the loop counter, preserve the scratch copy
 
 The archived pinned seed scored 98.127% with `branch=3`, `delete=5`.
 The unpinned match uses the adjacent `func_800DEF80` patterns:
@@ -66850,7 +66850,7 @@ This function also needed duplicated `task->state++` tails in the source:
 Post-reload cross-jumping still produced the same two shared increment blocks.
 
 
-## func_800DE2C0: sentinel loads and scratch allocation before register tuning
+## _worldCollisionMarkGridFaceCandidates: sentinel loads and scratch allocation before register tuning
 
 The archived unpinned seed scored 88.975%. For the nested grid scan, ordinary
 `for` loops and `while (*ids != -1) { id = *ids; ...; ids++; }` preserve the
@@ -134690,7 +134690,7 @@ typedef struct { s16 endCornerIndex; s16 startCornerIndex; } WorldCollisionFaceE
 
 The corner-index table is the case: `Gp_CollideObjGrid`, `Gp_CollideObjGridDir` and
 `worldCollisionIntersectGridFace` index it through the signed type and compile `lh`, while
-`func_800DEF80`, `func_800DF6AC` and `func_800DFCCC` reach the same table
+`func_800DEF80`, `worldCollisionTestViewBoundarySphere` and `worldCollisionTestOccluderSegment` reach the same table
 through unsigned scalar casts and compile `lhu`. `DamageAttack` only shares this
 layout; it is an attack record, not the corner-index table. The unsigned
 readers cast `WorldCollisionFaceEdge` fields to `u16`.
@@ -142753,7 +142753,7 @@ load. The final code carries no trace of the test.
 as an if/else whose arms make the same call, followed by the store. Sibling
 functions with a real version of that conditional are the clue.
 
-### A late head store of the *copy* register is still `SCRATCH_STACK_RESERVE_BLOCK` when nothing orders the store (func_800DDC2C, 2026-09-26)
+### A late head store of the *copy* register is still `SCRATCH_STACK_RESERVE_BLOCK` when nothing orders the store (_worldCollisionMarkMotionSphereGridCandidates, 2026-09-26)
 
 **Symptom.** `lw s0,0(a2)`, `addiu v0,s0,-0x50`, `move s1,v0`, then the block's
 field writes through `s1`, and `sw s1,0(a2)` only just before the next call.
@@ -142767,7 +142767,7 @@ above, and sched1 then sinks the head store past the in-struct field writes
 by itself, because the scalar store to the fixed head address cannot alias
 them. So a late store holding the copy's register does not by itself rule out
 the compound push: try it before an input-only `asm`. `bodyToRoom = &scratch->bodyToRoom`
-reproduced the separate `head - 0x20` register as well, and `func_800DE150`
+reproduced the separate `head - 0x20` register as well, and `_worldCollisionMarkCapsuleGridCandidates`
 takes the same two lines in place of a saved head and a byte-offset cast.
 ### A late head store of the copy's register is still the compound push: sched1 sinks it, local-alloc re-points it (_worldCoordScoreConeLight, 2026-09-26)
 
@@ -145125,7 +145125,7 @@ field stores, and the `lightScratch` copy it leaves between the field store and 
 asm stops reload's equivalence search, as in `_worldCoordWriteDirectionalLightMatrixOutOfLine`. A head store in
 the middle of the block's initialisation is not evidence for hand-computed
 offsets.
-## `TOUCH_REG` on a walking pointer inside a loop stood for indexed source (func_800DF6AC, 2026-09-26)
+## `TOUCH_REG` on a walking pointer inside a loop stood for indexed source (worldCollisionTestViewBoundarySphere, 2026-09-26)
 
 The seed walked both loops with hand-held pointers (`vec4++`, `off += 8`,
 `pair++`) and needed `TOUCH_REG(vec4)` and `TOUCH_REG(block)` in the bodies:
@@ -145133,7 +145133,7 @@ without them loop.c strength-reduced `vec4`'s field addresses into a second
 pointer and hoisted `&block[5]`/`&block[6]`/`&block[7]`. The target's
 pointers (`a0` over the corners, `t3` over the edge table, `off` added to the
 object) are loop.c's own reductions of `for (i = 1; i < N; i++)` loops over
-`&other->vertices[i]`, `&scratch->corners[i]` and `Gp_FaceEdgePairs[i]`. Written that
+`&boundary->vertices[edgeIndex]`, `&scratch->corners[edgeIndex]` and `Gp_FaceEdgePairs[edgeIndex]`. Written that
 way, and with the scratch block as a struct, the body matched outright. The
 preceding function in the unit ran the same quad test hack-free, and its body
 was the template: check neighbours for the same algorithm before steering loops.

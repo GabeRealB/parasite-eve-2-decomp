@@ -66,7 +66,23 @@ void func_800DEC80(WorldCollisionBody* arg0, VECTOR* arg1, SVECTOR* arg2, s32 ar
 
 void func_800DEF80(WorldCollisionBody* node, WorldCollisionTrigger* other);
 
-void func_800DF6AC(WorldCollisionBody* node, WorldCollisionTrigger* other, VECTOR3* from);
+/// Latches a view boundary when a sphere overlaps its quad while moving against its normal.
+///
+/// `previousRootPosition` is the earlier root translation in the body's coordinate
+/// parent frame, in game units. Current translation minus that position is
+/// normalized to 4096 per unit and compared with the untransformed boundary normal.
+/// Composed body and boundary matrices must place both in the same query space.
+/// The sphere must reach the quad plane from its negative side, within its radius,
+/// and its centre must lie strictly inside every edge. Plane offset narrows to a signed halfword.
+/// The broad-phase radius test includes equality. Kind and enable flags are not
+/// checked here. Success sets `boundary->hit` to 1; rejection retains its value.
+///
+/// Body, boundary, previous position and transforms must remain live and clear of
+/// the initialized scratch stack's 224-byte peak reservation. Root displacement
+/// must meet the SDK normalization's halfword and squared-length bounds. The
+/// original discarded square-root call is retained. Releases all scratch storage,
+/// changes GTE state and retains no pointers.
+void worldCollisionTestViewBoundarySphere(const WorldCollisionBody* body, WorldCollisionTrigger* boundary, const VECTOR3* previousRootPosition);
 
 /// The nine list heads `Gp_ObjLists` points at. Each is a bare `WorldCollisionBody*`
 /// whose address is the first link. A node's `prev` points to the link that

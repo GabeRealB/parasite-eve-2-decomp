@@ -79,7 +79,7 @@ static void func_m4a1_javelin_8011EE78(SVECTOR* p0, SVECTOR* p1, u16 brightness)
 /// Fixed local offset the guide beam's coordinate hangs at.
 static SVECTOR D_m4a1_javelin_8011FA90 = { 0, 0x200, 0x20, 0 };
 
-/// `(0, 0x800, 0)`: the probe offset `func_800DE7CC` traces each beam segment
+/// `(0, 0x800, 0)`: the probe offset `worldCollisionProbeGridSegment` traces each beam segment
 /// against, rotated into world space by `gGfxViewCoord.workm` first.
 static SVECTOR D_m4a1_javelin_8011FA98 = { 0, 0x800, 0, 0 };
 
@@ -113,7 +113,7 @@ void        func_m4a1_javelin_8011F5D4(Task* arg0);
 ///   muzzle. Six segments are drawn with
 ///   `func_m4a1_javelin_8011DAB0`; while `gRoomEffectState->groundTraceEnabled` is set each
 ///   segment also probes `D_m4a1_javelin_8011FA98` (0x800 along +Y) with
-///   `func_800DE7CC` and skins the ground contact with
+///   `worldCollisionProbeGridSegment` and skins the ground contact with
 ///   `func_m4a1_javelin_8011E4A8` as long as the probe keeps hitting. The beam
 ///   fades one `D_m4a1_javelin_8011FAAC` colour step every 0x20 of `age`
 ///   and releases the work block when the last step runs out.
@@ -261,7 +261,7 @@ void func_m4a1_javelin_8011D1E4(Task* task)
                 qb.vy = (u16)qb.vy + (u16)pb.vy;
                 qb.vz = (u16)qb.vz + (u16)pb.vz;
                 pb.vy = (u16)pb.vy - 0x100;
-                if (func_800DE7CC(&qb, &pb, &qb, NULL) == 1) {
+                if (worldCollisionProbeGridSegment(&qb, &pb, &qb, NULL) == 1) {
                     lim = 6;
                 } else {
                     lim = 5;
@@ -281,7 +281,7 @@ void func_m4a1_javelin_8011D1E4(Task* task)
                     qa.vy = (u16)qa.vy + (u16)pa.vy;
                     qa.vz = (u16)qa.vz + (u16)pa.vz;
                     pa.vy = (u16)pa.vy - 0x100;
-                    if (func_800DE7CC(&qa, &pa, &qa, NULL) == 1) {
+                    if (worldCollisionProbeGridSegment(&qa, &pa, &qa, NULL) == 1) {
                         if (i < lim) {
                             func_m4a1_javelin_8011E4A8(&qa, &qb, D_m4a1_javelin_8011FAA0[i],
                                                        D_m4a1_javelin_8011FAAC[work->step >> 1]);
