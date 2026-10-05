@@ -4,22 +4,27 @@
 
 /* Part of the water effects library; see water_effects.h. */
 
-/// Normalizes a water particle's launch direction and scales it to its speed.
+/// Converts a water-spray particle's launch direction into its initial velocity.
 ///
-/// Borrows live effect work. `move` becomes a Q12 unit direction, then a
-/// velocity in parent-coordinate units per running update using `step`.
-/// Only the three signed halfwords change; the SDK handles a zero direction
-/// without a caller special case. No pointer is retained; GTE state changes.
-static inline void _waterDriftNormalizeVelocity(EffectWork* particleWork)
+/// Borrows a live, writable `particleWork`: `move` supplies the signed launch
+/// direction and `step` the speed in parent-coordinate units per running update
+/// (0 stationary, otherwise 1..255). In-place Q12 normalization followed by
+/// speed multiplication with a 12-bit right shift leaves signed halfword
+/// displacements in `move`; fixed-point rounding can change their magnitude.
+/// A zero direction still goes through the SDK normalizer and remains zero.
+///
+/// Only `move.vx`, `move.vy` and `move.vz` are written. The vector's `pad`,
+/// `step` and the remaining work are preserved. No pointer is retained and
+/// GTE state is overwritten.
+static inline void _waterDriftInitializeLaunchVelocity(EffectWork* particleWork)
 {
-    SVECTOR* velocity;
+    SVECTOR* launchVelocity = &particleWork->move;
 
-    velocity = &particleWork->move;
-    VectorNormalSS(velocity, velocity);
+    VectorNormalSS(launchVelocity, launchVelocity);
     gte_lddp(particleWork->step);
-    gte_ldsv(velocity);
+    gte_ldsv(launchVelocity);
     gte_gpf12();
-    gte_stsv(velocity);
+    gte_stsv(launchVelocity);
 }
 
 /// Advances and draws one eight-cell water-spray particle through unsigned-index drawers.
@@ -158,7 +163,7 @@ static inline void _waterDriftTaskU16(Task* task)
                         particleWork->move.vz = particleWork->pos.vz;
                         break;
                 }
-                _waterDriftNormalizeVelocity(particleWork);
+                _waterDriftInitializeLaunchVelocity(particleWork);
             } else {
                 // A supplied velocity bypasses scaling; step only enables movement.
                 particleWork->step = WATER_DRIFT_DEFAULT_SPEED;
