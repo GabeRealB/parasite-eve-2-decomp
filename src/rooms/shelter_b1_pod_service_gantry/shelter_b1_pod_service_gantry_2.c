@@ -362,15 +362,18 @@ void func_shelter_b1_pod_service_gantry_8017E880(Task* task)
     waterDriftTaskU16(task);
 }
 
-/// Writes the signed pixel offset to a rotated water-sprite corner.
+/// Writes the signed screen offset from a water sprite's centre to one corner.
 ///
-/// `projection` borrows a live scratch block with positive `depth` in SZ3/4
-/// units. `scratchEnd` is one past that same block. Only the corner offsets
-/// change; no pointer is retained. `radiusScale * 31 / depth` is the signed half-diagonal
-/// in pixels, truncated toward zero. Q12 products must fit s32 and round down.
-/// `angle` is a corner bearing in 4096 units per turn, with X right and Y up;
-/// it stays 32-bit so a quarter-turn addition is not narrowed again.
-static inline void _shelterB1PodServiceGantryComputeWaterCornerOffset(_ShelterB1PodServiceGantrySpinScratch* projection, const _ShelterB1PodServiceGantrySpinScratch* scratchEnd, s16 radiusScale, s32 angle)
+/// `projection` borrows a live, word-aligned scratch block with positive
+/// `depth` equal to SZ3 / 4. Only `cornerOffsetX` and `cornerOffsetY` change;
+/// the caller keeps ownership and no pointer is retained. The signed pixel
+/// half-diagonal is `radiusScale * 31 / depth`, truncated toward zero before
+/// rotation. Each Q12 product must fit s32; the arithmetic shift rounds down.
+///
+/// `cornerAngle` uses 4096 units per turn, with X right and Y up: for a
+/// positive half-diagonal, zero points up and a quarter turn points right.
+/// It stays s32 so adding a quarter turn does not narrow the bearing to s16.
+static inline void _shelterB1PodServiceGantryComputeWaterCornerOffset(_ShelterB1PodServiceGantrySpinScratch* projection, s16 radiusScale, s32 cornerAngle)
 {
     enum {
         WATER_SPIN_U16_PERSPECTIVE_SCALE  = 31,
@@ -379,11 +382,11 @@ static inline void _shelterB1PodServiceGantryComputeWaterCornerOffset(_ShelterB1
     s32 halfDiagonalPixels;
     s32 trigSample;
 
-    trigSample                = rsin(angle);
-    halfDiagonalPixels        = (radiusScale * WATER_SPIN_U16_PERSPECTIVE_SCALE) / (scratchEnd - 1)->depth;
+    trigSample                = rsin(cornerAngle);
+    halfDiagonalPixels        = (radiusScale * WATER_SPIN_U16_PERSPECTIVE_SCALE) / projection->depth;
     projection->cornerOffsetX = (halfDiagonalPixels * trigSample) >> WATER_SPIN_U16_TRIG_FRACTION_BITS;
-    trigSample                = rcos(angle);
-    halfDiagonalPixels        = (radiusScale * WATER_SPIN_U16_PERSPECTIVE_SCALE) / (scratchEnd - 1)->depth;
+    trigSample                = rcos(cornerAngle);
+    halfDiagonalPixels        = (radiusScale * WATER_SPIN_U16_PERSPECTIVE_SCALE) / projection->depth;
     projection->cornerOffsetY = (halfDiagonalPixels * trigSample) >> WATER_SPIN_U16_TRIG_FRACTION_BITS;
 }
 
@@ -460,13 +463,13 @@ static void _waterDrawSpinU16(const GfxCoord* coord, u16 textureColumn, s16 radi
         lastU       = cellU + WATER_SPIN_U16_UV_SPAN_TEXELS;
         setUV4(quad, cellU, firstV, lastU, firstV, cellU, WATER_SPIN_U16_LAST_TEXEL_ROW, lastU, WATER_SPIN_U16_LAST_TEXEL_ROW);
         // Opposite corners share an offset; the second pair is a quarter turn away.
-        _shelterB1PodServiceGantryComputeWaterCornerOffset(projection, scratchEnd, radiusScale, cornerAngle);
+        _shelterB1PodServiceGantryComputeWaterCornerOffset(projection, radiusScale, cornerAngle);
         quad->x0           = projection->screenX + (u16)projection->cornerOffsetX;
         quad->x3           = projection->screenX - (u16)projection->cornerOffsetX;
         quad->y0           = projection->screenY - (u16)projection->cornerOffsetY;
         perpendicularAngle = cornerAngle + WATER_SPIN_U16_QUARTER_TURN;
         quad->y3           = projection->screenY + (u16)projection->cornerOffsetY;
-        _shelterB1PodServiceGantryComputeWaterCornerOffset(projection, scratchEnd, radiusScale, perpendicularAngle);
+        _shelterB1PodServiceGantryComputeWaterCornerOffset(projection, radiusScale, perpendicularAngle);
         quad->x1 = projection->screenX + (u16)projection->cornerOffsetX;
         quad->x2 = projection->screenX - (u16)projection->cornerOffsetX;
         quad->y1 = projection->screenY - (u16)projection->cornerOffsetY;
