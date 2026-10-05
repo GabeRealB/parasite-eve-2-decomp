@@ -94,7 +94,7 @@ gMotelRoom6CutsceneRec = 0x801862B8; // size:0x18 defined:True
 
 func_dryfield_night_motel_room_6_8017EA74 = 0x8017EA74; // type:func
 
-func_dryfield_night_motel_room_6_801811A0 = 0x801811A0; // type:func
+dryfieldNightMotelRoom6PlayerReflectionTask = 0x801811A0; // type:func
 
 motelRoom6NightDrawGlow = 0x80182AE0; // type:func
 Telephone_DrawPlayDataRow = 0x8017D6DC; // type:func
@@ -127,3 +127,6 @@ roomCutsceneSoundTask = 0x80181A0C; // type:func
 roomVariantMotelBalconyMsg = 0x80181B7C; // type:func
 motelRoom6CutsceneMsg = 0x8018175C; // type:func
 motelRoom6ActionMsg = 0x80181A9C; // type:func
+_dryfieldNightMotelRoom6RejectKeyItemMessage = 0x80181b74; // type:func
+_dryfieldNightMotelRoom6IgnoreActionMessage = 0x80181bf8; // type:func
+_dryfieldNightMotelRoom6IdleTask = 0x80181c78; // type:func

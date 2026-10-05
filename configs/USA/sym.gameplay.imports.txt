@@ -1735,7 +1735,7 @@ func_acropolis_west_elevator_hall_8017F304 = 0x8017F304; // type:func absolute:T
 
 dryfieldMotelRoom6PlayerReflectionTask = 0x80181184; // type:func absolute:True owner=dryfield_motel_room_6
 
-func_dryfield_night_motel_room_6_801811A0 = 0x801811A0; // type:func absolute:True owner=dryfield_night_motel_room_6
+dryfieldNightMotelRoom6PlayerReflectionTask = 0x801811A0; // type:func absolute:True owner=dryfield_night_motel_room_6
 
 func_acropolis_fountain_8017DA78 = 0x8017DA78; // type:func absolute:True owner=acropolis_fountain
 

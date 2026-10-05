@@ -964,7 +964,7 @@ void func_800CFD78(Task* arg0)
             dryfieldMotelRoom6PlayerReflectionTask(arg0);
             break;
         case GAME_LOCATION_KEY(3, 30, 0, 0):
-            func_dryfield_night_motel_room_6_801811A0(arg0);
+            dryfieldNightMotelRoom6PlayerReflectionTask(arg0);
             break;
         default:
             taskKill(arg0);
