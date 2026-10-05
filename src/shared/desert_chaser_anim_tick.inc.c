@@ -19,12 +19,10 @@ void desertChaserAnimTick(Task* task)
     DesertChaserWork* secondaryWork;
     DesertChaserWork* tickWork;
     DesertChaserWork* turnWork;
-    u32               table;
     s16               state;
     s32               seekIndex;
     s32               seekSlotIndex;
     s32               animation;
-    s32               index;
     s32               resetIndex;
     s32               resetSlotIndex;
     s32               secondaryIndex;
@@ -57,13 +55,11 @@ void desertChaserAnimTick(Task* task)
         if (work->appliedAnim != work->animId) {
             seekWork  = work;
             seekIndex = 1;
-            table     = (u32)gDesertChaserClipStartFrames;
             do {
                 seekSlotIndex                   = seekIndex;
                 work->rig.slots[seekIndex].rate = seekWork->animRate;
                 animation                       = seekWork->animId;
-                index                           = seekWork->appliedAnim * DESERT_CHASER_CLIP_COUNT;
-                animationSeekSlotWithBlend(&seekWork->rig.anim, seekSlotIndex, (s16)(animation), 0, (s32) * (s8*)((animation + index) + table));
+                animationSeekSlotWithBlend(&seekWork->rig.anim, seekSlotIndex, (s16)(animation), 0, gDesertChaserClipStartFrames[seekWork->appliedAnim][animation]);
                 seekIndex += 1;
             } while (seekIndex < ARRAY_SIZE(work->rig.slots));
             seekWork->appliedAnim = seekWork->animId;
