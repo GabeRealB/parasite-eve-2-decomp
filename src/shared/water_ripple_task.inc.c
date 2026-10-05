@@ -5,23 +5,33 @@
 
 /* Part of the water effects library; see water_effects.h. */
 
-/// Initializes a ripple's half-size, brightness and random surface yaw.
+/// Seeds a new water ripple's size, brightness and local surface orientation.
 ///
-/// Borrows the live task, writable effect work and coordinate for this call.
-/// The task's spawn bits 0..11 give the half-side in game coordinate units.
-/// Replaces local rotation with a yaw in 4096 units per turn, preserving
-/// translation, and marks it dirty without changing the composed matrix.
-static inline void _waterInitializeRipple(Task* task, EffectWork* rippleWork, GfxCoord* surfaceCoord)
+/// `task` is borrowed read-only; `spawnArg1` bits 0..11 supply the initial
+/// local half-side in game coordinate units (0..4095). `rippleWork` and
+/// `surfaceCoord` must be live, writable objects. Stores that half-side in
+/// `EffectWork::angle` and RGB brightness 64 in `EffectWork::scale`, where
+/// 128 is neutral texture modulation.
+///
+/// Consumes one draw from `gRandomLcgState`, selecting a yaw in 0..4095
+/// at 4096 units per turn. Replaces the local rotation with a pure Y rotation,
+/// preserving translation, and marks the coordinate dirty. The cached
+/// composition is retained until the caller rebuilds it. Requires the
+/// initialized scratch stack to have room for the rotation helper's block;
+/// all pointers are borrowed for this call, with none retained.
+static inline void _waterInitializeRipple(const Task* task, EffectWork* rippleWork, GfxCoord* surfaceCoord)
 {
     enum {
         WATER_RIPPLE_INITIAL_BRIGHTNESS = 0x40,
         WATER_RIPPLE_SPAWN_SIZE_MASK    = 0xFFF,
     };
+    u32 surfaceYaw;
 
     rippleWork->scale = WATER_RIPPLE_INITIAL_BRIGHTNESS;
     rippleWork->angle = task->spawnArg1.halves.low & WATER_RIPPLE_SPAWN_SIZE_MASK;
     gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    gfxRotMatrixY(&surfaceCoord->coord, (gRandomLcgState >> 16) & ACTOR_TRANSFORM_ANGLE_MASK, GRAPHICS_ROTATION_REPLACE);
+    surfaceYaw        = (gRandomLcgState >> 16) & ACTOR_TRANSFORM_ANGLE_MASK;
+    gfxRotMatrixY(&surfaceCoord->coord, surfaceYaw, GRAPHICS_ROTATION_REPLACE);
     surfaceCoord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
