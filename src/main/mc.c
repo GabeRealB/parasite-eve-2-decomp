@@ -703,7 +703,7 @@ _McSaveSection Mc_BufferSlots[9] = {
 
 static UiListRowCallback Mc_SaveSlotCallbacks[] = { _mcDrawLoadFileRow };
 UiList                   Mc_SaveSlotList        = { Mc_SaveSlotCallbacks, 0x0F, 0x0F, 0, 0x2E };
-static UiListRowCallback Mc_LoadSlotCallbacks[] = { McMenu_ConfirmWithRender };
+static UiListRowCallback Mc_LoadSlotCallbacks[] = { mcMenuDrawSaveFileRow };
 UiList                   Mc_LoadSlotList        = { Mc_LoadSlotCallbacks, 0x0F, 0x0F, 0, 0x2E };
 
 static u8* Mc_ModeLabels[] = { (u8*)McText_Replay, (u8*)McText_Bounty, (u8*)McText_Scavenger, (u8*)McText_Nightmare };
@@ -713,7 +713,7 @@ UiObjectDesc Mc_TaskDescriptors[] = {
     { USER_INTERFACE_PANEL_TITLE_STYLE, { -144, -25, 0x120, 0x32 }, 0x14, 0, TASK_BODY_NONE, 0xC0, Mc_DispatchStateTable, 0 },
 };
 static UiObjectDesc Mc_SaveListDesc[] = {
-    { 0x80000 | USER_INTERFACE_PANEL_TITLE_STYLE, { -136, 10, 0x120, 0x3C }, 0x0C, 0, TASK_BODY_NONE, 0xC0, McMenu_SelectList, 0 },
+    { 0x80000 | USER_INTERFACE_PANEL_TITLE_STYLE, { -136, 10, 0x120, 0x3C }, 0x0C, 0, TASK_BODY_NONE, 0xC0, mcMenuUpdateLoadFileList, 0 },
 };
 static UiObjectDesc Mc_LoadListDescriptors[] = {
     { 0x80000 | USER_INTERFACE_PANEL_TITLE_STYLE, { -136, 10, 0x120, 0x3C }, 0x0C, 0, TASK_BODY_NONE, 0xC0, McMenu_SelectListAlt, 0 },

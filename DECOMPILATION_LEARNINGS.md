@@ -13747,8 +13747,8 @@ the mismatched load.
 
 When two success arms write the same halfword field (one from a signed byte,
 one from a constant like `-1`) and the target has a single shared `sh` after a
-join label, use an `s16` temporary with a `goto` join — not an early `return`
-and not an `s32`/`s8` temp:
+join label, keep an `s16` temporary whose arms converge at the store. A `goto`
+join can enforce this shape; an early `return` or an `s32`/`s8` temp changes it:
 
 ```c
 s16 val;
@@ -13772,9 +13772,16 @@ store:
 - Plain `val = index->currentItemIndex` with an `s8` field emits `lb`, not the target's
   `lbu` + sign-extend. The `(s8)(u8)` cast (or `*(u8*)&`, see above) forces it.
 
+`mcMenuDrawSaveFileRow` also matches with a `static inline` publication helper
+that requests sound, writes the result code, chooses the `s16` answer, then stores
+it. A constant boolean accept/cancel argument folds the helper's branch and
+preserves the shared store without a source-level `goto`. Keep the row reload
+after the sound call. Using a nullable list pointer as the discriminator leaves
+a runtime null check in the accepting arm and does not match.
+
 Temps for the call that precedes this block may also be required so `a3 = 0`
 is scheduled early and the 5th-arg `sw` fills the `jal` delay slot
-(`McMenu_ConfirmWithRender`).
+(`mcMenuDrawSaveFileRow`).
 
 ## `beq` register order for call-result vs field compare
 

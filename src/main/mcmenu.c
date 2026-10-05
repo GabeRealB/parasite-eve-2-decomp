@@ -90,51 +90,75 @@ static void _uiUpdateListWithCenteredCursor(UiList* list, UiPanel* panel)
     }
 }
 
-void McMenu_SelectList(Task* task)
+/// Updates load-file rows and draws the shared cursor at the active panel's center Y.
+static inline void _mcMenuUpdateLoadFileRows(UiList* fileList, UiPanel* panel)
 {
-    UiPanel* obj;
-    UiList*  menu;
-
-    obj  = task->spawnArg2.pointer;
-    menu = &Mc_SaveSlotList;
-    uiDrawPanelLabel(obj, McText_Select);
-    if (task->state == 0) {
-        uiInitList(menu, obj);
-        menu->flags                               = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
-        menu->selectedItemIndex                   = 0;
-        menu->firstVisibleItemIndex.unsignedValue = 0;
-        uiSetListSystemCursorSound(menu, 1);
-        task->state += 1;
-    } else {
-        uiUpdateList(menu, obj);
-        if (obj->control.word == USER_INTERFACE_PANEL_ACTIVE) {
-            uiEaseAndDrawCursor(obj, obj->contentLeft.signedValue + 2, 0);
-        }
+    uiUpdateList(fileList, panel);
+    if (panel->control.word == USER_INTERFACE_PANEL_ACTIVE) {
+        uiEaseAndDrawCursor(panel, panel->contentLeft.signedValue + 2, 0);
     }
 }
 
-void McMenu_ConfirmWithRender(UiList* list, UiObject* object)
+void mcMenuUpdateLoadFileList(Task* owningTask)
 {
-    s16     var_v0;
-    McWork* work;
-    s8      slot;
+    enum {
+        MEMORY_CARD_MENU_LOAD_LIST_INITIAL    = 0,
+        MEMORY_CARD_MENU_LOAD_LIST_READY      = 1,
+        MEMORY_CARD_MENU_LOAD_LIST_FIRST_FILE = 0
+    };
+    UiObject* listObject;
+    UiList*   fileList;
 
-    slot = list->currentItemIndex;
-    work = object->owner->spawnArg1.pointer;
-    mcDrawFilePreview(object, work, slot, 0, list->rowTextY.signedValue + 7);
+    listObject = owningTask->spawnArg2.pointer;
+    fileList   = &Mc_SaveSlotList;
+    uiDrawPanelLabel(&listObject->panel, McText_Select);
+    if (owningTask->state == MEMORY_CARD_MENU_LOAD_LIST_INITIAL) {
+        uiInitList(fileList, &listObject->panel);
+        // Start each listing at the first file, overriding the saved cursor mode.
+        fileList->flags                               = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
+        fileList->selectedItemIndex                   = MEMORY_CARD_MENU_LOAD_LIST_FIRST_FILE;
+        fileList->firstVisibleItemIndex.unsignedValue = MEMORY_CARD_MENU_LOAD_LIST_FIRST_FILE;
+        uiSetListSystemCursorSound(fileList, true);
+        owningTask->state += MEMORY_CARD_MENU_LOAD_LIST_READY - MEMORY_CARD_MENU_LOAD_LIST_INITIAL;
+    } else {
+        _mcMenuUpdateLoadFileRows(fileList, &listObject->panel);
+    }
+}
+
+/// Plays a file-selection sound and publishes its directory index or cancellation.
+///
+/// Borrows the live object and list. A true `acceptCurrentRow` reloads the row
+/// after requesting sound and narrows it through a signed byte; false publishes
+/// -1. Both outcomes use the confirm result code, even when sound cannot start.
+static inline void _mcMenuPublishFileSelection(UiObject* object, const UiList* fileList, bool acceptCurrentRow, s32 soundScriptId)
+{
+    enum { MEMORY_CARD_MENU_FILE_SELECTION_CANCELLED = -1 };
+    s16 selectionResult;
+
+    sndEvtRequestScriptStart(soundScriptId, 0, 0);
+    object->result = USER_INTERFACE_RESULT_CONFIRM;
+    if (acceptCurrentRow) {
+        selectionResult = (s8)(u8)fileList->currentItemIndex;
+    } else {
+        selectionResult = MEMORY_CARD_MENU_FILE_SELECTION_CANCELLED;
+    }
+    object->resultValue = selectionResult;
+}
+
+void mcMenuDrawSaveFileRow(UiList* list, UiObject* object)
+{
+    const McWork* work;
+    s8            directoryIndex;
+
+    directoryIndex = list->currentItemIndex;
+    work           = object->owner->spawnArg1.pointer;
+    mcDrawFilePreview(object, work, directoryIndex, 0, list->rowTextY.signedValue + 7);
     if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
+        // Saving may replace a corrupt file; acceptance does not require a valid preview.
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
-            sndEvtRequestScriptStart(SOUND_SYSTEM_CONFIRM, 0, 0);
-            object->result = USER_INTERFACE_RESULT_CONFIRM;
-            var_v0         = (s8)(u8)list->currentItemIndex;
-            goto block_5;
-        }
-        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {
-            sndEvtRequestScriptStart(SOUND_SYSTEM_CANCEL, 0, 0);
-            object->result = USER_INTERFACE_RESULT_CONFIRM;
-            var_v0         = -1;
-        block_5:
-            object->resultValue = var_v0;
+            _mcMenuPublishFileSelection(object, list, true, SOUND_SYSTEM_CONFIRM);
+        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {
+            _mcMenuPublishFileSelection(object, list, false, SOUND_SYSTEM_CANCEL);
         }
     }
 }
