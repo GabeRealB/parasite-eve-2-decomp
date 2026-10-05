@@ -12742,13 +12742,13 @@ do {
     next = sum + (u8)block->checksum;
     sum = next;
 } while (i < 9U);
-gMcSaveData.bufferChecksum = next;
-gMcSaveData.bufferChecksumComplement = ~next;
+gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.bufferChecksum = next;
+gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.bufferChecksumComplement = ~next;
 ```
 
 Also keep an intermediate `base = Mc_BufferSlots; p = base + 1;` so the address
 forms as `addiu v0, %lo(Mc_BufferSlots)` then `addiu a0, v0, 0xC` rather than a
-folded `%lo(Mc_BufferSlots+0xC)`. `Mc_WriteFirstByteChecksum` is the pure example; its verify
+folded `%lo(Mc_BufferSlots+0xC)`. `_mcWriteLiveSectionChecksumSummary` is the pure example; its verify
 sibling `_mcCheckSectionChecksumSummary` uses a plain `s32 sum` and different scheduling.
 
 ## Statement order picks which local reuses `$a1`
@@ -14149,7 +14149,7 @@ addiu  v1, v1, %lo(gMcSaveData)
 After the loop, reloading `&gMcSaveData` as `%lo(D+4)` / `addiu -4` is fine —
 it links to the same address as a splat `D_xxx+4` symbol (e.g. `D_8007216C`).
 
-`Mc_WriteSaveHdrChecksum` is the pure example (checksum writer for `McSaveState::headerChecksum` /
+`_mcWriteLiveSaveHeaderChecksum` is the pure example (checksum writer for `McSaveState::headerChecksum` /
 `headerChecksumComplement`; pair with the s16 / `sum = sum + tmp` notes used by `_mcVerifySaveHeaderChecksum`).
 
 ## Signed division needs `--expand-div` on the TU
@@ -66773,9 +66773,9 @@ in the next checksum initializer. The signed accumulator had folded this to
 `nor` already in the early RTL. The final data checksum still became `nor`
 until the following `0xFFFF` store was unsigned. A store of `0xFFFF` to an
 `s16` field becomes `-1`, preventing constant reuse. The field,
-`McSaveData::bufferChecksumComplement`, is the complement half of a checksum pair
+`McSaveState::bufferChecksumComplement`, is the complement half of a checksum pair
 whose siblings are all `u16`, and nothing reads it signed; declared `u16`, the
-plain `gMcSaveData.bufferChecksumComplement = 0xFFFF` keeps the shared `0xFFFF`.
+plain `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.bufferChecksumComplement = 0xFFFF` keeps the shared `0xFFFF`.
 When a store needs an unsigned view to match, suspect the field's declared
 signedness before reaching for a cast.
 

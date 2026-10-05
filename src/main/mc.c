@@ -388,7 +388,7 @@ static void _mcResetFileNameSuffixes(void);
 
 static void _mcCopyCardFileName(s32 restoreSavedName);
 
-static void Mc_WriteSaveHdrChecksum(void);
+static void _mcWriteLiveSaveHeaderChecksum(void);
 
 static s32 _mcVerifySaveHeaderChecksum(const McSaveData* save);
 
@@ -404,7 +404,7 @@ static s32 _mcQuerySectionWriteMask(void);
 
 static void _mcWriteLiveSaveSectionChecksums(void);
 
-static void Mc_WriteFirstByteChecksum(void);
+static void _mcWriteLiveSectionChecksumSummary(void);
 
 static s32 _mcCheckSectionChecksumSummary(void);
 
@@ -742,30 +742,40 @@ static void Mc_BuildFileName(u8* arg0, s32 arg1)
     arg0[1] = 0;
 }
 
-/// Zero the five live stage-flag records and fill each adjacent backup with 0xFF.
+/// Clear the five live stage-flag banks and mark their backups as changed.
+///
+/// Covers each complete bank, including its checksum header, visited-area
+/// bits, object states and any area records. The adjacent backups receive
+/// 0xFF so the next save comparison selects every stage bank. No checksums are
+/// recomputed; the separate packed-nibble bank is outside this reset.
 static inline void _mcResetStageFlagCopies(void)
 {
+    enum {
+        MEMORY_CARD_STAGE_FLAG_COPY_LIVE   = 0,
+        MEMORY_CARD_STAGE_FLAG_COPY_BACKUP = 1,
+    };
+
     GameFlagAcropolisBank*     acropolisBanks;
     GameFlagDryfieldBank*      dryfieldBanks;
     GameFlagDryfieldNightBank* dryfieldNightBanks;
     GameFlagMineShelterBank*   mineShelterBanks;
     GameFlagNeoArkBank*        neoArkBanks;
 
-    acropolisBanks = GameFlag_AcropolisBanks;
+    acropolisBanks = &GameFlag_AcropolisBanks[MEMORY_CARD_STAGE_FLAG_COPY_LIVE];
     memFillBytes(acropolisBanks, 0, sizeof(*acropolisBanks));
-    dryfieldBanks = GameFlag_DryfieldBanks;
+    dryfieldBanks = &GameFlag_DryfieldBanks[MEMORY_CARD_STAGE_FLAG_COPY_LIVE];
     memFillBytes(dryfieldBanks, 0, sizeof(*dryfieldBanks));
-    dryfieldNightBanks = GameFlag_DryfieldFullBanks;
+    dryfieldNightBanks = &GameFlag_DryfieldFullBanks[MEMORY_CARD_STAGE_FLAG_COPY_LIVE];
     memFillBytes(dryfieldNightBanks, 0, sizeof(*dryfieldNightBanks));
-    mineShelterBanks = GameFlag_ShelterBanks;
+    mineShelterBanks = &GameFlag_ShelterBanks[MEMORY_CARD_STAGE_FLAG_COPY_LIVE];
     memFillBytes(mineShelterBanks, 0, sizeof(*mineShelterBanks));
-    neoArkBanks = GameFlag_NeoArkBanks;
+    neoArkBanks = &GameFlag_NeoArkBanks[MEMORY_CARD_STAGE_FLAG_COPY_LIVE];
     memFillBytes(neoArkBanks, 0, sizeof(*neoArkBanks));
-    memFillBytes(acropolisBanks + 1, MEMORY_CARD_BACKUP_FILL_BYTE, sizeof(*acropolisBanks));
-    memFillBytes(dryfieldBanks + 1, MEMORY_CARD_BACKUP_FILL_BYTE, sizeof(*dryfieldBanks));
-    memFillBytes(dryfieldNightBanks + 1, MEMORY_CARD_BACKUP_FILL_BYTE, sizeof(*dryfieldNightBanks));
-    memFillBytes(mineShelterBanks + 1, MEMORY_CARD_BACKUP_FILL_BYTE, sizeof(*mineShelterBanks));
-    memFillBytes(neoArkBanks + 1, MEMORY_CARD_BACKUP_FILL_BYTE, sizeof(*neoArkBanks));
+    memFillBytes(&acropolisBanks[MEMORY_CARD_STAGE_FLAG_COPY_BACKUP], MEMORY_CARD_BACKUP_FILL_BYTE, sizeof(*acropolisBanks));
+    memFillBytes(&dryfieldBanks[MEMORY_CARD_STAGE_FLAG_COPY_BACKUP], MEMORY_CARD_BACKUP_FILL_BYTE, sizeof(*dryfieldBanks));
+    memFillBytes(&dryfieldNightBanks[MEMORY_CARD_STAGE_FLAG_COPY_BACKUP], MEMORY_CARD_BACKUP_FILL_BYTE, sizeof(*dryfieldNightBanks));
+    memFillBytes(&mineShelterBanks[MEMORY_CARD_STAGE_FLAG_COPY_BACKUP], MEMORY_CARD_BACKUP_FILL_BYTE, sizeof(*mineShelterBanks));
+    memFillBytes(&neoArkBanks[MEMORY_CARD_STAGE_FLAG_COPY_BACKUP], MEMORY_CARD_BACKUP_FILL_BYTE, sizeof(*neoArkBanks));
 }
 
 /// Restore the six live save options and immediately apply stereo and music gain.
@@ -2757,30 +2767,16 @@ static void _mcCopyCardFileName(s32 restoreSavedName)
     _mcCopyFileName(restoreSavedName);
 }
 
-static void Mc_WriteSaveHdrChecksum(void)
+/// Write the live save's preview checksum and complement.
+///
+/// Sums 56 signed bytes beginning at `location`, including the checksum pair
+/// and the following saved-state bytes. The pair starts at zero and all ones;
+/// storing a checksum and its complement preserves its byte-sum contribution
+/// of -2. Calls the preview verifier and discards its result. This unused
+/// out-of-line entry point is retained for the image layout.
+static void _mcWriteLiveSaveHeaderChecksum(void)
 {
-    s16 sum;
-    u8* ptr;
-    s32 limit;
-    s32 i;
-    s16 tmp;
-
-    sum                                                               = 0;
-    ptr                                                               = (u8*)&gMcSaveData[MEMORY_CARD_SAVE_LIVE];
-    ptr                                                              += OFFSET_OF(McSavePreview, location);
-    limit                                                             = MEMORY_CARD_SAVE_HEADER_CHECKSUM_BYTES;
-    i                                                                 = 0;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.headerChecksum           = 0;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.headerChecksumComplement = 0xFFFF;
-    do {
-        i   += 1;
-        tmp  = (s8)*ptr;
-        sum  = sum + tmp;
-        ptr += 1;
-    } while (i < limit);
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.headerChecksum           = sum;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.headerChecksumComplement = ~sum;
-    _mcVerifySaveHeaderChecksum(&gMcSaveData[MEMORY_CARD_SAVE_LIVE]);
+    _mcWriteSaveHeaderChecksum();
 }
 
 /// Check a resident save's preview checksum and its place-label range (1..16).
@@ -2878,7 +2874,13 @@ static void _mcWriteLiveSaveSectionChecksums(void)
     _mcWriteSaveSectionChecksums();
 }
 
-static void Mc_WriteFirstByteChecksum(void)
+/// Store the live sections' low-checksum-byte sum and its complement in the save.
+///
+/// Adds sections 1..8's unsigned low checksum bytes, yielding 0..2040, to the
+/// live saved state's `bufferChecksum` pair. The checksums must already have
+/// been computed. The card file header and backups are excluded. This unused
+/// out-of-line entry point is retained for the image layout.
+static void _mcWriteLiveSectionChecksumSummary(void)
 {
     _mcWriteSectionChecksumSummary();
 }
