@@ -93,15 +93,22 @@ static void Gp_ClearFlagBank(s32 arg0);
 
 void func_80724E2C(void);
 
-/// Releases the session's pending pause block and display hold, then tears down its fade task.
-static inline void _fadeFinishSessionResume(Task* task, CdCmdQueue* queue)
+/// Finishes the loaded session's reveal fade and tears down its task.
+///
+/// `fadeTask` must be the live bodyless resume task after its final overlay;
+/// `queue` borrows the writable session-loading state in `gCdCmdQueue`.
+/// A nonzero `releasePauseBlockAfterFade` is consumed and clears `blockGamePause`;
+/// a zero request preserves the existing pause block. Always releases one menu
+/// hold acquired for the load before task teardown. Call once and do not access
+/// `fadeTask` afterward; immediate teardown can free it before this returns.
+static inline void _fadeFinishSessionResume(Task* fadeTask, CdCmdQueue* queue)
 {
     if ((s16)queue->releasePauseBlockAfterFade != 0) {
         queue->releasePauseBlockAfterFade = 0;
         queue->blockGamePause             = 0;
     }
     displayReleaseMenuHold();
-    taskKill(task);
+    taskKill(fadeTask);
 }
 
 _CompanionSchedule D_80114198[11] = {
