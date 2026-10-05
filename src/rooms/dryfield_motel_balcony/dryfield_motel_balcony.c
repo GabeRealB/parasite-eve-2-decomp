@@ -1211,7 +1211,7 @@ void func_dryfield_motel_balcony_8017DC28(Task* arg0)
 
 void func_dryfield_motel_balcony_8017DCB8(Task* task)
 {
-    RoomFx_MoteTask(task);
+    _roomVisualEffectsMoteTask(task);
 }
 
 #include "../../shared/room_visual_effects_halo.inc.c"

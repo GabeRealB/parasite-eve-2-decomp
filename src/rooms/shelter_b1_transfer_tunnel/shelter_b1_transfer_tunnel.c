@@ -391,7 +391,7 @@ void func_shelter_b1_transfer_tunnel_8017D6D0(Task* arg0)
 
 void func_shelter_b1_transfer_tunnel_8017E308(Task* task)
 {
-    RoomFx_MoteTask(task);
+    _roomVisualEffectsMoteTask(task);
 }
 
 #include "../../shared/room_visual_effects_halo.inc.c"

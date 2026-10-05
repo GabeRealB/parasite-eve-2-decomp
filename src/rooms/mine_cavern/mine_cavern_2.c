@@ -2308,7 +2308,7 @@ void func_mine_cavern_8017E474(Task* arg0)
 
 void func_mine_cavern_8017F240(Task* task)
 {
-    RoomFx_MoteTask(task);
+    _roomVisualEffectsMoteTask(task);
 }
 
 #include "../../shared/room_visual_effects_halo.inc.c"

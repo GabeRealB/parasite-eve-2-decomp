@@ -664,7 +664,7 @@ void func_shelter_b2_pod_access_tunnel_8017DC6C(Task* arg0)
 
 void func_shelter_b2_pod_access_tunnel_8017F608(Task* task)
 {
-    RoomFx_MoteTask(task);
+    _roomVisualEffectsMoteTask(task);
 }
 
 #include "../../shared/room_visual_effects_halo.inc.c"

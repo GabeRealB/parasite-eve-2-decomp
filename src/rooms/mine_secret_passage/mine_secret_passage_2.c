@@ -737,7 +737,7 @@ void func_mine_secret_passage_8017D9D4(Task* arg0)
 
 void func_mine_secret_passage_8017E868(Task* task)
 {
-    RoomFx_MoteTask(task);
+    _roomVisualEffectsMoteTask(task);
 }
 
 #include "../../shared/room_visual_effects_halo.inc.c"

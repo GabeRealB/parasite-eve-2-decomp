@@ -100,7 +100,7 @@ static void _roomVisualEffectsDrawFlyingDisc(const GfxCoord* coord, s32 radius, 
 static void _roomVisualEffectsDrawFlyingBurstGlow(const GfxCoord* coord, s16 halfExtent);
 static void _roomVisualEffectsDrawFlyingBurstGroundQuad(const GfxCoord* coord, s32 halfExtent);
 
-static inline void RoomFx_MoteTask(Task* task);
+static inline void _roomVisualEffectsMoteTask(Task* task);
 
 static inline void _roomVisualEffectsHaloTask(Task* task);
 

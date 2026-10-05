@@ -53,22 +53,58 @@ STATIC_ASSERT_SIZEOF(_RoomFxMoteArg, 0x4);
 /// `_RoomFxMoteArg::extentPalette` bits giving the sprite's palette.
 #define ROOM_VISUAL_EFFECTS_MOTE_PALETTE 0xF000
 
-/// A drifting mote. The first tick unpacks the spawn argument: a mote with
-/// either low bit set starts at full brightness and moves at its given
-/// vertical speed (upwards when bit 1 is set) in state 2; otherwise it starts
-/// dim, rises at its speed plus a random 0..0x3F and brightens as it goes, in
-/// state 1. Every tick moves it, every other tick advances its drawing phase
-/// and draws it, and within eight ticks of its lifetime it fades out, releasing
-/// its work block once dark. It pauses while the room's event state is set
-/// and releases the block when that state reaches 4.
-static inline void RoomFx_MoteTask(Task* task)
+/// Moves a mote along local Y and draws its next animation frame on odd active ticks.
+///
+/// `textureRow` is already packed into the draw argument's upper nibble.
+/// The work stores the frame in index, half-extent in angle, brightness in
+/// scale and the packed palette in period; brightness changes after this draw.
+static inline void _roomVisualEffectsMoveAndDrawMote(EffectWork* work, GfxCoord* coord, s32 textureRow)
 {
+    coord->coord.t[1]  += work->move.vy;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    actorRenderComposeCoord(coord);
+    if (work->age & 1) {
+        work->index++;
+        _roomVisualEffectsDrawMote(coord, work->index, work->angle | textureRow, work->scale | work->period);
+    }
+}
+
+/// Updates a vertically drifting, animated mote until its brightness has faded.
+///
+/// `task` must own a coordinate body and an `EffectWork` with zero age and
+/// animation index in `spawnArg2.pointer`, as supplied by `Gp_SpawnEff`.
+/// State 0 initializes it; state 1 rises and brightens using texture strip 1,
+/// and state 2 starts at full brightness and moves using strip 0.
+/// The first tick neither moves nor draws.
+/// `spawnArg1` is a packed word: bits 0..11 are the world-unit half-extent
+/// (including the overlapping motion bits 0..1), bits 12..15 select a palette
+/// (0 default), bits 16..23 are an unsigned speed in coordinate units per
+/// active tick, and bits 24..31 are a signed lifetime in active ticks.
+/// Either motion bit selects steady motion; bit 1 makes that motion upward.
+/// Otherwise upward speed adds a random 0..63. Age advances only while room
+/// effect control is running; later ticks move along local Y and draw every
+/// other tick. Brightness fades by 16 after age exceeds lifetime minus eight,
+/// and the following tick releases the task's work once brightness is zero.
+/// Nonzero room effect control pauses it; control four or above cancels it.
+static inline void _roomVisualEffectsMoteTask(Task* task)
+{
+    enum { MOTE_INITIALIZE,
+           MOTE_RISE,
+           MOTE_STEADY,
+           MOTE_INITIAL_BRIGHTNESS = 0x20,
+           MOTE_FULL_BRIGHTNESS    = 0x80,
+           MOTE_BRIGHTEN_STEP      = 0x20,
+           MOTE_FADE_STEP          = 0x10,
+           MOTE_FADE_LEAD_TICKS    = 8,
+           MOTE_RANDOM_SPEED_MASK  = 0x3F };
+
     EffectWork* work;
     GfxCoord*   coord;
     s32         lifetime;
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
+    // scale = brightness, angle = half-extent, period = packed palette, step = lifetime.
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             effectKillTask(work, task);
@@ -76,62 +112,51 @@ static inline void RoomFx_MoteTask(Task* task)
     } else {
         work->age++;
         switch (task->state) {
-            case 0:
-                // Unpack the spawn argument and choose the motion.
+            case MOTE_INITIALIZE:
+                // The byte view keeps speed unsigned and lifetime signed.
                 if (task->spawnArg1.value & (ROOM_VISUAL_EFFECTS_MOTE_STEADY | ROOM_VISUAL_EFFECTS_MOTE_STEADY_UP)) {
-                    work->scale   = 0x80;
-                    work->angle   = ((_RoomFxMoteArg*)&task->spawnArg1)->extentPalette & ROOM_VISUAL_EFFECTS_MOTE_EXTENT;
-                    work->period  = ((_RoomFxMoteArg*)&task->spawnArg1)->extentPalette & ROOM_VISUAL_EFFECTS_MOTE_PALETTE;
-                    lifetime      = ((_RoomFxMoteArg*)&task->spawnArg1)->lifetime;
+                    work->scale   = MOTE_FULL_BRIGHTNESS;
+                    work->angle   = ((const _RoomFxMoteArg*)&task->spawnArg1)->extentPalette & ROOM_VISUAL_EFFECTS_MOTE_EXTENT;
+                    work->period  = ((const _RoomFxMoteArg*)&task->spawnArg1)->extentPalette & ROOM_VISUAL_EFFECTS_MOTE_PALETTE;
+                    lifetime      = ((const _RoomFxMoteArg*)&task->spawnArg1)->lifetime;
                     work->step    = lifetime;
                     work->move.vx = 0;
-                    work->move.vy = ((_RoomFxMoteArg*)&task->spawnArg1)->verticalSpeed;
+                    work->move.vy = ((const _RoomFxMoteArg*)&task->spawnArg1)->verticalSpeed;
                     work->move.vz = 0;
                     if (task->spawnArg1.value & ROOM_VISUAL_EFFECTS_MOTE_STEADY_UP) {
                         work->move.vy = -work->move.vy;
                     }
-                    task->state = 2;
+                    task->state = MOTE_STEADY;
                 } else {
-                    work->scale   = 0x20;
-                    work->angle   = ((_RoomFxMoteArg*)&task->spawnArg1)->extentPalette & ROOM_VISUAL_EFFECTS_MOTE_EXTENT;
-                    work->period  = ((_RoomFxMoteArg*)&task->spawnArg1)->extentPalette & ROOM_VISUAL_EFFECTS_MOTE_PALETTE;
-                    lifetime      = ((_RoomFxMoteArg*)&task->spawnArg1)->lifetime;
+                    work->scale   = MOTE_INITIAL_BRIGHTNESS;
+                    work->angle   = ((const _RoomFxMoteArg*)&task->spawnArg1)->extentPalette & ROOM_VISUAL_EFFECTS_MOTE_EXTENT;
+                    work->period  = ((const _RoomFxMoteArg*)&task->spawnArg1)->extentPalette & ROOM_VISUAL_EFFECTS_MOTE_PALETTE;
+                    lifetime      = ((const _RoomFxMoteArg*)&task->spawnArg1)->lifetime;
                     work->step    = lifetime;
                     work->move.vx = 0;
-                    work->move.vy = -((_RoomFxMoteArg*)&task->spawnArg1)->verticalSpeed - (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0x3F);
+                    work->move.vy = -((const _RoomFxMoteArg*)&task->spawnArg1)->verticalSpeed - (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & MOTE_RANDOM_SPEED_MASK);
                     work->move.vz = 0;
-                    task->state   = (task->spawnArg1.value & ROOM_VISUAL_EFFECTS_MOTE_STEADY) + 1;
+                    task->state   = (task->spawnArg1.value & ROOM_VISUAL_EFFECTS_MOTE_STEADY) + MOTE_RISE;
                 }
                 break;
-            case 1:
-                coord->coord.t[1]  += work->move.vy;
-                coord->composeStamp = GRAPHICS_COORD_DIRTY;
-                actorRenderComposeCoord(coord);
-                if (work->age & 1) {
-                    work->index++;
-                    _roomVisualEffectsDrawMote(coord, work->index, work->angle | ROOM_VISUAL_EFFECTS_MOTE_TEXTURE_ROW_1, work->scale | work->period);
-                }
+            case MOTE_RISE:
+                _roomVisualEffectsMoveAndDrawMote(work, coord, ROOM_VISUAL_EFFECTS_MOTE_TEXTURE_ROW_1);
+                // Draw before changing brightness; release on the tick after it reaches zero.
                 if (work->scale > 0) {
-                    if (work->step - 8 < work->age) {
-                        work->scale -= 0x10;
-                    } else if (work->scale < 0x80) {
-                        work->scale += 0x20;
+                    if (work->step - MOTE_FADE_LEAD_TICKS < work->age) {
+                        work->scale -= MOTE_FADE_STEP;
+                    } else if (work->scale < MOTE_FULL_BRIGHTNESS) {
+                        work->scale += MOTE_BRIGHTEN_STEP;
                     }
                 } else {
                     effectKillTask(work, task);
                 }
                 break;
-            case 2:
-                coord->coord.t[1]  += work->move.vy;
-                coord->composeStamp = GRAPHICS_COORD_DIRTY;
-                actorRenderComposeCoord(coord);
-                if (work->age & 1) {
-                    work->index++;
-                    _roomVisualEffectsDrawMote(coord, work->index, work->angle, work->scale | work->period);
-                }
+            case MOTE_STEADY:
+                _roomVisualEffectsMoveAndDrawMote(work, coord, 0);
                 if (work->scale > 0) {
-                    if (work->step - 8 < work->age) {
-                        work->scale -= 0x10;
+                    if (work->step - MOTE_FADE_LEAD_TICKS < work->age) {
+                        work->scale -= MOTE_FADE_STEP;
                     }
                 } else {
                     effectKillTask(work, task);

@@ -934,7 +934,7 @@ void func_shelter_b1_main_corridor_8017DDF0(Task* arg0)
 
 void func_shelter_b1_main_corridor_8017EAD4(Task* task)
 {
-    RoomFx_MoteTask(task);
+    _roomVisualEffectsMoteTask(task);
 }
 
 #include "../../shared/room_visual_effects_halo.inc.c"

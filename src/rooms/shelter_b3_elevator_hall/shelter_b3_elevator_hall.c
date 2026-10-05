@@ -338,7 +338,7 @@ void func_shelter_b3_elevator_hall_8017DE70(Task* arg0)
 
 void func_shelter_b3_elevator_hall_8017E7F4(Task* task)
 {
-    RoomFx_MoteTask(task);
+    _roomVisualEffectsMoteTask(task);
 }
 
 #include "../../shared/room_visual_effects_halo.inc.c"

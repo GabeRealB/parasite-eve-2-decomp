@@ -1293,7 +1293,7 @@ void func_shelter_b4_upper_sewer_8017ED40(Task* task)
 
 void func_shelter_b4_upper_sewer_80180110(Task* task)
 {
-    RoomFx_MoteTask(task);
+    _roomVisualEffectsMoteTask(task);
 }
 
 #include "../../shared/room_visual_effects_halo.inc.c"

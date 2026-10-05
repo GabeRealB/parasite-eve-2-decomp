@@ -1627,71 +1627,74 @@ enum {
     /// The room selects this `_roomVisualEffectsHaloTask` instance through
     /// `gRoomEffectHaloId` for the Brain Stinger's charge and MP-drain effects.
     EFFECT_MINE_SECRET_PASSAGE_HALO = EFFECT_ID(EFFECT_TASK_BANK, 0x241),
-    /// mine_secret_passage's copy of the RoomFx drifting mote: a small textured square
-    /// that rises or flies and fades out; the room stores it in slot gRoomEffectMoteId, which
-    /// actor_00300, actor_02400, actor_105100, the fireball ember helper and the RoomFx
-    /// spark emitter spawn as sparks.
+    /// mine_secret_passage's animated mote, rising and brightening or drifting steadily before fading.
+    ///
+    /// The room selects this `_roomVisualEffectsMoteTask` instance through
+    /// `gRoomEffectMoteId` for fireball embers and emitted sparks.
     EFFECT_MINE_SECRET_PASSAGE_MOTE = EFFECT_ID(EFFECT_TASK_BANK, 0x242),
     /// Spark emitter (RoomFx_SparkEmitterTask): for 0x14 ticks spawns gRoomEffectMoteId
     /// particles outward along a turning heading; stored in gRoomEffectSparkEmitterId, which
     /// actor_00300 spawns in its heal step.
     EFFECT_MINE_SECRET_PASSAGE_SPARK_EMITTER = EFFECT_ID(EFFECT_TASK_BANK, 0x243),
-    /// mine_cavern's copy of the shared drifting mote (RoomFx_MoteTask): a small
-    /// textured sprite that rises/moves, brightens and fades; the room stores it in
-    /// gRoomEffectMoteId (mote slot, spawned by RoomFx spark emitters, fireball embers and
-    /// actor_00300).
+    /// mine_cavern's animated mote, rising and brightening or drifting steadily before fading.
+    ///
+    /// The room selects this `_roomVisualEffectsMoteTask` instance through
+    /// `gRoomEffectMoteId` for fireball embers and emitted sparks.
     EFFECT_MINE_CAVERN_MOTE = EFFECT_ID(EFFECT_TASK_BANK, 0x244),
-    /// shelter_b1_elevator_hall's copy of RoomFx_MoteTask (a drifting mote that
-    /// brightens and fades), stored in gRoomEffectMoteId, which the Brain Stinger spawns as
-    /// fireball embers and which the spark emitter (gRoomEffectSparkEmitterId) sprays.
+    /// shelter_b1_elevator_hall's animated mote, rising and brightening or drifting steadily before fading.
+    ///
+    /// The room selects this `_roomVisualEffectsMoteTask` instance through
+    /// `gRoomEffectMoteId` for fireball embers and emitted sparks.
     EFFECT_SHELTER_B1_ELEVATOR_HALL_MOTE = EFFECT_ID(EFFECT_TASK_BANK, 0x245),
-    /// The shelter_b1_storeroom instance of the room-effect library's RoomFx_MoteTask:
-    /// a drifting mote that rises (or moves at a given vertical speed), brightens and
-    /// fades out; the room stores it in slot gRoomEffectMoteId, read by fireball_ember.inc.c
-    /// (fireballSpawnEmber), actor_00300/actor_105100 ember sprays and the room
-    /// SPARK_EMITTER task.
+    /// shelter_b1_storeroom's animated mote, rising and brightening or drifting steadily before fading.
+    ///
+    /// The room selects this `_roomVisualEffectsMoteTask` instance through
+    /// `gRoomEffectMoteId` for fireball embers and emitted sparks.
     EFFECT_SHELTER_B1_STOREROOM_MOTE = EFFECT_ID(EFFECT_TASK_BANK, 0x246),
-    /// shelter_b1_north_maintenance_walkway's copy of the RoomFx drifting mote: a small
-    /// textured square that rises or flies and fades out; the room stores it in slot
-    /// gRoomEffectMoteId, which actor_00300, actor_02400, actor_105100, the fireball ember
-    /// helper and the RoomFx spark emitter spawn as sparks.
+    /// shelter_b1_north_maintenance_walkway's animated mote, rising and brightening or drifting steadily before fading.
+    ///
+    /// The room selects this `_roomVisualEffectsMoteTask` instance through
+    /// `gRoomEffectMoteId` for fireball embers and emitted sparks.
     EFFECT_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_MOTE = EFFECT_ID(EFFECT_TASK_BANK, 0x247),
-    /// Drifting mote (RoomFx_MoteTask) that rises/brightens or moves at full brightness
-    /// and fades out; stored in gRoomEffectMoteId, which fireball embers
-    /// (actor_00300/02400/105100) and the room's spark emitter spawn.
+    /// shelter_b1_main_corridor's animated mote, rising and brightening or drifting steadily before fading.
+    ///
+    /// The room selects this `_roomVisualEffectsMoteTask` instance through
+    /// `gRoomEffectMoteId` for fireball embers and emitted sparks.
     EFFECT_SHELTER_B1_MAIN_CORRIDOR_MOTE = EFFECT_ID(EFFECT_TASK_BANK, 0x248),
-    /// shelter_b1_transfer_tunnel's copy of the shared drifting mote (RoomFx_MoteTask):
-    /// a small textured sprite that rises/moves, brightens and fades; the room stores
-    /// it in gRoomEffectMoteId (mote slot, spawned by RoomFx spark emitters, fireball embers
-    /// and actor_00300).
+    /// shelter_b1_transfer_tunnel's animated mote, rising and brightening or drifting steadily before fading.
+    ///
+    /// The room selects this `_roomVisualEffectsMoteTask` instance through
+    /// `gRoomEffectMoteId` for fireball embers and emitted sparks.
     EFFECT_SHELTER_B1_TRANSFER_TUNNEL_MOTE = EFFECT_ID(EFFECT_TASK_BANK, 0x249),
-    /// shelter_b2_elevator_hall's copy of RoomFx_MoteTask (a drifting mote that
-    /// brightens and fades), stored in gRoomEffectMoteId, which the Brain Stinger spawns as
-    /// fireball embers and which the spark emitter (gRoomEffectSparkEmitterId) sprays.
+    /// shelter_b2_elevator_hall's animated mote, rising and brightening or drifting steadily before fading.
+    ///
+    /// The room selects this `_roomVisualEffectsMoteTask` instance through
+    /// `gRoomEffectMoteId` for fireball embers and emitted sparks.
     EFFECT_SHELTER_B2_ELEVATOR_HALL_MOTE = EFFECT_ID(EFFECT_TASK_BANK, 0x24A),
-    /// The shelter_b2_n_walkway instance of the room-effect library's RoomFx_MoteTask:
-    /// a drifting mote that rises (or moves at a given vertical speed), brightens and
-    /// fades out; the room stores it in slot gRoomEffectMoteId, read by fireball_ember.inc.c
-    /// (fireballSpawnEmber), actor_00300/actor_105100 ember sprays and the room
-    /// SPARK_EMITTER task.
+    /// shelter_b2_north_maintenance_walkway's animated mote, rising and brightening or drifting steadily before fading.
+    ///
+    /// The room selects this `_roomVisualEffectsMoteTask` instance through
+    /// `gRoomEffectMoteId` for fireball embers and emitted sparks.
     EFFECT_SHELTER_B2_NORTH_MAINTENANCE_WALKWAY_MOTE = EFFECT_ID(EFFECT_TASK_BANK, 0x24B),
-    /// shelter_b2_pod_access_tunnel's copy of the RoomFx drifting mote: a small
-    /// textured square that rises or flies and fades out; the room stores it in slot
-    /// gRoomEffectMoteId, which actor_00300, actor_02400, actor_105100, the fireball ember
-    /// helper and the RoomFx spark emitter spawn as sparks.
+    /// shelter_b2_pod_access_tunnel's animated mote, rising and brightening or drifting steadily before fading.
+    ///
+    /// The room selects this `_roomVisualEffectsMoteTask` instance through
+    /// `gRoomEffectMoteId` for fireball embers and emitted sparks.
     EFFECT_SHELTER_B2_POD_ACCESS_TUNNEL_MOTE = EFFECT_ID(EFFECT_TASK_BANK, 0x24C),
-    /// Drifting mote (RoomFx_MoteTask) that rises/brightens or moves at full brightness
-    /// and fades out; stored in gRoomEffectMoteId, which fireball embers
-    /// (actor_00300/02400/105100) and the room's spark emitter spawn.
+    /// shelter_b3_elevator_hall's animated mote, rising and brightening or drifting steadily before fading.
+    ///
+    /// The room selects this `_roomVisualEffectsMoteTask` instance through
+    /// `gRoomEffectMoteId` for fireball embers and emitted sparks.
     EFFECT_SHELTER_B3_ELEVATOR_HALL_MOTE = EFFECT_ID(EFFECT_TASK_BANK, 0x24D),
-    /// shelter_b4_upper_sewer's copy of the shared drifting mote (RoomFx_MoteTask): a
-    /// small textured sprite that rises/moves, brightens and fades; the room stores it
-    /// in gRoomEffectMoteId (mote slot, spawned by RoomFx spark emitters, fireball embers and
-    /// actor_00300).
+    /// shelter_b4_upper_sewer's animated mote, rising and brightening or drifting steadily before fading.
+    ///
+    /// The room selects this `_roomVisualEffectsMoteTask` instance through
+    /// `gRoomEffectMoteId` for fireball embers and emitted sparks.
     EFFECT_SHELTER_B4_UPPER_SEWER_MOTE = EFFECT_ID(EFFECT_TASK_BANK, 0x24E),
-    /// neo_ark_north_promenade's copy of RoomFx_MoteTask (a drifting mote that
-    /// brightens and fades), stored in gRoomEffectMoteId, which the Brain Stinger spawns as
-    /// fireball embers and which the spark emitter (gRoomEffectSparkEmitterId) sprays.
+    /// neo_ark_north_promenade's animated mote, rising and brightening or drifting steadily before fading.
+    ///
+    /// The room selects this `_roomVisualEffectsMoteTask` instance through
+    /// `gRoomEffectMoteId` for fireball embers and emitted sparks.
     EFFECT_NEO_ARK_NORTH_PROMENADE_MOTE = EFFECT_ID(EFFECT_TASK_BANK, 0x24F),
     /// mine_cavern's expanding tinted halo and shrinking ring, followed by a fading star.
     ///
@@ -1924,11 +1927,10 @@ enum {
     /// with an expanding ring), stored in gRoomEffectOrangeBurst2Id, which the Amoeba's projectile
     /// spawns when it expires or hits.
     EFFECT_NEO_ARK_SUBMARINE_TUNNEL_ORANGE_BURST_2 = EFFECT_ID(EFFECT_TASK_BANK, 0x281),
-    /// The dryfield_motel_balcony instance of the room-effect library's
-    /// RoomFx_MoteTask: a drifting mote that rises (or moves at a given vertical
-    /// speed), brightens and fades out; the room stores it in slot gRoomEffectMoteId, read by
-    /// fireball_ember.inc.c (fireballSpawnEmber), actor_00300/actor_105100 ember sprays
-    /// and the room SPARK_EMITTER task.
+    /// dryfield_motel_balcony's animated mote, rising and brightening or drifting steadily before fading.
+    ///
+    /// The room selects this `_roomVisualEffectsMoteTask` instance through
+    /// `gRoomEffectMoteId` for fireball embers and emitted sparks.
     EFFECT_DRYFIELD_MOTEL_BALCONY_MOTE = EFFECT_ID(EFFECT_TASK_BANK, 0x282),
     /// dryfield_motel_balcony's expanding tinted halo and shrinking ring, followed by a fading star.
     ///
@@ -1944,9 +1946,10 @@ enum {
     /// outward along a turning heading; the room stores it in gRoomEffectSparkEmitterId (spark emitter
     /// slot, read by actor_00300).
     EFFECT_DRYFIELD_MOTEL_BALCONY_SPARK_EMITTER = EFFECT_ID(EFFECT_TASK_BANK, 0x285),
-    /// dryfield_night_main_street's copy of RoomFx_MoteTask (a drifting mote that
-    /// brightens and fades), stored in gRoomEffectMoteId, which the Brain Stinger spawns as
-    /// fireball embers and which the spark emitter (gRoomEffectSparkEmitterId) sprays.
+    /// dryfield_night_main_street's animated mote, rising and brightening or drifting steadily before fading.
+    ///
+    /// The room selects this `_roomVisualEffectsMoteTask` instance through
+    /// `gRoomEffectMoteId` for fireball embers and emitted sparks.
     EFFECT_DRYFIELD_NIGHT_MAIN_STREET_MOTE = EFFECT_ID(EFFECT_TASK_BANK, 0x286),
     /// dryfield_night_main_street's expanding tinted halo and shrinking ring, followed by a fading star.
     ///

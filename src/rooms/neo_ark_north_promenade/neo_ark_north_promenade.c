@@ -472,7 +472,7 @@ void func_neo_ark_north_promenade_8017D720(Task* arg0)
 
 void func_neo_ark_north_promenade_8017D7B0(Task* task)
 {
-    RoomFx_MoteTask(task);
+    _roomVisualEffectsMoteTask(task);
 }
 
 #include "../../shared/room_visual_effects_halo.inc.c"

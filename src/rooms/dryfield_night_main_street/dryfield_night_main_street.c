@@ -1752,7 +1752,7 @@ void func_dryfield_night_main_street_8017E484(Task* task)
 
 void func_dryfield_night_main_street_8017FA68(Task* task)
 {
-    RoomFx_MoteTask(task);
+    _roomVisualEffectsMoteTask(task);
 }
 
 #include "../../shared/room_visual_effects_halo.inc.c"
