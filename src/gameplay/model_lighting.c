@@ -69,6 +69,19 @@ enum {
     TMD_GT4_CORNER_COUNT                 = 4
 };
 
+/// Geometry-reference prefix of a directly transformed Gouraud textured quad element.
+///
+/// Four vertex references precede four normal references in corner order.
+/// Each is a byte offset into its respective borrowed SVECTOR array after
+/// masking with `TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK`; low-bit roles and array
+/// extents are unproven. Material and texture words follow this prefix and are
+/// outside this type.
+typedef struct {
+    u16 vertexByteRefs[TMD_GT4_CORNER_COUNT]; // Part-local vertex references for corners 0..3
+    u16 normalByteRefs[TMD_GT4_CORNER_COUNT]; // Part-local normal references for corners 0..3
+} _ModelLightingGt4GeometryRefs;
+STATIC_ASSERT_SIZEOF(_ModelLightingGt4GeometryRefs, 4 * sizeof(u32));
+
 /// Environment mapping uses fixed 320x240 screen centring and overlapping pages.
 /// Normal scaling is GPF12 with colorBlend >> 9; U/V stores truncate to bytes.
 enum {
@@ -262,42 +275,61 @@ u32 D_80114BAC = 0x10FF2220;
     : "r"(r1), "r"(r2)                           \
     : "$12", "$13", "$14", "$15", "$16", "memory")
 
-/// Lights all four quad corners from their normals and the GTE's current material.
+/// Lights a Gouraud textured quad's four corners from one loaded GTE material.
 ///
-/// The caller has loaded the element RGB/code word and configured the GTE's
-/// light/colour matrices. Eight readable element halfwords pack four vertex
-/// references followed by four normal byte references. Each masked normal
-/// reference must select a complete SVECTOR. The aligned writable quad receives
-/// RGB/code words; GTE lighting state changes, with no cursor/count update.
-static inline void _tmdLightGt4ElementNormals(POLY_GT4* quad, TmdStreamWorkspace* workspace, const u16* elementHalfwords)
+/// The caller supplies GTE light/colour matrices and background colour, and
+/// loads the shared material RGB/code word into RGBC. `geometryRefs` borrows
+/// the element's readable reference prefix; each masked normal byte reference
+/// must select a complete eight-byte SVECTOR in `workspace->normals`. The vertex
+/// references are unused here. Geometry, references and the writable `quad`
+/// must be word aligned and live for the call; normal-array bounds are unchecked.
+///
+/// Writes all four RGB/code words, including the high bytes `p1`, `p2`, `p3`;
+/// the caller sets `quad->code` afterwards. Tag, XY and texture fields stay
+/// intact. GTE normal/lighting registers change; workspace storage, packet
+/// cursors and counts do not. No borrowed pointer is retained.
+static inline void _modelLightingLightGt4CornerNormals(POLY_GT4* quad, const TmdStreamWorkspace* workspace, const _ModelLightingGt4GeometryRefs* geometryRefs)
 {
-    enum { TMD_GT4_NORMAL_REF_HALFWORD_INDEX = TMD_GT4_CORNER_COUNT };
     const u8* normalBytes;
 
     normalBytes = (const u8*)workspace->normals;
-    gte_ldv3(normalBytes + (elementHalfwords[TMD_GT4_NORMAL_REF_HALFWORD_INDEX + 0] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), normalBytes + (elementHalfwords[TMD_GT4_NORMAL_REF_HALFWORD_INDEX + 1] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), normalBytes + (elementHalfwords[TMD_GT4_NORMAL_REF_HALFWORD_INDEX + 2] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK));
+    gte_ldv3(normalBytes + (geometryRefs->normalByteRefs[0] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), normalBytes + (geometryRefs->normalByteRefs[1] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), normalBytes + (geometryRefs->normalByteRefs[2] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK));
     gte_ncct();
     gte_strgb3_gt4(quad);
-    gte_ldv0((const u8*)workspace->normals + (elementHalfwords[TMD_GT4_NORMAL_REF_HALFWORD_INDEX + 3] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK));
+    // Complete the fourth corner without reloading the shared material.
+    gte_ldv0((const u8*)workspace->normals + (geometryRefs->normalByteRefs[3] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK));
     gte_nccs();
     gte_strgb(&quad->r3);
 }
 
-/// Prepends an offset-layer quad pair in layer-then-base order, preserving DMA lengths.
+/// Links an offset-texture layer/base quad pair for GPU traversal in base-then-layer order.
 ///
-/// The aligned writable pair and displaced OT remain GPU-visible until consumed.
-/// `workspace->gteResult` holds AVSZ4 OTZ; the display shift is normally 0..3.
-/// Every selected masked bucket must fit the OT. Masks are
-/// GPU_DMA_LINK_ADDRESS_MASK and GPU_DMA_PACKET_LENGTH_MASK. The pointer casts
-/// encode GPU link addresses, retaining their low 24 bits. No GTE state changes.
-static inline void _tmdLinkOffsetLayerQuadPair(POLY_GT4* packetPair, TmdStreamWorkspace* workspace, const DisplayState* displayState, u32 addressMask, u32 lengthMask)
+/// `packetPair` borrows two consecutive writable, word-aligned `POLY_GT4`s:
+/// slot 0 is the layer, slot 1 the base. Their DMA payload lengths must already
+/// be set. `workspace->gteResult` supplies the pair's AVSZ4 OTZ, 0..65535;
+/// `displayState->otDepthShift` is normally 0..3. The unsigned scaled depth,
+/// shifted right by four and masked, selects entry 0..1023 in `workspace->ot`,
+/// whose base already includes the object's signed table displacement. That
+/// entry must fit its backing table; the mask wraps depth rather than clamps it.
+///
+/// `dmaAddressMask` and `dmaLengthMask` must be `GPU_DMA_LINK_ADDRESS_MASK` and
+/// `GPU_DMA_PACKET_LENGTH_MASK`. Each prepend retains the packet and OT tag's
+/// high length byte and encodes the next pointer in the low 24 bits. The final
+/// chain is base -> layer -> previous head. Only the packet and OT tags change;
+/// GTE registers, workspace storage and cursors/counts stay intact. Packets and
+/// OT must remain GPU-visible until DMA consumption ends; no pointer is retained.
+static inline void _modelLightingLinkOffsetLayerQuadPair(POLY_GT4 packetPair[2], const TmdStreamWorkspace* workspace, const DisplayState* displayState, u32 dmaAddressMask, u32 dmaLengthMask)
 {
-    packetPair[0].tag = (packetPair[0].tag & lengthMask) | (workspace->ot[((u32)workspace->gteResult << displayState->otDepthShift) >> TMD_DRAW_OT_INDEX_SHIFT & (GPU_ORDERING_TABLE_DEPTH_BYTE_MASK / sizeof(*workspace->ot))] & addressMask);
-    workspace->ot[((u32)workspace->gteResult << displayState->otDepthShift) >> TMD_DRAW_OT_INDEX_SHIFT & (GPU_ORDERING_TABLE_DEPTH_BYTE_MASK / sizeof(*workspace->ot))] =
-        (workspace->ot[((u32)workspace->gteResult << displayState->otDepthShift) >> TMD_DRAW_OT_INDEX_SHIFT & (GPU_ORDERING_TABLE_DEPTH_BYTE_MASK / sizeof(*workspace->ot))] & lengthMask) | ((u32)&packetPair[0] & addressMask);
-    packetPair[1].tag = (packetPair[1].tag & lengthMask) | (workspace->ot[((u32)workspace->gteResult << displayState->otDepthShift) >> TMD_DRAW_OT_INDEX_SHIFT & (GPU_ORDERING_TABLE_DEPTH_BYTE_MASK / sizeof(*workspace->ot))] & addressMask);
-    workspace->ot[((u32)workspace->gteResult << displayState->otDepthShift) >> TMD_DRAW_OT_INDEX_SHIFT & (GPU_ORDERING_TABLE_DEPTH_BYTE_MASK / sizeof(*workspace->ot))] =
-        (workspace->ot[((u32)workspace->gteResult << displayState->otDepthShift) >> TMD_DRAW_OT_INDEX_SHIFT & (GPU_ORDERING_TABLE_DEPTH_BYTE_MASK / sizeof(*workspace->ot))] & lengthMask) | ((u32)&packetPair[1] & addressMask);
+    enum { MODEL_LIGHTING_OFFSET_LAYER_PACKET = 0,
+           MODEL_LIGHTING_OFFSET_BASE_PACKET  = 1 };
+
+    // Prepend the layer first so GPU traversal reaches the base before the layer.
+    packetPair[MODEL_LIGHTING_OFFSET_LAYER_PACKET].tag = (packetPair[MODEL_LIGHTING_OFFSET_LAYER_PACKET].tag & dmaLengthMask) | (workspace->ot[(((u32)workspace->gteResult << displayState->otDepthShift) >> TMD_DRAW_OT_INDEX_SHIFT) & (GPU_ORDERING_TABLE_DEPTH_BYTE_MASK / sizeof(*workspace->ot))] & dmaAddressMask);
+    workspace->ot[(((u32)workspace->gteResult << displayState->otDepthShift) >> TMD_DRAW_OT_INDEX_SHIFT) & (GPU_ORDERING_TABLE_DEPTH_BYTE_MASK / sizeof(*workspace->ot))] =
+        (workspace->ot[(((u32)workspace->gteResult << displayState->otDepthShift) >> TMD_DRAW_OT_INDEX_SHIFT) & (GPU_ORDERING_TABLE_DEPTH_BYTE_MASK / sizeof(*workspace->ot))] & dmaLengthMask) | ((u32)&packetPair[MODEL_LIGHTING_OFFSET_LAYER_PACKET] & dmaAddressMask);
+    packetPair[MODEL_LIGHTING_OFFSET_BASE_PACKET].tag = (packetPair[MODEL_LIGHTING_OFFSET_BASE_PACKET].tag & dmaLengthMask) | (workspace->ot[(((u32)workspace->gteResult << displayState->otDepthShift) >> TMD_DRAW_OT_INDEX_SHIFT) & (GPU_ORDERING_TABLE_DEPTH_BYTE_MASK / sizeof(*workspace->ot))] & dmaAddressMask);
+    workspace->ot[(((u32)workspace->gteResult << displayState->otDepthShift) >> TMD_DRAW_OT_INDEX_SHIFT) & (GPU_ORDERING_TABLE_DEPTH_BYTE_MASK / sizeof(*workspace->ot))] =
+        (workspace->ot[(((u32)workspace->gteResult << displayState->otDepthShift) >> TMD_DRAW_OT_INDEX_SHIFT) & (GPU_ORDERING_TABLE_DEPTH_BYTE_MASK / sizeof(*workspace->ot))] & dmaLengthMask) | ((u32)&packetPair[MODEL_LIGHTING_OFFSET_BASE_PACKET] & dmaAddressMask);
 }
 
 /// Initializes one flat textured triangle's persistent texture coordinates and GPU addresses.
@@ -1396,7 +1428,7 @@ u32* tmdDrawStreamPrimGt4OffsetLayer(TmdStreamWorkspace* workspace, s32 objectFl
                         setlen(&packetPair[1], payloadWordCount);
                         setcode(&packetPair[1], baseCommand);
                         gte_stotz(gteResultDestination);
-                        _tmdLinkOffsetLayerQuadPair(packetPair, workspace, displayState, addressMask, lengthMask);
+                        _modelLightingLinkOffsetLayerQuadPair(packetPair, workspace, displayState, addressMask, lengthMask);
                     }
                 }
             }
@@ -1671,7 +1703,7 @@ u32* tmdDrawStreamPrimGt4ElemColor(TmdStreamWorkspace* workspace, s32 objectFlag
                     draw:
                         gte_stsxy2(&quad->x3);
                         gte_avsz4();
-                        _tmdLightGt4ElementNormals(quad, workspace, elementHalfwords);
+                        _modelLightingLightGt4CornerNormals(quad, workspace, (const _ModelLightingGt4GeometryRefs*)elementHalfwords);
                         setlen(quad, sizeof(*quad) / sizeof(u32) - 1);
                         setcode(quad, TMD_GT4_OPAQUE_COMMAND);
                         if (workspace->obj->flags & TMD_OBJECT_SEMI_TRANS) {
