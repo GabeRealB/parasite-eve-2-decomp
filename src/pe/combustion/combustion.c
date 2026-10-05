@@ -440,7 +440,7 @@ void func_combustion_8012F888(Task* arg0)
 /// eight 0x18-wide texture frames on tpage 0x28 (CLUT 0x430D), and `arg2`
 /// sizes it: the corners sit `arg2 * 23 / depth` from the projected centre, so
 /// the sprite shrinks with depth. Same 0x18-byte scratch and axis-aligned
-/// quad as gameplay `Gp_EffSprTask8D`.
+/// quad as gameplay `effectSpriteTask8D`.
 static void func_combustion_8012FF0C(GfxCoord* arg0, s32 arg1, s16 arg2)
 {
     u8*                  head;

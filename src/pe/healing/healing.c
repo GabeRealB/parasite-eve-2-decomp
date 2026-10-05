@@ -269,7 +269,7 @@ void func_healing_8012F5E4(Task* arg0)
 /// the CLUT alternating on `arg1 & 1`, is tinted `arg3 / 2` and sits
 /// `(arg2 / 2) * 55 / depth` out. Both are axis-aligned and linked into
 /// `gGpuCurrentOt` at the shared `depth`. Same 0x18-byte scratch as gameplay
-/// `Gp_EffSprTask8D`.
+/// `effectSpriteTask8D`.
 static void func_healing_8012F7FC(GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
 {
     u8*                  head;

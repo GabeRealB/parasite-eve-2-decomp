@@ -15,6 +15,24 @@
 
 // Effect task entry points and shared drawing data.
 
+/// Live task states of the bank-6 ground decal (`EFFECT_GROUND_DECAL`).
+///
+/// A caller retaining the spawned EffectWork may request FADE through its task
+/// while the effect remains live; that phase releases the effect after fading.
+enum {
+    EFFECT_GROUND_DECAL_STATE_NEW  = 0,
+    EFFECT_GROUND_DECAL_STATE_GROW = 1,
+    EFFECT_GROUND_DECAL_STATE_DIM  = 2,
+    EFFECT_GROUND_DECAL_STATE_FADE = 3,
+    EFFECT_GROUND_DECAL_STATE_HOLD = 4,
+};
+
+/// Ground-decal spawn flags; FULL_BRIGHT takes precedence over DIM.
+enum {
+    EFFECT_GROUND_DECAL_START_DIM         = 0x10000000,
+    EFFECT_GROUND_DECAL_START_FULL_BRIGHT = 0x20000000,
+};
+
 /// Texture layout shared by the twelve-frame effect sprite atlas.
 enum {
     /// Width, height and spacing of the shared atlas's square cells, in texels.

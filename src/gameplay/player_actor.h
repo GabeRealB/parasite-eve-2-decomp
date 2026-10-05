@@ -36,13 +36,7 @@ extern AnimationBank* Gp_AnimBlkTbl[8];
 
 void Gp_UpdatePlayerMove(void);
 
-void Gp_EffSprTask46(Task* arg0);
-
 void Gp_EffSprTask81(Task* arg0);
-
-void Gp_EffSprTask55(Task* arg0);
-
-void Gp_EffSprTask42(Task* arg0);
 
 void func_800F91AC(Task* arg0);
 
@@ -50,11 +44,7 @@ void Gp_EffCtlTask9B(Task* arg0);
 
 void Gp_EffSprTask30(Task* arg0);
 
-void Gp_EffCtlTaskC1(Task* arg0);
-
 void Gp_EffCtlTaskF3(Task* arg0);
-
-void Gp_EffCtlTaskF4(Task* arg0);
 
 void Gp_EffCtlTaskAC(Task* arg0);
 
@@ -67,8 +57,6 @@ void Gp_EffCtlTaskA6(Task* arg0);
 void Gp_EffCtlTaskE3(Task* arg0);
 
 void func_800FF710(Task* arg0);
-
-void Gp_EffSprTaskE0(Task* arg0);
 
 void Gp_EffSprTaskE2(Task* arg0);
 
@@ -91,23 +79,9 @@ void func_80108874(Task* arg0);
 
 void func_800FAA14(Task* arg0);
 
-void Gp_EffCtlTask32(Task* arg0);
-
-void Gp_EffCtlTaskAE(Task* arg0);
-
 void Gp_EffCtlTask07(Task* arg0);
 
-void Gp_EffSprTaskA7(Task* arg0);
-
 void Gp_EffCtlTask7F(Task* arg0);
-
-void Gp_EffSprTask80(Task* arg0);
-
-void Gp_EffSprTask8D(Task* arg0);
-
-void Gp_EffSprTask3F(Task* arg0);
-
-void Gp_EffSprTaskE1(Task* arg0);
 
 void Gp_AimYawToLock(Task* arg0, s32 arg1);
 

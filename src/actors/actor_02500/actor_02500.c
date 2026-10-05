@@ -2006,8 +2006,7 @@ static void Actor02500_Fn02874(Enemy* ctx, Task* task)
         case ACTOR_02500_CORPSE_POISON_RELEASE_BEGIN:
             worldCollisionUnlinkBody(&work->body);
             if (work->decal != NULL) {
-                // The decal's state 3 fades it out and ends its task.
-                work->decal->task->state = 3;
+                work->decal->task->state = EFFECT_GROUND_DECAL_STATE_FADE;
             }
             work->timer       = 30;
             work->releaseStep = ACTOR_02500_CORPSE_POISON_RELEASE_LINGER;

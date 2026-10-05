@@ -20,6 +20,7 @@
 #include "gameplay/attachments.h"
 #include "damage.h"
 #include "gameplay/effect_tasks.h"
+#include "effect_tasks.h"
 #include "gameplay/effects.h"
 #include "gameplay/geometry.h"
 #include "gameplay/hud_sprites.h"
@@ -80,6 +81,23 @@ STATIC_ASSERT_SIZEOF(_PlayerActorWeaponAttacks, sizeof(TaskFunc) * PLAYER_ACTOR_
 #include "main/wipsys.h"
 #include <psyq/abs.h>
 #include <psyq/rand.h>
+
+/// Encodings used by the effect drawers in this translation unit.
+enum {
+    EFFECT_DRAW_TASK_NEW                   = 0,
+    EFFECT_DRAW_TASK_ACTIVE                = 1,
+    EFFECT_DRAW_SIZE_MASK                  = 0xFFF,
+    EFFECT_DRAW_ANGLE_MASK                 = 0xFFF,
+    EFFECT_DRAW_FULL_TURN                  = ONE,
+    EFFECT_DRAW_QUARTER_TURN               = ONE / 4,
+    EFFECT_DRAW_FRACTION_BITS              = 12,
+    EFFECT_DRAW_TEXTURED_QUAD_PACKET_WORDS = 9,
+    EFFECT_DRAW_TEXTURED_QUAD              = 0x2C,
+    EFFECT_DRAW_ADDITIVE_TEXTURED_QUAD     = 0x2E,
+    EFFECT_DRAW_RAW_ADDITIVE_TEXTURED_QUAD = 0x2F,
+    EFFECT_DRAW_RAW_TEXTURE                = 1,
+    EFFECT_DRAW_SEMITRANSPARENT            = 2,
+};
 
 /// Number of vertices in an `_EffectDeathFlameScratch`: six round the base
 /// ring and six round the top ring, interleaved and a twelfth of a turn apart.
@@ -244,7 +262,7 @@ extern s32 D_80112978[];
 
 extern s32 D_80112A50[];
 
-/// Spawn-id words for `Gp_EffCtlTaskAE`, indexed with the same 3-digit packing
+/// Spawn-id words for `effectControlTaskAE`, indexed with the same 3-digit packing
 /// of `Gp_StateC08.attachId` as `D_80112978`; the value becomes the task's
 /// `Task::spawnArg1` sound id.
 extern s32 D_80112B94[];
@@ -253,7 +271,7 @@ extern s32 D_80112B94[];
 /// it onto `TmdObject.coords` when `field_3 == 1`.
 extern u16 D_80112B28[];
 
-/// 4 packed RGB-nibble colors. `Gp_EffCtlTaskC1` indexes with
+/// 4 packed RGB-nibble colors. `effectPolyTaskC1` indexes with
 /// `TaskSpawnArg::halves.high & 3` and stores the halfword in `EffectWork.period`.
 extern u16 D_80112C6C[];
 
@@ -352,7 +370,7 @@ s32 func_801055D4(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
 
 static void Gp_DrawEffSprite81(Task* arg0);
 
-static void Gp_DrawEffSprite46(GfxCoord* arg0, s32 arg1, s16 arg2, u16 arg3);
+static void _effectDrawGroundDecal(const GfxCoord* coord, s32 halfSize, s16 brightness, u16 palette);
 
 static void Gp_DrawEffSpark(Task* arg0, s32 arg1, u8* arg2);
 
@@ -360,17 +378,13 @@ static void Gp_DrawEffQuadT29(GfxCoord* arg0, s32 arg1, u16 arg2, u16 arg3);
 
 static void Gp_EffTask07State1(Task* arg0);
 
-static void Gp_DrawEffTri(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+static void _effectDrawRadialTriangles(const GfxCoord* coord, s32 radius, s32 rayCount, const u8* rgb);
 
 static void Gp_EffTask07State0(Task* arg0);
 
 static void func_800FCD00(Task* arg0);
 
-/// Hand-written GTE routine. `arg2` is a full 32-bit word: the high half picks
-/// the CLUT (palette column) and the low 12 bits are the billboard size, so it
-/// must not be declared `s16` (that makes callers emit a spurious `sll`/`sra`
-/// truncation). It is unsigned because the size is divided by `otz` with `divu`.
-static void Gp_DrawEffSpriteE2(GfxCoord* arg0, u16 arg1, u32 arg2, s16 arg3);
+static void _effectDrawSparkBurstBillboard(const GfxCoord* coord, u16 frame, u32 packedSizePalette, s16 angle);
 
 /// Puts `obj`, one of the player's bodies, on the object list: a sphere of
 /// `radius` at `(x, y, z)` under `coord`, using the actor's `i`th motion context
@@ -1325,73 +1339,81 @@ u8 D_80113388[8] = {
 
 static const TaskFuncTable3 Gp_EffTask07States;
 
-void Gp_EffSprTask46(Task* arg0)
+void effectSpriteTask46(Task* task)
 {
-    EffectWork*           mem;
+    enum {
+        EFFECT_GROUND_DECAL_NEUTRAL_BRIGHTNESS = 128,
+        EFFECT_GROUND_DECAL_DIM_BRIGHTNESS     = 64,
+        EFFECT_GROUND_DECAL_GROW_STEP          = 6,
+        EFFECT_GROUND_DECAL_FADE_STEP          = 4,
+    };
+    EffectWork*           work;
     ModelObjectCoordBody* body;
     GfxCoord*             coord;
-    s16                   flag;
-    s32                   param;
+    s16                   effectControl;
+    s32                   paletteBits;
 
-    mem   = arg0->spawnArg2.pointer;
-    body  = arg0->extra.coordBody;
-    flag  = gRoomEffectState->effectControl;
-    coord = body->coord;
-    if (flag != ROOM_EFFECT_CONTROL_RUNNING) {
-        if (flag >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-            effectKillTask(mem, arg0);
+    work          = task->spawnArg2.pointer;
+    body          = task->extra.coordBody;
+    effectControl = gRoomEffectState->effectControl;
+    coord         = body->coord;
+    // Frozen effects still draw; cancellation retains the final draw after teardown.
+    if (effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+        if (effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
+            effectKillTask(work, task);
         }
-        Gp_DrawEffSprite46(coord, mem->scale, mem->period, mem->step);
+        _effectDrawGroundDecal(coord, work->scale, work->period, work->step);
         return;
     }
 
+    // Rotate the decal in its local ground plane, then grow, dim or release it.
     actorRenderComposeCoord(coord);
-    switch (arg0->state) {
-        case 0:
+    switch (task->state) {
+        case EFFECT_GROUND_DECAL_STATE_NEW:
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            gfxRotMatrixY(&coord->coord, (gRandomLcgState >> 16) & 0xFFF, 1);
+            gfxRotMatrixY(&coord->coord, (gRandomLcgState >> 16) & EFFECT_DRAW_ANGLE_MASK, GRAPHICS_ROTATION_REPLACE);
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            mem->angle          = arg0->spawnArg1.halves.low & 0xFFF;
-            param               = arg0->spawnArg1.halves.high;
-            mem->step           = param & 0xF;
-            if (arg0->spawnArg1.value & 0x20000000) {
-                mem->period = 0x80;
-                mem->scale  = mem->angle;
-                arg0->state = 4;
-            } else if (arg0->spawnArg1.value & 0x10000000) {
-                mem->period = 0x40;
-                mem->scale  = mem->angle;
-                arg0->state = 2;
+            work->angle         = task->spawnArg1.halves.low & EFFECT_DRAW_SIZE_MASK;
+            paletteBits         = task->spawnArg1.halves.high;
+            work->step          = paletteBits & 0xF;
+            if (task->spawnArg1.value & EFFECT_GROUND_DECAL_START_FULL_BRIGHT) {
+                work->period = EFFECT_GROUND_DECAL_NEUTRAL_BRIGHTNESS;
+                work->scale  = work->angle;
+                task->state  = EFFECT_GROUND_DECAL_STATE_HOLD;
+            } else if (task->spawnArg1.value & EFFECT_GROUND_DECAL_START_DIM) {
+                work->period = EFFECT_GROUND_DECAL_DIM_BRIGHTNESS;
+                work->scale  = work->angle;
+                task->state  = EFFECT_GROUND_DECAL_STATE_DIM;
             } else {
-                mem->period = 0x80;
-                mem->scale  = 0;
-                arg0->state = 1;
+                work->period = EFFECT_GROUND_DECAL_NEUTRAL_BRIGHTNESS;
+                work->scale  = 0;
+                task->state  = EFFECT_GROUND_DECAL_STATE_GROW;
             }
             break;
-        case 1:
-            Gp_DrawEffSprite46(coord, mem->scale, mem->period, mem->step);
-            if (mem->scale < mem->angle) {
-                mem->scale += 6;
+        case EFFECT_GROUND_DECAL_STATE_GROW:
+            _effectDrawGroundDecal(coord, work->scale, work->period, work->step);
+            if (work->scale < work->angle) {
+                work->scale += EFFECT_GROUND_DECAL_GROW_STEP;
             } else {
-                mem->scale  = mem->angle;
-                arg0->state = 2;
+                work->scale = work->angle;
+                task->state = EFFECT_GROUND_DECAL_STATE_DIM;
             }
             break;
-        case 2:
-            Gp_DrawEffSprite46(coord, mem->scale, mem->period, mem->step);
-            if (mem->period >= 0x41) {
-                mem->period--;
+        case EFFECT_GROUND_DECAL_STATE_DIM:
+            _effectDrawGroundDecal(coord, work->scale, work->period, work->step);
+            if (work->period >= EFFECT_GROUND_DECAL_DIM_BRIGHTNESS + 1) {
+                work->period--;
             }
             break;
-        case 3:
-            Gp_DrawEffSprite46(coord, mem->scale, mem->period, mem->step);
-            mem->period -= 4;
-            if (mem->period < 4) {
-                effectKillTask(mem, arg0);
+        case EFFECT_GROUND_DECAL_STATE_FADE:
+            _effectDrawGroundDecal(coord, work->scale, work->period, work->step);
+            work->period -= EFFECT_GROUND_DECAL_FADE_STEP;
+            if (work->period < EFFECT_GROUND_DECAL_FADE_STEP) {
+                effectKillTask(work, task);
             }
             break;
-        case 4:
-            Gp_DrawEffSprite46(coord, mem->scale, mem->period, mem->step);
+        case EFFECT_GROUND_DECAL_STATE_HOLD:
+            _effectDrawGroundDecal(coord, work->scale, work->period, work->step);
             break;
     }
 }
@@ -1446,27 +1468,22 @@ static void Gp_DrawEffSprite81(Task* arg0)
     SCRATCH_STACK_RELEASE_BLOCK(EffectCentreScratch);
 }
 
-static void Gp_DrawEffSprite46(GfxCoord* arg0, s32 arg1, s16 arg2, u16 arg3)
+/// Draws an additive 56-texel ground decal in a composed coordinate's local XZ plane.
+///
+/// halfSize is the half-side in coordinate units. Corners are narrowed to s16
+/// after rotation and translation; sign products must fit s32. brightness supplies the low byte of each
+/// RGB channel (128 is neutral); palette selects CLUT X = 16 + 272 * palette
+/// on row 266. The coordinate is borrowed; no pointer survives this call.
+/// Only the final RTPT FLAG rejects the quad; ordering uses corner 3's SZ3 / 4
+/// plus 32. The caller supplies GTE projection settings and a live GPU arena.
+/// Projects the decal's four prepared world corners to screen pixels.
+///
+/// Borrows a live, word-aligned quadScratch with all XYZ components initialized
+/// in GPU strip order. The caller loads GsWSMATRIX translation and the GTE
+/// projection settings. Stores corner 0 before RTPT replaces the screen FIFO;
+/// only RTPT flags survive. Leaves corner 3 depth in SZ3 and depth untouched.
+static inline void _effectProjectGroundDecalCorners(EffectQuadScratch* quadScratch)
 {
-    EffectQuadScratch* quadScratch;
-    s32                i;
-    POLY_FT4*          prim;
-
-    quadScratch = SCRATCH_STACK_RESERVE_BLOCK(EffectQuadScratch);
-    for (i = 0; i < ARRAY_SIZE(D_80111E38); i++) {
-        quadScratch->vertices[i].vx = (u16)D_80111E38[i].axis0Sign * arg1;
-        quadScratch->vertices[i].vy = 0;
-        quadScratch->vertices[i].vz = (u16)D_80111E38[i].axis1Sign * arg1;
-        gte_SetRotMatrix(&arg0->workm);
-        gte_ldv0(&quadScratch->vertices[i]);
-        gte_rtv0();
-        gte_stsv(&quadScratch->vertices[i]);
-        quadScratch->vertices[i].vx += arg0->workm.t[0];
-        quadScratch->vertices[i].vy += arg0->workm.t[1];
-        quadScratch->vertices[i].vz += arg0->workm.t[2];
-    }
-
-    gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&quadScratch->vertices[0]);
     gte_rtps();
@@ -1475,36 +1492,70 @@ static void Gp_DrawEffSprite46(GfxCoord* arg0, s32 arg1, s16 arg2, u16 arg3)
     gte_rtpt();
     gte_stsxy3(&quadScratch->screenCorners[1], &quadScratch->screenCorners[2], &quadScratch->screenCorners[3]);
     gte_stflg(&quadScratch->projectionFlags);
+}
+
+static void _effectDrawGroundDecal(const GfxCoord* coord, s32 halfSize, s16 brightness, u16 palette)
+{
+    enum {
+        EFFECT_GROUND_DECAL_DEPTH_BIAS    = 32,
+        EFFECT_GROUND_DECAL_TEXTURE_PAGE  = getTPage(0, GPU_BLEND_ADD, 576, 0),
+        EFFECT_GROUND_DECAL_TEXTURE_V     = 200,
+        EFFECT_GROUND_DECAL_UV_SPAN       = 55,
+        EFFECT_GROUND_DECAL_CLUT_X        = 16,
+        EFFECT_GROUND_DECAL_CLUT_X_STRIDE = 272,
+        EFFECT_GROUND_DECAL_CLUT_Y        = 266,
+    };
+    EffectQuadScratch* quadScratch;
+    s32                cornerIndex;
+    POLY_FT4*          quad;
+
+    quadScratch = SCRATCH_STACK_RESERVE_BLOCK(EffectQuadScratch);
+    // Transform local XZ corners into narrowed world coordinates.
+    for (cornerIndex = 0; cornerIndex < ARRAY_SIZE(D_80111E38); cornerIndex++) {
+        quadScratch->vertices[cornerIndex].vx = (u16)D_80111E38[cornerIndex].axis0Sign * halfSize;
+        quadScratch->vertices[cornerIndex].vy = 0;
+        quadScratch->vertices[cornerIndex].vz = (u16)D_80111E38[cornerIndex].axis1Sign * halfSize;
+        gte_SetRotMatrix(&coord->workm);
+        gte_ldv0(&quadScratch->vertices[cornerIndex]);
+        gte_rtv0();
+        gte_stsv(&quadScratch->vertices[cornerIndex]);
+        quadScratch->vertices[cornerIndex].vx += coord->workm.t[0];
+        quadScratch->vertices[cornerIndex].vy += coord->workm.t[1];
+        quadScratch->vertices[cornerIndex].vz += coord->workm.t[2];
+    }
+
+    gte_SetTransMatrix(&GsWSMATRIX);
+    _effectProjectGroundDecalCorners(quadScratch);
     if (quadScratch->projectionFlags >= 0) {
         gte_stszotz(&quadScratch->depth);
-        quadScratch->depth += 0x20;
-        prim                = gGpuPrimCursor;
-        gGpuPrimCursor      = prim + 1;
-        setlen(prim, 9);
-        setcode(prim, 0x2E);
-        prim->tpage = 0x29;
-        prim->clut  = getClut(arg3 * 0x110 + 0x10, 0x10A);
-        prim->v0    = 0xC8;
-        prim->v1    = 0xC8;
-        prim->r0    = arg2;
-        prim->g0    = arg2;
-        prim->b0    = arg2;
-        prim->u0    = 0;
-        prim->u1    = 0x37;
-        prim->u2    = 0;
-        prim->v2    = 0xFF;
-        prim->u3    = 0x37;
-        prim->v3    = 0xFF;
-        prim->x0    = quadScratch->screenCorners[0].vx;
-        prim->y0    = quadScratch->screenCorners[0].vy;
-        prim->x1    = quadScratch->screenCorners[1].vx;
-        prim->y1    = quadScratch->screenCorners[1].vy;
-        prim->x2    = quadScratch->screenCorners[2].vx;
-        prim->y2    = quadScratch->screenCorners[2].vy;
-        prim->x3    = quadScratch->screenCorners[3].vx;
-        prim->y3    = quadScratch->screenCorners[3].vy;
+        quadScratch->depth += EFFECT_GROUND_DECAL_DEPTH_BIAS;
+        quad                = gGpuPrimCursor;
+        gGpuPrimCursor      = quad + 1;
+        setlen(quad, EFFECT_DRAW_TEXTURED_QUAD_PACKET_WORDS);
+        setcode(quad, EFFECT_DRAW_ADDITIVE_TEXTURED_QUAD);
+        quad->tpage = EFFECT_GROUND_DECAL_TEXTURE_PAGE;
+        quad->clut  = getClut(palette * EFFECT_GROUND_DECAL_CLUT_X_STRIDE + EFFECT_GROUND_DECAL_CLUT_X, EFFECT_GROUND_DECAL_CLUT_Y);
+        quad->v0    = EFFECT_GROUND_DECAL_TEXTURE_V;
+        quad->v1    = EFFECT_GROUND_DECAL_TEXTURE_V;
+        quad->r0    = brightness;
+        quad->g0    = brightness;
+        quad->b0    = brightness;
+        quad->u0    = 0;
+        quad->u1    = EFFECT_GROUND_DECAL_UV_SPAN;
+        quad->u2    = 0;
+        quad->v2    = EFFECT_GROUND_DECAL_TEXTURE_V + EFFECT_GROUND_DECAL_UV_SPAN;
+        quad->u3    = EFFECT_GROUND_DECAL_UV_SPAN;
+        quad->v3    = EFFECT_GROUND_DECAL_TEXTURE_V + EFFECT_GROUND_DECAL_UV_SPAN;
+        quad->x0    = quadScratch->screenCorners[0].vx;
+        quad->y0    = quadScratch->screenCorners[0].vy;
+        quad->x1    = quadScratch->screenCorners[1].vx;
+        quad->y1    = quadScratch->screenCorners[1].vy;
+        quad->x2    = quadScratch->screenCorners[2].vx;
+        quad->y2    = quadScratch->screenCorners[2].vy;
+        quad->x3    = quadScratch->screenCorners[3].vx;
+        quad->y3    = quadScratch->screenCorners[3].vy;
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)quadScratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
+                quad);
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectQuadScratch);
 }
@@ -1612,247 +1663,302 @@ void Gp_EffSprTask81(Task* arg0)
     }
 }
 
-void Gp_EffSprTask55(Task* arg0)
+void effectSpriteTask55(Task* task)
 {
-    EffectWork*         mem;
+    enum {
+        EFFECT_PUFF_CLUT_BASE            = getClut(16, 266),
+        EFFECT_PUFF_CLUT_PALETTE_STRIDE  = 14,
+        EFFECT_PUFF_CLUT_OFFSET_MASK     = 0x42BE,
+        EFFECT_PUFF_PALETTE_SHIFT        = 28,
+        EFFECT_PUFF_TEXTURE_PAGE_BASE    = getTPage(0, GPU_BLEND_AVERAGE, 576, 0),
+        EFFECT_PUFF_VELOCITY_SCALE_SHIFT = 2,
+        EFFECT_PUFF_DEFAULT_SIZE         = 512,
+        EFFECT_PUFF_CELL_SIZE            = 32,
+        EFFECT_PUFF_TEXTURE_V            = 120,
+        EFFECT_PUFF_FRAME_COUNT          = 8,
+        EFFECT_PUFF_RANDOM_VELOCITY      = 0x100000,
+        EFFECT_PUFF_SCALE_VELOCITY       = 0x01000000,
+        EFFECT_PUFF_GRAVITY              = 6,
+        EFFECT_PUFF_INITIAL_LIFT         = 24,
+        EFFECT_PUFF_PERIOD_MASK          = 0xF000,
+        EFFECT_PUFF_PALETTE_BIT          = 0x10000000,
+    };
+    EffectWork*         work;
     GfxCoord*           coord;
-    EffectShapeScratch* block;
-    POLY_FT4*           prim;
-    s16                 flag;
-    s32                 t;
-    s32                 amt;
-    s32                 rng;
-    s32                 temp;
-    s32                 pal;
-    SVECTOR*            vec;
+    EffectShapeScratch* scratch;
+    POLY_FT4*           quad;
+    s16                 effectControl;
+    s32                 requestedSize;
+    s32                 size;
+    s32                 randomState;
+    s32                 ticksPerFrame;
+    s32                 blendBits;
+    SVECTOR*            velocity;
 
-    mem   = arg0->spawnArg2.pointer;
-    flag  = gRoomEffectState->effectControl;
-    coord = arg0->extra.coordBody->coord;
-    if (flag >= ROOM_EFFECT_CONTROL_HIDDEN) {
-        if (flag < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
+/// Writes rotated screen corners using the live scratch, quad and work locals.
+///
+/// Use as a standalone statement in a braced block. Captures those three
+/// locals and the enclosing task's cell-size constant, retains repeated field
+/// reads and narrows each offset before adding it to the projected origin.
+#define EFFECT_HIT_PUFF_SET_CORNERS()                                                                                                                                        \
+    scratch->extent.corner.x = (((work->scale * (EFFECT_PUFF_CELL_SIZE - 1)) / scratch->depth) * rsin(work->angle)) >> EFFECT_DRAW_FRACTION_BITS;                            \
+    scratch->extent.corner.y = (((work->scale * (EFFECT_PUFF_CELL_SIZE - 1)) / scratch->depth) * rcos(work->angle)) >> EFFECT_DRAW_FRACTION_BITS;                            \
+    quad->x0                 = scratch->screenX + (u16)scratch->extent.corner.x;                                                                                             \
+    quad->x3                 = scratch->screenX - (u16)scratch->extent.corner.x;                                                                                             \
+    quad->y0                 = scratch->screenY - (u16)scratch->extent.corner.y;                                                                                             \
+    quad->y3                 = scratch->screenY + (u16)scratch->extent.corner.y;                                                                                             \
+    scratch->extent.corner.x = (((work->scale * (EFFECT_PUFF_CELL_SIZE - 1)) / scratch->depth) * rsin(work->angle + EFFECT_DRAW_QUARTER_TURN)) >> EFFECT_DRAW_FRACTION_BITS; \
+    scratch->extent.corner.y = (((work->scale * (EFFECT_PUFF_CELL_SIZE - 1)) / scratch->depth) * rcos(work->angle + EFFECT_DRAW_QUARTER_TURN)) >> EFFECT_DRAW_FRACTION_BITS; \
+    quad->x1                 = scratch->screenX + (u16)scratch->extent.corner.x;                                                                                             \
+    quad->x2                 = scratch->screenX - (u16)scratch->extent.corner.x;                                                                                             \
+    quad->y1                 = scratch->screenY - (u16)scratch->extent.corner.y;                                                                                             \
+    quad->y2                 = scratch->screenY + (u16)scratch->extent.corner.y;
+
+    work          = task->spawnArg2.pointer;
+    effectControl = gRoomEffectState->effectControl;
+    coord         = task->extra.coordBody->coord;
+    if (effectControl >= ROOM_EFFECT_CONTROL_HIDDEN) {
+        if (effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             return;
         }
-        effectKillTask(mem, arg0);
+        effectKillTask(work, task);
     } else {
         actorRenderComposeCoord(coord);
-        block                = SCRATCH_STACK_RESERVE_BLOCK(EffectShapeScratch);
-        block->worldPoint.vx = coord->workm.t[0];
-        block->worldPoint.vy = coord->workm.t[1];
-        block->worldPoint.vz = coord->workm.t[2];
+        scratch                = SCRATCH_STACK_RESERVE_BLOCK(EffectShapeScratch);
+        scratch->worldPoint.vx = coord->workm.t[0];
+        scratch->worldPoint.vy = coord->workm.t[1];
+        scratch->worldPoint.vz = coord->workm.t[2];
         gte_SetTransMatrix(&GsWSMATRIX);
         gte_SetRotMatrix(&GsWSMATRIX);
-        gte_ldv0(&block->worldPoint);
+        gte_ldv0(&scratch->worldPoint);
         gte_rtps();
-        gte_stsxy(&block->screenX);
-        gte_stflg(&block->projectionFlags);
-        if (block->projectionFlags >= 0) {
-            gte_stszotz(&block->depth);
-            prim           = gGpuPrimCursor;
-            block->depth   = block->depth + 1;
-            gGpuPrimCursor = prim + 1;
-            setlen(prim, 9);
-            setcode(prim, 0x2C);
-            if (arg0->state == 0) {
-                t   = (u16)arg0->spawnArg1.value & 0xFFF;
-                amt = 0x200;
-                if (t != 0) {
-                    amt = t;
+        gte_stsxy(&scratch->screenX);
+        gte_stflg(&scratch->projectionFlags);
+        if (scratch->projectionFlags >= 0) {
+            gte_stszotz(&scratch->depth);
+            quad           = gGpuPrimCursor;
+            scratch->depth = scratch->depth + 1;
+            gGpuPrimCursor = quad + 1;
+            setlen(quad, EFFECT_DRAW_TEXTURED_QUAD_PACKET_WORDS);
+            setcode(quad, EFFECT_DRAW_TEXTURED_QUAD);
+            // Initialize on the first accepted projection, before the first texture frame.
+            if (task->state == EFFECT_DRAW_TASK_NEW) {
+                requestedSize = (u16)task->spawnArg1.value & EFFECT_DRAW_SIZE_MASK;
+                size          = EFFECT_PUFF_DEFAULT_SIZE;
+                if (requestedSize != 0) {
+                    size = requestedSize;
                 }
-                rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->scale      = amt;
-                mem->angle      = ((u32)rng >> 16) & 0xFFF;
-                temp            = ((u16)arg0->spawnArg1.value & 0xF000) << 16;
-                gRandomLcgState = rng;
-                if (temp != 0) {
-                    temp = temp >> 28;
+                randomState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                work->scale     = size;
+                work->angle     = ((u32)randomState >> 16) & EFFECT_DRAW_ANGLE_MASK;
+                ticksPerFrame   = ((u16)task->spawnArg1.value & EFFECT_PUFF_PERIOD_MASK) << 16;
+                gRandomLcgState = randomState;
+                if (ticksPerFrame != 0) {
+                    ticksPerFrame = ticksPerFrame >> 28;
                 } else {
-                    temp = 1;
+                    ticksPerFrame = 1;
                 }
-                mem->period   = temp;
-                pal           = arg0->spawnArg1.halves.high;
-                mem->step     = pal & 3;
-                mem->index    = (arg0->spawnArg1.value >> 28) & 1;
-                mem->move.vx += ((mem->angle & 0xF) * rsin(mem->angle)) >> 12;
-                mem->move.vy -= 0x18;
-                mem->move.vz += ((mem->angle & 0xF) * rcos(mem->angle)) >> 12;
-                if (arg0->spawnArg1.value & 0x100000) {
+                work->period   = ticksPerFrame;
+                blendBits      = task->spawnArg1.halves.high;
+                work->step     = blendBits & 3;
+                work->index    = (task->spawnArg1.value >> EFFECT_PUFF_PALETTE_SHIFT) & 1;
+                work->move.vx += ((work->angle & 0xF) * rsin(work->angle)) >> EFFECT_DRAW_FRACTION_BITS;
+                work->move.vy -= EFFECT_PUFF_INITIAL_LIFT;
+                work->move.vz += ((work->angle & 0xF) * rcos(work->angle)) >> EFFECT_DRAW_FRACTION_BITS;
+                if (task->spawnArg1.value & EFFECT_PUFF_RANDOM_VELOCITY) {
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    mem->move.vx    = ((gRandomLcgState >> 16) & 0x1F) - 0x10;
+                    work->move.vx   = ((gRandomLcgState >> 16) & 0x1F) - 0x10;
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    mem->move.vy    = ((gRandomLcgState >> 16) & 0x1F) - 0x10;
+                    work->move.vy   = ((gRandomLcgState >> 16) & 0x1F) - 0x10;
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    mem->move.vz    = ((gRandomLcgState >> 16) & 0x1F) - 0x10;
+                    work->move.vz   = ((gRandomLcgState >> 16) & 0x1F) - 0x10;
                 }
-                if (arg0->spawnArg1.value & 0x01000000) {
-                    gte_lddp(mem->scale << 2);
-                    vec = &mem->move;
-                    gte_ldsv(vec);
+                if (task->spawnArg1.value & EFFECT_PUFF_SCALE_VELOCITY) {
+                    gte_lddp(work->scale << EFFECT_PUFF_VELOCITY_SCALE_SHIFT);
+                    velocity = &work->move;
+                    gte_ldsv(velocity);
                     gte_gpf12();
-                    gte_stsv(vec);
+                    gte_stsv(velocity);
                 }
-                arg0->state = 1;
+                task->state = EFFECT_DRAW_TASK_ACTIVE;
             }
-            prim->code            |= 3;
-            prim->tpage            = ((mem->step & 3) << 5) | 9;
-            prim->clut             = ((mem->index * 14) & 0x42BE) | 0x4281;
-            prim->u0               = (mem->age / mem->period) << 5;
-            prim->v0               = 0x78;
-            prim->u1               = ((mem->age / mem->period) << 5) + 0x1F;
-            prim->v1               = 0x78;
-            prim->u2               = (mem->age / mem->period) << 5;
-            prim->v2               = 0x97;
-            prim->u3               = ((mem->age / mem->period) << 5) + 0x1F;
-            prim->v3               = 0x97;
-            block->extent.corner.x = (((mem->scale * 0x1F) / block->depth) * rsin(mem->angle)) >> 12;
-            block->extent.corner.y = (((mem->scale * 0x1F) / block->depth) * rcos(mem->angle)) >> 12;
-            prim->x0               = block->screenX + (u16)block->extent.corner.x;
-            prim->x3               = block->screenX - (u16)block->extent.corner.x;
-            prim->y0               = block->screenY - (u16)block->extent.corner.y;
-            prim->y3               = block->screenY + (u16)block->extent.corner.y;
-            block->extent.corner.x = (((mem->scale * 0x1F) / block->depth) * rsin(mem->angle + 0x400)) >> 12;
-            block->extent.corner.y = (((mem->scale * 0x1F) / block->depth) * rcos(mem->angle + 0x400)) >> 12;
-            prim->x1               = block->screenX + (u16)block->extent.corner.x;
-            prim->x2               = block->screenX - (u16)block->extent.corner.x;
-            prim->y1               = block->screenY - (u16)block->extent.corner.y;
-            prim->y2               = block->screenY + (u16)block->extent.corner.y;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
+            quad->code |= EFFECT_DRAW_RAW_TEXTURE | EFFECT_DRAW_SEMITRANSPARENT;
+            quad->tpage = ((work->step & 3) << 5) | EFFECT_PUFF_TEXTURE_PAGE_BASE;
+            quad->clut  = ((work->index * EFFECT_PUFF_CLUT_PALETTE_STRIDE) & EFFECT_PUFF_CLUT_OFFSET_MASK) | EFFECT_PUFF_CLUT_BASE;
+            quad->u0    = (work->age / work->period) * EFFECT_PUFF_CELL_SIZE;
+            quad->v0    = EFFECT_PUFF_TEXTURE_V;
+            quad->u1    = ((work->age / work->period) * EFFECT_PUFF_CELL_SIZE) + EFFECT_PUFF_CELL_SIZE - 1;
+            quad->v1    = EFFECT_PUFF_TEXTURE_V;
+            quad->u2    = (work->age / work->period) * EFFECT_PUFF_CELL_SIZE;
+            quad->v2    = EFFECT_PUFF_TEXTURE_V + EFFECT_PUFF_CELL_SIZE - 1;
+            quad->u3    = ((work->age / work->period) * EFFECT_PUFF_CELL_SIZE) + EFFECT_PUFF_CELL_SIZE - 1;
+            quad->v3    = EFFECT_PUFF_TEXTURE_V + EFFECT_PUFF_CELL_SIZE - 1;
+            EFFECT_HIT_PUFF_SET_CORNERS();
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                    quad);
         }
         SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);
         if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
             return;
         }
-        coord->coord.t[0]  += mem->move.vx;
-        coord->coord.t[1]  += mem->move.vy;
-        coord->coord.t[2]  += mem->move.vz;
+        // Motion and animation advance only while room effects are running.
+        coord->coord.t[0]  += work->move.vx;
+        coord->coord.t[1]  += work->move.vy;
+        coord->coord.t[2]  += work->move.vz;
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        mem->move.vy       += 6;
-        mem->age++;
-        if (mem->age > mem->period * 8 - 1) {
-            effectKillTask(mem, arg0);
+        work->move.vy      += EFFECT_PUFF_GRAVITY;
+        work->age++;
+        if (work->age > work->period * EFFECT_PUFF_FRAME_COUNT - 1) {
+            effectKillTask(work, task);
         }
     }
+#undef EFFECT_HIT_PUFF_SET_CORNERS
 }
 
-void Gp_EffSprTask42(Task* arg0)
+void effectSpriteTask42(Task* task)
 {
-    EffectWork*         mem;
+    enum {
+        EFFECT_PUFF_TEXTURE_PAGE_BASE     = getTPage(0, GPU_BLEND_AVERAGE, 576, 0),
+        EFFECT_PUFF_TEXTURE_U_WRAP_OFFSET = 128,
+        EFFECT_PUFF_VELOCITY_SCALE_SHIFT  = 2,
+        EFFECT_PUFF_DEFAULT_SIZE          = 512,
+        EFFECT_PUFF_CELL_SIZE             = 16,
+        EFFECT_PUFF_TEXTURE_V             = 184,
+        EFFECT_PUFF_FRAME_COUNT           = 8,
+        EFFECT_PUFF_RANDOM_VELOCITY       = 0x100000,
+        EFFECT_PUFF_SCALE_VELOCITY        = 0x01000000,
+        EFFECT_PUFF_GRAVITY               = 6,
+        EFFECT_PUFF_INITIAL_LIFT          = 24,
+        EFFECT_PUFF_PERIOD_MASK           = 0xF000,
+        EFFECT_PUFF_CLUT                  = getClut(80, 266),
+    };
+    EffectWork*         work;
     GfxCoord*           coord;
-    EffectShapeScratch* block;
-    POLY_FT4*           prim;
-    s16                 flag;
-    s32                 t;
-    s32                 amt;
-    s32                 rng;
-    s32                 temp;
-    s32                 pal;
-    SVECTOR*            vec;
+    EffectShapeScratch* scratch;
+    POLY_FT4*           quad;
+    s16                 effectControl;
+    s32                 requestedSize;
+    s32                 size;
+    s32                 randomState;
+    s32                 ticksPerFrame;
+    s32                 blendBits;
+    SVECTOR*            velocity;
 
-    mem   = arg0->spawnArg2.pointer;
-    flag  = gRoomEffectState->effectControl;
-    coord = arg0->extra.coordBody->coord;
-    if (flag >= ROOM_EFFECT_CONTROL_HIDDEN) {
-        if (flag < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
+/// Writes rotated screen corners using the live scratch, quad and work locals.
+///
+/// Use as a standalone statement in a braced block. Captures those three
+/// locals and the enclosing task's cell-size constant, retains repeated field
+/// reads and narrows each offset before adding it to the projected origin.
+#define EFFECT_TRAIL_PUFF_SET_CORNERS()                                                                                                                                      \
+    scratch->extent.corner.x = (((work->scale * (EFFECT_PUFF_CELL_SIZE - 1)) / scratch->depth) * rsin(work->angle)) >> EFFECT_DRAW_FRACTION_BITS;                            \
+    scratch->extent.corner.y = (((work->scale * (EFFECT_PUFF_CELL_SIZE - 1)) / scratch->depth) * rcos(work->angle)) >> EFFECT_DRAW_FRACTION_BITS;                            \
+    quad->x0                 = scratch->screenX + (u16)scratch->extent.corner.x;                                                                                             \
+    quad->x3                 = scratch->screenX - (u16)scratch->extent.corner.x;                                                                                             \
+    quad->y0                 = scratch->screenY - (u16)scratch->extent.corner.y;                                                                                             \
+    quad->y3                 = scratch->screenY + (u16)scratch->extent.corner.y;                                                                                             \
+    scratch->extent.corner.x = (((work->scale * (EFFECT_PUFF_CELL_SIZE - 1)) / scratch->depth) * rsin(work->angle + EFFECT_DRAW_QUARTER_TURN)) >> EFFECT_DRAW_FRACTION_BITS; \
+    scratch->extent.corner.y = (((work->scale * (EFFECT_PUFF_CELL_SIZE - 1)) / scratch->depth) * rcos(work->angle + EFFECT_DRAW_QUARTER_TURN)) >> EFFECT_DRAW_FRACTION_BITS; \
+    quad->x1                 = scratch->screenX + (u16)scratch->extent.corner.x;                                                                                             \
+    quad->x2                 = scratch->screenX - (u16)scratch->extent.corner.x;                                                                                             \
+    quad->y1                 = scratch->screenY - (u16)scratch->extent.corner.y;                                                                                             \
+    quad->y2                 = scratch->screenY + (u16)scratch->extent.corner.y;
+
+    work          = task->spawnArg2.pointer;
+    effectControl = gRoomEffectState->effectControl;
+    coord         = task->extra.coordBody->coord;
+    if (effectControl >= ROOM_EFFECT_CONTROL_HIDDEN) {
+        if (effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             return;
         }
-        effectKillTask(mem, arg0);
+        effectKillTask(work, task);
     } else {
         actorRenderComposeCoord(coord);
-        block                = SCRATCH_STACK_RESERVE_BLOCK(EffectShapeScratch);
-        block->worldPoint.vx = coord->workm.t[0];
-        block->worldPoint.vy = coord->workm.t[1];
-        block->worldPoint.vz = coord->workm.t[2];
+        scratch                = SCRATCH_STACK_RESERVE_BLOCK(EffectShapeScratch);
+        scratch->worldPoint.vx = coord->workm.t[0];
+        scratch->worldPoint.vy = coord->workm.t[1];
+        scratch->worldPoint.vz = coord->workm.t[2];
         gte_SetTransMatrix(&GsWSMATRIX);
         gte_SetRotMatrix(&GsWSMATRIX);
-        gte_ldv0(&block->worldPoint);
+        gte_ldv0(&scratch->worldPoint);
         gte_rtps();
-        gte_stsxy(&block->screenX);
-        gte_stflg(&block->projectionFlags);
-        if (block->projectionFlags >= 0) {
-            gte_stszotz(&block->depth);
-            prim           = gGpuPrimCursor;
-            block->depth   = block->depth + 1;
-            gGpuPrimCursor = prim + 1;
-            setlen(prim, 9);
-            setcode(prim, 0x2C);
-            if (arg0->state == 0) {
-                t   = (u16)arg0->spawnArg1.value & 0xFFF;
-                amt = 0x200;
-                if (t != 0) {
-                    amt = t;
+        gte_stsxy(&scratch->screenX);
+        gte_stflg(&scratch->projectionFlags);
+        if (scratch->projectionFlags >= 0) {
+            gte_stszotz(&scratch->depth);
+            quad           = gGpuPrimCursor;
+            scratch->depth = scratch->depth + 1;
+            gGpuPrimCursor = quad + 1;
+            setlen(quad, EFFECT_DRAW_TEXTURED_QUAD_PACKET_WORDS);
+            setcode(quad, EFFECT_DRAW_TEXTURED_QUAD);
+            // Initialize on the first accepted projection, before the first texture frame.
+            if (task->state == EFFECT_DRAW_TASK_NEW) {
+                requestedSize = (u16)task->spawnArg1.value & EFFECT_DRAW_SIZE_MASK;
+                size          = EFFECT_PUFF_DEFAULT_SIZE;
+                if (requestedSize != 0) {
+                    size = requestedSize;
                 }
-                rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->scale      = amt;
-                mem->angle      = ((u32)rng >> 16) & 0xFFF;
-                temp            = ((u16)arg0->spawnArg1.value & 0xF000) << 16;
-                gRandomLcgState = rng;
-                if (temp != 0) {
-                    temp = temp >> 28;
+                randomState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                work->scale     = size;
+                work->angle     = ((u32)randomState >> 16) & EFFECT_DRAW_ANGLE_MASK;
+                ticksPerFrame   = ((u16)task->spawnArg1.value & EFFECT_PUFF_PERIOD_MASK) << 16;
+                gRandomLcgState = randomState;
+                if (ticksPerFrame != 0) {
+                    ticksPerFrame = ticksPerFrame >> 28;
                 } else {
-                    temp = 1;
+                    ticksPerFrame = 1;
                 }
-                mem->period  = temp;
-                pal          = arg0->spawnArg1.halves.high;
-                mem->step    = pal & 3;
-                mem->move.vy = mem->move.vy - 0x18;
-                if (arg0->spawnArg1.value & 0x100000) {
+                work->period  = ticksPerFrame;
+                blendBits     = task->spawnArg1.halves.high;
+                work->step    = blendBits & 3;
+                work->move.vy = work->move.vy - EFFECT_PUFF_INITIAL_LIFT;
+                if (task->spawnArg1.value & EFFECT_PUFF_RANDOM_VELOCITY) {
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    mem->move.vx    = ((gRandomLcgState >> 16) & 0x1F) - 0x10;
+                    work->move.vx   = ((gRandomLcgState >> 16) & 0x1F) - 0x10;
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    mem->move.vy    = ((gRandomLcgState >> 16) & 0x1F) - 0x10;
+                    work->move.vy   = ((gRandomLcgState >> 16) & 0x1F) - 0x10;
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    mem->move.vz    = ((gRandomLcgState >> 16) & 0x1F) - 0x10;
+                    work->move.vz   = ((gRandomLcgState >> 16) & 0x1F) - 0x10;
                 }
-                if (arg0->spawnArg1.value & 0x01000000) {
-                    gte_lddp(mem->scale << 2);
-                    vec = &mem->move;
-                    gte_ldsv(vec);
+                if (task->spawnArg1.value & EFFECT_PUFF_SCALE_VELOCITY) {
+                    gte_lddp(work->scale << EFFECT_PUFF_VELOCITY_SCALE_SHIFT);
+                    velocity = &work->move;
+                    gte_ldsv(velocity);
                     gte_gpf12();
-                    gte_stsv(vec);
+                    gte_stsv(velocity);
                 }
-                arg0->state = 1;
+                task->state = EFFECT_DRAW_TASK_ACTIVE;
             }
-            prim->code            |= 3;
-            prim->tpage            = ((mem->step & 3) << 5) | 9;
-            prim->clut             = 0x4285;
-            prim->u0               = (mem->age / mem->period) * 0x10 - 0x80;
-            prim->v0               = 0xB8;
-            prim->u1               = (mem->age / mem->period) * 0x10 - 0x71;
-            prim->v1               = 0xB8;
-            prim->u2               = (mem->age / mem->period) * 0x10 - 0x80;
-            prim->v2               = 0xC7;
-            prim->u3               = (mem->age / mem->period) * 0x10 - 0x71;
-            prim->v3               = 0xC7;
-            block->extent.corner.x = (((mem->scale * 15) / block->depth) * rsin(mem->angle)) >> 12;
-            block->extent.corner.y = (((mem->scale * 15) / block->depth) * rcos(mem->angle)) >> 12;
-            prim->x0               = block->screenX + (u16)block->extent.corner.x;
-            prim->x3               = block->screenX - (u16)block->extent.corner.x;
-            prim->y0               = block->screenY - (u16)block->extent.corner.y;
-            prim->y3               = block->screenY + (u16)block->extent.corner.y;
-            block->extent.corner.x = (((mem->scale * 15) / block->depth) * rsin(mem->angle + 0x400)) >> 12;
-            block->extent.corner.y = (((mem->scale * 15) / block->depth) * rcos(mem->angle + 0x400)) >> 12;
-            prim->x1               = block->screenX + (u16)block->extent.corner.x;
-            prim->x2               = block->screenX - (u16)block->extent.corner.x;
-            prim->y1               = block->screenY - (u16)block->extent.corner.y;
-            prim->y2               = block->screenY + (u16)block->extent.corner.y;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
+            quad->code |= EFFECT_DRAW_RAW_TEXTURE | EFFECT_DRAW_SEMITRANSPARENT;
+            quad->tpage = ((work->step & 3) << 5) | EFFECT_PUFF_TEXTURE_PAGE_BASE;
+            quad->clut  = EFFECT_PUFF_CLUT;
+            quad->u0    = (work->age / work->period) * EFFECT_PUFF_CELL_SIZE - EFFECT_PUFF_TEXTURE_U_WRAP_OFFSET;
+            quad->v0    = EFFECT_PUFF_TEXTURE_V;
+            quad->u1    = (work->age / work->period) * EFFECT_PUFF_CELL_SIZE - EFFECT_PUFF_TEXTURE_U_WRAP_OFFSET + EFFECT_PUFF_CELL_SIZE - 1;
+            quad->v1    = EFFECT_PUFF_TEXTURE_V;
+            quad->u2    = (work->age / work->period) * EFFECT_PUFF_CELL_SIZE - EFFECT_PUFF_TEXTURE_U_WRAP_OFFSET;
+            quad->v2    = EFFECT_PUFF_TEXTURE_V + EFFECT_PUFF_CELL_SIZE - 1;
+            quad->u3    = (work->age / work->period) * EFFECT_PUFF_CELL_SIZE - EFFECT_PUFF_TEXTURE_U_WRAP_OFFSET + EFFECT_PUFF_CELL_SIZE - 1;
+            quad->v3    = EFFECT_PUFF_TEXTURE_V + EFFECT_PUFF_CELL_SIZE - 1;
+            EFFECT_TRAIL_PUFF_SET_CORNERS();
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                    quad);
         }
         SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);
         if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
             return;
         }
-        coord->coord.t[0]  += mem->move.vx;
-        coord->coord.t[1]  += mem->move.vy;
-        coord->coord.t[2]  += mem->move.vz;
+        // Motion and animation advance only while room effects are running.
+        coord->coord.t[0]  += work->move.vx;
+        coord->coord.t[1]  += work->move.vy;
+        coord->coord.t[2]  += work->move.vz;
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        mem->move.vy       += 6;
-        mem->age++;
-        if (mem->age > mem->period * 8 - 1) {
-            effectKillTask(mem, arg0);
+        work->move.vy      += EFFECT_PUFF_GRAVITY;
+        work->age++;
+        if (work->age > work->period * EFFECT_PUFF_FRAME_COUNT - 1) {
+            effectKillTask(work, task);
         }
     }
+#undef EFFECT_TRAIL_PUFF_SET_CORNERS
 }
 
 void func_800F91AC(Task* arg0)
@@ -2411,169 +2517,214 @@ void func_800FAA14(Task* arg0)
     }
 }
 
-void Gp_EffCtlTask32(Task* arg0)
+/// Places and composes the charge particle on its player-relative orbit.
+///
+/// coord and its parent must be live; work supplies horizontal radius, height
+/// and bob phase. orbitAngle uses 4096 units per turn. The display frame drives
+/// the 96-unit vertical bob. Borrows both inputs and leaves work unchanged.
+static inline void _effectPositionChargeParticle(GfxCoord* coord, const EffectWork* work, s16 orbitAngle)
 {
-    EffectWork* mem;
-    GfxCoord*   coord;
-    GfxCoord*   parent;
-    MATRIX*     m;
-    s16         angle;
-    s16         temp;
-    s32         state;
-    s32         lcg;
-    u32         lcg2;
-    u16         step;
-    s32         one;
-    s32         newState;
+    enum { EFFECT_CHARGE_PARTICLE_BOB_AMPLITUDE = 96 };
+    coord->coord.t[0] = (rcos(orbitAngle) * work->move.vx) >> EFFECT_DRAW_FRACTION_BITS;
+    coord->coord.t[1] =
+        work->move.vy +
+        ((rsin((gDisplayState.animFrame + work->scale) << 6) * EFFECT_CHARGE_PARTICLE_BOB_AMPLITUDE) >> EFFECT_DRAW_FRACTION_BITS);
+    coord->coord.t[2]   = (rsin(orbitAngle) * work->move.vx) >> EFFECT_DRAW_FRACTION_BITS;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    actorRenderComposeCoord(coord);
+}
 
-    mem      = arg0->spawnArg2.pointer;
-    coord    = arg0->extra.coordBody->coord;
-    step     = mem->age + 1;
-    mem->age = step;
-    state    = arg0->state;
-    switch (state) {
-        case 0:
-            mem->angle      = 0x180;
-            mem->period     = 0x80;
-            mem->step       = 0x400;
-            lcg             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            lcg2            = lcg * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            temp            = ((lcg2 >> 0x10) & 0x3FF) - 0x200;
-            gRandomLcgState = lcg;
-            mem->scale      = ((u32)lcg >> 0x10) & 0xFFF;
-            gRandomLcgState = lcg2;
-            mem->move.vz    = temp;
-            mem->move.vx    = (rcos(temp) * mem->step) >> 0xC;
-            mem->move.vy    = ((rsin(mem->move.vz) * mem->step) >> 0xC) - 0x400;
-            parent =
+void effectSpriteTask32(Task* task)
+{
+    enum {
+        EFFECT_CHARGE_PARTICLE_SPRITE_SIZE        = 384,
+        EFFECT_CHARGE_PARTICLE_INITIAL_BRIGHTNESS = 128,
+        EFFECT_CHARGE_PARTICLE_INITIAL_RADIUS     = 1024,
+        EFFECT_CHARGE_PARTICLE_ELEVATION_MASK     = 1023,
+        EFFECT_CHARGE_PARTICLE_ELEVATION_BIAS     = 512,
+        EFFECT_CHARGE_PARTICLE_HEIGHT_OFFSET      = 1024,
+        EFFECT_CHARGE_PARTICLE_ANGLE_STEP         = 24,
+        EFFECT_CHARGE_PARTICLE_CONTRACT_STEP      = 128,
+        EFFECT_CHARGE_PARTICLE_CONTRACT_DURATION  = 8,
+        EFFECT_CHARGE_PARTICLE_FALL_STEP          = 64,
+        EFFECT_CHARGE_PARTICLE_FADE_STEP          = 10,
+        EFFECT_CHARGE_PARTICLE_SPRITE_BANK        = 0x1000,
+        EFFECT_CHARGE_PARTICLE_PALETTE_BITS       = 0x1000,
+        EFFECT_CHARGE_PARTICLE_STATE_NEW          = 0,
+        EFFECT_CHARGE_PARTICLE_STATE_ORBIT        = 1,
+        EFFECT_CHARGE_PARTICLE_STATE_CONTRACT     = 2,
+        EFFECT_CHARGE_PARTICLE_STATE_FALL         = 3,
+        EFFECT_CHARGE_PARTICLE_STATE_RELEASE      = 4,
+    };
+    EffectWork* work;
+    GfxCoord*   coord;
+    GfxCoord*   playerCoord;
+    MATRIX*     localMatrix;
+    s16         orbitAngle;
+    s16         elevationAngle;
+    s32         entryState;
+    s32         randomState;
+    u32         nextRandomState;
+    u16         nextAge;
+    s32         fixedOne;
+    s32         nextState;
+
+    work       = task->spawnArg2.pointer;
+    coord      = task->extra.coordBody->coord;
+    nextAge    = work->age + 1;
+    work->age  = nextAge;
+    entryState = task->state;
+    // Age and orbit advance independently of the ordinary room-effect pause.
+    switch (entryState) {
+        case EFFECT_CHARGE_PARTICLE_STATE_NEW:
+            work->angle     = EFFECT_CHARGE_PARTICLE_SPRITE_SIZE;
+            work->period    = EFFECT_CHARGE_PARTICLE_INITIAL_BRIGHTNESS;
+            work->step      = EFFECT_CHARGE_PARTICLE_INITIAL_RADIUS;
+            randomState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            nextRandomState = randomState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            elevationAngle  = ((nextRandomState >> 0x10) & EFFECT_CHARGE_PARTICLE_ELEVATION_MASK) - EFFECT_CHARGE_PARTICLE_ELEVATION_BIAS;
+            gRandomLcgState = randomState;
+            work->scale     = ((u32)randomState >> 0x10) & EFFECT_DRAW_ANGLE_MASK;
+            gRandomLcgState = nextRandomState;
+            work->move.vz   = elevationAngle;
+            work->move.vx   = (rcos(elevationAngle) * work->step) >> EFFECT_DRAW_FRACTION_BITS;
+            work->move.vy   = ((rsin(work->move.vz) * work->step) >> EFFECT_DRAW_FRACTION_BITS) - EFFECT_CHARGE_PARTICLE_HEIGHT_OFFSET;
+            playerCoord =
                 (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
-            one                  = ONE;
-            *(s32*)&coord->coord = one;
-            coord->parent        = parent;
-            m                    = &coord->coord;
-            MATRIX_PAIR(m, 0, 2) = 0;
-            MATRIX_PAIR(m, 1, 1) = one;
-            MATRIX_PAIR(m, 2, 0) = 0;
-            m->m[2][2]           = one;
-            angle                = (mem->age + mem->scale) * 0x18;
-            coord->coord.t[0]    = (rcos(angle) * mem->move.vx) >> 0xC;
-            coord->coord.t[1] =
-                mem->move.vy +
-                ((rsin((gDisplayState.animFrame + mem->scale) << 6) * 0x60) >> 0xC);
-            coord->coord.t[2]   = (rsin(angle) * mem->move.vx) >> 0xC;
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            actorRenderComposeCoord(coord);
-            arg0->state = 1;
+            fixedOne                         = ONE;
+            MATRIX_PAIR(&coord->coord, 0, 0) = fixedOne;
+            coord->parent                    = playerCoord;
+            localMatrix                      = &coord->coord;
+            MATRIX_PAIR(localMatrix, 0, 2)   = 0;
+            MATRIX_PAIR(localMatrix, 1, 1)   = fixedOne;
+            MATRIX_PAIR(localMatrix, 2, 0)   = 0;
+            localMatrix->m[2][2]             = fixedOne;
+            orbitAngle                       = (work->age + work->scale) * EFFECT_CHARGE_PARTICLE_ANGLE_STEP;
+            _effectPositionChargeParticle(coord, work, orbitAngle);
+            task->state = EFFECT_CHARGE_PARTICLE_STATE_ORBIT;
             if (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-                goto set_state_4;
+                goto release;
             }
             if (Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_CANCELLED) {
-                newState = 4;
-                goto set_state;
+                nextState = EFFECT_CHARGE_PARTICLE_STATE_RELEASE;
+                goto setState;
             }
             break;
-        case 1:
-            angle             = ((s16)step + mem->scale) * 0x18;
-            coord->coord.t[0] = (rcos(angle) * mem->move.vx) >> 0xC;
-            coord->coord.t[1] =
-                mem->move.vy +
-                ((rsin((gDisplayState.animFrame + mem->scale) << 6) * 0x60) >> 0xC);
-            coord->coord.t[2]   = (rsin(angle) * mem->move.vx) >> 0xC;
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            actorRenderComposeCoord(coord);
+        case EFFECT_CHARGE_PARTICLE_STATE_ORBIT:
+            orbitAngle = ((s16)nextAge + work->scale) * EFFECT_CHARGE_PARTICLE_ANGLE_STEP;
+            _effectPositionChargeParticle(coord, work, orbitAngle);
             if ((gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) || (Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_CANCELLED)) {
-                newState = 3;
-                goto set_state;
+                nextState = EFFECT_CHARGE_PARTICLE_STATE_FALL;
+                goto setState;
             }
-            if (Gp_StateC08.duration < 8) {
-                arg0->state = 2;
+            if (Gp_StateC08.duration < EFFECT_CHARGE_PARTICLE_CONTRACT_DURATION) {
+                task->state = EFFECT_CHARGE_PARTICLE_STATE_CONTRACT;
             }
             break;
-        case 2:
-            mem->step         = mem->step - 0x80;
-            angle             = ((s16)step + mem->scale) * 0x18;
-            mem->move.vx      = (rcos(mem->move.vz) * mem->step) >> 0xC;
-            mem->move.vy      = ((rsin(mem->move.vz) * mem->step) >> 0xC) - 0x400;
-            coord->coord.t[0] = (rcos(angle) * mem->move.vx) >> 0xC;
-            coord->coord.t[1] =
-                mem->move.vy +
-                ((rsin((gDisplayState.animFrame + mem->scale) << 6) * 0x60) >> 0xC);
-            coord->coord.t[2]   = (rsin(angle) * mem->move.vx) >> 0xC;
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            actorRenderComposeCoord(coord);
+        case EFFECT_CHARGE_PARTICLE_STATE_CONTRACT:
+            work->step    = work->step - EFFECT_CHARGE_PARTICLE_CONTRACT_STEP;
+            orbitAngle    = ((s16)nextAge + work->scale) * EFFECT_CHARGE_PARTICLE_ANGLE_STEP;
+            work->move.vx = (rcos(work->move.vz) * work->step) >> EFFECT_DRAW_FRACTION_BITS;
+            work->move.vy = ((rsin(work->move.vz) * work->step) >> EFFECT_DRAW_FRACTION_BITS) - EFFECT_CHARGE_PARTICLE_HEIGHT_OFFSET;
+            _effectPositionChargeParticle(coord, work, orbitAngle);
             if (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-                newState = 4;
-                goto set_state;
+                nextState = EFFECT_CHARGE_PARTICLE_STATE_RELEASE;
+                goto setState;
             }
-            if (mem->step < 0x80) {
-                newState = 4;
-                goto set_state;
+            if (work->step < EFFECT_CHARGE_PARTICLE_CONTRACT_STEP) {
+                nextState = EFFECT_CHARGE_PARTICLE_STATE_RELEASE;
+                goto setState;
             }
-            if (Gp_StateC08.effectPhase == state) {
-                newState = 4;
-                goto set_state;
+            if (Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_CANCELLED) {
+                nextState = EFFECT_CHARGE_PARTICLE_STATE_RELEASE;
+                goto setState;
             }
             break;
-        case 3:
+        case EFFECT_CHARGE_PARTICLE_STATE_FALL:
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            coord->coord.t[1]  += 0x40;
+            coord->coord.t[1]  += EFFECT_CHARGE_PARTICLE_FALL_STEP;
             actorRenderComposeCoord(coord);
-            if (mem->period < 0xB) {
-                newState = 4;
-                goto set_state;
+            if (work->period < EFFECT_CHARGE_PARTICLE_FADE_STEP + 1) {
+                nextState = EFFECT_CHARGE_PARTICLE_STATE_RELEASE;
+                goto setState;
             }
-            mem->period = mem->period - 0xA;
+            work->period = work->period - EFFECT_CHARGE_PARTICLE_FADE_STEP;
             break;
     }
     goto draw;
-set_state_4:
-    newState = 4;
-set_state:
-    arg0->state = newState;
+release:
+    nextState = EFFECT_CHARGE_PARTICLE_STATE_RELEASE;
+setState:
+    task->state = nextState;
 draw:
-    effectDrawModulatedBillboard(coord, mem->age, mem->angle | 0x1000,
-                                 mem->period | 0x1000);
-    if (arg0->state == 4) {
-        effectKillTask(mem, arg0);
+    effectDrawModulatedBillboard(coord, work->age, work->angle | EFFECT_CHARGE_PARTICLE_SPRITE_BANK,
+                                 work->period | EFFECT_CHARGE_PARTICLE_PALETTE_BITS);
+    if (task->state == EFFECT_CHARGE_PARTICLE_STATE_RELEASE) {
+        effectKillTask(work, task);
     }
 }
 
-void Gp_EffCtlTaskAE(Task* arg0)
+void effectControlTaskAE(Task* task)
 {
-    EffectWork* mem;
+    enum {
+        EFFECT_CHARGE_GLOW_PLAYER_JOINT     = 12,
+        EFFECT_CHARGE_GLOW_INITIAL_RADIUS   = 64,
+        EFFECT_CHARGE_GLOW_BRIGHTNESS_SCALE = 256,
+        EFFECT_CHARGE_GLOW_MAX_BRIGHTNESS   = 255,
+        EFFECT_CHARGE_GLOW_RADIUS_STEP      = 8,
+        EFFECT_CHARGE_GLOW_MAX_RADIUS       = 512,
+        EFFECT_CHARGE_GLOW_BAND_THRESHOLD   = 129,
+        EFFECT_CHARGE_GLOW_BAND_WIDTH       = 96,
+        EFFECT_CHARGE_GLOW_FADE_STEP        = 16,
+        EFFECT_CHARGE_GLOW_SHRINK_STEP      = 48,
+        EFFECT_CHARGE_GLOW_STATE_NEW        = 0,
+        EFFECT_CHARGE_GLOW_STATE_CHARGE     = 1,
+        EFFECT_CHARGE_GLOW_STATE_SHRINK     = 2,
+        EFFECT_CHARGE_GLOW_STATE_FADE       = 3,
+    };
+    EffectWork* work;
     GfxCoord*   coord;
-    GfxCoord*   parent;
-    MATRIX*     m;
-    s32         state;
-    s32         one;
-    s32         pan;
-    s16         temp;
+    GfxCoord*   playerCoords;
+    MATRIX*     localMatrix;
+    s32         entryState;
+    s32         fixedOne;
+    s32         audioPan;
+    s16         nextBrightness;
+    s16         nextRadius;
+    s16         nextBandBrightness;
     u8          rgb[3];
 
-    mem   = arg0->spawnArg2.pointer;
-    coord = arg0->extra.coordBody->coord;
-    state = arg0->state;
-    switch (state) {
-        case 0:
-            parent =
+// Packs RGB bytes from work->scale; captures rgb and work and reads brightness three times.
+#define EFFECT_CHARGE_GLOW_SET_COLOR() \
+    rgb[0] = work->scale;              \
+    rgb[1] = work->scale >> 1;         \
+    rgb[2] = work->scale >> 2;
+
+    work       = task->spawnArg2.pointer;
+    coord      = task->extra.coordBody->coord;
+    entryState = task->state;
+    // The charge sound and concentric glow follow the live attachment cast phase.
+    switch (entryState) {
+        case EFFECT_CHARGE_GLOW_STATE_NEW:
+            playerCoords =
                 (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
-            one                  = ONE;
-            *(s32*)&coord->coord = one;
-            coord->parent        = parent + 12;
-            m                    = &coord->coord;
-            MATRIX_PAIR(m, 0, 2) = 0;
-            MATRIX_PAIR(m, 1, 1) = one;
-            MATRIX_PAIR(m, 2, 0) = 0;
-            m->m[2][2]           = one;
-            coord->coord.t[0]    = 0;
-            coord->coord.t[1]    = 0;
-            coord->coord.t[2]    = 0;
-            coord->composeStamp  = GRAPHICS_COORD_DIRTY;
+            fixedOne                         = ONE;
+            MATRIX_PAIR(&coord->coord, 0, 0) = fixedOne;
+            coord->parent                    = playerCoords + EFFECT_CHARGE_GLOW_PLAYER_JOINT;
+            localMatrix                      = &coord->coord;
+            MATRIX_PAIR(localMatrix, 0, 2)   = 0;
+            MATRIX_PAIR(localMatrix, 1, 1)   = fixedOne;
+            MATRIX_PAIR(localMatrix, 2, 0)   = 0;
+            localMatrix->m[2][2]             = fixedOne;
+            coord->coord.t[0]                = 0;
+            coord->coord.t[1]                = 0;
+            coord->coord.t[2]                = 0;
+            coord->composeStamp              = GRAPHICS_COORD_DIRTY;
             actorRenderComposeCoord(coord);
-            arg0->state = 1;
-            mem->scale  = 0;
-            mem->angle  = 0x40;
-            mem->step   = 0x100 / arg0->spawnArg1.value;
+            task->state = EFFECT_CHARGE_GLOW_STATE_CHARGE;
+            work->scale = 0;
+            work->angle = EFFECT_CHARGE_GLOW_INITIAL_RADIUS;
+            work->step  = EFFECT_CHARGE_GLOW_BRIGHTNESS_SCALE / task->spawnArg1.value;
             if (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
                 goto kill;
             }
@@ -2583,145 +2734,148 @@ void Gp_EffCtlTaskAE(Task* arg0)
             if (gRoomEffectState->battleState != ROOM_EFFECT_BATTLE_ENGAGED) {
                 goto kill;
             }
-            arg0->spawnArg1.value = D_80112B94[((u16)(Gp_StateC08.attachId / 100U) - 1) * 9 +
+            task->spawnArg1.value = D_80112B94[((u16)(Gp_StateC08.attachId / 100U) - 1) * 9 +
                                                ((u16)((u16)(Gp_StateC08.attachId / 10U) % 10U) - 1) * 3 +
                                                ((u16)(Gp_StateC08.attachId % 10U) - 1U)];
-            pan                   = (s8)worldCoordGetOriginAudioPan(coord);
-            sndEvtRequestScriptStart(arg0->spawnArg1.value, pan, (s8)worldCoordGetOriginAudioDepth(coord));
+            audioPan              = (s8)worldCoordGetOriginAudioPan(coord);
+            sndEvtRequestScriptStart(task->spawnArg1.value, audioPan, (s8)worldCoordGetOriginAudioDepth(coord));
             return;
-        case 1:
+        case EFFECT_CHARGE_GLOW_STATE_CHARGE:
             actorRenderComposeCoord(coord);
-            temp       = mem->scale + mem->step;
-            mem->scale = temp;
-            if (temp >= 0x100) {
-                mem->scale = 0xFF;
+            nextBrightness = work->scale + work->step;
+            work->scale    = nextBrightness;
+            if (nextBrightness >= EFFECT_CHARGE_GLOW_BRIGHTNESS_SCALE) {
+                work->scale = EFFECT_CHARGE_GLOW_MAX_BRIGHTNESS;
             }
-            temp       = mem->angle + 8;
-            mem->angle = temp;
-            if (temp >= 0x201) {
-                mem->angle = 0x200;
+            nextRadius  = work->angle + EFFECT_CHARGE_GLOW_RADIUS_STEP;
+            work->angle = nextRadius;
+            if (nextRadius >= EFFECT_CHARGE_GLOW_MAX_RADIUS + 1) {
+                work->angle = EFFECT_CHARGE_GLOW_MAX_RADIUS;
             }
-            rgb[0] = mem->scale;
-            rgb[1] = mem->scale >> 1;
-            rgb[2] = mem->scale >> 2;
-            effectDrawGouraudDisc(coord, mem->angle, rgb);
-            effectDrawGouraudDisc(coord, (s16)(mem->angle << 1), rgb);
-            if (mem->scale >= 0x81) {
-                temp        = (mem->step << 1) + mem->period;
-                mem->period = temp;
-                if (temp >= 0x100) {
-                    mem->period = 0xFF;
+            EFFECT_CHARGE_GLOW_SET_COLOR();
+            effectDrawGouraudDisc(coord, work->angle, rgb);
+            effectDrawGouraudDisc(coord, (s16)(work->angle << 1), rgb);
+            if (work->scale >= EFFECT_CHARGE_GLOW_BAND_THRESHOLD) {
+                nextBandBrightness = (work->step << 1) + work->period;
+                work->period       = nextBandBrightness;
+                if (nextBandBrightness >= EFFECT_CHARGE_GLOW_BRIGHTNESS_SCALE) {
+                    work->period = EFFECT_CHARGE_GLOW_MAX_BRIGHTNESS;
                 }
-                rgb[0] = mem->period;
-                rgb[1] = mem->period >> 1;
-                rgb[2] = mem->period >> 2;
-                effectDrawOuterGlowBand(coord, ((u8)Gp_StateC08.duration << 24) >> 17, 0x60, rgb);
+                rgb[0] = work->period;
+                rgb[1] = work->period >> 1;
+                rgb[2] = work->period >> 2;
+                effectDrawOuterGlowBand(coord, ((u8)Gp_StateC08.duration << 24) >> 17, EFFECT_CHARGE_GLOW_BAND_WIDTH, rgb);
             }
             if (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-                goto snd7;
+                goto stopSound;
             }
             if (Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_CANCELLED) {
-                goto snd7;
+                goto stopSound;
             }
             if (gRoomEffectState->battleState != ROOM_EFFECT_BATTLE_ENGAGED) {
-                goto snd7;
+                goto stopSound;
             }
             if (Gp_StateC08.duration != 0) {
                 return;
             }
-            mem->scale  = 0xFF;
-            arg0->state = 2;
+            work->scale = EFFECT_CHARGE_GLOW_MAX_BRIGHTNESS;
+            task->state = EFFECT_CHARGE_GLOW_STATE_SHRINK;
             return;
-        case 2:
+        case EFFECT_CHARGE_GLOW_STATE_SHRINK:
             actorRenderComposeCoord(coord);
-            mem->age++;
-            if (mem->angle <= 0) {
+            work->age++;
+            if (work->angle <= 0) {
                 goto kill;
             }
-            rgb[0] = mem->scale;
-            rgb[1] = mem->scale >> 1;
-            rgb[2] = mem->scale >> 2;
-            effectDrawGouraudDisc(coord, mem->angle, rgb);
-            effectDrawGouraudDisc(coord, (s16)(mem->angle << 1), rgb);
+            EFFECT_CHARGE_GLOW_SET_COLOR();
+            effectDrawGouraudDisc(coord, work->angle, rgb);
+            effectDrawGouraudDisc(coord, (s16)(work->angle << 1), rgb);
             if (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-                goto snd7;
+                goto stopSound;
             }
-            if (Gp_StateC08.effectPhase == state) {
-                goto snd7;
+            if (Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_CANCELLED) {
+                goto stopSound;
             }
             if (gRoomEffectState->battleState == ROOM_EFFECT_BATTLE_ENGAGED) {
                 goto decay;
             }
-        snd7:
-            sndEvtRequestScriptStop(arg0->spawnArg1.value, SOUND_SCRIPT_STOP_KEEP_RELEASE);
-            arg0->state = 3;
+        stopSound:
+            sndEvtRequestScriptStop(task->spawnArg1.value, SOUND_SCRIPT_STOP_KEEP_RELEASE);
+            task->state = EFFECT_CHARGE_GLOW_STATE_FADE;
             return;
         decay:
-            mem->scale = mem->scale - 0x10;
-            mem->angle = mem->angle - 0x30;
+            work->scale = work->scale - EFFECT_CHARGE_GLOW_FADE_STEP;
+            work->angle = work->angle - EFFECT_CHARGE_GLOW_SHRINK_STEP;
             return;
-        case 3:
+        case EFFECT_CHARGE_GLOW_STATE_FADE:
             actorRenderComposeCoord(coord);
-            if (mem->scale < 0x11) {
+            if (work->scale < EFFECT_CHARGE_GLOW_FADE_STEP + 1) {
                 goto kill;
             }
-            rgb[0] = mem->scale;
-            rgb[1] = mem->scale >> 1;
-            rgb[2] = mem->scale >> 2;
-            effectDrawGouraudDisc(coord, mem->angle, rgb);
-            effectDrawGouraudDisc(coord, (s16)(mem->angle << 1), rgb);
-            mem->scale = mem->scale - 0x10;
+            EFFECT_CHARGE_GLOW_SET_COLOR();
+            effectDrawGouraudDisc(coord, work->angle, rgb);
+            effectDrawGouraudDisc(coord, (s16)(work->angle << 1), rgb);
+            work->scale = work->scale - EFFECT_CHARGE_GLOW_FADE_STEP;
             return;
     }
     return;
 kill:
-    effectKillTask(mem, arg0);
+    effectKillTask(work, task);
+#undef EFFECT_CHARGE_GLOW_SET_COLOR
 }
 
-void Gp_EffCtlTaskC1(Task* arg0)
+void effectPolyTaskC1(Task* task)
 {
-    EffectWork* mem;
+    enum {
+        EFFECT_COLOR_BAND_INITIAL_BRIGHTNESS = 128,
+        EFFECT_COLOR_BAND_INITIAL_RADIUS     = 256,
+        EFFECT_COLOR_BAND_WIDTH              = 256,
+        EFFECT_COLOR_BAND_RADIUS_STEP        = 128,
+        EFFECT_COLOR_BAND_FADE_STEP          = 8,
+    };
+    EffectWork* work;
     GfxCoord*   coord;
-    s16         flag;
-    s32         idx;
+    s16         effectControl;
+    s32         colorBits;
     u8          rgb[3];
-    s32         scale;
-    s32         angle;
+    s32         nextBrightness;
+    s32         nextRadius;
 
-    mem   = arg0->spawnArg2.pointer;
-    flag  = gRoomEffectState->peEffectControl;
-    coord = arg0->extra.coordBody->coord;
-    if (flag != ROOM_EFFECT_CONTROL_RUNNING) {
-        if (flag >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-            effectKillTask(mem, arg0);
+    work          = task->spawnArg2.pointer;
+    effectControl = gRoomEffectState->peEffectControl;
+    coord         = task->extra.coordBody->coord;
+    if (effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+        if (effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
+            effectKillTask(work, task);
         }
         return;
     }
 
-    if (arg0->state == 0) {
-        gfxRotMatrixZ(&coord->coord, arg0->spawnArg1.value & 0xFFF, GRAPHICS_ROTATION_COMPOSE);
+    if (task->state == EFFECT_DRAW_TASK_NEW) {
+        gfxRotMatrixZ(&coord->coord, task->spawnArg1.value & EFFECT_DRAW_ANGLE_MASK, GRAPHICS_ROTATION_COMPOSE);
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        mem->scale          = 0x80;
-        mem->angle          = 0x100;
-        idx                 = arg0->spawnArg1.halves.high;
-        mem->period         = D_80112C6C[idx & 3];
-        arg0->state         = 1;
+        work->scale         = EFFECT_COLOR_BAND_INITIAL_BRIGHTNESS;
+        work->angle         = EFFECT_COLOR_BAND_INITIAL_RADIUS;
+        colorBits           = task->spawnArg1.halves.high;
+        work->period        = D_80112C6C[colorBits & 3];
+        task->state         = EFFECT_DRAW_TASK_ACTIVE;
     }
 
     actorRenderComposeCoord(coord);
-    rgb[0] = (mem->scale * ((mem->period >> 8) & 0xF)) >> 3;
-    rgb[1] = (mem->scale * ((u8)mem->period >> 4)) >> 3;
-    rgb[2] = (mem->scale * (mem->period & 0xF)) >> 3;
-    effectDrawInnerGlowBand(coord, mem->angle, 0x100, rgb);
+    // Expand the colored edge while fading its packed RGB-nibble modulation.
+    rgb[0] = (work->scale * ((work->period >> 8) & 0xF)) >> 3;
+    rgb[1] = (work->scale * ((u8)work->period >> 4)) >> 3;
+    rgb[2] = (work->scale * (work->period & 0xF)) >> 3;
+    effectDrawInnerGlowBand(coord, work->angle, EFFECT_COLOR_BAND_WIDTH, rgb);
 
-    angle      = (u16)mem->angle;
-    scale      = (u16)mem->scale;
-    angle     += 0x80;
-    scale     -= 8;
-    mem->scale = scale;
-    mem->angle = angle;
-    if ((s16)scale < 9) {
-        effectKillTask(mem, arg0);
+    nextRadius      = (u16)work->angle;
+    nextBrightness  = (u16)work->scale;
+    nextRadius     += EFFECT_COLOR_BAND_RADIUS_STEP;
+    nextBrightness -= EFFECT_COLOR_BAND_FADE_STEP;
+    work->scale     = nextBrightness;
+    work->angle     = nextRadius;
+    if ((s16)nextBrightness < EFFECT_COLOR_BAND_FADE_STEP + 1) {
+        effectKillTask(work, task);
     }
 }
 
@@ -2765,7 +2919,7 @@ void Gp_EffCtlTaskF3(Task* arg0)
         rgb[2] = 0xC0;
         rgb[0] = 0xC0;
         rgb[1] = 0x60;
-        Gp_DrawEffTri(coord, (s16)(mem->period + 0x80), (s16)(mem->index + 6), rgb);
+        _effectDrawRadialTriangles(coord, (s16)(mem->period + 0x80), (s16)(mem->index + 6), rgb);
         effectDrawGouraudDisc(coord, mem->period, rgb);
         effectDrawGouraudDisc(coord, (s16)(mem->period << 1), rgb);
         gRoomEffectState->burstRequest = false;
@@ -2788,117 +2942,150 @@ void Gp_EffCtlTaskF3(Task* arg0)
                 mem->step | 0x8000, 0);
 }
 
-static void Gp_DrawEffTri(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
+/// Draws randomized additive Gouraud rays around a composed coordinate's origin.
+///
+/// radius and rayCount narrow to signed 16 bits. Current callers pass positive
+/// radii and 4 or 6..8 rays; rayCount's signed low half must be in 1..4096.
+/// Each sector chooses a random angle, spanning 40 angle units either side,
+/// and joins two black outer vertices to the origin colored by three rgb bytes.
+/// The screen radius is radius * 128 / (SZ3 / 4 + 1) pixels. A negative FLAG
+/// drops the burst; otherwise it advances the global RNG once per ray.
+/// Inputs are borrowed for the call. Queued packets borrow the frame arena.
+/// Fills one Gouraud ray triangle within an angular sector.
+///
+/// Borrows a projected scratch, writable packet and three readable RGB bytes.
+/// narrowRadius is the coordinate-space radius; angleStep must be positive,
+/// in 4096-unit turn angles. randomState supplies the upper-half random value.
+/// Updates scratch extent and fills the packet; the caller sets additive blend.
+static inline void _effectFillRadialTriangle(EffectCentreScratch* scratch, POLY_G3* triangle, const u8* rgb, s16 narrowRadius, s32 sectorAngle, u32 randomState, s16 angleStep)
 {
-    EffectCentreScratch* block;
-    POLY_G3*             prim;
-    s16                  step;
-    s32                  i;
-    s32                  lcg;
-    s32                  ang;
-    s16                  scale;
-    s16                  count;
+    enum { EFFECT_RADIAL_TRIANGLE_RADIUS_NUMERATOR = 128,
+           EFFECT_RADIAL_TRIANGLE_HALF_ANGLE       = 40 };
+    s32 rayAngle;
+    setPolyG3(triangle);
+    setRGB0(triangle, rgb[0], rgb[1], rgb[2]);
+    setRGB1(triangle, 0, 0, 0);
+    setRGB2(triangle, 0, 0, 0);
+    scratch->screenExtent = (narrowRadius * EFFECT_RADIAL_TRIANGLE_RADIUS_NUMERATOR) / scratch->depth;
+    rayAngle              = (s16)(sectorAngle + (s32)((u32)randomState >> 16) % angleStep);
+    triangle->x0          = scratch->screenX;
+    triangle->y0          = scratch->screenY;
+    triangle->x1          = scratch->screenX + ((scratch->screenExtent * rsin(rayAngle - EFFECT_RADIAL_TRIANGLE_HALF_ANGLE)) >> EFFECT_DRAW_FRACTION_BITS);
+    triangle->y1          = scratch->screenY + ((scratch->screenExtent * rcos(rayAngle - EFFECT_RADIAL_TRIANGLE_HALF_ANGLE)) >> EFFECT_DRAW_FRACTION_BITS);
+    triangle->x2          = scratch->screenX + ((scratch->screenExtent * rsin(rayAngle + EFFECT_RADIAL_TRIANGLE_HALF_ANGLE)) >> EFFECT_DRAW_FRACTION_BITS);
+    triangle->y2          = scratch->screenY + ((scratch->screenExtent * rcos(rayAngle + EFFECT_RADIAL_TRIANGLE_HALF_ANGLE)) >> EFFECT_DRAW_FRACTION_BITS);
+}
+
+static void _effectDrawRadialTriangles(const GfxCoord* coord, s32 radius, s32 rayCount, const u8* rgb)
+{
+    EffectCentreScratch* scratch;
+    POLY_G3*             triangle;
+    s16                  angleStep;
+    s32                  sectorAngle;
+    s32                  randomState;
+    s16                  narrowRadius;
+    s16                  narrowRayCount;
 
     SCRATCH_STACK_RESERVE_BLOCK(EffectCentreScratch);
-    block                = SCRATCH_STACK_CURSOR(EffectCentreScratch);
-    block->worldPoint.vx = arg0->workm.t[0];
-    block->worldPoint.vy = arg0->workm.t[1];
-    block->worldPoint.vz = arg0->workm.t[2];
-    count                = arg2;
-    step                 = 0x1000 / count;
-    scale                = arg1;
+    scratch                = SCRATCH_STACK_CURSOR(EffectCentreScratch);
+    scratch->worldPoint.vx = coord->workm.t[0];
+    scratch->worldPoint.vy = coord->workm.t[1];
+    scratch->worldPoint.vz = coord->workm.t[2];
+    narrowRayCount         = rayCount;
+    angleStep              = EFFECT_DRAW_FULL_TURN / narrowRayCount;
+    narrowRadius           = radius;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&block->worldPoint);
+    gte_ldv0(&scratch->worldPoint);
     gte_rtps();
-    gte_stsxy(&block->screenX);
-    gte_stflg(&block->projectionFlags);
-    if (block->projectionFlags >= 0) {
-        gte_stszotz(&block->depth);
-        block->depth++;
-        for (i = 0; i < step * count; i += step) {
-            lcg             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            gRandomLcgState = lcg;
-            prim            = gGpuPrimCursor;
-            gGpuPrimCursor  = prim + 1;
-            setPolyG3(prim);
-            setRGB0(prim, rgb[0], rgb[1], rgb[2]);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, 0, 0, 0);
-            block->screenExtent = (scale * 128) / block->depth;
-            ang                 = (s16)(i + (s32)((u32)lcg >> 16) % step);
-            prim->x0            = block->screenX;
-            prim->y0            = block->screenY;
-            prim->x1            = block->screenX + ((block->screenExtent * rsin(ang - 0x28)) >> 12);
-            prim->y1            = block->screenY + ((block->screenExtent * rcos(ang - 0x28)) >> 12);
-            prim->x2            = block->screenX + ((block->screenExtent * rsin(ang + 0x28)) >> 12);
-            prim->y2            = block->screenY + ((block->screenExtent * rcos(ang + 0x28)) >> 12);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->depth);
+    gte_stsxy(&scratch->screenX);
+    gte_stflg(&scratch->projectionFlags);
+    if (scratch->projectionFlags >= 0) {
+        gte_stszotz(&scratch->depth);
+        scratch->depth++;
+        // Randomize one narrow ray within each equal angular sector.
+        for (sectorAngle = 0; sectorAngle < angleStep * narrowRayCount; sectorAngle += angleStep) {
+            randomState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            gRandomLcgState = randomState;
+            triangle        = gGpuPrimCursor;
+            gGpuPrimCursor  = triangle + 1;
+            _effectFillRadialTriangle(scratch, triangle, rgb, narrowRadius, sectorAngle, randomState, angleStep);
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                    triangle);
+            gpuSetPrimitiveBlendMode(triangle, GPU_BLEND_ADD, scratch->depth);
         }
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectCentreScratch);
 }
 
-void Gp_EffCtlTaskF4(Task* arg0)
+void effectSpriteTaskF4(Task* task)
 {
-    EffectWork* mem;
+    enum {
+        EFFECT_ENERGY_SPARK_BASE_Y_BITS      = 0xFFF0,
+        EFFECT_ENERGY_SPARK_Y_SPREAD_MASK    = 0x3F,
+        EFFECT_ENERGY_SPARK_PALETTE_ONE_BITS = 0x1000,
+        EFFECT_ENERGY_SPARK_FRAME_COUNT      = 8,
+        EFFECT_ENERGY_SPARK_FRAME_TICKS      = 4,
+        EFFECT_ENERGY_SPARK_RANDOM_PALETTE   = 0x8000,
+        EFFECT_ENERGY_SPARK_PALETTE_MASK     = 0xF000,
+    };
+    EffectWork* work;
     GfxCoord*   coord;
-    Task*       slot;
-    s16         flag;
-    s32         y;
+    Task*       playerTask;
+    s16         effectControl;
+    s32         nextY;
 
-    mem   = arg0->spawnArg2.pointer;
-    flag  = gRoomEffectState->peEffectControl;
-    coord = arg0->extra.coordBody->coord;
-    if (flag != ROOM_EFFECT_CONTROL_RUNNING) {
-        if (flag >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
+    work          = task->spawnArg2.pointer;
+    effectControl = gRoomEffectState->peEffectControl;
+    coord         = task->extra.coordBody->coord;
+    if (effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+        if (effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             goto kill;
         }
-        slot = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-        if (slot->extra.tmd->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) {
+        playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+        if (playerTask->extra.tmd->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) {
             return;
         }
         actorRenderComposeCoord(coord);
         goto draw_lcg;
     }
 
-    mem->age++;
-    if (arg0->state == 0) {
-        mem->move.vx    = 0;
-        mem->move.vz    = 0;
+    // Four update ticks advance one animation cell; negative local Y rises.
+    work->age++;
+    if (task->state == EFFECT_DRAW_TASK_NEW) {
+        work->move.vx   = 0;
+        work->move.vz   = 0;
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        mem->move.vy    = 0xFFF0 - ((gRandomLcgState >> 16) & 0x3F);
+        work->move.vy   = EFFECT_ENERGY_SPARK_BASE_Y_BITS - ((gRandomLcgState >> 16) & EFFECT_ENERGY_SPARK_Y_SPREAD_MASK);
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        mem->scale      = (gRandomLcgState >> 16) & 0xFFF;
-        mem->angle      = arg0->spawnArg1.halves.low & 0xFFF;
-        arg0->state     = 1;
-        mem->period     = arg0->spawnArg1.halves.low & 0xF000;
+        work->scale     = (gRandomLcgState >> 16) & EFFECT_DRAW_ANGLE_MASK;
+        work->angle     = task->spawnArg1.halves.low & EFFECT_DRAW_SIZE_MASK;
+        task->state     = EFFECT_DRAW_TASK_ACTIVE;
+        work->period    = task->spawnArg1.halves.low & EFFECT_ENERGY_SPARK_PALETTE_MASK;
     }
 
-    y                   = coord->coord.t[1] + mem->move.vy;
+    nextY               = coord->coord.t[1] + work->move.vy;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    coord->coord.t[1]   = y;
+    coord->coord.t[1]   = nextY;
     actorRenderComposeCoord(coord);
-    if ((mem->age & 3) == 0) {
-        mem->index++;
+    if ((work->age & (EFFECT_ENERGY_SPARK_FRAME_TICKS - 1)) == 0) {
+        work->index++;
     }
-    if (mem->index >= 8) {
+    if (work->index >= EFFECT_ENERGY_SPARK_FRAME_COUNT) {
         goto kill;
     }
-    if (mem->period & 0x8000) {
+    if (work->period & EFFECT_ENERGY_SPARK_RANDOM_PALETTE) {
     draw_lcg:
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        effectDrawSpinningBillboard(coord, mem->index, mem->angle,
-                                    mem->scale | ((gRandomLcgState >> 16) & 0x1000));
+        effectDrawSpinningBillboard(coord, work->index, work->angle,
+                                    work->scale | ((gRandomLcgState >> 16) & EFFECT_ENERGY_SPARK_PALETTE_ONE_BITS));
     } else {
-        effectDrawSpinningBillboard(coord, mem->index, mem->angle,
-                                    mem->scale | mem->period);
+        effectDrawSpinningBillboard(coord, work->index, work->angle,
+                                    work->scale | work->period);
     }
     return;
 kill:
-    effectKillTask(mem, arg0);
+    effectKillTask(work, task);
 }
 
 void Gp_EffCtlTaskAC(Task* arg0)
@@ -2968,7 +3155,7 @@ continue_fx:
         if (!(gPlayerStatus.statusFlags & (PLAYER_STATUS_BERSERKER | PLAYER_STATUS_POISON)) && (mem->angle < 0xA0)) {
             s32 i;
 
-            Gp_DrawEffTri(coord, 0x200, 6, rgb);
+            _effectDrawRadialTriangles(coord, 0x200, 6, rgb);
             mem->angle = 0xC0;
             for (i = 0; i < 0x555; i += 0x2AA) {
                 spawned = Gp_SpawnEff(EFFECT_EXPANDING_COLOR_BAND, coord, i, 0);
@@ -3054,7 +3241,7 @@ void Gp_EffCtlTask0E(Task* arg0)
         rgb[0] = 0xC0;
         rgb[1] = 0x30;
         rgb[2] = 0x60;
-        Gp_DrawEffTri(coord, 0x200, 4, rgb);
+        _effectDrawRadialTriangles(coord, 0x200, 4, rgb);
         effectDrawGouraudDisc(coord, 0x180, rgb);
         effectDrawGouraudDisc(coord, 0x300, rgb);
         gRoomEffectState->burstRequest = false;
@@ -3380,109 +3567,127 @@ static void func_800FCD00(Task* arg0)
     SCRATCH_STACK_RELEASE_BLOCK(_EffectDeathFlameScratch);
 }
 
-void Gp_EffSprTaskA7(Task* arg0)
+void effectSpriteTaskA7(Task* task)
 {
-    EffectWork*             mem;
+    enum {
+        EFFECT_RISING_WISP_CELL_SIZE    = 32,
+        EFFECT_RISING_WISP_FRAME_COUNT  = 8,
+        EFFECT_RISING_WISP_BRIGHTNESS   = 96,
+        EFFECT_RISING_WISP_CLUT         = getClut(304, 265),
+        EFFECT_RISING_WISP_TEXTURE_PAGE = getTPage(0, GPU_BLEND_ADD, 512, 0),
+        EFFECT_RISING_WISP_TEXTURE_V    = 24,
+    };
+    EffectWork*             work;
     GfxCoord*               coord;
-    GfxCoord*               parent;
-    MATRIX*                 m;
-    EffectBillboardScratch* block;
-    POLY_FT4*               prim;
-    s16                     flag;
-    s32                     rng;
-    s32                     one;
-    s16                     n;
-    s16                     step;
+    GfxCoord*               parentCoord;
+    MATRIX*                 localMatrix;
+    EffectBillboardScratch* scratch;
+    POLY_FT4*               quad;
+    s16                     effectControl;
+    s32                     randomState;
+    s32                     fixedOne;
+    s16                     ticksPerFrame;
+    s16                     nextVelocityY;
 
-    mem   = arg0->spawnArg2.pointer;
-    flag  = gRoomEffectState->effectControl;
-    coord = arg0->extra.coordBody->coord;
-    if (flag >= ROOM_EFFECT_CONTROL_HIDDEN) {
-        if (flag < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
+/// Writes rotated screen corners using the live scratch, quad and work locals.
+///
+/// Use as a standalone statement in a braced block. Captures those three
+/// locals and the enclosing task's cell-size constant, retains repeated field
+/// reads and narrows each offset before adding it to the projected origin.
+#define EFFECT_RISING_WISP_SET_CORNERS()                                                                                                                                          \
+    scratch->cornerOffsetX = (((work->angle * (EFFECT_RISING_WISP_CELL_SIZE - 1)) / scratch->depth) * rsin(work->scale)) >> EFFECT_DRAW_FRACTION_BITS;                            \
+    scratch->cornerOffsetY = (((work->angle * (EFFECT_RISING_WISP_CELL_SIZE - 1)) / scratch->depth) * rcos(work->scale)) >> EFFECT_DRAW_FRACTION_BITS;                            \
+    quad->x0               = scratch->screenX + scratch->cornerOffsetX;                                                                                                           \
+    quad->x3               = scratch->screenX - scratch->cornerOffsetX;                                                                                                           \
+    quad->y0               = scratch->screenY - scratch->cornerOffsetY;                                                                                                           \
+    quad->y3               = scratch->screenY + scratch->cornerOffsetY;                                                                                                           \
+    scratch->cornerOffsetX = (((work->angle * (EFFECT_RISING_WISP_CELL_SIZE - 1)) / scratch->depth) * rsin(work->scale + EFFECT_DRAW_QUARTER_TURN)) >> EFFECT_DRAW_FRACTION_BITS; \
+    scratch->cornerOffsetY = (((work->angle * (EFFECT_RISING_WISP_CELL_SIZE - 1)) / scratch->depth) * rcos(work->scale + EFFECT_DRAW_QUARTER_TURN)) >> EFFECT_DRAW_FRACTION_BITS; \
+    quad->x1               = scratch->screenX + scratch->cornerOffsetX;                                                                                                           \
+    quad->x2               = scratch->screenX - scratch->cornerOffsetX;                                                                                                           \
+    quad->y1               = scratch->screenY - scratch->cornerOffsetY;                                                                                                           \
+    quad->y2               = scratch->screenY + scratch->cornerOffsetY;
+
+    work          = task->spawnArg2.pointer;
+    effectControl = gRoomEffectState->effectControl;
+    coord         = task->extra.coordBody->coord;
+    if (effectControl >= ROOM_EFFECT_CONTROL_HIDDEN) {
+        if (effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             return;
         }
-        effectKillTask(mem, arg0);
+        effectKillTask(work, task);
         return;
     }
-    if (arg0->state == 0) {
-        rng                  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        mem->scale           = ((u32)rng >> 16) & 0xFFF;
-        mem->angle           = arg0->spawnArg1.halves.low & 0xFFF;
-        parent               = mem->parent;
-        mem->move.vy         = -(mem->scale & 7);
-        one                  = ONE;
-        *(s32*)&coord->coord = one;
-        coord->parent        = parent;
-        m                    = &coord->coord;
-        MATRIX_PAIR(m, 0, 2) = 0;
-        MATRIX_PAIR(m, 1, 1) = one;
-        MATRIX_PAIR(m, 2, 0) = 0;
-        m->m[2][2]           = one;
-        coord->coord.t[2]    = 0;
-        coord->coord.t[1]    = 0;
-        coord->coord.t[0]    = 0;
-        coord->composeStamp  = GRAPHICS_COORD_DIRTY;
-        gRandomLcgState      = rng;
-        arg0->state++;
+    // Reparent at the origin; upward acceleration is expressed in that frame.
+    if (task->state == EFFECT_DRAW_TASK_NEW) {
+        randomState                      = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        work->scale                      = ((u32)randomState >> 16) & EFFECT_DRAW_ANGLE_MASK;
+        work->angle                      = task->spawnArg1.halves.low & EFFECT_DRAW_SIZE_MASK;
+        parentCoord                      = work->parent;
+        work->move.vy                    = -(work->scale & 7);
+        fixedOne                         = ONE;
+        MATRIX_PAIR(&coord->coord, 0, 0) = fixedOne;
+        coord->parent                    = parentCoord;
+        localMatrix                      = &coord->coord;
+        MATRIX_PAIR(localMatrix, 0, 2)   = 0;
+        MATRIX_PAIR(localMatrix, 1, 1)   = fixedOne;
+        MATRIX_PAIR(localMatrix, 2, 0)   = 0;
+        localMatrix->m[2][2]             = fixedOne;
+        coord->coord.t[2]                = 0;
+        coord->coord.t[1]                = 0;
+        coord->coord.t[0]                = 0;
+        coord->composeStamp              = GRAPHICS_COORD_DIRTY;
+        gRandomLcgState                  = randomState;
+        task->state++;
     }
     actorRenderComposeCoord(coord);
-    block                = SCRATCH_STACK_RESERVE_BLOCK(EffectBillboardScratch);
-    block->worldPoint.vx = coord->workm.t[0];
-    block->worldPoint.vy = coord->workm.t[1];
-    block->worldPoint.vz = coord->workm.t[2];
+    scratch                = SCRATCH_STACK_RESERVE_BLOCK(EffectBillboardScratch);
+    scratch->worldPoint.vx = coord->workm.t[0];
+    scratch->worldPoint.vy = coord->workm.t[1];
+    scratch->worldPoint.vz = coord->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&block->worldPoint);
+    gte_ldv0(&scratch->worldPoint);
     gte_rtps();
-    n = (((s32)arg0->spawnArg1.value >> 12) & 3) + 1;
-    gte_stsxy(&block->screenX);
-    gte_stflg(&block->projectionFlags);
-    if (block->projectionFlags >= 0) {
-        gte_stszotz(&block->depth);
-        prim = gGpuPrimCursor;
-        block->depth++;
-        gGpuPrimCursor = prim + 1;
-        setlen(prim, 9);
-        setcode(prim, 0x2C);
-        setRGB0(prim, 0x60, 0x60, 0x60);
-        prim->tpage          = 0x28;
-        prim->clut           = 0x4253;
-        prim->code          |= 2;
-        prim->u0             = (mem->age / n) << 5;
-        prim->v0             = 0x18;
-        prim->u1             = ((mem->age / n) << 5) + 0x1F;
-        prim->v1             = 0x18;
-        prim->u2             = (mem->age / n) << 5;
-        prim->v2             = 0x37;
-        prim->u3             = ((mem->age / n) << 5) + 0x1F;
-        prim->v3             = 0x37;
-        block->cornerOffsetX = (((mem->angle * 31) / block->depth) * rsin(mem->scale)) >> 12;
-        block->cornerOffsetY = (((mem->angle * 31) / block->depth) * rcos(mem->scale)) >> 12;
-        prim->x0             = block->screenX + block->cornerOffsetX;
-        prim->x3             = block->screenX - block->cornerOffsetX;
-        prim->y0             = block->screenY - block->cornerOffsetY;
-        prim->y3             = block->screenY + block->cornerOffsetY;
-        block->cornerOffsetX = (((mem->angle * 31) / block->depth) * rsin(mem->scale + 0x400)) >> 12;
-        block->cornerOffsetY = (((mem->angle * 31) / block->depth) * rcos(mem->scale + 0x400)) >> 12;
-        prim->x1             = block->screenX + block->cornerOffsetX;
-        prim->x2             = block->screenX - block->cornerOffsetX;
-        prim->y1             = block->screenY - block->cornerOffsetY;
-        prim->y2             = block->screenY + block->cornerOffsetY;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
+    ticksPerFrame = (((s32)task->spawnArg1.value >> 12) & 3) + 1;
+    gte_stsxy(&scratch->screenX);
+    gte_stflg(&scratch->projectionFlags);
+    if (scratch->projectionFlags >= 0) {
+        gte_stszotz(&scratch->depth);
+        quad = gGpuPrimCursor;
+        scratch->depth++;
+        gGpuPrimCursor = quad + 1;
+        setlen(quad, EFFECT_DRAW_TEXTURED_QUAD_PACKET_WORDS);
+        setcode(quad, EFFECT_DRAW_TEXTURED_QUAD);
+        setRGB0(quad, EFFECT_RISING_WISP_BRIGHTNESS, EFFECT_RISING_WISP_BRIGHTNESS, EFFECT_RISING_WISP_BRIGHTNESS);
+        quad->tpage = EFFECT_RISING_WISP_TEXTURE_PAGE;
+        quad->clut  = EFFECT_RISING_WISP_CLUT;
+        quad->code |= EFFECT_DRAW_SEMITRANSPARENT;
+        quad->u0    = (work->age / ticksPerFrame) * EFFECT_RISING_WISP_CELL_SIZE;
+        quad->v0    = EFFECT_RISING_WISP_TEXTURE_V;
+        quad->u1    = ((work->age / ticksPerFrame) * EFFECT_RISING_WISP_CELL_SIZE) + EFFECT_RISING_WISP_CELL_SIZE - 1;
+        quad->v1    = EFFECT_RISING_WISP_TEXTURE_V;
+        quad->u2    = (work->age / ticksPerFrame) * EFFECT_RISING_WISP_CELL_SIZE;
+        quad->v2    = EFFECT_RISING_WISP_TEXTURE_V + EFFECT_RISING_WISP_CELL_SIZE - 1;
+        quad->u3    = ((work->age / ticksPerFrame) * EFFECT_RISING_WISP_CELL_SIZE) + EFFECT_RISING_WISP_CELL_SIZE - 1;
+        quad->v3    = EFFECT_RISING_WISP_TEXTURE_V + EFFECT_RISING_WISP_CELL_SIZE - 1;
+        EFFECT_RISING_WISP_SET_CORNERS();
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                quad);
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectBillboardScratch);
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         return;
     }
-    step                = mem->move.vy - (mem->age & 1);
-    mem->move.vy        = step;
+    nextVelocityY       = work->move.vy - (work->age & 1);
+    work->move.vy       = nextVelocityY;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    coord->coord.t[1]  += step;
-    mem->age++;
-    if (mem->age > n * 8 - 1) {
-        effectKillTask(mem, arg0);
+    coord->coord.t[1]  += nextVelocityY;
+    work->age++;
+    if (work->age > ticksPerFrame * EFFECT_RISING_WISP_FRAME_COUNT - 1) {
+        effectKillTask(work, task);
     }
+#undef EFFECT_RISING_WISP_SET_CORNERS
 }
 
 void func_800FDB18(s32 arg0, GfxCoord* arg1, SVECTOR* arg2, EffectSpawnArg* arg3)
@@ -3737,337 +3942,404 @@ void Gp_EffCtlTaskE3(Task* arg0)
     }
 }
 
-void Gp_EffSprTask80(Task* arg0)
+/// Fills the additive puff's axis-aligned screen rectangle.
+///
+/// Borrows projected scratch, writable quad and initialized work. period is
+/// current size; the half-side is size * 31 / depth pixels. Extent narrows to
+/// u16 before the signed screen coordinates narrow; scratch extent is updated.
+static inline void _effectSetAdditivePuffCorners(EffectCentreScratch* scratch, POLY_FT4* quad, const EffectWork* work)
 {
-    EffectCentreScratch* block;
-    GfxCoord*            coord;
-    EffectWork*          mem;
-    POLY_FT4*            prim;
-    s16                  x;
-    s16                  y;
-    s32                  amt;
-    s32                  t;
-    u16                  uv;
-    s32                  scale;
-    s32                  c;
-    u32                  rnd;
-    s32                  flag2;
-    u8*                  head;
+    enum { EFFECT_PUFF_CELL_SIZE = 32 };
+    s16 screenX;
+    s16 screenY;
+    scratch->screenExtent = (work->period * (EFFECT_PUFF_CELL_SIZE - 1)) / scratch->depth;
+    screenX               = scratch->screenX - (u16)scratch->screenExtent;
+    quad->x2              = screenX;
+    quad->x0              = screenX;
+    screenX               = scratch->screenX + (u16)scratch->screenExtent;
+    quad->x3              = screenX;
+    quad->x1              = screenX;
+    screenY               = scratch->screenY - (u16)scratch->screenExtent;
+    quad->y1              = screenY;
+    quad->y0              = screenY;
+    screenY               = scratch->screenY + (u16)scratch->screenExtent;
+    quad->y3              = screenY;
+    quad->y2              = screenY;
+}
 
-    mem   = arg0->spawnArg2.pointer;
-    coord = arg0->extra.coordBody->coord;
+void effectSpriteTask80(Task* task)
+{
+    enum {
+        EFFECT_PUFF_MIN_LAST_AGE        = 12,
+        EFFECT_PUFF_LIFETIME_SPAN       = 12,
+        EFFECT_PUFF_RISE_FLAG           = 1,
+        EFFECT_PUFF_RISE_SPEED_RANGE    = 40,
+        EFFECT_PUFF_GROW_TICKS          = 12,
+        EFFECT_PUFF_FADE_TICKS          = 8,
+        EFFECT_PUFF_CELL_SIZE           = 32,
+        EFFECT_PUFF_FRAME_COUNT         = 6,
+        EFFECT_PUFF_TEXTURE_V           = 152,
+        EFFECT_PUFF_TEXTURE_PAGE        = getTPage(0, GPU_BLEND_ADD, 576, 0),
+        EFFECT_PUFF_CLUT                = getClut(32, 266),
+        EFFECT_PUFF_DEFAULT_SIZE        = 512,
+        EFFECT_PUFF_FADE_STEP           = 16,
+        EFFECT_PUFF_RETAINED_SPAWN_FLAG = 0x80000000,
+    };
+    EffectCentreScratch* scratch;
+    GfxCoord*            coord;
+    EffectWork*          work;
+    POLY_FT4*            quad;
+    s32                  size;
+    s32                  requestedSize;
+    u16                  frameAge;
+    s32                  currentSize;
+    s32                  brightness;
+    u32                  riseSpeed;
+    s32                  riseFlags;
+    EffectCentreScratch* scratchStart;
+
+    work  = task->spawnArg2.pointer;
+    coord = task->extra.coordBody->coord;
     if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-        head                       = SCRATCH_STACK_CURSOR(u8) - sizeof(EffectCentreScratch);
-        SCRATCH_STACK_CURSOR(void) = head;
-        block                      = (EffectCentreScratch*)head;
-        if (arg0->state == 0) {
-            t   = (u16)arg0->spawnArg1.value & 0xFFF;
-            amt = 0x200;
-            if (t != 0) {
-                amt = t;
+        scratchStart                              = SCRATCH_STACK_CURSOR(EffectCentreScratch) - 1;
+        SCRATCH_STACK_CURSOR(EffectCentreScratch) = scratchStart;
+        scratch                                   = scratchStart;
+        // Choose lifetime and optional rise speed before any projection can reject it.
+        if (task->state == EFFECT_DRAW_TASK_NEW) {
+            requestedSize = (u16)task->spawnArg1.value & EFFECT_DRAW_SIZE_MASK;
+            size          = EFFECT_PUFF_DEFAULT_SIZE;
+            if (requestedSize != 0) {
+                size = requestedSize;
             }
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            mem->scale      = amt;
-            mem->angle      = (gRandomLcgState >> 16) % 12 + 12;
-            flag2           = arg0->spawnArg1.halves.high;
-            if (flag2 & 1) {
+            work->scale     = size;
+            work->angle     = (gRandomLcgState >> 16) % EFFECT_PUFF_LIFETIME_SPAN + EFFECT_PUFF_MIN_LAST_AGE;
+            riseFlags       = task->spawnArg1.halves.high;
+            if (riseFlags & EFFECT_PUFF_RISE_FLAG) {
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                rnd             = gRandomLcgState >> 16;
-                rnd             = rnd % 40;
+                riseSpeed       = gRandomLcgState >> 16;
+                riseSpeed       = riseSpeed % EFFECT_PUFF_RISE_SPEED_RANGE;
             } else {
-                rnd = 0;
+                riseSpeed = 0;
             }
-            mem->step = rnd;
-            arg0->state++;
-            arg0->spawnArg1.value &= 0x80000000;
+            work->step = riseSpeed;
+            task->state++;
+            task->spawnArg1.value &= EFFECT_PUFF_RETAINED_SPAWN_FLAG;
         }
         actorRenderComposeCoord(coord);
-        block->worldPoint.vx = (u16)coord->workm.t[0];
-        block->worldPoint.vy = (u16)coord->workm.t[1];
-        block->worldPoint.vz = (u16)coord->workm.t[2];
+        scratch->worldPoint.vx = (u16)coord->workm.t[0];
+        scratch->worldPoint.vy = (u16)coord->workm.t[1];
+        scratch->worldPoint.vz = (u16)coord->workm.t[2];
         gte_SetTransMatrix(&GsWSMATRIX);
         gte_SetRotMatrix(&GsWSMATRIX);
-        gte_ldv0(&block->worldPoint);
+        gte_ldv0(&scratch->worldPoint);
         gte_rtps();
-        gte_stsxy(&block->screenX);
-        gte_stflg(&block->projectionFlags);
-        if (block->projectionFlags >= 0) {
-            gte_stszotz(&block->depth);
-            block->depth++;
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setlen(prim, 9);
-            setcode(prim, 0x2C);
-            if (mem->age < 0xC) {
-                scale = mem->scale * mem->age / 12;
+        gte_stsxy(&scratch->screenX);
+        gte_stflg(&scratch->projectionFlags);
+        if (scratch->projectionFlags >= 0) {
+            gte_stszotz(&scratch->depth);
+            scratch->depth++;
+            quad           = gGpuPrimCursor;
+            gGpuPrimCursor = quad + 1;
+            setlen(quad, EFFECT_DRAW_TEXTURED_QUAD_PACKET_WORDS);
+            setcode(quad, EFFECT_DRAW_TEXTURED_QUAD);
+            if (work->age < EFFECT_PUFF_GROW_TICKS) {
+                currentSize = work->scale * work->age / EFFECT_PUFF_GROW_TICKS;
             } else {
-                scale = (u16)mem->scale;
+                currentSize = (u16)work->scale;
             }
-            mem->period = scale;
-            if (mem->angle - 8 < mem->age) {
-                c = (mem->angle - mem->age + 1) * 0x10;
-                setRGB0(prim, c, c, c);
+            work->period = currentSize;
+            if (work->angle - EFFECT_PUFF_FADE_TICKS < work->age) {
+                brightness = (work->angle - work->age + 1) * EFFECT_PUFF_FADE_STEP;
+                setRGB0(quad, brightness, brightness, brightness);
             } else {
-                prim->code |= 1;
+                quad->code |= EFFECT_DRAW_RAW_TEXTURE;
             }
-            prim->tpage         = 0x29;
-            prim->clut          = 0x4282;
-            prim->code         |= 2;
-            uv                  = mem->age;
-            prim->v0            = 0x98;
-            prim->u0            = (s16)((s16)uv % 6) * 0x20;
-            uv                  = mem->age;
-            prim->v1            = 0x98;
-            prim->u1            = ((s16)((s16)uv % 6) * 0x20) + 0x1F;
-            uv                  = mem->age;
-            prim->v2            = 0xB7;
-            prim->u2            = (s16)((s16)uv % 6) * 0x20;
-            uv                  = mem->age;
-            prim->v3            = 0xB7;
-            prim->u3            = ((s16)((s16)uv % 6) * 0x20) + 0x1F;
-            block->screenExtent = (mem->period * 0x1F) / block->depth;
-            x                   = block->screenX - (u16)block->screenExtent;
-            prim->x2            = x;
-            prim->x0            = x;
-            x                   = block->screenX + (u16)block->screenExtent;
-            prim->x3            = x;
-            prim->x1            = x;
-            y                   = block->screenY - (u16)block->screenExtent;
-            prim->y1            = y;
-            prim->y0            = y;
-            y                   = block->screenY + (u16)block->screenExtent;
-            prim->y3            = y;
-            prim->y2            = y;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
+            quad->tpage = EFFECT_PUFF_TEXTURE_PAGE;
+            quad->clut  = EFFECT_PUFF_CLUT;
+            quad->code |= EFFECT_DRAW_SEMITRANSPARENT;
+            frameAge    = work->age;
+            quad->v0    = EFFECT_PUFF_TEXTURE_V;
+            quad->u0    = (s16)((s16)frameAge % EFFECT_PUFF_FRAME_COUNT) * EFFECT_PUFF_CELL_SIZE;
+            frameAge    = work->age;
+            quad->v1    = EFFECT_PUFF_TEXTURE_V;
+            quad->u1    = ((s16)((s16)frameAge % EFFECT_PUFF_FRAME_COUNT) * EFFECT_PUFF_CELL_SIZE) + EFFECT_PUFF_CELL_SIZE - 1;
+            frameAge    = work->age;
+            quad->v2    = EFFECT_PUFF_TEXTURE_V + EFFECT_PUFF_CELL_SIZE - 1;
+            quad->u2    = (s16)((s16)frameAge % EFFECT_PUFF_FRAME_COUNT) * EFFECT_PUFF_CELL_SIZE;
+            frameAge    = work->age;
+            quad->v3    = EFFECT_PUFF_TEXTURE_V + EFFECT_PUFF_CELL_SIZE - 1;
+            quad->u3    = ((s16)((s16)frameAge % EFFECT_PUFF_FRAME_COUNT) * EFFECT_PUFF_CELL_SIZE) + EFFECT_PUFF_CELL_SIZE - 1;
+            _effectSetAdditivePuffCorners(scratch, quad, work);
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                    quad);
         }
         SCRATCH_STACK_RELEASE_BLOCK(EffectCentreScratch);
         if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
             return;
         }
-        if (mem->step != 0) {
-            coord->coord.t[1]  -= mem->step;
+        if (work->step != 0) {
+            coord->coord.t[1]  -= work->step;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
         }
-        mem->age++;
-        if (mem->angle >= mem->age) {
+        work->age++;
+        if (work->angle >= work->age) {
             return;
         }
     }
-    effectKillTask(mem, arg0);
+    effectKillTask(work, task);
 }
 
-void Gp_EffSprTask8D(Task* arg0)
+/// Fills the fire burst's axis-aligned screen rectangle.
+///
+/// Borrows projected scratch, writable quad and initialized work. period is
+/// current size; the half-side is size * 23 / depth pixels. Extent narrows to
+/// u16 before the signed screen coordinates narrow; scratch extent is updated.
+static inline void _effectSetFireBurstCorners(EffectCentreScratch* scratch, POLY_FT4* quad, const EffectWork* work)
 {
-    EffectCentreScratch* block;
-    GfxCoord*            coord;
-    EffectWork*          mem;
-    POLY_FT4*            prim;
-    s16                  x;
-    s16                  y;
-    s32                  amt;
-    s32                  t;
-    u16                  uv;
-    s32                  scale;
-    s32                  c;
+    enum { EFFECT_PUFF_CELL_SIZE = 24 };
+    s16 screenX;
+    s16 screenY;
+    scratch->screenExtent = (work->period * (EFFECT_PUFF_CELL_SIZE - 1)) / scratch->depth;
+    screenX               = scratch->screenX - (u16)scratch->screenExtent;
+    quad->x2              = screenX;
+    quad->x0              = screenX;
+    screenX               = scratch->screenX + (u16)scratch->screenExtent;
+    quad->x3              = screenX;
+    quad->x1              = screenX;
+    screenY               = scratch->screenY - (u16)scratch->screenExtent;
+    quad->y1              = screenY;
+    quad->y0              = screenY;
+    screenY               = scratch->screenY + (u16)scratch->screenExtent;
+    quad->y3              = screenY;
+    quad->y2              = screenY;
+}
 
-    mem   = arg0->spawnArg2.pointer;
-    coord = arg0->extra.coordBody->coord;
+void effectSpriteTask8D(Task* task)
+{
+    enum {
+        EFFECT_PUFF_MIN_LAST_AGE        = 16,
+        EFFECT_PUFF_LIFETIME_MASK       = 7,
+        EFFECT_PUFF_RISE_SPEED_RANGE    = 48,
+        EFFECT_PUFF_GROW_TICKS          = 12,
+        EFFECT_PUFF_FADE_TICKS          = 8,
+        EFFECT_PUFF_CELL_SIZE           = 24,
+        EFFECT_PUFF_FRAME_COUNT         = 8,
+        EFFECT_PUFF_TEXTURE_V           = 160,
+        EFFECT_PUFF_TEXTURE_PAGE        = getTPage(0, GPU_BLEND_ADD, 512, 0),
+        EFFECT_PUFF_CLUT                = getClut(208, 268),
+        EFFECT_PUFF_DEFAULT_SIZE        = 512,
+        EFFECT_PUFF_FADE_STEP           = 16,
+        EFFECT_PUFF_RETAINED_SPAWN_FLAG = 0x80000000,
+    };
+    EffectCentreScratch* scratch;
+    GfxCoord*            coord;
+    EffectWork*          work;
+    POLY_FT4*            quad;
+    s32                  size;
+    s32                  requestedSize;
+    u16                  frameAge;
+    s32                  currentSize;
+    s32                  brightness;
+
+    work  = task->spawnArg2.pointer;
+    coord = task->extra.coordBody->coord;
     if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
         actorRenderComposeCoord(coord);
-        block                = SCRATCH_STACK_RESERVE_BLOCK(EffectCentreScratch);
-        block->worldPoint.vx = coord->workm.t[0];
-        block->worldPoint.vy = coord->workm.t[1];
-        block->worldPoint.vz = coord->workm.t[2];
+        scratch                = SCRATCH_STACK_RESERVE_BLOCK(EffectCentreScratch);
+        scratch->worldPoint.vx = coord->workm.t[0];
+        scratch->worldPoint.vy = coord->workm.t[1];
+        scratch->worldPoint.vz = coord->workm.t[2];
         gte_SetTransMatrix(&GsWSMATRIX);
         gte_SetRotMatrix(&GsWSMATRIX);
-        gte_ldv0(&block->worldPoint);
+        gte_ldv0(&scratch->worldPoint);
         gte_rtps();
-        gte_stsxy(&block->screenX);
-        gte_stflg(&block->projectionFlags);
-        if (block->projectionFlags >= 0) {
-            gte_stszotz(&block->depth);
-            block->depth++;
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setlen(prim, 9);
-            setcode(prim, 0x2C);
-            if (arg0->state == 0) {
-                t   = (u16)arg0->spawnArg1.value & 0xFFF;
-                amt = 0x200;
-                if (t != 0) {
-                    amt = t;
+        gte_stsxy(&scratch->screenX);
+        gte_stflg(&scratch->projectionFlags);
+        if (scratch->projectionFlags >= 0) {
+            gte_stszotz(&scratch->depth);
+            scratch->depth++;
+            quad           = gGpuPrimCursor;
+            gGpuPrimCursor = quad + 1;
+            setlen(quad, EFFECT_DRAW_TEXTURED_QUAD_PACKET_WORDS);
+            setcode(quad, EFFECT_DRAW_TEXTURED_QUAD);
+            // Initialization waits for an accepted projection; age still advances offscreen.
+            if (task->state == EFFECT_DRAW_TASK_NEW) {
+                requestedSize = (u16)task->spawnArg1.value & EFFECT_DRAW_SIZE_MASK;
+                size          = EFFECT_PUFF_DEFAULT_SIZE;
+                if (requestedSize != 0) {
+                    size = requestedSize;
                 }
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->scale      = amt;
-                mem->angle      = ((gRandomLcgState >> 16) & 7) + 0x10;
+                work->scale     = size;
+                work->angle     = ((gRandomLcgState >> 16) & EFFECT_PUFF_LIFETIME_MASK) + EFFECT_PUFF_MIN_LAST_AGE;
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->step       = (gRandomLcgState >> 16) % 0x30;
-                arg0->state++;
-                arg0->spawnArg1.value &= 0x80000000;
+                work->step      = (gRandomLcgState >> 16) % EFFECT_PUFF_RISE_SPEED_RANGE;
+                task->state++;
+                task->spawnArg1.value &= EFFECT_PUFF_RETAINED_SPAWN_FLAG;
             }
-            if (mem->age < 0xC) {
-                scale = mem->scale * mem->age / 12;
+            if (work->age < EFFECT_PUFF_GROW_TICKS) {
+                currentSize = work->scale * work->age / EFFECT_PUFF_GROW_TICKS;
             } else {
-                scale = (u16)mem->scale;
+                currentSize = (u16)work->scale;
             }
-            mem->period = scale;
-            if (mem->angle - 8 < mem->age) {
-                c = (mem->angle - mem->age + 1) * 0x10;
-                setRGB0(prim, c, c, c);
+            work->period = currentSize;
+            if (work->angle - EFFECT_PUFF_FADE_TICKS < work->age) {
+                brightness = (work->angle - work->age + 1) * EFFECT_PUFF_FADE_STEP;
+                setRGB0(quad, brightness, brightness, brightness);
             } else {
-                prim->code |= 1;
+                quad->code |= EFFECT_DRAW_RAW_TEXTURE;
             }
-            prim->tpage         = 0x28;
-            prim->clut          = 0x430D;
-            prim->code         |= 2;
-            uv                  = mem->age;
-            prim->v0            = 0xA0;
-            prim->u0            = (uv & 7) * 0x18;
-            uv                  = mem->age;
-            prim->v1            = 0xA0;
-            prim->u1            = ((uv & 7) * 0x18) + 0x17;
-            uv                  = mem->age;
-            prim->v2            = 0xB7;
-            prim->u2            = (uv & 7) * 0x18;
-            uv                  = mem->age;
-            prim->v3            = 0xB7;
-            prim->u3            = ((uv & 7) * 0x18) + 0x17;
-            block->screenExtent = (mem->period * 0x17) / block->depth;
-            x                   = block->screenX - (u16)block->screenExtent;
-            prim->x2            = x;
-            prim->x0            = x;
-            x                   = block->screenX + (u16)block->screenExtent;
-            prim->x3            = x;
-            prim->x1            = x;
-            y                   = block->screenY - (u16)block->screenExtent;
-            prim->y1            = y;
-            prim->y0            = y;
-            y                   = block->screenY + (u16)block->screenExtent;
-            prim->y3            = y;
-            prim->y2            = y;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
+            quad->tpage = EFFECT_PUFF_TEXTURE_PAGE;
+            quad->clut  = EFFECT_PUFF_CLUT;
+            quad->code |= EFFECT_DRAW_SEMITRANSPARENT;
+            frameAge    = work->age;
+            quad->v0    = EFFECT_PUFF_TEXTURE_V;
+            quad->u0    = (frameAge & (EFFECT_PUFF_FRAME_COUNT - 1)) * EFFECT_PUFF_CELL_SIZE;
+            frameAge    = work->age;
+            quad->v1    = EFFECT_PUFF_TEXTURE_V;
+            quad->u1    = ((frameAge & (EFFECT_PUFF_FRAME_COUNT - 1)) * EFFECT_PUFF_CELL_SIZE) + EFFECT_PUFF_CELL_SIZE - 1;
+            frameAge    = work->age;
+            quad->v2    = EFFECT_PUFF_TEXTURE_V + EFFECT_PUFF_CELL_SIZE - 1;
+            quad->u2    = (frameAge & (EFFECT_PUFF_FRAME_COUNT - 1)) * EFFECT_PUFF_CELL_SIZE;
+            frameAge    = work->age;
+            quad->v3    = EFFECT_PUFF_TEXTURE_V + EFFECT_PUFF_CELL_SIZE - 1;
+            quad->u3    = ((frameAge & (EFFECT_PUFF_FRAME_COUNT - 1)) * EFFECT_PUFF_CELL_SIZE) + EFFECT_PUFF_CELL_SIZE - 1;
+            _effectSetFireBurstCorners(scratch, quad, work);
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                    quad);
         }
         SCRATCH_STACK_RELEASE_BLOCK(EffectCentreScratch);
         if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
             return;
         }
-        coord->coord.t[1]  -= mem->step;
+        coord->coord.t[1]  -= work->step;
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        mem->age++;
-        if (mem->angle >= mem->age) {
+        work->age++;
+        if (work->angle >= work->age) {
             return;
         }
     }
-    effectKillTask(mem, arg0);
+    effectKillTask(work, task);
 }
 
-void Gp_EffSprTask3F(Task* arg0)
+void effectSpriteTask3F(Task* task)
 {
-    EffectWork*         mem;
+    enum {
+        EFFECT_BURST_PARTICLE_FRAME_COUNT       = 8,
+        EFFECT_BURST_PARTICLE_CELL_SIZE         = 32,
+        EFFECT_BURST_PARTICLE_TEXTURE_V         = 24,
+        EFFECT_BURST_PARTICLE_TEXTURE_PAGE      = getTPage(0, GPU_BLEND_ADD, 512, 0),
+        EFFECT_BURST_PARTICLE_CLUT              = getClut(304, 265),
+        EFFECT_BURST_PARTICLE_SIZE_LIFT_DIVISOR = 736,
+    };
+    EffectWork*         work;
     GfxCoord*           coord;
-    GfxRotationWords*   rot;
-    EffectShapeScratch* block;
-    POLY_FT4*           prim;
-    s32                 sub;
-    s32                 temp;
+    EffectShapeScratch* scratch;
+    POLY_FT4*           quad;
+    s32                 attachmentBits;
+    s32                 size;
 
-    mem   = arg0->spawnArg2.pointer;
-    coord = arg0->extra.coordBody->coord;
+/// Writes rotated screen corners using the live scratch, quad and work locals.
+///
+/// Use as a standalone statement in a braced block. Captures those three
+/// locals and the enclosing task's cell-size constant, retains repeated field
+/// reads and narrows each offset before adding it to the projected origin.
+#define EFFECT_PROJECTILE_BURST_PARTICLE_SET_CORNERS()                                                                                                                                 \
+    scratch->extent.corner.x = (((work->scale * (EFFECT_BURST_PARTICLE_CELL_SIZE - 1)) / scratch->depth) * rsin(work->angle)) >> EFFECT_DRAW_FRACTION_BITS;                            \
+    scratch->extent.corner.y = (((work->scale * (EFFECT_BURST_PARTICLE_CELL_SIZE - 1)) / scratch->depth) * rcos(work->angle)) >> EFFECT_DRAW_FRACTION_BITS;                            \
+    quad->x0                 = scratch->screenX + (u16)scratch->extent.corner.x;                                                                                                       \
+    quad->x3                 = scratch->screenX - (u16)scratch->extent.corner.x;                                                                                                       \
+    quad->y0                 = scratch->screenY - (u16)scratch->extent.corner.y;                                                                                                       \
+    quad->y3                 = scratch->screenY + (u16)scratch->extent.corner.y;                                                                                                       \
+    scratch->extent.corner.x = (((work->scale * (EFFECT_BURST_PARTICLE_CELL_SIZE - 1)) / scratch->depth) * rsin(work->angle + EFFECT_DRAW_QUARTER_TURN)) >> EFFECT_DRAW_FRACTION_BITS; \
+    scratch->extent.corner.y = (((work->scale * (EFFECT_BURST_PARTICLE_CELL_SIZE - 1)) / scratch->depth) * rcos(work->angle + EFFECT_DRAW_QUARTER_TURN)) >> EFFECT_DRAW_FRACTION_BITS; \
+    quad->x1                 = scratch->screenX + (u16)scratch->extent.corner.x;                                                                                                       \
+    quad->x2                 = scratch->screenX - (u16)scratch->extent.corner.x;                                                                                                       \
+    quad->y1                 = scratch->screenY - (u16)scratch->extent.corner.y;                                                                                                       \
+    quad->y2                 = scratch->screenY + (u16)scratch->extent.corner.y;
+
+    work  = task->spawnArg2.pointer;
+    coord = task->extra.coordBody->coord;
     if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
         actorRenderComposeCoord(coord);
-        block                = SCRATCH_STACK_RESERVE_BLOCK(EffectShapeScratch);
-        block->worldPoint.vx = coord->workm.t[0];
-        block->worldPoint.vy = coord->workm.t[1];
-        block->worldPoint.vz = coord->workm.t[2];
+        scratch                = SCRATCH_STACK_RESERVE_BLOCK(EffectShapeScratch);
+        scratch->worldPoint.vx = coord->workm.t[0];
+        scratch->worldPoint.vy = coord->workm.t[1];
+        scratch->worldPoint.vz = coord->workm.t[2];
         gte_SetTransMatrix(&GsWSMATRIX);
         gte_SetRotMatrix(&GsWSMATRIX);
-        gte_ldv0(&block->worldPoint);
+        gte_ldv0(&scratch->worldPoint);
         gte_rtps();
-        gte_stsxy(&block->screenX);
-        gte_stflg(&block->projectionFlags);
-        if (block->projectionFlags >= 0) {
-            if (arg0->state == 0) {
-                mem->period     = ((arg0->spawnArg1.value >> 12) & 3) + 2;
-                temp            = (u16)arg0->spawnArg1.value & 0xFFF;
+        gte_stsxy(&scratch->screenX);
+        gte_stflg(&scratch->projectionFlags);
+        if (scratch->projectionFlags >= 0) {
+            // Initialize after projection, retaining its screen point when reparenting.
+            if (task->state == EFFECT_DRAW_TASK_NEW) {
+                work->period    = ((task->spawnArg1.value >> 12) & 3) + 2;
+                size            = (u16)task->spawnArg1.value & EFFECT_DRAW_SIZE_MASK;
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->angle      = (gRandomLcgState >> 16) & 0xFFF;
-                mem->scale      = temp;
-                sub             = arg0->spawnArg1.halves.high;
-                mem->index      = sub & 1;
-                if (mem->index != 0) {
-                    rot                 = (GfxRotationWords*)&coord->coord;
-                    coord->parent       = mem->parent;
-                    rot->m00M01         = ONE;
-                    rot->m02M10         = 0;
-                    rot->m11M12         = ONE;
-                    rot->m20M21         = 0;
-                    rot->m22            = ONE;
+                work->angle     = (gRandomLcgState >> 16) & EFFECT_DRAW_ANGLE_MASK;
+                work->scale     = size;
+                attachmentBits  = task->spawnArg1.halves.high;
+                work->index     = attachmentBits & 1;
+                if (work->index != 0) {
+                    coord->parent = work->parent;
+                    gfxSetRotIdentity(&coord->coord);
                     coord->coord.t[2]   = 0;
                     coord->coord.t[1]   = 0;
                     coord->coord.t[0]   = 0;
                     coord->composeStamp = GRAPHICS_COORD_DIRTY;
                     actorRenderComposeCoord(coord);
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    mem->move.vy    = -((gRandomLcgState >> 16) & 3);
+                    work->move.vy   = -((gRandomLcgState >> 16) & 3);
                 } else {
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    mem->move.vx    = ((gRandomLcgState >> 16) & 0xF) - 8;
+                    work->move.vx   = ((gRandomLcgState >> 16) & 0xF) - 8;
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    mem->move.vy    = -((gRandomLcgState >> 16) & 0xF);
+                    work->move.vy   = -((gRandomLcgState >> 16) & 0xF);
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    mem->move.vz    = ((gRandomLcgState >> 16) & 0xF) - 8;
+                    work->move.vz   = ((gRandomLcgState >> 16) & 0xF) - 8;
                 }
-                arg0->state++;
+                task->state++;
             }
-            gte_stszotz(&block->depth);
-            block->depth   = block->depth + 1;
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setlen(prim, 9);
-            setcode(prim, 0x2F);
-            prim->tpage = 0x28;
-            prim->clut  = 0x4253;
-            setUV4(prim, (mem->age / mem->period) << 5, 0x18,
-                   ((mem->age / mem->period) << 5) + 0x1F, 0x18,
-                   (mem->age / mem->period) << 5, 0x37,
-                   ((mem->age / mem->period) << 5) + 0x1F, 0x37);
-            block->extent.corner.x = (((mem->scale * 0x1F) / block->depth) * rsin(mem->angle)) >> 12;
-            block->extent.corner.y = (((mem->scale * 0x1F) / block->depth) * rcos(mem->angle)) >> 12;
-            prim->x0               = block->screenX + (u16)block->extent.corner.x;
-            prim->x3               = block->screenX - (u16)block->extent.corner.x;
-            prim->y0               = block->screenY - (u16)block->extent.corner.y;
-            prim->y3               = block->screenY + (u16)block->extent.corner.y;
-            block->extent.corner.x = (((mem->scale * 0x1F) / block->depth) * rsin(mem->angle + 0x400)) >> 12;
-            block->extent.corner.y = (((mem->scale * 0x1F) / block->depth) * rcos(mem->angle + 0x400)) >> 12;
-            prim->x1               = block->screenX + (u16)block->extent.corner.x;
-            prim->x2               = block->screenX - (u16)block->extent.corner.x;
-            prim->y1               = block->screenY - (u16)block->extent.corner.y;
-            prim->y2               = block->screenY + (u16)block->extent.corner.y;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
+            gte_stszotz(&scratch->depth);
+            scratch->depth = scratch->depth + 1;
+            quad           = gGpuPrimCursor;
+            gGpuPrimCursor = quad + 1;
+            setlen(quad, EFFECT_DRAW_TEXTURED_QUAD_PACKET_WORDS);
+            setcode(quad, EFFECT_DRAW_RAW_ADDITIVE_TEXTURED_QUAD);
+            quad->tpage = EFFECT_BURST_PARTICLE_TEXTURE_PAGE;
+            quad->clut  = EFFECT_BURST_PARTICLE_CLUT;
+            setUV4(quad, (work->age / work->period) * EFFECT_BURST_PARTICLE_CELL_SIZE, EFFECT_BURST_PARTICLE_TEXTURE_V,
+                   ((work->age / work->period) * EFFECT_BURST_PARTICLE_CELL_SIZE) + EFFECT_BURST_PARTICLE_CELL_SIZE - 1, EFFECT_BURST_PARTICLE_TEXTURE_V,
+                   (work->age / work->period) * EFFECT_BURST_PARTICLE_CELL_SIZE, EFFECT_BURST_PARTICLE_TEXTURE_V + EFFECT_BURST_PARTICLE_CELL_SIZE - 1,
+                   ((work->age / work->period) * EFFECT_BURST_PARTICLE_CELL_SIZE) + EFFECT_BURST_PARTICLE_CELL_SIZE - 1, EFFECT_BURST_PARTICLE_TEXTURE_V + EFFECT_BURST_PARTICLE_CELL_SIZE - 1);
+            EFFECT_PROJECTILE_BURST_PARTICLE_SET_CORNERS();
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                    quad);
         }
         SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);
         if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
             return;
         }
-        if (mem->index != 0) {
-            coord->coord.t[1]  += mem->move.vy;
+        if (work->index != 0) {
+            coord->coord.t[1]  += work->move.vy;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
         } else {
-            coord->coord.t[0]  += mem->move.vx;
-            coord->coord.t[1]  += mem->move.vy;
-            coord->coord.t[2]  += mem->move.vz;
-            coord->coord.t[1]  -= (s16)(mem->scale / 736);
+            coord->coord.t[0]  += work->move.vx;
+            coord->coord.t[1]  += work->move.vy;
+            coord->coord.t[2]  += work->move.vz;
+            coord->coord.t[1]  -= (s16)(work->scale / EFFECT_BURST_PARTICLE_SIZE_LIFT_DIVISOR);
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
         }
-        mem->age++;
-        if (mem->age <= (mem->period * 8) - 1) {
+        work->age++;
+        if (work->age <= (work->period * EFFECT_BURST_PARTICLE_FRAME_COUNT) - 1) {
             return;
         }
     }
-    effectKillTask(mem, arg0);
+    effectKillTask(work, task);
+#undef EFFECT_PROJECTILE_BURST_PARTICLE_SET_CORNERS
 }
 
 void func_800FF710(Task* arg0)
@@ -4127,7 +4399,7 @@ void func_800FF710(Task* arg0)
             mem->period          = temp2 << 2;
         }
         actorRenderComposeCoord(coord);
-        Gp_DrawEffSpriteE2(coord, (u16)(mem->age >> 1), mem->scale - 0x40, mem->index);
+        _effectDrawSparkBurstBillboard(coord, (u16)(mem->age >> 1), mem->scale - 0x40, mem->index);
         if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
             return;
         }
@@ -4162,206 +4434,253 @@ void func_800FF710(Task* arg0)
     }
 }
 
-void Gp_EffSprTaskE0(Task* arg0)
+void effectSpriteTaskE0(Task* task)
 {
-    EffectWork*         mem;
+    enum {
+        EFFECT_BURST_CLUT_BASE_Y        = 266,
+        EFFECT_BURST_CLUT_ROW_SHIFT     = 6,
+        EFFECT_BURST_CLUT_COLUMN_STRIDE = 6,
+        EFFECT_BURST_CLUT_COLUMN_MASK   = 63,
+        EFFECT_BURST_CELL_SIZE          = 40,
+        EFFECT_BURST_TEXTURE_V          = 80,
+        EFFECT_BURST_FRAME_COUNT        = 6,
+        EFFECT_BURST_DEPTH_BIAS         = 32,
+        EFFECT_BURST_MIN_DEPTH          = 16,
+        EFFECT_BURST_TEXTURE_PAGE       = getTPage(0, GPU_BLEND_ADD, 576, 0),
+    };
+    EffectWork*         work;
     GfxCoord*           coord;
-    EffectShapeScratch* head;
-    EffectShapeScratch* block;
+    EffectShapeScratch* scratchEnd;
+    EffectShapeScratch* scratch;
     EffectShapeScratch* projectionScratch;
-    POLY_FT4*           prim;
-    s16                 flag;
-    s32                 temp;
-    s32                 pal;
-    s32                 t;
-    s32                 uv;
-    u16                 vz;
+    POLY_FT4*           quad;
+    s16                 effectControl;
+    s32                 baseSize;
+    s32                 paletteBits;
+    s32                 clut;
+    s32                 textureV;
+    s32                 frameAge;
+    u16                 worldZ;
 
-    mem   = arg0->spawnArg2.pointer;
-    flag  = gRoomEffectState->effectControl;
-    coord = arg0->extra.coordBody->coord;
-    if (flag < ROOM_EFFECT_CONTROL_HIDDEN) {
+/// Writes rotated screen corners using the live scratch, quad and work locals.
+///
+/// Use as a standalone statement in a braced block. Captures those three
+/// locals and the enclosing task's cell-size constant, retains repeated field
+/// reads and narrows each offset before adding it to the projected origin.
+#define EFFECT_FLASH_BURST_SET_CORNERS()                                                                                                                                      \
+    scratch->extent.corner.x = (((work->scale * (EFFECT_BURST_CELL_SIZE - 1)) / scratch->depth) * rsin(work->angle)) >> EFFECT_DRAW_FRACTION_BITS;                            \
+    scratch->extent.corner.y = (((work->scale * (EFFECT_BURST_CELL_SIZE - 1)) / scratch->depth) * rcos(work->angle)) >> EFFECT_DRAW_FRACTION_BITS;                            \
+    quad->x0                 = scratch->screenX + (u16)scratch->extent.corner.x;                                                                                              \
+    quad->x3                 = scratch->screenX - (u16)scratch->extent.corner.x;                                                                                              \
+    quad->y0                 = scratch->screenY - (u16)scratch->extent.corner.y;                                                                                              \
+    quad->y3                 = scratch->screenY + (u16)scratch->extent.corner.y;                                                                                              \
+    scratch->extent.corner.x = (((work->scale * (EFFECT_BURST_CELL_SIZE - 1)) / scratch->depth) * rsin(work->angle + EFFECT_DRAW_QUARTER_TURN)) >> EFFECT_DRAW_FRACTION_BITS; \
+    scratch->extent.corner.y = (((work->scale * (EFFECT_BURST_CELL_SIZE - 1)) / scratch->depth) * rcos(work->angle + EFFECT_DRAW_QUARTER_TURN)) >> EFFECT_DRAW_FRACTION_BITS; \
+    quad->x1                 = scratch->screenX + (u16)scratch->extent.corner.x;                                                                                              \
+    quad->x2                 = scratch->screenX - (u16)scratch->extent.corner.x;                                                                                              \
+    quad->y1                 = scratch->screenY - (u16)scratch->extent.corner.y;                                                                                              \
+    quad->y2                 = scratch->screenY + (u16)scratch->extent.corner.y;
+
+    work          = task->spawnArg2.pointer;
+    effectControl = gRoomEffectState->effectControl;
+    coord         = task->extra.coordBody->coord;
+    if (effectControl < ROOM_EFFECT_CONTROL_HIDDEN) {
         actorRenderComposeCoord(coord);
-        head                                     = SCRATCH_STACK_CURSOR(EffectShapeScratch);
-        (head - 1)->worldPoint.vx                = (u16)coord->workm.t[0];
-        block                                    = head - 1;
-        block->worldPoint.vy                     = (u16)coord->workm.t[1];
-        vz                                       = (u16)coord->workm.t[2];
-        SCRATCH_STACK_CURSOR(EffectShapeScratch) = block;
-        block->worldPoint.vz                     = vz;
-        projectionScratch                        = block;
+        scratchEnd                               = SCRATCH_STACK_CURSOR(EffectShapeScratch);
+        (scratchEnd - 1)->worldPoint.vx          = (u16)coord->workm.t[0];
+        scratch                                  = scratchEnd - 1;
+        scratch->worldPoint.vy                   = (u16)coord->workm.t[1];
+        worldZ                                   = (u16)coord->workm.t[2];
+        SCRATCH_STACK_CURSOR(EffectShapeScratch) = scratch;
+        scratch->worldPoint.vz                   = worldZ;
+        projectionScratch                        = scratch;
         gte_SetTransMatrix(&GsWSMATRIX);
         gte_SetRotMatrix(&GsWSMATRIX);
         gte_ldv0(&projectionScratch->worldPoint);
         gte_rtps();
-        gte_stsxy(&(head - 1)->screenX);
-        gte_stflg(&(head - 1)->projectionFlags);
-        if (block->projectionFlags >= 0) {
-            gte_stszotz(&(head - 1)->depth);
-            block->depth -= 0x20;
-            if (block->depth < 0x10) {
-                block->depth = 0x10;
+        gte_stsxy(&(scratchEnd - 1)->screenX);
+        gte_stflg(&(scratchEnd - 1)->projectionFlags);
+        if (scratch->projectionFlags >= 0) {
+            gte_stszotz(&(scratchEnd - 1)->depth);
+            scratch->depth -= EFFECT_BURST_DEPTH_BIAS;
+            if (scratch->depth < EFFECT_BURST_MIN_DEPTH) {
+                scratch->depth = EFFECT_BURST_MIN_DEPTH;
             }
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setlen(prim, 9);
-            setcode(prim, 0x2C);
-            if (arg0->state == 0) {
-                temp            = (u16)arg0->spawnArg1.value & 0xFFF;
+            quad           = gGpuPrimCursor;
+            gGpuPrimCursor = quad + 1;
+            setlen(quad, EFFECT_DRAW_TEXTURED_QUAD_PACKET_WORDS);
+            setcode(quad, EFFECT_DRAW_TEXTURED_QUAD);
+            // The first visible cell chooses size and rotation; offscreen ticks still age.
+            if (task->state == EFFECT_DRAW_TASK_NEW) {
+                baseSize        = (u16)task->spawnArg1.value & EFFECT_DRAW_SIZE_MASK;
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->scale      = temp + ((gRandomLcgState >> 16) & 0xFF);
+                work->scale     = baseSize + ((gRandomLcgState >> 16) & 0xFF);
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->angle      = (gRandomLcgState >> 16) & 0xFFF;
-                pal             = arg0->spawnArg1.halves.high;
-                mem->step       = pal;
-                arg0->state     = 1;
+                work->angle     = (gRandomLcgState >> 16) & EFFECT_DRAW_ANGLE_MASK;
+                paletteBits     = task->spawnArg1.halves.high;
+                work->step      = paletteBits;
+                task->state     = EFFECT_DRAW_TASK_ACTIVE;
             }
-            prim->tpage            = 0x29;
-            prim->code            |= 3;
-            t                      = (((u16)mem->step + 0x10A) << 6) | ((mem->step * 6) & 0x3F);
-            prim->clut             = t;
-            uv                     = mem->age;
-            t                      = 0x50;
-            prim->v0               = t;
-            prim->u0               = uv * 0x28;
-            uv                     = mem->age;
-            prim->v1               = t;
-            prim->u1               = uv * 0x28 + 0x27;
-            uv                     = mem->age;
-            t                      = 0x77;
-            prim->v2               = t;
-            prim->u2               = uv * 0x28;
-            uv                     = mem->age;
-            prim->v3               = t;
-            prim->u3               = uv * 0x28 + 0x27;
-            block->extent.corner.x = (((mem->scale * 0x27) / block->depth) * rsin(mem->angle)) >> 12;
-            block->extent.corner.y = (((mem->scale * 0x27) / block->depth) * rcos(mem->angle)) >> 12;
-            prim->x0               = block->screenX + (u16)block->extent.corner.x;
-            prim->x3               = block->screenX - (u16)block->extent.corner.x;
-            prim->y0               = block->screenY - (u16)block->extent.corner.y;
-            prim->y3               = block->screenY + (u16)block->extent.corner.y;
-            block->extent.corner.x = (((mem->scale * 0x27) / block->depth) * rsin(mem->angle + 0x400)) >> 12;
-            block->extent.corner.y = (((mem->scale * 0x27) / block->depth) * rcos(mem->angle + 0x400)) >> 12;
-            prim->x1               = block->screenX + (u16)block->extent.corner.x;
-            prim->x2               = block->screenX - (u16)block->extent.corner.x;
-            prim->y1               = block->screenY - (u16)block->extent.corner.y;
-            prim->y2               = block->screenY + (u16)block->extent.corner.y;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
+            quad->tpage = EFFECT_BURST_TEXTURE_PAGE;
+            quad->code |= EFFECT_DRAW_RAW_TEXTURE | EFFECT_DRAW_SEMITRANSPARENT;
+            clut        = (((u16)work->step + EFFECT_BURST_CLUT_BASE_Y) << EFFECT_BURST_CLUT_ROW_SHIFT) | ((work->step * EFFECT_BURST_CLUT_COLUMN_STRIDE) & EFFECT_BURST_CLUT_COLUMN_MASK);
+            quad->clut  = clut;
+            frameAge    = work->age;
+            textureV    = EFFECT_BURST_TEXTURE_V;
+            quad->v0    = textureV;
+            quad->u0    = frameAge * EFFECT_BURST_CELL_SIZE;
+            frameAge    = work->age;
+            quad->v1    = textureV;
+            quad->u1    = frameAge * EFFECT_BURST_CELL_SIZE + EFFECT_BURST_CELL_SIZE - 1;
+            frameAge    = work->age;
+            textureV    = EFFECT_BURST_TEXTURE_V + EFFECT_BURST_CELL_SIZE - 1;
+            quad->v2    = textureV;
+            quad->u2    = frameAge * EFFECT_BURST_CELL_SIZE;
+            frameAge    = work->age;
+            quad->v3    = textureV;
+            quad->u3    = frameAge * EFFECT_BURST_CELL_SIZE + EFFECT_BURST_CELL_SIZE - 1;
+            EFFECT_FLASH_BURST_SET_CORNERS();
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                    quad);
         }
         SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);
         if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
             return;
         }
-        mem->age++;
-        if (mem->age < 6) {
+        work->age++;
+        if (work->age < EFFECT_BURST_FRAME_COUNT) {
             return;
         }
-    } else if (flag < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
+    } else if (effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
         return;
     }
-    effectKillTask(mem, arg0);
+    effectKillTask(work, task);
+#undef EFFECT_FLASH_BURST_SET_CORNERS
 }
 
-void Gp_EffSprTaskE1(Task* arg0)
+void effectSpriteTaskE1(Task* task)
 {
-    EffectWork*         mem;
+    enum {
+        EFFECT_BURST_CLUT_BASE_X       = 192,
+        EFFECT_BURST_CLUT_BASE_Y       = 268,
+        EFFECT_BURST_CLUT_X_STRIDE     = 80,
+        EFFECT_BURST_CLUT_ROW_SHIFT    = 6,
+        EFFECT_BURST_CLUT_COLUMN_SHIFT = 4,
+        EFFECT_BURST_CLUT_COLUMN_MASK  = 63,
+        EFFECT_BURST_CELL_SIZE         = 24,
+        EFFECT_BURST_TEXTURE_V         = 136,
+        EFFECT_BURST_FRAME_COUNT       = 8,
+        EFFECT_BURST_DEPTH_BIAS        = 32,
+        EFFECT_BURST_MIN_DEPTH         = 16,
+        EFFECT_BURST_TEXTURE_PAGE      = getTPage(0, GPU_BLEND_ADD, 512, 0),
+    };
+    EffectWork*         work;
     GfxCoord*           coord;
-    EffectShapeScratch* head;
-    EffectShapeScratch* block;
+    EffectShapeScratch* scratchEnd;
+    EffectShapeScratch* scratch;
     EffectShapeScratch* projectionScratch;
-    POLY_FT4*           prim;
-    s16                 flag;
-    s32                 temp;
-    s32                 pal;
-    s32                 t;
-    s32                 uv;
-    u16                 vz;
+    POLY_FT4*           quad;
+    s16                 effectControl;
+    s32                 baseSize;
+    s32                 paletteBits;
+    s32                 textureValue;
+    s32                 frameAge;
+    u16                 worldZ;
 
-    mem   = arg0->spawnArg2.pointer;
-    flag  = gRoomEffectState->effectControl;
-    coord = arg0->extra.coordBody->coord;
-    if (flag >= ROOM_EFFECT_CONTROL_HIDDEN) {
-        if (flag < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
+/// Writes rotated screen corners using the live scratch, quad and work locals.
+///
+/// Use as a standalone statement in a braced block. Captures those three
+/// locals and the enclosing task's cell-size constant, retains repeated field
+/// reads and narrows each offset before adding it to the projected origin.
+#define EFFECT_SPARK_FADE_SET_CORNERS()                                                                                                                                       \
+    scratch->extent.corner.x = (((work->scale * (EFFECT_BURST_CELL_SIZE - 1)) / scratch->depth) * rsin(work->angle)) >> EFFECT_DRAW_FRACTION_BITS;                            \
+    scratch->extent.corner.y = (((work->scale * (EFFECT_BURST_CELL_SIZE - 1)) / scratch->depth) * rcos(work->angle)) >> EFFECT_DRAW_FRACTION_BITS;                            \
+    quad->x0                 = scratch->screenX + (u16)scratch->extent.corner.x;                                                                                              \
+    quad->x3                 = scratch->screenX - (u16)scratch->extent.corner.x;                                                                                              \
+    quad->y0                 = scratch->screenY - (u16)scratch->extent.corner.y;                                                                                              \
+    quad->y3                 = scratch->screenY + (u16)scratch->extent.corner.y;                                                                                              \
+    scratch->extent.corner.x = (((work->scale * (EFFECT_BURST_CELL_SIZE - 1)) / scratch->depth) * rsin(work->angle + EFFECT_DRAW_QUARTER_TURN)) >> EFFECT_DRAW_FRACTION_BITS; \
+    scratch->extent.corner.y = (((work->scale * (EFFECT_BURST_CELL_SIZE - 1)) / scratch->depth) * rcos(work->angle + EFFECT_DRAW_QUARTER_TURN)) >> EFFECT_DRAW_FRACTION_BITS; \
+    quad->x1                 = scratch->screenX + (u16)scratch->extent.corner.x;                                                                                              \
+    quad->x2                 = scratch->screenX - (u16)scratch->extent.corner.x;                                                                                              \
+    quad->y1                 = scratch->screenY - (u16)scratch->extent.corner.y;                                                                                              \
+    quad->y2                 = scratch->screenY + (u16)scratch->extent.corner.y;
+
+    work          = task->spawnArg2.pointer;
+    effectControl = gRoomEffectState->effectControl;
+    coord         = task->extra.coordBody->coord;
+    if (effectControl >= ROOM_EFFECT_CONTROL_HIDDEN) {
+        if (effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             return;
         }
     } else {
-        head                                     = SCRATCH_STACK_CURSOR(EffectShapeScratch);
-        block                                    = head - 1;
-        SCRATCH_STACK_CURSOR(EffectShapeScratch) = block;
-        projectionScratch                        = block;
-        if (arg0->state == 0) {
-            temp            = (u16)arg0->spawnArg1.value & 0xFFF;
+        scratchEnd                               = SCRATCH_STACK_CURSOR(EffectShapeScratch);
+        scratch                                  = scratchEnd - 1;
+        SCRATCH_STACK_CURSOR(EffectShapeScratch) = scratch;
+        projectionScratch                        = scratch;
+        // Initialize before projection so offscreen ticks use the same lifetime.
+        if (task->state == EFFECT_DRAW_TASK_NEW) {
+            baseSize        = (u16)task->spawnArg1.value & EFFECT_DRAW_SIZE_MASK;
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            mem->scale      = temp + ((gRandomLcgState >> 16) & 0xFF);
+            work->scale     = baseSize + ((gRandomLcgState >> 16) & 0xFF);
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            mem->angle      = (gRandomLcgState >> 16) & 0xFFF;
-            pal             = arg0->spawnArg1.halves.high;
-            mem->step       = pal;
-            arg0->state++;
+            work->angle     = (gRandomLcgState >> 16) & EFFECT_DRAW_ANGLE_MASK;
+            paletteBits     = task->spawnArg1.halves.high;
+            work->step      = paletteBits;
+            task->state++;
         }
         actorRenderComposeCoord(coord);
-        (head - 1)->worldPoint.vx = (u16)coord->workm.t[0];
-        block->worldPoint.vy      = (u16)coord->workm.t[1];
-        vz                        = (u16)coord->workm.t[2];
-        block->worldPoint.vz      = vz;
+        (scratchEnd - 1)->worldPoint.vx = (u16)coord->workm.t[0];
+        scratch->worldPoint.vy          = (u16)coord->workm.t[1];
+        worldZ                          = (u16)coord->workm.t[2];
+        scratch->worldPoint.vz          = worldZ;
         gte_SetTransMatrix(&GsWSMATRIX);
         gte_SetRotMatrix(&GsWSMATRIX);
         gte_ldv0(&projectionScratch->worldPoint);
         gte_rtps();
-        gte_stsxy(&(head - 1)->screenX);
-        gte_stflg(&(head - 1)->projectionFlags);
-        if (block->projectionFlags >= 0) {
-            gte_stszotz(&(head - 1)->depth);
-            block->depth -= 0x20;
-            if (block->depth < 0x10) {
-                block->depth = 0x10;
+        gte_stsxy(&(scratchEnd - 1)->screenX);
+        gte_stflg(&(scratchEnd - 1)->projectionFlags);
+        if (scratch->projectionFlags >= 0) {
+            gte_stszotz(&(scratchEnd - 1)->depth);
+            scratch->depth -= EFFECT_BURST_DEPTH_BIAS;
+            if (scratch->depth < EFFECT_BURST_MIN_DEPTH) {
+                scratch->depth = EFFECT_BURST_MIN_DEPTH;
             }
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setlen(prim, 9);
-            setcode(prim, 0x2F);
-            prim->tpage            = 0x28;
-            prim->clut             = ((0x10C - mem->step) << 6) | (((0xC0 - mem->step * 80) >> 4) & 0x3F);
-            uv                     = mem->age;
-            t                      = 0x88;
-            prim->v0               = t;
-            prim->u0               = uv * 0x18;
-            uv                     = mem->age;
-            prim->v1               = t;
-            prim->u1               = uv * 0x18 + 0x17;
-            uv                     = mem->age;
-            t                      = 0x9F;
-            prim->v2               = t;
-            prim->u2               = uv * 0x18;
-            uv                     = mem->age;
-            prim->v3               = t;
-            prim->u3               = uv * 0x18 + 0x17;
-            block->extent.corner.x = (((mem->scale * 23) / block->depth) * rsin(mem->angle)) >> 12;
-            block->extent.corner.y = (((mem->scale * 23) / block->depth) * rcos(mem->angle)) >> 12;
-            prim->x0               = block->screenX + (u16)block->extent.corner.x;
-            prim->x3               = block->screenX - (u16)block->extent.corner.x;
-            prim->y0               = block->screenY - (u16)block->extent.corner.y;
-            prim->y3               = block->screenY + (u16)block->extent.corner.y;
-            block->extent.corner.x = (((mem->scale * 23) / block->depth) * rsin(mem->angle + 0x400)) >> 12;
-            block->extent.corner.y = (((mem->scale * 23) / block->depth) * rcos(mem->angle + 0x400)) >> 12;
-            prim->x1               = block->screenX + (u16)block->extent.corner.x;
-            prim->x2               = block->screenX - (u16)block->extent.corner.x;
-            prim->y1               = block->screenY - (u16)block->extent.corner.y;
-            prim->y2               = block->screenY + (u16)block->extent.corner.y;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
+            quad           = gGpuPrimCursor;
+            gGpuPrimCursor = quad + 1;
+            setlen(quad, EFFECT_DRAW_TEXTURED_QUAD_PACKET_WORDS);
+            setcode(quad, EFFECT_DRAW_RAW_ADDITIVE_TEXTURED_QUAD);
+            quad->tpage  = EFFECT_BURST_TEXTURE_PAGE;
+            quad->clut   = ((EFFECT_BURST_CLUT_BASE_Y - work->step) << EFFECT_BURST_CLUT_ROW_SHIFT) | (((EFFECT_BURST_CLUT_BASE_X - work->step * EFFECT_BURST_CLUT_X_STRIDE) >> EFFECT_BURST_CLUT_COLUMN_SHIFT) & EFFECT_BURST_CLUT_COLUMN_MASK);
+            frameAge     = work->age;
+            textureValue = EFFECT_BURST_TEXTURE_V;
+            quad->v0     = textureValue;
+            quad->u0     = frameAge * EFFECT_BURST_CELL_SIZE;
+            frameAge     = work->age;
+            quad->v1     = textureValue;
+            quad->u1     = frameAge * EFFECT_BURST_CELL_SIZE + EFFECT_BURST_CELL_SIZE - 1;
+            frameAge     = work->age;
+            textureValue = EFFECT_BURST_TEXTURE_V + EFFECT_BURST_CELL_SIZE - 1;
+            quad->v2     = textureValue;
+            quad->u2     = frameAge * EFFECT_BURST_CELL_SIZE;
+            frameAge     = work->age;
+            quad->v3     = textureValue;
+            quad->u3     = frameAge * EFFECT_BURST_CELL_SIZE + EFFECT_BURST_CELL_SIZE - 1;
+            EFFECT_SPARK_FADE_SET_CORNERS();
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                    quad);
         }
         SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);
         if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
             return;
         }
-        mem->age++;
-        if (mem->age < 8) {
+        work->age++;
+        if (work->age < EFFECT_BURST_FRAME_COUNT) {
             return;
         }
     }
-    effectKillTask(mem, arg0);
+    effectKillTask(work, task);
+#undef EFFECT_SPARK_FADE_SET_CORNERS
 }
 
 void Gp_EffSprTaskE2(Task* arg0)
@@ -4404,8 +4723,8 @@ void Gp_EffSprTaskE2(Task* arg0)
         }
         actorRenderComposeCoord(coord);
         if (!(mem->age & 1)) {
-            Gp_DrawEffSpriteE2(coord, (u16)(mem->age >> 1),
-                               (s16)(mem->scale | mem->step), mem->angle);
+            _effectDrawSparkBurstBillboard(coord, (u16)(mem->age >> 1),
+                                           (s16)(mem->scale | mem->step), mem->angle);
         }
         if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
             return;
@@ -4420,67 +4739,94 @@ void Gp_EffSprTaskE2(Task* arg0)
     effectKillTask(mem, arg0);
 }
 
-/// Hand-written GTE routine. `arg2` is a full 32-bit word: the high half picks
-/// the CLUT (palette column) and the low 12 bits are the billboard size, so it
-/// must not be declared `s16` (that makes callers emit a spurious `sll`/`sra`
-/// truncation). It is unsigned because the size is divided by `otz` with `divu`.
-static void Gp_DrawEffSpriteE2(GfxCoord* arg0, u16 arg1, u32 arg2, s16 arg3)
+/// Draws one raw additive, randomly oriented spark-burst animation cell.
+///
+/// coord is borrowed with its world matrix composed. frame selects a 40-texel
+/// cell at V=56 on texture page 0x2A; U narrows to the GPU byte. packedSizePalette
+/// has the unsigned size numerator in bits 0..11 and the palette selector in
+/// bits 16..31. The screen half-diagonal is size * 39 / max(SZ3 / 4 - 32, 16)
+/// pixels, rotated by angle (4096 units per turn). The palette chooses CLUT
+/// X = 304 - 160 * (s16)palette, Y = 266 + palette, with GPU field truncation.
+/// A negative projection FLAG suppresses drawing. Scratch is released before
+/// returning; the queued packet borrows the frame arena until GPU completion.
+static void _effectDrawSparkBurstBillboard(const GfxCoord* coord, u16 frame, u32 packedSizePalette, s16 angle)
 {
-    EffectShapeScratch* head;
-    EffectShapeScratch* block;
+    enum {
+        EFFECT_BURST_CLUT_X        = 304,
+        EFFECT_BURST_CLUT_X_STRIDE = 160,
+        EFFECT_BURST_CLUT_Y        = 266,
+        EFFECT_BURST_CELL_SIZE     = 40,
+        EFFECT_BURST_TEXTURE_V     = 56,
+        EFFECT_BURST_FRAME_COUNT   = 6,
+        EFFECT_BURST_DEPTH_BIAS    = 32,
+        EFFECT_BURST_MIN_DEPTH     = 16,
+        EFFECT_BURST_TEXTURE_PAGE  = getTPage(0, GPU_BLEND_ADD, 640, 0),
+    };
+    EffectShapeScratch* scratchEnd;
+    EffectShapeScratch* scratch;
     EffectShapeScratch* projectionScratch;
-    POLY_FT4*           prim;
-    u32                 pal;
-    s32                 ang;
-    u16                 vz;
+    POLY_FT4*           quad;
+    u32                 palette;
+    s32                 perpendicularAngle;
+    u16                 worldZ;
 
-    head                                     = SCRATCH_STACK_CURSOR(EffectShapeScratch);
-    (head - 1)->worldPoint.vx                = (u16)arg0->workm.t[0];
-    block                                    = head - 1;
-    block->worldPoint.vy                     = (u16)arg0->workm.t[1];
-    vz                                       = (u16)arg0->workm.t[2];
-    SCRATCH_STACK_CURSOR(EffectShapeScratch) = block;
-    block->worldPoint.vz                     = vz;
-    projectionScratch                        = block;
+/// Writes the spark-burst billboard's rotated screen corners.
+///
+/// Captures scratch, quad, packedSizePalette, angle and perpendicularAngle,
+/// plus the enclosing cell-size constant. Retains unsigned perspective division
+/// and offset narrowing to u16; use as a standalone statement in a braced block.
+#define EFFECT_SPARK_BURST_BILLBOARD_SET_CORNERS()                                                                                                              \
+    scratch->extent.corner.x = (((packedSizePalette * (EFFECT_BURST_CELL_SIZE - 1)) / scratch->depth) * rsin(angle)) >> EFFECT_DRAW_FRACTION_BITS;              \
+    scratch->extent.corner.y = (((packedSizePalette * (EFFECT_BURST_CELL_SIZE - 1)) / scratch->depth) * rcos(angle)) >> EFFECT_DRAW_FRACTION_BITS;              \
+    quad->x0                 = scratch->screenX + (u16)scratch->extent.corner.x;                                                                                \
+    quad->x3                 = scratch->screenX - (u16)scratch->extent.corner.x;                                                                                \
+    quad->y0                 = scratch->screenY - (u16)scratch->extent.corner.y;                                                                                \
+    quad->y3                 = scratch->screenY + (u16)scratch->extent.corner.y;                                                                                \
+    perpendicularAngle       = angle + EFFECT_DRAW_QUARTER_TURN;                                                                                                \
+    scratch->extent.corner.x = (((packedSizePalette * (EFFECT_BURST_CELL_SIZE - 1)) / scratch->depth) * rsin(perpendicularAngle)) >> EFFECT_DRAW_FRACTION_BITS; \
+    scratch->extent.corner.y = (((packedSizePalette * (EFFECT_BURST_CELL_SIZE - 1)) / scratch->depth) * rcos(perpendicularAngle)) >> EFFECT_DRAW_FRACTION_BITS; \
+    quad->x1                 = scratch->screenX + (u16)scratch->extent.corner.x;                                                                                \
+    quad->x2                 = scratch->screenX - (u16)scratch->extent.corner.x;                                                                                \
+    quad->y1                 = scratch->screenY - (u16)scratch->extent.corner.y;                                                                                \
+    quad->y2                 = scratch->screenY + (u16)scratch->extent.corner.y;
+
+    scratchEnd                               = SCRATCH_STACK_CURSOR(EffectShapeScratch);
+    (scratchEnd - 1)->worldPoint.vx          = (u16)coord->workm.t[0];
+    scratch                                  = scratchEnd - 1;
+    scratch->worldPoint.vy                   = (u16)coord->workm.t[1];
+    worldZ                                   = (u16)coord->workm.t[2];
+    SCRATCH_STACK_CURSOR(EffectShapeScratch) = scratch;
+    scratch->worldPoint.vz                   = worldZ;
+    projectionScratch                        = scratch;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&projectionScratch->worldPoint);
     gte_rtps();
-    pal   = arg2 >> 16;
-    arg2 &= 0xFFF;
-    gte_stsxy(&(head - 1)->screenX);
-    gte_stflg(&(head - 1)->projectionFlags);
-    if (block->projectionFlags >= 0) {
-        gte_stszotz(&(head - 1)->depth);
-        block->depth -= 0x20;
-        if (block->depth < 0x10) {
-            block->depth = 0x10;
+    palette            = packedSizePalette >> 16;
+    packedSizePalette &= EFFECT_DRAW_SIZE_MASK;
+    gte_stsxy(&(scratchEnd - 1)->screenX);
+    gte_stflg(&(scratchEnd - 1)->projectionFlags);
+    if (scratch->projectionFlags >= 0) {
+        gte_stszotz(&(scratchEnd - 1)->depth);
+        // Pull the billboard forward for both perspective sizing and sorting.
+        scratch->depth -= EFFECT_BURST_DEPTH_BIAS;
+        if (scratch->depth < EFFECT_BURST_MIN_DEPTH) {
+            scratch->depth = EFFECT_BURST_MIN_DEPTH;
         }
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setlen(prim, 9);
-        setcode(prim, 0x2F);
-        prim->tpage = 0x2A;
-        prim->clut  = getClut(0x130 - (s16)pal * 0xA0, pal + 0x10A);
-        setUV4(prim, arg1 * 0x28, 0x38, arg1 * 0x28 + 0x27, 0x38, arg1 * 0x28, 0x5F,
-               arg1 * 0x28 + 0x27, 0x5F);
-        block->extent.corner.x = (((arg2 * 39) / block->depth) * rsin(arg3)) >> 12;
-        block->extent.corner.y = (((arg2 * 39) / block->depth) * rcos(arg3)) >> 12;
-        prim->x0               = block->screenX + (u16)block->extent.corner.x;
-        prim->x3               = block->screenX - (u16)block->extent.corner.x;
-        prim->y0               = block->screenY - (u16)block->extent.corner.y;
-        prim->y3               = block->screenY + (u16)block->extent.corner.y;
-        ang                    = arg3 + 0x400;
-        block->extent.corner.x = (((arg2 * 39) / block->depth) * rsin(ang)) >> 12;
-        block->extent.corner.y = (((arg2 * 39) / block->depth) * rcos(ang)) >> 12;
-        prim->x1               = block->screenX + (u16)block->extent.corner.x;
-        prim->x2               = block->screenX - (u16)block->extent.corner.x;
-        prim->y1               = block->screenY - (u16)block->extent.corner.y;
-        prim->y2               = block->screenY + (u16)block->extent.corner.y;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
+        quad           = gGpuPrimCursor;
+        gGpuPrimCursor = quad + 1;
+        setlen(quad, EFFECT_DRAW_TEXTURED_QUAD_PACKET_WORDS);
+        setcode(quad, EFFECT_DRAW_RAW_ADDITIVE_TEXTURED_QUAD);
+        quad->tpage = EFFECT_BURST_TEXTURE_PAGE;
+        quad->clut  = getClut(EFFECT_BURST_CLUT_X - (s16)palette * EFFECT_BURST_CLUT_X_STRIDE, palette + EFFECT_BURST_CLUT_Y);
+        setUV4(quad, frame * EFFECT_BURST_CELL_SIZE, EFFECT_BURST_TEXTURE_V, frame * EFFECT_BURST_CELL_SIZE + EFFECT_BURST_CELL_SIZE - 1, EFFECT_BURST_TEXTURE_V, frame * EFFECT_BURST_CELL_SIZE, EFFECT_BURST_TEXTURE_V + EFFECT_BURST_CELL_SIZE - 1,
+               frame * EFFECT_BURST_CELL_SIZE + EFFECT_BURST_CELL_SIZE - 1, EFFECT_BURST_TEXTURE_V + EFFECT_BURST_CELL_SIZE - 1);
+        EFFECT_SPARK_BURST_BILLBOARD_SET_CORNERS();
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                quad);
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);
+#undef EFFECT_SPARK_BURST_BILLBOARD_SET_CORNERS
 }
 
 /// Puts `obj`, one of the player's bodies, on the object list: a sphere of

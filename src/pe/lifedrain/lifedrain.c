@@ -489,7 +489,7 @@ void func_lifedrain_8012FAF8(Task* arg0)
 /// four 0x18-wide frames on tpage 0x2A (CLUT 0x42C5) picked by `arg1 & 3`, sized
 /// `arg2 * 23 / depth`. The outer sprite is the 0x38-wide cell on tpage 0x29 whose
 /// CLUT is `0x4310 + (arg1 & 1)`, sized `((arg2 * 2) / 3) * 55 / depth`. Same
-/// 0x18-byte scratch and axis-aligned corners as gameplay `Gp_EffSprTask8D`.
+/// 0x18-byte scratch and axis-aligned corners as gameplay `effectSpriteTask8D`.
 static void func_lifedrain_801301AC(GfxCoord* arg0, s16 arg1, s16 arg2)
 {
     u8*                  head;

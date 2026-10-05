@@ -172,7 +172,7 @@ segments:
       - [0x564C8, c, room_effects] # room effect state, presets and spawning
       - [0x592A8, c, effect_tasks] # Gp_EffCtlTask2B
       - [0x63518, c, effect_attach] # Gp_EffAttachTask37
-      - [0x63DBC, c, player_actor] # Gp_EffSprTask46 .. the effect sprite and player units, one source
+      - [0x63DBC, c, player_actor] # effectSpriteTask46 .. the effect sprite and player units, one source
       - [0x763B4, c, player_state] # func_80109BB4
       # "Item obtained!" / UI strings / tables after last jr ra
       - [0x79208, .data, area_entry]

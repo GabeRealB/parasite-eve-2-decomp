@@ -6940,7 +6940,7 @@ scratch = SCRATCH_STACK_CURSOR_SLOT;
 head    = *scratch;            /* lw a0, 0(a1) */
 ```
 
-`Gp_EffSprTask3F` is the example: the `asm volatile("" ::"r"(head))` variant
+`effectSpriteTask3F` is the example: the `asm volatile("" ::"r"(head))` variant
 stalls at 99.91% with nine register penalties, the `$a0` pin is 100%.
 
 Walking packed 3x3 columns as `src->x` / `src->y` / `src->z` (offsets
@@ -30137,7 +30137,7 @@ mem->field_2A = param & 0xF;
 
 An `s16` temporary still folds into `lhu`. Overlay `Task::spawnArg1` as
 `u16` + `s16` rather than shifting the word (`lw` / `sra 16`).
-`Gp_EffSprTask46` is the example.
+`effectSpriteTask46` is the example.
 
 ## First overlay switch: own TU so its jtbl stays at the file-start hole
 
@@ -30151,10 +30151,10 @@ Give the function its own `c` / `.rodata` pair in the overlay yaml
 (`3FB8_75BC` at 0x3FB8 / 0x63DBC) and leave the remainder of the old
 TU starting at the next function. Gameplay now uses `auto_link_sections: []`
 and explicit dotted subsegments to specify object section order; the old
-`fix_gameplay_linker_rodata_order` workaround has been removed. `Gp_EffSprTask46` is the
+`fix_gameplay_linker_rodata_order` workaround has been removed. `effectSpriteTask46` is the
 example. The next 5-case switch (`Gp_EffSprTask81`) needs the same cut
 (`3FB8_7E28` at 0x3FD0 / 0x63FF8); keep the unmatched `Gp_DrawEffSprite81` /
-`Gp_DrawEffSprite46` INCLUDE_ASMs in that TU so `.text` stays contiguous.
+`_effectDrawGroundDecal` INCLUDE_ASMs in that TU so `.text` stays contiguous.
 Remaining unmatched jtbls then start at 0x3FE8.
 
 ## Capture the next color before `setlen`/`setcode` so they fill that delay
@@ -30878,13 +30878,13 @@ Assign the `s16` field to an `s32` first so the conversion needs sign
 extension, then mask:
 
 ```c
-s32 idx;
+s32 colorBits;
 
-idx           = spawn->field_2; /* lh */
-mem->field_28 = D_80112C6C[idx & 3];
+colorBits    = task->spawnArg1.halves.high; /* lh */
+work->period = D_80112C6C[colorBits & 3];
 ```
 
-`Gp_EffCtlTaskC1` is the example.
+`effectPolyTaskC1` is the example.
 
 ## Two tail calls that differ by one constant: write both, do not phi the arg
 
@@ -32373,7 +32373,7 @@ coord->coord.t[1] = y;
 actorRenderComposeCoord(coord);
 ```
 
-`Gp_EffCtlTaskF4` is the example.
+`effectSpriteTaskF4` is the example.
 
 ## Add a rotated scratch `SVECTOR` through the block, not the GTE pointer
 
@@ -37024,24 +37024,24 @@ Keep the store after the switch. Case 0's `>= 4` path is a bare goto to the
 
 ```c
         if (flag >= 4) {
-            goto set_state_4;
+            goto release;
         }
         if (other == 2) {
             newState = 4;
-            goto set_state;
+            goto setState;
         }
         break;
     }
     goto draw;
-set_state_4:
+release:
     newState = 4;
-set_state:
+setState:
     arg0->state = newState;
 draw:
     /* shared tail */
 ```
 
-`Gp_EffCtlTask32` is the example.
+`effectSpriteTask32` is the example.
 
 ## Keep `setlen`/`setcode` constants both live after the prim cursor
 
@@ -37103,8 +37103,8 @@ loads from `$v0` instead of `$t1`. `Gp_DrawEffSprite81` is the example.
 
 ## Handwritten-asm callees: read the callee to type its arguments
 
-`Gp_DrawEffSpriteE2` is a hand-written GTE routine, so its C prototype is pure
-guesswork from callers. The header declared `arg2` as `s16`, which forces
+`_effectDrawSparkBurstBillboard` is a hand-written GTE routine, so its C prototype is pure
+guesswork from callers. The header declared `packedSizePalette` as `s16`, which forces
 GCC to emit a truncation (`lhu` + `sll 16` / `sra 16`) on every argument
 expression that is not already a 16-bit value:
 
@@ -37117,11 +37117,11 @@ sra   a2,a2,0x10      # unwanted
 
 The target for `func_800FF710` has only `lh a2,0x24(s0)` / `addiu a2,a2,-0x40`,
 i.e. no truncation at all, which only happens when the parameter is `s32`.
-Grepping the callee confirmed it: `Gp_DrawEffSpriteE2` does `srl $a2, $s4, 16`, so
+Grepping the callee confirmed it: `_effectDrawSparkBurstBillboard` does `srl $a2, $s4, 16`, so
 it consumes the *upper* half of the argument — it cannot be `s16`.
 
 Widening the prototype to `s32` costs an explicit `(s16)` cast at the already
-matched `Gp_EffSprTaskE2` call site (`(s16)(mem->field_24 | mem->field_2A)`),
+matched `Gp_EffSprTaskE2` call site (`(s16)(mem->scale | mem->step)`),
 which reproduces the `sll`/`sra` pair that function's target does have. When a
 callee is `/* Handwritten function */`, read its `.s` before trusting an
 inferred prototype.
@@ -37725,7 +37725,7 @@ arg0->spawnArg1 = D_80112B94[((u16)(x / 100U) - 1) * 9 +
                              ((u16)(x % 10U) - 1U)];
 ```
 
-`Gp_EffCtlTaskAE` is the example; the signed spellings all stalled at 98.9–99.8%
+`effectControlTaskAE` is the example; the signed spellings all stalled at 98.9–99.8%
 with exactly one `addiu -1` in the wrong slot.
 
 ## `lbu; sll 24; sra N` from a field the header already declares `s8`
@@ -38532,7 +38532,7 @@ diff is a swap of two callee-saved registers.
 ## Un-pinning beats pinning for `lui tmp,%hi` + `addiu reg,tmp,%lo`
 
 The existing entry above solves the `lui v0,%hi / addiu v1,v0,%lo` split with an
-inline-asm block. In `Gp_DrawEffSprite46` the same split appeared for the quad-corner
+inline-asm block. In `_effectDrawGroundDecal` the same split appeared for the quad-corner
 table, and the fix was the opposite of pinning: *remove* the pin.
 
 ```c
@@ -38549,7 +38549,7 @@ already force the register you want. 99.95% -> 100%.
 
 ## A stray `sll/sra 0x10` pair on an argument means the parameter is `s32`, not `s16`
 
-`Gp_DrawEffSprite46` feeds its second argument straight into `mult $v0, $a1`. Declaring
+`_effectDrawGroundDecal` feeds its second argument straight into `mult $v0, $a1`. Declaring
 it `s16` (which is what the callers' `u16` field suggested) made GCC 2.8.1 widen
 it first:
 
@@ -39369,7 +39369,7 @@ sweep this statement through the block before reaching for anything else.
 
 ## Do not pin the scratch-alloc pair when later temps need those registers
 
-`Gp_DrawEffSpriteE2` allocates a scratch stack block into `$v1` (the
+`_effectDrawSparkBurstBillboard` allocates a scratch stack block into `$v1` (the
 `lui 0x1F80` / `ori 0x3FC` pointer) and `$t0` (the loaded head), so
 `register void** scratch asm("v1")` / `register u8* head asm("t0")` looks like
 the obvious way to reproduce the prologue. It reproduces the prologue and
@@ -40325,7 +40325,7 @@ word is preloaded during the `t[1]` add. `Gp_StepPlayerMove` is the example.
 
 ## Keep a scratch local for a repeated struct load feeding primitive stores
 
-`Gp_EffSprTask8D` writes four `u`/`v` pairs of a `POLY_FT4` from the same work
+`effectSpriteTask8D` writes four `u`/`v` pairs of a `POLY_FT4` from the same work
 field. The target reloads it before every pair and parks each `lhu` in the delay
 slot of the *previous* pair's `sb`:
 
@@ -40345,12 +40345,12 @@ score by 1.6%. Assigning to a plain (non-`register`) local before each pair
 restores the target order:
 
 ```c
-uv       = mem->field_22;
-prim->v0 = 0xA0;
-prim->u0 = (uv & 7) * 0x18;
-uv       = mem->field_22;      /* redundant in C, required for the schedule */
-prim->v1 = 0xA0;
-prim->u1 = ((uv & 7) * 0x18) + 0x17;
+frameAge       = work->age;
+quad->v0 = 0xA0;
+quad->u0 = (frameAge & 7) * 0x18;
+frameAge       = work->age;      /* redundant in C, required for the schedule */
+quad->v1 = 0xA0;
+quad->u1 = ((frameAge & 7) * 0x18) + 0x17;
 ```
 
 The local also frees the register the inlined form was burning, which is what
@@ -40402,7 +40402,7 @@ prim->u0   = uv * 0x28;
 The reuse is a write-after-read on `$a0`, so `li a0, 0x50` cannot overlap
 the clut math. Combined with the `s32` `uv` load it becomes `lh` /
 `li a0, 0x50` / `sb`, matching the target. Same pattern for the second
-V pair with `t = 0x77`. `Gp_EffSprTaskE0` is the example.
+V pair with `t = 0x77`. `effectSpriteTaskE0` is the example.
 
 Copying `TaskSpawnArg::halves.high` (s16) straight into `EffectWork.step`
 (s16) also emits `lhu`; assign through an `s32` local first to get `lh`.
@@ -40430,7 +40430,7 @@ if (arg0->state == 0) {
 actorRenderComposeCoord(coord);
 ```
 
-`Gp_EffSprTaskE1` is the example: the hoist alone is 96.8% → 100%.
+`effectSpriteTaskE1` is the example: the hoist alone is 96.8% → 100%.
 
 ## Split a second-array pointer through the complete object's byte view so an asm operand recomputes
 
@@ -40498,7 +40498,7 @@ stays in a caller-saved register instead of being promoted to `$s0`.
 ## Unpin the scratch `block` instead of pinning the `head` temp
 
 The `SCRATCH_STACK_CURSOR_SLOT` push wants `lw v1` / `addiu v1,v1,-0x18` / `sw v1,0(v0)`
-plus a separate `move s0, v1`. With `register GpEffFt4Scratch* block asm("s0")`
+plus a separate `move s0, v1`. With `register EffectCentreScratch* block asm("s0")`
 GCC 2.8.1 coalesces the `head` temp straight into `$s0` and the `move`
 disappears, no matter how the push is written (plain local, `*head -= 0x18`
 re-read, or a no-op `asm volatile("" ::"r"(head))` barrier — all three still
@@ -40524,41 +40524,41 @@ with nothing pinned GCC allocates the push temp to `$v1`, emits the `move`, and
 leaves `$v0`/`$v1` free for the `mfhi`s:
 
 ```c
-GpEffFt4Scratch* block;   /* not pinned */
-u8*              head;
+EffectCentreScratch* scratch;   /* not pinned */
+EffectCentreScratch* scratchStart;
 
-head                    = (u8*)*SCRATCH_STACK_CURSOR_SLOT - 0x18;
-*SCRATCH_STACK_CURSOR_SLOT = head;
-block                   = (GpEffFt4Scratch*)head;
+scratchStart                            = SCRATCH_STACK_CURSOR(EffectCentreScratch) - 1;
+SCRATCH_STACK_CURSOR(EffectCentreScratch) = scratchStart;
+scratch                                 = scratchStart;
 ```
 
-`Gp_EffSprTask80` is the example (99.34% → 99.96% from removing the `$s0` pin).
+`effectSpriteTask80` is the example (99.34% → 99.96% from removing the `$s0` pin).
 
 ## Split an unsigned `%` across two statements to tie the remainder to the dividend
 
-`rnd = ((u32)gRandomLcgState >> 16) % 40;` in one arm of an if/else allocates the
+`riseSpeed = ((u32)gRandomLcgState >> 16) % 40;` in one arm of an if/else allocates the
 remainder to a *new* pseudo (`subu v1,a0,v0`), because the value has to survive
 the join. The target reuses the dividend register (`subu a0,a0,v0`). Writing
 the shift and the modulo as two statements on the same variable makes GCC 2.8.1
 tie them:
 
 ```c
-u32 rnd;
+u32 riseSpeed;
 
 if (flag & 1) {
     gRandomLcgState = gRandomLcgState * 5 + 0x71357911;
-    rnd         = (u32)gRandomLcgState >> 16;
-    rnd         = rnd % 40;   /* subu a0,a0,v0 */
+    riseSpeed         = (u32)gRandomLcgState >> 16;
+    riseSpeed         = riseSpeed % 40;   /* subu a0,a0,v0 */
 } else {
-    rnd = 0;                  /* move a0,zero  */
+    riseSpeed = 0;                  /* move a0,zero  */
 }
-mem->field_2A = rnd;
+work->step = riseSpeed;
 ```
 
 The variable must be unsigned (`u32`) or the divide becomes the signed
-`mult 0x2AAAAAAB` sequence instead of `multu 0xCCCCCCCD`. Pinning `rnd` to
+`mult 0x2AAAAAAB` sequence instead of `multu 0xCCCCCCCD`. Pinning `riseSpeed` to
 `$a0` instead pushes the `srl`/`sll` intermediates onto `$a1`, so this is not
-a job for a register pin. `Gp_EffSprTask80` is the example (99.96% → 100%).
+a job for a register pin. `effectSpriteTask80` is the example (99.96% → 100%).
 
 ## A `u16` temp keeps CSE from folding an even divisor's pre-shift into the `srl`
 
@@ -40678,7 +40678,7 @@ addu  $s4, $v0, $zero      # <-- the copy
 ```
 
 The ordinary idiom (`block = (EffectShapeScratch*)(head - 0x1C);`, as in
-`_effectDrawMuzzleFlash` / `Gp_EffSprTaskE0`) collapses to a single `addiu $s4, $a2, -0x1C`,
+`_effectDrawMuzzleFlash` / `effectSpriteTaskE0`) collapses to a single `addiu $s4, $a2, -0x1C`,
 and no amount of extra temporaries, chained assignments or store/reload tricks
 brings the copy back: cse propagates the temp into `block`'s uses and combine
 then merges the two insns. The copy only survives when the *source* of the copy
@@ -40749,13 +40749,13 @@ writes the same record when one exists.
 
 ## Forced `$v1` divisor copy, and the `$v1` it steals back
 
-`Gp_EffSprTaskA7` divides `mem->field_22` by the same `n` four times, and the
+`effectSpriteTaskA7` divides `work->age` by the same `ticksPerFrame` four times, and the
 target copies the value first (`move $v1, $s7` / `div $zero, $v0, $v1`). A plain
-`s32 count = n;` is copy-propagated away, and the usual
+`s32 count = ticksPerFrame;` is copy-propagated away, and the usual
 `__asm__ volatile("" : "+r"(count));` barrier pins the `move` *before* the
 `lh $v0, 0x22($s2)` instead of into its load-delay slot. A scoped
 `register s32 count asm("v1");` gives the exact `lh` / `move` / `div` order —
-and it is also what drops `n`'s reference count enough for `index` to win `$s5`
+and it is also what drops `ticksPerFrame`'s reference count enough for `index` to win `$s5`
 over it.
 
 The pin has a side effect: the later `(… * rsin(θ)) >> 12` product moves off
@@ -40765,8 +40765,8 @@ keep it live past the shift so the shift result still lands in `$v0`:
 ```c
 {
     register s32 prod asm("v1");
-    prod      = ((mem->field_26 * 31) / block->depth) * rsin(mem->field_24);
-    block->cornerOffsetX = prod >> 12;
+    prod      = ((work->angle * 31) / scratch->depth) * rsin(work->scale);
+    scratch->cornerOffsetX = prod >> 12;
     __asm__ volatile("" ::"r"(prod)); /* else GCC emits sra $v1, $v1, 12 */
 }
 ```
@@ -41580,18 +41580,18 @@ store, store the value used in the compare, widen it to `s32` (that is the
 
 ```c
 y    = (u16)mem->field_12 + 6;
-next = (u16)mem->field_22 + 1;
+next = (u16)work->age + 1;
 __asm__ volatile("" ::"r"(y), "r"(next));
-mem->field_22 = next;
+work->age = next;
 n32           = next;
 mem->field_12 = y;
-if ((mem->field_28 * 8 - 1) < n32) {
-    effectKillTask(mem, arg0);
+if ((work->period * 8 - 1) < n32) {
+    effectKillTask(work, task);
 }
 ```
 
-`Gp_EffSprTask42` is the example. Pair with the existing `code |= 3` memory
-barrier plus a `tpage` local so `clut` fills the `field_2A` `lhu` delay instead
+`effectSpriteTask42` is the example. Pair with the existing `code |= 3` memory
+barrier plus a `tpage` local so `clut` fills the `work->step` `lhu` delay instead
 of the `lbu` of `code`.
 
 ## Switch cases with identical tails: `asm("" ::: "memory")` blocks cross-jumping
@@ -63206,7 +63206,7 @@ the value is being reloaded, not held.
 
 ## Two empty `SCHED_BARRIER()`s keep `u1 = u0 + N` in `$a0` across the `u0` stores
 
-`func_combustion_8012FF0C` is the axis-aligned cousin of `Gp_EffSprTask8D`:
+`func_combustion_8012FF0C` is the axis-aligned cousin of `effectSpriteTask8D`:
 `(value & 7) * 0x18` is `u0`/`u2`, `u0 + 0x17` is `u1`/`u3`, and `0xA0` is `v0`/`v1`.
 The ROM does:
 
@@ -95457,7 +95457,7 @@ source form
 ```
 
 emits the target's `bnez $v0, epilogue` / `j release` — the shape
-`Gp_EffCtlTaskC1` (gameplay, 100%) and `func_pyrokinesis_801311B8` (pe, 100%)
+`effectPolyTaskC1` (gameplay, 100%) and `func_pyrokinesis_801311B8` (pe, 100%)
 produce for the identical handler family. It cleared all three `branch`
 penalties, which the `insert`/`delete` pair from the swapped loads had been
 riding along with.
