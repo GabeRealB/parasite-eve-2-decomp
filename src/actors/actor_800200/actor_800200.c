@@ -1061,7 +1061,7 @@ static void func_actor_800200_801622B0(Task* arg0)
     actor->collisionMotionContexts[2].motionDirection.vy = scratch->motionDirection.vy;
     actor->collisionMotionContexts[2].motionDirection.vz = scratch->motionDirection.vz;
     if (!(extra->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
-        Gp_DrawEffGroundQuad(MATRIX_TRANS(&coord->workm), 0x200, gRoomEffectState->groundShadowShade);
+        effectDrawGroundShadow(MATRIX_TRANS(&coord->workm), 0x200, gRoomEffectState->groundShadowShade);
     }
     SCRATCH_STACK_RELEASE_BLOCK(CompanionMoveScratch);
 }

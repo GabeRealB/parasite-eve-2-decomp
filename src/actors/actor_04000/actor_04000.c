@@ -2830,7 +2830,7 @@ static void Actor04000_Fn05F0C(Enemy* arg0, Task* arg1)
             if (work->state != ACTOR_04000_STATE_HIDDEN && work->state != ACTOR_04000_STATE_DEATH_BURST && work->state != ACTOR_04000_STATE_SELF_BURST && work->state != ACTOR_04000_STATE_RELEASE_BURST &&
                 work->state != ACTOR_04000_STATE_DROP && work->state != ACTOR_04000_STATE_SCRIPTED_THRASH && work->state != ACTOR_04000_STATE_SCRIPTED_FALL) {
                 arg1->extra.tmd->flags = 0;
-                Gp_DrawEffGroundQuad(MATRIX_TRANS(&arg1->extra.tmd->coords->workm), 0x100, gRoomEffectState->groundShadowShade);
+                effectDrawGroundShadow(MATRIX_TRANS(&arg1->extra.tmd->coords->workm), 0x100, gRoomEffectState->groundShadowShade);
             }
             if (work->state == ACTOR_04000_STATE_DROP) {
                 mw                                        = (GfxRotationWords*)&coord.coord;
@@ -2845,14 +2845,14 @@ static void Actor04000_Fn05F0C(Enemy* arg0, Task* arg1)
                 coord.parent                              = &gGfxViewCoord;
                 coord.composeStamp                        = GRAPHICS_COORD_DIRTY;
                 actorRenderComposeCoord(&coord);
-                Gp_DrawEffGroundQuad(MATRIX_TRANS(&coord.workm), 0x60, gRoomEffectState->groundShadowShade);
+                effectDrawGroundShadow(MATRIX_TRANS(&coord.workm), 0x60, gRoomEffectState->groundShadowShade);
             }
             break;
         case SCENE_COMBAT_ACTORS_PAUSED:
             if (work->state != ACTOR_04000_STATE_HIDDEN && work->state != ACTOR_04000_STATE_DEATH_BURST && work->state != ACTOR_04000_STATE_RELEASE_BURST && work->state != ACTOR_04000_STATE_SELF_BURST &&
                 work->state != ACTOR_04000_STATE_DROP && work->state != ACTOR_04000_STATE_SCRIPTED_THRASH && work->state != ACTOR_04000_STATE_SCRIPTED_FALL) {
                 arg1->extra.tmd->flags = 0;
-                Gp_DrawEffGroundQuad(MATRIX_TRANS(&arg1->extra.tmd->coords->workm), 0x180, gRoomEffectState->groundShadowShade);
+                effectDrawGroundShadow(MATRIX_TRANS(&arg1->extra.tmd->coords->workm), 0x180, gRoomEffectState->groundShadowShade);
             }
             Gp_ClearRec18Occupied(work->gridContacts);
             Gp_ClearRec18Occupied(work->hitContacts);

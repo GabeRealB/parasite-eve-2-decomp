@@ -1299,7 +1299,7 @@ static void func_actor_113100_80132104(Task* task)
         task->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
         actorRenderComposeCoord(&task->extra.tmd->coords[1]);
         if (func_800EA1A8(MATRIX_TRANS(&task->extra.tmd->coords[1].workm), &pos) != 0) {
-            Gp_DrawEffGroundQuad(&pos, 0x200, gRoomEffectState->groundShadowShade);
+            effectDrawGroundShadow(&pos, 0x200, gRoomEffectState->groundShadowShade);
         }
     }
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {

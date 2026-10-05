@@ -532,7 +532,7 @@ static void func_actor_310600_80161FA0(Task* task)
     }
     if (!(ext->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
         if (func_800EA1A8(MATRIX_TRANS(&task->extra.tmd->coords[1].workm), &pos) != 0) {
-            Gp_DrawEffGroundQuad(&pos, 0x300, gRoomEffectState->groundShadowShade);
+            effectDrawGroundShadow(&pos, 0x300, gRoomEffectState->groundShadowShade);
         }
         Gp_ClearRec18Occupied(work->contacts);
     }

@@ -3421,12 +3421,12 @@ static void Actor01600_Fn03EEC(Task* arg0)
             scratch->centre.vy = coord->workm.t[1];
             scratch->centre.vz = coord->workm.t[2];
         }
-        Gp_DrawEffGroundQuad(&scratch->centre, 0x1C0, 0);
+        effectDrawGroundShadow(&scratch->centre, 0x1C0, 0);
         SCRATCH_STACK_RELEASE_BLOCK(_Actor01600GroundShadowScratch);
         return;
     }
     if (func_800EA1A8(MATRIX_TRANS(&coord[1].workm), &pos) != 0) {
-        Gp_DrawEffGroundQuad(&pos, 0x1C0, gRoomEffectState->groundShadowShade);
+        effectDrawGroundShadow(&pos, 0x1C0, gRoomEffectState->groundShadowShade);
     }
 }
 

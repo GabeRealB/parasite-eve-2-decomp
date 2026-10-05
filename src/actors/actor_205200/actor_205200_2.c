@@ -872,7 +872,7 @@ static void func_actor_205200_8014C8D4(Task* arg0)
     vec.vx = coord->workm.t[0];
     vec.vy = coord->workm.t[1];
     vec.vz = coord->workm.t[2];
-    Gp_DrawEffGroundQuad(&vec, 0x180, 0x80);
+    effectDrawGroundShadow(&vec, 0x180, 0x80);
 }
 
 /// Teardown state: unlinks the enemy's lock-on node and the work's two

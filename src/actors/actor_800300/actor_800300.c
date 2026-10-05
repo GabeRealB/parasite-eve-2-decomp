@@ -1726,7 +1726,7 @@ static void func_actor_800300_80162064(Task* arg0)
     actor->collisionMotionContexts[2].motionDirection.vz = frame->motionDirection.vz;
     if (!(extra->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
         if (func_800EA1A8(MATRIX_TRANS(&coord->workm), &frame->shadowCentre) != 0) {
-            Gp_DrawEffGroundQuad(&frame->shadowCentre, 0x200, gRoomEffectState->groundShadowShade);
+            effectDrawGroundShadow(&frame->shadowCentre, 0x200, gRoomEffectState->groundShadowShade);
         }
     }
     SCRATCH_STACK_RELEASE_BLOCK(CompanionMoveScratch);

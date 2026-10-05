@@ -3441,7 +3441,7 @@ static void Actor00300_Fn05008(Task* arg0)
     vec.vx = part->workm.t[0];
     vec.vy = coord->workm.t[1];
     vec.vz = part->workm.t[2];
-    Gp_DrawEffGroundQuad(&vec, 0x300, 0x80);
+    effectDrawGroundShadow(&vec, 0x300, 0x80);
 }
 
 static void Actor00300_Fn0505C(Task* arg0, MATRIX* arg1, s16 arg2)

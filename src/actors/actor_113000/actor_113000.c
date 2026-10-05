@@ -1222,7 +1222,7 @@ static void func_actor_113000_80131F90(Task* task)
     extra->flags        = flags;
     if (!(flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
         if (func_800EA1A8(MATRIX_TRANS(&task->extra.tmd->coords[1].workm), &pos) != 0) {
-            Gp_DrawEffGroundQuad(&pos, 0x200, gRoomEffectState->groundShadowShade);
+            effectDrawGroundShadow(&pos, 0x200, gRoomEffectState->groundShadowShade);
         }
     }
     func_actor_113000_801321A8(task);
@@ -1253,7 +1253,7 @@ static void func_actor_113000_80132070(Task* task)
     }
     if (!(extra->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
         if (func_800EA1A8(MATRIX_TRANS(&task->extra.tmd->coords[1].workm), &pos) != 0) {
-            Gp_DrawEffGroundQuad(&pos, 0x300, gRoomEffectState->groundShadowShade);
+            effectDrawGroundShadow(&pos, 0x300, gRoomEffectState->groundShadowShade);
         }
     }
     if (gGameSession->viewReady != 0) {

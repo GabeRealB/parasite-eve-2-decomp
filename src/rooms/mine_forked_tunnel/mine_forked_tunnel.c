@@ -1501,7 +1501,7 @@ static void func_mine_forked_tunnel_8017D724(Task* arg0)
 
     if (!(ext->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
         if (func_800EA1A8(MATRIX_TRANS(&arg0->extra.tmd->coords->workm), &vec) != 0) {
-            Gp_DrawEffGroundQuad(&vec, 0x200, gRoomEffectState->groundShadowShade);
+            effectDrawGroundShadow(&vec, 0x200, gRoomEffectState->groundShadowShade);
         }
         actorRenderComposeCoord(arg0->extra.tmd->coords);
         worldCoordSetModelLighting(ext, arg0->extra.tmd->coords->workm.t, 0, 3);

@@ -1174,7 +1174,7 @@ static void func_actor_210700_80149F90(Task* task)
     anim.blend        = ANIMATION_BLEND_RESET;
     func_actor_210700_8014A224(task, ACTOR_MESSAGE_PLAY_ANIMATION, &anim, 0);
     if (func_800EA1A8(MATRIX_TRANS(&task->extra.tmd->coords[1].workm), &pos) != 0) {
-        Gp_DrawEffGroundQuad(&pos, 0x400, gRoomEffectState->groundShadowShade);
+        effectDrawGroundShadow(&pos, 0x400, gRoomEffectState->groundShadowShade);
     }
     func_actor_210700_8014A208(task);
     task->msgTable     = D_actor_210700_801585D8;
@@ -1202,7 +1202,7 @@ static void func_actor_210700_8014A0AC(Task* task)
         }
     }
     if (func_800EA1A8(MATRIX_TRANS(&task->extra.tmd->coords[1].workm), &pos) != 0) {
-        Gp_DrawEffGroundQuad(&pos, 0x400, gRoomEffectState->groundShadowShade);
+        effectDrawGroundShadow(&pos, 0x400, gRoomEffectState->groundShadowShade);
     }
     if (gGameSession->viewReady != 0) {
         task->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;

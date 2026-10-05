@@ -46,7 +46,7 @@ void golemPawnRookDeadState(Enemy* arg0, Task* arg1)
             pos.vx = part->workm.t[0];
             pos.vy = root->workm.t[1];
             pos.vz = part->workm.t[2];
-            Gp_DrawEffGroundQuad(&pos, 0x300, 0x80);
+            effectDrawGroundShadow(&pos, 0x300, 0x80);
             return;
         case SCENE_COMBAT_ACTORS_HIDDEN:
             arg1->extra.tmd->flags       = TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -114,6 +114,6 @@ void golemPawnRookDeadState(Enemy* arg0, Task* arg1)
     pos.vx = part->workm.t[0];
     pos.vy = root->workm.t[1];
     pos.vz = part->workm.t[2];
-    Gp_DrawEffGroundQuad(&pos, 0x300, 0x80);
+    effectDrawGroundShadow(&pos, 0x300, 0x80);
     SCRATCH_STACK_RELEASE_BYTES(8);
 }

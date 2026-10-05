@@ -1527,7 +1527,7 @@ void func_actor_510900_80132D4C(Task* arg0)
                 hit.coord.t[2]   = coord->coord.t[2];
                 hit.composeStamp = GRAPHICS_COORD_DIRTY;
                 actorRenderComposeCoord(&hit);
-                Gp_DrawEffSprite7C(&hit, mem->scale >> 1, col);
+                effectDrawGroundGlow(&hit, mem->scale >> 1, col);
             }
         }
         SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);

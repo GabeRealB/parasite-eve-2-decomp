@@ -996,7 +996,7 @@ void func_actor_335800_80161E88(Task* task)
             break;
     }
     if (func_800EA1A8(MATRIX_TRANS(&task->extra.coordBody->coord->workm), &pos) != 0) {
-        Gp_DrawEffGroundQuad(&pos, 0x800, gRoomEffectState->groundShadowShade);
+        effectDrawGroundShadow(&pos, 0x800, gRoomEffectState->groundShadowShade);
     }
 }
 
@@ -1349,7 +1349,7 @@ static void func_actor_335800_80162844(Task* task)
         }
         if (work->lightState >= ACTOR_335800_GARY_DOUGLAS_LIGHT_FULL) {
             if (func_800EA1A8(MATRIX_TRANS(&task->extra.tmd->coords[1].workm), &pos) != 0) {
-                Gp_DrawEffGroundQuad(&pos, 0x300, gRoomEffectState->groundShadowShade);
+                effectDrawGroundShadow(&pos, 0x300, gRoomEffectState->groundShadowShade);
             }
         }
     }
@@ -1546,7 +1546,7 @@ static void func_actor_335800_80163568(Task* task)
     }
     if (!(ext->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
         if (func_800EA1A8(MATRIX_TRANS(&task->extra.tmd->coords[1].workm), &pos) != 0) {
-            Gp_DrawEffGroundQuad(&pos, 0x200, gRoomEffectState->groundShadowShade);
+            effectDrawGroundShadow(&pos, 0x200, gRoomEffectState->groundShadowShade);
         }
         actorRenderComposeCoord(&task->extra.tmd->coords[1]);
         worldCoordSetModelLighting(ext, task->extra.tmd->coords[1].workm.t, 0, 3);

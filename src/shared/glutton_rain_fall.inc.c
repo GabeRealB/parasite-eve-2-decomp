@@ -40,8 +40,8 @@ void gluttonRainFall(Enemy* enemy, Task* task)
     actorRenderComposeCoord(&coord.node);
 
     // The shadow starts spreading 0x14 ticks before the blob comes down.
-    Gp_DrawEffGroundQuad(MATRIX_TRANS(&coord.node.workm), (s16)(work->stateTicks * 8 + 0x80),
-                         gRoomEffectState->groundShadowShade);
+    effectDrawGroundShadow(MATRIX_TRANS(&coord.node.workm), (s16)(work->stateTicks * 8 + 0x80),
+                           gRoomEffectState->groundShadowShade);
 
     if (work->stateTicks >= 0x14) {
         task->extra.tmd->coords->coord.t[1] =

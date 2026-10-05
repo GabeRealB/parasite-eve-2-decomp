@@ -157,7 +157,7 @@ enum {
     /// Blade trail (bladeTrailDraw over eight base/tip frame pairs) following the tonfa
     /// baton during a swing; spawned by the tonfa baton weapon on its attack.
     EFFECT_TONFA_BATON_SWING_TRAIL = EFFECT_ID(EFFECT_TASK_BANK, 0x03A),
-    /// Bullet/impact spark: a rotated flash sprite (Gp_DrawEffSprite3B) shown for 4
+    /// Bullet/impact spark: a rotated flash sprite (_effectDrawImpactSparkFlash) shown for 4
     /// frames plus six 0x600A4 spark tiles; spawned at weapon hit points (player hit
     /// dispatcher, M4A1 Javelin, several enemies, helipad floodlight).
     EFFECT_IMPACT_SPARK = EFFECT_ID(EFFECT_TASK_BANK, 0x03B),
@@ -195,7 +195,7 @@ enum {
     /// periodically in its sub-state 3 attack.
     EFFECT_NO9_MUZZLE_FLASH = EFFECT_ID(EFFECT_TASK_BANK, 0x044),
     /// Animated six-frame additive sprite (tpage 0x2B) that rises while fading and
-    /// casts a ground glow (Gp_DrawEffSprite7C); spawned in pairs by actor_510900's
+    /// casts a ground glow (effectDrawGroundGlow); spawned in pairs by actor_510900's
     /// fire controller (0x60043), which also drives an orange point light.
     EFFECT_NO9_GOLEM_FLAME = EFFECT_ID(EFFECT_TASK_BANK, 0x045),
     /// Flat textured quad lying in the coordinate's horizontal plane (tpage 0x29) that
@@ -233,7 +233,7 @@ enum {
     /// orange point light.
     EFFECT_NO9_FLAME_SPRITE = EFFECT_ID(EFFECT_TASK_BANK, 0x052),
     /// Persistent task parented to the player's root part that draws the ground-shadow
-    /// quad (Gp_DrawEffGroundQuad, size 0x1C0, groundShadowShade) under the player;
+    /// quad (effectDrawGroundShadow, size 0x1C0, groundShadowShade) under the player;
     /// spawned once when the room-effect state is initialised.
     EFFECT_PLAYER_GROUND_SHADOW = EFFECT_ID(EFFECT_TASK_BANK, 0x053),
     /// Sand-tinted (0x68,0x70,0x38) semi-transparent 8-frame puff sprite drifting
@@ -477,7 +477,7 @@ enum {
     /// the cafeteria event message.
     EFFECT_ACROPOLIS_CAFETERIA_PUFF_EMITTER = EFFECT_ID(EFFECT_TASK_BANK, 0x09D),
     /// Long-lived additive red ground quad laid flat under the coordinate at a random
-    /// yaw, slowly dimming over 0x3FF frames; spawned at enemies' roots on death/hits
+    /// yaw, slowly dimming over 1024 ticks; spawned at enemies' roots on death/hits
     /// (actor_04000, actor_01200, Sucklerceph, Skull Stalker).
     EFFECT_RED_GROUND_GLOW = EFFECT_ID(EFFECT_TASK_BANK, 0x09E),
     /// A six-frame animated sprite puff carried on a velocity, emitted every tick along

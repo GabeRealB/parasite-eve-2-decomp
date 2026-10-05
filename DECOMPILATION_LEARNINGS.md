@@ -38400,8 +38400,8 @@ disappears.
 
 ## A single prim field-store position decides where the `getcode` `lbu` lands
 
-`Gp_DrawEffSprite7C` fills a `POLY_FT4` with a run of constant field stores and
-finishes with `setSemiTrans(prim, 1)`. Everything matched except a 4-line
+`effectDrawGroundGlow` fills a `POLY_FT4` with a run of constant field stores and
+finishes with `setSemiTrans(quad, 1)`. Everything matched except a 4-line
 window: the target reads the code byte immediately after the two `0xC8`
 stores, so the `lbu` gets `$v0` and the `0xE0` constant gets `$v1`:
 
@@ -38417,21 +38417,21 @@ sb     v1, 0x1c(a0)    # u2
 
 Moving the `setSemiTrans` call itself — before the `0xC8` stores, after them,
 anywhere in the block, or splitting it into an explicit
-`code = getcode(prim); … setcode(prim, code | 2)` — changes nothing: GCC's
+`code = getcode(quad); … setcode(quad, code | 2)` — changes nothing: GCC's
 pre-RA scheduler normalizes all of those to the same order and the `lbu`
 sinks three slots, so `0xE0` takes `$v0` instead. A `volatile` read of the
 code byte does not pin it either.
 
 What does work is moving one of the *constant field stores* across the
-CSE group boundary. Writing `prim->u0` before the two `prim->v0` /
-`prim->v1` stores (instead of after) splits the `0xE0` pseudo away from the
+CSE group boundary. Writing `quad->u0` before the two `quad->v0` /
+`quad->v1` stores (instead of after) splits the `0xE0` pseudo away from the
 `0xC8` pseudo, which flips the register assignment and the schedule:
 
 ```c
-prim->u0 = 0xE0;   /* was after the two 0xC8 stores */
-prim->v0 = 0xC8;
-prim->v1 = 0xC8;
-prim->u2 = 0xE0;
+quad->u0 = 0xE0;   /* was after the two 0xC8 stores */
+quad->v0 = 0xC8;
+quad->v1 = 0xC8;
+quad->u2 = 0xE0;
 ```
 
 99.6% → 100%. The lesson: when a primitive-setup block is off only by the
@@ -38699,7 +38699,7 @@ combination above for 100%.
 
 When the target sign-tests a 32-bit-looking argument through a shift, the
 *destination register* of the shift tells you whether the parameter is declared
-`s16` or an `s32` you cast. `Gp_DrawEffGroundQuad` starts with:
+`s16` or an `s32` you cast. `effectDrawGroundShadow` starts with:
 
 ```
 move t2, a2       /* arg2 copied out because a2 is needed elsewhere */
@@ -38759,7 +38759,7 @@ and the value in `$v0` rather than a spare `$v1`. `Gp_PlayerMode2State3` is the 
 
 ## Inline the `(s16)` cast at the first call sites so `lui %hi(sym)` wins the ready list
 
-`Gp_DrawEffSprite6C` calls `rsin`/`rcos` four times with an angle that must survive
+`_effectDrawMuzzleFlash` calls `rsin`/`rcos` four times with an angle that must survive
 the calls, and the taken branch also loads a global prim pointer:
 
 ```
@@ -38771,17 +38771,17 @@ move   a0, s2
 lw     s1, %lo(gGpuPrimCursor)(v1)
 ```
 
-Writing `ang = (s16)arg2;` as its own statement gives the `sll`/`sra` chain a
+Writing `perpendicularAngle = (s16)angle;` as its own statement gives the `sll`/`sra` chain a
 high enough scheduling priority that GCC 2.8.1 emits it *before* the `lui`. Drop
 the named local at the first two call sites and cast in place, keeping the local
 only for the value that is actually different:
 
 ```c
-block->extent.corner.x = ((((s16)arg1 * 55) / block->depth) * rsin((s16)arg2)) >> 12;
-block->extent.corner.y = ((((s16)arg1 * 55) / block->depth) * rcos((s16)arg2)) >> 12;
+block->extent.corner.x = ((((s16)size * 55) / block->depth) * rsin((s16)angle)) >> 12;
+block->extent.corner.y = ((((s16)size * 55) / block->depth) * rcos((s16)angle)) >> 12;
 …
-ang = (s16)arg2 + 0x400;       /* addiu s2, s2, 0x400 — CSEs onto the same reg */
-block->extent.corner.x = ((((s16)arg1 * 55) / block->depth) * rsin(ang)) >> 12;
+perpendicularAngle = (s16)angle + 0x400;       /* addiu s2, s2, 0x400 — CSEs onto the same reg */
+block->extent.corner.x = ((((s16)size * 55) / block->depth) * rsin(perpendicularAngle)) >> 12;
 ```
 
 CSE still keeps one `sll`/`sra` pair in `$s2` and the later angle is a plain
@@ -38792,12 +38792,12 @@ the `55 * value` / `div`, which is what puts the multiply *after* the `jal`.
 
 ## Remove `register asm()` pins again once the surrounding code settles
 
-A pin that was needed at 92% can be actively harmful at 99%. In `Gp_DrawEffSprite6C`
+A pin that was needed at 92% can be actively harmful at 99%. In `_effectDrawMuzzleFlash`
 the `gte_ldv0` pointer had to be a separate copy (`move v0, s3`), and pinning it
 to `$v0` looked right — but the pin made the copy schedulable early enough that
 it stole the `lhu v0, 0x40(a0)` load-delay slot and pushed
 `lui t0, %hi(GsWSMATRIX)` all the way up into the prologue. Leaving it as a
-plain local (`projectionScratch = block; … gte_ldv0(&projectionScratch->worldPoint);`) fixed twelve instructions
+plain scratch pointer (`gte_ldv0(&block->worldPoint);`) fixed twelve instructions
 at once. After each improvement, re-test the function with each existing pin
 removed one at a time; only `register s32 u70 asm("a1")` (so `li a1, 0x70` is
 free to fill a `lw` load-delay slot instead of being CSE'd into two adjacent
@@ -38811,7 +38811,7 @@ pointer emit `addiu v0, v1, -N`. When `head` is dead after the final one, GCC
 "r"(head));` after the last store or pinning the address temp
 (`register s32* otzp asm("v0")`) restores `$v0` — but both are scheduling
 barriers or pins, so prefer to fix the surrounding code first and re-check
-whether the problem disappears on its own. In `Gp_DrawEffSprite6C` it did.
+whether the problem disappears on its own. In `_effectDrawMuzzleFlash` it did.
 
 ## `u8` load compared `> 0` folds to `bnez`; assign through an `s32` for `bgtz`
 
@@ -39692,8 +39692,8 @@ pair appears *last* in its commutative sums, or does not appear in one at all.
 
 ## Interleave the UV pairs per corner instead of grouping equal constants
 
-`Gp_EffSprTask9E` fills a `POLY_FT4` whose `0xA8` is `u0`/`u2` and whose `0xDF` is
-`u1`/`u3`, while a live `s32` (the `-0x80 - (field_22 >> 3)` shade) still sits in
+`effectSpriteTask9E` fills a `POLY_FT4` whose `0xA8` is `u0`/`u2` and whose `0xDF` is
+`u1`/`u3`, while a live `s32` (the `-0x80 - (work->age >> 3)` shade) still sits in
 `$a1` waiting to be stored to `r0`. Grouping the assignments the way the struct
 reads them (`v0, v1, u0, u1, u2, v2, …`) let the scheduler pull the two `0xA8`
 stores together, so `local_alloc` had only `$v0`/`$v1` free, spent `$v0` on
@@ -39709,10 +39709,10 @@ Writing the fields as one `u`/`v` pair per corner fixed it in one attempt
 (97.7% → 100%):
 
 ```c
-prim->u0 = 0xA8; prim->v0 = 0xC8;
-prim->u1 = 0xDF; prim->v1 = 0xC8;
-prim->u2 = 0xA8; prim->v2 = 0xFF;
-prim->u3 = 0xDF; prim->v3 = 0xFF;
+quad->u0 = 0xA8; quad->v0 = 0xC8;
+quad->u1 = 0xDF; quad->v1 = 0xC8;
+quad->u2 = 0xA8; quad->v2 = 0xFF;
+quad->u3 = 0xDF; quad->v3 = 0xFF;
 ```
 
 Unlike `Gp_DrawFloorQuad`, GCC *will* reorder `sb`s to different offsets of the
@@ -39939,9 +39939,9 @@ semantics, decides which independent instruction fills the pre-call slot.
 
 An LCG chain such as `gRandomLcgState = gRandomLcgState * 5 + 0x71357911;` expands to
 `sll x,2 / addu / addu`. If an `s32` local holding a small constant is live
-across it (`s32 step = 2;` for a later `mem->field_24 = step;`), CSE finds the
+across it (`s32 fadeRate = 2;` for a later `work->scale = fadeRate;`), CSE finds the
 constant `2` already in a register and rewrites every `sll …,0x2` as
-`sllv …,t0`, which the target does not do — moving the `step = 2;` statement
+`sllv …,t0`, which the target does not do — moving the `fadeRate = 2;` statement
 later in the source does not help, because GCC keeps the `li` at the top of the
 basic block anyway.
 
@@ -39950,17 +39950,17 @@ substitution, because the HImode set is no longer an equivalence for the SImode
 shift count:
 
 ```c
-s16 step;                /* s32 step; → four spurious sllv */
+s16 fadeRate;                /* s32 fadeRate; → four spurious sllv */
 
 gRandomLcgState = gRandomLcgState * 5 + 0x71357911;  /* sll a0,v0,0x2 … */
-step = 2;
+fadeRate = 2;
 if ((((u32)gRandomLcgState >> 16) & 3) != 0) {
-    step = 1;
+    fadeRate = 1;
 }
-mem->field_24 = step;
+work->scale = fadeRate;
 ```
 
-`Gp_EffLineTask92` went 92.3% → 95.2% from this one type change. This is the
+`effectLineTask92` went 92.3% → 95.2% from this one type change. This is the
 mirror image of the `one = 1; flags |= one << index` note above: pick the local's
 width by whether you *want* the constant CSE'd into the shift.
 
@@ -39974,17 +39974,17 @@ duplicated in both, which is what the target usually has:
 
 ```c
 /* merged: only one lh 0x26 / srav in a shared tail — 98.4% */
-if (cond) { prim->r0 = val >> 3; prim->b0 = val;      prim->g0 = val >> mem->field_26; }
-else      { prim->r0 = val;      prim->b0 = val >> 3; prim->g0 = val >> mem->field_26; }
+if (cond) { line->r0 = brightness >> 3; line->b0 = brightness;      line->g0 = brightness >> work->angle; }
+else      { line->r0 = brightness;      line->b0 = brightness >> 3; line->g0 = brightness >> work->angle; }
 
 /* duplicated: lh 0x26 / srav in each arm, only `sb v0,5(t0)` shared — 100% */
-if (cond) { prim->r0 = val >> 3; prim->g0 = val >> mem->field_26; prim->b0 = val;      }
-else      { prim->r0 = val;      prim->g0 = val >> mem->field_26; prim->b0 = val >> 3; }
+if (cond) { line->r0 = brightness >> 3; line->g0 = brightness >> work->angle; line->b0 = brightness;      }
+else      { line->r0 = brightness;      line->g0 = brightness >> work->angle; line->b0 = brightness >> 3; }
 ```
 
 The scheduler still emits the byte stores in offset order (`sb 4`, `sb 6`,
 `sb 5`), so the source order is invisible in the final asm except through how
-much of the tail survives cross-jumping. `Gp_EffLineTask92` is the pure example.
+much of the tail survives cross-jumping. `effectLineTask92` is the pure example.
 
 ## Read the scratch pointer back instead of computing it into a local
 
@@ -40001,11 +40001,11 @@ block = (EffectLineScratch*)((u8*)*SCRATCH_STACK_CURSOR_SLOT - 0x20);
 block = (EffectLineScratch*)*SCRATCH_STACK_CURSOR_SLOT;
 ```
 
-The second form cost nothing semantically and moved `Gp_EffLineTask92` from
+The second form cost nothing semantically and moved `effectLineTask92` from
 95.2% to 97.3% purely by swapping which locals landed in `$s0` / `$s1`.
 
 That was a step on the way, not the function's final shape: once its other
-locals settled, `Gp_EffLineTask92` matched with the block taken straight from
+locals settled, `effectLineTask92` matched with the block taken straight from
 `block = SCRATCH_STACK_RESERVE_BLOCK(EffectLineScratch);`. Treat the read-back
 as a register-allocation lever to try, and retry the direct form afterwards.
 
@@ -40179,12 +40179,12 @@ before touching anything else.
 
 ## Chain three LCG draws through `gRandomLcgState` itself, never through temporaries
 
-`Gp_EffTileTaskA4` seeds `mem->field_10/12/14` from three consecutive
+`effectTileTaskA4` seeds `work->move.vx/vy/vz` from three consecutive
 `gRandomLcgState * 5 + 0x71357911` steps. Both obvious spellings fail:
 
 ```c
 rng1 = gRandomLcgState * 5 + 0x71357911;   /* separate temps */
-mem->field_10 = 0x20 - (((u32)rng1 >> 16) & 0x3F);
+work->move.vx = 0x20 - (((u32)rng1 >> 16) & 0x3F);
 rng2 = rng1 * 5 + 0x71357911;
 ...
 gRandomLcgState = rng1; gRandomLcgState = rng2; gRandomLcgState = rng3;
@@ -40199,11 +40199,11 @@ Re-reading the global every time reproduces it exactly:
 
 ```c
 gRandomLcgState   = gRandomLcgState * 5 + 0x71357911;
-mem->field_10 = 0x20 - (((u32)gRandomLcgState >> 16) & 0x3F);
+work->move.vx = 0x20 - (((u32)gRandomLcgState >> 16) & 0x3F);
 gRandomLcgState   = gRandomLcgState * 5 + 0x71357911;
-mem->field_12 = 0x20 - (((u32)gRandomLcgState >> 16) & 0x3F);
+work->move.vy = 0x20 - (((u32)gRandomLcgState >> 16) & 0x3F);
 gRandomLcgState   = gRandomLcgState * 5 + 0x71357911;
-mem->field_14 = 0x20 - (((u32)gRandomLcgState >> 16) & 0x3F);
+work->move.vz = 0x20 - (((u32)gRandomLcgState >> 16) & 0x3F);
 ```
 
 CSE still folds each read back to the register just stored, so there is one
@@ -40252,7 +40252,7 @@ those and `sizeof` rather than a literal 0x14.
 
 ## Brute-force the source order of independent primitive-field stores
 
-The last 70 differences in `Gp_EffTileTaskA4` were one `sb prim->b0` scheduled two
+The last 70 differences in `effectTileTaskA4` were one `sb prim->b0` scheduled two
 slots early. The five `TILE` field writes are independent as far as GCC's alias
 analysis is concerned (`u_char` vs `short` members), so the scheduler reorders
 them freely and source order only shifts the priorities. Rather than reasoning
@@ -40642,7 +40642,7 @@ has to emit the `lui` a second time.
 
 ## A stray `move` into a callee-saved pointer means a pinned `register` temp
 
-`Gp_DrawEffShard` allocates the usual 0x1C scratch block, but the target does it in
+`_effectDrawCriticalHitBurst` allocates the usual 0x1C scratch block, but the target does it in
 *two* instructions:
 
 ```
@@ -40652,13 +40652,13 @@ addu  $s4, $v0, $zero      # <-- the copy
 ```
 
 The ordinary idiom (`block = (EffectShapeScratch*)(head - 0x1C);`, as in
-`Gp_DrawEffSprite6C` / `Gp_EffSprTaskE0`) collapses to a single `addiu $s4, $a2, -0x1C`,
+`_effectDrawMuzzleFlash` / `Gp_EffSprTaskE0`) collapses to a single `addiu $s4, $a2, -0x1C`,
 and no amount of extra temporaries, chained assignments or store/reload tricks
 brings the copy back: cse propagates the temp into `block`'s uses and combine
 then merges the two insns. The copy only survives when the *source* of the copy
 is a hard register, because cse's `make_regs_eqv` keeps the pseudo (`block`) as
 the canonical representative instead of the hard reg, so `block`'s later uses are
-not rewritten. That is the same construct `Gp_EffSprTask9E` already uses in this
+not rewritten. That is the same construct `effectSpriteTask9E` already uses in this
 file:
 
 ```c
@@ -40683,7 +40683,7 @@ Two further consequences of pinning:
 
 ## Store the `r`/`g`/`b` fields of a POLY_* in the order the spill is reloaded
 
-In `Gp_DrawEffShard` one of the three colour bytes is spilled to the stack, and the
+In `_effectDrawCriticalHitBurst` one of the three colour bytes is spilled to the stack, and the
 target reloads it (`lbu $t2, 0x18($sp)`) eight stores before it is used. Because
 GCC can prove that `4($s0)` and `5($s0)` do not overlap, it happily reorders the
 `sb`s, so the reload position — not the final store order — tells you the source
@@ -40699,7 +40699,7 @@ loop: the whole `s0`/`s1` assignment shifts and the `0x71357911` constant stops
 being partially hoisted out of the loop. Folding it into a single chained
 assignment where the value is consumed (`rng = gRandomLcgState = gRandomLcgState * 5 +
 0x71357911;`) restored the target's allocation and the `lui $a0, 0x7135` in the
-loop-back delay slot — worth 1.5% on `Gp_DrawEffShard`.
+loop-back delay slot — worth 1.5% on `_effectDrawCriticalHitBurst`.
 
 ### Straight-line form: no reordering of a split step can recover it
 
@@ -40893,19 +40893,19 @@ pseudo live across them is barred from those three registers.
 ## Name the UV `div` quotient so `sb v` lands after `mflo`
 
 Four `POLY_FT4` UV corners that all use `field_22 / field_28` look like they
-can be written as `prim->v0 = 0; prim->u0 = (mem->field_22 / mem->field_28) * 24 + 0x30`.
+can be written as `quad->v0 = 0; quad->u0 = (work->age / work->period) * 24 + 0x30`.
 That hoists `sb zero, v0` *before* the `div`. The target stores v after
 `mflo` and before the `* 24` for u.
 
 Assign the quotient to a local first:
 
 ```c
-quot     = mem->field_22 / mem->field_28;
-prim->v0 = 0;
-prim->u0 = quot * 24 + 0x30;
+textureFrame     = work->age / work->period;
+quad->v0 = 0;
+quad->u0 = textureFrame * 24 + 0x30;
 ```
 
-Repeat the `div` for each corner (do not reuse one quotient). `Gp_EffSprTask35`
+Repeat the `div` for each corner (do not reuse one quotient). `effectSpriteTask35`
 is the example.
 
 ## Two pseudos for one scratch pointer produce the `move` GCC needs
@@ -52970,7 +52970,7 @@ Whatever loses the allocation is then not stored to the stack: reload re-emits
 the `lui`/`lui`+`addiu` before each use, and `find_equiv_reg` lets a second use
 inherit the temp. So a loop that keeps `0xFFFFFF` in `$s2` but rebuilds
 `0xFF000000` in `$a3` (once, ahead of both `and`s) or `&gDisplayState` in `$t2`
-(twice) has *hoisted* all three; the matched `Gp_DrawEffShard` second loop
+(twice) has *hoisted* all three; the matched `_effectDrawCriticalHitBurst` second loop
 does exactly that with its `.greg` showing the two as `SPILL`. Do not read an
 in-loop `lui` of a mask as "not hoisted" and do not fight it with a goto-loop
 or a barrier — it is register pressure, and the fix, when there is one, is on
@@ -62801,7 +62801,7 @@ register assignment. When a run of small stores is right except for two swapped
 registers, try sliding one store across its neighbours before reaching for a
 `register … asm("")` pin or a `SCHED_BARRIER()`. Both were tried here: the pin
 (`asm("a1")` on the `u0` value, copied from the matched sibling
-`Gp_DrawEffSprite6C`) dropped the score to 95.2% because a function-scope pin on
+`_effectDrawMuzzleFlash`) dropped the score to 95.2% because a function-scope pin on
 `$a1` also breaks the `rsin`/`rcos` argument setup, and a `SCHED_BARRIER()`
 between `u0` and `v0` reached 99.77% but stranded the `move $a0, $s2` call-argument
 copy: a barrier ends the scheduling region, so the argument copy loses the call
@@ -63511,7 +63511,7 @@ opposite answer: read the band, not the loop.
 
 `overlay_dup_index.py find func_pyrokinesis_801304C4` reported one copy — the
 function itself — yet the body was already matched several times over, as
-`Gp_DrawEffSprite7C` in gameplay, `Room_Draw16` in `src/rooms/lib`, and again
+`effectDrawGroundGlow` in gameplay, `Room_Draw16` in `src/rooms/lib`, and again
 in the `m4a1_pyke`, `hypervelocity` and `energyball` overlays. The index
 compares whole disassembly texts, so a body that differs only in its texture
 constants, its `setcode`, or by a single extra statement (here `quadScratch->depth++`)
@@ -63521,7 +63521,7 @@ When the target reads a named global that only a family of routines touches —
 `D_80111E38`, the unit quad, is the example — grep `src/` for that symbol
 first. Every hit is a matched instance of the same shape, and the closest one
 is a finished seed. `func_pyrokinesis_801304C4` matched 100% on the first
-attempt as `Gp_DrawEffSprite7C`'s body with the tpage, `setcode` and UVs of the
+attempt as `effectDrawGroundGlow`'s body with the tpage, `setcode` and UVs of the
 room-side sibling.
 
 That also carries the register pins across. This body needs both
@@ -66482,9 +66482,9 @@ schedule the zero into that delay and move the vector address earlier. This
 reached 100% without pins. The analogous rotated-vector arm initializes `i`
 between `Gp_SpawnEff` and `gfxRotMatrixX`, which also consumes that zero.
 
-This caller supplies only three arguments to `Gp_DrawEffSprite6C`; its fourth
-formal is unused. An unprototyped forward declaration preserves these calls
-and the sibling's existing four-argument call without extra `$a3` setup.
+This caller supplies three arguments to `_effectDrawMuzzleFlash`, whose prototype
+now names the composed coordinate, size and angle. Removing the sibling caller's
+unused fourth argument preserves its instruction stream as well.
 
 ## Increment scratch depth before loading the primitive cursor to avoid LICM of its high address
 
@@ -67425,7 +67425,7 @@ left to fill its delay slot and it keeps a `nop`:
     li    $a1, 0x200
     li    $a2, 0x80
   .Lcall:
-    jal   Gp_DrawEffGroundQuad
+    jal   effectDrawGroundShadow
      nop
 ```
 
@@ -67439,11 +67439,11 @@ written as:
 if (work->field_39A == 2) {
     hit = func_800EA1A8((VECTOR3*)coord->workm.t, &vec);
     if (hit != 0) {
-        Gp_DrawEffGroundQuad(&vec, 0x200, func_800EA318(0x200, 0x80, hit));
+        effectDrawGroundShadow(&vec, 0x200, func_800EA318(0x200, 0x80, hit));
     }
 } else {
     vec.vx = coord->workm.t[0]; /* … */
-    Gp_DrawEffGroundQuad(&vec, 0x200, 0x80);
+    effectDrawGroundShadow(&vec, 0x200, 0x80);
 }
 ```
 
@@ -78864,7 +78864,7 @@ edf031662f8887b2de117fad7c58ed693802a69c5bf6495bf67d4f8d6463bc13.
 ## The actor "ground quad" body: m2c's three stack scalars are one `VECTOR3` passed by address
 
 A recurring actor-overlay function copies a coordinate's translation into a
-scratch vector and hands it to `Gp_DrawEffGroundQuad`:
+scratch vector and hands it to `effectDrawGroundShadow`:
 
 ```c
 void func_actor_XXXXXX_8013YYYY(ActorXXXXXX* arg0)
@@ -78876,7 +78876,7 @@ void func_actor_XXXXXX_8013YYYY(ActorXXXXXX* arg0)
     vec.vx = coord->workm.t[0];
     vec.vy = coord->workm.t[1];
     vec.vz = coord->workm.t[2];
-    Gp_DrawEffGroundQuad(&vec, 0x9C4, 0x80);
+    effectDrawGroundShadow(&vec, 0x9C4, 0x80);
 }
 ```
 
@@ -78887,7 +78887,7 @@ s32 sp10; s32 sp14; s32 sp18;
 sp10 = M2C_FIELD(temp_v1, s32*, 0x38);
 sp14 = M2C_FIELD(temp_v1, s32*, 0x3C);
 sp18 = M2C_FIELD(temp_v1, s32*, 0x40);
-Gp_DrawEffGroundQuad(&sp10, 0x9C4, 0x80);
+effectDrawGroundShadow(&sp10, 0x9C4, 0x80);
 ```
 
 That baseline scores in the sixties with `delete=6`, because all three reads
@@ -78897,7 +78897,7 @@ land in one pseudo and GCC 2.8.1 dead-store-eliminates two of the three stores -
 store in the `jal` delay slot) and never reuses one register for two fields.
 
 The fix is not an allocation experiment: the callee's first parameter is
-`VECTOR3*`, and every sibling TU that calls `Gp_DrawEffGroundQuad` declares it
+`const VECTOR3*`, and every sibling TU that calls `effectDrawGroundShadow` declares it
 that way (`src/actors/lib/actor_100700_text.c`, `actor_102500_tail.c`,
 `actor_300700/actor_300700.c`). Declaring the `VECTOR3` local and passing `&vec`
 reproduces the target exactly on the first build, with the frame at 0x28 and
@@ -84593,7 +84593,7 @@ imports file is the same borrow as a `func_`-named one.
 
 **Problem.** `func_actor_205200_8014C8D4` seeded at 67.750% with
 `regs=9 delete=6 stack=0`. m2c had read an aggregate local as three scalars —
-`s32 sp10; s32 sp14; s32 sp18;` with `Gp_DrawEffGroundQuad(&sp10, 0x180, 0x80)`
+`s32 sp10; s32 sp14; s32 sp18;` with `effectDrawGroundShadow(&sp10, 0x180, 0x80)`
 — so the source had all three field reads and all three writes, and the target
 has all three. The object had one.
 
@@ -84633,7 +84633,7 @@ the escape covers every member at once:
     vec.vx = coord->workm.t[0];
     vec.vy = coord->workm.t[1];
     vec.vz = coord->workm.t[2];
-    Gp_DrawEffGroundQuad(&vec, 0x180, 0x80);
+    effectDrawGroundShadow(&vec, 0x180, 0x80);
 ```
 
 **Generalisation.** "The seed writes it and the object does not" is a real
@@ -88006,7 +88006,7 @@ s32 state;                    /* not s16 */
 state = work->state;
 if ((state != 0) && (state != 0x15) && (state != 0x1D) && (state != 0x1E)) {
     ...
-    Gp_DrawEffGroundQuad(...);
+    effectDrawGroundShadow(...);
     state = work->state;
 }
 if ((state == 0x1E) && (work->animId == 2)) {
@@ -98316,7 +98316,7 @@ map before the split.
 `ActorShared801342a4` was the whole type story - `field_1C` carries the work block's `action`
 and `field_2C->field_8` is the `GfxCoord*` whose `workm.t` is at 0x38, so
 the three `lw`/`sw` pairs are `workm.t[0..2]` and the m2c seed's `lh` on a
-`0x35A` byte offset was the only thing wrong with its frame. `Gp_DrawEffGroundQuad`
+`0x35A` byte offset was the only thing wrong with its frame. `effectDrawGroundShadow`
 is declared file-locally in the sibling `actor_102600_6.c` and nowhere in a
 header, so `func_800EA1A8`/`func_800EA318` come from `gameplay/3CD8.h` and the
 quad keeps a local prototype.
@@ -145507,7 +145507,7 @@ loop's vector pointer with `sh zero,2(a2)` / `sh t2,0(a2)` - no strength-reduced
 `&v->vy` giv. Seeds written as `head = SCRATCH_STACK_CURSOR - 0x38; ... do { v->vx = (u16)corners->axis0Sign
 * s; ...; v++; corners++; } while (++i < 4)` needed `asm("v1")`/`asm("a2")` pins
 (or a `TOUCH_REG`) to get both the head copy and the plain walker. Written the
-way gameplay's `Gp_DrawEffSprite7C` is - `quadScratch = SCRATCH_STACK_RESERVE_BLOCK(EffectQuadScratch);
+way gameplay's `effectDrawGroundGlow` is - `quadScratch = SCRATCH_STACK_RESERVE_BLOCK(EffectQuadScratch);
 for (i = 0; i < 4; i++) { quadScratch->vertices[i].vx = (u16)D_80111E38[i].axis0Sign * s; ... }` with
 `+=` on the translation - loop strength reduction produces exactly that walker
 and copy with no hack. The same body sits in energyball, hypervelocity and

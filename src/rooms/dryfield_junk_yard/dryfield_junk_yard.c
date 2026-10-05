@@ -1683,7 +1683,7 @@ static void func_dryfield_junk_yard_8017D658(Task* task)
         scratch->centre.vx = coord->workm.t[0];
         scratch->centre.vy = coord->workm.t[1];
         scratch->centre.vz = coord->workm.t[2];
-        Gp_DrawEffGroundQuad(&scratch->centre, 0x1A0, 0xC0);
+        effectDrawGroundShadow(&scratch->centre, 0x1A0, 0xC0);
         SCRATCH_STACK_RELEASE_BLOCK(_DryfieldJunkYardGroundShadowScratch);
     }
 }

@@ -2821,7 +2821,7 @@ static void func_actor_105100_80136524(Task* arg0)
     vec.vx = coord->workm.t[0];
     vec.vy = coord->workm.t[1];
     vec.vz = coord->workm.t[2];
-    Gp_DrawEffGroundQuad(&vec, 0x9C4, 0x80);
+    effectDrawGroundShadow(&vec, 0x9C4, 0x80);
 }
 
 #include "../../shared/model_placement_scale.inc.c"

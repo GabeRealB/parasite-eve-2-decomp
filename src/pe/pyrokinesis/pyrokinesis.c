@@ -481,7 +481,7 @@ L_release:
 /// `GsWSMATRIX`. On a non-negative `gte_stflg` it queues one semi-transparent
 /// `POLY_FT4` (tpage 0x28, clut 0x428C) tinted `(0x30, 0x20, 0x20)`; the frame
 /// counter's low bit picks between two 0x1F-wide UV columns at v = 0x38..0x57.
-/// Same 0x38 scratch block and body as `Gp_DrawEffSprite7C`.
+/// Same 0x38 scratch block and body as `effectDrawGroundGlow`.
 static void func_pyrokinesis_801304C4(GfxCoord* arg0, s32 arg1)
 {
     EffectQuadScratch* quadScratch;

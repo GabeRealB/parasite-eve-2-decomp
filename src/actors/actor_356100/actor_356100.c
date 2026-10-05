@@ -2733,13 +2733,13 @@ static void func_actor_356100_80169854(Enemy* arg0, Task* arg1)
         case SCENE_COMBAT_ACTORS_RUNNING:
             if (work->state != ACTOR_356100_STATE_HIDDEN && work->state != ACTOR_356100_STATE_DEATH_BURN && work->state != ACTOR_356100_STATE_SCRIPTED_DEATH) {
                 arg1->extra.tmd->flags = 0;
-                Gp_DrawEffGroundQuad(MATRIX_TRANS(&arg1->extra.tmd->coords->workm), 0x180, gRoomEffectState->groundShadowShade);
+                effectDrawGroundShadow(MATRIX_TRANS(&arg1->extra.tmd->coords->workm), 0x180, gRoomEffectState->groundShadowShade);
             }
             break;
         case SCENE_COMBAT_ACTORS_PAUSED:
             if (work->state != ACTOR_356100_STATE_HIDDEN && work->state != ACTOR_356100_STATE_DEATH_BURN && work->state != ACTOR_356100_STATE_SCRIPTED_DEATH) {
                 arg1->extra.tmd->flags = 0;
-                Gp_DrawEffGroundQuad(MATRIX_TRANS(&arg1->extra.tmd->coords->workm), 0x180, gRoomEffectState->groundShadowShade);
+                effectDrawGroundShadow(MATRIX_TRANS(&arg1->extra.tmd->coords->workm), 0x180, gRoomEffectState->groundShadowShade);
             }
             return;
         case SCENE_COMBAT_ACTORS_HIDDEN:
@@ -2765,7 +2765,7 @@ static void func_actor_356100_80169854(Enemy* arg0, Task* arg1)
         blk->shadowCoord.coord.t[2]   = blk->viewPos.vz;
         blk->shadowCoord.composeStamp = GRAPHICS_COORD_DIRTY;
         actorRenderComposeCoord(&blk->shadowCoord);
-        Gp_DrawEffGroundQuad(MATRIX_TRANS(&blk->shadowCoord.workm), 0x280, gRoomEffectState->groundShadowShade);
+        effectDrawGroundShadow(MATRIX_TRANS(&blk->shadowCoord.workm), 0x280, gRoomEffectState->groundShadowShade);
     }
     if (work->prevState != work->state) {
         work->stateEntered = 1;

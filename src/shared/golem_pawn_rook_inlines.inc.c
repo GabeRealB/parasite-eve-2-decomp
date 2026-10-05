@@ -107,5 +107,5 @@ static inline void golemPawnRookDraw(Task* actor, GfxCoord* coord)
     pos.vx = part->workm.t[0];
     pos.vy = root->workm.t[1];
     pos.vz = part->workm.t[2];
-    Gp_DrawEffGroundQuad(&pos, 0x300, 0x80);
+    effectDrawGroundShadow(&pos, 0x300, 0x80);
 }

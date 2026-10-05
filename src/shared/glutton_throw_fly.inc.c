@@ -83,8 +83,8 @@ void gluttonThrowFly(Enemy* enemy, Task* task)
         work->shadowCoord.composeStamp = GRAPHICS_COORD_DIRTY;
         actorRenderComposeCoord(&work->shadowCoord);
 
-        Gp_DrawEffGroundQuad(MATRIX_TRANS(&work->shadowCoord.workm), (work->shadowGrowth >> 3) + 0x100,
-                             gRoomEffectState->groundShadowShade);
+        effectDrawGroundShadow(MATRIX_TRANS(&work->shadowCoord.workm), (work->shadowGrowth >> 3) + 0x100,
+                               gRoomEffectState->groundShadowShade);
 
         if (work->stateTicks >= 0x35) {
             worldCollisionUnlinkBody(&work->attackBody);
@@ -101,8 +101,8 @@ void gluttonThrowFly(Enemy* enemy, Task* task)
         actorRenderComposeCoord(&work->shadowCoord);
 
         if (host->phase != 6) {
-            Gp_DrawEffGroundQuad(MATRIX_TRANS(&work->shadowCoord.workm), (work->shadowGrowth >> 3) + 0x100,
-                                 gRoomEffectState->groundShadowShade);
+            effectDrawGroundShadow(MATRIX_TRANS(&work->shadowCoord.workm), (work->shadowGrowth >> 3) + 0x100,
+                                   gRoomEffectState->groundShadowShade);
         }
     }
 

@@ -1653,7 +1653,7 @@ static void Actor02400_Fn03228(Task* task)
     vec.vx = coord->workm.t[0];
     vec.vy = coord->workm.t[1];
     vec.vz = coord->workm.t[2];
-    Gp_DrawEffGroundQuad(&vec, 0x200, 0x30);
+    effectDrawGroundShadow(&vec, 0x200, 0x30);
 }
 
 /// Squashes the dying body: restores `baseMatrix` into the root coordinate and

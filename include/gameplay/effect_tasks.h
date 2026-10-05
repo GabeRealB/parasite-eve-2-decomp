@@ -64,15 +64,22 @@ extern const EffectSpriteTextureFrame gEffectSpriteAtlasFrames[12];
 /// Unit quad corners `(-1, 1)`, `(1, 1)`, `(-1, -1)`, `(1, -1)`.
 extern EffectUnitQuadCorner D_80111E38[4];
 
-/// Draws the ground shadow under an object: a flat textured quad whose corners
-/// are the unit corner table scaled by `size` and rotated by `gGfxViewCoord.workm`,
-/// centred on `pos`, and drawn with subtractive blending. `shade` is the
-/// vertex colour, with 0 drawing the texture unmodulated and a negative value
-/// drawing nothing; nothing is drawn either once `gRoomEffectState->effectControl`
-/// reaches 2.
-void Gp_DrawEffGroundQuad(VECTOR3* pos, s32 size, s16 shade);
+/// Draws a subtractive textured ground shadow centred at a world position.
+///
+/// halfSize is the half-side in coordinate units before the view-frame
+/// rotation; only centre's three s32 components are read. shade is narrowed
+/// to the GPU colour byte: 0 uses the raw texture, 1..255 modulates it and a
+/// negative value suppresses drawing. Hidden or cancelled effects also draw
+/// nothing. The centre is borrowed for this call; no pointer is retained.
+void effectDrawGroundShadow(const VECTOR3* centre, s32 halfSize, s16 shade);
 
-void Gp_DrawEffSprite7C(GfxCoord* arg0, s32 arg1, u32 arg2);
+/// Draws an additive ground glow at a composed coordinate's world position.
+///
+/// The square has half-side halfSize in coordinate units before the view-frame
+/// rotation. brightness supplies the GPU green and blue bytes; red uses
+/// brightness >> 1. Callers supply 0..255. The coordinate is borrowed for this
+/// call and must already be composed; this drawer does not check effectControl.
+void effectDrawGroundGlow(const GfxCoord* coord, s32 halfSize, u32 brightness);
 
 extern TaskDesc D_80114B34[6];
 

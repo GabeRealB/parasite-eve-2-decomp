@@ -3301,22 +3301,22 @@ static void Actor01900_Fn09D3C(Enemy* enemy, Task* actor)
             state = work->state;
             if ((state != ACTOR_01900_STATE_HIDDEN) && (state != ACTOR_01900_STATE_DEATH_BURN) && (state != ACTOR_01900_STATE_DEATH_BURST) && (state != ACTOR_01900_STATE_DEATH_BURST_WALK)) {
                 actor->extra.tmd->flags = 0;
-                Gp_DrawEffGroundQuad(MATRIX_TRANS(&actor->extra.tmd->coords->workm), 0x180, gRoomEffectState->groundShadowShade);
+                effectDrawGroundShadow(MATRIX_TRANS(&actor->extra.tmd->coords->workm), 0x180, gRoomEffectState->groundShadowShade);
                 state = work->state;
             }
             if ((state == ACTOR_01900_STATE_DEATH_BURST_WALK) && (work->animId == 2)) {
-                Gp_DrawEffGroundQuad(MATRIX_TRANS(&actor->extra.tmd->coords->workm), 0x180, gRoomEffectState->groundShadowShade);
+                effectDrawGroundShadow(MATRIX_TRANS(&actor->extra.tmd->coords->workm), 0x180, gRoomEffectState->groundShadowShade);
             }
             break;
         case SCENE_COMBAT_ACTORS_PAUSED:
             state = work->state;
             if ((state != ACTOR_01900_STATE_HIDDEN) && (state != ACTOR_01900_STATE_DEATH_BURN) && (state != ACTOR_01900_STATE_DEATH_BURST) && (state != ACTOR_01900_STATE_DEATH_BURST_WALK)) {
                 actor->extra.tmd->flags = 0;
-                Gp_DrawEffGroundQuad(MATRIX_TRANS(&actor->extra.tmd->coords->workm), 0x180, gRoomEffectState->groundShadowShade);
+                effectDrawGroundShadow(MATRIX_TRANS(&actor->extra.tmd->coords->workm), 0x180, gRoomEffectState->groundShadowShade);
                 state = work->state;
             }
             if ((state == ACTOR_01900_STATE_DEATH_BURST_WALK) && (work->animId == 2)) {
-                Gp_DrawEffGroundQuad(MATRIX_TRANS(&actor->extra.tmd->coords->workm), 0x180, gRoomEffectState->groundShadowShade);
+                effectDrawGroundShadow(MATRIX_TRANS(&actor->extra.tmd->coords->workm), 0x180, gRoomEffectState->groundShadowShade);
             }
             Gp_ClearRec18Occupied(work->gridContacts);
             Gp_ClearRec18Occupied(work->hitContacts);

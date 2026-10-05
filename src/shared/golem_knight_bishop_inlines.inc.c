@@ -41,5 +41,5 @@ static inline void golemKnightBishopDrawShadowInline(Task* arg0)
     vec.vx = sub->workm.t[0];
     vec.vy = coord->workm.t[1];
     vec.vz = sub->workm.t[2];
-    Gp_DrawEffGroundQuad(&vec, 0x300, work->shadowShade);
+    effectDrawGroundShadow(&vec, 0x300, work->shadowShade);
 }

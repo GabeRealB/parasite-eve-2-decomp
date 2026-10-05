@@ -12,6 +12,6 @@ void sucklercephDrawShadow(Task* task)
     vec->vx = coord->workm.t[0];
     vec->vy = coord->workm.t[1];
     vec->vz = coord->workm.t[2];
-    Gp_DrawEffGroundQuad(vec, 0x1C0, 0);
+    effectDrawGroundShadow(vec, 0x1C0, 0);
     SCRATCH_STACK_RELEASE_BYTES(0x18);
 }
