@@ -889,39 +889,29 @@ s32 Snd_InitBanks(u32 unused)
     SndBankSlot*       bankSlot;
     SndBank*           bank;
     _SndBankInitEntry* entry;
-    s8*                map;
-    SndBank*           banks;
     s32                id;
 
     *(volatile s32*)&D_80068A78 = 0xFF;
     Spu_SetVoiceRange(1, 0x12, 6);
-    i = 0;
     SndVoice_Init();
     SndVoice_SetPriority(1);
     SndBank_SetEnableFlags(1, 0x80000000);
 
-    map   = Snd_BankSlotsByType;
-    banks = Snd_Banks;
-    entry = Snd_BankInitTable;
-loop:
-    slot     = *(s8*)(entry->bankType + (s32)map);
-    bankSlot = sndBankSlotGet(slot);
-    id       = entry->bankId;
-    // Subtraction preserves the scaled slot first in the address addition.
-    bank             = banks - -slot;
-    bankSlot->bank   = bank;
-    bankSlot->bankId = id;
-    bank->bankId     = entry->bankId;
-    i++;
-    bankSlot->bank->heapBlock       = SndHeap_Malloc(entry->tableBytes);
-    bankSlot->bank->groups          = bankSlot->bank->heapBlock;
-    bankSlot->bank->layers          = bankSlot->bank->heapBlock;
-    bankSlot->bank->groupFirstLayer = bankSlot->bank->heapBlock;
-    bankSlot->image                 = SndHeap_Malloc(entry->imageBytes);
-    bankSlot->spuAddr               = entry->spuAddr;
-    entry++;
-    if (i < 2) {
-        goto loop;
+    for (i = 0; i < 2; i++) {
+        entry                           = &Snd_BankInitTable[i];
+        slot                            = Snd_BankSlotsByType[entry->bankType];
+        bankSlot                        = sndBankSlotGet(slot);
+        id                              = entry->bankId;
+        bank                            = &Snd_Banks[slot];
+        bankSlot->bank                  = bank;
+        bankSlot->bankId                = id;
+        bank->bankId                    = entry->bankId;
+        bankSlot->bank->heapBlock       = SndHeap_Malloc(entry->tableBytes);
+        bankSlot->bank->groups          = bankSlot->bank->heapBlock;
+        bankSlot->bank->layers          = bankSlot->bank->heapBlock;
+        bankSlot->bank->groupFirstLayer = bankSlot->bank->heapBlock;
+        bankSlot->image                 = SndHeap_Malloc(entry->imageBytes);
+        bankSlot->spuAddr               = entry->spuAddr;
     }
 
     *(volatile s32*)&D_80068A78 = 0;
