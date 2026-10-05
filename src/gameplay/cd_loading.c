@@ -867,7 +867,7 @@ void Gp_SetupSprtDisplay(Task* task)
         gpuResetAndInvalidateModelBuffers();
         tmdResetAuxHeapAndRestoreBuffers();
     }
-    Gp_AllocSprtLists();
+    spriteAllocateViewCachedPackets();
     taskKill(task);
     displayResumeGameLoop();
 }

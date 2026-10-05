@@ -4,7 +4,7 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 
-#include "types.h"
+#include "common.h"
 
 #include "gameplay/actor_render.h"
 #include "gameplay/collision.h"
@@ -25,14 +25,17 @@
 /// Texture-page bits retained from a source when building the GPU draw-mode word.
 enum { SPRITE_SOURCE_TEXTURE_PAGE_MASK = 0x9FF };
 
+/// GPU draw-mode command preceding each merged view sprite.
+enum { SPRITE_DRAW_MODE_COMMAND = 0xE1000000 };
+
 SpriteDrawModePacket* Gp_SprtCursor;
 
 /// Dual-buffer primitive list heads, indexed by `gDisplayState.drawBuffer`.
-/// Allocated by `Gp_AllocSprtLists`; `Gp_SprtLists[1]` is the second half of
+/// Allocated by `spriteAllocateViewCachedPackets`; `Gp_SprtLists[1]` is the second half of
 /// the same block.
 extern SpriteDrawModePacket* Gp_SprtLists[];
 
-static void Gp_EmitSprts(SpriteSource* sources, SpriteBatch* batch);
+static void _spriteEmitBatch(const SpriteSource* sourceElements, const SpriteBatch* batch);
 
 static void _spriteSetViewRawTexture(s32 rawTexture);
 
@@ -46,30 +49,46 @@ static void _spriteLinkCachedBatch(const SpriteSource* sources, const SpriteBatc
 
 static void _spriteInitViewBackgroundTask(Task* task);
 
-static void func_800AD65C(Task* task);
+static void _spriteLinkViewCachedPacketsTask(Task* task);
 
 SpriteDrawModePacket* Gp_SprtLists[2] = {
     NULL,
     NULL,
 };
 
-/// Borrows the selected sprite-view descriptor through the live room view map.
+/// Initializes and merges a sprite with its preceding GPU draw-mode command.
+///
+/// `drawPacket` must be writable; the merge sends the sprite's zeroed tag as a
+/// no-op between commands. `texturePage` carries encoded GPU page/blend bits.
+/// Starts with colour modulation; source code flags are applied afterwards.
+/// Sets headers only, preserving RGB and geometry.
+static inline void _spriteInitDrawModePacket(SpriteDrawModePacket* drawPacket, u32 texturePage)
+{
+    SpritePacket* spritePacket = &drawPacket->sprite;
+
+    setlen(&drawPacket->drawMode, ARRAY_SIZE(drawPacket->drawMode.code));
+    setSprt(&spritePacket->sprt);
+    drawPacket->drawMode.code[0] = SPRITE_DRAW_MODE_COMMAND | (texturePage & SPRITE_SOURCE_TEXTURE_PAGE_MASK);
+    MargePrim(drawPacket, &spritePacket->sprt);
+}
+
+/// Borrows the sprite descriptor selected by the current logical room view.
 ///
 /// Requires loaded stage/area/room directories and a valid nonzero mapped byte
 /// within the selected area's view array. The returned descriptor borrows the
 /// room overlay's lifetime; the map is read again on each call.
-static inline SpriteView* _spriteGetCurrentView(void)
+static inline const SpriteView* _spriteGetCurrentView(void)
 {
-    GameSession*     session;
-    GameLocationKey* location;
-    ViewIndexTable*  viewIndexTable;
-    u8***            areaViewMaps;
-    u8**             roomViewMaps;
-    u8*              viewMap;
-    u8               mappedViewIndex;
-    SpriteAreaTable* spriteTable;
-    SpriteView**     spriteAreaViews;
-    SpriteView*      areaViews;
+    const GameSession*     session;
+    const GameLocationKey* location;
+    ViewIndexTable*        viewIndexTable;
+    u8***                  areaViewMaps;
+    u8**                   roomViewMaps;
+    const u8*              viewMap;
+    u8                     mappedViewIndex;
+    const SpriteAreaTable* spriteTable;
+    SpriteView**           spriteAreaViews;
+    const SpriteView*      areaViews;
 
     session         = gGameSession;
     location        = &session->location.loc;
@@ -84,7 +103,12 @@ static inline SpriteView* _spriteGetCurrentView(void)
     return &areaViews[mappedViewIndex - 1];
 }
 
-/// Reserves and encodes one clip command in the current frame's packet arena.
+/// Appends a GPU clipping command to the current frame's packet arena.
+///
+/// `rect` supplies a rectangle in absolute VRAM pixels, including the selected
+/// buffer's origin. Requires a word-aligned arena with `sizeof(DR_AREA)` bytes
+/// available. Advances `gGpuPrimCursor` and returns an unlinked packet that
+/// remains live until the frame arena is reused; does not queue it in an OT.
 static inline DR_AREA* _spriteCreateDrawAreaPacket(RECT* rect)
 {
     DR_AREA* packet;
@@ -131,52 +155,56 @@ void spriteLinkViewCachedPackets(void)
     }
 }
 
-static void Gp_EmitSprts(SpriteSource* sources, SpriteBatch* batch)
+/// Builds and depth-links one source range in the current frame's packet arena.
+///
+/// `firstSprite` and `spriteCount` select source elements; the complete range
+/// must remain live. Reserves one `SpriteDrawModePacket` per element, ignoring
+/// batch visibility and cached-packet exclusion. Raw texture skips the RGB copy;
+/// otherwise RGB modulates the texture. Requires a word-aligned arena with space
+/// for the whole range and a 1024-tag OT. Source depths use the display's shift
+/// and masked byte-offset conversion. A zero count consumes no packet storage.
+static void _spriteEmitBatch(const SpriteSource* sourceElements, const SpriteBatch* batch)
 {
-    u32                   i;
-    SpriteDrawModePacket* dest;
-    SpriteSource*         texturePageSource;
-    SpriteSource*         source;
-    DisplayState*         ds;
-    u32                   maskHi;
-    u32                   mask;
-    SpritePacket*         packet;
-    u32                   tpage;
+    u32                   spriteIndex;
+    SpriteDrawModePacket* drawPacket;
+    const SpriteSource*   texturePageSource;
+    const SpriteSource*   source;
+    DisplayState*         display;
+    u32                   packetLengthMask;
+    u32                   linkAddressMask;
+    SpritePacket*         spritePacket;
+    u32                   texturePage;
 
-    i                 = 0;
-    dest              = gGpuPrimCursor;
-    texturePageSource = sources + batch->firstSprite;
-    gGpuPrimCursor    = dest + batch->spriteCount;
+    spriteIndex       = 0;
+    drawPacket        = gGpuPrimCursor;
+    texturePageSource = sourceElements + batch->firstSprite;
+    gGpuPrimCursor    = drawPacket + batch->spriteCount;
     if (batch->spriteCount != 0) {
-        ds     = &gDisplayState;
-        mask   = 0xFFFFFF;
-        maskHi = 0xFF000000;
-        source = texturePageSource;
+        display          = &gDisplayState;
+        linkAddressMask  = GPU_DMA_LINK_ADDRESS_MASK;
+        packetLengthMask = GPU_DMA_PACKET_LENGTH_MASK;
+        source           = texturePageSource;
         do {
-            packet = &dest->sprite;
+            spritePacket = &drawPacket->sprite;
             // Copy source geometry and texture state, then link the merged packet by depth.
             if ((source->codeFlags & SPRITE_SOURCE_RAW_TEXTURE) == 0) {
-                packet->packed.color = GPU_PRIMITIVE_COLOR_WORD(source, 0);
+                spritePacket->packed.color = GPU_PRIMITIVE_COLOR_WORD(source, 0);
             }
-            tpage = texturePageSource->tpage;
-            setlen(&dest->drawMode, 1);
-            setlen(&packet->sprt, 4);
-            setcode(&packet->sprt, 0x64);
-            dest->drawMode.code[0] = 0xE1000000 | (tpage & SPRITE_SOURCE_TEXTURE_PAGE_MASK);
-            MargePrim(dest, &packet->sprt);
-            packet->sprt.code      |= source->codeFlags;
-            packet->packed.uv       = source->uv.packed;
-            packet->sprt.clut       = source->clut;
-            packet->packed.position = GPU_PRIMITIVE_XY_WORD(source, 0);
-            i++;
-            packet->packed.size = source->size.packed;
+            texturePage = texturePageSource->tpage;
+            _spriteInitDrawModePacket(drawPacket, texturePage);
+            spritePacket->sprt.code      |= source->codeFlags;
+            spritePacket->packed.uv       = source->uv.packed;
+            spritePacket->sprt.clut       = source->clut;
+            spritePacket->packed.position = GPU_PRIMITIVE_XY_WORD(source, 0);
+            spriteIndex++;
+            spritePacket->packed.size = source->size.packed;
             texturePageSource++;
-            dest->drawMode.tag = (dest->drawMode.tag & maskHi) | (*GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)source->depth << ds->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) & mask);
-            *GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)source->depth << ds->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) =
-                (*GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)source->depth << ds->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) & maskHi) | ((u32)dest & mask);
-            dest++;
+            drawPacket->drawMode.tag = (drawPacket->drawMode.tag & packetLengthMask) | (*GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)source->depth << display->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) & linkAddressMask);
+            *GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)source->depth << display->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) =
+                (*GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)source->depth << display->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) & packetLengthMask) | ((u32)drawPacket & linkAddressMask);
+            drawPacket++;
             source++;
-        } while (i < batch->spriteCount);
+        } while (spriteIndex < batch->spriteCount);
     }
 }
 
@@ -223,81 +251,96 @@ static void _spriteSetViewRawTexture(s32 rawTexture)
     }
 }
 
-void Gp_AllocSprtLists(void)
+/// Seeds a cached raw-texture sprite packet from one live source's texture page.
+///
+/// `drawPacket` must be writable and `source` must remain live for its texture
+/// page read. Changes only packet headers, preserving RGB and geometry.
+static inline void _spriteInitCachedDrawModePacket(SpriteDrawModePacket* drawPacket,
+                                                   const SpriteSource*   source)
 {
-    GameLocationKey* sess;
-    u8               view;
-    union {
-        u32                   address;
-        SpriteDrawModePacket* records;
-    } count;
-    s32                   i;
-    SpriteView*           recs;
-    SpriteBatch*          batch;
-    SpriteSource*         sources;
-    SpriteSource*         source;
-    s32                   bufIdx;
-    SpriteDrawModePacket* buf[2];
-    SpriteDrawModePacket* dest;
-    SpritePacket*         packet;
-    u32                   tpage;
+    SpritePacket* spritePacket = &drawPacket->sprite;
+    u32           texturePage;
 
-    sess          = &gGameSession->location.loc;
-    count.address = 0;
-    view          = viewGetMappedIndex();
-    recs          = Gp_SprtTables[sess->stage - 1]->areaViews[sess->area - 1];
-    batch         = recs[view - 1].batches;
-    sources       = recs[view - 1].sources.elements;
+    setlen(&drawPacket->drawMode, ARRAY_SIZE(drawPacket->drawMode.code));
+    texturePage = source->tpage;
+    setSprt(&drawPacket->sprite.sprt);
+    drawPacket->sprite.sprt.code |= SPRITE_SOURCE_RAW_TEXTURE;
+    drawPacket->drawMode.code[0]  = SPRITE_DRAW_MODE_COMMAND | (texturePage & SPRITE_SOURCE_TEXTURE_PAGE_MASK);
+    MargePrim(drawPacket, &spritePacket->sprt);
+}
+
+void spriteAllocateViewCachedPackets(void)
+{
+    enum { SPRITE_CACHED_INITIAL_COLOR_WORD = GPU_PACK_COLOR_WORD(0, 0x80, 0, 0) };
+
+    const GameLocationKey* location;
+    u8                     mappedViewIndex;
+    u32                    spriteCount;
+    u32                    allocationBytes;
+    u32                    bufferBytes;
+    s32                    spriteIndex;
+    const SpriteView*      areaViews;
+    const SpriteBatch*     batch;
+    const SpriteSource*    sourceElements;
+    const SpriteSource*    source;
+    s32                    drawBuffer;
+    SpriteDrawModePacket*  bufferCursors[2];
+    SpriteDrawModePacket*  drawPacket;
+    SpritePacket*          spritePacket;
+
+    location        = &gGameSession->location.loc;
+    spriteCount     = 0;
+    mappedViewIndex = viewGetMappedIndex();
+    areaViews       = Gp_SprtTables[location->stage - 1]->areaViews[location->area - 1];
+    batch           = areaViews[mappedViewIndex - 1].batches;
+    sourceElements  = areaViews[mappedViewIndex - 1].sources.elements;
     while (batch->firstSprite != SPRITE_BATCH_END) {
-        count.address += batch->spriteCount;
+        spriteCount += batch->spriteCount;
         batch++;
     }
-    count.address *= 2 * sizeof(SpriteDrawModePacket); // one packet per sprite in each of the two lists
-    if (count.address == 0) {
+    // Reserve both buffers, including unused capacity for excluded batches.
+    allocationBytes  = spriteCount;
+    allocationBytes *= ARRAY_SIZE(bufferCursors) * sizeof(*bufferCursors[0]);
+    // Keep the byte count live through the allocation guard and heap call.
+    asm volatile("" : "+r"(allocationBytes));
+    if (allocationBytes == 0) {
         Gp_SprtLists[0] = NULL;
         return;
     }
-    Gp_SprtLists[0] = memCalloc(count.address, 1);
+    Gp_SprtLists[0] = memCalloc(allocationBytes, true);
     if (Gp_SprtLists[0] == NULL) {
         return;
     }
-    count.address >>= 1;
-    /* The byte count becomes the PS1 address of the second packet buffer. */
+    bufferBytes = allocationBytes >> 1;
+    // Form the second buffer address from the unsigned byte displacement.
     {
-        union {
-            SpriteDrawModePacket* records;
-            u32                   address;
-        } half;
-        half.records    = Gp_SprtLists[0];
-        count.address  += half.address;
-        Gp_SprtLists[1] = count.records;
-        buf[0]          = Gp_SprtLists[0];
-        buf[1]          = count.records;
+        register u32 secondBufferAddress asm("s1");
+
+        secondBufferAddress  = bufferBytes;
+        secondBufferAddress += (u32)Gp_SprtLists[0];
+        Gp_SprtLists[1]      = (SpriteDrawModePacket*)secondBufferAddress;
+        bufferCursors[0]     = Gp_SprtLists[0];
+        bufferCursors[1]     = (SpriteDrawModePacket*)secondBufferAddress;
     }
-    for (batch = recs[view - 1].batches; batch->firstSprite != SPRITE_BATCH_END; batch++) {
+    for (batch = areaViews[mappedViewIndex - 1].batches; batch->firstSprite != SPRITE_BATCH_END; batch++) {
         if (batch->skipCachedPackets != 0) {
             continue;
         }
-        for (bufIdx = 0; bufIdx < 2; bufIdx++) {
+        for (drawBuffer = 0; drawBuffer < ARRAY_SIZE(bufferCursors); drawBuffer++) {
             // Snapshot the source range into both buffers with raw texture enabled.
-            source = sources + batch->firstSprite;
-            for (i = 0; i < batch->spriteCount; i++) {
-                dest                 = buf[bufIdx];
-                packet               = &dest->sprite;
-                packet->packed.color = GPU_PACK_COLOR_WORD(0, 0x80, 0, 0);
-                setlen(&dest->drawMode, 1);
-                tpage = source->tpage;
-                setlen(&dest->sprite.sprt, 4);
-                setcode(&dest->sprite.sprt, 0x64 | SPRITE_SOURCE_RAW_TEXTURE);
-                dest->drawMode.code[0] = 0xE1000000 | (tpage & SPRITE_SOURCE_TEXTURE_PAGE_MASK);
-                MargePrim(dest, &packet->sprt);
-                packet->sprt.code      |= source->codeFlags;
-                packet->packed.uv       = source->uv.packed;
-                packet->sprt.clut       = source->clut;
-                packet->packed.position = GPU_PRIMITIVE_XY_WORD(source, 0);
-                packet->packed.size     = source->size.packed;
+            source = sourceElements + batch->firstSprite;
+            for (spriteIndex = 0; spriteIndex < batch->spriteCount; spriteIndex++) {
+                drawPacket                 = bufferCursors[drawBuffer];
+                spritePacket               = &drawPacket->sprite;
+                spritePacket->packed.color = SPRITE_CACHED_INITIAL_COLOR_WORD;
+                _spriteInitCachedDrawModePacket(drawPacket, source);
+                spritePacket->sprt.code      |= source->codeFlags;
+                spritePacket->packed.uv       = source->uv.packed;
+                spritePacket->sprt.clut       = source->clut;
+                spritePacket->packed.position = GPU_PRIMITIVE_XY_WORD(source, 0);
+                spritePacket->packed.size     = source->size.packed;
                 source++;
-                buf[bufIdx]++;
+                bufferCursors[drawBuffer]++;
             }
         }
     }
@@ -538,18 +581,25 @@ void func_800AD50C(Task* task)
     }
 }
 
-void Gp_AllocSprtListsTask(Task* task)
+void spriteAllocateViewCachedPacketsTask(Task* task)
 {
-    Gp_AllocSprtLists();
+    spriteAllocateViewCachedPackets();
     taskKill(task);
 }
 
-void func_800AD5B8(Task* task)
+void spriteViewTask(Task* task)
 {
-    TaskFunc funcs[2] = { _spriteInitViewBackgroundTask, func_800AD65C };
+    enum {
+        SPRITE_VIEW_STATE_INIT_BACKGROUND = 0,
+        SPRITE_VIEW_STATE_LINK_PACKETS    = 1
+    };
+    TaskFunc stateHandlers[] = {
+        [SPRITE_VIEW_STATE_INIT_BACKGROUND] = _spriteInitViewBackgroundTask,
+        [SPRITE_VIEW_STATE_LINK_PACKETS]    = _spriteLinkViewCachedPacketsTask
+    };
 
     if (gGameSession->freezeRoomObjs == 0) {
-        funcs[task->state](task);
+        stateHandlers[task->state](task);
     }
 }
 
@@ -566,16 +616,23 @@ static void _spriteInitViewBackgroundTask(Task* task)
     task->state++;
 }
 
-static void func_800AD65C(Task* task)
+/// Links cached view sprites when the game drawing path is enabled.
+///
+/// Task-owned presentation or nonzero `skipDraw` instead refreshes the selected
+/// background (first batch count zero: decoded strips; nonzero: no image).
+/// Called repeatedly in state 1 of the unfrozen view-sprite task; `task` is
+/// unused but preserves the `TaskFunc` callback signature. Linking requires
+/// live view resources and cached packets satisfying `spriteLinkViewCachedPackets`.
+static void _spriteLinkViewCachedPacketsTask(Task* task)
 {
-    DisplayState* ds;
-    s32           val;
+    DisplayState* display;
+    s32           useImageStrips;
 
-    ds = &gDisplayState;
-    if ((ds->displayOwner != DISPLAY_OWNER_TASK) && (ds->skipDraw == 0)) {
+    display = &gDisplayState;
+    if ((display->displayOwner != DISPLAY_OWNER_TASK) && (display->skipDraw == 0)) {
         spriteLinkViewCachedPackets();
     } else {
-        val                                     = _spriteViewUsesImageStrips();
-        gDisplayState.control.flags.imageSource = val;
+        useImageStrips                          = _spriteViewUsesImageStrips();
+        gDisplayState.control.flags.imageSource = useImageStrips;
     }
 }

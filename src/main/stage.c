@@ -898,7 +898,7 @@ static void Display_TaskLoadStep(Task* task)
     block_3:
         memConfigureImageMemory(gGameSession->location.loc.stage, gGameSession->location.loc.area);
         tmdResetAuxHeapAndRestoreBuffers();
-        Gp_AllocSprtLists();
+        spriteAllocateViewCachedPackets();
     }
     CdCmd_EnqueueLoadFile(0, 0, 4);
     task->state = (s32)(task->state + 1);

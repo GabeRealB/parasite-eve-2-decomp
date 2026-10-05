@@ -6794,19 +6794,19 @@ lui    a1, %hi(...)
 sw     ra / s7 / s6 / ...
 ```
 
-`Gp_EmitSprts` is the example.
+`_spriteEmitBatch` is the example.
 
-## Two array pointers so `p++` and `i++` fill different load delays
+## Two array pointers so `p++` and `spriteIndex++` fill different load delays
 
 One pointer through a `0x14`-byte record increments both `$s3` (base)
 and `$s1` (base+0xC) together. A second copy (`texturePageSource` for offset-0
-`tpage`, `source` for the rest) lets `texturePageSource++` fill the `wh` load delay
+`tpage`, `source` for the rest) lets `texturePageSource++` fill the `size.packed` load delay
 while `source++` waits until after both OT-index loads.
 
 A loop counter that is only compared at the backedge sinks into the
-later delay (`addiu s4` with `wh` instead of `xy`). `asm volatile("" :
-"+r"(i))` after `i++` keeps the increment in the `xy` load delay.
-`Gp_EmitSprts` is the example.
+later delay (`addiu s4` with `size.packed` instead of `xy`). `asm volatile("" :
+"+r"(spriteIndex))` after `spriteIndex++` keeps the increment in the `xy` load delay.
+`_spriteEmitBatch` is the example.
 
 ## Nested `asm("s1")` derived pointer so an early `u32` can still use `$s1`
 
@@ -6821,7 +6821,7 @@ count and a later pointer) makes GCC store a known-zero `count` with
 wants `s2++` in an earlier load delay and `s1++` in the backedge delay.
 A second pointer at `&source->size.fields.w`, pinned with `asm volatile("" : "+r"(mid))`
 right after the assignment, breaks the equivalence so `source++` and
-`mid++` schedule independently. `Gp_AllocSprtLists` is the example.
+`mid++` schedule independently. `spriteAllocateViewCachedPackets` is the example.
 
 ## Stage `u16 - N` through an `s32` so GCC emits `addiu -N`
 
@@ -23906,7 +23906,7 @@ Inlining `memFree(index->spawnArg2.pointer)` after the decrement is the 83% form
 0x8007`. Taking `&gDisplayState` into a local and then writing
 
 ```c
-D_80071068 = _spriteViewUsesImageStrips();
+gDisplayState.control.flags.imageSource = _spriteViewUsesImageStrips();
 ```
 
 lets CSE keep that shared high half in `$s0` across the call (`sw s0` /
@@ -23924,14 +23924,14 @@ Route the return through an `s32` temporary so the QImode store cannot fold
 into the earlier address:
 
 ```c
-s32 val;
+s32 useImageStrips;
 
-val        = _spriteViewUsesImageStrips();
-D_80071068 = val;
+useImageStrips                          = _spriteViewUsesImageStrips();
+gDisplayState.control.flags.imageSource = useImageStrips;
 ```
 
 A direct assignment or a `u8*` to the global still pins `$s0`.
-`func_800AD65C` is the example.
+`_spriteLinkViewCachedPacketsTask` is the example.
 
 ## Gameplay overlay `memset` is imported as `memset`
 
@@ -30326,7 +30326,7 @@ fns[1] = D_8017EF60;
 ```
 
 An initializer is a distinct RTL block, so GCC emits the full prologue
-then the two address stores — the same shape as `func_800AD5B8`:
+then the two address stores — the same shape as `spriteViewTask`:
 
 ```c
 void (*fns[2])(s32, s32) = { D_8017DA78, D_8017EF60 };
@@ -35916,7 +35916,7 @@ req.y = vy;
 ```
 
 `Gp_DrawWeaponSlotRow` is the example. Same dest-first add as `sum = sum + tmp`
-(`Gp_EmitSprts`).
+(`_spriteEmitBatch`).
 
 ## Pin early `$s` locals so args land in `$s2`/`$s3` with a split `la`
 
@@ -35928,7 +35928,7 @@ those copies and the leftover `sw ra/s4/s1/s0`. Copying into
 `$s1`, `item` in `$s0`) and leave the incoming args unpinned.
 
 `Gp_ItemMoveRow` is the example. Same “pin the later `$s` regs, leave the
-arg unpinned” idea as `Gp_EmitSprts`.
+arg unpinned” idea as `_spriteEmitBatch`.
 
 ## Pin the second `1` to `$a0` so it does not CSE with an earlier `$v1`
 

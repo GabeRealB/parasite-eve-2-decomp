@@ -296,11 +296,11 @@ This is the only bank we can describe entry-by-entry. Spawn with
 | `14` | `1F` | `func_800AEE8C` | Area / dir helper (`1A8.c`, matched) |
 | `15` | `C0` | `taskKill` | Unused |
 | `16` | `30` | `Gp_ViewGateTask` | Gameplay dispatcher |
-| `17` | `2F` | `Gp_AllocSprtListsTask` | HUD sprite lists. Spawned next to the view task |
+| `17` | `2F` | `spriteAllocateViewCachedPacketsTask` | Allocate and initialize both cached room-view sprite buffers, then kill self; spawned when view-image loading finishes |
 | `18` | `C0` | `Stage_TaskExit` | Stage teardown |
 | `19` | `C0` | `0x807011D8` | Stage overlay — not in this tree |
 | `1A` | `E0` | `Gp_DrawDisp2dOt` | Refresh body coordinates and draw active models. Temporary task `_gModelObjectTemporaryDrawTask` |
-| `1B` | `D0` | `func_800AD5B8` | Sibling of type `10` |
+| `1B` | `D0` | `spriteViewTask` | Select the view background, then link cached sprites each frame; frozen with room-object dispatch. Parents the room-object task |
 | `1C` | `2F` | `Gp_LoadStateTask` | 8-way dispatcher (pause / menu-ish) |
 | `1D` | `18` | `func_800A77B4` | 6-way dispatcher |
 | `1E` | `F8` | `Gp_LoadWaitDispatch` | Load-wait. `D4.c` / stage fade spawn this |

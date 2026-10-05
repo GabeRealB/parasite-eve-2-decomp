@@ -49,11 +49,23 @@ extern SpriteAreaTable* Gp_SprtTables[];
 /// initialized for this view (or no allocation), and a 1024-tag depth-sorted OT.
 void spriteLinkViewCachedPackets(void);
 
-/// Alloc dual-buffer merged `DR_TPAGE`+`SPRT` lists into `Gp_SprtLists`
-/// from the current view's `SpriteView` records. Byte size is the sum of
-/// each batch's `spriteCount`, times two 0x1C slots. Packet initialization
-/// skips batches with `skipCachedPackets` set. RGB is `0x8000`; SPRT code is `0x65`.
-void Gp_AllocSprtLists(void);
+/// Allocates and initializes both cached sprite-packet buffers for the current view.
+///
+/// Requires loaded stage/area/room/view directories, a terminated batch list,
+/// valid source ranges for included batches, and an initialized auxiliary heap.
+/// Each buffer reserves one `SpriteDrawModePacket` per nonterminal source count,
+/// including excluded batches; initialization packs only included batches.
+/// Both buffers snapshot source geometry, texture state and code flags with raw
+/// texture enabled. Initial RGB is (0,128,0), ignored while raw texture is enabled.
+/// Hidden batches are initialized too; depth remains in sources and is read when
+/// linking. The combined byte count must fit unsigned 32 bits.
+///
+/// Publishes one allocation and its second half in `Gp_SprtLists`. A zero count
+/// or allocation failure sets only the first head to NULL; consumers use that
+/// head as the validity guard. Does not release the previous block. Call after
+/// its auxiliary storage has been reset or its previous allocation retired;
+/// the new packets stay live until that storage is released or repurposed.
+void spriteAllocateViewCachedPackets(void);
 
 /// 1-based index of `(u8)arg0` in the current room's `Gp_ViewIndexTables` byte
 /// list. Length is the `Gp_ViewCountTables` cell as an s16. Returns 0 if absent.
@@ -66,10 +78,21 @@ s8 Gp_FindViewIndex(s32 arg0);
 /// retain it only while that overlay and the selected view resources stay live.
 SpriteDrawArea* spriteGetViewDrawAreas(void);
 
-void Gp_AllocSprtListsTask(Task* task);
+/// Initializes the current view's cached sprite packets and kills this task.
+///
+/// Bank-0 task 0x17; `task` must be live. Uses the resource and heap requirements
+/// of `spriteAllocateViewCachedPackets` and ends even if allocation fails.
+void spriteAllocateViewCachedPacketsTask(Task* task);
 
 void func_800AD50C(Task* task);
 
-void func_800AD5B8(Task* task);
+/// Dispatches background selection and cached-sprite drawing for the current view.
+///
+/// Bank-0 task 0x1B. A live `task` has state 0 (select the background and advance
+/// to state 1) or 1 (repeatedly link cached packets, or refresh the background
+/// while drawing is suppressed). Nonzero `freezeRoomObjs` holds both phases.
+/// Linking runs when presentation is not task-owned and `skipDraw` is zero;
+/// requires the loaded resources and packet contract of `spriteLinkViewCachedPackets`.
+void spriteViewTask(Task* task);
 
 #endif // GAMEPLAY_LOADING_H

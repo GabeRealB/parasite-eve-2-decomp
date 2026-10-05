@@ -454,7 +454,7 @@ Say **what** something is and **why** it exists. Not how you worked it out —
 that belongs in the commit message, not in a header that outlives it. Keep it as
 general as the subject allows and only as specific as it needs: naming the
 mechanism is the usual mistake, and it dates the comment. A field comment
-naming a generated symbol - `func_800AD5B8`, `D_8010EB94` - is that mistake in
+naming a generated symbol - `func_800FFFF0`, `D_8010EB94` - is that mistake in
 its sharpest form: it explains the field by pointing at something the reader has
 to decode as well. "Frames left before
 the body is released" is the field; "counted down by `taskCountdownCallback`"
