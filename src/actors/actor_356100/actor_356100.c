@@ -1935,8 +1935,6 @@ static void func_actor_356100_801668FC(Task* actor)
     McSaveData*       saveData;
     GfxCoord*         coord;
     GfxCoord*         root;
-    // Matching constraint: preserve the state-selection register across the byte load.
-    register s32 nextState asm("v0");
 
     work         = actor->work;
     enemy        = actor->spawnArg2.pointer;
@@ -1970,14 +1968,11 @@ static void func_actor_356100_801668FC(Task* actor)
     }
     func_actor_356100_80163508(actor);
     if (work->rig.slots[1].status.fields.flags & 1) {
-        nextState = 1;
-
-        if (enemy->node.state.parts.targeted != nextState) {
-            nextState = ACTOR_356100_STATE_ALERT;
+        if (enemy->node.state.parts.targeted != 1) {
+            work->state = ACTOR_356100_STATE_ALERT;
         } else {
-            nextState = ACTOR_356100_STATE_SIDESTEP;
+            work->state = ACTOR_356100_STATE_SIDESTEP;
         }
-        work->state = nextState;
         if (playerStatus->hp > 0 && work->playerHeld == 1) {
             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
             work->playerHeld = 0;
