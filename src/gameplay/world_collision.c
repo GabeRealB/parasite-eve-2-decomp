@@ -258,19 +258,29 @@ WorldCollisionPairRule D_8010FA4C[4][4] = {
       { WORLD_COLLISION_PAIR_HANDLER_SPHERES, false } },
 };
 
-/// Builds one grid-face edge's outward Q12 plane normal in the query scratch.
+/// Builds a grid-face edge's outward plane normal for a query-space half-space test.
 ///
-/// `polygonIndex` selects a valid entry in `Gp_FaceEdgePairs`; both indexed
-/// corners and `faceNormal` must be initialized. Replaces `edgeWork`'s game-unit
-/// displacement with the cross product after normalizing it into `edgeDirection`.
-/// Edge deltas must fit signed halfwords, with squared length in 1..0x7FFFFFFF.
-/// Changes GTE arithmetic state; writes XYZ only and retains no pointers.
-static __inline__ void _worldCollisionBuildGridRayEdgePlane(_WorldCollisionGridRayScratch* scratch, s32 polygonIndex)
+/// `edgePairIndex` selects `Gp_FaceEdgePairs` (0..2 for triangles, 1..4 for
+/// quads). Both indexed corners must be initialized in game units, and
+/// `faceNormal` must be the face's normal in the same space, with 4096 per unit.
+/// The end-minus-start edge delta must fit signed halfwords and have squared
+/// length in 1..0x7FFFFFFF, as required by the SDK normalization routine.
+///
+/// Writes the normalized edge to `edgeDirection` and the face-normal cross
+/// edge-direction product to `edgeWork`, both with 4096 per unit. The cross
+/// product is not normalized again; the caller supplies the plane offset.
+/// Only XYZ are read or written; vector pad words are untouched. Clobbers GTE
+/// rotation-matrix registers and arithmetic state, and retains no pointers.
+static __inline__ void _worldCollisionBuildGridEdgePlaneNormal(_WorldCollisionGridRayScratch* scratch, s32 edgePairIndex)
 {
-    scratch->edgeWork.vx = scratch->corners[Gp_FaceEdgePairs[polygonIndex].endCornerIndex].vx - scratch->corners[Gp_FaceEdgePairs[polygonIndex].startCornerIndex].vx;
-    scratch->edgeWork.vy = scratch->corners[Gp_FaceEdgePairs[polygonIndex].endCornerIndex].vy - scratch->corners[Gp_FaceEdgePairs[polygonIndex].startCornerIndex].vy;
-    scratch->edgeWork.vz = scratch->corners[Gp_FaceEdgePairs[polygonIndex].endCornerIndex].vz - scratch->corners[Gp_FaceEdgePairs[polygonIndex].startCornerIndex].vz;
+    const WorldCollisionFaceEdge* edge = &Gp_FaceEdgePairs[edgePairIndex];
+
+    scratch->edgeWork.vx = scratch->corners[edge->endCornerIndex].vx - scratch->corners[edge->startCornerIndex].vx;
+    scratch->edgeWork.vy = scratch->corners[edge->endCornerIndex].vy - scratch->corners[edge->startCornerIndex].vy;
+    scratch->edgeWork.vz = scratch->corners[edge->endCornerIndex].vz - scratch->corners[edge->startCornerIndex].vz;
     VectorNormal(&scratch->edgeWork, &scratch->edgeDirection);
+
+    // Cross in this order so the positive half-space lies outside the face.
     gte_ldopv1(&scratch->faceNormal);
     gte_ldopv2(&scratch->edgeDirection);
     gte_op12();
@@ -992,7 +1002,7 @@ s32 worldCollisionIntersectGridFace(s32 faceIndex, const VECTOR endpoints[2], SV
     // Triangle and quad edge ranges share the corner-pair table.
     // Distances past each outward plane are deliberately truncated to halfwords.
     for (polygonIndex = cornerCount - WORLD_COLLISION_GRID_FACE_TRIANGLE_CORNERS; polygonIndex < cornerCount * 2 - WORLD_COLLISION_GRID_FACE_TRIANGLE_CORNERS; polygonIndex++) {
-        _worldCollisionBuildGridRayEdgePlane(scratch, polygonIndex);
+        _worldCollisionBuildGridEdgePlaneNormal(scratch, polygonIndex);
 
         edgePlaneOffset = (scratch->edgeWork.vx * scratch->corners[Gp_FaceEdgePairs[polygonIndex].endCornerIndex].vx +
                            scratch->edgeWork.vy * scratch->corners[Gp_FaceEdgePairs[polygonIndex].endCornerIndex].vy +
