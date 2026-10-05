@@ -225,7 +225,7 @@ enum {
     /// chunks and 0x60095 puffs once; spawned by actor_403100 where it strikes a
     /// balcony region (first strike marks the region broken).
     EFFECT_DRYFIELD_NIGHT_MOTEL_BALC_BREAK = EFFECT_ID(EFFECT_TASK_BANK, 0x050),
-    /// Falling leaf (leafFallTask) of the Acropolis forked road; three are knocked
+    /// Falling leaf (`_leafFallTask`) of the Acropolis forked road; three are knocked
     /// loose by the Maggot Caterpillar entrance.
     EFFECT_ACROPOLIS_FORKED_ROAD_FALLING_LEAF = EFFECT_ID(EFFECT_TASK_BANK, 0x051),
     /// A 12-frame animated 32x48 billboard with cycling CLUT that optionally falls,
@@ -688,7 +688,7 @@ enum {
     /// per frame; Energyball spawns three (0, 0x2AA, 0x555) when the ball makes
     /// contact.
     EFFECT_ENERGYBALL_IMPACT_RING = EFFECT_ID(EFFECT_TASK_BANK, 0x0F9),
-    /// Falling, tumbling leaf that lies on the ground and fades (leafFallTask, forest
+    /// Falling, tumbling leaf that stops and fades (`_leafFallTask`, forest
     /// zone copy); spawned at many joints by the Stranger enemies (actor_356100 death,
     /// actor_401300).
     EFFECT_NEO_ARK_FOREST_FALLING_LEAF = EFFECT_ID(EFFECT_TASK_BANK, 0x0FB),
@@ -800,8 +800,8 @@ enum {
     /// impact burst, actor_560800) and by the water rooms themselves with arg
     /// 0x1202180.
     EFFECT_NEO_ARK_BRIDGE_WATER_SPRAY = EFFECT_ID(EFFECT_TASK_BANK, 0x17B),
-    /// A falling leaf (leafDraw) on a rolled velocity; five are spawned by the
-    /// maggot/caterpillar entrance state.
+    /// A falling leaf (`_leafDraw`) at a random height offset; five are spawned
+    /// by the Maggot Caterpillar entrance.
     EFFECT_ACROPOLIS_ROOF_GARDEN_LEAF = EFFECT_ID(EFFECT_TASK_BANK, 0x17C),
     /// Ten-frame additive sprite (spriteQuadDraw, 48-texel cells) drifting along a
     /// direction taken from the spawn angle; spawned at random entries of the
@@ -1011,7 +1011,7 @@ enum {
     /// per frame for 16 frames, fading in its last 8; actor_403600 spawns them at
     /// random points around the view, from above and below.
     EFFECT_EVE_LIGHT_BEAM = EFFECT_ID(EFFECT_TASK_BANK, 0x1C0),
-    /// Falling leaf (leafFallTask, woodland path copy) spawned at Stranger
+    /// Falling leaf (`_leafFallTask`, woodland path copy) spawned at Stranger
     /// (actor_401300) joints in area 0x1D.
     EFFECT_NEO_ARK_WOODLAND_FALLING_LEAF = EFFECT_ID(EFFECT_TASK_BANK, 0x1C1),
     /// shelter_1f_bulwark's copy of _roomVisualEffectsFlashTask (fans and a shrinking ring ramping

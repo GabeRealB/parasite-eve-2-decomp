@@ -1,59 +1,76 @@
 /* Part of the falling leaves library; see falling_leaves.h. */
 
-/// Draws one mote: the unit quad `D_80111E38` scaled by `arg1`, rotated and
-/// placed by the mote's coordinate frame, then projected through
-/// `GsWSMATRIX` into a textured quad. A mote nearer than `otz` 0x11 is not
-/// drawn. `arg2` is the fade level: zero draws the texture unshaded, anything
-/// else modulates it to that grey and draws it semi-transparent.
-void leafDraw(GfxCoord* coord, s32 arg1, s16 arg2)
+/// Builds, rotates and translates one leaf corner, preserving 16-bit narrowing.
+static inline void _leafTransformCorner(EffectQuadCornersScratch* quadScratch, s32 cornerIndex, s32 halfSize, const GfxCoord* coord)
 {
-    EffectQuadCornersScratch* blk;
-    POLY_FT4*                 prim;
-    SVECTOR*                  sv;
-    s32                       i;
+    SVECTOR* corner;
+    quadScratch->vertices[cornerIndex].vx = (u16)D_80111E38[cornerIndex].axis0Sign * halfSize;
+    // Keep the store address separate from the GTE operand to preserve both pointer registers.
+    corner     = (SVECTOR*)((u8*)quadScratch + cornerIndex * sizeof(SVECTOR) + OFFSET_OF(EffectQuadCornersScratch, vertices));
+    corner->vy = 0;
+    corner->vz = (u16)D_80111E38[cornerIndex].axis1Sign * halfSize;
+    gte_SetRotMatrix(&coord->workm);
+    gte_ldv0(&quadScratch->vertices[cornerIndex]);
+    gte_rtv0();
+    gte_stsv(&quadScratch->vertices[cornerIndex]);
+    quadScratch->vertices[cornerIndex].vx += coord->workm.t[0];
+    corner->vy                            += coord->workm.t[1];
+    corner->vz                            += coord->workm.t[2];
+}
 
-    blk = SCRATCH_STACK_RESERVE_BLOCK(EffectQuadCornersScratch);
-    for (i = 0; i < ARRAY_SIZE(D_80111E38); i++) {
-        blk->vertices[i].vx = (u16)D_80111E38[i].axis0Sign * arg1;
-        // Spelled as an offset rather than `&blk->vertices[i]` so it stays a separate
-        // pointer from the one the GTE macros below take; writing both the same
-        // way lets CSE fold them into one register and the loop stops matching.
-        sv     = (SVECTOR*)((u8*)blk + i * sizeof(SVECTOR) + OFFSET_OF(EffectQuadCornersScratch, vertices));
-        sv->vy = 0;
-        sv->vz = (u16)D_80111E38[i].axis1Sign * arg1;
-        gte_SetRotMatrix(&coord->workm);
-        gte_ldv0(&blk->vertices[i]);
-        gte_rtv0();
-        gte_stsv(&blk->vertices[i]);
-        blk->vertices[i].vx += coord->workm.t[0];
-        sv->vy              += coord->workm.t[1];
-        sv->vz              += coord->workm.t[2];
+/// Draws an Acropolis leaf as a textured square in the coordinate's local XZ plane.
+///
+/// `coord->workm` must already be composed. `halfSize` is in coordinate units;
+/// transformed corners narrow to signed 16-bit coordinates. Brightness zero
+/// selects raw opaque texturing; nonzero brightness uses its low byte for
+/// grey modulation with additive blending (128 is neutral modulation).
+/// Uses an 8x8 cell at texture UV (0, 232) and rejects depths below 17.
+/// Consumes one frame-arena quad even when rejected, and releases its scratch
+/// block before returning. The caller provides primitive and scratch capacity.
+static void _leafDraw(const GfxCoord* coord, s32 halfSize, s16 brightness)
+{
+    enum {
+        LEAF_MIN_DRAW_DEPTH     = 17,
+        LEAF_TEXTURE_PAGE       = getTPage(0, GPU_BLEND_ADD, 704, 0),
+        LEAF_TEXTURE_CLUT       = getClut(256, 270),
+        LEAF_TEXTURE_V          = 232,
+        LEAF_TEXTURE_LAST_TEXEL = 7,
+    };
+    EffectQuadCornersScratch* quadScratch;
+    POLY_FT4*                 primitive;
+    s32                       cornerIndex;
+
+    // Build the square in the leaf's frame, retaining 16-bit corner arithmetic.
+    quadScratch = SCRATCH_STACK_RESERVE_BLOCK(EffectQuadCornersScratch);
+    for (cornerIndex = 0; cornerIndex < ARRAY_SIZE(D_80111E38); cornerIndex++) {
+        _leafTransformCorner(quadScratch, cornerIndex, halfSize, coord);
     }
+    // Project directly into a packet; rejected leaves still consume that packet.
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&blk->vertices[0]);
+    gte_ldv0(&quadScratch->vertices[0]);
     gte_rtps();
-    prim           = gGpuPrimCursor;
-    gGpuPrimCursor = prim + 1;
-    setlen(prim, 9);
-    setcode(prim, 0x2C);
-    gte_stsxy(&prim->x0);
-    gte_ldv3(&blk->vertices[1], &blk->vertices[2], &blk->vertices[3]);
+    primitive      = gGpuPrimCursor;
+    gGpuPrimCursor = primitive + 1;
+    setPolyFT4(primitive);
+    gte_stsxy(&primitive->x0);
+    gte_ldv3(&quadScratch->vertices[1], &quadScratch->vertices[2], &quadScratch->vertices[3]);
     gte_rtpt();
-    setUV4(prim, 0, 0xE8, 7, 0xE8, 0, 0xEF, 7, 0xEF);
-    gte_stsxy3(&prim->x1, &prim->x2, &prim->x3);
-    gte_stszotz(&blk->depth);
-    if (blk->depth >= 0x11) {
-        if (arg2 != 0) {
-            setRGB0(prim, arg2, arg2, arg2);
-            setSemiTrans(prim, 1);
+    setUV4(primitive, 0, LEAF_TEXTURE_V, LEAF_TEXTURE_LAST_TEXEL, LEAF_TEXTURE_V,
+           0, LEAF_TEXTURE_V + LEAF_TEXTURE_LAST_TEXEL, LEAF_TEXTURE_LAST_TEXEL, LEAF_TEXTURE_V + LEAF_TEXTURE_LAST_TEXEL);
+    gte_stsxy3(&primitive->x1, &primitive->x2, &primitive->x3);
+    gte_stszotz(&quadScratch->depth);
+    if (quadScratch->depth >= LEAF_MIN_DRAW_DEPTH) {
+        if (brightness != LEAF_BRIGHTNESS_RAW_TEXTURE) {
+            setRGB0(primitive, brightness, brightness, brightness);
+            setSemiTrans(primitive, 1);
         } else {
-            setShadeTex(prim, 1);
+            setShadeTex(primitive, 1);
         }
-        prim->tpage = 0x2B;
-        prim->clut  = 0x4390;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
+        primitive->tpage = LEAF_TEXTURE_PAGE;
+        primitive->clut  = LEAF_TEXTURE_CLUT;
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)quadScratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                primitive);
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectQuadCornersScratch);
 }

@@ -122,6 +122,6 @@ func_acropolis_roof_garden_8017DE90 = 0x8017DE90; // type:func
 func_acropolis_roof_garden_8017E29C = 0x8017E29C; // type:func
 
 func_acropolis_roof_garden_8017F10C = 0x8017F10C; // type:func
-leafDraw = 0x8017F560; // type:func
+_leafDraw = 0x8017F560; // type:func
 ActorContact_PushContact = 0x8017F870; // type:func
 ActorContact_Push = 0x8017FA14; // type:func

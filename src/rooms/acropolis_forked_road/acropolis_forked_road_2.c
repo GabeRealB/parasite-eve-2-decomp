@@ -1580,7 +1580,7 @@ void func_acropolis_forked_road_8017E410(Task* task)
 /// The room's falling-leaf task, named by gameplay's effect table.
 void func_acropolis_forked_road_8017E81C(Task* task)
 {
-    leafFallTask(task);
+    _leafFallTask(task);
 }
 
 #include "../../shared/falling_leaves_draw.inc.c"

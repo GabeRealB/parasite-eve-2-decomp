@@ -655,6 +655,12 @@ Each weapon keeps eight frames of the blade base and tip and includes
 `BladeTrailScratch` is one quad's scratch block: four world corners, the
 ordering depth and the GTE FLAG word, plus one word the drawer never touches.
 
+`leaf` owns the included falling-leaf task and textured-square drawers shared
+by the Acropolis gardens and Neo Ark woodland rooms. Its implementation
+interface is `src/shared/falling_leaves.h`; `LEAF_` constants describe its
+rendering and task phases. Each carrier exports its own effect-table wrapper
+and keeps the shared task and selected drawer private.
+
 ## Documentation
 
 [`include/main/mem.h`](include/main/mem.h) is the worked example. Read it before

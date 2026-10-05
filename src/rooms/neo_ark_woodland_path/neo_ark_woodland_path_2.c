@@ -335,7 +335,7 @@ void func_neo_ark_woodland_path_8017EA08(Task* task)
 /// The room's falling-leaf task, named by gameplay's effect table.
 void func_neo_ark_woodland_path_8017ED00(Task* task)
 {
-    leafFallTask(task);
+    _leafFallTask(task);
 }
 
 #include "../../shared/falling_leaves_draw_neo_ark.inc.c"

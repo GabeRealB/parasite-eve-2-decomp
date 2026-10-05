@@ -263,7 +263,7 @@ void func_neo_ark_forest_zone_8017DBBC(Task* task)
 /// The room's falling-leaf task, named by gameplay's effect table.
 void func_neo_ark_forest_zone_8017DC20(Task* task)
 {
-    leafFallTask(task);
+    _leafFallTask(task);
 }
 
 #include "../../shared/falling_leaves_draw_neo_ark.inc.c"

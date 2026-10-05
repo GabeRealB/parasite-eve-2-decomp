@@ -140,4 +140,4 @@ _roomVisualEffectsDrawFlashRing = 0x8017F224; // type:func
 _roomVisualEffectsDrawFlashDisc = 0x8017F650; // type:func
 _roomVisualEffectsDrawTwinTrail = 0x8017FED4; // type:func
 _roomVisualEffectsDrawBurstStar = 0x80180554; // type:func
-leafDraw = 0x8017EC70; // type:func
+_leafDraw = 0x8017EC70; // type:func

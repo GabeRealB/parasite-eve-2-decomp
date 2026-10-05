@@ -1648,7 +1648,7 @@ void func_acropolis_roof_garden_8017E29C(Task* arg0)
 /// The room's falling-leaf task, named by gameplay's effect table.
 void func_acropolis_roof_garden_8017F10C(Task* task)
 {
-    leafFallTask(task);
+    _leafFallTask(task);
 }
 
 #include "../../shared/falling_leaves_draw.inc.c"
