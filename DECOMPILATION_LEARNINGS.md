@@ -59752,8 +59752,8 @@ decompiled C is still emitted.
 
 ## At a loop head the same reused local costs `dbr` the delay slot, and inlining it is the fix
 
-`Room_Draw15` is `Room_Draw05`'s tinted twin and its second loop is the same
-four-wedge body, so the seed carried `Room_Draw05`'s reused `u`:
+`Room_Draw15` is `_glowDrawPulsingDisc`'s tinted twin and its second loop is the same
+four-wedge body, so the seed carried `_glowDrawPulsingDisc`'s reused `u`:
 
 ```c
 do {
@@ -59982,7 +59982,7 @@ map_akropolis = { text = [0x38, 0x6F8], rodata_head = "0x4", note = "..." }
 
 The give-up seed for `Room_Draw21` had already been round the loop described in
 "At a loop head the same reused local costs `dbr` the delay slot": the same
-`Room_Draw05`-family second loop, the same `u` assigned three times, the same
+`_glowDrawPulsingDisc`-family second loop, the same `u` assigned three times, the same
 `lui $t0, %hi(gGpuPrimCursor)` fighting `addiu $s0, $s4, -0x400` for the loop's
 first slot. What it did about it was pin the loop variable:
 
@@ -92473,7 +92473,7 @@ Writing it as the switch it is
     switch (view) {
         case 3:
         case 4:  _glowDrawWideDiamond(&D_x[0], 0x60, 0x60); break;
-        case 12: Room_Draw05(&D_x[0], 0x60, 0x80); break;
+        case 12: _glowDrawPulsingDisc(&D_x[0], 0x60, 0x80); break;
     }
 ```
 
