@@ -2503,20 +2503,17 @@ void uiStartPanelOpening(UiPanel* panel, Task* owningTask)
     }
 }
 
-/// Writes screen-centered content bounds and returns their signed pixel height.
+/// Writes a laid-out panel's content bounds in screen-centered pixels.
 ///
-/// Borrows a laid-out panel and writable rectangle. Unsigned halfword sums and
-/// differences narrow to RECT fields before height is promoted back to s32.
-static inline s16 _uiReadListContentRect(const UiPanel* panel, RECT* contentRect)
+/// Borrows a live panel and writes a separate writable RECT. Coordinates and
+/// dimensions retain their low sixteen bits; signed extents are not clamped.
+/// The height covers the full content area before any list top inset.
+static inline void _uiReadPanelContentRect(const UiPanel* panel, RECT* contentRect)
 {
-    s16 contentHeight;
-
     contentRect->x = panel->contentOriginX.unsignedValue + panel->contentLeft.unsignedValue;
     contentRect->y = panel->contentOriginY.unsignedValue + panel->contentTop.unsignedValue;
     contentRect->w = panel->contentRight.unsignedValue - panel->contentLeft.unsignedValue;
-    contentHeight  = panel->contentBottom.unsignedValue - panel->contentTop.unsignedValue;
-    contentRect->h = contentHeight;
-    return contentHeight;
+    contentRect->h = panel->contentBottom.unsignedValue - panel->contentTop.unsignedValue;
 }
 
 void uiInitList(UiList* list, const UiPanel* panel)
@@ -2526,8 +2523,9 @@ void uiInitList(UiList* list, const UiPanel* panel)
     s8   rowHeight;
     s32  availableHeight;
 
-    list->topInset   = 0;
-    availableHeight  = _uiReadListContentRect(panel, &contentRect);
+    list->topInset = 0;
+    _uiReadPanelContentRect(panel, &contentRect);
+    availableHeight  = contentRect.h;
     availableHeight -= list->topInset;
     if (list->rowHeight == 0) {
         list->rowHeight = USER_INTERFACE_LIST_DEFAULT_ROW_HEIGHT;
@@ -2563,7 +2561,8 @@ void uiRefreshListViewport(UiList* list, const UiPanel* panel)
     RECT contentRect;
     s32  availableHeight;
 
-    availableHeight  = _uiReadListContentRect(panel, &contentRect);
+    _uiReadPanelContentRect(panel, &contentRect);
+    availableHeight  = contentRect.h;
     availableHeight -= list->topInset;
     if (list->rowHeight == 0) {
         list->rowHeight = USER_INTERFACE_LIST_DEFAULT_ROW_HEIGHT;
@@ -2603,8 +2602,9 @@ static void _uiRefreshListViewportWithInset(UiList* list, const UiPanel* panel, 
     s8   rowHeight;
     s32  availableHeight;
 
-    list->topInset   = topInsetPixels;
-    availableHeight  = _uiReadListContentRect(panel, &contentRect);
+    list->topInset = topInsetPixels;
+    _uiReadPanelContentRect(panel, &contentRect);
+    availableHeight  = contentRect.h;
     availableHeight -= list->topInset;
     if (list->rowHeight == 0) {
         list->rowHeight = USER_INTERFACE_LIST_DEFAULT_ROW_HEIGHT;
@@ -2981,11 +2981,16 @@ static void _uiPanelClosing(UiPanel* panel, Task* owningTask)
     panel->contentCallback(owningTask);
 }
 
-/// Shrinks and runs retained hiding content with input temporarily suspended.
+/// Draws and runs a shrinking retained panel's content with input suspended.
 ///
-/// Both objects must remain live through the required callback. savedControl
-/// is the word saved before the animation counter update; callback changes are
-/// preserved, otherwise that word is restored. Unsigned shifts retain all bits.
+/// Borrows a live panel and its owning task; the required content callback must
+/// keep both live through return. Requires `_uiLayoutShrinkingPanel` resources.
+/// `savedControl` is the complete word captured before the caller's tick update
+/// and must still equal the panel's control word on entry. The low half moves
+/// into the high half for drawing while input becomes inactive; the old high
+/// half is discarded. Restores the complete saved word only if content leaves
+/// the suspended word unchanged, preserving other callback requests.
+/// Only content may change the lifecycle or ticks during this call.
 static inline void _uiRunHidingPanelContent(UiPanel* panel, Task* owningTask, u32 savedControl)
 {
     enum { USER_INTERFACE_HIDING_CONTROL_SHIFT = 16 };
