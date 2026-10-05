@@ -1468,11 +1468,15 @@ void acropolisWestElevatorHallBayLightingTask(Task* task)
 
 #include "../../shared/red_beacon_task.inc.c"
 
-/// Queues a one-scanline VRAM copy in the current ordering table.
+/// Queues one displaced framebuffer row at the distortion strip's fixed X origin.
 ///
-/// `sourceRect` supplies the source in VRAM pixels; destination Y is also in
-/// VRAM pixels. The destination X is the distortion strip's fixed origin.
-/// Requires room for one DR_MOVE and a valid ordering-table element `otIndex`.
+/// `sourceRect` must be word-aligned with height 1 and positive width; all
+/// rectangle coordinates, extents and `destinationY` count VRAM pixels.
+/// Both regions must fit in VRAM. The rectangle is copied into the packet
+/// during this call and may then expire; its mutable type follows the SDK API.
+/// Requires word-aligned arena space for one `DR_MOVE` and a current ordering
+/// table containing tag index `otIndex` (the caller uses 0x72, not a byte offset).
+/// Queued packet storage must remain live until GPU completion.
 static inline void _acropolisWestElevatorHallQueueScanlineCopy(RECT* sourceRect, s32 destinationY, s32 otIndex)
 {
     enum { ACROPOLIS_WEST_ELEVATOR_HALL_DISTORTION_DESTINATION_X = 80 };
@@ -1532,19 +1536,38 @@ void acropolisWestElevatorHallScanlineDistortionTask(Task* task)
     effectKillTask(effectWork, task);
 }
 
-/// Projects a composed light coordinate and queues its additive textured glow.
+/// Sets the light billboard's square screen bounds around its projected centre.
 ///
-/// Borrows one writable scratch block and reserves one POLY_FT4 even when the
-/// depth test rejects the point. Coordinates narrow to signed 16-bit view
-/// units before projection. Queued storage remains live until GPU completion.
+/// Borrows both records for the call. Centre and half-extent count pixels;
+/// each result narrows to a signed 16-bit packet coordinate. Vertices are
+/// top-left, top-right, bottom-left and bottom-right in GPU strip order.
+static inline void _acropolisWestElevatorHallSetLightGlowBounds(POLY_FT4* glowQuad, const RoomGlowSpriteScratch* glowScratch)
+{
+    glowQuad->x0 = glowQuad->x2 = glowScratch->screenPos.vx - glowScratch->halfExtent;
+    glowQuad->x1 = glowQuad->x3 = glowScratch->screenPos.vx + glowScratch->halfExtent;
+    glowQuad->y0 = glowQuad->y1 = glowScratch->screenPos.vy - glowScratch->halfExtent;
+    glowQuad->y2 = glowQuad->y3 = glowScratch->screenPos.vy + glowScratch->halfExtent;
+}
+
+/// Projects the hall light's composed view-space origin into an additive textured billboard.
+///
+/// Borrows the composed coordinate and a word-aligned writable scratch block;
+/// the caller supplies GTE projection settings and `GsWSMATRIX`. The origin
+/// narrows to signed 16-bit game units before projection. Depth is SZ3 / 4
+/// (0..16383); values below 17 reject the glow, without testing GTE flags.
+/// Accepted points use a pixel half-extent of 0x6700 / depth and wrap their
+/// scaled sorting depth into the current 1024-tag ordering table.
+/// Reserves one word-aligned `POLY_FT4` even on rejection. Scratch storage may
+/// expire on return; queued packet and texture storage live until GPU completion.
 static inline void _acropolisWestElevatorHallDrawLightGlow(const GfxCoord* effectCoord, RoomGlowSpriteScratch* glowScratch)
 {
     enum {
-        ACROPOLIS_WEST_ELEVATOR_HALL_GLOW_MIN_DEPTH   = 17,
-        ACROPOLIS_WEST_ELEVATOR_HALL_GLOW_TPAGE       = 0xAB,
-        ACROPOLIS_WEST_ELEVATOR_HALL_GLOW_CLUT        = 0x4380,
-        ACROPOLIS_WEST_ELEVATOR_HALL_GLOW_UV_MAX      = 103,
-        ACROPOLIS_WEST_ELEVATOR_HALL_GLOW_SIZE_FACTOR = 0x6700
+        ACROPOLIS_WEST_ELEVATOR_HALL_GLOW_MIN_DEPTH     = 17,
+        ACROPOLIS_WEST_ELEVATOR_HALL_GLOW_TEXTURE_8_BIT = 1,
+        ACROPOLIS_WEST_ELEVATOR_HALL_GLOW_TPAGE         = getTPage(ACROPOLIS_WEST_ELEVATOR_HALL_GLOW_TEXTURE_8_BIT, GPU_BLEND_ADD, 704, 0),
+        ACROPOLIS_WEST_ELEVATOR_HALL_GLOW_CLUT          = getClut(0, 270),
+        ACROPOLIS_WEST_ELEVATOR_HALL_GLOW_UV_MAX        = 103,   // Inclusive last texel of the 104-by-104 image
+        ACROPOLIS_WEST_ELEVATOR_HALL_GLOW_SIZE_FACTOR   = 0x6700 // Pixel half-extent numerator in SZ3 / 4 depth units
     };
     POLY_FT4* glowQuad;
 
@@ -1556,6 +1579,7 @@ static inline void _acropolisWestElevatorHallDrawLightGlow(const GfxCoord* effec
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&glowScratch->worldPos);
     gte_rtps();
+    // Packet reservation precedes depth rejection, including for invisible points.
     glowQuad       = gGpuPrimCursor;
     gGpuPrimCursor = glowQuad + 1;
     setPolyFT4(glowQuad);
@@ -1573,12 +1597,10 @@ static inline void _acropolisWestElevatorHallDrawLightGlow(const GfxCoord* effec
         glowQuad->u3    = ACROPOLIS_WEST_ELEVATOR_HALL_GLOW_UV_MAX;
         glowQuad->v3    = ACROPOLIS_WEST_ELEVATOR_HALL_GLOW_UV_MAX;
         setSemiTrans(glowQuad, 1);
+        // Raw texture mode bypasses RGB modulation, so the colour bytes are unused.
         setShadeTex(glowQuad, 1);
         glowScratch->halfExtent = ACROPOLIS_WEST_ELEVATOR_HALL_GLOW_SIZE_FACTOR / glowScratch->otz;
-        glowQuad->x0 = glowQuad->x2 = glowScratch->screenPos.vx - glowScratch->halfExtent;
-        glowQuad->x1 = glowQuad->x3 = glowScratch->screenPos.vx + glowScratch->halfExtent;
-        glowQuad->y0 = glowQuad->y1 = glowScratch->screenPos.vy - glowScratch->halfExtent;
-        glowQuad->y2 = glowQuad->y3 = glowScratch->screenPos.vy + glowScratch->halfExtent;
+        _acropolisWestElevatorHallSetLightGlowBounds(glowQuad, glowScratch);
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)glowScratch->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 glowQuad);
     }
