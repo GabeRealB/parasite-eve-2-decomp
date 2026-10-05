@@ -13,9 +13,9 @@ extern size_t Gpu_PrimHeapSize;
 ///
 /// `GActiveAuxHeapSize` is its heap extent in bytes, including heap3 metadata.
 /// Image-memory configuration normally selects storage after the GPU primitive
-/// reservation; `Mem_SetActiveAuxHeap` can select the whole image-memory region.
+/// reservation; `memSelectAuxHeapRegion` can select the whole image-memory region.
 /// This storage is separate from the fixed primary heap. Selecting a region
-/// only updates the base/size pair; `Mem_Init` or `Mem_InitAux` initializes a
+/// only updates the base/size pair; `Mem_Init` or `memInitAuxHeap` initializes a
 /// nonempty region before heap operations.
 ///
 /// Stage image decoding writes expanded DCT data directly at this base for
@@ -39,8 +39,19 @@ void memFillBytes(void* destination, u32 value, size_t sizeBytes);
 /// Initializes the primary and the auxiliary heap.
 void Mem_Init(void);
 
-/// Initializes the auxiliary heap.
-void Mem_InitAux(void);
+/// Initializes or resets the currently selected auxiliary heap3 region.
+///
+/// Uses `gMemActiveAuxHeap` and its byte extent, `GActiveAuxHeapSize`, including
+/// allocator metadata. For a non-null base and nonzero extent, the base must be
+/// word-aligned writable storage and the extent must be at least eight bytes.
+/// Heap3 rounds the extent down to eight-byte units, creates its free-block ring
+/// within that storage and makes it the allocator's active ring.
+///
+/// Resetting invalidates existing allocations in this region. Previous heap,
+/// GPU and image-decoding uses of repurposed storage must have ended. A null base
+/// or zero extent leaves storage and the allocator cursor untouched; it does
+/// not establish an empty heap. The configured pair and primary heap are intact.
+void memInitAuxHeap(void);
 
 /// Allocates one block from the selected heap without clearing its payload.
 ///
@@ -111,11 +122,22 @@ void memFree(void* allocation);
 /// The previous selection is not restored. `memFree` always selects primary.
 void memFreeFromHeap(void* allocation, bool auxHeap);
 
-/// Selects which region serves as the auxiliary heap.
+/// Selects a saved image-memory region for auxiliary heap operations.
 ///
-/// Passing `true` selects the region beyond the primary heap, `false` the
-/// whole of the memory reserved for image data.
-void Mem_SetActiveAuxHeap(bool aux0);
+/// `configuredAuxHeap == true` selects the saved auxiliary portion; `false`
+/// selects the saved whole region. `memConfigureImageMemory` saves the portion
+/// after the GPU primitive reservation, including the resident image workspace;
+/// frame capture instead saves a portion of its workspace after the pixels.
+/// Both views have runtime bases and byte extents, including allocator metadata,
+/// and are independent of the fixed primary heap. Only the low 16 bits of the
+/// selector are examined; values other than zero or one leave the pair intact.
+///
+/// The saved views must already be configured. Selection only copies the base
+/// and extent into `gMemActiveAuxHeap` and `GActiveAuxHeapSize`; it leaves heap3
+/// metadata and its search cursor untouched. Call `memInitAuxHeap` before using
+/// a newly selected nonempty region. Allocations and GPU/image data discarded by
+/// repurposing that storage must no longer be in use.
+void memSelectAuxHeapRegion(bool configuredAuxHeap);
 
 /// Alloc aux buffer and optionally MoveImage two VRAM strips (src/main/stream.c).
 void Mem_AllocAuxWithImages(s16 flags);
@@ -132,11 +154,11 @@ void Mem_AllocAuxWithImages(s16 flags);
 /// bytes up to 0x801D7000 as the active auxiliary heap. The saved whole region
 /// and saved auxiliary portion extend another 0x26000 bytes past the slot extent,
 /// through the resident image buffers and following storage to 0x801FD000.
-/// `Mem_SetActiveAuxHeap` can select either saved view later.
+/// `memSelectAuxHeapRegion` can select either saved view later.
 /// Clears the primitive reservation's last ten bytes and records their address.
 ///
 /// Previous allocations and GPU/image operations in repurposed storage must
-/// have ended. This only configures the regions: call `Mem_Init` or `Mem_InitAux`
+/// have ended. This only configures the regions: call `Mem_Init` or `memInitAuxHeap`
 /// before using a nonempty auxiliary heap, and reset the primitive cursor before
 /// drawing. The fixed primary heap is independent of this layout.
 void memConfigureImageMemory(s32 stageId, s32 areaId);

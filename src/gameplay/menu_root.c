@@ -452,7 +452,7 @@ void Gp_MenuRootTask(Task* arg0)
             rect.h = 0xF0;
             ClearImage(&rect, 0, 0, 0);
             DrawSync(0);
-            Mem_InitAux();
+            memInitAuxHeap();
             if (disp->demoScene != DISPLAY_DEMO_NONE) {
                 disp->gameMode = DISPLAY_GAME_RESTART;
                 break;
@@ -536,7 +536,7 @@ void Gp_MenuRootTask(Task* arg0)
                 Gp_LoadViewAndCd(1);
             }
             secondaryItemId = -1;
-            Mem_InitAux();
+            memInitAuxHeap();
             cfg = &gPlayerStatus;
             Gp_SyncHeldRelated();
             if (cfg->weapon != PLAYER_STATUS_EQUIPMENT_NONE) {

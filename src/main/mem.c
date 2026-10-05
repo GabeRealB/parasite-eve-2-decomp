@@ -13,11 +13,6 @@
 
 static void _memSetActiveHeap(bool auxHeap);
 
-// The rom contains an empty function that is never called.
-// Might have been a debug utility that is not present in
-// the release.
-static void Mem_Dummy0();
-
 // `_freep` is exported by libapi: the block within a heap that `malloc3`
 // and `free3` begin their search from. `InitHeap3` sets it to the heap it
 // initializes, and the two routines move it as that heap's blocks are taken
@@ -198,7 +193,7 @@ void* memCalloc(size_t sizeBytes, bool auxHeap)
 /// `auxHeap == true` selects `gMemActiveAuxHeap`; every other value selects
 /// `gMemPrimaryHeapBase`. The selected base must remain a member of its heap3
 /// free-block ring, initialized by `Mem_Init` or, for the auxiliary heap,
-/// `Mem_InitAux`.
+/// `memInitAuxHeap`.
 ///
 /// Selection resets `_freep`, the allocator's search cursor, to that base and
 /// persists until another heap is selected. Releases must return blocks to
@@ -242,7 +237,7 @@ void memFreeFromHeap(void* allocation, bool auxHeap)
     free3(allocation);
 }
 
-void Mem_InitAux(void)
+void memInitAuxHeap(void)
 {
     InitHeap3(gMemActiveAuxHeap, GActiveAuxHeapSize);
 }
@@ -253,16 +248,17 @@ void Mem_Init()
     InitHeap3(gMemPrimaryHeapBase, G_HEAP_SIZE);
 }
 
-// The rom contains an empty function that is never called.
-// Might have been a debug utility that is not present in
-// the release.
-static void Mem_Dummy0()
+/// Unreferenced no-op retained at its original position in the resident image.
+///
+/// Its original purpose is unproven.
+static void _memNoop(void)
 {
 }
 
-void Mem_SetActiveAuxHeap(bool aux0)
+void memSelectAuxHeapRegion(bool configuredAuxHeap)
 {
-    switch (aux0 & 0xFFFF) {
+    // Only the low halfword selects a view; other values leave the pair intact.
+    switch ((u16)configuredAuxHeap) {
         case false:
             gMemActiveAuxHeap  = Mem_AuxRegionBase;
             GActiveAuxHeapSize = Mem_AuxRegionBytes;

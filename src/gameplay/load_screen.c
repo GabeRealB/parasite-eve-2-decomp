@@ -375,9 +375,9 @@ void Gp_LoadState2(Task* task)
         save = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
         memConfigureImageMemory(save->state.location.loc.stage, save->state.location.loc.area);
         if ((GAME_LOCATION_WORD(save->state.location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(1, 5, 0, 0)) {
-            Mem_SetActiveAuxHeap(true);
+            memSelectAuxHeapRegion(true);
         }
-        Mem_InitAux();
+        memInitAuxHeap();
         Gp_ApplyNpcRoomSnd();
         Snd_InitFromStage(gGameSession->location.loc.stage, gGameSession->location.loc.area);
         if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD_NIGHT && gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) >= 4) {

@@ -945,7 +945,7 @@ void Tmd_AllocMissingBuffers(void)
     void*      mem;
 
     node = PARENT_OF(gTmdList.next, TmdObject, link);
-    Mem_InitAux();
+    memInitAuxHeap();
     CdCmd_SetupMdecBuffers();
     while (node != NULL) {
         if (node->buffer == NULL) {

@@ -4277,7 +4277,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
                 taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 2, 0);
                 Gpu_ResetGraphAndOt();
                 memConfigureImageMemory(gGameSession->location.loc.stage, gGameSession->location.loc.area);
-                Mem_SetActiveAuxHeap(1);
+                memSelectAuxHeapRegion(true);
                 Tmd_AllocMissingBuffers();
                 SndEvt_EnqueueTypeB(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PLAZA, 5), 0x26);
                 task->state = task->state + 1;

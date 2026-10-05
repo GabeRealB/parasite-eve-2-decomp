@@ -3193,7 +3193,7 @@ void Gp_RestartSessionTask(Task* arg0)
         gMemActiveAuxHeap  = (u8*)Fs_ImgBuffers - 0xA800;
     }
     Mem_Init();
-    Mem_InitAux();
+    memInitAuxHeap();
     if (gGameSession->restartMode != flag) {
         CdCmd_SetupMdecBuffers();
     }

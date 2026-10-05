@@ -132797,7 +132797,7 @@ stops matching.
 
 The aux heap has a selected base/size pair, `gMemActiveAuxHeap` and
 `GActiveAuxHeapSize`, plus saved pairs for the configured auxiliary region and
-the whole image-memory region. `Mem_SetActiveAuxHeap` copies either saved pair
+the whole image-memory region. `memSelectAuxHeapRegion` copies either saved pair
 into the selected pair. The whole region starts at the memory reserved for
 image data, not the game's primary heap, which is a fixed region lower in RAM —
 so the installed base is not always a region of its own. A body that

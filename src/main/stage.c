@@ -334,7 +334,7 @@ case2:
     if ((CdCmd_IsIdle() & 0xFFFF) && (gDisplayState.frameBuffer != Stage_Ctx->heldFrameBuffer)) {
         gfxCaptureAreaFrame(gGameSession->location.loc.stage, gGameSession->location.loc.area, gDisplayState.frameBuffer,
                             MEMORY_PRIMITIVE_HEAP_BYTES);
-        Mem_InitAux();
+        memInitAuxHeap();
         rect.x = 0;
         rect.w = 0x140;
         rect.h = 0xF0;
@@ -420,7 +420,7 @@ block_default:
     if (Stage_Ctx->entryMode == STAGE_ENTRY_GRAY_CAPTURE) {
         Display_InvertFramebufferGray();
     }
-    Mem_InitAux();
+    memInitAuxHeap();
     gDisplayState.control.flags.flipMode    = DISPLAY_FLIP_TASK_ONLY;
     gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_ROOM_SLOT;
     slot                                    = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
@@ -465,7 +465,7 @@ static void Display_TransitionTask(Task* task)
                     ResetGraph(1);
                     Gpu_ClearOTag(0);
                     Gpu_ClearOTag(1);
-                    Mem_InitAux();
+                    memInitAuxHeap();
                     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = gGameSession->location.loc.view;
                     Pad_SetCooldown(0);
                     Gp_SpawnCurView(2);
@@ -511,7 +511,7 @@ static void Display_TransitionTask(Task* task)
                     Gpu_ResetGraphAndOt();
                     gfxCaptureAreaFrame(gGameSession->location.loc.stage, gGameSession->location.loc.area,
                                         gDisplayState.frameBuffer, MEMORY_PRIMITIVE_HEAP_BYTES);
-                    Mem_InitAux();
+                    memInitAuxHeap();
                     Stage_Ctx->loadBuffersCleared = 0;
                     // The ending request is the sign bit.
                     if ((s32)Stage_Ctx->requestFlags < 0) {

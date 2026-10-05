@@ -341,7 +341,7 @@ u16 Stream_RestoreAfterLoad(s32 arg0, s32 arg1)
         }
         memConfigureImageMemory(gGameSession->location.loc.stage, gGameSession->location.loc.area);
         if ((arg0 & 0xFFFF) == 1) {
-            Mem_SetActiveAuxHeap(1);
+            memSelectAuxHeapRegion(true);
         }
         Tmd_AllocMissingBuffers();
         if (gDisplayState.videoMode == DISPLAY_VIDEO_STREAMING) {
@@ -987,8 +987,8 @@ void Mem_AllocAuxWithImages(s16 arg0)
 
     p = &gCdCmdQueue;
     Gpu_ResetGraphAndOt();
-    Mem_SetActiveAuxHeap(0);
-    Mem_InitAux();
+    memSelectAuxHeapRegion(false);
+    memInitAuxHeap();
     if (gDisplayState.videoMode == DISPLAY_VIDEO_NORMAL) {
         D_8006AC40 = memMalloc(0x4A800, true);
     } else {
