@@ -96,7 +96,7 @@ typedef union {
         u8                       firearmsTopic[16]; // Shift-JIS "About firearms", NUL-terminated and zero-filled
         u8                       shelterTopic[20];  // Shift-JIS "About the shelter", NUL-terminated and zero-filled
         u8                       otherTopic[12];    // Shift-JIS "Anything else?", NUL-terminated and zero-filled
-        u8*                      topicMenus[2][2];  // Two-line option menus (0 firearms/shelter, 1 firearms/anything else)
+        u8*                      topicMenus[4];     // Two two-line option menus, one after the other (firearms/shelter, then firearms/anything else)
     } data;                                         // The records by name
     s32 words[35];                                  // The same storage as the copy reads it; the last three words lie beyond the copied span
 } _DryfieldTrailerCoachAnimationBankExtensionStorage;
@@ -451,7 +451,7 @@ AnimationPlayRequest D_dryfield_trailer_coach_80185340 = { { .index = 1 }, 62, A
 
 AnimationPlayRequest D_dryfield_trailer_coach_80185354 = { { .index = 1 }, 63, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-_DryfieldTrailerCoachAnimationBankExtensionStorage D_dryfield_trailer_coach_80185368 = { .data = { { &gActor420700Animation01C5C, &gActor420700Animation01EBC, &gActor420700Animation02328, &gActor420700Animation02F18, &gActor420700Animation0316C, &gActor420700Animation03404, &gActor420700Animation035D4, &gActor420700Animation03DD8, NULL, NULL, NULL, &gActor420700Animation00DE0, &gActor420700Animation013A8, &gActor420700Animation0164C, &gActor420700Animation01878, &_gDryfieldTrailerCoachAnimation07994, &_gDryfieldTrailerCoachAnimation07668 }, { { .words = D_dryfield_trailer_coach_80185368.words }, ANIMATION_BANK_EXTENSION_CAPACITY }, "\x8F\x65\x8A\xED\x82\xC9\x82\xC2\x82\xA2\x82\xC4", "\x83\x56\x83\x46\x83\x8B\x83\x5E\x81\x5B\x82\xC9\x82\xC2\x82\xA2\x82\xC4", "\x91\xBC\x82\xC9\x89\xBD\x82\xA9\x81\x48", { { D_dryfield_trailer_coach_80185368.data.firearmsTopic, D_dryfield_trailer_coach_80185368.data.shelterTopic }, { D_dryfield_trailer_coach_80185368.data.firearmsTopic, D_dryfield_trailer_coach_80185368.data.otherTopic } } } };
+_DryfieldTrailerCoachAnimationBankExtensionStorage D_dryfield_trailer_coach_80185368 = { .data = { { &gActor420700Animation01C5C, &gActor420700Animation01EBC, &gActor420700Animation02328, &gActor420700Animation02F18, &gActor420700Animation0316C, &gActor420700Animation03404, &gActor420700Animation035D4, &gActor420700Animation03DD8, NULL, NULL, NULL, &gActor420700Animation00DE0, &gActor420700Animation013A8, &gActor420700Animation0164C, &gActor420700Animation01878, &_gDryfieldTrailerCoachAnimation07994, &_gDryfieldTrailerCoachAnimation07668 }, { { .words = D_dryfield_trailer_coach_80185368.words }, ANIMATION_BANK_EXTENSION_CAPACITY }, "\x8F\x65\x8A\xED\x82\xC9\x82\xC2\x82\xA2\x82\xC4", "\x83\x56\x83\x46\x83\x8B\x83\x5E\x81\x5B\x82\xC9\x82\xC2\x82\xA2\x82\xC4", "\x91\xBC\x82\xC9\x89\xBD\x82\xA9\x81\x48", { D_dryfield_trailer_coach_80185368.data.firearmsTopic, D_dryfield_trailer_coach_80185368.data.shelterTopic, D_dryfield_trailer_coach_80185368.data.firearmsTopic, D_dryfield_trailer_coach_80185368.data.otherTopic } } };
 
 EvsCommand D_dryfield_trailer_coach_801853F4[58] = {
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_trailer_coach_80185038 }, { .value = 0 } },
@@ -1696,9 +1696,9 @@ static void func_dryfield_trailer_coach_801826A0(Task* task)
     RoomOptionDialog* dialog;
     UiDialogOption*   option;
     u8**              line;
-    s32               table;
-    s32               off;
+    u8**              table;
     s32               mode;
+    s32               index;
     s32               i;
 
     dialog = memCalloc(sizeof(RoomOptionDialog), 0);
@@ -1708,26 +1708,25 @@ static void func_dryfield_trailer_coach_801826A0(Task* task)
         return;
     }
 
-    // `line` walks menu 0, and `off` is the byte offset of the same option of
-    // menu 1 from the start of the table.
+    // `line` walks the first menu; the second menu's options are indexed from
+    // the start of the table.
     i                  = 0;
     mode               = 1;
-    line               = D_dryfield_trailer_coach_80185368.data.topicMenus[0];
-    table              = (s32)D_dryfield_trailer_coach_80185368.data.topicMenus;
-    off                = sizeof(D_dryfield_trailer_coach_80185368.data.topicMenus[0]);
+    line               = D_dryfield_trailer_coach_80185368.data.topicMenus;
+    table              = line;
     task->work         = dialog;
     task->exitCallback = func_dryfield_trailer_coach_801827D0;
 
     for (; i < ARRAY_SIZE(dialog->options); i++) {
         if (task->spawnArg1.value == mode) {
-            option->text = *(u8**)(off + table);
+            index        = i + ARRAY_SIZE(dialog->options);
+            option->text = table[index];
         } else {
             option->text = *line;
         }
         option->next = option + 1;
         option++;
         line++;
-        off += sizeof(*line);
     }
     option[-1].next = NULL;
 
