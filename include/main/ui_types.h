@@ -22,6 +22,16 @@ typedef union {
 } UiHalf;
 STATIC_ASSERT_SIZEOF(UiHalf, 2);
 
+/// The selection cursor's position in screen-centered integer pixels.
+///
+/// Halfword views select signed coordinates or unsigned arithmetic before
+/// promotion; both retain the same coordinate bits.
+typedef struct {
+    UiHalf x; // Horizontal coordinate relative to the screen center, in pixels
+    UiHalf y; // Vertical coordinate relative to the screen center, in pixels
+} UiCursorPosition;
+STATIC_ASSERT_SIZEOF(UiCursorPosition, 4);
+
 /// A UI byte with signed and unsigned numeric views of the same eight bits.
 ///
 /// List controls use these views for row counts and scroll indices, including

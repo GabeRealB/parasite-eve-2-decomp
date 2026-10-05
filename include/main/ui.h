@@ -183,9 +183,27 @@ void Ui_ComputeVisibleRows(UiList* list, UiPanel* panel);
 
 void Ui_UpdateListNoAnim(void* arg0, void* arg1);
 
-void Ui_SmoothCursor(UiPanel* panel, s32 arg1, s32 arg2);
+/// Eases the shared selection cursor toward a panel's content position and draws it.
+///
+/// `contentX` and `contentY` are pixels relative to the borrowed panel's content
+/// origin. Screen-centered 24.8 accumulators move one quarter of the remaining
+/// displacement per elapsed nominal 60-Hz tick. Zero elapsed ticks still draw
+/// the current position; inactive control suppresses drawing but still moves it.
+/// Coordinates and intermediate differences must fit the signed accumulators.
+/// Calls share one cursor position across panels, retained between updates.
+///
+/// Requires the UI atlas/palette, SPRT_8 and DR_TPAGE arena space, and writable
+/// ordering-table tag 4. Queued packets must remain live until GPU completion.
+void uiEaseAndDrawCursor(const UiPanel* panel, s32 contentX, s32 contentY);
 
-s32 Ui_GetCursorFixed(void);
+/// Returns the shared selection cursor's packed screen-centered pixel position.
+///
+/// Arithmetic shifts discard eight fractional bits, rounding toward negative
+/// infinity; coordinates then retain their low sixteen bits. X occupies the
+/// low halfword and Y the high halfword, matching the X/Y halfwords of
+/// `UiCursorPosition`. The s32 return preserves the integer-register interface
+/// used across images; this call does not advance the cursor.
+s32 uiGetCursorPositionWord(void);
 
 s32 Ui_LookupTable(void* unused1, s32 arg1);
 

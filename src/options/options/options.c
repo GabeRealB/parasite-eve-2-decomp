@@ -592,7 +592,7 @@ static void func_options_801D4D0C(Task* task)
     textDrawUiLine(obj, xRight, y, labels[type], 0x606060, one, TEXT_ALIGNMENT_LEFT);
     status = obj->panel.control.word;
     if (((status >> 16) == one) || (status == one)) {
-        Ui_SmoothCursor(&(obj)->panel, xRight, x + 7);
+        uiEaseAndDrawCursor(&(obj)->panel, xRight, x + 7);
         if (obj->panel.control.word == one) {
             obj->panel.otIndex.signedValue = obj->panel.otIndex.signedValue + 1;
             uiFillRectInterior(&(obj)->panel, edge - 0x40, y1, 0x3A, 0xE, 0x1741FU);

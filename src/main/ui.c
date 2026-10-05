@@ -68,6 +68,37 @@ enum {
 /// Animated list displacement per nominal 60-Hz tick, in pixels.
 enum { USER_INTERFACE_LIST_SCROLL_PIXELS_PER_TICK = 2 };
 
+/// Cursor accumulators use eight fractional bits and quarter-distance easing.
+enum {
+    USER_INTERFACE_CURSOR_FRACTION_BITS = 8,
+    USER_INTERFACE_CURSOR_EASING_SHIFT  = 2
+};
+
+/// Spreads a triangle's base around its tip using the UI caret's pixel geometry.
+///
+/// The packet must expose signed 16-bit x1/x2/y0/y1/y2 fields, with x1 and x2
+/// already at the tip's X. Zero points up (-4/+5 X, +5 Y); nonzero points down
+/// (-3/+4 X, -4 Y). The current y0 supplies the base, including any tip animation.
+/// Stores retain sixteen bits. caretValue is used repeatedly and must be a
+/// stable pointer without side effects; directionValue is evaluated once.
+/// baseYValue is a writable u16 lvalue without side effects, used repeatedly.
+/// Captures no caller locals; use as a standalone statement in a compound block,
+/// never as an unbraced conditional or loop body.
+#define USER_INTERFACE_SET_CARET_BASE(caretValue, directionValue, baseYValue) \
+    if ((directionValue) == USER_INTERFACE_CARET_UP) {                        \
+        (caretValue)->x1 -= 4;                                                \
+        (baseYValue)      = (caretValue)->y0 + 5;                             \
+        (caretValue)->x2 += 5;                                                \
+        (caretValue)->y2  = (baseYValue);                                     \
+        (caretValue)->y1  = (baseYValue);                                     \
+    } else {                                                                  \
+        (caretValue)->x1 -= 3;                                                \
+        (baseYValue)      = (caretValue)->y0 - 4;                             \
+        (caretValue)->x2 += 4;                                                \
+        (caretValue)->y2  = (baseYValue);                                     \
+        (caretValue)->y1  = (baseYValue);                                     \
+    }
+
 /// Focus colors for the animated underlined panel labels, red in the low byte.
 enum {
     USER_INTERFACE_PANEL_LABEL_INACTIVE_COLOR = GPU_PACK_COLOR_WORD(64, 80, 80, 0),
@@ -326,9 +357,7 @@ static inline void _uiFillRectInterior(const UiPanel* panel, s32 left, s32 top, 
 
 static void _uiDrawListHighlight(const UiList* list, UiPanel* panel, s32 rowBottom, s32 unused);
 
-/// Eases the list cursor a quarter of the way toward (x, y) once per elapsed
-/// tick, in 24.8 fixed point, and draws it at the result.
-static inline void _uiListMoveCursor(UiPanel* panel, s32 x, s32 y);
+static inline void _uiListMoveCursor(const UiPanel* panel, s32 contentX, s32 contentY);
 
 /// Updates list navigation, scroll position, row drawing and the cursor.
 static void Ui_UpdateListRows(UiList* list, UiPanel* panel, s32 animate);
@@ -424,7 +453,7 @@ static void _uiComputeAnimatedPanelRect(const UiPanel* panel, RECT* rect);
     (panelValue)->contentOriginX.unsignedValue = (contentRectValue).x - (panelValue)->contentLeft.unsignedValue; \
     (panelValue)->contentOriginY.unsignedValue = (contentRectValue).y - (panelValue)->contentTop.unsignedValue;
 
-static void Ui_AnimOpenStep(UiPanel* panel, Task* task);
+static void _uiPanelInitial(UiPanel* panel, Task* owningTask);
 
 static void _uiPanelOpening(UiPanel* panel, Task* owningTask);
 
@@ -606,7 +635,7 @@ static UiObjectDesc      Ui_DialogListDesc        = { USER_INTERFACE_PANEL_TITLE
 UiObject*                Wip_UiHolder             = NULL;
 
 static const _UiPanelLifecycleFuncTable6 Ui_ObjectStates = { {
-    Ui_AnimOpenStep,
+    _uiPanelInitial,
     [USER_INTERFACE_PANEL_OPENING] = _uiPanelOpening,
     [USER_INTERFACE_PANEL_OPEN]    = _uiPanelOpen,
     [USER_INTERFACE_PANEL_CLOSING] = _uiPanelClosing,
@@ -1269,7 +1298,10 @@ static void _uiQueueListDrawArea(const UiList* list, const UiPanel* panel, s32 f
 /// Selects one of six atlas frames from an eight-VSync animation step.
 ///
 /// The nonnegative step visits three columns in each of two rows; stores
-/// retain eight-bit texture coordinates, mapping the negative U base to 232.
+/// retain eight-bit texture coordinates, selecting U 232/240/248 and V 48/56.
+/// `cursor` is borrowed writable SPRT_8 storage; only u0 and v0 are changed.
+/// The caller's unsigned VSync count shifted by three bounds the step to
+/// 0..0x1FFFFFFF, keeping the signed quotient products representable.
 static inline void _uiSetCursorTextureFrame(SPRT_8* cursor, s32 animationStep)
 {
     enum {
@@ -1279,19 +1311,19 @@ static inline void _uiSetCursorTextureFrame(SPRT_8* cursor, s32 animationStep)
         USER_INTERFACE_CURSOR_TEXTURE_LEFT    = -24,
         USER_INTERFACE_CURSOR_TEXTURE_TOP     = 48,
     };
-    s32 textureColumn;
+    s32 textureColumnWork;
     s32 textureRow;
-    s32 textureRowInCycle;
+    s32 textureRowWork;
     s32 textureCoordinate;
 
-    textureColumn     = animationStep / USER_INTERFACE_CURSOR_TEXTURE_COLUMNS;
-    textureRow        = textureColumn;
-    textureColumn     = animationStep - textureRow * USER_INTERFACE_CURSOR_TEXTURE_COLUMNS;
-    textureRowInCycle = textureRow / USER_INTERFACE_CURSOR_TEXTURE_ROWS;
-    textureRowInCycle = textureRow - textureRowInCycle * USER_INTERFACE_CURSOR_TEXTURE_ROWS;
-    textureCoordinate = textureColumn * USER_INTERFACE_CURSOR_SPRITE_PIXELS + USER_INTERFACE_CURSOR_TEXTURE_LEFT;
+    textureColumnWork = animationStep / USER_INTERFACE_CURSOR_TEXTURE_COLUMNS;
+    textureRow        = textureColumnWork;
+    textureColumnWork = animationStep - textureRow * USER_INTERFACE_CURSOR_TEXTURE_COLUMNS;
+    textureRowWork    = textureRow / USER_INTERFACE_CURSOR_TEXTURE_ROWS;
+    textureRowWork    = textureRow - textureRowWork * USER_INTERFACE_CURSOR_TEXTURE_ROWS;
+    textureCoordinate = textureColumnWork * USER_INTERFACE_CURSOR_SPRITE_PIXELS + USER_INTERFACE_CURSOR_TEXTURE_LEFT;
     cursor->u0        = textureCoordinate;
-    textureCoordinate = textureRowInCycle * USER_INTERFACE_CURSOR_SPRITE_PIXELS + USER_INTERFACE_CURSOR_TEXTURE_TOP;
+    textureCoordinate = textureRowWork * USER_INTERFACE_CURSOR_SPRITE_PIXELS + USER_INTERFACE_CURSOR_TEXTURE_TOP;
     cursor->v0        = textureCoordinate;
 }
 
@@ -1335,26 +1367,15 @@ static void _uiDrawAnimatedCursor(const UiPanel* panel, s32 contentX, s32 conten
     }
 }
 
-/// Spreads a gouraud overflow caret's base from vertices initialized at its tip.
+/// Spreads a gouraud overflow caret's base around the current tip position.
 ///
+/// Requires x1 and x2 at the tip's X; y0 may already include the tip animation.
 /// Coordinates retain sixteen bits; zero points up and nonzero points down.
 static inline void _uiSetOverflowCaretBase(POLY_G3* caret, s32 pointsDown)
 {
     u16 baseY;
 
-    if (pointsDown == USER_INTERFACE_CARET_UP) {
-        caret->x1 -= 4;
-        baseY      = caret->y0 + 5;
-        caret->x2 += 5;
-        caret->y2  = baseY;
-        caret->y1  = baseY;
-    } else {
-        caret->x1 -= 3;
-        baseY      = caret->y0 - 4;
-        caret->x2 += 4;
-        caret->y2  = baseY;
-        caret->y1  = baseY;
-    }
+    USER_INTERFACE_SET_CARET_BASE(caret, pointsDown, baseY);
 }
 
 /// Queues a gouraud caret showing list rows available above or below the window.
@@ -1627,34 +1648,47 @@ static void _uiDrawListHighlight(const UiList* list, UiPanel* panel, s32 rowBott
     highlightPanel->otIndex.unsignedValue--;
 }
 
-/// Eases the list cursor a quarter of the way toward (x, y) once per elapsed
-/// tick, in 24.8 fixed point, and draws it at the result.
-static inline void _uiListMoveCursor(UiPanel* panel, s32 x, s32 y)
+/// Advances the shared 24.8 cursor toward a screen-centered fixed-point target.
+///
+/// Each elapsed nominal 60-Hz tick moves a quarter of the remaining displacement.
+/// Target coordinates and intermediate differences must fit s32.
+static inline void _uiEaseCursorPosition(s32 targetX, s32 targetY)
 {
-    s32 i;
-    s16 baseX;
-    s16 baseY;
+    s32 elapsedTicks;
+    u8  frameTicks;
+
+    elapsedTicks = 0;
+    frameTicks   = gDisplayState.frameTicks;
+    if (frameTicks != 0) {
+        do {
+            elapsedTicks++;
+            D_80067648 += (targetX - D_80067648) >> USER_INTERFACE_CURSOR_EASING_SHIFT;
+            D_8006764C += (targetY - D_8006764C) >> USER_INTERFACE_CURSOR_EASING_SHIFT;
+        } while (elapsedTicks < frameTicks);
+    }
+}
+
+/// Eases and draws the shared selection cursor at a list's content-relative target.
+///
+/// Coordinates are pixels relative to the borrowed panel's content origin.
+/// Uses the same retained 24.8 cursor as `uiEaseAndDrawCursor`; inactive control
+/// still advances it. Requires the animated cursor's arena, atlas and OT tag 4.
+static inline void _uiListMoveCursor(const UiPanel* panel, s32 contentX, s32 contentY)
+{
+    s16 screenOriginX;
+    s16 screenOriginY;
     s32 targetX;
     s32 targetY;
-    u8  ticks;
 
-    i         = 0;
-    baseX     = panel->contentOriginX.signedValue;
-    baseY     = panel->contentOriginY.signedValue;
-    targetX   = x + baseX;
-    targetY   = y + baseY;
-    targetX <<= 8;
-    targetY <<= 8;
-    ticks     = gDisplayState.frameTicks;
-    if (ticks != 0) {
-        do {
-            i++;
-            D_80067648 += (targetX - D_80067648) >> 2;
-            D_8006764C += (targetY - D_8006764C) >> 2;
-        } while (i < ticks);
-    }
-    targetX = D_80067648 >> 8;
-    targetY = D_8006764C >> 8;
+    screenOriginX = panel->contentOriginX.signedValue;
+    screenOriginY = panel->contentOriginY.signedValue;
+    targetX       = contentX + screenOriginX;
+    targetY       = contentY + screenOriginY;
+    targetX     <<= USER_INTERFACE_CURSOR_FRACTION_BITS;
+    targetY     <<= USER_INTERFACE_CURSOR_FRACTION_BITS;
+    _uiEaseCursorPosition(targetX, targetY);
+    targetX = D_80067648 >> USER_INTERFACE_CURSOR_FRACTION_BITS;
+    targetY = D_8006764C >> USER_INTERFACE_CURSOR_FRACTION_BITS;
     _uiDrawAnimatedCursor(panel, targetX - panel->contentOriginX.signedValue, targetY - panel->contentOriginY.signedValue);
 }
 
@@ -2549,32 +2583,23 @@ static void Ui_ComputeVisibleRowsEx(UiList* list, UiPanel* panel, s32 arg2)
     list->flags = 0;
 }
 
-void Ui_SmoothCursor(UiPanel* panel, s32 arg1, s32 arg2)
+void uiEaseAndDrawCursor(const UiPanel* panel, s32 contentX, s32 contentY)
 {
-    s32 i;
     s32 targetX;
     s32 targetY;
-    s16 baseX;
-    s16 baseY;
-    u8  count;
+    s16 screenOriginX;
+    s16 screenOriginY;
 
-    i         = 0;
-    baseX     = panel->contentOriginX.signedValue;
-    baseY     = panel->contentOriginY.signedValue;
-    targetX   = arg1 + baseX;
-    targetY   = arg2 + baseY;
-    targetX <<= 8;
-    targetY <<= 8;
-    count     = gDisplayState.frameTicks;
-    if (count != 0) {
-        do {
-            i          += 1;
-            D_80067648 += (targetX - D_80067648) >> 2;
-            D_8006764C += (targetY - D_8006764C) >> 2;
-        } while (i < count);
-    }
-    targetX = D_80067648 >> 8;
-    targetY = D_8006764C >> 8;
+    // Translate the content target into the shared screen-centered accumulator.
+    screenOriginX = panel->contentOriginX.signedValue;
+    screenOriginY = panel->contentOriginY.signedValue;
+    targetX       = contentX + screenOriginX;
+    targetY       = contentY + screenOriginY;
+    targetX     <<= USER_INTERFACE_CURSOR_FRACTION_BITS;
+    targetY     <<= USER_INTERFACE_CURSOR_FRACTION_BITS;
+    _uiEaseCursorPosition(targetX, targetY);
+    targetX = D_80067648 >> USER_INTERFACE_CURSOR_FRACTION_BITS;
+    targetY = D_8006764C >> USER_INTERFACE_CURSOR_FRACTION_BITS;
     _uiDrawAnimatedCursor(panel, targetX - panel->contentOriginX.signedValue, targetY - panel->contentOriginY.signedValue);
 }
 
@@ -2825,18 +2850,27 @@ static void _uiComputeAnimatedPanelRect(const UiPanel* panel, RECT* rect)
     rect->h = panel->bounds.rect.h;
 }
 
-static void Ui_AnimOpenStep(UiPanel* panel, Task* task)
+/// Selects opening or retained hidden dispatch for a panel's initial update.
+///
+/// Borrows a live panel in the initial lifecycle and its owning task. Zero ticks
+/// seeds the nine-tick opening span and runs opening immediately. Every nonzero
+/// counter selects hidden and runs hidden content immediately; positive delays
+/// gain the nine-tick bias, narrowing to s16. Use positive delays up to 32758 to
+/// retain a positive biased counter. Negative counters retain their sentinel.
+/// Requires the selected handler's resources and a content callback that keeps
+/// the panel and task live through return.
+static void _uiPanelInitial(UiPanel* panel, Task* owningTask)
 {
     if (panel->animationTicks == 0) {
         panel->animationTicks = USER_INTERFACE_PANEL_ANIMATION_TICKS;
         panel->state         += USER_INTERFACE_PANEL_OPENING - USER_INTERFACE_PANEL_INITIAL;
-        _uiPanelOpening(panel, task);
+        _uiPanelOpening(panel, owningTask);
     } else {
         if (panel->animationTicks > 0) {
             panel->animationTicks += USER_INTERFACE_PANEL_ANIMATION_TICKS;
         }
         panel->state = USER_INTERFACE_PANEL_HIDDEN;
-        _uiPanelHidden(panel, task);
+        _uiPanelHidden(panel, owningTask);
     }
 }
 
@@ -2979,44 +3013,28 @@ static void Ui_DispatchObjectState(Task* task)
     sp.funcs[temp->state](temp, task);
 }
 
-s32 Ui_GetCursorFixed(void)
+s32 uiGetCursorPositionWord(void)
 {
     union {
-        struct {
-            s16 unk0;
-            s16 unk2;
-        } parts;
-        s32 word;
-    } sp;
+        UiCursorPosition pixels; // Screen-centered integer pixel coordinates
+        s32              word;   // Packed X/Y value for the integer-register return
+    } position;
+    s16* cursorX = &position.pixels.x.signedValue;
 
-    s16* p = &sp.parts.unk0;
-
-    *p            = D_80067648 >> 8;
-    sp.parts.unk2 = D_8006764C >> 8;
-    return sp.word;
+    *cursorX                      = D_80067648 >> USER_INTERFACE_CURSOR_FRACTION_BITS;
+    position.pixels.y.signedValue = D_8006764C >> USER_INTERFACE_CURSOR_FRACTION_BITS;
+    return position.word;
 }
 
-/// Spreads a flat caret's base vertices from three vertices initialized at its tip.
+/// Spreads a flat caret's base around the current tip position.
 ///
-/// Base coordinates retain sixteen bits. Zero points up with a wider base;
-/// every nonzero value points down.
+/// Requires x1 and x2 at the tip's X. Base coordinates retain sixteen bits.
+/// Zero points up (-4/+5 X, +5 Y); every nonzero value points down (-3/+4 X, -4 Y).
 static inline void _uiSetFlatCaretBase(POLY_F3* caret, s32 pointsDown)
 {
     u16 baseY;
 
-    if (pointsDown == USER_INTERFACE_CARET_UP) {
-        caret->x1 = caret->x1 - 4;
-        baseY     = caret->y0 + 5;
-        caret->x2 = caret->x2 + 5;
-        caret->y2 = baseY;
-        caret->y1 = baseY;
-    } else {
-        caret->x1 = caret->x1 - 3;
-        baseY     = caret->y0 - 4;
-        caret->x2 = caret->x2 + 4;
-        caret->y2 = baseY;
-        caret->y1 = baseY;
-    }
+    USER_INTERFACE_SET_CARET_BASE(caret, pointsDown, baseY);
 }
 
 void uiDrawFlatCaret(const UiPanel* panel, s32 tipX, s32 tipY, u32 colorRgb, s32 pointsDown)

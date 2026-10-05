@@ -71,7 +71,7 @@ static void McMenu_UpdateListCursor(void* arg0, UiPanel* panel)
 {
     Ui_UpdateListNoAnim(arg0, panel);
     if (panel->control.word == USER_INTERFACE_PANEL_ACTIVE) {
-        Ui_SmoothCursor(panel, panel->contentLeft.signedValue + 2, 0);
+        uiEaseAndDrawCursor(panel, panel->contentLeft.signedValue + 2, 0);
     }
 }
 
@@ -93,7 +93,7 @@ void McMenu_SelectList(Task* task)
     } else {
         Ui_UpdateListNoAnim(menu, obj);
         if (obj->control.word == USER_INTERFACE_PANEL_ACTIVE) {
-            Ui_SmoothCursor(obj, obj->contentLeft.signedValue + 2, 0);
+            uiEaseAndDrawCursor(obj, obj->contentLeft.signedValue + 2, 0);
         }
     }
 }
@@ -149,7 +149,7 @@ void McMenu_SelectListAlt(Task* task)
     } else {
         Ui_UpdateListNoAnim(menu, obj);
         if (obj->control.word == USER_INTERFACE_PANEL_ACTIVE) {
-            Ui_SmoothCursor(obj, obj->contentLeft.signedValue + 2, 0);
+            uiEaseAndDrawCursor(obj, obj->contentLeft.signedValue + 2, 0);
         }
     }
 }

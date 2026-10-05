@@ -1528,15 +1528,12 @@ static void Gp_ItemListTask(Task* arg0)
 
 void Gp_ItemDestCursorTask(Task* arg0)
 {
-    UiObject*     obj;
-    UiObject*     child;
-    UiObjectDesc* desc;
-    s32           one;
-    s16           y;
-    struct {
-        s16 unk0;
-        s16 unk2;
-    } cursor;
+    UiObject*        obj;
+    UiObject*        child;
+    UiObjectDesc*    desc;
+    s32              one;
+    s16              y;
+    UiCursorPosition cursor;
 
     obj = arg0->spawnArg2.pointer;
     if (arg0->state == 0) {
@@ -1555,13 +1552,13 @@ void Gp_ItemDestCursorTask(Task* arg0)
     if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_LEFT) != 0) {
             child          = D_80114D98[1];
-            *(s32*)&cursor = Ui_GetCursorFixed();
-            if (cursor.unk2 < (s16)child->panel.bounds.unsignedRect.y) {
+            *(s32*)&cursor = uiGetCursorPositionWord();
+            if (cursor.y.signedValue < child->panel.bounds.rect.y) {
                 child = D_80114D98[0];
             }
             sndEvtRequestScriptStart(SOUND_MENU_CURSOR, 0, 0);
             obj->panel.control.word   = USER_INTERFACE_PANEL_INACTIVE;
-            y                         = cursor.unk2;
+            y                         = cursor.y.signedValue;
             child->panel.control.word = USER_INTERFACE_PANEL_FOCUS_TRANSFER;
             child->resultValue        = y;
         }
@@ -1874,21 +1871,18 @@ static inline void _gpWeaponMenuSetRows(UiList* menu)
 
 void Gp_WeaponMenuTask(Task* arg0)
 {
-    UiObject* obj;
-    UiList*   menu;
-    s32       status;
-    Task*     owner;
-    Task*     child;
-    Task*     next;
-    Task*     head;
-    UiObject* childObj;
-    s32       one;
-    s32       mask;
-    s32       flag;
-    struct {
-        s16 unk0;
-        u16 unk2;
-    } cursor;
+    UiObject*        obj;
+    UiList*          menu;
+    s32              status;
+    Task*            owner;
+    Task*            child;
+    Task*            next;
+    Task*            head;
+    UiObject*        childObj;
+    s32              one;
+    s32              mask;
+    s32              flag;
+    UiCursorPosition cursor;
 
     obj         = arg0->spawnArg2.pointer;
     menu        = &D_8010E884;
@@ -1929,9 +1923,9 @@ void Gp_WeaponMenuTask(Task* arg0)
 
                 parentObj = parent->spawnArg2.pointer;
                 sndEvtRequestScriptStart(SOUND_MENU_CURSOR, 0, 0);
-                *(s32*)&cursor           = Ui_GetCursorFixed();
+                *(s32*)&cursor           = uiGetCursorPositionWord();
                 other                    = &D_8010E854;
-                row                      = cursor.unk2 - (parentObj->panel.contentOriginY.unsignedValue + parentObj->panel.contentTop.unsignedValue);
+                row                      = cursor.y.unsignedValue - (parentObj->panel.contentOriginY.unsignedValue + parentObj->panel.contentTop.unsignedValue);
                 row                      = row / other->rowHeight;
                 vis                      = other->visibleRowCount.signedValue;
                 row9                     = other->firstVisibleItemIndex.signedValue;
@@ -2215,15 +2209,12 @@ void Gp_ArmorMenuTask(Task* arg0)
     s32           x;
     s32           y;
     struct {
-        TextDrawReq req;
-        struct {
-            s16 unk0;
-            u16 unk2;
-        } cursor;
-        s32 pad0;
-        s16 x;
-        s16 y;
-        s32 pad[2];
+        TextDrawReq      req;
+        UiCursorPosition cursor;
+        s32              pad0;
+        s16              x;
+        s16              y;
+        s32              pad[2];
     } locals;
 
     menu        = &D_8010E8AC;
@@ -2325,7 +2316,7 @@ void Gp_ArmorMenuTask(Task* arg0)
         Ui_UpdateListNoAnim(menu, obj);
         obj->panel.control.word = status;
         if (status == 1) {
-            Ui_SmoothCursor(&(obj)->panel, obj->panel.contentLeft.signedValue, obj->panel.contentTop.signedValue + 7);
+            uiEaseAndDrawCursor(&(obj)->panel, obj->panel.contentLeft.signedValue, obj->panel.contentTop.signedValue + 7);
             if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_DOWN) != 0) {
                 sndEvtRequestScriptStart(SOUND_MENU_CURSOR, 0, 0);
                 arg0->state             = status;
@@ -2484,10 +2475,10 @@ void Gp_ArmorMenuTask(Task* arg0)
                     s32     vis;
 
                     parentObj             = parent->spawnArg2.pointer;
-                    *(s32*)&locals.cursor = Ui_GetCursorFixed();
+                    *(s32*)&locals.cursor = uiGetCursorPositionWord();
                     sndEvtRequestScriptStart(SOUND_MENU_CURSOR, 0, 0);
                     other                    = &D_8010E854;
-                    row                      = locals.cursor.unk2 - (parentObj->panel.contentOriginY.unsignedValue + parentObj->panel.contentTop.unsignedValue);
+                    row                      = locals.cursor.y.unsignedValue - (parentObj->panel.contentOriginY.unsignedValue + parentObj->panel.contentTop.unsignedValue);
                     row                      = row / other->rowHeight;
                     vis                      = other->visibleRowCount.signedValue;
                     row9                     = other->firstVisibleItemIndex.signedValue;

@@ -11396,22 +11396,23 @@ back into `$v0`, GCC is packing a 2-component fixed-point result. Emitting
 explicit shifts/masks (`(hi << 16) | (lo & 0xFFFF)`) does **not** match — it
 produces a completely different instruction sequence.
 
-Use adjacent stack halfwords (struct or array) and reload as a word:
+Use adjacent stack halfwords (struct or array) and reload through a whole-word union view:
 
 ```c
-s32 func(void) {
-    struct {
-        s16 unk0;
-        s16 unk2;
-    } sp;
+s32 uiGetCursorPositionWord(void) {
+    union {
+        UiCursorPosition pixels;
+        s32 word;
+    } position;
+    s16* cursorX = &position.pixels.x.signedValue;
 
-    sp.unk0 = D_x >> 8;
-    sp.unk2 = D_y >> 8;
-    return *(s32 *)&sp;
+    *cursorX = D_80067648 >> USER_INTERFACE_CURSOR_FRACTION_BITS;
+    position.pixels.y.signedValue = D_8006764C >> USER_INTERFACE_CURSOR_FRACTION_BITS;
+    return position.word;
 }
 ```
 
-`Ui_GetCursorFixed` is the pure example (fixed-point globals `D_80067648` /
+`uiGetCursorPositionWord` is the pure example (fixed-point globals `D_80067648` /
 `D_8006764C`, sra by 8, packed return).
 
 ## Walk word pairs with `s32*`, not struct `+8`
@@ -16212,31 +16213,23 @@ Three pieces have to land together:
    loads straight into `$a1`/`$a2` and lose the `sra tN, v0, 8` form.
 
 ```c
-s16 baseX, baseY;
+s16 screenOriginX, screenOriginY;
 s32 targetX, targetY;
-u8 count;
 
-baseX = obj->field_20;
-baseY = obj->field_22;
-targetX = arg1 + baseX;
-targetY = arg2 + baseY;
-targetX <<= 8;
-targetY <<= 8;
-count = gDisplayState.frameTicks;
-if (count != 0) {
-    do {
-        i += 1;
-        gX += (targetX - gX) >> 2;
-        gY += (targetY - gY) >> 2;
-    } while (i < count);
-}
-targetX = gX >> 8;          /* reuses the loop temps → sra t1/t0 */
-targetY = gY >> 8;
-func(obj, targetX - obj->field_20, targetY - obj->field_22);
+screenOriginX = panel->contentOriginX.signedValue;
+screenOriginY = panel->contentOriginY.signedValue;
+targetX = contentX + screenOriginX;
+targetY = contentY + screenOriginY;
+targetX <<= USER_INTERFACE_CURSOR_FRACTION_BITS;
+targetY <<= USER_INTERFACE_CURSOR_FRACTION_BITS;
+_uiEaseCursorPosition(targetX, targetY); /* inline elapsed-tick loop */
+targetX = D_80067648 >> USER_INTERFACE_CURSOR_FRACTION_BITS; /* reuses the loop temps → sra t1/t0 */
+targetY = D_8006764C >> USER_INTERFACE_CURSOR_FRACTION_BITS;
+_uiDrawAnimatedCursor(panel, targetX - panel->contentOriginX.signedValue, targetY - panel->contentOriginY.signedValue);
 ```
 
-`Ui_SmoothCursor` is the pure example (smooth cursor toward a UI object over
-`gDisplayState.frameTicks` frames, then call `_uiDrawAnimatedCursor`).
+`uiEaseAndDrawCursor` is the pure example (smooth cursor toward a UI panel over
+`gDisplayState.frameTicks` elapsed ticks, then call `_uiDrawAnimatedCursor`).
 
 ## `u8` index + `arr[i]` for large-offset slot walks
 
@@ -26805,7 +26798,7 @@ flag block different. `Gp_WeaponMenuTask` and `Gp_ArmorMenuTask` share the same 
 
 ## Copy a packed halfword to a temp so `lhu` sits between two stores
 
-`Ui_GetCursorFixed` returns two `s16`s packed in an `s32`. After storing that
+`uiGetCursorPositionWord` returns two integer-pixel `s16`s packed in an `s32`. After storing that
 to a local pair, a later `obj->field = pair.hi` emits `li K` first and `lhu`
 after both stores.
 
@@ -26814,7 +26807,7 @@ slot after `sw zero` and before `li K`:
 
 ```c
 obj->status = 0;
-y = cursor.unk2;     /* lhu v1, 0x1A(sp) */
+y = cursor.y.signedValue; /* lhu v1, 0x1A(sp) */
 child->status = 0x17; /* li v0, 0x17; sw v0 */
 child->resultValue = y;  /* sh v1 */
 ```

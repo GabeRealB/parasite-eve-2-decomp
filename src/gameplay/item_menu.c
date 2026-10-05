@@ -645,7 +645,7 @@ void Gp_ItemPaneTask(Task* arg0)
     status = obj->panel.control.word;
     if (status == 1) {
         if (menu->itemCount == 0) {
-            Ui_SmoothCursor(&(obj)->panel, obj->panel.contentLeft.signedValue + 4, obj->panel.contentTop.signedValue + 0xA);
+            uiEaseAndDrawCursor(&(obj)->panel, obj->panel.contentLeft.signedValue + 4, obj->panel.contentTop.signedValue + 0xA);
         }
         if (arg0->state == status) {
             if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {
