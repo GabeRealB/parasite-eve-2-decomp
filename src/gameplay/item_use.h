@@ -17,15 +17,15 @@
 /// when no view entry is available, and copied by `_worldCoordCopyDefaultRoomAmbient`.
 extern WorldCoordRoomAmbientEntry Gp_RoomBoundDefault;
 
-/// Default `MATRIX` installed at `TmdObject.lightMtx` by `Gp_BindDefaultMtx`.
+/// Default `MATRIX` installed at `TmdObject.lightMtx` by `_worldCoordInitPlayerLighting`.
 extern MATRIX Gp_DefaultMtx;
 
-/// Default `MATRIX` installed at `TmdObject.colorMtx` by `Gp_BindDefaultMtx`.
+/// Default `MATRIX` installed at `TmdObject.colorMtx` by `_worldCoordInitPlayerLighting`.
 extern MATRIX Gp_DefaultMtx2;
 
-/// Light/color `MATRIX` pair `Gp_DebugPanTask` installs at
+/// Light/color `MATRIX` pair `_worldCoordUpdatePlayerLighting` installs at
 /// `TmdObject.lightMtx` / `colorMtx` for the `gPlayerActorTasks[PLAYER_ACTOR_TASK_COMPANION]` actor and
-/// its `field_918` / `field_920` child tasks (the second actor uses its own
+/// its `GameActor::attachmentTasks` / `equipmentTasks` child models (the second actor uses its own
 /// pair instead of `Gp_DefaultMtx` / `Gp_DefaultMtx2`).
 extern MATRIX D_80114ED8;
 
@@ -33,7 +33,7 @@ extern MATRIX D_80114EF8;
 
 /// Flag set by `worldCoordSetAmbientColorOverride` when an override SVECTOR is stored at
 /// `Gp_OverrideVec`. Cleared when that function is called with NULL, and
-/// also by `Gp_BindDefaultMtx`.
+/// also by `_worldCoordInitPlayerLighting`.
 extern u8 Gp_OverrideVecFlag;
 
 /// Override SVECTOR copied by `worldCoordSetAmbientColorOverride` from its argument.

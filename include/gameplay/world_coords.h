@@ -118,9 +118,25 @@ void worldCoordSetAmbientColorOverride(const SVECTOR* ambientColor);
 /// query may replace this ambient term; the matrix remains caller-owned.
 void worldCoordSetModelAmbientColor(const TmdObject* model, s16 r, s16 g, s16 b);
 
-void Gp_UpdateRoomCoords(Task* task);
+/// Initializes and composes the current room's authored and transient lights.
+///
+/// State 0 parents all room lights to the view, builds cone-axis rotations,
+/// disables every transient slot, and advances to the recurring state. Every
+/// call composes the view and active lights, excluding the view ancestor from
+/// the light caches; it does not age transient lifetimes. Missing room lights
+/// kill the task. Loaded room arrays and their authored counts must stay live.
+/// Requires 28 local scratch bytes plus called helpers' reservations; changes
+/// coordinate caches and GTE state. Registered in resident task bank 1, slot 0xF.
+void worldCoordUpdateRoomLightsTask(Task* task);
 
-void func_800D96C8(Task* arg0);
+/// Dispatches player and companion lighting initialization or per-frame updates.
+///
+/// `task->state` must be 0 (bind matrices) or 1 (update); dispatch has no bounds
+/// check. Initialization advances to 1 and performs that frame's update, or kills
+/// the task when room lights are missing. Player/companion models and borrowed
+/// child-model matrix storage must stay live. Updates also support the light-probe
+/// diagnostic. Registered in resident task bank 1, slot 0x10; gameplay must be loaded.
+void worldCoordPlayerLightingTask(Task* task);
 
 /// Runs a task's current exit callback as its frame handler.
 ///

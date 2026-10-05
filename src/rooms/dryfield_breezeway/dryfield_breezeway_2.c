@@ -638,7 +638,7 @@ void func_dryfield_breezeway_8017E390(void)
 ///
 /// The event object then draws with the room's lighting rather than the shared
 /// defaults: the work block's `lightMatrix` / `colorMatrix` pair is splatted onto
-/// `TmdObject::lightMtx` / `colorMtx` (the slots `Gp_BindDefaultMtx` otherwise
+/// `TmdObject::lightMtx` / `colorMtx` (the slots `_worldCoordInitPlayerLighting` otherwise
 /// points at `Gp_DefaultMtx` / `Gp_DefaultMtx2`), the 0x800 translation goes
 /// into the colour matrix, and the line's free end starts at its rest position
 /// (0, `DRYFIELD_BREEZEWAY_LINE_REST_Y`). Both hotspot tables are walked to clear `hit`, so the

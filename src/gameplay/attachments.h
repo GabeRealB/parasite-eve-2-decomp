@@ -46,8 +46,8 @@ extern u16* Gp_ReplayCursor;
 
 u16 Gp_GetAttachParam(s32 arg0);
 
-/// Word cleared by `Gp_BindDefaultMtx`. Also written by `Gp_UpdateAttachCombo` and
-/// read/cleared by `Gp_DebugPanTask`.
+/// Word cleared by `_worldCoordInitPlayerLighting`. Also written by `Gp_UpdateAttachCombo` and
+/// read/cleared by `_worldCoordUpdatePlayerLighting`.
 extern s32 D_80114F28;
 
 void Gp_UpdateAttachCombo(s32 arg0);

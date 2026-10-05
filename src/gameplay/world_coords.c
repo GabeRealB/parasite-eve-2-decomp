@@ -275,10 +275,7 @@ static s32 _worldCoordScoreTransientPointLight(WorldCoordPointLight* light, cons
 
 static s32 _worldCoordScoreConeLight(WorldCoordSpotLight* coneLight, const VECTOR* samplePosition);
 
-/// Selects the nearest point or cone light to world position `arg0`, using
-/// squared distance after halving each coordinate difference. Initializes
-/// `nearestLight` to no selection even when `_worldCoordGetRoomLights` returns 0.
-static void func_800D78A4(VECTOR* arg0, _WorldCoordNearestRoomLight* nearestLight);
+static void _worldCoordFindNearestRoomLight(const VECTOR* samplePosition, _WorldCoordNearestRoomLight* nearestLight);
 
 static __inline__ void _worldCoordWriteDirectionalLightMatrix(s32 lightIndex, const WorldCoordLight* light, const VECTOR* unusedObjectPosition, const TmdObject* model);
 
@@ -290,7 +287,13 @@ static __inline__ void _worldCoordAdmitRankedLight(_WorldCoordRankedLight* ranke
 
 static __inline__ void _worldCoordAdmitDirectionalLight(_WorldCoordRankedLight* rankedLights, s32 contributionScore, s32 sourceKind, WorldCoordLight* light, _WorldCoordLightQueryScratch* lightQuery);
 
-static void Gp_DebugPanTask(Task* arg0);
+/// Number of player-lighting task states (0 initialization, 1 recurring update).
+enum { WORLD_COORDINATE_PLAYER_LIGHTING_STATE_COUNT = 2 };
+
+/// No attachment-driven pulse is pending for the player's light-colour matrix.
+enum { WORLD_COORDINATE_ATTACHMENT_LIGHT_PULSE_NONE = 0 };
+
+static void _worldCoordUpdatePlayerLighting(Task* unusedTask);
 
 /// Remaps a 3x3 color matrix (`MATRIX.m`) from lighting mode `arg2`
 /// (`colorMode` bits 0-1, or bits 2-3 when blending). Weighted mode
@@ -311,7 +314,7 @@ static void _worldCoordInsertRankedLight(_WorldCoordRankedLight* rankedLights, s
 
 static void _worldCoordFillLightColorMatrixOutOfLine(MATRIX* colorMtx, s16 r, s16 g, s16 b);
 
-static void Gp_BindDefaultMtx(Task* arg0);
+static void _worldCoordInitPlayerLighting(Task* task);
 
 /// Writes a model RGB column from a light's signed Q12 colour and attenuation.
 ///
@@ -398,19 +401,41 @@ static inline void _worldCoordComposeTransientPointLights(void)
     }
 }
 
-/// First-run init plus per-frame update of the current room's `WorldCoordRoomLights`
-/// coordinate arrays (parented to `gGfxViewCoord`) and the `gWorldCoordTransientPointLights` slots.
-/// Kills `arg0` when `_worldCoordGetRoomLights` returns 0.
-void Gp_UpdateRoomCoords(Task* task)
+/// Aligns a cone light's local Z column with its authored axis.
+///
+/// axisHint is a full writable SVECTOR in the caller's scratch reservation;
+/// its xyz become a perpendicular Y hint, while its pad remains unspecified.
+/// The borrowed light and output coordinate must stay live and be disjoint
+/// from scratch. Preserves the local translation; changes GTE state through
+/// the basis builder. A degenerate axis retains the builder's behavior.
+static inline void _worldCoordBuildConeLightRotation(const WorldCoordSpotLight* coneLight, GfxCoord* coord, SVECTOR* axisHint)
 {
+    if (coneLight->axis.vy != 0 || coneLight->axis.vz != 0) {
+        axisHint->vx = 0;
+        axisHint->vy = -coneLight->axis.vz;
+        axisHint->vz = coneLight->axis.vy;
+    } else {
+        axisHint->vx = coneLight->axis.vy;
+        axisHint->vy = -coneLight->axis.vx;
+        axisHint->vz = 0;
+    }
+    gfxBuildOrthonormalBasis(&coord->coord, &coneLight->axis, axisHint);
+}
+
+void worldCoordUpdateRoomLightsTask(Task* task)
+{
+    // Only the leading SVECTOR is identified; retain the full scratch reservation.
+    enum { WORLD_COORDINATE_ROOM_LIGHT_SCRATCH_BYTES = 0x1C,
+           WORLD_COORDINATE_ROOM_LIGHT_INIT          = 0 };
+
     WorldCoordRoomLights* roomLights;
-    SVECTOR*              vec;
-    WorldCoordLight*      light;
-    WorldCoordPointLight* point;
-    WorldCoordSpotLight*  spot;
+    SVECTOR*              axisHint;
+    WorldCoordLight*      directionalLight;
+    WorldCoordPointLight* pointLight;
+    WorldCoordSpotLight*  coneLight;
     GfxCoord*             coord;
-    s32                   i;
-    s32                   j;
+    s32                   lightIndex;
+    s32                   transientIndex;
 
     roomLights = _worldCoordGetRoomLights(&gGameSession->location.loc);
     if (roomLights == NULL) {
@@ -418,79 +443,70 @@ void Gp_UpdateRoomCoords(Task* task)
         return;
     }
 
-    vec = SCRATCH_STACK_RESERVE_BYTES(0x1C);
-    if (task->state == 0) {
-        point = roomLights->pointLights;
-        for (i = 0; i < roomLights->pointLightCount; i++, point++) {
-            coord               = &point->head.transform.coord;
+    axisHint = SCRATCH_STACK_RESERVE_BYTES(WORLD_COORDINATE_ROOM_LIGHT_SCRATCH_BYTES);
+    if (task->state == WORLD_COORDINATE_ROOM_LIGHT_INIT) {
+        pointLight = roomLights->pointLights;
+        for (lightIndex = 0; lightIndex < roomLights->pointLightCount; lightIndex++, pointLight++) {
+            coord               = &pointLight->head.transform.coord;
             coord->parent       = &gGfxViewCoord;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
         }
 
-        spot = roomLights->coneLights;
-        for (i = 0; i < roomLights->coneLightCount; i++, spot++) {
-            coord         = &spot->head.transform.coord;
+        coneLight = roomLights->coneLights;
+        for (lightIndex = 0; lightIndex < roomLights->coneLightCount; lightIndex++, coneLight++) {
+            coord         = &coneLight->head.transform.coord;
             coord->parent = &gGfxViewCoord;
-            // Aim the local Z column along the cone axis. The translation stays.
-            if (spot->axis.vy != 0 || spot->axis.vz != 0) {
-                vec->vx = 0;
-                vec->vy = -spot->axis.vz;
-                vec->vz = spot->axis.vy;
-            } else {
-                vec->vx = spot->axis.vy;
-                vec->vy = -spot->axis.vx;
-                vec->vz = 0;
-            }
-            gfxBuildOrthonormalBasis(&coord->coord, &spot->axis, vec);
+            _worldCoordBuildConeLightRotation(coneLight, coord, axisHint);
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
         }
 
         if (roomLights->directionalLightCount > 0) {
-            WorldCoordLight* dir;
+            WorldCoordLight* directionalLightEntry;
 
-            dir = roomLights->directionalLights;
-            for (i = 0; i < roomLights->directionalLightCount; i++, dir++) {
-                coord               = &dir->transform.coord;
+            directionalLightEntry = roomLights->directionalLights;
+            for (lightIndex = 0; lightIndex < roomLights->directionalLightCount; lightIndex++, directionalLightEntry++) {
+                coord               = &directionalLightEntry->transform.coord;
                 coord->parent       = &gGfxViewCoord;
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
             }
         }
 
         // Drop previous transient contributions before composing the room's lighting.
-        for (j = 0; j < ARRAY_SIZE(gWorldCoordTransientPointLights); j++) {
-            gWorldCoordTransientPointLights[j].framesLeft = WORLD_COORDINATE_TRANSIENT_LIGHT_INACTIVE;
-            coord                                         = &gWorldCoordTransientPointLights[j].light.head.transform.coord;
-            coord->parent                                 = &gGfxViewCoord;
+        for (transientIndex = 0; transientIndex < ARRAY_SIZE(gWorldCoordTransientPointLights); transientIndex++) {
+            gWorldCoordTransientPointLights[transientIndex].framesLeft = WORLD_COORDINATE_TRANSIENT_LIGHT_INACTIVE;
+            coord                                                      = &gWorldCoordTransientPointLights[transientIndex].light.head.transform.coord;
+            coord->parent                                              = &gGfxViewCoord;
         }
 
         task->state++;
     }
 
+    // Keep the view composed, but exclude it from each light's cached transform.
     actorRenderComposeCoord(&gGfxViewCoord);
 
     _worldCoordComposeTransientPointLights();
 
-    point = roomLights->pointLights;
-    for (i = 0; i < roomLights->pointLightCount; i++, point++) {
-        coord = &point->head.transform.coord;
+    pointLight = roomLights->pointLights;
+    for (lightIndex = 0; lightIndex < roomLights->pointLightCount; lightIndex++, pointLight++) {
+        coord = &pointLight->head.transform.coord;
         actorRenderComposeCoordRelative(coord, &gGfxViewCoord);
     }
 
-    spot = roomLights->coneLights;
-    for (i = 0; i < roomLights->coneLightCount; i++, spot++) {
-        coord = &spot->head.transform.coord;
+    coneLight = roomLights->coneLights;
+    for (lightIndex = 0; lightIndex < roomLights->coneLightCount; lightIndex++, coneLight++) {
+        coord = &coneLight->head.transform.coord;
         actorRenderComposeCoordRelative(coord, &gGfxViewCoord);
     }
 
     if (roomLights->directionalLightCount > 0) {
-        light = roomLights->directionalLights;
-        for (i = 0; i < roomLights->directionalLightCount; i++, light++) {
-            coord = &light->transform.coord;
+        directionalLight = roomLights->directionalLights;
+        for (lightIndex = 0; lightIndex < roomLights->directionalLightCount; lightIndex++, directionalLight++) {
+            coord = &directionalLight->transform.coord;
             actorRenderComposeCoordRelative(coord, &gGfxViewCoord);
         }
     }
 
-    SCRATCH_STACK_RELEASE_BYTES(0x1C);
+    SCRATCH_STACK_RELEASE_BYTES(WORLD_COORDINATE_ROOM_LIGHT_SCRATCH_BYTES);
 }
 
 /// Scores a room point light at a sample in the composed lighting frame.
@@ -686,59 +702,78 @@ static void _worldCoordWriteParentFrameLightMatrix(s32 lightIndex, const WorldCo
     SCRATCH_STACK_RELEASE_BLOCK(_WorldCoordParentFrameLightMatrixScratch);
 }
 
-/// Selects the nearest point or cone light to world position `arg0`, using
-/// squared distance after halving each coordinate difference. Initializes
-/// `nearestLight` to no selection even when `_worldCoordGetRoomLights` returns 0.
-static void func_800D78A4(VECTOR* arg0, _WorldCoordNearestRoomLight* nearestLight)
+/// Measures a cached light offset with the nearest-light query's half-unit scale.
+///
+/// samplePosition and the light's composed translation must share a frame.
+/// Writes halfOffset xyz with arithmetic shifts, then returns the signed-word
+/// sum of squares as u32. Inputs and scratch must be disjoint; the VECTOR's
+/// fourth word is untouched. No composition or GTE operation is performed.
+static inline u32 _worldCoordGetLightDistanceSquared(const WorldCoordLight* lightHeader, const VECTOR* samplePosition, VECTOR* halfOffset)
 {
-    WorldCoordRoomLights* roomLights;
-    WorldCoordPointLight* point;
-    WorldCoordLight*      light;
-    WorldCoordSpotLight*  cone;
-    VECTOR*               delta;
-    u32                   best;
-    u32                   dist;
-    s32                   i;
+    halfOffset->vx = (lightHeader->transform.coord.workm.t[0] - samplePosition->vx) >> 1;
+    halfOffset->vy = (lightHeader->transform.coord.workm.t[1] - samplePosition->vy) >> 1;
+    halfOffset->vz = (lightHeader->transform.coord.workm.t[2] - samplePosition->vz) >> 1;
+    return halfOffset->vx * halfOffset->vx + halfOffset->vy * halfOffset->vy + halfOffset->vz * halfOffset->vz;
+}
 
-    roomLights            = _worldCoordGetRoomLights(&gGameSession->location.loc);
-    best                  = 0x7FFFFFFF;
-    nearestLight->kind    = WORLD_COORDINATE_NEAREST_LIGHT_NONE;
-    nearestLight->field_4 = 0;
-    nearestLight->light   = NULL;
+/// Selects the closest authored room point or cone light by cached translation.
+///
+/// Reads only samplePosition's signed xyz, without composing or converting its
+/// frame. Room-light transforms must already be composed; meaningful geometric
+/// distances require the sample and candidates to share that frame. Clears the
+/// result even when the room has no lights. The borrowed selection remains valid
+/// only while its room overlay is loaded; no view, cone or intensity filter applies.
+///
+/// Differences are arithmetically halved, squared as signed words, then compared
+/// as an unsigned sum strictly below 0x7FFFFFFF. Equal distances keep the earlier
+/// source, with points before cones. Requires one VECTOR of scratch storage,
+/// released before return; its fourth word is unused. Changes no GTE state.
+static void _worldCoordFindNearestRoomLight(const VECTOR* samplePosition, _WorldCoordNearestRoomLight* nearestLight)
+{
+    enum { WORLD_COORDINATE_NEAREST_LIGHT_DISTANCE_LIMIT = 0x7FFFFFFF };
+
+    WorldCoordRoomLights* roomLights;
+    WorldCoordPointLight* pointLight;
+    WorldCoordLight*      lightHeader;
+    WorldCoordSpotLight*  coneLight;
+    VECTOR*               halfOffset;
+    u32                   nearestDistanceSquared;
+    u32                   distanceSquared;
+    s32                   lightIndex;
+
+    roomLights             = _worldCoordGetRoomLights(&gGameSession->location.loc);
+    nearestDistanceSquared = WORLD_COORDINATE_NEAREST_LIGHT_DISTANCE_LIMIT;
+    nearestLight->kind     = WORLD_COORDINATE_NEAREST_LIGHT_NONE;
+    nearestLight->field_4  = 0;
+    nearestLight->light    = NULL;
     if (roomLights != NULL) {
-        SCRATCH_STACK_RESERVE_BYTES(0x10);
-        delta = SCRATCH_STACK_CURSOR(VECTOR);
+        SCRATCH_STACK_RESERVE_BLOCK(VECTOR);
+        halfOffset = SCRATCH_STACK_CURSOR(VECTOR);
         if (roomLights->pointLightCount > 0) {
-            point = roomLights->pointLights;
-            for (i = 0; i < roomLights->pointLightCount; i++, point++) {
-                light     = &point->head;
-                delta->vx = (light->transform.coord.workm.t[0] - arg0->vx) >> 1;
-                delta->vy = (light->transform.coord.workm.t[1] - arg0->vy) >> 1;
-                delta->vz = (light->transform.coord.workm.t[2] - arg0->vz) >> 1;
-                dist      = delta->vx * delta->vx + delta->vy * delta->vy + delta->vz * delta->vz;
-                if (dist < best) {
-                    best                = dist;
-                    nearestLight->kind  = WORLD_COORDINATE_RANKED_LIGHT_ROOM_POINT;
-                    nearestLight->light = light;
+            pointLight = roomLights->pointLights;
+            for (lightIndex = 0; lightIndex < roomLights->pointLightCount; lightIndex++, pointLight++) {
+                lightHeader     = &pointLight->head;
+                distanceSquared = _worldCoordGetLightDistanceSquared(lightHeader, samplePosition, halfOffset);
+                if (distanceSquared < nearestDistanceSquared) {
+                    nearestDistanceSquared = distanceSquared;
+                    nearestLight->kind     = WORLD_COORDINATE_RANKED_LIGHT_ROOM_POINT;
+                    nearestLight->light    = lightHeader;
                 }
             }
         }
         if (roomLights->coneLightCount > 0) {
-            cone = roomLights->coneLights;
-            for (i = 0; i < roomLights->coneLightCount; i++, cone++) {
-                light     = &cone->head;
-                delta->vx = (light->transform.coord.workm.t[0] - arg0->vx) >> 1;
-                delta->vy = (light->transform.coord.workm.t[1] - arg0->vy) >> 1;
-                delta->vz = (light->transform.coord.workm.t[2] - arg0->vz) >> 1;
-                dist      = delta->vx * delta->vx + delta->vy * delta->vy + delta->vz * delta->vz;
-                if (dist < best) {
-                    best                = dist;
-                    nearestLight->kind  = WORLD_COORDINATE_RANKED_LIGHT_CONE;
-                    nearestLight->light = light;
+            coneLight = roomLights->coneLights;
+            for (lightIndex = 0; lightIndex < roomLights->coneLightCount; lightIndex++, coneLight++) {
+                lightHeader     = &coneLight->head;
+                distanceSquared = _worldCoordGetLightDistanceSquared(lightHeader, samplePosition, halfOffset);
+                if (distanceSquared < nearestDistanceSquared) {
+                    nearestDistanceSquared = distanceSquared;
+                    nearestLight->kind     = WORLD_COORDINATE_RANKED_LIGHT_CONE;
+                    nearestLight->light    = lightHeader;
                 }
             }
         }
-        SCRATCH_STACK_RELEASE_BYTES(0x10);
+        SCRATCH_STACK_RELEASE_BLOCK(VECTOR);
     }
 }
 
@@ -1206,146 +1241,173 @@ static inline void _worldCoordFillLightColorMatrix(MATRIX* colorMtx, s16 r, s16 
     colorMtx->m[2][0] = colorMtx->m[2][1] = colorMtx->m[2][2] = b;
 }
 
-static void Gp_DebugPanTask(Task* arg0)
+/// Refreshes player and companion lighting and shares it with their child models.
+///
+/// A missing player skips all updates. Each actor needs a live model with part 1
+/// and writable light/colour matrices, plus live GameActor work. Optional child
+/// tasks borrow the actor's matrix pair; those matrices must outlive the children.
+/// The player uses the pair installed at initialization, the companion its own.
+///
+/// Samples cached part-1 xyz with Y reduced by 100 game-coordinate units after
+/// full-chain composition. Cache reuse can affect the composition frame; no
+/// explicit conversion precedes the lighting query. The light-probe mode captures
+/// the player's ranks/nearest source and draws a marker after s16 narrowing.
+/// Normal updates apply attachment/status tints to directional coefficients only.
+/// The task argument is unused. Changes GTE state and borrows nested scratch blocks.
+static void _worldCoordUpdatePlayerLighting(Task* unusedTask)
 {
-    Task*                        slot;
-    Task*                        work;
-    PlayerStatus*                cfg;
-    TmdObject*                   extra;
+    enum {
+        WORLD_COORDINATE_PLAYER_LIGHT_SAMPLE_Y_OFFSET = 100,
+        WORLD_COORDINATE_PLAYER_LIGHT_COUNT           = 3,
+        WORLD_COORDINATE_ATTACHMENT_PULSE_ANGLE_SHIFT = 6,
+        WORLD_COORDINATE_ATTACHMENT_PULSE_BASE        = ONE + ONE / 2,
+        WORLD_COORDINATE_ATTACHMENT_PULSE_LOW         = ONE / 8,
+        WORLD_COORDINATE_STATUS_TINT_LOW              = ONE / 4,
+        WORLD_COORDINATE_STATUS_TINT_HIGH             = ONE * 2,
+        WORLD_COORDINATE_STATUS_TINT_PERIOD_FRAMES    = 3,
+        WORLD_COORDINATE_LIGHT_PROBE_TEXT_OT_INDEX    = 4,
+        WORLD_COORDINATE_LIGHT_PROBE_TEXT_RGB         = 0x037A78
+    };
+
+    Task*                        playerTask;
+    Task*                        companionTask;
+    const PlayerStatus*          playerStatus;
+    TmdObject*                   model;
     GfxCoord*                    coord;
-    GameActor*                   actor;
-    GameActor*                   actor2;
-    MATRIX*                      mtx;
+    GameActor*                   playerActor;
+    GameActor*                   companionActor;
+    MATRIX*                      colorMtx;
     WorldCoordProjectionScratch* projection;
     SVECTOR*                     inputPoint;
-    VECTOR                       vec;
-    TextDrawReq                  req;
-    s32                          i;
-    s32                          val;
+    VECTOR                       samplePosition;
+    TextDrawReq                  probeMarker;
+    s32                          childIndex;
+    s32                          pulseGreen;
 
-    slot = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    cfg  = &gPlayerStatus;
-    if (slot == NULL) {
+    playerTask   = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    playerStatus = &gPlayerStatus;
+    if (playerTask == NULL) {
         return;
     }
 
-    extra = slot->extra.tmd;
-    coord = &extra->coords[1];
+    // Sample the retained composed translation without assuming a world-space cache.
+    model = playerTask->extra.tmd;
+    coord = &model->coords[1];
     actorRenderComposeCoord(coord);
-    vec.vx = coord->workm.t[0];
-    vec.vy = coord->workm.t[1] - 0x64;
-    vec.vz = coord->workm.t[2];
+    samplePosition.vx = coord->workm.t[0];
+    samplePosition.vy = coord->workm.t[1] - WORLD_COORDINATE_PLAYER_LIGHT_SAMPLE_Y_OFFSET;
+    samplePosition.vz = coord->workm.t[2];
 
     if (Pad_RemapState->diagnosticMode == GAME_DEBUG_DIAGNOSTIC_LIGHT_PROBE) {
         SCRATCH_STACK_RESERVE_BLOCK(WorldCoordProjectionScratch);
         projection = SCRATCH_STACK_CURSOR(WorldCoordProjectionScratch);
         // Open the ranked snapshot gate only for the player's diagnostic sample.
         D_80760618->captureEnabled = WORLD_COORDINATE_LIGHT_CAPTURE_ENABLED;
-        worldCoordSetModelLighting(extra, &vec, 0, 3);
-        func_800D78A4(&vec, &D_80760618->nearestRoomLight);
+        worldCoordSetModelLighting(model, &samplePosition, 0, WORLD_COORDINATE_PLAYER_LIGHT_COUNT);
+        _worldCoordFindNearestRoomLight(&samplePosition, &D_80760618->nearestRoomLight);
         inputPoint                 = &projection->point;
         D_80760618->captureEnabled = WORLD_COORDINATE_LIGHT_CAPTURE_DISABLED;
         gte_SetRotMatrix(&GsWSMATRIX);
         gte_SetTransMatrix(&GsWSMATRIX);
-        // Project the sampled position to place the debug light readout.
-        projection->point.vx = vec.vx;
-        projection->point.vy = vec.vy;
-        projection->point.vz = vec.vz;
-        gte_ldv0(inputPoint);
-        gte_rtps();
-        gte_stsxy(&projection->screen);
-        gte_stdp(&projection->depthCue);
-        gte_stflg(&projection->projectionFlags);
-        gte_stszotz(&projection->orderingDepth);
+        // Project the sampled position to place the light-probe marker.
+        projection->point.vx = samplePosition.vx;
+        projection->point.vy = samplePosition.vy;
+        projection->point.vz = samplePosition.vz;
+        gte_RotTransPers(inputPoint, &projection->screen, &projection->depthCue, &projection->projectionFlags, &projection->orderingDepth);
         if (projection->projectionFlags >= 0) {
-            req.x          = projection->screen.vx;
-            req.y          = projection->screen.vy;
-            req.otIndex    = 4;
-            req.colorRgb   = 0x37A78;
-            req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-            req.alignment  = TEXT_ALIGNMENT_CENTER;
-            req.drawMode   = TEXT_DRAW_FILL_ONLY;
-            textDrawString(&req, (const u8*)D_8009745C);
+            probeMarker.x          = projection->screen.vx;
+            probeMarker.y          = projection->screen.vy;
+            probeMarker.otIndex    = WORLD_COORDINATE_LIGHT_PROBE_TEXT_OT_INDEX;
+            probeMarker.colorRgb   = WORLD_COORDINATE_LIGHT_PROBE_TEXT_RGB;
+            probeMarker.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+            probeMarker.alignment  = TEXT_ALIGNMENT_CENTER;
+            probeMarker.drawMode   = TEXT_DRAW_FILL_ONLY;
+            textDrawString(&probeMarker, (const u8*)D_8009745C);
         }
         SCRATCH_STACK_RELEASE_BLOCK(WorldCoordProjectionScratch);
     } else {
-        worldCoordSetModelLighting(extra, &vec, 0, 3);
-        if (D_80114F28 != 0) {
-            mtx = extra->colorMtx;
-            val = rsin(gDisplayState.loopCount << 6) + 0x1800;
+        worldCoordSetModelLighting(model, &samplePosition, 0, WORLD_COORDINATE_PLAYER_LIGHT_COUNT);
+        // A pending attachment update takes precedence over the periodic status tints.
+        if (D_80114F28 != WORLD_COORDINATE_ATTACHMENT_LIGHT_PULSE_NONE) {
+            colorMtx   = model->colorMtx;
+            pulseGreen = rsin(gDisplayState.loopCount << WORLD_COORDINATE_ATTACHMENT_PULSE_ANGLE_SHIFT) + WORLD_COORDINATE_ATTACHMENT_PULSE_BASE;
             if ((gDisplayState.loopCount & 1) == 0) {
-                val >>= 1;
+                pulseGreen >>= 1;
             }
-            _worldCoordFillLightColorMatrix(mtx, 0x200, val, 0x200);
-            D_80114F28 = 0;
-        } else if ((gDisplayState.animFrame % 3) == 0 && cfg->hp > 0 && gGameSession->eventState == 0) {
+            _worldCoordFillLightColorMatrix(colorMtx, WORLD_COORDINATE_ATTACHMENT_PULSE_LOW, pulseGreen, WORLD_COORDINATE_ATTACHMENT_PULSE_LOW);
+            D_80114F28 = WORLD_COORDINATE_ATTACHMENT_LIGHT_PULSE_NONE;
+        } else if ((gDisplayState.animFrame % WORLD_COORDINATE_STATUS_TINT_PERIOD_FRAMES) == 0 && playerStatus->hp > 0 && gGameSession->eventState == 0) {
+            // Cyan for both wards/metabolism, blue for mind ward, yellow for body ward.
             if (Gp_StateC08.metabolismTicks > 0 || (Gp_StateC08.mindWard != 0 && Gp_StateC08.bodyWard != 0)) {
-                _worldCoordFillLightColorMatrix(extra->colorMtx, 0x400, 0x2000, 0x2000);
+                _worldCoordFillLightColorMatrix(model->colorMtx, WORLD_COORDINATE_STATUS_TINT_LOW, WORLD_COORDINATE_STATUS_TINT_HIGH, WORLD_COORDINATE_STATUS_TINT_HIGH);
             } else if (Gp_StateC08.mindWard != 0) {
-                _worldCoordFillLightColorMatrix(extra->colorMtx, 0x400, 0x400, 0x2000);
+                _worldCoordFillLightColorMatrix(model->colorMtx, WORLD_COORDINATE_STATUS_TINT_LOW, WORLD_COORDINATE_STATUS_TINT_LOW, WORLD_COORDINATE_STATUS_TINT_HIGH);
             } else if (Gp_StateC08.bodyWard != 0) {
-                _worldCoordFillLightColorMatrix(extra->colorMtx, 0x2000, 0x2000, 0x400);
+                _worldCoordFillLightColorMatrix(model->colorMtx, WORLD_COORDINATE_STATUS_TINT_HIGH, WORLD_COORDINATE_STATUS_TINT_HIGH, WORLD_COORDINATE_STATUS_TINT_LOW);
             }
-            if (cfg->statusFlags & PLAYER_STATUS_BERSERKER) {
-                _worldCoordFillLightColorMatrix(extra->colorMtx, 0x2000, 0x400, 0x400);
+            // Berserker red replaces any ward tint on these status-update frames.
+            if (playerStatus->statusFlags & PLAYER_STATUS_BERSERKER) {
+                _worldCoordFillLightColorMatrix(model->colorMtx, WORLD_COORDINATE_STATUS_TINT_HIGH, WORLD_COORDINATE_STATUS_TINT_LOW, WORLD_COORDINATE_STATUS_TINT_LOW);
             }
         }
     }
 
-    actor = slot->work;
+    // Child models share the player's persistent matrices, including any tint.
+    playerActor = playerTask->work;
     {
-        Task* task;
+        Task* childTask;
 
-        for (i = 0; i < 2; i++) {
-            task = actor->attachmentTasks[i];
-            if (task != NULL) {
-                extra           = task->extra.tmd;
-                extra->lightMtx = &Gp_DefaultMtx;
-                extra->colorMtx = &Gp_DefaultMtx2;
+        for (childIndex = 0; childIndex < (s32)ARRAY_SIZE(playerActor->attachmentTasks); childIndex++) {
+            childTask = playerActor->attachmentTasks[childIndex];
+            if (childTask != NULL) {
+                model           = childTask->extra.tmd;
+                model->lightMtx = &Gp_DefaultMtx;
+                model->colorMtx = &Gp_DefaultMtx2;
             }
         }
-        for (i = 0; i < 2; i++) {
-            task = actor->equipmentTasks[i];
-            if (task != NULL) {
-                extra           = task->extra.tmd;
-                extra->lightMtx = &Gp_DefaultMtx;
-                extra->colorMtx = &Gp_DefaultMtx2;
+        for (childIndex = 0; childIndex < (s32)ARRAY_SIZE(playerActor->equipmentTasks); childIndex++) {
+            childTask = playerActor->equipmentTasks[childIndex];
+            if (childTask != NULL) {
+                model           = childTask->extra.tmd;
+                model->lightMtx = &Gp_DefaultMtx;
+                model->colorMtx = &Gp_DefaultMtx2;
             }
         }
     }
 
-    work = gPlayerActorTasks[PLAYER_ACTOR_TASK_COMPANION];
-    if (work != NULL) {
-        TmdObject* model;
+    // The companion has a separate pair and receives ordinary room lighting.
+    companionTask = gPlayerActorTasks[PLAYER_ACTOR_TASK_COMPANION];
+    if (companionTask != NULL) {
+        TmdObject* companionModel;
 
-        model           = work->extra.tmd;
-        actor2          = work->work;
-        coord           = &model->coords[1];
-        extra           = model;
-        extra->colorMtx = &D_80114EF8;
-        extra->lightMtx = &D_80114ED8;
+        companionModel  = companionTask->extra.tmd;
+        companionActor  = companionTask->work;
+        coord           = &companionModel->coords[1];
+        model           = companionModel;
+        model->colorMtx = &D_80114EF8;
+        model->lightMtx = &D_80114ED8;
         actorRenderComposeCoord(coord);
-        vec.vx = coord->workm.t[0];
-        vec.vy = coord->workm.t[1] - 0x64;
-        vec.vz = coord->workm.t[2];
-        worldCoordSetModelLighting(extra, &vec, 0, 3);
+        samplePosition.vx = coord->workm.t[0];
+        samplePosition.vy = coord->workm.t[1] - WORLD_COORDINATE_PLAYER_LIGHT_SAMPLE_Y_OFFSET;
+        samplePosition.vz = coord->workm.t[2];
+        worldCoordSetModelLighting(model, &samplePosition, 0, WORLD_COORDINATE_PLAYER_LIGHT_COUNT);
         {
-            Task* task;
+            Task* childTask;
 
-            for (i = 0; i < 2; i++) {
-                task = actor2->attachmentTasks[i];
-                if (task != NULL) {
-                    extra           = task->extra.tmd;
-                    extra->lightMtx = &D_80114ED8;
-                    extra->colorMtx = &D_80114EF8;
+            for (childIndex = 0; childIndex < (s32)ARRAY_SIZE(companionActor->attachmentTasks); childIndex++) {
+                childTask = companionActor->attachmentTasks[childIndex];
+                if (childTask != NULL) {
+                    model           = childTask->extra.tmd;
+                    model->lightMtx = &D_80114ED8;
+                    model->colorMtx = &D_80114EF8;
                 }
             }
-            for (i = 0; i < 2; i++) {
-                task = actor2->equipmentTasks[i];
-                if (task != NULL) {
-                    extra           = task->extra.tmd;
-                    extra->lightMtx = &D_80114ED8;
-                    extra->colorMtx = &D_80114EF8;
+            for (childIndex = 0; childIndex < (s32)ARRAY_SIZE(companionActor->equipmentTasks); childIndex++) {
+                childTask = companionActor->equipmentTasks[childIndex];
+                if (childTask != NULL) {
+                    model           = childTask->extra.tmd;
+                    model->lightMtx = &D_80114ED8;
+                    model->colorMtx = &D_80114EF8;
                 }
             }
         }
@@ -1776,11 +1838,11 @@ static WorldCoordRoomLights* _worldCoordGetRoomLights(const GameLocationKey* loc
     return roomLights;
 }
 
-void func_800D96C8(Task* arg0)
+void worldCoordPlayerLightingTask(Task* task)
 {
-    TaskFunc funcs[2] = { Gp_BindDefaultMtx, Gp_DebugPanTask };
+    TaskFunc stateHandlers[WORLD_COORDINATE_PLAYER_LIGHTING_STATE_COUNT] = { _worldCoordInitPlayerLighting, _worldCoordUpdatePlayerLighting };
 
-    funcs[arg0->state](arg0);
+    stateHandlers[task->state](task);
 }
 
 /// Scores a directional light admitted by the current room view.
@@ -1993,38 +2055,48 @@ static void _worldCoordCopyDefaultRoomAmbient(WorldCoordRoomAmbientEntry* ambien
     *ambientEntry = Gp_RoomBoundDefault;
 }
 
-static void Gp_BindDefaultMtx(Task* arg0)
+/// Binds the player's persistent light matrices and starts per-frame lighting.
+///
+/// Requires a live player model/work and both attachment-anchor tasks; the
+/// player slot is dereferenced before its NULL test, preserving the original
+/// caller requirement. Missing room lights kill the lighting task. Otherwise
+/// spawnArg2 borrows the room descriptor, both overrides and the pending
+/// attachment pulse are disabled, and state advances from 0 to 1 before the
+/// first update. Matrix storage belongs to the gameplay overlay.
+static void _worldCoordInitPlayerLighting(Task* task)
 {
-    Task*                 slot;
-    TmdObject*            extra;
-    GameActor*            actor;
-    WorldCoordRoomLights* roomLights;
-    s32                   i;
+    enum { WORLD_COORDINATE_LIGHT_OVERRIDE_DISABLED = 0 };
 
-    slot  = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    extra = slot->extra.tmd;
-    if (slot != NULL) {
-        roomLights = _worldCoordGetRoomLights(&gGameSession->location.loc);
-        i          = 0;
-        if (roomLights == 0) {
-            taskKill(arg0);
+    Task*                 playerTask;
+    TmdObject*            model;
+    GameActor*            playerActor;
+    WorldCoordRoomLights* roomLights;
+    s32                   attachmentIndex;
+
+    playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    model      = playerTask->extra.tmd;
+    if (playerTask != NULL) {
+        roomLights      = _worldCoordGetRoomLights(&gGameSession->location.loc);
+        attachmentIndex = 0;
+        if (roomLights == NULL) {
+            taskKill(task);
             return;
         }
-        arg0->spawnArg2.pointer = roomLights;
-        extra->lightMtx         = &Gp_DefaultMtx;
-        extra->colorMtx         = &Gp_DefaultMtx2;
-        actor                   = slot->work;
-        Gp_OverrideVecFlag      = 0;
-        Gp_OverrideVec2Flag     = 0;
-        D_80114F28              = 0;
+        task->spawnArg2.pointer = roomLights;
+        model->lightMtx         = &Gp_DefaultMtx;
+        model->colorMtx         = &Gp_DefaultMtx2;
+        playerActor             = playerTask->work;
+        Gp_OverrideVecFlag      = WORLD_COORDINATE_LIGHT_OVERRIDE_DISABLED;
+        Gp_OverrideVec2Flag     = WORLD_COORDINATE_LIGHT_OVERRIDE_DISABLED;
+        D_80114F28              = WORLD_COORDINATE_ATTACHMENT_LIGHT_PULSE_NONE;
         do {
-            extra           = actor->attachmentTasks[i]->extra.tmd;
-            extra->lightMtx = &Gp_DefaultMtx;
-            extra->colorMtx = &Gp_DefaultMtx2;
-            i++;
-        } while (i < 2);
-        arg0->state++;
-        Gp_DebugPanTask(arg0);
+            model           = playerActor->attachmentTasks[attachmentIndex]->extra.tmd;
+            model->lightMtx = &Gp_DefaultMtx;
+            model->colorMtx = &Gp_DefaultMtx2;
+            attachmentIndex++;
+        } while (attachmentIndex < (s32)ARRAY_SIZE(playerActor->attachmentTasks));
+        task->state++;
+        _worldCoordUpdatePlayerLighting(task);
     }
 }
 

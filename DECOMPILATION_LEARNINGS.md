@@ -9286,9 +9286,9 @@ elsewhere and the conflict is upstream — not that the pin is wrong.
 
 A local `register T* x asm("v0")` reserves `$v0` for the *whole* function as
 far as the allocator is concerned, even when the declaration sits in a nested
-block. In `Gp_DebugPanTask` a pin that fixed four `equipmentTasks` / `attachmentTasks`
+block. In `_worldCoordUpdatePlayerLighting` a pin that fixed four `equipmentTasks` / `attachmentTasks`
 loops (`lw v0,0x920(a0)`) simultaneously broke an unrelated color-matrix block
-earlier in the function, which flipped from `mtx` in `$v0` / constant in `$v1`
+earlier in the function, which flipped from `colorMtx` in `$v0` / constant in `$v1`
 to the reverse.
 
 The fix is not to drop the pin but to pin the other block's variable to the
@@ -9324,7 +9324,7 @@ __asm__("" : "+r"(e));   /* no `volatile` */
 extra = e;
 ```
 
-`Gp_DebugPanTask` is the example: 98.7% with `asm volatile`, 100% without it.
+`_worldCoordUpdatePlayerLighting` is the example: 98.7% with `asm volatile`, 100% without it.
 
 ## Fold `+4` into a `%lo` by casting away `volatile`
 
@@ -9332,7 +9332,7 @@ extra = e;
 `lui v0,%hi(Table)` / `addiu v0,v0,%lo(Table)` / `lw v0,4(v0)`. The target's
 two-instruction `lui v0,%hi(Table+4)` / `lw v1,%lo(Table+4)(v0)` needs a
 non-volatile read; `((T**)Table)[1]` produces it without changing the
-declaration other callers rely on. `Gp_DebugPanTask` reading `gPlayerActorTasks[1]`
+declaration other callers rely on. `_worldCoordUpdatePlayerLighting` reading `gPlayerActorTasks[1]`
 is the example.
 
 ## Dummy pin that outlives a short constant (Ui_SpawnTextBlock)
@@ -25564,7 +25564,7 @@ funcs[arg0->state](arg0);
 A `TaskFuncTable2` aggregate initializer produces the same code. This is the
 sibling of the global-table struct copy (`sp = D_xxx`) used by
 `GameFlow_DispatchTable`: no `.data` table, so the addresses are built in
-place. `func_800D96C8` is the example.
+place. `worldCoordPlayerLightingTask` is the example.
 
 ## Hoist `one = 1` so a loop bit-test stays `sllv` + `and`
 
@@ -27026,7 +27026,7 @@ mtxB = (MATRIX*)addr;
 
 Keep the later store of a call result (`index->spawnArg2 = result`) *after*
 those copies so the result can live in `$v1` (`register s32 result asm("v1")`)
-instead of being stored immediately from `$v0`. `Gp_BindDefaultMtx` is the example.
+instead of being stored immediately from `$v0`. `_worldCoordInitPlayerLighting` is the example.
 
 ## Store the task pointer before `memFillBytes` so `sw` fills the jal delay slot
 
@@ -36412,7 +36412,7 @@ __asm__ volatile(
 An empty `asm volatile("" : "=r"(hi))` before `p = gWorldCoordTransientPointLights` is not
 enough — GCC still uses `$s1` for both halves.
 
-`Gp_UpdateRoomCoords` is the example.
+`worldCoordUpdateRoomLightsTask` is the example.
 
 ## Do not pin a BSS pointer that already lands in the right `$s` reg
 
@@ -41735,7 +41735,7 @@ TOUCH_MEM(sp);            /* "m" — keep a stack object live */
 MOVE_ZERO(x);             /* "=r"(x) : "0"(0) → move dst, $zero */
 ```
 
-`SOFT_` vs volatile is a matching difference (`Gp_DebugPanTask`: 98.7% with
+`SOFT_` vs volatile is a matching difference (`_worldCoordUpdatePlayerLighting`: 98.7% with
 `asm volatile("" : "+r"(e))`, 100% without volatile). Numbered forms
 (`TOUCH_REG2`, `USE_REG5`, …) exist because GCC 2.8.1 has no `__VA_ARGS__`.
 Do not wrap the macros in `do { } while (0)` or extra braces. Instruction
@@ -66273,7 +66273,7 @@ final `andi` still occurs after the call. This avoids changing the callers'
 argument conversions. Both scratch variants scored 100%; the local variant
 passed the scoped gameplay and full project builds with the existing rodata layout.
 
-## Loop pointer copy can distinguish direct field access from a strength-reduced walk (`func_800D78A4`)
+## Loop pointer copy can distinguish direct field access from a strength-reduced walk (`_worldCoordFindNearestRoomLight`)
 
 The nearest-light scan has two similar loops, but the first copies its entry
 pointer at the top and loads positions at +0x38/+0x3C/+0x40; the second walks a
@@ -101424,7 +101424,7 @@ Two things about the shape are worth carrying to the sibling overlays. The block
 is not a `_StageMusicSelection`: the spawn state `memCalloc`s it (0x4CC here) into
 `Task::work`, exactly as in `actor_141000` / `actor_317000` / `actor_350500` /
 `actor_350700`, and this function republishes `&work->light` / `&work->color`
-onto `TmdObject::lightMtx` / `colorMtx` - the pair `Gp_BindDefaultMtx` otherwise
+onto `TmdObject::lightMtx` / `colorMtx` - the pair `_worldCoordInitPlayerLighting` otherwise
 points at `Gp_DefaultMtx` / `Gp_DefaultMtx2`. `func_actor_317000_80162744` and
 `func_actor_350700_801624B4` are the same republish in their own overlays.
 `func_actor_311900_8016281C`, the very next unmatched function in this unit, is
@@ -142086,7 +142086,7 @@ the `lhu`, then `lbu $a0, %lo(...)($a0)`. The seed had faked exactly that pair
 with two `asm` statements. The same function's `hp / 10` needed its `s16`
 operand copied into an `s32` local first, or the quotient is narrowed to a
 short (`sll 16; sra 15` instead of `sll 1`) - see the clamped-halfword entry.
-## A `move s0,a0` element copy with the step taken from the copy is a long-lived member-pointer local (Gp_UpdateRoomCoords, 2026-09-25)
+## A `move s0,a0` element copy with the step taken from the copy is a long-lived member-pointer local (worldCoordUpdateRoomLightsTask, 2026-09-25)
 
 Target loop over an array: `move s0,a0; ...uses of s0...; addiu a0,s0,0x60`
 in the back-branch slot. The walking pointer (`$a0`) dies at the copy and is
@@ -143519,40 +143519,40 @@ index (`i = first; ... row = i; for (i = 0; ...)`) keeps `move row,i` ahead of
 `(off + base)` operand order for an address outside a memory reference comes
 from spelling it as the memory reference (`if (table[row].itemId == 0) dest =
 &table[row];`), which CSE then shares.
-## A pinned matrix pointer across if/else arms that fill a matrix is an inline fill helper; a loop temp can inherit a call-argument preference (Gp_DebugPanTask, 2026-09-26)
+## A pinned matrix pointer across if/else arms that fill a matrix is an inline fill helper; a loop temp can inherit a call-argument preference (_worldCoordUpdatePlayerLighting, 2026-09-26)
 
-Four `if`/`else if` arms each wrote `m = extra->colorMtx` and then filled the
+Four `if`/`else if` arms each wrote `colorMtx = model->colorMtx` and then filled the
 matrix rows with constants. The target holds the pointer in `$v0` and the
-constants in `$v1`. Unpinned, `m` is one variable spanning every arm, so it is
+constants in `$v1`. Unpinned, `colorMtx` is one variable spanning every arm, so it is
 a global allocno. local-alloc then gives each arm's block-local constant `$v0`
-first, and `m` drops to `$v1`. The fix was a
+first, and `colorMtx` drops to `$v1`. The fix was a
 `static inline void _worldCoordFillLightColorMatrix(MATRIX* colorMtx, s16 r, s16 g, s16 b)` called in
 every arm, and in a fifth site that had never been pinned. Each call's
 parameter is block-local, so local-alloc allocates it alongside the constants
 and it lands in `$v0`.
 
 Unresolved in the same function, recorded so the next attempt starts further
-on: a `do { task = kids[i]; if (task) { extra = task->extra.tmd; ... } }` loop
-wants `task` in `$v0`, but gets `$a0`. `expand_preferences` (`global.c`) is one
-forward pass. At `extra = task->...`, `task` dies without conflicting with
-`extra`, so it takes all of `extra`'s preferences, including `$a0` from
-`func(extra, ...)` call arguments elsewhere. None of these removed it: a
+on: a `do { childTask = kids[childIndex]; if (childTask) { model = childTask->extra.tmd; ... } }` loop
+wants `childTask` in `$v0`, but gets `$a0`. `expand_preferences` (`global.c`) is one
+forward pass. At `model = childTask->...`, `childTask` dies without conflicting with
+`model`, so it takes all of `model`'s preferences, including `$a0` from
+`func(model, ...)` call arguments elsewhere. None of these removed it: a
 separate loop variable (it lands in `$v0`, not the target's `$s2`), a
 per-loop or per-block helper, a `for` loop, a pointer walk, an inline wrapper
 around the call, or 15 minutes of the permuter. Two `v0` pins remain.
 
 **Resolved (2026-09-27).** The second actor's object local needs two real uses:
-`model = work->extra.tmd; actor2 = work->work; coord = &model->coords[1];
-extra = model;`. Selecting the coordinate before copying to the reused
-`extra` keeps that copy through combine. Local allocation gives `model` `$v0`;
+`companionModel = companionTask->extra.tmd; companionActor = companionTask->work; coord = &companionModel->coords[1];
+model = companionModel;`. Selecting the coordinate before copying to the reused
+`model` keeps that copy through combine. Local allocation gives `companionModel` `$v0`;
 the child-task pseudos then have both `$v0` and `$a0` preferences in `.greg`,
 where the stripped seed had only `$a0`, and choose `$v0`. This removes the
-setup pin/touch and both loop pins together. Reusing `work` for the child
+setup pin/touch and both loop pins together. Reusing `companionTask` for the child
 tasks instead makes them conflict with the setup's `$v0` and breaks the match.
 The typed `SCRATCH_STACK_RESERVE_BLOCK/HEAD/POP` macros also replace all repeated scratch
-address casts unchanged. Evidence: `Gp_DebugPanTask-dehack/base_15` matches
+address casts unchanged. Evidence: `_worldCoordUpdatePlayerLighting-dehack/base_15` matches
 the seed's 99.972%; `.combine` retains load 696 and copy 707, `.lreg` assigns
-model r273 to 2, and `.greg` gives task r252/r283 preferences `{2,4}`.
+companionModel r273 to 2, and `.greg` gives childTask r252/r283 preferences `{2,4}`.
 Preprocessed SHA-256: `7501ef02377207ff2b33bcc580c23ce36852c3fe01c310ec224fd27c89bab6ab`.
 
 ## `TOUCH_REG(p)` on a pointer that only feeds offsets is a pointer walk combine folded away (tmdDrawStreamPrimGt4EnvLayer, 2026-09-26)
