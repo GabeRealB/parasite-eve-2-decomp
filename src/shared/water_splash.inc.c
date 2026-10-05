@@ -1,12 +1,19 @@
 /* Part of the water effects library; see water_effects.h. */
 
-/// Projects the four splash corners and records the final projection's status.
+/// Projects four prepared splash corners to screen pixels.
 ///
-/// `quadScratch` borrows a live scratch block with signed 16-bit vertices in
-/// GPU strip order. The caller supplies the GTE projection settings and
-/// `GsWSMATRIX`'s translation. Writes all four screen corners and the RTPT
-/// FLAG word; corner 0's RTPS flags are not accumulated. Leaves corner 3's
-/// depth in SZ3 for the caller to read before another projection.
+/// `quadScratch` is a borrowed, live, word-aligned block. All four vertices'
+/// XYZ components must be initialized as signed 16-bit coordinates in
+/// `GsWSMATRIX`'s input space, in GPU quad strip order. The caller must load
+/// that matrix's translation and configure the GTE projection beforehand;
+/// this helper loads its rotation.
+///
+/// Writes every `screenCorners` entry and the RTPT `projectionFlags`, even
+/// when projection fails. Corner 0's RTPS flags are discarded; the caller
+/// tests the final FLAG for rejection. Vertices and the `depth` member are
+/// untouched. Corner 3's depth remains in GTE SZ3 for the caller to read
+/// before another depth-changing GTE command. GTE state is not restored;
+/// the block is neither reserved nor released here, and no pointer is retained.
 static inline void _waterProjectSplashCorners(EffectQuadScratch* quadScratch)
 {
     gte_SetRotMatrix(&GsWSMATRIX);
