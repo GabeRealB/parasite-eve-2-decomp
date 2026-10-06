@@ -293,10 +293,18 @@ enum {
     DRYFIELD_NIGHT_R08_FLARE_TEXTURE_COLUMN = 1
 };
 
-/// Submits four consecutive world points as the room's flickering flare row.
+/// Draws the room's flickering flare row at four consecutive world positions.
 ///
-/// Borrows `worldPoints` for the call; all four word-aligned entries, including
-/// their pad halfwords, must be readable. Uses the current frame's glow state.
+/// Borrows four word-aligned `worldPoints` entries in integer world units,
+/// including their readable pad halfwords, only for this call. Each flare uses
+/// texture column 1, pixel half-extent `0x300 * 39 / (camera Z / 4)` and RGB
+/// intensity 32 or 48 on alternating animation frames. Points below
+/// `GLOW_MIN_DEPTH` are rejected independently.
+///
+/// Requires a composed view, an initialized scratch stack with room for one
+/// `GlowCentreRadiusScratch`, a current ordering table and four `POLY_FT4`
+/// packets in the frame arena, including packets for rejected points. Reserves
+/// packets in array order; queued storage must remain live until GPU completion.
 static inline void _dryfieldNightR08DrawFlareRow(const SVECTOR worldPoints[4])
 {
     glowDrawFlareClipped(&worldPoints[0], DRYFIELD_NIGHT_R08_FLARE_TEXTURE_COLUMN, DRYFIELD_NIGHT_R08_FLARE_RADIUS_SCALE);
