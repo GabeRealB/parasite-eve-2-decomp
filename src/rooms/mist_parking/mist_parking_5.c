@@ -836,16 +836,25 @@ static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 
 static void _glowDrawDiamond(const SVECTOR* worldPoint, s32 pulseRate, s32 radiusScale);
 static void _glowDrawPulsingDisc(const SVECTOR* worldPoint, s32 pulseRate, s32 radiusScale);
 
-/// Draws a row of three capsule glows from six consecutive world-space endpoints.
+/// Draws one parking-area row of three capsule glows.
 ///
-/// Borrows six readable points, pairing entries 0/1, 2/3 and 4/5 in order.
-/// `radiusScale` and `packedColor` use the capsule drawer's projection and RGB
-/// nibble units; the caller supplies the current frame's view and GPU state.
-static inline void _mistParkingDrawGlowRow(const SVECTOR worldPoints[6], s32 radiusScale, s32 packedColor)
+/// Borrows six contiguous, word-aligned `worldEndpoints`, pairing entries
+/// 0/1, 2/3 and 4/5 in order. A negative GTE flag at either endpoint skips
+/// that capsule; the other pairs are still drawn. The signed low halfword of
+/// `radiusScale` gives each endpoint's pixel radius as that value times 64
+/// divided by camera Z / 4, which must be nonzero for accepted projections.
+/// `rgbNibbles` bits 8..11, 4..7 and 0..3 supply RGB channels scaled by 16;
+/// odd animation frames set intensity bit 3 in each channel.
+///
+/// Requires the current view, an initialized scratch stack with room for one
+/// `OverlayPointPairScratch`, and a current ordering table and packet arena.
+/// Queues up to eighteen additive Gouraud quads plus their blend commands.
+/// Retains no endpoint pointer; packets use the frame arena until GPU completion.
+static inline void _mistParkingDrawGlowRow(const SVECTOR worldEndpoints[6], s32 radiusScale, s32 rgbNibbles)
 {
-    _glowDrawCapsule(worldPoints, radiusScale, packedColor);
-    _glowDrawCapsule(worldPoints + 2, radiusScale, packedColor);
-    _glowDrawCapsule(worldPoints + 4, radiusScale, packedColor);
+    _glowDrawCapsule(worldEndpoints, radiusScale, rgbNibbles);
+    _glowDrawCapsule(worldEndpoints + 2, radiusScale, rgbNibbles);
+    _glowDrawCapsule(worldEndpoints + 4, radiusScale, rgbNibbles);
 }
 
 void mistParkingDrawGlowsTask(Task* unused)
