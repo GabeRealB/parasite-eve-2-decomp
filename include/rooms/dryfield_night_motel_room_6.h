@@ -42,7 +42,16 @@ void func_dryfield_night_motel_room_6_8017EA74(Task* task);
 /// work, borrows the player's geometry, and is parented to the player.
 /// Keep this overlay loaded while the reflection and its attachment tasks live.
 void dryfieldNightMotelRoom6PlayerReflectionTask(Task* reflectionTask);
-void motelRoom6NightDrawGlow(Task* unused);
+
+/// Draws nighttime motel room 6's pulsing cyan glow at its fixed world point.
+///
+/// Mapped view indices 3 and 4 select a wide diamond; 12 selects layered discs
+/// and blades. Other mapped views draw nothing. The task argument is unused.
+/// Requires the current view matrix, initialized scratch stack and frame packet
+/// arena and ordering table; accepted projections must have nonzero camera Z / 4.
+/// Queued packets belong to the frame arena until GPU completion. Keep this
+/// room overlay loaded while the effect task is live.
+void dryfieldNightMotelRoom6DrawGlowTask(Task* unusedTask);
 
 void func_dryfield_night_motel_room_6_80181C80(Task* task);
 

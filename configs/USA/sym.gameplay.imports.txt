@@ -1797,7 +1797,7 @@ dryfieldJunkYardEnableViewEffectsTask = 0x8017DD0C; // type:func absolute:True o
 
 dryfieldMotelBalconyInitRoomEffectsTask = 0x8017DC28; // type:func absolute:True owner=dryfield_motel_balcony shared=rooms
 
-motelRoom6DayDrawGlow = 0x80182978; // type:func absolute:True owner=dryfield_motel_room_6
+dryfieldMotelRoom6DrawGlowTask = 0x80182978; // type:func absolute:True owner=dryfield_motel_room_6
 
 func_dryfield_water_hole_8017E040 = 0x8017E040; // type:func absolute:True owner=dryfield_water_hole
 
@@ -1837,7 +1837,7 @@ dryfieldNightTrailerCoachDrawGlowsTask = 0x80182924; // type:func absolute:True 
 
 dryfieldNightMotelRoom5DrawFlareTask = 0x8017D9A4; // type:func absolute:True owner=dryfield_night_motel_room_5 shared=rooms
 
-motelRoom6NightDrawGlow = 0x80182AE0; // type:func absolute:True owner=dryfield_night_motel_room_6
+dryfieldNightMotelRoom6DrawGlowTask = 0x80182AE0; // type:func absolute:True owner=dryfield_night_motel_room_6
 
 dryfieldNightCellarDrawGlowsTask = 0x8017DA28; // type:func absolute:True owner=dryfield_night_cellar shared=rooms
 

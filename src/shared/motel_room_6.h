@@ -22,14 +22,18 @@ extern RoomCutsceneRec gMotelRoom6CutsceneRec;
 extern SVECTOR gMotelRoom6GlowPos[];
 
 s32 motelRoom6CutsceneMsg(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
-/// The room's glow. Gameplay's room-effect table names each room's copy, so
-/// each build exports it under its own name.
-void motelRoom6DayDrawGlow(Task* unused);
-void motelRoom6NightDrawGlow(Task* unused);
+
+/// Binds the shared glow task definition to its room overlay's public export.
+///
+/// The carrier must define `DRYFIELD_TIME` as `DRYFIELD_DAY` or
+/// `DRYFIELD_NIGHT` before this header and retain it through
+/// `motel_room_6_draw_glow.inc.c`. Its public room header declares the selected
+/// `void (Task*)` callback. The replacement is a function identifier with no
+/// arguments, captured values, evaluation, stringification or token pasting.
 #if DRYFIELD_TIME == DRYFIELD_DAY
-#define motelRoom6DrawGlow motelRoom6DayDrawGlow
+#define MOTEL_ROOM_6_DRAW_GLOW_TASK dryfieldMotelRoom6DrawGlowTask
 #else
-#define motelRoom6DrawGlow motelRoom6NightDrawGlow
+#define MOTEL_ROOM_6_DRAW_GLOW_TASK dryfieldNightMotelRoom6DrawGlowTask
 #endif
 
 /// The 0x13F0 handler's fallback for every event but the cutscene's: empty in
