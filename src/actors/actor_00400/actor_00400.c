@@ -5235,36 +5235,37 @@ static void Actor00400_Fn090B4(Task* arg0)
     w2->subState     = 0;
 }
 
-/// Every path out of the range test funnels through `set`, where the arm flag
-/// is copied for the test below: the in-range edge arrives with the same value
-/// (0), so the copy is redundant there and cse drops it, which leaves `done`
-/// defined only here - and reorg then fills the branch's delay slot with a copy
-/// of that one move.
-static void Actor00400_Fn09124(Task* arg0)
+/// Raises the combat alert, arms state F0 and moves the actor to
+/// `ACTOR_00400_STRANDED_STATE_DECIDE` when its target is nearer than 0xDAC
+/// and its bearing lies outside [0x600, 0xA00). Returns 1 when it did.
+static inline s16 _actor00400StrandedNoticeTarget(Task* arg0)
 {
     _Actor00400Work* work;
     _Actor00400Work* w;
-    _Actor00400Work* w2;
     s32              active;
-    s32              done;
 
     work   = arg0->work;
     active = 0;
-    if (work->targetDistance >= 0xDAC) {
-        goto set;
+    if (work->targetDistance < 0xDAC) {
+        if ((u32)(work->targetBearing - 0x600) >= 0x400U) {
+            gSceneCombatState.signals.bytes.enemyAlert = 1;
+            Gp_ArmStateF0(1);
+            active      = 1;
+            w           = arg0->work;
+            w->state    = ACTOR_00400_STRANDED_STATE_DECIDE;
+            w->subState = 0;
+        }
     }
-    done = 0;
-    if ((u32)(work->targetBearing - 0x600) >= 0x400U) {
-        gSceneCombatState.signals.bytes.enemyAlert = 1;
-        Gp_ArmStateF0(1);
-        active      = 1;
-        w           = arg0->work;
-        w->state    = ACTOR_00400_STRANDED_STATE_DECIDE;
-        w->subState = 0;
-    }
-set:
-    done = active;
-    if (done == 0) {
+    return active;
+}
+
+static void Actor00400_Fn09124(Task* arg0)
+{
+    _Actor00400Work* work;
+    _Actor00400Work* w2;
+
+    work = arg0->work;
+    if (_actor00400StrandedNoticeTarget(arg0) == 0) {
         if ((Actor00400_Fn02154(arg0) << 0x10) != 0) {
             Gp_ArmStateF0(1);
             return;
