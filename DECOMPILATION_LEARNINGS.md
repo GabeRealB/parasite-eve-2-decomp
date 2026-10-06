@@ -146185,6 +146185,10 @@ Using `translation[i]` instead leaves the nonzero indexes as `mem/s:SI` and
 retains an extra array-base instruction. This removes the three cast hacks;
 the work-pointer touch is still needed for allocation.
 
+*Dated note, 2026-10-06:* both the touch and the cursor are gone; the source
+was a statement-order question, not an allocation one. See "A pointer load two
+instructions above its first user" at the end of this file.
+
 ### A table declared as one struct makes `(&sym)[k].field` pick `sym + k*size` as the base (func_actor_403200_8013B740, 2026-09-27)
 
 A spawn table declared `extern TaskDesc tbl;` and indexed as `(&tbl)[4].data.model`
@@ -151223,3 +151227,87 @@ call-saved operand", check in `.lreg` whether the dying operand is local
 only two things can put the result there: the result is the same variable, or
 the result crosses a call too and that register is the lowest free call-saved
 one when global reaches it.
+
+
+## A pointer load two instructions above its first user: the first store through it had no constant, and the store before it filled the stall (func_actor_403100_80138F88, 2026-10-06)
+
+**Symptom.** After a call the block stores a coord's translation and then ~20
+fields through a global work pointer. Target:
+
+```
+li v0,-1100 / lui s0,%hi(D) / sw v0,24(s2) / lw v0,%lo(D)(s0)
+li v1,6000  / sw v1,32(s2)  / li v1,0xC00  / sw zero,28(s2) / sh v1,0x82(v0) ...
+```
+
+With the siblings' `t[0]`, `t[2]`, `t[1]` and then `D->rotation.vy = 0xC00`
+the load comes out below `li 6000 / sw` and the 6000 is in `$v0`. The old body
+held the load with a `*translation++` scalar cursor (a memory dependence) and
+then needed `SOFT_TOUCH_REG(work)` to win `$v0`.
+
+**Mechanism.** Two facts about that block, both from the dumps:
+
+- Stores through one base register at different offsets do not conflict in
+  sched (`memrefs_conflict_p`), so the ~20 `D->field` stores are free to be
+  reordered among themselves, and so are the three `coords->coord.t[i]`
+  stores. The output order of the work stores therefore says nothing about
+  their source order; only "every coord store precedes every work store" is
+  fixed (different bases may alias).
+- sched1 runs backward. When it places the pointer's earliest user, the `lw`
+  is queued for one cycle. If that user is `D->x = CONST`, the constant's `li`
+  is a launched birth and fills the cycle: `lw / li / sh`, everything else
+  above the `lw`. If the user is `D->x = 0` there is nothing to launch, so the
+  highest-LUID leftover fills it, which is the last coord store, and that
+  store's own `li` is then launched together with the `lw`:
+  `lui / lw / li 6000 / sw t[2] / sh zero / li 0xC00 / sh`.
+
+So the target order needs (a) the first statement through the global to store
+zero and (b) the coord store written last to be the one with a constant. In
+the image the zero store is not near the top (sched2 sinks `sh zero,0x80` to
+the other zero stores eighteen instructions later), which is why nothing
+pointed at it.
+
+The register follows from the same order. local-alloc priority is
+`floor_log2(refs) * refs / span`, spans in instruction positions after sched1.
+A constant is 2 refs over 1 position (10000). The pointer has 21 refs:
+
+| source | span at lreg | priority | pointer |
+|---|---|---|---|
+| `t0, t2, t1`, `vy = 0xC00` first (siblings' order) | 40 | 10500 | `$v0`, load too low |
+| `t0, t2, t1`, `vx = 0` first | 43 (both stores below the load) | 9767 | `$a1` |
+| cursor, load between, no touch | 44 | 9545 | `$a1` |
+| `t0, t1, t2`, `vx = 0` first | 42 | 10000 | `$v0`: ties, and the earlier birth wins |
+
+`t[1] = 0` has to be written before `t[2]` so that it stays above the load at
+sched1 (one position fewer); sched2 then moves it down to where the image has
+it, between `li 0xC00` and its `sh`.
+
+**Fix.** Natural order, global named at every store, no local:
+
+```c
+coords->coord.t[0]   = -0x44C;
+coords->coord.t[1]   = 0;
+coords->coord.t[2]   = 0x1770;
+D->rotation.vx       = 0;
+D->rotation.vy       = 0xC00;
+D->rotation.vz       = 0;
+D->animationRate     = ANIMATION_RATE_ONE;
+...
+```
+
+`rotation.vz = 0` matches either next to `vy` or where the old body had it.
+
+**Use.**
+- A load that must sit a few instructions above its first visible user, with a
+  constant store in between: look for a *zero* store through the loaded
+  pointer further down the block, and write it first. The store that ends up
+  between the load and that user is the statement written just before.
+- Before reading source order off a run of stores, check which pairs can
+  conflict: same base and different constant offsets cannot, so their order
+  in the image is the scheduler's.
+- A pointer that loses `$v0` to two-reference constants by a few percent is
+  one instruction too long-lived, not short of references. Count positions in
+  `.lreg` (not the "across N insns" header, which is flow's number from before
+  sched1) and ask which neighbouring store the source could have put above the
+  load.
+- Applies to the siblings only as a caution: they store `t[0], t[2], t[1]`
+  after the pointer is already loaded, where the order is not observable.
