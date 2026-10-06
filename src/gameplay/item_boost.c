@@ -325,14 +325,14 @@ static inline void _gpApplyBit2List(AreaObjectRoom* table, u32* dest)
 }
 void Gp_UiBoostAttach(UiObject* arg0, Task* arg1)
 {
-    s32          item;
-    s32          width;
-    s32          other;
-    s32          saved;
-    s32          x;
-    s32          y;
-    s32          color;
-    register s32 row asm("s1");
+    s32 item;
+    s32 width;
+    s32 other;
+    s32 saved;
+    s32 x;
+    s32 y;
+    s32 color;
+    s32 row;
 
     item = gPlayerStatus.armor + 0x5F;
     if (arg1->state == 0) {
@@ -370,7 +370,8 @@ void Gp_UiBoostAttach(UiObject* arg0, Task* arg1)
     color = 0x606060;
     row   = y + 0xF;
     _gpDrawPromptItem(arg0, x, row, Gp_StrMore, item, color, 1);
-    textDrawUiLine(arg0, x, y + 0x1E, Gp_StrAttachAvail, color, 1, TEXT_ALIGNMENT_LEFT);
+    row += 0xF;
+    textDrawUiLine(arg0, x, row, Gp_StrAttachAvail, color, 1, TEXT_ALIGNMENT_LEFT);
 
     if (arg0->panel.control.word == 1) {
         arg1->killCountdown--;

@@ -148423,6 +148423,9 @@ source.
   half-insns), `y` 454, the colour 375. The target allocates `row` before
   `x`, which needs a fourth reference. The `1` and the colour are shared by
   cse and `reload_cse_regs` from literals; the `one` local was not needed.
+  *2026-10-06: resolved without a pin. The row is a cursor advanced between
+  the two lines; see "A row cursor advanced with `+=` keeps the references
+  combine merged away" at the end of this file.*
 - **func_800FF710**, `one`/`old` pinned to `$v1`, `k` to `$a2`. The split
   `lui 0x7135` ... `ori 0x7911` is what a plain `+ RANDOM_LCG_INCREMENT`
   expands to (two insns on one pseudo); the hand split is not needed for
@@ -151607,3 +151610,41 @@ is why the pointer ends with one reader.
   `$s0`) looked for a tie or a preference and did not consider the call count.
 - Not checked in other functions: the same shape may explain other pins on a
   short-lived pointer that takes a parameter's call-saved register.
+
+## A row cursor advanced with `+=` keeps the references combine merged away (Gp_UiBoostAttach, 2026-10-06)
+
+**Symptom.** `row = y + 0xF; draw(x, row); draw(x, y + 0x1E);` put `x` in
+`$s1` and `row` in `$s3`; the target has `row` in `$s1`, `x` in `$s2`, and
+was held with `register s32 row asm("s1")`. All of the block's call-crossing
+values are local-alloc quantities, ordered by
+`floor_log2(refs) * refs / (death - birth)`: `row` had 3 references (714),
+`x` 6 (1714), so `x` chose first.
+
+**Mechanism.** `reg_n_refs` is counted by flow and combine does not keep it
+current: when it merges `(set row ...)` into the insn that uses it, it
+decrements `reg_n_sets` and zeroes the reference count only if no set is
+left (`try_combine`, "If the reg formerly set in I2 died only once"). A
+variable set twice therefore keeps the two references of the pair that was
+merged. Written as a cursor,
+
+```c
+row = y + 0xF;
+_gpDrawPromptItem(arg0, x, row, Gp_StrMore, item, color, 1);
+row += 0xF;
+textDrawUiLine(arg0, x, row, Gp_StrAttachAvail, color, 1, TEXT_ALIGNMENT_LEFT);
+```
+
+cse folds the second assignment to `row = y + 30` (`fold_rtx` associates
+`(plus (plus y 15) 15)` through the register's equivalence), flow counts
+5 references, and combine merges that set into `a2 = y + 30` -
+`addiu a2,s4,0x1E`, the instruction the target has - leaving `.lreg` with
+`Register 89 used 5 times` for a pseudo with three visible references.
+2 * 5 / 42 half-insns = 2380, above `x`, and `row` takes `$s1`.
+
+**Use.** When a block-local value needs one or two more references than its
+instructions show, and a later argument in the same block is the same base
+plus a larger constant (`base + 15`, then `base + 30`), the later one was
+probably written as an update of the first variable. Check `used N times`
+in `.lreg` against the insns that mention the pseudo: a surplus is a set/use
+pair combine merged. The same stale count is why a local reused for a second
+value (Gp_UpdatePlayerMove) outranks two separate locals.
