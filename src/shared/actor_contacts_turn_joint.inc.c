@@ -1,9 +1,20 @@
 /* Actor-render joint rotation carried by actor_contacts.h. */
 
-/// Installs a parent-space joint rotation and refreshes the composed transform.
+/// Replaces a joint's local rotation and refreshes its full-chain composed transform.
+///
+/// `localRotation` must be a word-aligned `MATRIX` whose `m` holds nine signed
+/// coefficients with 12 fractional bits, already in the parent's frame. Its
+/// translation and alignment bytes may be unspecified. Only `m` is copied;
+/// the joint's local translation, matrix alignment bytes, stored Euler state
+/// and parent link stay intact. The rotation is installed as supplied.
+///
+/// The source must be readable and disjoint from `joint->coord.m` during the
+/// copy. The joint and its acyclic parent chain must remain live and writable,
+/// with caches satisfying `actorRenderComposeCoord`'s full-chain requirements.
+/// Composition uses the current pass without advancing it and may change
+/// ancestor caches and GTE working registers. Storage remains caller-owned.
 static inline void _actorRenderInstallJointRotation(GfxCoord* joint, const MATRIX* localRotation)
 {
-    // Only the rotation is valid after normalization; keep the joint's translation.
     memcpy(joint->coord.m, localRotation->m, sizeof(joint->coord.m));
     joint->composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(joint);
