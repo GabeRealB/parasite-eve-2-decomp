@@ -150395,3 +150395,38 @@ attempts; left as it was.
 - Dropping `Fs_LoadImageStrip`'s `do { ... break; ... } while (0)` around the
   GPU-idle wait for `if (GetRCnt() >= K && retry == 0) { ...; return; }` is 1
   insn longer; it stays.
+## Goto forms from batch 31: a surviving `andi rX, rY, 0xFFFF` says the block was shared in the source
+
+**Problem.** `func_actor_123200_80133450` / `func_actor_223600_8014B464` (the
+sound-cue latch; `actor_01200` and `actor_04000` carry the same body) reach one
+`check:` block from two switch cases by `goto`. Writing the block out in each
+case (plain, or as a `static inline`) and letting cross-jumping merge the
+copies does not match.
+
+**Symptom.** `id = x & 0x3FF` followed by its promotion compiles to
+`andi a1, v0, 0x3FF; andi v1, a1, 0xFFFF` in the target; the duplicated form
+gives `andi a1, v0, 0x3FF; move v1, a1`, and the copies only merge partially
+(cross-jumping stops at the conditional branch inside the block).
+
+**Why.** The `u16` local is an HImode pseudo set from a subreg of the masked
+SImode value. While every use of it sits in the extended basic block of its
+definition, cse rewrites the uses to the SImode register, the HImode pseudo
+dies at the promotion, and combine folds `zero_extend` through the known mask
+into a copy. A use in a block reached from two definitions (a label with two
+incoming jumps *before* cse) keeps the pseudo live, and the `andi 0xFFFF`
+stays. Cross-jumping runs after reload, so duplicated source can never
+produce it: the redundant mask is evidence that the block was one piece of
+source reached twice. Moving the block after the switch keeps the mask but
+puts the block at the end instead of inside the first case.
+
+**Fix.** None found without `goto`; left as it was. Do not spend attempts on
+duplicating a tail when the target shows this redundant extension.
+
+Other forms from this batch, all matching: a `default: goto out` in front of a
+shared tail is the tail written in each case (`return 0` in the default gave a
+second `jr ra`); a `kill:` label after the switch is the kill written at the
+end of the last case with that case's body under the positive test, the early
+copy cross-jumping to it; `sndId = A; goto play` arms are the call in each arm
+of the same `if (x != 0xD) { if (x == 0xE) ... } else ...` nest (a `switch`
+takes the equal edge and loses cse's `or a0, a0, v0` reuse of the compare
+constant).
