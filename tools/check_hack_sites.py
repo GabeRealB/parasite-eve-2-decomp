@@ -10,6 +10,9 @@ A matched function sometimes needs one of these to keep matching:
     barrier  an asm statement with an empty template, or a steering macro of
              include/decomp/common.h (TOUCH_REG, USE_REG, SOFT_BARRIER, ...)
     emit     an asm statement that emits instructions
+    alias    a declaration given another symbol's assembler name, usually with an
+             offset (`extern T x __asm__("D_80012345+8");`): one object declared
+             twice, or the inside of an object declared as an object of its own
 
 Each one says the source differs from what was written. Removing them is slow,
 analytical work; adding one takes a line, and a cleanup that changed the code
@@ -34,6 +37,8 @@ MACRO = re.compile(r'\b(SCHED_BARRIER|SOFT_BARRIER|SOFT_COMPILER_BARRIER|COMPILE
                    r'|SOFT_TOUCH_REG\d?(?:_USE\d?)?|TOUCH_REG\d?(?:_MEM|_USE\d?)?|TOUCH_REG2_MEM'
                    r'|SOFT_DEF_REG|DEF_REG|SOFT_USE_REG\d?|USE_REG\d?|CLOBBER_REG'
                    r'|TOUCH_MEM|SOFT_MOVE_ZERO|MOVE_ZERO|COPY_REG(?:_EC)?)\s*\(')
+# `extern T name __asm__("symbol+offset");`: a declaration bound to another symbol's storage.
+ALIAS = re.compile(r'^[^=(]*\b(?:asm|__asm__)\s*\(\s*"[A-Za-z_.$][\w.$]*(?:\s*\+\s*\w+)?"\s*\)\s*;')
 COMMENT = re.compile(r'//[^\n]*|/\*.*?\*/', re.S)
 EXEMPT = ("include/psyq/", "include/decomp/gte.h", "include/decomp/common.h", "include/include_asm.h")
 
@@ -56,6 +61,10 @@ def sites(text: str) -> list[tuple[int, str, str]]:
         for m in PIN.finditer(line):
             found.append((number, "pin", m.group(0).strip()))
             rest = rest.replace(m.group(0), "")
+        label = ALIAS.search(rest)
+        if label:
+            found.append((number, "alias", rest.strip()[:80]))
+            continue
         for m in STMT.finditer(rest):
             if "gte_RotTransLV" in rest:
                 continue
