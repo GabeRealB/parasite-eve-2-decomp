@@ -4535,19 +4535,7 @@ static void func_actor_403000_8013ACBC(Task* arg0)
         scratch->offset.vz -= arg0->extra.tmd->coords->coord.t[2];
         coord               = arg0->extra.tmd->coords;
         angle               = ratan2(scratch->offset.vx, scratch->offset.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-        if (angle < 0) {
-        loop_neg:
-            if (angle < -0x800) {
-                angle += 0x1000;
-                goto loop_neg;
-            }
-        } else {
-        loop_pos:
-            if (angle > 0x800) {
-                angle -= 0x1000;
-                goto loop_pos;
-            }
-        }
+        angle               = actorWrapAngle(angle);
         scratch->turn       = angle;
         work->neckYawTarget = 0;
         scratch->turn      += ratan2(-arg0->extra.tmd->coords->coord.m[2][0], arg0->extra.tmd->coords->coord.m[2][2]);
