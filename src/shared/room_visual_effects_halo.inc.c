@@ -355,37 +355,36 @@ static inline void _roomVisualEffectsHaloOrangeBurstTask(Task* task)
         if (effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             return;
         }
-        goto kill;
-    } else {
-        work->age++;
-        if (task->state == BURST_INITIALIZE) {
-            // scale/period hold centre/ring brightness; angle/step hold glow extent/ring base radius.
-            work->age    = 1;
-            work->scale  = BURST_INITIAL_LEVEL;
-            work->angle  = BURST_INITIAL_HALF_EXTENT;
-            work->period = BURST_INITIAL_LEVEL;
-            work->step   = BURST_INITIAL_HALF_EXTENT;
-            task->state  = BURST_EXPAND;
-        }
-        actorRenderComposeCoord(coord);
-        ROOM_VISUAL_EFFECTS_SET_HALO_BURST_TINT(rgb, work->scale);
-        glowHalfExtent = work->angle + BURST_GLOW_EXTENT_STEP;
-        work->angle    = glowHalfExtent;
-        _roomVisualEffectsDrawHaloDisc(coord, (s16)(glowHalfExtent * 2), rgb);
-        _roomVisualEffectsDrawHaloBurstGlow(coord, work->angle);
-        // Fade the expanding ring before reducing the central burst brightness.
-        if (work->period > BURST_LEVEL_STEP) {
-            ROOM_VISUAL_EFFECTS_SET_HALO_BURST_TINT(rgb, work->period);
-            _roomVisualEffectsDrawHaloRing(coord, (s16)(work->step * 3 / 2), BURST_RING_TINT_DELTA, rgb);
-            work->period -= BURST_LEVEL_STEP;
-            work->step   += BURST_RING_BASE_STEP;
-            return;
-        }
-        work->scale -= BURST_LEVEL_STEP;
-        if (work->scale < BURST_LEVEL_STEP) {
-        kill:
-            effectKillTask(work, task);
-        }
+        effectKillTask(work, task);
+        return;
+    }
+    work->age++;
+    if (task->state == BURST_INITIALIZE) {
+        // scale/period hold centre/ring brightness; angle/step hold glow extent/ring base radius.
+        work->age    = 1;
+        work->scale  = BURST_INITIAL_LEVEL;
+        work->angle  = BURST_INITIAL_HALF_EXTENT;
+        work->period = BURST_INITIAL_LEVEL;
+        work->step   = BURST_INITIAL_HALF_EXTENT;
+        task->state  = BURST_EXPAND;
+    }
+    actorRenderComposeCoord(coord);
+    ROOM_VISUAL_EFFECTS_SET_HALO_BURST_TINT(rgb, work->scale);
+    glowHalfExtent = work->angle + BURST_GLOW_EXTENT_STEP;
+    work->angle    = glowHalfExtent;
+    _roomVisualEffectsDrawHaloDisc(coord, (s16)(glowHalfExtent * 2), rgb);
+    _roomVisualEffectsDrawHaloBurstGlow(coord, work->angle);
+    // Fade the expanding ring before reducing the central burst brightness.
+    if (work->period > BURST_LEVEL_STEP) {
+        ROOM_VISUAL_EFFECTS_SET_HALO_BURST_TINT(rgb, work->period);
+        _roomVisualEffectsDrawHaloRing(coord, (s16)(work->step * 3 / 2), BURST_RING_TINT_DELTA, rgb);
+        work->period -= BURST_LEVEL_STEP;
+        work->step   += BURST_RING_BASE_STEP;
+        return;
+    }
+    work->scale -= BURST_LEVEL_STEP;
+    if (work->scale < BURST_LEVEL_STEP) {
+        effectKillTask(work, task);
     }
 #undef ROOM_VISUAL_EFFECTS_SET_HALO_BURST_TINT
 }
