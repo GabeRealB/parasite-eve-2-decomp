@@ -95463,7 +95463,7 @@ the scheduler emits `[a0=s1][store][call]` and the store is taken instead. Two
 correct codes, one original.
 
 The idiom is in the matched corpus, which is what settled it in two builds:
-`func_acropolis_west_elevator_hall_8017F6F0`, `func_shelter_b2_elevator_8017D70C`
+`func_acropolis_west_elevator_hall_8017F6F0`, `_shelterB2ElevatorDoorLeafTask`
 and `_neoArkShrineUpdateFallingPropLighting` all write `coord->composeStamp = 0;` on the line before
 `actorRenderComposeCoord(coord);` and all compile to `addu $a0,$sX,$zero` / `jal` /
 `sw $zero,0x0($sX)`. When a function belongs to a family, grep the matched corpus

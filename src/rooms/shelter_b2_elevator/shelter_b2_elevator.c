@@ -72,16 +72,33 @@ extern TaskDesc D_shelter_b2_elevator_8017DF70[];
 /// The two door-leaf tasks the room entry task spawns.
 extern Task* D_shelter_b2_elevator_8017EA00[];
 
-static void func_shelter_b2_elevator_8017DB08(Task* task);
+static void _shelterB2ElevatorRoomIdleState(Task* unusedTask);
 
-s32  func_shelter_b2_elevator_8017DA5C(Task*, s32, s32, s32);
-s32  func_shelter_b2_elevator_8017DA64(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32  func_shelter_b2_elevator_8017DAA8(Task*, s32, s32, s32);
-s32  func_shelter_b2_elevator_8017DAB0(Task*, s32, s32, s32);
-s32  func_shelter_b2_elevator_8017DAB8(Task*, s32, s32, s32);
-s32  func_shelter_b2_elevator_8017DAE0(Task*, s32, s32, s32);
-void func_shelter_b2_elevator_8017D70C(Task*);
-void func_shelter_b2_elevator_8017D888(Task*);
+static s32  _shelterB2ElevatorRejectKeyItemMessage(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
+s32         func_shelter_b2_elevator_8017DA64(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+static s32  _shelterB2ElevatorIgnoreCommandMessage(Task* task, s32 messageId, s32 commandId, s32 commandArg);
+static s32  _shelterB2ElevatorIgnoreActionMessage(Task* task, s32 messageId, const DirectionActionRequest* unusedRequest, s32 unusedArg);
+static s32  _shelterB2ElevatorOpenDoorMessage(Task* task, s32 messageId, s32 unusedArg1, s32 unusedArg2);
+static s32  _shelterB2ElevatorCloseDoorMessage(Task* task, s32 messageId, s32 unusedArg1, s32 unusedArg2);
+static void _shelterB2ElevatorDoorLeafTask(Task* task);
+void        func_shelter_b2_elevator_8017D888(Task*);
+
+/// Key-item use request from the inventory menu; this room always refuses it.
+enum { SHELTER_B2_ELEVATOR_MESSAGE_USE_KEY_ITEM = 0x13F1 };
+
+/// Signed travel requests stored in a door leaf's first spawn argument.
+enum {
+    SHELTER_B2_ELEVATOR_DOOR_CLOSE = -1,
+    SHELTER_B2_ELEVATOR_DOOR_REST  = 0,
+    SHELTER_B2_ELEVATOR_DOOR_OPEN  = 1,
+};
+
+/// Live descriptor indices; the terminating record is not spawnable.
+enum {
+    SHELTER_B2_ELEVATOR_TASK_NEGATIVE_Z_LEAF = 0,
+    SHELTER_B2_ELEVATOR_TASK_POSITIVE_Z_LEAF = 1,
+    SHELTER_B2_ELEVATOR_TASK_EXIT            = 2,
+};
 
 static TmdBone _gShelterB2ElevatorModel00688Skeleton[1] = {
 #include "assets/shelter_b2_elevator_model_00688_skeleton.inc"
@@ -140,19 +157,19 @@ static TmdSource _gShelterB2ElevatorModel00884 = {
 };
 
 TaskDesc D_shelter_b2_elevator_8017DF70[4] = {
-    { { { TASK_BODY_TMD, 192 } }, func_shelter_b2_elevator_8017D70C, { .model = &_gShelterB2ElevatorModel00688 } },
-    { { { TASK_BODY_TMD, 192 } }, func_shelter_b2_elevator_8017D70C, { .model = &_gShelterB2ElevatorModel00884 } },
+    { { { TASK_BODY_TMD, 192 } }, _shelterB2ElevatorDoorLeafTask, { .model = &_gShelterB2ElevatorModel00688 } },
+    { { { TASK_BODY_TMD, 192 } }, _shelterB2ElevatorDoorLeafTask, { .model = &_gShelterB2ElevatorModel00884 } },
     { { { TASK_BODY_NONE, 32 } }, func_shelter_b2_elevator_8017D888, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
 TaskMessageEntry D_shelter_b2_elevator_8017DFA0[7] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b2_elevator_8017DA64 },
-    { 5105, func_shelter_b2_elevator_8017DA5C },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b2_elevator_8017DAB0 },
-    { ROOM_MESSAGE_COMMAND, func_shelter_b2_elevator_8017DAA8 },
-    { 5100, func_shelter_b2_elevator_8017DAB8 },
-    { 5101, func_shelter_b2_elevator_8017DAE0 },
+    { SHELTER_B2_ELEVATOR_MESSAGE_USE_KEY_ITEM, _shelterB2ElevatorRejectKeyItemMessage },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _shelterB2ElevatorIgnoreActionMessage },
+    { ROOM_MESSAGE_COMMAND, _shelterB2ElevatorIgnoreCommandMessage },
+    { SHELTER_B2_ELEVATOR_MESSAGE_OPEN_DOOR, _shelterB2ElevatorOpenDoorMessage },
+    { SHELTER_B2_ELEVATOR_MESSAGE_CLOSE_DOOR, _shelterB2ElevatorCloseDoorMessage },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -359,26 +376,30 @@ AreaApplyRec D_shelter_b2_elevator_8017E9F8[2] = {
 
 Task* D_shelter_b2_elevator_8017EA00[2];
 
-static __inline__ Task* ShelterElevator_SpawnTask(s32 index, s32 direction);
-static void             func_shelter_b2_elevator_8017D5E8(Task* task);
+static void func_shelter_b2_elevator_8017D5E8(Task* task);
+
+/// Spawns a door leaf at rest or the room's exit task on the selected task list.
+///
+/// `descriptorIndex` is 0 or 1 for a leaf, or 2 for the exit task; it is unchecked.
+/// `doorSide` is the leaf's signed Z direction (-1 or 1), ignored by the exit
+/// task. The new task owns its body and work; returns NULL on spawn failure.
+/// Keep this room's callback code and model geometry loaded while tasks use them.
+static __inline__ Task* _shelterB2ElevatorSpawnTask(s32 descriptorIndex, s32 doorSide)
+{
+    return taskSpawnFromTable(D_shelter_b2_elevator_8017DF70, descriptorIndex, SHELTER_B2_ELEVATOR_DOOR_REST, doorSide);
+}
 
 /// The room entry task's first state: installs the room's message table, takes
 /// pointer slot 7 and spawns the two door leaves. Unless the byte
 /// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene` is 9, it then either runs the first-visit sequence, setting
 /// event nibble 0xCF, or on a later visit hides the HUD, spawns the exit task
 /// and runs CAP command 3.
-/// Spawn one of this room's task descriptors with its signed travel direction.
-static __inline__ Task* ShelterElevator_SpawnTask(s32 index, s32 direction)
-{
-    return taskSpawnFromTable(D_shelter_b2_elevator_8017DF70, index, 0, direction);
-}
-
 static void func_shelter_b2_elevator_8017D5E8(Task* task)
 {
     task->msgTable = D_shelter_b2_elevator_8017DFA0;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    D_shelter_b2_elevator_8017EA00[0] = ShelterElevator_SpawnTask(0, -1);
-    D_shelter_b2_elevator_8017EA00[1] = ShelterElevator_SpawnTask(1, 1);
+    D_shelter_b2_elevator_8017EA00[0] = _shelterB2ElevatorSpawnTask(SHELTER_B2_ELEVATOR_TASK_NEGATIVE_Z_LEAF, -1);
+    D_shelter_b2_elevator_8017EA00[1] = _shelterB2ElevatorSpawnTask(SHELTER_B2_ELEVATOR_TASK_POSITIVE_Z_LEAF, 1);
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 9) {
         if (gameFlagGetNibble(GAME_FLAG_0CF) == 0) {
             gameFlagSetNibble(GAME_FLAG_0CF, 1);
@@ -387,74 +408,92 @@ static void func_shelter_b2_elevator_8017D5E8(Task* task)
         } else {
             gGameSession->hideHud    = 1;
             gGameSession->eventState = 1;
-            ShelterElevator_SpawnTask(2, 0);
+            _shelterB2ElevatorSpawnTask(SHELTER_B2_ELEVATOR_TASK_EXIT, 0);
             Gp_RunCapCmd(3, 0);
         }
     }
     task->state++;
 }
 
-/// The task of one leaf of the elevator's sliding door. The first frame
-/// allocates its `_ShelterB2ElevatorDoorLeafWork` and places the model shut;
-/// every later frame slides the leaf by `spawnArg1` steps, keeps its travel
-/// within the opening, offsets the model along Z to the side `spawnArg2`
-/// names, and submits the model, with object flag 0x80 set except in camera
-/// view 2.
-void func_shelter_b2_elevator_8017D70C(Task* task)
+/// Steps a leaf's bounded travel and places it on its signed side of the doorway.
+static __inline__ void _shelterB2ElevatorSlideDoorLeaf(Task* task, _ShelterB2ElevatorDoorLeafWork* leafWork, GfxCoord* modelCoord)
 {
-    TmdObject*                      obj;
-    GfxCoord*                       coord;
-    _ShelterB2ElevatorDoorLeafWork* work;
-    VECTOR                          vec;
+    leafWork->travel += task->spawnArg1.value * SHELTER_B2_ELEVATOR_DOOR_LEAF_SPEED;
+    if (leafWork->travel < 0) {
+        leafWork->travel = 0;
+    }
+    if (leafWork->travel > SHELTER_B2_ELEVATOR_DOOR_LEAF_TRAVEL_MAX) {
+        leafWork->travel = SHELTER_B2_ELEVATOR_DOOR_LEAF_TRAVEL_MAX;
+    }
+    modelCoord->coord.t[2] = (leafWork->travel * task->spawnArg2.value) + SHELTER_B2_ELEVATOR_DOOR_CLOSED_Z;
+}
 
-    obj   = task->extra.tmd;
-    coord = obj->coords;
+/// Maintains one mirrored leaf of the elevator's sliding door.
+///
+/// Requires a live TMD body. State 0 places it shut and allocates task-owned
+/// travel storage; failure kills the task. State 1 slides in whole world units
+/// and refreshes lighting, drawing only in the doorway view. `spawnArg1` selects
+/// opening (1), closing (-1) or rest (0); `spawnArg2` selects the Z side (-1 or 1).
+/// The view coordinate and room geometry must remain loaded until task teardown.
+static void _shelterB2ElevatorDoorLeafTask(Task* task)
+{
+    enum {
+        SHELTER_B2_ELEVATOR_DOOR_LEAF_INIT   = 0,
+        SHELTER_B2_ELEVATOR_DOOR_LEAF_UPDATE = 1,
+        SHELTER_B2_ELEVATOR_DOORWAY_VIEW     = 2,
+        SHELTER_B2_ELEVATOR_DOOR_X           = 10900,
+        SHELTER_B2_ELEVATOR_DOOR_OT_OFFSET   = 100,
+        SHELTER_B2_ELEVATOR_DOOR_LIGHT_COUNT = 3,
+    };
+
+    TmdObject*                      model;
+    GfxCoord*                       modelCoord;
+    _ShelterB2ElevatorDoorLeafWork* leafWork;
+    VECTOR3                         worldPosition;
+
+    model      = task->extra.tmd;
+    modelCoord = model->coords;
     switch (task->state) {
-        case 0:
-            work = memCalloc(sizeof(_ShelterB2ElevatorDoorLeafWork), 0);
-            if (work == NULL) {
+        case SHELTER_B2_ELEVATOR_DOOR_LEAF_INIT:
+            leafWork = memCalloc(sizeof(*leafWork), 0);
+            if (leafWork == NULL) {
                 taskKill(task);
                 return;
             }
-            task->work          = work;
-            work->travel        = 0;
-            obj->otOffset       = 0x64;
-            obj->flags          = 0;
-            coord->parent       = &gGfxViewCoord;
-            coord->coord.t[0]   = 0x2A94;
-            coord->coord.t[1]   = 0;
-            coord->coord.t[2]   = SHELTER_B2_ELEVATOR_DOOR_CLOSED_Z;
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
+            task->work               = leafWork;
+            leafWork->travel         = 0;
+            model->otOffset          = SHELTER_B2_ELEVATOR_DOOR_OT_OFFSET;
+            model->flags             = 0;
+            modelCoord->parent       = &gGfxViewCoord;
+            modelCoord->coord.t[0]   = SHELTER_B2_ELEVATOR_DOOR_X;
+            modelCoord->coord.t[1]   = 0;
+            modelCoord->coord.t[2]   = SHELTER_B2_ELEVATOR_DOOR_CLOSED_Z;
+            modelCoord->composeStamp = GRAPHICS_COORD_DIRTY;
             task->state++;
             break;
-        case 1:
-            work          = task->work;
-            work->travel += task->spawnArg1.value * SHELTER_B2_ELEVATOR_DOOR_LEAF_SPEED;
-            if (work->travel < 0) {
-                work->travel = 0;
-            }
-            if (work->travel > SHELTER_B2_ELEVATOR_DOOR_LEAF_TRAVEL_MAX) {
-                work->travel = SHELTER_B2_ELEVATOR_DOOR_LEAF_TRAVEL_MAX;
-            }
-            coord->coord.t[2] = (work->travel * task->spawnArg2.value) + SHELTER_B2_ELEVATOR_DOOR_CLOSED_Z;
-            if (gGameSession->location.loc.view == 2) {
-                obj->flags = 0;
+        case SHELTER_B2_ELEVATOR_DOOR_LEAF_UPDATE:
+            // Opposite side signs retract the two leaves from the same shut Z.
+            leafWork = task->work;
+            _shelterB2ElevatorSlideDoorLeaf(task, leafWork, modelCoord);
+            if (gGameSession->location.loc.view == SHELTER_B2_ELEVATOR_DOORWAY_VIEW) {
+                model->flags = 0;
             } else {
-                obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+                model->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             }
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            actorRenderComposeCoord(coord);
-            vec.vx = coord->workm.t[0];
-            vec.vy = coord->workm.t[1];
-            vec.vz = coord->workm.t[2];
-            worldCoordSetModelLighting(obj, &vec, 0, 3);
+            // Lighting samples the composed position, including the view parent.
+            modelCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+            actorRenderComposeCoord(modelCoord);
+            worldPosition.vx = modelCoord->workm.t[0];
+            worldPosition.vy = modelCoord->workm.t[1];
+            worldPosition.vz = modelCoord->workm.t[2];
+            worldCoordSetModelLighting(model, &worldPosition, 0, SHELTER_B2_ELEVATOR_DOOR_LIGHT_COUNT);
             break;
     }
 }
 
 /// The room entry task's three states: set the room up, idle, end.
 static const TaskFuncTable3 D_shelter_b2_elevator_8017D5C4 = {
-    { func_shelter_b2_elevator_8017D5E8, func_shelter_b2_elevator_8017DB08, taskKill },
+    { func_shelter_b2_elevator_8017D5E8, _shelterB2ElevatorRoomIdleState, taskKill },
 };
 
 /// The exit task. After 21 frames and once the CAP script is idle, it sets the
@@ -516,10 +555,12 @@ void func_shelter_b2_elevator_8017D888(Task* task)
     }
 }
 
-/// Message-table handler for message 0x13F1. Does nothing.
-s32 func_shelter_b2_elevator_8017DA5C(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Refuses every inventory key-item request, returning 0 without consuming it.
+static s32 _shelterB2ElevatorRejectKeyItemMessage(Task* task, s32 messageId, s32 itemId, s32 unusedArg)
 {
-    return 0;
+    enum { SHELTER_B2_ELEVATOR_KEY_ITEM_REFUSED = 0 };
+
+    return SHELTER_B2_ELEVATOR_KEY_ITEM_REFUSED;
 }
 
 /// Message-table handler for message 0x13EE: copies the incoming record onto
@@ -531,52 +572,54 @@ s32 func_shelter_b2_elevator_8017DA64(Task* arg0, s32 arg1, RoomEventMsg* in, Ro
     return 1;
 }
 
-/// Message-table handler for message 0x13F0. Does nothing.
-s32 func_shelter_b2_elevator_8017DAA8(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores `ROOM_MESSAGE_COMMAND` and returns 0 without changing room state.
+static s32 _shelterB2ElevatorIgnoreCommandMessage(Task* task, s32 messageId, s32 commandId, s32 commandArg)
 {
     return 0;
 }
 
-/// Message-table handler for message 0x13EF. Does nothing.
-s32 func_shelter_b2_elevator_8017DAB0(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores `DIRECTION_MESSAGE_ROOM_ACTION` and its borrowed request, returning 0.
+static s32 _shelterB2ElevatorIgnoreActionMessage(Task* task, s32 messageId, const DirectionActionRequest* unusedRequest, s32 unusedArg)
 {
     return 0;
 }
 
-/// Message-table handler for message 0x13EC: sets `spawnArg1` of both door
-/// leaves to 1, opening the door.
-s32 func_shelter_b2_elevator_8017DAB8(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Requests both door leaves to open on subsequent updates and returns 0.
+///
+/// Both tasks in `D_shelter_b2_elevator_8017EA00` must be live; their initial
+/// travel storage is allocated by their own first updates. Payloads are ignored.
+static s32 _shelterB2ElevatorOpenDoorMessage(Task* task, s32 messageId, s32 unusedArg1, s32 unusedArg2)
 {
-    D_shelter_b2_elevator_8017EA00[0]->spawnArg1.value = 1;
-    D_shelter_b2_elevator_8017EA00[1]->spawnArg1.value = 1;
+    D_shelter_b2_elevator_8017EA00[0]->spawnArg1.value = SHELTER_B2_ELEVATOR_DOOR_OPEN;
+    D_shelter_b2_elevator_8017EA00[1]->spawnArg1.value = SHELTER_B2_ELEVATOR_DOOR_OPEN;
     return 0;
 }
 
-/// Message-table handler for message 0x13ED: sets `spawnArg1` of both door
-/// leaves to -1, closing the door.
-s32 func_shelter_b2_elevator_8017DAE0(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Requests both door leaves to close on subsequent updates and returns 0.
+///
+/// Both tasks in `D_shelter_b2_elevator_8017EA00` must be live. Payloads are ignored.
+static s32 _shelterB2ElevatorCloseDoorMessage(Task* task, s32 messageId, s32 unusedArg1, s32 unusedArg2)
 {
-    D_shelter_b2_elevator_8017EA00[0]->spawnArg1.value = -1;
-    D_shelter_b2_elevator_8017EA00[1]->spawnArg1.value = -1;
+    D_shelter_b2_elevator_8017EA00[0]->spawnArg1.value = SHELTER_B2_ELEVATOR_DOOR_CLOSE;
+    D_shelter_b2_elevator_8017EA00[1]->spawnArg1.value = SHELTER_B2_ELEVATOR_DOOR_CLOSE;
     return 0;
 }
 
-/// The room entry task's idle state.
-static void func_shelter_b2_elevator_8017DB08(Task* task)
+/// Keeps the initialized room task idle without changing its state or resources.
+static void _shelterB2ElevatorRoomIdleState(Task* unusedTask)
 {
-    char pad[0x10];
+    // Preserve the original 16-byte idle frame; no stack bytes are accessed.
+    char unusedFrame[0x10];
 }
 
-/// Runs the room entry task's current state from its three-entry table, which
-/// it copies onto the stack before the call.
-void func_shelter_b2_elevator_8017DB18(Task* task)
+void shelterB2ElevatorRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_shelter_b2_elevator_8017D5C4;
-    sp.funcs[task->state](task);
+    stateHandlers = D_shelter_b2_elevator_8017D5C4;
+    stateHandlers.funcs[task->state](task);
 }
 
-void func_shelter_b2_elevator_8017DB70(Task* unused)
+void shelterB2ElevatorEffectNoopTask(Task* unusedTask)
 {
 }

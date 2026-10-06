@@ -1875,7 +1875,7 @@ shelterB2PodBottomShadowTask = 0x8017D760; // type:func absolute:True owner=shel
 
 shelterB1TransferTunnelDrawGlowsTask = 0x8017D6D0; // type:func absolute:True owner=shelter_b1_transfer_tunnel shared=rooms
 
-func_shelter_b2_elevator_8017DB70 = 0x8017DB70; // type:func absolute:True owner=shelter_b2_elevator shared=rooms
+shelterB2ElevatorEffectNoopTask = 0x8017DB70; // type:func absolute:True owner=shelter_b2_elevator shared=rooms
 
 func_shelter_b2_elevator_hall_8017DD60 = 0x8017DD60; // type:func absolute:True owner=shelter_b2_elevator_hall shared=rooms
 

@@ -42,4 +42,12 @@ D_shelter_b2_elevator_8017E9BC = 0x8017E9BC; // size:0xC defined:True
 gViewIdentityMap = 0x8010CAF8; // absolute:True
 D_actor_142900_80137600 = 0x80137600; // absolute:True owner=actor_142900
 
-func_shelter_b2_elevator_8017DB70 = 0x8017DB70; // type:func
+shelterB2ElevatorEffectNoopTask = 0x8017DB70; // type:func
+_shelterB2ElevatorDoorLeafTask = 0x8017d70c; // type:func
+_shelterB2ElevatorRejectKeyItemMessage = 0x8017da5c; // type:func
+_shelterB2ElevatorIgnoreCommandMessage = 0x8017daa8; // type:func
+_shelterB2ElevatorIgnoreActionMessage = 0x8017dab0; // type:func
+_shelterB2ElevatorOpenDoorMessage = 0x8017dab8; // type:func
+_shelterB2ElevatorCloseDoorMessage = 0x8017dae0; // type:func
+_shelterB2ElevatorRoomIdleState = 0x8017db08; // type:func
+shelterB2ElevatorRoomTask = 0x8017db18; // type:func

@@ -851,7 +851,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, shelterB1PodServiceGantryInitEffectsTask, { NULL } },                               // 0x136
     { { { TASK_BODY_COORD, 0x70 } }, shelterB1TransferTunnelDrawGlowsTask, { NULL } },                                   // 0x137
     { { { TASK_BODY_COORD, 0x70 } }, shelterB1ControlRoomAccessTunnelDrawGlowsTask, { NULL } },                          // 0x138
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b2_elevator_8017DB70, { NULL } },                                      // 0x139
+    { { { TASK_BODY_COORD, 0x70 } }, shelterB2ElevatorEffectNoopTask, { NULL } },                                        // 0x139
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b2_elevator_hall_8017DD60, { NULL } },                                 // 0x13A
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b2_south_maintenance_walkway_8017DCC4, { NULL } },                     // 0x13B
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b2_operating_room_8017DDB8, { NULL } },                                // 0x13C
