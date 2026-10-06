@@ -1794,14 +1794,8 @@ u32* tmdDrawStreamPrimFt4(TmdStreamWorkspace* workspace, s32 objectFlags, u32* e
                 gte_rtps();
                 gte_stflg(gteFlagDestination);
                 if ((workspace->gteFlag & projectionErrorMask) == 0) {
-                    if (workspace->gteResult > 0) {
-                        goto drawQuad;
-                    }
                     // The FIFO now holds corners 1,2,3; either half may face forward.
-                    gte_nclip();
-                    gte_stopz(gteResultDestination);
-                    if (workspace->gteResult < 0) {
-                    drawQuad:
+                    if (workspace->gteResult > 0 || _tmdSecondHalfFacesViewer(workspace, gteResultDestination)) {
                         TMD_LINK_PROJECTED_RAW_FT4(quad, workspace, gteResultDestination, displayState, TMD_FT4_RAW_OPAQUE_COMMAND);
                     }
                 }
