@@ -897,7 +897,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, shelter1fVehicularAirlockDrawLightsTask, { NULL } },                     // 0x164
     { { { TASK_BODY_COORD, 0x70 } }, shelter1fBulwarkDrawGlowsTask, { NULL } },                               // 0x165
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_1f_heliport_80180B4C, { NULL } },                           // 0x166
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_1f_guardroom_8017DA28, { NULL } },                          // 0x167
+    { { { TASK_BODY_COORD, 0x70 } }, shelter1fGuardroomEffectNoopTask, { NULL } },                            // 0x167
     { { { TASK_BODY_COORD, 0x70 } }, neoArkR26EffectNoopTask, { NULL } },                                     // 0x168
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_1f_tent_8017FE10, { NULL } },                               // 0x169
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b2_main_corridor_8017EF24, { NULL } },                      // 0x16A

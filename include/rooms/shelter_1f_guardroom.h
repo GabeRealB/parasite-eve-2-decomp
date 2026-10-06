@@ -29,6 +29,11 @@ extern WorldCollisionSurfaceProperties* D_shelter_1f_guardroom_8017DFF4[];
 
 void func_shelter_1f_guardroom_8017D880(Task* task);
 
-void func_shelter_1f_guardroom_8017DA28(Task* unused);
+/// Room-effect callback that leaves the guardroom's effect task idle.
+///
+/// Effect bank 6, slot 0x167 supplies a single-coordinate task. This callback
+/// ignores the task, draws nothing and performs no teardown. The guardroom
+/// overlay must remain loaded while the callback can be dispatched.
+void shelter1fGuardroomEffectNoopTask(Task* unusedTask);
 
 #endif // INCLUDE_ROOMS_SHELTER_1F_GUARDROOM_H

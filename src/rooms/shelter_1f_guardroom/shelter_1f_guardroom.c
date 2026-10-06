@@ -36,14 +36,19 @@ extern TaskDesc         D_shelter_1f_guardroom_8017DA6C;
 extern Task*            D_shelter_1f_guardroom_8017E014;
 
 static void func_shelter_1f_guardroom_8017D824(Task* arg0);
-static void func_shelter_1f_guardroom_8017D878(Task* task);
-static void func_shelter_1f_guardroom_8017D9CC(s32 arg0);
+static void _shelter1fGuardroomRoomIdleState(Task* unusedTask);
+static void _shelter1fGuardroomSetUnlockOverlayVisible(u8 visible);
+static s32  _shelter1fGuardroomRejectKeyItemUse(Task* unusedTask, s32 unusedMessageId, s32 itemId, s32 unusedSecondArg);
+static s32  _shelter1fGuardroomIgnoreRoomAction(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg);
+
+/// Key-item use request dispatched to this room's message table.
+enum { SHELTER_1F_GUARDROOM_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
 /// The event task's three states: set-up, idle, and kill.
 static const TaskFuncTable3 D_shelter_1f_guardroom_8017D5C4 = {
     {
         func_shelter_1f_guardroom_8017D824,
-        func_shelter_1f_guardroom_8017D878,
+        _shelter1fGuardroomRoomIdleState,
         taskKill,
     },
 };
@@ -53,18 +58,16 @@ extern WorldCollisionTrigger      D_shelter_1f_guardroom_8017DE3C[2];
 extern WorldCollisionTrigger      D_shelter_1f_guardroom_8017DED4[3];
 extern WorldCoordRoomAmbientEntry D_shelter_1f_guardroom_8017DFB8[4];
 extern WorldCoordRoomLights       D_shelter_1f_guardroom_8017DE24[1];
-s32                               func_shelter_1f_guardroom_8017D73C(Task*, s32, s32, s32);
 s32                               func_shelter_1f_guardroom_8017D744(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32                               func_shelter_1f_guardroom_8017D788(Task*, s32, s32, s32);
-s32                               func_shelter_1f_guardroom_8017D7E8(Task*, s32, s32, s32);
 s32                               func_shelter_1f_guardroom_8017D7F0(Task*, s32, s32, s32);
 void                              func_shelter_1f_guardroom_8017D5E8(Task*);
 void                              func_shelter_1f_guardroom_8017D8D8(Task*);
 
 TaskMessageEntry D_shelter_1f_guardroom_8017DA30[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_1f_guardroom_8017D744 },
-    { 5105, func_shelter_1f_guardroom_8017D73C },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_1f_guardroom_8017D7E8 },
+    { SHELTER_1F_GUARDROOM_MESSAGE_USE_KEY_ITEM, _shelter1fGuardroomRejectKeyItemUse },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _shelter1fGuardroomIgnoreRoomAction },
     { ROOM_MESSAGE_COMMAND, func_shelter_1f_guardroom_8017D788 },
     { ROOM_MESSAGE_SOUND, func_shelter_1f_guardroom_8017D7F0 },
     { TASK_MESSAGE_TABLE_END, NULL },
@@ -209,7 +212,7 @@ Task* D_shelter_1f_guardroom_8017E014 = NULL;
 /// Cutscene task spawned from the 0x13F0 handler: runs cap command 2, waits for
 /// it, and when the cap event key reads 0xB hides the HUD and runs the task
 /// described at `D_shelter_1f_guardroom_8017DA6C` until it is killed. It then
-/// restores the HUD, calls `func_shelter_1f_guardroom_8017D9CC(1)`, sets game
+/// restores the HUD, calls `_shelter1fGuardroomSetUnlockOverlayVisible(1)`, sets game
 /// nibble 0xB2 to 1 and hands the weapon back. Any other key ends it at once.
 void func_shelter_1f_guardroom_8017D5E8(Task* task)
 {
@@ -244,7 +247,7 @@ void func_shelter_1f_guardroom_8017D5E8(Task* task)
             break;
         case 4:
             gGameSession->hideHud = 0;
-            func_shelter_1f_guardroom_8017D9CC(1);
+            _shelter1fGuardroomSetUnlockOverlayVisible(1);
             gameFlagSetNibble(GAME_FLAG_SHELTER_1F_BULWARK_UNLOCKED, 1);
             Gp_MsgPlayerWeapon(1);
             taskKill(task);
@@ -252,10 +255,15 @@ void func_shelter_1f_guardroom_8017D5E8(Task* task)
     }
 }
 
-/// The room's handler for message 0x13F1: does nothing and returns 0.
-s32 func_shelter_1f_guardroom_8017D73C(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Refuses every key-item use request in the guardroom without consuming the item.
+///
+/// `itemId` is the inventory item ID; all arguments are ignored. The zero
+/// result makes the item menu report that the item cannot be used here.
+static s32 _shelter1fGuardroomRejectKeyItemUse(Task* unusedTask, s32 unusedMessageId, s32 itemId, s32 unusedSecondArg)
 {
-    return 0;
+    enum { SHELTER_1F_GUARDROOM_KEY_ITEM_USE_REFUSED = 0 };
+
+    return SHELTER_1F_GUARDROOM_KEY_ITEM_USE_REFUSED;
 }
 
 /// The room's handler for message 0x13EE: copies the incoming `RoomEventMsg` onto
@@ -284,8 +292,11 @@ s32 func_shelter_1f_guardroom_8017D788(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
     return 0;
 }
 
-/// The room's handler for message 0x13EF: does nothing and returns 0.
-s32 func_shelter_1f_guardroom_8017D7E8(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores trigger action requests in the guardroom and returns zero.
+///
+/// `request` borrows the direction system's action record during synchronous
+/// dispatch. No argument is read, no action starts, and no storage is retained.
+static s32 _shelter1fGuardroomIgnoreRoomAction(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg)
 {
     return 0;
 }
@@ -302,17 +313,20 @@ s32 func_shelter_1f_guardroom_8017D7F0(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 
 /// State 0 of the room's event task: installs the room's message table,
 /// publishes the task in pointer slot 7, passes game nibble 0xB2 to
-/// `func_shelter_1f_guardroom_8017D9CC` and advances to state 1.
+/// `_shelter1fGuardroomSetUnlockOverlayVisible` and advances to state 1.
 static void func_shelter_1f_guardroom_8017D824(Task* arg0)
 {
     arg0->msgTable = D_shelter_1f_guardroom_8017DA30;
     gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
-    func_shelter_1f_guardroom_8017D9CC(gameFlagGetNibble(GAME_FLAG_SHELTER_1F_BULWARK_UNLOCKED) & 0xFF);
+    _shelter1fGuardroomSetUnlockOverlayVisible(gameFlagGetNibble(GAME_FLAG_SHELTER_1F_BULWARK_UNLOCKED));
     arg0->state = (s32)(arg0->state + 1);
 }
 
-/// State 1 of the room's event task: does nothing, so the task idles here.
-static void func_shelter_1f_guardroom_8017D878(Task* task)
+/// Keeps the initialized room event task available for messages in state 1.
+///
+/// The frame callback leaves the task, its message table and its state intact;
+/// teardown remains the responsibility of the room's task owner.
+static void _shelter1fGuardroomRoomIdleState(Task* unusedTask)
 {
 }
 
@@ -326,7 +340,7 @@ void func_shelter_1f_guardroom_8017D880(Task* task)
     sp.funcs[task->state](task);
 }
 
-/// Task the cutscene task spawns: calls `func_shelter_1f_guardroom_8017D9CC(0)`,
+/// Task the cutscene task spawns: calls `_shelter1fGuardroomSetUnlockOverlayVisible(0)`,
 /// raises the CD queue's `field_1EA`, enqueues CD command 0x61 for the stream
 /// slot of the session's current location, waits for the queue's `field_1FA`,
 /// then for the CD to go idle, and requests its own kill.
@@ -338,7 +352,7 @@ void func_shelter_1f_guardroom_8017D8D8(Task* arg0)
     queue = &gCdCmdQueue;
     switch (arg0->state) {
         case 0:
-            func_shelter_1f_guardroom_8017D9CC(0);
+            _shelter1fGuardroomSetUnlockOverlayVisible(0);
             queue->movieFrame = 1;
             slotParam[0]      = streamFindMovieSlot(&gGameSession->location.loc, 0, 0);
             cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, 0, slotParam);
@@ -357,21 +371,28 @@ void func_shelter_1f_guardroom_8017D8D8(Task* arg0)
     }
 }
 
-/// Sets `field_4` of the second sprite command in entry 2 of the current
-/// area's sprite table: 1 when the low byte of `arg0` is zero, 0 otherwise.
-static void func_shelter_1f_guardroom_8017D9CC(s32 arg0)
+/// Shows or hides the two-sprite overlay for the unlocked bulwark in guardroom view 3.
+///
+/// `visible` is a byte (0 hidden, nonzero visible). Requires the current session
+/// to select the guardroom and its map and room resources to remain loaded.
+/// The overlay is hidden during the unlock movie and restored when it completes.
+static void _shelter1fGuardroomSetUnlockOverlayVisible(u8 visible)
 {
-    GameLocationKey* sess = &gGameSession->location.loc;
-    SpriteBatch*     batches;
+    enum {
+        SHELTER_1F_GUARDROOM_UNLOCK_OVERLAY_VIEW_INDEX  = 2,
+        SHELTER_1F_GUARDROOM_UNLOCK_OVERLAY_BATCH_INDEX = 1,
+    };
+    const GameLocationKey* location = &gGameSession->location.loc;
+    SpriteBatch*           batches;
 
-    batches = Gp_SprtTables[sess->stage - 1][0].areaViews[sess->area - 1][2].batches;
-    if ((arg0 & 0xFF) == 0) {
-        batches[1].hidden = 1;
+    batches = Gp_SprtTables[location->stage - 1]->areaViews[location->area - 1][SHELTER_1F_GUARDROOM_UNLOCK_OVERLAY_VIEW_INDEX].batches;
+    if (visible == 0) {
+        batches[SHELTER_1F_GUARDROOM_UNLOCK_OVERLAY_BATCH_INDEX].hidden = 1;
     } else {
-        batches[1].hidden = 0;
+        batches[SHELTER_1F_GUARDROOM_UNLOCK_OVERLAY_BATCH_INDEX].hidden = 0;
     }
 }
 
-void func_shelter_1f_guardroom_8017DA28(Task* unused)
+void shelter1fGuardroomEffectNoopTask(Task* unusedTask)
 {
 }

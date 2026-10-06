@@ -1921,7 +1921,7 @@ shelter1fBulwarkDrawGlowsTask = 0x8017E2A4; // type:func absolute:True owner=she
 
 func_shelter_1f_heliport_80180B4C = 0x80180B4C; // type:func absolute:True owner=shelter_1f_heliport
 
-func_shelter_1f_guardroom_8017DA28 = 0x8017DA28; // type:func absolute:True owner=shelter_1f_guardroom shared=rooms
+shelter1fGuardroomEffectNoopTask = 0x8017DA28; // type:func absolute:True owner=shelter_1f_guardroom shared=rooms
 
 neoArkR26EffectNoopTask = 0x8017D778; // type:func absolute:True owner=neo_ark_r26 shared=rooms
 

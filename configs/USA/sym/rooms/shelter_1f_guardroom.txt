@@ -30,4 +30,8 @@ D_shelter_1f_guardroom_8017DFE4 = 0x8017DFE4; // size:0x8 defined:True
 D_shelter_1f_guardroom_8017DFEC = 0x8017DFEC; // size:0x8 defined:True
 D_shelter_1f_guardroom_8017DFF4 = 0x8017DFF4; // size:0x20 defined:True
 
-func_shelter_1f_guardroom_8017DA28 = 0x8017DA28; // type:func
+shelter1fGuardroomEffectNoopTask = 0x8017DA28; // type:func
+_shelter1fGuardroomSetUnlockOverlayVisible = 0x8017d9cc; // type:func
+_shelter1fGuardroomRejectKeyItemUse = 0x8017d73c; // type:func
+_shelter1fGuardroomIgnoreRoomAction = 0x8017d7e8; // type:func
+_shelter1fGuardroomRoomIdleState = 0x8017d878; // type:func
