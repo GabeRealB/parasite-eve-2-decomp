@@ -2681,8 +2681,6 @@ void uiDrawTitle(UiPanel* panel, const char* title)
             }
             _uiComputeScaledPanelRect(panel, rect, scaleEighths, 0);
             break;
-        case USER_INTERFACE_PANEL_OPEN:
-            goto block_default;
         case USER_INTERFACE_PANEL_CLOSING:
         case USER_INTERFACE_PANEL_HIDING:
             scaleEighths = USER_INTERFACE_PANEL_ANIMATION_TICKS - panel->animationTicks;
@@ -2691,8 +2689,8 @@ void uiDrawTitle(UiPanel* panel, const char* title)
             }
             _uiComputeScaledPanelRect(panel, rect, scaleEighths, 1);
             break;
+        case USER_INTERFACE_PANEL_OPEN:
         default:
-        block_default:
             rect->x = panel->bounds.rect.x;
             rect->y = panel->bounds.rect.y;
             rect->w = panel->bounds.rect.w;
