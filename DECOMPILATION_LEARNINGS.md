@@ -148666,6 +148666,9 @@ where it was. Reusing another local for the load (`placeIndex`, `hp`,
   angle fixes the order (set more than once) but then nothing local holds
   `$s0` and `work` takes it. The permuter's only exact answer was
   `do { callAngle = f(); } while (0);`, a loop-note fence, not kept.
+  *Note 2026-10-07:* now none. The angle was not a local of its own: it
+  shares a result variable with the next case. See the section at the end of
+  this file with this function's name.
 - `func_actor_160900_Reseed` (`TOUCH_REG_USE2`). The target is
   `lw work; move s2,a2; sh a2`: the `id = anim` copy sits after the stores at
   `.lreg` (sched2 lifts it into the load-delay slot later). Plain C gives the
@@ -151647,3 +151650,76 @@ probably written as an update of the first variable. Check `used N times`
 in `.lreg` against the insns that mention the pseudo: a surplus is a set/use
 pair combine merged. The same stale count is why a local reused for a second
 value (Gp_UpdatePlayerMove) outranks two separate locals.
+
+### A call's result that must stay above the next call's arguments: a result variable shared with another `case` (Actor01600_Fn04EB0, 2026-10-07)
+
+**Problem.** `x = f(a, &d); g(a, d, x); p->field = x;` in one `case`. The
+target has `move s0,v0` first, then `move a0,s2`, and `a` in `$s2`, the
+function-wide flag in `$s0`. Plain C gives `move a0,s0; move s2,v0` with `a`
+and the flag swapped. It was held by `TOUCH_REG(x)`.
+
+**Mechanism (sched.c, read with the `.sched` trace).** Every insn of the block
+has priority 1. After the second `jal` is placed, the ready list is
+`a0 = a` and `a2 = x`; equal priority and equal class, so the higher LUID
+(`a2 = x`) goes first. Placing it launches `x = v0`, which
+`birthing_insn_p` raises to `LAUNCH_PRIORITY` (`0x7f000001`) because `x` is
+live and `REG_N_SETS (x) == 1`, so the copy is placed next and ends *below*
+`a0 = a`. `a` is then dead before `x` is born, the two do not conflict, and
+`a` takes the register local-alloc gave `x`. Nothing in a block of moves can
+change this: the argument moves are emitted in argument order, `a0 = a` has
+no load in front of it to raise its priority, and no insn that depends on the
+copy can sit before it without leaving an instruction. Only three things stop
+the boost: a volatile `asm`, a loop note (`sched_analyze_insn` makes the insn
+after a `NOTE_INSN_LOOP_BEG/END` depend on everything; an empty
+`do { } while (0);` after the assignment matches, which is what the permuter
+finds), or `REG_N_SETS (x) != 1`.
+
+**Why reusing the flag failed, and what the count has to be.** A second set
+must still exist at sched1: combine decrements `REG_N_SETS` when it merges a
+set into its only use, so `x = g(); if (x & 0xFF)` in another case does not
+count. A second set that survives leaves an instruction, and the only
+instructions on `x`'s register elsewhere were the flag's. But one variable for
+both (`flags = f()`) is global with 10 references over 147 insns and ranks far
+below the struct pointer (36 over 212, priority 8490), which then takes `$s0`.
+
+**Fix.** The function has *two* such variables. The one initialised at the top
+is read only by the last case; the other case's direction flag (`= 0`,
+`= 0x80`, `return v | 1`) is a different variable, and it is the same one that
+holds the angle here and the checked results of `g()`:
+
+```c
+case PROBE:
+    result = f(arg0, &distance);
+    g(arg0, distance, result);
+    work->turnRequest = result;
+    ...
+case CHECK:
+    work->turnRequest = f(arg0, &distance);
+    result            = g(arg0, distance, work->turnRequest);
+    if (result & 0xFF) {
+        ...
+        if (other < mag) { result = 0;    angle = other; }
+        else             { result = 0x80; angle = mag;   }
+        ...
+        return result | 1;
+```
+
+Three sets survive (the copy and the two constants), so the copy is not
+boosted. The `result = g(); if (result & 0xFF)` pairs are merged by combine
+into `andi v0,v0,0xff` and leave no instruction, but flow had already counted
+them and combine does not take the references back: `.lreg` says
+`used 10 times across 24 insns`, priority 3 * 10 / 24 = 12500, above the
+struct pointer. `result` is allocated first and takes `$s0`, the pointer `$s1`,
+`a` (now conflicting) `$s2`, and the top flag, dead in these cases, shares
+`$s0`. Measured: angle + flag alone is 6 over 24 = 5000 and fails; one merged
+pair (either case) gives 8 = 10000 and matches; the merged pairs without the
+flag leave `REG_N_SETS == 1` and the copy sinks again.
+
+**Use.** When a copy from `$v0` has to stay first in its block and the local
+it feeds looks single-set, look for instructions on the *same register* in
+another block that are attributed to a different variable (here a flag set in
+both arms of an `if`). Splitting that variable in two, with one half joined to
+the call's result, makes the copy multi-set without adding an instruction; the
+priority it then needs can come from `v = call(); if (v & mask)` pairs, which
+cost nothing. Check `Register N used K times across L insns` in `.lreg`
+against the pointer it has to outrank.

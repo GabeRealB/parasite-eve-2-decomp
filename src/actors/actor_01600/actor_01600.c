@@ -3866,7 +3866,7 @@ static u8 Actor01600_Fn04EB0(Task* arg0)
     s32              direction;
     s32              i;
     s32              count;
-    s32              callAngle;
+    s32              result; // The bearing, a probe's verdict, then the turn direction flag
     s32              circle;
     s32              turn;
 
@@ -3874,30 +3874,30 @@ static u8 Actor01600_Fn04EB0(Task* arg0)
     flags = 0;
     switch (work->pathSearchPhase) {
         case ACTOR_01600_PATH_SEARCH_PROBE_TARGET:
-            callAngle = Actor01600_Fn045A8(arg0, &distance);
-            TOUCH_REG(callAngle);
-            Actor01600_Fn04C64(arg0, distance, callAngle);
-            work->turnRequest = callAngle;
+            result = Actor01600_Fn045A8(arg0, &distance);
+            Actor01600_Fn04C64(arg0, distance, result);
+            work->turnRequest = result;
             work->pathSearchPhase++;
             break;
         case ACTOR_01600_PATH_SEARCH_CHECK_TARGET:
             work->turnRequest = Actor01600_Fn045A8(arg0, &distance);
-            if (Actor01600_Fn04C64(arg0, distance, work->turnRequest) & 0xFF) {
+            result            = Actor01600_Fn04C64(arg0, distance, work->turnRequest);
+            if (result & 0xFF) {
                 gfxReadMatrixZAxis(&arg0->extra.tmd->coords->coord, &dir);
                 ratan2(dir.vx, dir.vz);
                 mag   = __builtin_abs(work->turnRequest);
                 other = 0x1000 - mag;
                 if (other < mag) {
-                    flags = 0;
-                    angle = other;
+                    result = 0;
+                    angle  = other;
                 } else {
-                    flags = 0x80;
-                    angle = mag;
+                    result = 0x80;
+                    angle  = mag;
                 }
                 work->turnRate = angle / 16;
                 if (work->turnRate < 0x20)
                     work->turnRate = 0x20;
-                return flags | 1;
+                return result | 1;
             }
             work->pathSearchPhase++;
             break;
@@ -3913,7 +3913,8 @@ static u8 Actor01600_Fn04EB0(Task* arg0)
             work->pathSearchPhase++;
             break;
         case ACTOR_01600_PATH_SEARCH_SWEEP:
-            if (Actor01600_Fn04C64(arg0, 2000, 0) & 0xFF) {
+            result = Actor01600_Fn04C64(arg0, 2000, 0);
+            if (result & 0xFF) {
                 if (!work->clearArcCount)
                     return 0xFF;
                 work->pathSearchPhase++;
