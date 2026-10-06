@@ -1378,25 +1378,33 @@ void func_acropolis_roof_garden_8017DCDC(Task* task)
     }
 }
 
-/// Sets a light sprite's edges around its projected centre in screen pixels.
+/// Positions a light glow quad as a square around its projected screen centre.
 ///
-/// Each edge narrows to signed 16 bits before the paired corner stores.
+/// Borrows a writable `quad` and a separate readable `projection`; only
+/// `screenPos` and the nonnegative `halfExtent` need initialization, in pixels.
+/// Centre plus/minus half-extent must fit signed 32 bits. Each edge narrows to
+/// signed 16 bits without clipping, before its paired corner stores. Vertex
+/// indices 0..3 are top-left, top-right, bottom-left and bottom-right.
+/// Writes only the eight coordinate halfwords; no GPU packets are queued.
 static inline void _acropolisRoofGardenSetLightGlowBounds(POLY_FT4* quad, const RoomGlowSpriteScratch* projection)
 {
-    s16 edge;
+    s16 left;
+    s16 right;
+    s16 top;
+    s16 bottom;
 
-    edge     = projection->screenPos.vx - projection->halfExtent;
-    quad->x2 = edge;
-    quad->x0 = edge;
-    edge     = projection->screenPos.vx + projection->halfExtent;
-    quad->x3 = edge;
-    quad->x1 = edge;
-    edge     = projection->screenPos.vy - projection->halfExtent;
-    quad->y1 = edge;
-    quad->y0 = edge;
-    edge     = projection->screenPos.vy + projection->halfExtent;
-    quad->y3 = edge;
-    quad->y2 = edge;
+    left     = projection->screenPos.vx - projection->halfExtent;
+    quad->x2 = left;
+    quad->x0 = left;
+    right    = projection->screenPos.vx + projection->halfExtent;
+    quad->x3 = right;
+    quad->x1 = right;
+    top      = projection->screenPos.vy - projection->halfExtent;
+    quad->y1 = top;
+    quad->y0 = top;
+    bottom   = projection->screenPos.vy + projection->halfExtent;
+    quad->y3 = bottom;
+    quad->y2 = bottom;
 }
 
 void acropolisRoofGardenLightGlowTask(Task* task)
@@ -1481,31 +1489,39 @@ void acropolisRoofGardenLightGlowTask(Task* task)
     }
 }
 
-/// Initializes a flare streak with a red/green centre and black endpoints.
+/// Initializes a two-segment Gouraud flare streak fading from its centre to black.
 ///
-/// Borrows writable LINE_G3 frame-arena storage; colours narrow to bytes.
-static inline void _acropolisRoofGardenInitFlareStreak(LINE_G3* streak, u8 red, u8 green)
+/// Borrows one word-aligned writable `LINE_G3`, setting its opaque command,
+/// packet length and polyline terminator. Vertex 1 receives `centreRed` and
+/// `centreGreen` (0..255); blue and both endpoints are zero. The caller supplies all three
+/// vertex coordinates, DMA linkage and semitransparency before drawing.
+static inline void _acropolisRoofGardenInitFlareStreak(LINE_G3* streak, u8 centreRed, u8 centreGreen)
 {
     setLineG3(streak);
     setRGB0(streak, 0, 0, 0);
-    setRGB1(streak, red, green, 0);
+    setRGB1(streak, centreRed, centreGreen, 0);
     setRGB2(streak, 0, 0, 0);
 }
 
 /// Queues a flare packet and prepends its additive draw mode at the same depth.
 ///
-/// Borrows an initialized frame-arena quad or line and a separate readable Z/4
-/// depth word, at least GLOW_MIN_DEPTH. Depth wraps to ordering-table tag 0..1023.
-/// Requires arena space for a DR_TPAGE; packets stay live until GPU completion.
-static inline void _acropolisRoofGardenQueueFlare(void* primitive, const s32* sortingDepth)
+/// Borrows a word-aligned, initialized untextured `POLY_G4` or `LINE_G3` packet
+/// to link, and a separate readable `s32` `depthWord` for this call. The depth
+/// is projected SZ3 / 4, before `otDepthShift`; the caller rejects values below
+/// `GLOW_MIN_DEPTH`. Keep the depth word and display depth shift stable while
+/// linking. Unsigned scaling wraps to tag 0..1023 in the current ordering table.
+/// Enables packet semitransparency and consumes `sizeof(DR_TPAGE)` bytes of
+/// word-aligned frame-arena space without checking capacity. The table must
+/// contain the selected tag; both packets must live until GPU completion.
+static inline void _acropolisRoofGardenQueueFlare(void* primitive, const s32* depthWord)
 {
     enum { ACROPOLIS_ROOF_GARDEN_FLARE_DEPTH_TO_BYTE_OFFSET_SHIFT = 2 };
 
     addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(
-                ((((u32)*sortingDepth << gDisplayState.otDepthShift) >> ACROPOLIS_ROOF_GARDEN_FLARE_DEPTH_TO_BYTE_OFFSET_SHIFT) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                ((((u32)*depthWord << gDisplayState.otDepthShift) >> ACROPOLIS_ROOF_GARDEN_FLARE_DEPTH_TO_BYTE_OFFSET_SHIFT) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
             primitive);
     // Prepending the draw mode after the primitive makes the GPU apply it first.
-    gpuSetPrimitiveBlendMode(primitive, GPU_BLEND_ADD, *sortingDepth);
+    gpuSetPrimitiveBlendMode(primitive, GPU_BLEND_ADD, *depthWord);
 }
 
 void acropolisRoofGardenFlareTask(Task* task)
