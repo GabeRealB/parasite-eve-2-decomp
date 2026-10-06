@@ -1193,15 +1193,15 @@ shelterB2PodBottomLightBeamTask = 0x80180F10; // type:func absolute:True owner=s
 
 shelterB2PodBottomShockRingTask = 0x80181B48; // type:func absolute:True owner=shelter_b2_pod_bottom
 
-func_shelter_b2_septic_tank_8017EB7C = 0x8017EB7C; // type:func absolute:True owner=shelter_b2_septic_tank
+shelterB2SepticTankGlowTask = 0x8017EB7C; // type:func absolute:True owner=shelter_b2_septic_tank
 
-func_shelter_b2_septic_tank_8017F040 = 0x8017F040; // type:func absolute:True owner=shelter_b2_septic_tank
+shelterB2SepticTankWaterRippleTask = 0x8017F040; // type:func absolute:True owner=shelter_b2_septic_tank
 
-func_shelter_b2_septic_tank_8017F4C8 = 0x8017F4C8; // type:func absolute:True owner=shelter_b2_septic_tank
+shelterB2SepticTankWaterDriftTask = 0x8017F4C8; // type:func absolute:True owner=shelter_b2_septic_tank
 
-func_shelter_b2_septic_tank_80180BE0 = 0x80180BE0; // type:func absolute:True owner=shelter_b2_septic_tank
+shelterB2SepticTankRoomVisualEffectsFlashTask = 0x80180BE0; // type:func absolute:True owner=shelter_b2_septic_tank
 
-func_shelter_b2_septic_tank_80181644 = 0x80181644; // type:func absolute:True owner=shelter_b2_septic_tank
+shelterB2SepticTankRoomVisualEffectsTwinTrailTask = 0x80181644; // type:func absolute:True owner=shelter_b2_septic_tank
 
 func_shelter_b2_septic_tank_80181F2C = 0x80181F2C; // type:func absolute:True owner=shelter_b2_septic_tank
 

@@ -88,8 +88,11 @@ extern SVECTOR D_shelter_b2_septic_tank_80183534[];
 
 extern u8 D_shelter_b2_septic_tank_80187045;
 
-static void func_shelter_b2_septic_tank_8017EAB8(Task* arg0);
-static void func_shelter_b2_septic_tank_8017EAF8(Task* task);
+static __inline__ s32 _shelterB2SepticTankStartEvent(const RoomEventMsg* destination, const RoomLatchedEvent* event);
+static void           _shelterB2SepticTankInitializeRoom(Task* task);
+
+static void _shelterB2SepticTankInitializeWater(Task* task);
+static void _shelterB2SepticTankDrawWater(Task* task);
 
 extern TaskDesc         D_shelter_b2_septic_tank_80182F40;
 extern RoomFadeStorage  gRoomEventFade;
@@ -104,7 +107,7 @@ extern RoomLatchedEvent gRoomEventLatched;
 /// stays reserved until the GPU finishes the frame's ordering table.
 static u8* _gShelterB2SepticTankWaterPacketCursor;
 
-void func_shelter_b2_septic_tank_8017EA50(Task*);
+static void _shelterB2SepticTankWaterTask(Task* task);
 
 extern AnimationPlayRequest     D_shelter_b2_septic_tank_80182F80;
 extern AnimationPlayRequest     D_shelter_b2_septic_tank_80182FC0;
@@ -114,15 +117,27 @@ extern ActorCommand             D_shelter_b2_septic_tank_80182FA8;
 extern AnimationBankCopyRequest D_shelter_b2_septic_tank_80182F78;
 extern ActorTransform           D_shelter_b2_septic_tank_80182FD4;
 extern ActorTransform           D_shelter_b2_septic_tank_80182FEC;
-void                            func_shelter_b2_septic_tank_8017D97C(s32);
+static void                     _shelterB2SepticTankSetEncounterPhase(s32 encounterPhase);
 void                            func_shelter_b2_septic_tank_8017D9A0(void);
 
 extern TaskDesc D_actor_100400_80147E48;
 
-s32 func_shelter_b2_septic_tank_8017D7AC(Task*, s32, s32, s32);
-s32 func_shelter_b2_septic_tank_8017D7B4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_shelter_b2_septic_tank_8017D904(Task*, s32, s32, s32);
-s32 func_shelter_b2_septic_tank_8017D90C(Task*, s32, RoomEventMsg*, s32);
+static s32 _shelterB2SepticTankRejectKeyItem(Task* task, s32 messageId, s32 itemId, s32 unused);
+s32        func_shelter_b2_septic_tank_8017D7B4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+static s32 _shelterB2SepticTankIgnoreCommand(Task* task, s32 messageId, s32 command, s32 commandArg);
+s32        func_shelter_b2_septic_tank_8017D90C(Task*, s32, RoomEventMsg*, s32);
+
+enum {
+    SHELTER_B2_SEPTIC_TANK_MESSAGE_USE_KEY_ITEM     = 5105,
+    SHELTER_B2_SEPTIC_TANK_ENCOUNTER_INTRO_COMPLETE = 1,
+    SHELTER_B2_SEPTIC_TANK_ENCOUNTER_COMBAT_READY   = 2
+};
+
+enum {
+    SHELTER_B2_SEPTIC_TANK_WATER_INITIALIZE,
+    SHELTER_B2_SEPTIC_TANK_WATER_DRAW,
+    SHELTER_B2_SEPTIC_TANK_WATER_STATE_COUNT
+};
 
 static AnimationPackedPose _gShelterB2SepticTankAnimation05958Bank1[6] = {
 #include "assets/shelter_b2_septic_tank_animation_05958_bank1.inc"
@@ -150,9 +165,9 @@ TaskDesc D_shelter_b2_septic_tank_80182F40 = { { { TASK_BODY_NONE, 32 } }, roomE
 
 TaskMessageEntry D_shelter_b2_septic_tank_80182F4C[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b2_septic_tank_8017D7B4 },
-    { 5105, func_shelter_b2_septic_tank_8017D7AC },
+    { SHELTER_B2_SEPTIC_TANK_MESSAGE_USE_KEY_ITEM, _shelterB2SepticTankRejectKeyItem },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b2_septic_tank_8017D90C },
-    { ROOM_MESSAGE_COMMAND, func_shelter_b2_septic_tank_8017D904 },
+    { ROOM_MESSAGE_COMMAND, _shelterB2SepticTankIgnoreCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -194,7 +209,7 @@ EvsCommand D_shelter_b2_septic_tank_80183004[11] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_shelter_b2_septic_tank_8017D97C }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _shelterB2SepticTankSetEncounterPhase }, { .value = SHELTER_B2_SEPTIC_TANK_ENCOUNTER_INTRO_COMPLETE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
@@ -215,14 +230,14 @@ EvsCommand D_shelter_b2_septic_tank_8018310C[18] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_shelter_b2_septic_tank_80182FD4 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_shelter_b2_septic_tank_8017D97C }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _shelterB2SepticTankSetEncounterPhase }, { .value = SHELTER_B2_SEPTIC_TANK_ENCOUNTER_COMBAT_READY }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
 s16 gShelterB2SepticTankWaterY = 150;
 
 TaskDesc D_shelter_b2_septic_tank_801832C0[1] = {
-    { { { TASK_BODY_NONE, 96 } }, func_shelter_b2_septic_tank_8017EA50, { .value = 0 } },
+    { { { TASK_BODY_NONE, 96 } }, _shelterB2SepticTankWaterTask, { .value = 0 } },
 };
 
 /// Two water rectangles starting at Z = -13500, drawn first, followed by the list end.
@@ -1173,37 +1188,50 @@ u16 D_shelter_b2_septic_tank_80187046 = 0x5868;
 
 RoomLatchedEvent gRoomEventLatched;
 
-static __inline__ s32 _shelterB2SepticTankStartEvent(RoomEventMsg* dst, RoomLatchedEvent* event);
-static void           func_shelter_b2_septic_tank_8017DA18(Task* arg0);
-static void           func_shelter_b2_septic_tank_8017DA74(Task* task);
+static void func_shelter_b2_septic_tank_8017DA74(Task* task);
 
 static void _glowDrawBeam(const SVECTOR worldPoints[2], s32 radiusScale, s32 startAngle, s32 packedColor);
 
-/// Starts `event` for the outgoing message `dst` unless its flag says it has
-/// already happened (answering 1). Otherwise answers 2, and - unless
-/// `dst->queryOnly` asks for a dry run - latches the message and the event,
-/// sets the flag and spawns the room's event task.
-static __inline__ s32 _shelterB2SepticTankStartEvent(RoomEventMsg* dst, RoomLatchedEvent* event)
+/// Tests a staged room event and latches an eligible executing transition.
+///
+/// Borrows both complete records for this call; neither is modified. Returns
+/// 2 when the event's flag is clear or absent, otherwise 1. Queries only reset
+/// the room's event-started byte. Execution copies both records to room-owned
+/// storage, sets a present flag to 1 and spawns the staged task. Flag zero
+/// stays eligible; its nibble is still read before the absent-flag test.
+static __inline__ s32 _shelterB2SepticTankStartEvent(const RoomEventMsg* destination, const RoomLatchedEvent* event)
 {
-    D_shelter_b2_septic_tank_80187044 = 0;
-    if (gameFlagGetNibble(event->flagId) == 0 || event->flagId == 0) {
-        if (dst->queryOnly == ROOM_EVENT_EXECUTE) {
-            gRoomEventStagedMsg = *dst;
+    enum {
+        SHELTER_B2_SEPTIC_TANK_EVENT_ALREADY_LATCHED = 1,
+        SHELTER_B2_SEPTIC_TANK_EVENT_ELIGIBLE        = 2,
+        SHELTER_B2_SEPTIC_TANK_EVENT_FLAG_NONE       = 0,
+        SHELTER_B2_SEPTIC_TANK_EVENT_FLAG_CLEAR      = 0,
+        SHELTER_B2_SEPTIC_TANK_EVENT_FLAG_LATCHED    = 1
+    };
+    D_shelter_b2_septic_tank_80187044 = false;
+    if (gameFlagGetNibble(event->flagId) == SHELTER_B2_SEPTIC_TANK_EVENT_FLAG_CLEAR || event->flagId == SHELTER_B2_SEPTIC_TANK_EVENT_FLAG_NONE) {
+        if (destination->queryOnly == ROOM_EVENT_EXECUTE) {
+            // Own copies before starting the task that consumes them later.
+            gRoomEventStagedMsg = *destination;
             gRoomEventLatched   = *event;
-            if (event->flagId != 0) {
-                gameFlagSetNibble(event->flagId, 1);
+            if (event->flagId != SHELTER_B2_SEPTIC_TANK_EVENT_FLAG_NONE) {
+                gameFlagSetNibble(event->flagId, SHELTER_B2_SEPTIC_TANK_EVENT_FLAG_LATCHED);
             }
             taskSpawnFromTable(&D_shelter_b2_septic_tank_80182F40, 0, 0, 0);
-            D_shelter_b2_septic_tank_80187044 = 1;
+            D_shelter_b2_septic_tank_80187044 = true;
         }
-        return 2;
+        return SHELTER_B2_SEPTIC_TANK_EVENT_ELIGIBLE;
     }
-    return 1;
+    return SHELTER_B2_SEPTIC_TANK_EVENT_ALREADY_LATCHED;
 }
 
 #include "../../shared/room_event_staged_task.inc.c"
 
-s32 func_shelter_b2_septic_tank_8017D7AC(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Refuses key-item use in this room with the inventory's zero reply.
+///
+/// The callback ABI supplies a live receiver, message 5105, an item ID and an
+/// unused word. None are read and no room state is changed.
+static s32 _shelterB2SepticTankRejectKeyItem(Task* task, s32 messageId, s32 itemId, s32 unused)
 {
     return 0;
 }
@@ -1227,7 +1255,10 @@ s32 func_shelter_b2_septic_tank_8017D7B4(Task* arg0, s32 arg1, RoomEventMsg* in,
     return _shelterB2SepticTankStartEvent(out, &event);
 }
 
-s32 func_shelter_b2_septic_tank_8017D904(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores room-command messages and returns zero without changing room state.
+///
+/// Retains the four-word message callback ABI; all arguments are unused.
+static s32 _shelterB2SepticTankIgnoreCommand(Task* task, s32 messageId, s32 command, s32 commandArg)
 {
     return 0;
 }
@@ -1248,9 +1279,14 @@ s32 func_shelter_b2_septic_tank_8017D90C(Task* arg0, s32 arg1, RoomEventMsg* arg
     return 0;
 }
 
-void func_shelter_b2_septic_tank_8017D97C(s32 arg0)
+/// Records the scripted diver encounter's progress in its game-flag nibble.
+///
+/// Scripts pass 1 after the introduction and 2 after the fight setup. Divers
+/// use 1 to finish their introduction and 2 to enter normal combat.
+/// `encounterPhase` is a nibble value (0..15); no pointer is retained.
+static void _shelterB2SepticTankSetEncounterPhase(s32 encounterPhase)
 {
-    gameFlagSetNibble(GAME_FLAG_0EB, arg0);
+    gameFlagSetNibble(GAME_FLAG_0EB, encounterPhase);
 }
 
 void func_shelter_b2_septic_tank_8017D9A0(void)
@@ -1268,12 +1304,17 @@ void func_shelter_b2_septic_tank_8017D9A0(void)
     }
 }
 
-static void func_shelter_b2_septic_tank_8017DA18(Task* arg0)
+/// Registers the room's message receiver and starts its water-surface task.
+///
+/// Requires the live room task in state 0; publishes it in the room slot and
+/// advances to encounter monitoring. The room overlay must stay loaded while
+/// either task is dispatched.
+static void _shelterB2SepticTankInitializeRoom(Task* task)
 {
-    arg0->msgTable = D_shelter_b2_septic_tank_80182F4C;
-    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
+    task->msgTable = D_shelter_b2_septic_tank_80182F4C;
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     taskSpawnFromTable(D_shelter_b2_septic_tank_801832C0, 0, 0, 0);
-    arg0->state = (s32)(arg0->state + 1);
+    task->state = task->state + 1;
 }
 
 static void func_shelter_b2_septic_tank_8017DA74(Task* task)
@@ -1292,23 +1333,21 @@ static void func_shelter_b2_septic_tank_8017DA74(Task* task)
 }
 
 /// The room task's state table, dispatched by
-/// `func_shelter_b2_septic_tank_8017DB10` from a stack copy.
+/// `shelterB2SepticTankRoomTask` from a stack copy.
 static const TaskFuncTable3 D_shelter_b2_septic_tank_8017D5D8 = {
     {
-        func_shelter_b2_septic_tank_8017DA18,
+        _shelterB2SepticTankInitializeRoom,
         func_shelter_b2_septic_tank_8017DA74,
         taskKill,
     },
 };
 
-/// The room task: copies the three-state table `D_shelter_b2_septic_tank_8017D5D8`
-/// onto the stack and runs the entry for the task's current state.
-void func_shelter_b2_septic_tank_8017DB10(Task* task)
+void shelterB2SepticTankRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 states;
 
-    sp = D_shelter_b2_septic_tank_8017D5D8;
-    sp.funcs[task->state](task);
+    states = D_shelter_b2_septic_tank_8017D5D8;
+    states.funcs[task->state](task);
 }
 
 /// Binds the readable first two-rectangle list, including its in-bounds terminator.
@@ -1406,132 +1445,170 @@ static inline void _shelterB2SepticTankSetSecondWaterStripColours(POLY_G4* quad)
 #define WATER_WAVE_STRIPS_SET_SECOND_STRIP_COLOURS(quad) _shelterB2SepticTankSetSecondWaterStripColours(quad)
 #include "../../shared/water_wave_strips.inc.c"
 
-/// The water task: runs its current state - `func_shelter_b2_septic_tank_8017EAB8`
-/// once, then `func_shelter_b2_septic_tank_8017EAF8`, which draws the surfaces -
-/// and each tick publishes the room's water height to the session.
-void func_shelter_b2_septic_tank_8017EA50(Task* task)
+/// Initializes and draws the room's water, publishing its height each tick.
+///
+/// Requires a live bodyless task in state 0 (initialize) or 1 (draw), with no
+/// work allocation. Initialization clears the selected actor-load buffer
+/// marker; drawing requires that buffer reserved until GPU consumption.
+/// Water Y is a signed world-coordinate height, including the initial tick.
+static void _shelterB2SepticTankWaterTask(Task* task)
 {
-    TaskFunc states[2] = { func_shelter_b2_septic_tank_8017EAB8, func_shelter_b2_septic_tank_8017EAF8 };
+    TaskFunc states[SHELTER_B2_SEPTIC_TANK_WATER_STATE_COUNT] = { _shelterB2SepticTankInitializeWater, _shelterB2SepticTankDrawWater };
 
     states[task->state](task);
     gGameSession->waterY = gShelterB2SepticTankWaterY;
 }
 
-/// Clears the session's `field_80` or `field_7E`, chosen by `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType`, and
-/// advances the task to its next state.
-static void func_shelter_b2_septic_tank_8017EAB8(Task* arg0)
+/// Prepares the actor-load buffer used for water packets and advances to drawing.
+///
+/// Requires the water task in state 0 and previous uses of the buffer to have
+/// ended. No saved companion selects buffer 2, otherwise buffer 1. Clears the
+/// corresponding session marker (`field_80` or `field_7E`); its nonzero meaning
+/// is unproven. No allocation or buffer clearing occurs here.
+static void _shelterB2SepticTankInitializeWater(Task* task)
 {
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType == 0) {
         gGameSession->field_80 = 0;
     } else {
         gGameSession->field_7E = 0;
     }
-    arg0->state = (s32)(arg0->state + 1);
+    task->state = task->state + 1;
 }
 
-/// The water task's drawing state: points the primitive cursor
-/// `_gShelterB2SepticTankWaterPacketCursor` at the current buffer's 0xC000-byte
-/// slice of one of two primitive areas, chosen by `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType`, then draws both
-/// lists of water surfaces.
-static void func_shelter_b2_septic_tank_8017EAF8(Task* task)
+/// Selects the current display half of the room's borrowed water-packet arena.
+///
+/// No saved companion selects actor buffer 2, otherwise buffer 1. The byte
+/// cursor is word-aligned and `otBuffer` must be 0 or 1. Previous uses must
+/// have ended, and queued packets must remain live until GPU consumption.
+static inline void _shelterB2SepticTankResetWaterPackets(void)
 {
+    enum { SHELTER_B2_SEPTIC_TANK_WATER_PACKET_HALF_BYTES = 0xC000 };
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType == 0) {
-        _gShelterB2SepticTankWaterPacketCursor = (u8*)Fs_ActorLoadBase2 + gDisplayState.otBuffer * 0xC000;
+        _gShelterB2SepticTankWaterPacketCursor = (u8*)Fs_ActorLoadBase2 + gDisplayState.otBuffer * SHELTER_B2_SEPTIC_TANK_WATER_PACKET_HALF_BYTES;
     } else {
-        _gShelterB2SepticTankWaterPacketCursor = (u8*)Fs_ActorLoadBase1 + gDisplayState.otBuffer * 0xC000;
+        _gShelterB2SepticTankWaterPacketCursor = (u8*)Fs_ActorLoadBase1 + gDisplayState.otBuffer * SHELTER_B2_SEPTIC_TANK_WATER_PACKET_HALF_BYTES;
     }
+}
+
+/// Draws both water-surface lists into one display half of the borrowed arena.
+///
+/// Requires initialized water state and actor storage reserved through GPU
+/// consumption. Four rectangles emit at most 0x1800 bytes in a 0xC000-byte
+/// half. `task` is forwarded only for the drawers' task-compatible signatures.
+static void _shelterB2SepticTankDrawWater(Task* task)
+{
+    // Reset once: the second list appends after the first list's packets.
+    _shelterB2SepticTankResetWaterPackets();
     _waterDrawWaveStrips(task);
     _waterDrawSecondWaveStrips(task);
 }
 
-void func_shelter_b2_septic_tank_8017EB7C(Task* arg0)
+/// Publishes the room-specific implementations used by counted effect spawns.
+static inline void _shelterB2SepticTankRegisterEffects(void)
 {
-    switch (arg0->state) {
-        case 0:
-            gRoomEffectFlashId       = EFFECT_SHELTER_B2_SEPTIC_TANK_FLASH;
-            gRoomEffectTwinTrailId   = EFFECT_SHELTER_B2_SEPTIC_TANK_TWIN_TRAIL;
-            gRoomEffectSparkBurstId  = EFFECT_SHELTER_B2_SEPTIC_TANK_SPARK_BURST;
-            gRoomEffectWaterRippleId = EFFECT_SHELTER_B2_SEPTIC_TANK_WATER_RIPPLE;
-            gRoomEffectWaterSprayId  = EFFECT_SHELTER_B2_SEPTIC_TANK_WATER_SPRAY;
-            arg0->state              = 1;
-        case 1:
-            switch (viewGetMappedIndex() & 0xFF) {
+    gRoomEffectFlashId       = EFFECT_SHELTER_B2_SEPTIC_TANK_FLASH;
+    gRoomEffectTwinTrailId   = EFFECT_SHELTER_B2_SEPTIC_TANK_TWIN_TRAIL;
+    gRoomEffectSparkBurstId  = EFFECT_SHELTER_B2_SEPTIC_TANK_SPARK_BURST;
+    gRoomEffectWaterRippleId = EFFECT_SHELTER_B2_SEPTIC_TANK_WATER_RIPPLE;
+    gRoomEffectWaterSprayId  = EFFECT_SHELTER_B2_SEPTIC_TANK_WATER_SPRAY;
+}
+
+void shelterB2SepticTankGlowTask(Task* task)
+{
+    enum {
+        SHELTER_B2_SEPTIC_TANK_GLOW_INITIALIZE,
+        SHELTER_B2_SEPTIC_TANK_GLOW_DRAW,
+        SHELTER_B2_SEPTIC_TANK_MAPPED_VIEW_MASK  = 0xFF,
+        SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE = 0x200,
+        SHELTER_B2_SEPTIC_TANK_DISC_RADIUS_SCALE = 0x300,
+        SHELTER_B2_SEPTIC_TANK_GLOW_WHITE        = 0x111,
+        SHELTER_B2_SEPTIC_TANK_GLOW_GREEN        = 0x10,
+        SHELTER_B2_SEPTIC_TANK_GLOW_RED          = 0x100
+    };
+    switch (task->state) {
+        case SHELTER_B2_SEPTIC_TANK_GLOW_INITIALIZE:
+            _shelterB2SepticTankRegisterEffects();
+            task->state = SHELTER_B2_SEPTIC_TANK_GLOW_DRAW;
+            // Registration and the first view's glow drawing share this tick.
+            /* fallthrough */
+        case SHELTER_B2_SEPTIC_TANK_GLOW_DRAW:
+            switch (viewGetMappedIndex() & SHELTER_B2_SEPTIC_TANK_MAPPED_VIEW_MASK) {
                 case 2: {
-                    SVECTOR* p = D_shelter_b2_septic_tank_80183314;
-                    _glowDrawBeam(&p[0], 0x200, 0x400, 0x111);
-                    _glowDrawBeam(&p[2], 0x200, 0x400, 0x111);
-                    _glowDrawBeam(&p[14], 0x200, 0, 0x111);
-                    _glowDrawBeam(&p[16], 0x200, 0, 0x111);
-                    _glowDrawBeam(&p[60], 0x200, 0, 0x111);
-                    _glowDrawBeam(&p[62], 0x200, 0, 0x111);
-                    _glowDrawBitDisc(&p[70], 0x300, 0x10);
-                    _glowDrawBitDisc(&p[72], 0x300, 0x100);
+                    const SVECTOR* worldPoints = D_shelter_b2_septic_tank_80183314;
+                    _glowDrawBeam(&worldPoints[0], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, GLOW_QUARTER_TURN, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
+                    _glowDrawBeam(&worldPoints[2], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, GLOW_QUARTER_TURN, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
+                    _glowDrawBeam(&worldPoints[14], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, 0, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
+                    _glowDrawBeam(&worldPoints[16], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, 0, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
+                    _glowDrawBeam(&worldPoints[60], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, 0, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
+                    _glowDrawBeam(&worldPoints[62], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, 0, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
+                    _glowDrawBitDisc(&worldPoints[70], SHELTER_B2_SEPTIC_TANK_DISC_RADIUS_SCALE, SHELTER_B2_SEPTIC_TANK_GLOW_GREEN);
+                    _glowDrawBitDisc(&worldPoints[72], SHELTER_B2_SEPTIC_TANK_DISC_RADIUS_SCALE, SHELTER_B2_SEPTIC_TANK_GLOW_RED);
                     break;
                 }
                 case 3: {
-                    SVECTOR* p = D_shelter_b2_septic_tank_80183314;
-                    _glowDrawBeam(&p[0], 0x200, 0x400, 0x111);
-                    _glowDrawBeam(&p[2], 0x200, 0x400, 0x111);
-                    _glowDrawBeam(&p[4], 0x200, 0x400, 0x111);
-                    _glowDrawBeam(&p[6], 0x200, 0x400, 0x111);
-                    _glowDrawBeam(&p[14], 0x200, 0, 0x111);
-                    _glowDrawBeam(&p[16], 0x200, 0, 0x111);
-                    _glowDrawBeam(&p[18], 0x200, 0, 0x111);
-                    _glowDrawBeam(&p[20], 0x200, 0, 0x111);
-                    _glowDrawBeam(&p[28], 0x200, 0x800, 0x111);
-                    _glowDrawBeam(&p[30], 0x200, 0x800, 0x111);
-                    _glowDrawBeam(&p[44], 0x200, 0, 0x111);
-                    _glowDrawBeam(&p[46], 0x200, 0, 0x111);
-                    _glowDrawBeam(&p[48], 0x200, 0, 0x111);
-                    _glowDrawBeam(&p[60], 0x200, 0, 0x111);
-                    _glowDrawBeam(&p[62], 0x200, 0, 0x111);
-                    _glowDrawBitDisc(&p[70], 0x300, 0x10);
-                    _glowDrawBitDisc(&p[71], 0x300, 0x100);
-                    _glowDrawBitDisc(&p[72], 0x300, 0x100);
+                    const SVECTOR* worldPoints = D_shelter_b2_septic_tank_80183314;
+                    _glowDrawBeam(&worldPoints[0], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, GLOW_QUARTER_TURN, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
+                    _glowDrawBeam(&worldPoints[2], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, GLOW_QUARTER_TURN, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
+                    _glowDrawBeam(&worldPoints[4], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, GLOW_QUARTER_TURN, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
+                    _glowDrawBeam(&worldPoints[6], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, GLOW_QUARTER_TURN, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
+                    _glowDrawBeam(&worldPoints[14], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, 0, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
+                    _glowDrawBeam(&worldPoints[16], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, 0, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
+                    _glowDrawBeam(&worldPoints[18], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, 0, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
+                    _glowDrawBeam(&worldPoints[20], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, 0, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
+                    _glowDrawBeam(&worldPoints[28], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
+                    _glowDrawBeam(&worldPoints[30], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
+                    _glowDrawBeam(&worldPoints[44], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, 0, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
+                    _glowDrawBeam(&worldPoints[46], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, 0, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
+                    _glowDrawBeam(&worldPoints[48], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, 0, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
+                    _glowDrawBeam(&worldPoints[60], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, 0, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
+                    _glowDrawBeam(&worldPoints[62], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, 0, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
+                    _glowDrawBitDisc(&worldPoints[70], SHELTER_B2_SEPTIC_TANK_DISC_RADIUS_SCALE, SHELTER_B2_SEPTIC_TANK_GLOW_GREEN);
+                    _glowDrawBitDisc(&worldPoints[71], SHELTER_B2_SEPTIC_TANK_DISC_RADIUS_SCALE, SHELTER_B2_SEPTIC_TANK_GLOW_RED);
+                    _glowDrawBitDisc(&worldPoints[72], SHELTER_B2_SEPTIC_TANK_DISC_RADIUS_SCALE, SHELTER_B2_SEPTIC_TANK_GLOW_RED);
                     break;
                 }
                 case 4: {
-                    SVECTOR* p = D_shelter_b2_septic_tank_80183344;
-                    _glowDrawBeam(&p[0], 0x200, -0x400, 0x111);
-                    _glowDrawBeam(&p[2], 0x200, -0x400, 0x111);
-                    _glowDrawBeam(&p[4], 0x200, -0x400, 0x111);
-                    _glowDrawBeam(&p[6], 0x200, -0x400, 0x111);
-                    _glowDrawBeam(&p[14], 0x200, 0, 0x111);
-                    _glowDrawBeam(&p[16], 0x200, 0, 0x111);
-                    _glowDrawBeam(&p[18], 0x200, 0, 0x111);
-                    _glowDrawBeam(&p[20], 0x200, 0, 0x111);
-                    _glowDrawBeam(&p[34], 0x200, 0x800, 0x111);
-                    _glowDrawBeam(&p[36], 0x200, 0x800, 0x111);
-                    _glowDrawBeam(&p[48], 0x200, 0, 0x111);
-                    _glowDrawBeam(&p[50], 0x200, 0, 0x111);
-                    _glowDrawBeam(&p[52], 0x200, 0, 0x111);
-                    _glowDrawBeam(D_shelter_b2_septic_tank_80183514, 0x200, 0x800, 0x111);
-                    _glowDrawBeam(D_shelter_b2_septic_tank_80183524, 0x200, 0x800, 0x111);
-                    _glowDrawBeam(D_shelter_b2_septic_tank_80183534, 0x200, 0x800, 0x100);
+                    const SVECTOR* worldPoints = D_shelter_b2_septic_tank_80183344;
+                    _glowDrawBeam(&worldPoints[0], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, -GLOW_QUARTER_TURN, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
+                    _glowDrawBeam(&worldPoints[2], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, -GLOW_QUARTER_TURN, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
+                    _glowDrawBeam(&worldPoints[4], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, -GLOW_QUARTER_TURN, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
+                    _glowDrawBeam(&worldPoints[6], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, -GLOW_QUARTER_TURN, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
+                    _glowDrawBeam(&worldPoints[14], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, 0, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
+                    _glowDrawBeam(&worldPoints[16], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, 0, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
+                    _glowDrawBeam(&worldPoints[18], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, 0, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
+                    _glowDrawBeam(&worldPoints[20], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, 0, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
+                    _glowDrawBeam(&worldPoints[34], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
+                    _glowDrawBeam(&worldPoints[36], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
+                    _glowDrawBeam(&worldPoints[48], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, 0, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
+                    _glowDrawBeam(&worldPoints[50], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, 0, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
+                    _glowDrawBeam(&worldPoints[52], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, 0, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
+                    _glowDrawBeam(D_shelter_b2_septic_tank_80183514, SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
+                    _glowDrawBeam(D_shelter_b2_septic_tank_80183524, SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
+                    _glowDrawBeam(D_shelter_b2_septic_tank_80183534, SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, SHELTER_B2_SEPTIC_TANK_GLOW_RED);
                     break;
                 }
                 case 5: {
-                    SVECTOR* p = D_shelter_b2_septic_tank_80183374;
-                    _glowDrawBeam(&p[0], 0x200, -0x400, 0x111);
-                    _glowDrawBeam(&p[14], 0x200, 0, 0x111);
-                    _glowDrawBeam(D_shelter_b2_septic_tank_80183514, 0x200, 0x800, 0x111);
-                    _glowDrawBeam(D_shelter_b2_septic_tank_80183524, 0x200, 0x800, 0x111);
-                    _glowDrawBeam(D_shelter_b2_septic_tank_80183534, 0x200, 0x800, 0x100);
+                    const SVECTOR* worldPoints = D_shelter_b2_septic_tank_80183374;
+                    _glowDrawBeam(&worldPoints[0], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, -GLOW_QUARTER_TURN, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
+                    _glowDrawBeam(&worldPoints[14], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, 0, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
+                    _glowDrawBeam(D_shelter_b2_septic_tank_80183514, SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
+                    _glowDrawBeam(D_shelter_b2_septic_tank_80183524, SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
+                    _glowDrawBeam(D_shelter_b2_septic_tank_80183534, SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, SHELTER_B2_SEPTIC_TANK_GLOW_RED);
                     break;
                 }
                 case 6: {
-                    SVECTOR* p = D_shelter_b2_septic_tank_80183314;
-                    _glowDrawBeam(&p[0], 0x200, 0x400, 0x111);
-                    _glowDrawBeam(&p[2], 0x200, 0x400, 0x111);
-                    _glowDrawBeam(&p[4], 0x200, 0x400, 0x111);
-                    _glowDrawBeam(&p[14], 0x200, 0, 0x111);
-                    _glowDrawBeam(&p[28], 0x200, 0x800, 0x111);
-                    _glowDrawBeam(&p[30], 0x200, 0x800, 0x111);
-                    _glowDrawBeam(&p[60], 0x200, 0, 0x111);
-                    _glowDrawBeam(&p[62], 0x200, 0, 0x111);
-                    _glowDrawBitDisc(&p[70], 0x300, 0x10);
-                    _glowDrawBitDisc(&p[71], 0x300, 0x100);
-                    _glowDrawBitDisc(&p[72], 0x300, 0x100);
+                    const SVECTOR* worldPoints = D_shelter_b2_septic_tank_80183314;
+                    _glowDrawBeam(&worldPoints[0], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, GLOW_QUARTER_TURN, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
+                    _glowDrawBeam(&worldPoints[2], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, GLOW_QUARTER_TURN, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
+                    _glowDrawBeam(&worldPoints[4], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, GLOW_QUARTER_TURN, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
+                    _glowDrawBeam(&worldPoints[14], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, 0, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
+                    _glowDrawBeam(&worldPoints[28], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
+                    _glowDrawBeam(&worldPoints[30], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
+                    _glowDrawBeam(&worldPoints[60], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, 0, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
+                    _glowDrawBeam(&worldPoints[62], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, 0, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
+                    _glowDrawBitDisc(&worldPoints[70], SHELTER_B2_SEPTIC_TANK_DISC_RADIUS_SCALE, SHELTER_B2_SEPTIC_TANK_GLOW_GREEN);
+                    _glowDrawBitDisc(&worldPoints[71], SHELTER_B2_SEPTIC_TANK_DISC_RADIUS_SCALE, SHELTER_B2_SEPTIC_TANK_GLOW_RED);
+                    _glowDrawBitDisc(&worldPoints[72], SHELTER_B2_SEPTIC_TANK_DISC_RADIUS_SCALE, SHELTER_B2_SEPTIC_TANK_GLOW_RED);
                     break;
                 }
             }
@@ -1541,7 +1618,7 @@ void func_shelter_b2_septic_tank_8017EB7C(Task* arg0)
 
 #include "../../shared/water_ripple_task.inc.c"
 
-void func_shelter_b2_septic_tank_8017F040(Task* task)
+void shelterB2SepticTankWaterRippleTask(Task* task)
 {
     _waterRippleTask(task);
 }
@@ -1550,7 +1627,7 @@ void func_shelter_b2_septic_tank_8017F040(Task* task)
 
 #include "../../shared/water_drift_task.inc.c"
 
-void func_shelter_b2_septic_tank_8017F4C8(Task* task)
+void shelterB2SepticTankWaterDriftTask(Task* task)
 {
     _waterDriftTask(task);
 }
@@ -1567,14 +1644,14 @@ void func_shelter_b2_septic_tank_8017F4C8(Task* task)
 
 #include "../../shared/room_visual_effects_flash_task.inc.c"
 
-void func_shelter_b2_septic_tank_80180BE0(Task* arg0)
+void shelterB2SepticTankRoomVisualEffectsFlashTask(Task* task)
 {
-    _roomVisualEffectsFlashTask(arg0);
+    _roomVisualEffectsFlashTask(task);
 }
 
 #include "../../shared/room_visual_effects_trails.inc.c"
 
-void func_shelter_b2_septic_tank_80181644(Task* task)
+void shelterB2SepticTankRoomVisualEffectsTwinTrailTask(Task* task)
 {
 #include "../../shared/room_visual_effects_trail_task.inc.c"
 }

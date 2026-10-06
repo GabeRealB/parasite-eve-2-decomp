@@ -859,7 +859,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, shelterB2LaboratoryGlowTask, { NULL } },                                            // 0x13E
     { { { TASK_BODY_COORD, 0x70 } }, shelterB2BreedingRoomDrawGlowsTask, { NULL } },                                     // 0x13F
     { { { TASK_BODY_COORD, 0x70 } }, shelterB2MainCorridorDrawViewGlowsTask, { NULL } },                                 // 0x140
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b2_septic_tank_8017EB7C, { NULL } },                                   // 0x141
+    { { { TASK_BODY_COORD, 0x70 } }, shelterB2SepticTankGlowTask, { NULL } },                                            // 0x141
     { { { TASK_BODY_COORD, 0x70 } }, shelterB2PodAccessTunnelDrawLightBeamsTask, { NULL } },                             // 0x142
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b3_dumping_hole_80183F84, { NULL } },                                  // 0x143
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b3_garbage_incinerator_8018110C, { NULL } },                           // 0x144
@@ -902,8 +902,8 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, shelter1fTentDrawViewGlowsTask, { NULL } },                                         // 0x169
     { { { TASK_BODY_COORD, 0x70 } }, shelterB2MainCorridorWaterRippleTask, { NULL } },                                   // 0x16A
     { { { TASK_BODY_COORD, 0x70 } }, waterDriftTaskNoUpdate, { NULL } },                                                 // 0x16B
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b2_septic_tank_8017F040, { NULL } },                                   // 0x16C
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b2_septic_tank_8017F4C8, { NULL } },                                   // 0x16D
+    { { { TASK_BODY_COORD, 0x70 } }, shelterB2SepticTankWaterRippleTask, { NULL } },                                     // 0x16C
+    { { { TASK_BODY_COORD, 0x70 } }, shelterB2SepticTankWaterDriftTask, { NULL } },                                      // 0x16D
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b4_lower_sewer_8017EEE4, { NULL } },                                   // 0x16E
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b4_lower_sewer_8017F36C, { NULL } },                                   // 0x16F
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b4_upper_sewer_8017E8B8, { NULL } },                                   // 0x170
@@ -1006,7 +1006,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b2_south_maintenance_walkway_8017E99C, { NULL } },                     // 0x1D1
     { { { TASK_BODY_COORD, 0x70 } }, shelterB2NorthMaintenanceWalkwayRoomVisualEffectsFlashTask, { NULL } },             // 0x1D2
     { { { TASK_BODY_COORD, 0x70 } }, shelterB2MainCorridorRoomVisualEffectsFlashTask, { NULL } },                        // 0x1D3
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b2_septic_tank_80180BE0, { NULL } },                                   // 0x1D4
+    { { { TASK_BODY_COORD, 0x70 } }, shelterB2SepticTankRoomVisualEffectsFlashTask, { NULL } },                          // 0x1D4
     { { { TASK_BODY_COORD, 0x70 } }, shelterB2PodAccessTunnelRoomVisualEffectsFlashTask, { NULL } },                     // 0x1D5
     { { { TASK_BODY_COORD, 0x70 } }, shelter1fParkingGarageRoomVisualEffectsFlashTask, { NULL } },                       // 0x1D6
     { { { TASK_BODY_COORD, 0x70 } }, shelter1fVehicularAirlockRoomVisualEffectsFlashTask, { NULL } },                    // 0x1D7
@@ -1034,7 +1034,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b2_south_maintenance_walkway_8017F400, { NULL } },                     // 0x1ED
     { { { TASK_BODY_COORD, 0x70 } }, shelterB2NorthMaintenanceWalkwayRoomVisualEffectsTwinTrailTask, { NULL } },         // 0x1EE
     { { { TASK_BODY_COORD, 0x70 } }, shelterB2MainCorridorRoomVisualEffectsTwinTrailTask, { NULL } },                    // 0x1EF
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b2_septic_tank_80181644, { NULL } },                                   // 0x1F0
+    { { { TASK_BODY_COORD, 0x70 } }, shelterB2SepticTankRoomVisualEffectsTwinTrailTask, { NULL } },                      // 0x1F0
     { { { TASK_BODY_COORD, 0x70 } }, shelterB2PodAccessTunnelRoomVisualEffectsTwinTrailTask, { NULL } },                 // 0x1F1
     { { { TASK_BODY_COORD, 0x70 } }, shelter1fParkingGarageRoomVisualEffectsTwinTrailTask, { NULL } },                   // 0x1F2
     { { { TASK_BODY_COORD, 0x70 } }, shelter1fVehicularAirlockRoomVisualEffectsTwinTrailTask, { NULL } },                // 0x1F3

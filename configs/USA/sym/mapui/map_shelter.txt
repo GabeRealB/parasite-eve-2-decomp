@@ -359,7 +359,7 @@ D_shelter_b2_main_corridor_80188BE4 = 0x80188BE4; // absolute:True owner=shelter
 D_shelter_b2_main_corridor_80188BFC = 0x80188BFC; // absolute:True owner=shelter_b2_main_corridor shared=rooms
 D_shelter_b2_main_corridor_801893EC = 0x801893EC; // absolute:True owner=shelter_b2_main_corridor
 D_shelter_b2_main_corridor_80189624 = 0x80189624; // absolute:True owner=shelter_b2_main_corridor
-func_shelter_b2_septic_tank_8017DB10 = 0x8017DB10; // type:func absolute:True owner=shelter_b2_septic_tank shared=rooms
+shelterB2SepticTankRoomTask = 0x8017DB10; // type:func absolute:True owner=shelter_b2_septic_tank shared=rooms
 D_shelter_b2_septic_tank_8018356C = 0x8018356C; // absolute:True owner=shelter_b2_septic_tank
 D_shelter_b2_septic_tank_80183570 = 0x80183570; // absolute:True owner=shelter_b2_septic_tank
 D_shelter_b2_septic_tank_80183574 = 0x80183574; // absolute:True owner=shelter_b2_septic_tank

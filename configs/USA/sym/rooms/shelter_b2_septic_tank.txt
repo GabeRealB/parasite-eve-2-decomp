@@ -91,15 +91,15 @@ D_shelter_b2_septic_tank_80187046 = 0x80187046; // size:0x2 defined:True
 gRoomEventLatched = 0x80187048; // size:0xC defined:True
 _gShelterB2SepticTankWaterPacketCursor = 0x80187054; // size:0x4 defined:True
 
-func_shelter_b2_septic_tank_8017EB7C = 0x8017EB7C; // type:func
+shelterB2SepticTankGlowTask = 0x8017EB7C; // type:func
 
-func_shelter_b2_septic_tank_8017F040 = 0x8017F040; // type:func
+shelterB2SepticTankWaterRippleTask = 0x8017F040; // type:func
 
-func_shelter_b2_septic_tank_8017F4C8 = 0x8017F4C8; // type:func
+shelterB2SepticTankWaterDriftTask = 0x8017F4C8; // type:func
 
-func_shelter_b2_septic_tank_80180BE0 = 0x80180BE0; // type:func
+shelterB2SepticTankRoomVisualEffectsFlashTask = 0x80180BE0; // type:func
 
-func_shelter_b2_septic_tank_80181644 = 0x80181644; // type:func
+shelterB2SepticTankRoomVisualEffectsTwinTrailTask = 0x80181644; // type:func
 
 func_shelter_b2_septic_tank_80181F2C = 0x80181F2C; // type:func
 _roomVisualEffectsDrawFlashRing = 0x80180E84; // type:func
@@ -114,3 +114,11 @@ roomEventStagedTask = 0x8017D614; // type:func
 _glowDrawBitDisc = 0x8018083C; // type:func
 _waterDrawWaveStrips = 0x8017DB68; // type:func
 _waterDrawSecondWaveStrips = 0x8017E2DC; // type:func
+_shelterB2SepticTankRejectKeyItem = 0x8017d7ac; // type:func
+_shelterB2SepticTankIgnoreCommand = 0x8017d904; // type:func
+_shelterB2SepticTankSetEncounterPhase = 0x8017d97c; // type:func
+_shelterB2SepticTankInitializeRoom = 0x8017da18; // type:func
+shelterB2SepticTankRoomTask = 0x8017db10; // type:func
+_shelterB2SepticTankInitializeWater = 0x8017eab8; // type:func
+_shelterB2SepticTankDrawWater = 0x8017eaf8; // type:func
+_shelterB2SepticTankWaterTask = 0x8017ea50; // type:func
