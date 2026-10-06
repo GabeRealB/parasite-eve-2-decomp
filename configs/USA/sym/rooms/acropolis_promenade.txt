@@ -102,7 +102,7 @@ D_acropolis_promenade_801862D8 = 0x801862D8; // size:0x4 defined:True
 
 func_acropolis_promenade_8017E03C = 0x8017E03C; // type:func
 
-func_acropolis_promenade_8017E634 = 0x8017E634; // type:func
+acropolisPromenadeGlowStarTask = 0x8017E634; // type:func
 
 func_acropolis_promenade_8017E394 = 0x8017E394; // type:func
 

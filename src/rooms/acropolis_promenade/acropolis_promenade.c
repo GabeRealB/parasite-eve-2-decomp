@@ -2258,7 +2258,11 @@ void func_acropolis_promenade_8017E394(Task* task)
     effectKillTask(work, task);
 }
 
-#define ACROPOLIS_GLOWS_STAR_TASK func_acropolis_promenade_8017E634
+/// Binds the shared star glow to the promenade's exported `void (Task*)` callback.
+///
+/// Define an unqualified function identifier before including the star fragment;
+/// the fragment defines that function and undefines this binding afterwards.
+#define GLOW_STAR_TASK acropolisPromenadeGlowStarTask
 /// Stores the star core's pixel half-height separately from its equal half-width.
 ///
 /// Numeric configuration for `acropolis_glows_star.inc.c`: nonzero stores

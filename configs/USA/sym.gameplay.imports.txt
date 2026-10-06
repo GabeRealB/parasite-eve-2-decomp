@@ -537,7 +537,7 @@ acropolisBridgeTallDustStreakTask = 0x80180CC0; // type:func absolute:True owner
 
 acropolisBridgeParticleStreakTask = 0x80180FF0; // type:func absolute:True owner=acropolis_bridge
 
-func_acropolis_bridge_801812F4 = 0x801812F4; // type:func absolute:True owner=acropolis_bridge
+acropolisBridgeGlowStarTask = 0x801812F4; // type:func absolute:True owner=acropolis_bridge
 
 func_acropolis_bridge_801819C8 = 0x801819C8; // type:func absolute:True owner=acropolis_bridge
 
@@ -611,7 +611,7 @@ func_acropolis_promenade_8017E03C = 0x8017E03C; // type:func absolute:True owner
 
 func_acropolis_promenade_8017E394 = 0x8017E394; // type:func absolute:True owner=acropolis_promenade shared=rooms
 
-func_acropolis_promenade_8017E634 = 0x8017E634; // type:func absolute:True owner=acropolis_promenade
+acropolisPromenadeGlowStarTask = 0x8017E634; // type:func absolute:True owner=acropolis_promenade
 
 func_acropolis_promenade_8017ED44 = 0x8017ED44; // type:func absolute:True owner=acropolis_promenade
 

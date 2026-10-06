@@ -4217,7 +4217,11 @@ void acropolisBridgeParticleStreakTask(Task* task)
     effectKillTask(work, task);
 }
 
-#define ACROPOLIS_GLOWS_STAR_TASK func_acropolis_bridge_801812F4
+/// Binds the shared star glow to the bridge's exported `void (Task*)` callback.
+///
+/// Define an unqualified function identifier before including the star fragment;
+/// the fragment defines that function and undefines this binding afterwards.
+#define GLOW_STAR_TASK acropolisBridgeGlowStarTask
 #include "../../shared/acropolis_glows_star.inc.c"
 
 /// The bridge's dust cloud: one semi-transparent `POLY_FT4` billboard placed at

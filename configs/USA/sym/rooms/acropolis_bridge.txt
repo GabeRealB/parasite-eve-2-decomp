@@ -150,7 +150,7 @@ D_acropolis_bridge_801917AC = 0x801917AC; // size:0x4 defined:True
 
 func_acropolis_bridge_8017F868 = 0x8017F868; // type:func
 
-func_acropolis_bridge_801812F4 = 0x801812F4; // type:func
+acropolisBridgeGlowStarTask = 0x801812F4; // type:func
 
 func_acropolis_bridge_801819C8 = 0x801819C8; // type:func
 

@@ -55287,28 +55287,28 @@ Ordering matters twice over: the templates are emitted in declaration order, so
 the array declared first has to be the one at the lower address, and the cut
 offset is the address of that first template.
 
-## `&blk->otz` as a typed local does force the `move` that `p = blk` cannot
+## `&block->otz` as a typed local does force the `move` that `p = block` cannot
 
 "A `move` between two registers holding the same pointer is a pin, not
 `TOUCH_REG`" says GCC 2.8.1 copy-propagates a second pointer local away, so a
 lone `move` before a `gte_stszotz` needs a hard `register T* p asm("…")` pin.
-That is true of `p = blk`, where both locals have the same type and value, but
+That is true of `p = block`, where both locals have the same type and value, but
 it is not true of the *member address* spelling:
 
 ```c
-blk  = (ApmTwinkleScratch*)(head - 0x18);
-otzp = &blk->otz;               /* own pseudo: emits `move $v1, $s6`   */
+block       = previousTop - 1;  /* OverlaySpriteScratch* */
+depthOutput = &block->otz;      /* own pseudo: emits `move $v1, $s6`   */
 ...
-gte_stszotz(otzp);
+gte_stszotz(depthOutput);
 ```
 
-`func_acropolis_promenade_8017E634` needed exactly this (97.60% -> 98.87%, and
+`acropolisPromenadeGlowStarTask` needed exactly this (97.60% -> 98.87%, and
 `branch` 19 -> 0, since the missing `move` shifted every later branch by 4). The
 pin was not an option there: the target recycles `$v1` for a dozen temps after
 the store, and a function-scope pin would have pushed all of them elsewhere.
 
-Reach for `otzp = &blk-><first member>` before the hard pin. It survives
-copy-propagation because it is a different type from `blk`, it costs the same
+Reach for `depthOutput = &block-><first member>` before the hard pin. It survives
+copy-propagation because it is a different type from `block`, it costs the same
 one `move`, and unlike a pin it leaves the register free once the operand dies.
 
 ## Let the scheduler group the prim constants; write the fields in pairs
@@ -55318,7 +55318,7 @@ When a `POLY_FT4`'s `sb`s come out of the target grouped by value
 C in that order. Do not: that order is the *output* of `sched1`, and feeding it
 back in re-times when each literal is materialised.
 
-`func_acropolis_promenade_8017E634` stalled at 98.87% written value-grouped —
+`acropolisPromenadeGlowStarTask` stalled at 98.87% written value-grouped —
 the `li 0x10` was hoisted so early that it took `$v0`, which then forced the
 `0xAAAAAAAB` division magic to be materialised after the two `sb`s instead of
 before the `sll`/`addu` LCG chain. Writing the plain `u0, v0, u1, v1, u2, v2,
@@ -59539,8 +59539,8 @@ first, copy propagation reaches the store anyway.
 
 `tools/overlay_dup_index.py find` groups on exact disassembly-text equality, so
 a function that another overlay already has *almost* verbatim is reported as
-having no copies. `func_acropolis_bridge_801812F4` (437 insns) and the already
-matched `func_acropolis_promenade_8017E634` (452 insns) are the same task with
+having no copies. `acropolisBridgeGlowStarTask` (437 insns) and the already
+matched `acropolisPromenadeGlowStarTask` (452 insns) are the same task with
 the same scratch layout and the same two `POLY_FT4`s; they differ only by a
 handful of redundant stores, which is enough for the index to list each as
 unique.
@@ -59554,7 +59554,7 @@ grep -rn "0x3A80" src/rooms | head
 ```
 
 `0x3A80` landed straight on the promenade twin, whose body ported over with
-only the struct renamed and one dead `blk->dy` store dropped: 100% on the first
+only the struct renamed and one dead `block->cornerDy` store dropped: 100% on the first
 attempt. Use the index for the *promotion* decision (is the body worth linking
 once?) and the constant grep for the *seed* decision (has someone already
 written this?) — they answer different questions.

@@ -209,7 +209,7 @@ enum {
     /// quad picked by spawnArg (4 feeds); the security room respawns all four each
     /// frame after re-blending their CLUTs.
     EFFECT_ACROPOLIS_SECURITY_MONITOR_FEED = EFFECT_ID(EFFECT_TASK_BANK, 0x049),
-    /// One-frame flickering star glow (animated core quad under a spinning flare) at
+    /// One-frame flickering star glow (animated core quad and rotating flare) at
     /// the Akropolis promenade lamps; respawned each frame by the room spawner for
     /// views that see it.
     EFFECT_ACROPOLIS_PROMENADE_GLOW_STAR = EFFECT_ID(EFFECT_TASK_BANK, 0x04B),
@@ -531,8 +531,8 @@ enum {
     /// Life Drain mote: drifts from the hit enemy, sheds sparks, then homes on the
     /// player; spawned per hit by func_800FDB18 kind 13.
     EFFECT_LIFE_DRAIN_MOTE = EFFECT_ID(EFFECT_TASK_BANK, 0x0AF),
-    /// One-frame twinkling star glow (ACROPOLIS_GLOWS_STAR_TASK: animated core under a
-    /// spinning random-grey flare), respawned at the bridge lights.
+    /// One-frame twinkling star glow with an animated core and rotating random-grey
+    /// flare, respawned at the bridge lights.
     EFFECT_ACROPOLIS_BRIDGE_STAR_GLOW = EFFECT_ID(EFFECT_TASK_BANK, 0x0B1),
     /// One-frame random-grey quad built like the promenade ground glow (unit quad
     /// scaled 0x300 by workm, corners collapsed onto the origin), spawned beside each

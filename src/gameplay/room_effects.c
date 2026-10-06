@@ -613,7 +613,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_security_room_801805A4, { NULL } },                     // 0x048
     { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_security_room_80180E34, { NULL } },                     // 0x049
     { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_promenade_8017E03C, { NULL } },                         // 0x04A
-    { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_promenade_8017E634, { NULL } },                         // 0x04B
+    { { { TASK_BODY_COORD, 0x70 } }, acropolisPromenadeGlowStarTask, { NULL } },                            // 0x04B
     { { { TASK_BODY_COORD, 0x70 } }, func_actor_510900_801332EC, { NULL } },                                // 0x04C
     { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_plaza_8018251C, { NULL } },                             // 0x04D
     { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_fire_escape_8017FF7C, { NULL } },                       // 0x04E
@@ -715,7 +715,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, effectControlTaskAE, { NULL } },                                       // 0x0AE
     { { { TASK_BODY_COORD, 0x70 } }, func_lifedrain_8012FAF8, { NULL } },                                   // 0x0AF
     { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_bridge_8017F868, { NULL } },                            // 0x0B0
-    { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_bridge_801812F4, { NULL } },                            // 0x0B1
+    { { { TASK_BODY_COORD, 0x70 } }, acropolisBridgeGlowStarTask, { NULL } },                               // 0x0B1
     { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_bridge_801819C8, { NULL } },                            // 0x0B2
     { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_bridge_80181D28, { NULL } },                            // 0x0B3
     { { { TASK_BODY_COORD, 0x70 } }, acropolisBridgeFallingStreakTask, { NULL } },                          // 0x0B4
