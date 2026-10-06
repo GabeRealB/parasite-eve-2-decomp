@@ -69,4 +69,4 @@ ActorContact_PushContact = 0x801329F0; // type:func
 ActorContact_Push = 0x80132B94; // type:func
 coordSetYawScale = 0x80134060; // type:func
 actorMsgPlace = 0x80133F90; // type:func
-animDriverTick = 0x801332E0; // type:func
+_animDriverTick = 0x801332E0; // type:func

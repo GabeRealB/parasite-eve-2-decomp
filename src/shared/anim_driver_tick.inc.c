@@ -1,58 +1,77 @@
 /* Part of the animation driver library; see anim_driver.h. */
 
-/// Restarts animation slots 1 to 5 on the requested set and records it as the
-/// one playing.
+/// Initializes slots 1 to 5 on the requested set and records the selected set.
 ///
-/// The combined rate stored ahead of each reset does not survive it: the
-/// reset puts the slot back at `ANIMATION_RATE_ONE`, and the sum takes effect
-/// when the first advance stores it again.
-static __inline__ void animDriverResetSlots(AnimDriverWork* arg0)
+/// The rig must be bound to its own storage and a live model, with loaded
+/// tracks and coordinates for all five indices. `requestedSet` must select
+/// a loaded set, excluding `ANIMATION_SET_BUFFERED_POSE`. No pose is written;
+/// slots finish at `ANIMATION_RATE_ONE` and driver counters are unchanged.
+static __inline__ void _animDriverResetSlots(AnimDriverWork* driverWork)
 {
-    AnimDriverWork* work = arg0; // The carriers match only with this copy of the parameter
-    s32             i;
+    AnimDriverWork* work = driverWork; // The carriers match only with this copy of the parameter
+    s32             slotIndex;
 
-    for (i = ANIM_DRIVER_FIRST_SLOT; i < ARRAY_SIZE(work->rig.slots); i++) {
-        work->rig.slots[i].rate = work->rate + work->rateBias;
-        animationResetSlot(&work->rig.anim, i, work->requestedSet);
+    // Reset replaces this rate with normal speed; advancing installs the sum again.
+    for (slotIndex = ANIM_DRIVER_FIRST_SLOT; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
+        work->rig.slots[slotIndex].rate = work->rate + work->rateBias;
+        animationResetSlot(&work->rig.anim, slotIndex, work->requestedSet);
     }
     work->playingSet = work->requestedSet;
 }
 
-/// Advances animation slots 1 to 5 by one tick at the rate `rate + rateBias`.
-static __inline__ void animDriverTickSlots(Task* arg0)
+/// Advances slots 1 to 5 and applies their poses at the combined driver rate.
+///
+/// `task->work` must expose a live `AnimDriverWork` prefix with initialized
+/// slots and the borrowed bindings required by `animationTickSlot`.
+/// `rate + rateBias` is narrowed to each slot's signed eight-bit rate, in
+/// sixteenths of a frame per tick. Slot 0 and driver counters are unchanged.
+static __inline__ void _animDriverTickSlots(Task* task)
 {
     AnimDriverWork* work;
-    s32             i;
+    s32             slotIndex;
 
-    work = arg0->work;
-    for (i = ANIM_DRIVER_FIRST_SLOT; i < ARRAY_SIZE(work->rig.slots); i++) {
-        work->rig.slots[i].rate = work->rate + work->rateBias;
-        animationTickSlot(&work->rig.anim, i);
+    work = task->work;
+    for (slotIndex = ANIM_DRIVER_FIRST_SLOT; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
+        work->rig.slots[slotIndex].rate = work->rate + work->rateBias;
+        animationTickSlot(&work->rig.anim, slotIndex);
     }
 }
 
-/// Animation driver the state handlers run every frame. A restart request in
-/// `state` restarts the slots on `requestedSet` and clears both counters;
-/// while playing it advances the slots, counts the tick in `tickCount` and,
-/// when the first driven slot followed a control jump, in `jumpCount` as well.
-void animDriverTick(Task* arg0)
+/// Restarts the requested set and resets the driver's state and counters.
+static __inline__ void _animDriverRestart(AnimDriverWork* work)
+{
+    _animDriverResetSlots(work);
+    work->state     = ANIM_DRIVER_STATE_PLAYING;
+    work->tickCount = 0;
+    work->jumpCount = 0;
+}
+
+/// Processes an animation restart request or advances the actor's five driven slots.
+///
+/// `task->work` must expose the live `AnimDriverWork` prefix. Its rig must
+/// borrow its own slots and pose buffer, a live model with coordinates 1 to 5,
+/// and loaded sets containing those tracks; playback has the bounds and
+/// lifetime requirements of `animationResetSlot` and `animationTickSlot`.
+///
+/// Either restart state selects `requestedSet`, clears both counters and
+/// enters playing without advancing or writing a pose. A playing call counts
+/// one tick even when a zero rate or a boundary holds the pose. It increments
+/// `jumpCount` once if slot 1 followed any control jump that tick, including
+/// a boundary jump. Both counters retain their low 16 bits on overflow.
+/// Other states do nothing. Calls are independent: callers may restart and
+/// advance with two calls in one frame. Slot 0 is never driven.
+static void _animDriverTick(Task* task)
 {
     AnimDriverWork* work;
 
-    work = arg0->work;
+    work = task->work;
     if (work->state == ANIM_DRIVER_STATE_RESTART_1) {
-        animDriverResetSlots(work);
-        work->state     = ANIM_DRIVER_STATE_PLAYING;
-        work->tickCount = 0;
-        work->jumpCount = 0;
+        _animDriverRestart(work);
     } else if (work->state == ANIM_DRIVER_STATE_RESTART_2) {
-        animDriverResetSlots(work);
-        work->state     = ANIM_DRIVER_STATE_PLAYING;
-        work->tickCount = 0;
-        work->jumpCount = 0;
+        _animDriverRestart(work);
     } else if (work->state == ANIM_DRIVER_STATE_PLAYING) {
         work->tickCount++;
-        animDriverTickSlots(arg0);
+        _animDriverTickSlots(task);
         if (work->rig.slots[ANIM_DRIVER_FIRST_SLOT].status.fields.flags & ANIMATION_SLOT_FOLLOWED_JUMP) {
             work->jumpCount++;
         }

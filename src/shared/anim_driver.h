@@ -17,8 +17,6 @@
 
 #include "gameplay/animation.h"
 
-#include "main/task_types.h"
-
 /// Values of `AnimDriverWork::state`.
 ///
 /// A zero-filled block holds 0, on which a tick does nothing. The driver
@@ -54,7 +52,5 @@ typedef struct {
     s16           tickCount;         // Advancing ticks since the last restart
     s16           jumpCount;         // Advancing ticks since the last restart on which the first driven slot followed a control jump
 } AnimDriverWork;
-
-void animDriverTick(Task* task);
 
 #endif /* SRC_SHARED_ANIM_DRIVER_H */

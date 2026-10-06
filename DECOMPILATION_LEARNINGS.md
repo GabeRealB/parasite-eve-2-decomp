@@ -147140,7 +147140,7 @@ to give the fragment that name.
 
 A value sitting in `$a1` at a call is not proof of a second argument. In
 `func_actor_223600_8014B540` the target loads the enemy's hit points into `$a1`
-just before `jal animDriverTick`, and an old-style call passing it matched - but
+just before `jal _animDriverTick`, and an old-style call passing it matched - but
 no other call of the driver in four packages sets `$a1`. The permuter found the
 real source: store `field_174 = 1` before `field_170 = 2`. The constant 1 is
 then allocated first and takes `$v1`, leaving `$a1` to the hit points; the

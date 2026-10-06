@@ -392,6 +392,14 @@ state, with distances in parent-coordinate units. Its inline interface is
 the `_` marker. Collision correction and animation scheduling belong to their
 own subsystems.
 
+`animDriver` owns the included animation-request driver used by the four
+actor families carrying `src/shared/anim_driver_tick.inc.c`. Its private
+implementation interface is `src/shared/anim_driver.h`. Each translation
+unit keeps a static instance: requests reset slots 1 to 5, and playing calls
+advance their poses and count ticks and slot-1 control-jump ticks. The resident
+`animation` subsystem supplies slot playback; it does not own these actors'
+request state or counters.
+
 Shared implementation interfaces live beside their source in `src/shared/`,
 including `actor_contacts.h`, `cap_captions.h`, `planar_reflection.h`,
 `room_visual_effects.h`, `screen_wave.h`, `shop.h`, `telephone.h`,

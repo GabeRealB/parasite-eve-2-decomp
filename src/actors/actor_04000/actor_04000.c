@@ -1495,7 +1495,7 @@ static void Actor04000_Fn010B8(Enemy* arg0, Task* arg1)
     work->driver.requestedSet = 1;
     work->driver.rate         = ANIMATION_RATE_ONE;
     work->driver.rateBias     = 0;
-    animDriverTick(arg1);
+    _animDriverTick(arg1);
     work->field_17E     = 0;
     work->field_A       = 0;
     obj->lightMtx       = &work->lightMtx;
@@ -1577,11 +1577,11 @@ static void Actor04000_Fn0168C(Enemy* arg0, Task* arg1)
         work->driver.rateBias     = 0;
         work->driver.requestedSet = 0xD;
         work->gridBody.flags     |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        animDriverTick(arg1);
+        _animDriverTick(arg1);
         work->stateFrame = 0;
         return;
     }
-    animDriverTick(arg1);
+    _animDriverTick(arg1);
     work->stateFrame++;
     if (work->stateFrame < 8) {
         return;
@@ -1715,7 +1715,7 @@ static void Actor04000_Fn01E1C(Enemy* arg0, Task* arg1)
         work->driver.requestedSet    = 0xE;
         work->driver.state           = ANIM_DRIVER_STATE_RESTART_1;
         work->driver.rateBias        = 0;
-        animDriverTick(arg1);
+        _animDriverTick(arg1);
         work->burstWaveBody.pos.vx    = arg1->extra.tmd->coords->coord.t[0];
         work->burstWaveBody.pos.vy    = arg1->extra.tmd->coords->coord.t[1] - 0x1F4;
         work->burstWaveBody.pos.vz    = arg1->extra.tmd->coords->coord.t[2];
@@ -1739,7 +1739,7 @@ static void Actor04000_Fn01E1C(Enemy* arg0, Task* arg1)
         arg1->extra.tmd->coords->coord.t[2]  += dir.vz;
         arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     }
-    animDriverTick(arg1);
+    _animDriverTick(arg1);
     switch (work->stateFrame) {
         case 0x5B:
             if (work->holdingPlayer == 1) {
@@ -1843,10 +1843,10 @@ static void Actor04000_Fn026FC(Enemy* arg0, Task* arg1)
         work->burstAttackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->burstWaveBody.flags   &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->gridBody.flags        |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        animDriverTick(arg1);
+        _animDriverTick(arg1);
         return;
     }
-    animDriverTick(arg1);
+    _animDriverTick(arg1);
     if ((work->rig.slots[ANIM_DRIVER_FIRST_SLOT].status.fields.flags & ANIMATION_SLOT_FOLLOWED_JUMP) && work->driver.jumpCount >= 0x19) {
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         if (!((gRandomLcgState >> 0x10) & 7)) {
@@ -1893,13 +1893,13 @@ static void Actor04000_Fn028F0(Enemy* arg0, Task* arg1)
         work->burstWaveBody.flags   &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->gridBody.flags        |= WORLD_COLLISION_BODY_GRID_ENABLED;
         sceneEngageBattle(1);
-        animDriverTick(arg1);
+        _animDriverTick(arg1);
         work->chaseFarFrames = 0;
         return;
     }
     head = SCRATCH_STACK_CURSOR(ActorTurnScratch);
     turn = SCRATCH_STACK_RESERVE_BLOCK(ActorTurnScratch);
-    animDriverTick(arg1);
+    _animDriverTick(arg1);
     pos               = arg1->extra.tmd->coords;
     head[-1].delta.vx = gPlayerStatus.coordMtx->t[0] - pos->coord.t[0];
     turn->delta.vy    = gPlayerStatus.coordMtx->t[1] - pos->coord.t[1];
@@ -1972,7 +1972,7 @@ static void Actor04000_Fn02F48(Enemy* arg0, Task* arg1)
         work->gridBody.flags        |= WORLD_COLLISION_BODY_GRID_ENABLED;
         work->savedColorMtx          = work->colorMtx;
         work->driver.rateBias        = 0;
-        animDriverTick(arg1);
+        _animDriverTick(arg1);
         work->burstWaveBody.pos.vx   = arg1->extra.tmd->coords->coord.t[0];
         work->burstWaveBody.pos.vy   = arg1->extra.tmd->coords->coord.t[1] - 0x1F4;
         work->burstWaveBody.pos.vz   = arg1->extra.tmd->coords->coord.t[2];
@@ -1984,7 +1984,7 @@ static void Actor04000_Fn02F48(Enemy* arg0, Task* arg1)
         }
         return;
     }
-    animDriverTick(arg1);
+    _animDriverTick(arg1);
     switch (work->stateFrame) {
         case 0x28:
             work->hitBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
@@ -2103,7 +2103,7 @@ static void Actor04000_Fn03798(Enemy* arg0, Task* arg1)
         work->driver.state           = ANIM_DRIVER_STATE_RESTART_1;
         work->driver.rateBias        = 0;
         work->driver.rate            = 0x2C;
-        animDriverTick(arg1);
+        _animDriverTick(arg1);
         work->burstWaveBody.pos.vx   = arg1->extra.tmd->coords->coord.t[0];
         work->burstWaveBody.pos.vy   = arg1->extra.tmd->coords->coord.t[1] - 0x1F4;
         work->burstWaveBody.pos.vz   = arg1->extra.tmd->coords->coord.t[2];
@@ -2115,7 +2115,7 @@ static void Actor04000_Fn03798(Enemy* arg0, Task* arg1)
             Actor04000_D0C718[arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT] = NULL;
         }
     }
-    animDriverTick(arg1);
+    _animDriverTick(arg1);
     switch (work->stateFrame) {
         case 0xD:
             id  = ((arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40280004;
@@ -2354,7 +2354,7 @@ static void Actor04000_Fn0432C(Enemy* arg0, Task* arg1)
         work->burstAttackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->burstWaveBody.flags   &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->gridBody.flags        |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        animDriverTick(arg1);
+        _animDriverTick(arg1);
         work->stateFrame = 0;
         return;
     }
@@ -2398,7 +2398,7 @@ static void Actor04000_Fn0432C(Enemy* arg0, Task* arg1)
             work->state = ACTOR_04000_STATE_CHASE;
         }
     }
-    animDriverTick(arg1);
+    _animDriverTick(arg1);
     arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if ((work->rig.slots[ANIM_DRIVER_FIRST_SLOT].status.fields.flags & ANIMATION_SLOT_FOLLOWED_JUMP) && work->driver.jumpCount > 0x14) {
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
@@ -2436,13 +2436,13 @@ static void Actor04000_Fn049C0(Enemy* arg0, Task* arg1)
         work->burstAttackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->burstWaveBody.flags   &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->gridBody.flags        |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        animDriverTick(arg1);
+        _animDriverTick(arg1);
         work->chaseFarFrames = 0;
         return;
     }
     head = SCRATCH_STACK_CURSOR(ActorTurnScratch);
     turn = SCRATCH_STACK_RESERVE_BLOCK(ActorTurnScratch);
-    animDriverTick(arg1);
+    _animDriverTick(arg1);
     arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     head[-1].delta.vx                     = work->spawnPos.vx - arg1->extra.tmd->coords->coord.t[0];
     turn->delta.vy                        = 0;
@@ -2499,7 +2499,7 @@ static void Actor04000_Fn04FA4(Enemy* arg0, Task* arg1)
         work->burstAttackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->burstWaveBody.flags   &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->gridBody.flags        |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        animDriverTick(arg1);
+        _animDriverTick(arg1);
         ratan2(-arg1->extra.tmd->coords->coord.m[2][0], arg1->extra.tmd->coords->coord.m[2][2]);
         arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
         work->fallAccel                       = 10;
@@ -2539,7 +2539,7 @@ static void Actor04000_Fn04FA4(Enemy* arg0, Task* arg1)
         }
     }
     arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    animDriverTick(arg1);
+    _animDriverTick(arg1);
 }
 
 /// Restarts the actor when `stateEntered` is set; otherwise cycles `stateFrame` through
@@ -2560,7 +2560,7 @@ static void Actor04000_Fn0522C(Enemy* arg0, Task* arg1)
         work->driver.requestedSet    = 3;
         work->driver.state           = ANIM_DRIVER_STATE_RESTART_2;
         work->driver.rateBias        = 0;
-        animDriverTick(arg1);
+        _animDriverTick(arg1);
         gfxRotMatrixX(&arg1->extra.tmd->coords->coord, 0x400, GRAPHICS_ROTATION_COMPOSE);
         arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
         work->airborne                        = 1;
@@ -2601,7 +2601,7 @@ static void Actor04000_Fn0522C(Enemy* arg0, Task* arg1)
     gfxRotMatrixY(&arg1->extra.tmd->coords->coord, 0x44C, 1);
     gfxRotMatrixX(&arg1->extra.tmd->coords->coord, 0x190, GRAPHICS_ROTATION_COMPOSE);
     arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    animDriverTick(arg1);
+    _animDriverTick(arg1);
     if ((u8)viewGetMappedIndex() == 5) {
         arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
         worldTargetDisableNodeLockOn(&(arg0)->node);
@@ -2633,8 +2633,8 @@ static void Actor04000_Fn055C8(Enemy* arg0, Task* arg1)
         work->driver.state           = ANIM_DRIVER_STATE_RESTART_2;
         work->driver.rateBias        = 0;
         work->driver.rate            = 1;
-        animDriverTick(arg1);
-        animDriverTick(arg1);
+        _animDriverTick(arg1);
+        _animDriverTick(arg1);
         work->driver.rate                     = 0;
         arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
         work->stateFrame                      = 0;
@@ -2664,7 +2664,7 @@ static void Actor04000_Fn055C8(Enemy* arg0, Task* arg1)
                 arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
                 return;
             }
-            animDriverTick(arg1);
+            _animDriverTick(arg1);
             if (work->stateFrame < 0xA) {
                 actorStepForward(arg1->extra.tmd->coords, 0x23);
             }
@@ -2684,7 +2684,7 @@ static void Actor04000_Fn055C8(Enemy* arg0, Task* arg1)
             }
             break;
         case 16:
-            animDriverTick(arg1);
+            _animDriverTick(arg1);
             if (!((arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) & 1)) {
                 t = work->stateFrame;
                 if (t < 0x14) {
@@ -2699,7 +2699,7 @@ static void Actor04000_Fn055C8(Enemy* arg0, Task* arg1)
             work->stateFrame          = 0;
             break;
         case 17:
-            animDriverTick(arg1);
+            _animDriverTick(arg1);
             if ((u32)((u16)work->stateFrame - 0xD) < 0x10) {
                 arg1->extra.tmd->coords->coord.t[1] += 0xD;
                 sv                                   = work->slideDir;
@@ -2739,7 +2739,7 @@ static void Actor04000_Fn05AE8(Enemy* arg0, Task* arg1)
         work->driver.state           = ANIM_DRIVER_STATE_RESTART_2;
         work->driver.rateBias        = 0;
         work->driver.rate            = 1;
-        animDriverTick(arg1);
+        _animDriverTick(arg1);
         work->driver.rate                     = ANIMATION_RATE_ONE;
         arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
         work->stateFrame                      = 0;
@@ -2751,7 +2751,7 @@ static void Actor04000_Fn05AE8(Enemy* arg0, Task* arg1)
         return;
     }
     work->stateFrame++;
-    animDriverTick(arg1);
+    _animDriverTick(arg1);
     if (work->stateFrame >= 0x13 && work->stateFrame < 0x23) {
         actorStepForward(arg1->extra.tmd->coords, 4);
     }
@@ -3030,11 +3030,11 @@ static void Actor04000_Fn06878(Enemy* arg0, Task* arg1)
         work->driver.rate            = ANIMATION_RATE_ONE;
         work->driver.rateBias        = 0;
         work->gridBody.flags         = (u16)(work->gridBody.flags | WORLD_COLLISION_BODY_GRID_ENABLED);
-        animDriverTick(arg1);
+        _animDriverTick(arg1);
         work->stateFrame = 0;
         return;
     }
-    animDriverTick(arg1);
+    _animDriverTick(arg1);
     if (!(work->stateFrame & 7)) {
         Gp_SpawnPadLerp(3, 0xFF, 8);
         taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackEnemyAttackKey(arg0, 0), 0);
@@ -3065,11 +3065,11 @@ static void Actor04000_Fn06994(Enemy* arg0, Task* arg1)
         work->driver.rateBias                                     = 0;
         work->driver.requestedSet                                 = 0xF;
         work->gridBody.flags                                      = (u16)(work->gridBody.flags | WORLD_COLLISION_BODY_GRID_ENABLED);
-        animDriverTick(arg1);
+        _animDriverTick(arg1);
         work->stateFrame = 0;
         work->missedLunges++;
     }
-    animDriverTick(arg1);
+    _animDriverTick(arg1);
     if (work->rig.slots[ANIM_DRIVER_FIRST_SLOT].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
         work->state = ACTOR_04000_STATE_CHASE;
     }
@@ -3117,7 +3117,7 @@ static void Actor04000_Fn06AC4(Enemy* arg0, Task* arg1)
         work->gridBody.flags        &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
         return;
     }
-    animDriverTick(arg1);
+    _animDriverTick(arg1);
     switch (arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) {
         case 6:
         case 7:
@@ -3154,10 +3154,10 @@ static void Actor04000_Fn06BC8(Enemy* arg0, Task* arg1)
         work->burstAttackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->burstWaveBody.flags   &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->gridBody.flags        |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        animDriverTick(arg1);
+        _animDriverTick(arg1);
         return;
     }
-    animDriverTick(arg1);
+    _animDriverTick(arg1);
     if (work->rig.slots[ANIM_DRIVER_FIRST_SLOT].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
         work->state = ACTOR_04000_STATE_IDLE;
     }
@@ -3180,10 +3180,10 @@ static void Actor04000_Fn06C80(Enemy* arg0, Task* arg1)
         work->burstAttackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->burstWaveBody.flags   &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->gridBody.flags        |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        animDriverTick(arg1);
+        _animDriverTick(arg1);
         return;
     }
-    animDriverTick(arg1);
+    _animDriverTick(arg1);
     if (work->rig.slots[ANIM_DRIVER_FIRST_SLOT].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
         work->state = ACTOR_04000_STATE_PATROL;
     }
@@ -3205,14 +3205,14 @@ static void Actor04000_Fn06D38(Enemy* arg0, Task* arg1)
         work->burstAttackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->burstWaveBody.flags   &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->gridBody.flags        |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        animDriverTick(arg1);
+        _animDriverTick(arg1);
         angle = ratan2(-arg1->extra.tmd->coords->coord.m[2][0], arg1->extra.tmd->coords->coord.m[2][2]);
         gfxRotMatrixZ(&arg1->extra.tmd->coords->coord, 0x800, GRAPHICS_ROTATION_REPLACE);
         gfxRotMatrixY(&arg1->extra.tmd->coords->coord, angle, 0);
         arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
         return;
     }
-    animDriverTick(arg1);
+    _animDriverTick(arg1);
 }
 
 /// The enemy's spawn, per-frame and teardown handlers, indexed by the task's

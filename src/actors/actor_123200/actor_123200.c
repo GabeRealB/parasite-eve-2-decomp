@@ -742,7 +742,7 @@ static void func_actor_123200_8013352C(Enemy* enemy, Task* task)
     work->driver.state        = ANIM_DRIVER_STATE_RESTART_2;
     work->driver.rate         = ANIMATION_RATE_ONE;
     work->driver.rateBias     = 0;
-    animDriverTick(task);
+    _animDriverTick(task);
     work->field_17E     = 0;
     work->field_8       = 0;
     obj->lightMtx       = &work->lightMtx;
@@ -833,7 +833,7 @@ static void func_actor_123200_80133820(Enemy* enemy, Task* task)
         work->walkTarget.vz       = 0x12D5;
         work->driver.requestedSet = 2;
         work->driver.state        = ANIM_DRIVER_STATE_RESTART_2;
-        animDriverTick(task);
+        _animDriverTick(task);
         task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
         work->stateFrame                      = 0;
         return;
@@ -844,7 +844,7 @@ static void func_actor_123200_80133820(Enemy* enemy, Task* task)
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen != 1) {
         Actor123200_StepForward(coord);
     }
-    animDriverTick(task);
+    _animDriverTick(task);
     SCRATCH_STACK_RELEASE_BYTES(0xC);
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
 }
@@ -896,7 +896,7 @@ static void func_actor_123200_801339F0(Enemy* enemy, Task* task)
         work->walkTarget.vz       = 0x12D5;
         work->driver.requestedSet = 2;
         work->driver.state        = ANIM_DRIVER_STATE_RESTART_2;
-        animDriverTick(task);
+        _animDriverTick(task);
         task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
         work->stateFrame                      = 0;
         return;
@@ -904,7 +904,7 @@ static void func_actor_123200_801339F0(Enemy* enemy, Task* task)
     work->stateFrame++;
     coord = task->extra.tmd->coords;
     Actor123200_MoveForward(coord);
-    animDriverTick(task);
+    _animDriverTick(task);
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 

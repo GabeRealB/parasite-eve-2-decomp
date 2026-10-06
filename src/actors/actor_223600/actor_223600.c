@@ -961,7 +961,7 @@ static __inline__ void Actor223600_MoveForward(GfxCoord* coord, s16 amount)
 /// slots from `D_actor_223600_801509C0` and hangs the enemy's display node off
 /// part 2 of the model's coordinate array. HP and max HP both come from
 /// `D_actor_223600_8014CFCC`, which also picks the opening motion through
-/// `animDriverTick`. The placement index in `Enemy::placeKey` biases the
+/// `_animDriverTick`. The placement index in `Enemy::placeKey` biases the
 /// initial values in `driver.rate`, `field_184` and `field_186`: odd indices
 /// add the index, even indices subtract half of it. The model's world
 /// position is sampled into `spawnPos` and its facing is
@@ -1011,7 +1011,7 @@ static void func_actor_223600_8014B540(Enemy* enemy, Task* task)
     work->driver.state        = ANIM_DRIVER_STATE_RESTART_2;
     work->driver.rate         = ANIMATION_RATE_ONE;
     work->driver.rateBias     = 0;
-    animDriverTick(task);
+    _animDriverTick(task);
     work->field_17E     = 0;
     work->field_8       = 0;
     obj->lightMtx       = &work->lightMtx;
@@ -1092,7 +1092,7 @@ static void func_actor_223600_8014B840(Enemy* enemy, Task* task)
         gfxRotMatrixY(&task->extra.tmd->coords->coord, 0, 1);
         work->driver.requestedSet = 2;
         work->driver.state        = ANIM_DRIVER_STATE_RESTART_2;
-        animDriverTick(task);
+        _animDriverTick(task);
         task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
         work->stateFrame                      = 0;
         return;
@@ -1119,7 +1119,7 @@ static void func_actor_223600_8014B840(Enemy* enemy, Task* task)
                           task->extra.tmd->coords->coord.m[2][2]);
     gfxRotMatrixY(&task->extra.tmd->coords->coord, turn->angle, 1);
     Actor223600_MoveForward(task->extra.tmd->coords, 5);
-    animDriverTick(task);
+    _animDriverTick(task);
     SCRATCH_STACK_RELEASE_BLOCK(ActorTurnScratch);
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
 }
@@ -1192,13 +1192,13 @@ static void func_actor_223600_8014BBF4(Enemy* enemy, Task* task)
                 work->driver.requestedSet = 0xE;
                 work->driver.state        = ANIM_DRIVER_STATE_RESTART_2;
                 do {
-                    animDriverTick(task);
+                    _animDriverTick(task);
                 } while ((work->rig.slots[ANIM_DRIVER_FIRST_SLOT].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) == 0);
                 work->driver.rate = ANIMATION_RATE_ONE;
                 work->fallSpeed   = 0x46;
                 break;
         }
-        animDriverTick(task);
+        _animDriverTick(task);
         task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
         return;
     }
@@ -1209,7 +1209,7 @@ static void func_actor_223600_8014BBF4(Enemy* enemy, Task* task)
             work->driver.state        = ANIM_DRIVER_STATE_RESTART_2;
         }
     }
-    animDriverTick(task);
+    _animDriverTick(task);
 
     push                                               = SCRATCH_HEAD_ADDR;
     head                                               = SCRATCH_HEAD_AT(push, _Actor223600AxisStepScratch);

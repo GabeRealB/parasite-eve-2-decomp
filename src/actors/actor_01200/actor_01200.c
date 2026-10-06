@@ -775,7 +775,7 @@ static void Actor01200_Fn00A6C(Enemy* arg0, Task* arg1)
     work->driver.requestedSet = 1;
     work->driver.rate         = ANIMATION_RATE_ONE;
     work->driver.rateBias     = 0;
-    animDriverTick(arg1);
+    _animDriverTick(arg1);
     work->field_17E       = 0;
     work->chaseNearFrames = 0;
     obj->lightMtx         = &work->lightMtx;
@@ -850,10 +850,10 @@ static void Actor01200_Fn01040(Enemy* arg0, Task* arg1)
         work->burstAttackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->burstWaveBody.flags   &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->gridBody.flags        |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        animDriverTick(arg1);
+        _animDriverTick(arg1);
         return;
     }
-    animDriverTick(arg1);
+    _animDriverTick(arg1);
     if ((work->rig.slots[ANIM_DRIVER_FIRST_SLOT].status.fields.flags & ANIMATION_SLOT_FOLLOWED_JUMP) && work->driver.jumpCount >= 0x19) {
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         if (!((gRandomLcgState >> 0x10) & 7)) {
@@ -893,7 +893,7 @@ static void Actor01200_Fn01234(Enemy* arg0, Task* arg1)
         work->burstAttackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->burstWaveBody.flags   &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->gridBody.flags        |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        animDriverTick(arg1);
+        _animDriverTick(arg1);
         work->chaseFarFrames = 0;
         sceneEngageBattle(1);
         return;
@@ -901,7 +901,7 @@ static void Actor01200_Fn01234(Enemy* arg0, Task* arg1)
     head                                   = SCRATCH_STACK_CURSOR(ActorTurnScratch);
     SCRATCH_STACK_CURSOR(ActorTurnScratch) = head - 1;
     turn                                   = head - 1;
-    animDriverTick(arg1);
+    _animDriverTick(arg1);
     coord             = arg1->extra.tmd->coords;
     head[-1].delta.vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
     turn->delta.vy    = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
@@ -998,7 +998,7 @@ static void Actor01200_Fn017DC(Enemy* arg0, Task* arg1)
         work->driver.requestedSet    = 0xA;
         work->driver.state           = ANIM_DRIVER_STATE_RESTART_1;
         work->driver.rateBias        = 8;
-        animDriverTick(arg1);
+        _animDriverTick(arg1);
         work->burstWaveBody.pos.vx   = arg1->extra.tmd->coords->coord.t[0];
         work->burstWaveBody.pos.vy   = arg1->extra.tmd->coords->coord.t[1] - 0x190;
         work->burstWaveBody.pos.vz   = arg1->extra.tmd->coords->coord.t[2];
@@ -1007,7 +1007,7 @@ static void Actor01200_Fn017DC(Enemy* arg0, Task* arg1)
         work->burstAttackBody.pos.vz = arg1->extra.tmd->coords->coord.t[2];
         return;
     }
-    animDriverTick(arg1);
+    _animDriverTick(arg1);
     switch (work->stateFrame) {
         case 0x29:
             arg1->extra.tmd->flags |= TMD_OBJECT_SEMI_TRANS;
@@ -1129,7 +1129,7 @@ static void Actor01200_Fn01FDC(Enemy* arg0, Task* arg1)
         work->driver.state           = ANIM_DRIVER_STATE_RESTART_1;
         work->driver.rateBias        = 0;
         work->driver.rate            = 0x2C;
-        animDriverTick(arg1);
+        _animDriverTick(arg1);
         work->burstWaveBody.pos.vx   = arg1->extra.tmd->coords->coord.t[0];
         work->burstWaveBody.pos.vy   = arg1->extra.tmd->coords->coord.t[1] - 0x190;
         work->burstWaveBody.pos.vz   = arg1->extra.tmd->coords->coord.t[2];
@@ -1138,7 +1138,7 @@ static void Actor01200_Fn01FDC(Enemy* arg0, Task* arg1)
         work->burstAttackBody.pos.vz = arg1->extra.tmd->coords->coord.t[2];
         return;
     }
-    animDriverTick(arg1);
+    _animDriverTick(arg1);
     switch (work->stateFrame) {
         case 0xD:
             ofs.vx = 0x1E;
@@ -1384,7 +1384,7 @@ static void Actor01200_Fn02BE8(Enemy* arg0, Task* arg1)
         work->burstAttackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->burstWaveBody.flags   &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->gridBody.flags        |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        animDriverTick(arg1);
+        _animDriverTick(arg1);
         work->stateFrame = 0;
         return;
     }
@@ -1431,7 +1431,7 @@ static void Actor01200_Fn02BE8(Enemy* arg0, Task* arg1)
             work->state = ACTOR_01200_STATE_CHASE;
         }
     }
-    animDriverTick(arg1);
+    _animDriverTick(arg1);
     arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if ((work->rig.slots[ANIM_DRIVER_FIRST_SLOT].status.fields.flags & ANIMATION_SLOT_FOLLOWED_JUMP) && work->driver.jumpCount > 0x14) {
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
@@ -1466,7 +1466,7 @@ static void Actor01200_Fn03294(Enemy* arg0, Task* arg1)
         work->burstAttackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->burstWaveBody.flags   &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->gridBody.flags        |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        animDriverTick(arg1);
+        _animDriverTick(arg1);
         work->chaseFarFrames = 0;
         work->stateFrame     = 0;
         return;
@@ -1474,7 +1474,7 @@ static void Actor01200_Fn03294(Enemy* arg0, Task* arg1)
     head                                   = SCRATCH_STACK_CURSOR(ActorTurnScratch);
     SCRATCH_STACK_CURSOR(ActorTurnScratch) = head - 1;
     turn                                   = head - 1;
-    animDriverTick(arg1);
+    _animDriverTick(arg1);
     arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     head[-1].delta.vx                     = work->spawnPos.vx - arg1->extra.tmd->coords->coord.t[0];
     turn->delta.vy                        = 0;
@@ -1696,7 +1696,7 @@ static void Actor01200_Fn03D58(Enemy* arg0, Task* arg1)
 
 /// `ACTOR_01200_STATE_SETTLE`: on entry (`stateEntered` set) clear the actor and
 /// model flags, request animation 4, and set or clear the pass enables of the
-/// four collision bodies; afterwards run `animDriverTick` and move to `IDLE`
+/// four collision bodies; afterwards run `_animDriverTick` and move to `IDLE`
 /// once rig slot 1 reports `ANIMATION_SLOT_REACHED_BOUNDARY`.
 static void Actor01200_Fn03DC0(Enemy* arg0, Task* arg1)
 {
@@ -1715,10 +1715,10 @@ static void Actor01200_Fn03DC0(Enemy* arg0, Task* arg1)
         work->burstAttackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->burstWaveBody.flags   &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->gridBody.flags        |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        animDriverTick(arg1);
+        _animDriverTick(arg1);
         return;
     }
-    animDriverTick(arg1);
+    _animDriverTick(arg1);
     if (work->rig.slots[ANIM_DRIVER_FIRST_SLOT].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
         work->state = ACTOR_01200_STATE_IDLE;
     }
@@ -1726,7 +1726,7 @@ static void Actor01200_Fn03DC0(Enemy* arg0, Task* arg1)
 
 /// `ACTOR_01200_STATE_ROUSE`: on entry (`stateEntered` set) clear the actor and
 /// model flags, request animation 6, and set or clear the pass enables of the
-/// four collision bodies; afterwards run `animDriverTick` and move to `PATROL`
+/// four collision bodies; afterwards run `_animDriverTick` and move to `PATROL`
 /// once rig slot 1 reports `ANIMATION_SLOT_REACHED_BOUNDARY`.
 static void Actor01200_Fn03E78(Enemy* arg0, Task* arg1)
 {
@@ -1745,10 +1745,10 @@ static void Actor01200_Fn03E78(Enemy* arg0, Task* arg1)
         work->burstAttackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->burstWaveBody.flags   &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->gridBody.flags        |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        animDriverTick(arg1);
+        _animDriverTick(arg1);
         return;
     }
-    animDriverTick(arg1);
+    _animDriverTick(arg1);
     if (work->rig.slots[ANIM_DRIVER_FIRST_SLOT].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
         work->state = ACTOR_01200_STATE_PATROL;
     }
@@ -1756,7 +1756,7 @@ static void Actor01200_Fn03E78(Enemy* arg0, Task* arg1)
 
 /// `ACTOR_01200_STATE_WALK_IN_PLACE`: on entry (`stateEntered` set) clear the
 /// actor and model flags, request animation 2, and set or clear the pass
-/// enables of the four collision bodies; then run `animDriverTick` and mark the
+/// enables of the four collision bodies; then run `_animDriverTick` and mark the
 /// model's root coordinate dirty every frame.
 static void Actor01200_Fn03F30(Enemy* arg0, Task* arg1)
 {
@@ -1776,7 +1776,7 @@ static void Actor01200_Fn03F30(Enemy* arg0, Task* arg1)
         work->burstWaveBody.flags   &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->gridBody.flags        |= WORLD_COLLISION_BODY_GRID_ENABLED;
     }
-    animDriverTick(arg1);
+    _animDriverTick(arg1);
     arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
