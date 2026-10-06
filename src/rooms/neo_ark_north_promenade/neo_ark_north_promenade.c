@@ -58,12 +58,12 @@ extern TaskMessageEntry D_neo_ark_north_promenade_80181D68[];
 /// `[1]` under its own name, which the per-frame path reads directly.
 
 static void func_neo_ark_north_promenade_8017D67C(Task* task);
-static void func_neo_ark_north_promenade_8017D6C0(Task* task);
+static void _neoArkNorthPromenadeRoomIdleState(Task* task);
 
 /// State table of the room's message-driven task, indexed by `Task::state`:
 /// install the message table, idle, then kill the task.
 static const TaskFuncTable3 D_neo_ark_north_promenade_8017D5C4 = {
-    { func_neo_ark_north_promenade_8017D67C, func_neo_ark_north_promenade_8017D6C0, taskKill },
+    { func_neo_ark_north_promenade_8017D67C, _neoArkNorthPromenadeRoomIdleState, taskKill },
 };
 
 extern WorldCollisionGrid     D_neo_ark_north_promenade_801823EC[1];
@@ -72,16 +72,18 @@ extern WorldCollisionTrigger  D_neo_ark_north_promenade_80182DB4[8];
 extern WorldCollisionTrigger  D_neo_ark_north_promenade_801830C4[6];
 extern WorldCoordRoomLights   D_neo_ark_north_promenade_80182D9C[1];
 
-s32 func_neo_ark_north_promenade_8017D5D0(Task*, s32, s32, s32);
-s32 func_neo_ark_north_promenade_8017D5D8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_neo_ark_north_promenade_8017D66C(Task*, s32, s32, s32);
-s32 func_neo_ark_north_promenade_8017D674(Task*, s32, s32, s32);
+static s32 _neoArkNorthPromenadeRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
+s32        func_neo_ark_north_promenade_8017D5D8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+static s32 _neoArkNorthPromenadeIgnoreRoomCommand(Task* task, s32 messageId, s32 commandId, s32 commandArg);
+static s32 _neoArkNorthPromenadeIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg);
+
+enum { NEO_ARK_NORTH_PROMENADE_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
 TaskMessageEntry D_neo_ark_north_promenade_80181D68[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_north_promenade_8017D5D8 },
-    { 5105, func_neo_ark_north_promenade_8017D5D0 },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_neo_ark_north_promenade_8017D674 },
-    { ROOM_MESSAGE_COMMAND, func_neo_ark_north_promenade_8017D66C },
+    { NEO_ARK_NORTH_PROMENADE_MESSAGE_USE_KEY_ITEM, _neoArkNorthPromenadeRejectKeyItemUse },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _neoArkNorthPromenadeIgnoreRoomAction },
+    { ROOM_MESSAGE_COMMAND, _neoArkNorthPromenadeIgnoreRoomCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -395,11 +397,14 @@ WorldCollisionSurfaceProperties* D_neo_ark_north_promenade_801832EC[8] = {
     D_neo_ark_north_promenade_801832D4,
 };
 
-/// Message handler the room's message table names for one of its entries:
-/// accepts the message and does nothing.
-s32 func_neo_ark_north_promenade_8017D5D0(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Rejects every key-item use in this room without changing the item or room.
+///
+/// All arguments are ignored; returns the item menu's cannot-use result.
+static s32 _neoArkNorthPromenadeRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedArg)
 {
-    return 0;
+    enum { KEY_ITEM_NOT_USED = 0 };
+
+    return KEY_ITEM_NOT_USED;
 }
 
 s32 func_neo_ark_north_promenade_8017D5D8(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
@@ -420,12 +425,14 @@ s32 func_neo_ark_north_promenade_8017D5D8(Task* arg0, s32 arg1, RoomEventMsg* in
     return 0;
 }
 
-s32 func_neo_ark_north_promenade_8017D66C(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores every CAP room command and returns zero without retaining its arguments.
+static s32 _neoArkNorthPromenadeIgnoreRoomCommand(Task* task, s32 messageId, s32 commandId, s32 commandArg)
 {
     return 0;
 }
 
-s32 func_neo_ark_north_promenade_8017D674(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores every direction action and returns zero without reading its borrowed request.
+static s32 _neoArkNorthPromenadeIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg)
 {
     return 0;
 }
@@ -440,7 +447,8 @@ static void func_neo_ark_north_promenade_8017D67C(Task* task)
     task->state = (s32)(task->state + 1);
 }
 
-static void func_neo_ark_north_promenade_8017D6C0(Task* task)
+/// Keeps the room task in its idle state while synchronous messages handle room requests.
+static void _neoArkNorthPromenadeRoomIdleState(Task* task)
 {
 }
 
@@ -454,9 +462,12 @@ void func_neo_ark_north_promenade_8017D6C8(Task* task)
     sp.funcs[task->state](task);
 }
 
-void func_neo_ark_north_promenade_8017D720(Task* arg0)
+void neoArkNorthPromenadeBindRoomEffectsTask(Task* task)
 {
-    if (arg0->state == 0) {
+    enum { EFFECT_BINDINGS_INITIALIZE,
+           EFFECT_BINDINGS_READY };
+
+    if (task->state == EFFECT_BINDINGS_INITIALIZE) {
         gRoomEffectMoteId         = EFFECT_NEO_ARK_NORTH_PROMENADE_MOTE;
         gRoomEffectHaloId         = EFFECT_NEO_ARK_NORTH_PROMENADE_HALO;
         gRoomEffectOrangeBurstId  = EFFECT_NEO_ARK_NORTH_PROMENADE_ORANGE_BURST;
@@ -464,27 +475,27 @@ void func_neo_ark_north_promenade_8017D720(Task* arg0)
         gRoomEffectFlashId        = EFFECT_NEO_ARK_NORTH_PROMENADE_FLASH;
         gRoomEffectTwinTrailId    = EFFECT_NEO_ARK_NORTH_PROMENADE_TWIN_TRAIL;
         gRoomEffectSparkBurstId   = EFFECT_NEO_ARK_NORTH_PROMENADE_SPARK_BURST;
-        arg0->state               = 1;
+        task->state               = EFFECT_BINDINGS_READY;
     }
 }
 
 #include "../../shared/room_visual_effects.inc.c"
 
-void func_neo_ark_north_promenade_8017D7B0(Task* task)
+void neoArkNorthPromenadeRoomVisualEffectsMoteTask(Task* task)
 {
     _roomVisualEffectsMoteTask(task);
 }
 
 #include "../../shared/room_visual_effects_halo.inc.c"
 
-void func_neo_ark_north_promenade_8017E4F8(Task* arg0)
+void neoArkNorthPromenadeRoomVisualEffectsHaloTask(Task* task)
 {
-    _roomVisualEffectsHaloTask(arg0);
+    _roomVisualEffectsHaloTask(task);
 }
 
-void func_neo_ark_north_promenade_8017E890(Task* arg0)
+void neoArkNorthPromenadeRoomVisualEffectsHaloOrangeBurstTask(Task* task)
 {
-    _roomVisualEffectsHaloOrangeBurstTask(arg0);
+    _roomVisualEffectsHaloOrangeBurstTask(task);
 }
 
 #include "../../shared/room_visual_effects_glow_quad.inc.c"
@@ -497,14 +508,14 @@ void func_neo_ark_north_promenade_8017FCA0(Task* arg0)
 
 #include "../../shared/room_visual_effects_flash_task.inc.c"
 
-void func_neo_ark_north_promenade_8017FDD4(Task* arg0)
+void neoArkNorthPromenadeRoomVisualEffectsFlashTask(Task* task)
 {
-    _roomVisualEffectsFlashTask(arg0);
+    _roomVisualEffectsFlashTask(task);
 }
 
 #include "../../shared/room_visual_effects_trails.inc.c"
 
-void func_neo_ark_north_promenade_80180838(Task* task)
+void neoArkNorthPromenadeRoomVisualEffectsTwinTrailTask(Task* task)
 {
 #include "../../shared/room_visual_effects_trail_task.inc.c"
 }

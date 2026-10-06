@@ -870,17 +870,17 @@ neoArkIslandRoomVisualEffectsTwinTrailTask = 0x80180600; // type:func absolute:T
 
 func_neo_ark_island_80180EE8 = 0x80180EE8; // type:func absolute:True owner=neo_ark_island
 
-func_neo_ark_north_promenade_8017D7B0 = 0x8017D7B0; // type:func absolute:True owner=neo_ark_north_promenade
+neoArkNorthPromenadeRoomVisualEffectsMoteTask = 0x8017D7B0; // type:func absolute:True owner=neo_ark_north_promenade
 
-func_neo_ark_north_promenade_8017E4F8 = 0x8017E4F8; // type:func absolute:True owner=neo_ark_north_promenade
+neoArkNorthPromenadeRoomVisualEffectsHaloTask = 0x8017E4F8; // type:func absolute:True owner=neo_ark_north_promenade
 
-func_neo_ark_north_promenade_8017E890 = 0x8017E890; // type:func absolute:True owner=neo_ark_north_promenade shared=rooms
+neoArkNorthPromenadeRoomVisualEffectsHaloOrangeBurstTask = 0x8017E890; // type:func absolute:True owner=neo_ark_north_promenade shared=rooms
 
 func_neo_ark_north_promenade_8017FCA0 = 0x8017FCA0; // type:func absolute:True owner=neo_ark_north_promenade shared=rooms
 
-func_neo_ark_north_promenade_8017FDD4 = 0x8017FDD4; // type:func absolute:True owner=neo_ark_north_promenade shared=rooms
+neoArkNorthPromenadeRoomVisualEffectsFlashTask = 0x8017FDD4; // type:func absolute:True owner=neo_ark_north_promenade shared=rooms
 
-func_neo_ark_north_promenade_80180838 = 0x80180838; // type:func absolute:True owner=neo_ark_north_promenade
+neoArkNorthPromenadeRoomVisualEffectsTwinTrailTask = 0x80180838; // type:func absolute:True owner=neo_ark_north_promenade
 
 func_neo_ark_north_promenade_80181120 = 0x80181120; // type:func absolute:True owner=neo_ark_north_promenade
 
@@ -1899,7 +1899,7 @@ neoArkEveAccessTunnelDrawViewGlowsTask = 0x8017E15C; // type:func absolute:True 
 
 neoArkEveElevatorIdleEffectTask = 0x8017D71C; // type:func absolute:True owner=neo_ark_eve_elevator shared=rooms
 
-func_neo_ark_north_promenade_8017D720 = 0x8017D720; // type:func absolute:True owner=neo_ark_north_promenade shared=rooms
+neoArkNorthPromenadeBindRoomEffectsTask = 0x8017D720; // type:func absolute:True owner=neo_ark_north_promenade shared=rooms
 
 func_neo_ark_submarine_tunnel_8017F48C = 0x8017F48C; // type:func absolute:True owner=neo_ark_submarine_tunnel shared=rooms
 
