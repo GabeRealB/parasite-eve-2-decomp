@@ -3547,6 +3547,23 @@ static void func_actor_403000_80137084(Task* arg0)
     SCRATCH_STACK_RELEASE_BLOCK(_Actor403000ChaseScratch);
 }
 
+/// Whether any of the leading `count` contact records is a kind 0x10000
+/// (player) contact, stopping at the first empty record.
+static inline s32 _actor403000HasPlayerContact(WorldCollisionContact* records, s16 count)
+{
+    s16 i;
+
+    for (i = 0; i < count; i++) {
+        if (records[i].key.value == 0) {
+            break;
+        }
+        if ((records[i].key.value & 0xFFFF0000) == 0x10000) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
 /// Grab approach (animation 2 then 0xB): on the frame `stateEntered` is set, record
 /// the player's offset; walk forward until the player is within 0xDAC, then
 /// switch to the lunge clip with a per-frame step of a fifteenth of the distance.
@@ -3572,13 +3589,9 @@ static void func_actor_403000_801377C8(Task* arg0)
     SVECTOR*                  dirB;
     Task*                     task;
     GameActor*                pw;
-    WorldCollisionContact*    recs;
     s16                       angle;
     s16                       step;
-    s16                       i;
     s16                       diff;
-    s32                       found;
-    s32                       value;
     s32                       mag;
     s8                        sign;
     s16                       cell;
@@ -3611,45 +3624,17 @@ static void func_actor_403000_801377C8(Task* arg0)
     }
     if (work->requestedAnimId == 0xB) {
         if (work->stateFrame == 0xA) {
-            t     = &scratch->offset;
-            pos   = arg0->extra.tmd->coords;
-            t->vx = gPlayerStatus.coordMtx->t[0] - pos->coord.t[0];
-            t->vy = gPlayerStatus.coordMtx->t[1] - pos->coord.t[1];
-            t->vz = gPlayerStatus.coordMtx->t[2] - pos->coord.t[2];
-            rot   = arg0->extra.tmd->coords;
-            angle = ratan2(t->vx, t->vz) - ratan2(-rot->coord.m[2][0], rot->coord.m[2][2]);
-            if (angle < 0) {
-                for (;;) {
-                    if (angle >= -0x800) {
-                        goto wrapped;
-                    }
-                    angle += 0x1000;
-                }
-            } else {
-                for (;;) {
-                    if (angle <= 0x800) {
-                        goto wrapped;
-                    }
-                    angle -= 0x1000;
-                }
-            }
-        wrapped:
+            t             = &scratch->offset;
+            pos           = arg0->extra.tmd->coords;
+            t->vx         = gPlayerStatus.coordMtx->t[0] - pos->coord.t[0];
+            t->vy         = gPlayerStatus.coordMtx->t[1] - pos->coord.t[1];
+            t->vz         = gPlayerStatus.coordMtx->t[2] - pos->coord.t[2];
+            rot           = arg0->extra.tmd->coords;
+            angle         = ratan2(t->vx, t->vz) - ratan2(-rot->coord.m[2][0], rot->coord.m[2][2]);
+            angle         = actorWrapAngle(angle);
             scratch->turn = mag = angle;
             if (ABS(mag) < 0x400) {
-                recs = work->neckSphere.contacts;
-                for (i = 0; i < ARRAY_SIZE(work->neckSphere.contacts); i++) {
-                    value = recs[i].key.value;
-                    if (value == 0) {
-                        break;
-                    }
-                    if ((value & 0xFFFF0000) == 0x10000) {
-                        found = 1;
-                        goto done;
-                    }
-                }
-                found = 0;
-            done:
-                if (found != 0 && enemy->hp > 0 && TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &D_actor_403000_80158DD0.hold, 0) == 0) {
+                if (_actor403000HasPlayerContact(work->neckSphere.contacts, ARRAY_SIZE(work->neckSphere.contacts)) && enemy->hp > 0 && TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &D_actor_403000_80158DD0.hold, 0) == 0) {
                     work->state            = ACTOR_403000_STATE_GRAB_CATCH;
                     work->playerCaught     = 1;
                     work->attackTarget.vx  = player->extra.tmd->coords->coord.t[0] - arg0->extra.tmd->coords->coord.t[0];
@@ -3663,22 +3648,7 @@ static void func_actor_403000_801377C8(Task* arg0)
                     t->vz                  = gPlayerStatus.coordMtx->t[2] - pos->coord.t[2];
                     scratch->yawFromPlayer = ratan2(scratch->offset.vx, scratch->offset.vz) + 0x800;
                     angle                  = scratch->yawFromPlayer;
-                    if (angle < 0) {
-                        for (;;) {
-                            if (angle >= -0x800) {
-                                goto wrapped2;
-                            }
-                            angle += 0x1000;
-                        }
-                    } else {
-                        for (;;) {
-                            if (angle <= 0x800) {
-                                goto wrapped2;
-                            }
-                            angle -= 0x1000;
-                        }
-                    }
-                wrapped2:
+                    angle                  = actorWrapAngle(angle);
                     scratch->yawFromPlayer = mag = angle;
                     mag                         -= scratch->playerYaw;
                     if (ABS(mag) < 0x400) {
@@ -3788,34 +3758,10 @@ static void func_actor_403000_801377C8(Task* arg0)
             cell                = Actor403000_Cell(arg0->extra.tmd->coords);
             scratch->cell       = cell;
             diff                = scratch->cell - scratch->playerCell;
-            if (diff < -5) {
-                goto neg1;
-            }
-            if (diff < 0) {
-                goto pos1;
-            }
-            if (diff < 5) {
-            neg1:
-                sign = -1;
-            } else {
-            pos1:
-                sign = 1;
-            }
-            work->watchRingDir = sign;
-            diff               = scratch->cell - scratch->playerCell;
-            if (diff < -5) {
-                goto neg2;
-            }
-            if (diff < 0) {
-                goto pos2;
-            }
-            if (diff < 5) {
-            neg2:
-                sign = -1;
-            } else {
-            pos2:
-                sign = 1;
-            }
+            sign                = _actor403000RingSide(diff);
+            work->watchRingDir  = sign;
+            diff                = scratch->cell - scratch->playerCell;
+            sign                = _actor403000RingSide(diff);
             work->turnRingDir = work->watchRingDir = -sign;
             work->state                            = ACTOR_403000_STATE_TURN;
         }
