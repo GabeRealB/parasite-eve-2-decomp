@@ -5026,7 +5026,7 @@ against 49, `insert=0 delete=7`.
 
 GCC 2.8.1 never expands a multi-value case twice: `expand_end_case` hangs every
 value of a case off the same `code_label`, so the table repeats *one* label.
-`func_dryfield_night_water_tower_8017DB80`'s `case 7: case 10:` shows the other
+`dryfieldNightWaterTowerDrawGlowsTask`'s `case 7: case 10:` shows the other
 side - entries 5 and 8 of its table are both `.Ldryfield_night_water_tower_8017DC38`.
 
 So the jtbl in the function's own `.s` decides this before any build: **two

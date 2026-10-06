@@ -810,7 +810,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightMotelLobbyDrawGlowsTask, { NULL } },                        // 0x10D
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightSaloonGRDrawGlowsTask, { NULL } },                          // 0x10E
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightGRKitchenDrawLightShaftsTask, { NULL } },                   // 0x10F
-    { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_night_water_tower_8017DB80, { NULL } },                    // 0x110
+    { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightWaterTowerDrawGlowsTask, { NULL } },                        // 0x110
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightWaterTankNoOpEffectTask, { NULL } },                        // 0x111
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightBreezewayDrawGlowsTask, { NULL } },                         // 0x112
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightFactoryDrawGlowsTask, { NULL } },                           // 0x113

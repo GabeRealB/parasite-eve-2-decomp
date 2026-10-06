@@ -30,7 +30,17 @@ extern SpriteView D_dryfield_night_water_tower_80182040[];
 
 extern WorldCollisionSurfaceProperties* D_dryfield_night_water_tower_80182C30[];
 
-void func_dryfield_night_water_tower_8017DB80(Task* unused);
+/// Draws the night Water Tower's light glows for the current room view.
+///
+/// Every tick enables the room's view-effect gate. Views 2 and 5 draw one
+/// flare; view 3 draws a shaft and a flare; view 4 adds a second flare;
+/// views 7 and 10 layer two identical flares at one point. Other views draw
+/// nothing. `task` is unused; the callback keeps no per-task state.
+/// Requires a live session and room effect controller, the loaded room overlay,
+/// current view transforms and flare texture, initialized scratch space, and
+/// room in the frame's packet arena and ordering table. Accepted light points
+/// must have nonzero camera-Z / 4 depth. Packets remain live until GPU completion.
+void dryfieldNightWaterTowerDrawGlowsTask(Task* task);
 
 void func_dryfield_night_water_tower_8017DB28(Task* task);
 

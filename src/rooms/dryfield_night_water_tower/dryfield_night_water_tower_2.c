@@ -918,33 +918,48 @@ WorldCollisionSurfaceProperties* D_dryfield_night_water_tower_80182C30[8] = {
 static void _glowDrawFlare(const SVECTOR* worldPoint, s32 textureIndex, s32 radiusScale);
 static void _glowDrawShaft(const SVECTOR worldPoints[2], s32 radiusScale);
 
-/// The room's effect draw: sets the room effect mode to 2, then draws the
-/// glow sprites and light shafts at the tower's anchor points that the current
-/// view (`gGameSession->location.loc.view`) shows. Views 3 and 4 also draw the
-/// light shaft between the two lower rungs.
-void func_dryfield_night_water_tower_8017DB80(Task* unused)
+/// Queues two coincident textured flares at one borrowed world point.
+static inline void _dryfieldNightWaterTowerDrawDoubleFlare(const SVECTOR* worldPoint, s32 textureIndex, s32 radiusScale)
 {
+    _glowDrawFlare(worldPoint, textureIndex, radiusScale);
+    _glowDrawFlare(worldPoint, textureIndex, radiusScale);
+}
+
+void dryfieldNightWaterTowerDrawGlowsTask(Task* task)
+{
+    enum {
+        DRYFIELD_NIGHT_WATER_TOWER_FLARE_TEXTURE_INDEX = 2,     // 40-texel column and palette offset
+        DRYFIELD_NIGHT_WATER_TOWER_FLARE_RADIUS_SCALE  = 0x400, // Pixel half-extent = scale * 39 / (camera Z / 4)
+        DRYFIELD_NIGHT_WATER_TOWER_SHAFT_RADIUS_SCALE  = 0x100, // Pixel end radius = scale * 64 / (camera Z / 4)
+    };
+
     gRoomEffectState->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
+    // Select lights by the room-local view ID; the shaft spans array points 0 and 1.
     switch (gGameSession->location.loc.view) {
         case 2:
-            _glowDrawFlare(&D_dryfield_night_water_tower_8017E71C[4], 2, 0x400);
+            _glowDrawFlare(&D_dryfield_night_water_tower_8017E71C[4], DRYFIELD_NIGHT_WATER_TOWER_FLARE_TEXTURE_INDEX,
+                           DRYFIELD_NIGHT_WATER_TOWER_FLARE_RADIUS_SCALE);
             break;
         case 3:
-            _glowDrawShaft(&D_dryfield_night_water_tower_8017E71C[0], 0x100);
-            _glowDrawFlare(&D_dryfield_night_water_tower_8017E71C[2], 2, 0x400);
+            _glowDrawShaft(&D_dryfield_night_water_tower_8017E71C[0], DRYFIELD_NIGHT_WATER_TOWER_SHAFT_RADIUS_SCALE);
+            _glowDrawFlare(&D_dryfield_night_water_tower_8017E71C[2], DRYFIELD_NIGHT_WATER_TOWER_FLARE_TEXTURE_INDEX,
+                           DRYFIELD_NIGHT_WATER_TOWER_FLARE_RADIUS_SCALE);
             break;
         case 4:
-            _glowDrawShaft(&D_dryfield_night_water_tower_8017E71C[0], 0x100);
-            _glowDrawFlare(&D_dryfield_night_water_tower_8017E71C[2], 2, 0x400);
-            _glowDrawFlare(&D_dryfield_night_water_tower_8017E71C[4], 2, 0x400);
+            _glowDrawShaft(&D_dryfield_night_water_tower_8017E71C[0], DRYFIELD_NIGHT_WATER_TOWER_SHAFT_RADIUS_SCALE);
+            _glowDrawFlare(&D_dryfield_night_water_tower_8017E71C[2], DRYFIELD_NIGHT_WATER_TOWER_FLARE_TEXTURE_INDEX,
+                           DRYFIELD_NIGHT_WATER_TOWER_FLARE_RADIUS_SCALE);
+            _glowDrawFlare(&D_dryfield_night_water_tower_8017E71C[4], DRYFIELD_NIGHT_WATER_TOWER_FLARE_TEXTURE_INDEX,
+                           DRYFIELD_NIGHT_WATER_TOWER_FLARE_RADIUS_SCALE);
             break;
         case 5:
-            _glowDrawFlare(&D_dryfield_night_water_tower_8017E71C[3], 2, 0x400);
+            _glowDrawFlare(&D_dryfield_night_water_tower_8017E71C[3], DRYFIELD_NIGHT_WATER_TOWER_FLARE_TEXTURE_INDEX,
+                           DRYFIELD_NIGHT_WATER_TOWER_FLARE_RADIUS_SCALE);
             break;
         case 7:
         case 10:
-            _glowDrawFlare(&D_dryfield_night_water_tower_8017E744, 2, 0x400);
-            _glowDrawFlare(&D_dryfield_night_water_tower_8017E744, 2, 0x400);
+            _dryfieldNightWaterTowerDrawDoubleFlare(&D_dryfield_night_water_tower_8017E744, DRYFIELD_NIGHT_WATER_TOWER_FLARE_TEXTURE_INDEX,
+                                                    DRYFIELD_NIGHT_WATER_TOWER_FLARE_RADIUS_SCALE);
             break;
     }
 }

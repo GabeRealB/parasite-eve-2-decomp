@@ -1821,7 +1821,7 @@ dryfieldNightMotelLobbyDrawGlowsTask = 0x801812F8; // type:func absolute:True ow
 
 dryfieldNightGRKitchenDrawLightShaftsTask = 0x8017E1E4; // type:func absolute:True owner=dryfield_night_g_r_kitchen
 
-func_dryfield_night_water_tower_8017DB80 = 0x8017DB80; // type:func absolute:True owner=dryfield_night_water_tower
+dryfieldNightWaterTowerDrawGlowsTask = 0x8017DB80; // type:func absolute:True owner=dryfield_night_water_tower
 
 dryfieldNightWaterTankNoOpEffectTask = 0x8017DD8C; // type:func absolute:True owner=dryfield_night_water_tank shared=rooms
 
