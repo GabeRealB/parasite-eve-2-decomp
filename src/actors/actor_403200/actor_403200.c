@@ -4213,46 +4213,6 @@ static void func_actor_403200_80138AFC(Enemy* enemy, Task* task)
 
 #include "../../shared/glutton_hit_groups1to2.inc.c"
 
-/// The first of the leading `count` contact records whose kind is 0x20000:
-/// copies its point to `pos` and returns its key, or returns 0 when none is
-/// found before an empty record or the end.
-static inline s32 _gluttonFindHit(SVECTOR* pos, WorldCollisionContact* records, s16 count)
-{
-    s16 i;
-
-    for (i = 0; i < count; i++) {
-        if (records[i].key.value == 0) {
-            break;
-        }
-        if ((records[i].key.value & 0xFFFF0000) == 0x20000) {
-            pos->vx = records[i].point.vx;
-            pos->vy = records[i].point.vy;
-            pos->vz = records[i].point.vz;
-            return records[i].key.value;
-        }
-    }
-    return 0;
-}
-
-/// Scans a hit group's contacts for an attack and records its key and point
-/// in `sc`. Returns the key, or 0 when nothing landed.
-static inline s32 _gluttonScanGroup(GluttonHitScratch* sc, GluttonHitGroup* group)
-{
-    s32 id;
-
-    id            = _gluttonFindHit(&sc->contactPoint, group->contacts, ARRAY_SIZE(group->contacts));
-    sc->attackKey = id;
-    return id;
-}
-
-/// Spawns the impact effect for the attack recorded in `sc` on the group's
-/// part. Returns whether the attack key is still set afterwards.
-static inline s32 _gluttonHitLanded(GluttonHitScratch* sc, GluttonHitGroup* group)
-{
-    gluttonHitEffect(group->body.coord, sc->attackKey);
-    return sc->attackKey != 0;
-}
-
 /// The hit handler for collision groups 3, 4 and 5 -- `gluttonHitGroups1To2`
 /// done three times over the parts it does not cover, each group only scanned
 /// when the previous one landed nothing and the part it hit reported no attack

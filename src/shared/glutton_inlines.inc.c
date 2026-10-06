@@ -83,3 +83,43 @@ static __inline__ void gluttonGapToCamera(GfxCoord* coord, SVECTOR* out)
     out->vy = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
     out->vz = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
 }
+
+/// The first of the leading `count` contact records whose kind is 0x20000:
+/// copies its point to `pos` and returns its key, or returns 0 when none is
+/// found before an empty record or the end.
+static __inline__ s32 _gluttonFindHit(SVECTOR* pos, WorldCollisionContact* records, s16 count)
+{
+    s16 i;
+
+    for (i = 0; i < count; i++) {
+        if (records[i].key.value == 0) {
+            break;
+        }
+        if ((records[i].key.value & 0xFFFF0000) == 0x20000) {
+            pos->vx = records[i].point.vx;
+            pos->vy = records[i].point.vy;
+            pos->vz = records[i].point.vz;
+            return records[i].key.value;
+        }
+    }
+    return 0;
+}
+
+/// Scans a hit group's contacts for an attack and records its key and point
+/// in `sc`. Returns the key, or 0 when nothing landed.
+static __inline__ s32 _gluttonScanGroup(GluttonHitScratch* sc, GluttonHitGroup* group)
+{
+    s32 id;
+
+    id            = _gluttonFindHit(&sc->contactPoint, group->contacts, ARRAY_SIZE(group->contacts));
+    sc->attackKey = id;
+    return id;
+}
+
+/// Spawns the impact effect for the attack recorded in `sc` on the group's
+/// part. Returns whether the attack key is still set afterwards.
+static __inline__ s32 _gluttonHitLanded(GluttonHitScratch* sc, GluttonHitGroup* group)
+{
+    gluttonHitEffect(group->body.coord, sc->attackKey);
+    return sc->attackKey != 0;
+}

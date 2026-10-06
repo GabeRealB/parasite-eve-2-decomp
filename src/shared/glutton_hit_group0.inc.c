@@ -32,54 +32,26 @@
 /// between the escort 3 and escort 0 ones to land where the original has it.
 void gluttonHitGroup0(Task* arg0)
 {
-    GluttonHitScratch*     sc;
-    GluttonWork*           work;
-    Enemy*                 enemy;
-    WorldCollisionContact* recs;
-    PlayerStatus*          cfg;
-    SVECTOR*               pos;
-    s32                    mask;
-    s32                    kind;
-    s32                    id;
-    s32                    dx2;
-    s32                    dy2;
-    s32                    dz2;
-    s16                    angle;
-    s16                    i;
-    s16                    param;
-    u16                    hp;
-    Enemy*                 esc3;
-    Enemy*                 esc0;
-    Enemy*                 esc1;
+    GluttonHitScratch* sc;
+    GluttonWork*       work;
+    Enemy*             enemy;
+    PlayerStatus*      cfg;
+    s32                id;
+    s32                dx2;
+    s32                dy2;
+    s32                dz2;
+    s16                angle;
+    s16                param;
+    u16                hp;
+    Enemy*             esc3;
+    Enemy*             esc0;
+    Enemy*             esc1;
 
     cfg   = &gPlayerStatus;
     enemy = (Enemy*)arg0->spawnArg2.pointer;
     work  = arg0->work;
     sc    = SCRATCH_STACK_RESERVE_BLOCK(GluttonHitScratch);
-    pos   = &sc->contactPoint;
-    recs  = work->hits[0].contacts;
-    i     = 0;
-    mask  = 0xFFFF0000;
-    kind  = 0x20000;
-scan:
-    if (recs[i].key.value == 0) {
-        goto missed;
-    }
-    if ((recs[i].key.value & mask) == kind) {
-        pos->vx = recs[i].point.vx;
-        pos->vy = recs[i].point.vy;
-        pos->vz = recs[i].point.vz;
-        id      = recs[i].key.value;
-        goto found;
-    }
-    i++;
-    if (i < ARRAY_SIZE(work->hits[0].contacts)) {
-        goto scan;
-    }
-missed:
-    id = 0;
-found:
-    sc->attackKey = id;
+    id    = _gluttonScanGroup(sc, &work->hits[0]);
 
     if (id != 0) {
         gluttonHitEffect(work->hits[0].body.coord, id);
@@ -125,20 +97,7 @@ found:
                 ratan2(-arg0->extra.tmd->coords->workm.m[2][0],
                        arg0->extra.tmd->coords->workm.m[2][2]);
         sc->contactYaw = angle;
-        if (angle < 0) {
-        wrapUp:
-            if (angle < -0x800) {
-                angle += 0x1000;
-                goto wrapUp;
-            }
-        } else {
-        wrapDown:
-            if (angle > 0x800) {
-                angle -= 0x1000;
-                goto wrapDown;
-            }
-        }
-        sc->contactYaw = angle;
+        sc->contactYaw = actorWrapAngle(angle);
 
 #if GLUTTON_ROOM == GLUTTON_INCINERATOR
         if (work->animId != 4) {
