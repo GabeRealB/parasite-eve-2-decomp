@@ -538,7 +538,12 @@ void func_shelter_1f_parking_garage_8017DF14(Task* task)
     sp.funcs[task->state](task);
 }
 
-/// Selects this loaded room's flash, twin-trail and spark-burst effect implementations.
+/// Binds actor-spawned effects to the parking garage's room implementations.
+///
+/// Installs packed bank/type IDs for the Pawn/Rook GOLEMs' silence-scream flash,
+/// sword trail and grenade-impact burst. Call after room-effect controller
+/// initialization clears the selectors and before actors spawn these effects.
+/// This room overlay must remain loaded while the selected effect tasks run.
 static inline void _shelter1fParkingGarageBindActorEffects(void)
 {
     gRoomEffectFlashId      = EFFECT_SHELTER_1F_PARKING_GARAGE_FLASH;
@@ -558,7 +563,7 @@ void shelter1fParkingGarageDrawViewGlowsTask(Task* task)
     };
     u8 mappedView;
 
-    // Publish this overlay's counted-effect callbacks before drawing its fixed lights.
+    // Bind actor effect IDs once, after the room-effect controller resets them.
     if (task->state == GLOWS_INITIALIZE) {
         _shelter1fParkingGarageBindActorEffects();
         task->state = GLOWS_DRAW;
