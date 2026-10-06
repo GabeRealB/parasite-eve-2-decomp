@@ -4014,7 +4014,8 @@ void dryfieldNightMotelBalconyDriftPuffTask(Task* task)
         if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             return;
         }
-        goto release;
+        effectKillTask(work, task);
+        return;
     }
 
     // Draw the composed starting position; local movement dirties the next cache.
@@ -4094,7 +4095,6 @@ void dryfieldNightMotelBalconyDriftPuffTask(Task* task)
             if (work->index < DRYFIELD_NIGHT_MOTEL_BALCONY_PUFF_FRAME_COUNT) {
                 _dryfieldNightMotelBalconyDrawDriftPuff(task, task->spawnArg1.value);
             } else {
-            release:
                 effectKillTask(work, task);
             }
             break;
