@@ -63555,7 +63555,7 @@ opposite answer: read the band, not the loop.
 
 ## Grep a distinctive data symbol before trusting `overlay_dup_index.py find`
 
-`overlay_dup_index.py find func_pyrokinesis_801304C4` reported one copy — the
+`overlay_dup_index.py find _pyrokinesisDrawGroundGlow` reported one copy — the
 function itself — yet the body was already matched several times over, as
 `effectDrawGroundGlow` in gameplay, `Room_Draw16` in `src/rooms/lib`, and again
 in the `m4a1_pyke`, `hypervelocity` and `energyball` overlays. The index
@@ -63566,7 +63566,7 @@ is not a duplicate by its measure even though it is the same routine.
 When the target reads a named global that only a family of routines touches —
 `D_80111E38`, the unit quad, is the example — grep `src/` for that symbol
 first. Every hit is a matched instance of the same shape, and the closest one
-is a finished seed. `func_pyrokinesis_801304C4` matched 100% on the first
+is a finished seed. `_pyrokinesisDrawGroundGlow` matched 100% on the first
 attempt as `effectDrawGroundGlow`'s body with the tpage, `setcode` and UVs of the
 room-side sibling.
 
@@ -95480,7 +95480,7 @@ source form
 ```
 
 emits the target's `bnez $v0, epilogue` / `j release` — the shape
-`effectPolyTaskC1` (gameplay, 100%) and `func_pyrokinesis_801311B8` (pe, 100%)
+`effectPolyTaskC1` (gameplay, 100%) and `pyrokinesisFlameRingTask` (pe, 100%)
 produce for the identical handler family. It cleared all three `branch`
 penalties, which the `insert`/`delete` pair from the swapped loads had been
 riding along with.
@@ -145575,7 +145575,7 @@ no dependence at all. When a hack steers a primitive-building body, look for
 another function in the file that emits the same primitive with the same
 arithmetic; the shared part is likely a helper both called.
 
-## The `D_80111E38` ground-quad loop is an indexed `for` over `SCRATCH_STACK_RESERVE_BLOCK`, not a pointer walk (func_pyrokinesis_801304C4, 2026-09-26)
+## The `D_80111E38` ground-quad loop is an indexed `for` over `SCRATCH_STACK_RESERVE_BLOCK`, not a pointer walk (_pyrokinesisDrawGroundGlow, 2026-09-26)
 
 Target: `addiu v1,v1,-0x38; move t1,v1; sw v1,0(v0)`, then `move a2,t1` as the
 loop's vector pointer with `sh zero,2(a2)` / `sh t2,0(a2)` - no strength-reduced

@@ -66,7 +66,7 @@ typedef struct {
 } _PyrokinesisWork;
 STATIC_ASSERT_SIZEOF(_PyrokinesisWork, 0x58);
 
-static void func_pyrokinesis_801304C4(GfxCoord* arg0, s32 arg1);
+static void _pyrokinesisDrawGroundGlow(const GfxCoord* groundCoord, s32 halfSize);
 
 /// The `sndEvtRequestScriptStart` id of the ignition roar, three per PE level,
 /// indexed by `EffectWork.index * 3 + Task::spawnArg1` (level by cast variant).
@@ -266,7 +266,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
             }
             if (gRoomEffectState->groundTraceEnabled != 0) {
                 if (worldCollisionProjectGroundCoord(coord, &ground) == 1) {
-                    func_pyrokinesis_801304C4(&ground, mem->angle);
+                    _pyrokinesisDrawGroundGlow(&ground, mem->angle);
                 }
             }
             lightSlot->framesLeft    = 4;
@@ -461,36 +461,13 @@ void func_pyrokinesis_8012FAC8(Task* arg0)
 
 #include "../../shared/glow_draw_flame_star.inc.c"
 
-/// Draws the scorch mark the cone leaves on the floor: the unit quad
-/// `D_80111E38` is scaled to `arg1` half-size, laid flat into view space with
-/// `gGfxViewCoord.workm` (rotation only, translation from `GsWSMATRIX`) and
-/// offset by `arg0->workm.t`, then its four corners are projected through
-/// `GsWSMATRIX`. On a non-negative `gte_stflg` it queues one semi-transparent
-/// `POLY_FT4` (tpage 0x28, clut 0x428C) tinted `(0x30, 0x20, 0x20)`; the frame
-/// counter's low bit picks between two 0x1F-wide UV columns at v = 0x38..0x57.
-/// Same 0x38 scratch block and body as `effectDrawGroundGlow`.
-static void func_pyrokinesis_801304C4(GfxCoord* arg0, s32 arg1)
+/// Projects the ground glow's four staged corners, retaining the final GTE FLAG.
+///
+/// Borrows a live `EffectQuadScratch`; the caller has set the translation
+/// matrix. Saves corner 0 before RTPT replaces the screen FIFO, then leaves
+/// corner 3's depth in SZ3 for the caller to capture before another transform.
+static inline void _pyrokinesisProjectGroundGlow(EffectQuadScratch* quadScratch)
 {
-    EffectQuadScratch* quadScratch;
-    s32                i;
-    POLY_FT4*          prim;
-    s32                u;
-
-    quadScratch = SCRATCH_STACK_RESERVE_BLOCK(EffectQuadScratch);
-    gte_SetTransMatrix(&GsWSMATRIX);
-    for (i = 0; i < ARRAY_SIZE(D_80111E38); i++) {
-        quadScratch->vertices[i].vx = (u16)D_80111E38[i].axis0Sign * arg1;
-        quadScratch->vertices[i].vy = 0;
-        quadScratch->vertices[i].vz = (u16)D_80111E38[i].axis1Sign * arg1;
-        gte_SetRotMatrix(&gGfxViewCoord.workm);
-        gte_ldv0(&quadScratch->vertices[i]);
-        gte_rtv0();
-        gte_stsv(&quadScratch->vertices[i]);
-        quadScratch->vertices[i].vx += arg0->workm.t[0];
-        quadScratch->vertices[i].vy += arg0->workm.t[1];
-        quadScratch->vertices[i].vz += arg0->workm.t[2];
-    }
-
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&quadScratch->vertices[0]);
     gte_rtps();
@@ -499,38 +476,81 @@ static void func_pyrokinesis_801304C4(GfxCoord* arg0, s32 arg1)
     gte_rtpt();
     gte_stsxy3(&quadScratch->screenCorners[1], &quadScratch->screenCorners[2], &quadScratch->screenCorners[3]);
     gte_stflg(&quadScratch->projectionFlags);
+}
+
+/// Queues the alternating additive ground glow beneath a travelling flame.
+///
+/// Borrows a ground-hit coordinate with a composed translation. `halfSize`
+/// is the square's half-side in coordinate units before view-frame rotation;
+/// staged corners and translated positions narrow to signed 16 bits. The two
+/// 32-by-32 texture cells alternate with the display animation frame. Requires
+/// initialized GTE projection, a word-aligned scratch stack with room for one
+/// `EffectQuadScratch`, and arena space for one `POLY_FT4`. A negative final
+/// GTE FLAG rejects the quad; scratch storage is released on either path.
+static void _pyrokinesisDrawGroundGlow(const GfxCoord* groundCoord, s32 halfSize)
+{
+    enum {
+        PYROKINESIS_GROUND_GLOW_TEXTURE_DEPTH_4BIT = 0,
+        PYROKINESIS_GROUND_GLOW_CELL_SIZE          = 32,
+        PYROKINESIS_GROUND_GLOW_LEFT_U             = 192,
+        PYROKINESIS_GROUND_GLOW_TOP_V              = 56,
+        PYROKINESIS_GROUND_GLOW_UV_SPAN            = PYROKINESIS_GROUND_GLOW_CELL_SIZE - 1,
+    };
+
+    EffectQuadScratch* quadScratch;
+    s32                cornerIndex;
+    POLY_FT4*          quad;
+    s32                textureU;
+
+    quadScratch = SCRATCH_STACK_RESERVE_BLOCK(EffectQuadScratch);
+    gte_SetTransMatrix(&GsWSMATRIX);
+    // Rotate the ground-plane offsets, then centre them on the composed hit.
+    for (cornerIndex = 0; cornerIndex < ARRAY_SIZE(D_80111E38); cornerIndex++) {
+        quadScratch->vertices[cornerIndex].vx = (u16)D_80111E38[cornerIndex].axis0Sign * halfSize;
+        quadScratch->vertices[cornerIndex].vy = 0;
+        quadScratch->vertices[cornerIndex].vz = (u16)D_80111E38[cornerIndex].axis1Sign * halfSize;
+        gte_SetRotMatrix(&gGfxViewCoord.workm);
+        gte_ldv0(&quadScratch->vertices[cornerIndex]);
+        gte_rtv0();
+        gte_stsv(&quadScratch->vertices[cornerIndex]);
+        quadScratch->vertices[cornerIndex].vx += groundCoord->workm.t[0];
+        quadScratch->vertices[cornerIndex].vy += groundCoord->workm.t[1];
+        quadScratch->vertices[cornerIndex].vz += groundCoord->workm.t[2];
+    }
+
+    _pyrokinesisProjectGroundGlow(quadScratch);
     if (quadScratch->projectionFlags >= 0) {
         gte_stszotz(&quadScratch->depth);
         quadScratch->depth++;
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setlen(prim, 9);
-        setcode(prim, 0x2E);
-        setRGB0(prim, 0x30, 0x20, 0x20);
-        prim->tpage = 0x28;
-        prim->clut  = 0x428C;
-        u           = ((gDisplayState.animFrame & 1) << 5) + 0xC0;
-        prim->v0    = 0x38;
-        prim->u0    = u;
-        u           = ((gDisplayState.animFrame & 1) << 5) + 0xDF;
-        prim->v1    = 0x38;
-        prim->u1    = u;
-        u           = ((gDisplayState.animFrame & 1) << 5) + 0xC0;
-        prim->v2    = 0x57;
-        prim->u2    = u;
-        u           = ((gDisplayState.animFrame & 1) << 5) + 0xDF;
-        prim->v3    = 0x57;
-        prim->u3    = u;
-        prim->x0    = quadScratch->screenCorners[0].vx;
-        prim->y0    = quadScratch->screenCorners[0].vy;
-        prim->x1    = quadScratch->screenCorners[1].vx;
-        prim->y1    = quadScratch->screenCorners[1].vy;
-        prim->x2    = quadScratch->screenCorners[2].vx;
-        prim->y2    = quadScratch->screenCorners[2].vy;
-        prim->x3    = quadScratch->screenCorners[3].vx;
-        prim->y3    = quadScratch->screenCorners[3].vy;
+        quad           = gGpuPrimCursor;
+        gGpuPrimCursor = quad + 1;
+        setPolyFT4(quad);
+        setSemiTrans(quad, 1);
+        setRGB0(quad, 0x30, 0x20, 0x20);
+        quad->tpage = getTPage(PYROKINESIS_GROUND_GLOW_TEXTURE_DEPTH_4BIT, GPU_BLEND_ADD, 512, 0);
+        quad->clut  = getClut(192, 266);
+        textureU    = (gDisplayState.animFrame & 1) * PYROKINESIS_GROUND_GLOW_CELL_SIZE + PYROKINESIS_GROUND_GLOW_LEFT_U;
+        quad->v0    = PYROKINESIS_GROUND_GLOW_TOP_V;
+        quad->u0    = textureU;
+        textureU    = (gDisplayState.animFrame & 1) * PYROKINESIS_GROUND_GLOW_CELL_SIZE + PYROKINESIS_GROUND_GLOW_LEFT_U + PYROKINESIS_GROUND_GLOW_UV_SPAN;
+        quad->v1    = PYROKINESIS_GROUND_GLOW_TOP_V;
+        quad->u1    = textureU;
+        textureU    = (gDisplayState.animFrame & 1) * PYROKINESIS_GROUND_GLOW_CELL_SIZE + PYROKINESIS_GROUND_GLOW_LEFT_U;
+        quad->v2    = PYROKINESIS_GROUND_GLOW_TOP_V + PYROKINESIS_GROUND_GLOW_UV_SPAN;
+        quad->u2    = textureU;
+        textureU    = (gDisplayState.animFrame & 1) * PYROKINESIS_GROUND_GLOW_CELL_SIZE + PYROKINESIS_GROUND_GLOW_LEFT_U + PYROKINESIS_GROUND_GLOW_UV_SPAN;
+        quad->v3    = PYROKINESIS_GROUND_GLOW_TOP_V + PYROKINESIS_GROUND_GLOW_UV_SPAN;
+        quad->u3    = textureU;
+        quad->x0    = quadScratch->screenCorners[0].vx;
+        quad->y0    = quadScratch->screenCorners[0].vy;
+        quad->x1    = quadScratch->screenCorners[1].vx;
+        quad->y1    = quadScratch->screenCorners[1].vy;
+        quad->x2    = quadScratch->screenCorners[2].vx;
+        quad->y2    = quadScratch->screenCorners[2].vy;
+        quad->x3    = quadScratch->screenCorners[3].vx;
+        quad->y3    = quadScratch->screenCorners[3].vy;
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)quadScratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
+                quad);
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectQuadScratch);
 }
@@ -558,88 +578,103 @@ static void func_pyrokinesis_801304C4(GfxCoord* arg0, s32 arg1)
 #define SPRITE_QUAD_SCALE (SPRITE_QUAD_CELL_WIDTH - 1)
 #include "../../shared/sprite_quad_draw.inc.c"
 
-void func_pyrokinesis_80130C54(Task* arg0)
+void pyrokinesisFlamePuffTask(Task* task)
 {
-    EffectWork* mem;
-    GfxCoord*   coord;
-    s16         flag;
-    s16         frame;
-    s32         y;
+    enum {
+        PYROKINESIS_FLAME_PUFF_INITIALIZE,
+        PYROKINESIS_FLAME_PUFF_ACTIVE,
+        PYROKINESIS_FLAME_PUFF_RISE_SPEED_COUNT = 32,
+        PYROKINESIS_FLAME_PUFF_SIZE_FACTOR      = 768,
+    };
 
-    mem   = arg0->spawnArg2.pointer;
-    coord = arg0->extra.coordBody->coord;
+    EffectWork* work;
+    GfxCoord*   coord;
+    s16         peEffectControl;
+    s16         textureFrame;
+    s32         nextY;
+
+    work  = task->spawnArg2.pointer;
+    coord = task->extra.coordBody->coord;
     if (Gp_StateC08.effectPhase != ATTACHMENT_EFFECT_HELD) {
-        flag = gRoomEffectState->peEffectControl;
-        if (flag < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-            if (flag != ROOM_EFFECT_CONTROL_RUNNING) {
+        peEffectControl = gRoomEffectState->peEffectControl;
+        if (peEffectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
+            if (peEffectControl != ROOM_EFFECT_CONTROL_RUNNING) {
                 return;
             }
-            mem->age = mem->age + 1;
-            if (arg0->state == 0) {
+            work->age++;
+            if (task->state == PYROKINESIS_FLAME_PUFF_INITIALIZE) {
+                // Choose a fixed rise velocity and screen rotation once per puff.
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->move.vy    = -((gRandomLcgState >> 16) & 0x1F);
+                work->move.vy   = -((gRandomLcgState >> 16) & (PYROKINESIS_FLAME_PUFF_RISE_SPEED_COUNT - 1));
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->scale      = (gRandomLcgState >> 16) & 0xFFF;
-                arg0->state     = 1;
+                work->scale     = (gRandomLcgState >> 16) & (PYRO_FLAME_FULL_TURN - 1);
+                task->state     = PYROKINESIS_FLAME_PUFF_ACTIVE;
             }
-            y                   = coord->coord.t[1] + mem->move.vy;
+            nextY               = coord->coord.t[1] + work->move.vy;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            coord->coord.t[1]   = y;
+            coord->coord.t[1]   = nextY;
             actorRenderComposeCoord(coord);
-            if (!(mem->age & 1)) {
-                mem->index = mem->index + 1;
+            // Each cell lasts two running ticks, but only its odd tick is drawn.
+            if (!(work->age & 1)) {
+                work->index++;
             }
-            frame = mem->index;
-            if (frame < PYRO_FLAME_FRAME_COUNT) {
-                if (mem->age & 1) {
-                    _pyroFlameDrawSprite(coord, frame, 0x300, mem->scale);
+            textureFrame = work->index;
+            if (textureFrame < PYRO_FLAME_FRAME_COUNT) {
+                if (work->age & 1) {
+                    _pyroFlameDrawSprite(coord, textureFrame, PYROKINESIS_FLAME_PUFF_SIZE_FACTOR, work->scale);
                 }
                 return;
             }
         }
     }
-    effectKillTask(mem, arg0);
+    effectKillTask(work, task);
 }
 
 #include "../../shared/pyro_flame_draw_sprite.inc.c"
 
-void func_pyrokinesis_801311B8(Task* arg0)
+void pyrokinesisFlameRingTask(Task* task)
 {
-    EffectWork* mem;
-    GfxCoord*   coord;
-    s16         flag;
-    s32         scale;
-    s32         angle;
+    enum {
+        PYROKINESIS_FLAME_RING_INITIALIZE,
+        PYROKINESIS_FLAME_RING_ACTIVE,
+        PYROKINESIS_FLAME_RING_INITIAL_INTENSITY = 128,
+        PYROKINESIS_FLAME_RING_INITIAL_RADIUS    = 256,
+        PYROKINESIS_FLAME_RING_WIDTH             = 256,
+        PYROKINESIS_FLAME_RING_RADIUS_STEP       = 128,
+        PYROKINESIS_FLAME_RING_INTENSITY_STEP    = 8,
+        PYROKINESIS_FLAME_RING_MIN_INTENSITY     = 9,
+    };
 
-    mem   = arg0->spawnArg2.pointer;
-    coord = arg0->extra.coordBody->coord;
+    EffectWork* work;
+    GfxCoord*   coord;
+    s16         peEffectControl;
+
+    work  = task->spawnArg2.pointer;
+    coord = task->extra.coordBody->coord;
     if (Gp_StateC08.effectPhase != ATTACHMENT_EFFECT_HELD) {
-        flag = gRoomEffectState->peEffectControl;
-        if (flag < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-            if (flag != ROOM_EFFECT_CONTROL_RUNNING) {
+        peEffectControl = gRoomEffectState->peEffectControl;
+        if (peEffectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
+            if (peEffectControl != ROOM_EFFECT_CONTROL_RUNNING) {
                 return;
             }
-            if (arg0->state == 0) {
-                gfxRotMatrixZ(&coord->coord, arg0->spawnArg1.value, GRAPHICS_ROTATION_COMPOSE);
+            if (task->state == PYROKINESIS_FLAME_RING_INITIALIZE) {
+                // Tilt the local XZ ring by the spawn angle once; expansion keeps that plane.
+                gfxRotMatrixZ(&coord->coord, task->spawnArg1.value, GRAPHICS_ROTATION_COMPOSE);
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
-                mem->scale          = 0x80;
-                mem->angle          = 0x100;
-                arg0->state         = 1;
+                work->scale         = PYROKINESIS_FLAME_RING_INITIAL_INTENSITY;
+                work->angle         = PYROKINESIS_FLAME_RING_INITIAL_RADIUS;
+                task->state         = PYROKINESIS_FLAME_RING_ACTIVE;
             }
             actorRenderComposeCoord(coord);
-            glowDrawFlameRing(coord, mem->angle, 0x100, mem->scale);
-            angle      = (u16)mem->angle;
-            scale      = (u16)mem->scale;
-            angle     += 0x80;
-            scale     -= 8;
-            mem->scale = scale;
-            mem->angle = angle;
-            if ((s16)scale >= 9) {
+            glowDrawFlameRing(coord, work->angle, PYROKINESIS_FLAME_RING_WIDTH, work->scale);
+            work->angle += PYROKINESIS_FLAME_RING_RADIUS_STEP;
+            work->scale -= PYROKINESIS_FLAME_RING_INTENSITY_STEP;
+            if (work->scale >= PYROKINESIS_FLAME_RING_MIN_INTENSITY) {
                 return;
             }
         }
     }
-    effectKillTask(mem, arg0);
+    effectKillTask(work, task);
 }
 
 #include "../../shared/glow_draw_flame_ring.inc.c"
@@ -650,40 +685,44 @@ void func_pyrokinesis_801311B8(Task* arg0)
 #define JET_CONE_FRAME_JITTER D_pyrokinesis_80131DFC
 #include "../../shared/jet_cone_draw.inc.c"
 
-void func_pyrokinesis_80131CE4(Task* arg0)
+void pyrokinesisLaunchConeTask(Task* task)
 {
-    EffectWork* mem;
-    GfxCoord*   coord;
-    s16         flag;
-    s32         scale;
-    s32         angle;
+    enum {
+        PYROKINESIS_LAUNCH_CONE_INITIALIZE,
+        PYROKINESIS_LAUNCH_CONE_ACTIVE,
+        PYROKINESIS_LAUNCH_CONE_INITIAL_INTENSITY = 192,
+        PYROKINESIS_LAUNCH_CONE_INITIAL_RADIUS    = 256,
+        PYROKINESIS_LAUNCH_CONE_RADIUS_STEP       = 64,
+        PYROKINESIS_LAUNCH_CONE_INTENSITY_STEP    = 16,
+    };
 
-    mem   = arg0->spawnArg2.pointer;
-    coord = arg0->extra.coordBody->coord;
+    EffectWork* work;
+    GfxCoord*   coord;
+    s16         peEffectControl;
+
+    work  = task->spawnArg2.pointer;
+    coord = task->extra.coordBody->coord;
     if (Gp_StateC08.effectPhase != ATTACHMENT_EFFECT_HELD) {
-        flag = gRoomEffectState->peEffectControl;
-        if (flag < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-            if (flag != ROOM_EFFECT_CONTROL_RUNNING) {
+        peEffectControl = gRoomEffectState->peEffectControl;
+        if (peEffectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
+            if (peEffectControl != ROOM_EFFECT_CONTROL_RUNNING) {
                 return;
             }
-            mem->age = mem->age + 1;
-            if (arg0->state == 0) {
-                mem->scale  = 0xC0;
-                mem->angle  = 0x100;
-                arg0->state = 1;
+            work->age++;
+            if (task->state == PYROKINESIS_LAUNCH_CONE_INITIALIZE) {
+                work->scale = PYROKINESIS_LAUNCH_CONE_INITIAL_INTENSITY;
+                work->angle = PYROKINESIS_LAUNCH_CONE_INITIAL_RADIUS;
+                task->state = PYROKINESIS_LAUNCH_CONE_ACTIVE;
             }
             actorRenderComposeCoord(coord);
-            glowDrawFlameCone(arg0->extra.coordBody->coord, mem->angle, mem->scale);
-            angle      = (u16)mem->angle;
-            scale      = (u16)mem->scale;
-            angle     += 0x40;
-            scale     -= 0x10;
-            mem->scale = scale;
-            mem->angle = angle;
-            if ((s16)scale >= 0x10) {
+            // Draw the current ring pair before advancing its radius and intensity.
+            glowDrawFlameCone(task->extra.coordBody->coord, work->angle, work->scale);
+            work->angle += PYROKINESIS_LAUNCH_CONE_RADIUS_STEP;
+            work->scale -= PYROKINESIS_LAUNCH_CONE_INTENSITY_STEP;
+            if (work->scale >= PYROKINESIS_LAUNCH_CONE_INTENSITY_STEP) {
                 return;
             }
         }
     }
-    effectKillTask(mem, arg0);
+    effectKillTask(work, task);
 }

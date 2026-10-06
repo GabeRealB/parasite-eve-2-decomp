@@ -555,7 +555,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, effectControlTask0E, { NULL } },                                         // 0x00E
     { { { TASK_BODY_COORD, 0x70 } }, _effectStatusScreenTintTaskF, { NULL } },                                // 0x00F
     { { { TASK_BODY_COORD, 0x70 } }, func_pyrokinesis_8012EF48, { NULL } },                                   // 0x010
-    { { { TASK_BODY_COORD, 0x70 } }, func_pyrokinesis_80131CE4, { NULL } },                                   // 0x011
+    { { { TASK_BODY_COORD, 0x70 } }, pyrokinesisLaunchConeTask, { NULL } },                                   // 0x011
     { { { TASK_BODY_COORD, 0x70 } }, func_metabolism_8012EF34, { NULL } },                                    // 0x012
     { { { TASK_BODY_COORD, 0x70 } }, metabolismSparkleTask, { NULL } },                                       // 0x013
     { { { TASK_BODY_COORD, 0x70 } }, func_plasma_8012EF34, { NULL } },                                        // 0x014
@@ -643,7 +643,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_TMD, 0x70 } }, effectThrownModelTask, { &D_80112200 } },                                  // 0x066
     { { { TASK_BODY_TMD, 0x70 } }, effectThrownModelTask, { &D_801120E4 } },                                  // 0x067
     { { { TASK_BODY_TMD, 0x70 } }, effectThrownModelTask, { &D_8011231C } },                                  // 0x068
-    { { { TASK_BODY_COORD, 0x70 } }, func_pyrokinesis_80130C54, { NULL } },                                   // 0x069
+    { { { TASK_BODY_COORD, 0x70 } }, pyrokinesisFlamePuffTask, { NULL } },                                    // 0x069
     { { { TASK_BODY_COORD, 0x70 } }, Gp_EffCtlTask6A, { NULL } },                                             // 0x06A
     { { { TASK_BODY_COORD, 0x70 } }, Gp_EffCtlTask6B, { NULL } },                                             // 0x06B
     { { { TASK_BODY_COORD, 0x70 } }, Gp_EffCtlTask6C, { NULL } },                                             // 0x06C
@@ -784,7 +784,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, Gp_EffCtlTaskF3, { NULL } },                                             // 0x0F3
     { { { TASK_BODY_COORD, 0x70 } }, effectSpriteTaskF4, { NULL } },                                          // 0x0F4
     { { { TASK_BODY_COORD, 0x70 } }, antibodyMoteTask, { NULL } },                                            // 0x0F5
-    { { { TASK_BODY_COORD, 0x70 } }, func_pyrokinesis_801311B8, { NULL } },                                   // 0x0F6
+    { { { TASK_BODY_COORD, 0x70 } }, pyrokinesisFlameRingTask, { NULL } },                                    // 0x0F6
     { { { TASK_BODY_COORD, 0x70 } }, apobiosisShardTask, { NULL } },                                          // 0x0F7
     { { { TASK_BODY_COORD, 0x70 } }, func_energyball_8012F180, { NULL } },                                    // 0x0F8
     { { { TASK_BODY_COORD, 0x70 } }, energyballImpactRingTask, { NULL } },                                    // 0x0F9

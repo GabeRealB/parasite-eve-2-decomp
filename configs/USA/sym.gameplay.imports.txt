@@ -1973,7 +1973,7 @@ hypervelocityShockRingTask = 0x8011F168; // type:func absolute:True owner=hyperv
 
 func_pyrokinesis_8012EF48 = 0x8012EF48; // type:func absolute:True owner=pyrokinesis shared=pe
 
-func_pyrokinesis_80131CE4 = 0x80131CE4; // type:func absolute:True
+pyrokinesisLaunchConeTask = 0x80131CE4; // type:func absolute:True owner=pyrokinesis
 
 metabolismSparkleTask = 0x8012F5A0; // type:func absolute:True owner=metabolism
 
@@ -2017,7 +2017,7 @@ actor510900FlameSpriteTask59 = 0x80133C84; // type:func absolute:True owner=acto
 
 actor510900DebrisStreakTask = 0x80134284; // type:func absolute:True owner=actor_510900 shared=actors
 
-func_pyrokinesis_80130C54 = 0x80130C54; // type:func absolute:True owner=pyrokinesis
+pyrokinesisFlamePuffTask = 0x80130C54; // type:func absolute:True owner=pyrokinesis
 
 combustionEmberTask = 0x8012F888; // type:func absolute:True owner=combustion
 
@@ -2035,7 +2035,7 @@ lifedrainExpandingGlowBandTask = 0x801308C0; // type:func absolute:True owner=li
 
 antibodyMoteTask = 0x8012F734; // type:func absolute:True owner=antibody
 
-func_pyrokinesis_801311B8 = 0x801311B8; // type:func absolute:True owner=pyrokinesis
+pyrokinesisFlameRingTask = 0x801311B8; // type:func absolute:True owner=pyrokinesis
 
 apobiosisShardTask = 0x8012FE10; // type:func absolute:True owner=apobiosis
 
