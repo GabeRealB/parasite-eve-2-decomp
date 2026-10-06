@@ -2210,13 +2210,7 @@ u32* tmdDrawStreamPrimG4CornerColorsSemiTrans(TmdStreamWorkspace* workspace, s32
                     gte_rtps();
                     gte_stflg(gteFlagDestination);
                     if ((workspace->gteFlag & projectionErrorMask) == 0) {
-                        if (workspace->gteResult > 0) {
-                            goto draw;
-                        }
-                        gte_nclip();
-                        gte_stopz(gteResultDestination);
-                        if (workspace->gteResult < 0) {
-                        draw:
+                        if (workspace->gteResult > 0 || _tmdSecondHalfFacesViewer(workspace, gteResultDestination)) {
                             gte_stsxy2(&quad->x3);
                             gte_avsz4();
                             TMD_LIGHT_STREAM_CORNER(elements + TMD_CORNER_COLOR_WORD_INDEX, (const u8*)workspace->normals + (elementHalfwords[4] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), &quad->r0);
