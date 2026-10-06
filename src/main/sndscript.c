@@ -542,11 +542,24 @@ static _SndBankInitEntry Snd_BankInitTable[] = {
 s32        D_80068A78              = 0;
 static s16 SndScript_VoiceRanges[] = { 1, 2 };
 
+static inline s32 _sndStagePriority(s32 stage, s32 area)
+{
+    s32 i;
+
+    if (area == 5 && stage == 4) {
+        return 3;
+    }
+    for (i = 0; i < 2; i++) {
+        if (D_80068A54[i + stage * 2] == area) {
+            return 2;
+        }
+    }
+    return 1;
+}
+
 void Snd_InitFromStage(s32 arg0, s32 arg1)
 {
     SndBank* var_s0;
-    s32      var_a0;
-    s32      var_v1;
     s32      temp_v1;
 
     D_8008274C = 0;
@@ -564,26 +577,7 @@ void Snd_InitFromStage(s32 arg0, s32 arg1)
     SndBankSlot_Free(1);
     SndBankSlot_Free(7);
 
-    var_v1 = 0;
-    if (arg1 == 5) {
-        if (arg0 == 4) {
-            var_a0 = 3;
-        } else {
-            goto block_5;
-        }
-    } else {
-    block_5:
-        do {
-            if (D_80068A54[var_v1 + arg0 * 2] == arg1) {
-                var_a0 = 2;
-                goto block_done;
-            }
-            var_v1++;
-        } while (var_v1 < 2);
-        var_a0 = 1;
-    }
-block_done:
-    SndVoice_SetPriority(var_a0);
+    SndVoice_SetPriority(_sndStagePriority(arg0, arg1));
     D_80082130 = 0x3D010;
     D_80082128 = 0;
     D_80082124 = D_80082128;
