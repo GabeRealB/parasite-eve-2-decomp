@@ -3113,11 +3113,11 @@ static void func_actor_400600_801361AC(Task* arg0)
     u8 end0;
     u8 start1;
     u8 end1;
-    /* The first window starts at frame 0. `start0` is a `u8` bound like the
-     * other three, set before them as in `stalkerZebraIvoryStepClip4`; here it
-     * is widened once into `first`, which both of its tests read. */
+    /* The first window starts at frame 0: `start0` is a `u8` bound like the
+     * other three, assigned first as in `stalkerZebraIvoryStepClip4`. Its two
+     * tests then compare against a register the image zeroes at the first of
+     * them; a literal 0 folds. */
     u8  start0;
-    s32 first;
     u32 sound;
     s32 pan;
 
@@ -3151,8 +3151,7 @@ static void func_actor_400600_801361AC(Task* arg0)
     if ((stalkerZebraIvoryClipDone(arg0) << 0x10) != 0) {
         work->animFrame = 0;
     }
-    first = start0;
-    if (work->animFrame == first) {
+    if (work->animFrame == start0) {
         func_actor_400600_80139F4C(arg0, 0xB, &work->anchorPos);
         sound   = ((Enemy*)arg0->spawnArg2.pointer)->placeKey;
         sound >>= 0xC;
@@ -3172,7 +3171,7 @@ static void func_actor_400600_801361AC(Task* arg0)
         pan   >>= 24;
         sndEvtRequestScriptStart(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
     }
-    if (work->animFrame >= first && work->animFrame <= end0) {
+    if (work->animFrame >= start0 && work->animFrame <= end0) {
         func_actor_400600_80139FE0(arg0, 0xB, &work->anchorPos);
         work->nextAnchorPart = 8;
     }
