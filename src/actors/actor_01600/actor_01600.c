@@ -1625,7 +1625,8 @@ static void Actor01600_Fn00674(Enemy* arg0, Task* arg1)
                 break;
             case SCENE_COMBAT_ACTORS_PAUSED:
                 Actor01600_Fn06810(arg0, arg1);
-                goto update;
+                Actor01600_Fn03EEC(arg1);
+                return;
             case SCENE_COMBAT_ACTORS_HIDDEN:
                 obj                          = arg1->extra.tmd;
                 obj->flags                  |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -1683,7 +1684,6 @@ static void Actor01600_Fn00674(Enemy* arg0, Task* arg1)
             Actor01600_Fn06810(arg0, arg1);
         }
         if (work->shadowHidden == 0) {
-        update:
             Actor01600_Fn03EEC(arg1);
         }
     }
