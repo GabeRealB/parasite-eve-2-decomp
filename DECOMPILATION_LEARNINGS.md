@@ -93513,6 +93513,13 @@ callee-saved register and addresses the vector as `0($s0)` / `2($s0)` /
 
 ## A loop the tail re-reads from needs `goto` out of `for (;;)`, not `break` and not a bare `goto` loop (Actor00400_Fn02FF8, 2026-09-16)
 
+> Corrected 2026-10-06: the `goto` is not needed. `for (;;) { ...; if (kind !=
+> -1) { body; step; } else { break; } }` matches: with the `break` in the
+> `else` arm the loop's first conditional jump goes to the else label, so
+> `expand_end_loop` does not rotate it, and the loop notes are still there for
+> cse. The table below is right about plain `break` and about the bare `goto`
+> loop.
+
 `Actor00400_Fn02FF8` walks a waypoint array to the `-1` terminator and then, in
 the code after the loop, reloads the array base it had just loaded at the loop
 top:
@@ -149978,3 +149985,73 @@ attempts; left as it was.
   into case 3's although the compared constants differ (each is loaded in a
   delay slot ahead), 4 insns short. The original keeps both because
   `goto clear` shares the store only.
+
+### Goto forms from the diver, the leaper and the rat (batch 20, 2026-10-06)
+
+- **An equality chain that picks a constant and jumps to one shared store
+  block, `other:` behind it, `ok: return 1; fail: return 0;` last**
+  (`Actor00400_Fn02154`: `if (req == A) state = 7; else if ... else goto
+  other; work->state = state; ...; goto ok;`) is the stores written out in
+  every arm of an `if / else if` chain, `return 1;` after the chain and
+  `return 0;` at the end of the function. Cross-jumping merges the arms into
+  the last one and the constants end up in the branch delay slots (`beq
+  v1,a0,set; li v0,7`), the arm with the same constant as the last one jumps
+  to that arm's `li`. The marks in the image: the shared block ends `j ok` with
+  a store in the delay slot, and `li v0,1` sits in a block of its own behind
+  the `else` arms. First try.
+- **`if (r == A) goto set; if (r == B) goto set; if (r == C) goto set; if (r !=
+  D) goto other; set: do { stores } while (0); other:`**
+  (`Actor00400_ConsumeStateRequest`, an inline with four callers) is not
+  `A || B || C || D`: for contiguous values that folds to a range test
+  (`addiu -1; sltiu 4`). It is four `else if` arms with the same two stores;
+  they merge and the equality chain stays. The `do { } while (0)` documented
+  as needed for the pointer's allocation rank was not needed, nor was the
+  local aliasing `hitTaken` for the stored state (`work->state = 1`).
+- **`done = active;` at a label every path funnels through, with `move v0,a0;
+  bnez v0` in the image** (`Actor00400_Fn09124`) is a `static inline` returning
+  `s16`: the promoted return value is a second pseudo, hence the copy. With an
+  `s32` return the test uses `a0` directly (two insns shorter).
+- **A constant in the middle of an `|` chain moves to the end when written as
+  a literal.** `(a << 22) | snd | (b << 8)` with `snd` one of two constants
+  set in front of a shared call (`Actor01100_Fn0516C`) compiles as `(a << 22 |
+  K) | (b << 8)` only while `snd` is a variable; with the literal, fold
+  reassociates to `((a << 22) | (b << 8)) | K`. A `static inline` taking the
+  constant keeps the order, and cross-jumping still merges the two calls.
+- **`if (n < K) { yaw = x; if (yaw < lo) goto far; if (yaw < hi) goto close; }
+  far: ...; return; close:`** is `if (n >= K || x < lo || x >= hi) { far;
+  return; } close`. The two signed tests survive because they are not the two
+  operands of one `||` node (the `n >= K` operand comes first); the same pair
+  alone folds to an unsigned range test.
+- **`goto block_156;` from the end of an `if (hp <= 0) { if (idx == 0) { ...;
+  return; } goto block_156; }` into the `else` arm of the following `if (idx
+  == 0)`** (`Actor01600_Fn020F8`) is nothing at all: fall out of the `if` and
+  jump threading sends the path to the `else` arm. The `goto block_150;` next
+  to it was the plain fall-through. Five gotos of that 776-line function went
+  on the first build, among them `if (a) { ...; if (!f()) { stores; goto
+  body; } } else { body: ... }` as `if (a) { ...; if (f()) break; stores; }
+  body`.
+- **A `dead:` block sitting between the two arms of the function's last `if`,
+  entered from a case of a switch inside a loop far above**
+  (`Actor01600_Fn00BAC`) is the block written at its site, ending in
+  `return;`. The compiler places it there on its own; eight gotos, first try.
+  The mode ladder in front of it is the `case 1: case 2: case 0: default:`
+  switch.
+- `ratAttack`: 16 gotos were a three-case `switch` on `work->step`; the `one =
+  1` and `state` locals are not needed (cse keeps the dispatch's 1 and the
+  step value in saved registers for the later stores, `RAT_ANIM_IDLE` and
+  `RAT_ANIM_RUN`).
+- Not converted: `Actor01600_Fn05558` (seven `goto running` to a `return 1`
+  label that sits after a call in the middle of case 3). Three facts from the
+  attempts. (1) An `if (c) return 1;` whose following code runs without a label
+  to the end of the function (the last case, ending `return 0;`) is taken by
+  jump.c's "if (foo) bar; else break" swap before reload: the `li v0,1` lands
+  in front of the epilogue, every other copy merges into it, and the function
+  is two insns longer. `if (a || --n != 0) return 1;` there avoids the swap
+  (the label after the first test has two users). (2) A copy that follows a
+  store (`coord->composeStamp = DIRTY; return 1;`) cannot be merged with a
+  copy that follows a call: jump-against-jump needs two matching insns unless
+  the copy is jumped around, so the image's `j running; sw` for that site
+  needs the block to exist before cross-jumping. (3) With that site left as a
+  `goto`, the copy the others merge into keeps its `beqz skip; j` pair
+  uninverted (one insn longer); which copy that is changed between two
+  attempts and was not explained.
