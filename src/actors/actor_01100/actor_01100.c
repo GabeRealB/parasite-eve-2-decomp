@@ -3446,6 +3446,20 @@ static void Actor01100_Fn05E68(Task* task)
     Actor01100_Fn06198(task);
 }
 
+/// Plays sound `0x400B000B` for the spit at `soundCoord`, takes its body out of
+/// the collision lists and starts the 0x1E-frame kill countdown in the next
+/// task state.
+static __inline__ void _actor01100SpitLand(Task* task, _Actor01100SpitWork* work, GfxCoord* soundCoord, s32 flag)
+{
+    s32 id;
+
+    id = (flag << 22) | (0x400B000B | (Actor01100_D15670 << 8));
+    sndEvtRequestScriptStart(id, (s8)worldCoordGetOriginAudioPan(soundCoord), (s8)worldCoordGetOriginAudioDepth(soundCoord));
+    work->body.flags   &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
+    task->killCountdown = 0x1E;
+    task->state        += 1;
+}
+
 static void Actor01100_Fn06198(Task* task)
 {
     _Actor01100SpitWork*   work;
@@ -3456,7 +3470,6 @@ static void Actor01100_Fn06198(Task* task)
     Task*                  child;
     u32                    stageAreaKey;
     s32                    flag;
-    s32                    id;
     s16                    countdown;
 
     work          = task->work;
@@ -3481,9 +3494,8 @@ static void Actor01100_Fn06198(Task* task)
             if (child != NULL) {
                 child->spawnArg1.value = 3;
             }
-            goto fire;
-        }
-        if (worldCollisionFindContactIndex(rec, WORLD_COLLISION_FIND_ANY_KEY) != 0) {
+            _actor01100SpitLand(task, work, soundCoord, flag);
+        } else if (worldCollisionFindContactIndex(rec, WORLD_COLLISION_FIND_ANY_KEY) != 0) {
             child = task->firstChild;
             if (child != NULL) {
                 if (rec->response.direction.vy >= -0xC00) {
@@ -3492,12 +3504,7 @@ static void Actor01100_Fn06198(Task* task)
                     child->spawnArg1.value = 2;
                 }
             }
-        fire:
-            id = (flag << 22) | (0x400B000B | (Actor01100_D15670 << 8));
-            sndEvtRequestScriptStart(id, (s8)worldCoordGetOriginAudioPan(soundCoord), (s8)worldCoordGetOriginAudioDepth(soundCoord));
-            work->body.flags   &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-            task->killCountdown = 0x1E;
-            task->state        += 1;
+            _actor01100SpitLand(task, work, soundCoord, flag);
         }
         worldCollisionClearContacts(work->contacts);
         countdown           = task->killCountdown - 1;
