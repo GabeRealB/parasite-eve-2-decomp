@@ -151964,8 +151964,8 @@ deletes the QI set. The explicit `first` only wrote out what cse builds.
   `move s2,zero` moves up with it and the store is `sh s2`. The image has
   `sh zero` and the `move` after the `lh`.
 - `start0 = 0` after the three bounds, just before the hit test: fails; the
-  zero has to be assigned before the computed bounds (or as an initialiser,
-  which matched in the `first` form).
+  zero has to be assigned before the computed bounds. `u8 start0 = 0;` as an
+  initialiser matches too. Same result in both forms.
 - `u8 bounds[4]`: the array is addressable, lives on the stack (`sb zero,16(sp)`).
 - Inline `atFrame(work, s32)` / `inWindow(work, s32, s32)` reading `start0`:
   each call converts the argument separately, the `==` test folds to `bnez`
