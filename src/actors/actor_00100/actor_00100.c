@@ -1374,21 +1374,17 @@ s32 Actor00100_Fn00E58(Task* arg0, s32 arg1, ActorCommand* request, s32 arg3)
             switch (req) {
                 case 0:
                     work->state = 0;
-                block_46:
-                    return 0;
+                    break;
                 case 2:
                     work->state                         = 0x26;
                     arg0->extra.tmd->coords->coord.t[0] = -0x896;
                     arg0->extra.tmd->coords->coord.t[1] = 0;
                     arg0->extra.tmd->coords->coord.t[2] = 0x5AF;
                     gfxRotMatrixY(&arg0->extra.tmd->coords->coord, -0x3F4, 1);
-                    goto block_46;
-                default:
-                    return 0;
+                    break;
             }
-        } else {
-            return 0;
         }
+        return 0;
     }
 }
 
