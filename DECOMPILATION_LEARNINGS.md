@@ -144011,8 +144011,8 @@ front of the field is a symptom of writing `* 2` - write the shift.
 
 The same body carried a register copy on the step (`move v0,v1` before its
 `sll 3`) and a pin, a barrier and reordered temporaries around three
-`rgb[i] >>= 1`. Both were only the plain statements `mem->angle += mem->step
-<< 3;` and `rgb[0] >>= 1; rgb[1] >>= 1; rgb[2] >>= 1;`, the way the sibling pe
+`glowRgb[i] >>= 1`. Both were only the plain statements `work->angle += work->step
+<< 3;` and `glowRgb[0] >>= 1; glowRgb[1] >>= 1; glowRgb[2] >>= 1;`, the way the sibling pe
 overlays write them; check the siblings' spelling before steering.
 ## A byte walk that loses its register to a counter may be walking the parameter itself (mcResetSaveData, 2026-09-26)
 
