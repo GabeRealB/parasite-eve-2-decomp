@@ -4687,9 +4687,6 @@ static void func_actor_403000_8013B74C(Task* arg0)
     Enemy*                    enemy;
     _Actor403000ChaseScratch* scratch;
     _Actor403000ChaseScratch* head;
-    GfxCoord*                 coord;
-    GfxCoord*                 coord2;
-    SVECTOR*                  t;
     Task*                     task;
     s16                       b;
     GameActor*                pw;
@@ -4783,27 +4780,7 @@ static void func_actor_403000_8013B74C(Task* arg0)
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     func_actor_403000_80133AF8(arg0);
     if (work->slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
-        t      = &scratch->offset;
-        coord2 = arg0->extra.tmd->coords;
-        t->vx  = gPlayerStatus.coordMtx->t[0] - coord2->coord.t[0];
-        t->vy  = gPlayerStatus.coordMtx->t[1] - coord2->coord.t[1];
-        t->vz  = gPlayerStatus.coordMtx->t[2] - coord2->coord.t[2];
-        coord  = arg0->extra.tmd->coords;
-        angle  = ratan2(t->vx, t->vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-        if (angle < 0) {
-        loop_neg:
-            if (angle < (-0x800)) {
-                angle += 0x1000;
-                goto loop_neg;
-            }
-
-        } else {
-        loop_pos:
-            if (angle > 0x800) {
-                angle -= 0x1000;
-                goto loop_pos;
-            }
-        }
+        angle         = actorPositionYaw(arg0, &scratch->offset, &gPlayerStatus);
         scratch->turn = (mag = angle);
         if (ABS(mag) > 0x300) {
             work->state        = ACTOR_403000_STATE_TURN;
