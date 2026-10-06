@@ -68,6 +68,31 @@ void shelterB3DumpingHoleSpawnActorSprite(GfxCoord* sourceCoord, const SVECTOR* 
 /// its two gated points only while that flag is nonzero. Retains no pointer.
 void shelterB3DumpingHoleDrawViewGlowsTask(Task* task);
 
+/// Animates a drifting sprite with an optional parent-oriented launch.
+///
+/// Gameplay effect slot 0x199 supplies counted, task-owned `EffectWork` in
+/// `spawnArg2.pointer` and a single-coordinate body. Start at state 0, cell 0;
+/// initialization consumes one running update without drawing or moving.
+/// The coordinate's `workm` must be composed before drawing; GTE, scratch-stack
+/// and packet-arena state must be ready.
+///
+/// `spawnArg1` bits 0..11 set perspective size; bits 12..15 select the frame
+/// period (zero means 1, otherwise bits 12..14 must be 1..7). Bits 16..23
+/// select launch speed in coordinate-parent units per update (zero means 64).
+/// Bits 24..27 select direction: 0 stationary, 1 random upward, 2 all axes,
+/// 3 narrow upward, 5 from `work->pos`, 6 planar, 7 parent-rotated forward direction.
+/// Other kinds retain the zero direction for SDK normalization. Mode 7 borrows
+/// `work->parent->coord`'s rotation, which must map into the effect's parent
+/// space. A nonzero initial `move` bypasses generation and speed scaling.
+///
+/// Bit 31 selects the ten-cell alternate sheet; clear selects the twelve-cell
+/// banked sheet. Bits 28..30 become palette bits in `pos.vx`, replacing offset X
+/// before mode 5 copies its direction. Spin is randomized in 4096 units per turn.
+/// Running updates draw, move, then accelerate Y: mode 7 adds age/10; other
+/// modes subtract 1 (alternate) or 2 (banked). Zero `step` skips movement and
+/// acceleration. Animation advances once per period and releases after the
+/// final cell. Suspension redraws without advancing; cancellation redraws
+/// once before releasing the counted work and task through `effectKillTask`.
 void shelterB3DumpingHoleEffectSpriteDriftTaskAimed(Task* task);
 
 /// Animates an eight-frame chip or billboard particle shed by the Glutton rain effect.

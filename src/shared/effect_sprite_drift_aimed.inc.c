@@ -1,24 +1,89 @@
 #include "main/random.h"
 
-/* Part of the effect sprite library; see effect_sprite.h. */
+/* Included aimed-drift task; both Shelter B3 carriers export a callback whose
+ * declaration and task contract are in that package's public header. */
 
-/// Room-effect task for one drifting animated sprite, drawn by
-/// _effectSpriteDrawBanked or _effectSpriteDrawRotated by the sign of spawnArg1.
-/// It rolls a velocity kind from bits 24..27 and scales it to bits 16..23 (0x40
-/// when zero). Kind 7 turns the velocity through the parent coordinate and
-/// accelerates it downward by age/10. Otherwise it rises by 2 or 1 a frame, and
-/// the task frees itself after the drawer's last cell (12 or 10).
-void effectSpriteDriftTaskAimed(Task* task)
+#ifndef EFFECT_SPRITE_DRIFT_AIMED_TASK
+#error "Bind EFFECT_SPRITE_DRIFT_AIMED_TASK to the carrier's void (Task*) callback before inclusion"
+#endif
+
+/// Converts the aimed sprite's generated direction to a per-update velocity.
+///
+/// Borrows writable task-owned work. Normalize `move` in place to Q12 before
+/// reading `step` (0 for stationary, otherwise speed 1..255 in coordinate-parent
+/// units per running update). Scale back to signed halfword displacements.
+/// Zero directions follow SDK normalization without a special case. Only the
+/// three components change; no pointer is retained. Clobbers GTE data/results.
+static __inline__ void _effectSpriteAimedDriftInitializeVelocity(EffectWork* work)
 {
+    SVECTOR* velocity;
+
+    velocity = &work->move;
+    VectorNormalSS(velocity, velocity);
+    gte_lddp(work->step);
+    gte_ldsv(velocity);
+    gte_gpf12();
+    gte_stsv(velocity);
+}
+
+/// Adds one running update's velocity to the aimed sprite's local translation.
+///
+/// Borrows live work and a writable coordinate. Signed halfword components
+/// are extended for the 32-bit additions in the coordinate's parent space.
+/// Always invalidate composition, including zero displacement; the caller
+/// gates this operation with `step` and applies its state-specific acceleration
+/// afterwards. No pointer is retained.
+static __inline__ void _effectSpriteAimedDriftMove(const EffectWork* work, GfxCoord* coord)
+{
+    coord->coord.t[0]  += work->move.vx;
+    coord->coord.t[1]  += work->move.vy;
+    coord->coord.t[2]  += work->move.vz;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+}
+
+void EFFECT_SPRITE_DRIFT_AIMED_TASK(Task* task)
+{
+    enum {
+        EFFECT_SPRITE_AIMED_DRIFT_INITIALIZE = 0,
+        EFFECT_SPRITE_AIMED_DRIFT_BANKED     = 1,
+        EFFECT_SPRITE_AIMED_DRIFT_ALTERNATE  = 2,
+        EFFECT_SPRITE_AIMED_DRIFT_SIZE_MASK  = 0xFFF,
+        EFFECT_SPRITE_AIMED_DRIFT_ANGLE_MASK = 0xFFF,
+        // Bit 15 participates in the fallback test, but not the extracted period.
+        EFFECT_SPRITE_AIMED_DRIFT_PERIOD_NIBBLE_MASK   = 0xF000,
+        EFFECT_SPRITE_AIMED_DRIFT_PERIOD_SHIFT         = 12,
+        EFFECT_SPRITE_AIMED_DRIFT_PERIOD_MASK          = 7,
+        EFFECT_SPRITE_AIMED_DRIFT_SPEED_BYTE_MASK      = 0xFF0000,
+        EFFECT_SPRITE_AIMED_DRIFT_SPEED_SHIFT          = 16,
+        EFFECT_SPRITE_AIMED_DRIFT_SPEED_MASK           = 0xFF,
+        EFFECT_SPRITE_AIMED_DRIFT_DEFAULT_SPEED        = 0x40,
+        EFFECT_SPRITE_AIMED_DRIFT_DIRECTION_SHIFT      = 24,
+        EFFECT_SPRITE_AIMED_DRIFT_DIRECTION_MASK       = 0xF,
+        EFFECT_SPRITE_AIMED_DRIFT_PALETTE_MASK         = 0x7000,
+        EFFECT_SPRITE_AIMED_DRIFT_STILL                = 0,
+        EFFECT_SPRITE_AIMED_DRIFT_RANDOM_UPWARD        = 1,
+        EFFECT_SPRITE_AIMED_DRIFT_RANDOM_ALL_AXES      = 2,
+        EFFECT_SPRITE_AIMED_DRIFT_RANDOM_NARROW_UPWARD = 3,
+        EFFECT_SPRITE_AIMED_DRIFT_OFFSET_DIRECTION     = 5,
+        EFFECT_SPRITE_AIMED_DRIFT_RANDOM_PLANAR        = 6,
+        EFFECT_SPRITE_AIMED_DRIFT_PARENT_FORWARD       = 7,
+        // Signed-halfword encoding of -64 before the random upward Y offset.
+        EFFECT_SPRITE_AIMED_DRIFT_UPWARD_Y_BIAS            = 0xFFC0,
+        EFFECT_SPRITE_AIMED_DRIFT_BANKED_FRAME_COUNT       = 12,
+        EFFECT_SPRITE_AIMED_DRIFT_ALTERNATE_FRAME_COUNT    = 10,
+        EFFECT_SPRITE_AIMED_DRIFT_BANKED_Y_ACCELERATION    = 2,
+        EFFECT_SPRITE_AIMED_DRIFT_ALTERNATE_Y_ACCELERATION = 1,
+        EFFECT_SPRITE_AIMED_DRIFT_DOWNWARD_AGE_DIVISOR     = 10
+    };
     EffectWork* work;
     GfxCoord*   coord;
-    SVECTOR*    vec;
-    s32         step;
-    s32         level;
+    s32         framesPerCell;
+    s32         speed;
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+        // Suspended and cancelling updates redraw before any work is released.
         if (task->spawnArg1.value < 0) {
             _effectSpriteDrawRotated(coord, work->index | work->pos.vx, work->scale, work->angle);
         } else {
@@ -31,40 +96,41 @@ void effectSpriteDriftTaskAimed(Task* task)
     }
     work->age++;
     switch (task->state) {
-        case 0:
-            work->scale     = task->spawnArg1.value & 0xFFF;
+        case EFFECT_SPRITE_AIMED_DRIFT_INITIALIZE:
+            // Initialize once without drawing; every sprite consumes a random spin.
+            work->scale     = task->spawnArg1.value & EFFECT_SPRITE_AIMED_DRIFT_SIZE_MASK;
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->angle     = (gRandomLcgState >> 16) & 0xFFF;
-            if (task->spawnArg1.value & 0xF000) {
-                step = (task->spawnArg1.value >> 12) & 7;
+            work->angle     = (gRandomLcgState >> 16) & EFFECT_SPRITE_AIMED_DRIFT_ANGLE_MASK;
+            if (task->spawnArg1.value & EFFECT_SPRITE_AIMED_DRIFT_PERIOD_NIBBLE_MASK) {
+                framesPerCell = (task->spawnArg1.value >> EFFECT_SPRITE_AIMED_DRIFT_PERIOD_SHIFT) & EFFECT_SPRITE_AIMED_DRIFT_PERIOD_MASK;
             } else {
-                step = 1;
+                framesPerCell = 1;
             }
-            work->period = step;
+            work->period = framesPerCell;
             work->age    = 0;
-            task->state  = 1;
-            task->state  = task->spawnArg1.value < 0 ? 2 : 1;
-            work->pos.vx = (task->spawnArg1.value >> 16) & 0x7000;
+            task->state  = EFFECT_SPRITE_AIMED_DRIFT_BANKED;
+            task->state  = task->spawnArg1.value < 0 ? EFFECT_SPRITE_AIMED_DRIFT_ALTERNATE : EFFECT_SPRITE_AIMED_DRIFT_BANKED;
+            work->pos.vx = (task->spawnArg1.value >> EFFECT_SPRITE_AIMED_DRIFT_SPEED_SHIFT) & EFFECT_SPRITE_AIMED_DRIFT_PALETTE_MASK;
             if ((work->move.vx | work->move.vy | work->move.vz) == 0) {
-                if (task->spawnArg1.value & 0xFF0000) {
-                    level = (task->spawnArg1.value >> 16) & 0xFF;
+                if (task->spawnArg1.value & EFFECT_SPRITE_AIMED_DRIFT_SPEED_BYTE_MASK) {
+                    speed = (task->spawnArg1.value >> EFFECT_SPRITE_AIMED_DRIFT_SPEED_SHIFT) & EFFECT_SPRITE_AIMED_DRIFT_SPEED_MASK;
                 } else {
-                    level = 0x40;
+                    speed = EFFECT_SPRITE_AIMED_DRIFT_DEFAULT_SPEED;
                 }
-                work->step = level;
-                switch ((task->spawnArg1.value >> 24) & 0xF) {
-                    case 0:
+                work->step = speed;
+                switch ((task->spawnArg1.value >> EFFECT_SPRITE_AIMED_DRIFT_DIRECTION_SHIFT) & EFFECT_SPRITE_AIMED_DRIFT_DIRECTION_MASK) {
+                    case EFFECT_SPRITE_AIMED_DRIFT_STILL:
                         work->step = 0;
                         break;
-                    case 1:
+                    case EFFECT_SPRITE_AIMED_DRIFT_RANDOM_UPWARD:
                         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                         work->move.vx   = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
                         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        work->move.vy   = 0xFFC0 - ((gRandomLcgState >> 16) & 0x7F);
+                        work->move.vy   = EFFECT_SPRITE_AIMED_DRIFT_UPWARD_Y_BIAS - ((gRandomLcgState >> 16) & 0x7F);
                         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                         work->move.vz   = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
                         break;
-                    case 2:
+                    case EFFECT_SPRITE_AIMED_DRIFT_RANDOM_ALL_AXES:
                         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                         work->move.vx   = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
                         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
@@ -72,7 +138,7 @@ void effectSpriteDriftTaskAimed(Task* task)
                         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                         work->move.vz   = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
                         break;
-                    case 3:
+                    case EFFECT_SPRITE_AIMED_DRIFT_RANDOM_NARROW_UPWARD:
                         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                         work->move.vx   = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
                         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
@@ -80,19 +146,21 @@ void effectSpriteDriftTaskAimed(Task* task)
                         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                         work->move.vz   = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
                         break;
-                    case 5:
+                    case EFFECT_SPRITE_AIMED_DRIFT_OFFSET_DIRECTION:
+                        // X now holds palette bits; Y and Z retain the spawn offset.
                         work->move.vx = work->pos.vx;
                         work->move.vy = work->pos.vy;
                         work->move.vz = work->pos.vz;
                         break;
-                    case 6:
+                    case EFFECT_SPRITE_AIMED_DRIFT_RANDOM_PLANAR:
                         work->move.vy   = 0;
                         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                         work->move.vx   = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
                         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                         work->move.vz   = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
                         break;
-                    case 7:
+                    case EFFECT_SPRITE_AIMED_DRIFT_PARENT_FORWARD:
+                        // Rotate the random forward direction into the effect's parent space.
                         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                         work->move.vx   = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
                         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
@@ -105,55 +173,48 @@ void effectSpriteDriftTaskAimed(Task* task)
                         gte_stsv(&work->move);
                         break;
                 }
-                vec = &work->move;
-                VectorNormalSS(vec, vec);
-                gte_lddp(work->step);
-                gte_ldsv(vec);
-                gte_gpf12();
-                gte_stsv(vec);
+                _effectSpriteAimedDriftInitializeVelocity(work);
             } else {
-                work->step = 0x40;
+                // A supplied velocity is already scaled; step only enables movement.
+                work->step = EFFECT_SPRITE_AIMED_DRIFT_DEFAULT_SPEED;
             }
             break;
-        case 1:
+        case EFFECT_SPRITE_AIMED_DRIFT_BANKED:
             _effectSpriteDrawBanked(coord, work->index | work->pos.vx, work->scale, work->angle);
             if (work->step != 0) {
-                coord->coord.t[0]  += work->move.vx;
-                coord->coord.t[1]  += work->move.vy;
-                coord->coord.t[2]  += work->move.vz;
-                coord->composeStamp = GRAPHICS_COORD_DIRTY;
-                if (((task->spawnArg1.value >> 24) & 0xF) == 7) {
-                    work->move.vy += work->age / 10;
+                // Draw and translate before updating the next tick's Y velocity.
+                _effectSpriteAimedDriftMove(work, coord);
+                if (((task->spawnArg1.value >> EFFECT_SPRITE_AIMED_DRIFT_DIRECTION_SHIFT) & EFFECT_SPRITE_AIMED_DRIFT_DIRECTION_MASK) == EFFECT_SPRITE_AIMED_DRIFT_PARENT_FORWARD) {
+                    work->move.vy += work->age / EFFECT_SPRITE_AIMED_DRIFT_DOWNWARD_AGE_DIVISOR;
                 } else {
-                    work->move.vy -= 2;
+                    work->move.vy -= EFFECT_SPRITE_AIMED_DRIFT_BANKED_Y_ACCELERATION;
                 }
             }
             if ((work->age % work->period) == 0) {
                 work->index++;
-                if (work->index >= 12) {
+                if (work->index >= EFFECT_SPRITE_AIMED_DRIFT_BANKED_FRAME_COUNT) {
                     effectKillTask(work, task);
                 }
             }
             break;
-        case 2:
+        case EFFECT_SPRITE_AIMED_DRIFT_ALTERNATE:
             _effectSpriteDrawRotated(coord, work->index | work->pos.vx, work->scale, work->angle);
             if (work->step != 0) {
-                coord->coord.t[0]  += work->move.vx;
-                coord->coord.t[1]  += work->move.vy;
-                coord->coord.t[2]  += work->move.vz;
-                coord->composeStamp = GRAPHICS_COORD_DIRTY;
-                if (((task->spawnArg1.value >> 24) & 0xF) == 7) {
-                    work->move.vy += work->age / 10;
+                _effectSpriteAimedDriftMove(work, coord);
+                if (((task->spawnArg1.value >> EFFECT_SPRITE_AIMED_DRIFT_DIRECTION_SHIFT) & EFFECT_SPRITE_AIMED_DRIFT_DIRECTION_MASK) == EFFECT_SPRITE_AIMED_DRIFT_PARENT_FORWARD) {
+                    work->move.vy += work->age / EFFECT_SPRITE_AIMED_DRIFT_DOWNWARD_AGE_DIVISOR;
                 } else {
-                    work->move.vy -= 1;
+                    work->move.vy -= EFFECT_SPRITE_AIMED_DRIFT_ALTERNATE_Y_ACCELERATION;
                 }
             }
             if ((work->age % work->period) == 0) {
                 work->index++;
-                if (work->index >= 10) {
+                if (work->index >= EFFECT_SPRITE_AIMED_DRIFT_ALTERNATE_FRAME_COUNT) {
                     effectKillTask(work, task);
                 }
             }
             break;
     }
 }
+
+#undef EFFECT_SPRITE_DRIFT_AIMED_TASK

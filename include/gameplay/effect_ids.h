@@ -887,7 +887,7 @@ enum {
     /// Shelter r48 pink/red charge: rings and two arcs for 30 ticks, then a screen fade
     /// flash; spawned by actor_503500's other enemy spawn handler.
     EFFECT_SHELTER_R48_RING_FLASH_PINK = EFFECT_ID(EFFECT_TASK_BANK, 0x195),
-    /// Unidentified. Drifting animated effect sprite (effectSpriteDriftTaskAimed of the
+    /// Unidentified. Drifting animated effect sprite (shelterB3GarbageIncineratorEffectSpriteDriftTaskAimed of the
     /// garbage incinerator: velocity kind and speed from spawnArg, banked or rotated
     /// drawer); thrown by actor_341900 at four offsets and by actor_444000 (Glutton)
     /// while its parts sink.

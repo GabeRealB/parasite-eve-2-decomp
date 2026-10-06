@@ -140703,7 +140703,7 @@ Last, `andi a0,a0,1` has to come before `andi v1,s0,0xFFFF`:
 `flicker = animationFrame & 1; colorWord = packedColor; flicker <<= colorWord >> 12;` with `u32 colorWord`
 did it. Input: `base_12.i` `c3c2e89c…` (100%).
 
-### GTE macros missing from a scratch compile as a `jal` (func_shelter_b3_garbage_incinerator_80182368, 2026-09-23)
+### GTE macros missing from a scratch compile as a `jal` (shelterB3GarbageIncineratorEffectSpriteDriftTaskAimed, 2026-09-23)
 
 `gte_rtv0()`, `gte_gpf12()`, `gte_rtps()` and the other command macros emit
 real COP2 words only when the TU includes `<psyq/inline_c.h>` followed by

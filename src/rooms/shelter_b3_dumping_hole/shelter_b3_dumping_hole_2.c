@@ -82,8 +82,12 @@
 /// and undefine this flag after the header. The drawer narrows frame to `u16`
 /// and size to `s16` internally; the call signature remains word-sized.
 #define EFFECT_SPRITE_BILLBOARD_WORD_ARGUMENTS
-// Exported instance: another image refers to this package's copy by name.
-#define effectSpriteDriftTaskAimed shelterB3DumpingHoleEffectSpriteDriftTaskAimed
+/// Binds the aimed drift fragment to this room's exported `void (Task*)` callback.
+///
+/// Supply a function identifier before `effect_sprite.h` and retain it through
+/// the aimed drift fragment, which clears it. The two Shelter B3 carriers each
+/// supply their own export; no arguments, captured locals or tokens are built.
+#define EFFECT_SPRITE_DRIFT_AIMED_TASK shelterB3DumpingHoleEffectSpriteDriftTaskAimed
 #include "../../shared/effect_sprite.h"
 #undef EFFECT_SPRITE_BILLBOARD_WORD_ARGUMENTS
 

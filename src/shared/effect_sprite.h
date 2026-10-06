@@ -24,7 +24,10 @@ static void _effectSpriteDrawBillboard(const GfxCoord* coord, u16 frame, s16 siz
 static void _effectSpriteDrawBillboard(const GfxCoord* coord, s32 frame, s32 size);
 #endif
 
-void effectSpriteDriftTaskAimed(Task* task);
+#ifdef EFFECT_SPRITE_DRIFT_AIMED_TASK
+// Carrier-bound export; its task contract is in that package's public header.
+void EFFECT_SPRITE_DRIFT_AIMED_TASK(Task* task);
+#endif
 #ifdef EFFECT_SPRITE_DEBRIS_TASK
 // Carrier-bound export; its task contract is in that package's public header.
 void EFFECT_SPRITE_DEBRIS_TASK(Task* task);
