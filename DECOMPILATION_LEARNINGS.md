@@ -151813,3 +151813,42 @@ boundary).
   second variable.
 - Count references for the value the vanished branch read. If the listing is
   short by more than the test itself, the vanished arms used it too.
+
+### A call result kept in a register of its own, the next load in `$v0`: a block boundary after the call that left no branch (Shop_QuantityTask, 2026-10-07)
+
+**Symptom.** `jal Gp_ScanStackQty; move v1,v0; lhu v0,2(s0); subu s6,v0,v1`,
+matched only with `register s32 maxHeld asm("v0")`. Plain
+`maxQty = stock->maxHeld - held` gives `lhu v1,2(s0); subu s6,v1,v0`.
+
+**Mechanism.** This is not a ranking question in local-alloc: in the pin-free
+form there is no quantity for the held count at all. combine substitutes the
+copy `(set held (reg v0))` into the subtraction (same block, `held` dies
+there, nothing sets `$v0` in between), so `$v0` stays live to the `subu` and
+the load can only take `$v1`. The image needs the copy to survive combine.
+Once it does, the allocation follows by itself: the load (2 refs / 1 insn) is
+a block-local quantity allocated by local-alloc, `$v0` is free after the copy
+and is the lowest register; the held count then conflicts with it and takes
+`$v1`. combine only works inside one basic block, so a block boundary between
+the copy and the subtraction is enough, and the image shows no branch there -
+so the boundary is one that jump2 deleted.
+
+**Fix (fitted).** `if (held > 0) { maxQty = stock->maxHeld - held; } else {
+maxQty = stock->maxHeld - held; }`. The held count becomes a multi-block
+pseudo (4 refs over 6 insns, global-alloc), each arm loads into `$v0`, and
+cross-jumping merges the arms and deletes the branch. All seven shop images
+match. What the original tested is unknown. `held != 0` does not work: cse
+knows the value in the zero arm and drops the subtraction there (`lhu s6`),
+so the arms differ and the branch stays.
+
+**Not matching** (each leaves `lhu v1; subu s6,v1,v0`): `held = 0; held +=
+call`; `do { } while (0)` after the call, around the call, or between
+`maxQty = stock->maxHeld` and `maxQty -= held` (a loop note is not a block
+boundary for combine; the last two also rotate `$s5/$s6` or `$s2/$fp`); a
+one-case `switch (held)`. A second use of the count that combine could cancel
+was looked for and not found.
+
+**Use.** `move vN,v0` directly after a `jal` with the result used once, a few
+instructions later in what looks like the same block, means combine did not
+see copy and use in one block. Look for a vanished block boundary before
+ranking quantities. Correction to "Measured and left (2026-10-05)": the pin
+on `Shop_QuantityTask` is gone.

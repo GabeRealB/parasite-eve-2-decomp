@@ -1072,22 +1072,21 @@ static void Shop_PreviewTask(Task* task)
 /// cancel tells the parent panel to close with 6.
 static void Shop_QuantityTask(Task* task)
 {
-    u8           buf[0x20];
-    TextDrawReq  req;
-    UiObject*    obj;
-    UiObject*    parentObj;
-    s32          itemId;
-    s32          price;
-    s32          maxQty;
-    s32          afford;
-    s32          held;
-    register s32 maxHeld asm("v0");
-    s32          count;
-    s32          left;
-    s32          top;
-    s32          x;
-    s32          y;
-    s32          i;
+    u8          buf[0x20];
+    TextDrawReq req;
+    UiObject*   obj;
+    UiObject*   parentObj;
+    s32         itemId;
+    s32         price;
+    s32         maxQty;
+    s32         afford;
+    s32         held;
+    s32         count;
+    s32         left;
+    s32         top;
+    s32         x;
+    s32         y;
+    s32         i;
 
     itemId = task->spawnArg1.value;
     obj    = task->spawnArg2.pointer;
@@ -1104,9 +1103,22 @@ static void Shop_QuantityTask(Task* task)
         InventoryConsumableStack* stock = gpItemStock(itemId);
 
         if (stock->packQty != 0) {
-            held    = Gp_ScanStackQty(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, itemId);
-            maxHeld = stock->maxHeld;
-            maxQty  = maxHeld - held;
+            held = Gp_ScanStackQty(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, itemId);
+            // The image keeps the held count in a register of its own
+            // (`move v1,v0`) and loads the ceiling into `$v0`, which needs a
+            // block boundary between the call and the subtraction that is
+            // gone from the final code: without one, combine substitutes the
+            // return register into the subtraction and the copy disappears.
+            // Two arms that compile to the same code give that boundary
+            // (cross-jumping merges them and deletes the branch). What the
+            // original tested here, and how its arms differed in source, is
+            // unknown; `held > 0` is fitted. `held != 0` does not work: cse
+            // then drops the subtraction from the zero arm.
+            if (held > 0) {
+                maxQty = stock->maxHeld - held;
+            } else {
+                maxQty = stock->maxHeld - held;
+            }
             if (maxQty <= 0) {
                 maxQty = 1;
             } else {
