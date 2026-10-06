@@ -50,23 +50,28 @@ enum { M4A1_HAMMER_BEAM_WIDTH_SCALE = 0x280 };
 /// Fixed offset from the parent coordinate that the hammer effect starts at.
 static SVECTOR D_m4a1_hammer_8011EB60 = { 0, 0x280, 0x20, 0 };
 
-/// Rotates a spark offset and adds the cached attachment origin modulo 16 bits.
+/// Converts a charged spark's local offset into a beam endpoint in place.
 ///
-/// `work->pos` is a writable, word-aligned `SVECTOR`; the coordinate's cached
-/// rotation and the published attachment origin must already be valid.
-/// The result is in the coordinate's composition-root space (`GsWSMATRIX` input).
-/// GTE rotation saturates the offset before the unsigned-origin addition narrows
-/// back to signed halfwords. Replaces GTE rotation/vector/arithmetic state.
-static __inline__ void _m4a1HammerComposeSparkPosition(const GfxCoord* glowCoord, EffectWork* work)
-{
-    gte_SetRotMatrix(&glowCoord->workm);
-    gte_ldv0(&work->pos);
-    gte_rtv0();
-    gte_stsv(&work->pos);
-    work->pos.vx = work->pos.vx + (u16)D_m4a1_hammer_8012D668.vx;
-    work->pos.vy = work->pos.vy + (u16)D_m4a1_hammer_8012D668.vy;
-    work->pos.vz = work->pos.vz + (u16)D_m4a1_hammer_8012D668.vz;
-}
+/// `glowCoord` points to a cached graphics coordinate with Q12 rotation.
+/// `sparkPosition` is a word-aligned, readable full `SVECTOR` lvalue with writable
+/// xyz in signed game-coordinate units. `attachmentOrigin` is a readable `SVECTOR`
+/// lvalue in composition-root space, published before this update's composition.
+/// Rotation saturates to -32768..32767; adding the origin wraps each component
+/// to 16 bits. The result is in composition-root space (`GsWSMATRIX` input).
+/// `glowCoord` is evaluated once; both vector arguments are evaluated repeatedly
+/// and must have no side effects. The writable vector must not overlap either
+/// input. Its fourth halfword is read but unchanged. Captures no caller identifiers.
+/// Overwrites GTE RT, V0, MAC1..3, IR1..3 and FLAG; translation registers are unchanged.
+/// Expands to several statements; invoke only within a braced block. Defined only
+/// around the glow task and undefined after it; no carrier configuration is needed.
+#define M4A1_HAMMER_COMPOSE_SPARK_POSITION(glowCoord, sparkPosition, attachmentOrigin) \
+    gte_SetRotMatrix(&(glowCoord)->workm);                                             \
+    gte_ldv0(&(sparkPosition));                                                        \
+    gte_rtv0();                                                                        \
+    gte_stsv(&(sparkPosition));                                                        \
+    (sparkPosition).vx = (sparkPosition).vx + (u16)(attachmentOrigin).vx;              \
+    (sparkPosition).vy = (sparkPosition).vy + (u16)(attachmentOrigin).vy;              \
+    (sparkPosition).vz = (sparkPosition).vz + (u16)(attachmentOrigin).vz
 
 void m4a1HammerGlowTask(Task* task)
 {
@@ -196,7 +201,7 @@ void m4a1HammerGlowTask(Task* task)
                                 work->pos.vz =
                                     (D_m4a1_hammer_8012D630[sparkIndex + M4A1_HAMMER_SPARK_RADIUS_BASE] * rcos(D_m4a1_hammer_8012D630[sparkIndex])) >> M4A1_HAMMER_TRIG_SHIFT;
                                 work->pos.vy = D_m4a1_hammer_8012D630[heightIndex];
-                                _m4a1HammerComposeSparkPosition(glowCoord, work);
+                                M4A1_HAMMER_COMPOSE_SPARK_POSITION(glowCoord, work->pos, D_m4a1_hammer_8012D668);
                                 _beamStripDraw(glowCoord, &work->pos, work->age, M4A1_HAMMER_BEAM_WIDTH_SCALE);
                             }
                         }
@@ -222,6 +227,8 @@ void m4a1HammerGlowTask(Task* task)
         }
     }
 }
+
+#undef M4A1_HAMMER_COMPOSE_SPARK_POSITION
 
 #undef SPRITE_QUAD_POSITION_SOURCE_TYPE
 #undef SPRITE_QUAD_POS
