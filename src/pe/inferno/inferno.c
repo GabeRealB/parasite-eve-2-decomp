@@ -320,17 +320,29 @@ static void _infernoDrawScreenWash(s16 intensity)
     gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, sortingDepth);
 }
 
-/// Fades and grows both flame bands before drawing them in their composed frame.
+/// Fades and expands both Inferno fan bands for one frame, then draws them.
 ///
-/// Requires live work, texture phases and a composed coordinate. Brightness
-/// decay and coordinate-distance growth narrow to signed halfwords before drawing.
+/// `work->scale` is RGB intensity; the caller must keep it in 0..255 after
+/// subtracting `brightnessDecay`, since there is no clamping. `radiusGrowth`
+/// expands both rims of both bands. `risingLiftGrowth` raises only the rising
+/// band's upper rim along local -Y; `upperRimSpreadGrowth` further expands
+/// both upper rims. Growth arguments are distances per frame in the effect's
+/// coordinate units. All four updates use signed 32-bit arithmetic and narrow
+/// to the work's signed halfwords before either band is drawn.
+///
+/// Borrows live work and initialized phases for both bands, using the existing
+/// composed `coord->workm`. The caller advances the nonnegative `work->age`
+/// used for texture animation. Draws the rising band before the fixed-lift
+/// band, needing frame-arena capacity for up to twelve `POLY_FT4` packets and
+/// aligned scratch-stack space for one `_InfernoFanScratch` at a time. No input
+/// pointers are retained; queued packets live until GPU drawing completes.
 static inline void _infernoFadeAndDrawFanBands(EffectWork* work, const GfxCoord* coord, const _InfernoFanTexturePhase* texturePhase,
-                                               s32 brightnessDecay, s32 radiusGrowth, s32 liftGrowth, s32 spreadGrowth)
+                                               s32 brightnessDecay, s32 radiusGrowth, s32 risingLiftGrowth, s32 upperRimSpreadGrowth)
 {
     work->scale  = work->scale - brightnessDecay;
     work->angle  = work->angle + radiusGrowth;
-    work->period = work->period + liftGrowth;
-    work->step   = work->step + spreadGrowth;
+    work->period = work->period + risingLiftGrowth;
+    work->step   = work->step + upperRimSpreadGrowth;
     _infernoDrawRisingFanBand(work, coord, INFERNO_FAN_RISING_BAND, texturePhase);
     _infernoDrawConstantLiftFanBand(work, coord, INFERNO_FAN_CONSTANT_LIFT_BAND, texturePhase);
 }
