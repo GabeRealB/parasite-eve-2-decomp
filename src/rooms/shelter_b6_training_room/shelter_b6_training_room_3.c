@@ -1377,7 +1377,8 @@ void shelterB6TrainingRoomHitFlashTask(Task* task)
         if (effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             return;
         }
-        goto release;
+        effectKillTask(work, task);
+        return;
     }
     work->age++;
     if (task->state == SHELTER_B6_TRAINING_ROOM_HIT_FLASH_INIT) {
@@ -1389,7 +1390,8 @@ void shelterB6TrainingRoomHitFlashTask(Task* task)
         task->spawnArg1.value = D_shelter_b6_training_room_80185C98;
     }
     if (task->spawnArg1.value != D_shelter_b6_training_room_80185C98) {
-        goto release;
+        effectKillTask(work, task);
+        return;
     }
     rgb[0]       = work->scale;
     rgb[1]       = work->scale;
@@ -1402,7 +1404,6 @@ void shelterB6TrainingRoomHitFlashTask(Task* task)
     }
     work->scale -= 0x18;
     if (work->scale < 0x18) {
-    release:
         effectKillTask(work, task);
     }
 }
