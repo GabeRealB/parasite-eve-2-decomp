@@ -2724,7 +2724,6 @@ static void func_actor_503500_801374BC(Task* arg0)
     Task*                             task;
     GfxCoord*                         coord;
     s32                               i;
-    s32                               id;
 
     work = arg0->work;
     if (func_actor_503500_8013608C(arg0->parent) != 0) {
@@ -2734,8 +2733,9 @@ static void func_actor_503500_801374BC(Task* arg0)
     }
     switch (work->stateStep) {
         case 0:
-            id = 0xF;
-            goto play;
+            func_actor_503500_80135FB4(arg0->parent, 0xF, 0x10);
+            work->stateStep++;
+            break;
         case 1:
             if (++work->stateFrames > 0) {
                 for (i = 0; i < 2; i++) {
@@ -2755,9 +2755,7 @@ static void func_actor_503500_801374BC(Task* arg0)
             break;
         case 2:
             if (func_actor_503500_80136014(arg0->parent, 0xF) != 0) {
-                id = 0x10;
-            play:
-                func_actor_503500_80135FB4(arg0->parent, id, 0x10);
+                func_actor_503500_80135FB4(arg0->parent, 0x10, 0x10);
                 work->stateStep++;
             }
             break;
