@@ -1163,11 +1163,11 @@ static void func_actor_800200_80162750(Task* arg0)
                 func_actor_800200_80165434(arg0, 1);
                 break;
             case 3:
-                goto do_65380;
+                func_actor_800200_80165380(arg0);
+                break;
         }
     } else {
         if (companionGetPlayerPlanarDistance(coord) >= 0x600) {
-        do_65380:
             func_actor_800200_80165380(arg0);
         } else {
             diff = func_8010BCF4(arg0, MATRIX_TRANS(&target->coord));
