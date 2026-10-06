@@ -2067,7 +2067,6 @@ static void func_actor_800100_80164B9C(Task* arg0)
     WorldTargetNode*           node;
     u16                        step;
     u16                        old;
-    s16                        anim;
     u32                        random;
     s32                        distance;
     s32                        val;
@@ -2082,12 +2081,11 @@ static void func_actor_800100_80164B9C(Task* arg0)
         random             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         gRandomLcgState    = random;
         if ((s16)step >= (s32)(((random >> 16) & 0x3F) + 0x28)) {
-            anim                     = 1;
             actor2                   = arg0->work;
             old                      = actor2->state;
             actor2->state            = 0xA;
-            actor2->turnRateIndex    = anim;
-            actor2->aimTrackingState = anim;
+            actor2->turnRateIndex    = 1;
+            actor2->aimTrackingState = GAME_ACTOR_AIM_TRACKING_DECAY;
             companion                = actor2->companionWork;
             actor2->mode             = GAME_ACTOR_MODE_NORMAL;
             actor2->animationState   = 0;
@@ -2095,7 +2093,7 @@ static void func_actor_800100_80164B9C(Task* arg0)
             actor2->stateAux         = old;
             companion->scanClearance = COMPANION_SCAN_UNTESTED;
             companion->scanAngle     = 0;
-            playerActorPlayChildSlotsWithBlend(arg0, anim, 0, 6);
+            playerActorPlayChildSlotsWithBlend(arg0, 1, 0, 6);
             return;
         }
     }
