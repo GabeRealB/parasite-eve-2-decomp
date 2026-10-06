@@ -95,4 +95,4 @@ func_shelter_b6_training_room_8017FC40 = 0x8017FC40; // type:func absolute:True 
 fireballDrawGlow = 0x80131EBC; // type:func
 fireballDrawGroundGlow = 0x80132414; // type:func
 fireballSpawnEmber = 0x80135CEC; // type:func
-modelPlacementSetScaled = 0x80136574; // type:func
+_modelPlacementSetScaled = 0x80136574; // type:func

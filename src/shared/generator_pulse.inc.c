@@ -12,7 +12,7 @@
 /// `gGeneratorHitPulse` and moves to state 2 on its terminator; state 2
 /// returns to pose 1 and state 0 once the pose has run 0x23 frames past its
 /// entry of `gGeneratorPoseStartFrames`. The row's `scale` is the scale
-/// `modelPlacementSetScaled` applies to the saved coordinate matrix
+/// `_modelPlacementSetScaled` applies to the saved coordinate matrix
 /// `unscaledMtx`, 0x1000 when no row was read, and while the session's
 /// `viewReady` is 1 the per-view row of `gGeneratorViewSound` is enqueued
 /// with the work block's sound id.
@@ -64,7 +64,7 @@ void generatorPulse(Task* arg0)
             }
             break;
     }
-    modelPlacementSetScaled(arg0, &work->unscaledMtx, scale, 1);
+    _modelPlacementSetScaled(arg0, &work->unscaledMtx, scale, MODEL_PLACEMENT_SCALE_UNIFORM);
     if (gGameSession->viewReady == 1) {
         sndEvtRequestScriptMix(work->runningSoundId, (s8)gGeneratorViewSound[gGameSession->location.loc.view].panOffset,
                                (s8)gGeneratorViewSound[gGameSession->location.loc.view].attenuation);

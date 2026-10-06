@@ -74617,7 +74617,7 @@ carved block is the other half, and it goes the other way: a target that stores
 a *block-local* register and copies into the call-crossing one needs the stored
 expression written twice.
 
-`func_actor_105100_80136574` carves 0x30 bytes off `SCRATCH_STACK_CURSOR_SLOT`, and the
+`_modelPlacementSetScaled` carves 0x30 bytes off `SCRATCH_STACK_CURSOR_SLOT`, and the
 obvious spelling scores 93.55%:
 
 ```c

@@ -189,7 +189,7 @@ static const TaskFuncTable3 D_actor_511000_80131E24 = {
 /// also follows the spawner's active-draw and buffer flags: the attach state,
 /// the flag-mirroring tick and the kill.
 static const TaskFuncTable3 D_actor_511000_80131E30 = {
-    modelPlacementAttachChild,
+    _modelPlacementAttachChild,
     _modelPlacementMirrorParentDrawFlags,
     taskKill,
 };

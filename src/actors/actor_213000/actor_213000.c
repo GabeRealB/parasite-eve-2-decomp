@@ -617,7 +617,7 @@ static void func_actor_213000_8014A158(Task* task)
 /// State table of the child spawned from table entry 4: setup, tick, kill.
 static const TaskFuncTable3 D_actor_213000_80149E30 = {
     {
-        modelPlacementAttachChild,
+        _modelPlacementAttachChild,
         _modelPlacementMirrorParentDrawFlags,
         taskKill,
     },

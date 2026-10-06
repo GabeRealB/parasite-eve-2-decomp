@@ -17,7 +17,13 @@
 
 #include "main/task_types.h"
 
-void modelPlacementAttachChild(Task* task);
-void modelPlacementSetScaled(Task* arg0, MATRIX* arg1, s16 arg2, s32 arg3);
+/// Axis choices for root scaling; the s32 selector treats every nonzero value as uniform.
+enum {
+    MODEL_PLACEMENT_SCALE_Y_ONLY  = 0,
+    MODEL_PLACEMENT_SCALE_UNIFORM = 1
+};
+
+static void _modelPlacementAttachChild(Task* childTask);
+static void _modelPlacementSetScaled(Task* modelTask, const MATRIX* unscaledMatrix, s16 scale, s32 uniformScale);
 
 #endif /* SRC_SHARED_MODEL_PLACEMENT_H */

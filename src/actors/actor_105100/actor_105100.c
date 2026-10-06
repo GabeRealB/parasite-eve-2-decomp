@@ -1039,7 +1039,7 @@ static void func_actor_105100_80132AA0(Enemy* arg0, Task* arg1)
     }
     func_actor_105100_80136408(arg1);
     func_actor_105100_80134130(arg1);
-    modelPlacementSetScaled(arg1, &work->placementMtx, work->scale, 1);
+    _modelPlacementSetScaled(arg1, &work->placementMtx, work->scale, MODEL_PLACEMENT_SCALE_UNIFORM);
     if (work->shield.fields.active != 0) {
         func_shelter_b6_training_room_8018294C(arg1);
     }
@@ -1892,7 +1892,7 @@ static void func_actor_105100_80134284(Enemy* arg0, Task* arg1)
             if (work->scale >= 0x201) {
                 work->scale -= 0x50;
             }
-            modelPlacementSetScaled(actor, &work->placementMtx, work->scale, 0);
+            _modelPlacementSetScaled(actor, &work->placementMtx, work->scale, MODEL_PLACEMENT_SCALE_Y_ONLY);
             if (++work->timer >= 0x3C) {
                 work->actionStep = 4;
             }

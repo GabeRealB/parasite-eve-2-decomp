@@ -204,6 +204,6 @@ D_actor_113100_80144250 = 0x80144250; // size:0x90 defined:True
 D_actor_113100_801442E0 = 0x801442E0; // size:0x4 defined:True
 
 func_mist_parking_80183BAC = 0x80183BAC; // type:func absolute:True owner=mist_parking
-modelPlacementAttachChild = 0x80132CF4; // type:func
+_modelPlacementAttachChild = 0x80132CF4; // type:func
 actorMsgPlaceEuler = 0x8013333C; // type:func
 _modelPlacementMirrorParentDrawFlags = 0x80132E00; // type:func

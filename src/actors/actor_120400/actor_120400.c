@@ -80,7 +80,7 @@ static void func_actor_120400_80132920(Task* task);
 /// Spawn, tick and teardown handlers of the two child tasks, dispatched by
 /// `func_actor_120400_8013254C`.
 static const TaskFuncTable3 D_actor_120400_80131E24 = { {
-    modelPlacementAttachChild,
+    _modelPlacementAttachChild,
     _modelPlacementMirrorParentDrawFlags,
     taskKill,
 } };

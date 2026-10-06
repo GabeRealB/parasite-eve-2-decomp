@@ -133,7 +133,7 @@ static const TaskFuncTable3 D_actor_113100_80131E24 = { {
 /// and buffer flags each frame, then `taskKill`.
 /// Dispatched by `func_actor_113100_80132C9C`.
 static const TaskFuncTable3 D_actor_113100_80131E30 = { {
-    modelPlacementAttachChild,
+    _modelPlacementAttachChild,
     _modelPlacementMirrorParentDrawFlags,
     taskKill,
 } };

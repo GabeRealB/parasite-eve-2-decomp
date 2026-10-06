@@ -122,7 +122,7 @@ static void func_actor_310600_80162B98(Task* task);
 /// State handlers of the child part task, which `func_actor_310600_8016274C`
 /// runs by `Task::state`: setup, tick and exit.
 static const TaskFuncTable3 D_actor_310600_80161E24 = { {
-    modelPlacementAttachChild,
+    _modelPlacementAttachChild,
     _modelPlacementMirrorParentDrawFlags,
     taskKill,
 } };

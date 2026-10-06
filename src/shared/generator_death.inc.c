@@ -105,7 +105,7 @@ void generatorDeathState(Enemy* arg0, Task* arg1)
                     }
                     break;
             }
-            modelPlacementSetScaled(arg1, &work->unscaledMtx, scale, 0);
+            _modelPlacementSetScaled(arg1, &work->unscaledMtx, scale, MODEL_PLACEMENT_SCALE_Y_ONLY);
             if (!(work->stateFrames & 3)) {
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 x               = (gRandomLcgState >> 16) & 0x3FF;

@@ -78,7 +78,7 @@ static void func_actor_443500_80132A68(s32 arg0);
 /// State table of the actor's child task (`TaskDesc` entry 1): setup, the
 /// per-frame active-draw and buffer-flag mirror and `taskKill`.
 static const TaskFuncTable3 D_actor_443500_80131E24 = {
-    { modelPlacementAttachChild, _modelPlacementMirrorParentDrawFlags, taskKill }
+    { _modelPlacementAttachChild, _modelPlacementMirrorParentDrawFlags, taskKill }
 };
 
 /// State table of the actor's main task (`TaskDesc` entry 0): the spawn
