@@ -8,18 +8,26 @@
 #error "Define WATER_SPRAY_TASK to the package's declared void (Task*) callback"
 #endif
 
-/// Converts a water-spray particle's launch direction into parent-space velocity.
+/// Initializes a water-spray particle's velocity from its launch direction and speed.
 ///
-/// Borrows live writable work: `move` supplies signed direction components and
-/// `step` the speed in coordinate units per running update (0..255). Normalizes
-/// in place to Q12, then scales with the GTE's 12-bit shift. Only the three
-/// signed halfword components change; a zero direction still reaches the SDK
-/// normalizer. No pointer is retained and GTE state is overwritten.
+/// `particleWork` borrows live, writable task-owned work. `move` contains a
+/// signed direction and `step` the launch speed in parent-coordinate units per
+/// running update (0 stationary, otherwise 1..255). The direction's squared
+/// length must fit the SDK's signed 32-bit accumulation.
+///
+/// In-place Q12 normalization precedes speed multiplication with a 12-bit
+/// arithmetic right shift. The resulting signed halfwords in `move` are integer
+/// displacements in the same parent space; rounding can change their magnitude.
+/// Zero directions still pass through the SDK normalizer.
+///
+/// Only the three components of `move` change; its pad, `step` and the remaining
+/// work are preserved. No pointer is retained. GTE state is overwritten.
 static inline void _waterSprayInitializeVelocity(EffectWork* particleWork)
 {
     SVECTOR* velocity = &particleWork->move;
 
     VectorNormalSS(velocity, velocity);
+    // Reload speed and normalized direction after the SDK call clobbers GTE inputs.
     gte_lddp(particleWork->step);
     gte_ldsv(velocity);
     gte_gpf12();
