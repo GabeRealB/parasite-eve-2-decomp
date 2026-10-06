@@ -283,16 +283,16 @@ This is the only bank we can describe entry-by-entry. Spawn with
 | `07` | `C0` | `taskKill` | Unused slot |
 | `08` | `00` | NULL | Unused |
 | `09` | `18` | `GameFlow_DispatchTable` | **Main in-game flow.** Spawned after session reset, from title, etc. |
-| `0A` | `10` | `Mc_DispatchStateTable` | Memcard state machine |
-| `0B` | `10` | `Mc_DispatchStateTable26` | Memcard variant |
+| `0A` | `10` | `mcSaveDialogTask` | Memory-card save dialog |
+| `0B` | `10` | `mcLoadDialogTask` | Memory-card load dialog and file selection |
 | `0C` | `C0` | `func_80036A1C` | Memcard menu dispatcher (`mcmenu.c`) |
 | `0D` | `10` | `Text_BootTask` | Boot: load CLUT, spawn `Title_TaskDescs[0]`, kill self. `Boot` also spawns this |
 | `0E` | `2F` | `viewApplyCoordTask` | Type **2** (coordinate body). Gameplay dispatcher |
 | `0F` | `2F` | `viewApplyCameraTask` | Camera / view. `Gp_TrySpawnViewTask` / `Gp_SpawnViewTasks` |
 | `10` | `40` | `func_800AD50C` | Gameplay state dispatcher (`D4.c`) |
 | `11` | `28` | `func_800AC0F0` | Pad-gated 3-way dispatcher. Gameflow / area code spawn this |
-| `12` | `10` | `Mc_DispatchStateTable` | Same as `0A` |
-| `13` | `10` | `Mc_DispatchStateTable26` | Same as `0B` |
+| `12` | `10` | `mcSaveDialogTask` | Same as `0A` |
+| `13` | `10` | `mcLoadDialogTask` | Same as `0B` |
 | `14` | `1F` | `func_800AEE8C` | Area / dir helper (`1A8.c`, matched) |
 | `15` | `C0` | `taskKill` | Unused |
 | `16` | `30` | `Gp_ViewGateTask` | Gameplay dispatcher |

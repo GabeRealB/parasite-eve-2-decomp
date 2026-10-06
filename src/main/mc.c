@@ -192,7 +192,7 @@ static u8 D_80073B80[8];
 
 PlayerStatus gPlayerStatus;
 
-/// Last `rand()` result drawn by `Mc_DispatchStateTable`; nothing reads it.
+/// Last `rand()` result drawn by `mcSaveDialogTask`; nothing reads it.
 static s32 Mc_LastRandomValue;
 
 #include "main/gameflag.h"
@@ -322,7 +322,7 @@ static const char McText_CloseParen[];
 
 static const _McSaveStateTable Mc_PromptStates;
 
-/// Jump table of 26 _McStateFunc handlers used by Mc_DispatchStateTable26.
+/// Jump table of 26 _McStateFunc handlers used by mcLoadDialogTask.
 static const _McFileSelectStateTable Mc_FileSelectStates;
 
 static void _mcBuildSaveFileName(u8* filenameCursor, s32 directoryIndex);
@@ -736,8 +736,8 @@ UiList                   Mc_LoadSlotList        = { Mc_LoadSlotCallbacks, 0x0F, 
 static u8* Mc_ModeLabels[] = { (u8*)McText_Replay, (u8*)McText_Bounty, (u8*)McText_Scavenger, (u8*)McText_Nightmare };
 
 UiObjectDesc Mc_TaskDescriptors[] = {
-    { USER_INTERFACE_PANEL_TITLE_STYLE, { -144, -25, 0x120, 0x32 }, 0x14, 0, TASK_BODY_NONE, 0xC0, Mc_DispatchStateTable26, 0 },
-    { USER_INTERFACE_PANEL_TITLE_STYLE, { -144, -25, 0x120, 0x32 }, 0x14, 0, TASK_BODY_NONE, 0xC0, Mc_DispatchStateTable, 0 },
+    { USER_INTERFACE_PANEL_TITLE_STYLE, { -144, -25, 0x120, 0x32 }, 0x14, 0, TASK_BODY_NONE, 0xC0, mcLoadDialogTask, 0 },
+    { USER_INTERFACE_PANEL_TITLE_STYLE, { -144, -25, 0x120, 0x32 }, 0x14, 0, TASK_BODY_NONE, 0xC0, mcSaveDialogTask, 0 },
 };
 static UiObjectDesc Mc_SaveListDesc[] = {
     { 0x80000 | USER_INTERFACE_PANEL_TITLE_STYLE, { -136, 10, 0x120, 0x3C }, 0x0C, 0, TASK_BODY_NONE, 0xC0, mcMenuUpdateLoadFileList, 0 },
@@ -2273,7 +2273,7 @@ static void _mcStateSelectLoadFile(Task* dialogTask, McWork* dialogWork)
     }
 }
 
-/// Jump table of 26 _McStateFunc handlers used by Mc_DispatchStateTable26.
+/// Jump table of 26 _McStateFunc handlers used by mcLoadDialogTask.
 static const _McFileSelectStateTable Mc_FileSelectStates = { {
     _mcStateInitLoadWork,
     _mcStateInitLoadSections,
@@ -3666,27 +3666,37 @@ static void _mcStateAcknowledgeFormatFailure(Task* task, McWork* work)
     }
 }
 
-void Mc_DispatchStateTable(Task* task)
+/// Release an allocated save transfer and enter the access-failure prompt.
+///
+/// Called after the I/O wait limit, without polling or cancelling an SDK request.
+static inline void _mcAbortSaveTransfer(Task* dialogTask, McWork* dialogWork)
+{
+    if (dialogWork->buffer != NULL) {
+        memFree(dialogWork->buffer);
+        dialogWork->buffer = NULL;
+    }
+    dialogTask->state = MEMORY_CARD_SAVE_STATE_ACCESS_FAILED;
+}
+
+void mcSaveDialogTask(Task* dialogTask)
 {
     _McSaveStateTable states;
-    McWork*           work;
-    s32               state;
+    McWork*           dialogWork;
+    s32               dialogState;
 
-    states = Mc_PromptStates;
-    work   = &Mc_MenuWork;
-    state  = task->state;
-    if (state < 0) {
-        _mcStateKillSaveDialogIfRequested(task, work);
+    states      = Mc_PromptStates;
+    dialogWork  = &Mc_MenuWork;
+    dialogState = dialogTask->state;
+    // Dismissed dialogs leave the handler table and wait for a teardown request.
+    if (dialogState < 0) {
+        _mcStateKillSaveDialogIfRequested(dialogTask, dialogWork);
         return;
     }
-    states.funcs[state](task, work);
-    if (work->cardTimer >= MEMORY_CARD_IO_ABORT_FRAMES) {
-        if (work->buffer != 0) {
-            memFree(work->buffer);
-            work->buffer = 0;
-        }
-        task->state = 0x18;
+    states.funcs[dialogState](dialogTask, dialogWork);
+    if (dialogWork->cardTimer >= MEMORY_CARD_IO_ABORT_FRAMES) {
+        _mcAbortSaveTransfer(dialogTask, dialogWork);
     }
+    // Advance the random sequence also used to generate new card filenames.
     Mc_LastRandomValue = rand();
 }
 
@@ -4057,15 +4067,16 @@ static void _mcStateAcknowledgeCorruptLoad(Task* task, McWork* work)
     }
 }
 
-void Mc_DispatchStateTable26(Task* task)
+void mcLoadDialogTask(Task* dialogTask)
 {
     _McFileSelectStateTable states;
-    McWork*                 work;
+    McWork*                 dialogWork;
 
-    states = Mc_FileSelectStates;
-    work   = &Mc_MenuWork;
-    states.funcs[task->state](task, work);
-    if (work->cardTimer >= MEMORY_CARD_IO_ABORT_FRAMES) {
-        task->state = 6;
+    states     = Mc_FileSelectStates;
+    dialogWork = &Mc_MenuWork;
+    states.funcs[dialogTask->state](dialogTask, dialogWork);
+    if (dialogWork->cardTimer >= MEMORY_CARD_IO_ABORT_FRAMES) {
+        // Retain the transfer buffer when timing out of submission or polling.
+        dialogTask->state = MEMORY_CARD_LOAD_STATE_FAILED;
     }
 }

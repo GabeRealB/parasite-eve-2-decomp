@@ -959,7 +959,7 @@ _mcStateDelaySaveConfirmation               = 0x80035764; // type:func
 _mcStateDelaySectionWrite               = 0x80035844; // type:func
 _mcStateAcknowledgeSaveFailure               = 0x8003591C; // type:func
 _mcStateAcknowledgeFormatFailure               = 0x80035960; // type:func
-Mc_DispatchStateTable               = 0x800359A4; // type:func
+mcSaveDialogTask               = 0x800359A4; // type:func
 _mcStateInitLoadWork               = 0x80035A94; // type:func
 _mcStateInitLoadSections               = 0x80035AD4; // type:func
 _mcStateConfirmLoadAfterDelay               = 0x80035AF0; // type:func
@@ -978,7 +978,7 @@ _mcStateOpenLoadPreview               = 0x800365B0; // type:func
 _mcStateReadLoadPreview               = 0x800366BC; // type:func
 _mcStateAdvanceLoadPreview               = 0x800367CC; // type:func
 _mcStateAcknowledgeCorruptLoad               = 0x800368DC; // type:func
-Mc_DispatchStateTable26               = 0x80036968; // type:func
+mcLoadDialogTask               = 0x80036968; // type:func
 
 //--------------------------------------------------------------------
 //--- PA: 0x2721C   VA: 0x80036A1C   subsegment: c, mcmenu

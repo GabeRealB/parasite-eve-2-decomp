@@ -158,7 +158,17 @@ extern const char McText_Replay[];
 /// requests and strings are consumed during the call.
 void mcDrawFilePreview(struct UiObject* panelObject, const McWork* work, s32 directoryIndex, s32 originX, s32 originY);
 
-void Mc_DispatchStateTable(Task* task);
+/// Run one save-dialog state and enforce the card I/O wait limit.
+///
+/// An active task borrows a live `UiObject` through `spawnArg2.pointer` and
+/// uses state indices 0..43, without a bounds check. Dismissal stores -1;
+/// any negative state only checks for a nonzero teardown countdown.
+/// The dialogs share resident work and must run one at a time, starting at
+/// state zero with no outstanding transfer allocation or card request.
+/// At the I/O wait limit, frees a non-null transfer and enters access failure
+/// without waiting for SDK completion. Every nonnegative run also advances
+/// the random sequence used for new card filenames.
+void mcSaveDialogTask(Task* dialogTask);
 
 /// Initialize and start card I/O, then reset the resident save records and options.
 ///
@@ -166,6 +176,14 @@ void Mc_DispatchStateTable(Task* task);
 /// and poll card operations themselves.
 void mcInit(void);
 
-void Mc_DispatchStateTable26(Task* task);
+/// Run one load-dialog state, including file selection, and enforce the card I/O wait limit.
+///
+/// The task borrows a live `UiObject` through `spawnArg2.pointer`; its state
+/// must be in 0..25, without a bounds check or negative dismissal sentinel.
+/// The dialogs share resident work and must run one at a time, starting at
+/// state zero with no outstanding transfer allocation or card request.
+/// At the I/O wait limit, enters load failure without releasing a transfer
+/// buffer or waiting for SDK completion. Failure dismissal also retains it.
+void mcLoadDialogTask(Task* dialogTask);
 
 #endif // MAIN_PRIVATE_MC_H
