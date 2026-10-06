@@ -150345,7 +150345,7 @@ attempts; left as it was.
   cases 2 and 5 the `slti 3` is not emitted (a right child with no children
   of its own skips the bound test, 2 insns short). The third node below 2
   that shares the default's code gives `bgt 2 -> right; j default`, which
-  jump.c inverts into the `slti 3; bnez default`. Six ladders in
+  jump.c inverts into the `slti 3; bnez default`. Four ladders in
   `CdAudio_DriveSeek` and `CdAudio_DriveRead`; the `status` and `ret` locals
   and the doubled `driverStatus = &CdAudio_Ctl` labels went with them. Case
   order in the source is the block order in the image (`CdlDiskError` first).
