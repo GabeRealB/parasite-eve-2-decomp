@@ -17,11 +17,6 @@ void desertChaserRoam(Task* arg0)
     GfxCoord*                coord;
     GfxCoord*                coord2;
     GfxCoord*                coord3;
-    GfxCoord*                facing3;
-    GfxCoord*                facing4;
-    GfxCoord*                facing5;
-    GfxCoord*                facing;
-    GfxCoord*                facing2;
     GfxCoord*                turnCoord;
     MATRIX*                  matrix;
     DesertChaserRoamScratch* scratch;
@@ -34,29 +29,14 @@ void desertChaserRoam(Task* arg0)
     s16                      targetDelta;
     s16                      delta;
     s16                      yaw;
-    s16                      delta3;
-    s16                      delta4;
-    s16                      delta5;
     s32                      playerX;
-    s16                      delta1;
-    s16                      delta2;
     s16                      targetYaw;
     s16                      z;
     s32                      magnitude;
     s32                      targetMagnitude;
     s16                      adjustedDelta;
     s32                      originalMagnitude;
-    s16                      wrapped;
-    s16                      wrapped2;
-    s16                      wrapped3;
-    s16                      wrapped4;
-    s16                      wrapped5;
     s16                      wrappedYaw;
-    s32                      angle3;
-    s32                      angle4;
-    s32                      angle5;
-    s32                      angle;
-    s32                      angle2;
     s32                      finalYaw;
     s32                      turnDelta;
     s32                      finalDelta;
@@ -96,11 +76,7 @@ void desertChaserRoam(Task* arg0)
         scratch->toPatrolPoint.vy = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
         z                         = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
         scratch->toPatrolPoint.vz = z;
-        facing                    = arg0->extra.tmd->coords;
-        angle                     = ratan2((s32)head[-1].toPatrolPoint.vx, (s32)z);
-        delta1                    = angle - ratan2((s32)-facing->coord.m[2][0], (s32)facing->coord.m[2][2]);
-        wrapped                   = actorWrapAngle(delta1);
-        work->lookYawTarget       = wrapped;
+        work->lookYawTarget       = actorYawTo(arg0->extra.tmd->coords, head[-1].toPatrolPoint.vx, z);
         matrix                    = &scratch->rotation;
         gfxRotMatrixY(matrix, (s16)ratan2((s32)scratch->toPatrolPoint.vx, (s32)scratch->toPatrolPoint.vz) + 0x3E8, 1);
         gfxReadMatrixZAxis(matrix, &scratch->toPatrolPoint);
@@ -128,11 +104,7 @@ void desertChaserRoam(Task* arg0)
     target->vy                 = gPlayerStatus.coordMtx->t[1] - coord2->coord.t[1];
     target->vz                 = gPlayerStatus.coordMtx->t[2] - coord2->coord.t[2];
     if (!actorOutsideRadius(&scratch->toPatrolPoint, 0xA0) || work->stateTimer >= 0x15) {
-        facing2             = arg0->extra.tmd->coords;
-        angle2              = ratan2((s32)head2[-1].toPlayer.vx, (s32)target->vz);
-        delta2              = angle2 - ratan2((s32)-facing2->coord.m[2][0], (s32)facing2->coord.m[2][2]);
-        wrapped2            = actorWrapAngle(delta2);
-        work->lookYawTarget = wrapped2;
+        work->lookYawTarget = actorYawTo(arg0->extra.tmd->coords, head2[-1].toPlayer.vx, target->vz);
         if (work->patrolTarget == 0) {
             gfxRotMatrixY(&scratch->rotation, (s16)ratan2((s32)scratch->toPlayer.vx, (s32)scratch->toPlayer.vz) - 0x2EE, 1);
             work->patrolTarget = 1;
@@ -152,16 +124,8 @@ void desertChaserRoam(Task* arg0)
         work->stateTimer                         = 0;
     }
     desertChaserAnimTick(arg0);
-    facing3             = arg0->extra.tmd->coords;
-    angle3              = ratan2((s32)scratch->toPlayer.vx, (s32)scratch->toPlayer.vz);
-    delta3              = angle3 - ratan2((s32)-facing3->coord.m[2][0], (s32)facing3->coord.m[2][2]);
-    wrapped3            = actorWrapAngle(delta3);
-    work->lookYawTarget = wrapped3;
-    facing4             = arg0->extra.tmd->coords;
-    angle4              = ratan2((s32)scratch->toPatrolPoint.vx, (s32)scratch->toPatrolPoint.vz);
-    delta4              = angle4 - ratan2((s32)-facing4->coord.m[2][0], (s32)facing4->coord.m[2][2]);
-    wrapped4            = actorWrapAngle(delta4);
-    turnDelta           = wrapped4;
+    work->lookYawTarget = actorYawTo(arg0->extra.tmd->coords, scratch->toPlayer.vx, scratch->toPlayer.vz);
+    turnDelta           = actorYawTo(arg0->extra.tmd->coords, scratch->toPatrolPoint.vx, scratch->toPatrolPoint.vz);
     scratch->fullTurn   = (scratch->turn = (s16)turnDelta);
     delta               = scratch->turn;
     unsignedDelta       = (u16)scratch->turn;
@@ -223,11 +187,7 @@ void desertChaserRoam(Task* arg0)
                 {
                     if (actorOutsideRadius(&scratch->toPlayer, radius)) {
                         if (!actorOutsideRadius(&scratch->toPlayer, 0x1F40) && work->stateCounter >= 0x1C3) {
-                            facing5       = arg0->extra.tmd->coords;
-                            angle5        = ratan2((s32)scratch->toPatrolPoint.vx, (s32)scratch->toPatrolPoint.vz);
-                            delta5        = angle5 - ratan2((s32)-facing5->coord.m[2][0], (s32)facing5->coord.m[2][2]);
-                            wrapped5      = actorWrapAngle(delta5);
-                            finalDelta    = wrapped5;
+                            finalDelta    = actorYawTo(arg0->extra.tmd->coords, scratch->toPatrolPoint.vx, scratch->toPatrolPoint.vz);
                             scratch->turn = (s16)finalDelta;
                             finalDelta    = abs(finalDelta);
                             if (finalDelta < 0x300) {
