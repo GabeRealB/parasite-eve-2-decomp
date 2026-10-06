@@ -1829,7 +1829,7 @@ dryfieldNightBreezewayDrawGlowsTask = 0x8017E5BC; // type:func absolute:True own
 
 dryfieldNightFactoryDrawGlowsTask = 0x801825F0; // type:func absolute:True owner=dryfield_night_factory shared=rooms
 
-func_dryfield_night_garage_80181518 = 0x80181518; // type:func absolute:True owner=dryfield_night_garage
+dryfieldNightGarageDrawGlowsTask = 0x80181518; // type:func absolute:True owner=dryfield_night_garage
 
 dryfieldNightDrivewayDrawLightShaftsTask = 0x8017E5CC; // type:func absolute:True owner=dryfield_night_driveway
 

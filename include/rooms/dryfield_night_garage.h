@@ -36,7 +36,15 @@ extern WorldCollisionSurfaceProperties* D_dryfield_night_garage_801875B8[];
 
 void func_dryfield_night_garage_80180414(s32 arg0);
 
-void func_dryfield_night_garage_80181518(Task* unused);
+/// Draws the night garage's additive grey capsule glows for the current view.
+///
+/// Gameplay effect bank 6, slot 0x114. Views 3 and 15 draw four strips; views
+/// 7 and 14 draw the first strip; view 11 draws two strips with half-turned
+/// capsule caps, sharing one strip with views 3 and 15. Other views draw none.
+/// The callback ignores `unusedTask` and the spawn arguments. Requires the
+/// loaded room overlay, composed view matrix and the current frame's
+/// initialized scratch stack, ordering table and GPU packet arena.
+void dryfieldNightGarageDrawGlowsTask(Task* unusedTask);
 
 void func_dryfield_night_garage_801803BC(Task* task);
 

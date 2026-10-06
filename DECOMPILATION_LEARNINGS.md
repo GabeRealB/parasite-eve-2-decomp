@@ -67350,7 +67350,7 @@ promotion changes.
 
 `dryfield_night_garage` is the worked example. Two tables - `0x148` (6 words, read
 by `func_dryfield_night_garage_80180B20`) and `0x160` (13 words, read by
-`func_dryfield_night_garage_80181518`) - were cut to units `_5` and `_6`, the two
+`dryfieldNightGarageDrawGlowsTask`) - were cut to units `_5` and `_6`, the two
 units that held those readers. Promoting the garage body at `0x2D40` split unit
 `_2` in two and pushed every later unit up one, so the readers moved to `_6` and
 `_7` while the cuts still named `_5` and `_6`:
@@ -91714,7 +91714,7 @@ The cut that gives a compiler-generated jump table the start of its unit's
 worked case the night garage's `rodata` cut named `_5` at 0x148 for
 `func_80180B20`'s table; `func_80180B20` ended up in `_6`, so the cut had to be
 re-pointed at `_6`, and its second entry at 0x160 at the new `_7` (which owns the
-`INCLUDE_ASM`'d `func_80181518` and its table). Getting this wrong is a link
+`INCLUDE_ASM`'d `dryfieldNightGarageDrawGlowsTask` and its table). Getting this wrong is a link
 failure, not a silent one.
 
 Do not add an `INCLUDE_RODATA` for a table that splat migrated into its

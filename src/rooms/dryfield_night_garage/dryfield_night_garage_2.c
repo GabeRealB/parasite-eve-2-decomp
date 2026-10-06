@@ -82,9 +82,9 @@ extern WorldCollisionTrigger      D_dryfield_night_garage_8018723C[7];
 extern WorldCoordRoomAmbientEntry D_dryfield_night_garage_8018751C[16];
 extern WorldCoordRoomLights       D_dryfield_night_garage_80186D64[1];
 
-void func_dryfield_night_garage_80180B20(Task*);
-void func_dryfield_night_garage_80180CEC(Task*);
-void func_dryfield_night_garage_80180D4C(Task*);
+void        func_dryfield_night_garage_80180B20(Task*);
+static void _dryfieldNightGarageBlackoutTask(Task* task);
+void        func_dryfield_night_garage_80180D4C(Task*);
 
 void func_dryfield_night_garage_801809A4(Task*);
 void func_dryfield_night_garage_80180AB0(void);
@@ -215,7 +215,7 @@ TaskDesc D_dryfield_night_garage_80183380[2] = {
     { { { TASK_BODY_NONE, 192 } }, func_dryfield_night_garage_80180B20, { .value = 0 } },
 };
 
-TaskDesc D_dryfield_night_garage_80183398 = { { { TASK_BODY_NONE, 192 } }, func_dryfield_night_garage_80180CEC, { .value = 0 } };
+TaskDesc D_dryfield_night_garage_80183398 = { { { TASK_BODY_NONE, 192 } }, _dryfieldNightGarageBlackoutTask, { .value = 0 } };
 
 SVECTOR D_dryfield_night_garage_801833A4[6] = {
     { 1950, -3260, 6199, 0 },
@@ -1226,18 +1226,28 @@ void func_dryfield_night_garage_80180B20(Task* arg0)
     }
 }
 
-/// Fades the screen to white: draws a white overlay whose level, kept in
-/// `killCountdown`, rises by 4 each frame, and kills the task once it reaches
-/// 0x100.
-void func_dryfield_night_garage_80180CEC(Task* arg0)
+/// Holds the frame black for 64 callback ticks, then releases its task.
+///
+/// Start with `Task::killCountdown` zero; it advances by four per callback
+/// through 256, independently of the constant subtractive overlay intensity.
+/// No body, work or spawn arguments are used. Requires the current frame's
+/// ordering table and packet arena used by `fadeDrawOverlay`. The final
+/// overlay is queued before task teardown; do not access the task afterwards.
+static void _dryfieldNightGarageBlackoutTask(Task* task)
 {
-    u16 temp_v0;
+    enum {
+        DRYFIELD_NIGHT_GARAGE_BLACKOUT_INTENSITY     = 255,
+        DRYFIELD_NIGHT_GARAGE_BLACKOUT_PROGRESS_STEP = 4,
+        DRYFIELD_NIGHT_GARAGE_BLACKOUT_PROGRESS_END  = 256,
+    };
+    s16 nextHoldProgress;
 
-    fadeDrawOverlay(0xFF, 0xFF, 0xFF, GPU_BLEND_SUBTRACT);
-    temp_v0             = arg0->killCountdown + 4;
-    arg0->killCountdown = temp_v0;
-    if ((s16)temp_v0 >= 0x100) {
-        taskKill(arg0);
+    fadeDrawOverlay(DRYFIELD_NIGHT_GARAGE_BLACKOUT_INTENSITY, DRYFIELD_NIGHT_GARAGE_BLACKOUT_INTENSITY,
+                    DRYFIELD_NIGHT_GARAGE_BLACKOUT_INTENSITY, GPU_BLEND_SUBTRACT);
+    nextHoldProgress    = task->killCountdown + DRYFIELD_NIGHT_GARAGE_BLACKOUT_PROGRESS_STEP;
+    task->killCountdown = nextHoldProgress;
+    if (nextHoldProgress >= DRYFIELD_NIGHT_GARAGE_BLACKOUT_PROGRESS_END) {
+        taskKill(task);
     }
 }
 
@@ -1254,31 +1264,32 @@ void func_dryfield_night_garage_80180D4C(Task* arg0)
 
 #include "../../shared/glow_draw_grey_capsule.inc.c"
 
-/// Garage room draw: sweeps the glowing strip the current visit
-/// (`gGameSession->location.loc.view`) selects. Visits 3 and 15 sweep all four of the
-/// room's run, 7 and 14 only its first pair, and 11 the last pair of the run
-/// with a half-turn starting angle (`startAngle` 0x800 instead of 0). Each case names its own last
-/// draw, which `jump.c` cross-jumps into one tail block after the last case.
-void func_dryfield_night_garage_80181518(Task* unused)
+void dryfieldNightGarageDrawGlowsTask(Task* unusedTask)
 {
+    enum {
+        DRYFIELD_NIGHT_GARAGE_GLOW_RADIUS_SCALE = 512,  // Pixel radius is this value * 64 / (camera Z / 4).
+        DRYFIELD_NIGHT_GARAGE_GLOW_HALF_TURN    = 2048, // Capsule-cap orientation, 4096 units per turn.
+    };
+
     switch (gGameSession->location.loc.view) {
         case 3:
         case 15: {
-            SVECTOR* p = D_dryfield_night_garage_801833A4;
-            _glowDrawGreyCapsule(&p[0], 0x200, 0);
-            _glowDrawGreyCapsule(&p[2], 0x200, 0);
-            _glowDrawGreyCapsule(&p[4], 0x200, 0);
-            _glowDrawGreyCapsule(&p[6], 0x200, 0);
+            const SVECTOR* endpoints = D_dryfield_night_garage_801833A4;
+            _glowDrawGreyCapsule(&endpoints[0], DRYFIELD_NIGHT_GARAGE_GLOW_RADIUS_SCALE, 0);
+            _glowDrawGreyCapsule(&endpoints[2], DRYFIELD_NIGHT_GARAGE_GLOW_RADIUS_SCALE, 0);
+            _glowDrawGreyCapsule(&endpoints[4], DRYFIELD_NIGHT_GARAGE_GLOW_RADIUS_SCALE, 0);
+            _glowDrawGreyCapsule(&endpoints[6], DRYFIELD_NIGHT_GARAGE_GLOW_RADIUS_SCALE, 0);
             break;
         }
         case 7:
         case 14:
-            _glowDrawGreyCapsule(&D_dryfield_night_garage_801833A4[0], 0x200, 0);
+            _glowDrawGreyCapsule(&D_dryfield_night_garage_801833A4[0], DRYFIELD_NIGHT_GARAGE_GLOW_RADIUS_SCALE, 0);
             break;
         case 11: {
-            SVECTOR* p = &D_dryfield_night_garage_801833D4;
-            _glowDrawGreyCapsule(&p[0], 0x200, 0x800);
-            _glowDrawGreyCapsule(&p[2], 0x200, 0x800);
+            const SVECTOR* endpoints = &D_dryfield_night_garage_801833D4;
+            // Turn the capsule caps to face the opposite end of the projected strips.
+            _glowDrawGreyCapsule(&endpoints[0], DRYFIELD_NIGHT_GARAGE_GLOW_RADIUS_SCALE, DRYFIELD_NIGHT_GARAGE_GLOW_HALF_TURN);
+            _glowDrawGreyCapsule(&endpoints[2], DRYFIELD_NIGHT_GARAGE_GLOW_RADIUS_SCALE, DRYFIELD_NIGHT_GARAGE_GLOW_HALF_TURN);
             break;
         }
     }

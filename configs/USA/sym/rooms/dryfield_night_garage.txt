@@ -239,7 +239,7 @@ func_dryfield_night_garage_80180414 = 0x80180414; // type:func
 
 func_dryfield_night_garage_801807E4 = 0x801807E4; // type:func
 
-func_dryfield_night_garage_80181518 = 0x80181518; // type:func
+dryfieldNightGarageDrawGlowsTask = 0x80181518; // type:func
 Shop_SelectStock = 0x8017D754; // type:func
 Shop_ItemRow = 0x8017DDC4; // type:func
 Shop_AddItem = 0x8017E250; // type:func
@@ -263,3 +263,4 @@ Shop_Data_8017D6E4 = 0x8017D6E4;
 Shop_Data_8017D6EC = 0x8017D6EC;
 _glowDrawGreyCapsule = 0x80180D9C; // type:func
 garageSoundMsg = 0x80180300; // type:func
+_dryfieldNightGarageBlackoutTask = 0x80180cec; // type:func
