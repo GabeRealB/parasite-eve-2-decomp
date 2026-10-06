@@ -2015,27 +2015,30 @@ void func_actor_160900_801344D8(Task* arg0)
                 taskKill(arg0);
                 return;
             }
-            work    = alloc;
-            work->b = 0xFF;
-            work->g = 0xFF;
-            work->r = 0xFF;
-            goto state_inc;
+            work         = alloc;
+            work->b      = 0xFF;
+            work->g      = 0xFF;
+            work->r      = 0xFF;
+            arg0->state += 1;
+            break;
         case 3:
             SetDispMask(1);
+            /* fallthrough */
         case 1:
         case 2:
-        state_inc:
             arg0->state += 1;
-            /* fallthrough */
-        case 4:
-            fadeDrawOverlay(work->r, work->g, work->r, GPU_BLEND_SUBTRACT);
-            work->r -= (u16)arg0->spawnArg1.value;
-            work->g -= (u16)arg0->spawnArg1.value;
-            work->b -= (u16)arg0->spawnArg1.value;
-            if (work->r < 0) {
-                taskKill(arg0);
-            }
             break;
+        case 4:
+            break;
+        default:
+            return;
+    }
+    fadeDrawOverlay(work->r, work->g, work->r, GPU_BLEND_SUBTRACT);
+    work->r -= (u16)arg0->spawnArg1.value;
+    work->g -= (u16)arg0->spawnArg1.value;
+    work->b -= (u16)arg0->spawnArg1.value;
+    if (work->r < 0) {
+        taskKill(arg0);
     }
 }
 /// Message 0x7D5 handler of `D_actor_160900_8013F200`: argument 1 clears the
