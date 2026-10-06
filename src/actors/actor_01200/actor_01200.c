@@ -1301,46 +1301,37 @@ static void Actor01200_Fn026A0(Task* arg0, s16 arg1, u32 arg2)
 /// Hit check: finds the first type-2 record among the five in `hitContacts`, and
 /// on a hit applies its damage, turns the model toward it and, once the hit
 /// points run out, moves to `ACTOR_01200_STATE_DEATH_BURST`.
+/// The first of the five hit records whose kind is 0x20000: copies its point
+/// to `pos` and returns its key, or 0 at the first empty record.
+static inline s32 Actor01200_FindHit(SVECTOR* pos, WorldCollisionContact* records)
+{
+    s16 i;
+
+    for (i = 0; i < 5; i++) {
+        if (records[i].key.value == 0) {
+            break;
+        }
+        if ((records[i].key.value & 0xFFFF0000) == 0x20000) {
+            pos->vx = records[i].point.vx;
+            pos->vy = records[i].point.vy;
+            pos->vz = records[i].point.vz;
+            return records[i].key.value;
+        }
+    }
+    return 0;
+}
+
 static void Actor01200_Fn02918(Enemy* arg0, Task* arg1)
 {
-    ActorHitTakenScratch*  sc;
-    _Actor01200Work*       work;
-    WorldCollisionContact* recs;
-    SVECTOR*               pos;
-    s32                    mask;
-    s32                    kind;
-    s32                    id;
-    s16                    angle;
-    s16                    i;
+    ActorHitTakenScratch* sc;
+    _Actor01200Work*      work;
+    s16                   angle;
 
-    work = arg1->work;
-    sc   = SCRATCH_STACK_RESERVE_BLOCK(ActorHitTakenScratch);
-    pos  = &sc->hitPos;
-    recs = work->hitContacts;
-    i    = 0;
-    mask = 0xFFFF0000;
-    kind = 0x20000;
-scan:
-    if (recs[i].key.value == 0) {
-        goto missed;
-    }
-    if ((recs[i].key.value & mask) == kind) {
-        pos->vx = recs[i].point.vx;
-        pos->vy = recs[i].point.vy;
-        pos->vz = recs[i].point.vz;
-        id      = recs[i].key.value;
-        goto found;
-    }
-    i++;
-    if (i < ARRAY_SIZE(work->hitContacts)) {
-        goto scan;
-    }
-missed:
-    id = 0;
-found:
-    sc->hitKey = id;
+    work       = arg1->work;
+    sc         = SCRATCH_STACK_RESERVE_BLOCK(ActorHitTakenScratch);
+    sc->hitKey = Actor01200_FindHit(&sc->hitPos, work->hitContacts);
 
-    if (id != 0) {
+    if (sc->hitKey != 0) {
         sc->damage                            = Gp_ComputeDamage(sc->hitKey, 0, 0, 0x1000);
         arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
         actorRenderComposeCoord(arg1->extra.tmd->coords);
