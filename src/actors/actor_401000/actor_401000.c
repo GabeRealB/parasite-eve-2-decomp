@@ -1354,6 +1354,28 @@ static __inline__ s32 Actor401000_HasHeightClamp(GameLocationKey* session)
     return 0;
 }
 
+/// Caps the Y step at ±0x12C: once while a height-clamp row matches, where an
+/// in-range step is done, and once more regardless.
+static inline void Actor401000_CapStepY(ActorContactCappedPushScratch* s)
+{
+    s16 vy;
+    s16 clamped;
+
+    if (Actor401000_HasHeightClamp(&gGameSession->location.loc)) {
+        vy = s->step.vy;
+        if (((vy >= 0) ? vy : -vy) <= 0x12C) {
+            return;
+        }
+        clamped    = (vy <= 0) ? -0x12C : 0x12C;
+        s->step.vy = clamped;
+    }
+    vy = s->step.vy;
+    if (((vy >= 0) ? vy : -vy) <= 0x12C) {
+        return;
+    }
+    s->step.vy = (vy <= 0) ? -0x12C : 0x12C;
+}
+
 /// Root-coordinate step, the 401000 twin of `func_actor_401300_80132C78`:
 /// carve the 0x20-byte `ActorContactCappedPushScratch` off the scratch stack,
 /// fill its delta from the `rec` obstacle record, clamp the Y step to ±0x12C while a
@@ -1361,18 +1383,13 @@ static __inline__ s32 Actor401000_HasHeightClamp(GameLocationKey* session)
 /// passes 0x96, and step the root coordinate by each component. Reports
 /// whether anything moved.
 ///
-/// Both the repeated clamp and the `clamped` temporary are load-bearing for
-/// register allocation, not style. The first clamp only runs while a clamp row
-/// matches and its in-range arm skips the second copy entirely, so folding the
-/// two (or letting the add re-read `s->step.vy`) swaps `$s0`/`$s1`: the block
-/// pointer against the `step` local. The temporary keeps one reference to the
-/// block pointer out of the RTL, which is what tips that fight the other way.
+/// The clamp is `Actor401000_CapStepY`. Its `clamped` temporary is still
+/// needed for register allocation: without it `$s0`/`$s1` swap between the
+/// block pointer and the `step` local.
 static s32 func_actor_401000_80135374(GfxCoord* coord, WorldCollisionContact* rec, s16 arg2, s16 arg3)
 {
     ActorContactCappedPushScratch* head;
     ActorContactCappedPushScratch* s;
-    s16                            vy;
-    s16                            clamped;
     SVECTOR*                       step;
 
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen == 1) {
@@ -1386,20 +1403,7 @@ static s32 func_actor_401000_80135374(GfxCoord* coord, WorldCollisionContact* re
         s->step.vx = head[-1].delta.fixed.vx.word >> 16;
         s->step.vy = s->delta.fixed.vy.word >> 16;
         s->step.vz = s->delta.fixed.vz.word >> 16;
-        if (Actor401000_HasHeightClamp(&gGameSession->location.loc)) {
-            vy = s->step.vy;
-            if (((vy >= 0) ? vy : -vy) <= 0x12C) {
-                goto addStep;
-            }
-            clamped    = (vy <= 0) ? -0x12C : 0x12C;
-            s->step.vy = clamped;
-        }
-        vy = s->step.vy;
-        if (((vy >= 0) ? vy : -vy) <= 0x12C) {
-            goto addStep;
-        }
-        s->step.vy = (vy <= 0) ? -0x12C : 0x12C;
-    addStep:
+        Actor401000_CapStepY(s);
         coord->coord.t[1] += s->step.vy;
         s->stepLength      = s->step.vx * s->step.vx + s->step.vz * s->step.vz;
         s->stepLength      = SquareRoot0(s->stepLength);
