@@ -504,7 +504,7 @@ func_mist_parking_8018345C = 0x8018345C; // type:func
 
 func_mist_parking_80181468 = 0x80181468; // type:func
 
-func_mist_parking_80184728 = 0x80184728; // type:func
+mistParkingDrawGlowsTask = 0x80184728; // type:func
 Telephone_DrawPlayDataRow = 0x801800D0; // type:func
 Telephone_DrawUsageRow = 0x8018089C; // type:func
 Telephone_BuildWeaponUsage = 0x80180C98; // type:func

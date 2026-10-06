@@ -36,7 +36,14 @@ void func_mist_parking_80183BAC(s32 arg0);
 
 void func_mist_parking_80181468(Task* task);
 
-void func_mist_parking_80184728(Task* unused);
+/// Draws the current mapped camera view's grey capsule glows and pulsing cyan point glow.
+///
+/// Per-frame effect callback for bank 6, slot 0x39; `unused` is ignored.
+/// Requires the room overlay and view map to remain loaded, the current view
+/// matrix to be composed, and an initialized scratch stack, ordering table and
+/// packet arena. Queued additive packets live until that frame's GPU work ends.
+/// Views without a listed glow emit no packets; task state is unchanged.
+void mistParkingDrawGlowsTask(Task* unused);
 
 void func_mist_parking_80182898(Task* task);
 

@@ -836,79 +836,91 @@ static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 
 static void _glowDrawDiamond(const SVECTOR* worldPoint, s32 pulseRate, s32 radiusScale);
 static void _glowDrawPulsingDisc(const SVECTOR* worldPoint, s32 pulseRate, s32 radiusScale);
 
-/// Draws the glow markers visible from the current view (`viewGetMappedIndex`).
-void func_mist_parking_80184728(Task* unused)
+/// Draws a row of three capsule glows from six consecutive world-space endpoints.
+///
+/// Borrows six readable points, pairing entries 0/1, 2/3 and 4/5 in order.
+/// `radiusScale` and `packedColor` use the capsule drawer's projection and RGB
+/// nibble units; the caller supplies the current frame's view and GPU state.
+static inline void _mistParkingDrawGlowRow(const SVECTOR worldPoints[6], s32 radiusScale, s32 packedColor)
 {
-    u8 view;
+    _glowDrawCapsule(worldPoints, radiusScale, packedColor);
+    _glowDrawCapsule(worldPoints + 2, radiusScale, packedColor);
+    _glowDrawCapsule(worldPoints + 4, radiusScale, packedColor);
+}
 
-    view = viewGetMappedIndex();
-    switch (view) {
+void mistParkingDrawGlowsTask(Task* unused)
+{
+    enum {
+        MIST_PARKING_GLOW_CAPSULE_RADIUS_SCALE       = 0x200, // Pixel radius = scale * 64 / (camera Z / 4)
+        MIST_PARKING_GLOW_GREY_RGB_NIBBLES           = 0x444, // Each channel is 64, with bit 3 set on odd animation frames
+        MIST_PARKING_GLOW_POINT_INDEX                = 26,    // Single-point glow, separate from the capsule endpoint pairs
+        MIST_PARKING_GLOW_POINT_PULSE_RATE           = 0x60,  // 4096 angle units per turn, per animation frame
+        MIST_PARKING_GLOW_DIAMOND_RADIUS_SCALE       = 0x100, // Pixel half-extent = scale * 32 / (camera Z / 4)
+        MIST_PARKING_GLOW_VIEW7_DIAMOND_RADIUS_SCALE = 0xE0,
+        MIST_PARKING_GLOW_DISC_RADIUS_SCALE          = 0x40   // Outer pixel radius = scale * 64 / (camera Z / 4)
+    };
+
+    u8 mappedViewIndex;
+
+    // Select by mapped camera index; logical views can use a different ordering.
+    mappedViewIndex = viewGetMappedIndex();
+    switch (mappedViewIndex) {
         case 2:
-            _glowDrawCapsule(&D_mist_parking_80191484[0], 0x200, 0x444);
+            _glowDrawCapsule(&D_mist_parking_80191484[0], MIST_PARKING_GLOW_CAPSULE_RADIUS_SCALE, MIST_PARKING_GLOW_GREY_RGB_NIBBLES);
             break;
         case 18:
-            _glowDrawCapsule(&D_mist_parking_80191484[4], 0x200, 0x444);
-            _glowDrawCapsule(&D_mist_parking_80191484[6], 0x200, 0x444);
-            _glowDrawCapsule(&D_mist_parking_80191484[8], 0x200, 0x444);
+            _mistParkingDrawGlowRow(&D_mist_parking_80191484[4], MIST_PARKING_GLOW_CAPSULE_RADIUS_SCALE, MIST_PARKING_GLOW_GREY_RGB_NIBBLES);
             break;
         case 7:
-            _glowDrawCapsule(&D_mist_parking_80191484[12], 0x200, 0x444);
-            _glowDrawCapsule(&D_mist_parking_80191484[14], 0x200, 0x444);
-            _glowDrawCapsule(&D_mist_parking_80191484[18], 0x200, 0x444);
-            _glowDrawCapsule(&D_mist_parking_80191484[20], 0x200, 0x444);
-            _glowDrawDiamond(&D_mist_parking_80191484[26], 0x60, 0xE0);
+            _glowDrawCapsule(&D_mist_parking_80191484[12], MIST_PARKING_GLOW_CAPSULE_RADIUS_SCALE, MIST_PARKING_GLOW_GREY_RGB_NIBBLES);
+            _glowDrawCapsule(&D_mist_parking_80191484[14], MIST_PARKING_GLOW_CAPSULE_RADIUS_SCALE, MIST_PARKING_GLOW_GREY_RGB_NIBBLES);
+            _glowDrawCapsule(&D_mist_parking_80191484[18], MIST_PARKING_GLOW_CAPSULE_RADIUS_SCALE, MIST_PARKING_GLOW_GREY_RGB_NIBBLES);
+            _glowDrawCapsule(&D_mist_parking_80191484[20], MIST_PARKING_GLOW_CAPSULE_RADIUS_SCALE, MIST_PARKING_GLOW_GREY_RGB_NIBBLES);
+            _glowDrawDiamond(&D_mist_parking_80191484[MIST_PARKING_GLOW_POINT_INDEX], MIST_PARKING_GLOW_POINT_PULSE_RATE, MIST_PARKING_GLOW_VIEW7_DIAMOND_RADIUS_SCALE);
             break;
         case 20:
-            _glowDrawCapsule(&D_mist_parking_80191484[6], 0x200, 0x444);
-            _glowDrawCapsule(&D_mist_parking_80191484[8], 0x200, 0x444);
+            _glowDrawCapsule(&D_mist_parking_80191484[6], MIST_PARKING_GLOW_CAPSULE_RADIUS_SCALE, MIST_PARKING_GLOW_GREY_RGB_NIBBLES);
+            _glowDrawCapsule(&D_mist_parking_80191484[8], MIST_PARKING_GLOW_CAPSULE_RADIUS_SCALE, MIST_PARKING_GLOW_GREY_RGB_NIBBLES);
             break;
         case 9:
-            _glowDrawPulsingDisc(&D_mist_parking_80191484[26], 0x60, 0x40);
+            _glowDrawPulsingDisc(&D_mist_parking_80191484[MIST_PARKING_GLOW_POINT_INDEX], MIST_PARKING_GLOW_POINT_PULSE_RATE, MIST_PARKING_GLOW_DISC_RADIUS_SCALE);
             break;
         case 10:
-            _glowDrawCapsule(&D_mist_parking_80191484[4], 0x200, 0x444);
-            _glowDrawCapsule(&D_mist_parking_80191484[6], 0x200, 0x444);
+            _glowDrawCapsule(&D_mist_parking_80191484[4], MIST_PARKING_GLOW_CAPSULE_RADIUS_SCALE, MIST_PARKING_GLOW_GREY_RGB_NIBBLES);
+            _glowDrawCapsule(&D_mist_parking_80191484[6], MIST_PARKING_GLOW_CAPSULE_RADIUS_SCALE, MIST_PARKING_GLOW_GREY_RGB_NIBBLES);
             break;
         case 11:
-            _glowDrawCapsule(&D_mist_parking_80191484[4], 0x200, 0x444);
+            _glowDrawCapsule(&D_mist_parking_80191484[4], MIST_PARKING_GLOW_CAPSULE_RADIUS_SCALE, MIST_PARKING_GLOW_GREY_RGB_NIBBLES);
             break;
         case 14:
-            _glowDrawCapsule(&D_mist_parking_80191484[6], 0x200, 0x444);
-            _glowDrawCapsule(&D_mist_parking_80191484[8], 0x200, 0x444);
-            _glowDrawCapsule(&D_mist_parking_80191484[14], 0x200, 0x444);
+            _glowDrawCapsule(&D_mist_parking_80191484[6], MIST_PARKING_GLOW_CAPSULE_RADIUS_SCALE, MIST_PARKING_GLOW_GREY_RGB_NIBBLES);
+            _glowDrawCapsule(&D_mist_parking_80191484[8], MIST_PARKING_GLOW_CAPSULE_RADIUS_SCALE, MIST_PARKING_GLOW_GREY_RGB_NIBBLES);
+            _glowDrawCapsule(&D_mist_parking_80191484[14], MIST_PARKING_GLOW_CAPSULE_RADIUS_SCALE, MIST_PARKING_GLOW_GREY_RGB_NIBBLES);
             break;
         case 15:
-            _glowDrawCapsule(&D_mist_parking_80191484[0], 0x200, 0x444);
+            _glowDrawCapsule(&D_mist_parking_80191484[0], MIST_PARKING_GLOW_CAPSULE_RADIUS_SCALE, MIST_PARKING_GLOW_GREY_RGB_NIBBLES);
             break;
         case 16:
-            _glowDrawCapsule(&D_mist_parking_80191484[10], 0x200, 0x444);
-            _glowDrawCapsule(&D_mist_parking_80191484[12], 0x200, 0x444);
-            _glowDrawCapsule(&D_mist_parking_80191484[14], 0x200, 0x444);
-            _glowDrawCapsule(&D_mist_parking_80191484[16], 0x200, 0x444);
-            _glowDrawCapsule(&D_mist_parking_80191484[18], 0x200, 0x444);
-            _glowDrawCapsule(&D_mist_parking_80191484[22], 0x200, 0x444);
-            _glowDrawCapsule(&D_mist_parking_80191484[24], 0x200, 0x444);
+            _mistParkingDrawGlowRow(&D_mist_parking_80191484[10], MIST_PARKING_GLOW_CAPSULE_RADIUS_SCALE, MIST_PARKING_GLOW_GREY_RGB_NIBBLES);
+            _glowDrawCapsule(&D_mist_parking_80191484[16], MIST_PARKING_GLOW_CAPSULE_RADIUS_SCALE, MIST_PARKING_GLOW_GREY_RGB_NIBBLES);
+            _glowDrawCapsule(&D_mist_parking_80191484[18], MIST_PARKING_GLOW_CAPSULE_RADIUS_SCALE, MIST_PARKING_GLOW_GREY_RGB_NIBBLES);
+            _glowDrawCapsule(&D_mist_parking_80191484[22], MIST_PARKING_GLOW_CAPSULE_RADIUS_SCALE, MIST_PARKING_GLOW_GREY_RGB_NIBBLES);
+            _glowDrawCapsule(&D_mist_parking_80191484[24], MIST_PARKING_GLOW_CAPSULE_RADIUS_SCALE, MIST_PARKING_GLOW_GREY_RGB_NIBBLES);
             break;
         case 5:
-            _glowDrawCapsule(&D_mist_parking_80191484[4], 0x200, 0x444);
-            _glowDrawCapsule(&D_mist_parking_80191484[6], 0x200, 0x444);
-            _glowDrawCapsule(&D_mist_parking_80191484[8], 0x200, 0x444);
+            _mistParkingDrawGlowRow(&D_mist_parking_80191484[4], MIST_PARKING_GLOW_CAPSULE_RADIUS_SCALE, MIST_PARKING_GLOW_GREY_RGB_NIBBLES);
             break;
         case 6:
         case 19:
-            _glowDrawCapsule(&D_mist_parking_80191484[10], 0x200, 0x444);
-            _glowDrawCapsule(&D_mist_parking_80191484[12], 0x200, 0x444);
-            _glowDrawCapsule(&D_mist_parking_80191484[14], 0x200, 0x444);
-            _glowDrawCapsule(&D_mist_parking_80191484[16], 0x200, 0x444);
-            _glowDrawCapsule(&D_mist_parking_80191484[18], 0x200, 0x444);
-            _glowDrawCapsule(&D_mist_parking_80191484[20], 0x200, 0x444);
-            _glowDrawCapsule(&D_mist_parking_80191484[22], 0x200, 0x444);
-            _glowDrawCapsule(&D_mist_parking_80191484[24], 0x200, 0x444);
-            _glowDrawDiamond(&D_mist_parking_80191484[26], 0x60, 0x100);
+            _mistParkingDrawGlowRow(&D_mist_parking_80191484[10], MIST_PARKING_GLOW_CAPSULE_RADIUS_SCALE, MIST_PARKING_GLOW_GREY_RGB_NIBBLES);
+            _mistParkingDrawGlowRow(&D_mist_parking_80191484[16], MIST_PARKING_GLOW_CAPSULE_RADIUS_SCALE, MIST_PARKING_GLOW_GREY_RGB_NIBBLES);
+            _glowDrawCapsule(&D_mist_parking_80191484[22], MIST_PARKING_GLOW_CAPSULE_RADIUS_SCALE, MIST_PARKING_GLOW_GREY_RGB_NIBBLES);
+            _glowDrawCapsule(&D_mist_parking_80191484[24], MIST_PARKING_GLOW_CAPSULE_RADIUS_SCALE, MIST_PARKING_GLOW_GREY_RGB_NIBBLES);
+            _glowDrawDiamond(&D_mist_parking_80191484[MIST_PARKING_GLOW_POINT_INDEX], MIST_PARKING_GLOW_POINT_PULSE_RATE, MIST_PARKING_GLOW_DIAMOND_RADIUS_SCALE);
             break;
         case 8:
-            _glowDrawCapsule(&D_mist_parking_80191484[6], 0x200, 0x444);
-            _glowDrawCapsule(&D_mist_parking_80191484[8], 0x200, 0x444);
+            _glowDrawCapsule(&D_mist_parking_80191484[6], MIST_PARKING_GLOW_CAPSULE_RADIUS_SCALE, MIST_PARKING_GLOW_GREY_RGB_NIBBLES);
+            _glowDrawCapsule(&D_mist_parking_80191484[8], MIST_PARKING_GLOW_CAPSULE_RADIUS_SCALE, MIST_PARKING_GLOW_GREY_RGB_NIBBLES);
             break;
     }
 }

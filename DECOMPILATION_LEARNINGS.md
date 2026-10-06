@@ -43260,7 +43260,7 @@ shared:
 `lui s0` / `addiu s0, s0` rather than `lui v0` / `addiu s0, v0`.
 `TOUCH_REG(p)` at the join keeps `p` in `$s0` across the first call (so case
 18 is `move a0, s0`) and makes the incoming `j` delay a `nop`.
-`func_mist_parking_80184728` is the example.
+`mistParkingDrawGlowsTask` is the example.
 
 The table lives at overlay offset `0x2EC` (4-mod-8). A `rodata` cut naming the
 function's existing unit is enough only when that object's `.rodata` has
