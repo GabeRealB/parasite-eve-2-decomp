@@ -598,7 +598,6 @@ void func_actor_120500_8013241C(Task* arg0)
     _Actor120500Work* screenWork;
     TmdObject*        mdl;
     s32               anim;
-    s32               code;
     s32               i;
 
     switch (arg0->state) {
@@ -664,8 +663,7 @@ void func_actor_120500_8013241C(Task* arg0)
     work->bodyRequest = ACTOR_120500_BODY_REQUEST_NONE;
 
     screenWork = arg0->work;
-    code       = screenWork->screenRequest;
-    switch (code) {
+    switch (screenWork->screenRequest) {
         case ACTOR_120500_SCREEN_REQUEST_FADE_OUT:
             taskSpawnFromTable(D_actor_120500_80138418, 2, 8, 0);
             break;
