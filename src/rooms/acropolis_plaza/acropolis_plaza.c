@@ -3441,7 +3441,8 @@ static void _acropolisPlazaFadeToWhiteTask(Task* task)
             newFade    = memMalloc(sizeof(*newFade), false);
             task->work = newFade;
             if (newFade == NULL) {
-                goto kill;
+                taskKill(task);
+                break;
             }
             fade         = newFade;
             fade->b      = 0;
@@ -3477,7 +3478,6 @@ static void _acropolisPlazaFadeToWhiteTask(Task* task)
             fade->b += (u16)task->spawnArg1.value;
             if (fade->r >= ACROPOLIS_PLAZA_FADE_COMPLETE_INTENSITY) {
                 SetDispMask(0);
-            kill:
                 taskKill(task);
             }
             break;
