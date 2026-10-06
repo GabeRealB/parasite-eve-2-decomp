@@ -135,4 +135,4 @@ modelPlacementAttachChild = 0x80132284; // type:func
 actorMsgPlaceEuler = 0x80132724; // type:func
 actorMsgPlaceRotMatrix = 0x80133E48; // type:func
 _modelPlacementAttachPartTask = 0x801321A8; // type:func
-modelPlacementMirrorParent = 0x80132390; // type:func
+_modelPlacementMirrorParentDrawFlags = 0x80132390; // type:func

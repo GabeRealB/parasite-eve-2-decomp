@@ -40,6 +40,8 @@
 #include "../../shared/model_placement.h"
 #include "../../shared/actor_messages.h"
 
+static void _modelPlacementMirrorParentDrawFlags(Task* childTask);
+
 /// Work block of Pierce Carradine's body, the package's scripted walker.
 ///
 /// The task's spawn state allocates it zeroed and keeps it at `Task::work`
@@ -127,12 +129,12 @@ static const TaskFuncTable3 D_actor_113100_80131E24 = { {
     taskKill,
 } };
 
-/// States of the child task that follows the parent's model flags: attach to
-/// the parent's part, mirror its flags every frame, then `taskKill`.
+/// States of the child task: attach to the parent's part, mirror its active-draw
+/// and buffer flags each frame, then `taskKill`.
 /// Dispatched by `func_actor_113100_80132C9C`.
 static const TaskFuncTable3 D_actor_113100_80131E30 = { {
     modelPlacementAttachChild,
-    modelPlacementMirrorParent,
+    _modelPlacementMirrorParentDrawFlags,
     taskKill,
 } };
 

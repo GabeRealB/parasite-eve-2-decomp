@@ -66,6 +66,7 @@ extern AnimationSet*  D_actor_213000_80157DB0[11];
 extern AnimationSet** D_actor_213000_80157DDC[1];
 
 static void _modelPlacementAttachPartTask(Task* childTask);
+static void _modelPlacementMirrorParentDrawFlags(Task* childTask);
 static void _modelPlacementMirrorParentDrawFlagsTask(Task* childTask);
 static void func_actor_213000_8014A158(Task* task);
 static void func_actor_213000_8014A5D0(Task* task);
@@ -617,7 +618,7 @@ static void func_actor_213000_8014A158(Task* task)
 static const TaskFuncTable3 D_actor_213000_80149E30 = {
     {
         modelPlacementAttachChild,
-        modelPlacementMirrorParent,
+        _modelPlacementMirrorParentDrawFlags,
         taskKill,
     },
 };
@@ -689,7 +690,7 @@ static void func_actor_213000_8014A35C(Task* task)
 ///
 /// The value is the `static void(Task*)` callback declared in this carrier's
 /// prologue. The following fragment consumes and undefines the binding.
-#define MODEL_PLACEMENT_MIRROR_PARENT_TASK _modelPlacementMirrorParentDrawFlagsTask
+#define MODEL_PLACEMENT_MIRROR_PARENT_DRAW_FLAGS_TASK _modelPlacementMirrorParentDrawFlagsTask
 #include "../../shared/model_placement_mirror_parent.inc.c"
 
 /// State table of the child spawned from table entry 3: setup, tick, kill.

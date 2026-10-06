@@ -1,41 +1,37 @@
 /* Part of the model placement library; see model_placement.h. */
 
-/// Selects the flag-mirroring callback emitted by this fragment inclusion.
+/// Selects the child-model draw-flag callback emitted by this fragment inclusion.
 ///
-/// Bind to a function identifier declared `void(Task*)` before inclusion;
-/// a private instance needs a static declaration in its carrier's prologue.
-/// Unbound inclusions emit the ordinary `modelPlacementMirrorParent` entry.
-/// Each inclusion undefines the binding. It selects a definition and does not
-/// evaluate a callback expression.
-#ifndef MODEL_PLACEMENT_MIRROR_PARENT_TASK
-#define MODEL_PLACEMENT_MIRROR_PARENT_TASK modelPlacementMirrorParent
+/// Bind immediately before inclusion to a function identifier declared
+/// `static void(Task*)` in the carrier's prologue. The default instance is
+/// `_modelPlacementMirrorParentDrawFlags`; actor_213000 binds its second copy
+/// to `_modelPlacementMirrorParentDrawFlagsTask`. The carrier must provide the
+/// task and TMD interfaces. Each inclusion consumes and undefines the binding;
+/// it names a definition, with no expression evaluation or token construction.
+#ifndef MODEL_PLACEMENT_MIRROR_PARENT_DRAW_FLAGS_TASK
+#define MODEL_PLACEMENT_MIRROR_PARENT_DRAW_FLAGS_TASK _modelPlacementMirrorParentDrawFlags
 #endif
 
-/// Mirrors the parent's active-draw and automatic-buffer flags on a child model.
+#ifndef SRC_SHARED_MODEL_PLACEMENT_COPY_PARENT_DRAW_FLAGS
+#define SRC_SHARED_MODEL_PLACEMENT_COPY_PARENT_DRAW_FLAGS
+
+/// Copies a live parent model's active-pass exclusion and buffer-recovery policy.
 ///
-/// Both tasks must have live `TASK_BODY_TMD` bodies. `spawnArg2.pointer` borrows
-/// the parent task, which must outlive these ticks; attachment joins the child
-/// to the parent's teardown tree. Other model flags and task state stay intact.
-/// When the parent permits automatic buffers, a missing child buffer is
-/// allocated and initialized even if active drawing is suppressed. Allocation
-/// failure leaves it missing for a later retry. Existing buffers are retained
-/// in either mode; a newly allocated buffer belongs to the child model.
-void MODEL_PLACEMENT_MIRROR_PARENT_TASK(Task* childTask)
+/// Both objects must be live. Copies only `TMD_OBJECT_SKIP_ACTIVE_DRAW` and
+/// `TMD_OBJECT_SKIP_AUTO_BUFFER`, retaining all other child flags. When the
+/// parent permits automatic buffers, attempts to allocate a missing child
+/// buffer even while excluded from active drawing. A failed request leaves
+/// the buffer NULL for a later retry; existing buffers are retained in either
+/// mode. Allocation requires the source and heap contract of
+/// `tmdAllocPrimitiveBuffer`; the resulting block belongs to the child model.
+static inline void _modelPlacementCopyParentDrawFlags(TmdObject* childModel, const TmdObject* parentModel)
 {
-    Task*      parentTask;
-    TmdObject* parentModel;
-    TmdObject* childModel;
-
-    parentTask  = childTask->spawnArg2.pointer;
-    parentModel = parentTask->extra.tmd;
-    childModel  = childTask->extra.tmd;
-
     if (!(parentModel->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
         childModel->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
     } else {
         childModel->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
     }
-    // Buffer recovery follows the parent's allocation policy even while hidden.
+    // Recover missing buffers independently of active-pass exclusion.
     if (!(parentModel->flags & TMD_OBJECT_SKIP_AUTO_BUFFER)) {
         childModel->flags &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
         tmdAllocPrimitiveBuffer(childModel);
@@ -43,5 +39,27 @@ void MODEL_PLACEMENT_MIRROR_PARENT_TASK(Task* childTask)
     }
     childModel->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
 }
+#endif
 
-#undef MODEL_PLACEMENT_MIRROR_PARENT_TASK
+/// Keeps an attached child model's draw flags in step with its parent each tick.
+///
+/// `childTask` and the borrowed parent in `spawnArg2.pointer` must have live
+/// `TASK_BODY_TMD` bodies throughout the call. Attachment setup joins the child
+/// to the parent's teardown tree so ticks end before the parent is released.
+/// Copies active-pass exclusion and automatic-buffer suppression, recovering a
+/// missing child buffer when permitted; see `_modelPlacementCopyParentDrawFlags`.
+/// Coordinates, lighting pointers, spawn arguments and task state are retained.
+static void MODEL_PLACEMENT_MIRROR_PARENT_DRAW_FLAGS_TASK(Task* childTask)
+{
+    Task*            parentTask;
+    const TmdObject* parentModel;
+    TmdObject*       childModel;
+
+    parentTask  = childTask->spawnArg2.pointer;
+    parentModel = parentTask->extra.tmd;
+    childModel  = childTask->extra.tmd;
+
+    _modelPlacementCopyParentDrawFlags(childModel, parentModel);
+}
+
+#undef MODEL_PLACEMENT_MIRROR_PARENT_DRAW_FLAGS_TASK

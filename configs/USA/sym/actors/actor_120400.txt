@@ -167,4 +167,4 @@ actorMotionFaceTarget = 0x80132860; // type:func
 actorMotionTurnToYaw = 0x801329A0; // type:func
 actorMotionPlayAnim = 0x80132AA0; // type:func
 actorMsgPlaceEuler = 0x80132BBC; // type:func
-modelPlacementMirrorParent = 0x801326B0; // type:func
+_modelPlacementMirrorParentDrawFlags = 0x801326B0; // type:func

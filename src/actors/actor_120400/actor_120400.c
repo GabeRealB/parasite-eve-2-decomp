@@ -69,6 +69,7 @@ extern TaskDesc D_actor_120400_8013E748[];
 extern TaskMessageEntry D_actor_120400_8013E76C[];
 
 static void func_actor_120400_80131E5C(Task* arg0);
+static void _modelPlacementMirrorParentDrawFlags(Task* childTask);
 static void func_actor_120400_80132050(Task* arg0);
 static void func_actor_120400_801327B4(Task* task);
 static void func_actor_120400_801327D4(Task* task);
@@ -80,7 +81,7 @@ static void func_actor_120400_80132920(Task* task);
 /// `func_actor_120400_8013254C`.
 static const TaskFuncTable3 D_actor_120400_80131E24 = { {
     modelPlacementAttachChild,
-    modelPlacementMirrorParent,
+    _modelPlacementMirrorParentDrawFlags,
     taskKill,
 } };
 

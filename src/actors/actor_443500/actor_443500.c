@@ -67,6 +67,7 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(_Actor443500PierceCarradineWork, 0x4C4);
 
 static void func_actor_443500_80132078(Task* task);
+static void _modelPlacementMirrorParentDrawFlags(Task* childTask);
 static void func_actor_443500_801321F0(Task* task);
 static void func_actor_443500_801327A4(Task* arg0);
 static void func_actor_443500_801327C4(Task* task);
@@ -75,9 +76,9 @@ s32         func_actor_443500_8013297C(Task* task, s32 anim, s32 mode, s32 arg3)
 static void func_actor_443500_80132A68(s32 arg0);
 
 /// State table of the actor's child task (`TaskDesc` entry 1): setup, the
-/// per-frame flag mirror and `taskKill`.
+/// per-frame active-draw and buffer-flag mirror and `taskKill`.
 static const TaskFuncTable3 D_actor_443500_80131E24 = {
-    { modelPlacementAttachChild, modelPlacementMirrorParent, taskKill }
+    { modelPlacementAttachChild, _modelPlacementMirrorParentDrawFlags, taskKill }
 };
 
 /// State table of the actor's main task (`TaskDesc` entry 0): the spawn

@@ -85,5 +85,5 @@ D_actor_213000_80157DDC = 0x80157DDC; // size:0x4 defined:True
 modelPlacementAttachChild = 0x8014A1B8; // type:func
 actorMsgPlaceEuler = 0x8014A828; // type:func
 _modelPlacementAttachPartTask = 0x8014A0DC; // type:func
-modelPlacementMirrorParent = 0x8014A2C4; // type:func
+_modelPlacementMirrorParentDrawFlags = 0x8014A2C4; // type:func
 _modelPlacementMirrorParentDrawFlagsTask = 0x8014A488; // type:func
