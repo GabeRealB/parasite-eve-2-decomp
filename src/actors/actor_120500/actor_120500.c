@@ -42,6 +42,10 @@
 #include "main/wipsys_types.h"
 
 #include "overlay.h"
+
+static void _screenFadeInTask(Task* task);
+/// Selects this translation unit's private fade-in callback.
+#define SCREEN_FADE_IN_TASK _screenFadeInTask
 #include "../../shared/screen_fade.h"
 #include "../../shared/actor_messages.h"
 
@@ -334,7 +338,7 @@ TaskMessageEntry D_actor_120500_80138408[2] = {
 
 TaskDesc D_actor_120500_80138418[3] = {
     { { { TASK_BODY_NONE, 192 } }, func_actor_120500_80131E58, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, screenFadeInTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _screenFadeInTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, _screenFadeOutTask, { .value = 0 } },
 };
 

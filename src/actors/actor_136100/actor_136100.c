@@ -43,6 +43,10 @@
 #include "overlay.h"
 
 #include "rooms/dryfield_night_main_street.h"
+
+static void _screenFadeInTask(Task* task);
+/// Selects this translation unit's private fade-in callback.
+#define SCREEN_FADE_IN_TASK _screenFadeInTask
 #include "../../shared/screen_fade.h"
 #include "../../shared/actor_messages.h"
 
@@ -1202,7 +1206,7 @@ TaskDesc D_actor_136100_80140744[6] = {
     { { { TASK_BODY_NONE, 192 } }, NULL, { .value = 0 } },
     { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_136100_801320E0, { .model = &_gActor136100GaryDouglasHeadHat } },
     { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_136100_80132284, { .model = &_gActor136100Actor120300Model082F8 } },
-    { { { TASK_BODY_NONE, 192 } }, screenFadeInTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _screenFadeInTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, func_actor_136100_80134588, { .value = 0 } },
 };
 

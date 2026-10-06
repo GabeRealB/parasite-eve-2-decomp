@@ -10,24 +10,40 @@
 #ifndef SRC_SHARED_SCREEN_FADE_H
 #define SRC_SHARED_SCREEN_FADE_H
 
-#include "types.h"
-
 #include "main/task_types.h"
 
 #ifndef SCREEN_FADE_IN_TASK
-/// Function identifier for the included fade-in task, defaulting to `screenFadeInTask`.
+/// Selects the callback identifier declared here and defined by the fade-in fragment.
 ///
-/// Bind to a function with signature `void (Task* task)` before this header
-/// or around a further copy of `screen_fade_in.inc.c`. A preceding static
-/// prototype gives a further copy internal linkage. Undefine the previous
-/// binding before rebinding, and keep each task descriptor bound to its own
-/// instance. This object-like alias evaluates no arguments and constructs no
-/// tokens. Before the fragment, include `overlay.h`, `main/display_types.h`,
+/// The value must be a bare function identifier with signature `void (Task* task)`.
+/// The default `screenFadeInTask` is shared between gas-station translation units.
+/// For a TU-local instance, declare a static prototype and bind its identifier
+/// before including this header. A further fragment copy can rebind after an
+/// `#undef`; give it its own prototype and task-table entry. The header guard
+/// prevents a second include from declaring a rebound identifier. Linkage comes
+/// from the preceding prototype, not the binding. This object-like alias takes
+/// no arguments, captures no values and constructs no tokens. Before including
+/// `screen_fade_in.inc.c`, include `overlay.h`, `main/display_types.h`,
 /// `main/gameflow.h`, `main/mem.h` and `main/task.h` for its work type and APIs.
 #define SCREEN_FADE_IN_TASK screenFadeInTask
 #endif
 
+/// Reveals the screen by reducing a subtractive full-screen overlay each update.
+///
+/// Start with state 0 and no owned work. Initialization allocates primary-heap
+/// `ScreenFadeWork`, seeds all channels to 255 and enters state 1, drawing and
+/// stepping in that same update. Allocation failure kills the task; teardown
+/// releases its work. State 1 requires that live work; other states do nothing.
+/// The unsigned low 16 bits of `spawnArg1` are intensity units removed per
+/// update (0 holds indefinitely); the upper half and `spawnArg2` are ignored.
+/// Drawing uses the low red/green/red bytes before each step. The channels
+/// narrow to signed 16 bits without clamping, and negative stored red ends the
+/// task. Large rates can wrap instead of completing on their first step.
+///
+/// Requires the frame packet arena and foreground ordering-table tag used by
+/// `fadeDrawOverlay`. The carrier's code must remain loaded until task teardown.
 void SCREEN_FADE_IN_TASK(Task* task);
+
 /// Reveals the screen by reducing a subtractive tile overlay each update.
 ///
 /// Start at state 0 with no owned work. The unsigned low 16 bits of `spawnArg1`

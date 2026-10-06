@@ -37,6 +37,6 @@ _gActor120500Animation06234 = 0x80138054; // size:0x28 defined:True
 D_actor_120500_8013807C = 0x8013807C; // size:0xC defined:True
 D_actor_120500_80138088 = 0x80138088; // size:0x8 defined:True
 D_actor_120500_80138090 = 0x80138090; // size:0x18 defined:True
-screenFadeInTask = 0x80132708; // type:func
+_screenFadeInTask = 0x80132708; // type:func
 _screenFadeOutTask = 0x801327E4; // type:func
 actorMsgPlaceInView = 0x80132A74; // type:func

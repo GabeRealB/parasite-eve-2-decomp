@@ -49,6 +49,10 @@
 #include "overlay.h"
 
 #include "rooms/room_common.h"
+
+static void _screenFadeInTask(Task* task);
+/// Selects this translation unit's private fade-in callback.
+#define SCREEN_FADE_IN_TASK _screenFadeInTask
 #include "../../shared/screen_fade.h"
 #include "../../shared/glow_draw.h"
 
@@ -205,7 +209,7 @@ EvsCommand D_dryfield_warehouse_8017FA00[11] = {
 TaskDesc D_dryfield_warehouse_8017FB08[3] = {
     { { { TASK_BODY_NONE, 192 } }, func_dryfield_warehouse_8017E090, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, func_dryfield_warehouse_8017E308, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, screenFadeInTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _screenFadeInTask, { .value = 0 } },
 };
 
 SVECTOR gGlowPrismCorners[16] = {
