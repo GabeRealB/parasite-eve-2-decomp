@@ -1051,18 +1051,27 @@ static void _actor223600Spawn(Enemy* enemy, Task* task)
     task->state++;
 }
 
-/// Turns toward the walk waypoint by at most 16/4096 of a revolution.
+/// Turns the model root toward the walk waypoint by at most 16 units per tick.
 ///
-/// Requires the reserved turn block with its X/Z target offset initialized.
-/// Replaces root yaw and leaves translation, animation and scratch lifetime to the caller.
-static __inline__ void _actor223600TurnTowardWalkTarget(Task* task, ActorTurnScratch* scratchTop,
-                                                        ActorTurnScratch* turnScratch)
+/// `task` must have a live model with an initialized root rotation. The caller's
+/// reserved `turnScratch` holds the waypoint's signed 16-bit X/Z offset from
+/// the root in world units. The offset is unchanged and Y is ignored.
+/// Angles use 4096 units per turn. The wrapped bearing difference is clamped to
+/// [-16, 16], then `turnScratch->angle` holds the resulting absolute yaw,
+/// without wrapping that sum again. Rebuilds a pure Y rotation and preserves
+/// translation.
+///
+/// Requires 0x24 free bytes below the block on the initialized scratch stack
+/// for the rotation routine. The caller releases the block and marks the root
+/// `GRAPHICS_COORD_DIRTY`; no pointer is retained.
+static __inline__ void _actor223600TurnTowardWalkTarget(Task* task, ActorTurnScratch* turnScratch)
 {
-    enum { ACTOR_223600_WALK_TURN_LIMIT = 16 };
+    enum { ACTOR_223600_WALK_TURN_LIMIT = 16 }; // 4096 angle units per turn
     GfxCoord* rootCoord;
 
+    // Limit the signed turn before converting it back to an absolute heading.
     rootCoord          = task->extra.tmd->coords;
-    turnScratch->angle = _actorAngleNormalizeYaw(ratan2(scratchTop[-1].delta.vx, turnScratch->delta.vz) -
+    turnScratch->angle = _actorAngleNormalizeYaw(ratan2(turnScratch->delta.vx, turnScratch->delta.vz) -
                                                  ratan2(-rootCoord->coord.m[2][0], rootCoord->coord.m[2][2]));
     if (turnScratch->angle > ACTOR_223600_WALK_TURN_LIMIT) {
         turnScratch->angle = ACTOR_223600_WALK_TURN_LIMIT;
@@ -1134,7 +1143,7 @@ static void _actor223600Walk(Enemy* enemy, Task* task)
     turnScratch->delta.vy                  = 0;
     turnScratch->delta.vz                  = work->walkTarget.vz - task->extra.tmd->coords->coord.t[2];
 
-    _actor223600TurnTowardWalkTarget(task, scratchTop, turnScratch);
+    _actor223600TurnTowardWalkTarget(task, turnScratch);
     _actorMovementStepForward(task->extra.tmd->coords, ACTOR_223600_WALK_DISTANCE);
     _animDriverTick(task);
     SCRATCH_STACK_RELEASE_BLOCK(ActorTurnScratch);
