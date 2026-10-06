@@ -209,11 +209,11 @@ void func_necrosis_8012EF34(Task* arg0)
     switch (arg0->state) {
         case 0:
             if (Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) {
-                goto release;
+                break;
             }
             peEffectControl = gRoomEffectState->peEffectControl;
             if (peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-                goto release;
+                break;
             }
             if (peEffectControl != ROOM_EFFECT_CONTROL_RUNNING) {
                 mem->age = old;
@@ -290,7 +290,7 @@ void func_necrosis_8012EF34(Task* arg0)
             if ((Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
                 worldCollisionUnlinkBody(&work->damageBody);
                 worldCollisionUnlinkBody(&work->gridBody);
-                goto release;
+                break;
             }
             if (mem->age > D_necrosis_801306BC[mem->index].travelFrames) {
                 worldCollisionUnlinkBody(&work->damageBody);
@@ -308,18 +308,20 @@ void func_necrosis_8012EF34(Task* arg0)
             return;
         case 2:
             if (Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) {
-                goto release;
+                break;
             }
             if (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-                goto release;
+                break;
             }
             tick = (s16)tick;
             if ((D_necrosis_801306BC[mem->index].travelFrames + 0x10) < tick) {
-            release:
-                effectKillTask(mem, arg0);
+                break;
             }
-            break;
+            return;
+        default:
+            return;
     }
+    effectKillTask(mem, arg0);
 }
 
 void func_necrosis_8012F52C(Task* arg0)
