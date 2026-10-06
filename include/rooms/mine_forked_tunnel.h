@@ -33,7 +33,15 @@ extern SpriteView D_mine_forked_tunnel_80184D64[];
 
 extern WorldCollisionSurfaceProperties* D_mine_forked_tunnel_801855C0[];
 
-void func_mine_forked_tunnel_8017E78C(Task* unused);
+/// Draws the tunnel's flickering light flares for the current mapped view.
+///
+/// Enables view room effects on every call. Views 2 and 3 draw one shared
+/// anchor, view 4 draws two anchors, and view 5 draws one; other views draw
+/// none. Requires this room's data, composed view matrix, scratch stack and
+/// current-frame GPU packet arena and ordering table. Flare half-extent is
+/// `768 * 39 / depth` pixels, with nonzero depth equal to camera Z / 4.
+/// Gameplay dispatches this callback from effect slot 0x126; the task is ignored.
+void mineForkedTunnelDrawViewFlaresTask(Task* unusedTask);
 
 void func_mine_forked_tunnel_8017DBE4(Task* task);
 

@@ -108,6 +108,12 @@ Actor01600_D127BC = 0x8015C5DC; // absolute:True owner=actor_201600
 D_actor_300700_80165B88 = 0x80165B88; // absolute:True owner=actor_300700
 Actor01500_D0A008 = 0x8016BE28; // absolute:True owner=actor_301500
 
-func_mine_forked_tunnel_8017E78C = 0x8017E78C; // type:func
+mineForkedTunnelDrawViewFlaresTask = 0x8017E78C; // type:func
 _glowDrawFlare = 0x8017E504; // type:func
 actorMsgPlaceEulerZyx = 0x8017DC8C; // type:func
+_mineForkedTunnelExitAreaObject = 0x8017dc50; // type:func
+_mineForkedTunnelBindAreaObjectLighting = 0x8017dc70; // type:func
+_mineForkedTunnelSetAreaObjectDrawMode = 0x8017dd08; // type:func
+_mineForkedTunnelRejectKeyItemMessage = 0x8017e0e8; // type:func
+_mineForkedTunnelIdleRoomTask = 0x8017e24c; // type:func
+_mineForkedTunnelSetSpriteBatchesHidden = 0x8017e48c; // type:func

@@ -1323,7 +1323,7 @@ the wrong slot, so the name and the position disagree and the seed reads a
 register the target never touches:
 
 ```c
-s32 func_mine_forked_tunnel_8017DD08(void *arg0, s32 arg2)   /* arg2 sits in $a1 */
+s32 _mineForkedTunnelSetAreaObjectDrawMode(void *arg0, s32 arg2)   /* arg2 sits in $a1 */
 ```
 
 The target switches on `$a2` (`beq $a2,$v0,…`, `slti $v0,$a2,0x2`) and stores
@@ -1335,15 +1335,15 @@ disagreeing with its position, not the assembly: `arg2` in slot 1.
 Insert the dropped parameters, do not rename:
 
 ```c
-s32 func_mine_forked_tunnel_8017DD08(Task* task, s32 arg1, s32 mode, s32 arg3)
+s32 _mineForkedTunnelSetAreaObjectDrawMode(Task* task, s32 messageId, s32 drawMode, s32 unused)
 ```
 
 A *trailing* unused parameter is invisible in the body, so its existence is only
 in the caller's matched assembly and in the handler type: the call site sets
 `addu $a3,$zero,$zero` in the `jal` delay slot, which GCC emits only for a fourth
-argument, and `TaskMessageHandler` is `s32 (*)(Task*, s32, TaskMessageArg, TaskMessageArg)` - both give the
-arity 4, and the typedef gives the return type the caller's sloppy `extern void`
-had hidden.
+argument. Message dispatch passes all four argument registers through the
+unprototyped `TaskMessageHandler`; its common handler contract confirms arity
+4 and the signed result the caller's sloppy `extern void` had hidden.
 
 Take the body from the shaped sibling, not from m2c: `func_actor_503500_80132584`
 is byte-identical apart from `sb`/`sw` on the work block's `freeCountdown`, so the
@@ -89141,7 +89141,7 @@ reader with the same immediate:
 
 ```c
 D_80062735 = 1;
-func_mine_forked_tunnel_8017E48C(Gp_GetCurBit2Flag(1) == 2);
+_mineForkedTunnelSetSpriteBatchesHidden(Gp_GetCurBit2Flag(1) == 2);
 ```
 
 The target stores the flag through a *copy* of the call's argument register -
@@ -89335,8 +89335,8 @@ two variables, inline load).
 
 ## A tail call after the `switch` makes the address's `%hi` temp `$v0`; the call written in each case puts it in the argument register
 
-`func_mine_forked_tunnel_8017E78C` switches `viewGetMappedIndex() & 0xFF` and
-projects one of four anchors through `Room_Draw17(p, 1, 0x300)`, three of the
+`mineForkedTunnelDrawViewFlaresTask` switches `viewGetMappedIndex() & 0xFF` and
+projects one of four anchors through `_glowDrawFlare(p, 1, 0x300)`, three of the
 arms ending in the same call. The obvious source shape - assign `p` per case,
 one call after the switch - reaches 99.49% with `regs=4` and nothing else: the
 target writes the address into the argument register (`lui a0,%hi(A)` /
@@ -94002,17 +94002,17 @@ inputs, change the *storage class* of the destination, not the expression.
 **It can also be the move that makes an arm match.** The rule cuts the other
 way when the same load appears in every arm of an `if`/`else` and the target
 keeps that value in one register across all arms.
-`func_mine_forked_tunnel_8017E48C` walks the sprite table to a record and writes
-two `0`/`1` bytes through `rec->field_28` / `rec->field_34`:
+`_mineForkedTunnelSetSpriteBatchesHidden` walks the sprite table to the area's
+views and writes two `0`/`1` bytes through `areaViews[3].batches` / `areaViews[4].batches`:
 
 ```c
-    if (!(arg0 & 0xFF)) {
-        rec->field_28->field_2C = 0;   /* both arms load the same two fields */
-        rec->field_34->field_1C = 0;
+    if (!hidden) {
+        areaViews[3].batches[5].hidden = 0;   /* both arms load the same two fields */
+        areaViews[4].batches[3].hidden = 0;
         return;
     }
-    rec->field_28->field_2C = 1;
-    rec->field_34->field_1C = 1;
+    areaViews[3].batches[5].hidden = 1;
+    areaViews[4].batches[3].hidden = 1;
 ```
 
 Written that way each arm gets its own single-death load pseudo, and
@@ -94024,7 +94024,7 @@ is last in the priority order and is pushed to `$v1` - the mirror of retail
 30 instructions already identical.
 
 Naming the two pointers as function-scope variables and assigning them in
-*each* arm (`v28 = rec->field_28; v28->field_2C = ...;` twice) gives each
+*each* arm (`view4Batches = areaViews[3].batches; view4Batches[5].hidden = ...;` twice) gives each
 variable two deaths, so both become global allocnos and `global_alloc` colours
 each one once for the whole function - `$v1` in both arms, because the
 arm-local constant in the target arm has already claimed `$v0`. Nothing else
@@ -121648,7 +121648,7 @@ per-arm `li`s both get `$v0` (their live ranges never overlap), and `reorg`
 leaves exactly one, in the branch delay slot, so the scheduling side needs no
 help.
 
-**Oracle trick.** The matched sibling `func_mine_forked_tunnel_8017E48C` carries
+**Oracle trick.** The matched sibling `_mineForkedTunnelSetSpriteBatchesHidden` carries
 the same idiom (its `.L` arm stores `1` twice). Compiling that matched C in a
 scratch env reproduced its ROM assembly byte for byte, and its `.lreg` showed
 the same split — local constant in `$v0`, global pointers in `$v1` — which

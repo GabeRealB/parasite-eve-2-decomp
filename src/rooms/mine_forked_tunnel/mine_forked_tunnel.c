@@ -109,9 +109,9 @@ extern WorldCollisionGrid D_mine_forked_tunnel_80181C5C;
 extern WorldCollisionGrid D_mine_forked_tunnel_80183D70;
 
 /// The tunnel's per-view effect anchors, projected by
-/// `func_mine_forked_tunnel_8017E78C` with `_glowDrawFlare`
-/// (half-extent 0x300). Views 2 and 3 share the first anchor, view 4 draws the
-/// second and third (the tunnel fork's two arms) and view 5 the fourth.
+/// `mineForkedTunnelDrawViewFlaresTask` with `_glowDrawFlare`
+/// (radius scale 0x300). Views 2 and 3 share the first anchor, view 4 draws the
+/// second and third together and view 5 the fourth.
 extern SVECTOR D_mine_forked_tunnel_80183614[];
 extern SVECTOR D_mine_forked_tunnel_8018361C[];
 extern SVECTOR D_mine_forked_tunnel_8018362C[];
@@ -124,19 +124,30 @@ extern EvsCommand       D_mine_forked_tunnel_801834F4[];
 static void func_mine_forked_tunnel_8017D5E8(Task* arg0);
 static void func_mine_forked_tunnel_8017D724(Task* arg0);
 static void func_mine_forked_tunnel_8017DAB8(Task* arg0);
-static void func_mine_forked_tunnel_8017DC50(Task* arg0);
-static void func_mine_forked_tunnel_8017DC70(Task* arg0);
-s32         func_mine_forked_tunnel_8017DD08(Task* task, s32 arg1, s32 mode, s32 arg3);
+static void _mineForkedTunnelExitAreaObject(Task* task);
+static void _mineForkedTunnelBindAreaObjectLighting(Task* task);
+static s32  _mineForkedTunnelSetAreaObjectDrawMode(Task* task, s32 messageId, s32 drawMode, s32 unused);
 static void func_mine_forked_tunnel_8017DE54(Task* task);
 static void func_mine_forked_tunnel_8017DF34(s32 arg0);
 static void func_mine_forked_tunnel_8017E1E8(Task* arg0);
-static void func_mine_forked_tunnel_8017E24C(Task* task);
-static void func_mine_forked_tunnel_8017E48C(s32 arg0);
+static void _mineForkedTunnelIdleRoomTask(Task* unusedTask);
+static void _mineForkedTunnelSetSpriteBatchesHidden(u8 hidden);
+
+/// Draw modes carried by the area object's ACTOR_MESSAGE_SET_MODEL_DRAW payload.
+enum {
+    MINE_FORKED_TUNNEL_MODEL_DRAW_HIDE_AUTO    = 0,
+    MINE_FORKED_TUNNEL_MODEL_DRAW_SHOW_AUTO    = 1,
+    MINE_FORKED_TUNNEL_MODEL_DRAW_HIDE_RELEASE = 2,
+    MINE_FORKED_TUNNEL_MODEL_DRAW_SHOW_MANUAL  = 3,
+};
+
+/// Inventory request to use a collected key item in this room.
+enum { MINE_FORKED_TUNNEL_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
 /// State table of the tunnel's enemy task, indexed by `Task::state`: set-up,
 /// the per-frame path walk, and the exit that releases the enemy.
 static const TaskFuncTable3 D_mine_forked_tunnel_8017D5C4 = {
-    { func_mine_forked_tunnel_8017D5E8, func_mine_forked_tunnel_8017D724, func_mine_forked_tunnel_8017DC50 },
+    { func_mine_forked_tunnel_8017D5E8, func_mine_forked_tunnel_8017D724, _mineForkedTunnelExitAreaObject },
 };
 
 /// State table of the enemy's pitch-animated child, indexed by `Task::state`:
@@ -148,7 +159,7 @@ static const TaskFuncTable3 D_mine_forked_tunnel_8017D5D0 = {
 /// State table of the room's message-driven task, indexed by `Task::state`:
 /// set-up, an idle state, and `taskKill`.
 static const TaskFuncTable3 D_mine_forked_tunnel_8017D5DC = {
-    { func_mine_forked_tunnel_8017E1E8, func_mine_forked_tunnel_8017E24C, taskKill },
+    { func_mine_forked_tunnel_8017E1E8, _mineForkedTunnelIdleRoomTask, taskKill },
 };
 
 static u32     _gMineForkedTunnelModel03340PartVerts[1];
@@ -157,10 +168,10 @@ static SVECTOR _gMineForkedTunnelModel03340Normals[12];
 static TmdBone _gMineForkedTunnelModel03340Skeleton[1];
 static u32     _gMineForkedTunnelModel03340Stream[104];
 
-s32 func_mine_forked_tunnel_8017E0E8(Task*, s32, s32, s32);
-s32 func_mine_forked_tunnel_8017E0F0(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_mine_forked_tunnel_8017E134(Task*, s32, s32, s32);
-s32 func_mine_forked_tunnel_8017E19C(Task* task, s32 msgId, const void* firstArg, s32 arg3);
+static s32 _mineForkedTunnelRejectKeyItemMessage(Task* unusedTask, s32 messageId, s32 itemId, s32 unused);
+s32        func_mine_forked_tunnel_8017E0F0(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32        func_mine_forked_tunnel_8017E134(Task*, s32, s32, s32);
+s32        func_mine_forked_tunnel_8017E19C(Task* task, s32 msgId, const void* firstArg, s32 arg3);
 
 void func_mine_forked_tunnel_8017E2E0(Task*);
 void func_mine_forked_tunnel_8017E38C(Task*);
@@ -788,10 +799,9 @@ TaskDesc D_mine_forked_tunnel_80181B74[2] = {
 };
 
 s32 func_mine_forked_tunnel_8017D8EC(Task* task, s32 msgId, ActorCommand* msg, s32 arg3);
-s32 func_mine_forked_tunnel_8017DD08(Task*, s32, s32, s32);
 
 TaskMessageEntry D_mine_forked_tunnel_80181B8C[3] = {
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_mine_forked_tunnel_8017DD08 },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, _mineForkedTunnelSetAreaObjectDrawMode },
     { ACTOR_COMMAND_MESSAGE_APPLY, func_mine_forked_tunnel_8017D8EC },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
@@ -826,7 +836,7 @@ WorldCollisionGrid D_mine_forked_tunnel_80181C5C = { NULL, _gMineForkedTunnelCol
 
 TaskMessageEntry D_mine_forked_tunnel_80181C80[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_mine_forked_tunnel_8017E0F0 },
-    { 5105, func_mine_forked_tunnel_8017E0E8 },
+    { MINE_FORKED_TUNNEL_MESSAGE_USE_KEY_ITEM, _mineForkedTunnelRejectKeyItemMessage },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_mine_forked_tunnel_8017E19C },
     { ROOM_MESSAGE_COMMAND, func_mine_forked_tunnel_8017E134 },
     { TASK_MESSAGE_TABLE_END, NULL },
@@ -1472,12 +1482,12 @@ static void func_mine_forked_tunnel_8017D5E8(Task* arg0)
         actorMsgPlaceEulerZyx(arg0, 0x7D4, &D_mine_forked_tunnel_80181BBC, 0);
     }
 
-    func_mine_forked_tunnel_8017DD08(arg0, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
-    func_mine_forked_tunnel_8017DC70(arg0);
+    _mineForkedTunnelSetAreaObjectDrawMode(arg0, ACTOR_MESSAGE_SET_MODEL_DRAW, MINE_FORKED_TUNNEL_MODEL_DRAW_SHOW_AUTO, 0);
+    _mineForkedTunnelBindAreaObjectLighting(arg0);
     work->child    = taskSpawnFromTable(D_mine_forked_tunnel_80181B74, 1, 0, arg0);
     arg0->msgTable = D_mine_forked_tunnel_80181B8C;
     func_mine_forked_tunnel_8017DF34(gameFlagGetNibble(GAME_FLAG_MINE_FORKED_TUNNEL_SWITCH_USED));
-    arg0->exitCallback = func_mine_forked_tunnel_8017DC50;
+    arg0->exitCallback = _mineForkedTunnelExitAreaObject;
     arg0->state++;
 }
 
@@ -1641,65 +1651,77 @@ void func_mine_forked_tunnel_8017DBE4(Task* task)
     }
 }
 
-static void func_mine_forked_tunnel_8017DC50(Task* arg0)
+/// Releases the area object's enemy record and tears down its task and child model.
+///
+/// Requires a live enemy allocation in `task->spawnArg2`; task teardown owns
+/// the work matrices and model body. The task may be freed before return.
+static void _mineForkedTunnelExitAreaObject(Task* task)
 {
-    enemyTaskExit(arg0);
+    enemyTaskExit(task);
 }
 
-static void func_mine_forked_tunnel_8017DC70(Task* arg0)
+/// Binds the area object's model to its work-owned light and colour matrices.
+///
+/// Requires a TMD body and initialized area-object work. The model and its
+/// child borrow the matrices until task teardown; this does not fill them.
+static void _mineForkedTunnelBindAreaObjectLighting(Task* task)
 {
-    TmdObject*                       ext;
+    TmdObject*                       model;
     _MineForkedTunnelAreaObjectWork* work;
 
-    ext           = arg0->extra.tmd;
-    work          = arg0->work;
-    ext->lightMtx = &work->light;
-    ext->colorMtx = &work->color;
+    model           = task->extra.tmd;
+    work            = task->work;
+    model->lightMtx = &work->light;
+    model->colorMtx = &work->color;
 }
 
 #include "../../shared/actor_messages_place_euler_zyx.inc.c"
 
-/// `Task::msgTable` handler for message id 0x7D5: switches the draw and
-/// buffer-alloc bits of the task's `TmdObject` extra. Modes 0 and 1 set and
-/// clear bit 0x80 - hiding and showing the model - and leave
-/// `TMD_OBJECT_SKIP_AUTO_BUFFER` clear so the model keeps its buffers, mode 1
-/// reinstating them through `tmdAllocPrimitiveBuffer` first. Modes 2 and 3 set
-/// `TMD_OBJECT_SKIP_AUTO_BUFFER` instead, skipping that
-/// allocation; mode 2 also arms
-/// `_MineForkedTunnelAreaObjectWork::freeCountdown` with its own value, which
-/// the object's tick counts down before freeing the hidden model's primitive
-/// buffers. Any other mode touches nothing and reports 1.
-s32 func_mine_forked_tunnel_8017DD08(Task* task, s32 arg1, s32 mode, s32 arg3)
+/// Sets the area object's active drawing and primitive-buffer policy.
+///
+/// Handles `ACTOR_MESSAGE_SET_MODEL_DRAW` with a signed mode word: 0 hides
+/// with automatic buffer recovery, 1 shows and allocates missing buffers,
+/// 2 hides and schedules buffer release, and 3 shows with automatic recovery
+/// disabled. Mode 2 requires area-object work and releases on the third
+/// subsequent object update, after two countdown decrements. Other modes do
+/// not cancel an armed release. Returns 0 for modes 0..3, or 1 without changes
+/// for any other mode. The message ID and final payload are ignored.
+static s32 _mineForkedTunnelSetAreaObjectDrawMode(Task* task, s32 messageId, s32 drawMode, s32 unused)
 {
-    TmdObject* ext;
-    s32        ret;
+    TmdObject* model;
+    s32        result;
 
-    ext = task->extra.tmd;
-    ret = 0;
-    switch (mode) {
-        case 0:
-            ext->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            ext->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
+    model  = task->extra.tmd;
+    result = 0;
+    switch (drawMode) {
+        case MINE_FORKED_TUNNEL_MODEL_DRAW_HIDE_AUTO:
+            model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            model->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
-        case 1:
-            ext->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            tmdAllocPrimitiveBuffer(ext);
-            ext->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
+        case MINE_FORKED_TUNNEL_MODEL_DRAW_SHOW_AUTO:
+            model->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            tmdAllocPrimitiveBuffer(model);
+            model->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
-        case 2:
-            ext->flags                                                   |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            ((_MineForkedTunnelAreaObjectWork*)task->work)->freeCountdown = mode;
-            ext->flags                                                   |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+        case MINE_FORKED_TUNNEL_MODEL_DRAW_HIDE_RELEASE: {
+            _MineForkedTunnelAreaObjectWork* work;
+
+            // Keep hidden buffers alive for two decrements before releasing them.
+            model->flags       |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            work                = task->work;
+            work->freeCountdown = drawMode;
+            model->flags       |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
-        case 3:
-            ext->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            ext->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+        }
+        case MINE_FORKED_TUNNEL_MODEL_DRAW_SHOW_MANUAL:
+            model->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         default:
-            ret = 1;
+            result = 1;
             break;
     }
-    return ret;
+    return result;
 }
 
 /// Dispatches the enemy's pitch-animated child through its three-state table
@@ -1798,9 +1820,14 @@ static void func_mine_forked_tunnel_8017DF34(s32 arg0)
     }
 }
 
-s32 func_mine_forked_tunnel_8017E0E8(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Rejects every key-item-use request with zero, leaving the item and room unchanged.
+///
+/// `itemId` is the inventory's collected item ID; all four arguments are ignored.
+static s32 _mineForkedTunnelRejectKeyItemMessage(Task* unusedTask, s32 messageId, s32 itemId, s32 unused)
 {
-    return 0;
+    enum { MINE_FORKED_TUNNEL_KEY_ITEM_REFUSED = 0 };
+
+    return MINE_FORKED_TUNNEL_KEY_ITEM_REFUSED;
 }
 
 /// Message handler that copies the incoming record onto the outgoing one and
@@ -1838,20 +1865,21 @@ s32 func_mine_forked_tunnel_8017E19C(Task* task, s32 msgId, const void* firstArg
 
 /// State 0 of the room's message-driven task family: park the room's
 /// `TaskMessageEntry` table in `Task::msgTable`, publish the task in pointer slot 7,
-/// arm the message flag, then hand off to `func_mine_forked_tunnel_8017E48C`.
+/// arm the message flag, then hand off to `_mineForkedTunnelSetSpriteBatchesHidden`.
 static void func_mine_forked_tunnel_8017E1E8(Task* arg0)
 {
     arg0->msgTable = D_mine_forked_tunnel_80181C80;
     gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     gStageSceneMusicEntry = 1;
-    func_mine_forked_tunnel_8017E48C(Gp_GetCurBit2Flag(1) == 2);
+    _mineForkedTunnelSetSpriteBatchesHidden(Gp_GetCurBit2Flag(1) == 2);
     arg0->state = (s32)(arg0->state + 1);
 }
 
-/// State 1 of the room's message-driven task: does nothing.
-static void func_mine_forked_tunnel_8017E24C(Task* task)
+/// Keeps the initialized room task available to receive messages without per-frame work.
+static void _mineForkedTunnelIdleRoomTask(Task* unusedTask)
 {
-    char pad[0x10];
+    // Preserve the idle callback's otherwise unused 16-byte stack frame.
+    char unusedStackFrame[0x10];
 }
 
 /// Dispatches the room's message-driven task through its three-state table,
@@ -1914,7 +1942,7 @@ void func_mine_forked_tunnel_8017E38C(Task* arg0)
             if (temp >= 0xB) {
                 if (Gp_GetCapEventKey() == state) {
                     Gp_StartCapSlot(2, 0, 1);
-                    func_mine_forked_tunnel_8017E48C(1);
+                    _mineForkedTunnelSetSpriteBatchesHidden(true);
                 }
                 Gp_MsgPlayerWeapon(1);
                 taskKill(arg0);
@@ -1923,56 +1951,59 @@ void func_mine_forked_tunnel_8017E38C(Task* arg0)
     }
 }
 
-/// Hides (`arg0` non-zero) or shows two of the area's sprite commands by
-/// setting their `SpriteBatch::hidden`, which keeps a command's sprites out of
-/// the ordering table.
-static void func_mine_forked_tunnel_8017E48C(s32 arg0)
+/// Hides or shows the selected sprite batches in mapped views 4 and 5.
+///
+/// Requires this room's stage/area sprite directory to be loaded. A zero byte
+/// shows both ranges; any other byte hides them, normalized to 1. View 4's
+/// batch 5 covers source sprites 80..81; view 5's batch 3 covers 20..25.
+static void _mineForkedTunnelSetSpriteBatchesHidden(u8 hidden)
 {
-    GameLocationKey* sess;
-    SpriteView*      rec;
-    SpriteBatch*     view4Batches;
-    SpriteBatch*     view5Batches;
+    const GameLocationKey* location;
+    const SpriteView*      areaViews;
+    SpriteBatch*           view4Batches;
+    SpriteBatch*           view5Batches;
 
-    sess = &gGameSession->location.loc;
-    rec  = Gp_SprtTables[sess->stage - 1]->areaViews[sess->area - 1];
+    location  = &gGameSession->location.loc;
+    areaViews = Gp_SprtTables[location->stage - 1]->areaViews[location->area - 1];
 
-    if (!(arg0 & 0xFF)) {
-        view4Batches           = rec[3].batches;
-        view4Batches[5].hidden = 0;
-        view5Batches           = rec[4].batches;
-        view5Batches[3].hidden = 0;
+    if (!hidden) {
+        view4Batches           = areaViews[3].batches;
+        view4Batches[5].hidden = false;
+        view5Batches           = areaViews[4].batches;
+        view5Batches[3].hidden = false;
         return;
     }
-    view4Batches           = rec[3].batches;
-    view4Batches[5].hidden = 1;
-    view5Batches           = rec[4].batches;
-    view5Batches[3].hidden = 1;
+    view4Batches           = areaViews[3].batches;
+    view4Batches[5].hidden = true;
+    view5Batches           = areaViews[4].batches;
+    view5Batches[3].hidden = true;
 }
 
 #include "../../shared/glow_draw_flare.inc.c"
 
-/// Room effect tick. Marks the effect state (`field_A` = 2, the value
-/// `actor_400100_text` and `Gp_EffCtlTaskAC` test) and projects the light
-/// anchor belonging to the camera's view index, so the fork's light follows
-/// whichever branch the player is looking down.
-void func_mine_forked_tunnel_8017E78C(Task* unused)
+void mineForkedTunnelDrawViewFlaresTask(Task* unusedTask)
 {
-    s32 idx;
+    enum {
+        MINE_FORKED_TUNNEL_FLARE_TEXTURE_INDEX = 1,
+        MINE_FORKED_TUNNEL_FLARE_RADIUS_SCALE  = 0x300,
+    };
+
+    s32 mappedViewIndex;
 
     gRoomEffectState->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
-    idx                              = viewGetMappedIndex() & 0xFF;
+    mappedViewIndex                  = viewGetMappedIndex() & 0xFF;
 
-    switch (idx) {
+    switch (mappedViewIndex) {
         case 2:
         case 3:
-            _glowDrawFlare(D_mine_forked_tunnel_80183614, 1, 0x300);
+            _glowDrawFlare(D_mine_forked_tunnel_80183614, MINE_FORKED_TUNNEL_FLARE_TEXTURE_INDEX, MINE_FORKED_TUNNEL_FLARE_RADIUS_SCALE);
             break;
         case 4:
-            _glowDrawFlare(&D_mine_forked_tunnel_8018361C[0], 1, 0x300);
-            _glowDrawFlare(&D_mine_forked_tunnel_8018361C[1], 1, 0x300);
+            _glowDrawFlare(&D_mine_forked_tunnel_8018361C[0], MINE_FORKED_TUNNEL_FLARE_TEXTURE_INDEX, MINE_FORKED_TUNNEL_FLARE_RADIUS_SCALE);
+            _glowDrawFlare(&D_mine_forked_tunnel_8018361C[1], MINE_FORKED_TUNNEL_FLARE_TEXTURE_INDEX, MINE_FORKED_TUNNEL_FLARE_RADIUS_SCALE);
             break;
         case 5:
-            _glowDrawFlare(D_mine_forked_tunnel_8018362C, 1, 0x300);
+            _glowDrawFlare(D_mine_forked_tunnel_8018362C, MINE_FORKED_TUNNEL_FLARE_TEXTURE_INDEX, MINE_FORKED_TUNNEL_FLARE_RADIUS_SCALE);
             break;
         default:
             return;

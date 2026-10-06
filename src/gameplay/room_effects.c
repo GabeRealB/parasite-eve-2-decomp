@@ -832,7 +832,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_mine_tunnel_8017D7D4, { NULL } },                                   // 0x123
     { { { TASK_BODY_COORD, 0x70 } }, func_mine_gorge_8017D9F8, { NULL } },                                    // 0x124
     { { { TASK_BODY_COORD, 0x70 } }, mineRefugeDrawGlowsTask, { NULL } },                                     // 0x125
-    { { { TASK_BODY_COORD, 0x70 } }, func_mine_forked_tunnel_8017E78C, { NULL } },                            // 0x126
+    { { { TASK_BODY_COORD, 0x70 } }, mineForkedTunnelDrawViewFlaresTask, { NULL } },                          // 0x126
     { { { TASK_BODY_COORD, 0x70 } }, func_mine_secret_passage_8017D9D4, { NULL } },                           // 0x127
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_elevator_hall_8017DC80, { NULL } },                      // 0x128
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_south_maintenance_walkway_8017DA8C, { NULL } },          // 0x129
