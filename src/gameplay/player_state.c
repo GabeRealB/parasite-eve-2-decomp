@@ -1059,36 +1059,29 @@ static void func_8010B348(Task* arg0, WorldCollisionContact* arg1, s32 arg2)
     kind  = (u16)arg1->key.value;
     if ((u16)inner->hitRegion == 0) {
         inner->hitBodyIndex = arg2;
-        if (kind == 2) {
-            goto case24;
+        switch (kind) {
+            case 1: // placeholder: the tree pivots on 2, so one value below it was listed
+                break;
+            case 2:
+            case 4:
+                arg2 = (u16)arg2;
+                if (arg2 == 1) {
+                    inner->hitRegion = arg2;
+                } else {
+                    inner->hitRegion = 2;
+                }
+                inner->damageReaction = 5;
+                break;
+            case 3:
+                arg2 = (u16)arg2;
+                if (arg2 == 1) {
+                    inner->hitRegion = arg2;
+                } else {
+                    inner->hitRegion = 2;
+                }
+                inner->damageReaction = GAME_ACTOR_REACTION_ORDINARY;
+                break;
         }
-        if (kind < 3) {
-            goto do_call;
-        }
-        if (kind == 3) {
-            goto case3;
-        }
-        if (kind != 4) {
-            goto do_call;
-        }
-    case24:
-        arg2 = (u16)arg2;
-        if (arg2 == 1) {
-            inner->hitRegion = arg2;
-        } else {
-            inner->hitRegion = 2;
-        }
-        inner->damageReaction = 5;
-        goto do_call;
-    case3:
-        arg2 = (u16)arg2;
-        if (arg2 == 1) {
-            inner->hitRegion = arg2;
-        } else {
-            inner->hitRegion = 2;
-        }
-        inner->damageReaction = GAME_ACTOR_REACTION_ORDINARY;
-    do_call:
         inner->pendingDamage = Gp_LookupIdField(arg1->key.value, 0);
     }
 }
