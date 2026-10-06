@@ -31738,26 +31738,26 @@ store:
 sh    v0, 0x24(a3)
 ```
 
-`mem->field_24 += 8` / `-= 8` hoists an extra `lhu` and puts dest in
+`work->scale += 8` / `-= 8` hoists an extra `lhu` and puts dest in
 `$a0`. Copy both s16 fields into `s32` temps first, then write the
 adjusted temp back:
 
 ```c
-s32 cur;
-s32 dest;
+s32 brightness;
+s32 targetBrightness;
 
-cur  = mem->field_24;
-dest = mem->field_26;
-if (cur == dest) {
+brightness       = work->scale;
+targetBrightness = work->angle;
+if (brightness == targetBrightness) {
     /* equal path */
-} else if (cur < dest) {
-    mem->field_24 = cur + 8;
+} else if (brightness < targetBrightness) {
+    work->scale = brightness + 8;
 } else {
-    mem->field_24 = cur - 8;
+    work->scale = brightness - 8;
 }
 ```
 
-`func_800EC47C` case 2 is the example.
+`_effectDarknessScreenDimTaskE8` case 2 is the example.
 
 ## A memory barrier after `if (!flag) x = K; goto dest` splits the join
 
@@ -31788,7 +31788,7 @@ j     apply
 
 `asm volatile("" ::: "memory")` after the increment (to stop that
 block sharing a later store) is fine. Do not put one between the
-flag `if` and `goto apply`. `func_800EC47C` is the example; the
+flag `if` and `goto apply`. `_effectDarknessScreenDimTaskE8` is the example; the
 two flag checks still want a non-barrier way to stay unmerged.
 
 ## Scratch alloc that stores from `$v0` needs a separate head temp
@@ -65702,7 +65702,7 @@ produced `sltu`, where the target has a branch and a shared call.
 Use a byte-array declaration for the per-stage room limit (`D_8010F130`);
 m2c's unknown-type pointer arithmetic incorrectly scaled the index by four.
 
-## func_800EC47C: put duplicated draw tails inside the final state's active arms
+## _effectDarknessScreenDimTaskE8: put duplicated draw tails inside the final state's active arms
 
 The unchanged m2c seed scored 83.000% (`branch=7 regs=11 reorder=8
 insert=3 delete=13`). Its separate RGB byte locals lost two stores because

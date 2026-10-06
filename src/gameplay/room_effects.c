@@ -508,10 +508,7 @@ enum {
     (probe)->endpoint.vz += (probe)->origin.vz;                                                         \
     (hitResult)           = worldCollisionProbeGridSegment((segmentEnd), &(probe)->origin, (segmentEnd), NULL);
 
-/// Grayscale fade task controlled by `gPlayerStatus.statusFlags` bit 0.
-/// Alternates LCG-selected brightness targets, then fades out and releases
-/// its `EffectWork` when the flag stays clear.
-void func_800EC47C(Task* arg0);
+static void _effectDarknessScreenDimTaskE8(Task* task);
 
 static void Gp_InitState1C(Task* arg0);
 
@@ -523,7 +520,7 @@ static void _worldCoordInitTransientPointLights(void);
 
 void func_800EA420(Task* arg0);
 
-void Gp_FadeWaveTask(Task* arg0);
+static void _effectStatusScreenTintTaskF(Task* task);
 
 static void _effectExitTask(Task* task);
 
@@ -551,7 +548,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_hypervelocity_8011D830, { NULL } },                               // 0x00C
     { { { TASK_BODY_COORD, 0x70 } }, hypervelocityShockRingTask, { NULL } },                                // 0x00D
     { { { TASK_BODY_COORD, 0x70 } }, effectControlTask0E, { NULL } },                                       // 0x00E
-    { { { TASK_BODY_COORD, 0x70 } }, Gp_FadeWaveTask, { NULL } },                                           // 0x00F
+    { { { TASK_BODY_COORD, 0x70 } }, _effectStatusScreenTintTaskF, { NULL } },                              // 0x00F
     { { { TASK_BODY_COORD, 0x70 } }, func_pyrokinesis_8012EF48, { NULL } },                                 // 0x010
     { { { TASK_BODY_COORD, 0x70 } }, func_pyrokinesis_80131CE4, { NULL } },                                 // 0x011
     { { { TASK_BODY_COORD, 0x70 } }, func_metabolism_8012EF34, { NULL } },                                  // 0x012
@@ -768,7 +765,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_night_junk_yard_8017E5C8, { NULL } },                    // 0x0E5
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_night_junk_yard_8017F02C, { NULL } },                    // 0x0E6
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_night_junk_yard_8017F914, { NULL } },                    // 0x0E7
-    { { { TASK_BODY_COORD, 0x70 } }, func_800EC47C, { NULL } },                                             // 0x0E8
+    { { { TASK_BODY_COORD, 0x70 } }, _effectDarknessScreenDimTaskE8, { NULL } },                            // 0x0E8
     { { { TASK_BODY_COORD, 0x70 } }, func_mine_mesa_8017F230, { NULL } },                                   // 0x0E9
     { { { TASK_BODY_COORD, 0x70 } }, func_lifedrain_801308C0, { NULL } },                                   // 0x0EA
     { { { TASK_BODY_COORD, 0x70 } }, func_mine_mesa_8017FC94, { NULL } },                                   // 0x0EB
@@ -2235,103 +2232,150 @@ void effectDrawInnerGlowBand(const GfxCoord* coord, s16 innerRadius, s32 width, 
     SCRATCH_STACK_RELEASE_BLOCK(EffectBandScratch);
 }
 
-void func_800EC47C(Task* arg0)
+/// Releases a screen effect's counted work before teardown runs child exit callbacks.
+///
+/// `effectState` is the live room controller; `work` is this task's owned
+/// primary-heap allocation. The task's body must not own the same allocation.
+static inline void _effectReleaseScreenTask(RoomEffectState* effectState, EffectWork* work, Task* task)
 {
-    EffectWork* mem;
-    u8          rgb[3];
-    s32         current;
-    s32         target;
-    u16         count;
-    u32         random;
+    effectState->effectCount--;
+    memFree(work);
+    taskKill(task);
+}
 
-    mem = arg0->spawnArg2.pointer;
-    switch (arg0->state) {
-        case 0:
+/// Flickers a subtractive screen tint while Darkness is active, then fades it out.
+///
+/// Bank-6 slot 0xE8 owns a zero-initialized, counted `EffectWork` in
+/// `spawnArg2.pointer`. `scale` is brightness, `angle` its target and `period`
+/// the wrapping target-change count. Targets alternate between 16 and a
+/// randomly selected 32 or 48, moving eight brightness units per task tick.
+/// Clearing Darkness fades out; reapplying it during fade-out restarts the
+/// initial ramp without clearing the current brightness or target count.
+/// Claims `ROOM_EFFECT_SCREEN_FADE_QUAD` until the work is released.
+static void _effectDarknessScreenDimTaskE8(Task* task)
+{
+    enum {
+        EFFECT_DARKNESS_STATE_START     = 0,
+        EFFECT_DARKNESS_STATE_FADE_IN   = 1,
+        EFFECT_DARKNESS_STATE_FLICKER   = 2,
+        EFFECT_DARKNESS_STATE_FADE_OUT  = 3,
+        EFFECT_DARKNESS_BASE_SHIFT      = 4,
+        EFFECT_DARKNESS_BASE_BRIGHTNESS = 1 << EFFECT_DARKNESS_BASE_SHIFT,
+        EFFECT_DARKNESS_BRIGHTNESS_STEP = 8,
+    };
+    EffectWork* work;
+    u8          rgb[3];
+    s32         brightness;
+    s32         targetBrightness;
+    u16         targetChangeCount;
+    u32         randomState;
+
+    work = task->spawnArg2.pointer;
+    switch (task->state) {
+        case EFFECT_DARKNESS_STATE_START:
             gRoomEffectState->screenFxFlags |= ROOM_EFFECT_SCREEN_FADE_QUAD;
-            arg0->state                      = 1;
-            mem->angle                       = 0x10;
-        case 1:
-            if (mem->scale < mem->angle) {
-                mem->scale += 8;
+            task->state                      = EFFECT_DARKNESS_STATE_FADE_IN;
+            work->angle                      = EFFECT_DARKNESS_BASE_BRIGHTNESS;
+            // Start drawing on the first tick, preserving brightness on a restart.
+        case EFFECT_DARKNESS_STATE_FADE_IN:
+            if (work->scale < work->angle) {
+                work->scale += EFFECT_DARKNESS_BRIGHTNESS_STEP;
             } else {
-                arg0->state = 2;
+                task->state = EFFECT_DARKNESS_STATE_FLICKER;
             }
             if (!(gPlayerStatus.statusFlags & PLAYER_STATUS_DARKNESS)) {
-                arg0->state = 3;
+                task->state = EFFECT_DARKNESS_STATE_FADE_OUT;
             }
-            rgb[0] = rgb[1] = rgb[2] = mem->scale;
+            rgb[0] = rgb[1] = rgb[2] = work->scale;
             effectDrawScreenTint(rgb, GPU_BLEND_SUBTRACT);
             break;
-        case 2:
-            current = mem->scale;
-            target  = mem->angle;
-            if (current == target) {
-                count           = mem->period + 1;
-                random          = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->period     = count;
-                gRandomLcgState = random;
-                mem->angle      = ((count & 1) << (((random >> 16) & 1) + 4)) + 0x10;
+        case EFFECT_DARKNESS_STATE_FLICKER:
+            // Choose a new flicker target only after reaching the previous one.
+            brightness       = work->scale;
+            targetBrightness = work->angle;
+            if (brightness == targetBrightness) {
+                targetChangeCount = work->period + 1;
+                randomState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                work->period      = targetChangeCount;
+                gRandomLcgState   = randomState;
+                work->angle       = ((targetChangeCount & 1) << (((randomState >> 16) & 1) + EFFECT_DARKNESS_BASE_SHIFT)) + EFFECT_DARKNESS_BASE_BRIGHTNESS;
             } else {
-                if (current < target) {
-                    mem->scale = current + 8;
+                if (brightness < targetBrightness) {
+                    work->scale = brightness + EFFECT_DARKNESS_BRIGHTNESS_STEP;
                 } else {
-                    mem->scale = current - 8;
+                    work->scale = brightness - EFFECT_DARKNESS_BRIGHTNESS_STEP;
                 }
             }
             if (!(gPlayerStatus.statusFlags & PLAYER_STATUS_DARKNESS)) {
-                arg0->state = 3;
+                task->state = EFFECT_DARKNESS_STATE_FADE_OUT;
             }
-            rgb[0] = rgb[1] = rgb[2] = mem->scale;
+            rgb[0] = rgb[1] = rgb[2] = work->scale;
             effectDrawScreenTint(rgb, GPU_BLEND_SUBTRACT);
             break;
-        case 3:
+        case EFFECT_DARKNESS_STATE_FADE_OUT:
             if (gPlayerStatus.statusFlags & PLAYER_STATUS_DARKNESS) {
-                arg0->state = 0;
-                rgb[0] = rgb[1] = rgb[2] = mem->scale;
+                task->state = EFFECT_DARKNESS_STATE_START;
+                rgb[0] = rgb[1] = rgb[2] = work->scale;
                 effectDrawScreenTint(rgb, GPU_BLEND_SUBTRACT);
-            } else if (mem->scale >= 9) {
-                mem->scale -= 8;
-                rgb[0] = rgb[1] = rgb[2] = mem->scale;
+            } else if (work->scale >= EFFECT_DARKNESS_BRIGHTNESS_STEP + 1) {
+                work->scale -= EFFECT_DARKNESS_BRIGHTNESS_STEP;
+                rgb[0] = rgb[1] = rgb[2] = work->scale;
                 effectDrawScreenTint(rgb, GPU_BLEND_SUBTRACT);
             } else {
                 gRoomEffectState->screenFxFlags &= (u16)~ROOM_EFFECT_SCREEN_FADE_QUAD;
-                gRoomEffectState->effectCount--;
-                memFree(mem);
-                taskKill(arg0);
+                _effectReleaseScreenTask(gRoomEffectState, work, task);
             }
             break;
     }
 }
 
-void Gp_FadeWaveTask(Task* arg0)
+/// Draws a short colored screen pulse for the selected player-status visual bit.
+///
+/// Bank-6 slot 0xF owns a zero-initialized, counted `EffectWork` in
+/// `spawnArg2.pointer`. `spawnArg1.value` is zero (no drawing) or one of the
+/// eight single-bit byte selectors, and must match the room's `peFadeMask`.
+/// `scale` advances the sine phase in 4096 units per turn; `angle` holds its
+/// Q7 amplitude. Five task ticks draw the pulse, including its last tick;
+/// replacing the selector releases it before drawing. Work release precedes
+/// task teardown and its child exit callbacks.
+static void _effectStatusScreenTintTaskF(Task* task)
 {
+    enum {
+        EFFECT_STATUS_TINT_PHASE_STEP        = 0x180,
+        EFFECT_STATUS_TINT_PHASE_END         = 0x700,
+        EFFECT_STATUS_TINT_AMPLITUDE_SHIFT   = 5,
+        EFFECT_STATUS_TINT_LOG_FRACTION_BITS = 12,
+        EFFECT_STATUS_TINT_LOG_TWO           = 2839, // ln(2) in the SDK's Q12 logarithm.
+        EFFECT_STATUS_TINT_COLOR_INDEX_MASK  = 7,
+        EFFECT_STATUS_TINT_COLOR_NIBBLE_BITS = 4,
+        EFFECT_STATUS_TINT_COLOR_NIBBLE_MASK = 0xF,
+        EFFECT_STATUS_TINT_COLOR_SCALE_SHIFT = 3,
+    };
     RoomEffectState* effectState;
-    EffectWork*      mem;
-    u16              color;
+    EffectWork*      work;
+    u16              packedTint;
     u8               rgb[3];
 
     effectState = gRoomEffectState;
-    mem         = arg0->spawnArg2.pointer;
-    if (effectState->peFadeMask != arg0->spawnArg1.value) {
-        effectState->effectCount--;
-        memFree(mem);
-        taskKill(arg0);
+    work        = task->spawnArg2.pointer;
+    if (effectState->peFadeMask != task->spawnArg1.value) {
+        _effectReleaseScreenTask(effectState, work, task);
         return;
     }
 
-    mem->scale += 0x180;
-    mem->angle  = rsin(mem->scale) >> 5;
-    if (arg0->spawnArg1.value != 0) {
-        color  = Gp_FadeQuadColors[(cln(arg0->spawnArg1.value << 12) / 2839) & 7];
-        rgb[0] = (mem->angle * ((color >> 8) & 0xF)) >> 3;
-        rgb[1] = (mem->angle * ((color >> 4) & 0xF)) >> 3;
-        rgb[2] = (mem->angle * (color & 0xF)) >> 3;
-        effectDrawScreenTint(rgb, color >> 12);
+    work->scale += EFFECT_STATUS_TINT_PHASE_STEP;
+    work->angle  = rsin(work->scale) >> EFFECT_STATUS_TINT_AMPLITUDE_SHIFT;
+    if (task->spawnArg1.value != 0) {
+        // Convert the byte selector through the SDK's Q12 logarithm to a table index.
+        packedTint = Gp_FadeQuadColors[(cln(task->spawnArg1.value << EFFECT_STATUS_TINT_LOG_FRACTION_BITS) / EFFECT_STATUS_TINT_LOG_TWO) & EFFECT_STATUS_TINT_COLOR_INDEX_MASK];
+        // Packed nibbles are blend mode, red, green and blue; scale RGB by the pulse.
+        rgb[0] = (work->angle * ((packedTint >> (2 * EFFECT_STATUS_TINT_COLOR_NIBBLE_BITS)) & EFFECT_STATUS_TINT_COLOR_NIBBLE_MASK)) >> EFFECT_STATUS_TINT_COLOR_SCALE_SHIFT;
+        rgb[1] = (work->angle * ((packedTint >> EFFECT_STATUS_TINT_COLOR_NIBBLE_BITS) & EFFECT_STATUS_TINT_COLOR_NIBBLE_MASK)) >> EFFECT_STATUS_TINT_COLOR_SCALE_SHIFT;
+        rgb[2] = (work->angle * (packedTint & EFFECT_STATUS_TINT_COLOR_NIBBLE_MASK)) >> EFFECT_STATUS_TINT_COLOR_SCALE_SHIFT;
+        effectDrawScreenTint(rgb, packedTint >> (3 * EFFECT_STATUS_TINT_COLOR_NIBBLE_BITS));
     }
-    if (mem->scale >= 0x700) {
-        gRoomEffectState->effectCount--;
-        memFree(mem);
-        taskKill(arg0);
+    if (work->scale >= EFFECT_STATUS_TINT_PHASE_END) {
+        _effectReleaseScreenTask(gRoomEffectState, work, task);
     }
 }
 

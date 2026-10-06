@@ -377,7 +377,8 @@ releases that allocation before default task teardown.
 
 Gameplay-resident table at `D_8010FC2C`. Almost every non-stub callback is in
 **room overlay RAM** (`0x8017D5C0` and following — see [`OVERLAYS.md`](OVERLAYS.md)
-§2). One named entry: `Gp_FadeWaveTask`. A handful of `func_800Exxxx` /
+§2). Named screen-effect entries include `_effectStatusScreenTintTaskF` (0xF)
+and `_effectDarknessScreenDimTaskE8` (0xE8). A handful of `func_800Exxxx` /
 `func_800Fxxxx` sit in the gameplay overlay; they are not named.
 
 This is the large “what’s in the room” catalog. Describing a row means

@@ -71,9 +71,9 @@ enum {
     /// (a shot), draws a pink triangle fan and two rings; spawned by func_800ECA54 when
     /// the Berserker status is applied.
     EFFECT_BERSERKER_SHOT_GLOW = EFFECT_ID(EFFECT_TASK_BANK, 0x00E),
-    /// Gp_FadeWaveTask: full-screen fade quad tinted per status-ailment bit (darkness,
-    /// paralysis, poison, silence, ...) while gRoomEffectState->peFadeMask matches;
-    /// spawned by Gp_SetState1CPe when a status is inflicted.
+    /// Five-tick colored screen pulse (`_effectStatusScreenTintTaskF`) for one
+    /// player-status visual bit; replacing `gRoomEffectState->peFadeMask` ends
+    /// it early. Spawned when a status is inflicted.
     EFFECT_STATUS_AILMENT_SCREEN_TINT = EFFECT_ID(EFFECT_TASK_BANK, 0x00F),
     /// The Pyrokinesis cast body: a flame cone and rings that travel from the player
     /// with a collision pair, burst into 0x600F6 flames on a hit and fade on a wall;
