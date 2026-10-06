@@ -43,7 +43,8 @@ void sucklercephReactionDispatch(Task* arg0)
                 Gp_SpawnEff(EFFECT_ADDITIVE_PUFF, arg0->extra.tmd->coords, 0x400, &gSucklercephCollapseFxOffset);
                 work->animFrames = 0;
             }
-            goto suppress_rebind;
+            work->animFrozen = 1;
+            return;
         default:
             return;
         case SUCKLERCEPH_STATE_PUFFING_DEATH:
@@ -63,7 +64,6 @@ void sucklercephReactionDispatch(Task* arg0)
                     enemy->hp           = 0;
                 }
             }
-        suppress_rebind:
             work->animFrozen = 1;
     }
 }
