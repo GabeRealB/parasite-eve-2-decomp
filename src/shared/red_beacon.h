@@ -3,16 +3,17 @@
  * coordinate's origin, its brightness a triangle wave of the frame counter and
  * its size shrinking with depth.
  *
- * Include this header in the prologue and each fragment at its function's
- * position.
+ * Include this header in the prologue and the task fragment at its function's
+ * position. Both elevator-hall carriers bind RED_BEACON_TASK to the public
+ * void (Task*) callback declared by their room header before including this
+ * header. The binding selects the definition's identifier without calling or
+ * evaluating anything; keep it defined through the fragment, then undefine it.
  */
 
 #ifndef SRC_SHARED_RED_BEACON_H
 #define SRC_SHARED_RED_BEACON_H
 
 #include "common.h"
-
-#include "main/task_types.h"
 
 /// The red beacon's spawn argument, as the bytes of `Task::spawnArg1`.
 ///
@@ -31,7 +32,5 @@ STATIC_ASSERT_SIZEOF(RedBeaconArg, 0x4);
 
 /// Packs a `RedBeaconArg` into the argument word a spawner passes.
 #define RED_BEACON_ARG(pulseRate, size) (((size) << 8) | (pulseRate))
-
-void redBeaconTask(Task* arg0);
 
 #endif /* SRC_SHARED_RED_BEACON_H */

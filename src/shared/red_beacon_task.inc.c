@@ -1,64 +1,83 @@
 /* Part of the red beacon library; see red_beacon.h. */
 
-/// Draws one frame of a pair of red-shaded gradient quads and then retires
-/// the task. The task coordinate's origin is projected once through
-/// `GsWSMATRIX` (`RTPS`) into a `RoomGlowSpriteScratch` block; anything
-/// nearer than `otz` 0x11 is not drawn. `spawnArg1` is a `RedBeaconArg`: the
-/// red level pulses with the global counter `gDisplayState.animFrame` times
-/// its `pulseRate`, folded into a 0..0x80 triangle, and its `size` sets the
-/// quads' extent, divided by `otz` so they shrink with distance.
-void redBeaconTask(Task* arg0)
+/// Sets the vertices of one half of the beacon's diamond around its screen centre.
+///
+/// Borrows a writable quad and a scratch record with pixel `screenPos` and
+/// nonnegative `halfExtent`. `halfIndex` is 0 for the upper half, 1 for the
+/// lower half. Coordinates narrow to the packet's signed 16-bit fields;
+/// colour and packet-link fields remain intact.
+static inline void _redBeaconSetHalfBounds(POLY_G4* beaconQuad, const RoomGlowSpriteScratch* glowScratch, s32 halfIndex)
 {
-    RoomGlowSpriteScratch* block;
-    POLY_G4*               prim;
-    GfxCoord*              coord;
-    void*                  mem;
-    s32                    i;
-    s32                    red;
-    s32                    pulse;
-    s32                    level;
+    beaconQuad->x0 = glowScratch->screenPos.vx - glowScratch->halfExtent;
+    beaconQuad->x1 = beaconQuad->x2 = glowScratch->screenPos.vx;
+    beaconQuad->x3                  = glowScratch->screenPos.vx + glowScratch->halfExtent;
+    beaconQuad->y0 = beaconQuad->y2 = beaconQuad->y3 = glowScratch->screenPos.vy;
+    beaconQuad->y1                                   = (glowScratch->screenPos.vy - glowScratch->halfExtent) + glowScratch->halfExtent * (halfIndex + halfIndex);
+}
 
-    coord = arg0->extra.coordBody->coord;
-    mem   = arg0->spawnArg2.pointer;
-    actorRenderComposeCoord(coord);
-    block              = SCRATCH_STACK_RESERVE_BLOCK(RoomGlowSpriteScratch);
-    block->worldPos.vx = coord->workm.t[0];
-    block->worldPos.vy = coord->workm.t[1];
-    block->worldPos.vz = coord->workm.t[2];
+void RED_BEACON_TASK(Task* task)
+{
+    enum {
+        RED_BEACON_MIN_DEPTH         = 17,
+        RED_BEACON_PULSE_FALLING_BIT = 0x80,
+        RED_BEACON_PULSE_PHASE_MASK  = 0x7F,
+        RED_BEACON_PULSE_PEAK        = 0x80,
+        RED_BEACON_SIZE_UNIT         = 0x200,
+        RED_BEACON_DIAMOND_HALVES    = 2,
+        RED_BEACON_PULSE_RATE_BYTE   = 0,
+        RED_BEACON_SIZE_BYTE         = 1
+    };
+    RoomGlowSpriteScratch* glowScratch;
+    POLY_G4*               beaconQuad;
+    GfxCoord*              effectCoord;
+    EffectWork*            effectWork;
+    s32                    halfIndex;
+    s32                    redLevel;
+    s32                    pulsePhase;
+    s32                    pulseLevel;
+
+    effectCoord = task->extra.coordBody->coord;
+    effectWork  = task->spawnArg2.pointer;
+    actorRenderComposeCoord(effectCoord);
+    // Project the composed view-space centre, narrowing its translation to signed halfwords.
+    glowScratch              = SCRATCH_STACK_RESERVE_BLOCK(RoomGlowSpriteScratch);
+    glowScratch->worldPos.vx = effectCoord->workm.t[0];
+    glowScratch->worldPos.vy = effectCoord->workm.t[1];
+    glowScratch->worldPos.vz = effectCoord->workm.t[2];
 
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&block->worldPos);
+    gte_ldv0(&glowScratch->worldPos);
     gte_rtps();
-    gte_stsxy(&block->screenPos);
-    gte_stszotz(&block->otz);
-    if (block->otz >= 0x11) {
-        pulse = gDisplayState.animFrame * ((RedBeaconArg*)&arg0->spawnArg1)->pulseRate;
-        if (pulse & 0x80) {
-            level = 0x80 - (pulse & 0x7F);
+    gte_stsxy(&glowScratch->screenPos);
+    gte_stszotz(&glowScratch->otz);
+    if (glowScratch->otz >= RED_BEACON_MIN_DEPTH) {
+        // The low argument bytes set a shared triangle-wave phase and depth-scaled size.
+        // Convert the task union's signed byte view to the beacon's unsigned 0..255 values.
+        pulsePhase = gDisplayState.animFrame * (u8)task->spawnArg1.signedBytes[RED_BEACON_PULSE_RATE_BYTE];
+        if (pulsePhase & RED_BEACON_PULSE_FALLING_BIT) {
+            pulseLevel = RED_BEACON_PULSE_PEAK - (pulsePhase & RED_BEACON_PULSE_PHASE_MASK);
         } else {
-            level = pulse & 0x7F;
+            pulseLevel = pulsePhase & RED_BEACON_PULSE_PHASE_MASK;
         }
-        red               = level;
-        block->halfExtent = (((RedBeaconArg*)&arg0->spawnArg1)->size << 9) / block->otz;
-        for (i = 0; i < 2; i++) {
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, red, 0, 0);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->screenPos.vx - block->halfExtent;
-            prim->x1 = prim->x2 = block->screenPos.vx;
-            prim->x3            = block->screenPos.vx + block->halfExtent;
-            prim->y0 = prim->y2 = prim->y3 = block->screenPos.vy;
-            prim->y1                       = (block->screenPos.vy - block->halfExtent) + block->halfExtent * (i + i);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
+        redLevel                = pulseLevel;
+        glowScratch->halfExtent = ((u8)task->spawnArg1.signedBytes[RED_BEACON_SIZE_BYTE] * RED_BEACON_SIZE_UNIT) / glowScratch->otz;
+        // The centre vertex is red; black outer vertices fade both halves to their edges.
+        for (halfIndex = 0; halfIndex < RED_BEACON_DIAMOND_HALVES; halfIndex++) {
+            beaconQuad     = gGpuPrimCursor;
+            gGpuPrimCursor = beaconQuad + 1;
+            setPolyG4(beaconQuad);
+            setRGB0(beaconQuad, 0, 0, 0);
+            setRGB1(beaconQuad, 0, 0, 0);
+            setRGB2(beaconQuad, redLevel, 0, 0);
+            setRGB3(beaconQuad, 0, 0, 0);
+            _redBeaconSetHalfBounds(beaconQuad, glowScratch, halfIndex);
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)glowScratch->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                    beaconQuad);
+            gpuSetPrimitiveBlendMode(beaconQuad, GPU_BLEND_ADD, glowScratch->otz);
         }
     }
     SCRATCH_STACK_RELEASE_BLOCK(RoomGlowSpriteScratch);
-    effectKillTask(mem, arg0);
+    // Scratch is released before effect teardown can dispatch child exit handlers.
+    effectKillTask(effectWork, task);
 }

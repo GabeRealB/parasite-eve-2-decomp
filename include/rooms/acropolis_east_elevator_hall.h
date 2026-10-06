@@ -32,7 +32,23 @@ extern WorldCollisionSurfaceProperties* D_acropolis_east_elevator_hall_80187B74[
 
 void func_acropolis_east_elevator_hall_8017F5B4(Task* task);
 
-void acropolisEastElevatorHallRedBeaconTask(Task* arg0);
+/// Draws one frame of a pulsing additive red diamond, then ends the counted effect.
+///
+/// Bank-6 slot 0x22 requires a live coordinate body and owned `EffectWork` in
+/// `spawnArg2.pointer`, distinct from `Task::work`. The low two bytes of
+/// `spawnArg1` are unsigned pulse rate and size (0..255); its high half is ignored.
+/// The frame counter times the rate wraps to an 8-bit phase folded into red
+/// levels 0..128. Half extent is `size * 512 / depth` screen pixels.
+///
+/// Projects the composed translation through `GsWSMATRIX`, narrowing each
+/// component to signed 16-bit game units. Depth is SZ3 / 4 (0..16383); values
+/// below 17 queue nothing, and GTE FLAG is not tested. Requires initialized GTE
+/// projection settings, one aligned `RoomGlowSpriteScratch` block and arena
+/// room for two `POLY_G4`/`DR_TPAGE` pairs at accepted depth. The scaled depth
+/// wraps into the current 1024-tag ordering table; packets live through GPU completion.
+/// Scratch and effect work are released on every call. Keep this overlay loaded
+/// through the callback; the room respawns its six beacons while view 2 is active.
+void acropolisEastElevatorHallRedBeaconTask(Task* task);
 
 /// Initializes and updates the player's floor or mirror-plane reflection in this room.
 ///

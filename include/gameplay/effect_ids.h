@@ -110,7 +110,7 @@ enum {
     /// in view 2 of the Akropolis west elevator hall by its room task.
     EFFECT_ACROPOLIS_WEST_ELEVATOR_HALL_RED_BEACON = EFFECT_ID(EFFECT_TASK_BANK, 0x01F),
     /// Pulsing red warning light: one frame of a pair of red gradient quads whose level
-    /// pulses with animFrame (redBeaconTask); respawned at fixed points by the
+    /// pulses with animFrame (`acropolisEastElevatorHallRedBeaconTask`); respawned at fixed points by the
     /// Acropolis east elevator hall in view 2.
     EFFECT_ACROPOLIS_EAST_ELEVATOR_HALL_RED_BEACON = EFFECT_ID(EFFECT_TASK_BANK, 0x022),
     /// One-frame soft light billboard (semi-transparent POLY_FT4 shrinking with

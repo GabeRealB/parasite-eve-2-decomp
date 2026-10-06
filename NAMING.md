@@ -703,6 +703,12 @@ progress-gated light-glow task is exported by each room carrier under the full
 package prefix for gameplay's effect table. `FACTORY_DRAW_GLOWS_TASK` binds the
 shared definition to that export; rendering constants use `FACTORY_GLOW_`.
 
+`redBeacon` owns the included one-frame pulsing red diamond drawer shared by the
+Acropolis elevator halls. Its private implementation interface is
+`src/shared/red_beacon.h`; `RED_BEACON_` constants describe pulse and projection
+units. Each carrier binds `RED_BEACON_TASK` to its public package-prefixed
+task callback, which gameplay's counted room-effect table imports.
+
 ## Documentation
 
 [`include/main/mem.h`](include/main/mem.h) is the worked example. Read it before
